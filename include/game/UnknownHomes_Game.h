@@ -32,10 +32,7 @@ typedef struct _InMemBatterType {
     /*0x08*/ VecXYZ batPosition; // with x offset
     /*0x14*/ u8 _14[0x10];
     /*0x24*/ VecXYZ hitContactPos;
-    /*0x30*/ f32 rightNiceThreshold;
-    /*0x34*/ f32 rightPerfectThreshold;
-    /*0x38*/ f32 leftPerfectThreshold;
-    /*0x3C*/ f32 leftNiceThreshold;
+    /*0x30*/ f32 rightNiceThreshold[4];
     /*0x40*/ f32 contactQualityAbsolute;
     /*0x44*/ f32 contactQuality;
     /*0x48*/ f32 predictedPitchXWhenBallReachesBatter;
@@ -909,7 +906,7 @@ typedef struct _PracticeStruct {
 
 extern PracticeStruct g_Practice;
 
-#define ACTIVE_TUTORIAL (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0)
+#define ACTIVE_TUTORIAL() (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0)
 
 extern u8 buntPower[5][2];
 

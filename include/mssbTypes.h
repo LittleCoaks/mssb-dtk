@@ -126,7 +126,8 @@ typedef enum _HIT_CONTACT_TYPE {
 
 typedef enum _HIT_TYPE {
     /*   -1 */ HIT_TYPE_SLAP_NONE = -1,
-    /* 0x00 */ HIT_TYPE_SLAP_SOUR = HIT_TYPE_SLAP_NONE,
+    /* 0x00 */ HIT_TYPE_SLAP = 0,
+    /* 0x00 */ HIT_TYPE_SLAP_SOUR = HIT_TYPE_SLAP,
     /* 0x01 */ HIT_TYPE_SLAP_NICE,
     /* 0x02 */ HIT_TYPE_SLAP_PERFECT,
     /* 0x03 */ HIT_TYPE_CHARGE,

@@ -67,7 +67,6 @@ static void calculateBuntVerticalAngle_unused(void);
 
 // .text:0x00014858 size:0x35C mapped:0x806538ec
 void atBat_batter(void) {
-    f32* p;
     if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
             g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
         g_Batter.aiControlledInd = false;
@@ -304,7 +303,7 @@ void batterHumanControlled(void) {
     BOOL r26 = FALSE;
     BOOL r25 = FALSE;
     inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
         if (g_Practice._1C6 != 0 && g_Pitcher.framesUntilBallReachesBatterZ == swingSoundFrame[0][1]) {
             r26 = TRUE;
@@ -324,7 +323,7 @@ void batterHumanControlled(void) {
              g_Batter.buntStatus == BUNT_STATUS_NONE)) {
 
             // I couldn't match this without goto, this was the best I could do
-            if (ACTIVE_TUTORIAL && g_Practice._1C6 != 0) {
+            if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0) {
                 if (g_Practice._1C6 == 2) {
                     if (r26) {
                         g_Practice._1C6 = 0;
@@ -356,7 +355,7 @@ void batterHumanControlled(void) {
         if (!g_Batter.swingInd && g_Pitcher.pitcherActionState != 4 && g_Pitcher.pitcherActionState != 5 &&
             g_Batter._9C == 0) {
             if (g_Batter.buntStatus == BUNT_STATUS_NONE) {
-                if (ACTIVE_TUTORIAL && g_Practice._1C6 != 0 && r26) {
+                if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0 && r26) {
                     r27 = TRUE;
                     if (g_Practice._1C6 == 3) {
                         r25 = TRUE;
@@ -377,7 +376,7 @@ void batterHumanControlled(void) {
                     g_Batter.framesSinceStartOfSwing = 0;
                     g_Batter.isStarSwing = FALSE;
                     if (!g_d_GameSettings.minigamesEnabled) {
-                        if (inputs->buttonInput & PAD_TRIGGER_R || (ACTIVE_TUTORIAL && r25)) {
+                        if (inputs->buttonInput & PAD_TRIGGER_R || (ACTIVE_TUTORIAL() && r25)) {
                             if (lbl_800E8754[4] || g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
                                 g_Batter.isStarSwing = TRUE;
                                 g_Batter.chargeUp = 0.0f;
@@ -440,7 +439,7 @@ void batterInBoxMovement(void) {
     } else if (g_Batter.swingInd && g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
         g_Batter.batterIsBeingCentredInd = 0;
     } else {
-        if (ACTIVE_TUTORIAL) {
+        if (ACTIVE_TUTORIAL()) {
             inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
         } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                        g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
@@ -517,6 +516,21 @@ void batterInBoxMovement(void) {
     }
 }
 
+// FABRICATED
+inline void batterSetChargeDown() {
+    int d1 = (g_Batter.chargeFrames - g_Batter.frameChargeDownBegins);
+    if (d1 > g_hitShorts.frameChargeDownEnds) {
+        g_Batter.chargeDown = 0.f;
+    } else {
+        int d2 = g_hitShorts.frameChargeDownEnds - g_Batter.frameChargeDownBegins;
+
+        g_Batter.chargeDown = 1.f - (f32)d1 / (f32)(d2);
+        if (g_Batter.chargeDown < 0.f) {
+            g_Batter.chargeDown = 0.f;
+        }
+    }
+}
+
 // UNUSED .text:0x0001379C size:0x204 mapped:0x80652830
 void batterPreSwing_unused(void) {
     f32* p = lbl_3_data_4C88;
@@ -533,17 +547,7 @@ void batterPreSwing_unused(void) {
                     if (g_Batter.chargeFrames <= g_Batter.frameChargeDownBegins) {
                         g_Batter.chargeDown = 1.f;
                     } else {
-                        int d1 = (g_Batter.chargeFrames - g_Batter.frameChargeDownBegins);
-                        if (d1 > g_hitShorts.frameChargeDownEnds) {
-                            g_Batter.chargeDown = 0.f;
-                        } else {
-                            int d2 = g_hitShorts.frameChargeDownEnds - g_Batter.frameChargeDownBegins;
-
-                            g_Batter.chargeDown = 1.f - (f32)d1 / (f32)(d2);
-                            if (g_Batter.chargeDown < 0.f) {
-                                g_Batter.chargeDown = 0.f;
-                            }
-                        }
+                        batterSetChargeDown();
                     }
                     g_Batter.isFullyCharged = true;
                 }
@@ -699,9 +703,13 @@ void ifSwing(void) {
 
 // .text:0x00013008 size:0x254 mapped:0x80651e70
 void starSwingSpendStars(void) {
+    VecXYZ a;
+    u8* pStars;
     u8 miniGamesEnabled = g_d_GameSettings.minigamesEnabled;
+    int c;
+
     if (!miniGamesEnabled && g_Batter.isStarSwing && !g_Batter.starSwing_starsHaveBeenSpent) {
-        u8* pStars = &g_GameLogic.TeamStars[g_GameLogic.teamBatting];
+        pStars = &g_GameLogic.TeamStars[g_GameLogic.teamBatting];
         if (*pStars) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE ||
                 g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
@@ -728,24 +736,23 @@ void starSwingSpendStars(void) {
                     }
                 }
             }
-            g_Batter.starSwing_starsHaveBeenSpent = 1;
+            g_Batter.starSwing_starsHaveBeenSpent = TRUE;
             if (!miniGamesEnabled && g_Batter.aiControlledInd == 0) {
                 fn_3_6C854(g_GameLogic.teamBatting, 2);
             }
+
             if (g_Batter.aiControlledInd) {
                 g_AiLogic._67++;
                 g_AiLogic.starRelated[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
                 g_AiLogic.batterAIABStrat = -1;
             }
-            {
-                int c = 9;
-                VecXYZ a;
-                if (g_d_GameSettings.minigamesEnabled) {
-                    c = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
-                }
-                getAnimRelatedCoordinates(c, 26, &a);
-                fn_3_C0CE8(g_Batter.captainStarHitPitch, a.x, a.y, a.z);
+
+            c = 9;
+            if (g_d_GameSettings.minigamesEnabled) {
+                c = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
             }
+            getAnimRelatedCoordinates(c, 26, &a);
+            fn_3_C0CE8(g_Batter.captainStarHitPitch, a.x, a.y, a.z);
         }
     }
 }
@@ -872,13 +879,12 @@ void calculateIfHitBall(void) {
 
     if (ballFuturePosition - g_Batter.batPosition2.x < batContactRange[g_Batter.trimmedBat].near ||
         ballFuturePosition - g_Batter.batPosition2.x > batContactRange[g_Batter.trimmedBat].far) {
-        return;
+    } else {
+        g_Batter.hitContactPos.x = ballFuturePosition;
+        g_Batter.hitContactPos.z = batterZ;
+        g_Batter.hitContactPos.y = g_Batter.batPosition.y;
+        g_Batter.contactMadeInd = true;
     }
-
-    g_Batter.hitContactPos.x = ballFuturePosition;
-    g_Batter.hitContactPos.z = batterZ;
-    g_Batter.hitContactPos.y = g_Batter.batPosition.y;
-    g_Batter.contactMadeInd = true;
 }
 
 // .text:0x00012554 size:0x760 mapped:0x806515e8
@@ -988,9 +994,157 @@ static void fn_3_124DC(void) {
     }
 }
 
+extern u8 ballContactArray[2][5][2][2][4];
+extern f32 ContactPerfectThresholds[3][3];
+
+// fabricated
+inline f32 inv_lerp(f32 value, f32 low, f32 high)
+{
+    return (value - low) / (high - low);
+}
+
+// fabricated
+inline f32 inv_lerp2(f32 value, f32 low, f32 high)
+{
+    return 1.0f - inv_lerp(value, low, high);
+}
+
 // .text:0x00011ED0 size:0x60C mapped:0x80650f64
 void calculateContactAndHitType(void) {
+    f32 contactSize;
+    f32 chargeUp;
+    // arr[0][x] is low threshold, arr[1][x] is high threshold
+    f32 arr[2][4];
 
+    f32 xPosFromPerfect;
+    f32 contactQualityAbsolute;
+    int i, j;
+    
+    contactSize = g_Batter.contactSize_capped[BAT_CONTACT_TYPE_SLAP];
+    chargeUp = g_Batter.chargeUp;
+    if (g_Batter.captainStarSwingActivated) {
+        contactSize = 100.0f;
+        chargeUp = 0.0f;
+    }
+
+    if (g_Batter.isBunting) {
+        contactSize = g_Batter.buntingContactSize;
+    } else if (chargeUp > 0.0f) {
+        contactSize = g_Batter.contactSize_capped[BAT_CONTACT_TYPE_CHARGE];
+    } else if (g_Batter.chemLinksOnBase != 0) {
+        contactSize *= lbl_3_data_4618.chemMult[g_Batter.chemLinksOnBase - 1];
+    }
+    
+    for (j = 0; j < ARRAY_SIZE(arr); j++) {
+        for (i = 0; i < ARRAY_SIZE(*arr); i++) {
+            arr[j][i] = ballContactArray[g_Batter.trimmedBat][g_Batter.hitGeneralType][g_Batter.easyBatting][j][i];
+        }
+    }
+
+    xPosFromPerfect = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
+    
+    if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
+        xPosFromPerfect = -xPosFromPerfect;
+    }
+    if (xPosFromPerfect < 0.0f) {
+        contactQualityAbsolute =
+            -((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
+    } else {
+        contactQualityAbsolute =
+            ((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
+    }
+    
+    if (contactQualityAbsolute < 0.0f) {
+        contactQualityAbsolute = 0.0f;
+    }
+    if (contactQualityAbsolute > 200.0f) {
+        contactQualityAbsolute = 200.0f;
+    }
+    g_Batter.contactQualityAbsolute = contactQualityAbsolute;
+    
+    for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
+        g_Batter.rightNiceThreshold[i] = arr[0][i] + ((contactSize / 100.0f) * (arr[1][i] - arr[0][i]));
+    }
+    for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
+        if (g_Batter.rightNiceThreshold[i] > g_Batter.contactQualityAbsolute) {
+            break;
+        }
+    }
+    g_Batter.contactType = i;
+    
+    switch (g_Batter.contactType) {
+        case HIT_CONTACT_TYPE_RIGHT_SOUR: {
+            g_Batter.contactQuality = g_Batter.contactQualityAbsolute / g_Batter.rightNiceThreshold[0];
+        } break;
+        case HIT_CONTACT_TYPE_RIGHT_NICE: {
+            g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[0],
+                                               g_Batter.rightNiceThreshold[1]);
+        } break;
+        case HIT_CONTACT_TYPE_PERFECT: {
+            if (g_Batter.contactQualityAbsolute < 100.0f) {
+                g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
+                                                   g_Batter.rightNiceThreshold[2]);
+            } else {
+                g_Batter.contactQuality = inv_lerp2(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
+                                                    g_Batter.rightNiceThreshold[2]);
+            }
+            if (ContactPerfectThresholds[g_Batter.hitGeneralType][0] <= g_Batter.contactQualityAbsolute &&
+                ContactPerfectThresholds[g_Batter.hitGeneralType][1] >= g_Batter.contactQualityAbsolute) {
+                g_Batter.displayContactSprite = TRUE;
+            }
+        } break;
+        case HIT_CONTACT_TYPE_LEFT_NICE: {
+            g_Batter.contactQuality = inv_lerp2(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[2],
+                                                g_Batter.rightNiceThreshold[3]);
+        } break;
+        default: { // HIT_CONTACT_TYPE_LEFT_SOUR
+            // I think the inv_lerp here is correct based on the loading order for 200.0f
+            g_Batter.contactQuality =
+                inv_lerp2(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[3], 200.0f);
+        } break;
+    }
+
+    if (g_Batter.moonShotInd) {
+        if (g_Batter.contactType != HIT_CONTACT_TYPE_PERFECT) {
+            g_Batter.moonShotInd = FALSE;
+        } else {
+            g_Batter.captainStarSwingActivated = FALSE;
+        }
+    }
+
+    if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP || g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
+        int r5 = HIT_TYPE_SLAP_SOUR;
+        if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
+            r5 = HIT_TYPE_SLAP_PERFECT;
+        } else if (g_Batter.contactType == HIT_CONTACT_TYPE_RIGHT_NICE ||
+                   g_Batter.contactType == HIT_CONTACT_TYPE_LEFT_NICE) {
+            r5 = HIT_TYPE_SLAP_NICE;
+        }
+
+        if (g_Pitcher.starPitchType != 0) {
+            g_Batter.hitType = 0x12;
+        }
+        
+        if (g_Pitcher.ChargePitchType == 3) {
+            if (g_Batter.hitGeneralType == HIT_TYPE_SLAP_SOUR) {
+                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH;
+            } else {
+                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH_CHARGE;
+            }
+        } else if (g_Pitcher.TypeOfPitch == 0) {
+            if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
+                g_Batter.hitType = r5 + HIT_TYPE_SLAP;
+            } else {
+                g_Batter.hitType = r5 + HIT_TYPE_CHARGE;
+            }
+        } else {
+            if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
+                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP;
+            } else {
+                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP_CHARGE;
+            }
+        }
+    }
 }
 
 extern s16 lbl_3_data_4D94[3][2][15][2];
@@ -1003,7 +1157,7 @@ void calculateBallHorizontalAngleHit(void) {
     BOOL isCharge = TRUE;
     InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
 
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
@@ -1067,7 +1221,7 @@ void calculateBallHorizontalAngleHit(void) {
         }
     }
 
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         g_Ball.Hit_HorizontalAngle = g_Practice.practice_hitHorizontalAngle;
     } else if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE ||
                g_Practice.practiceType_2 != PRACTICE_TYPE_FIELDING) {
@@ -1217,7 +1371,7 @@ void calculateHorizontalPower(void) {
         power *= g_hitFloats.moonshotMult;
     }
 
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         g_Ball.Hit_HorizontalPower = g_Practice.practice_hitHorizontalPower;
     } else if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE ||
                g_Practice.practiceType_2 != PRACTICE_TYPE_FIELDING) {
@@ -1227,15 +1381,14 @@ void calculateHorizontalPower(void) {
 
 // UNUSED .text:0x00010A80 size:0x280 mapped:0x8064fb14
 void calculateBuntHorizontalAngle(void) {
-    int pullInd = 0;
-    InputStruct* inputs;
+    BOOL pullInd = FALSE;
     int horizAngle;
-    int lowerBunt;
     int upperBunt;
+    int lowerBunt;
     u8 contact;
-
-    inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
-    if (ACTIVE_TUTORIAL) {
+    
+    InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
+    if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
@@ -1246,34 +1399,34 @@ void calculateBuntHorizontalAngle(void) {
 
     contact = g_Batter.contactType;
 
-    upperBunt = lbl_3_data_5A64[contact][0][1] + ((g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP] *
-                                                   (lbl_3_data_5A64[contact][1][1] - lbl_3_data_5A64[contact][0][1])) /
+    upperBunt = lbl_3_data_5A64[contact][0][1] + (((lbl_3_data_5A64[contact][1][1] - lbl_3_data_5A64[contact][0][1]) *
+                                                   g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP]) /
                                                   100);
 
-    lowerBunt = lbl_3_data_5A64[contact][0][0] + ((g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP] *
-                                                   (lbl_3_data_5A64[contact][1][0] - lbl_3_data_5A64[contact][0][0])) /
+    lowerBunt = lbl_3_data_5A64[contact][0][0] + (((lbl_3_data_5A64[contact][1][0] - lbl_3_data_5A64[contact][0][0]) *
+                                                   g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP]) /
                                                   100);
 
     horizAngle = lowerBunt + (g_Ball.StaticRandomInt1 % (upperBunt - lowerBunt));
 
-    if (contact >= 1 && contact <= 3) {
+    if (contact >= HIT_CONTACT_TYPE_RIGHT_NICE && contact <= HIT_CONTACT_TYPE_LEFT_NICE) {
         if (inputs->buttonInput & INPUT_BUTTON_LEFT) {
             if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
-                pullInd = 1;
+                pullInd = TRUE;
             }
         } else if (inputs->buttonInput & INPUT_BUTTON_RIGHT) {
             if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-                pullInd = 1;
+                pullInd = TRUE;
             }
         } else {
             pullInd = g_Ball.StaticRandomInt2 % 2;
         }
-    } else if (contact == 0) {
-        pullInd = 1;
+    } else if (contact == HIT_CONTACT_TYPE_RIGHT_SOUR) {
+        pullInd = TRUE;
     }
 
-    if ((g_Batter.batterHand == BATTING_HAND_RIGHT && pullInd != 0) ||
-        (g_Batter.batterHand != BATTING_HAND_RIGHT && pullInd == 0)) {
+    if ((g_Batter.batterHand == BATTING_HAND_RIGHT && pullInd) ||
+        (g_Batter.batterHand != BATTING_HAND_RIGHT && !pullInd)) {
         if (horizAngle <= 0x800) {
             horizAngle = 0x800 - horizAngle;
         } else {
@@ -1282,7 +1435,7 @@ void calculateBuntHorizontalAngle(void) {
     }
 
     g_Ball.Hit_HorizontalAngle = fn_3_9FE6C_normalizeAngle(horizAngle);
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         g_Ball.Hit_HorizontalAngle = g_Practice.practice_hitHorizontalAngle;
     }
 }
@@ -1307,7 +1460,7 @@ static void calculateBuntVerticalAngle_unused(void) {
     
     g_Ball.Hit_VerticalAngle = contactLow + (g_Ball.StaticRandomInt1 % (contactHigh - contactLow));
 
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         g_Ball.Hit_VerticalAngle = g_Practice.practice_hitVerticalAngle;
     }
 
@@ -1333,7 +1486,7 @@ void calculateBuntHorizontalPower(void) {
     horizontal_power += min_power;
     g_Ball.Hit_HorizontalPower = horizontal_power;
 
-    if (ACTIVE_TUTORIAL) {
+    if (ACTIVE_TUTORIAL()) {
         g_Ball.Hit_HorizontalPower = g_Practice.practice_hitHorizontalPower;
     }
 }

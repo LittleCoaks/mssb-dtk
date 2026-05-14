@@ -245,9 +245,9 @@ cflags_rel = [
     "-sdata2 0",
     "-O4,p",
     "-sym on",
-    "-inline noauto",
+    "-inline auto,on,deferred",
     "-pool off",
-    "-requireprotos",
+    # "-requireprotos",
 ]
 
 config.linker_version = "GC/1.3.2"
@@ -694,7 +694,7 @@ config.libs = [
             Object(NonMatching, "game/rep_140.c"),
             Object(NonMatching, "game/rep_1C0.c"),
             Object(NonMatching, "game/rep_540.c"),
-            Object(NonMatching, "game/game_batter.c", extra_cflags=["-inline deferred", "-fp_contract on"]),
+            Object(NonMatching, "game/game_batter.c", extra_cflags=["-inline on,auto", "-fp_contract on"]),
             Object(NonMatching, "game/rep_720.c"),
             Object(NonMatching, "game/rep_868.c"),
             Object(NonMatching, "game/rep_8C8.c"),
