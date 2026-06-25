@@ -245,16 +245,17 @@ cflags_rel = [
     "-sdata2 0",
     "-O4,p",
     "-sym on",
-    "-inline auto,on,deferred",
+    "-inline deferred",
     "-pool off",
-    # "-requireprotos",
+    "-requireprotos",
+    "-fp_contract on",
 ]
 
 config.linker_version = "GC/1.3.2"
 
 
 # Helper function for Dolphin libraries
-def DolphinLib(lib_name: str, objects: List[Object], flags: str = cflags_base, extra_cflags: list[str] = []) -> Dict[str, Any]:
+def DolphinLib(lib_name: str, objects: List[Object], flags: list[str] = cflags_base, extra_cflags: list[str] = []) -> Dict[str, Any]:
     return {
         "lib": lib_name,
         "mw_version": "GC/1.2.5n",
@@ -262,7 +263,8 @@ def DolphinLib(lib_name: str, objects: List[Object], flags: str = cflags_base, e
         "host": False,
         "objects": objects,
     }
-def RuntimeLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
+
+def RuntimeLib(lib_name:str, objects:List[object], flags :list[str]= cflags_base, extra_cflags:list[str]=[]) -> Dict[str, Any]:
     return {
         "lib": lib_name,
         "mw_version": "GC/2.6",
@@ -270,7 +272,7 @@ def RuntimeLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
         "host": False,
         "objects": objects,
     }
-def MusyxLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
+def MusyxLib(lib_name:str, objects:List[object], flags :list[str]= cflags_base, extra_cflags:list[str]=[]) -> Dict[str, Any]:
     return {
         "lib": lib_name,
         "mw_version": "GC/1.3.2",
@@ -278,7 +280,7 @@ def MusyxLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
         "host": False,
         "objects": objects,
     }
-def DebuggerLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
+def DebuggerLib(lib_name:str, objects:List[object], flags :list[str]= cflags_base, extra_cflags:list[str]=[]) -> Dict[str, Any]:
     return {
         "lib": lib_name,
         "mw_version": "GC/1.2.5",
@@ -286,7 +288,7 @@ def DebuggerLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
         "host": False,
         "objects": objects,
     }
-def TRKLib(lib_name, objects, flags = cflags_base, extra_cflags=[]):
+def TRKLib(lib_name:str, objects:List[object], flags :list[str]= cflags_base, extra_cflags:list[str]=[]) -> Dict[str, Any]:
     return {
         "lib": lib_name,
         "mw_version": "GC/2.6",
@@ -694,7 +696,7 @@ config.libs = [
             Object(NonMatching, "game/rep_140.c"),
             Object(NonMatching, "game/rep_1C0.c"),
             Object(NonMatching, "game/rep_540.c"),
-            Object(NonMatching, "game/game_batter.c", extra_cflags=["-inline on,auto", "-fp_contract on"]),
+            Object(NonMatching, "game/game_batter.c"),
             Object(NonMatching, "game/rep_720.c"),
             Object(NonMatching, "game/rep_868.c"),
             Object(NonMatching, "game/rep_8C8.c"),

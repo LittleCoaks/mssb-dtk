@@ -12,7 +12,7 @@ void calculateVerticalAngle(void);
 void calculateBallHorizontalAngleHit(void);
 void calculateContactAndHitType(void);
 void calculateHitVariables(void);
-void calculateIfHitBall(void);
+extern void calculateIfHitBall(void);
 void ifBunt(void);
 void starSwingSpendStars(void);
 void ifSwing(void);

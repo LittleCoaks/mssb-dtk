@@ -61,7 +61,7 @@ typedef struct _InMemBatterType {
     /*0x82*/ u8 contactSize_capped[2];
     /*0x84*/ u8 buntingContactSize;
     /*0x85*/ u8 trajectoryPushPull;
-    /*0x85*/ u8 trajectoryHighLow;
+    /*0x86*/ u8 trajectoryHighLow;
     /*0x87*/ u8 captainStarHitPitch;
     /*0x88*/ E(u8, REGULAR_STAR_SWING) noncaptainStarSwing;
     /*0x89*/ E(u8, CHARACTER_CLASS) characterClass;
@@ -342,7 +342,7 @@ typedef struct _InMemBallType {
     /*0x1B94*/ s16 throwingFielder;      // unsure, Maybe Cut off Related
     /*0x1B96*/ s16 collisionRelated;
     /*0x1B98*/ s16 _1B98; // unused_frameHitGetsAboveY=1.3
-    /*0x1B9A*/ sAng Hit_VerticalAngle;
+    /*0x1B9A*/ s16 Hit_VerticalAngle;
     /*0x1B9C*/ sAng Hit_HorizontalAngle;
     /*0x1B9E*/ s16 Hit_HorizontalPower; // bODBasePoints
     /*0x1BA0*/ matchShorts matchFramesAndBallAngle;
@@ -2564,9 +2564,34 @@ typedef struct {
 
 extern AIStruct g_AiLogic;
 
+extern s16 CaptainStarSwingBattingVerticalAngleRanges[12][5][2];
+extern s16 NonCaptainStarSwingBattingVerticalAngleRanges[3][5][2];
+extern s16 HitVertTrajRanges[2][5][5][2];
+extern s16 bB_launchAngles[2][3];
+extern s16 lbl_3_data_54F8[2][2];
+typedef struct {
+    u8  bottom, low, mid, high, top;
+} trajZones;
+
+extern trajZones bODTrajProbabilities[5];
+extern trajZones ToyFieldBattingVerticalAngleRanges[3][2][2][5];
+extern trajZones BattingVerticalAngleRangeProbabilities[3][2][2][5];
+typedef struct {
+    u32 _0[4];
+    u32 _10;
+} trajOptions_s;
+extern trajOptions_s hitTrajOptions[]; 
+extern s16 toyFieldHitVertTraj[2][5][5][2];
+extern s16 bODHitVertTraj[5][5][2];
+extern s16 HitVertTrajRanges[2][5][5][2];
+
 extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
 extern void fn_3_6C854(int, int);
 extern void fn_3_C0CE8(int, f32, f32, f32);
 extern void playSoundEffect(int);
+extern void fn_3_8911C(void);
+extern void fn_3_88F98(void);
+extern void fn_3_5ED98(void);
+extern int RandomIndexFromWeights(u8* weights, int count);
 
 #endif // !__UNKNOWN_HOMES_H_
