@@ -372,7 +372,7 @@ int RandomInt_Game(int max) {
 }
 
 // .text:0x0009EE24 size:0x94 mapped:0x806DDEB8
-int fn_3_9EE24(int max) {
+int random_fn_3_9EE24(int max) {
     int absMax;
     int ret, r2;
     absMax = ABS(max);
@@ -407,5 +407,5 @@ f32 RandomF32_Game_Range(f32 a, f32 b) {
 
 // .text:0x0009EAE4 size:0xE8 mapped:0x806DDB78
 f32 RandomF32_UNK_Range(f32 a, f32 b) {
-    return fn_3_9EE24((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
+    return random_fn_3_9EE24((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
 }

@@ -984,11 +984,11 @@ typedef enum _GAME_STATUS {
 } GAME_STATUS;
 
 typedef enum _SCENE_ID {
-    SCENE_ID_0,
-    SCENE_ID_AT_BAT,
-    SCENE_ID_LIVE_BALL,
-    SCENE_ID_REPLAY_AT_BAT,
-    SCENE_ID_REPLAY_LIVE_BALL,
+    /* 0 */ SCENE_ID_0,
+    /* 1 */ SCENE_ID_AT_BAT,
+    /* 2 */ SCENE_ID_LIVE_BALL,
+    /* 3 */ SCENE_ID_REPLAY_AT_BAT,
+    /* 4 */ SCENE_ID_REPLAY_LIVE_BALL,
 } SCENE_ID;
 
 typedef enum _SECONDARY_GAME_MODE {
@@ -1037,8 +1037,6 @@ typedef enum _WIN_TYPE {
     WIN_TYPE_5,
     WIN_TYPE_6,
 } WIN_TYPE;
-
-extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
 
 typedef struct _LogoInfoStruct {
     int ID;
@@ -2576,10 +2574,238 @@ typedef struct {
 extern trajZones bODTrajProbabilities[5];
 extern trajZones ToyFieldBattingVerticalAngleRanges[3][2][2][5];
 extern trajZones BattingVerticalAngleRangeProbabilities[3][2][2][5];
+
 typedef struct {
     u32 _0[4];
     u32 _10;
 } trajOptions_s;
+
+typedef struct {
+    u8 _pad[0x30];
+    /* 0x030 */ f32 _030;
+    /* 0x034 */ f32 _034;
+    /* 0x038 */ f32 _038;
+    artificial_padding(0x38, 0xc0, f32);
+    /* 0x0C0 */ f32 _0C0;
+    artificial_padding(0xc0, 0xd0, f32);
+    /* 0x0D0 */ f32 _0D0;
+    /* 0x0D4 */ f32 _0D4;
+    /* 0x0D8 */ f32 _0D8;
+    /* 0x0DC */ f32 _0DC;
+    /* 0x0E0 */ s16 _0E0;
+    /* 0x0E2 */ u8 _0E2;
+    /* 0x0E2 */ u8 _0E3;
+    /* 0x0E4 */ f32 _0E4[3];
+    /* 0x0F0 */ f32 _0F0[3];
+    artificial_padding(0xf0, 0x108, f32[3]);
+    /* 0x108 */ f32 _108[3];
+    /* 0x114 */ f32 _114;
+    /* 0x118 */ s16 _118;
+    /* 0x11A */ s16 _11A;
+    /* 0x11C */ u8 _11C;
+    artificial_padding(0x11C, 0xa50, u8);
+    /* 0xA50 */ int _A50;
+    artificial_padding(0xa50, 0xa74, int);
+    /* 0xA74 */ s16 _A74;
+    /* 0xA76 */ s16 _A76;
+    /* 0xA78 */ s16 _A78;
+    /* 0xA7A */ s16 _A7A;
+    /* 0xA7C */ s16 _A7C;
+    /* 0xA7E */ s16 _A7E;
+    /* 0xA80 */ s16 _A80;
+    /* 0xA82 */ s16 _A82;
+    /* 0xA84 */ s16 _A84[4];
+    /* 0xA8C */ s16 _A8C[4];
+    /* 0xA94 */ s16 _A94;
+    /* 0xA96 */ s16 _A96;
+    /* 0xA98 */ s16 _A98;
+    /* 0xA9A */ s16 _A9A;
+    /* 0xA9C */ s16 _A9C;
+    /* 0xA9E */ s16 _A9E;
+    /* 0xAA0 */ s16 _AA0;
+    /* 0xAA2 */ s16 _AA2;
+    /* 0xAA4 */ s16 _AA4;
+    /* 0xAA6 */ s16 _AA6;
+    artificial_padding(0xaa6, 0xab4, u16);
+    /* 0xAB5 */ u8 _AB4;
+    /* 0xAB5 */ u8 _AB5;
+    /* 0xAB6 */ u8 _AB6;
+    /* 0xAB7 */ u8 _AB7;
+    /* 0xAB8 */ u8 _AB8;
+    /* 0xAB9 */ u8 _AB9;
+    /* 0xABA */ u8 _ABA;
+    /* 0xABB */ u8 _ABB[4];
+    /* 0xABF */ u8 _ABF;
+    /* 0xAC0 */ u8 _AC0[4];
+    /* 0xAC4 */ u8 _AC4;
+    /* 0xAC5 */ u8 _AC5;
+    /* 0xAC6 */ u8 _AC6;
+    artificial_padding(0xac6, 0xac8, u8);
+    /* 0xAC8 */ u8 _AC8;
+    /* 0xAC8 */ u8 _AC9;
+    /* 0xAC8 */ u8 _ACA;
+    artificial_padding(0xaca, 0xad8, u8);
+    /* 0xAD8 */ u8 _AD8;
+    artificial_padding(0xad8, 0x2812, u8);
+    /* 0x2812 */ u16 _2812;
+    /* 0x2814 */ u16 _2814;
+    /* 0x2816 */ u16 _2816;
+    /* 0x2818 */ u8 _2818;
+    /* 0x2819 */ u8 _2819;
+    /* 0x281A */ u8 _281A;
+    artificial_padding(0x281A, 0x2828, u8);
+    /* 0x2828 */ f32 _2828;
+    /* 0x282C */ f32 _282C;
+    /* 0x2830 */ f32 _2830;
+    artificial_padding(0x2830, 0x2838, f32);
+    /* 0x2838 */ u16 _2838;
+    /* 0x283A */ u16 _283A;
+    /* 0x283C */ u16 _283C;
+    /* 0x283E */ u8 _283E;
+    /* 0x283F */ u8 _283F;
+    /* 0x2840 */ f32 _2840;
+    /* 0x2844 */ f32 _2844;
+    /* 0x2848 */ f32 _2848;
+    /* 0x284C */ f32 _284C;
+    /* 0x2850 */ f32 _2850;
+    /* 0x2854 */ f32 _2854;
+    artificial_padding(0x2854, 0x2878, f32);
+    /* 0x2878 */ f32 _2878;
+    artificial_padding(0x2878,0x28a7, f32);
+    /* 0x28A7 */ u8 _28A7;
+    /* 0x28A8 */ u8 _28A8;
+} inMemCamera; // at least 0xa50;
+
+extern inMemCamera *g_pCamera;
+extern inMemCamera g_Camera;
+
+typedef struct {
+    /* 0x00 */ int strikes;
+    /* 0x04 */ int balls;
+    /* 0x08 */ int outs;
+    /* 0x0C */ int storedOuts;
+    /* 0x10 */ int forcedOutToEndInningInd; // unsure
+    /* 0x14 */ int allForcedRunnersReachedTheirBaseInd;
+    /* 0x18 */ s16 runnerIndexForEachOutThisPitch[3];
+    /* 0x1E */ s16 _1E;
+    /* 0x20 */ u8 GameControls_StrikeBallBitVector;
+    /* 0x21 */ u8 stateRelated;
+} inMemStrikes; // size: 0x24
+
+extern inMemStrikes g_Strikes;
+
+typedef struct {
+    u8 pad[0x24];
+    /* 0x0024 */ u32 playFrameCounter;
+    artificial_padding(0x24, 0x36, u32);
+    /* 0x0036 */ u8 replayInd;
+} g_Stats_s; // size: 0x4634
+
+// 0x8088a7e4
+extern g_Stats_s g_Stats;
+
+typedef struct {
+    u8 pad[0x105];
+    /* 0x105 */ u8 playerAtMoundCutoffLocation;
+    /* 0x106 */ u8 throwSpeedType;
+    /* 0x107 */ u8 _107;
+    /* 0x108 */ u8 _108;
+    /* 0x109 */ u8 _109;
+    /* 0x10A */ u8 _10A;
+    /* 0x10B */ u8 _10B;
+    /* 0x10C */ u8 _10C;
+    /* 0x10D */ u8 _10D;
+    /* 0x10E */ u8 _10E;
+    /* 0x10F */ u8 _10F;
+    /* 0x110 */ u8 _110;
+    /* 0x111 */ u8 _111;
+    /* 0x112 */ u8 _112;
+    /* 0x113 */ u8 _113;
+    /* 0x114 */ u8 _114;
+    /* 0x115 */ u8 _115;
+    /* 0x116 */ u8 _116;
+    /* 0x117 */ u8 _117;
+    /* 0x118 */ u8 _118;
+    /* 0x119 */ u8 _119;
+    /* 0x11A */ u8 _11A;
+    /* 0x11B */ u8 _11B;
+    /* 0x11C */ u8 _11C;
+    /* 0x11D */ u8 _11D;
+    /* 0x11E */ u8 _11E;
+    /* 0x11F */ u8 _11F;
+    /* 0x120 */ u8 _120;
+    /* 0x121 */ u8 _121;
+    /* 0x122 */ u8 _122;
+    /* 0x123 */ u8 _123;
+    /* 0x124 */ u8 _124;
+    /* 0x125 */ u8 _125;
+    /* 0x126 */ u8 _126;
+    /* 0x127 */ u8 _127;
+    /* 0x128 */ u8 _128;
+    /* 0x129 */ u8 _129;
+    /* 0x12A */ u8 _12A;
+    /* 0x12B */ u8 _12B;
+    /* 0x12C */ u8 _12C;
+    /* 0x12D */ u8 _12D;
+    /* 0x12E */ u8 _12E;
+    /* 0x12F */ u8 _12F;
+    /* 0x130 */ u8 _130;
+    /* 0x131 */ u8 _131;
+    /* 0x132 */ u8 _132;
+    /* 0x133 */ u8 _133;
+    /* 0x134 */ u8 _134;
+    /* 0x135 */ u8 _135;
+    /* 0x136 */ u8 _136;
+    /* 0x137 */ u8 _137;
+    /* 0x138 */ u8 _138;
+    /* 0x139 */ u8 _139;
+    /* 0x13A */ u8 _13A;
+    /* 0x13B */ u8 _13B;
+    /* 0x13C */ u8 _13C;
+    /* 0x13D */ u8 _13D;
+    /* 0x13E */ u8 _13E;
+    /* 0x13F */ u8 _13F;
+    /* 0x140 */ u8 _140;
+    /* 0x141 */ u8 _141;
+    /* 0x142 */ u8 _142;
+    /* 0x143 */ u8 _143;
+    /* 0x144 */ u8 _144;
+    /* 0x145 */ u8 _145;
+    /* 0x146 */ u8 _146;
+    /* 0x147 */ u8 _147;
+    /* 0x148 */ u8 _148;
+    /* 0x149 */ u8 _149;
+    /* 0x14A */ u8 _14A;
+    /* 0x14B */ u8 _14B;
+    /* 0x14C */ u8 _14C;
+    /* 0x14D */ u8 _14D;
+    /* 0x14E */ u8 _14E;
+    /* 0x14F */ u8 _14F;
+} g_FieldingLogic_s; // size 0x150
+
+extern g_FieldingLogic_s g_FieldingLogic;
+
+typedef struct {
+    /* 0x0 */ s16 _0;
+    /* 0x2 */ s16 _2;
+    /* 0x4 */ s16 _4;
+} lbl_3_common_bss_32A94_s;
+
+extern lbl_3_common_bss_32A94_s lbl_3_common_bss_32A94;
+
+typedef struct {
+    u8 pad[0xa0];
+    /* 0x00A0 */ f32 _00A0;
+    artificial_padding(0xa0, 0x9ac, f32);
+    /* 0x09AC */ u8 _09AC;
+} lbl_3_common_bss_DE94_s2;
+
+typedef struct {
+    lbl_3_common_bss_DE94_s2* _0000;
+} lbl_3_common_bss_DE94_s; // size: 0x2AF4
+
+extern lbl_3_common_bss_DE94_s lbl_3_common_bss_DE94;
+
 extern trajOptions_s hitTrajOptions[]; 
 extern s16 toyFieldHitVertTraj[2][5][5][2];
 extern s16 bODHitVertTraj[5][5][2];
@@ -2587,11 +2813,11 @@ extern s16 HitVertTrajRanges[2][5][5][2];
 
 extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
 extern void fn_3_6C854(int, int);
-extern void fn_3_C0CE8(int, f32, f32, f32);
 extern void playSoundEffect(int);
-extern void fn_3_8911C(void);
-extern void fn_3_88F98(void);
 extern void fn_3_5ED98(void);
 extern int RandomIndexFromWeights(u8* weights, int count);
+extern void fn_3_FBDAC(int);
+extern void fn_3_FBE24(void);
+extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
 
 #endif // !__UNKNOWN_HOMES_H_

@@ -2,10 +2,7 @@
 #define __UNKNOWN_HOMES_STATIC_H_
 
 #include "mssbtypes.h"
-
-extern int fn_8001C67C_animation(int, int);
-
-extern f32 LinearInterpolateToNewRange(f32 value, f32 prevMin, f32 prevMax, f32 nextMin, f32 nextMax);
+#include "Dolphin/mtx.h"
 
 typedef struct _GameInitVariables {
     /*0x00*/ int _00;
@@ -47,5 +44,22 @@ typedef struct _GameInitVariables {
 } GameInitVariables; // size: 0x58
 
 extern GameInitVariables g_d_GameSettings;
+
+typedef struct {
+    /*0x00*/ Mtx44 proj;
+    /*0x40*/ Mtx view;
+    /*0x70*/ Vec eye;
+    /*0x7C*/ Vec target;
+    /*0x88*/ Vec Up;
+    artificial_padding(0x88, 0xa4, Vec);
+    /*0xA4*/ f32 zoom; // unsure
+} camera_803c639c_s; // size: 0xA8
+
+typedef void (*fn_800528AC_parameter)(camera_803c639c_s*);
+
+extern void fn_800528AC(fn_800528AC_parameter);
+extern camera_803c639c_s* fn_80052768(int);
+extern int fn_8001C67C_animation(int, int);
+extern f32 LinearInterpolateToNewRange(f32 value, f32 prevMin, f32 prevMax, f32 nextMin, f32 nextMax);
 
 #endif // !__UNKNOWN_HOMES_STATIC_H_

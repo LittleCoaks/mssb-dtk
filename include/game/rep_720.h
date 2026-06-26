@@ -2,8 +2,9 @@
 #define __GAME_rep_720_H_
 
 #include "mssbTypes.h"
+#include "static/UnknownHomes_Static.h"
 
-void fn_3_14BB4(void);
+void fn_3_14BB4(camera_803c639c_s*);
 void fn_3_14E1C(void);
 void fn_3_14E50(void);
 void fn_3_14E84(void);
@@ -14,19 +15,19 @@ void fn_3_14F68(void);
 void fn_3_14FC8(void);
 void fn_3_15004(void);
 void fn_3_150C0(void);
-void fn_3_15144(void);
-void fn_3_15220(void);
-void fn_3_1527C(void);
-void fn_3_152E8(void);
-void fn_3_1537C(void);
-void fn_3_153F0(void);
-void fn_3_15458(void);
-void fn_3_154C4(void);
+void fn_3_15144(int arg);
+void fn_3_15220(int arg);
+void fn_3_1527C(int arg);
+void fn_3_152E8(int arg);
+void fn_3_1537C(int arg);
+void fn_3_153F0(int arg);
+void fn_3_15458(int arg);
+void fn_3_154C4(int arg);
 void fn_3_15524(void);
 void fn_3_15A98(void);
 void fn_3_15D28(void);
 void fn_3_15D64(void);
-void fn_3_15D7C(void);
+void fn_3_15D7C(u8 b);
 void fn_3_15D90(void);
 void fn_3_15F18(void);
 void fn_3_15F38(void);
@@ -39,7 +40,7 @@ void fn_3_16034(void);
 void fn_3_16058(void);
 void fn_3_161C0(void);
 void fn_3_16328(void);
-void fn_3_164A8(void);
+int fn_3_164A8(void);
 void fn_3_1650C(void);
 void fn_3_166F4(void);
 void fn_3_16900(void);
@@ -63,7 +64,7 @@ void fn_3_197E8(void);
 void fn_3_19B3C(void);
 void fn_3_19CB0(void);
 void fn_3_19FA4(void);
-void fn_3_1AE44(void);
+void fn_3_1AE44(u8 arg4, u16 arg5, f32 arg1, f32 arg2, f32 arg3);
 void fn_3_1AEB8(void);
 void fn_3_1B17C(void);
 void fn_3_1B370(void);
@@ -72,7 +73,7 @@ void fn_3_1C0B0(void);
 void fn_3_1C130(void);
 void fn_3_1C1B0(void);
 void fn_3_1C684(void);
-void fn_3_1C898(void);
+u8 fn_3_1C898(void);
 void fn_3_1C8A8(void);
 void fn_3_1C8AC(void);
 void fn_3_1CAC0(void);

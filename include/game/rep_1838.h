@@ -14,7 +14,7 @@
 f32 RandomF32_UNK_Range(f32 a, f32 b);
 f32 RandomF32_Game_Range(f32 a, f32 b);
 int RandomInt_Game_Range(int min, int max);
-int fn_3_9EE24(int max);
+int random_fn_3_9EE24(int max);
 int RandomInt_Game(int max);
 // void static_clamp(void);
 f32 fn_3_9EFD0(VecXYZ* a, VecXYZ* b, VecXYZ* c, VecXYZ* d);

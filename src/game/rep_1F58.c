@@ -22,7 +22,7 @@ void fn_3_C0C4C(void) {
 }
 
 // .text:0x000C0CE8 size:0x28 mapped:0x806FFD7C
-void fn_3_C0CE8(void) {
+void fn_3_C0CE8(int, f32, f32, f32) {
     return;
 }
 
@@ -60,4 +60,3 @@ void fn_3_C1344(void) {
 void fn_3_C1770(void) {
     return;
 }
-

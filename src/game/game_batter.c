@@ -7,6 +7,8 @@
 #include "game/rep_540.h"
 #include "game/rep_1188.h"
 #include "game/rep_8C8.h"
+#include "game/rep_1F58.h"
+#include "game/rep_13B8.h"
 #include "musyx/musyx.h"
 
 // probably in data
@@ -1801,7 +1803,7 @@ void calculateBallVelocityAcceleration(void) {
 }
 
 // UNUSED .text:0x000102C8 size:0x1A8 mapped:0x8064f35c
-void starHitSetting_unused(void) {
+static void starHitSetting_unused(void) {
     E(u8, CAPTAIN_STAR_TYPE) starType = (s8)g_Batter.captainStarSwingActivated;
     g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = false;
     g_Ball.currentStarSwing2 = g_Ball.currentStarSwing = starType;
