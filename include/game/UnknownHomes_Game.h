@@ -15,6 +15,37 @@
 #define PLAYERS_PER_TEAM (9)
 #define TEAMS_PER_GAME (2)
 
+#define VEC_ADD(dst, a, b)  \
+(dst)->x = (a)->x + (b)->x; \
+(dst)->y = (a)->y + (b)->y; \
+(dst)->z = (a)->z + (b)->z
+
+#define VEC_SUB(dst, a, b)  \
+(dst)->x = (a)->x - (b)->x; \
+(dst)->y = (a)->y - (b)->y; \
+(dst)->z = (a)->z - (b)->z
+
+#define VEC_SCALE(dst, src, scale) \
+(dst)->x = (src)->x * (scale); \
+(dst)->y = (src)->y * (scale); \
+(dst)->z = (src)->z * (scale)
+
+#define VEC_MULT(dst, a, b) \
+(dst)->x = (a)->x * (b)->x; \
+(dst)->y = (a)->y * (b)->y; \
+(dst)->z = (a)->z * (b)->z
+
+#define VEC_COPY(dst, src) \
+(dst)->x = (src)->x; \
+(dst)->y = (src)->y; \
+(dst)->z = (src)->z
+
+#define VEC_DISTANCE(a, b) \
+dolsqrtf2(                 \
+    SQ((a)->x - (b)->x) +  \
+    SQ((a)->y - (b)->y) +  \
+    SQ((a)->z - (b)->z))
+
 typedef struct _VecXZ {
     f32 x, z;
 } VecXZ;
@@ -1058,7 +1089,7 @@ typedef struct _GameControlsStruct {
     /*0x0E4*/ u32 runnerAIInd[2];
     /*0x0EC*/ u32 teams[2]; // vague name, unsure
     /*0x0F4*/ s32 Team_CaptainRosterLoc[2];
-    /*0x0FC*/ s16 FrameCountOfCurrentPitch;
+    /*0x0FC*/ u16 FrameCountOfCurrentPitch;
     /*0x0FE*/ s16 FrameCountOfCurrentAtBat_Copy;
     /*0x100*/ s16 CountdownUntilFade;
     /*0x102*/ s16 _102;
@@ -2581,7 +2612,11 @@ typedef struct {
 } trajOptions_s;
 
 typedef struct {
-    u8 _pad[0x30];
+    u8 _pad[0x4];
+    /* 0x004 */ s16 _0004[5];
+    artificial_padding(0x4, 0x12, s16[5]);
+    /* 0x030 */ u8 _0012;
+    artificial_padding(0x12, 0x30, u8);
     /* 0x030 */ f32 _030;
     /* 0x034 */ f32 _034;
     /* 0x038 */ f32 _038;
@@ -2597,7 +2632,7 @@ typedef struct {
     /* 0x0E2 */ u8 _0E3;
     /* 0x0E4 */ f32 _0E4[3];
     /* 0x0F0 */ f32 _0F0[3];
-    artificial_padding(0xf0, 0x108, f32[3]);
+    /* 0x0FC */ f32 _0FC[3];
     /* 0x108 */ f32 _108[3];
     /* 0x114 */ f32 _114;
     /* 0x118 */ s16 _118;
@@ -2646,10 +2681,11 @@ typedef struct {
     /* 0xAC8 */ u8 _ACA;
     artificial_padding(0xaca, 0xad8, u8);
     /* 0xAD8 */ u8 _AD8;
-    artificial_padding(0xad8, 0x2812, u8);
-    /* 0x2812 */ u16 _2812;
-    /* 0x2814 */ u16 _2814;
-    /* 0x2816 */ u16 _2816;
+    artificial_padding(0xad8, 0x2810, u8);
+    /* 0x2810 */ s16 _2810;
+    /* 0x2812 */ s16 _2812;
+    /* 0x2814 */ s16 _2814;
+    /* 0x2816 */ s16 _2816;
     /* 0x2818 */ u8 _2818;
     /* 0x2819 */ u8 _2819;
     /* 0x281A */ u8 _281A;
@@ -2663,15 +2699,13 @@ typedef struct {
     /* 0x283C */ u16 _283C;
     /* 0x283E */ u8 _283E;
     /* 0x283F */ u8 _283F;
-    /* 0x2840 */ f32 _2840;
-    /* 0x2844 */ f32 _2844;
-    /* 0x2848 */ f32 _2848;
-    /* 0x284C */ f32 _284C;
-    /* 0x2850 */ f32 _2850;
-    /* 0x2854 */ f32 _2854;
-    artificial_padding(0x2854, 0x2878, f32);
+    /* 0x2840 */ VecXYZ _2840;
+    /* 0x284C */ VecXYZ _284C;
+    artificial_padding(0x284C, 0x2878, VecXYZ);
     /* 0x2878 */ f32 _2878;
-    artificial_padding(0x2878,0x28a7, f32);
+    artificial_padding(0x2878,0x2884, f32);
+    /* 0x2884 */ VecXYZ _2884;
+    artificial_padding(0x2884, 0x28a7, VecXYZ);
     /* 0x28A7 */ u8 _28A7;
     /* 0x28A8 */ u8 _28A8;
 } inMemCamera; // at least 0xa50;

@@ -8,6 +8,13 @@ extern int lbl_3_bss_44;
 extern f32 lbl_3_data_1348[12][12];
 extern s16 lbl_3_data_16C0;
 extern s16 lbl_3_data_A38[2];
+typedef struct {
+    /* 0x00 */ VecXYZ _00;
+    /* 0x0C */ f32 _0C;
+    /* 0x10 */ s16 _10[2];
+} lbl_3_data_A40_s;
+extern lbl_3_data_A40_s lbl_3_data_A40[];
+extern lbl_3_data_A40_s lbl_3_data_16AC[1];
 
 // .text:0x0001CE90 size:0x9DC mapped:0x8065BF24
 void fn_3_1CE90(void) {
@@ -45,17 +52,19 @@ void fn_3_1CBCC(void) {
 // .text:0x0001CAC0 size:0x10C mapped:0x8065BB54
 void fn_3_1CAC0(void) {
     camera_803c639c_s* p = fn_80052768(g_pCamera->_28A8);
-    p->eye.x = g_pCamera->_2840;
-    p->eye.y = -g_pCamera->_2844;
-    p->eye.z = g_pCamera->_2848;
+    p->eye.x = g_pCamera->_2840.x;
+    p->eye.y = -g_pCamera->_2840.y;
+    p->eye.z = g_pCamera->_2840.z;
 
-    p->target.x = g_pCamera->_284C;
-    p->target.y = -g_pCamera->_2850;
-    p->target.z = g_pCamera->_2854;
+    p->target.x = g_pCamera->_284C.x;
+    p->target.y = -g_pCamera->_284C.y;
+    p->target.z = g_pCamera->_284C.z;
+
     if (lbl_3_common_bss_DE94._0000->_09AC == 0) {
         p->zoom = g_pCamera->_2878;
     } else {
-        p->zoom = 36.0 / tan(lbl_3_common_bss_DE94._0000->_00A0 * (1 / (PI / 180.f)) / (2 * (180.f / PI))) / 2.0 / 74.0;
+        p->zoom =
+            36.0 / tan(lbl_3_common_bss_DE94._0000->_00A0 * (1.f / (PI / 180.f)) / (2.f * (180.f / PI))) / 2.0 / 74.0;
     }
 }
 
@@ -158,8 +167,33 @@ void fn_3_19CB0(void) {
 }
 
 // .text:0x00019B3C size:0x174 mapped:0x80658BD0
-void fn_3_19B3C(void) {
-    return;
+void fn_3_19B3C(int arg, f32* arg2) {
+    int sp8[4];
+    int i;
+    
+    for (i = 0; i < g_pCamera->_0012; i++) {
+        sp8[i] = lbl_3_data_A40[g_pCamera->_0004[i]]._10[arg];
+    }
+
+    if (arg != 0) {
+        for (i = 0; i < g_pCamera->_0012; i++) {
+            arg2[i] = sp8[i];
+        }
+    } else {
+        int total = sp8[0];
+
+        arg2[0] = total;
+        for (i = 1; i < g_pCamera->_0012; i++) {
+            if (sp8[i] - sp8[i - 1] > 0x800) {
+                total -= 0x1000 - (sp8[i] - sp8[i - 1]);
+            } else if (sp8[i] - sp8[i - 1] < -0x800) {
+                total += 0x1000 + (sp8[i] - sp8[i - 1]);
+            } else {
+                total += (sp8[i] - sp8[i - 1]);
+            }
+            arg2[i] = total;
+        }
+    }
 }
 
 // .text:0x000197E8 size:0x354 mapped:0x8065887C
@@ -183,7 +217,39 @@ void fn_3_19770(void) {
 
 // .text:0x000195BC size:0x1B4 mapped:0x80658650
 void fn_3_195BC(void) {
-    return;
+    int j;
+    int i;
+    inMemCamera* cam = g_pCamera;
+    const int count = 10;
+    f32 sp8[3];
+    sp8[0] = sp8[1] = sp8[2] = 0.f;
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < count; j++) {
+            if (i == 1 && (&g_Ball.pastCoordinates[j].x)[i] < 1.f) {
+                sp8[i] += 1.f;
+            } else {
+                sp8[i] += (&g_Ball.pastCoordinates[j].x)[i];
+            }
+        }
+        sp8[i] *= (1.f / count);
+    }
+
+    cam->_0FC[0] = sp8[0];
+    cam->_0FC[1] = sp8[1] * 0.85f;
+    cam->_0FC[2] = sp8[2];
+
+    if (g_pCamera->_11A == 1) {
+        cam->_0F0[0] = cam->_0FC[0];
+        cam->_0F0[1] = cam->_0FC[1];
+        cam->_0F0[2] = cam->_0FC[2];
+    } else {
+        sp8[0] = (cam->_0FC[0] - cam->_0F0[0]) * 0.2f;
+        sp8[1] = (cam->_0FC[1] - cam->_0F0[1]) * 0.2f;
+        sp8[2] = (cam->_0FC[2] - cam->_0F0[2]) * 0.2f;
+        
+        VEC_ADD((Vec*)&cam->_0F0, (Vec*)&cam->_0F0, (Vec*)&sp8);
+    }
 }
 
 // .text:0x000193E8 size:0x1D4 mapped:0x8065847C
@@ -227,12 +293,12 @@ void fn_3_1785C(void) {
 
 // .text:0x00017804 size:0x58 mapped:0x80656898
 void fn_3_17804(void) {
-    g_pCamera->_2840 = 0.0f;
-    g_pCamera->_2844 = 0.0f;
-    g_pCamera->_2848 = 0.0f;
-    g_pCamera->_284C = 0.0f;
-    g_pCamera->_2850 = 0.0f;
-    g_pCamera->_2854 = 1.0f;
+    g_pCamera->_2840.x = 0.0f;
+    g_pCamera->_2840.y = 0.0f;
+    g_pCamera->_2840.z = 0.0f;
+    g_pCamera->_284C.x = 0.0f;
+    g_pCamera->_284C.y = 0.0f;
+    g_pCamera->_284C.z = 1.0f;
     g_pCamera->_2878 = 1.0f;
 }
 
@@ -250,14 +316,74 @@ void fn_3_17760(void) {
         g_Camera._2816 = lbl_3_data_16C0;
         g_Camera._281A = 2;
         g_Camera._2814 = 0;
-    } else if (g_Camera._2819 == 0) {
+    }
+    if (g_Camera._2818 != 0) {
         fn_3_1731C();
     }
 }
 
 // .text:0x0001731C size:0x444 mapped:0x806563B0
 void fn_3_1731C(void) {
-    return;
+    lbl_3_data_A40_s* r30 = &lbl_3_data_16AC[g_Camera._2810];
+    if (g_Camera._2812 < S16_MAX - 1) {
+        g_Camera._2812++;
+    } else {
+        g_Camera._2812 = S16_MAX;
+    }
+
+    if (g_Camera._2814 < S16_MAX - 1) {
+        g_Camera._2814++;
+    } else {
+        g_Camera._2814 = S16_MAX;
+    }
+
+    {
+        Vec _V;
+        f32 dist = VEC_DISTANCE(&g_pCamera->_284C, &g_pCamera->_2840);
+        f32 c_x;
+        f32 angxRad;
+        f32 angyRad = shortAngleToRad_Capped(r30->_10[1]);
+        f32 f28 = COSF(angyRad) * dist;
+        f32 s_x;
+        _V.y = SINF(angyRad) * dist;
+        angxRad = shortAngleToRad_Capped(r30->_10[0]);
+        c_x = COSF(angxRad);
+        s_x = SINF(angxRad);
+        _V.x = c_x * f28;
+        _V.z = s_x * f28;
+        if (g_Camera._281A == 1) {
+            VEC_COPY(&g_pCamera->_2840, &r30->_00);
+            VEC_ADD(&g_pCamera->_284C, &r30->_00, &_V);
+            g_pCamera->_2878 = r30->_0C;
+        } else {
+            Vec v;
+            f32 tmp;
+            f32 ratio = (f32)g_Camera._2814 / (f32)g_Camera._2816;
+            if (g_Camera._281A == 2) {
+                ratio = 1.f - ratio;
+            }
+            VEC_SUB(&v, &r30->_00, &g_pCamera->_2840);
+            VEC_SCALE(&v, &v, ratio);
+            VEC_ADD(&g_pCamera->_2840, &g_pCamera->_2840, &v);
+
+            VEC_ADD(&v, &_V, &r30->_00);
+            VEC_SUB(&v, &v, &g_pCamera->_284C);
+            VEC_SCALE(&v, &v, ratio);
+            VEC_ADD(&g_pCamera->_284C, &g_pCamera->_284C, &v);
+
+            tmp = r30->_0C - g_pCamera->_2878;
+            g_pCamera->_2878 += tmp * ratio;
+
+            if (g_Camera._2814 >= g_Camera._2816) {
+                if (g_Camera._281A == 0) {
+                    g_Camera._281A = 1;
+                    g_Camera._2814 = 0;
+                } else {
+                    g_Camera._2818 = 0;
+                }
+            }
+        }
+    }
 }
 
 // .text:0x00017110 size:0x20C mapped:0x806561A4
@@ -272,7 +398,30 @@ void fn_3_16F04(void) {
 
 // .text:0x00016D6C size:0x198 mapped:0x80655E00
 void fn_3_16D6C(void) {
-    return;
+    if (g_Minigame.bOD_hitFinishedInd != 0) {
+        VEC_SCALE(&g_pCamera->_2884, &g_pCamera->_2884, 0.95f);
+        VEC_ADD(&g_pCamera->_284C, &g_pCamera->_284C, &g_pCamera->_2884);
+    } else {
+        Vec v;
+        Vec b;
+        VEC_COPY(&g_pCamera->_2884, &g_pCamera->_284C);
+        VEC_COPY(&b, &g_Ball.AtBat_Contact_BallPos);
+
+        b.y *= 0.75f;
+        
+        if (b.y < 0) {
+            b.y = 0.f;
+        }
+
+        VEC_COPY(&v, &g_pCamera->_284C);
+        VEC_SCALE(&v, &v, 9.f);
+
+        g_pCamera->_284C.x = (b.x + v.x) * 0.1f;
+        g_pCamera->_284C.y = (b.y + v.y) * 0.1f;
+        g_pCamera->_284C.z = (b.z + v.z) * 0.1f;
+
+        VEC_SUB(&g_pCamera->_2884, &g_pCamera->_284C, &g_pCamera->_2884);
+    }
 }
 
 // .text:0x00016BA0 size:0x1CC mapped:0x80655C34
@@ -317,19 +466,46 @@ int fn_3_164A8(void) {
 
 // .text:0x00016328 size:0x180 mapped:0x806553BC
 void fn_3_16328(void) {
-    return;
+    GameInitVariables* settings = &g_d_GameSettings;
+
+    if (g_GameLogic.FrameCountOfCurrentPitch <= 1) {
+        if (settings->GameModeSelected == GAME_TYPE_CHALLENGE) {
+            fn_3_FBDAC(settings->StadiumID + 0x39);
+        } else if (settings->GameModeSelected == GAME_TYPE_MINIGAMES) {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x24 + fn_3_164A8());
+        } else if (settings->GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x24 + fn_3_164A8());
+        } else {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 8 + settings->StadiumID);
+        }
+    }
+    fn_3_FD670();
 }
 
 // .text:0x000161C0 size:0x168 mapped:0x80655254
-void fn_3_161C0(void) {
-    return;
+void fn_3_161C0(void) {    
+    if (g_GameLogic.FrameCountOfCurrentPitch == 0) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x2b + fn_3_164A8());
+        } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x2b + fn_3_164A8());
+        } else {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0xf + g_d_GameSettings.StadiumID);
+        }
+    }
+    fn_3_FD670();
 }
 
 // .text:0x00016058 size:0x168 mapped:0x806550EC
 void fn_3_16058(void) {
-    if (g_GameLogic.FrameCountOfCurrentPitch <= 1)
-    {
-
+    if (g_GameLogic.FrameCountOfCurrentPitch <= 1) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x32 + fn_3_164A8());
+        } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x32 + fn_3_164A8());
+        } else {
+            fn_3_FBDAC(random_fn_3_9EE24(0) + 0x16 + g_d_GameSettings.StadiumID);
+        }
     }
     fn_3_FD670();
 }

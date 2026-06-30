@@ -8,7 +8,7 @@
 
 // used to pad structs when there are unused variables/still filling out the struct
 #define artificial_padding(lastOffset, currentOffset, typeOfLastMember) \
-u8 __##currentOffset##padding[(currentOffset) - (lastOffset) - sizeof(typeOfLastMember)]
+u8 __##currentOffset##padding[((currentOffset) - (lastOffset) - sizeof(typeOfLastMember)) * (((currentOffset) - (lastOffset) - sizeof(typeOfLastMember)) > 0)]
 
 #define S8_MAX (0x7F)
 #define S8_MIN (-0x80)
