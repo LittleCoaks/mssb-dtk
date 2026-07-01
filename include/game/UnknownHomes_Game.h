@@ -302,6 +302,13 @@ typedef struct _matchShorts {
     /*0x1C*/ s16 framesInsidePlant;
 } matchShorts;
 
+typedef enum{
+    /* 0x0*/ BALL_STATE_HIT,
+    /* 0x1*/ BALL_STATE_HELD,
+    /* 0x2*/ BALL_STATE_THROWN,
+    /* 0x3*/ BALL_STATE_LOOSE,
+} BallStateE;
+
 typedef struct _InMemBallType {
     /*0x0000*/ VecXYZ AtBat_Contact_BallPos;
     /*0x000C*/ VecXYZ offsetWhilePickedUpHistory[4];
@@ -388,7 +395,7 @@ typedef struct _InMemBallType {
     /*0x1BC6*/ u8 ballInitialHitDoneInd;
     /*0x1BC7*/ u8 howFoulTheBallWillBe;
     /*0x1BC8*/ u8 always0_fairFoulRelated;
-    /*0x1BC9*/ u8 ballState;
+    /*0x1BC9*/ E(u8, BallStateE) ballState;
     /*0x1BCA*/ u8 ballIsLooseInd_unused;
     /*0x1BCB*/ u8 IsAntichemistryThrow;
     /*0x1BCC*/ u8 hitWallInd;
@@ -2612,7 +2619,8 @@ typedef struct {
 } trajOptions_s;
 
 typedef struct {
-    u8 _pad[0x4];
+    /* 0x000 */ s16 _0000;
+    /* 0x002 */ u16 _0002;
     /* 0x004 */ s16 _0004[5];
     artificial_padding(0x4, 0x12, s16[5]);
     /* 0x030 */ u8 _0012;
@@ -2689,26 +2697,40 @@ typedef struct {
     /* 0x2818 */ u8 _2818;
     /* 0x2819 */ u8 _2819;
     /* 0x281A */ u8 _281A;
-    artificial_padding(0x281A, 0x2828, u8);
+    /* 0x281C */ f32 _281C;
+    /* 0x2820 */ f32 _2820;
+    /* 0x2820 */ f32 _2824;
     /* 0x2828 */ f32 _2828;
     /* 0x282C */ f32 _282C;
     /* 0x2830 */ f32 _2830;
-    artificial_padding(0x2830, 0x2838, f32);
-    /* 0x2838 */ u16 _2838;
-    /* 0x283A */ u16 _283A;
-    /* 0x283C */ u16 _283C;
+    /* 0x2834 */ f32 _2834;
+    /* 0x2838 */ s16 _2838;
+    /* 0x283A */ s16 _283A;
+    /* 0x283C */ s16 _283C;
     /* 0x283E */ u8 _283E;
     /* 0x283F */ u8 _283F;
     /* 0x2840 */ VecXYZ _2840;
     /* 0x284C */ VecXYZ _284C;
-    artificial_padding(0x284C, 0x2878, VecXYZ);
+    /* 0x2858 */ f32 _2858;
+    /* 0x285C */ f32 _285C;
+    /* 0x2860 */ f32 _2860;
+    artificial_padding(0x2860, 0x2870, f32);
+    /* 0x2870 */ f32 _2870;
+    /* 0x2874 */ f32 _2874;
     /* 0x2878 */ f32 _2878;
-    artificial_padding(0x2878,0x2884, f32);
+    /* 0x287C */ f32 _287C;
+    /* 0x2870 */ f32 _2880;
     /* 0x2884 */ VecXYZ _2884;
-    artificial_padding(0x2884, 0x28a7, VecXYZ);
+    /* 0x2890 */ f32 _2890;
+    /* 0x2890 */ f32 _2894;
+    /* 0x2890 */ f32 _2898;
+    /* 0x289E */ s16 _289C;
+    /* 0x289E */ s16 _289E;
+    artificial_padding(0x289e, 0x28a6, s16);
+    /* 0x28A6 */ u8 _28A6;
     /* 0x28A7 */ u8 _28A7;
     /* 0x28A8 */ u8 _28A8;
-} inMemCamera; // at least 0xa50;
+} inMemCamera;
 
 extern inMemCamera *g_pCamera;
 extern inMemCamera g_Camera;

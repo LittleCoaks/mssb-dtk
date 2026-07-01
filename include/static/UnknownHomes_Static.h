@@ -58,7 +58,7 @@ typedef struct {
 typedef void (*fn_800528AC_parameter)(camera_803c639c_s*);
 
 extern void fn_800528AC(fn_800528AC_parameter);
-extern camera_803c639c_s* fn_80052768(int);
+extern camera_803c639c_s* fn_80052768_getCamera(int);
 extern int fn_8001C67C_animation(int, int);
 extern f32 LinearInterpolateToNewRange(f32 value, f32 prevMin, f32 prevMax, f32 nextMin, f32 nextMax);
 

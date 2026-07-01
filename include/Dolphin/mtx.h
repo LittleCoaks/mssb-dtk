@@ -82,6 +82,7 @@ void PSMTX44RotTrig(Mtx44 m, char axis, f32 s, f32 c);
 void C_MTXPerspective(Mtx44 mtx, f32 fovY, f32 aspect, f32 n, f32 f);
 void C_MTXOrtho(Mtx44 mtx, f32 t, f32 b, f32 l, f32 r, f32 n, f32 f);
 u32 C_MTX44Inverse(const Mtx44 src, Mtx44 dst);
+void C_MTXFrustum(Mtx44 m, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6);
 ////////////////////////////////////////////
 
 ///////// CODED C MATRIX FUNCTIONS /////////

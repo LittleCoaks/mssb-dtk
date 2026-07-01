@@ -218,7 +218,7 @@ f32 fn_3_9FAA4(f32 x, f32 y) {
 }
 
 // .text:0x0009F9C8 size:0xDC mapped:0x806DEA5C
-void fn_3_9F9C8(s16 ang, f32* x, f32* y) {
+void getComponentsFromSAng(s16 ang, f32* x, f32* y) {
     f32 v;
     if (ang < 0) {
         ang += SANG_ANG_360;

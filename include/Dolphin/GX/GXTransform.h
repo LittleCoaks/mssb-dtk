@@ -33,7 +33,7 @@ extern void GXGetScissorBoxOffset(int xOffset, int yOffset);
 extern void GXSetClipMode(GXClipMode mode);
 
 // Unused/inlined in P2.
-extern void GXProject(f32 x, f32 y, f32 z, Mtx viewMtx, f32* projMtx, f32* viewport, f32* screenX, f32* screenY, f32* screenZ);
+extern void GXProject(f32 x, f32 y, f32 z, const Mtx mtx, const f32* pm, const f32* vp, f32* sx, f32* sy, f32* sz);
 extern void GXGetProjectionv(f32* ptr);
 extern void GXLoadPosMtxIndx(u16 index, u32 id);
 extern void GXLoadNrmMtxImm3x3(Mtx33, u32 id);

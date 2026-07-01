@@ -22,7 +22,7 @@ bool calculateLineIntersection(VecXZ* out, VecXZ* a, VecXZ* b);
 void normalizeVector(VecXYZ* out, VecXYZ* v);
 void fn_3_9F79C(f32 a, f32 b, f32 c, f32* x, f32* y);
 void getComponentsFromRad(f32 v, f32* x, f32* y);
-void fn_3_9F9C8(s16 ang, f32* x, f32* y);
+void getComponentsFromSAng(s16 ang, f32* x, f32* y);
 f32 fn_3_9FAA4(f32 x, f32 y);
 f32 game_atan2(f32 x, f32 y);
 s16 fn_3_9FB8C(f32 x, f32 y);
