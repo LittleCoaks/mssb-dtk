@@ -30,6 +30,8 @@ from tools.project import (
 DEFAULT_VERSION = 0
 VERSIONS = [
     "GYQE01",  # 0
+    "US_DEMO",  # 1
+    "JP_DEMO",  # 2
 ]
 
 parser = argparse.ArgumentParser()
@@ -246,7 +248,7 @@ cflags_rel = [
     "-O4,p",
     "-sym on",
     "-inline deferred",
-    "-pool off",
+    # "-pool off",
     "-requireprotos",
     "-fp_contract on",
 ]
@@ -689,8 +691,6 @@ config.libs = [
         "game",
         [
             Object(NonMatching, "game/rep_0.c"),
-            Object(NonMatching, "game/rep_8.c"),
-            Object(NonMatching, "game/rep_10.c"),
             Object(NonMatching, "game/rep_60.c"),
             Object(NonMatching, "game/rep_D0.c"),
             Object(NonMatching, "game/rep_140.c"),

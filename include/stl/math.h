@@ -142,7 +142,11 @@ static inline f32 dolsqrtf(f32 x)
 	return x;
 }
 
-static inline float dolsqrtf2(float x) {
+#ifndef SQRT2_LINKAGE
+#   define SQRT2_LINKAGE static
+#endif
+
+SQRT2_LINKAGE inline float dolsqrtf2(float x) {
     static const double _half = .5;
     static const double _three = 3.0;
 

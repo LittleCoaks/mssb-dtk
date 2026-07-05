@@ -3,7 +3,10 @@
 
 #include "mssbTypes.h"
 #include "Dolphin/pad.h"
+
+#define SQRT2_LINKAGE extern
 #include "math.h"
+#include "Dolphin/mtx.h"
 
 #define SINF(x) ((f32)sin(x))
 #define COSF(x) ((f32)cos(x))
@@ -46,6 +49,11 @@ dolsqrtf2(                 \
     SQ((a)->y - (b)->y) +  \
     SQ((a)->z - (b)->z))
 
+#define VEC_DISTANCE_XZ(a, b) \
+dolsqrtf2(                 \
+    SQ((a)->x - (b)->x) +  \
+    SQ((a)->z - (b)->z))
+
 typedef struct _VecXZ {
     f32 x, z;
 } VecXZ;
@@ -61,7 +69,7 @@ typedef struct _Orientationf {
 typedef struct _InMemBatterType {
     /*0x00*/ VecXZ batterPos;
     /*0x08*/ VecXYZ batPosition; // with x offset
-    /*0x14*/ u8 _14[0x10];
+    artificial_padding(0x08, 0x24, VecXYZ);
     /*0x24*/ VecXYZ hitContactPos;
     /*0x30*/ f32 rightNiceThreshold[4];
     /*0x40*/ f32 contactQualityAbsolute;
@@ -280,10 +288,10 @@ typedef struct {
     /*0x1B0*/ f32 gravity; // 0.00275f
     /*0x1B4*/ f32 threeFrameLookback[2];
     /*0x1BC*/ f32 twoFrameLookback[2];
-    f32 throwYAtSelectedFuturePoint;
-    VecXZ ballLandingSpotOrHeldSpot;
-    f32 hitLandingSpotDistFromHome;
-    CoordAndDist futureCoordsAndDist[360];
+    /*0x1C4*/ f32 throwYAtSelectedFuturePoint;
+    /*0x1C8*/ VecXZ ballLandingSpotOrHeldSpot;
+    /*0x1D0*/ f32 hitLandingSpotDistFromHome;
+    /*0x1D4*/ CoordAndDist futureCoordsAndDist[360];
 } pastAndFutureCoordsWallJumpRelated;
 
 typedef struct _matchShorts {
@@ -984,41 +992,46 @@ typedef enum _FIELDING_ABILITY {
 } FIELDING_ABILITY;
 
 typedef enum _GAME_STATUS {
-    GAME_STATUS_DEFAULT,
-    GAME_STATUS_AT_BAT,
-    GAME_STATUS_LIVE_BALL,
-    GAME_STATUS_INNING_TRANSITION,
-    GAME_STATUS_LOAD_GAME,
-    GAME_STATUS_GAME_START_MOVIE,
-    GAME_STATUS_TRANSITION_TO_MINIGAME_START,
-    GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY,
-    GAME_STATUS_TRANSITION,
-    GAME_STATUS_END_OF_GAME, // unsure
-    GAME_STATUS_0xA,
-    GAME_STATUS_PAUSED,
-    GAME_STATUS_0xC,
-    GAME_STATUS_HOW_TO_PLAY_SCREEN,
-    GAME_STATUS_MVP_END_GAME,
-    GAME_STATUS_TRANSITION_MINIGAME_POSTGAME,
-    GAME_STATUS_0x10,
-    GAME_STATUS_0x11,
-    GAME_STATUS_0x12,
-    GAME_STATUS_HOMERUN_END,
-    GAME_STATUS_HOMERUN_LAP,
-    GAME_STATUS_BATTER_CELEBRATION, // post replay
-    GAME_STATUS_STAR_CHANCE_VS,
-    GAME_STATUS_CHAMPIONSHIP,
-    GAME_STATUS_0x18,
-    GAME_STATUS_MINIGAME_NEW_ROUND,             // unsure
-    GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING, // unsure
-    GAME_STATUS_0x1B,
-    GAME_STATUS_MINIGAME_SELECT,
-    GAME_STATUS_TOY_STADIUM_LOAD,
-    GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT,
-    GAME_STATUS_0x1F,
-    GAME_STATUS_0x20,
-    GAME_STATUS_MINIGAME_READY,
-    GAME_STATUS_MINIGAME_POST_MENU,
+    /* 0x00 */ GAME_STATUS_DEFAULT,
+    /* 0x01 */ GAME_STATUS_AT_BAT,
+    /* 0x02 */ GAME_STATUS_LIVE_BALL,
+    /* 0x03 */ GAME_STATUS_INNING_TRANSITION,
+    /* 0x04 */ GAME_STATUS_LOAD_GAME,
+    /* 0x05 */ GAME_STATUS_GAME_START_MOVIE,
+    /* 0x06 */ GAME_STATUS_TRANSITION_TO_MINIGAME_START,
+    /* 0x07 */ GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY,
+    /* 0x08 */ GAME_STATUS_TRANSITION,
+    /* 0x09 */ GAME_STATUS_END_OF_GAME, // unsure
+    /* 0x0A */ GAME_STATUS_0xA,
+    /* 0x0B */ GAME_STATUS_PAUSED,
+    /* 0x0C */ GAME_STATUS_0xC,
+    /* 0x0D */ GAME_STATUS_HOW_TO_PLAY_SCREEN,
+    /* 0x0E */ GAME_STATUS_MVP_END_GAME,
+    /* 0x0F */ GAME_STATUS_TRANSITION_MINIGAME_POSTGAME,
+    /* 0x10 */ GAME_STATUS_0x10,
+    /* 0x11 */ GAME_STATUS_0x11,
+    /* 0x12 */ GAME_STATUS_0x12,
+    /* 0x13 */ GAME_STATUS_HOMERUN_END,
+    /* 0x14 */ GAME_STATUS_HOMERUN_LAP,
+    /* 0x15 */ GAME_STATUS_BATTER_CELEBRATION, // post replay
+    /* 0x16 */ GAME_STATUS_STAR_CHANCE_VS,
+    /* 0x17 */ GAME_STATUS_CHAMPIONSHIP,
+    /* 0x18 */ GAME_STATUS_0x18,
+    /* 0x19 */ GAME_STATUS_MINIGAME_NEW_ROUND,             // unsure
+    /* 0x1A */ GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING, // unsure
+    /* 0x1B */ GAME_STATUS_0x1B,
+    /* 0x1C */ GAME_STATUS_MINIGAME_SELECT,
+    /* 0x1D */ GAME_STATUS_TOY_STADIUM_LOAD,
+    /* 0x1E */ GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT,
+    /* 0x1F */ GAME_STATUS_0x1F,
+    /* 0x20 */ GAME_STATUS_0x20,
+    /* 0x21 */ GAME_STATUS_MINIGAME_READY,
+    /* 0x22 */ GAME_STATUS_MINIGAME_POST_MENU,
+    /* 0x23 */ GAME_STATUS_0x23,
+    /* 0x24 */ GAME_STATUS_0x24,
+    /* 0x25 */ GAME_STATUS_0x25,
+    /* 0x26 */ GAME_STATUS_0x26,
+    /* 0x27 */ GAME_STATUS_0x27,
 } GAME_STATUS;
 
 typedef enum _SCENE_ID {
@@ -1030,25 +1043,25 @@ typedef enum _SCENE_ID {
 } SCENE_ID;
 
 typedef enum _SECONDARY_GAME_MODE {
-    SECONDARY_GAME_MODE_NONE, // also exhibition
-    SECONDARY_GAME_MODE_TOY_FIELD,
-    SECONDARY_GAME_MODE_MINI_GAME_MENU,
-    SECONDARY_GAME_MODE_BOBOMB_DERBY,
-    SECONDARY_GAME_MODE_WALLBALL,
-    SECONDARY_GAME_MODE_BARREL_BATTER,
-    SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT,
-    SECONDARY_GAME_MODE_PIRANHA_PANIC,
-    SECONDARY_GAME_MODE_STAR_DASH,
-    SECONDARY_GAME_MODE_0x9,
-    SECONDARY_GAME_MODE_PRACTICE_MENU,
-    SECONDARY_GAME_MODE_PRACTICE_PITCHING,
-    SECONDARY_GAME_MODE_PRACTICE_BATTING,
-    SECONDARY_GAME_MODE_PRACTICE_FIELDING,
-    SECONDARY_GAME_MODE_PRACTICE_BASERUNNING,
-    SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING,
-    SECONDARY_GAME_MODE_FREE_FIELDING,
-    SECONDARY_GAME_MODE_RETURN_TO_MENU,
-    SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN,
+    /* 0x00 */ SECONDARY_GAME_MODE_NONE, // also exhibition
+    /* 0x01 */ SECONDARY_GAME_MODE_TOY_FIELD,
+    /* 0x02 */ SECONDARY_GAME_MODE_MINI_GAME_MENU,
+    /* 0x03 */ SECONDARY_GAME_MODE_BOBOMB_DERBY,
+    /* 0x04 */ SECONDARY_GAME_MODE_WALLBALL,
+    /* 0x05 */ SECONDARY_GAME_MODE_BARREL_BATTER,
+    /* 0x06 */ SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT,
+    /* 0x07 */ SECONDARY_GAME_MODE_PIRANHA_PANIC,
+    /* 0x08 */ SECONDARY_GAME_MODE_STAR_DASH,
+    /* 0x09 */ SECONDARY_GAME_MODE_0x9,
+    /* 0x0A */ SECONDARY_GAME_MODE_PRACTICE_MENU,
+    /* 0x0B */ SECONDARY_GAME_MODE_PRACTICE_PITCHING,
+    /* 0x0C */ SECONDARY_GAME_MODE_PRACTICE_BATTING,
+    /* 0x0D */ SECONDARY_GAME_MODE_PRACTICE_FIELDING,
+    /* 0x0E */ SECONDARY_GAME_MODE_PRACTICE_BASERUNNING,
+    /* 0x0F */ SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING,
+    /* 0x10 */ SECONDARY_GAME_MODE_FREE_FIELDING,
+    /* 0x11 */ SECONDARY_GAME_MODE_RETURN_TO_MENU,
+    /* 0x12 */ SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN,
 } SECONDARY_GAME_MODE;
 
 typedef enum _TRANSITION_CALCULATION_TYPE {
@@ -1097,7 +1110,7 @@ typedef struct _GameControlsStruct {
     /*0x0EC*/ u32 teams[2]; // vague name, unsure
     /*0x0F4*/ s32 Team_CaptainRosterLoc[2];
     /*0x0FC*/ u16 FrameCountOfCurrentPitch;
-    /*0x0FE*/ s16 FrameCountOfCurrentAtBat_Copy;
+    /*0x0FE*/ u16 FrameCountOfCurrentAtBat_Copy;
     /*0x100*/ s16 CountdownUntilFade;
     /*0x102*/ s16 _102;
     /*0x104*/ s16 framePlayEnd;
@@ -1947,7 +1960,7 @@ typedef struct _MiniGameStruct {
     /*0x1905*/ s8 rosterID;
     /*0x1906*/ u8 miniGameNumberOfParticipants;
     /*0x1907*/ u8 _1907;
-    /*0x1908*/ u8 _1908;
+    /*0x1908*/ s8 _1908;
     /*0x1909*/ u8 multiPlayerInd;
     /*0x190A*/ u8 _190A;
     /*0x190B*/ u8 turnOverStatus;
@@ -2622,15 +2635,21 @@ typedef struct {
     /* 0x000 */ s16 _0000;
     /* 0x002 */ u16 _0002;
     /* 0x004 */ s16 _0004[5];
-    artificial_padding(0x4, 0x12, s16[5]);
-    /* 0x030 */ u8 _0012;
-    artificial_padding(0x12, 0x30, u8);
+    /* 0x00E */ s16 _000E;
+    /* 0x010 */ s16 _0010;
+    /* 0x012 */ u8 _0012;
+    /* 0x013 */ u8 _0013;
+    /* 0x014 */ u8 _0014;
+    /* 0x015 */ u8 _0015;
+    artificial_padding(0x15, 0x18, u8);
+    /* 0x018 */ VecXYZ _0018;
+    /* 0x018 */ VecXYZ _0024;
     /* 0x030 */ f32 _030;
     /* 0x034 */ f32 _034;
     /* 0x038 */ f32 _038;
     artificial_padding(0x38, 0xc0, f32);
     /* 0x0C0 */ f32 _0C0;
-    artificial_padding(0xc0, 0xd0, f32);
+    /* 0x0C0 */ VecXYZ _0C4;
     /* 0x0D0 */ f32 _0D0;
     /* 0x0D4 */ f32 _0D4;
     /* 0x0D8 */ f32 _0D8;
@@ -2638,10 +2657,10 @@ typedef struct {
     /* 0x0E0 */ s16 _0E0;
     /* 0x0E2 */ u8 _0E2;
     /* 0x0E2 */ u8 _0E3;
-    /* 0x0E4 */ f32 _0E4[3];
-    /* 0x0F0 */ f32 _0F0[3];
-    /* 0x0FC */ f32 _0FC[3];
-    /* 0x108 */ f32 _108[3];
+    /* 0x0E4 */ VecXYZ _0E4;
+    /* 0x0F0 */ VecXYZ _0F0;
+    /* 0x0FC */ VecXYZ _0FC;
+    /* 0x108 */ VecXYZ _108;
     /* 0x114 */ f32 _114;
     /* 0x118 */ s16 _118;
     /* 0x11A */ s16 _11A;
@@ -2697,12 +2716,8 @@ typedef struct {
     /* 0x2818 */ u8 _2818;
     /* 0x2819 */ u8 _2819;
     /* 0x281A */ u8 _281A;
-    /* 0x281C */ f32 _281C;
-    /* 0x2820 */ f32 _2820;
-    /* 0x2820 */ f32 _2824;
-    /* 0x2828 */ f32 _2828;
-    /* 0x282C */ f32 _282C;
-    /* 0x2830 */ f32 _2830;
+    /* 0x281C */ VecXYZ _281C;
+    /* 0x2828 */ VecXYZ _2828;
     /* 0x2834 */ f32 _2834;
     /* 0x2838 */ s16 _2838;
     /* 0x283A */ s16 _283A;
@@ -2711,9 +2726,7 @@ typedef struct {
     /* 0x283F */ u8 _283F;
     /* 0x2840 */ VecXYZ _2840;
     /* 0x284C */ VecXYZ _284C;
-    /* 0x2858 */ f32 _2858;
-    /* 0x285C */ f32 _285C;
-    /* 0x2860 */ f32 _2860;
+    /* 0x2858 */ VecXYZ _2858;
     artificial_padding(0x2860, 0x2870, f32);
     /* 0x2870 */ f32 _2870;
     /* 0x2874 */ f32 _2874;
@@ -2721,12 +2734,11 @@ typedef struct {
     /* 0x287C */ f32 _287C;
     /* 0x2870 */ f32 _2880;
     /* 0x2884 */ VecXYZ _2884;
-    /* 0x2890 */ f32 _2890;
-    /* 0x2890 */ f32 _2894;
-    /* 0x2890 */ f32 _2898;
+    /* 0x2890 */ VecXYZ _2890;
     /* 0x289E */ s16 _289C;
     /* 0x289E */ s16 _289E;
-    artificial_padding(0x289e, 0x28a6, s16);
+    /* 0x28A0 */ s16 _28A0;
+    artificial_padding(0x28A0, 0x28a6, s16);
     /* 0x28A6 */ u8 _28A6;
     /* 0x28A7 */ u8 _28A7;
     /* 0x28A8 */ u8 _28A8;

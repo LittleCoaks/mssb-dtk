@@ -62,7 +62,7 @@ void fn_3_195BC(void);
 void fn_3_19770(void);
 void fn_3_197E8(void);
 void fn_3_19B3C(int arg, f32* arg2);
-void fn_3_19CB0(void);
+void fn_3_19CB0(s16 arg);
 void fn_3_19FA4(void);
 void fn_3_1AE44(u8 arg4, u16 arg5, f32 arg1, f32 arg2, f32 arg3);
 void fn_3_1AEB8(void);

@@ -7,19 +7,13 @@ Sections:
 	.bss        type:bss align:32
 
 game/rep_0.c:
-	.text       start:0x00000000 end:0x00000464
-	.rodata     start:0x00000000 end:0x00000008
+	.text       start:0x00000000 end:0x000004F4
+	.rodata     start:0x00000000 end:0x00000060
 	.data       start:0x00000000 end:0x00000118
 	.bss        start:0x00000000 end:0x00000018
 
-game/rep_8.c:
-	.rodata     start:0x00000008 end:0x00000010
-
-game/rep_10.c:
-	.rodata     start:0x00000010 end:0x00000060
-
 game/rep_60.c:
-	.text       start:0x0000065C end:0x000008D4
+	.text       start:0x000004F4 end:0x000008D4
 	.rodata     start:0x00000060 end:0x000000D0
 	.data       start:0x000001D0 end:0x000001F8
 

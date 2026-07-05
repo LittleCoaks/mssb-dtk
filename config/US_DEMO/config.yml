@@ -1,0 +1,23 @@
+# See config.example.yml for documentation.
+object: orig/US_DEMO/sys/main.dol
+hash: 72b33a0ad84dadcd31cae14bbef7e23dcacf6a2c
+mw_comment_version: 8
+
+symbols: config/US_DEMO/symbols.txt
+splits: config/US_DEMO/splits.txt
+
+modules:
+- object: orig/US_DEMO/files/game.rel
+  hash: 44c4fabaad7e4bd2b9750bf2bf3b208190a24dba
+  symbols: config/US_DEMO/game/symbols.txt
+  splits: config/US_DEMO/game/splits.txt
+
+- object: orig/US_DEMO/files/menus.rel
+  hash: ba2f86ae57623da4404c0bcb0c513fda1db9e8cb
+  symbols: config/US_DEMO/menus/symbols.txt
+  splits: config/US_DEMO/menus/splits.txt
+
+- object: orig/US_DEMO/files/challenge.rel
+  hash: c8c53a8dfd56d3d074acf245c08e5034f2d14899
+  symbols: config/US_DEMO/challenge/symbols.txt
+  splits: config/US_DEMO/challenge/splits.txt

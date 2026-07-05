@@ -1,0 +1,23 @@
+# See config.example.yml for documentation.
+object: orig/JP_DEMO/sys/main.dol
+hash: 65c359437195a7cba96ff376c9ba1b12d1b0427e
+mw_comment_version: 8
+
+symbols: config/JP_DEMO/symbols.txt
+splits: config/JP_DEMO/splits.txt
+
+modules:
+- object: orig/JP_DEMO/files/game.rel
+  hash: 19e0c5fdbf4ebb0d92931c59204d0ce2bddafcf6
+  symbols: config/JP_DEMO/game/symbols.txt
+  splits: config/JP_DEMO/game/splits.txt
+
+- object: orig/JP_DEMO/files/menus.rel
+  hash: 2f98c13e37c4e4fe9fdbc982d94ffd67a30efab0
+  symbols: config/JP_DEMO/menus/symbols.txt
+  splits: config/JP_DEMO/menus/splits.txt
+
+- object: orig/JP_DEMO/files/challenge.rel
+  hash: bcd3470987db8f89064da7798bf03871c9f800fd
+  symbols: config/JP_DEMO/challenge/symbols.txt
+  splits: config/JP_DEMO/challenge/splits.txt

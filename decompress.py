@@ -1,11 +1,33 @@
 from os.path import join, exists
 
-file_folder = join("orig", "GYQE01", "files")
-input_file = join(file_folder, "aaaa.dat")
+US_FILES:str = join("orig", "GYQE01", "files")
+US_INPUT_FILE:str = join(US_FILES, "aaaa.dat")
+
+US_DEMO_FILES:str = join("orig", "US_DEMO", "files")
+US_DEMO_INPUT_FILE:str = join(US_DEMO_FILES, "aaaa.dat")
+
+JP_DEMO_FILES:str = join("orig", "JP_DEMO", "files")
+JP_DEMO_INPUT_FILE:str = join(JP_DEMO_FILES, "aaaa.dat")
+
+EU_DEMO_FILES:str = join("orig", "EU_DEMO", "files")
+EU_DEMO_INPUT_FILE:str = join(EU_DEMO_FILES, "aaaa.dat")
+
+def US_FILE(file_name:str) -> str:
+    return join(US_FILES, file_name)
+
+def US_DEMO_FILE(file_name:str) -> str:
+    return join(US_DEMO_FILES, file_name)
+
+def JP_DEMO_FILE(file_name:str) -> str:
+    return join(JP_DEMO_FILES, file_name)
+
+def EU_DEMO_FILE(file_name:str) -> str:
+    return join(EU_DEMO_FILES, file_name)
+
 KNOWN_AAAA_FILES = [
     {
-        "Input": input_file,
-        "Output": join(file_folder, 'menus.rel'),
+        "Input": US_INPUT_FILE,
+        "Output": US_FILE('menus.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x1027E4,
@@ -14,8 +36,8 @@ KNOWN_AAAA_FILES = [
         "compressionFlag": 0x4,
     },
     {
-        "Input": input_file,
-        "Output": join(file_folder, 'game.rel'),
+        "Input": US_INPUT_FILE,
+        "Output": US_FILE('game.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x2220F8,
@@ -24,13 +46,106 @@ KNOWN_AAAA_FILES = [
         "compressionFlag": 0x4,
     },
     {
-        "Input": input_file,
-        "Output": join(file_folder, 'challenge.rel'),
+        "Input": US_INPUT_FILE,
+        "Output": US_FILE('challenge.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x5912C,
         "offset": 0x150000,
         "compressedSize": 0x271C0,
+        "compressionFlag": 0x4,
+    },
+
+    {
+        "Input": US_DEMO_INPUT_FILE,
+        "Output": US_DEMO_FILE('menus.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x1007B4,
+        "offset": 0x800,
+        "compressedSize": 0x59570,
+        "compressionFlag": 0x4,
+    },
+    {
+        "Input": US_DEMO_INPUT_FILE,
+        "Output": US_DEMO_FILE('game.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x21E770,
+        "offset": 0x5A000,
+        "compressedSize": 0xF20B0,
+        "compressionFlag": 0x4,
+    },
+    {
+        "Input": US_DEMO_INPUT_FILE,
+        "Output": US_DEMO_FILE('challenge.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x4F164,
+        "offset": 0x14C800,
+        "compressedSize": 0x23D30,
+        "compressionFlag": 0x4,
+    },
+
+    {
+        "Input": JP_DEMO_INPUT_FILE,
+        "Output": JP_DEMO_FILE('menus.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x1007B4,
+        "offset": 0x800,
+        "compressedSize": 0x595A8,
+        "compressionFlag": 0x4,
+    },
+    {
+        "Input": JP_DEMO_INPUT_FILE,
+        "Output": JP_DEMO_FILE('game.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x21E8B0,
+        "offset": 0x5A000,
+        "compressedSize": 0xF2180,
+        "compressionFlag": 0x4,
+    },
+    {
+        "Input": JP_DEMO_INPUT_FILE,
+        "Output": JP_DEMO_FILE('challenge.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x4F164,
+        "offset": 0x14C800,
+        "compressedSize": 0x23D44,
+        "compressionFlag": 0x4,
+    },
+
+    {
+        "Input": EU_DEMO_INPUT_FILE,
+        "Output": EU_DEMO_FILE('menus.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x1007B4,
+        "offset": 0x800,
+        "compressedSize": 0x59570,
+        "compressionFlag": 0x4,
+    },
+    {
+        "Input": EU_DEMO_INPUT_FILE,
+        "Output": EU_DEMO_FILE('game.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x21E770,
+        "offset": 0x5A000,
+        "compressedSize": 0xF20B0,
+        "compressionFlag": 0x4,
+    },
+    {
+        "Input": EU_DEMO_INPUT_FILE,
+        "Output": EU_DEMO_FILE('challenge.rel'),
+        "lookbackBitSize": 0xb,
+        "repetitionBitSize": 0x4,
+        "size": 0x4F164,
+        "offset": 0x14C800,
+        "compressedSize": 0x23D30,
         "compressionFlag": 0x4,
     }
 ]
@@ -227,11 +342,13 @@ def decompress(d) -> bytearray:
     return ArchiveDecompressor(byte_data, d["lookbackBitSize"], d["repetitionBitSize"]).decompress()
 
 def main():
-    if not exists(input_file):
-        print(f"Could not find input file: {input_file}")
+    if not exists(US_INPUT_FILE):
+        print(f"Could not find input file: {US_INPUT_FILE}")
         exit()
 
     for rel in KNOWN_AAAA_FILES:
+        if not exists(rel["Input"]):
+            continue
         if exists(rel["Output"]):
             continue
         out_bytes = decompress(rel)

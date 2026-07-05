@@ -164,12 +164,13 @@ typedef enum _BUNT_STATUS {
 } BUNT_STATUS;
 
 typedef enum _HIT_TRAJECTORY {
-    /* 0x0 */ HIT_TRAJECTORY_0,     // no hit
-    /* 0x2 */ HIT_TRAJECTORY_2 = 2, // grounder
-    /* 0x3 */ HIT_TRAJECTORY_3,     // line drive
-    /* 0x4 */ HIT_TRAJECTORY_4,     // fly ball?/bOD_notVeryFoul
-    /* 0x5 */ HIT_TRAJECTORY_5,     // bunt
-    /* 0x6 */ HIT_TRAJECTORY_6,     // fair bund? bOD bunt / bB bunt
+    /* 0x0 */ HIT_TRAJECTORY_0, // no hit
+    /* 0x1 */ HIT_TRAJECTORY_1,
+    /* 0x2 */ HIT_TRAJECTORY_2, // grounder
+    /* 0x3 */ HIT_TRAJECTORY_3, // line drive
+    /* 0x4 */ HIT_TRAJECTORY_4, // fly ball?/bOD_notVeryFoul
+    /* 0x5 */ HIT_TRAJECTORY_5, // bunt
+    /* 0x6 */ HIT_TRAJECTORY_6, // fair bund? bOD bunt / bB bunt
 } HIT_TRAJECTORY;
 
 typedef enum _DID_SWING_TYPE {
