@@ -1533,26 +1533,13 @@ void fn_3_15524(void) {
     if (g_FieldingLogic._13F != 0 && g_pCamera->_A82 == 0) {
         g_pCamera->_A82 = g_Stats.playFrameCounter;
     }
-
-    for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY ||
-            g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DEAD_BALL) {
-            if (g_Runners[i].groundVelocity[0] > 0.0f &&
-                (int)g_Runners[i].fractionalBasesRan > (int)g_Runners[i].fractionalBasesRan_stored &&
-                g_pCamera->_ABB[i] == 0) {
-                g_pCamera->_A84[i] = g_Stats.playFrameCounter;
-            }
-        } else {
-            break;
-        }
-    }
+    fn_3_15144(1);
     for (i = 0; i < 4; i++) {
         if (g_Runners[i].baseStandingOn == 3) {
             g_pCamera->_A8C[i] = g_Stats.playFrameCounter;
         }
     }
-    for (i = 0 ; i < 4; i++ ){
+    for (i = 0; i < 4; i++) {
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY && g_pCamera->_AC0[i] == 0) {
             g_pCamera->_ABF = i;
             g_pCamera->_AC0[i] = 1;
@@ -1668,14 +1655,15 @@ void fn_3_15220(int arg) {
 void fn_3_15144(int arg) {
     int i;
     for (i = 0; i < ARRAY_SIZE(g_Runners); i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored != 1 && g_Runners[i].runnerOnFieldOrOutOrScored != 2 &&
-            g_Runners[i].runnerOnFieldOrOutOrScored != 4) {
+        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD &&
+            g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY &&
+            g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DEAD_BALL) {
             break;
         }
 
         if (g_Runners[i].groundVelocity[0] > 0.0f &&
             (int)g_Runners[i].fractionalBasesRan > (int)g_Runners[i].fractionalBasesRan_stored) {
-            if (arg == 0) {
+            if (!arg) {
                 g_pCamera->_ABB[i] = 1;
             } else if (g_pCamera->_ABB[i] == 0) {
                 g_pCamera->_A84[i] = g_Stats.playFrameCounter;
