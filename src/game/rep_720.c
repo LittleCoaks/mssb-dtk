@@ -14,7 +14,8 @@ typedef struct {
 } lbl_3_data_A40_s; // size 0x14
 
 typedef struct {
-    /* 0x0 */ s16 _0[5];
+    /* 0x0 */ s16 _0[3];
+    /* 0x6 */ s16 _6[2];
     /* 0xA */ u8 _A;
     // pad to 0xc
 } lbl_3_data_1134_s;
@@ -100,40 +101,40 @@ lbl_3_data_A40_s lbl_3_data_A40[89] = {
     { { 0.00f, 0.80f, -20.00f }, 1.00f, { 0x400, 0x0 } },
 };
 lbl_3_data_1134_s lbl_3_data_1134[34] = {
-    { { 0xa, 0xb, 0xc, 0xc8, 0x12c }, 0x1 },
-    { { 0xa, 0xb, 0xc, 0xc8, 0x12c }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x0, 0x1, 0x2, 0x64, 0x64 }, 0x1 },
-    { { 0x14, 0x15, 0x16, 0xdc, 0xb4 }, 0x1 },
-    { { 0x17, 0x18, 0x19, 0x104, 0xb4 }, 0x1 },
-    { { 0x1a, 0x1b, 0x1c, 0x104, 0xb4 }, 0x1 },
-    { { 0x1d, 0x1e, 0x1f, 0x104, 0xb4 }, 0x1 },
-    { { 0x20, 0x21, 0x22, 0x104, 0xb4 }, 0x1 },
-    { { 0x23, 0x24, 0x25, 0x104, 0xb4 }, 0x1 },
-    { { 0x26, 0x27, 0x28, 0x104, 0xb4 }, 0x1 },
-    { { 0x29, 0x2a, 0x2b, 0x104, 0xb4 }, 0x1 },
-    { { 0x41, 0x42, 0x43, 0x12c, 0x0 }, 0x0 },
-    { { 0x44, 0x45, 0x46, 0x12c, 0x0 }, 0x0 },
-    { { 0x47, 0x48, 0x49, 0x12c, 0x0 }, 0x0 },
-    { { 0x4a, 0x4b, 0x4c, 0x12c, 0x0 }, 0x0 },
-    { { 0x4d, 0x4e, 0x4f, 0x12c, 0x0 }, 0x0 },
-    { { 0x3b, 0x3b, 0x3b, 0x64, 0x0 }, 0x0 },
-    { { 0x3c, 0x3c, 0x3c, 0x64, 0x0 }, 0x0 },
-    { { 0x3d, 0x3d, 0x3d, 0x64, 0x0 }, 0x0 },
-    { { 0x3e, 0x3f, 0x3f, 0xc8, 0x0 }, 0x0 },
-    { { 0x3b, 0x3b, 0x3b, 0x64, 0x0 }, 0x0 },
-    { { 0x41, 0x42, 0x40, 0x3c, 0x3c }, 0x0 },
-    { { 0x43, 0x44, 0x40, 0x3c, 0x3c }, 0x0 },
-    { { 0x45, 0x46, 0x40, 0x3c, 0x3c }, 0x0 },
-    { { 0x47, 0x48, 0x40, 0x3c, 0x3c }, 0x0 },
-    { { 0x49, 0x4a, 0x40, 0x3c, 0x3c }, 0x0 },
-    { { 0x4b, 0x4c, 0x40, 0x3c, 0x3c }, 0x0 }
+    { { 0xa, 0xb, 0xc}, { 0xc8, 0x12c }, 0x1 },
+    { { 0xa, 0xb, 0xc}, { 0xc8, 0x12c }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x0, 0x1, 0x2}, { 0x64, 0x64 }, 0x1 },
+    { { 0x14, 0x15, 0x16}, { 0xdc, 0xb4 }, 0x1 },
+    { { 0x17, 0x18, 0x19}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x1a, 0x1b, 0x1c}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x1d, 0x1e, 0x1f}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x20, 0x21, 0x22}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x23, 0x24, 0x25}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x26, 0x27, 0x28}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x29, 0x2a, 0x2b}, { 0x104, 0xb4 }, 0x1 },
+    { { 0x41, 0x42, 0x43}, { 0x12c, 0x0 }, 0x0 },
+    { { 0x44, 0x45, 0x46}, { 0x12c, 0x0 }, 0x0 },
+    { { 0x47, 0x48, 0x49}, { 0x12c, 0x0 }, 0x0 },
+    { { 0x4a, 0x4b, 0x4c}, { 0x12c, 0x0 }, 0x0 },
+    { { 0x4d, 0x4e, 0x4f}, { 0x12c, 0x0 }, 0x0 },
+    { { 0x3b, 0x3b, 0x3b}, { 0x64, 0x0 }, 0x0 },
+    { { 0x3c, 0x3c, 0x3c}, { 0x64, 0x0 }, 0x0 },
+    { { 0x3d, 0x3d, 0x3d}, { 0x64, 0x0 }, 0x0 },
+    { { 0x3e, 0x3f, 0x3f}, { 0xc8, 0x0 }, 0x0 },
+    { { 0x3b, 0x3b, 0x3b}, { 0x64, 0x0 }, 0x0 },
+    { { 0x41, 0x42, 0x40}, { 0x3c, 0x3c }, 0x0 },
+    { { 0x43, 0x44, 0x40}, { 0x3c, 0x3c }, 0x0 },
+    { { 0x45, 0x46, 0x40}, { 0x3c, 0x3c }, 0x0 },
+    { { 0x47, 0x48, 0x40}, { 0x3c, 0x3c }, 0x0 },
+    { { 0x49, 0x4a, 0x40}, { 0x3c, 0x3c }, 0x0 },
+    { { 0x4b, 0x4c, 0x40}, { 0x3c, 0x3c }, 0x0 }
 };
 
 typedef struct{
@@ -225,17 +226,7 @@ void fn_3_1CCC8(void) {
     g_pCamera->_2880 = 0.f;
     g_pCamera->_283E = 0;
     fn_3_1CBCC();
-    g_pCamera->_030 = 0.f;
-    g_pCamera->_034 = 0.f;
-    g_pCamera->_038 = 0.f;
-    g_pCamera->_0C0 = 0.f;
-    g_pCamera->_0D0 = 1.f;
-    g_pCamera->_0E2 = 0;
-    g_pCamera->_0E0 = -1;
-    g_pCamera->_0D4 = 0.f;
-    g_pCamera->_0D8 = 0.f;
-    g_pCamera->_0DC = 0.f;
-    g_pCamera->_0E3 = 0;
+    fn_3_1C130();
     g_Camera._2818 = 0;
     g_Camera._2819 = 0;
     fn_3_106BA0();
@@ -252,17 +243,7 @@ void fn_3_1CBCC(void) {
     }
     g_pCamera->_118 = 0;
     g_pCamera->_11C = 0;
-    g_pCamera->_030 = 0.f;
-    g_pCamera->_034 = 0.f;
-    g_pCamera->_038 = 0.f;
-    g_pCamera->_0C0 = 0.f;
-    g_pCamera->_0D0 = 1.f;
-    g_pCamera->_0E2 = 0;
-    g_pCamera->_0E0 = -1;
-    g_pCamera->_0D4 = 0.f;
-    g_pCamera->_0D8 = 0.f;
-    g_pCamera->_0DC = 0.f;
-    g_pCamera->_0E3 = 0;
+    fn_3_1C130();
 }
 
 // .text:0x0001CAC0 size:0x10C mapped:0x8065BB54
@@ -298,6 +279,22 @@ void inline fn_3_1C8AC_inline(Vec* v, f32 c, f32 s) {
 
     g_pCamera->_287C = 0.0f;
     g_pCamera->_2880 = 0.0f;
+}
+
+void inline fn_3_1C8AC_inline_2() {
+    Vec v;
+    f32 _f30 = shortAngleToRad_Capped(g_pCamera->_289E);
+    f32 f30 = COSF(_f30) * 20.f;
+    f32 _f29 = SINF(_f30);
+
+    f32 _f28 = shortAngleToRad_Capped(g_pCamera->_289C);
+    f32 _f31 = COSF(_f28);
+    f32 _f6 = SINF(_f28);
+
+    v.x = _f31 * f30;
+    v.z = _f6 * f30;
+    v.y = _f29 * 20.f;
+    fn_3_1C8AC_inline(&v, _f31, _f6);
 }
 
 // .text:0x0001C8AC size:0x214 mapped:0x8065B940
@@ -374,14 +371,18 @@ void fn_3_1C684(void) {
 void fn_3_1C1B0(void) {
     int i;
     f32 f0;
+    f32 f1;
+    f32 t1;
+    f32 t5;
     f32 f31;
-    inMemCamera* cam = g_pCamera;
     f32 sp18;
     f32 sp14;
     f32 sp10;
     f32 spC;
     f32 f5;
+    f32 tmp;
     Vec v;
+    inMemCamera* cam = g_pCamera;
     fn_3_1BA18();
     fn_3_1B370();
     for (i = 3; i > 0; i--) {
@@ -389,14 +390,11 @@ void fn_3_1C1B0(void) {
             break;
         }
     }
+    // regswap here
     {
-        f32 t0 = (g_pCamera->_0018.z - lbl_3_data_12CC._00[i]);
-        f32 t1 = (lbl_3_data_12CC._00[i + 1] - lbl_3_data_12CC._00[i]);
-        f32 t2 = (lbl_3_data_12E8[i + 1].z - lbl_3_data_12E8[i].z);
-        f32 t3 = (g_pCamera->_0018.z - lbl_3_data_12CC._14);
-        f32 t4 = f0 = t0 / t1;
-        f32 t5 = (f0 * t2 + lbl_3_data_12E8[i].z);
-        g_pCamera->_0018.z = -((t5 * t3) - g_pCamera->_0018.z);
+        t1 = (lbl_3_data_12CC._00[i + 1] - lbl_3_data_12CC._00[i]);
+        f0 = (g_pCamera->_0018.z - lbl_3_data_12CC._00[i]) / t1;
+        g_pCamera->_0018.z = -((((lbl_3_data_12E8[i + 1].z - lbl_3_data_12E8[i].z) * ((g_pCamera->_0018.z - lbl_3_data_12CC._00[i]) / t1) + lbl_3_data_12E8[i].z) * (g_pCamera->_0018.z - lbl_3_data_12CC._14)) - g_pCamera->_0018.z);
     }
     g_pCamera->_0018.x *= lbl_3_data_12CC._18;
     if (g_Ball.currentStarSwing == 0 && g_pCamera->_0E3 != 0) {
@@ -409,7 +407,7 @@ void fn_3_1C1B0(void) {
     g_pCamera->_0C4.z = lbl_3_data_12E8[i].x + f0 * (lbl_3_data_12E8[i + 1].x - lbl_3_data_12E8[i].x);
     g_pCamera->_0C4.x = lbl_3_data_12E8[i].y + f0 * (lbl_3_data_12E8[i + 1].y - lbl_3_data_12E8[i].y);
     fn_3_1B17C();
-    f31 = g_pCamera->_0C4.x * g_pCamera->_0D0;
+    f0 = g_pCamera->_0C4.x * g_pCamera->_0D0;
     g_pCamera->_0C4.y = (g_pCamera->_0018.x / lbl_3_data_1324._0) * lbl_3_data_1324._4;
 
     if (g_pCamera->_0C4.y < 0.001f && g_pCamera->_0C4.y > -0.001f) {
@@ -420,16 +418,20 @@ void fn_3_1C1B0(void) {
     }
     getComponentsFromRad(g_pCamera->_0C4.z, &sp10, &sp14);
     getComponentsFromRad(g_pCamera->_0C4.y, &spC, &sp18);
-    sp18 *= (sp10 / spC);
-    f5 = dolsqrtf2(SQ(sp18) + SQ(sp14) + SQ(sp10));
+
+    // regswap here
+    tmp = (sp10 / spC);
+    sp18 *= tmp;
+    tmp = SQ(sp18) + SQ(sp14) + SQ(sp10);
+    f5 = dolsqrtf2(tmp);
 
     sp18 /= f5;
     sp14 /= f5;
     sp10 /= f5;
 
-    v.x = -(f31 * sp18);
-    v.y = -(f31 * sp14);
-    v.z = -(f31 * sp10);
+    v.x = -(f0 * sp18);
+    v.y = -(f0 * sp14);
+    v.z = -(f0 * sp10);
 
     VEC_COPY(&g_pCamera->_2890, &g_pCamera->_2840);
     VEC_COPY(&g_pCamera->_284C, &g_pCamera->_0018);
@@ -438,15 +440,14 @@ void fn_3_1C1B0(void) {
 
     if (g_pCamera->_283E != 0) {
         fn_3_1AEB8();
-    }
-    
+    }   
 }
 
 // .text:0x0001C130 size:0x80 mapped:0x8065B1C4
 void fn_3_1C130(void) {
-    g_pCamera->_030 = 0.f;
-    g_pCamera->_034 = 0.f;
-    g_pCamera->_038 = 0.f;
+    g_pCamera->_030.x = 0.f;
+    g_pCamera->_030.y = 0.f;
+    g_pCamera->_030.z = 0.f;
     g_pCamera->_0C0 = 0.f;
     g_pCamera->_0D0 = 1.f;
     g_pCamera->_0E2 = 0;
@@ -459,30 +460,155 @@ void fn_3_1C130(void) {
 
 // .text:0x0001C0B0 size:0x80 mapped:0x8065B144
 void fn_3_1C0B0(void) {
-    g_pCamera->_030 = 0.f;
-    g_pCamera->_034 = 0.f;
-    g_pCamera->_038 = 0.f;
-    g_pCamera->_0C0 = 0.f;
-    g_pCamera->_0D0 = 1.f;
-    g_pCamera->_0E2 = 0;
-    g_pCamera->_0E0 = -1;
-    g_pCamera->_0D4 = 0.f;
-    g_pCamera->_0D8 = 0.f;
-    g_pCamera->_0DC = 0.f;
-    g_pCamera->_0E3 = 0;
+    fn_3_1C130();
 }
 
 // .text:0x0001BA18 size:0x698 mapped:0x8065AAAC
-#pragma dont_inline on
 void fn_3_1BA18(void) {
-    return;
+    int i;
+    if (g_Ball.deadBallReason != 0 && g_pCamera->_0E2 == 0) {
+        g_pCamera->_0E2 = 1;
+        VEC_COPY(&g_pCamera->_0B4, &g_Ball.AtBat_Contact_BallPos);
+    }
+    
+    if (g_Strikes.outs >= 3) {
+        if (g_GameLogic.bOD_framesInLiveBallScene <= 10) {
+            VEC_COPY(&g_pCamera->_0B4, &g_Ball.AtBat_Contact_BallPos);
+        } else {
+            VEC_COPY(&g_pCamera->_0B4, &g_pCamera->_03C[0]);
+        }
+    }
+
+    if ((g_pCamera->_0E2 != 0 || g_Strikes.outs >= 3) && g_GameLogic.bOD_framesInLiveBallScene >= 10) {
+        for (i = 9; i > 0; i--) {
+            VEC_COPY(&g_pCamera->_03C[i], &g_pCamera->_03C[i - 1]);
+        }
+        VEC_COPY(&g_pCamera->_03C[0], &g_pCamera->_0B4);
+    } else if (g_Ball.hitNoteBlockInd != 0) {
+        for (i = 9; i > 0; i--) {
+            VEC_COPY(&g_pCamera->_03C[i], &g_pCamera->_03C[i - 1]);
+        }
+    } else if (g_Ball.catchAnimationTotalFrames != 0 || g_Ball.fielderActionOccuring) {
+        for (i = 9; i > 0; i--) {
+            VEC_COPY(&g_pCamera->_03C[i], &g_pCamera->_03C[i - 1]);
+        }
+        VEC_COPY(&g_pCamera->_03C[0], &g_Ball.fielderActionCatchCoords);
+    } else if (g_Ball.warioWaluGarlicIsActive != 0) {
+        for (i = 9; i > 0; i--) {
+            VEC_COPY(&g_pCamera->_03C[i], &g_Ball.warioStarHitCoords[i + 2]);
+        }
+        VEC_COPY(&g_pCamera->_03C[0], &g_Ball.warioStarHitCoords[0]);
+        g_pCamera->_0E3 = 30;
+    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Ball.fielderWBallIndex >= 0) {
+        for (i = 9; i > 0; i--) {
+            VEC_COPY(&g_pCamera->_03C[i], &g_pCamera->_03C[i - 1]);
+        }
+    } else {
+        for (i = 9; i > 0; i--) {
+            VEC_COPY(&g_pCamera->_03C[i], &g_Ball.pastCoordinates[i - 1]);
+        }
+        VEC_COPY(&g_pCamera->_03C[0], &g_Ball.AtBat_Contact_BallPos);
+    }
 }
 
 // .text:0x0001B370 size:0x6A8 mapped:0x8065A404
 void fn_3_1B370(void) {
-    return;
+    Vec v;
+    Vec v2;
+    s32 i;
+    f32 d;
+    v.x = 0.0f;
+    v.y = 0.0f;
+    v.z = 0.0f;
+    VEC_COPY(&g_pCamera->_0024, &g_pCamera->_0018);
+    for (i = 0; i < 10; i++) {
+        VEC_ADD(&v, &v, &g_pCamera->_03C[i]);
+    }
+    VEC_SCALE(&v, &v, (1.f / 10));
+    VEC_SUB(&v2, &g_pCamera->_03C[0], &g_pCamera->_03C[1]);
+    d = VEC_LENGTH_XZ(&v2);
+    if ((g_Ball.ballState == BALL_STATE_HIT && d > 0.f) || (g_GameLogic.bOD_framesInLiveBallScene <= 0 && d > 0.f)) {
+        v2.x /= d;
+        v2.z /= d;
+        d *= 10.f;
+        if (d > 5.f) {
+            d = 5.f;
+        }
+
+        {
+            f32 a = v2.x * d;
+            f32 b = v2.z * d;
+            g_pCamera->_030.x = (a * 0.2f) + (g_pCamera->_030.x * 0.8f);
+            g_pCamera->_030.z = (b * 0.2f) + (g_pCamera->_030.z * 0.8f);
+        }
+        if (g_pCamera->_0E0 < 0) {
+            g_pCamera->_0E0 = 0;
+            if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome > 50.f) {
+                int ang = 0x100;
+                f32 f;
+                g_pCamera->_0E0 = g_Ball.framesUntilBallHitsGround - 10;
+                g_pCamera->_0DC = (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - 50.f) * 0.2f;
+                if (g_Ball.landingSpotAngle < 0x1c0) {
+                    ang = g_Ball.landingSpotAngle - 0xc0;
+                    if (ang < 0) {
+                        ang = 0;
+                    }
+                } else if (g_Ball.landingSpotAngle > 0x640) {
+                    ang = 0x740 - g_Ball.landingSpotAngle;
+                    if (ang < 0) {
+                        ang = 0;
+                    }
+                }
+                if (ang < 0x100) {
+                    g_pCamera->_0DC *= ang / 256.f;
+                }
+                f = g_Ball.maxYOfHit - 3.f;
+                if (f < 0.f) {
+                    f = 0.f;
+                }
+                if (f > 10.f) {
+                    f = 10.f;
+                }
+                f /= 10.f;
+                g_pCamera->_0DC *= f;
+            }
+        }
+        if (g_pCamera->_0E0 > 0) {
+            g_pCamera->_0DC *= (g_pCamera->_0E0 - 1) / (f32)(g_pCamera->_0E0);
+            g_pCamera->_0D4 = v2.x * g_pCamera->_0DC;
+            g_pCamera->_0D8 = v2.z * g_pCamera->_0DC;
+            g_pCamera->_0E0--;
+        }
+    } else {
+        g_pCamera->_030.x *= 1.f - (1.f / 20);
+        g_pCamera->_030.z *= 1.f - (1.f / 20);
+        g_pCamera->_0D4 *= 1.f - (1.f / 20);
+        g_pCamera->_0D8 *= 1.f - (1.f / 20);
+    }
+
+    if (v.y > 3.f) {
+        f32 f = v.y - 3.f;
+        if (f > 20.f) {
+            f = 20.f;
+        }
+        f *= 0.3f;
+        g_pCamera->_030.y = (f * 0.1f) + (g_pCamera->_030.y * 0.9f);
+    } else {
+        g_pCamera->_030.y *= 1.f - (1 / 20.f);
+    }
+    g_pCamera->_0018.x = g_pCamera->_030.x + g_pCamera->_0D4 + v.x;
+    g_pCamera->_0018.y = g_pCamera->_030.y;
+    g_pCamera->_0018.z = g_pCamera->_030.z + g_pCamera->_0D8 + v.z;
+    if (g_pCamera->_0018.x < 0.001f && g_pCamera->_0018.x > -0.001f) {
+        g_pCamera->_0018.x = 0.f;
+    }
+    if (g_pCamera->_0018.z < 0.001f && g_pCamera->_0018.z > -0.001f) {
+        g_pCamera->_0018.z = 0.f;
+    }
+    if (g_pCamera->_0018.y < 0.001f) {
+        g_pCamera->_0018.y = 0.f;
+    }
 }
-#pragma dont_inline reset
 
 // .text:0x0001B17C size:0x1F4 mapped:0x8065A210
 void fn_3_1B17C(void) {
@@ -591,7 +717,65 @@ void fn_3_1AE44(u8 arg4, u16 arg5, f32 arg1, f32 arg2, f32 arg3) {
 
 // .text:0x00019FA4 size:0xEA0 mapped:0x80659038
 void fn_3_19FA4(void) {
-    return;
+    int r31;
+    if (g_pCamera->_000E < S16_MAX - 1) {
+        g_pCamera->_000E++;
+    } else {
+        g_pCamera->_000E = S16_MAX;
+    }
+    if (g_pCamera->_0015 != 0 && g_pCamera->_0015 != 1) {
+        g_pCamera->_0015 = 0;
+    }
+
+    if (g_pCamera->_0014 == 0) {
+        r31 = g_pCamera->_000A[g_pCamera->_0013];
+        if (g_pCamera->_000E > r31) {
+            g_pCamera->_000E = 1;
+            g_pCamera->_0013++;
+            r31 = g_pCamera->_000A[(u8)g_pCamera->_0013];
+            if (g_pCamera->_0013 >= g_pCamera->_0012 - 1) {
+                g_pCamera->_0014 = 1;
+            }
+        }
+    }
+    if (g_pCamera->_0014 != 0)
+    {
+        f32 f28;
+        lbl_3_data_A40_s* p = &lbl_3_data_A40[g_pCamera->_0004[g_pCamera->_0013]];
+        VEC_COPY(&g_pCamera->_2858, &p->_00);
+        g_pCamera->_289C = p->_10[0];
+        g_pCamera->_289E = p->_10[1];
+        g_pCamera->_2878 = p->_0C;
+        {
+            Vec v;
+            f32 _f30 = shortAngleToRad_Capped(g_pCamera->_289E);
+            f32 f30 = COSF(_f30) * 20.f;
+            f32 _f29 = SINF(_f30);
+
+            f32 _f28 = shortAngleToRad_Capped(g_pCamera->_289C);
+            f32 _f31 = COSF(_f28);
+            f32 _f6 = SINF(_f28);
+
+            v.x = _f31 * f30;
+            v.z = _f6 * f30;
+            v.y = _f29 * 20.f;
+            fn_3_1C8AC_inline(&v, _f31, _f6);
+        }
+    } else if (g_pCamera->_0015 != 0) {
+        int i;
+        int r9;
+        Vec sp50[5];
+        for (i = 0; i < g_pCamera->_0012; i++) {
+            VEC_COPY(&sp50[i], &lbl_3_data_A40[i]._00);
+        }
+        r9 = 0;
+        for (i = 0; i < g_pCamera->_0012; i++) {
+            r9 += g_pCamera->_000A[i];
+        }
+        
+        // fn_3_28E4();
+    }
+    cos(r31);
 }
 
 // .text:0x00019CB0 size:0x2F4 mapped:0x80658D44
@@ -600,8 +784,11 @@ void fn_3_19CB0(s16 arg) {
     lbl_3_data_1134_s* p = &lbl_3_data_1134[arg];
     
     g_pCamera->_0002 = arg;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 3; i++) {
         g_pCamera->_0004[i] = p->_0[i];
+    }
+    for (i = 0; i < 2; i++) {
+        g_pCamera->_000A[i] = p->_6[i];
     }
 
     if (p->_0[4] == 0){
@@ -771,7 +958,7 @@ void fn_3_193E8(void) {
     if (d > f->min) {
         d = f->min;
     }
-
+    
     d3 = d - f->max;
     d3 /= (f->min - f->max);
     if (g_Ball.fielderWBallIndex >= 0) {
@@ -797,21 +984,20 @@ void fn_3_18FF8(void) {
     inMemCamera* cam = g_pCamera;
     int r30 = -1;
     int r29 = g_pCamera->_11C;
-    f32 pX, pZ, dist;
+    f32 f31, f30, f29;
     if (g_pCamera->_118 == 1) {
-        pX = g_Ball.physicsSubstruct.futureCoordsAndDist[300].pos.x;
-        pZ = g_Ball.physicsSubstruct.futureCoordsAndDist[300].pos.z;
-        dist = g_Ball.physicsSubstruct.futureCoordsAndDist[300].dist;
-
+        f31 = g_Ball.physicsSubstruct.futureCoordsAndDist[300].pos.x;
+        f30 = g_Ball.physicsSubstruct.futureCoordsAndDist[300].pos.z;
+        f29 = g_Ball.physicsSubstruct.futureCoordsAndDist[300].dist;
     _60:
-        if (pZ < -5.0f){
-            if (pX < 0.0f) {
+        if (f30 < -5.0f) {
+            if (f31 < 0.0f) {
                 r30 = 1;
             } else {
                 r30 = 2;
             }
         } else {
-            s16 ang = fn_3_9FB8C(pX, pZ);
+            s16 ang = fn_3_9FB8C(f31, f30);
             if (ang < 0x240 || ang > 0xc00) {
                 if (random_fn_3_9EE24(3) != 0) {
                     r30 = 2;
@@ -824,10 +1010,13 @@ void fn_3_18FF8(void) {
                 } else {
                     r30 = 0;
                 }
-            } else if (dist > 100.0f) {
+            } else if (f29 > 100.0f) {
                 r30 = random_fn_3_9EE24(4);
-                if (pX > 0.0f && (r30 = 3)) {
-                    r30 = 4;
+                if (f31 > 0.0f) {
+                    // definitely some sort of inline here, or something weird
+                    if (r30 = 3) {
+                        r30 = 4;
+                    }
                 }
             } else {
                 switch (random_fn_3_9EE24(5)) {
@@ -845,49 +1034,51 @@ void fn_3_18FF8(void) {
                 }
             }
         }
-    } else if (cam->_11A >= 0x1e && (lbl_803C77B8._02 & 0x100 || lbl_803C77B8._22 & 0x100)) {
-        pX = g_Ball.AtBat_Contact_BallPos.x;
-        pZ = g_Ball.AtBat_Contact_BallPos.z;
-        dist = g_Ball.ballDistanceFromHome;
-        goto _60;
-    } else if (cam->_11A >= 0x12C) {
-        pZ = g_Ball.AtBat_Contact_BallPos.z;
-        pX = g_Ball.AtBat_Contact_BallPos.x;
-        dist = g_Ball.ballDistanceFromHome;
-        if (pZ < -5.0f){
-            if (pX < 0.f) {
-                if (lbl_3_data_1588[r29] == 1) {
-                    return;
-                }
-            } else if (lbl_3_data_1588[r29] == 2) {
-                return;
-            }
+    } else {
+        if (cam->_11A >= 0x1e && (lbl_803C77B8._02 & 0x100 || lbl_803C77B8._22 & 0x100)) {
+            f31 = g_Ball.AtBat_Contact_BallPos.x;
+            f30 = g_Ball.AtBat_Contact_BallPos.z;
+            f29 = g_Ball.ballDistanceFromHome;
             goto _60;
-        } else {
-            s16 ang = fn_3_9FB8C(pX, pZ);
-            if (ang < 0x240 || ang > 0xc00) {
-                if (lbl_3_data_1588[r29] == 2 || lbl_3_data_1588[r29] == 0 || lbl_3_data_1588[r29] == 3) {
+        } else if (cam->_11A >= 0x12C) {
+            f30 = g_Ball.AtBat_Contact_BallPos.z;
+            f31 = g_Ball.AtBat_Contact_BallPos.x;
+            f29 = g_Ball.ballDistanceFromHome;
+            if (f30 < -5.0f) {
+                if (f31 < 0.f) {
+                    if (lbl_3_data_1588[r29] == 1) {
+                        return;
+                    }
+                } else if (lbl_3_data_1588[r29] == 2) {
                     return;
                 }
                 goto _60;
-            } else if (ang > 0x5c0) {
-                if (lbl_3_data_1588[r29] == 1 || lbl_3_data_1588[r29] == 0 || lbl_3_data_1588[r29] == 4) {
-                    return;
-                }
-                goto _60;
-            } else if (dist > 100.f) {
-                if (pX > 0.f) {
-                    if (lbl_3_data_1588[r29] == 3) {
-                        goto _60;
+            } else {
+                s16 ang = fn_3_9FB8C(f31, f30);
+                if (ang < 0x240 || ang > 0xc00) {
+                    if (lbl_3_data_1588[r29] == 2 || lbl_3_data_1588[r29] == 0 || lbl_3_data_1588[r29] == 3) {
+                        return;
                     }
-                } else {
-                    if (lbl_3_data_1588[r29] == 4) {
-                        goto _60;
-                    }
-                }
-            } else if (dist < 50.f) {
-                if (lbl_3_data_1588[r29] == 3 || lbl_3_data_1588[r29] == 4) {
                     goto _60;
+                } else if (ang > 0x5c0) {
+                    if (lbl_3_data_1588[r29] == 1 || lbl_3_data_1588[r29] == 0 || lbl_3_data_1588[r29] == 4) {
+                        return;
+                    }
+                    goto _60;
+                } else if (f29 > 100.f) {
+                    if (f31 > 0.f) {
+                        if (lbl_3_data_1588[r29] == 3) {
+                            goto _60;
+                        }
+                    } else {
+                        if (lbl_3_data_1588[r29] == 4) {
+                            goto _60;
+                        }
+                    }
+                } else if (f29 < 50.f) {
+                    if (lbl_3_data_1588[r29] == 3 || lbl_3_data_1588[r29] == 4) {
+                        goto _60;
+                    }
                 }
             }
         }
@@ -1468,101 +1659,33 @@ void fn_3_15D28(void) {
 
 // .text:0x00015A98 size:0x290 mapped:0x80654B2C
 void fn_3_15A98(void) {
-    int i;
-    if (g_Pitcher.windupCountdownUntilBallReleased == 1) {
-        g_pCamera->_AB4 = 1;
-    }
-    if (g_Batter.swingInd && g_Batter.framesSinceStartOfSwing == 1) {
-        g_pCamera->_AB5 = 1;
-    }
-    if (g_Batter.swingInd && g_Batter.contactMadeInd == TRUE) {
-        g_pCamera->_AB6 = 1;
-    }
-    if (g_Batter.hitTrajectory != HIT_TRAJECTORY_0) {
-        g_pCamera->_A7C++;
-    }
-    if (g_pCamera->_A7C > 0x28) {
-        g_pCamera->_AB7 = 1;
-    }
-    if (g_Ball.deadBallReason != 0) {
-        g_pCamera->_AB8 = 1;
-        g_pCamera->_AC6 = g_Ball.deadBallReason;
-    }
-    if (g_Ball.deadBallReason == 1) {
-        g_pCamera->_AB8 = 1;
-        g_pCamera->_AC6 = g_Ball.deadBallReason;
-    }
-    if (g_Ball.ballState == BALL_STATE_HELD) {
-        g_pCamera->_AB9 = 1;
-    }
-    if (g_FieldingLogic._13F != 0) {
-        g_pCamera->_ABA = 1;
-    }
+    fn_3_154C4(0);
+    fn_3_15458(0);
+    fn_3_153F0(0);
+    fn_3_1537C(0);
+    fn_3_152E8(0);
+    fn_3_1527C(0);
+    fn_3_15220(0);
     fn_3_15144(0);
 }
 
 // .text:0x00015524 size:0x574 mapped:0x806545B8
 void fn_3_15524(void) {
-    int i;
-    if (g_Pitcher.windupCountdownUntilBallReleased == 1 && g_Stats.replayInd == 0) {
-        g_pCamera->_A74 = g_Stats.playFrameCounter;
-    }
-    if (g_Batter.swingInd != 0 && g_Batter.framesSinceStartOfSwing == 1 && g_Stats.replayInd == 0) {
-        g_pCamera->_A76 = g_Stats.playFrameCounter;
-    }
-    if (g_Batter.swingInd != 0 && g_Batter.contactMadeInd == 1 && g_pCamera->_A78 == 0) {
-        g_pCamera->_A78 = g_Stats.playFrameCounter;
-    }
-    if (g_Batter.hitTrajectory != 0) {
-        g_pCamera->_A7C++;
-    }
-    if (g_pCamera->_A7C > 0x28 && g_pCamera->_A7A == 0) {
-        g_pCamera->_A7A = g_Stats.playFrameCounter;
-    }
-    if (g_Ball.deadBallReason){
-        g_pCamera->_AB8 = 1;
-        g_pCamera->_AC6 = g_Ball.deadBallReason;
-    }
-    if (g_Ball.deadBallReason == 1 && g_pCamera->_A7E == 0) {
-        g_pCamera->_A7E = g_Stats.playFrameCounter;
-    }
-    if (g_Ball.ballState == BALL_STATE_HELD && g_pCamera->_A80 == 0) {
-        g_pCamera->_A9A = g_Ball.fielderWBallIndex;
-        g_pCamera->_A80 = g_Stats.playFrameCounter;
-    }
-    if (g_FieldingLogic._13F != 0 && g_pCamera->_A82 == 0) {
-        g_pCamera->_A82 = g_Stats.playFrameCounter;
-    }
+    fn_3_154C4(1);
+    fn_3_15458(1);
+    fn_3_153F0(1);
+    fn_3_1537C(1);    
+    fn_3_152E8(1);
+    fn_3_1527C(1);
+    fn_3_15220(1);
     fn_3_15144(1);
-    for (i = 0; i < 4; i++) {
-        if (g_Runners[i].baseStandingOn == 3) {
-            g_pCamera->_A8C[i] = g_Stats.playFrameCounter;
-        }
-    }
-    for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY && g_pCamera->_AC0[i] == 0) {
-            g_pCamera->_ABF = i;
-            g_pCamera->_AC0[i] = 1;
-            g_pCamera->_A94 = g_Stats.playFrameCounter;
-        }
-    }
-    if (lbl_3_common_bss_32A94._4 == 0xe && g_pCamera->_A96 == 0) {
-        g_pCamera->_A96 = g_Stats.playFrameCounter;
-    }
-    if (g_FieldingLogic._133 == 2 && g_pCamera->_AC4 == 0) {
-        g_pCamera->_AC4 = g_FieldingLogic._114;
-        g_pCamera->_A9A = g_Ball.fielderWBallIndex;
-        g_pCamera->_A98 = g_Stats.playFrameCounter;
-    }
-    if (lbl_3_common_bss_32A94._2 >= 0x24 && lbl_3_common_bss_32A94._2 <= 0x26 && g_pCamera->_A9C == 0) {
-        g_pCamera->_A9C = g_Stats.playFrameCounter;
-    }
-    if (g_Batter.contactMadeInd == 1 && g_pCamera->_AA6 == -1) {
-        g_pCamera->_AA6 = g_Ball.Hit_HorizontalAngle;
-    }
-    if (g_pCamera->_A50 == -1) {
-        g_pCamera->_A50 = g_Strikes.storedOuts;
-    }
+    fn_3_150C0();
+    fn_3_15004();
+    fn_3_14FC8();
+    fn_3_14F68();
+    fn_3_14F24();
+    fn_3_14EE8();
+    fn_3_14EC0();
 }
 
 // .text:0x000154C4 size:0x60 mapped:0x80654558
@@ -1713,12 +1836,14 @@ void fn_3_14F68(void) {
     g_pCamera->_A9A = g_Ball.fielderWBallIndex;
     g_pCamera->_A98 = g_Stats.playFrameCounter;
 }
+
 // .text:0x00014F24 size:0x44 mapped:0x80653FB8
 void fn_3_14F24(void) {
     if (lbl_3_common_bss_32A94._2 >= 36 && lbl_3_common_bss_32A94._2 <= 38 && g_pCamera->_A9C == 0) {
         g_pCamera->_A9C = g_Stats.playFrameCounter;
     }
 }
+
 // .text:0x00014EE8 size:0x3C mapped:0x80653F7C
 void fn_3_14EE8(void) {
     if (g_Batter.contactMadeInd == 1 && g_pCamera->_AA6 == -1) {

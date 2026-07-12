@@ -53,6 +53,17 @@ dolsqrtf2(                 \
 dolsqrtf2(                 \
     SQ((a)->x - (b)->x) +  \
     SQ((a)->z - (b)->z))
+    
+#define VEC_LENGTH(a) \
+dolsqrtf2(                 \
+    SQ((a)->x) +  \
+    SQ((a)->y) +  \
+    SQ((a)->z))
+
+#define VEC_LENGTH_XZ(a) \
+dolsqrtf2(                 \
+    SQ((a)->x) +  \
+    SQ((a)->z))
 
 typedef struct _VecXZ {
     f32 x, z;
@@ -2634,7 +2645,8 @@ typedef struct {
 typedef struct {
     /* 0x000 */ s16 _0000;
     /* 0x002 */ u16 _0002;
-    /* 0x004 */ s16 _0004[5];
+    /* 0x004 */ s16 _0004[3];
+    /* 0x00A */ s16 _000A[2];
     /* 0x00E */ s16 _000E;
     /* 0x010 */ s16 _0010;
     /* 0x012 */ u8 _0012;
@@ -2644,10 +2656,9 @@ typedef struct {
     artificial_padding(0x15, 0x18, u8);
     /* 0x018 */ VecXYZ _0018;
     /* 0x018 */ VecXYZ _0024;
-    /* 0x030 */ f32 _030;
-    /* 0x034 */ f32 _034;
-    /* 0x038 */ f32 _038;
-    artificial_padding(0x38, 0xc0, f32);
+    /* 0x030 */ VecXYZ _030;
+    /* 0x03C */ VecXYZ _03C[10];
+    /* 0x0B4 */ VecXYZ _0B4;
     /* 0x0C0 */ f32 _0C0;
     /* 0x0C0 */ VecXYZ _0C4;
     /* 0x0D0 */ f32 _0D0;
