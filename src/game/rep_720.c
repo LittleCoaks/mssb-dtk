@@ -959,8 +959,8 @@ void fn_3_193E8(void) {
         d = f->min;
     }
     
-    d3 = d - f->max;
-    d3 /= (f->min - f->max);
+    d -= f->max;
+    d3 = d / (f->min - f->max);
     if (g_Ball.fielderWBallIndex >= 0) {
         min = f->min2;
         max = f->max2;
