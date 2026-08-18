@@ -130,7 +130,7 @@ void aramInit(unsigned long length)
 
   aramBase = ARGetBaseAddress();
 
-  tmpMem = (s16 *)salMalloc(sizeof(s16) * 640);
+  tmpMem = (s16 *)salMallocPhysical(sizeof(s16) * 640);
 
   for (i = 0; i < 640; ++i)
   {
