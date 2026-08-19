@@ -3767,7 +3767,7 @@ vidMakeRoot = .text:0x800D0360; // type:function size:0x14
 vidMakeNew = .text:0x800D0374; // type:function size:0x114
 vidGetInternalId = .text:0x800D0488; // type:function size:0x50
 vidGetPublicId = .text:0x800D04D8; // type:function size:0x54
-voiceSetPrioriety = .text:0x800D052C; // type:function size:0x24C
+voiceSetPriority = .text:0x800D052C; // type:function size:0x24C
 voiceAllocateFind = .text:0x800D0778; // type:function size:0x388
 voiceAllocate = .text:0x800D0B00; // type:function size:0x110
 voiceAllocatePeek = .text:0x800D0C10; // type:function size:0x78
@@ -4502,15 +4502,9 @@ lbl_801115F0 = .data:0x801115F0; // type:object size:0x50
 lbl_80111640 = .data:0x80111640; // type:object size:0x30
 lbl_80111670 = .data:0x80111670; // type:object size:0x18 data:byte
 lbl_80111688 = .data:0x80111688; // type:object size:0x18 data:byte
-<<<<<<< Updated upstream
-lbl_801116A0 = .data:0x801116A0; // type:object size:0x30
-lbl_801116D0 = .data:0x801116D0; // type:object size:0x30
-lbl_80111700 = .data:0x80111700; // type:object size:0x18 data:4byte
-=======
 flipYMatrix = .data:0x801116A0; // type:object size:0x30
 flipY = .data:0x801116D0; // type:object size:0x30
 GXFogType = .data:0x80111700; // type:object size:0x18 data:4byte
->>>>>>> Stashed changes
 jumptable_80111718 = .data:0x80111718; // type:object size:0x34 scope:local
 normalTable = .data:0x80111750; // type:object size:0xBE8
 jumptable_80112338 = .data:0x80112338; // type:object size:0x24 scope:local
@@ -4684,21 +4678,12 @@ dataSmpSDirs = .bss:0x80316770; // type:object size:0x600 data:4byte
 dataFXGroups = .bss:0x80316D70; // type:object size:0x600 data:2byte
 dataMacMainTab = .bss:0x80317370; // type:object size:0x800 data:2byte
 dataMacSubTabmem = .bss:0x80317B70; // type:object size:0x4000
-<<<<<<< Updated upstream
-key$547 = .bss:0x8031BB70; // type:object size:0x20 data:2byte
-lbl_8031BB90 = .bss:0x8031BB90; // type:object size:0xC
-key$604 = .bss:0x8031BB9C; // type:object size:0xC data:2byte
-newsmp$377 = .bss:0x8031BBA8; // type:object size:0x20 data:4byte
-vidList = .bss:0x8031BBC8; // type:object size:0xE00 data:4byte
-lbl_8031C9C8 = .bss:0x8031C9C8; // type:object size:0x100 data:byte
-=======
 key$561 = .bss:0x8031BB70; // type:object size:0x20 data:2byte
 key$606 = .bss:0x8031BB90; // type:object size:0xC
 key$618 = .bss:0x8031BB9C; // type:object size:0xC data:2byte
 newsmp$391 = .bss:0x8031BBA8; // type:object size:0x20 data:4byte
-...bss.0 = .bss:0x8031BBC8; // type:object size:0xE00 data:4byte
+vidList = .bss:0x8031BBC8; // type:object size:0xE00 data:4byte
 voiceList = .bss:0x8031C9C8; // type:object size:0x100 data:byte
->>>>>>> Stashed changes
 synth_last_fxstarted = .bss:0x8031CAC8; // type:object size:0x40 data:byte
 synth_last_started = .bss:0x8031CB08; // type:object size:0x80 data:byte
 vs = .bss:0x8031CB88; // type:object size:0xB50 data:byte

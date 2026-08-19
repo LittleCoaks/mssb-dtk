@@ -4489,13 +4489,8 @@ sandStarPlacementConfig = .data:0x00018730; // type:object size:0x1B0 data:byte
 lbl_3_data_188E0 = .data:0x000188E0; // type:object size:0x8 align:4 data:float
 lbl_3_data_188E8 = .data:0x000188E8; // type:object size:0x14 data:2byte
 lbl_3_data_188FC = .data:0x000188FC; // type:object size:0x10
-<<<<<<< Updated upstream
-lbl_3_data_1890C = .data:0x0001890C; // type:object size:0x4
-lbl_3_data_18910 = .data:0x00018910; // type:object size:0x8 data:byte
-=======
 aILevel = .data:0x0001890C; // type:object size:0x4
 mapping_minigame_Stadium = .data:0x00018910; // type:object size:0x8 data:byte
->>>>>>> Stashed changes
 lbl_3_data_18918 = .data:0x00018918; // type:object size:0x8
 lbl_3_data_18920 = .data:0x00018920; // type:object size:0x24
 lbl_3_data_18944 = .data:0x00018944; // type:object size:0x8

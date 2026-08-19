@@ -1066,6 +1066,11 @@ typedef struct STREAM_INFO {
   u8 hwStreamHandle;
   u32 nextStreamHandle;
 #endif
+#if MUSY_VERSION >= MUSY_VERSION_CHECK(1, 5, 4)
+  /* Unidentified trailing word: the original's streamInfo[] stride is 0x68,
+     which is 4 bytes past the last known field (studio at 0x60). */
+  u32 unk_64;
+#endif
 } STREAM_INFO;
 
 #if MUSY_VERSION >= MUSY_VERSION_CHECK(1, 5, 4)
