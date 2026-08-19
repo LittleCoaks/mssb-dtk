@@ -1,6 +1,8 @@
 # Source file map
 
-What each translation unit in `src/game` is for. Since the reorganisation the
+What each translation unit in `src/game` is for. **`src/game` is the match REL**
+— one of the game's four modules; see [Modules](#modules) for the other three and
+for where their code does (and does not) live. Since the reorganisation the
 **folder is the category**, so this document is mostly a record of *why* each
 file sits where it does, and how much that placement is worth trusting.
 
@@ -122,7 +124,11 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match/ — 10 files, 41 fns (25 named)
+## match_setup/ — 10 files, 41 fns (25 named)
+
+Not gameplay itself: the glue that stands a match up and tears it down —
+roster construction, loading and transition state, controller input, and the
+screens either side of play (versus, championship, home-run trot).
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -191,6 +197,70 @@ counted as unfinished.** They live in their own folder because no gameplay
 category applies, not because they belong together functionally.
 
 ---
+
+## Modules
+
+The disc has one DOL and three RELs. The DOL is always resident; it loads exactly
+one REL at a time, and the match and menu RELs occupy the same arena slot
+(both based at `0x8063F094`), so their code can never be co-resident. Measured on
+the symbol tables: of 2406 `game` `.text` functions and 1233 `menus` functions,
+only 12 share an offset and **none** share offset *and* size — the two images are
+completely disjoint, with nothing shared or common between them.
+
+| module | what it is | units | source tree | state |
+|---|---|---|---|---|
+| `main` | the DOL | 195 named + ~880 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; **the DOL's own game logic is entirely `auto_*` placeholders** |
+| `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
+| `menus` | menu REL | 42 | `src/menus/**` | stubs for all 42 units, 532 functions; 207 carry real names from Ghidra |
+| `challenge` | challenge REL | 13 | `src/challenge/**` | stubs for all 13 units, 307 functions |
+
+### The menu and challenge RELs
+
+Both are known but unwritten, and until recently neither had anywhere to be
+written. `configure.py` declared `Object(NonMatching, "menus/rep_XXXX.c")` for
+every menu unit and the splits gave each one its address range, but not one of
+those files existed — the link consumed objects extracted from the original REL
+instead. `challenge` was worse off: splits and 2353 symbols, but no entry in
+`configure.py` at all.
+
+Both now have a source tree in the `src/game` style — one `.c` per unit with a
+`return;` stub per function, one `.h` of prototypes, the `.text` offset, size and
+(for menus) mapped address on every stub. That is what makes a unit *scoreable*:
+objdiff can diff the compiled stub against the original, so progress on these
+RELs is now visible instead of invisible. The four menu units that were in the
+splits but missing from `configure.py` (`rep_0398`, `rep_03E8`, `rep_0438`,
+`rep_04B0`) are wired in, and `challenge` has a `Rel()` entry.
+
+The mapped addresses are not assumed. The menu REL loads at `0x8063F094`, the
+same slot as the match REL, and every generated address was checked against the
+`AtGameSettingsScreen` snapshot — `rep_01A0`'s four functions land on
+`FUN_8063fb04`, `FUN_8063fbcc`, `FUN_8063fcac`, `FUN_8063fd08` with matching
+sizes. The challenge REL is resident in neither snapshot, so its load address is
+unknown and its stubs carry offset and size but **no** `mapped:` comment; add it
+to `REL_LOAD` in `tools/cvt_rel_addr_to_mapped_addr.py` once it can be measured.
+
+What else is known about the menu REL:
+
+- **Ghidra** — the `AtGameSettingsScreen` snapshot (cached in
+  `.ghidra_cache/AtGameSettingsScreen.symbols.txt`) has 1011 functions in the menu
+  REL's text range `0x8063F094`–`0x806D5E30`, 77 of them with real names.
+- **The decomp** — those names are already imported into
+  `config/GYQE01/menus/symbols.txt` at matching offsets (`bPressOnStadSelectScreen`
+  at Ghidra `0x8063F370` = REL offset `0x2DC`), covering `mainMenuScreen`,
+  `characterSelectScreenControlable`, `cssChangeScreens`, `cssUnloadScreen`,
+  `stadiumRandomizer`, `loadDemoMatch` and the rest of the `css*` family.
+
+A consequence worth knowing when reading `src/game`: because no menu code is
+decompiled, anything in the match REL that sounds menu-ish
+(`versus_screens.c`, `pauseMenuCameraAngle`, the `PracticeStruct` pause/practice
+menu fields in `include/game/UnknownHomes_Game.h`) is genuinely match-REL code —
+in-match screens, the pause menu, practice mode — not menu-REL code that ended up
+in the wrong folder. The split config assigns every one of those units to the
+`game` module, and no split path is declared by two modules.
+
+`src/executor.c` is declared by no module at all: `_prolog`/`_epilog` exist in both
+the `game` and `menus` symbol tables, but the file itself is not in any splits file
+or in `configure.py`.
 
 ## Outside `src/game`
 

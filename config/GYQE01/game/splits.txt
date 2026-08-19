@@ -6,13 +6,13 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:32
 
-game/match/rep_0.c:
+game/match_setup/rep_0.c:
 	.text       start:0x00000000 end:0x000004F4
 	.rodata     start:0x00000000 end:0x00000060
 	.data       start:0x00000000 end:0x00000118
 	.bss        start:0x00000000 end:0x00000018
 
-game/match/loading_state.c:
+game/match_setup/loading_state.c:
 	.text       start:0x000004F4 end:0x000008D4
 	.rodata     start:0x00000060 end:0x000000D0
 	.data       start:0x000001D0 end:0x000001F8
@@ -48,7 +48,7 @@ game/camera/camera.c:
 	.data       start:0x00000A38 end:0x00001880
 	.bss        start:0x00000040 end:0x00000098
 
-game/match/ai_defaults.c:
+game/match_setup/ai_defaults.c:
 	.text       start:0x0001DEB8 end:0x0001E154
 	.rodata     start:0x00000868 end:0x000008C8
 
@@ -63,7 +63,7 @@ game/pitching/pitcher_ai.c:
 game/data_only/rep_9B0.c:
 	.rodata     start:0x000009B0 end:0x00000A00
 
-game/match/versus_screens.c:
+game/match_setup/versus_screens.c:
 	.text       start:0x00021C90 end:0x000249E8
 	.rodata     start:0x00000A00 end:0x00000A78
 	.data       start:0x00003A40 end:0x00003C40
@@ -108,7 +108,7 @@ game/fielding/fielder_orientation.c:
 	.text       start:0x0006AF9C end:0x0006B4C8
 	.rodata     start:0x00000FE0 end:0x00001038
 
-game/match/transition_init.c:
+game/match_setup/transition_init.c:
 	.text       start:0x0006BEA4 end:0x0006C410
 	.rodata     start:0x00001038 end:0x00001090
 
@@ -116,11 +116,11 @@ game/fielding/offence_animation.c:
 	.text       start:0x0006C4D0 end:0x0006C854
 	.rodata     start:0x00001090 end:0x000010E8
 
-game/match/controller_input.c:
+game/match_setup/controller_input.c:
 	.text       start:0x0006CD88 end:0x0006D4A0
 	.rodata     start:0x000010E8 end:0x00001188
 
-game/match/roster_init.c:
+game/match_setup/roster_init.c:
 	.text       start:0x0006D6D4 end:0x0006F4E8
 	.rodata     start:0x00001188 end:0x00001200
 
@@ -135,7 +135,7 @@ game/baserunning/play_result_tracking.c:
 	.rodata     start:0x000012D0 end:0x00001330
 	.data       start:0x000080E8 end:0x00008110
 
-game/match/replay_inputs.c:
+game/match_setup/replay_inputs.c:
 	.text       start:0x0007C1FC end:0x0007CE90
 	.rodata     start:0x00001330 end:0x000013B8
 	.bss        start:0x00001748 end:0x00001760
@@ -191,7 +191,7 @@ game/data_only/rep_1AD0.c:
 game/data_only/rep_1B20.c:
 	.rodata     start:0x00001B20 end:0x00001B70
 
-game/match/player_control_transition.c:
+game/match_setup/player_control_transition.c:
 	.text       start:0x000B3A4C end:0x000B3B70
 	.rodata     start:0x00001B70 end:0x00001BC8
 
@@ -381,7 +381,7 @@ game/data_only/rep_3D50.c:
 	.rodata     start:0x00003D50 end:0x00003DA8
 	.bss        start:0x0000B9B8 end:0x0000B9E0
 
-game/match/star_missions.c:
+game/match_setup/star_missions.c:
 	.text       start:0x00161588 end:0x001658F0
 	.rodata     start:0x00003DA8 end:0x00003E00
 	.data       start:0x00028438 end:0x000284E8

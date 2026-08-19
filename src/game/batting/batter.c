@@ -5,7 +5,7 @@
 #include "static/UnknownHomes_static.h"
 #include "game/math/game_math.h"
 #include "game/ball/ball_physics.h"
-#include "game/match/roster_init.h"
+#include "game/match_setup/roster_init.h"
 #include "game/batting/batter_ai.h"
 #include "game/batting/charge_effects.h"
 #include "game/baserunning/runner.h"

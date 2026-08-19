@@ -1,0 +1,52 @@
+#ifndef __MENUS_REP_08E8_H_
+#define __MENUS_REP_08E8_H_
+
+#include "mssbTypes.h"
+
+void fn_2_46C88(void);
+void fn_2_46D00(void);
+void fn_2_46D34(void);
+void fn_2_46D94(void);
+void fn_2_472C4(void);
+void fn_2_474F8(void);
+void fn_2_474FC(void);
+void fn_2_47540(void);
+void fn_2_4777C(void);
+void fn_2_477C0(void);
+void fn_2_478F4(void);
+void fn_2_47AFC(void);
+void fn_2_47B24(void);
+void fn_2_47CFC(void);
+void fn_2_47FF8(void);
+void fn_2_481B8(void);
+void fn_2_481F4(void);
+void fn_2_487A0(void);
+void fn_2_489DC(void);
+void fn_2_48A1C(void);
+void fn_2_48BE0(void);
+void fn_2_48D08(void);
+void fn_2_48D54(void);
+void fn_2_48DB4(void);
+void fn_2_4906C(void);
+void fn_2_4917C(void);
+void fn_2_49DB8(void);
+void fn_2_49E5C(void);
+void fn_2_49EFC(void);
+void fn_2_49F7C(void);
+void fn_2_4A064(void);
+void fn_2_4A068(void);
+void fn_2_4A094(void);
+void fn_2_4A0C4(void);
+void fn_2_4A150(void);
+void fn_2_4A18C(void);
+void fn_2_4A1E8(void);
+void fn_2_4A234(void);
+void fn_2_4A2C4(void);
+void fn_2_4A310(void);
+void fn_2_4A340(void);
+void fn_2_4A6E8(void);
+void fn_2_4AB1C(void);
+void fn_2_4ACF8(void);
+void fn_2_4AEE4(void);
+
+#endif // !__MENUS_REP_08E8_H_
