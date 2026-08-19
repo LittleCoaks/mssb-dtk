@@ -1,0 +1,84 @@
+#ifndef __GAME_CAMERA_CAMERA_H_
+#define __GAME_CAMERA_CAMERA_H_
+
+#include "mssbTypes.h"
+#include "static/UnknownHomes_Static.h"
+
+void fn_3_14BB4(camera_803c639c_s*);
+void fn_3_14E1C(void);
+void fn_3_14E50(void);
+void fn_3_14E84(void);
+void fn_3_14EC0(void);
+void fn_3_14EE8(void);
+void fn_3_14F24(void);
+void fn_3_14F68(void);
+void fn_3_14FC8(void);
+void fn_3_15004(void);
+void fn_3_150C0(void);
+void fn_3_15144(int arg);
+void fn_3_15220(int arg);
+void fn_3_1527C(int arg);
+void fn_3_152E8(int arg);
+void fn_3_1537C(int arg);
+void fn_3_153F0(int arg);
+void fn_3_15458(int arg);
+void fn_3_154C4(int arg);
+void assignFrameCountersToAPointer(void);
+void fn_3_15A98(void);
+void fn_3_15D28(void);
+void fn_3_15D64(void);
+void fn_3_15D7C(u8 b);
+void resetSomeStruct(void);
+void fn_3_15F18(void);
+void fn_3_15F38(void);
+void fn_3_15F74(void);
+void pauseMenuCameraAngle(void);
+void fn_3_15FD0(void);
+void fn_3_15FF0(void);
+void fn_3_16014(void);
+void fn_3_16034(void);
+void fn_3_16058(void);
+void fn_3_161C0(void);
+void fn_3_16328(void);
+int fn_3_164A8(void);
+BOOL fn_3_1650C(int* outX, int* outY, BOOL r5, f32 pX, f32 pY, f32 pZ);
+void fn_3_166F4(void);
+void fn_3_16900(void);
+void fn_3_16BA0(void);
+void bOD_Cam_liveBall(void);
+void fn_3_16F04(void);
+void fn_3_17110(void);
+void fn_3_1731C(void);
+void fn_3_17760(void);
+void fn_3_17804(void);
+void fn_3_1785C(void);
+void camera_matchLiveBall_regular_replay(void);
+void fn_3_17B2C(void);
+void gameplay_Camera(void);
+void cameraRelated(void);
+void fn_3_18FF8(void);
+void fn_3_193E8(void);
+void fn_3_195BC(void);
+void fn_3_19770(void);
+void fn_3_197E8(void);
+void fn_3_19B3C(int arg, f32* arg2);
+void fn_3_19CB0(s16 arg);
+void fn_3_19FA4(void);
+void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, u16 arg5, f32 arg1, f32 arg2, f32 arg3);
+void fn_3_1AEB8(void);
+void fn_3_1B17C(void);
+void camera_match_setMovement(void);
+void matchCamera_setPastAndCurrentTarget(void);
+void fn_3_1C0B0(void);
+void fn_3_1C130(void);
+void camera_matchLiveBall(void);
+void fn_3_1C684(void);
+u8 fn_3_1C898(void);
+void fn_3_1C8A8(void);
+void fn_3_1C8AC(BOOL b);
+void fn_3_1CAC0(void);
+void fn_3_1CBCC(void);
+void fn_3_1CCC8(void);
+void cameraControl(void);
+
+#endif // !__GAME_CAMERA_CAMERA_H_

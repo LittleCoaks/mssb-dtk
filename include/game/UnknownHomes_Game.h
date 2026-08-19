@@ -390,7 +390,7 @@ typedef struct _InMemBallType {
     /*0x1B82*/ sAng ballTravelAngle;
     /*0x1B84*/ s16 landingSpotAngle;
     /*0x1B86*/ s16 baseBallAndFielderAreOn;
-    /*0x1B88*/ s16 _1B88; // -1
+    /*0x1B88*/ s16 unused_always_neg1; // -1
     /*0x1B8A*/ s16 fielderBeingThrownTo;
     /*0x1B8C*/ s16 ballBounceState; // unsure
     /*0x1B8E*/ s16 fielderWithBallIndexStored;
@@ -398,14 +398,14 @@ typedef struct _InMemBallType {
     /*0x1B92*/ s16 fielderWhoGotLastOut; // unsure
     /*0x1B94*/ s16 throwingFielder;      // unsure, Maybe Cut off Related
     /*0x1B96*/ s16 collisionRelated;
-    /*0x1B98*/ s16 _1B98; // unused_frameHitGetsAboveY=1.3
+    /*0x1B98*/ s16 unused_frameHitGetsAboveY_1_3; // unused_frameHitGetsAboveY=1.3
     /*0x1B9A*/ s16 Hit_VerticalAngle;
     /*0x1B9C*/ sAng Hit_HorizontalAngle;
     /*0x1B9E*/ s16 Hit_HorizontalPower; // bODBasePoints
     /*0x1BA0*/ matchShorts matchFramesAndBallAngle;
     /*0x1BBE*/ u8 ballZoneAwayFromHome;
     /*0x1BBF*/ u8 landingSpotZoneAwayFromHome;
-    /*0x1BC0*/ u8 _1BC0; // seeminglyAlways1_ballCollideWallRelated;
+    /*0x1BC0*/ u8 seeminglyAlways1_ballCollideWWallRelated; // seeminglyAlways1_ballCollideWallRelated;
     /*0x1BC1*/ u8 someCollisionVariable;
     /*0x1BC2*/ u8 thrownBallHasHitGround;
     /*0x1BC3*/ u8 hitClassification1;
@@ -436,7 +436,7 @@ typedef struct _InMemBallType {
     /*0x1BDC*/ u8 homeRunInd;
     /*0x1BDD*/ u8 ballZoneWhenCaught;
     /*0x1BDE*/ u8 ballStoppingCode1ReallySlow2Stopped;
-    /*0x1BDF*/ u8 _1BDF;
+    /*0x1BDF*/ u8 unknown_always0;
     /*0x1BE0*/ u8 throwTimeEstimatesCompleteInd;
     /*0x1BE1*/ u8 looseBall_codeForHowLongUntilSomeoneWillGetIt; // unsure
     /*0x1BE2*/ u8 ballZoneFromHomeAtStartOfThrow;
@@ -1125,7 +1125,7 @@ typedef struct _GameControlsStruct {
     /*0x100*/ s16 CountdownUntilFade;
     /*0x102*/ s16 _102;
     /*0x104*/ s16 framePlayEnd;
-    /*0x106*/ s16 _106;
+    /*0x106*/ s16 someCounter;
     /*0x108*/ s16 _108;
     /*0x10A*/ s16 bOD_framesInLiveBallScene;
     /*0x10C*/ s16 frameCountdownAtBeginningOfAtBatLockout;
@@ -1142,12 +1142,12 @@ typedef struct _GameControlsStruct {
     /*0x120*/ E(u8, SCENE_ID) sceneID;
     /*0x121*/ E(u8, SECONDARY_GAME_MODE) secondaryGameMode;
     /*0x122*/ u8 framesOfExitingToMenu;
-    /*0x123*/ u8 _123;
+    /*0x123*/ u8 unused_always0;
     /*0x124*/ u8 _124;
     /*0x125*/ E(u8, TRANSITION_CALCULATION_TYPE) _125;
     /*0x126*/ u8 homeRunWordAnimationCompletedInd;
     /*0x127*/ u8 EventTriggers_EndOfGame;
-    /*0x128*/ u8 _128;
+    /*0x128*/ u8 exitingToMenu;
     /*0x129*/ u8 EventTriggers_GameHasStarted; // unsure
     /*0x12A*/ u8 playBatterWalkupAnimation;
     /*0x12B*/ u8 pre_PostMiniGameInd;        // unsure
@@ -1157,8 +1157,8 @@ typedef struct _GameControlsStruct {
     /*0x12F*/ u8 _12F;
     /*0x130*/ E(u8, WIN_TYPE) winType;
     artificial_padding(0x130, 0x135, u8);
-    /*0x135*/ u8 _135;
-    /*0x136*/ u8 _136;
+    /*0x135*/ u8 writeOnly_always0;
+    /*0x136*/ u8 writeOnly_always0_2;
     /*0x137*/ u8 playOverFadeOutStarted;
     /*0x138*/ u8 playOver;
     /*0x139*/ u8 playOverInd;
@@ -2513,7 +2513,7 @@ extern struct {
     /* 0x32 */ u8 _32;
     /* 0x33 */ u8 _33;
     /* 0x34 */ u8 _34;
-} lbl_3_common_bss_34C58; // size: 0x38
+} sound_crowd_EffectsStruct; // size: 0x38
 
 extern InputStruct g_Controls[];
 
@@ -2558,8 +2558,8 @@ typedef struct {
     /* 0x44 */ u16 _44;
     /* 0x46 */ u8 _46;
     /* 0x47 */ u8 _47;
-    /* 0x48 */ u8 _48;
-    /* 0x49 */ u8 _49;
+    /* 0x48 */ u8 unused_highUrgencySituationTracker;
+    /* 0x49 */ u8 aIDifficultyInverse0Weak;
     /* 0x4A */ u8 aIPitchType;
     /* 0x4B */ u8 aiPitchCurveType;
     /* 0x4C */ u8 aiPitchDirectionInput;
@@ -2598,15 +2598,15 @@ typedef struct {
     /* 0x6D */ u8 lastPitchType;
     /* 0x6E */ u8 lastPitchBallLocZone;
     /* 0x6F */ u8 lastPitchMoundZone;
-    /* 0x70 */ u8 _70;
+    /* 0x70 */ u8 batterAIInd2;
     /* 0x71 */ u8 starRelated[2]; // star related
     /* 0x73 */ u8 _73;
     /* 0x74 */ u8 _74;
     /* 0x75 */ u8 batterAIStealIndicator;
     /* 0x76 */ u8 batterAIStealingStartFrame;
     /* 0x77 */ u8 _77;
-    /* 0x78 */ u8 _78;
-    /* 0x79 */ u8 _79[3];
+    /* 0x78 */ u8 AIControlFlag;
+    /* 0x79 */ u8 warioStarRelated[3];
     /* 0x7C */ u8 _7C[4];
     /* 0x80 */ u8 _80[28];
     /* 0x9C */ u8 _9C[8];
@@ -2870,7 +2870,7 @@ typedef struct {
     /* 0x4 */ s16 _4;
 } lbl_3_common_bss_32A94_s;
 
-extern lbl_3_common_bss_32A94_s lbl_3_common_bss_32A94;
+extern lbl_3_common_bss_32A94_s storedInningInfo;
 
 typedef struct {
     u8 pad[0xa0];
@@ -2883,7 +2883,7 @@ typedef struct {
     lbl_3_common_bss_DE94_s2* _0000;
 } lbl_3_common_bss_DE94_s; // size: 0x2AF4
 
-extern lbl_3_common_bss_DE94_s lbl_3_common_bss_DE94;
+extern lbl_3_common_bss_DE94_s unkStructPtr;
 
 extern trajOptions_s hitTrajOptions[]; 
 extern s16 toyFieldHitVertTraj[2][5][5][2];
@@ -2891,12 +2891,12 @@ extern s16 bODHitVertTraj[5][5][2];
 extern s16 HitVertTrajRanges[2][5][5][2];
 
 extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
-extern void fn_3_6C854(int, int);
+extern void setCharacterAnimations(int, int);
 extern void playSoundEffect(int);
-extern void fn_3_5ED98(void);
+extern void switchFromAtBatToLiveBall(void);
 extern int RandomIndexFromWeights(u8* weights, int count);
-extern void fn_3_FBDAC(int);
-extern void fn_3_FBE24(void);
+extern void camera_switchScene(int);
+extern void camera_replay(void);
 extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
 
 #endif // !__UNKNOWN_HOMES_H_

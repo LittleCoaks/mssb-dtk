@@ -2,7 +2,7 @@
 #include "header_rep_data.h"
 
 // .text:0x000CB738 size:0x9C mapped:0x8070A7CC
-void fn_3_CB738(void) {
+void stadiumStarAnimation(void) {
     return;
 }
 
@@ -12,7 +12,7 @@ void fn_3_CB7D4(void) {
 }
 
 // .text:0x000CB7E8 size:0xC0 mapped:0x8070A87C
-void fn_3_CB7E8(void) {
+void stadiumStarAwarded(void) {
     return;
 }
 

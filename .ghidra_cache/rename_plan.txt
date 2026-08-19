@@ -1,0 +1,347 @@
+fn_8001C67C_animation      -> loadAndAnimateCharacter                      0x8001c67c func
+fn_80021410                -> maybeLoadsGameSoundFiles                     0x80021410 func
+fn_80024C04                -> isCharacterUnlocked                          0x80024c04 func
+fn_80035CA4                -> unregisterObjectByID                         0x80035ca4 func
+fn_80049220                -> controlOptionsScreen                         0x80049220 func
+fn_800494CC                -> gameSettingsControllerInputs                 0x800494cc func
+fn_80049C80                -> stadiumSelect                                0x80049c80 func
+fn_80049D8C                -> gameSettingsLeftRightPressed                 0x80049d8c func
+fn_8004A1BC                -> gameSettingsRelated                          0x8004a1bc func
+fn_8004A2BC                -> gameSettingsScreen                           0x8004a2bc func
+fn_8004CC2C                -> set803c5f77                                  0x8004cc2c func
+fn_8004D57C                -> challengeCaptainSelect_returnsCharID         0x8004d57c func
+fn_8004D93C                -> challengeTransitionRelated                   0x8004d93c func
+fn_8004E504                -> storeCursorLocOrCharIDs                      0x8004e504 func
+fn_8004E5B4                -> add_or_RemoveCharToATeam                     0x8004e5b4 func   [sanitized from: add/RemoveCharToATeam]
+fn_8004E62C                -> captainSelect_processCursorMovement_getCharID 0x8004e62c func
+fn_8004EE84                -> relatedToTransitions                         0x8004ee84 func
+fn_80050138                -> cssLoadingRelated_1                          0x80050138 func
+fn_800506E8                -> addOrRemoveCharacterToTeam                   0x800506e8 func
+fn_80050760                -> cssCursorOnBottomControl_maybe               0x80050760 func   [sanitized from: cssCursorOnBottomControl?]
+fn_80050FE8                -> css_initValues                               0x80050fe8 func
+fn_80056120                -> newMenuRelated                               0x80056120 func
+fn_800569C8                -> updateMenuNumbers                            0x800569c8 func
+fn_8005BB5C                -> challengeTeamManagementRelated               0x8005bb5c func
+fn_80062578                -> noActiveProcessInd                           0x80062578 func
+fn_800626EC                -> makeCursorUnmovable                          0x800626ec func
+fn_80062744                -> resetCursorFramesTillMovable                 0x80062744 func
+fn_800628D4                -> playPlayerSelectedSound                      0x800628d4 func
+fn_8006496C                -> setPortOfEachPlayer                          0x8006496c func
+fn_800671FC                -> selectRandomStadium                          0x800671fc func
+fn_80067B40                -> addRemoveCharVariantRelated                  0x80067b40 func
+fn_80067F70                -> DraftRandomTeamDemo                          0x80067f70 func
+fn_80068838                -> unknownSettingTeamValues                     0x80068838 func
+fn_800B0A14_removeQueue    -> removeCurrentDrawingItem                     0x800b0a14 func
+fn_800B0A5C_insertQueue    -> insertGraphicDrawingFunction                 0x800b0a5c func
+lbl_800FDE84               -> characterIconsOnCSS                          0x800fde84 data
+lbl_800FE5D4               -> mapCaptainCursorPositionToCharID             0x800fe5d4 data
+lbl_800FE930               -> challengeCaptainCharIDArray                  0x800fe930 data
+lbl_800FE93C               -> variantCharIDs                               0x800fe93c data
+lbl_80108EC4               -> captainIDOrderedOnCapSS                      0x80108ec4 data
+lbl_80108EDC               -> variantPairs                                 0x80108edc data
+lbl_8010B4B4               -> challengeIntermediateStarBuffs               0x8010b4b4 data
+lbl_8010B590               -> challengeIntermediateStarBUffs_CPU           0x8010b590 data
+lbl_8039C3E0               -> menuGraphicsStructures                       0x8039c3e0 data
+lbl_803C6028               -> charSelectStruct                             0x803c6028 data
+lbl_803C663C               -> framesUntilCursorMovable                     0x803c663c data
+lbl_803CB748               -> unlockableCharacter_noDupeNoGapCharID        0x803cb748 data
+lbl_803CBBCC               -> menuControlVariables                         0x803cbbcc data
+fn_2_2DC                   -> bPressOnStadSelectScreen                     0x8063f370 func
+fn_2_11A0                  -> changeScreenVariables                        0x80640234 func
+fn_2_11D8                  -> currentScreenFunctionChooser                 0x8064026c func
+fn_2_14F8                  -> stadiumRandomizer                            0x8064058c func
+fn_2_1C34                  -> cursorSndFx                                  0x80640cc8 func
+fn_2_1F30                  -> mainMenuRelated                              0x80640fc4 func
+fn_2_27E0                  -> mainMenuScreen                               0x80641874 func
+fn_2_2FC0                  -> loadDemoMatch                                0x80642054 func
+fn_2_323C                  -> cssTransitionToNewScreen_maybe               0x806422d0 func   [sanitized from: cssTransitionToNewScreen?]
+fn_2_35D0                  -> stopShowingCaptainProfile                    0x80642664 func
+fn_2_5444                  -> teamReady1                                   0x806444d8 func
+fn_2_61A0                  -> cssChangeScreens                             0x80645234 func
+fn_2_6484                  -> cssSelectCPUDifficulty                       0x80645518 func
+fn_2_6608                  -> characterSelectScreenControlable             0x8064569c func
+fn_2_6D3C                  -> cssUnloadScreen                              0x80645dd0 func
+fn_2_7504                  -> cssResetRosterStruct                         0x80646598 func
+fn_2_7DDC                  -> cssLoadingScreenRelated                      0x80646e70 func
+fn_2_8940                  -> copyInfoToInMemRoster                        0x806479d4 func
+fn_2_BF90                  -> challengeSetRoster                           0x8064b024 func
+fn_2_CE44                  -> cssReturnToCapSelect_maybe                   0x8064bed8 func   [sanitized from: cssReturnToCapSelect?]
+fn_2_DFAC                  -> characterSelectAPress                        0x8064d040 func
+fn_2_ED94                  -> characterSelectABDirectionInputs             0x8064de28 func
+fn_2_F200                  -> randCharBasedOnClass                         0x8064e294 func
+fn_2_FAA0                  -> randCharacter1                               0x8064eb34 func
+fn_2_FCB4                  -> randCharAlgo2                                0x8064ed48 func
+fn_2_102C8                 -> starHitSetting_Unused_maybe                  0x8064f35c func   [sanitized from: starHitSetting(Unused?)]
+fn_2_104FC                 -> characterSelectControls                      0x8064f590 func
+fn_2_110B0                 -> teamSelectScreenMain                         0x80650144 func
+fn_2_11340                 -> stadiumSelectControls                        0x806503d4 func
+fn_2_11698                 -> selectStadiumScreen                          0x8065072c func
+fn_2_12238                 -> challengeCaptainRelated                      0x806512cc func
+fn_2_123CC                 -> captainSelectDefaultProcess                  0x80651460 func
+fn_2_12F88                 -> captainSelectScreen_manager                  0x8065201c func
+fn_2_14790                 -> checkForNewPlayer                            0x80653824 func
+fn_2_14CA0                 -> captainSelect_handleCursor                   0x80653d34 func
+fn_2_15104                 -> loadNewCaptainModelOnCapSelectScreen         0x80654198 func
+fn_2_151BC                 -> captainSelect_BPress                         0x80654250 func
+fn_2_1560C                 -> captainSelect_APress                         0x806546a0 func
+fn_2_15AFC                 -> captainSelectScreenInputs                    0x80654b90 func
+fn_2_15E80                 -> captainSelect_handleInputs                   0x80654f14 func
+fn_2_1641C                 -> onlySetPort1ToActiveOnInitialCapSSLoad       0x806554b0 func
+fn_2_16A48                 -> set807518de                                  0x80655adc func
+fn_2_18FBC                 -> captainSelectLoadScreen                      0x80658050 func
+fn_2_19D04                 -> optionsScreen                                0x80658d98 func
+fn_2_19F2C                 -> settingValuesTo0                             0x80658fc0 func
+fn_2_1A1B4                 -> challengeFileSelect                          0x80659248 func
+fn_2_53408                 -> challengeMap                                 0x8069249c func
+fn_2_5E104                 -> recordsScreen                                0x8069d198 func
+fn_2_6C938                 -> checkForButtonPressToSkip_maybe              0x806ab9cc func   [sanitized from: checkForButtonPressToSkip?]
+fn_2_7265C                 -> cssCheckSomethingAboutCharacters             0x806b16f0 func
+fn_2_74F40                 -> gfx_cssCharStatBars_and_sthgElse             0x806b3fd4 func   [sanitized from: gfx_cssCharStatBars+sthgElse]
+fn_2_75BE4                 -> teamSelectionSetChemStars                    0x806b4c78 func
+fn_2_776A0                 -> removeAllPlayersFromTeam                     0x806b6734 func
+fn_2_7805C                 -> cssAction_0x1d                               0x806b70f0 func
+fn_2_7836C                 -> cssAction_0x1c                               0x806b7400 func
+fn_2_78AC0                 -> cssAction_0x1b                               0x806b7b54 func
+fn_2_78F78                 -> cssAction_0x1a                               0x806b800c func
+fn_2_7912C                 -> cssAction_0x19                               0x806b81c0 func
+fn_2_79394                 -> cssAction_0x18                               0x806b8428 func
+fn_2_79930                 -> randomTeamMemberSelection                    0x806b89c4 func
+fn_2_7BFF8                 -> cssAction_case9                              0x806bb08c func
+fn_2_7E380                 -> cssUnready                                   0x806bd414 func
+fn_2_7E974                 -> cssReady                                     0x806bda08 func
+fn_2_7F030                 -> cssRemoveCharacter2                          0x806be0c4 func
+fn_2_7F2BC                 -> cssRemoveCharacter1                          0x806be350 func
+fn_2_7F8BC                 -> cssSelectCharacter                           0x806be950 func
+fn_2_800B0                 -> captainSelectUnloadCSSLoadRelated            0x806bf144 func
+fn_2_80F5C                 -> maybeBackgroundImagesForCaptain              0x806bfff0 func
+fn_2_81628                 -> cssActions                                   0x806c06bc func
+fn_2_8279C                 -> relatedToTeamSelection3                      0x806c1830 func
+fn_2_82E58                 -> relatedToTeamSelection4                      0x806c1eec func
+fn_2_83B34                 -> stadiumRandomRelated                         0x806c2bc8 func
+fn_2_84FA8                 -> stadiumScreenAnimations_maybe                0x806c403c func   [sanitized from: stadiumScreenAnimations?]
+fn_2_85108                 -> loadStadiumScreen_maybe                      0x806c419c func   [sanitized from: loadStadiumScreen?]
+fn_2_8EEC8                 -> titleScreen                                  0x806cdf5c func
+lbl_2_data_138             -> pCurrentScreenControlFunction                0x806d7178 data
+lbl_2_data_130C            -> cursorToStadIDMapping                        0x806d834c data
+fn_3_9FE6C_normalizeAngle  -> normalizeAngle                               0x806def00 func
+fn_3_B707C                 -> practiceRelatedUnused_maybe                  0x806f6110 func   [sanitized from: practiceRelatedUnused?]
+lbl_3_rodata_1F08          -> constToDouble_maybe                          0x807af348 data   [sanitized from: constToDouble?]
+lbl_3_rodata_2658          -> const_pi_or_180                              0x807afa98 data   [sanitized from: const_pi/180]
+
+--- skipped ---
+fn_800111FC                   animationRelated                             name already used in repo: animationRelated
+fn_8001DB74                   animRelated                                  name already used in repo: animRelated
+lbl_803CC400                  7.0                                          numeric literal label
+lbl_803CC404                  6.0                                          numeric literal label
+lbl_803CC408                  12.0                                         numeric literal label
+lbl_803CC40C                  -1.0                                         numeric literal label
+lbl_803CC410                  3.0                                          numeric literal label
+lbl_803CC414                  -3.0                                         numeric literal label
+lbl_803CC418                  1.0                                          numeric literal label
+lbl_803CC41C                  -6.0                                         numeric literal label
+lbl_803CC428                  1.0                                          numeric literal label
+lbl_803CC42C                  0.0                                          numeric literal label
+lbl_803CC470                  1280.0                                       numeric literal label
+lbl_803CC47C                  0.0                                          numeric literal label
+lbl_803CC480                  256.0                                        numeric literal label
+lbl_803CC490                  0.0                                          numeric literal label
+lbl_803CC494                  448.0                                        numeric literal label
+lbl_803CC498                  640.0                                        numeric literal label
+lbl_803CC49C                  2.0                                          numeric literal label
+lbl_803CC4B8                  0.0                                          numeric literal label
+lbl_803CC564                  c1.0                                         numeric literal label
+lbl_803CC56C                  2048.0                                       numeric literal label
+lbl_803CC578                  const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_803CC588                  const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_803CC59C                  255.0                                        numeric literal label
+lbl_803CC5A0                  0.0                                          numeric literal label
+lbl_803CC5A4                  1.0                                          numeric literal label
+lbl_803CC600                  tfd                                          name already used in repo: tfd
+lbl_803CC6E0                  c1025.0                                      numeric literal label
+lbl_803CC7A0                  640.0                                        numeric literal label
+lbl_803CC7A4                  1280.0                                       numeric literal label
+lbl_803CC7A8                  0.5                                          numeric literal label
+lbl_803CC7B0                  448.0                                        numeric literal label
+lbl_803CC7B4                  255.0                                        numeric literal label
+lbl_803CC940                  1.0                                          numeric literal label
+lbl_803CC944                  0.0                                          numeric literal label
+lbl_803CC950                  2.0                                          numeric literal label
+lbl_803CC988                  1.0                                          numeric literal label
+lbl_803CC9F0                  1024.0                                       numeric literal label
+lbl_803CC9F8                  0.0                                          numeric literal label
+lbl_803CC9FC                  1.0                                          numeric literal label
+lbl_803CCA10                  2.0                                          numeric literal label
+lbl_803CCA18                  0.5                                          numeric literal label
+lbl_803CCA20                  8388638.0                                    numeric literal label
+lbl_803CCB08                  1.0E300                                      numeric literal label
+lbl_803CCB10                  1.0                                          numeric literal label
+lbl_803CCB68                  0.5                                          numeric literal label
+lbl_803CCF08                  -1.0                                         numeric literal label
+lbl_803CCF0C                  0.0                                          numeric literal label
+lbl_803CCF10                  1.0                                          numeric literal label
+lbl_803CCF60                  PI                                           AMBIGUOUS: PI is also what -PI sanitizes to -- name one by hand
+lbl_803CCF7C                  c1.0                                         numeric literal label
+lbl_803CCFC0                  c-1.0                                        numeric literal label
+lbl_803CCFC4                  c1.0                                         numeric literal label
+lbl_803CCFD8                  1.0                                          numeric literal label
+lbl_803CCFDC                  0.0                                          numeric literal label
+lbl_803CCFE0                  -1.0                                         numeric literal label
+lbl_803CCFFC                  0.0                                          numeric literal label
+lbl_803CD000                  0.5                                          numeric literal label
+lbl_803CD004                  1.0                                          numeric literal label
+lbl_803CD008                  -1.0                                         numeric literal label
+lbl_803CD020                  0.5                                          numeric literal label
+lbl_803CD028                  3.0                                          numeric literal label
+lbl_803CD030                  0.0                                          numeric literal label
+lbl_803CD03C                  2.0                                          numeric literal label
+lbl_803CD040                  c1000                                        numeric literal label
+lbl_803CD048                  tfd                                          name already used in repo: tfd
+lbl_803CD060                  0.0                                          numeric literal label
+lbl_803CD064                  1.0                                          numeric literal label
+lbl_803CD220                  tfd                                          name already used in repo: tfd
+fn_2_0                        maybeProcessTeamData                         name already used in repo: maybeProcessTeamData
+fn_3_258                      unreferenced                                 low-information
+fn_3_35E4                     setFanObjPtr                                 name already used in repo: setFanObjPtr
+fn_2_7D44                     unreferenced                                 low-information
+fn_3_1E724                    unreferenced                                 low-information
+fn_3_20EEC                    unused                                       low-information
+fn_3_258D8                    unused                                       low-information
+fn_2_28224                    wallJumpInitialization                       name already used in repo: wallJumpInitialization
+fn_3_2ACD8                    unused                                       low-information
+fn_2_2C698                    checkForCatchBallAction                      name already used in repo: checkForCatchBallAction
+fn_3_2F7D4                    unused                                       low-information
+fn_3_300B8                    unused                                       low-information
+fn_3_3061C                    unused                                       low-information
+fn_3_30A58                    unReferenced                                 low-information
+fn_3_31678                    unused                                       low-information
+fn_3_31A3C                    unused                                       low-information
+fn_3_38234                    unreferenced                                 low-information
+fn_3_5CFD0                    unreferenced                                 low-information
+fn_2_63874                    runnerAnimation_detailed                     name already used in repo: runnerAnimation_detailed
+fn_2_6AF9C                    computeAdjustedFielderOrientation            name already used in repo: computeAdjustedFielderOrientation
+fn_3_6D6D4                    unreferenced                                 low-information
+fn_3_6FA28                    unused                                       low-information
+fn_3_6FB98                    unused                                       low-information
+fn_3_70838                    unused                                       low-information
+fn_3_70B94                    unused                                       low-information
+fn_3_7372C                    unreferenced                                 low-information
+fn_3_73DE8                    unreferenced                                 low-information
+fn_3_73F2C                    unused                                       low-information
+fn_3_73FAC                    unused                                       low-information
+fn_3_7F9C4                    unused?                                      low-information
+fn_3_7FD90                    unused?                                      low-information
+fn_3_81AB8                    unReferenced                                 low-information
+fn_3_833EC                    unused?                                      low-information
+fn_2_84388                    unreferenced                                 low-information
+fn_2_851A8                    unreferenced                                 low-information
+fn_3_870AC                    unreferenced                                 low-information
+fn_3_8A5A4                    initializeInMemRunner                        name already used in repo: initializeInMemRunner
+fn_3_8A618                    unreferenced                                 low-information
+fn_3_8A7B4                    (unused)                                     low-information
+fn_3_91C70                    animateScreenRelated                         name already used in repo: animateScreenRelated
+fn_3_AF5A4                    pauseMenuControl                             name already used in repo: pauseMenuControl
+fn_3_B01E0                    unused?                                      low-information
+fn_3_B0464                    unused?                                      low-information
+fn_3_B11D0                    unused                                       low-information
+fn_3_B12F8                    unused                                       low-information
+fn_3_B60F0                    unused                                       low-information
+fn_3_B61C0                    unused                                       low-information
+fn_3_B6E98                    unused                                       low-information
+fn_3_B6F6C                    unused                                       low-information
+fn_3_DEB90                    toyFieldRelated                              name already used in repo: toyFieldRelated
+fn_3_F2FFC                    unreferenced                                 low-information
+fn_3_F4C4C                    unreferenced                                 low-information
+fn_3_106ED4                   unreferenced                                 low-information
+fn_3_10C450                   unused                                       low-information
+fn_3_10C58C                   unused                                       low-information
+fn_3_111C5C                   unused                                       low-information
+fn_3_115540                   unreferenced                                 low-information
+fn_3_115978                   unreferenced                                 low-information
+fn_3_135A64                   unused                                       low-information
+fn_3_13AA78                   starDashRelated                              name already used in repo: starDashRelated
+fn_3_15B494                   fieldingPracticeRelated                      name already used in repo: fieldingPracticeRelated
+fn_3_15B79C                   animationRelated                             name already used in repo: animationRelated
+fn_3_1663AC                   practiceAnimationRelated                     name already used in repo: practiceAnimationRelated
+lbl_3_rodata_120              -1.0                                         numeric literal label
+lbl_3_rodata_124              0.0                                          numeric literal label
+lbl_3_rodata_128              0.5                                          numeric literal label
+lbl_3_rodata_130              3.0                                          numeric literal label
+lbl_3_rodata_138              c0.0                                         numeric literal label
+lbl_3_rodata_590              0.0                                          numeric literal label
+lbl_3_rodata_5B8              0.5                                          numeric literal label
+lbl_3_rodata_5C0              3.0                                          numeric literal label
+lbl_3_rodata_670              -0.5                                         numeric literal label
+lbl_3_rodata_674              200.0                                        numeric literal label
+lbl_3_rodata_6D8              const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_3_rodata_6EC              200.0                                        numeric literal label
+lbl_3_rodata_8C0              doubleConst                                  name already used in repo: doubleConst
+lbl_3_rodata_920              constToDouble                                name already used in repo: constToDouble
+lbl_3_rodata_928              constToDouble                                name already used in repo: constToDouble
+lbl_3_rodata_9A0              constToDouble                                name already used in repo: constToDouble
+lbl_3_rodata_A70              doubleConst                                  name already used in repo: doubleConst
+lbl_3_rodata_B18              55.0                                         numeric literal label
+lbl_3_rodata_B1C              -55.0                                        numeric literal label
+lbl_3_rodata_B30              0.5                                          numeric literal label
+lbl_3_rodata_B38              3.0                                          numeric literal label
+lbl_3_rodata_B50              const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_3_rodata_B58              const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_3_rodata_B60              1.0                                          numeric literal label
+lbl_3_rodata_BB4              -0.5                                         numeric literal label
+lbl_3_rodata_BBC              c0.2                                         numeric literal label
+lbl_3_rodata_BC0              -PI                                          AMBIGUOUS: PI is also what PI sanitizes to -- name one by hand
+lbl_3_rodata_BE4              c7.0                                         numeric literal label
+lbl_3_rodata_BEC              c38                                          numeric literal label
+lbl_3_rodata_BF0              c46                                          numeric literal label
+lbl_3_rodata_C0C              c10000.0                                     numeric literal label
+lbl_3_rodata_C84              70.0                                         numeric literal label
+lbl_3_rodata_C88              -5.0                                         numeric literal label
+lbl_3_rodata_C9C              -1.0                                         numeric literal label
+lbl_3_rodata_CA8              6.5                                          numeric literal label
+lbl_3_rodata_CB0              PI                                           AMBIGUOUS: PI is also what -PI sanitizes to -- name one by hand
+lbl_3_rodata_E58              c0.0                                         numeric literal label
+lbl_3_rodata_E78              c60.0                                        numeric literal label
+lbl_3_rodata_E7C              c0.01                                        numeric literal label
+lbl_3_rodata_E80              const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_3_rodata_F40              const_PI                                     name already used in repo: const_PI
+lbl_3_rodata_1170             doubleConst                                  name already used in repo: doubleConst
+lbl_3_rodata_11E8             const_UintToDouble                           name already used in repo: const_UintToDouble
+lbl_3_rodata_1280             const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_3_rodata_1298             const_IntToDouble                            name already used in repo: const_IntToDouble
+lbl_3_rodata_12A4             const_PI                                     name already used in repo: const_PI
+lbl_3_rodata_1418             const_toDouble                               name already used in repo: const_toDouble
+lbl_3_rodata_1420             const_toDouble                               name already used in repo: const_toDouble
+lbl_3_rodata_1468             const_UintToDouble                           name already used in repo: const_UintToDouble
+lbl_3_rodata_14E8             const_pi                                     name already used in repo: const_pi
+lbl_3_rodata_14F0             const_PI                                     name already used in repo: const_PI
+lbl_3_rodata_1584             c100000                                      numeric literal label
+lbl_3_rodata_1588             tfd                                          name already used in repo: tfd
+lbl_3_rodata_1890             const_UintToDouble                           name already used in repo: const_UintToDouble
+lbl_3_rodata_1898             0.0                                          numeric literal label
+lbl_3_rodata_18C4             const_pi                                     name already used in repo: const_pi
+lbl_3_rodata_19D0             const_UintToDouble                           name already used in repo: const_UintToDouble
+lbl_3_rodata_1D08             0.0                                          numeric literal label
+lbl_3_rodata_1D38             3.0                                          numeric literal label
+lbl_3_rodata_1D3C             0.15                                         numeric literal label
+lbl_3_rodata_1DB4             c0.0                                         numeric literal label
+lbl_3_rodata_1DC4             c100.0                                       numeric literal label
+lbl_3_rodata_1EF0             const_pi                                     name already used in repo: const_pi
+lbl_3_rodata_1F00             const_pi                                     name already used in repo: const_pi
+lbl_3_rodata_1FB0             const_UintToDouble                           name already used in repo: const_UintToDouble
+lbl_3_rodata_20C0             tfd                                          name already used in repo: tfd
+lbl_3_rodata_214C             17.0                                         numeric literal label
+lbl_3_rodata_2158             const_pi                                     name already used in repo: const_pi
+lbl_3_rodata_293C             PI                                           AMBIGUOUS: PI is also what -PI sanitizes to -- name one by hand
+lbl_3_rodata_2F40             c1.5                                         numeric literal label
+lbl_3_rodata_2F44             c-50.0                                       numeric literal label
+lbl_3_rodata_2F48             c40.0                                        numeric literal label
+lbl_3_rodata_2F4C             c50.0                                        numeric literal label
+lbl_3_rodata_2F50             c-20.0                                       numeric literal label
+lbl_3_rodata_2F54             c95.0                                        numeric literal label
+lbl_3_rodata_3260             doubleConst                                  name already used in repo: doubleConst
+lbl_3_rodata_32E8             constToDouble                                name already used in repo: constToDouble
+lbl_3_rodata_33CC             3.0                                          numeric literal label
+lbl_3_rodata_33E4             0.5                                          numeric literal label
+lbl_3_rodata_35D0             0.0                                          numeric literal label
+lbl_3_rodata_4120             1.5                                          numeric literal label
+lbl_3_rodata_4124             0.7                                          numeric literal label
+lbl_3_data_21380              0.0                                          numeric literal label

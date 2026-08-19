@@ -107,7 +107,7 @@ void fn_3_123EBC(void) {
 }
 
 // .text:0x001243A4 size:0x394 mapped:0x80763438
-void fn_3_1243A4(void) {
+void minigameStateLogic(void) {
     return;
 }
 

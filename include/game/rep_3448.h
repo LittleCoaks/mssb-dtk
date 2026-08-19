@@ -24,7 +24,7 @@ void fn_3_1231D4(void);
 void fn_3_1235B8(void);
 void fn_3_123990(void);
 void fn_3_123EBC(void);
-void fn_3_1243A4(void);
+void minigameStateLogic(void);
 void fn_3_124738(void);
 void fn_3_124CE0(void);
 void fn_3_12536C(void);

@@ -3,8 +3,8 @@
 
 #include "mssbTypes.h"
 
-void fn_3_CB738(void);
+void stadiumStarAnimation(void);
 void fn_3_CB7D4(void);
-void fn_3_CB7E8(void);
+void stadiumStarAwarded(void);
 
 #endif // !__GAME_rep_23E8_H_

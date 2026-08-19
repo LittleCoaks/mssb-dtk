@@ -1,0 +1,28 @@
+#ifndef __GAME_BATTING_BATTER_H_
+#define __GAME_BATTING_BATTER_H_
+
+#include "mssbTypes.h"
+
+void batterPreSwing_unused(void);
+void calculateBallVelocityAcceleration(void);
+void calculateBuntHorizontalPower(void);
+void calculateBuntHorizontalAngle(void);
+void calculateHorizontalPower(void);
+void calculateVerticalAngle(void);
+void calculateBallHorizontalAngleHit(void);
+void calculateContactAndHitType(void);
+void calculateHitVariables(void);
+extern void calculateIfHitBall(void);
+void ifBunt(void);
+void starSwingSpendStars(void);
+void ifSwing(void);
+void batterInBoxMovement(void);
+void batterHumanControlled(void);
+void updateBallHittableZoneStatus(void);
+int someAnimationIndFunction(void);
+void setDefaultInMemBatter(void);
+void setBatterContactConstants(void);
+void initializeInMemBatter(void);
+void atBat_batter(void);
+
+#endif // !__GAME_BATTING_BATTER_H_

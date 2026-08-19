@@ -107,7 +107,7 @@ void fn_3_14A62C(void) {
 }
 
 // .text:0x0014A90C size:0x310 mapped:0x807899A0
-void fn_3_14A90C(void) {
+void barrelBatterRel(void) {
     return;
 }
 
@@ -362,7 +362,7 @@ void fn_3_150070(void) {
 }
 
 // .text:0x001500C8 size:0x58 mapped:0x8078F15C
-void fn_3_1500C8(void) {
+void wallBall_updateSomePointers(void) {
     return;
 }
 
@@ -527,7 +527,7 @@ void fn_3_155264(void) {
 }
 
 // .text:0x00155288 size:0x24 mapped:0x8079431C
-void fn_3_155288(void) {
+void bobOmbDerbyPitching(void) {
     return;
 }
 
@@ -552,7 +552,7 @@ void fn_3_155F08(void) {
 }
 
 // .text:0x00156218 size:0x330 mapped:0x807952AC
-void fn_3_156218(void) {
+void bODPitchAnimation(void) {
     return;
 }
 

@@ -1,0 +1,54 @@
+#ifndef __GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_
+#define __GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_
+
+#include "mssbTypes.h"
+
+void fn_3_C19C8(void);
+void fn_3_C1C18(void);
+void fn_3_C2244(void);
+void fn_3_C2310(void);
+void fn_3_C23E0(void);
+void fn_3_C24A0(void);
+void fn_3_C2644(void);
+void fn_3_C2974(void);
+void fn_3_C298C(void);
+void fn_3_C2AA0(void);
+void fn_3_C2C80(void);
+void fn_3_C2EDC(void);
+void fn_3_C30F0(void);
+void fn_3_C366C(void);
+void bowserCastleSomething(void);
+void thwomp_screenShake(void);
+void fn_3_C3C2C(void);
+void fn_3_C3E94(void);
+void fn_3_C3F70(void);
+void fn_3_C4068(void);
+void fn_3_C40EC(void);
+void bowserCastleStarPadsContaactFn(void);
+void stadiumObjCollision_Castle(void);
+void fn_3_C444C(void);
+void fn_3_C4724(void);
+void fn_3_C48D0(void);
+void fn_3_C4B80(void);
+void fn_3_C4CF4(void);
+void fn_3_C4F00(void);
+void fn_3_C5304(void);
+void fn_3_C54D0(void);
+void fn_3_C56E8(void);
+void fn_3_C597C(void);
+void castleFireballMaybe(void);
+void bowserCastleRelated(void);
+void fn_3_C625C(void);
+void flameControl(void);
+void stadiumObjRelated_Castle(void);
+void fn_3_C7444(void);
+void thwomp_bounceOffSoundAndVisualFx(void);
+void thwomp_smokeRelated(void);
+void fn_3_C77AC(void);
+void thwomp_slamControl(void);
+void fn_3_C805C(void);
+void fn_3_C823C(void);
+void fn_3_C82B4(void);
+void loadBowserCastle(void);
+
+#endif // !__GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_

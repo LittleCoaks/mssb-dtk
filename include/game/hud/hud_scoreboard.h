@@ -1,0 +1,50 @@
+#ifndef __GAME_HUD_HUD_SCOREBOARD_H_
+#define __GAME_HUD_HUD_SCOREBOARD_H_
+
+#include "mssbTypes.h"
+
+void fn_3_91520(void);
+void fn_3_91A60(void);
+void fn_3_91AC8(void);
+void fn_3_91B50(void);
+void animateScreenRelated(void);
+void fn_3_91C70(void);
+void fn_3_91CCC(void);
+void fn_3_91D1C(void);
+void fn_3_91E4C(void);
+void manageScoreboardGraphic(void);
+void fn_3_92CD8(void);
+void fn_3_933CC(void);
+void fn_3_93544(void);
+void fn_3_93688(void);
+void graphics_ShowScoreUpdateOnRBI_ongoing(void);
+void graphics_ShowScoreUpdateOnRBI_initial(void);
+void fn_3_9413C(void);
+void relatedToAnimatingEndOfGame(void);
+void fn_3_94708(void);
+void fn_3_94760(void);
+void fn_3_948B8(void);
+void fn_3_94930(void);
+void fn_3_9497C(void);
+void fn_3_94BC4(void);
+void fn_3_94E68(void);
+void fn_3_95000(void);
+void fn_3_95098(void);
+void fn_3_95124(void);
+void fn_3_951B4(void);
+void fn_3_952DC(void);
+void fn_3_9538C(void);
+void fn_3_953FC(void);
+void fn_3_954C4(void);
+void fn_3_9551C(void);
+void HUD_ongoingStarChance(void);
+void HUD_initStarChance(void);
+void fn_3_95620(void);
+void fn_3_95970(void);
+void drawDiamondMiniMap_ongoing(void);
+void drawDiamondMiniMap_init(void);
+void toyfield_hud_turns_diamondMap(void);
+void fn_3_9698C(void);
+void handleInGameEventsAndSoundEffects(void);
+
+#endif // !__GAME_HUD_HUD_SCOREBOARD_H_

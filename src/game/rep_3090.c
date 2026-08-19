@@ -67,7 +67,7 @@ void fn_3_FD9FC(void) {
 }
 
 // .text:0x000FDA1C size:0x114 mapped:0x8073CAB0
-void fn_3_FDA1C(void) {
+void manageDrawingItemState(void) {
     return;
 }
 
@@ -87,7 +87,7 @@ void fn_3_100038(void) {
 }
 
 // .text:0x0010007C size:0x5C mapped:0x8073F110
-void fn_3_10007C(void) {
+void unkPauseSimulationCheck(void) {
     return;
 }
 

@@ -59,7 +59,7 @@ typedef void (*fn_800528AC_parameter)(camera_803c639c_s*);
 
 extern void fn_800528AC(fn_800528AC_parameter);
 extern camera_803c639c_s* fn_80052768_getCamera(int);
-extern int fn_8001C67C_animation(int, int);
+extern int loadAndAnimateCharacter(int, int);
 extern f32 LinearInterpolateToNewRange(f32 value, f32 prevMin, f32 prevMax, f32 nextMin, f32 nextMax);
 
 typedef struct {
@@ -68,6 +68,6 @@ typedef struct {
     artificial_padding(2, 0x22, u16);
     /* 0x22 */ u16 _22;
 } lbl_803C77B8_s;
-extern lbl_803C77B8_s lbl_803C77B8;
+extern lbl_803C77B8_s AtBat_ButtonInput1;
 
 #endif // !__UNKNOWN_HOMES_STATIC_H_

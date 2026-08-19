@@ -1,0 +1,1284 @@
+{
+"src/game/game_batter.c": {
+"total": 28,
+"named": [
+"inv_lerp",
+"flipped_inv_lerp",
+"atBat_batter",
+"initializeInMemBatter",
+"setBatterContactConstants",
+"setDefaultInMemBatter",
+"someAnimationIndFunction",
+"updateBallHittableZoneStatus",
+"batterHumanControlled",
+"batterInBoxMovement",
+"batterSetChargeDown",
+"batterPreSwing_unused",
+"ifSwing",
+"starSwingSpendStars",
+"ifBunt",
+"calculateIfHitBall",
+"calculateHitVariables",
+"maybe_determineStarType",
+"calculateContactAndHitType",
+"calculateBallHorizontalAngleHit",
+"calculateVerticalAngle",
+"calculateHorizontalPower",
+"calculateBuntHorizontalAngle",
+"calculateBuntVerticalAngle_unused",
+"calculateBuntHorizontalPower",
+"calculateBallVelocityAcceleration",
+"starHitSetting_unused"
+],
+"placeholder": 1,
+"bytes": 16184
+},
+"src/game/kinoko.c": {
+"total": 9,
+"named": [],
+"placeholder": 9,
+"bytes": 11668
+},
+"src/game/m_sound.c": {
+"total": 26,
+"named": [
+"updateAndRemoveStadiumEmitter",
+"updateOrRemoveEmitter",
+"initializeStadiumObjectEmitter",
+"initializeCamera",
+"transitionToReplay",
+"makeSoundOfBallBouncing",
+"handleGameSound",
+"soundControl",
+"soundFxRelated",
+"newAtBatPlaySound",
+"adjustBallSoundEffectBasedOnHeight",
+"initializeSounds",
+"animateThrownBall",
+"callSfx"
+],
+"placeholder": 12,
+"bytes": 19208
+},
+"src/game/rep_0.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1038.c": {
+"total": 7,
+"named": [
+"setDefaultPlayTrackingVariables2",
+"initializeSomethingDuringTransition2",
+"setInningEndingKIndTo0",
+"graphicsFunction_nonMiniGame"
+],
+"placeholder": 3,
+"bytes": 1388
+},
+"src/game/rep_1090.c": {
+"total": 1,
+"named": [
+"animateOffence"
+],
+"placeholder": 0,
+"bytes": 900
+},
+"src/game/rep_10E8.c": {
+"total": 2,
+"named": [
+"InterpretControllerInputsIntoMagnitude",
+"UpdateControllerInputs"
+],
+"placeholder": 0,
+"bytes": 1816
+},
+"src/game/rep_1188.c": {
+"total": 7,
+"named": [
+"initializeInMemRunner",
+"setInMemBatterConstants",
+"getThrowSpeedBasedOnArmStrengthStat",
+"setFielderValues",
+"setPitcherStatsToInMemPitcher",
+"initRosterForMatch"
+],
+"placeholder": 1,
+"bytes": 7700
+},
+"src/game/rep_1200.c": {
+"total": 41,
+"named": [
+"waitingForPitch_checkForPickoffs",
+"pitchCall",
+"estimateXAndFrameAtBatterZ",
+"pitchCurve",
+"pitchInAirFunction",
+"pitchSetPhysicsConstants",
+"adjustPitchCurveSpeedCursedBall",
+"pitchBeingReleased",
+"handleHPBORRunnerAdvance",
+"resetBatterCount",
+"resetCounter",
+"endAtBatNonHit",
+"pitchingWindUpFunction",
+"pitcherMovementOnMound",
+"waitingForPitch",
+"pitcherAITransitionFromPrePitchToWindup",
+"loadPitcherActor",
+"setDefaultInMemPitcher",
+"resetPitcherValuesBetweenBatters",
+"resetInMemPitcher",
+"setPitchingConstants",
+"atBat_Pitcher"
+],
+"placeholder": 19,
+"bytes": 25328
+},
+"src/game/rep_12D0.c": {
+"total": 8,
+"named": [
+"postPlayTrackStats",
+"pickoff_infieldThrow_related",
+"monitorForErrors",
+"update_runnersBeingTargetedWhileBatterCanBeForcedOut",
+"initialize_runnersBeingTargetedWhileBatterCanBeForcedOut",
+"runnerResultCd_bunt",
+"adjustTotalBasesOnHit"
+],
+"placeholder": 1,
+"bytes": 7768
+},
+"src/game/rep_1330.c": {
+"total": 1,
+"named": [
+"useReplayInputs"
+],
+"placeholder": 0,
+"bytes": 712
+},
+"src/game/rep_13B8.c": {
+"total": 78,
+"named": [
+"runnerChangeDirectionHumanInput",
+"cCSRunningFun",
+"running_LiveBall_Human",
+"running_sendOutRunnerToDugout",
+"running_roundBaseDecision",
+"running_overrun1stIndicator",
+"running_triggerSlideOrBodyCheck",
+"running_DirectionOverrides",
+"running_updatePosition",
+"running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe",
+"running_overrunBaseControl",
+"runnerOverrun1BRelated",
+"running_ActionControlAndVelocity",
+"running_CalculateSpeedVariables",
+"updateRunnerFramesToClosestBases",
+"running_updateDistAndFramesToClosestBases",
+"running_LiveBall_AI",
+"possibleRunnerAIRelated",
+"runnerAILiveBall",
+"runnerAI_2",
+"runnerAISubfunction4",
+"runnerAISubfunction3",
+"runnerAISubfunction2",
+"running_AIStartSteals",
+"runnerAISetRunningDirection",
+"runnerAISubfunction",
+"running_setRestrictedMovements",
+"running_beginSteal_CheckForPerfect",
+"updateRunnerValues",
+"running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars",
+"running_UpdateTrackingValues_BasesEarned",
+"running_CalcVeloAndIfBatterShouldStayStill",
+"running_chainChompSprintRelated",
+"setRunnerAngle",
+"unused_forceOutSomething",
+"running_checkForOuts",
+"running_ForceOutStateRelated",
+"maybeUpdateRunnerNoRun",
+"runnerOut",
+"maybeHandleBaserunners",
+"stealCancelLeadoffs",
+"setDefaultInMemRunner",
+"updateRunnerPosition",
+"transferInMemRunnerValuesToNextRunnerIndex",
+"initializeARunner",
+"resetInMemRunners",
+"initBaseRunnersAfterFoulBall",
+"running_MainFunction"
+],
+"placeholder": 30,
+"bytes": 55544
+},
+"src/game/rep_140.c": {
+"total": 9,
+"named": [
+"running_roundBasePosition",
+"fn_3_1B24_inline"
+],
+"placeholder": 7,
+"bytes": 8496
+},
+"src/game/rep_1610.c": {
+"total": 1,
+"named": [],
+"placeholder": 1,
+"bytes": 392
+},
+"src/game/rep_1668.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_16B8.c": {
+"total": 43,
+"named": [
+"animateScreenRelated",
+"manageScoreboardGraphic",
+"graphics_ShowScoreUpdateOnRBI_ongoing",
+"graphics_ShowScoreUpdateOnRBI_initial",
+"relatedToAnimatingEndOfGame",
+"HUD_ongoingStarChance",
+"HUD_initStarChance",
+"drawDiamondMiniMap_ongoing",
+"drawDiamondMiniMap_init",
+"toyfield_hud_turns_diamondMap",
+"handleInGameEventsAndSoundEffects"
+],
+"placeholder": 32,
+"bytes": 23588
+},
+"src/game/rep_1720.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1770.c": {
+"total": 14,
+"named": [
+"wallBallAnimationRelated",
+"draw_OnBaseChemLinks",
+"draw_ongoingStarGuageHud",
+"draw_initStarGuageHud",
+"draw_ScoreInningHud",
+"maybe_updateBallStrikeOutUI",
+"update_BallStrikeOutHud",
+"init_BallStrikeOutHud"
+],
+"placeholder": 6,
+"bytes": 12752
+},
+"src/game/rep_17E0.c": {
+"total": 1,
+"named": [
+"categorizeBallTrajectory"
+],
+"placeholder": 0,
+"bytes": 672
+},
+"src/game/rep_1838.c": {
+"total": 27,
+"named": [
+"shortAngleToRad_Capped",
+"shortAngleToRad",
+"radToShortAngle",
+"normalizeAngleToRange",
+"radianAngleReduction",
+"fn_3_9FE6C_normalizeAngle",
+"normalizeAnglebetween_2048And2047",
+"getDifferenceInAngle",
+"angleDifferenceNormalized",
+"calculateDiffInAngles",
+"calculateAngleFromCoordinates",
+"game_atan2",
+"getComponentsFromSAng",
+"getComponentsFromRad",
+"fieldersRunningToDugoutCalculateOffsets",
+"normalizeVector",
+"calculateLineIntersection",
+"calculateBallInterceptDistance",
+"static_clamp",
+"RandomInt_Game",
+"random_fn_3_9EE24",
+"RandomInt_Game_Range",
+"RandomF32_Game_Range",
+"RandomF32_UNK_Range"
+],
+"placeholder": 3,
+"bytes": 5524
+},
+"src/game/rep_18E8.c": {
+"total": 59,
+"named": [
+"fielderAIDecideWhatRunnerToTarget",
+"fielderAIWeirdSituation",
+"canThrowOutRunnerWhoNeedsToTagUp",
+"throwOutRunnerTaggingUpInd",
+"genericPlayOnRunnerOffBase",
+"fielderAIOutfieldPlayAttemptInd",
+"fielderAIChaseRunner",
+"fielderAIMakePlay",
+"fieldingAIPlayStrategy",
+"throwTimeToBase",
+"runnerTimeToCoverBase",
+"fieldingAIThrowOrChase",
+"howManyFramesTheRunnerIsOutOfReach",
+"estimatedThrowFramesBetweenTwoPoints",
+"tagRelated",
+"tagOutValues",
+"fielderHasBall",
+"checkForBufferedThrow",
+"fielderControl_classifyControlStickDirection",
+"setRunnerChasingAfter",
+"fielderChasingAI",
+"runnerTagUpOrBatterTo1B",
+"maybeUnused_SetThrowSpeedType2",
+"knockBallLoose",
+"fielderBodyCheck_setStatus_Pos_Velo",
+"fielderKnockback",
+"setFielder215",
+"autoMovement10_HasBall",
+"setCutoffThrowTargetLocation",
+"initializeThrowAngle_Speed_Length",
+"makeThrowVariables"
+],
+"placeholder": 28,
+"bytes": 51548
+},
+"src/game/rep_1A80.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1AD0.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1B20.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1B70.c": {
+"total": 1,
+"named": [
+"transitionToPlayerControl"
+],
+"placeholder": 0,
+"bytes": 292
+},
+"src/game/rep_1BC8.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1C0.c": {
+"total": 14,
+"named": [
+"inningScoreDisplayRelated",
+"drawStadiumObjects",
+"drawStadium"
+],
+"placeholder": 11,
+"bytes": 9564
+},
+"src/game/rep_1C18.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1C68.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_1CB8.c": {
+"total": 7,
+"named": [
+"checkFielderCollision",
+"isCoordinateUncatchableTerrain",
+"foul_isBallWithin3mFair",
+"foul_ifBallConsideredPastTheBases",
+"foul_checkIfFoul"
+],
+"placeholder": 2,
+"bytes": 1348
+},
+"src/game/rep_1D58.c": {
+"total": 36,
+"named": [
+"randomizeAndLoadSoundEffect",
+"maybeYoshiParkGXRelated",
+"storeBoundingBoxCoordinates",
+"transformVectorsUpdateBoundingBox",
+"initBoundingBoxLimits",
+"calculateHazardDataAddress",
+"CopyOutVecSrcDst",
+"loadStadiumObjectVisuals",
+"initStadiumObjectData",
+"updateStadiumObjCollision",
+"processStadiumObjectFunction",
+"getStadiumHazardTriangles",
+"updateGameStatusFlag",
+"hazardSimulationRelated",
+"cleanupMinigameResources",
+"actorSetAnimBank",
+"calledWhileMatchIsLoading",
+"loadStadiumObjects",
+"processStadiumFileObjects",
+"loadStadiumLighting"
+],
+"placeholder": 16,
+"bytes": 8584
+},
+"src/game/rep_1E08.c": {
+"total": 47,
+"named": [
+"spriteAnimations",
+"animateDustCloudsBehindFielder_Runner",
+"maybeFireworks",
+"drawSun",
+"sunRelated",
+"setSunLocation",
+"animationRelated",
+"setContactWordSprite",
+"pauseStateOnStadiums",
+"pauseAnimations",
+"maybeHudRelated",
+"maybeLoadHUDObjectFromMemory"
+],
+"placeholder": 35,
+"bytes": 25144
+},
+"src/game/rep_1F58.c": {
+"total": 12,
+"named": [
+"applyChargeAnimationEffect",
+"maybeConfigureChargeEffectGraphics"
+],
+"placeholder": 10,
+"bytes": 4316
+},
+"src/game/rep_1FD8.c": {
+"total": 47,
+"named": [
+"bowserCastleSomething",
+"thwomp_screenShake",
+"bowserCastleStarPadsContaactFn",
+"stadiumObjCollision_Castle",
+"castleFireballMaybe",
+"bowserCastleRelated",
+"flameControl",
+"stadiumObjRelated_Castle",
+"thwomp_bounceOffSoundAndVisualFx",
+"thwomp_smokeRelated",
+"thwomp_slamControl",
+"loadBowserCastle"
+],
+"placeholder": 35,
+"bytes": 31156
+},
+"src/game/rep_21F8.c": {
+"total": 2,
+"named": [],
+"placeholder": 2,
+"bytes": 952
+},
+"src/game/rep_2308.c": {
+"total": 6,
+"named": [
+"perfectPitchGraphicsRelated"
+],
+"placeholder": 5,
+"bytes": 1876
+},
+"src/game/rep_2390.c": {
+"total": 2,
+"named": [
+"animatePitchersHandOnFire"
+],
+"placeholder": 1,
+"bytes": 776
+},
+"src/game/rep_23E8.c": {
+"total": 3,
+"named": [
+"stadiumStarAnimation",
+"stadiumStarAwarded"
+],
+"placeholder": 1,
+"bytes": 368
+},
+"src/game/rep_28A8.c": {
+"total": 23,
+"named": [
+"toyFieldPoints",
+"processToyFieldBallState",
+"toyFieldPause",
+"toyFieldStateTransitionRelated",
+"toyFieldInningTransition",
+"toyFieldLiveBall",
+"initializeStgh2",
+"initializeToyFieldSomething"
+],
+"placeholder": 15,
+"bytes": 19696
+},
+"src/game/rep_2940.c": {
+"total": 4,
+"named": [
+"updateMinigameFielderAnimations"
+],
+"placeholder": 3,
+"bytes": 1924
+},
+"src/game/rep_2998.c": {
+"total": 29,
+"named": [
+"advancePlantInteractionPhase",
+"updatePlantCatchState",
+"updateStadiumObjStateAndTransform",
+"yoshiParkPlantRelated",
+"nadoRelated",
+"tryPlantCatchAndBeginSpitAim",
+"updatePlantAimingOrCatch",
+"ParkPlantsPopUp",
+"controlYoshiParkPlants",
+"processYoshiParkPlantBoundingBoxes",
+"loadYoshiPark"
+],
+"placeholder": 18,
+"bytes": 14548
+},
+"src/game/rep_2BF8.c": {
+"total": 1,
+"named": [
+"toyfield_offScreenCharacterImage"
+],
+"placeholder": 0,
+"bytes": 1552
+},
+"src/game/rep_3090.c": {
+"total": 49,
+"named": [
+"manageDrawingItemState",
+"unkPauseSimulationCheck"
+],
+"placeholder": 47,
+"bytes": 43444
+},
+"src/game/rep_31A0.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_31F0.c": {
+"total": 26,
+"named": [
+"bobOmbDerbyBatterAI",
+"BODScoring",
+"unused_BODRelated",
+"bobOmbDerbyCalculatePoints",
+"unusedBODFunction",
+"bOD_bB_Pitcher_waitingForPitch",
+"bobOmbDerbyPitchTransition",
+"bOD_LoadGame",
+"bobOmbDerbySimulation"
+],
+"placeholder": 17,
+"bytes": 11620
+},
+"src/game/rep_3290.c": {
+"total": 13,
+"named": [
+"wallBallMultiplayer_AIControl",
+"wallBallAIPitches",
+"wallBallCalc_WallsBroken",
+"wallBallSomething2",
+"wallBallDropInNewWalls",
+"wallBallCalculateNewWalls",
+"wallBallRotatePitchers"
+],
+"placeholder": 6,
+"bytes": 7164
+},
+"src/game/rep_3310.c": {
+"total": 55,
+"named": [
+"nonPracticePitchingMachineLogic",
+"loadPitchingMachineModel"
+],
+"placeholder": 53,
+"bytes": 27500
+},
+"src/game/rep_3448.c": {
+"total": 38,
+"named": [
+"minigameStateLogic"
+],
+"placeholder": 37,
+"bytes": 42920
+},
+"src/game/rep_34B0.c": {
+"total": 30,
+"named": [
+"bB_chooseBombBarrel_dropNewBarrels",
+"bB_likelyReplaceBlownUpBarrels",
+"bB_connectingBarrels",
+"bB_checkIfBarrelHitAndCalculateScore",
+"barrelBatterLiveBallSubFun",
+"bobombDerbyRelated",
+"bB_AtBat",
+"barrelBatterTransitionToMainFunction",
+"bB_LoadGame",
+"barrelBatterSwitcher"
+],
+"placeholder": 20,
+"bytes": 17888
+},
+"src/game/rep_3520.c": {
+"total": 69,
+"named": [
+"minigame_transferPoints",
+"starDashRelated",
+"starDashLiveBall",
+"starDashSomething",
+"starDashSwitcher"
+],
+"placeholder": 64,
+"bytes": 38288
+},
+"src/game/rep_36D8.c": {
+"total": 34,
+"named": [
+"chainChompSpringPoints",
+"chainChompSpringMainFun",
+"mVPRelated",
+"chainChompSprintRelated"
+],
+"placeholder": 30,
+"bytes": 21104
+},
+"src/game/rep_37A8.c": {
+"total": 33,
+"named": [
+"pP_relatedToCalculatingHeldBallLoc",
+"piranhaPanicPoints",
+"ppRelated",
+"piranhaPanicLiveBall",
+"piranhaPanicRelated"
+],
+"placeholder": 28,
+"bytes": 21812
+},
+"src/game/rep_3880.c": {
+"total": 123,
+"named": [
+"barrelBatterRel",
+"wallBall_updateSomePointers",
+"bobOmbDerbyPitching",
+"bODPitchAnimation"
+],
+"placeholder": 119,
+"bytes": 68156
+},
+"src/game/rep_3A48.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_3A98.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_3AE8.c": {
+"total": 5,
+"named": [
+"peachDaisyStarSwingRelated2",
+"peachDaisyStarSwingRelated"
+],
+"placeholder": 3,
+"bytes": 2708
+},
+"src/game/rep_3B70.c": {
+"total": 1,
+"named": [],
+"placeholder": 1,
+"bytes": 508
+},
+"src/game/rep_3BD8.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_3C28.c": {
+"total": 1,
+"named": [],
+"placeholder": 1,
+"bytes": 212
+},
+"src/game/rep_3C80.c": {
+"total": 1,
+"named": [],
+"placeholder": 1,
+"bytes": 556
+},
+"src/game/rep_3CE0.c": {
+"total": 2,
+"named": [],
+"placeholder": 2,
+"bytes": 2548
+},
+"src/game/rep_3D50.c": {
+"total": 1,
+"named": [],
+"placeholder": 1,
+"bytes": 668
+},
+"src/game/rep_3DA8.c": {
+"total": 1,
+"named": [
+"starMissionsOffensive_StarChange_DoublePlay"
+],
+"placeholder": 0,
+"bytes": 2632
+},
+"src/game/rep_3E00.c": {
+"total": 1,
+"named": [],
+"placeholder": 1,
+"bytes": 412
+},
+"src/game/rep_3E58.c": {
+"total": 11,
+"named": [
+"magikoopaAnimationRelated",
+"applyStarRelatedTransformations"
+],
+"placeholder": 9,
+"bytes": 5652
+},
+"src/game/rep_3F60.c": {
+"total": 7,
+"named": [
+"mUpdateActorTransformAndAnimation",
+"displayChem_antiChemGraphics"
+],
+"placeholder": 5,
+"bytes": 3244
+},
+"src/game/rep_4090.c": {
+"total": 5,
+"named": [
+"checkFielderCollisionPotential",
+"processBallFielderCollision"
+],
+"placeholder": 3,
+"bytes": 4808
+},
+"src/game/rep_4138.c": {
+"total": 3,
+"named": [],
+"placeholder": 3,
+"bytes": 1972
+},
+"src/game/rep_540.c": {
+"total": 40,
+"named": [
+"chompCollision_processStarHitVariables",
+"ballState_thrown_to_holding",
+"setBallInactiveVariables",
+"setValsForPlantCatches",
+"checkForBallDead",
+"ballCollisionLogic",
+"handleBallBounceAndRoll",
+"handleBallHitDeadBallOutcome",
+"fairOrFoulBall",
+"processLandedBallBouncing",
+"processBallInAir_Landed",
+"ballDistCalculator",
+"relatedToGroundRuleDouble",
+"foulBall",
+"warioWaluStarHit",
+"updatePastHitBallCoords",
+"liveBallHitPhysics",
+"estimateTimeForThrowToReachTarget",
+"fielding_setHeldBallOffset",
+"futureFrameForClosestBall",
+"setHitClassification3",
+"classifyHitTrajectoryOrHitAnimRelated",
+"updateFrameCountersAndBallPastCoordinatesWhenFielderHoldingBall",
+"estimateAndSetFutureCoords",
+"adjustVeloByAirResistance",
+"estimateWhereBallWillHitWall",
+"calculateImplicationsOfTheHitTrajectory",
+"setLiveBallVariablesAfterContact",
+"setDefaultInMemBall",
+"resetBallValuesBetweenBatters",
+"resetInMemBall",
+"initBallAndGameStateOnLoad"
+],
+"placeholder": 8,
+"bytes": 39452
+},
+"src/game/rep_60.c": {
+"total": 1,
+"named": [
+"manageLoadingState"
+],
+"placeholder": 0,
+"bytes": 632
+},
+"src/game/rep_720.c": {
+"total": 79,
+"named": [
+"fn_3_17B2C_inline",
+"cameraControl",
+"fn_3_1C8AC_inline",
+"fn_3_1C8AC_inline_2",
+"camera_matchLiveBall",
+"matchCamera_setPastAndCurrentTarget",
+"camera_match_setMovement",
+"camera_zoomInDuringFielderAction_slide_clamber_wallJump",
+"cameraRelated",
+"gameplay_Camera",
+"camera_matchLiveBall_regular_replay",
+"bOD_Cam_liveBall",
+"pauseMenuCameraAngle",
+"resetSomeStruct",
+"assignFrameCountersToAPointer"
+],
+"placeholder": 64,
+"bytes": 36024
+},
+"src/game/rep_868.c": {
+"total": 1,
+"named": [
+"setDefaultAIValues"
+],
+"placeholder": 0,
+"bytes": 668
+},
+"src/game/rep_8C8.c": {
+"total": 14,
+"named": [
+"batterAIBallLocRelated",
+"batterAIFrameToSwingAndStickInput",
+"batterAISwingInd",
+"batterTrackBallInBox",
+"batterAIMoveBatter",
+"batterAIControlled",
+"trackLastPitchInfo2",
+"batterAISwingEarlyOrLate",
+"batterAIRNGValueSetting"
+],
+"placeholder": 5,
+"bytes": 9640
+},
+"src/game/rep_940.c": {
+"total": 8,
+"named": [
+"aiPitchCurveDirection",
+"movePitcherOnMound",
+"pitcherAISetCurve",
+"pitcherAISelectPitch",
+"pitcherAI_prePitchSetConstants",
+"pitcherAINewBatter",
+"resetPitcherPreAB"
+],
+"placeholder": 1,
+"bytes": 3296
+},
+"src/game/rep_9B0.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_A00.c": {
+"total": 20,
+"named": [
+"maybeSetVsIndOrScoutFlagChance",
+"resetSomethingRelatedToVersus",
+"versusScreen_seemsToDoNothing",
+"championshipScreen",
+"starChanceVsScreenProcess",
+"homeRunTrot",
+"homeRunEnd",
+"postReplayBatterCelebration"
+],
+"placeholder": 12,
+"bytes": 11608
+},
+"src/game/rep_A78.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_AC8.c": {
+"total": 223,
+"named": [
+"knockOut_setPosAndVelo",
+"processFielderKnockout",
+"fielderOnFirePosAndVelo",
+"maybeCastleFireballBurn",
+"runningCatch_updatePositionAndVelocity",
+"mag_BirdoSlidingCatchSetCoordinates",
+"fielderMovement_VelocityDuringCatchAnimations",
+"calculateBobble",
+"updateVariablesPostCatch",
+"processFielderAutoCatch",
+"catchAnimationProgression",
+"clamberCheckCatch",
+"wallJumpSOmething3",
+"wallJumpInitialization",
+"divingCatch",
+"uncalledattemptJumpingCatch",
+"checkForAndSetFielderWallActionsOrDives",
+"ballThrownToEmptyBaseCatchAttempt",
+"catchThrownBallFun",
+"checkIfRunningCatchOccurs",
+"checkIfCatchOccurs",
+"evaluateFlyBallCatch",
+"checkForCatchBallAction",
+"minigameDashUpdateFieldingVals",
+"unused_FUN_8066bf88",
+"determineBestFrameForFielder",
+"updateFielderPositionBasedOnBallState",
+"unused_FUN_8066c7fc",
+"autoMovement28_minigameDashRelated3",
+"autoMovement27_minigameDashRelated2",
+"autoMovement26_minigameRelated1",
+"toyfieldRelated",
+"miniGameFielding",
+"minigameDashUpdateFieldingVariables",
+"miniGameDash",
+"jumpSetPosAndVelo",
+"wallSplat_setPosAndVelo",
+"setClamberPos",
+"clamberJumpOffWall",
+"clamberInitialization",
+"walljump_calculateJumpedOffWallPositionAndVelocity",
+"fielding_prePitchAutomovement",
+"fielding_atBat_SetSomeAutomovements_callCollisionFn",
+"atBat_Fielders",
+"fielderActionsOnSteal",
+"stealSetFielders",
+"determineSelectedfielderOnIFHit_Dribbler",
+"selectInitialFielders_linedriveThroughPitcher",
+"setInitialFielderMovements_foulBall",
+"chooseSecondaryFielderFromClosestOutfielder",
+"setInitialFielderMovements_generalCase",
+"determinePrimaryAndSecondaryOutFielders",
+"setInitialFielderMovements_DeepFly",
+"humanTeamFieldingFirstFrameAfterHit",
+"decideHowToTrackFoulBall",
+"autoMovement16_trackFoulBall",
+"setPlayerWhoCanInterceptThrow",
+"SelectClosestFielder2",
+"selectBestFielder",
+"SelectBetterFielder",
+"unused_FUN_8067661c",
+"selectClosestFielderBasedOnFutureCoord",
+"SelectOptimalFielder",
+"selectAssignClosestFielder2",
+"setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement",
+"HandleMiddleInfieldSelection",
+"fielderSelect_tertiaryFielderExists_determine2FieldersToKeep",
+"updateBallLandedFielderSelection",
+"updateInAirFielderSelection",
+"unused_FUN_80678e58",
+"updateFielderSelection",
+"setFielderVelocity_someSituation",
+"moveFielder_CheckForAndSetJump",
+"updateFielderMovementIfNoBall",
+"autoMovement21_23_humanControlInitialSelectedFielders",
+"autoMovement15_selectedFielderOnLooseBall",
+"liveBallFielderControlHumanTeam",
+"checkIfPlayerNeedsToMoveToCatchBall",
+"autoMovement19_foulBall",
+"autoMovement0_stayStill_exceptForSpecialActions",
+"runOffBaseOverride",
+"autoMovement9_OffBase_coverHome",
+"autoMovement17_runningOffField",
+"autoMovement12_stopBetweenInstructions",
+"setFielderLocToBeNearBase",
+"autoMovement14_infieldSupport",
+"autoMovement20_pitcherLinedriveRelated",
+"knockoutRelated_Grounder_Liner",
+"knockoutRelated_FlyBall",
+"knockoutRelated",
+"uncalled",
+"aITeamFieldingFirstFrameAfterHit",
+"fielderAIAssignmentRelated",
+"fielderAISomething",
+"decideWhenToLeaveFunction2_16_18",
+"updateFielderPosition",
+"setIntendedLocToInterceptBall",
+"fielderTrackingBall_updateVariables",
+"fielderTrackingBall_initialVariableSetting",
+"autoMovement2_18_goTowardsBall_phase2",
+"autoMovement4_AI_goTowardsHitBall",
+"autoMovement3_goTowardsHitBall_AITeam",
+"autoMovement25_readyToInterceptThrownBall",
+"updateFielderValuesSubFunction1_cuttoffRelated",
+"checkIfCutoffIsntAtThrowDestination",
+"setCutoffLocationToStandAt",
+"setInitialFielderMovements_cutoffs",
+"autoMovement5",
+"autoMovement11_cutoff_setInitialLocation",
+"secondaryOutfielderWhenToStopMoving",
+"setSecondaryFielderToBe12mFromDropSpotToSupport",
+"autoMovement24_goTowardsHitBall_humanTeam",
+"updateFielderValuesSubFunction3_empty",
+"autoMovementDetermineWhatToDo",
+"setInitialFielderMovements_restOfFielders",
+"setIntendedLocationAheadOfBallPath",
+"autoMovement13_GoTowardsBallAsBackUp",
+"autoMovement6_outfielderNoCatch_Phase2",
+"autoMovement7_8_outfiederNoCatch_Phase1",
+"updateSomeAutoMovementAssignments",
+"setInitialFielderMovements_CoverBases",
+"autoMovement1_coverBase",
+"bobbleDirection",
+"findClosestFieldersToLooseBallAndAssignToGoGetIt",
+"checkForAndHandleLooseBalls",
+"aISetFielderWithBallIndex",
+"knockoutRelated_subFn",
+"setCatcherCatchStrategy_distToLandingSpot",
+"setFielderCatchStrategy_calcFramesToGetToDropSpot",
+"fielderMovement_adjustPlaceToStandForBallBouncingOffWall",
+"updateSprintPointers",
+"adjustPlayerPosOutsideFoulLine",
+"updateFielderPosition_checkFielderCollision",
+"setZoneAwayFromHome",
+"calculateMinDiveDistAndEndingCoords",
+"fRunningTimeToDestinationPlus7",
+"setFielderVelocity",
+"setFielderAutoCoords",
+"updateFielderPositionAndVelocityForSpecialActions",
+"setStandingOnBaseVariables",
+"fielderMovementRelated",
+"minigameFieldingRelated_collisions",
+"fielding_handleCollisionsAndSpecialActions",
+"updateFielderDirectionFacing",
+"handleBodyCheck2",
+"fielder_endOfInning_deadball_updateCounters",
+"fielderUpdateChasingRunnerValues",
+"updateFielder_SpecificValuesEachFrame",
+"liveBallUpdateFieldingValues",
+"updateOutfielderPositionBasedOnBallState",
+"processFielderJumpAI",
+"aITeamFielding_SelectCharWithHand",
+"updateFielderMovementAndPosition",
+"liveBallFielderControlAITeam",
+"fielderResetAndStoreValuesEachFrame",
+"setDefaultInMemFielder",
+"initializeMiniGameCharacters",
+"fielding_setStartingCoordinates",
+"pPRelated",
+"resetInMemFielders",
+"initializeFielderConstants",
+"initFielders"
+],
+"placeholder": 61,
+"bytes": 214648
+},
+"src/game/rep_CC8.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_D0.c": {
+"total": 4,
+"named": [
+"checkCollision",
+"checkStatiumHazardCollisions",
+"didCollideWithBoundingBoxes",
+"checkTriangleCollisions"
+],
+"placeholder": 0,
+"bytes": 2960
+},
+"src/game/rep_D18.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_D68.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_DB8.c": {
+"total": 0,
+"named": [],
+"placeholder": 0,
+"bytes": 0
+},
+"src/game/rep_E08.c": {
+"total": 28,
+"named": [
+"updateFielderState",
+"foulAnimationRelatedMaybe",
+"fielderThrowingAnimations",
+"animationsForFielding",
+"fielderAnimations_setAnimation",
+"handleRunnerActionsAndTagging",
+"fielderAnimations",
+"runnerAnimation_general",
+"runnerAnimation_detailed",
+"batterAnimations",
+"pitcherAnimation",
+"minigameAnimations",
+"matchAnimations",
+"unsure_updateAnimations",
+"setDefaultPlayTrackingVariables3"
+],
+"placeholder": 13,
+"bytes": 28024
+},
+"src/game/rep_EA0.c": {
+"total": 15,
+"named": [
+"setupBallTrailEffect",
+"ballAnimationSubFun4",
+"displayBallTrail",
+"ballSpinSetting",
+"clearAnimationRelatedPointers",
+"ballAnimationSubFun3",
+"ballAnimationSubFun2",
+"ballAnimationSubFun1",
+"ballAnimations"
+],
+"placeholder": 6,
+"bytes": 11348
+},
+"src/game/rep_F80.c": {
+"total": 9,
+"named": [
+"animateStarHits_Pitches",
+"animateChargeSprites"
+],
+"placeholder": 7,
+"bytes": 3100
+},
+"src/game/rep_FE0.c": {
+"total": 2,
+"named": [
+"computeAdjustedFielderOrientation",
+"animateDefence"
+],
+"placeholder": 0,
+"bytes": 1324
+},
+"src/game/sta_c0.c": {
+"total": 7,
+"named": [
+"fanAnimationRelated",
+"sta_c0",
+"loadMarioStadium"
+],
+"placeholder": 4,
+"bytes": 4924
+},
+"src/game/sta_c2.c": {
+"total": 88,
+"named": [
+"palaceStadiumObjTransformationAndPhysics",
+"mPalaceObjHandling",
+"maybeChainChompSprintCTRLRelated",
+"palaceMinigameObjectLoading",
+"palaceHazeTextureMaybe",
+"warioPalaceSomething",
+"starHitAnimation",
+"warioPalaceSandStarRelated",
+"palaceNadoLogic",
+"maybePalaceCTRLRelated",
+"applyTransformationToPalaceObjs",
+"chainChomp_colveSpringForces",
+"chainChomp_simulateAndCollide",
+"chomp_attack",
+"chompState3_longDistanceAttack_Stalk",
+"chompState1_awake",
+"chompState0",
+"palaceChainChompControl",
+"someCTRLButNotCalled",
+"someCTRLButNotCalled2",
+"processPalaceObjectCollisions",
+"stadiumObjCollisionRelated_Palace",
+"loadWarioPalace"
+],
+"placeholder": 65,
+"bytes": 53608
+},
+"src/game/sta_c4.c": {
+"total": 24,
+"named": [
+"peachGardenSomething",
+"loadPeachGarden"
+],
+"placeholder": 22,
+"bytes": 14252
+},
+"src/game/sta_c5.c": {
+"total": 71,
+"named": [
+"klaptrapHitAnimation",
+"jungleStadiumObjectRelated",
+"isPosOutsideKlaptrapZone",
+"dkKlaptrapLaunchedUpdate",
+"dkKlaptrapChaseUpdate",
+"dkKlaptrapRoamUpdate",
+"klaptrapControl",
+"klaptrapCTRLSetup",
+"maybeGharialCTRLRel",
+"handleDKJungleBarrel",
+"dkBarrelSpawnGroundDust",
+"dkBarrel_collisionWithFielder",
+"dkBarrelAdvanceMotion",
+"dkBarrelLaunch",
+"dkBarrelSmokeUpdate",
+"dkJungleBarrelCannonCutsceneUpdate",
+"handleBarrelFiring",
+"dkJungleBarrelCannonUpdate",
+"processJungleObjectCollisions",
+"updateDKJungleObjBoundingBoxes",
+"maybeBarrelCTRLRel",
+"updateDKJungleControl",
+"loadDKJungle"
+],
+"placeholder": 48,
+"bytes": 41796
+},
+"src/game/sta_c6.c": {
+"total": 30,
+"named": [
+"processToyFieldObjectCollisions",
+"loadToyField"
+],
+"placeholder": 28,
+"bytes": 14184
+}
+}
