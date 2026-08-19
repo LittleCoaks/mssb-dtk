@@ -6,7 +6,7 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:32
 
-game/rep_0.c:
+game/match/rep_0.c:
 	.text       start:0x00000000 end:0x000004F4
 	.rodata     start:0x00000000 end:0x00000060
 	.data       start:0x00000000 end:0x00000118
@@ -60,7 +60,7 @@ game/pitching/pitcher_ai.c:
 	.text       start:0x00020CEC end:0x000219CC
 	.rodata     start:0x00000940 end:0x000009B0
 
-game/rep_9B0.c:
+game/data_only/rep_9B0.c:
 	.rodata     start:0x000009B0 end:0x00000A00
 
 game/match/versus_screens.c:
@@ -69,7 +69,7 @@ game/match/versus_screens.c:
 	.data       start:0x00003A40 end:0x00003C40
 	.bss        start:0x00000098 end:0x000000C8
 
-game/rep_A78.c:
+game/data_only/rep_A78.c:
 	.rodata     start:0x00000A78 end:0x00000AC8
 
 game/fielding/fielder_catch.c:
@@ -78,16 +78,16 @@ game/fielding/fielder_catch.c:
 	.data       start:0x00003C40 end:0x00003D60
 	.bss        start:0x000000C8 end:0x00000200
 
-game/rep_CC8.c:
+game/data_only/rep_CC8.c:
 	.rodata     start:0x00000CC8 end:0x00000D18
 
-game/rep_D18.c:
+game/data_only/rep_D18.c:
 	.rodata     start:0x00000D18 end:0x00000D68
 
-game/rep_D68.c:
+game/data_only/rep_D68.c:
 	.rodata     start:0x00000D68 end:0x00000DB8
 
-game/rep_DB8.c:
+game/data_only/rep_DB8.c:
 	.rodata     start:0x00000DB8 end:0x00000E08
 
 game/animation/animation_dispatch.c:
@@ -149,11 +149,11 @@ game/sound/m_sound.c:
 	.rodata     start:0x00001508 end:0x00001610
 	.bss        start:0x00001760 end:0x000017F8
 
-game/rep_1610.c:
+game/hud/rep_1610.c:
 	.text       start:0x000912B4 end:0x0009143C
 	.rodata     start:0x00001610 end:0x00001668
 
-game/rep_1668.c:
+game/data_only/rep_1668.c:
 	.rodata     start:0x00001668 end:0x000016B8
 
 game/hud/hud_scoreboard.c:
@@ -161,7 +161,7 @@ game/hud/hud_scoreboard.c:
 	.rodata     start:0x000016B8 end:0x00001720
 	.data       start:0x0000F448 end:0x0000F4A4
 
-game/rep_1720.c:
+game/data_only/rep_1720.c:
 	.rodata     start:0x00001720 end:0x00001770
 
 game/hud/hud_gauges.c:
@@ -182,26 +182,26 @@ game/fielding/fielder_ai.c:
 	.data       start:0x0000F4E0 end:0x0000F50C
 	.bss        start:0x000017F8 end:0x00001900
 
-game/rep_1A80.c:
+game/data_only/rep_1A80.c:
 	.rodata     start:0x00001A80 end:0x00001AD0
 
-game/rep_1AD0.c:
+game/data_only/rep_1AD0.c:
 	.rodata     start:0x00001AD0 end:0x00001B20
 
-game/rep_1B20.c:
+game/data_only/rep_1B20.c:
 	.rodata     start:0x00001B20 end:0x00001B70
 
 game/match/player_control_transition.c:
 	.text       start:0x000B3A4C end:0x000B3B70
 	.rodata     start:0x00001B70 end:0x00001BC8
 
-game/rep_1BC8.c:
+game/data_only/rep_1BC8.c:
 	.rodata     start:0x00001BC8 end:0x00001C18
 
-game/rep_1C18.c:
+game/data_only/rep_1C18.c:
 	.rodata     start:0x00001C18 end:0x00001C68
 
-game/rep_1C68.c:
+game/data_only/rep_1C68.c:
 	.rodata     start:0x00001C68 end:0x00001CB8
 
 game/ball/foul_detection.c:
@@ -230,7 +230,7 @@ game/stadium/stadium_bowser_castle.c:
 	.rodata     start:0x00001FD8 end:0x000021F8
 	.bss        start:0x00009D80 end:0x00009F20
 
-game/rep_21F8.c:
+game/hud/rep_21F8.c:
 	.text       start:0x000C937C end:0x000C9744
 	.rodata     start:0x000021F8 end:0x00002288
 	.bss        start:0x00009F20 end:0x00009F38
@@ -248,7 +248,7 @@ game/pitching/pitcher_fire_effect.c:
 	.text       start:0x000CB3AC end:0x000CB6B4
 	.rodata     start:0x00002390 end:0x000023E8
 
-game/rep_23E8.c:
+game/stadium/rep_23E8.c:
 	.text       start:0x000CB738 end:0x000CB8A8
 	.rodata     start:0x000023E8 end:0x00002448
 
@@ -290,13 +290,13 @@ game/stadium/stadium_peach_garden.c:
 	.rodata     start:0x00002F68 end:0x00003090
 	.bss        start:0x0000B570 end:0x0000B678
 
-game/rep_3090.c:
+game/math/rep_3090.c:
 	.text       start:0x000FC448 end:0x00106DFC
 	.rodata     start:0x00003090 end:0x000031A0
 	.data       start:0x00021048 end:0x00021268
 	.bss        start:0x0000B678 end:0x0000B698
 
-game/rep_31A0.c:
+game/data_only/rep_31A0.c:
 	.rodata     start:0x000031A0 end:0x000031F0
 
 game/minigame/bobomb_derby.c:
@@ -315,7 +315,7 @@ game/minigame/pitching_machine.c:
 	.rodata     start:0x00003310 end:0x00003448
 	.bss        start:0x0000B6B8 end:0x0000B700
 
-game/rep_3448.c:
+game/hud/rep_3448.c:
 	.text       start:0x0011EC28 end:0x001293D0
 	.rodata     start:0x00003448 end:0x000034B0
 	.data       start:0x000264D0 end:0x0002650C
@@ -342,41 +342,41 @@ game/minigame/piranha_panic.c:
 	.rodata     start:0x000037A8 end:0x00003880
 	.bss        start:0x0000B7C0 end:0x0000B850
 
-game/rep_3880.c:
+game/minigame/rep_3880.c:
 	.text       start:0x0014737C end:0x00157DB8
 	.rodata     start:0x00003880 end:0x00003A48
 	.bss        start:0x0000B850 end:0x0000B9B8
 
-game/rep_3A48.c:
+game/data_only/rep_3A48.c:
 	.rodata     start:0x00003A48 end:0x00003A98
 
-game/rep_3A98.c:
+game/data_only/rep_3A98.c:
 	.rodata     start:0x00003A98 end:0x00003AE8
 
 game/batting/star_swing_peach_daisy.c:
 	.text       start:0x0015B79C end:0x0015C230
 	.rodata     start:0x00003AE8 end:0x00003B70
 
-game/rep_3B70.c:
+game/data_only/rep_3B70.c:
 	.text       start:0x0015C3F8 end:0x0015C5F4
 	.rodata     start:0x00003B70 end:0x00003BD8
 
-game/rep_3BD8.c:
+game/data_only/rep_3BD8.c:
 	.rodata     start:0x00003BD8 end:0x00003C28
 
-game/rep_3C28.c:
+game/data_only/rep_3C28.c:
 	.text       start:0x0015F574 end:0x0015F648
 	.rodata     start:0x00003C28 end:0x00003C80
 
-game/rep_3C80.c:
+game/data_only/rep_3C80.c:
 	.text       start:0x0015F648 end:0x0015F874
 	.rodata     start:0x00003C80 end:0x00003CE0
 
-game/rep_3CE0.c:
+game/data_only/rep_3CE0.c:
 	.text       start:0x0015FB84 end:0x00160578
 	.rodata     start:0x00003CE0 end:0x00003D50
 
-game/rep_3D50.c:
+game/data_only/rep_3D50.c:
 	.text       start:0x00160578 end:0x001608F0
 	.rodata     start:0x00003D50 end:0x00003DA8
 	.bss        start:0x0000B9B8 end:0x0000B9E0
@@ -386,7 +386,7 @@ game/match/star_missions.c:
 	.rodata     start:0x00003DA8 end:0x00003E00
 	.data       start:0x00028438 end:0x000284E8
 
-game/rep_3E00.c:
+game/data_only/rep_3E00.c:
 	.text       start:0x00166448 end:0x001665E4
 	.rodata     start:0x00003E00 end:0x00003E58
 
@@ -399,7 +399,7 @@ game/animation/actor_transform.c:
 	.text       start:0x00168414 end:0x001690C0
 	.rodata     start:0x00003F60 end:0x00003FD8
 
-game/kinoko.c:
+game/stadium/kinoko.c:
 	.text       start:0x0016917C end:0x0016C410
 	.rodata     start:0x00003FD8 end:0x00004090
 	.data       start:0x0002A330 end:0x0002A404
@@ -409,7 +409,7 @@ game/ball/ball_fielder_collision.c:
 	.text       start:0x0016C548 end:0x0016D810
 	.rodata     start:0x00004090 end:0x00004138
 
-game/rep_4138.c:
+game/hud/rep_4138.c:
 	.text       start:0x0016D810 end:0x0016E3A4
 	.rodata     start:0x00004138 end:0x000041B8
 	.bss        start:0x0000D6E0 end:0x0000D714

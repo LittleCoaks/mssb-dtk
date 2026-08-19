@@ -2,7 +2,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
-#include "game/rep_3090.h"
+#include "game/math/rep_3090.h"
 #include "game/math/game_math.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
