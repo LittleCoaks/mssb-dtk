@@ -54,7 +54,6 @@ extern struct {
     u8 _00[0x28];
     u8 _28;
 } lbl_80366158;
-extern u8 inningSetting[];
 
 #define FRAME_COUNT_HOLD_FOR_BUNT 8
 // acts more like a flag than an actual timer
@@ -392,7 +391,7 @@ void batterHumanControlled(void) {
                     g_Batter.isStarSwing = FALSE;
                     if (!g_d_GameSettings.minigamesEnabled) {
                         if (inputs->buttonInput & PAD_TRIGGER_R || (ACTIVE_TUTORIAL() && r25)) {
-                            if (inningSetting[4] || g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+                            if (inningSetting.starSkillsSetting || g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
                                 g_Batter.isStarSwing = TRUE;
                                 g_Batter.chargeUp = 0.0f;
                                 g_Batter.chargeDown = 0.0f;

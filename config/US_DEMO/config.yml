@@ -19,5 +19,5 @@ modules:
 
 - object: orig/US_DEMO/files/challenge.rel
   hash: c8c53a8dfd56d3d074acf245c08e5034f2d14899
-  symbols: config/US_DEMO/challenge/symbols.txt
-  splits: config/US_DEMO/challenge/splits.txt
+  symbols: config/US_DEMO/unused_rel/symbols.txt
+  splits: config/US_DEMO/unused_rel/splits.txt

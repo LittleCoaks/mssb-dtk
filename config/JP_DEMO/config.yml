@@ -19,5 +19,5 @@ modules:
 
 - object: orig/JP_DEMO/files/challenge.rel
   hash: bcd3470987db8f89064da7798bf03871c9f800fd
-  symbols: config/JP_DEMO/challenge/symbols.txt
-  splits: config/JP_DEMO/challenge/splits.txt
+  symbols: config/JP_DEMO/unused_rel/symbols.txt
+  splits: config/JP_DEMO/unused_rel/splits.txt

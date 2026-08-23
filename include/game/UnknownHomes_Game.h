@@ -2899,4 +2899,56 @@ extern void camera_switchScene(int);
 extern void camera_replay(void);
 extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
 
+
+/* ==========================================================================
+ *  Objects the symbol table names but nothing here typed until now.
+ *  Layouts come from Ghidra's type export; both sizes cross-check exactly
+ *  against config/GYQE01/game/symbols.txt, which is why they are here rather
+ *  than living as raw addresses on the modding side.
+ * ======================================================================== */
+
+// symbols.txt: g_Scores .bss:0x000317C0 size 0xC8 -- matches this exactly.
+typedef struct _ScoreStruct {
+    /*0x00*/ s16 total;
+    /*0x02*/ s16 byInning[18];
+} ScoreStruct; // size: 0x26
+
+typedef struct _GameScoresControlsStruct {
+    /*0x000*/ s32 Inning;
+    /*0x004*/ ScoreStruct scores[2];
+    u8 _pad_50[0x5D];
+    /*0x0AD*/ u8 halfInning;
+    u8 _pad_AE[0x1A];
+} GameScoresControlsStruct; // size: 0xC8
+
+extern GameScoresControlsStruct g_Scores;
+
+// symbols.txt: g_Fielders size 0x15A8 == 9 * 0x268 -- matches this exactly.
+typedef struct _InMemFielder {
+    /*0x000*/ VecXYZ pos;
+    u8 _pad_C[0x1B9];
+    /*0x1C5*/ u8 AI_Ind;
+    u8 _pad_1C6[0xD];
+    /*0x1D3*/ E(u8, AUTO_MOVEMENT_FUNCTION_INDEX) autoMovementFunctionIndex;
+    u8 _pad_1D4[0x94];
+} InMemFielder; // size: 0x268
+
+extern InMemFielder g_Fielders[9];
+
+/* Enum constants the mods use that the decomp had no counterpart for.
+   Values from ProjectRio-ASM docs/enum_map.md, which pairs enum to enum by
+   member-name and value agreement before matching constants. */
+typedef enum _RUNNER_MOVEMENT_TYPE {
+    /* 1 */ RUNNER_MOVEMENT_FORWARDS = 1,
+} RUNNER_MOVEMENT_TYPE;
+
+typedef enum _DASH_STATE {
+    /* 2 */ DASH_STATE_SPRINTING = 2,
+} DASH_STATE;
+
+typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
+    /*  2 */ AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM = 2,
+    /* 15 */ AUTO_MOVEMENT_GOING_TO_BALL = 15,
+} AUTO_MOVEMENT_FUNCTION_INDEX;
+
 #endif // !__UNKNOWN_HOMES_H_

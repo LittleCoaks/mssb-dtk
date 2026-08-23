@@ -4,6 +4,11 @@
 #include "mssbtypes.h"
 #include "Dolphin/mtx.h"
 
+typedef enum _P2_CPU_CODE {
+    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
+    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,
+} P2_CPU_CODE;
+
 typedef struct _GameInitVariables {
     /*0x00*/ int _00;
     /*0x04*/ u16 FrameCountWhileNotAtMainMenu;
@@ -16,7 +21,8 @@ typedef struct _GameInitVariables {
     /*0x0C*/ u8 maybeHomeAway;
     /*0x0D*/ u8 maybeHomeAway2;
     /*0x0E*/ u8 home_AwaySetting;
-    artificial_padding(0x0e, 0x11, u8);
+    /*0x0F*/ u8 _0F;
+    /*0x10*/ E(u8, P2_CPU_CODE) p2_CPU_match_code;
     /*0x11*/ bool minigamesEnabled;
     artificial_padding(0x11, 0x20, bool);
     /*0x20*/ s16 _20[4][2];
@@ -44,6 +50,22 @@ typedef struct _GameInitVariables {
 } GameInitVariables; // size: 0x58
 
 extern GameInitVariables g_d_GameSettings;
+
+// The object immediately after g_d_GameSettings. symbols.txt records it as
+// .data:0x800E8754 size:0x60. Offsets are anchored on memory, from the old
+// Ghidra export's recorded addresses (see ProjectRio-ASM docs/rename_map.md):
+//   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28
+typedef struct _InningSettings {
+    /*0x00*/ u8 inningCount;
+    u8 _pad_1[0x3];
+    /*0x04*/ u8 starSkillsSetting;
+    /*0x05*/ u8 runsNeededForMercy;
+    u8 _pad_6[0x22];
+    /*0x28*/ s16 rel;   // which REL is resident: 0 boot, 4 menu, 5 match
+    u8 _pad_2A[0x36];
+} InningSettings; // size: 0x60
+
+extern InningSettings inningSetting;
 
 typedef struct {
     /*0x00*/ Mtx44 proj;

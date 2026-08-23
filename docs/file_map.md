@@ -209,18 +209,18 @@ completely disjoint, with nothing shared or common between them.
 
 | module | what it is | units | source tree | state |
 |---|---|---|---|---|
-| `main` | the DOL | 195 named + ~880 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; **the DOL's own game logic is entirely `auto_*` placeholders** |
+| `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
 | `menus` | menu REL | 42 | `src/menus/**` | stubs for all 42 units, 532 functions; 207 carry real names from Ghidra |
-| `challenge` | challenge REL | 13 | `src/challenge/**` | stubs for all 13 units, 307 functions |
+| `unused_rel` | an unused REL | 13 | `src/unused_rel/**` | stubs for all 13 units, 307 functions |
 
-### The menu and challenge RELs
+### The menu and unused RELs
 
 Both are known but unwritten, and until recently neither had anywhere to be
 written. `configure.py` declared `Object(NonMatching, "menus/rep_XXXX.c")` for
 every menu unit and the splits gave each one its address range, but not one of
 those files existed — the link consumed objects extracted from the original REL
-instead. `challenge` was worse off: splits and 2353 symbols, but no entry in
+instead. `unused_rel` was worse off: splits and 2353 symbols, but no entry in
 `configure.py` at all.
 
 Both now have a source tree in the `src/game` style — one `.c` per unit with a
@@ -229,15 +229,25 @@ Both now have a source tree in the `src/game` style — one `.c` per unit with a
 objdiff can diff the compiled stub against the original, so progress on these
 RELs is now visible instead of invisible. The four menu units that were in the
 splits but missing from `configure.py` (`rep_0398`, `rep_03E8`, `rep_0438`,
-`rep_04B0`) are wired in, and `challenge` has a `Rel()` entry.
+`rep_04B0`) are wired in, and `unused_rel` has a `Rel()` entry.
+
+**On the name.** The disc file is `challenge.rel`, but research on this REL
+found nothing connecting it to Challenge Mode -- it appears to be genuinely
+unused -- so the repo's folders call it `unused_rel`. The disc filename is left
+as it is (`orig/GYQE01/files/challenge.rel`, `decompress.py`, `build.sha1`), and
+because dtk takes a module's name from its object filename, objdiff units still
+read `challenge/unused_rel/rep_XXXX`: the module keeps the game's name, the
+folder says what it is.
 
 The mapped addresses are not assumed. The menu REL loads at `0x8063F094`, the
 same slot as the match REL, and every generated address was checked against the
 `AtGameSettingsScreen` snapshot — `rep_01A0`'s four functions land on
 `FUN_8063fb04`, `FUN_8063fbcc`, `FUN_8063fcac`, `FUN_8063fd08` with matching
-sizes. The challenge REL is resident in neither snapshot, so its load address is
+sizes. The unused REL is resident in neither snapshot, so its load address is
 unknown and its stubs carry offset and size but **no** `mapped:` comment; add it
 to `REL_LOAD` in `tools/cvt_rel_addr_to_mapped_addr.py` once it can be measured.
+That unsolved base is also why its symbols are the only ones absent from the
+modding address reference -- `SyncFromDecomp.py` never guesses a base.
 
 What else is known about the menu REL:
 
@@ -269,10 +279,56 @@ or in `configure.py`.
 | `src/Dolphin` | 189 | GameCube SDK, organised by library: `os` (24), `MSL_C` (59), `TRK_MINNOW_DOLPHIN` (28), `card` (16), `gx` (15), `dvd` (8), `mtx` (7), `Runtime` (6), `gba` (4), `dsp` (3), plus `ai`/`ar`/`exi`/`si`/`vi`/`pad`/`thp`/`gd`/`db`/`base`. |
 | `src/Musyx` | 26 | MusyX audio engine — synth (`synth*.c`, `seq*.c`), hardware/DSP (`hw_*.c`), effects (`reverb*.c`, `chorus_fx.c`), streaming. |
 | `src/C3/control` | 1 | `control.c` — the CTRL actor/transform layer stadium and minigame code calls into (`CTRLSetScale`, `CTRLSetRotation`, `CTRLSetQuat`). |
-| `src/Unknown` | 2 | `File_0x800a6304.c` (a small ring-buffer/accumulator, 3/5 functions matched) and `File_0x800a64e0.c`. Named by address because their role is not yet identified. |
+| `src/Unknown` | 283 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---
+
+### The DOL
+
+The DOL is 916,032 bytes of text across `.init` (`0x80003100`) and `.text`
+(`0x80008E00`). Every byte of it is claimed by a unit — the report accounts for
+915,824 of them — so nothing is missing from the repo; the question was only how
+much had a *source file*.
+
+Originally 40% did (the SDK: `Dolphin`, `Musyx`, `C3`, and two hand-written
+`Unknown/File_0x*.c`). The remaining 60% sat in `auto_*` units, dtk's
+automatically-generated splits for unclaimed ranges, which have no source file at
+all. **281 of those units contained at least one hand-named function** —
+`main`, `handleLoadingProcess`, `PostRetraceCallback`, `BezierInterpolate` and 329
+others — so they were promoted into real split units under the existing
+`Unknown/File_0xADDR.c` convention: 207,844 bytes, 382 functions, 333 of them
+named.
+
+The ~600 remaining `auto_*` code units hold only placeholder-named functions and
+were deliberately **left as auto**. Promoting them would freeze dtk's guessed
+boundaries into `splits.txt` as though they were real translation-unit
+boundaries, and unlike the RELs there is nothing to derive real ones from: the
+40-byte `repHeaderData` signature that gives the RELs their `rep_XXXX` boundaries
+occurs 184 times in `game.rel` and **zero** times in `main.dol`. They are already
+fully accounted for in the build and the report, so a stub file would add a
+frozen guess and no information.
+
+### Ghidra has nothing left to give the DOL
+
+Measured against the `in_game` snapshot, the decomp is ahead, not behind:
+
+| DOL text range | functions | hand-named |
+|---|---|---|
+| Ghidra `in_game` | 2,504 | 1,758 |
+| decomp `symbols.txt` | 2,490 | **1,781** |
+
+Of the 64 addresses Ghidra has that the decomp lacks, 40 are labels *inside*
+functions the decomp already has (`__DBVECTOR`, `__OSEVSetNumber` and `__OSEVEnd`
+inside `OSExceptionVector`, and so on) and the other 24 are all `FUN_*`
+placeholders. Exactly **two** real name upgrades exist — `fn_800111FC` →
+`animationRelated` and `fn_8001DB74` → `animRelated`. On the data side Ghidra has
+786 hand-named DOL variables to the decomp's 605, and 377 of the 563-symbol
+difference are field-level labels inside objects the decomp already has, which
+belong in struct definitions rather than in `symbols.txt`.
+
+So a Ghidra import is not the way to more DOL addresses. The addresses are
+already here.
 
 ## Where the unfinished work actually is
 
