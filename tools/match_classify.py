@@ -44,15 +44,44 @@ Usage:
     python tools/match_classify.py fix --function NAME   # fix one function only
 """
 import argparse
+import functools
 import json
+import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-OBJDIFF_CLI = Path(
-    r"D:\15165\Documents\Rio Modding Project\Project Rio\objdiff-cli-windows-x86_64.exe"
-)
+
+
+@functools.lru_cache(maxsize=1)
+def resolve_objdiff_cli() -> Path:
+    """Find objdiff-cli: MSSB_OBJDIFF_CLI env override, then the copy the
+    project's own build already downloads to build/tools/, then PATH.
+    Resolved lazily (and cached) so e.g. --help works without a build."""
+    env = os.environ.get("MSSB_OBJDIFF_CLI")
+    if env:
+        p = Path(env)
+        if not p.is_file():
+            raise SystemExit(f"MSSB_OBJDIFF_CLI={env} does not exist")
+        return p
+
+    exe = "objdiff-cli.exe" if os.name == "nt" else "objdiff-cli"
+    built = REPO / "build" / "tools" / exe
+    if built.is_file():
+        return built
+
+    found = shutil.which("objdiff-cli")
+    if found:
+        return Path(found)
+
+    raise SystemExit(
+        "objdiff-cli not found. Run `ninja` once (it downloads objdiff-cli to "
+        f"{built.relative_to(REPO)} like the rest of the build's tools), or set "
+        "MSSB_OBJDIFF_CLI to an existing binary's path."
+    )
+
 
 MODULE_SYMBOLS = {
     "main": REPO / "config" / "GYQE01" / "symbols.txt",
@@ -81,7 +110,7 @@ def run_ninja():
 
 def objdiff_unit(unit: str):
     r = subprocess.run(
-        [str(OBJDIFF_CLI), "diff", "-p", str(REPO), "-u", unit, "-o", "-", "--format", "json"],
+        [str(resolve_objdiff_cli()), "diff", "-p", str(REPO), "-u", unit, "-o", "-", "--format", "json"],
         capture_output=True, text=True,
     )
     if r.returncode != 0:
@@ -312,7 +341,7 @@ def unit_to_source_path(unit: str) -> Path:
 
 def generate_report(out_path: Path):
     r = subprocess.run(
-        [str(OBJDIFF_CLI), "report", "generate", "-p", str(REPO), "-o", str(out_path), "-f", "json"],
+        [str(resolve_objdiff_cli()), "report", "generate", "-p", str(REPO), "-o", str(out_path), "-f", "json"],
         capture_output=True, text=True,
     )
     if r.returncode != 0:
