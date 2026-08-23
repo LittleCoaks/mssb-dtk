@@ -1,7 +1,7 @@
 #ifndef __UNKNOWN_HOMES_STATIC_H_
 #define __UNKNOWN_HOMES_STATIC_H_
 
-#include "mssbtypes.h"
+#include "mssbTypes.h"
 #include "Dolphin/mtx.h"
 
 typedef enum _P2_CPU_CODE {
