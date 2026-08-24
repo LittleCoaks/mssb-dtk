@@ -1,4 +1,14 @@
 #include "game/batting/batter.h"
+
+/* batter.c never calls dolsqrtf2(), so keep it internal. With the header's
+ * default `extern` linkage MWCC materialises the unused out-of-line copy's
+ * _half/_three local statics as weak symbols at the very head of this TU's
+ * .rodata, pushing every constant-pool entry 16 bytes past the offsets the
+ * linked module actually has (the original link dropped those duplicate weak
+ * symbols). getRepHeaderData()'s local static in header_rep_data.h still
+ * provides the weak-first-.rodata-object property MWCC's constant-pool
+ * addressing depends on, so codegen is unaffected. */
+#define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 
@@ -33,7 +43,6 @@ extern struct {
     /* 0x08 */ f32 chemMult[3];
     /* 0x14 */ f32 chemBattingMult[3];
 } chemBobbleMults;
-extern s32 lbl_3_data_5B34[][5];
 extern f32 lbl_3_data_5E80[4][2];
 extern f32 lbl_3_data_5AF0[2];
 extern struct {
@@ -984,14 +993,14 @@ void calculateHitVariables(void) {
         u32 starPower = g_Batter.captainStarSwingActivated;
         g_Ball.currentStarSwing = g_Batter.captainStarSwingActivated;
         g_Ball.currentStarSwing2 = g_Batter.captainStarSwingActivated;
-        g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = g_Batter.captainStarSwingActivated;
+        g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = FALSE;
         if (starPower == CAPTAIN_STAR_TYPE_DK ||
             starPower == CAPTAIN_STAR_TYPE_DIDDY) {
-            g_Ball.directionOfBananaHit = g_Batter.batterHand;
             g_Ball.matchFramesAndBallAngle.bananaHitStartFrame =
                 g_Ball.hangtimeOfHit * g_hitFloats.DKStarHangtimePercentStart;
             g_Ball.matchFramesAndBallAngle.bananaHitEndFrame =
                 g_Ball.hangtimeOfHit * g_hitFloats.DKStarHangtimePercentEnd;
+            g_Ball.directionOfBananaHit = g_Batter.batterHand;
         } else if (starPower == CAPTAIN_STAR_TYPE_WARIO ||
                    starPower == CAPTAIN_STAR_TYPE_WALUIGI) {
             g_Ball.warioWaluStarHitDirection = RandomInt_Game(2);
@@ -1511,7 +1520,7 @@ void calculateHorizontalPower(void) {
     }
 
     if (g_Batter.hitType >= 0) {
-        power = power * lbl_3_data_5B34[g_Batter.hitType][1 - g_Batter.easyBatting] / 100.0f;
+        power = power * (s32)hitTrajOptions[g_Batter.hitType]._0[1 - g_Batter.easyBatting] / 100.0f;
     }
 
     power = calcedDistance * (power / 100.0f * (lbl_3_data_5AF0[1] - lbl_3_data_5AF0[0]) + lbl_3_data_5AF0[0]);

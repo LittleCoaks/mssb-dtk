@@ -4,7 +4,13 @@
 #include "mssbTypes.h"
 #include "Dolphin/pad.h"
 
+/* Translation units that never call dolsqrtf2() can predefine SQRT2_LINKAGE
+ * as `static` before including this header, so MWCC drops the unused
+ * out-of-line copy (and its _half/_three local statics) instead of emitting
+ * it at the head of the TU's .rodata. */
+#ifndef SQRT2_LINKAGE
 #define SQRT2_LINKAGE extern
+#endif
 #include "math.h"
 #include "Dolphin/mtx.h"
 
