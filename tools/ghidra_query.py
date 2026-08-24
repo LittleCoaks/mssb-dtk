@@ -11,6 +11,15 @@ The Ghidra project is a *shared* project whose server is unreachable; headless
 still reads the local checkout cache fine (it logs "Server access denied" and
 continues read-only). Nothing here ever writes to the Ghidra project.
 
+`refresh` and `decomp` need a local Ghidra install to run headless mode --
+set MSSB_GHIDRA_HOME to its root directory (the one containing
+`support/analyzeHeadless[.bat]`). `name`, `file` and `data` only read the
+`.ghidra_cache/` files that `refresh` produces, so they work without Ghidra
+installed or MSSB_GHIDRA_HOME set, as long as the cache already exists (e.g.
+committed, or produced by someone else's `refresh` run). There is no
+repo-relative default: the Ghidra project itself is a large, separately
+maintained checkout, not something this repo ships.
+
 Programs:
     in_game               RAM snapshot with the game REL loaded  (src/game/*)
     AtGameSettingsScreen  RAM snapshot with the menu REL loaded
@@ -23,13 +32,14 @@ Usage:
     python tools/ghidra_query.py data 0x807b2b94          # global/data label lookup
 """
 import argparse
+import functools
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-GHIDRA = Path(r"D:\15165\Documents\Rio Modding Project\Project Rio\Ghidra 11.0.3")
 PROJECT = "MarioSuperstarBaseballDecomp"
 CACHE = REPO / ".ghidra_cache"
 BUILD = "GYQE01"  # retail; the Ghidra snapshots are of this build
@@ -50,8 +60,33 @@ def _rel_bases(rel):
         return None
 
 
+_ANALYZE_HEADLESS = "analyzeHeadless.bat" if os.name == "nt" else "analyzeHeadless"
+
+
+@functools.lru_cache(maxsize=1)
+def resolve_ghidra_home() -> Path:
+    """Find the local Ghidra install: MSSB_GHIDRA_HOME env var only -- there's
+    no sane repo-relative default since the Ghidra project itself is a large,
+    shared checkout that lives outside this repo entirely. Resolved lazily
+    (and cached) so subcommands that only read .ghidra_cache (name/file/data)
+    work fine without Ghidra installed at all."""
+    env = os.environ.get("MSSB_GHIDRA_HOME")
+    if not env:
+        sys.exit(
+            "MSSB_GHIDRA_HOME is not set. Point it at your local Ghidra "
+            f"install directory (the one containing support/{_ANALYZE_HEADLESS}) "
+            "to use `refresh`/`decomp`, which need to run Ghidra headless."
+        )
+    p = Path(env)
+    if not (p / "support" / _ANALYZE_HEADLESS).is_file():
+        sys.exit(f"MSSB_GHIDRA_HOME={env} does not look like a Ghidra install "
+                  f"(missing support/{_ANALYZE_HEADLESS})")
+    return p
+
+
 def run_headless(program, mode, targets, outfile):
-    cmd = [str(GHIDRA / "support" / "analyzeHeadless.bat"), str(GHIDRA), PROJECT,
+    GHIDRA = resolve_ghidra_home()
+    cmd = [str(GHIDRA / "support" / _ANALYZE_HEADLESS), str(GHIDRA), PROJECT,
            "-process", program, "-noanalysis", "-readOnly",
            "-scriptPath", str(SCRIPT_DIR),
            "-postScript", "MssbDump.py", mode] + list(targets) + [str(outfile)]
