@@ -42,6 +42,12 @@ Every report back must include:
 
 - The pinned `build/tools/objdiff-cli.exe` is v3.7.3 and supports
   `diff -p . -u <unit> -o - --format json` directly — no workaround needed.
+- **Section-level match% (`.text`/`.rodata`/`.bss`) is exposed directly** in
+  that same diff JSON at `left["sections"][i]["match_percent"]` (filter to
+  entries where it's non-null) — read it from there. Do not compute it
+  yourself as a size-weighted average of function match percentages; that's
+  an unverified proxy, not what the caller means by "section match%," and
+  it can silently diverge from the real number.
 - `report generate` (used by `match_progress.py` and `match_classify.py
   units`) can be broken or crash project-wide even when per-unit `diff`
   works fine. If asked to check both, verify each independently.

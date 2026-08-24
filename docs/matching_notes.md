@@ -42,17 +42,31 @@ A "left-rotated by one" register assignment relative to target, isolated to
 a single CSE, has shown up in more than one function sharing the same
 inputs-gathering block: our compile ranks a `&g_Minigame...characterIndex`
 common-subexpression first, the target ranks it last, and every other live
-value in the block is otherwise correctly allocated. A `static inline`
-wrapper around the shared chain (e.g. `pickBatterInputs(InputStruct*)`) puts
-the CSE in the right register for all affected functions at once — but only
-helps once there's a way to demote *that specific* CSE relative to the
-others; applied blind, it was net-negative in testing. Seen in
+value in the block is otherwise correctly allocated. Seen in
 `batterInBoxMovement`, `calculateBuntHorizontalAngle`,
 `calculateBallHorizontalAngleHit` (all still unmatched as of this writing);
 the same inputs-block shape also appears in `calculateVerticalAngle` and
-`batterHumanControlled` (both already 100%, worth re-checking if this
-pattern's fix is ever found — they may reveal what makes the CSE rank
-differently there).
+`batterHumanControlled` (both already 100%).
+
+**A `static inline pickBatterInputs(InputStruct*)` wrapper around the shared
+chain is confirmed NOT the target's actual source shape — ruled out, not just
+untested.** Applying it to only the 3 broken functions looked promising
+(regression-free, and +0.05% on `calculateBallHorizontalAngleHit` alone in
+isolation), but applying the *same* wrapper to the 2 already-100%-matched
+sibling functions sharing the identical block broke both of them
+(`batterHumanControlled` 100→89.83%, `calculateVerticalAngle` 100→99.86%). If
+the original source had this helper, the two functions we already reproduce
+exactly would be indifferent to it — they aren't, so the chain is genuinely
+open-coded in all five, and the wrapper is a false lead even though it
+produces a real number improvement on one still-broken function. Root
+mechanism, per the closest read so far: the target emits three *different*
+register orderings of the same `{inputs, gMini, charIdx}` set from one
+identical source block depending on register pressure at each call site — we
+reproduce the target's ordering exactly on the two large/high-pressure
+functions and get a different (but internally consistent) ordering on the
+three small/low-pressure ones. Of six possible orderings, our compiler has
+been observed producing four; the target's fifth hasn't been reproduced from
+any source variant tried across 9 sessions.
 
 ## Constant-pool / weak-symbol addressing
 
@@ -76,6 +90,33 @@ duplicates for unrelated reasons). First seen and fixed in
 `src/game/batting/batter.c` via `include/game/UnknownHomes_Game.h`'s
 `SQRT2_LINKAGE` macro and `include/header_rep_data.h`'s `repHeaderData`
 accessor.
+
+## Validating a candidate source-shape fix against already-matched siblings
+
+When a candidate change (an inline helper, a restructured expression, a
+different declaration grouping) is being tested against a stuck function
+that shares a code block with one or more *already 100%-matched* functions,
+apply the same candidate to those matched siblings too, not just the broken
+target — even though there's no reason to touch them otherwise. If a matched
+sibling breaks, the candidate is not the target's actual original source
+shape, full stop, regardless of how much it improves the broken function's
+own percentage. If every matched sibling survives unchanged, that's real
+evidence the candidate could be structurally correct.
+
+This matters because a percentage improvement on a still-broken function is
+not, by itself, evidence of anything — MWCC's register allocator has enough
+internal degrees of freedom that a "wrong" source restructuring can
+coincidentally move a broken function closer to target while being
+demonstrably incompatible with the file's already-verified-correct code.
+Measuring only the broken function's own number risks banking a lead that
+inflates one proxy metric while moving further from the real source. This
+technique is cheap (revert-to-baseline between each function tested) and
+decisive in a way "does the number go up" alone is not — use it any time a
+file has both matched and unmatched functions sharing one candidate fix.
+First applied in `src/game/batting/batter.c`: retired a `pickBatterInputs`
+helper that looked like a clean, regression-free win on one function in
+isolation, by testing it against two matched siblings and watching both break
+(see "Shared-block register rotation" above).
 
 ## Common-BSS inflation bug: quick disproof checklist
 
