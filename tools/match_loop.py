@@ -23,10 +23,9 @@ import sys
 import urllib.request
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
-OBJDIFF_CLI = Path(
-    r"D:\15165\Documents\Rio Modding Project\Project Rio\objdiff-cli-windows-x86_64.exe"
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from match_classify import REPO, resolve_objdiff_cli  # noqa: E402
+
 SRC_DIR = REPO / "src"
 
 
@@ -105,7 +104,7 @@ def run_ninja():
 def get_diff(unit: str, symbol: str):
     r = subprocess.run(
         [
-            str(OBJDIFF_CLI),
+            str(resolve_objdiff_cli()),
             "diff",
             "-p", str(REPO),
             "-u", unit,
