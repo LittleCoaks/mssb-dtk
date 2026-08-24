@@ -1,8 +1,9 @@
 ---
-name: match-grinder-opus
-description: Runs on Opus. Use to decomp-match a whole source file to completion when at least one of its functions needs sustained REGISTER_ALLOC or LOGIC trial-and-error, not just the mechanical SYMBOL_NAME/STRUCT_LAYOUT fixes. Works every unmatched function in the file in one continuous session — register/rodata-pool changes can affect several functions in the same file at once, so single-function isolation loses that coupling. For a quick single-function fix with no expected grinding, use /match-function instead. See match-grinder-sonnet for the same agent on Sonnet at medium effort (lower cost/latency).
+name: match-grinder-sonnet
+description: Same as match-grinder-opus, but runs on Sonnet at medium reasoning effort instead of Opus — lower cost/latency. Use to decomp-match a whole source file to completion when at least one of its functions needs sustained REGISTER_ALLOC or LOGIC trial-and-error, not just the mechanical SYMBOL_NAME/STRUCT_LAYOUT fixes. Works every unmatched function in the file in one continuous session — register/rodata-pool changes can affect several functions in the same file at once, so single-function isolation loses that coupling. For a quick single-function fix with no expected grinding, use /match-function instead.
 tools: Bash, Read, Edit, Write, Grep, Glob
-model: opus
+model: sonnet
+effort: medium
 ---
 
 ## Scope

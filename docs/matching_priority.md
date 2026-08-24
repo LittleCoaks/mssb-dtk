@@ -2,7 +2,8 @@
 
 A snapshot audit of which files are cheapest to finish matching and which
 carry the most placeholder symbols, to give `/match-function` (and the
-`match-grinder` agent) a starting order instead of picking targets ad hoc.
+`match-grinder-opus`/`match-grinder-sonnet` agents) a starting order instead
+of picking targets ad hoc.
 Numbers below are from `objdiff-cli report generate` at the time this was
 written — regenerate before trusting them for anything but rough triage; see
 [Regenerating this list](#regenerating-this-list).
@@ -31,8 +32,9 @@ Great `/match-function` candidates in order — small remaining byte counts
 mean the leftover mismatches are almost certainly `SYMBOL_NAME`/
 `REGISTER_ALLOC`, not fresh implementations.
 
-**`batter.c` status:** actively being worked by the `match-grinder` agent
-design (see [Active work](#active-work-batterc) below) — its 5 remaining
+**`batter.c` status:** actively being worked by the `match-grinder-opus`/
+`match-grinder-sonnet` agent design (see [Active work](#active-work-batterc)
+below) — its remaining
 functions turned out to need real REGISTER_ALLOC/LOGIC grinding, not quick
 fixes, which is what prompted building that agent in the first place.
 
@@ -98,11 +100,14 @@ functions turned out to be a useful stress test:
 
 This cross-function coupling (a fix to the shared block affects three
 functions at once) is why single-function `/match-function` runs weren't a
-good fit here, and is what motivated the `match-grinder` agent design
-(`.claude/agents/match-grinder.md`) — a file-scoped, checkpointed grinder
-instead of one-shot per-function passes. Progress/hypothesis log for this
-file lives at `build/.match_grind/game_game_batting_batter.md` once a grind
-has started (not committed — it's a local working file).
+good fit here, and is what motivated the match-grinder agent design
+(`.claude/agents/match-grinder-opus.md`, `.claude/agents/match-grinder-sonnet.md`)
+— a file-scoped, checkpointed grinder instead of one-shot per-function
+passes. Progress/hypothesis log for this file lives at
+`build/.match_grind/game_game_batting_batter.md` once a grind has started —
+gitignored local scratch, pruned once the file hits 100%. Durable
+cross-file findings get promoted out of it into
+[matching_notes.md](matching_notes.md) instead.
 
 A first grind pass exhausted the register-rotation block (8 hypotheses,
 none improved it — likely a genuine CodeWarrior allocator quirk, not
@@ -133,15 +138,17 @@ the actual CONST_POOL root cause in these functions is still unresolved.
 
 ## Tooling notes relevant to this list
 
-- The repo's pinned `build/tools/objdiff-cli.exe` (v3.4.0) does not support
-  `diff -o --format json` — only `report generate` works on it, which is
-  fine for regenerating the tables above but not for per-function
-  instruction-level diffing.
-- A newer `objdiff-cli` (v3.8.0) does support `diff -o --format json`
-  correctly, but its `report generate` crashes project-wide
-  (`Failed to find right side symbol for paired left side symbol`) — so
-  regenerating *this* list still needs the older pinned binary, while
-  per-function work should use the newer one via `MSSB_OBJDIFF_CLI`.
+- The repo's pinned `build/tools/objdiff-cli.exe` was bumped from v3.4.0 to
+  v3.7.3 to fix exactly this: v3.4.0 had no `diff -o --format json` support
+  at all (it was removed after v3.4.0 and restored in v3.6.0), and v3.8.0's
+  `report generate` crashes project-wide
+  (`Failed to find right side symbol for paired left side symbol`) —
+  confirmed via a bisect of every tag between v3.4.0 and v3.8.0. v3.7.3 is
+  the latest tag where both `report generate` and `diff -o - --format json`
+  work correctly on this project, so both `match_progress.py` and
+  `tools/match_classify.py` now work off the single pinned binary; the
+  `MSSB_OBJDIFF_CLI` override is no longer needed for this reason (it's
+  still useful for testing other builds).
 - `tools/match_classify.py`'s `cmd_scan`/`cmd_fix`/`units` all call
   `generate_report()` unconditionally (even `--unit`-scoped runs), so they
   inherit whichever binary's `report generate` bug is currently live. Drive
