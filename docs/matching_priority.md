@@ -104,6 +104,33 @@ instead of one-shot per-function passes. Progress/hypothesis log for this
 file lives at `build/.match_grind/game_game_batting_batter.md` once a grind
 has started (not committed — it's a local working file).
 
+A first grind pass exhausted the register-rotation block (8 hypotheses,
+none improved it — likely a genuine CodeWarrior allocator quirk, not
+reachable from source shape) and left `calculateHitVariables`/
+`calculateContactAndHitType` pending with real LOGIC content, including an
+apparent miscompile in the former (a literal `0` stored where target stores
+`captainStarSwingActivated`'s value). The grind also surfaced a theory that
+`batterInBoxMovement`/`calculateHitVariables`/`calculateContactAndHitType`'s
+CONST_POOL noise came from `UnknownHomes_Game.h`'s `#define SQRT2_LINKAGE
+extern` making mwcc materialize an unused `dolsqrtf2` instantiation (plus
+its local statics) at the start of `.rodata`, shifting every later symbol by
+16 bytes.
+
+**That theory was tested and disproven.** Removing `SQRT2_LINKAGE`'s
+`extern` (reverting `dolsqrtf2` to plain `static inline`) made things
+*worse*: two of the three flagged functions were unaffected, the third
+dropped 97.93% → 80.07%, and even files that never call `dolsqrtf2` at all
+(`game_math.c`, `camera.c`, `runner_base_rounding.c`) regressed hard —
+`game_math.c` alone lost 51 points of code-match. Repo-wide matched
+functions dropped 1515 → 1489. The change was fully reverted (verified back
+to exact baseline). Conclusion: `extern` linkage is load-bearing for how
+MWCC pools/reuses float literals project-wide (`-str reuse,readonly`), not
+an unwanted leak — and at least one non-caller file (`stadium/kinoko.c`)
+already carries the same materialized statics in the *retail* binary, so the
+original "target has zero residue, we have extra" premise doesn't fully
+hold either. **Don't re-attempt this specific fix without new evidence** —
+the actual CONST_POOL root cause in these functions is still unresolved.
+
 ## Tooling notes relevant to this list
 
 - The repo's pinned `build/tools/objdiff-cli.exe` (v3.4.0) does not support
