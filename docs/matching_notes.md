@@ -76,3 +76,31 @@ duplicates for unrelated reasons). First seen and fixed in
 `src/game/batting/batter.c` via `include/game/UnknownHomes_Game.h`'s
 `SQRT2_LINKAGE` macro and `include/header_rep_data.h`'s `repHeaderData`
 accessor.
+
+## Diagnostic techniques worth trying before declaring a function exhausted
+
+**Per-file `mw_version` sweep, for register-allocation/CSE-tiebreak mismatches
+that survive both source-shape grinding and a per-file `extra_cflags` sweep.**
+`Object(...)` entries in `configure.py` accept an `mw_version="GC/X.Y"`
+override (defaults to `config.linker_version`, currently `GC/1.3.2`) that
+picks which bundled MWCC point-release compiles just that one file — the
+original SDK build sometimes mixed compiler versions across TUs, and a
+different point release can change internal register-allocator tie-breaking
+with no corresponding flag. It's cheap to test (edit the one kwarg, rebuild
+the single object, diff all functions in the unit, revert) and worth running
+before marking a function permanently `exhausted`, but the bar for adopting a
+result is strict: a version only counts as a win if it improves/holds every
+already-matched function in the unit *and* helps the stuck one(s) — a version
+that fixes one function while regressing others just proves allocation is
+version-sensitive here, it isn't a keeper. Tried on `src/game/batting/batter.c`
+across all 17 other GC versions bundled under `build/compilers/GC/`: no
+improvement on the 4 still-unmatched functions, but it did confirm
+`GC/1.3.2` is very likely the TU's actual original compiler — `1.3.2r`,
+`2.0`, `2.0p1`, `2.5`, `2.6`, and `2.7` all produced a byte-for-byte
+identical object across all 25 functions, while everything outside that
+narrow 1.3.2r–2.7 band regressed 24-25 of 25 functions (different MWCC
+front-end generation entirely). That byte-for-byte plateau across six
+adjacent releases is itself useful signal on any file: if a version sweep
+lands in a similar identical-output plateau, the compiler version isn't the
+lever for whatever's left — look elsewhere (source shape, or accept the
+mismatch is a genuine allocator artifact).
