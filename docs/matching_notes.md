@@ -104,3 +104,40 @@ adjacent releases is itself useful signal on any file: if a version sweep
 lands in a similar identical-output plateau, the compiler version isn't the
 lever for whatever's left — look elsewhere (source shape, or accept the
 mismatch is a genuine allocator artifact).
+
+**Function-scoped `#pragma` bracketing is NOT a different lever from
+whole-file `extra_cflags` — for MWCC (this project's `mwcceppc.exe`), they
+produce the same set of outcomes.** After a whole-file compiler-flag sweep
+exhausts a stuck REGISTER_ALLOC/CSE-tiebreak function without effect, it is
+tempting to think a pragma scoped tightly around just that function might
+create a different optimizer state transition than a global CLI flag. Tested
+directly (36 combinations: 4 stuck functions x 9 pragma settings, each
+bracketed immediately around the one function and reverted before the next)
+in `src/game/batting/batter.c`: every setting that changed any bytes at all
+was a regression of the bracketed function itself (never an improvement),
+and every setting that didn't regress anything was an exact byte-for-byte tie
+— the same binary result as the equivalent whole-file flag from the earlier
+sweep. One genuine (but here unhelpful) advantage did hold up empirically: a
+pragma-scoped setting never regressed any function outside its bracket,
+where the equivalent whole-file flag often did — so pragma scoping is safer
+to try, just not more powerful. The real MWCC pragma vocabulary for this
+compiler (confirmed via standalone `-w all` compiles, distinct from what
+`-help all`/`-help obsolete` document): `optimization_level <n>|reset`,
+`peephole on|off|reset`, `scheduling on|off|reset`, `cpp_extensions
+on|off|reset`, `global_optimizer on|off|reset`, `push`/`pop`, `dont_inline
+on|off|reset`, `fp_contract off|reset`. Notably NOT recognized (rejected as
+"illegal #pragma") despite corresponding CLI flags existing: `opt_level`,
+`inline_depth`, `inline on|off`, `cse off`, `register_struct_args`.
+
+**MWCC's register allocator / CSE-object numbering is provably local to each
+function's own compilation — source-level function definition order within a
+TU has zero effect on codegen.** Tested by moving/swapping whole function
+bodies (verified byte-identical reverts via `git checkout` between each) in
+`src/game/batting/batter.c`: swapping a stuck function with an adjacent
+100%-matched "control" function that shares the exact same CSE shape (in
+both directions), and moving a stuck function from position #12 in the file
+to position #1 (the largest possible displacement), each produced an exact
+byte-for-byte tie across all 25 functions in the unit. If a function's
+register-allocation tie-break doesn't resolve via source-shape changes within
+the function itself, don't bother trying to reorder which functions surround
+it in the file — confirmed to be a complete no-op for this compiler.
