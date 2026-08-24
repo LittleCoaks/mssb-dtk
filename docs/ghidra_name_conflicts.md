@@ -61,7 +61,7 @@ are true same-offset disagreements rather than layout drift.
 | `InMemBallType` | 0x1BCF | `maybeBuntInd` | `isBuntedBall` |
 | `InMemBallType` | 0x1BD3 | `maybebuntOn2Strikes` | `isFoulBuntWith2Strikes` |
 
-## Symbols (183: 131 functions, 52 data)
+## Symbols (182: 130 functions, 52 data)
 
 | address | kind | repo | ghidra |
 |---|---|---|---|
@@ -98,7 +98,6 @@ are true same-offset disagreements rather than layout drift.
 | `0x8007a2c8` | function | `DVDStopStreamAtEndAsync` | `DVDStopSteramAtEndAsync` |
 | `0x8007a440` | function | `DVDGetStreamPlayAddrAsync` | `DVDGetSteramPlayAddrAsync` |
 | `0x8007cde4` | function | `VISetBlack` | `VISetNextRightFrameBuffer` |
-| `0x8007efc8` | function | `AIStopDMA` | `AIGetDMABytesLeft` |
 | `0x80082574` | function | `__CARDUnlockedHandler` | `__CARDUnlockHandler` |
 | `0x80086024` | function | `CARDCheck` | `CARDCheckEx` |
 | `0x80088588` | function | `CARDDeleteAsync` | `CARDFastDeleteAsync` |
@@ -141,9 +140,8 @@ are true same-offset disagreements rather than layout drift.
 | `0x803cc0e4` | data | `RecvDataLeng` | `RecvDataLength` |
 | `0x803cc278` | data | `synthVoice` | `ptrSynthVoice` |
 | `0x803cc2d8` | data | `dataFXGroupNum` | `gid` |
+| `0x803cc2e8` | data | `dataSmpDirNum` | `dataSmpSDirNum` |
 | `0x803cc314` | data | `vidRoot` | `ptrVID_LIST` |
-| `0x803cc388` | data | `s3dListenerRoot` | `sndEmitterPtr` |
-| `0x803cc38c` | data | `s3dEmitterRoot` | `nextSndEmitterPtr` |
 | `0x803ccb98` | data | `const_PI_2` | `const_PI/2` |
 | `0x803ccba0` | data | `const_PI_4` | `const_PI/4` |
 | `0x803ccbb0` | data | `const_PI_3_4` | `const_PI*3/4` |
@@ -242,6 +240,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x80892968` | data | `g_Strikes` | `BallsStrikesOutsStruct` |
 | `0x8089298c` | data | `g_GameLogic` | `gameControls` |
 | `0x80892ae4` | data | `g_AiLogic` | `AIStruct` |
+| `0x80892ba0` | data | `g_UnkSimulation_31AC0` | `unkSimulationRelatedStruct` |
 | `0x80892f8c` | data | `g_UnkAnimation_31EAC` | `unkAnimRelatedStruct` |
 | `0x808937f8` | data | `g_UnkSound_32718` | `textRelated` |
 | `0x80893928` | data | `g_Controls` | `inMemControls` |

@@ -15,15 +15,49 @@ checkpoint is for while it's still alive.
 
 ## MWCC codegen signatures
 
-**`clrlwi rX, rY, 24` (or `extsb`) immediately after `stb rY, ...` means the
-source re-reads the field it just stored — it is not a redundant cast to
-delete.** MWCC emits this when a `u8` struct field is written and then
-immediately compared/used again from a local that shadows it; the "obviously
-redundant" widening disappears once the local is removed and the comparisons
-read the struct field directly instead. Same pattern with `frsp` right after
-`stfs` for `float` fields. First seen: `src/game/batting/batter.c`,
-`calculateHitVariables` (98.36% → 100%) — a `u32 starPower` local was cached
-instead of re-reading `g_Batter.captainStarSwingActivated` after storing it.
+**`clrlwi rX, rY, 24` (or `extsb`) immediately after `stb rY, ...` marks
+whether the source re-reads a field from memory or keeps a cached/truncated
+copy — check which SIDE has the extra instruction before assuming which way
+to fix it, the arrow points both directions.** Two confirmed cases:
+- *Target has the `clrlwi`, ours doesn't* → the source re-reads the field it
+  just stored instead of keeping a cached local; delete the local, read the
+  struct field directly at each use. First seen: `src/game/batting/batter.c`,
+  `calculateHitVariables` (98.36% → 100%) — a `u32 starPower` local was
+  cached instead of re-reading `g_Batter.captainStarSwingActivated` after
+  storing it.
+- *Ours has the `clrlwi`/reload, target doesn't* → the reverse: the source
+  computes the value once, stores the untruncated original, and compares a
+  **truncated copy already held in a register** — it does not reload from
+  memory. `int t = arr[i] + 1; arr[i] = t; if ((u8)t >= N) ...` (cast at the
+  compare, not a fresh read) reproduces this; a naive re-read
+  (`arr[i] = arr[i] + 1; if (arr[i] >= N)`) does not. First seen:
+  `src/menus/rep_04B0.c`, `loadNewCaptainModelOnCapSelectScreen` (session in
+  progress — not yet fully matched, but this sub-fix confirmed regression-
+  free).
+
+Same pattern with `frsp` right after `stfs` for `float` fields (direction
+not yet confirmed both ways, but check the same way).
+
+**`bool` vs `BOOL` return type is a real, cheap-to-check matching lever for
+predicate-returning functions.** `bool` is `typedef u8 bool`; `BOOL` is
+`typedef int BOOL` (`include/types.h`). A function returning `bool` emits an
+8-bit extract (`extrwi rX, rY, 8, 19`) where one returning `BOOL` emits a
+full 32-bit shift (`srwi rX, rY, 5`) — different instructions, not just a
+type-checking nicety. If a predicate function's return-path codegen doesn't
+match and the function's actual return statements are boolean-shaped, try
+swapping which of the two it's declared to return before looking anywhere
+else. First seen: `src/menus/rep_04B0.c`,
+`onlySetPort1ToActiveOnInitialCapSSLoad` (+5.8% from this alone).
+
+**Ghidra's inferred array sizes are not trustworthy — verify against actual
+index arithmetic in the disassembly before trusting a struct/array size it
+reports.** Two confirmed wrong sizes in `.ghidra_cache/in_game.types.txt`:
+`controllerInputs` typed `[2]` but indexed by port with stride 6 up through
+`base + port*6` for 4 ports (needs `[4]`); `captainIDOrderedOnCapSS` typed
+`byte[2][6]` but indexed flat `0..11` (i.e. it's really `byte[12]`, or the
+nesting is wrong). Cross-check any Ghidra-derived array bound against the
+actual bytes touched in the `.s`/disassembly before declaring it, especially
+for anything indexed by a loop variable or port/player index.
 
 **Contradictory declaration-order requirements between an auto-inlined
 static and its standalone `*_unused` copy mean the target has two distinct

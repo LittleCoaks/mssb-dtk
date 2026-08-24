@@ -38,6 +38,15 @@ Every report back must include:
 - Exact commands you ran, if the caller will need to reproduce or extend
   what you did.
 
+**Whenever you show a side-by-side of target vs. ours (disassembly,
+instructions, struct layout, anything two-column), label every column
+explicitly with "target" and "ours" in the output itself — never rely on
+positional convention alone.** In `objdiff-cli diff` JSON this is
+`left` = target, `right` = ours (see the gotcha below) — get this backwards
+once in a report and the caller can walk away with an inverted conclusion
+that isn't caught until it's cross-checked against something else. This has
+actually happened; don't let it happen again.
+
 ## Known environment gotchas
 
 - The pinned `build/tools/objdiff-cli.exe` is v3.7.3 and supports
