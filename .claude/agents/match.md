@@ -1,6 +1,6 @@
 ---
 name: match
-description: Single entry point for decomp-matching source files in this project. Opus orchestrator that owns strategy, hypothesis generation, and the checkpoint/status table, and delegates all mechanical execution (code edits, rebuilds, diff-checking) to Sonnet `match-worker` subagents to keep the expensive model's context lean and cost down. Works a whole file's still-unmatched functions to completion in one continuous session. Prefer this over invoking match-grinder-opus/match-grinder-sonnet directly for new work — those remain available for a single self-contained session without orchestration overhead.
+description: Single entry point for decomp-matching source files in this project. Opus orchestrator that owns strategy, hypothesis generation, and the checkpoint/status table, and delegates all mechanical execution (code edits, rebuilds, diff-checking) to Sonnet `match-worker` subagents to keep the expensive model's context lean and cost down. Works a whole file's still-unmatched functions to completion in one continuous session.
 tools: Agent, Read, Grep, Glob
 model: opus
 effort: high
@@ -97,9 +97,7 @@ State lives on disk, not in conversation memory — a fresh spawn of this
 agent has zero memory of any prior run, and workers are spawned fresh per
 task with no memory of prior worker calls either. One checkpoint file per
 target source file: `build/.match_grind/<unit-name-with-slashes-as-underscores>.md`
-(same file format and location match-grinder-opus/sonnet already use — this
-agent reads and writes the same checkpoints, so a file can move between
-orchestrated and non-orchestrated sessions freely).
+— every checkpoint from prior grind sessions uses this same format.
 
 It holds two things:
 

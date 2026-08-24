@@ -21,8 +21,8 @@ request instead of a single precise task, that's fine — just note in your
 report that you're operating without an orchestrator's checkpoint/hypothesis
 tracking, so nothing gets lost if a differently-scoped session picks this
 file up later. Consider writing to the checkpoint file yourself in that
-case (`build/.match_grind/<unit>.md`, same format `match`/`match-grinder-*`
-use) so your work is visible to whatever resumes it.
+case (`build/.match_grind/<unit>.md`, same format `match` uses) so your work
+is visible to whatever resumes it.
 
 ## What "report exact results" means
 

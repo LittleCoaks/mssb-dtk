@@ -2,8 +2,7 @@
 
 A snapshot audit of which files are cheapest to finish matching and which
 carry the most placeholder symbols, to give `/match-function` (and the
-`match-grinder-opus`/`match-grinder-sonnet` agents) a starting order instead
-of picking targets ad hoc.
+`match` agent) a starting order instead of picking targets ad hoc.
 Numbers below are from `objdiff-cli report generate` at the time this was
 written — regenerate before trusting them for anything but rough triage; see
 [Regenerating this list](#regenerating-this-list).
@@ -32,11 +31,15 @@ Great `/match-function` candidates in order — small remaining byte counts
 mean the leftover mismatches are almost certainly `SYMBOL_NAME`/
 `REGISTER_ALLOC`, not fresh implementations.
 
-**`batter.c` status:** actively being worked by the `match-grinder-opus`/
-`match-grinder-sonnet` agent design (see [Active work](#active-work-batterc)
-below) — its remaining
-functions turned out to need real REGISTER_ALLOC/LOGIC grinding, not quick
-fixes, which is what prompted building that agent in the first place.
+**`batter.c` status:** set aside for now at 21/25 (see
+[Active work](#active-work-batterc) below) — its 4 remaining functions
+needed real REGISTER_ALLOC/LOGIC grinding, not quick fixes, which is what
+prompted building the `match` agent in the first place. 9 sessions across
+several distinct techniques (source restructuring, compiler flags/version,
+pragmas, function ordering) all confirmed-exhausted; see
+`docs/matching_notes.md` for the reusable findings and
+`build/.match_grind/game_game_batting_batter.md` (gitignored, local) for
+the full trace.
 
 ## Tier 2 — small quick-wins with real context
 
@@ -100,9 +103,9 @@ functions turned out to be a useful stress test:
 
 This cross-function coupling (a fix to the shared block affects three
 functions at once) is why single-function `/match-function` runs weren't a
-good fit here, and is what motivated the match-grinder agent design
-(`.claude/agents/match-grinder-opus.md`, `.claude/agents/match-grinder-sonnet.md`)
-— a file-scoped, checkpointed grinder instead of one-shot per-function
+good fit here, and is what motivated the `match` agent design
+(`.claude/agents/match.md`, `.claude/agents/match-worker.md`) — a
+file-scoped, checkpointed orchestrator instead of one-shot per-function
 passes. Progress/hypothesis log for this file lives at
 `build/.match_grind/game_game_batting_batter.md` once a grind has started —
 gitignored local scratch, pruned once the file hits 100%. Durable

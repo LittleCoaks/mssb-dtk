@@ -1,7 +1,7 @@
 # Matching notes
 
-Durable, cross-file findings promoted out of individual `match-grinder-opus`/
-`match-grinder-sonnet` grind sessions. The per-file checkpoint at
+Durable, cross-file findings promoted out of individual `match` grind
+sessions. The per-file checkpoint at
 `build/.match_grind/<unit>.md` is gitignored scratch — it holds a session's
 raw hypothesis log and is deleted once that file hits 100%. Anything in it
 that's likely to recur in *other* files gets promoted here instead, so it
