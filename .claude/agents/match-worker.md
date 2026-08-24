@@ -90,6 +90,41 @@ comment in `batter.c` is the model: it explains a real build-correctness
 constraint, not how a diff was achieved. Before reporting a task done,
 re-read your own diff for stray match-narrative comments and remove them.
 
+## File rename/reorganization tasks
+
+If asked to rename/move a file (typically by `match`, deciding a placeholder
+`rep_XXXX` file's real name and category once it has confirmed the evidence
+— that judgment isn't yours to make, only to execute), treat it as one
+atomic task, not a series of small edits: nothing about it is meaningfully
+verifiable until every reference is updated and it rebuilds. Checklist,
+all in the same task:
+
+1. `git mv` both the `.c` and its header (create the destination folder if
+   it's new).
+2. Update the file's own include guard/comment referencing its old name,
+   and every other file that `#include`s the old header path.
+3. Update the `Object(...)` entry's source path in `configure.py`.
+4. Update the file's key in `config/GYQE01/<module>/splits.txt` — the key
+   is the exact src-relative path (e.g. `menus/rep_04B0.c:` →
+   `menus/captain_select/captain_select.c:`), not just the filename.
+5. Move the file's checkpoint if one exists:
+   `build/.match_grind/<module>_<old-unit-with-underscores>.md` → the new
+   unit name's equivalent.
+6. Rebuild and diff the unit. **The result must be byte-identical to
+   before the rename** — same match% for every function, same
+   instructions. If anything differs, something in steps 1-4 is wrong
+   (typically a stale include or a splits.txt key that didn't get updated)
+   — find and fix it before reporting success; do not report a changed
+   number as if it were expected.
+7. If given exact row content for `docs/file_map.md`, insert it verbatim
+   into the specified table (creating the table/section if this is the
+   first file in that folder/module) and update the summary counts on that
+   section's header line.
+
+Report back the old and new paths, confirmation every reference in the
+checklist was found and updated (not just assumed), and the byte-identical
+verification result.
+
 ## Reverting
 
 If a task asks you to test something and it doesn't meet the stated

@@ -203,6 +203,73 @@ to force a byte count to match — an unverified guess that happens to match
 size is worse than an honestly documented gap (see the `batter.c` checkpoint
 for a worked example of ruling this out cleanly instead of guessing).
 
+## Naming and organizing files
+
+Once a file's purpose becomes reasonably clear — not preemptively, not on a
+hunch — this agent may rename it (and its header) out of its placeholder
+`rep_XXXX` identity and into an appropriately-named category folder. This
+mirrors work already done for the `game` module and documented in
+`docs/file_map.md`: **read that doc's "How each entry was derived" section
+before making any naming judgment call** — it has the actual evidence tiers,
+worked examples, and the reasoning for every existing precedent. Reuse its
+discipline exactly; don't invent a fourth confidence tier or looser rules.
+
+**Confidence tiers, unchanged from `docs/file_map.md`:**
+- **high** — most functions in the file are named, and the names agree on
+  one theme. Rename with a real name.
+- **med** — a minority are named, but consistent with each other and
+  corroborated by the call graph (what the file calls is diagnostic even
+  when the functions themselves aren't named). Rename with a real name.
+- **inferred** — no names at all, or the evidence doesn't agree. **Do not
+  invent a name** — the evidence supports a folder, not a name, and a
+  confident-looking name here is worse than the honest placeholder; it
+  reads as a fact when it's a guess. A folder placement can still be
+  reasoned about from the call graph or section layout if it's strong
+  enough, even while the filename stays `rep_XXXX`.
+
+If a case feels like it's between `med` and `inferred`, treat it as
+`inferred`. A name is far harder to walk back once other files, docs, and
+symbol names start referencing it than a name never given in the first
+place.
+
+**This is a bigger-blast-radius action than a source edit** — it touches
+build config and cross-file references, not just one file's content — so
+treat it as one atomic, fully-verified task, not something to rush:
+
+1. Decide the name, category folder, and confidence tier yourself (this is
+   the judgment call this agent exists to make) — don't delegate that
+   decision to a worker.
+2. Delegate the mechanical execution to a single `match-worker` call:
+   `git mv` both the `.c` and its header (create the destination folder if
+   it's new), and update every reference — the file's own include guard,
+   any other file that `#include`s the old header path, the `Object(...)`
+   entry in `configure.py`, and the file's key in
+   `config/GYQE01/<module>/splits.txt` (the split key is the exact
+   src-relative path, e.g. `menus/rep_04B0.c:` →
+   `menus/captain_select/captain_select.c:`). Also have it move the file's
+   checkpoint if one exists (`build/.match_grind/<module>_<old-unit>.md` →
+   the new unit name's equivalent) so a resumed session finds it.
+3. **Require a full rebuild + re-diff as part of the same task, and require
+   it to be byte-identical to before the rename** — same match%, same
+   instructions, for every function in the unit. A pure rename/reorg must
+   not change build output at all; if anything differs, the rename touched
+   something it shouldn't have (a wrong include update, a stale path
+   somewhere) and that needs to be found before the rename is accepted, not
+   waved through.
+4. Update `docs/file_map.md` yourself as part of the same task — give the
+   worker the exact row to insert (`file | was | fns (named) | bytes |
+   purpose | conf`, matching the existing table format precisely) and have
+   it update that folder's/module's summary line and counts. If this is the
+   first named file in a module that doesn't have folder categories yet
+   (menus and unused_rel currently don't), only introduce one if the
+   evidence genuinely calls for a distinct category — "folder is the
+   category" per `docs/file_map.md`, not a folder per file.
+
+A file sitting at `rep_XXXX` with one or two named functions and no clear
+theme should stay exactly that way rather than getting a hasty, low-
+confidence rename — this capability is for when the evidence is actually
+there, not to tidy up placeholders on principle.
+
 ## Procedure
 
 0. **Check for an existing checkpoint first.** If one exists, this is a
@@ -227,6 +294,11 @@ for a worked example of ruling this out cleanly instead of guessing).
 6. **Never leave any function in the file worse than its baseline.** If a
    worker's result shows a regression anywhere, have it revert before you
    direct the next attempt — don't stack unverified changes.
+7. **At any point confidence in the file's purpose firms up** (typically
+   after step 1's baseline, once you can see how many functions are named
+   and whether they agree on a theme), consider whether Naming and
+   organizing files above applies. Not required every session — only when
+   the evidence actually clears the bar.
 
 ## Hypothesis log
 
@@ -278,3 +350,6 @@ Whenever this session ends, report:
 - Any cross-function finding worth flagging beyond this file.
 - Roughly how many worker round-trips this session used, if it's notably
   high or low — useful signal for tuning delegation granularity later.
+- If you renamed/organized the file this session: the old and new
+  path/name, the confidence tier and evidence used, and confirmation the
+  post-rename rebuild was byte-identical to before.
