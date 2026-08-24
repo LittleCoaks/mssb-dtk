@@ -87,6 +87,47 @@ inline f32 flipped_inv_lerp(f32 value, f32 low, f32 high)
 // UNUSED .text:0x000108F8 size:0x188 mapped:0x8064f98c
 static void calculateBuntVerticalAngle_unused(void);
 
+// The target image contains this logic twice: once inlined into
+// calculateHitVariables() (this copy) and once as the standalone, never-called
+// calculateBuntVerticalAngle_unused() below. The two copies do not share a
+// register allocation -- the inlined one requires `ang0High` to be declared
+// before `ang0Low` and the standalone one requires the opposite -- so they
+// cannot be the same source function. Keep them separate and do NOT "tidy" the
+// declaration order of either; each one is load-bearing for its own match.
+static inline void calculateBuntVerticalAngle(void) {
+    // TODO this needs better variable names, probably better function name too
+    int rng, ang0High, ang0Low, ang1Low, ang1High, contactLow, contactHigh, contact;
+    rng = 0;
+    if (g_Ball.StaticRandomInt1 % 2) {
+        rng = 1;
+    }
+
+    contact = g_Batter.contactType;
+    ang0Low = buntVerticalAngles[contact][0][rng][0];
+    ang0High = buntVerticalAngles[contact][0][rng][1];
+    ang1Low = buntVerticalAngles[contact][1][rng][0];
+    ang1High = buntVerticalAngles[contact][1][rng][1];
+
+    contactLow = ang0Low + ((g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP] * (ang1Low - ang0Low)) / 100);
+    contactHigh = ang0High + ((g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP] * (ang1High - ang0High)) / 100);
+    
+    g_Ball.Hit_VerticalAngle = contactLow + (g_Ball.StaticRandomInt1 % (contactHigh - contactLow));
+
+    if (ACTIVE_TUTORIAL()) {
+        g_Ball.Hit_VerticalAngle = g_Practice.practice_hitVerticalAngle;
+    }
+
+    if (g_Ball.Hit_VerticalAngle > SANG_ANG_90) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_180 - g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_HorizontalAngle = normalizeAngle(SANG_ANG_180 + g_Ball.Hit_HorizontalAngle);
+    } else if (g_Ball.Hit_VerticalAngle < -SANG_ANG_90) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_360 + g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_HorizontalAngle = normalizeAngle(SANG_ANG_180 + g_Ball.Hit_HorizontalAngle);
+    } else if (g_Ball.Hit_VerticalAngle < 0) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_360 + g_Ball.Hit_VerticalAngle;
+    }
+}
+
 // .text:0x00014858 size:0x35C mapped:0x806538ec
 void atBat_batter(void) {
     if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
@@ -968,7 +1009,7 @@ void calculateHitVariables(void) {
         g_Batter.captainStarSwingActivated = CAPTAIN_STAR_TYPE_NONE;
     } else if (g_Batter.isBunting) {
         calculateBuntHorizontalAngle();
-        calculateBuntVerticalAngle_unused();
+        calculateBuntVerticalAngle();
         calculateBuntHorizontalPower();
         g_Ball.maybeBuntInd = 1;
         g_Batter.captainStarSwingActivated = CAPTAIN_STAR_TYPE_NONE;
@@ -990,30 +1031,29 @@ void calculateHitVariables(void) {
     calculateBallVelocityAcceleration();
 
     if (g_Batter.captainStarSwingActivated) {
-        u32 starPower = g_Batter.captainStarSwingActivated;
         g_Ball.currentStarSwing = g_Batter.captainStarSwingActivated;
         g_Ball.currentStarSwing2 = g_Batter.captainStarSwingActivated;
         g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = FALSE;
-        if (starPower == CAPTAIN_STAR_TYPE_DK ||
-            starPower == CAPTAIN_STAR_TYPE_DIDDY) {
+        if (g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_DK ||
+            g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_DIDDY) {
             g_Ball.matchFramesAndBallAngle.bananaHitStartFrame =
                 g_Ball.hangtimeOfHit * g_hitFloats.DKStarHangtimePercentStart;
             g_Ball.matchFramesAndBallAngle.bananaHitEndFrame =
                 g_Ball.hangtimeOfHit * g_hitFloats.DKStarHangtimePercentEnd;
             g_Ball.directionOfBananaHit = g_Batter.batterHand;
-        } else if (starPower == CAPTAIN_STAR_TYPE_WARIO ||
-                   starPower == CAPTAIN_STAR_TYPE_WALUIGI) {
+        } else if (g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_WARIO ||
+                   g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_WALUIGI) {
             g_Ball.warioWaluStarHitDirection = RandomInt_Game(2);
             g_Ball.unused_garlicHitRelated.x = 0.0f;
             g_Ball.matchFramesAndBallAngle.garlicHitFramesUntilHitGroundForSplit =
                 g_hitShorts.framesBeforeGroundWhenGarlicSplits;
-        } else if (starPower == CAPTAIN_STAR_TYPE_BOWSER ||
-                   starPower == CAPTAIN_STAR_TYPE_BOWSERJR) {
+        } else if (g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_BOWSER ||
+                   g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_BOWSERJR) {
             g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = TRUE;
             g_Ball.hardHitIndicator = TRUE;
             g_Ball.ballEnergy = g_Ball.Hit_HorizontalPower * g_hitFloats.bulletStarEnergyMultiplier;
-        } else if (starPower == CAPTAIN_STAR_TYPE_PEACH ||
-                   starPower == CAPTAIN_STAR_TYPE_DAISY) {
+        } else if (g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_PEACH ||
+                   g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_DAISY) {
             g_Ball.autoFielderAvoidDropSpotForPeachesStarHit = TRUE;
         }
     }
@@ -1659,6 +1699,8 @@ void calculateBuntHorizontalAngle(void) {
 }
 
 // UNUSED .text:0x000108F8 size:0x188 mapped:0x8064f98c
+// Never called. See the note on calculateBuntVerticalAngle() near the top of
+// this file: the declaration order here differs from that copy on purpose.
 static void calculateBuntVerticalAngle_unused(void) {
     // TODO this needs better variable names, probably better function name too
     int rng, ang0Low, ang0High, ang1Low, ang1High, contactLow, contactHigh, contact;
