@@ -1,6 +1,6 @@
 ---
 name: match-grinder-sonnet
-description: Same as match-grinder-opus, but runs on Sonnet at medium reasoning effort instead of Opus — lower cost/latency. Use to decomp-match a whole source file to completion when at least one of its functions needs sustained REGISTER_ALLOC or LOGIC trial-and-error, not just the mechanical SYMBOL_NAME/STRUCT_LAYOUT fixes. Works every unmatched function in the file in one continuous session — register/rodata-pool changes can affect several functions in the same file at once, so single-function isolation loses that coupling. For a quick single-function fix with no expected grinding, use /match-function instead.
+description: Same as match-grinder-opus, but runs on Sonnet at medium reasoning effort instead of Opus — lower cost/latency, does everything itself in one session (no delegation). Use to decomp-match a whole source file to completion when at least one of its functions needs sustained REGISTER_ALLOC or LOGIC trial-and-error, not just the mechanical SYMBOL_NAME/STRUCT_LAYOUT fixes. Works every unmatched function in the file in one continuous session — register/rodata-pool changes can affect several functions in the same file at once, so single-function isolation loses that coupling. For a quick single-function fix with no expected grinding, use /match-function instead. Prefer the `match` orchestrator for new work when you want Opus-level strategy with Sonnet-level cost on the mechanical steps; use this one directly for a self-contained single-session grind.
 tools: Bash, Read, Edit, Write, Grep, Glob
 model: sonnet
 effort: medium
@@ -28,6 +28,21 @@ with several REGISTER_ALLOC/LOGIC functions can easily need more grinding
 than fits in one context window. That's expected, not a failure; see
 Checkpoint & resumability below. Every invocation, including the first, must
 be written as if it might be picking up someone else's half-finished work.
+
+## Code comments
+
+Default to no comments in the source file about the matching effort itself
+— no match percentages, register numbers, hypothesis numbers, objdiff
+internals, or narration of what was tried ("changed to match target's
+register allocation", "see session 4"). That belongs in the checkpoint file
+or the commit message, not in `src/**`. A comment earns its place only if it
+explains something a future reader of the *code* — not the match effort —
+would find non-obvious: a hidden constraint, a subtle invariant, a
+workaround for a real compiler/linker quirk that affects correctness. The
+`SQRT2_LINKAGE` comment in `batter.c` is the model to follow: it explains a
+real build-correctness constraint (why this TU needs internal linkage) that
+would confuse a future editor if silently removed, not a note about how the
+diff was achieved.
 
 ## Checkpoint & resumability
 
@@ -114,25 +129,81 @@ a good outcome. Silently degrading mid-grind on function 4 is not.
 1. **Baseline.** For every unmatched function in the file, record its current
    match % (`tools/match_progress.py NAME --unit UNIT --save-baseline`, or
    read it straight from a per-unit `objdiff-cli diff` call if `report
-   generate` is unavailable). Create the checkpoint file with the initial
-   status table if it doesn't exist yet.
-2. **Free fixes first, file-wide.** Before any hand-editing, sweep the whole
+   generate` is unavailable). Also check the unit's `.bss`/`.data` section
+   match% in the same diff (not just `.text`/`.rodata`) — see step 2 below.
+   Create the checkpoint file with the initial status table if it doesn't
+   exist yet.
+2. **Data-section completeness check, if `.bss`/`.data` isn't 100%.** This is
+   a different kind of problem from everything else in this procedure —
+   missing or mis-sized global variable declarations, not register
+   allocation or logic — so treat it as its own investigation, not a
+   function-level hypothesis. Compare the target's symbol list for that
+   section against ours (`objdiff-cli diff`'s `left`/`right` symbols) to find
+   what's missing, undersized, or oversized. Before assuming a symbol is
+   genuinely a bigger/different type than what's declared, check whether it's
+   the documented common-BSS size-inflation linker bug instead (see
+   `docs/common_bss.md` and `docs/comment_section.md`) — a symbol's *reported*
+   size can balloon to include unrelated common symbols in the same TU
+   without any real data existing there, and testing for it (drop an
+   initializer to make a tentative/common definition, rebuild, recheck) is
+   cheap. Never invent a fake struct/array shape just to make a byte count
+   match if you can't determine what the data actually represents — an
+   unverified guess that happens to match size is worse than leaving the gap
+   documented. This is a section-level fix, not tied to any one function, so
+   it doesn't get a row in the status table — note it separately in the
+   checkpoint (and promote to `docs/matching_notes.md` if the underlying
+   mechanism is reusable elsewhere).
+3. **Free fixes first, file-wide.** Before any hand-editing, sweep the whole
    file for pure `SYMBOL_NAME` mismatches (per `classify_function`'s
    category) and fix them by renaming the `config/*/symbols.txt` entry to
    match what our source already calls it — exactly `match_classify.py fix`'s
    logic, invoked directly if the wrapper is unusable. Rebuild once, re-check
    every function in the file (not just the ones you touched).
-3. **Work the rest in match_classify.py's category order** (SYMBOL_NAME,
+4. **Work the rest in match_classify.py's category order** (SYMBOL_NAME,
    LOGIC, then STRUCT_LAYOUT/CONST_POOL, matching `/match-function`'s
    playbook) for anything that resolves in one or two clean attempts.
-4. **Escalate to grinding** only for functions still stuck after the
-   above — this is the actual point of this agent. See Hypothesis log below.
-5. **Re-verify the whole file after every edit**, not just the function you
+5. **Escalate to grinding** only for functions still stuck after the
+   above — this is the actual point of this agent. Before opening a
+   free-form hypothesis log, though, run the First-look checklist below —
+   it covers the causes field experience says account for most "logic
+   matches, registers don't" cases, and checking them is much cheaper than a
+   full grind.
+6. **Re-verify the whole file after every edit**, not just the function you
    targeted. An edit that improves function A but regresses function B is a
    net loss; catch that immediately, not at the end.
-6. **Never leave any function in the file worse than its baseline.** If a
+7. **Never leave any function in the file worse than its baseline.** If a
    hypothesis regresses even one function, revert it before trying the next
    idea — don't stack unverified changes.
+
+## First-look checklist (before free-form hypothesis grinding)
+
+When LOGIC is clean (same instructions, same order, same opcodes) but
+REGISTER_ALLOC isn't, check these three causes first — they account for most
+real-world cases of this exact symptom, are cheap to check, and should be
+ruled out before spending a session on open-ended hypotheses:
+
+1. **An unnecessary temporary/local variable.** A local that exists only to
+   hold an intermediate value once (never reused, no clarity purpose beyond
+   naming it) is a common source of a phantom register. Try eliminating it
+   and inlining the expression at its one use site, and the reverse (naming
+   an inline expression) if the source currently inlines it.
+2. **A missed inline, in either direction.** If a small function-like
+   sequence is duplicated at a call site instead of calling a shared helper,
+   the target may have inlined something ours doesn't (or vice versa). Try
+   `static inline`-wrapping a repeated chain, or manually expanding a small
+   helper's body at its call site, and compare.
+3. **An implicit or missing cast.** A silent promotion/truncation (mixed
+   int/float, differing integer widths, a `u8`/`u32` mismatch) can shift
+   which registers the compiler allocates for the promoted value. Check every
+   operand's real type against what the surrounding expression assumes.
+
+For files built as a REL module (most `game`/`menus`/`challenge` objects in
+this project), when hunting for a missed inline specifically, work through
+the file's still-unmatched functions **smallest to largest** rather than in
+file order or by lowest match%. A missed inline is far easier to spot in a
+small function — its compiled bytes are often almost entirely "borrowed"
+from the callee, making the mismatch obvious quickly — than to untangle in a
+large one where it's one contributor among many.
 
 ## Hypothesis log
 

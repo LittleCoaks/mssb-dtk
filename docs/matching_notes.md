@@ -77,6 +77,54 @@ duplicates for unrelated reasons). First seen and fixed in
 `SQRT2_LINKAGE` macro and `include/header_rep_data.h`'s `repHeaderData`
 accessor.
 
+## Common-BSS inflation bug: quick disproof checklist
+
+Before spending time reproducing `docs/common_bss.md`'s linker inflation bug
+to explain an oversized target `.bss` symbol, check these first — any one of
+them alone is close to decisive, and all four together are:
+
+1. **Grep every `splits.txt` in `config/GYQE01/` (and its module
+   subdirectories) for the literal string `common`.** If it's used anywhere
+   in the project, individual `.bss` ranges are marked with the `common`
+   attribute (see `docs/splits.md`). As of this writing it's used **nowhere**
+   — this project has never needed common-BSS handling for any file, and
+   `config/GYQE01/config.yml` doesn't set `common_start` either (only
+   `config.example.yml`'s unused template does).
+2. **Check the symbol's `scope:` annotation in the relevant `symbols.txt`.**
+   `scope:local` rules the theory out immediately and structurally: common-
+   BSS only ever applies to **external/global** tentative definitions (mwcc
+   deduplicates them by name across TUs, like weak symbols); a `static`
+   (local-linkage) tentative definition can never become `common`, in any
+   MWCC version, regardless of the `-common` flag.
+3. **The inflation bug needs ≥2 *other* common candidates in the same TU to
+   inflate the first one's reported size** — a lone tentative-definition
+   global with nothing else common in that file will show `SHN_COMMON` (if
+   `-common on` is actually in effect) but its size will NOT change, since
+   there's nothing for it to absorb. Don't conclude the mechanism works from
+   symbol-binding alone; check whether the TU has other qualifying globals
+   too.
+4. **Check what `-common` setting the object's actual `cflags` resolve to**
+   (`cflags_base`/`cflags_rel` never set it explicitly; only
+   `cflags_runtime`, used for Dolphin libs, sets `-common off`) — for
+   everything else the compiler's own default applies. Confirmed empirically
+   for at least one `cflags_rel` object (`game/batting/batter.c`): with no
+   `-common` flag, a tentative definition (`int x;`, no initializer) still
+   compiles to a normal `.bss` symbol (`STB_GLOBAL`/`STT_OBJECT`,
+   `st_shndx` = the real `.bss` section index, not `SHN_COMMON`) — i.e. this
+   project's default is common **off**, not on. `pyelftools`
+   (`pip install pyelftools`) is enough to check binding/`st_shndx` directly
+   on the built `.o` if `readelf` isn't on PATH.
+
+First run through in full on `game/game/batting/batter`'s `lbl_3_bss_34`
+(target reports 0xC bytes at `.bss:0x34`, `scope:local`; our source only had
+a 4-byte non-static `int`) — all four checks came back negative, so the
+inflation-bug theory was dropped. See
+`build/.match_grind/game_game_batting_batter.md` (Session 8) for the full
+trace; the true content of the extra 8 bytes remains an open, honestly-
+documented gap (no code anywhere in the game touches them, per
+`tools/ghidra_query.py data <addr>`), not something this checklist can
+resolve on its own.
+
 ## Diagnostic techniques worth trying before declaring a function exhausted
 
 **Per-file `mw_version` sweep, for register-allocation/CSE-tiebreak mismatches
