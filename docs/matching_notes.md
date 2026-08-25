@@ -102,6 +102,15 @@ three small/low-pressure ones. Of six possible orderings, our compiler has
 been observed producing four; the target's fifth hasn't been reproduced from
 any source variant tried across 9 sessions.
 
+**Update (batter.c session 10): the chain has no precedent anywhere else in
+the target binary.** A scripted scan of every scannable unit's target-side
+objdiff JSON (626 units) for the block's signature pair (`addi rX, rY,
+0x18cc` + `lbz rZ, 0x1905(rY)`) found zero instances outside batter.c, so no
+matched function exists from which the missing fifth ordering's source shape
+could be learned. Together with the six exhausted lever categories from
+sessions 1-9, this mismatch class is closed for batter.c absent genuinely new
+information.
+
 ## Constant-pool / weak-symbol addressing
 
 **MWCC only uses section-base-relative constant-pool addressing (hoisting
@@ -264,6 +273,23 @@ byte-for-byte tie across all 25 functions in the unit. If a function's
 register-allocation tie-break doesn't resolve via source-shape changes within
 the function itself, don't bother trying to reorder which functions surround
 it in the file — confirmed to be a complete no-op for this compiler.
+
+## Project-wide instruction-pattern scan via per-unit objdiff JSON
+
+When a stuck function's last lead is "find a matched function elsewhere that
+exhibits the same codegen pattern and read its source", the search is cheap
+to run mechanically: loop every unit listed in objdiff.json, run
+`build/tools/objdiff-cli.exe diff -p . -u <unit> -o tmp.json --format json`
+(skip units whose objects don't exist; do NOT use `report generate`), and
+regex the target-side (`left`) symbols' formatted instruction streams for the
+pattern's signature instructions. ~626 scannable units complete in minutes.
+First used in batter.c session 10 to (a) prove a shared CSE block is unique
+to one TU project-wide and (b) find the project's only
+freed-FP-register-reuse precedent (GXInitTexObjLOD, src/Dolphin/gx/
+GXTexture.c) -- which on source reading turned out to be a forced else-arm
+reload rather than the contested fresh-temp-at-join case. Either outcome
+closes the lead decisively: a precedent scan can close a lead by *absence* of
+evidence. Record a zero-hit result in the checkpoint so it is never re-run.
 
 ## Flipping a 100% unit to Object(Matching) — REL function order is REVERSED
 
