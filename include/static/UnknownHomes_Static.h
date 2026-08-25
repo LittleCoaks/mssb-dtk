@@ -89,6 +89,10 @@ typedef struct {
     /* 0x02 */ u16 _02;
     artificial_padding(2, 0x22, u16);
     /* 0x22 */ u16 _22;
+    artificial_padding(0x22, 0x42, u16);
+    /* 0x42 */ u16 _42;
+    artificial_padding(0x42, 0x62, u16);
+    /* 0x62 */ u16 _62;
 } lbl_803C77B8_s;
 extern lbl_803C77B8_s AtBat_ButtonInput1;
 
