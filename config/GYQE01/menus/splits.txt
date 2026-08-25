@@ -25,7 +25,7 @@ menus/rep_01A0.c:
 	.text       start:0x00000A70 end:0x000010FC
 	.rodata     start:0x000001A0 end:0x00000200
 
-menus/rep_0200.c:
+menus/yd_step.c:
 	.text       start:0x000010FC end:0x00001254
 	.rodata     start:0x00000200 end:0x00000278
 

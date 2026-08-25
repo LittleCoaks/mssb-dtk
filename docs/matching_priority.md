@@ -47,7 +47,7 @@ Single/few-function named files (excluding anonymous `src/Unknown/File_0x*`
 stubs, which have no naming evidence and are likely obscure OS/library
 thunks — low value to prioritize):
 
-- `src/menus/rep_0200.c` — 1 unmatched fn, 52 bytes, 1 placeholder
+- `src/menus/yd_step.c` — 1 unmatched fn, 52 bytes, 1 placeholder
 - `src/Musyx/hw_volconv.c` — 97.8%, 1 fn, 39 bytes left
 - `src/Dolphin/os/OSExec.c` — 97.5%, 1/8 unmatched, 60 bytes
 
@@ -81,7 +81,7 @@ once tier 1 is cleared, even though individual functions there are large
 
 1. Burn down tier 1 (`batter.c`, `synth.c`, `game_math.c`, `hw_dolphin.c`,
    `hardware.c`, `synthdata.c`, `s_data.c`) — cheap, closes whole files.
-2. Sweep the small named quick-wins (`rep_0200.c`, `hw_volconv.c`,
+2. Sweep the small named quick-wins (`yd_step.c`, `hw_volconv.c`,
    `OSExec.c`).
 3. Start deliberately on `fielder_catch.c`/`runner.c`/`fielder_ai.c` —
    biggest gameplay payoff, but budget real time per function.

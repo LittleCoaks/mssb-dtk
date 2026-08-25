@@ -198,10 +198,25 @@ category applies, not because they belong together functionally.
 
 ## src/menus — the menu REL
 
-The menu REL's 42 units are all stubs (see [Modules](#modules)), so nearly all of
-them still carry their `rep_XXXX` split-tool names. A unit moves into a category
-folder and takes a real name only once its evidence clears the same bar used for
-`src/game` above.
+The menu REL's 42 units were all stubs (see [Modules](#modules)), so nearly all of
+them still carry their `rep_XXXX` split-tool names. A unit takes a real name only
+once its evidence clears the same bar used for `src/game` above, and moves into a
+category folder only once that category has more than one member -- `yd_step.c`
+below is named but unfoldered because the module has exactly one scene dispatcher.
+
+### top level — 1 file, 7 fns (3 named)
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `yd_step.c` | `rep_0200` | 7 (3) | 344 | Scene-dispatch state machine for the whole menu REL. `currentScreenFunctionChooser` steps the active screen by indexing the 18-entry `pCurrentScreenControlFunction` table (`.data:0x138`) with the current screen ID; `changeScreenVariables` performs a transition by shifting the current screen/state into the previous screen/state slots and resetting the state. Also holds the small step stubs the table points at, including `removedStep`, the panic stub wired into the two table slots whose screens were cut. | high |
+
+`yd_step.c` is the one file in the tree whose name is not an inference at all: the
+original filename survives verbatim in the shipped binary, as the first argument of
+this unit's own `OSPanic("yd_step.c", 76, "Removed step was called.\n")`. That is
+direct evidence rather than the strongest tier of inference, so it sits above even
+the `high` bar the tag denotes. The same trick should name more menu units as they
+are split -- panic and assert strings are the cheapest source of original filenames
+in this REL.
 
 ### captain_select/ — 1 file, 17 fns (8 named)
 
@@ -233,7 +248,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 42 | `src/menus/**` | stubs for all 42 units, 532 functions; 207 carry real names from Ghidra. 1 unit named and foldered so far (`captain_select/`) |
+| `menus` | menu REL | 42 | `src/menus/**` | 42 units, 532 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); 2 units named so far (`yd_step.c` at top level, `captain_select/`) |
 | `unused_rel` | an unused REL | 13 | `src/unused_rel/**` | stubs for all 13 units, 307 functions |
 
 ### The menu and unused RELs
