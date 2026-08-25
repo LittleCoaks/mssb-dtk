@@ -394,9 +394,20 @@ Once the status table has no `exhausted`/`pending` rows left:
    `docs/matching_notes.md` — short: what the pattern looks like, what it
    means, where it was first seen.
 2. Delete the checkpoint file.
+3. **Flip the unit to `Object(Matching, ...)`** in `configure.py` so the
+   linker consumes our compiled object. Follow the checklist in
+   `docs/matching_notes.md` ("Flipping a 100% unit to Object(Matching)"):
+   for REL units, first reorder the .c file's function definitions into
+   reverse address order (`-inline deferred` emits them reversed; codegen
+   and the objdiff match are unaffected), then flip, rebuild, and require
+   `4 files OK` from the sha1 check plus a still-100% report.json entry.
+   Silence any `FORCEACTIVE lbl_*_rodata_*` linker warnings by adding
+   `scope:local` to those `data:string` entries in the module's
+   symbols.txt. If the sha1 check cannot be made green, revert the flip
+   (leave NonMatching) and report why.
 
-If the file is *not* fully matched, skip both — leave the checkpoint in
-place for the next resume.
+If the file is *not* fully matched, skip all of this — leave the checkpoint
+in place for the next resume.
 
 ## Report
 

@@ -264,3 +264,46 @@ byte-for-byte tie across all 25 functions in the unit. If a function's
 register-allocation tie-break doesn't resolve via source-shape changes within
 the function itself, don't bother trying to reorder which functions surround
 it in the file — confirmed to be a complete no-op for this compiler.
+
+## Flipping a 100% unit to Object(Matching) — REL function order is REVERSED
+
+First seen: `menus/yd_step.c` (first REL unit ever flipped, 2026-08). Once a
+REL unit reports 100% in objdiff, flip its `configure.py` entry from
+`Object(NonMatching, ...)` to `Object(Matching, ...)` so the linker consumes
+our compiled object instead of dtk's byte-extracted original. Two traps,
+both now solved:
+
+1. **`-inline deferred` (cflags_rel) makes MWCC emit functions in REVERSE
+   source order.** objdiff matches per-symbol so it never notices, but the
+   linked REL lays the unit's `.text` out backwards and the sha1 check fails
+   with hundreds of scattered byte diffs. Verified directly: compiling
+   yd_step.c with `-inline auto` emits source order; with `-inline deferred`
+   emits exact reverse source order. **Fix: write the function definitions in
+   the .c file in reverse address order** (highest `.text` offset first).
+   Codegen is unaffected (see previous section — order is a codegen no-op),
+   so the match stays 100%. This applies to every REL unit (menus/game/
+   challenge use cflags_rel); DOL-side units don't use `-inline deferred`.
+
+2. **dtk's synthetic string-literal symbols trigger harmless linker
+   warnings.** dtk names anonymous string literals (e.g.
+   `lbl_2_rodata_250`) and puts every global symbol in the module ldscript's
+   FORCEACTIVE block. Our MWCC object pools those strings as *local*
+   `@nnn` symbols, so mwld warns `FORCEACTIVE symbol ... doesn't exist.
+   Ignored.` The warning is cosmetic — the strings still land at the right
+   offsets and the link output is byte-identical. To silence it, add
+   `scope:local` to those `data:string` entries in the module's symbols.txt
+   (dtk only FORCEACTIVEs global symbols). Do NOT try to "fix" it by naming
+   the strings in C.
+
+Checklist when a unit reaches 100%:
+1. Reorder the .c file's functions into reverse address order (REL units
+   only). Rebuild; confirm still 100% and sha1 still green while NonMatching.
+2. Flip to `Object(Matching, ...)` in configure.py. Rebuild (`ninja`).
+3. Expect `4 files OK`. If the module's .rel FAILED, binary-diff it against
+   `orig/GYQE01/files/<module>.rel` before guessing — reversed function
+   order looks like massive corruption but is just layout.
+4. Add `scope:local` to any of the unit's `lbl_*_rodata_*` `data:string`
+   symbols in `config/GYQE01/<module>/symbols.txt` if FORCEACTIVE warnings
+   appear.
+5. Confirm objdiff still reports the unit 100% (`build/GYQE01/report.json`),
+   since the flip changes what links, not what objdiff compares.
