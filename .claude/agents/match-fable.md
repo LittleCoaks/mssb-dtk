@@ -274,6 +274,55 @@ theme should stay exactly that way rather than getting a hasty, low-
 confidence rename — this capability is for when the evidence is actually
 there, not to tidy up placeholders on principle.
 
+## Labeling and correcting symbols
+
+This reuses `/label-symbols`'s methodology (`.claude/commands/label-symbols.md`
+— read it if you haven't) rather than a separate set of rules. Two related
+but distinct actions, both symbol-level (a function or data symbol), as
+opposed to Naming and organizing files above (file-level):
+
+**Labeling a placeholder.** Once a function reaches `matched` in your status
+table — never before; C source can still change mid-grind and would waste
+the research, per `/label-symbols`'s own precondition — and its purpose is
+clear from evidence gathered along the way (what it calls, who calls it,
+what struct fields it touches, the file's established theme, naming
+conventions already used nearby), apply the same confidence gate:
+- **High** (unambiguous, more than one corroborating signal): apply the
+  rename directly.
+- **Medium** (plausible but single-signal, or consistent with the file's
+  theme without independent proof): propose it and say explicitly what's
+  uncertain in your report — don't apply it silently just because you lean
+  toward it.
+- **Low**: leave the placeholder, say what evidence would have made the
+  difference. `docs/file_map.md`'s own philosophy applies at symbol grain
+  too: inventing a name here reads as fact and misleads every future reader
+  worse than an honest placeholder ever does.
+
+**Correcting an existing (non-placeholder) name you determine is wrong.**
+This is a bigger claim than labeling a placeholder — it says a name already
+in the tree (however it got there: a human, a Ghidra import, an earlier
+match session) is actively misleading, not just missing. The bar is
+higher than High above, and qualitatively different: you need specific
+evidence that *conflicts* with the current name, not just a name you find
+more elegant. "A slightly better name exists" is not a correction — leave a
+merely-suboptimal-but-not-wrong name alone; only correct when the function's
+actual calls/behavior/struct access contradicts what the current name
+claims. Report every correction explicitly and prominently — never fold it
+quietly into a routine labeling note — since someone (a doc, a prior
+conversation, another contributor) may be relying on the old name and needs
+to know it changed and why, not just that *a* rename happened. If genuinely
+unsure whether a name is wrong versus merely imprecise, don't touch it;
+overwriting on a hunch is worse than living with an imperfect name.
+
+**Applying either kind of rename:** never one-sided. Delegate to a
+`match-worker`: rewrite the symbol everywhere it's referenced —
+`config/*/symbols.txt` and every `src`/`include` occurrence — together, in
+one task. Require a rebuild + re-diff confirming the match% is **unchanged**
+(a name can never affect codegen; any score change means something in the
+rename went wrong — wrong symbol, partial match, collision — and needs
+fixing before it's accepted). Check for a naming collision first, same as
+`tools/ghidra_rename.py`'s plan-building does.
+
 ## Procedure
 
 0. **Check for an existing checkpoint first.** If one exists, this is a
@@ -303,6 +352,11 @@ there, not to tidy up placeholders on principle.
    and whether they agree on a theme), consider whether Naming and
    organizing files above applies. Not required every session — only when
    the evidence actually clears the bar.
+8. **Whenever a function reaches `matched`**, consider whether Labeling and
+   correcting symbols above applies — to that function or to a placeholder
+   symbol it gave you strong evidence about along the way. Also apply it
+   opportunistically if you notice an existing name is wrong while working
+   on something else, even for a function you aren't otherwise touching.
 
 ## Hypothesis log
 
@@ -357,3 +411,7 @@ Whenever this session ends, report:
 - If you renamed/organized the file this session: the old and new
   path/name, the confidence tier and evidence used, and confirmation the
   post-rename rebuild was byte-identical to before.
+- If you labeled or corrected any symbols: old → new name for each,
+  confidence tier and evidence, and confirmation match% was unchanged.
+  Corrections of an existing (non-placeholder) name get their own clearly
+  flagged line — don't fold them into a general labeling list.

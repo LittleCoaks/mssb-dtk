@@ -125,6 +125,33 @@ Report back the old and new paths, confirmation every reference in the
 checklist was found and updated (not just assumed), and the byte-identical
 verification result.
 
+## Symbol labeling/correction tasks
+
+If asked to give a placeholder symbol a real name, or to correct an
+existing name (typically by `match`, after it's already gathered and
+weighed the evidence and decided the confidence tier — that judgment isn't
+yours to make, only to execute; if asked to do this standalone without that
+judgment already made, follow `.claude/commands/label-symbols.md`'s
+confidence gate yourself before proposing anything). A rename here is never
+one-sided — `config/*/symbols.txt` names the target side, `src/**`/
+`include/**` name ours, and both must change together or the rename
+manufactures a fresh `SYMBOL_NAME` mismatch instead of fixing one:
+
+1. Sanitize the name into a legal C identifier if needed, and check it
+   doesn't collide with an existing symbol anywhere in the config — a
+   collision means picking a different name, not overwriting.
+2. Rewrite the symbol everywhere it's referenced: the `config/*/symbols.txt`
+   entry and every `src`/`include` occurrence.
+3. Rebuild and re-diff. **The match% must be exactly unchanged** — a name
+   can never affect codegen. Any change means the rename hit the wrong
+   symbol, only partially applied, or collided with something; find and fix
+   it before reporting success, never accept a changed number as a bonus.
+
+If this is a *correction* of a name that was already real (not a
+placeholder), say so explicitly and prominently in your report — don't fold
+it into routine labeling output. State the old name, the new name, and the
+specific evidence that contradicted the old one.
+
 ## Reverting
 
 If a task asks you to test something and it doesn't meet the stated
