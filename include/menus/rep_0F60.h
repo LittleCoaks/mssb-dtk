@@ -25,5 +25,8 @@ void fn_2_8DC00(void);
 void fn_2_8DCD8(void);
 void fn_2_8DFB0(void);
 void fn_2_8E478(void);
+void fn_2_8E6A4(void);
+void fn_2_8E8A4(void);
+void fn_2_8EA80(void);
 
 #endif // !__MENUS_REP_0F60_H_

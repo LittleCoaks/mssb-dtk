@@ -110,3 +110,18 @@ void fn_2_8DFB0(void) {
 void fn_2_8E478(void) {
     return;
 }
+
+// .text:0x0008E6A4 size:0x200 mapped:0x806CD738
+void fn_2_8E6A4(void) {
+    return;
+}
+
+// .text:0x0008E8A4 size:0x1DC mapped:0x806CD938
+void fn_2_8E8A4(void) {
+    return;
+}
+
+// .text:0x0008EA80 size:0x2CC mapped:0x806CDB14
+void fn_2_8EA80(void) {
+    return;
+}

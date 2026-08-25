@@ -22,11 +22,11 @@ menus/rep_0150.c:
 	.rodata     start:0x00000150 end:0x000001A0
 
 menus/rep_01A0.c:
-	.text       start:0x00000A70 end:0x00000D08
+	.text       start:0x00000A70 end:0x000010FC
 	.rodata     start:0x000001A0 end:0x00000200
 
 menus/rep_0200.c:
-	.text       start:0x0000121C end:0x00001254
+	.text       start:0x000010FC end:0x00001254
 	.rodata     start:0x00000200 end:0x00000278
 
 menus/rep_0278.c:
@@ -131,7 +131,7 @@ menus/rep_0F10.c:
 	.rodata     start:0x00000F10 end:0x00000F60
 
 menus/rep_0F60.c:
-	.text       start:0x0008ACE0 end:0x0008E6A4
+	.text       start:0x0008ACE0 end:0x0008ED4C
 	.rodata     start:0x00000F60 end:0x00000FD8
 
 menus/rep_0FD8.c:
