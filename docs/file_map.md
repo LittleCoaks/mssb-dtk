@@ -1,6 +1,6 @@
 # Source file map
 
-What each translation unit in `src/game` is for. **`src/game` is the match REL**
+What each translation unit in `src/game` — and each named unit in `src/menus` — is for. **`src/game` is the match REL**
 — one of the game's four modules; see [Modules](#modules) for the other three and
 for where their code does (and does not) live. Since the reorganisation the
 **folder is the category**, so this document is mostly a record of *why* each
@@ -196,6 +196,28 @@ only the shared table. **They need no decompilation work and should not be
 counted as unfinished.** They live in their own folder because no gameplay
 category applies, not because they belong together functionally.
 
+## src/menus — the menu REL
+
+The menu REL's 42 units are all stubs (see [Modules](#modules)), so nearly all of
+them still carry their `rep_XXXX` split-tool names. A unit moves into a category
+folder and takes a real name only once its evidence clears the same bar used for
+`src/game` above.
+
+### captain_select/ — 1 file, 17 fns (8 named)
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `captain_select.c` | `rep_04B0` | 17 (8) | 8,956 | Captain Select screen: per-port cursor movement, A/B press handling, new-player/controller detection, swapping the displayed captain model as the cursor moves, and initial port activation on first load of the screen. | high |
+
+`captainSelect*` is a distinct symbol family from the much larger
+`characterSelect*`/`css*` one — `cssReturnToCapSelect_maybe` returns *to* captain
+select *from* the character select screen, so those are two adjacent screens
+rather than one category. Three further menu units hold `captainSelect*` symbols
+and would belong in this folder once their own evidence supports a name:
+`rep_0438` (`captainSelectDefaultProcess`, `captainSelectScreen_manager`),
+`rep_0568` (`captainSelectLoadScreen`), and whichever unit holds
+`captainSelectUnloadCSSLoadRelated` at `.text:0x000800B0`.
+
 ---
 
 ## Modules
@@ -211,7 +233,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 42 | `src/menus/**` | stubs for all 42 units, 532 functions; 207 carry real names from Ghidra |
+| `menus` | menu REL | 42 | `src/menus/**` | stubs for all 42 units, 532 functions; 207 carry real names from Ghidra. 1 unit named and foldered so far (`captain_select/`) |
 | `unused_rel` | an unused REL | 13 | `src/unused_rel/**` | stubs for all 13 units, 307 functions |
 
 ### The menu and unused RELs

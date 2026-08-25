@@ -31,7 +31,7 @@ to fix it, the arrow points both directions.** Two confirmed cases:
   memory. `int t = arr[i] + 1; arr[i] = t; if ((u8)t >= N) ...` (cast at the
   compare, not a fresh read) reproduces this; a naive re-read
   (`arr[i] = arr[i] + 1; if (arr[i] >= N)`) does not. First seen:
-  `src/menus/rep_04B0.c`, `loadNewCaptainModelOnCapSelectScreen` (session in
+  `src/menus/captain_select/captain_select.c`, `loadNewCaptainModelOnCapSelectScreen` (session in
   progress — not yet fully matched, but this sub-fix confirmed regression-
   free).
 
@@ -46,7 +46,7 @@ full 32-bit shift (`srwi rX, rY, 5`) — different instructions, not just a
 type-checking nicety. If a predicate function's return-path codegen doesn't
 match and the function's actual return statements are boolean-shaped, try
 swapping which of the two it's declared to return before looking anywhere
-else. First seen: `src/menus/rep_04B0.c`,
+else. First seen: `src/menus/captain_select/captain_select.c`,
 `onlySetPort1ToActiveOnInitialCapSSLoad` (+5.8% from this alone).
 
 **Ghidra's inferred array sizes are not trustworthy — verify against actual

@@ -48,7 +48,7 @@ menus/rep_0438.c:
 	.text       start:0x00012238 end:0x00013BA4
 	.rodata     start:0x00000438 end:0x000004B0
 
-menus/rep_04B0.c:
+menus/captain_select/captain_select.c:
 	.text       start:0x00014574 end:0x00016870
 	.rodata     start:0x000004B0 end:0x00000568
 
