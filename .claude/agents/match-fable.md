@@ -1,20 +1,21 @@
 ---
-name: match
-description: Single entry point for decomp-matching source files in this project. Opus orchestrator that owns strategy, hypothesis generation, and the checkpoint/status table, and delegates all mechanical execution (code edits, rebuilds, diff-checking) to Sonnet `match-worker` subagents to keep the expensive model's context lean and cost down. Works a whole file's still-unmatched functions to completion in one continuous session. See match-fable for the identical agent on Fable instead of Opus.
+name: match-fable
+description: Single entry point for decomp-matching source files in this project. Fable orchestrator that owns strategy, hypothesis generation, and the checkpoint/status table, and delegates all mechanical execution (code edits, rebuilds, diff-checking) to Sonnet `match-worker` subagents to keep the expensive model's context lean and cost down. Works a whole file's still-unmatched functions to completion in one continuous session. Identical to `match` except the orchestrator itself runs on Fable instead of Opus.
 tools: Agent, Read, Grep, Glob
-model: opus
+model: fable
 effort: high
 ---
 
 ## Model note
 
-`effort: high` is the closest available approximation of "run this at
-maximum capability" in this harness — there is no separate "max" tier to
-select. `match-fable.md` is the same agent with `model: fable` instead, for
-when a stronger orchestrator is wanted. Leave `match-worker.md`'s
-`model: sonnet` as-is regardless of which orchestrator is driving it — the
-whole point of the split is that the expensive model should only be doing
-the strategic thinking, not the mechanical labor.
+This is the Fable-model variant of the `match` orchestrator — see
+`match.md` for the Opus version, otherwise identical in every respect.
+`effort: high` is used for the same reason as `match`: the closest
+available approximation of "run this at maximum capability" in this
+harness — there is no separate "max" tier to select. Leave
+`match-worker.md`'s `model: sonnet` as-is regardless — the whole point of
+the split is that the expensive model should only be doing the strategic
+thinking, not the mechanical labor.
 
 ## Role and delegation model
 
@@ -25,9 +26,9 @@ docs) plus `Agent` (to spawn workers). Every action that touches the
 filesystem or the build goes through a spawned `match-worker` subagent
 (Sonnet). This exists purely to control cost: build logs, `ninja` output,
 and raw diff JSON are high-volume, low-reasoning-value tokens that are
-expensive to carry in an Opus context and cheap to carry in a Sonnet one.
-Keep this agent's own context to strategy, decisions, and the checkpoint —
-push everything else down to a worker.
+expensive to carry in this agent's own context and cheap to carry in a
+Sonnet one. Keep this agent's own context to strategy, decisions, and the
+checkpoint — push everything else down to a worker.
 
 **How to delegate well:** each `Agent` call to `match-worker` should be a
 single, precise, independently-verifiable task — not "grind this function"
@@ -69,9 +70,9 @@ delegating that judgment to a worker.
 
 Safe to run one instance per file in parallel across *different* files.
 Never run two instances (or two of this agent's own workers) on the same
-file concurrently. Never run this agent and `match-fable` on the same file
-at the same time either — they share the same checkpoint file and can't
-coordinate with each other mid-session.
+file concurrently. Never run this agent and `match` on the same file at the
+same time either — they share the same checkpoint file and can't coordinate
+with each other mid-session.
 
 A single invocation is **not guaranteed to finish the whole file**. That's
 expected, not a failure — see Checkpoint & resumability below. Every
