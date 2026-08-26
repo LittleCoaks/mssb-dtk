@@ -1,6 +1,6 @@
-#include "Unknown/File_0x8000f988.h"
+#include "text/text_channel.h"
 
-#include "Unknown/File_0x8000ff04.h"
+#include "text/text_alloc.h"
 
 s32 text_initializeNewChannel(UnkText988Arg* arg0, s32 indexOffset, u16 arg2, s32 arg3, s32 arg4, s32 useFlag8) {
     TextGraphicsObject* graphics;

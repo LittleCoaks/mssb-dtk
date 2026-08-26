@@ -1,4 +1,4 @@
-#include "Unknown/File_0x80010498.h"
+#include "text/text_draw.h"
 
 void DrawText(void) {
     return;

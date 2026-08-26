@@ -1,4 +1,4 @@
-#include "Unknown/File_0x80010fa0.h"
+#include "text/text_init.h"
 
 void initTextRendering(void) {
     return;

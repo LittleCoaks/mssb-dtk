@@ -1,4 +1,4 @@
-#include "Unknown/File_0x800100a4.h"
+#include "text/sprite_draw.h"
 
 void drawTransformedSprite(void) {
     return;

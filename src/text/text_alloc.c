@@ -1,6 +1,6 @@
-#include "Unknown/File_0x8000ff04.h"
+#include "text/text_alloc.h"
 
-#include "Unknown/File_0x8000f988.h"
+#include "text/text_channel.h"
 
 s32 initializeTextParameters(s32 bankIndex, s32 stringIndex, s32 x, s32 y, u8 drawGroup, s32 color, s32 style) {
     ScreenText* block;

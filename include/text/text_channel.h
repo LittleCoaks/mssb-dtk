@@ -1,5 +1,5 @@
-#ifndef __UNKNOWN_FILE_0X8000F988_H_
-#define __UNKNOWN_FILE_0X8000F988_H_
+#ifndef __TEXT_TEXT_CHANNEL_H_
+#define __TEXT_TEXT_CHANNEL_H_
 
 #include "mssbTypes.h"
 
@@ -83,4 +83,4 @@ extern GraphicsArrayEntry graphicsRelatedArray[];
 
 s32 text_initializeNewChannel(UnkText988Arg* arg0, s32 indexOffset, u16 arg2, s32 arg3, s32 arg4, s32 useFlag8);
 
-#endif // !__UNKNOWN_FILE_0X8000F988_H_
+#endif // !__TEXT_TEXT_CHANNEL_H_

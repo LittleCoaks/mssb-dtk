@@ -1,4 +1,4 @@
-#include "Unknown/File_0x80010f2c.h"
+#include "text/text_draw_conditional.h"
 
 void DrawTextOnCondition(void) {
     return;

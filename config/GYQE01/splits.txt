@@ -77,40 +77,40 @@ Unknown/File_0x8000f48c.c:
 	extabindex  start:0x80006DBC end:0x80006DC8
 	.text       start:0x8000F48C end:0x8000F4B8
 
-Unknown/File_0x8000f988.c:
+text/text_channel.c:
 	extab       start:0x800056F8 end:0x80005700
 	extabindex  start:0x80006DD4 end:0x80006DE0
 	.text       start:0x8000F988 end:0x8000FA9C
 
-Unknown/File_0x8000fa9c.c:
+text/text_width.c:
 	extab       start:0x80005700 end:0x80005708
 	extabindex  start:0x80006DE0 end:0x80006DEC
 	.text       start:0x8000FA9C end:0x8000FD54
 
-Unknown/File_0x8000fd54.c:
+text/text_block.c:
 	.text       start:0x8000FD54 end:0x8000FF04
 
-Unknown/File_0x8000ff04.c:
+text/text_alloc.c:
 	extab       start:0x80005708 end:0x80005710
 	extabindex  start:0x80006DEC end:0x80006DF8
 	.text       start:0x8000FF04 end:0x800100A4
 
-Unknown/File_0x800100a4.c:
+text/sprite_draw.c:
 	extab       start:0x80005710 end:0x80005718
 	extabindex  start:0x80006DF8 end:0x80006E04
 	.text       start:0x800100A4 end:0x80010498
 
-Unknown/File_0x80010498.c:
+text/text_draw.c:
 	extab       start:0x80005718 end:0x80005720
 	extabindex  start:0x80006E04 end:0x80006E10
 	.text       start:0x80010498 end:0x80010F2C
 
-Unknown/File_0x80010f2c.c:
+text/text_draw_conditional.c:
 	extab       start:0x80005720 end:0x80005728
 	extabindex  start:0x80006E10 end:0x80006E1C
 	.text       start:0x80010F2C end:0x80010FA0
 
-Unknown/File_0x80010fa0.c:
+text/text_init.c:
 	.text       start:0x80010FA0 end:0x80011000
 
 Unknown/File_0x800127f8.c:

@@ -78,8 +78,17 @@ factor), with pointer strength reduction checking `0x2a(rX)` then `0x62(rX)`
 before the pointer bump — all generated automatically from the plain source
 loop, which matched 100% on the first attempt. If target asm shows a long
 repeated check/increment body ending in `bdnz`, reconstruct the simple loop
-and trust the compiler. First seen: `src/Unknown/File_0x8000ff04.c`,
+and trust the compiler. First seen: `src/text/text_alloc.c (was Unknown/File_0x8000ff04.c)`,
 `initializeTextParameters`.
+
+Second form of the same behavior: a store-only fixed-trip loop
+(`for (i = 0; i < 30; i++) arr[i].byteField = 0;` over 0x38-byte structs)
+FULLY unrolls — 30 straight `stb`s at increasing displacements off one base
+register, no `bdnz` at all — preceded by a vestigial guard
+(`li r0, 0x0; cmpwi r0, 0x1e; bgelr`) that compares the constant initial
+index against the trip count. The plain loop matched 100% first try; the
+early-`break` scan form is what gets the partial (10x + `bdnz`) unroll
+instead. First seen: `text_freeAllBlocks` in `src/text/text_block.c`.
 
 ## Shared-block register rotation
 
@@ -347,7 +356,7 @@ Checklist when a unit reaches 100%:
 
 ## DOL units with extab/extabindex: add `-cpp_exceptions on` per-Object
 
-First seen: `Unknown/File_0x8000f988.c` (text engine, 2026-08). Some DOL
+First seen: `text/text_channel.c (was Unknown/File_0x8000f988.c)` (text engine, 2026-08). Some DOL
 functions carry exception-unwind entries (`extab`/`extabindex`) in the
 target. A .c unit compiled without exceptions emits neither section, so
 objdiff shows them at 0% even with `.text` at 100% — and the unit cannot
@@ -360,12 +369,12 @@ be flipped to Matching until they exist. Fix: add
 ## Split-merged .bss objects must be addressed through one containing struct
 
 First seen: `screenTextArray` (0x80366B18, size 0x800) in
-`Unknown/File_0x8000f988.c`. When symbols.txt holds one large object that
+`text/text_channel.c`. When symbols.txt holds one large object that
 the original code treated as adjacent arrays (here: 30 x 0x38 ScreenText
 blocks at +0x0 and a 30 x 8-byte channel table at +0x690), the target
 bytes encode the base symbol's @ha/@l pair with each region's offset
 folded into the load/store displacement (e.g. `lwz r0, 0x690(r3)` off the
 base). Splitting the object into two symbols.txt symbols would change the
 @l immediates/displacements and can never match. Instead declare a single
-containing struct (`ScreenTextPool` in include/Unknown/File_0x8000f988.h)
+containing struct (`ScreenTextPool` in include/text/text_channel.h)
 and access every region as a member through the one symbol.
