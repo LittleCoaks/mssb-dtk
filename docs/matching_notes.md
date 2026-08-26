@@ -441,3 +441,28 @@ base). Splitting the object into two symbols.txt symbols would change the
 @l immediates/displacements and can never match. Instead declare a single
 containing struct (`ScreenTextPool` in include/text/text_channel.h)
 and access every region as a member through the one symbol.
+
+## MWCC 2.x will not register-pool an extern data-symbol base, no matter the source shape
+
+Target DrawText (text/text_draw, DOL) holds lbl_800E8F60's address in callee-saved
+r28 from the prologue, function-wide, feeding addi+indexed loads at three branch
+sites. Sixteen source-shape attempts failed to reproduce this with the pinned
+GC/2.6 (and the whole 2.0-2.7 byte-identical plateau): pointer locals at every
+textual position (function top, after struct-ptr init, pre-loop before/after other
+pre-loop statements, in-loop top) all get computed-once-then-SPILLED to a stack
+slot and reloaded per site, never a register; member-array pointer locals,
+in-TU definition (global or static), inline-helper indirection, and in-place
+mask forms all compile byte-identical to the plain extern member access
+(MWCC canonicalizes them away); a volatile-forced memory home of another local
+(diagnostic only) frees a register but the freed register goes to a different
+variable, not the symbol base. Meanwhile calculateTextBlockWidth's TARGET (same
+original TU, same tables) does NOT pool - it uses per-use lis/addi of separate
+table symbols - so the original pooling in DrawText was a per-function allocator
+ranking outcome our compiler build hasn't reproduced from any tested source
+shape. If a stuck function's remaining diff hinges on a pooled extern-symbol
+base in a callee-saved reg, treat it as an allocator artifact class, log it, and
+spend effort elsewhere. Also confirmed here: a per-function mw_version sweep is
+worth running even inside a known plateau - DrawText IS version-sensitive
+(1.3.x differs from the 2.0-2.7 plateau; 3.0a regresses further) even though
+sibling text_width was not. First seen: text/text_draw.c DrawText (83.75%,
+sessions 1, 2026-08).

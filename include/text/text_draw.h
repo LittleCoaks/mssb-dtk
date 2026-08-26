@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void DrawText(void);
+void DrawText(s32 blockIndex);
 
 #endif // !__TEXT_TEXT_DRAW_H_

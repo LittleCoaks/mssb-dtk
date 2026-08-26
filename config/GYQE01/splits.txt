@@ -104,6 +104,7 @@ text/text_draw.c:
 	extab       start:0x80005718 end:0x80005720
 	extabindex  start:0x80006E04 end:0x80006E10
 	.text       start:0x80010498 end:0x80010F2C
+	.data       start:0x800EE6D4 end:0x800EE800
 
 text/text_draw_conditional.c:
 	extab       start:0x80005720 end:0x80005728

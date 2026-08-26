@@ -73,7 +73,8 @@ typedef struct ScreenTextPool {
     /* 0x798 */ TextBank* textBanks[25];
     /* 0x7FC */ u8 texCoordScaleX;  // scales glyph pixel coords into 1/0x400 texcoord units
     /* 0x7FD */ u8 texCoordScaleY;
-    /* 0x7FE */ u8 pad7FE[2];
+    /* 0x7FE */ u8 skipFlags;      // per-port bitmask: allow button-press text fast-forward
+    /* 0x7FF */ u8 pad7FF;
 } ScreenTextPool; // size 0x800
 
 typedef struct UnkText988Arg {
