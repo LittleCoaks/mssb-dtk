@@ -638,7 +638,7 @@ config.libs = [
             Object(NonMatching, "Unknown/File_0x8000e900.c"),
             Object(NonMatching, "Unknown/File_0x8000ef1c.c"),
             Object(NonMatching, "Unknown/File_0x8000f48c.c"),
-            Object(NonMatching, "Unknown/File_0x8000f988.c"),
+            Object(Matching, "Unknown/File_0x8000f988.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x8000fa9c.c"),
             Object(NonMatching, "Unknown/File_0x8000fd54.c"),
             Object(NonMatching, "Unknown/File_0x8000ff04.c"),
