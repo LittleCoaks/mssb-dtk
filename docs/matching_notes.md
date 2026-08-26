@@ -466,3 +466,19 @@ worth running even inside a known plateau - DrawText IS version-sensitive
 (1.3.x differs from the 2.0-2.7 plateau; 3.0a regresses further) even though
 sibling text_width was not. First seen: text/text_draw.c DrawText (83.75%,
 sessions 1, 2026-08).
+
+## Explicit pointer local vs. compiler strength reduction (extra `addi r0`/`mr rN` at loop setup)
+
+First seen: `text/text_draw_conditional.c` (2026-08). Symptom: LOGIC otherwise
+identical, but our loop setup emits `lis r4, sym@ha; addi r0, r4, sym@l;
+mr r31, r0` where the target has a single direct `addi r31, r4, sym@l`, and
+every later branch offset shifts by 4 as a cascade. Cause: the source
+declared an explicit pointer local (`ScreenText* block = arr.blocks;` with
+`block++` in the loop) where the original code just indexed the array
+(`arr.blocks[i].field`) and let MWCC's strength reduction synthesize the
+induction pointer itself. The compiler-generated induction variable gets
+initialized directly into its home register; a programmer-declared pointer
+initializes through a temp + `mr`. Fix: delete the pointer local and index
+the array directly. Related detail from the same function: equality operand
+order is observable in `cmpw` (target `cmpw r29(arg), r0(field)` required
+writing `group == blocks[i].drawGroup`, not the reverse).

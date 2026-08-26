@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void DrawTextOnCondition(void);
+void DrawTextOnCondition(s32 group);
 
 #endif // !__TEXT_TEXT_DRAW_CONDITIONAL_H_
