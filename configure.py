@@ -639,7 +639,7 @@ config.libs = [
             Object(NonMatching, "Unknown/File_0x8000ef1c.c"),
             Object(NonMatching, "Unknown/File_0x8000f48c.c"),
             Object(Matching, "text/text_channel.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(NonMatching, "text/text_width.c"),
+            Object(NonMatching, "text/text_width.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "text/text_block.c"),
             Object(Matching, "text/text_alloc.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "text/sprite_draw.c"),

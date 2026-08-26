@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void calculateTextBlockWidth(void);
+s32 calculateTextBlockWidth(s32 blockIndex);
 
 #endif // !__TEXT_TEXT_WIDTH_H_

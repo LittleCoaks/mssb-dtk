@@ -131,6 +131,30 @@ could be learned. Together with the six exhausted lever categories from
 sessions 1-9, this mismatch class is closed for batter.c absent genuinely new
 information.
 
+## Textual statement position as a register-allocation priority lever
+
+**Where a loop-invariant assignment sits in the SOURCE changes MWCC's
+register-coloring priorities even when the emitted instruction's final
+position is identical (LICM/scheduling hoists it to the same place either
+way).** Moving a pointer-load assignment between in-loop, pre-loop, block-top
+and use-site positions can re-rank which variables get volatile vs
+nonvolatile registers throughout the whole function, shifting dozens of
+register assignments at once with zero structural change. Confirmed
+repeatedly in `calculateTextBlockWidth` (`main/text/text_width`, still in
+progress): hoisting ONLY `bank23 = ...` textually above the loop snapped the
+stack frame to the target's size and fixed most of the volatile assignment
+order (+1.7%); a block-local `u8 st = text->style` at one branch's top
+(instead of reading `text->style` at the use) fixed another +2.3%; yet
+hoisting BOTH pointer loads, or placing the same statements one line
+earlier/later, regressed. The response is non-monotone and extremely
+position-sensitive — sweep one statement at a time, re-measuring each move,
+and treat "the compiler hoists it anyway so position can't matter" as a
+disproven assumption. Naming/scope/type changes that don't alter live ranges
+(u8 vs u32 vs int locals, merging single-use temps, function- vs block-scope
+declarations, declaration order) were all byte-identical no-ops in the same
+function — position was the only source-level lever that moved the
+allocator.
+
 ## Constant-pool / weak-symbol addressing
 
 **MWCC only uses section-base-relative constant-pool addressing (hoisting
@@ -255,7 +279,10 @@ front-end generation entirely). That byte-for-byte plateau across six
 adjacent releases is itself useful signal on any file: if a version sweep
 lands in a similar identical-output plateau, the compiler version isn't the
 lever for whatever's left — look elsewhere (source shape, or accept the
-mismatch is a genuine allocator artifact).
+mismatch is a genuine allocator artifact). Second data point:
+`main/text/text_width` (a GC/2.6-module DOL unit) showed the same plateau —
+1.3.2 through 2.7 all byte-identical, only 1.2.5/1.2.5n diverging (far
+worse) — so the plateau generalizes beyond batter.c's module.
 
 **Function-scoped `#pragma` bracketing is NOT a different lever from
 whole-file `extra_cflags` — for MWCC (this project's `mwcceppc.exe`), they
