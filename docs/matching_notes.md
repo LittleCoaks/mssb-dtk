@@ -508,3 +508,28 @@ reproduce this — MWCC folds the temp back into base-relative addressing
 (`lwz 0x20(bank)`). Relatedly, eliminating the `bank` local entirely
 (spelling every access as `screenTextArray.textBanks[0]->...`) was what
 fixed the pool-base/bank register coloring in the same function.
+
+## The sha check, not objdiff, catches missing extab — check before flipping to Matching
+
+First seen: `Unknown/File_0x800b0cb8.c` RunDrawScripts_with_stack_variables
+(2026-08). The function reached 100% in objdiff, but flipping the unit to
+`Matching` broke the `build.sha1` CHECK step: the target object carries
+`extab`/`extabindex` sections (this DOL region was compiled with exceptions
+on) that a default C compile does not emit, so the linked DOL diverged even
+though every instruction matched. objdiff's function score never surfaces
+this — its unit view shows extab at 0% but the classify/percent tools look
+at .text only. Fix is the established pattern:
+`extra_cflags=["-cpp_exceptions on"]` on the Object (see the `text/` units).
+Before promoting any DOL unit to Matching, grep `config/GYQE01/splits.txt`
+for an `extab` range on that unit.
+
+## A stack scratch buffer's size is invisible except through frame rounding
+
+Same function. Callbacks are invoked with pointers to local scratch buffers;
+the `addi rX, r1, off` argument setup pins each buffer's *base* offset, but
+nothing in .text pins the topmost buffer's *size* — it only feeds the frame
+size via MWCC's rounding. A 0x20 guess produced frame 0x50 vs target 0x40
+with every other instruction identical; sweeping the array length found
+0x14–0x1C all produce the target frame. When only the prologue/epilogue
+frame constants differ, sweep the size of the highest-addressed local
+instead of hunting for phantom temps.
