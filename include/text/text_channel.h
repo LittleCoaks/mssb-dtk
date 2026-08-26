@@ -30,7 +30,7 @@ typedef struct ScreenText {
     /* 0x00 */ u16* text;               // override glyph string (set per-channel)
     /* 0x04 */ u16* bankText;           // glyph string taken from a TextBank
     /* 0x08 */ u32 color;               // RGBA
-    /* 0x0C */ s32 unkC;
+    /* 0x0C */ u32 unkC;
     /* 0x10 */ u16 x;
     /* 0x12 */ u16 y;
     /* 0x14 */ s16 unk14;

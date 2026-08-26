@@ -2,7 +2,7 @@
 
 #include "text/text_channel.h"
 
-void fn_8000FD54(s32 blockIndex, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
+void text_setSubstringIndices(s32 blockIndex, s16 arg1, s16 arg2, s16 arg3, s16 arg4) {
     ScreenText* block = &screenTextArray.blocks[blockIndex];
 
     block->unk20 = arg1;

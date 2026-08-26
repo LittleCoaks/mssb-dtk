@@ -38,10 +38,10 @@ void DrawText(s32 blockIndex) {
     u32 color;
     s32 count;
     s32 letterFlag;
-    s32 maxL;
+    s16 maxL;
     u32 glyph;
     u16 masked;
-    s32 code;
+    u32 code;
     s32 val;
 
     text = &screenTextArray.blocks[blockIndex];
@@ -103,7 +103,7 @@ void DrawText(s32 blockIndex) {
         }
         while (1) {
             u32 g = *p++;
-            s32 c;
+            u32 c;
             if (!(g & 0x4000)) continue;
             c = g & 0x3FFF;
             if (c == 0) break;
@@ -126,7 +126,7 @@ void DrawText(s32 blockIndex) {
         }
         while (1) {
             u32 g = *p++;
-            s32 c;
+            u32 c;
             if (!(g & 0x4000)) continue;
             c = g & 0x3FFF;
             if (c == 0) break;
@@ -219,10 +219,10 @@ void DrawText(s32 blockIndex) {
                     u16 cell = (u16)g % 0x844;
                     s32 row = cell / 0x2E;
                     u16 col = cell % 0x2E;
-                    u16 t = row * h;
                     u16 s = col * w;
-                    dw = w;
+                    u16 t = row * h;
                     val = -val;
+                    dw = w;
                     if (text->unkC != 0) {
                         drawTransformedSprite(x + text->unk14, y + text->unk16, s, t, dw, text->unkC, style, (MtxPtr)text->text);
                     }
@@ -248,8 +248,8 @@ void DrawText(s32 blockIndex) {
                     u16 cell = (u16)g % 0x844;
                     s32 row = cell / 0x2E;
                     u16 col = cell % 0x2E;
-                    u16 t = row * h;
                     u16 s = col * w;
+                    u16 t = row * h;
                     if (text->unkC != 0) {
                         drawTransformedSprite(x + text->unk14, y + text->unk16, s, t, dw, text->unkC, style, (MtxPtr)text->text);
                     }
@@ -324,7 +324,7 @@ void DrawText(s32 blockIndex) {
             }
         } else {
             u16 gw;
-            u8 yoff;
+            s32 yoff;
             u16 s;
             u16 t;
             if (text->unk36 == 0) {
@@ -349,13 +349,13 @@ void DrawText(s32 blockIndex) {
                 yoff = lbl_800E8F60.yOffs[row2][style];
                 row = cell / 0x2E;
                 col = cell % 0x2E;
-                t = row * h;
                 s = col * w;
+                t = row * h;
             } else {
                 u16 rem;
                 s32 row;
-                gw = lbl_800E8F60.altWidths[(u16)glyph][style];
                 yoff = lbl_800E8F60.altYOffs[(u16)glyph][style];
+                gw = lbl_800E8F60.altWidths[(u16)glyph][style];
                 count++;
                 row = masked / 0x5C;
                 rem = masked % 0x5C;
