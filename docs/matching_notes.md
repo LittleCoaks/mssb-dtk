@@ -70,6 +70,17 @@ untouched. `static inline` doesn't add a symbol, so this is free. First
 seen: `calculateBuntVerticalAngle` / `calculateBuntVerticalAngle_unused` in
 `batter.c`.
 
+**MWCC `-O4,p` auto-unrolls trivial fixed-trip-count scan loops — write the
+plain loop, never hand-unroll.** A plain
+`for (i = 0; i < 30; i++) { if (arr[i].byteField == 0) break; }` over 0x38-byte
+structs compiled to a 10x-unrolled body under `mtctr 3` (trip count / unroll
+factor), with pointer strength reduction checking `0x2a(rX)` then `0x62(rX)`
+before the pointer bump — all generated automatically from the plain source
+loop, which matched 100% on the first attempt. If target asm shows a long
+repeated check/increment body ending in `bdnz`, reconstruct the simple loop
+and trust the compiler. First seen: `src/Unknown/File_0x8000ff04.c`,
+`initializeTextParameters`.
+
 ## Shared-block register rotation
 
 A "left-rotated by one" register assignment relative to target, isolated to
