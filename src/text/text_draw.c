@@ -16,7 +16,7 @@ typedef struct FontMetricsTables {
 } FontMetricsTables;
 
 extern FontMetricsTables lbl_800E8F60;
-extern u16 lbl_80366218[];
+extern u16 glyphRemapTable[];
 
 extern void fn_80062890(s32);
 
@@ -214,7 +214,7 @@ void DrawText(s32 blockIndex) {
                 u16 dw;
                 val = ((s16*)text)[code - 3];
                 if (val < 0) {
-                    u16* bank21 = (u16*)screenTextArray.textBanks[21];
+                    u16* bank21 = screenTextArray.digitGlyphs;
                     u32 g = bank21[10] & 0x7FFF;
                     u16 cell = (u16)g % 0x844;
                     s32 row = cell / 0x2E;
@@ -243,7 +243,7 @@ void DrawText(s32 blockIndex) {
                 dw = w;
                 dp = &digits[i];
                 while (i >= 0) {
-                    u16* bank21 = (u16*)screenTextArray.textBanks[21];
+                    u16* bank21 = screenTextArray.digitGlyphs;
                     u32 g = bank21[*dp] & 0x7FFF;
                     u16 cell = (u16)g % 0x844;
                     s32 row = cell / 0x2E;
@@ -338,9 +338,9 @@ void DrawText(s32 blockIndex) {
                 if (masked & 0x8000) {
                     g = glyph & 0x7FFF;
                 } else {
-                    g = lbl_80366218[(u16)glyph] & 0x7FFF;
+                    g = glyphRemapTable[(u16)glyph] & 0x7FFF;
                 }
-                bank23 = (u16*)screenTextArray.textBanks[23];
+                bank23 = screenTextArray.glyphBase;
                 base = *bank23 & 0x7FFF;
                 cell = (u16)g % 0x844;
                 row2 = cell - base - 1;

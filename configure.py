@@ -645,7 +645,7 @@ config.libs = [
             Object(NonMatching, "text/sprite_draw.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "text/text_draw.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "text/text_draw_conditional.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(NonMatching, "text/text_init.c"),
+            Object(Matching, "text/text_init.c"),
             Object(NonMatching, "Unknown/File_0x800127f8.c"),
             Object(NonMatching, "Unknown/File_0x80013680.c"),
             Object(NonMatching, "Unknown/File_0x80014d4c.c"),

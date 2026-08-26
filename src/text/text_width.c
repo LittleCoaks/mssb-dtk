@@ -1,7 +1,7 @@
 #include "text/text_width.h"
 #include "text/text_channel.h"
 
-extern u16 lbl_80366218[];
+extern u16 glyphRemapTable[];
 extern u8 lbl_800E8F60[][4];
 extern u8 lbl_800E90F4[][4];
 
@@ -31,7 +31,7 @@ s32 calculateTextBlockWidth(s32 blockIndex) {
         spaceWidth = 9;
     }
 
-    bank23 = (u16*)screenTextArray.textBanks[23];
+    bank23 = screenTextArray.glyphBase;
     while (1) {
         strings = screenTextArray.textBanks[0]->strings;
         if (fromSub != 0) {
@@ -127,7 +127,7 @@ s32 calculateTextBlockWidth(s32 blockIndex) {
                 if (masked & 0x8000) {
                     g = glyph & 0x7FFF;
                 } else {
-                    g = lbl_80366218[(u16)glyph] & 0x7FFF;
+                    g = glyphRemapTable[(u16)glyph] & 0x7FFF;
                 }
                 base = *bank23 & 0x7FFF;
                 pageIdx = (u16)g % 0x844;

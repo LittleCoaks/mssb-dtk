@@ -482,3 +482,29 @@ initializes through a temp + `mr`. Fix: delete the pointer local and index
 the array directly. Related detail from the same function: equality operand
 order is observable in `cmpw` (target `cmpw r29(arg), r0(field)` required
 writing `group == blocks[i].drawGroup`, not the reverse).
+
+## A stray `addi r0, rX, sym@l` + `mr` for a loop pointer means the loop was index-based
+
+First seen: `text/text_init.c` initTextRendering (2026-08). A copy/scan loop
+matched except for one extra `mr rHome, r0` materializing the destination
+pointer before the loop, where the target had `addi rHome, rHa, sym@l`
+directly. No placement, declaration-order, `register`, cast, or
+flag/mw_version permutation of a user-declared walking pointer removes it
+(~40 variants tried). The target register was MWCC's own strength-reduction
+induction variable: writing the loop with an integer index
+(`dst[i] = src[i]; i++;` inside `while (1)` with an early return) and no
+user destination pointer lets the compiler synthesize both walking pointers
+itself, matching instantly.
+
+## Re-reading a just-stored global forwards the stored register (avoids recompute)
+
+First seen: `text/text_init.c` initTextRendering (2026-08). Target had
+`lwz r3, 0x1c(r3)` where r3 still held a value just stored to a global
+(`stw r3, 0x7b4(r5)`). Writing the C as a read back through the stored
+field (`src = screenTextArray.textBanks[7]->strings[6];` right after the
+`textBanks[7] =` store) makes MWCC reuse the stored register directly. A
+source-level temp (`strs = bank->strings; ... src = strs[7];`) does NOT
+reproduce this — MWCC folds the temp back into base-relative addressing
+(`lwz 0x20(bank)`). Relatedly, eliminating the `bank` local entirely
+(spelling every access as `screenTextArray.textBanks[0]->...`) was what
+fixed the pool-base/bank register coloring in the same function.

@@ -70,7 +70,11 @@ typedef struct ScreenTextPool {
     /* 0x000 */ ScreenText blocks[30];
     /* 0x690 */ TextChannel channels[30];
     /* 0x780 */ u8 unk780[0x18];
-    /* 0x798 */ TextBank* textBanks[25];
+    /* 0x798 */ TextBank* textBanks[21]; // [0..6] string banks; [7] is overwritten at init with bank 0's strings base; [8..20] font-page textures
+    /* 0x7EC */ u16* digitGlyphs;   // cached bank 0 string 1: digit glyph codes 0-9, [10] = minus sign
+    /* 0x7F0 */ u16* unk7F0;        // cached bank 0 string 2
+    /* 0x7F4 */ u16* glyphBase;     // cached bank 0 string 5: [0] = first glyph cell covered by the metrics tables
+    /* 0x7F8 */ u16* unk7F8;        // cached bank 0 string 6
     /* 0x7FC */ u8 texCoordScaleX;  // scales glyph pixel coords into 1/0x400 texcoord units
     /* 0x7FD */ u8 texCoordScaleY;
     /* 0x7FE */ u8 skipFlags;      // per-port bitmask: allow button-press text fast-forward
