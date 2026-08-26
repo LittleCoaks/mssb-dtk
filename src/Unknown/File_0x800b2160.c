@@ -1,6 +1,6 @@
 #include "Unknown/File_0x800b2160.h"
 
-void setTextRenderingMode(void) {
+void setTextRenderingMode(s32 mode) {
     return;
 }
 

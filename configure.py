@@ -642,7 +642,7 @@ config.libs = [
             Object(NonMatching, "text/text_width.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "text/text_block.c"),
             Object(Matching, "text/text_alloc.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(NonMatching, "text/sprite_draw.c"),
+            Object(NonMatching, "text/sprite_draw.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "text/text_draw.c"),
             Object(NonMatching, "text/text_draw_conditional.c"),
             Object(NonMatching, "text/text_init.c"),

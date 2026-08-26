@@ -70,7 +70,10 @@ typedef struct ScreenTextPool {
     /* 0x000 */ ScreenText blocks[30];
     /* 0x690 */ TextChannel channels[30];
     /* 0x780 */ u8 unk780[0x18];
-    /* 0x798 */ TextBank* textBanks[26];
+    /* 0x798 */ TextBank* textBanks[25];
+    /* 0x7FC */ u8 texCoordScaleX;  // scales glyph pixel coords into 1/0x400 texcoord units
+    /* 0x7FD */ u8 texCoordScaleY;
+    /* 0x7FE */ u8 pad7FE[2];
 } ScreenTextPool; // size 0x800
 
 typedef struct UnkText988Arg {

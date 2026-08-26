@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-void setTextRenderingMode(void);
+void setTextRenderingMode(s32 mode);
 void fn_800B216C(void);
 void fn_800B21A8(void);
 

@@ -393,6 +393,42 @@ be flipped to Matching until they exist. Fix: add
 `File_0x800a64e0.c`). Check the target asm's header — if the .s file has
 `extab`/`extabindex` sections, the flag is needed.
 
+## Shared .sdata2 literal pool across split DOL text-engine units
+
+The DOL text-engine group (0x8000F150-0x80010498+, our text/*.c units) was
+one original translation unit: its float/double literal pool lives at
+0x803CC490+ inside `auto_12_803CC400_sdata2` and is referenced across our
+per-function unit boundaries (e.g. `fn_8000F150` and `drawTransformedSprite`
+both load `lbl_803CC490`). Consequences: (1) value constants with real
+names (`0.0f` = `lbl_803CC490`, `1.0f` = `lbl_803CC4A8`) CAN be matched by
+declaring them `extern f32` and using them in place of the literal -
+codegen stays byte-identical, only the reloc name changes; (2) MWCC's
+int-to-float conversion bias doubles (`lbl_803CC4A0` unsigned /
+`lbl_803CC4B0` signed, the 0x4330 magic) CANNOT - referencing them
+explicitly forces the fsub+frsp codegen path, while the implicit conversion
+emits the target's `fsubs` but pools the constant as an anonymous local
+`@NN`. Those reloc-name diffs are permanent split artifacts, and any unit
+emitting them also carries a local .sdata2 copy that has no home in the
+link layout - blocking an `Object(Matching)` flip until the text-engine
+units are eventually merged/unified. First seen: `text/sprite_draw.c`,
+`drawTransformedSprite` (exhausted at 99.33% for exactly this plus one
+allocator-quirk register cluster).
+
+## 0x10-stride vector locals and hoisted &local pointers
+
+Two stack-shape levers confirmed in `text/sprite_draw.c`: (1) when target
+has vector locals at 0x10 stride (0x8/0x18/0x28/0x38), declare them as a
+0x10-sized type (`Quaternion` worked; `Vec` packs at 0xC and shrinks the
+frame) - and MWCC assigns stack slots in reverse declaration order here, so
+declaring `c3;c2;c1;c0;` put `c0` at the lowest slot as the target wanted.
+(2) when target keeps `&local` addresses alive in callee-saved regs across
+intervening SDK calls (`PSMTXScale`/`Concat`) and reuses them for later
+call arguments, explicit pointer locals (`Vec* p1 = ...` as plain
+assignments placed just after the data-setup statements) reproduce it; the
+declaration-initializer form was drastically worse (95% vs 99.1%), so
+assignment position matters more than the pointers' existence. First seen:
+`drawTransformedSprite`.
+
 ## Split-merged .bss objects must be addressed through one containing struct
 
 First seen: `screenTextArray` (0x80366B18, size 0x800) in

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void DrawSprite_TexObj(void);
+void DrawSprite_TexObj(void* vtx, void* texObj, s32 arg2);
 
 #endif // !__UNKNOWN_FILE_0X800B1350_H_
