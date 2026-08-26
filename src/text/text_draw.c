@@ -257,8 +257,8 @@ void DrawText(s32 blockIndex) {
                     x += dw;
                     count++;
                     dp--;
-                    x += (s8)text->unk2D;
                     i--;
+                    x += (s8)text->unk2D;
                 }
                 break;
             }
