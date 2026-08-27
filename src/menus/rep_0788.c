@@ -13,6 +13,7 @@ extern u8 *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3714[];
 extern u8 lbl_800E869C[0x20];
 extern u8 Static_Stats_Tables[0x5240];
+extern s32 fn_8006C79C(u8 arg0);
 
 void fn_2_54354(void *arg0, int count);
 void fn_2_54234(void *arg0, int count);
@@ -1632,7 +1633,8 @@ void fn_2_2C1A8(void *arg0, void *arg1) {
     case 4:
         break;
     case 2: {
-        s16 pidx = *(s16 *)&lbl_2_bss_1A824C[0x190000 + 0x7706];
+        s8 *base = (s8 *)&lbl_2_bss_1A824C[0x190000];
+        s16 pidx = *(s16 *)&base[0x7706];
         u8 stat = lbl_800E869C[pidx];
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         *(u32 *)((u8 *)obj + 0x5C) = (u32)Static_Stats_Tables[(stat / 9) * 0x5a0 + (stat % 9) * 0xa0 + 0x31] << 16;
@@ -1720,8 +1722,57 @@ void fn_2_2C698(void) {
 }
 
 // .text:0x0002C860 size:0x1D0 mapped:0x8066B8F4
-void fn_2_2C860(void) {
-    return;
+void fn_2_2C860(void *arg0, void *arg1) {
+    s16 *state = (s16 *)((u8 *)arg1 + 0x4);
+    s16 result = fn_2_53BC8(arg1);
+    if (result != -1) {
+        *state = result;
+    }
+    switch (*state) {
+    case 0: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~2;
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        *((u8 *)obj + 0x68) = 0;
+        *state = 0x26;
+        break;
+    }
+    case 1:
+    case 3:
+    case 4:
+        break;
+    case 2: {
+        s16 v = *(s16 *)((u8 *)arg1 + 0xA);
+        s8 flag = lbl_2_bss_1A8248[v + 0x43c2];
+        TextGraphicsObject *obj;
+        if (flag == 1) {
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            *(u32 *)((u8 *)obj + 0x5C) = (u32)v << 16;
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            obj->flags |= 2;
+        } else {
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            obj->flags &= ~2;
+        }
+        *state = 0x25;
+        break;
+    }
+    case 5:
+        *(s16 *)((u8 *)arg1 + 0x6) = 0x1e;
+        *state = 6;
+        break;
+    case 6: {
+        s16 *counter = (s16 *)((u8 *)arg1 + 0x6);
+        if ((*counter)-- <= 0) {
+            TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            obj->flags &= ~2;
+        }
+        break;
+    }
+    case 7:
+    case 0x25:
+        break;
+    }
 }
 
 // .text:0x0002CA30 size:0x19C mapped:0x8066BAC4
@@ -1890,8 +1941,54 @@ void fn_2_2DAA8(void) {
 }
 
 // .text:0x0002DCA8 size:0x1D0 mapped:0x8066CD3C
-void fn_2_2DCA8(void) {
-    return;
+void fn_2_2DCA8(void *arg0, void *arg1) {
+    s16 *state = (s16 *)((u8 *)arg1 + 0x4);
+    s16 result = fn_2_53BC8(arg1);
+    if (result != -1) {
+        *state = result;
+    }
+    switch (*state) {
+    case 0: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~2;
+        *state = 0x26;
+        break;
+    }
+    case 1:
+    case 3:
+    case 4:
+        break;
+    case 2: {
+        TextGraphicsObject *obj;
+        load_Icon(arg0, *(s16 *)((u8 *)arg1 + 0xE), 1, 0x43, *(s16 *)((u8 *)arg1 + 0x10));
+        if (fn_8006C79C(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            *(u32 *)((u8 *)obj + 0x5C) = 0;
+        } else {
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            *(u32 *)((u8 *)obj + 0x5C) = 0x10000;
+        }
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags |= 2;
+        *state = 0x25;
+        break;
+    }
+    case 5:
+        *(s16 *)((u8 *)arg1 + 0x6) = 0x28;
+        *state = 6;
+        break;
+    case 6: {
+        s16 *counter = (s16 *)((u8 *)arg1 + 0x6);
+        if ((*counter)-- <= 0) {
+            TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            obj->flags &= ~2;
+        }
+        break;
+    }
+    case 7:
+    case 0x25:
+        break;
+    }
 }
 
 // .text:0x0002DE78 size:0x150 mapped:0x8066CF0C
