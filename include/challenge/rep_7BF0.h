@@ -3,11 +3,13 @@
 
 #include "mssbTypes.h"
 
+struct MenuDescendState;
+
 void fn_1_2858C(void);
 void fn_1_289C0(void);
-void fn_1_289E0(void);
-void fn_1_28AE0(void);
-void fn_1_28C34(void);
+void fn_1_289E0(struct MenuDescendState *arg0, u16 arg1);
+s32 fn_1_28AE0(struct MenuDescendState *arg0);
+void fn_1_28C34(struct MenuDescendState *arg0, s32 arg1, u32 arg2);
 void fn_1_28CE8(void);
 void fn_1_2905C(void);
 void fn_1_2935C(void);
