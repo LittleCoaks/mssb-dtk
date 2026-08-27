@@ -169,7 +169,7 @@ void fn_2_16460(void) {
     float cosY, sinY;
     float rx, rz, dx, dz;
     camera_803c639c_s *cam;
-    u8 *table;
+    const f32 *table;
     Vec *at;
     Vec *eye;
 
@@ -199,18 +199,18 @@ void fn_2_16460(void) {
 
     fn_80052D70();
 
-    table = lbl_2_data_19E8;
+    table = (const f32 *)lbl_2_data_19E8;
     cam = fn_80052768_getCamera(0);
-    cam->eye.x = *(f32 *)(table + 0x418);
-    cam->eye.y = *(f32 *)(table + 0x41C);
-    cam->eye.z = *(f32 *)(table + 0x420);
-    cam->target.x = *(f32 *)(table + 0x424);
-    cam->target.y = *(f32 *)(table + 0x428);
-    cam->target.z = *(f32 *)(table + 0x42C);
+    cam->eye.x = table[0x418 / 4];
+    cam->eye.y = table[0x41C / 4];
+    cam->eye.z = table[0x420 / 4];
+    cam->target.x = table[0x424 / 4];
+    cam->target.y = table[0x428 / 4];
+    cam->target.z = table[0x42C / 4];
 
     graphics_relatedToVsScreen();
 
-    makeLookAtMatrix(lbl_2_bss_1010C.viewMtx, eye, (Vec *)(table + 0x430), at);
+    makeLookAtMatrix(lbl_2_bss_1010C.viewMtx, eye, (Vec *)&table[0x430 / 4], at);
 }
 
 // .text:0x0001641C size:0x44 mapped:0x806554B0
@@ -293,6 +293,10 @@ commonTail:
     lbl_2_bss_100B8[0x4B] = 0;
 
     if (lbl_2_bss_100B8[0x4A] != 0) {
+        if (lbl_2_bss_100B8[0x4A] != 0) {
+            lbl_2_bss_100B8[0x4A] = 0;
+            return;
+        }
         fn_2_14574(&input);
         return;
     }
@@ -397,7 +401,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
         }
         capIdx = tmpCapIdx[idxVal];
 
-        if ((s8)charSelectStruct[0x7F + capIdx] < 0) {
+        if ((u32)charSelectStruct[0x7F + capIdx] >> 31) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 charID = captainSelect_processCursorMovement_getCharID(capIdx, currentHeldInput, newInput, processedInput);
                 val = charID;
