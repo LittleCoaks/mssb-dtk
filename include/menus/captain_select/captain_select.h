@@ -13,7 +13,7 @@ void fn_2_14574(controllerInputStruct *input);
 void checkForNewPlayer(void);
 void fn_2_14BB8(int port, int state);
 void captainSelect_handleCursor(u8 port, controllerInputStruct *input);
-void fn_2_14FB8(int port);
+void captainSelect_randomizeCaptainForSlot(int slot);
 void fn_2_150D0(u8 idx);
 BOOL loadNewCaptainModelOnCapSelectScreen(int currentCharId, int newCharId, int port, int arg3);
 void captainSelect_BPress(int idx);

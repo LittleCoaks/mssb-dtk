@@ -191,11 +191,11 @@ void fn_2_16460(void) {
     rz = lbl_2_bss_1010C.unk38;
     dx = rz * sinY - rx * cosY;
     dz = rz * cosY + rx * sinY;
-    eye->x += dx;
-    eye->z += dz;
-    at->x += eye->x;
-    at->y += eye->y;
-    at->z += eye->z;
+    lbl_2_bss_1010C.unk48 += dx;
+    lbl_2_bss_1010C.unk50 += dz;
+    at->x += lbl_2_bss_1010C.unk48;
+    lbl_2_bss_1010C.unk40 += lbl_2_bss_1010C.unk4C;
+    lbl_2_bss_1010C.unk44 += lbl_2_bss_1010C.unk50;
 
     fn_80052D70();
 
@@ -233,16 +233,16 @@ void captainSelect_handleInputs(int port) {
     if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1A] != 0 ||
         gameSetUpStep.unk55[p] != 0 ||
         aiPosSwapInputs[0xCF5D + slot] != 0) {
-        input.currentHeldInput = 0;
-        input.newInput = 0;
         input.processedInput = 0;
+        input.newInput = 0;
+        input.currentHeldInput = 0;
         goto commonTail;
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && lbl_803CBBC2[5] == 1) {
-        input.currentHeldInput = 0;
-        input.newInput = 0;
         input.processedInput = 0;
+        input.newInput = 0;
+        input.currentHeldInput = 0;
         goto commonTail;
     }
 
@@ -329,7 +329,10 @@ commonTail:
         goto callScreenInputs;
     }
 
-    cursorPositions[p] = lbl_2_bss_F410[slot + 4];
+    {
+        int *cur = &lbl_2_bss_F410[slot];
+        cursorPositions[p] = cur[4];
+    }
     {
         int origVal = lbl_2_bss_F410[cIdx4];
         int prevVal, curVal, mappedID;
@@ -343,35 +346,34 @@ commonTail:
 
     if (lbl_2_bss_F410[4 + (u8)port] == lbl_2_bss_F410[4 + ((u8)port ^ 1)]) {
         if (lbl_803C5EA4[5] != 0) {
-            int t = lbl_2_bss_F410[cIdx4] + 1;
-            lbl_2_bss_F410[cIdx4] = t;
-            if (t >= 0xC) {
+            lbl_2_bss_F410[cIdx4]++;
+            if (lbl_2_bss_F410[cIdx4] >= 0xC) {
                 lbl_2_bss_F410[cIdx4] = 0;
             }
             return;
         }
     }
 
-    if ((input.processedInput & 0xF) != 0 && (input.processedInput & 0x20) == 0) {
-        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-            if (input.processedInput & 0x3) {
-                challengeCaptainRelated();
-                updateCharacterSelectProcessCode(0, 3);
-                lbl_803CBBC2[2] = 3;
-            }
-            return;
-        }
-        if (input.newInput & 0x1000) {
-            return;
-        }
-        if (input.processedInput & 0xF) {
-            updateCharacterSelectProcessCode(slot, 3);
-        }
+    if ((input.processedInput & 0xF) == 0 || (input.processedInput & 0x20) != 0) {
+    callScreenInputs:
+        captainSelectScreenInputs(p, input.currentHeldInput, input.newInput, input.processedInput);
         return;
     }
 
-callScreenInputs:
-    captainSelectScreenInputs(p, input.currentHeldInput, input.newInput, input.processedInput);
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+        if (input.processedInput & 0x3) {
+            challengeCaptainRelated();
+            updateCharacterSelectProcessCode(0, 3);
+            lbl_803CBBC2[2] = 3;
+        }
+        return;
+    }
+    if (input.newInput & 0x1000) {
+        return;
+    }
+    if (input.processedInput & 0xF) {
+        updateCharacterSelectProcessCode(slot, 3);
+    }
 }
 
 // .text:0x00015AFC size:0x384 mapped:0x80654B90
@@ -482,10 +484,7 @@ void captainSelect_APress(int idx) {
     int val;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        if (lbl_2_bss_100B8[0x1C] != 0) {
-            return;
-        }
-        if (lbl_2_bss_100B8[0x42] != 0) {
+        if (lbl_2_bss_100B8[0x1C] != 0 || lbl_2_bss_100B8[0x42] != 0) {
             return;
         }
 
@@ -501,10 +500,7 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    if (lbl_2_bss_100B8[0x1C + (u8)idx] != 0) {
-        return;
-    }
-    if (lbl_2_bss_100B8[0x42 + (u8)idx] != 0) {
+    if (lbl_2_bss_100B8[0x1C + (u8)idx] != 0 || lbl_2_bss_100B8[0x42 + (u8)idx] != 0) {
         return;
     }
 
@@ -559,10 +555,10 @@ void captainSelect_APress(int idx) {
         gameSetUpStep.portCaptainSlot[(u8)idx] = 1;
         charSelectStruct[0x74 + captainIdx] = 1;
 
-        if (lbl_2_bss_F410[4] != 0) {
-            lbl_2_bss_F410[5] = 0;
-        } else {
+        if (lbl_2_bss_F410[4] == 0) {
             lbl_2_bss_F410[5] = 1;
+        } else {
+            lbl_2_bss_F410[5] = 0;
         }
 
         switch (captainIdx) {
@@ -604,21 +600,23 @@ void captainSelect_APress(int idx) {
 
 // .text:0x000151BC size:0x450 mapped:0x80654250
 void captainSelect_BPress(int idx) {
-    if (lbl_2_bss_100B8[0x10 + (u8)idx] != 0) {
-        lbl_2_bss_100B8[0x10 + (u8)idx] = 0;
-        lbl_2_bss_100B8[0x12 + (u8)idx] = 0;
-        Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[(u8)idx]] = 0;
-        add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.unk46E0[(u8)idx], 0);
+    u8 c = idx;
+
+    if (lbl_2_bss_100B8[0x10 + c] != 0) {
+        lbl_2_bss_100B8[0x10 + c] = 0;
+        lbl_2_bss_100B8[0x12 + c] = 0;
+        Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[c]] = 0;
+        add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.unk46E0[c], 0);
         goto exit;
     }
 
-    if ((u8)idx != 0) {
-        if (aiPosSwapInputs[0xCF5D + (u8)idx] != 0) {
-            aiPosSwapInputs[0xCF5D + (u8)idx] = 0;
+    if (c != 0) {
+        if (aiPosSwapInputs[0xCF5D + c] != 0) {
+            aiPosSwapInputs[0xCF5D + c] = 0;
         }
 
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-            u8 other;
+            int other;
 
             fn_2_16A74((u8)idx, 0);
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[0]]] = -1;
@@ -631,9 +629,9 @@ void captainSelect_BPress(int idx) {
             Static_Stats_Tables.unk46E0[1] = -1;
             updateCharacterSelectProcessCode(0, 4);
 
-            other = idx ^ 1;
+            other = (u8)idx ^ 1;
             AnimateCharacter(other, 0x69, 1, 1, 1, 0, 0, -1);
-            lbl_2_bss_100B8[0x40 + other] = 1;
+            lbl_2_bss_100B8[0x40 + (u8)other] = 1;
         } else {
             u8 v10 = lbl_2_bss_100B8[0x10];
 
@@ -647,7 +645,7 @@ void captainSelect_BPress(int idx) {
             }
 
             lbl_803C5EA4[5] = 0;
-            charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[(u8)idx]]] = -1;
+            charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[c]]] = -1;
 
             if (menuControlVariables->previousScreen == 0xa && v10 == 0) {
                 Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[0]] = 0;
@@ -656,9 +654,9 @@ void captainSelect_BPress(int idx) {
                 Static_Stats_Tables.unk46E0[1] = -1;
             }
 
-            lbl_2_bss_100B8[0x10 + (u8)idx] = 0;
-            lbl_2_bss_100B8[0x12 + (u8)idx] = 0;
-            gameSetUpStep.portCaptainSlot[(u8)idx] = 0;
+            lbl_2_bss_100B8[0x10 + c] = 0;
+            lbl_2_bss_100B8[0x12 + c] = 0;
+            gameSetUpStep.portCaptainSlot[c] = 0;
 
             if (lbl_2_bss_100B8[0x10] != 0) {
                 updateCharacterSelectProcessCode((u8)idx, 5);
@@ -705,7 +703,7 @@ void captainSelect_BPress(int idx) {
 exit:
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
         AnimateCharacter((u8)idx, 0x69, 1, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[0x40 + (u8)idx] = 1;
+        lbl_2_bss_100B8[0x40 + c] = 1;
     }
     cursorSndFx(0x200);
 }
@@ -733,23 +731,23 @@ void fn_2_150D0(u8 idx) {
 }
 
 // .text:0x00014FB8 size:0x118 mapped:0x8065404C
-void fn_2_14FB8(int port) {
+void captainSelect_randomizeCaptainForSlot(int slot) {
     int chosen[2];
     int i;
 
     chosen[0] = captainIDOrderedOnCapSS[lbl_2_bss_F410[4]];
     chosen[1] = captainIDOrderedOnCapSS[lbl_2_bss_F410[5]];
     do {
-        chosen[port] = stadiumRandomizer(0, 0x13);
+        chosen[slot] = stadiumRandomizer(0, 0x13);
         for (i = 0; i < 12; i++) {
-            if (captainIDOrderedOnCapSS[i] == chosen[port]) {
+            if (captainIDOrderedOnCapSS[i] == chosen[slot]) {
                 break;
             }
         }
     } while (i == 12 || chosen[0] == chosen[1]);
     {
-        int *slot = &lbl_2_bss_F410[port];
-        slot[4] = i;
+        int *entry = &lbl_2_bss_F410[slot];
+        entry[4] = i;
     }
 }
 
@@ -852,12 +850,16 @@ void checkForNewPlayer(void) {
     }
 
     newPlayerPort = -1;
-    if (Static_Stats_Tables.portsActiveInMatch[1] && (AtBat_ButtonInput1._22 & 0x100)) {
-        newPlayerPort = 1;
-    } else if (Static_Stats_Tables.portsActiveInMatch[2] && (AtBat_ButtonInput1._42 & 0x100)) {
-        newPlayerPort = 2;
-    } else if (Static_Stats_Tables.portsActiveInMatch[3] && (AtBat_ButtonInput1._62 & 0x100)) {
-        newPlayerPort = 3;
+    {
+        const u8 *inputBase = (const u8 *)&AtBat_ButtonInput1;
+        int i;
+        for (i = 1; i < 4; i++) {
+            if (Static_Stats_Tables.portsActiveInMatch[i] &&
+                (*(const u16 *)(inputBase + i * 0x20 + 2) & 0x100)) {
+                newPlayerPort = i;
+                break;
+            }
+        }
     }
     if (newPlayerPort == -1) {
         return;
@@ -894,7 +896,7 @@ void checkForNewPlayer(void) {
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
     aiPosSwapInputs[0xCF5E] = 0;
     charSelectStruct[0x80] = -1;
-    if (lbl_2_bss_F410[4] != 0) {
+    if (lbl_2_bss_F410[4] == 0) {
         lbl_2_bss_F410[5] = 1;
     } else {
         lbl_2_bss_F410[5] = 0;
@@ -926,7 +928,7 @@ void checkForNewPlayer(void) {
     do {
         prevID = lbl_2_bss_F410[5];
 checkForNewPlayer_loopTest:
-        if (lbl_2_bss_F410[5] != prevID) {
+        if (prevID != lbl_2_bss_F410[5]) {
             lbl_2_bss_100B8[0x1D] = 1;
         } else if (lbl_2_bss_100B8[0x1D] != 0) {
             int t = lbl_2_bss_100B8[0x1D] + 1;
@@ -950,6 +952,14 @@ checkForNewPlayer_loopTest:
     sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
 }
 
+static f32 stepValueDown(f32 v) {
+    return (f32)((f64)(320.0f + v) - 0.1) - 320.0f;
+}
+
+static f32 stepValueUp(f32 v) {
+    return (f32)((f64)(320.0f + v) + 0.1) - 320.0f;
+}
+
 // .text:0x00014574 size:0x21C mapped:0x80653608
 void fn_2_14574(controllerInputStruct *input) {
     if (input->processedInput & 8) {
@@ -966,7 +976,7 @@ void fn_2_14574(controllerInputStruct *input) {
         if (input->currentHeldInput & 0x200) {
             lbl_2_bss_1010C.unk48 -= 0.1f;
         } else if (input->currentHeldInput & 0x100) {
-            lbl_2_bss_1010C.unk4C -= 1.0f;
+            lbl_2_bss_1010C.unk4C -= 0.1f;
         } else if (input->currentHeldInput & 0x400) {
             lbl_2_bss_1010C.unk50 -= 0.1f;
         }
@@ -974,17 +984,17 @@ void fn_2_14574(controllerInputStruct *input) {
     }
     if (input->processedInput & 1) {
         if (input->currentHeldInput & 0x200) {
-            lbl_2_data_20F8[0] = (float)((double)(320.0f + lbl_2_data_20F8[0]) - 0.1) - 320.0f;
+            lbl_2_data_20F8[0] = stepValueDown(lbl_2_data_20F8[0]);
         } else if (input->currentHeldInput & 0x100) {
-            lbl_2_data_20F8[1] = (float)((double)(320.0f + lbl_2_data_20F8[1]) - 0.1) - 320.0f;
+            lbl_2_data_20F8[1] = stepValueDown(lbl_2_data_20F8[1]);
         }
         return;
     }
     if (input->processedInput & 2) {
         if (input->currentHeldInput & 0x200) {
-            lbl_2_data_20F8[0] = (float)((double)(320.0f + lbl_2_data_20F8[0]) + 0.1) - 320.0f;
+            lbl_2_data_20F8[0] = stepValueUp(lbl_2_data_20F8[0]);
         } else if (input->currentHeldInput & 0x100) {
-            lbl_2_data_20F8[1] = (float)((double)(320.0f + lbl_2_data_20F8[1]) + 0.1) - 320.0f;
+            lbl_2_data_20F8[1] = stepValueUp(lbl_2_data_20F8[1]);
         }
     }
 }

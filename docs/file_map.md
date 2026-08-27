@@ -218,11 +218,11 @@ the `high` bar the tag denotes. The same trick should name more menu units as th
 are split -- panic and assert strings are the cheapest source of original filenames
 in this REL.
 
-### captain_select/ — 1 file, 17 fns (8 named)
+### captain_select/ — 1 file, 17 fns (10 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `captain_select.c` | `rep_04B0` | 17 (8) | 8,956 | Captain Select screen: per-port cursor movement, A/B press handling, new-player/controller detection, swapping the displayed captain model as the cursor moves, and initial port activation on first load of the screen. | high |
+| `captain_select.c` | `rep_04B0` | 17 (10) | 8,956 | Captain Select screen: per-port cursor movement, A/B press handling, new-player/controller detection, swapping the displayed captain model as the cursor moves, and initial port activation on first load of the screen. | high |
 
 `captainSelect*` is a distinct symbol family from the much larger
 `characterSelect*`/`css*` one — `cssReturnToCapSelect_maybe` returns *to* captain
