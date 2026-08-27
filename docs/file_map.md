@@ -204,6 +204,51 @@ once its evidence clears the same bar used for `src/game` above, and moves into 
 category folder only once that category has more than one member -- `yd_step.c`
 below is named but unfoldered because the module has exactly one scene dispatcher.
 
+Of the 42 units, **26 are pure `.rodata`** (no `.text` at all -- each one is a
+single 0x50-byte `repHeaderData` table slot with no code to decompile) and
+**16 hold actual code**. The 26 rodata-only units are filler: `rep_0010,
+rep_0060, rep_00B0, rep_0100, rep_0150, rep_0278, rep_02C8, rep_0318,
+rep_0398, rep_03E8, rep_05F0, rep_0640, rep_0690, rep_06E0, rep_07F0,
+rep_0898, rep_09B8, rep_0A08, rep_0C50, rep_0CA0, rep_0CF0, rep_0D40,
+rep_0D90, rep_0F10, rep_0FD8, rep_11C0`. All 16 code units are already
+100% matched or already have a file below except these 9, still fully
+`fn_2_*`/unnamed and ranked here by current fuzzy-match % (2026-08 objdiff
+report) as a decompilation priority list for this module:
+
+| unit | fuzzy % | fns | notes |
+|---|---|---|---|
+| `rep_1028` | 2.72% | 88 | large, unnamed |
+| `rep_0B08` | 1.33% | 132 | large, 1/132 named (`checkForButtonPressToSkip_maybe`) |
+| `rep_08E8` | 1.02% | 45 | unnamed |
+| `rep_0DE0` | 0.78% | 17 | unnamed |
+| `rep_0568` | 0.74% | 20 | 1/20 named (`captainSelectLoadScreen`), see captain_select note below |
+| `rep_0788` | 0.65% | 150 | unnamed; likely the character-select engine (its largest function calls `changeScreenVariables` with team-select/challenge-map/main-menu targets, the css transition set) |
+| `rep_0438` | 0.61% | 10 | 3/10 named, see captain_select note below |
+| `rep_0F60` | 0.61% | 25 | unnamed |
+| `rep_0840` | 0.58% | 1 | unnamed, single function |
+| `rep_10C0` | 0.53% | 11 | unnamed |
+| `rep_0AB0` | 0.23% | 12 | 1/12 named (`recordsScreen`) |
+| `rep_0730` | 0.12% | 1 | unnamed, single function |
+| `rep_0A58` | 0.11% | 1 | unnamed, single 0xDCC-byte function with no recovered internal boundaries -- screen-table entry 7 |
+
+`rep_01A0` (98.50% fuzzy, 9/10 fns matched -- the menu sound layer: BGM/SFX
+`sndFX*`/`sndSeq*` calls) is one function short of closing out; that
+function (`fn_2_E84`) is confirmed-exhausted (see `matching_notes.md`), so
+it isn't a live target without new information.
+
+There is also a large (~69 KB, `.text:0x1254`-`0x12238`) unclaimed block
+holding most of the menu REL's well-known named functions --
+`mainMenuScreen`, `titleScreen`, `optionsScreen`, `selectStadiumScreen`,
+`challengeFileSelect`, `challengeMap`, `teamSelectScreenMain`,
+`stadiumRandomizer`, and the whole `css*` family. It has no unit/file at
+all yet (declared nowhere in `splits.txt`, linked straight from the
+retail object). `tools/augment_splits.py`'s rodata-correlation heuristic
+cannot split it -- checked 2026-08, it has no rodata references to
+correlate on -- so organizing it needs address-window chunking (a stub
+generation pass, one `.c` per function or byte range) instead. Not
+attempted yet; would be a similar scope to the original menu/unused_rel
+stub trees.
+
 ### top level — 1 file, 7 fns (3 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
