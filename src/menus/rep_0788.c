@@ -182,16 +182,17 @@ void fn_2_20D08(void) {
 
 // .text:0x0002416C size:0xCC mapped:0x80663200
 void fn_2_2416C(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
-    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    DrawingSceneStruct *item;
+    switch (*(u16 *)((u8 *)currentDrawingItem + 0x1C)) {
     case 1:
         break;
     case 0:
-        fn_2_4E878(item, lbl_2_data_1061C);
-        *(s16 *)((u8 *)item + 0x1C) = 1;
-        *(s16 *)((u8 *)item + 0x18) = 0;
+        fn_2_4E878(currentDrawingItem, lbl_2_data_1061C);
+        *(s16 *)((u8 *)currentDrawingItem + 0x1C) = 1;
+        *(s16 *)((u8 *)currentDrawingItem + 0x18) = 0;
         break;
     }
+    item = currentDrawingItem;
     fn_2_53F88(item);
     fn_2_54120();
     if (lbl_2_bss_1A8234[0x160000 + 0x2992] != 0) {
@@ -763,7 +764,7 @@ void fn_2_2749C(void *arg0, void *arg1) {
     }
     {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-        *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00) | *(s16 *)((u8 *)arg1 + 0x12);
+        *(u32 *)((u8 *)obj + 0x58) = *(s16 *)((u8 *)arg1 + 0x12) | (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00);
     }
 }
 
@@ -809,7 +810,7 @@ void fn_2_27660(void *arg0, void *arg1) {
     }
     {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-        *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00) | *(s16 *)((u8 *)arg1 + 0x12);
+        *(u32 *)((u8 *)obj + 0x58) = *(s16 *)((u8 *)arg1 + 0x12) | (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00);
     }
 }
 
@@ -851,8 +852,8 @@ void fn_2_279F4(void *arg0, void *arg1) {
     case 6: {
         s16 *counter = (s16 *)((u8 *)arg1 + 0x6);
         if ((*counter)-- <= 0) {
-            TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-            *((u8 *)obj + 0x68) = 0;
+            TextGraphicsObject *obj;
+            *((u8 *)graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object + 0x68) = 0;
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
             obj->flags &= ~2;
         }
@@ -886,8 +887,9 @@ void fn_2_27B7C(void *arg0, void *arg1) {
         break;
     case 2: {
         TextGraphicsObject *obj;
-        s8 b1 = lbl_2_bss_1A824C[0x190000 + 0x78F0];
-        s8 b2 = *(s8 *)&lbl_2_bss_1A824C[0x190000 + b1 + 0x78DB];
+        s8 *base = (s8 *)&lbl_2_bss_1A824C[0x190000];
+        s8 b1 = base[0x78F0];
+        s8 b2 = base[b1 + 0x78DB];
         text_setPtrToWhereCharsAreStored(*(s16 *)((u8 *)arg1 + 0x14), 4, b2 + 0x35c);
         obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags |= 2;
@@ -911,7 +913,7 @@ void fn_2_27B7C(void *arg0, void *arg1) {
     screenTextArray.blocks[*(s16 *)((u8 *)arg1 + 0x14)].justify = 1;
     {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-        *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00) | *(s16 *)((u8 *)arg1 + 0x12);
+        *(u32 *)((u8 *)obj + 0x58) = *(s16 *)((u8 *)arg1 + 0x12) | (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00);
     }
 }
 
@@ -2169,8 +2171,8 @@ void fn_2_316F8(void *arg0, void *arg1) {
     case 6: {
         s16 *counter = (s16 *)((u8 *)arg1 + 0x6);
         if ((*counter)-- <= 0) {
-            TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-            *((u8 *)obj + 0x68) = 0;
+            TextGraphicsObject *obj;
+            *((u8 *)graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object + 0x68) = 0;
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
             obj->flags &= ~2;
         }
@@ -2204,8 +2206,9 @@ void fn_2_31880(void *arg0, void *arg1) {
         break;
     case 2: {
         TextGraphicsObject *obj;
-        s8 b1 = lbl_2_bss_1A824C[0x190000 + 0x7867];
-        s8 b2 = *(s8 *)&lbl_2_bss_1A824C[0x190000 + b1 + 0x7868];
+        s8 *base = (s8 *)&lbl_2_bss_1A824C[0x190000];
+        s8 b1 = base[0x7867];
+        s8 b2 = base[b1 + 0x7868];
         text_setPtrToWhereCharsAreStored(*(s16 *)((u8 *)arg1 + 0x14), 4, b2 + 0x316);
         obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags |= 2;
@@ -2229,7 +2232,7 @@ void fn_2_31880(void *arg0, void *arg1) {
     screenTextArray.blocks[*(s16 *)((u8 *)arg1 + 0x14)].justify = 1;
     {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-        *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00) | *(s16 *)((u8 *)arg1 + 0x12);
+        *(u32 *)((u8 *)obj + 0x58) = *(s16 *)((u8 *)arg1 + 0x12) | (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00);
     }
 }
 
@@ -2362,8 +2365,8 @@ void fn_2_31F50(void *arg0, void *arg1) {
     case 6: {
         s16 *counter = (s16 *)((u8 *)arg1 + 0x6);
         if ((*counter)-- <= 0) {
-            TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-            *((u8 *)obj + 0x68) = 0;
+            TextGraphicsObject *obj;
+            *((u8 *)graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object + 0x68) = 0;
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
             obj->flags &= ~2;
         }
@@ -2516,7 +2519,7 @@ void fn_2_325E8(void *arg0, void *arg1) {
     screenTextArray.blocks[*(s16 *)((u8 *)arg1 + 0x14)].justify = 1;
     {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-        *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00) | *(s16 *)((u8 *)arg1 + 0x12);
+        *(u32 *)((u8 *)obj + 0x58) = *(s16 *)((u8 *)arg1 + 0x12) | (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00);
     }
 }
 
@@ -2646,7 +2649,7 @@ void fn_2_32A78(void *arg0, void *arg1) {
     screenTextArray.blocks[*(s16 *)((u8 *)arg1 + 0x14)].justify = 1;
     {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
-        *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00) | *(s16 *)((u8 *)arg1 + 0x12);
+        *(u32 *)((u8 *)obj + 0x58) = *(s16 *)((u8 *)arg1 + 0x12) | (*(u32 *)((u8 *)obj + 0x58) & 0xFFFFFF00);
     }
 }
 
