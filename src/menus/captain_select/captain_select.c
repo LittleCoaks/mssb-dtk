@@ -163,8 +163,8 @@ void fn_2_16460(void) {
        the original binary's .rodata; removing it shifts every later pool
        constant and breaks the byte match. */
     static const struct { s32 sentinel; Vec v; } kOffsetVec = { -1, { 0.0f, 0.0f, 100.0f } };
-    Vec offset = kOffsetVec.v;
     Vec rot;
+    Vec offset = kOffsetVec.v;
     Mtx mtxX, mtxY, mtxConcat;
     float cosY, sinY;
     float rx, rz, dx, dz;
@@ -511,8 +511,11 @@ void captainSelect_APress(int idx) {
         }
     }
 
-    AnimateCharacter((u8)idx, 0x6A, 0, 1, 1, 0, 0, -1);
-    QueueCharacterAnimation((u8)idx, 0x6B, 1, 1, 0, 0, -1);
+    {
+        u8 a = idx;
+        AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
+        QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
+    }
     lbl_2_bss_100B8[0x40 + (u8)idx] = 0;
     if (lbl_2_bss_100B8[0x10 + (u8)idx] != 0) {
         return;
