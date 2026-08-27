@@ -34,6 +34,7 @@ compile_commands.json
 # Miscellaneous
 /*.txt
 *.exe
+*.log
 
 # Derived Ghidra symbol/type dumps (rebuild with: python tools/ghidra_query.py refresh)
 .ghidra_cache/
