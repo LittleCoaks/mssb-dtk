@@ -2,31 +2,32 @@
 #define __UNUSED_REL_REP_7730_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
 
 void fn_1_1D694(void);
 void fn_1_1D944(void);
 void fn_1_1DA54(void);
 void fn_1_1DCE4(void);
-void fn_1_1DD48(void);
+f32 fn_1_1DD48(u16 flags, s32 neg, f32 value, f32 opt1, f32 def, f32 opt2, f32 lo, f32 hi);
 void fn_1_1DD94(void);
-void fn_1_1DDE4(void);
-void fn_1_1DDF4(void);
-void fn_1_1DE04(void);
-void fn_1_1DE14(void);
-void fn_1_1DE20(void);
-void fn_1_1DE30(void);
-void fn_1_1DE40(void);
-void fn_1_1DE50(void);
+void fn_1_1DDE4(f32 arg0);
+void fn_1_1DDF4(f32 arg0);
+void fn_1_1DE04(f32 arg0);
+void fn_1_1DE14(f32 arg0);
+f32 fn_1_1DE20(void);
+f32 fn_1_1DE30(void);
+f32 fn_1_1DE40(void);
+f32 fn_1_1DE50(void);
 void fn_1_1DE5C(void);
 void fn_1_1DE60(void);
 void fn_1_1E28C(void);
 void fn_1_1E290(void);
-void fn_1_1E5D0(void);
-void fn_1_1E8C0(void);
+void fn_1_1E5D0(void *arg0);
+void fn_1_1E8C0(s32 arg0);
 void fn_1_1E90C(void);
 void fn_1_1EFF4(void);
 void fn_1_1F05C(void);
-void fn_1_1F23C(void);
+void fn_1_1F23C(u8 *arg0);
 void fn_1_1F2D8(void);
 void fn_1_1F418(void);
 void fn_1_1F618(void);
@@ -56,7 +57,7 @@ void fn_1_22DF4(void);
 void fn_1_22F4C(void);
 void fn_1_23098(void);
 void fn_1_23804(void);
-void fn_1_23AD8(void);
+void fn_1_23AD8(Mtx44 m, f32 *arg1, f32 *arg2);
 void fn_1_23B54(void);
 void fn_1_24410(void);
 void fn_1_246AC(void);
