@@ -486,6 +486,7 @@ void fn_2_15A90(int *value, u8 port, int max) {
 void captainSelect_APress(int idx) {
     int charID;
     int val;
+    u8 c;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (lbl_2_bss_100B8[0x1C] != 0 || lbl_2_bss_100B8[0x42] != 0) {
@@ -504,13 +505,15 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    if (lbl_2_bss_100B8[0x1C + (u8)idx] != 0 || lbl_2_bss_100B8[0x42 + (u8)idx] != 0) {
+    c = idx;
+
+    if (lbl_2_bss_100B8[0x1C + c] != 0 || lbl_2_bss_100B8[0x42 + c] != 0) {
         return;
     }
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-        void *model = hugeAnimStruct._2C50[(u8)idx];
-        if (*((u8 *)model + 0x25D) == 0 && (u8)idx != 0) {
+        void *model = hugeAnimStruct._2C50[c];
+        if (*((u8 *)model + 0x25D) == 0 && c != 0) {
             return;
         }
     }
@@ -520,27 +523,27 @@ void captainSelect_APress(int idx) {
         AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
     }
-    lbl_2_bss_100B8[0x40 + (u8)idx] = 0;
-    if (lbl_2_bss_100B8[0x10 + (u8)idx] != 0) {
+    lbl_2_bss_100B8[0x40 + c] = 0;
+    if (lbl_2_bss_100B8[0x10 + c] != 0) {
         return;
     }
 
     charID = mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4 + (u8)idx]];
-    Static_Stats_Tables.unk46E0[(u8)idx] = charID;
+    Static_Stats_Tables.unk46E0[c] = charID;
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && (u8)idx != 0) {
         if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
-            add_or_RemoveCharToATeam(1, Static_Stats_Tables.unk46E0[(u8)idx], 1);
+            add_or_RemoveCharToATeam(1, Static_Stats_Tables.unk46E0[c], 1);
         } else {
-            add_or_RemoveCharToATeam(0, Static_Stats_Tables.unk46E0[(u8)idx], 1);
+            add_or_RemoveCharToATeam(0, Static_Stats_Tables.unk46E0[c], 1);
         }
     } else {
-        add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[(u8)idx], Static_Stats_Tables.unk46E0[(u8)idx], 1);
+        add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.unk46E0[c], 1);
     }
 
     charID = mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4 + (u8)idx]];
-    lbl_2_bss_100B8[0x10 + (u8)idx] = 1;
-    lbl_2_bss_100B8[0x12 + (u8)idx] = 1;
+    lbl_2_bss_100B8[0x10 + c] = 1;
+    lbl_2_bss_100B8[0x12 + c] = 1;
     Static_Stats_Tables.unk4757[charID] = 1;
 
     if ((u8)idx != 0) {
@@ -559,7 +562,7 @@ void captainSelect_APress(int idx) {
         updateCharacterSelectProcessCode(1, 6);
 
         captainIdx = (Static_Stats_Tables.playerNumberByPort[0] == 0);
-        gameSetUpStep.portCaptainSlot[(u8)idx] = 1;
+        gameSetUpStep.portCaptainSlot[c] = 1;
         charSelectStruct[0x74 + captainIdx] = 1;
 
         if (lbl_2_bss_F410[4] == 0) {
@@ -900,9 +903,9 @@ void checkForNewPlayer(void) {
     charSelectStruct[0x74 + Static_Stats_Tables.playerNumberByPort[1]] = 0;
     updateCharacterSelectProcessCode(1, 1);
 
+    charSelectStruct[0x80] = -1;
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
     aiPosSwapInputs[0xCF5E] = 0;
-    charSelectStruct[0x80] = -1;
     if (lbl_2_bss_F410[4] == 0) {
         lbl_2_bss_F410[5] = 1;
     } else {
