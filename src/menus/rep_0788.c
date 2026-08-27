@@ -182,17 +182,16 @@ void fn_2_20D08(void) {
 
 // .text:0x0002416C size:0xCC mapped:0x80663200
 void fn_2_2416C(void) {
-    DrawingSceneStruct *item;
-    switch (*(u16 *)((u8 *)currentDrawingItem + 0x1C)) {
+    DrawingSceneStruct *item = currentDrawingItem;
+    switch (*(u16 *)((u8 *)item + 0x1C)) {
     case 1:
         break;
     case 0:
-        fn_2_4E878(currentDrawingItem, lbl_2_data_1061C);
-        *(s16 *)((u8 *)currentDrawingItem + 0x1C) = 1;
-        *(s16 *)((u8 *)currentDrawingItem + 0x18) = 0;
+        fn_2_4E878(item, lbl_2_data_1061C);
+        *(s16 *)((u8 *)item + 0x1C) = 1;
+        *(s16 *)((u8 *)item + 0x18) = 0;
         break;
     }
-    item = currentDrawingItem;
     fn_2_53F88(item);
     fn_2_54120();
     if (lbl_2_bss_1A8234[0x160000 + 0x2992] != 0) {

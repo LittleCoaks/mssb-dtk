@@ -90,6 +90,25 @@ index against the trip count. The plain loop matched 100% first try; the
 early-`break` scan form is what gets the partial (10x + `bdnz`) unroll
 instead. First seen: `text_freeAllBlocks` in `src/text/text_block.c`.
 
+**Operand order of a commutative bitwise operator is a real register-allocation
+lever — `a | b` and `b | a` do not compile to the same register assignment.**
+For a mask-and-merge `x = (x & MASK) | v;` whose diff against the target was a
+*pure register-naming* difference (same opcodes, same instruction order, same
+operand roles, only the register numbers different), rewriting it as
+`x = v | (x & MASK);` matched exactly. Putting the loaded value first gives it a
+proper allocatable register and frees the low register for the array base,
+reproducing the target's allocation. Nothing else in the source changed. First
+seen: `src/menus/rep_0788.c`, the shared post-switch tail block of `fn_2_2749C` /
+`fn_2_27660` / `fn_2_325E8` / `fn_2_32A78` — 99.27-99.47% -> 100% on four
+functions from the one operand swap, verified regression-free across all 150
+functions in the unit. It also silently fixed an adjacent block in the same
+allocation region that had the identical symptom.
+
+Try this FIRST on any commutative expression (`|`, `&`, `^`, `+`, `*`) whose block
+differs from target only by register naming. It is a trivial source edit and costs
+one build, so it should be ruled in or out before any open-ended
+declaration-order or local-variable-ordering sweep.
+
 ## Shared-block register rotation
 
 A "left-rotated by one" register assignment relative to target, isolated to
@@ -130,6 +149,13 @@ matched function exists from which the missing fifth ordering's source shape
 could be learned. Together with the six exhausted lever categories from
 sessions 1-9, this mismatch class is closed for batter.c absent genuinely new
 information.
+
+**Untried as of this writing: commutative-operand-order (see "Operand order of a
+commutative bitwise operator" above).** The symptom recorded in this section —
+correct instructions, correct order, wrong register names, isolated to a single
+shared CSE block — is exactly the symptom that the operand swap resolved in
+`src/menus/rep_0788.c`. Worth a pass over the block's commutative expressions
+before further declaration-order sweeps.
 
 ## Textual statement position as a register-allocation priority lever
 
