@@ -360,7 +360,7 @@ commonTail:
 
     if ((input.processedInput & 0xF) == 0 || (input.processedInput & 0x20) != 0) {
     callScreenInputs:
-        captainSelectScreenInputs(p, input.currentHeldInput, input.newInput, input.processedInput);
+        captainSelectScreenInputs((u8)port, input.currentHeldInput, input.newInput, input.processedInput);
         return;
     }
 
@@ -395,7 +395,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
         u8 idxVal = gameSetUpStep.portCaptainSlot[port];
 
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && gameSetUpStep.portCaptainSlot[0] == 1) {
-            tmpCapIdx[idxVal] = 1;
+            tmpCapIdx[idxVal] = gameSetUpStep.portCaptainSlot[0];
         } else {
             tmpCapIdx[idxVal] = Static_Stats_Tables.playerNumberByPort[idxVal];
         }
@@ -431,6 +431,10 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
             }
             aiPosSwapInputs[0xCF5D + gameSetUpStep.portCaptainSlot[port]] = 0;
         }
+        return;
+    }
+
+    if (aiPosSwapInputs[0xCF5D + gameSetUpStep.portCaptainSlot[port]] != 0) {
         return;
     }
 
@@ -846,6 +850,8 @@ void checkForNewPlayer(void) {
     int prevID;
     int val;
 
+    newPlayerPort = -1;
+
     if (lbl_2_bss_100B8[0x19] == 0) {
         return;
     }
@@ -859,7 +865,6 @@ void checkForNewPlayer(void) {
         return;
     }
 
-    newPlayerPort = -1;
     {
         const u8 *inputBase = (const u8 *)&AtBat_ButtonInput1;
         int i;

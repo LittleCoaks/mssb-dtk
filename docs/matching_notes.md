@@ -533,3 +533,103 @@ with every other instruction identical; sweeping the array length found
 0x14–0x1C all produce the target frame. When only the prologue/epilogue
 frame constants differ, sweep the size of the highest-addressed local
 instead of hunting for phantom temps.
+
+## A stored constant that the guard already proves: store the compared register, not the literal
+
+First seen: `menus/captain_select/captain_select.c`, `captainSelectScreenInputs`
+(95.96% -> 96.4%, session 17, 2026-08).
+
+Symptom: inside a branch guarded by a comparison like `if (... && field == 1)`, the
+target STORES A REGISTER it already loaded and compared, and emits no `li` for the
+constant at all:
+
+    lbz    r0, 0x0(r31)      ; the field
+    cmplwi r0, 0x1           ; the guard's comparison
+    bne    <else>
+    stbx   r0, r7, r3        ; stores r0 — the compared register
+
+while we emit an extra `li r0, 0x1` and store that. Cause: the original source did
+not write the literal. It wrote the expression the guard just tested —
+`tmpCapIdx[idxVal] = gameSetUpStep.portCaptainSlot[0];`, not
+`tmpCapIdx[idxVal] = 1;`. The two are behaviourally identical on that path precisely
+because the guard proves it, which is what makes the substitution safe.
+
+The cost is never just the one instruction: the extra `li` occupies a register and
+cascaded into ~14 rows of register-allocation divergence through the rest of the
+block here. Whenever a target stores a constant inside a branch whose condition
+proves a nearby expression EQUALS that constant, and it does so without materialising
+the constant, write the expression instead of the literal.
+
+## Genuinely dead code is reproducible, and the recipe is "re-test the global"
+
+First seen: `menus/captain_select/captain_select.c` — `captainSelect_handleInputs`
+(sessions 15) and `captainSelectScreenInputs` (95.49% -> 95.96%, session 17, 2026-08).
+
+Original builds retain unreachable instructions that the compiler did not eliminate:
+a conditional branch immediately after an unconditional one, or a test on a condition
+register that provably still holds the opposite result. Two independent instances in
+one file have now been reproduced, and one of them also closed a long-standing
+frame-size residual — dead code occupies registers and branch slots like any other
+code, so do not deprioritise it on the grounds that "it does nothing".
+
+The recipe that worked both times: **re-test the same GLOBAL EXPRESSION.** A cached
+local (`u8 dispatch = 0; if (dispatch != 0) ...`) is constant-folded away every time;
+re-reading the actual global (`if (lbl_2_bss_100B8[0x4A] != 0) ...`, or a bare
+`if (globalArray[idx] != 0) { return; }` placed straight after the block that already
+tested it) survives to the object file.
+
+Before writing a dead block off as unreproducible, read the target's ACTUAL layout for
+the region — which branch is unconditional, which condition register is reused, and
+what sits in the fall-through versus the branch target. Both instances here had
+previously been abandoned as "MWCC constant-folds this away", a conclusion drawn from
+failed guesses at the source shape rather than from reading the layout.
+
+## One call-argument site can own an entire callee-saved register
+
+First seen: `menus/captain_select/captain_select.c`, `captainSelect_handleInputs`
+(97.10% -> 98.60%, session 17, 2026-08); same lever previously in
+`captainSelect_APress` and `captainSelect_BPress` in the same file.
+
+When a function takes a wide parameter it uses narrowed (e.g. `int port` used as
+`(u8)port`), targets are routinely INCONSISTENT about whether each individual use site
+reads a cached narrowed copy or re-narrows from the raw parameter. A blanket rule —
+either a named `u8 p = (u8)port;` local used everywhere, or inline casts everywhere —
+cannot express that, and blanket edits in both directions regressed here repeatedly.
+
+What works is a site-by-site map: for the parameter, list every use on BOTH sides in
+order, note where the target re-masks fresh (`clrlwi r3, rRaw, 24`) versus reads a
+cached copy (`mr r3, rCached`), and match that polarity site by site. Building the map
+is one worker round trip and is far cheaper than variant-sweeping.
+
+The payoff can be structural, not cosmetic. Here a SINGLE call argument changed from
+the cached local `p` back to an inline `(u8)port` eliminated the cached copy's
+callee-saved register outright, taking the frame from `stwu r1, -0x40(r1)` /
+`stmw r23, 0x1c(r1)` to the target's `stwu r1, -0x30(r1)` / `stmw r24, 0x10(r1)`. If a
+function's diff is dominated by ARG_MISMATCH rows cascading off one parameter, and its
+callee-saved count is one higher than the target's, suspect exactly one over-cached use
+site before trying anything else.
+
+## Re-measure a checkpoint's "closed" claims before building on them
+
+First seen: `menus/captain_select/captain_select.c`, session 17 (2026-08).
+
+A prior session's checkpoint entry declared a function's frame-size residual CLOSED and
+quoted both sides as identical. Two independent workers this session, each cross-checking
+against the target `.s`, measured our side one callee-saved register HIGHER than the
+target — the residual had never been closed, and the earlier session had almost certainly
+read the target column twice instead of target-versus-ours. Several later entries in the
+same log were written on top of that false premise.
+
+The same file separately lost multiple sessions to an inverted target/base column reading,
+and once to a worker parsing a stale JSON left in a shared scratchpad by an earlier worker
+(the giveaway was symbol names that had been renamed away sessions earlier).
+
+Cheap, decisive countermeasures, worth applying to any long-running grind:
+- Require every diff report to cross-check at least three target-attributed instructions
+  against the module's `.s` file and to SAY that it did.
+- Never let a worker reuse a pre-existing JSON from a shared temp directory; have it write
+  a uniquely-named file and parse only that.
+- Keep one known-current symbol name in mind as a staleness canary — if a report mentions a
+  symbol that was renamed several sessions ago, the whole reading is stale.
+- Treat a "closed"/"exhausted" claim as a hypothesis with an owner and a date, not as fact;
+  re-measuring one costs a single round trip.
