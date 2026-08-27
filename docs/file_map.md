@@ -249,15 +249,15 @@ completely disjoint, with nothing shared or common between them.
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
 | `menus` | menu REL | 42 | `src/menus/**` | 42 units, 532 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); 2 units named so far (`yd_step.c` at top level, `captain_select/`) |
-| `unused_rel` | an unused REL | 13 | `src/unused_rel/**` | stubs for all 13 units, 307 functions |
+| `challenge` | a REL whose purpose is still unknown (see below) | 13 | `src/challenge/**` | stubs for all 13 units, 307 functions |
 
-### The menu and unused RELs
+### The menu REL and challenge.rel
 
 Both are known but unwritten, and until recently neither had anywhere to be
 written. `configure.py` declared `Object(NonMatching, "menus/rep_XXXX.c")` for
 every menu unit and the splits gave each one its address range, but not one of
 those files existed — the link consumed objects extracted from the original REL
-instead. `unused_rel` was worse off: splits and 2353 symbols, but no entry in
+instead. `challenge.rel` was worse off: splits and 2353 symbols, but no entry in
 `configure.py` at all.
 
 Both now have a source tree in the `src/game` style — one `.c` per unit with a
@@ -266,21 +266,26 @@ Both now have a source tree in the `src/game` style — one `.c` per unit with a
 objdiff can diff the compiled stub against the original, so progress on these
 RELs is now visible instead of invisible. The four menu units that were in the
 splits but missing from `configure.py` (`rep_0398`, `rep_03E8`, `rep_0438`,
-`rep_04B0`) are wired in, and `unused_rel` has a `Rel()` entry.
+`rep_04B0`) are wired in, and `challenge.rel` has a `Rel()` entry.
 
-**On the name.** The disc file is `challenge.rel`, but research on this REL
-found nothing connecting it to Challenge Mode -- it appears to be genuinely
-unused -- so the repo's folders call it `unused_rel`. The disc filename is left
-as it is (`orig/GYQE01/files/challenge.rel`, `decompress.py`, `build.sha1`), and
-because dtk takes a module's name from its object filename, objdiff units still
-read `challenge/unused_rel/rep_XXXX`: the module keeps the game's name, the
-folder says what it is.
+**On the name.** The disc file is `challenge.rel` — that's its real, official
+name, and the source tree (`src/challenge/`, `config/*/challenge/`) uses it
+directly rather than a repo-invented label: an authoritative name always wins
+over a guess, even an evidence-based one. This folder used to be called
+`unused_rel`, on the theory that since research on this REL found nothing
+connecting it to Challenge Mode -- it appears to be genuinely unused -- the
+folder should say so instead. That theory about its *purpose* still stands
+(nothing has tied it to Challenge Mode, and it may well be dead/unused code),
+but purpose and name are separate questions: not knowing what it's for is not
+a reason to rename away from what it's actually called. If a good case for its
+real function ever turns up, that's a separate finding to add here, not a
+reason to touch the folder name again.
 
 The mapped addresses are not assumed. The menu REL loads at `0x8063F094`, the
 same slot as the match REL, and every generated address was checked against the
 `AtGameSettingsScreen` snapshot — `rep_01A0`'s four functions land on
 `FUN_8063fb04`, `FUN_8063fbcc`, `FUN_8063fcac`, `FUN_8063fd08` with matching
-sizes. The unused REL is resident in neither snapshot, so its load address is
+sizes. `challenge.rel` is resident in neither snapshot, so its load address is
 unknown and its stubs carry offset and size but **no** `mapped:` comment; add it
 to `REL_LOAD` in `tools/cvt_rel_addr_to_mapped_addr.py` once it can be measured.
 That unsolved base is also why its symbols are the only ones absent from the

@@ -1158,21 +1158,21 @@ config.libs = [
         ]
     ),
     Rel(
-        "unused_rel",
+        "challenge",
         [
-            Object(NonMatching, "unused_rel/rep_0010.c"),
-            Object(NonMatching, "unused_rel/rep_00B0.c"),
-            Object(NonMatching, "unused_rel/rep_0138.c"),
-            Object(NonMatching, "unused_rel/rep_0250.c"),
-            Object(NonMatching, "unused_rel/rep_02A8.c"),
-            Object(NonMatching, "unused_rel/rep_0610.c"),
-            Object(NonMatching, "unused_rel/rep_74A0.c"),
-            Object(NonMatching, "unused_rel/rep_7730.c"),
-            Object(NonMatching, "unused_rel/rep_7920.c"),
-            Object(NonMatching, "unused_rel/rep_7978.c"),
-            Object(NonMatching, "unused_rel/rep_7A28.c"),
-            Object(NonMatching, "unused_rel/rep_7BA0.c"),
-            Object(NonMatching, "unused_rel/rep_7BF0.c"),
+            Object(NonMatching, "challenge/rep_0010.c"),
+            Object(NonMatching, "challenge/rep_00B0.c"),
+            Object(NonMatching, "challenge/rep_0138.c"),
+            Object(NonMatching, "challenge/rep_0250.c"),
+            Object(NonMatching, "challenge/rep_02A8.c"),
+            Object(NonMatching, "challenge/rep_0610.c"),
+            Object(NonMatching, "challenge/rep_74A0.c"),
+            Object(NonMatching, "challenge/rep_7730.c"),
+            Object(NonMatching, "challenge/rep_7920.c"),
+            Object(NonMatching, "challenge/rep_7978.c"),
+            Object(NonMatching, "challenge/rep_7A28.c"),
+            Object(NonMatching, "challenge/rep_7BA0.c"),
+            Object(NonMatching, "challenge/rep_7BF0.c"),
         ]
     )
 ]

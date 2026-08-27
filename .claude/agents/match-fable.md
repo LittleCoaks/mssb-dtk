@@ -265,7 +265,7 @@ treat it as one atomic, fully-verified task, not something to rush:
    purpose | conf`, matching the existing table format precisely) and have
    it update that folder's/module's summary line and counts. If this is the
    first named file in a module that doesn't have folder categories yet
-   (menus and unused_rel currently don't), only introduce one if the
+   (menus and challenge currently don't), only introduce one if the
    evidence genuinely calls for a distinct category — "folder is the
    category" per `docs/file_map.md`, not a folder per file.
 

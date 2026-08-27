@@ -19,5 +19,5 @@ modules:
 
 - object: orig/GYQE01/files/challenge.rel
   hash: 1078bab4fa28a1ca4df173267205559de3fc0cb8
-  symbols: config/GYQE01/unused_rel/symbols.txt
-  splits: config/GYQE01/unused_rel/splits.txt
+  symbols: config/GYQE01/challenge/symbols.txt
+  splits: config/GYQE01/challenge/splits.txt
