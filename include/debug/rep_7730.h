@@ -57,7 +57,7 @@ void fn_1_22644(void);
 u8 fn_1_22874(void);
 void fn_1_22DF4(DrawingSceneStruct *arg0);
 void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other);
-void fn_1_23098(void);
+s32 fn_1_23098(Mtx44 arg0, Mtx arg1, f32 argF0, f32 argF1, s32 arg2, s32 arg3);
 void fn_1_23804(void *arg0, void *arg1, s32 arg2, s32 arg3);
 void fn_1_23AD8(Mtx44 m, f32 *arg1, f32 *arg2);
 void fn_1_23B54(void);

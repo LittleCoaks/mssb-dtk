@@ -10,6 +10,7 @@
 #include "Dolphin/GX/GXFifo.h"
 #include "Dolphin/GX/GXFrameBuffer.h"
 #include "Dolphin/mtx.h"
+#include "Dolphin/mtxext.h"
 #include "Dolphin/os.h"
 #include "C3/control.h"
 #include "stl/math.h"
@@ -17,6 +18,10 @@
 #include "Dolphin/GX/GXPixel.h"
 #include "stl/mem.h"
 #include "Dolphin/rand.h"
+#include "text/text_channel.h"
+
+#define GFX_OBJ(item) \
+    ((u8 *)graphicsRelatedArray[*(u16 *)(*(u8 **)((u8 *)(item) + 0x14) + 0x14)].object)
 
 extern void *ARAMTransfer(void *arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void fn_80037B18(void *arg0, void *arg1);
@@ -62,6 +67,16 @@ extern u8 lbl_1_data_FB98[0x7AC];
 extern u8 lbl_803C4BE0[0x4B0];
 extern void (*lbl_1_data_104A8[])(void);
 extern f32 lbl_1_rodata_780C;
+extern f32 lbl_1_rodata_7890;
+extern void removeGraphicsElementFromScene(void *arg0);
+extern void fn_8000CEF0(void *arg0);
+extern void fn_80035A00(void);
+extern u8 lbl_1_data_10344[0x40];
+extern s32 lbl_1_bss_6BDC;
+extern Mtx lbl_1_rodata_7780;
+extern f32 lbl_1_rodata_78E4;
+extern f32 lbl_1_rodata_78E8;
+extern f32 lbl_1_rodata_78EC;
 extern f32 lbl_1_rodata_7844;
 extern f32 lbl_1_rodata_7848;
 extern u8 lbl_1_bss_6BD8[0x500];
@@ -2519,8 +2534,191 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
 }
 
 // .text:0x00023098 size:0x76C
-void fn_1_23098(void) {
-    return;
+s32 fn_1_23098(Mtx44 arg0, Mtx arg1, f32 argF0, f32 argF1, s32 arg2, s32 arg3) {
+    Vec originPos;
+    Vec dirVec;
+    f32 planeD;
+    f32 negArgF1 = -argF1;
+    f32 negArgF0;
+    f32 valA = (lbl_1_rodata_77E0 * argF0) / lbl_1_rodata_7890 * lbl_1_rodata_7814;
+    f32 valB = (lbl_1_rodata_77E0 * argF1) / lbl_1_rodata_7890 * lbl_1_rodata_7814;
+    f32 valC = (lbl_1_rodata_77DC * argF0) / lbl_1_rodata_7890 * lbl_1_rodata_7814;
+    f32 valD = (lbl_1_rodata_77DC * argF1) / lbl_1_rodata_7890 * lbl_1_rodata_7814;
+    Vec cornersA[4];
+    Vec cornersB[4];
+    f32 tvals[4];
+    Mtx mtxInv;
+    Mtx44 tmpMtx44;
+    s32 i;
+    s32 rowCount;
+    Vec edgeVec;
+    s32 col;
+    s32 row;
+
+    originPos.x = lbl_1_rodata_77D8;
+    originPos.y = lbl_1_rodata_77D8;
+    originPos.z = lbl_1_rodata_77D8;
+    dirVec.x = lbl_1_rodata_77D8;
+    dirVec.y = lbl_1_rodata_7820;
+    dirVec.z = lbl_1_rodata_77D8;
+
+    PSMTXMultVec(arg1, &originPos, &originPos);
+    PSMTXMultVec(arg1, &dirVec, &dirVec);
+    PSVECSubtract(&dirVec, &originPos, &dirVec);
+    PSVECNormalize(&dirVec, &dirVec);
+    planeD = PSVECDotProduct(&dirVec, &originPos);
+
+    cornersA[0].x = valA;
+    cornersA[0].y = lbl_1_rodata_77D8;
+    cornersA[0].z = -argF0;
+    cornersA[1].x = valB;
+    cornersA[1].y = lbl_1_rodata_77D8;
+    cornersA[1].z = -argF1;
+    cornersA[2].x = valB;
+    cornersA[2].y = valD;
+    cornersA[2].z = -argF1;
+    cornersA[3].x = valB;
+    cornersA[3].y = -valD;
+    cornersA[3].z = -argF1;
+
+    cornersB[0].x = lbl_1_rodata_77D8;
+    cornersB[0].y = valC;
+    cornersB[0].z = lbl_1_rodata_77D8;
+    cornersB[1].x = lbl_1_rodata_77D8;
+    cornersB[1].y = valD;
+    cornersB[1].z = lbl_1_rodata_77D8;
+    cornersB[2].x = valA - valB;
+    cornersB[2].y = valD - valC;
+    cornersB[2].z = argF1 - argF0;
+    cornersB[3].x = valA - valB;
+    cornersB[3].y = valD - valC;
+    cornersB[3].z = argF1 - argF0;
+
+    negArgF0 = -argF0;
+
+    for (i = 0; i < 4; i++) {
+        f32 denom = PSVECDotProduct(&dirVec, &cornersB[i]);
+        tvals[i] = denom;
+        if (denom == lbl_1_rodata_77D8) {
+            cornersB[i].z = lbl_1_rodata_77D8;
+        } else {
+            f32 numer = PSVECDotProduct(&dirVec, &cornersA[i]);
+            f32 t = (planeD - numer) / denom;
+            tvals[i] = t;
+            PSVECScale(&cornersB[i], t, &cornersB[i]);
+            PSVECAdd(&cornersA[i], &cornersB[i], &cornersB[i]);
+            if (tvals[i] < lbl_1_rodata_77D8) {
+                tvals[i] = -tvals[i];
+            }
+        }
+    }
+
+    if (cornersB[2].z <= negArgF0 && cornersB[2].z >= negArgF1 &&
+        cornersB[3].z <= negArgF0 && cornersB[3].z >= negArgF1) {
+        cornersB[0] = cornersB[2];
+        cornersB[1] = cornersB[3];
+    } else {
+        if (!(tvals[0] <= lbl_1_rodata_77E4 && tvals[1] <= lbl_1_rodata_77E4)) {
+            if (tvals[0] > lbl_1_rodata_77E4 && tvals[1] > lbl_1_rodata_77E4) {
+                return 0;
+            }
+            if (!(cornersB[2].z <= negArgF0 && cornersB[2].z >= negArgF1)) {
+                cornersB[3] = cornersB[2];
+            }
+            if (tvals[0] >= lbl_1_rodata_77E4) {
+                cornersB[0] = cornersB[3];
+            } else {
+                cornersB[1] = cornersB[2];
+            }
+        }
+    }
+
+    PSMTXInverse(arg1, mtxInv);
+
+    {
+        Vec tmp;
+        row = arg3 - 1;
+        PSMTXMultVec(mtxInv, &cornersB[1], &tmp);
+        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540) = tmp.x;
+        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + 4) = tmp.z;
+
+        tmp.x = -cornersB[1].x;
+        tmp.y = cornersB[1].y;
+        tmp.z = lbl_1_rodata_77D8;
+        PSMTXMultVec(mtxInv, &tmp, &tmp);
+        *(f32 *)(lbl_1_bss_F6E0 + 0) = tmp.x;
+        *(f32 *)(lbl_1_bss_F6E0 + 4) = tmp.z;
+
+        PSMTXMultVec(mtxInv, &cornersB[0], &tmp);
+        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + 0xc) = tmp.x;
+        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + 0x10) = tmp.z;
+
+        tmp.x = -cornersB[0].x;
+        tmp.y = cornersB[0].y;
+        tmp.z = lbl_1_rodata_77D8;
+        PSMTXMultVec(mtxInv, &tmp, &tmp);
+        *(f32 *)(lbl_1_bss_F6E0 + 0xc) = tmp.x;
+        *(f32 *)(lbl_1_bss_F6E0 + 0x10) = tmp.z;
+    }
+
+    PSMTX44Identity(tmpMtx44);
+    memcpy(tmpMtx44, arg1, 0x30);
+    PSMTX44Concat(arg0, tmpMtx44, tmpMtx44);
+    C_MTX44Inverse(tmpMtx44, tmpMtx44);
+    PSMTX44MultVec(arg0, &cornersB[0], &cornersB[0]);
+    PSMTX44MultVec(arg0, &cornersB[1], &cornersB[1]);
+
+    {
+        f32 diff = cornersB[0].y - cornersB[1].y;
+        if (diff < lbl_1_rodata_77D8) {
+            diff = -diff;
+        }
+
+        rowCount = (s32)((f32)arg2 * ((lbl_1_rodata_780C / (f32)arg2) - diff) * lbl_1_rodata_7814);
+        if (rowCount < 2) {
+            rowCount = 2;
+        }
+    }
+
+    PSVECSubtract(&cornersB[0], &cornersB[1], &edgeVec);
+
+    for (col = rowCount - 2; col >= 1; col--) {
+        f32 t = (f32)col / (f32)(rowCount - 1);
+        Vec interp;
+        Vec world;
+
+        PSVECScale(&edgeVec, t, &interp);
+        PSVECAdd(&cornersB[1], &interp, &interp);
+
+        PSMTX44MultVec(tmpMtx44, &interp, &world);
+        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + col * 0xc) = world.x;
+        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + col * 0xc + 4) = world.y;
+
+        interp.x = -interp.x;
+        PSMTX44MultVec(tmpMtx44, &interp, &world);
+        *(f32 *)(lbl_1_bss_F6E0 + col * 0xc) = world.x;
+        *(f32 *)(lbl_1_bss_F6E0 + col * 0xc + 4) = world.y;
+    }
+
+    for (col = 0; col < rowCount; col++) {
+        Vec *cell0 = (Vec *)(lbl_1_bss_F6E0 + col * 0xc);
+        Vec *cellLast = (Vec *)(lbl_1_bss_F6E0 + row * 0x540 + col * 0xc);
+        Vec colEdge;
+
+        colEdge.x = cellLast->x - cell0->x;
+        colEdge.y = cellLast->y - cell0->y;
+        colEdge.z = lbl_1_rodata_77D8;
+
+        for (i = arg3 - 2; i >= 1; i--) {
+            f32 t = (f32)i / (f32)(arg3 - 1);
+            Vec *cell = (Vec *)(lbl_1_bss_F6E0 + i * 0x540 + col * 0xc);
+
+            cell->x = cell0->x + colEdge.x * t;
+            cell->y = cell0->y + colEdge.y * t;
+        }
+    }
+
+    return rowCount;
 }
 
 // .text:0x00023804 size:0x2D4
@@ -3012,7 +3210,215 @@ void fn_1_25C68(void) {
 
 // .text:0x00025F98 size:0x824
 void fn_1_25F98(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    s32 row;
+    u16 subIndex;
+
+    for (row = 0; row < 6; row++) {
+        switch (row) {
+        case 0:
+            if (row == *((u8 *)item + 0x22)) {
+                u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 2) {
+                    removeGraphicsElementFromScene(*(void **)((u8 *)item + 0x14));
+                    *((u8 *)item + 0x21) += 1;
+                    if (*((u8 *)item + 0x21) == *(u16 *)((u8 *)item + 0x18)) {
+                        *((u8 *)item + 0x21) = 0;
+                    }
+                    *((u8 *)item + 0x24) = 0;
+                    *(u16 *)((u8 *)lbl_1_data_10344 + 2) = *((u8 *)item + 0x21);
+                    addGraphicsElementToScene(*(void **)((u8 *)item + 0x14));
+                } else if (f & 1) {
+                    removeGraphicsElementFromScene(*(void **)((u8 *)item + 0x14));
+                    if (*((u8 *)item + 0x21) == 0) {
+                        *((u8 *)item + 0x21) = (u8)*(u16 *)((u8 *)item + 0x18);
+                    }
+                    *((u8 *)item + 0x21) -= 1;
+                    *((u8 *)item + 0x24) = 0;
+                    *(u16 *)((u8 *)lbl_1_data_10344 + 2) = *((u8 *)item + 0x21);
+                    addGraphicsElementToScene(*(void **)((u8 *)item + 0x14));
+                } else {
+                    if (AtBat_ButtonInput1._02 & 0x100) {
+                        GFX_OBJ(item)[0x68] = 1;
+                    } else if (AtBat_ButtonInput1._02 & 0x200) {
+                        GFX_OBJ(item)[0x68] = 0;
+                    } else if (AtBat_ButtonInput1._02 & 0x400) {
+                        *(u32 *)(GFX_OBJ(item) + 0x5c) = 0;
+                    }
+                }
+            }
+            break;
+        case 1:
+            if (row == *((u8 *)item + 0x22)) {
+                if (AtBat_ButtonInput1._02 & 0x100) {
+                    *((u8 *)item + 0x23) = !*((u8 *)item + 0x23);
+                }
+                if (*((u8 *)item + 0x23)) {
+                    GFX_OBJ(item)[0x68] = 0;
+                } else {
+                    GFX_OBJ(item)[0x68] = 1;
+                }
+                {
+                    u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                    if (f & 2) {
+                        if (*((u8 *)item + 0x23)) {
+                            GFX_OBJ(item)[0x68] = 1;
+                        }
+                    } else if (f & 1) {
+                        if (*((u8 *)item + 0x23)) {
+                            GFX_OBJ(item)[0x68] = 4;
+                        }
+                    }
+                }
+            }
+            break;
+        case 2: {
+            if (row == *((u8 *)item + 0x22)) {
+                u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 2) {
+                    *((u8 *)item + 0x24) += 1;
+                } else if (f & 1) {
+                    *((u8 *)item + 0x24) -= 1;
+                }
+                fn_8000CEF0(*(void **)(lbl_803C4BE0 + GFX_OBJ(item)[0x66] * 0x3c + 0x38));
+            }
+            break;
+        }
+        case 3: {
+            if (row == *((u8 *)item + 0x22)) {
+                u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                void *structA;
+                void *structB;
+                void *structC;
+
+                if (f & 2) {
+                    subIndex += 1;
+                } else if (f & 1) {
+                    subIndex -= 1;
+                }
+
+                structA = *(void **)(lbl_803C4BE0 + GFX_OBJ(item)[0x66] * 0x3c + 0x38);
+                structB = *(void **)((u8 *)structA + 8);
+                structC = *(void **)((u8 *)structB + *((u8 *)item + 0x21) * 4 + 8);
+                *(u16 *)((u8 *)structC + 0xa) = subIndex;
+            }
+            break;
+        }
+        case 4:
+            if (row == *((u8 *)item + 0x22)) {
+                u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 0x800) {
+                    *(s16 *)((u8 *)item + 0x1a) = 0;
+                } else if (f & 0x400) {
+                    *(s16 *)((u8 *)item + 0x1a) = 0x140;
+                } else if (f & 2) {
+                    *(s16 *)((u8 *)item + 0x1a) += 8;
+                } else if (f & 1) {
+                    *(s16 *)((u8 *)item + 0x1a) -= 8;
+                }
+                *(f32 *)((u8 *)lbl_1_data_10344 + 4) = (f32)*(s16 *)((u8 *)item + 0x1a);
+                *(f32 *)(GFX_OBJ(item) + 0x48) = (f32)*(s16 *)((u8 *)item + 0x1a);
+            }
+            break;
+        case 5:
+            if (row == *((u8 *)item + 0x22)) {
+                u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 0x800) {
+                    *(s16 *)((u8 *)item + 0x1c) = 0;
+                } else if (f & 0x400) {
+                    *(s16 *)((u8 *)item + 0x1c) = 0xe0;
+                } else if (f & 2) {
+                    *(s16 *)((u8 *)item + 0x1c) += 8;
+                } else if (f & 1) {
+                    *(s16 *)((u8 *)item + 0x1c) -= 8;
+                }
+                *(f32 *)((u8 *)lbl_1_data_10344 + 8) = (f32)*(s16 *)((u8 *)item + 0x1c);
+                *(f32 *)(GFX_OBJ(item) + 0x4c) = (f32)*(s16 *)((u8 *)item + 0x1c);
+            }
+            break;
+        }
+    }
+
+    if (AtBat_ButtonInput1._02 & 4) {
+        *((u8 *)item + 0x22) += 1;
+        if (*((u8 *)item + 0x22) == 6) {
+            *((u8 *)item + 0x22) = 0;
+        }
+    } else if (AtBat_ButtonInput1._02 & 8) {
+        if (*((u8 *)item + 0x22) == 0) {
+            *((u8 *)item + 0x22) = 6;
+        }
+        *((u8 *)item + 0x22) -= 1;
+    }
+
+    if (AtBat_ButtonInput1._02 & 0x1000) {
+        removeGraphicsElementFromScene(*(void **)((u8 *)item + 0x14));
+        *(u16 *)(*(u8 **)((u8 *)item + 0x14) + 0x10) = 1;
+        currentDrawingItem->func = fn_1_26928;
+        fn_80035A00();
+    }
+
+    {
+        Mtx localMtx;
+        u32 *dst = (u32 *)localMtx;
+        u32 *src = (u32 *)lbl_1_rodata_7780;
+
+        dst[0] = src[0];
+        dst[1] = src[1];
+        dst[2] = src[2];
+        dst[3] = src[3];
+        dst[4] = src[4];
+        dst[5] = src[5];
+        dst[6] = src[6];
+        dst[7] = src[7];
+        dst[8] = src[8];
+        dst[9] = src[9];
+        dst[10] = src[10];
+        dst[11] = src[11];
+
+        if (*(s32 *)lbl_1_bss_6BD8 != 0) {
+        GXClearVtxDesc();
+        GXSetVtxDesc(9, 1);
+        GXSetVtxDesc(0xd, 1);
+        GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+        GXSetVtxAttrFmt(0, 0xd, 1, 2, 0);
+        GXSetChanCtrl(0, 0, 1, 1, 0, 0, 2);
+        GXSetNumChans(0);
+        GXSetNumTexGens(1);
+        GXSetNumTevStages(1);
+        GXSetTevOrder(0, 0, 0, 0xff);
+        GXSetTevOp(0, 3);
+        GXLoadPosMtxImm(localMtx, 0);
+        GXSetCurrentMtx(0);
+        SetDisplayStateTexture((u8 *)(*(void **)(lbl_803C4BE0 + GFX_OBJ(item)[0x66] * 0x3c + 0x34)) + lbl_1_bss_6BDC * 0x20 + 4, 0, 0);
+
+        GXBegin(GX_QUADS, 0, 4);
+
+        GX_WRITE_F32(lbl_1_rodata_77E8);
+        GX_WRITE_F32(lbl_1_rodata_78E4);
+        GX_WRITE_F32(lbl_1_rodata_78E8);
+        GX_WRITE_U16(0);
+        GX_WRITE_U16(0);
+
+        GX_WRITE_F32(lbl_1_rodata_77E8);
+        GX_WRITE_F32(lbl_1_rodata_78EC);
+        GX_WRITE_F32(lbl_1_rodata_78E8);
+        GX_WRITE_U16(0);
+        GX_WRITE_U16(1);
+
+        GX_WRITE_F32(lbl_1_rodata_7814);
+        GX_WRITE_F32(lbl_1_rodata_78EC);
+        GX_WRITE_F32(lbl_1_rodata_78E8);
+        GX_WRITE_U16(1);
+        GX_WRITE_U16(1);
+
+        GX_WRITE_F32(lbl_1_rodata_7814);
+        GX_WRITE_F32(lbl_1_rodata_78E4);
+        GX_WRITE_F32(lbl_1_rodata_78E8);
+        GX_WRITE_U16(1);
+        GX_WRITE_U16(0);
+        }
+    }
 }
 
 // .text:0x000267BC size:0x38
