@@ -25,6 +25,8 @@ extern u8 lbl_2_data_9FC8[0x2930];
 extern u8 lbl_2_data_104EC[0x20];
 extern u8 lbl_2_data_1061C[0x120];
 extern u8 lbl_2_data_C96C[0x2780];
+extern u8 lbl_2_data_1059C[0x60];
+extern u8 lbl_2_data_4C68[0x5360];
 extern u8 *lbl_2_bss_1A8234;
 
 void fn_2_4E878(void *arg0, void *arg1);
@@ -213,7 +215,26 @@ void fn_2_2416C(void) {
 
 // .text:0x00024238 size:0xC4 mapped:0x806632CC
 void fn_2_24238(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    case 1:
+        break;
+    case 0:
+        fn_2_4E878(item, lbl_2_data_1059C);
+        *(s16 *)((u8 *)item + 0x1C) = 1;
+        *(s16 *)((u8 *)item + 0x18) = 0;
+        break;
+    }
+    fn_2_53F88(item);
+    fn_2_54120();
+    if (lbl_2_bss_1A8234[0x160000 + 0x2992] != 0) {
+        text_freeAllBlocks();
+        fn_2_53DF8(item);
+        fn_2_4E858(item);
+        removeCurrentDrawingItem();
+        *(s16 *)((u8 *)item + 0x1C) = 0;
+        lbl_2_bss_1A8234[0x160000 + 0x2992] = 0;
+    }
 }
 
 // .text:0x000242FC size:0xC0 mapped:0x80663390
@@ -248,7 +269,34 @@ void fn_2_243BC(void) {
 
 // .text:0x00024488 size:0x140 mapped:0x8066351C
 void fn_2_24488(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    case 0:
+        fn_2_4E878(item, lbl_2_data_4C68);
+        *(s16 *)((u8 *)item + 0x1C) = 1;
+        *(s16 *)((u8 *)item + 0x18) = 0;
+        break;
+    case 1:
+        if (lbl_2_bss_1A824C[0x190000 + 0x78FB] == 1) {
+            lbl_2_bss_1A8234[0x160000 + 0x268A] = 1;
+            lbl_2_bss_1A8234[0x160000 + 0x2874] = 0;
+        } else {
+            lbl_2_bss_1A8234[0x160000 + 0x2874] = 1;
+            lbl_2_bss_1A8234[0x160000 + 0x268A] = 0;
+        }
+        break;
+    }
+    fn_2_53F88(item);
+    fn_2_54120();
+    if (lbl_2_bss_1A8234[0x160000 + 0x2992] != 0) {
+        text_freeAllBlocks();
+        fn_2_53DF8(item);
+        fn_8000F8F4(item);
+        fn_2_4E858(item);
+        removeCurrentDrawingItem();
+        *(s16 *)((u8 *)item + 0x1C) = 0;
+        lbl_2_bss_1A8234[0x160000 + 0x2992] = 0;
+    }
 }
 
 // .text:0x000245C8 size:0x44 mapped:0x8066365C
