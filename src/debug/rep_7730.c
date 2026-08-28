@@ -11,6 +11,12 @@
 #include "Dolphin/GX/GXFrameBuffer.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/os.h"
+#include "C3/control.h"
+#include "stl/math.h"
+#include "Unknown/File_0x80024184.h"
+#include "Dolphin/GX/GXPixel.h"
+#include "stl/mem.h"
+#include "Dolphin/rand.h"
 
 extern void *ARAMTransfer(void *arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void fn_80037B18(void *arg0, void *arg1);
@@ -108,10 +114,121 @@ extern s32 fn_80048EA8(s32 arg0);
 extern u8 lbl_1_bss_43EE0[0x88];
 extern void fn_80038B48(void *arg0, void *arg1, s32 arg2, void *arg3);
 extern void fn_80038CD0(u8 arg0, void *arg1, void *arg2, f32 arg3, f32 arg4);
+extern void convertTextureHeader(void *arg0);
+extern u8 lbl_1_data_10518[0x150];
+extern void fn_800BDA24(void *arg0);
+extern void fn_800BD670(void *arg0, void *arg1);
+extern f64 lbl_1_rodata_7818;
+extern f64 lbl_1_rodata_7828;
+extern f64 lbl_1_rodata_7830;
+extern f64 lbl_1_rodata_7838;
+extern f32 lbl_1_data_104D0[3];
+extern f32 lbl_1_rodata_78BC;
+extern f32 lbl_1_rodata_78AC;
+extern f32 lbl_1_rodata_78B0;
+extern f32 lbl_1_rodata_78B4;
+extern f32 lbl_1_rodata_78B8;
+extern f32 lbl_1_rodata_78C0;
+extern f32 lbl_1_bss_74E0[0x80];
+extern f32 lbl_1_bss_76E0[0x2000];
+extern void *_OSAllocFromHeap(s32 arg0, s32 arg1);
+extern void fn_80023F0C(void *arg0, void *arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7);
+extern void SetDisplayStateTexture(void *arg0, s32 arg1, s32 arg2);
+extern f32 lbl_1_rodata_77E8;
+extern u8 lbl_1_bss_F6E0[0x34800];
+extern f32 lbl_1_rodata_7894;
+extern f32 lbl_1_rodata_7898;
+extern f32 lbl_1_rodata_77FC;
+extern void fn_1_F2C(s32 arg0);
 
 // .text:0x0001D694 size:0x2B0
-void fn_1_1D694(void) {
-    return;
+void fn_1_1D694(void *arg0) {
+    u8 *base = arg0;
+
+    if (*(base + 0x18) != 0) {
+        u8 *tex = *(u8 **)(base + 0x8);
+        u8 *buf1 = *(u8 **)(base + 0x10);
+        u8 *buf2;
+        s32 cols;
+        s32 rows;
+        s32 colOff = 0;
+        s32 rowBase = 0;
+        s32 i;
+
+        buf2 = *(u8 **)(base + 0xc);
+        memset(*(void **)tex, 0, (u32)(*(u16 *)(tex + 0xa)) * (u32)(*(u16 *)(tex + 0x8)));
+
+        cols = (*(u16 *)(tex + 0x8) + 63) / 64;
+        rows = (*(u16 *)(tex + 0xa) + 31) / 32;
+
+        for (i = 0; i < cols; i++) {
+            u8 *rowPtr = buf1 + rowBase;
+            s32 pixOff = 0;
+            s32 j;
+
+            for (j = 0; j < rows; j++) {
+                if ((j & drawStadiumRelated) != 0) {
+                    u8 pixel = *rowPtr;
+                    s32 band = pixel / rows;
+                    s32 rem = pixel - band * rows;
+
+                    fn_80023F0C(buf2, tex, rem * 32, band * 64, 0x20, 0x40, pixOff, colOff);
+                }
+
+                pixOff += 0x20;
+                rowPtr += 1;
+            }
+
+            colOff += rows;
+            rowBase += 0x40;
+        }
+
+        DCStoreRange(*(void **)tex, (u32)(*(u16 *)(tex + 0xa)) * (u32)(*(u16 *)(tex + 0x8)));
+    }
+
+    {
+        f32 z = lbl_1_rodata_77D8;
+        Mtx44 mtx;
+        Mtx mtx2;
+
+        C_MTXOrtho(mtx, z, lbl_1_rodata_77DC, z, lbl_1_rodata_77E0, z, lbl_1_rodata_77E4);
+        PSMTXIdentity(mtx2);
+        GXSetProjection(mtx, 1);
+        GXLoadPosMtxImm(mtx2, 0);
+        GXSetCurrentMtx(0);
+        gOz_GXSetTexture(0, 0, 0);
+        SetDisplayStateTexture(*(void **)(base + 0x8), 0, 0);
+
+        GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_77E8);
+        GX_WRITE_U32(-1);
+        GX_WRITE_U16(0);
+        GX_WRITE_U16(0);
+
+        GX_WRITE_F32((f32)(*(u16 *)(*(u8 **)(base + 0x8) + 0x8)));
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_77E8);
+        GX_WRITE_U32(-1);
+        GX_WRITE_U16(0);
+        GX_WRITE_U16(1);
+
+        GX_WRITE_F32((f32)(*(u16 *)(*(u8 **)(base + 0x8) + 0xa)));
+        GX_WRITE_F32((f32)(*(u16 *)(*(u8 **)(base + 0x8) + 0x8)));
+        GX_WRITE_F32(lbl_1_rodata_77E8);
+        GX_WRITE_U32(-1);
+        GX_WRITE_U16(1);
+        GX_WRITE_U16(1);
+
+        GX_WRITE_F32((f32)(*(u16 *)(*(u8 **)(base + 0x8) + 0xa)));
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_77E8);
+        GX_WRITE_U32(-1);
+        GX_WRITE_U16(1);
+        GX_WRITE_U16(0);
+    }
 }
 
 // .text:0x0001D944 size:0x110
@@ -148,7 +265,93 @@ void fn_1_1D944(void) {
 
 // .text:0x0001DA54 size:0x290
 void fn_1_1DA54(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+
+    if ((s8)lbl_803C6CF8[0x715] != 1) {
+        return;
+    }
+
+    {
+        u8 *hdr = *(u8 **)((u8 *)item + 0x14);
+        u8 *info;
+        u32 size;
+
+        *(void **)((u8 *)item + 0x18) = hdr + *(u32 *)(hdr + 0x14);
+        convertTextureHeader(*(void **)((u8 *)item + 0x18));
+
+        *(u16 *)((u8 *)item + 0x28) = 2;
+        *(u16 *)((u8 *)item + 0x1c) = 3;
+        *(u16 *)((u8 *)item + 0x1e) = 0;
+        *(u16 *)((u8 *)item + 0x22) = 3;
+        *(u16 *)((u8 *)item + 0x20) = 3;
+        *(u16 *)((u8 *)item + 0x24) = 0;
+        *(u16 *)((u8 *)item + 0x26) = 0;
+
+        info = _OSAllocFromHeap(0x20, 0x20);
+        *(void **)((u8 *)item + 0x2c) = info;
+        memcpy(info, *(u8 **)((u8 *)item + 0x18) + 0x44, 0x20);
+
+        info = *(u8 **)((u8 *)item + 0x2c);
+
+        if (*(u32 *)(info + 0x4) != 0) {
+            if ((s8)info[0x1a] >= 0 && (s8)info[0x1a] < 3) {
+                u16 count = *(u16 *)(info + 0x18);
+
+                size = (u32)count * 2;
+                *(void **)(info + 0x4) = _OSAllocFromHeap(0x20, size);
+                memcpy(*(void **)(info + 0x4), *(u8 **)((u8 *)item + 0x18) + 0x48, size);
+            }
+
+            DCStoreRangeNoSync(*(void **)(info + 0x4), size);
+
+            switch (info[0x17]) {
+            case 8: {
+                s32 h = *(u16 *)(info + 0xa);
+                s32 w = *(u16 *)(info + 0x8);
+                u32 hBlocks = ((h + 7) / 8) * 8;
+                u32 wBlocks = ((w + 7) / 8) * 8;
+
+                size = hBlocks * wBlocks;
+                break;
+            }
+            case 9: {
+                s32 h = *(u16 *)(info + 0xa);
+                s32 w = *(u16 *)(info + 0x8);
+                u32 hBlocks = ((h + 7) / 8) * 8;
+                u32 wBlocks = ((w + 3) / 4) * 4;
+
+                size = hBlocks * wBlocks;
+                break;
+            }
+            default:
+                fn_800AD038(*(void **)(lbl_80366158 + 0x8));
+                currentDrawingItem->currentDrawingItem->state = 1;
+                removeCurrentDrawingItem();
+                return;
+            }
+        } else {
+            if (info[0x17] == 0xe) {
+                s32 h = *(u16 *)(info + 0xa);
+                s32 w = *(u16 *)(info + 0x8);
+                u32 hBlocks = ((h + 7) / 8) * 8;
+                u32 wBlocks = ((w + 7) / 8) * 8;
+
+                size = hBlocks * wBlocks;
+            } else {
+                fn_800AD038(*(void **)(lbl_80366158 + 0x8));
+                currentDrawingItem->currentDrawingItem->state = 1;
+                removeCurrentDrawingItem();
+                return;
+            }
+        }
+
+        *(void **)(info + 0x0) = _OSAllocFromHeap(0x20, size);
+        memcpy(*(void **)(info + 0x0), *(u8 **)((u8 *)item + 0x18) + 0x44, size);
+        DCStoreRangeNoSync(*(void **)(info + 0x0), size);
+        PPCSync();
+
+        currentDrawingItem->func = fn_1_1D944;
+    }
 }
 
 // .text:0x0001DCE4 size:0x64
@@ -256,11 +459,101 @@ void fn_1_1E290(void) {
 }
 
 // .text:0x0001E5D0 size:0x2F0
-#pragma dont_inline on
 void fn_1_1E5D0(void *arg0) {
-    *(s32 *)arg0 = 0;
+    u8 *base = arg0;
+    Vec v1;
+    Vec v2;
+
+    fn_1_F2C(4);
+    GXSetBlendMode(1, 4, 5, 3);
+
+    PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)(base + 0xc), &v1);
+    PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)base, &v2);
+
+    GXBegin(GX_LINES, 0, 2);
+    GX_WRITE_F32(v1.x);
+    GX_WRITE_F32(v1.y);
+    GX_WRITE_F32(v1.z);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_U8(0x40);
+    GX_WRITE_U8(0x40);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_F32(v2.x);
+    GX_WRITE_F32(v2.y);
+    GX_WRITE_F32(v2.z);
+    GX_WRITE_U8(0x40);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_U8(0x40);
+    GX_WRITE_U8(0xff);
+
+    PSVECScale((Vec *)(base + 0xe8), lbl_1_rodata_77E4, &v1);
+    PSVECAdd(&v1, (Vec *)(base + 0xf4), &v2);
+
+    GXBegin(GX_LINES, 0, 4);
+    GX_WRITE_F32(v1.x);
+    GX_WRITE_F32(v1.y);
+    GX_WRITE_F32(v1.z);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_F32(v2.x);
+    GX_WRITE_F32(v2.y);
+    GX_WRITE_F32(v2.z);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0xff);
+
+    PSVECScale((Vec *)(base + 0x140), lbl_1_rodata_77E4, &v1);
+    PSVECAdd(&v1, &v2, &v2);
+
+    GX_WRITE_F32(v1.x);
+    GX_WRITE_F32(v1.y);
+    GX_WRITE_F32(v1.z);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_F32(v2.x);
+    GX_WRITE_F32(v2.y);
+    GX_WRITE_F32(v2.z);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0);
+    GX_WRITE_U8(0xff);
+    GX_WRITE_U8(0xff);
+
+    if (*(s32 *)((u8 *)currentDrawingItem + 0x28) == 0) {
+        Vec offset;
+
+        PSVECSubtract((Vec *)base, (Vec *)(base + 0xc), &v1);
+        PSVECScale(&v1, lbl_1_bss_6BE4[0], &v1);
+        PSVECAdd((Vec *)(base + 0xc), &v1, &v1);
+        PSMTXMultVec((f32(*)[4])(base + 0x58), &v1, &v1);
+
+        offset.x = lbl_1_bss_6BE4[1];
+        offset.y = lbl_1_bss_6BE4[2];
+        offset.z = lbl_1_bss_6BE4[3];
+
+        PSVECAdd(&v1, &offset, &v2);
+
+        GXBegin(GX_LINES, 0, 2);
+        GX_WRITE_F32(v1.x);
+        GX_WRITE_F32(v1.y);
+        GX_WRITE_F32(v1.z);
+        GX_WRITE_U8(0xff);
+        GX_WRITE_U8(0);
+        GX_WRITE_U8(0xff);
+        GX_WRITE_U8(0xff);
+        GX_WRITE_F32(v2.x);
+        GX_WRITE_F32(v2.y);
+        GX_WRITE_F32(v2.z);
+        GX_WRITE_U8(0xff);
+        GX_WRITE_U8(0);
+        GX_WRITE_U8(0xff);
+        GX_WRITE_U8(0xff);
+    }
 }
-#pragma dont_inline reset
 
 // .text:0x0001E8C0 size:0x4C
 void fn_1_1E8C0(s32 arg0) {
@@ -490,8 +783,75 @@ void fn_1_1F418(void *arg0) {
 }
 
 // .text:0x0001F618 size:0x2E8
-void fn_1_1F618(void) {
-    return;
+void fn_1_1F618(void *arg0) {
+    u8 *item = arg0;
+    s32 outerCount = *(s32 *)(item + 0x1c);
+    f32 c2 = lbl_1_rodata_77FC;
+    f32 c1 = lbl_1_rodata_7814;
+
+    for (; outerCount != 0; outerCount--) {
+        s32 entryVal = outerCount % 4;
+        s32 *entry = &entryVal;
+        f32 z;
+        s32 i;
+
+        GXSetNumTevStages(*(item + 0x22));
+        GXSetNumTexGens(*(item + 0x22));
+
+        for (i = 0; i < *(item + 0x22); i++) {
+            GXSetTexCoordGen2(i, 1, 4, 0x3c, 0, 0x7d);
+
+            if (i != 0) {
+                GXSetTevColorIn(i, 0, 8, 0xb, 0xf);
+                GXSetTevColorOp(i, 0, 0, 0, 1, 0);
+                GXSetTevAlphaIn(i, 7, 7, 7, 0);
+                GXSetTevAlphaOp(i, 0, 0, 0, 1, 0);
+            } else {
+                GXSetTevColorIn(i, 0xf, 0xf, 0xf, 8);
+                GXSetTevColorOp(i, 0, 0, 0, 1, 0);
+                GXSetTevAlphaIn(i, 7, 7, 7, 5);
+                GXSetTevAlphaOp(i, 0, 0, 0, 1, 0);
+            }
+
+            GXLoadTexObj(&lbl_1_bss_6EA4[*entry], i);
+
+            if (*entry >= 2) {
+                GXLoadTlut(&lbl_1_bss_6E44[*entry], i);
+            }
+        }
+
+        GXBegin(GX_QUADS, 0, 4);
+
+        z = c1 - c2 * (f32)(u32)outerCount;
+
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(z);
+        GX_WRITE_U32(-128);
+        GX_WRITE_U16(0);
+        GX_WRITE_U16(0);
+
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_77DC);
+        GX_WRITE_F32(z);
+        GX_WRITE_U32(-128);
+        GX_WRITE_U16(0);
+        GX_WRITE_U16(0x100);
+
+        GX_WRITE_F32(lbl_1_rodata_77E0);
+        GX_WRITE_F32(lbl_1_rodata_77DC);
+        GX_WRITE_F32(z);
+        GX_WRITE_U32(-128);
+        GX_WRITE_U16(0x100);
+        GX_WRITE_U16(0x100);
+
+        GX_WRITE_F32(lbl_1_rodata_77E0);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(z);
+        GX_WRITE_U32(-128);
+        GX_WRITE_U16(0x100);
+        GX_WRITE_U16(0);
+    }
 }
 
 // .text:0x0001F900 size:0x478
@@ -500,13 +860,167 @@ void fn_1_1F900(void) {
 }
 
 // .text:0x0001FD78 size:0x2D4
-void fn_1_1FD78(void) {
-    return;
+void fn_1_1FD78(void *arg0) {
+    u8 *item = arg0;
+    u32 step = (AtBat_ButtonInput1._00 & 0x20) ? 0x64 : 1;
+    s32 i;
+
+    for (i = 0; i < 6; i++) {
+        switch (i) {
+        case 0:
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    if (*(item + 0x20) == 0) {
+                        *(item + 0x20) = 2;
+                    }
+                    *(item + 0x20) -= 1;
+                } else if (btn & 2) {
+                    *(item + 0x20) += 1;
+                    if (*(item + 0x20) == 2) {
+                        *(item + 0x20) = 0;
+                    }
+                }
+            }
+            break;
+        case 1: {
+            s32 delta = fn_80048EA8(0);
+
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    delta -= 1;
+                } else if (btn & 2) {
+                    delta += 1;
+                }
+            }
+            fn_80048E00(0, delta);
+            break;
+        }
+        case 2: {
+            s32 delta = fn_80048EA8(1);
+
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    delta -= 1;
+                } else if (btn & 2) {
+                    delta += 1;
+                }
+            }
+            fn_80048E00(1, delta);
+            break;
+        }
+        case 3:
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    if (*(u32 *)(item + 0x1c) <= step) {
+                        *(u32 *)(item + 0x1c) = 0;
+                    } else {
+                        *(u32 *)(item + 0x1c) -= step;
+                    }
+                } else if (btn & 2) {
+                    *(u32 *)(item + 0x1c) += step;
+                    if (*(u32 *)(item + 0x1c) > 0x1000) {
+                        *(u32 *)(item + 0x1c) = 0x1000;
+                    }
+                }
+            }
+            break;
+        case 4:
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    *(item + 0x23) -= 1;
+                } else if (btn & 2) {
+                    *(item + 0x23) += 1;
+                }
+            }
+            break;
+        case 5:
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    if (*(item + 0x22) > 1) {
+                        *(item + 0x22) -= 1;
+                    }
+                } else if (btn & 2) {
+                    if (*(item + 0x22) < 4) {
+                        *(item + 0x22) += 1;
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    {
+        u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+        if (btn & 8) {
+            if (*(item + 0x21) == 0) {
+                *(item + 0x21) = 6;
+            }
+            *(item + 0x21) -= 1;
+        } else if (btn & 4) {
+            *(item + 0x21) += 1;
+            if (*(item + 0x21) == 6) {
+                *(item + 0x21) = 0;
+            }
+        }
+    }
 }
 
 // .text:0x0002004C size:0x258
 void fn_1_2004C(void) {
-    return;
+    u8 *base = lbl_1_bss_6BD8;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u32 indices[9] = {5, 6, 7, 8, 9, 0xd, 0x60, 0x61, 0x55};
+    u8 state = *((u8 *)item + 0x21);
+
+    switch (state) {
+    case 0: {
+        *(void **)((u8 *)item + 0x18) = ARAMTransfer(lbl_1_data_10518, 0, 0, 0);
+        *((u8 *)item + 0x21) += 1;
+        break;
+    }
+    case 1: {
+        u8 *hdr;
+        u32 i;
+
+        if ((s8)lbl_803C6CF8[0x715] != 1) {
+            break;
+        }
+
+        hdr = *(u8 **)((u8 *)item + 0x18);
+        *(void **)((u8 *)item + 0x14) = hdr + *(u32 *)(hdr + 0x14);
+        convertTextureHeader(*(void **)((u8 *)item + 0x14));
+
+        for (i = 0; i < 8; i++) {
+            u32 *entry = (u32 *)(base + 0x24c) + i;
+            u8 *info;
+
+            *entry = i;
+            info = *(u8 **)((u8 *)item + 0x14) + indices[i] * 0x20 + 4;
+
+            if (fn_1_2051C(info, (GXTexObj *)(base + 0x2cc) + i,
+                           (GXTlutObj *)(base + 0x26c) + i, i)) {
+                *entry |= 0x80000000;
+            }
+        }
+
+        *((u8 *)item + 0x21) = 0;
+        currentDrawingItem->func = fn_1_202A4;
+        break;
+    }
+    }
 }
 
 // .text:0x000202A4 size:0x168
@@ -669,8 +1183,75 @@ void fn_1_20890(void) {
 }
 
 // .text:0x00020950 size:0x288
-void fn_1_20950(void) {
-    return;
+void fn_1_20950(void *arg0, s32 arg1, Mtx arg2) {
+    s32 j;
+
+    for (j = 19; j >= 0; j--) {
+        u8 *table1 = (u8 *)arg0 + j * 0x40;
+        u8 *rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
+        u8 lt = arg1 > j;
+
+        *(u8 *)(rec + 0x6c) = lt;
+
+        if (j < arg1) {
+            Vec diff;
+            Vec scaled;
+
+            PSVECSubtract((Vec *)(table1 + 0xc), (Vec *)((u8 *)arg0 + (j + 1) * 0x40 + 0xc), &diff);
+            PSVECScale(&diff, lbl_1_rodata_7814, &scaled);
+            PSVECAdd((Vec *)(table1 + 0xc), &scaled, &scaled);
+            CTRLSetTranslation((Control *)(rec + 0x10), scaled.x, -scaled.y, scaled.z);
+
+            if (PSVECMag(&diff) != lbl_1_rodata_77D8) {
+                Quaternion q1;
+                Vec axis;
+                f32 angle1;
+
+                PSVECNormalize(&diff, &diff);
+                diff.y = -diff.y;
+
+                angle1 = (f32)((lbl_1_rodata_7828 * (lbl_1_rodata_7830 + (f64)(j & 1))) / lbl_1_rodata_7838);
+
+                axis.x = lbl_1_rodata_77E4;
+                axis.y = lbl_1_rodata_77D8;
+                axis.z = lbl_1_rodata_77D8;
+
+                C_QUATRotAxisRad(&q1, &axis, angle1);
+
+                {
+                    f32 dot = PSVECDotProduct(&diff, &axis);
+                    f32 angle2 = (f32)acos(dot);
+                    f32 mag2;
+
+                    PSVECCrossProduct(&diff, &axis, &axis);
+                    mag2 = PSVECMag(&axis);
+
+                    if (mag2 != lbl_1_rodata_77D8) {
+                        Quaternion q2;
+
+                        C_QUATRotAxisRad(&q2, &axis, angle2);
+                        PSQUATMultiply(&q2, &q1, &q1);
+                    }
+                }
+
+                CTRLSetQuat((Control *)(rec + 0x10), q1.x, q1.y, q1.z, q1.w);
+            }
+
+            CTRLSetScale((Control *)(rec + 0x10), lbl_1_data_104D0[0], lbl_1_data_104D0[1], lbl_1_data_104D0[2]);
+            fn_800BDA24(rec);
+        }
+
+        {
+            Mtx m;
+
+            PSMTXTrans(m, lbl_1_rodata_77D8, lbl_1_rodata_77D8, lbl_1_rodata_77D8);
+            PSMTXConcat(arg2, m, arg2);
+        }
+
+        *((u8 *)(*(void **)rec) + 0x98) |= 3;
+    }
+
+    fn_800BD670(lbl_1_bss_6BE0, arg2);
 }
 
 // .text:0x00020BD8 size:0x1F0
@@ -1127,8 +1708,96 @@ void fn_1_23098(void) {
 }
 
 // .text:0x00023804 size:0x2D4
-void fn_1_23804(void) {
-    return;
+void fn_1_23804(void *arg0, void *arg1, s32 n1, s32 n2) {
+    u8 *base;
+    s32 stride2;
+    s32 vtxCount;
+    s32 i;
+
+    GXSetProjection(lbl_1_bss_47010, 0);
+    GXClearVtxDesc();
+    GXSetCullMode(0);
+    GXSetVtxDesc(9, 1);
+    GXSetVtxDesc(0xb, 1);
+    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+    GXSetVtxAttrFmt(0, 0xb, 1, 5, 0);
+    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetTevOp(0, 4);
+    GXLoadPosMtxImm((f32 (*)[4])lbl_1_bss_43EE0, 0);
+    GXSetCurrentMtx(0);
+
+    base = lbl_1_bss_F6E0 + n1 * 0xc;
+    stride2 = n2 * 0x540;
+    vtxCount = n2 * 2;
+
+    for (i = n1; i != 0; i--) {
+        u8 *rowPtr = base + stride2;
+        s32 parity = i & 1;
+        s32 j;
+
+        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, (u16)vtxCount);
+
+        for (j = n2; j != -1; j--) {
+            GX_WRITE_F32(*(f32 *)(rowPtr + 0x0));
+            GX_WRITE_F32(*(f32 *)(rowPtr + 0x8));
+            GX_WRITE_F32(*(f32 *)(rowPtr + 0x4));
+            GX_WRITE_U32(parity == 0 ? -1 : 0xffff);
+
+            GX_WRITE_F32(*(f32 *)(rowPtr - 0xc));
+            GX_WRITE_F32(*(f32 *)(rowPtr - 0x4));
+            GX_WRITE_F32(*(f32 *)(rowPtr - 0x8));
+            GX_WRITE_U32(parity == 0 ? -1 : 0xffff);
+
+            rowPtr -= 0x540;
+        }
+
+        base -= 0xc;
+    }
+
+    GXBegin(GX_LINESTRIP, 0, 8);
+
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_U32(0xff0000ff);
+
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_U32(0xff0000ff);
+
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_U32(0xffff);
+
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_U32(0xffff);
+
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_U32(0xff0000ff);
+
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_U32(0xff0000ff);
+
+    GX_WRITE_F32(lbl_1_rodata_7898);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_U32(0xffff);
+
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_F32(lbl_1_rodata_77D8);
+    GX_WRITE_F32(lbl_1_rodata_7894);
+    GX_WRITE_U32(0xffff);
 }
 
 // .text:0x00023AD8 size:0x7C
@@ -1154,7 +1823,48 @@ void fn_1_23B54(void) {
 
 // .text:0x00024410 size:0x29C
 void fn_1_24410(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    s32 j;
+
+    fn_1_23AD8(lbl_1_bss_47010, (f32 *)(lbl_1_bss_43EE0 + 0x48), (f32 *)(lbl_1_bss_43EE0 + 0x3c));
+
+    *(u16 *)(lbl_1_bss_43EE0 + 0x30) = 0;
+    *(f32 *)(lbl_1_bss_43EE0 + 0x38) = lbl_1_rodata_77D8;
+    *(u16 *)(lbl_1_bss_43EE0 + 0x32) = 0;
+
+    *((u8 *)item + 0x27) = 0x40;
+    *((u8 *)item + 0x29) = 0x40;
+    *((u8 *)item + 0x28) = 0x40;
+    *((u8 *)item + 0x2a) = 0;
+    item->unk_14 = lbl_1_rodata_78AC;
+    *(f32 *)((u8 *)item + 0x18) = lbl_1_rodata_78B0;
+    *(u16 *)((u8 *)item + 0x24) = 0;
+    *(f32 *)((u8 *)item + 0x1c) = lbl_1_rodata_78B4;
+    *(f32 *)((u8 *)item + 0x20) = lbl_1_rodata_78B8;
+    *((u8 *)item + 0x2b) = 1;
+
+    {
+        f32 c1 = lbl_1_rodata_78BC;
+        f32 c2 = lbl_1_rodata_780C;
+        f32 c3 = lbl_1_rodata_78C0;
+
+        for (j = 0; j < 0x80; j++) {
+            f32 angle = c1 * (c2 * ((f32)j * c3));
+
+            lbl_1_bss_74E0[j] = (f32)cos((f64)angle);
+        }
+    }
+
+    memset(lbl_1_bss_76E0, 0, 0x8000);
+
+    for (j = 0; j < 0x20; j++) {
+        s32 v1 = rand() % 0x20;
+        s32 v2 = rand() % 0x80;
+
+        lbl_1_bss_76E0[v1 * 0x80 + v2] = lbl_1_rodata_77E4;
+    }
+
+    currentDrawingItem->func = fn_1_23B54;
 }
 
 // .text:0x000246AC size:0xCC

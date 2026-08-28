@@ -6,7 +6,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/GX/GXTexture.h"
 
-void fn_1_1D694(void);
+void fn_1_1D694(void *arg0);
 void fn_1_1D944(void);
 void fn_1_1DA54(void);
 void fn_1_1DCE4(void);
@@ -32,9 +32,9 @@ void fn_1_1F05C(void);
 void fn_1_1F23C(u8 *arg0);
 void fn_1_1F2D8(void);
 void fn_1_1F418(void *arg0);
-void fn_1_1F618(void);
+void fn_1_1F618(void *arg0);
 void fn_1_1F900(void);
-void fn_1_1FD78(void);
+void fn_1_1FD78(void *arg0);
 void fn_1_2004C(void);
 void fn_1_202A4(void);
 void fn_1_2040C(void);
@@ -42,7 +42,7 @@ s32 fn_1_2051C(void *arg0, GXTexObj *arg1, GXTlutObj *arg2, u32 arg3);
 void fn_1_20640(void *arg0, u32 *entries);
 void fn_1_207D4(void);
 void fn_1_20890(void);
-void fn_1_20950(void);
+void fn_1_20950(void *arg0, s32 arg1, Mtx arg2);
 void fn_1_20BD8(void);
 void fn_1_20DC8(void);
 void fn_1_20E00(void *arg0);
@@ -58,7 +58,7 @@ void fn_1_22874(void);
 void fn_1_22DF4(DrawingSceneStruct *arg0);
 void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other);
 void fn_1_23098(void);
-void fn_1_23804(void);
+void fn_1_23804(void *arg0, void *arg1, s32 arg2, s32 arg3);
 void fn_1_23AD8(Mtx44 m, f32 *arg1, f32 *arg2);
 void fn_1_23B54(void);
 void fn_1_24410(void);
