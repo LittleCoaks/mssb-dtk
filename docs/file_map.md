@@ -346,6 +346,11 @@ from the shipped game. See `build/.match_grind/debug_debug_rep_7BF0.md`
 for the full finding, exact call-site offsets, and the renderer's
 struct-argument layout.
 
+Debug menu entry 3 (`rep_7A28.c`) is a particle/effect parameter editor
+(fire/smoke/fireball/tail presets across 4 tunable-field tables), not a
+camera viewer; its grid+sphere 3D view is a live preview pane for whichever
+preset is being edited.
+
 The mapped addresses are not assumed. The menu REL loads at `0x8063F094`, the
 same slot as the match REL, and every generated address was checked against the
 `AtGameSettingsScreen` snapshot — `rep_01A0`'s four functions land on
