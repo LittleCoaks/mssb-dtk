@@ -15,17 +15,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from match_classify import REPO, generate_report
 
-# unit name's first path segment -> display label. "challenge" is the real,
-# official name (the disc file is challenge.rel) -- its purpose is still
-# unknown, but that's a separate question from what it's called; see
+# unit name's first path segment -> display label. "debug" was previously
+# labeled "challenge" -- that was a repo-invented name from decompress.py's
+# hardcoded output filename, not an authoritative disc name. Research has
+# since identified it as the game's unused developer debug menu; see
 # docs/file_map.md.
 MODULE_LABELS = {
     "main": "DOL",
     "game": "game.rel",
     "menus": "menus.rel",
-    "challenge": "challenge.rel",
+    "debug": "debug.rel",
 }
-MODULE_ORDER = ["main", "game", "menus", "challenge"]
+MODULE_ORDER = ["main", "game", "menus", "debug"]
 
 
 def collect(report):

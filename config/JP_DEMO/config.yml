@@ -17,7 +17,7 @@ modules:
   symbols: config/JP_DEMO/menus/symbols.txt
   splits: config/JP_DEMO/menus/splits.txt
 
-- object: orig/JP_DEMO/files/challenge.rel
+- object: orig/JP_DEMO/files/debug.rel
   hash: bcd3470987db8f89064da7798bf03871c9f800fd
-  symbols: config/JP_DEMO/challenge/symbols.txt
-  splits: config/JP_DEMO/challenge/splits.txt
+  symbols: config/JP_DEMO/debug/symbols.txt
+  splits: config/JP_DEMO/debug/splits.txt

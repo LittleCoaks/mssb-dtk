@@ -1,4 +1,4 @@
-#include "challenge/rep_0138.h"
+#include "debug/rep_0138.h"
 #include "header_rep_data.h"
 #include "Dolphin/gx.h"
 #include "Unknown/File_0x800bd300.h"

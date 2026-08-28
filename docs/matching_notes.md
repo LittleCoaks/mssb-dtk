@@ -381,7 +381,7 @@ both now solved:
    the .c file in reverse address order** (highest `.text` offset first).
    Codegen is unaffected (see previous section — order is a codegen no-op),
    so the match stays 100%. This applies to every REL unit (menus/game/
-   challenge use cflags_rel); DOL-side units don't use `-inline deferred`.
+   debug use cflags_rel); DOL-side units don't use `-inline deferred`.
 
 2. **dtk's synthetic string-literal symbols trigger harmless linker
    warnings.** dtk names anonymous string literals (e.g.

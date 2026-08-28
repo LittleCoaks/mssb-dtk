@@ -1,4 +1,4 @@
-#include "challenge/rep_0010.h"
+#include "debug/rep_0010.h"
 #include "header_rep_data.h"
 
 // .text:0x000005EC size:0x508

@@ -90,7 +90,7 @@ def find_function(name: str):
 
 def derive_unit_name(path: Path) -> str:
     rel = path.relative_to(SRC_DIR).with_suffix("").as_posix()
-    for module in ("game", "menus", "challenge"):
+    for module in ("game", "menus", "debug"):
         if rel == module or rel.startswith(module + "/"):
             return f"{module}/{rel}"
     return f"main/{rel}"

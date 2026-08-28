@@ -17,7 +17,7 @@ modules:
   symbols: config/US_DEMO/menus/symbols.txt
   splits: config/US_DEMO/menus/splits.txt
 
-- object: orig/US_DEMO/files/challenge.rel
+- object: orig/US_DEMO/files/debug.rel
   hash: c8c53a8dfd56d3d074acf245c08e5034f2d14899
-  symbols: config/US_DEMO/challenge/symbols.txt
-  splits: config/US_DEMO/challenge/splits.txt
+  symbols: config/US_DEMO/debug/symbols.txt
+  splits: config/US_DEMO/debug/splits.txt

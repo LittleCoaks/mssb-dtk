@@ -17,7 +17,7 @@ modules:
   symbols: config/GYQE01/menus/symbols.txt
   splits: config/GYQE01/menus/splits.txt
 
-- object: orig/GYQE01/files/challenge.rel
+- object: orig/GYQE01/files/debug.rel
   hash: 1078bab4fa28a1ca4df173267205559de3fc0cb8
-  symbols: config/GYQE01/challenge/symbols.txt
-  splits: config/GYQE01/challenge/splits.txt
+  symbols: config/GYQE01/debug/symbols.txt
+  splits: config/GYQE01/debug/splits.txt

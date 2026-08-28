@@ -36,12 +36,12 @@ Confidence varies per file (`docs/file_map.md` tags each `high`/`med`/`inferred`
 Files still under their original `rep_XXXX` name are `inferred` — the category
 is trustworthy, the boundary/name is a guess.
 
-## `menus/`, `challenge/` — the other two RELs
+## `menus/`, `debug/` — the other two RELs
 
 Stub headers only — these RELs aren't decompiled, just split into units with
-real addresses. Useful for symbol/address lookups (menu screens, `challenge.rel`
-— whose own purpose is still unknown, see `docs/file_map.md`), not for reading
-actual logic.
+real addresses. Useful for symbol/address lookups (menu screens, `debug.rel`
+— the game's unused developer debug menu, see `docs/file_map.md`), not for
+reading actual logic.
 
 ## `static/`
 

@@ -47,7 +47,7 @@ KNOWN_AAAA_FILES = [
     },
     {
         "Input": US_INPUT_FILE,
-        "Output": US_FILE('challenge.rel'),
+        "Output": US_FILE('debug.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x5912C,
@@ -78,7 +78,7 @@ KNOWN_AAAA_FILES = [
     },
     {
         "Input": US_DEMO_INPUT_FILE,
-        "Output": US_DEMO_FILE('challenge.rel'),
+        "Output": US_DEMO_FILE('debug.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x4F164,
@@ -109,7 +109,7 @@ KNOWN_AAAA_FILES = [
     },
     {
         "Input": JP_DEMO_INPUT_FILE,
-        "Output": JP_DEMO_FILE('challenge.rel'),
+        "Output": JP_DEMO_FILE('debug.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x4F164,
@@ -140,7 +140,7 @@ KNOWN_AAAA_FILES = [
     },
     {
         "Input": EU_DEMO_INPUT_FILE,
-        "Output": EU_DEMO_FILE('challenge.rel'),
+        "Output": EU_DEMO_FILE('debug.rel'),
         "lookbackBitSize": 0xb,
         "repetitionBitSize": 0x4,
         "size": 0x4F164,

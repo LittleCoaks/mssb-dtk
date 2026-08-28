@@ -87,7 +87,7 @@ MODULE_SYMBOLS = {
     "main": REPO / "config" / "GYQE01" / "symbols.txt",
     "game": REPO / "config" / "GYQE01" / "game" / "symbols.txt",
     "menus": REPO / "config" / "GYQE01" / "menus" / "symbols.txt",
-    "challenge": REPO / "config" / "GYQE01" / "challenge" / "symbols.txt",
+    "debug": REPO / "config" / "GYQE01" / "debug" / "symbols.txt",
 }
 
 AUTO_LABEL_RE = re.compile(r"^lbl_([0-9A-Fa-f]{8})$")

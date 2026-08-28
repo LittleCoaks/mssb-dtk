@@ -34,7 +34,7 @@ REL_LOAD = {
     "game":      {"text": 0x8063F094, "bss": 0x808610E0},
     "menus":     {"text": 0x8063F094, "bss": None},
     # Not resident in either Ghidra snapshot, so nothing to solve against yet.
-    "challenge": {"text": None, "bss": None},
+    "debug": {"text": None, "bss": None},
 }
 
 _SECTION_ORDER = ("text", "ctors", "dtors", "rodata", "data")

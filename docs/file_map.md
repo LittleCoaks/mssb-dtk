@@ -294,15 +294,15 @@ completely disjoint, with nothing shared or common between them.
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
 | `menus` | menu REL | 42 | `src/menus/**` | 42 units, 532 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); 2 units named so far (`yd_step.c` at top level, `captain_select/`) |
-| `challenge` | a REL whose purpose is still unknown (see below) | 13 | `src/challenge/**` | stubs for all 13 units, 307 functions |
+| `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
-### The menu REL and challenge.rel
+### The menu REL and debug.rel
 
 Both are known but unwritten, and until recently neither had anywhere to be
 written. `configure.py` declared `Object(NonMatching, "menus/rep_XXXX.c")` for
 every menu unit and the splits gave each one its address range, but not one of
 those files existed — the link consumed objects extracted from the original REL
-instead. `challenge.rel` was worse off: splits and 2353 symbols, but no entry in
+instead. `debug.rel` was worse off: splits and 2353 symbols, but no entry in
 `configure.py` at all.
 
 Both now have a source tree in the `src/game` style — one `.c` per unit with a
@@ -311,26 +311,28 @@ Both now have a source tree in the `src/game` style — one `.c` per unit with a
 objdiff can diff the compiled stub against the original, so progress on these
 RELs is now visible instead of invisible. The four menu units that were in the
 splits but missing from `configure.py` (`rep_0398`, `rep_03E8`, `rep_0438`,
-`rep_04B0`) are wired in, and `challenge.rel` has a `Rel()` entry.
+`rep_04B0`) are wired in, and `debug.rel` has a `Rel()` entry.
 
-**On the name.** The disc file is `challenge.rel` — that's its real, official
-name, and the source tree (`src/challenge/`, `config/*/challenge/`) uses it
-directly rather than a repo-invented label: an authoritative name always wins
-over a guess, even an evidence-based one. This folder used to be called
-`unused_rel`, on the theory that since research on this REL found nothing
-connecting it to Challenge Mode -- it appears to be genuinely unused -- the
-folder should say so instead. That theory about its *purpose* still stands
-(nothing has tied it to Challenge Mode, and it may well be dead/unused code),
-but purpose and name are separate questions: not knowing what it's for is not
-a reason to rename away from what it's actually called. If a good case for its
-real function ever turns up, that's a separate finding to add here, not a
-reason to touch the folder name again.
+**On the name.** This REL was called `challenge.rel` from early in the
+project's history, on the theory that it was tied to Challenge Mode. That name
+was never authoritative: it came from `decompress.py`'s own hardcoded output
+filename when splitting the raw archive `aaaa.dat` by byte offset — there is no
+filename table in that archive, so nothing about the string "challenge" ever
+came from the game's data. The "official name always wins" rule that used to
+be invoked here does not apply, because there was no official name to defer
+to. Research has since independently identified this REL as the game's unused
+developer debug menu, and the module has been renamed to `debug` throughout
+the repo (`src/debug/`, `config/*/debug/`, and the disc-extracted file is now
+written as `debug.rel`) to reflect that. Nothing here ties it to Challenge
+Mode, and it may still be dead/unused code in the sense that it never shipped
+active, but its identity as a debug menu is no longer in question the way its
+name once implied.
 
 The mapped addresses are not assumed. The menu REL loads at `0x8063F094`, the
 same slot as the match REL, and every generated address was checked against the
 `AtGameSettingsScreen` snapshot — `rep_01A0`'s four functions land on
 `FUN_8063fb04`, `FUN_8063fbcc`, `FUN_8063fcac`, `FUN_8063fd08` with matching
-sizes. `challenge.rel` is resident in neither snapshot, so its load address is
+sizes. `debug.rel` is resident in neither snapshot, so its load address is
 unknown and its stubs carry offset and size but **no** `mapped:` comment; add it
 to `REL_LOAD` in `tools/cvt_rel_addr_to_mapped_addr.py` once it can be measured.
 That unsolved base is also why its symbols are the only ones absent from the

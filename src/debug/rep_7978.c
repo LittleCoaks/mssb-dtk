@@ -1,4 +1,4 @@
-#include "challenge/rep_7978.h"
+#include "debug/rep_7978.h"
 #include "header_rep_data.h"
 
 // .text:0x00026D28 size:0x5B4

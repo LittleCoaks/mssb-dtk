@@ -1,4 +1,4 @@
-#include "challenge/rep_7730.h"
+#include "debug/rep_7730.h"
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "static/UnknownHomes_Static.h"

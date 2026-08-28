@@ -185,7 +185,7 @@ symptom, and checking them is much cheaper than open-ended grinding:
    allocated for the promoted value. Check every operand's real type
    against what the surrounding expression assumes.
 
-For REL-module files (most `game`/`menus`/`challenge` objects here), when
+For REL-module files (most `game`/`menus`/`debug` objects here), when
 hunting for a missed inline specifically, work through the file's
 still-unmatched functions **smallest to largest**, not file order or lowest
 match% first. A missed inline is far easier to spot in a small function —
@@ -265,7 +265,7 @@ treat it as one atomic, fully-verified task, not something to rush:
    purpose | conf`, matching the existing table format precisely) and have
    it update that folder's/module's summary line and counts. If this is the
    first named file in a module that doesn't have folder categories yet
-   (menus and challenge currently don't), only introduce one if the
+   (menus and debug currently don't), only introduce one if the
    evidence genuinely calls for a distinct category — "folder is the
    category" per `docs/file_map.md`, not a folder per file.
 
