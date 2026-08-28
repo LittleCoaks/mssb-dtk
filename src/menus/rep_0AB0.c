@@ -1,5 +1,12 @@
 #include "menus/rep_0AB0.h"
 #include "header_rep_data.h"
+#include "Unknown/File_0x800b0a14.h"
+
+extern u8 menuNumber[0x28];
+extern u8 *lbl_2_bss_1A8234;
+extern u8 lbl_2_data_268A8[0x2E10];
+void fn_80053FE8(void);
+void fn_2_54354(void *arg0, int count);
 
 // .text:0x0005979C size:0x55C mapped:0x80698830
 void fn_2_5979C(void) {
