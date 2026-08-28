@@ -3,6 +3,8 @@
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
+#include "Unknown/File_0x800b0a14.h"
+#include "Dolphin/GX/GXTexture.h"
 
 void fn_1_1D694(void);
 void fn_1_1D944(void);
@@ -36,7 +38,7 @@ void fn_1_1FD78(void);
 void fn_1_2004C(void);
 void fn_1_202A4(void);
 void fn_1_2040C(void);
-void fn_1_2051C(void);
+s32 fn_1_2051C(void *arg0, GXTexObj *arg1, GXTlutObj *arg2, u32 arg3);
 void fn_1_20640(void);
 void fn_1_207D4(void);
 void fn_1_20890(void);
@@ -46,14 +48,14 @@ void fn_1_20DC8(void);
 void fn_1_20E00(void);
 void fn_1_20F8C(void);
 void fn_1_21040(void);
-void fn_1_21180(void);
-void fn_1_21298(void);
+void fn_1_21180(DrawingSceneStruct *arg0);
+void fn_1_21298(DrawingSceneStruct *arg0);
 void fn_1_21408(void);
 void fn_1_21CE8(void);
 void fn_1_225B8(void);
 void fn_1_22644(void);
 void fn_1_22874(void);
-void fn_1_22DF4(void);
+void fn_1_22DF4(DrawingSceneStruct *arg0);
 void fn_1_22F4C(void);
 void fn_1_23098(void);
 void fn_1_23804(void);
