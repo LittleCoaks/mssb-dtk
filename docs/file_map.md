@@ -328,6 +328,24 @@ Mode, and it may still be dead/unused code in the sense that it never shipped
 active, but its identity as a debug menu is no longer in question the way its
 name once implied.
 
+**Why it's invisible in retail.** `debug.rel` is genuinely the developer
+debug menu — it is force-loadable via Gecko and, once loaded, its
+input-handling and menu-dispatch machinery runs correctly (cursor
+movement, submenu entry, sound triggering are all wired up). But nothing
+ever draws its menu-item text on screen in a retail build, and live
+hardware testing plus DOL analysis has now confirmed why: its per-row
+menu-text renderer is DOL function `fn_80048BEC`, and in the retail DOL
+that function is a **compiled-out stub** — the shell (prologue/epilogue
+and an empty countdown loop) survives, but the loop body that would
+actually draw anything was physically stripped at build time. A sibling
+DOL function, `0x80026130`, is likewise reduced to a bare `blr` stub.
+Both are called from real, live call sites inside `debug.rel` (three for
+`fn_80048BEC`, two for `0x80026130`) — the REL is functional, it is only
+the DOL-side developer-only renderers it depends on that were removed
+from the shipped game. See `build/.match_grind/debug_debug_rep_7BF0.md`
+for the full finding, exact call-site offsets, and the renderer's
+struct-argument layout.
+
 The mapped addresses are not assumed. The menu REL loads at `0x8063F094`, the
 same slot as the match REL, and every generated address was checked against the
 `AtGameSettingsScreen` snapshot — `rep_01A0`'s four functions land on
