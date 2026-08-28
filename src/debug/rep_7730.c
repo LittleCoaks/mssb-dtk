@@ -73,6 +73,39 @@ extern void (*lbl_1_data_10510[])(DrawingSceneStruct *arg0);
 extern u8 lbl_1_bss_6FE0[0x500];
 extern u32 lbl_1_data_104DC[6];
 extern u8 lbl_1_bss_45868[0x17A8];
+extern f64 lbl_1_rodata_7878;
+extern f64 lbl_1_rodata_7880;
+extern f64 lbl_1_rodata_7888;
+
+extern void LITAlloc(void *slot);
+extern void LITInitAttn(void *light, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6);
+extern void LITInitPos(void *light, f32 arg1, f32 arg2, f32 arg3);
+extern void LITInitDir(void *light, f32 arg1, f32 arg2, f32 arg3);
+extern void LITInitColor(void *light, GXColor *color);
+extern void *ActorObjectInitTable(s32 arg0, u32 arg1, void *arg2);
+extern void LoadActorLayout(void *arg0);
+extern void convertGeometryAndSknHeader(void *arg0, s32 arg1);
+extern void animateBallRelated(void *arg0, s32 arg1, s32 arg2, void *arg3, s32 arg4, s32 arg5);
+extern void fn_800B2C08(void *arg0, s32 arg1);
+extern void fn_800BD548(void *arg0, s32 arg1, void *arg2);
+extern void haveActLayoutPointToGeoHeader(void *arg0, void *arg1);
+
+extern u8 lbl_1_bss_6FA4[0x14];
+extern void *lbl_1_bss_6BE0;
+extern u32 lbl_1_rodata_77B0;
+extern f32 lbl_1_rodata_7840;
+extern GXTexObj lbl_1_bss_6EA4[8];
+extern GXTlutObj lbl_1_bss_6E44[8];
+extern f32 lbl_1_rodata_78C4;
+extern f32 lbl_1_rodata_78C8;
+extern f32 lbl_1_rodata_7808;
+extern u8 lbl_1_data_10384[0x120];
+extern f32 lbl_1_data_104A4;
+extern void fn_1_26D28(void *arg0, u16 arg1, u16 arg2, u16 arg3, void *arg4);
+extern void fn_1_27330(void *arg0);
+extern void fn_80037BAC(void *arg0);
+extern s32 fn_80048EA8(s32 arg0);
+extern u8 lbl_1_bss_43EE0[0x88];
 extern void fn_80038B48(void *arg0, void *arg1, s32 arg2, void *arg3);
 extern void fn_80038CD0(u8 arg0, void *arg1, void *arg2, f32 arg3, f32 arg4);
 
@@ -235,9 +268,11 @@ void fn_1_1E8C0(s32 arg0) {
 }
 
 // .text:0x0001E90C size:0x6E8
-void fn_1_1E90C(void) {
-    return;
+#pragma dont_inline on
+s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
+    return 0;
 }
+#pragma dont_inline reset
 
 // .text:0x0001EFF4 size:0x68
 void fn_1_1EFF4(void) {
@@ -251,7 +286,67 @@ void fn_1_1EFF4(void) {
 
 // .text:0x0001F05C size:0x1E0
 void fn_1_1F05C(void) {
-    return;
+    u8 *base = lbl_1_bss_6BD8;
+    DrawingSceneStruct *item = currentDrawingItem;
+
+    if (*(u32 *)((u8 *)item + 0x2c) & 1) {
+        s16 newState = fn_1_1E90C(item->state, AtBat_ButtonInput1._00, AtBat_ButtonInput1._02,
+                                   *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4));
+
+        currentDrawingItem->state = newState;
+    } else {
+        fn_1_26D28(base + 0x170, AtBat_ButtonInput1._00, AtBat_ButtonInput1._02,
+                    *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4), (u8 *)&AtBat_ButtonInput1 + 0x10);
+    }
+
+    if (AtBat_ButtonInput1._02 & 0x200) {
+        item = currentDrawingItem;
+
+        if (*(u32 *)((u8 *)item + 0x2c) & 1) {
+            item->func = fn_1_24778;
+        } else {
+            *(u32 *)((u8 *)item + 0x2c) ^= 1;
+        }
+    } else if (AtBat_ButtonInput1._02 & 0x1000) {
+        item = currentDrawingItem;
+        *(u32 *)((u8 *)item + 0x2c) ^= 1;
+    }
+
+    fn_1_27330(base + 0x170);
+    item = currentDrawingItem;
+
+    if (*(s32 *)((u8 *)item + 0x28) == 0) {
+        if (*(u32 *)((u8 *)item + 0x2c) & 4) {
+            *(u32 *)((u8 *)item + 0x2c) ^= 4;
+
+            {
+                f32 vec[3];
+
+                vec[0] = *(f32 *)(base + 0x10);
+                vec[1] = *(f32 *)(base + 0x14);
+                vec[2] = *(f32 *)(base + 0x18);
+                fn_80037B18(base + 0x1c, vec);
+            }
+        }
+
+        fn_80037BAC(base + 0x1c);
+    }
+
+    item = currentDrawingItem;
+
+    if (*(u32 *)((u8 *)item + 0x2c) & 1) {
+        void (*fn)(s16) = lbl_1_data_1066C[*(u32 *)((u8 *)item + 0x28)];
+
+        fn((s16)(item->state - 8));
+    }
+
+    fn_1_272DC(base + 0x170, 0);
+    fn_1_AF4(0x14, 0x14, lbl_1_rodata_77E4);
+    item = currentDrawingItem;
+
+    if (*(u32 *)((u8 *)item + 0x2c) & 2) {
+        fn_1_1E5D0(base + 0x1c);
+    }
 }
 
 // .text:0x0001F23C size:0x9C
@@ -306,8 +401,92 @@ void fn_1_1F2D8(void) {
 }
 
 // .text:0x0001F418 size:0x200
-void fn_1_1F418(void) {
-    return;
+void fn_1_1F418(void *arg0) {
+    u8 *item = arg0;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        u8 sel = *(item + 0x21);
+
+        switch (i) {
+        case 0:
+            if (i == sel) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    if (*(item + 0x20) == 0) {
+                        *(item + 0x20) = 2;
+                    }
+                    *(item + 0x20) -= 1;
+                } else if (btn & 2) {
+                    *(item + 0x20) += 1;
+                    if (*(item + 0x20) == 2) {
+                        *(item + 0x20) = 0;
+                    }
+                }
+            }
+            break;
+        case 1: {
+            s32 delta = fn_80048EA8(0);
+
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    delta -= 1;
+                } else if (btn & 2) {
+                    delta += 1;
+                }
+            }
+            fn_80048E00(0, delta);
+            break;
+        }
+        case 2: {
+            s32 delta = fn_80048EA8(1);
+
+            if (i == *(item + 0x21)) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    delta -= 1;
+                } else if (btn & 2) {
+                    delta += 1;
+                }
+            }
+            fn_80048E00(1, delta);
+            break;
+        }
+        case 3:
+            if (i == sel) {
+                u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+                if (btn & 1) {
+                    if (*(u32 *)(item + 0x1c) != 0) {
+                        *(u32 *)(item + 0x1c) -= 1;
+                    }
+                } else if (btn & 2) {
+                    *(u32 *)(item + 0x1c) += 1;
+                }
+            }
+            break;
+        }
+    }
+
+    {
+        u16 btn = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+        if (btn & 8) {
+            if (*(item + 0x21) == 0) {
+                *(item + 0x21) = 4;
+            }
+            *(item + 0x21) -= 1;
+        } else if (btn & 4) {
+            *(item + 0x21) += 1;
+            if (*(item + 0x21) == 4) {
+                *(item + 0x21) = 0;
+            }
+        }
+    }
 }
 
 // .text:0x0001F618 size:0x2E8
@@ -417,8 +596,40 @@ s32 fn_1_2051C(void *arg0, GXTexObj *arg1, GXTlutObj *arg2, u32 arg3) {
 }
 
 // .text:0x00020640 size:0x194
-void fn_1_20640(void) {
-    return;
+void fn_1_20640(void *arg0, u32 *entries) {
+    s32 i;
+
+    GXSetNumTevStages(*((u8 *)arg0 + 0x22));
+    GXSetNumTexGens(*((u8 *)arg0 + 0x22));
+
+    for (i = 0; i < *((u8 *)arg0 + 0x22); i++) {
+        u32 entry;
+
+        GXSetTexCoordGen2(i, 1, 4, 0x3c, 0, 0x7d);
+
+        if (i != 0) {
+            GXSetTevColorIn(i, 0, 8, 0xb, 0xf);
+            GXSetTevColorOp(i, 0, 0, 0, 1, 0);
+            GXSetTevAlphaIn(i, 7, 7, 7, 0);
+            GXSetTevAlphaOp(i, 0, 0, 0, 1, 0);
+        } else {
+            GXSetTevColorIn(i, 0xf, 0xf, 0xf, 8);
+            GXSetTevColorOp(i, 0, 0, 0, 1, 0);
+            GXSetTevAlphaIn(i, 7, 7, 7, 5);
+            GXSetTevAlphaOp(i, 0, 0, 0, 1, 0);
+        }
+
+        entry = entries[i];
+        {
+            u32 tlutIdx = entry & 0x7fffffff;
+
+            GXLoadTexObj(&lbl_1_bss_6EA4[entry], i);
+
+            if (entry & 0x80000000) {
+                GXLoadTlut(&lbl_1_bss_6E44[tlutIdx], i);
+            }
+        }
+    }
 }
 
 // .text:0x000207D4 size:0xBC
@@ -464,7 +675,62 @@ void fn_1_20950(void) {
 
 // .text:0x00020BD8 size:0x1F0
 void fn_1_20BD8(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u8 state = *((u8 *)item + 0x25);
+
+    switch (state) {
+    case 0: {
+        DrawingSceneStruct *newItem = insertGraphicDrawingFunction(fn_1_20F8C, 1);
+
+        newItem->state = 0;
+        *((u8 *)item + 0x25) += 1;
+        break;
+    }
+    case 1: {
+        if (item->state != 0) {
+            u32 color = lbl_1_rodata_77B0;
+            u8 *field;
+            u32 field0;
+            u32 field1;
+            u8 *layout;
+            u8 *geo;
+            u16 j;
+
+            LITAlloc(lbl_1_bss_6FA4);
+            LITInitAttn(*(void **)lbl_1_bss_6FA4, lbl_1_rodata_77E4, lbl_1_rodata_77D8, lbl_1_rodata_77D8,
+                        lbl_1_rodata_77E4, lbl_1_rodata_77D8, lbl_1_rodata_77D8);
+            LITInitPos(*(void **)lbl_1_bss_6FA4, lbl_1_rodata_7840, lbl_1_rodata_7840, lbl_1_rodata_7840);
+            LITInitDir(*(void **)lbl_1_bss_6FA4, lbl_1_rodata_77D8, lbl_1_rodata_77D8, lbl_1_rodata_77D8);
+
+            {
+                GXColor c = *(GXColor *)&color;
+                LITInitColor(*(void **)lbl_1_bss_6FA4, &c);
+            }
+
+            field = *(u8 **)((u8 *)item + 0x14);
+            field0 = *(u32 *)field;
+            field1 = *(u32 *)(field + 4);
+            layout = field + field0;
+            geo = field + field1;
+
+            lbl_1_bss_6BE0 = ActorObjectInitTable(0x14, field0, field);
+
+            LoadActorLayout(layout);
+            convertGeometryAndSknHeader(geo, 0);
+            haveActLayoutPointToGeoHeader(layout, geo);
+
+            for (j = 0; j < 20; j++) {
+                animateBallRelated(lbl_1_bss_6BE0, j, j, layout, 0, 0);
+                fn_800B2C08(*(void **)((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34), 0);
+                fn_800BD548((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34, 1, *(void **)lbl_1_bss_6FA4);
+            }
+
+            item->currentDrawingItem->state = 1;
+            removeCurrentDrawingItem();
+        }
+        break;
+    }
+    }
 }
 
 // .text:0x00020DC8 size:0x38
@@ -476,8 +742,43 @@ void fn_1_20DC8(void) {
 }
 
 // .text:0x00020E00 size:0x18C
-void fn_1_20E00(void) {
-    return;
+void fn_1_20E00(void *arg0) {
+    u32 colorBits = lbl_1_rodata_77B0;
+    u8 *field;
+    u32 field0;
+    u32 field1;
+    u8 *geo;
+    u8 *layout;
+    u16 j;
+
+    LITAlloc(lbl_1_bss_6FA4);
+    LITInitAttn(*(void **)lbl_1_bss_6FA4, lbl_1_rodata_77E4, lbl_1_rodata_77D8, lbl_1_rodata_77D8,
+                lbl_1_rodata_77E4, lbl_1_rodata_77D8, lbl_1_rodata_77D8);
+    LITInitPos(*(void **)lbl_1_bss_6FA4, lbl_1_rodata_7840, lbl_1_rodata_7840, lbl_1_rodata_7840);
+    LITInitDir(*(void **)lbl_1_bss_6FA4, lbl_1_rodata_77D8, lbl_1_rodata_77D8, lbl_1_rodata_77D8);
+
+    {
+        GXColor color = *(GXColor *)&colorBits;
+        LITInitColor(*(void **)lbl_1_bss_6FA4, &color);
+    }
+
+    field = *(u8 **)((u8 *)arg0 + 0x14);
+    field0 = *(u32 *)field;
+    field1 = *(u32 *)(field + 4);
+    layout = field + field0;
+    geo = field + field1;
+
+    lbl_1_bss_6BE0 = ActorObjectInitTable(0x14, field0, field);
+
+    LoadActorLayout(layout);
+    convertGeometryAndSknHeader(geo, 0);
+    haveActLayoutPointToGeoHeader(layout, geo);
+
+    for (j = 0; j < 20; j++) {
+        animateBallRelated(lbl_1_bss_6BE0, j, j, layout, 0, 0);
+        fn_800B2C08(*(void **)((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34), 0);
+        fn_800BD548((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34, 1, *(void **)lbl_1_bss_6FA4);
+    }
 }
 
 // .text:0x00020F8C size:0xB4
@@ -657,7 +958,69 @@ void fn_1_225B8(void) {
 
 // .text:0x00022644 size:0x230
 void fn_1_22644(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+
+    fn_800AD038(*(void **)(lbl_80366158 + 0x8));
+    *((u8 *)item + 0x25) = 0;
+
+    {
+        DrawingSceneStruct *scratch = currentDrawingItem;
+
+        *(f32 *)((u8 *)scratch + 0x18) = lbl_1_rodata_77F8;
+        *(f32 *)((u8 *)scratch + 0x1c) = lbl_1_rodata_7854;
+        *((u8 *)scratch + 0x25) = 0;
+        *((u8 *)scratch + 0x20) = 0xa;
+        *((u8 *)scratch + 0x21) = 0xa;
+        *((u8 *)scratch + 0x22) = 1;
+        *((u8 *)scratch + 0x23) = 0;
+        *((u8 *)scratch + 0x24) = 0;
+
+        fn_80038E2C(lbl_1_bss_6BD8 + 0x3e0);
+
+        {
+            f32 c1 = lbl_1_rodata_77E4;
+            u32 val = *((u8 *)scratch + 0x20);
+            u8 *phys = lbl_1_bss_6BD8 + 0x3e0;
+            f32 floatVal = (f32)val;
+            u16 flag = AtBat_ButtonInput1._00;
+            f32 ratio = c1 / floatVal;
+            f32 c3 = lbl_1_rodata_780C;
+            f32 speed;
+            f32 t;
+            f32 speed2;
+            f32 result;
+            u8 idx;
+
+            *(u32 *)(phys + 0x20) = val;
+            speed = ratio / lbl_1_rodata_784C;
+            t = c3 * speed;
+            *(f32 *)(phys + 0x18) = speed;
+            speed2 = speed * speed;
+            result = c1 / t;
+            *(f32 *)(phys + 0x1c) = speed2;
+            *(f32 *)(phys + 0x24) = result;
+
+            if ((flag & 0x400) != 0) {
+                *(u32 *)(phys + 0x20) = 1;
+            }
+
+            idx = *((u8 *)scratch + 0x21);
+            fn_80038CD0(idx, phys, lbl_1_bss_6BD8 + 0x408, lbl_1_rodata_7810, *(f32 *)((u8 *)scratch + 0x18));
+
+            {
+                u8 *entry = lbl_1_bss_6BD8 + 0x408 + (*((u8 *)scratch + 0x21) - 1) * 0x40;
+
+                *(f32 *)(lbl_1_bss_6BD8 + 0x3d0) = *(f32 *)(entry + 0xc);
+                *(f32 *)(lbl_1_bss_6BD8 + 0x3d4) = *(f32 *)(entry + 0x10);
+                *(f32 *)(lbl_1_bss_6BD8 + 0x3d8) = *(f32 *)(entry + 0x14);
+                *(u32 *)(entry + 0x3c) = *((u8 *)scratch + 0x23);
+            }
+        }
+    }
+
+    fn_1_23AD8(lbl_1_bss_47010, (f32 *)(lbl_1_bss_43EE0 + 0x48), (f32 *)(lbl_1_bss_43EE0 + 0x3c));
+
+    currentDrawingItem->func = fn_1_225B8;
 }
 
 // .text:0x00022874 size:0x580
@@ -721,8 +1084,41 @@ void fn_1_22DF4(DrawingSceneStruct *arg0) {
 }
 
 // .text:0x00022F4C size:0x14C
-void fn_1_22F4C(void) {
-    return;
+void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
+    f64 wSq;
+    f32 coeffNeighbor;
+    f32 coeffCenter;
+    s32 mMinus1;
+    s32 i;
+
+    wSq = (lbl_1_rodata_7878 * *(f32 *)(lbl_1_data_FB98 + 0x928)) / *(f32 *)(lbl_1_data_FB98 + 0x924);
+    wSq = wSq * wSq;
+    coeffNeighbor = (f32)wSq;
+    coeffCenter = (f32)(lbl_1_rodata_7880 - lbl_1_rodata_7888 * wSq);
+    mMinus1 = m - 1;
+
+    for (i = 0; i < n; i++) {
+        s32 prevRowBase = m * ((i + n - 1) % n);
+        s32 nextRowBase = m * ((i + 1) % n);
+        s32 rowBase = i * m;
+        s32 j;
+
+        for (j = 0; j < m; j++) {
+            s32 k = rowBase + j;
+            s32 prevCol = rowBase + (j + mMinus1) % m;
+            s32 nextCol = rowBase + (j + 1) % m;
+            f32 val = src[k];
+            f32 sum = src[prevRowBase + j] + src[nextRowBase + j];
+
+            sum += src[prevCol];
+            sum += src[nextCol];
+            sum = coeffNeighbor * sum;
+            sum = coeffCenter * val + sum;
+            sum -= other[k];
+            dst[k] = sum;
+            dst[k] = dst[k] * *(f32 *)(lbl_1_data_FB98 + 0x92c);
+        }
+    }
 }
 
 // .text:0x00023098 size:0x76C
@@ -812,13 +1208,98 @@ void fn_1_247A0(void) {
 }
 
 // .text:0x000248BC size:0x1D0
-void fn_1_248BC(void) {
-    return;
+void fn_1_248BC(s32 count) {
+    u8 width;
+    GXTexOffset offset;
+    u8 *table1;
+    u8 *table2;
+
+    GXGetLineWidth(&width, &offset);
+    GXSetLineWidth(0x18, offset);
+    GXBegin(GX_LINESTRIP, 0, (u16)count);
+
+    table1 = lbl_1_bss_43F68 + count * 0x40;
+    table2 = lbl_1_data_10384 + count * 4;
+
+    {
+        u8 *p1 = table1;
+        u8 *p2 = table2;
+
+        while (p1 != lbl_1_bss_43F68) {
+            GX_WRITE_F32(*(f32 *)(p1 + 0xc));
+            GX_WRITE_F32(*(f32 *)(p1 + 0x10));
+            GX_WRITE_F32(*(f32 *)(p1 + 0x14));
+            GX_WRITE_U32(*(u32 *)p2);
+            p1 -= 0x40;
+            p2 -= 4;
+        }
+    }
+
+    GXSetLineWidth(width, offset);
+    GXBegin(GX_LINES, 0, (u16)(count * 4));
+
+    while (table1 != lbl_1_bss_43F68) {
+        f32 x = *(f32 *)(table1 + 0xc);
+        f32 y = *(f32 *)(table1 + 0x10);
+        f32 z = *(f32 *)(table1 + 0x14);
+        u32 color = *(u32 *)table2;
+
+        GX_WRITE_F32(x);
+        GX_WRITE_F32(y);
+        GX_WRITE_F32(z);
+        GX_WRITE_U32(color);
+
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x30) + x);
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x34) + y);
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x38) + z);
+        GX_WRITE_U32(color);
+
+        GX_WRITE_F32(x);
+        GX_WRITE_F32(y);
+        GX_WRITE_F32(z);
+        GX_WRITE_U32(color ^ 0xffffff00);
+
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x24) + x);
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x28) + y);
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x2c) + z);
+        GX_WRITE_U32(color ^ 0xffffff00);
+
+        table1 -= 0x40;
+        table2 -= 4;
+    }
 }
 
 // .text:0x00024A8C size:0x1C0
 void fn_1_24A8C(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u8 rawByte;
+    f32 signedVal;
+    f32 invSigned;
+    f32 value24;
+
+    fn_80038E2C(lbl_1_bss_45868);
+
+    *(f32 *)(lbl_1_bss_45868 + 0x0) = (f32)*(u16 *)((u8 *)item + 0x1a);
+    *(f32 *)(lbl_1_bss_45868 + 0x4) = *(f32 *)((u8 *)item + 0x14);
+    *(f32 *)(lbl_1_bss_45868 + 0x8) = (f32)*(u16 *)((u8 *)item + 0x18) * lbl_1_rodata_78C4;
+    *(f32 *)(lbl_1_bss_45868 + 0xc) = (f32)*(u16 *)((u8 *)item + 0x1c) * lbl_1_rodata_78C4;
+    *(f32 *)(lbl_1_bss_45868 + 0x10) = (f32)*(u16 *)((u8 *)item + 0x1e) * lbl_1_rodata_78C4;
+    *(f32 *)(lbl_1_bss_45868 + 0x14) = (f32)*(u16 *)((u8 *)item + 0x20) / lbl_1_rodata_78C8;
+
+    rawByte = *((u8 *)item + 0x2a);
+    *(u32 *)(lbl_1_bss_45868 + 0x20) = rawByte;
+    signedVal = (f32)(s32)rawByte;
+    invSigned = lbl_1_rodata_77E4 / signedVal;
+    *(f32 *)(lbl_1_bss_45868 + 0x18) = invSigned;
+    *(f32 *)(lbl_1_bss_45868 + 0x1c) = invSigned * invSigned;
+    *(f32 *)(lbl_1_bss_45868 + 0x24) = lbl_1_rodata_77E4 / (lbl_1_rodata_780C * invSigned);
+
+    if (AtBat_ButtonInput1._00 & 0x40) {
+        *(u32 *)(lbl_1_bss_45868 + 0x20) = 1;
+    }
+
+    value24 = (f32)*(u16 *)((u8 *)item + 0x24) * lbl_1_rodata_78C4;
+    fn_80038CD0(*((u8 *)item + 0x2b), lbl_1_bss_45868, lbl_1_bss_43F68, lbl_1_rodata_7808, value24);
 }
 
 // .text:0x00024C4C size:0x418
