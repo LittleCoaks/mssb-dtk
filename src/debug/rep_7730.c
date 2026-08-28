@@ -2164,7 +2164,250 @@ void fn_1_21298(DrawingSceneStruct *arg0) {
 
 // .text:0x00021408 size:0x8E0
 void fn_1_21408(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u8 *base = lbl_1_bss_6BD8;
+    f32 windVec[3];
+    s32 i;
+
+    if (AtBat_ButtonInput1._02 & 0x1000) {
+        item->func = fn_1_21CE8;
+    } else if (AtBat_ButtonInput1._02 & 0x100) {
+        u8 val = *((u8 *)item + 0x20);
+        f32 ratio = lbl_1_rodata_77E4 / (f32)val;
+        f32 speed;
+        f32 t;
+        f32 speed2;
+        f32 result;
+        u8 *p = base + 0x3e0;
+        u8 idx;
+        u8 *entry;
+
+        speed = ratio / lbl_1_rodata_784C;
+        t = lbl_1_rodata_780C * speed;
+        *(u32 *)(p + 0x20) = val;
+        *(f32 *)(p + 0x18) = speed;
+        speed2 = speed * speed;
+        result = lbl_1_rodata_77E4 / t;
+        *(f32 *)(p + 0x1c) = speed2;
+        *(f32 *)(p + 0x24) = result;
+
+        if (AtBat_ButtonInput1._00 & 0x400) {
+            *(u32 *)(p + 0x20) = 1;
+        }
+
+        idx = *((u8 *)item + 0x21);
+        fn_80038CD0(idx, p, base + 0x408, lbl_1_rodata_7810, *(f32 *)((u8 *)item + 0x18));
+
+        entry = base + 0x408 + (*((u8 *)item + 0x21) - 1) * 0x40;
+        *(f32 *)(base + 0x3d0) = *(f32 *)(entry + 0xc);
+        *(f32 *)(base + 0x3d4) = *(f32 *)(entry + 0x10);
+        *(f32 *)(base + 0x3d8) = *(f32 *)(entry + 0x14);
+        *(u32 *)(entry + 0x3c) = *((u8 *)item + 0x23);
+    } else if (AtBat_ButtonInput1._02 & 0x200) {
+        lbl_1_bss_6BE0 = NULL;
+        item->func = fn_1_24778;
+    }
+
+    fn_1_121D4(lbl_1_bss_43EE0);
+
+    if (*((u8 *)item + 0x23) != 0) {
+        f32 windMul;
+        u8 *e;
+        f32 dB0;
+        f32 dB1;
+        f32 dB3;
+        u8 *entryPrev;
+
+        if (*((u8 *)&AtBat_ButtonInput1 + 0x75) >= 0x50) {
+            windMul = lbl_1_rodata_77FC * *(f32 *)((u8 *)item + 0x1c);
+        } else {
+            windMul = lbl_1_rodata_7850 * *(f32 *)((u8 *)item + 0x1c);
+        }
+
+        e = base + 0x408 + *((u8 *)item + 0x21) * 0x40;
+        dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
+        dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
+        *(f32 *)(e - 0x34) = dB0 * windMul + *(f32 *)(e - 0x34);
+        dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
+        e = base + 0x408 + *((u8 *)item + 0x21) * 0x40;
+        *(f32 *)(e - 0x30) = dB3 * windMul + *(f32 *)(e - 0x30);
+        e = base + 0x408 + *((u8 *)item + 0x21) * 0x40;
+        *(f32 *)(e - 0x2c) = dB1 * windMul + *(f32 *)(e - 0x2c);
+
+        entryPrev = base + 0x408 + (*((u8 *)item + 0x21) - 1) * 0x40;
+        memcpy(entryPrev + 0x18, entryPrev + 0xc, 0xc);
+
+        windVec[0] = lbl_1_rodata_77D8;
+        windVec[1] = lbl_1_rodata_77D8;
+        windVec[2] = lbl_1_rodata_77D8;
+    } else {
+        u8 *entryPrev = base + 0x408 + (*((u8 *)item + 0x21) - 1) * 0x40;
+        f32 entryField0 = *(f32 *)entryPrev;
+        f32 dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
+        f32 dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
+        f32 dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
+        f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
+
+        windVec[0] = windDrag * (dB0 * entryField0);
+        windVec[1] = windDrag * (dB3 * entryField0);
+        windVec[2] = windDrag * (dB1 * entryField0);
+    }
+
+    fn_80038B48(base + 0x3e0, base + 0x408, *((u8 *)item + 0x21), windVec);
+
+    GXSetProjection(lbl_1_bss_47010, 0);
+    GXClearVtxDesc();
+    GXSetCullMode(0);
+    GXSetVtxDesc(9, 1);
+    GXSetVtxDesc(0xb, 1);
+    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+    GXSetVtxAttrFmt(0, 0xb, 1, 5, 0);
+    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetTevOp(0, 4);
+    GXLoadPosMtxImm((f32 (*)[4])lbl_1_bss_43EE0, 0);
+    GXSetCurrentMtx(0);
+
+    GXBegin(GX_LINES, GX_VTXFMT0, 0x2c);
+
+    for (i = 0; i < 11; i++) {
+        s32 n = (i - 5) * 10;
+        u32 color = (i == 5) ? (u32)-1 : 0xff0000ffu;
+
+        GX_WRITE_F32((f32)n);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_7844);
+        GX_WRITE_U32(color);
+
+        GX_WRITE_F32((f32)n);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_7848);
+        GX_WRITE_U32(color);
+
+        GX_WRITE_F32((f32)n);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_7844);
+        GX_WRITE_U32(color);
+
+        GX_WRITE_F32((f32)n);
+        GX_WRITE_F32(lbl_1_rodata_77D8);
+        GX_WRITE_F32(lbl_1_rodata_7848);
+        GX_WRITE_U32(color);
+    }
+
+    if (*((u8 *)item + 0x22) != 0) {
+        u8 count = *((u8 *)item + 0x21);
+        u8 *ptr = base + 0x408 + count * 0x40;
+
+        GXBegin(GX_LINESTRIP, 0, (u16)((count - 1) * 2));
+
+        for (; count != 0; count--) {
+            GX_WRITE_F32(*(f32 *)(ptr + 0xc));
+            GX_WRITE_F32(lbl_1_rodata_77D8);
+            GX_WRITE_F32(*(f32 *)(ptr + 0x14));
+            GX_WRITE_U32(0x80);
+            GX_WRITE_F32(*(f32 *)(ptr - 0x34));
+            GX_WRITE_F32(lbl_1_rodata_77D8);
+            GX_WRITE_F32(*(f32 *)(ptr - 0x2c));
+            GX_WRITE_U32(0x80);
+            ptr -= 0x40;
+        }
+    }
+
+    if (*((u8 *)item + 0x24) != 0) {
+        u8 count = *((u8 *)item + 0x21);
+        u8 *ptr = base + 0x408 + count * 0x40;
+
+        GXBegin(GX_LINESTRIP, 0, (u16)((count - 1) * 2));
+
+        for (; count != 0; count--) {
+            u32 color = lbl_1_data_104DC[count % 6];
+
+            GX_WRITE_F32(*(f32 *)(ptr + 0xc));
+            GX_WRITE_F32(-*(f32 *)(ptr + 0x10));
+            GX_WRITE_F32(*(f32 *)(ptr + 0x14));
+            GX_WRITE_U32(color);
+            GX_WRITE_F32(*(f32 *)(ptr - 0x34));
+            GX_WRITE_F32(-*(f32 *)(ptr - 0x30));
+            GX_WRITE_F32(*(f32 *)(ptr - 0x2c));
+            GX_WRITE_U32(color);
+            ptr -= 0x40;
+        }
+    }
+
+    if (lbl_1_bss_6BE0 != NULL) {
+        s32 lastIdx = *((u8 *)item + 0x21) - 1;
+        s32 j;
+
+        for (j = 19; j >= 0; j--) {
+            u8 *table1 = base + 0x408 + j * 0x40;
+            u8 *rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
+            u8 lt = lastIdx > j;
+
+            *(u8 *)(rec + 0x6c) = lt;
+
+            if (j < lastIdx) {
+                Vec diff;
+                Vec scaled;
+
+                PSVECSubtract((Vec *)(table1 + 0xc), (Vec *)(base + 0x408 + (j + 1) * 0x40 + 0xc), &diff);
+                PSVECScale(&diff, lbl_1_rodata_7814, &scaled);
+                PSVECAdd((Vec *)(table1 + 0xc), &scaled, &scaled);
+                CTRLSetTranslation((Control *)(rec + 0x10), scaled.x, -scaled.y, scaled.z);
+
+                if (PSVECMag(&diff) != lbl_1_rodata_77D8) {
+                    Quaternion q1;
+                    Vec axis;
+                    f32 angle1;
+
+                    PSVECNormalize(&diff, &diff);
+                    diff.y = -diff.y;
+
+                    angle1 = (f32)((lbl_1_rodata_7828 * (lbl_1_rodata_7830 + (f64)(j & 1))) / lbl_1_rodata_7838);
+
+                    axis.x = lbl_1_rodata_77E4;
+                    axis.y = lbl_1_rodata_77D8;
+                    axis.z = lbl_1_rodata_77D8;
+
+                    C_QUATRotAxisRad(&q1, &axis, angle1);
+
+                    {
+                        f32 dot = PSVECDotProduct(&diff, &axis);
+                        f32 angle2 = (f32)acos(dot);
+                        f32 mag2;
+
+                        PSVECCrossProduct(&diff, &axis, &axis);
+                        mag2 = PSVECMag(&axis);
+
+                        if (mag2 != lbl_1_rodata_77D8) {
+                            Quaternion q2;
+
+                            C_QUATRotAxisRad(&q2, &axis, angle2);
+                            PSQUATMultiply(&q2, &q1, &q1);
+                        }
+                    }
+
+                    CTRLSetQuat((Control *)(rec + 0x10), q1.x, q1.y, q1.z, q1.w);
+                }
+
+                CTRLSetScale((Control *)(rec + 0x10), lbl_1_data_104D0[0], lbl_1_data_104D0[1], lbl_1_data_104D0[2]);
+                fn_800BDA24(rec);
+            }
+
+            {
+                Mtx m;
+
+                PSMTXTrans(m, lbl_1_rodata_77D8, lbl_1_rodata_77D8, lbl_1_rodata_77D8);
+                PSMTXConcat(*(Mtx *)lbl_1_bss_43EE0, m, *(Mtx *)lbl_1_bss_43EE0);
+            }
+
+            *((u8 *)(*(void **)rec) + 0x98) |= 3;
+        }
+
+        fn_800BD670(lbl_1_bss_6BE0, *(Mtx *)lbl_1_bss_43EE0);
+    }
 }
 
 // .text:0x00021CE8 size:0x8D0
@@ -3653,7 +3896,190 @@ void fn_1_24C4C(u8 *arg0, s32 count, Vec *arg2, f32 argF1, f32 argF2, f32 argF3,
 
 // .text:0x00025064 size:0xC04
 void fn_1_25064(void) {
-    return;
+    DrawingSceneStruct *item = currentDrawingItem;
+    s32 step1;
+    s32 step2;
+    s32 row;
+
+    if (AtBat_ButtonInput1._00 & 0x20) {
+        step1 = 4;
+        step2 = 1;
+    } else {
+        step1 = 0x40;
+        step2 = 0xa;
+    }
+
+    for (row = 0; row <= 0xa; row++) {
+        u16 f;
+
+        switch (row) {
+        case 0:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *((u8 *)item + 0x2b) -= 1;
+                    fn_1_24A8C();
+                } else if (f & 2) {
+                    *((u8 *)item + 0x2b) += 1;
+                    fn_1_24A8C();
+                }
+            }
+            break;
+        case 1:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *((u8 *)item + 0x2a) -= 1;
+                } else if (f & 2) {
+                    *((u8 *)item + 0x2a) += 1;
+                }
+                if (*((u8 *)item + 0x2a) == 0) {
+                    *((u8 *)item + 0x2a) = 1;
+                }
+            }
+            break;
+        case 2:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x18) -= step1;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x18) += step1;
+                }
+            }
+            break;
+        case 3:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x1c) -= step1;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x1c) += step1;
+                }
+            }
+            break;
+        case 4:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x1a) -= step2;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x1a) += step2;
+                }
+            }
+            break;
+        case 5:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x24) -= step1;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x24) += step1;
+                }
+            }
+            break;
+        case 6:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x22) -= 1;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x22) += 1;
+                }
+            }
+            break;
+        case 7:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x20) -= step2;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x20) += step2;
+                }
+            }
+            break;
+        case 8:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x26) -= step2;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x26) += step2;
+                }
+            }
+            break;
+        case 9:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x1e) -= step1;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x1e) += step1;
+                }
+            }
+            break;
+        case 10:
+            if (row == *((u8 *)item + 0x2c)) {
+                f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+                if (f & 1) {
+                    *(u16 *)((u8 *)item + 0x28) -= step2;
+                } else if (f & 2) {
+                    *(u16 *)((u8 *)item + 0x28) += step2;
+                }
+            }
+            break;
+        }
+    }
+
+    {
+        u16 f2 = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+
+        if (f2 & 8) {
+            if (*((u8 *)item + 0x2c) == 0) {
+                *((u8 *)item + 0x2c) = 0xb;
+            }
+            *((u8 *)item + 0x2c) -= 1;
+        } else if (f2 & 4) {
+            *((u8 *)item + 0x2c) += 1;
+            if (*((u8 *)item + 0x2c) == 0xb) {
+                *((u8 *)item + 0x2c) = 0;
+            }
+        } else if (AtBat_ButtonInput1._02 & 0x100) {
+            fn_1_24A8C();
+        } else if (AtBat_ButtonInput1._02 & 0x200) {
+            GXColor clearColor;
+
+            clearColor.r = 0x11;
+            clearColor.g = 0x77;
+            clearColor.b = 0x55;
+            clearColor.a = 0;
+            GXSetCopyClear(clearColor, 0xff);
+
+            currentDrawingItem->currentDrawingItem->state = 1;
+            removeCurrentDrawingItem();
+        }
+    }
+
+    fn_1_247A0();
+
+    GXSetProjection(lbl_1_bss_47010, 0);
+    GXClearVtxDesc();
+    GXSetCullMode(0);
+    GXSetVtxDesc(9, 1);
+    GXSetVtxDesc(0xb, 1);
+    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+    GXSetVtxAttrFmt(0, 0xb, 1, 5, 0);
+    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetTevOp(0, 4);
+    GXLoadPosMtxImm((f32 (*)[4])(lbl_1_bss_43EE0 + 0x58), 0);
+    GXSetCurrentMtx(0);
+
+    fn_1_AF4(0xb, 0xb, lbl_1_rodata_7848);
+
+    fn_1_248BC(*((u8 *)item + 0x2b));
 }
 
 // .text:0x00025C68 size:0x330
