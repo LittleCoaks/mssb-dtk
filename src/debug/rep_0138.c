@@ -121,6 +121,8 @@ extern f32 lbl_1_rodata_200;
 void fn_1_4E98(void *arg0, void *arg1) {
     u8 *obj = (u8 *)arg0;
     Mtx concat;
+    s32 attrType[12];
+    f32 vx, vy, vz;
     s32 i;
 
     if (*(s32 *)(obj + 0xc) == 0) {
@@ -150,8 +152,151 @@ void fn_1_4E98(void *arg0, void *arg1) {
     GXSetCurrentMtx(0);
 
     for (i = 0; i < *(u16 *)(*(u8 **)(obj + 0x10) + 8); i++) {
-        u8 *listHdr = *(u8 **)(obj + 0x10);
-        u8 *dataArr = *(u8 **)(listHdr + 4);
+        u8 *dataArr = *(u8 **)(*(u8 **)(obj + 0x10) + 4);
+        u8 *record = dataArr + i * 0x10;
+        u8 cmd = *record;
+
+        if (cmd == 2) {
+            u32 flags = *(u32 *)(record + 4);
+            s32 j;
+            memset(attrType, 0, sizeof(attrType));
+            for (j = 0; j < 12; j++) {
+                s32 v = (flags >> (2 + j * 2)) & 3;
+                if (v != 0) {
+                    attrType[j] = v;
+                }
+            }
+        }
+
+        {
+            u8 *stream = *(u8 **)(dataArr + i * 0x10 + 8);
+            if (stream != NULL) {
+                u32 consumed = 0;
+                u32 length = *(u32 *)(dataArr + i * 0x10 + 0xc);
+
+                while (consumed < length) {
+                    u8 sub = *stream;
+                    s32 matched = 1;
+
+                    switch (sub) {
+                        case 0:
+                            stream += 1;
+                            consumed += 1;
+                            break;
+                        case 8:
+                            stream += 6;
+                            consumed += 6;
+                            break;
+                        case 0x10: {
+                            u16 v = *(u16 *)stream;
+                            s32 adv = v * 4 + 5;
+                            stream += adv;
+                            consumed += adv;
+                            break;
+                        }
+                        case 0x20:
+                        case 0x28:
+                        case 0x30:
+                        case 0x38:
+                            stream += 5;
+                            break;
+                        case 0x40:
+                        case 0x48:
+                            stream += 1;
+                            consumed += 1;
+                            break;
+                        case 0x61:
+                            stream += 5;
+                            consumed += 5;
+                            break;
+                        default:
+                            matched = 0;
+                            break;
+                    }
+
+                    if (matched) {
+                        continue;
+                    }
+
+                    {
+                        u16 vcount = *(u16 *)(stream + 1);
+                        s32 v;
+                        stream += 3;
+                        GXBegin((GXPrimitive)0xa8, (GXVtxFmt)0, (u16)(vcount * 2));
+
+                        for (v = 0; v < vcount; v++) {
+                            s32 posIdx = 0, nrmIdx = 0;
+                            s32 k, va;
+
+                            for (k = 0, va = 9; k < 12; k++, va++) {
+                                s32 t = attrType[k];
+                                if (t == 0) {
+                                    continue;
+                                }
+                                if (va == 9) {
+                                    if (t == 2) {
+                                        posIdx = stream[0];
+                                    } else if (t == 3) {
+                                        posIdx = *(u16 *)stream;
+                                    }
+                                } else if (va == 10) {
+                                    if (t == 2) {
+                                        nrmIdx = stream[0];
+                                    } else if (t == 3) {
+                                        nrmIdx = *(u16 *)stream;
+                                    }
+                                }
+                                if (t == 2) {
+                                    stream += 1;
+                                    consumed += 1;
+                                } else if (t == 3) {
+                                    stream += 2;
+                                    consumed += 2;
+                                }
+                            }
+
+                            {
+                                u8 *ds0 = *(u8 **)(obj + 0x0);
+                                u8 mode0 = ds0[6];
+                                u8 stride0 = ds0[7];
+                                f32 scale0 = (f32)(1 << (mode0 & 0xf));
+                                if (((mode0 >> 4) & 0xf) == 3) {
+                                    s16 *arr = *(s16 **)ds0;
+                                    s16 *p = arr + stride0 * posIdx;
+                                    vx = (f32)(s32)p[0] / scale0;
+                                    vy = (f32)(s32)p[1] / scale0;
+                                    vz = (f32)(s32)p[2] / scale0;
+                                }
+                            }
+
+                            GXWGFifo.f32 = vx;
+                            GXWGFifo.f32 = vy;
+                            GXWGFifo.f32 = vz;
+                            GXWGFifo.u32 = 0xff0000ff;
+
+                            {
+                                u8 *ds1 = *(u8 **)(obj + 0xc);
+                                u8 mode1 = ds1[6];
+                                u8 stride1 = ds1[7];
+                                f32 scale1 = (f32)(1 << (mode1 & 0xf));
+                                if (((mode1 >> 4) & 0xf) == 3) {
+                                    s16 *arr = *(s16 **)ds1;
+                                    s16 *p = arr + stride1 * nrmIdx;
+                                    vx += (f32)(s32)p[0] / scale1;
+                                    vy += (f32)(s32)p[1] / scale1;
+                                    vz += (f32)(s32)p[2] / scale1;
+                                }
+                            }
+
+                            GXWGFifo.f32 = vx;
+                            GXWGFifo.f32 = vy;
+                            GXWGFifo.f32 = vz;
+                            GXWGFifo.u32 = 0xffff;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 #pragma dont_inline reset
