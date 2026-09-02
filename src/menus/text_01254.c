@@ -941,24 +941,37 @@ void fn_2_2BB8(void) {
     int i;
     int slot;
     s16 v;
+    s16 *ep;
+    u8 *cp;
+    u8 *lp;
+    int *slotp;
 
     for (t = 0; t < 2; t++) {
+        ep = lbl_2_data_E88;
+        cp = &cursorPositions[t * 9];
+        lp = &lineUpInfoStruct[t * 0x24];
+        slotp = (int *)&Static_Stats_Tables[0x46E0 + t * 4];
+
         for (i = 0; i < 9; i++) {
-            slot = *(int *)&Static_Stats_Tables[0x46E0 + t * 4];
+            slot = *slotp;
 
             if (slot == 0) {
-                v = lbl_2_data_E88[i];
+                v = ep[0];
+                cp[2] = v;
+                cp[0x26] =
+                    Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
             } else {
-                v = lbl_2_data_E88[i + 9];
+                v = ep[9];
+                cp[2] = v;
+                cp[0x26] =
+                    Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
             }
 
-            cursorPositions[t * 9 + i + 2] = v;
-            cursorPositions[t * 9 + i + 0x26] =
-                Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+            lp[0] = lp[1] = lp[2] = i;
 
-            lineUpInfoStruct[t * 0x24 + i * 4 + 0] =
-                lineUpInfoStruct[t * 0x24 + i * 4 + 1] =
-                    lineUpInfoStruct[t * 0x24 + i * 4 + 2] = i;
+            ep++;
+            cp++;
+            lp += 4;
         }
 
         fn_800670A0(t);
@@ -971,36 +984,45 @@ void fn_2_2D1C(void) {
     int i;
     int slot;
     s16 v;
+    int *slotp;
+    s16 *ep;
+    u8 *cp;
+    u8 *lp;
 
     *(int *)&Static_Stats_Tables[0x46E0] = 10;
     *(int *)&Static_Stats_Tables[0x46E4] = 2;
 
     for (t = 0; t < 2; t++) {
+        slotp = (int *)&Static_Stats_Tables[0x46E0 + t * 4];
+        ep = &lbl_2_data_E64[t * 9];
+        cp = &cursorPositions[t * 9];
+
         for (i = 0; i < 9; i++) {
-            slot = *(int *)&Static_Stats_Tables[0x46E0 + t * 4];
-            v = lbl_2_data_E64[t * 9 + i];
-            cursorPositions[t * 9 + i + 2] = v;
-            cursorPositions[t * 9 + i + 0x26] =
+            slot = *slotp;
+            v = ep[i];
+            cp[i + 2] = v;
+            cp[i + 0x26] =
                 Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
         }
     }
 
+    lp = lineUpInfoStruct;
+
     for (t = 0; t < 2; t++) {
         for (i = 0; i < 9; i++) {
-            lineUpInfoStruct[t * 0x24 + i * 4 + 0] =
-                lineUpInfoStruct[t * 0x24 + i * 4 + 1] =
-                    lineUpInfoStruct[t * 0x24 + i * 4 + 2] = i;
+            lp[i * 4 + 0] = lp[i * 4 + 1] = lp[i * 4 + 2] = i;
         }
+        lp += 0x24;
     }
 }
 
 // .text:0x00002FC0 size:0x244 mapped:0x80642054
 void loadDemoMatch(u8 mode, int a, int b) {
-    u8 *flags;
-    int i;
-    int j;
-    u8 want;
     int v;
+    u8 want;
+    int j;
+    int i;
+    u8 *flags;
 
     switch (mode) {
     case 9:
