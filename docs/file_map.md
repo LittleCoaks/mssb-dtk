@@ -236,18 +236,31 @@ report) as a decompilation priority list for this module:
 function (`fn_2_E84`) is confirmed-exhausted (see `matching_notes.md`), so
 it isn't a live target without new information.
 
-There is also a large (~69 KB, `.text:0x1254`-`0x12238`) unclaimed block
-holding most of the menu REL's well-known named functions --
-`mainMenuScreen`, `titleScreen`, `optionsScreen`, `selectStadiumScreen`,
-`challengeFileSelect`, `challengeMap`, `teamSelectScreenMain`,
-`stadiumRandomizer`, and the whole `css*` family. It has no unit/file at
-all yet (declared nowhere in `splits.txt`, linked straight from the
-retail object). `tools/augment_splits.py`'s rodata-correlation heuristic
-cannot split it -- checked 2026-08, it has no rodata references to
-correlate on -- so organizing it needs address-window chunking (a stub
-generation pass, one `.c` per function or byte range) instead. Not
-attempted yet; would be a similar scope to the original menu/unused_rel
-stub trees.
+The former ~69 KB unclaimed block (`.text:0x1254`-`0x12238`) that held most of
+the menu REL's well-known named functions -- `mainMenuScreen`, `optionsScreen`
+callers, `teamSelectScreenMain`, `selectStadiumScreen`, `stadiumRandomizer`, and
+the whole `css*` family -- is now chunked into three stub units so it is
+scoreable (2026-09). `tools/augment_splits.py`'s rodata-correlation heuristic
+could not split it (no rodata references at all), so the chunks are
+address-window cuts at named-function family boundaries, **not** recovered
+TU boundaries; they are named by `.text` offset rather than by a
+`repHeaderData` rodata slot to make that explicit:
+
+| unit | .text | fns (named) | bytes | what the names say |
+|---|---|---|---|---|
+| `text_01254.c` | `0x1254`-`0x323C` | 26 (5) | 8,168 | main-menu family: `stadiumRandomizer`, `cursorSndFx`, `mainMenuRelated`, `mainMenuScreen`, `loadDemoMatch` |
+| `text_0323C.c` | `0x323C`-`0x110B0` | 66 (21) | 56,948 | the character-select engine: every `css*`/`characterSelect*`/`randChar*` symbol |
+| `text_110B0.c` | `0x110B0`-`0x12238` | 7 (4) | 4,488 | `teamSelectScreenMain`, `stadiumSelectControls`, `selectStadiumScreen` |
+
+Two things a future split-fixer should know. First, the five rodata-only units
+between `yd_step.c` (rodata `0x200`) and `rep_0438.c` (rodata `0x438`) --
+`rep_0278`, `rep_02C8`, `rep_0318`, `rep_0398`, `rep_03E8` -- are almost
+certainly the `repHeaderData` slots of the TUs that make up this block, in
+order, so the block is probably five original TUs, not three; the family cut
+above is coarser than the truth. Second, `text_110B0.c` sits immediately before
+`rep_0438.c`, whose own `OSPanic` calls name the source file `"teamselect.c"`,
+so `teamSelectScreenMain` may belong to that same TU. Neither guess was baked
+into the split; both are cheap to act on once matched code gives evidence.
 
 ### top level — 1 file, 7 fns (3 named)
 
@@ -293,7 +306,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 42 | `src/menus/**` | 42 units, 532 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); 2 units named so far (`yd_step.c` at top level, `captain_select/`) |
+| `menus` | menu REL | 45 | `src/menus/**` | 45 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); 2 units named so far (`yd_step.c` at top level, `captain_select/`) |
 | `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
 ### The menu REL and debug.rel

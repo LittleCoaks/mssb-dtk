@@ -44,6 +44,15 @@ menus/rep_0398.c:
 menus/rep_03E8.c:
 	.rodata     start:0x000003E8 end:0x00000438
 
+menus/text_01254.c:
+	.text       start:0x00001254 end:0x0000323C
+
+menus/text_0323C.c:
+	.text       start:0x0000323C end:0x000110B0
+
+menus/text_110B0.c:
+	.text       start:0x000110B0 end:0x00012238
+
 menus/rep_0438.c:
 	.text       start:0x00012238 end:0x00013BA4
 	.rodata     start:0x00000438 end:0x000004B0
