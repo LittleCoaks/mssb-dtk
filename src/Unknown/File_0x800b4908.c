@@ -16,8 +16,8 @@ void fn_800B4A44(void) {
     return;
 }
 
-void scanBoneAttachmentData(void) {
-    return;
+f32 scanBoneAttachmentData(void *ptr) {
+    return 0.0f;
 }
 
 void updateBoneParam(void) {

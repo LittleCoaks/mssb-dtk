@@ -7,7 +7,7 @@ void haveActLayoutPointToGeoHeader(void);
 void LoadActorLayout(void);
 void AdjustActorPointers(void);
 void fn_800B4A44(void);
-void scanBoneAttachmentData(void);
+f32 scanBoneAttachmentData(void *ptr);
 void updateBoneParam(void);
 
 #endif // !__UNKNOWN_FILE_0X800B4908_H_

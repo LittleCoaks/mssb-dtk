@@ -4,7 +4,7 @@ void lightingRelated(void) {
     return;
 }
 
-void adjustLightingParams(void) {
+void adjustLightingParams(u32 enable, GXColor color) {
     return;
 }
 
