@@ -4,6 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/pad.h"
 #include "Dolphin/mtx.h"
+#include "game/character_stats.h"   // CharacterStats
 
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
@@ -139,7 +140,8 @@ typedef struct {
 } StatisticsBatter; // size: 0x26
 
 typedef struct {
-    /* 0x0000 */ u8 _0000[0x46E0];
+    /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS]; // the master stat table, one row per CHAR_ID (copied into inMemRoster)
+    /* 0x21C0 */ u8 _21C0[0x46E0 - 0x21C0];
     /* 0x46E0 */ int captainSelectedID[2];
     /* 0x46E8 */ void* _46E8[4];
     /* 0x46F8 */ s8 playerNumberByPort[4];
