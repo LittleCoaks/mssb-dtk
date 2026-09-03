@@ -66,7 +66,7 @@ void fn_2_EC54(s32 port);
 void characterSelectABDirectionInputs(void);
 void randCharBasedOnClass(void);
 void randCharacter1(s32 port);
-void randCharAlgo2(void);
+void randCharAlgo2(s32 port);
 void starHitSetting_Unused_maybe(void);
 void characterSelectControls(void);
 
