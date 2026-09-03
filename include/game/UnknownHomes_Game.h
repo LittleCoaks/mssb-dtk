@@ -1262,6 +1262,11 @@ typedef struct _ChallengeTrackingStruct {
     /*0x033*/ u8 _33;
 } ChallengeTrackingStruct; // size: 0x34
 
+// 0x3B bytes in the game: the u32 at 0x20 sits on an aligned offset but
+// nothing pads the tail, so the ChemistryTable that follows it in
+// CharacterStats starts at 0x3B. Packed so C agrees (natural alignment would
+// round it to 0x3C and shift every chemistry entry one byte late).
+#pragma pack(push, 1)
 typedef struct _StatTable {
     /*0x000*/ u8 CurveBallSpeed;
     /*0x001*/ u8 FastBallSpeed;
@@ -1293,6 +1298,7 @@ typedef struct _StatTable {
     /*0x039*/ u8 RunningStatBar;
     /*0x03A*/ u8 FieldingStatBar;
 } StatTable; // size: 0x3B
+#pragma pack(pop)
 
 typedef struct _ChemistryTable {
     /*0x000*/ u8 Mario;
@@ -1355,8 +1361,8 @@ typedef struct _CharacterStats {
     /*0x000*/ StatTable stats;
     /*0x03B*/ ChemistryTable chemistry;
     /*0x071*/ u8 BytesAfterChemistry[3];
-    /*0x074*/ s16 UnusedShorts[21];
-} CharacterStats;
+    /*0x074*/ s16 UnusedShorts[22]; // through 0x9F: rows are 0xA0 apart (inMemRoster, the static table)
+} CharacterStats; // size: 0xA0
 
 extern CharacterStats inMemRoster[TEAMS_PER_GAME][PLAYERS_PER_TEAM];
 
