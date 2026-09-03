@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void teamLogoDetermination(void);
+void teamLogoDetermination(int team);
 
 #endif // !__UNKNOWN_FILE_0X800678CC_H_

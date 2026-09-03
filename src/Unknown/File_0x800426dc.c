@@ -1,5 +1,5 @@
 #include "Unknown/File_0x800426dc.h"
 
-void transferStatsToInMemRoster(void) {
+void transferStatsToInMemRoster(int team) {
     return;
 }

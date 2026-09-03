@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void characterSelectScreen(void);
+void characterSelectScreen(int team);
 
 #endif // !__UNKNOWN_FILE_0X80065DEC_H_

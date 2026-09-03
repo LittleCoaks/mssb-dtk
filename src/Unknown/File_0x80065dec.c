@@ -1,5 +1,5 @@
 #include "Unknown/File_0x80065dec.h"
 
-void characterSelectScreen(void) {
+void characterSelectScreen(int team) {
     return;
 }

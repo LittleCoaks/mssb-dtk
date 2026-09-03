@@ -2,12 +2,7 @@
 #define __MENUS_CAPTAIN_SELECT_CAPTAIN_SELECT_H_
 
 #include "mssbTypes.h"
-
-typedef struct {
-    /* 0x0 */ u16 currentHeldInput;
-    /* 0x2 */ u16 newInput;
-    /* 0x4 */ u16 processedInput;
-} controllerInputStruct; // size: 0x6
+#include "static/UnknownHomes_Static.h"   // controllerInputStruct, Static_Stats_Tables
 
 void fn_2_14574(controllerInputStruct *input);
 void checkForNewPlayer(void);

@@ -8,30 +8,10 @@
 #include "Dolphin/gx.h"
 #include "musyx/musyx.h"
 
-typedef struct {
-    /* 0x0000 */ u8 _pad0a[0x46E0];
-    /* 0x46E0 */ int unk46E0[4];
-    /* 0x46F0 */ u8 _pad0b[0x46F8 - 0x46F0];
-    /* 0x46F8 */ s8 playerNumberByPort[4];
-    /* 0x46FC */ s8 portsActiveInMatch[4];
-    /* 0x4700 */ u8 _pad1a[0x4704 - 0x4700];
-    /* 0x4704 */ u8 unk4704;
-    /* 0x4705 */ u8 _pad1b[0x4729 - 0x4705];
-    /* 0x4729 */ u8 player2Ind;
-    /* 0x472A */ u8 _pad2[0x2];
-    /* 0x472C */ controllerInputStruct controllerInputs[4];
-    /* 0x4744 */ u8 _pad3a[0x4757 - 0x4744];
-    /* 0x4757 */ u8 unk4757[0x20];
-    /* 0x4777 */ u8 _pad3b[0x5240 - 0x4777];
-} Static_MSSB_Data; // size: 0x5240
-
-extern Static_MSSB_Data Static_Stats_Tables;
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 lbl_2_data_1DD4[0x318];
 extern u8 captainIDOrderedOnCapSS[12];
 extern int lbl_2_bss_F410[0x16];
-extern u8 lbl_803C5EA4[0x3C];
-extern u8 cursorPositions[0x5C];
 
 void AnimateCharacter(u8 charId, int animId, int a2, int a3, int a4, int a5, int a6, int a7);
 void QueueCharacterAnimation(u8 charId, int animId, int a2, int a3, int a4, int a5, int a6);
@@ -91,7 +71,6 @@ typedef struct {
 } gameSetUpStruct_t; // size: 0x64
 
 extern gameSetUpStruct_t gameSetUpStep;
-extern u8 aiPosSwapInputs[0x24C98];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_803CBBC2[0xA];
 extern u8 lbl_803CBCD0[0x18];
@@ -232,7 +211,7 @@ void captainSelect_handleInputs(int port) {
 
     if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1A] != 0 ||
         gameSetUpStep.unk55[p] != 0 ||
-        aiPosSwapInputs[0xCF5D + slot] != 0) {
+        aiPosSwapInputs.unkCF5D[slot] != 0) {
         input.processedInput = 0;
         input.newInput = 0;
         input.currentHeldInput = 0;
@@ -306,7 +285,7 @@ commonTail:
     }
 
     if (menuControlVariables->previousScreen == 0xA &&
-        Static_Stats_Tables.unk46E0[p] != -1 &&
+        Static_Stats_Tables.captainSelectedID[p] != -1 &&
         g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         int i;
         add_or_RemoveCharToATeam(0, mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4]], 1);
@@ -335,7 +314,7 @@ commonTail:
 
     {
         int *cur = &lbl_2_bss_F410[slot];
-        cursorPositions[p] = cur[4];
+        cursorPositions.cursor[p] = cur[4];
     }
     {
         int origVal = lbl_2_bss_F410[cIdx4];
@@ -345,11 +324,11 @@ commonTail:
             captainSelect_handleCursor(slot, &input);
             curVal = lbl_2_bss_F410[cIdx4];
             mappedID = mapCaptainCursorPositionToCharID[curVal];
-        } while (Static_Stats_Tables.unk4757[mappedID] != 0 && origVal != curVal && prevVal != curVal);
+        } while (Static_Stats_Tables.charOnCharacterGridSelected[mappedID] != 0 && origVal != curVal && prevVal != curVal);
     }
 
     if (lbl_2_bss_F410[4 + (u8)port] == lbl_2_bss_F410[4 + ((u8)port ^ 1)]) {
-        if (lbl_803C5EA4[5] != 0) {
+        if (g_MatchInfo.player2Ind2 != 0) {
             lbl_2_bss_F410[cIdx4]++;
             if (lbl_2_bss_F410[cIdx4] >= 0xC) {
                 lbl_2_bss_F410[cIdx4] = 0;
@@ -386,7 +365,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
         return;
     }
 
-    if (aiPosSwapInputs[0xCF5D + gameSetUpStep.portCaptainSlot[port]] != 0) {
+    if (aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] != 0) {
         s8 capIdx;
         int charID;
         int val;
@@ -429,12 +408,12 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
                 challengeCaptainRelated();
                 lbl_803CBBC2[2] = 3;
             }
-            aiPosSwapInputs[0xCF5D + gameSetUpStep.portCaptainSlot[port]] = 0;
+            aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] = 0;
         }
         return;
     }
 
-    if (aiPosSwapInputs[0xCF5D + gameSetUpStep.portCaptainSlot[port]] != 0) {
+    if (aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] != 0) {
         return;
     }
 
@@ -453,7 +432,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
     if (newInput & 0x20) {
         if (!stopShowingCaptainProfile()) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-                aiPosSwapInputs[0xCF5D + gameSetUpStep.portCaptainSlot[port]] = 1;
+                aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] = 1;
             }
         }
         return;
@@ -499,7 +478,7 @@ void captainSelect_APress(int idx) {
 
         charID = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + lbl_2_bss_F410[4]];
         lbl_2_bss_100B8[0x10] = 1;
-        Static_Stats_Tables.unk46E0[0] = charID;
+        Static_Stats_Tables.captainSelectedID[0] = charID;
         lbl_2_bss_100B8[0x12] = 1;
         fn_8004D4F0(Static_Stats_Tables.playerNumberByPort[0]);
         AnimateCharacter(0, 0x6A, 0, 1, 1, 0, 0, -1);
@@ -533,22 +512,22 @@ void captainSelect_APress(int idx) {
     }
 
     charID = mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4 + (u8)idx]];
-    Static_Stats_Tables.unk46E0[c] = charID;
+    Static_Stats_Tables.captainSelectedID[c] = charID;
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && (u8)idx != 0) {
         if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
-            add_or_RemoveCharToATeam(1, Static_Stats_Tables.unk46E0[c], 1);
+            add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[c], 1);
         } else {
-            add_or_RemoveCharToATeam(0, Static_Stats_Tables.unk46E0[c], 1);
+            add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[c], 1);
         }
     } else {
-        add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.unk46E0[c], 1);
+        add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], 1);
     }
 
     charID = mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4 + (u8)idx]];
     lbl_2_bss_100B8[0x10 + c] = 1;
     lbl_2_bss_100B8[0x12 + c] = 1;
-    Static_Stats_Tables.unk4757[charID] = 1;
+    Static_Stats_Tables.charOnCharacterGridSelected[charID] = 1;
 
     if ((u8)idx != 0) {
         return;
@@ -596,7 +575,7 @@ void captainSelect_APress(int idx) {
     }
 
     val = lbl_2_bss_F410[5];
-    cursorPositions[1] = val;
+    cursorPositions.cursor[1] = val;
     if (val != -1) {
         lbl_2_bss_100B8[0x1D] = 1;
         return;
@@ -619,14 +598,14 @@ void captainSelect_BPress(int idx) {
     if (lbl_2_bss_100B8[0x10 + c] != 0) {
         lbl_2_bss_100B8[0x10 + c] = 0;
         lbl_2_bss_100B8[0x12 + c] = 0;
-        Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[c]] = 0;
-        add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.unk46E0[c], 0);
+        Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[c]] = 0;
+        add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.captainSelectedID[c], 0);
         goto exit;
     }
 
     if (c != 0) {
-        if (aiPosSwapInputs[0xCF5D + c] != 0) {
-            aiPosSwapInputs[0xCF5D + c] = 0;
+        if (aiPosSwapInputs.unkCF5D[c] != 0) {
+            aiPosSwapInputs.unkCF5D[c] = 0;
         }
 
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
@@ -634,13 +613,13 @@ void captainSelect_BPress(int idx) {
 
             fn_2_16A74((u8)idx, 0);
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[0]]] = -1;
-            Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[0]] = 0;
+            Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = 0;
             lbl_2_bss_100B8[0x10] = 0;
             lbl_2_bss_100B8[0x12] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
-            add_or_RemoveCharToATeam(0, Static_Stats_Tables.unk46E0[0], 0);
-            Static_Stats_Tables.unk46E0[0] = -1;
-            Static_Stats_Tables.unk46E0[1] = -1;
+            add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], 0);
+            Static_Stats_Tables.captainSelectedID[0] = -1;
+            Static_Stats_Tables.captainSelectedID[1] = -1;
             updateCharacterSelectProcessCode(0, 4);
 
             other = (u8)idx ^ 1;
@@ -658,14 +637,14 @@ void captainSelect_BPress(int idx) {
                 gameSetUpStep.portCaptainSlot[0] = 0;
             }
 
-            lbl_803C5EA4[5] = 0;
+            g_MatchInfo.player2Ind2 = 0;
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[c]]] = -1;
 
             if (menuControlVariables->previousScreen == 0xa && v10 == 0) {
-                Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[0]] = 0;
-                add_or_RemoveCharToATeam(0, Static_Stats_Tables.unk46E0[0], 0);
-                Static_Stats_Tables.unk46E0[0] = -1;
-                Static_Stats_Tables.unk46E0[1] = -1;
+                Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = 0;
+                add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], 0);
+                Static_Stats_Tables.captainSelectedID[0] = -1;
+                Static_Stats_Tables.captainSelectedID[1] = -1;
             }
 
             lbl_2_bss_100B8[0x10 + c] = 0;
@@ -686,8 +665,8 @@ void captainSelect_BPress(int idx) {
         charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[1]] = -1;
     }
 
-    aiPosSwapInputs[0xCF5E] = 0;
-    aiPosSwapInputs[0xCF5D] = 0;
+    aiPosSwapInputs.unkCF5D[1] = 0;
+    aiPosSwapInputs.unkCF5D[0] = 0;
     lbl_2_bss_100B4 = 1;
 
     {
@@ -880,29 +859,29 @@ void checkForNewPlayer(void) {
         return;
     }
 
-    if (lbl_803C5EA4[5] != 0) {
+    if (g_MatchInfo.player2Ind2 != 0) {
         return;
     }
 
     if (lbl_2_bss_100B8[0x11] != 0) {
         lbl_2_bss_100B8[0x11] = 0;
         lbl_2_bss_100B8[0x13] = 0;
-        add_or_RemoveCharToATeam(1, Static_Stats_Tables.unk46E0[1], 0);
-        Static_Stats_Tables.unk4757[Static_Stats_Tables.unk46E0[1]] = 0;
-        Static_Stats_Tables.unk46E0[1] = -1;
+        add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[1], 0);
+        Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[1]] = 0;
+        Static_Stats_Tables.captainSelectedID[1] = -1;
     }
 
     Static_Stats_Tables.portsActiveInMatch[newPlayerPort] = 0;
     Static_Stats_Tables.playerNumberByPort[newPlayerPort] = Static_Stats_Tables.playerNumberByPort[1];
-    lbl_803C5EA4[5] = 1;
+    g_MatchInfo.player2Ind2 = 1;
     Static_Stats_Tables.playerNumberByPort[1] = newPlayerPort;
     gameSetUpStep.portCaptainSlot[0] = 0;
     gameSetUpStep.portCaptainSlot[1] = 1;
 
-    if (Static_Stats_Tables.unk4757[0] != 0 || lbl_2_bss_F410[4] == 0) {
-        cursorPositions[1] = 1;
+    if (Static_Stats_Tables.charOnCharacterGridSelected[0] != 0 || lbl_2_bss_F410[4] == 0) {
+        cursorPositions.cursor[1] = 1;
     } else {
-        cursorPositions[1] = 0;
+        cursorPositions.cursor[1] = 0;
     }
 
     charSelectStruct[0x74 + Static_Stats_Tables.playerNumberByPort[1]] = 0;
@@ -910,7 +889,7 @@ void checkForNewPlayer(void) {
 
     charSelectStruct[0x80] = -1;
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
-    aiPosSwapInputs[0xCF5E] = 0;
+    aiPosSwapInputs.unkCF5D[1] = 0;
     if (lbl_2_bss_F410[4] == 0) {
         lbl_2_bss_F410[5] = 1;
     } else {

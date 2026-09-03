@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void transferStatsToInMemRoster(void);
+void transferStatsToInMemRoster(int team);
 
 #endif // !__UNKNOWN_FILE_0X800426DC_H_

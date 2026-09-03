@@ -1,21 +1,16 @@
 #include "menus/text_01254.h"
+#include "static/UnknownHomes_Static.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 
 extern u32 lbl_803CB750[4];
-extern u8 Static_Stats_Tables[0x5240];
 extern u8 gameSetUpStep[0x64];
 extern u8 menuNumber[0x28];
 extern u8 lbl_800EFBA4[0x10];
-extern u8 lbl_803C5EA4[0x3C];
-extern u8 aiPosSwapInputs[0x24C98];
-extern u8 AtBat_ButtonInput1[0x80];
-extern u8 g_d_GameSettings[0x58];
 extern int lbl_2_bss_F410[0x16];
 extern u8 *menuControlVariables;
 extern u8 lbl_80366158[0x30];
-extern u8 cursorPositions[0x5C];
 extern u8 lineUpInfoStruct[0x48];
 extern s16 lbl_2_data_E64[18];
 extern s16 lbl_2_data_E88[18];
@@ -234,9 +229,9 @@ void fn_2_1578(void) {
     u16 input[3];
 
     memset(input, 0, 6);
-    input[0] = *(u16 *)&Static_Stats_Tables[0x472C];
-    input[1] = *(u16 *)&Static_Stats_Tables[0x472E];
-    input[2] = *(u16 *)&Static_Stats_Tables[0x4730];
+    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
+    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
 
     if (gameSetUpStep[0x55] != 0) {
         return;
@@ -245,35 +240,35 @@ void fn_2_1578(void) {
     if (input[1] & 0x100) {
         switch (lbl_2_bss_F410[0]) {
         case 0:
-            Static_Stats_Tables[0x4708] = 0;
-            g_d_GameSettings[0x7] = 0;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+            ((u8 *)&g_d_GameSettings)[0x7] = 0;
             break;
         case 1:
-            Static_Stats_Tables[0x4708] = 1;
-            g_d_GameSettings[0x7] = 5;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+            ((u8 *)&g_d_GameSettings)[0x7] = 5;
             break;
         case 3:
-            Static_Stats_Tables[0x4708] = 3;
-            g_d_GameSettings[0x7] = 7;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+            ((u8 *)&g_d_GameSettings)[0x7] = 7;
             changeScene(4, 6);
             break;
         case 2:
-            Static_Stats_Tables[0x4708] = 2;
-            g_d_GameSettings[0x7] = 6;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+            ((u8 *)&g_d_GameSettings)[0x7] = 6;
             changeScene(4, 6);
             break;
         case 4:
-            Static_Stats_Tables[0x4708] = 4;
-            g_d_GameSettings[0x7] = 2;
-            g_d_GameSettings[0x9] = 0;
-            g_d_GameSettings[0xA] = 2;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+            ((u8 *)&g_d_GameSettings)[0x7] = 2;
+            ((u8 *)&g_d_GameSettings)[0x9] = 0;
+            ((u8 *)&g_d_GameSettings)[0xA] = 2;
             changeScene(4, 6);
             break;
         case 6:
-            Static_Stats_Tables[0x4708] = 6;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
             break;
         case 5:
-            Static_Stats_Tables[0x4708] = 5;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
             break;
         }
 
@@ -286,7 +281,7 @@ void fn_2_1578(void) {
 
     if (input[1] & 0x200) {
         lbl_80366158[0x29] = 2;
-        Static_Stats_Tables[0x472A] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
         *(u16 *)(menuControlVariables + 4) = 6;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         return;
@@ -315,9 +310,9 @@ void fn_2_1800(void) {
     u16 input[3];
 
     memset(input, 0, 6);
-    input[0] = *(u16 *)&Static_Stats_Tables[0x472C];
-    input[1] = *(u16 *)&Static_Stats_Tables[0x472E];
-    input[2] = *(u16 *)&Static_Stats_Tables[0x4730];
+    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
+    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
 
     if (gameSetUpStep[0x55] != 0) {
         return;
@@ -326,35 +321,35 @@ void fn_2_1800(void) {
     if (input[1] & 0x100) {
         switch (lbl_2_bss_F410[0]) {
         case 0:
-            Static_Stats_Tables[0x4708] = 0;
-            g_d_GameSettings[0x7] = 0;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+            ((u8 *)&g_d_GameSettings)[0x7] = 0;
             break;
         case 1:
-            Static_Stats_Tables[0x4708] = 1;
-            g_d_GameSettings[0x7] = 5;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+            ((u8 *)&g_d_GameSettings)[0x7] = 5;
             break;
         case 3:
-            Static_Stats_Tables[0x4708] = 3;
-            g_d_GameSettings[0x7] = 7;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+            ((u8 *)&g_d_GameSettings)[0x7] = 7;
             changeScene(4, 6);
             break;
         case 2:
-            Static_Stats_Tables[0x4708] = 2;
-            g_d_GameSettings[0x7] = 6;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+            ((u8 *)&g_d_GameSettings)[0x7] = 6;
             changeScene(4, 6);
             break;
         case 4:
-            Static_Stats_Tables[0x4708] = 4;
-            g_d_GameSettings[0x7] = 2;
-            g_d_GameSettings[0x9] = 0;
-            g_d_GameSettings[0xA] = 2;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+            ((u8 *)&g_d_GameSettings)[0x7] = 2;
+            ((u8 *)&g_d_GameSettings)[0x9] = 0;
+            ((u8 *)&g_d_GameSettings)[0xA] = 2;
             changeScene(4, 6);
             break;
         case 6:
-            Static_Stats_Tables[0x4708] = 6;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
             break;
         case 5:
-            Static_Stats_Tables[0x4708] = 5;
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
             break;
         }
 
@@ -367,7 +362,7 @@ void fn_2_1800(void) {
 
     if (input[1] & 0x200) {
         lbl_80366158[0x29] = 2;
-        Static_Stats_Tables[0x472A] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
         *(u16 *)(menuControlVariables + 4) = 6;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         return;
@@ -393,23 +388,23 @@ void fn_2_1800(void) {
 
 // .text:0x00001A88 size:0x124 mapped:0x80640B1C
 void fn_2_1A88(void) {
-    s8 *ports = (s8 *)AtBat_ButtonInput1;
-    u8 *tbl = Static_Stats_Tables;
+    s8 *ports = (s8 *)&AtBat_ButtonInput1;
+    u8 *tbl = (u8 *)&Static_Stats_Tables;
     int n;
 
-    Static_Stats_Tables[0x46F8] = 0;
+    Static_Stats_Tables.playerNumberByPort[0] = 0;
     n = 1;
 
     if (ports[0x28] != -1) {
-        Static_Stats_Tables[0x46F9] = 1;
+        Static_Stats_Tables.playerNumberByPort[1] = 1;
         n = 2;
     }
     if (ports[0x48] != -1) {
-        ((s8 *)Static_Stats_Tables)[n + 0x46F8] = 2;
+        Static_Stats_Tables.playerNumberByPort[n] = 2;
         n++;
     }
     if (ports[0x68] != -1) {
-        ((s8 *)Static_Stats_Tables)[n + 0x46F8] = 3;
+        Static_Stats_Tables.playerNumberByPort[n] = 3;
         n++;
     }
 
@@ -424,8 +419,8 @@ void fn_2_1BAC(void) {
     memset(&gameSetUpStep[1], 0, 0x54);
     gameSetUpStep[0x56] = 0;
     gameSetUpStep[0x55] = 0;
-    memset(lbl_803C5EA4, 0, 0x3A);
-    memset(&Static_Stats_Tables[0x489B], 0, 0x12);
+    memset(&g_MatchInfo, 0, 0x3A);
+    memset(Static_Stats_Tables.charIsStarred, 0, 0x12);
     memset(menuNumber, 0, 0x28);
 }
 
@@ -455,16 +450,16 @@ void cursorSndFx(u16 button) {
 
 // .text:0x00001D28 size:0x2C mapped:0x80640DBC
 void fn_2_1D28(void) {
-    Static_Stats_Tables[0x472A] = 0xFF;
-    Static_Stats_Tables[0x4756] = 0;
-    Static_Stats_Tables[0x4754] = 0;
-    Static_Stats_Tables[0x4755] = 3;
-    Static_Stats_Tables[0x48B3] = 0;
+    ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+    ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
+    ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
+    ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
+    ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
 }
 
 // .text:0x00001D54 size:0x70 mapped:0x80640DE8
 void fn_2_1D54(int *cursor, u8 port, int count) {
-    u8 *base = Static_Stats_Tables + 0x4730;
+    u8 *base = (u8 *)&Static_Stats_Tables + 0x4730;
     u16 input = *(u16 *)(base + port * 6);
 
     if (input & 0x8) {
@@ -489,35 +484,35 @@ void fn_2_1DC4(void) {
 void fn_2_1DC8(void) {
     switch (lbl_2_bss_F410[0]) {
     case 0:
-        Static_Stats_Tables[0x4708] = 0;
-        g_d_GameSettings[0x7] = 0;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+        ((u8 *)&g_d_GameSettings)[0x7] = 0;
         break;
     case 1:
-        Static_Stats_Tables[0x4708] = 1;
-        g_d_GameSettings[0x7] = 5;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+        ((u8 *)&g_d_GameSettings)[0x7] = 5;
         break;
     case 3:
-        Static_Stats_Tables[0x4708] = 3;
-        g_d_GameSettings[0x7] = 7;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+        ((u8 *)&g_d_GameSettings)[0x7] = 7;
         changeScene(4, 6);
         break;
     case 2:
-        Static_Stats_Tables[0x4708] = 2;
-        g_d_GameSettings[0x7] = 6;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+        ((u8 *)&g_d_GameSettings)[0x7] = 6;
         changeScene(4, 6);
         break;
     case 4:
-        Static_Stats_Tables[0x4708] = 4;
-        g_d_GameSettings[0x7] = 2;
-        g_d_GameSettings[0x9] = 0;
-        g_d_GameSettings[0xA] = 2;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+        ((u8 *)&g_d_GameSettings)[0x7] = 2;
+        ((u8 *)&g_d_GameSettings)[0x9] = 0;
+        ((u8 *)&g_d_GameSettings)[0xA] = 2;
         changeScene(4, 6);
         break;
     case 6:
-        Static_Stats_Tables[0x4708] = 6;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
         break;
     case 5:
-        Static_Stats_Tables[0x4708] = 5;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
         break;
     }
 
@@ -537,22 +532,22 @@ void mainMenuRelated(void) {
     switch (*(u16 *)(menuControlVariables + 4)) {
     case 0:
         if (*(u16 *)(menuControlVariables + 6) < 5) {
-            ports = (s8 *)AtBat_ButtonInput1;
-            tbl = Static_Stats_Tables;
+            ports = (s8 *)&AtBat_ButtonInput1;
+            tbl = (u8 *)&Static_Stats_Tables;
 
-            Static_Stats_Tables[0x46F8] = 0;
+            Static_Stats_Tables.playerNumberByPort[0] = 0;
             n = 1;
 
             if (ports[0x28] != -1) {
-                Static_Stats_Tables[0x46F9] = 1;
+                Static_Stats_Tables.playerNumberByPort[1] = 1;
                 n = 2;
             }
             if (ports[0x48] != -1) {
-                ((s8 *)Static_Stats_Tables)[n + 0x46F8] = 2;
+                Static_Stats_Tables.playerNumberByPort[n] = 2;
                 n++;
             }
             if (ports[0x68] != -1) {
-                ((s8 *)Static_Stats_Tables)[n + 0x46F8] = 3;
+                Static_Stats_Tables.playerNumberByPort[n] = 3;
                 n++;
             }
 
@@ -566,17 +561,17 @@ void mainMenuRelated(void) {
         memset(p1, 0, 0x54);
         gameSetUpStep[0x56] = 0;
         gameSetUpStep[0x55] = 0;
-        memset(lbl_803C5EA4, 0, 0x3A);
-        memset(&Static_Stats_Tables[0x489B], 0, 0x12);
+        memset(&g_MatchInfo, 0, 0x3A);
+        memset(Static_Stats_Tables.charIsStarred, 0, 0x12);
         memset(menuNumber, 0, 0x28);
-        p2 = &Static_Stats_Tables[0x4712];
+        p2 = &((u8 *)&Static_Stats_Tables)[0x4712];
         memset(p2, 0, 2);
         lbl_2_bss_F410[0] = p2[0];
-        lbl_2_bss_F410[1] = Static_Stats_Tables[0x4713];
-        g_d_GameSettings[0x10] = 0;
+        lbl_2_bss_F410[1] = ((u8 *)&Static_Stats_Tables)[0x4713];
+        ((u8 *)&g_d_GameSettings)[0x10] = 0;
         gameSetUpStep[0] = 0;
         memset(p1, 0, 6);
-        Static_Stats_Tables[0x472A] = 0xFF;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
         fn_2_74D8C();
         updateCharacterSelectProcessCode(0, 0x54);
         *(u16 *)(menuControlVariables + 4) = *(u16 *)(menuControlVariables + 4) + 1;
@@ -588,9 +583,9 @@ void mainMenuRelated(void) {
 
     case 2:
         memset(input, 0, 6);
-        input[0] = *(u16 *)&Static_Stats_Tables[0x472C];
-        input[1] = *(u16 *)&Static_Stats_Tables[0x472E];
-        input[2] = *(u16 *)&Static_Stats_Tables[0x4730];
+        input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+        input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
+        input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
 
         if (gameSetUpStep[0x55] != 0) {
             break;
@@ -599,35 +594,35 @@ void mainMenuRelated(void) {
         if (input[1] & 0x100) {
             switch (lbl_2_bss_F410[0]) {
             case 0:
-                Static_Stats_Tables[0x4708] = 0;
-                g_d_GameSettings[0x7] = 0;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+                ((u8 *)&g_d_GameSettings)[0x7] = 0;
                 break;
             case 1:
-                Static_Stats_Tables[0x4708] = 1;
-                g_d_GameSettings[0x7] = 5;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+                ((u8 *)&g_d_GameSettings)[0x7] = 5;
                 break;
             case 3:
-                Static_Stats_Tables[0x4708] = 3;
-                g_d_GameSettings[0x7] = 7;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+                ((u8 *)&g_d_GameSettings)[0x7] = 7;
                 changeScene(4, 6);
                 break;
             case 2:
-                Static_Stats_Tables[0x4708] = 2;
-                g_d_GameSettings[0x7] = 6;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+                ((u8 *)&g_d_GameSettings)[0x7] = 6;
                 changeScene(4, 6);
                 break;
             case 4:
-                Static_Stats_Tables[0x4708] = 4;
-                g_d_GameSettings[0x7] = 2;
-                g_d_GameSettings[0x9] = 0;
-                g_d_GameSettings[0xA] = 2;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+                ((u8 *)&g_d_GameSettings)[0x7] = 2;
+                ((u8 *)&g_d_GameSettings)[0x9] = 0;
+                ((u8 *)&g_d_GameSettings)[0xA] = 2;
                 changeScene(4, 6);
                 break;
             case 6:
-                Static_Stats_Tables[0x4708] = 6;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
                 break;
             case 5:
-                Static_Stats_Tables[0x4708] = 5;
+                Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
                 break;
             }
 
@@ -640,7 +635,7 @@ void mainMenuRelated(void) {
 
         if (input[1] & 0x200) {
             lbl_80366158[0x29] = 2;
-            Static_Stats_Tables[0x472A] = 0;
+            ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
             *(u16 *)(menuControlVariables + 4) = 6;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             break;
@@ -668,10 +663,10 @@ void mainMenuRelated(void) {
         if (gameSetUpStep[0x55] != 0) {
             break;
         }
-        Static_Stats_Tables[0x4712] = lbl_2_bss_F410[0];
-        Static_Stats_Tables[0x4713] = lbl_2_bss_F410[1];
+        ((u8 *)&Static_Stats_Tables)[0x4712] = lbl_2_bss_F410[0];
+        ((u8 *)&Static_Stats_Tables)[0x4713] = lbl_2_bss_F410[1];
 
-        switch (Static_Stats_Tables[0x4708]) {
+        switch (Static_Stats_Tables.mainMenuOptionSelectedIndex) {
         case 0:
             fn_80021AC8();
             relatedToTeamSelection4();
@@ -684,59 +679,59 @@ void mainMenuRelated(void) {
             *(u16 *)(menuControlVariables + 4) = 4;
             break;
         case 6:
-            Static_Stats_Tables[0x48AF] = 1;
-            Static_Stats_Tables[0x48B1] = 1;
+            ((u8 *)&Static_Stats_Tables)[0x48AF] = 1;
+            ((u8 *)&Static_Stats_Tables)[0x48B1] = 1;
             changeScene(3, 6);
             *(u16 *)(menuControlVariables + 4) = 8;
             break;
         case 5:
-            Static_Stats_Tables[0x48AF] = 1;
-            Static_Stats_Tables[0x48B1] = 1;
+            ((u8 *)&Static_Stats_Tables)[0x48AF] = 1;
+            ((u8 *)&Static_Stats_Tables)[0x48B1] = 1;
             changeScene(3, 6);
             *(u16 *)(menuControlVariables + 4) = 0xA;
             break;
         case 1:
-            Static_Stats_Tables[0x4756] = 0;
-            Static_Stats_Tables[0x48AF] = 1;
-            Static_Stats_Tables[0x48B1] = 1;
+            ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
+            ((u8 *)&Static_Stats_Tables)[0x48AF] = 1;
+            ((u8 *)&Static_Stats_Tables)[0x48B1] = 1;
             changeScene(3, 6);
             *(u16 *)(menuControlVariables + 4) = 3;
             break;
         }
 
-        Static_Stats_Tables[0x472A] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
         break;
 
     case 6:
         lbl_803CBCD0[0x10] = 0;
-        Static_Stats_Tables[0x48B4] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
         fn_80062A74();
         fn_80035B50(0xF);
         fn_80035B50(0x12);
         fn_80035B50(9);
         fn_80035B50(6);
-        fn_800AD054(*(int *)&Static_Stats_Tables[0x46F0], *(int *)&Static_Stats_Tables[0x46F4]);
+        fn_800AD054(*(int *)&((u8 *)&Static_Stats_Tables)[0x46F0], *(int *)&((u8 *)&Static_Stats_Tables)[0x46F4]);
         changeScreenVariables(1);
         lbl_2_bss_20[0] = 0;
         break;
 
     case 7:
-        Static_Stats_Tables[0x472A] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
         changeScreenVariables(1);
         lbl_803CBCD0[0x10] = 0;
-        Static_Stats_Tables[0x48B4] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
         break;
 
     case 3:
-        Static_Stats_Tables[0x4728] = g_d_GameSettings[0x7];
-        Static_Stats_Tables[0x4729] = g_d_GameSettings[0x10];
-        g_d_GameSettings[0x8] = 1;
+        ((u8 *)&Static_Stats_Tables)[0x4728] = ((u8 *)&g_d_GameSettings)[0x7];
+        ((u8 *)&Static_Stats_Tables)[0x4729] = ((u8 *)&g_d_GameSettings)[0x10];
+        ((u8 *)&g_d_GameSettings)[0x8] = 1;
 
-        if (g_d_GameSettings[0x7] == 0) {
+        if (((u8 *)&g_d_GameSettings)[0x7] == 0) {
             changeScreenVariables(9);
-        } else if (g_d_GameSettings[0x7] == 5) {
+        } else if (((u8 *)&g_d_GameSettings)[0x7] == 5) {
             if (lbl_803C50E8[0x47] != 0) {
-                g_d_GameSettings[0x10] = 0;
+                ((u8 *)&g_d_GameSettings)[0x10] = 0;
                 changeScreenVariables(0xC);
             } else {
                 changeScreenVariables(0xF);
@@ -747,7 +742,7 @@ void mainMenuRelated(void) {
             fn_80035B50(0x12);
             fn_80035B50(9);
             fn_80035B50(6);
-            fn_800AD054(*(int *)&Static_Stats_Tables[0x46F0], *(int *)&Static_Stats_Tables[0x46F4]);
+            fn_800AD054(*(int *)&((u8 *)&Static_Stats_Tables)[0x46F0], *(int *)&((u8 *)&Static_Stats_Tables)[0x46F4]);
             maybeLoadsGameSoundFiles();
             fn_800ACFB0(*(void **)&lbl_800EF808[0x98]);
             changeScreenVariables(4);
@@ -757,8 +752,8 @@ void mainMenuRelated(void) {
         break;
 
     case 4:
-        Static_Stats_Tables[0x48AF] = 1;
-        Static_Stats_Tables[0x48B1] = 1;
+        ((u8 *)&Static_Stats_Tables)[0x48AF] = 1;
+        ((u8 *)&Static_Stats_Tables)[0x48B1] = 1;
         *(u16 *)(menuControlVariables + 4) = 3;
         break;
 
@@ -773,7 +768,7 @@ void mainMenuRelated(void) {
         fn_80035B50(0x12);
         fn_80035B50(9);
         fn_80035B50(6);
-        fn_800AD054(*(int *)&Static_Stats_Tables[0x46F0], *(int *)&Static_Stats_Tables[0x46F4]);
+        fn_800AD054(*(int *)&((u8 *)&Static_Stats_Tables)[0x46F0], *(int *)&((u8 *)&Static_Stats_Tables)[0x46F4]);
         maybeLoadsGameSoundFiles();
         fn_800ACFB0(*(void **)&lbl_800EF808[0x98]);
         changeScreenVariables(7);
@@ -785,7 +780,7 @@ void mainMenuRelated(void) {
         fn_80035B50(0x12);
         fn_80035B50(9);
         fn_80035B50(6);
-        fn_800AD054(*(int *)&Static_Stats_Tables[0x46F0], *(int *)&Static_Stats_Tables[0x46F4]);
+        fn_800AD054(*(int *)&((u8 *)&Static_Stats_Tables)[0x46F0], *(int *)&((u8 *)&Static_Stats_Tables)[0x46F4]);
         changeScreenVariables(8);
         lbl_2_bss_20[0] = 0;
         break;
@@ -814,7 +809,7 @@ void mainMenuScreen(void) {
             lbl_2_bss_20[0] = 0xC;
             return;
         case 15:
-            if (Static_Stats_Tables[0x4756] == 0) {
+            if (((u8 *)&Static_Stats_Tables)[0x4756] == 0) {
                 lbl_2_bss_20[0] = 0xC;
                 return;
             }
@@ -822,20 +817,20 @@ void mainMenuScreen(void) {
         }
 
         initializeUnknown();
-        Static_Stats_Tables[0x4700] = 0;
-        Static_Stats_Tables[0x472A] = 0xFF;
-        Static_Stats_Tables[0x4756] = 0;
-        Static_Stats_Tables[0x4754] = 0;
-        Static_Stats_Tables[0x4755] = 3;
-        Static_Stats_Tables[0x48B3] = 0;
-        Static_Stats_Tables[0x4701] = 0;
-        Static_Stats_Tables[0x4702] = 0;
-        Static_Stats_Tables[0x4703] = 0;
-        Static_Stats_Tables[0x4704] = 0;
-        Static_Stats_Tables[0x4705] = 0;
-        Static_Stats_Tables[0x4706] = 0;
-        Static_Stats_Tables[0x4707] = 0;
-        Static_Stats_Tables[0x4700] = 1;
+        ((u8 *)&Static_Stats_Tables)[0x4700] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+        ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
+        ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4701] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4702] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4703] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4704] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4705] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4706] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4707] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4700] = 1;
 
         if (*(u16 *)(menuControlVariables + 6) != 1) {
             fn_80062764(currentDrawingItem);
@@ -893,7 +888,7 @@ void mainMenuScreen(void) {
         break;
 
     case 9:
-        if (Static_Stats_Tables[0x48B4] != 0) {
+        if (((u8 *)&Static_Stats_Tables)[0x48B4] != 0) {
             if (lbl_803CBCD0[0x10] == 0) {
                 fn_8003F23C();
             }
@@ -948,9 +943,9 @@ void fn_2_2BB8(void) {
 
     for (t = 0; t < 2; t++) {
         ep = lbl_2_data_E88;
-        cp = &cursorPositions[t * 9];
+        cp = &((u8 *)&cursorPositions)[t * 9];
         lp = &lineUpInfoStruct[t * 0x24];
-        slotp = (int *)&Static_Stats_Tables[0x46E0 + t * 4];
+        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
 
         for (i = 0; i < 9; i++) {
             slot = *slotp;
@@ -959,12 +954,12 @@ void fn_2_2BB8(void) {
                 v = ep[0];
                 cp[2] = v;
                 cp[0x26] =
-                    Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
             } else {
                 v = ep[9];
                 cp[2] = v;
                 cp[0x26] =
-                    Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
             }
 
             lp[0] = lp[1] = lp[2] = i;
@@ -989,20 +984,20 @@ void fn_2_2D1C(void) {
     u8 *cp;
     u8 *lp;
 
-    *(int *)&Static_Stats_Tables[0x46E0] = 10;
-    *(int *)&Static_Stats_Tables[0x46E4] = 2;
+    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E0] = 10;
+    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E4] = 2;
 
     for (t = 0; t < 2; t++) {
-        slotp = (int *)&Static_Stats_Tables[0x46E0 + t * 4];
+        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
         ep = &lbl_2_data_E64[t * 9];
-        cp = &cursorPositions[t * 9];
+        cp = &((u8 *)&cursorPositions)[t * 9];
 
         for (i = 0; i < 9; i++) {
             slot = *slotp;
             v = ep[i];
             cp[i + 2] = v;
             cp[i + 0x26] =
-                Static_Stats_Tables[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+                ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
         }
     }
 
@@ -1032,18 +1027,18 @@ void loadDemoMatch(u8 mode, int a, int b) {
         }
         /* fallthrough */
     case 0xA:
-        flags = &Static_Stats_Tables[0x4757];
+        flags = &((u8 *)&Static_Stats_Tables)[0x4757];
         memset(flags, 0, 0x36);
-        flags[*(int *)&Static_Stats_Tables[0x46E0]] = 1;
-        flags[*(int *)&Static_Stats_Tables[0x46E4]] = 1;
+        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E0]] = 1;
+        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E4]] = 1;
 
         for (i = 0; i < 6; i++) {
-            v = (g_d_GameSettings[0x1A + i] == 0);
+            v = (((u8 *)&g_d_GameSettings)[0x1A + i] == 0);
             want = unlockableCharacter_noDupeNoGapCharID[i];
 
             for (j = 0; j < 54; j++) {
                 if (want == characterStaticIndexes[j * 6 + 2]) {
-                    Static_Stats_Tables[j + 0x4757] = v;
+                    ((u8 *)&Static_Stats_Tables)[j + 0x4757] = v;
                 }
             }
 
@@ -1078,6 +1073,6 @@ void loadDemoMatch(u8 mode, int a, int b) {
 
 // .text:0x00003204 size:0x38 mapped:0x80642298
 void fn_2_3204(void) {
-    loadDemoMatch(aiPosSwapInputs[0xCF5F], 1, 1);
+    loadDemoMatch(((u8 *)&aiPosSwapInputs)[0xCF5F], 1, 1);
 }
 

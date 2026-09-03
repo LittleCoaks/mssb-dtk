@@ -1171,7 +1171,9 @@ typedef struct _GameControlsStruct {
     /*0x13A*/ u8 walkOffWinInd; // unsure
     /*0x13B*/ u8 gameOverInd;
     /*0x13C*/ u8 scoutFlag_VsScreenInd;
-    artificial_padding(0x13C, 0x142, u8);
+    artificial_padding(0x13C, 0x13E, u8);
+    /*0x13E*/ u8 teamIsCPU[2];
+    artificial_padding(0x13E, 0x142, u8[2]);
     /*0x142*/ u8 teamAIInd[2];
     /*0x144*/ u8 autoFielding[2];
     /*0x146*/ u8 batterHandedness[2];
@@ -2784,13 +2786,21 @@ typedef struct {
     /* 0x0024 */ u32 playFrameCounter;
     artificial_padding(0x24, 0x36, u32);
     /* 0x0036 */ u8 replayInd;
+    /* 0x0037 */ u8 atBatPitchThrown;
 } g_Stats_s; // size: 0x4634
 
 // 0x8088a7e4
 extern g_Stats_s g_Stats;
 
+/* g_FieldingLogic.fielderDashByPort: four 0x1B-byte per-port dash records
+ * (not a C struct array -- 0x1B is not 4-aligned). Byte offsets within one: */
+#define FIELDER_DASH_SPRINTING_STATE 0x1A
+
 typedef struct {
-    u8 pad[0x105];
+    /* 0x000 */ u8 fielderDashByPort[4][0x1B];
+    /* 0x06C */ u8 _06C[0x0B0 - 0x06C];
+    /* 0x0B0 */ s16 selectedFielder;
+    /* 0x0B2 */ u8 _0B2[0x105 - 0x0B2];
     /* 0x105 */ u8 playerAtMoundCutoffLocation;
     /* 0x106 */ u8 throwSpeedType;
     /* 0x107 */ u8 _107;
