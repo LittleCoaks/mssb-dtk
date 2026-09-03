@@ -164,7 +164,7 @@ typedef struct {
     /* 0x489B */ u8 charIsStarred[9];
     /* 0x48A4 */ u8 _48A4[0x4E44 - 0x48A4];
     /* 0x4E44 */ StatisticsBatter batterStats[2][9];
-    /* 0x4FF6 */ u8 _4FF6[0x5240 - 0x4FF6];
+    /* 0x50F0 */ u8 _50F0[0x5240 - 0x50F0];
 } Static_MSSB_Data; // size: 0x5240
 
 extern Static_MSSB_Data Static_Stats_Tables;

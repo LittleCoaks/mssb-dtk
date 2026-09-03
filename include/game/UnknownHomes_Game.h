@@ -1352,7 +1352,6 @@ typedef struct _ChemistryTable {
 } ChemistryTable; // size: 0x36
 
 typedef struct _CharacterStats {
-
     /*0x000*/ StatTable stats;
     /*0x03B*/ ChemistryTable chemistry;
     /*0x071*/ u8 BytesAfterChemistry[3];
@@ -2663,19 +2662,19 @@ typedef struct {
     /* 0x015 */ u8 _0015;
     artificial_padding(0x15, 0x18, u8);
     /* 0x018 */ VecXYZ _0018;
-    /* 0x018 */ VecXYZ _0024;
+    /* 0x0024 */ VecXYZ _0024;
     /* 0x030 */ VecXYZ _030;
     /* 0x03C */ VecXYZ _03C[10];
     /* 0x0B4 */ VecXYZ _0B4;
     /* 0x0C0 */ f32 _0C0;
-    /* 0x0C0 */ VecXYZ _0C4;
+    /* 0x0C4 */ VecXYZ _0C4;
     /* 0x0D0 */ f32 _0D0;
     /* 0x0D4 */ f32 _0D4;
     /* 0x0D8 */ f32 _0D8;
     /* 0x0DC */ f32 _0DC;
     /* 0x0E0 */ s16 _0E0;
     /* 0x0E2 */ u8 _0E2;
-    /* 0x0E2 */ u8 _0E3;
+    /* 0x0E3 */ u8 _0E3;
     /* 0x0E4 */ VecXYZ _0E4;
     /* 0x0F0 */ VecXYZ _0F0;
     /* 0x0FC */ VecXYZ _0FC;
@@ -2708,7 +2707,7 @@ typedef struct {
     /* 0xAA4 */ s16 _AA4;
     /* 0xAA6 */ s16 _AA6;
     artificial_padding(0xaa6, 0xab4, u16);
-    /* 0xAB5 */ u8 _AB4;
+    /* 0xAB4 */ u8 _AB4;
     /* 0xAB5 */ u8 _AB5;
     /* 0xAB6 */ u8 _AB6;
     /* 0xAB7 */ u8 _AB7;
@@ -2723,8 +2722,8 @@ typedef struct {
     /* 0xAC6 */ u8 _AC6;
     artificial_padding(0xac6, 0xac8, u8);
     /* 0xAC8 */ u8 _AC8;
-    /* 0xAC8 */ u8 _AC9;
-    /* 0xAC8 */ u8 _ACA;
+    /* 0xAC9 */ u8 _AC9;
+    /* 0xACA */ u8 _ACA;
     artificial_padding(0xaca, 0xad8, u8);
     /* 0xAD8 */ u8 _AD8;
     artificial_padding(0xad8, 0x2810, u8);
@@ -2751,10 +2750,10 @@ typedef struct {
     /* 0x2874 */ f32 _2874;
     /* 0x2878 */ f32 _2878;
     /* 0x287C */ f32 _287C;
-    /* 0x2870 */ f32 _2880;
+    /* 0x2880 */ f32 _2880;
     /* 0x2884 */ VecXYZ _2884;
     /* 0x2890 */ VecXYZ _2890;
-    /* 0x289E */ s16 _289C;
+    /* 0x289C */ s16 _289C;
     /* 0x289E */ s16 _289E;
     /* 0x28A0 */ s16 _28A0;
     artificial_padding(0x28A0, 0x28a6, s16);
@@ -2787,6 +2786,7 @@ typedef struct {
     artificial_padding(0x24, 0x36, u32);
     /* 0x0036 */ u8 replayInd;
     /* 0x0037 */ u8 atBatPitchThrown;
+    /* 0x0038 */ u8 _0038[0x4634 - 0x38];   // not yet labelled
 } g_Stats_s; // size: 0x4634
 
 // 0x8088a7e4
@@ -2896,7 +2896,8 @@ typedef struct {
 } lbl_3_common_bss_DE94_s2;
 
 typedef struct {
-    lbl_3_common_bss_DE94_s2* _0000;
+    /* 0x0000 */ lbl_3_common_bss_DE94_s2* _0000;
+    /* 0x0004 */ u8 _0004[0x2AF4 - 0x4];   // not yet labelled
 } lbl_3_common_bss_DE94_s; // size: 0x2AF4
 
 extern lbl_3_common_bss_DE94_s unkStructPtr;
