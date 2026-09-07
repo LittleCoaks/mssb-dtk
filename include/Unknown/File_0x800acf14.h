@@ -6,10 +6,10 @@
 void unkLoadingCleanupRelated(void);
 void allocateAlignedMemoryBlock(void);
 void fn_800ACF78(void);
-void fn_800ACFB0(void);
+void fn_800ACFB0(void *arg0);
 void _OSAllocFromHeap(void);
 void fn_800AD01C(void);
 void fn_800AD038(void);
-void fn_800AD054(void);
+void fn_800AD054(int arg0, int arg1);
 
 #endif // !__UNKNOWN_FILE_0X800ACF14_H_

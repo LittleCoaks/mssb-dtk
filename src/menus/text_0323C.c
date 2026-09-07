@@ -4,8 +4,10 @@
 #include "menus/yd_step.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "musyx/musyx.h"
+#include "Unknown/File_0x800204cc.h"
+#include "Unknown/File_0x80035838.h"
+#include "Unknown/File_0x800625a4.h"
 
-void updateCharacterSelectProcessCode(int arg0, int arg1);
 void sndFXRelated(int id);
 void challenge_setTransitionScreenCharacterPortrait(int arg0, int arg1);
 void fn_2_16A74(int idx, int flag);
@@ -19,7 +21,6 @@ void fn_8004D0F0(void);
 s32 exitMenu(s32 arg0);
 void set803c5f77(void);
 void loadDemoMatch(s32 arg0, s32 arg1, s32 arg2);
-void changeScene(s32 arg0, s32 arg1);
 void cursorSndFx(s32 id);
 s32 stadiumRandomizer(s32 min, s32 max);
 void fn_2_1D54(s32 *cursor, u8 port, s32 count);
@@ -28,7 +29,6 @@ void fn_800216F8(s32 arg0, void (*func)(void));
 void fn_8006285C(void);
 void initializeUnknown(void);
 s32 fn_800697B0(void);
-s32 diskReadRelated(void *arg0, s32 arg1);
 void unsure_FillRosterPositions(int team);
 void setPortOfEachPlayer(void);
 void relatedToTeamSelection4(void);

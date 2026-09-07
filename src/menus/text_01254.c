@@ -3,6 +3,11 @@
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
+#include "Unknown/File_0x800204cc.h"
+#include "Unknown/File_0x80035838.h"
+#include "Unknown/File_0x800625a4.h"
+#include "Unknown/File_0x80067f70.h"
+#include "Unknown/File_0x800acf14.h"
 
 extern u32 lbl_803CB750[4];
 extern u8 gameSetUpStep[0x64];
@@ -29,7 +34,6 @@ void fn_80062764(void *arg0);
 int fn_80022B68(void);
 void fn_2_12988(void);
 int fn_800697B0(void);
-s32 diskReadRelated(void *arg0, s32 arg1);
 void fn_8003F23C(void);
 void relatedToReturningToPracticeMenu(void);
 void *insertGraphicDrawingFunction(void (*func)(void), u32 priority);
@@ -39,13 +43,9 @@ void fn_80021AC8(void);
 void relatedToTeamSelection4(void);
 void fn_80062A74(void);
 void fn_80035B50(int arg0);
-void fn_800AD054(int arg0, int arg1);
 void maybeLoadsGameSoundFiles(void);
-void fn_800ACFB0(void *arg0);
 void changeScreenVariables(u16 screen);
 
-void changeScene(u8 scene, u16 arg1);
-void updateCharacterSelectProcessCode(int arg0, int arg1);
 void fn_800670A0(u8 arg0);
 
 extern u8 unlockableCharacter_noDupeNoGapCharID[0x8];
@@ -53,7 +53,6 @@ extern u8 characterStaticIndexes[0x144];
 
 void fn_800684A4(void);
 void fn_800649BC(void);
-void DraftRandomTeamDemo(int team);
 void copyInfoToInMemRoster(void);
 void teamLogoDetermination(int team);
 void unsure_FillRosterPositions(int team);

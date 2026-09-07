@@ -7,6 +7,7 @@
 #include "dolphin/mtx.h"
 #include "Dolphin/gx.h"
 #include "musyx/musyx.h"
+#include "Unknown/File_0x800625a4.h"
 
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 lbl_2_data_1DD4[0x318];
@@ -83,7 +84,6 @@ void fn_2_16A74(int idx, int flag);
 void cursorSndFx(int arg0);
 
 bool stopShowingCaptainProfile(void);
-void updateCharacterSelectProcessCode(int arg0, int arg1);
 void challengeCaptainRelated(void);
 
 void fn_2_14220(controllerInputStruct *input);

@@ -1,5 +1,5 @@
 #include "Unknown/File_0x80067f70.h"
 
-void DraftRandomTeamDemo(void) {
+void DraftRandomTeamDemo(int arg0) {
     return;
 }

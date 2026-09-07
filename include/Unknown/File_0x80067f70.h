@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void DraftRandomTeamDemo(void);
+void DraftRandomTeamDemo(int arg0);
 
 #endif // !__UNKNOWN_FILE_0X80067F70_H_

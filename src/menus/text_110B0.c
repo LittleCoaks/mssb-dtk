@@ -5,6 +5,8 @@
 #include "menus/captain_select/captain_select.h"
 #include "menus/text_01254.h"
 #include "menus/yd_step.h"
+#include "Unknown/File_0x800204cc.h"
+#include "Unknown/File_0x800625a4.h"
 
 extern u8 gameSetUpStep[0x64];
 extern u8 menuNumber[0x28];
@@ -26,7 +28,6 @@ extern u8 lbl_803C50E8[0x5C];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 lbl_2_bss_758[0x388];
 
-void changeScene(s32 arg0, s32 arg1);
 void fn_2_836A4(void);
 void loadStadiumScreen_maybe(void);
 s32 exitMenu(u16 arg0);
@@ -52,7 +53,6 @@ void cssSelectCPUDifficulty(void);
 void cssUnloadScreen(void);
 void cssTransitionToNewScreen_maybe(void);
 void cssChangeScreens(void);
-void updateCharacterSelectProcessCode(int arg0, int arg1);
 
 // .text:0x000110B0 size:0x244 mapped:0x80650144
 void teamSelectScreenMain(void) {
