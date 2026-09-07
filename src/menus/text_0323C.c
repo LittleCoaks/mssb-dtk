@@ -3400,16 +3400,16 @@ void fn_2_B324(void) {
     for (i = 0; i < 9; i++) {
         lineUpInfoStruct[i * 4 + 0x24] = i;
         lineUpInfoStruct[i * 4 + 0x00] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x24] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x00] = i;
+        lbl_80353B98[i * 4 + 0x24] = i;
+        lbl_80353B98[i * 4 + 0x00] = i;
         lineUpInfoStruct[i * 4 + 0x25] = i;
         lineUpInfoStruct[i * 4 + 0x01] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x25] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x01] = i;
+        lbl_80353B98[i * 4 + 0x25] = i;
+        lbl_80353B98[i * 4 + 0x01] = i;
         lineUpInfoStruct[i * 4 + 0x26] = i;
         lineUpInfoStruct[i * 4 + 0x02] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x26] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x02] = i;
+        lbl_80353B98[i * 4 + 0x26] = i;
+        lbl_80353B98[i * 4 + 0x02] = i;
         lineUpInfoStruct[i * 4 + 0x27] = 1;
         lineUpInfoStruct[i * 4 + 0x03] = 1;
         *(s16 *)&inMemRoster[i * 0xA0 + 0x24] = a + i;
@@ -3419,16 +3419,16 @@ void fn_2_B324(void) {
     for (; i < 9; i++) {
         lineUpInfoStruct[i * 4 + 0x24] = i;
         lineUpInfoStruct[i * 4 + 0x00] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x24] = i;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x00] = i;
+        lbl_80353B98[i * 4 + 0x24] = i;
+        lbl_80353B98[i * 4 + 0x00] = i;
         lineUpInfoStruct[i * 4 + 0x25] = -1;
         lineUpInfoStruct[i * 4 + 0x01] = -1;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x25] = -1;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x01] = -1;
+        lbl_80353B98[i * 4 + 0x25] = -1;
+        lbl_80353B98[i * 4 + 0x01] = -1;
         lineUpInfoStruct[i * 4 + 0x26] = -1;
         lineUpInfoStruct[i * 4 + 0x02] = -1;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x26] = -1;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + i * 4 + 0x02] = -1;
+        lbl_80353B98[i * 4 + 0x26] = -1;
+        lbl_80353B98[i * 4 + 0x02] = -1;
         lineUpInfoStruct[i * 4 + 0x27] = -1;
         lineUpInfoStruct[i * 4 + 0x03] = -1;
         *(s16 *)&inMemRoster[i * 0xA0 + 0x24] = 0;
@@ -3451,42 +3451,42 @@ void fn_2_B508(void) {
     }
 
     lineUpInfoStruct[0x2A] = 1;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x2A] = 1;
+    lbl_80353B98[0x2A] = 1;
     ((u8 *)&cursorPositions)[0x0C] = 0x36;
     ((u8 *)&cursorPositions)[0x54] = 0;
 
     lineUpInfoStruct[0x2E] = 2;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x2E] = 2;
+    lbl_80353B98[0x2E] = 2;
     ((u8 *)&cursorPositions)[0x0D] = 0x36;
     ((u8 *)&cursorPositions)[0x55] = 0;
 
     lineUpInfoStruct[0x32] = 3;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x32] = 3;
+    lbl_80353B98[0x32] = 3;
     ((u8 *)&cursorPositions)[0x0E] = 0x36;
     ((u8 *)&cursorPositions)[0x56] = 0;
 
     lineUpInfoStruct[0x36] = 4;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x36] = 4;
+    lbl_80353B98[0x36] = 4;
     ((u8 *)&cursorPositions)[0x0F] = 0x36;
     ((u8 *)&cursorPositions)[0x57] = 0;
 
     lineUpInfoStruct[0x3A] = 5;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x3A] = 5;
+    lbl_80353B98[0x3A] = 5;
     ((u8 *)&cursorPositions)[0x10] = 0x36;
     ((u8 *)&cursorPositions)[0x58] = 0;
 
     lineUpInfoStruct[0x3E] = 6;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x3E] = 6;
+    lbl_80353B98[0x3E] = 6;
     ((u8 *)&cursorPositions)[0x11] = 0x36;
     ((u8 *)&cursorPositions)[0x59] = 0;
 
     lineUpInfoStruct[0x42] = 7;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x42] = 7;
+    lbl_80353B98[0x42] = 7;
     ((u8 *)&cursorPositions)[0x12] = 0x36;
     ((u8 *)&cursorPositions)[0x5A] = 0;
 
     lineUpInfoStruct[0x46] = 8;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x46] = 8;
+    lbl_80353B98[0x46] = 8;
     ((u8 *)&cursorPositions)[0x13] = 0x36;
     ((u8 *)&cursorPositions)[0x5B] = 0;
 }
@@ -3707,7 +3707,7 @@ void fn_2_B920(void) {
 
     for (k = 0; k < 9; k++) {
         lineUpInfoStruct[k * 4 + 0x24 + 2] = (u8)k;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + 0x24 + k * 4 + 2] = (u8)k;
+        lbl_80353B98[0x24 + k * 4 + 2] = (u8)k;
         if (k == 0) {
             ((u8 *)&cursorPositions)[0xB] = (u8)*(s32 *)&((u8 *)&Static_Stats_Tables)[0x46e4];
             ((u8 *)&cursorPositions)[0x53] = 1;
@@ -3946,11 +3946,11 @@ void fn_2_C7DC(s32 a, s32 b) {
 restart:
     if ((u8)a == 0) {
         lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + (u8)b * 0x24 + (u8)a * 4 + 1] = a;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + (u8)b * 0x24 + (u8)a * 4] = a;
+        lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
+        lbl_80353B98[(u8)b * 0x24 + (u8)a * 4] = a;
         lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4] = a;
         lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
-        ((u8 *)&Static_Stats_Tables)[0x51F8 + (u8)b * 0x24 + (u8)a * 4 + 2] = a;
+        lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
         *(s16 *)&inMemRoster[(u8)b * 0x5A0 + (u8)a * 0xA0 + 0x24] =
             ((s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0])[(u8)b];
         return;
@@ -3971,10 +3971,10 @@ restart:
 
     lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
     lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4] = a;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + (u8)b * 0x24 + (u8)a * 4 + 1] = a;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + (u8)b * 0x24 + (u8)a * 4] = a;
+    lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
+    lbl_80353B98[(u8)b * 0x24 + (u8)a * 4] = a;
     lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
-    ((u8 *)&Static_Stats_Tables)[0x51F8 + (u8)b * 0x24 + (u8)a * 4 + 2] = a;
+    lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
     *(s16 *)&inMemRoster[(u8)b * 0x5A0 + (u8)a * 0xA0 + 0x24] = pick;
 
     if (((u8 *)&g_d_GameSettings)[7] != 5) {

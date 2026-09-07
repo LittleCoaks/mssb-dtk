@@ -166,10 +166,20 @@ typedef struct {
     /* 0x489B */ u8 charIsStarred[9];
     /* 0x48A4 */ u8 _48A4[0x4E44 - 0x48A4];
     /* 0x4E44 */ StatisticsBatter batterStats[2][9];
-    /* 0x50F0 */ u8 _50F0[0x5240 - 0x50F0];
-} Static_MSSB_Data; // size: 0x5240
+    /* 0x50F0 */ u8 _50F0[0x51F8 - 0x50F0];
+} Static_MSSB_Data; // size: 0x51F8
 
 extern Static_MSSB_Data Static_Stats_Tables;
+
+/* The original symbol table gave Static_Stats_Tables a size of 0x5240,
+ * but its last 0x48 bytes (0x80353B98) are a separate global: the menus
+ * REL's fn_2_B508 (src/menus/text_0323C.c) writes the identical field
+ * offsets (0x2a/0x2e/0x32/.../0x46) into both this object and the
+ * unrelated lineUpInfoStruct just past it, which only produces the
+ * target's distinct @ha/@l relocation if it is its own symbol. Split out
+ * in config/GYQE01/symbols.txt as lbl_80353B98; declared raw here since,
+ * like lineUpInfoStruct, no header currently types it. */
+extern u8 lbl_80353B98[0x48];
 
 /* Captain-select grid position -> character id (0x800FE5D4). */
 extern u8 mapCaptainCursorPositionToCharID[0x350];
