@@ -223,7 +223,6 @@ report) as a decompilation priority list for this module:
 | `rep_0DE0` | 0.78% | 17 | unnamed |
 | `rep_0568` | 0.74% | 20 | 1/20 named (`captainSelectLoadScreen`), see captain_select note below |
 | `rep_0788` | 0.65% | 150 | unnamed; likely the character-select engine (its largest function calls `changeScreenVariables` with team-select/challenge-map/main-menu targets, the css transition set) |
-| `rep_0438` | 0.61% | 10 | 3/10 named, see captain_select note below |
 | `rep_0F60` | 0.61% | 25 | unnamed |
 | `rep_0840` | 0.58% | 1 | unnamed, single function |
 | `rep_10C0` | 0.53% | 11 | unnamed |
@@ -252,15 +251,19 @@ TU boundaries; they are named by `.text` offset rather than by a
 | `text_0323C.c` | `0x323C`-`0x110B0` | 66 (21) | 56,948 | the character-select engine: every `css*`/`characterSelect*`/`randChar*` symbol |
 | `text_110B0.c` | `0x110B0`-`0x12238` | 7 (4) | 4,488 | `teamSelectScreenMain`, `stadiumSelectControls`, `selectStadiumScreen` |
 
-Two things a future split-fixer should know. First, the five rodata-only units
-between `yd_step.c` (rodata `0x200`) and `rep_0438.c` (rodata `0x438`) --
-`rep_0278`, `rep_02C8`, `rep_0318`, `rep_0398`, `rep_03E8` -- are almost
-certainly the `repHeaderData` slots of the TUs that make up this block, in
-order, so the block is probably five original TUs, not three; the family cut
-above is coarser than the truth. Second, `text_110B0.c` sits immediately before
-`rep_0438.c`, whose own `OSPanic` calls name the source file `"teamselect.c"`,
-so `teamSelectScreenMain` may belong to that same TU. Neither guess was baked
-into the split; both are cheap to act on once matched code gives evidence.
+One thing a future split-fixer should know: the five rodata-only units
+between `yd_step.c` (rodata `0x200`) and `captain_select/teamselect.c`
+(rodata `0x438`) -- `rep_0278`, `rep_02C8`, `rep_0318`, `rep_0398`,
+`rep_03E8` -- are almost certainly the `repHeaderData` slots of the TUs
+that make up this block, in order, so the block is probably five original
+TUs, not three; the family cut above is coarser than the truth.
+
+`text_110B0.c` sits immediately before `captain_select/teamselect.c`
+(`rep_0438`, renamed 2026-09 -- see below), whose own `OSPanic` calls name
+the source file `"teamselect.c"`. `teamSelectScreenMain`, at the start of
+`text_110B0.c`, may belong to that same original TU; that guess was not
+baked into the split and is cheap to act on once matched code gives
+evidence.
 
 ### top level — 1 file, 7 fns (3 named)
 
@@ -276,20 +279,34 @@ the `high` bar the tag denotes. The same trick should name more menu units as th
 are split -- panic and assert strings are the cheapest source of original filenames
 in this REL.
 
-### captain_select/ — 1 file, 17 fns (10 named)
+### captain_select/ — 2 files, 27 fns (13 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `captain_select.c` | `rep_04B0` | 17 (10) | 8,956 | Captain Select screen: per-port cursor movement, A/B press handling, new-player/controller detection, swapping the displayed captain model as the cursor moves, and initial port activation on first load of the screen. | high |
+| `teamselect.c` | `rep_0438` | 10 (3) | 6,508 | Captain-select support functions still all stubs: `challengeCaptainRelated`, `captainSelectDefaultProcess`, `captainSelectScreen_manager` (the menu REL's screen-table slot 9 main loop), plus 7 unnamed helpers. | high (filename) |
 
 `captainSelect*` is a distinct symbol family from the much larger
 `characterSelect*`/`css*` one — `cssReturnToCapSelect_maybe` returns *to* captain
 select *from* the character select screen, so those are two adjacent screens
-rather than one category. Three further menu units hold `captainSelect*` symbols
-and would belong in this folder once their own evidence supports a name:
-`rep_0438` (`captainSelectDefaultProcess`, `captainSelectScreen_manager`),
-`rep_0568` (`captainSelectLoadScreen`), and whichever unit holds
-`captainSelectUnloadCSSLoadRelated` at `.text:0x000800B0`.
+rather than one category.
+
+`teamselect.c` (renamed from `rep_0438`, 2026-09) is the module's second
+`yd_step.c`-style case: its own `OSPanic` calls
+(`challengeCaptainRelated`, `fn_2_12CD8`, `captainSelectScreen_manager`)
+all pass the literal string `"teamselect.c"` as `__FILE__`, which is
+direct evidence of the original filename rather than an inference -- the
+same standard `yd_step.c` was named under, confirmed by a sweep of every
+`OSPanic`/`OSReport` call in the whole menu REL (only these two filenames
+turned up anywhere in it). It is filed under `captain_select/` rather than
+kept at top level because, unlike `yd_step.c`'s dispatcher, its functions
+are all `captainSelect*`-family code and belong with that category; the
+original developer filename and the repo's category-folder convention
+are two different, non-conflicting things. Two further menu units hold
+`captainSelect*` symbols and would belong in this folder once their own
+evidence supports a name: `rep_0568` (`captainSelectLoadScreen`), and
+whichever unit holds `captainSelectUnloadCSSLoadRelated` at
+`.text:0x000800B0`.
 
 ---
 
@@ -306,7 +323,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 45 | `src/menus/**` | 45 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); 2 units named so far (`yd_step.c` at top level, `captain_select/`) |
+| `menus` | menu REL | 45 | `src/menus/**` | 45 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c` at top level, `captain_select/` (2 files) |
 | `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
 ### The menu REL and debug.rel

@@ -1083,7 +1083,7 @@ config.libs = [
             Object(NonMatching, "menus/rep_0318.c"),
             Object(NonMatching, "menus/rep_0398.c"),
             Object(NonMatching, "menus/rep_03E8.c"),
-            Object(NonMatching, "menus/rep_0438.c"),
+            Object(NonMatching, "menus/captain_select/teamselect.c"),
             Object(NonMatching, "menus/captain_select/captain_select.c"),
             Object(NonMatching, "menus/rep_0568.c"),
             Object(NonMatching, "menus/rep_05F0.c"),

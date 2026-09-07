@@ -53,7 +53,7 @@ menus/text_0323C.c:
 menus/text_110B0.c:
 	.text       start:0x000110B0 end:0x00012238
 
-menus/rep_0438.c:
+menus/captain_select/teamselect.c:
 	.text       start:0x00012238 end:0x00013BA4
 	.rodata     start:0x00000438 end:0x000004B0
 
