@@ -19,20 +19,5 @@ int fn_2_145C(u16 *a, u16 *b);
 int fn_2_148C(u16 *s);
 int stadiumRandomizer(int a, int b);
 u32 fn_2_1554(void);
-void fn_2_1578(void);
-void fn_2_1800(void);
-void fn_2_1A88(void);
-void fn_2_1BAC(void);
-void cursorSndFx(u16 button);
-void fn_2_1D28(void);
-void fn_2_1D54(int *cursor, u8 port, int count);
-void fn_2_1DC4(void);
-void fn_2_1DC8(void);
-void mainMenuRelated(void);
-void mainMenuScreen(void);
-void fn_2_2BB8(void);
-void fn_2_2D1C(void);
-void loadDemoMatch(u8 arg0, int arg1, int arg2);
-void fn_2_3204(void);
 
 #endif // !__MENUS_TEXT_01254_H_

@@ -1076,6 +1076,7 @@ config.libs = [
             Object(NonMatching, "menus/rep_01A0.c"),
             Object(Matching, "menus/yd_step.c"),
             Object(NonMatching, "menus/text_01254.c"),
+            Object(NonMatching, "menus/main_menu.c"),
             Object(NonMatching, "menus/text_0323C.c"),
             Object(NonMatching, "menus/text_110B0.c"),
             Object(NonMatching, "menus/rep_0278.c"),

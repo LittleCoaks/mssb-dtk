@@ -238,25 +238,37 @@ it isn't a live target without new information.
 The former ~69 KB unclaimed block (`.text:0x1254`-`0x12238`) that held most of
 the menu REL's well-known named functions -- `mainMenuScreen`, `optionsScreen`
 callers, `teamSelectScreenMain`, `selectStadiumScreen`, `stadiumRandomizer`, and
-the whole `css*` family -- is now chunked into three stub units so it is
-scoreable (2026-09). `tools/augment_splits.py`'s rodata-correlation heuristic
-could not split it (no rodata references at all), so the chunks are
+the whole `css*` family -- was chunked into three stub units so it could be
+scored (2026-09). `tools/augment_splits.py`'s rodata-correlation heuristic
+could not split it (no rodata references at all), so the chunks were
 address-window cuts at named-function family boundaries, **not** recovered
-TU boundaries; they are named by `.text` offset rather than by a
-`repHeaderData` rodata slot to make that explicit:
+TU boundaries, named by `.text` offset rather than a `repHeaderData` slot to
+make that explicit. Once fully implemented, one of the three cuts (`text_01254.c`)
+turned out to straddle a real boundary and was split again -- see below; the
+other two are still address-window cuts, unconfirmed as real TUs:
 
 | unit | .text | fns (named) | bytes | what the names say |
 |---|---|---|---|---|
-| `text_01254.c` | `0x1254`-`0x323C` | 26 (5) | 8,168 | main-menu family: `stadiumRandomizer`, `cursorSndFx`, `mainMenuRelated`, `mainMenuScreen`, `loadDemoMatch` |
+| `text_01254.c` | `0x1254`-`0x1578` | 11 (0) | 660 | generic utility grab-bag: saturating-add helpers, a wide-string compare, an insertion sort, an LCG. No data references, no theme, no callers/callees outside the unit. |
+| `main_menu.c` | `0x1578`-`0x323C` | 15 (4) | 7,508 | `cursorSndFx`, `mainMenuRelated`, `mainMenuScreen`, `loadDemoMatch` -- a two-level main-menu state machine (`mainMenuScreen` drives states 0-12 and delegates to `mainMenuRelated`, states 0-10) |
 | `text_0323C.c` | `0x323C`-`0x110B0` | 66 (21) | 56,948 | the character-select engine: every `css*`/`characterSelect*`/`randChar*` symbol |
 | `text_110B0.c` | `0x110B0`-`0x12238` | 7 (4) | 4,488 | `teamSelectScreenMain`, `stadiumSelectControls`, `selectStadiumScreen` |
+
+`text_01254.c` / `main_menu.c` split at `0x1578` (2026-09), once four grind
+sessions confirmed the boundary directly: everything below it has zero data
+references and no relationship to anything above it (and vice versa), while
+everything from `0x1578` on shares state through `mainMenuScreen`. This is a
+real, evidence-backed split rather than a guess, unlike the original
+address-window cuts -- see `main_menu.c`'s own entry below for the naming
+rationale.
 
 One thing a future split-fixer should know: the five rodata-only units
 between `yd_step.c` (rodata `0x200`) and `captain_select/teamselect.c`
 (rodata `0x438`) -- `rep_0278`, `rep_02C8`, `rep_0318`, `rep_0398`,
 `rep_03E8` -- are almost certainly the `repHeaderData` slots of the TUs
 that make up this block, in order, so the block is probably five original
-TUs, not three; the family cut above is coarser than the truth.
+TUs (now six, counting the `text_01254`/`main_menu` split), not three; the
+`text_0323C.c`/`text_110B0.c` cuts above are still coarser than the truth.
 
 `text_110B0.c` sits immediately before `captain_select/teamselect.c`
 (`rep_0438`, renamed 2026-09 -- see below), whose own `OSPanic` calls name
@@ -265,11 +277,12 @@ the source file `"teamselect.c"`. `teamSelectScreenMain`, at the start of
 baked into the split and is cheap to act on once matched code gives
 evidence.
 
-### top level — 1 file, 7 fns (3 named)
+### top level — 2 files, 22 fns (7 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `yd_step.c` | `rep_0200` | 7 (3) | 344 | Scene-dispatch state machine for the whole menu REL. `currentScreenFunctionChooser` steps the active screen by indexing the 18-entry `pCurrentScreenControlFunction` table (`.data:0x138`) with the current screen ID; `changeScreenVariables` performs a transition by shifting the current screen/state into the previous screen/state slots and resetting the state. Also holds the small step stubs the table points at, including `removedStep`, the panic stub wired into the two table slots whose screens were cut. | high |
+| `main_menu.c` | `text_01254.c` (`0x1578` half) | 15 (4) | 7,508 | The main-menu screen (screen-table slot 5). `mainMenuScreen` is a 13-state dispatcher over the menu's top-level options (start/records/options/etc.); `mainMenuRelated` is an 11-state sub-dispatcher it delegates to. Also holds `loadDemoMatch` (attract-mode demo playback) and `cursorSndFx` (cursor-move sound effect, called from both dispatchers). | med |
 
 `yd_step.c` is the one file in the tree whose name is not an inference at all: the
 original filename survives verbatim in the shipped binary, as the first argument of
@@ -278,6 +291,15 @@ direct evidence rather than the strongest tier of inference, so it sits above ev
 the `high` bar the tag denotes. The same trick should name more menu units as they
 are split -- panic and assert strings are the cheapest source of original filenames
 in this REL.
+
+`main_menu.c` sits at `med`, not `high`: 4 of its 15 functions are named and they
+agree on one theme (corroborated by the call graph -- `mainMenuScreen` is
+screen-table slot 5 in `yd_step.c`'s dispatch table, and its case bodies are
+verbatim copies of `mainMenuRelated`'s and `cursorSndFx`'s own bodies, confirming
+the relationship), but it is still one piece of a three-way address-window cut
+(see `src/menus — the menu REL` above) rather than a filename-confirmed or
+fully-named TU, so it stays unfoldered at top level like `yd_step.c` rather than
+getting a `menus/main_menu/` folder of its own.
 
 ### captain_select/ — 2 files, 27 fns (13 named)
 
@@ -323,7 +345,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 45 | `src/menus/**` | 45 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c` at top level, `captain_select/` (2 files) |
+| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c` at top level, `captain_select/` (2 files) |
 | `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
 ### The menu REL and debug.rel

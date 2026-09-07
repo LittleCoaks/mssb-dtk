@@ -4,6 +4,7 @@
 #include "musyx/musyx.h"
 #include "menus/captain_select/captain_select.h"
 #include "menus/text_01254.h"
+#include "menus/main_menu.h"
 #include "menus/yd_step.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800625a4.h"
@@ -39,8 +40,6 @@ void fn_80062A74(void);
 void fn_800AD038(void *arg0);
 void fn_8004EEF4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-int stadiumRandomizer(int min, int max);
-void cursorSndFx(u16 button);
 void fn_2_328(void);
 void bPressOnStadSelectScreen(void);
 
