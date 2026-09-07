@@ -8,6 +8,7 @@
 #include "Dolphin/gx.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x800625a4.h"
+#include "menus/text_0323C.h"
 
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 lbl_2_data_1DD4[0x318];
@@ -83,7 +84,6 @@ extern menuControlStruct *menuControlVariables;
 void fn_2_16A74(int idx, int flag);
 void cursorSndFx(int arg0);
 
-bool stopShowingCaptainProfile(void);
 void challengeCaptainRelated(void);
 
 void fn_2_14220(controllerInputStruct *input);
@@ -418,19 +418,19 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
     }
 
     if (newInput & 0x100) {
-        if (!stopShowingCaptainProfile()) {
+        if (!stopShowingCaptainProfile(port)) {
             captainSelect_APress(gameSetUpStep.portCaptainSlot[port]);
         }
         return;
     }
     if (newInput & 0x200) {
-        if (!stopShowingCaptainProfile()) {
+        if (!stopShowingCaptainProfile(port)) {
             captainSelect_BPress(gameSetUpStep.portCaptainSlot[port]);
         }
         return;
     }
     if (newInput & 0x20) {
-        if (!stopShowingCaptainProfile()) {
+        if (!stopShowingCaptainProfile(port)) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] = 1;
             }
@@ -438,7 +438,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
         return;
     }
     if (newInput & 0x10) {
-        if (!stopShowingCaptainProfile()) {
+        if (!stopShowingCaptainProfile(port)) {
             if (lbl_2_bss_100B8[gameSetUpStep.portCaptainSlot[port] + 0x10] == 0) {
                 lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x45] = 1;
                 lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x4B] = 1;
