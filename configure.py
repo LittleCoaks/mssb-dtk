@@ -1099,7 +1099,7 @@ config.libs = [
             Object(NonMatching, "menus/rep_08E8.c"),
             Object(NonMatching, "menus/rep_09B8.c"),
             Object(NonMatching, "menus/rep_0A08.c"),
-            Object(NonMatching, "menus/rep_0A58.c"),
+            Object(NonMatching, "menus/dictionary.c"),
             Object(NonMatching, "menus/rep_0AB0.c"),
             Object(NonMatching, "menus/rep_0B08.c"),
             Object(NonMatching, "menus/rep_0C50.c"),

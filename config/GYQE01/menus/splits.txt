@@ -108,7 +108,7 @@ menus/rep_09B8.c:
 menus/rep_0A08.c:
 	.rodata     start:0x00000A08 end:0x00000A58
 
-menus/rep_0A58.c:
+menus/dictionary.c:
 	.text       start:0x00054BB0 end:0x0005597C
 	.rodata     start:0x00000A58 end:0x00000AB0
 

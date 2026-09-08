@@ -228,7 +228,6 @@ report) as a decompilation priority list for this module:
 | `rep_10C0` | 0.53% | 11 | unnamed |
 | `rep_0AB0` | 0.23% | 12 | 1/12 named (`recordsScreen`) |
 | `rep_0730` | 0.12% | 1 | unnamed, single function |
-| `rep_0A58` | 0.11% | 1 | unnamed, single 0xDCC-byte function with no recovered internal boundaries -- screen-table entry 7 |
 
 `rep_01A0` (98.50% fuzzy, 9/10 fns matched -- the menu sound layer: BGM/SFX
 `sndFX*`/`sndSeq*` calls) is one function short of closing out; that
@@ -277,12 +276,13 @@ the source file `"teamselect.c"`. `teamSelectScreenMain`, at the start of
 baked into the split and is cheap to act on once matched code gives
 evidence.
 
-### top level — 2 files, 22 fns (7 named)
+### top level — 3 files, 23 fns (7 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `yd_step.c` | `rep_0200` | 7 (3) | 344 | Scene-dispatch state machine for the whole menu REL. `currentScreenFunctionChooser` steps the active screen by indexing the 18-entry `pCurrentScreenControlFunction` table (`.data:0x138`) with the current screen ID; `changeScreenVariables` performs a transition by shifting the current screen/state into the previous screen/state slots and resetting the state. Also holds the small step stubs the table points at, including `removedStep`, the panic stub wired into the two table slots whose screens were cut. | high |
 | `main_menu.c` | `text_01254.c` (`0x1578` half) | 15 (4) | 7,508 | The main-menu screen (screen-table slot 5). `mainMenuScreen` is a 13-state dispatcher over the menu's top-level options (start/records/options/etc.); `mainMenuRelated` is an 11-state sub-dispatcher it delegates to. Also holds `loadDemoMatch` (attract-mode demo playback) and `cursorSndFx` (cursor-move sound effect, called from both dispatchers). | med |
+| `dictionary.c` | `rep_0A58` | 1 (0) | 3,532 | The Dictionary/Glossary screen (screen-table slot 7): a Japanese-release feature cut from GYQE01. A single 21-state function (`fn_2_54BB0`, still unnamed) implements 11 kana-row tabs (A/K/S/T/N/H/M/Y/R/W/D, the gojuon alphabetization scheme) over 231 entries, each with a 43-widget row-rendering system. See "Naming note" below. | high (external verification) |
 
 `yd_step.c` is the one file in the tree whose name is not an inference at all: the
 original filename survives verbatim in the shipped binary, as the first argument of
@@ -291,6 +291,35 @@ direct evidence rather than the strongest tier of inference, so it sits above ev
 the `high` bar the tag denotes. The same trick should name more menu units as they
 are split -- panic and assert strings are the cheapest source of original filenames
 in this REL.
+
+**`dictionary.c`'s naming note.** This screen was initially misread from internal
+evidence alone as a developer settings/parameter editor -- the 11-tab/231-row
+structure and the fact that it directly touches `starMissionCompletionTracker`,
+`superstarUnlocked`, and other global progress state all looked consistent with a
+dev tool. That conclusion was wrong. The user built and ran a Gecko code (derived
+from this session's addressing work: `changeScreenVariables(7)` hooked in from the
+main menu) on real hardware/an emulator, and it launched a screen the user
+independently recognised: the Dictionary/Glossary, a known Japanese-release
+feature absent from the USA disc. This is stronger evidence than any internal
+inference tier in this document, since it is direct behavioural confirmation
+rather than a read of the code -- every other piece of evidence (the kana tabs,
+the progress-state reads/writes as likely unlock-gating rather than editing) is
+consistent with it in hindsight. `src/menus/rep_1028.c` shares this screen's
+`lbl_2_bss_1A8230-1A8250` object-array neighbourhood, which briefly looked like
+it might connect the two (a dictionary screen paired with a 3D model-viewer
+pane, which `rep_1028.c`'s "29-object animation state machine with lighting
+fade and stick-driven anchor movement" resembles) -- **checked and refuted**:
+neither `dictionary.c` nor its 43 row-widget callbacks reference any of
+`rep_1028.c`'s functions or data, so the two are not directly wired together;
+the shared scratch-memory neighbourhood is real but unexplained (REL `.bss` is
+commonly time-shared between screens that are never simultaneously active).
+See `rep_1028.c`'s own checkpoint for the full test. `menuControlVariables->currentState` value 9 in
+`src/menus/main_menu.c` (`mainMenuRelated`) is the only place anywhere in the
+menu REL that transitions into this screen, and no code path anywhere in the
+decompiled USA build reaches that state -- so the screen is compiled in,
+correctly wired to the dispatch table, and unreachable in retail, consistent
+with a menu item that existed in the Japanese build and was removed (rather
+than the underlying screen code being stripped) for the USA release.
 
 `main_menu.c` sits at `med`, not `high`: 4 of its 15 functions are named and they
 agree on one theme (corroborated by the call graph -- `mainMenuScreen` is
@@ -345,7 +374,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c` at top level, `captain_select/` (2 files) |
+| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c`/`dictionary.c` at top level, `captain_select/` (2 files) |
 | `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
 ### The menu REL and debug.rel
