@@ -985,7 +985,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_9B0.c"),
             Object(NonMatching, "game/match_setup/versus_screens.c"),
             Object(NonMatching, "game/data_only/rep_A78.c"),
-            Object(NonMatching, "game/fielding/fielder_catch.c"),
+            Object(NonMatching, "game/fielding/fielder.c"),
             Object(NonMatching, "game/data_only/rep_CC8.c"),
             Object(NonMatching, "game/data_only/rep_D18.c"),
             Object(NonMatching, "game/data_only/rep_D68.c"),

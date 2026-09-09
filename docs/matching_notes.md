@@ -659,3 +659,246 @@ Cheap, decisive countermeasures, worth applying to any long-running grind:
   symbol that was renamed several sessions ago, the whole reading is stale.
 - Treat a "closed"/"exhausted" claim as a hypothesis with an owner and a date, not as fact;
   re-measuring one costs a single round trip.
+
+## From-scratch files: empty stub callees are inlined away (work bottom-up)
+
+First seen: `game/game/fielding/fielder` (223 functions, all `return;`
+stubs at session start, 2026-09).
+
+In a file being decompiled from scratch, MWCC (`-O4,p -inline deferred`) inlines
+an empty `return;` stub callee and deletes the call site outright. A caller can
+therefore never match while any of its in-file callees is still a stub — its
+diff will show the target's whole `stwu`/`mflr`/`bl`/epilogue frame against a
+bare `blr` on our side, which looks like a catastrophic LOGIC failure but is
+purely an artifact of the callee.
+
+Two consequences:
+1. Order the work by the call graph, not by function size. Build the leaf
+   functions (no in-file `bl` at all) first, then their callers. Ranking the
+   still-stubbed callees by how many in-file callers they have identifies the
+   highest-leverage next targets cheaply — parse `bl` targets out of the dtk
+   `.s` and cross-reference which bodies are still stubs.
+2. `#pragma dont_inline on` / `#pragma dont_inline reset` bracketed around the
+   *stub callee* preserves the call and lets you validate a caller's source
+   shape before its callees exist. Verified:
+   `autoMovement0_stayStill_exceptForSpecialActions` read 23.25% with the stub
+   inlined and 100% with the pragma applied — i.e. the caller's C was already
+   exactly right and the number was measuring the callee, not the caller.
+   Treat this strictly as a diagnostic and revert it: the target's callee is a
+   real, non-inlinable function, so the pragma is scaffolding that describes our
+   incomplete tree, not the original source.
+
+The general lesson is that a low match% on a caller is not evidence about the
+caller at all until its callees are real. Check the callee state before opening
+a hypothesis log on any function in a from-scratch file.
+
+## An explicit struct-base pointer local is right for repeated fixed-index access (and wrong for loop induction)
+
+First seen: `game/game/fielding/fielder` (2026-09). Note this is the exact
+OPPOSITE conclusion to "Explicit pointer local vs. compiler strength reduction"
+above, and the two are not in conflict — they cover different cases.
+
+For a function that accesses one array element repeatedly at a FIXED index
+(`g_Fielders[fielderIndex].a`, `.b`, `.c` ...), write the explicit pointer local
+`InMemFielder* fielder = &g_Fielders[fielderIndex];` when the target
+materialises the base into a register (`mulli` + `addi rBase, rHa, sym@l` +
+`add rN, rBase, rIdx`) and then uses plain displacement accesses off it.
+Measured, from array indexing to pointer local, with no other change:
+- 79.71% -> 100% (array indexing emitted an indexed `lfsx` for the offset-0
+  member, where the target used `lfs f1, 0x0(rN)`),
+- 98.18% -> 100% (array indexing mis-ranked the `mulli` result's register once a
+  second global was also live).
+
+Two reliable tells that you need the pointer local: an indexed load/store
+(`lfsx`/`lwzx`/`stbx`) on our side where the target has a plain displacement
+form, and the base being materialised *before* a branch or a call that it has to
+survive (i.e. it lives in a callee-saved register).
+
+By contrast, for a WALKING pointer over a loop, the user-declared pointer is the
+wrong shape and the index form is right — see the strength-reduction entry
+above. Fixed index: declare the pointer. Moving index: declare the integer.
+
+## Naming a target's local rodata float label: declare it extern, never define it
+
+First seen: `game/game/fielding/fielder` (2026-09); the pattern itself
+predates it in `src/menus/rep_1028.c`.
+
+Writing a plain float literal (`x = 0.0f;`) pools an anonymous `@NNN` constant,
+which objdiff scores as a CONST_POOL mismatch against the target's dtk-named
+`lbl_N_rodata_XXXX` relocation, capping an otherwise-perfect function just below
+100%. The fix is the `rep_1028.c` pattern: declare the label
+`extern const f32 lbl_3_rodata_B20;` and use the symbol in place of the literal.
+Codegen is byte-identical; only the relocation name changes. That alone took one
+function from 99.29% to 100%.
+
+Do NOT use the definition form (`const f32 lbl_3_rodata_B20 = 0.0f;`) — tested
+and disproven in the same session. It emits an *additional* local `.rodata`
+symbol at the wrong offset (0x60 rather than the target's 0), leaves `.text`
+worse than the extern form, and inflates the `.rodata` section percentage
+spuriously without matching any target byte. If a `.rodata` score moves in the
+right direction while `.text` moves in the wrong one, check whether you created
+a duplicate symbol before banking the result.
+
+## Ghidra's type cache holds full layouts for globals the project headers stub as padding
+
+First seen: `game/game/fielding/fielder` (2026-09).
+
+`.ghidra_cache/in_game.types.txt` contains complete, offset-annotated `STRUCT`
+definitions for game globals that `include/game/UnknownHomes_Game.h` currently
+declares as mostly `u8 _pad_NNN[...]`. Expanding one of those in-place —
+same offsets, same total size, real member names instead of padding — is
+codegen-neutral by construction and is the single cheapest enabler before
+starting a from-scratch file that touches that global heavily. Two expanded this
+session (`InMemFielder` 0x268, `g_FieldingLogic_s` 0x150), both verified neutral
+by stashing the header change, rebuilding, re-diffing, and confirming every
+affected unit was byte-identical.
+
+Do this verification rather than assuming it: the expansion touches a shared
+header, so the blast radius is every unit that includes it. Grep for which files
+reference the struct's members first, and re-diff those specific units before
+and after.
+
+Two cautions when translating:
+- Sanitize aggressively but do not import Ghidra's enum typedefs — map each
+  enum-typed member to the plain integer type of its stated size. Ghidra member
+  "names" are frequently value descriptions rather than names (`const_30`,
+  `15.0_wjFramesTillContactWWall`) and several collide within one struct; where
+  that happens, an honest `_0NNN` offset name is better than a fabricated one.
+- Ghidra's array bounds are not trustworthy (see the entry above); its *offsets*
+  and total struct sizes, cross-checked against the `size:` field in
+  `config/*/symbols.txt`, have held up.
+
+## A constant-returning stub folds away the CALLER's test, not just the call
+
+First seen: `game/game/fielding/fielder` (2026-09, session 2). This
+extends "From-scratch files: empty stub callees are inlined away (work
+bottom-up)" above — the mechanism there is broader than that entry states.
+
+A `return 0;` stub (not just an empty `return;`) does more than let MWCC
+delete the call site: it lets MWCC constant-fold the *caller's* test of the
+return value too. A caller written `if (callee(i) == 0) { ...body... }` loses
+the call, loses the test, and loses its entire stack frame — the body becomes
+unconditional. The caller's diff then shows our bare body against the target's
+full `stwu`/`mflr`/`bl`/epilogue, which reads as a catastrophic LOGIC failure
+but is entirely an artifact of the callee, not the caller's source.
+
+Measured: `autoMovement19_foulBall` has correct source and is capped at
+59.17% purely by this. Its sibling
+`autoMovement0_stayStill_exceptForSpecialActions` was separately proven to be
+100%-correct source via `#pragma dont_inline` on the callee, and both are
+blocked on the same callee `updateFielderPositionAndVelocityForSpecialActions`.
+
+Practical rule: before opening a hypothesis log on any caller in a
+from-scratch file, check whether every in-file callee has a non-trivial body
+AND, if it returns a value, that the returned value isn't a hardcoded
+constant. A percentage on a caller with a stubbed callee measures the callee,
+not the caller.
+
+## A hub function does not need to reach 100% to unblock its callers
+
+First seen: `game/game/fielding/fielder` (2026-09, session 2). Corollary
+to "A constant-returning stub folds away the CALLER's test, not just the
+call" above, and a scheduling insight for from-scratch files.
+
+A caller's codegen depends only on the *call site* — argument setup, the
+`bl`, and how the return value is consumed — not on the callee's body,
+provided the callee is large enough that the compiler will not inline it. So
+giving a large hub function a real, correct, non-trivial body restores the
+call site in every one of its callers even while the hub itself sits far
+below 100% (typically because the hub is itself blocked on *its* callees).
+This makes large dispatchers worth implementing early, even though they
+cannot be finished, because they convert many callers from "unmeasurable" to
+"measurable and matchable".
+
+Prioritize hubs by **unblock yield** — the number of blocked functions whose
+ENTIRE stub-blocker set is that one function — NOT by raw caller count.
+These diverge sharply: in `fielder`, `autoMovementDetermineWhatToDo`
+had 5 callers and yield 5, while `setInitialFielderMovements_CoverBases` and
+`setInitialFielderMovements_cutoffs` had 11 callers each and yield **0**
+(every one of their callers was simultaneously blocked on something else
+too). Implementing a yield-0 hub buys nothing immediately.
+
+Confirmed prediction: implementing `autoMovementDetermineWhatToDo` (484 B, a
+leaf) took itself 0% -> 100% and simultaneously took `fn_3_33D9C` and
+`fn_3_40D54` from 7.69% -> 100% each, in one build. Three functions matched
+from one change.
+
+## Pointer-local scope of assignment is a separate lever from pointer-vs-array
+
+First seen: `game/game/fielding/fielder` (2026-09, session 2). This
+refines "An explicit struct-base pointer local is right for repeated
+fixed-index access (and wrong for loop induction)" above. That entry frames
+the choice as binary (declare the pointer vs. use the index). There is a
+third, finer lever: *where in the function the pointer is assigned*.
+
+Measured on `fn_3_49EA8`, three steps, identical semantics throughout, only
+the pointer's declaration/assignment placement changing:
+- `InMemFielder* fielder = &g_Fielders[i];` initialized at the top and used
+  for every store: **89.86%**
+- array indexing for the two tail stores, pointer for the rest: **98.92%**
+- `InMemFielder* fielder;` declared uninitialized at the top, array indexing
+  for all stores OUTSIDE the main `if` block, and `fielder = &g_Fielders[i];`
+  assigned only INSIDE that block: **100%**
+
+The reliable tell for which individual stores want array indexing rather
+than the pointer: in the target, that store re-derives the global base into
+a fresh register (`lis`/`addi`/`add`) instead of reusing the already-live
+base register. Mixing the two forms within one function is often correct and
+is what the original source evidently did.
+
+Cross-reference "Textual statement position as a register-allocation
+priority lever" above — this is the same underlying phenomenon (source
+position re-ranking MWCC's register coloring) showing up specifically for
+struct-base pointers.
+
+The same mixed shape independently took `autoMovementDetermineWhatToDo` to
+100% on the first try: pointer local for the dense middle blocks, array
+indexing for the three trailing single stores.
+
+## `report generate` and per-unit `diff` report different match% for the same build — neither is stale
+
+First seen: `game/game/fielding/fielder` (2026-09, sessions 3-4).
+
+`objdiff-cli report generate` (whole-project) and per-unit `objdiff-cli diff
+-p . -u <unit> -o - --format json` report DIFFERENT absolute match
+percentages for the exact same build, and both are correct under their own
+method: `report generate` resolves relocations with full cross-object
+context, so it scores relocation-bearing instructions a per-unit diff cannot
+resolve, and its numbers run higher. Worked example: `fn_3_4DB84` in
+`fielder` reads 80.00% under `report generate` and 77.08% under
+per-unit `diff`, both current, both correct.
+
+Consequence: a session that iterates with per-unit `diff` and then closes
+out with `report generate` (or vice versa) will see an apparent jump or
+drop that looks like a regression or a win but is purely a change of
+measuring instrument. This actually happened — a `fielder` session
+"corrected" a figure in its own status table as stale when it was simply
+the other method's number.
+
+Rule: pick ONE method as a checkpoint's canonical measure and label every
+recorded figure with the method it came from. Iterate with per-unit `diff`
+(it is far cheaper — no full-project build needed); reconcile with `report
+generate` only at session close-out, and never compare a number from one
+method against a number from the other.
+
+## Whole-struct assignment of a float vector lowers to integer word copies
+
+First seen: `game/game/fielding/fielder` (2026-09, sessions 3-4).
+
+Assigning a small all-float struct (e.g. `VecXYZ`) wholesale — `dst.vec =
+src.vec;` — makes MWCC lower the copy to integer `lwz`/`stw` word moves.
+Targets that were written with per-component assignment emit `lfs`/`stfs`
+instead. Symptom: control flow and instruction count match exactly, but the
+tail of the function shows integer load/stores where the target has float
+ones, often with a different base register as well.
+
+Fix: write the copy component-by-component (`dst.x = src.x; dst.y = src.y;
+dst.z = src.z;`). Worked example: `fn_3_27764` in `fielder` went
+93.81% -> 100% purely from this change, and it fixed the base-register
+choice for free — explicit float loads let the register allocator release
+the pointer register the integer-copy form had pinned, matching the
+target's register reuse exactly.
+
+Rule: if a target shows `lfs`/`stfs` for a struct copy, never use
+whole-struct assignment for it, regardless of how much cleaner the
+aggregate assignment reads.

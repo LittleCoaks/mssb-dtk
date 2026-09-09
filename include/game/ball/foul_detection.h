@@ -5,7 +5,7 @@
 
 void fn_3_B79AC(void);
 void checkFielderCollision(void);
-void isCoordinateUncatchableTerrain(void);
+int isCoordinateUncatchableTerrain(f32 x, f32 z);
 void foul_isBallWithin3mFair(void);
 void foul_ifBallConsideredPastTheBases(void);
 void foul_checkIfFoul(void);

@@ -12,8 +12,8 @@ void checkFielderCollision(void) {
 }
 
 // .text:0x000B7CDC size:0x90 mapped:0x806F6D70
-void isCoordinateUncatchableTerrain(void) {
-    return;
+int isCoordinateUncatchableTerrain(f32 x, f32 z) {
+    return 0;
 }
 
 // .text:0x000B7D6C size:0x6C mapped:0x806F6E00

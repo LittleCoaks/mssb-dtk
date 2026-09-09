@@ -72,7 +72,7 @@ game/match_setup/versus_screens.c:
 game/data_only/rep_A78.c:
 	.rodata     start:0x00000A78 end:0x00000AC8
 
-game/fielding/fielder_catch.c:
+game/fielding/fielder.c:
 	.text       start:0x000251E4 end:0x0005985C
 	.rodata     start:0x00000AC8 end:0x00000CC8
 	.data       start:0x00003C40 end:0x00003D60

@@ -79,7 +79,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `fielder_catch.c` | `rep_AC8` | 223 (162) | 214,648 | Largest gameplay unit. Catch behaviour end to end: diving/running/jumping catches, bobbles, knockouts, wall jumps, clambers, catch animation progression. | high |
+| `fielder.c` | `rep_AC8` | 223 (162) | 214,648 | Largest gameplay unit. Fielder behaviour end to end: per-frame movement and position, the 29-entry `autoMovement` dispatch table, fielder selection, catches (dive/run/jump/bobble), throw interception and cutoff positioning, wall jumps and clambers, knockouts, minigame fielding. | high |
 | `fielder_ai.c` | `rep_18E8` | 59 (31) | 51,548 | Which runner to target, throw-vs-chase, tag plays, throw/run timing estimates. | high |
 | `fielder_orientation.c` | `rep_FE0` | 2 (2) | 1,324 | Orientation + `animateDefence`. | high |
 | `offence_animation.c` | `rep_1090` | 1 (1) | 900 | `animateOffence`. | high |

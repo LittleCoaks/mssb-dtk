@@ -63,17 +63,17 @@ priority.)
 | `src/menus/rep_0788.c` | 150/150 | 0% | 0.6% |
 | `src/menus/rep_0B08.c` | 131/132 | 1% | 1.3% |
 | `src/game/minigame/rep_3880.c` | 119/123 | 3% | 0.7% |
-| `src/game/fielding/fielder_catch.c` | 61/223 | 73% | 0.4% |
+| `src/game/fielding/fielder.c` | 61/223 | 73% | 0.4% |
 | `src/game/camera/camera.c` | 64/76 | 16% | **72.0%** |
 | `src/game/baserunning/runner.c` | 30/78 | 62% | 0.6% |
 | `src/game/fielding/fielder_ai.c` | 28/59 | 53% | 0.5% |
 
-**Notable anomaly:** `fielder_catch.c`, `runner.c`, and `fielder_ai.c` are
+**Notable anomaly:** `fielder.c`, `runner.c`, and `fielder_ai.c` are
 53–73% *named* (strong evidence of what each function does) but almost
 nothing in them is *matched* (0.4–0.6%). That combination — well-understood
 but essentially untouched — makes them the highest-leverage gameplay targets
 once tier 1 is cleared, even though individual functions there are large
-(`fielder_catch.c` is the repo's biggest single file at 223 functions).
+(`fielder.c` is the repo's biggest single file at 223 functions).
 `camera.c` is the interesting exception: already 72% matched despite only
 16% naming, so it's mid-stream, not untouched.
 
@@ -83,7 +83,7 @@ once tier 1 is cleared, even though individual functions there are large
    `hardware.c`, `synthdata.c`, `s_data.c`) — cheap, closes whole files.
 2. Sweep the small named quick-wins (`yd_step.c`, `hw_volconv.c`,
    `OSExec.c`).
-3. Start deliberately on `fielder_catch.c`/`runner.c`/`fielder_ai.c` —
+3. Start deliberately on `fielder.c`/`runner.c`/`fielder_ai.c` —
    biggest gameplay payoff, but budget real time per function.
 4. Run `/label-symbols` on the placeholder-heavy files only after their
    functions get matched (per that command's own precondition).

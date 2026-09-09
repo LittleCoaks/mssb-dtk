@@ -1765,7 +1765,7 @@ void fn_3_1527C(int arg) {
 
 // .text:0x00015220 size:0x5C mapped:0x806542B4
 void fn_3_15220(int arg) {
-    if (g_FieldingLogic._13F != 0) {
+    if (g_FieldingLogic.bodyCheckResult2 != 0) {
         if (arg == 0) {
             g_pCamera->_ABA = 1;
         } else if (g_pCamera->_A82 == 0) {
@@ -1826,13 +1826,13 @@ void fn_3_14FC8(void) {
 
 // .text:0x00014F68 size:0x60 mapped:0x80653FFC
 void fn_3_14F68(void) {
-    if (g_FieldingLogic._133 != 2) {
+    if (g_FieldingLogic.bigPlayPotential != 2) {
         return;
     }
     if (g_pCamera->_AC4 != 0) {
         return;
     }
-    g_pCamera->_AC4 = g_FieldingLogic._114;
+    g_pCamera->_AC4 = g_FieldingLogic.fielderActionBeingProcessed;
     g_pCamera->_A9A = g_Ball.fielderWBallIndex;
     g_pCamera->_A98 = g_Stats.playFrameCounter;
 }
@@ -1860,7 +1860,7 @@ void fn_3_14EC0(void) {
 
 // .text:0x00014E84 size:0x3C mapped:0x80653F18
 void fn_3_14E84(void) {
-    if (g_FieldingLogic._133 == 2 && g_pCamera->_AA4 == 0) {
+    if (g_FieldingLogic.bigPlayPotential == 2 && g_pCamera->_AA4 == 0) {
         g_pCamera->_AA4 = g_Stats.playFrameCounter;
     }
 }
