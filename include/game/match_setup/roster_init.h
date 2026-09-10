@@ -7,7 +7,7 @@ void fn_3_6D6D4(void);
 void initializeInMemRunner(void);
 void setInMemBatterConstants(int rosterID);
 void getThrowSpeedBasedOnArmStrengthStat(void);
-void setFielderValues(void);
+void setFielderValues(int characterID, int fielderIndex);
 void setPitcherStatsToInMemPitcher(void);
 void initRosterForMatch(void);
 

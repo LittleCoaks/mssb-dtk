@@ -67,8 +67,8 @@ void fn_3_9B74(void) {
 }
 
 // .text:0x00009CE0 size:0x138 mapped:0x80648D74
-void ballDistCalculator(void) {
-    return;
+f32 ballDistCalculator(f32 x, f32 z) {
+    return 0.0f;
 }
 
 // .text:0x00009E18 size:0x6C mapped:0x80648EAC

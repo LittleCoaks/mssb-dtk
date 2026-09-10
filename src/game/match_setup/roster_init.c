@@ -94,7 +94,7 @@ void getThrowSpeedBasedOnArmStrengthStat(void) {
 }
 
 // .text:0x0006E24C size:0x968 mapped:0x806AD2E0
-void setFielderValues(void) {
+void setFielderValues(int characterID, int fielderIndex) {
     return;
 }
 

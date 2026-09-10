@@ -16,7 +16,7 @@ void fairOrFoulBall(void);
 void processLandedBallBouncing(void);
 void processBallInAir_Landed(void);
 void fn_3_9B74(void);
-void ballDistCalculator(void);
+f32 ballDistCalculator(f32 x, f32 z);
 void fn_3_9E18(void);
 void relatedToGroundRuleDouble(void);
 void fn_3_9FA4(void);

@@ -19,7 +19,7 @@ void fielderOnFirePosAndVelo(int fielderIndex);
 void maybeCastleFireballBurn(int fielderIndex, int fireballType);
 int fn_3_258D8(int fielderIndex);
 void runningCatch_updatePositionAndVelocity(int fielderIndex);
-void mag_BirdoSlidingCatchSetCoordinates(void);
+void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex);
 void fielderMovement_VelocityDuringCatchAnimations(void);
 void calculateBobble(int fielderIndex);
 void updateVariablesPostCatch(void);
