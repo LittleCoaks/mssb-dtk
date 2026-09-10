@@ -902,3 +902,24 @@ target's register reuse exactly.
 Rule: if a target shows `lfs`/`stfs` for a struct copy, never use
 whole-struct assignment for it, regardless of how much cleaner the
 aggregate assignment reads.
+
+## An "empty block the compiler eliminated" is almost always a misread branch
+
+First seen: `game/game/fielding/fielder` (2026-09, sessions 30-31).
+
+If the target emits real compare/branch instructions where your source has an empty or
+apparently-dead conditional, do not conclude the compiler folded an empty `if` away.
+**Resolve every branch destination before calling a block dead.** A forward branch that
+skips a large region means the block is a live GUARD and the skipped region is its BODY.
+
+Worked example: `autoMovement15_selectedFielderOnLooseBall`. Session 30 recorded seven
+instructions at `0003B504`-`0003B51C` as "an empty-bodied `ballState` check that MWCC
+eliminates but the target emits anyway", and wrote `if (...) {}` in the source, leaving a
+32 B gap on that premise. Session 31 resolved the actual destinations: both `beq`s jump
+forward to `0003B5F4`, skipping 53 instructions / 212 bytes. It was a real guard whose body
+was the entire following dispatch. Rewritten as
+`if (ballState != BALL_STATE_HIT && ballState != BALL_STATE_LOOSE) { ... }` it went
+91.9% -> 98.97%, then to 99.82% at exact size once the guard polarity was also fixed.
+
+The misdiagnosis survived a full session and cost one. Treat any apparently-empty
+conditional as a red flag to re-check, not as a curiosity to note and move past.
