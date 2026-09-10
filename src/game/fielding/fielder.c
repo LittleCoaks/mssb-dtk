@@ -981,11 +981,11 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         return 0;
     }
 
-    if (g_Ball.AtBat_ContactResult == 1) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED) {
         if (getDifferenceInAngle(fielder->playerAngleFromHome, fielder->runningAngle) > 0x500) {
             return 0;
         }
-    } else if (g_Ball.AtBat_ContactResult == 0) {
+    } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         if (getDifferenceInAngle(fielder->playerAngleFromHome, fielder->runningAngle) > 0x500) {
             return 0;
         }
@@ -1101,7 +1101,7 @@ int checkIfCatchOccurs(int fielderIndex) {
         dirZ = lbl_3_rodata_B24 * (dirZ / speed);
     }
 
-    if (g_Ball.ballState == 3 || g_Ball.hitWallInd != 0 || fielderIndex == 1) {
+    if (g_Ball.ballState == BALL_STATE_LOOSE || g_Ball.hitWallInd != 0 || fielderIndex == 1) {
         canAttempt = 0;
     }
 
@@ -1302,7 +1302,7 @@ void evaluateFlyBallCatch(int fielderIndex) {
         return;
     }
 
-    if (g_Ball.AtBat_ContactResult != 0) {
+    if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_IN_AIR) {
         return;
     }
 
@@ -1830,10 +1830,10 @@ void setClamberPos(int fielderIndex) {
         return;
     }
 
-    if (g_FieldingLogic.fielderInputs & 0x8) {
+    if (g_FieldingLogic.fielderInputs & INPUT_BUTTON_UP) {
         status = 1;
         height = height + fielderActionConstants[25];
-    } else if (g_FieldingLogic.fielderInputs & 0x4) {
+    } else if (g_FieldingLogic.fielderInputs & INPUT_BUTTON_DOWN) {
         status = 2;
         height = height - fielderActionConstants[25];
     } else {
@@ -1862,10 +1862,10 @@ void setClamberPos(int fielderIndex) {
     return;
 
 horizontal:
-    if (g_FieldingLogic.fielderInputs & 0x2) {
+    if (g_FieldingLogic.fielderInputs & INPUT_BUTTON_RIGHT) {
         angle = fielder->wjAngleRelated - fielderActionConstants[26];
         nextStatus = 3;
-    } else if (g_FieldingLogic.fielderInputs & 0x1) {
+    } else if (g_FieldingLogic.fielderInputs & INPUT_BUTTON_LEFT) {
         angle = fielder->wjAngleRelated + fielderActionConstants[26];
         nextStatus = 4;
     } else {
@@ -2191,9 +2191,9 @@ void fielding_prePitchAutomovement(void) {
                     if (fielder->currentVelocity > fielder->joggingSpeed) {
                         fielder->currentVelocity = fielder->joggingSpeed;
                     }
-                } else if (((i == 3 && g_Batter.batterHand == 0) ||
-                            (i == 5 && g_Batter.batterHand != 0)) &&
-                           g_Runners[1].runnerOnFieldOrOutOrScored != 0 &&
+                } else if (((i == 3 && g_Batter.batterHand == BATTING_HAND_RIGHT) ||
+                            (i == 5 && g_Batter.batterHand != BATTING_HAND_RIGHT)) &&
+                           g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
                            g_Runners[1].furthestBaseForcedToGoToOnWalk != 0) {
                     fielder->currentVelocity += fielder->runningAccelerationFactor;
                     if (fielder->currentVelocity > fielder->joggingSpeed) {
@@ -5071,7 +5071,7 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
             prior->unknown_writeOnly_always0 = 0;
             prior->timeSinceThrowWasCaught = 0;
             prior->fielderTrackingBallState = 0;
-        } else if (g_Ball.ballState != 0) {
+        } else if (g_Ball.ballState != BALL_STATE_HIT) {
             prior = &g_Fielders[priorSelectedFielder];
             if (priorSelectedFielder != -1) {
                 prior->autoMovementFunctionIndex = 12;
@@ -5135,7 +5135,7 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
 void HandleMiddleInfieldSelection(void) {
     int newFielder;
 
-    if (g_Ball.AtBat_ContactResult == 0) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         int selectedFielder = g_FieldingLogic.selectedFielder;
         if (selectedFielder == 3 || selectedFielder == 5) {
             InMemFielder* selFielder = &g_Fielders[selectedFielder];
@@ -5151,7 +5151,7 @@ void HandleMiddleInfieldSelection(void) {
         f32 z;
 
         if ((g_Fielders[3].nonCatchFlyBallStratInd == 0 || g_Fielders[5].nonCatchFlyBallStratInd == 0) &&
-            g_Ball.AtBat_ContactResult == 0) {
+            g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
             z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         } else {
@@ -5377,8 +5377,8 @@ tail:
         f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.x;
         f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.z;
 
-        if (g_Ball.ballVelocity < lbl_3_rodata_BBC || g_Ball.ballState == 3) {
-            if (g_Ball.ballVelocity < lbl_3_rodata_B24 && g_Ball.ballState == 0 &&
+        if (g_Ball.ballVelocity < lbl_3_rodata_BBC || g_Ball.ballState == BALL_STATE_LOOSE) {
+            if (g_Ball.ballVelocity < lbl_3_rodata_B24 && g_Ball.ballState == BALL_STATE_HIT &&
                 g_Ball.ballZoneAwayFromHome <= 1 && fielder->distanceFromHomePlate > g_Ball.ballDistanceFromHome &&
                 fielder->groundDistanceFromBall < lbl_3_rodata_B64) {
                 InMemFielder* secFielder = &g_Fielders[g_FieldingLogic.secondaryFielder];
@@ -5412,7 +5412,7 @@ tail:
     }
 
 ballLoose:
-    if (g_Ball.AtBat_ContactResult != 1 && g_Ball.AtBat_ContactResult != -1 && g_Ball.ballState != 3) {
+    if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_LANDED && g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_FOUL && g_Ball.ballState != BALL_STATE_LOOSE) {
         return;
     }
     if (g_Ball.ballVelocity >= lbl_3_rodata_B74) {
@@ -5478,7 +5478,7 @@ void updateInAirFielderSelection(void) {
     {
         s16 hist = fielderControlStick_continuousAngleHistory[0];
 
-        if (hist < 0 || (g_FieldingLogic.fielderInputs & 0x200) == 0) {
+        if (hist < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
             f64 thresh5 = (f64)lbl_3_data_484C[5] - lbl_3_rodata_B50;
             f64 thresh6;
             f64 thresh7;
@@ -5725,7 +5725,7 @@ void updateFielderSelection(void) {
     }
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] == 0) {
-        if (g_FieldingLogic.fielderInputs & 0x40) {
+        if (g_FieldingLogic.fielderInputs & INPUT_TRIGGER_L) {
             return;
         }
     }
@@ -5944,7 +5944,7 @@ void fn_3_3AAF8(int fielderIndex) {
         return;
     }
 
-    if (g_FieldingLogic.fielderInputsLatestFrame & 0x200) {
+    if (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_B) {
         dash->framesSinceLastDashInput = 0;
     }
 
@@ -6014,7 +6014,7 @@ void updateFielderMovementIfNoBall(int fielderIndex) {
         }
         if (framesSinceHit < lbl_3_data_484C[1]) {
             if (fielderControlStick_continuousAngleHistory[0] < 0 ||
-                (g_FieldingLogic.fielderInputs & 0x200) == 0) {
+                (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
                 if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE ||
                     g_Practice.instructionNumber < 0 ||
                     g_Practice.practice_fielding_enableSprinting == 0) {
@@ -6079,7 +6079,7 @@ void fn_3_3B764(void) {
         return;
     }
 
-    if (g_Ball.AtBat_ContactResult == 0) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         if (fielder->distanceFromLandingSpot < lbl_3_rodata_B64) {
             g_Ball.fielderAboutToGetBall_hasBall = g_FieldingLogic.selectedFielder;
         } else {
@@ -6486,7 +6486,7 @@ int fn_3_3CB8C(int fielderIndex) {
         return 0;
     }
 
-    if (g_Ball.AtBat_ContactResult == 0) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         if (g_Ball.landingSpotZoneAwayFromHome < 1 || fielderIndex < 6) {
             goto fail;
         }
@@ -6539,7 +6539,7 @@ void autoMovement12_stopBetweenInstructions(int fielderIndex) {
         fielder->IntendedLocation.x = fielder->pos.x;
         fielder->IntendedLocation.z = fielder->pos.z;
 
-        if (g_Ball.ballState == 0) {
+        if (g_Ball.ballState == BALL_STATE_HIT) {
             if (fielderIndex == 6) {
                 if (g_Ball.ballAngleFromHome < 0x400 || g_Ball.ballAngleFromHome >= 0xc00) {
                     goto skip;
@@ -7000,7 +7000,7 @@ void knockoutRelated(void) {
     g_FieldingLogic.cutoffFielderIndex = -1;
     g_FieldingLogic.interceptThrowFielder = -1;
 
-    if (g_Ball.AtBat_ContactResult == 0 && g_Ball.hangtimeOfHit > 45) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hangtimeOfHit > 45) {
         knockoutRelated_FlyBall();
     } else {
         knockoutRelated_Grounder_Liner();
@@ -8058,7 +8058,7 @@ void fn_3_42BD0(int fielderIndex) {
     if (fielderIndex < 6) {
         return;
     }
-    if (g_Ball.ballState != 0) {
+    if (g_Ball.ballState != BALL_STATE_HIT) {
         return;
     }
 
@@ -8335,7 +8335,7 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
             if (g_Ball.fielderWBallIndex >= 0) {
                 return;
             }
-            if (g_Ball.ballState == 0 && g_Ball.ballZoneAwayFromHome >= 2) {
+            if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome >= 2) {
                 flag = 1;
             }
         }
@@ -8490,7 +8490,7 @@ s32 fn_3_46688(f32* outX, f32* outZ) {
     } else if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
         *outX = g_Fielders[g_Ball.fielderAboutToGetBall_hasBall].pos.x;
         *outZ = g_Fielders[g_Ball.fielderAboutToGetBall_hasBall].pos.z;
-    } else if (g_Ball.AtBat_ContactResult == 0) {
+    } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         *outX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
         *outZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
     } else {
@@ -8598,14 +8598,14 @@ int setCutoffLocationToStandAt(int fielderIndex, f32* outX, f32* outZ) {
         if (g_Ball.fielderWBallIndex >= 0) {
             x = g_Ball.AtBat_Contact_BallPos.x;
             z = g_Ball.AtBat_Contact_BallPos.z;
-        } else if (g_Ball.ballState == 2) {
+        } else if (g_Ball.ballState == BALL_STATE_THROWN) {
             x = g_Ball.throwStartingLocation.x;
             z = g_Ball.deadballLastLoc.x;
         } else if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
             int otherIdx = g_Ball.fielderAboutToGetBall_hasBall;
             x = g_Fielders[otherIdx].pos.x;
             z = g_Fielders[otherIdx].pos.z;
-        } else if (g_Ball.AtBat_ContactResult == 0) {
+        } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
             z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         } else {
@@ -9948,7 +9948,7 @@ void updateSomeAutoMovementAssignments(void) {
             }
         }
 
-        if (g_Ball.ballState == 0 && g_Ball.ballZoneAwayFromHome <= 1) {
+        if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome <= 1) {
             return;
         }
 
@@ -12466,10 +12466,10 @@ void updateOutfielderPositionBasedOnBallState(void) {
         goto setFromFutureCoord;
     }
 
-    if (g_Ball.ballState == 3) {
+    if (g_Ball.ballState == BALL_STATE_LOOSE) {
         goto setFromFutureCoord;
     }
-    if (g_Ball.ballState != 0) {
+    if (g_Ball.ballState != BALL_STATE_HIT) {
         goto checkIntercept;
     }
     if (g_Ball.hitWallInd != 0) {
@@ -12513,7 +12513,7 @@ void processFielderJumpAI(int fielderIndex) {
     if (g_FieldingLogic.jumpDiveStruct->aiFieldingDashIndicator[0] == 0) {
         return;
     }
-    if (g_Ball.ballState != 0) {
+    if (g_Ball.ballState != BALL_STATE_HIT) {
         return;
     }
     if (g_Ball.framesSinceHit < fielder->lockoutDuration + 3) {
@@ -12522,7 +12522,7 @@ void processFielderJumpAI(int fielderIndex) {
 
     g_FieldingLogic.jumpDiveStruct->aiOutfieldFielderAction = 0;
 
-    if (g_Ball.AtBat_ContactResult == 0 && g_Ball.maxYOfHit > lbl_3_rodata_B64) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.maxYOfHit > lbl_3_rodata_B64) {
         if (g_Ball.framesUntilBallHitsGround >= slidingCatchArray[0]) {
             return;
         }
@@ -12601,7 +12601,7 @@ void aITeamFielding_SelectCharWithHand(void) {
         return;
     }
 
-    if (g_Ball.ballState == 2) {
+    if (g_Ball.ballState == BALL_STATE_THROWN) {
         g_FieldingLogic.selectedFielder = g_Ball.fielderBeingThrownTo;
         return;
     }
@@ -13025,7 +13025,7 @@ void fielding_setStartingCoordinates(int fielderIndex, f32* outX, f32* outZ) {
     if (fielderIndex <= 5) {
         int holdIndex;
 
-        if (g_Runners[1].runnerOnFieldOrOutOrScored != 0 &&
+        if (g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
             g_Runners[1].furthestBaseForcedToGoToOnWalk != 0 &&
             g_Ball.pitchHangtimeCounter > 0 &&
             g_Pitcher.framesUntilUnhittable < 15) {
@@ -13053,20 +13053,20 @@ void fielding_setStartingCoordinates(int fielderIndex, f32* outX, f32* outZ) {
             }
         }
 
-        if ((fielderIndex == 2 && g_Runners[1].runnerOnFieldOrOutOrScored == 1) ||
-            (fielderIndex == 4 && g_Runners[3].runnerOnFieldOrOutOrScored == 1)) {
+        if ((fielderIndex == 2 && g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) ||
+            (fielderIndex == 4 && g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD)) {
             holdIndex = holdRunnersSlot;
         }
 
-        if (g_Runners[2].runnerOnFieldOrOutOrScored == 1) {
+        if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
             if (fielderIndex == 3) {
-                if (g_Batter.batterHand == 0) {
+                if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
                     g_FieldingLogic.whosHoldingOnRunnerAt2nd = 0;
                     holdIndex = holdRunnersSlot;
                 }
             }
             if (fielderIndex == 5) {
-                if (g_Batter.batterHand == 1) {
+                if (g_Batter.batterHand == BATTING_HAND_LEFT) {
                     g_FieldingLogic.whosHoldingOnRunnerAt2nd = 1;
                     holdIndex = holdRunnersSlot;
                 }

@@ -2833,8 +2833,8 @@ typedef struct {
     /*0x0145*/ u8 smashThrow_framesDirectionHeld;
     /*0x0146*/ u8 FrameCycleCounter_20;
     /*0x0147*/ u8 _0147;
-    /*0x0148*/ u16 fielderInputs;
-    /*0x014a*/ u16 fielderInputsLatestFrame;
+    /*0x0148*/ E(u16, INPUT_BUTTON) fielderInputs;
+    /*0x014a*/ E(u16, INPUT_BUTTON) fielderInputsLatestFrame;
     /*0x014c*/ s16 unused_fielderControls0x8;
     /*0x014e*/ u8 _014e;
     /*0x014f*/ u8 _014f;

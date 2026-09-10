@@ -271,7 +271,10 @@ typedef enum _STADIUM_ID {
 } STADIUM_ID;
 
 #ifndef __cplusplus
-typedef u8 bool;
+// `bool` itself is typedef'd in types.h. Prefer BOOL (int) for locals,
+// parameters and returns: a u8 flag forces a clrlwi truncation at each use
+// that the original does not emit. For a struct field, use the width the
+// target's load/store actually implies, spelled E(<width>, BOOL).
 #define true TRUE
 #define false FALSE
 #endif
