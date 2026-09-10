@@ -562,8 +562,98 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
 }
 
 // .text:0x000261E8 size:0x47C mapped:0x8066527C
-void fielderMovement_VelocityDuringCatchAnimations(void) {
-    return;
+void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    VecXYZ scratch;
+    int collided;
+    s16 catchCountDown = fielder->catchAnimationFramesCountDown;
+
+    if (fielder->catchAnimation == 4) {
+        if (fielder->wallJumpFramesTillTopOfWallContact != 0) {
+            f32 divisor = (f32)fielder->wallJumpFramesTillTopOfWallContact;
+
+            fielder->fielderVelocityDuringAction.x = (fielder->wallActionLocationX - fielder->pos.x) / divisor;
+            fielder->fielderVelocityDuringAction.z = (fielder->wallactionLocationZ - fielder->pos.z) / divisor;
+            fielder->wallActionCurrentHeight += (fielder->wallActionLocationY - fielder->wallActionCurrentHeight) / divisor;
+
+            fielder->wallJumpFramesTillTopOfWallContact--;
+            if (fielder->wallJumpFramesTillTopOfWallContact == 0) {
+                playCharacterSound(fielder->CharID, 0);
+            }
+        } else {
+            f32 divisor = (f32)catchCountDown;
+
+            fielder->fielderVelocityDuringAction.x = (fielder->wallJumpApexX - fielder->pos.x) / divisor;
+            fielder->fielderVelocityDuringAction.z = (fielder->wallJumpApexZ - fielder->pos.z) / divisor;
+            fielder->jumpVelocity.y = (fielder->wallJumpApexY - fielder->wallActionCurrentHeight) / divisor;
+            fielder->wallActionCurrentHeight += fielder->jumpVelocity.y;
+        }
+    } else if (fielder->catchAnimationFramesCountUp <= 1) {
+        fielder->fielderVelocityDuringAction.x = lbl_3_rodata_B20;
+        fielder->fielderVelocityDuringAction.y = lbl_3_rodata_B20;
+        fielder->fielderVelocityDuringAction.z = lbl_3_rodata_B20;
+
+        if (fielder->catchAnimation == 3 || fielder->catchAnimation == 7 || fielder->catchAnimation == 8) {
+            if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
+                                   FIELDING_ABILITY_MAGICAL_CATCH) &&
+                fielder->catchAnimation == 3 && fielder->autoCatch0_noCatchAnimationOnly1 == 0) {
+                fielder->fielderVelocityDuringAction.x = lbl_3_rodata_B20;
+                fielder->fielderVelocityDuringAction.z = lbl_3_rodata_B20;
+            }
+        }
+
+        {
+            f32 divisor2;
+
+            scratch.x = fielder->actionStartingCoordinate.x - fielder->pos.x;
+            scratch.z = fielder->actionStartingCoordinate.z - fielder->pos.z;
+            divisor2 = (f32)fielder->catchAnimationFramesCountDown;
+            fielder->fielderVelocityDuringAction.x = scratch.x / divisor2;
+            divisor2 = (f32)fielder->catchAnimationFramesCountDown;
+            fielder->fielderVelocityDuringAction.z = scratch.z / divisor2;
+        }
+
+        if (fielder->catchAnimation == 7 || fielder->catchAnimation == 8) {
+            fielder->runningCatchCountDown = (u8)specialFielderActionConstants._00[21];
+        }
+    }
+
+    if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
+                           FIELDING_ABILITY_MAGICAL_CATCH) ||
+        fielder->suctionCatchInd != 0) {
+        if (fielder->autoCatch0_noCatchAnimationOnly1 == 0) {
+            mag_BirdoSlidingCatchSetCoordinates(fielderIndex);
+        }
+    } else {
+        fielder->pos.x += fielder->fielderVelocityDuringAction.x;
+        fielder->pos.y += fielder->fielderVelocityDuringAction.y;
+        fielder->pos.z += fielder->fielderVelocityDuringAction.z;
+        fielder->velocityX = fielder->fielderVelocityDuringAction.x;
+        fielder->velocityZ = fielder->fielderVelocityDuringAction.z;
+        fielder->currentVelocity = fielderSqrt(fielder->velocityX * fielder->velocityX +
+                                                fielder->velocityZ * fielder->velocityZ);
+    }
+
+    collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
+    if (collided == 1) {
+        fielder->autoCatch0_noCatchAnimationOnly1 = 1;
+        g_Ball.catchAnimationTotalFrames = 0;
+    }
+    if (collided != 0) {
+        fielder->pos.x = fielder->posXLastFrame;
+        fielder->pos.z = fielder->posZLastFrame;
+        fielder->currentVelocity = lbl_3_rodata_B20;
+        fielder->velocityX = lbl_3_rodata_B20;
+        fielder->velocityZ = lbl_3_rodata_B20;
+    }
+
+    if (fielder->currentVelocity > lbl_3_rodata_B20) {
+        fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
+        fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
+    } else {
+        fielder->zMovementDir = lbl_3_rodata_B20;
+        fielder->xMovementDir = lbl_3_rodata_B20;
+    }
 }
 
 // .text:0x00026664 size:0x410 mapped:0x806656F8
@@ -4413,7 +4503,7 @@ void selectClosestFielderBasedOnFutureCoord(int frame) {
 
         if (dist < lbl_3_rodata_B64 && f->onFire == 0 && dist < bestDist) {
             if (f->knockoutStatus != 0) {
-                f32 knockOutTimeDiff = (f64)f->knockOutCountDown - lbl_3_rodata_B50;
+                f32 knockOutTimeDiff = (f32)f->knockOutCountDown;
                 f32 adjustedDist = lbl_3_rodata_B7C * knockOutTimeDiff + dist;
                 if (adjustedDist > bestDist) {
                     goto nextFielder;
@@ -5479,17 +5569,17 @@ void updateInAirFielderSelection(void) {
         s16 hist = fielderControlStick_continuousAngleHistory[0];
 
         if (hist < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
-            f64 thresh5 = (f64)lbl_3_data_484C[5] - lbl_3_rodata_B50;
-            f64 thresh6;
-            f64 thresh7;
-            f64 x;
+            f32 thresh5 = (f32)lbl_3_data_484C[5];
+            f32 thresh6;
+            f32 thresh7;
+            f32 x;
 
             if (g_Ball.ballDistanceFromHome < thresh5) {
                 return;
             }
-            thresh6 = (f64)lbl_3_data_484C[6] - lbl_3_rodata_B50;
-            thresh7 = (f64)lbl_3_data_484C[7] - lbl_3_rodata_B50;
-            x = (f64)g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - thresh6;
+            thresh6 = (f32)lbl_3_data_484C[6];
+            thresh7 = (f32)lbl_3_data_484C[7];
+            x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - thresh6;
             if (x > thresh7) {
                 x = thresh7;
             }
@@ -5909,8 +5999,184 @@ void setFielderVelocity_someSituation(int fielderIndex) {
 }
 
 // .text:0x0003A584 size:0x574 mapped:0x80679618
-void moveFielder_CheckForAndSetJump(void) {
-    return;
+void moveFielder_CheckForAndSetJump(int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    int minigameIdx;
+    int hasSuperJump;
+    int jumpAnimIdx;
+    int frames3;
+    int apexDiv;
+    int collided;
+    VecXYZ scratch;
+    BOOL performedJump;
+    BOOL needDashReset;
+    f32 velo;
+    s16 movementAngle;
+
+    needDashReset = FALSE;
+
+    minigameIdx = fielderIndex;
+    if (g_d_GameSettings.minigamesEnabled) {
+        if (fielderIndex == 0) {
+            minigameIdx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+        } else {
+            minigameIdx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
+        }
+    }
+
+    if (fielder->catchAnimation != 0) {
+        fielderMovement_VelocityDuringCatchAnimations(fielderIndex);
+        fielder->someCountdownAndCountUpRelatedToStandingStill = 0;
+        goto end;
+    }
+
+    movementAngle = fielder->movementAngle;
+
+    performedJump = FALSE;
+    if (g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake != 0 &&
+        fielder->jumpDiveStateRelated == 0) {
+        hasSuperJump = fielder->hasSuperJump;
+        fielder->isJump = 1;
+        fielder->jumpY = lbl_3_rodata_B20;
+
+        jumpAnimIdx = fielderIndex;
+        if (g_d_GameSettings.minigamesEnabled) {
+            if (fielderIndex == 0) {
+                jumpAnimIdx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            } else {
+                jumpAnimIdx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
+            }
+        }
+
+        fielder->jumpVelocity.y = jumpArray[hasSuperJump][0];
+        fielder->jumpVelocity.x = fielder->xMovementDir * lbl_3_rodata_B24 * jumpArray[hasSuperJump][2];
+        frames3 = (int)jumpArray[hasSuperJump][3];
+        fielder->jumpVelocity.z = fielder->zMovementDir * lbl_3_rodata_B24 * jumpArray[hasSuperJump][2];
+        apexDiv = (int)(fielder->jumpVelocity.y / jumpArray[hasSuperJump][1]);
+        fielder->jumpApexFrame = apexDiv + 1;
+        fielder->jumpCountDown = apexDiv + apexDiv + frames3 + 2;
+        fielder->jumpCountUp = 0;
+
+        if (hasSuperJump != 0) {
+            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[jumpAnimIdx], 6);
+        }
+
+        g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
+        performedJump = TRUE;
+    }
+
+    if (!performedJump) {
+        if (g_FieldingLogic.dashPtr->sprintingState == 4 &&
+            g_FieldingLogic.dashPtr->dashingFielderIndex == fielderIndex) {
+            fielder->currentVelocity = g_FieldingLogic.dashPtr->sprintSpeedMultiplier * fielder->joggingSpeed;
+            fielder->velocityX = *(f32*)&g_FieldingLogic.dashPtr->const0 * fielder->currentVelocity;
+            fielder->velocityZ = *(f32*)&g_FieldingLogic.dashPtr->const_00 * fielder->currentVelocity;
+        } else {
+            if (movementAngle < 0) {
+                if (g_FieldingLogic.dashPtr->dashingFielderIndex == fielderIndex) {
+                    fielder->currentVelocity =
+                        g_FieldingLogic.dashPtr->sprintSpeedMultiplier * fielder->joggingSpeed;
+                    if (fielder->someCountdownAndCountUpRelatedToStandingStill < 0x7ffe) {
+                        fielder->someCountdownAndCountUpRelatedToStandingStill++;
+                    } else {
+                        fielder->someCountdownAndCountUpRelatedToStandingStill = 0x7fff;
+                    }
+                } else {
+                    if (fielder->someCountDown2 != 0) {
+                        fielder->currentVelocity = fielder->lastFrameVelocityUpToBase;
+                    } else {
+                        fielder->currentVelocity = lbl_3_rodata_B20;
+                    }
+
+                    if (fielder->currentVelocity <= lbl_3_rodata_B20) {
+                        fielder->standingStillInd = 1;
+                        goto end;
+                    }
+                }
+            } else {
+                if (fielder->someCountdownAndCountUpRelatedToStandingStill < 0x7ffe) {
+                    fielder->someCountdownAndCountUpRelatedToStandingStill++;
+                } else {
+                    fielder->someCountdownAndCountUpRelatedToStandingStill = 0x7fff;
+                }
+
+                if (g_Ball.fielderWBallIndex == fielderIndex &&
+                    fielder->someCountdownAndCountUpRelatedToStandingStill <=
+                        specialFielderActionConstants._00[0]) {
+                    fielder->currentVelocity = lbl_3_rodata_B20;
+                    fielder->standingStillInd = 1;
+                } else {
+                    fielder->desiredMovementDirection2 = shortAngleToRad_Capped(movementAngle);
+
+                    if (fielder->standingStillInd == 4 || fielder->standingStillInd == 1) {
+                        fielder->desiredMovementDirectionFPrev1 = fielder->desiredMovementDirection2;
+                        fielder->desiredMovementDirectionFPrev2 = fielder->desiredMovementDirection2;
+                        fielder->desiredMovementDirectionFPrev3 = fielder->desiredMovementDirection2;
+                        fielder->desiredMovementDirectionFPrev4 = fielder->desiredMovementDirection2;
+                        fielder->desiredMovementDirectionFPrev5 = fielder->desiredMovementDirection2;
+                    }
+
+                    setFielderVelocity_someSituation(fielderIndex);
+                    fielder->standingStillInd = 0;
+                    fielder->_01E4 = 0;
+                }
+
+                if (fielder->currentVelocity <= lbl_3_rodata_B20) {
+                    goto end;
+                }
+            }
+
+            velo = fielder->currentVelocity;
+            if (g_Ball.fielderWBallIndex == fielderIndex) {
+                if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
+                                       FIELDING_ABILITY_BALL_DASH)) {
+                    velo = velo * ballDashEffect_1_5;
+                    ((u8*)((void**)(hugeAnimStruct + 0x2c50))[minigameIdx])[0x27A] = 1;
+                    if (fielder->framesSinceStartedMoving == 1) {
+                        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[minigameIdx], 0xb);
+                    }
+                }
+            }
+
+            fielder->velocityX = velo * (f32)cos(fielder->desiredMovementDirection2);
+            fielder->velocityZ = velo * (f32)sin(fielder->desiredMovementDirection2);
+        }
+
+        collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
+        if (collided == 1) {
+            needDashReset = TRUE;
+            fielder->currentVelocity = lbl_3_rodata_B20;
+            fielder->velocityX = lbl_3_rodata_B20;
+            fielder->velocityZ = lbl_3_rodata_B20;
+        } else if (collided == 2) {
+            if (scratch.x > lbl_3_rodata_B18) {
+                fielder->currentVelocity = lbl_3_rodata_B20;
+            } else if (scratch.x < lbl_3_rodata_B1C) {
+                fielder->currentVelocity = lbl_3_rodata_B20;
+            } else {
+                fielder->velocityX = lbl_3_rodata_B20;
+                fielder->velocityZ = lbl_3_rodata_B20;
+                fielder->pos.x = scratch.x;
+                fielder->pos.z = scratch.z;
+            }
+            needDashReset = TRUE;
+        } else {
+            fielder->pos.x += fielder->velocityX;
+            fielder->pos.z += fielder->velocityZ;
+        }
+
+        if (needDashReset) {
+            g_FieldingLogic.dashPtr->sprintLengthInFrames = 0;
+            g_FieldingLogic.dashPtr->chargeLevel = 0;
+            g_FieldingLogic.dashPtr->dashingFielderIndex = -1;
+            g_FieldingLogic.dashPtr->numberOfDashInputs = 0;
+        }
+    }
+
+end:
+    fielder->IntendedLocation.x = fielder->pos.x;
+    fielder->IntendedLocation.z = fielder->pos.z;
+    fielder->unused_jumpActiveOrRunningCatchRelated = 1;
 }
 
 // .text:0x0003AAF8 size:0xF8 mapped:0x80679B8C
@@ -11047,7 +11313,7 @@ int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
         *outZ = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
         fielder->aiDistToStandFromWallCollision = 0;
     } else {
-        f32 diff = (f64)fielder->_0188 - lbl_3_rodata_B50;
+        f32 diff = (f32)fielder->_0188;
         f32 t = lbl_3_rodata_B60 / diff;
         *outX = fielder->maybeTargetPosX + dx * t;
         *outZ = fielder->maybeTargetPosZ + dz * t;
@@ -11507,8 +11773,239 @@ int fRunningTimeToDestinationPlus7(int fielderIndex, f32 x, f32 z) {
 }
 
 // .text:0x000526DC size:0x870 mapped:0x80691770
-void setFielderVelocity(void) {
-    return;
+void setFielderVelocity(int fielderIndex) {
+    extern const f32 lbl_3_rodata_B84;
+    extern const f32 lbl_3_rodata_B6C;
+    extern const f32 lbl_3_rodata_C8C;
+    extern const f32 lbl_3_rodata_C90;
+    extern const f32 lbl_3_rodata_C94;
+    extern const f32 lbl_3_rodata_C98;
+    extern const f32 lbl_3_rodata_C9C;
+    extern const f32 lbl_3_rodata_C20;
+
+    InMemFielder* fielder;
+    int fielderOffset;
+    VecXYZ scratch;
+    int collided;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    BOOL takeElseBranch;
+
+    fielderOffset = fielderIndex * sizeof(InMemFielder);
+    fielder = (InMemFielder*)((u8*)g_Fielders + fielderOffset);
+
+    if (fielder->animatingActionInd) {
+        fielder->standingStillInd = TRUE;
+        return;
+    }
+
+    if (fielder->relatedToStandingStill) {
+        fielder->standingStillInd = TRUE;
+        return;
+    }
+
+    if (fielder->catchAnimation) {
+        fielderMovement_VelocityDuringCatchAnimations(fielderIndex);
+        fielder->someCountdownAndCountUpRelatedToStandingStill = 0;
+        return;
+    }
+
+    if (fielder->distanceFromAutoLocation > lbl_3_rodata_B20) {
+        s16 angle1 = radToShortAngle(fielder->desiredMovementDirection2);
+        s16 angle2 = radToShortAngle(fielder->desiredMovementDirectionFPrev1);
+        getDifferenceInAngle(angle1, angle2);
+
+        takeElseBranch = TRUE;
+
+        if (!(g_d_GameSettings.minigamesEnabled && fielder->AI_Ind)) {
+            if (fielder->AI_Ind != 0 &&
+                (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
+                 fielder->autoMovementFunctionIndex == 0x12) &&
+                (fielder->maybeMovementState == 4 || fielder->maybeMovementState == 5)) {
+                fielder->standingStillInd = FALSE;
+                takeElseBranch = FALSE;
+                goto switchSection;
+            }
+
+            if (fielderIndex == g_Ball.fielderWBallIndex && g_FieldingLogic.runnerChasingAfter >= 0 &&
+                (g_FieldingLogic.tagAnimationType == 2 || g_FieldingLogic.tagAnimationType == 3 ||
+                 g_FieldingLogic.tagAnimationType == 4) &&
+                g_FieldingLogic.tagResult_1out_2safe == 1) {
+                InMemRunnerType* runner;
+
+                fielder->standingStillInd = FALSE;
+
+                runner = &g_Runners[g_FieldingLogic.runnerChasingAfter];
+                dx = runner->position.x - fielder->pos.x;
+                dz = runner->position.z - fielder->pos.z;
+                dist = fielderSqrt(dx * dx + dz * dz);
+
+                if (g_FieldingLogic.tagAnimationType == 4) {
+                    f32 velo = (dist - lbl_3_rodata_B84) * lbl_3_rodata_B80;
+                    if (g_FieldingLogic.framesRunnerIsOutBy > 0) {
+                        velo /= (f32)g_FieldingLogic.framesRunnerIsOutBy;
+                    }
+                    fielder->currentVelocity = velo;
+                } else {
+                    f32 velo = dist;
+                    if (velo < lbl_3_rodata_B20) {
+                        velo = lbl_3_rodata_B20;
+                    }
+                    if (g_FieldingLogic.framesRunnerIsOutBy > 0) {
+                        velo /= (f32)g_FieldingLogic.framesRunnerIsOutBy;
+                    }
+                    fielder->currentVelocity = velo;
+                }
+                goto afterSwitch;
+            }
+        }
+
+        if (takeElseBranch) {
+            if (g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 0xb &&
+                fielder->fielderVeloAdjustmentCode >= 1 && fielder->fielderVeloAdjustmentCode <= 9) {
+                if (fielder->currentVelocity < lbl_3_rodata_B48) {
+                    fielder->standingStillInd = FALSE;
+                    fielder->_01E4 = FALSE;
+                    fielder->someCountdownAndCountUpRelatedToStandingStill = 0;
+                } else {
+                    if (fielder->someCountdownAndCountUpRelatedToStandingStill > 0x2d) {
+                        fielder->someCountdownAndCountUpRelatedToStandingStill = 0x2d;
+                    }
+                    if (fielder->someCountdownAndCountUpRelatedToStandingStill != 0) {
+                        fielder->someCountdownAndCountUpRelatedToStandingStill--;
+                    }
+                }
+            } else {
+                fielder->standingStillInd = FALSE;
+                fielder->_01E4 = FALSE;
+                if (fielder->someCountdownAndCountUpRelatedToStandingStill < 0x7ffe) {
+                    fielder->someCountdownAndCountUpRelatedToStandingStill++;
+                } else {
+                    fielder->someCountdownAndCountUpRelatedToStandingStill = 0x7fff;
+                }
+            }
+        }
+    } else {
+        fielder->standingStillInd = TRUE;
+        if (fielder->someCountdownAndCountUpRelatedToStandingStill > 0x2d) {
+            fielder->someCountdownAndCountUpRelatedToStandingStill = 0x2d;
+        }
+        if (fielder->someCountdownAndCountUpRelatedToStandingStill != 0) {
+            fielder->someCountdownAndCountUpRelatedToStandingStill--;
+        }
+    }
+
+switchSection:
+    if (fielder->fielderVeloAdjustmentCode <= 13) {
+        switch (fielder->fielderVeloAdjustmentCode) {
+        case 0:
+            setFielderVelocity_someSituation(fielderIndex);
+            break;
+        case 1:
+        case 5:
+            fielder->currentVelocity -= lbl_3_rodata_C8C;
+            break;
+        case 2:
+        case 6:
+            fielder->currentVelocity -= lbl_3_rodata_C90;
+            break;
+        case 3:
+        case 7:
+            fielder->currentVelocity -= lbl_3_rodata_C94;
+            break;
+        case 4:
+        case 8:
+            fielder->currentVelocity -= lbl_3_rodata_C98;
+            break;
+        case 9:
+            fielder->currentVelocity = lbl_3_rodata_B20;
+            break;
+        case 10:
+            fielder->currentVelocity = lbl_3_rodata_B6C;
+            break;
+        case 11:
+            fielder->currentVelocity = lbl_3_rodata_B24;
+            break;
+        case 12:
+            fielder->currentVelocity = lbl_3_rodata_C20;
+            break;
+        case 13:
+            fielder->currentVelocity = lbl_3_rodata_B74;
+            break;
+        }
+    }
+
+afterSwitch:
+    if (fielder->fielderVeloAdjustmentCode >= 1 && fielder->fielderVeloAdjustmentCode < 5) {
+        if (fielder->currentVelocity < lbl_3_rodata_C20) {
+            fielder->currentVelocity = lbl_3_rodata_C20;
+        }
+    }
+    if (fielder->currentVelocity <= lbl_3_rodata_B20) {
+        fielder->currentVelocity = lbl_3_rodata_B20;
+    }
+    fielder->distanceFromAutoLocation -= fielder->currentVelocity;
+
+    dx = fielder->pos.x - fielder->IntendedLocation.x;
+    dz = fielder->pos.z - fielder->IntendedLocation.z;
+    dist = fielderSqrt(dx * dx + dz * dz);
+
+    if (dist < fielder->currentVelocity) {
+        fielder->distanceFromAutoLocation = lbl_3_rodata_C9C;
+    }
+
+    if (fielder->currentVelocity > lbl_3_rodata_B20) {
+        if (fielder->distanceFromAutoLocation < lbl_3_rodata_B20) {
+            fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
+
+            fielder->velocityX = fielder->IntendedLocation.x - fielder->pos.x;
+            fielder->velocityZ = fielder->IntendedLocation.z - fielder->pos.z;
+
+            collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
+            if (collided == 0) {
+                if (fielder->fielderVeloAdjustmentCode >= 1 && fielder->fielderVeloAdjustmentCode <= 8) {
+                    fielder->IntendedLocation.x = fielder->pos.x;
+                    fielder->IntendedLocation.z = fielder->pos.z;
+                } else {
+                    fielder->pos.x = fielder->IntendedLocation.x;
+                    fielder->pos.z = fielder->IntendedLocation.z;
+                }
+            }
+
+            g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
+            g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
+            g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
+            g_Fielders[fielderIndex].velocityX = lbl_3_rodata_B20;
+            g_Fielders[fielderIndex].velocityZ = lbl_3_rodata_B20;
+            g_Fielders[fielderIndex].currentVelocity = lbl_3_rodata_B20;
+            g_Fielders[fielderIndex].distanceFromAutoLocation = lbl_3_rodata_B20;
+        } else {
+            fielder->velocityX = fielder->currentVelocity * cos(fielder->desiredMovementDirection2);
+            fielder->velocityZ = fielder->currentVelocity * sin(fielder->desiredMovementDirection2);
+
+            collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
+            if (collided != 0) {
+                g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
+                g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
+                g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
+                g_Fielders[fielderIndex].velocityX = lbl_3_rodata_B20;
+                g_Fielders[fielderIndex].velocityZ = lbl_3_rodata_B20;
+                g_Fielders[fielderIndex].currentVelocity = lbl_3_rodata_B20;
+                g_Fielders[fielderIndex].distanceFromAutoLocation = lbl_3_rodata_B20;
+            } else {
+                fielder->pos.x += fielder->velocityX;
+                fielder->pos.z += fielder->velocityZ;
+                fielder->desiredMovementDirection2 =
+                    atan2(fielder->IntendedLocation.z - fielder->pos.z, fielder->IntendedLocation.x - fielder->pos.x);
+            }
+        }
+    }
+
+    if (fielder->currentVelocity == lbl_3_rodata_B20 && !fielder->_01E4) {
+        fielder->standingStillInd = TRUE;
+    }
+    fielder->unused_jumpActiveOrRunningCatchRelated = TRUE;
 }
 
 // .text:0x00052F4C size:0x1A0 mapped:0x80691FE0
