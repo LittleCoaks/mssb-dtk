@@ -179,7 +179,7 @@ void fn_3_49EA8(int fielderIndex);
 void updateFielderValuesSubFunction3_empty(void);
 void autoMovementDetermineWhatToDo(int fielderIndex, int arg1);
 void setInitialFielderMovements_restOfFielders(void);
-void setIntendedLocationAheadOfBallPath(void);
+void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ);
 void autoMovement13_GoTowardsBallAsBackUp(int fielderIndex);
 void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex);
 void autoMovement7_8_outfiederNoCatch_Phase1(int fielderIndex);

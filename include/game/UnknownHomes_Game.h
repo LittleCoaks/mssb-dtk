@@ -2318,10 +2318,7 @@ typedef struct _MiniGameStruct {
     /*0x1CAC*/ u8 _1CAC;
     /*0x1CAD*/ u8 _1CAD[4];
     /*0x1CB1*/ u8 _1CB1[7];
-    /*0x1CB8*/ f32 _1CB8;
-    /*0x1CBC*/ f32 _1CBC;
-    /*0x1CC0*/ f32 _1CC0;
-    /*0x1CC4*/ u8 _1CC4[36];
+    /*0x1CB8*/ VecXYZ starDashCollisionPushDelta[4];
     /*0x1CE8*/ VecXYZ _1CE8;
     /*0x1CF4*/ VecXYZ _1CF4;
     /*0x1D00*/ u8 _1D00[4];

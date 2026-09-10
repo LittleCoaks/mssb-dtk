@@ -28,6 +28,7 @@ extern const f32 lbl_3_rodata_B80;
 extern const f32 lbl_3_rodata_B70;
 extern const f32 lbl_3_rodata_B68;
 extern const f32 lbl_3_rodata_B78;
+extern const f32 lbl_3_rodata_C6C;
 extern const f32 lbl_3_rodata_B48;
 extern const f32 lbl_3_rodata_C38;
 extern const f32 lbl_3_rodata_C48;
@@ -101,6 +102,7 @@ extern void foulBall(void);
 extern void setFielderValues(int characterID, int fielderIndex);
 extern void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex);
 extern void fielderKnockback(int fielderIndex);
+extern void minigame_transferPoints(int toTeam, int fromTeam);
 
 extern s16 chemThresholds[4];
 extern struct {
@@ -6475,52 +6477,52 @@ void autoMovement15_selectedFielderOnLooseBall(int fielderIndex) {
         return;
     }
 
-    switch (g_Ball.ballState) {
-    case BALL_STATE_HIT:
-    case BALL_STATE_LOOSE:
-        break;
-    }
-
-    if (fielder->locationResponsibleForCovering == 6) {
-        if (fielderIndex != -1) {
-            fielder->autoMovementFunctionIndex = 11;
-            if (autoMovementFunctions[11].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[11].code;
+    if (g_Ball.ballState != BALL_STATE_HIT && g_Ball.ballState != BALL_STATE_LOOSE) {
+        if (fielder->locationResponsibleForCovering == 6) {
+            if (fielderIndex != -1) {
+                fielder->autoMovementFunctionIndex = 11;
+                if (autoMovementFunctions[11].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[11].code;
+                }
+                fielder->unknown_writeOnly = 0;
+                fielder->fielderVeloAdjustmentCode = 0;
+                fielder->unknown_writeOnly_always0 = 0;
+                fielder->timeSinceThrowWasCaught = 0;
+                fielder->fielderTrackingBallState = 0;
             }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
-        }
-    } else {
-        if (fielderIndex != -1) {
-            fielder->autoMovementFunctionIndex = 12;
-            if (autoMovementFunctions[12].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[12].code;
+        } else {
+            if (fielderIndex != -1) {
+                fielder->autoMovementFunctionIndex = 12;
+                if (autoMovementFunctions[12].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[12].code;
+                }
+                fielder->unknown_writeOnly = 0;
+                fielder->fielderVeloAdjustmentCode = 0;
+                fielder->unknown_writeOnly_always0 = 0;
+                fielder->timeSinceThrowWasCaught = 0;
+                fielder->fielderTrackingBallState = 0;
             }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
         }
-    }
 
-    if (fielderIndex <= 5) {
-        fielder->unknown_writeOnly = 3;
-    } else {
-        fielder->unknown_writeOnly = 2;
+        if (fielderIndex <= 5) {
+            fielder->unknown_writeOnly = 3;
+        } else {
+            fielder->unknown_writeOnly = 2;
+        }
+
+        g_FieldingLogic.selectedFielder = -1;
     }
 
     loc = fielder->locationResponsibleForCovering;
-    g_FieldingLogic.selectedFielder = -1;
 
-    if (loc < 0 || loc > 3) {
+    if (loc < 0) {
+        return;
+    }
+    if (loc > 3) {
         return;
     }
 
-    if (fielder->distanceToBases[loc] <= lbl_3_rodata_B78) {
+    if (!(fielder->distanceToBases[loc] > lbl_3_rodata_B78)) {
         return;
     }
 
@@ -10115,8 +10117,117 @@ void setInitialFielderMovements_restOfFielders(void) {
 }
 
 // .text:0x0004A408 size:0x5A4 mapped:0x8068949C
-void setIntendedLocationAheadOfBallPath(void) {
-    return;
+void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    CoordAndDist* future;
+    int index;
+    f32 speed;
+
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+        f32* futureX;
+        f32* futureZ;
+        f32 fx, ex, ez;
+
+        fx = fielder->pos.x;
+        future = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30];
+        futureX = &future->pos.x;
+        ex = *futureX;
+        futureZ = &future->pos.z;
+        ez = *futureZ;
+
+        if (ex == fx && ez == fielder->pos.z) {
+            index = 1;
+        } else {
+            f32 dx = ex - fx;
+            f32 dz = ez - fielder->pos.z;
+            f32 dxSq = dx * dx;
+            f32 dzSq = dz * dz;
+            f32 dist = fielderSqrt(dxSq + dzSq);
+            speed = fielder->joggingSpeed;
+            if (speed == lbl_3_rodata_B20) {
+                speed = lbl_3_rodata_B60;
+            }
+            index = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
+        }
+
+        if (index < g_Ball.framesUntilBallHitsGround + 30) {
+            *outX = *futureX;
+            *outZ = *futureZ;
+        } else {
+            *outX = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 60].pos.x;
+            *outZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 60].pos.z;
+        }
+        return;
+    }
+
+    {
+        f32 dist = ballDistCalculator(fielder->pos.x, fielder->pos.z);
+
+        if (dist < lbl_3_rodata_B60) {
+            if (fielderIndex != -1) {
+                fielder->autoMovementFunctionIndex = 12;
+                if (autoMovementFunctions[12].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[12].code;
+                }
+                fielder->unknown_writeOnly = 0;
+                fielder->fielderVeloAdjustmentCode = 0;
+                fielder->unknown_writeOnly_always0 = 0;
+                fielder->timeSinceThrowWasCaught = 0;
+                fielder->fielderTrackingBallState = 0;
+            }
+            fielder->unknown_writeOnly = 3;
+            return;
+        }
+
+        if (fielderIndex >= 6) {
+            f32 vx = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
+            f32 vz = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
+            f32 vxSq = vx * vx;
+            f32 vzSq = vz * vz;
+            f32 mag = fielderSqrt(vxSq + vzSq);
+            f32 remaining = lbl_3_rodata_C00 - mag;
+
+            if (remaining > lbl_3_rodata_B20) {
+                f32 dxVel = g_Ball.ballVelocityPercent.x * remaining;
+                f32 dzVel = g_Ball.ballVelocityPercent.z * remaining;
+                *outX = dxVel + g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
+                *outZ = dzVel + g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
+                return;
+            }
+        }
+
+        {
+            f32 fx30 = fielder->pos.x;
+            f32 ex30, ez30;
+
+            future = &g_Ball.physicsSubstruct.futureCoordsAndDist[30];
+            ex30 = future->pos.x;
+            ez30 = future->pos.z;
+
+            if (ex30 == fx30 && ez30 == fielder->pos.z) {
+                index = 1;
+            } else {
+                f32 dx = ex30 - fx30;
+                f32 dz = ez30 - fielder->pos.z;
+                f32 dxSq = dx * dx;
+                f32 dzSq = dz * dz;
+                f32 dist = fielderSqrt(dxSq + dzSq);
+                speed = fielder->joggingSpeed;
+                if (speed == lbl_3_rodata_B20) {
+                    speed = lbl_3_rodata_B60;
+                }
+                index = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
+            }
+        }
+
+        if (index < 30) {
+            *outX = future->pos.x;
+            *outZ = future->pos.z;
+        } else {
+            *outX = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
+            *outZ = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
+        }
+    }
 }
 
 // .text:0x0004A9AC size:0x77C mapped:0x80689A40
@@ -11363,7 +11474,70 @@ void findClosestFieldersToLooseBallAndAssignToGoGetIt(void) {
 
 // .text:0x0004E638 size:0x58C mapped:0x8068D6CC
 void checkForAndHandleLooseBalls(void) {
-    return;
+    InMemFielder* fielder;
+    s16 fielderIndex;
+    f32 dist;
+    f32 throwDist;
+    f32 distBallToThrowStart;
+    int angleA;
+    int angleB;
+    int angleDiff;
+
+    fielderIndex = g_Ball.fielderBeingThrownTo;
+    fielder = &g_Fielders[fielderIndex];
+    if (fielderIndex < 0) {
+        return;
+    }
+
+    dist = fielderSqrt(SQ(g_Ball.throwStartingLocation.x - g_Ball.AtBat_Contact_BallPos.x) +
+                        SQ(g_Ball.throwStartingLocation.z - g_Ball.AtBat_Contact_BallPos.z));
+
+    if (!((g_Ball.framesSinceThrowStarted > 5 && fielder->distanceFromBall > fielder->distanceFromBallLastFrame) ||
+          (g_Ball.framesUntilThrowReachesDest < 1 && fielder->distanceFromBall > lbl_3_rodata_B78) ||
+          (g_Ball.ballVelocity < lbl_3_rodata_C6C && g_Ball.fielderWBallIndex < 0 &&
+           g_Ball.framesSinceThrowStarted > 60) ||
+          (dist > lbl_3_rodata_B68 + g_Ball.throwDistance))) {
+        if (g_Ball.throwHasLastedEstimatedNOfFrames == 0) {
+            return;
+        }
+    }
+
+    if (!(fielder->distanceFromBall > fielder->hitbox[0])) {
+        return;
+    }
+    if (fielder->catchAnimation != 0 && fielder->catchAnimationFramesCountDown > 0) {
+        return;
+    }
+
+    throwDist = fielderSqrt(SQ(g_Ball.throwTarget.x - g_Ball.throwStartingLocation.x) +
+                             SQ(g_Ball.throwTarget.z - g_Ball.throwStartingLocation.z));
+    distBallToThrowStart = fielderSqrt(SQ(g_Ball.throwStartingLocation.x - g_Ball.AtBat_Contact_BallPos.x) +
+                                        SQ(g_Ball.throwStartingLocation.z - g_Ball.AtBat_Contact_BallPos.z));
+
+    angleA = calculateAngleFromCoordinates(g_Ball.throwTarget.x - g_Ball.throwStartingLocation.x,
+                                            g_Ball.throwTarget.z - g_Ball.throwStartingLocation.z);
+    angleB = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - g_Ball.throwStartingLocation.x,
+                                            g_Ball.AtBat_Contact_BallPos.z - g_Ball.throwStartingLocation.z);
+    angleDiff = getDifferenceInAngle(angleA, angleB);
+
+    if (g_Ball.framesSinceThrowStarted > 5 &&
+        (lbl_3_rodata_B78 + throwDist < distBallToThrowStart ||
+         (throwDist < distBallToThrowStart && angleDiff < 0x20))) {
+        g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 1;
+        if (g_GameLogic.walkOffWinInd == 0) {
+            g_FieldingLogic.canEndPlayOnLooseBallInd = 1;
+        }
+    } else {
+        g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 2;
+        g_FieldingLogic.ballWontBeControlledByFielderAnytimeSoonInd = 1;
+    }
+
+    g_Ball.ballIsLooseInd_unused = 1;
+    g_Ball.ballState = BALL_STATE_LOOSE;
+    findClosestFieldersToLooseBallAndAssignToGoGetIt();
+    g_FieldingLogic.locationThrownTo = -1;
+    g_Ball.fielderBeingThrownTo = -1;
+    g_Ball.looseBall_5FrameCountdown = 5;
 }
 
 // .text:0x0004EBC4 size:0x404 mapped:0x8068DC58
@@ -12920,7 +13094,115 @@ void fielderMovementRelated(int fielderIndex) {
 
 // .text:0x00053F48 size:0x570 mapped:0x80692FDC
 void minigameFieldingRelated_collisions(void) {
-    return;
+    int i, j;
+    InMemFielder* outer;
+    InMemFielder* inner;
+    f32 dx, dz, dist;
+    f32 dxSq, dzSq;
+    f32 sumRadius;
+    f32 frac;
+    VecXZ collisionPoint;
+    f32 dx2, dz2, dist2;
+    f32 nx, nz;
+    int outerIdx, innerIdx, currentTeam;
+    int collided;
+    VecXYZ scratch;
+
+    for (i = 0; i < 8; i++) {
+        outer = &g_Fielders[i];
+        if (outer->rosterLocation < 0) {
+            continue;
+        }
+
+        for (j = i + 1; j < 9; j++) {
+            inner = &g_Fielders[j];
+            if (inner->rosterLocation < 0) {
+                continue;
+            }
+
+            dx = inner->pos.x - outer->pos.x;
+            dz = inner->pos.z - outer->pos.z;
+            dxSq = dx * dx;
+            dzSq = dz * dz;
+            dist = fielderSqrt(dxSq + dzSq);
+
+            sumRadius = lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight];
+            if (!(dist < sumRadius)) {
+                continue;
+            }
+            frac = lbl_3_data_476C[outer->Weight] / sumRadius;
+
+            dx = outer->pos.x;
+            dx = inner->pos.x - dx;
+            dz = outer->pos.z;
+            dz = inner->pos.z - dz;
+            collisionPoint.x = frac * dx + outer->pos.x;
+            collisionPoint.z = frac * dz + outer->pos.z;
+            dx2 = collisionPoint.x - outer->pos.x;
+            dz2 = collisionPoint.z - outer->pos.z;
+            dist2 = fielderSqrt(dx2 * dx2 + dz2 * dz2);
+            if (!(dist2 > lbl_3_rodata_B20)) {
+                continue;
+            }
+            nx = dx2 / dist2;
+            nz = dz2 / dist2;
+
+            if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
+                outerIdx = *((s8*)&g_Minigame + 0x18f2 + i);
+                innerIdx = *((s8*)&g_Minigame + 0x18f2 + j);
+                if (g_Minigame.starDashStunType[outerIdx] != 0) {
+                    continue;
+                }
+                if (g_Minigame.starDashStunType[innerIdx] != 0) {
+                    continue;
+                }
+                currentTeam = (s8)g_Minigame._1D6D;
+                if (outerIdx == currentTeam) {
+                    g_Minigame.starDashStunType[innerIdx] = 1;
+                    g_Minigame.starDashCollisionPushDelta[innerIdx].x = inner->pos.x - outer->pos.x;
+                    g_Minigame.starDashCollisionPushDelta[innerIdx].z = inner->pos.z - outer->pos.z;
+                    minigame_transferPoints(outerIdx, innerIdx);
+                    goto skipPush;
+                }
+                if (innerIdx == currentTeam) {
+                    g_Minigame.starDashStunType[outerIdx] = 1;
+                    g_Minigame.starDashCollisionPushDelta[outerIdx].x = outer->pos.x - inner->pos.x;
+                    g_Minigame.starDashCollisionPushDelta[outerIdx].z = outer->pos.z - inner->pos.z;
+                    minigame_transferPoints(innerIdx, outerIdx);
+                    goto skipPush;
+                }
+            }
+
+            if (outer->currentVelocity <= lbl_3_rodata_B20) {
+                inner->pos.x = nx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                               outer->pos.x;
+                inner->pos.z = nz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                               outer->pos.z;
+            } else if (inner->currentVelocity <= lbl_3_rodata_B20) {
+                outer->pos.x = inner->pos.x -
+                               nx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                outer->pos.z = inner->pos.z -
+                               nz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+            } else {
+                outer->pos.x = collisionPoint.x - nx * lbl_3_data_476C[outer->Weight];
+                outer->pos.z = collisionPoint.z - nz * lbl_3_data_476C[outer->Weight];
+                inner->pos.x = nx * lbl_3_data_476C[inner->Weight] + collisionPoint.x;
+                inner->pos.z = nz * lbl_3_data_476C[inner->Weight] + collisionPoint.z;
+            }
+
+        skipPush:
+            collided = updateFielderPosition_checkFielderCollision(i, &scratch);
+            if (collided != 0) {
+                outer->pos.x = outer->posXLastFrame;
+                outer->pos.z = outer->posZLastFrame;
+            }
+            collided = updateFielderPosition_checkFielderCollision(j, &scratch);
+            if (collided != 0) {
+                inner->pos.x = inner->posXLastFrame;
+                inner->pos.z = inner->posZLastFrame;
+            }
+        }
+    }
 }
 
 // .text:0x000544B8 size:0x448 mapped:0x8069354C

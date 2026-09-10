@@ -267,7 +267,7 @@ void fn_3_139F84(void) {
 }
 
 // .text:0x0013A048 size:0x64 mapped:0x807790DC
-void minigame_transferPoints(void) {
+void minigame_transferPoints(int toTeam, int fromTeam) {
     return;
 }
 

@@ -56,7 +56,7 @@ void fn_3_13974C(void);
 void fn_3_139808(void);
 void fn_3_139CA0(void);
 void fn_3_139F84(void);
-void minigame_transferPoints(void);
+void minigame_transferPoints(int toTeam, int fromTeam);
 void starDashRelated(void);
 void fn_3_13A724(void);
 void fn_3_13A89C(void);
