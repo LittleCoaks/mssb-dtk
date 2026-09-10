@@ -90,6 +90,42 @@ comment in `batter.c` is the model: it explains a real build-correctness
 constraint, not how a diff was achieved. Before reporting a task done,
 re-read your own diff for stray match-narrative comments and remove them.
 
+
+## Source readability
+
+Write decompiled code the way a person would have written it, not as
+transliterated disassembly. Two rules; both are checked when your diff is
+reviewed.
+
+**1. Use the defined enum or symbol wherever one exists.** The disassembly
+shows a literal, so writing the literal is the easy mistake -- check every
+numeric literal and bit mask you introduce against the headers first. A
+named constant compiles to the identical value, so this never costs match
+percentage and there is no matching argument for keeping the number.
+
+In this project: `include/game/UnknownHomes_Game.h` defines `INPUT_BUTTON`
+for controller bits (so `& 0x40` should be `& INPUT_TRIGGER_L`), and
+`src/game/batting/batter.c` is the model to copy. That header also declares
+~48 enum-typed fields through the `E(storage, enumType)` macro -- among them
+`ballState`/`BallStateE`, `AtBat_ContactResult`/`BALL_RESULT_TYPE`,
+`runnerOnFieldOrOutOrScored`/`RUNNER_STATUS`, `batterHand`/`BATTING_HAND`,
+`GameMode_MiniGame`/`MINI_GAME_ID`, `buntStatus`/`BUNT_STATUS` -- and a
+comparison against one of those fields should use the enumerator rather than
+the raw number. `E()` expands to just the storage type, so it is documentary
+only and costs nothing. If a field looks enum-shaped but has no enum yet,
+report that instead of inventing one.
+
+**2. Use `goto` only when there is no reasonable alternative.** It is
+permitted in this codebase but it is a last resort. Justify it either by the
+target's control flow being inexpressible any other way, or by it being
+plausible the original developers wrote a `goto` there. The established
+legitimate case is exit-block **threading**: the target reaches a single
+physical `return` block from two or more conditions, and every structured
+form emits duplicate exit blocks instead. Before you introduce a `goto`,
+try the structured alternatives -- `if`/`else`, an early return, a
+restructured guard -- and **report what each one measured**. If you cannot
+name a structured form you tried and what it scored, do not add the `goto`.
+
 ## File rename/reorganization tasks
 
 If asked to rename/move a file (typically by `match`, deciding a placeholder

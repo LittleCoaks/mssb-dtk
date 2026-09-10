@@ -95,6 +95,49 @@ real build-correctness constraint, not a note about how the diff was
 achieved. Check a worker's diff for stray match-narrative comments before
 accepting its result as done.
 
+
+## Source readability (enforce on every worker diff)
+
+Decompiled output should read like source a person wrote, not like
+transliterated disassembly. Two rules, both checkable in a worker's diff
+before you accept it.
+
+**1. Use the defined enum or symbol wherever one exists.** The disassembly
+shows a literal, so a worker drafting from asm will write the literal --
+that is the default failure mode, and it has produced a lot of raw numbers
+in already-matched code. Before accepting a diff, check every numeric
+literal and bit mask against the headers. Named constants compile to the
+identical value, so this is always codegen-neutral and there is never a
+matching reason to keep the literal.
+
+Concretely, in this project: `include/game/UnknownHomes_Game.h` defines
+`INPUT_BUTTON` (mapped onto the Dolphin SDK `PAD_*` values) for controller
+bits, so `& 0x40` should read `& INPUT_TRIGGER_L`; `src/game/batting/batter.c`
+is the model to copy. The same header declares ~48 enum-typed fields via the
+`E(storage, enumType)` macro -- `ballState`/`BallStateE`,
+`AtBat_ContactResult`/`BALL_RESULT_TYPE`, `runnerOnFieldOrOutOrScored`/
+`RUNNER_STATUS`, `batterHand`/`BATTING_HAND`, `GameMode_MiniGame`/
+`MINI_GAME_ID`, `buntStatus`/`BUNT_STATUS` and more -- and a comparison
+against one of those fields should use the enumerator, not the number.
+`E()` itself expands to just the storage type and is purely documentary, so
+retyping a field from `u16` to `E(u16, INPUT_BUTTON)` is also free. If a
+field is enum-shaped but has no enum yet, say so in the checkpoint rather
+than inventing one.
+
+**2. Use `goto` only when there is no reasonable alternative.** It is
+legitimate here, but it is a last resort, not a default tool. The bar: the
+target's control flow genuinely cannot be expressed another way, or the
+original developers plausibly wrote a `goto` themselves. The established
+legitimate case in this project is exit-block **threading** -- when the
+target reaches one physical `return` block from two or more different
+conditions, and every structured form emits duplicate exit blocks instead.
+That case is real and those `goto`s should stay. What is not acceptable is
+reaching for a `goto` before trying the structured forms, or leaving one in
+place when an `if`/`else`, an early return, or a restructured guard matches
+equally well. When a worker's diff adds a `goto`, require it to say which
+structured alternatives it measured and what they scored; if it did not try
+any, send it back.
+
 ## Checkpoint & resumability
 
 State lives on disk, not in conversation memory — a fresh spawn of this
