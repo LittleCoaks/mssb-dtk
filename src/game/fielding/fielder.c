@@ -2278,7 +2278,7 @@ int walljump_calculateJumpedOffWallPositionAndVelocity(int fielderIndex) {
 }
 
 // .text:0x0003061C size:0x29C mapped:0x8066F6B0
-void fn_3_3061C(void) {
+void moveFieldersFromDugoutToStartingPositions(void) {
     int i;
     f32 dx;
     f32 dz;
@@ -2542,18 +2542,18 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
         if (!minigamesEnabled || matchIdx < 4) {
             if (fielder->currentVelocity > lbl_3_rodata_B20) {
                 if (pauseControl[0x1d5] == 0) {
-                    fielder->desiredMovementDirection = (f32) atan2(fielder->velocityZ, fielder->velocityX);
+                    fielder->desiredMovementDirection = ATAN2F(fielder->velocityZ, fielder->velocityX);
                 }
             } else if (g_Pitcher.pitchTotalTimeCounter > 0 ||
                        g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD || i != 2 ||
                        minigamesEnabled) {
-                fielder->desiredMovementDirection = (f32) atan2(-fielder->pos.z, -fielder->pos.x);
+                fielder->desiredMovementDirection = ATAN2F(-fielder->pos.z, -fielder->pos.x);
             } else {
                 fielder->desiredMovementDirection = lbl_3_rodata_BC0;
             }
 
             if (fielder->velocityX != lbl_3_rodata_B20 || fielder->velocityZ != lbl_3_rodata_B20) {
-                fielder->desiredMovementDirection2 = (f32) atan2(fielder->velocityZ, fielder->velocityX);
+                fielder->desiredMovementDirection2 = ATAN2F(fielder->velocityZ, fielder->velocityX);
                 fielder->runningAngle = radToShortAngle(fielder->desiredMovementDirection2);
             } else {
                 fielder->desiredMovementDirection2 = lbl_3_rodata_B20;
@@ -10141,7 +10141,7 @@ void setInitialFielderMovements_cutoffs(void) {
                 fielder->currentVelocity = lbl_3_rodata_B20;
                 fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
             } else {
-                fielder->desiredMovementDirection2 = (f32) atan2(deltaZ, deltaX);
+                fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
                 fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
             }
             fielder->goingToAutoLocationInd = 1;
@@ -10156,7 +10156,7 @@ void setInitialFielderMovements_cutoffs(void) {
                 fielder->currentVelocity = lbl_3_rodata_B20;
                 fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
             } else {
-                fielder->desiredMovementDirection2 = (f32) atan2(deltaZ, deltaX);
+                fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
                 fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
             }
             fielder->goingToAutoLocationInd = 1;
@@ -10171,7 +10171,7 @@ void setInitialFielderMovements_cutoffs(void) {
                 fielder->currentVelocity = lbl_3_rodata_B20;
                 fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
             } else {
-                fielder->desiredMovementDirection2 = (f32) atan2(deltaZ, deltaX);
+                fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
                 fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
             }
             fielder->goingToAutoLocationInd = 1;
@@ -10186,7 +10186,7 @@ void setInitialFielderMovements_cutoffs(void) {
                 fielder->currentVelocity = lbl_3_rodata_B20;
                 fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
             } else {
-                fielder->desiredMovementDirection2 = (f32) atan2(deltaZ, deltaX);
+                fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
                 fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
             }
             fielder->goingToAutoLocationInd = 1;
@@ -10207,54 +10207,7 @@ void setInitialFielderMovements_cutoffs(void) {
 // .text:0x000480B8 size:0x314 mapped:0x8068714C
 void fn_3_480B8(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int i;
-    InMemRunnerType* runner = &g_Runners[3];
-    int baseToTarget = 4;
-
-    {
-        for (i = 3; i >= 0; runner--, i--) {
-            if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
-                continue;
-            }
-            if (lbl_3_rodata_C50 <= runner->fractionalBasesRan &&
-                runner->runningDirectionCode == 1 &&
-                runner->tagUpInd != TAG_UP_TYPE_TAGGED) {
-                continue;
-            }
-            {
-                InMemRunnerType* r = &g_Runners[i];
-                f32 fractionalBasesRan = r->fractionalBasesRan;
-
-                if (fractionalBasesRan >= lbl_3_rodata_B78) {
-                    baseToTarget = -1;
-                    break;
-                }
-                if (r->tagUpInd == TAG_UP_TYPE_TAGGED && r->percentTowardsNextBase >= lbl_3_rodata_C38) {
-                    baseToTarget = r->startingBase_baseAchieved;
-                    break;
-                }
-                if (fractionalBasesRan >= lbl_3_rodata_B68) {
-                    if (fractionalBasesRan >= lbl_3_rodata_C54) {
-                        if (g_Runners[i].runningDirectionCode == 1) {
-                            baseToTarget = -1;
-                            break;
-                        }
-                    }
-                    baseToTarget = 3;
-                    break;
-                } else {
-                    if (fractionalBasesRan >= lbl_3_rodata_C48) {
-                        if (g_Runners[i].runningDirectionCode == 1) {
-                            baseToTarget = 3;
-                            break;
-                        }
-                    }
-                    baseToTarget = 2;
-                    break;
-                }
-            }
-        }
-    }
+    int baseToTarget = fn_3_47628();
 
     if (baseToTarget != -1) {
         f32 x;
@@ -10273,7 +10226,7 @@ void fn_3_480B8(int fielderIndex) {
                     fielder->currentVelocity = lbl_3_rodata_B20;
                     fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
                 } else {
-                    fielder->desiredMovementDirection2 = (f32) atan2(deltaZ, deltaX);
+                    fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
                     fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
                 }
             }
@@ -10306,9 +10259,115 @@ void fn_3_483CC(int fielderIndex) {
     g_FieldingLogic.cutoffFielderIndex = -1;
 }
 
+extern void checkForBufferedThrow(void);
+
 // .text:0x00048480 size:0x5D4 mapped:0x80687514
 void autoMovement5(int fielderIndex) {
-    return;
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    int result;
+    int targetBase;
+    f32 z;
+    f32 x;
+    f32 dz;
+    f32 dx;
+
+    result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
+    switch (result) {
+    case 2:
+        return;
+    case 1:
+        break;
+    default:
+        if (g_FieldingLogic.locationThrownTo == 6) {
+            checkIfCutoffIsntAtThrowDestination(fielderIndex);
+            checkForBufferedThrow();
+        } else if (g_Strikes.outs < 3) {
+            targetBase = fn_3_47628();
+
+            if (targetBase != -1) {
+                fielder->baseCuttoffIsTargeting = targetBase;
+                if (setCutoffLocationToStandAt(fielderIndex, &x, &z) != 0) {
+                    fielder->IntendedLocation.x = x;
+                    fielder->IntendedLocation.z = z;
+                    dz = z - fielder->pos.z;
+                    dx = x - fielder->pos.x;
+                    if (lbl_3_rodata_B20 == dx && lbl_3_rodata_B20 == dz) {
+                        fielder->currentVelocity = lbl_3_rodata_B20;
+                        fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
+                    } else {
+                        fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
+                        fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
+                    }
+                    fielder->goingToAutoLocationInd = 1;
+                }
+            }
+            setFielderVelocity(fielderIndex);
+        }
+
+        if (lbl_3_rodata_B20 != fielder->currentVelocity) {
+            fielder->numFramesToGetToAutoLocation =
+                fielder->distanceFromAutoLocation / fielder->currentVelocity;
+        }
+        break;
+    }
+
+    if (g_Ball.ballState != BALL_STATE_HIT && g_FieldingLogic.locationThrownTo != 6 &&
+        g_Ball.ballZoneAwayFromHome <= 1) {
+        fielder->locationResponsibleForCovering = -1;
+        fielder->isResponsibleForCoveringALocation = 0;
+        if (fielderIndex != -1) {
+            fielder->autoMovementFunctionIndex = 12;
+            if (autoMovementFunctions[12].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[12].code;
+            }
+            fielder->unknown_writeOnly = 0;
+            fielder->fielderVeloAdjustmentCode = 0;
+            fielder->unknown_writeOnly_always0 = 0;
+            fielder->timeSinceThrowWasCaught = 0;
+            fielder->fielderTrackingBallState = 0;
+        }
+        g_FieldingLogic.cutoffFielderIndex = -1;
+    } else if (g_Ball.ballState == BALL_STATE_HELD &&
+               g_Fielders[g_Ball.fielderWBallIndex].distanceToBases[fielder->baseCuttoffIsTargeting] <
+                   lbl_3_rodata_B70 &&
+               g_FieldingLogic.locationThrownTo != 6) {
+        fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
+        fielder->isResponsibleForCoveringALocation = 2;
+        if (fielderIndex != -1) {
+            fielder->autoMovementFunctionIndex = 14;
+            if (autoMovementFunctions[14].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[14].code;
+            }
+            fielder->unknown_writeOnly = 0;
+            fielder->fielderVeloAdjustmentCode = 0;
+            fielder->unknown_writeOnly_always0 = 0;
+            fielder->timeSinceThrowWasCaught = 0;
+            fielder->fielderTrackingBallState = 0;
+        }
+        fielder->fielderVeloAdjustmentCode = 0;
+        g_FieldingLogic.cutoffFielderIndex = -1;
+        g_FieldingLogic.someFrameCounterFielderRelated = 90;
+    } else if (g_Ball.ballState == BALL_STATE_THROWN && g_FieldingLogic.locationThrownTo != 6) {
+        fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
+        fielder->isResponsibleForCoveringALocation = 2;
+        if (fielderIndex != -1) {
+            fielder->autoMovementFunctionIndex = 14;
+            if (autoMovementFunctions[14].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[14].code;
+            }
+            fielder->unknown_writeOnly = 0;
+            fielder->fielderVeloAdjustmentCode = 0;
+            fielder->unknown_writeOnly_always0 = 0;
+            fielder->timeSinceThrowWasCaught = 0;
+            fielder->fielderTrackingBallState = 0;
+        }
+        fielder->fielderVeloAdjustmentCode = 0;
+        g_FieldingLogic.cutoffFielderIndex = -1;
+    }
+
+    if (g_Ball.fielderBeingThrownTo == fielderIndex) {
+        checkForAndHandleLooseBalls();
+    }
 }
 
 // .text:0x00048A54 size:0xAA0 mapped:0x80687AE8
@@ -10354,7 +10413,7 @@ void secondaryOutfielderWhenToStopMoving(int fielderIndex) {
             fielder->currentVelocity = lbl_3_rodata_B20;
             fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
         } else {
-            fielder->desiredMovementDirection2 = (f32) atan2(deltaZ, deltaX);
+            fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
             fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
         }
 
