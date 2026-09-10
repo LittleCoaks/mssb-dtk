@@ -35,7 +35,7 @@ int uncalledattemptJumpingCatch(int fielderIndex);
 void checkForAndSetFielderWallActionsOrDives(void);
 int ballThrownToEmptyBaseCatchAttempt(int fielderIndex);
 int fn_3_2ACD8(int fielderIndex, int index);
-void catchThrownBallFun(void);
+int catchThrownBallFun(int fielderIndex);
 void fn_3_2B5C0(int fielderIndex);
 int checkIfRunningCatchOccurs(int fielderIndex);
 int checkIfCatchOccurs(int fielderIndex);
