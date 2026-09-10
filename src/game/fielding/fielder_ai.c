@@ -242,12 +242,12 @@ void knockBallLoose(void) {
 }
 
 // .text:0x000A96FC size:0x288 mapped:0x806E8790
-void fielderBodyCheck_setStatus_Pos_Velo(void) {
+void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex) {
     return;
 }
 
 // .text:0x000A9984 size:0x2F0 mapped:0x806E8A18
-void fielderKnockback(void) {
+void fielderKnockback(int fielderIndex) {
     return;
 }
 

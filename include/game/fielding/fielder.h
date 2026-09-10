@@ -43,11 +43,11 @@ void fn_3_2C238(int fielderIndex, int catchAnimation, int framesCountDown, int a
 void evaluateFlyBallCatch(int fielderIndex);
 void checkForCatchBallAction(void);
 void minigameDashUpdateFieldingVals(void);
-void unused_FUN_8066bf88(void);
+void unused_FUN_8066bf88(int fielderIndex);
 int determineBestFrameForFielder(int fielderIndex);
 void fn_3_2D308(int fielderIndex);
 void updateFielderPositionBasedOnBallState(int fielderIndex);
-void unused_FUN_8066c7fc(void);
+void unused_FUN_8066c7fc(int fielderIndex);
 void autoMovement28_minigameDashRelated3(int fielderIndex);
 void autoMovement27_minigameDashRelated2(int fielderIndex);
 void autoMovement26_minigameRelated1(int fielderIndex);
