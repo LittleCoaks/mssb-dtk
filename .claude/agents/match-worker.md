@@ -126,6 +126,36 @@ try the structured alternatives -- `if`/`else`, an early return, a
 restructured guard -- and **report what each one measured**. If you cannot
 name a structured form you tried and what it scored, do not add the `goto`.
 
+
+**3. Booleans: express the intent, but let the evidence set the width.** Two
+definitions already exist -- `BOOL` is `int` (`include/types.h:6`) and `bool`
+is `u8` (`include/types.h:8`, duplicated at `include/mssbTypes.h:274`).
+
+- **Never use bare `bool` in game code.** It is `u8`, and that is measurably
+  wrong for a local: on `calculateBobble`, `u8 modeFlag` scored 85.52% and ran
+  18 bytes long where `int modeFlag` scored 99.92%.
+- **Locals, parameters and returns: `BOOL`.** MWCC keeps locals in 32-bit
+  GPRs, so a narrow declaration forces a `clrlwi rD,rS,24` truncation at each
+  use that the target does not emit when the original was `int`.
+- **Struct fields: the width is a fact, not a choice.** Read it off the access
+  opcode -- `lbz`/`stb` is 1 byte, `lhz`/`sth`/`lha` is 2, `lwz`/`stw` is 4.
+  Guessing wrong shifts every later field offset and corrupts the whole
+  struct. To keep the intent visible without lying about the width, write
+  `E(u8, BOOL) someInd;` -- `E(storage, enumType)` expands to the storage type
+  alone, so it is documentary and free.
+- **Only call something a boolean on evidence that it holds 0/1.** An `Ind`
+  suffix is a hypothesis, not evidence, and this repo has three
+  counter-examples: `InMemFielder.always0_` is tested against 1 and 2,
+  `g_Ball.unknown_always0` is range-tested `>= 1 && <= 4`, and
+  `baseCurrentlyOn` was declared `u8` but uses -1 as a "no base" sentinel --
+  a real bug, since fixed to `s8`. If the values are not clearly 0/1, leave
+  the type alone and record what you saw in the checkpoint.
+- **The idiom matters independently of the type.** `flag = a == b;` and
+  `if (a==b) flag=1; else flag=0;` both compile to MWCC's branchless CLZ
+  sequence. Where the target uses its 5-instruction branch idiom, only
+  `flag = <default>; if (<cond>) flag = <other>;` reproduces it -- and the two
+  polarities of that form score differently, so measure both.
+
 ## File rename/reorganization tasks
 
 If asked to rename/move a file (typically by `match`, deciding a placeholder
