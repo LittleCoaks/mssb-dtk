@@ -3095,8 +3095,7 @@ typedef struct _InMemFielder {
     /*0x21B*/ u8 _021B;
     /*0x21C*/ VecXYZ actionStartingCoordinate;
     /*0x228*/ VecXYZ fielderVelocityDuringAction;
-    /*0x234*/ s16 actionEndingCoordinateX;
-    /*0x236*/ s16 _0236;
+    /*0x234*/ f32 actionEndingCoordinateX;
     /*0x238*/ f32 diveEndingCoordinateY;
     /*0x23C*/ f32 actionEndingCoordinateZ;
     /*0x240*/ f32 xDistToCatch;
