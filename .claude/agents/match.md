@@ -167,6 +167,18 @@ is `u8` (`include/types.h:8`, duplicated at `include/mssbTypes.h:274`).
   `flag = <default>; if (<cond>) flag = <other>;` reproduces it -- and the two
   polarities of that form score differently, so measure both.
 
+
+**Put an explicit git prohibition in every worker delegation that touches
+source.** Workers must never use `git checkout`, `git restore`,
+`git stash`, `git reset` or `git clean` to undo an edit -- the working tree
+holds many hours of uncommitted work, so reverting to the last commit
+discards finished functions unrelated to the task. A worker did exactly
+this and destroyed a completed 100% function, which then had to be rebuilt
+from that worker's own report. Require instead that a worker undo its own
+change with a targeted edit restoring the exact prior text, and that it
+**report the verbatim source of any function it completes** -- that report
+is the only backup of uncommitted work.
+
 ## Checkpoint & resumability
 
 State lives on disk, not in conversation memory — a fresh spawn of this

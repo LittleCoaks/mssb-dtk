@@ -225,3 +225,25 @@ success criteria, revert fully before reporting back — don't leave a
 partial or failed experiment in the working tree unless explicitly told to
 leave it for inspection. State clearly in your report that you reverted,
 and to what.
+
+**Never revert with git.** `git checkout`, `git restore`, `git stash`,
+`git reset` and `git clean` are all forbidden on source files. The working
+tree routinely holds many hours of *uncommitted* work from the current and
+prior sessions, and the last commit is not a safe fallback: a
+`git checkout -- <file>` discards everything since it, including finished,
+already-verified functions that have nothing to do with your task. This has
+happened for real -- a worker reverted one experimental edit that way and
+destroyed a completed 100% function, costing a full round trip to
+reconstruct.
+
+Revert the way you edited: undo your own change with a targeted Edit that
+restores the exact prior text. Keep that prior text to hand *before* you
+modify anything, so you can always put it back. If you cannot restore a
+file by editing, stop and say so in your report rather than reaching for
+git -- the caller can recover from a described problem, but not from
+discarded work.
+
+**Report the verbatim source of anything you complete.** When a function
+reaches its target state, include its final source in your report, not just
+its score. That report is the only backup of work that is not yet
+committed.
