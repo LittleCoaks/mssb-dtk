@@ -39,6 +39,7 @@ extern const f32 lbl_3_rodata_BA0;
 extern const f32 lbl_3_rodata_BD4;
 extern const f32 lbl_3_rodata_BDC;
 extern const f32 lbl_3_rodata_BA4;
+extern const f32 const50_0;
 extern const f32 const10000;
 extern const f32 lbl_3_rodata_BB4;
 extern const f32 lbl_3_rodata_BBC;
@@ -47,6 +48,7 @@ extern const f32 lbl_3_rodata_C84;
 extern const f32 lbl_3_rodata_C88;
 extern const f32 lbl_3_rodata_BF4;
 extern const f32 lbl_3_rodata_C28;
+extern const f32 lbl_3_rodata_C04;
 extern const f32 lbl_3_rodata_C58;
 extern const f32 lbl_3_rodata_C5C;
 extern const f32 lbl_3_rodata_C60;
@@ -65,6 +67,9 @@ extern const f32 lbl_3_rodata_BE4;
 extern const f32 lbl_3_rodata_BE8;
 extern const f32 lbl_3_rodata_BEC;
 extern const f32 lbl_3_rodata_BF0;
+extern const f32 lbl_3_rodata_BF8;
+extern const f32 lbl_3_rodata_C00;
+extern const f32 lbl_3_rodata_C0C;
 extern VecXZ base_MoundCoordinates[5];
 extern f32 thresholdToBeConsideredCoveringBase_ByWeight[5];
 extern VecXZ presetFielderLocations[11];
@@ -75,6 +80,7 @@ extern f32 lbl_3_data_476C[];
 extern f32 ballDashEffect_1_5;
 extern f32 lbl_3_data_46F4;
 extern f32 lbl_3_data_21A14[7];
+extern f32 lbl_3_data_4848;
 extern s16 lbl_3_data_484C[10];
 extern s16 lbl_3_data_48A4[3][5];
 extern s16 barrelCollisionHitboxes[54];
@@ -2300,9 +2306,73 @@ void fielderActionsOnSteal(void) {
     autoMovementDetermineWhatToDo(8, 4);
 }
 
+extern const u8 throwWindUpFrames[];
+
 // .text:0x00032090 size:0x314 mapped:0x80671124
 void stealSetFielders(void) {
-    return;
+    InMemFielder* fielder;
+    int i;
+    int angle;
+    u8 code;
+
+    fielder = g_Fielders;
+    for (i = 0; i < 9; i++) {
+        if (i == 1) {
+            fielder->angleOfFieldersStartingPosition = 0x400;
+        } else if (fielder->pos.x == lbl_3_rodata_B20) {
+            fielder->angleOfFieldersStartingPosition = 0x400;
+        } else {
+            angle = (int)(lbl_3_rodata_BC4 * ATAN2F(fielder->pos.z, fielder->pos.x) / const_pi);
+            if (angle < 0) {
+                angle += 0x800;
+            }
+            fielder->angleOfFieldersStartingPosition = angle;
+        }
+        fielder->distanceFromHomePlate = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+        fielder++;
+    }
+
+    fielderActionsOnSteal();
+
+    code = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
+
+    g_Ball.physicsSubstruct.velocity.x = lbl_3_rodata_B20;
+    g_Ball.physicsSubstruct.velocity.y = lbl_3_rodata_B20;
+    g_Ball.physicsSubstruct.velocity.z = lbl_3_rodata_B20;
+    g_Ball.physicsSubstruct.acceleration.x = lbl_3_rodata_B20;
+    g_Ball.physicsSubstruct.acceleration.y = lbl_3_rodata_B20;
+    g_Ball.physicsSubstruct.acceleration.z = lbl_3_rodata_B20;
+    g_Ball.ballState = BALL_STATE_HELD;
+    g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FIELDED;
+    g_Ball.fielderAboutToGetBall_hasBall = 0;
+    g_Ball.fielderBeingThrownTo = -1;
+    g_Ball.ballIsLooseInd_unused = 0;
+    g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 0;
+
+    if (code == 1 || code == 2) {
+        g_Ball.numberOfThrowsDuringPlay = 1;
+    }
+
+    if (g_Pitcher.pickOffLoc == 5) {
+        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[1].pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[1].pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[1].pos.z;
+        g_Ball.fielderWBallIndex = 1;
+    } else {
+        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[0].pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[0].pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[0].pos.z;
+        g_Ball.fielderWBallIndex = 0;
+        if (g_Pitcher.pickOffLoc >= 1 && g_Pitcher.pickOffLoc <= 3) {
+            g_FieldingLogic.locationThrownTo = g_Pitcher.pickOffLoc;
+        }
+    }
+
+    g_Fielders[0].throwWindUpFrames =
+        throwWindUpFrames[checkFieldingStat(g_GameLogic.teamFielding, g_Fielders[0].rosterLocation,
+                                             FIELDING_ABILITY_QUICK_THROW) *
+                               3 +
+                           2];
 }
 
 // .text:0x000323A4 size:0x450 mapped:0x80671438
@@ -3996,6 +4066,7 @@ void fn_3_3740C(void) {
     int diff;
     int newFielder;
     InMemFielder *f;
+    int i;
 
     maxDist = lbl_3_rodata_B20;
     minDiff = 0x1000;
@@ -4009,28 +4080,10 @@ void fn_3_3740C(void) {
     }
 
     f = &g_Fielders[0];
-    if (f->distanceFromHomePlate > maxDist) {
-        maxDist = f->distanceFromHomePlate;
-    }
-    f++;
-    if (f->distanceFromHomePlate > maxDist) {
-        maxDist = f->distanceFromHomePlate;
-    }
-    f++;
-    if (f->distanceFromHomePlate > maxDist) {
-        maxDist = f->distanceFromHomePlate;
-    }
-    f++;
-    if (f->distanceFromHomePlate > maxDist) {
-        maxDist = f->distanceFromHomePlate;
-    }
-    f++;
-    if (f->distanceFromHomePlate > maxDist) {
-        maxDist = f->distanceFromHomePlate;
-    }
-    f++;
-    if (f->distanceFromHomePlate > maxDist) {
-        maxDist = f->distanceFromHomePlate;
+    for (i = 0; i < 6; i++, f++) {
+        if (f->distanceFromHomePlate > maxDist) {
+            maxDist = f->distanceFromHomePlate;
+        }
     }
 
     if (lbl_3_rodata_B64 + maxDist >= g_Ball.ballDistanceFromHome) {
@@ -4040,36 +4093,49 @@ void fn_3_3740C(void) {
     ballAngle = g_Ball.ballAngleFromHome;
 
     f = &g_Fielders[6];
-    diff = ballAngle - f->playerAngleFromHome;
-    diff = (diff ^ (diff >> 31)) - (diff >> 31);
-    if (minDiff > diff) {
-        minDiff = diff;
-        newFielder = 6;
-    }
-
-    f++;
-    diff = ballAngle - f->playerAngleFromHome;
-    diff = (diff ^ (diff >> 31)) - (diff >> 31);
-    if (minDiff > diff) {
-        minDiff = diff;
-        newFielder = 7;
-    }
-
-    f++;
-    diff = ballAngle - f->playerAngleFromHome;
-    diff = (diff ^ (diff >> 31)) - (diff >> 31);
-    if (minDiff > diff) {
-        newFielder = 8;
+    for (i = 6; i < 9; i++, f++) {
+        diff = ballAngle - f->playerAngleFromHome;
+        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+        if (minDiff > diff) {
+            minDiff = diff;
+            newFielder = i;
+        }
     }
 
     g_Ball.ballAngleFromHome = ballAngle;
 
+    if (i < 0) {
+        return;
+    }
     setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
 }
 
 // .text:0x00037588 size:0x88 mapped:0x8067661C
 void unused_FUN_8067661c(void) {
+    s16 contactResult;
+
+    if (g_Ball.ballVelocity > lbl_3_rodata_BF8) {
+        int newFielder = fn_3_378B4();
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+        return;
+    }
+
+    contactResult = g_Ball.AtBat_ContactResult;
+    if (contactResult != 0) {
+        goto checkContactResult;
+    }
+    if (g_Ball.hitClassification1 == 0) {
+        goto checkContactResult;
+    }
+    selectClosestFielderBasedOnFutureCoord(g_Ball.framesUntilBallHitsGround);
     return;
+
+checkContactResult:
+    if (contactResult == 0) {
+        selectClosestFielderBasedOnFutureCoord(30);
+        return;
+    }
+    selectClosestFielderBasedOnFutureCoord(30);
 }
 
 // .text:0x00037610 size:0x2A4 mapped:0x806766A4
@@ -4451,12 +4517,173 @@ finalize:
 
 // .text:0x00038234 size:0xD0 mapped:0x806772C8
 void fn_3_38234(void) {
-    return;
+    u8 hitClassification2 = g_Ball.hitClassification2;
+
+    if (hitClassification2 <= 4 || hitClassification2 == 7) {
+        SelectOptimalFielder();
+        return;
+    }
+
+    if (g_Ball.maxYOfHit > lbl_3_rodata_BE4) {
+        selectAssignClosestFielder2();
+        return;
+    }
+
+    if (g_Ball.maxYOfHit < lbl_3_rodata_B8C) {
+        SelectOptimalFielder();
+        return;
+    }
+
+    if (g_Ball.someYCoord > lbl_3_rodata_B64) {
+        selectAssignClosestFielder2();
+        return;
+    }
+
+    if (g_Ball.ballDistanceFromHome < lbl_3_rodata_C00) {
+        s16 angle = fielderControlStick_continuousAngleHistory[0];
+        if (angle >= 0x900 && angle < 0xf00) {
+            selectAssignClosestFielder2();
+            return;
+        }
+        SelectOptimalFielder();
+        return;
+    }
+
+    selectAssignClosestFielder2();
 }
 
 // .text:0x00038304 size:0x48C mapped:0x80677398
 void selectAssignClosestFielder2(void) {
-    return;
+    s16 fielderIndex;
+    f32 rank1Dist;
+    f32 rank3Dist;
+    f32 rank2Dist;
+    f32 landingDist;
+    int isFarPlay;
+    int newFielder;
+
+    if ((fielderIndex = g_FieldingLogic.selectedFielder) >= 0 &&
+        g_Fielders[fielderIndex].distanceFromLandingSpot < lbl_3_rodata_B64) {
+        return;
+    }
+
+    landingDist = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
+    isFarPlay = 0;
+
+    if (landingDist > const50_0) {
+        if (fielderIndex >= 6) {
+            isFarPlay = 1;
+        } else if (g_Ball.ballDistanceFromHome - lbl_3_rodata_B64 > g_Fielders[2].distanceFromHomePlate &&
+                   g_Ball.ballDistanceFromHome - lbl_3_rodata_B64 > g_Fielders[3].distanceFromHomePlate &&
+                   g_Ball.ballDistanceFromHome - lbl_3_rodata_B64 > g_Fielders[4].distanceFromHomePlate &&
+                   g_Ball.ballDistanceFromHome - lbl_3_rodata_B64 > g_Fielders[5].distanceFromHomePlate) {
+            isFarPlay = 1;
+        }
+    }
+
+    if (landingDist > lbl_3_rodata_C04 || isFarPlay) {
+        int a, b;
+        f32 distA = g_Fielders[6].distanceFromLandingSpot;
+        f32 distB = g_Fielders[8].distanceFromLandingSpot;
+
+        if (distA < distB) {
+            f32 distC = g_Fielders[7].distanceFromLandingSpot;
+            if (distA < distC) {
+                a = 6;
+                b = 7;
+            } else {
+                a = 7;
+                b = 6;
+            }
+        } else {
+            f32 distC = g_Fielders[7].distanceFromLandingSpot;
+            if (distB < distC) {
+                a = 8;
+                b = 7;
+            } else {
+                a = 7;
+                b = 8;
+            }
+        }
+
+        if (g_Fielders[a].distanceFromLandingSpot + lbl_3_rodata_B9C < g_Fielders[b].distanceFromLandingSpot) {
+            newFielder = a;
+        } else {
+            newFielder = selectBestFielder(a, b, 0, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                            g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+        }
+    } else {
+        InMemFielder* f;
+        int i;
+        int rank3Index = -1;
+        int rank2Index = -1;
+        int rank1Index = -1;
+
+        rank1Dist = lbl_3_rodata_BA4;
+        rank3Dist = rank1Dist;
+        rank2Dist = rank1Dist;
+
+        for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
+            f32 dist = f->distanceFromLandingSpot;
+            if (rank1Dist > dist) {
+                rank3Dist = rank2Dist;
+                rank3Index = rank2Index;
+                rank2Dist = rank1Dist;
+                rank2Index = rank1Index;
+                rank1Dist = dist;
+                rank1Index = i;
+            } else if (rank2Dist > dist) {
+                rank3Dist = rank2Dist;
+                rank3Index = rank2Index;
+                rank2Dist = dist;
+                rank2Index = i;
+            } else if (rank3Dist > dist) {
+                rank3Dist = dist;
+                rank3Index = i;
+            }
+        }
+
+        if (landingDist > lbl_3_rodata_BD0) {
+            if (rank1Dist <= f8_0 && rank1Index == fielderIndex) {
+                newFielder = rank1Index;
+            } else if (rank2Dist - rank1Dist > lbl_3_rodata_B9C) {
+                newFielder = rank1Index;
+            } else if (rank3Dist - rank2Dist > lbl_3_rodata_B9C) {
+                newFielder = selectBestFielder(rank1Index, rank2Index, 0, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                                g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+            } else {
+                f32 ballX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+                f32 ballZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+                int result = selectBestFielder(rank2Index, rank3Index, 1, ballX, ballZ);
+                if (result != -1) {
+                    int result2;
+                    if (g_FieldingLogic.selectedFielder < 0) {
+                        result2 = selectBestFielder(rank1Index, result, 1, ballX, ballZ);
+                    } else {
+                        result2 = selectBestFielder(rank1Index, result, 0, ballX, ballZ);
+                    }
+                    rank1Index = result2;
+                }
+                newFielder = rank1Index;
+            }
+        } else {
+            f32 ballX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+            f32 ballZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+            int result = selectBestFielder(rank2Index, rank3Index, 1, ballX, ballZ);
+            if (result != -1) {
+                int result2;
+                if (g_FieldingLogic.selectedFielder < 0) {
+                    result2 = selectBestFielder(rank1Index, result, 1, ballX, ballZ);
+                } else {
+                    result2 = selectBestFielder(rank1Index, result, 0, ballX, ballZ);
+                }
+                rank1Index = result2;
+            }
+            newFielder = rank1Index;
+        }
+    }
+
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
 }
 
 // .text:0x00038790 size:0x580 mapped:0x80677824
@@ -4718,24 +4945,475 @@ dispatch:
     g_FieldingLogic.infielderSelectedOnPopFlyInd = 0;
 }
 
+extern const f32 lbl_3_rodata_C08;
+
 // .text:0x00038FF8 size:0x3B8 mapped:0x8067808C
 void fielderSelect_tertiaryFielderExists_determine2FieldersToKeep(void) {
-    return;
+    InMemFielder* fielder = &g_Fielders[g_FieldingLogic.selectedFielder];
+    f32 threshold = fielder->distanceFromHomePlate;
+    int n;
+    int winner;
+
+    for (n = 1; n < 61; n += 3) {
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > threshold) {
+            break;
+        }
+    }
+
+    if (g_FieldingLogic.selectedFielder == 1) {
+        goto trySecondaryPair;
+    }
+    if (n <= 1) {
+        goto noTertiary;
+    }
+
+    if (fielder->groundDistanceFromBall < lbl_3_rodata_C08) {
+        if (currentStickDirection >= 0) {
+            int angle = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
+                                                       g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
+            if (getDifferenceInAngle(currentStickDirection, angle) < 0x100) {
+                goto pickPrimary;
+            }
+        }
+
+        if (g_FieldingLogic.selectedFielder >= 2 && g_FieldingLogic.selectedFielder <= 5) {
+            if (g_Ball.hitClassification2 == 2 || g_Ball.hitClassification2 == 3) {
+                goto pickPrimary;
+            }
+        }
+    } else {
+        goto trySecondaryPair;
+    }
+
+trySecondaryPair:
+    if (g_Fielders[g_FieldingLogic.selectedFielder].nonCatchFlyBallStratInd == 0 ||
+        g_Fielders[g_FieldingLogic.secondaryFielder].nonCatchFlyBallStratInd == 0) {
+        winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 3,
+                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+    } else {
+        winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 3,
+                                    g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                                    g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
+    }
+
+    if (winner >= 0) {
+        if (winner == g_FieldingLogic.secondaryFielder) {
+            goto noTertiary;
+        }
+        if (winner == g_FieldingLogic.selectedFielder) {
+            goto pickPrimary;
+        }
+    }
+
+    if (g_Ball.framesSinceHit <= 90) {
+        return;
+    } else if (g_Ball.framesSinceBallHitGroundOrWasCaught >= 0) {
+        goto pickPrimary;
+    } else if (g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <=
+               g_Fielders[g_FieldingLogic.secondaryFielder].distanceFromLandingSpot) {
+        goto pickPrimary;
+    } else {
+        goto noTertiary;
+    }
+
+pickPrimary:
+    g_FieldingLogic.unkFlagMaybeInAir = 0;
+    if (g_FieldingLogic.selectedFielder == 0) {
+        return;
+    }
+    goto tailShift;
+
+noTertiary:
+    if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0 &&
+        (g_FieldingLogic.secondaryFielder == 3 || g_FieldingLogic.secondaryFielder == 5)) {
+        HandleMiddleInfieldSelection();
+        if (g_FieldingLogic.infielderSelectedOnPopFlyInd == 0) {
+            goto tailShift;
+        }
+        if (g_Ball.ballDistanceFromHome - lbl_3_rodata_B78 <= g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate) {
+            return;
+        }
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
+        goto tailShift;
+    }
+
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
+
+tailShift:
+    g_FieldingLogic.unkFlagMaybeInAir = 0;
+    g_FieldingLogic.secondaryFielder = g_FieldingLogic.tertiaryFielder;
+    g_FieldingLogic.tertiaryFielder = -1;
 }
+
+extern const f32 lbl_3_rodata_B74;
 
 // .text:0x000393B0 size:0x4A8 mapped:0x80678444
 void updateBallLandedFielderSelection(void) {
+    InMemFielder* fielder = &g_Fielders[g_FieldingLogic.selectedFielder];
+    int n;
+    int winner;
+
+    if (g_Ball.framesSinceHit >= 60) {
+        goto tail;
+    }
+
+    if (g_FieldingLogic.selectedFielder == 3) {
+        InMemFielder* other = &g_Fielders[2];
+        f32 threshold = other->distanceFromHomePlate;
+
+        for (n = 2; n < 30; n += 2) {
+            if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > threshold) {
+                break;
+            }
+        }
+
+        if (n < 30 && g_Ball.ballAngleFromHome > other->playerAngleFromHome &&
+            g_Ball.ballAngleFromHome < fielder->playerAngleFromHome &&
+            other->distanceFromHomePlate > lbl_3_rodata_B60 + g_Ball.ballDistanceFromHome) {
+            winner = selectBestFielder(2, 3, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                                        g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
+            if (winner == 2) {
+                setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(2, 0);
+                return;
+            }
+        }
+    } else if (g_FieldingLogic.selectedFielder == 5) {
+        InMemFielder* other = &g_Fielders[4];
+        f32 threshold = other->distanceFromHomePlate;
+
+        for (n = 2; n < 30; n += 2) {
+            if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > threshold) {
+                break;
+            }
+        }
+
+        if (n < 30 && g_Ball.ballAngleFromHome < other->playerAngleFromHome &&
+            g_Ball.ballAngleFromHome > fielder->playerAngleFromHome &&
+            other->distanceFromHomePlate > lbl_3_rodata_B60 + g_Ball.ballDistanceFromHome) {
+            winner = selectBestFielder(4, 5, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                                        g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
+            if (winner == 4) {
+                setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(4, 0);
+                return;
+            }
+        }
+    }
+
+tail:
+    if (g_FieldingLogic.secondaryFielder < 0) {
+        goto ballLoose;
+    }
+    if (g_FieldingLogic.selectedFielder > 5) {
+        return;
+    }
+    if (g_FieldingLogic.secondaryFielder < 6) {
+        return;
+    }
+
+    {
+        f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.x;
+        f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.z;
+
+        if (g_Ball.ballVelocity < lbl_3_rodata_BBC || g_Ball.ballState == 3) {
+            if (g_Ball.ballVelocity < lbl_3_rodata_B24 && g_Ball.ballState == 0 &&
+                g_Ball.ballZoneAwayFromHome <= 1 && fielder->distanceFromHomePlate > g_Ball.ballDistanceFromHome &&
+                fielder->groundDistanceFromBall < lbl_3_rodata_B64) {
+                InMemFielder* secFielder = &g_Fielders[g_FieldingLogic.secondaryFielder];
+
+                if (g_FieldingLogic.secondaryFielder != -1) {
+                    secFielder->autoMovementFunctionIndex = 12;
+                    if (autoMovementFunctions[12].code >= 0) {
+                        g_FieldingLogic.fielderAutoMovementCode[g_FieldingLogic.secondaryFielder] = autoMovementFunctions[12].code;
+                    }
+                    secFielder->unknown_writeOnly = 0;
+                    secFielder->fielderVeloAdjustmentCode = 0;
+                    secFielder->unknown_writeOnly_always0 = 0;
+                    secFielder->timeSinceThrowWasCaught = 0;
+                    secFielder->fielderTrackingBallState = 0;
+                }
+
+                g_FieldingLogic.secondaryFielder = -1;
+            }
+            winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0, x, z);
+        } else {
+            winner = -1;
+            if (lbl_3_rodata_B78 + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+                winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0, x, z);
+            }
+        }
+
+        if (g_FieldingLogic.secondaryFielder != winner) {
+            return;
+        }
+        goto assignWinner;
+    }
+
+ballLoose:
+    if (g_Ball.AtBat_ContactResult != 1 && g_Ball.AtBat_ContactResult != -1 && g_Ball.ballState != 3) {
+        return;
+    }
+    if (g_Ball.ballVelocity >= lbl_3_rodata_B74) {
+        return;
+    }
+    if (g_Fielders[g_FieldingLogic.selectedFielder].distanceFromBall <= f8_0) {
+        return;
+    }
+    selectClosestFielderBasedOnFutureCoord(30);
     return;
+
+assignWinner:
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(winner, 1);
+    g_FieldingLogic.secondaryFielder = -1;
 }
 
 // .text:0x00039858 size:0x56C mapped:0x806788EC
 void updateInAirFielderSelection(void) {
-    return;
+    int selectedFielderInit = g_FieldingLogic.selectedFielder;
+    int secondaryFielderInit;
+    InMemFielder* fielder = &g_Fielders[selectedFielderInit];
+    int newFielder;
+
+    if ((secondaryFielderInit = g_FieldingLogic.secondaryFielder) < 0) {
+        if (g_FieldingLogic.unkFlagMaybeInAir != 0) {
+            return;
+        }
+        if (g_FieldingLogic.fielderAssignedLocationIndex[5] != 0) {
+            return;
+        }
+        selectAssignClosestFielder2();
+        return;
+    }
+
+    if (selectedFielderInit <= 5 && secondaryFielderInit >= 6) {
+        if (g_Ball.hitClassification1 == 2 || g_Ball.hitClassification1 == 5) {
+            int result = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
+                                            g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                            g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+            if (g_FieldingLogic.secondaryFielder == result) {
+                goto callTail;
+            }
+            return;
+        }
+        if (lbl_3_rodata_B78 + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+            goto callTail;
+        }
+        return;
+
+    callTail:
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
+        g_FieldingLogic.secondaryFielder = -1;
+        return;
+    }
+
+    if (g_FieldingLogic.unkFlagMaybeInAir == 0) {
+        return;
+    }
+    if (g_Ball.framesSinceHit < lbl_3_data_484C[3]) {
+        return;
+    }
+
+    {
+        s16 hist = fielderControlStick_continuousAngleHistory[0];
+
+        if (hist < 0 || (g_FieldingLogic.fielderInputs & 0x200) == 0) {
+            f64 thresh5 = (f64)lbl_3_data_484C[5] - lbl_3_rodata_B50;
+            f64 thresh6;
+            f64 thresh7;
+            f64 x;
+
+            if (g_Ball.ballDistanceFromHome < thresh5) {
+                return;
+            }
+            thresh6 = (f64)lbl_3_data_484C[6] - lbl_3_rodata_B50;
+            thresh7 = (f64)lbl_3_data_484C[7] - lbl_3_rodata_B50;
+            x = (f64)g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - thresh6;
+            if (x > thresh7) {
+                x = thresh7;
+            }
+            if (g_Ball.ballDistanceFromHome < x) {
+                return;
+            }
+        }
+
+        if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+            newFielder = selectedFielderInit;
+        } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+            newFielder = secondaryFielderInit;
+        } else {
+            if (g_Ball.framesSinceHit < lbl_3_data_484C[4]) {
+                int i;
+
+                if (hist <= 0) {
+                    return;
+                }
+                for (i = 1; i < lbl_3_data_484C[8]; i++) {
+                    s16 h = fielderControlStick_continuousAngleHistory[i];
+                    if (h <= 0) {
+                        break;
+                    }
+                    if (getDifferenceInAngle(hist, h) > 0x200) {
+                        break;
+                    }
+                }
+                if (i < lbl_3_data_484C[8]) {
+                    return;
+                }
+            }
+            {
+                int selectedFielder = g_FieldingLogic.selectedFielder;
+                int secondaryFielder = g_FieldingLogic.secondaryFielder;
+
+                newFielder = SelectBetterFielder(
+                    selectedFielder, secondaryFielder, 0,
+                    lbl_3_rodata_B80 * (g_Fielders[selectedFielder].IntendedLocation.x +
+                                         g_Fielders[secondaryFielder].IntendedLocation.x),
+                    lbl_3_rodata_B80 * (g_Fielders[selectedFielder].IntendedLocation.z +
+                                         g_Fielders[secondaryFielder].IntendedLocation.z));
+            }
+        }
+    }
+
+    if (newFielder < 0) {
+        return;
+    }
+
+    if (newFielder == g_FieldingLogic.secondaryFielder) {
+        if (g_FieldingLogic.someFielderIndex < 0) {
+            int idx = g_FieldingLogic.selectedFielder;
+            InMemFielder* f = &g_Fielders[idx];
+            if (idx != -1) {
+                f->autoMovementFunctionIndex = 24;
+                if (autoMovementFunctions[24].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[24].code;
+                }
+                g_FieldingLogic.someFielderIndex = idx;
+                f->unknown_writeOnly = 0;
+                f->fielderVeloAdjustmentCode = 0;
+                f->unknown_writeOnly_always0 = 0;
+                f->timeSinceThrowWasCaught = 0;
+                f->fielderTrackingBallState = 0;
+            }
+        } else {
+            int idx = g_FieldingLogic.selectedFielder;
+            InMemFielder* f = &g_Fielders[idx];
+            if (idx != -1) {
+                f->autoMovementFunctionIndex = 12;
+                if (autoMovementFunctions[12].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[12].code;
+                }
+                f->unknown_writeOnly = 0;
+                f->fielderVeloAdjustmentCode = 0;
+                f->unknown_writeOnly_always0 = 0;
+                f->timeSinceThrowWasCaught = 0;
+                f->fielderTrackingBallState = 0;
+            }
+        }
+        {
+            int idx = g_FieldingLogic.secondaryFielder;
+            InMemFielder* f = &g_Fielders[idx];
+            if (idx != -1) {
+                f->autoMovementFunctionIndex = 21;
+                if (autoMovementFunctions[21].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[21].code;
+                }
+                f->unknown_writeOnly = 0;
+                f->fielderVeloAdjustmentCode = 0;
+                f->unknown_writeOnly_always0 = 0;
+                f->timeSinceThrowWasCaught = 0;
+                f->fielderTrackingBallState = 0;
+            }
+        }
+        g_FieldingLogic.selectedFielder = g_FieldingLogic.secondaryFielder;
+    } else {
+        if (g_FieldingLogic.someFielderIndex < 0) {
+            int idx = g_FieldingLogic.secondaryFielder;
+            InMemFielder* f = &g_Fielders[idx];
+            if (idx != -1) {
+                f->autoMovementFunctionIndex = 24;
+                if (autoMovementFunctions[24].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[24].code;
+                }
+                g_FieldingLogic.someFielderIndex = idx;
+                f->unknown_writeOnly = 0;
+                f->fielderVeloAdjustmentCode = 0;
+                f->unknown_writeOnly_always0 = 0;
+                f->timeSinceThrowWasCaught = 0;
+                f->fielderTrackingBallState = 0;
+            }
+        } else {
+            int idx = g_FieldingLogic.secondaryFielder;
+            InMemFielder* f = &g_Fielders[idx];
+            if (idx != -1) {
+                f->autoMovementFunctionIndex = 12;
+                if (autoMovementFunctions[12].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[12].code;
+                }
+                f->unknown_writeOnly = 0;
+                f->fielderVeloAdjustmentCode = 0;
+                f->unknown_writeOnly_always0 = 0;
+                f->timeSinceThrowWasCaught = 0;
+                f->fielderTrackingBallState = 0;
+            }
+        }
+        {
+            int idx = g_FieldingLogic.selectedFielder;
+            InMemFielder* f = &g_Fielders[idx];
+            if (idx != -1) {
+                f->autoMovementFunctionIndex = 21;
+                if (autoMovementFunctions[21].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[21].code;
+                }
+                f->unknown_writeOnly = 0;
+                f->fielderVeloAdjustmentCode = 0;
+                f->unknown_writeOnly_always0 = 0;
+                f->timeSinceThrowWasCaught = 0;
+                f->fielderTrackingBallState = 0;
+            }
+        }
+    }
+
+    g_FieldingLogic.secondaryFielder = -1;
+    g_FieldingLogic.unkFlagMaybeInAir = 0;
 }
 
 // .text:0x00039DC4 size:0xEC mapped:0x80678E58
 void unused_FUN_80678e58(void) {
-    return;
+    InMemFielder* f;
+    int i;
+
+    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
+        g_FieldingLogic.fielderAutoMovementCode[i] = 0;
+        if (i != -1) {
+            f->autoMovementFunctionIndex = 0;
+            if (autoMovementFunctions[0].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
+            }
+            f->unknown_writeOnly = 0;
+            f->fielderVeloAdjustmentCode = 0;
+            f->unknown_writeOnly_always0 = 0;
+            f->timeSinceThrowWasCaught = 0;
+            f->fielderTrackingBallState = 0;
+        }
+        f->maybeTargetPosX = lbl_3_rodata_C0C;
+        f->maybeTargetPosZ = lbl_3_rodata_B20;
+    }
+
+    g_FieldingLogic.selectedFielder = -1;
+    g_FieldingLogic.secondaryFielder = -1;
+    g_FieldingLogic.tertiaryFielder = -1;
+    g_FieldingLogic.cutoffFielderIndex = -1;
+    g_FieldingLogic.unkFlagMaybeInAir = 0;
+    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
+    g_FieldingLogic.baseCoveredInd[0] = 0;
+    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
+    g_FieldingLogic.baseCoveredInd[1] = 0;
+    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
+    g_FieldingLogic.baseCoveredInd[2] = 0;
+    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
+    g_FieldingLogic.baseCoveredInd[3] = 0;
+
+    selectClosestFielderBasedOnFutureCoord(0x78);
 }
 
 // .text:0x00039EB0 size:0x34C mapped:0x80678F44
@@ -6691,8 +7369,57 @@ void fn_3_42BD0(int fielderIndex) {
 }
 
 // .text:0x00042CDC size:0x35C mapped:0x80681D70
-void updateFielderPosition(void) {
-    return;
+void updateFielderPosition(int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    f32 outX;
+    f32 outZ;
+    f32 dx;
+    f32 dz;
+    f32 x5m;
+    f32 z5m;
+
+    fielder->xPos5mAwayFromBallsCollisionSpotOnWall = lbl_3_rodata_B64 * g_Ball._19E4 + g_Ball.ballWillHitBallPos.x;
+    fielder->zPos5mAwayFromBallsCollisionSpotOnWall = lbl_3_rodata_B64 * g_Ball._19E8 + g_Ball.ballWillHitBallPos.z;
+
+    if (fielder->aiDistToStandFromWallCollision != 0) {
+        fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+        fielder->IntendedLocation.x = outX;
+        fielder->IntendedLocation.z = outZ;
+
+        dx = outX - fielder->pos.x;
+        dz = outZ - fielder->pos.z;
+
+        if (lbl_3_rodata_B20 == dx && lbl_3_rodata_B20 == dz) {
+            fielder->currentVelocity = lbl_3_rodata_B20;
+            fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
+        } else {
+            fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
+            fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
+        }
+
+        fielder->goingToAutoLocationInd = 1;
+        fielder->maybeTargetPosX = outX;
+        fielder->maybeTargetPosZ = outZ;
+    } else {
+        x5m = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
+        z5m = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
+
+        fielder->IntendedLocation.x = x5m;
+        fielder->IntendedLocation.z = z5m;
+
+        dx = x5m - fielder->pos.x;
+        dz = z5m - fielder->pos.z;
+
+        if (lbl_3_rodata_B20 == dx && lbl_3_rodata_B20 == dz) {
+            fielder->currentVelocity = lbl_3_rodata_B20;
+            fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
+        } else {
+            fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
+            fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
+        }
+
+        fielder->goingToAutoLocationInd = 1;
+    }
 }
 
 extern const f32 lbl_3_rodata_C08;

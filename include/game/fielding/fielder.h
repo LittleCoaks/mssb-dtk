@@ -152,7 +152,7 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex);
 void fn_3_42850(int fielderIndex);
 void fn_3_42A00(int fielderIndex);
 void fn_3_42BD0(int fielderIndex);
-void updateFielderPosition(void);
+void updateFielderPosition(int fielderIndex);
 void setIntendedLocToInterceptBall(int fielderIndex);
 void fielderTrackingBall_updateVariables(void);
 void fielderTrackingBall_initialVariableSetting(void);
