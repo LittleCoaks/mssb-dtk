@@ -923,3 +923,36 @@ was the entire following dispatch. Rewritten as
 
 The misdiagnosis survived a full session and cost one. Treat any apparently-empty
 conditional as a red flag to re-check, not as a curiosity to note and move past.
+
+## `ATAN2F`'s `(f32)` cast emits a stray `frsp`
+
+First seen: `game/game/fielding/fielder` (2026-09, session 41).
+
+`ATAN2F(y,x)` is `((f32)atan2((y),(x)))`. Storing its result into an `f32` local, or
+using the macro at all, rounds to single precision. If the target feeds the `atan2`
+result straight into a further double-precision expression with no `frsp` in between,
+call `atan2()` directly instead of the macro. Worth exactly 4 bytes (one instruction)
+and took `updateFielderDirectionFacing` from 2076 B to an exact 2072 B match.
+
+## A `static inline` helper is not codegen-neutral at every call site
+
+First seen: `game/game/fielding/fielder` (2026-09, session 41).
+
+Replacing a repeated hand-written block with a `static inline` call was byte-identical
+at ~125 sites in `fielder.c` but changed codegen at ~17 others — improving one function
+by +3.4 points (`HandleMiddleInfieldSelection` 96.34% -> 99.73%) and regressing others.
+Worse, when the expansion changes a function's SIZE, intra-TU `bl` branch immediates
+shift and perturb unrelated *calling* functions, so a whole-unit regression check is
+mandatory, not just a check of the edited function. Treat each call site as its own
+measurable hypothesis rather than assuming the rollout is free.
+
+## An exact size match plus a low score means block ORDERING, not missing logic
+
+First seen: `game/game/fielding/fielder` (2026-09, session 41).
+
+When ours and the target are the same byte count but score in the 80s, stop looking for
+absent code and reconstruct the target's physical basic-block order from its branch
+labels, then find the source shape that emits that order. On
+`updateFielderDirectionFacing` this took 83.7% -> 98.6% in two steps. The lever is
+usually which arm of an `if`/`else` is the fall-through, and whether a shared tail block
+sits before or after a large cascade.

@@ -216,7 +216,7 @@ void fielderMovementRelated(int fielderIndex);
 void minigameFieldingRelated_collisions(void);
 void fielding_handleCollisionsAndSpecialActions(void);
 void fn_3_54900(int fielderIndex);
-void updateFielderDirectionFacing(void);
+void updateFielderDirectionFacing(int fielderIndex);
 void fn_3_55370(void);
 void fn_3_555AC(int fielderIndex);
 void handleBodyCheck2(int fielderIndex);
