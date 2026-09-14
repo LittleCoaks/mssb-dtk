@@ -2498,19 +2498,12 @@ typedef struct {
     /* 0x77 */ u8 _77;
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
-    /* 0x7C */ u8 _7C[4];
-    /* 0x80 */ u8 _80[28];
-    /* 0x9C */ u8 _9C[8];
-    /* 0xA4 */ u8 _A4[8];
-    /* 0xAC */ u8 _AC[8];
-    /* 0xB4 */ u8 _B4;
-    /* 0xB5 */ u8 _B5;
-    /* 0xB6 */ u8 _B6;
-    /* 0xB7 */ u8 _B7;
-    /* 0xB8 */ u8 _B8;
-    /* 0xB9 */ u8 _B9;
-    /* 0xBA */ u8 _BA;
-    /* 0xBB */ u8 _BB;
+    /* 0x7C */ VecXZ _7C[4];
+    /* 0x9C */ s16 _9C[4];
+    /* 0xA4 */ s16 _A4[4];
+    /* 0xAC */ s16 _AC[4];
+    /* 0xB4 */ u8 _B4[4];
+    /* 0xB8 */ u8 _B8[4];
 } AIStruct; // size 0xBC
 
 extern AIStruct g_AiLogic;
@@ -3009,7 +3002,7 @@ typedef struct _InMemFielder {
     /*0x1C5*/ u8 AI_Ind;
     /*0x1C6*/ u8 autoFielderInd;
     /*0x1C7*/ u8 throwingHandedness;
-    /*0x1C8*/ u8 characterClass;
+    /*0x1C8*/ E(u8, CHARACTER_CLASS) characterClass;
     /*0x1C9*/ u8 Weight;
     /*0x1CA*/ u8 ModifiedWeightForMag;
     /*0x1CB*/ u8 wallActionAbility;

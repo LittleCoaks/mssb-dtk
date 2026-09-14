@@ -195,7 +195,7 @@ void checkForAndHandleLooseBalls(void);
 void aISetFielderWithBallIndex(void);
 void knockoutRelated_subFn(int fielderIndex, int flag);
 void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex);
-void setFielderCatchStrategy_calcFramesToGetToDropSpot(void);
+void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex);
 int fn_3_50898(int fielderIndex, f32* outX, f32* outZ);
 void fielderMovement_adjustPlaceToStandForBallBouncingOffWall(int fielderIndex, f32* outX, f32* outZ);
 int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag);
