@@ -2695,7 +2695,8 @@ typedef struct {
 } FielderDash; // size: 0x1b
 
 typedef struct {
-    /*0x00*/ u8 _00[4];
+    /*0x00*/ u8 _00[2];
+    /*0x02*/ s16 _02;
     /*0x04*/ s16 _04;
     artificial_padding(0x04, 0x10, s16);
     /*0x10*/ u8 _10;
