@@ -1,10 +1,10 @@
 #include "Unknown/File_0x80062674.h"
 
-void makeCursorMovable(void) {
+void makeCursorMovable(int channel) {
     return;
 }
 
-void makeCursorUnmovable(void) {
+void makeCursorUnmovable(int channel) {
     return;
 }
 
