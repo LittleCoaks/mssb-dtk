@@ -2692,7 +2692,7 @@ typedef struct {
     /*0x16*/ s16 numberOfDashInputs;
     /*0x18*/ s16 postSprintSlowdownTimer;
     /*0x1a*/ u8 sprintingState;
-} FielderDash; // size: 0x1b
+} FielderDash; // size: 0x1c
 
 typedef struct {
     /*0x00*/ u8 _00[2];
