@@ -369,7 +369,7 @@ typedef struct _InMemBallType {
     /*0x1B38*/ VecXYZ fielderActionCatchCoords;
     /*0x1B44*/ s32 collisionCode;
     /*0x1B48*/ f32 maybeCollisionRelated;
-    /*0x1B4C*/ s32 StaticRandomInt1;
+    /*0x1B4C*/ s32 StaticRandomInt1;    // 0x80892684: match RNG state (ProjectRio-ASM's rollback test snapshots 0x20 bytes from here)
     /*0x1B50*/ s32 StaticRandomInt2;
     /*0x1B54*/ u32 StaticRandomInt1_prePitch;
     /*0x1B58*/ s16 airResistance; // 40

@@ -1700,6 +1700,12 @@ void fn_3_154C4(int arg) {
 }
 
 // .text:0x00015458 size:0x6C mapped:0x806544EC
+// Stamps the swing's start frame for the replay/camera recorders on the swing's
+// first frame. batterAnimations only reaches the swing branch on frame 2 (a
+// hit on frame 1 freezes framesSinceStartOfSwing at 2), so a mod that skips
+// the first swing frame has to keep this == 1 test in step (ProjectRio-ASM,
+// Gecko Codes/Match/Skip First Swing Frame.c; the inlined copies sit at
+// assignFrameCountersToAPointer+0x58 and fn_3_15A98+0x44).
 void fn_3_15458(int arg) {
     if (g_Batter.swingInd != 0 && g_Batter.framesSinceStartOfSwing == 1) {
         if (arg == 0) {

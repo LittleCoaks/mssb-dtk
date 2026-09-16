@@ -5,15 +5,21 @@
 
 // A renderable object owned by the graphics system; the text engine
 // stores per-channel state in it and reads its glyph string at +0xC.
+// This is the text-record view of the 0xC0-byte UIRecord pool entry
+// (Unknown/File_0x80034e20.h): +0x00 is the parent record pointer, +0x54
+// the record flags (bit 2 = text record), +0x67 the draw layer.
 typedef struct TextGraphicsObject {
-    /* 0x00 */ u32 unk0;        // nonzero when the object carries text
+    /* 0x00 */ u32 unk0;        // UIRecord.parent; nonzero when the object carries text
     /* 0x04 */ u8 unk4[0x8];
     /* 0x0C */ u16 text[0x24];  // glyph string handed to the ScreenText block
     /* 0x54 */ u32 flags;
     /* 0x58 */ u8 unk58[0xF];
-    /* 0x67 */ u8 unk67;
+    /* 0x67 */ u8 unk67;        // UIRecord.layer
 } TextGraphicsObject;
 
+// graphicsRelatedArray (0x80371C30): 8 bytes per handle. A scene node's
+// records are entries [node->firstHandle .. +handleCount); unk4 is the
+// owning node on the node's first entry only.
 typedef struct GraphicsArrayEntry {
     /* 0x0 */ TextGraphicsObject* object;
     /* 0x4 */ u32 unk4;
