@@ -10,6 +10,8 @@
 #include "static/UnknownHomes_Static.h"
 #include "musyx/musyx.h"
 
+void fielderControl_classifyControlStickDirection(void);
+
 extern const f32 lbl_3_rodata_B18;
 extern const f32 lbl_3_rodata_B1C;
 extern const f32 lbl_3_rodata_B20;
@@ -8654,7 +8656,104 @@ void fn_3_3B99C(void) {
 
 // .text:0x0003B9E4 size:0x46C mapped:0x8067AA78
 void liveBallFielderControlHumanTeam(void) {
-    return;
+    int i;
+    InMemFielder* fielder;
+    InputStruct* control;
+    s16 stickAngle;
+
+    g_FieldingLogic.selectedFielder_stored = g_FieldingLogic.selectedFielder;
+    control = &g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]];
+
+    for (i = 19; i >= 1; i--) {
+        fielderControlStick_continuousAngleHistory[i] = fielderControlStick_continuousAngleHistory[i - 1];
+    }
+
+    fielderControl_classifyControlStickDirection();
+
+    if (ACTIVE_TUTORIAL()) {
+        control = &g_Practice.inputs[g_GameLogic.teamFielding];
+    }
+
+    stickAngle = control->controlStickAngle;
+    fielderControlStick_continuousAngleHistory[0] = stickAngle;
+
+    if (stickAngle == -1) {
+        for (i = 1; i < 20; i++) {
+            fielderControlStick_continuousAngleHistory[i] = -1;
+        }
+    }
+
+    if (fielderControlStick_continuousAngleHistory[1] < 0 || fielderControlStick_continuousAngleHistory[2] < 0) {
+        currentStickDirection = -1;
+    } else {
+        currentStickDirection = fielderControlStick_continuousAngleHistory[0];
+    }
+
+    g_FieldingLogic.fielderInputs = control->buttonInput;
+    g_FieldingLogic.fielderInputsLatestFrame = control->newButtonInput;
+    g_FieldingLogic.unused_fielderControls0x8 = control->_08;
+
+    if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_PIRANHA_PANIC &&
+        (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_A)) {
+        g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 2;
+        g_FieldingLogic.jumpDiveStruct->stickAngleWhenPressingA = fielderControlStick_continuousAngleHistory[0];
+    }
+
+    if (g_Ball.framesSinceHit <= 0) {
+        return;
+    }
+
+    if (g_Ball.framesSinceHit == 1) {
+        humanTeamFieldingFirstFrameAfterHit();
+    } else {
+        if (g_Ball.framesSinceHit > 3) {
+            updateFielderSelection();
+        }
+        liveBallUpdateFieldingValues();
+    }
+
+    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
+        if (g_d_GameSettings.minigamesEnabled && g_Minigame.minigameRelatedIndex == i) {
+            updateFielderDirectionFacing(i);
+        }
+
+        fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
+
+        if (lbl_3_rodata_B20 == fielder->currentVelocity) {
+            fielder->xMovementDir = lbl_3_rodata_B20;
+            fielder->zMovementDir = lbl_3_rodata_B20;
+        } else {
+            fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
+            fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
+        }
+
+        fielder->unused_alwaysSetTo0 = 0;
+        fielder->attachedKlaptrapCount = 0;
+    }
+
+    fielding_handleCollisionsAndSpecialActions();
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        minigameFieldingRelated_collisions();
+    } else if (g_Ball.fielderWBallIndex >= 0) {
+        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
+
+        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
+        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+    }
+
+    if (g_Ball.ballState == BALL_STATE_HELD) {
+        g_FieldingLogic.selectedFielder = g_Ball.fielderWBallIndex;
+        g_FieldingLogic.unkFlagMaybeInAir = 0;
+    } else if (g_Ball.ballState == BALL_STATE_THROWN) {
+        if (g_FieldingLogic.interceptThrowFielder < 0) {
+            g_FieldingLogic.selectedFielder = -1;
+        }
+    }
 }
 
 // .text:0x0003BE50 size:0x358 mapped:0x8067AEE4
