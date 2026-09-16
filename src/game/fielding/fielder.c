@@ -11366,6 +11366,7 @@ void autoMovement25_readyToInterceptThrownBall(int fielderIndex) {
 }
 
 // .text:0x00045E98 size:0x7F0 mapped:0x80684F2C
+#pragma dont_inline on
 void updateFielderValuesSubFunction1_cuttoffRelated(void) {
     s16 cutoffFielderIndex;
     int flag;
@@ -11553,6 +11554,7 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
         }
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00046688 size:0x254 mapped:0x8068571C
 s32 fn_3_46688(f32* outX, f32* outZ) {
@@ -12619,9 +12621,11 @@ void fn_3_49EA8(int fielderIndex) {
 }
 
 // .text:0x00049F3C size:0x4 mapped:0x80688FD0
+#pragma dont_inline on
 void updateFielderValuesSubFunction3_empty(void) {
     return;
 }
+#pragma dont_inline reset
 
 // .text:0x00049F40 size:0x1E4 mapped:0x80688FD4
 void autoMovementDetermineWhatToDo(int fielderIndex, int arg1) {
@@ -13182,6 +13186,7 @@ void fn_3_4B8D0(int fielderIndex) {
 }
 
 // .text:0x0004BA0C size:0xFBC mapped:0x8068AAA0
+#pragma dont_inline on
 void updateSomeAutoMovementAssignments(void) {
     int numAssigned;
     int problemOutfieldBase;
@@ -13634,6 +13639,7 @@ void updateSomeAutoMovementAssignments(void) {
     }
     }
 }
+#pragma dont_inline reset
 
 // .text:0x0004C9C8 size:0x5E8 mapped:0x8068BA5C
 void setInitialFielderMovements_CoverBases(void) {
@@ -14445,6 +14451,7 @@ void checkForAndHandleLooseBalls(void) {
 }
 
 // .text:0x0004EBC4 size:0x404 mapped:0x8068DC58
+#pragma dont_inline on
 void aISetFielderWithBallIndex(void) {
     s16 frames;
     int outfielderProblem;
@@ -14589,6 +14596,7 @@ void aISetFielderWithBallIndex(void) {
         g_Ball.fielderBeingThrownTo = -1;
     }
 }
+#pragma dont_inline reset
 
 extern int estimatedThrowFramesBetweenTwoPoints(f32 x1, f32 z1, f32 x2, f32 z2);
 
@@ -15375,6 +15383,7 @@ extern f32 lbl_3_data_4B98;
 extern s16 initialSprintCharge_10[6];
 
 // .text:0x00051220 size:0x42C mapped:0x806902B4
+#pragma dont_inline on
 void updateSprintPointers(void) {
     InMemFielder* fielder;
 
@@ -15498,6 +15507,7 @@ void updateSprintPointers(void) {
         g_FieldingLogic.dashPtr->dashingFielderIndex = -1;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x0005164C size:0x14C mapped:0x806906E0
 int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
@@ -17161,6 +17171,7 @@ void handleBodyCheck2(int fielderIndex) {
 #pragma dont_inline reset
 
 // .text:0x00055918 size:0x3AC mapped:0x806949AC
+#pragma dont_inline on
 void fielder_endOfInning_deadball_updateCounters(void) {
     InMemFielder* fielder;
     int i;
@@ -17284,8 +17295,10 @@ void fielder_endOfInning_deadball_updateCounters(void) {
         g_Fielders[i].throwWindupEstimate = 15;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00055CC4 size:0x228 mapped:0x80694D58
+#pragma dont_inline on
 void fielderUpdateChasingRunnerValues(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
@@ -17351,6 +17364,7 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
         }
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00055EEC size:0x1258 mapped:0x80694F80
 #pragma dont_inline on
@@ -17641,7 +17655,76 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
 
 // .text:0x00057144 size:0x344 mapped:0x806961D8
 void liveBallUpdateFieldingValues(void) {
-    return;
+    InMemFielder* fielder;
+    int i;
+
+    if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 &&
+        g_Ball.matchFramesAndBallAngle.framesAfterReceivingThrow == 20) {
+        fielderAIAssignmentRelated(1);
+    }
+
+    if (g_FieldingLogic.letFoulBallDropIfWinningRunOn3rdInd != 0 &&
+        g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_IN_AIR) {
+        g_FieldingLogic.letFoulBallDropIfWinningRunOn3rdInd = 0;
+    }
+
+    if (g_FieldingLogic.tagAnimationCountdown != 0) {
+        g_FieldingLogic.tagAnimationCountdown--;
+    }
+
+    updateSprintPointers();
+
+    for (fielder = g_Fielders, i = 0; i < 9; fielder++, i++) {
+        updateFielder_SpecificValuesEachFrame(i);
+        autoMovementFunctions[fielder->autoMovementFunctionIndex].fn(i);
+        fielderUpdateChasingRunnerValues(i);
+    }
+
+    if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
+        aISetFielderWithBallIndex();
+    } else {
+        fielder = &g_Fielders[g_FieldingLogic.selectedFielder];
+
+        if (g_FieldingLogic.locationThrownTo >= 0) {
+            g_Ball.fielderAboutToGetBall_hasBall = -1;
+        } else if (g_FieldingLogic.selectedFielder >= 0) {
+            if (g_Ball.looseBall_5FrameCountdown == 0) {
+                if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+                    if (fielder->distanceFromLandingSpot < lbl_3_rodata_B64) {
+                        g_Ball.fielderAboutToGetBall_hasBall = g_FieldingLogic.selectedFielder;
+                    } else {
+                        g_Ball.fielderAboutToGetBall_hasBall = -1;
+                    }
+                } else {
+                    f32 dx = fielder->pos.x - g_Ball.physicsSubstruct.futureCoordsAndDist[1].pos.x;
+                    f32 dz = fielder->pos.z - g_Ball.physicsSubstruct.futureCoordsAndDist[1].pos.z;
+                    f32 dist = dolsqrtf2(dz * dz + dx * dx);
+
+                    if (dist <= fielder->distanceFromBall) {
+                        if (ballDistCalculator(fielder->pos.x, fielder->pos.z) < fielder->hitbox[0]) {
+                            g_Ball.fielderAboutToGetBall_hasBall = g_FieldingLogic.selectedFielder;
+                        } else {
+                            g_Ball.fielderAboutToGetBall_hasBall = -1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
+        g_Ball.ballIsLooseInd_unused = 0;
+        g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 0;
+        g_Ball.fielderBeingThrownTo = -1;
+    }
+
+    if (g_Ball.framesSinceHit > 5) {
+        updateFielderValuesSubFunction1_cuttoffRelated();
+        updateSomeAutoMovementAssignments();
+        updateFielderValuesSubFunction3_empty();
+    }
+
+    fielder_endOfInning_deadball_updateCounters();
 }
 
 // .text:0x00057488 size:0x22C mapped:0x8069651C
