@@ -3617,6 +3617,7 @@ void fn_3_2DDB4(void) {
 }
 
 // .text:0x0002E41C size:0x460 mapped:0x8066D4B0
+#pragma dont_inline on
 void fn_3_2E41C(void) {
     int i;
     int fielderIdx;
@@ -3727,6 +3728,7 @@ void fn_3_2E41C(void) {
         g_Fielders[0].pos.z = g_Pitcher.pitcher.z;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x0002E87C size:0x1A8 mapped:0x8066D910
 void toyfieldRelated(void) {
@@ -3790,7 +3792,16 @@ void toyfieldRelated(void) {
 
 // .text:0x0002EA24 size:0x64 mapped:0x8066DAB8
 void miniGameFielding(void) {
-    return;
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        if (g_Minigame.minigameFielderIndex[i] < 0x80) {
+            updateFielder_SpecificValuesEachFrame((s8) g_Minigame.minigameFielderIndex[i]);
+        }
+    }
+
+    fn_3_2E41C();
+    fielding_atBat_SetSomeAutomovements_callCollisionFn();
 }
 
 // .text:0x0002EA88 size:0x43C mapped:0x8066DB1C
@@ -4321,6 +4332,7 @@ void fn_3_30A58(void) {
 }
 
 // .text:0x00030D74 size:0x63C mapped:0x8066FE08
+#pragma dont_inline on
 void fielding_prePitchAutomovement(void) {
     int i;
     InMemFielder* fielder;
@@ -4441,6 +4453,7 @@ void fielding_prePitchAutomovement(void) {
         g_Fielders[0].pos.z = g_Pitcher.pitcher.z;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x000313B0 size:0x1E4 mapped:0x80670444
 void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
@@ -4506,7 +4519,29 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
 
 // .text:0x00031594 size:0xE4 mapped:0x80670628
 void atBat_Fielders(void) {
-    return;
+    int i;
+    InputStruct* control;
+
+    control = &g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]];
+
+    for (i = 19; i >= 1; i--) {
+        fielderControlStick_continuousAngleHistory[i] = fielderControlStick_continuousAngleHistory[i - 1];
+    }
+
+    if (ACTIVE_TUTORIAL()) {
+        control = &g_Practice.inputs[g_GameLogic.teamFielding];
+    }
+
+    g_FieldingLogic.fielderInputs = control->buttonInput;
+    g_FieldingLogic.fielderInputsLatestFrame = control->newButtonInput;
+    g_FieldingLogic.unused_fielderControls0x8 = control->_08;
+
+    for (i = 0; i < 9; i++) {
+        updateFielder_SpecificValuesEachFrame(i);
+    }
+
+    fielding_prePitchAutomovement();
+    fielding_atBat_SetSomeAutomovements_callCollisionFn();
 }
 
 // .text:0x00031678 size:0x3C4 mapped:0x8067070C
@@ -17318,6 +17353,7 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
 }
 
 // .text:0x00055EEC size:0x1258 mapped:0x80694F80
+#pragma dont_inline on
 void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int i;
@@ -17601,6 +17637,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         fielder->animationRelated = 2;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00057144 size:0x344 mapped:0x806961D8
 void liveBallUpdateFieldingValues(void) {

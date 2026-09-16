@@ -822,7 +822,7 @@ typedef struct _InputStruct {
     /*0x02*/ s16 controlStickMagnitude;
     /*0x04*/ E(u16, INPUT_BUTTON) buttonInput;
     /*0x06*/ E(u16, INPUT_BUTTON) newButtonInput; // pressed this frame
-    /*0x08*/ s16 _08;
+    /*0x08*/ u16 _08;
     /*0x0A*/ s8 right_left;
     /*0x0B*/ s8 up_down;
     /*0x0C*/ s8 rightTriggerDistance;
