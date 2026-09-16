@@ -13,7 +13,7 @@ extern u32 lbl_803CB750[4];
 extern u8 gameSetUpStep[0x64];
 extern u8 menuNumber[0x28];
 extern u8 lbl_800EFBA4[0x10];
-extern int lbl_2_bss_F410[0x16];
+extern int menuCursors[0x16];
 extern u8 *menuControlVariables;
 extern u8 lbl_80366158[0x30];
 extern u8 lineUpInfoStruct[0x48];
@@ -21,11 +21,11 @@ extern s16 lbl_2_data_E64[18];
 extern s16 lbl_2_data_E88[18];
 extern u8 lbl_2_bss_20[0x380];
 extern u8 lbl_803CBCD0[0x18];
-extern u8 lbl_803C50E8[0x5C];
-extern u8 lbl_800EF808[0x39C];
+extern u8 cardCheck[0x5C];
+extern u8 audioFileDescriptors[0x39C];
 extern u8 lbl_2_data_180[0x4A4];
 extern u8 superstarUnlocked[0x130];
-extern u8 lbl_803C6714[0x10];
+extern u8 menuMusic[0x10];
 extern u8 *currentDrawingItem;
 
 void settingValuesTo0(void);
@@ -34,8 +34,8 @@ void fn_80062764(void *arg0);
 int fn_80022B68(void);
 void fn_2_12988(void);
 int fn_800697B0(void);
-void fn_8003F23C(void);
-void relatedToReturningToPracticeMenu(void);
+void startMemoryCardCheck(void);
+void startMenuMusic(void);
 void *insertGraphicDrawingFunction(void (*func)(void), u32 priority);
 
 void fn_2_74D8C(void);
@@ -74,7 +74,7 @@ void fn_2_1578(void) {
     }
 
     if (input[1] & 0x100) {
-        switch (lbl_2_bss_F410[0]) {
+        switch (menuCursors[0]) {
         case 0:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
             ((u8 *)&g_d_GameSettings)[0x7] = 0;
@@ -124,15 +124,15 @@ void fn_2_1578(void) {
     }
 
     if ((input[2] & 0x8) || (input[2] & 0x4)) {
-        lbl_2_bss_F410[1] = lbl_2_bss_F410[0];
+        menuCursors[1] = menuCursors[0];
 
         if (input[2] & 0x8) {
-            if (--lbl_2_bss_F410[0] < 0) {
-                lbl_2_bss_F410[0] = 6;
+            if (--menuCursors[0] < 0) {
+                menuCursors[0] = 6;
             }
         } else if (input[2] & 0x4) {
-            if (++lbl_2_bss_F410[0] == 7) {
-                lbl_2_bss_F410[0] = 0;
+            if (++menuCursors[0] == 7) {
+                menuCursors[0] = 0;
             }
         }
 
@@ -155,7 +155,7 @@ void fn_2_1800(void) {
     }
 
     if (input[1] & 0x100) {
-        switch (lbl_2_bss_F410[0]) {
+        switch (menuCursors[0]) {
         case 0:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
             ((u8 *)&g_d_GameSettings)[0x7] = 0;
@@ -205,15 +205,15 @@ void fn_2_1800(void) {
     }
 
     if ((input[2] & 0x8) || (input[2] & 0x4)) {
-        lbl_2_bss_F410[1] = lbl_2_bss_F410[0];
+        menuCursors[1] = menuCursors[0];
 
         if (input[2] & 0x8) {
-            if (--lbl_2_bss_F410[0] < 0) {
-                lbl_2_bss_F410[0] = 6;
+            if (--menuCursors[0] < 0) {
+                menuCursors[0] = 6;
             }
         } else if (input[2] & 0x4) {
-            if (++lbl_2_bss_F410[0] == 7) {
-                lbl_2_bss_F410[0] = 0;
+            if (++menuCursors[0] == 7) {
+                menuCursors[0] = 0;
             }
         }
 
@@ -318,7 +318,7 @@ void fn_2_1DC4(void) {
 
 // .text:0x00001DC8 size:0x168 mapped:0x80640E5C
 void fn_2_1DC8(void) {
-    switch (lbl_2_bss_F410[0]) {
+    switch (menuCursors[0]) {
     case 0:
         Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
         ((u8 *)&g_d_GameSettings)[0x7] = 0;
@@ -402,8 +402,8 @@ void mainMenuRelated(void) {
         memset(menuNumber, 0, 0x28);
         p2 = &((u8 *)&Static_Stats_Tables)[0x4712];
         memset(p2, 0, 2);
-        lbl_2_bss_F410[0] = p2[0];
-        lbl_2_bss_F410[1] = ((u8 *)&Static_Stats_Tables)[0x4713];
+        menuCursors[0] = p2[0];
+        menuCursors[1] = ((u8 *)&Static_Stats_Tables)[0x4713];
         ((u8 *)&g_d_GameSettings)[0x10] = 0;
         gameSetUpStep[0] = 0;
         memset(p1, 0, 6);
@@ -428,7 +428,7 @@ void mainMenuRelated(void) {
         }
 
         if (input[1] & 0x100) {
-            switch (lbl_2_bss_F410[0]) {
+            switch (menuCursors[0]) {
             case 0:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
                 ((u8 *)&g_d_GameSettings)[0x7] = 0;
@@ -478,15 +478,15 @@ void mainMenuRelated(void) {
         }
 
         if ((input[2] & 0x8) || (input[2] & 0x4)) {
-            lbl_2_bss_F410[1] = lbl_2_bss_F410[0];
+            menuCursors[1] = menuCursors[0];
 
             if (input[2] & 0x8) {
-                if (--lbl_2_bss_F410[0] < 0) {
-                    lbl_2_bss_F410[0] = 6;
+                if (--menuCursors[0] < 0) {
+                    menuCursors[0] = 6;
                 }
             } else if (input[2] & 0x4) {
-                if (++lbl_2_bss_F410[0] == 7) {
-                    lbl_2_bss_F410[0] = 0;
+                if (++menuCursors[0] == 7) {
+                    menuCursors[0] = 0;
                 }
             }
 
@@ -499,8 +499,8 @@ void mainMenuRelated(void) {
         if (gameSetUpStep[0x55] != 0) {
             break;
         }
-        ((u8 *)&Static_Stats_Tables)[0x4712] = lbl_2_bss_F410[0];
-        ((u8 *)&Static_Stats_Tables)[0x4713] = lbl_2_bss_F410[1];
+        ((u8 *)&Static_Stats_Tables)[0x4712] = menuCursors[0];
+        ((u8 *)&Static_Stats_Tables)[0x4713] = menuCursors[1];
 
         switch (Static_Stats_Tables.mainMenuOptionSelectedIndex) {
         case 0:
@@ -566,7 +566,7 @@ void mainMenuRelated(void) {
         if (((u8 *)&g_d_GameSettings)[0x7] == 0) {
             changeScreenVariables(9);
         } else if (((u8 *)&g_d_GameSettings)[0x7] == 5) {
-            if (lbl_803C50E8[0x47] != 0) {
+            if (cardCheck[0x47] != 0) {
                 ((u8 *)&g_d_GameSettings)[0x10] = 0;
                 changeScreenVariables(0xC);
             } else {
@@ -580,7 +580,7 @@ void mainMenuRelated(void) {
             fn_80035B50(6);
             fn_800AD054(*(int *)&((u8 *)&Static_Stats_Tables)[0x46F0], *(int *)&((u8 *)&Static_Stats_Tables)[0x46F4]);
             maybeLoadsGameSoundFiles();
-            fn_800ACFB0(*(void **)&lbl_800EF808[0x98]);
+            fn_800ACFB0(*(void **)&audioFileDescriptors[0x98]);
             changeScreenVariables(4);
         }
 
@@ -606,7 +606,7 @@ void mainMenuRelated(void) {
         fn_80035B50(6);
         fn_800AD054(*(int *)&((u8 *)&Static_Stats_Tables)[0x46F0], *(int *)&((u8 *)&Static_Stats_Tables)[0x46F4]);
         maybeLoadsGameSoundFiles();
-        fn_800ACFB0(*(void **)&lbl_800EF808[0x98]);
+        fn_800ACFB0(*(void **)&audioFileDescriptors[0x98]);
         changeScreenVariables(7);
         lbl_2_bss_20[0] = 0;
         break;
@@ -726,7 +726,7 @@ void mainMenuScreen(void) {
     case 9:
         if (((u8 *)&Static_Stats_Tables)[0x48B4] != 0) {
             if (lbl_803CBCD0[0x10] == 0) {
-                fn_8003F23C();
+                startMemoryCardCheck();
             }
             lbl_2_bss_20[0]++;
         } else {
@@ -753,8 +753,8 @@ void mainMenuScreen(void) {
         break;
 
     case 11:
-        if (*(u16 *)(menuControlVariables + 6) != 6 && lbl_803C6714[4] == 0) {
-            insertGraphicDrawingFunction(relatedToReturningToPracticeMenu, 0x1000);
+        if (*(u16 *)(menuControlVariables + 6) != 6 && menuMusic[4] == 0) {
+            insertGraphicDrawingFunction(startMenuMusic, 0x1000);
         }
         *(u16 *)(menuControlVariables + 4) = 0;
         lbl_2_bss_20[0]++;

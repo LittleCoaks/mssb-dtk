@@ -13,7 +13,7 @@
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 lbl_2_data_1DD4[0x318];
 extern u8 captainIDOrderedOnCapSS[12];
-extern int lbl_2_bss_F410[0x16];
+extern int menuCursors[0x16];
 
 void AnimateCharacter(u8 charId, int animId, int a2, int a3, int a4, int a5, int a6, int a7);
 void QueueCharacterAnimation(u8 charId, int animId, int a2, int a3, int a4, int a5, int a6);
@@ -288,21 +288,21 @@ commonTail:
         Static_Stats_Tables.captainSelectedID[p] != -1 &&
         g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         int i;
-        add_or_RemoveCharToATeam(0, mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4]], 1);
+        add_or_RemoveCharToATeam(0, mapCaptainCursorPositionToCharID[menuCursors[4]], 1);
         for (i = 0; i < 2; i++) {
             s8 cIdx = Static_Stats_Tables.playerNumberByPort[i];
             switch (cIdx) {
             case 0:
-                storeCursorLocOrCharIDs(0, lbl_2_bss_F410[4 + i], -1, -1, -1);
+                storeCursorLocOrCharIDs(0, menuCursors[4 + i], -1, -1, -1);
                 break;
             case 1:
-                storeCursorLocOrCharIDs(0, -1, lbl_2_bss_F410[4 + i], -1, -1);
+                storeCursorLocOrCharIDs(0, -1, menuCursors[4 + i], -1, -1);
                 break;
             case 2:
-                storeCursorLocOrCharIDs(0, -1, -1, lbl_2_bss_F410[4 + i], -1);
+                storeCursorLocOrCharIDs(0, -1, -1, menuCursors[4 + i], -1);
                 break;
             case 3:
-                storeCursorLocOrCharIDs(0, -1, -1, -1, lbl_2_bss_F410[4 + i]);
+                storeCursorLocOrCharIDs(0, -1, -1, -1, menuCursors[4 + i]);
                 break;
             }
         }
@@ -313,25 +313,25 @@ commonTail:
     }
 
     {
-        int *cur = &lbl_2_bss_F410[slot];
+        int *cur = &menuCursors[slot];
         cursorPositions.cursor[p] = cur[4];
     }
     {
-        int origVal = lbl_2_bss_F410[cIdx4];
+        int origVal = menuCursors[cIdx4];
         int prevVal, curVal, mappedID;
         do {
-            prevVal = lbl_2_bss_F410[cIdx4];
+            prevVal = menuCursors[cIdx4];
             captainSelect_handleCursor(slot, &input);
-            curVal = lbl_2_bss_F410[cIdx4];
+            curVal = menuCursors[cIdx4];
             mappedID = mapCaptainCursorPositionToCharID[curVal];
         } while (Static_Stats_Tables.charOnCharacterGridSelected[mappedID] != 0 && origVal != curVal && prevVal != curVal);
     }
 
-    if (lbl_2_bss_F410[4 + (u8)port] == lbl_2_bss_F410[4 + ((u8)port ^ 1)]) {
+    if (menuCursors[4 + (u8)port] == menuCursors[4 + ((u8)port ^ 1)]) {
         if (g_MatchInfo.player2Ind2 != 0) {
-            lbl_2_bss_F410[cIdx4]++;
-            if (lbl_2_bss_F410[cIdx4] >= 0xC) {
-                lbl_2_bss_F410[cIdx4] = 0;
+            menuCursors[cIdx4]++;
+            if (menuCursors[cIdx4] >= 0xC) {
+                menuCursors[cIdx4] = 0;
             }
             return;
         }
@@ -390,7 +390,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
                         break;
                     }
                 }
-                lbl_2_bss_F410[4 + gameSetUpStep.portCaptainSlot[port]] = val;
+                menuCursors[4 + gameSetUpStep.portCaptainSlot[port]] = val;
                 updateCharacterSelectProcessCode(gameSetUpStep.portCaptainSlot[port], 3);
             } else {
                 u8 *table;
@@ -404,7 +404,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
                     }
                     table++;
                 }
-                lbl_2_bss_F410[4] = val;
+                menuCursors[4] = val;
                 challengeCaptainRelated();
                 lbl_803CBBC2[2] = 3;
             }
@@ -476,7 +476,7 @@ void captainSelect_APress(int idx) {
             return;
         }
 
-        charID = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + lbl_2_bss_F410[4]];
+        charID = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[4]];
         lbl_2_bss_100B8[0x10] = 1;
         Static_Stats_Tables.captainSelectedID[0] = charID;
         lbl_2_bss_100B8[0x12] = 1;
@@ -511,7 +511,7 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    charID = mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4 + (u8)idx]];
+    charID = mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]];
     Static_Stats_Tables.captainSelectedID[c] = charID;
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && (u8)idx != 0) {
@@ -524,7 +524,7 @@ void captainSelect_APress(int idx) {
         add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], 1);
     }
 
-    charID = mapCaptainCursorPositionToCharID[lbl_2_bss_F410[4 + (u8)idx]];
+    charID = mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]];
     lbl_2_bss_100B8[0x10 + c] = 1;
     lbl_2_bss_100B8[0x12 + c] = 1;
     Static_Stats_Tables.charOnCharacterGridSelected[charID] = 1;
@@ -548,33 +548,33 @@ void captainSelect_APress(int idx) {
         gameSetUpStep.portCaptainSlot[c] = 1;
         charSelectStruct[0x74 + captainIdx] = 1;
 
-        if (lbl_2_bss_F410[4] == 0) {
-            lbl_2_bss_F410[5] = 1;
+        if (menuCursors[4] == 0) {
+            menuCursors[5] = 1;
         } else {
-            lbl_2_bss_F410[5] = 0;
+            menuCursors[5] = 0;
         }
 
         switch (captainIdx) {
         case 0:
-            val = lbl_2_bss_F410[5];
+            val = menuCursors[5];
             storeCursorLocOrCharIDs(0, val, -1, -1, -1);
             break;
         case 1:
-            val = lbl_2_bss_F410[5];
+            val = menuCursors[5];
             storeCursorLocOrCharIDs(0, -1, val, -1, -1);
             break;
         case 2:
-            val = lbl_2_bss_F410[5];
+            val = menuCursors[5];
             storeCursorLocOrCharIDs(0, -1, -1, val, -1);
             break;
         case 3:
-            val = lbl_2_bss_F410[5];
+            val = menuCursors[5];
             storeCursorLocOrCharIDs(0, -1, -1, -1, val);
             break;
         }
     }
 
-    val = lbl_2_bss_F410[5];
+    val = menuCursors[5];
     cursorPositions.cursor[1] = val;
     if (val != -1) {
         lbl_2_bss_100B8[0x1D] = 1;
@@ -728,8 +728,8 @@ void captainSelect_randomizeCaptainForSlot(int slot) {
     int chosen[2];
     int i;
 
-    chosen[0] = captainIDOrderedOnCapSS[lbl_2_bss_F410[4]];
-    chosen[1] = captainIDOrderedOnCapSS[lbl_2_bss_F410[5]];
+    chosen[0] = captainIDOrderedOnCapSS[menuCursors[4]];
+    chosen[1] = captainIDOrderedOnCapSS[menuCursors[5]];
     do {
         chosen[slot] = stadiumRandomizer(0, 0x13);
         for (i = 0; i < 12; i++) {
@@ -739,7 +739,7 @@ void captainSelect_randomizeCaptainForSlot(int slot) {
         }
     } while (i == 12 || chosen[0] == chosen[1]);
     {
-        int *entry = &lbl_2_bss_F410[slot];
+        int *entry = &menuCursors[slot];
         entry[4] = i;
     }
 }
@@ -762,19 +762,19 @@ void captainSelect_handleCursor(u8 port, controllerInputStruct *input) {
 
         switch (captainIdx) {
         case 0:
-            val = lbl_2_bss_F410[4 + port];
+            val = menuCursors[4 + port];
             storeCursorLocOrCharIDs(0, val, -1, -1, -1);
             break;
         case 1:
-            val = lbl_2_bss_F410[4 + port];
+            val = menuCursors[4 + port];
             storeCursorLocOrCharIDs(0, -1, val, -1, -1);
             break;
         case 2:
-            val = lbl_2_bss_F410[4 + port];
+            val = menuCursors[4 + port];
             storeCursorLocOrCharIDs(0, -1, -1, val, -1);
             break;
         case 3:
-            val = lbl_2_bss_F410[4 + port];
+            val = menuCursors[4 + port];
             storeCursorLocOrCharIDs(0, -1, -1, -1, val);
             break;
         }
@@ -788,7 +788,7 @@ void captainSelect_handleCursor(u8 port, controllerInputStruct *input) {
                 break;
             }
         }
-        lbl_2_bss_F410[4 + port] = val;
+        menuCursors[4 + port] = val;
     } else {
         u8 *table;
         charID = challengeCaptainSelect_returnsCharID(input->currentHeldInput, input->newInput, input->processedInput);
@@ -801,7 +801,7 @@ void captainSelect_handleCursor(u8 port, controllerInputStruct *input) {
             }
             table++;
         }
-        lbl_2_bss_F410[4] = val;
+        menuCursors[4] = val;
     }
 }
 
@@ -878,7 +878,7 @@ void checkForNewPlayer(void) {
     gameSetUpStep.portCaptainSlot[0] = 0;
     gameSetUpStep.portCaptainSlot[1] = 1;
 
-    if (Static_Stats_Tables.charOnCharacterGridSelected[0] != 0 || lbl_2_bss_F410[4] == 0) {
+    if (Static_Stats_Tables.charOnCharacterGridSelected[0] != 0 || menuCursors[4] == 0) {
         cursorPositions.cursor[1] = 1;
     } else {
         cursorPositions.cursor[1] = 0;
@@ -890,29 +890,29 @@ void checkForNewPlayer(void) {
     charSelectStruct[0x80] = -1;
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
     aiPosSwapInputs.unkCF5D[1] = 0;
-    if (lbl_2_bss_F410[4] == 0) {
-        lbl_2_bss_F410[5] = 1;
+    if (menuCursors[4] == 0) {
+        menuCursors[5] = 1;
     } else {
-        lbl_2_bss_F410[5] = 0;
+        menuCursors[5] = 0;
     }
 
     captainIdx = Static_Stats_Tables.playerNumberByPort[1];
     charSelectStruct[0x74 + captainIdx] = 0;
     switch (captainIdx) {
     case 0:
-        val = lbl_2_bss_F410[5];
+        val = menuCursors[5];
         storeCursorLocOrCharIDs(0, val, -1, -1, -1);
         break;
     case 1:
-        val = lbl_2_bss_F410[5];
+        val = menuCursors[5];
         storeCursorLocOrCharIDs(0, -1, val, -1, -1);
         break;
     case 2:
-        val = lbl_2_bss_F410[5];
+        val = menuCursors[5];
         storeCursorLocOrCharIDs(0, -1, -1, val, -1);
         break;
     case 3:
-        val = lbl_2_bss_F410[5];
+        val = menuCursors[5];
         storeCursorLocOrCharIDs(0, -1, -1, -1, val);
         break;
     }
@@ -920,9 +920,9 @@ void checkForNewPlayer(void) {
     prevID = -1;
     goto checkForNewPlayer_loopTest;
     do {
-        prevID = lbl_2_bss_F410[5];
+        prevID = menuCursors[5];
 checkForNewPlayer_loopTest:
-        if (prevID != lbl_2_bss_F410[5]) {
+        if (prevID != menuCursors[5]) {
             lbl_2_bss_100B8[0x1D] = 1;
         } else if (lbl_2_bss_100B8[0x1D] != 0) {
             int t = lbl_2_bss_100B8[0x1D] + 1;

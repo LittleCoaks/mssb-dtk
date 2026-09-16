@@ -61,12 +61,12 @@ static inline void resetDrawingStructLists(void) {
     do {
         p[0].prev = NULL;
         p[0].next = &p[1];
-        p[0].currentDrawingItem = &lbl_80111300;
+        p[0].currentDrawingItem = &relLoaderNode;
         p[0].state = 0;
         p[0].priority = 0;
         p[1].prev = &p[0];
         p[1].next = NULL;
-        p[1].currentDrawingItem = &lbl_80111300;
+        p[1].currentDrawingItem = &relLoaderNode;
         p[1].state = 0;
         p[1].priority = 0xFFFF;
         p += 2;
@@ -107,12 +107,12 @@ void resetAllDrawingStructs(void) {
     do {
         p[0].prev = NULL;
         p[0].next = &p[1];
-        p[0].currentDrawingItem = &lbl_80111300;
+        p[0].currentDrawingItem = &relLoaderNode;
         p[0].state = 0;
         p[0].priority = 0;
         p[1].prev = &p[0];
         p[1].next = NULL;
-        p[1].currentDrawingItem = &lbl_80111300;
+        p[1].currentDrawingItem = &relLoaderNode;
         p[1].state = 0;
         p[1].priority = 0xFFFF;
         p += 2;

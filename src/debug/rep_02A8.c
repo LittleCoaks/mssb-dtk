@@ -7,12 +7,12 @@ void fn_1_A2E4(void) {
 }
 
 // .text:0x0000A348 size:0x11C
-void fn_1_A348(void) {
+void sndTestTopScreen(void) {
     return;
 }
 
 // .text:0x0000A464 size:0x1D0
-void fn_1_A464(void) {
+void sndTestTrainingSeScreen(void) {
     return;
 }
 
@@ -77,7 +77,7 @@ void fn_1_B4A4(void) {
 }
 
 // .text:0x0000B5B8 size:0x4AC
-void fn_1_B5B8(void) {
+void sndTestSeScreen(void) {
     return;
 }
 
@@ -87,7 +87,7 @@ void fn_1_BA64(void) {
 }
 
 // .text:0x0000BC00 size:0x1D8
-void fn_1_BC00(void) {
+void sndTestVoice2Screen(void) {
     return;
 }
 
@@ -107,7 +107,7 @@ void fn_1_BF34(void) {
 }
 
 // .text:0x0000BFB0 size:0x1D8
-void fn_1_BFB0(void) {
+void sndTestVoiceScreen(void) {
     return;
 }
 

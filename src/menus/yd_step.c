@@ -6,7 +6,7 @@
 extern menuControlStruct *menuControlVariables;
 extern DrawingSceneStruct *currentDrawingItem;
 extern void (*pCurrentScreenControlFunction[])(void);
-extern void *lbl_800EF808[];
+extern void *audioFileDescriptors[];
 extern int fn_80021518(int arg0, void *arg1);
 
 // NOTE: -inline deferred makes MWCC emit functions in REVERSE source order,
@@ -48,6 +48,6 @@ void fn_2_1130(s16 state) {
 
 // .text:0x000010FC size:0x34 mapped:0x80640190
 int fn_2_10FC(void) {
-    fn_80021518(0x1F, lbl_800EF808[3]);
+    fn_80021518(0x1F, audioFileDescriptors[3]);
     return 0;
 }

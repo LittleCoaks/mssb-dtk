@@ -64,7 +64,7 @@ extern u8 drawStadiumRelated;
 extern u8 lbl_1_data_107E4[0x38];
 extern u8 lbl_1_data_107C4[0x20];
 extern u8 lbl_1_data_FB98[0x7AC];
-extern u8 lbl_803C4BE0[0x4B0];
+extern u8 textureContainerSlots[0x4B0];
 extern void (*lbl_1_data_104A8[])(void);
 extern f32 lbl_1_rodata_780C;
 extern f32 lbl_1_rodata_7890;
@@ -4213,7 +4213,7 @@ void fn_1_25F98(void) {
                 } else if (f & 1) {
                     *((u8 *)item + 0x24) -= 1;
                 }
-                fn_8000CEF0(*(void **)(lbl_803C4BE0 + GFX_OBJ(item)[0x66] * 0x3c + 0x38));
+                fn_8000CEF0(*(void **)(textureContainerSlots + GFX_OBJ(item)[0x66] * 0x3c + 0x38));
             }
             break;
         }
@@ -4230,7 +4230,7 @@ void fn_1_25F98(void) {
                     subIndex -= 1;
                 }
 
-                structA = *(void **)(lbl_803C4BE0 + GFX_OBJ(item)[0x66] * 0x3c + 0x38);
+                structA = *(void **)(textureContainerSlots + GFX_OBJ(item)[0x66] * 0x3c + 0x38);
                 structB = *(void **)((u8 *)structA + 8);
                 structC = *(void **)((u8 *)structB + *((u8 *)item + 0x21) * 4 + 8);
                 *(u16 *)((u8 *)structC + 0xa) = subIndex;
@@ -4323,7 +4323,7 @@ void fn_1_25F98(void) {
         GXSetTevOp(0, 3);
         GXLoadPosMtxImm(localMtx, 0);
         GXSetCurrentMtx(0);
-        SetDisplayStateTexture((u8 *)(*(void **)(lbl_803C4BE0 + GFX_OBJ(item)[0x66] * 0x3c + 0x34)) + lbl_1_bss_6BDC * 0x20 + 4, 0, 0);
+        SetDisplayStateTexture((u8 *)(*(void **)(textureContainerSlots + GFX_OBJ(item)[0x66] * 0x3c + 0x34)) + lbl_1_bss_6BDC * 0x20 + 4, 0, 0);
 
         GXBegin(GX_QUADS, 0, 4);
 
@@ -4387,7 +4387,7 @@ void fn_1_267F4(void) {
         }
 
         *(u16 *)((u8 *)item + 0x18) =
-            *(u32 *)(*(u8 **)(*(u8 **)(lbl_803C4BE0 + idx2 * 0x3c + 0x38) + 0x8));
+            *(u32 *)(*(u8 **)(*(u8 **)(textureContainerSlots + idx2 * 0x3c + 0x38) + 0x8));
         addGraphicsElementToScene(*(void **)((u8 *)item + 0x14));
 
         *((u8 *)item + 0x21) = 0;

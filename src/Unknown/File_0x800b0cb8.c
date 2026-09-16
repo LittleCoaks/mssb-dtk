@@ -15,8 +15,8 @@ void RunDrawScripts_with_stack_variables(void) {
     u32 itemScratch[5];
     DrawScriptItem *item;
 
-    currentDrawingItem = &lbl_80111300;
-    ((DrawScriptItem *)&lbl_80111300)->func(rootScratch);
+    currentDrawingItem = &relLoaderNode;
+    ((DrawScriptItem *)&relLoaderNode)->func(rootScratch);
     item = (DrawScriptItem *)&DSS_Head1[DrawingStructArray_Count2 * 2];
     do {
         currentDrawingItem = (DrawingSceneStruct *)item;

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void relatedToReturningToPracticeMenu(void);
+void startMenuMusic(void);
 
 #endif // !__UNKNOWN_FILE_0X80062A94_H_

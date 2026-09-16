@@ -19,7 +19,7 @@ typedef struct DrawingSceneStruct {
 } DrawingSceneStruct; // size 0x40
 
 extern DrawingSceneStruct DSS_Head1[64];
-extern DrawingSceneStruct lbl_80111300;
+extern DrawingSceneStruct relLoaderNode;
 extern DrawingSceneStruct *currentDrawingItem;
 extern u16 DrawingStructArray_Count1;
 extern u16 DrawingStructArray_Count2;

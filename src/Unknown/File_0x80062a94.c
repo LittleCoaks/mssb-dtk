@@ -1,5 +1,5 @@
 #include "Unknown/File_0x80062a94.h"
 
-void relatedToReturningToPracticeMenu(void) {
+void startMenuMusic(void) {
     return;
 }

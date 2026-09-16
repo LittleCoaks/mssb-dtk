@@ -25,7 +25,7 @@ extern menuControlStruct *menuControlVariables;
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 lbl_8037169C[0x1C];
-extern u8 lbl_800EF808[0x39C];
+extern u8 audioFileDescriptors[0x39C];
 
 /* HugeAnimStruct isn't typed in a shared header; only the one byte we need
  * is accessed here. */
@@ -340,7 +340,7 @@ void fn_2_54BB0(void) {
         fn_2_4E7EC();
         resetGameStadiumStateOnExit();
         maybeLoadsGameSoundFiles();
-        fn_800ACFB0(*(void **)&lbl_800EF808[0x14]);
+        fn_800ACFB0(*(void **)&audioFileDescriptors[0x14]);
         fn_80035B50(10);
         if (screenTextArray.textBanks[2] != NULL) {
             fn_800ACFB0(screenTextArray.textBanks[2]);

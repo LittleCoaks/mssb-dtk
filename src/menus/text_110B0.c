@@ -20,12 +20,12 @@ extern u8 lbl_2_data_3CE0[0x8];
 extern u8 lbl_2_bss_F468[0xC4C];
 extern u8 lbl_2_bss_100B4;
 extern u8 lbl_803CBCD0[0x18];
-extern int lbl_2_bss_F410[0x16];
+extern int menuCursors[0x16];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 superstarUnlocked[0x130];
 extern u8 cursorToStadIDMapping[0x288];
 extern u8 lbl_803CBBC2[0xA];
-extern u8 lbl_803C50E8[0x5C];
+extern u8 cardCheck[0x5C];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 lbl_2_bss_758[0x388];
 
@@ -140,7 +140,7 @@ void stadiumSelectControls(u8 idx) {
     flag = 0;
 
     if (lbl_803CBCD0[8] != 0) {
-        cur = lbl_2_bss_F410[0x11];
+        cur = menuCursors[0x11];
 
         do {
             if (superstarUnlocked[0xF5] != 0) {
@@ -150,7 +150,7 @@ void stadiumSelectControls(u8 idx) {
             }
         } while (cur == r);
 
-        lbl_2_bss_F410[0x11] = r;
+        menuCursors[0x11] = r;
         lbl_803CBCD0[9] = lbl_803CBCD0[9] - 1;
         updateCharacterSelectProcessCode(0, 0x28);
         return;
@@ -183,21 +183,21 @@ void stadiumSelectControls(u8 idx) {
 
     if (input0 & 1) {
         if (gameSetUpStep[0x5D] != 0x24) {
-            v = lbl_2_bss_F410[0x11] - 1;
+            v = menuCursors[0x11] - 1;
             if (v < 0) {
                 v = 5;
             }
-            lbl_2_bss_F410[0x11] = v;
+            menuCursors[0x11] = v;
             updateCharacterSelectProcessCode(0, 0x28);
             cursorSndFx(1);
         }
     } else if (input0 & 2) {
         if (gameSetUpStep[0x5D] != 0x24) {
-            v = lbl_2_bss_F410[0x11] + 1;
+            v = menuCursors[0x11] + 1;
             if (v == 6) {
                 v = 0;
             }
-            lbl_2_bss_F410[0x11] = v;
+            menuCursors[0x11] = v;
             updateCharacterSelectProcessCode(0, 0x28);
             cursorSndFx(2);
         }
@@ -207,12 +207,12 @@ void stadiumSelectControls(u8 idx) {
             lbl_803CBCD0[9] = 6;
         }
     } else if (input1 & 0x100) {
-        if (lbl_2_bss_F410[0x11] < 6) {
+        if (menuCursors[0x11] < 6) {
             if (superstarUnlocked[0xF5] == 0 &&
-                cursorToStadIDMapping[lbl_2_bss_F410[0x11]] == 1) {
+                cursorToStadIDMapping[menuCursors[0x11]] == 1) {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
             } else if (gameSetUpStep[0x5D] == 0) {
-                g_d_GameSettings.StadiumID = cursorToStadIDMapping[lbl_2_bss_F410[0x11]];
+                g_d_GameSettings.StadiumID = cursorToStadIDMapping[menuCursors[0x11]];
                 lbl_2_bss_F468[0x58] = 1;
                 fn_2_328();
                 cursorSndFx(0x100);
@@ -278,8 +278,8 @@ void selectStadiumScreen(void) {
                 gameSetUpStep[0] = 4;
 
                 if (((u8 *)&Static_Stats_Tables)[0x4703] == 0) {
-                    lbl_2_bss_F410[0x11] = 0;
-                    lbl_2_bss_F410[0x11] = 0;
+                    menuCursors[0x11] = 0;
+                    menuCursors[0x11] = 0;
                 }
 
                 ((u8 *)&Static_Stats_Tables)[0x4703] = 1;
@@ -323,7 +323,7 @@ void selectStadiumScreen(void) {
             cb[2] = 0;
             cb[3] = 0;
             cb[4] = 0;
-            lbl_2_bss_F410[0x11] = 0;
+            menuCursors[0x11] = 0;
             changeScene(1, 6);
             ((u8 *)&g_MatchInfo)[0x36] = 1;
             ((u8 *)&g_MatchInfo)[0x37] = ((u8 *)&g_MatchInfo)[0x38];
@@ -337,7 +337,7 @@ void selectStadiumScreen(void) {
     case 6:
         if (gameSetUpStep[0x55] == 0) {
             cb = &lbl_803CBBC2[2];
-            cursor = &lbl_2_bss_F410[0x11];
+            cursor = &menuCursors[0x11];
             cb[1] = *cursor;
             fn_2_15A90(cursor, 0, lbl_2_bss_F468[0x57]);
             ((u8 *)&Static_Stats_Tables)[0x4711] = *cursor;
@@ -443,7 +443,7 @@ void selectStadiumScreen(void) {
             cb = &lbl_803CBBC2[2];
             cb[4] = 1;
 
-            if (lbl_803C50E8[0x47] == 0) {
+            if (cardCheck[0x47] == 0) {
                 changeScreenVariables(0xF);
             } else {
                 menuNumber[0x26] = 1;
