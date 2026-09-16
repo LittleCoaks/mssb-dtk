@@ -22,7 +22,7 @@ typedef struct _GameInitVariables {
     /*0x0B*/ u8 _0B;
     /*0x0C*/ u8 maybeHomeAway;
     /*0x0D*/ u8 maybeHomeAway2;
-    /*0x0E*/ u8 home_AwaySetting;
+    /*0x0E*/ u8 home_AwaySetting;   // "bats first" setting (0x800E870A)
     /*0x0F*/ u8 _0F;
     /*0x10*/ E(u8, P2_CPU_CODE) p2_CPU_match_code;
     /*0x11*/ bool minigamesEnabled;
@@ -56,15 +56,19 @@ extern GameInitVariables g_d_GameSettings;
 // The object immediately after g_d_GameSettings. symbols.txt records it as
 // .data:0x800E8754 size:0x60. Offsets are anchored on memory, from the old
 // Ghidra export's recorded addresses (see ProjectRio-ASM docs/rename_map.md):
-//   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28
+//   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28,
+//   0x800E877E -> +0x2A, 0x800E8782 -> +0x2E
 typedef struct _InningSettings {
     /*0x00*/ u8 inningCount;
     u8 _pad_1[0x3];
     /*0x04*/ u8 starSkillsSetting;
     /*0x05*/ u8 runsNeededForMercy;
     u8 _pad_6[0x22];
-    /*0x28*/ s16 rel;   // which REL is resident: 0 boot, 4 menu, 5 match
-    u8 _pad_2A[0x36];
+    /*0x28*/ s16 rel;           // which REL is resident: 0 boot, 4 menu, 5 match
+    /*0x2A*/ u16 currentScene;  // the menu screenCode (5 main menu, 6 options, ...)
+    /*0x2C*/ u16 _2C;
+    /*0x2E*/ u16 previousScene;
+    u8 _pad_30[0x30];
 } InningSettings; // size: 0x60
 
 extern InningSettings inningSetting;
@@ -80,6 +84,10 @@ typedef struct {
 } camera_803c639c_s; // size: 0xA8
 
 typedef void (*fn_800528AC_parameter)(camera_803c639c_s*);
+
+/* The four camera blocks at 0x803C639C (0x2A0 bytes); cameras[2].proj
+ * (0x803C64EC) is the projection the menus' 3D previews are drawn with. */
+extern camera_803c639c_s cameras[4];
 
 extern void fn_800528AC(fn_800528AC_parameter);
 extern camera_803c639c_s* fn_80052768_getCamera(int);
@@ -157,10 +165,11 @@ typedef struct {
     /* 0x4711 */ u8 _4711[0x4728 - 0x4711];
     /* 0x4728 */ u8 mode;
     /* 0x4729 */ u8 player2Ind;
-    /* 0x472A */ u8 _472A[2];
+    /* 0x472A */ u8 sceneAlive;     // 0x803530CA: nonzero while a menu scene is up
+    /* 0x472B */ u8 _472B;
     /* 0x472C */ controllerInputStruct controllerInputs[4];
     /* 0x4744 */ u8 _4744[0x4757 - 0x4744];
-    /* 0x4757 */ u8 charOnCharacterGridSelected[54];
+    /* 0x4757 */ u8 charOnCharacterGridSelected[54]; // "taken" table, one byte per CHAR_ID (0x803530F7)
     /* 0x478D */ u8 battingOrderIndex[9];
     /* 0x4796 */ u8 _4796[0x489B - 0x4796];
     /* 0x489B */ u8 charIsStarred[9];
@@ -196,7 +205,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ u8 cursor[2];
-    /* 0x02 */ structCharSelect roster;
+    /* 0x02 */ structCharSelect roster;   // rosterCharID[p][0] (0x803C6726 / 0x803C672F) is player p's captain
 } CursorPositions_s; // size: 0x5C
 
 extern CursorPositions_s cursorPositions;
@@ -217,7 +226,9 @@ typedef struct {
     /* 0xCF46 */ u8 teamManagement_cursorPos[2];
     /* 0xCF48 */ u8 _CF48[0xCF5D - 0xCF48];
     /* 0xCF5D */ u8 unkCF5D[2];
-    /* 0xCF5F */ u8 _CF5F[0x24C98 - 0xCF5F];
+    /* 0xCF5F */ u8 _CF5F[0xCF9E - 0xCF5F];
+    /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
+    /* 0xCF9F */ u8 _CF9F[0x24C98 - 0xCF9F];
 } AiPosSwapInputs_s; // size: 0x24C98
 
 extern AiPosSwapInputs_s aiPosSwapInputs;
