@@ -41,12 +41,12 @@ extern void fn_1_273D8(void *arg0);
 
 extern f32 lbl_1_bss_6BE4[4];
 extern u8 lbl_1_bss_6BF4[0x154];
-extern u8 lbl_1_data_10674[0x150];
+extern u8 StadiumFiles_debug_10674[0x150];
 extern void (*lbl_1_data_1066C[])(s16);
 extern u8 lbl_1_bss_6D48[0xFC];
 extern f32 lbl_1_rodata_77E4;
 extern u8 lbl_803C6CF8[0x708];
-extern u8 lbl_1_data_104F4[0x14];
+extern u8 chainModelFileDescriptorDebug[0x14];
 extern Mtx44 lbl_1_bss_47010;
 extern f32 lbl_1_rodata_77D8;
 extern f32 lbl_1_rodata_77DC;
@@ -143,7 +143,7 @@ extern u8 lbl_1_bss_43EE0[0x88];
 extern void fn_80038B48(void *arg0, void *arg1, s32 arg2, void *arg3);
 extern void fn_80038CD0(u8 arg0, void *arg1, void *arg2, f32 arg3, f32 arg4);
 extern void convertTextureHeader(void *arg0);
-extern u8 lbl_1_data_10518[0x150];
+extern u8 StadiumFiles_debug_10518[0x150];
 extern void fn_800BDA24(void *arg0);
 extern void fn_800BD670(void *arg0, void *arg1);
 extern f64 lbl_1_rodata_7818;
@@ -391,7 +391,7 @@ void fn_1_1DA54(void) {
 void fn_1_1DCE4(void) {
     DrawingSceneStruct *item = currentDrawingItem;
 
-    *(void **)((u8 *)item + 0x14) = ARAMTransfer(lbl_1_data_10674, 0, 0, 0);
+    *(void **)((u8 *)item + 0x14) = ARAMTransfer(StadiumFiles_debug_10674, 0, 0, 0);
     currentDrawingItem->func = fn_1_1DA54;
 }
 
@@ -1642,7 +1642,7 @@ void fn_1_2004C(void) {
 
     switch (state) {
     case 0: {
-        *(void **)((u8 *)item + 0x18) = ARAMTransfer(lbl_1_data_10518, 0, 0, 0);
+        *(void **)((u8 *)item + 0x18) = ARAMTransfer(StadiumFiles_debug_10518, 0, 0, 0);
         *((u8 *)item + 0x21) += 1;
         break;
     }
@@ -2026,7 +2026,7 @@ void fn_1_20F8C(void) {
         if ((s8)lbl_803C6CF8[0x715] != 1) {
             break;
         }
-        *(void **)((u8 *)item + 0x14) = ARAMTransfer(lbl_1_data_104F4, 0, 0, 0);
+        *(void **)((u8 *)item + 0x14) = ARAMTransfer(chainModelFileDescriptorDebug, 0, 0, 0);
         currentDrawingItem->state += 1;
         break;
     case 1:
