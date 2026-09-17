@@ -125,6 +125,7 @@ extern s16 lbl_3_common_bss_37400[0x27];
 extern int foul_checkIfFoul(f32 x, f32 z);
 extern int foul_isBallWithin3mFair(f32 x, f32 z);
 extern f32 ballDistCalculator(f32 x, f32 z);
+extern u8 fn_3_107D70(void);
 extern int fn_3_1379A0(int fielderIndex);
 extern int fn_3_B7E44(f32 dist, sAng angle);
 extern void fieldingRelatedAnimations(void* anim, int state);
@@ -3209,9 +3210,76 @@ void checkForCatchBallAction(int fielderIndex) {
 #pragma dont_inline reset
 
 // .text:0x0002CBE0 size:0x314 mapped:0x8066BC74
-void minigameDashUpdateFieldingVals(void) {
-    return;
+#pragma dont_inline on
+BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
+    InMemFielder* fielder;
+    int i;
+    int fielderIndex;
+
+    fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    g_Minigame._1922 = minigameFielderSlot;
+    g_Minigame.minigameRelatedIndex = fielderIndex;
+    fielder = &g_Fielders[fielderIndex];
+
+    updateFielder_SpecificValuesEachFrame(fielderIndex);
+
+    if (g_Minigame._19BC == 1 && fielder->distanceFromHomePlate > lbl_3_rodata_B90) {
+        g_Minigame._19D0 = 1;
+    }
+
+    if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) != 0) {
+        if (g_Minigame._19D0 == 0) {
+            return 0;
+        }
+    } else {
+        if (g_Minigame._19D0 == 0) {
+            return 0;
+        }
+
+        fielder->movementAngle = normalizeAngle(fielder->playerAngleFromHome + 0x800);
+        fielder->desiredMovementDirection = shortAngleToRad_Capped(fielder->movementAngle);
+        moveFielder_CheckForAndSetJump(fielderIndex);
+    }
+
+    fielderUpdateChasingRunnerValues(fielderIndex);
+
+    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
+        if (!g_d_GameSettings.minigamesEnabled || g_Minigame.minigameRelatedIndex == i) {
+            updateFielderDirectionFacing(i);
+
+            fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
+
+            if (lbl_3_rodata_B20 == fielder->currentVelocity) {
+                fielder->xMovementDir = lbl_3_rodata_B20;
+                fielder->zMovementDir = lbl_3_rodata_B20;
+            } else {
+                fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
+                fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
+            }
+
+            fielder->unused_alwaysSetTo0 = 0;
+            fielder->attachedKlaptrapCount = 0;
+        }
+    }
+
+    fielding_handleCollisionsAndSpecialActions();
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        minigameFieldingRelated_collisions();
+    } else if (g_Ball.fielderWBallIndex >= 0) {
+        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
+
+        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
+        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+    }
+
+    return 1;
 }
+#pragma dont_inline reset
 
 // .text:0x0002CEF4 size:0x18C mapped:0x8066BF88
 void unused_FUN_8066bf88(int fielderIndex) {
@@ -3807,18 +3875,241 @@ void miniGameFielding(void) {
 }
 
 // .text:0x0002EA88 size:0x43C mapped:0x8066DB1C
-void fn_3_2EA88(void) {
-    return;
+#pragma dont_inline on
+void fn_3_2EA88(int minigameFielderSlot) {
+    InMemFielder* fielder;
+    int i;
+    int fielderIndex;
+
+    fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    fielder = &g_Fielders[fielderIndex];
+
+    for (i = 19; i >= 1; i--) {
+        fielderControlStick_continuousAngleHistory[i] = -1;
+    }
+
+    g_FieldingLogic.fielderInputs = 0;
+    g_FieldingLogic.fielderInputsLatestFrame = 0;
+    g_FieldingLogic.unused_fielderControls0x8 = 0;
+
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
+        if (fielder->autoMovementFunctionIndex == 0 || fielder->autoMovementFunctionIndex == 9) {
+            if (fielderIndex != -1) {
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+            }
+        }
+    } else {
+        if (g_Ball.framesSinceHit <= 0) {
+            return;
+        }
+
+        g_Minigame.minigameRelatedIndex = fielderIndex;
+        g_Minigame._1922 = minigameFielderSlot;
+
+        if (g_Ball.framesSinceHit == 1) {
+            setFielderCatchStrategy_calcFramesToGetToDropSpot(fielderIndex);
+            fielderTrackingBall_initialVariableSetting(fielderIndex);
+            if (fielderIndex != -1) {
+                setFielderAutoMovement(fielderIndex, 26);
+            }
+            goto updateEachFielder;
+        }
+    }
+
+    updateFielderMovementAndPosition();
+    updateFielder_SpecificValuesEachFrame(fielderIndex);
+    autoMovementFunctions[fielder->autoMovementFunctionIndex].fn(fielderIndex);
+    fielderUpdateChasingRunnerValues(fielderIndex);
+
+    if (g_Minigame.framesSincePanelHit != 0) {
+        if (fielderIndex != -1) {
+            setFielderAutoMovement(fielderIndex, 28);
+        }
+    }
+
+updateEachFielder:
+    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
+        if (!g_d_GameSettings.minigamesEnabled || g_Minigame.minigameRelatedIndex == i) {
+            updateFielderDirectionFacing(i);
+
+            fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
+
+            if (lbl_3_rodata_B20 == fielder->currentVelocity) {
+                fielder->xMovementDir = lbl_3_rodata_B20;
+                fielder->zMovementDir = lbl_3_rodata_B20;
+            } else {
+                fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
+                fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
+            }
+
+            fielder->unused_alwaysSetTo0 = 0;
+            fielder->attachedKlaptrapCount = 0;
+        }
+    }
+
+    fielding_handleCollisionsAndSpecialActions();
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        minigameFieldingRelated_collisions();
+    } else if (g_Ball.fielderWBallIndex >= 0) {
+        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
+
+        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
+        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+    }
 }
+#pragma dont_inline reset
 
 // .text:0x0002EEC4 size:0x5C0 mapped:0x8066DF58
-void minigameDashUpdateFieldingVariables(void) {
-    return;
+void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
+    InMemFielder* fielder;
+    InputStruct* control;
+    s16* charHist;
+    s16 stickAngle;
+    int fielderIndex;
+    int i;
+
+    fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    g_Minigame._1922 = minigameFielderSlot;
+    g_Minigame.minigameRelatedIndex = fielderIndex;
+    fielder = &g_Fielders[fielderIndex];
+
+    control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+
+    if (fn_3_107D70()) {
+        control = &g_Minigame._1D7C[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+    }
+
+    charHist =
+        lbl_3_bss_C8.characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+
+    for (i = 19; i >= 1; i--) {
+        fielderControlStick_continuousAngleHistory[i] = charHist[i - 1];
+    }
+
+    stickAngle = control->controlStickAngle;
+    fielderControlStick_continuousAngleHistory[0] = stickAngle;
+
+    if (stickAngle == -1) {
+        for (i = 1; i < 20; i++) {
+            fielderControlStick_continuousAngleHistory[i] = -1;
+        }
+    }
+
+    if (fielderControlStick_continuousAngleHistory[1] < 0 ||
+        fielderControlStick_continuousAngleHistory[2] == 0) {
+        currentStickDirection = -1;
+    } else {
+        currentStickDirection = fielderControlStick_continuousAngleHistory[0];
+    }
+
+    for (i = 0; i < 20; i++) {
+        charHist[i] = fielderControlStick_continuousAngleHistory[i];
+    }
+
+    g_FieldingLogic.fielderInputs = control->buttonInput;
+    g_FieldingLogic.fielderInputsLatestFrame = control->newButtonInput;
+    g_FieldingLogic.unused_fielderControls0x8 = control->_08;
+
+    if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_PIRANHA_PANIC &&
+        (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_A)) {
+        g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 2;
+        g_FieldingLogic.jumpDiveStruct->stickAngleWhenPressingA = fielderControlStick_continuousAngleHistory[0];
+    }
+
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC ||
+        g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
+        if (fielder->autoMovementFunctionIndex == 0 || fielder->autoMovementFunctionIndex == 9) {
+            if (fielderIndex != -1) {
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+            }
+        }
+    } else {
+        if (g_Ball.framesSinceHit <= 0) {
+            return;
+        }
+
+        if (g_Ball.framesSinceHit == 1) {
+            if (fielderIndex != -1) {
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+            }
+            goto updateEachFielder;
+        }
+    }
+
+    updateSprintPointers();
+    updateFielder_SpecificValuesEachFrame(fielderIndex);
+    autoMovementFunctions[fielder->autoMovementFunctionIndex].fn(fielderIndex);
+    fielderUpdateChasingRunnerValues(fielderIndex);
+
+updateEachFielder:
+    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
+        if (!g_d_GameSettings.minigamesEnabled || g_Minigame.minigameRelatedIndex == i) {
+            updateFielderDirectionFacing(i);
+
+            fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
+
+            if (lbl_3_rodata_B20 == fielder->currentVelocity) {
+                fielder->xMovementDir = lbl_3_rodata_B20;
+                fielder->zMovementDir = lbl_3_rodata_B20;
+            } else {
+                fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
+                fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
+            }
+
+            fielder->unused_alwaysSetTo0 = 0;
+            fielder->attachedKlaptrapCount = 0;
+        }
+    }
+
+    fielding_handleCollisionsAndSpecialActions();
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        minigameFieldingRelated_collisions();
+    } else if (g_Ball.fielderWBallIndex >= 0) {
+        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
+
+        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
+        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+    }
 }
 
 // .text:0x0002F484 size:0xF0 mapped:0x8066E518
 void miniGameDash(void) {
-    return;
+    int i;
+
+    fielderResetAndStoreValuesEachFrame();
+
+    for (i = 0; i < 4; i++) {
+        if ((s8)g_Minigame.minigameFielderIndex[i] >= 0) {
+            g_FieldingLogic.dashPtr = (FielderDash*) ((u8*) g_FieldingLogic.fielderDashByPort + i * 0x1c);
+            g_FieldingLogic.jumpDiveStruct =
+                (UnkInputRelated*) ((u8*) &g_FieldingLogic.specialActionChecks + i * 6);
+
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19BC != 0 &&
+                i == (s8) g_Minigame._19C6) {
+                if (minigameDashUpdateFieldingVals(i)) {
+                    continue;
+                }
+            }
+
+            if (g_Minigame.minigameControlStruct[0].battingHandedness[i] == 0) {
+                minigameDashUpdateFieldingVariables(i);
+            } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
+                minigameDashUpdateFieldingVariables(i);
+            } else {
+                fn_3_2EA88(i);
+            }
+        }
+    }
 }
 
 // .text:0x0002F574 size:0x260 mapped:0x8066E608
@@ -18037,6 +18328,7 @@ void aITeamFielding_SelectCharWithHand(void) {
 #pragma dont_inline reset
 
 // .text:0x00057BB4 size:0x804 mapped:0x80696C48
+#pragma dont_inline on
 void updateFielderMovementAndPosition(void) {
     int fielderIndex;
     InMemFielder* fielder;
@@ -18150,6 +18442,7 @@ void updateFielderMovementAndPosition(void) {
 
     currentStickDirection = fielderControlStick_continuousAngleHistory[0];
 }
+#pragma dont_inline reset
 
 // .text:0x000583B8 size:0x2D0 mapped:0x8069744C
 void liveBallFielderControlAITeam(void) {
@@ -18219,6 +18512,7 @@ void liveBallFielderControlAITeam(void) {
 }
 
 // .text:0x00058688 size:0x1E8 mapped:0x8069771C
+#pragma dont_inline on
 void fielderResetAndStoreValuesEachFrame(void) {
     int i;
 
@@ -18261,6 +18555,7 @@ void fielderResetAndStoreValuesEachFrame(void) {
         g_FieldingLogic.FrameCycleCounter_20--;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00058870 size:0x5E0 mapped:0x80697904
 void setDefaultInMemFielder(void) {
