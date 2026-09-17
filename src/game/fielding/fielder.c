@@ -11338,6 +11338,7 @@ void fn_3_42A00(int fielderIndex) {
 }
 
 // .text:0x00042BD0 size:0x10C mapped:0x80681C64
+#pragma dont_inline on
 void fn_3_42BD0(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int n;
@@ -11364,8 +11365,10 @@ void fn_3_42BD0(int fielderIndex) {
         }
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00042CDC size:0x35C mapped:0x80681D70
+#pragma dont_inline on
 void updateFielderPosition(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 outX;
@@ -11418,6 +11421,7 @@ void updateFielderPosition(int fielderIndex) {
         fielder->goingToAutoLocationInd = 1;
     }
 }
+#pragma dont_inline reset
 
 extern const f32 lbl_3_rodata_C08;
 extern const f32 lbl_3_rodata_B60;
@@ -11492,9 +11496,173 @@ void setIntendedLocToInterceptBall(int fielderIndex) {
     }
 }
 
+static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* fielder, f32 targetX, f32 targetZ,
+                                                               BOOL resetMovementState);
+
 // .text:0x000433E0 size:0x13E4 mapped:0x80682474
-void fielderTrackingBall_updateVariables(void) {
-    return;
+void fielderTrackingBall_updateVariables(int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+
+    if (g_Ball.ballBounceState == 3) {
+        setIntendedLocToInterceptBall(fielderIndex);
+    } else if (g_Ball.ballVelocity < lbl_3_rodata_B7C && g_Ball.ballState != BALL_STATE_HIT &&
+               g_Ball.ballState != BALL_STATE_HELD) {
+        if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_IN_AIR) {
+            fielder->maybeMovementState = 5;
+        }
+    } else if (g_Ball.ballVelocity < lbl_3_rodata_B24 && g_Ball.ballZoneAwayFromHome >= 3 &&
+               g_Ball.AtBat_ContactResult >= BALL_RESULT_TYPE_LANDED &&
+               g_Ball.AtBat_ContactResult <= BALL_RESULT_TYPE_CAUGHT && fielder->maybeMovementState != 4 &&
+               fielder->maybeMovementState != 5) {
+        setIntendedLocToInterceptBall(fielderIndex);
+    } else if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 3 && g_Ball.framesSinceHit <= 180 &&
+               fielderIndex == 1 && fielder->maybeMovementState != 4) {
+        setIntendedLocToInterceptBall(fielderIndex);
+    }
+
+    if (g_Ball.pauseBallMovementWhenInPlant) {
+        f32 dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
+        f32 dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
+
+        if (dx == lbl_3_rodata_B20 && dz == lbl_3_rodata_B20) {
+            fielder->currentVelocity = lbl_3_rodata_B20;
+            fielder->distanceFromAutoLocation = lbl_3_rodata_B20;
+        } else {
+            fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
+            fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
+        }
+        fielder->goingToAutoLocationInd = 1;
+        goto tail;
+    }
+
+    if (g_FieldingLogic.letFoulBallDropIfWinningRunOn3rdInd) {
+        CoordAndDist* c;
+        f32 cx, cz, dist, targetXRaw, targetZRaw, targetX, targetZ;
+
+        if (fielder->framesRemainingToGetToLandingSpot <= 1) {
+            goto tail;
+        }
+
+        c = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
+        cx = c->pos.x;
+        cz = c->pos.z;
+        dist = fielderSqrt(cx * cx + cz * cz);
+        targetXRaw = cx + lbl_3_rodata_B80 * (cx / dist);
+        targetZRaw = cz + lbl_3_rodata_B80 * (cz / dist);
+        targetX = (targetXRaw >= lbl_3_rodata_B20) ? (targetXRaw - lbl_3_rodata_BA0) : (targetXRaw + lbl_3_rodata_BA0);
+        targetZ = targetZRaw + f8_0;
+
+        fielderTrackingBall_applyIntendedLocation(fielder, targetX, targetZ, 0);
+        goto tail;
+    }
+
+    switch (fielder->maybeMovementState) {
+    case 0:
+        if (fielder->framesRemainingToGetToLandingSpot <= 1) {
+            fielder->maybeMovementState = 5;
+        } else if (fielder->aiDistToStandFromWallCollision != 0) {
+            f32 outX;
+            f32 outZ;
+            fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+            fielder->maybeTargetPosX = outX;
+            fielder->maybeTargetPosZ = outZ;
+            fielderTrackingBall_applyIntendedLocation(fielder, outX, outZ, 0);
+        } else {
+            CoordAndDist* landing = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
+            f32 landingX = landing->pos.x;
+            f32 landingZ = landing->pos.z;
+            f32 dist = fielderSqrt(landingX * landingX + landingZ * landingZ);
+            f32 targetX = landingX + lbl_3_rodata_B80 * (landingX / dist);
+            f32 targetZ = landingZ + lbl_3_rodata_B80 * (landingZ / dist);
+
+            if (g_Ball.warioWaluGarlicIsActive) {
+                if (g_AiLogic.warioStarRelated[0]) {
+                    targetX = g_Ball.peachDaisyStarHitFielderLoc.x;
+                    targetZ = g_Ball.peachDaisyStarHitFielderLoc.z;
+                } else {
+                    targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+                    targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+                }
+            } else if (g_Ball.autoFielderAvoidDropSpotForPeachesStarHit) {
+                targetX = g_Ball.peachDaisyStarHitFielderLoc.x;
+                targetZ = g_Ball.peachDaisyStarHitFielderLoc.z;
+            }
+
+            fielderTrackingBall_applyIntendedLocation(fielder, targetX, targetZ, 0);
+        }
+        break;
+    case 1: {
+        f32 x5m;
+        f32 z5m;
+
+        fielder->xPos5mAwayFromBallsCollisionSpotOnWall = g_Ball.ballWillHitBallPos.x;
+        fielder->zPos5mAwayFromBallsCollisionSpotOnWall = g_Ball.ballWillHitBallPos.z;
+
+        if (fielder->aiDistToStandFromWallCollision != 0) {
+            f32 outX;
+            f32 outZ;
+            fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+            fielderTrackingBall_applyIntendedLocation(fielder, outX, outZ, 0);
+            fielder->maybeTargetPosX = outX;
+            fielder->maybeTargetPosZ = outZ;
+        } else {
+            x5m = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
+            z5m = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
+            fielderTrackingBall_applyIntendedLocation(fielder, x5m, z5m, 0);
+        }
+        break;
+    }
+    case 2:
+        updateFielderPosition(fielderIndex);
+        break;
+    case 3:
+        fn_3_42BD0(fielderIndex);
+        break;
+    case 4: {
+        CoordAndDist* c = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
+        fielderTrackingBall_applyIntendedLocation(fielder, c->pos.x, c->pos.z, 0);
+        if (fielder->framesRemainingToGetToLandingSpot <= 1) {
+            fielder->maybeMovementState = 5;
+        }
+        break;
+    }
+    case 5:
+        fielderTrackingBall_applyIntendedLocation(fielder, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z, 0);
+        break;
+    }
+
+tail:
+    fielder->framesRemainingToGetToLandingSpot -= 1;
+    setFielderVelocity(fielderIndex);
+
+    if (fielder->currentVelocity != lbl_3_rodata_B20) {
+        fielder->numFramesToGetToAutoLocation = (s16)(fielder->distanceFromAutoLocation / fielder->currentVelocity);
+    }
+
+    if (fielder->maybeMovementState == 1 || fielder->maybeMovementState == 2 || fielder->maybeMovementState == 3) {
+        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+            int n;
+
+            if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x == fielder->pos.x &&
+                g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z == fielder->pos.z) {
+                n = 1;
+            } else {
+                f32 dx = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - fielder->pos.x;
+                f32 dz = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z - fielder->pos.z;
+                f32 speed = fielder->joggingSpeed;
+
+                if (speed == lbl_3_rodata_B20) {
+                    speed = lbl_3_rodata_B60;
+                }
+                n = (fielder->maxAccLength_ConstF >> 1) + (int)(fielderSqrt(dx * dx + dz * dz) / speed);
+            }
+
+            if (g_Ball.framesUntilBallHitsGround > n) {
+                fielder->maybeMovementState = 0;
+                fielder->framesRemainingToGetToLandingSpot = n - 2;
+            }
+        }
+    }
 }
 
 static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* fielder, f32 targetX, f32 targetZ,

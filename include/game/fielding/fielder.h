@@ -154,7 +154,7 @@ void fn_3_42A00(int fielderIndex);
 void fn_3_42BD0(int fielderIndex);
 void updateFielderPosition(int fielderIndex);
 void setIntendedLocToInterceptBall(int fielderIndex);
-void fielderTrackingBall_updateVariables(void);
+void fielderTrackingBall_updateVariables(int fielderIndex);
 void fielderTrackingBall_initialVariableSetting(int fielderIndex);
 void autoMovement2_18_goTowardsBall_phase2(int fielderIndex);
 void autoMovement4_AI_goTowardsHitBall(int fielderIndex);
