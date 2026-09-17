@@ -8738,6 +8738,7 @@ void fn_3_3ABF0(int fielderIndex) {
 }
 
 // .text:0x0003ACC0 size:0x174 mapped:0x80679D54
+#pragma dont_inline on
 void updateFielderMovementIfNoBall(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int framesSinceHit;
@@ -8787,6 +8788,7 @@ void updateFielderMovementIfNoBall(int fielderIndex) {
     fielder->fielderTrackingBallState = 2;
     fielder->fielderIsInitialOutfielderSelectedInd = 0;
 }
+#pragma dont_inline reset
 
 // .text:0x0003AE34 size:0x53C mapped:0x80679EC8
 void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
@@ -11117,6 +11119,7 @@ void fielderAISomething(void) {
 }
 
 // .text:0x0004207C size:0x7D4 mapped:0x80681110
+#pragma dont_inline on
 void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     InMemFielder* other;
@@ -11284,6 +11287,7 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
     }
     setFielderAutoMovement(fielderIndex, 12);
 }
+#pragma dont_inline reset
 
 // .text:0x00042850 size:0x1B0 mapped:0x806818E4
 void fn_3_42850(int fielderIndex) {
@@ -11500,6 +11504,7 @@ static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* field
                                                                BOOL resetMovementState);
 
 // .text:0x000433E0 size:0x13E4 mapped:0x80682474
+#pragma dont_inline on
 void fielderTrackingBall_updateVariables(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
@@ -11664,6 +11669,7 @@ tail:
         }
     }
 }
+#pragma dont_inline reset
 
 static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* fielder, f32 targetX, f32 targetZ,
                                                                BOOL resetMovementState) {
@@ -11828,18 +11834,141 @@ tail:
 #pragma dont_inline reset
 
 // .text:0x00045394 size:0x220 mapped:0x80684428
+#pragma dont_inline on
 void autoMovement2_18_goTowardsBall_phase2(int fielderIndex) {
-    return;
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    int result;
+
+    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 3 && g_Ball.framesSinceHit < 0x91 &&
+        fielderIndex == 1) {
+        return;
+    }
+
+    if (g_Ball.framesSinceHit <= 0) {
+        return;
+    }
+
+    if (fielder->fielderMadeThrow) {
+        if (fielder->framesSinceThrowWasMade < 0x7ffe) {
+            fielder->framesSinceThrowWasMade++;
+        } else {
+            fielder->framesSinceThrowWasMade = 0x7fff;
+        }
+
+        if (fielder->framesSinceThrowWasMade < fielder->const_60) {
+            if (g_Ball.ballState == BALL_STATE_HELD) {
+                fielder->framesSinceThrowWasMade = fielder->const_60;
+            }
+            return;
+        }
+
+        fielder->framesSinceThrowWasMade = 0;
+        fielder->fielderMadeThrow = 0;
+    }
+
+    result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
+    switch (result) {
+    case 2:
+        return;
+    case 1:
+        goto standOnBase;
+    default:
+        break;
+    }
+
+    if (fielder->animatingActionInd == 0) {
+        fielderTrackingBall_updateVariables(fielderIndex);
+    }
+
+    if (!g_d_GameSettings.minigamesEnabled) {
+        decideWhenToLeaveFunction2_16_18(fielderIndex);
+    }
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        if (g_Ball.deadBallReason == 0) {
+            return;
+        }
+        if (fielderIndex != -1) {
+            setFielderAutoMovement(fielderIndex, 12);
+        }
+        return;
+    }
+
+standOnBase:
+    if (g_Ball.deadBallReason != 0) {
+        if (fielderIndex != -1) {
+            setFielderAutoMovement(fielderIndex, 12);
+        }
+        return;
+    }
+    setStandingOnBaseVariables(fielderIndex);
 }
+#pragma dont_inline reset
 
 // .text:0x000455B4 size:0x2AC mapped:0x80684648
 void autoMovement4_AI_goTowardsHitBall(int fielderIndex) {
-    return;
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    f32 dist;
+
+    if (g_Ball.framesSinceHit < fielder->lockoutDuration) {
+        return;
+    }
+
+    if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) != 0) {
+        return;
+    }
+
+    fielderTrackingBall_initialVariableSetting(fielderIndex);
+
+    dist = fielderSqrt(fielder->IntendedLocation.x * fielder->IntendedLocation.x +
+                        fielder->IntendedLocation.z * fielder->IntendedLocation.z);
+    if (dist > lbl_3_rodata_B9C) {
+        g_Fielders[0].IntendedLocation.x = g_Fielders[0].pos.x;
+        g_Fielders[0].IntendedLocation.y = g_Fielders[0].pos.y;
+        g_Fielders[0].IntendedLocation.z = g_Fielders[0].pos.z;
+        g_Fielders[0].velocityX = lbl_3_rodata_B20;
+        g_Fielders[0].velocityZ = lbl_3_rodata_B20;
+        g_Fielders[0].currentVelocity = lbl_3_rodata_B20;
+        g_Fielders[0].distanceFromAutoLocation = lbl_3_rodata_B20;
+        if (fielderIndex != -1) {
+            setFielderAutoMovement(fielderIndex, 9);
+        }
+        return;
+    }
+
+    autoMovement2_18_goTowardsBall_phase2(fielderIndex);
+
+    if (fielder->AI_Ind != 0) {
+        if (fielderIndex != -1) {
+            setFielderAutoMovement(fielderIndex, 2);
+        }
+    } else if (fielderIndex != -1) {
+        setFielderAutoMovement(fielderIndex, 16);
+    }
 }
 
 // .text:0x00045860 size:0x11C mapped:0x806848F4
 void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex) {
-    return;
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+
+    if (g_Ball.framesSinceHit < fielder->lockoutDuration) {
+        return;
+    }
+
+    if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) != 0) {
+        return;
+    }
+
+    fielderTrackingBall_initialVariableSetting(fielderIndex);
+    autoMovement2_18_goTowardsBall_phase2(fielderIndex);
+
+    if (fielder->AI_Ind != 0) {
+        if (fielderIndex != -1) {
+            setFielderAutoMovement(fielderIndex, 2);
+        }
+    } else if (fielderIndex != -1) {
+        setFielderAutoMovement(fielderIndex, 16);
+    }
 }
 
 // .text:0x0004597C size:0x20C mapped:0x80684A10
