@@ -87,7 +87,7 @@ void fn_3_33D9C(void);
 void determinePrimaryAndSecondaryOutFielders(int *primaryFielder, int *secondaryFielder);
 void setInitialFielderMovements_DeepFly(void);
 void humanTeamFieldingFirstFrameAfterHit(void);
-void decideHowToTrackFoulBall(void);
+void decideHowToTrackFoulBall(int fielderIndex);
 void autoMovement16_trackFoulBall(int fielderIndex);
 void setPlayerWhoCanInterceptThrow(void);
 int SelectClosestFielder2(f32 x, f32 z);
