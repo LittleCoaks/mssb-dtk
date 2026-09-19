@@ -2447,7 +2447,7 @@ typedef struct {
     /* 0x3C */ f32 _3C;
     /* 0x40 */ u16 AIFrameToBeginPitch;
     /* 0x42 */ u16 _42;
-    /* 0x44 */ u16 _44;
+    /* 0x44 */ s16 _44;
     /* 0x46 */ u8 _46;
     /* 0x47 */ u8 _47;
     /* 0x48 */ u8 unused_highUrgencySituationTracker;
@@ -2696,12 +2696,15 @@ typedef struct {
 } FielderDash; // size: 0x1c
 
 typedef struct {
-    /*0x00*/ u8 _00[2];
+    /*0x00*/ s16 _00;
     /*0x02*/ s16 _02;
     /*0x04*/ s16 _04;
-    artificial_padding(0x04, 0x10, s16);
+    /*0x06*/ s16 runnerTransferIndex[4];
+    artificial_padding(0x06, 0x10, s16[4]);
     /*0x10*/ u8 _10;
-    artificial_padding(0x10, 0x20, u8);
+    artificial_padding(0x10, 0x14, u8);
+    /*0x14*/ u8 someSituationTrackerFrames;
+    artificial_padding(0x14, 0x20, u8);
 } g_RunningLogic_s; // size: 0x20
 
 extern g_RunningLogic_s g_RunningLogic;

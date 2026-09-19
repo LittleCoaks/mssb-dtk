@@ -956,3 +956,113 @@ labels, then find the source shape that emits that order. On
 `updateFielderDirectionFacing` this took 83.7% -> 98.6% in two steps. The lever is
 usually which arm of an `if`/`else` is the fall-through, and whether a shared tail block
 sits before or after a large cascade.
+
+## Batching Ghidra decompiler output is the main accelerator for a from-scratch file
+
+First seen: `game/game/baserunning/runner` (78 functions, all `return;` stubs at
+session start, 2026-09).
+
+`tools/ghidra_query.py decomp <name1> <name2> ...` runs ONE headless Ghidra pass
+over every name given (~15 s total), so batching a whole work-batch into a single
+call is nearly free. It needs `MSSB_GHIDRA_HOME` pointed at the install that holds
+the `.gpr` — on this machine `E:\Project Rio\Ghidra 11.0.3`, NOT the other Ghidra
+install present, which has `analyzeHeadless` but no project and fails with
+"Could not find project".
+
+Two caveats. Functions that still carry dtk placeholder names (`fn_3_XXXXX`) are
+frequently not defined as functions in the Ghidra program at all and come back
+`NOT FOUND`; read the `.s` for those. And Ghidra's field names come from an older
+struct model, so every member reference has to be re-mapped onto the real header
+before use. Treat the output as a strong hint about control flow, never as truth.
+
+Related: `ghidra_query.py name` works with no Ghidra install at all, reading only
+`.ghidra_cache/*.symbols.txt`, but those caches can be months stale.
+
+## Constant vs. variable index decides pointer-local vs. array access
+
+First seen: `game/game/baserunning/runner` (2026-09). This completes the pair of
+entries above ("An explicit struct-base pointer local is right for repeated
+fixed-index access" and "Pointer-local scope of assignment"), which cover the
+variable-index case only.
+
+Three distinct shapes, all measured in one file:
+- **Several DIFFERENT CONSTANT indices** in one function (`g_Runners[1].a`,
+  `g_Runners[2].b`) -> plain array access. MWCC then shares ONE base register and
+  emits large displacements (`n*0x154 + fieldOffset`). Declaring a pointer local
+  per runner makes it reload `lis`/`addi` each time: 92.43% with pointer locals,
+  **100%** with plain array access on `unused_forceOutSomething`.
+- **Repeated access to ONE element at a VARIABLE index** -> explicit pointer local
+  `InMemRunnerType* runner = &g_Runners[i];` (the existing entries).
+- **A loop over elements where the target bumps a base by the struct stride
+  inside the loop** -> walking pointer `for (i=0; i<4; i++, runner++)`. This
+  reached 100% on `fn_3_89028`, and separately made MWCC unroll a copy loop the
+  same way the target does (69.4% -> 83.0% on
+  `transferInMemRunnerValuesToNextRunnerIndex`).
+
+The tell for the first case is our side re-materialising the global base
+(`lis`/`addi`) where the target reuses an already-live base register.
+
+## Write a sum of two squares as separate statements
+
+First seen: `game/game/baserunning/runner` (2026-09).
+
+`dolsqrtf2(dx*dx + dz*dz)` fuses into an `fmadds` that targets written as
+separate statements do not have. Writing `dx = dx*dx; dz = dz*dz;
+dolsqrtf2(dx + dz);` removes it. Worth 95.87% -> 98.64% on
+`running_updateDistAndFramesToClosestBases`, and the same shape recurs in every
+distance calculation in the file.
+
+## A `u8` field compared `>= 0` folds away — the target's `extsb.` means an `s8` cast
+
+First seen: `game/game/baserunning/runner`, `running_checkForOuts` (2026-09).
+
+If a struct field is declared `u8` and the source tests `field >= 0`, MWCC folds
+the test away entirely (it is always true). When the target emits `lbz` followed
+by `extsb.` and a REAL branch, the original source cast to signed first —
+`(s8)runner->baseOfFailedBodyCheck >= 0`. Adding those casts was the last diff
+between 99.x% and 100% on `running_checkForOuts`. Note this is a different
+situation from a genuinely mis-typed field: the field really is `u8` storage and
+`-1`/`0xFF` is being used as a sentinel, so the cast belongs at the comparison,
+not in the struct.
+
+## On a large function, invert the outermost conditional before doubting the body
+
+First seen: `game/game/baserunning/runner` (2026-09).
+
+Which arm of the outermost `if`/`else` is the fall-through dominates the whole
+function's block layout, and getting it backwards scores near zero even when
+every statement is correct. On `running_LiveBall_Human` the first draft scored
+**7.9%**; making the other arm the outer `if`, with no other change, scored
+**95.55%**. If a big from-scratch function scores in the single digits, try the
+inversion before rewriting the body. Cross-reference "An exact size match plus a
+low score means block ORDERING, not missing logic" above — this is the cheapest
+instance of that class.
+
+Related, smaller levers measured in the same file: `else if` chains versus nested
+`if`s (81.37% nested, 97.20% plain `else if`, 99.07% `else if` with explicit
+`(x & FLAG) == 0` guards on the last branches, all on `running_DirectionOverrides`),
+and `<= 1` versus `< 2` (the target's `cmplwi 1; bgt` versus our `cmplwi 2; bge`).
+
+## When the target inlines an in-file function it also keeps standalone, copy the body
+
+First seen: `game/game/baserunning/runner`, `running_MainFunction` and
+`cCSRunningFun` (2026-09). Compare "Contradictory declaration-order requirements
+between an auto-inlined static and its standalone `*_unused` copy" above — same
+underlying situation, different remedy.
+
+A dispatcher hub whose target inlines several smaller in-file functions cannot be
+matched by CALLING them: MWCC declines to inline a function that is also a real
+standalone symbol, so the call survives and every register assignment shifts.
+Measured on `running_MainFunction`: calling `fn_3_8A7B4()`/`fn_3_8A618()` gave
+**75.3%**, copying their bodies in gave **94.2%**. A `static inline` clone is the
+cleaner form of the same fix where the body is small enough to share.
+
+OPEN QUESTION from the same file, recorded so it is not re-derived: the reverse
+also happens. MWCC inlined two fully-implemented small callees
+(`running_chainChompSprintRelated`, `running_ForceOutStateRelated`) into
+`maybeUpdateRunnerNoRun` where the target keeps real `bl` calls, forcing that
+caller to 0.0% and 1040 bytes against the target's 356. A `#pragma dont_inline
+on`/`reset` bracket around the two callees restores the calls and the match. That
+pragma is currently in `src/game/baserunning/runner.c` and is almost certainly NOT
+the original source shape — it is scaffolding. The real question, unresolved, is
+what source property made the original compiler keep those calls.
