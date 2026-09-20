@@ -2890,7 +2890,9 @@ typedef struct _ScoreStruct {
 typedef struct _GameScoresControlsStruct {
     /*0x000*/ s32 Inning;
     /*0x004*/ ScoreStruct scores[2];
-    u8 _pad_50[0x5D];
+    u8 _pad_50[0x5A];
+    /*0x0AA*/ u8 inningLimit;
+    u8 _pad_AB[2];
     /*0x0AD*/ u8 halfInning;
     u8 _pad_AE[0x1A];
 } GameScoresControlsStruct; // size: 0xC8
