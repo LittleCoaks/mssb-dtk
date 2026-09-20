@@ -270,6 +270,19 @@ symptom, and checking them is much cheaper than open-ended grinding:
    allocated for the promoted value. Check every operand's real type
    against what the surrounding expression assumes.
 
+**Standing prior: register mismatch with matching logic almost always means
+inlining.** Across many decomp projects, when the instruction sequence is
+right but registers differ, the usual culprit is inlining structure in the
+original source: a helper the original inlined (or didn't), an inline
+function or macro whose expansion changes live ranges, or a header
+`static inline` we've flattened by hand. Treat "which function-like unit was
+inlined in the original?" as the *leading* hypothesis and exhaust it (both
+directions, per item 2) before trying pure register-nudging levers such as
+statement reordering or local-variable shuffling. Tell workers this
+explicitly. Note this is a prior, not a rule: measure it (the caller's byte
+size versus the target is the best diagnostic), and see the corrected
+inlining entry in `docs/matching_notes.md`.
+
 For REL-module files (most `game`/`menus`/`debug` objects here), when
 hunting for a missed inline specifically, work through the file's
 still-unmatched functions **smallest to largest**, not file order or lowest
