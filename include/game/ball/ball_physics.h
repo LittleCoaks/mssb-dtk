@@ -2,6 +2,7 @@
 #define __GAME_BALL_BALL_PHYSICS_H_
 
 #include "mssbTypes.h"
+#include "game/ball/collision_primitives.h"
 
 void chompCollision_processStarHitVariables(void);
 void ballState_thrown_to_holding(void);
@@ -10,9 +11,9 @@ void setBallInactiveVariables(void);
 void setValsForPlantCatches(void);
 void checkForBallDead(void);
 void ballCollisionLogic(void);
-void handleBallBounceAndRoll(void);
+void handleBallBounceAndRoll(f32* verticalVelocity, int bounceFrameCount, u8* ballIsRolling, BOOL skipStarBounce);
 void handleBallHitDeadBallOutcome(void);
-void fairOrFoulBall(void);
+void fairOrFoulBall(BALL_COLLISION_TYPE collType);
 void processLandedBallBouncing(void);
 void processBallInAir_Landed(void);
 void fn_3_9B74(void);
@@ -24,18 +25,18 @@ void fn_3_A020(void);
 void foulBall(void);
 void warioWaluStarHit(void);
 void updatePastHitBallCoords(void);
-void liveBallHitPhysics(void);
+void liveBallHitPhysics(int mode);
 void estimateTimeForThrowToReachTarget(void);
 void fielding_setHeldBallOffset(void);
-void futureFrameForClosestBall(void);
+int futureFrameForClosestBall(f32 playerX, f32 playerZ, f32* outPos, int maxFrame, int step);
 void fn_3_BC54(void);
 void setHitClassification3(void);
 void classifyHitTrajectoryOrHitAnimRelated(void);
 void updateFrameCountersAndBallPastCoordinatesWhenFielderHoldingBall(void);
-void estimateAndSetFutureCoords(int);
+void estimateAndSetFutureCoords(int mode);
 void fn_3_D9EC(void);
 void adjustVeloByAirResistance(void);
-void estimateWhereBallWillHitWall(void);
+void estimateWhereBallWillHitWall(BOOL useBallPitcherStart);
 void calculateImplicationsOfTheHitTrajectory(void);
 void setLiveBallVariablesAfterContact(void);
 void setDefaultInMemBall(void);

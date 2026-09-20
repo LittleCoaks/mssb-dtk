@@ -13,6 +13,7 @@
 #endif
 #include "math.h"
 #include "Dolphin/mtx.h"
+#include "game/ball/collision_primitives.h"
 
 #define SINF(x) ((f32)sin(x))
 #define COSF(x) ((f32)cos(x))
@@ -368,7 +369,7 @@ typedef struct _InMemBallType {
     /*0x1B2C*/ VecXYZ diveCatchLocationOffset;
     /*0x1B38*/ VecXYZ fielderActionCatchCoords;
     /*0x1B44*/ s32 collisionCode;
-    /*0x1B48*/ f32 maybeCollisionRelated;
+    /*0x1B48*/ E(s32, BALL_COLLISION_TYPE) maybeCollisionRelated;
     /*0x1B4C*/ s32 StaticRandomInt1;    // 0x80892684: match RNG state (ProjectRio-ASM's rollback test snapshots 0x20 bytes from here)
     /*0x1B50*/ s32 StaticRandomInt2;
     /*0x1B54*/ u32 StaticRandomInt1_prePitch;
@@ -2704,7 +2705,7 @@ typedef struct {
     /*0x10*/ u8 _10;
     artificial_padding(0x10, 0x12, u8);
     /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
-    artificial_padding(0x12, 0x14, u8);
+    /*0x13*/ u8 _13;
     /*0x14*/ u8 someSituationTrackerFrames;
     artificial_padding(0x14, 0x20, u8);
 } g_RunningLogic_s; // size: 0x20

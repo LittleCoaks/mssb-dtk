@@ -4813,7 +4813,7 @@ void setDefaultInMemRunner(void) {
     g_RunningLogic.__0x20padding[0] = (g_RunningLogic._02 & 0x1000) != 0;
     g_AiLogic._77 = 0;
     g_AiLogic._44 = lbl_3_data_1C58[g_GameLogic.homeTeamBattingInd_fieldingTeam][1];
-    g_RunningLogic.__0x14padding[1] = g_RunningLogic._10;
+    g_RunningLogic.someSituationTrackerFrames = g_RunningLogic._10;
     if (g_RunningLogic._02 & 0x100) {
         g_RunningLogic.__0x20padding[0]++;
     }

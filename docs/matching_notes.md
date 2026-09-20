@@ -1152,3 +1152,227 @@ constant is DONE — it is an artifact of the split, not a source-shape problem.
 `fielder_ai` this capped `fn_3_A1DA0` at 99.85% over 3 instructions, and contributed the
 last fractions on `fn_3_A6ABC`, `fn_3_A384C`, `fielderAIMakePlay` and
 `fieldingAIThrowOrChase`. Recognise it, record it, and spend the effort elsewhere.
+
+## `-inline deferred` auto-inlining of in-file standalone functions is NOT uniform — measure both forms
+
+First seen: `game/game/ball/ball_physics` (40 functions, all `return;` stubs at session
+start, 2026-09). This **contradicts the blanket claim** in "When the target inlines an
+in-file function it also keeps standalone, copy the body" above, which was written from
+`runner.c` and generalised too far.
+
+That entry says MWCC declines to inline a function that is also a real standalone symbol,
+so the call survives and you must copy the body in. In `ball_physics.c` the opposite was
+usually true: a plain call to a standalone in-file function got auto-inlined and matched
+the target's inlined copy exactly. Measured, same unit, same compiler settings:
+
+| caller / callee | call form | copied body |
+|---|---|---|
+| `ballCollisionLogic` / `foulBall` x6, `fn_3_9FA4` x2 | 99.314% | 99.314% (identical) |
+| `calculateImplicationsOfTheHitTrajectory` / `fn_3_D9EC` (0x1E4 B) | 98.984% | 98.973% (identical) |
+| `liveBallHitPhysics` / `updatePastHitBallCoords`, `adjustVeloByAirResistance` | 99.429% | 99.429% (identical) |
+| `calculateImplicationsOfTheHitTrajectory` / `fn_3_9B74` (0x16C B) | **86.178%, 340 B short** | **98.424%, exact size** |
+
+So it happens, but not predictably — and **callee size does not predict it**: the LARGER
+`fn_3_D9EC` (0x1E4) was auto-inlined while the SMALLER `fn_3_9B74` (0x16C) stayed a real
+`bl`. The cheap diagnostic is the function's BYTE SIZE: if the call form comes out
+hundreds of bytes short of the target, the call survived and the body must be copied in.
+
+Third case, distinct from both: the call form can compile to the RIGHT size and still
+underperform. `ballCollisionLogic`'s six inlined `relatedToGroundRuleDouble` copies scored
+98.741% as calls and 99.314% via a `static inline` helper — because the target's inlined
+copies write `deadballLastLoc` BEFORE `deadBallReason = 3` while the standalone function
+writes the reason first. A statement-order difference between the target's inlined copy and
+the standalone function means the copy came from a *different* original source function;
+match the copy, not the standalone.
+
+Rule: always measure the call form first (it is one build and far cleaner source), and
+only copy bodies in when the size or the score says the call survived.
+
+## Verify every `void f(void)` prototype against the target asm before implementing
+
+First seen: `game/game/ball/ball_physics` (2026-09). In a from-scratch file, dtk-derived
+prototypes are guesses. SIX of this unit's 40 were wrong, and each would have capped its
+function and every caller:
+
+- `futureFrameForClosestBall` -> `int (f32, f32, f32*, int, int)`
+- `fairOrFoulBall` -> `void (BALL_COLLISION_TYPE)`
+- `handleBallBounceAndRoll` -> `void (f32*, int, u8*, BOOL)`
+- `estimateWhereBallWillHitWall` -> `void (BOOL)`
+- `liveBallHitPhysics` -> `void (int mode)`
+- `estimateAndSetFutureCoords(int)`'s parameter is a 3-VALUED MODE selector, not a flag
+
+The check is cheap and mechanical: read the function's first few instructions for a read of
+`r3`-`r10` or `f1`-`f8` BEFORE any write to it, and read the call sites for argument setup.
+A first instruction of `cmpwi r3, 0` or `mr rN, r3` is decisive. Three sibling headers
+(`foul_detection.h`, `m_sound.h`, `star_swing_peach_daisy.h`) were also found to declare
+`(void)` for functions that really take arguments — other units had already worked around
+those with local `extern`s rather than fixing the header, so grep for an existing local
+extern before trusting a header.
+
+## MWCC does not fold a two-sided range test — write it as one unsigned subtract
+
+First seen: `game/game/ball/ball_physics` (2026-09).
+
+Where the target has `subi r0, rX, lo; cmplwi r0, n` (a single unsigned compare), source
+written `x >= lo && x <= hi` does NOT produce it — MWCC emits two compares and two branches.
+Write the fold explicitly: `(u32)(x - lo) <= n`, or `(u8)(x - lo) <= n` when the target has a
+`clrlwi r0, r0, 24` after the `subi`. Confirmed on collision-kind range checks in
+`ballCollisionLogic` and on the Yoshi/Birdo star check in
+`classifyHitTrajectoryOrHitAnimRelated` (`(u8)(currentStarSwing - CAPTAIN_STAR_TYPE_YOSHI) > 1`).
+
+Related, same file: a `switch` does NOT reproduce this either. The stadium floor-clamp in
+`liveBallHitPhysics` scored 98.25% as a `switch` and 99.43% as an `if`/`||` chain using the
+subtract form. And where a target tests an `s16` field with `extsh. r0, r3` before a chain of
+`cmpwi`s, assign the field to an `s16` local and write an if-chain — a `switch` does not
+produce the `extsh.`.
+
+## Where the truncation sits tells you the local's declared width
+
+First seen: `game/game/ball/ball_physics` (2026-09). A sharper form of the `clrlwi` entry at
+the top of this file, for the specific case of a value returned by a call.
+
+- Target has `clrlwi` at the ASSIGNMENT -> the local really is `u8`.
+- Target has `mr rN, r3` at the assignment and `clrlwi` at EACH USE -> the local is `int`
+  and the source casts `(u8)` at each use site.
+
+Same shape for sign extension: an `int` local holding an `s16`-returning call's result emits
+ONE `extsh`; an `s16` local emits an `extsh` at every use. Count them in the target and
+declare accordingly. Both were worth ~1 point each in `classifyHitTrajectoryOrHitAnimRelated`.
+
+## `s32 i` vs `int i` decides MWCC's vestigial fixed-trip loop guard
+
+First seen: `game/game/ball/ball_physics` (2026-09). This closes an open question from the
+`text_freeAllBlocks` entry above, which noted the guard (`li r0,0; cmpwi r0,0x1e; bgelr`)
+without identifying what produces it.
+
+Declaring the counter `s32` emits the guard; declaring it `int` omits it, with no other
+source change. Worth 83.2% -> 85.5% on `setDefaultInMemBall`, and it also produced the
+target's `li 0; cmpwi 10; bge` on a 10-trip loop in `setLiveBallVariablesAfterContact`. It
+is NOT universal — `int` and `s32` tied on the inner loop of `estimateWhereBallWillHitWall`
+— so measure rather than applying it blanket.
+
+## A search loop's `mtctr` value distinguishes two source shapes
+
+First seen: `game/game/ball/ball_physics` (2026-09).
+
+For a strided scan with an early exit, these two forms compile differently and the target's
+`mtctr` immediate tells you which one the original used:
+- `for (i = 0; i < N; i += step) { ...; if (cond) break; }` -> `mtctr = trip/5` (5x unrolled)
+- `while (i < N) { ...; if (cond) { ...; i += step; } else break; }` -> `mtctr = trip`
+
+When the target shows `mtctr 30` with five unrolled bodies, it is the `while` form. Fixing
+this in `calculateImplicationsOfTheHitTrajectory`'s throw-estimate loop was the difference
+between a counter of 6 and the target's 30.
+
+## A bare discarded `dolsqrtf2(expr);` statement reproduces a dead `fcmpo`
+
+First seen: `game/game/ball/ball_physics`, `ballCollisionLogic` (2026-09). A concrete
+instance of "Genuinely dead code is reproducible" above.
+
+The target computed `vx*vx + vz*vz`, ran an `fcmpo` against 0.0 that nothing consumed, then
+reloaded both operands from memory and recomputed the sum for the real sqrt. A statement
+that calls `dolsqrtf2(vx*vx + vz*vz);` and discards the result reproduces all of it exactly,
+including the reload. The `if (sum <= 0) {}` empty-if form does NOT — MWCC folds it away.
+
+Two related `dolsqrtf2` levers from the same file:
+- Never put the argument or the result in an `f32` local first; that forces an extra `frsp`.
+  Storing straight to the destination field took `fn_3_D9EC` 96.24% -> 99.34%. (Exception:
+  do use a local where the target genuinely keeps the value live across a call.)
+- A target `fcmpo f4, 0.0; bge` BEFORE the sqrt body means the caller's own sign check:
+  `if (x < 0.0f) return 0.0f;`.
+
+## Adding a `dolsqrtf2` use renumbers the whole TU's anonymous rodata pool
+
+First seen: `game/game/ball/ball_physics` (2026-09). A measurement-hygiene warning.
+
+Each new inlined `dolsqrtf2` adds pooled constants, shifting MWCC's `@NNN` numbering for
+every later anonymous constant in the translation unit. Already-matched functions then show
+small score DROPS (here 8 functions fell by 0.1-0.4 points at once) whose instruction text is
+byte-identical once `@N` names and branch addresses are normalised — the diff is purely
+relocation NAMES.
+
+On a from-scratch file this will happen repeatedly as functions land. Before investigating an
+apparent regression in a function you did not touch, normalise the pool names and re-compare;
+and never compare a mid-session score against a score from before other functions were added.
+
+## Float `>=` emits `fcmpo; cror; bne` — invert it to get the target's plain branch
+
+First seen: `game/game/ball/ball_physics`, `fn_3_BC54` (2026-09).
+
+`a >= b` on floats compiles to `fcmpo` plus a `cror` to merge the greater-than and equal
+condition bits. Targets frequently have a plain `bge`/`blt` instead, which comes from writing
+`!(a < b)`. Rewriting `offset >= -5.0f && vel >= 0.05f` as
+`!(offset < -5.0f) && !(vel < 0.05f)` was the last diff before 100%, and the same swap fixed
+`processLandedBallBouncing` and `processBallInAir_Landed`.
+
+Two smaller float idioms measured in the same file: `ABS(a - b)` gives different (and often
+correct) float register numbering from `d = a - b; if (d < 0) d = -d;`; and `x *= 0.5f` and
+`x = x * 0.5f` compile to different operand orders, with `*=` matching the target.
+
+## `extern const f32 lbl_N_rodata_XXXX` only works for a SINGLE-USE constant
+
+First seen: `game/game/ball/ball_physics` (2026-09). An important limit on the
+"Naming a target's local rodata float label" entry above, which presents the trick as
+unconditionally free.
+
+A named `extern const f32` gets CSE'd into ONE load. A repeated float literal is
+re-materialised at each use, which is what targets usually do. So the swap only helps where
+the constant is used ONCE: it was worth 99.655% -> 100% on `setValsForPlantCatches` (single
+use) but COST 5 points on `fn_3_9B74` and 3 on `fn_3_D9EC` (repeated use).
+
+Worse, the swap is not local. Removing an anonymous literal from one function shifts pool
+matching in OTHER functions of the same TU: on `adjustVeloByAirResistance` it took that one
+function 98.83% -> 99.5% while dropping unit `.text` 13.2879 -> 13.2859 and `.rodata`
+58.06 -> 54.92 by perturbing three siblings, and in `fairOrFoulBall` it changed float
+REGISTER assignment in a loop. Always measure the unit's section totals, never one function's
+score.
+
+## Index an array past its declared bound rather than restructuring a shared header
+
+First seen: `game/game/ball/ball_physics` (2026-09).
+
+`InMemBallType` declares `VecXYZ pastCoordinates[27]` at 0x3C and a separate `physicsSubstruct`
+at 0x180 whose first member runs to 0x30C — but four functions write the span 0x3C-0x30C as one
+contiguous 60-entry array, so the original source evidently had one array there. Rather than
+restructure a header included by ten units, the code indexes `g_Ball.pastCoordinates[i]` for
+`i` up to 59. It compiles clean and matches.
+
+Critically, the obvious tidy alternative is WORSE: a base-pointer local
+(`VecXYZ* coords = g_Ball.pastCoordinates;`) measured 4-10 points below plain array indexing
+(`updatePastHitBallCoords` 98.883% vs 100%; `fn_3_F9F8` 85.491% vs 94.806%) because it
+materialises an `addi rX, rY, 0x3c` rebase that the target folds into each displacement.
+Document the real extent in the checkpoint instead of encoding a guess in the struct.
+
+## A ctr loop's wrong base displacement is an index-OFFSET problem, not a body problem
+
+First seen: `game/game/ball/ball_physics`, `updatePastHitBallCoords` (2026-09).
+
+Two algebraically identical loops produce different base displacements.
+`for (i = 9; i >= 1; i--)` with `arr[i+3] = arr[i+2]` gave the target's base 0x6c;
+`for (i = 12; i > 3; i--)` with `arr[i] = arr[i-1]` gave 0x84. Hand-unrolling the three-element
+body scored 43%. If a `ctr` loop matches except for its base displacement, re-express the index
+with a different offset before touching the body.
+
+Exact bounds matter too: in `fielding_setHeldBallOffset`, `for (i = 3; i >= 2; i--)` plus an
+explicit trailing `[1] = [0]` scored 100% where the tidier `for (i = 3; i >= 1; i--)` scored
+97.4%.
+
+## A reload-after-store of the same field means an unrolled loop
+
+First seen: `game/game/ball/ball_physics`, `warioWaluStarHit` (2026-09).
+
+Where the target stores a field and immediately RELOADS it instead of reusing the register it
+just stored from, the source was a fixed-trip loop the compiler unrolled — the reload is the
+next iteration's load, not a CSE failure. Writing the same work as straight-line statements
+never reproduces it. Expressing a two-element drag update as `for (i = 0; i < 2; i++)` over
+`[13+i]`/`[1+i]` took the function 86.1% -> 99.03%.
+
+## A wrong enumerator is invisible in source review and shows as one `cmpwi` immediate
+
+First seen: `game/game/ball/ball_physics` (2026-09).
+
+A named constant is not self-validating. A draft used `BALL_COLLISION_TYPE_CHOMP_HAZARD`
+(0xB) where the target's immediate was 3 (`BALL_COLLISION_TYPE_STRUCTURE`); everything else
+matched, so the whole defect surfaced as a single wrong `cmpwi` immediate. When using an enum
+in place of a literal, check the enumerator's NUMERIC VALUE against the `.s` immediate, not
+just that the name reads plausibly.
