@@ -2702,7 +2702,9 @@ typedef struct {
     /*0x06*/ s16 runnerTransferIndex[4];
     artificial_padding(0x06, 0x10, s16[4]);
     /*0x10*/ u8 _10;
-    artificial_padding(0x10, 0x14, u8);
+    artificial_padding(0x10, 0x12, u8);
+    /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
+    artificial_padding(0x12, 0x14, u8);
     /*0x14*/ u8 someSituationTrackerFrames;
     artificial_padding(0x14, 0x20, u8);
 } g_RunningLogic_s; // size: 0x20

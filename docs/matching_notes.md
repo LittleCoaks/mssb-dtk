@@ -1066,3 +1066,89 @@ on`/`reset` bracket around the two callees restores the calls and the match. Tha
 pragma is currently in `src/game/baserunning/runner.c` and is almost certainly NOT
 the original source shape — it is scaffolding. The real question, unresolved, is
 what source property made the original compiler keep those calls.
+
+## MWCC lays `.bss` out in REVERSE declaration order
+
+First seen: `game/game/fielding/fielder_ai` (2026-09), a 59-function from-scratch file.
+
+When a translation unit's file-static (`scope:local`) uninitialized objects must land
+at specific `.bss` offsets, declare them in **descending address order** — the reverse
+of how they appear in the linker map. Declaring them in ascending address order put
+`hexBaserunnerTracker` at `+0xd8` instead of the target's `+0x2c`; simply reversing the
+declaration list produced every target offset exactly and took the unit's `.bss` from
+0% to **100%** in one edit.
+
+This is the data-side analogue of the known `-inline deferred` function-emission
+reversal (see "Flipping a 100% unit to Object(Matching)"), and it is worth doing FIRST
+on any from-scratch file with file-static globals: it is one edit, it is free, and
+every function that touches those globals is mis-scored until the offsets are right.
+
+## dtk `.bss`/`.data` symbol sizes are gap-derived — a "too big" symbol is often several merged objects
+
+First seen: `game/game/fielding/fielder_ai` (2026-09). Compare "Split-merged .bss
+objects must be addressed through one containing struct" above — that entry covers the
+opposite case, and the two are distinguished by what the TARGET's addressing looks like.
+
+dtk infers a `.bss` symbol's `size:` from the distance to the next symbol it knows
+about, so one named symbol frequently spans SEVERAL distinct original objects. The tell
+is in the target's addressing: if the target reaches a location through a *different*
+base+displacement pairing than your single declared array would produce — e.g.
+`addi r4, rAnchor, 4` then `lbz 3(r4)` for a byte your array would reach as
+`((u8*)&arr[1])[3]` — the original source had a separate, smaller object there.
+
+Splitting the symbol in `config/*/symbols.txt` (and declaring the pieces separately in
+C) is legitimate and was decisive here. Measured on `fieldingAIThrowOrChase`: named
+arrays without the split **64%**, fully opaque anchor indexing **59%**, hybrid **69%**,
+after splitting `runningStratToMakePlay[8]` into `framesRunnerIsOutOfReach[4]` +
+`runningStratToMakePlay[4]` **94.9%**, and **99.24%** once a `u8[4]` was also split out
+of `lbl_3_bss_17F8`. The same splits independently took `fn_3_A2B6C`, `fn_3_A2C9C`,
+`fn_3_A2DDC`, `fn_3_A31E8` and `fn_3_A32B8` to 100%.
+
+Two guard rails. The split must PRESERVE every offset — re-measure `.bss` at 100%
+afterwards, which is what proves the layout is still byte-identical. And splitting
+forces you to name the new pieces; name them from evidence (a corroborating function
+name, an observed use) or leave an honest `lbl_*` placeholder, never a guess dressed up
+as a fact.
+
+## `do { ... break; ... } while (0)` is the structured form of exit-block threading
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+When a target reaches one physical exit/tail block from several different conditions,
+the usual remedies are a `goto` or a merged boolean chain. A merged `&&`/`||` chain
+often cannot reproduce the target at all — it collapses the separate
+`li rX, N; b tail` sequences the target emits per branch. Before reaching for `goto`,
+try wrapping the region in `do { ... } while (0)` and using `break` as the thread to the
+tail. On `genericPlayOnRunnerOffBase` the merged chain scored **97.26%** and the
+`do/break/while(0)` form scored **100%**.
+
+Its limit is real and worth knowing: `break` only escapes the innermost loop, so if the
+exit sites sit inside nested `for` loops the construct cannot express the control flow
+and collapses into a flag variable. Measured on `tagOutValues`, where the five exit
+sites are inside nested loops: `goto` **92.78%**, flag variable **89.73%**,
+`static inline` tail helper **17.74%** (it got inlined five times), `do/while(0)` not
+expressible. That is a case where `goto` is genuinely correct — but note it was only
+established by measuring all four, which is the standard to hold.
+
+## The int-to-float conversion bias constant is a permanent scoring floor, not a lead
+
+First seen: `game/game/fielding/fielder_ai` (2026-09). This sharpens the existing
+"Shared .sdata2 literal pool across split DOL text-engine units" entry into a general
+rule.
+
+Two different kinds of `.rodata` float reference behave oppositely, and it is worth
+recognising which one is capping a function before spending attempts on it:
+- A plain **value** constant CAN be matched. Declare `extern const f32 lbl_N_rodata_XXXX;`
+  and use the symbol in place of the literal — codegen is byte-identical and only the
+  relocation name changes. Never use the definition form, which emits a spurious
+  duplicate symbol.
+- The **int-to-float/double conversion bias** (the 0x4330 magic) CANNOT. Referencing it
+  explicitly forces a different `fsub`/`frsp` codegen path. MWCC pools it as an anonymous
+  `@NNN` where the target has a dtk-named `lbl_N_rodata_XXXX`, and no source form changes
+  that.
+
+So a function whose ONLY residual is a handful of instructions naming a conversion
+constant is DONE — it is an artifact of the split, not a source-shape problem. In
+`fielder_ai` this capped `fn_3_A1DA0` at 99.85% over 3 instructions, and contributed the
+last fractions on `fn_3_A6ABC`, `fn_3_A384C`, `fielderAIMakePlay` and
+`fieldingAIThrowOrChase`. Recognise it, record it, and spend the effort elsewhere.
