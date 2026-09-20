@@ -3,11 +3,11 @@
 
 #include "mssbTypes.h"
 
-void haveActLayoutPointToGeoHeader(void);
-void LoadActorLayout(void);
+void haveActLayoutPointToGeoHeader(void* layout, void* geo);
+void LoadActorLayout(void* layout);
 void AdjustActorPointers(void);
 void fn_800B4A44(void);
 f32 scanBoneAttachmentData(void *ptr);
-void updateBoneParam(void);
+void updateBoneParam(void* actor, int flag);
 
 #endif // !__UNKNOWN_FILE_0X800B4908_H_

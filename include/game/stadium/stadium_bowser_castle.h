@@ -2,6 +2,8 @@
 #define __GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
+#include "game/ball/collision_primitives.h"
 
 void fn_3_C19C8(void);
 void fn_3_C1C18(void);
@@ -47,7 +49,7 @@ void thwomp_smokeRelated(void);
 void fn_3_C77AC(void);
 void thwomp_slamControl(void);
 void fn_3_C805C(void);
-void fn_3_C823C(void);
+TriangleGroup* fn_3_C823C(int offset, Mtx m);
 void fn_3_C82B4(void);
 void loadBowserCastle(void);
 

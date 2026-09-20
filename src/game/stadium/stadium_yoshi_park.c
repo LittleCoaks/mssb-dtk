@@ -127,8 +127,8 @@ void fn_3_E4A38(void) {
 }
 
 // .text:0x000E4BE8 size:0xC8 mapped:0x80723C7C
-void fn_3_E4BE8(void) {
-    return;
+TriangleGroup* fn_3_E4BE8(int offset, Mtx m) {
+    return NULL;
 }
 
 // .text:0x000E4CB0 size:0x244 mapped:0x80723D44

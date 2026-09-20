@@ -1,5 +1,5 @@
 #include "Unknown/File_0x800bd3ec.h"
 
-void LITAlloc(void) {
+void LITAlloc(void** light) {
     return;
 }

@@ -2,6 +2,7 @@
 #define __GAME_SOUND_M_SOUND_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/vec.h"
 
 void fn_3_8B718(void);
 void fn_3_8B7DC(void);
@@ -10,7 +11,7 @@ void updateAndRemoveStadiumEmitter(void);
 void fn_3_8B964(void);
 void fn_3_8B9BC(void);
 void updateOrRemoveEmitter(void);
-void initializeStadiumObjectEmitter(void);
+void initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg);
 void fn_3_8BDF4(void);
 void initializeCamera(void);
 void transitionToReplay(void);

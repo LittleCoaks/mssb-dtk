@@ -312,13 +312,13 @@ void fn_3_F5F4C(void) {
 }
 
 // .text:0x000F6084 size:0x480 mapped:0x80735118
-void processJungleObjectCollisions(void) {
+void processJungleObjectCollisions(Mtx view, struct _StadiumDrawOrder* order) {
     return;
 }
 
 // .text:0x000F6504 size:0xC4 mapped:0x80735598
-void fn_3_F6504(void) {
-    return;
+TriangleGroup* fn_3_F6504(int offset, Mtx m) {
+    return NULL;
 }
 
 // .text:0x000F65C8 size:0x100 mapped:0x8073565C

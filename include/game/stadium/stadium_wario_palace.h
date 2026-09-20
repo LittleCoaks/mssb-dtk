@@ -2,6 +2,7 @@
 #define __GAME_STADIUM_STADIUM_WARIO_PALACE_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
 
 void fn_3_CB8A8(void);
 void fn_3_CBA9C(void);
@@ -83,7 +84,8 @@ void fn_3_D53C0(void);
 void fn_3_D5444(void);
 void fn_3_D5470(void);
 void fn_3_D5494(void);
-void processPalaceObjectCollisions(void);
+struct _StadiumDrawOrder;
+void processPalaceObjectCollisions(Mtx view, struct _StadiumDrawOrder* order);
 void fn_3_D5B6C(void);
 void fn_3_D5C8C(void);
 void stadiumObjCollisionRelated_Palace(void);

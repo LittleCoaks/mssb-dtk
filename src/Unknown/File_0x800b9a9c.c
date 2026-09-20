@@ -4,6 +4,6 @@ void fn_800B9A9C(void) {
     return;
 }
 
-void setLITLightPtr(void) {
+void setLITLightPtr(void* light) {
     return;
 }

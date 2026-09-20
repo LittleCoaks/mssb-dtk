@@ -2,6 +2,8 @@
 #define __GAME_STADIUM_STADIUM_YOSHI_PARK_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
+#include "game/ball/collision_primitives.h"
 
 void fn_3_E1FA8(void);
 void fn_3_E2034(void);
@@ -28,7 +30,7 @@ void fn_3_E4658(void);
 void fn_3_E4760(void);
 void fn_3_E48D0(void);
 void fn_3_E4A38(void);
-void fn_3_E4BE8(void);
+TriangleGroup* fn_3_E4BE8(int offset, Mtx m);
 void processYoshiParkPlantBoundingBoxes(void);
 void fn_3_E4EF4(void);
 void loadYoshiPark(void);

@@ -1,5 +1,5 @@
 #include "Unknown/File_0x800b508c.h"
 
-void ANIMGet(void) {
+void ANIMGet(void* anim) {
     return;
 }

@@ -1,10 +1,10 @@
 #include "Unknown/File_0x800b4908.h"
 
-void haveActLayoutPointToGeoHeader(void) {
+void haveActLayoutPointToGeoHeader(void* layout, void* geo) {
     return;
 }
 
-void LoadActorLayout(void) {
+void LoadActorLayout(void* layout) {
     return;
 }
 
@@ -20,6 +20,6 @@ f32 scanBoneAttachmentData(void *ptr) {
     return 0.0f;
 }
 
-void updateBoneParam(void) {
+void updateBoneParam(void* actor, int flag) {
     return;
 }

@@ -402,7 +402,7 @@ void fn_3_D5494(void) {
 }
 
 // .text:0x000D55EC size:0x580 mapped:0x80714680
-void processPalaceObjectCollisions(void) {
+void processPalaceObjectCollisions(Mtx view, struct _StadiumDrawOrder* order) {
     return;
 }
 

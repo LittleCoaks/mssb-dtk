@@ -222,8 +222,8 @@ void fn_3_C805C(void) {
 }
 
 // .text:0x000C823C size:0x78 mapped:0x807072D0
-void fn_3_C823C(void) {
-    return;
+TriangleGroup* fn_3_C823C(int offset, Mtx m) {
+    return NULL;
 }
 
 // .text:0x000C82B4 size:0x39C mapped:0x80707348

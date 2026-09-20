@@ -4,6 +4,6 @@
 #include "mssbTypes.h"
 
 void fn_800B9A9C(void);
-void setLITLightPtr(void);
+void setLITLightPtr(void* light);
 
 #endif // !__UNKNOWN_FILE_0X800B9A9C_H_

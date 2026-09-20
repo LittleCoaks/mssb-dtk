@@ -2,6 +2,8 @@
 #define __GAME_STADIUM_STADIUM_TOY_FIELD_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
+#include "game/ball/collision_primitives.h"
 
 void fn_3_E59B4(void);
 void fn_3_E5A1C(void);
@@ -25,9 +27,10 @@ void fn_3_E6A48(void);
 void fn_3_E6D90(void);
 void fn_3_E7350(void);
 void fn_3_E7364(void);
-void processToyFieldObjectCollisions(void);
+struct _StadiumDrawOrder;
+void processToyFieldObjectCollisions(Mtx view, struct _StadiumDrawOrder* order);
 void fn_3_E7424(void);
-void fn_3_E751C(void);
+TriangleGroup* fn_3_E751C(int offset, Mtx m);
 void fn_3_E763C(void);
 void fn_3_E7A2C(void);
 void fn_3_E7B20(void);

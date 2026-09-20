@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-void UpdateTexturePalettePointers(void);
+void UpdateTexturePalettePointers(void* geo, void* tex);
 void fn_800BD1E8(void);
 void __MTGQR5(void);
 void __MTGQR6(void);

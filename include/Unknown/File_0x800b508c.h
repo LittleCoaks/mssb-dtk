@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void ANIMGet(void);
+void ANIMGet(void* anim);
 
 #endif // !__UNKNOWN_FILE_0X800B508C_H_

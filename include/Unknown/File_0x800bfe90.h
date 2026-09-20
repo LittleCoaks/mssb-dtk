@@ -9,6 +9,6 @@ void SKN2Vecs16Norms16NoTouch(void);
 void fn_800C02C8(void);
 void SKNAccVecs16Norms16Iu161(void);
 void SKNAccVecs16Norms16Iu162(void);
-void convertTextureHeader(void);
+void convertTextureHeader(void* tex);
 
 #endif // !__UNKNOWN_FILE_0X800BFE90_H_

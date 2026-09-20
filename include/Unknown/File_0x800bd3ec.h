@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void LITAlloc(void);
+void LITAlloc(void** light);
 
 #endif // !__UNKNOWN_FILE_0X800BD3EC_H_

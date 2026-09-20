@@ -1607,3 +1607,139 @@ Two rules that cost nothing: make every edit a context-anchored single-site edit
 replace, and treat a worker's verbatim paste of any function that reaches 100% as the real backup of
 uncommitted work. In a from-scratch file, many functions share near-identical statement sequences by
 construction, so "this string is surely unique" is exactly the assumption that fails.
+
+## Bitwise `|` between comparisons, not `||`, when the target computes them as values
+
+First seen: `game/game/stadium/stadium_framework`, `getStadiumHazardTriangles` (2026-09).
+
+An if/else-if chain written with `||` scored 79.02%. The target was not branching between
+the two tests at all - it evaluated each comparison to 0/1 and OR'd the results, then made
+one branch. Rewriting the conditions as `(x == 11) | (x == 12)` and
+`(a >= K) | (x == 11) | (x == 12)` took the function to **100%** with no other change.
+`||` is a short-circuiting control-flow operator and compiles to one branch per term;
+bitwise `|` forces both operands to be evaluated as values. When the target shows the
+comparison results being materialised (`cror`, or a run of compares with no intervening
+branch) before a single branch, `|` is the operator the original used. This is the
+counterpart to the existing entry "`x == a || x == b || x == c` gets folded into a range
+check" - check for the range fold first, then for this.
+
+## Sweep local declaration order mechanically; it is worth whole percentage points
+
+First seen: `game/game/fielding/fielder`; sharpened on `game/game/stadium/stadium_framework`
+(2026-09), which generalises the narrower existing entry "Declaration order of two float
+locals can close a float-register permutation by itself".
+
+It is not only float pairs, and it is not only the last 0.1%. In ONE file, declaration
+order alone was the final lever on five separate functions:
+
+| function | change | gain |
+|---|---|---|
+| `transformVectorsUpdateBoundingBox` | declare `int count` before the pointer `p` | 99.19 -> **100** |
+| `fn_3_B8184` | declare `world` before `local` (stack 0x8 / 0x38) | 99.73 -> 99.84 |
+| `fn_3_B8298` | permutation sweep of six locals | 98.95 -> 99.26 |
+| `fn_3_B867C` | 200-order sweep | 88.79 -> 96.21 |
+| `fn_3_B8C08` | move `Vec v` into the block that uses it | 99.30 -> 99.34 |
+
+Two practical points. Declaration order sets both stack slot assignment and, indirectly,
+register allocation, so it can move a score that looks like a pure register problem. And
+because the search space is factorial, drive it from a script that rewrites the
+declaration block, rebuilds and records the score, rather than by hand - a 24-order sweep
+is cheap and a hand sweep of six locals is not.
+
+## A bitfield matches `extrwi` where an explicit mask emits `rlwinm`
+
+First seen: `game/game/stadium/stadium_framework`, `fn_3_B8298` (2026-09).
+
+A flag byte tested with `obj->flags & 0x80` compiled to `rlwinm`, but the target had
+`extrwi`. Declaring the field as a bitfield instead - `u8 hasShadow : 1;` as the first
+member of the byte - produced `extrwi` and took the function 99.26% -> 99.89%. The same
+byte later yielded six more single-bit fields in the same struct, all confirmed by
+`extrwi` on the same `lbz`. So `extrwi` on a byte load is positive evidence that the
+original declared a bitfield, not that it masked by hand. Note this says nothing about
+whether the bits are booleans - see the boolean-evidence rules; name them only from use.
+
+## A `clrlwi` the TARGET emits on a parameter proves the parameter is WIDE
+
+First seen: `game/game/stadium/stadium_framework`, `fn_3_B9534` (2026-09).
+
+The function takes a texture width and height, so `u16` looked obviously right. It is not:
+the target truncates them itself with `clrlwi` at the point of use, and a compiler only
+emits that if the incoming value is NOT already narrow. Declaring them `int` scored
+99.67%; `u16` would have had the truncation already done in the prologue and could never
+match. This is the parameter-side mirror of the existing entry "Where the truncation sits
+tells you the local's declared width": a truncation at the USE site means the declaration
+is wide, and a truncation absent at the use site means it is narrow.
+
+## A `.data` array in our range must be DEFINED with real initialisers, not externed
+
+First seen: `game/game/stadium/stadium_framework` (2026-09). Companion to "A dense
+`switch` synthesizes the `.data` jump table".
+
+This unit's whole `.data` was `lbl_3_data_11178` (0x14 = five floats) plus
+`jumptable_3_data_1118C` (0x1C). The jump table came free from writing the dispatcher as a
+plain `switch`. The five floats did NOT: the first implementation declared them
+`extern f32 lbl_3_data_11178[]` and used them, which compiles and links fine but emits
+nothing into our `.data`, leaving the section at 0%. Reading the five word values out of
+the target's `.data` and writing a real definition
+(`f32 lbl_3_data_11178[5] = {18.0f, 90.0f, 162.0f, 234.0f, 306.0f};`) took `.data` to 100%.
+The rule: check the unit's `.data`/`.rodata` address range in `splits.txt` first - a symbol
+INSIDE our range must be defined by us, and only a symbol outside it should be `extern`.
+Note it must not be `const`, or it lands in `.rodata`.
+
+## Reloading a global per derived local can beat sharing one temp
+
+First seen: `game/game/stadium/stadium_framework`, `fn_3_B867C` (2026-09). This is the
+counter-case to the usual advice about eliminating redundant temporaries.
+
+Three locals were all initialised from `stadiumObjectCollision.objectCount`. Computing it
+once into a temp and deriving the other two looked like the obvious source shape and
+scored 95.89% at best. Writing the load out separately for each of the three - so the
+global is re-read three times - was the single biggest gain on the function. MWCC's
+allocator assigns a different register lifetime to each independent load, and collapsing
+them to one temp creates a long live range the target does not have. When several locals
+come from the same global and the registers are rotated, try the redundant form.
+
+## Copy a `Vec` per component when the target uses `lfs`/`stfs`
+
+First seen: `game/game/stadium/stadium_framework`, `loadStadiumObjectVisuals` (2026-09).
+Narrows the existing entry "Whole-struct assignment of a float vector lowers to integer
+word copies".
+
+That entry says a whole-struct `Vec` assignment becomes integer `lwz`/`stw` word copies.
+The corollary is the diagnostic: if the target copies a `Vec` with three `lfs`/`stfs`
+pairs instead, it was NOT a struct assignment in the original - write the three component
+assignments out. Getting this right (together with declaration order and modifying a
+`GXColor`'s alpha in place rather than rebuilding the struct) moved this function from
+94.2% to 99.6%.
+
+## Load both float operands into named locals before comparing them
+
+First seen: `game/game/stadium/stadium_framework`, `fn_3_B8658` (2026-09), a 36-byte qsort
+comparator.
+
+`if (*a < *b) return -1; return *a > *b;` scored 97.78% with `f0` and `f1` swapped
+relative to the target. Introducing `f32 x = *a; f32 y = *b;` and comparing the locals
+took it to **100%**. Dereferencing inside the comparison lets MWCC choose the load order;
+naming the operands first fixes it. Cheap to try on any small float-comparison function
+whose only defect is an FPR permutation.
+
+## `dolsqrtf2`'s local statics add 16 bytes of `.rodata`, and `SQRT2_LINKAGE` alone is not the whole fix
+
+First seen: `game/game/stadium/stadium_framework` (2026-09). Extends the existing
+`SQRT2_LINKAGE` practice in `src/game/batting/batter.c` with the measurement.
+
+Any unit that includes `include/game/UnknownHomes_Game.h` picks up the `static inline
+dolsqrtf2` in `include/stl/math.h`, which emits two 8-byte local statics into `.rodata`,
+`_half$localstatic3$dolsqrtf2` and `_three$localstatic4$dolsqrtf2`. The target has
+neither, so the unit's `.rodata` is 16 bytes too large. `#define SQRT2_LINKAGE static`
+before the include removes them, and that is the right fix.
+
+The measurement worth recording is that it can LOWER the score on its own. On this unit it
+took `.rodata` from 192 bytes to exactly the target's 176, but the match% fell from 63.74%
+to 59.77%, because removing 16 bytes re-aligns everything after it and exposes a second,
+independent defect: float-vs-double width. The target had 4-byte floats at
+`lbl_3_rodata_1DC4`..`1DDC` and 8-byte doubles at `1DE0` and `1DF8`; ours had an 8-byte
+double where the target had floats. So treat the two as ONE combined fix - apply
+`SQRT2_LINKAGE` and audit every float literal's type in the same pass. Applying it alone
+and reading the lower number as "this made it worse" is the trap; the size going exactly
+right is the signal that the change was correct.

@@ -2,6 +2,8 @@
 #define __GAME_STADIUM_STADIUM_DK_JUNGLE_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
+#include "game/ball/collision_primitives.h"
 
 void fn_3_EE100(void);
 void fn_3_EE388(void);
@@ -65,8 +67,9 @@ void fn_3_F5E78(void);
 void fn_3_F5EFC(void);
 void fn_3_F5F28(void);
 void fn_3_F5F4C(void);
-void processJungleObjectCollisions(void);
-void fn_3_F6504(void);
+struct _StadiumDrawOrder;
+void processJungleObjectCollisions(Mtx view, struct _StadiumDrawOrder* order);
+TriangleGroup* fn_3_F6504(int offset, Mtx m);
 void fn_3_F65C8(void);
 void updateDKJungleObjBoundingBoxes(void);
 void maybeBarrelCTRLRel(void);

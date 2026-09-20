@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void ACTSetAnimation(void);
+void ACTSetAnimation(void* actor, void* animBank, char* sequenceName, u16 seqNum, f32 startFrame, f32 time);
 
 #endif // !__UNKNOWN_FILE_0X800B4D64_H_

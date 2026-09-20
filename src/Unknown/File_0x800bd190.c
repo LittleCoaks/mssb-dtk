@@ -1,6 +1,6 @@
 #include "Unknown/File_0x800bd190.h"
 
-void UpdateTexturePalettePointers(void) {
+void UpdateTexturePalettePointers(void* geo, void* tex) {
     return;
 }
 

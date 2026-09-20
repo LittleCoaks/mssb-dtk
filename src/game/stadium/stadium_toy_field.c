@@ -112,7 +112,7 @@ void fn_3_E7364(void) {
 }
 
 // .text:0x000E7388 size:0x9C mapped:0x8072641C
-void processToyFieldObjectCollisions(void) {
+void processToyFieldObjectCollisions(Mtx view, struct _StadiumDrawOrder* order) {
     return;
 }
 
@@ -122,8 +122,8 @@ void fn_3_E7424(void) {
 }
 
 // .text:0x000E751C size:0x120 mapped:0x807265B0
-void fn_3_E751C(void) {
-    return;
+TriangleGroup* fn_3_E751C(int offset, Mtx m) {
+    return NULL;
 }
 
 // .text:0x000E763C size:0x3F0 mapped:0x807266D0

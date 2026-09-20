@@ -8,6 +8,6 @@ void fn_8003A540(void) {
     return;
 }
 
-void updateFunctionPtr(void) {
+void updateFunctionPtr(void (*func)(void)) {
     return;
 }

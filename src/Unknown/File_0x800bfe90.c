@@ -24,6 +24,6 @@ void SKNAccVecs16Norms16Iu162(void) {
     return;
 }
 
-void convertTextureHeader(void) {
+void convertTextureHeader(void* tex) {
     return;
 }

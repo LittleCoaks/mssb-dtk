@@ -12,6 +12,6 @@ void fn_800BF058(void) {
     return;
 }
 
-void ShouldDrawShadows(void) {
-    return;
+ShadowState* ShouldDrawShadows(void) {
+    return NULL;
 }

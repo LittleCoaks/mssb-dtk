@@ -1,13 +1,13 @@
 #include "Unknown/File_0x800bd3a0.h"
 
-void LITInitColor(void) {
+void LITInitColor(void* light, GXColor* color) {
     return;
 }
 
-void LITInitDir(void) {
+void LITInitDir(void* light, f32 x, f32 y, f32 z) {
     return;
 }
 
-void LITInitPos(void) {
+void LITInitPos(void* light, f32 x, f32 y, f32 z) {
     return;
 }

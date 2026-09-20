@@ -1,5 +1,5 @@
 #include "Unknown/File_0x800bcd60.h"
 
-void convertGeometryAndSknHeader(void) {
+void convertGeometryAndSknHeader(void* geo, void* skn) {
     return;
 }

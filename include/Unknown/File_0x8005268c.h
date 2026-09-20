@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void returnsCurrentMode(void);
+int returnsCurrentMode(void);
 
 #endif // !__UNKNOWN_FILE_0X8005268C_H_

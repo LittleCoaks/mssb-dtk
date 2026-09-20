@@ -37,7 +37,7 @@ void updateOrRemoveEmitter(void) {
 }
 
 // .text:0x0008BBC4 size:0x230 mapped:0x806CAC58
-void initializeStadiumObjectEmitter(void) {
+void initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
     return;
 }
 
