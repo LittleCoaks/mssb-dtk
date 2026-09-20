@@ -1495,3 +1495,115 @@ precedent: `include/game/pitching/pitcher_ai.h` can no longer be `#include`d fro
 at all, because its `aiPitchCurveDirection` declaration now conflicts with the corrected local
 one. Fixing these at the header eventually is cheaper than accumulating conflicting local
 externs.
+
+## Dead-code standalone duplicates are the cheapest route into a from-scratch file's big functions
+
+First seen: `game/game/batting/batter_ai` (14 functions, all `return;` stubs at session start,
+2026-09). Sharpens "Check for duplicated bodies within a file before writing one from scratch"
+(from `pitcher`), which describes duplicated bodies but not this specific, highly exploitable shape.
+
+FIVE of this unit's 14 functions had ZERO callers anywhere in the binary, and each one was a
+standalone copy of a body that also appears inlined inside a much larger function in the same unit:
+
+| dead standalone | body also inlined into |
+|---|---|
+| fn_3_1E4B8 (620 B) | batterAIRNGValueSetting (2108 B) - steal decision |
+| fn_3_1E724 (208 B) | batterAIControlled (444 B) - bunt decision |
+| fn_3_1F1CC (388 B) | batterAIMoveBatter (1012 B) - pre-pitch box positioning |
+| fn_3_1F350 (296 B) | batterTrackBallInBox (1312 B) - stage 1 |
+| fn_3_20188 (156 B) | batterAIRNGValueSetting - pitch guess |
+
+Implementing the five SMALL dead copies first converted four of the file's five largest functions
+from open-ended writes into near-pastes; three of those four then matched 100% on the first or
+second attempt. The tell for this shape is a function that dtk named `fn_*`, that a repo-wide `bl`
+scan finds no caller for, and whose Ghidra decompilation reads like a fragment of a bigger routine.
+Run that caller scan across the whole file BEFORE picking a work order - it is one grep and it can
+reorder the entire session.
+
+## Call form vs. copied body is decided PER CALL SITE, and the BOOL return idiom is the tell
+
+First seen: `game/game/batting/batter_ai` (2026-09). This settles the remaining ambiguity between the
+`runner` entry ("copy the body"), the `ball_physics` entry ("measure both") and the `pitcher` entry
+("byte size decides"): the decision is not per-file and not even per-function, but per call site.
+
+All measured in ONE unit, same compiler settings:
+- `batterTrackBallInBox` calling `fn_3_1F350()`, and `batterAIMoveBatter` calling `fn_3_1F1CC()`:
+  plain call form, auto-inlined by MWCC, EXACT size, **100%** each. No body copy needed.
+- `batterAIControlled` calling `fn_3_1E724()`: call form **96.58% and 8 bytes SHORT**; the same body
+  copied in reached **100%**.
+- `batterAIRNGValueSetting` contains TWO inlined bodies and wanted a DIFFERENT form for each: the
+  steal block scored 97.63% as a call and **97.79%** copied in, while the pitch-guess block was
+  size-exact with zero diffs in that region as a plain call and needed no copy.
+
+The mechanism behind the `batterAIControlled` case is worth knowing because it is invisible in a
+size check alone: MWCC's inlined expansion of `return batterAI_buntForPractice() != 0;` emits the
+`neg/or/srwi` (`!!x`) idiom, where the target had `cmpwi/beq/li 1/li 0`. Writing the copied body as
+`if (f() != 0) v = 1; else v = 0;` reproduced the target exactly. So when the call form is only a
+handful of bytes off rather than hundreds, look at the BOOLEAN IDIOM at the join, not at the
+inlining decision.
+
+Rule: measure the call form first (it is cleaner source and it won twice here), but re-measure it
+independently at every site, including two sites inside one function.
+
+## BOOL return idioms map one-to-one onto source expressions
+
+First seen: `game/game/batting/batter_ai` (2026-09). Extends the `bool` vs `BOOL` entry at the top of
+this file, which covers the declared type but not the returned EXPRESSION.
+
+Three distinct PPC idioms, each produced by exactly one source shape:
+- `neg r0,r3; or r0,r0,r3; srwi r3,r0,31`      <= `return x != 0;`
+- xor / `srawi` / `subf` / `srwi` signed form  <= `return a < b;` (a relational returned directly)
+- `cmpwi rX,0; beq; li rN,1; ... li rN,0`      <= `if (cond) v = 1; else v = 0;`
+
+Neither `return (BOOL)x;` nor `if (x) return 1; else return 0;` produces the first form. Reading the
+idiom off the target's last few instructions before `blr` tells you which source shape to write, and
+it also identifies a wrong prototype: in this unit 3 of 14 dtk-derived `void f(void)` guesses were
+really `BOOL f(void)`, and ALL THREE were detected from the `!!x` idiom before the `blr` rather than
+from any argument-register read. A prototype audit should look at RETURN paths, not just arguments.
+
+## Declaration order of two float locals can close a float-register permutation by itself
+
+First seen: `game/game/batting/batter_ai`, `trackLastPitchInfo2` (2026-09). The float analogue of
+"Textual statement position as a register-allocation priority lever" and of the `0x10`-stride vector
+locals entry, both of which cover stack slots and statement position rather than FPR numbering.
+
+The function was byte-exact and at 98.87%, with its remaining diff being purely permuted float
+registers in one block (target x=f2, left=f3, step=f0; ours x=f3, left=f2). Declaring the two float
+locals in the order `f32 step; f32 edge;` - changing nothing else at all - took it to **100%**.
+
+If a function is at exact size and its only residual is float registers appearing in a different
+order than the target's, sweep the declaration order of the float locals before trying anything
+structural. It is one build per permutation and there are usually only a handful.
+
+## MWCC reassociates a three-term sum, and the WRITTEN order picks the association
+
+First seen: `game/game/batting/batter_ai` (2026-09).
+
+Three algebraically identical ways of writing one index computation, measured on
+`batterAIFrameToSwingAndStickInput`: `idx + desired - 4` scored 98.09%, `desired - 4 + idx` 98.69%,
+and `idx - 4 + desired` 98.72% - the last being the only one that emits the target's add-then-subtract
+order. The same lever moved `batterAISwingInd` from 98.28% (`arr[..] + frames - c`) to 98.61%
+(`frames + arr[..] - c`), while a third association scored 93.35%.
+
+Separately, the COMPOUND form is not free: `frameToStartSwing -= 4` emitted an extra store and scored
+94.65% where `x = x - 4` did not. And a chained store `a = b = expr;` is what reproduces a target that
+stores one computed value into two fields in a specific order.
+
+When a function is size-exact and the diff sits on an index or offset computation, permute the written
+association of the sum before doubting the surrounding logic.
+
+## Never let a scripted replace touch a source file mid-grind
+
+First seen: `game/game/batting/batter_ai` (2026-09). A process note, in the spirit of
+"Re-measure a checkpoint's 'closed' claims before building on them".
+
+A `sed`-style scripted edit was used to swap one function body in a 14-function from-scratch file. Its
+match string also occurred earlier in the file, so it silently deleted most of an already-100% function
+plus the head of another, and the damage was only caught by the next diff. Recovery was possible solely
+because a private scratchpad backup happened to exist - the tree held hours of uncommitted work, so
+`git checkout` would have destroyed far more than it restored.
+
+Two rules that cost nothing: make every edit a context-anchored single-site edit rather than a pattern
+replace, and treat a worker's verbatim paste of any function that reaches 100% as the real backup of
+uncommitted work. In a from-scratch file, many functions share near-identical statement sequences by
+construction, so "this string is surely unique" is exactly the assumption that fails.
