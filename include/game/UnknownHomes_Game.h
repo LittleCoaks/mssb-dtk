@@ -959,7 +959,9 @@ typedef struct _PracticeStruct {
     /*0x1D4*/ u8 loadingGuidedPractice; // unsure
     /*0x1D5*/ u8 _1D5;
     /*0x1D6*/ u8 practiceLevel_2;
-    artificial_padding(0x1d6, 0x1e1, u8);
+    artificial_padding(0x1d6, 0x1db, u8);
+    /*0x1DB*/ u8 _1DB;
+    artificial_padding(0x1db, 0x1e1, u8);
     /*0x1E1*/ u8 hitVariablesSetIndicator;
     /*0x1E2*/ u8 _1E2;
     /*0x1E3*/ u8 aiBuntIndicator; // unsure
@@ -2895,9 +2897,11 @@ typedef struct _GameScoresControlsStruct {
     /*0x004*/ ScoreStruct scores[2];
     u8 _pad_50[0x5A];
     /*0x0AA*/ u8 inningLimit;
-    u8 _pad_AB[2];
+    /*0x0AB*/ u8 maxNumberOfExtraInnings;
+    u8 _pad_AC;
     /*0x0AD*/ u8 halfInning;
-    u8 _pad_AE[0x1A];
+    u8 _pad_AE[0x19];
+    /*0x0C7*/ u8 mercyThreshold;
 } GameScoresControlsStruct; // size: 0xC8
 
 extern GameScoresControlsStruct g_Scores;

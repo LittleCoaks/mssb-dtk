@@ -1376,3 +1376,122 @@ A named constant is not self-validating. A draft used `BALL_COLLISION_TYPE_CHOMP
 matched, so the whole defect surfaced as a single wrong `cmpwi` immediate. When using an enum
 in place of a literal, check the enumerator's NUMERIC VALUE against the `.s` immediate, not
 just that the name reads plausibly.
+
+## A target can contain BOTH a standalone function and a hand-inlined copy of it
+
+First seen: `game/game/pitching/pitcher`, `pitchInAirFunction` (2026-09).
+
+This settles the tension between "When the target inlines an in-file function it also keeps
+standalone, copy the body" (from `runner`) and "`-inline deferred` auto-inlining of in-file
+standalone functions is NOT uniform — measure both forms" (from `ball_physics`).
+`pitchInAirFunction` (5408 B target) contains the body of `fn_3_70B94` (864 B), which also
+exists as a real standalone symbol. All four combinations were measured:
+
+- hand-written inline copy + `#pragma dont_inline` on a different callee: 97.62%, 5412 B (kept)
+- hand-written inline copy, no pragma: 87.36%, 5832 B
+- real call to `fn_3_70B94` + pragma: 82.34%, 4596 B (about 810 B SHORT: MWCC kept the `bl`
+  where the target had the body inline)
+- real call, no pragma: 75.19%, 4932 B, and `fn_3_70B94` itself dropped to 84.10%
+
+Byte size is the decisive diagnostic, and it points both ways. Hundreds of bytes SHORT means
+the call survived where the target inlined (copy the body in). Hundreds of bytes LONG means we
+inlined where the target called. Measure the call form first because it is cleaner source, but
+let the size, not a prior expectation, decide.
+
+## The `#pragma dont_inline` open question recurs, with numbers
+
+First seen: `game/game/pitching/pitcher`, `estimateXAndFrameAtBatterZ` (2026-09).
+
+Second confirmed instance of the OPEN QUESTION at the end of the `runner` entry (MWCC inlines a
+fully-implemented small callee where the target keeps real `bl` calls, so a
+`#pragma dont_inline` bracket is needed as scaffolding). `estimateXAndFrameAtBatterZ` (208 B)
+is called 3x from `pitchInAirFunction`; MWCC auto-inlines it at all three sites while the
+target keeps three `bl`s. The pragma is worth 87.36% -> 97.62% and 424 bytes. Moving the
+definition below the caller does NOT stop the inlining (87.7%, reverted).
+
+This case is sharper than `runner`'s: in the SAME function, seven OTHER in-file helpers
+(`fn_3_709B4`, `fn_3_70AEC`, `fn_3_70838`, `fn_3_70280`, `fn_3_706B8`, `fn_3_6FFC4`,
+`pitchCurve`) were auto-inlined exactly as the target does, with exact sizes and no pragma. So
+the inlining decision differs between callees within one caller, and the distinguishing source
+property is still unidentified. Still open; the pragma remains logged cleanup debt.
+
+## A dense `switch` synthesizes the `.data` jump table, and it is worth a whole section
+
+First seen: `game/game/pitching/pitcher`, `atBat_Pitcher` (2026-09).
+
+`atBat_Pitcher` dispatches on a `u8` state field; the target does `cmplwi 7; bgt` then
+`lwzx r0,r3,r0; mtctr; bctr` against `jumptable_3_data_8088` (0x20, 8 entries). Writing it as
+a plain `switch` over the 8 dense enumerators made MWCC emit the table with no extra work,
+taking the unit's `.data` from 0% to 100% in one edit, and the function itself to 100%. A
+`.data` section that is nothing but a `jumptable_*` symbol needs no C declaration — find the
+dispatching function and write the `switch`. This confirms a prediction recorded but not
+verified in the `ball_physics` checkpoint.
+
+## Check for duplicated bodies within a file before writing one from scratch
+
+First seen: `game/game/pitching/pitcher` (2026-09).
+
+`pitcher.c` had four: `handleHPBORRunnerAdvance` is byte-identical to `fn_3_7372C`;
+`fn_3_6FB98` begins with the whole body of `fn_3_6FA28`; `fn_3_6FFC4` begins with the whole
+body of `fn_3_6FDA0`; and `atBat_Pitcher`'s hit-by-pitch switch arm is another copy of
+`fn_3_6FA28`'s body. Each copy was free once the original matched. On a from-scratch file,
+before writing a large function, grep the already-matched functions for its opening
+instruction sequence — a duplicate body converts a large unknown into a paste. Ordering the
+work smallest-first surfaces the originals before the functions that embed them.
+
+## `x == a || x == b || x == c` gets folded into a range check
+
+First seen: `game/game/pitching/pitcher`, `pitchingWindUpFunction` (2026-09).
+
+Mirror image of "MWCC does not fold a two-sided range test — write it as one unsigned
+subtract". On consecutive values, MWCC merges an equality chain into a single range compare
+the target does not have. Rewriting as the negated conjunction with an `else` —
+`if (x != a && x != b && x != c) { else-arm } else { shared-arm }` — reproduced the target's
+`beq shared; beq shared; fallthrough` layout. The rule is symmetric: the source form that
+produces a folded range test and the one that produces separate compares are BOTH reachable,
+and which one you need is read off the target, never assumed.
+
+## `extern const f32 lbl_N_rodata_XXXX` is not restricted to single-use constants; measure it per function
+
+First seen: `game/game/pitching/pitcher`, `fn_3_70AEC` and `fn_3_6F6CC` (2026-09).
+
+Refines "`extern const f32 lbl_N_rodata_XXXX` only works for a SINGLE-USE constant" (from
+`ball_physics`), which states the limit too absolutely. In `fn_3_70AEC`, replacing three
+literals (`0.5f`, `0.0f`, `10000.0f`) with `lbl_3_rodata_1250`/`1258`/`12A8` was worth
+78.14% -> 99.76% even though those labels are used repeatedly across the translation unit. In
+`fn_3_6F6CC` in the same file the same swap HURT (99.68% with the literal, versus
+99.35/99.52/97.58 for three extern variants). Both directions occur within one file, so treat
+it as a cheap two-build experiment per function rather than a rule with a precondition.
+
+## Separate `if (...) return;` statements are not interchangeable with a merged `||` chain
+
+First seen: `game/game/pitching/pitcher`, `waitingForPitch` (2026-09).
+
+Three consecutive guard tests on the same array written as one `if (a || b || c) return;`
+emitted an extra `b` versus three separate `if (...) return;` statements, which matched (the
+function reached 100%). Related lever from the same function: moving a single
+`controls = &g_Controls[...]` assignment ahead of an unrelated three-component position copy
+was worth 91.4% -> 99.51%, because the source order of a global's first use decides which
+callee-saved register its base gets. Cross-reference "Textual statement position as a
+register-allocation priority lever".
+
+## Prototype audit on a from-scratch file, second data point
+
+First seen: `game/game/pitching/pitcher` (2026-09).
+
+Reinforces "Verify every `void f(void)` prototype against the target asm before implementing"
+(from `ball_physics`, where 6 of 40 were wrong). In `pitcher.c`, 8 of 41 dtk-derived
+prototypes were wrong: `fn_3_6F6CC`, `waitingForPitch_checkForPickoffs` and `loadPitcherActor`
+return `BOOL`; `fn_3_70680` is `BOOL(f32)`; `fn_3_706B8` is `void(int)`;
+`estimateXAndFrameAtBatterZ` is `int(f32*, f32, int)`;
+`pitcherAITransitionFromPrePitchToWindup` is `void(u8)`; `resetPitcherValuesBetweenBatters`
+is `void(int)`.
+
+Separately, four functions declared `void(void)` in SHARED headers really take arguments and/or
+return values (`loadCharacterAnimation`, `setPitcherStatsToInMemPitcher`,
+`aiPitchCurveDirection`, `LERPToNewRange_Float`); each was worked around with a local `extern`
+in the .c rather than editing the shared header, following existing precedent. The cost of that
+precedent: `include/game/pitching/pitcher_ai.h` can no longer be `#include`d from `pitcher.c`
+at all, because its `aiPitchCurveDirection` declaration now conflicts with the corrected local
+one. Fixing these at the header eventually is cheaper than accumulating conflicting local
+externs.
