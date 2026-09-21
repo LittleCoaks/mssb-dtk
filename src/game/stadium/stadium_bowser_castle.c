@@ -767,10 +767,12 @@ void fn_3_C3C2C(void) {
 
     for (i = 0; i < 8; i++) {
         u8 state = lbl_3_bss_9E48[i];
-        s16 sx;
-        s16 sy;
 
-        if (state < 2 && state != 0) {
+        switch (state) {
+        case 1: {
+            s16 sy;
+            s16 sx;
+
             fn_800528C0(lbl_3_bss_9DE8[i].x, lbl_3_bss_9DE8[i].y, lbl_3_bss_9DE8[i].z, &sx, &sy);
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
@@ -778,7 +780,12 @@ void fn_3_C3C2C(void) {
             ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->frameIndex = 0;
             ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags |= 2;
             lbl_3_bss_9E48[i] = 2;
-        } else if (state == 2) {
+            break;
+        }
+        case 2: {
+            s16 sy;
+            s16 sx;
+
             fn_800528C0(lbl_3_bss_9DE8[i].x, lbl_3_bss_9DE8[i].y, lbl_3_bss_9DE8[i].z, &sx, &sy);
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
@@ -787,6 +794,8 @@ void fn_3_C3C2C(void) {
                 ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags &= ~2;
                 lbl_3_bss_9E48[i] = 0;
             }
+            break;
+        }
         }
     }
     if (lbl_3_bss_9DE7 != 0) {
