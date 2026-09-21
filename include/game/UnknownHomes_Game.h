@@ -2871,7 +2871,7 @@ extern s16 HitVertTrajRanges[2][5][5][2];
 
 extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
 extern void setCharacterAnimations(int, int);
-extern void playSoundEffect(int);
+extern u32 playSoundEffect(int);
 extern void switchFromAtBatToLiveBall(void);
 extern int RandomIndexFromWeights(u8* weights, int count);
 extern void camera_switchScene(int);

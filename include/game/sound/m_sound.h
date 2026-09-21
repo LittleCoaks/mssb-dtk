@@ -19,7 +19,7 @@ void initializeCamera(void);
 void transitionToReplay(void);
 void fn_3_8C104(void);
 void fn_3_8C2DC(void);
-void fn_3_8C4F0(void);
+BOOL fn_3_8C4F0(u32 arg1, u32 arg2);
 void makeSoundOfBallBouncing(void);
 void handleGameSound(void);
 void fn_3_8D9C0(void);
@@ -31,8 +31,13 @@ void adjustBallSoundEffectBasedOnHeight(void);
 void initializeSounds(void);
 void animateThrownBall(void);
 void callSfx(void);
-void fn_3_90150(void);
+u32 fn_3_90150(int charID, int soundCode);
+u32 playCharacterSound(int charID, int soundCode);
+u32 playSoundEffect(int soundNumber);
 void fn_3_902FC(void);
+void playOverSounds(int param);
+void fn_3_903B8(void);
+void fn_3_90674(int index);
 void fn_3_906FC(void);
 
 #endif // !__GAME_SOUND_M_SOUND_H_

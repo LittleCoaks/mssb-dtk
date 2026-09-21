@@ -1,6 +1,7 @@
 #include "game/sound/m_sound.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
+#include "musyx/seq.h"
 #include "Unknown/File_0x80052734.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "static/UnknownHomes_Static.h"
@@ -31,12 +32,36 @@ unsigned long sndAddListener(SND_LISTENER* li, SND_FVECTOR* pos, SND_FVECTOR* di
                               SND_ROOM* room);
 bool32 sndCheckEmitter(SND_EMITTER* em);
 unsigned long sndRemoveEmitter(SND_EMITTER* em);
+bool32 sndUpdateEmitter(SND_EMITTER* em, SND_FVECTOR* pos, SND_FVECTOR* dir, u8 maxVol,
+                         SND_ROOM* room);
+bool32 sndSeqGetValid(s32 unk);
 
 extern SND_FVECTOR lbl_3_data_8D70;
 extern f32 lbl_3_data_88AC;
 
 extern const f32 lbl_3_rodata_157C;
 extern const f32 lbl_3_rodata_1580;
+
+extern u16 characterSoundArray[54];
+extern u8 charSoundFxVol[12];
+
+// Per-sound volume/reverb mix table, indexed by soundNumber - SOUND_EFFECT_MIX_FIRST_ID.
+typedef struct SoundEffectMix {
+    u8 volume;
+    u8 reverb;
+} SoundEffectMix;
+
+extern SoundEffectMix lbl_3_data_8338[];
+#define SOUND_EFFECT_MIX_FIRST_ID 0x151
+
+typedef struct SeqPlayEntry {
+    u16 sgid;
+    u16 sid;
+    u16 _04;
+} SeqPlayEntry;
+
+extern SeqPlayEntry lbl_3_data_88E0[];
+extern u8 lbl_3_data_830C[];
 
 static s32 lbl_3_bss_1774[0xC / sizeof(s32)];
 static s32 lbl_3_bss_1780[0x78 / sizeof(s32)];
@@ -72,7 +97,7 @@ BOOL addToCircularBuffer(u8 arg1, u8 arg2, u8 arg3) {
 
     head = lbl_3_bss_1768->head;
     next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    if (lbl_3_bss_1768->tail == next) {
+    if (next == lbl_3_bss_1768->tail) {
 fail:
         return FALSE;
     }
@@ -100,14 +125,17 @@ void fn_3_8B718(Vec* pos, Vec* dir, Vec* lookDir) {
     }
 
     if (dir != NULL) {
-        dir->x = 0.0f;
-        dir->y = 0.0f;
-        dir->z = 0.0f;
+        dir->x = lbl_3_rodata_157C;
+        dir->y = lbl_3_rodata_157C;
+        dir->z = lbl_3_rodata_157C;
     }
 
     if (lookDir != NULL) {
+        f32 mag;
+
         PSVECSubtract(&cam->target, &cam->eye, lookDir);
-        if (PSVECMag(lookDir) != lbl_3_rodata_157C) {
+        mag = PSVECMag(lookDir);
+        if (mag != lbl_3_rodata_157C) {
             PSVECNormalize(lookDir, lookDir);
         }
     }
@@ -132,9 +160,26 @@ void fn_3_8B804(void) {
     }
 }
 
+extern SND_FVECTOR emitterPosX;
+extern SND_FVECTOR emitterDirX;
+
 // .text:0x0008B890 size:0xD4 mapped:0x806CA924
 void updateAndRemoveStadiumEmitter(int emitterID) {
-    return;
+    SND_EMITTER* em;
+    SND_FVECTOR pos;
+    SND_FVECTOR dir;
+
+    if (emitterID >= 0 && emitterID < 100) {
+        if (sndEmitter.emitterActive[emitterID]) {
+            em = &sndEmitter.emitters[emitterID];
+            if (sndCheckEmitter(em)) {
+                pos = emitterPosX;
+                dir = emitterDirX;
+                sndUpdateEmitter(em, &pos, &dir, 0, NULL);
+                sndRemoveEmitter(em);
+            }
+        }
+    }
 }
 
 // .text:0x0008B964 size:0x58 mapped:0x806CA9F8
@@ -173,7 +218,8 @@ void initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
 
 // .text:0x0008BDF4 size:0x98 mapped:0x806CAE88
 void fn_3_8BDF4(void) {
-    return;
+    fn_3_8B804();
+    fn_3_8B7DC();
 }
 
 // .text:0x0008BE8C size:0x1F0 mapped:0x806CAF20
@@ -196,9 +242,41 @@ void fn_3_8C2DC(void) {
     return;
 }
 
+// Base of a foreign region; only the flag byte at +0x1 and the averaged
+// hi/lo bytes at +0x10/+0x11 (used by fn_3_8C4F0) are proven.
+extern u8 lbl_3_bss_1760[0x14];
+
+extern u16 fn_800A8864(u32 arg1, u32 arg2);
+extern void fn_800A8878(u8 arg1, u8 arg2);
+
 // .text:0x0008C4F0 size:0xD8 mapped:0x806CB584
-void fn_3_8C4F0(void) {
-    return;
+BOOL fn_3_8C4F0(u32 arg1, u32 arg2) {
+    u8* state = lbl_3_bss_1760;
+    u16 packed = fn_800A8864(arg1, arg2);
+    u8 hi = (u8)(packed >> 8);
+    u8 lo = (u8)packed;
+    u8 avgHi;
+    s16 diff;
+
+    sound_crowd_EffectsStruct._2F = 0;
+
+    if (state[1] == 0) {
+        state[1] = 1;
+        state[0x11] = (u8)(hi / arg1);
+        state[0x10] = (u8)(lo / arg1);
+    }
+
+    avgHi = state[0x11];
+    diff = (s16)(hi - avgHi);
+
+    if (diff <= (s16)(u8)arg2 || arg1 == 1) {
+        state[1] = 0;
+        fn_800A8878((u8)arg2, (u8)arg2);
+        return FALSE;
+    }
+
+    fn_800A8878((u8)diff, (u8)(lo - state[0x10]));
+    return TRUE;
 }
 
 // .text:0x0008C5C8 size:0x7AC mapped:0x806CB65C
@@ -207,13 +285,41 @@ void makeSoundOfBallBouncing(void) {
 }
 
 // .text:0x0008CD74 size:0xC4C mapped:0x806CBE08
+#pragma dont_inline on
 void handleGameSound(void) {
     return;
 }
+#pragma dont_inline reset
 
 // .text:0x0008D9C0 size:0xC0 mapped:0x806CCA54
 void fn_3_8D9C0(void) {
-    return;
+    camera_803c639c_s* cam;
+    Vec pos;
+    Vec dir;
+    Vec lookDir;
+    f32 mag;
+
+    handleGameSound();
+    cam = returnFloatFromModeIndex(0);
+
+    pos.x = cam->eye.x;
+    pos.y = cam->eye.y;
+    pos.z = cam->eye.z;
+
+    dir.x = lbl_3_rodata_157C;
+    dir.y = lbl_3_rodata_157C;
+    dir.z = lbl_3_rodata_157C;
+
+    PSVECSubtract(&cam->target, &cam->eye, &lookDir);
+    mag = PSVECMag(&lookDir);
+    if (mag != lbl_3_rodata_157C) {
+        PSVECNormalize(&lookDir, &lookDir);
+    }
+
+    if (sndEmitter.listener.room != NULL) {
+        sndUpdateListener(&sndEmitter.listener, (SND_FVECTOR*)&pos, (SND_FVECTOR*)&dir,
+                           (SND_FVECTOR*)&lookDir, &lbl_3_data_8D70, 0x7f, NULL);
+    }
 }
 
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
@@ -280,9 +386,49 @@ void callSfx(void) {
     return;
 }
 
+// The reverb bytes for a character's sound codes live 0x180 bytes after
+// charSoundFxVol in .data, in an otherwise unnamed foreign table.
+#define CHAR_SOUND_REVERB_OFFSET 0x180
+
+// A scale factor embedded in the same unnamed foreign table as
+// charSoundFxVol, 0x300 bytes past its start.
+extern f32 lbl_3_data_8830;
+
 // .text:0x00090150 size:0xD0 mapped:0x806CF1E4
-void fn_3_90150(void) {
-    return;
+SND_VOICEID fn_3_90150(int charID, int soundCode) {
+    SND_VOICEID vid;
+    u8* reverbTable = charSoundFxVol + soundCode;
+    f32 volF = (f32)charSoundFxVol[soundCode];
+    f32 reverbF = (f32)reverbTable[CHAR_SOUND_REVERB_OFFSET];
+    int fid = soundCode + characterSoundArray[charID];
+    u8 vol = (u8)(volF * lbl_3_data_8830);
+    u8 reverb = (u8)(reverbF * lbl_3_data_8830);
+
+    vid = sndFXStartEx(fid, vol, 0x3f, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
+    return vid;
+}
+
+// .text:0x00090220 size:0x74 mapped:0x806CF2B4
+SND_VOICEID playCharacterSound(int charID, int soundCode) {
+    SND_VOICEID vid;
+    u8* reverbTable = charSoundFxVol + soundCode;
+    u8 vol = charSoundFxVol[soundCode];
+    int fid = soundCode + characterSoundArray[charID];
+    u8 reverb = reverbTable[CHAR_SOUND_REVERB_OFFSET];
+
+    vid = sndFXStartEx(fid, vol, 0x3f, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
+    return vid;
+}
+
+// .text:0x00090294 size:0x68 mapped:0x806CF328
+SND_VOICEID playSoundEffect(int soundNumber) {
+    SND_VOICEID vid;
+
+    vid = sndFXStartEx(soundNumber, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].volume, 0x3f, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].reverb);
+    return vid;
 }
 
 // .text:0x000902FC size:0x2C mapped:0x806CF390
@@ -290,22 +436,52 @@ void fn_3_902FC(void) {
     sndVolume(0, 10, 0xff);
 }
 
+// .text:0x00090328 size:0x90 mapped:0x806CF3BC
+void playOverSounds(int param) {
+    if (param < 0) {
+        param = 3000;
+    }
+
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
+        sndSeqVolume(0, param, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
+    }
+
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
+        sndSeqVolume(0, param, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
+    }
+}
+
+// .text:0x000903B8 size:0x7C mapped:0x806CF44C
+void fn_3_903B8(void) {
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
+        sndSeqVolume(0, 0xa0, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
+    }
+
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
+        sndSeqVolume(0, 0xa0, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
+    }
+}
+
+// .text:0x00090674 size:0x88 mapped:0x806CF708
+void fn_3_90674(int index) {
+    SeqPlayEntry* entry = &lbl_3_data_88E0[index];
+    void** arrTable = (void**)lbl_3_bss_1774[0];
+
+    sound_crowd_EffectsStruct._04 = sndSeqPlayEx(entry->sgid, entry->sid, arrTable[index], NULL, 0);
+    sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
+}
+
 // .text:0x000906FC size:0x58 mapped:0x806CF790
 void fn_3_906FC(void) {
     s32* p;
     s32 base;
-    s32 count;
     s32 i;
 
     base = sound_crowd_EffectsStruct._00;
     p = (s32*)base;
-    count = 0x14;
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        count = 1;
-    }
 
-    for (i = 0; i < count; i++) {
-        *p = base + *p;
+    for (i = 0; i < (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE ? 1 : 0x14); i++) {
+        *p += base;
         p++;
     }
 

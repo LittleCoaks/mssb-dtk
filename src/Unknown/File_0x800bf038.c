@@ -8,7 +8,7 @@ void fn_800BF048(void) {
     return;
 }
 
-void fn_800BF058(void) {
+void fn_800BF058(void (*func)(StadiumModel* model, Mtx m)) {
     return;
 }
 
