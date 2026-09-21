@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_WARIO_PALACE_H_
-#define __GAME_STADIUM_STADIUM_WARIO_PALACE_H_
+#ifndef __GAME_STADIUM_STA_C2_H_
+#define __GAME_STADIUM_STA_C2_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
@@ -342,4 +342,4 @@ void fn_3_D62F0(s32* idx);
 void fn_3_D6514(void);
 void loadWarioPalace(void** files);
 
-#endif // !__GAME_STADIUM_STADIUM_WARIO_PALACE_H_
+#endif // !__GAME_STADIUM_STA_C2_H_

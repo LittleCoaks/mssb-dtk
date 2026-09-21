@@ -35,9 +35,9 @@
 #include "Unknown/File_0x800bea04.h"
 #include "game/stadium/stadium_bowser_castle.h"
 #include "game/stadium/stadium_yoshi_park.h"
-#include "game/stadium/stadium_dk_jungle.h"
-#include "game/stadium/stadium_toy_field.h"
-#include "game/stadium/stadium_wario_palace.h"
+#include "game/stadium/sta_c5.h"
+#include "game/stadium/sta_c6.h"
+#include "game/stadium/sta_c2.h"
 
 typedef struct _StadiumBounds {
     Vec min;

@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/stadium/stadium_wario_palace.h"
+#include "game/stadium/sta_c2.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"

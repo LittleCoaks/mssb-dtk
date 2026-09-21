@@ -1,4 +1,4 @@
-#include "game/stadium/stadium_mario.h"
+#include "game/stadium/sta_c0.h"
 #include "header_rep_data.h"
 
 // .text:0x000C9878 size:0x180 mapped:0x8070890C

@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_DK_JUNGLE_H_
-#define __GAME_STADIUM_STADIUM_DK_JUNGLE_H_
+#ifndef __GAME_STADIUM_STA_C5_H_
+#define __GAME_STADIUM_STA_C5_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
@@ -374,4 +374,4 @@ void updateDKJungleControl(void);
 void fn_3_F6FCC(void);
 void loadDKJungle(void** files);
 
-#endif // !__GAME_STADIUM_STADIUM_DK_JUNGLE_H_
+#endif // !__GAME_STADIUM_STA_C5_H_

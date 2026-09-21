@@ -1044,7 +1044,7 @@ Related, smaller levers measured in the same file: `else if` chains versus neste
 and `<= 1` versus `< 2` (the target's `cmplwi 1; bgt` versus our `cmplwi 2; bge`).
 
 It applies to small functions too, and to the early-return polarity specifically:
-`fn_3_F6504` (196 B, `game/game/stadium/stadium_dk_jungle`) went 95.10% -> 100% purely by
+`fn_3_F6504` (196 B, `game/game/stadium/sta_c5`) went 95.10% -> 100% purely by
 rewriting `if (!cond) return NULL; build;` as `if (cond) { build; } else { return NULL; }`.
 
 ## When the target inlines an in-file function it also keeps standalone, copy the body
@@ -1716,7 +1716,7 @@ assignments out. Getting this right (together with declaration order and modifyi
 `GXColor`'s alpha in place rather than rebuilding the struct) moved this function from
 94.2% to 99.6%.
 
-Third data point: `fn_3_F4BA0`/`fn_3_F4D00` in `game/game/stadium/stadium_dk_jungle` went
+Third data point: `fn_3_F4BA0`/`fn_3_F4D00` in `game/game/stadium/sta_c5` went
 90.58% -> 99.77% from this change alone (2026-09).
 
 ## Load both float operands into named locals before comparing them
@@ -1753,7 +1753,7 @@ right is the signal that the change was correct.
 
 ## Dead standalone copies, second data point: five clusters in one 88-function file
 
-First seen: `game/game/stadium/stadium_wario_palace` (88 functions, all `return;` stubs at session
+First seen: `game/game/stadium/sta_c2` (88 functions, all `return;` stubs at session
 start, 2026-09). Sharpens "Dead-code standalone duplicates are the cheapest route into a
 from-scratch file's big functions" (from `batter_ai`) with a much larger sample.
 
@@ -1767,7 +1767,7 @@ work leaf-to-root; the order is almost free to derive and it decided the whole s
 
 ## Auto-inlining by plain call reached 696 bytes here; size, not expectation, decides
 
-First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Third data point for
+First seen: `game/game/stadium/sta_c2` (2026-09). Third data point for
 "`-inline deferred` auto-inlining of in-file standalone functions is NOT uniform" and "A target
 can contain BOTH a standalone function and a hand-inlined copy of it".
 
@@ -1779,7 +1779,7 @@ helper: `fn_3_D6514` (696 B, including `D62F0`) inside `loadWarioPalace`, `fn_3_
 to be pasted into the case. Try the plain call first on every embedded helper regardless of
 size, and paste only where the `bl` demonstrably survives.
 
-Fourth data point, `game/game/stadium/stadium_dk_jungle` (2026-09): across five consecutive
+Fourth data point, `game/game/stadium/sta_c5` (2026-09): across five consecutive
 batches the plain CALL form reproduced the target's inlining in EVERY case, and each consumer
 hit its exact target byte size on the first build — `fn_3_F2724` (532 B) into
 `dkBarrelAdvanceMotion`; `fn_3_F22FC`/`fn_3_F1750`/`fn_3_F18A4` into `handleDKJungleBarrel`;
@@ -1792,7 +1792,7 @@ array the caller reaches through a different base). Write the plain call first, 
 
 ## An inlined helper must take the caller's EXACT view type
 
-First seen: `game/game/stadium/stadium_wario_palace`, `chomp_attack` (2026-09).
+First seen: `game/game/stadium/sta_c2`, `chomp_attack` (2026-09).
 
 `chomp_attack` works on a `PalaceChompObj*` view; its helpers `fn_3_D255C`/`fn_3_D24E8` took
 `StadiumObject*`. Inlined, the mismatched pointer type made the loop hoist `&obj->pos` into an
@@ -1804,7 +1804,7 @@ restructuring anything.
 
 ## Do not give a `Vec`/`Mtx` local an initialiser where the target copies it late
 
-First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Cross-reference "Textual
+First seen: `game/game/stadium/sta_c2` (2026-09). Cross-reference "Textual
 statement position as a register-allocation priority lever".
 
 MWCC hoists an initialised local's copy to function start; the target performs the copy at the
@@ -1816,7 +1816,7 @@ ours that sit near the end of the target.
 
 ## A constant loop bound is folded away; round-trip it through a struct field
 
-First seen: `game/game/stadium/stadium_wario_palace`, `fn_3_CC438` (2026-09).
+First seen: `game/game/stadium/sta_c2`, `fn_3_CC438` (2026-09).
 
 `int iterations = 8; dt = 1.0f / iterations;` is constant-folded, so the target's
 int-to-float conversion sequence (`xoris`/`lfd`/`fsub` against the bias constant) disappears.
@@ -1828,7 +1828,7 @@ literal.
 
 ## Write a constant-first float comparison when the target has `fcmpo const,val; cror gt,eq`
 
-First seen: `game/game/stadium/stadium_wario_palace`, `fn_3_D278C` (2026-09). Sharpens "Float
+First seen: `game/game/stadium/sta_c2`, `fn_3_D278C` (2026-09). Sharpens "Float
 `>=` emits `fcmpo; cror; bne`".
 
 `5.0f >= PSVECMag(&d)` reproduces `fcmpo 5.0,mag; cror gt,eq`; the reversed spelling
@@ -1838,7 +1838,7 @@ be the left operand.
 
 ## Chained assignment and compound `+=` on struct float fields each score on their own
 
-First seen: `game/game/stadium/stadium_wario_palace` (2026-09).
+First seen: `game/game/stadium/sta_c2` (2026-09).
 
 `a->x = a->y = expr;` instead of two statements took `palaceHazeTextureMaybe` 92.74 -> 99.28.
 `p->sizeA += 0.38` instead of `p->sizeA = p->sizeA + 0.38` was worth about +4.5 points twice
@@ -1848,7 +1848,7 @@ operand of the add, try these before anything structural.
 
 ## `.bss` gap symbols that dtk leaves unnamed may be real objects, not padding
 
-First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Extends "dtk `.bss`/`.data`
+First seen: `game/game/stadium/sta_c2` (2026-09). Extends "dtk `.bss`/`.data`
 symbol sizes are gap-derived".
 
 Two bytes declared as `pad_A028`/`pad_A029` during `.bss` setup turned out to be the ring
@@ -1859,7 +1859,7 @@ remaining function's `stb rX, off(r30)` offsets before naming pads.
 
 ## Known unsolved: float equality as `fcmpu; mfcr; extrwi; xori; cntlzw; srwi.; beq`
 
-First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Recorded so it is not
+First seen: `game/game/stadium/sta_c2` (2026-09). Recorded so it is not
 re-derived.
 
 The target computes `mag == 0.0f` through a five-instruction CR-extraction sequence. Plain
@@ -1870,7 +1870,7 @@ which does reach the CLZ form when the value is actually returned or stored.
 
 ## Known unsolved: `.bss`/`.data` tables addressed through ONE base register
 
-First seen: `game/game/stadium/stadium_wario_palace`, `fn_3_D511C`, `loadWarioPalace` (2026-09).
+First seen: `game/game/stadium/sta_c2`, `fn_3_D511C`, `loadWarioPalace` (2026-09).
 Same allocator-artifact class as "MWCC 2.x will not register-pool an extern data-symbol base,
 no matter the source shape"; see that entry rather than a new theory.
 
@@ -1881,7 +1881,7 @@ attributes the +7 head instructions in `loadWarioPalace` to it; the function is 
 
 ## A source-level change can keep a helper OUT of line without `#pragma dont_inline`
 
-First seen: `game/game/stadium/stadium_dk_jungle`, `fn_3_EEB94` / `fn_3_EEF24` (2026-09).
+First seen: `game/game/stadium/sta_c5`, `fn_3_EEB94` / `fn_3_EEF24` (2026-09).
 The inverse of the auto-inlining entries above, and a cheaper answer than a pragma.
 
 `fn_3_EEB94` (352 B) matched 100% standalone, but MWCC then auto-inlined it into its caller
@@ -1897,7 +1897,7 @@ check `bl` counts on both sides before concluding the caller's C is wrong.
 
 ## `u32` vs `u8` loop counters decide whether MWCC unrolls a fixed-trip-count loop
 
-First seen: `game/game/stadium/stadium_dk_jungle`, `loadDKJungle` (2026-09). Sharpens "MWCC
+First seen: `game/game/stadium/sta_c5`, `loadDKJungle` (2026-09). Sharpens "MWCC
 `-O4,p` auto-unrolls trivial fixed-trip-count scan loops".
 
 The target unrolled two small placement-table count loops; ours did not, and no restructuring of
@@ -1908,7 +1908,7 @@ and ours refuses to, check the induction variable's type before touching the bod
 
 ## Pad a `Control`-style stack local to the target's frame size
 
-First seen: `game/game/stadium/stadium_dk_jungle`, `fn_3_F65C8` (99.88% -> 100%, 2026-09).
+First seen: `game/game/stadium/sta_c5`, `fn_3_F65C8` (99.88% -> 100%, 2026-09).
 Second data point for "A stack scratch buffer's size is invisible except through frame rounding".
 
 A function that builds a transform through a stack-local `Control` matched every instruction but
@@ -1920,7 +1920,7 @@ of the highest-addressed local.
 
 ## Prefer the named `.bss` statics over a struct-view pointer local for a shared base
 
-First seen: `game/game/stadium/stadium_dk_jungle`, `updateDKJungleControl` (96.13% -> 97.90%,
+First seen: `game/game/stadium/sta_c5`, `updateDKJungleControl` (96.13% -> 97.90%,
 2026-09). Practical counter-note to "Known unsolved: `.bss`/`.data` tables addressed through ONE
 base register".
 
@@ -1939,7 +1939,7 @@ per function rather than applying either form file-wide.
 
 ## Two same-size functions can be one body with the local declarations swapped
 
-First seen: `game/game/stadium/stadium_dk_jungle`, `fn_3_F4BA0` / `fn_3_F4D00` (172 bytes each,
+First seen: `game/game/stadium/sta_c5`, `fn_3_F4BA0` / `fn_3_F4D00` (172 bytes each,
 both 99.77%, 2026-09). Extends "Check for duplicated bodies within a file before writing one
 from scratch" and "Sweep local declaration order mechanically".
 

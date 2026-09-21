@@ -1,4 +1,4 @@
-#include "game/stadium/stadium_dk_jungle.h"
+#include "game/stadium/sta_c5.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"

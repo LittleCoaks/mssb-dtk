@@ -5,7 +5,7 @@
 #include "game/math/game_math.h"
 #include "Dolphin/rand.h"
 #include "static/UnknownHomes_static.h"
-#include "game/stadium/stadium_toy_field.h"
+#include "game/stadium/sta_c6.h"
 #include "header_rep_data.h"
 
 extern void QueueTextToDisplay(int code, int arg1);

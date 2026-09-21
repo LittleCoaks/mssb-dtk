@@ -1,4 +1,4 @@
-#include "game/stadium/stadium_peach_garden.h"
+#include "game/stadium/sta_c4.h"
 #include "header_rep_data.h"
 
 // .text:0x000F8524 size:0x8C mapped:0x807375B8

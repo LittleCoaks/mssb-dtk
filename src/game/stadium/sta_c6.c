@@ -1,4 +1,4 @@
-#include "game/stadium/stadium_toy_field.h"
+#include "game/stadium/sta_c6.h"
 #include "header_rep_data.h"
 
 // .text:0x000E59B4 size:0x68 mapped:0x80724A48

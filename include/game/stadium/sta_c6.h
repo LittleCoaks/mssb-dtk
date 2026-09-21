@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_TOY_FIELD_H_
-#define __GAME_STADIUM_STADIUM_TOY_FIELD_H_
+#ifndef __GAME_STADIUM_STA_C6_H_
+#define __GAME_STADIUM_STA_C6_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
@@ -37,4 +37,4 @@ void fn_3_E7B20(void);
 void fn_3_E8AC8(void);
 void loadToyField(void);
 
-#endif // !__GAME_STADIUM_STADIUM_TOY_FIELD_H_
+#endif // !__GAME_STADIUM_STA_C6_H_
