@@ -6,6 +6,7 @@
 #include "stl/math.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_static.h"
+#include "game/sound/m_sound.h"
 
 extern const f32 lbl_3_rodata_1938;
 extern const f32 lbl_3_rodata_19C4;
@@ -108,7 +109,6 @@ extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 getThrowSpeedBasedOnArmStrengthStat(u8 arm);
 extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern void liveBallHitPhysics(int arg);
-extern void animateThrownBall(int objId, f32 x, f32 y, f32 z);
 extern void pickoff_infieldThrow_related(int fielderIndex);
 extern void playCharacterSound(int charID, int soundIndex);
 extern void initialize_runnersBeingTargetedWhileBatterCanBeForcedOut(void);

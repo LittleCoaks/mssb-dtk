@@ -27,7 +27,7 @@ void soundFxRelated(void);
 void newAtBatPlaySound(void);
 void adjustBallSoundEffectBasedOnHeight(void);
 void initializeSounds(void);
-void animateThrownBall(void);
+void animateThrownBall(int objId, f32 x, f32 y, f32 z);
 void callSfx(void);
 void fn_3_90150(void);
 

@@ -7,8 +7,8 @@ void fn_3_B79AC(void) {
 }
 
 // .text:0x000B7C2C size:0xB0 mapped:0x806F6CC0
-void checkFielderCollision(void) {
-    return;
+int checkFielderCollision(InMemFielder* fielder, VecXYZ* pos) {
+    return 0;
 }
 
 // .text:0x000B7CDC size:0x90 mapped:0x806F6D70
@@ -17,22 +17,22 @@ int isCoordinateUncatchableTerrain(f32 x, f32 z) {
 }
 
 // .text:0x000B7D6C size:0x6C mapped:0x806F6E00
-void foul_isBallWithin3mFair(void) {
-    return;
+int foul_isBallWithin3mFair(f32 x, f32 z) {
+    return 0;
 }
 
 // .text:0x000B7DD8 size:0x38 mapped:0x806F6E6C
-void foul_ifBallConsideredPastTheBases(void) {
-    return;
+int foul_ifBallConsideredPastTheBases(f32 x, f32 z) {
+    return 0;
 }
 
 // .text:0x000B7E10 size:0x34 mapped:0x806F6EA4
-void foul_checkIfFoul(void) {
-    return;
+int foul_checkIfFoul(f32 x, f32 z) {
+    return 0;
 }
 
 // .text:0x000B7E44 size:0xAC mapped:0x806F6ED8
-void fn_3_B7E44(void) {
-    return;
+int fn_3_B7E44(f32 dist, sAng angle) {
+    return 0;
 }
 

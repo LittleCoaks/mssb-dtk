@@ -117,7 +117,7 @@ void initializeSounds(void) {
 }
 
 // .text:0x0008FF5C size:0x108 mapped:0x806CEFF0
-void animateThrownBall(void) {
+void animateThrownBall(int objId, f32 x, f32 y, f32 z) {
     return;
 }
 

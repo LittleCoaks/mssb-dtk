@@ -7,6 +7,8 @@
 #include "static/UnknownHomes_static.h"
 #include "game/stadium/sta_c6.h"
 #include "header_rep_data.h"
+#include "game/ball/foul_detection.h"
+#include "game/sound/m_sound.h"
 
 extern void QueueTextToDisplay(int code, int arg1);
 extern void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
@@ -34,9 +36,6 @@ extern f32 lbl_3_data_45FC;
 extern u8 lbl_3_data_4600;
 extern u32 FrameCountOfEntireGame;
 extern VecXZ fieldingStartingCoords_regular[9];
-extern int foul_ifBallConsideredPastTheBases(f32 x, f32 z);
-extern int foul_isBallWithin3mFair(f32 x, f32 z);
-extern int foul_checkIfFoul(f32 x, f32 z);
 extern VecXZ base_MoundCoordinates[5];
 extern f32 lbl_3_data_5CDC[11];
 extern f32 fielderHitboxesForGarlicKnockout[5];
@@ -52,7 +51,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern BallBounceConstants lbl_3_data_4414;
 extern f32 lbl_3_data_4604;
 extern u8 lbl_3_data_4608;
-extern void animateThrownBall(int objId, f32 x, f32 y, f32 z);
 extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4428[7];
 extern f32 fielderActionConstants[43];
