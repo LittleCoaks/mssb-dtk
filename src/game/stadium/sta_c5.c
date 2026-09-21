@@ -1624,7 +1624,7 @@ void dkBarrelLaunch(DKJungleBarrel* barrel, f32 x, f32 z) {
 }
 
 // .text:0x000F37BC size:0x118 mapped:0x80732850
-u32 fn_3_F37BC(u32 n, u32 k) {
+u32 binomialCoefficient(u32 n, u32 k) {
     u32 result = 1;
     u32 i;
 
@@ -1635,11 +1635,11 @@ u32 fn_3_F37BC(u32 n, u32 k) {
 }
 
 // .text:0x000F38D4 size:0x130 mapped:0x80732968
-void fn_3_F38D4(void) {
+void initBinomialTable(void) {
     u32 i;
 
     for (i = 0; i < 7; i++) {
-        bezierFactors[i] = fn_3_F37BC(6, i);
+        bezierFactors[i] = binomialCoefficient(6, i);
     }
 }
 
@@ -2597,7 +2597,7 @@ void loadDKJungle(void** files) {
             maybeObjectCount++;
         } while (i < 5);
         done = FALSE;
-        fn_3_F38D4();
+        initBinomialTable();
     }
 
     launcherCfg = barrelLauncherDataStruct;

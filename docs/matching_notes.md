@@ -1512,10 +1512,10 @@ standalone copy of a body that also appears inlined inside a much larger functio
 | dead standalone | body also inlined into |
 |---|---|
 | fn_3_1E4B8 (620 B) | batterAIRNGValueSetting (2108 B) - steal decision |
-| fn_3_1E724 (208 B) | batterAIControlled (444 B) - bunt decision |
+| batterAIBuntDecision (208 B) | batterAIControlled (444 B) - bunt decision |
 | fn_3_1F1CC (388 B) | batterAIMoveBatter (1012 B) - pre-pitch box positioning |
-| fn_3_1F350 (296 B) | batterTrackBallInBox (1312 B) - stage 1 |
-| fn_3_20188 (156 B) | batterAIRNGValueSetting - pitch guess |
+| batterAIGuessPitchLocation (296 B) | batterTrackBallInBox (1312 B) - stage 1 |
+| batterAIGuessPitchType (156 B) | batterAIRNGValueSetting - pitch guess |
 
 Implementing the five SMALL dead copies first converted four of the file's five largest functions
 from open-ended writes into near-pastes; three of those four then matched 100% on the first or
@@ -1531,9 +1531,9 @@ First seen: `game/game/batting/batter_ai` (2026-09). This settles the remaining 
 ("byte size decides"): the decision is not per-file and not even per-function, but per call site.
 
 All measured in ONE unit, same compiler settings:
-- `batterTrackBallInBox` calling `fn_3_1F350()`, and `batterAIMoveBatter` calling `fn_3_1F1CC()`:
+- `batterTrackBallInBox` calling `batterAIGuessPitchLocation()`, and `batterAIMoveBatter` calling `fn_3_1F1CC()`:
   plain call form, auto-inlined by MWCC, EXACT size, **100%** each. No body copy needed.
-- `batterAIControlled` calling `fn_3_1E724()`: call form **96.58% and 8 bytes SHORT**; the same body
+- `batterAIControlled` calling `batterAIBuntDecision()`: call form **96.58% and 8 bytes SHORT**; the same body
   copied in reached **100%**.
 - `batterAIRNGValueSetting` contains TWO inlined bodies and wanted a DIFFERENT form for each: the
   steal block scored 97.63% as a call and **97.79%** copied in, while the pitch-guess block was
@@ -1785,7 +1785,7 @@ hit its exact target byte size on the first build — `fn_3_F2724` (532 B) into
 `dkBarrelAdvanceMotion`; `fn_3_F22FC`/`fn_3_F1750`/`fn_3_F18A4` into `handleDKJungleBarrel`;
 `fn_3_F4DAC` (528 B) and `fn_3_F4C4C` into `handleBarrelFiring`; `fn_3_F5E78` (x2) and
 `fn_3_F5F4C` into `processJungleObjectCollisions`; `fn_3_F6A94` and `maybeBarrelCTRLRel` into
-`updateDKJungleControl`; `fn_3_F3BB0`, `fn_3_F5C30` (584 B), `maybeGharialCTRLRel`, `fn_3_F38D4`
+`updateDKJungleControl`; `fn_3_F3BB0`, `fn_3_F5C30` (584 B), `maybeGharialCTRLRel`, `initBinomialTable`
 and `fn_3_EECF4` into `loadDKJungle`. Only one case in the whole file needed a hand-pasted body
 (`fn_3_F3EFC`/`fn_3_F2FFC` inside `dkBarrelLaunch`, and only because the helpers name a `.bss`
 array the caller reaches through a different base). Write the plain call first, always.

@@ -55,18 +55,18 @@ extern f32 lbl_3_data_1AA8;
 extern f32 lbl_3_data_5EB8[3];
 
 void fn_3_1E4B8(void);
-BOOL fn_3_1E724(void);
+BOOL batterAIBuntDecision(void);
 BOOL batterAIBallLocRelated(void);
 void batterAIFrameToSwingAndStickInput(void);
 BOOL batterAISwingInd(void);
 void fn_3_1F1CC(void);
-void fn_3_1F350(void);
+void batterAIGuessPitchLocation(void);
 void batterTrackBallInBox(void);
 void batterAIMoveBatter(void);
 void batterAIControlled(void);
 void trackLastPitchInfo2(void);
 void batterAISwingEarlyOrLate(void);
-void fn_3_20188(void);
+void batterAIGuessPitchType(void);
 void batterAIRNGValueSetting(void);
 
 #endif // !__GAME_BATTING_BATTER_AI_H_
