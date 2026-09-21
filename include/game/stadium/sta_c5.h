@@ -291,13 +291,9 @@ extern DKJungleKlaptrapData jungleKlaptrapData[];
 extern DKJungleZoneCorner lbl_3_data_1B824[][4];
 extern DKJungleBarrelLauncher barrelLauncherDataStruct[];
 extern u8 drawStadiumRelated;
-s16 rng(int max);
 void fn_8003A144(void);
 void fn_800BDA24(void* arg);
-extern void fn_800BD548(void* actor, int mode, ...);
 void fn_800A7D4C(s32 arg0, void* arg1);
-void fn_80033620(void* emitter);
-void fn_80033CC8(void* particle, int arg);
 
 void fn_3_EDFAC(void);
 int fn_3_EE0BC(u32 flags);

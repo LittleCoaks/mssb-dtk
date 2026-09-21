@@ -114,8 +114,6 @@ typedef struct _PalaceTornadoPlacement {
 
 extern PalaceTornadoPlacement TornadoPlacementConfig[];
 
-s16 rng(int max);
-
 typedef struct _PalaceEffectParticle {
     /*0x00*/ struct _PalaceEffectParticle* next;
     /*0x04*/ Vec pos;
@@ -261,9 +259,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids);
 void fn_3_CD958(void);
 BOOL fn_3_CD968(Vec* p, f32 w, f32 h);
 void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
-void fn_80033620(void* emitter);
 void fn_8003403C(f32 w, f32 h);
-void fn_80033CC8(void* particle, int arg);
 void fn_3_CDB48(PalaceHazeParticle* p, PalaceHazeEmitter* emitter);
 void fn_3_CDD90(PalaceHazeParticle* p);
 BOOL fn_3_CDFA4(PalaceHazeEmitter* emitter);
