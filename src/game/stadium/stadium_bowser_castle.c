@@ -1,5 +1,100 @@
+#define SQRT2_LINKAGE static
 #include "game/stadium/stadium_bowser_castle.h"
 #include "header_rep_data.h"
+#include "game/stadium/stadium_framework.h"
+#include "game/UnknownHomes_Game.h"
+#include "Dolphin/mtx.h"
+#include "Dolphin/vec.h"
+#include "Dolphin/gx.h"
+#include "stl/math.h"
+#include "Dolphin/rand.h"
+#include "game/math/game_math.h"
+#include "game/ball/collision_primitives.h"
+#include "Dolphin/mtxext.h"
+#include "Unknown/File_0x8005268c.h"
+#include "Unknown/File_0x80052734.h"
+#include "Dolphin/stl.h"
+#include "C3/control.h"
+#include "Dolphin/os.h"
+#include "game/fielding/fielder.h"
+#include "Unknown/File_0x800b4b38.h"
+#include "text/text_channel.h"
+#include "Unknown/File_0x80025ddc.h"
+#include "Unknown/File_0x80033794.h"
+#include "Unknown/File_0x8004c094.h"
+#include "Unknown/File_0x800b4bc8.h"
+#include "Unknown/File_0x80034cec.h"
+#include "game/stadium/rep_23E8.h"
+#include "static/UnknownHomes_Static.h"
+#include "musyx/musyx.h"
+#include "game/ball/ball_physics.h"
+#include "game/sound/m_sound.h"
+#include "Unknown/File_0x800acf14.h"
+#include "Unknown/File_0x80025c58.h"
+#include "Unknown/File_0x800bdc88.h"
+#include "Unknown/File_0x800bdd74.h"
+#include "Unknown/File_0x80034e20.h"
+#include "Unknown/File_0x800b0a14.h"
+
+typedef struct _CastleMaterialFlags {
+    /*0x00*/ u8 _00[4];
+    /*0x04*/ u32 animState;
+    /*0x08*/ u8 _08[0x74 - 0x08];
+    /*0x74*/ u32 flags;
+} CastleMaterialFlags;
+
+typedef struct _CastleModelLevel4 {
+    /*0x00*/ u8 _00[4];
+    /*0x04*/ CastleMaterialFlags* next;
+} CastleModelLevel4;
+
+typedef struct _CastleModelLevel3 {
+    /*0x00*/ u8 _00[0x10];
+    /*0x10*/ CastleModelLevel4* next;
+} CastleModelLevel3;
+
+typedef struct _CastleModelLevel2 {
+    /*0x00*/ u8 _00[0x14];
+    /*0x14*/ CastleModelLevel3* next;
+} CastleModelLevel2;
+
+typedef struct _CastleModelLevel1 {
+    /*0x00*/ u8 _00[4];
+    /*0x04*/ CastleModelLevel2* flameMat;
+    /*0x08*/ u8 _08[0x34 - 0x08];
+    /*0x34*/ CastleModelLevel2* thwompMat;
+} CastleModelLevel1;
+
+typedef struct _CastleModelRoot {
+    /*0x00*/ u8 _00[0x18];
+    /*0x18*/ CastleModelLevel1* next;
+} CastleModelRoot;
+
+typedef struct _CastleHazardObj {
+    /*0x00*/ u8 _00[0xA9];
+    /*0xA9*/ u8 hazardType;
+    /*0xAA*/ u8 _AA[0xB0 - 0xAA];
+    /*0xB0*/ u8 hasBounced;
+} CastleHazardObj;
+
+static u8 lbl_3_bss_9D82;
+static u32 lbl_3_bss_9D84;
+static u32 lbl_3_bss_9D98;
+static u32 lbl_3_bss_9D9C;
+static u8 lbl_3_bss_9DE7;
+
+// .text:0x000C1964 size:0x10 mapped:0x807009F8
+void fn_3_C1964(void) {
+    lbl_3_bss_9D9C = 1;
+}
+
+// .text:0x000C1974 size:0x54 mapped:0x80700A08
+void fn_3_C1974(int offset) {
+    DrawingSceneStruct* item = insertGraphicDrawingFunction(fn_3_C2644, 4);
+    item->state = 0;
+    lbl_3_bss_9D98 = offset + 0x3C4;
+    lbl_3_bss_9D9C = 0;
+}
 
 // .text:0x000C19C8 size:0x250 mapped:0x80700A5C
 void fn_3_C19C8(void) {
@@ -38,7 +133,8 @@ void fn_3_C2644(void) {
 
 // .text:0x000C2974 size:0x18 mapped:0x80701A08
 void fn_3_C2974(void) {
-    return;
+    lbl_3_bss_9DE7 = 1;
+    lbl_3_bss_9D82 = 1;
 }
 
 // .text:0x000C298C size:0x114 mapped:0x80701A20
@@ -67,13 +163,20 @@ void fn_3_C30F0(void) {
 }
 
 // .text:0x000C366C size:0x35C mapped:0x80702700
-void fn_3_C366C(void) {
+void fn_3_C366C(void* handle, u8 idx) {
     return;
 }
 
 // .text:0x000C39C8 size:0x70 mapped:0x80702A5C
 void bowserCastleSomething(void) {
-    return;
+    u32 i;
+
+    for (i = 0; i < 6; i++) {
+        void* handle = allocParticleEffect(fn_3_C30F0, 0x80, 0, 0x15, TRUE, 0);
+        if (handle != NULL) {
+            fn_3_C366C(handle, i);
+        }
+    }
 }
 
 // .text:0x000C3A38 size:0x1F4 mapped:0x80702ACC
@@ -97,13 +200,34 @@ void fn_3_C3F70(void) {
 }
 
 // .text:0x000C4068 size:0x84 mapped:0x807030FC
-void fn_3_C4068(void) {
-    return;
+void fn_3_C4068(StadiumObject* obj) {
+    CastleModelRoot* root = (CastleModelRoot*)obj->model->root;
+    CastleMaterialFlags* mat = root->next->flameMat->next->next->next;
+    u16 value = mat->animState & 0x1FFF;
+
+    if (lbl_3_bss_9D84++ > 4) {
+        value++;
+        if (value > 0x13) {
+            value = 4;
+        }
+        lbl_3_bss_9D84 = 0;
+    }
+    mat->animState &= ~0x1FFF;
+    mat->animState |= value;
 }
 
 // .text:0x000C40EC size:0x60 mapped:0x80703180
-void fn_3_C40EC(void) {
-    return;
+void fn_3_C40EC(StadiumObject* obj) {
+    CastleModelRoot* root = (CastleModelRoot*)obj->model->root;
+    CastleMaterialFlags* mat = root->next->flameMat->next->next->next;
+
+    if (((CastleHazardObj*)obj)->hazardType != 6) {
+        mat->animState &= ~0x1FFF;
+        mat->animState |= 0x19;
+    } else {
+        mat->animState &= ~0x1FFF;
+        mat->animState |= 0x1A;
+    }
 }
 
 // .text:0x000C414C size:0x158 mapped:0x807031E0
@@ -192,8 +316,20 @@ void stadiumObjRelated_Castle(void) {
 }
 
 // .text:0x000C7444 size:0x58 mapped:0x807064D8
-void fn_3_C7444(void) {
-    return;
+void fn_3_C7444(StadiumObject* obj) {
+    CastleModelRoot* root = (CastleModelRoot*)obj->model->root;
+    CastleMaterialFlags* mat = root->next->thwompMat->next->next->next;
+    BOOL hasBounced = ((CastleHazardObj*)obj)->hasBounced;
+
+    switch (hasBounced) {
+    case 0:
+        mat->animState &= ~0x1FFF;
+        mat->animState |= 2;
+        break;
+    default:
+        mat->animState &= ~0x1FFF;
+        break;
+    }
 }
 
 // .text:0x000C749C size:0x11C mapped:0x80706530
@@ -223,7 +359,13 @@ void fn_3_C805C(void) {
 
 // .text:0x000C823C size:0x78 mapped:0x807072D0
 TriangleGroup* fn_3_C823C(int offset, Mtx m) {
-    return NULL;
+    StadiumObject* obj = &stadiumObjectCollision.objects[offset];
+
+    CTRLBuildMatrix((Control*)obj, m);
+    if (((CastleHazardObj*)obj)->hazardType == 5) {
+        m[1][3] = 0.002f;
+    }
+    return stadiumObjectCollision.objects[offset].triangles;
 }
 
 // .text:0x000C82B4 size:0x39C mapped:0x80707348
