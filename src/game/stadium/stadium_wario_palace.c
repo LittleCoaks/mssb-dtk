@@ -1052,7 +1052,7 @@ void starHitAnimation(int idx) {
     Vec trans;
     Vec ballPos;
     Vec pos;
-    u8 stadiumID;
+    int stadiumID;
     u8 vol;
     u8 val;
     SND_VOICEID voice;
@@ -1078,7 +1078,7 @@ void starHitAnimation(int idx) {
         obj->actor = (PalaceStarActor*)((u8*)lbl_3_bss_A034 + obj->index * 0x5C);
         actorRelated(obj->actor, 0, 0);
         obj->actor->_1A = 1;
-        obj->actor->_58 = 0xFF;
+        obj->actor->_58 = -1;
         stadiumID = g_d_GameSettings.StadiumID;
         vol = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD ? lbl_3_data_84B8[0]
                                                                        : stadiumHazardSoundFxRelated[stadiumID * 0x1E];

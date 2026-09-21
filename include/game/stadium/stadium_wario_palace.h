@@ -230,7 +230,7 @@ typedef struct _PalaceStarActor {
     /*0x1C*/ u8 _1C[0x24 - 0x1C];
     /*0x24*/ u16 endFrame;
     /*0x26*/ u8 _26[0x58 - 0x26];
-    /*0x58*/ u8 _58;
+    /*0x58*/ s8 _58;
 } PalaceStarActor;
 
 typedef struct _PalaceStarObj {
