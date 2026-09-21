@@ -94,6 +94,11 @@ typedef struct _CastleGfxScene {
 typedef struct _CastleGfxObject {
     /*0x00*/ u8 _00[0x48];
     /*0x48*/ Vec pos;
+    /*0x54*/ u32 flags;
+    /*0x58*/ u8 _58[0x5C - 0x58];
+    /*0x5C*/ u32 frameIndex;
+    /*0x60*/ u8 _60[0x69 - 0x60];
+    /*0x69*/ u8 scale;
 } CastleGfxObject;
 
 typedef struct _CastleGfxSceneHolder {
@@ -259,23 +264,32 @@ typedef struct _CastleSparkParticle {
     /*0x00*/ struct _CastleSparkParticle* next;
     /*0x04*/ Vec pos;
     /*0x10*/ Vec vel;
-    /*0x1C*/ u8 _1C[0x38 - 0x1C];
+    /*0x1C*/ f32 scale;
+    /*0x20*/ f32 _20;
+    /*0x24*/ f32 alpha;
+    /*0x28*/ u8 _28[0x38 - 0x28];
     /*0x38*/ f32 _38;
     /*0x3C*/ f32 _3C;
-    /*0x40*/ u8 _40[0x43 - 0x40];
+    /*0x40*/ u8 _40;
+    /*0x41*/ u8 _41;
+    /*0x42*/ u8 _42;
     /*0x43*/ u8 _43;
     /*0x44*/ u8 _44[0x48 - 0x44];
     /*0x48*/ s16 _48;
     /*0x4A*/ s16 _4A;
-} CastleSparkParticle;
+    /*0x4C*/ u8 _4C[0x4F - 0x4C];
+    /*0x4F*/ u8 _4F;
+} CastleSparkParticle; // size 0x50
 
 typedef struct _CastleFireballEmitter {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ CastleFlameParticle* particles;
-    /*0x10*/ u8 _10[0x18 - 0x10];
+    /*0x10*/ u32 _10;
+    /*0x14*/ u8 _14[0x18 - 0x14];
     /*0x18*/ Vec* targetPos;
     /*0x1C*/ u8 _1C[0x20 - 0x1C];
     /*0x20*/ StadiumObject* target;
+    /*0x24*/ u32 _24;
 } CastleFireballEmitter;
 
 typedef struct _CastleSparkEmitter {
@@ -291,7 +305,7 @@ typedef struct _CastleSlotPlacement {
     f32 x;
     f32 y;
     f32 z;
-    u8 _0C[0x10 - 0x0C];
+    f32 rotation;
     u8 usedFlag;
     u8 _11;
     u8 group;
@@ -613,8 +627,31 @@ BOOL fn_3_C2AA0(Vec* p, f32 w, f32 h) {
 }
 
 // .text:0x000C2C80 size:0x25C mapped:0x80701D14
-void fn_3_C2C80(void) {
-    return;
+void fn_3_C2C80(CastleSparkParticle* p, StadiumLink* link) {
+    f32 ang;
+    f32 alpha;
+
+    ang = const_pi_or_180 * (f32)(rand() % 360);
+    p->vel.x = 0.01 * cosf_kludge(ang);
+    p->vel.z = 0.01 * sinf_kludge(ang);
+    p->vel.y = 0.08f;
+    p->scale = 0.5f;
+    p->scale = p->scale + (f64)((u32)rand() % 2500) / 1000.0;
+    p->_38 = p->scale;
+    p->_3C = 2.0 * p->scale;
+    p->_20 = (f64)(rand() % 101) / 100.0;
+    p->_4F = p->_4A = rand() % 24 + 0x48;
+    p->pos.x = link->prevPos.x;
+    p->pos.y = link->prevPos.y;
+    p->pos.z = link->prevPos.z;
+    p->_40 = lbl_3_rodata_2028[0];
+    p->_41 = lbl_3_rodata_2028[1];
+    p->_42 = lbl_3_rodata_2028[2];
+    alpha = 255.0f;
+    p->alpha = alpha;
+    p->_43 = alpha;
+    p->_4A = p->_4F;
+    p->_48 = 0;
 }
 
 // .text:0x000C2EDC size:0x214 mapped:0x80701F70
@@ -725,7 +762,38 @@ void thwomp_screenShake(camera_803c639c_s* cam) {
 
 // .text:0x000C3C2C size:0x268 mapped:0x80702CC0
 void fn_3_C3C2C(void) {
-    return;
+    DrawingSceneStruct* item = currentDrawingItem;
+    int i;
+
+    for (i = 0; i < 8; i++) {
+        u8 state = lbl_3_bss_9E48[i];
+        s16 sx;
+        s16 sy;
+
+        if (state < 2 && state != 0) {
+            fn_800528C0(lbl_3_bss_9DE8[i].x, lbl_3_bss_9DE8[i].y, lbl_3_bss_9DE8[i].z, &sx, &sy);
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.z = 0.0f;
+            ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->frameIndex = 0;
+            ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags |= 2;
+            lbl_3_bss_9E48[i] = 2;
+        } else if (state == 2) {
+            fn_800528C0(lbl_3_bss_9DE8[i].x, lbl_3_bss_9DE8[i].y, lbl_3_bss_9DE8[i].z, &sx, &sy);
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.z = 0.0f;
+            if (((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->scale == 2) {
+                ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags &= ~2;
+                lbl_3_bss_9E48[i] = 0;
+            }
+        }
+    }
+    if (lbl_3_bss_9DE7 != 0) {
+        removeCurrentDrawingItem();
+        removeGraphicsElementFromScene((DrawingSceneStruct*)lbl_3_bss_9E50.scene);
+        lbl_3_bss_9DE7 = 0;
+    }
 }
 
 // .text:0x000C3E94 size:0xDC mapped:0x80702F28
@@ -1229,8 +1297,38 @@ BOOL thwomp_smokeRelated(CastleSmokeEmitter* smoke) {
 }
 
 // .text:0x000C77AC size:0x260 mapped:0x80706840
-void fn_3_C77AC(void) {
-    return;
+void fn_3_C77AC(CastleFireballEmitter* handle, StadiumObject* obj) {
+    CastleFlameParticle* p = handle->particles;
+    u32 i = 0;
+    u32 idx = 0;
+    f32 ang;
+
+    handle->targetPos = &((CastleFireballTarget*)obj)->anchorPos;
+    handle->target = obj;
+    handle->_10 = lbl_3_bss_9F0C[0];
+    handle->_24 = 0x1e;
+
+    for (; p != NULL; p = p->next) {
+        p->_3C = 0.0f;
+        p->_38 = 0.0f;
+        p->scale = 8.0f - (rand() % 3);
+        ang = 3.1415927f * ((f32)idx + thwompStaticValues[((CastleHazardObj*)obj)->_A8].rotation) / 180.0f;
+        p->velX = 0.35 * cosf_kludge(ang);
+        p->_14 = -(rand() % 3);
+        p->velZ = 0.35 * sinf_kludge(ang);
+        idx += 0x1e;
+        i++;
+        p->origin.x = handle->targetPos->x;
+        p->origin.z = handle->targetPos->z;
+        p->_48 = i >> 2;
+        p->_4D = 0x1c;
+        p->_4E = 0;
+        p->_42 = 0x7f;
+        p->_41 = 0x7f;
+        p->_40 = 0x7f;
+        p->alphaByte = 0x99;
+        p->_4A = 1;
+    }
 }
 
 // .text:0x000C7A0C size:0x650 mapped:0x80706AA0
