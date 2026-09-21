@@ -76,7 +76,8 @@ typedef struct _CastleModelRoot {
 } CastleModelRoot;
 
 typedef struct _CastleHazardObj {
-    /*0x00*/ u8 _00[0xA9];
+    /*0x00*/ u8 _00[0xA8];
+    /*0xA8*/ u8 _A8;
     /*0xA9*/ u8 hazardType;
     /*0xAA*/ u8 _AA[0xB0 - 0xAA];
     /*0xB0*/ u8 hasBounced;
@@ -305,12 +306,35 @@ typedef struct _CastleObjControl {
 extern CastleSlotPlacement lbl_3_data_17704[];
 extern CastleSlotPlacement thwompStaticValues[];
 
+typedef struct _CastleSparkTableEntry {
+    /*0x00*/ s16 x;
+    /*0x02*/ s16 y;
+    /*0x04*/ s16 z;
+} CastleSparkTableEntry;
+
+extern CastleSparkTableEntry lbl_3_data_17880[4];
+
+// Per-node scratch view of DrawingSceneStruct's shared scratch region (see
+// CastleGfxScene/CastleCameraSlot for other nodes' own views of the same
+// region); this node's fields set up a spark-effect placement, consumed by
+// fn_3_C2244's per-frame callback (which only reads `_2A` so far).
+typedef struct _CastleSparkScene {
+    /*0x00*/ u8 _00[0x14];
+    /*0x14*/ Vec pos;
+    /*0x20*/ s16 spread[2];
+    /*0x24*/ s8 baseSpread;
+    /*0x25*/ s8 spreadA[2];
+    /*0x27*/ u8 spreadB[2];
+    /*0x29*/ u8 _29;
+    /*0x2A*/ u8 _2A;
+} CastleSparkScene;
+
 static u8 startScreenShake;
 static u8 lbl_3_bss_9D82;
 static u32 lbl_3_bss_9D84;
 static u32 lbl_3_bss_9D88;
 static u32 thwompScreenShakeTimeRemaining;
-static s32 lbl_3_bss_9D90;
+static u32 lbl_3_bss_9D90;
 static s32 lbl_3_bss_9D94;
 static u32 lbl_3_bss_9D98;
 static s32 lbl_3_bss_9D9C;
@@ -349,7 +373,31 @@ void fn_3_C1974(int offset) {
 
 // .text:0x000C19C8 size:0x250 mapped:0x80700A5C
 void fn_3_C19C8(void) {
-    return;
+    int i;
+
+    if (lbl_3_bss_9D90 == 0) {
+        lbl_3_bss_9D90 = (u32)insertGraphicDrawingFunction(fn_3_C2244, 5);
+    }
+    if (currentDrawingItem->state != 0x136) {
+        randomizeAndLoadSoundEffect(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID] + 6, 8);
+    }
+    ((CastleSparkScene*)lbl_3_bss_9D90)->_2A = 0xFF;
+    ((CastleSparkScene*)lbl_3_bss_9D90)->_29 = 2;
+
+    i = rand() % 3;
+    ((CastleSparkScene*)lbl_3_bss_9D90)->pos.x = (f32)lbl_3_data_17880[i].x;
+    ((CastleSparkScene*)lbl_3_bss_9D90)->pos.y = (f32)lbl_3_data_17880[i].y;
+    ((CastleSparkScene*)lbl_3_bss_9D90)->pos.z = (f32)lbl_3_data_17880[i].z;
+
+    ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread = 10 - (rand() % 20);
+
+    for (i = 1; i >= 0; i--) {
+        s32 range = ((0x1FFF - (rand() * 0x3FFF) / 0x7FFF) >> (1 - i)) + 0x1FFF;
+        ((CastleSparkScene*)lbl_3_bss_9D90)->spread[i] = (s16)((rand() * range) / 0x7FFF);
+        ((CastleSparkScene*)lbl_3_bss_9D90)->spreadA[i] =
+            ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread + 2 - (rand() % 2);
+        ((CastleSparkScene*)lbl_3_bss_9D90)->spreadB[i] = (rand() % 2) + 1;
+    }
 }
 
 // .text:0x000C1C18 size:0x62C mapped:0x80700CAC
@@ -570,8 +618,21 @@ void fn_3_C2C80(void) {
 }
 
 // .text:0x000C2EDC size:0x214 mapped:0x80701F70
-void fn_3_C2EDC(void) {
-    return;
+void fn_3_C2EDC(CastleFlameParticle* p) {
+    p->_38 += p->_20 * (3.0 * p->scale / p->_4F);
+    p->_3C += p->_20 * (2.0 * p->scale / p->_4F);
+    p->alpha += -255.0f / p->_4F;
+    if (p->alpha < 0.0f) {
+        p->alpha = 0.0f;
+    }
+    p->alphaByte = (u8)p->alpha;
+    p->_40 = (u8)((p->alphaByte / 255.0) * lbl_3_rodata_2028[0]);
+    p->_41 = (u8)((p->alphaByte / 255.0) * lbl_3_rodata_2028[1]);
+    p->_42 = (u8)((p->alphaByte / 255.0) * lbl_3_rodata_2028[2]);
+    p->origin.x += p->velX;
+    p->origin.y -= p->_14;
+    p->origin.z += p->velZ;
+    p->_4A--;
 }
 
 // .text:0x000C30F0 size:0x57C mapped:0x80702184
@@ -965,8 +1026,48 @@ void fn_3_C5304(CastleFireballEmitter* handle, StadiumObject* obj) {
 }
 
 // .text:0x000C54D0 size:0x218 mapped:0x80704564
-void fn_3_C54D0(void) {
-    return;
+void fn_3_C54D0(StadiumObject* obj) {
+    CastleFlameEmitter* handle =
+        (CastleFlameEmitter*)fn_800339F0(0, ((CastleHazardObj*)obj)->_A8 + 0x2A);
+    CastleFlameParticle* p;
+    camera_803c639c_s* cam;
+
+    if (handle == NULL) {
+        return;
+    }
+    p = handle->particles;
+
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    cam = returnFloatFromModeIndex(returnsCurrentMode());
+    GXSetProjection(cam->proj, GX_PERSPECTIVE);
+    cam = returnFloatFromModeIndex(returnsCurrentMode());
+    GXLoadPosMtxImm(cam->view, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    while (p != NULL) {
+        if (p->_48 <= 0 && p->_4A > 0 && p->_50 == 1) {
+            fn_8003403C(p->_38, p->_3C);
+            fn_80033CC8(p, handle->_10);
+        }
+        p = p->next;
+    }
 }
 
 // .text:0x000C56E8 size:0x294 mapped:0x8070477C

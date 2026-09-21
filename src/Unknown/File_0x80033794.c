@@ -20,8 +20,8 @@ void fn_80033964(void* effect) {
     return;
 }
 
-void fn_800339F0(void) {
-    return;
+void* fn_800339F0(int arg0, u8 arg1) {
+    return NULL;
 }
 
 void* allocParticleEffect(void* func, int arg1, int arg2, int arg3, int arg4, int arg5) {
