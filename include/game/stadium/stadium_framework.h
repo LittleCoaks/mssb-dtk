@@ -69,6 +69,17 @@ typedef struct _StadiumLightBlock {
     /*0x64*/ u8 _64[0xC0 - 0x64];
 } StadiumLightBlock; // size: 0xC0
 
+typedef struct _StadiumLink {
+    /*0x00*/ f32 weight;
+    /*0x04*/ f32 mobility;
+    /*0x08*/ f32 radius;
+    /*0x0C*/ Vec pos;
+    /*0x18*/ Vec prevPos;
+    /*0x24*/ Vec vel;
+    /*0x30*/ Vec accel;
+    /*0x3C*/ u32 pinned;
+} StadiumLink; // size: 0x40
+
 typedef struct _StadiumObject {
     /*0x00*/ u8 _00[0x44];
     /*0x44*/ Mtx worldMtx;
@@ -95,7 +106,21 @@ typedef struct _StadiumObject {
     /*0x98*/ u8 drawPass;
     /*0x99*/ u8 _99;
     /*0x9A*/ u8 shadowEnabled;
-    /*0x9B*/ u8 _9B[0xE8 - 0x9B];
+    /*0x9B*/ u8 _9B;
+    /*0x9C*/ u8 _9C;
+    /*0x9D*/ u8 _9D[0xA0 - 0x9D];
+    /*0xA0*/ Vec pos;
+    /*0xAC*/ struct _StadiumLink* anchorA;
+    /*0xB0*/ struct _StadiumLink* anchorB;
+    /*0xB4*/ u8 _B4[0xC0 - 0xB4];
+    /*0xC0*/ f32 yaw;
+    /*0xC4*/ struct _StadiumLink* links;
+    /*0xC8*/ u8 _C8[2];
+    /*0xCA*/ u8 _CA;
+    /*0xCB*/ u8 _CB[0xD0 - 0xCB];
+    /*0xD0*/ s8 _D0;
+    /*0xD1*/ u8 _D1;
+    /*0xD2*/ u8 _D2[0xE8 - 0xD2];
 } StadiumObject; // size: 0xE8
 
 typedef struct _StadiumObjectCollision {
@@ -115,7 +140,8 @@ typedef struct _StadiumObjectCollision {
     /*0x40*/ u16* vertexOffsets;
     /*0x44*/ f32* vertexData;
     /*0x48*/ VecSrcDst* vertexDataArray;
-    /*0x4C*/ u8 _4C[0x1A];
+    /*0x4C*/ u8 _4C[0x18];
+    /*0x64*/ s16 boundingBoxCount;
     /*0x66*/ s16 rngConfig;
     /*0x68*/ s16 rngConfigSaved;
     /*0x6A*/ u8 objectsLoaded;

@@ -2,9 +2,10 @@
 #define __UNKNOWN_FILE_0X80052734_H_
 
 #include "mssbTypes.h"
+#include "static/UnknownHomes_Static.h"
 
-void returnFloatFromModeIndex(void);
-void fn_80052768_getCamera(void);
+camera_803c639c_s* returnFloatFromModeIndex(int mode);
+camera_803c639c_s* fn_80052768_getCamera(int mode);
 void setScissorMode(void);
 void returnScissorMode(void);
 

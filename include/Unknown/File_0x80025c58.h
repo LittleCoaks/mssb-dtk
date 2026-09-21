@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void ACTActorRelated(void);
+void ACTActorRelated(void* file, void* actor);
 
 #endif // !__UNKNOWN_FILE_0X80025C58_H_

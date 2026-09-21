@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void AnimateActorBones(void);
+void AnimateActorBones(void* actor);
 
 #endif // !__UNKNOWN_FILE_0X800B4B38_H_

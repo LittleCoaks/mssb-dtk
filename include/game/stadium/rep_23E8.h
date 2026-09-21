@@ -5,6 +5,6 @@
 
 void stadiumStarAnimation(void);
 void fn_3_CB7D4(void);
-void stadiumStarAwarded(void);
+void stadiumStarAwarded(f32 x, f32 y, f32 z);
 
 #endif // !__GAME_STADIUM_REP_23E8_H_

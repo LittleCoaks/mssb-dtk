@@ -17,7 +17,7 @@ void fn_3_8B804(void) {
 }
 
 // .text:0x0008B890 size:0xD4 mapped:0x806CA924
-void updateAndRemoveStadiumEmitter(void) {
+void updateAndRemoveStadiumEmitter(int emitterID) {
     return;
 }
 

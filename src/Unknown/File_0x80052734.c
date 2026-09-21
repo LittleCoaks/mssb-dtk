@@ -1,11 +1,11 @@
 #include "Unknown/File_0x80052734.h"
 
-void returnFloatFromModeIndex(void) {
-    return;
+camera_803c639c_s* returnFloatFromModeIndex(int mode) {
+    return 0;
 }
 
-void fn_80052768_getCamera(void) {
-    return;
+camera_803c639c_s* fn_80052768_getCamera(int mode) {
+    return 0;
 }
 
 void setScissorMode(void) {

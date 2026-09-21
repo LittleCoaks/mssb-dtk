@@ -1,14 +1,14 @@
 #include "Unknown/File_0x80025ddc.h"
 
-void adjustInternalPointers(void) {
+void adjustInternalPointers(void* file) {
     return;
 }
 
-void actorRelated(void) {
+void actorRelated(void* effect, int arg1, int arg2) {
     return;
 }
 
-void actRelated(void) {
+void actRelated(void* file) {
     return;
 }
 

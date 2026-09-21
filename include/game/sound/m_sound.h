@@ -7,7 +7,7 @@
 void fn_3_8B718(void);
 void fn_3_8B7DC(void);
 void fn_3_8B804(void);
-void updateAndRemoveStadiumEmitter(void);
+void updateAndRemoveStadiumEmitter(int emitterID);
 void fn_3_8B964(void);
 void fn_3_8B9BC(void);
 void updateOrRemoveEmitter(void);

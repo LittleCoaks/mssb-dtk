@@ -12,7 +12,7 @@ void fn_3_CB7D4(void) {
 }
 
 // .text:0x000CB7E8 size:0xC0 mapped:0x8070A87C
-void stadiumStarAwarded(void) {
+void stadiumStarAwarded(f32 x, f32 y, f32 z) {
     return;
 }
 

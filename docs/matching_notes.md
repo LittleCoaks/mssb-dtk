@@ -1743,3 +1743,120 @@ double where the target had floats. So treat the two as ONE combined fix - apply
 `SQRT2_LINKAGE` and audit every float literal's type in the same pass. Applying it alone
 and reading the lower number as "this made it worse" is the trap; the size going exactly
 right is the signal that the change was correct.
+
+## Dead standalone copies, second data point: five clusters in one 88-function file
+
+First seen: `game/game/stadium/stadium_wario_palace` (88 functions, all `return;` stubs at session
+start, 2026-09). Sharpens "Dead-code standalone duplicates are the cheapest route into a
+from-scratch file's big functions" (from `batter_ai`) with a much larger sample.
+
+Writing the small zero-caller functions first paid off five separate times in one file, and in
+each case the consumer hit its EXACT target byte size on the first build:
+`CC1D4`/`CC354`/`CC438`/`mPalaceObjHandling` -> `maybeChainChompSprintCTRLRelated`, `CB8A8`, `CBC18`;
+`CDB48`+`CDD90` -> `CDFA4`; `CED40` -> `CEE5C` -> `CEFA8`;
+`D278C`/`D36B0`/`someCTRLButNotCalled2` -> `palaceChainChompControl`;
+`D62F0` -> `D6514` -> `loadWarioPalace`. Build the in-file call graph from the `bl` targets and
+work leaf-to-root; the order is almost free to derive and it decided the whole session.
+
+## Auto-inlining by plain call reached 696 bytes here; size, not expectation, decides
+
+First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Third data point for
+"`-inline deferred` auto-inlining of in-file standalone functions is NOT uniform" and "A target
+can contain BOTH a standalone function and a hand-inlined copy of it".
+
+In this unit the plain CALL form reproduced the target's inlining for nearly every embedded
+helper: `fn_3_D6514` (696 B, including `D62F0`) inside `loadWarioPalace`, `fn_3_D36B0` (464 B) and
+`someCTRLButNotCalled`/`2` (348/540 B) inside `palaceChainChompControl`, `fn_3_D511C` and
+`fn_3_D1110` inside `loadWarioPalace` (bl count matched 98 = 98). The one exception was
+`fn_3_D278C` (640 B) inside `palaceChainChompControl`, whose `bl` survived and whose body had
+to be pasted into the case. Try the plain call first on every embedded helper regardless of
+size, and paste only where the `bl` demonstrably survives.
+
+## An inlined helper must take the caller's EXACT view type
+
+First seen: `game/game/stadium/stadium_wario_palace`, `chomp_attack` (2026-09).
+
+`chomp_attack` works on a `PalaceChompObj*` view; its helpers `fn_3_D255C`/`fn_3_D24E8` took
+`StadiumObject*`. Inlined, the mismatched pointer type made the loop hoist `&obj->pos` into an
+extra callee-saved register (93.06% first draft; a hand-pasted nested block only reached
+96.06%). Retyping the two helpers to `PalaceChompObj*` and going back to plain calls gave
+96.60% and the exact size, roughly +3.5 points. If an inlined body shows one register too many
+holding a derived address, check the helper's parameter type against the caller's before
+restructuring anything.
+
+## Do not give a `Vec`/`Mtx` local an initialiser where the target copies it late
+
+First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Cross-reference "Textual
+statement position as a register-allocation priority lever".
+
+MWCC hoists an initialised local's copy to function start; the target performs the copy at the
+tail, at the point of use. Declaring the locals uninitialised and ASSIGNING at the point of use
+(`Vec axis; ... axis = const_axis;`) was worth +20 to +27 points on four consecutive functions:
+`fn_3_D36B0` 62.6 -> 99.35, `fn_3_D278C` 72.5 -> 99.19, `chompState0` 65.5 -> 99.24,
+`chompState1_awake` 78.5 -> 93.2. The signature is a block of `lfs`/`stfs` copies at the top of
+ours that sit near the end of the target.
+
+## A constant loop bound is folded away; round-trip it through a struct field
+
+First seen: `game/game/stadium/stadium_wario_palace`, `fn_3_CC438` (2026-09).
+
+`int iterations = 8; dt = 1.0f / iterations;` is constant-folded, so the target's
+int-to-float conversion sequence (`xoris`/`lfd`/`fsub` against the bias constant) disappears.
+Storing the count into a struct field and reading it back
+(`params->solverIterations = 8; dt = 1.0f / params->solverIterations;`, in an invented static
+helper `palaceInitChainParams`) reproduces it: 72.9% -> 97.78% on `CC438`, and the same fix
+propagated to two callers. The signature is a target with a conversion where ours has a
+literal.
+
+## Write a constant-first float comparison when the target has `fcmpo const,val; cror gt,eq`
+
+First seen: `game/game/stadium/stadium_wario_palace`, `fn_3_D278C` (2026-09). Sharpens "Float
+`>=` emits `fcmpo; cror; bne`".
+
+`5.0f >= PSVECMag(&d)` reproduces `fcmpo 5.0,mag; cror gt,eq`; the reversed spelling
+`PSVECMag(&d) <= 5.0f` does not. That entry inverts `>=` to reach the target's plain branch; this
+one is the opposite case, where the target keeps the `cror` form and the constant simply has to
+be the left operand.
+
+## Chained assignment and compound `+=` on struct float fields each score on their own
+
+First seen: `game/game/stadium/stadium_wario_palace` (2026-09).
+
+`a->x = a->y = expr;` instead of two statements took `palaceHazeTextureMaybe` 92.74 -> 99.28.
+`p->sizeA += 0.38` instead of `p->sizeA = p->sizeA + 0.38` was worth about +4.5 points twice
+(`fn_3_CED40` 95.00 -> 99.44, `fn_3_CEE5C` 94.70 -> 99.28). When a target shows a single value
+stored twice with no compute between, or a float-field update that keeps the field as the left
+operand of the add, try these before anything structural.
+
+## `.bss` gap symbols that dtk leaves unnamed may be real objects, not padding
+
+First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Extends "dtk `.bss`/`.data`
+symbol sizes are gap-derived".
+
+Two bytes declared as `pad_A028`/`pad_A029` during `.bss` setup turned out to be the ring
+objects' base index and count, discovered only when the last and largest function,
+`loadWarioPalace`, was written (the bytes at `0xA026`..`0xA02D` are all base/count pairs). An
+unreferenced `pad_` static is a hint that an unwritten function uses it; check the largest
+remaining function's `stb rX, off(r30)` offsets before naming pads.
+
+## Known unsolved: float equality as `fcmpu; mfcr; extrwi; xori; cntlzw; srwi.; beq`
+
+First seen: `game/game/stadium/stadium_wario_palace` (2026-09). Recorded so it is not
+re-derived.
+
+The target computes `mag == 0.0f` through a five-instruction CR-extraction sequence. Plain
+`== 0.0f`, `!(x != 0.0f)`, a `BOOL` local, `& 1` and a direct call were all tried; every one
+compiles to `fcmpu; bne`. It caps `chompState1_awake` (97.13%) and `fn_3_CE954` (97.27%), each
+about 20 bytes short. Contrast "BOOL return idioms map one-to-one onto source expressions",
+which does reach the CLZ form when the value is actually returned or stored.
+
+## Known unsolved: `.bss`/`.data` tables addressed through ONE base register
+
+First seen: `game/game/stadium/stadium_wario_palace`, `fn_3_D511C`, `loadWarioPalace` (2026-09).
+Same allocator-artifact class as "MWCC 2.x will not register-pool an extern data-symbol base,
+no matter the source shape"; see that entry rather than a new theory.
+
+The target reaches every table as `lbl_3_bss_A018 + offset` (or `lbl_3_data_182C0 + offset`) off
+one base register; ours emits a per-symbol `lis`/`addi`. An explicit `u8* base = &lbl_3_bss_A018`
+local measured far WORSE (`fn_3_D511C` 69.44% -> 45.43%, 712 bytes) and was reverted. The checkpoint
+attributes the +7 head instructions in `loadWarioPalace` to it; the function is also 68 bytes long.
