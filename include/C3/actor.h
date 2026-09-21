@@ -65,7 +65,7 @@ u32 ACTGetUserDataSize(Actor *actor);
 char *ACTGetUserData(Actor *actor);
 
 // actorAnim.c
-void ACTSetAnimation(Actor *actor, ANIMBank *animBank, char *sequenceName, u16 seqNum, f32 time);
+void ACTSetAnimation(Actor *actor, ANIMBank *animBank, char *sequenceName, u16 seqNum, f32 startFrame, f32 time);
 void ACTSetTime(Actor *actor, f32 time);
 void ACTSetSpeed(Actor *actor, f32 speed);
 void ACTTick(Actor *actor);
