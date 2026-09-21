@@ -32,13 +32,13 @@ void fn_3_8B9BC(void) {
 }
 
 // .text:0x0008BA60 size:0x164 mapped:0x806CAAF4
-void updateOrRemoveEmitter(void) {
+void updateOrRemoveEmitter(int emitterID, Vec* pos, Vec* vel) {
     return;
 }
 
 // .text:0x0008BBC4 size:0x230 mapped:0x806CAC58
-void initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
-    return;
+int initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
+    return 0;
 }
 
 // .text:0x0008BDF4 size:0x98 mapped:0x806CAE88

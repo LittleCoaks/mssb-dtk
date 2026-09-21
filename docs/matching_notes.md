@@ -1043,6 +1043,10 @@ Related, smaller levers measured in the same file: `else if` chains versus neste
 `(x & FLAG) == 0` guards on the last branches, all on `running_DirectionOverrides`),
 and `<= 1` versus `< 2` (the target's `cmplwi 1; bgt` versus our `cmplwi 2; bge`).
 
+It applies to small functions too, and to the early-return polarity specifically:
+`fn_3_F6504` (196 B, `game/game/stadium/stadium_dk_jungle`) went 95.10% -> 100% purely by
+rewriting `if (!cond) return NULL; build;` as `if (cond) { build; } else { return NULL; }`.
+
 ## When the target inlines an in-file function it also keeps standalone, copy the body
 
 First seen: `game/game/baserunning/runner`, `running_MainFunction` and
@@ -1712,6 +1716,9 @@ assignments out. Getting this right (together with declaration order and modifyi
 `GXColor`'s alpha in place rather than rebuilding the struct) moved this function from
 94.2% to 99.6%.
 
+Third data point: `fn_3_F4BA0`/`fn_3_F4D00` in `game/game/stadium/stadium_dk_jungle` went
+90.58% -> 99.77% from this change alone (2026-09).
+
 ## Load both float operands into named locals before comparing them
 
 First seen: `game/game/stadium/stadium_framework`, `fn_3_B8658` (2026-09), a 36-byte qsort
@@ -1771,6 +1778,17 @@ helper: `fn_3_D6514` (696 B, including `D62F0`) inside `loadWarioPalace`, `fn_3_
 `fn_3_D278C` (640 B) inside `palaceChainChompControl`, whose `bl` survived and whose body had
 to be pasted into the case. Try the plain call first on every embedded helper regardless of
 size, and paste only where the `bl` demonstrably survives.
+
+Fourth data point, `game/game/stadium/stadium_dk_jungle` (2026-09): across five consecutive
+batches the plain CALL form reproduced the target's inlining in EVERY case, and each consumer
+hit its exact target byte size on the first build — `fn_3_F2724` (532 B) into
+`dkBarrelAdvanceMotion`; `fn_3_F22FC`/`fn_3_F1750`/`fn_3_F18A4` into `handleDKJungleBarrel`;
+`fn_3_F4DAC` (528 B) and `fn_3_F4C4C` into `handleBarrelFiring`; `fn_3_F5E78` (x2) and
+`fn_3_F5F4C` into `processJungleObjectCollisions`; `fn_3_F6A94` and `maybeBarrelCTRLRel` into
+`updateDKJungleControl`; `fn_3_F3BB0`, `fn_3_F5C30` (584 B), `maybeGharialCTRLRel`, `fn_3_F38D4`
+and `fn_3_EECF4` into `loadDKJungle`. Only one case in the whole file needed a hand-pasted body
+(`fn_3_F3EFC`/`fn_3_F2FFC` inside `dkBarrelLaunch`, and only because the helpers name a `.bss`
+array the caller reaches through a different base). Write the plain call first, always.
 
 ## An inlined helper must take the caller's EXACT view type
 
@@ -1860,3 +1878,77 @@ The target reaches every table as `lbl_3_bss_A018 + offset` (or `lbl_3_data_182C
 one base register; ours emits a per-symbol `lis`/`addi`. An explicit `u8* base = &lbl_3_bss_A018`
 local measured far WORSE (`fn_3_D511C` 69.44% -> 45.43%, 712 bytes) and was reverted. The checkpoint
 attributes the +7 head instructions in `loadWarioPalace` to it; the function is also 68 bytes long.
+
+## A source-level change can keep a helper OUT of line without `#pragma dont_inline`
+
+First seen: `game/game/stadium/stadium_dk_jungle`, `fn_3_EEB94` / `fn_3_EEF24` (2026-09).
+The inverse of the auto-inlining entries above, and a cheaper answer than a pragma.
+
+`fn_3_EEB94` (352 B) matched 100% standalone, but MWCC then auto-inlined it into its caller
+`fn_3_EEF24`, where the target has a real `bl` — dropping `EEF24` to 0% and 436 bytes. Moving a
+pointer local (`dir = (s8*)lbl_3_bss_AF18;`) from the function top INTO the inner loop was
+enough to stop the inlining, and both functions then matched 100%.
+
+So when our object inlines a helper the target calls, try perturbing the callee's source shape
+before reaching for `#pragma dont_inline` — the pragma is scaffolding that describes our tree
+rather than the original source, and here a one-line move removed the need for it entirely.
+Note the symptom is the caller's score collapsing to near zero while the callee is perfect;
+check `bl` counts on both sides before concluding the caller's C is wrong.
+
+## `u32` vs `u8` loop counters decide whether MWCC unrolls a fixed-trip-count loop
+
+First seen: `game/game/stadium/stadium_dk_jungle`, `loadDKJungle` (2026-09). Sharpens "MWCC
+`-O4,p` auto-unrolls trivial fixed-trip-count scan loops".
+
+The target unrolled two small placement-table count loops; ours did not, and no restructuring of
+the loop body changed that. The deciding factor was the counter's declared width: with `u8`
+counters MWCC emitted the rolled form, with `u32` counters it unrolled exactly as the target
+did. That one change took `loadDKJungle` from 79.96% to 82.53%. If a target unrolls a scan loop
+and ours refuses to, check the induction variable's type before touching the body.
+
+## Pad a `Control`-style stack local to the target's frame size
+
+First seen: `game/game/stadium/stadium_dk_jungle`, `fn_3_F65C8` (99.88% -> 100%, 2026-09).
+Second data point for "A stack scratch buffer's size is invisible except through frame rounding".
+
+A function that builds a transform through a stack-local `Control` matched every instruction but
+missed the frame size. The fix was declaring the local as a wrapper struct padding `Control` out
+to 0x44 bytes rather than a bare `Control`. As with the scratch-buffer entry, nothing in `.text`
+pins the local's size directly — it only reaches the object through MWCC's frame rounding — so
+when every instruction matches and only the prologue/epilogue constants differ, sweep the size
+of the highest-addressed local.
+
+## Prefer the named `.bss` statics over a struct-view pointer local for a shared base
+
+First seen: `game/game/stadium/stadium_dk_jungle`, `updateDKJungleControl` (96.13% -> 97.90%,
+2026-09). Practical counter-note to "Known unsolved: `.bss`/`.data` tables addressed through ONE
+base register".
+
+When a target reaches several `.bss` objects as `<one base symbol> + offset` off a single
+register, the tempting fix is to declare a struct view over the whole region and access it
+through one pointer local. Measured here, that is the WRONG direction: guarding on the
+individual named file-static objects scored higher, because MWCC folds adjacent statics onto a
+shared base register by itself, while the explicit view pointer pins an extra register. The same
+polarity was already recorded for the sibling file, where a `u8* base` local took `fn_3_D511C`
+from 69.44% to 45.43%. Two independent measurements now point the same way: do not hand-build
+the base pointer.
+
+Note the opposite case does exist within one function — a `DKJungleBss* bss` local WAS worth
+about +5 points on `dkJungleBarrelCannonUpdate` for flag accesses in the same file. So measure
+per function rather than applying either form file-wide.
+
+## Two same-size functions can be one body with the local declarations swapped
+
+First seen: `game/game/stadium/stadium_dk_jungle`, `fn_3_F4BA0` / `fn_3_F4D00` (172 bytes each,
+both 99.77%, 2026-09). Extends "Check for duplicated bodies within a file before writing one
+from scratch" and "Sweep local declaration order mechanically".
+
+Two adjacent functions with identical target byte sizes turned out to be the same source body;
+the only difference in the target was which of two `Vec` locals sat at stack 0x8 and which at
+0x14. Writing one and adapting it by swapping the declaration order cost almost nothing and gave
+the same score on both. When a file has two functions of exactly equal size, diff their target
+bodies against each other BEFORE writing either — and if they differ only in stack slots,
+suspect declaration order rather than a different body.
+
+The same file also found that same-size is not sufficient evidence on its own: `maybeGharialCTRLRel`
+and `maybeBarrelCTRLRel` are both 348 bytes and share nothing but their size.

@@ -1,7 +1,7 @@
 #include "Unknown/File_0x800247e4.h"
 
-void fn_800247E4(void) {
-    return;
+int fn_800247E4(int x, int y, int width, int height) {
+    return 0;
 }
 
 void challengeStarRelatedInd(void) {
