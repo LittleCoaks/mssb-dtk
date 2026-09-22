@@ -8,7 +8,7 @@ void fn_800337CC(void) {
     return;
 }
 
-void pitchingMachinePitching(void) {
+void pitchingMachinePitching(u8 arg0) {
     return;
 }
 

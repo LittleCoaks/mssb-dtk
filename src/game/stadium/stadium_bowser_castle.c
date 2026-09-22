@@ -81,6 +81,8 @@ typedef struct _CastleHazardObj {
     /*0xA9*/ u8 hazardType;
     /*0xAA*/ u8 _AA[0xB0 - 0xAA];
     /*0xB0*/ u8 hasBounced;
+    /*0xB1*/ u8 _B1[0xBD - 0xB1];
+    /*0xBD*/ u8 _BD;
 } CastleHazardObj;
 
 // A DrawingSceneStruct-owned per-frame render scratch entry: the node's
@@ -320,6 +322,20 @@ typedef struct _CastleObjControl {
 extern CastleSlotPlacement lbl_3_data_17704[];
 extern CastleSlotPlacement thwompStaticValues[];
 
+typedef struct _CastleFireSpawner {
+    /*0x00*/ f32 x;
+    /*0x04*/ f32 y;
+    /*0x08*/ f32 z;
+    /*0x0C*/ u8 _0C[0x10 - 0x0C];
+    /*0x10*/ u8 usedFlag;
+    /*0x11*/ u8 _11;
+    /*0x12*/ u8 group;
+    /*0x13*/ u8 _13[0x18 - 0x13];
+} CastleFireSpawner; // size 0x18
+
+extern CastleFireSpawner BowserStadFireSpawners[11];
+extern f32 flameXVelos[3];
+
 typedef struct _CastleSparkTableEntry {
     /*0x00*/ s16 x;
     /*0x02*/ s16 y;
@@ -353,6 +369,8 @@ static s32 lbl_3_bss_9D94;
 static u32 lbl_3_bss_9D98;
 static s32 lbl_3_bss_9D9C;
 static u8 lbl_3_bss_9DE0;
+static u8 lbl_3_bss_9DE2;
+static u8 lbl_3_bss_9DE3;
 static u8 lbl_3_bss_9DE4;
 static u8 lbl_3_bss_9DE7;
 static Vec lbl_3_bss_9DE8[8];
@@ -526,7 +544,57 @@ void fn_3_C24A0(void) {
 
 // .text:0x000C2644 size:0x330 mapped:0x807016D8
 void fn_3_C2644(void) {
-    return;
+    int i;
+    s32 range;
+
+    if (!g_d_GameSettings.minigamesEnabled || g_GameLogic.gameStatus < GAME_STATUS_0x1B ||
+        g_GameLogic.gameStatus > 0x29) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
+            lbl_3_bss_9D9C = 1;
+        }
+        if (lbl_3_bss_9D9C != 0) {
+            removeCurrentDrawingItem();
+        } else {
+            DrawingSceneStruct* item = currentDrawingItem;
+            s16 state = (item->state + 1) % 0x708;
+
+            item->state = state;
+            if (state != 0x136) {
+                if (state < 0x136) {
+                    if (state != 300) {
+                        return;
+                    }
+                } else if (state != 0x4B0) {
+                    return;
+                }
+            }
+            item = insertGraphicDrawingFunction(fn_3_C24A0, 5);
+            item->state = 0x10;
+            if (lbl_3_bss_9D90 == 0) {
+                lbl_3_bss_9D90 = (u32)insertGraphicDrawingFunction(fn_3_C2244, 5);
+            }
+            if (currentDrawingItem->state != 0x136) {
+                randomizeAndLoadSoundEffect(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID] + 6, 8);
+            }
+            ((CastleSparkScene*)lbl_3_bss_9D90)->_2A = 0xFF;
+            ((CastleSparkScene*)lbl_3_bss_9D90)->_29 = 2;
+
+            i = rand() % 3;
+            ((CastleSparkScene*)lbl_3_bss_9D90)->pos.x = (f32)lbl_3_data_17880[i].x;
+            ((CastleSparkScene*)lbl_3_bss_9D90)->pos.y = (f32)lbl_3_data_17880[i].y;
+            ((CastleSparkScene*)lbl_3_bss_9D90)->pos.z = (f32)lbl_3_data_17880[i].z;
+
+            ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread = 10 - (rand() % 20);
+
+            for (i = 1; i >= 0; i--) {
+                range = ((0x1FFF - (rand() * 0x3FFF) / 0x7FFF) >> (1 - i)) + 0x1FFF;
+                ((CastleSparkScene*)lbl_3_bss_9D90)->spread[i] = (s16)((rand() * range) / 0x7FFF);
+                ((CastleSparkScene*)lbl_3_bss_9D90)->spreadA[i] =
+                    ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread + 2 - (rand() % 2);
+                ((CastleSparkScene*)lbl_3_bss_9D90)->spreadB[i] = (rand() % 2) + 1;
+            }
+        }
+    }
 }
 
 // .text:0x000C2974 size:0x18 mapped:0x80701A08
@@ -673,8 +741,61 @@ void fn_3_C2EDC(CastleFlameParticle* p) {
 }
 
 // .text:0x000C30F0 size:0x57C mapped:0x80702184
-void fn_3_C30F0(void) {
-    return;
+void fn_3_C30F0(CastleFlameEmitter* emitter) {
+    CastleFlameParticle* p = emitter->particles;
+
+    if (g_GameLogic.gameStatus < GAME_STATUS_0x1B) {
+        return;
+    }
+    if (g_GameLogic.gameStatus > GAME_STATUS_MINIGAME_READY) {
+        return;
+    }
+    if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL || g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
+        Vec pos = emitter->origin;
+
+        if (!fn_3_C2AA0(&pos, 4.0f, 4.0f)) {
+            return;
+        }
+    }
+    fn_80033620(emitter);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
+
+    do {
+        if (p->_48 <= 0 && p->_4A != 0) {
+            fn_8003403C(p->_38, p->_3C);
+            fn_80033CC8(p, emitter->_10);
+            if (returnsCurrentMode() == 0) {
+                fn_3_C2EDC(p);
+            }
+        }
+        p->_48 -= (returnsCurrentMode() == 0);
+        if (p->_4A == 0) {
+            f32 ang = const_pi_or_180 * (f32)(rand() % 360);
+            f32 alpha = 255.0f;
+
+            p->velX = 0.01 * cosf_kludge(ang);
+            p->velZ = 0.01 * sinf_kludge(ang);
+            p->_14 = 0.08f;
+            p->scale = 0.5f;
+            p->scale = p->scale + (f64)((u32)rand() % 2500) / 1000.0;
+            p->_38 = p->scale;
+            p->_3C = 2.0 * p->scale;
+            p->_20 = (f64)(rand() % 101) / 100.0;
+            p->_4F = p->_4A = rand() % 24 + 0x48;
+            p->origin.x = emitter->origin.x;
+            p->origin.y = emitter->origin.y;
+            p->origin.z = emitter->origin.z;
+            p->_40 = lbl_3_rodata_2028[0];
+            p->_41 = lbl_3_rodata_2028[1];
+            p->_42 = lbl_3_rodata_2028[2];
+            p->alpha = alpha;
+            p->alphaByte = alpha;
+            p->_4A = p->_4F;
+            p->_48 = 0;
+        }
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x000C366C size:0x35C mapped:0x80702700
@@ -951,8 +1072,38 @@ void stadiumObjCollision_Castle(s32* idx, s32* count) {
 }
 
 // .text:0x000C444C size:0x2D8 mapped:0x807034E0
-void fn_3_C444C(void) {
-    return;
+void fn_3_C444C(CastleFireballEmitter* handle, StadiumObject* obj) {
+    CastleFlameParticle* p = handle->particles;
+    f32 x = ((CastleFireballTarget*)obj)->anchorPos.x;
+    f32 y = ((CastleFireballTarget*)obj)->anchorPos.y;
+    f32 z = ((CastleFireballTarget*)obj)->anchorPos.z;
+    u32 i = 0;
+    f32 ang1;
+    f32 ang2;
+    f32 mag;
+
+    for (; p != NULL; p = p->next) {
+        p->origin.x = x;
+        p->origin.y = y;
+        p->origin.z = z;
+        ang1 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
+        ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
+        mag = 0.5f - (f32)(rand() % 3) / 10.0f;
+        p->velX = mag * cos(ang1) * cos(ang2);
+        p->_14 = -mag * sin(ang1);
+        p->velZ = mag * sin(ang1) * cos(ang2);
+        p->_3C = 4.4f;
+        p->_38 = 4.4f;
+        p->_48 = i / 6;
+        i++;
+        p->_4D = 0x1B;
+        p->_4E = 0;
+        p->alphaByte = 0xFF;
+        p->_42 = 0xFF;
+        p->_41 = 0xFF;
+        p->_40 = 0xFF;
+        p->_4A = 1;
+    }
 }
 
 // .text:0x000C4724 size:0x1AC mapped:0x807037B8
@@ -994,8 +1145,35 @@ BOOL fn_3_C4724(CastleSparkEmitter* emitter) {
 }
 
 // .text:0x000C48D0 size:0x2B0 mapped:0x80703964
-void fn_3_C48D0(void) {
-    return;
+void fn_3_C48D0(CastleFireballEmitter* handle, Vec* pos) {
+    CastleFlameParticle* p;
+    u32 i = 0;
+    f32 ang1;
+    f32 ang2;
+    f32 mag;
+
+    for (p = handle->particles; p != NULL; p = p->next) {
+        p->origin.x = pos->x;
+        p->origin.y = pos->y;
+        p->origin.z = pos->z;
+        ang1 = 3.1415927f * (f32)(rand() % 181) / 180.0f;
+        ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
+        mag = 0.5f - (f32)(rand() % 3) / 10.0f;
+        p->velX = mag * cos(ang1) * cos(ang2);
+        p->_14 = -mag * sin(ang1);
+        p->velZ = mag * sin(ang1) * cos(ang2);
+        p->_3C = 4.4f;
+        p->_38 = 4.4f;
+        p->_48 = i / 6;
+        i++;
+        p->_4D = 0x1B;
+        p->_4E = 0;
+        p->alphaByte = 0xFF;
+        p->_42 = 0xFF;
+        p->_41 = 0xFF;
+        p->_40 = 0xFF;
+        p->_4A = 1;
+    }
 }
 
 // .text:0x000C4B80 size:0x174 mapped:0x80703C14
@@ -1065,8 +1243,65 @@ void fn_3_C4CF4(CastleFlameEmitter* emitter, u8 group) {
 }
 
 // .text:0x000C4F00 size:0x404 mapped:0x80703F94
-void fn_3_C4F00(void) {
-    return;
+BOOL fn_3_C4F00(CastleFireballEmitter* handle) {
+    CastleFlameParticle* p = handle->particles;
+    Vec off;
+    Mtx m;
+    f32 ang;
+    f32 mag;
+
+    fn_80033620(handle);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+
+    do {
+        if (p->_48 != 0) {
+            p->_48 -= (lbl_80366158._28 == 0);
+            if (p->_48 == 0) {
+                mag = (f32)(15 - rand() % 31) / 10.0f;
+                ang = 3.1415927f * (f32)(rand() % 361) / 180.0f;
+                off.x = mag * cos(ang);
+                off.z = mag * sin(ang);
+                off.y = 2.5f;
+                CTRLBuildMatrix((Control*)handle->target, m);
+                PSMTXMultVec(m, &off, &p->origin);
+            }
+        } else if (p->_4A != 0 && lbl_80366158._28 == 0) {
+            if (p->_4F == 0) {
+                p->alphaByte += 0xF;
+                p->_38 += 0.125f;
+                p->_3C += 0.125f;
+                if (p->_38 >= 2.0f || p->_3C >= 2.0f) {
+                    p->_4F = 1;
+                }
+            } else {
+                p->alphaByte -= 0xF;
+                p->_38 -= 0.125f;
+                p->_3C -= 0.125f;
+                if (p->_38 <= 0.0f || p->_3C <= 0.0f) {
+                    p->_4A = 0;
+                }
+            }
+        }
+
+        if (p->_4A == 0) {
+            p->_3C = 0.0f;
+            p->_38 = 0.0f;
+            p->_4A = 1;
+            p->_4F = 0;
+            p->_48 = 0;
+            mag = (f32)(15 - rand() % 31) / 10.0f;
+            ang = 3.1415927f * (f32)(rand() % 361) / 180.0f;
+            off.x = mag * cos(ang);
+            off.z = mag * sin(ang);
+            off.y = 2.5f;
+            CTRLBuildMatrix((Control*)handle->target, m);
+            PSMTXMultVec(m, &off, &p->origin);
+            p->alphaByte = 0;
+        }
+        p = p->next;
+    } while (p != NULL);
+    return FALSE;
 }
 
 // .text:0x000C5304 size:0x1CC mapped:0x80704398
@@ -1148,13 +1383,113 @@ void fn_3_C54D0(StadiumObject* obj) {
 }
 
 // .text:0x000C56E8 size:0x294 mapped:0x8070477C
-void fn_3_C56E8(void) {
-    return;
+void fn_3_C56E8(StadiumObject* obj) {
+    camera_803c639c_s* cam;
+    Vec anchorView;
+    CastleFireballEmitter* handle;
+    CastleFlameParticle* p;
+
+    cam = returnFloatFromModeIndex(returnsCurrentMode());
+    PSMTXMultVec(cam->view, &((CastleFireballTarget*)obj)->anchorPos, &anchorView);
+    handle = fn_800339F0(0, ((CastleHazardObj*)obj)->_A8 + 0x2A);
+    if (handle == NULL) {
+        return;
+    }
+    for (p = handle->particles; p != NULL; p = p->next) {
+        Vec pView;
+
+        cam = returnFloatFromModeIndex(returnsCurrentMode());
+        PSMTXMultVec(cam->view, &p->origin, &pView);
+        if (anchorView.z >= pView.z) {
+            p->_50 = 1;
+        } else {
+            p->_50 = 0;
+        }
+    }
+
+    p = handle->particles;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    cam = returnFloatFromModeIndex(returnsCurrentMode());
+    GXSetProjection(cam->proj, GX_PERSPECTIVE);
+    cam = returnFloatFromModeIndex(returnsCurrentMode());
+    GXLoadPosMtxImm(cam->view, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    for (; p != NULL; p = p->next) {
+        if (p->_48 <= 0 && p->_4A > 0 && p->_50 == 0) {
+            fn_8003403C(p->_38, p->_3C);
+            fn_80033CC8(p, handle->_10);
+        }
+    }
 }
 
 // .text:0x000C597C size:0x364 mapped:0x80704A10
-void fn_3_C597C(void) {
-    return;
+void fn_3_C597C(s32 objIndex) {
+    StadiumObject* obj = &stadiumObjectCollision.objects[objIndex];
+    CastleFireballEmitter* handle;
+    CastleFlameParticle* p;
+    f32 x;
+    f32 y;
+    f32 z;
+    u32 i;
+    f32 ang1;
+    f32 ang2;
+    f32 mag;
+
+    pitchingMachinePitching(((CastleHazardObj*)obj)->_A8 + 0x2A);
+    handle = allocParticleEffect(fn_3_C4724, 0x80, 0, 0x18, TRUE, ((CastleHazardObj*)obj)->_A8 + 0x34);
+    if (handle != NULL) {
+        p = handle->particles;
+        x = ((CastleFireballTarget*)obj)->anchorPos.x;
+        y = ((CastleFireballTarget*)obj)->anchorPos.y;
+        z = ((CastleFireballTarget*)obj)->anchorPos.z;
+        i = 0;
+
+        for (; p != NULL; p = p->next) {
+            p->origin.x = x;
+            p->origin.y = y;
+            p->origin.z = z;
+            ang1 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
+            ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
+            mag = 0.5f - (f32)(rand() % 3) / 10.0f;
+            p->velX = mag * cos(ang1) * cos(ang2);
+            p->_14 = -mag * sin(ang1);
+            p->velZ = mag * sin(ang1) * cos(ang2);
+            p->_3C = 4.4f;
+            p->_38 = 4.4f;
+            p->_48 = i / 6;
+            i++;
+            p->_4D = 0x1B;
+            p->_4E = 0;
+            p->alphaByte = 0xFF;
+            p->_42 = 0xFF;
+            p->_41 = 0xFF;
+            p->_40 = 0xFF;
+            p->_4A = 1;
+        }
+        handle->_10 = lbl_3_bss_9F0C[0];
+        handle->_24 = 0x1E;
+    }
+    ((CastleHazardObj*)obj)->_BD = 2;
+    obj->hasShadow = 0;
+    obj->pos.x = 10.0f;
 }
 
 // .text:0x000C5CE0 size:0xFC mapped:0x80704D74
@@ -1182,7 +1517,60 @@ BOOL castleFireballMaybe(StadiumObject* obj) {
 
 // .text:0x000C5DDC size:0x480 mapped:0x80704E70
 void bowserCastleRelated(void) {
-    return;
+    u32 i;
+
+    if (lbl_3_bss_9D82 != 0) {
+        lbl_3_bss_9D82 = 0;
+        removeCurrentDrawingItem();
+    } else {
+        for (i = 0; i < lbl_3_bss_9DE3; i++) {
+            StadiumObject* obj = &stadiumObjectCollision.objects[lbl_3_bss_9DE2 + i];
+
+            if (((CastleHazardObj*)obj)->_BD == 1 && castleFireballMaybe(obj)) {
+                CastleFireballEmitter* handle =
+                    allocParticleEffect(fn_3_C4724, 0x80, 0, 0x18, TRUE, ((CastleHazardObj*)obj)->_A8 + 0x34);
+
+                if (handle != NULL) {
+                    CastleFlameParticle* p = handle->particles;
+                    f32 x = ((CastleFireballTarget*)obj)->anchorPos.x;
+                    f32 y = ((CastleFireballTarget*)obj)->anchorPos.y;
+                    f32 z = ((CastleFireballTarget*)obj)->anchorPos.z;
+                    u32 j = 0;
+                    f32 ang1;
+                    f32 ang2;
+                    f32 mag;
+
+                    for (; p != NULL; p = p->next) {
+                        p->origin.x = x;
+                        p->origin.y = y;
+                        p->origin.z = z;
+                        ang1 = 3.1415927f * (f32)(rand() % 181) / 180.0f;
+                        ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
+                        mag = 0.5f - (f32)(rand() % 3) / 10.0f;
+                        p->velX = mag * cos(ang1) * cos(ang2);
+                        p->_14 = -mag * sin(ang1);
+                        p->velZ = mag * sin(ang1) * cos(ang2);
+                        p->_3C = 4.4f;
+                        p->_38 = 4.4f;
+                        p->_48 = j / 6;
+                        j++;
+                        p->_4D = 0x1B;
+                        p->_4E = 0;
+                        p->alphaByte = 0xFF;
+                        p->_42 = 0xFF;
+                        p->_41 = 0xFF;
+                        p->_40 = 0xFF;
+                        p->_4A = 1;
+                    }
+                    handle->_10 = lbl_3_bss_9F0C[0];
+                    handle->_24 = 0x1E;
+                }
+                ((CastleHazardObj*)obj)->_BD = 2;
+                obj->hasShadow = 0;
+                obj->pos.x = 10.0f;
+            }
+        }
+    }
 }
 
 // .text:0x000C625C size:0x174 mapped:0x807052F0
@@ -1225,8 +1613,52 @@ void flameControl(void) {
 }
 
 // .text:0x000C71CC size:0x278 mapped:0x80706260
-void stadiumObjRelated_Castle(void) {
-    return;
+void stadiumObjRelated_Castle(s32* idx, s32* count) {
+    CastleFireSpawner* cfg;
+    int off;
+    int i;
+    int j;
+    int k;
+    StadiumObject* obj;
+    CastleObjControl ctrl;
+    Mtx m;
+    f64 transY = -0.3 * 84.09091186523438f + 15.556818962097168f;
+
+    for (i = 0; i < 5; i++) {
+        off = (u16)(stadiumObjectCollision.vertexOffsets[*idx - 1] + stadiumObjectCollision.hazardData[*idx - 1]);
+        stadiumObjectCollision.vertexOffsets[*idx] = off;
+        initBoundingBoxLimits();
+        cfg = BowserStadFireSpawners;
+        for (j = 0; j < 10; cfg++, j++) {
+            if (i == cfg->group && cfg->usedFlag != 7) {
+                k = *count;
+                if (stadiumObjectCollision.objects[k]._90b1) {
+                    f32 jitter;
+
+                    ((s32*)stadiumObjectCollision.vertexData)[off] = k;
+                    off++;
+                    stadiumObjectCollision.hazardData[*idx]++;
+                    obj = &stadiumObjectCollision.objects[*count];
+                    ctrl = *(CastleObjControl*)obj;
+                    CTRLBuildMatrix((Control*)obj, m);
+                    transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                    jitter = flameXVelos[2] * 168.18182373046875f;
+                    CTRLSetTranslation(&ctrl.ctrl, cfg->x + jitter, (f32)transY + cfg->y, cfg->z + jitter);
+                    CTRLBuildMatrix(&ctrl.ctrl, m);
+                    transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                    CTRLSetTranslation(&ctrl.ctrl, cfg->x - jitter, (f32)transY + cfg->y, cfg->z - jitter);
+                    CTRLBuildMatrix(&ctrl.ctrl, m);
+                    transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                    (*count)++;
+                }
+            }
+        }
+        if ((u32)stadiumObjectCollision.hazardData[*idx] != 0) {
+            storeBoundingBoxCoordinates(&((Vec*)stadiumObjectCollision.vertexDataArray)[*idx * 2],
+                                        &((Vec*)stadiumObjectCollision.vertexDataArray)[*idx * 2 + 1]);
+            (*idx)++;
+        }
+    }
 }
 
 // .text:0x000C7444 size:0x58 mapped:0x807064D8
@@ -1400,7 +1832,99 @@ TriangleGroup* fn_3_C823C(int offset, Mtx m) {
 
 // .text:0x000C82B4 size:0x39C mapped:0x80707348
 void fn_3_C82B4(void) {
-    return;
+    int idx;
+    u32 size = stadiumObjectCollision.objectCount * sizeof(VecSrcDst) +
+               stadiumObjectCollision.objectCount * sizeof(s32) +
+               stadiumObjectCollision.objectCount * sizeof(f32) +
+               stadiumObjectCollision.objectCount * sizeof(u16);
+
+    if (stadiumObjectCollision.vertexDataArray == NULL) {
+        stadiumObjectCollision.vertexDataArray = (VecSrcDst*)_OSAllocFromHeap(4, size);
+        stadiumObjectCollision.hazardData = (s32*)(stadiumObjectCollision.vertexDataArray + stadiumObjectCollision.objectCount);
+        stadiumObjectCollision.vertexData = (f32*)(stadiumObjectCollision.hazardData + stadiumObjectCollision.objectCount);
+        stadiumObjectCollision.vertexOffsets = (u16*)(stadiumObjectCollision.vertexData + stadiumObjectCollision.objectCount);
+    }
+    memset(stadiumObjectCollision.vertexDataArray, 0, size);
+
+    idx = 0;
+    {
+        CastleSlotPlacement* cfg;
+        int off;
+        int i;
+        int j;
+        int k;
+        StadiumObject* obj;
+        CastleObjControl ctrl;
+        Mtx m;
+
+        for (i = 0; i < 5; i++) {
+            off = (u16)(stadiumObjectCollision.vertexOffsets[idx - 1] + stadiumObjectCollision.hazardData[idx - 1]);
+            stadiumObjectCollision.vertexOffsets[idx] = off;
+            initBoundingBoxLimits();
+            cfg = thwompStaticValues;
+            for (j = 0; j < 10; cfg++, j++) {
+                if (i == cfg->group && cfg->usedFlag != 7) {
+                    k = j + lbl_3_bss_9DE4;
+                    if (stadiumObjectCollision.objects[k]._90b1) {
+                        ((s32*)stadiumObjectCollision.vertexData)[off] = k;
+                        off++;
+                        stadiumObjectCollision.hazardData[idx]++;
+                        obj = &stadiumObjectCollision.objects[j + lbl_3_bss_9DE4];
+                        ctrl = *(CastleObjControl*)obj;
+                        CTRLBuildMatrix((Control*)obj, m);
+                        transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                        CTRLSetTranslation(&ctrl.ctrl, cfg->x, -5.0f, cfg->z);
+                        CTRLBuildMatrix(&ctrl.ctrl, m);
+                        transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                    }
+                }
+            }
+            if ((u32)stadiumObjectCollision.hazardData[idx] != 0) {
+                storeBoundingBoxCoordinates(&((Vec*)stadiumObjectCollision.vertexDataArray)[idx * 2],
+                                            &((Vec*)stadiumObjectCollision.vertexDataArray)[idx * 2 + 1]);
+                idx++;
+            }
+        }
+    }
+
+    {
+        CastleSlotPlacement* cfg;
+        int off;
+        int i;
+        int j;
+        int k;
+        StadiumObject* obj;
+        Mtx m;
+
+        for (i = 0; i < 5; i++) {
+            off = (u16)(stadiumObjectCollision.vertexOffsets[idx - 1] + stadiumObjectCollision.hazardData[idx - 1]);
+            stadiumObjectCollision.vertexOffsets[idx] = off;
+            initBoundingBoxLimits();
+            cfg = lbl_3_data_17704;
+            for (j = 0; j < 10; cfg++, j++) {
+                if (i == cfg->group && cfg->usedFlag != 7) {
+                    k = j + lbl_3_bss_9DE0;
+                    if (stadiumObjectCollision.objects[k]._90b1) {
+                        ((s32*)stadiumObjectCollision.vertexData)[off] = k;
+                        off++;
+                        stadiumObjectCollision.hazardData[idx]++;
+                        obj = &stadiumObjectCollision.objects[j + lbl_3_bss_9DE0];
+                        CTRLBuildMatrix((Control*)obj, m);
+                        transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                        m[1][3] = m[1][3] * -100.0f;
+                        transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                    }
+                }
+            }
+            if ((u32)stadiumObjectCollision.hazardData[idx] != 0) {
+                storeBoundingBoxCoordinates(&((Vec*)stadiumObjectCollision.vertexDataArray)[idx * 2],
+                                            &((Vec*)stadiumObjectCollision.vertexDataArray)[idx * 2 + 1]);
+                idx++;
+            }
+        }
+    }
+
+    stadiumObjectCollision.boundingBoxCount = idx;
 }
 
 // .text:0x000C8650 size:0xD2C mapped:0x807076E4

@@ -5,7 +5,7 @@
 
 void fn_80033794(void);
 void fn_800337CC(void);
-void pitchingMachinePitching(void);
+void pitchingMachinePitching(u8 arg0);
 void fn_80033928(void);
 void fn_80033964(void* effect);
 void* fn_800339F0(int arg0, u8 arg1);
