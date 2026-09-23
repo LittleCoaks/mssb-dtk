@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void LERPToNewRange_Float(void);
+int LERPToNewRange_Float(int value, int inMin, int inMax, int outMin, int outMax);
 
 #endif // !__UNKNOWN_FILE_0X80024B00_H_

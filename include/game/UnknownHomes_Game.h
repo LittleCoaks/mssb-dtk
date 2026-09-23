@@ -554,7 +554,7 @@ typedef struct _InMemPitcherType {
     /*0x144*/ u8 cursedBallStat;
     /*0x145*/ u8 curveControlStat;
     /*0x146*/ u8 curveStat;
-    /*0x147*/ u8 captainStarPitch;
+    /*0x147*/ E(u8, CAPTAIN_STAR_TYPE) captainStarPitch;
     /*0x148*/ u8 nonCaptainStarPitch;
     /*0x149*/ E(u8, CHARACTER_CLASS) charClass;
     /*0x14A*/ u8 pitchSpeed;
@@ -584,7 +584,7 @@ typedef struct _InMemPitcherType {
     /*0x162*/ u8 ballHaloTrainInd_unused;
     /*0x163*/ u8 overChargeInd;
     /*0x164*/ u8 starPitchInd;
-    /*0x165*/ u8 starPitchType;
+    /*0x165*/ E(u8, CAPTAIN_STAR_TYPE) starPitchType;
     /*0x166*/ u8 warioWaluStarAnimationStage;
     /*0x167*/ u8 warioWaluStarPitchRightLeft;
     /*0x168*/ u8 peachDaisyStarAnimationOn;

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void loadCharacterAnimation(void);
+int loadCharacterAnimation(int charID);
 
 #endif // !__UNKNOWN_FILE_0X8001C920_H_

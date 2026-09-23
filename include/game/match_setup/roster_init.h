@@ -8,7 +8,7 @@ void initializeInMemRunner(void);
 void setInMemBatterConstants(int rosterID);
 void getThrowSpeedBasedOnArmStrengthStat(void);
 void setFielderValues(int characterID, int fielderIndex);
-void setPitcherStatsToInMemPitcher(void);
+void setPitcherStatsToInMemPitcher(int rosterIdx);
 void initRosterForMatch(void);
 
 #endif // !__GAME_MATCH_SETUP_ROSTER_INIT_H_

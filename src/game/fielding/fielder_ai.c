@@ -7,6 +7,7 @@
 #include "header_rep_data.h"
 #include "static/UnknownHomes_static.h"
 #include "game/sound/m_sound.h"
+#include "Unknown/File_0x80024b00.h"
 
 extern const f32 lbl_3_rodata_1938;
 extern const f32 lbl_3_rodata_19C4;
@@ -101,7 +102,6 @@ extern const u8 throwWindUpFrames[];
 extern VecXZ base_MoundCoordinates[5];
 void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation);
 extern f32 thresholdToBeConsideredCoveringBase_ByWeight[5];
-extern int LERPToNewRange_Float(int value, int inMin, int inMax, int outMin, int outMax);
 extern u8 lbl_3_data_4908[2];
 extern int calculateChemistry(int teamFielding, s16 charIdA, s16 charIdB);
 extern s16 chemThresholds[4];
