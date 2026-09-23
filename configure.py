@@ -1027,7 +1027,7 @@ config.libs = [
             Object(NonMatching, "game/stadium/sta_c0.c"),
             Object(NonMatching, "game/pitching/perfect_pitch_gfx.c"),
             Object(NonMatching, "game/pitching/pitcher_fire_effect.c"),
-            Object(NonMatching, "game/stadium/rep_23E8.c"),
+            Object(NonMatching, "game/stadium/stadium_star.c"),
             Object(NonMatching, "game/stadium/sta_c2.c"),
             Object(NonMatching, "game/minigame/toy_field.c"),
             Object(NonMatching, "game/minigame/minigame_fielder_anim.c"),

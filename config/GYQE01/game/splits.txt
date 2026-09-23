@@ -248,7 +248,7 @@ game/pitching/pitcher_fire_effect.c:
 	.text       start:0x000CB3AC end:0x000CB6B4
 	.rodata     start:0x00002390 end:0x000023E8
 
-game/stadium/rep_23E8.c:
+game/stadium/stadium_star.c:
 	.text       start:0x000CB738 end:0x000CB8A8
 	.rodata     start:0x000023E8 end:0x00002448
 

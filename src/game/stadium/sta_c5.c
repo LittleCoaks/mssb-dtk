@@ -23,7 +23,7 @@
 #include "Unknown/File_0x8004c094.h"
 #include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x80034cec.h"
-#include "game/stadium/rep_23E8.h"
+#include "game/stadium/stadium_star.h"
 #include "static/UnknownHomes_Static.h"
 #include "musyx/musyx.h"
 #include "game/ball/ball_physics.h"

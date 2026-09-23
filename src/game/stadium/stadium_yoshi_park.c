@@ -13,7 +13,7 @@
 #include "game/ball/ball_physics.h"
 #include "game/fielding/fielder.h"
 #include "game/sound/m_sound.h"
-#include "game/stadium/rep_23E8.h"
+#include "game/stadium/stadium_star.h"
 #include "musyx/musyx.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800b4908.h"

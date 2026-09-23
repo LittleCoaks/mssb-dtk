@@ -11,7 +11,7 @@
 #include "C3/control.h"
 #include "C3/actor.h"
 #include "stl/math.h"
-#include "game/stadium/rep_23E8.h"
+#include "game/stadium/stadium_star.h"
 #include "game/stadium/sta_c0.h"
 #include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
