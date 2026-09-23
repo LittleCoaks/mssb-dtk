@@ -2533,13 +2533,13 @@ void loadDKJungle(void** files) {
     adjustInternalPointers(files[ids[14]]);
     ACTActorRelated(files[ids[14]], *animTable + hazeAnim * 0x90 + 0x34);
     lbl_3_bss_B154[26] = (u32)files[ids[15]];
-    actRelated(files[ids[14]]);
+    actRelated(files[ids[14]], &lbl_3_bss_B154[26]);
     actorRelated(&lbl_3_bss_B154[26], 0, 0);
     ((f32*)&lbl_3_bss_B154[26])[4] = 0.3f;
     adjustInternalPointers(files[ids[12]]);
     ACTActorRelated(files[ids[12]], *animTable + ringAnim * 0x90 + 0x34);
     lbl_3_bss_B154[3] = (u32)files[ids[13]];
-    actRelated(files[ids[12]]);
+    actRelated(files[ids[12]], &lbl_3_bss_B154[3]);
     actorRelated(&lbl_3_bss_B154[3], 0, 0);
 
     stadiumObjectCollision.objectCount = 0x19;

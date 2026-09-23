@@ -2325,12 +2325,12 @@ void loadBowserCastle(void** files) {
         ACTActorRelated(files[ids[10]], *animTable + (i + 3) * 0x90 + 0x34);
     }
     lbl_3_bss_9E50.effects[1].file = (u32)files[ids[11]];
-    actRelated(files[ids[10]]);
+    actRelated(files[ids[10]], &lbl_3_bss_9E50.effects[1]);
     actorRelated(&lbl_3_bss_9E50.effects[1], 0, 0);
     adjustInternalPointers(files[ids[12]]);
     ACTActorRelated(files[ids[12]], *animTable + 0xC4);
     lbl_3_bss_9E50.effects[0].file = (u32)files[ids[13]];
-    actRelated(files[ids[12]]);
+    actRelated(files[ids[12]], &lbl_3_bss_9E50.effects[0]);
     actorRelated(&lbl_3_bss_9E50.effects[0], 0, 0);
     fn_80035750(files[ids[15]], files[ids[14]], 5);
     lbl_3_bss_9E50.scene = (CastleGfxScene*)insertGraphicDrawingFunction(fn_3_C3C2C, 2);

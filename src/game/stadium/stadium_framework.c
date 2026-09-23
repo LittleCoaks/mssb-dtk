@@ -801,8 +801,8 @@ void calledWhileMatchIsLoading(void) {
                 stadiumObjectCollision.lights[i] = light;
             }
             stadiumObjectCollision.stadiumData = stadiumData;
-            stadiumObjectCollision._08 = NULL;
-            stadiumObjectCollision._0C = NULL;
+            stadiumObjectCollision.crowd = NULL;
+            stadiumObjectCollision.crowdAlt = NULL;
             callStadiumPointerFun[stadiumType](stadiumData);
             stadiumObjectCollision.objectScratch =
                 _OSAllocFromHeap(4, stadiumObjectCollision.objectCount << 3);
@@ -932,8 +932,8 @@ void loadStadiumLighting(int stadiumType, void* stadiumData) {
             stadiumObjectCollision.lights[i] = light;
         }
         stadiumObjectCollision.stadiumData = stadiumData;
-        stadiumObjectCollision._08 = NULL;
-        stadiumObjectCollision._0C = NULL;
+        stadiumObjectCollision.crowd = NULL;
+        stadiumObjectCollision.crowdAlt = NULL;
         callStadiumPointerFun[stadiumType](stadiumData);
         stadiumObjectCollision.objectScratch = _OSAllocFromHeap(4, stadiumObjectCollision.objectCount << 3);
         fn_8001B214(fn_3_B8298);

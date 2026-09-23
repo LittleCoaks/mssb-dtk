@@ -5,7 +5,7 @@
 
 void adjustInternalPointers(void* file);
 void actorRelated(void* effect, int arg1, int arg2);
-void actRelated(void* file);
+void actRelated(void* file, void* effect);
 void fn_80026130(void);
 
 #endif // !__UNKNOWN_FILE_0X80025DDC_H_

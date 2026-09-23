@@ -123,12 +123,33 @@ typedef struct _StadiumObject {
     /*0xD2*/ u8 _D2[0xE8 - 0xD2];
 } StadiumObject; // size: 0xE8
 
+// Crowd animation blocks, carved out of the tail of objectsRelated by the
+// stadium loaders that have a crowd (see loadPeachGarden).
+typedef struct _StadiumCrowdAnim {
+    /*0x00*/ void* frames;
+    /*0x04*/ void* altFrames;
+    /*0x08*/ const void* sequence;
+    /*0x0C*/ const void* layout;
+    /*0x10*/ u8* fans;
+    /*0x14*/ u16 fanCount;
+    /*0x16*/ u16 phaseRange;
+    /*0x18*/ u16 framesPerLoop;
+    /*0x1A*/ u8 _1A[2];
+} StadiumCrowdAnim; // size: 0x1C
+
+typedef struct _StadiumCrowdWave {
+    /*0x00*/ u8 pattern[0x18];
+    /*0x18*/ void* frames;
+    /*0x1C*/ f32 cosAngle;
+    /*0x20*/ u8 mode;
+} StadiumCrowdWave;
+
 typedef struct _StadiumObjectCollision {
     /*0x00*/ StadiumObject* objects;
     /*0x04*/ StadiumObject* objectsRelated;
-    /*0x08*/ void* _08;
-    /*0x0C*/ void* _0C;
-    /*0x10*/ u8 _10[4];
+    /*0x08*/ StadiumCrowdAnim* crowd;
+    /*0x0C*/ StadiumCrowdAnim* crowdAlt;
+    /*0x10*/ StadiumCrowdWave* crowdWave;
     /*0x14*/ StadiumDrawOrder* objectScratch;
     /*0x18*/ void (*preUpdateFunc)(void);
     /*0x1C*/ void (*updateFunc)(void);
@@ -140,12 +161,13 @@ typedef struct _StadiumObjectCollision {
     /*0x40*/ u16* vertexOffsets;
     /*0x44*/ f32* vertexData;
     /*0x48*/ VecSrcDst* vertexDataArray;
-    /*0x4C*/ u8 _4C[0x18];
+    /*0x4C*/ Vec hitBallPos;
+    /*0x58*/ Vec hitBallVel;
     /*0x64*/ s16 boundingBoxCount;
     /*0x66*/ s16 rngConfig;
     /*0x68*/ s16 rngConfigSaved;
     /*0x6A*/ u8 objectsLoaded;
-    /*0x6B*/ u8 _6B;
+    /*0x6B*/ u8 hazardHitActive;
     /*0x6C*/ u8 gameStatusIsLiveBall;
     /*0x6D*/ u8 propCount;
     /*0x6E*/ u8 _6E[2];
