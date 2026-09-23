@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-void aiPitchCurveDirection(void);
+int aiPitchCurveDirection(f32 curve);
 void movePitcherOnMound(void);
 void fn_3_20EEC(void);
 void pitcherAISetCurve(void);

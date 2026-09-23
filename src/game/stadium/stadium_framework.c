@@ -35,9 +35,9 @@
 #include "Unknown/File_0x800bea04.h"
 #include "game/stadium/stadium_bowser_castle.h"
 #include "game/stadium/stadium_yoshi_park.h"
-#include "game/stadium/stadium_dk_jungle.h"
-#include "game/stadium/stadium_toy_field.h"
-#include "game/stadium/stadium_wario_palace.h"
+#include "game/stadium/sta_c5.h"
+#include "game/stadium/sta_c6.h"
+#include "game/stadium/sta_c2.h"
 
 typedef struct _StadiumBounds {
     Vec min;
@@ -873,7 +873,7 @@ void processStadiumFileObjects(u8* types, int count, u8* base, u32* out) {
             u8* layout = base + ((u32*)base)[k++];
             u8* geo = base + ((u32*)base)[k++];
             if ((u8)(*types - 2) > 1) {
-                ANIMGet(base + ((u32*)base)[k++]);
+                ANIMGet((ANIMBank *)(base + ((u32*)base)[k++]));
             }
             if (*types == 3 || *types == 5) {
                 skn = base + ((u32*)base)[k++];
@@ -895,7 +895,7 @@ void processStadiumFileObjects(u8* types, int count, u8* base, u32* out) {
             break;
         }
         case 7:
-            ANIMGet(base + ((u32*)base)[k++]);
+            ANIMGet((ANIMBank *)(base + ((u32*)base)[k++]));
             break;
         case 8:
         case 9:

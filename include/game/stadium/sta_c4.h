@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_PEACH_GARDEN_H_
-#define __GAME_STADIUM_STADIUM_PEACH_GARDEN_H_
+#ifndef __GAME_STADIUM_STA_C4_H_
+#define __GAME_STADIUM_STA_C4_H_
 
 #include "mssbTypes.h"
 
@@ -28,4 +28,4 @@ void loadPeachGarden(void);
 void fn_3_FB3D8(void);
 void fn_3_FBBA0(void);
 
-#endif // !__GAME_STADIUM_STADIUM_PEACH_GARDEN_H_
+#endif // !__GAME_STADIUM_STA_C4_H_

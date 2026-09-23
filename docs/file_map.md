@@ -148,16 +148,31 @@ screens either side of play (versus, championship, home-run trot).
 Two stadiums were originally in `rep_*` files rather than `sta_*`, which is why
 Bowser Castle and Yoshi Park do not follow the `sta_c*` numbering.
 
+**The five `sta_c*.c` filenames are CONFIRMED original filenames, not
+inferences.** Each of those units emits its own source filename as an
+`OSPanic`/assert `__FILE__` string in its own `.rodata` — `"sta_c0.c"` in
+`.rodata:0x64` of the Mario Stadium unit, and likewise `"sta_c2.c"`,
+`"sta_c4.c"`, `"sta_c5.c"`, `"sta_c6.c"` in the Wario Palace, Peach Garden, DK
+Jungle and Toy Field units. That is the same evidence tier as `yd_step.c` and
+`teamselect.c` in the menu REL (see below): direct evidence from the shipped
+binary rather than any inference tier in this document, so these files were
+renamed from their earlier descriptive repo labels (`stadium_mario.c`,
+`stadium_wario_palace.c`, `stadium_peach_garden.c`, `stadium_dk_jungle.c`,
+`stadium_toy_field.c`) to the names the developers actually used, per the
+"official/known names beat repo-invented labels" rule. `stadium_bowser_castle.c`,
+`stadium_yoshi_park.c` and `stadium_framework.c` have **no** such string in their
+own `.rodata`, so they keep their descriptive repo names.
+
 | file | was | fns (named) | bytes | stadium | conf |
 |---|---|---|---|---|---|
-| `stadium_wario_palace.c` | `sta_c2` | 88 (23) | 53,608 | Wario Palace — chain chomp state machine, sand/star hazards, haze texture. | high |
-| `stadium_dk_jungle.c` | `sta_c5` | 71 (23) | 41,796 | DK Jungle — Klaptrap AI (roam/chase/launched), barrel cannon, barrel physics. | high |
+| `sta_c2.c` | `sta_c2` | 88 (23) | 53,608 | Wario Palace — chain chomp state machine, sand/star hazards, haze texture. | high |
+| `sta_c5.c` | `sta_c5` | 71 (23) | 41,796 | DK Jungle — Klaptrap AI (roam/chase/launched), barrel cannon, barrel physics. | high |
 | `stadium_bowser_castle.c` | `rep_1FD8` | 47 (12) | 31,156 | Bowser Castle — thwomps, fireballs, star pads, screen shake. | high |
 | `stadium_framework.c` | `rep_1D58` | 36 (20) | 8,584 | Shared framework: object/hazard loading, bounding boxes, collision triangles, lighting. Used by all stadiums. | high |
-| `stadium_toy_field.c` | `sta_c6` | 30 (2) | 14,184 | Toy Field (`loadToyField`, object collisions). | med |
+| `sta_c6.c` | `sta_c6` | 30 (2) | 14,184 | Toy Field (`loadToyField`, object collisions). | med |
 | `stadium_yoshi_park.c` | `rep_2998` | 29 (11) | 14,548 | Yoshi Park — piranha plants (catch/spit/aim), nado. | high |
-| `stadium_peach_garden.c` | `sta_c4` | 24 (2) | 14,252 | Peach Garden (`loadPeachGarden`). | med |
-| `stadium_mario.c` | `sta_c0` | 7 (3) | 4,924 | Mario Stadium (`loadMarioStadium`, fan animation). | high |
+| `sta_c4.c` | `sta_c4` | 24 (2) | 14,252 | Peach Garden (`loadPeachGarden`). | med |
+| `sta_c0.c` | `sta_c0` | 7 (3) | 4,924 | Mario Stadium (`loadMarioStadium`, fan animation). | high |
 | `rep_23E8.c` | *(unchanged)* | 3 (2) | 368 | `stadiumStarAnimation`, `stadiumStarAwarded`. Placed here on those two names alone; small enough that the theme could still be wrong, so it kept its original name. | med |
 | `kinoko.c` | *(unchanged)* | 9 (0) | 11,668 | Sits at the very end of `.text` (0x807A8694–0x807AA918); references `g_Minigame`, `g_d_GameSettings`, `drawStadiumRelated`; heavy `getAnimationCollisionOffset` and GX Tev setup. Named "kinoko" (Japanese for mushroom) by an earlier contributor — the subject is not confirmed by anything I can see. | inferred |
 

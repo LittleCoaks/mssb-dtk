@@ -2,8 +2,8 @@
 #include "header_rep_data.h"
 
 // .text:0x00020CEC size:0x164 mapped:0x8065FD80
-void aiPitchCurveDirection(void) {
-    return;
+int aiPitchCurveDirection(f32 curve) {
+    return 0;
 }
 
 // .text:0x00020E50 size:0x9C mapped:0x8065FEE4

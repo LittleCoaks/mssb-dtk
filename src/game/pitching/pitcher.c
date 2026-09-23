@@ -11,6 +11,7 @@
 #include "Unknown/File_0x800204cc.h"
 #include "game/batting/batter_ai.h"
 #include "game/pitching/perfect_pitch_gfx.h"
+#include "game/pitching/pitcher_ai.h"
 #include "musyx/musyx.h"
 
 extern void incrementPitchCount(void);
@@ -40,7 +41,6 @@ extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4474[4];
 extern u32 AI_getPort(u8 idx);
 extern int aIPickoff(void);
-extern int aiPitchCurveDirection(f32 curve);
 extern s16 pitchConstantsArray[][7];
 extern f32 curveControlFrames_CursedBallMult[2];
 extern const f32 lbl_3_rodata_12B0;
@@ -77,7 +77,6 @@ extern struct {
 extern s16 lbl_3_common_bss_32220[8];
 extern int runnerStealing_TransitionToLiveViewIndicator(void);
 extern void SetGameStatus(int status);
-extern void pitcherAI_prePitchSetConstants(void);
 extern u8 hugeAnimStruct[0x3154];
 extern void practice_startPitchAfter90Frames(void);
 extern void lastPlayStats(void);

@@ -1059,7 +1059,7 @@
 ],
 "bytes": 31156
 },
-"stadium/stadium_dk_jungle.c": {
+"stadium/sta_c5.c": {
 "total": 71,
 "named": [
 "klaptrapHitAnimation",
@@ -1114,7 +1114,7 @@
 ],
 "bytes": 8584
 },
-"stadium/stadium_mario.c": {
+"stadium/sta_c0.c": {
 "total": 7,
 "named": [
 "fanAnimationRelated",
@@ -1123,7 +1123,7 @@
 ],
 "bytes": 4924
 },
-"stadium/stadium_peach_garden.c": {
+"stadium/sta_c4.c": {
 "total": 24,
 "named": [
 "peachGardenSomething",
@@ -1131,7 +1131,7 @@
 ],
 "bytes": 14252
 },
-"stadium/stadium_toy_field.c": {
+"stadium/sta_c6.c": {
 "total": 30,
 "named": [
 "processToyFieldObjectCollisions",
@@ -1139,7 +1139,7 @@
 ],
 "bytes": 14184
 },
-"stadium/stadium_wario_palace.c": {
+"stadium/sta_c2.c": {
 "total": 88,
 "named": [
 "palaceStadiumObjTransformationAndPhysics",

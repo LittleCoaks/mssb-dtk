@@ -4,6 +4,6 @@ void GetUITexture(void) {
     return;
 }
 
-void returnTexture(void) {
-    return;
+void* returnTexture(void) {
+    return 0;
 }

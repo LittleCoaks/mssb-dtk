@@ -260,4 +260,11 @@ BOOL loadStadiumObjects(int stadiumId);
 void processStadiumFileObjects(u8* types, int count, u8* base, u32* out);
 void loadStadiumLighting(int stadiumType, void* stadiumData);
 
+// Shared by every stadium unit; declared here once rather than duplicated in
+// each per-stadium header.
+s16 rng(int max);
+extern void fn_800BD548(void* actor, int mode, ...);
+void fn_80033620(void* emitter);
+void fn_80033CC8(void* particle, int arg);
+
 #endif // !__GAME_STADIUM_STADIUM_FRAMEWORK_H_

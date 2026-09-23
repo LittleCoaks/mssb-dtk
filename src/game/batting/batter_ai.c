@@ -48,7 +48,7 @@ void fn_3_1E4B8(void) {
 }
 
 // .text:0x0001E724 size:0xD0 mapped:0x8065D7B8
-BOOL fn_3_1E724(void) {
+BOOL batterAIBuntDecision(void) {
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_FIELDING) {
         return batterAI_buntForPractice() != 0;
     }
@@ -285,7 +285,7 @@ void fn_3_1F1CC(void) {
 }
 
 // .text:0x0001F350 size:0x128 mapped:0x8065E3E4
-void fn_3_1F350(void) {
+void batterAIGuessPitchLocation(void) {
     if (g_Pitcher.windupCountdownUntilBallReleased == lbl_3_data_1A3C[g_AiLogic.aIBatterDifficulty]) {
         if (g_AiLogic.lastPitchBallLocZone != 0xFF && RandomInt_Game(100) < lbl_3_data_1A24[g_Batter.characterClass]) {
             g_AiLogic.batterAI_GuessedPitchLocZone = g_AiLogic.lastPitchBallLocZone;
@@ -311,7 +311,7 @@ void batterTrackBallInBox(void) {
     f32 step;
     f32 edge;
     if (g_Ball.pitchHangtimeCounter < g_AiLogic.batterAIInd8_FrameBtwn10And16) {
-        fn_3_1F350();
+        batterAIGuessPitchLocation();
     } else if (g_Ball.pitchHangtimeCounter == g_AiLogic.batterAIInd8_FrameBtwn10And16) {
         if (g_Pitcher.starPitchType == 3 || g_Pitcher.starPitchType == 4) {
             g_AiLogic._73 = RandomInt_Game(2);
@@ -558,7 +558,7 @@ void batterAISwingEarlyOrLate(void) {
 }
 
 // .text:0x00020188 size:0x9C mapped:0x8065F21C
-void fn_3_20188(void) {
+void batterAIGuessPitchType(void) {
     if (g_AiLogic.lastPitchType != 0xFF && RandomInt_Game(100) < lbl_3_data_1AAC[g_AiLogic.aIBatterDifficulty]) {
         g_AiLogic.batterAIPitchGuessed = g_AiLogic.lastPitchType;
     } else {
@@ -706,7 +706,7 @@ void batterAIRNGValueSetting(void) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
             g_AiLogic.batterAIInd10_relatedToBoxPosPrePitch = 3;
         }
-        fn_3_20188();
+        batterAIGuessPitchType();
     } while (0);
     g_AiLogic.batterAISwingInd = 0;
     g_AiLogic.batterAIBoxPosXVelo = lbl_3_rodata_930;

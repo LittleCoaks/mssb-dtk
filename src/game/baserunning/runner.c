@@ -6,6 +6,7 @@
 #include "game/ball/collision_primitives.h"
 #include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
+#include "game/sound/m_sound.h"
 
 extern const f32 lbl_3_rodata_1414;
 extern const f32 lbl_3_rodata_1474;
@@ -55,7 +56,6 @@ extern const f32 lbl_3_rodata_1480;
 extern u8 bodyCheckProbabiliities[][5];
 extern u8 hugeAnimStruct[0x3154];
 extern void fieldingRelatedAnimations(void* anim, int state);
-extern void playCharacterSound(int charID, int soundIndex);
 extern s16 lbl_3_data_4B40[];
 extern s16 lbl_3_data_1C80[];
 extern const f32 lbl_3_rodata_14FC;

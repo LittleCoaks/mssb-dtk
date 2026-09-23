@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/stadium/stadium_wario_palace.h"
+#include "game/stadium/sta_c2.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
@@ -164,7 +164,6 @@ typedef struct _PalaceSandPlacement {
 
 extern PalaceSandPlacement lbl_3_data_185D0[11];
 extern UIRecordDescriptor lbl_3_data_10D3C[];
-extern void fn_800BD548(void* actor, int mode, ...);
 extern void fn_80035750(void* a, void* b, int c);
 
 typedef struct _PalaceIdObj {

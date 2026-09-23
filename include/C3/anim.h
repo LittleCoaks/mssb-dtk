@@ -42,7 +42,7 @@ typedef struct ANIMBank {
 } ANIMBank;
 
 // animBank.c
-void ANIMGet(ANIMBank **animBank, char *name);
+void ANIMGet(ANIMBank *animBank);
 void ANIMRelease(ANIMBank **animBank);
 ANIMSequences *ANIMGetSequence(ANIMBank *animBank, char *sequenceName, u16 seqNum);
 struct ANIMAnimTrack *ANIMGetTrackFromSeq(ANIMSequences *animSeq, u16 animTrackID);

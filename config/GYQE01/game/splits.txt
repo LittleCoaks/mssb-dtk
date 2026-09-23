@@ -235,7 +235,7 @@ game/hud/rep_21F8.c:
 	.rodata     start:0x000021F8 end:0x00002288
 	.bss        start:0x00009F20 end:0x00009F38
 
-game/stadium/stadium_mario.c:
+game/stadium/sta_c0.c:
 	.text       start:0x000C9744 end:0x000CABB4
 	.rodata     start:0x00002288 end:0x00002308
 	.bss        start:0x00009F38 end:0x00009FDC
@@ -252,7 +252,7 @@ game/stadium/rep_23E8.c:
 	.text       start:0x000CB738 end:0x000CB8A8
 	.rodata     start:0x000023E8 end:0x00002448
 
-game/stadium/stadium_wario_palace.c:
+game/stadium/sta_c2.c:
 	.text       start:0x000CB8A8 end:0x000D8A10
 	.rodata     start:0x00002448 end:0x000028A8
 	.bss        start:0x0000A018 end:0x0000AE00
@@ -271,7 +271,7 @@ game/stadium/stadium_yoshi_park.c:
 	.rodata     start:0x00002998 end:0x00002B40
 	.bss        start:0x0000AE00 end:0x0000AE50
 
-game/stadium/stadium_toy_field.c:
+game/stadium/sta_c6.c:
 	.text       start:0x000E59B4 end:0x000E911C
 	.rodata     start:0x00002B40 end:0x00002BF8
 	.bss        start:0x0000AE50 end:0x0000AEE0
@@ -280,12 +280,12 @@ game/minigame/toy_field_offscreen.c:
 	.text       start:0x000E9D30 end:0x000EA340
 	.rodata     start:0x00002BF8 end:0x00002C60
 
-game/stadium/stadium_dk_jungle.c:
+game/stadium/sta_c5.c:
 	.text       start:0x000EDFAC end:0x000F8444
 	.rodata     start:0x00002C60 end:0x00002F68
 	.bss        start:0x0000AEE0 end:0x0000B570
 
-game/stadium/stadium_peach_garden.c:
+game/stadium/sta_c4.c:
 	.text       start:0x000F8444 end:0x000FBCD0
 	.rodata     start:0x00002F68 end:0x00003090
 	.bss        start:0x0000B570 end:0x0000B678

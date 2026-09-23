@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_MARIO_H_
-#define __GAME_STADIUM_STADIUM_MARIO_H_
+#ifndef __GAME_STADIUM_STA_C0_H_
+#define __GAME_STADIUM_STA_C0_H_
 
 #include "mssbTypes.h"
 
@@ -11,4 +11,4 @@ void fn_3_C9B5C(void);
 void sta_c0(void);
 void loadMarioStadium(void);
 
-#endif // !__GAME_STADIUM_STADIUM_MARIO_H_
+#endif // !__GAME_STADIUM_STA_C0_H_

@@ -9,6 +9,8 @@
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "musyx/musyx.h"
+#include "game/ball/foul_detection.h"
+#include "game/sound/m_sound.h"
 
 void fielderControl_classifyControlStickDirection(void);
 static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* fielder, f32 targetX, f32 targetZ,
@@ -124,14 +126,10 @@ extern u8 lbl_3_data_84B8[0x3C];
 extern u8 characterStaticIndexes[0x144];
 extern s16 lbl_3_common_bss_37400[0x27];
 
-extern int foul_checkIfFoul(f32 x, f32 z);
-extern int foul_isBallWithin3mFair(f32 x, f32 z);
 extern f32 ballDistCalculator(f32 x, f32 z);
 extern u8 fn_3_107D70(void);
 extern int fn_3_1379A0(int fielderIndex);
-extern int fn_3_B7E44(f32 dist, sAng angle);
 extern void fieldingRelatedAnimations(void* anim, int state);
-extern int isCoordinateUncatchableTerrain(f32 x, f32 z);
 extern void foulBall(void);
 extern void setFielderValues(int characterID, int fielderIndex);
 extern void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex);
@@ -139,7 +137,6 @@ extern void fielderKnockback(int fielderIndex);
 extern void minigame_transferPoints(int toTeam, int fromTeam);
 extern void QueueTextToDisplay(int code, int arg1);
 extern void starMissionsQuantityBased(int missionType, int rosterLocation);
-extern void animateThrownBall(int objId, f32 x, f32 y, f32 z);
 
 extern s16 chemThresholds[4];
 extern struct {
@@ -295,7 +292,6 @@ void knockOut_setPosAndVelo(int fielderIndex) {
     }
 }
 
-extern void playCharacterSound(int charID, int soundIndex);
 extern void knockBallLoose(int fielderIndex, int flag);
 
 // .text:0x000253A4 size:0x2A4 mapped:0x80664438
@@ -1641,7 +1637,6 @@ nearWall:
 }
 #pragma dont_inline reset
 
-extern int checkFielderCollision(InMemFielder* a, VecXYZ* b);
 extern int futureFrameForClosestBall(f32* out, int arg1, int arg2);
 extern s16 slidingCatchArray[6];
 extern f32 slidingCatchMultipliers[6];
@@ -4197,7 +4192,6 @@ void fn_3_2F7D4(int fielderIndex) {
 }
 
 extern const f32 lbl_3_rodata_B60;
-extern void playCharacterSound(int charID, int soundIndex);
 
 // .text:0x0002F924 size:0x278 mapped:0x8066E9B8
 void wallSplat_setPosAndVelo(int fielderIndex) {
