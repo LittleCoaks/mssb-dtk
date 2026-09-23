@@ -2626,7 +2626,7 @@ void loadDKJungle(void** files) {
         c->mode = 0;
         o->model = (StadiumModel*)(*animTable + cannonAnim * 0x90 + 0x34);
         o->triangles = files[ids[10]];
-        o->callback = (void (*)(void))dkJungleBarrelCannonUpdate;
+        o->callback = (void (*)(StadiumObject*))dkJungleBarrelCannonUpdate;
         o->func = (int (*)(int, int, void*))fn_3_F466C;
         o->hasShadow = 1;
         shadowBit = 0;
@@ -2669,7 +2669,7 @@ void loadDKJungle(void** files) {
             k->_9D[0] = 2;
             o->model = (StadiumModel*)(*animTable + (klapAnim + i) * 0x90 + 0x34);
             o->triangles = files[ids[11]];
-            o->callback = (void (*)(void))klaptrapControl;
+            o->callback = (void (*)(StadiumObject*))klaptrapControl;
             o->func = (int (*)(int, int, void*))klaptrapHitAnimation;
             o->hasShadow = 1;
             shadowBit = 0;

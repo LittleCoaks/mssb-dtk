@@ -510,7 +510,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
     obj->links = (StadiumLink*)lbl_3_bss_A8D0;
     obj->model = (StadiumModel*)(*animTable + 0x34);
     obj->triangles = files[ids[13]];
-    obj->callback = (void (*)(void))fn_3_CBC18;
+    obj->callback = fn_3_CBC18;
     obj->func = NULL;
     obj->_90b1 = 0;
     obj->fadeByDepth = 1;
@@ -531,7 +531,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
         o->_9D[0] = 1;
         o->model = (StadiumModel*)(*animTable + (i + 1) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_D1848;
+        o->callback = (void (*)(StadiumObject*))fn_3_D1848;
         o->func = NULL;
         o->hasShadow = 0;
         o->_90b1 = 0;
@@ -560,7 +560,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
         o->_9D[0] = 2;
         o->model = (StadiumModel*)(*animTable + chompIdx * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))maybePalaceCTRLRelated;
+        o->callback = maybePalaceCTRLRelated;
         o->func = NULL;
         o->hasShadow = 1;
         o->_90b1 = 0;
@@ -595,7 +595,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
         *(s32*)&o->pos.x = k;
         o->model = (StadiumModel*)(*animTable + (firstProp + j) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_CFA8C;
+        o->callback = fn_3_CFA8C;
         o->func = NULL;
         o->hasShadow = 1;
         shadowBit = 0;
@@ -3357,7 +3357,7 @@ void loadWarioPalace(void** files) {
         }
         o->model = (StadiumModel*)(*animTable + i * 0x90 + 0x34);
         o->triangles = files[ids[13]];
-        o->callback = (void (*)(void))palaceChainChompControl;
+        o->callback = (void (*)(StadiumObject*))palaceChainChompControl;
         o->func = (int (*)(int, int, void*))fn_3_D196C;
         o->_90b1 = 1;
         o->fadeByDepth = 1;
@@ -3396,7 +3396,7 @@ void loadWarioPalace(void** files) {
         o->_9D[0] = 1;
         o->model = (StadiumModel*)(*animTable + (chompBodyBase + i) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_D1848;
+        o->callback = (void (*)(StadiumObject*))fn_3_D1848;
         o->func = NULL;
         o->hasShadow = 0;
         o->_90b1 = 0;
@@ -3441,7 +3441,7 @@ void loadWarioPalace(void** files) {
             usedAnims++;
         }
         o->triangles = NULL;
-        o->callback = (void (*)(void))maybePalaceCTRLRelated;
+        o->callback = maybePalaceCTRLRelated;
         o->func = NULL;
         o->hasShadow = 1;
         o->_90b1 = 0;
@@ -3480,7 +3480,7 @@ void loadWarioPalace(void** files) {
         o->_D2[0] = n;
         o->model = (StadiumModel*)(*animTable + (tornadoBase + i) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))palaceNadoLogic;
+        o->callback = (void (*)(StadiumObject*))palaceNadoLogic;
         o->func = NULL;
         o->hasShadow = 1;
         shadowBit = 0;
@@ -3516,7 +3516,7 @@ void loadWarioPalace(void** files) {
         ((PalaceNadoRingObj*)o)->radius = 1.0f;
         o->model = (StadiumModel*)(*animTable + ringAnim * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_D0284;
+        o->callback = (void (*)(StadiumObject*))fn_3_D0284;
         o->func = NULL;
         o->hasShadow = 1;
         shadowBit = 0;
@@ -3550,7 +3550,7 @@ void loadWarioPalace(void** files) {
         ((PalaceLinkedObj*)o)->animPhase = n;
         o->model = (StadiumModel*)(*animTable + hazeAnim * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_D00D0;
+        o->callback = (void (*)(StadiumObject*))fn_3_D00D0;
         o->func = NULL;
         o->hasShadow = 1;
         o->_90b1 = 0;
@@ -3586,7 +3586,7 @@ void loadWarioPalace(void** files) {
         *(s32*)&o->pos.x = k;
         o->model = (StadiumModel*)(*animTable + (sandBase + j) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_CFA8C;
+        o->callback = fn_3_CFA8C;
         o->func = NULL;
         o->hasShadow = 1;
         shadowBit = 0;
@@ -3632,7 +3632,7 @@ void loadWarioPalace(void** files) {
         ((PalaceStarObj*)o)->effect = NULL;
         o->model = (StadiumModel*)(*animTable + (starBase + j) * 0x90 + 0x34);
         o->triangles = files[ids[14]];
-        o->callback = (void (*)(void))warioPalaceSandStarRelated;
+        o->callback = (void (*)(StadiumObject*))warioPalaceSandStarRelated;
         o->func = (int (*)(int, int, void*))starHitAnimation;
         o->hasShadow = 1;
         shadowBit = 0;
@@ -3672,7 +3672,7 @@ void loadWarioPalace(void** files) {
         o->_9D[0] = sunCfg->usedFlag;
         o->model = (StadiumModel*)(*animTable + (sunBase + j) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_CED3C;
+        o->callback = (void (*)(StadiumObject*))fn_3_CED3C;
         o->func = NULL;
         o->hasShadow = 1;
         shadowBit = 0;
