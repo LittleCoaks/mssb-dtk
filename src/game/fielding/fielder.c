@@ -18114,8 +18114,8 @@ void handleBodyCheck2(int fielderIndex) {
         return;
     }
 
-    if ((s8)g_FieldingLogic.baseFielderIsOn >= 0) {
-        base = (s8)g_FieldingLogic.baseFielderIsOn;
+    if (g_FieldingLogic.baseFielderIsOn >= 0) {
+        base = g_FieldingLogic.baseFielderIsOn;
     }
     if (base < 0) {
         return;

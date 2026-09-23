@@ -1134,28 +1134,77 @@ sites are inside nested loops: `goto` **92.78%**, flag variable **89.73%**,
 expressible. That is a case where `goto` is genuinely correct — but note it was only
 established by measuring all four, which is the standard to hold.
 
-## The int-to-float conversion bias constant is a permanent scoring floor, not a lead
+## The int-to-float conversion bias constant is NOT a scoring floor — rebuild the literal pool instead
 
-First seen: `game/game/fielding/fielder_ai` (2026-09). This sharpens the existing
-"Shared .sdata2 literal pool across split DOL text-engine units" entry into a general
-rule.
+First seen: `game/game/fielding/fielder_ai` (2026-09). Corrects this entry's earlier claim, which
+was drawn from this same file before the fix below was known.
 
-Two different kinds of `.rodata` float reference behave oppositely, and it is worth
-recognising which one is capping a function before spending attempts on it:
-- A plain **value** constant CAN be matched. Declare `extern const f32 lbl_N_rodata_XXXX;`
-  and use the symbol in place of the literal — codegen is byte-identical and only the
-  relocation name changes. Never use the definition form, which emits a spurious
-  duplicate symbol.
-- The **int-to-float/double conversion bias** (the 0x4330 magic) CANNOT. Referencing it
-  explicitly forces a different `fsub`/`frsp` codegen path. MWCC pools it as an anonymous
-  `@NNN` where the target has a dtk-named `lbl_N_rodata_XXXX`, and no source form changes
-  that.
+objdiff scores a `.rodata` reference as matching when it lands at the same pool OFFSET, whatever
+the symbol is called — so an anonymous `@NNN` conversion bias matches the target's dtk-named
+`lbl_N_rodata_XXXX` once our pool is laid out identically. Three changes applied together took
+`fielder_ai`'s `.rodata` from 45.26% to 100% (and `pitcher.c` the same way):
+- plain float literals instead of `extern const f32 lbl_N_rodata_XXXX` labels;
+- function definitions in reverse address order (REL units: `-inline deferred` emits reversed,
+  so the pool fills in the target's first-use order);
+- `#define SQRT2_LINKAGE static` before the first include, so dolsqrtf2's `_half`/`_three`
+  statics don't sit at the head of the pool.
+Six `fielder_ai` functions went to 100% from this alone. The cost: a literal multiplier is
+scheduled differently from an extern variable — see the next entry.
 
-So a function whose ONLY residual is a handful of instructions naming a conversion
-constant is DONE — it is an artifact of the split, not a source-shape problem. In
-`fielder_ai` this capped `fn_3_A1DA0` at 99.85% over 3 instructions, and contributed the
-last fractions on `fn_3_A6ABC`, `fn_3_A384C`, `fielderAIMakePlay` and
-`fieldingAIThrowOrChase`. Recognise it, record it, and spend the effort elsewhere.
+## With a float literal, `x = x * lit` puts the literal first — write `x *= lit`
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+After switching to literals, MWCC emitted `fmuls f0, fConst, fX` (and loaded the constant before
+the int->double bias) for `frames = (int)(frames * 1.3f) + 0x1e;` and `speed = speed * 1.3f;`,
+where the target has `fmuls f0, fX, fConst`. Compound assignment reproduces the target exactly:
+`frames *= 1.3f; frames += 0x1e;` (maybeUnused_SetThrowSpeedType2 93.78% -> 100%; 28 sites, none
+regressed) and `speed *= 1.3f;` in initializeThrowAngle_Speed_Length. `(int)(1.3f * frames)` and
+explicit casts compile identically to the original and do not help.
+
+## Index the named `.bss` statics, never past the end of a neighbouring array
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+Three functions wrote `lbl_3_bss_17F8[12 + i]` / `[16 + i]` / `[20 + i]`, reaching three separate
+file-static arrays through a 1-element placeholder. Writing `throwStratToMakePlay[i]`,
+`runningStratToMakePlay[i]`, `framesRunnerIsOutOfReach[i]` let MWCC pool the section base into a
+callee-saved register exactly as the target does (`addi r30, bss@l` once, then
+`addi rX, r30, 0x40; stwx`): +6 to +8 points each.
+
+## A hand-unrolled scan is usually a loop MWCC unrolled
+
+First seen: `game/game/fielding/fielder_ai`, `setRunnerChasingAfter` (77.33% -> 99.27%, 2026-09).
+
+Signature: the same test repeated for fixed indices, a loop-invariant address hoisted before the
+first copy (`slwi; addi rA, rI, 0xa8` then `lfsx f1, rBase, rA` in every copy), each copy ending
+`li rResult, N; b end`, and a doubled `b end; b end` after the last. `for (i = 0; i < 4; i++) {
+if (...) { result = i; break; } }` reproduced it. Related: a `do { ...; runner++; i++; } while (i < 4)`
+loop that the target runs with `mtctr`/`bdnz` wanted a `for` (fn_3_A89D4), and the order of the
+`for` increment clause (`runner++, i++`) is visible in the output.
+
+## A `u8` field stored from the same register as neighbouring -1 stores is really `s8`
+
+First seen: `game/game/fielding/fielder_ai`, `knockBallLoose` (2026-09).
+
+The target stored `g_FieldingLogic.baseFielderIsOn` with `stb r6` where r6 already held -1 for
+halfword stores; ours materialised a separate `li rX, 0xff` because the field was `u8` (4 bytes
+too long). `fielder.c` already read it through `(s8)` casts. Retyping it `s8` took knockBallLoose
+and fielder.c's handleBodyCheck2 to 100%. Locals copied from it must then be `s8` too (tagRelated
+needed `s8 baseOn` with the casts dropped).
+
+## Statement order is the strongest register lever; trace the target's data flow for bugs
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+Greedy single-statement moves inside straight-line runs (only legal, dependency-preserving moves;
+also splitting a declaration initializer into a statement placed later) fixed or improved over a
+dozen functions here — e.g. moving `g_FieldingLogic.laser_2 = 0;` from first to last in a prologue
+restored 4 bytes and the unit's whole `.data` jump table. Declaration order of float locals
+occasionally matters too (estimatedThrowFramesBetweenTwoPoints reached 100% from it) though it was
+a no-op in most functions. Separately, following one register in the target from its load to a
+later `andi.` exposed a real bug: a test the source applied to `hexMovementsInEachBaseline1for2back4stop`
+was on `hexBaserunnerTracker` (fielderAIOutfieldPlayAttemptInd 94.57% -> 99.64%).
 
 ## `-inline deferred` auto-inlining of in-file standalone functions is NOT uniform — measure both forms
 

@@ -2798,7 +2798,7 @@ typedef struct {
     /*0x0122*/ u8 _0122;
     /*0x0123*/ u8 letFoulBallDropIfWinningRunOn3rdInd;
     /*0x0124*/ u8 tagAnimationCountdown;
-    /*0x0125*/ u8 baseFielderIsOn;
+    /*0x0125*/ s8 baseFielderIsOn;
     /*0x0126*/ s8 runnerTargetedOnThrowDuringSteal;
     /*0x0127*/ u8 x127_pickoff_0;
     /*0x0128*/ u8 canEndPlayOnLooseBallInd;
