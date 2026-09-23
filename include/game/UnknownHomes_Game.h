@@ -441,7 +441,7 @@ typedef struct _InMemBallType {
     /*0x1BDA*/ u8 bobbleLocation_1fair_2foul;
     /*0x1BDB*/ u8 _1BDB;
     /*0x1BDC*/ u8 homeRunInd;
-    /*0x1BDD*/ u8 ballZoneWhenCaught;
+    /*0x1BDD*/ s8 ballZoneWhenCaught;
     /*0x1BDE*/ u8 ballStoppingCode1ReallySlow2Stopped;
     /*0x1BDF*/ u8 unknown_always0;
     /*0x1BE0*/ u8 throwTimeEstimatesCompleteInd;

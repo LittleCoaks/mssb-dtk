@@ -1025,7 +1025,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     }
 
     {
-        u8 oldBallZoneWhenCaught = g_Ball.ballZoneWhenCaught;
+        s8 oldBallZoneWhenCaught = g_Ball.ballZoneWhenCaught;
 
         g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
         g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
@@ -1051,7 +1051,7 @@ void updateVariablesPostCatch(int fielderIndex) {
         g_Ball.warioWaluGarlicIsActive = 0;
         g_Ball.catchAnimationTotalFrames = 0;
         g_Ball.ballIsRollingIndicator = 0;
-        if ((s8)oldBallZoneWhenCaught < 0) {
+        if (oldBallZoneWhenCaught < 0) {
             g_Ball.ballZoneWhenCaught = g_Ball.ballZoneAwayFromHome;
         }
     }

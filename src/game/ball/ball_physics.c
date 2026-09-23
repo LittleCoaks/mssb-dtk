@@ -9,6 +9,7 @@
 #include "header_rep_data.h"
 #include "game/ball/foul_detection.h"
 #include "game/sound/m_sound.h"
+#include "game/stadium/stadium_framework.h"
 
 extern void QueueTextToDisplay(int code, int arg1);
 extern void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
@@ -17,7 +18,6 @@ extern void handleBallRollInWater(VecXYZ* pos, VecXYZ* vel);
 extern void processBallFielderCollision(u8 fielderIndex);
 extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern s16 lbl_3_common_bss_37400[0x27];
-extern u8 stadiumObjectCollision[0x70];
 extern u8 animRelated[0x124];
 extern f32 lbl_3_data_610C[6];
 extern f32 lbl_3_data_6124[3];
@@ -68,9 +68,9 @@ void chompCollision_processStarHitVariables(void) {
     if (g_Ball.ballState == BALL_STATE_THROWN) {
         g_Ball.ballState = BALL_STATE_HELD;
     }
-    g_Ball.someCollisionInd = 1;
     g_Ball.currentStarSwing = 0;
     g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = 0;
+    g_Ball.someCollisionInd = 1;
     g_Ball.warioWaluGarlicIsActive = 0;
     g_Ball.autoFielderAvoidDropSpotForPeachesStarHit = 0;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
@@ -369,6 +369,7 @@ void ballCollisionLogic(void) {
     f32 absNormalX;
     f32 scale;
     f32 speed;
+    f32 offset;
     s16 contactResult;
 
     g_Ball.ballOnMoundInd = 0;
@@ -401,7 +402,7 @@ void ballCollisionLogic(void) {
     }
 
     if (g_Ball.hitNoteBlockInd != 0) {
-        if (stadiumObjectCollision[0x6B] != 0) {
+        if (stadiumObjectCollision._6B != 0) {
             return;
         }
         g_Ball.hitNoteBlockInd = 0;
@@ -464,13 +465,14 @@ void ballCollisionLogic(void) {
         frac = 1.0f - (probe.src.y - hit.position.y) / frac;
     }
 
-    g_Ball.AtBat_Contact_BallPos.x = hit.normal.x * (0.005f + g_Ball.groundYForBounces) + hit.position.x;
-    g_Ball.AtBat_Contact_BallPos.y = -(hit.normal.y * (0.005f + g_Ball.groundYForBounces) + hit.position.y);
-    g_Ball.AtBat_Contact_BallPos.z = hit.normal.z * (0.005f + g_Ball.groundYForBounces) + hit.position.z;
+    offset = 0.005f + g_Ball.groundYForBounces;
+    g_Ball.AtBat_Contact_BallPos.y = -(hit.normal.y * offset + hit.position.y);
+    g_Ball.AtBat_Contact_BallPos.x = hit.normal.x * offset + hit.position.x;
+    g_Ball.AtBat_Contact_BallPos.z = hit.normal.z * offset + hit.position.z;
 
+    velCopy.z = g_Ball.physicsSubstruct.velocity.z;
     velCopy.y = -g_Ball.physicsSubstruct.velocity.y;
     velCopy.x = g_Ball.physicsSubstruct.velocity.x;
-    velCopy.z = g_Ball.physicsSubstruct.velocity.z;
 
     absNormalX = hit.normal.x;
     if (absNormalX < 0.0f) {
@@ -857,7 +859,6 @@ void ballCollisionLogic(void) {
 
 // .text:0x00008CF0 size:0x35C mapped:0x80647D84
 void handleBallBounceAndRoll(f32* verticalVelocity, int bounceFrameCount, u8* ballIsRolling, BOOL skipStarBounce) {
-    f32 dx, dy, dz;
     f32 speed;
     f32 cx, cy;
     f32 bounceVelocity;
@@ -866,13 +867,7 @@ void handleBallBounceAndRoll(f32* verticalVelocity, int bounceFrameCount, u8* ba
 
     if ((g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_YOSHI || g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_BIRDO) &&
         skipStarBounce == 0) {
-        dx = g_Ball.pastCoordinates[1].x - g_Ball.pastCoordinates[0].x;
-        dy = g_Ball.pastCoordinates[1].y - g_Ball.pastCoordinates[0].y;
-        dz = g_Ball.pastCoordinates[1].z - g_Ball.pastCoordinates[0].z;
-        dx = dx * dx;
-        dy = dy * dy;
-        dz = dz * dz;
-        speed = dolsqrtf2(dz + (dx + dy));
+        speed = VEC_DISTANCE(&g_Ball.pastCoordinates[1], &g_Ball.pastCoordinates[0]);
 
         bounceVelocity = speed * g_hitFloats.eggVeloMaintainedOnBounce;
         getComponentsFromSAng((s16)(RandomInt_Game(0x200) + 0x80), &cx, &cy);
@@ -965,35 +960,15 @@ void handleBallHitDeadBallOutcome(void) {
 
 // .text:0x00009260 size:0x2A8 mapped:0x806482F4
 void fairOrFoulBall(BALL_COLLISION_TYPE collType) {
-    f32 velocityScale = lbl_3_data_4428[g_d_GameSettings.StadiumID];
-    int collKind = collType & 0x7F;
+    s32 collKind = collType & 0x7F;
 
-    g_Ball.physicsSubstruct.velocity.x *= velocityScale;
-    g_Ball.physicsSubstruct.velocity.y *= velocityScale;
-    g_Ball.physicsSubstruct.velocity.z *= velocityScale;
+    g_Ball.physicsSubstruct.velocity.x *= lbl_3_data_4428[g_d_GameSettings.StadiumID];
+    g_Ball.physicsSubstruct.velocity.y *= lbl_3_data_4428[g_d_GameSettings.StadiumID];
+    g_Ball.physicsSubstruct.velocity.z *= lbl_3_data_4428[g_d_GameSettings.StadiumID];
 
     if (collKind != BALL_COLLISION_TYPE_CHOMP_HAZARD && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         if ((collType & BALL_COLLISION_TYPE_FOUL) != 0 && g_Ball.numFieldersWhoHandledBallDuringPlay == 0) {
-            BOOL runnerWasOut = FALSE;
-
-            g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FOUL;
-            g_Ball.ballInitialHitDoneInd = 1;
-            if (g_FieldingLogic.hasProcessedFoulBall != 1) {
-                g_FieldingLogic.hasProcessedFoulBall = 1;
-                g_Strikes.strikes++;
-                if (g_Strikes.strikes >= 3) {
-                    if (g_Ball.maybeBuntInd != 0) {
-                        g_Ball.maybebuntOn2Strikes = 1;
-                        runnerOut(0);
-                        runnerWasOut = TRUE;
-                    } else {
-                        g_Strikes.strikes = 2;
-                    }
-                }
-                if (!runnerWasOut) {
-                    QueueTextToDisplay(3, 0);
-                }
-            }
+            foulBall();
         } else {
             g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_LANDED;
             g_Ball.ballInitialHitDoneInd = 1;
@@ -1075,38 +1050,14 @@ void processLandedBallBouncing(void) {
 
     if (g_Ball.ballInitialHitDoneInd == 0) {
         if (foul_checkIfFoul(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-            do {
-                if (!foul_ifBallConsideredPastTheBases(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-                    f32 lineDist;
-                    if (g_Ball.AtBat_Contact_BallPos.x > 0.0f) {
-                        lineDist = g_Ball.AtBat_Contact_BallPos.z - g_Ball.AtBat_Contact_BallPos.x;
-                    } else {
-                        lineDist = g_Ball.AtBat_Contact_BallPos.z + g_Ball.AtBat_Contact_BallPos.x;
-                    }
-                    if (!(lineDist < lbl_3_rodata_5E4) && !(g_Ball.ballVelocity < lbl_3_rodata_5D4)) {
-                        break;
-                    }
-                }
-                g_Ball.ballInitialHitDoneInd = 1;
-                g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FOUL;
-                if (g_FieldingLogic.hasProcessedFoulBall != 1) {
-                    BOOL foulBuntOnThirdStrike = FALSE;
-                    g_FieldingLogic.hasProcessedFoulBall = 1;
-                    g_Strikes.strikes++;
-                    if (g_Strikes.strikes >= 3) {
-                        if (g_Ball.maybeBuntInd != 0) {
-                            g_Ball.maybebuntOn2Strikes = 1;
-                            runnerOut(0);
-                            foulBuntOnThirdStrike = TRUE;
-                        } else {
-                            g_Strikes.strikes = 2;
-                        }
-                    }
-                    if (!foulBuntOnThirdStrike) {
-                        QueueTextToDisplay(3, 0);
-                    }
-                }
-            } while (0);
+            if (foul_ifBallConsideredPastTheBases(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z) ||
+                (g_Ball.AtBat_Contact_BallPos.x > 0.0f
+                     ? g_Ball.AtBat_Contact_BallPos.z - g_Ball.AtBat_Contact_BallPos.x
+                     : g_Ball.AtBat_Contact_BallPos.z + g_Ball.AtBat_Contact_BallPos.x) <
+                    lbl_3_rodata_5E4 ||
+                g_Ball.ballVelocity < lbl_3_rodata_5D4) {
+                foulBall();
+            }
         } else if (g_Ball.ballVelocity < lbl_3_rodata_5E8) {
             g_Ball.ballInitialHitDoneInd = 1;
         }
@@ -1141,25 +1092,7 @@ void processBallInAir_Landed(void) {
     g_Ball.ballHitGrroundDistanceFromHome = g_Ball.ballDistanceFromHome;
 
     if (g_Ball.always0_fairFoulRelated == 1 || g_Ball.bobbleLocation_1fair_2foul == 2) {
-        BOOL foulBuntOnThirdStrike = FALSE;
-        g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FOUL;
-        g_Ball.ballInitialHitDoneInd = 1;
-        if (g_FieldingLogic.hasProcessedFoulBall != 1) {
-            g_FieldingLogic.hasProcessedFoulBall = 1;
-            g_Strikes.strikes++;
-            if (g_Strikes.strikes >= 3) {
-                if (g_Ball.maybeBuntInd != 0) {
-                    g_Ball.maybebuntOn2Strikes = 1;
-                    runnerOut(0);
-                    foulBuntOnThirdStrike = TRUE;
-                } else {
-                    g_Strikes.strikes = 2;
-                }
-            }
-            if (!foulBuntOnThirdStrike) {
-                QueueTextToDisplay(3, 0);
-            }
-        }
+        foulBall();
     } else if (g_Ball.always0_fairFoulRelated == 2 || g_Ball.bobbleLocation_1fair_2foul == 1) {
         g_Ball.ballInitialHitDoneInd = 1;
         g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_LANDED;
@@ -1167,40 +1100,13 @@ void processBallInAir_Landed(void) {
             QueueTextToDisplay(4, 1);
         }
     } else if (foul_checkIfFoul(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-        do {
-            if (!foul_ifBallConsideredPastTheBases(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-                f32 lineDist;
-                if (g_Ball.AtBat_Contact_BallPos.x > 0.0f) {
-                    lineDist = g_Ball.AtBat_Contact_BallPos.z - g_Ball.AtBat_Contact_BallPos.x;
-                } else {
-                    lineDist = g_Ball.AtBat_Contact_BallPos.z + g_Ball.AtBat_Contact_BallPos.x;
-                }
-                if (!(lineDist < lbl_3_rodata_5E4) && !(g_Ball.ballVelocity < lbl_3_rodata_5D4)) {
-                    break;
-                }
-            }
-            {
-                BOOL foulBuntOnThirdStrike = FALSE;
-                g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FOUL;
-                g_Ball.ballInitialHitDoneInd = 1;
-                if (g_FieldingLogic.hasProcessedFoulBall != 1) {
-                    g_FieldingLogic.hasProcessedFoulBall = 1;
-                    g_Strikes.strikes++;
-                    if (g_Strikes.strikes >= 3) {
-                        if (g_Ball.maybeBuntInd != 0) {
-                            g_Ball.maybebuntOn2Strikes = 1;
-                            runnerOut(0);
-                            foulBuntOnThirdStrike = TRUE;
-                        } else {
-                            g_Strikes.strikes = 2;
-                        }
-                    }
-                    if (!foulBuntOnThirdStrike) {
-                        QueueTextToDisplay(3, 0);
-                    }
-                }
-            }
-        } while (0);
+        if (foul_ifBallConsideredPastTheBases(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z) ||
+            (g_Ball.AtBat_Contact_BallPos.x > 0.0f ? g_Ball.AtBat_Contact_BallPos.z - g_Ball.AtBat_Contact_BallPos.x
+                                                    : g_Ball.AtBat_Contact_BallPos.z + g_Ball.AtBat_Contact_BallPos.x) <
+                lbl_3_rodata_5E4 ||
+            g_Ball.ballVelocity < lbl_3_rodata_5D4) {
+            foulBall();
+        }
     } else if (foul_ifBallConsideredPastTheBases(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
         g_Ball.ballInitialHitDoneInd = 1;
         if (foul_isBallWithin3mFair(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z) &&
@@ -1393,8 +1299,6 @@ void warioWaluStarHit(void) {
         if (g_Ball.framesUntilBallHitsGround == g_Ball.matchFramesAndBallAngle.garlicHitFramesUntilHitGroundForSplit) {
             f32 speed;
             f32 angle;
-            f32 sqx;
-            f32 sqz;
             f32 x1;
             f32 z1;
             f32 x2;
@@ -1420,9 +1324,7 @@ void warioWaluStarHit(void) {
             g_Ball.warioStarHitCoords[2].z = g_Ball.AtBat_Contact_BallPos.z;
 
             angle = game_atan2(g_Ball.physicsSubstruct.velocity.x, g_Ball.physicsSubstruct.velocity.z);
-            sqx = g_Ball.physicsSubstruct.velocity.x * g_Ball.physicsSubstruct.velocity.x;
-            sqz = g_Ball.physicsSubstruct.velocity.z * g_Ball.physicsSubstruct.velocity.z;
-            speed = dolsqrtf2(sqx + sqz);
+            speed = VEC_LENGTH_XZ(&g_Ball.physicsSubstruct.velocity);
 
             getComponentsFromRad(angle + RandomF32_Game_Range(g_hitFloats.garlicSpreadLower, g_hitFloats.garlicSpreadUpper),
                                  &x1, &z1);
@@ -1495,10 +1397,11 @@ void warioWaluStarHit(void) {
                 }
 
                 if (minDist < fielderHitboxesForGarlicKnockout[g_Fielders[nearest].Weight]) {
-                    processFielderKnockout(
-                        nearest,
-                        calculateAngleFromCoordinates(g_Fielders[nearest].pos.x - g_Ball.warioStarHitCoords[2].x,
-                                                      g_Fielders[nearest].pos.z - g_Ball.warioStarHitCoords[2].z));
+                    int knockAngle = calculateAngleFromCoordinates(
+                        g_Fielders[nearest].pos.x - g_Ball.warioStarHitCoords[2].x,
+                        g_Fielders[nearest].pos.z - g_Ball.warioStarHitCoords[2].z);
+
+                    processFielderKnockout(nearest, knockAngle);
                     g_Ball.currentStarSwing = 0;
                     g_Ball.warioWaluGarlicIsActive = 0;
                     return;
@@ -1637,17 +1540,19 @@ void liveBallHitPhysics(int mode) {
     if (g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_DK || g_Ball.currentStarSwing == CAPTAIN_STAR_TYPE_DIDDY) {
         if (g_Ball.framesSinceHit > g_Ball.matchFramesAndBallAngle.bananaHitStartFrame &&
             g_Ball.framesSinceHit < g_Ball.matchFramesAndBallAngle.bananaHitEndFrame) {
-            f32 speed = VEC_LENGTH_XZ(&g_Ball.physicsSubstruct.velocity);
-            f32 angle = game_atan2(g_Ball.physicsSubstruct.velocity.x, g_Ball.physicsSubstruct.velocity.z);
+            f32* velX = &g_Ball.physicsSubstruct.velocity.x;
+            f32* velZ = &g_Ball.physicsSubstruct.velocity.z;
+            f32 speed = dolsqrtf2(*velX * *velX + *velZ * *velZ);
+            f32 angle = game_atan2(*velX, *velZ);
 
             if (g_Ball.directionOfBananaHit != 0) {
                 angle = angle + g_hitFloats.DKStarAngleDelta;
             } else {
                 angle = angle - g_hitFloats.DKStarAngleDelta;
             }
-            getComponentsFromRad(angle, &g_Ball.physicsSubstruct.velocity.x, &g_Ball.physicsSubstruct.velocity.z);
-            g_Ball.physicsSubstruct.velocity.x *= speed;
-            g_Ball.physicsSubstruct.velocity.z *= speed;
+            getComponentsFromRad(angle, velX, velZ);
+            *velX *= speed;
+            *velZ *= speed;
         }
     }
 
@@ -1702,14 +1607,18 @@ void liveBallHitPhysics(int mode) {
                 if (g_Ball.framesSinceHit >= appearFrame) {
                     g_Ball.currentStarSwing = CAPTAIN_STAR_TYPE_NONE;
                     g_Batter.invisibleBallForPeachStarHit = 0;
-                } else if (g_Ball.framesSinceHit >= ((s16*)&g_hitShorts)[g_Ball.currentStarSwing - 2]) {
+                } else if (g_Ball.framesSinceHit >=
+                           (&g_hitShorts.FrameWhenPeachHitAppearsAgain)[g_Ball.currentStarSwing -
+                                                                         CAPTAIN_STAR_TYPE_PEACH]) {
                     g_Batter.invisibleBallForPeachStarHit = 1;
                 }
             } else {
-                if (g_Ball.framesSinceHit >= ((s16*)&g_hitShorts)[g_Ball.currentStarSwing]) {
+                if (g_Ball.framesSinceHit >= (&g_hitShorts._16)[g_Ball.currentStarSwing - CAPTAIN_STAR_TYPE_PEACH]) {
                     g_Ball.currentStarSwing = CAPTAIN_STAR_TYPE_NONE;
                     g_Batter.invisibleBallForPeachStarHit = 0;
-                } else if (g_Ball.framesSinceHit >= ((s16*)&g_hitShorts)[g_Ball.currentStarSwing - 2]) {
+                } else if (g_Ball.framesSinceHit >=
+                           (&g_hitShorts.FrameWhenPeachHitAppearsAgain)[g_Ball.currentStarSwing -
+                                                                         CAPTAIN_STAR_TYPE_PEACH]) {
                     g_Batter.invisibleBallForPeachStarHit = 1;
                 }
             }
@@ -2259,18 +2168,21 @@ void updateFrameCountersAndBallPastCoordinatesWhenFielderHoldingBall(void) {
 
 // .text:0x0000CE28 size:0xBC4 mapped:0x8064BEBC
 void estimateAndSetFutureCoords(int mode) {
+    u8 notMoving;
+    u8 secondPass;
     f32 x, y, z;
     f32 prevX, prevY, prevZ;
     f32 xVel, yVel, zVel;
     f32 xAccel, yAccel, zAccel;
     f32 airRes;
     f32 t, remaining;
-    u8 notMoving = 0;
-    u8 secondPass = 0;
     int counter = 1;
     int framesOnGround = 0;
     int hitApex = 0;
     int hitGround = 0;
+
+    notMoving = 0;
+    secondPass = 0;
 
     for (;;) {
         if (mode == 1) {
@@ -2318,13 +2230,11 @@ void estimateAndSetFutureCoords(int mode) {
         airRes = 1.0f - (f32)g_Ball.airResistance / 10000.0f;
 
         if (!secondPass) {
-            f32 sqx, sqz;
             g_Ball.physicsSubstruct.futureCoordsAndDist[0].pos.x = x;
             g_Ball.physicsSubstruct.futureCoordsAndDist[0].pos.y = y;
             g_Ball.physicsSubstruct.futureCoordsAndDist[0].pos.z = z;
-            sqx = x * x;
-            sqz = z * z;
-            g_Ball.physicsSubstruct.futureCoordsAndDist[counter].dist = dolsqrtf2(sqx + sqz);
+            g_Ball.physicsSubstruct.futureCoordsAndDist[counter].dist =
+                VEC_LENGTH_XZ(&g_Ball.physicsSubstruct.futureCoordsAndDist[0].pos);
             if (lbl_3_rodata_590 == g_Ball.physicsSubstruct.velocity.x &&
                 lbl_3_rodata_590 == g_Ball.physicsSubstruct.velocity.y &&
                 lbl_3_rodata_590 == g_Ball.physicsSubstruct.velocity.z) {
@@ -2589,21 +2499,22 @@ void estimateWhereBallWillHitWall(BOOL useBallPitcherStart) {
     BALL_COLLISION_TYPE type;
     int i;
     int j;
+    int k;
 
     if (useBallPitcherStart) {
-        f32 dist = g_Ball.physicsSubstruct.futureCoordsAndDist[60].dist;
-
         ray.src.x = g_Pitcher._30.x;
         ray.src.y = -0.5f;
         ray.src.z = g_Pitcher._30.z;
-        if (0.0f == dist) {
+        if (0.0f == g_Ball.physicsSubstruct.futureCoordsAndDist[60].dist) {
             ray.dst.x = 200.0f * g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
             ray.dst.y = -0.5f;
             ray.dst.z = 200.0f * g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
         } else {
-            ray.dst.x = 200.0f * (g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x / dist);
+            ray.dst.x = 200.0f * (g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x
+                                   / g_Ball.physicsSubstruct.futureCoordsAndDist[60].dist);
             ray.dst.y = -0.5f;
-            ray.dst.z = 200.0f * (g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z / dist);
+            ray.dst.z = 200.0f * (g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z
+                                   / g_Ball.physicsSubstruct.futureCoordsAndDist[60].dist);
         }
     } else {
         ray.src.x = g_Ball.AtBat_Contact_BallPos.x;
@@ -2623,24 +2534,12 @@ void estimateWhereBallWillHitWall(BOOL useBallPitcherStart) {
 
     if (type == BALL_COLLISION_TYPE_WALL || type == BALL_COLLISION_TYPE_UNCLIMBABLE_WALL) {
         f32 len;
-        f32 sqx;
-        f32 sqz;
 
         g_Ball.ballWillHitBallPos.x = hit.position.x;
         g_Ball.ballWillHitBallPos.z = hit.position.z;
-        sqx = hit.position.x * hit.position.x;
-        sqz = hit.position.z * hit.position.z;
-        g_Ball.wallAndBallIntersectionDistFromHome = dolsqrtf2(sqx + sqz);
+        g_Ball.wallAndBallIntersectionDistFromHome = VEC_LENGTH_XZ(&g_Ball.ballWillHitBallPos);
 
-        sqx = hit.normal.x * hit.normal.x;
-        sqz = hit.normal.z * hit.normal.z;
-        if (0.0f == dolsqrtf2(sqx + sqz)) {
-            len = 1.0f;
-        } else {
-            sqx = hit.normal.x * hit.normal.x;
-            sqz = hit.normal.z * hit.normal.z;
-            len = dolsqrtf2(sqx + sqz);
-        }
+        len = (0.0f == VEC_LENGTH_XZ(&hit.normal)) ? 1.0f : VEC_LENGTH_XZ(&hit.normal);
 
         g_Ball.seeminglyAlways1_ballCollideWWallRelated = 1;
         g_Ball._19E4 = hit.normal.x / len;
@@ -2650,7 +2549,8 @@ void estimateWhereBallWillHitWall(BOOL useBallPitcherStart) {
 
         for (i = 0; i < 360; i += 10) {
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].dist > g_Ball.wallAndBallIntersectionDistFromHome) {
-                for (j = i - 9; j <= i; j++) {
+                j = i - 9;
+                for (k = 0; k < 10; k++, j++) {
                     if (g_Ball.physicsSubstruct.futureCoordsAndDist[j].dist
                         > g_Ball.wallAndBallIntersectionDistFromHome) {
                         g_Ball.physicsSubstruct.throwYAtSelectedFuturePoint =
@@ -2690,6 +2590,31 @@ void estimateWhereBallWillHitWall(BOOL useBallPitcherStart) {
         g_Ball.physicsSubstruct.throwYAtSelectedFuturePoint = 0.0f;
         g_Ball.frameBallWillHitWall = -1;
     }
+}
+
+static inline int findClosestFutureFrame(f32 x, f32 z, int maxFrame, int step) {
+    f32 bestSqDist = reallyLargeConst;
+    int frame;
+    int bestFrame;
+
+    bestFrame = -1;
+    frame = 0;
+    while (frame < maxFrame) {
+        f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - x;
+        f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - z;
+        f32 sqDist = dx * dx + dz * dz;
+        if (sqDist < bestSqDist) {
+            bestSqDist = sqDist;
+            bestFrame = frame;
+            frame += step;
+        } else {
+            break;
+        }
+    }
+    if (bestFrame < 0) {
+        return -1;
+    }
+    return bestFrame;
 }
 
 // .text:0x0000E2D4 size:0xB78 mapped:0x8064D368
@@ -2825,32 +2750,9 @@ void calculateImplicationsOfTheHitTrajectory(void) {
 
     g_Ball.throwHasLastedEstimatedNOfFrames = 0;
     if (g_Ball.ballOnMoundInd != 0 && g_Ball.ballState == BALL_STATE_THROWN) {
-        f32 bestDistSq = reallyLargeConst;
-        f32 targetX = g_Ball.throwTarget.x;
-        f32 targetZ = g_Ball.throwTarget.z;
-        int bestFrame = -1;
         int frame;
 
-        i = 0;
-        while (i < 60) {
-            f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - targetX;
-            f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - targetZ;
-            f32 distSq = dx * dx + dz * dz;
-
-            if (distSq < bestDistSq) {
-                bestDistSq = distSq;
-                bestFrame = i;
-                i += 2;
-            } else {
-                break;
-            }
-        }
-
-        if (bestFrame < 0) {
-            frame = -1;
-        } else {
-            frame = bestFrame;
-        }
+        frame = findClosestFutureFrame(g_Ball.throwTarget.x, g_Ball.throwTarget.z, 300, 2);
         if (frame == -1) {
             g_Ball.throwHasLastedEstimatedNOfFrames = 1;
         } else {
@@ -2885,14 +2787,14 @@ void calculateImplicationsOfTheHitTrajectory(void) {
 // .text:0x0000EE4C size:0x390 mapped:0x8064DEE0
 void setLiveBallVariablesAfterContact(void) {
     f32 magnitude;
-    f32 dirZ;
     f32 dirX;
+    f32 dirZ;
     s32 i;
 
-    g_Ball.framesSinceHit = 0;
     g_Ball.offsetWhilePickedUpHistory[0].x = 0.0f;
     g_Ball.offsetWhilePickedUpHistory[0].y = 0.0f;
     g_Ball.offsetWhilePickedUpHistory[0].z = 0.0f;
+    g_Ball.framesSinceHit = 0;
     g_Ball.framesSinceThrowStarted = -1;
     g_Ball.framesSinceBallHitGroundOrWasCaught = -1;
     g_Ball.framesSinceLastBounce = -1;
@@ -2984,7 +2886,6 @@ void setLiveBallVariablesAfterContact(void) {
 // .text:0x0000F1DC size:0x39C mapped:0x8064E270
 void setDefaultInMemBall(void) {
     s32 i;
-    u32 mult;
     u32 mixed;
     u32 frames;
 
@@ -3003,24 +2904,25 @@ void setDefaultInMemBall(void) {
     }
 
     frames = FrameCountOfEntireGame;
-    mult = frames % 10 + 1;
-    g_Ball.framesSinceHit = -1;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
-    g_Ball.physicsSubstruct.velocity.y = 0.0f;
-    g_Ball.physicsSubstruct.velocity.z = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
+    g_Ball.physicsSubstruct.velocity.y = 0.0f;
     g_Ball.physicsSubstruct.acceleration.y = 0.0f;
+    g_Ball.physicsSubstruct.velocity.z = 0.0f;
     g_Ball.physicsSubstruct.acceleration.z = 0.0f;
-    g_Ball.physicsSubstruct.gravity = lbl_3_data_45FC;
-    mixed = (g_Ball.StaticRandomInt2 << 4) + g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1 * mult
+    mixed = (g_Ball.StaticRandomInt2 << 4) + (frames % 10 + 1) * (g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1)
             + (frames >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
-    g_Ball.framesSinceThrowStarted = -1;
-    g_Ball.pitchHangtimeCounter = -1;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
-    g_Ball.StaticRandomInt2 = ((mixed * 8 & 0x3FFF8) + g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1) * mult
-                               + (frames >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1))
+    g_Ball.StaticRandomInt2 = ((g_Ball.StaticRandomInt1 << 3)
+                               + (frames % 10 + 1) * (g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1))
+                               + (frames >> 1)
+                               + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1))
                               & 0x7FFF;
     g_Ball.StaticRandomInt1_prePitch = g_Ball.StaticRandomInt1;
+    g_Ball.framesSinceHit = -1;
+    g_Ball.physicsSubstruct.gravity = lbl_3_data_45FC;
+    g_Ball.framesSinceThrowStarted = -1;
+    g_Ball.pitchHangtimeCounter = -1;
     g_Ball.postPitchResultCounter = -1;
     g_Ball.framesSinceBallHitGroundOrWasCaught = -1;
     g_Ball.framesSinceLastBounce = -1;
@@ -3099,9 +3001,9 @@ void setDefaultInMemBall(void) {
 
 // .text:0x0000F578 size:0x240 mapped:0x8064E60C
 void resetBallValuesBetweenBatters(void) {
-    int i;
-    u32 mult;
+    s32 i;
     u32 mixed;
+    u32 frames;
 
     g_Ball.AtBat_Contact_BallPos.x = fieldingStartingCoords_regular[0].x;
     g_Ball.AtBat_Contact_BallPos.y = 0.0f;
@@ -3116,30 +3018,30 @@ void resetBallValuesBetweenBatters(void) {
         g_Ball.pastCoordinates[i].y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
-    mult = FrameCountOfEntireGame % 10 + 1;
+    frames = FrameCountOfEntireGame;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
-    g_Ball.deadBallReason = 0;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
     g_Ball.physicsSubstruct.acceleration.y = 0.0f;
     g_Ball.physicsSubstruct.velocity.z = 0.0f;
     g_Ball.physicsSubstruct.acceleration.z = 0.0f;
-    mixed = mult * (g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1) + (FrameCountOfEntireGame >> 1)
-            + g_d_GameSettings.FrameCountWhileNotAtMainMenu + (g_Ball.StaticRandomInt2 << 4);
+    mixed = (g_Ball.StaticRandomInt2 << 4) + (frames % 10 + 1) * (g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1)
+            + (frames >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
     g_Ball.StaticRandomInt1_prePitch = g_Ball.StaticRandomInt1;
-    g_Ball.StaticRandomInt2 = (mult * (g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1))
-                               + (FrameCountOfEntireGame >> 1)
-                               + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1)
-                               + (g_Ball.StaticRandomInt1 << 3))
+    g_Ball.StaticRandomInt2 = ((g_Ball.StaticRandomInt1 << 3)
+                               + (frames % 10 + 1) * (g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1))
+                               + (frames >> 1)
+                               + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1))
                               & 0x7FFF;
+    g_Ball.deadBallReason = 0;
 }
 
 // .text:0x0000F7B8 size:0x240 mapped:0x8064E84C
 void resetInMemBall(void) {
-    int i;
-    u32 mult;
+    s32 i;
     u32 mixed;
+    u32 frames;
 
     g_Ball.AtBat_Contact_BallPos.x = fieldingStartingCoords_regular[0].x;
     g_Ball.AtBat_Contact_BallPos.y = 0.0f;
@@ -3154,28 +3056,28 @@ void resetInMemBall(void) {
         g_Ball.pastCoordinates[i].y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
-    mult = FrameCountOfEntireGame % 10 + 1;
+    frames = FrameCountOfEntireGame;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
-    g_Ball.fielderWBallIndex = -1;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
     g_Ball.physicsSubstruct.acceleration.y = 0.0f;
     g_Ball.physicsSubstruct.velocity.z = 0.0f;
     g_Ball.physicsSubstruct.acceleration.z = 0.0f;
-    mixed = mult * (g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1) + (FrameCountOfEntireGame >> 1)
-            + g_d_GameSettings.FrameCountWhileNotAtMainMenu + (g_Ball.StaticRandomInt2 << 4);
+    mixed = (g_Ball.StaticRandomInt2 << 4) + (frames % 10 + 1) * (g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1)
+            + (frames >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
     g_Ball.StaticRandomInt1_prePitch = g_Ball.StaticRandomInt1;
-    g_Ball.StaticRandomInt2 = (mult * (g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1))
-                               + (FrameCountOfEntireGame >> 1)
-                               + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1)
-                               + (g_Ball.StaticRandomInt1 << 3))
+    g_Ball.StaticRandomInt2 = ((g_Ball.StaticRandomInt1 << 3)
+                               + (frames % 10 + 1) * (g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1))
+                               + (frames >> 1)
+                               + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1))
                               & 0x7FFF;
+    g_Ball.fielderWBallIndex = -1;
 }
 
 // .text:0x0000F9F8 size:0x1B0 mapped:0x8064EA8C
 void fn_3_F9F8(void) {
-    int i;
+    s32 i;
 
     g_Ball.AtBat_Contact_BallPos.x = fieldingStartingCoords_regular[0].x;
     g_Ball.AtBat_Contact_BallPos.y = 0.0f;
@@ -3200,7 +3102,8 @@ void fn_3_F9F8(void) {
 
 // .text:0x0000FBA8 size:0x3A4 mapped:0x8064EC3C
 void initBallAndGameStateOnLoad(void) {
-    int i;
+    s32 i;
+    u32 mixed;
 
     g_Ball.AtBat_Contact_BallPos.x = fieldingStartingCoords_regular[0].x;
     g_Ball.AtBat_Contact_BallPos.y = 0.0f;
@@ -3254,10 +3157,10 @@ void initBallAndGameStateOnLoad(void) {
         g_Ball.groundYForBounces = lbl_3_data_45F4[0];
     }
 
-    g_Ball.StaticRandomInt1 = (g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16
-                               + (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu)
-                              & 0x7FFF;
-    g_Ball.StaticRandomInt2 = ((g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8
-                               + (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1))
-                              & 0x7FFF;
+    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16
+            + (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
+    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8
+            + (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }

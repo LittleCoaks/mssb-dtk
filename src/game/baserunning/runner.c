@@ -4176,7 +4176,7 @@ void running_UpdateTrackingValues_BasesEarned(void) {
     if (g_Runners[0].baseNumberEarned_NotIncludingFieldersChoice == -1) {
         u8 ballState = g_Ball.ballState;
         u8 ballZone = g_Ball.ballZoneAwayFromHome;
-        u8 caughtZone = g_Ball.ballZoneWhenCaught;
+        u32 caughtZone = (u8)g_Ball.ballZoneWhenCaught;
         u8 playOver = g_FieldingLogic.playOverInd;
 
         runner = g_Runners;

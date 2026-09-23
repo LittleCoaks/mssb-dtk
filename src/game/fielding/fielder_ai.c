@@ -356,7 +356,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
                 break;
             }
             if ((hexBaserunnerTracker & 1) != 0 && g_Ball.ballZoneAwayFromHome <= 1) {
-                if ((s8)g_Ball.ballZoneWhenCaught <= 1) {
+                if (g_Ball.ballZoneWhenCaught <= 1) {
                     if (fielderDesperationLevel[0] <= 6 && fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[0]) != 0) {
                         break;
                     }
@@ -402,7 +402,7 @@ checkOverrideReasons:
         }
     }
     if (g_RunningLogic.nOffensivePlayersAtStartOfPlay > 1 && g_Strikes.storedOuts <= 1 &&
-        (hexBaserunnerTracker & 1) != 0 && g_Ball.ballZoneAwayFromHome <= 1 && (s8)g_Ball.ballZoneWhenCaught <= 1 &&
+        (hexBaserunnerTracker & 1) != 0 && g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.ballZoneWhenCaught <= 1 &&
         g_FieldingLogic.locationThrownTo == 1 && fielderDesperationLevel[0] <= 2) {
         if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
             (g_Runners[2].runningDirectionCode == 1 || g_Runners[2].runningDirectionCode == 2) &&
