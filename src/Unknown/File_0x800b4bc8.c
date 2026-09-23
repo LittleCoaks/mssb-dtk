@@ -8,8 +8,8 @@ void fn_800B4C04(void* actor, f32 speed) {
     return;
 }
 
-void fn_800B4C40(void) {
-    return;
+f32 fn_800B4C40(void* actor) {
+    return 0.0f;
 }
 
 void setActorAnimFrame(void* actor, f32 frame) {
