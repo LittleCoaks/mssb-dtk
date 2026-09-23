@@ -496,7 +496,7 @@ void fn_3_EF218(void) {
 // .text:0x000EF21C size:0x1B8 mapped:0x8072E2B0
 void fn_3_EF21C(DKJungleKlaptrap* obj) {
     DKJungleKlaptrapTuning* tune = (DKJungleKlaptrapTuning*)&barrelRollSfxEmitterId;
-    u8 stadiumID;
+    int stadiumID;
     u8 vol;
     u8 val;
     SND_VOICEID voice;
@@ -654,7 +654,7 @@ void dkKlaptrapLaunchedUpdate(DKJungleKlaptrap* obj) {
     vel.x = 0.3 * (f32)cos(obj->hitAngle);
     vel.y = obj->_BC;
     vel.z = 0.3 * (f32)sin(obj->hitAngle);
-    PSVECAdd(&vel, &obj->pos, &obj->pos);
+    PSVECAdd(&obj->pos, &vel, &obj->pos);
     if (obj->_BC < 0.0f && obj->pos.y - 1.0f < 0.0f) {
         obj->pos.x -= vel.x;
         obj->pos.y = 1.0f;
@@ -671,7 +671,7 @@ void dkKlaptrapLaunchedUpdate(DKJungleKlaptrap* obj) {
     down.z = -vel.z;
     PSVECNormalize(&vel, &vel);
     PSVECNormalize(&down, &down);
-    PSVECCrossProduct(&vel, &down, &cross);
+    PSVECCrossProduct(&down, &vel, &cross);
     ang = acos(PSVECDotProduct(&vel, &down));
     if (1.0f != ang && -1.0f != ang) {
         C_QUATRotAxisRad(&tilt, &cross, ang);
@@ -1588,8 +1588,8 @@ void dkBarrelLaunch(DKJungleBarrel* barrel, f32 x, f32 z) {
         i = 0;
         emitter->_10 = bss->_680;
         for (; p != NULL; p = p->next) {
-            p->_3C = p->_38 = 10.0f;
-            p->vel.z = p->vel.x = 0.0f;
+            p->_38 = p->_3C = 10.0f;
+            p->vel.x = p->vel.z = 0.0f;
             p->vel.y = -0.05f;
             p->pos.x = bss->points[0].x + (f64)(rand() % 600 - 300) / 100.0;
             p->pos.y = -16.5 + (f64)(rand() % 600 - 300) / 100.0;
@@ -1723,8 +1723,8 @@ void fn_3_F3EFC(DKJungleSmokeEmitter* emitter) {
 
     emitter->_10 = lbl_3_bss_B560[0];
     for (; p != NULL; p = p->next) {
-        p->_3C = p->_38 = 10.0f;
-        p->vel.z = p->vel.x = 0.0f;
+        p->_38 = p->_3C = 10.0f;
+        p->vel.x = p->vel.z = 0.0f;
         p->vel.y = -0.05f;
         p->pos.x = bezierControlPoints[0] + (f64)(rand() % 600 - 300) / 100.0;
         p->pos.y = -16.5 + (f64)(rand() % 600 - 300) / 100.0;
@@ -2144,7 +2144,7 @@ void fn_3_F5F4C(Mtx view) {
                 } else if (depth > 10.0f + pos.z) {
                     entry->depth = 0.25f;
                 } else {
-                    entry->depth = 1.0 - 0.75f * ((depth - nearZ) * 0.125f);
+                    entry->depth = 1.0 - 0.75f * ((depth - nearZ) / 8.0f);
                 }
             }
         }
