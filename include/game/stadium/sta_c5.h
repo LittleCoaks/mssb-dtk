@@ -274,6 +274,37 @@ typedef struct _DKJungleBss {
 } DKJungleBss;
 
 // View over the .data block at barrelRollSfxEmitterId.
+typedef struct _DKJungleBarrelLauncherTable {
+    /*0x000*/ DKJungleBarrelLauncher launchers[12];
+    /*0x0F0*/ s32 dustInterval[3];
+    /*0x0FC*/ f32 dustSize[3];
+    /*0x108*/ f32 _108[2];
+    /*0x110*/ f32 dustHeight;
+    /*0x114*/ s32 barrelDustInterval;
+    /*0x118*/ f32 barrelDustHeight;
+    /*0x11C*/ f32 _11C;
+} DKJungleBarrelLauncherTable; // size: 0x120
+
+typedef struct _DKJungleKlaptrapTable {
+    /*0x00*/ DKJungleKlaptrapData entries[6];
+    /*0x90*/ u8 objectTypes[18];
+    /*0xA4*/ f32 launchZ;
+    /*0xA8*/ f32 dustOffset[2][2];
+} DKJungleKlaptrapTable; // size: 0xB8
+
+typedef struct _DKJungleDrawHook {
+    /*0x00*/ u32 _00;
+    /*0x04*/ void (*draw)(void);
+} DKJungleDrawHook;
+
+typedef struct _DKJungleDrawHooks {
+    /*0x00*/ DKJungleDrawHook hooks[2];
+    /*0x10*/ u8 _10;
+    /*0x11*/ u8 needsRespawn;
+    /*0x12*/ u8 needsReroll;
+    /*0x13*/ u8 _13;
+} DKJungleDrawHooks; // size: 0x14
+
 typedef struct _DKJungleWaterState {
     /*0x000*/ u8 _00[0x24D];
     /*0x24D*/ u8 needsRespawn;
@@ -283,13 +314,7 @@ typedef struct _DKJungleWaterState {
     /*0x25C*/ Vec vel;
 } DKJungleWaterState;
 
-extern int barrelRollSfxEmitterId;
-extern f32 lbl_3_data_1BA70[6];
-extern u8 lbl_3_data_1BA5C[];
 extern u8 lbl_803C5090[0x20];
-extern DKJungleKlaptrapData jungleKlaptrapData[];
-extern DKJungleZoneCorner lbl_3_data_1B824[][4];
-extern DKJungleBarrelLauncher barrelLauncherDataStruct[];
 extern u8 drawStadiumRelated;
 void fn_8003A144(void);
 void fn_800BDA24(void* arg);

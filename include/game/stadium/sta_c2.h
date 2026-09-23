@@ -57,7 +57,7 @@ typedef struct _PalaceChompPlacement {
     /*0x0D*/ u8 _0D[3];
     /*0x10*/ Vec awakeRotation;
     /*0x1C*/ Vec sleepRotation;
-    /*0x28*/ u8 _28[8];
+    /*0x28*/ f32 _28[2];
     /*0x30*/ u8 sideSelector;
     /*0x31*/ u8 _31[3];
 } PalaceChompPlacement; // size: 0x34
@@ -95,8 +95,6 @@ typedef struct _PalaceChompObj {
     /*0xCE*/ u8 _CE[0xE8 - 0xCE];
 } PalaceChompObj; // size: 0xE8
 
-extern PalaceChompPlacement chompPlacementConfig[];
-
 typedef struct _PalaceTornadoPlacement {
     /*0x00*/ Vec restPos;
     /*0x0C*/ u8 usedFlag;
@@ -104,15 +102,13 @@ typedef struct _PalaceTornadoPlacement {
     /*0x0E*/ u8 group;
     /*0x0F*/ u8 _0F;
     /*0x10*/ f32 restYaw;
-    /*0x14*/ u8 _14[0x0C];
+    /*0x14*/ f32 _14[3];
     /*0x20*/ f32 rangeBaseA;
     /*0x24*/ f32 rangeSpanA;
     /*0x28*/ f32 rangeBaseB;
     /*0x2C*/ f32 rangeSpanB;
     /*0x30*/ f32 spinRate;
 } PalaceTornadoPlacement; // size: 0x34
-
-extern PalaceTornadoPlacement TornadoPlacementConfig[];
 
 typedef struct _PalaceEffectParticle {
     /*0x00*/ struct _PalaceEffectParticle* next;

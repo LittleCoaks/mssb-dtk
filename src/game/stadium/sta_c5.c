@@ -23,7 +23,7 @@
 #include "Unknown/File_0x8004c094.h"
 #include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x80034cec.h"
-#include "game/stadium/rep_23E8.h"
+#include "game/stadium/stadium_star.h"
 #include "static/UnknownHomes_Static.h"
 #include "musyx/musyx.h"
 #include "game/ball/ball_physics.h"
@@ -47,6 +47,62 @@ extern u16 stadiumHazardSoundIDs[16];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
+
+static int barrelRollSfxEmitterId = -1;
+
+static DKJungleZoneCorner lbl_3_data_1B824[3][4] = {
+    { { -33.216f, 75.687f }, { -36.503f, 69.506f }, { -12.026f, 64.419f }, { -15.312f, 58.239f } },
+    { { -9.67f, 63.584f }, { -11.425f, 57.847f }, { 16.15f, 55.69f }, { 14.396f, 49.953f } },
+    { { 20.255f, 53.422f }, { 16.481f, 58.142f }, { 34.188f, 36.839f }, { 30.415f, 33.538f } },
+};
+
+static DKJungleBarrelLauncherTable barrelLauncherDataStruct = {
+    {
+        { { 32.536f, 4.0f, 100.625f }, -45.0f, 0x1, 0x1, 0x1, 0 },
+        { { -32.536f, 4.0f, 100.625f }, 45.0f, 0x1, 0x1, 0x1, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0x6, 0, 0xFF, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+        { { 32.536f, 10.0f, 100.625f }, -45.0f, 0, 0x1, 0x1, 0 },
+        { { -32.536f, 10.0f, 100.625f }, 45.0f, 0, 0x1, 0x1, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0x6, 0, 0xFF, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+    },
+    { 15, 10, 2 },
+    { 1.0f, 1.0f, 1.0f },
+    { 0.7f, 0.7f },
+    0.7f,
+    2,
+    3.0f,
+    3.0f,
+};
+
+static DKJungleKlaptrapTable jungleKlaptrapData = {
+    {
+        { { -22.621f, 0.0f, 66.963f }, 0.0f, 0x2, 0x1, 0x1, 0, 0 },
+        { { 2.3625f, 0.0f, 56.7685f }, 0.0f, 0x2, 0x1, 0x1, 0, 0x1 },
+        { { 25.3345f, 0.0f, 45.84f }, 0.0f, 0x2, 0x1, 0x1, 0, 0x2 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0x6, 0, 0xFF, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0, 0 },
+    },
+    { 1, 4, 4, 2, 3, 2, 2, 2, 2, 6, 6, 6, 8, 9, 8, 9, 7, 7 },
+    48.0f,
+    { { 3.0f, 0.0f }, { -3.0f, 0.0f } },
+};
+
+static DKJungleDrawHooks lbl_3_data_1BA5C = {
+    { { 0, fn_3_EEE3C }, { 0, fn_3_EEE3C } },
+    1,
+    1,
+    1,
+    0,
+};
+
+static f32 lbl_3_data_1BA70[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 static u32 lbl_3_bss_B560[4];
 static u32 lbl_3_bss_B55C;
@@ -431,7 +487,7 @@ void fn_3_EEF24(void) {
         fn_800BDA24((void*)lbl_3_bss_B55C);
         fn_3_EE388();
         fn_3_EEB94();
-        fn_800A7D4C(1, lbl_3_data_1BA5C + drawStadiumRelated * 8);
+        fn_800A7D4C(1, &lbl_3_data_1BA5C.hooks[drawStadiumRelated]);
     }
 }
 
@@ -538,14 +594,14 @@ void fn_3_EF3D4(StadiumObject* obj, u8 idx) {
 
 // .text:0x000EF408 size:0x154 mapped:0x8072E49C
 void jungleStadiumObjectRelated(DKJungleKlaptrap* obj) {
-    DKJungleKlaptrapData* data = &jungleKlaptrapData[obj->index];
+    DKJungleKlaptrapData* data = &jungleKlaptrapData.entries[obj->index];
     Vec toTarget;
     Vec heading;
     Vec cross;
     f32 rad;
     f32 dot;
 
-    toTarget.x = jungleKlaptrapData[obj->index].pos.x - obj->pos.x;
+    toTarget.x = jungleKlaptrapData.entries[obj->index].pos.x - obj->pos.x;
     toTarget.y = 0.0f;
     toTarget.z = data->pos.z - obj->pos.z;
     PSVECNormalize(&toTarget, &toTarget);
@@ -1051,10 +1107,10 @@ void fn_3_F13F8(DKJungleObject* obj) {
 
 // .text:0x000F1448 size:0xD0 mapped:0x807304DC
 void klaptrapCTRLSetup(DKJungleKlaptrap* obj) {
-    obj->pos.x = jungleKlaptrapData[obj->index].pos.x;
-    obj->pos.y = jungleKlaptrapData[obj->index].pos.y;
-    obj->pos.z = jungleKlaptrapData[obj->index].pos.z;
-    obj->rotY = -jungleKlaptrapData[obj->index].rotY;
+    obj->pos.x = jungleKlaptrapData.entries[obj->index].pos.x;
+    obj->pos.y = jungleKlaptrapData.entries[obj->index].pos.y;
+    obj->pos.z = jungleKlaptrapData.entries[obj->index].pos.z;
+    obj->rotY = -jungleKlaptrapData.entries[obj->index].rotY;
     obj->ctrlType = 0;
     CTRLSetTranslation((Control*)obj, obj->pos.x, -obj->pos.y, obj->pos.z);
     CTRLSetRotation((Control*)obj, 0.0f, obj->rotY, 0.0f);
@@ -1063,7 +1119,7 @@ void klaptrapCTRLSetup(DKJungleKlaptrap* obj) {
 
 // .text:0x000F1518 size:0x15C mapped:0x807305AC
 void maybeGharialCTRLRel(DKJungleKlaptrap* obj) {
-    obj->kind = jungleKlaptrapData[obj->index].kind;
+    obj->kind = jungleKlaptrapData.entries[obj->index].kind;
     obj->state = 1;
     obj->timer = 0;
     obj->_C1 = -1;
@@ -1072,10 +1128,10 @@ void maybeGharialCTRLRel(DKJungleKlaptrap* obj) {
     }
     obj->_99 = 1;
     obj->_B0 = 0.0f;
-    obj->pos.x = jungleKlaptrapData[obj->index].pos.x;
-    obj->pos.y = jungleKlaptrapData[obj->index].pos.y;
-    obj->pos.z = jungleKlaptrapData[obj->index].pos.z;
-    obj->rotY = -jungleKlaptrapData[obj->index].rotY;
+    obj->pos.x = jungleKlaptrapData.entries[obj->index].pos.x;
+    obj->pos.y = jungleKlaptrapData.entries[obj->index].pos.y;
+    obj->pos.z = jungleKlaptrapData.entries[obj->index].pos.z;
+    obj->rotY = -jungleKlaptrapData.entries[obj->index].rotY;
     obj->ctrlType = 0;
     CTRLSetTranslation((Control*)obj, obj->pos.x, -obj->pos.y, obj->pos.z);
     CTRLSetRotation((Control*)obj, 0.0f, obj->rotY, 0.0f);
@@ -1111,9 +1167,9 @@ void fn_3_F1750(DKJungleBarrel* obj) {
 
     scan = scanBoneAttachmentData(actor->list);
     if (scan == 0.0f) {
-        obj->rotY = barrelLauncherDataStruct[obj->index].pos.x;
-        obj->_B0 = barrelLauncherDataStruct[obj->index].pos.z;
-        angle = -barrelLauncherDataStruct[obj->index].rotY;
+        obj->rotY = barrelLauncherDataStruct.launchers[obj->index].pos.x;
+        obj->_B0 = barrelLauncherDataStruct.launchers[obj->index].pos.z;
+        angle = -barrelLauncherDataStruct.launchers[obj->index].rotY;
         obj->pos.x = obj->rotY;
         obj->pos.y = 10.0f;
         obj->pos.z = obj->_B0;
@@ -1664,9 +1720,9 @@ void fn_3_F3A5C(DKJungleBarrel* obj, f32 x, f32 y, f32 z, f32 angle) {
 
 // .text:0x000F3AE0 size:0xD0 mapped:0x80732B74
 void fn_3_F3AE0(DKJungleBarrel* obj) {
-    obj->rotY = barrelLauncherDataStruct[obj->index].pos.x;
-    obj->_B0 = barrelLauncherDataStruct[obj->index].pos.z;
-    fn_3_F3A5C(obj, obj->rotY, 10.0f, obj->_B0, -barrelLauncherDataStruct[obj->index].rotY);
+    obj->rotY = barrelLauncherDataStruct.launchers[obj->index].pos.x;
+    obj->_B0 = barrelLauncherDataStruct.launchers[obj->index].pos.z;
+    fn_3_F3A5C(obj, obj->rotY, 10.0f, obj->_B0, -barrelLauncherDataStruct.launchers[obj->index].rotY);
 }
 
 // .text:0x000F3BB0 size:0x120 mapped:0x80732C44
@@ -1829,9 +1885,9 @@ void fn_3_F4BA0(DKJungleCannon* cannon) {
 
     PSVECAdd(&cannon->pos, &cannon->vel, &cannon->pos);
     CTRLSetTranslation((Control*)cannon, cannon->pos.x, -cannon->pos.y, cannon->pos.z);
-    launcherPos.x = barrelLauncherDataStruct[cannon->index].pos.x;
-    launcherPos.y = barrelLauncherDataStruct[cannon->index].pos.y;
-    launcherPos.z = barrelLauncherDataStruct[cannon->index].pos.z;
+    launcherPos.x = barrelLauncherDataStruct.launchers[cannon->index].pos.x;
+    launcherPos.y = barrelLauncherDataStruct.launchers[cannon->index].pos.y;
+    launcherPos.z = barrelLauncherDataStruct.launchers[cannon->index].pos.z;
     PSVECSubtract(&launcherPos, &cannon->pos, &toLauncher);
     cannon->vel.x = 0.2f * toLauncher.x;
     cannon->vel.z = 0.2f * toLauncher.z;
@@ -1854,9 +1910,9 @@ void fn_3_F4D00(DKJungleCannon* cannon) {
 
     PSVECAdd(&cannon->pos, &cannon->vel, &cannon->pos);
     CTRLSetTranslation((Control*)cannon, cannon->pos.x, -cannon->pos.y, cannon->pos.z);
-    launcherPos.x = barrelLauncherDataStruct[cannon->index].pos.x;
-    launcherPos.y = barrelLauncherDataStruct[cannon->index].pos.y;
-    launcherPos.z = barrelLauncherDataStruct[cannon->index].pos.z;
+    launcherPos.x = barrelLauncherDataStruct.launchers[cannon->index].pos.x;
+    launcherPos.y = barrelLauncherDataStruct.launchers[cannon->index].pos.y;
+    launcherPos.z = barrelLauncherDataStruct.launchers[cannon->index].pos.z;
     PSVECSubtract(&launcherPos, &cannon->pos, &toLauncher);
     cannon->vel.x = 0.2f * toLauncher.x;
     cannon->vel.z = 0.2f * toLauncher.z;
@@ -2055,10 +2111,10 @@ void dkJungleBarrelCannonUpdate(DKJungleCannon* cannon) {
 void fn_3_F5C30(DKJungleCannon* cannon) {
     DKJungleCannonEmitter* emitter;
 
-    cannon->pos.x = barrelLauncherDataStruct[cannon->index].pos.x;
-    cannon->pos.y = barrelLauncherDataStruct[cannon->index].pos.y;
-    cannon->pos.z = barrelLauncherDataStruct[cannon->index].pos.z;
-    cannon->rotY = -barrelLauncherDataStruct[cannon->index].rotY;
+    cannon->pos.x = barrelLauncherDataStruct.launchers[cannon->index].pos.x;
+    cannon->pos.y = barrelLauncherDataStruct.launchers[cannon->index].pos.y;
+    cannon->pos.z = barrelLauncherDataStruct.launchers[cannon->index].pos.z;
+    cannon->rotY = -barrelLauncherDataStruct.launchers[cannon->index].rotY;
     cannon->ctrlType = 0;
     CTRLSetTranslation((Control*)cannon, cannon->pos.x, -cannon->pos.y, cannon->pos.z);
     CTRLSetRotation((Control*)cannon, 0.0f, cannon->rotY, 0.0f);
@@ -2354,7 +2410,7 @@ void maybeBarrelCTRLRel(s32* count) {
         obj = stadiumObjectCollision.objects + objIdx;
         mesh = (StadiumMeshData*)obj->triangles;
         ctrl.ctrl.type = 0;
-        launcher = &barrelLauncherDataStruct[obj->_9C];
+        launcher = &barrelLauncherDataStruct.launchers[obj->_9C];
         CTRLSetTranslation(&ctrl.ctrl, launcher->pos.x, -launcher->pos.y, launcher->pos.z);
         CTRLSetScale(&ctrl.ctrl, 1.5f, 1.5f, 1.5f);
         CTRLBuildMatrix(&ctrl.ctrl, mtx);
@@ -2474,14 +2530,14 @@ void loadDKJungle(void** files) {
     processStadiumFileObjects((u8*)&barrelRollSfxEmitterId + 0x214, 0x12, (u8*)files, ids);
     bss->_680 = (u32)files[0];
 
-    barrelCfg = &barrelLauncherDataStruct[6];
+    barrelCfg = &barrelLauncherDataStruct.launchers[6];
     for (barrelCount = 0; barrelCount < 5; barrelCount++) {
         if (barrelCfg[barrelCount].usedFlag == 6) {
             break;
         }
     }
     propCount = barrelCount + 2;
-    klapCfg = jungleKlaptrapData;
+    klapCfg = jungleKlaptrapData.entries;
     for (klapCount = 0; klapCount < 5; klapCount++) {
         if (klapCfg[klapCount].usedFlag == 6) {
             break;
@@ -2552,7 +2608,7 @@ void loadDKJungle(void** files) {
     o = stadiumObjectCollision.objects;
     b = (DKJungleBarrel*)o;
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-        launcherCfg = barrelLauncherDataStruct;
+        launcherCfg = barrelLauncherDataStruct.launchers;
         n = 0;
         objIndex = 0;
         usedAnims = 0;
@@ -2600,7 +2656,7 @@ void loadDKJungle(void** files) {
         initBinomialTable();
     }
 
-    launcherCfg = barrelLauncherDataStruct;
+    launcherCfg = barrelLauncherDataStruct.launchers;
     gFirstCannonPoolIndex = n;
     c = (DKJungleCannon*)o;
     i = 0;
@@ -2610,7 +2666,7 @@ void loadDKJungle(void** files) {
         }
         if (done) {
             for (j = i; j < 5; j++) {
-                barrelLauncherDataStruct[j].usedFlag = 6;
+                barrelLauncherDataStruct.launchers[j].usedFlag = 6;
             }
             break;
         }
@@ -2660,8 +2716,8 @@ void loadDKJungle(void** files) {
             }
             if (done) {
                 for (j = i; j < 6; j++) {
-                    jungleKlaptrapData[j].usedFlag = 6;
-                    jungleKlaptrapData[j]._12 = 0xFF;
+                    jungleKlaptrapData.entries[j].usedFlag = 6;
+                    jungleKlaptrapData.entries[j]._12 = 0xFF;
                 }
                 break;
             }

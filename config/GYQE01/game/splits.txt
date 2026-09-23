@@ -228,6 +228,7 @@ game/batting/charge_effects.c:
 game/stadium/stadium_bowser_castle.c:
 	.text       start:0x000C1964 end:0x000C937C
 	.rodata     start:0x00001FD8 end:0x000021F8
+	.data       start:0x00017508 end:0x00017898
 	.bss        start:0x00009D80 end:0x00009F20
 
 game/hud/rep_21F8.c:
@@ -238,6 +239,7 @@ game/hud/rep_21F8.c:
 game/stadium/sta_c0.c:
 	.text       start:0x000C9744 end:0x000CABB4
 	.rodata     start:0x00002288 end:0x00002308
+	.data       start:0x00017B98 end:0x00017D08
 	.bss        start:0x00009F38 end:0x00009FDC
 
 game/pitching/perfect_pitch_gfx.c:
@@ -248,13 +250,14 @@ game/pitching/pitcher_fire_effect.c:
 	.text       start:0x000CB3AC end:0x000CB6B4
 	.rodata     start:0x00002390 end:0x000023E8
 
-game/stadium/rep_23E8.c:
+game/stadium/stadium_star.c:
 	.text       start:0x000CB738 end:0x000CB8A8
 	.rodata     start:0x000023E8 end:0x00002448
 
 game/stadium/sta_c2.c:
 	.text       start:0x000CB8A8 end:0x000D8A10
 	.rodata     start:0x00002448 end:0x000028A8
+	.data       start:0x000182C0 end:0x000188E8
 	.bss        start:0x0000A018 end:0x0000AE00
 
 game/minigame/toy_field.c:
@@ -269,11 +272,13 @@ game/minigame/minigame_fielder_anim.c:
 game/stadium/stadium_yoshi_park.c:
 	.text       start:0x000E1DB8 end:0x000E587C
 	.rodata     start:0x00002998 end:0x00002B40
+	.data       start:0x00018ED0 end:0x00019018
 	.bss        start:0x0000AE00 end:0x0000AE50
 
 game/stadium/sta_c6.c:
-	.text       start:0x000E59B4 end:0x000E911C
+	.text       start:0x000E587C end:0x000E911C
 	.rodata     start:0x00002B40 end:0x00002BF8
+	.data       start:0x00019018 end:0x00019770
 	.bss        start:0x0000AE50 end:0x0000AEE0
 
 game/minigame/toy_field_offscreen.c:
@@ -283,11 +288,13 @@ game/minigame/toy_field_offscreen.c:
 game/stadium/sta_c5.c:
 	.text       start:0x000EDFAC end:0x000F8444
 	.rodata     start:0x00002C60 end:0x00002F68
+	.data       start:0x0001B820 end:0x0001BA88
 	.bss        start:0x0000AEE0 end:0x0000B570
 
 game/stadium/sta_c4.c:
-	.text       start:0x000F8444 end:0x000FBCD0
+	.text       start:0x000F8444 end:0x000FBD58
 	.rodata     start:0x00002F68 end:0x00003090
+	.data       start:0x0001BA88 end:0x0001C0A8
 	.bss        start:0x0000B570 end:0x0000B678
 
 game/math/rep_3090.c:
