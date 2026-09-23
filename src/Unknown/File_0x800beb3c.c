@@ -20,7 +20,7 @@ void DrawShadows(void) {
     return;
 }
 
-void updateVectorInArray(int idx, Vec* v) {
+void updateVectorInArray(int idx, Vec v) {
     return;
 }
 

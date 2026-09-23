@@ -40,6 +40,7 @@
 #include "Unknown/File_0x80023b90.h"
 #include "Unknown/File_0x800beb3c.h"
 #include "game/stadium/sta_c2.h"
+#include "Unknown/File_0x80024404.h"
 
 typedef struct _CastleMaterialFlags {
     /*0x00*/ u8 _00[4];
@@ -103,9 +104,15 @@ typedef struct _CastleGfxObject {
     /*0x69*/ u8 scale;
 } CastleGfxObject;
 
+// Same 0x5C act-effect record stadium_wario_palace.c calls PalaceActEffect.
+typedef struct _CastleActEffect {
+    /*0x00*/ u32 file;
+    /*0x04*/ u8 _04[0x5C - 0x04];
+} CastleActEffect; // size: 0x5C
+
 typedef struct _CastleGfxSceneHolder {
     /*0x00*/ CastleGfxScene* scene;
-    /*0x04*/ u8 _04[0xBC - 0x04];
+    /*0x04*/ CastleActEffect effects[2];
 } CastleGfxSceneHolder;
 
 // Per-camera-slot scratch entry (2 of these; index by drawStadiumRelated).
@@ -309,7 +316,7 @@ typedef struct _CastleSlotPlacement {
     f32 z;
     f32 rotation;
     u8 usedFlag;
-    u8 _11;
+    u8 visible;
     u8 group;
     u8 _13;
 } CastleSlotPlacement; // size 0x14
@@ -321,17 +328,79 @@ typedef struct _CastleObjControl {
 
 extern CastleSlotPlacement lbl_3_data_17704[];
 extern CastleSlotPlacement thwompStaticValues[];
+extern f32 thompFallingSpeedConstants[3];
+extern u8 lbl_3_data_177E0[];
+extern void fn_80035750(void* a, void* b, int c);
+extern UIRecordDescriptor lbl_3_data_10C1C[];
+
+typedef enum _THWOMP_STATE {
+    THWOMP_PERCHED,
+    THWOMP_WINDUP,
+    THWOMP_FALLING,
+    THWOMP_GROUNDED,
+    THWOMP_RETURNING,
+} THWOMP_STATE;
+
+// Thwomp view of a stadiumObjectCollision.objects[] entry (the region past
+// 0x98 is laid out per hazard kind; compare CastleHazardObj).
+typedef struct _CastleThwompObj {
+    /*0x00*/ u8 _00[0x99];
+    /*0x99*/ E(u8, BOOL) resetPending;
+    /*0x9A*/ u8 _9A[0x9C - 0x9A];
+    /*0x9C*/ Vec pos;
+    /*0xA8*/ u8 index;
+    /*0xA9*/ u8 _A9[0xAC - 0xA9];
+    /*0xAC*/ f32 fallSpeed;
+    /*0xB0*/ E(u8, THWOMP_STATE) state;
+    /*0xB1*/ u8 framesOnGround;
+    /*0xB2*/ E(u8, BOOL) checkForSlam;
+} CastleThwompObj;
 
 typedef struct _CastleFireSpawner {
     /*0x00*/ f32 x;
     /*0x04*/ f32 y;
     /*0x08*/ f32 z;
-    /*0x0C*/ u8 _0C[0x10 - 0x0C];
+    /*0x0C*/ f32 rotation;
     /*0x10*/ u8 usedFlag;
-    /*0x11*/ u8 _11;
+    /*0x11*/ u8 visible;
     /*0x12*/ u8 group;
-    /*0x13*/ u8 _13[0x18 - 0x13];
+    /*0x13*/ u8 _13;
+    /*0x14*/ u16 launchAngleBase;
+    /*0x16*/ u16 launchAngleSpread;
 } CastleFireSpawner; // size 0x18
+
+typedef enum _FLAME_STATE {
+    FLAME_IDLE,
+    FLAME_FLYING,
+    FLAME_EXPLODING,
+    FLAME_ENDED,
+} FLAME_STATE;
+
+// Fireball view of a stadiumObjectCollision.objects[] entry (compare
+// CastleThwompObj/CastleHazardObj).
+typedef struct _CastleFireObj {
+    /*0x00*/ u8 _00[0x90];
+    /*0x90*/ u8 visible : 1;
+    /*0x90*/ u8 _90b1 : 7;
+    /*0x91*/ u8 _91[0x99 - 0x91];
+    /*0x99*/ E(u8, BOOL) resetPending;
+    /*0x9A*/ u8 _9A[0x9C - 0x9A];
+    /*0x9C*/ Vec pos;
+    /*0xA8*/ u8 id;
+    /*0xA9*/ u8 _A9[0xAC - 0xA9];
+    /*0xAC*/ Vec velo;
+    /*0xB8*/ u16 launchAngleBase;
+    /*0xBA*/ u16 launchAngleSpread;
+    /*0xBC*/ u8 launchTimer;
+    /*0xBD*/ E(u8, FLAME_STATE) state;
+} CastleFireObj;
+
+// Entries 6..8 of the actor-pointer table at hugeAnimStruct+0x2C50; only the
+// position is read here.
+typedef struct _CastleAnimActor {
+    /*0x00*/ u8 _00[0x34];
+    /*0x34*/ Vec pos;
+} CastleAnimActor;
 
 extern CastleFireSpawner BowserStadFireSpawners[11];
 extern f32 flameXVelos[3];
@@ -342,6 +411,7 @@ typedef struct _CastleSparkTableEntry {
     /*0x04*/ s16 z;
 } CastleSparkTableEntry;
 
+extern f32 lbl_3_data_1787C;
 extern CastleSparkTableEntry lbl_3_data_17880[4];
 
 // Per-node scratch view of DrawingSceneStruct's shared scratch region (see
@@ -369,9 +439,11 @@ static s32 lbl_3_bss_9D94;
 static u32 lbl_3_bss_9D98;
 static s32 lbl_3_bss_9D9C;
 static u8 lbl_3_bss_9DE0;
+static u8 lbl_3_bss_9DE1;
 static u8 lbl_3_bss_9DE2;
 static u8 lbl_3_bss_9DE3;
 static u8 lbl_3_bss_9DE4;
+static u8 lbl_3_bss_9DE5;
 static u8 lbl_3_bss_9DE7;
 static Vec lbl_3_bss_9DE8[8];
 static u8 lbl_3_bss_9E48[8];
@@ -423,7 +495,8 @@ void fn_3_C19C8(void) {
 
     ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread = 10 - (rand() % 20);
 
-    for (i = 1; i >= 0; i--) {
+    i = 2;
+    while (i-- != 0) {
         s32 range = ((0x1FFF - (rand() * 0x3FFF) / 0x7FFF) >> (1 - i)) + 0x1FFF;
         ((CastleSparkScene*)lbl_3_bss_9D90)->spread[i] = (s16)((rand() * range) / 0x7FFF);
         ((CastleSparkScene*)lbl_3_bss_9D90)->spreadA[i] =
@@ -433,8 +506,92 @@ void fn_3_C19C8(void) {
 }
 
 // .text:0x000C1C18 size:0x62C mapped:0x80700CAC
-void fn_3_C1C18(void) {
-    return;
+void fn_3_C1C18(CastleCameraSlot* slot) {
+    Mtx ident = {
+        { 1.0f, 0.0f, 0.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 1.0f, 0.0f },
+    };
+    Vec pos;
+    CastleSparkScene* scene;
+    u32 color;
+    f32 scale;
+    f32 halfWidth;
+    f32 height;
+    f32 dx;
+    f32 dy;
+    int alpha;
+    int i;
+
+    scene = (CastleSparkScene*)slot->item;
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U16, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_DISABLE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);
+    GXSetTevOp(GX_TEVSTAGE0, GX_MODULATE);
+    GXLoadPosMtxImm(ident, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    for (i = 0; i <= 2; i++) {
+        SetDisplayStateTexture((void*)(lbl_3_bss_9D98 + i * 0x20), i, i);
+    }
+
+    color = (s32)(scene->_2A * lbl_3_data_1787C) | 0xFFFFFF00;
+    PSMTXMultVec(slot->mtx, &scene->pos, &pos);
+    scale = (100.0f + scene->baseSpread) / 100.0f;
+    halfWidth = 512.0f * scale * -pos.z / 1280.0f * 0.5f;
+    height = 256.0f * scale * -pos.z / 1280.0f;
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    GXPosition3f32(pos.x - halfWidth, pos.y - 0.25f * height, pos.z);
+    GXColor1u32(color);
+    GXTexCoord2u16(0, 0);
+    GXPosition3f32(pos.x - halfWidth, pos.y + 0.75f * height, pos.z);
+    GXColor1u32(color);
+    GXTexCoord2u16(0, 1);
+    GXPosition3f32(pos.x + halfWidth, pos.y + 0.75f * height, pos.z);
+    GXColor1u32(color);
+    GXTexCoord2u16(1, 1);
+    GXPosition3f32(pos.x + halfWidth, pos.y - 0.25f * height, pos.z);
+    GXColor1u32(color);
+    GXTexCoord2u16(1, 0);
+
+    height = 256.0f * -pos.z / 1280.0f;
+    color = scene->_2A | 0xFFFFFF00;
+    for (i = scene->_29; i < 2; i++) {
+        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, scene->spreadB[i], GX_COLOR0A0);
+        SetDisplayStateTexture((void*)(lbl_3_bss_9D98 + scene->spreadB[i] * 0x20), 0, 0);
+        dy = (100.0f + scene->spreadA[i]) / 100.0f * height * cos(0.0000958738f * scene->spread[i]);
+        dx = (100.0f + scene->spreadA[i]) / 100.0f * height * sin(0.0000958738f * scene->spread[i]);
+        GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+        GXPosition3f32(pos.x, pos.y, pos.z);
+        GXColor1u32(color);
+        GXTexCoord2u16(0, 0);
+        GXPosition3f32(pos.x - dx, pos.y + dy, pos.z);
+        GXColor1u32(color);
+        GXTexCoord2u16(0, 1);
+        GXPosition3f32(pos.x + dy - dx, dx + (pos.y + dy), pos.z);
+        GXColor1u32(color);
+        GXTexCoord2u16(1, 1);
+        GXPosition3f32(pos.x + dy, pos.y + dx, pos.z);
+        GXColor1u32(color);
+        GXTexCoord2u16(1, 0);
+        pos.x = 0.5f * (dy - dx) + pos.x;
+        pos.y = 0.5f * (dy + dx) + pos.y;
+    }
+
+    scene->_29 -= (scene->_29 != 0);
+    alpha = scene->_2A - (scene->_29 == 0) * 42;
+    scene->_2A = alpha * (alpha > 0);
 }
 
 // .text:0x000C2244 size:0xCC mapped:0x807012D8
@@ -501,10 +658,12 @@ void fn_3_C23E0(void) {
 
 // .text:0x000C24A0 size:0x1A4 mapped:0x80701534
 void fn_3_C24A0(void) {
+    CastleAnimSubStruct* h;
+    u8 brightness;
+    Vec dir;
+
     currentDrawingItem->state--;
     if (currentDrawingItem->state == 0) {
-        CastleAnimSubStruct* h;
-
         removeCurrentDrawingItem();
         characterLightingRelated(&inputParams[g_d_GameSettings._54], lbl_80367318);
         h = *(CastleAnimSubStruct**)(hugeAnimStruct + 4);
@@ -512,13 +671,8 @@ void fn_3_C24A0(void) {
             *(u16*)((u8*)h + h->_14 + 0x60) = 2;
         }
     } else {
-        u8 brightness;
-        CastleAnimSubStruct* h;
-        Vec neg;
-        Vec normalized;
-
         if (currentDrawingItem->state < 0xC) {
-            brightness = (u8)((u32)currentDrawingItem->state * 128 / 3);
+            brightness = currentDrawingItem->state * 0x80 / 0xC;
         } else {
             brightness = 0x80;
         }
@@ -533,13 +687,12 @@ void fn_3_C24A0(void) {
         lbl_803C5090._17 = brightness;
         lbl_803C5090._19 = (u8)lbl_3_data_177F4;
         lbl_803C5090._18 = 1;
-
-        neg.x = -lbl_80367318[0].pos.x;
-        neg.y = -lbl_80367318[0].pos.y;
-        neg.z = -lbl_80367318[0].pos.z;
-        PSVECNormalize(&neg, &normalized);
-        updateVectorInArray(0, &normalized);
     }
+    dir.x = -lbl_80367318[0].pos.x;
+    dir.y = -lbl_80367318[0].pos.y;
+    dir.z = -lbl_80367318[0].pos.z;
+    PSVECNormalize(&dir, &dir);
+    updateVectorInArray(0, dir);
 }
 
 // .text:0x000C2644 size:0x330 mapped:0x807016D8
@@ -559,14 +712,13 @@ void fn_3_C2644(void) {
             s16 state = (item->state + 1) % 0x708;
 
             item->state = state;
-            if (state != 0x136) {
-                if (state < 0x136) {
-                    if (state != 300) {
-                        return;
-                    }
-                } else if (state != 0x4B0) {
-                    return;
-                }
+            switch (state) {
+            case 300:
+            case 0x136:
+            case 0x4B0:
+                break;
+            default:
+                return;
             }
             item = insertGraphicDrawingFunction(fn_3_C24A0, 5);
             item->state = 0x10;
@@ -586,7 +738,8 @@ void fn_3_C2644(void) {
 
             ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread = 10 - (rand() % 20);
 
-            for (i = 1; i >= 0; i--) {
+            i = 2;
+            while (i-- != 0) {
                 range = ((0x1FFF - (rand() * 0x3FFF) / 0x7FFF) >> (1 - i)) + 0x1FFF;
                 ((CastleSparkScene*)lbl_3_bss_9D90)->spread[i] = (s16)((rand() * range) / 0x7FFF);
                 ((CastleSparkScene*)lbl_3_bss_9D90)->spreadA[i] =
@@ -632,7 +785,7 @@ void fn_3_C298C(void) {
 }
 
 // .text:0x000C2AA0 size:0x1E0 mapped:0x80701B34
-BOOL fn_3_C2AA0(Vec* p, f32 w, f32 h) {
+E(u8, BOOL) fn_3_C2AA0(Vec* p, f32 w, f32 h) {
     camera_803c639c_s* cam;
     Vec corners[4];
     Vec clip;
@@ -731,9 +884,9 @@ void fn_3_C2EDC(CastleFlameParticle* p) {
         p->alpha = 0.0f;
     }
     p->alphaByte = (u8)p->alpha;
-    p->_40 = (u8)((p->alphaByte / 255.0) * lbl_3_rodata_2028[0]);
-    p->_41 = (u8)((p->alphaByte / 255.0) * lbl_3_rodata_2028[1]);
-    p->_42 = (u8)((p->alphaByte / 255.0) * lbl_3_rodata_2028[2]);
+    p->_40 = (u8)(lbl_3_rodata_2028[0] * (p->alphaByte / 255.0));
+    p->_41 = (u8)(lbl_3_rodata_2028[1] * (p->alphaByte / 255.0));
+    p->_42 = (u8)(lbl_3_rodata_2028[2] * (p->alphaByte / 255.0));
     p->origin.x += p->velX;
     p->origin.y -= p->_14;
     p->origin.z += p->velZ;
@@ -741,20 +894,17 @@ void fn_3_C2EDC(CastleFlameParticle* p) {
 }
 
 // .text:0x000C30F0 size:0x57C mapped:0x80702184
-void fn_3_C30F0(CastleFlameEmitter* emitter) {
+BOOL fn_3_C30F0(CastleFlameEmitter* emitter) {
     CastleFlameParticle* p = emitter->particles;
 
-    if (g_GameLogic.gameStatus < GAME_STATUS_0x1B) {
-        return;
-    }
-    if (g_GameLogic.gameStatus > GAME_STATUS_MINIGAME_READY) {
-        return;
+    if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= GAME_STATUS_MINIGAME_READY) {
+        return FALSE;
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL || g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
         Vec pos = emitter->origin;
 
         if (!fn_3_C2AA0(&pos, 4.0f, 4.0f)) {
-            return;
+            return FALSE;
         }
     }
     fn_80033620(emitter);
@@ -796,6 +946,7 @@ void fn_3_C30F0(CastleFlameEmitter* emitter) {
         }
         p = p->next;
     } while (p != NULL);
+    return FALSE;
 }
 
 // .text:0x000C366C size:0x35C mapped:0x80702700
@@ -1117,8 +1268,10 @@ BOOL fn_3_C4724(CastleSparkEmitter* emitter) {
     do {
         if (p->_48 != 0) {
             p->_48 -= (lbl_80366158._28 == 0);
-            i++;
-        } else if (p->_4A != 0) {
+        } else {
+            if (p->_4A == 0) {
+                continue;
+            }
             fn_8003403C(p->_38, p->_3C);
             fn_80033CC8(p, emitter->_10);
             if (lbl_80366158._28 == 0) {
@@ -1132,10 +1285,9 @@ BOOL fn_3_C4724(CastleSparkEmitter* emitter) {
                     p->_4A = 0;
                 }
             }
-            i++;
         }
-        p = p->next;
-    } while (p != NULL && i < (emitter->_14 & 0xFFF));
+        i++;
+    } while ((p = p->next) != NULL && i < (emitter->_14 & 0xFFF));
 
     emitter->_24 -= (lbl_80366158._28 == 0);
     if (emitter->_24 == 0) {
@@ -1145,7 +1297,7 @@ BOOL fn_3_C4724(CastleSparkEmitter* emitter) {
 }
 
 // .text:0x000C48D0 size:0x2B0 mapped:0x80703964
-void fn_3_C48D0(CastleFireballEmitter* handle, Vec* pos) {
+void fn_3_C48D0(CastleFireballEmitter* handle, Vec pos) {
     CastleFlameParticle* p;
     u32 i = 0;
     f32 ang1;
@@ -1153,9 +1305,9 @@ void fn_3_C48D0(CastleFireballEmitter* handle, Vec* pos) {
     f32 mag;
 
     for (p = handle->particles; p != NULL; p = p->next) {
-        p->origin.x = pos->x;
-        p->origin.y = pos->y;
-        p->origin.z = pos->z;
+        p->origin.x = pos.x;
+        p->origin.y = pos.y;
+        p->origin.z = pos.z;
         ang1 = 3.1415927f * (f32)(rand() % 181) / 180.0f;
         ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
         mag = 0.5f - (f32)(rand() % 3) / 10.0f;
@@ -1244,7 +1396,7 @@ void fn_3_C4CF4(CastleFlameEmitter* emitter, u8 group) {
 
 // .text:0x000C4F00 size:0x404 mapped:0x80703F94
 BOOL fn_3_C4F00(CastleFireballEmitter* handle) {
-    CastleFlameParticle* p = handle->particles;
+    CastleFlameParticle* p;
     Vec off;
     Mtx m;
     f32 ang;
@@ -1254,6 +1406,7 @@ BOOL fn_3_C4F00(CastleFireballEmitter* handle) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
 
+    p = handle->particles;
     do {
         if (p->_48 != 0) {
             p->_48 -= (lbl_80366158._28 == 0);
@@ -1526,55 +1679,25 @@ void bowserCastleRelated(void) {
         for (i = 0; i < lbl_3_bss_9DE3; i++) {
             StadiumObject* obj = &stadiumObjectCollision.objects[lbl_3_bss_9DE2 + i];
 
-            if (((CastleHazardObj*)obj)->_BD == 1 && castleFireballMaybe(obj)) {
+            if (((CastleFireObj*)obj)->state == FLAME_FLYING && castleFireballMaybe(obj)) {
                 CastleFireballEmitter* handle =
                     allocParticleEffect(fn_3_C4724, 0x80, 0, 0x18, TRUE, ((CastleHazardObj*)obj)->_A8 + 0x34);
 
                 if (handle != NULL) {
-                    CastleFlameParticle* p = handle->particles;
-                    f32 x = ((CastleFireballTarget*)obj)->anchorPos.x;
-                    f32 y = ((CastleFireballTarget*)obj)->anchorPos.y;
-                    f32 z = ((CastleFireballTarget*)obj)->anchorPos.z;
-                    u32 j = 0;
-                    f32 ang1;
-                    f32 ang2;
-                    f32 mag;
-
-                    for (; p != NULL; p = p->next) {
-                        p->origin.x = x;
-                        p->origin.y = y;
-                        p->origin.z = z;
-                        ang1 = 3.1415927f * (f32)(rand() % 181) / 180.0f;
-                        ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
-                        mag = 0.5f - (f32)(rand() % 3) / 10.0f;
-                        p->velX = mag * cos(ang1) * cos(ang2);
-                        p->_14 = -mag * sin(ang1);
-                        p->velZ = mag * sin(ang1) * cos(ang2);
-                        p->_3C = 4.4f;
-                        p->_38 = 4.4f;
-                        p->_48 = j / 6;
-                        j++;
-                        p->_4D = 0x1B;
-                        p->_4E = 0;
-                        p->alphaByte = 0xFF;
-                        p->_42 = 0xFF;
-                        p->_41 = 0xFF;
-                        p->_40 = 0xFF;
-                        p->_4A = 1;
-                    }
+                    fn_3_C48D0(handle, ((CastleFireballTarget*)obj)->anchorPos);
                     handle->_10 = lbl_3_bss_9F0C[0];
                     handle->_24 = 0x1E;
                 }
-                ((CastleHazardObj*)obj)->_BD = 2;
-                obj->hasShadow = 0;
-                obj->pos.x = 10.0f;
+                ((CastleFireObj*)obj)->state = FLAME_EXPLODING;
+                ((CastleFireObj*)obj)->visible = FALSE;
+                ((CastleFireObj*)obj)->pos.y = 10.0f;
             }
         }
     }
 }
 
 // .text:0x000C625C size:0x174 mapped:0x807052F0
-BOOL fn_3_C625C(StadiumObject* obj) {
+E(u8, BOOL) fn_3_C625C(StadiumObject* obj) {
     Vec target = ((CastleFireballTarget*)obj)->anchorPos;
     Vec diff;
     f32 dist;
@@ -1586,10 +1709,10 @@ BOOL fn_3_C625C(StadiumObject* obj) {
     if (g_Ball.ballState == BALL_STATE_HELD) {
         return FALSE;
     }
-    if (!((g_Ball.currentStarSwing2 == 11) | (g_Ball.currentStarSwing2 == 12))) {
+    if ((g_Ball.currentStarSwing2 == 11) | (g_Ball.currentStarSwing2 == 12)) {
         return FALSE;
     }
-    target.y = target.y * -1.0f;
+    target.y *= -1.0f;
     PSVECSubtract((Vec*)&g_Ball.AtBat_Contact_BallPos, &target, &diff);
     dist = PSVECMag(&diff);
     if (dist <= 2.6f) {
@@ -1608,8 +1731,134 @@ BOOL fn_3_C625C(StadiumObject* obj) {
 }
 
 // .text:0x000C63D0 size:0xDFC mapped:0x80705464
-void flameControl(void) {
-    return;
+void flameControl(CastleFireObj* fire) {
+    Vec up = { 0.0f, 1.0f, 0.0f };
+    VecSrcDst seg;
+    CollisionStruct hitInfo;
+    Vec axis;
+    Vec dir;
+    Quaternion q;
+    CastleFireballEmitter* handle;
+    f32 ang;
+    f32 speed;
+    u32 i;
+    int stadiumID;
+    u8 vol;
+    u8 val;
+    SND_VOICEID voice;
+    u8 hit = 0;
+
+    if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        if (!fire->resetPending) {
+            fire->pos.x = BowserStadFireSpawners[fire->id].x;
+            fire->pos.y = BowserStadFireSpawners[fire->id].y;
+            fire->pos.z = BowserStadFireSpawners[fire->id].z;
+            fire->state = FLAME_IDLE;
+            CTRLSetTranslation((Control*)fire, fire->pos.x, fire->pos.y, fire->pos.z);
+            fire->visible = FALSE;
+            pitchingMachinePitching(fire->id + 0x2A);
+            pitchingMachinePitching(fire->id + 0x34);
+            fire->resetPending = TRUE;
+        }
+        return;
+    }
+
+    fire->resetPending = FALSE;
+    switch (fire->state) {
+    case FLAME_IDLE:
+        if (fire->launchTimer == 0) {
+            for (i = 6; i < 9; i++) {
+                if ((f32)sqrt(pow((*(CastleAnimActor**)(hugeAnimStruct + i * 4 + 0x2C50))->pos.x - fire->pos.x, 2.0) +
+                              pow((*(CastleAnimActor**)(hugeAnimStruct + i * 4 + 0x2C50))->pos.z - fire->pos.z, 2.0)) < 5.0) {
+                    fire->pos.x = BowserStadFireSpawners[fire->id].x;
+                    fire->pos.y = BowserStadFireSpawners[fire->id].y;
+                    fire->pos.z = BowserStadFireSpawners[fire->id].z;
+                    CTRLSetTranslation((Control*)fire, fire->pos.x, fire->pos.y, fire->pos.z);
+                    return;
+                }
+            }
+            fire->state = FLAME_FLYING;
+            fire->visible = TRUE;
+            ang = 3.1415927f * (f32)(fire->launchAngleBase + rng((s16)fire->launchAngleSpread)) / 180.0f;
+            speed = flameXVelos[rng(3)];
+            fire->velo.x = speed * cos(ang);
+            fire->velo.y = 0.37f;
+            fire->velo.z = speed * sin(ang);
+            handle = allocParticleEffect(fn_3_C4F00, 0x80, 0, 7, TRUE, fire->id + 0x2A);
+            if (handle != NULL) {
+                fn_3_C5304(handle, (StadiumObject*)fire);
+                handle->_10 = lbl_3_bss_9F0C[0];
+            }
+            fire->launchTimer = rng(240) + 1;
+            stadiumID = g_d_GameSettings.StadiumID;
+            vol = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD
+                      ? lbl_3_data_84B8[6]
+                      : stadiumHazardSoundFxRelated[stadiumID * 0x1E + 6];
+            voice = sndFXStartEx(stadiumHazardSoundIDs[stadiumID] + 3, vol, 0x3f, 0);
+            val = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD
+                      ? lbl_3_data_84B8[7]
+                      : stadiumHazardSoundFxRelated[stadiumID * 0x1E + 7];
+            sndFXCtrl(voice, 0x5b, val);
+        } else {
+            fire->launchTimer--;
+        }
+        break;
+    case FLAME_FLYING:
+        seg.src = fire->pos;
+        fire->pos.x += fire->velo.x;
+        fire->pos.y -= fire->velo.y;
+        fire->pos.z += fire->velo.z;
+        seg.dst = fire->pos;
+        fire->velo.y -= 0.0044f;
+        PSVECNormalize(&fire->velo, &dir);
+        PSVECCrossProduct(&dir, &up, &axis);
+        C_QUATRotAxisRad(&q, &axis, acos(PSVECDotProduct(&dir, &up)));
+        CTRLSetQuat((Control*)fire, q.x, q.y, q.z, q.w);
+        if (fire->velo.y < 0.0f && (u32)checkCollision(&seg, &hitInfo, 0, FALSE) != 0) {
+            hit = 1;
+        }
+        if (fn_3_C625C((StadiumObject*)fire)) {
+            hit = 2;
+        }
+        if (hit) {
+            pitchingMachinePitching(fire->id + 0x2A);
+            if (hit == 1) {
+                handle = allocParticleEffect(fn_3_C4724, 0x80, 0, 0x18, TRUE, fire->id + 0x34);
+                if (handle != NULL) {
+                    fn_3_C48D0(handle, fire->pos);
+                    handle->_10 = lbl_3_bss_9F0C[0];
+                    handle->_24 = 0x1E;
+                }
+            } else if (hit == 2) {
+                handle = allocParticleEffect(fn_3_C4724, 0x80, 0, 0x18, TRUE, fire->id + 0x34);
+                if (handle != NULL) {
+                    fn_3_C444C(handle, (StadiumObject*)fire);
+                    handle->_10 = lbl_3_bss_9F0C[0];
+                    handle->_24 = 0x1E;
+                }
+            }
+            fire->state = FLAME_ENDED;
+            fire->visible = FALSE;
+            fire->pos.y = 10.0f;
+        }
+        break;
+    case FLAME_EXPLODING:
+        if (!fn_80033928(fire->id + 0x34)) {
+            fire->state = FLAME_ENDED;
+        }
+        break;
+    case FLAME_ENDED:
+        fire->state = FLAME_IDLE;
+        fire->pos.x = BowserStadFireSpawners[fire->id].x;
+        fire->pos.y = BowserStadFireSpawners[fire->id].y;
+        fire->pos.z = BowserStadFireSpawners[fire->id].z;
+        fire->velo.y = 0.37f;
+        fire->visible = FALSE;
+        fire->launchTimer = rng(240) + 1;
+        CTRLSetRotation((Control*)fire, 0.0f, BowserStadFireSpawners[fire->id].rotation, 0.0f);
+        break;
+    }
+    CTRLSetTranslation((Control*)fire, fire->pos.x, fire->pos.y, fire->pos.z);
 }
 
 // .text:0x000C71CC size:0x278 mapped:0x80706260
@@ -1622,7 +1871,9 @@ void stadiumObjRelated_Castle(s32* idx, s32* count) {
     StadiumObject* obj;
     CastleObjControl ctrl;
     Mtx m;
-    f64 transY = -0.3 * 84.09091186523438f + 15.556818962097168f;
+    f32 scale = 84.09091186523438f;
+    f32 base = 15.556818962097168f;
+    f64 transY = -0.3 * scale + base;
 
     for (i = 0; i < 5; i++) {
         off = (u16)(stadiumObjectCollision.vertexOffsets[*idx - 1] + stadiumObjectCollision.hazardData[*idx - 1]);
@@ -1633,6 +1884,7 @@ void stadiumObjRelated_Castle(s32* idx, s32* count) {
             if (i == cfg->group && cfg->usedFlag != 7) {
                 k = *count;
                 if (stadiumObjectCollision.objects[k]._90b1) {
+                    f32 y;
                     f32 jitter;
 
                     ((s32*)stadiumObjectCollision.vertexData)[off] = k;
@@ -1642,11 +1894,12 @@ void stadiumObjRelated_Castle(s32* idx, s32* count) {
                     ctrl = *(CastleObjControl*)obj;
                     CTRLBuildMatrix((Control*)obj, m);
                     transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
+                    y = transY;
                     jitter = flameXVelos[2] * 168.18182373046875f;
-                    CTRLSetTranslation(&ctrl.ctrl, cfg->x + jitter, (f32)transY + cfg->y, cfg->z + jitter);
+                    CTRLSetTranslation(&ctrl.ctrl, jitter + cfg->x, y + cfg->y, jitter + cfg->z);
                     CTRLBuildMatrix(&ctrl.ctrl, m);
                     transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
-                    CTRLSetTranslation(&ctrl.ctrl, cfg->x - jitter, (f32)transY + cfg->y, cfg->z - jitter);
+                    CTRLSetTranslation(&ctrl.ctrl, cfg->x - jitter, y + cfg->y, cfg->z - jitter);
                     CTRLBuildMatrix(&ctrl.ctrl, m);
                     transformVectorsUpdateBoundingBox(m, (StadiumMeshData*)obj->triangles);
                     (*count)++;
@@ -1724,7 +1977,7 @@ BOOL thwomp_smokeRelated(CastleSmokeEmitter* smoke) {
                 }
                 p->origin.x += p->velX;
                 p->origin.z += p->velZ;
-                p->origin.y = p->_14 + smoke->target->y - 5.0 * pow((f64)fallCounter, 2.0);
+                p->origin.y = p->_14 + smoke->target->y - 5.0 * pow(2.0, (f64)fallCounter);
                 if (30 - smoke->_24 >= 0x10) {
                     p->alphaByte = (u8)((f32)p->alphaByte - 10.928571701049805f);
                 }
@@ -1734,14 +1987,17 @@ BOOL thwomp_smokeRelated(CastleSmokeEmitter* smoke) {
     } while (p != NULL);
 
     smoke->_24 -= (lbl_80366158._28 == 0);
-    return smoke->_24 == 0;
+    if (smoke->_24 == 0) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 // .text:0x000C77AC size:0x260 mapped:0x80706840
 void fn_3_C77AC(CastleFireballEmitter* handle, StadiumObject* obj) {
     CastleFlameParticle* p = handle->particles;
-    u32 i = 0;
     u32 idx = 0;
+    u32 i = 0;
     f32 ang;
 
     handle->targetPos = &((CastleFireballTarget*)obj)->anchorPos;
@@ -1754,14 +2010,13 @@ void fn_3_C77AC(CastleFireballEmitter* handle, StadiumObject* obj) {
         p->_38 = 0.0f;
         p->scale = 8.0f - (rand() % 3);
         ang = 3.1415927f * ((f32)idx + thwompStaticValues[((CastleHazardObj*)obj)->_A8].rotation) / 180.0f;
-        p->velX = 0.35 * cosf_kludge(ang);
+        p->velX = 0.35f * cos(ang);
         p->_14 = -(rand() % 3);
-        p->velZ = 0.35 * sinf_kludge(ang);
+        p->velZ = 0.35f * sin(ang);
         idx += 0x1e;
-        i++;
         p->origin.x = handle->targetPos->x;
         p->origin.z = handle->targetPos->z;
-        p->_48 = i >> 2;
+        p->_48 = i++ >> 2;
         p->_4D = 0x1c;
         p->_4E = 0;
         p->_42 = 0x7f;
@@ -1773,8 +2028,95 @@ void fn_3_C77AC(CastleFireballEmitter* handle, StadiumObject* obj) {
 }
 
 // .text:0x000C7A0C size:0x650 mapped:0x80706AA0
-void thwomp_slamControl(void) {
-    return;
+void thwomp_slamControl(CastleThwompObj* thwomp) {
+    Vec soundPos;
+    CastleFireballEmitter* handle;
+
+    if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        if (!thwomp->resetPending) {
+            thwomp->pos.y = thwompStaticValues[thwomp->index].y;
+            thwomp->state = THWOMP_PERCHED;
+            thwomp->checkForSlam = TRUE;
+            CTRLSetTranslation((Control*)thwomp, thwomp->pos.x, thwomp->pos.y, thwomp->pos.z);
+            pitchingMachinePitching(thwomp->index + 0x3E);
+            thwomp->resetPending = TRUE;
+        }
+        if (g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
+            thwomp->fallSpeed = thompFallingSpeedConstants[rng(3)];
+        }
+        return;
+    }
+
+    thwomp->resetPending = FALSE;
+    switch (thwomp->state) {
+    case THWOMP_PERCHED:
+        if (!thwomp->checkForSlam) {
+            break;
+        }
+        if (g_Ball.ballState != BALL_STATE_HIT) {
+            thwomp->checkForSlam = FALSE;
+        } else if (g_Ball.physicsSubstruct.velocity.z < 0.0f) {
+            thwomp->checkForSlam = FALSE;
+        } else if (g_Ball.deadBallReason != 0) {
+            thwomp->checkForSlam = FALSE;
+        } else {
+            f32 crossX = g_Ball.physicsSubstruct.velocity.x / g_Ball.physicsSubstruct.velocity.z *
+                             (thwomp->pos.z - g_Ball.AtBat_Contact_BallPos.z) +
+                         g_Ball.AtBat_Contact_BallPos.x;
+
+            if (crossX < thwomp->pos.x - 25.0f || crossX > 25.0f + thwomp->pos.x) {
+                thwomp->checkForSlam = FALSE;
+            } else if ((f32)sqrt(pow(thwomp->pos.z - g_Ball.AtBat_Contact_BallPos.z, 2.0) +
+                                 (pow(thwomp->pos.x - g_Ball.AtBat_Contact_BallPos.x, 2.0) +
+                                  pow(thwomp->pos.y + g_Ball.AtBat_Contact_BallPos.y, 2.0))) < 23.0f &&
+                       g_Ball.AtBat_Contact_BallPos.y < 3.0f - thwomp->pos.y) {
+                thwomp->state = THWOMP_WINDUP;
+            }
+        }
+        break;
+    case THWOMP_WINDUP:
+        if (thwomp->pos.y <= thwompStaticValues[thwomp->index].y - 2.5) {
+            thwomp->pos.y = thwompStaticValues[thwomp->index].y - 2.5;
+            thwomp->state = THWOMP_FALLING;
+        } else {
+            thwomp->pos.y = thwomp->pos.y - 0.25;
+        }
+        break;
+    case THWOMP_FALLING:
+        thwomp->pos.y += thwomp->fallSpeed;
+        if (thwomp->pos.y >= -5.0) {
+            thwomp->pos.y = -5.0f;
+            memcpy(&soundPos, &thwomp->pos, sizeof(Vec));
+            thwomp->state = THWOMP_GROUNDED;
+            thwomp->framesOnGround = 0;
+            startScreenShake = TRUE;
+            fn_800528AC(thwomp_screenShake);
+            initializeStadiumObjectEmitter(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID] + 5, &soundPos,
+                                           NULL, 9);
+        }
+        if (4.0f * thwomp->fallSpeed + thwomp->pos.y >= -5.0) {
+            handle = allocParticleEffect(thwomp_smokeRelated, 0x80, 0, 0xC, TRUE, thwomp->index + 0x3E);
+            if (handle != NULL) {
+                fn_3_C77AC(handle, (StadiumObject*)thwomp);
+            }
+        }
+        break;
+    case THWOMP_GROUNDED:
+        if (thwomp->framesOnGround++ > 40) {
+            thwomp->state = THWOMP_RETURNING;
+            thwomp->framesOnGround = 0;
+        }
+        break;
+    case THWOMP_RETURNING:
+        if (thwomp->pos.y <= thwompStaticValues[thwomp->index].y) {
+            thwomp->pos.y = thwompStaticValues[thwomp->index].y;
+            thwomp->state = THWOMP_PERCHED;
+        } else {
+            thwomp->pos.y = thwomp->pos.y - 0.2;
+        }
+        break;
+    }
+    CTRLSetTranslation((Control*)thwomp, thwomp->pos.x, thwomp->pos.y, thwomp->pos.z);
 }
 
 // .text:0x000C805C size:0x1E0 mapped:0x807070F0
@@ -1928,7 +2270,321 @@ void fn_3_C82B4(void) {
 }
 
 // .text:0x000C8650 size:0xD2C mapped:0x807076E4
-void loadBowserCastle(void) {
-    return;
+void loadBowserCastle(void** files) {
+    u8** animTable = (u8**)(hugeAnimStruct + 0x6C);
+    CastleSlotPlacement* thwompCfg;
+    CastleFireSpawner* fireCfg;
+    CastleSlotPlacement* padCfg;
+    StadiumObject* o;
+    u32* ids;
+    u8 done;
+    u32 fireCount;
+    u32 animCount;
+    u32 idx;
+    u32 padAnim;
+    u32 i;
+    s32 j;
+    s32 k;
+    s32 n;
+    u32 shadowBit;
+    CastleFireballEmitter* emitter;
+
+    stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
+    ids = _OSAllocFromHeap(4, 0x40);
+    stadiumObjectCollision._34 = ids;
+    processStadiumFileObjects(lbl_3_data_177E0, 0x10, (u8*)files, ids);
+    lbl_3_bss_9F0C[0] = (u32)files[0];
+
+    for (fireCount = 0; fireCount < 10; fireCount++) {
+        if (BowserStadFireSpawners[fireCount].usedFlag == 7) {
+            break;
+        }
+    }
+    animCount = fireCount + 5;
+    stadiumObjectCollision.propCount = animCount;
+    *animTable = ActorObjectInitTable(animCount);
+    animateBallRelated(*animTable, 0, 0, files[ids[1]], 0, 0);
+    animateBallRelated(*animTable, 1, 1, files[ids[2]], 0, 0);
+    animateBallRelated(*animTable, 2, 2, files[ids[3]], 0, 0);
+    idx = 3;
+    for (i = 0; i < fireCount; i++) {
+        animateBallRelated(*animTable, idx, idx, files[ids[4]], 0, 0);
+        idx++;
+    }
+    animateBallRelated(*animTable, idx, idx, files[ids[5]], 0, 0);
+    padAnim = idx + 1;
+    animateBallRelated(*animTable, padAnim, padAnim, files[ids[6]], 0, 0);
+    for (i = 0; i < animCount; i++) {
+        fn_800BD548(*animTable + i * 0x90 + 0x34, 4, stadiumObjectCollision.lights[0],
+                    stadiumObjectCollision.lights[1], stadiumObjectCollision.lights[2],
+                    stadiumObjectCollision.lights[3]);
+    }
+
+    adjustInternalPointers(files[ids[10]]);
+    for (i = 0; i < fireCount; i++) {
+        ACTActorRelated(files[ids[10]], *animTable + (i + 3) * 0x90 + 0x34);
+    }
+    lbl_3_bss_9E50.effects[1].file = (u32)files[ids[11]];
+    actRelated(files[ids[10]]);
+    actorRelated(&lbl_3_bss_9E50.effects[1], 0, 0);
+    adjustInternalPointers(files[ids[12]]);
+    ACTActorRelated(files[ids[12]], *animTable + 0xC4);
+    lbl_3_bss_9E50.effects[0].file = (u32)files[ids[13]];
+    actRelated(files[ids[12]]);
+    actorRelated(&lbl_3_bss_9E50.effects[0], 0, 0);
+    fn_80035750(files[ids[15]], files[ids[14]], 5);
+    lbl_3_bss_9E50.scene = (CastleGfxScene*)insertGraphicDrawingFunction(fn_3_C3C2C, 2);
+    addGraphicsElementToScene((DrawingSceneStruct*)lbl_3_bss_9E50.scene, lbl_3_data_10C1C);
+
+    stadiumObjectCollision.objectCount = 0x20;
+    stadiumObjectCollision.objects = _OSAllocFromHeap(0x20, 0x1D00);
+    memset(stadiumObjectCollision.objects, 0, 0x1D00);
+    stadiumObjectCollision.objectsRelated = _OSAllocFromHeap(0x20, 0x1D00);
+    memset(stadiumObjectCollision.objectsRelated, 0, 0x1D00);
+    o = stadiumObjectCollision.objects;
+
+    ((CastleHazardObj*)o)->hazardType = 0;
+    o->model = (StadiumModel*)(*animTable + 0x34);
+    o->triangles = NULL;
+    o->callback = (void (*)(void))fn_3_C4068;
+    o->func = NULL;
+    o->hasShadow = 1;
+    shadowBit = 0;
+    if (o->hasShadow && o->triangles != NULL) {
+        shadowBit = 1;
+    }
+    o->_90b1 = shadowBit;
+    ((Control*)o)->type = 0;
+    CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+    CTRLSetRotation((Control*)o, 0.0f, 0.0f, 0.0f);
+    o->fadeByDepth = 0;
+    o->alpha = 0xFF;
+    o->effect = NULL;
+    o->preDraw = NULL;
+    o->animActive = 0;
+    o->animIndex = -1;
+    o->drawPass = 0;
+    o++;
+
+    ((CastleHazardObj*)o)->hazardType = 1;
+    o->model = (StadiumModel*)(*animTable + 0xC4);
+    o->triangles = NULL;
+    o->callback = (void (*)(void))fn_3_C3F70;
+    o->func = NULL;
+    o->hasShadow = 1;
+    shadowBit = 0;
+    if (o->hasShadow && o->triangles != NULL) {
+        shadowBit = 1;
+    }
+    o->_90b1 = shadowBit;
+    ((Control*)o)->type = 0;
+    CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+    CTRLSetRotation((Control*)o, 0.0f, 0.0f, 0.0f);
+    o->fadeByDepth = 0;
+    o->alpha = 0xFF;
+    o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E50.effects[0];
+    o->preDraw = NULL;
+    o->animActive = 0;
+    o->animIndex = -1;
+    o->drawPass = 1;
+    o++;
+    n = 2;
+
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+        done = FALSE;
+        j = 0;
+        thwompCfg = thwompStaticValues;
+        lbl_3_bss_9DE5 = 0;
+        lbl_3_bss_9DE4 = n;
+        do {
+            if (thwompCfg->usedFlag == 7) {
+                done = TRUE;
+            }
+            if (done) {
+                for (k = j; k < 11; k++) {
+                    thwompStaticValues[k].usedFlag = 7;
+                }
+                break;
+            }
+            ((CastleHazardObj*)o)->_A8 = j;
+            ((CastleHazardObj*)o)->hazardType = thwompCfg->usedFlag;
+            o->model = (StadiumModel*)(*animTable + 0x154);
+            o->triangles = files[ids[7]];
+            o->callback = (void (*)(void))thwomp_slamControl;
+            o->func = (int (*)(int, int, void*))thwomp_bounceOffSoundAndVisualFx;
+            o->hasShadow = thwompCfg->visible;
+            shadowBit = 0;
+            if (o->hasShadow && o->triangles != NULL) {
+                shadowBit = 1;
+            }
+            o->_90b1 = shadowBit;
+            ((Control*)o)->type = 0;
+            CTRLSetTranslation((Control*)o, thwompCfg->x, thwompCfg->y, thwompCfg->z);
+            CTRLSetRotation((Control*)o, 0.0f, thwompCfg->rotation, 0.0f);
+            j++;
+            ((CastleThwompObj*)o)->pos.x = thwompCfg->x;
+            n++;
+            ((CastleThwompObj*)o)->pos.y = thwompCfg->y;
+            ((CastleThwompObj*)o)->pos.z = thwompCfg->z;
+            thwompCfg++;
+            ((CastleThwompObj*)o)->fallSpeed = 0.0f;
+            ((CastleThwompObj*)o)->state = THWOMP_PERCHED;
+            ((CastleThwompObj*)o)->framesOnGround = 0;
+            ((CastleThwompObj*)o)->checkForSlam = TRUE;
+            o->fadeByDepth = 0;
+            o->alpha = 0xFF;
+            o->preDraw = fn_3_C7444;
+            o->effect = NULL;
+            o->animActive = 0;
+            o->animIndex = -1;
+            o->drawPass = 1;
+            o->shadowEnabled = 1;
+            o++;
+            lbl_3_bss_9DE5++;
+        } while (j < 10);
+
+        done = FALSE;
+        j = 0;
+        fireCfg = BowserStadFireSpawners;
+        lbl_3_bss_9DE3 = 0;
+        lbl_3_bss_9DE2 = n;
+        do {
+            if (fireCfg->usedFlag == 7) {
+                done = TRUE;
+            }
+            if (done) {
+                for (k = j; k < 11; k++) {
+                    BowserStadFireSpawners[k].usedFlag = 7;
+                }
+                break;
+            }
+            ((CastleHazardObj*)o)->_A8 = j;
+            ((CastleHazardObj*)o)->hazardType = fireCfg->usedFlag;
+            o->model = (StadiumModel*)(*animTable + (j + 3) * 0x90 + 0x34);
+            o->triangles = NULL;
+            o->callback = (void (*)(void))flameControl;
+            o->func = NULL;
+            o->hasShadow = fireCfg->visible;
+            shadowBit = 0;
+            if (o->hasShadow && o->triangles != NULL) {
+                shadowBit = 1;
+            }
+            o->_90b1 = shadowBit;
+            ((CastleFireObj*)o)->launchTimer = rng(240) + 1;
+            ((CastleFireObj*)o)->state = FLAME_IDLE;
+            ((CastleFireObj*)o)->velo.z = 0.0f;
+            ((CastleFireObj*)o)->velo.y = 0.0f;
+            ((CastleFireObj*)o)->velo.x = 0.0f;
+            ((CastleFireObj*)o)->launchAngleBase = fireCfg->launchAngleBase;
+            ((CastleFireObj*)o)->launchAngleSpread = fireCfg->launchAngleSpread;
+            ((Control*)o)->type = 0;
+            CTRLSetTranslation((Control*)o, fireCfg->x, fireCfg->y, fireCfg->z);
+            CTRLSetRotation((Control*)o, 0.0f, fireCfg->rotation, 0.0f);
+            j++;
+            ((CastleFireObj*)o)->pos.x = fireCfg->x;
+            n++;
+            ((CastleFireObj*)o)->pos.y = fireCfg->y;
+            ((CastleFireObj*)o)->pos.z = fireCfg->z;
+            fireCfg++;
+            o->fadeByDepth = 1;
+            o->alpha = 0xFF;
+            o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E50.effects[1];
+            o->preDraw = fn_3_C56E8;
+            o->postDraw = fn_3_C54D0;
+            o->animActive = 1;
+            o->animIndex = 4;
+            o->drawPass = 1;
+            o->shadowEnabled = 1;
+            o++;
+            lbl_3_bss_9DE3++;
+        } while (j < 10);
+
+        lbl_3_bss_9D82 = 0;
+        insertGraphicDrawingFunction(bowserCastleRelated, 0x6001);
+
+        done = FALSE;
+        j = 0;
+        padCfg = lbl_3_data_17704;
+        lbl_3_bss_9DE1 = 0;
+        lbl_3_bss_9DE0 = n;
+        do {
+            if (padCfg->usedFlag == 7) {
+                done = TRUE;
+            }
+            if (done) {
+                for (k = j; k < 11; k++) {
+                    lbl_3_data_17704[k].usedFlag = 7;
+                }
+                break;
+            }
+            ((CastleHazardObj*)o)->_A8 = j;
+            ((CastleHazardObj*)o)->hazardType = padCfg->usedFlag;
+            if (((CastleHazardObj*)o)->hazardType == 4) {
+                o->model = (StadiumModel*)(*animTable + idx * 0x90 + 0x34);
+                o->triangles = files[ids[8]];
+            } else {
+                o->model = (StadiumModel*)(*animTable + padAnim * 0x90 + 0x34);
+                o->triangles = files[ids[9]];
+            }
+            o->callback = NULL;
+            o->func = (int (*)(int, int, void*))bowserCastleStarPadsContaactFn;
+            o->hasShadow = padCfg->visible;
+            shadowBit = 0;
+            if (o->hasShadow && o->triangles != NULL) {
+                shadowBit = 1;
+            }
+            o->_90b1 = shadowBit;
+            ((Control*)o)->type = 0;
+            CTRLSetTranslation((Control*)o, padCfg->x, padCfg->y, padCfg->z);
+            CTRLSetRotation((Control*)o, 0.0f, padCfg->rotation, 0.0f);
+            o->fadeByDepth = 1;
+            j++;
+            o->alpha = 0xFF;
+            padCfg++;
+            n++;
+            o->effect = NULL;
+            o->preDraw = fn_3_C40EC;
+            o->animActive = 0;
+            o->animIndex = -1;
+            o->drawPass = 1;
+            o++;
+            lbl_3_bss_9DE1++;
+        } while (j < 10);
+    }
+
+    if (n < stadiumObjectCollision.objectCount) {
+        for (k = n; k < stadiumObjectCollision.objectCount; k++) {
+            ((CastleHazardObj*)o)->hazardType = 0;
+            o->model = NULL;
+            o->triangles = NULL;
+            o->callback = NULL;
+            o->func = NULL;
+            o->hasShadow = 0;
+            o->_90b1 = 0;
+            o->fadeByDepth = 0;
+            ((Control*)o)->type = 0;
+            CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+            CTRLSetRotation((Control*)o, 0.0f, 0.0f, 0.0f);
+            o->alpha = 0;
+            o->effect = NULL;
+            o->animActive = 0;
+            o->animIndex = -1;
+            o++;
+        }
+    }
+
+    stadiumObjectCollision.vertexDataArray = NULL;
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+        fn_3_C82B4();
+    }
+    fn_800528AC(thwomp_screenShake);
+    for (i = 0; i < 6; i++) {
+        emitter = allocParticleEffect(fn_3_C30F0, 0x80, 0, 0x15, TRUE, 0);
+        if (emitter != NULL) {
+            fn_3_C366C(emitter, i);
+        }
+    }
+    fn_3_C1974((int)files[ids[0]]);
+    fn_3_B97C8(fn_3_C2974);
 }
 
