@@ -117,7 +117,8 @@ typedef struct _CastleGfxSceneHolder {
 
 // Per-camera-slot scratch entry (2 of these; index by drawStadiumRelated).
 typedef struct _CastleCameraSlot {
-    /*0x00*/ u8 _00[8];
+    /*0x00*/ u32 _00;
+    /*0x04*/ void (*draw)(struct _CastleCameraSlot* slot);
     /*0x08*/ Mtx mtx;
     /*0x38*/ DrawingSceneStruct* item;
 } CastleCameraSlot; // size 0x3C
@@ -216,9 +217,7 @@ typedef struct _CastleSmokeEmitter {
 extern void fn_800A7D4C(s32 arg0, void* arg1);
 extern u8 drawStadiumRelated;
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
-extern u16 lbl_3_data_177F0;
 extern void fn_800BDF70(StadiumModel* model);
-extern CastleCameraSlot lbl_3_data_17804[2];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
@@ -243,8 +242,6 @@ typedef struct _CastleAnimSubStruct {
     u32 _14;
 } CastleAnimSubStruct;
 
-extern u32 lbl_3_data_177F4;
-extern u8 lbl_3_data_177F8[0xC];
 
 typedef struct _CastleLightParticleParams {
     /*0x00*/ f32 _00;
@@ -326,10 +323,6 @@ typedef struct _CastleObjControl {
     u8 _3C[0x44 - sizeof(Control)];
 } CastleObjControl;
 
-extern CastleSlotPlacement lbl_3_data_17704[];
-extern CastleSlotPlacement thwompStaticValues[];
-extern f32 thompFallingSpeedConstants[3];
-extern u8 lbl_3_data_177E0[];
 extern void fn_80035750(void* a, void* b, int c);
 extern UIRecordDescriptor lbl_3_data_10C1C[];
 
@@ -402,8 +395,6 @@ typedef struct _CastleAnimActor {
     /*0x34*/ Vec pos;
 } CastleAnimActor;
 
-extern CastleFireSpawner BowserStadFireSpawners[11];
-extern f32 flameXVelos[3];
 
 typedef struct _CastleSparkTableEntry {
     /*0x00*/ s16 x;
@@ -411,8 +402,76 @@ typedef struct _CastleSparkTableEntry {
     /*0x04*/ s16 z;
 } CastleSparkTableEntry;
 
-extern f32 lbl_3_data_1787C;
-extern CastleSparkTableEntry lbl_3_data_17880[4];
+typedef struct _CastlePadTable {
+    /*0x00*/ CastleSlotPlacement entries[11];
+    /*0xDC*/ u8 objectTypes[16];
+} CastlePadTable; // size 0xEC
+
+static f32 thompFallingSpeedConstants[3] = { 1.0f, 3.0f, 5.0f };
+
+static CastleSlotPlacement thwompStaticValues[11] = {
+    { -51.592f, -18.0f, 68.051f, 306.0f, 2, 1, 1, 2 },
+    { -43.569f, -18.0f, 76.869f, 314.0f, 2, 1, 1, 2 },
+    { -33.845f, -18.0f, 84.008f, 330.0f, 2, 1, 1, 2 },
+    { 51.592f, -18.0f, 68.051f, 52.0f, 2, 1, 2, 2 },
+    { 43.569f, -18.0f, 76.869f, 44.0f, 2, 1, 2, 2 },
+    { 33.845f, -18.0f, 84.008f, 28.0f, 2, 1, 2, 2 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 7, 0, 0xFF, 7 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+};
+
+static f32 flameXVelos[3] = { 0.06f, 0.07f, 0.08f };
+
+static CastleFireSpawner BowserStadFireSpawners[11] = {
+    { -48.0f, 5.5f, 25.0f, 0.0f, 3, 1, 1, 3, 295, 1 },
+    { -43.0f, 5.5f, 56.0f, 0.0f, 3, 1, 1, 3, 315, 90 },
+    { -10.0f, 5.5f, 77.0f, 0.0f, 3, 1, 2, 3, 180, 90 },
+    { 10.0f, 5.5f, 77.0f, 0.0f, 3, 1, 2, 3, 270, 90 },
+    { 45.0f, 5.5f, 23.0f, 0.0f, 3, 1, 3, 3, 245, 1 },
+    { 43.0f, 5.5f, 56.0f, 0.0f, 3, 1, 3, 3, 135, 90 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 7, 0, 0xFF, 7, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0 },
+};
+
+static CastlePadTable lbl_3_data_17704 = {
+    {
+        { -12.891f, -5.93f, 87.961f, 348.0f, 4, 1, 1, 6 },
+        { 12.891f, -5.93f, 87.961f, 12.0f, 4, 1, 1, 6 },
+        { -23.0f, -0.02f, 72.0f, 0.0f, 5, 1, 2, 6 },
+        { -22.0f, -0.02f, 45.0f, 0.0f, 5, 1, 2, 6 },
+        { -50.0f, -0.02f, 38.0f, 0.0f, 5, 1, 2, 6 },
+        { 23.0f, -0.02f, 72.0f, 0.0f, 5, 1, 3, 6 },
+        { 22.0f, -0.02f, 45.0f, 0.0f, 5, 1, 3, 6 },
+        { 50.0f, -0.02f, 38.0f, 0.0f, 5, 1, 3, 6 },
+        { 0.0f, 0.0f, 0.0f, 0.0f, 7, 0, 0xFF, 7 },
+        { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+        { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+    },
+    { 1, 2, 2, 2, 2, 2, 2, 6, 6, 6, 8, 9, 8, 9, 0, 0 },
+};
+
+static u16 lbl_3_data_177F0 = 4;
+static u32 lbl_3_data_177F4 = 2;
+static u8 lbl_3_data_177F8[0xC] = { 0, 0xC8, 5, 0x92, 8, 0x68, 0xFF, 0xFF, 0xFF, 0, 0, 0 };
+
+static CastleCameraSlot lbl_3_data_17804[2] = {
+    { 0, fn_3_C1C18 },
+    { 0, fn_3_C1C18 },
+};
+
+static f32 lbl_3_data_1787C = 0.7f;
+static CastleSparkTableEntry lbl_3_data_17880[4] = {
+    { 106, -98, 220 },
+    { 94, -87, 230 },
+    { 120, -80, 212 },
+    { 0, 0, 0 },
+};
 
 // Per-node scratch view of DrawingSceneStruct's shared scratch region (see
 // CastleGfxScene/CastleCameraSlot for other nodes' own views of the same
@@ -429,26 +488,30 @@ typedef struct _CastleSparkScene {
     /*0x2A*/ u8 _2A;
 } CastleSparkScene;
 
-static u8 startScreenShake;
-static u8 lbl_3_bss_9D82;
-static u32 lbl_3_bss_9D84;
-static u32 lbl_3_bss_9D88;
-static u32 thwompScreenShakeTimeRemaining;
-static u32 lbl_3_bss_9D90;
-static s32 lbl_3_bss_9D94;
-static u32 lbl_3_bss_9D98;
-static s32 lbl_3_bss_9D9C;
-static u8 lbl_3_bss_9DE0;
-static u8 lbl_3_bss_9DE1;
-static u8 lbl_3_bss_9DE2;
-static u8 lbl_3_bss_9DE3;
-static u8 lbl_3_bss_9DE4;
-static u8 lbl_3_bss_9DE5;
-static u8 lbl_3_bss_9DE7;
-static Vec lbl_3_bss_9DE8[8];
-static u8 lbl_3_bss_9E48[8];
-static CastleGfxSceneHolder lbl_3_bss_9E50;
 static u32 lbl_3_bss_9F0C[5];
+static CastleGfxSceneHolder lbl_3_bss_9E50;
+static u8 lbl_3_bss_9E48[8];
+static Vec lbl_3_bss_9DE8[8];
+static u8 lbl_3_bss_9DE7;
+static u8 lbl_3_bss_9DE6;
+static u8 lbl_3_bss_9DE5;
+static u8 lbl_3_bss_9DE4;
+static u8 lbl_3_bss_9DE3;
+static u8 lbl_3_bss_9DE2;
+static u8 lbl_3_bss_9DE1;
+static u8 lbl_3_bss_9DE0;
+static u8 lbl_3_bss_9DA0[0x40];
+static s32 lbl_3_bss_9D9C;
+static u32 lbl_3_bss_9D98;
+static s32 lbl_3_bss_9D94;
+static u32 lbl_3_bss_9D90;
+static u32 thwompScreenShakeTimeRemaining;
+static u32 lbl_3_bss_9D88;
+static u32 lbl_3_bss_9D84;
+static u8 lbl_3_bss_9D83;
+static u8 lbl_3_bss_9D82;
+static u8 startScreenShake;
+static u8 lbl_3_bss_9D80;
 
 static const u8 lbl_3_rodata_2028[3] = { 0xA0, 0x46, 0x00 };
 static const f32 const_pi_or_180 = 0.017453292f;
@@ -1197,7 +1260,7 @@ void stadiumObjCollision_Castle(s32* idx, s32* count) {
         off = (u16)(stadiumObjectCollision.vertexOffsets[*idx - 1] + stadiumObjectCollision.hazardData[*idx - 1]);
         stadiumObjectCollision.vertexOffsets[*idx] = off;
         initBoundingBoxLimits();
-        cfg = lbl_3_data_17704;
+        cfg = lbl_3_data_17704.entries;
         for (j = 0; j < 10; cfg++, j++) {
             if (i == cfg->group && cfg->usedFlag != 7) {
                 k = j + lbl_3_bss_9DE0;
@@ -2242,7 +2305,7 @@ void fn_3_C82B4(void) {
             off = (u16)(stadiumObjectCollision.vertexOffsets[idx - 1] + stadiumObjectCollision.hazardData[idx - 1]);
             stadiumObjectCollision.vertexOffsets[idx] = off;
             initBoundingBoxLimits();
-            cfg = lbl_3_data_17704;
+            cfg = lbl_3_data_17704.entries;
             for (j = 0; j < 10; cfg++, j++) {
                 if (i == cfg->group && cfg->usedFlag != 7) {
                     k = j + lbl_3_bss_9DE0;
@@ -2292,7 +2355,7 @@ void loadBowserCastle(void** files) {
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     ids = _OSAllocFromHeap(4, 0x40);
     stadiumObjectCollision._34 = ids;
-    processStadiumFileObjects(lbl_3_data_177E0, 0x10, (u8*)files, ids);
+    processStadiumFileObjects(lbl_3_data_17704.objectTypes, 0x10, (u8*)files, ids);
     lbl_3_bss_9F0C[0] = (u32)files[0];
 
     for (fireCount = 0; fireCount < 10; fireCount++) {
@@ -2504,7 +2567,7 @@ void loadBowserCastle(void** files) {
 
         done = FALSE;
         j = 0;
-        padCfg = lbl_3_data_17704;
+        padCfg = lbl_3_data_17704.entries;
         lbl_3_bss_9DE1 = 0;
         lbl_3_bss_9DE0 = n;
         do {
@@ -2513,7 +2576,7 @@ void loadBowserCastle(void** files) {
             }
             if (done) {
                 for (k = j; k < 11; k++) {
-                    lbl_3_data_17704[k].usedFlag = 7;
+                    lbl_3_data_17704.entries[k].usedFlag = 7;
                 }
                 break;
             }

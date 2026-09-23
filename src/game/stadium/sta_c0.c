@@ -72,8 +72,20 @@ typedef struct _MarioCrowdSeat {
 
 extern u8 hugeAnimStruct[0x3154];
 extern u16 stadiumHazardSoundIDs[16];
-extern MarioTreePlacement marioStadiumTrees[MARIO_TREE_COUNT + 1];
-extern u8 marioStadiumInputArray[];
+static MarioTreePlacement marioStadiumTrees[MARIO_TREE_COUNT + 1] = {
+    { { 24.4f, 0.0f, 117.2f }, { 1.0f, 1.0f, 1.0f }, -16.0f, 2, 1, 0, 0 },
+    { { 5.549f, 0.0f, 111.0f }, { 1.0f, 1.0f, 1.0f }, 0.0f, 2, 1, 0, 0 },
+    { { -22.0f, 0.0f, 109.8f }, { 0.9f, 0.9f, 0.9f }, 32.0f, 2, 1, 0, 0 },
+    { { 98.0f, 0.0f, 73.0f }, { 1.0f, 1.0f, 1.0f }, 75.0f, 2, 1, 0, 0 },
+    { { -112.0f, 0.0f, 66.0f }, { 1.0f, 1.0f, 1.0f }, -25.0f, 2, 1, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 4, 0, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0, 0, 0, 0 },
+};
+static u8 marioStadiumInputArray[0x10] = { 1, 2, 4, 4, 4, 4, 2, 8, 9, 0, 0, 0, 0, 0, 0, 0 };
 extern u8 lbl_3_data_10F7C[];
 extern u8 lbl_3_data_10F84[];
 extern u8 lbl_3_data_10F88[];
@@ -284,8 +296,7 @@ void loadMarioStadium(void** files) {
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     stadiumObjectCollision.updateFunc = manageMarioStadiumSoundEmmitters;
     emitterPaused = TRUE;
-    ids = _OSAllocFromHeap(4, 0x24);
-    stadiumObjectCollision._34 = ids;
+    ids = stadiumObjectCollision._34 = _OSAllocFromHeap(4, 0x24);
     processStadiumFileObjects(marioStadiumInputArray, 9, (u8*)files, ids);
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES &&
         g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {

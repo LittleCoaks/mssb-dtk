@@ -132,7 +132,14 @@ typedef struct _PalaceSandStarPlacement {
     /*0x0F*/ u8 _0F;
 } PalaceSandStarPlacement;
 
-extern PalaceSandStarPlacement sandStarPlacementConfig[];
+typedef struct _PalaceSandStarTable {
+    /*0x000*/ PalaceSandStarPlacement entries[22];
+    /*0x160*/ Vec _160;
+    /*0x16C*/ u8 _16C[4];
+    /*0x170*/ f32 _170[8];
+    /*0x190*/ u32 _190;
+    /*0x194*/ u8 objectTypes[26];
+} PalaceSandStarTable; // size: 0x1B0
 
 typedef struct _PalaceSlotPlacement {
     /*0x00*/ f32 x;
@@ -142,10 +149,8 @@ typedef struct _PalaceSlotPlacement {
     /*0x0D*/ u8 _0D;
     /*0x0E*/ u8 group;
     /*0x0F*/ u8 _0F;
-    /*0x10*/ u8 _10[0x0C];
+    /*0x10*/ f32 _10[3];
 } PalaceSlotPlacement; // size: 0x1C
-
-extern PalaceSlotPlacement lbl_3_data_1849C[];
 
 typedef struct _PalaceActEffect {
     /*0x00*/ u32 file;
@@ -162,7 +167,6 @@ typedef struct _PalaceSandPlacement {
     /*0x1C*/ f32 rotY;
 } PalaceSandPlacement; // size: 0x20
 
-extern PalaceSandPlacement lbl_3_data_185D0[11];
 extern UIRecordDescriptor lbl_3_data_10D3C[];
 extern void fn_80035750(void* a, void* b, int c);
 
@@ -201,9 +205,85 @@ static const Vec lbl_3_rodata_2640 = {0.0f, 1.0f, 0.0f};
 static const Vec lbl_3_rodata_264C = {0.0f, 0.0f, 0.0f};
 static const f32 const_pi_or_180 = 0.017453292f;
 
-extern f32 lbl_3_data_188E0;
-extern SND_VOICEID lbl_3_data_182C0;
-extern int activeStadiumEmitterID;
+static SND_VOICEID lbl_3_data_182C0 = -1;
+static int activeStadiumEmitterID = -1;
+
+static PalaceChompPlacement chompPlacementConfig[3] = {
+    { { 55.0f, 0.0f, 40.0f }, 0, 1, 1, 0, { 0.0f, 180.0f, 0.0f }, { 0.0f, 180.0f, 0.0f }, 160.0f, 120.0f, 1, 0, 0, 0 },
+    { { -55.0f, 0.0f, 40.0f }, 0, 1, 2, 0, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 290.0f, 100.0f, 0, 0, 0, 0 },
+    { { 0.0f, 0.0f, 0.0f }, 0xD, 0, 0, 0, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0, 0, 0, 0 },
+};
+
+static PalaceTornadoPlacement TornadoPlacementConfig[6] = {
+    { { 28.5f, 7.0f, 37.5f }, 3, 1, 1, 0, 30.0f, 1.0f, 1.0f, 1.0f, -60.0f, 45.0f, 60.0f, 10.0f, 4.0f },
+    { { -28.5f, 7.0f, 37.5f }, 3, 1, 3, 0, 330.0f, 1.0f, 1.0f, 1.0f, -60.0f, -10.0f, 60.0f, -45.0f, 4.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0xD, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+};
+
+static PalaceSlotPlacement lbl_3_data_1849C[11] = {
+    { 0.0f, -5.0f, 40.0f, 6, 1, 1, 0, 10.0f, 0.0f, 360.0f },
+    { 20.0f, -5.0f, 40.0f, 6, 1, 2, 0, 10.0f, 0.0f, 360.0f },
+    { -20.0f, -5.0f, 40.0f, 6, 1, 3, 0, 10.0f, 0.0f, 360.0f },
+    { 0.0f, 0.0f, 0.0f, 0xD, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f, 0.0f },
+};
+
+static PalaceSandPlacement lbl_3_data_185D0[11] = {
+    { { 37.4f, 0.0f, 8.0f }, 7, 1, 1, 0, { 1.0f, 1.0f, 1.0f }, -35.0f },
+    { { 22.5f, 0.0f, -7.3f }, 7, 1, 1, 0, { 1.0f, 1.0f, 1.0f }, -25.0f },
+    { { -22.5f, 0.0f, -7.3f }, 7, 1, 1, 0, { 1.0f, 1.0f, 1.0f }, 20.0f },
+    { { -37.4f, 0.0f, 8.0f }, 7, 1, 1, 0, { 1.0f, 1.0f, 1.0f }, 0.0f },
+    { { -43.34f, -3.6f, 87.797f }, 7, 1, 1, 0, { 1.0f, 0.85f, 1.0f }, -25.0f },
+    { { -32.055f, -3.6f, 101.771f }, 7, 1, 1, 0, { 1.0f, 0.8f, 1.0f }, -15.0f },
+    { { 31.884f, -3.6f, 101.246f }, 7, 1, 1, 0, { 1.0f, 0.8f, 1.0f }, 20.0f },
+    { { 43.626f, -3.6f, 87.915f }, 7, 1, 1, 0, { 1.0f, 0.88f, 1.0f }, 25.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0xD, 0, 0, 0, { 0.0f, 0.0f, 0.0f }, 0.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0, { 0.0f, 0.0f, 0.0f }, 0.0f },
+    { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0, { 0.0f, 0.0f, 0.0f }, 0.0f },
+};
+
+static PalaceSandStarTable sandStarPlacementConfig = {
+    {
+        { { 0.0f, 0.15f, 60.0f }, 8, 1, 1, 0 },
+        { { 20.0f, 0.15f, 60.0f }, 8, 1, 2, 0 },
+        { { -20.0f, 0.15f, 60.0f }, 8, 1, 3, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0xD, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0xB, 1, 1, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0xD, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+        { { 0.0f, 0.0f, 0.0f }, 0, 0, 0, 0 },
+    },
+    { 0.0f, 0.0f, 10.0f },
+    { 0, 1, 1, 0 },
+    { 0.0f, -90.0f, 0.0f, 30.0f, -120.0f, 0.0f, 0.0f, 360.0f },
+    0,
+    { 1, 2, 2, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2, 6, 6, 8, 8, 9, 8, 9, 8, 8, 8, 9, 0, 0 },
+};
+
+static f32 lbl_3_data_188E0[2] = { 0.1f, 0.0f };
 
 // .text:0x000CB8A8 size:0x1F4 mapped:0x8070A93C
 void fn_3_CB8A8(StadiumObject* obj) {
@@ -361,11 +441,11 @@ void fn_3_CC354(StadiumLink* links) {
     if (links != NULL) {
         for (i = 0; i < 4; i++, link++) {
             if (i == 3) {
-                link->weight = lbl_3_data_188E0;
+                link->weight = lbl_3_data_188E0[0];
                 link->radius = 0.504375f;
                 link->pinned = 1;
             } else {
-                link->weight = lbl_3_data_188E0;
+                link->weight = lbl_3_data_188E0[0];
                 link->radius = 0.504375f;
             }
             link->mobility = 1.0f / link->weight;
@@ -1028,10 +1108,10 @@ void fn_3_CF278(PalaceStarObj* obj, Vec* pos) {
             p->vel.z = 0.02 * (f32)sin(ang);
             p->vel.y = -0.01f;
             cosA = (f32)cos(ang);
-            p->pos.x = (f32)(3.0 * cosA + (f32)(rand() % 100 - 50) / 100.0f) + sandStarPlacementConfig[obj->index].pos.x;
-            p->pos.y = -sandStarPlacementConfig[obj->index].pos.y;
+            p->pos.x = (f32)(3.0 * cosA + (f32)(rand() % 100 - 50) / 100.0f) + sandStarPlacementConfig.entries[obj->index].pos.x;
+            p->pos.y = -sandStarPlacementConfig.entries[obj->index].pos.y;
             sinA = (f32)sin(ang);
-            p->pos.z = (f32)(3.0 * sinA + (f32)(rand() % 100 - 50) / 100.0f) + sandStarPlacementConfig[obj->index].pos.z;
+            p->pos.z = (f32)(3.0 * sinA + (f32)(rand() % 100 - 50) / 100.0f) + sandStarPlacementConfig.entries[obj->index].pos.z;
             p->age = 15;
             p->colorR = p->colorG = p->colorB = 0xFF;
             p->alpha = 0;
@@ -1105,8 +1185,8 @@ void warioPalaceSandStarRelated(PalaceStarObj* obj) {
         endFrame = actor->endFrame;
         rate = actor->rate;
         if (actor->frame == (f32)endFrame) {
-            CTRLSetTranslation((Control*)obj, sandStarPlacementConfig[obj->index].pos.x, 5.0f,
-                               sandStarPlacementConfig[obj->index].pos.z);
+            CTRLSetTranslation((Control*)obj, sandStarPlacementConfig.entries[obj->index].pos.x, 5.0f,
+                               sandStarPlacementConfig.entries[obj->index].pos.z);
             obj->actor = NULL;
             obj->hasShadow = 0;
         }
@@ -2719,14 +2799,14 @@ void fn_3_D501C(StadiumLink* links) {
         link = links;
         for (i = 0; i < 8; i++, link++) {
             if (i == 7) {
-                link->weight = lbl_3_data_188E0;
+                link->weight = lbl_3_data_188E0[0];
                 link->radius = 0.504375f;
                 link->pinned = 1;
             } else {
                 if (i == 0) {
                     link->pinned = 1;
                 }
-                link->weight = lbl_3_data_188E0;
+                link->weight = lbl_3_data_188E0[0];
                 link->radius = 0.504375f;
             }
             link->mobility = 1.0f / link->weight;
@@ -2943,7 +3023,7 @@ void fn_3_D5C8C(s32* idx) {
         off = (u16)(stadiumObjectCollision.vertexOffsets[*idx - 1] + stadiumObjectCollision.hazardData[*idx - 1]);
         stadiumObjectCollision.vertexOffsets[*idx] = off;
         initBoundingBoxLimits();
-        cfg = sandStarPlacementConfig;
+        cfg = sandStarPlacementConfig.entries;
         for (j = 0; j < lbl_3_bss_A023; cfg++, j++) {
             if (i == cfg->group && cfg->usedFlag != 0xD) {
                 k = j + lbl_3_bss_A022;
@@ -3171,8 +3251,7 @@ void loadWarioPalace(void** files) {
 
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     n = 0;
-    ids = _OSAllocFromHeap(4, 0x68);
-    stadiumObjectCollision._34 = ids;
+    ids = stadiumObjectCollision._34 = _OSAllocFromHeap(4, 0x68);
     processStadiumFileObjects((u8*)&lbl_3_data_182C0 + 0x604, 0x1A, (u8*)files, ids);
     lbl_3_bss_ADD0[0] = (u32)files[0];
     lbl_3_data_182C0 = -1;
@@ -3205,14 +3284,14 @@ void loadWarioPalace(void** files) {
         }
     }
     propCount += sandCount;
-    starCfg = sandStarPlacementConfig;
+    starCfg = sandStarPlacementConfig.entries;
     for (starCount = 0; starCount < 10; starCount++) {
         if (starCfg[starCount].usedFlag == 0xD) {
             break;
         }
     }
     propCount += starCount;
-    sunCfg = &sandStarPlacementConfig[11];
+    sunCfg = &sandStarPlacementConfig.entries[11];
     for (sunCount = 0; sunCount < 10; sunCount++) {
         if (sunCfg[sunCount].usedFlag == 0xD) {
             break;
@@ -3621,8 +3700,8 @@ void loadWarioPalace(void** files) {
         }
         if (starDone) {
             for (k = j; k < 11; k++) {
-                memset(&sandStarPlacementConfig[k], 0, sizeof(PalaceSandStarPlacement));
-                sandStarPlacementConfig[k].usedFlag = 0xD;
+                memset(&sandStarPlacementConfig.entries[k], 0, sizeof(PalaceSandStarPlacement));
+                sandStarPlacementConfig.entries[k].usedFlag = 0xD;
             }
             break;
         }

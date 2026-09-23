@@ -124,8 +124,20 @@ typedef struct _YoshiModelRoot {
     /*0x10*/ YoshiModelLevel1* next;
 } YoshiModelRoot;
 
-extern YoshiPlantPlacement parkPlantData[11];
-extern u8 enumObjTypeInFile_ARRAY_807ca604[];
+static YoshiPlantPlacement parkPlantData[11] = {
+    { -18.0f, 0.0f, 52.0f, 0.0f, 0, 1, 1, 0, 0.0f, 360.0f },
+    { -35.0f, 0.0f, 35.0f, 0.0f, 0, 1, 2, 0, 315.0f, 180.0f },
+    { 35.0f, 0.0f, 35.0f, 0.0f, 0, 1, 3, 0, 225.0f, 180.0f },
+    { 18.0f, 0.0f, 52.0f, 0.0f, 0, 1, 4, 0, 0.0f, 360.0f },
+    { 34.0f, 0.0f, 78.0f, 0.0f, 0, 1, 5, 0, 0.0f, 360.0f },
+    { -34.0f, 0.0f, 78.0f, 0.0f, 0, 1, 6, 0, 0.0f, 360.0f },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 2, 0, 0xFF, 0, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f },
+};
+static u8 enumObjTypeInFile_ARRAY_807ca604[0x14] = { 1, 3, 4, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0 };
 extern u8 hugeAnimStruct[0x3154];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -934,8 +946,7 @@ void loadYoshiPark(void** files) {
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     stadiumObjectCollision.updateFunc = fn_3_E1DB8;
     ambientActive = FALSE;
-    ids = _OSAllocFromHeap(4, 0x38);
-    stadiumObjectCollision._34 = ids;
+    ids = stadiumObjectCollision._34 = _OSAllocFromHeap(4, 0x38);
     processStadiumFileObjects(enumObjTypeInFile_ARRAY_807ca604, 0xE, (u8*)files, ids);
 
     for (i = 0; i < 10; i++) {

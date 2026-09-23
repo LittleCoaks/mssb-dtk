@@ -35,5 +35,6 @@ void fn_3_FA3C0(void);
 void loadPeachGarden(void** files);
 void fn_3_FB3D8(void* view);
 void fn_3_FBBA0(struct _GardenTexInfo* info);
+void fn_3_FBCD0(void);
 
 #endif // !__GAME_STADIUM_STA_C4_H_

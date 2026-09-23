@@ -240,10 +240,6 @@ extern u8 hugeAnimStruct[0x3154];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
-extern GardenData lbl_3_data_1BA88;
-extern GardenBlockPlacement blocks[];
-extern Vec lbl_3_data_1BF6C[21];
-extern u8 lbl_3_data_1C068[20][3];
 extern UIRecordDescriptor lbl_3_data_10E9C[];
 extern u8 lbl_3_data_10F7C[];
 extern u8 lbl_3_data_10F84[];
@@ -251,12 +247,112 @@ extern u8 lbl_3_data_10F88[];
 extern u8 lbl_3_data_11008[];
 extern GardenCrowdSeat lbl_3_data_110A8[32];
 extern GardenCrowdSeat lbl_3_data_11138[16];
-extern void fn_3_FBCD0(void);
 extern void fn_80035750(void* a, void* b, int c);
 extern void fn_8003403C(f32 w, f32 h);
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
 extern void fn_800245EC(void* camera, MtxPtr m, Vec* src, f32* dst, int count, int arg5);
 extern void fn_8003A144(void);
+extern void fn_800A7D4C(s32 arg0, void* arg1);
+extern u8 drawStadiumRelated;
+
+typedef struct _GardenBlockTable {
+    /*0x000*/ GardenBlockPlacement entries[50];
+    /*0x3E8*/ u8 objTypes[0x11];
+} GardenBlockTable; // size: 0x3FC
+
+typedef struct _GardenCameraSlot {
+    /*0x00*/ u32 _00;
+    /*0x04*/ void (*draw)(void* view);
+    /*0x08*/ u8 _08[0x30];
+    /*0x38*/ Mtx mtx;
+    /*0x68*/ u8 _68[4];
+} GardenCameraSlot; // size: 0x6C
+
+static GardenHitFn lbl_3_data_1BA88[4] = { fn_3_F9E78, fn_3_F99F0, fn_3_F976C, fn_3_F9B9C };
+
+static GardenBlockTable blocks = {
+    {
+        { -12.0f, -12.0f, 55.0f, 350.0f, GARDEN_BLOCK_MYSTERY, 1, 1, GARDEN_BLOCK_RANDOM },
+        { 12.0f, -12.0f, 55.0f, 10.0f, GARDEN_BLOCK_MYSTERY, 1, 1, GARDEN_BLOCK_RANDOM },
+        { -20.0f, -9.0f, 73.0f, 350.0f, GARDEN_BLOCK_MYSTERY, 1, 1, GARDEN_BLOCK_RANDOM },
+        { 20.0f, -9.0f, 73.0f, 10.0f, GARDEN_BLOCK_MYSTERY, 1, 1, GARDEN_BLOCK_RANDOM },
+        { -25.0f, -9.0f, 45.0f, 320.0f, GARDEN_BLOCK_MYSTERY, 1, 2, GARDEN_BLOCK_RANDOM },
+        { -51.0f, -9.0f, 65.0f, 315.0f, GARDEN_BLOCK_NOTE, 1, 2, GARDEN_BLOCK_RANDOM },
+        { -39.0f, -10.0f, 52.0f, 315.0f, GARDEN_BLOCK_NOTE, 1, 3, GARDEN_BLOCK_RANDOM },
+        { -30.0f, -12.0f, 62.0f, 325.0f, GARDEN_BLOCK_USED, 1, 3, GARDEN_BLOCK_RANDOM },
+        { 25.0f, -9.0f, 45.0f, 40.0f, GARDEN_BLOCK_MYSTERY, 1, 4, GARDEN_BLOCK_RANDOM },
+        { 51.0f, -9.0f, 65.0f, 45.0f, GARDEN_BLOCK_NOTE, 1, 4, GARDEN_BLOCK_RANDOM },
+        { 39.0f, -10.0f, 52.0f, 45.0f, GARDEN_BLOCK_NOTE, 1, 5, GARDEN_BLOCK_RANDOM },
+        { 30.0f, -12.0f, 62.0f, 35.0f, GARDEN_BLOCK_USED, 1, 5, GARDEN_BLOCK_RANDOM },
+        { -29.0f, -9.0f, 26.0f, 265.0f, GARDEN_BLOCK_USED, 1, 6, GARDEN_BLOCK_RANDOM },
+        { -39.0f, -10.0f, 36.0f, 265.0f, GARDEN_BLOCK_BRICK, 1, 6, GARDEN_BLOCK_RANDOM },
+        { 29.0f, -9.0f, 26.0f, 85.0f, GARDEN_BLOCK_USED, 1, 7, GARDEN_BLOCK_RANDOM },
+        { 39.0f, -10.0f, 36.0f, 85.0f, GARDEN_BLOCK_BRICK, 1, 7, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_DEBRIS, 1, 9, GARDEN_BLOCK_RANDOM },
+        { 0.0f, 0.0f, 0.0f, 0.0f, GARDEN_BLOCK_SHADOW, 1, 9, GARDEN_BLOCK_RANDOM },
+    },
+    { 1, 2, 4, 2, 2, 2, 2, 2, 2, 6, 6, 6, 6, 8, 9, 0, 0 },
+};
+
+static GardenCameraSlot lbl_3_data_1BE94[2] = {
+    { 2, fn_3_FB3D8 },
+    { 2, fn_3_FB3D8 },
+};
+
+static Vec lbl_3_data_1BF6C[21] = {
+    { 1.2209f, -0.1f, 67.7082f },
+    { -1.2209f, -0.1f, 67.7082f },
+    { -3.5431f, -0.1f, 66.9536f },
+    { -5.5184f, -0.1f, 65.5184f },
+    { -6.9536f, -0.1f, 63.5431f },
+    { -7.7082f, -0.1f, 61.2209f },
+    { -7.7082f, -0.1f, 58.7791f },
+    { -6.9536f, -0.1f, 56.4569f },
+    { -5.5184f, -0.1f, 54.4816f },
+    { -3.5431f, -0.1f, 53.0464f },
+    { -1.2209f, -0.1f, 52.2918f },
+    { 1.2209f, -0.1f, 52.2918f },
+    { 3.5431f, -0.1f, 53.0464f },
+    { 5.5184f, -0.1f, 54.4816f },
+    { 6.9536f, -0.1f, 56.4569f },
+    { 7.7082f, -0.1f, 58.7791f },
+    { 7.7082f, -0.1f, 61.2209f },
+    { 6.9536f, -0.1f, 63.5431f },
+    { 5.5184f, -0.1f, 65.5184f },
+    { 3.5431f, -0.1f, 66.9536f },
+    { 0.0f, -0.1f, 60.0f },
+};
+
+static u8 lbl_3_data_1C068[20][3] = {
+    { 0x14, 0x13, 0 },
+    { 0x14, 1, 2 },
+    { 0x14, 0x10, 0x11 },
+    { 0x14, 0xC, 0xD },
+    { 0x14, 5, 6 },
+    { 0x14, 0x12, 0x13 },
+    { 0x14, 3, 4 },
+    { 0x14, 0xE, 0xF },
+    { 0x14, 0xA, 0xB },
+    { 0x14, 7, 8 },
+    { 0x14, 0x11, 0x12 },
+    { 0x14, 8, 9 },
+    { 0x14, 2, 3 },
+    { 0x14, 0xB, 0xC },
+    { 0x14, 0, 1 },
+    { 0x14, 9, 0xA },
+    { 0x14, 0xF, 0x10 },
+    { 0x14, 6, 7 },
+    { 0x14, 4, 5 },
+    { 0x14, 0xD, 0xE },
+};
 
 #define GARDEN_ANIM_TABLE (*(u8**)(hugeAnimStruct + 0x6C))
 
@@ -635,15 +731,15 @@ void fn_3_F934C(void) {
         PSVECScale(&tmp, speed, vel);
     }
     CTRLSetTranslation((Control*)&stadiumObjectCollision.objects[node->objIndex],
-                       node->displacement.x + blocks[node->objIndex].x,
-                       node->displacement.y + blocks[node->objIndex].y,
-                       node->displacement.z + blocks[node->objIndex].z);
+                       node->displacement.x + blocks.entries[node->objIndex].x,
+                       node->displacement.y + blocks.entries[node->objIndex].y,
+                       node->displacement.z + blocks.entries[node->objIndex].z);
     shadow = (u16)(nBlockObj + 9);
     shadow = node->objIndex + shadow;
     CTRLGetTranslation((Control*)&stadiumObjectCollision.objects[shadow], &tmp.x, &tmp.y, &tmp.z);
     CTRLSetTranslation((Control*)&stadiumObjectCollision.objects[shadow],
-                       node->displacement.x + blocks[node->objIndex].x, tmp.y,
-                       node->displacement.z + blocks[node->objIndex].z);
+                       node->displacement.x + blocks.entries[node->objIndex].x, tmp.y,
+                       node->displacement.z + blocks.entries[node->objIndex].z);
 }
 
 // .text:0x000F963C size:0x130 mapped:0x807386D0
@@ -690,7 +786,7 @@ void fn_3_F9B9C(int idx, int arg1, void* hit) {
             fn_3_F963C(idx, hit);
         }
         o->model = (StadiumModel*)(GARDEN_ANIM_TABLE + ((GardenBlockObj*)o)->variant * 0x90 + 0x34);
-        o->func = (int (*)(int, int, void*))lbl_3_data_1BA88.hitFns[((GardenBlockObj*)o)->variant];
+        o->func = (int (*)(int, int, void*))lbl_3_data_1BA88[((GardenBlockObj*)o)->variant];
         shadowBit = 0;
         if (o->hasShadow && o->triangles != NULL) {
             shadowBit = 1;
@@ -761,8 +857,8 @@ void fn_3_F9E78(int idx, int arg1, void* hit) {
                 updateBoneParam(act->actor, act->applyFlags & 1);
                 ((GardenBlockObj*)d)->debrisFrame = 0.0f;
                 ((Control*)d)->type = 0;
-                CTRLSetTranslation((Control*)d, blocks[idx].x, blocks[idx].y, blocks[idx].z);
-                CTRLSetRotation((Control*)d, 0.0f, blocks[idx].rotation, 0.0f);
+                CTRLSetTranslation((Control*)d, blocks.entries[idx].x, blocks.entries[idx].y, blocks.entries[idx].z);
+                CTRLSetRotation((Control*)d, 0.0f, blocks.entries[idx].rotation, 0.0f);
                 debrisSlots[i] = ((GardenBlockObj*)d)->index;
                 break;
             }
@@ -784,7 +880,7 @@ void fn_3_F9E78(int idx, int arg1, void* hit) {
             fn_3_F963C(idx, hit);
         }
         o->model = (StadiumModel*)(GARDEN_ANIM_TABLE + ((GardenBlockObj*)o)->variant * 0x90 + 0x34);
-        o->func = (int (*)(int, int, void*))lbl_3_data_1BA88.hitFns[((GardenBlockObj*)o)->variant];
+        o->func = (int (*)(int, int, void*))lbl_3_data_1BA88[((GardenBlockObj*)o)->variant];
         shadowBit = 0;
         if (o->hasShadow && o->triangles != NULL) {
             shadowBit = 1;
@@ -823,7 +919,7 @@ void fn_3_FA3C0(void) {
         off = (u16)(stadiumObjectCollision.vertexOffsets[count - 1] + stadiumObjectCollision.hazardData[count - 1]);
         stadiumObjectCollision.vertexOffsets[count] = off;
         initBoundingBoxLimits();
-        cfg = blocks;
+        cfg = blocks.entries;
         for (j = 0; j < stadiumObjectCollision.objectCount; cfg++, j++) {
             if (group == cfg->group && stadiumObjectCollision.objects[j]._90b1) {
                 ((s32*)stadiumObjectCollision.vertexData)[off] = j;
@@ -845,7 +941,7 @@ void fn_3_FA3C0(void) {
 
 // .text:0x000FA58C size:0xE4C mapped:0x80739620
 void loadPeachGarden(void** files) {
-    GardenData* data = &lbl_3_data_1BA88;
+    GardenData* data = (GardenData*)lbl_3_data_1BA88;
     GardenBlockPlacement* cfg;
     GardenBlockObj* b;
     StadiumCrowdWave* wave;
@@ -864,8 +960,7 @@ void loadPeachGarden(void** files) {
     stadiumObjectCollision.preUpdateFunc = g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES ? NULL : fn_3_FBCD0;
     stadiumObjectCollision.updateFunc = fn_3_F8454;
     emitterPaused = TRUE;
-    ids = _OSAllocFromHeap(4, 0x44);
-    stadiumObjectCollision._34 = ids;
+    ids = stadiumObjectCollision._34 = _OSAllocFromHeap(4, 0x44);
     processStadiumFileObjects(data->objTypes, 0x11, (u8*)files, ids);
     sprayTexture = (u32)files[0];
     fn_80035750(files[ids[16]], files[ids[15]], 5);
@@ -1314,4 +1409,13 @@ void fn_3_FBBA0(GardenTexInfo* info) {
     GXInitTexObjLOD(&tex, info->minFilter, info->magFilter, info->minLOD, info->maxLOD, info->lodBias, GX_DISABLE,
                     GX_DISABLE, GX_ANISO_1);
     GXLoadTexObj(&tex, GX_TEXMAP0);
+}
+
+// .text:0x000FBCD0 size:0x88 mapped:0x8073AD64
+void fn_3_FBCD0(void) {
+    updateGameStatusFlag();
+    if (g_GameLogic.bOD_framesInLiveBallScene >= 0) {
+        PSMTXCopy(fn_80052768_getCamera(0)->view, lbl_3_data_1BE94[drawStadiumRelated].mtx);
+        fn_800A7D4C(1, &lbl_3_data_1BE94[drawStadiumRelated]);
+    }
 }
