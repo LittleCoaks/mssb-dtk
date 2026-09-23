@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_KINOKO_H_
-#define __GAME_STADIUM_KINOKO_H_
+#ifndef __GAME_MINIGAME_KINOKO_H_
+#define __GAME_MINIGAME_KINOKO_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/vec.h"
@@ -23,4 +23,4 @@ void fn_3_16B5B4(struct _RibbonPoint* p, s8 bone, int frame);
 void fn_3_16B884(void);
 void fn_3_16C394(s8 charID);
 
-#endif // !__GAME_STADIUM_KINOKO_H_
+#endif // !__GAME_MINIGAME_KINOKO_H_

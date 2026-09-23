@@ -1,4 +1,4 @@
-#include "game/stadium/kinoko.h"
+#include "game/minigame/kinoko.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/mtx.h"
