@@ -141,7 +141,7 @@ typedef struct _StadiumCrowdWave {
     /*0x00*/ u8 pattern[0x18];
     /*0x18*/ void* frames;
     /*0x1C*/ f32 cosAngle;
-    /*0x20*/ u8 mode;
+    /*0x20*/ u8 rowCount;
 } StadiumCrowdWave;
 
 typedef struct _StadiumObjectCollision {
@@ -242,7 +242,7 @@ void fn_3_16E328(void);
 void fn_800528B4(void);
 extern f32 lbl_3_data_11178[5];
 
-void randomizeAndLoadSoundEffect(int soundId, int arg);
+int randomizeAndLoadSoundEffect(int soundId, int arg);
 void maybeYoshiParkGXRelated(void);
 void fn_3_B8184(StadiumModel* model, Mtx m);
 void fn_8003A8A0(struct DODisplayObj* dispObj, Mtx m, int arg);

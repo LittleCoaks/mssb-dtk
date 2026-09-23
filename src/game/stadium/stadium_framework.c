@@ -86,14 +86,14 @@ static u8 lbl_3_bss_1902;
 static u8 lbl_3_bss_1901;
 
 // .text:0x000B7FC8 size:0x108 mapped:0x806F705C
-void randomizeAndLoadSoundEffect(int soundId, int arg) {
+int randomizeAndLoadSoundEffect(int soundId, int arg) {
     Vec pos = {0.0f, 0.0f, 37.0f};
     f32 angle = 0.017453292f * lbl_3_data_11178[rand() % 5];
 
     pos.x = 100.0f * (f32)cos(angle) + pos.x;
     pos.y += -30.0f;
     pos.z = 100.0f * (f32)sin(angle) + pos.z;
-    initializeStadiumObjectEmitter(soundId, &pos, NULL, arg);
+    return initializeStadiumObjectEmitter(soundId, &pos, NULL, arg);
 }
 
 // .text:0x000B80D0 size:0xB4 mapped:0x806F7164

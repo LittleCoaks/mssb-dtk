@@ -1117,7 +1117,7 @@ void loadPeachGarden(void** files) {
         fn_3_35E4((int)fanAnimationRelated);
         wave = stadiumObjectCollision.crowdWave;
         wave->frames = g_UNK_StadiumDetails._00;
-        wave->mode = 2;
+        wave->rowCount = 2;
         wave->cosAngle = cos(1.3962634801864624);
         wave->pattern[0] = 8;
         wave->pattern[1] = 2;
