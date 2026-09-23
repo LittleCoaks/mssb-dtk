@@ -292,7 +292,6 @@ void knockOut_setPosAndVelo(int fielderIndex) {
     }
 }
 
-extern void playCharacterSound(int charID, int soundIndex);
 extern void knockBallLoose(int fielderIndex, int flag);
 
 // .text:0x000253A4 size:0x2A4 mapped:0x80664438
@@ -4193,7 +4192,6 @@ void fn_3_2F7D4(int fielderIndex) {
 }
 
 extern const f32 lbl_3_rodata_B60;
-extern void playCharacterSound(int charID, int soundIndex);
 
 // .text:0x0002F924 size:0x278 mapped:0x8066E9B8
 void wallSplat_setPosAndVelo(int fielderIndex) {

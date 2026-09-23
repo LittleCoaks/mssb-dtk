@@ -8,7 +8,7 @@ void actorRelated(void* effect, int arg1, int arg2) {
     return;
 }
 
-void actRelated(void* file) {
+void actRelated(void* file, void* effect) {
     return;
 }
 

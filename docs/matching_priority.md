@@ -133,7 +133,7 @@ dropped 97.93% → 80.07%, and even files that never call `dolsqrtf2` at all
 functions dropped 1515 → 1489. The change was fully reverted (verified back
 to exact baseline). Conclusion: `extern` linkage is load-bearing for how
 MWCC pools/reuses float literals project-wide (`-str reuse,readonly`), not
-an unwanted leak — and at least one non-caller file (`stadium/kinoko.c`)
+an unwanted leak — and at least one non-caller file (`minigame/kinoko.c`)
 already carries the same materialized statics in the *retail* binary, so the
 original "target has zero residue, we have extra" premise doesn't fully
 hold either. **Don't re-attempt this specific fix without new evidence** —

@@ -493,7 +493,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
         adjustInternalPointers(files[ids[15]]);
         ACTActorRelated(files[ids[15]], *animTable + 0x34);
         lbl_3_bss_A034[460] = (u32)files[ids[17]];
-        actRelated(files[ids[15]]);
+        actRelated(files[ids[15]], &lbl_3_bss_A034[460]);
         actorRelated(&lbl_3_bss_A034[460], 0, 1);
     }
     fn_80035750(files[ids[25]], files[ids[24]], 5);
@@ -1051,7 +1051,7 @@ void starHitAnimation(int idx) {
     Vec trans;
     Vec ballPos;
     Vec pos;
-    u8 stadiumID;
+    int stadiumID;
     u8 vol;
     u8 val;
     SND_VOICEID voice;
@@ -1077,7 +1077,7 @@ void starHitAnimation(int idx) {
         obj->actor = (PalaceStarActor*)((u8*)lbl_3_bss_A034 + obj->index * 0x5C);
         actorRelated(obj->actor, 0, 0);
         obj->actor->_1A = 1;
-        obj->actor->_58 = 0xFF;
+        obj->actor->_58 = -1;
         stadiumID = g_d_GameSettings.StadiumID;
         vol = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD ? lbl_3_data_84B8[0]
                                                                        : stadiumHazardSoundFxRelated[stadiumID * 0x1E];
@@ -1396,7 +1396,7 @@ void fn_3_D0534(PalaceNadoObj* obj) {
             g_Ball.physicsSubstruct.velocity.z = c.z * mag;
             obj->state = 3;
             setBallInactiveVariables();
-            stadiumObjectCollision._6B = 0;
+            stadiumObjectCollision.hazardHitActive = 0;
             lbl_3_bss_A030 = 0.0f;
             sndFXKeyOff(lbl_3_data_182C0);
             sndFXCtrl(lbl_3_data_182C0, 7, 0);
@@ -1442,7 +1442,7 @@ void palaceNadoLogic(PalaceNadoObj* obj) {
         if (obj->state != 0) {
             if (obj->state == 2) {
                 setBallInactiveVariables();
-                stadiumObjectCollision._6B = 0;
+                stadiumObjectCollision.hazardHitActive = 0;
                 lbl_3_bss_A030 = 0.0f;
                 sndFXKeyOff(lbl_3_data_182C0);
                 sndFXCtrl(lbl_3_data_182C0, 7, 0);
@@ -1485,7 +1485,7 @@ void palaceNadoLogic(PalaceNadoObj* obj) {
             g_Ball.AtBat_Contact_BallPos.z = obj->pos.z + d.z;
             obj->state = 2;
             setValsForPlantCatches();
-            stadiumObjectCollision._6B = 1;
+            stadiumObjectCollision.hazardHitActive = 1;
             obj->spread = fn_3_D0854((StadiumObject*)obj);
             if (obj->spread < 0.0f) {
                 obj->spread = 360.0 + obj->spread;
@@ -3279,7 +3279,7 @@ void loadWarioPalace(void** files) {
         for (i = 0; i < chompCount; i++) {
             if (i == 0) {
                 effects[0].file = (u32)files[ids[17]];
-                actRelated(files[ids[15]]);
+                actRelated(files[ids[15]], &effects[0]);
             } else {
                 memcpy(&effects[i], &effects[i - 1], sizeof(PalaceActEffect));
                 effects[i].srcFile = (u32)files[ids[i + 15]];
@@ -3296,7 +3296,7 @@ void loadWarioPalace(void** files) {
         for (i = 0; i < sunCount; i++) {
             if (i == 0) {
                 effects[0].file = (u32)files[ids[19]];
-                actRelated(files[ids[18]]);
+                actRelated(files[ids[18]], &effects[0]);
             } else {
                 memcpy(&effects[i], &effects[i - 1], sizeof(PalaceActEffect));
                 effects[i].srcFile = (u32)files[ids[i + 18]];
@@ -3315,7 +3315,7 @@ void loadWarioPalace(void** files) {
         for (i = 0; i < starCount; i++) {
             if (i == 0) {
                 effects[0].file = (u32)files[ids[23]];
-                actRelated(files[ids[20]]);
+                actRelated(files[ids[20]], &effects[0]);
             } else {
                 memcpy(&effects[i], &effects[i - 1], sizeof(PalaceActEffect));
                 effects[i].srcFile = (u32)files[ids[i + 20]];

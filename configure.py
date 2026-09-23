@@ -1060,7 +1060,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_3E00.c"),
             Object(NonMatching, "game/animation/magikoopa_star_anim.c"),
             Object(NonMatching, "game/animation/actor_transform.c"),
-            Object(NonMatching, "game/stadium/kinoko.c"),
+            Object(NonMatching, "game/minigame/kinoko.c"),
             Object(NonMatching, "game/ball/ball_fielder_collision.c"),
             Object(NonMatching, "game/hud/rep_4138.c"),
         ]

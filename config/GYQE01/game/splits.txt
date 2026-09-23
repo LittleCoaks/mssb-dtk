@@ -399,10 +399,10 @@ game/animation/actor_transform.c:
 	.text       start:0x00168414 end:0x001690C0
 	.rodata     start:0x00003F60 end:0x00003FD8
 
-game/stadium/kinoko.c:
+game/minigame/kinoko.c:
 	.text       start:0x0016917C end:0x0016C410
 	.rodata     start:0x00003FD8 end:0x00004090
-	.data       start:0x0002A330 end:0x0002A404
+	.data       start:0x00028928 end:0x0002A404
 	.bss        start:0x0000BA00 end:0x0000D6E0
 
 game/ball/ball_fielder_collision.c:
