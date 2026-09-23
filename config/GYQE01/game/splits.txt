@@ -272,8 +272,9 @@ game/stadium/stadium_yoshi_park.c:
 	.bss        start:0x0000AE00 end:0x0000AE50
 
 game/stadium/sta_c6.c:
-	.text       start:0x000E59B4 end:0x000E911C
+	.text       start:0x000E587C end:0x000E911C
 	.rodata     start:0x00002B40 end:0x00002BF8
+	.data       start:0x00019018 end:0x00019770
 	.bss        start:0x0000AE50 end:0x0000AEE0
 
 game/minigame/toy_field_offscreen.c:
