@@ -148,6 +148,12 @@ typedef struct {
 } StatisticsBatter; // size: 0x26
 
 typedef struct {
+    /* 0x00 */ u8 _00[0x1A];
+    /* 0x1A */ u8 outsAsPitcher;
+    /* 0x1B */ u8 _1B[3];
+} StatisticsPitcher; // size: 0x1E
+
+typedef struct {
     /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS]; // the master stat table, one row per CHAR_ID (copied into inMemRoster)
     /* 0x21C0 */ u8 _21C0[0x46E0 - 0x21C0];
     /* 0x46E0 */ int captainSelectedID[2];
@@ -173,12 +179,29 @@ typedef struct {
     /* 0x478D */ u8 battingOrderIndex[9];
     /* 0x4796 */ u8 _4796[0x489B - 0x4796];
     /* 0x489B */ u8 charIsStarred[9];
-    /* 0x48A4 */ u8 _48A4[0x4E44 - 0x48A4];
-    /* 0x4E44 */ StatisticsBatter batterStats[2][9];
-    /* 0x50F0 */ u8 _50F0[0x51F8 - 0x50F0];
-} Static_MSSB_Data; // size: 0x51F8
+    /* 0x48A4 */ u8 _48A4[0x4C28 - 0x48A4];
+} Static_MSSB_Data; // size: 0x4C28
 
 extern Static_MSSB_Data Static_Stats_Tables;
+
+/* The original symbol table gave Static_Stats_Tables a size of 0x51F8, but
+ * every reference past 0x4C28 is to exactly +0x4C28, +0x4E44 or +0x50F0:
+ * three separate globals that follow it in .bss. Split out in
+ * config/GYQE01/symbols.txt so references get their own @ha/@l relocation. */
+extern StatisticsPitcher PitcherStats_P1_P2[2][9]; // 0x803535C8
+extern StatisticsBatter BatterStats_P1_P2[2][9];   // 0x803537E4
+
+// Copies of g_Scores kept for the stats screens (0x80353A90).
+typedef struct {
+    /* 0x00 */ u8 _00[8];
+    /* 0x08 */ ScoreStruct scores[2];
+    /* 0x54 */ ScoreStruct hits[2];
+    /* 0xA0 */ u8 _A0[0xF0 - 0xA0];
+    /* 0xF0 */ u8 stealsAgainst[2];
+    /* 0xF2 */ u8 _F2[0x108 - 0xF2];
+} StatsScreenScoresStruct; // size: 0x108
+
+extern StatsScreenScoresStruct StatsScreenScores;
 
 /* The original symbol table gave Static_Stats_Tables a size of 0x5240,
  * but its last 0x48 bytes (0x80353B98) are a separate global: the menus

@@ -1712,7 +1712,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                     } else if (g_Ball.deadBallReason != 0) {
                         runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DEAD_BALL;
                     } else {
-                        (*(s16*)&g_Scores._pad_50[0x4C])++;
+                        g_Scores._9C++;
                     }
                     if (runner->actionCode != 0) {
                         runner->runningToDugoutInd = 2;
@@ -4700,7 +4700,7 @@ void setDefaultInMemRunner(void) {
     g_RunningLogic._00 = 0;
     g_RunningLogic._10 = 0;
     g_RunningLogic.someSituationTrackerFrames = 0x14;
-    *(u8*)&g_RunningLogic.__0x20padding[10] = 0xFF;
+    g_RunningLogic.__0x20padding[9] = 0xFF;
     runner = g_Runners;
     for (i = 0; i < 4; i++, runner++) {
         if (runner->rosterID >= 0) {
@@ -4810,12 +4810,12 @@ void setDefaultInMemRunner(void) {
             runner->nextBaseCoordinates.z = baseCoordsForRunning[runner->nextBase][1];
         }
     }
-    g_RunningLogic.__0x20padding[0] = (g_RunningLogic._02 & 0x1000) != 0;
+    g_RunningLogic.runnersInScoringPosition = (g_RunningLogic._02 & 0x1000) != 0;
     g_AiLogic._77 = 0;
     g_AiLogic._44 = lbl_3_data_1C58[g_GameLogic.homeTeamBattingInd_fieldingTeam][1];
     g_RunningLogic.someSituationTrackerFrames = g_RunningLogic._10;
     if (g_RunningLogic._02 & 0x100) {
-        g_RunningLogic.__0x20padding[0]++;
+        g_RunningLogic.runnersInScoringPosition++;
     }
     if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
         g_Runners[1].forcedToAdvanceInd = 0;
@@ -4886,7 +4886,7 @@ void updateRunnerPosition(int runnerIdx, int basesAdvanced) {
     runner->nextBase = (runner->currentBase + 1) & 3;
     if (runner->currentBase >= 4) {
         runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DURING_PLAY;
-        (*(s16*)&g_Scores._pad_50[0x4C])++;
+        g_Scores._9C++;
     }
 }
 
@@ -5180,7 +5180,7 @@ void resetInMemRunners(void) {
             g_Runners[i].pitcherWhoLetRunnerOnBase = -1;
         }
     }
-    g_RunningLogic.__0x20padding[0] = 0;
+    g_RunningLogic.runnersInScoringPosition = 0;
     for (i = 0; i < 4; i++) {
         g_Runners[i].position.x = baseCoordsForRunning[i][0];
         g_Runners[i].position.z = baseCoordsForRunning[i][1];
