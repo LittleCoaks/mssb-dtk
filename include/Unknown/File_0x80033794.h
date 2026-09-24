@@ -3,8 +3,8 @@
 
 #include "mssbTypes.h"
 
-void fn_80033794(void);
-void fn_800337CC(void);
+void fn_80033794(void* particles);
+void* fn_800337CC(void* buf, int count, int arg2);
 void pitchingMachinePitching(u8 arg0);
 BOOL fn_80033928(u8 id);
 void fn_80033964(void* effect);

@@ -1,11 +1,11 @@
 #include "Unknown/File_0x80033794.h"
 
-void fn_80033794(void) {
+void fn_80033794(void* particles) {
     return;
 }
 
-void fn_800337CC(void) {
-    return;
+void* fn_800337CC(void* buf, int count, int arg2) {
+    return NULL;
 }
 
 void pitchingMachinePitching(u8 arg0) {

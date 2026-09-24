@@ -248,6 +248,28 @@ typedef enum _BALL_RESULT_TYPE {
     /* 0x3 */ BALL_RESULT_TYPE_CAUGHT
 } BALL_RESULT_TYPE;
 
+typedef enum _DEAD_BALL_REASON {
+    /* 0x0 */ DEAD_BALL_REASON_NONE,
+    /* 0x1 */ DEAD_BALL_REASON_HOME_RUN,
+    /* 0x2 */ DEAD_BALL_REASON_FOUL_BALL,
+    /* 0x3 */ DEAD_BALL_REASON_GROUND_RULE_DOUBLE,
+    /* 0x4 */ DEAD_BALL_REASON_BALL_DEAD,
+} DEAD_BALL_REASON;
+
+typedef enum _BALL_ZONE {
+    /* 0x00 */ BALL_ZONE_IF_GRASS,
+    /* 0x01 */ BALL_ZONE_IF_DIRT,
+    /* 0x02 */ BALL_ZONE_OF_SHALLOW,
+    /* 0x03 */ BALL_ZONE_OF_MID,
+    /* 0x04 */ BALL_ZONE_OF_DEEP,
+    /* 0xFF */ BALL_ZONE_NONE = 0xFF,
+} BALL_ZONE;
+
+typedef struct _ScoreStruct {
+    /*0x00*/ s16 total;
+    /*0x02*/ s16 byInning[18];
+} ScoreStruct; // size: 0x26
+
 typedef s16 frame_t;
 typedef s16 sAng;
 

@@ -592,11 +592,11 @@ void batterAIRNGValueSetting(void) {
                 g_AiLogic.batterAIABStrat = 0;
                 if (g_GameLogic.TeamStars[g_GameLogic.teamBatting] != 0) {
                     urgency = -1;
-                    if (g_Scores.Inning >= g_Scores.inningLimit && g_Strikes.outs == 2 && *(s16*)&g_Scores._pad_50[0x56] != 0) {
+                    if (g_Scores.Inning >= g_Scores.inningLimit && g_Strikes.outs == 2 && g_Scores._A6 != 0) {
                         urgency = 0;
                     } else if ((g_RunningLogic._00 & 0x1000) || g_RunningLogic._10 >= 3) {
                         urgency = 1;
-                    } else if (g_Scores._pad_AC >= 2 && *(s16*)&g_Scores._pad_50[0x56] <= 1 &&
+                    } else if (g_Scores._pad_AC >= 2 && g_Scores._A6 <= 1 &&
                                g_AiLogic.starRelated[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
                         urgency = 2;
                     }
@@ -646,7 +646,7 @@ void batterAIRNGValueSetting(void) {
         if (g_AiLogic.batterAIBuntPossibility != 0) {
             g_AiLogic.batterAIBuntPossibility = 0;
             g_AiLogic.batterAIBuntInd = 0;
-            if (*(s16*)&g_Scores._pad_50[0x56] <= 2 && g_Scores._pad_AC >= 2 && g_Strikes.outs <= 1 &&
+            if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_Strikes.outs <= 1 &&
                 (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111) &&
                 RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
                 g_AiLogic.batterAIBuntInd = 1;
