@@ -57,7 +57,7 @@ typedef struct _PalaceChompPlacement {
     /*0x0D*/ u8 _0D[3];
     /*0x10*/ Vec awakeRotation;
     /*0x1C*/ Vec sleepRotation;
-    /*0x28*/ u8 _28[8];
+    /*0x28*/ f32 _28[2];
     /*0x30*/ u8 sideSelector;
     /*0x31*/ u8 _31[3];
 } PalaceChompPlacement; // size: 0x34
@@ -104,7 +104,7 @@ typedef struct _PalaceTornadoPlacement {
     /*0x0E*/ u8 group;
     /*0x0F*/ u8 _0F;
     /*0x10*/ f32 restYaw;
-    /*0x14*/ u8 _14[0x0C];
+    /*0x14*/ f32 _14[3];
     /*0x20*/ f32 rangeBaseA;
     /*0x24*/ f32 rangeSpanA;
     /*0x28*/ f32 rangeBaseB;
@@ -228,7 +228,7 @@ typedef struct _PalaceStarActor {
     /*0x1C*/ u8 _1C[0x24 - 0x1C];
     /*0x24*/ u16 endFrame;
     /*0x26*/ u8 _26[0x58 - 0x26];
-    /*0x58*/ u8 _58;
+    /*0x58*/ s8 _58;
 } PalaceStarActor;
 
 typedef struct _PalaceStarObj {
@@ -285,15 +285,15 @@ void fn_3_CFAB4(PalaceEffectParticle* p, PalaceEffect* effect);
 BOOL fn_3_CFB44(PalaceEffect* effect);
 void fn_3_CFD58(PalaceHazeObj* obj);
 void fn_3_D00CC(void);
-void fn_3_D00D0(PalaceHazeObj* obj);
+void fn_3_D00D0(StadiumObject* o);
 void fn_3_D0280(void);
-void fn_3_D0284(PalaceNadoRingObj* obj);
+void fn_3_D0284(StadiumObject* o);
 void fn_3_D0490(void);
 void fn_3_D0528(void);
 int fn_3_D052C(void);
 void fn_3_D0534(PalaceNadoObj* obj);
 f32 fn_3_D0854(StadiumObject* obj);
-void palaceNadoLogic(PalaceNadoObj* obj);
+void palaceNadoLogic(StadiumObject* o);
 void fn_3_D1004(PalaceNadoObj* obj, f32 x, f32 y, f32 z, f32 restYaw, f32 yaw);
 void fn_3_D1110(PalaceNadoObj* obj);
 void fn_3_D127C(void);
@@ -318,7 +318,7 @@ void chompState3_longDistanceAttack_Stalk(PalaceChompObj* obj);
 void fn_3_D36B0(PalaceChompObj* obj);
 void chompState1_awake(PalaceChompObj* obj);
 void chompState0(PalaceChompObj* obj);
-void palaceChainChompControl(PalaceChompObj* obj);
+void palaceChainChompControl(StadiumObject* o);
 void fn_3_D4780(StadiumObject* obj);
 void someCTRLButNotCalled(PalaceChompObj* obj);
 void someCTRLButNotCalled2(PalaceChompObj* obj);
