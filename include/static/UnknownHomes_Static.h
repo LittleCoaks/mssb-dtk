@@ -154,7 +154,7 @@ typedef struct {
 } StatisticsPitcher; // size: 0x1E
 
 typedef struct {
-    /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS]; // the master stat table, one row per CHAR_ID (copied into inMemRoster)
+    /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS / 9][9]; // the master stat table, indexed [charID / 9][charID % 9] (copied into inMemRoster)
     /* 0x21C0 */ u8 _21C0[0x46E0 - 0x21C0];
     /* 0x46E0 */ int captainSelectedID[2];
     /* 0x46E8 */ void* _46E8[4];
@@ -168,7 +168,8 @@ typedef struct {
     /* 0x470B */ u8 _470B[2];
     /* 0x470D */ u8 teamName[2];
     /* 0x470F */ u8 startingChemStars[2];
-    /* 0x4711 */ u8 _4711[0x4728 - 0x4711];
+    /* 0x4711 */ u8 _4711[0x4720 - 0x4711];
+    /* 0x4720 */ int unk4720[2];
     /* 0x4728 */ u8 mode;
     /* 0x4729 */ u8 player2Ind;
     /* 0x472A */ u8 sceneAlive;     // 0x803530CA: nonzero while a menu scene is up
@@ -178,8 +179,8 @@ typedef struct {
     /* 0x4757 */ u8 charOnCharacterGridSelected[54]; // "taken" table, one byte per CHAR_ID (0x803530F7)
     /* 0x478D */ u8 battingOrderIndex[9];
     /* 0x4796 */ u8 _4796[0x489B - 0x4796];
-    /* 0x489B */ u8 charIsStarred[9];
-    /* 0x48A4 */ u8 _48A4[0x4C28 - 0x48A4];
+    /* 0x489B */ u8 charIsStarred[2][9];
+    /* 0x48AD */ u8 _48AD[0x4C28 - 0x48AD];
 } Static_MSSB_Data; // size: 0x4C28
 
 extern Static_MSSB_Data Static_Stats_Tables;
@@ -246,7 +247,7 @@ extern MatchInfo_s g_MatchInfo;
  * A large, mostly unlabelled block; only the members in use are named. */
 typedef struct {
     /* 0x0000 */ u8 _0000[0xCF46];
-    /* 0xCF46 */ u8 teamManagement_cursorPos[2];
+    /* 0xCF46 */ s8 teamManagement_cursorPos[2];
     /* 0xCF48 */ u8 _CF48[0xCF5D - 0xCF48];
     /* 0xCF5D */ u8 unkCF5D[2];
     /* 0xCF5F */ u8 _CF5F[0xCF9E - 0xCF5F];

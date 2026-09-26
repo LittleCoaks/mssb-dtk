@@ -126,7 +126,23 @@ typedef struct _CharacterStats {
     /*0x000*/ StatTable stats;
     /*0x03B*/ ChemistryTable chemistry;
     /*0x071*/ u8 BytesAfterChemistry[3];
-    /*0x074*/ s16 UnusedShorts[22]; // through 0x9F: rows are 0xA0 apart (inMemRoster, the static table)
+    /*0x074*/ u16 UnusedShorts[22]; // through 0x9F: rows are 0xA0 apart (inMemRoster, the static table)
 } CharacterStats; // size: 0xA0
+
+// Stat bonus applied to a roster slot when its character is starred.
+typedef struct _SuperstarStatBonus {
+    /*0x00*/ u8 SlapContactSize;
+    /*0x01*/ u8 ChargeContactSize;
+    /*0x02*/ u8 SlapHitPower;
+    /*0x03*/ u8 ChargeHitPower;
+    /*0x04*/ u8 BuntingContactSize;
+    /*0x05*/ u8 Speed;
+    /*0x06*/ u8 ThrowingArm;
+    /*0x07*/ u8 CurveBallSpeed;
+    /*0x08*/ u8 FastBallSpeed;
+    /*0x09*/ u8 cursedBall;
+    /*0x0A*/ u8 Curve;
+    /*0x0B*/ u8 curveControl;
+} SuperstarStatBonus; // size: 0xC
 
 #endif

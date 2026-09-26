@@ -256,7 +256,7 @@ void fn_2_1BAC(void) {
     gameSetUpStep[0x56] = 0;
     gameSetUpStep[0x55] = 0;
     memset(&g_MatchInfo, 0, 0x3A);
-    memset(Static_Stats_Tables.charIsStarred, 0, 0x12);
+    memset(Static_Stats_Tables.charIsStarred, 0, sizeof(Static_Stats_Tables.charIsStarred));
     memset(menuNumber, 0, 0x28);
 }
 
@@ -398,7 +398,7 @@ void mainMenuRelated(void) {
         gameSetUpStep[0x56] = 0;
         gameSetUpStep[0x55] = 0;
         memset(&g_MatchInfo, 0, 0x3A);
-        memset(Static_Stats_Tables.charIsStarred, 0, 0x12);
+        memset(Static_Stats_Tables.charIsStarred, 0, sizeof(Static_Stats_Tables.charIsStarred));
         memset(menuNumber, 0, 0x28);
         p2 = &((u8 *)&Static_Stats_Tables)[0x4712];
         memset(p2, 0, 2);
