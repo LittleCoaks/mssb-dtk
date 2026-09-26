@@ -722,86 +722,6 @@ extern HitShorts g_hitShorts;
 };
 */
 
-typedef struct _GameControlOptions {
-    /*0x000*/ bool autoRunning;
-    /*0x001*/ bool autoFielding;
-    /*0x002*/ bool dropSpot;
-    /*0x003*/ bool _3;
-    /*0x004*/ bool easyBatting;
-    /*0x005*/ bool _5;
-    /*0x006*/ bool _6;
-} GameControlOptions; // size: 0x7
-
-typedef struct _GameInitOptions {
-    /*0x000*/ u8 inningSetting;
-    /*0x001*/ u8 _1;
-    /*0x002*/ u8 _2;
-    /*0x003*/ u8 _3;
-    /*0x004*/ u8 starSkillsSetting;
-    /*0x005*/ u8 runsNeededForMercy;
-    /*0x006*/ u8 _6;
-    /*0x007*/ u8 _7;
-    /*0x008*/ u8 _8;
-    /*0x009*/ GameControlOptions controlOptions[4];
-    /*0x025*/ u8 _25;
-    /*0x026*/ u8 _26;
-    /*0x027*/ u8 _27;
-    /*0x028*/ u8 _28;
-    /*0x029*/ u8 _29;
-    /*0x02A*/ s16 _2A;
-    /*0x02C*/ s16 _2C;
-    /*0x02E*/ s16 _2E;
-    /*0x030*/ s16 _30;
-    /*0x032*/ u8 _32;
-    /*0x033*/ u8 _33;
-    /*0x034*/ u8 _34;
-    /*0x035*/ u8 _35;
-    /*0x036*/ u8 _36;
-    /*0x037*/ u8 _37;
-    /*0x038*/ u8 _38;
-    /*0x039*/ u8 _39;
-    /*0x03A*/ u8 _3A;
-    /*0x03B*/ u8 _3B;
-    /*0x03C*/ u8 _3C;
-    /*0x03D*/ u8 _3D;
-    /*0x03E*/ u8 _3E;
-    /*0x03F*/ u8 _3F;
-    /*0x040*/ u8 _40;
-    /*0x041*/ u8 _41;
-    /*0x042*/ u8 _42;
-    /*0x043*/ u8 _43;
-    /*0x044*/ u8 _44;
-    /*0x045*/ u8 _45;
-    /*0x046*/ u8 _46;
-    /*0x047*/ u8 _47;
-    /*0x048*/ u8 _48;
-    /*0x049*/ u8 _49;
-    /*0x04A*/ u8 _4A;
-    /*0x04B*/ u8 _4B;
-    /*0x04C*/ u8 _4C;
-    /*0x04D*/ u8 _4D;
-    /*0x04E*/ u8 _4E;
-    /*0x04F*/ u8 _4F;
-    /*0x050*/ u8 _50;
-    /*0x051*/ u8 _51;
-    /*0x052*/ u8 _52;
-    /*0x053*/ u8 _53;
-    /*0x054*/ u8 _54;
-    /*0x055*/ u8 _55;
-    /*0x056*/ u8 _56;
-    /*0x057*/ u8 _57;
-    /*0x058*/ u8 _58;
-    /*0x059*/ u8 _59;
-    /*0x05A*/ u8 _5A;
-    /*0x05B*/ u8 _5B;
-    /*0x05C*/ u8 _5C;
-    /*0x05D*/ u8 _5D;
-    /*0x05E*/ u8 _5E;
-    /*0x05F*/ u8 _5F;
-} GameInitOptions; // size: 0x60
-
-extern GameInitOptions gameInitOptions;
-
 typedef enum {
     INPUT_BUTTON_LEFT = PAD_BUTTON_LEFT,
     INPUT_BUTTON_RIGHT = PAD_BUTTON_RIGHT,
@@ -1116,7 +1036,7 @@ typedef struct _LogoInfoStruct {
 } LogoInfoStruct; // size: 0xC
 
 typedef struct _GameControlsStruct {
-    /*0x000*/ s16 homeTeamInd[2];
+    /*0x000*/ int homeTeamInd;
     /*0x004*/ int teamBatting;
     /*0x008*/ int teamFielding;
     /*0x00C*/ int homeTeamBattingInd_fieldingTeam;
