@@ -225,7 +225,7 @@ game/batting/charge_effects.c:
 	.rodata     start:0x00001F58 end:0x00001FD8
 	.bss        start:0x00009D20 end:0x00009D80
 
-game/stadium/stadium_bowser_castle.c:
+game/stadium/sta_c1.c:
 	.text       start:0x000C1964 end:0x000C937C
 	.rodata     start:0x00001FD8 end:0x000021F8
 	.data       start:0x00017508 end:0x00017898
@@ -269,7 +269,7 @@ game/minigame/minigame_fielder_anim.c:
 	.text       start:0x000E11E0 end:0x000E1964
 	.rodata     start:0x00002940 end:0x00002998
 
-game/stadium/stadium_yoshi_park.c:
+game/stadium/sta_c3.c:
 	.text       start:0x000E1DB8 end:0x000E587C
 	.rodata     start:0x00002998 end:0x00002B40
 	.data       start:0x00018ED0 end:0x00019018

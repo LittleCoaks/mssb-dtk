@@ -2002,25 +2002,25 @@ suspect declaration order rather than a different body.
 The same file also found that same-size is not sufficient evidence on its own: `maybeGharialCTRLRel`
 and `maybeBarrelCTRLRel` are both 348 bytes and share nothing but their size.
 
-## Findings from the stadium_bowser_castle / stadium_yoshi_park sessions
+## Findings from the sta_c1 / sta_c3 sessions
 
 **A pipelined struct copy (load x, load y, store x, load z, store y, store z) means the source is
 a by-value `Vec` parameter.** When the target copies a position field by field with the loads
 running ahead of the stores, MWCC knew the source could not alias the destination. A by-value struct
 argument (the caller makes a private copy) gives it that guarantee; `Vec* pos` does not. The caller
 side shows it too: a word copy of the vector to the stack right before the (possibly inlined) call.
-First seen: `fn_3_C48D0(CastleFireballEmitter* handle, Vec pos)` in `stadium_bowser_castle.c` (98.80% ->
+First seen: `fn_3_C48D0(CastleFireballEmitter* handle, Vec pos)` in `sta_c1.c` (98.80% ->
 100%). The same fix matched `fn_3_C24A0` via `updateVectorInArray(int, Vec)`.
 
 **MWCC lays out a TU's `.bss` statics in reverse declaration order.** If a function's code is
 identical but every static access is at the wrong offset (the last-declared array landing at offset 0),
-declare the statics from highest address to lowest. First seen: `stadium_yoshi_park.c`, `fn_3_E1DB8`
+declare the statics from highest address to lowest. First seen: `sta_c3.c`, `fn_3_E1DB8`
 (99.89% -> 100%, and the unit's `.bss` size then matched).
 
 **A still-stubbed callee can be inlined as an empty body and skew its callers' scores.** With
 `-inline auto`, a `return;`/`return FALSE;` stub defined earlier in the file gets inlined, so a caller's
 score is not meaningful until the callee is written. Implement callees before judging callers.
-Seen repeatedly in `stadium_yoshi_park.c` (`ParkPlantsPopUp` 91.67 -> 100% once
+Seen repeatedly in `sta_c3.c` (`ParkPlantsPopUp` 91.67 -> 100% once
 `tryPlantCatchAndBeginSpitAim` was written).
 
 **Callee prototype width shows up at every call site, so fix the prototype, not the calls.**

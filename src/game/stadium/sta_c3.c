@@ -1,4 +1,4 @@
-#include "game/stadium/stadium_yoshi_park.h"
+#include "game/stadium/sta_c3.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
@@ -57,7 +57,7 @@ typedef enum _PLANT_STATE {
 } PLANT_STATE;
 
 // Plant view of a stadiumObjectCollision.objects[] entry (the region past 0x98
-// is laid out per hazard kind, as in stadium_bowser_castle.c).
+// is laid out per hazard kind, as in sta_c1.c).
 typedef struct _YoshiPlantObj {
     /*0x00*/ u8 _00[0x74];
     /*0x74*/ ACTActor* actor;

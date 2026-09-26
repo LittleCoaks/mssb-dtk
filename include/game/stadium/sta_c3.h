@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_YOSHI_PARK_H_
-#define __GAME_STADIUM_STADIUM_YOSHI_PARK_H_
+#ifndef __GAME_STADIUM_STA_C3_H_
+#define __GAME_STADIUM_STA_C3_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
@@ -37,4 +37,4 @@ void processYoshiParkPlantBoundingBoxes(s32* idx, s32* count);
 void fn_3_E4EF4(void);
 void loadYoshiPark(void** files);
 
-#endif // !__GAME_STADIUM_STADIUM_YOSHI_PARK_H_
+#endif // !__GAME_STADIUM_STA_C3_H_

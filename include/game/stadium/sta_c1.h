@@ -1,5 +1,5 @@
-#ifndef __GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_
-#define __GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_
+#ifndef __GAME_STADIUM_STA_C1_H_
+#define __GAME_STADIUM_STA_C1_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
@@ -57,4 +57,4 @@ TriangleGroup* fn_3_C823C(int offset, Mtx m);
 void fn_3_C82B4(void);
 void loadBowserCastle(void** files);
 
-#endif // !__GAME_STADIUM_STADIUM_BOWSER_CASTLE_H_
+#endif // !__GAME_STADIUM_STA_C1_H_
