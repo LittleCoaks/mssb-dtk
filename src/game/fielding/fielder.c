@@ -200,7 +200,6 @@ AutoMovementFunction autoMovementFunctions[29] = {
     { -1, autoMovement28_minigameDashRelated3 },
 };
 
-extern void playCharacterSound(int charID, int soundIndex);
 extern void knockBallLoose(int fielderIndex, int flag);
 
 typedef struct _FielderHitboxConstsEntry {
@@ -223,8 +222,6 @@ extern s16 slidingCatchArray[6];
 extern f32 slidingCatchMultipliers[6];
 
 extern s16 lbl_3_data_1C3C[2];
-
-extern void playCharacterSound(int charID, int soundIndex);
 
 extern const u8 throwWindUpFrames[];
 
@@ -740,7 +737,7 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.smash0_normalThrow1 = 1;
         g_FieldingLogic.stickAngleClassification = 0;
         g_FieldingLogic.framesControlStickPointedInCertainQuadrant = 0;
-        g_FieldingLogic._0132 = 0;
+        g_FieldingLogic.errorTypeCd = FIELDING_ERROR_TYPE_NONE;
         g_FieldingLogic._0131 = 0;
         g_FieldingLogic.someRunnerNum = -1;
         g_FieldingLogic.bigPlayPotential = 0;
@@ -8541,7 +8538,7 @@ void aITeamFieldingFirstFrameAfterHit(void) {
 
     g_FieldingLogic.letFoulBallDropIfWinningRunOn3rdInd = 0;
     catchStrategyMask = 0;
-    if (g_Scores._pad_50[0x5A] <= g_Scores.Inning && g_Scores.halfInning != 0 &&
+    if (g_Scores.inningLimit <= g_Scores.Inning && g_Scores.halfInning != 0 &&
         g_Scores.scores[0].total == g_Scores.scores[1].total &&
         g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 && g_Strikes.storedOuts <= 1 &&
         (g_RunningLogic._02 & 0x1000) != 0 &&

@@ -46,7 +46,6 @@ extern u8 getThrowSpeedBasedOnArmStrengthStat(u8 arm);
 extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern void liveBallHitPhysics(int arg);
 extern void pickoff_infieldThrow_related(int fielderIndex);
-extern void playCharacterSound(int charID, int soundIndex);
 extern void initialize_runnersBeingTargetedWhileBatterCanBeForcedOut(void);
 
 static s32 fielderDesperationLevel[42];

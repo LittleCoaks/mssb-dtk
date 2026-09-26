@@ -111,8 +111,8 @@ void loadStadiumLighting(int stadiumType, void* stadiumData) {
             stadiumObjectCollision.lights[i] = light;
         }
         stadiumObjectCollision.stadiumData = stadiumData;
-        stadiumObjectCollision._08 = NULL;
-        stadiumObjectCollision._0C = NULL;
+        stadiumObjectCollision.crowd = NULL;
+        stadiumObjectCollision.crowdAlt = NULL;
         callStadiumPointerFun[stadiumType](stadiumData);
         stadiumObjectCollision.objectScratch = _OSAllocFromHeap(4, stadiumObjectCollision.objectCount << 3);
         fn_8001B214(fn_3_B8298);
@@ -902,12 +902,12 @@ void maybeYoshiParkGXRelated(void) {
 }
 
 // .text:0x000B7FC8 size:0x108 mapped:0x806F705C
-void randomizeAndLoadSoundEffect(int soundId, int arg) {
+int randomizeAndLoadSoundEffect(int soundId, int arg) {
     Vec pos = {0.0f, 0.0f, 37.0f};
     f32 angle = 0.017453292f * lbl_3_data_11178[rand() % 5];
 
     pos.x = 100.0f * (f32)cos(angle) + pos.x;
     pos.y += -30.0f;
     pos.z = 100.0f * (f32)sin(angle) + pos.z;
-    initializeStadiumObjectEmitter(soundId, &pos, NULL, arg);
+    return initializeStadiumObjectEmitter(soundId, &pos, NULL, arg);
 }

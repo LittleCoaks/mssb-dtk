@@ -24,7 +24,7 @@
 #include "Unknown/File_0x8004c094.h"
 #include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x80034cec.h"
-#include "game/stadium/rep_23E8.h"
+#include "game/stadium/stadium_star.h"
 #include "static/UnknownHomes_Static.h"
 #include "musyx/musyx.h"
 #include "game/ball/ball_physics.h"
@@ -265,13 +265,13 @@ void loadDKJungle(void** files) {
     adjustInternalPointers(files[ids[14]]);
     ACTActorRelated(files[ids[14]], *animTable + hazeAnim * 0x90 + 0x34);
     lbl_3_bss_B154.effectSlot1.file = (u32)files[ids[15]];
-    actRelated(files[ids[14]]);
+    actRelated(files[ids[14]], &lbl_3_bss_B154.effectSlot1);
     actorRelated(&lbl_3_bss_B154.effectSlot1, 0, 0);
     lbl_3_bss_B154.effectSlot1._10 = 0.3f;
     adjustInternalPointers(files[ids[12]]);
     ACTActorRelated(files[ids[12]], *animTable + ringAnim * 0x90 + 0x34);
     lbl_3_bss_B154.effectSlot0.file = (u32)files[ids[13]];
-    actRelated(files[ids[12]]);
+    actRelated(files[ids[12]], &lbl_3_bss_B154.effectSlot0);
     actorRelated(&lbl_3_bss_B154.effectSlot0, 0, 0);
 
     stadiumObjectCollision.objectCount = 0x19;
@@ -865,7 +865,7 @@ void fn_3_F5F4C(Mtx view) {
                 } else if (depth > 10.0f + pos.z) {
                     entry->depth = 0.25f;
                 } else {
-                    entry->depth = 1.0 - 0.75f * ((depth - nearZ) * 0.125f);
+                    entry->depth = 1.0 - 0.75f * ((depth - nearZ) / 8.0f);
                 }
             }
         }

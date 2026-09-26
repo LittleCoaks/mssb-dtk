@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 
 void postPlayTrackStats(void);
-void pickoff_infieldThrow_related(void);
+void pickoff_infieldThrow_related(int throwingFielder);
 void monitorForErrors(void);
 void update_runnersBeingTargetedWhileBatterCanBeForcedOut(void);
 void initialize_runnersBeingTargetedWhileBatterCanBeForcedOut(void);

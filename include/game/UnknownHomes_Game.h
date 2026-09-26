@@ -2652,7 +2652,7 @@ typedef struct {
     /* 0x08 */ int outs;
     /* 0x0C */ int storedOuts;
     /* 0x10 */ int forcedOutToEndInningInd; // unsure
-    /* 0x14 */ int allForcedRunnersReachedTheirBaseInd;
+    /* 0x14 */ int howRunnerReachedBase;
     /* 0x18 */ s16 runnerIndexForEachOutThisPitch[3];
     /* 0x1E */ s16 _1E;
     /* 0x20 */ u8 GameControls_StrikeBallBitVector;
@@ -2664,7 +2664,9 @@ extern inMemStrikes g_Strikes;
 typedef struct {
     u8 pad[0x24];
     /* 0x0024 */ u32 playFrameCounter;
-    artificial_padding(0x24, 0x36, u32);
+    artificial_padding(0x24, 0x32, u32);
+    /* 0x0032 */ s16 prevAtBatResult; // AT_BAT_RESULT
+    /* 0x0034 */ u8 _0034[2];
     /* 0x0036 */ u8 replayInd;
     /* 0x0037 */ u8 atBatPitchThrown;
     /* 0x0038 */ u8 _0038[0x4634 - 0x38];   // not yet labelled
@@ -2709,7 +2711,8 @@ typedef struct {
     /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
     /*0x13*/ u8 _13;
     /*0x14*/ u8 someSituationTrackerFrames;
-    artificial_padding(0x14, 0x20, u8);
+    /*0x15*/ u8 runnersInScoringPosition;
+    artificial_padding(0x15, 0x20, u8);
 } g_RunningLogic_s; // size: 0x20
 
 extern g_RunningLogic_s g_RunningLogic;
@@ -2800,7 +2803,7 @@ typedef struct {
     /*0x0124*/ u8 tagAnimationCountdown;
     /*0x0125*/ s8 baseFielderIsOn;
     /*0x0126*/ s8 runnerTargetedOnThrowDuringSteal;
-    /*0x0127*/ u8 x127_pickoff_0;
+    /*0x0127*/ s8 x127_pickoff_0; // PICKOFF_TARGET_STATUS
     /*0x0128*/ u8 canEndPlayOnLooseBallInd;
     /*0x0129*/ u8 always0__;
     /*0x012a*/ u8 someCountDown;
@@ -2811,7 +2814,7 @@ typedef struct {
     /*0x012f*/ u8 framesControlStickPointedInCertainQuadrant;
     /*0x0130*/ u8 throwWaitingInd;
     /*0x0131*/ u8 _0131;
-    /*0x0132*/ u8 _0132;
+    /*0x0132*/ u8 errorTypeCd; // FIELDING_ERROR_TYPE
     /*0x0133*/ u8 bigPlayPotential;
     /*0x0134*/ u8 bigPlayFielderIndex;
     /*0x0135*/ u8 tagOutFirstFrameInd;
@@ -2842,13 +2845,174 @@ typedef struct {
 
 extern g_FieldingLogic_s g_FieldingLogic;
 
-typedef struct {
-    /* 0x0 */ s16 _0;
-    /* 0x2 */ s16 _2;
-    /* 0x4 */ s16 _4;
-} lbl_3_common_bss_32A94_s;
+// g_FieldingLogic.liveBallBcOfPickoffOrStealCd
+typedef enum _PICKOFF_STEAL_CODE {
+    /* 0x0 */ PICKOFF_STEAL_CODE_NONE,
+    /* 0x1 */ PICKOFF_STEAL_CODE_PICKOFF,
+    /* 0x2 */ PICKOFF_STEAL_CODE_STEAL,
+} PICKOFF_STEAL_CODE;
 
-extern lbl_3_common_bss_32A94_s storedInningInfo;
+// g_FieldingLogic.x127_pickoff_0: what became of the runner a pickoff/steal throw targeted.
+typedef enum _PICKOFF_TARGET_STATUS {
+    /* -1  */ PICKOFF_TARGET_STATUS_NONE = -1,
+    /* 0x0 */ PICKOFF_TARGET_STATUS_ONGOING,
+    /* 0x1 */ PICKOFF_TARGET_STATUS_PICKED_OFF_RUNNER_ADVANCED,
+    /* 0x2 */ PICKOFF_TARGET_STATUS_STEALING_RUNNER_ADVANCED,
+} PICKOFF_TARGET_STATUS;
+
+// g_FieldingLogic.processErrorCode. A late throw on runner n is
+// FIELDING_ERROR_PENDING_LATE_THROW_R0 + n.
+typedef enum _FIELDING_ERROR {
+    /* 0x0 */ FIELDING_ERROR_NONE,
+    /* 0x1 */ FIELDING_ERROR_PENDING_DROPPED_FLY,
+    /* 0x2 */ FIELDING_ERROR_PENDING_GROUNDBALL,
+    /* 0x3 */ FIELDING_ERROR_PENDING_LATE_THROW_R0,
+    /* 0x9 */ FIELDING_ERROR_CONFIRMED = 9,
+} FIELDING_ERROR;
+
+// g_FieldingLogic.errorTypeCd
+typedef enum _FIELDING_ERROR_TYPE {
+    /* 0x0 */ FIELDING_ERROR_TYPE_NONE,
+    /* 0x1 */ FIELDING_ERROR_TYPE_DROPPED_FLY,
+    /* 0x2 */ FIELDING_ERROR_TYPE_GROUNDBALL,
+    /* 0x3 */ FIELDING_ERROR_TYPE_FAILED_RUNDOWN,
+} FIELDING_ERROR_TYPE;
+
+// g_Strikes.howRunnerReachedBase
+typedef enum _REACHED_BASE {
+    /* 0x0 */ REACHED_BASE_TBD,
+    /* 0x2 */ REACHED_BASE_ON_ERROR = 2,
+    /* 0x3 */ REACHED_BASE_FIELDERS_CHOICE_ERROR,
+} REACHED_BASE;
+
+typedef enum _AT_BAT_RESULT {
+    /* 0x00 */ AT_BAT_RESULT_NONE,
+    /* 0x01 */ AT_BAT_RESULT_STRIKEOUT,
+    /* 0x02 */ AT_BAT_RESULT_WALK,
+    /* 0x03 */ AT_BAT_RESULT_HIT_BY_PITCH,
+    /* 0x04 */ AT_BAT_RESULT_OUT,
+    /* 0x05 */ AT_BAT_RESULT_CAUGHT_LINE_DRIVE,
+    /* 0x06 */ AT_BAT_RESULT_CAUGHT,
+    /* 0x07 */ AT_BAT_RESULT_SINGLE,
+    /* 0x08 */ AT_BAT_RESULT_DOUBLE,
+    /* 0x09 */ AT_BAT_RESULT_TRIPLE,
+    /* 0x0A */ AT_BAT_RESULT_HOME_RUN,
+    /* 0x0B */ AT_BAT_RESULT_ERROR,
+    /* 0x0C */ AT_BAT_RESULT_FIELDERS_CHOICE,
+    /* 0x0D */ AT_BAT_RESULT_BUNT,
+    /* 0x0E */ AT_BAT_RESULT_SAC_FLY,
+    /* 0x0F */ AT_BAT_RESULT_DOUBLE_PLAY,
+    /* 0x10 */ AT_BAT_RESULT_CAUGHT_INFIELD_FLY,
+} AT_BAT_RESULT;
+
+// g_Pitcher.strikeOutOrWalk
+typedef enum _AT_BAT_END {
+    /* 0x0 */ AT_BAT_END_NONE,
+    /* 0x1 */ AT_BAT_END_STRIKEOUT,
+    /* 0x2 */ AT_BAT_END_WALK,
+    /* 0x3 */ AT_BAT_END_HIT_BY_PITCH,
+} AT_BAT_END;
+
+// storedInningInfo.playResultCode: how the runners' part of the play resolved.
+typedef enum _PLAY_RESULT_CODE {
+    /* 0x0 */ PLAY_RESULT_CODE_NONE,
+    /* 0x1 */ PLAY_RESULT_CODE_SAC_FLY_SCORED,
+    /* 0x2 */ PLAY_RESULT_CODE_OUTFIELD_CATCH_FOR_OUT,
+    /* 0xB */ PLAY_RESULT_CODE_ALL_RUNNERS_SAFE = 0xB,
+    /* 0xC */ PLAY_RESULT_CODE_PLAY_ONGOING,
+    /* 0xD */ PLAY_RESULT_CODE_FIELDERS_CHOICE,
+    /* 0xE */ PLAY_RESULT_CODE_FOUL_BUNT_TWO_STRIKES,
+    /* 0xF */ PLAY_RESULT_CODE_0F,
+} PLAY_RESULT_CODE;
+
+// storedInningInfo.baserunnerTrackingState
+typedef enum _BASERUNNER_TRACKING {
+    /* 0x0 */ BASERUNNER_TRACKING_NOT_STARTED,
+    /* 0x1 */ BASERUNNER_TRACKING_WAITING,
+    /* 0x2 */ BASERUNNER_TRACKING_COMPLETE,
+} BASERUNNER_TRACKING;
+
+// storedInningInfo.runnerForcedCd
+typedef enum _RUNNER_FORCE_CODE {
+    /* 0x0 */ RUNNER_FORCE_CODE_NONE,
+    /* 0x1 */ RUNNER_FORCE_CODE_FORCED_TO_ADVANCE,
+    /* 0x2 */ RUNNER_FORCE_CODE_REACHED_NEXT_BASE,
+} RUNNER_FORCE_CODE;
+
+// storedInningInfo.runnersTargetedWhileBatterForceable: otherwise the runner
+// indices the throw could still retire, written as decimal digits (1, 23, 123).
+#define RUNNERS_TARGETED_UNINITIALIZED (-1)
+#define RUNNERS_TARGETED_NONE 0
+#define RUNNERS_TARGETED_NOT_THROWN_TO_BASE 5
+
+// One catch recorded during the play.
+typedef struct _PlayCatchRecord {
+    /* 0x0 */ u8 fielderIndex;
+    /* 0x1 */ u8 outsDuringPossession;
+    /* 0x2 */ u8 baseStandingOn;
+} PlayCatchRecord; // size: 0x3
+
+typedef struct _StoredInningInfo {
+    /* 0x00 */ s16 abResultFinal;
+    /* 0x02 */ s16 abResultTemporary;
+    /* 0x04 */ s16 situation; // sac fly / area of the field the ball went to
+    /* 0x06 */ s16 _06[5];
+    /* 0x10 */ PlayCatchRecord catches[5];
+    /* 0x1F */ u8 fielderWithBallIndex;
+    /* 0x20 */ s16 runnersTargetedWhileBatterForceable;
+    /* 0x22 */ u8 batterResultBase;
+    /* 0x23 */ s8 tentativeBatterBase; // negative until the batter reaches it
+    /* 0x24 */ E(u8, PLAY_RESULT_CODE) playResultCode;
+    /* 0x25 */ s8 nRunnersForcedOut;
+    /* 0x26 */ u8 rbisWaitingToBeAddedToScore;
+    /* 0x27 */ E(u8, BASERUNNER_TRACKING) baserunnerTrackingState;
+    /* 0x28 */ E(u8, RUNNER_FORCE_CODE) runnerForcedCd[3];
+    /* 0x2B */ u8 strikeBallDigits[7];
+    /* 0x32 */ s16 batterIDStored;
+    /* 0x34 */ s16 inningPitchesCompleted;
+    /* 0x36 */ u8 atBatResultHistory[5]; // AT_BAT_RESULT, [0] = latest
+    /* 0x3B */ u8 fielderWithBallIndexStored;
+    /* 0x3C */ u8 rbisWaitingToBeAddedToScoreStored;
+    /* 0x3D */ u8 storedOuts;
+    /* 0x3E */ u8 consecutiveHits;
+    /* 0x3F */ u8 consecutiveHits2;
+    /* 0x40 */ u8 consecutiveWalks;
+    /* 0x41 */ u8 consecutiveHBP;
+    /* 0x42 */ u8 consecutiveWalksOrHBP;
+    /* 0x43 */ u8 _43;
+    /* 0x44 */ s16 _44;
+    /* 0x46 */ u8 _46[2];
+    /* 0x48 */ s16 _48;
+    /* 0x4A */ u8 _4A[8];
+    /* 0x52 */ s16 nABs[3]; // indexed [team * 2]
+    /* 0x58 */ s16 mvpLeader;
+    /* 0x5A */ s16 mvpLeadingPoints;
+    /* 0x5C */ u8 _5C[4];
+    /* 0x60 */ u8 nBattersThisInning;
+    /* 0x61 */ u8 nBattersThisInning2;
+    /* 0x62 */ u8 nBattersThisInning2Stored;
+    /* 0x63 */ u8 noHitterTracker[2];
+    /* 0x65 */ u8 consecutiveStrikeouts[2];
+    /* 0x67 */ u8 consecutiveABsWithOuts[2];
+    /* 0x69 */ u8 _69[2][10];
+    /* 0x7D */ u8 inningOfFirstRun;
+    /* 0x7E */ u8 firstRunHalfInningBottomInd;
+    /* 0x7F */ u8 inningOfLastTie;
+    /* 0x80 */ u8 lastTieHalfInningBottomInd;
+    /* 0x81 */ u8 comebackCounter;
+    /* 0x82 */ u8 inningOfComeback;
+    /* 0x83 */ u8 lastComebackHalfInningBottomInd;
+    /* 0x84 */ u8 comebackCounter2;
+    /* 0x85 */ u8 inningOfLeadTakenBack;
+    /* 0x86 */ u8 halfInningOfLeadTakenBack;
+    /* 0x87 */ u8 leadsTakenBack;
+    /* 0x88 */ u8 inningOfGoAheadRun;
+    /* 0x89 */ u8 halfInningOfGoAheadRun;
+    /* 0x8A */ u8 goAheadRunOccurrences;
+    /* 0x8B */ u8 _8B;
+} StoredInningInfo; // size: 0x8C
+
+extern StoredInningInfo storedInningInfo;
 
 typedef struct {
     u8 pad[0xa0];
@@ -2871,7 +3035,7 @@ extern s16 HitVertTrajRanges[2][5][5][2];
 
 extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
 extern void setCharacterAnimations(int, int);
-extern void playSoundEffect(int);
+extern u32 playSoundEffect(int);
 extern void switchFromAtBatToLiveBall(void);
 extern int RandomIndexFromWeights(u8* weights, int count);
 extern void camera_switchScene(int);
@@ -2887,15 +3051,15 @@ extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
  * ======================================================================== */
 
 // symbols.txt: g_Scores .bss:0x000317C0 size 0xC8 -- matches this exactly.
-typedef struct _ScoreStruct {
-    /*0x00*/ s16 total;
-    /*0x02*/ s16 byInning[18];
-} ScoreStruct; // size: 0x26
 
 typedef struct _GameScoresControlsStruct {
     /*0x000*/ s32 Inning;
     /*0x004*/ ScoreStruct scores[2];
-    u8 _pad_50[0x5A];
+    /*0x050*/ ScoreStruct hits[2];
+    /*0x09C*/ s16 _9C;
+    u8 _pad_9E[8];
+    /*0x0A6*/ s16 _A6;
+    /*0x0A8*/ u8 stealSuccesses[2];
     /*0x0AA*/ u8 inningLimit;
     /*0x0AB*/ u8 maxNumberOfExtraInnings;
     u8 _pad_AC;

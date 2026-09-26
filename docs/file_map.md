@@ -143,7 +143,7 @@ screens either side of play (versus, championship, home-run trot).
 | `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
 | `rep_0.c` | *(unchanged)* | 0 (0) | — | 1268 B of un-decompiled `.text`; calls `memcpy`, `ARAMTransfer`, `maybeUpdateFunctionPointer`. REL entry/setup. | inferred |
 
-## stadium/ — 10 files, 344 fns (98 named)
+## stadium/ — 9 files, 335 fns (98 named)
 
 Two stadiums were originally in `rep_*` files rather than `sta_*`, which is why
 Bowser Castle and Yoshi Park do not follow the `sta_c*` numbering.
@@ -173,14 +173,14 @@ own `.rodata`, so they keep their descriptive repo names.
 | `stadium_yoshi_park.c` | `rep_2998` | 29 (11) | 14,548 | Yoshi Park — piranha plants (catch/spit/aim), nado. | high |
 | `sta_c4.c` | `sta_c4` | 24 (2) | 14,252 | Peach Garden (`loadPeachGarden`). | med |
 | `sta_c0.c` | `sta_c0` | 7 (3) | 4,924 | Mario Stadium (`loadMarioStadium`, fan animation). | high |
-| `rep_23E8.c` | *(unchanged)* | 3 (2) | 368 | `stadiumStarAnimation`, `stadiumStarAwarded`. Placed here on those two names alone; small enough that the theme could still be wrong, so it kept its original name. | med |
-| `kinoko.c` | *(unchanged)* | 9 (0) | 11,668 | Sits at the very end of `.text` (0x807A8694–0x807AA918); references `g_Minigame`, `g_d_GameSettings`, `drawStadiumRelated`; heavy `getAnimationCollisionOffset` and GX Tev setup. Named "kinoko" (Japanese for mushroom) by an earlier contributor — the subject is not confirmed by anything I can see. | inferred |
+| `stadium_star.c` | `rep_23E8` | 3 (2) | 368 | The stadium star: `stadiumStarAwarded` (called by every hazard stadium — Wario Palace, Peach Garden, DK Jungle, Bowser Castle, Yoshi Park) spawns the star at the hit position, plays the star sound and gives the batting team a star (max 5); `stadiumStarAnimation` drifts and spins it for 80 frames. No filename string in the binary, so the name is descriptive. | high |
 
-## minigame/ — 11 files, 411 fns (56 named)
+## minigame/ — 12 files, 425 fns (56 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `star_dash.c` | `rep_3520` | 69 (5) | 38,288 | Star Dash. | med |
+| `kinoko.c` | `stadium/kinoko.c` | 14 (0) | 11,668 | The power-up ribbon effect: six colour-cycling ribbons trail from a powered-up minigame player's hands, torso, head and feet, plus a pulsing TEV glow layer. Called only by Star Dash and Chain Chomp Sprint. | high |
 | `chain_chomp_sprint.c` | `rep_36D8` | 34 (4) | 21,104 | Chain Chomp Sprint. | med |
 | `piranha_panic.c` | `rep_37A8` | 33 (5) | 21,812 | Piranha Panic. | med |
 | `barrel_batter.c` | `rep_34B0` | 30 (10) | 17,888 | Barrel selection/replacement, hit scoring. | high |

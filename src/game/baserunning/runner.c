@@ -7,6 +7,7 @@
 #include "game/ball/collision_primitives.h"
 #include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
+#include "game/sound/m_sound.h"
 
 extern u8 runnerConstants[][5];
 extern f32 lbl_3_data_4B44[];
@@ -14,7 +15,6 @@ extern s16 lbl_3_data_4B48[];
 extern u8 bodyCheckProbabiliities[][5];
 extern u8 hugeAnimStruct[0x3154];
 extern void fieldingRelatedAnimations(void* anim, int state);
-extern void playCharacterSound(int charID, int soundIndex);
 extern s16 lbl_3_data_4B40[];
 extern s16 lbl_3_data_1C80[];
 extern s16 chemThresholds[4];
@@ -357,7 +357,7 @@ void resetInMemRunners(void) {
             g_Runners[i].pitcherWhoLetRunnerOnBase = -1;
         }
     }
-    g_RunningLogic.__0x20padding[0] = 0;
+    g_RunningLogic.runnersInScoringPosition = 0;
     for (i = 0; i < 4; i++) {
         g_Runners[i].position.x = baseCoordsForRunning[i][0];
         g_Runners[i].position.z = baseCoordsForRunning[i][1];
@@ -550,7 +550,7 @@ void updateRunnerPosition(int runnerIdx, int basesAdvanced) {
     runner->nextBase = (runner->currentBase + 1) & 3;
     if (runner->currentBase >= 4) {
         runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DURING_PLAY;
-        (*(s16*)&g_Scores._pad_50[0x4C])++;
+        g_Scores._9C++;
     }
 }
 
@@ -567,7 +567,7 @@ void setDefaultInMemRunner(void) {
     g_RunningLogic._00 = 0;
     g_RunningLogic._10 = 0;
     g_RunningLogic.someSituationTrackerFrames = 0x14;
-    *(u8*)&g_RunningLogic.__0x20padding[10] = 0xFF;
+    g_RunningLogic.__0x20padding[9] = 0xFF;
     g_Runners[0].position.x = g_Batter.batterPos.x;
     g_Runners[0].position.z = g_Batter.batterPos.z;
     for (i = 0; i < 4; i++) {
@@ -671,12 +671,12 @@ void setDefaultInMemRunner(void) {
     g_AiLogic._77 = 0;
     g_RunningLogic.nOffensivePlayersAtStartOfPlay = g_RunningLogic._10;
     g_AiLogic._44 = lbl_3_data_1C58[g_GameLogic.homeTeamBattingInd_fieldingTeam][1];
-    g_RunningLogic.__0x20padding[0] = 0;
+    g_RunningLogic.runnersInScoringPosition = 0;
     if (g_RunningLogic._02 & 0x1000) {
-        g_RunningLogic.__0x20padding[0] = 1;
+        g_RunningLogic.runnersInScoringPosition = 1;
     }
     if (g_RunningLogic._02 & 0x100) {
-        g_RunningLogic.__0x20padding[0]++;
+        g_RunningLogic.runnersInScoringPosition++;
     }
     for (i = 1; i < 4; i++) {
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
@@ -3647,7 +3647,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                     } else if (g_Ball.deadBallReason != 0) {
                         runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DEAD_BALL;
                     } else {
-                        (*(s16*)&g_Scores._pad_50[0x4C])++;
+                        g_Scores._9C++;
                     }
                     if (runner->actionCode != 0) {
                         runner->runningToDugoutInd = 2;

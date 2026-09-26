@@ -1028,12 +1028,12 @@
 ],
 "bytes": 19208
 },
-"stadium/kinoko.c": {
+"minigame/kinoko.c": {
 "total": 9,
 "named": [],
 "bytes": 11668
 },
-"stadium/rep_23E8.c": {
+"stadium/stadium_star.c": {
 "total": 3,
 "named": [
 "stadiumStarAnimation",

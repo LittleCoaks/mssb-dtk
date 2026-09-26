@@ -95,8 +95,6 @@ typedef struct _PalaceChompObj {
     /*0xCE*/ u8 _CE[0xE8 - 0xCE];
 } PalaceChompObj; // size: 0xE8
 
-extern PalaceChompPlacement chompPlacementConfig[];
-
 typedef struct _PalaceTornadoPlacement {
     /*0x00*/ Vec restPos;
     /*0x0C*/ u8 usedFlag;
@@ -111,8 +109,6 @@ typedef struct _PalaceTornadoPlacement {
     /*0x2C*/ f32 rangeSpanB;
     /*0x30*/ f32 spinRate;
 } PalaceTornadoPlacement; // size: 0x34
-
-extern PalaceTornadoPlacement TornadoPlacementConfig[];
 
 typedef struct _PalaceEffectParticle {
     /*0x00*/ struct _PalaceEffectParticle* next;

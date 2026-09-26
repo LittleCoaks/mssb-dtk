@@ -402,7 +402,7 @@ void ballCollisionLogic(void) {
     }
 
     if (g_Ball.hitNoteBlockInd != 0) {
-        if (stadiumObjectCollision._6B != 0) {
+        if (stadiumObjectCollision.hazardHitActive != 0) {
             return;
         }
         g_Ball.hitNoteBlockInd = 0;

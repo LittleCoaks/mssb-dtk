@@ -773,7 +773,7 @@ void fn_3_19FA4(void) {
             r9 += g_pCamera->_000A[i];
         }
         
-        // fn_3_28E4();
+        // spline3D_evaluate();
     }
     cos(r31);
 }
@@ -1825,7 +1825,7 @@ void fn_3_15004(void) {
 
 // .text:0x00014FC8 size:0x3C mapped:0x8065405C
 void fn_3_14FC8(void) {
-    if (storedInningInfo._4 == 0xe && g_pCamera->_A96 == 0) {
+    if (storedInningInfo.situation == 0xe && g_pCamera->_A96 == 0) {
         g_pCamera->_A96 = g_Stats.playFrameCounter;
     }
 }
@@ -1845,7 +1845,7 @@ void fn_3_14F68(void) {
 
 // .text:0x00014F24 size:0x44 mapped:0x80653FB8
 void fn_3_14F24(void) {
-    if (storedInningInfo._2 >= 36 && storedInningInfo._2 <= 38 && g_pCamera->_A9C == 0) {
+    if (storedInningInfo.abResultTemporary >= 36 && storedInningInfo.abResultTemporary <= 38 && g_pCamera->_A9C == 0) {
         g_pCamera->_A9C = g_Stats.playFrameCounter;
     }
 }

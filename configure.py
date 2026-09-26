@@ -1027,7 +1027,7 @@ config.libs = [
             Object(NonMatching, "game/stadium/sta_c0.c"),
             Object(NonMatching, "game/pitching/perfect_pitch_gfx.c"),
             Object(NonMatching, "game/pitching/pitcher_fire_effect.c"),
-            Object(NonMatching, "game/stadium/rep_23E8.c"),
+            Object(NonMatching, "game/stadium/stadium_star.c"),
             Object(NonMatching, "game/stadium/sta_c2.c"),
             Object(NonMatching, "game/minigame/toy_field.c"),
             Object(NonMatching, "game/minigame/minigame_fielder_anim.c"),
@@ -1060,7 +1060,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_3E00.c"),
             Object(NonMatching, "game/animation/magikoopa_star_anim.c"),
             Object(NonMatching, "game/animation/actor_transform.c"),
-            Object(NonMatching, "game/stadium/kinoko.c"),
+            Object(NonMatching, "game/minigame/kinoko.c"),
             Object(NonMatching, "game/ball/ball_fielder_collision.c"),
             Object(NonMatching, "game/hud/rep_4138.c"),
         ]

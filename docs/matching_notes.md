@@ -2001,3 +2001,39 @@ suspect declaration order rather than a different body.
 
 The same file also found that same-size is not sufficient evidence on its own: `maybeGharialCTRLRel`
 and `maybeBarrelCTRLRel` are both 348 bytes and share nothing but their size.
+
+## Findings from the stadium_bowser_castle / stadium_yoshi_park sessions
+
+**A pipelined struct copy (load x, load y, store x, load z, store y, store z) means the source is
+a by-value `Vec` parameter.** When the target copies a position field by field with the loads
+running ahead of the stores, MWCC knew the source could not alias the destination. A by-value struct
+argument (the caller makes a private copy) gives it that guarantee; `Vec* pos` does not. The caller
+side shows it too: a word copy of the vector to the stack right before the (possibly inlined) call.
+First seen: `fn_3_C48D0(CastleFireballEmitter* handle, Vec pos)` in `stadium_bowser_castle.c` (98.80% ->
+100%). The same fix matched `fn_3_C24A0` via `updateVectorInArray(int, Vec)`.
+
+**MWCC lays out a TU's `.bss` statics in reverse declaration order.** If a function's code is
+identical but every static access is at the wrong offset (the last-declared array landing at offset 0),
+declare the statics from highest address to lowest. First seen: `stadium_yoshi_park.c`, `fn_3_E1DB8`
+(99.89% -> 100%, and the unit's `.bss` size then matched).
+
+**A still-stubbed callee can be inlined as an empty body and skew its callers' scores.** With
+`-inline auto`, a `return;`/`return FALSE;` stub defined earlier in the file gets inlined, so a caller's
+score is not meaningful until the callee is written. Implement callees before judging callers.
+Seen repeatedly in `stadium_yoshi_park.c` (`ParkPlantsPopUp` 91.67 -> 100% once
+`tryPlantCatchAndBeginSpitAim` was written).
+
+**Callee prototype width shows up at every call site, so fix the prototype, not the calls.**
+`clrlwi rN, rX, 24` on an argument means the parameter is `u8`; `cmplwi` on a return value means it
+is unsigned; `clrlwi.` testing an inlined helper's result means it returns a byte (`E(u8, BOOL)`).
+Adding explicit casts at call sites instead made scores *worse*. Confirmed with repo-wide report diffs:
+`allocParticleEffect` arg 5 -> `u8` (4 functions up, none down), `returnsCurrentMode` -> `u32`
+(also improved `sta_c2.c`'s `fn_3_CDFA4`).
+
+**MWCC constant-folds a literal float expression, but not the same
+arithmetic through locals.** If the target loads several float constants and combines them with
+`fmadd` at run time, write the operands into locals first. First seen: `stadiumObjRelated_Castle`
+(83.06% -> 93.91%).
+
+**A `cmpwi 2 / ble` loop that starts at 2 and tests before decrementing is `i = 2; while (i-- != 0)`**,
+not `for (i = 1; i >= 0; i--)`. First seen: `fn_3_C19C8` / `fn_3_C2644` (+4 and +3.6 points).
