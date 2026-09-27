@@ -2,11 +2,79 @@
 #define __GAME_BATTING_STAR_SWING_PEACH_DAISY_H_
 
 #include "mssbTypes.h"
+#include "game/UnknownHomes_Game.h"
 
-void fn_3_15B79C(void);
-void fn_3_15BAA0(void);
+// One entry of the per-side star-swing pitch prediction table (lbl_3_data_26F78.entryA).
+typedef struct _StarSwingEntryA {
+    u32 unk0;
+    int unk4;
+    int unk8;
+    int frameCount;
+    int unk10;
+    int unk14;
+    int unk18;
+    int unk1c;
+    int unk20;
+    int unk24;
+    int unk28;
+    int unk2c;
+    int unk30;
+    int unk34;
+    int unk38;
+    int unk3c;
+    int unk40;
+    int unk44;
+} StarSwingEntryA; // size: 0x48
+
+// One entry of the ball-trajectory-based star-swing prediction table (lbl_3_data_2709C).
+typedef struct _StarSwingEntryB {
+    u32 unk0;
+    int unk4;
+    int unk8;
+    int unkC;
+    int frames;
+    int unk14;
+    int unk18;
+    int unk1c;
+    int unk20;
+    int unk24;
+    int unk28;
+    int unk2c;
+    int unk30;
+    int unk34;
+    int unk38;
+    int unk3c;
+    int unk40;
+    int unk44;
+    int unk48;
+    int unk4c;
+    int unk50;
+    int unk54;
+    int unk58;
+    int unk5c;
+    int unk60;
+    int unk64;
+    int unk68;
+    int unk6c;
+    int unk70;
+    int unk74;
+    int unk78;
+    int unk7c;
+    int unk80;
+} StarSwingEntryB; // size: 0x84
+
+typedef struct _StarSwingPeachDaisyData {
+    /*0x000*/ StarSwingEntryA entryA[2][2];
+    /*0x120*/ int unk120;
+} StarSwingPeachDaisyData; // size: 0x124
+
+extern StarSwingPeachDaisyData lbl_3_data_26F78;
+extern StarSwingEntryB lbl_3_data_2709C[2];
+
+void fn_3_15B79C(BOOL side);
+void fn_3_15BAA0(int side);
 void peachDaisyStarSwingRelated2(void);
-void peachDaisyStarSwingRelated(void);
-void fn_3_15C024(void);
+int peachDaisyStarSwingRelated(void);
+void fn_3_15C024(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BOOL applySteer);
 
 #endif // !__GAME_BATTING_STAR_SWING_PEACH_DAISY_H_
