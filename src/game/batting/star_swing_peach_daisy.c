@@ -20,10 +20,10 @@ typedef struct _StarSwingSharedEffectsBlock {
 
 extern StarSwingSharedEffectsBlock lbl_3_common_bss_35154;
 
-extern void fn_8002CDD0(VecXYZ* pos);
-extern void fn_8002DC68(VecXYZ* pos);
-extern void fn_8002CE4C(VecXYZ* pos, VecXYZ* vel, StarSwingEntryB* entry);
-extern void fn_8002DCE4(VecXYZ* pos, VecXYZ* vel, StarSwingEntryA* entry);
+extern void setDaisyStarEffectTarget(VecXYZ* pos);
+extern void setPeachStarEffectTarget(VecXYZ* pos);
+extern void spawnDaisyStarEffect(VecXYZ* pos, VecXYZ* vel, StarSwingEntryB* entry);
+extern void spawnPeachStarEffect(VecXYZ* pos, VecXYZ* vel, StarSwingEntryA* entry);
 
 // lbl_3_data_26F78: star-pitch effect tuning, indexed by side (0 = Peach, 1 = Daisy)
 static StarSwingEntryA starPitchTargets[2] = {
@@ -63,7 +63,7 @@ static StarSwingEntryB daisyPitchEffect = {
 };
 
 // .text:0x0015C024 size:0x20C mapped:0x8079B0B8
-void fn_3_15C024(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BOOL applySteer) {
+void peachDaisyStarPitch_stepPhysics(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BOOL applySteer) {
     f32 steer = 0.0f;
     s16* pc = pitchConstantsArray[g_Pitcher.specialPitchTypeCode];
 
@@ -114,7 +114,7 @@ void peachDaisyStarSwingRelated2(void) {
 }
 
 // .text:0x0015BAA0 size:0x560 mapped:0x8079AB34
-void fn_3_15BAA0(int side) {
+void peachDaisyStarEffect_setup(int side) {
     VecXYZ vA, vB, accel;
     int mode;
     int i;
@@ -140,7 +140,7 @@ void fn_3_15BAA0(int side) {
 
             starPitchTargets[side].frameCount = 0;
             while (vA.z > endZ) {
-                fn_3_15C024(&vA, &vB, &accel, FALSE);
+                peachDaisyStarPitch_stepPhysics(&vA, &vB, &accel, FALSE);
                 starPitchTargets[side].frameCount++;
             }
 
@@ -152,10 +152,10 @@ void fn_3_15BAA0(int side) {
             if (side) {
                 daisyPitchEffect.unk0 = lbl_3_common_bss_35154.unk4;
                 daisyPitchEffect.frames = starPitchTargets[side].frameCount;
-                fn_8002CE4C(&vB, &vA, &daisyPitchEffect);
+                spawnDaisyStarEffect(&vB, &vA, &daisyPitchEffect);
             } else {
                 starPitchTargets[side].unk0 = lbl_3_common_bss_35154.unk4;
-                fn_8002DCE4(&vB, &vA, &starPitchTargets[side]);
+                spawnPeachStarEffect(&vB, &vA, &starPitchTargets[side]);
             }
         }
         break;
@@ -184,7 +184,7 @@ void fn_3_15BAA0(int side) {
 
             vA.y = -vA.y;
             vB.y = -vB.y;
-            fn_8002CE4C(&vA, &vB, &daisySwingEffect);
+            spawnDaisyStarEffect(&vA, &vB, &daisySwingEffect);
         } else {
             f32 lo, range;
 
@@ -207,14 +207,14 @@ void fn_3_15BAA0(int side) {
 
             vA.y = -vA.y;
             vB.y = -vB.y;
-            fn_8002DCE4(&vA, &vB, &starSwingTargets[side]);
+            spawnPeachStarEffect(&vA, &vB, &starSwingTargets[side]);
         }
         break;
     }
 }
 
 // .text:0x0015B79C size:0x304 mapped:0x8079A830
-void fn_3_15B79C(BOOL side) {
+void peachDaisyStarPitch_updateEffectTarget(BOOL side) {
     VecXYZ pos, vel, accel;
     f32 endZ = (f32)starPitchTargets[side].unk38 / 100000.0f;
 
@@ -223,14 +223,14 @@ void fn_3_15B79C(BOOL side) {
     memcpy(&accel, &g_Pitcher.pitchCurveVeloV1, sizeof(VecXYZ));
 
     while (pos.z > endZ) {
-        fn_3_15C024(&pos, &vel, &accel, TRUE);
+        peachDaisyStarPitch_stepPhysics(&pos, &vel, &accel, TRUE);
     }
 
     pos.y = -pos.y;
 
     if (side) {
-        fn_8002CDD0(&pos);
+        setDaisyStarEffectTarget(&pos);
     } else {
-        fn_8002DC68(&pos);
+        setPeachStarEffectTarget(&pos);
     }
 }

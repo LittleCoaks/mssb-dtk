@@ -63,10 +63,10 @@ typedef struct _StarSwingEntryB {
     int unk80;
 } StarSwingEntryB; // size: 0x84
 
-void fn_3_15B79C(BOOL side);
-void fn_3_15BAA0(int side);
+void peachDaisyStarPitch_updateEffectTarget(BOOL side);
+void peachDaisyStarEffect_setup(int side);
 void peachDaisyStarSwingRelated2(void);
 int peachDaisyStarSwingRelated(void);
-void fn_3_15C024(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BOOL applySteer);
+void peachDaisyStarPitch_stepPhysics(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BOOL applySteer);
 
 #endif // !__GAME_BATTING_STAR_SWING_PEACH_DAISY_H_
