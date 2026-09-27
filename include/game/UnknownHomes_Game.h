@@ -3060,7 +3060,7 @@ typedef struct _InMemFielder {
     /*0x174*/ f32 knockOutVelo;
     /*0x178*/ s16 rosterLocation;
     /*0x17A*/ s16 CharID;
-    /*0x17C*/ u16 unused_missionRelated;
+    /*0x17C*/ s16 unused_missionRelated;
     /*0x17E*/ s16 numFramesToGetToAutoLocation;
     /*0x180*/ s16 playerAngleFromHome;
     /*0x182*/ s16 angleOfFieldersStartingPosition;

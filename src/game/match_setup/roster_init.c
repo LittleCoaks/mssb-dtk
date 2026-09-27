@@ -17,9 +17,14 @@ extern const f32 lbl_3_rodata_11E0;
 extern s16 lbl_3_data_460C[6];
 extern s8 lineUpInfoStruct[2][9][4];
 extern f32 lbl_3_data_5FC4[12];
+extern f32 ModifiedSpeedArray[2][22];
+extern const s16 FielderHitboxConsts[55][8];
+extern s16 barrelCollisionHitboxes[54];
+extern const f32 _0_01_HitboxScaleMultiplier;
+extern const f32 lbl_3_rodata_11FC;
 
 // .text:0x0006D6D4 size:0x290 mapped:0x806AC768
-void fn_3_6D6D4(int runnerIdx) {
+void setRunnerSpeedConstants(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int lower = runner->speed / 10 * 10;
     int upper = lower + 10;
@@ -87,7 +92,7 @@ void initializeInMemRunner(int rosterID, int runnerIdx) {
         }
     }
 
-    fn_3_6D6D4(runnerIdx);
+    setRunnerSpeedConstants(runnerIdx);
 }
 
 // .text:0x0006DE60 size:0x374 mapped:0x806ACEF4
@@ -169,9 +174,149 @@ u8 getThrowSpeedBasedOnArmStrengthStat(u8 armStrength) {
                                  throwSpeedArray[(lower + 10) / 10]);
 }
 
+static inline u32 getFieldingAbilities(int rosterLoc) {
+    int team = g_GameLogic.teamFielding;
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        team = 0;
+    }
+    return inMemRoster[team][rosterLoc].stats.FieldingStats;
+}
+
 // .text:0x0006E24C size:0x968 mapped:0x806AD2E0
-void setFielderValues(int characterID, int fielderIndex) {
-    return;
+void setFielderValues(int rosterID, int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    CharacterStats* charStats = &inMemRoster[g_GameLogic.teamFielding][rosterID];
+    ChallengeTrackingStruct* starMissions = starMissionCompletionTracker;
+    s16 charID;
+    int index;
+    int lower;
+    int upper;
+    f32 width;
+    f32 offset;
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+        if (g_Practice.practiceType_2 == 0 || g_Practice.practiceType_2 == 1 || g_Practice.practiceType_2 == 2 ||
+            g_Practice.practiceType_2 == 3) {
+            charStats = &inMemRoster[g_GameLogic.teamFielding][fielderIndex];
+        }
+    } else if (g_d_GameSettings.minigamesEnabled) {
+        charStats = &inMemRoster[0][g_Minigame.minigameControlStruct[0].characterIndex[rosterID]];
+    }
+
+    fielder->rosterLocation = rosterID;
+    fielder->CharID = charID = charStats->stats.CharID;
+    fielder->throwingHandedness = charStats->stats.FieldingArm;
+    fielder->Weight = charStats->stats.Weight;
+    fielder->AILevel3Weak0Powerful =
+        g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.awayTeamBattingInd_battingTeam];
+
+    if ((getFieldingAbilities(fielder->rosterLocation) >> 7) & 1) {
+        fielder->ModifiedWeightForMag = 5;
+    } else {
+        fielder->ModifiedWeightForMag = fielder->Weight;
+    }
+
+    if (!g_d_GameSettings.exhibitionMatchInd) {
+        fielder->unused_missionRelated = -1;
+        for (index = 0; index < 54; index++) {
+            if ((fielder->CharID == index) && (starMissions[index].variantClassification <= 3)) {
+                fielder->unused_missionRelated = index;
+                break;
+            }
+        }
+    }
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        s8 idx = g_Minigame.minigameControlStruct[0].characterIndex[rosterID];
+        if (g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
+            fielder->AILevel3Weak0Powerful = aILevel[g_Minigame.minigameControlStruct[0].aIStrength[idx]];
+        }
+    }
+
+    if (g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding] == fielder->rosterLocation) {
+        fielder->rosterLocSkippingCap = 0;
+    } else {
+        fielder->rosterLocSkippingCap = ++g_GameLogic.rosterLoc_skippingCap;
+    }
+
+    if (g_d_GameSettings.minigamesEnabled) {
+        if (g_Minigame.battingHandedness[rosterID] <= 1) {
+            fielder->throwingHandedness = 0;
+        } else {
+            fielder->throwingHandedness = 1;
+        }
+    }
+
+    fielder->speed = charStats->stats.Speed;
+    if (fielder->speed > 200) {
+        fielder->speed = 200;
+    }
+
+    lower = fielder->speed / 10 * 10;
+    upper = lower + 10;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        fielder->joggingSpeed = LinearInterpolateToNewRange(fielder->speed, lower, upper,
+                                                            ModifiedSpeedArray[1][lower / 10],
+                                                            ModifiedSpeedArray[1][upper / 10]);
+    } else {
+        fielder->joggingSpeed = LinearInterpolateToNewRange(fielder->speed, lower, upper,
+                                                            ModifiedSpeedArray[0][lower / 10],
+                                                            ModifiedSpeedArray[0][upper / 10]);
+    }
+    fielder->runningAccelerationFactor = fielder->joggingSpeed / fielder->maxAccLength_ConstF;
+
+    fielder->throwingArm = charStats->stats.ThrowingArm;
+    fielder->modifiedThrowingArm = getThrowSpeedBasedOnArmStrengthStat(fielder->throwingArm);
+    if (fielder->modifiedThrowingArm > 200) {
+        fielder->modifiedThrowingArm = 200;
+    }
+
+    fielder->characterClass = charStats->stats.CharacterClass;
+    fielder->wallActionAbility = 0;
+    if (getFieldingAbilities(fielder->rosterLocation) & FIELDING_ABILITIES_WALL_SPLAT) {
+        fielder->wallActionAbility = 1;
+    } else if ((getFieldingAbilities(fielder->rosterLocation) >> 1) & 1) {
+        fielder->wallActionAbility = 2;
+    } else if (getFieldingAbilities(fielder->rosterLocation) & FIELDING_ABILITIES_CLAMBER) {
+        fielder->wallActionAbility = 3;
+    }
+
+    fielder->hasSuperJump = 0;
+    if (getFieldingAbilities(fielder->rosterLocation) & FIELDING_ABILITIES_SUPER_JUMP) {
+        fielder->hasSuperJump = 1;
+    }
+
+    fielder->hitbox[0] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][0] * charSizeMultipliers[charID][0];
+    fielder->hitbox[1] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][1] * charSizeMultipliers[charID][0];
+    fielder->hitbox[2] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][2] * charSizeMultipliers[charID][0];
+    fielder->hitbox[3] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][3] * charSizeMultipliers[charID][0];
+    fielder->hitbox[6] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][5] * charSizeMultipliers[charID][0];
+    fielder->hitbox[7] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][6] * charSizeMultipliers[charID][0];
+    fielder->hitbox[8] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][7] * charSizeMultipliers[charID][0];
+    width = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[charID][2] * charSizeMultipliers[charID][0];
+    offset = width / lbl_3_rodata_11FC;
+    fielder->hitbox[4] = width + offset;
+    fielder->hitbox[5] = width - offset;
+
+    if (fielder->hitbox[0] < _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][0]) {
+        fielder->hitbox[0] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][0];
+    }
+    if (fielder->hitbox[3] < _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][1]) {
+        fielder->hitbox[3] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][1];
+    }
+    if (fielder->hitbox[6] < _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][3]) {
+        fielder->hitbox[6] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][3];
+    }
+    if (fielder->hitbox[7] < _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][4]) {
+        fielder->hitbox[7] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][4];
+    }
+    if (fielder->hitbox[8] < _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][5]) {
+        fielder->hitbox[8] = _0_01_HitboxScaleMultiplier * FielderHitboxConsts[54][5];
+    }
+
+    fielder->hitbox_barrelCollisions =
+        _0_01_HitboxScaleMultiplier * barrelCollisionHitboxes[charID] * charSizeMultipliers[charID][0];
 }
 
 // .text:0x0006EBB4 size:0x368 mapped:0x806ADC48
@@ -249,11 +394,12 @@ void setPitcherStatsToInMemPitcher(int rosterIdx) {
     }
 }
 
+#define HUMAN_ROSTER_STATS(i) (inMemRoster[g_d_GameSettings.humanTeamNumber][(i)].stats)
+
 // .text:0x0006EF1C size:0x5CC mapped:0x806ADFB0
 void initRosterForMatch(void) {
     int team;
     int i;
-    CharacterStats* roster;
 
     for (team = 0; team < 2; team++) {
         int t = team ^ g_GameLogic.homeTeamInd;
@@ -263,10 +409,10 @@ void initRosterForMatch(void) {
             if (lineUpInfoStruct[team][i][1] == 9) {
                 g_GameLogic.battingOrderAndPositionMapping[t][0][0] = lineUpInfoStruct[team][i][0];
             } else {
-                g_GameLogic.battingOrderAndPositionMapping[t][lineUpInfoStruct[team][i][1] + 1][0] =
-                    lineUpInfoStruct[team][i][0];
-                g_GameLogic.battingOrderAndPositionMapping[t][lineUpInfoStruct[team][i][1] + 1][1] =
-                    lineUpInfoStruct[team][i][2];
+                int pos = lineUpInfoStruct[team][i][1];
+
+                g_GameLogic.battingOrderAndPositionMapping[t][pos + 1][0] = lineUpInfoStruct[team][i][0];
+                g_GameLogic.battingOrderAndPositionMapping[t][pos + 1][1] = lineUpInfoStruct[team][i][2];
                 if (lineUpInfoStruct[team][i][2] == 0) {
                     g_GameLogic.battingOrderAndPositionMapping[t][0][0] = lineUpInfoStruct[team][i][0];
                 }
@@ -278,113 +424,110 @@ void initRosterForMatch(void) {
     g_GameLogic.Team_CaptainRosterLoc[1] = Static_Stats_Tables.capLocationInOrder[1];
 
     if (!g_d_GameSettings.exhibitionMatchInd) {
-        roster = inMemRoster[g_d_GameSettings.humanTeamNumber];
-        for (i = 0; i < 9; i++, roster++) {
-            StatTable* stats = &roster->stats;
-
-            if ((s8)g_d_GameSettings.challengeCaptainStarBought[0] != 0 || (s8)g_d_GameSettings._4F != 0) {
-                stats->SlapContactSize = stats->SlapContactSize * lbl_3_data_5FC4[0];
-                stats->ChargeContactSize = stats->ChargeContactSize * lbl_3_data_5FC4[0];
+        for (i = 0; i < 9; i++) {
+            if (g_d_GameSettings.challengeCaptainStarBought[0] != 0 || g_d_GameSettings._4F != 0) {
+                HUMAN_ROSTER_STATS(i).SlapContactSize *= lbl_3_data_5FC4[0];
+                HUMAN_ROSTER_STATS(i).ChargeContactSize *= lbl_3_data_5FC4[0];
             }
-            if ((s8)g_d_GameSettings.challengeCaptainStarBought[1] != 0 || (s8)g_d_GameSettings._4F != 0) {
-                stats->SlapHitPower = stats->SlapHitPower * lbl_3_data_5FC4[2];
-                stats->ChargeHitPower = stats->ChargeHitPower * lbl_3_data_5FC4[2];
+            if (g_d_GameSettings.challengeCaptainStarBought[1] != 0 || g_d_GameSettings._4F != 0) {
+                HUMAN_ROSTER_STATS(i).SlapHitPower *= lbl_3_data_5FC4[2];
+                HUMAN_ROSTER_STATS(i).ChargeHitPower *= lbl_3_data_5FC4[2];
             }
-            if ((s8)g_d_GameSettings.challengeCaptainStarBought[2] != 0 ||
-                (s8)g_d_GameSettings.challengeCaptainStarBought[2] != 0) {
-                stats->CurveBallSpeed += (int)lbl_3_data_5FC4[4];
-                stats->FastBallSpeed += (int)lbl_3_data_5FC4[4];
-                stats->Curve = stats->Curve * lbl_3_data_5FC4[5];
+            if (g_d_GameSettings.challengeCaptainStarBought[2] != 0 ||
+                g_d_GameSettings.challengeCaptainStarBought[2] != 0) {
+                HUMAN_ROSTER_STATS(i).CurveBallSpeed += (u8)lbl_3_data_5FC4[4];
+                HUMAN_ROSTER_STATS(i).FastBallSpeed += (u8)lbl_3_data_5FC4[4];
+                HUMAN_ROSTER_STATS(i).Curve *= lbl_3_data_5FC4[5];
             }
-            if ((s8)g_d_GameSettings.challengeCaptainStarBought[3] != 0 || (s8)g_d_GameSettings._4F != 0) {
-                stats->ThrowingArm = stats->ThrowingArm * lbl_3_data_5FC4[7];
+            if (g_d_GameSettings.challengeCaptainStarBought[3] != 0 || g_d_GameSettings._4F != 0) {
+                HUMAN_ROSTER_STATS(i).ThrowingArm *= lbl_3_data_5FC4[7];
             }
-            if ((s8)g_d_GameSettings.challengeCaptainStarBought[4] != 0 || (s8)g_d_GameSettings._4F != 0) {
-                stats->Speed = stats->Speed * lbl_3_data_5FC4[8];
+            if (g_d_GameSettings.challengeCaptainStarBought[4] != 0 || g_d_GameSettings._4F != 0) {
+                HUMAN_ROSTER_STATS(i).Speed *= lbl_3_data_5FC4[8];
             }
 
-            if (stats->CharID == CHAR_ID_MARIO) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[6] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_MARIO;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_MARIO) {
+                if (g_d_GameSettings.challengeCaptainStarBought[6] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_MARIO;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_LUIGI) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[7] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_LUIGI;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_LUIGI) {
+                if (g_d_GameSettings.challengeCaptainStarBought[7] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_LUIGI;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_DK) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[14] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DK;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_DK) {
+                if (g_d_GameSettings.challengeCaptainStarBought[14] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DK;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_DIDDY) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[15] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DIDDY;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_DIDDY) {
+                if (g_d_GameSettings.challengeCaptainStarBought[15] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DIDDY;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_PEACH) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[8] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_PEACH;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_PEACH) {
+                if (g_d_GameSettings.challengeCaptainStarBought[8] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_PEACH;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_DAISY) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[9] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DAISY;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_DAISY) {
+                if (g_d_GameSettings.challengeCaptainStarBought[9] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DAISY;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_YOSHI) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[12] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_YOSHI;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_YOSHI) {
+                if (g_d_GameSettings.challengeCaptainStarBought[12] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_YOSHI;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_BIRDO) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[13] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BIRDO;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_BIRDO) {
+                if (g_d_GameSettings.challengeCaptainStarBought[13] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BIRDO;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_WARIO) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[10] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_WARIO;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_WARIO) {
+                if (g_d_GameSettings.challengeCaptainStarBought[10] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_WARIO;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_WALUIGI) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[11] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_WALUIGI;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_WALUIGI) {
+                if (g_d_GameSettings.challengeCaptainStarBought[11] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_WALUIGI;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_BOWSER) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[16] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BOWSER;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_BOWSER) {
+                if (g_d_GameSettings.challengeCaptainStarBought[16] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BOWSER;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
-            if (stats->CharID == CHAR_ID_BOWSERJR) {
-                if ((s8)g_d_GameSettings.challengeCaptainStarBought[17] != 0) {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BOWSERJR;
+            if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_BOWSERJR) {
+                if (g_d_GameSettings.challengeCaptainStarBought[17] != 0) {
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BOWSERJR;
                 } else {
-                    stats->CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
+                    HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
         }
