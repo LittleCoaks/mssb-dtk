@@ -2037,3 +2037,14 @@ arithmetic through locals.** If the target loads several float constants and com
 
 **A `cmpwi 2 / ble` loop that starts at 2 and tests before decrementing is `i = 2; while (i-- != 0)`**,
 not `for (i = 1; i >= 0; i--)`. First seen: `fn_3_C19C8` / `fn_3_C2644` (+4 and +3.6 points).
+
+**Character stat-row copy is an inlined helper.** The sequence memcpy(dst,src,0x1E);
+CharID/FieldingArm/BattingStance; memcpy 2 @0x28; memcpy 2 @0x2A; bytes 0x2C-0x34; memcpy 2 @0x35;
+u32 @0x20; memcpy 4 @0x37; memcpy 0x36 @0x3B (chemistry); byte 0x71; 21 u16 @0x74-0x9C copies a
+`CharacterStats` row. It matched first try as a `static inline void
+copyCharacterStats(CharacterStats* dst, CharacterStats* src)` in
+`src/Unknown/File_0x800426dc.c` (`transferStatsToInMemRoster`), with the source row indexed as
+`Static_Stats_Tables.characterStats[charID / 9][charID % 9]` using `u8` row/col temporaries (the
+target multiplies by 0x5A0 and 0xA0 separately, so a flat `[54]` index does not match).
+`src/menus/text_0323C.c` hand-expands the same sequence with raw offsets in ~7 places; those are
+candidates for the same helper (with `CharacterStats` field names).
