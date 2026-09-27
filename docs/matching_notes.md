@@ -2037,3 +2037,33 @@ arithmetic through locals.** If the target loads several float constants and com
 
 **A `cmpwi 2 / ble` loop that starts at 2 and tests before decrementing is `i = 2; while (i-- != 0)`**,
 not `for (i = 1; i >= 0; i--)`. First seen: `fn_3_C19C8` / `fn_3_C2644` (+4 and +3.6 points).
+
+## Findings from the pitcher_ai session
+
+**A retry loop that compares, compares, increments and branches back is `for (;;)` with a two-condition
+`break`.** Target shape: body; `cmpw desired,loc; bne exit; cmpwi tries,2; bge exit; addi tries,1; b body`.
+`do { body } while (desired == loc && tries++ < 2)` came out 8 bytes short (95.67%);
+`for (;;) { body; if (desired != loc || tries >= 2) break; tries++; }` is exact (a two-`break` form and an
+`if (...) tries++; else break;` form tie with it). First seen: `pitcherAISetCurve`.
+
+**A register copy right after an unrolled search loop means the loop had its own counter.** `mr r5,r6` at the
+loop exit is `for (i = 0; i < 7; i++) {...} loc = i;`, not the loop running on `loc` directly
+(`pitcherAISetCurve` 95.88 -> 97.47).
+
+**`step = b - a; step /= k;` is not the same as `step = (b - a) / k;`.** In `pitcherAISelectMoundLocation`
+(was `fn_3_20EEC`) the split form fixed the load order of `b` and `a` and the FPR permutation of the
+following `fmadds` (90.55 -> 100, and the caller that auto-inlines it 96.01 -> 100). Operand orders, separate
+min/max locals, a float index local and an integer divisor all had no effect. Same family as the compound
+assignment operand-order lever.
+
+**An `s8` field compared with both -1 and a small positive value shows `extsb` only on the -1 compare.** MWCC
+skips the sign extension for equality with a non-negative constant, so `lbz; cmpwi r0,1` (a signed compare with
+no `extsb`) beside `lbz; extsb; cmpwi r0,-1` identifies an `s8` field; a `u8` field compares with `cmplwi`.
+First seen: `AIStruct.aiPitchDirectionInput`.
+
+**A `cmplw` between two computed struct addresses is a pointer comparison in the original source.**
+`pitcherAISelectPitch` compares `&g_Scores.scores[a] > &g_Scores.scores[b]` (probably meant `.total`). Written as
+the address comparison, it matched first try.
+
+**Moving a store of 0 above the table load that feeds a random roll fixed the register assignment of the
+table-index computation** (`pitcherAISetCurve` tail, 99.47 -> 100).

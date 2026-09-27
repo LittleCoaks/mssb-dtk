@@ -981,7 +981,7 @@ config.libs = [
             Object(NonMatching, "game/camera/camera.c"),
             Object(NonMatching, "game/match_setup/ai_defaults.c"),
             Object(NonMatching, "game/batting/batter_ai.c"),
-            Object(NonMatching, "game/pitching/pitcher_ai.c"),
+            Object(Matching, "game/pitching/pitcher_ai.c"),
             Object(NonMatching, "game/data_only/rep_9B0.c"),
             Object(NonMatching, "game/match_setup/versus_screens.c"),
             Object(NonMatching, "game/data_only/rep_A78.c"),

@@ -2448,7 +2448,7 @@ typedef struct {
     /* 0x34 */ f32 aIMoundLocationX;
     /* 0x38 */ f32 aiPitchCurveEndingX;
     /* 0x3C */ f32 _3C;
-    /* 0x40 */ u16 AIFrameToBeginPitch;
+    /* 0x40 */ s16 AIFrameToBeginPitch;
     /* 0x42 */ u16 _42;
     /* 0x44 */ s16 _44;
     /* 0x46 */ u8 _46;
@@ -2457,7 +2457,7 @@ typedef struct {
     /* 0x49 */ u8 aIDifficultyInverse0Weak;
     /* 0x4A */ u8 aIPitchType;
     /* 0x4B */ u8 aiPitchCurveType;
-    /* 0x4C */ u8 aiPitchDirectionInput;
+    /* 0x4C */ s8 aiPitchDirectionInput;
     /* 0x4D */ u8 pitchAIDelayCurveStart;
     /* 0x4E */ u8 nStarPitchesThrownThisAB;
     /* 0x4F */ u8 aIPerfectCharge;
