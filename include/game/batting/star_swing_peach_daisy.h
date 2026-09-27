@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "game/UnknownHomes_Game.h"
 
-// One entry of the per-side star-swing pitch prediction table (lbl_3_data_26F78.entryA).
+// One entry of the per-side (Peach = 0, Daisy = 1) star-swing prediction tables.
 typedef struct _StarSwingEntryA {
     u32 unk0;
     int unk4;
@@ -26,7 +26,7 @@ typedef struct _StarSwingEntryA {
     int unk44;
 } StarSwingEntryA; // size: 0x48
 
-// One entry of the ball-trajectory-based star-swing prediction table (lbl_3_data_2709C).
+// One entry of Daisy's ball-trajectory-based star-swing prediction table.
 typedef struct _StarSwingEntryB {
     u32 unk0;
     int unk4;
@@ -62,14 +62,6 @@ typedef struct _StarSwingEntryB {
     int unk7c;
     int unk80;
 } StarSwingEntryB; // size: 0x84
-
-typedef struct _StarSwingPeachDaisyData {
-    /*0x000*/ StarSwingEntryA entryA[2][2];
-    /*0x120*/ int unk120;
-} StarSwingPeachDaisyData; // size: 0x124
-
-extern StarSwingPeachDaisyData lbl_3_data_26F78;
-extern StarSwingEntryB lbl_3_data_2709C[2];
 
 void fn_3_15B79C(BOOL side);
 void fn_3_15BAA0(int side);
