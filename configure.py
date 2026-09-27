@@ -716,7 +716,7 @@ config.libs = [
             Object(NonMatching, "Unknown/File_0x8003c00c.c"),
             Object(NonMatching, "Unknown/File_0x8004207c.c"),
             Object(NonMatching, "Unknown/File_0x80042598.c"),
-            Object(NonMatching, "Unknown/File_0x800426dc.c"),
+            Object(Matching, "Unknown/File_0x800426dc.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x80042bf0.c"),
             Object(NonMatching, "Unknown/File_0x80042c44.c"),
             Object(NonMatching, "Unknown/File_0x80042d38.c"),

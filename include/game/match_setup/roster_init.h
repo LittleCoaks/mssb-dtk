@@ -3,11 +3,11 @@
 
 #include "mssbTypes.h"
 
-void fn_3_6D6D4(void);
-void initializeInMemRunner(void);
+void setRunnerSpeedConstants(int runnerIdx);
+void initializeInMemRunner(int rosterID, int runnerIdx);
 void setInMemBatterConstants(int rosterID);
-void getThrowSpeedBasedOnArmStrengthStat(void);
-void setFielderValues(int characterID, int fielderIndex);
+u8 getThrowSpeedBasedOnArmStrengthStat(u8 armStrength);
+void setFielderValues(int rosterID, int fielderIndex);
 void setPitcherStatsToInMemPitcher(int rosterIdx);
 void initRosterForMatch(void);
 
