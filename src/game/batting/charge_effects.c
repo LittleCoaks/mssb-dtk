@@ -119,7 +119,12 @@ typedef struct _ChargeSharedEffectsBlock {
 } ChargeSharedEffectsBlock;
 
 extern ChargeSharedEffectsBlock lbl_3_common_bss_35154;
-extern u8 hugeAnimStruct[0x3154];
+// This unit's view of hugeAnimStruct (0x3154 bytes); the actor table's real
+// length is unknown, so it is sized to run to the end of the block.
+extern struct {
+    /*0x0000*/ u8 _0000[0x2C50];
+    /*0x2C50*/ ChargeAnimActor* actors[(0x3154 - 0x2C50) / 4];
+} hugeAnimStruct;
 extern u8 drawStadiumRelated;
 extern struct {
     u8 _00[0x28];
@@ -187,19 +192,9 @@ static inline int getChargeEffectId(int slot) {
     return effectId;
 }
 
-static inline void releaseChargeSlot(int actorIndex, int slot) {
-    ChargeAnimActor* actor = *(ChargeAnimActor**)(hugeAnimStruct + actorIndex * 4 + 0x2C50);
-
-    if (actor != NULL) {
-        actor->tevCallback = NULL;
-    }
-    chargeSlots[slot].actorIndex = -1;
-    fn_80027918(getChargeEffectId(slot), 0.0f);
-}
-
 // .text:0x000C1770 size:0x1C0 mapped:0x80700804
 void maybeConfigureChargeEffectGraphics(int actorIndex) {
-    ChargeAnimActor* actor = ((ChargeAnimActor**)(hugeAnimStruct + 0x2C50))[actorIndex];
+    ChargeAnimActor* actor = hugeAnimStruct.actors[actorIndex];
     int slot;
 
     if (actor == NULL) {
@@ -230,7 +225,7 @@ void applyChargeAnimationEffect(int actorIndex, BOOL fullyCharged, f32 charge, f
     if (lbl_80366158._28 != 0) {
         return;
     }
-    actor = ((ChargeAnimActor**)(hugeAnimStruct + 0x2C50))[actorIndex];
+    actor = hugeAnimStruct.actors[actorIndex];
     if (actor == NULL) {
         return;
     }
@@ -267,13 +262,19 @@ void applyChargeAnimationEffect(int actorIndex, BOOL fullyCharged, f32 charge, f
 // .text:0x000C11CC size:0x178 mapped:0x80700260
 void fn_3_C11CC(int actorIndex, BOOL immediate) {
     int slot = findChargeSlot(actorIndex);
+    ChargeAnimActor* actor;
     ChargeFadeNode* node;
 
     if (slot < 0) {
         return;
     }
     if (immediate) {
-        releaseChargeSlot(actorIndex, slot);
+        actor = hugeAnimStruct.actors[actorIndex];
+        if (actor != NULL) {
+            actor->tevCallback = NULL;
+        }
+        chargeSlots[slot].actorIndex = -1;
+        fn_80027918(getChargeEffectId(slot), 0.0f);
     } else {
         node = (ChargeFadeNode*)insertGraphicDrawingFunction(fn_3_C1004, currentDrawingItem->priority);
         node->actorIndex = actorIndex;
@@ -285,7 +286,7 @@ void fn_3_C11CC(int actorIndex, BOOL immediate) {
 // .text:0x000C1004 size:0x1C8 mapped:0x80700098
 void fn_3_C1004(void) {
     ChargeFadeNode* node = (ChargeFadeNode*)currentDrawingItem;
-    ChargeAnimActor* actor = ((ChargeAnimActor**)(hugeAnimStruct + 0x2C50))[node->actorIndex];
+    ChargeAnimActor* actor = hugeAnimStruct.actors[node->actorIndex];
     int slot = findChargeSlot(node->actorIndex);
 
     if (slot < 0) {
@@ -336,20 +337,20 @@ void fn_3_C0DD8(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapI
 // +0x00 and the GB half at +0x20 of the tile.
 // .text:0x000C0D10 size:0xC8 mapped:0x806FFDA4
 void fn_3_C0D10(int row, u8 r, u8 g, u8 b, u8 a) {
-    int i = row * 16;
+    row *= 16;
 
-    chargeTexData[i] = a;
-    chargeTexData[i + 1] = r;
-    *(u16*)&chargeTexData[i + 2] = *(u16*)&chargeTexData[i];
-    *(u32*)&chargeTexData[i + 4] = *(u32*)&chargeTexData[i];
-    memcpy(&chargeTexData[i + 8], &chargeTexData[i], 8);
+    chargeTexData[row] = a;
+    chargeTexData[row + 1] = r;
+    *(u16*)&chargeTexData[row + 2] = *(u16*)&chargeTexData[row];
+    *(u32*)&chargeTexData[row + 4] = *(u32*)&chargeTexData[row];
+    memcpy(&chargeTexData[row + 8], &chargeTexData[row], 8);
     {
-        int j = i + 0x20;
+        int j = row + 0x20;
         chargeTexData[j] = g;
         chargeTexData[j + 1] = b;
-        *(u16*)&chargeTexData[i + 0x22] = *(u16*)&chargeTexData[j];
-        *(u32*)&chargeTexData[i + 0x24] = *(u32*)&chargeTexData[j];
-        memcpy(&chargeTexData[i + 0x28], &chargeTexData[j], 8);
+        *(u16*)&chargeTexData[row + 0x22] = *(u16*)&chargeTexData[j];
+        *(u32*)&chargeTexData[row + 0x24] = *(u32*)&chargeTexData[j];
+        memcpy(&chargeTexData[row + 0x28], &chargeTexData[j], 8);
     }
     DCStoreRange(chargeTexData, sizeof(chargeTexData));
 }
@@ -382,7 +383,7 @@ void fn_3_C0C4C(int slot) {
 // .text:0x000C0AD8 size:0x174 mapped:0x806FFB6C
 void fn_3_C0AD8(void) {
     ChargeGlowNode* node = (ChargeGlowNode*)currentDrawingItem;
-    ChargeAnimActor* actor = ((ChargeAnimActor**)(hugeAnimStruct + 0x2C50))[node->actorIndex];
+    ChargeAnimActor* actor = hugeAnimStruct.actors[node->actorIndex];
 
     if (node->stop == FALSE && actor != NULL) {
         fn_800A7D4C(0, &chargeGlowEntries[node->slot][drawStadiumRelated]);
@@ -442,10 +443,7 @@ void fn_3_C0854(void) {
             chargeDrawItems[i]->stop = TRUE;
         }
         if (chargeSlots[i].actorIndex >= 0) {
-            int slot = findChargeSlot(chargeSlots[i].actorIndex);
-            if (slot >= 0) {
-                releaseChargeSlot(chargeSlots[i].actorIndex, slot);
-            }
+            fn_3_C11CC(chargeSlots[i].actorIndex, TRUE);
         }
     }
 }
