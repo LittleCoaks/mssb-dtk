@@ -2096,7 +2096,7 @@ candidates for the same helper (with `CharacterStats` field names).
 
 ## MWCC's `__abs()` builtin is distinct from both the ternary and the `if (t < 0) t = -t;` abs
 
-First seen: `game/game/ball/foul_detection`, `fn_3_B7E44` (2026-09).
+First seen: `game/game/ball/foul_detection`, `outfieldWallProximityZone` (was `fn_3_B7E44`, 2026-09).
 
 All three spellings compile to the same `srawi`/`xor`/`subf` idiom, but they are not
 interchangeable. `x < 0 ? -x : x` scored 86.05%, `if (x < 0) x = -x;` 86.40%, and
@@ -2108,7 +2108,7 @@ from its operand (`srawi r5,r4,31; xor r6,r5,r4; subf r6,r5,r6`).
 
 ## A trailing `return a < b;` and `if (a < b) return 1; return 0;` can differ only in literal-pool order
 
-First seen: `game/game/ball/foul_detection`, `fn_3_B7E44` (2026-09).
+First seen: `game/game/ball/foul_detection`, `outfieldWallProximityZone` (was `fn_3_B7E44`, 2026-09).
 
 With `__abs` in place the function's instructions matched, but `.rodata` held `55.0f`
 before `63.0f` where the target had `63.0f` first. Rewriting the final

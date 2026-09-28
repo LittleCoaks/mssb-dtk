@@ -9,7 +9,9 @@
 extern VecXZ base_MoundCoordinates[5];
 
 // .text:0x000B7E44 size:0xAC mapped:0x806F6ED8
-int fn_3_B7E44(f32 dist, sAng angle) {
+// 0 = not near the wall, 1/2 = past the near/far depth threshold. The thresholds grow toward
+// center field (0x400). Zone meanings are inferred from the fielder.c callers (wall-bounce positioning).
+int outfieldWallProximityZone(f32 dist, sAng angle) {
     s16 diff;
     f32 scaled;
 
@@ -107,7 +109,8 @@ BOOL checkFielderCollision(InMemFielder* fielder, VecXYZ* pos) {
 }
 
 // .text:0x000B79AC size:0x280 mapped:0x806F6A40
-f32 fn_3_B79AC(f32 x, f32 z) {
+// Distance from (x, z) to the first collision along the ray from home plate through that point.
+f32 distanceFromPointToWall(f32 x, f32 z) {
     f32 dist = dolsqrtf2(x * x + z * z);
     VecSrcDst vec;
     CollisionStruct hit;

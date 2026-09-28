@@ -5987,7 +5987,7 @@ void autoMovement13_GoTowardsBallAsBackUp(int fielderIndex) {
                 fielder->fielderVeloAdjustmentCode = 6;
             }
 
-            code = fn_3_B7E44(fielder->distanceFromHomePlate, fielder->playerAngleFromHome);
+            code = outfieldWallProximityZone(fielder->distanceFromHomePlate, fielder->playerAngleFromHome);
             if (code == 2) {
                 fielder->fielderVeloAdjustmentCode = 8;
             }
@@ -7766,7 +7766,7 @@ void fielderTrackingBall_initialVariableSetting(int fielderIndex) {
         }
 
         if (fielder->catchStrategy == 3 || fielder->catchStrategy == 4) {
-            int code = fn_3_B7E44(dist, g_Ball.ballAngleFromHome);
+            int code = outfieldWallProximityZone(dist, g_Ball.ballAngleFromHome);
             f32 wallX;
             f32 wallZ;
             if (code != 0) {
