@@ -103,10 +103,10 @@ functions turned out to be a useful stress test:
 
 This cross-function coupling (a fix to the shared block affects three
 functions at once) is why single-function `/match-function` runs weren't a
-good fit here, and is what motivated the `match` agent design
-(`.claude/agents/match.md`, `.claude/agents/match-worker.md`) — a
-file-scoped, checkpointed orchestrator instead of one-shot per-function
-passes. Progress/hypothesis log for this file lives at
+good fit here, and is what motivated the file-scoped, checkpointed match
+agents (`.claude/agents/match-sonnet.md` for the first pass,
+`.claude/agents/match.md` for the Opus second pass) instead of one-shot
+per-function passes. Progress/hypothesis log for this file lives at
 `build/.match_grind/game_game_batting_batter.md` once a grind has started —
 gitignored local scratch, pruned once the file hits 100%. Durable
 cross-file findings get promoted out of it into
