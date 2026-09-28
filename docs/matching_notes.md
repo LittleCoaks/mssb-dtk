@@ -407,6 +407,16 @@ Checklist when a unit reaches 100%:
 5. Confirm objdiff still reports the unit 100% (`build/GYQE01/report.json`),
    since the flip changes what links, not what objdiff compares.
 
+Third trap, first seen on `game/game/ball/foul_detection` (2026-09): objdiff scored the unit
+100% and the sha1 check passed while NonMatching, but the flipped link produced a `game.rel`
+64 bytes short. `include/header_rep_data.h`'s `repHeaderData` is a weak local static named
+`repHeaderData$localstatic3$getRepHeaderData` in every unit that includes it, and mwld folds
+identically named weak symbols, so once a second unit of the same module (here alongside
+`pitcher_ai`) links from our object, one copy disappears. Moving the include does not help;
+the name comes from the enclosing function. Fix: `#define REP_HEADER_DATA_FN
+getRepHeaderData_<unit>` before `#include "header_rep_data.h"` in every newly flipped unit of
+a module that already has a Matching unit using the header. Codegen is unaffected.
+
 ## DOL units with extab/extabindex: add `-cpp_exceptions on` per-Object
 
 First seen: `text/text_channel.c (was Unknown/File_0x8000f988.c)` (text engine, 2026-08). Some DOL
@@ -1800,6 +1810,11 @@ double where the target had floats. So treat the two as ONE combined fix - apply
 and reading the lower number as "this made it worse" is the trap; the size going exactly
 right is the signal that the change was correct.
 
+Second data point, `game/game/ball/foul_detection` (2026-09): without the define, the two
+statics sat at the very front of `.rodata`, ahead of `repHeaderData`, so every later literal
+was 0x10 off. Three otherwise instruction-identical functions scored 98.9-99.3% on their
+float relocs alone; the define took all three and `.rodata` to 100% with no other change.
+
 ## Dead standalone copies, second data point: five clusters in one 88-function file
 
 First seen: `game/game/stadium/sta_c2` (88 functions, all `return;` stubs at session
@@ -2078,3 +2093,41 @@ copyCharacterStats(CharacterStats* dst, CharacterStats* src)` in
 target multiplies by 0x5A0 and 0xA0 separately, so a flat `[54]` index does not match).
 `src/menus/text_0323C.c` hand-expands the same sequence with raw offsets in ~7 places; those are
 candidates for the same helper (with `CharacterStats` field names).
+
+## MWCC's `__abs()` builtin is distinct from both the ternary and the `if (t < 0) t = -t;` abs
+
+First seen: `game/game/ball/foul_detection`, `fn_3_B7E44` (2026-09).
+
+All three spellings compile to the same `srawi`/`xor`/`subf` idiom, but they are not
+interchangeable. `x < 0 ? -x : x` scored 86.05%, `if (x < 0) x = -x;` 86.40%, and
+`__abs(angle - 0x400)` 99.53% (every instruction matching) - the builtin gives the abs
+result a fresh register and changes how the surrounding constant loads are scheduled.
+`__abs` needs no prototype and never emits a call; `abs()` via the MSL `arith.h` prototype
+emits a real `bl abs`. Tell-tale in the target: the abs result lands in a different register
+from its operand (`srawi r5,r4,31; xor r6,r5,r4; subf r6,r5,r6`).
+
+## A trailing `return a < b;` and `if (a < b) return 1; return 0;` can differ only in literal-pool order
+
+First seen: `game/game/ball/foul_detection`, `fn_3_B7E44` (2026-09).
+
+With `__abs` in place the function's instructions matched, but `.rodata` held `55.0f`
+before `63.0f` where the target had `63.0f` first. Rewriting the final
+`return 55.0f + scaled < dist;` as `if (55.0f + scaled < dist) { return 1; } return 0;` left
+the code identical (still `mfcr`/`srwi`) and restored the pool order, taking the function
+and `.rodata` to 100%. When a function is instruction-identical but its float relocs still
+mismatch, dump both `.rodata` sections before assuming it is naming noise: objdiff matches a
+literal reloc by offset, so a reloc mismatch means the pool is laid out differently.
+
+## `if (!(x != a && x != b && ...)) { A } B` gives the `||` block order without the range fold
+
+First seen: `game/game/ball/foul_detection`, `checkFielderCollision` and
+`isCoordinateUncatchableTerrain` (2026-09). Extends "`x == a || x == b || x == c` gets folded
+into a range check".
+
+Target: `cmplwi/beq T` for each value, `cmplwi last; bne F`, then `T` falls through - the
+natural layout of `if (x == a || ... ) { T } F`. The `||` form folded consecutive values
+(2..5, 9..10) into `subi; cmplwi; ble`. The negated-conjunction form from the earlier entry,
+`if (x != a && ...) { F } T`, stopped the fold but put `F` on the fall-through path (99.2%).
+Wrapping the same conjunction in `!( ... )` with the arms swapped reproduced both the
+unfolded compares and the target's block order (100%). A `switch` built a binary decision
+tree instead and was the worst of the structured forms.

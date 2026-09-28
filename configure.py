@@ -1018,7 +1018,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_1BC8.c"),
             Object(NonMatching, "game/data_only/rep_1C18.c"),
             Object(NonMatching, "game/data_only/rep_1C68.c"),
-            Object(NonMatching, "game/ball/foul_detection.c"),
+            Object(Matching, "game/ball/foul_detection.c"),
             Object(NonMatching, "game/stadium/stadium_framework.c"),
             Object(NonMatching, "game/animation/scene_effects.c"),
             Object(NonMatching, "game/batting/charge_effects.c"),
