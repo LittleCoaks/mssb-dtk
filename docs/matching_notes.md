@@ -2305,3 +2305,32 @@ all three 100% and `Matching`.
 - **A dtk symbol can collide with an SDK typedef.** The Ghidra import named the 0x18-byte fog-state
   global at 0x80111700 `GXFogType`, which cannot be referenced from C while `GXEnum.h` is visible.
   Renamed to `fogSettings` (struct `FogSettings` in `include/Unknown/File_0x800b99c4.h`).
+
+## Findings from the eleven-small-DOL-files pass (SndFree ... addOrRemoveCharacterToTeam)
+
+First seen: 2026-09, 10 of 11 functions 100% (9 units flipped to `Matching`; SndFree and
+SndAlloc merged into one unit). `multBottomBits_asFloat` (File_0x80024974) stays at 98.16%
+with a checkpoint.
+
+- **MWCC gives a string-only `.rodata` section 8-byte alignment, so a split cannot start its
+  `.rodata` at a 4-aligned address.** SndAlloc's string sits at 0x800E7CEC. As its own unit it
+  scored 100% in objdiff, but the `Matching` link placed the section at 0x800E7CF0 and shifted
+  everything after it (sha1 failed). SndFree's string at 0x800E7CD8 is 8-aligned and linked fine.
+  Merging the two splits into one unit (`File_0x800b0938.c`, `.rodata 0x800E7CD8..0x800E7D10`)
+  put both strings in one section at their original 4-byte spacing (`4 files OK`). dtk flags this
+  in advance as `Alignment for <unit> .rodata expected 8, but starts at ...`; treat that warning as
+  "merge with the previous split".
+- **Argument materialisation order can come from an inline helper's parameter order.** In
+  `playPlayerSelectedSound` every direct `sndFXStartEx(ids[findCharacterID(c)], vol[0], ...)`
+  form (locals, pointer locals, reordered statements) built the ID table's address first (86%).
+  A `static inline startMenuVoice(u8* vol, u16 id)` taking the volume table FIRST matched at 100%.
+- **`slwi; addi rX, 8; lwzx` against a struct member is raw byte-offset indexing.** Every typed
+  form (`table->elems[i]`, `((T**)table)[i + 2]`) folds the +8 into `add; lwz 8(rX)`. Only
+  `*(T**)(bytePtr + i * 4 + 8)` with a `u8*` member kept the target's shape (handleUIAction).
+- **An `int` local for a byte you compare against makes `cmpw`; a `u8` local makes `cmplw`.**
+  (add_or_RemoveCharToATeam / addOrRemoveCharacterToTeam: 98% -> 100%.)
+- **A pointer local to a stack struct is how the target gets `addi r31, r1, 8` hoisted into a
+  saved register** before a null check (spawnDust: `ParticleBurstParams* p = &params;`, 78% -> 100%).
+- **Two float-conversion stack slots swapped with otherwise identical code is still unsolved**
+  (`multBottomBits_asFloat`; see its checkpoint for ten hypotheses). The same pattern appears in the
+  sibling `byteWiseMultiply`, where three of its four bytes have the target's slot order.

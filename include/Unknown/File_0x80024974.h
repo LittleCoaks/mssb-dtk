@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void multBottomBits_asFloat(void);
+u32 multBottomBits_asFloat(u32 value, u32 scale);
 
 #endif // !__UNKNOWN_FILE_0X80024974_H_

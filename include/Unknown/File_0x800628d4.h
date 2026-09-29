@@ -2,7 +2,8 @@
 #define __UNKNOWN_FILE_0X800628D4_H_
 
 #include "mssbTypes.h"
+#include "musyx/musyx.h"
 
-void playPlayerSelectedSound(void);
+SND_VOICEID playPlayerSelectedSound(int charID);
 
 #endif // !__UNKNOWN_FILE_0X800628D4_H_

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void findCharacterID(void);
+int findCharacterID(int charID);
 
 #endif // !__UNKNOWN_FILE_0X800698F8_H_
