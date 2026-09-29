@@ -1684,6 +1684,7 @@ Unknown/File_0x800b07fc.c:
 	extab       start:0x800068F0 end:0x800068F8
 	extabindex  start:0x800088C8 end:0x800088D4
 	.text       start:0x800B07FC end:0x800B0834
+	.sdata2     start:0x803CCF20 end:0x803CCF28
 
 Unknown/File_0x800b0834.c:
 	extab       start:0x800068F8 end:0x80006900

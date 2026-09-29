@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void baseballCTRLSetScale(void);
+void baseballCTRLSetScale(f32 x, f32 y, f32 z, int model);
 
 #endif // !__UNKNOWN_FILE_0X8001D148_H_

@@ -2239,3 +2239,18 @@ keeps an explicit `add` and 0-offset loads. A per-Object `mw_version` sweep
 ordinary source placement. Lesson: when a placeholder `Unknown/` DOL unit
 turns out to hold SDK functions (names in `include/charPipeline/`, `DS*`,
 `TEX*`, etc.), try `mw_version="GC/1.2.5n"` before grinding anything.
+
+## A local aggregate initializer's pooled `.sdata2` copy: give the unit the pool range
+
+First seen: `Unknown/File_0x800b07fc.c` (`soundQuit`, 2026-09). `SND_HOOKS hooks =
+{SndAlloc, fn_800B0934};` compiles to two `lwz @N@sda21` loads from an anonymous
+8-byte `.sdata2` constant, which objdiff scored as a reloc-name mismatch (99.29%)
+against dtk's `lbl_803CCF20`/`lbl_803CCF24`. Declaring the label `extern const`
+and copying it is NOT equivalent here: the load gets scheduled ahead of the
+`stw r0` and drops the score to 85%. Fix: add the constant's range to the unit's
+split (`.sdata2 start:0x803CCF20 end:0x803CCF28`) and merge the dtk labels into
+one `size:0x8 scope:local` symbol. objdiff then pairs `@N` with it (100%), and the
+Matching link is sha-clean. The pool sits after the neighbouring `initSound`'s
+constant even though `soundQuit` precedes it in `.text`, so whoever matches
+`File_0x800b0834.c` must NOT claim `0x803CCF18` in a separate split (section
+order would conflict); merge the sound TU instead.

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void applyNonUniformScaleToObject(void);
+void applyNonUniformScaleToObject(f32 x, f32 y, f32 z, int model);
 
 #endif // !__UNKNOWN_FILE_0X8001D110_H_

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void noActiveProcessInd(void);
+s32 noActiveProcessInd(void);
 
 #endif // !__UNKNOWN_FILE_0X80062578_H_
