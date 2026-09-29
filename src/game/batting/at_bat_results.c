@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "game/batting/at_bat_results.h"
 #include "game/ball/ball_trajectory.h"
 #include "game/UnknownHomes_Game.h"
@@ -41,7 +42,9 @@ static inline int randomIntGame(int max) {
 static inline int randomIntGameAbs(int max) {
     int ret;
     int orig = max;
-    max = ABS(max);
+    if (max < 0) {
+        max = -max;
+    }
 
     if (max <= 1) {
         return 0;
@@ -70,16 +73,17 @@ static inline int randomIntGameAbs(int max) {
 static inline int randomIntSim(int max) {
     int ret, r2;
     int orig = max;
-    max = ABS(max);
+    if (max < 0) {
+        max = -max;
+    }
 
     if (max <= 1) {
         return 0;
     }
-    ret = g_UnkSimulation_31AC0._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
-          (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
-          ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / max);
-    g_UnkSimulation_31AC0._00 = ret;
-    ret %= (u32)max;
+    g_UnkSimulation_31AC0._00 = g_UnkSimulation_31AC0._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
+                                (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
+                                ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / max);
+    ret = g_UnkSimulation_31AC0._00 % (u32)max;
     r2 = ABS(ret);
 
     if (orig < 0) {
@@ -365,8 +369,8 @@ void setAtBatResult(void) {
                         for (i = 0; i < 5; i++) {
                             if (storedInningInfo.catches[i].fielderIndex == -1) {
                                 storedInningInfo.catches[i].fielderIndex = fielder;
-                                coverage = g_Fielders[fielder].locationResponsibleForCovering;
                                 storedInningInfo.catches[i].outsDuringPossession = g_Strikes.outs - g_Strikes.storedOuts;
+                                coverage = g_Fielders[fielder].locationResponsibleForCovering;
                                 if (coverage >= 0 && coverage <= 3) {
                                     switch (coverage) {
                                         case 0:
@@ -459,38 +463,12 @@ void initializeInningTrackers(void) {
 // .text:0x0009DC18 size:0x460 mapped:0x806DCCAC
 void fn_3_9DC18(u8* values, int count, BOOL useGameRandom) {
     int result[10];
-    int source[20];
-    int taken[20];
     u32 u;
-    int i;
-    int j;
-    int k;
-    int r;
 
     for (u = 0; u < count; u++) {
         result[u] = values[u];
     }
-    for (i = 0; i < count; i++) {
-        source[i] = result[i];
-        taken[i] = 0;
-    }
-    for (k = count - 1; k >= 0; k--) {
-        if (useGameRandom) {
-            r = randomIntGameAbs(k + 1);
-        } else {
-            r = randomIntSim(k + 1);
-        }
-        for (j = 0; j < count; j++) {
-            if (taken[j] == 0) {
-                if (r == 0) {
-                    result[k] = source[j];
-                    taken[j] = 1;
-                    break;
-                }
-                r--;
-            }
-        }
-    }
+    fn_3_9E078(result, count, useGameRandom);
     for (u = 0; u < count; u++) {
         values[u] = result[u];
     }

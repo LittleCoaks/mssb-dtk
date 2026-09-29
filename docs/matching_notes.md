@@ -2201,3 +2201,24 @@ First seen: `game/game/match_setup/versus_screens` (2026-09), Sonnet first pass,
 - **A single `.data` object with several named sub-symbols needs both spellings.** Functions that
   hoist the base register reference it as a struct (`VsData`); single-use functions reference the
   named sub-symbols. objdiff matches on symbol name, so both must exist.
+
+## Comma-initialised `for` loops: read the init order off the target's `li` sequence
+
+First seen: `staminaRelated` (`game/pitching/pitcher_stamina.c`, 2026-09). Two callee-saved
+registers (a counter and a whole-function local) were swapped, with logic identical, and about
+150 declaration orders could not fix it. The clue was the order of the zero-inits: the target
+emitted `li i,0` *before* `li nCand,0`, and ours emitted them the other way round, because the
+source had `nCand = 0; for (i = 0; ...)`. Writing `for (i = 0, nCand = 0; ...)` (and the same
+change for a second counter loop) fixed the volatile order in the next block. The pair swap then
+became fixable by declaration order again: moving `int nCand;` above the initialised locals gave
+100%. When two registers swap and declaration order does nothing, check whether the statement
+shape changes what the declaration order acts on. Re-sweep declaration order after each shape
+change.
+
+## A unit with no target `.rodata` must not include `header_rep_data.h` or an `extern` dolsqrtf2
+
+Same unit. objdiff scores `.text` only, so the unit showed 100% while our object still carried
+a 0x60-byte `.rodata` that the target unit does not have: `repHeaderData` from an unused
+`#include "header_rep_data.h"` plus `dolsqrtf2`'s `_half`/`_three`. Before flipping to Matching,
+compare the section lists of the two objects. If the target has no `.rodata`, drop the unused
+include and `#define SQRT2_LINKAGE static`. Codegen does not change.
