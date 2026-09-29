@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 
 void Set_803cb848(BOOL value);
-void fn_8004ABE0(void);
-void marioHandOnFire_endFireAnimation(void);
+s32 fn_8004ABE0(void);
+BOOL marioHandOnFire_endFireAnimation(BOOL clear);
 
 #endif // !__UNKNOWN_FILE_0X8004ABD8_H_

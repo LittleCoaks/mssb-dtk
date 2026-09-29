@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void ConvertPathToEntryNum(void);
+s32 ConvertPathToEntryNum(char** path);
 
 #endif // !__UNKNOWN_FILE_0X800A7544_H_

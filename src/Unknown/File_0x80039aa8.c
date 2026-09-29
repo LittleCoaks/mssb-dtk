@@ -1,9 +1,12 @@
 #include "Unknown/File_0x80039aa8.h"
 
-void GetUITexture(void) {
-    return;
+extern u8 UITexture[];
+extern u8 lbl_800F7A40[];
+
+void* GetUITexture(void) {
+    return UITexture;
 }
 
 void* returnTexture(void) {
-    return 0;
+    return lbl_800F7A40;
 }
