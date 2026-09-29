@@ -2287,3 +2287,23 @@ First seen: `game/game/match_setup/result_stats` (2026-09), .text 93.6% -> 97.3%
   *p = x;` gives the target's `addi; lbz 0(r)` pair instead of `lbzu` (+6% on `winningPitcher`).
 - **Keep declaration-order sweeps to 720 permutations or fewer.** A build and score takes about half
   a second, so 5040 permutations runs past the 10-minute command limit.
+
+## Findings from replay_inputs (first pass to 100%, flipped to Matching)
+
+First seen: `game/game/match_setup/replay_inputs` (2026-09).
+
+- **A same-TU callee that the target calls but our build inlines needs `#pragma dont_inline`.**
+  `useReplayInputs` (712 bytes, contains an inlined `dolsqrtf2`) was pulled into `CopyMoreStructs`
+  regardless of definition order or loop form; `structCopying` (19 memcpys) is legitimately inlined
+  there. The pragma around the callee restored 100%. Original reason not found.
+- **`dolsqrtf2` that is actually called: use `SQRT2_LINKAGE static`.** The used statics (`_half`,
+  `_three`) then land after the pooled `0.0f`, as in the target; with `extern` linkage they sit at the
+  head of `.rodata` and shift the pool by 16 bytes (rodata 94.4% -> 100%).
+- **`(f32)a * (f32)a + (f32)b * (f32)b` on `s8` fields** gives the target's per-operand
+  `extsb/xoris/fsubs`; plain `a*a + b*b` emits an integer `mullw`.
+- **Playback mirrors recording**: reading `g_ReplayLogic[g_Stats.playFrameCounter].pad[i].field`
+  (full global expression, no `rec` local) gave 88% -> 100% where the hoisted `rec->pad[i]` form
+  produced different induction variables.
+- **A restore function that re-reads a byte through a saved `g_Stats` pointer after a fresh
+  `lis` read of the same global** (`g_Stats.replayReason != 2 && stats->replayReason != 0xD`) is a
+  mixed local-pointer / global-access source shape.

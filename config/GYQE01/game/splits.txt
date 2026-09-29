@@ -93,10 +93,18 @@ game/data_only/rep_D68.c:
 game/data_only/rep_DB8.c:
 	.rodata     start:0x00000DB8 end:0x00000E08
 
+game/match_setup/match_ui.c:
+	.text       start:0x00059918 end:0x0005A684
+	.data       start:0x00003D60 end:0x0000428C
+
+game/match_setup/match_flow.c:
+	.text       start:0x0005A684 end:0x00060768
+	.data       start:0x00005FF4 end:0x000065EC
+
 game/animation/animation_dispatch.c:
 	.text       start:0x00060768 end:0x000674E0
 	.rodata     start:0x00000E08 end:0x00000EA0
-	.data       start:0x00006660 end:0x00006804
+	.data       start:0x000065F0 end:0x00006804
 
 game/ball/ball_visuals.c:
 	.text       start:0x0006750C end:0x0006A160

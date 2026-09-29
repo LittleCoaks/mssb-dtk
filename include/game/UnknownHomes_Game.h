@@ -858,7 +858,8 @@ typedef struct _PracticeStruct {
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     artificial_padding(0x1aa, 0x1af, u8);
     /*0x1AF*/ u8 returnToPracticeMenuState;
-    artificial_padding(0x1af, 0x1c2, u8);
+    /*0x1B0*/ u8 _1B0;
+    artificial_padding(0x1b0, 0x1c2, u8);
     /*0x1C2*/ s8 instructionNumber;
     /*0x1C3*/ u8 readyToMoveToNextInstruction; // unsure
     /*0x1C4*/ u8 practice_runner_countInputForMashing;
@@ -1043,7 +1044,7 @@ typedef struct _GameControlsStruct {
     /*0x00C*/ int homeTeamBattingInd_fieldingTeam;
     /*0x010*/ int awayTeamBattingInd_battingTeam;
     /*0x014*/ u32 AIDifficulty0Special3Weak[2];
-    artificial_padding(0x14, 0x24, u32[2]);
+    /*0x01C*/ u32 _1C[2];
     /*0x024*/ LogoInfoStruct logo[2];
     /*0x03C*/ int battingOrderAndPositionMapping[2][10][2]; // first Pair Is Pitcher
     /*0x0DC*/ int currentBatterPerTeam[2];
@@ -1086,10 +1087,10 @@ typedef struct _GameControlsStruct {
     /*0x12E*/ u8 hudLoadingRelated; // unsure
     /*0x12F*/ u8 _12F;
     /*0x130*/ E(u8, WIN_TYPE) winType;
-    artificial_padding(0x130, 0x135, u8);
+    /*0x131*/ u8 _131[4];
     /*0x135*/ u8 writeOnly_always0;
     /*0x136*/ u8 writeOnly_always0_2;
-    /*0x137*/ u8 playOverFadeOutStarted;
+    /*0x137*/ s8 playOverFadeOutStarted;
     /*0x138*/ u8 playOver;
     /*0x139*/ u8 playOverInd;
     /*0x13A*/ u8 walkOffWinInd; // unsure
@@ -1097,7 +1098,7 @@ typedef struct _GameControlsStruct {
     /*0x13C*/ u8 scoutFlag_VsScreenInd;
     /*0x13D*/ u8 _13D;
     /*0x13E*/ u8 teamIsCPU[2];
-    artificial_padding(0x13E, 0x142, u8[2]);
+    /*0x140*/ u8 _140[2];
     /*0x142*/ u8 teamAIInd[2];
     /*0x144*/ u8 autoFielding[2];
     /*0x146*/ u8 batterHandedness[2];
@@ -2372,23 +2373,21 @@ extern InputStruct g_Controls[];
 
 typedef struct {
     /* 0x0 */ s16 _00;
-    /* 0x2 */ u8 _02;
-    /* 0x3 */ u8 _03;
-    /* 0x4 */ u8 _04;
-    /* 0x5 */ u8 _05;
-    /* 0x6 */ u8 _06;
+    /* 0x2 */ u8 queue[5];
     /* 0x7 */ u8 _07;
     /* 0x8 */ u8 _08;
 } lbl_3_common_bss_32718_struct;
 
 extern lbl_3_common_bss_32718_struct g_UnkSound_32718;
 
-extern struct {
+typedef struct {
     /* 0x0 */ u8 moonShotCost;
     /* 0x1 */ u8 captainStarCost;
     /* 0x2 */ u8 nonCaptain_CaptainStarCost;
     /* 0x3 */ u8 regularStarCost;
-} starPowerCosts;
+} StarPowerCosts;
+
+extern StarPowerCosts starPowerCosts;
 
 typedef struct {
     /* 0x00 */ f32 aIDifficultyMultiplierArray[2];
@@ -2683,7 +2682,7 @@ typedef struct {
     /*0x06*/ s16 runnerTransferIndex[4];
     artificial_padding(0x06, 0x10, s16[4]);
     /*0x10*/ u8 _10;
-    artificial_padding(0x10, 0x12, u8);
+    /*0x11*/ u8 _11;
     /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
     /*0x13*/ u8 _13;
     /*0x14*/ u8 someSituationTrackerFrames;
@@ -3054,7 +3053,10 @@ typedef struct _GameScoresControlsStruct {
     /*0x0BD*/ u8 _BD[2];
     u8 _pad_BF[3];
     /*0x0C2*/ u8 _C2;
-    u8 _pad_C3[4];
+    u8 _C3;
+    /*0x0C4*/ u8 _C4;
+    /*0x0C5*/ u8 _C5;
+    u8 _C6;
     /*0x0C7*/ u8 mercyThreshold;
 } GameScoresControlsStruct; // size: 0xC8
 

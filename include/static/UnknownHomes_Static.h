@@ -20,13 +20,14 @@ typedef struct _GameInitVariables {
     /*0x09*/ E(u8, STADIUM_ID) StadiumID;
     /*0x0A*/ u8 miniGameStadiumIndicator;
     /*0x0B*/ u8 _0B;
-    /*0x0C*/ u8 maybeHomeAway;
-    /*0x0D*/ u8 maybeHomeAway2;
+    /*0x0C*/ u8 maybeHomeAway[2];
     /*0x0E*/ u8 home_AwaySetting;   // "bats first" setting (0x800E870A)
     /*0x0F*/ u8 _0F;
     /*0x10*/ E(u8, P2_CPU_CODE) p2_CPU_match_code;
     /*0x11*/ bool minigamesEnabled;
-    artificial_padding(0x11, 0x20, bool);
+    /*0x12*/ u8 _12;
+    /*0x13*/ u8 _13;
+    artificial_padding(0x13, 0x20, u8);
     /*0x20*/ s16 _20[4][2];
     /*0x30*/ s16 challengeMinigame_baseCoinsEarned;
     /*0x32*/ u8 bJMatchRelated;
@@ -59,23 +60,24 @@ extern GameInitVariables g_d_GameSettings;
 //   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28,
 //   0x800E877E -> +0x2A, 0x800E8782 -> +0x2E
 typedef struct _GameControlOptions {
-    /*0x000*/ bool autoRunning;
-    /*0x001*/ bool autoFielding;
-    /*0x002*/ bool dropSpot;
-    /*0x003*/ bool _3;
-    /*0x004*/ bool easyBatting;
+    /*0x000*/ bool _0;
+    /*0x001*/ bool _1;
+    /*0x002*/ bool autoRunning;
+    /*0x003*/ bool autoFielding;
+    /*0x004*/ bool dropSpot;
     /*0x005*/ bool _5;
-    /*0x006*/ bool _6;
+    /*0x006*/ bool easyBatting;
 } GameControlOptions; // size: 0x7
 
 typedef struct _InningSettings {
     /*0x00*/ u8 inningCount;
-    u8 _pad_1[0x3];
+    u8 _pad_1[0x2];
+    /*0x03*/ u8 aiDifficulty;
     /*0x04*/ u8 starSkillsSetting;
     /*0x05*/ u8 runsNeededForMercy;
-    u8 _pad_6[0x3];
-    /*0x09*/ GameControlOptions controlOptions[4];
-    u8 _pad_25[0x3];
+    u8 _pad_6[0x1];
+    /*0x07*/ GameControlOptions controlOptions[4];
+    u8 _pad_23[0x5];
     /*0x28*/ s16 rel;           // which REL is resident: 0 boot, 4 menu, 5 match
     /*0x2A*/ u16 currentScene;  // the menu screenCode (5 main menu, 6 options, ...)
     /*0x2C*/ u16 _2C;
