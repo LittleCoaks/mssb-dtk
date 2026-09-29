@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void GQRSetup7(void);
+void GQRSetup7(u32 loadScale, u32 loadType, u32 storeScale, u32 storeType);
 
 #endif // !__UNKNOWN_FILE_0X800BD208_H_

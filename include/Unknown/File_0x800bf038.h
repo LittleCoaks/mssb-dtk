@@ -3,6 +3,7 @@
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
+#include "Dolphin/gx.h"
 #include "game/stadium/stadium_framework.h"
 
 typedef struct _ShadowCamera {
@@ -11,7 +12,9 @@ typedef struct _ShadowCamera {
 } ShadowCamera;
 
 typedef struct _ShadowState {
-    /*0x00*/ u8 _00[0x14];
+    /*0x00*/ u8 _00[0xC];
+    /*0x0C*/ GXTlutObj* tlut;
+    /*0x10*/ u8 _10[0x4];
     /*0x14*/ ShadowCamera* camera;
     /*0x18*/ void (*callback18)(void);
     /*0x1C*/ void (*modelCallback)(StadiumModel* model, Mtx m);

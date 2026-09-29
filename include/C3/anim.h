@@ -17,10 +17,14 @@ struct ANIMAnimTrack {
 
 struct ANIMPipe {
     /* 0x00 */ f32 time;
-    /* 0x04 */ f32 speed;
-    /* 0x08 */ struct ANIMAnimTrack * currentTrack;
-    /* 0x0C */ struct Control * control;
-    /* 0x10 */ u8 replaceHierarchyCtrl;
+    /* 0x04 */ f32 unk04;
+    /* 0x08 */ f32 unk08;
+    /* 0x0C */ struct ANIMAnimTrack * currentTrack;
+    /* 0x10 */ struct Control * control;
+    /* 0x14 */ u16 unk14;
+    /* 0x16 */ u8 replaceHierarchyCtrl;
+    /* 0x17 */ u8 unk17;
+    /* 0x18 */ u8 unk18;
 };
 
 typedef struct ANIMSequences {

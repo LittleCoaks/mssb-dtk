@@ -63,9 +63,10 @@ struct DODisplayObj {
     /* 0x10 */ DisplayData *displayData;
     /* 0x14 */ u8 numTextureChannels;
     /* 0x15 */ u8 pad8;
-    /* 0x16 */ u16 pad16;
-    /* 0x18 */ int visibility;
-    /* 0x1C */ Mtx worldMatrix;
+    /* 0x16 */ u8 visibility;
+    /* 0x17 */ u8 pad17;
+    /* 0x18 */ Mtx worldMatrix;
+    /* 0x48 */ u8 unk48[0x4];
     /* 0x4C */ unkCB shaderFunc;
     /* 0x50 */ void *shaderData;
 };
