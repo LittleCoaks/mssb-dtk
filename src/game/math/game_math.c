@@ -4,6 +4,8 @@
 #include "Dolphin/rand.h"
 #include "static/UnknownHomes_Static.h"
 
+extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
+
 // .text:0x000A0018 size:0x84 mapped:0x806DF0AC
 f32 shortAngleToRad_Capped(s16 ang) {
     f32 v = shortAngleToRad(ang);
@@ -380,10 +382,10 @@ int random_fn_3_9EE24(int max) {
     if (absMax <= 1) {
         return 0;
     }
-    ret = unkSimulationRelatedStruct._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
+    ret = g_UnkSimulation_31AC0._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
           (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
-          ((u8)g_Ball.StaticRandomInt2) + (unkSimulationRelatedStruct._00 / absMax);
-    unkSimulationRelatedStruct._00 = ret;
+          ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / absMax);
+    g_UnkSimulation_31AC0._00 = ret;
     ret %= (u32)absMax;
     r2 = ABS(ret);
 
