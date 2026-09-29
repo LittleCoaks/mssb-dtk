@@ -160,10 +160,45 @@ typedef struct {
 } StatisticsBatter; // size: 0x26
 
 typedef struct {
-    /* 0x00 */ u8 _00[0x1A];
+    /* 0x00 */ u16 _00;
+    /* 0x02 */ u16 runsAllowed;
+    /* 0x04 */ u16 earnedRunsAllowed;
+    /* 0x06 */ u16 _06;
+    /* 0x08 */ u16 _08;
+    /* 0x0A */ u16 _0A;
+    /* 0x0C */ u16 _0C;
+    /* 0x0E */ u16 pitchesThrown;
+    /* 0x10 */ u16 stamina;
+    /* 0x12 */ u8 wasPitcher;
+    /* 0x13 */ u8 _13[7];
     /* 0x1A */ u8 outsAsPitcher;
-    /* 0x1B */ u8 _1B[3];
+    /* 0x1B */ u8 maxPitchSpeed;
+    /* 0x1C */ u8 _1C;
+    /* 0x1D */ u8 starPitchesThrown;
 } StatisticsPitcher; // size: 0x1E
+
+// lbl_80353260: one entry per roster slot, per team.
+typedef struct {
+    /* 0x0 */ u8 a : 5;
+    u8 : 3;
+    u8 : 2;
+    /* 0x1 */ u8 b : 4;
+    u8 : 2;
+    /* 0x2 */ u8 c : 4;
+    u8 d : 4;
+    /* 0x3 */ u8 e : 4;
+    u8 f : 4;
+} StatsTableEntryA; // size: 0x4
+
+// lbl_803532A8: 100 entries per team.
+typedef struct {
+    /* 0x0 */ u16 a : 5;
+    u16 b : 4;
+    u16 c : 4;
+    u16 d : 3;
+    /* 0x2 */ s8 e;
+    /* 0x3 */ u8 f;
+} StatsTableEntryB; // size: 0x4
 
 typedef struct {
     /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS / 9][9]; // the master stat table, indexed [charID / 9][charID % 9] (copied into inMemRoster)
@@ -192,10 +227,15 @@ typedef struct {
     /* 0x478D */ u8 battingOrderIndex[9];
     /* 0x4796 */ u8 _4796[0x489B - 0x4796];
     /* 0x489B */ u8 charIsStarred[2][9];
-    /* 0x48AD */ u8 _48AD[0x4C28 - 0x48AD];
-} Static_MSSB_Data; // size: 0x4C28
+    /* 0x48AD */ u8 _48AD[0x48C0 - 0x48AD];
+} Static_MSSB_Data; // size: 0x48C0
 
 extern Static_MSSB_Data Static_Stats_Tables;
+
+/* Two objects split out of the tail of the old 0x4C28-byte Static_Stats_Tables
+ * symbol: references to them carry their own @ha/@l relocation in the target. */
+extern StatsTableEntryA lbl_80353260[2][9];
+extern StatsTableEntryB lbl_803532A8[2][100];
 
 /* The original symbol table gave Static_Stats_Tables a size of 0x51F8, but
  * every reference past 0x4C28 is to exactly +0x4C28, +0x4E44 or +0x50F0:
@@ -209,9 +249,14 @@ typedef struct {
     /* 0x00 */ u8 _00[8];
     /* 0x08 */ ScoreStruct scores[2];
     /* 0x54 */ ScoreStruct hits[2];
-    /* 0xA0 */ u8 _A0[0xF0 - 0xA0];
+    /* 0xA0 */ s8 _A0[0xBE - 0xA0];
+    /* 0xBE */ struct {
+        s8 pitcher;
+        u8 inning;
+    } pitcherLog[2][10];
+    /* 0xE6 */ s8 catcherLog[2][5];
     /* 0xF0 */ u8 stealsAgainst[2];
-    /* 0xF2 */ u8 _F2[0x108 - 0xF2];
+    /* 0xF2 */ s8 _F2[0x108 - 0xF2];
 } StatsScreenScoresStruct; // size: 0x108
 
 extern StatsScreenScoresStruct StatsScreenScores;

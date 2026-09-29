@@ -48,6 +48,9 @@ game/camera/camera.c:
 	.data       start:0x00000A38 end:0x00001880
 	.bss        start:0x00000040 end:0x00000098
 
+game/pitching/pitcher_stamina.c:
+	.text       start:0x0001D86C end:0x0001DEB8
+
 game/match_setup/ai_defaults.c:
 	.text       start:0x0001DEB8 end:0x0001E154
 	.rodata     start:0x00000868 end:0x000008C8
@@ -136,6 +139,10 @@ game/baserunning/play_result_tracking.c:
 	.rodata     start:0x000012D0 end:0x00001330
 	.data       start:0x000080E8 end:0x00008110
 
+game/match_setup/stat_tracking.c:
+	.text       start:0x0007976C end:0x0007C1FC
+	.data       start:0x00008110 end:0x00008148
+
 game/match_setup/replay_inputs.c:
 	.text       start:0x0007C1FC end:0x0007CE90
 	.rodata     start:0x00001330 end:0x000013B8
@@ -172,6 +179,9 @@ game/hud/hud_gauges.c:
 game/ball/ball_trajectory.c:
 	.text       start:0x0009CAF0 end:0x0009CD90
 	.rodata     start:0x000017E0 end:0x00001838
+
+game/batting/at_bat_results.c:
+	.text       start:0x0009CD90 end:0x0009EAE4
 
 game/math/game_math.c:
 	.text       start:0x0009EAE4 end:0x000A009C

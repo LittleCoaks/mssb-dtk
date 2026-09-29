@@ -2622,12 +2622,18 @@ extern inMemStrikes g_Strikes;
 typedef struct {
     u8 pad[0x24];
     /* 0x0024 */ u32 playFrameCounter;
-    artificial_padding(0x24, 0x32, u32);
+    /* 0x0028 */ s16 _0028;
+    u8 _pad_002A[8];
     /* 0x0032 */ s16 prevAtBatResult; // AT_BAT_RESULT
     /* 0x0034 */ u8 _0034[2];
     /* 0x0036 */ u8 replayInd;
     /* 0x0037 */ u8 atBatPitchThrown;
-    /* 0x0038 */ u8 _0038[0x4634 - 0x38];   // not yet labelled
+    /* 0x0038 */ u8 _0038[1];
+    /* 0x0039 */ u8 replayPending;
+    /* 0x003A */ u8 _003A[2];
+    /* 0x003C */ u8 replayReason;
+    /* 0x003D */ u8 replayArg;
+    /* 0x003E */ u8 _003E[0x4634 - 0x3E];   // not yet labelled
 } g_Stats_s; // size: 0x4634
 
 // 0x8088a7e4
@@ -2755,7 +2761,7 @@ typedef struct {
     /*0x011e*/ u8 whosHoldingOnRunnerAt2nd;
     /*0x011f*/ u8 quickThrowInd;
     /*0x0120*/ u8 _0120;
-    /*0x0121*/ u8 const_neg1;
+    /*0x0121*/ s8 const_neg1;
     /*0x0122*/ u8 _0122;
     /*0x0123*/ u8 letFoulBallDropIfWinningRunOn3rdInd;
     /*0x0124*/ u8 tagAnimationCountdown;
@@ -2905,9 +2911,9 @@ typedef enum _RUNNER_FORCE_CODE {
 
 // One catch recorded during the play.
 typedef struct _PlayCatchRecord {
-    /* 0x0 */ u8 fielderIndex;
-    /* 0x1 */ u8 outsDuringPossession;
-    /* 0x2 */ u8 baseStandingOn;
+    /* 0x0 */ s8 fielderIndex;
+    /* 0x1 */ s8 outsDuringPossession;
+    /* 0x2 */ s8 baseStandingOn;
 } PlayCatchRecord; // size: 0x3
 
 typedef struct _StoredInningInfo {
@@ -2916,9 +2922,9 @@ typedef struct _StoredInningInfo {
     /* 0x04 */ s16 situation; // sac fly / area of the field the ball went to
     /* 0x06 */ s16 _06[5];
     /* 0x10 */ PlayCatchRecord catches[5];
-    /* 0x1F */ u8 fielderWithBallIndex;
+    /* 0x1F */ s8 fielderWithBallIndex;
     /* 0x20 */ s16 runnersTargetedWhileBatterForceable;
-    /* 0x22 */ u8 batterResultBase;
+    /* 0x22 */ s8 batterResultBase;
     /* 0x23 */ s8 tentativeBatterBase; // negative until the batter reaches it
     /* 0x24 */ E(u8, PLAY_RESULT_CODE) playResultCode;
     /* 0x25 */ s8 nRunnersForcedOut;
@@ -2938,10 +2944,10 @@ typedef struct _StoredInningInfo {
     /* 0x41 */ u8 consecutiveHBP;
     /* 0x42 */ u8 consecutiveWalksOrHBP;
     /* 0x43 */ u8 _43;
-    /* 0x44 */ s16 _44;
-    /* 0x46 */ u8 _46[2];
-    /* 0x48 */ s16 _48;
-    /* 0x4A */ u8 _4A[8];
+    /* 0x44 */ s16 _44[2];
+    /* 0x48 */ s16 _48[2];
+    /* 0x4C */ s16 _4C[2];
+    /* 0x50 */ s16 lastPitcher; // indexed [team * 2]
     /* 0x52 */ s16 nABs[3]; // indexed [team * 2]
     /* 0x58 */ s16 mvpLeader;
     /* 0x5A */ s16 mvpLeadingPoints;
@@ -3015,14 +3021,27 @@ typedef struct _GameScoresControlsStruct {
     /*0x004*/ ScoreStruct scores[2];
     /*0x050*/ ScoreStruct hits[2];
     /*0x09C*/ s16 _9C;
-    u8 _pad_9E[8];
+    /*0x09E*/ s16 _9E;
+    /*0x0A0*/ s16 _A0;
+    u8 _pad_A2[4];
     /*0x0A6*/ s16 _A6;
     /*0x0A8*/ u8 stealSuccesses[2];
     /*0x0AA*/ u8 inningLimit;
     /*0x0AB*/ u8 maxNumberOfExtraInnings;
     u8 _pad_AC;
     /*0x0AD*/ u8 halfInning;
-    u8 _pad_AE[0x19];
+    /*0x0AE*/ u8 _AE;
+    u8 _pad_AF[2];
+    /*0x0B1*/ s8 _B1[2];
+    /*0x0B3*/ s8 _B3[2];
+    /*0x0B5*/ s8 _B5[2];
+    /*0x0B7*/ s8 _B7[2];
+    /*0x0B9*/ u8 _B9[2];
+    /*0x0BB*/ u8 _BB[2];
+    /*0x0BD*/ u8 _BD[2];
+    u8 _pad_BF[3];
+    /*0x0C2*/ u8 _C2;
+    u8 _pad_C3[4];
     /*0x0C7*/ u8 mercyThreshold;
 } GameScoresControlsStruct; // size: 0xC8
 
