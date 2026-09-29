@@ -2222,3 +2222,29 @@ a 0x60-byte `.rodata` that the target unit does not have: `repHeaderData` from a
 `#include "header_rep_data.h"` plus `dolsqrtf2`'s `_half`/`_three`. Before flipping to Matching,
 compare the section lists of the two objects. If the target has no `.rodata`, drop the unused
 include and `#define SQRT2_LINKAGE static`. Codegen does not change.
+
+## Findings from the at_bat_results / stat_tracking / game_math passes
+
+First seen: `game/game/batting/at_bat_results`, `game/game/match_setup/stat_tracking` and
+`game/game/math/game_math` (2026-09).
+
+- **The same routine can need two spellings: one for the standalone function, one for its inlined
+  copies.** `RandomInt_Game` and `random_fn_3_9EE24` match with `int orig = max; if (max < 0) max = -max;`,
+  but the copies inlined into the `Random*_Range` wrappers match the `ABS()` form. Rewriting the
+  shared body helped one side and broke the other. Keeping the old body as a `static inline` helper
+  for the wrappers took `game_math.c` from 99.34% to 99.75%. `at_bat_results.c` needed the same pair.
+- **Storing to a global and re-reading it** (`g._00 = sum; ret = g._00 % max;`) instead of keeping
+  the sum in a local reproduced the target's load/store order in the sim random helper.
+- **Steer the load order of two values read at function entry:** declare one as a local, read the
+  other field directly in the first expression, then declare its local afterwards. This fixed
+  `fn_3_79DD4` and `updatePitcherStatsOnScoreChange`.
+- **Pointer locals over global arrays usually cost the match here; write the full global
+  expression.** This contradicts the versus_screens note above, so check the target: use a pointer
+  local only when the target clearly hoists one base register.
+- **A same-file getter called under `-inline deferred` can be the missing inline behind a register
+  swap** (`pitcherStats = fn_3_7BBC0();` fixed `postPitchStatUpdating`'s swap).
+- **A `lis 1; subi 1` store of `0xFFFF` means the destination field is unsigned 16-bit.**
+- **Statement order inside a loop moves register choice:** in `setAtBatResult`, storing
+  `fielderIndex` and `outsDuringPossession` before loading the next field gave 100%.
+- **A switch jump table in `.data` scores 0% until its function is the exact target size**,
+  because every entry points at a case label. Fix the function first.
