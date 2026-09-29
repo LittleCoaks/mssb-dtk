@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void renderSprite(void* vtx, void* tex, s32 sMax, s32 tMax);
+void renderSprite(void* vtx, void* tex, u16 sMax, u16 tMax);
 
 #endif // !__UNKNOWN_FILE_0X800B1314_H_

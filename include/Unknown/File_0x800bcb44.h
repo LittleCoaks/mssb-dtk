@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void LoadGeoPalette(void);
+void* LoadGeoPalette(void* geoFile);
 
 #endif // !__UNKNOWN_FILE_0X800BCB44_H_

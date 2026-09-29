@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-int randRange_FUN_80042bf0(int high, int low);
+int randRange_FUN_80042bf0(int a, int b);
 
 #endif // !__UNKNOWN_FILE_0X80042BF0_H_

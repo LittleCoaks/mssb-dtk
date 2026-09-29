@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void SKNLoadFile(void);
+void SKNLoadFile(void* sknFile, void* pal);
 
 #endif // !__UNKNOWN_FILE_0X800BF074_H_

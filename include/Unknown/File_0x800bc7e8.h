@@ -6,6 +6,9 @@
 
 struct DODisplayObj;
 
+extern MtxPtr SkinForwardArray;
+extern MtxPtr SkinInverseArray;
+
 void DOVARenderSkin(struct DODisplayObj* dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray,
                     u8 numLights, void* list);
 

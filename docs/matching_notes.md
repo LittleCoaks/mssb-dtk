@@ -2254,3 +2254,28 @@ Matching link is sha-clean. The pool sits after the neighbouring `initSound`'s
 constant even though `soundQuit` precedes it in `.text`, so whoever matches
 `File_0x800b0834.c` must NOT claim `0x803CCF18` in a separate split (section
 order would conflict); merge the sound TU instead.
+
+## Findings from the twelve-small-DOL-files pass (renderSprite ... convertGeometryAndSknHeader)
+
+First seen: 2026-09, 10 of 12 `Unknown/` units matched and flipped to `Matching`.
+
+- **dtk sizes an `.sbss` label by the gap, not the object.** `lbl_803CBBC2` is `size:0xA`, but the
+  target stores to it with `@sda21`; `extern u8 lbl_803CBBC2[0xA]` makes MWCC use `lis/@l`
+  because the array exceeds `-sdata 8`. Declare the scalar (`extern u8 lbl_803CBBC2;`) when the
+  target uses sda21. Same for `lbl_803CB750` (`size:0x10`, used as one `u32` seed).
+- **A struct-typed `extern` global schedules differently from a pointer local to it.** In
+  `cancelReadCallback2` (File_0x800a7670) a `LoadState *state = (LoadState *)lbl;` local kept
+  the `lwz` after the `sth` (or the `cmplwi` before it); declaring `extern LoadState lbl_803C6CF8;`
+  in the TU and writing `lbl_803C6CF8.field` gave the target's `lwz; sth; cmplwi` order (100%).
+- **Compound assignments into a reused parameter fix both scheduling and operand order.**
+  `randRange_FUN_80042bf0`: every single-expression form of
+  `rand >> 16 % (max - min + 1) + min` put `subf` (range) before the seed `mullw` and emitted
+  `add r3, min, mod`. Only `a = seed >> 16; a %= b - min + 1; a += min; return a;` matched.
+  (`GC/3.0a3` also got 99.5% on an intermediate form; not a real option for game code.)
+- **`ANIMGetTrackFromSequence` (SDK `ANIMGetTrackFromSeq`) matched under the default 2.6 with a
+  `u32` counter;** `u16 i` emits `clrlwi` per iteration and no `ctr` loop, `int i` gives `cmpwi`
+  for the trip-count check. Not every charPipeline function needs `GC/1.2.5n` — 1.2.5/1.2.5n/1.1
+  scored lower here than 1.3+ and 2.x.
+- **Float-literal splits:** `maybeTransformVectorByAnimationMatrix` (0x800B2C44) and `SetFogNone`
+  (0x800B9974) are 100% except the `0.0f` `.sdata2` reloc, which is shared with other splits
+  (0x800B43A0 etc. / SetFogNoneAgain etc.). Left `NonMatching` with checkpoints.

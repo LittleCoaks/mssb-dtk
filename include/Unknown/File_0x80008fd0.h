@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void PostRetraceCallback(void);
+void PostRetraceCallback(u32 retraceCount);
 
 #endif // !__UNKNOWN_FILE_0X80008FD0_H_
