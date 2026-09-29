@@ -2201,3 +2201,26 @@ First seen: `game/game/match_setup/versus_screens` (2026-09), Sonnet first pass,
 - **A single `.data` object with several named sub-symbols needs both spellings.** Functions that
   hoist the base register reference it as a struct (`VsData`); single-use functions reference the
   named sub-symbols. objdiff matches on symbol name, so both must exist.
+
+## Findings from File_0x80024bb4 (LinearInterpolateToNewRange)
+
+First seen: `main/Unknown/File_0x80024bb4` (2026-09), all 3 functions 100%.
+
+- **An if/else-if clamp and a ternary clamp are not interchangeable.** `if (t > 1) t = 1; else if
+  (t < 0) t = 0;` keeps the ratio in f1 and adds an `fmr`; `t = t > 1.0f ? 1.0f : t < 0.0f ? 0.0f
+  : t;` keeps the ratio in f0 and returns the preloaded 1.0 directly. Try the ternary when the
+  target's "too big" arm has no `fmr`.
+- **`fmadds` source-operand order follows local variables, not the order you write `a * b`.**
+  `(nextMax - nextMin) * t`, `t * (nextMax - nextMin)` and the `nextMin +` forms all emitted
+  `fmadds f1, t, span`. Only putting the difference into its own local (`span = nextMax - nextMin;
+  return span * t + nextMin;`) gave the target's `fmadds f1, span, t`.
+- **Split `.data`/`.sdata2` for a text-only DOL split so its literals get scored.** If the target
+  reaches jump tables or float literals through dtk labels outside the unit, objdiff marks every
+  such reloc as a mismatch. Adding the unit's `.data`/`.sdata2` ranges to `splits.txt` took this
+  file from 99.25%/99.38% to 100%, and the sha1 check stayed green.
+- **The Unknown/ DOL splits around 0x80024xxx are finer than the real translation units.**
+  `LERPToNewRange_Float` (File_0x80024b00) reads the same 0.0f/1.0f `.sdata2` literals as
+  File_0x80024bb4, and the 0x803CC588 double is shared by File_0x80024974, File_0x800249d8,
+  File_0x80024b00 and several auto_ splits. MWCC does not share literal pools across TUs, so all
+  of these were one file originally. Flipping any one of them to `Matching` alone fails to link
+  (`undefined: 'lbl_803CC5A0'`); they can only be flipped once they are merged into one unit.

@@ -26,7 +26,8 @@ typedef struct _GameInitVariables {
     /*0x0F*/ u8 _0F;
     /*0x10*/ E(u8, P2_CPU_CODE) p2_CPU_match_code;
     /*0x11*/ bool minigamesEnabled;
-    artificial_padding(0x11, 0x20, bool);
+    artificial_padding(0x11, 0x1A, bool);
+    /*0x1A*/ u8 characterUnlocked[6]; // indexed like unlockableCharacter_noDupeNoGapCharID
     /*0x20*/ s16 _20[4][2];
     /*0x30*/ s16 challengeMinigame_baseCoinsEarned;
     /*0x32*/ u8 bJMatchRelated;
