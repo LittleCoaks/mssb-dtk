@@ -1314,6 +1314,10 @@ target's `li 0; cmpwi 10; bge` on a 10-trip loop in `setLiveBallVariablesAfterCo
 is NOT universal — `int` and `s32` tied on the inner loop of `estimateWhereBallWillHitWall`
 — so measure rather than applying it blanket.
 
+Second data point: `game/game/match_setup/versus_screens` (2026-09). Switching `int i` to `s32 i`
+on the fixed-trip unrolled store loops restored the guard and fixed about seven functions in one
+sweep. When a from-scratch file has many such loops, make this the first blanket change.
+
 ## A search loop's `mtctr` value distinguishes two source shapes
 
 First seen: `game/game/ball/ball_physics` (2026-09).
@@ -2131,3 +2135,69 @@ natural layout of `if (x == a || ... ) { T } F`. The `||` form folded consecutiv
 Wrapping the same conjunction in `!( ... )` with the arms swapped reproduced both the
 unfolded compares and the target's block order (100%). A `switch` built a binary decision
 tree instead and was the worst of the structured forms.
+
+## `do { } while (++i < N)` is neither counted nor unrolled; the equivalent `for` is unrolled
+
+First seen: `game/game/ball/ball_visuals` (2026-09). Complements the `u32` vs `u8` counter entry.
+
+A fixed-trip loop written as `for (i = 0; i < N; i++)` was unrolled by MWCC where the target kept
+a plain rolled loop (20% on the function). Rewriting it as `do { ... } while (++i < N);` gave the
+rolled, non-`mtctr` form the target has (93%). If the target shows a compare-and-branch loop and
+ours turned into `mtctr` or an unrolled body, try the `do`/`while` spelling before touching the body.
+A related trick in `versus_screens`, `maybeSetVsIndOrScoutFlagChance`: a deliberate
+`if (i == 45) { i = 45; }` inside a search loop stops MWCC converting it to an `mtctr` loop.
+
+## Several `Vec` locals the target re-reads after every store are one array
+
+First seen: `game/game/ball/ball_visuals`, `fn_3_67EF0` (2026-09).
+
+When the target reloads fields after each store, the stack locals alias, which means they sit in
+one array. Turning four separate `Vec` locals into `Vec pts[4]` took the function from 92% to 97%.
+Separate locals let MWCC forward the stored register instead of reloading.
+
+## A float parameter's position in the list changes the CALLER's argument scheduling
+
+First seen: `game/game/ball/ball_visuals`, `fn_3_678B8` (2026-09).
+
+The calling convention does not depend on where an `f32` parameter sits in the list (floats go in
+f1.., ints in r3..), but the order of the declared parameters changes how MWCC schedules the
+caller's argument setup. Moving the float to a different position took `fn_3_678B8` from 90.88% to
+99.25% with no change to the body. If argument setup is merely reordered, permute the prototype
+before reworking the caller.
+
+## Accumulate a vector one component pass at a time when float registers are permuted
+
+First seen: `game/game/ball/ball_visuals` (2026-09). Extends "Copy a `Vec` per component when the
+target uses `lfs`/`stfs`".
+
+Writing an average as `avg = h1; avg += h2; avg += h3; avg /= 3` (one whole-vector pass per
+statement) fixed a float-register numbering permutation that a single combined expression could not.
+
+## A file-local struct view of a huge global beats both cast spellings of an indexed member
+
+First seen: `game/game/batting/charge_effects` (2026-09).
+
+For an array at a fixed offset inside a large global, `((T**)(g + 0x2C50))[i]` matched one function
+but let MWCC hoist `g + 0x2C50` out of another function's loop (83.59%), while
+`*(T**)(g + i*4 + 0x2C50)` avoided the hoist but gave the wrong registers elsewhere. Declaring the
+global in the file as `extern struct { u8 _pad[0x2C50]; T* actors[N]; } g;` and writing
+`g.actors[i]` gave both behaviours at once (100% on both). Array length can be a guess; note that in
+a comment. Try this when two files or two functions want different spellings of the same lookup.
+
+## Findings from the versus_screens first pass
+
+First seen: `game/game/match_setup/versus_screens` (2026-09), Sonnet first pass, 12/20 functions
+100% and `.text` 0.69% -> 96.10%.
+
+- **Pointer locals at the top of a function make MWCC hoist a global's address** the way the target
+  does, e.g. `GameInitVariables *settings = &g_d_GameSettings;`. Use it when the target loads a
+  global's base once and indexes off it.
+- **Declaration order of function-scope locals controls callee-saved numbering.** `fn_3_24708`
+  reached 100% purely by declaring `obj`, `runner`, `i` in that order.
+- **A block-local declared after a call, in a nested block, moves where its `lis` lands.** That took
+  `championshipScreen` from 96% to 99.97%.
+- **`ABS(x)` on an `int` local emits the `srawi` form; on an `s16` struct field it emits the branch
+  form.** Pick the operand type to match the target.
+- **A single `.data` object with several named sub-symbols needs both spellings.** Functions that
+  hoist the base register reference it as a struct (`VsData`); single-use functions reference the
+  named sub-symbols. objdiff matches on symbol name, so both must exist.

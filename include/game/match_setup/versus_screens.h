@@ -5,14 +5,14 @@
 
 void fn_3_21C90(void);
 void fn_3_21DE4(void);
-void maybeSetVsIndOrScoutFlagChance(void);
-void fn_3_2273C(void);
-void fn_3_2281C(void);
+BOOL maybeSetVsIndOrScoutFlagChance(void);
+BOOL fn_3_2273C(void);
+BOOL fn_3_2281C(int index);
 void resetSomethingRelatedToVersus(void);
 void fn_3_22944(void);
 void fn_3_22948(void);
-void fn_3_22A20(void);
-void fn_3_22ABC(void);
+BOOL fn_3_22A20(void);
+int fn_3_22ABC(void);
 void versusScreen_seemsToDoNothing(void);
 void championshipScreen(void);
 void fn_3_230D4(void);
