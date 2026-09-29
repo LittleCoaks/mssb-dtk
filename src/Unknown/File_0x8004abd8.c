@@ -1,6 +1,6 @@
 #include "Unknown/File_0x8004abd8.h"
 
-void Set_803cb848(void) {
+void Set_803cb848(BOOL value) {
     return;
 }
 

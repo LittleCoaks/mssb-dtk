@@ -99,7 +99,7 @@ void setFielderValues(int characterID, int fielderIndex) {
 }
 
 // .text:0x0006EBB4 size:0x368 mapped:0x806ADC48
-void setPitcherStatsToInMemPitcher(void) {
+void setPitcherStatsToInMemPitcher(int rosterIdx) {
     return;
 }
 

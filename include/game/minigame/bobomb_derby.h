@@ -5,7 +5,7 @@
 
 void bobOmbDerbyBatterAI(void);
 void fn_3_110A04(void);
-void fn_3_110A38(void);
+s32 fn_3_110A38(void);
 void BODScoring(void);
 void unused_BODRelated(void);
 void fn_3_1111D0(void);

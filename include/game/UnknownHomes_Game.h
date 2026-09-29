@@ -1304,6 +1304,21 @@ typedef struct _MaybeWallBallStruct {
     /*0x02A*/ u8 coinRelated[26];
 } MaybeWallBallStruct; // size: 0x44
 
+typedef enum _BB_BARREL_STATE {
+    BB_BARREL_STATE_EMPTY = 0,
+    BB_BARREL_STATE_DROPPING = 1,
+    BB_BARREL_STATE_NEUTRAL = 2,
+    BB_BARREL_STATE_READY_TO_BLOW_UP = 3,
+    BB_BARREL_STATE_BLOWN_UP = 4
+} BB_BARREL_STATE;
+
+typedef enum _BB_BARREL_COLOUR {
+    BB_BARREL_COLOUR_RED = 0,
+    BB_BARREL_COLOUR_BLUE = 1,
+    BB_BARREL_COLOUR_YELLOW = 2,
+    BB_BARREL_COLOUR_BROWN = 3
+} BB_BARREL_COLOUR;
+
 typedef struct _BB_barrelStruct {
     /*0x000*/ VecXYZ currentPos;
     /*0x00C*/ VecXYZ desiredPos;
@@ -1312,8 +1327,8 @@ typedef struct _BB_barrelStruct {
     /*0x028*/ f32 _28;
     /*0x02C*/ s16 animationCounter;
     /*0x02E*/ s16 delayUntilBlownUp;
-    /*0x030*/ u8 barrelState;
-    /*0x031*/ u8 barrelColour;
+    /*0x030*/ E(u8, BB_BARREL_STATE) barrelState;
+    /*0x031*/ E(u8, BB_BARREL_COLOUR) barrelColour;
     /*0x032*/ u8 replacingBarrelInd;
     /*0x033*/ u8 pad;
 } BB_barrelStruct; // size: 0x34
@@ -1377,6 +1392,14 @@ typedef enum _MINI_GAME_ID {
     MINI_GAME_ID_STAR_DASH = 6,
     MINI_GAME_ID_MARIO_GRAND_PRIX = 7
 } MINI_GAME_ID;
+
+typedef enum _BARREL_BATTER_PITCH_NUM {
+    BARREL_BATTER_PITCH_NUM_MUSHROOM,
+    BARREL_BATTER_PITCH_NUM_FLOWER,
+    BARREL_BATTER_PITCH_NUM_STAR,
+    BARREL_BATTER_PITCH_NUM_KING,
+    BARREL_BATTER_PITCH_NUM_FIRE,
+} BARREL_BATTER_PITCH_NUM;
 
 /*multiplayer/ChallengeEasy	0
 ChallengeNormal	1
@@ -2162,9 +2185,7 @@ typedef struct _MiniGameStruct {
     /*0x1A8B*/ u8 _1A8B;
     /*0x1A8C*/ u8 _1A8C[2];
     /*0x1A8E*/ s16 bOD_HitPowerOfEachChar[4];
-    /*0x1A96*/ u8 bODRelated5;
-    /*0x1A97*/ u8 bODRelated6;
-    /*0x1A98*/ u8 bODUnusedBytes[8];
+    /*0x1A96*/ u8 bODRelated5[10];
     /*0x1AA0*/ u8 _1AA0[3];
     /*0x1AA3*/ u8 _1AA3;
     /*0x1AA4*/ u8 _1AA4;
@@ -2178,7 +2199,7 @@ typedef struct _MiniGameStruct {
     /*0x1AC9*/ u8 barrelBatter_BODPitchSelectionType;
     /*0x1ACA*/ u8 minigamePitchSpeedAdjustment;
     /*0x1ACB*/ u8 bOD_HRStreak;
-    /*0x1ACC*/ u8 bODCharacterHRStreakTracker[8];
+    /*0x1ACC*/ u8 bODCharacterHRStreakTracker[4][2];
     /*0x1AD4*/ u8 bODRelated3;
     /*0x1AD5*/ u8 bOD_KingBombInd;
     /*0x1AD6*/ u8 bODAngleIndexBasedOnHitPower;
@@ -2359,7 +2380,23 @@ typedef struct _MiniGameStruct {
     /*0x1D7A*/ u8 _1D7A;
     /*0x1D7B*/ u8 _1D7B;
     /*0x1D7C*/ InputStruct _1D7C[4];
-} MiniGameStruct; // size: 0x1D7C
+    /*0x1DBC*/ u8 isAIControlled[4];
+    /*0x1DC0*/ u8 _1DC0[4];
+    /*0x1DC4*/ u8 portOfAIBeingProcessed[4];
+    /*0x1DC8*/ u8 _1DC8[4];
+    /*0x1DCC*/ s16 ai_wbChargePower_bbSwingFrame;
+    /*0x1DCE*/ u8 ai_wbThrowType_bbVertAngle;
+    /*0x1DCF*/ u8 wallBallAISwitchVar;
+    /*0x1DD0*/ s16 minigameAICountDownTillAction;
+    /*0x1DD2*/ u8 _1DD2[6];
+    /*0x1DD8*/ s16 _1DD8;
+    /*0x1DDA*/ u8 _1DDA[18];
+    /*0x1DEC*/ f32 _1DEC;
+    /*0x1DF0*/ f32 _1DF0;
+    /*0x1DF4*/ u8 _1DF4; // unsure
+    /*0x1DF5*/ E(u8, BARREL_BATTER_PITCH_NUM) bODPitchType;
+    /*0x1DF6*/ u8 _1DF6[0x1E2C - 0x1DF6];
+} MiniGameStruct; // size: 0x1E2C
 
 extern MiniGameStruct g_Minigame;
 

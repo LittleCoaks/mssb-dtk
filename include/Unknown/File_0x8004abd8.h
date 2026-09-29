@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-void Set_803cb848(void);
+void Set_803cb848(BOOL value);
 void fn_8004ABE0(void);
 void marioHandOnFire_endFireAnimation(void);
 

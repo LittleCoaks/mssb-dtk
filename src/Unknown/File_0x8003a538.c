@@ -4,7 +4,7 @@ void fn_8003A538(void) {
     return;
 }
 
-void fn_8003A540(void) {
+void fn_8003A540(int value) {
     return;
 }
 
