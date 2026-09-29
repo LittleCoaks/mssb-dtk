@@ -157,9 +157,9 @@ void midPlay_trackStats(void) {
 // .text:0x00079DD4 size:0x120 mapped:0x806B8E68
 void fn_3_79DD4(void) {
     int pitcher;
-    int battingTeam = g_GameLogic.awayTeamBattingInd_battingTeam;
     int fieldingTeam = g_GameLogic.homeTeamBattingInd_fieldingTeam;
-    int lead = g_Scores.scores[battingTeam].total - g_Scores.scores[fieldingTeam].total;
+    int lead = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total - g_Scores.scores[fieldingTeam].total;
+    int battingTeam = g_GameLogic.awayTeamBattingInd_battingTeam;
 
     g_Scores._B7[battingTeam] = -1;
     if (lead <= 0) {
@@ -187,9 +187,9 @@ void fn_3_79DD4(void) {
 
 // .text:0x00079EF4 size:0x260 mapped:0x806B8F88
 void updatePitcherStatsOnScoreChange(void) {
-    int fieldingTeam = g_GameLogic.homeTeamBattingInd_fieldingTeam;
     int battingTeam = g_GameLogic.awayTeamBattingInd_battingTeam;
-    int diff = g_Scores.scores[fieldingTeam].total - g_Scores.scores[battingTeam].total;
+    int diff = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total - g_Scores.scores[battingTeam].total;
+    int fieldingTeam = g_GameLogic.homeTeamBattingInd_fieldingTeam;
     s32 i;
     int n;
     u8* p;
