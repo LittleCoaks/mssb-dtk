@@ -3,17 +3,18 @@
 
 #include "mssbTypes.h"
 
+struct _ChargeGlowEntry;
+
 void fn_3_C0854(void);
-void fn_3_C095C(void);
+void fn_3_C095C(struct _ChargeGlowEntry* entry);
 void fn_3_C0AD8(void);
-void fn_3_C0C4C(void);
-void fn_3_C0CE8(int, f32, f32, f32);
-void fn_3_C0D10(void);
-void fn_3_C0DD8(void);
+void fn_3_C0C4C(int slot);
+void fn_3_C0CE8(int pitch, f32 x, f32 y, f32 z);
+void fn_3_C0D10(int row, u8 r, u8 g, u8 b, u8 a);
 void fn_3_C0F8C(void);
 void fn_3_C1004(void);
-void fn_3_C11CC(void);
-void applyChargeAnimationEffect(void);
-void maybeConfigureChargeEffectGraphics(void);
+void fn_3_C11CC(int actorIndex, BOOL immediate);
+void applyChargeAnimationEffect(int actorIndex, BOOL fullyCharged, f32 charge, f32 release);
+void maybeConfigureChargeEffectGraphics(int actorIndex);
 
 #endif // !__GAME_BATTING_CHARGE_EFFECTS_H_

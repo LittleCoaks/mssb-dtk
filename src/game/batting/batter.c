@@ -386,7 +386,7 @@ void batterHumanControlled(void) {
             ((g_Ball.pitchHangtimeCounter <= 0 || g_Batter.countUpUntilChargeEnables != 0) &&
              g_Batter.buntStatus == BUNT_STATUS_NONE)) {
 
-            // I couldn't match this without goto, this was the best I could do
+            // Both tutorial outcomes fall through into the regular A-held / A-released handling below.
             if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0) {
                 if (g_Practice._1C6 == 2) {
                     if (r26) {
@@ -889,6 +889,7 @@ void ifBunt(void) {
 }
 
 // .text:0x00012CB4 size:0x128 mapped:0x80651d48
+// ifSwing() and ifBunt() both call this out of line; -inline auto would otherwise inline it into each.
 #pragma dont_inline on
 void calculateIfHitBall(void) {
     f32 batterZ;

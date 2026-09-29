@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/stadium/stadium_bowser_castle.h"
+#include "game/stadium/sta_c1.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
@@ -41,6 +41,7 @@
 #include "Unknown/File_0x800beb3c.h"
 #include "game/stadium/sta_c2.h"
 #include "Unknown/File_0x80024404.h"
+#include "Unknown/File_0x800bd3ec.h"
 
 typedef struct _CastleMaterialFlags {
     /*0x00*/ u8 _00[4];
@@ -2409,7 +2410,7 @@ void loadBowserCastle(void** files) {
     ((CastleHazardObj*)o)->hazardType = 0;
     o->model = (StadiumModel*)(*animTable + 0x34);
     o->triangles = NULL;
-    o->callback = (void (*)(void))fn_3_C4068;
+    o->callback = (void (*)(StadiumObject*))fn_3_C4068;
     o->func = NULL;
     o->hasShadow = 1;
     shadowBit = 0;
@@ -2432,7 +2433,7 @@ void loadBowserCastle(void** files) {
     ((CastleHazardObj*)o)->hazardType = 1;
     o->model = (StadiumModel*)(*animTable + 0xC4);
     o->triangles = NULL;
-    o->callback = (void (*)(void))fn_3_C3F70;
+    o->callback = (void (*)(StadiumObject*))fn_3_C3F70;
     o->func = NULL;
     o->hasShadow = 1;
     shadowBit = 0;
@@ -2473,7 +2474,7 @@ void loadBowserCastle(void** files) {
             ((CastleHazardObj*)o)->hazardType = thwompCfg->usedFlag;
             o->model = (StadiumModel*)(*animTable + 0x154);
             o->triangles = files[ids[7]];
-            o->callback = (void (*)(void))thwomp_slamControl;
+            o->callback = (void (*)(StadiumObject*))thwomp_slamControl;
             o->func = (int (*)(int, int, void*))thwomp_bounceOffSoundAndVisualFx;
             o->hasShadow = thwompCfg->visible;
             shadowBit = 0;
@@ -2525,7 +2526,7 @@ void loadBowserCastle(void** files) {
             ((CastleHazardObj*)o)->hazardType = fireCfg->usedFlag;
             o->model = (StadiumModel*)(*animTable + (j + 3) * 0x90 + 0x34);
             o->triangles = NULL;
-            o->callback = (void (*)(void))flameControl;
+            o->callback = (void (*)(StadiumObject*))flameControl;
             o->func = NULL;
             o->hasShadow = fireCfg->visible;
             shadowBit = 0;

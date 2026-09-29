@@ -1,4 +1,4 @@
-#include "game/stadium/stadium_yoshi_park.h"
+#include "game/stadium/sta_c3.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
@@ -22,6 +22,7 @@
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
+#include "Unknown/File_0x800bd3ec.h"
 
 // One entry per piranha-plant slot (11 slots, 10 usable; `usedFlag == 2` ends the list).
 typedef struct _YoshiPlantPlacement {
@@ -56,7 +57,7 @@ typedef enum _PLANT_STATE {
 } PLANT_STATE;
 
 // Plant view of a stadiumObjectCollision.objects[] entry (the region past 0x98
-// is laid out per hazard kind, as in stadium_bowser_castle.c).
+// is laid out per hazard kind, as in sta_c1.c).
 typedef struct _YoshiPlantObj {
     /*0x00*/ u8 _00[0x74];
     /*0x74*/ ACTActor* actor;
@@ -1007,7 +1008,7 @@ void loadYoshiPark(void** files) {
             ((YoshiPlantObj*)o)->plantID = cfg->group;
             o->model = (StadiumModel*)(*animTable + i * 0x90 + 0x34);
             o->triangles = files[ids[3]];
-            o->callback = (void (*)(void))controlYoshiParkPlants;
+            o->callback = (void (*)(StadiumObject*))controlYoshiParkPlants;
             o->func = (int (*)(int, int, void*))fn_3_E2118;
             o->hasShadow = 1;
             shadowBit = 0;
@@ -1039,7 +1040,7 @@ void loadYoshiPark(void** files) {
     ((YoshiPlantObj*)o)->plantID = 0;
     o->model = (StadiumModel*)(*animTable + idx * 0x90 + 0x34);
     o->triangles = NULL;
-    o->callback = (void (*)(void))fn_3_E1FA8;
+    o->callback = (void (*)(StadiumObject*))fn_3_E1FA8;
     o->func = NULL;
     o->hasShadow = 1;
     o->_90b1 = 0;

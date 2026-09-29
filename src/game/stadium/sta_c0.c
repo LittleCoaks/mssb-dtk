@@ -21,6 +21,7 @@
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
+#include "Unknown/File_0x800bd3ec.h"
 
 // One entry per outfield tree (10 slots; `usedFlag == 4` ends the list).
 typedef struct _MarioTreePlacement {
@@ -366,7 +367,7 @@ void loadMarioStadium(void** files) {
     m->variant = MARIO_OBJ_WATER;
     o->model = (StadiumModel*)(MARIO_ANIM_TABLE + 0xC4);
     o->triangles = NULL;
-    o->callback = (void (*)(void))fn_3_C9A60;
+    o->callback = (void (*)(StadiumObject*))fn_3_C9A60;
     o->func = NULL;
     o->hasShadow = 1;
     shadowBit = 0;
@@ -391,7 +392,7 @@ void loadMarioStadium(void** files) {
     m->variant = MARIO_OBJ_NONE;
     o->model = (StadiumModel*)(MARIO_ANIM_TABLE + 0x34);
     o->triangles = NULL;
-    o->callback = (void (*)(void))fn_3_C9B5C;
+    o->callback = (void (*)(StadiumObject*))fn_3_C9B5C;
     o->func = NULL;
     o->hasShadow = 1;
     shadowBit = 0;
@@ -430,7 +431,7 @@ void loadMarioStadium(void** files) {
         m->animOffset = phase;
         o->model = (StadiumModel*)(MARIO_ANIM_TABLE + (i + 2) * 0x90 + 0x34);
         o->triangles = NULL;
-        o->callback = (void (*)(void))fn_3_C99F8;
+        o->callback = (void (*)(StadiumObject*))fn_3_C99F8;
         o->func = NULL;
         o->hasShadow = 1;
         shadowBit = 0;

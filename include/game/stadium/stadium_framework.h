@@ -85,7 +85,7 @@ typedef struct _StadiumObject {
     /*0x44*/ Mtx worldMtx;
     /*0x74*/ StadiumModel* model;
     /*0x78*/ TriangleGroup* triangles;
-    /*0x7C*/ void (*callback)(void);
+    /*0x7C*/ void (*callback)(struct _StadiumObject* obj);
     /*0x80*/ int (*func)(int idx, int arg2, void* arg3);
     /*0x84*/ void (*preDraw)(struct _StadiumObject* obj);
     /*0x88*/ void (*postDraw)(struct _StadiumObject* obj);
@@ -262,7 +262,7 @@ void fn_3_B8C08(Mtx view);
 void fn_3_B902C(void);
 void initStadiumObjectData(void);
 void updateStadiumObjCollision(void);
-int processStadiumObjectFunction(int, int, int, void*);
+void processStadiumObjectFunction(int stadiumId, int idx, int arg2, void* arg3);
 TriangleGroup* getStadiumHazardTriangles(int stadiumId, int offset, Mtx m);
 void updateGameStatusFlag(void);
 void fn_3_B93C4(void);
@@ -285,7 +285,6 @@ void loadStadiumLighting(int stadiumType, void* stadiumData);
 // Shared by every stadium unit; declared here once rather than duplicated in
 // each per-stadium header.
 s16 rng(int max);
-extern void fn_800BD548(void* actor, int mode, ...);
 void fn_80033620(void* emitter);
 void fn_80033CC8(void* particle, int arg);
 

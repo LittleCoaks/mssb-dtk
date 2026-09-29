@@ -5,7 +5,7 @@
 
 int aiPitchCurveDirection(f32 curve);
 void movePitcherOnMound(void);
-void fn_3_20EEC(void);
+void pitcherAISelectMoundLocation(void);
 void pitcherAISetCurve(void);
 void pitcherAISelectPitch(void);
 void pitcherAI_prePitchSetConstants(void);

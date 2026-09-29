@@ -32,6 +32,7 @@
 #include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
+#include "Unknown/File_0x800bd3ec.h"
 
 // The kinds of block the garden places; `variant` is the kind a block turns
 // into when hit (a mystery block rolls one at load).
@@ -842,7 +843,7 @@ void fn_3_F9E78(int idx, int arg1, void* hit) {
                 d = &stadiumObjectCollision.objects[nBlockObj + i];
                 d->model = (StadiumModel*)(GARDEN_ANIM_TABLE + (i + 5) * 0x90 + 0x34);
                 d->triangles = NULL;
-                d->callback = (void (*)(void))fn_3_F9D94;
+                d->callback = (void (*)(StadiumObject*))fn_3_F9D94;
                 d->func = NULL;
                 d->_90b1 = 0;
                 d->hasShadow = 1;
@@ -1122,7 +1123,7 @@ void loadPeachGarden(void** files) {
     peachGardenSomething();
     f->model = (StadiumModel*)(GARDEN_ANIM_TABLE + 0x814);
     f->triangles = NULL;
-    f->callback = (void (*)(void))fn_3_F8BA8;
+    f->callback = (void (*)(StadiumObject*))fn_3_F8BA8;
     f->func = NULL;
     f->hasShadow = 1;
     shadowBit = 0;

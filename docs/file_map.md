@@ -145,9 +145,6 @@ screens either side of play (versus, championship, home-run trot).
 
 ## stadium/ — 9 files, 335 fns (98 named)
 
-Two stadiums were originally in `rep_*` files rather than `sta_*`, which is why
-Bowser Castle and Yoshi Park do not follow the `sta_c*` numbering.
-
 **The five `sta_c*.c` filenames are CONFIRMED original filenames, not
 inferences.** Each of those units emits its own source filename as an
 `OSPanic`/assert `__FILE__` string in its own `.rodata` — `"sta_c0.c"` in
@@ -159,18 +156,26 @@ binary rather than any inference tier in this document, so these files were
 renamed from their earlier descriptive repo labels (`stadium_mario.c`,
 `stadium_wario_palace.c`, `stadium_peach_garden.c`, `stadium_dk_jungle.c`,
 `stadium_toy_field.c`) to the names the developers actually used, per the
-"official/known names beat repo-invented labels" rule. `stadium_bowser_castle.c`,
-`stadium_yoshi_park.c` and `stadium_framework.c` have **no** such string in their
-own `.rodata`, so they keep their descriptive repo names.
+"official/known names beat repo-invented labels" rule. `stadium_framework.c` has
+**no** such string in its own `.rodata`, so it keeps its descriptive repo name.
+
+**`sta_c1.c` (Bowser Castle) and `sta_c3.c` (Yoshi Park) are INFERRED names, not
+confirmed.** Neither unit contains a `__FILE__` string (no assert calls), and
+`sta_c1`/`sta_c3` appear nowhere in `game.rel` or `main.dol`. The names follow
+from the pattern of the five confirmed files: each is `sta_c<N>.c` where `N` is
+the stadium's `STADIUM_ID` (Mario 0, Bowser 1, Wario 2, Yoshi 3, Peach 4, DK 5,
+Toy 6), which leaves exactly 1 and 3 for these two. They were previously
+`stadium_bowser_castle.c` / `stadium_yoshi_park.c` (originally `rep_1FD8` /
+`rep_2998`). If a filename string for either ever turns up, it overrides this.
 
 | file | was | fns (named) | bytes | stadium | conf |
 |---|---|---|---|---|---|
 | `sta_c2.c` | `sta_c2` | 88 (23) | 53,608 | Wario Palace — chain chomp state machine, sand/star hazards, haze texture. | high |
 | `sta_c5.c` | `sta_c5` | 71 (23) | 41,796 | DK Jungle — Klaptrap AI (roam/chase/launched), barrel cannon, barrel physics. | high |
-| `stadium_bowser_castle.c` | `rep_1FD8` | 47 (12) | 31,156 | Bowser Castle — thwomps, fireballs, star pads, screen shake. | high |
+| `sta_c1.c` | `rep_1FD8` | 47 (12) | 31,156 | Bowser Castle — thwomps, fireballs, star pads, screen shake. Filename inferred from the `sta_c<STADIUM_ID>` pattern. | high (name: inferred) |
 | `stadium_framework.c` | `rep_1D58` | 36 (20) | 8,584 | Shared framework: object/hazard loading, bounding boxes, collision triangles, lighting. Used by all stadiums. | high |
 | `sta_c6.c` | `sta_c6` | 30 (2) | 14,184 | Toy Field (`loadToyField`, object collisions). | med |
-| `stadium_yoshi_park.c` | `rep_2998` | 29 (11) | 14,548 | Yoshi Park — piranha plants (catch/spit/aim), nado. | high |
+| `sta_c3.c` | `rep_2998` | 29 (11) | 14,548 | Yoshi Park — piranha plants (catch/spit/aim), nado. Filename inferred from the `sta_c<STADIUM_ID>` pattern. | high (name: inferred) |
 | `sta_c4.c` | `sta_c4` | 24 (2) | 14,252 | Peach Garden (`loadPeachGarden`). | med |
 | `sta_c0.c` | `sta_c0` | 7 (3) | 4,924 | Mario Stadium (`loadMarioStadium`, fan animation). | high |
 | `stadium_star.c` | `rep_23E8` | 3 (2) | 368 | The stadium star: `stadiumStarAwarded` (called by every hazard stadium — Wario Palace, Peach Garden, DK Jungle, Bowser Castle, Yoshi Park) spawns the star at the hit position, plays the star sound and gives the batting team a star (max 5); `stadiumStarAnimation` drifts and spins it for 80 frames. No filename string in the binary, so the name is descriptive. | high |

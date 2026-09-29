@@ -16,7 +16,17 @@
  * file-scope `static const` instead makes the first .rodata object stable,
  * which flips MWCC to the shorter base-register form and de-matches every
  * float-heavy function in the unit. */
-inline const f32 *getRepHeaderData(void) {
+
+/* The local static below is a weak symbol named after its enclosing function.
+ * When two units of the same REL module are linked from our own objects
+ * (Object(Matching)), mwld folds identically named weak symbols into one copy,
+ * leaving the module's .rodata 0x50 bytes short. Each such unit therefore
+ * defines REP_HEADER_DATA_FN to a unique name before including this header. */
+#ifndef REP_HEADER_DATA_FN
+#define REP_HEADER_DATA_FN getRepHeaderData
+#endif
+
+inline const f32 *REP_HEADER_DATA_FN(void) {
     static const f32 repHeaderData[] = {
         1.f, 1.5707964f, 1.f, -1.f, 4.712389f, 3.1415927f, -1.f, 0.f, -1.f, 1.f,
         1.f, 1.5707964f, 1.f, -1.f, 4.712389f, 3.1415927f, -1.f, 0.f, -1.f, 1.f,

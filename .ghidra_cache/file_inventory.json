@@ -1041,7 +1041,7 @@
 ],
 "bytes": 368
 },
-"stadium/stadium_bowser_castle.c": {
+"stadium/sta_c1.c": {
 "total": 47,
 "named": [
 "bowserCastleSomething",
@@ -1168,7 +1168,7 @@
 ],
 "bytes": 53608
 },
-"stadium/stadium_yoshi_park.c": {
+"stadium/sta_c3.c": {
 "total": 29,
 "named": [
 "advancePlantInteractionPhase",

@@ -21,6 +21,7 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
 #include "game/sound/m_sound.h"
+#include "Unknown/File_0x800bd3ec.h"
 
 // A display-list colour attribute: `formatBits >> 4` is the GXCompType colour format.
 typedef struct _ToyColorAttr {
@@ -1032,7 +1033,7 @@ void fn_3_E7A2C(StadiumObject* obj) {
     case 20:
     case 21:
     case 22:
-        obj->callback = (void (*)(void))fn_3_E698C;
+        obj->callback = (void (*)(StadiumObject*))fn_3_E698C;
         obj->preDraw = (void (*)(StadiumObject*))fn_3_E68A8;
         break;
     case 23:
@@ -1044,10 +1045,10 @@ void fn_3_E7A2C(StadiumObject* obj) {
         obj->postDraw = (void (*)(StadiumObject*))fn_3_E6638;
         break;
     case 26:
-        obj->callback = (void (*)(void))fn_3_E59B4;
+        obj->callback = (void (*)(StadiumObject*))fn_3_E59B4;
         break;
     case 25:
-        obj->callback = (void (*)(void))fn_3_E5A1C;
+        obj->callback = (void (*)(StadiumObject*))fn_3_E5A1C;
         break;
     }
 }

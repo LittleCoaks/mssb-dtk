@@ -128,7 +128,7 @@ typedef struct _DKJungleCannonEmitter {
 typedef struct _DKJungleCannon {
     /*0x00*/ u8 ctrlType;
     /*0x01*/ u8 _01[0x7B];
-    /*0x7C*/ void (*callback)(struct _DKJungleCannon* cannon);
+    /*0x7C*/ void (*callback)(struct _StadiumObject* obj);
     /*0x80*/ u8 _80[0x99 - 0x80];
     /*0x99*/ u8 _99;
     /*0x9A*/ u8 _9A[2];
@@ -198,6 +198,35 @@ typedef struct _DKJungleKlaptrapTuning {
     /*0x22C*/ f32 dustOffset[2][2];
 } DKJungleKlaptrapTuning;
 
+// Trailing dust/sound tuning table after barrelLauncherDataStruct; only reached
+// through the DKJungleKlaptrapTuning overlay above.
+typedef struct _DKJungleDustTuning {
+    /*0x00*/ s32 dustInterval[3];
+    /*0x0C*/ f32 dustSize[3];
+    /*0x18*/ f32 _18[2];
+    /*0x20*/ f32 dustHeight;
+    /*0x24*/ u32 barrelDustInterval;
+    /*0x28*/ f32 barrelDustHeight;
+    /*0x2C*/ f32 _2C;
+} DKJungleDustTuning; // size: 0x30
+
+// One entry of the drawStadiumRelated-indexed function table.
+typedef struct _DKJungleDrawFuncEntry {
+    /*0x00*/ u32 tag;
+    /*0x04*/ void (*func)(void);
+} DKJungleDrawFuncEntry; // size: 0x8
+
+// The trailing 4 bytes double as the DKJungleWaterState needsRespawn/needsReroll bytes.
+typedef struct _DKJungleDrawFuncTable {
+    /*0x00*/ DKJungleDrawFuncEntry entries[2];
+    /*0x10*/ u8 _10[4];
+} DKJungleDrawFuncTable; // size: 0x14
+
+typedef struct _DKJungleWaterVectors {
+    /*0x00*/ Vec pos;
+    /*0x0C*/ Vec vel;
+} DKJungleWaterVectors; // size: 0x18
+
 typedef struct _DKJungleVertexData {
     /*0x00*/ void* data;
     /*0x04*/ u8 _04[2];
@@ -231,6 +260,50 @@ typedef struct _DKJungleDispObj {
     /*0x14*/ u8 _14[4];
     /*0x18*/ Mtx mtx;
 } DKJungleDispObj;
+
+typedef struct _DKJungleEmitterState {
+    /*0x00*/ u8 _00[4];
+    /*0x04*/ f32 launchX;
+    /*0x08*/ u8 _08[4];
+    /*0x0C*/ u32 _0C;
+    /*0x10*/ int emitters[2];
+    /*0x18*/ f32 _18;
+} DKJungleEmitterState; // size: 0x1C
+
+typedef struct _DKJungleFrameState {
+    /*0x00*/ u8 _00;
+    /*0x01*/ u8 _01;
+    /*0x02*/ u8 _02;
+    /*0x03*/ u8 _03;
+    /*0x04*/ u32 frame;
+} DKJungleFrameState; // size: 0x8
+
+typedef struct _DKJungleWaterTarget {
+    /*0x00*/ f32 _00;
+    /*0x04*/ f32 _04;
+    /*0x08*/ Vec target;
+} DKJungleWaterTarget; // size: 0x14
+
+typedef struct _DKJungleIndTexState {
+    /*0x00*/ u8* texBuf;
+    /*0x04*/ f32 indMtx[2][3];
+    /*0x1C*/ GXTexObj texObj;
+} DKJungleIndTexState; // size: 0x3C
+
+typedef struct _DKJungleActEffect {
+    /*0x00*/ u32 file;
+    /*0x04*/ u8 _04[0x0C];
+    /*0x10*/ f32 _10;
+    /*0x14*/ u8 _14[0x48];
+} DKJungleActEffect; // size: 0x5C
+
+typedef struct _DKJungleAnimBanks {
+    /*0x00*/ u32 animBank[2];
+    /*0x08*/ u8 flag;
+    /*0x09*/ u8 _09[3];
+    /*0x0C*/ DKJungleActEffect effectSlot0;
+    /*0x68*/ DKJungleActEffect effectSlot1;
+} DKJungleAnimBanks; // size: 0xC4
 
 // View over the .bss block starting at lbl_3_bss_AEE0 (the original object spans several split symbols).
 typedef struct _DKJungleBss {
@@ -274,37 +347,6 @@ typedef struct _DKJungleBss {
 } DKJungleBss;
 
 // View over the .data block at barrelRollSfxEmitterId.
-typedef struct _DKJungleBarrelLauncherTable {
-    /*0x000*/ DKJungleBarrelLauncher launchers[12];
-    /*0x0F0*/ s32 dustInterval[3];
-    /*0x0FC*/ f32 dustSize[3];
-    /*0x108*/ f32 _108[2];
-    /*0x110*/ f32 dustHeight;
-    /*0x114*/ s32 barrelDustInterval;
-    /*0x118*/ f32 barrelDustHeight;
-    /*0x11C*/ f32 _11C;
-} DKJungleBarrelLauncherTable; // size: 0x120
-
-typedef struct _DKJungleKlaptrapTable {
-    /*0x00*/ DKJungleKlaptrapData entries[6];
-    /*0x90*/ u8 objectTypes[18];
-    /*0xA4*/ f32 launchZ;
-    /*0xA8*/ f32 dustOffset[2][2];
-} DKJungleKlaptrapTable; // size: 0xB8
-
-typedef struct _DKJungleDrawHook {
-    /*0x00*/ u32 _00;
-    /*0x04*/ void (*draw)(void);
-} DKJungleDrawHook;
-
-typedef struct _DKJungleDrawHooks {
-    /*0x00*/ DKJungleDrawHook hooks[2];
-    /*0x10*/ u8 _10;
-    /*0x11*/ u8 needsRespawn;
-    /*0x12*/ u8 needsReroll;
-    /*0x13*/ u8 _13;
-} DKJungleDrawHooks; // size: 0x14
-
 typedef struct _DKJungleWaterState {
     /*0x000*/ u8 _00[0x24D];
     /*0x24D*/ u8 needsRespawn;
@@ -314,7 +356,13 @@ typedef struct _DKJungleWaterState {
     /*0x25C*/ Vec vel;
 } DKJungleWaterState;
 
+extern int barrelRollSfxEmitterId;
+extern DKJungleWaterVectors lbl_3_data_1BA70;
+extern DKJungleDrawFuncTable lbl_3_data_1BA5C;
 extern u8 lbl_803C5090[0x20];
+extern DKJungleKlaptrapData jungleKlaptrapData[6];
+extern DKJungleZoneCorner lbl_3_data_1B824[3][4];
+extern DKJungleBarrelLauncher barrelLauncherDataStruct[12];
 extern u8 drawStadiumRelated;
 void fn_8003A144(void);
 void fn_800BDA24(void* arg);
@@ -344,9 +392,9 @@ void fn_3_EF890(DKJungleKlaptrap* obj);
 void dkKlaptrapLaunchedUpdate(DKJungleKlaptrap* obj);
 void fn_3_EFB54(DKJungleKlaptrap* obj);
 void fn_3_F0184(void);
-void dkKlaptrapChaseUpdate(DKJungleKlaptrap* obj);
+void dkKlaptrapChaseUpdate(StadiumObject* o);
 void dkKlaptrapRoamUpdate(DKJungleKlaptrap* obj);
-void klaptrapControl(DKJungleKlaptrap* obj);
+void klaptrapControl(StadiumObject* o);
 void fn_3_F13F8(DKJungleObject* obj);
 void klaptrapCTRLSetup(DKJungleKlaptrap* obj);
 void maybeGharialCTRLRel(DKJungleKlaptrap* obj);
@@ -355,7 +403,7 @@ void fn_3_F1750(DKJungleBarrel* obj);
 void fn_3_F18A4(DKJungleBarrel* obj);
 void handleDKJungleBarrel(DKJungleBarrel* barrel);
 void dkBarrelSpawnGroundDust(DKJungleBarrel* barrel);
-void fn_3_F22FC(DKJungleBarrel* barrel, s8 fielderIdx);
+void dkBarrelKnockFielder(DKJungleBarrel* barrel, s8 fielderIdx);
 s8 dkBarrel_collisionWithFielder(DKJungleBarrel* barrel);
 void fn_3_F2724(DKJungleBarrel* barrel, DKJungleKlaptrap* klaptrap);
 void dkBarrelAdvanceMotion(DKJungleBarrel* barrel);
@@ -368,17 +416,17 @@ void fn_3_F3A5C(DKJungleBarrel* obj, f32 x, f32 y, f32 z, f32 angle);
 void fn_3_F3AE0(DKJungleBarrel* obj);
 void fn_3_F3BB0(DKJungleBarrel* obj);
 BOOL dkBarrelSmokeUpdate(DKJungleSmokeEmitter* emitter);
-void fn_3_F3EFC(DKJungleSmokeEmitter* emitter);
-void fn_3_F42A0(void);
+void dkBarrelSmokeInit(DKJungleSmokeEmitter* emitter);
+void dkBarrelSpawnSmoke(void);
 void fn_3_F466C(void);
 void fn_3_F469C(void);
-void dkJungleBarrelCannonCutsceneUpdate(DKJungleCannon* cannon);
+void dkJungleBarrelCannonCutsceneUpdate(StadiumObject* o);
 void fn_3_F4BA0(DKJungleCannon* cannon);
 void fn_3_F4C4C(DKJungleCannon* cannon);
 void fn_3_F4D00(DKJungleCannon* cannon);
 void fn_3_F4DAC(void);
 void handleBarrelFiring(DKJungleCannon* cannon);
-void dkJungleBarrelCannonUpdate(DKJungleCannon* cannon);
+void dkJungleBarrelCannonUpdate(StadiumObject* o);
 void fn_3_F5C30(DKJungleCannon* cannon);
 int fn_3_F5E78(u8 id);
 int fn_3_F5EFC(const u32* a, const u32* b);

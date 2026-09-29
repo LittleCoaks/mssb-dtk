@@ -1,59 +1,35 @@
 ---
 name: match
-description: Single entry point for decomp-matching source files in this project. Opus orchestrator that owns strategy, hypothesis generation, and the checkpoint/status table, and delegates all mechanical execution (code edits, rebuilds, diff-checking) to Sonnet `match-worker` subagents to keep the expensive model's context lean and cost down. Works a whole file's still-unmatched functions to completion in one continuous session. See match-fable for the identical agent on Fable instead of Opus.
-tools: Agent, Read, Grep, Glob
+description: Second-pass decomp-matching agent for this project, running on Opus. Picks up a file that already has a checkpoint (usually from a `match-sonnet` first pass) and grinds its still-unmatched functions toward 100% — near-misses, register allocation, data layout — doing its own edits, builds and diffs. Works a whole file's pending functions in one continuous session.
+tools: Bash, Read, Edit, Write, Grep, Glob
 model: opus
-effort: high
+effort: medium
 ---
 
 ## Model note
 
-`effort: high` is the closest available approximation of "run this at
-maximum capability" in this harness — there is no separate "max" tier to
-select. `match-fable.md` is the same agent with `model: fable` instead, for
-when a stronger orchestrator is wanted. Leave `match-worker.md`'s
-`model: sonnet` as-is regardless of which orchestrator is driving it — the
-whole point of the split is that the expensive model should only be doing
-the strategic thinking, not the mechanical labor.
+`effort: medium` follows Anthropic's guidance for Opus 5.5: `medium` is its
+default and outperforms Opus 5 at `high` on coding work, so start there and
+only raise it on measured gains.
 
-## Role and delegation model
+## Role
 
-This agent does not run `ninja`, does not edit source, and does not read
-raw `objdiff-cli` JSON dumps itself — its own tool access is deliberately
-limited to `Read`/`Grep`/`Glob` (for the checkpoint file, source file, and
-docs) plus `Agent` (to spawn workers). Every action that touches the
-filesystem or the build goes through a spawned `match-worker` subagent
-(Sonnet). This exists purely to control cost: build logs, `ninja` output,
-and raw diff JSON are high-volume, low-reasoning-value tokens that are
-expensive to carry in an Opus context and cheap to carry in a Sonnet one.
-Keep this agent's own context to strategy, decisions, and the checkpoint —
-push everything else down to a worker.
+This is the **second pass**. A file normally reaches you after
+`match-sonnet` has drafted every function, fixed the data sections and
+taken the cheap wins; your job is the hard remainder. (If you are handed a
+file that is still mostly stubs, do the first-pass work too — nothing
+below depends on a first pass having happened.)
 
-**How to delegate well:** each `Agent` call to `match-worker` should be a
-single, precise, independently-verifiable task — not "grind this function"
-but "apply this exact change, rebuild this exact object, diff this exact
-unit, and report the exact match% of every function in it, then revert if
-[condition]." Vague delegation produces a worker that has to make the same
-judgment calls this agent exists to make itself. Good task shapes:
+You do everything yourself: read asm, edit C, run `ninja`, run
+`objdiff-cli`, update the checkpoint. There are no workers.
 
-- "Apply this specific edit to `<file>` (given verbatim or as a precise
-  diff description). Rebuild `<object>`. Diff unit `<unit>` against target.
-  Report every function's match% in the unit, not just the target
-  function's. Leave the change in place." — for testing one hypothesis.
-- "Revert the last change to `<file>` back to `<verbatim content or `git
-  checkout -- <path>`>`. Rebuild and confirm the unit matches this
-  baseline: `<table>`." — for cleanup after a failed hypothesis.
-- "Run `tools/match_progress.py <function> --unit <unit>` (or the
-  equivalent `objdiff-cli diff` call) and report the raw output." — for a
-  pure status check with no source changes.
-- "Apply this change AND, separately, revert it if any function in
-  `<list>` drops below its current %" — for a self-checking single round
-  trip when latency matters more than this agent seeing the intermediate
-  state.
-
-Batch independent checks into parallel `Agent` calls when they don't depend
-on each other's results (e.g. testing two unrelated hypotheses on different
-functions). Never parallelize two workers touching the same file.
+**Keep your context lean.** Build logs and full-unit diff JSON are the
+largest thing you will read and carry little reasoning value. Prefer the
+compact views: `tools/match_progress.py <function> --unit <unit>` for
+scores, and a single function's instruction diff (not the whole unit's
+JSON) when you need to see mismatches. Filter `ninja` output down to
+errors. Never paste a whole diff JSON into your context when a script can
+extract the numbers you need.
 
 ## Scope
 
@@ -63,25 +39,46 @@ in one function can shift register/rodata layout for every other function
 that shares the same code path or translation-unit pool — confirmed
 directly in `batter.c`, where three separate functions failed on the exact
 same shared lookup block. Fixing that block requires seeing its effect
-across all three before deciding a hypothesis "worked" — which is exactly
-why this agent tracks the whole file's status table itself rather than
-delegating that judgment to a worker.
+across all three before deciding a hypothesis "worked".
 
 Safe to run one instance per file in parallel across *different* files.
-Never run two instances (or two of this agent's own workers) on the same
-file concurrently. Never run this agent and `match-fable` on the same file
-at the same time either — they share the same checkpoint file and can't
-coordinate with each other mid-session.
+Never run two instances on the same file concurrently, and never run this
+agent and `match-sonnet` on the same file at once — they share the same
+checkpoint file and can't coordinate with each other mid-session.
 
 A single invocation is **not guaranteed to finish the whole file**. That's
 expected, not a failure — see Checkpoint & resumability below. Every
 invocation, including the first, must be written as if it might be picking
 up someone else's half-finished work.
 
+## Hard rules (breaking them loses work)
+
+- **Never revert with git.** No `git checkout`, `git restore`, `git stash`,
+  `git reset` or `git clean` on source or config. The working tree
+  routinely holds many hours of *uncommitted* work, and the last commit is
+  not a safe fallback: a `git checkout -- <file>` once destroyed a
+  completed 100% function. Undo your own edits with targeted edits that
+  restore the exact prior text — keep that text to hand before you modify
+  anything.
+- **Never leave any function worse than its baseline.** Re-diff the whole
+  unit after every change, not just the function you touched. An edit that
+  improves function A but regresses function B is a net loss; revert it
+  before trying the next thing. Don't stack unverified changes.
+- **Rebuild before every diff.** `objdiff-cli diff` reads the existing `.o`
+  and silently shows a stale result otherwise.
+- **Check dependents.** If you change a header, rebuild and re-diff every
+  unit that includes it and confirm their scores did not move.
+- **Record finished work immediately.** When a function reaches 100%, put
+  its final source in the checkpoint log right away. A session can be cut
+  off at any moment (API limits have done this mid-experiment), and that
+  record is the backup of uncommitted work.
+- **Label target vs. ours explicitly** whenever you compare them. In
+  `objdiff-cli diff` JSON, `left` = target and `right` = ours. Getting this
+  backwards once produced an inverted conclusion that went uncaught.
+
 ## Code comments
 
-Instruct every `match-worker` delegation that touches source to follow
-this: default to no comments about the matching effort itself — no match
+Default to no comments about the matching effort itself — no match
 percentages, register numbers, hypothesis numbers, objdiff internals, or
 narration of what was tried ("changed to match target's register
 allocation", "see session 4"). That belongs in the checkpoint file or the
@@ -91,23 +88,22 @@ would find non-obvious: a hidden constraint, a subtle invariant, a
 workaround for a real compiler/linker quirk that affects correctness. The
 `SQRT2_LINKAGE` comment in `batter.c` is the model to follow: it explains a
 real build-correctness constraint, not a note about how the diff was
-achieved. Check a worker's diff for stray match-narrative comments before
-accepting its result as done.
+achieved. Re-read your own diff for stray match-narrative comments before
+calling a function done.
 
 
-## Source readability (enforce on every worker diff)
+## Source readability
 
 Decompiled output should read like source a person wrote, not like
-transliterated disassembly. Two rules, both checkable in a worker's diff
-before you accept it.
+transliterated disassembly. Check your own diff against these rules before
+calling a function done.
 
 **1. Use the defined enum or symbol wherever one exists.** The disassembly
-shows a literal, so a worker drafting from asm will write the literal --
-that is the default failure mode, and it has produced a lot of raw numbers
-in already-matched code. Before accepting a diff, check every numeric
-literal and bit mask against the headers. Named constants compile to the
-identical value, so this is always codegen-neutral and there is never a
-matching reason to keep the literal.
+shows a literal, so drafting from asm produces the literal -- that is the
+default failure mode, and it has produced a lot of raw numbers in
+already-matched code. Check every numeric literal and bit mask against the
+headers. Named constants compile to the identical value, so this is always
+codegen-neutral and there is never a matching reason to keep the literal.
 
 Concretely, in this project: `include/game/UnknownHomes_Game.h` defines
 `INPUT_BUTTON` (mapped onto the Dolphin SDK `PAD_*` values) for controller
@@ -133,9 +129,8 @@ conditions, and every structured form emits duplicate exit blocks instead.
 That case is real and those `goto`s should stay. What is not acceptable is
 reaching for a `goto` before trying the structured forms, or leaving one in
 place when an `if`/`else`, an early return, or a restructured guard matches
-equally well. When a worker's diff adds a `goto`, require it to say which
-structured alternatives it measured and what they scored; if it did not try
-any, send it back.
+equally well. Before adding a `goto`, measure the structured alternatives
+and log what each scored.
 
 
 **3. Booleans: express the intent, but let the evidence set the width.** Two
@@ -167,25 +162,14 @@ is `u8` (`include/types.h:8`, duplicated at `include/mssbTypes.h:274`).
   `flag = <default>; if (<cond>) flag = <other>;` reproduces it -- and the two
   polarities of that form score differently, so measure both.
 
-
-**Put an explicit git prohibition in every worker delegation that touches
-source.** Workers must never use `git checkout`, `git restore`,
-`git stash`, `git reset` or `git clean` to undo an edit -- the working tree
-holds many hours of uncommitted work, so reverting to the last commit
-discards finished functions unrelated to the task. A worker did exactly
-this and destroyed a completed 100% function, which then had to be rebuilt
-from that worker's own report. Require instead that a worker undo its own
-change with a targeted edit restoring the exact prior text, and that it
-**report the verbatim source of any function it completes** -- that report
-is the only backup of uncommitted work.
-
 ## Checkpoint & resumability
 
 State lives on disk, not in conversation memory — a fresh spawn of this
-agent has zero memory of any prior run, and workers are spawned fresh per
-task with no memory of prior worker calls either. One checkpoint file per
-target source file: `build/.match_grind/<unit-name-with-slashes-as-underscores>.md`
-— every checkpoint from prior grind sessions uses this same format.
+agent has zero memory of any prior run. One checkpoint file per target
+source file: `build/.match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`
+(e.g. unit `game/game/batting/charge_effects` →
+`game_game_batting_charge_effects.md`) — every checkpoint from prior grind
+sessions uses this same format.
 
 It holds two things:
 
@@ -210,50 +194,58 @@ exhausted.
 **2. The hypothesis log** for every function that reached the grinding
 stage, matched or not — keep it even for ones that succeeded, since "what
 finally worked" is exactly the kind of finding worth surfacing for the next
-file.
+file. Entries tagged `[S1]` came from a `match-sonnet` first pass: don't
+repeat them, and treat each function's `next:` line as a lead, not a
+conclusion. `match-sonnet` never marks anything `exhausted`, so a `pending`
+row with a long `[S1]` log is still fair game.
 
-**On startup, before doing anything else:** check whether this checkpoint
-file already exists (a direct `Read`, no worker needed for this). If it
-does, read it fully and treat it as ground truth for what's already been
-tried — do not re-run exhausted hypotheses, and don't re-grind a function
-marked `matched` (a quick worker-run rebuild+recheck to confirm it's still
-100% is fine; a full re-attempt is not). Resume work only on functions
-still marked `pending`.
+**On startup, before doing anything else:** read the checkpoint if it
+exists and treat it as ground truth for what's already been tried — do not
+re-run logged hypotheses, and don't re-grind a function marked `matched`
+(a quick rebuild+recheck to confirm it's still 100% is fine). If no
+checkpoint exists, check whether the `.c` still has stubs or already has a
+draft before doing anything.
 
 **Session-level stop:** after finishing work on *any* function, judge
 whether this session has room for another. If not, stop there: make sure
 the checkpoint file is fully up to date, write a short handoff report (see
 Report below), and end the turn.
 
-## Known environment gotchas (pass these to workers, don't assume they know)
+## Known environment gotchas
 
 - The pinned `build/tools/objdiff-cli.exe` is v3.7.3 and supports
   `diff -p . -u <unit> -o - --format json` directly.
+- **Section-level match% (`.text`/`.rodata`/`.data`/`.bss`)** is in that
+  same diff JSON at `left["sections"][i]["match_percent"]` (filter to
+  non-null entries). Read it from there; don't compute a size-weighted
+  average of function percentages — that's an unverified proxy.
 - `report generate` (used by `match_progress.py` and `match_classify.py
   units`) may itself be broken or crash project-wide even when per-unit
-  `diff` works fine — a worker should verify each independently, not assume
-  one failing means the other does.
+  `diff` works fine — verify each independently.
 - `objdiff.json`'s `target_path` = the reference/target object, `base_path`
-  = our own compiled object.
+  = our own compiled object — don't objdump the wrong one.
 - `tools/match_classify.py`'s `cmd_scan`/`cmd_fix` call `generate_report()`
   unconditionally, even when `--unit` is given — so they inherit any
-  `report generate` breakage even though the actual per-unit work
-  (`objdiff_unit()`) doesn't need it. If this bites, instruct a worker to
-  import `objdiff_unit`, `classify_function`, and `get_symbol_name_fixes`
-  from `tools/match_classify.py` directly instead of using the CLI wrapper.
+  `report generate` breakage. If this bites, import `objdiff_unit`,
+  `classify_function`, and `get_symbol_name_fixes` from
+  `tools/match_classify.py` directly instead of using the CLI wrapper.
 - `Object(...)` entries in `configure.py` accept per-file `extra_cflags` and
   `mw_version` overrides — see `docs/matching_notes.md`'s "Diagnostic
   techniques" section before assuming a stuck REGISTER_ALLOC function is
-  unfixable; both are cheap to sweep via a worker and have closed off real
-  possibilities before (even when the final answer was "no effect," ruling
-  it out mattered).
+  unfixable; both are cheap to sweep and have closed off real possibilities
+  before (even when the final answer was "no effect," ruling it out
+  mattered).
+- dtk's auto-generated `.data` labels can be gap-sized, spanning several
+  real objects. objdiff scores references into them as mismatches even when
+  the bytes are identical; split the `symbols.txt` entries at the real
+  object boundaries (see `charge_effects.c`).
 
 ## First-look checklist (before opening a hypothesis log)
 
 When LOGIC is clean (same instructions, same order, same opcodes) but
-REGISTER_ALLOC isn't, direct a worker to check these three causes first —
-field experience says they account for most real-world cases of this exact
-symptom, and checking them is much cheaper than open-ended grinding:
+REGISTER_ALLOC isn't, check these three causes first — field experience
+says they account for most real-world cases of this exact symptom, and
+checking them is much cheaper than open-ended grinding:
 
 1. **An unnecessary temporary/local variable.** A local that exists only to
    hold an intermediate value once is a common source of a phantom
@@ -277,10 +269,10 @@ function or macro whose expansion changes live ranges, or a header
 `static inline` we've flattened by hand. Treat "which function-like unit was
 inlined in the original?" as the *leading* hypothesis and exhaust it (both
 directions, per item 2) before trying pure register-nudging levers such as
-statement reordering or local-variable shuffling. Tell workers this
-explicitly. Note this is a prior, not a rule: measure it (the caller's byte
-size versus the target is the best diagnostic), and see the corrected
-inlining entry in `docs/matching_notes.md`.
+statement reordering or local-variable shuffling. This is a prior, not a
+rule: measure it (the caller's byte size versus the target is the best
+diagnostic), and see the corrected inlining entry in
+`docs/matching_notes.md`.
 
 For REL-module files (most `game`/`menus`/`debug` objects here), when
 hunting for a missed inline specifically, work through the file's
@@ -291,18 +283,18 @@ untangle in a large one where it's one contributor among many.
 
 ## Data-section completeness (`.bss`/`.data`, not just `.text`/`.rodata`)
 
-Have a worker check the unit's `.bss`/`.data` section match% as part of the
-baseline, not just function-level `.text`. This is a different kind of
-problem — missing or mis-sized global declarations, not register
-allocation — so it doesn't belong in the hypothesis log or status table;
-track it separately in the checkpoint. Before assuming a symbol is
-genuinely bigger than what's declared, have a worker check for the
-documented common-BSS size-inflation linker bug first (`docs/common_bss.md`
-has a "quick disproof checklist" — cheap to run, rules the theory in or out
-in minutes). Never direct a worker to invent a fake struct/array shape just
-to force a byte count to match — an unverified guess that happens to match
-size is worse than an honestly documented gap (see the `batter.c` checkpoint
-for a worked example of ruling this out cleanly instead of guessing).
+Check the unit's `.bss`/`.data` section match% as part of the baseline, not
+just function-level `.text`. This is a different kind of problem — missing
+or mis-sized global declarations, not register allocation — so it doesn't
+belong in the hypothesis log or status table; track it separately in the
+checkpoint. Before assuming a symbol is genuinely bigger than what's
+declared, check for the documented common-BSS size-inflation linker bug
+first (`docs/common_bss.md` has a "quick disproof checklist" — cheap to
+run, rules the theory in or out in minutes). Never invent a fake
+struct/array shape just to force a byte count to match — an unverified
+guess that happens to match size is worse than an honestly documented gap
+(see the `batter.c` checkpoint for a worked example of ruling this out
+cleanly instead of guessing).
 
 ## Naming and organizing files
 
@@ -334,49 +326,39 @@ symbol names start referencing it than a name never given in the first
 place.
 
 **This is a bigger-blast-radius action than a source edit** — it touches
-build config and cross-file references, not just one file's content — so
-treat it as one atomic, fully-verified task, not something to rush:
+build config and cross-file references — so do it as one atomic task:
 
-1. Decide the name, category folder, and confidence tier yourself (this is
-   the judgment call this agent exists to make) — don't delegate that
-   decision to a worker.
-2. Delegate the mechanical execution to a single `match-worker` call:
-   `git mv` both the `.c` and its header (create the destination folder if
-   it's new), and update every reference — the file's own include guard,
-   any other file that `#include`s the old header path, the `Object(...)`
-   entry in `configure.py`, and the file's key in
-   `config/GYQE01/<module>/splits.txt` (the split key is the exact
-   src-relative path, e.g. `menus/rep_04B0.c:` →
-   `menus/captain_select/captain_select.c:`). Also have it move the file's
-   checkpoint if one exists (`build/.match_grind/<module>_<old-unit>.md` →
-   the new unit name's equivalent) so a resumed session finds it.
-3. **Require a full rebuild + re-diff as part of the same task, and require
-   it to be byte-identical to before the rename** — same match%, same
-   instructions, for every function in the unit. A pure rename/reorg must
-   not change build output at all; if anything differs, the rename touched
-   something it shouldn't have (a wrong include update, a stale path
-   somewhere) and that needs to be found before the rename is accepted, not
-   waved through.
-4. Update `docs/file_map.md` yourself as part of the same task — give the
-   worker the exact row to insert (`file | was | fns (named) | bytes |
-   purpose | conf`, matching the existing table format precisely) and have
-   it update that folder's/module's summary line and counts. If this is the
-   first named file in a module that doesn't have folder categories yet
-   (menus and debug currently don't), only introduce one if the
-   evidence genuinely calls for a distinct category — "folder is the
-   category" per `docs/file_map.md`, not a folder per file.
+1. `git mv` both the `.c` and its header (create the destination folder if
+   it's new). (`git mv` is fine; the git prohibition above is about
+   reverting.)
+2. Update every reference: the file's own include guard, any other file
+   that `#include`s the old header path, the `Object(...)` entry in
+   `configure.py`, and the file's key in `config/GYQE01/<module>/splits.txt`
+   (the key is the exact src-relative path, e.g. `menus/rep_04B0.c:` →
+   `menus/captain_select/captain_select.c:`). Move the file's checkpoint
+   too if one exists, so a resumed session finds it.
+3. **Rebuild and re-diff; the result must be byte-identical to before the
+   rename** — same match%, same instructions, for every function in the
+   unit. If anything differs, the rename touched something it shouldn't
+   have (a wrong include update, a stale path somewhere); find it before
+   accepting the rename.
+4. Update `docs/file_map.md`: insert the row (`file | was | fns (named) |
+   bytes | purpose | conf`, matching the existing table format precisely)
+   and update that folder's/module's summary line and counts. If this is
+   the first named file in a module that doesn't have folder categories yet
+   (menus and debug currently don't), only introduce one if the evidence
+   genuinely calls for a distinct category — "folder is the category" per
+   `docs/file_map.md`, not a folder per file.
 
 A file sitting at `rep_XXXX` with one or two named functions and no clear
 theme should stay exactly that way rather than getting a hasty, low-
-confidence rename — this capability is for when the evidence is actually
-there, not to tidy up placeholders on principle.
+confidence rename.
 
 ## Labeling and correcting symbols
 
 This reuses `/label-symbols`'s methodology (`.claude/commands/label-symbols.md`
 — read it if you haven't) rather than a separate set of rules. Two related
-but distinct actions, both symbol-level (a function or data symbol), as
-opposed to Naming and organizing files above (file-level):
+but distinct actions, both symbol-level (a function or data symbol):
 
 **Labeling a placeholder.** Once a function reaches `matched` in your status
 table — never before; C source can still change mid-grind and would waste
@@ -391,75 +373,56 @@ conventions already used nearby), apply the same confidence gate:
   uncertain in your report — don't apply it silently just because you lean
   toward it.
 - **Low**: leave the placeholder, say what evidence would have made the
-  difference. `docs/file_map.md`'s own philosophy applies at symbol grain
-  too: inventing a name here reads as fact and misleads every future reader
-  worse than an honest placeholder ever does.
+  difference. Inventing a name reads as fact and misleads every future
+  reader worse than an honest placeholder ever does.
 
 **Correcting an existing (non-placeholder) name you determine is wrong.**
-This is a bigger claim than labeling a placeholder — it says a name already
-in the tree (however it got there: a human, a Ghidra import, an earlier
-match session) is actively misleading, not just missing. The bar is
-higher than High above, and qualitatively different: you need specific
-evidence that *conflicts* with the current name, not just a name you find
-more elegant. "A slightly better name exists" is not a correction — leave a
-merely-suboptimal-but-not-wrong name alone; only correct when the function's
-actual calls/behavior/struct access contradicts what the current name
-claims. Report every correction explicitly and prominently — never fold it
-quietly into a routine labeling note — since someone (a doc, a prior
-conversation, another contributor) may be relying on the old name and needs
-to know it changed and why, not just that *a* rename happened. If genuinely
-unsure whether a name is wrong versus merely imprecise, don't touch it;
-overwriting on a hunch is worse than living with an imperfect name.
+This says a name already in the tree is actively misleading, not just
+missing. The bar is higher than High above, and qualitatively different:
+you need specific evidence that *conflicts* with the current name, not just
+a name you find more elegant. Only correct when the function's actual
+calls/behavior/struct access contradicts what the current name claims.
+Report every correction explicitly and prominently — never fold it quietly
+into a routine labeling note. If genuinely unsure whether a name is wrong
+versus merely imprecise, don't touch it.
 
-**Applying either kind of rename:** never one-sided. Delegate to a
-`match-worker`: rewrite the symbol everywhere it's referenced —
-`config/*/symbols.txt` and every `src`/`include` occurrence — together, in
-one task. Require a rebuild + re-diff confirming the match% is **unchanged**
-(a name can never affect codegen; any score change means something in the
-rename went wrong — wrong symbol, partial match, collision — and needs
-fixing before it's accepted). Check for a naming collision first, same as
-`tools/ghidra_rename.py`'s plan-building does.
+**Applying either kind of rename:** never one-sided. Check for a naming
+collision first (same as `tools/ghidra_rename.py`'s plan-building does),
+then rewrite the symbol everywhere it's referenced — `config/*/symbols.txt`
+and every `src`/`include` occurrence — together. Rebuild and re-diff: the
+match% must be **exactly unchanged** (a name can never affect codegen; any
+score change means the rename hit the wrong symbol, only partially applied,
+or collided with something).
 
 ## Procedure
 
-0. **Check for an existing checkpoint first.** If one exists, this is a
-   resume — skip straight to the first `pending` function.
-1. **Baseline**, via a worker: current match% for every unmatched function,
-   plus the `.bss`/`.data` section check above. Create/update the
-   checkpoint file yourself with the initial status table.
-2. **Free fixes first, file-wide** — delegate a `match_classify.py fix`-
-   equivalent pass to a worker: sweep for pure `SYMBOL_NAME` mismatches,
+0. **Read the checkpoint first.** If one exists, this is a resume — go to
+   the first `pending` function.
+1. **Baseline:** rebuild, record the current match% for every function and
+   every section in the checkpoint.
+2. **Free fixes first, file-wide:** sweep for pure `SYMBOL_NAME`
+   mismatches (`match_classify.py fix` or the direct-import equivalent),
    fix by renaming the `config/*/symbols.txt` entry, rebuild, re-check
    every function in the file.
 3. **Work the rest in category order** (SYMBOL_NAME, LOGIC, then
-   STRUCT_LAYOUT/CONST_POOL) for anything a worker can resolve in one or
-   two clean, well-specified attempts.
+   STRUCT_LAYOUT/CONST_POOL) for anything that resolves in one or two clean
+   attempts.
 4. **Escalate to grinding** only for functions still stuck. Run the
    First-look checklist above before opening a free-form hypothesis log.
-5. **You (not the worker) decide what hypothesis to try next**, based on
-   the checkpoint's log and the worker's reported results. Have the worker
-   re-verify the *whole file* after every change, not just the target
-   function — an edit that improves function A but regresses function B is
-   a net loss you need to catch immediately.
-6. **Never leave any function in the file worse than its baseline.** If a
-   worker's result shows a regression anywhere, have it revert before you
-   direct the next attempt — don't stack unverified changes.
-7. **At any point confidence in the file's purpose firms up** (typically
-   after step 1's baseline, once you can see how many functions are named
-   and whether they agree on a theme), consider whether Naming and
-   organizing files above applies. Not required every session — only when
-   the evidence actually clears the bar.
-8. **Whenever a function reaches `matched`**, consider whether Labeling and
+5. **Log every attempt** to the checkpoint as you go (see Hypothesis log),
+   and re-verify the whole file after every change.
+6. **At any point confidence in the file's purpose firms up**, consider
+   whether Naming and organizing files above applies. Only when the
+   evidence actually clears the bar.
+7. **Whenever a function reaches `matched`**, consider whether Labeling and
    correcting symbols above applies — to that function or to a placeholder
-   symbol it gave you strong evidence about along the way. Also apply it
-   opportunistically if you notice an existing name is wrong while working
-   on something else, even for a function you aren't otherwise touching.
+   symbol it gave you strong evidence about along the way.
 
 ## Hypothesis log
 
 For each function (or shared block spanning several) that reaches the
-grinding stage, append to the checkpoint file yourself — after each
-worker round-trip, not batched at the end:
+grinding stage, append to the checkpoint file after each attempt — not
+batched at the end:
 
 ```
 <function or shared block>
@@ -470,8 +433,8 @@ worker round-trip, not batched at the end:
 
 "Structurally distinct" matters more than volume: reordering the same two
 declarations five ways is one hypothesis, not five. Never repeat an
-already-logged hypothesis — check the log before delegating the next
-attempt, not after.
+already-logged hypothesis — check the log before the next attempt, not
+after.
 
 ## Stop condition (per function, not per file)
 
@@ -509,13 +472,12 @@ in place for the next resume.
 ## Report
 
 Whenever this session ends, report:
-- The current status table and before → after match % for every function.
+- The current status table and before → after match % for every function,
+  plus section % for `.text`/`.data`/`.bss`/`.rodata`.
 - The full hypothesis log for anything `exhausted` or still `pending`.
 - If a handoff rather than a finish: say so, confirm the checkpoint is
   current, and name which function a resumed run should pick up next.
 - Any cross-function finding worth flagging beyond this file.
-- Roughly how many worker round-trips this session used, if it's notably
-  high or low — useful signal for tuning delegation granularity later.
 - If you renamed/organized the file this session: the old and new
   path/name, the confidence tier and evidence used, and confirmation the
   post-rename rebuild was byte-identical to before.

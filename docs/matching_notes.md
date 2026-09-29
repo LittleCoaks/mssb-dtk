@@ -407,6 +407,16 @@ Checklist when a unit reaches 100%:
 5. Confirm objdiff still reports the unit 100% (`build/GYQE01/report.json`),
    since the flip changes what links, not what objdiff compares.
 
+Third trap, first seen on `game/game/ball/foul_detection` (2026-09): objdiff scored the unit
+100% and the sha1 check passed while NonMatching, but the flipped link produced a `game.rel`
+64 bytes short. `include/header_rep_data.h`'s `repHeaderData` is a weak local static named
+`repHeaderData$localstatic3$getRepHeaderData` in every unit that includes it, and mwld folds
+identically named weak symbols, so once a second unit of the same module (here alongside
+`pitcher_ai`) links from our object, one copy disappears. Moving the include does not help;
+the name comes from the enclosing function. Fix: `#define REP_HEADER_DATA_FN
+getRepHeaderData_<unit>` before `#include "header_rep_data.h"` in every newly flipped unit of
+a module that already has a Matching unit using the header. Codegen is unaffected.
+
 ## DOL units with extab/extabindex: add `-cpp_exceptions on` per-Object
 
 First seen: `text/text_channel.c (was Unknown/File_0x8000f988.c)` (text engine, 2026-08). Some DOL
@@ -1134,28 +1144,77 @@ sites are inside nested loops: `goto` **92.78%**, flag variable **89.73%**,
 expressible. That is a case where `goto` is genuinely correct — but note it was only
 established by measuring all four, which is the standard to hold.
 
-## The int-to-float conversion bias constant is a permanent scoring floor, not a lead
+## The int-to-float conversion bias constant is NOT a scoring floor — rebuild the literal pool instead
 
-First seen: `game/game/fielding/fielder_ai` (2026-09). This sharpens the existing
-"Shared .sdata2 literal pool across split DOL text-engine units" entry into a general
-rule.
+First seen: `game/game/fielding/fielder_ai` (2026-09). Corrects this entry's earlier claim, which
+was drawn from this same file before the fix below was known.
 
-Two different kinds of `.rodata` float reference behave oppositely, and it is worth
-recognising which one is capping a function before spending attempts on it:
-- A plain **value** constant CAN be matched. Declare `extern const f32 lbl_N_rodata_XXXX;`
-  and use the symbol in place of the literal — codegen is byte-identical and only the
-  relocation name changes. Never use the definition form, which emits a spurious
-  duplicate symbol.
-- The **int-to-float/double conversion bias** (the 0x4330 magic) CANNOT. Referencing it
-  explicitly forces a different `fsub`/`frsp` codegen path. MWCC pools it as an anonymous
-  `@NNN` where the target has a dtk-named `lbl_N_rodata_XXXX`, and no source form changes
-  that.
+objdiff scores a `.rodata` reference as matching when it lands at the same pool OFFSET, whatever
+the symbol is called — so an anonymous `@NNN` conversion bias matches the target's dtk-named
+`lbl_N_rodata_XXXX` once our pool is laid out identically. Three changes applied together took
+`fielder_ai`'s `.rodata` from 45.26% to 100% (and `pitcher.c` the same way):
+- plain float literals instead of `extern const f32 lbl_N_rodata_XXXX` labels;
+- function definitions in reverse address order (REL units: `-inline deferred` emits reversed,
+  so the pool fills in the target's first-use order);
+- `#define SQRT2_LINKAGE static` before the first include, so dolsqrtf2's `_half`/`_three`
+  statics don't sit at the head of the pool.
+Six `fielder_ai` functions went to 100% from this alone. The cost: a literal multiplier is
+scheduled differently from an extern variable — see the next entry.
 
-So a function whose ONLY residual is a handful of instructions naming a conversion
-constant is DONE — it is an artifact of the split, not a source-shape problem. In
-`fielder_ai` this capped `fn_3_A1DA0` at 99.85% over 3 instructions, and contributed the
-last fractions on `fn_3_A6ABC`, `fn_3_A384C`, `fielderAIMakePlay` and
-`fieldingAIThrowOrChase`. Recognise it, record it, and spend the effort elsewhere.
+## With a float literal, `x = x * lit` puts the literal first — write `x *= lit`
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+After switching to literals, MWCC emitted `fmuls f0, fConst, fX` (and loaded the constant before
+the int->double bias) for `frames = (int)(frames * 1.3f) + 0x1e;` and `speed = speed * 1.3f;`,
+where the target has `fmuls f0, fX, fConst`. Compound assignment reproduces the target exactly:
+`frames *= 1.3f; frames += 0x1e;` (maybeUnused_SetThrowSpeedType2 93.78% -> 100%; 28 sites, none
+regressed) and `speed *= 1.3f;` in initializeThrowAngle_Speed_Length. `(int)(1.3f * frames)` and
+explicit casts compile identically to the original and do not help.
+
+## Index the named `.bss` statics, never past the end of a neighbouring array
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+Three functions wrote `lbl_3_bss_17F8[12 + i]` / `[16 + i]` / `[20 + i]`, reaching three separate
+file-static arrays through a 1-element placeholder. Writing `throwStratToMakePlay[i]`,
+`runningStratToMakePlay[i]`, `framesRunnerIsOutOfReach[i]` let MWCC pool the section base into a
+callee-saved register exactly as the target does (`addi r30, bss@l` once, then
+`addi rX, r30, 0x40; stwx`): +6 to +8 points each.
+
+## A hand-unrolled scan is usually a loop MWCC unrolled
+
+First seen: `game/game/fielding/fielder_ai`, `setRunnerChasingAfter` (77.33% -> 99.27%, 2026-09).
+
+Signature: the same test repeated for fixed indices, a loop-invariant address hoisted before the
+first copy (`slwi; addi rA, rI, 0xa8` then `lfsx f1, rBase, rA` in every copy), each copy ending
+`li rResult, N; b end`, and a doubled `b end; b end` after the last. `for (i = 0; i < 4; i++) {
+if (...) { result = i; break; } }` reproduced it. Related: a `do { ...; runner++; i++; } while (i < 4)`
+loop that the target runs with `mtctr`/`bdnz` wanted a `for` (fn_3_A89D4), and the order of the
+`for` increment clause (`runner++, i++`) is visible in the output.
+
+## A `u8` field stored from the same register as neighbouring -1 stores is really `s8`
+
+First seen: `game/game/fielding/fielder_ai`, `knockBallLoose` (2026-09).
+
+The target stored `g_FieldingLogic.baseFielderIsOn` with `stb r6` where r6 already held -1 for
+halfword stores; ours materialised a separate `li rX, 0xff` because the field was `u8` (4 bytes
+too long). `fielder.c` already read it through `(s8)` casts. Retyping it `s8` took knockBallLoose
+and fielder.c's handleBodyCheck2 to 100%. Locals copied from it must then be `s8` too (tagRelated
+needed `s8 baseOn` with the casts dropped).
+
+## Statement order is the strongest register lever; trace the target's data flow for bugs
+
+First seen: `game/game/fielding/fielder_ai` (2026-09).
+
+Greedy single-statement moves inside straight-line runs (only legal, dependency-preserving moves;
+also splitting a declaration initializer into a statement placed later) fixed or improved over a
+dozen functions here — e.g. moving `g_FieldingLogic.laser_2 = 0;` from first to last in a prologue
+restored 4 bytes and the unit's whole `.data` jump table. Declaration order of float locals
+occasionally matters too (estimatedThrowFramesBetweenTwoPoints reached 100% from it) though it was
+a no-op in most functions. Separately, following one register in the target from its load to a
+later `andi.` exposed a real bug: a test the source applied to `hexMovementsInEachBaseline1for2back4stop`
+was on `hexBaserunnerTracker` (fielderAIOutfieldPlayAttemptInd 94.57% -> 99.64%).
 
 ## `-inline deferred` auto-inlining of in-file standalone functions is NOT uniform — measure both forms
 
@@ -1751,6 +1810,11 @@ double where the target had floats. So treat the two as ONE combined fix - apply
 and reading the lower number as "this made it worse" is the trap; the size going exactly
 right is the signal that the change was correct.
 
+Second data point, `game/game/ball/foul_detection` (2026-09): without the define, the two
+statics sat at the very front of `.rodata`, ahead of `repHeaderData`, so every later literal
+was 0x10 off. Three otherwise instruction-identical functions scored 98.9-99.3% on their
+float relocs alone; the define took all three and `.rodata` to 100% with no other change.
+
 ## Dead standalone copies, second data point: five clusters in one 88-function file
 
 First seen: `game/game/stadium/sta_c2` (88 functions, all `return;` stubs at session
@@ -1953,25 +2017,25 @@ suspect declaration order rather than a different body.
 The same file also found that same-size is not sufficient evidence on its own: `maybeGharialCTRLRel`
 and `maybeBarrelCTRLRel` are both 348 bytes and share nothing but their size.
 
-## Findings from the stadium_bowser_castle / stadium_yoshi_park sessions
+## Findings from the sta_c1 / sta_c3 sessions
 
 **A pipelined struct copy (load x, load y, store x, load z, store y, store z) means the source is
 a by-value `Vec` parameter.** When the target copies a position field by field with the loads
 running ahead of the stores, MWCC knew the source could not alias the destination. A by-value struct
 argument (the caller makes a private copy) gives it that guarantee; `Vec* pos` does not. The caller
 side shows it too: a word copy of the vector to the stack right before the (possibly inlined) call.
-First seen: `fn_3_C48D0(CastleFireballEmitter* handle, Vec pos)` in `stadium_bowser_castle.c` (98.80% ->
+First seen: `fn_3_C48D0(CastleFireballEmitter* handle, Vec pos)` in `sta_c1.c` (98.80% ->
 100%). The same fix matched `fn_3_C24A0` via `updateVectorInArray(int, Vec)`.
 
 **MWCC lays out a TU's `.bss` statics in reverse declaration order.** If a function's code is
 identical but every static access is at the wrong offset (the last-declared array landing at offset 0),
-declare the statics from highest address to lowest. First seen: `stadium_yoshi_park.c`, `fn_3_E1DB8`
+declare the statics from highest address to lowest. First seen: `sta_c3.c`, `fn_3_E1DB8`
 (99.89% -> 100%, and the unit's `.bss` size then matched).
 
 **A still-stubbed callee can be inlined as an empty body and skew its callers' scores.** With
 `-inline auto`, a `return;`/`return FALSE;` stub defined earlier in the file gets inlined, so a caller's
 score is not meaningful until the callee is written. Implement callees before judging callers.
-Seen repeatedly in `stadium_yoshi_park.c` (`ParkPlantsPopUp` 91.67 -> 100% once
+Seen repeatedly in `sta_c3.c` (`ParkPlantsPopUp` 91.67 -> 100% once
 `tryPlantCatchAndBeginSpitAim` was written).
 
 **Callee prototype width shows up at every call site, so fix the prototype, not the calls.**
@@ -1988,3 +2052,82 @@ arithmetic through locals.** If the target loads several float constants and com
 
 **A `cmpwi 2 / ble` loop that starts at 2 and tests before decrementing is `i = 2; while (i-- != 0)`**,
 not `for (i = 1; i >= 0; i--)`. First seen: `fn_3_C19C8` / `fn_3_C2644` (+4 and +3.6 points).
+
+## Findings from the pitcher_ai session
+
+**A retry loop that compares, compares, increments and branches back is `for (;;)` with a two-condition
+`break`.** Target shape: body; `cmpw desired,loc; bne exit; cmpwi tries,2; bge exit; addi tries,1; b body`.
+`do { body } while (desired == loc && tries++ < 2)` came out 8 bytes short (95.67%);
+`for (;;) { body; if (desired != loc || tries >= 2) break; tries++; }` is exact (a two-`break` form and an
+`if (...) tries++; else break;` form tie with it). First seen: `pitcherAISetCurve`.
+
+**A register copy right after an unrolled search loop means the loop had its own counter.** `mr r5,r6` at the
+loop exit is `for (i = 0; i < 7; i++) {...} loc = i;`, not the loop running on `loc` directly
+(`pitcherAISetCurve` 95.88 -> 97.47).
+
+**`step = b - a; step /= k;` is not the same as `step = (b - a) / k;`.** In `pitcherAISelectMoundLocation`
+(was `fn_3_20EEC`) the split form fixed the load order of `b` and `a` and the FPR permutation of the
+following `fmadds` (90.55 -> 100, and the caller that auto-inlines it 96.01 -> 100). Operand orders, separate
+min/max locals, a float index local and an integer divisor all had no effect. Same family as the compound
+assignment operand-order lever.
+
+**An `s8` field compared with both -1 and a small positive value shows `extsb` only on the -1 compare.** MWCC
+skips the sign extension for equality with a non-negative constant, so `lbz; cmpwi r0,1` (a signed compare with
+no `extsb`) beside `lbz; extsb; cmpwi r0,-1` identifies an `s8` field; a `u8` field compares with `cmplwi`.
+First seen: `AIStruct.aiPitchDirectionInput`.
+
+**A `cmplw` between two computed struct addresses is a pointer comparison in the original source.**
+`pitcherAISelectPitch` compares `&g_Scores.scores[a] > &g_Scores.scores[b]` (probably meant `.total`). Written as
+the address comparison, it matched first try.
+
+**Moving a store of 0 above the table load that feeds a random roll fixed the register assignment of the
+table-index computation** (`pitcherAISetCurve` tail, 99.47 -> 100).
+
+**Character stat-row copy is an inlined helper.** The sequence memcpy(dst,src,0x1E);
+CharID/FieldingArm/BattingStance; memcpy 2 @0x28; memcpy 2 @0x2A; bytes 0x2C-0x34; memcpy 2 @0x35;
+u32 @0x20; memcpy 4 @0x37; memcpy 0x36 @0x3B (chemistry); byte 0x71; 21 u16 @0x74-0x9C copies a
+`CharacterStats` row. It matched first try as a `static inline void
+copyCharacterStats(CharacterStats* dst, CharacterStats* src)` in
+`src/Unknown/File_0x800426dc.c` (`transferStatsToInMemRoster`), with the source row indexed as
+`Static_Stats_Tables.characterStats[charID / 9][charID % 9]` using `u8` row/col temporaries (the
+target multiplies by 0x5A0 and 0xA0 separately, so a flat `[54]` index does not match).
+`src/menus/text_0323C.c` hand-expands the same sequence with raw offsets in ~7 places; those are
+candidates for the same helper (with `CharacterStats` field names).
+
+## MWCC's `__abs()` builtin is distinct from both the ternary and the `if (t < 0) t = -t;` abs
+
+First seen: `game/game/ball/foul_detection`, `outfieldWallProximityZone` (was `fn_3_B7E44`, 2026-09).
+
+All three spellings compile to the same `srawi`/`xor`/`subf` idiom, but they are not
+interchangeable. `x < 0 ? -x : x` scored 86.05%, `if (x < 0) x = -x;` 86.40%, and
+`__abs(angle - 0x400)` 99.53% (every instruction matching) - the builtin gives the abs
+result a fresh register and changes how the surrounding constant loads are scheduled.
+`__abs` needs no prototype and never emits a call; `abs()` via the MSL `arith.h` prototype
+emits a real `bl abs`. Tell-tale in the target: the abs result lands in a different register
+from its operand (`srawi r5,r4,31; xor r6,r5,r4; subf r6,r5,r6`).
+
+## A trailing `return a < b;` and `if (a < b) return 1; return 0;` can differ only in literal-pool order
+
+First seen: `game/game/ball/foul_detection`, `outfieldWallProximityZone` (was `fn_3_B7E44`, 2026-09).
+
+With `__abs` in place the function's instructions matched, but `.rodata` held `55.0f`
+before `63.0f` where the target had `63.0f` first. Rewriting the final
+`return 55.0f + scaled < dist;` as `if (55.0f + scaled < dist) { return 1; } return 0;` left
+the code identical (still `mfcr`/`srwi`) and restored the pool order, taking the function
+and `.rodata` to 100%. When a function is instruction-identical but its float relocs still
+mismatch, dump both `.rodata` sections before assuming it is naming noise: objdiff matches a
+literal reloc by offset, so a reloc mismatch means the pool is laid out differently.
+
+## `if (!(x != a && x != b && ...)) { A } B` gives the `||` block order without the range fold
+
+First seen: `game/game/ball/foul_detection`, `checkFielderCollision` and
+`isCoordinateUncatchableTerrain` (2026-09). Extends "`x == a || x == b || x == c` gets folded
+into a range check".
+
+Target: `cmplwi/beq T` for each value, `cmplwi last; bne F`, then `T` falls through - the
+natural layout of `if (x == a || ... ) { T } F`. The `||` form folded consecutive values
+(2..5, 9..10) into `subi; cmplwi; ble`. The negated-conjunction form from the earlier entry,
+`if (x != a && ...) { F } T`, stopped the fold but put `F` on the fall-through path (99.2%).
+Wrapping the same conjunction in `!( ... )` with the arms swapped reproduced both the
+unfolded compares and the target's block order (100%). A `switch` built a binary decision
+tree instead and was the worst of the structured forms.
