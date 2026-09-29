@@ -134,6 +134,10 @@ game/pitching/pitcher.c:
 	.data       start:0x00008088 end:0x000080A8
 	.bss        start:0x00001728 end:0x00001748
 
+game/match_setup/result_stats.c:
+	.text       start:0x000759BC end:0x00077914
+	.data       start:0x000080A8 end:0x000080E8
+
 game/baserunning/play_result_tracking.c:
 	.text       start:0x00077914 end:0x0007976C
 	.rodata     start:0x000012D0 end:0x00001330
@@ -147,6 +151,9 @@ game/match_setup/replay_inputs.c:
 	.text       start:0x0007C1FC end:0x0007CE90
 	.rodata     start:0x00001330 end:0x000013B8
 	.bss        start:0x00001748 end:0x00001760
+
+game/match_setup/replay_state.c:
+	.text       start:0x0007CE90 end:0x0007D79C
 
 game/baserunning/runner.c:
 	.text       start:0x0007D79C end:0x0008B094

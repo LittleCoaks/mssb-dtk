@@ -1095,7 +1095,7 @@ typedef struct _GameControlsStruct {
     /*0x13A*/ u8 walkOffWinInd; // unsure
     /*0x13B*/ u8 gameOverInd;
     /*0x13C*/ u8 scoutFlag_VsScreenInd;
-    artificial_padding(0x13C, 0x13E, u8);
+    /*0x13D*/ u8 _13D;
     /*0x13E*/ u8 teamIsCPU[2];
     artificial_padding(0x13E, 0x142, u8[2]);
     /*0x142*/ u8 teamAIInd[2];
@@ -2620,20 +2620,32 @@ typedef struct {
 extern inMemStrikes g_Strikes;
 
 typedef struct {
-    u8 pad[0x24];
+    /* 0x0000 */ VecXZ landingSpotLocation;
+    /* 0x0008 */ VecXZ ballPickedUpCaught;
+    /* 0x0010 */ VecXYZ deadballLastLoc;
+    /* 0x001C */ s16 hitVerticalAngle;
+    /* 0x001E */ sAng hitHorizontalAngle;
+    /* 0x0020 */ s16 hitHorizontalPower;
+    u8 _pad_0022[2];
     /* 0x0024 */ u32 playFrameCounter;
     /* 0x0028 */ s16 _0028;
-    u8 _pad_002A[8];
+    /* 0x002A */ s16 homeTeamScore;
+    /* 0x002C */ s16 _002C;
+    /* 0x002E */ s16 _002E;
+    /* 0x0030 */ s16 awayTeamScore;
     /* 0x0032 */ s16 prevAtBatResult; // AT_BAT_RESULT
-    /* 0x0034 */ u8 _0034[2];
+    /* 0x0034 */ s16 _0034;
     /* 0x0036 */ u8 replayInd;
     /* 0x0037 */ u8 atBatPitchThrown;
     /* 0x0038 */ u8 _0038[1];
     /* 0x0039 */ u8 replayPending;
-    /* 0x003A */ u8 _003A[2];
+    /* 0x003A */ u8 _003A;
+    /* 0x003B */ u8 _003B;
     /* 0x003C */ u8 replayReason;
     /* 0x003D */ u8 replayArg;
-    /* 0x003E */ u8 _003E[0x4634 - 0x3E];   // not yet labelled
+    /* 0x003E */ u8 _003E;
+    /* 0x003F */ u8 replayPort[2];
+    /* 0x0041 */ u8 _0041[0x4634 - 0x41];   // not yet labelled
 } g_Stats_s; // size: 0x4634
 
 // 0x8088a7e4
@@ -3023,7 +3035,8 @@ typedef struct _GameScoresControlsStruct {
     /*0x09C*/ s16 _9C;
     /*0x09E*/ s16 _9E;
     /*0x0A0*/ s16 _A0;
-    u8 _pad_A2[4];
+    /*0x0A2*/ s16 _A2;
+    /*0x0A4*/ s16 winnerCd; // 0/1 = winning team, 2 = tie
     /*0x0A6*/ s16 _A6;
     /*0x0A8*/ u8 stealSuccesses[2];
     /*0x0AA*/ u8 inningLimit;
@@ -3031,7 +3044,7 @@ typedef struct _GameScoresControlsStruct {
     u8 _pad_AC;
     /*0x0AD*/ u8 halfInning;
     /*0x0AE*/ u8 _AE;
-    u8 _pad_AF[2];
+    /*0x0AF*/ s8 _AF[2];
     /*0x0B1*/ s8 _B1[2];
     /*0x0B3*/ s8 _B3[2];
     /*0x0B5*/ s8 _B5[2];

@@ -256,7 +256,18 @@ typedef struct {
     } pitcherLog[2][10];
     /* 0xE6 */ s8 catcherLog[2][5];
     /* 0xF0 */ u8 stealsAgainst[2];
-    /* 0xF2 */ s8 _F2[0x108 - 0xF2];
+    /* 0xF2 */ u8 winnerSlot;
+    /* 0xF3 */ s8 winningPitcher;
+    /* 0xF4 */ s8 losingPitcher;
+    /* 0xF5 */ s8 savePitcher;
+    /* 0xF6 */ u8 inning;
+    /* 0xF7 */ u8 noHitterKind;
+    /* 0xF8 */ s8 _F8[8];
+    /* 0x100 */ s8 _100;
+    /* 0x101 */ s8 mvpRosterLoc[2];
+    /* 0x103 */ s8 mvpCharID;
+    /* 0x104 */ u8 mvpKind;
+    /* 0x105 */ s8 _105[0x108 - 0x105];
 } StatsScreenScoresStruct; // size: 0x108
 
 extern StatsScreenScoresStruct StatsScreenScores;

@@ -749,7 +749,7 @@ void initializeStats(void) {
             (&StatsScreenScores.hits[team].total)[j] = 0;
         }
         StatsScreenScores.stealsAgainst[team] = 0;
-        StatsScreenScores._F2[0x101 - 0xF2 + team] = -1;
+        StatsScreenScores.mvpRosterLoc[team] = -1;
     }
     for (team = 0; team < 2; team++) {
         for (j = 0; j < 10; j++) {
@@ -763,13 +763,13 @@ void initializeStats(void) {
     for (i = 0; i < 30; i++) {
         StatsScreenScores._A0[i] = -1;
     }
-    StatsScreenScores._F2[1] = -1;
-    StatsScreenScores._F2[2] = -1;
-    StatsScreenScores._F2[3] = -1;
-    StatsScreenScores._F2[4] = 0;
-    StatsScreenScores._F2[5] = 0;
+    StatsScreenScores.winningPitcher = -1;
+    StatsScreenScores.losingPitcher = -1;
+    StatsScreenScores.savePitcher = -1;
+    StatsScreenScores.inning = 0;
+    StatsScreenScores.noHitterKind = 0;
     for (i = 6; i < 14; i++) {
-        StatsScreenScores._F2[i] = -1;
+        StatsScreenScores._F8[i - 6] = -1;
     }
 
     for (team = 0; team < 2; team++) {
