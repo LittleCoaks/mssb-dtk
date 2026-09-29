@@ -262,7 +262,7 @@ void postPitchStatUpdating(int arg) {
     s32 k;
     int fieldingTeam;
 
-    pitcherStats = fn_3_7BBC0();
+    pitcherStats = getCurrentPitcherStats();
     if (g_Stats.replayInd != 0) {
         return;
     }
@@ -843,7 +843,7 @@ void initializeStats(void) {
 }
 
 // .text:0x0007BB74 size:0x4C mapped:0x806BAC08
-StatisticsBatter* fn_3_7BB74(void) {
+StatisticsBatter* getCurrentBatterStats(void) {
     return &BatterStats_P1_P2[g_GameLogic.teamBatting]
                              [g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam]
                                                                         [g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam]]
@@ -851,7 +851,7 @@ StatisticsBatter* fn_3_7BB74(void) {
 }
 
 // .text:0x0007BBC0 size:0x38 mapped:0x806BAC54
-StatisticsPitcher* fn_3_7BBC0(void) {
+StatisticsPitcher* getCurrentPitcherStats(void) {
     return &PitcherStats_P1_P2[g_GameLogic.teamFielding]
                               [g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0]
                                                                          [0]];
@@ -1055,7 +1055,7 @@ void fn_3_7C190(void) {
 }
 
 // .text:0x0007C194 size:0x68 mapped:0x806BB228
-BOOL fn_3_7C194(void) {
+BOOL checkReplaySkipButton(void) {
     if (g_Stats.playFrameCounter < 0x5A) {
         return FALSE;
     }

@@ -20,12 +20,12 @@ void setRunnerOnBaseIndicators(void);
 void intializeRunnersDuringTransition(void);
 void resetGameControlVars_duringNewInning(void);
 void initializeStats(void);
-StatisticsBatter* fn_3_7BB74(void);
-StatisticsPitcher* fn_3_7BBC0(void);
+StatisticsBatter* getCurrentBatterStats(void);
+StatisticsPitcher* getCurrentPitcherStats(void);
 void fn_3_7BBF8(void);
 void fn_3_7BC0C(void);
 void determineIfReplayShouldPlay(void);
 void fn_3_7C190(void);
-BOOL fn_3_7C194(void);
+BOOL checkReplaySkipButton(void);
 
 #endif // !__GAME_MATCH_SETUP_STAT_TRACKING_H_

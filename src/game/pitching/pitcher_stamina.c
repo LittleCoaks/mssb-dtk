@@ -40,7 +40,7 @@ typedef struct {
     }
 
 // .text:0x0001DD68 size:0x150 mapped:0x8065CDFC
-void fn_3_1DD68(void) {
+void updateHighUrgencySituationTracker(void) {
     u8 inning;
     int a;
     int runners;

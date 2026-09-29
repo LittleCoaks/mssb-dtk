@@ -461,21 +461,21 @@ void initializeInningTrackers(void) {
 }
 
 // .text:0x0009DC18 size:0x460 mapped:0x806DCCAC
-void fn_3_9DC18(u8* values, int count, BOOL useGameRandom) {
+void shuffleU8Array(u8* values, int count, BOOL useGameRandom) {
     int result[10];
     u32 u;
 
     for (u = 0; u < count; u++) {
         result[u] = values[u];
     }
-    fn_3_9E078(result, count, useGameRandom);
+    shuffleIntArray(result, count, useGameRandom);
     for (u = 0; u < count; u++) {
         values[u] = result[u];
     }
 }
 
 // .text:0x0009E078 size:0x2F0 mapped:0x806DD10C
-void fn_3_9E078(int* values, int count, BOOL useGameRandom) {
+void shuffleIntArray(int* values, int count, BOOL useGameRandom) {
     int source[20];
     int taken[20];
     int i;
