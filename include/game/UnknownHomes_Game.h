@@ -2627,7 +2627,7 @@ typedef struct {
     /* 0x001E */ sAng hitHorizontalAngle;
     /* 0x0020 */ s16 hitHorizontalPower;
     u8 _pad_0022[2];
-    /* 0x0024 */ u32 playFrameCounter;
+    /* 0x0024 */ s32 playFrameCounter;
     /* 0x0028 */ s16 _0028;
     /* 0x002A */ s16 homeTeamScore;
     /* 0x002C */ s16 _002C;

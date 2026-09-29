@@ -1004,7 +1004,7 @@ config.libs = [
             Object(NonMatching, "game/baserunning/play_result_tracking.c"),
             Object(NonMatching, "game/match_setup/stat_tracking.c"),
             Object(NonMatching, "game/match_setup/replay_inputs.c"),
-            Object(NonMatching, "game/match_setup/replay_state.c"),
+            Object(Matching, "game/match_setup/replay_state.c"),
             Object(NonMatching, "game/baserunning/runner.c"),
             Object(NonMatching, "game/sound/m_sound.c"),
             Object(NonMatching, "game/hud/rep_1610.c"),

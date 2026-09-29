@@ -1056,10 +1056,10 @@ void fn_3_7C190(void) {
 
 // .text:0x0007C194 size:0x68 mapped:0x806BB228
 BOOL fn_3_7C194(void) {
-    if ((int)g_Stats.playFrameCounter < 0x5A) {
+    if (g_Stats.playFrameCounter < 0x5A) {
         return FALSE;
     }
-    if ((int)g_Stats.playFrameCounter > g_Stats._0028 - 0x3C) {
+    if (g_Stats.playFrameCounter > g_Stats._0028 - 0x3C) {
         return FALSE;
     }
     return checkForButtonPressToSkip(1, 0x1100) != 0;

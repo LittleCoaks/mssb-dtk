@@ -2248,3 +2248,42 @@ First seen: `game/game/batting/at_bat_results`, `game/game/match_setup/stat_trac
   `fielderIndex` and `outsDuringPossession` before loading the next field gave 100%.
 - **A switch jump table in `.data` scores 0% until its function is the exact target size**,
   because every entry points at a case label. Fix the function first.
+
+## A load that stays below independent stores, plus `lhax` next to an `add`, means an unrolled `for` loop
+
+First seen: `game/game/match_setup/replay_state`, `fn_3_7D2E0`/`fn_3_7D39C` (55.40% -> 100%, 2026-09).
+
+Signature: two copies of the same field-copy block where the target reloads the second copy's
+index (`lbz 0x40(rStats)`) only after the first copy's stores, although the stores go to a
+different global and could not alias it. Two hand-written copies (or a `static inline` helper
+called twice) let MWCC hoist that load above the stores. A `for (i = 0; i < 2; i++)` loop that
+MWCC unrolls keeps the load in place. It also explains the source-side addressing: offset 0 is
+read with `lhax base, idx` and the other fields through a shared `add` + displacement, which is
+what `g_Controls[g_Stats.replayPort[i]].field` gives when every field is array-indexed.
+Loading the port into a local or through an `InputStruct*` loses the `lhax`. Related: "A
+reload-after-store of the same field means an unrolled loop".
+
+## An `(int)` cast on every compare of a `u32` field means the field is signed, and the cast costs a register
+
+Same unit. `g_Stats.playFrameCounter` was declared `u32`, and every signed compare in the tree
+used `(int)g_Stats.playFrameCounter`. With the right instructions, the cast still added a
+phantom virtual register: the allocator skipped r11 (or r10 when inlined) and moved the
+counter and base registers up by one. Declaring the field `s32` and removing the casts gave
+100% on three functions, with the stat_tracking and camera units unchanged. If every use of
+a field is cast to the same other type, fix the declared type.
+
+
+## Findings from the result_stats second pass
+
+First seen: `game/game/match_setup/result_stats` (2026-09), .text 93.6% -> 97.3%.
+
+- **A zero-based `k*stride` offset added to a separate row base means the code was inside an inline
+  helper.** In `MVPCalculation` the target builds 2D row addresses as `li r11,0; mr r12,r11 ...
+  add r20,r9,r11`, where ours stepped one combined element pointer and came out 68 bytes short.
+  Moving the repeated `score[k] += weight * stat` lines into a `static inline` helper restored the
+  exact size and the target's stack spills (+6.5%). Row-pointer or element-pointer locals do not
+  reproduce it.
+- **A pointer to a global array element prevents `lbzu`.** `s8* p = &g_Scores._AF[w]; x = *p; ...
+  *p = x;` gives the target's `addi; lbz 0(r)` pair instead of `lbzu` (+6% on `winningPitcher`).
+- **Keep declaration-order sweeps to 720 permutations or fewer.** A build and score takes about half
+  a second, so 5040 permutations runs past the 10-minute command limit.

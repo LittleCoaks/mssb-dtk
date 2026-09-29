@@ -34,31 +34,122 @@ extern ReplayAnimView hugeAnimStruct;
 
 #define STATS_AT(off) ((void*)((u8*)&g_Stats + (off)))
 
-// .text:0x0007CE90 size:0xF8 mapped:0x806BBF24
-void lastPlayStats(void) {
-    if (g_Stats.atBatPitchThrown == 0) {
+// .text:0x0007D780 size:0x1C mapped:0x806BC814
+void initializeReplayVariables(void) {
+    g_Stats.replayInd = 0;
+    g_Stats.atBatPitchThrown = 0;
+    g_Stats._0038[0] = 0;
+}
+
+// .text:0x0007D458 size:0x328 mapped:0x806BC4EC
+void ReplayRelatedCopying_storeDataBeforePlay(void) {
+    GameInitVariables* settings = &g_d_GameSettings;
+    g_Stats_s* stats = &g_Stats;
+
+    if (stats->replayInd != 0) {
+        if (stats->playFrameCounter == 9) {
+            changeScene(1, 6);
+        }
+        if (stats->playFrameCounter + 1 >= stats->_0028 && stats->_003A != 0) {
+            stats->_003A = 2;
+            stats->replayPending = 0xFF;
+            CopyMoreStructs(0);
+            stats->replayPending = 3;
+            changeScene(1, 6);
+            return;
+        }
+        if (stats->replayPending == 4) {
+            if (lbl_8037169C[0x13] != 0) {
+                stats->replayPending = 0;
+                replaceGameStructs_postReplay(1);
+            }
+        } else if (stats->replayPending == 5) {
+            stats->playFrameCounter = stats->_0028 - 7;
+            stats->replayPending = 0;
+            changeScene(3, 6);
+        } else {
+            BOOL skip;
+            if (g_Stats.playFrameCounter < 0x5A) {
+                skip = FALSE;
+            } else if (g_Stats.playFrameCounter > g_Stats._0028 - 0x3C) {
+                skip = FALSE;
+            } else if (checkForButtonPressToSkip(1, 0x1100) != 0) {
+                skip = TRUE;
+            } else {
+                skip = FALSE;
+            }
+            if (skip && settings->GameModeSelected != GAME_TYPE_DEMO) {
+                stats->replayPending = 4;
+                changeScene(3, 6);
+            }
+        }
+        useReplayInputs();
+        if (stats->replayInd == 0) {
+            if (stats->replayReason == 2 || stats->replayReason == 0xD) {
+                SetGameStatus(0x13);
+            } else if (stats->replayReason == 4 || (stats->replayReason == 1 && stats->replayArg == 4)) {
+                SetGameStatus(0x15);
+            }
+        }
+    } else if (stats->atBatPitchThrown != 0) {
+        fn_3_7D39C();
+        fn_3_7C190();
+    } else if (stats->replayPending == 2) {
+        CopyMoreStructs(0);
+        changeScene(1, 6);
+        stats->replayPending = 3;
+        fn_3_15D64();
+    } else if (stats->_0038[0] == 1) {
+        initializeReplayState();
+        stats->_0038[0] = 2;
+    }
+    if (g_pCamera->_AC5 != 0) {
+        fn_3_15D7C(0);
+        fn_3_15D64();
+        if (stats->replayReason != 0xC && stats->replayReason != 1) {
+            fn_3_15D28();
+        }
+    }
+}
+
+// .text:0x0007D39C size:0xBC mapped:0x806BC430
+void fn_3_7D39C(void) {
+    ReplayFrame* rec;
+    int i;
+
+    if (g_Stats.playFrameCounter >= REPLAY_MAX_FRAMES) {
+        g_Stats._0028 = REPLAY_MAX_FRAMES - 1;
         return;
     }
-    g_Stats._0028 = g_Stats.playFrameCounter;
-    g_Stats.atBatPitchThrown = 0;
-    g_Stats.homeTeamScore = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
-    g_Stats._002C = g_Scores._A0;
-    g_Stats._002E = g_Scores._C2;
-    g_Stats.awayTeamScore = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
-    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
-        g_Stats._002E = g_RunningLogic.nOffensivePlayersAtStartOfPlay;
-        g_Stats.homeTeamScore = g_Scores._A0 + g_RunningLogic.nOffensivePlayersAtStartOfPlay;
+    rec = &g_ReplayLogic[g_Stats.playFrameCounter];
+    for (i = 0; i < 2; i++) {
+        rec->pad[i].controlStickAngle = g_Controls[g_Stats.replayPort[i]].controlStickAngle;
+        rec->pad[i].buttonInput = g_Controls[g_Stats.replayPort[i]].buttonInput & (u16)~INPUT_BUTTON_START;
+        rec->pad[i].newButtonInput = g_Controls[g_Stats.replayPort[i]].newButtonInput & (u16)~INPUT_BUTTON_START;
+        rec->pad[i].right_left = g_Controls[g_Stats.replayPort[i]].right_left;
+        rec->pad[i].up_down = g_Controls[g_Stats.replayPort[i]].up_down;
     }
-    g_Stats.hitVerticalAngle = g_Ball.Hit_VerticalAngle;
-    g_Stats.hitHorizontalAngle = g_Ball.Hit_HorizontalAngle;
-    g_Stats.hitHorizontalPower = g_Ball.Hit_HorizontalPower;
-    g_Stats.landingSpotLocation.x = g_Ball.landingSpotLocation.x;
-    g_Stats.landingSpotLocation.z = g_Ball.landingSpotLocation.z;
-    g_Stats.ballPickedUpCaught.x = g_Ball.ballPickedUpCaught.x;
-    g_Stats.ballPickedUpCaught.z = g_Ball.ballPickedUpCaught.z;
-    g_Stats.deadballLastLoc.x = g_Ball.deadballLastLoc.x;
-    g_Stats.deadballLastLoc.y = g_Ball.deadballLastLoc.y;
-    g_Stats.deadballLastLoc.z = g_Ball.deadballLastLoc.z;
+    g_Stats.playFrameCounter++;
+}
+
+// .text:0x0007D2E0 size:0xBC mapped:0x806BC374
+void fn_3_7D2E0(void) {
+    ReplayFrame* rec;
+    int i;
+
+    if (g_Stats.playFrameCounter >= REPLAY_MAX_FRAMES) {
+        g_Stats._0028 = REPLAY_MAX_FRAMES - 1;
+        return;
+    }
+    rec = &g_ReplayLogic[g_Stats.playFrameCounter];
+    for (i = 0; i < 2; i++) {
+        rec->pad[i].controlStickAngle = g_Controls[g_Stats.replayPort[i]].controlStickAngle;
+        rec->pad[i].buttonInput = g_Controls[g_Stats.replayPort[i]].buttonInput & (u16)~INPUT_BUTTON_START;
+        rec->pad[i].newButtonInput = g_Controls[g_Stats.replayPort[i]].newButtonInput & (u16)~INPUT_BUTTON_START;
+        rec->pad[i].right_left = g_Controls[g_Stats.replayPort[i]].right_left;
+        rec->pad[i].up_down = g_Controls[g_Stats.replayPort[i]].up_down;
+    }
+    g_Stats.playFrameCounter++;
 }
 
 // .text:0x0007CF88 size:0x358 mapped:0x806BC01C
@@ -102,115 +193,29 @@ void initializeReplayState(void) {
     resetSomeStruct();
 }
 
-static inline void recordReplayPad(ReplayPadFrame* dst, int port) {
-    InputStruct* in = &g_Controls[port];
-    dst->controlStickAngle = in->controlStickAngle;
-    dst->buttonInput = in->buttonInput & 0xEFFF;
-    dst->newButtonInput = in->newButtonInput & 0xEFFF;
-    dst->right_left = in->right_left;
-    dst->up_down = in->up_down;
-}
-
-// .text:0x0007D2E0 size:0xBC mapped:0x806BC374
-void fn_3_7D2E0(void) {
-    int frame = g_Stats.playFrameCounter;
-
-    if (frame >= REPLAY_MAX_FRAMES) {
-        g_Stats._0028 = REPLAY_MAX_FRAMES - 1;
+// .text:0x0007CE90 size:0xF8 mapped:0x806BBF24
+void lastPlayStats(void) {
+    if (g_Stats.atBatPitchThrown == 0) {
         return;
     }
-    recordReplayPad(&g_ReplayLogic[frame].pad[0], g_Stats.replayPort[0]);
-    recordReplayPad(&g_ReplayLogic[frame].pad[1], g_Stats.replayPort[1]);
-    g_Stats.playFrameCounter = frame + 1;
-}
-
-// .text:0x0007D39C size:0xBC mapped:0x806BC430
-void fn_3_7D39C(void) {
-    int frame = g_Stats.playFrameCounter;
-
-    if (frame >= REPLAY_MAX_FRAMES) {
-        g_Stats._0028 = REPLAY_MAX_FRAMES - 1;
-        return;
-    }
-    recordReplayPad(&g_ReplayLogic[frame].pad[0], g_Stats.replayPort[0]);
-    recordReplayPad(&g_ReplayLogic[frame].pad[1], g_Stats.replayPort[1]);
-    g_Stats.playFrameCounter = frame + 1;
-}
-
-// .text:0x0007D458 size:0x328 mapped:0x806BC4EC
-void ReplayRelatedCopying_storeDataBeforePlay(void) {
-    GameInitVariables* settings = &g_d_GameSettings;
-    g_Stats_s* stats = &g_Stats;
-
-    if (stats->replayInd != 0) {
-        if ((int)stats->playFrameCounter == 9) {
-            changeScene(1, 6);
-        }
-        if ((int)stats->playFrameCounter + 1 >= stats->_0028 && stats->_003A != 0) {
-            stats->_003A = 2;
-            stats->replayPending = 0xFF;
-            CopyMoreStructs(0);
-            stats->replayPending = 3;
-            changeScene(1, 6);
-            return;
-        }
-        if (stats->replayPending == 4) {
-            if (lbl_8037169C[0x13] != 0) {
-                stats->replayPending = 0;
-                replaceGameStructs_postReplay(1);
-            }
-        } else if (stats->replayPending == 5) {
-            stats->playFrameCounter = stats->_0028 - 7;
-            stats->replayPending = 0;
-            changeScene(3, 6);
-        } else {
-            BOOL skip;
-            if ((int)g_Stats.playFrameCounter < 0x5A) {
-                skip = FALSE;
-            } else if ((int)g_Stats.playFrameCounter > g_Stats._0028 - 0x3C) {
-                skip = FALSE;
-            } else if (checkForButtonPressToSkip(1, 0x1100) != 0) {
-                skip = TRUE;
-            } else {
-                skip = FALSE;
-            }
-            if (skip && settings->GameModeSelected != GAME_TYPE_DEMO) {
-                stats->replayPending = 4;
-                changeScene(3, 6);
-            }
-        }
-        useReplayInputs();
-        if (stats->replayInd == 0) {
-            if (stats->replayReason == 2 || stats->replayReason == 0xD) {
-                SetGameStatus(0x13);
-            } else if (stats->replayReason == 4 || (stats->replayReason == 1 && stats->replayArg == 4)) {
-                SetGameStatus(0x15);
-            }
-        }
-    } else if (stats->atBatPitchThrown != 0) {
-        fn_3_7D39C();
-        fn_3_7C190();
-    } else if (stats->replayPending == 2) {
-        CopyMoreStructs(0);
-        changeScene(1, 6);
-        stats->replayPending = 3;
-        fn_3_15D64();
-    } else if (stats->_0038[0] == 1) {
-        initializeReplayState();
-        stats->_0038[0] = 2;
-    }
-    if (g_pCamera->_AC5 != 0) {
-        fn_3_15D7C(0);
-        fn_3_15D64();
-        if (stats->replayReason != 0xC && stats->replayReason != 1) {
-            fn_3_15D28();
-        }
-    }
-}
-
-// .text:0x0007D780 size:0x1C mapped:0x806BC814
-void initializeReplayVariables(void) {
-    g_Stats.replayInd = 0;
     g_Stats.atBatPitchThrown = 0;
-    g_Stats._0038[0] = 0;
+    g_Stats._0028 = g_Stats.playFrameCounter;
+    g_Stats.homeTeamScore = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
+    g_Stats._002C = g_Scores._A0;
+    g_Stats._002E = g_Scores._C2;
+    g_Stats.awayTeamScore = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
+        g_Stats._002E = g_RunningLogic.nOffensivePlayersAtStartOfPlay;
+        g_Stats.homeTeamScore = g_Scores._A0 + g_RunningLogic.nOffensivePlayersAtStartOfPlay;
+    }
+    g_Stats.hitVerticalAngle = g_Ball.Hit_VerticalAngle;
+    g_Stats.hitHorizontalAngle = g_Ball.Hit_HorizontalAngle;
+    g_Stats.hitHorizontalPower = g_Ball.Hit_HorizontalPower;
+    g_Stats.landingSpotLocation.x = g_Ball.landingSpotLocation.x;
+    g_Stats.landingSpotLocation.z = g_Ball.landingSpotLocation.z;
+    g_Stats.ballPickedUpCaught.x = g_Ball.ballPickedUpCaught.x;
+    g_Stats.ballPickedUpCaught.z = g_Ball.ballPickedUpCaught.z;
+    g_Stats.deadballLastLoc.x = g_Ball.deadballLastLoc.x;
+    g_Stats.deadballLastLoc.y = g_Ball.deadballLastLoc.y;
+    g_Stats.deadballLastLoc.z = g_Ball.deadballLastLoc.z;
 }

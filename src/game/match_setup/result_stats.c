@@ -34,19 +34,32 @@ extern struct {
         (x) = 0xFFFF;     \
     }
 
+static inline void mvpAddStatPoints(int* score, int team, int k) {
+    *score += lbl_3_data_60F8[2] * BatterStats_P1_P2[team][k].HomeRuns;
+    *score += lbl_3_data_60F8[3] * BatterStats_P1_P2[team][k].currentPosition[8];
+    *score += lbl_3_data_60F8[5] * BatterStats_P1_P2[team][k].BigPlays;
+    *score += lbl_3_data_60F8[6] * PitcherStats_P1_P2[team][k]._1C;
+    *score += lbl_3_data_60F8[7] * BatterStats_P1_P2[team][k].RBI;
+    *score += lbl_3_data_60F8[8] * (BatterStats_P1_P2[team][k].Hits +
+                                      BatterStats_P1_P2[team][k].Walks_4Balls +
+                                      BatterStats_P1_P2[team][k].Walks_Hit);
+    *score += lbl_3_data_60F8[9] * BatterStats_P1_P2[team][k].BasesStolen;
+}
+
 // .text:0x000759BC size:0x7B8 mapped:0x806B4A50
 void MVPCalculation(void) {
     int winner = -1;
     int slot = -1;
     int mvpTeam;
-    int i;
     int k;
+    int i;
     int best;
     int bestIdx;
     int score[9];
-    s16 result = g_Scores.winnerCd;
+    s16 result;
 
     StatsScreenScores.mvpCharID = -1;
+    result = g_Scores.winnerCd;
     if (result == 0 || result == 1) {
         winner = result;
         slot = result ^ g_GameLogic.homeTeamInd;
@@ -111,15 +124,7 @@ void MVPCalculation(void) {
                         }
                     }
                 }
-                score[k] += lbl_3_data_60F8[2] * BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].HomeRuns;
-                score[k] += lbl_3_data_60F8[3] * BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].currentPosition[8];
-                score[k] += lbl_3_data_60F8[5] * BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].BigPlays;
-                score[k] += lbl_3_data_60F8[6] * PitcherStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k]._1C;
-                score[k] += lbl_3_data_60F8[7] * BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].RBI;
-                score[k] += lbl_3_data_60F8[8] * (BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].Hits +
-                                                  BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].Walks_4Balls +
-                                                  BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].Walks_Hit);
-                score[k] += lbl_3_data_60F8[9] * BatterStats_P1_P2[i ^ g_GameLogic.homeTeamInd][k].BasesStolen;
+                mvpAddStatPoints(&score[k], i ^ g_GameLogic.homeTeamInd, k);
                 if (score[k] > best) {
                     best = score[k];
                     bestIdx = k;
@@ -143,9 +148,9 @@ void MVPCalculation(void) {
             StatsScreenScores.mvpKind = 3;
         }
     } else {
-        mvpTeam = slot;
-        if (mvpTeam >= 0) {
-            StatsScreenScores.mvpRosterLoc[mvpTeam] = MVP_LEADER(winner);
+        if (slot >= 0) {
+            StatsScreenScores.mvpRosterLoc[slot] = MVP_LEADER(winner);
+            mvpTeam = slot;
             goto found;
         }
         mvpTeam = 0;
@@ -182,9 +187,9 @@ void winningPitcher(void) {
     StatisticsPitcher* ps;
     StatisticsPitcher* cur;
     StatisticsPitcher* cmp;
-    s8* pB3;
     int b3;
-    u8 startPitcher;
+    s8* pAF;
+    s8 startPitcher;
     int d;
 
     if (g_Scores._BB[w] == 1) {
@@ -200,10 +205,8 @@ void winningPitcher(void) {
         return;
     }
 
-    pB3 = &g_Scores._B3[w];
-    b3 = *pB3;
-    ps = PitcherStats_P1_P2[slot];
-    cur = &ps[b3];
+    b3 = g_Scores._B3[w];
+    cur = &PitcherStats_P1_P2[slot][b3];
     if (g_Scores._B9[w] == 1) {
         if (g_Scores.Inning == 5) {
             if (cur->outsAsPitcher >= 12) {
@@ -216,8 +219,9 @@ void winningPitcher(void) {
                 return;
             }
         }
-        best = -1;
+        ps = PitcherStats_P1_P2[slot];
         bestOuts = 0;
+        best = -1;
         for (k = 0; k < 9; k++) {
             cur = &ps[k];
             if (cur->_00 != 0 && b3 != k) {
@@ -262,11 +266,13 @@ void winningPitcher(void) {
             StatsScreenScores.winningPitcher = b3;
             return;
         }
+        ps = PitcherStats_P1_P2[slot];
         if (b3 == -1 || b3 == g_Scores._AF[w]) {
-            startPitcher = g_Scores._AF[w];
-            cur = ps;
-            for (k = 0; k < 9; k++, cur++) {
-                if (g_Scores._AF[w] != k && b3 != k) {
+            pAF = &g_Scores._AF[w];
+            startPitcher = *pAF;
+            for (k = 0; k < 9; k++) {
+                cur = &ps[k];
+                if (startPitcher != k && b3 != k) {
                     if (bestIdx == -1) {
                         if (pitchingInfo_A_H[w][k][0] != 0 && bestVal == 0) {
                             bestIdx = k;
@@ -291,10 +297,10 @@ void winningPitcher(void) {
                     }
                 }
             }
-            g_Scores._AF[w] = startPitcher;
+            *pAF = startPitcher;
         }
         if (bestIdx == -1) {
-            StatsScreenScores.winningPitcher = *pB3;
+            StatsScreenScores.winningPitcher = g_Scores._B3[w];
         } else {
             StatsScreenScores.winningPitcher = BatterStats_P1_P2[slot][bestIdx]._00;
         }
@@ -308,7 +314,7 @@ void winningPitcher(void) {
 void endOfGameStats_MVP(void) {
     int k;
     int i;
-    int j;
+    s32 j;
     u8 tracker;
 
     if (g_Scores.winnerCd == 0) {
@@ -369,11 +375,9 @@ void endOfGameStats_MVP(void) {
         }
     }
 
-    j = 0;
-    while (j < 9) {
+    for (j = 0; j < 9; j++) {
         PitcherStats_P1_P2[0][j]._13[6] += pitchingInfo_A_H[0][j][1];
         PitcherStats_P1_P2[1][j]._13[6] += pitchingInfo_A_H[1][j][1];
-        j++;
     }
     StatsScreenScores.inning = g_Scores.Inning;
     MVPCalculation();
