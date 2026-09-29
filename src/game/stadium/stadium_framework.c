@@ -153,7 +153,7 @@ void processStadiumFileObjects(u8* types, int count, u8* base, u32* out) {
             LoadActorLayout(layout);
             convertGeometryAndSknHeader(geo, skn);
             skn = NULL;
-            UpdateTexturePalettePointers(geo, tex);
+            UpdateTexturePalettePointers((UnkTexPalGeo*)geo, tex);
             haveActLayoutPointToGeoHeader(layout, geo);
             break;
         }

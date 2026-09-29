@@ -884,7 +884,7 @@ config.libs = [
             Object(NonMatching, "Unknown/File_0x800bcd60.c"),
             Object(NonMatching, "Unknown/File_0x800bce38.c"),
             Object(NonMatching, "Unknown/File_0x800bcef8.c"),
-            Object(NonMatching, "Unknown/File_0x800bd190.c"),
+            Object(Matching, "Unknown/File_0x800bd190.c"),
             Object(NonMatching, "Unknown/File_0x800bd208.c"),
             Object(NonMatching, "Unknown/File_0x800bd240.c"),
             Object(NonMatching, "Unknown/File_0x800bd278.c"),
