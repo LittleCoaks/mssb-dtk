@@ -2224,3 +2224,18 @@ First seen: `main/Unknown/File_0x80024bb4` (2026-09), all 3 functions 100%.
   File_0x80024b00 and several auto_ splits. MWCC does not share literal pools across TUs, so all
   of these were one file originally. Flipping any one of them to `Matching` alone fails to link
   (`undefined: 'lbl_803CC5A0'`); they can only be flipped once they are merged into one unit.
+
+## Dolphin SDK code sitting in `Unknown/` DOL splits needs `mw_version="GC/1.2.5n"`
+
+First seen: `Unknown/File_0x80091450.c` (2026-09) — `TEXGet`, `DSInitList`,
+`DSInsertListObject`, `Strcmp`, `DSInitTree`, `DSInsertBranchBelow`, i.e. the
+Dolphin charPipeline texPalette/List/Tree/dolphinString code. Under the default
+GC/2.6 the straightforward SDK-shaped source scored 57-82% on three functions:
+2.6 schedules `li 0`/`subf` differently in the init functions and folds
+`cursor + list->Offset` into `lwzx`/`stwx` indexed addressing where the target
+keeps an explicit `add` and 0-offset loads. A per-Object `mw_version` sweep
+(1.2.5n / 1.3.2 / 2.0) showed 1.3.2 and 2.0 identical to 2.6 and 1.2.5n (the
+`DolphinLib()` compiler) jumping straight to 98%, with the last miss being
+ordinary source placement. Lesson: when a placeholder `Unknown/` DOL unit
+turns out to hold SDK functions (names in `include/charPipeline/`, `DS*`,
+`TEX*`, etc.), try `mw_version="GC/1.2.5n"` before grinding anything.

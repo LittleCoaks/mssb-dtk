@@ -806,7 +806,7 @@ config.libs = [
             Object(NonMatching, "Unknown/File_0x8006c9d8.c"),
             Object(NonMatching, "Unknown/File_0x8006cbe4.c"),
             Object(NonMatching, "Unknown/File_0x8006cca4.c"),
-            Object(NonMatching, "Unknown/File_0x80091450.c"),
+            Object(Matching, "Unknown/File_0x80091450.c", mw_version="GC/1.2.5n"),
             Object(NonMatching, "Unknown/File_0x800a6900.c"),
             Object(NonMatching, "Unknown/File_0x800a70dc.c"),
             Object(NonMatching, "Unknown/File_0x800a7544.c"),
