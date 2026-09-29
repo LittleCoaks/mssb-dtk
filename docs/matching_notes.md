@@ -2278,4 +2278,30 @@ First seen: 2026-09, 10 of 12 `Unknown/` units matched and flipped to `Matching`
   scored lower here than 1.3+ and 2.x.
 - **Float-literal splits:** `maybeTransformVectorByAnimationMatrix` (0x800B2C44) and `SetFogNone`
   (0x800B9974) are 100% except the `0.0f` `.sdata2` reloc, which is shared with other splits
-  (0x800B43A0 etc. / SetFogNoneAgain etc.). Left `NonMatching` with checkpoints.
+  (0x800B43A0 etc. / SetFogNoneAgain etc.). Left `NonMatching` with checkpoints. SetFogNone was
+  later closed with `extern const f32 lbl_803CCFFC` (see the SetFog entry below).
+
+## Findings from the SetFog trio (File_0x800b9974 / 99c4 / 9a30)
+
+First seen: `Unknown/File_0x800b9974.c`, `File_0x800b99c4.c`, `File_0x800b9a30.c` (2026-09),
+all three 100% and `Matching`.
+
+- **A shared `.sdata2` value constant can be claimed by name instead of by merging.**
+  `lbl_803CCFFC` (0.0f) is read by SetFogNone, SetFogNoneAgain and five later functions up to
+  `Custom_SetState`/`DODefaultUserTevMode`; the pool `0x803CCFF8..0x803CD0E0` starts with a
+  constant of `Custom_SetState` (0x800BA848 split), so a merged unit covering only the SetFog
+  splits could never own the range. `extern const f32 lbl_803CCFFC;` used at every 0.0f site gave
+  the same single `lfs` + `fmr` copies (the constant is loaded once either way here), 100% in
+  objdiff, and the `Matching` link resolves the name against dtk's asm split (`4 files OK`). Check
+  that the target loads the constant ONCE before doing this (see "`extern const f32
+  lbl_N_rodata_XXXX` only works for a SINGLE-USE constant").
+- **`frsp` of an `f32` parameter at a call site, while the stores use the unrounded register,
+  means an explicit `(f64)` widening in the call.** `SetFog` stores its four `f32` params into a
+  global with `stfs fN` and passes `frsp` copies to `GXSetFog` (so it first `fmr`s every param to
+  a scratch register). `f64` params, `(f32)` casts, re-reading the stored fields and
+  assignment-expression arguments all CSE the rounding into one `frsp` (74%). `f32` params with
+  `GXSetFog(type, (f64)startZ, ...)` matched 100% (an inline wrapper with `f64` params also does).
+  An `mw_version` / `-O` sweep changed nothing.
+- **A dtk symbol can collide with an SDK typedef.** The Ghidra import named the 0x18-byte fog-state
+  global at 0x80111700 `GXFogType`, which cannot be referenced from C while `GXEnum.h` is visible.
+  Renamed to `fogSettings` (struct `FogSettings` in `include/Unknown/File_0x800b99c4.h`).
