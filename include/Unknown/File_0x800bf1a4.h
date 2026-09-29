@@ -3,8 +3,8 @@
 
 #include "mssbTypes.h"
 
-void SKNFlushByIndex1(void);
-void SKNFlushByIndex2(void);
-void SKNBzero32B(void);
+void SKNFlushByIndex1(u16* indices, u32 count, void* base);
+void SKNFlushByIndex2(u16* indices, u32 count, void* base);
+void SKNBzero32B(void* base, u32 size);
 
 #endif // !__UNKNOWN_FILE_0X800BF1A4_H_

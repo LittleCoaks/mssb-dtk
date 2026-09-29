@@ -13,10 +13,16 @@ typedef struct _ShadowCamera {
 typedef struct _ShadowState {
     /*0x00*/ u8 _00[0x14];
     /*0x14*/ ShadowCamera* camera;
+    /*0x18*/ void (*callback18)(void);
+    /*0x1C*/ void (*modelCallback)(StadiumModel* model, Mtx m);
+    /*0x20*/ void (*callback20)(void);
+    /*0x24*/ u8 _24[0x50 - 0x24];
 } ShadowState;
 
-void maybeUpdateFunctionPointer(void);
-void fn_800BF048(void);
+extern ShadowState drawShadows;
+
+void maybeUpdateFunctionPointer(void (*func)(void));
+void fn_800BF048(void (*func)(void));
 void fn_800BF058(void (*func)(StadiumModel* model, Mtx m));
 ShadowState* ShouldDrawShadows(void);
 
