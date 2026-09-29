@@ -96,7 +96,6 @@ typedef struct _ToyModel {
 // Local control block with the size of a whole per-object control (0x44).
 typedef struct _ToyObjControl {
     Control ctrl;
-    u8 _34[0x44 - sizeof(Control)];
 } ToyObjControl;
 
 typedef struct _ToyPlacement {

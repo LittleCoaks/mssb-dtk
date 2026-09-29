@@ -3,13 +3,11 @@
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
+#include "C3/geoPalette.h"
 
 struct DODisplayObj;
 
 extern MtxPtr SkinForwardArray;
 extern MtxPtr SkinInverseArray;
-
-void DOVARenderSkin(struct DODisplayObj* dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray,
-                    u8 numLights, void* list);
 
 #endif // !__UNKNOWN_FILE_0X800BC7E8_H_

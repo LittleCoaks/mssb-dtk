@@ -42,7 +42,6 @@ typedef struct _YoshiPlantPlacement {
 // used to build offset collision boxes without touching the real object.
 typedef struct _YoshiObjControl {
     Control ctrl;
-    u8 _3C[0x44 - sizeof(Control)];
 } YoshiObjControl;
 
 // Names from the annotated Ghidra project, except PLANT_POP_UP: fn_3_E3914 sets it

@@ -32,6 +32,13 @@ typedef struct {
     /* 0x1A */ u16 pad16;
 } ActorBone;
 
+// An ActorLayout as it sits in memory after loading: the bone table follows
+// the header directly.
+typedef struct {
+    /* 0x00 */ ActorLayout header;
+    /* 0x20 */ ActorBone bones[1]; // header.totalBones entries
+} ActorLayoutFile;
+
 typedef struct {
     /* 0x00 */ ActorLayout *layout;
     /* 0x04 */ u16 actorID;
@@ -41,13 +48,20 @@ typedef struct {
     /* 0x14 */ struct DODisplayObj *skinObject;
     /* 0x18 */ sBone **boneArray;
     /* 0x1C */ Control worldControl;
-    /* 0x50 */ MtxPtr forwardMtxArray;
-    /* 0x54 */ MtxPtr skinMtxArray;
-    /* 0x58 */ MtxPtr skinInvTransposeMtxArray;
-    /* 0x5C */ MtxPtr orientationInvMtxArray;
-    /* 0x60 */ DSList drawPriorityList;
-    /* 0x6C */ sHdr * skHeader;
-} Actor;
+    /* 0x60 */ MtxPtr forwardMtxArray;
+    /* 0x64 */ MtxPtr skinMtxArray;
+    /* 0x68 */ MtxPtr skinInvTransposeMtxArray;
+    /* 0x6C */ MtxPtr orientationInvMtxArray;
+    /* 0x70 */ DSList drawPriorityList;
+    /* 0x7C */ sHdr * skHeader;
+    /* 0x80 */ u8 unk80[0x8C - 0x80];
+    /* 0x8C */ f32 unk8C; // advanced by unk90 each tick, capped at 1.0
+    /* 0x90 */ f32 unk90;
+    /* 0x94 */ u32 unk94;
+    /* 0x98 */ u8 unk98;
+    /* 0x99 */ u8 unk99; // passed to ANIMTick for every bone
+    /* 0x9A */ u8 unk9A[0xA0 - 0x9A];
+} Actor; // size: 0xA0 (MSSB)
 
 // actor.c
 void ACTGet(Actor **actor, char *name);

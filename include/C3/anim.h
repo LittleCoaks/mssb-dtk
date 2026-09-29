@@ -58,6 +58,6 @@ char *ANIMGetUserData(ANIMBank *animBank);
 void ANIMBind(struct ANIMPipe *animPipe, Control *control, struct ANIMAnimTrack *animTrack, f32 time);
 void ANIMSetTime(struct ANIMPipe * animPipe, f32 time);
 void ANIMSetSpeed(struct ANIMPipe * animPipe, f32 speed);
-void ANIMTick(struct ANIMPipe * animPipe);
+void ANIMTick(struct ANIMPipe * animPipe, u8 unk);
 
 #endif // _DOLPHIN_CP_ANIM_H_

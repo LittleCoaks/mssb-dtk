@@ -321,7 +321,6 @@ typedef struct _CastleSlotPlacement {
 
 typedef struct _CastleObjControl {
     Control ctrl;
-    u8 _3C[0x44 - sizeof(Control)];
 } CastleObjControl;
 
 extern void fn_80035750(void* a, void* b, int c);

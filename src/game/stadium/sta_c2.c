@@ -124,7 +124,6 @@ static u8 lbl_3_bss_A018;
 
 typedef struct _PalaceObjControl {
     Control ctrl;
-    u8 _34[0x44 - sizeof(Control)];
 } PalaceObjControl;
 
 typedef struct _PalaceSandStarPlacement {

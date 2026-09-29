@@ -18,8 +18,8 @@ typedef struct Light {
     /* 0x64 */ Vec worldDirection;
     /* 0x70 */ GXColor color;
     /* 0x74 */ Control control;
-    /* 0xA8 */ MtxPtr parent;
-    /* 0xAC */ struct ANIMPipe *animPipe;
+    /* 0xB8 */ MtxPtr parent;
+    /* 0xBC */ struct ANIMPipe *animPipe;
 } Light;
 
 #endif // _DOLPHIN_CP_LIGHT_H_

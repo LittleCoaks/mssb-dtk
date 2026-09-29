@@ -2,7 +2,6 @@
 #define __UNKNOWN_FILE_0X800B2CBC_H_
 
 #include "mssbTypes.h"
-
-void ACTSort(void);
+#include "C3/actor.h"
 
 #endif // !__UNKNOWN_FILE_0X800B2CBC_H_

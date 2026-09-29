@@ -263,7 +263,13 @@ extern MatchInfo_s g_MatchInfo;
 /* ---- aiPosSwapInputs (0x803297E0, 0x24C98 bytes) ---------------------------
  * A large, mostly unlabelled block; only the members in use are named. */
 typedef struct {
-    /* 0x0000 */ u8 _0000[0xCF46];
+    /* 0x0000 */ u8 _0000[0xCF38];
+    /* 0xCF38 */ u16 teamManagementProcessID;       // 0x80336718
+    /* 0xCF3A */ s8 teamThatPaused;                 // -1 before a team is chosen
+    /* 0xCF3B */ u8 playerWhoPaused;
+    /* 0xCF3C */ u8 _CF3C[0xCF42 - 0xCF3C];
+    /* 0xCF42 */ u8 onMainPauseMenu;
+    /* 0xCF43 */ u8 _CF43[0xCF46 - 0xCF43];
     /* 0xCF46 */ s8 teamManagement_cursorPos[2];
     /* 0xCF48 */ u8 _CF48[0xCF5D - 0xCF48];
     /* 0xCF5D */ u8 unkCF5D[2];
@@ -272,7 +278,12 @@ typedef struct {
     /* 0xCF9F */ u8 _CF9F[0x24C98 - 0xCF9F];
 } AiPosSwapInputs_s; // size: 0x24C98
 
+// A unit may define AIPOSSWAPINPUTS_LOCAL_VIEW and declare its own, smaller
+// view of this object: MWCC 2.6 only keeps loads of other globals ordered
+// after stores into an object whose declared size is below 0xFFFF bytes.
+#ifndef AIPOSSWAPINPUTS_LOCAL_VIEW
 extern AiPosSwapInputs_s aiPosSwapInputs;
+#endif
 
 /* ---- g_InputBuffer (0x802E9F20, 0x60 bytes) --------------------------------
  * The four PADStatus records PADRead fills each frame sit at +0x20. */

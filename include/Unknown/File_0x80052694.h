@@ -3,6 +3,9 @@
 
 #include "mssbTypes.h"
 
-void setScissorAndProjection(void);
+extern int scissorMode;
+extern int currentMode;
+
+void setScissorAndProjection(int mode);
 
 #endif // !__UNKNOWN_FILE_0X80052694_H_

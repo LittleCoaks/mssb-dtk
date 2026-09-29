@@ -12,7 +12,8 @@ typedef struct _ShadowCamera {
 } ShadowCamera;
 
 typedef struct _ShadowState {
-    /*0x00*/ u8 _00[0xC];
+    /*0x00*/ u8 _00[0x8];
+    /*0x08*/ void* unk08;
     /*0x0C*/ GXTlutObj* tlut;
     /*0x10*/ u8 _10[0x4];
     /*0x14*/ ShadowCamera* camera;

@@ -33,6 +33,7 @@ struct ARQRequest {
 // ARQ functions.
 void ARQInit();
 void ARQPostRequest(ARQRequest* task, u32 owner, u32 type, u32 priority, u32 source, u32 dest, u32 length, ARQCallback callback);
+int ARQRemoveOwnerRequest(int owner);
 
 // AR functions.
 ARCallback ARRegisterDMACallback(ARCallback callback);

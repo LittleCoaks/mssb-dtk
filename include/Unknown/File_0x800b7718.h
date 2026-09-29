@@ -2,7 +2,6 @@
 #define __UNKNOWN_FILE_0X800B7718_H_
 
 #include "mssbTypes.h"
-
-void ANIMTick(void);
+#include "C3/anim.h"
 
 #endif // !__UNKNOWN_FILE_0X800B7718_H_

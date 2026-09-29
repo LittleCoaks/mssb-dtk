@@ -25,14 +25,16 @@ typedef struct sBone {
     /* 0x03 */ u8 drawingPriority;
     /* 0x04 */ DSBranch branch;
     /* 0x14 */ struct DODisplayObj * dispObj;
-    /* 0x18 */ Control orientationCtrl;
-    /* 0x4C */ Control animationCtrl;
-    /* 0x80 */ struct ANIMPipe * animPipe;
-    /* 0x84 */ MtxPtr forwardMtx;
-    /* 0x88 */ MtxPtr skinMtx;
-    /* 0x8C */ MtxPtr skinInvTransposeMtx;
-    /* 0x90 */ MtxPtr orientationInvMtx;
-    /* 0x94 */ DSLink drawPriorityLink;
+    /* 0x18 */ void * unk18;
+    /* 0x1C */ Control orientationCtrl;
+    /* 0x60 */ Control animationCtrl;
+    /* 0xA4 */ Control unkA4; // MSSB carries a third control per bone
+    /* 0xE8 */ struct ANIMPipe * animPipe;
+    /* 0xEC */ MtxPtr forwardMtx;
+    /* 0xF0 */ MtxPtr skinMtx;
+    /* 0xF4 */ MtxPtr skinInvTransposeMtx;
+    /* 0xF8 */ MtxPtr orientationInvMtx;
+    /* 0xFC */ DSLink drawPriorityLink;
 } sBone;
 
 typedef struct {

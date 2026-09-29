@@ -69,6 +69,7 @@ struct DODisplayObj {
     /* 0x48 */ u8 unk48[0x4];
     /* 0x4C */ unkCB shaderFunc;
     /* 0x50 */ void *shaderData;
+    /* 0x54 */ u8 unk54[0x18]; // MSSB's display object is 0x6C bytes (see DOGet)
 };
 
 typedef struct {

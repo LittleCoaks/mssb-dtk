@@ -1932,6 +1932,7 @@ Unknown/File_0x800bcab8.c:
 	extab       start:0x80006B40 end:0x80006B48
 	extabindex  start:0x80008C40 end:0x80008C4C
 	.text       start:0x800BCAB8 end:0x800BCB44
+	.rodata     start:0x800E7F8C end:0x800E7FC8
 
 Unknown/File_0x800bcb44.c:
 	.text       start:0x800BCB44 end:0x800BCD60

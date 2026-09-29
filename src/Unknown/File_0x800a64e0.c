@@ -1,31 +1,6 @@
 #include "Unknown/File_0x800a64e0.h"
 #include "Dolphin/os.h"
 
-typedef struct
-{
-    OSThread t ATTRIBUTE_ALIGN(16);       // 0x000
-    OSSemaphore s[2] ATTRIBUTE_ALIGN(16); // 0x320
-
-    int BytesToRead;          // 0x338
-    size_t CachedBytesToRead; // 0x33C
-    int volatile ReadOffset;  // 0x340
-    u32 bitBuffer;            // 0x344
-    u8 * volatile DataWriteBottom;      // 0x348
-    u8 *DataReadBottom;       // 0x34C
-    u8 *CachedDataReadBottom; // 0x350
-    void *DataReadTop;        // 0x354
-    u8 * volatile DataWriteTop;         // 0x358
-    int _35C;                 // 0x35C
-
-    s8 volatile segmentCount; // 0x360
-    u8 BitsInBuffer;          // 0x361
-    u8 LookBackSize;          // 0x362
-    u8 RepetitionSize;        // 0x363
-    u8 error;                 // 0x364
-    s8 compressedFlag;        // 0x365
-    u8 ShouldWriteDataFlag;   // 0x366
-} DataVars;
-
 DataVars gDataDecompressorValues;
 
 #define LZSS_FLAG_SIZE 1

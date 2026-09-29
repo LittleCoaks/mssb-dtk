@@ -37,7 +37,6 @@ typedef struct _DKJungleObject {
 // Control local that has the size of the whole per-object control block (0x44).
 typedef struct _DKJungleObjControl {
     Control ctrl;
-    u8 _34[0x44 - sizeof(Control)];
 } DKJungleObjControl;
 
 typedef struct _DKJungleKlaptrapData {

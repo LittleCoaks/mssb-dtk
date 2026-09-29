@@ -32,7 +32,8 @@ typedef struct Control {
     /* 0x01 */ u8 pad8;
     /* 0x02 */ u16 pad16;
     /* 0x04 */ ControlParams controlParams;
-} Control;
+    /* 0x3C */ u8 unk3C[0x44 - 0x3C]; // MSSB's Control is 0x44 bytes; contents unknown
+} Control; // size: 0x44
 
 // control.c
 void CTRLSetScale(Control *control, f32 x, f32 y, f32 z);

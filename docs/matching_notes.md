@@ -2334,3 +2334,36 @@ with a checkpoint.
 - **Two float-conversion stack slots swapped with otherwise identical code is still unsolved**
   (`multBottomBits_asFloat`; see its checkpoint for ten hypotheses). The same pattern appears in the
   sibling `byteWiseMultiply`, where three of its four bytes have the target's slot order.
+
+## Findings from the twelve-small-DOL-files pass (createTeamManagementScreen_inGame ... ANIMGetSequence)
+
+First seen: 2026-09, 12 `Unknown/` units; 9 matched and flipped to `Matching`, 3 instruction-exact
+but left `NonMatching` (DOGet, LITAlloc, AnimateActorBones; see their checkpoints).
+
+- **MWCC 2.6 schedules loads of one global past stores into another only when the stored-to
+  object's DECLARED size is >= 0xFFFF bytes.** In `createTeamManagementScreen_inGame` the target
+  keeps `lbz g_d_GameSettings._06` after three stores into `aiPosSwapInputs` (dtk size 0x24C98).
+  With the full-size struct every source shape (pointer locals, inline helper, switch, ternary,
+  volatile load, unsized array, `-proc`, `mw_version` sweep) hoisted the load (68%); a struct of
+  any size up to 0xFFFE gave 100%, 0xFFFF and up did not. `UnknownHomes_Static.h` now lets a unit
+  `#define AIPOSSWAPINPUTS_LOCAL_VIEW` and declare a smaller file-local view. Suspect this whenever
+  stores to a huge `.bss` object and a load from another global come out in the wrong order.
+- **A flag written by an async callback is `volatile`.** `handleDVDCancelAndARQRemoval` keeps
+  `lbz 0x715` after `stb 0x714`; only a `volatile` view of the cancel bytes (set by the DVD cancel
+  callbacks) reproduced that order.
+- **MSSB's charPipeline `Control` is 0x44 bytes, not the SDK's 0x34.** Evidence: `LITAlloc`
+  allocates a 0xC0 `Light` with `parent`/`animPipe` at 0xB8/0xBC, the actor forward-matrix array
+  sits at 0x60, and five stadium units padded `Control` locals to 0x44. `C3/control.h` now has
+  `unk3C[8]` (placement of the extra bytes unknown); `Actor` is 0xA0 and `sBone` has a pointer at
+  0x18, three Controls (0x1C/0x60/0xA4), `animPipe` 0xE8 and `drawPriorityLink` 0xFC. `ACTSort`
+  matched first try on the corrected layout. Every other object was byte-identical outside `.debug`.
+- **`Dolphin/stl.h` and `stl/stdarg.h` both defined `__va_list`**, so `C3/geoPalette.h` could not be
+  included next to the stadium headers. `stl.h` now includes `stdarg.h` instead; the `DOVARender`/
+  `DOVARenderSkin` prototypes come from `geoPalette.h` (`va_list*`).
+- **`(&array[2])[i].field` keeps the constant offset after the multiply** (`mulli; add; addi 0x150`)
+  where `array[i + 2]` folds it into the index (`setScissorAndProjection`).
+- **`extsb` before `subi` on a byte field means `(s8)u8field - 1`**: an `s8` field folds the
+  first sign extension away (`maybeLoadsGameSoundFiles`).
+- **A string-only `.rodata` split at a 4-aligned address cannot link alone** (confirmed again on
+  DOGet, 0x800E7F8C). Giving the split the range gets objdiff to 100%, but the `Matching` flip fails
+  the sha1 check until the neighbouring displayObject strings are in the same unit.

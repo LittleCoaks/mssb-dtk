@@ -2,7 +2,7 @@
 #include "Unknown/File_0x800bc0c4.h"
 
 void DOVARenderSkin(struct DODisplayObj* dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray,
-                    u8 numLights, void* list) {
+                    u8 numLights, va_list* list) {
     SkinForwardArray = mtxArray;
     SkinInverseArray = invTransposeMtxArray;
     DOVARender(dispObj, camera, numLights, list);

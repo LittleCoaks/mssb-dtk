@@ -247,6 +247,7 @@ s32 sndInit(u8 voices, u8 music, u8 sfx, u8 studios, u32 flags, u32 aramSize);
 void sndQuit(void);
 
 bool32 sndIsInstalled();
+bool32 sndPopGroup(void);
 u32 sndIsIdle();
 SND_PLAYBACKINFO* sndGetPlayBackInfo();
 
