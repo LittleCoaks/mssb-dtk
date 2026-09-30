@@ -97,9 +97,12 @@ game/match_setup/match_ui.c:
 	.text       start:0x00059918 end:0x0005A684
 	.data       start:0x00003D60 end:0x0000428C
 
+game/match_setup/match_flow_data.c:
+	.data       start:0x00005FF4 end:0x00006510
+
 game/match_setup/match_flow.c:
 	.text       start:0x0005A684 end:0x00060768
-	.data       start:0x00005FF4 end:0x000065EC
+	.data       start:0x00006510 end:0x000065EC
 
 game/animation/animation_dispatch.c:
 	.text       start:0x00060768 end:0x000674E0

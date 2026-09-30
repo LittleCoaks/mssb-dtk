@@ -1060,9 +1060,9 @@ typedef struct _GameControlsStruct {
     /*0x108*/ s16 _108;
     /*0x10A*/ s16 bOD_framesInLiveBallScene;
     /*0x10C*/ s16 frameCountdownAtBeginningOfAtBatLockout;
-    /*0x10E*/ s16 scoreBook_teamDisplayed;
-    /*0x110*/ s16 scoreBook_batter_pitcherStatsDisplayed;
-    /*0x112*/ s16 scoreBook_scrollIndex;
+    /*0x10E*/ u16 scoreBook_teamDisplayed;
+    /*0x110*/ u16 scoreBook_batter_pitcherStatsDisplayed;
+    /*0x112*/ u16 scoreBook_scrollIndex;
     /*0x114*/ s16 _114;
     /*0x116*/ s16 scoreBook_logoFadeDirectionLeft_Right;
     /*0x118*/ s16 _118;

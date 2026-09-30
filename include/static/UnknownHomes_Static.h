@@ -9,6 +9,8 @@
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
     /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,
+    /* 2 */ P2_CPU_CODE_UNKNOWN_2,
+    /* 3 */ P2_CPU_CODE_UNKNOWN_3,
 } P2_CPU_CODE;
 
 typedef struct _GameInitVariables {

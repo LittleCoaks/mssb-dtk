@@ -61,13 +61,6 @@ extern s16 challenge_baseCoinsAwarded[16];
 extern void QueueTextToDisplay(int code, int arg1);
 extern void initializeSomethingDuringTransition(void);
 extern int fn_3_59BCC(int arg0);
-typedef struct {
-    s16 score;
-    s16 outs;
-    s16 runnerFlags;
-    s16 currentBatter;
-} ChallengeSituation;
-
 extern ChallengeSituation lbl_3_data_5FF4[2][4][2];
 extern s16 lbl_3_data_6074[4];
 extern s8 lbl_3_data_6104[];
@@ -80,13 +73,6 @@ extern void recruitWholeTeamAfterMercy(void);
 extern void matchTransitionFunction2(void);
 extern int loadRunnerActors(void);
 extern void challenge_setTransitionScreenCharacterPortrait(int, int);
-typedef struct {
-    u32 _0;
-    u32 _4;
-    u32 _8;
-    u32 _C;
-} MatchEndFile;
-
 extern MatchEndFile CommonUIFiles_matchEnd[];
 extern int exitMenu(void);
 extern void set803c5f77(void);
@@ -144,121 +130,10 @@ extern void toyfieldSimulation(void);
 extern void minigameSimulation(void);
 extern void graphicsFunction_minigames(void);
 
-ChallengeSituation lbl_3_data_5FF4[2][4][2] = {
-    {
-        { { -2, 0, 0x0, 2 }, { -2, 1, 0x1, 3 } },
-        { { -2, 0, 0x1, 2 }, { -2, 1, 0x10, 3 } },
-        { { -1, 0, 0x0, 2 }, { -1, 1, 0x10, 3 } },
-        { { -1, 1, 0x11, 3 }, { -1, 2, 0x111, 4 } },
-    },
-    {
-        { { 0, 0, 0x10, 2 }, { 0, 0, 0x11, 2 } },
-        { { 0, 1, 0x10, 3 }, { 0, 0, 0x0, 2 } },
-        { { -1, 1, 0x10, 3 }, { -1, 0, 0x0, 2 } },
-        { { -1, 2, 0x10, 4 }, { -1, 1, 0x0, 3 } },
-    },
-};
-
-s16 lbl_3_data_6074[4] = { 3, 2, 1, 0 };
-
-s16 challenge_baseCoinsAwarded[16] = { 0, 0, 0, 0, 0, 0, 10, 0, -10, 0, 0, -10, 1, 0, -1, -100 };
-
-u8 challenge_minigames_opponentCharIDs[0x48] = {
-    0x1D, 0x1E, 0x1F, 0x20, 0xFF, 0xFF,
-    0x1D, 0x1E, 0x1F, 0x20, 0xFF, 0xFF,
-    0x1D, 0x1E, 0x1F, 0x20, 0xFF, 0xFF,
-    0x22, 0x23, 0x24, 0x21, 0xFF, 0xFF,
-    0x22, 0x23, 0x24, 0x21, 0xFF, 0xFF,
-    0x22, 0x23, 0x24, 0x21, 0xFF, 0xFF,
-    0x2C, 0x2D, 0x2E, 0x2F, 0xFF, 0xFF,
-    0x2C, 0x2D, 0x2E, 0x2F, 0xFF, 0xFF,
-    0x2C, 0x2D, 0x2E, 0x2F, 0xFF, 0xFF,
-    0x28, 0x11, 0x10, 0x0E, 0x03, 0x0A,
-    0x0C, 0x25, 0x1B, 0x14, 0x21, 0x0B,
-    0x29, 0x02, 0x26, 0x09, 0x13, 0x30,
-};
-
-u8 lbl_3_data_60E4[0xC] = { 0x04, 0x01, 0x09, 0x01, 0x0C, 0x01, 0x0F, 0x01, 0x14, 0x01, 0x00, 0x00 };
-
-u8 lbl_3_data_60F0 = 0x1E;
-
-StarPowerCosts starPowerCosts = { 5, 1, 2, 1 };
-
-u8 lbl_3_data_60F8[0xC] = { 5, 10, 10, 5, 5, 5, 3, 3, 1, 1, 0, 0 };
-
-s8 lbl_3_data_6104[8] = { 0, 1, 4, 3, 2, 5, 0, 0 };
-
-f32 lbl_3_data_610C[6] = { 0.1f, 0.4f, 0.7f, 0.2f, 0.5f, 1.0f };
-
-f32 lbl_3_data_6124[3] = { 0.75f, 0.5f, 0.0f };
-
-MatchEndFile CommonUIFiles_matchEnd[] = {
-    { 0x0000040B, 0x4013764C, 0x1A635000, 0x0007DB48 },
-    { 0x0000040B, 0x4003E3DC, 0x1A6B3000, 0x00021420 },
-    { 0x0000040B, 0x4002EC10, 0x1A6D4800, 0x00013108 },
-    { 0x0000040B, 0x400E72C0, 0x1A6E8000, 0x00060768 },
-    { 0x0000040B, 0x40049404, 0x1A748800, 0x00020E34 },
-    { 0x0000040B, 0x40076AE0, 0x18ED7000, 0x00036BC8 },
-    { 0x0000040B, 0x4010FD70, 0x1A769800, 0x0005E284 },
-    { 0x0000040B, 0x400DB738, 0x1A7C8000, 0x00049AB4 },
-    { 0x0000040B, 0x400E9864, 0x1A812000, 0x00059DC0 },
-    { 0x0000040B, 0x400B7718, 0x1A86C000, 0x00050288 },
-    { 0x0000040B, 0x400D87FC, 0x1A8BC800, 0x00047BC4 },
-    { 0x0000040B, 0x400D643C, 0x1A904800, 0x0004E3AC },
-    { 0x0000040B, 0x400D5C7C, 0x1A953000, 0x00048D9C },
-    { 0x0000040B, 0x400B767C, 0x1A99C000, 0x00047518 },
-    { 0x0000040B, 0x400441F8, 0x1A9E3800, 0x0001AA84 },
-    { 0x0000040B, 0x40106568, 0x1A9FE800, 0x00068C10 },
-    { 0x0000040B, 0x4010E5A0, 0x0E97A800, 0x0009BCAC },
-    { 0x0000040B, 0x40016980, 0x0EA16800, 0x0000D6C4 },
-    { 0x0000040B, 0x40016980, 0x0EA24000, 0x0000C944 },
-    { 0x0000040B, 0x40016980, 0x0EA31000, 0x0000E700 },
-    { 0x0000040B, 0x40016980, 0x0EA3F800, 0x0000D64C },
-    { 0x0000040B, 0x40016980, 0x0EA4D000, 0x0000C900 },
-    { 0x0000040B, 0x40016980, 0x0EA5A000, 0x0000CFFC },
-    { 0x0000040B, 0x40016980, 0x0EA67000, 0x0000D720 },
-    { 0x0000040B, 0x40016980, 0x0EA74800, 0x0000D6CC },
-    { 0x0000040B, 0x40016980, 0x0EA82000, 0x0000D21C },
-    { 0x0000040B, 0x40016980, 0x0EA8F800, 0x0000D0BC },
-    { 0x0000040B, 0x40016980, 0x0EA9D000, 0x0000B544 },
-    { 0x0000040B, 0x40016980, 0x0EAA8800, 0x0000C4F8 },
-    { 0x0000040B, 0x400ADFFC, 0x18AEE800, 0x0004BAB0 },
-    { 0x0000040B, 0x4037CF5C, 0x18B3A800, 0x00208AF0 },
-    { 0x0000040B, 0x4000A820, 0x18ED3800, 0x00003758 },
-    { 0x0000040B, 0x4011EC24, 0x18F0E000, 0x000D8818 },
-    { 0x0000040B, 0x400193E8, 0x191B8800, 0x000089D8 },
-    { 0x0000040B, 0x4006C850, 0x06C96000, 0x0002C884 },
-    { 0x0000040B, 0x4005B178, 0x06CC3000, 0x0003555C },
-    { 0x0000040B, 0x401EB174, 0x18D43800, 0x000FB220 },
-    { 0x0000040B, 0x4001ED60, 0x1AA67800, 0x0000CFF0 },
-    { 0x0000040B, 0x4000BF30, 0x1AA74800, 0x000026E0 },
-    { 0x0000040B, 0x40003498, 0x1AA77000, 0x00000E28 },
-    { 0x0000040B, 0x4000BDE0, 0x1AA78000, 0x000024F4 },
-    { 0x0000040B, 0x40006088, 0x1AA7A800, 0x00001290 },
-    { 0x0000040B, 0x400049F0, 0x1AA7C000, 0x000018F4 },
-    { 0x0000040B, 0x40005ECC, 0x1AA7E000, 0x00001D38 },
-    { 0x0000040B, 0x40002670, 0x1AA80000, 0x00000BE8 },
-    { 0x00000000, 0x00028240, 0x1AA81000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AAA9800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AAD2000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AAFA800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AB23000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AB4B800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AB74000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AB9C800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1ABC5000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1ABED800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AC16000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AC3E800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AC67000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AC8F800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1ACB8000, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1ACE0800, 0x00028240 },
-    { 0x00000000, 0x00028240, 0x1AD09000, 0x00028240 },
-};
-
 // .text:0x0006011C size:0x64C mapped:0x8069F1B0
 void baseballMatchSimulation(void) {
+    s16 v;
+
     g_GameLogic.hudElementLoadingInd = 0;
     g_GameLogic.hudLoadingRelated = 0;
     if (g_Ball.totalFramesAtPlay < 0x7FFE) {
@@ -334,17 +209,24 @@ void baseballMatchSimulation(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_DEMO || g_UnkSimulation_31AC0._08 == 0) {
             if (pauseControl[0x1D5] == 0) {
-                if (*(s16*)&animRelated[0x9E] >= 0) {
+                v = *(s16*)&animRelated[0x9E];
+                if (v >= 0) {
                     if (loadBatterModelFromDisk() != 0) {
                         *(s16*)&animRelated[0x9E] = -1;
                     }
-                } else if (*(s16*)&animRelated[0xA0] >= 0) {
-                    if (loadSomethingFromDiskAtBeginningOfAB1() != 0) {
-                        *(s16*)&animRelated[0xA0] = -1;
-                    }
-                } else if (*(s16*)&animRelated[0xA2] >= 0) {
-                    if (loadSomethingFromDiskAtBeginningOfAB2() != 0) {
-                        *(s16*)&animRelated[0xA2] = -1;
+                } else {
+                    v = *(s16*)&animRelated[0xA0];
+                    if (v >= 0) {
+                        if (loadSomethingFromDiskAtBeginningOfAB1() != 0) {
+                            *(s16*)&animRelated[0xA0] = -1;
+                        }
+                    } else {
+                        v = *(s16*)&animRelated[0xA2];
+                        if (v >= 0) {
+                            if (loadSomethingFromDiskAtBeginningOfAB2() != 0) {
+                                *(s16*)&animRelated[0xA2] = -1;
+                            }
+                        }
                     }
                 }
             }
@@ -440,8 +322,8 @@ void exhibitionGameTransitionCalculations(void) {
             if (AtBat_ButtonInput1._02 & INPUT_BUTTON_START) {
                 g_UnkSimulation_31AC0._08 = 1;
             }
-        } else if (lbl_803C6CF8[0x715] == 1) {
-            int state = g_GameLogic._125;
+        } else if ((int)lbl_803C6CF8[0x715] == 1) {
+            u32 state = g_GameLogic._125;
 
             if (state == 1) {
                 hugeAnimStruct[0x3082] = 1;
@@ -464,15 +346,16 @@ void exhibitionGameTransitionCalculations(void) {
             startChallengeModeMatch();
         }
         initNewInning();
+        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_GameLogic._125 = 1;
         changeScene(0xD, 6);
+        hugeAnimStruct[0x2D77] = 0;
+        hugeAnimStruct[0x2D7B] = 0;
+        hugeAnimStruct[0x2D7C] = 0;
         animRelated[0x9A] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[2] = 0;
         highLevelSimulationFlag[3] = 0;
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
-        hugeAnimStruct[0x2D7C] = 0;
         break;
     case 1:
         if (fn_3_59BCC(g_GameLogic.FrameCountOfCurrentAtBat_Copy) != 0) {
@@ -519,7 +402,7 @@ void exhibitionGameTransitionCalculations(void) {
     case 8:
         if (g_GameLogic.FrameCountOfCurrentPitch >= 0xF0) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO ||
-                g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
+                g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
                 g_GameLogic._125 = 9;
             } else if (checkForButtonPressToSkip(1, 0x1300)) {
                 g_GameLogic._125 = 9;
@@ -944,7 +827,13 @@ void checkIfPlayOver(void) {
     } else if (count == 0 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN && g_Ball.ballInitialHitDoneInd != 0 &&
                g_Ball.ballState != 0) {
         endFrame = 0x78;
-    } else if (g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
+    } else if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
+        if (g_Ball.deadBallReason == 3 || g_Ball.deadBallReason == DEAD_BALL_REASON_BALL_DEAD) {
+            endFrame = 0x78;
+        } else {
+            endFrame = 0x3C;
+        }
+    } else {
         if (g_GameLogic.playOver == 0 && g_Ball.ballState == BALL_STATE_LOOSE && g_GameLogic.walkOffWinInd == 0) {
             endFrame = 0x12C;
         }
@@ -959,10 +848,6 @@ void checkIfPlayOver(void) {
                 return;
             }
         }
-    } else if (g_Ball.deadBallReason == DEAD_BALL_REASON_BALL_DEAD || g_Ball.deadBallReason == 3) {
-        endFrame = 0x78;
-    } else {
-        endFrame = 0x3C;
     }
     if (g_FieldingLogic.playOverCounter < 0x7FFE) {
         g_FieldingLogic.playOverCounter++;
@@ -1038,17 +923,17 @@ void checkIfPlayOver(void) {
         g_FieldingLogic.framesSincePlayEnded = 1;
         if (g_GameLogic.IsStarChance == 1) {
             if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_FOUL || g_Ball.maybebuntOn2Strikes != 0) {
-                u8* stars;
+                int team;
 
                 if (g_Strikes.outs > g_Strikes.storedOuts) {
                     g_GameLogic.IsStarChance = 2;
-                    stars = &g_GameLogic.TeamStars[g_GameLogic.teamFielding];
+                    team = g_GameLogic.teamFielding;
                 } else {
                     g_GameLogic.IsStarChance = 3;
-                    stars = &g_GameLogic.TeamStars[g_GameLogic.teamBatting];
+                    team = g_GameLogic.teamBatting;
                 }
-                if (*stars < 5 && g_GameLogic.EventTriggers_EndOfGame == 0) {
-                    (*stars)++;
+                if (g_GameLogic.TeamStars[team] < 5 && g_GameLogic.EventTriggers_EndOfGame == 0) {
+                    g_GameLogic.TeamStars[team]++;
                     if (g_Stats.replayInd == 0) {
                         playSoundEffect(0x19D);
                     }
@@ -1286,10 +1171,10 @@ void inningChange(void) {
         changeScene(1, 6);
         fn_3_5D51C();
         inningImportanceAI();
+        hugeAnimStruct[0x3087] = 0;
         animRelated[0x9B] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[3] = 0;
-        hugeAnimStruct[0x3087] = 0;
         g_GameLogic._125 = 1;
     } else if (g_GameLogic._125 == 1) {
         if (championshipScreenGraphics() != 0) {
@@ -1364,6 +1249,8 @@ void fn_3_5D51C(void) {
 
 // .text:0x0005D3FC size:0x120 mapped:0x8069C490
 void inningImportanceAI(void) {
+    GameInitVariables* settings = &g_d_GameSettings;
+
     g_GameLogic.writeOnly_always0 = 0;
     g_GameLogic.writeOnly_always0_2 = 0;
     g_RunningLogic._11 = 0;
@@ -1374,7 +1261,7 @@ void inningImportanceAI(void) {
     g_Scores._C6 = 0;
     lbl_3_common_bss_37400.scoutFlag = 0;
     setInningEndingKIndTo0();
-    if (!g_d_GameSettings.exhibitionMatchInd) {
+    if (!settings->exhibitionMatchInd) {
         setScoutMissionRelatedToZero();
     }
 }
@@ -1412,7 +1299,10 @@ void endOfGameCheck(int arg0) {
         } else {
             int diff;
 
-            if (g_Scores.mercyThreshold == 0 || g_Scores.halfInning == 0) {
+            if (g_Scores.mercyThreshold == 0) {
+                return;
+            }
+            if (g_Scores.halfInning == 0) {
                 return;
             }
             diff = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total -
@@ -1422,13 +1312,14 @@ void endOfGameCheck(int arg0) {
                 g_GameLogic.EventTriggers_EndOfGame = 1;
                 g_GameLogic.winType = WIN_TYPE_6;
                 QueueTextToDisplay(0x11, 0);
-            } else if (diff <= -g_Scores.mercyThreshold) {
+            } else {
+                if (diff > -g_Scores.mercyThreshold) {
+                    return;
+                }
                 g_Scores.winnerCd = 0;
                 g_GameLogic.EventTriggers_EndOfGame = 1;
                 g_GameLogic.winType = WIN_TYPE_5;
                 QueueTextToDisplay(0x11, 0);
-            } else {
-                return;
             }
         }
     } else if (arg0 == 1) {
@@ -1442,7 +1333,10 @@ void endOfGameCheck(int arg0) {
         } else {
             int diff;
 
-            if (g_Scores.halfInning == 0 || g_Scores.mercyThreshold == 0) {
+            if (g_Scores.halfInning == 0) {
+                return;
+            }
+            if (g_Scores.mercyThreshold == 0) {
                 return;
             }
             diff = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total -
@@ -1477,8 +1371,8 @@ void fn_3_5CFD0(void) {
 
     if (!g_d_GameSettings.exhibitionMatchInd) {
         if (g_Scores.winnerCd <= 1) {
-            if (g_Scores.winnerCd ^ (lbl_3_common_bss_37400._40 == g_GameLogic.homeTeamInd)) {
-                if ((tracker[0x4422] >= 4 && b == 5) || (tracker[0x4422] >= 5 && tracker[0x44EF] == 1 && a == 5)) {
+            if (g_Scores.winnerCd ^ (g_GameLogic.homeTeamInd == lbl_3_common_bss_37400._40)) {
+                if ((tracker[0x4422] >= 4 && b == 5) || (tracker[0x4422] >= 5 && (int)tracker[0x44EF] == 1 && a == 5)) {
                     g_GameLogic.playOverFadeOutStarted = 0;
                 }
                 starMissionRelated2();
@@ -1741,7 +1635,7 @@ int evaluateInningCondition(int inning) {
 void fn_3_5C418(void) {
     int skippable = 0;
 
-    if ((u8)(g_GameLogic.gameStatus - GAME_STATUS_AT_BAT) <= 1 ||
+    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL ||
         (u8)(g_GameLogic.gameStatus - GAME_STATUS_HOMERUN_END) <= 3 ||
         g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
         skippable = 1;
@@ -1755,7 +1649,7 @@ void fn_3_5C418(void) {
             changeScene(3, 6);
         }
         if (lbl_8037169C[0x13] != 0 && skippable != 0) {
-            if (lbl_803C6CF8[0x715] == 1) {
+            if ((int)lbl_803C6CF8[0x715] == 1) {
                 animRelated[0x96] = 1;
                 g_GameLogic.framesOfExitingToMenu = 1;
             } else if (g_UnkSimulation_31AC0._09 == 0) {
@@ -1768,9 +1662,9 @@ void fn_3_5C418(void) {
 
 // .text:0x0005BD40 size:0x6D8 mapped:0x8069ADD4
 void matchEndGameScreenFunction(void) {
-    InputStruct* input = &g_Controls[lbl_80366158[0x27]];
-    u8* tracker = (u8*)starMissionCompletionTracker;
-    int stage = g_GameLogic._125;
+    s8 mvp;
+    InputStruct* input = &g_Controls[(u8)lbl_80366158[0x27]];
+    u32 stage = g_GameLogic._125;
 
     if (stage >= 3) {
         if (*(s16*)&pauseControl[0x12] < 0x7FFE) {
@@ -1833,10 +1727,14 @@ void matchEndGameScreenFunction(void) {
     case 5:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
             fn_8004CC4C(7, 0, 0, 0, 0x8B);
-            if ((s8)StatsScreenScores.mvpRosterLoc[0] >= 0) {
-                fn_8004CA48(((CharacterStats*)inMemRoster)[(s8)StatsScreenScores.mvpRosterLoc[0]].stats.CharID, 0, 0, 0);
-            } else if ((s8)StatsScreenScores.mvpRosterLoc[1] >= 0) {
-                fn_8004CA48(((CharacterStats*)inMemRoster)[(s8)StatsScreenScores.mvpRosterLoc[1]].stats.CharID, 0, 0, 0);
+            mvp = StatsScreenScores.mvpRosterLoc[0];
+            if (mvp >= 0) {
+                fn_8004CA48(((CharacterStats*)inMemRoster)[mvp].stats.CharID, 0, 0, 0);
+            } else {
+                mvp = StatsScreenScores.mvpRosterLoc[1];
+                if (mvp >= 0) {
+                    fn_8004CA48(((CharacterStats*)inMemRoster)[mvp].stats.CharID, 0, 0, 0);
+                }
             }
         }
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 0x14 && (input->newButtonInput & INPUT_BUTTON_A)) {
@@ -1871,9 +1769,9 @@ void matchEndGameScreenFunction(void) {
             changeScene(3, 6);
         } else if (!g_d_GameSettings.exhibitionMatchInd) {
             if (g_d_GameSettings.bJMatchInd == 1) {
-                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[tracker[0x441C]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
             } else {
-                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[tracker[0x441E]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441E]]);
             }
         } else {
             changeScene(4, 6);
@@ -1924,7 +1822,7 @@ void endOfGame_menuControl(void) {
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
         } else if (input->newButtonInput & INPUT_BUTTON_LEFT) {
-            if (pauseControl[0x1DA] == 1) {
+            if ((int)pauseControl[0x1DA] == 1) {
                 pauseControl[0x1DA] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
@@ -1980,7 +1878,8 @@ void startChallengeModeMatch(void) {
             g_GameLogic.AIDifficulty0Special3Weak[1] = lbl_3_data_6074[g_d_GameSettings.challengeDifficulty];
         }
         if (g_d_GameSettings.bJMatchInd == 1) {
-            ChallengeSituation* situation;
+            int idx;
+            int flags;
 
             g_Scores.Inning = 9;
             g_Scores.inningLimit = 9;
@@ -1990,20 +1889,23 @@ void startChallengeModeMatch(void) {
             g_GameLogic.awayTeamBattingInd_battingTeam ^= 1;
             g_GameLogic.teamBatting ^= 1;
             g_GameLogic.teamFielding ^= 1;
-            situation = &lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][rand() % 2];
-            g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] = situation->currentBatter;
-            g_Strikes.storedOuts = situation->outs;
-            g_Strikes.outs = situation->outs;
-            g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total = situation->score;
+            idx = rand() % 2;
+            g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] =
+                lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].currentBatter;
+            g_Strikes.storedOuts = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].outs;
+            g_Strikes.outs = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].outs;
+            g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total =
+                lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].score;
             if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total < 0) {
                 g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total =
                     -g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
                 g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total = 0;
             }
+            flags = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].runnerFlags;
             g_Runners[1].rosterID = -1;
             g_Runners[2].rosterID = -1;
             g_Runners[3].rosterID = -1;
-            if (situation->runnerFlags & 1) {
+            if (flags & 1) {
                 i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1;
                 if (i < 1) {
                     i = 9;
@@ -2011,7 +1913,7 @@ void startChallengeModeMatch(void) {
                 g_Runners[1].rosterID =
                     g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
             }
-            if (situation->runnerFlags & 0x10) {
+            if (flags & 0x10) {
                 i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1;
                 if (i < 1) {
                     i = 9;
@@ -2019,7 +1921,7 @@ void startChallengeModeMatch(void) {
                 g_Runners[2].rosterID =
                     g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
             }
-            if (situation->runnerFlags & 0x100) {
+            if (flags & 0x100) {
                 i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1;
                 if (i < 1) {
                     i = 9;
@@ -2053,7 +1955,6 @@ void startChallengeModeMatch(void) {
 void fn_3_5B41C(void) {
     int result = 2;
     int diff;
-    int team;
 
     if (g_Scores.winnerCd == 2) {
         result = 1;
@@ -2061,9 +1962,8 @@ void fn_3_5B41C(void) {
         result = 0;
     }
     if (g_d_GameSettings.bJMatchInd == 0) {
-        team = g_GameLogic.homeTeamInd;
         g_d_GameSettings.challengeMinigame_baseCoinsEarned += challenge_baseCoinsAwarded[result];
-        diff = g_Scores.scores[team ^ 1].total - g_Scores.scores[team].total;
+        diff = g_Scores.scores[g_GameLogic.homeTeamInd].total - g_Scores.scores[g_GameLogic.homeTeamInd ^ 1].total;
         if (diff < 0) {
             diff = -diff;
         }
@@ -2301,9 +2201,8 @@ void simulate1FrameOfTheGame(void) {
 
 // .text:0x0005A87C size:0x424 mapped:0x80699910
 void gameInitRelated(void) {
-    int mode;
+    u32 mode;
     int home;
-    int away;
     int i;
 
     lbl_80366158[0x28] = 0;
@@ -2345,7 +2244,6 @@ void gameInitRelated(void) {
         g_Scores.inningLimit = 5;
     }
     home = g_d_GameSettings.home_AwaySetting;
-    away = home ^ 1;
     g_GameLogic.teamIsCPU[0] = 0;
     g_GameLogic._140[0] = 0;
     g_GameLogic.batterHandedness[0] = 0;
@@ -2364,22 +2262,22 @@ void gameInitRelated(void) {
     g_GameLogic.awayTeamBattingInd_battingTeam = 1;
     g_GameLogic.homeTeamInd = home;
     g_GameLogic.teamBatting = home;
-    g_GameLogic.teamFielding = away;
+    g_GameLogic.teamFielding = home ^ 1;
     g_GameLogic._1C[0] = g_d_GameSettings.maybeHomeAway[home];
-    g_GameLogic._1C[1] = g_d_GameSettings.maybeHomeAway[away];
+    g_GameLogic._1C[1] = g_d_GameSettings.maybeHomeAway[home ^ 1];
     if (mode == GAME_TYPE_PRACTICE) {
         g_GameLogic.AIDifficulty0Special3Weak[home] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd ^ 1] = 1;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         g_GameLogic.teamIsCPU[1] = 1;
-        g_GameLogic._140[away] = 1;
+        g_GameLogic._140[home ^ 1] = 1;
         lbl_3_common_bss_37400._40 = 0;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd] = 1;
-    } else if (g_d_GameSettings.p2_CPU_match_code == 3) {
+    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_3) {
         g_GameLogic.teamIsCPU[0] = 1;
         g_GameLogic._140[home] = 1;
         lbl_3_common_bss_37400._40 = 1;
@@ -2388,7 +2286,7 @@ void gameInitRelated(void) {
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd ^ 1] = 1;
-    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
+    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
         g_GameLogic.teamIsCPU[1] = 1;
         g_GameLogic.teamIsCPU[0] = 1;
         g_GameLogic._140[1] = 1;

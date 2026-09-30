@@ -3,6 +3,20 @@
 
 #include "mssbTypes.h"
 
+typedef struct {
+    s16 score;
+    s16 outs;
+    s16 runnerFlags;
+    s16 currentBatter;
+} ChallengeSituation;
+
+typedef struct {
+    u32 _0;
+    u32 _4;
+    u32 _8;
+    u32 _C;
+} MatchEndFile;
+
 void resetCount(void);
 void configureTeamsForGame_Unused(int arg0, int arg1, int arg2, int arg3);
 void SetGameStatus(int status);

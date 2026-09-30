@@ -988,6 +988,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_A78.c"),
             Object(NonMatching, "game/fielding/fielder.c"),
             Object(NonMatching, "game/match_setup/match_ui.c"),
+            Object(NonMatching, "game/match_setup/match_flow_data.c"),
             Object(NonMatching, "game/match_setup/match_flow.c"),
             Object(NonMatching, "game/data_only/rep_CC8.c"),
             Object(NonMatching, "game/data_only/rep_D18.c"),
