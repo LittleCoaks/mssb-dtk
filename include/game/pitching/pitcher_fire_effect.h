@@ -4,6 +4,6 @@
 #include "mssbTypes.h"
 
 void animatePitchersHandOnFire(void);
-void fn_3_CB538(void);
+void fn_3_CB538(int mode);
 
 #endif // !__GAME_PITCHING_PITCHER_FIRE_EFFECT_H_
