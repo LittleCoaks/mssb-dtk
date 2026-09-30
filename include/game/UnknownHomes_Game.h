@@ -746,9 +746,10 @@ typedef struct _InputStruct {
     /*0x08*/ u16 _08;
     /*0x0A*/ s8 right_left;
     /*0x0B*/ s8 up_down;
-    /*0x0C*/ s8 rightTriggerDistance;
-    /*0x0D*/ s8 leftTriggerDistance;
-    /*0x0E*/ s16 _0E; // padding
+    /*0x0C*/ u8 rightTriggerDistance;
+    /*0x0D*/ u8 leftTriggerDistance;
+    /*0x0E*/ u8 _0E;
+    /*0x0F*/ u8 _0F; // padding
 } InputStruct;        // size: 0x10
 
 typedef enum _PRACTICE_TYPE {

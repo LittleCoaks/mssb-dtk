@@ -134,6 +134,9 @@ game/fielding/offence_animation.c:
 	.text       start:0x0006C4D0 end:0x0006C854
 	.rodata     start:0x00001090 end:0x000010E8
 
+game/match_setup/scene_skip.c:
+	.text       start:0x0006C854 end:0x0006CD88
+
 game/match_setup/controller_input.c:
 	.text       start:0x0006CD88 end:0x0006D4A0
 	.rodata     start:0x000010E8 end:0x00001188

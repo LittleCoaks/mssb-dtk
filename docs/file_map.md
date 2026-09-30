@@ -126,7 +126,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 19 files, 145 fns (102 named)
+## match_setup/ — 20 files, 148 fns (105 named)
 
 The glue that stands a match up and tears it down — roster construction,
 loading and transition state, controller input, and the screens either side of
@@ -140,6 +140,7 @@ stats, results and MVP, and replay record/playback.
 | `roster_init.c` | `rep_1188` | 7 (6) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
 | `transition_init.c` | `rep_1038` | 7 (4) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
 | `star_missions.c` | `rep_3DA8` + `auto_00_001658F0` | 20 (13) | 19,160 | Challenge-mode star missions (quantity-based, offensive, whole-game, per-pitch tracking, mercy recruiting) and scout-flag missions (`shouldScoutMissionBeEnabled`, `decideScoutFlagMission`, reward assignment). | high |
+| `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
 | `controller_input.c` | `rep_10E8` | 2 (2) | 1,816 | Controller input reading and magnitude interpretation. | high |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
 | `replay_inputs.c` | `rep_1330` | 4 (4) | 3,220 | Replay playback: restore the `g_Stats` snapshot, save live structs, per-frame input playback (`useReplayInputs`). | high |
