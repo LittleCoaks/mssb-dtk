@@ -2367,3 +2367,38 @@ but left `NonMatching` (DOGet, LITAlloc, AnimateActorBones; see their checkpoint
 - **A string-only `.rodata` split at a 4-aligned address cannot link alone** (confirmed again on
   DOGet, 0x800E7F8C). Giving the split the range gets objdiff to 100%, but the `Matching` flip fails
   the sha1 check until the neighbouring displayObject strings are in the same unit.
+
+## Findings from the twelve-small-DOL-files pass (starMenu ... load_Icon)
+
+First seen: 2026-09, 12 `Unknown/` units (starMenu, setCaptainLocInRoster, SKNInit, the
+lbl_803C5F74 setters, fn_80042D38 trio, storeCursorLocOrCharIDs, createTeamManagementScreen_preGame,
+stadiumSelect, challengeRelated, AdjustGEOPalettePointers, PrepFilesToBeLoaded, load_Icon); all
+100% and flipped to `Matching`.
+
+- **A pointer local to an array member moves the member offset into the store.**
+  `rec->textureOverride[part] = t;` emits `addi r0, part*2, 0xAC; sthx`; the target's
+  `add r3, rec, part*2; sth 0xAC(r3)` came only from `u16 *overrides = rec->textureOverride;
+  overrides[part] = t;` (load_Icon). A plain `(&rec->arr[0])[part]` or byte-offset cast does not.
+- **The written order of a constant in an index decides whether it folds into the displacement.**
+  `graphicsRelatedArray[scene->firstHandle + i + 12]` folds `12*8` into `lwz 0x60`;
+  `[scene->firstHandle + 12 + i]` keeps `add; addi 0xC; slwi; lwzx` with the target's operand
+  order (starMenu). `12 + i + first` gets the `addi` but swaps the `add` operands.
+- **`li rN, 0` in both arms plus `mr i, count` before a counting loop is an inlined helper with an
+  early `return 0`.** challengeRelated: every in-place if/else form left one arm's zero in `r0` or
+  numbered the registers wrong; `static inline int count(...) { if (!flag) return 0; count = 0;
+  for (...) ... return count; }` used as an array index matched.
+- **`&objs[i]` vs a `dispObj++` pointer changes the callee-saved numbering** even though both
+  strength-reduce to `addi r30, r30, 0x6C` (AdjustGEOPalettePointers, 84.9% -> 100%).
+- **`bne end; lbz; cmplwi; beq body; b end` is `if (a != 0 || b != 0) return;`,** not
+  `if (a == 0 && b == 0) { ... }`, which emits one `bne end` (stadiumSelect).
+- **An 8-byte struct assignment and two word assignments allocate the copy registers
+  differently** (PrepFilesToBeLoaded: struct copy put the value in r4 and the `stwu` base in r5;
+  per-word copies matched the target's r5/r4).
+- **A sibling with the same store in both arms of a branch is an inlined call with a constant
+  argument.** createTeamManagementScreen_preGame stores `r5` (0) on both sides of the `_06 == 2`
+  test: it is the `_inGame` body with `player = 0`, reproduced with a `static inline` copy.
+- **A `.text`-only split whose strings/path table are referenced by no other function can claim
+  them.** PrepFilesToBeLoaded's `"aaaa.dat"`/`"ZZZZ.dat"` path records (`.data 0x800E8EE8`) and
+  its OSReport formats (`.rodata 0x800E6550..0x800E6588`, 8-aligned) were added to its split and
+  written as C initializers/literals; the `Matching` link stayed `4 files OK`. The next strings
+  (0x800E6588+) and the jump table at 0x800E8F08 belong to handleLoadingProcess.

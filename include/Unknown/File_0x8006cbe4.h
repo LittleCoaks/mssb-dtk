@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void challengeRelated(void);
+s16 challengeRelated(int charID);
 
 #endif // !__UNKNOWN_FILE_0X8006CBE4_H_

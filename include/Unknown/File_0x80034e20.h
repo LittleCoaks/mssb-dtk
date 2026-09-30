@@ -119,6 +119,14 @@ extern TextureContainerSlot textureContainerSlots[TEXTURE_SLOT_COUNT]; // 0x803C
 extern u32 uiDrawLoopStart;   // 0x803CBC98
 extern u32 uiDrawLoopEnd;     // 0x803CB814
 
+/* A 2D menu scene node's view of its scratch area: its records are
+ * graphicsRelatedArray[firstHandle + handle].object. */
+typedef struct MenuScene {
+    /* 0x00 */ u8 _00[0x14];
+    /* 0x14 */ u16 firstHandle;
+    /* 0x16 */ u16 handleCount;
+} MenuScene;
+
 /* Builds the descriptor list's records on `node` (a DrawingSceneStruct whose
  * firstHandle/handleCount span in graphicsRelatedArray receives them). */
 void addGraphicsElementToScene(DrawingSceneStruct* node, const UIRecordDescriptor* descriptors);

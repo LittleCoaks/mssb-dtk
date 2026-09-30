@@ -255,7 +255,11 @@ extern CursorPositions_s cursorPositions;
 typedef struct {
     /* 0x00 */ u8 _00[5];
     /* 0x05 */ u8 player2Ind2;
-    /* 0x06 */ u8 _06[0x3C - 0x06];
+    /* 0x06 */ u8 _06[0x36 - 0x06];
+    /* 0x36 */ u8 unk36;        // stadiumSelect sets 1
+    /* 0x37 */ u8 unk37;        // stadiumSelect copies unk38 here before overwriting it
+    /* 0x38 */ u8 unk38;        // stadiumSelect sets 3
+    /* 0x39 */ u8 _39[0x3C - 0x39];
 } MatchInfo_s; // size: 0x3C
 
 extern MatchInfo_s g_MatchInfo;

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void load_Icon(void *arg0, s16 arg1, s16 arg2, s16 arg3, int arg4);
+void load_Icon(void *scene, int handle, u32 part, u32 element, int frame);
 
 #endif // !__UNKNOWN_FILE_0X800363D8_H_

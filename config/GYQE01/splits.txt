@@ -28,6 +28,8 @@ Unknown/File_0x800096dc.c:
 	extab       start:0x80005630 end:0x80005638
 	extabindex  start:0x80006CA8 end:0x80006CB4
 	.text       start:0x800096DC end:0x800097A0
+	.rodata     start:0x800E6550 end:0x800E6588
+	.data       start:0x800E8EE8 end:0x800E8F08
 
 Unknown/File_0x800097a0.c:
 	extab       start:0x80005638 end:0x80005640
