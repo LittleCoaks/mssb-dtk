@@ -174,7 +174,6 @@ void statBook_init(void) {
 // .text:0x0015DB44 size:0x12E8 mapped:0x8079CBD8
 void statBook_update(void) {
     StatBookScene* scene = (StatBookScene*)currentDrawingItem;
-    int done = 0;
     long i;
     int j;
 
@@ -264,6 +263,8 @@ void statBook_update(void) {
             scene->timer = 0;
         }
     } else if (scene->state == 4) {
+        int done = 0;
+
         animRelated[0xD2] = 1;
         if (scene->timer == 1) {
             int team;
@@ -426,13 +427,13 @@ void statBook_update(void) {
         }
         for (i = 0; i < 6; i++) {
             if (frame <= lbl_3_data_27C4C[i] + 5) {
-                REC(scene, 0x2B + i)->playMode = UI_PLAY_BACKWARD;
+                REC_AT(scene, 0x2B, i)->playMode = UI_PLAY_BACKWARD;
             }
         }
         for (i = 0; i < 6; i++) {
             if (frame <= lbl_3_data_27C4C[i] + 5) {
                 for (j = 0; j < 6; j++) {
-                    REC(scene, 7 + i * 6 + j)->playMode = UI_PLAY_BACKWARD;
+                    REC_AT(scene, 7 + j, i * 6)->playMode = UI_PLAY_BACKWARD;
                 }
             }
         }
@@ -479,7 +480,6 @@ void compileStatsForBook(StatBookScene* scene) {
     int j;
     int sum;
     long k;
-    int sumHits;
     int sumAtBats;
     int avg;
     StatisticsBatter* batting;
@@ -541,13 +541,13 @@ void compileStatsForBook(StatBookScene* scene) {
             sum += batting[k].StarHitsActivated;
         }
         drawBookNumbers(scene, 0x24, sum, 3);
-        sumHits = 0;
+        sum = 0;
         sumAtBats = 0;
         for (k = 0; k < 9; k++) {
-            sumHits += batting[k].Hits;
+            sum += batting[k].Hits;
             sumAtBats += batting[k].AtBats;
         }
-        avg = sumHits * 10000 / sumAtBats;
+        avg = sum * 10000 / sumAtBats;
         if (avg % 10 >= 5) {
             avg += 10;
         }
@@ -613,16 +613,16 @@ void compileStatsForBook(StatBookScene* scene) {
             sum += pitching[k].starPitchesThrown;
         }
         drawBookNumbers(scene, 0x24, sum, 3);
-        sumHits = 0;
+        sum = 0;
         sumAtBats = 0;
         for (k = 0; k < 9; k++) {
-            sumHits += pitching[k].earnedRunsAllowed;
+            sum += pitching[k].earnedRunsAllowed;
             sumAtBats += pitching[k].outsAsPitcher;
         }
         if (sumAtBats == 0) {
             avg = 9999;
         } else {
-            avg = sumHits * 27000 / sumAtBats;
+            avg = sum * 27000 / sumAtBats;
             if (avg % 10 >= 5) {
                 avg += 10;
             }
@@ -634,11 +634,6 @@ void compileStatsForBook(StatBookScene* scene) {
 
 // .text:0x0015C6E4 size:0xAF4 mapped:0x8079B778
 void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
-    int hundreds;
-    int tens;
-    int ones;
-    int thousands;
-
     fn_800362F0(scene);
     if (type == 0x15) {
         REC(scene, handle)->elementIndex = 0x10;
@@ -664,6 +659,9 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
             load_Icon(scene, handle, 9, 0x1A, 0);
             load_Icon(scene, handle, 10, 0x1A, 0);
         } else {
+            int hundreds;
+            int tens;
+
             REC(scene, handle)->elementIndex = 0x19;
             hundreds = value / 100;
             load_Icon(scene, handle, 2, 0x1A, hundreds);
@@ -677,6 +675,10 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
         }
     } else if (type == 11) {
         if (value >= 1000) {
+            int thousands;
+            int hundreds;
+            int tens;
+
             if (value >= 10000) {
                 value = 9999;
             }
@@ -694,6 +696,9 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
             load_Icon(scene, handle, 9, 0x1A, tens);
             load_Icon(scene, handle, 10, 0x1A, value);
         } else {
+            int hundreds;
+            int tens;
+
             REC(scene, handle)->elementIndex = 0x16;
             hundreds = value / 100 % 10;
             load_Icon(scene, handle, 1, 0x1A, hundreds);
@@ -707,8 +712,8 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
         }
     } else {
         if (type == 12) {
-            int whole = value / 3;
             int rem = value % 3;
+            int whole = value / 3;
 
             if (value == 0) {
                 REC(scene, handle)->elementIndex = 0x11;
@@ -718,6 +723,9 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
             }
             if (rem != 0) {
                 if (whole >= 10) {
+                    int tens;
+                    int ones;
+
                     REC(scene, handle)->elementIndex = 0x14;
                     tens = whole / 10;
                     load_Icon(scene, handle, 1, 0x1A, tens);
@@ -747,6 +755,9 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
             load_Icon(scene, handle, 1, 0x1A, value);
             load_Icon(scene, handle, 2, 0x1A, value);
         } else if (type == 2 || value < 100) {
+            int ones;
+            int tens;
+
             if (value >= 100) {
                 value = 99;
             }
@@ -758,6 +769,10 @@ void drawBookNumbers(StatBookScene* scene, int handle, int value, int type) {
             load_Icon(scene, handle, 4, 0x1A, ones);
             load_Icon(scene, handle, 3, 0x1A, tens);
         } else {
+            int ones;
+            int tens;
+            int hundreds;
+
             if (value >= 1000) {
                 value = 999;
             }

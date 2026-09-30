@@ -979,7 +979,7 @@ config.libs = [
             Object(NonMatching, "game/batting/batter.c"),
             Object(NonMatching, "game/camera/camera.c"),
             Object(Matching, "game/pitching/pitcher_stamina.c"),
-            Object(NonMatching, "game/match_setup/ai_defaults.c"),
+            Object(Matching, "game/match_setup/ai_defaults.c"),
             Object(NonMatching, "game/match_setup/at_bat_setup.c"),
             Object(NonMatching, "game/batting/batter_ai.c"),
             Object(Matching, "game/pitching/pitcher_ai.c"),

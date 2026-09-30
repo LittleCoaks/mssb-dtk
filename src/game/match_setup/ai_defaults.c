@@ -10,50 +10,53 @@
 
 extern u8 aiDashProbabilities[8];
 
-// .text:0x0001DEB8 size:0x29C mapped:0x8065CF4C
-void setDefaultAIValues(void) {
-    int i;
-    int bonus;
-    int scoreA;
+static inline void setHighUrgencySituationTracker(void) {
+    int runners;
     int scoreB;
-    UnkInputRelated* dash;
+    int scoreA;
 
-    g_AiLogic.aIDifficultyMultiplierArray[0] = (f32)g_AiLogic._46 / 255.0f;
-    g_AiLogic.aIDifficultyMultiplierArray[1] = (f32)g_AiLogic._47 / 255.0f;
     g_AiLogic.unused_highUrgencySituationTracker = 1;
 
-    bonus = 0;
+    runners = 0;
     if (g_RunningLogic._02 & 0x1000) {
-        bonus = 1;
+        runners = 1;
     }
     if (g_RunningLogic._02 & 0x100) {
-        bonus++;
+        runners++;
     }
 
-    if (g_Scores._pad_AC >= 4 && g_Scores.halfInning != 0 && bonus != 0) {
-        if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total + bonus >
+    if (g_Scores._pad_AC >= 4 && g_Scores.halfInning != 0 && runners != 0) {
+        if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total + runners >
             g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total) {
             g_AiLogic.unused_highUrgencySituationTracker = 4;
-            goto finish;
+            return;
         }
     }
-    if (g_Scores._pad_AC >= 3 && bonus != 0) {
+    if (g_Scores._pad_AC >= 3 && runners != 0) {
         scoreA = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
         scoreB = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
-        if (scoreA < scoreB && scoreA + bonus >= scoreB) {
+        if (scoreA < scoreB && scoreA + runners >= scoreB) {
             g_AiLogic.unused_highUrgencySituationTracker = 3;
-            goto finish;
+            return;
         }
         if (scoreA == scoreB) {
             g_AiLogic.unused_highUrgencySituationTracker = 2;
-            goto finish;
+            return;
         }
     }
     if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total + 5 <
         g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total) {
         g_AiLogic.unused_highUrgencySituationTracker = 0;
     }
-finish:
+}
+
+// .text:0x0001DEB8 size:0x29C mapped:0x8065CF4C
+void setDefaultAIValues(void) {
+    int i;
+
+    g_AiLogic.aIDifficultyMultiplierArray[0] = (f32)g_AiLogic._46 / 255.0f;
+    g_AiLogic.aIDifficultyMultiplierArray[1] = (f32)g_AiLogic._47 / 255.0f;
+    setHighUrgencySituationTracker();
     pitcherAINewBatter();
     batterAIRNGValueSetting();
 

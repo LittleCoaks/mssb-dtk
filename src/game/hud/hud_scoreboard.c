@@ -375,13 +375,13 @@ void drawDiamondMiniMap_init(void) {
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_8D88.toyFieldMiniMap);
         for (i = 1; i < 4; i++) {
             if (((u8*)&g_Minigame)[0x1914 + i] != 0) {
-                REC(scene, i + 1)->flags |= UI_FLAG_VISIBLE;
-                REC(scene, i + 1)->playMode = UI_PLAY_STOP;
+                REC_AT(scene, 1, i)->flags |= UI_FLAG_VISIBLE;
+                REC_AT(scene, 1, i)->playMode = UI_PLAY_STOP;
                 scene->slots[i] = i;
             } else {
                 scene->slots[i] = 9;
             }
-            REC(scene, i + 1)->frame = (i - 1) << 16;
+            REC_AT(scene, 1, i)->frame = (i - 1) << 16;
         }
         if (g_Minigame._19A2 != 0) {
             REC(scene, 5)->flags |= UI_FLAG_VISIBLE;
@@ -393,7 +393,7 @@ void drawDiamondMiniMap_init(void) {
         }
         for (i = 0; i < 4; i++) {
             if (g_Runners[i].charID >= 0) {
-                REC(scene, i + 5)->frame = g_Runners[i].charID << 16;
+                REC_AT(scene, 5, i)->frame = g_Runners[i].charID << 16;
             }
         }
     }
@@ -542,7 +542,7 @@ void drawDiamondMiniMap_ongoing(void) {
                 }
                 base = runner->currentBase;
                 if (base >= 1 && base <= 3) {
-                    REC(scene, base + 8)->flags |= UI_FLAG_VISIBLE;
+                    REC_AT(scene, 8, base)->flags |= UI_FLAG_VISIBLE;
                 }
             }
         }
@@ -962,10 +962,10 @@ void relatedToAnimatingEndOfGame(void) {
         REC(scene, 17)->flags &= ~UI_FLAG_VISIBLE;
     }
     for (i = 0; i < 3; i++) {
-        REC(scene, i + 3)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[0].captain][1];
-        REC(scene, i + 6)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[1].captain][1];
-        REC(scene, i + 3)->frame = g_GameLogic.logo[0].variationID << 16;
-        REC(scene, i + 6)->frame = g_GameLogic.logo[1].variationID << 16;
+        REC_AT(scene, 3, i)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[0].captain][1];
+        REC_AT(scene, 6, i)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[1].captain][1];
+        REC_AT(scene, 3, i)->frame = g_GameLogic.logo[0].variationID << 16;
+        REC_AT(scene, 6, i)->frame = g_GameLogic.logo[1].variationID << 16;
     }
 
     if (g_Scores.scores[0].total < 10) {
@@ -1035,7 +1035,6 @@ void fn_3_9413C(void) {
 // .text:0x00093D5C size:0x3E0 mapped:0x806D2DF0
 void graphics_ShowScoreUpdateOnRBI_initial(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
-    int score;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_EABC);
     REC(scene, 2)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[0].captain][1];
@@ -1049,39 +1048,7 @@ void graphics_ShowScoreUpdateOnRBI_initial(void) {
     REC(scene, 8)->frame = 4 << 16;
     REC(scene, 9)->frame = 5 << 16;
 
-    score = g_Scores.scores[0].total;
-    if (score >= 10) {
-        if (score >= 99) {
-            score = 99;
-        }
-        REC(scene, 4)->flags &= ~UI_FLAG_VISIBLE;
-        REC(scene, 5)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, 6)->flags |= UI_FLAG_VISIBLE;
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 5, 2, 0xF6, score / 10);
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 6, 3, 0xF6, score % 10);
-    } else {
-        REC(scene, 4)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
-        REC(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 4, 1, 0xF6, g_Scores.scores[0].total);
-    }
-
-    score = g_Scores.scores[1].total;
-    if (score >= 10) {
-        if (score >= 99) {
-            score = 99;
-        }
-        REC(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
-        REC(scene, 8)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, 9)->flags |= UI_FLAG_VISIBLE;
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 8, 5, 0xF6, score / 10);
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 9, 6, 0xF6, score % 10);
-    } else {
-        REC(scene, 7)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, 8)->flags &= ~UI_FLAG_VISIBLE;
-        REC(scene, 9)->flags &= ~UI_FLAG_VISIBLE;
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 7, 4, 0xF6, g_Scores.scores[1].total);
-    }
+    updateRBIScoreDigits(scene);
     animRelated[0x98] = 1;
     scene->unk18 = 0;
     currentDrawingItem->func = graphics_ShowScoreUpdateOnRBI_ongoing;
@@ -1090,7 +1057,6 @@ void graphics_ShowScoreUpdateOnRBI_initial(void) {
 // .text:0x00093960 size:0x3FC mapped:0x806D29F4
 void graphics_ShowScoreUpdateOnRBI_ongoing(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
-    int score;
 
     if (animRelated[0x98] == 2) {
         animRelated[0x98] = 1;
@@ -1107,39 +1073,7 @@ void graphics_ShowScoreUpdateOnRBI_ongoing(void) {
         ((g_UnkSound_32718._07 == 7 || g_UnkSound_32718._07 == 0x14) && scene->unk18 > 30) ||
         g_GameLogic.gameStatus == GAME_STATUS_TRANSITION || g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_TO_MINIGAME_START ||
         (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && scene->unk18 > 90))) {
-        score = g_Scores.scores[0].total;
-        if (score >= 10) {
-            if (score >= 99) {
-                score = 99;
-            }
-            REC(scene, 4)->flags &= ~UI_FLAG_VISIBLE;
-            REC(scene, 5)->flags |= UI_FLAG_VISIBLE;
-            REC(scene, 6)->flags |= UI_FLAG_VISIBLE;
-            setIndicatorSlotState((DrawingSceneStruct*)scene, 5, 2, 0xF6, score / 10);
-            setIndicatorSlotState((DrawingSceneStruct*)scene, 6, 3, 0xF6, score % 10);
-        } else {
-            REC(scene, 4)->flags |= UI_FLAG_VISIBLE;
-            REC(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
-            REC(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
-            setIndicatorSlotState((DrawingSceneStruct*)scene, 4, 1, 0xF6, g_Scores.scores[0].total);
-        }
-
-        score = g_Scores.scores[1].total;
-        if (score >= 10) {
-            if (score >= 99) {
-                score = 99;
-            }
-            REC(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
-            REC(scene, 8)->flags |= UI_FLAG_VISIBLE;
-            REC(scene, 9)->flags |= UI_FLAG_VISIBLE;
-            setIndicatorSlotState((DrawingSceneStruct*)scene, 8, 5, 0xF6, score / 10);
-            setIndicatorSlotState((DrawingSceneStruct*)scene, 9, 6, 0xF6, score % 10);
-        } else {
-            REC(scene, 7)->flags |= UI_FLAG_VISIBLE;
-            REC(scene, 8)->flags &= ~UI_FLAG_VISIBLE;
-            REC(scene, 9)->flags &= ~UI_FLAG_VISIBLE;
-            setIndicatorSlotState((DrawingSceneStruct*)scene, 7, 4, 0xF6, g_Scores.scores[1].total);
-        }
+        updateRBIScoreDigits(scene);
     } else {
         animRelated[0x98] = 0;
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
@@ -1151,8 +1085,8 @@ void graphics_ShowScoreUpdateOnRBI_ongoing(void) {
 void updateRBIScoreDigits(HudScene* scene) {
     int score;
 
-    score = g_Scores.scores[0].total;
-    if (score >= 10) {
+    if (g_Scores.scores[0].total >= 10) {
+        score = g_Scores.scores[0].total;
         if (score >= 99) {
             score = 99;
         }
@@ -1413,8 +1347,8 @@ void manageScoreboardGraphic(void) {
         REC(scene, 2)->anchorSub = data->anchorSubs[0];
         REC(scene, 3)->anchorSub = data->anchorSubs[12];
         for (i = 0; i < 11; i++) {
-            REC(scene, i + 6)->anchorSub = data->anchorSubs[i + 1];
-            REC(scene, i + 0x11)->anchorSub = data->anchorSubs[i + 13];
+            REC_AT(scene, 6, i)->anchorSub = data->anchorSubs[i + 1];
+            REC_AT(scene, 0x11, i)->anchorSub = data->anchorSubs[i + 13];
         }
     }
     REC(scene, 4)->elementIndex = data->logoElements[g_GameLogic.logo[0].captain][0];
@@ -1519,8 +1453,8 @@ void fn_3_91E4C(void) {
                     REC(scene, 2)->playMode = UI_PLAY_BACKWARD;
                     REC(scene, 3)->playMode = UI_PLAY_BACKWARD;
                 }
-                REC(scene, i + 6)->playMode = UI_PLAY_BACKWARD;
-                REC(scene, i + 0x11)->playMode = UI_PLAY_BACKWARD;
+                REC_AT(scene, 6, i)->playMode = UI_PLAY_BACKWARD;
+                REC_AT(scene, 0x11, i)->playMode = UI_PLAY_BACKWARD;
             }
         }
         scene->unk1A++;
@@ -1548,7 +1482,7 @@ void fn_3_91D1C(void) {
         if (slot > 9) {
             slot -= 9;
         }
-        REC(scene, i + 5)->frame =
+        REC_AT(scene, 5, i)->frame =
             inMemRoster[g_GameLogic.teamFielding]
                        [g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][slot][0]]
                            .stats.CharID

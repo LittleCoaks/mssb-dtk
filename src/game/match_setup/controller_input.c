@@ -8,10 +8,10 @@
 
 // .text:0x0006D304 size:0x19C mapped:0x806AC398
 void UpdateControllerInputs(void) {
-    InputStruct* c;
-    lbl_803C77B8_s* src;
     int i;
-    for (c = g_Controls, src = &AtBat_ButtonInput1, i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++) {
+        InputStruct* c = &g_Controls[i];
+        lbl_803C77B8_s* src = (lbl_803C77B8_s*)((u8*)&AtBat_ButtonInput1 + i * 0x20);
         u16 prev;
         c->_0E = 0;
         prev = c->buttonInput;
@@ -23,7 +23,7 @@ void UpdateControllerInputs(void) {
         c->leftTriggerDistance = ((s8*)src)[0x14];
         c->rightTriggerDistance = ((s8*)src)[0x15];
         if ((c->newButtonInput & INPUT_TRIGGER_L) && (prev & INPUT_TRIGGER_L)) {
-            c->newButtonInput &= 0xFFBF;
+            c->newButtonInput &= (u16)~INPUT_TRIGGER_L;
         }
         if (c->leftTriggerDistance >= 120.0f) {
             if (!(prev & INPUT_TRIGGER_L)) {
@@ -32,7 +32,7 @@ void UpdateControllerInputs(void) {
             c->buttonInput |= INPUT_TRIGGER_L;
         }
         if ((c->newButtonInput & INPUT_TRIGGER_R) && (prev & INPUT_TRIGGER_R)) {
-            c->newButtonInput &= 0xFFDF;
+            c->newButtonInput &= (u16)~INPUT_TRIGGER_R;
         }
         if (c->rightTriggerDistance >= 120.0f) {
             if (!(prev & INPUT_TRIGGER_R)) {
@@ -41,21 +41,19 @@ void UpdateControllerInputs(void) {
             c->buttonInput |= INPUT_TRIGGER_R;
         }
         InterpretControllerInputsIntoMagnitude(i);
-        src = (lbl_803C77B8_s*)((u8*)src + 0x20);
-        c++;
     }
 }
 
 // .text:0x0006CD88 size:0x57C mapped:0x806ABE1C
 void InterpretControllerInputsIntoMagnitude(int port) {
     s16 angle = -1;
-    s16 magnitude;
+    int magnitude;
     f32 z;
     f32 x;
     f32 mag;
-    x = g_Controls[port].up_down;
     z = g_Controls[port].right_left;
-    mag = dolsqrtf2(x * x + z * z) - 16.0f;
+    x = g_Controls[port].up_down;
+    mag = dolsqrtf2(z * z + x * x) - 16.0f;
     if (mag <= 0.0f) {
         u16 in = g_Controls[port].buttonInput;
         if ((in & INPUT_BUTTON_UP) && (in & INPUT_BUTTON_RIGHT)) {
@@ -90,7 +88,7 @@ void InterpretControllerInputsIntoMagnitude(int port) {
         if (mag > 56.0f) {
             mag = 56.0f;
         }
-        magnitude = 64.0f * mag / 56.0f;
+        magnitude = (s16)(64.0f * mag / 56.0f);
         if (magnitude != 0) {
             int r;
             f32 k;
@@ -99,16 +97,17 @@ void InterpretControllerInputsIntoMagnitude(int port) {
             if (r > 512) {
                 r = 1024 - r;
             }
-            k = 0.001953125f * (f32)r * 0.27208483f;
+            k = (f32)r / 512.0f;
+            k = k * 0.27208483f;
             z += z * k;
             x += x * k;
             g_Controls[port].right_left = z;
             g_Controls[port].up_down = x;
-            mag = dolsqrtf2(x * x + z * z) - 16.0f;
+            mag = dolsqrtf2(z * z + x * x) - 16.0f;
             if (mag > 56.0f) {
                 mag = 56.0f;
             }
-            magnitude = 64.0f * mag / 56.0f;
+            magnitude = (s16)(64.0f * mag / 56.0f);
         }
         g_Controls[port].controlStickAngle = angle;
         g_Controls[port].controlStickMagnitude = magnitude;

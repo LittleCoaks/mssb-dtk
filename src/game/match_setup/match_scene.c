@@ -199,6 +199,7 @@ void pauseSubPanel_update(void) {
                 if (pauseControl._1D2 == 7 || pauseControl._1D2 == 0xD) {
                     goto remove;
                 }
+                return;
             }
         } else {
             if (pauseControl._1D1 == 2 || pauseControl._1D1 == 9) {
@@ -439,9 +440,10 @@ void pausePageIndicator_update(void) {
         }
         animRelated[0xC3] = 1;
     } else if (scene->state == 2) {
-        u8 mode = g_d_GameSettings.GameModeSelected;
+        u8 mode;
 
         animRelated[0xC3] = 0;
+        mode = g_d_GameSettings.GameModeSelected;
         if ((mode == GAME_TYPE_PRACTICE && pauseControl._1D3 == 6) ||
             (mode != GAME_TYPE_PRACTICE && pauseControl._1D2 == 5)) {
             REC(scene, 0)->playMode = UI_PLAY_FORWARD;
@@ -542,6 +544,7 @@ void pauseMenu_ControlsMenu(void) {
 // .text:0x000978DC size:0x410 mapped:0x806D6970
 void pauseControlsMenu_update(void) {
     PauseMenuScene* scene = (PauseMenuScene*)currentDrawingItem;
+    int row;
     int j;
     int i;
     int b;
@@ -571,17 +574,17 @@ void pauseControlsMenu_update(void) {
     }
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 4; j++) {
-            a = j + 0x1D;
+            row = j + 0x1D;
             if (i == 0) {
-                a = j + 5;
+                row = j + 5;
             }
             if (pauseControl._23F[i] == j + 1) {
-                REC(scene, a)->playMode = UI_PLAY_FORWARD;
+                REC(scene, row)->playMode = UI_PLAY_FORWARD;
             } else {
-                if ((REC(scene, a)->frame >> 16) > 10) {
-                    REC(scene, a)->frame = 0xA0000;
+                if ((REC(scene, row)->frame >> 16) > 10) {
+                    REC(scene, row)->frame = 0xA0000;
                 }
-                REC(scene, a)->playMode = UI_PLAY_BACKWARD;
+                REC(scene, row)->playMode = UI_PLAY_BACKWARD;
             }
             c = j + 0x21;
             if (i == 0) {

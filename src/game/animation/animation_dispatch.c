@@ -1747,10 +1747,8 @@ void handleRunnerActionsAndTagging(void) {
     for (i = 0; i < 9; i++) {
         if (g_Fielders[i].bodyCheckResult != 0) {
             if (g_Fielders[i].bodyCheckResult != 0) {
-                u8* state = &g_UnkAnimation_31EAC[i].state;
-
-                if (*state != 8 && *state != 9) {
-                    *state = 8;
+                if (g_UnkAnimation_31EAC[i].state != 8 && g_UnkAnimation_31EAC[i].state != 9) {
+                    g_UnkAnimation_31EAC[i].state = 8;
                 }
             }
             break;
