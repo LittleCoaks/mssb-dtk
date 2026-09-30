@@ -49,7 +49,8 @@ typedef struct VsScoutMission {
     /*0x0E*/ u8 _0E;
 } VsScoutMission; // size: 0xF
 
-extern u8 lbl_80109410[0x6D8];
+extern VsScoutMission scoutMissionTable[13];
+
 extern s32 lbl_3_data_1F74[VS_SITUATION_COUNT];
 extern s32 lbl_3_data_2368[6];
 extern s32 lbl_3_data_2380[6];
@@ -857,7 +858,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
     VsData *data = &lbl_3_data_1D28;
     u8 *tracker = (u8 *)starMissionCompletionTracker;
     VsScoutState *scout = &lbl_3_common_bss_37400;
-    VsScoutMission *scoutMissions = (VsScoutMission *)(lbl_80109410 + 0x10);
+    VsScoutMission *scoutMissions = scoutMissionTable;
     BOOL scoutMission = FALSE;
     s32 i;
 

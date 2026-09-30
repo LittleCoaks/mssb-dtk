@@ -139,7 +139,7 @@ stats, results and MVP, and replay record/playback.
 | `versus_screens.c` | `rep_A00` | 20 (8) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
 | `roster_init.c` | `rep_1188` | 7 (6) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
 | `transition_init.c` | `rep_1038` | 7 (4) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
-| `star_missions.c` | `rep_3DA8` | 1 (1) | 2,632 | Star-mission tracking (offensive / double play). | high |
+| `star_missions.c` | `rep_3DA8` + `auto_00_001658F0` | 20 (13) | 19,160 | Challenge-mode star missions (quantity-based, offensive, whole-game, per-pitch tracking, mercy recruiting) and scout-flag missions (`shouldScoutMissionBeEnabled`, `decideScoutFlagMission`, reward assignment). | high |
 | `controller_input.c` | `rep_10E8` | 2 (2) | 1,816 | Controller input reading and magnitude interpretation. | high |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
 | `replay_inputs.c` | `rep_1330` | 4 (4) | 3,220 | Replay playback: restore the `g_Stats` snapshot, save live structs, per-frame input playback (`useReplayInputs`). | high |

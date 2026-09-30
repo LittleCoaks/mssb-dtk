@@ -1149,7 +1149,7 @@ typedef enum _CHALLENGE_RECRUITMENT_CD {
 } CHALLENGE_RECRUITMENT_CD;
 
 typedef struct _starMissionTrackingPair {
-    /*0x000*/ E(u8, STAR_MISSION_TRACKING) starMissionStatus;
+    /*0x000*/ E(s8, STAR_MISSION_TRACKING) starMissionStatus;
     /*0x001*/ u8 shownOnPauseMenu;
 } starMissionTrackingPair;
 
