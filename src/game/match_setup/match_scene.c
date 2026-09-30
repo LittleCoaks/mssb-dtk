@@ -671,9 +671,9 @@ void initAnimStruct(void) {
     animRelated[0xB5] = 0;
     animRelated[0xC5] = 0;
     if (g_d_GameSettings.minigamesEnabled == 0) {
-        insertGraphicDrawingFunction(fn_3_95970, 2);
+        insertGraphicDrawingFunction(offscreenFielderIndicator_init, 2);
     }
-    insertGraphicDrawingFunction(fn_3_91A60, 2);
+    insertGraphicDrawingFunction(ballLandingMarker_init, 2);
 }
 
 // .text:0x000973EC size:0x414 mapped:0x806D6480
@@ -695,13 +695,13 @@ void animateMatchScene(void) {
                 animRelated[0xB4] = 2;
                 insertGraphicDrawingFunction(fn_3_952DC, 2);
                 if (lbl_3_common_bss_37400.scoutResult == 2) {
-                    insertGraphicDrawingFunction(fn_3_94BC4, 2);
+                    insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 }
             }
             if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
                 animRelated[0xB3] == 1 && g_UnkSound_32718._07 == 0) {
                 insertGraphicDrawingFunction(fn_3_95124, 2);
-                insertGraphicDrawingFunction(fn_3_94BC4, 2);
+                insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 animRelated[0xB3] = 2;
             }
             if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
@@ -730,7 +730,7 @@ void animateMatchScene(void) {
                 if (animRelated[0xAD] != 0) {
                     if (g_d_GameSettings.exhibitionMatchInd == 0) {
                         insertGraphicDrawingFunction(fn_3_953FC, 2);
-                        insertGraphicDrawingFunction(fn_3_94BC4, 2);
+                        insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                     } else {
                         insertGraphicDrawingFunction(fn_3_9551C, 2);
                     }
@@ -743,7 +743,7 @@ void animateMatchScene(void) {
                 }
             } else if (g_GameLogic.gameStatus == GAME_STATUS_HOMERUN_END) {
                 if (g_GameLogic._125 == 1 && animRelated[0xC5] == 0) {
-                    insertGraphicDrawingFunction(fn_3_93544, 2);
+                    insertGraphicDrawingFunction(homeRunScoreTicker_init, 2);
                     animRelated[0xC5] = 1;
                 }
             }
