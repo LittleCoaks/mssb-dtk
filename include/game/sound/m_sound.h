@@ -17,7 +17,7 @@ int initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg);
 void fn_3_8BDF4(void);
 void initializeCamera(void);
 void transitionToReplay(void);
-void fn_3_8C104(void);
+void fn_3_8C104(int arg0);
 void fn_3_8C2DC(void);
 BOOL fn_3_8C4F0(u32 arg1, u32 arg2);
 void makeSoundOfBallBouncing(void);

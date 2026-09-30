@@ -2201,3 +2201,109 @@ First seen: `game/game/match_setup/versus_screens` (2026-09), Sonnet first pass,
 - **A single `.data` object with several named sub-symbols needs both spellings.** Functions that
   hoist the base register reference it as a struct (`VsData`); single-use functions reference the
   named sub-symbols. objdiff matches on symbol name, so both must exist.
+
+## Comma-initialised `for` loops: read the init order off the target's `li` sequence
+
+First seen: `staminaRelated` (`game/pitching/pitcher_stamina.c`, 2026-09). Two callee-saved
+registers (a counter and a whole-function local) were swapped, with logic identical, and about
+150 declaration orders could not fix it. The clue was the order of the zero-inits: the target
+emitted `li i,0` *before* `li nCand,0`, and ours emitted them the other way round, because the
+source had `nCand = 0; for (i = 0; ...)`. Writing `for (i = 0, nCand = 0; ...)` (and the same
+change for a second counter loop) fixed the volatile order in the next block. The pair swap then
+became fixable by declaration order again: moving `int nCand;` above the initialised locals gave
+100%. When two registers swap and declaration order does nothing, check whether the statement
+shape changes what the declaration order acts on. Re-sweep declaration order after each shape
+change.
+
+## A unit with no target `.rodata` must not include `header_rep_data.h` or an `extern` dolsqrtf2
+
+Same unit. objdiff scores `.text` only, so the unit showed 100% while our object still carried
+a 0x60-byte `.rodata` that the target unit does not have: `repHeaderData` from an unused
+`#include "header_rep_data.h"` plus `dolsqrtf2`'s `_half`/`_three`. Before flipping to Matching,
+compare the section lists of the two objects. If the target has no `.rodata`, drop the unused
+include and `#define SQRT2_LINKAGE static`. Codegen does not change.
+
+## Findings from the at_bat_results / stat_tracking / game_math passes
+
+First seen: `game/game/batting/at_bat_results`, `game/game/match_setup/stat_tracking` and
+`game/game/math/game_math` (2026-09).
+
+- **The same routine can need two spellings: one for the standalone function, one for its inlined
+  copies.** `RandomInt_Game` and `random_fn_3_9EE24` match with `int orig = max; if (max < 0) max = -max;`,
+  but the copies inlined into the `Random*_Range` wrappers match the `ABS()` form. Rewriting the
+  shared body helped one side and broke the other. Keeping the old body as a `static inline` helper
+  for the wrappers took `game_math.c` from 99.34% to 99.75%. `at_bat_results.c` needed the same pair.
+- **Storing to a global and re-reading it** (`g._00 = sum; ret = g._00 % max;`) instead of keeping
+  the sum in a local reproduced the target's load/store order in the sim random helper.
+- **Steer the load order of two values read at function entry:** declare one as a local, read the
+  other field directly in the first expression, then declare its local afterwards. This fixed
+  `fn_3_79DD4` and `updatePitcherStatsOnScoreChange`.
+- **Pointer locals over global arrays usually cost the match here; write the full global
+  expression.** This contradicts the versus_screens note above, so check the target: use a pointer
+  local only when the target clearly hoists one base register.
+- **A same-file getter called under `-inline deferred` can be the missing inline behind a register
+  swap** (`pitcherStats = fn_3_7BBC0();` fixed `postPitchStatUpdating`'s swap).
+- **A `lis 1; subi 1` store of `0xFFFF` means the destination field is unsigned 16-bit.**
+- **Statement order inside a loop moves register choice:** in `setAtBatResult`, storing
+  `fielderIndex` and `outsDuringPossession` before loading the next field gave 100%.
+- **A switch jump table in `.data` scores 0% until its function is the exact target size**,
+  because every entry points at a case label. Fix the function first.
+
+## A load that stays below independent stores, plus `lhax` next to an `add`, means an unrolled `for` loop
+
+First seen: `game/game/match_setup/replay_state`, `fn_3_7D2E0`/`fn_3_7D39C` (55.40% -> 100%, 2026-09).
+
+Signature: two copies of the same field-copy block where the target reloads the second copy's
+index (`lbz 0x40(rStats)`) only after the first copy's stores, although the stores go to a
+different global and could not alias it. Two hand-written copies (or a `static inline` helper
+called twice) let MWCC hoist that load above the stores. A `for (i = 0; i < 2; i++)` loop that
+MWCC unrolls keeps the load in place. It also explains the source-side addressing: offset 0 is
+read with `lhax base, idx` and the other fields through a shared `add` + displacement, which is
+what `g_Controls[g_Stats.replayPort[i]].field` gives when every field is array-indexed.
+Loading the port into a local or through an `InputStruct*` loses the `lhax`. Related: "A
+reload-after-store of the same field means an unrolled loop".
+
+## An `(int)` cast on every compare of a `u32` field means the field is signed, and the cast costs a register
+
+Same unit. `g_Stats.playFrameCounter` was declared `u32`, and every signed compare in the tree
+used `(int)g_Stats.playFrameCounter`. With the right instructions, the cast still added a
+phantom virtual register: the allocator skipped r11 (or r10 when inlined) and moved the
+counter and base registers up by one. Declaring the field `s32` and removing the casts gave
+100% on three functions, with the stat_tracking and camera units unchanged. If every use of
+a field is cast to the same other type, fix the declared type.
+
+
+## Findings from the result_stats second pass
+
+First seen: `game/game/match_setup/result_stats` (2026-09), .text 93.6% -> 97.3%.
+
+- **A zero-based `k*stride` offset added to a separate row base means the code was inside an inline
+  helper.** In `MVPCalculation` the target builds 2D row addresses as `li r11,0; mr r12,r11 ...
+  add r20,r9,r11`, where ours stepped one combined element pointer and came out 68 bytes short.
+  Moving the repeated `score[k] += weight * stat` lines into a `static inline` helper restored the
+  exact size and the target's stack spills (+6.5%). Row-pointer or element-pointer locals do not
+  reproduce it.
+- **A pointer to a global array element prevents `lbzu`.** `s8* p = &g_Scores._AF[w]; x = *p; ...
+  *p = x;` gives the target's `addi; lbz 0(r)` pair instead of `lbzu` (+6% on `winningPitcher`).
+- **Keep declaration-order sweeps to 720 permutations or fewer.** A build and score takes about half
+  a second, so 5040 permutations runs past the 10-minute command limit.
+
+## Findings from replay_inputs (first pass to 100%, flipped to Matching)
+
+First seen: `game/game/match_setup/replay_inputs` (2026-09).
+
+- **A same-TU callee that the target calls but our build inlines needs `#pragma dont_inline`.**
+  `useReplayInputs` (712 bytes, contains an inlined `dolsqrtf2`) was pulled into `CopyMoreStructs`
+  regardless of definition order or loop form; `structCopying` (19 memcpys) is legitimately inlined
+  there. The pragma around the callee restored 100%. Original reason not found.
+- **`dolsqrtf2` that is actually called: use `SQRT2_LINKAGE static`.** The used statics (`_half`,
+  `_three`) then land after the pooled `0.0f`, as in the target; with `extern` linkage they sit at the
+  head of `.rodata` and shift the pool by 16 bytes (rodata 94.4% -> 100%).
+- **`(f32)a * (f32)a + (f32)b * (f32)b` on `s8` fields** gives the target's per-operand
+  `extsb/xoris/fsubs`; plain `a*a + b*b` emits an integer `mullw`.
+- **Playback mirrors recording**: reading `g_ReplayLogic[g_Stats.playFrameCounter].pad[i].field`
+  (full global expression, no `rec` local) gave 88% -> 100% where the hoisted `rec->pad[i]` form
+  produced different induction variables.
+- **A restore function that re-reads a byte through a saved `g_Stats` pointer after a fresh
+  `lis` read of the same global** (`g_Stats.replayReason != 2 && stats->replayReason != 0xD`) is a
+  mixed local-pointer / global-access source shape.

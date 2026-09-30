@@ -9,6 +9,8 @@
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
     /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,
+    /* 2 */ P2_CPU_CODE_UNKNOWN_2,
+    /* 3 */ P2_CPU_CODE_UNKNOWN_3,
 } P2_CPU_CODE;
 
 typedef struct _GameInitVariables {
@@ -20,13 +22,14 @@ typedef struct _GameInitVariables {
     /*0x09*/ E(u8, STADIUM_ID) StadiumID;
     /*0x0A*/ u8 miniGameStadiumIndicator;
     /*0x0B*/ u8 _0B;
-    /*0x0C*/ u8 maybeHomeAway;
-    /*0x0D*/ u8 maybeHomeAway2;
+    /*0x0C*/ u8 maybeHomeAway[2];
     /*0x0E*/ u8 home_AwaySetting;   // "bats first" setting (0x800E870A)
     /*0x0F*/ u8 _0F;
     /*0x10*/ E(u8, P2_CPU_CODE) p2_CPU_match_code;
     /*0x11*/ bool minigamesEnabled;
-    artificial_padding(0x11, 0x20, bool);
+    /*0x12*/ u8 _12;
+    /*0x13*/ u8 _13;
+    artificial_padding(0x13, 0x20, u8);
     /*0x20*/ s16 _20[4][2];
     /*0x30*/ s16 challengeMinigame_baseCoinsEarned;
     /*0x32*/ u8 bJMatchRelated;
@@ -59,23 +62,24 @@ extern GameInitVariables g_d_GameSettings;
 //   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28,
 //   0x800E877E -> +0x2A, 0x800E8782 -> +0x2E
 typedef struct _GameControlOptions {
-    /*0x000*/ bool autoRunning;
-    /*0x001*/ bool autoFielding;
-    /*0x002*/ bool dropSpot;
-    /*0x003*/ bool _3;
-    /*0x004*/ bool easyBatting;
+    /*0x000*/ bool _0;
+    /*0x001*/ bool _1;
+    /*0x002*/ bool autoRunning;
+    /*0x003*/ bool autoFielding;
+    /*0x004*/ bool dropSpot;
     /*0x005*/ bool _5;
-    /*0x006*/ bool _6;
+    /*0x006*/ bool easyBatting;
 } GameControlOptions; // size: 0x7
 
 typedef struct _InningSettings {
     /*0x00*/ u8 inningCount;
-    u8 _pad_1[0x3];
+    u8 _pad_1[0x2];
+    /*0x03*/ u8 aiDifficulty;
     /*0x04*/ u8 starSkillsSetting;
     /*0x05*/ u8 runsNeededForMercy;
-    u8 _pad_6[0x3];
-    /*0x09*/ GameControlOptions controlOptions[4];
-    u8 _pad_25[0x3];
+    u8 _pad_6[0x1];
+    /*0x07*/ GameControlOptions controlOptions[4];
+    u8 _pad_23[0x5];
     /*0x28*/ s16 rel;           // which REL is resident: 0 boot, 4 menu, 5 match
     /*0x2A*/ u16 currentScene;  // the menu screenCode (5 main menu, 6 options, ...)
     /*0x2C*/ u16 _2C;
@@ -160,10 +164,45 @@ typedef struct {
 } StatisticsBatter; // size: 0x26
 
 typedef struct {
-    /* 0x00 */ u8 _00[0x1A];
+    /* 0x00 */ u16 _00;
+    /* 0x02 */ u16 runsAllowed;
+    /* 0x04 */ u16 earnedRunsAllowed;
+    /* 0x06 */ u16 _06;
+    /* 0x08 */ u16 _08;
+    /* 0x0A */ u16 _0A;
+    /* 0x0C */ u16 _0C;
+    /* 0x0E */ u16 pitchesThrown;
+    /* 0x10 */ u16 stamina;
+    /* 0x12 */ u8 wasPitcher;
+    /* 0x13 */ u8 _13[7];
     /* 0x1A */ u8 outsAsPitcher;
-    /* 0x1B */ u8 _1B[3];
+    /* 0x1B */ u8 maxPitchSpeed;
+    /* 0x1C */ u8 _1C;
+    /* 0x1D */ u8 starPitchesThrown;
 } StatisticsPitcher; // size: 0x1E
+
+// lbl_80353260: one entry per roster slot, per team.
+typedef struct {
+    /* 0x0 */ u8 a : 5;
+    u8 : 3;
+    u8 : 2;
+    /* 0x1 */ u8 b : 4;
+    u8 : 2;
+    /* 0x2 */ u8 c : 4;
+    u8 d : 4;
+    /* 0x3 */ u8 e : 4;
+    u8 f : 4;
+} StatsTableEntryA; // size: 0x4
+
+// lbl_803532A8: 100 entries per team.
+typedef struct {
+    /* 0x0 */ u16 a : 5;
+    u16 b : 4;
+    u16 c : 4;
+    u16 d : 3;
+    /* 0x2 */ s8 e;
+    /* 0x3 */ u8 f;
+} StatsTableEntryB; // size: 0x4
 
 typedef struct {
     /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS / 9][9]; // the master stat table, indexed [charID / 9][charID % 9] (copied into inMemRoster)
@@ -192,10 +231,15 @@ typedef struct {
     /* 0x478D */ u8 battingOrderIndex[9];
     /* 0x4796 */ u8 _4796[0x489B - 0x4796];
     /* 0x489B */ u8 charIsStarred[2][9];
-    /* 0x48AD */ u8 _48AD[0x4C28 - 0x48AD];
-} Static_MSSB_Data; // size: 0x4C28
+    /* 0x48AD */ u8 _48AD[0x48C0 - 0x48AD];
+} Static_MSSB_Data; // size: 0x48C0
 
 extern Static_MSSB_Data Static_Stats_Tables;
+
+/* Two objects split out of the tail of the old 0x4C28-byte Static_Stats_Tables
+ * symbol: references to them carry their own @ha/@l relocation in the target. */
+extern StatsTableEntryA lbl_80353260[2][9];
+extern StatsTableEntryB lbl_803532A8[2][100];
 
 /* The original symbol table gave Static_Stats_Tables a size of 0x51F8, but
  * every reference past 0x4C28 is to exactly +0x4C28, +0x4E44 or +0x50F0:
@@ -209,9 +253,25 @@ typedef struct {
     /* 0x00 */ u8 _00[8];
     /* 0x08 */ ScoreStruct scores[2];
     /* 0x54 */ ScoreStruct hits[2];
-    /* 0xA0 */ u8 _A0[0xF0 - 0xA0];
+    /* 0xA0 */ s8 _A0[0xBE - 0xA0];
+    /* 0xBE */ struct {
+        s8 pitcher;
+        u8 inning;
+    } pitcherLog[2][10];
+    /* 0xE6 */ s8 catcherLog[2][5];
     /* 0xF0 */ u8 stealsAgainst[2];
-    /* 0xF2 */ u8 _F2[0x108 - 0xF2];
+    /* 0xF2 */ u8 winnerSlot;
+    /* 0xF3 */ s8 winningPitcher;
+    /* 0xF4 */ s8 losingPitcher;
+    /* 0xF5 */ s8 savePitcher;
+    /* 0xF6 */ u8 inning;
+    /* 0xF7 */ u8 noHitterKind;
+    /* 0xF8 */ s8 _F8[8];
+    /* 0x100 */ s8 _100;
+    /* 0x101 */ s8 mvpRosterLoc[2];
+    /* 0x103 */ s8 mvpCharID;
+    /* 0x104 */ u8 mvpKind;
+    /* 0x105 */ s8 _105[0x108 - 0x105];
 } StatsScreenScoresStruct; // size: 0x108
 
 extern StatsScreenScoresStruct StatsScreenScores;

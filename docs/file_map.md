@@ -48,7 +48,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `ball_fielder_collision.c` | `rep_4090` | 5 (2) | 4,808 | Ball↔fielder collision detection. | med |
 | `ball_trajectory.c` | `rep_17E0` | 1 (1) | 672 | `categorizeBallTrajectory` only. | high |
 
-## batting/ — 5 files, 68 fns (42 named)
+## batting/ — 6 files, 85 fns (55 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -57,8 +57,9 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `charge_effects.c` | `rep_1F58` | 12 (2) | 4,316 | Charge animation graphics. | med |
 | `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
 | `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (2) | 2,708 | Peach/Daisy star-swing special case. | med |
+| `at_bat_results.c` | `auto_00_0009CD90` | 17 (13) | 7,508 | At-bat result codes: outs, strikeouts/walks, bunts, forced runners; `setAtBatResult`, `iterateBatter`; array shuffles and weighted random picks. | high |
 
-## pitching/ — 4 files, 57 fns (31 named)
+## pitching/ — 5 files, 62 fns (35 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -66,6 +67,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `pitcher_ai.c` | `rep_940` | 8 (7) | 3,296 | Pitch selection, curve direction, mound movement. | high |
 | `perfect_pitch_gfx.c` | `rep_2308` | 6 (1) | 1,876 | Perfect-pitch graphics. | med |
 | `pitcher_fire_effect.c` | `rep_2390` | 2 (1) | 776 | Hand-on-fire effect. | med |
+| `pitcher_stamina.c` | `auto_00_0001D86C` | 5 (4) | 1,612 | Reliever swap on low stamina (`staminaRelated`), lineup copy, `trackLastPitchInfo`, AI urgency tracker. | med |
 
 ## baserunning/ — 3 files, 95 fns (56 named)
 
@@ -124,11 +126,13 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 10 files, 41 fns (25 named)
+## match_setup/ — 16 files, 135 fns (94 named)
 
-Not gameplay itself: the glue that stands a match up and tears it down —
-roster construction, loading and transition state, controller input, and the
-screens either side of play (versus, championship, home-run trot).
+The glue that stands a match up and tears it down — roster construction,
+loading and transition state, controller input, and the screens either side of
+play (versus, championship, home-run trot) — plus the match state machine that
+drives play itself (`match_flow.c`) and its bookkeeping: at-bat and in-play
+stats, results and MVP, and replay record/playback.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -138,10 +142,16 @@ screens either side of play (versus, championship, home-run trot).
 | `star_missions.c` | `rep_3DA8` | 1 (1) | 2,632 | Star-mission tracking (offensive / double play). | high |
 | `controller_input.c` | `rep_10E8` | 2 (2) | 1,816 | Controller input reading and magnitude interpretation. | high |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
-| `replay_inputs.c` | `rep_1330` | 1 (1) | 712 | `useReplayInputs`. | high |
+| `replay_inputs.c` | `rep_1330` | 4 (4) | 3,220 | Replay playback: restore the `g_Stats` snapshot, save live structs, per-frame input playback (`useReplayInputs`). | high |
 | `ai_defaults.c` | `rep_868` | 1 (1) | 668 | `setDefaultAIValues`. | high |
 | `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
 | `rep_0.c` | *(unchanged)* | 0 (0) | — | 1268 B of un-decompiled `.text`; calls `memcpy`, `ARAMTransfer`, `maybeUpdateFunctionPointer`. REL entry/setup. | inferred |
+| `match_flow.c` | `auto_00_0005985C` | 47 (37) | 24,804 | The match state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, end-of-game and challenge-mode flow. | high |
+| `match_flow_data.c` | `auto_00_0005985C (.data)` | 0 (0) | 0 | Initialised data for `match_flow.c` (challenge coin tables, `CommonUIFiles_matchEnd`, star power costs). Separate unit because the target references each object by symbol. | inferred |
+| `match_loading.c` | `auto_00_0005985C` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
+| `stat_tracking.c` | `auto_00_0007976C` | 23 (17) | 10,896 | In-play stat bookkeeping: pitch counts, total bases, forced outs, save situations, new-inning resets, `initializeStats`, replay trigger (`determineIfReplayShouldPlay`). | high |
+| `result_stats.c` | `auto_00_000759BC` | 6 (5) | 8,024 | Stats per at-bat result, steals/pickoffs, MVP calculation, winning/losing/save pitcher. | high |
+| `replay_state.c` | `auto_00_0007CE90` | 6 (4) | 2,316 | Pre-play snapshot of every game struct into `g_Stats`, last-play stats, per-frame replay input recording. | high |
 
 ## stadium/ — 9 files, 335 fns (98 named)
 

@@ -233,7 +233,7 @@ void transitionToReplay(void) {
 }
 
 // .text:0x0008C104 size:0x1D8 mapped:0x806CB198
-void fn_3_8C104(void) {
+void fn_3_8C104(int arg0) {
     return;
 }
 
