@@ -46,6 +46,11 @@ follow these sections exactly as written:
 - **Code comments** — no match narrative in `src/**`.
 - **Source readability** — enums/symbols over literals, `goto` only as a
   measured last resort, the boolean width rules.
+- **Post-match readability pass (mandatory)** — every time a function
+  reaches 100%, re-read it and replace literals with `CHAR_ID`, other
+  enums, `TRUE`/`FALSE`, sentinels and named fields per that section;
+  re-diff afterwards and log `readability pass: done` in the checkpoint.
+  Initialised `.data` tables count too.
 - **Checkpoint & resumability** — same file, same format:
   `build/.match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`.
 - **Known environment gotchas**.

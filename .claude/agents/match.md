@@ -162,6 +162,64 @@ is `u8` (`include/types.h:8`, duplicated at `include/mssbTypes.h:274`).
   `flag = <default>; if (<cond>) flag = <other>;` reproduces it -- and the two
   polarities of that form score differently, so measure both.
 
+## Post-match readability pass (mandatory)
+
+Matching is not done when a function reaches 100%. Before you mark it
+`matched` in the checkpoint and move on, read the finished function once
+more, top to bottom, purely for readability, and replace every bare value
+that has a name. Drafting from asm produces literals; this pass is where
+they turn back into source. All of it is codegen-neutral, so the function
+must still be 100% afterwards -- rebuild and re-diff the whole unit after the
+pass (and any dependents if you touched a header).
+
+Start each session by listing what exists so you are choosing from a real
+inventory, not from memory: `grep -n "typedef enum" include/mssbTypes.h
+include/game/*.h include/static/*.h`, plus `E(` fields in
+`include/game/UnknownHomes_Game.h`. `python tools/ghidra_enums.py --missing`
+lists Ghidra enums that have no counterpart in the repo yet.
+
+Check, in this order:
+
+1. **Character IDs.** Any value fed to, compared with, or stored in a
+   character slot is a `CHAR_ID` (`include/mssbTypes.h`); `-1`/`0xFF` for
+   "no character" is `CHAR_ID_NONE`. This applies to initialised tables in
+   `.data` too (see `challenge_minigames_opponentCharIDs` in
+   `match_flow_data.c`), not only to code.
+2. **Other enums.** Stadium IDs, mini-game IDs, ball/runner/bunt states,
+   batting hand, input buttons and masks (`INPUT_BUTTON`), team/side,
+   game mode, and so on. A literal compared with, assigned to, or passed as an
+   argument for an enum-typed field or parameter becomes the enumerator. If
+   the header declares the field as plain `u8`/`s32` but the values are
+   plainly an existing enum, retype it `E(storage, ENUM)` -- free, since `E()`
+   expands to the storage type.
+3. **Booleans.** 0/1 assigned to or returned as a truth value becomes
+   `TRUE`/`FALSE`, and the type follows rule 3 above (`BOOL` for
+   locals/params/returns, `E(u8, BOOL)` for 1-byte fields).
+   Only where the values are demonstrably 0/1.
+4. **Sentinels and magic numbers.** `-1`/`0xFF` "none" markers, array
+   lengths (use the existing count constant or `ARRAY_COUNT`-style macro
+   rather than a repeated number), sizes, bit masks and shifts that have a
+   named constant or would read better as one.
+5. **Offsets and casts.** `((u8*)p)[0x1C]`-style access where a named struct
+   field exists or the struct can be corrected from the asm; raw `lbl_*` /
+   `fn_*` / `unk*` references where a real name is already known to the repo
+   (`config/GYQE01/symbols.txt`, headers) or to Ghidra
+   (`python tools/ghidra_query.py name <addr>`).
+
+Rules for this pass:
+- **Evidence over enthusiasm.** Use an enumerator only when the value is a
+  valid member of an enum that plausibly governs that spot. Do not force a
+  name onto a value that merely equals one (hundreds of constants equal 1 in
+  this game). If something is enum-shaped but no enum exists, or you are
+  unsure which enum applies, leave the literal and note it in the checkpoint
+  instead of inventing one.
+- **Official names win.** A known game/disc name beats a repo-invented label.
+- **Do not change behaviour or widths.** Keep the storage type of fields and
+  tables; the enum is documentary (`E(u8, CHAR_ID)`), not a resize.
+- **Record it.** Add one line per function to the checkpoint
+  (`readability pass: done`, plus anything enum-shaped you left alone), so a
+  resumed run does not redo it or skip it.
+
 ## Checkpoint & resumability
 
 State lives on disk, not in conversation memory — a fresh spawn of this
