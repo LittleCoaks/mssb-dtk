@@ -12,18 +12,19 @@ typedef struct _FireEmitterSlot {
     /*0x08*/ u8 _08[0x50 - 0x8];
 } FireEmitterSlot;
 
-// Four sets of three emitter slots, followed by the hand tracking vectors.
-typedef struct _FireEmitterData {
-    /*0x000*/ FireEmitterSlot slots[12];
-    /*0x3C0*/ u8 _3C0[0x48C - 0x3C0];
-    /*0x48C*/ Vec handPos;
-    /*0x498*/ Vec handOffset;
-} FireEmitterData;
-
 typedef struct _FireEmitterHeader {
     /*0x00*/ u32 texture;
     /*0x04*/ u8 _04[0x44 - 0x4];
 } FireEmitterHeader;
+
+// Four sets of three emitter slots, three emitter headers, then the hand tracking vectors.
+typedef struct _FireEmitterData {
+    /*0x000*/ FireEmitterSlot slots[12];
+    /*0x3C0*/ FireEmitterHeader headers[3];
+    /*0x48C*/ Vec handPos;
+    /*0x498*/ Vec handOffset;
+    /*0x4A4*/ u8 _4A4[4];
+} FireEmitterData;
 
 // The part of the shared effects block (lbl_3_common_bss_35154, used by ~30 units) that this
 // unit touches.
@@ -52,7 +53,6 @@ extern struct {
 } lbl_80366158;
 
 extern FireEmitterData lbl_3_data_17DC0;
-extern FireEmitterHeader lbl_3_data_18180[];
 extern u16 lbl_3_data_6660[];
 
 extern void fn_8002F5F4(Vec* start, Vec* dir);
@@ -66,7 +66,6 @@ void fn_3_CB538(int mode) {
     int set;
     FireEmitterSlot* slot;
     FireEmitterSlot* it;
-    FireEmitterHeader* hdr;
     Vec* start;
     Vec* last;
     int i;
@@ -79,12 +78,11 @@ void fn_3_CB538(int mode) {
     last = &lbl_3_common_bss_35154.trailEnd;
     start = &lbl_3_common_bss_35154.trailStart;
     PSVECSubtract(last, start, &dir);
-    if (PSVECMag(&dir) != 0.0f) {
+    if (PSVECMag(&dir)) {
         slot = &lbl_3_data_17DC0.slots[set * 3];
         slot[2].texture = lbl_3_common_bss_35154.burstTexture;
         slot[1].texture = lbl_3_common_bss_35154.burstTexture;
-        hdr = &lbl_3_data_18180[set];
-        hdr->texture = lbl_3_common_bss_35154.burstTexture;
+        lbl_3_data_17DC0.headers[set].texture = lbl_3_common_bss_35154.burstTexture;
         slot[0].texture = lbl_3_common_bss_35154.burstTexture;
         if (mode == 2) {
             slot[0].effectId = 0x1B;
@@ -121,7 +119,7 @@ void animatePitchersHandOnFire(void) {
     int i;
     u16 anim;
 
-    if (PSVECMag(&data->handPos) != 0.0f && actor != NULL) {
+    if (PSVECMag(&data->handPos) && actor != NULL) {
         slots = data->slots;
         slot0 = &slots[9];
         slot1 = &slots[10];

@@ -59,7 +59,7 @@ extern struct {
 typedef struct _StarHitState {
     /*0x00*/ u8 _00[0xC8];
     /*0xC8*/ u8 pitchPhase;
-    /*0xC9*/ u8 chargeActive;
+    /*0xC9*/ E(u8, BOOL) chargeActive;
     /*0xCA*/ u8 hitPhase;
     /*0xCB*/ u8 _CB[0xD4 - 0xCB];
     /*0xD4*/ E(u8, BOOL) markersActive;
@@ -92,7 +92,7 @@ extern StarHitCameraState lbl_3_common_bss_3223C;
 extern StarHitSharedBlock lbl_3_common_bss_35154;
 
 extern void fn_3_BD4F0(void);
-extern void animationRelated(BOOL flag, f32 x, f32 y, f32 z);
+extern void animationRelated(f32 x, f32 y, f32 z, BOOL afterHit);
 extern void fn_3_BD6AC(BOOL flag, f32 x, f32 y, f32 z);
 extern void setContactWordSprite(int type, f32 x, f32 y, f32 z);
 extern void pauseAnimations(void);
@@ -127,7 +127,7 @@ void animateChargeSprites(void) {
         } else {
             type = 1;
         }
-        if (g_Batter.batterHand == 0) {
+        if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
             setContactWordSprite(type, g_Batter.hitContactPos.x, -g_Batter.hitContactPos.y, g_Batter.hitContactPos.z);
         } else {
             setContactWordSprite(type, -g_Batter.hitContactPos.x, -g_Batter.hitContactPos.y, g_Batter.hitContactPos.z);
@@ -177,10 +177,9 @@ void fn_3_6A9B0(void) {
         } else {
             f32 charge = 100.0f * g_Batter.chargeUp;
             f32 release = 100.0f * g_Batter.chargeDown;
-            BOOL full = charge >= 100.0f;
-            applyChargeAnimationEffect(actor, full, charge, release);
+            applyChargeAnimationEffect(actor, charge, release, charge >= 100.0f);
         }
-    } else if (animRelated.chargeActive != 0) {
+    } else if (animRelated.chargeActive != FALSE) {
         fn_3_C11CC(actor, TRUE);
         animRelated.chargeActive = FALSE;
     }
@@ -267,7 +266,7 @@ void animateStarHits_Pitches(void) {
         return;
     }
     if (animRelated.hitPhase == 1) {
-        animationRelated(g_Ball.framesSinceHit >= 1, g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z);
+        animationRelated(g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, g_Ball.framesSinceHit >= 1);
         if ((g_Ball.framesSinceHit >= 0 || g_Ball.postPitchResultCounter >= 0 || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT)
             && g_Ball.currentStarSwing != CAPTAIN_STAR_TYPE_MARIO && g_Ball.currentStarSwing != CAPTAIN_STAR_TYPE_LUIGI) {
             fn_3_BD4F0();
@@ -276,7 +275,7 @@ void animateStarHits_Pitches(void) {
         }
     }
     if (animRelated.hitPhase == 3) {
-        animationRelated(g_Ball.framesSinceHit >= 1, g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z);
+        animationRelated(g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, g_Ball.framesSinceHit >= 1);
         if ((g_Ball.framesSinceHit >= 0 || g_Ball.postPitchResultCounter >= 0 || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT)
             && g_Ball.currentStarSwing != CAPTAIN_STAR_TYPE_YOSHI && g_Ball.currentStarSwing != CAPTAIN_STAR_TYPE_BIRDO) {
             fn_3_BD4F0();
@@ -313,7 +312,7 @@ void animateStarHits_Pitches(void) {
         }
     }
     if (animRelated.hitPhase != 0) {
-        animationRelated(g_Ball.framesSinceHit >= 1, g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z);
+        animationRelated(g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, g_Ball.framesSinceHit >= 1);
         if ((g_Ball.framesSinceHit >= 0 || g_Ball.postPitchResultCounter >= 0 || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT)
             && g_Ball.currentStarSwing == 0) {
             fn_3_BD4F0();

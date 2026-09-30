@@ -2165,6 +2165,16 @@ caller's argument setup. Moving the float to a different position took `fn_3_678
 99.25% with no change to the body. If argument setup is merely reordered, permute the prototype
 before reworking the caller.
 
+Second data point: `game/game/batting/star_hit_sprites` (2026-09). The tell is an int argument
+(here a `>=` compare into r4) that the target computes AFTER all the float arguments, while ours
+computes it before them, whatever the locals or expression shape. MWCC evaluates arguments in
+declared order, so the int parameter is really declared after the floats.
+`applyChargeAnimationEffect(int, f32 charge, f32 release, BOOL full)` and
+`animationRelated(f32 x, f32 y, f32 z, BOOL)` (int flag last, not first) took `fn_3_6A9B0` from
+92.67%, `animateChargeSprites` from 98.05% and `animateStarHits_Pitches` from 95.42%, all to 100%.
+The callee's own codegen is unchanged by the reorder. Restructuring the caller only moved the
+compare into a branchy `if/else` (94.48%).
+
 ## Accumulate a vector one component pass at a time when float registers are permuted
 
 First seen: `game/game/ball/ball_visuals` (2026-09). Extends "Copy a `Vec` per component when the
@@ -2542,4 +2552,20 @@ First seen: `ai_defaults`, `stat_book`, `controller_input`, `hud_scoreboard`, `m
 - **Index the loop instead of stepping two pointers.** `InputStruct* c = &g_Controls[i]` and
   `src = base + i * 0x20` inside the loop matched, where comma-initialised pointers that were
   incremented each pass emitted extra `mr` copies.
+
+## `if (PSVECMag(v))` gives `fcmpu f1(mag), f0(0.0)`; `!= 0.0f` in either order gives `fcmpu f0, f1`
+
+First seen: `game/game/pitching/perfect_pitch_gfx` and `pitcher_fire_effect` (2026-09).
+
+MWCC puts the literal first in the `fcmpu` for both `PSVECMag(v) != 0.0f` and `0.0f != PSVECMag(v)`,
+and a float local or `== 0.0f {} else` does not change that. The target's `fcmpu cr0, f1, f0` (value
+first) comes from the implicit truth test `if (PSVECMag(v))`. Writing `!= 0.0` as a double is worse
+because it adds an `lfd` pool entry. The same one-line change fixed three functions in two units.
+
+Findings from the same session:
+- **`acos(x) / 2.0` gives `fmul f0, f1(acos), f0(0.5)`.** `0.5 * acos(x)` and `acos(x) * 0.5` both
+  put the constant first.
+- **A zero register shared between a field store and a loop index init** (`li r4,0; stb r4,..;` then
+  r4 used as `i`) came from `node->stop = i = 0; for (; i < N; i++)`. Separate `node->stop = FALSE;`
+  and `for (i = 0; ...)` emit two `li`.
 

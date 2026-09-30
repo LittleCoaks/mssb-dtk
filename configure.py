@@ -996,7 +996,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_DB8.c"),
             Object(NonMatching, "game/animation/animation_dispatch.c"),
             Object(NonMatching, "game/ball/ball_visuals.c"),
-            Object(NonMatching, "game/batting/star_hit_sprites.c"),
+            Object(Matching, "game/batting/star_hit_sprites.c"),
             Object(NonMatching, "game/fielding/fielder_orientation.c"),
             Object(Matching, "game/match_setup/transition_init.c"),
             Object(NonMatching, "game/fielding/offence_animation.c"),

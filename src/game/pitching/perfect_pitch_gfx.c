@@ -113,7 +113,7 @@ void fn_3_CB284(int actorIndex, int frame, f32 charge) {
             lbl_3_common_bss_35154.starHitPos.z = actor->pos.z;
             lbl_3_common_bss_35154.flags |= 0x10;
         }
-        applyChargeAnimationEffect(actorIndex, frame == 0x1E, 100.0f * charge, 100.0f);
+        applyChargeAnimationEffect(actorIndex, 100.0f * charge, 100.0f, frame == 0x1E);
     }
 }
 
@@ -175,14 +175,14 @@ void perfectPitchGraphicsRelated(void) {
     vel.y = 0.0f;
     vel.z = 0.0f;
     PSVECCrossProduct((Vec*)&vel, (Vec*)&pos, (Vec*)&node->rot);
-    node->rot.w = 0.5 * acos(PSVECDotProduct((Vec*)&vel, (Vec*)&pos));
-    if (0.0f != PSVECMag((Vec*)&node->rot)) {
+    node->rot.w = acos(PSVECDotProduct((Vec*)&vel, (Vec*)&pos)) / 2.0;
+    if (PSVECMag((Vec*)&node->rot)) {
         PSVECNormalize((Vec*)&node->rot, (Vec*)&node->rot);
         PSVECScale((Vec*)&node->rot, sin(node->rot.w), (Vec*)&node->rot);
     }
     node->rot.w = cos(node->rot.w);
-    node->stop = FALSE;
-    for (i = 0; i < 2; i++) {
+    node->stop = i = 0;
+    for (; i < ARRAY_SIZE(lbl_3_data_17D10); i++) {
         if (lbl_3_data_17D10[i] == NULL) {
             lbl_3_data_17D10[i] = node;
             node->slot = i;
@@ -224,14 +224,14 @@ void fn_3_CABF0(PerfectPitchTrail* trail) {
     PerfectPitchModel* model;
     f32 scale;
     int i;
+    PerfectPitchState** state;
+    void** handle;
 
     scale = lbl_3_data_17D08[0] / 100000.0f;
-    states[0] = &lbl_3_common_bss_35154.states[0];
-    states[1] = &lbl_3_common_bss_35154.states[1];
-    states[2] = &lbl_3_common_bss_35154.states[2];
-    handles[0] = lbl_3_common_bss_35154.states[0].handle;
-    handles[1] = lbl_3_common_bss_35154.states[1].handle;
-    handles[2] = lbl_3_common_bss_35154.states[2].handle;
+    for (i = 0; i < 3; i++) {
+        handles[i] = lbl_3_common_bss_35154.states[i].handle;
+        states[i] = &lbl_3_common_bss_35154.states[i];
+    }
     model = (PerfectPitchModel*)(lbl_3_common_bss_35154.trailOwner + 0xC4);
 
     PSMTXQuat(mtx, &trail->rot);
@@ -239,13 +239,17 @@ void fn_3_CABF0(PerfectPitchTrail* trail) {
     PSMTXTransApply(mtx, mtx, trail->pos.x, trail->pos.y, trail->pos.z);
     PSMTXConcat(returnFloatFromModeIndex(returnsCurrentMode())->view, mtx, mtx);
 
+    state = &states[2];
+    handle = &handles[2];
     i = 2;
     do {
-        states[i]->unk0 = 0.0f;
-        states[i]->unkC = 0;
-        states[i]->frame = trail->frame;
-        fn_80024DB0((u8*)states[i]);
-        fn_80024FA4((StadiumModel*)model, handles[i], (u8*)states[i], -1);
+        (*state)->unk0 = 0.0f;
+        (*state)->unkC = 0;
+        (*state)->frame = trail->frame;
+        fn_80024DB0((u8*)*state);
+        fn_80024FA4((StadiumModel*)model, *handle, (u8*)*state, -1);
+        state--;
+        handle--;
     } while (i-- != 0);
 
     model->root[0x99] = 1;
