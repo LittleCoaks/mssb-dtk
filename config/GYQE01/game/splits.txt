@@ -411,7 +411,8 @@ game/data_only/rep_3B70.c:
 	.text       start:0x0015C3F8 end:0x0015C5F4
 	.rodata     start:0x00003B70 end:0x00003BD8
 
-game/data_only/rep_3BD8.c:
+game/match_setup/stat_book.c:
+	.text       start:0x0015C5F4 end:0x0015F574
 	.rodata     start:0x00003BD8 end:0x00003C28
 
 game/data_only/rep_3C28.c:

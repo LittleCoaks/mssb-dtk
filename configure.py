@@ -1062,7 +1062,7 @@ config.libs = [
             Object(NonMatching, "game/data_only/rep_3A98.c"),
             Object(NonMatching, "game/batting/star_swing_peach_daisy.c"),
             Object(NonMatching, "game/data_only/rep_3B70.c"),
-            Object(NonMatching, "game/data_only/rep_3BD8.c"),
+            Object(NonMatching, "game/match_setup/stat_book.c"),
             Object(NonMatching, "game/data_only/rep_3C28.c"),
             Object(NonMatching, "game/data_only/rep_3C80.c"),
             Object(NonMatching, "game/data_only/rep_3CE0.c"),
