@@ -65,7 +65,7 @@ extern struct {
     /* 0x08 */ f32 chemMult[3];
     /* 0x14 */ f32 chemBattingMult[3];
 } chemBobbleMults;
-extern int calculateChemistry(int teamFielding, s16 charIdA, s16 charIdB);
+extern int calculateChemistry(int teamFielding, int charIdA, int charIdB);
 extern f32 lbl_3_data_48C4;
 extern s16 lbl_3_data_48C8[2][12];
 extern f32 lbl_3_data_5CDC[11];

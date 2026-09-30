@@ -53,7 +53,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `batter.c` | `game_batter` | 28 (27) | 16,184 | Batter at-bat: swing/bunt decisions, contact and hit-type calculation, launch angle and power, star swings. Nearly fully named. | high |
-| `batter_ai.c` | `rep_8C8` | 14 (9) | 9,640 | Swing timing, stick input, ball tracking, RNG. | high |
+| `batter_ai.c` | `rep_8C8` + `auto_00_00020A60` | 19 (14) | 10,292 | Swing timing, stick input, ball tracking, RNG; tail: pre-at-bat batter/last-pitch resets, AI pickoff roll and execution (`pitcherAIDecidePickoff`, `aIPickoff`). The tail was folded in because it shares this unit's pooled float constants (`.rodata` 0x930–0x93C). | high |
 | `charge_effects.c` | `rep_1F58` | 12 (2) | 4,316 | Charge animation graphics. | med |
 | `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
 | `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (2) | 2,708 | Peach/Daisy star-swing special case. | med |
@@ -126,7 +126,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 16 files, 135 fns (94 named)
+## match_setup/ — 19 files, 145 fns (102 named)
 
 The glue that stands a match up and tears it down — roster construction,
 loading and transition state, controller input, and the screens either side of
@@ -152,6 +152,9 @@ stats, results and MVP, and replay record/playback.
 | `stat_tracking.c` | `auto_00_0007976C` | 23 (17) | 10,896 | In-play stat bookkeeping: pitch counts, total bases, forced outs, save situations, new-inning resets, `initializeStats`, replay trigger (`determineIfReplayShouldPlay`). | high |
 | `result_stats.c` | `auto_00_000759BC` | 6 (5) | 8,024 | Stats per at-bat result, steals/pickoffs, MVP calculation, winning/losing/save pitcher. | high |
 | `replay_state.c` | `auto_00_0007CE90` | 6 (4) | 2,316 | Pre-play snapshot of every game struct into `g_Stats`, last-play stats, per-frame replay input recording. | high |
+| `at_bat_setup.c` | `auto_00_0001E154` | 4 (4) | 868 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`, AI pre-at-bat bunt roll (`batterAIRollBuntIntent`). No shared data ties it to a neighbour, so it is its own unit. | med |
+| `stat_lookups.c` | `auto_00_0006D4A0` | 4 (4) | 564 | Per-player stat lookups: `getAdjustedPitcherStamina`, `checkFieldingStat`, `calculateChemistry`; plus `resetInputTrackers`. | high |
+| `run_scoring.c` | `auto_00_0009C578` | 2 (2) | 1,400 | `runScored` (score, go-ahead/comeback, pitcher runs-allowed bookkeeping) and `matchHudDrawingControl`. | high |
 
 ## stadium/ — 9 files, 335 fns (98 named)
 

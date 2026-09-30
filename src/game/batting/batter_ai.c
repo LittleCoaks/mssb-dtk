@@ -4,6 +4,8 @@
 #include "static/UnknownHomes_Static.h"
 #include "header_rep_data.h"
 
+extern u8 pickOffProb[4][4];
+
 // .text:0x0001E4B8 size:0x26C mapped:0x8065D54C
 void fn_3_1E4B8(void) {
     int roll;
@@ -715,4 +717,86 @@ void batterAIRNGValueSetting(void) {
     g_AiLogic.aISwingDecisionRelated_noSwingOverride = 0;
     g_AiLogic.aIBatterTrackingCode = 0;
     g_AiLogic.batterAISwingEarly1OrLate2 = 0;
+}
+
+// .text:0x00020A60 size:0x50 mapped:0x8065FAF4
+void resetBatterPreAB(void) {
+    g_AiLogic.boxHorizontalPoint = g_Batter.batPosition2.x;
+    g_AiLogic.boxVerticalPoint = g_Batter.batPosition2.z;
+    g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
+    g_AiLogic.batterAIABStrat = -1;
+    g_AiLogic._67 = 0;
+    g_AiLogic.batterAIBuntPossibility = 1;
+    g_AiLogic.batterAIBuntInd = 0;
+}
+
+// .text:0x00020AB0 size:0x30 mapped:0x8065FB44
+void resetLastPitchData(void) {
+    g_AiLogic.lastPitchFramesUntilPitchGetsToBatter = 0;
+    g_AiLogic.lastPitchType = 0xFF;
+    g_AiLogic.starRelated[0] = 0;
+    g_AiLogic.starRelated[1] = 0;
+    g_AiLogic.lastPitchBallLocZone = 0xFF;
+    g_AiLogic.lastPitchMoundZone = 0xFF;
+    g_AiLogic.batterAIStealIndicator = 0;
+}
+
+// .text:0x00020AE0 size:0x50 mapped:0x8065FB74
+void resetBatterAIBoxPosition(void) {
+    g_AiLogic.batterAIDesiredXPosInBox = lbl_3_rodata_930;
+    g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
+    g_AiLogic._10 = lbl_3_rodata_938;
+    g_AiLogic._14 = lbl_3_rodata_93C;
+    g_AiLogic._18 = lbl_3_rodata_938;
+    g_AiLogic._1C = lbl_3_rodata_93C;
+    g_AiLogic.batterAIDesiredXPosInBox = lbl_3_rodata_930;
+    g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
+}
+
+// .text:0x00020B30 size:0x104 mapped:0x8065FBC4
+int aIPickoff(void) {
+    if (g_AiLogic.aIPitcherPickOffInd == 0) {
+        return 0;
+    }
+    if (g_Pitcher.currentStateFrameCounter > g_AiLogic.AIFrameToBeginPitch - 10) {
+            if (g_RunningLogic._02 == 0x1011) {
+            if (RandomInt_Game(3) == 0) {
+                g_Pitcher.pickOffLoc = 3;
+            } else {
+                g_Pitcher.pickOffLoc = 1;
+            }
+        } else if (g_RunningLogic._02 == 0x1101) {
+            g_Pitcher.pickOffLoc = 3;
+        } else if (g_RunningLogic._02 == 0x111) {
+            g_Pitcher.pickOffLoc = 2;
+        } else if (g_RunningLogic._02 == 0x1001) {
+            g_Pitcher.pickOffLoc = 3;
+        } else if (g_RunningLogic._02 == 0x101) {
+            g_Pitcher.pickOffLoc = 2;
+        } else {
+            g_Pitcher.pickOffLoc = 1;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+// .text:0x00020C34 size:0xB8 mapped:0x8065FCC8
+void pitcherAIDecidePickoff(void) {
+    int prob;
+
+    if (g_AiLogic.pitcherAIPitchDownTheMiddleInd == 0) {
+        g_AiLogic.aIPitcherPickOffInd = 0;
+        if (g_RunningLogic._02 == 1 || g_RunningLogic._02 == 0x1111) {
+            return;
+        }
+        if (g_AiLogic.always0_AIPickoffRelated != 0) {
+            prob = 5;
+        } else {
+            prob = pickOffProb[g_Pitcher.charClass][g_AiLogic.aIDifficultyInverse0Weak];
+        }
+        if (RandomInt_Game(100) < prob) {
+            g_AiLogic.aIPitcherPickOffInd = 1;
+        }
+    }
 }

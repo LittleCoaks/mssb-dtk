@@ -18,7 +18,7 @@ extern void fieldingRelatedAnimations(void* anim, int state);
 extern s16 lbl_3_data_4B40[];
 extern s16 lbl_3_data_1C80[];
 extern s16 chemThresholds[4];
-extern int calculateChemistry(int teamBatting, s16 charIdA, s16 charIdB);
+extern int calculateChemistry(int teamBatting, int charIdA, int charIdB);
 extern int fn_3_A6ABC(f32 x, f32 z);
 extern f32 lbl_3_data_218BC[];
 extern f32 lbl_3_data_4C44[];

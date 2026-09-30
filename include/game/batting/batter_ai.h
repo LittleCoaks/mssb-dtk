@@ -6,6 +6,8 @@
 extern const f32 lbl_3_rodata_918;
 extern const f32 lbl_3_rodata_930;
 extern const f32 lbl_3_rodata_934;
+extern const f32 lbl_3_rodata_938;
+extern const f32 lbl_3_rodata_93C;
 extern u8 batterAIConstants[8];
 extern u8 lbl_3_data_1944[3][4][6];
 extern u8 lbl_3_data_198C[4][5][2];
@@ -68,5 +70,10 @@ void trackLastPitchInfo2(void);
 void batterAISwingEarlyOrLate(void);
 void batterAIGuessPitchType(void);
 void batterAIRNGValueSetting(void);
+void resetBatterPreAB(void);
+void resetLastPitchData(void);
+void resetBatterAIBoxPosition(void);
+int aIPickoff(void);
+void pitcherAIDecidePickoff(void);
 
 #endif // !__GAME_BATTING_BATTER_AI_H_
