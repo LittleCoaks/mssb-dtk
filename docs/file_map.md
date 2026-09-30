@@ -221,9 +221,14 @@ These kept their original names, so there is nothing to look up.
 `rep_1A80`, `rep_1AD0`, `rep_1B20`, `rep_1BC8`, `rep_1C18`,
 `rep_1C68`, `rep_31A0`, `rep_3A48`, `rep_3A98`, `rep_9B0`, `rep_A78`,
 `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
-**no code whatsoever**. The 80 bytes are `repHeaderData`, a 20-float table
+**no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
 (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
-axis-direction table) that a shared header emits into all 92 units.
+axis-direction table) that a shared header emits into all 92 units. Each of
+these is an original TU whose code is still an un-split `.text` gap at the
+same position: see [Game REL: pairing header-only units with un-split
+`.text` gaps](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
+`rep_3BD8`, `rep_1720` and `rep_1668` were paired this way and moved out of
+this folder (`stat_book.c`, `match_scene.c`, `toyfield_score_update.c`).
 
 Plus `rep_3B70`, `rep_3C28`, `rep_3C80`, `rep_3CE0`, `rep_3D50`, `rep_3E00`, which
 are near-empty for the same reason and hold only one or two small functions.
