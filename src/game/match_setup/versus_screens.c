@@ -25,7 +25,7 @@
 extern void SetGameStatus(GAME_STATUS status);
 extern BOOL checkForButtonPressToSkip(int a, int b);
 extern void fn_8001D074(int index, int enable);
-extern void fn_3_6714C(int arg);
+extern void resetAndRunAnimations(int arg);
 extern void fn_3_8C104(int arg);
 extern int fn_3_6B4C8(void);
 extern void fn_3_147DFC(void);
@@ -230,7 +230,7 @@ static inline void vsScreenBegin(int mode) {
         memset(&lbl_3_common_bss_1323C->entries[i], 0, sizeof(VsScreenEntry));
         lbl_3_common_bss_1323C->_261[i] = 0;
     }
-    fn_3_6714C(0);
+    resetAndRunAnimations(0);
     lbl_3_common_bss_1323C->_25C = 1;
     lbl_3_common_bss_1323C->frame = 0;
     lbl_3_common_bss_1323C->_27C = 0;
