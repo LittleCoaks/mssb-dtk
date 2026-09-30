@@ -188,7 +188,8 @@ game/hud/rep_1610.c:
 	.text       start:0x000912B4 end:0x0009143C
 	.rodata     start:0x00001610 end:0x00001668
 
-game/data_only/rep_1668.c:
+game/hud/toyfield_score_update.c:
+	.text       start:0x0009143C end:0x00091520
 	.rodata     start:0x00001668 end:0x000016B8
 
 game/hud/hud_scoreboard.c:
@@ -196,7 +197,8 @@ game/hud/hud_scoreboard.c:
 	.rodata     start:0x000016B8 end:0x00001720
 	.data       start:0x0000F448 end:0x0000F4A4
 
-game/data_only/rep_1720.c:
+game/match_setup/match_scene.c:
+	.text       start:0x00097144 end:0x000993A8
 	.rodata     start:0x00001720 end:0x00001770
 
 game/hud/hud_gauges.c:

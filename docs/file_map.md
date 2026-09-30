@@ -112,6 +112,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `rep_4138.c` | *(unchanged)* | 3 (0) | 1,972 | Immediate-mode GX primitive drawing (`GXBegin`, vtx/Tev/projection setup). | inferred |
 | `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
 | `rep_1610.c` | *(unchanged)* | 1 (0) | 392 | One function calling `setIndicatorSlotState` + `addGraphicsElementToScene`. | inferred |
+| `toyfield_score_update.c` | `rep_1668` + `auto_00_0009143C` | 1 (1) | 228 | `hud_ScoreUpdate_ToyFieldOffScreenPlayers`: queues the off-screen-player and RBI score-update drawing functions. Matching. | high |
 
 ## math/ — 2 files, 76 fns (26 named)
 
@@ -126,7 +127,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 21 files, 159 fns (116 named)
+## match_setup/ — 22 files, 174 fns (131 named)
 
 The glue that stands a match up and tears it down — roster construction,
 loading and transition state, controller input, and the screens either side of
@@ -141,6 +142,7 @@ stats, results and MVP, and replay record/playback.
 | `transition_init.c` | `rep_1038` | 7 (4) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
 | `star_missions.c` | `rep_3DA8` + `auto_00_001658F0` | 20 (13) | 19,160 | Challenge-mode star missions (quantity-based, offensive, whole-game, per-pitch tracking, mercy recruiting) and scout-flag missions (`shouldScoutMissionBeEnabled`, `decideScoutFlagMission`, reward assignment). | high |
 | `stat_book.c` | `rep_3BD8` + `auto_00_0015C5F4` | 11 (11) | 12,160 | Post-game stat book: `compileStatsForBook` (per-player batting/pitching page totals), `drawBookNumbers`, the page/team/scroll state machine (`statBook_init`/`_update`), MVP banner and MVP scoreboard scenes, `animateMVP_GameEnd`. `rep_3BD8` owned only the repHeaderData .rodata block; this code-only gap sits at the matching place in .text order and uses no float constants, so it is that TU's code. | high |
+| `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (15) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
 | `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
 | `controller_input.c` | `rep_10E8` | 2 (2) | 1,816 | Controller input reading and magnitude interpretation. | high |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
@@ -216,7 +218,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 
 These kept their original names, so there is nothing to look up.
 
-`rep_1668`, `rep_1720`, `rep_1A80`, `rep_1AD0`, `rep_1B20`, `rep_1BC8`, `rep_1C18`,
+`rep_1A80`, `rep_1AD0`, `rep_1B20`, `rep_1BC8`, `rep_1C18`,
 `rep_1C68`, `rep_31A0`, `rep_3A48`, `rep_3A98`, `rep_9B0`, `rep_A78`,
 `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
 **no code whatsoever**. The 80 bytes are `repHeaderData`, a 20-float table
