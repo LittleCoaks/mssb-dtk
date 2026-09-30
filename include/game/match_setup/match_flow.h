@@ -44,7 +44,7 @@ void endOfMatch(void);
 void fn_3_5CFD0(void);
 void endOfGameCheck(int arg0);
 void inningImportanceAI(void);
-void fn_3_5D51C(void);
+void switchHalfInning(void);
 void inningChange(void);
 void fn_3_5D9F8(void);
 void settingGameStatus(void);

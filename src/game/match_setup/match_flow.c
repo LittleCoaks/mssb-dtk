@@ -1169,7 +1169,7 @@ void inningChange(void) {
 
     if (g_GameLogic._125 == 0) {
         changeScene(1, 6);
-        fn_3_5D51C();
+        switchHalfInning();
         inningImportanceAI();
         hugeAnimStruct[0x3087] = 0;
         animRelated[0x9B] = 0;
@@ -1224,7 +1224,7 @@ void inningChange(void) {
 }
 
 // .text:0x0005D51C size:0xCC mapped:0x8069C5B0
-void fn_3_5D51C(void) {
+void switchHalfInning(void) {
     if (g_Scores.halfInning == 0) {
         g_Scores.halfInning = 1;
     } else {

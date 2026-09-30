@@ -3,13 +3,13 @@
 
 #include "mssbTypes.h"
 
-void fn_3_9CD90(void);
+void setBatterOutAtBatResult(void);
 void atBatBuntResult(void);
 void atBatResultsForOuts(void);
 BOOL noForceOutInd_atBatResultsAfterForcedRunnersAllAdvance(void);
 void fn_3_9D550(void);
 void fn_3_9D594(void);
-void fn_3_9D600(void);
+void setStrikeoutOrWalkAtBatResult(void);
 void setAtBatResult(void);
 void setDefaultPlayTrackingVariables1(void);
 void initializeInningTrackers(void);

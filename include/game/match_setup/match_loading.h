@@ -1,5 +1,5 @@
-#ifndef __GAME_MATCH_SETUP_MATCH_UI_H_
-#define __GAME_MATCH_SETUP_MATCH_UI_H_
+#ifndef __GAME_MATCH_SETUP_MATCH_LOADING_H_
+#define __GAME_MATCH_SETUP_MATCH_LOADING_H_
 
 #include "mssbTypes.h"
 
@@ -18,10 +18,10 @@ void QueueTextToDisplay(int arg0);
 void initializeSomethingDuringTransition(void);
 void fn_3_59AC0(int arg0, int arg1, int arg2);
 int fn_3_59AE4(void);
-void fn_3_59B20(void);
+void loadToyFieldCharacterFiles(void);
 int fn_3_59BCC(int arg0);
 void fn_3_59C2C(void);
 void fn_3_59F40(void);
 void fn_3_5A28C(void);
 
-#endif // !__GAME_MATCH_SETUP_MATCH_UI_H_
+#endif // !__GAME_MATCH_SETUP_MATCH_LOADING_H_

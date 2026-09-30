@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/match_setup/match_ui.h"
+#include "game/match_setup/match_loading.h"
 #include "game/match_setup/loading_state.h"
 #include "game/match_setup/match_flow.h"
 #include "game/UnknownHomes_Game.h"
@@ -488,7 +488,7 @@ int fn_3_59BCC(int arg0) {
 }
 
 // .text:0x00059B20 size:0xAC mapped:0x80698BB4
-void fn_3_59B20(void) {
+void loadToyFieldCharacterFiles(void) {
     int i;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {

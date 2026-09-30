@@ -5,9 +5,9 @@
 #include "static/UnknownHomes_Static.h"
 
 void setInitialTotalBasesOnHit(void);
-void fn_3_79A00(void);
+void trackForceOutsThisPlay(void);
 void midPlay_trackStats(void);
-void fn_3_79DD4(void);
+void checkSaveSituation(void);
 void updatePitcherStatsOnScoreChange(void);
 void postPitchStatUpdating(int arg);
 void incrementPitchCount(void);
@@ -15,7 +15,7 @@ void postPitchStatRelated(int arg);
 void fn_3_7AD68(void);
 int fn_3_7AEA8(void);
 void fn_3_7AEE8(void);
-void fn_3_7AEEC(void);
+void setRunnerOnBaseIndicators2(void);
 void setRunnerOnBaseIndicators(void);
 void intializeRunnersDuringTransition(void);
 void resetGameControlVars_duringNewInning(void);

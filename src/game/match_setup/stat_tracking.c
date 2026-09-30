@@ -73,7 +73,7 @@ end:
 }
 
 // .text:0x00079A00 size:0xCC mapped:0x806B8A94
-void fn_3_79A00(void) {
+void trackForceOutsThisPlay(void) {
     if (storedInningInfo.nRunnersForcedOut == -1) {
         return;
     }
@@ -139,7 +139,7 @@ void midPlay_trackStats(void) {
         }
     }
 
-    fn_3_79A00();
+    trackForceOutsThisPlay();
     update_runnersBeingTargetedWhileBatterCanBeForcedOut();
     monitorForErrors();
 
@@ -155,7 +155,7 @@ void midPlay_trackStats(void) {
 }
 
 // .text:0x00079DD4 size:0x120 mapped:0x806B8E68
-void fn_3_79DD4(void) {
+void checkSaveSituation(void) {
     int pitcher;
     int fieldingTeam = g_GameLogic.homeTeamBattingInd_fieldingTeam;
     int lead = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total - g_Scores.scores[fieldingTeam].total;
@@ -553,7 +553,7 @@ void fn_3_7AEE8(void) {
 }
 
 // .text:0x0007AEEC size:0x7C mapped:0x806B9F80
-void fn_3_7AEEC(void) {
+void setRunnerOnBaseIndicators2(void) {
     s32 i;
 
     storedInningInfo.batterResultBase = -1;

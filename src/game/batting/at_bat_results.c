@@ -94,7 +94,7 @@ static inline int randomIntSim(int max) {
 }
 
 // .text:0x0009CD90 size:0xE8 mapped:0x806DBE24
-void fn_3_9CD90(void) {
+void setBatterOutAtBatResult(void) {
     int i;
 
     if (storedInningInfo.abResultTemporary != 0) {
@@ -326,7 +326,7 @@ void fn_3_9D594(void) {
 }
 
 // .text:0x0009D600 size:0xA4 mapped:0x806DC694
-void fn_3_9D600(void) {
+void setStrikeoutOrWalkAtBatResult(void) {
     if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
         if (g_Batter.missedBuntStatus != 0) {
             storedInningInfo.abResultTemporary = 0x26;
@@ -356,7 +356,7 @@ void setAtBatResult(void) {
         if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 4) {
             storedInningInfo.abResultFinal = 0x28;
         } else if (g_GameLogic.gameStatus == 1) {
-            fn_3_9D600();
+            setStrikeoutOrWalkAtBatResult();
         } else if (g_Ball.deadBallReason == 1) {
             fn_3_9D594();
         } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
@@ -418,7 +418,7 @@ void setAtBatResult(void) {
                 if (fielderTracked) {
                     atBatResultsForOuts();
                 }
-                fn_3_9CD90();
+                setBatterOutAtBatResult();
             }
         }
     }
