@@ -39,7 +39,7 @@ extern VecXZ base_MoundCoordinates[5];
 void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation);
 extern f32 thresholdToBeConsideredCoveringBase_ByWeight[5];
 extern u8 lbl_3_data_4908[2];
-extern int calculateChemistry(int teamFielding, s16 charIdA, s16 charIdB);
+extern int calculateChemistry(int teamFielding, int charIdA, int charIdB);
 extern s16 chemThresholds[4];
 extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 getThrowSpeedBasedOnArmStrengthStat(u8 arm);

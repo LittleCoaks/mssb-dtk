@@ -53,7 +53,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `batter.c` | `game_batter` | 28 (27) | 16,184 | Batter at-bat: swing/bunt decisions, contact and hit-type calculation, launch angle and power, star swings. Nearly fully named. | high |
-| `batter_ai.c` | `rep_8C8` | 14 (9) | 9,640 | Swing timing, stick input, ball tracking, RNG. | high |
+| `batter_ai.c` | `rep_8C8` + `auto_00_00020A60` | 19 (14) | 10,292 | Swing timing, stick input, ball tracking, RNG; tail: pre-at-bat batter/last-pitch resets, AI pickoff roll and execution (`pitcherAIDecidePickoff`, `aIPickoff`). The tail was folded in because it shares this unit's pooled float constants (`.rodata` 0x930–0x93C). | high |
 | `charge_effects.c` | `rep_1F58` | 12 (2) | 4,316 | Charge animation graphics. | med |
 | `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
 | `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (2) | 2,708 | Peach/Daisy star-swing special case. | med |
@@ -112,6 +112,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `rep_4138.c` | *(unchanged)* | 3 (0) | 1,972 | Immediate-mode GX primitive drawing (`GXBegin`, vtx/Tev/projection setup). | inferred |
 | `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
 | `rep_1610.c` | *(unchanged)* | 1 (0) | 392 | One function calling `setIndicatorSlotState` + `addGraphicsElementToScene`. | inferred |
+| `toyfield_score_update.c` | `rep_1668` + `auto_00_0009143C` | 1 (1) | 228 | `hud_ScoreUpdate_ToyFieldOffScreenPlayers`: queues the off-screen-player and RBI score-update drawing functions. Matching. | high |
 
 ## math/ — 2 files, 76 fns (26 named)
 
@@ -126,7 +127,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 16 files, 135 fns (94 named)
+## match_setup/ — 22 files, 174 fns (131 named)
 
 The glue that stands a match up and tears it down — roster construction,
 loading and transition state, controller input, and the screens either side of
@@ -139,7 +140,10 @@ stats, results and MVP, and replay record/playback.
 | `versus_screens.c` | `rep_A00` | 20 (8) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
 | `roster_init.c` | `rep_1188` | 7 (6) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
 | `transition_init.c` | `rep_1038` | 7 (4) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
-| `star_missions.c` | `rep_3DA8` | 1 (1) | 2,632 | Star-mission tracking (offensive / double play). | high |
+| `star_missions.c` | `rep_3DA8` + `auto_00_001658F0` | 20 (13) | 19,160 | Challenge-mode star missions (quantity-based, offensive, whole-game, per-pitch tracking, mercy recruiting) and scout-flag missions (`shouldScoutMissionBeEnabled`, `decideScoutFlagMission`, reward assignment). | high |
+| `stat_book.c` | `rep_3BD8` + `auto_00_0015C5F4` | 11 (11) | 12,160 | Post-game stat book: `compileStatsForBook` (per-player batting/pitching page totals), `drawBookNumbers`, the page/team/scroll state machine (`statBook_init`/`_update`), MVP banner and MVP scoreboard scenes, `animateMVP_GameEnd`. `rep_3BD8` owned only the repHeaderData .rodata block; this code-only gap sits at the matching place in .text order and uses no float constants, so it is that TU's code. | high |
+| `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (15) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
+| `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
 | `controller_input.c` | `rep_10E8` | 2 (2) | 1,816 | Controller input reading and magnitude interpretation. | high |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
 | `replay_inputs.c` | `rep_1330` | 4 (4) | 3,220 | Replay playback: restore the `g_Stats` snapshot, save live structs, per-frame input playback (`useReplayInputs`). | high |
@@ -152,6 +156,9 @@ stats, results and MVP, and replay record/playback.
 | `stat_tracking.c` | `auto_00_0007976C` | 23 (17) | 10,896 | In-play stat bookkeeping: pitch counts, total bases, forced outs, save situations, new-inning resets, `initializeStats`, replay trigger (`determineIfReplayShouldPlay`). | high |
 | `result_stats.c` | `auto_00_000759BC` | 6 (5) | 8,024 | Stats per at-bat result, steals/pickoffs, MVP calculation, winning/losing/save pitcher. | high |
 | `replay_state.c` | `auto_00_0007CE90` | 6 (4) | 2,316 | Pre-play snapshot of every game struct into `g_Stats`, last-play stats, per-frame replay input recording. | high |
+| `at_bat_setup.c` | `auto_00_0001E154` | 4 (4) | 868 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`, AI pre-at-bat bunt roll (`batterAIRollBuntIntent`). No shared data ties it to a neighbour, so it is its own unit. | med |
+| `stat_lookups.c` | `auto_00_0006D4A0` | 4 (4) | 564 | Per-player stat lookups: `getAdjustedPitcherStamina`, `checkFieldingStat`, `calculateChemistry`; plus `resetInputTrackers`. | high |
+| `run_scoring.c` | `auto_00_0009C578` | 2 (2) | 1,400 | `runScored` (score, go-ahead/comeback, pitcher runs-allowed bookkeeping) and `matchHudDrawingControl`. | high |
 
 ## stadium/ — 9 files, 335 fns (98 named)
 
@@ -211,12 +218,17 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 
 These kept their original names, so there is nothing to look up.
 
-`rep_1668`, `rep_1720`, `rep_1A80`, `rep_1AD0`, `rep_1B20`, `rep_1BC8`, `rep_1C18`,
-`rep_1C68`, `rep_31A0`, `rep_3A48`, `rep_3A98`, `rep_3BD8`, `rep_9B0`, `rep_A78`,
+`rep_1A80`, `rep_1AD0`, `rep_1B20`, `rep_1BC8`, `rep_1C18`,
+`rep_1C68`, `rep_31A0`, `rep_3A48`, `rep_3A98`, `rep_9B0`, `rep_A78`,
 `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
-**no code whatsoever**. The 80 bytes are `repHeaderData`, a 20-float table
+**no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
 (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
-axis-direction table) that a shared header emits into all 92 units.
+axis-direction table) that a shared header emits into all 92 units. Each of
+these is an original TU whose code is still an un-split `.text` gap at the
+same position: see [Game REL: pairing header-only units with un-split
+`.text` gaps](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
+`rep_3BD8`, `rep_1720` and `rep_1668` were paired this way and moved out of
+this folder (`stat_book.c`, `match_scene.c`, `toyfield_score_update.c`).
 
 Plus `rep_3B70`, `rep_3C28`, `rep_3C80`, `rep_3CE0`, `rep_3D50`, `rep_3E00`, which
 are near-empty for the same reason and hold only one or two small functions.

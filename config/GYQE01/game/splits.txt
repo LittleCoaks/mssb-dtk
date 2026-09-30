@@ -55,8 +55,11 @@ game/match_setup/ai_defaults.c:
 	.text       start:0x0001DEB8 end:0x0001E154
 	.rodata     start:0x00000868 end:0x000008C8
 
+game/match_setup/at_bat_setup.c:
+	.text       start:0x0001E154 end:0x0001E4B8
+
 game/batting/batter_ai.c:
-	.text       start:0x0001E4B8 end:0x00020A60
+	.text       start:0x0001E4B8 end:0x00020CEC
 	.rodata     start:0x000008C8 end:0x00000940
 
 game/pitching/pitcher_ai.c:
@@ -131,9 +134,15 @@ game/fielding/offence_animation.c:
 	.text       start:0x0006C4D0 end:0x0006C854
 	.rodata     start:0x00001090 end:0x000010E8
 
+game/match_setup/scene_skip.c:
+	.text       start:0x0006C854 end:0x0006CD88
+
 game/match_setup/controller_input.c:
 	.text       start:0x0006CD88 end:0x0006D4A0
 	.rodata     start:0x000010E8 end:0x00001188
+
+game/match_setup/stat_lookups.c:
+	.text       start:0x0006D4A0 end:0x0006D6D4
 
 game/match_setup/roster_init.c:
 	.text       start:0x0006D6D4 end:0x0006F4E8
@@ -179,7 +188,8 @@ game/hud/rep_1610.c:
 	.text       start:0x000912B4 end:0x0009143C
 	.rodata     start:0x00001610 end:0x00001668
 
-game/data_only/rep_1668.c:
+game/hud/toyfield_score_update.c:
+	.text       start:0x0009143C end:0x00091520
 	.rodata     start:0x00001668 end:0x000016B8
 
 game/hud/hud_scoreboard.c:
@@ -187,12 +197,16 @@ game/hud/hud_scoreboard.c:
 	.rodata     start:0x000016B8 end:0x00001720
 	.data       start:0x0000F448 end:0x0000F4A4
 
-game/data_only/rep_1720.c:
+game/match_setup/match_scene.c:
+	.text       start:0x00097144 end:0x000993A8
 	.rodata     start:0x00001720 end:0x00001770
 
 game/hud/hud_gauges.c:
 	.text       start:0x000993A8 end:0x0009C578
 	.rodata     start:0x00001770 end:0x000017E0
+
+game/match_setup/run_scoring.c:
+	.text       start:0x0009C578 end:0x0009CAF0
 
 game/ball/ball_trajectory.c:
 	.text       start:0x0009CAF0 end:0x0009CD90
@@ -399,7 +413,8 @@ game/data_only/rep_3B70.c:
 	.text       start:0x0015C3F8 end:0x0015C5F4
 	.rodata     start:0x00003B70 end:0x00003BD8
 
-game/data_only/rep_3BD8.c:
+game/match_setup/stat_book.c:
+	.text       start:0x0015C5F4 end:0x0015F574
 	.rodata     start:0x00003BD8 end:0x00003C28
 
 game/data_only/rep_3C28.c:
@@ -420,7 +435,7 @@ game/data_only/rep_3D50.c:
 	.bss        start:0x0000B9B8 end:0x0000B9E0
 
 game/match_setup/star_missions.c:
-	.text       start:0x00161588 end:0x001658F0
+	.text       start:0x00161588 end:0x00166448
 	.rodata     start:0x00003DA8 end:0x00003E00
 	.data       start:0x00028438 end:0x000284E8
 

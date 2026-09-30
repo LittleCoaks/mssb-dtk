@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-void fn_3_6BEA4(void);
+void syncAnimObjectsToFieldersAndRunners(void);
 void fn_3_6C000(void);
 void setDefaultPlayTrackingVariables2(void);
 void initializeSomethingDuringTransition2(void);

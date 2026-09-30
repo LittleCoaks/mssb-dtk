@@ -113,10 +113,10 @@ extern void playOverSounds(int param);
 extern void starMissionRelated2(void);
 extern void cleanupCharacters(void);
 extern void fn_3_90434(void);
-extern void fn_3_972C8(void);
+extern void unregisterMatchHudObjects(void);
 extern void fn_3_DFA20(void);
 extern void fn_3_10FBE4(void);
-extern void fn_3_1658F0(void);
+extern void clearScoutState(void);
 extern void fn_3_1663AC(void);
 extern void fn_3_59C2C(void);
 extern void fn_3_59F40(void);
@@ -2319,7 +2319,7 @@ void gameInitRelated(void) {
             }
         }
     }
-    fn_3_1658F0();
+    clearScoutState();
     initializeGame();
 }
 
@@ -2342,7 +2342,7 @@ void exitToMenuControl(void) {
         }
         setNullPtrForStadiumObjs();
         fn_3_BC224();
-        fn_3_972C8();
+        unregisterMatchHudObjects();
         resetGameStadiumStateOnExit();
         fn_3_902FC();
         transitionToReplay();

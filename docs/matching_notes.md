@@ -2508,3 +2508,38 @@ First seen: `game/game/match_setup/replay_inputs` (2026-09).
 - **A restore function that re-reads a byte through a saved `g_Stats` pointer after a fresh
   `lis` read of the same global** (`g_Stats.replayReason != 2 && stats->replayReason != 0xD`) is a
   mixed local-pointer / global-access source shape.
+
+## Findings from the match_setup / hud / animation near-miss pass
+
+First seen: `ai_defaults`, `stat_book`, `controller_input`, `hud_scoreboard`, `match_scene`,
+`animation_dispatch` (2026-09).
+
+- **A `mr rX, rY` copying a constant already in a register means the code block was an inlined
+  function.** `setDefaultAIValues` re-derived `bonus = 1` from the tracker store's hoisted `li 1`.
+  The block was the body of `updateHighUrgencySituationTracker` (pitcher_stamina.c). Writing it as a
+  `static inline` with early returns gave 100% and removed three `goto`s. Look for a sibling function
+  with the same body.
+- **`REC(scene, i + K)` versus `REC_AT(scene, K, i)`.** The target's `add rX, firstHandle, i;
+  addi K` comes from `firstHandle + K + i`. `firstHandle + (i + K)` gives `add rX, i, firstHandle`,
+  and `firstHandle + i + K` folds K into the load displacement. For a 2D index,
+  `REC_AT(scene, 7 + j, i * 6)` is the working shape. This matched 3 hud_scoreboard functions and 2
+  stat_book loop blocks.
+- **Function-scope digit temps shared across branches get permuted callee-saved registers.**
+  Declaring `hundreds/tens/ones` inside each branch block that uses them fixed `drawBookNumbers`
+  (99.4 -> 100) after all 24 function-scope declaration orders had failed. The reverse also applies:
+  reusing one variable (`a`) for two unrelated jobs cost `pauseControlsMenu_update` a register. Giving
+  the first job its own variable, declared first, matched it.
+- **A hand-expanded copy of an existing same-TU function should just call it.** `-inline deferred`
+  inlines `updateRBIScoreDigits` into both callers, which matched the one that was 99.25%.
+- **In a float product with two literals, the literal pool order is the reverse of the source order,
+  and MWCC puts the constant on the left of `fmuls`.** The target's `lis/addi/lfs 0(r)` constant
+  loads plus `r * c1` came from `k = (f32)r / 512.0f; k = k * c2;`. The division by a power of two
+  becomes a multiply by the reciprocal.
+- **An `extsh` before storing an `s16` result** that the target re-extends means the local was
+  `int` with an explicit `(s16)` cast: `int magnitude = (s16)(...)`.
+- **`x*x + z*z` versus `z*z + x*x` decides which operand gets `fmuls` and which gets `fmadds`, and
+  that choice also decides the load order of the source fields.**
+- **Index the loop instead of stepping two pointers.** `InputStruct* c = &g_Controls[i]` and
+  `src = base + i * 0x20` inside the loop matched, where comma-initialised pointers that were
+  incremented each pass emitted extra `mr` copies.
+

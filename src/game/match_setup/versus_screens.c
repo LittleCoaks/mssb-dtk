@@ -25,7 +25,7 @@
 extern void SetGameStatus(GAME_STATUS status);
 extern BOOL checkForButtonPressToSkip(int a, int b);
 extern void fn_8001D074(int index, int enable);
-extern void fn_3_6714C(int arg);
+extern void resetAndRunAnimations(int arg);
 extern void fn_3_8C104(int arg);
 extern int fn_3_6B4C8(void);
 extern void fn_3_147DFC(void);
@@ -49,7 +49,8 @@ typedef struct VsScoutMission {
     /*0x0E*/ u8 _0E;
 } VsScoutMission; // size: 0xF
 
-extern u8 lbl_80109410[0x6D8];
+extern VsScoutMission scoutMissionTable[13];
+
 extern s32 lbl_3_data_1F74[VS_SITUATION_COUNT];
 extern s32 lbl_3_data_2368[6];
 extern s32 lbl_3_data_2380[6];
@@ -229,7 +230,7 @@ static inline void vsScreenBegin(int mode) {
         memset(&lbl_3_common_bss_1323C->entries[i], 0, sizeof(VsScreenEntry));
         lbl_3_common_bss_1323C->_261[i] = 0;
     }
-    fn_3_6714C(0);
+    resetAndRunAnimations(0);
     lbl_3_common_bss_1323C->_25C = 1;
     lbl_3_common_bss_1323C->frame = 0;
     lbl_3_common_bss_1323C->_27C = 0;
@@ -857,7 +858,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
     VsData *data = &lbl_3_data_1D28;
     u8 *tracker = (u8 *)starMissionCompletionTracker;
     VsScoutState *scout = &lbl_3_common_bss_37400;
-    VsScoutMission *scoutMissions = (VsScoutMission *)(lbl_80109410 + 0x10);
+    VsScoutMission *scoutMissions = scoutMissionTable;
     BOOL scoutMission = FALSE;
     s32 i;
 
