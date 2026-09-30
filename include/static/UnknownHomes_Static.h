@@ -339,7 +339,9 @@ typedef struct {
     /* 0xCF5D */ u8 unkCF5D[2];
     /* 0xCF5F */ u8 _CF5F[0xCF9E - 0xCF5F];
     /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
-    /* 0xCF9F */ u8 _CF9F[0x24C98 - 0xCF9F];
+    /* 0xCF9F */ u8 _CF9F[0xCFA2 - 0xCF9F];
+    /* 0xCFA2 */ u8 _CFA2[4];                      // per controller port; selects the team-management menu
+    /* 0xCFA6 */ u8 _CFA6[0x24C98 - 0xCFA6];
 } AiPosSwapInputs_s; // size: 0x24C98
 
 // A unit may define AIPOSSWAPINPUTS_LOCAL_VIEW and declare its own, smaller
