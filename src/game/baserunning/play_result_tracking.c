@@ -3,14 +3,13 @@
 #include "game/UnknownHomes_Game.h"
 #include "game/fielding/fielder_ai.h"
 
+#include "game/match_setup/result_stats.h"
 #include "game/match_setup/star_missions.h"
 #include "static/UnknownHomes_Static.h"
 
 extern VecXZ base_MoundCoordinates[5];
 // Per team, per roster slot: outs recorded while the pitcher's team led.
 extern u8 pitchingInfo_A_H[2][9][5];
-extern void steal_pickoff_incrementSteal_runsStats(void);
-extern void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis);
 
 // .text:0x00077914 size:0xC60 mapped:0x806B69A8
 void postPlayTrackStats(void) {

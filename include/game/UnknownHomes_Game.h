@@ -858,7 +858,8 @@ typedef struct _PracticeStruct {
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     artificial_padding(0x1aa, 0x1af, u8);
     /*0x1AF*/ u8 returnToPracticeMenuState;
-    artificial_padding(0x1af, 0x1c2, u8);
+    /*0x1B0*/ u8 _1B0;
+    artificial_padding(0x1b0, 0x1c2, u8);
     /*0x1C2*/ s8 instructionNumber;
     /*0x1C3*/ u8 readyToMoveToNextInstruction; // unsure
     /*0x1C4*/ u8 practice_runner_countInputForMashing;
@@ -1043,7 +1044,7 @@ typedef struct _GameControlsStruct {
     /*0x00C*/ int homeTeamBattingInd_fieldingTeam;
     /*0x010*/ int awayTeamBattingInd_battingTeam;
     /*0x014*/ u32 AIDifficulty0Special3Weak[2];
-    artificial_padding(0x14, 0x24, u32[2]);
+    /*0x01C*/ u32 _1C[2];
     /*0x024*/ LogoInfoStruct logo[2];
     /*0x03C*/ int battingOrderAndPositionMapping[2][10][2]; // first Pair Is Pitcher
     /*0x0DC*/ int currentBatterPerTeam[2];
@@ -1059,9 +1060,9 @@ typedef struct _GameControlsStruct {
     /*0x108*/ s16 _108;
     /*0x10A*/ s16 bOD_framesInLiveBallScene;
     /*0x10C*/ s16 frameCountdownAtBeginningOfAtBatLockout;
-    /*0x10E*/ s16 scoreBook_teamDisplayed;
-    /*0x110*/ s16 scoreBook_batter_pitcherStatsDisplayed;
-    /*0x112*/ s16 scoreBook_scrollIndex;
+    /*0x10E*/ u16 scoreBook_teamDisplayed;
+    /*0x110*/ u16 scoreBook_batter_pitcherStatsDisplayed;
+    /*0x112*/ u16 scoreBook_scrollIndex;
     /*0x114*/ s16 _114;
     /*0x116*/ s16 scoreBook_logoFadeDirectionLeft_Right;
     /*0x118*/ s16 _118;
@@ -1086,18 +1087,18 @@ typedef struct _GameControlsStruct {
     /*0x12E*/ u8 hudLoadingRelated; // unsure
     /*0x12F*/ u8 _12F;
     /*0x130*/ E(u8, WIN_TYPE) winType;
-    artificial_padding(0x130, 0x135, u8);
+    /*0x131*/ u8 _131[4];
     /*0x135*/ u8 writeOnly_always0;
     /*0x136*/ u8 writeOnly_always0_2;
-    /*0x137*/ u8 playOverFadeOutStarted;
+    /*0x137*/ s8 playOverFadeOutStarted;
     /*0x138*/ u8 playOver;
     /*0x139*/ u8 playOverInd;
     /*0x13A*/ u8 walkOffWinInd; // unsure
     /*0x13B*/ u8 gameOverInd;
     /*0x13C*/ u8 scoutFlag_VsScreenInd;
-    artificial_padding(0x13C, 0x13E, u8);
+    /*0x13D*/ u8 _13D;
     /*0x13E*/ u8 teamIsCPU[2];
-    artificial_padding(0x13E, 0x142, u8[2]);
+    /*0x140*/ u8 _140[2];
     /*0x142*/ u8 teamAIInd[2];
     /*0x144*/ u8 autoFielding[2];
     /*0x146*/ u8 batterHandedness[2];
@@ -2372,23 +2373,21 @@ extern InputStruct g_Controls[];
 
 typedef struct {
     /* 0x0 */ s16 _00;
-    /* 0x2 */ u8 _02;
-    /* 0x3 */ u8 _03;
-    /* 0x4 */ u8 _04;
-    /* 0x5 */ u8 _05;
-    /* 0x6 */ u8 _06;
+    /* 0x2 */ u8 queue[5];
     /* 0x7 */ u8 _07;
     /* 0x8 */ u8 _08;
 } lbl_3_common_bss_32718_struct;
 
 extern lbl_3_common_bss_32718_struct g_UnkSound_32718;
 
-extern struct {
+typedef struct {
     /* 0x0 */ u8 moonShotCost;
     /* 0x1 */ u8 captainStarCost;
     /* 0x2 */ u8 nonCaptain_CaptainStarCost;
     /* 0x3 */ u8 regularStarCost;
-} starPowerCosts;
+} StarPowerCosts;
+
+extern StarPowerCosts starPowerCosts;
 
 typedef struct {
     /* 0x00 */ f32 aIDifficultyMultiplierArray[2];
@@ -2620,14 +2619,32 @@ typedef struct {
 extern inMemStrikes g_Strikes;
 
 typedef struct {
-    u8 pad[0x24];
-    /* 0x0024 */ u32 playFrameCounter;
-    artificial_padding(0x24, 0x32, u32);
+    /* 0x0000 */ VecXZ landingSpotLocation;
+    /* 0x0008 */ VecXZ ballPickedUpCaught;
+    /* 0x0010 */ VecXYZ deadballLastLoc;
+    /* 0x001C */ s16 hitVerticalAngle;
+    /* 0x001E */ sAng hitHorizontalAngle;
+    /* 0x0020 */ s16 hitHorizontalPower;
+    u8 _pad_0022[2];
+    /* 0x0024 */ s32 playFrameCounter;
+    /* 0x0028 */ s16 _0028;
+    /* 0x002A */ s16 homeTeamScore;
+    /* 0x002C */ s16 _002C;
+    /* 0x002E */ s16 _002E;
+    /* 0x0030 */ s16 awayTeamScore;
     /* 0x0032 */ s16 prevAtBatResult; // AT_BAT_RESULT
-    /* 0x0034 */ u8 _0034[2];
+    /* 0x0034 */ s16 _0034;
     /* 0x0036 */ u8 replayInd;
     /* 0x0037 */ u8 atBatPitchThrown;
-    /* 0x0038 */ u8 _0038[0x4634 - 0x38];   // not yet labelled
+    /* 0x0038 */ u8 _0038[1];
+    /* 0x0039 */ u8 replayPending;
+    /* 0x003A */ u8 _003A;
+    /* 0x003B */ u8 _003B;
+    /* 0x003C */ u8 replayReason;
+    /* 0x003D */ u8 replayArg;
+    /* 0x003E */ u8 _003E;
+    /* 0x003F */ u8 replayPort[2];
+    /* 0x0041 */ u8 _0041[0x4634 - 0x41];   // not yet labelled
 } g_Stats_s; // size: 0x4634
 
 // 0x8088a7e4
@@ -2665,7 +2682,7 @@ typedef struct {
     /*0x06*/ s16 runnerTransferIndex[4];
     artificial_padding(0x06, 0x10, s16[4]);
     /*0x10*/ u8 _10;
-    artificial_padding(0x10, 0x12, u8);
+    /*0x11*/ u8 _11;
     /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
     /*0x13*/ u8 _13;
     /*0x14*/ u8 someSituationTrackerFrames;
@@ -2755,7 +2772,7 @@ typedef struct {
     /*0x011e*/ u8 whosHoldingOnRunnerAt2nd;
     /*0x011f*/ u8 quickThrowInd;
     /*0x0120*/ u8 _0120;
-    /*0x0121*/ u8 const_neg1;
+    /*0x0121*/ s8 const_neg1;
     /*0x0122*/ u8 _0122;
     /*0x0123*/ u8 letFoulBallDropIfWinningRunOn3rdInd;
     /*0x0124*/ u8 tagAnimationCountdown;
@@ -2905,9 +2922,9 @@ typedef enum _RUNNER_FORCE_CODE {
 
 // One catch recorded during the play.
 typedef struct _PlayCatchRecord {
-    /* 0x0 */ u8 fielderIndex;
-    /* 0x1 */ u8 outsDuringPossession;
-    /* 0x2 */ u8 baseStandingOn;
+    /* 0x0 */ s8 fielderIndex;
+    /* 0x1 */ s8 outsDuringPossession;
+    /* 0x2 */ s8 baseStandingOn;
 } PlayCatchRecord; // size: 0x3
 
 typedef struct _StoredInningInfo {
@@ -2916,9 +2933,9 @@ typedef struct _StoredInningInfo {
     /* 0x04 */ s16 situation; // sac fly / area of the field the ball went to
     /* 0x06 */ s16 _06[5];
     /* 0x10 */ PlayCatchRecord catches[5];
-    /* 0x1F */ u8 fielderWithBallIndex;
+    /* 0x1F */ s8 fielderWithBallIndex;
     /* 0x20 */ s16 runnersTargetedWhileBatterForceable;
-    /* 0x22 */ u8 batterResultBase;
+    /* 0x22 */ s8 batterResultBase;
     /* 0x23 */ s8 tentativeBatterBase; // negative until the batter reaches it
     /* 0x24 */ E(u8, PLAY_RESULT_CODE) playResultCode;
     /* 0x25 */ s8 nRunnersForcedOut;
@@ -2938,10 +2955,10 @@ typedef struct _StoredInningInfo {
     /* 0x41 */ u8 consecutiveHBP;
     /* 0x42 */ u8 consecutiveWalksOrHBP;
     /* 0x43 */ u8 _43;
-    /* 0x44 */ s16 _44;
-    /* 0x46 */ u8 _46[2];
-    /* 0x48 */ s16 _48;
-    /* 0x4A */ u8 _4A[8];
+    /* 0x44 */ s16 _44[2];
+    /* 0x48 */ s16 _48[2];
+    /* 0x4C */ s16 _4C[2];
+    /* 0x50 */ s16 lastPitcher; // indexed [team * 2]
     /* 0x52 */ s16 nABs[3]; // indexed [team * 2]
     /* 0x58 */ s16 mvpLeader;
     /* 0x5A */ s16 mvpLeadingPoints;
@@ -3015,14 +3032,31 @@ typedef struct _GameScoresControlsStruct {
     /*0x004*/ ScoreStruct scores[2];
     /*0x050*/ ScoreStruct hits[2];
     /*0x09C*/ s16 _9C;
-    u8 _pad_9E[8];
+    /*0x09E*/ s16 _9E;
+    /*0x0A0*/ s16 _A0;
+    /*0x0A2*/ s16 _A2;
+    /*0x0A4*/ s16 winnerCd; // 0/1 = winning team, 2 = tie
     /*0x0A6*/ s16 _A6;
     /*0x0A8*/ u8 stealSuccesses[2];
     /*0x0AA*/ u8 inningLimit;
     /*0x0AB*/ u8 maxNumberOfExtraInnings;
     u8 _pad_AC;
     /*0x0AD*/ u8 halfInning;
-    u8 _pad_AE[0x19];
+    /*0x0AE*/ u8 _AE;
+    /*0x0AF*/ s8 _AF[2];
+    /*0x0B1*/ s8 _B1[2];
+    /*0x0B3*/ s8 _B3[2];
+    /*0x0B5*/ s8 _B5[2];
+    /*0x0B7*/ s8 _B7[2];
+    /*0x0B9*/ u8 _B9[2];
+    /*0x0BB*/ u8 _BB[2];
+    /*0x0BD*/ u8 _BD[2];
+    u8 _pad_BF[3];
+    /*0x0C2*/ u8 _C2;
+    u8 _C3;
+    /*0x0C4*/ u8 _C4;
+    /*0x0C5*/ u8 _C5;
+    u8 _C6;
     /*0x0C7*/ u8 mercyThreshold;
 } GameScoresControlsStruct; // size: 0xC8
 

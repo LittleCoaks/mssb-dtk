@@ -4,6 +4,57 @@
 #include "Dolphin/rand.h"
 #include "static/UnknownHomes_Static.h"
 
+extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
+
+static inline int randomIntGameInline(int max) {
+    int ret;
+    int absmax = ABS(max);
+
+    if (absmax <= 1) {
+        return 0;
+    }
+
+    g_Ball.StaticRandomInt1 = g_Ball.StaticRandomInt1 - ((u8)g_Ball.StaticRandomInt2) +
+                              g_Ball.StaticRandomInt2 / absmax + g_Ball.totalFramesAtPlay;
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
+        return 0;
+    }
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
+        g_Ball.StaticRandomInt1 += rand();
+    }
+
+    ret = g_Ball.StaticRandomInt1 % absmax;
+    ret = ABS(ret);
+    if (max < 0) {
+        return -ret;
+    } else {
+        return ret;
+    }
+}
+
+static inline int randomIntSimInline(int max) {
+    int absMax;
+    int ret, r2;
+    absMax = ABS(max);
+
+    if (absMax <= 1) {
+        return 0;
+    }
+    g_UnkSimulation_31AC0._00 = g_UnkSimulation_31AC0._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
+                                (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
+                                ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / absMax);
+    ret = g_UnkSimulation_31AC0._00 % (u32)absMax;
+    r2 = ABS(ret);
+
+    if (max < 0) {
+        return -r2;
+    } else {
+        return r2;
+    }
+}
+
 // .text:0x000A0018 size:0x84 mapped:0x806DF0AC
 f32 shortAngleToRad_Capped(s16 ang) {
     f32 v = shortAngleToRad(ang);
@@ -345,14 +396,17 @@ static u8 static_clamp(int v, int min, int max) {
 // .text:0x0009EEB8 size:0xF4 mapped:0x806DDF4C
 int RandomInt_Game(int max) {
     int ret;
-    int absmax = ABS(max);
+    int orig = max;
+    if (max < 0) {
+        max = -max;
+    }
 
-    if (absmax <= 1) {
+    if (max <= 1) {
         return 0;
     }
 
     g_Ball.StaticRandomInt1 = g_Ball.StaticRandomInt1 - ((u8)g_Ball.StaticRandomInt2) +
-                              g_Ball.StaticRandomInt2 / absmax + g_Ball.totalFramesAtPlay;
+                              g_Ball.StaticRandomInt2 / max + g_Ball.totalFramesAtPlay;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
         return 0;
@@ -362,9 +416,9 @@ int RandomInt_Game(int max) {
         g_Ball.StaticRandomInt1 += rand();
     }
 
-    ret = g_Ball.StaticRandomInt1 % absmax;
+    ret = g_Ball.StaticRandomInt1 % max;
     ret = ABS(ret);
-    if (max < 0) {
+    if (orig < 0) {
         return -ret;
     } else {
         return ret;
@@ -373,21 +427,22 @@ int RandomInt_Game(int max) {
 
 // .text:0x0009EE24 size:0x94 mapped:0x806DDEB8
 int random_fn_3_9EE24(int max) {
-    int absMax;
     int ret, r2;
-    absMax = ABS(max);
+    int orig = max;
+    if (max < 0) {
+        max = -max;
+    }
 
-    if (absMax <= 1) {
+    if (max <= 1) {
         return 0;
     }
-    ret = unkSimulationRelatedStruct._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
-          (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
-          ((u8)g_Ball.StaticRandomInt2) + (unkSimulationRelatedStruct._00 / absMax);
-    unkSimulationRelatedStruct._00 = ret;
-    ret %= (u32)absMax;
+    g_UnkSimulation_31AC0._00 = g_UnkSimulation_31AC0._00 + g_d_GameSettings.FrameCountWhileNotAtMainMenu +
+                                (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
+                                ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / max);
+    ret = g_UnkSimulation_31AC0._00 % (u32)max;
     r2 = ABS(ret);
 
-    if (max < 0) {
+    if (orig < 0) {
         return -r2;
     } else {
         return r2;
@@ -397,15 +452,15 @@ int random_fn_3_9EE24(int max) {
 // .text:0x0009ED1C size:0x108 mapped:0x806DDDB0
 int RandomInt_Game_Range(int min, int max) {
     int diff = max - min + 1;
-    return RandomInt_Game(diff) + min;
+    return randomIntGameInline(diff) + min;
 }
 
 // .text:0x0009EBCC size:0x150 mapped:0x806DDC60
 f32 RandomF32_Game_Range(f32 a, f32 b) {
-    return RandomInt_Game((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
+    return randomIntGameInline((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
 }
 
 // .text:0x0009EAE4 size:0xE8 mapped:0x806DDB78
 f32 RandomF32_UNK_Range(f32 a, f32 b) {
-    return random_fn_3_9EE24((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
+    return randomIntSimInline((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
 }

@@ -18,6 +18,7 @@
 #include "game/pitching/perfect_pitch_gfx.h"
 #include "game/pitching/pitcher_ai.h"
 #include "game/match_setup/roster_init.h"
+#include "game/match_setup/stat_tracking.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x8001c920.h"
 #include "Unknown/File_0x80024b00.h"
@@ -27,7 +28,6 @@
  * compiles to different code. */
 #define MINIGAME_SELECTED_ORDER (*(s8*)&g_Minigame.minigamePlayerSelectedOrder)
 
-extern void incrementPitchCount(void);
 extern s16 lbl_3_data_5F3C[];
 extern s16 lbl_3_data_5FC0[];
 extern struct {
@@ -56,7 +56,6 @@ extern u32 AI_getPort(u8 idx);
 extern int aIPickoff(void);
 extern s16 pitchConstantsArray[][7];
 extern f32 curveControlFrames_CursedBallMult[2];
-extern void postPitchStatUpdating(int arg);
 extern void trackLastPitchInfo(void);
 extern f32 lbl_3_data_5EB0[2];
 extern f32 eggConstants[8];
@@ -84,7 +83,6 @@ extern u8 hugeAnimStruct[0x3154];
 extern void practice_startPitchAfter90Frames(void);
 extern void lastPlayStats(void);
 extern void challengeModeRelated_checkScoutMissionSuccess(void);
-extern void determineIfReplayShouldPlay(void);
 extern f32 lbl_3_data_5F08[13];
 extern s16 lbl_3_data_5EDC[];
 extern int getAdjustedPitcherStamina(int team, int rosterID, int flag);
