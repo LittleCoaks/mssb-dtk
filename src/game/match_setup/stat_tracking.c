@@ -698,7 +698,7 @@ void initializeStats(void) {
             batter->currentPosition[5] = 0;
             batter->currentPosition[6] = 0;
             batter->currentPosition[7] = 0;
-            batter->currentPosition[8] = 0;
+            batter->_22 = 0;
             batter->BigPlays = 0;
             batter->StarHitsActivated = 0;
 

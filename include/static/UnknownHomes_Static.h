@@ -158,7 +158,8 @@ typedef struct {
     /* 0x17 */ u8 RBI_W_RISP;
     /* 0x18 */ u8 HR_W_RISP;
     /* 0x19 */ u8 _19;
-    /* 0x1A */ u8 currentPosition[9];
+    /* 0x1A */ u8 currentPosition[8];
+    /* 0x22 */ u8 _22; // never written outside the reset in initializeStats; MVPCalculation weights it 5 points
     /* 0x23 */ u8 BigPlays;
     /* 0x24 */ u8 StarHitsActivated;
     /* 0x25 */ u8 _25;

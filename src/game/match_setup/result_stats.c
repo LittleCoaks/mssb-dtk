@@ -36,7 +36,7 @@ extern struct {
 
 static inline void mvpAddStatPoints(int* score, int team, int k) {
     *score += lbl_3_data_60F8[2] * BatterStats_P1_P2[team][k].HomeRuns;
-    *score += lbl_3_data_60F8[3] * BatterStats_P1_P2[team][k].currentPosition[8];
+    *score += lbl_3_data_60F8[3] * BatterStats_P1_P2[team][k]._22;
     *score += lbl_3_data_60F8[5] * BatterStats_P1_P2[team][k].BigPlays;
     *score += lbl_3_data_60F8[6] * PitcherStats_P1_P2[team][k].strikeouts;
     *score += lbl_3_data_60F8[7] * BatterStats_P1_P2[team][k].RBI;
