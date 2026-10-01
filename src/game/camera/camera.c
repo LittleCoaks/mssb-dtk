@@ -6,6 +6,8 @@
 #include "game/math/game_math.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
+#include "game/ball/collision_primitives.h"
+#include "Unknown/File_0x80052734.h"
 
 typedef struct {
     /* 0x00 */ VecXYZ _00;
@@ -48,7 +50,13 @@ typedef struct {
     /* 0x2C */ f32 min;
 } lbl_3_data_1348_s;
 
-extern u32 lbl_3_bss_44;
+static struct {
+    u32 counter;
+    u8 unk_4[0x50];
+} lbl_3_bss_44;
+static u32 lbl_3_bss_40;
+extern u8 g_UnkSimulation_31AC0[];
+extern u8* lbl_3_common_bss_1323C;
 
 s16 lbl_3_data_A38[2] = { 1, 2 };
 u8 framesToSwitchCam[2] = { 25, 45 };
@@ -214,7 +222,98 @@ inline void fn_3_17B2C_inline(lbl_3_data_A40_s* p) {
 
 // .text:0x0001CE90 size:0x9DC mapped:0x8065BF24
 void cameraControl(void) {
-    return;
+    u8 status;
+    u8 secondaryMode;
+
+    g_pCamera = &g_Camera;
+    status = g_GameLogic.gameStatus;
+    if (status == GAME_STATUS_DEFAULT || status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
+        g_GameLogic.sceneID = SCENE_ID_AT_BAT;
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
+            g_pCamera->_28A7 = lbl_3_data_A38[1];
+        } else {
+            g_pCamera->_28A7 = lbl_3_data_A38[0];
+        }
+        g_pCamera->_118 = 0;
+        g_pCamera->_11C = 0;
+        g_pCamera->_030.x = 0.0f;
+        g_pCamera->_030.y = 0.0f;
+        g_pCamera->_030.z = 0.0f;
+        g_pCamera->_0C0 = 0.0f;
+        g_pCamera->_0D0 = 1.0f;
+        g_pCamera->_0E2 = 0;
+        g_pCamera->_0E0 = -1;
+        g_pCamera->_0D4 = 0.0f;
+        g_pCamera->_0D8 = 0.0f;
+        g_pCamera->_0DC = 0.0f;
+        g_pCamera->_0E3 = 0;
+    }
+
+rescan:
+    g_pCamera->_28A8 = ((int (*)(void))returnScissorMode)();
+    if (g_pCamera->_28A8 > 2) {
+        g_pCamera->_28A8 = 2;
+    }
+
+    while (g_pCamera->_28A8 != 0) {
+        g_pCamera->_28A8 -= (g_pCamera->_28A8 != 0);
+        unkStructPtr._0000 = (lbl_3_common_bss_DE94_s2*)((u8*)g_pCamera + 0x120 + g_pCamera->_28A8 * 0x9BC);
+
+        if (*((u8*)unkStructPtr._0000 + 0x9AB) != 0) {
+            fn_3_FD670();
+            if (g_pCamera->_28A9 == 1) {
+                g_pCamera->_28A9 = 0;
+                goto rescan;
+            }
+        } else if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= GAME_STATUS_MINIGAME_READY) {
+            fn_3_166F4();
+        } else {
+            secondaryMode = g_GameLogic.secondaryGameMode;
+            if (secondaryMode == SECONDARY_GAME_MODE_NONE || secondaryMode == SECONDARY_GAME_MODE_TOY_FIELD ||
+                secondaryMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING ||
+                secondaryMode == SECONDARY_GAME_MODE_FREE_FIELDING) {
+                cameraRelated();
+            } else if (secondaryMode == SECONDARY_GAME_MODE_PRACTICE_MENU) {
+                fn_3_166F4();
+            } else if ((u8)(secondaryMode - SECONDARY_GAME_MODE_BOBOMB_DERBY) <= 3 ||
+                       (u8)(secondaryMode - SECONDARY_GAME_MODE_STAR_DASH) <= 1 ||
+                       secondaryMode == SECONDARY_GAME_MODE_PIRANHA_PANIC) {
+                cameraRelated();
+            } else if (secondaryMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
+                fn_3_17110();
+            } else if ((u8)(secondaryMode - SECONDARY_GAME_MODE_PRACTICE_PITCHING) <= 1 ||
+                       secondaryMode == SECONDARY_GAME_MODE_PRACTICE_FIELDING) {
+                cameraRelated();
+                if (g_Practice.instructionNumber >= 0) {
+                    fn_3_17760();
+                } else {
+                    g_Camera._2818 = 0;
+                }
+            } else {
+                g_pCamera->_2840.x = 0.0f;
+                g_pCamera->_2840.y = 0.0f;
+                g_pCamera->_2840.z = 0.0f;
+                g_pCamera->_284C.x = 0.0f;
+                g_pCamera->_284C.y = 0.0f;
+                g_pCamera->_284C.z = 1.0f;
+                g_pCamera->_2878 = 1.0f;
+            }
+        }
+
+        fn_3_1CAC0();
+        if (g_GameLogic.sceneID == SCENE_ID_LIVE_BALL) {
+            ((u8*)&g_UNK_StadiumDetails)[0x774] = 1;
+        } else {
+            ((u8*)&g_UNK_StadiumDetails)[0x774] = 0;
+        }
+    }
+
+    if (g_Stats.replayInd != 0 && g_Stats.replayReason != 0xC) {
+        fn_3_15A98();
+    }
+    if (g_Stats.atBatPitchThrown != 0) {
+        assignFrameCountersToAPointer();
+    }
 }
 
 // .text:0x0001CCC8 size:0x1C8 mapped:0x8065BD5C
@@ -1108,13 +1207,148 @@ void fn_3_18FF8(void) {
 }
 
 // .text:0x0001850C size:0xAEC mapped:0x806575A0
+static inline void resetCameraScene(void) {
+    g_GameLogic.sceneID = SCENE_ID_0;
+    g_GameLogic.someCounter = -1;
+    g_GameLogic.bOD_framesInLiveBallScene = -1;
+    g_pCamera->_28A0 = 0;
+}
+
 void cameraRelated(void) {
-    return;
+    u8 status = g_GameLogic.gameStatus;
+    u8 secondaryMode;
+
+    if (status == GAME_STATUS_MVP_END_GAME || status == GAME_STATUS_MINIGAME_POST_MENU ||
+        status == GAME_STATUS_0x26 || status == GAME_STATUS_0x24 || status == GAME_STATUS_0x27) {
+        fn_3_16900();
+    } else if (status == GAME_STATUS_LOAD_GAME) {
+        resetCameraScene();
+    } else if (status == GAME_STATUS_GAME_START_MOVIE) {
+        fn_3_16328();
+        resetCameraScene();
+    } else if (status == GAME_STATUS_INNING_TRANSITION) {
+        fn_3_161C0();
+        resetCameraScene();
+    } else if (status == GAME_STATUS_END_OF_GAME) {
+        fn_3_16058();
+        resetCameraScene();
+    } else if (status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY || status == GAME_STATUS_PAUSED ||
+               status == GAME_STATUS_0xC) {
+        resetCameraScene();
+    } else if (lbl_3_common_bss_1323C[0x25C] != 0) {
+        fn_3_FD670();
+        resetCameraScene();
+    } else if (g_Stats.replayInd != 0 && g_Stats.replayReason != 0xC && g_Stats.replayReason != 1) {
+        fn_3_15F38();
+        resetCameraScene();
+    } else {
+        secondaryMode = g_GameLogic.secondaryGameMode;
+        if (secondaryMode == SECONDARY_GAME_MODE_WALLBALL ||
+            (u8)(secondaryMode - SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) <= 3 ||
+            secondaryMode == SECONDARY_GAME_MODE_BARREL_BATTER) {
+            fn_3_1785C();
+        } else {
+            gameplay_Camera();
+        }
+    }
 }
 
 // .text:0x00017DA0 size:0x76C mapped:0x80656E34
 void gameplay_Camera(void) {
-    return;
+    f32 d;
+    f32 comps[2];
+    u8 status = g_GameLogic.gameStatus;
+    int star;
+    s16 frames;
+    u8 threshold;
+
+    if (status == GAME_STATUS_AT_BAT || status == GAME_STATUS_DEFAULT ||
+        status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
+        g_GameLogic.sceneID = SCENE_ID_AT_BAT;
+        if (g_Stats.replayInd != 0 && (g_Stats.replayReason == 0xC || g_Stats.replayReason == 1) &&
+            g_Stats._003E != 0) {
+            g_GameLogic.sceneID = SCENE_ID_REPLAY_AT_BAT;
+        }
+    } else if (status == GAME_STATUS_LIVE_BALL) {
+        star = 0;
+        if (g_Ball.currentStarSwing != 0) {
+            star = 1;
+        }
+        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+            g_GameLogic.sceneID = SCENE_ID_LIVE_BALL;
+        } else {
+            frames = g_Ball.framesSinceHit;
+            threshold = framesToSwitchCam[star];
+            if (frames < threshold) {
+                g_GameLogic.sceneID = SCENE_ID_AT_BAT;
+                if (g_Stats.replayInd != 0 && (g_Stats.replayReason == 0xC || g_Stats.replayReason == 1) &&
+                    g_Stats._003E != 0) {
+                    g_GameLogic.sceneID = SCENE_ID_REPLAY_AT_BAT;
+                }
+                if (frames == threshold - 4) {
+                    g_UnkSimulation_31AC0[5] = 1;
+                }
+            } else {
+                g_GameLogic.sceneID = SCENE_ID_LIVE_BALL;
+                if (g_Stats.replayInd != 0 && (g_Stats.replayReason == 0xC || g_Stats.replayReason == 1) &&
+                    g_Stats._003E != 0) {
+                    g_GameLogic.sceneID = SCENE_ID_REPLAY_LIVE_BALL;
+                }
+            }
+        }
+    }
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19CE != 0) {
+        if (g_Minigame._19BA == 1) {
+            camera_switchScene(0x67);
+        }
+    } else if (g_GameLogic.sceneID == SCENE_ID_AT_BAT || g_GameLogic.sceneID == SCENE_ID_REPLAY_AT_BAT) {
+        fn_3_17B2C();
+        if (g_GameLogic.someCounter < 0x7FFE) {
+            g_GameLogic.someCounter++;
+        } else {
+            g_GameLogic.someCounter = 0x7FFF;
+        }
+        g_GameLogic.bOD_framesInLiveBallScene = -1;
+        g_pCamera->_283E = 0;
+        if (g_pCamera->_28A0 < 0x7FFE) {
+            g_pCamera->_28A0++;
+        } else {
+            g_pCamera->_28A0 = 0x7FFF;
+        }
+    } else if (g_GameLogic.sceneID == SCENE_ID_LIVE_BALL || g_GameLogic.sceneID == SCENE_ID_REPLAY_LIVE_BALL) {
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
+            if (g_GameLogic.bOD_framesInLiveBallScene < 0) {
+                g_GameLogic.bOD_framesInLiveBallScene = 0;
+            }
+            if (g_GameLogic.bOD_framesInLiveBallScene < 0x7FFE) {
+                g_GameLogic.bOD_framesInLiveBallScene++;
+            } else {
+                g_GameLogic.bOD_framesInLiveBallScene = 0x7FFF;
+            }
+            bOD_Cam_liveBall();
+            if (g_pCamera->_2840.y > 2.f) {
+                g_pCamera->_2840.y *= 0.995f;
+            }
+            getComponentsFromSAng(g_Ball.Hit_HorizontalAngle, &comps[0], &comps[1]);
+            d = dolsqrtf2(SQ(g_pCamera->_2840.x) + SQ(g_pCamera->_2840.z));
+            comps[0] *= -d;
+            comps[1] *= -d;
+            g_pCamera->_2840.x += (comps[0] - g_pCamera->_2840.x) * 0.005f;
+            g_pCamera->_2840.z += (comps[1] - g_pCamera->_2840.z) * 0.005f;
+        } else {
+            camera_matchLiveBall_regular_replay();
+        }
+        if (g_GameLogic.bOD_framesInLiveBallScene < 0x7FFE) {
+            g_GameLogic.bOD_framesInLiveBallScene++;
+        } else {
+            g_GameLogic.bOD_framesInLiveBallScene = 0x7FFF;
+        }
+        g_GameLogic.someCounter = -1;
+        g_pCamera->_28A0 = 0;
+    } else {
+        g_pCamera->_28A0 = 0;
+    }
 }
 
 // .text:0x00017B2C size:0x274 mapped:0x80656BC0
@@ -1873,22 +2107,21 @@ void fn_3_14E84(void) {
 
 // .text:0x00014E50 size:0x34 mapped:0x80653EE4
 void fn_3_14E50(void) {
-    lbl_3_bss_44 = 5;
+    lbl_3_bss_44.counter = 5;
     
     fn_800528AC(&fn_3_14BB4);
 }
 
 // .text:0x00014E1C size:0x34 mapped:0x80653EB0
 void fn_3_14E1C(void) {
-    lbl_3_bss_44 = 0;
+    lbl_3_bss_44.counter = 0;
 
     fn_800528AC(NULL);
 }
 
 // .text:0x00014BB4 size:0x268 mapped:0x80653C48
 void fn_3_14BB4(camera_803c639c_s* arg) {
-    if (lbl_3_bss_44 == 0) {
-        lbl_3_bss_44 = 0;
+    if (lbl_3_bss_44.counter == 0) {
         fn_3_14E1C();
     } else {
         Mtx sp14;
@@ -1900,6 +2133,6 @@ void fn_3_14BB4(camera_803c639c_s* arg) {
         PSMTXMultVecSR(sp14, &sp8, &sp8);
         VEC_ADD(&arg->eye, &arg->eye, &sp8);
         VEC_ADD(&arg->target, &arg->target, &sp8);
-        lbl_3_bss_44--;
+        lbl_3_bss_44.counter--;
     }
 }
