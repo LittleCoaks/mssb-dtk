@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void controlOptionsScreen(void);
+void controlOptionsScreen(u8 port);
 
 #endif // !__UNKNOWN_FILE_0X80049220_H_

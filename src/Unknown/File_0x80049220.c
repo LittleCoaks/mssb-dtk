@@ -1,5 +1,5 @@
 #include "Unknown/File_0x80049220.h"
 
-void controlOptionsScreen(void) {
+void controlOptionsScreen(u8 port) {
     return;
 }

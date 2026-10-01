@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void gameSettingsControllerInputs(void);
+void gameSettingsControllerInputs(u8 port);
 
 #endif // !__UNKNOWN_FILE_0X800494CC_H_

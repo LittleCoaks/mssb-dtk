@@ -2670,3 +2670,36 @@ but blocked by shared `.sdata2`/`.bss` and keep checkpoints (800a76bc, 800527c4,
   `changeScene(scene, 1)` in `challenge_setTransitionScreenCharacterPortrait` needed
   `currentScene = 7;` before `sceneArg = 1;`, the reverse of `changeScene` itself, so it is a
   hand-written copy rather than an inline of the sibling.
+
+## Findings from the twelve-small-DOL-files pass (gameSettingsRelated ... AnimateCharacter)
+
+First seen: 2026-10, 12 `Unknown/` units (File_0x800b0834 skipped). 6 flipped to `Matching`
+(File_0x8004a1bc, 800b4e9c, 80014d4c, 80064430, 800569c8, 8001b918; `4 files OK`). 5 are
+instruction-exact but blocked by shared `.sdata2`/`.rodata` labels and keep checkpoints
+(8002399c, 800aaee4, 8001b80c, 800b4bc8, 8001f4c0); byteWiseMultiply (800249d8) is at 73.6%.
+
+- **Two words a caller loads from one 8-byte element into r5/r6 are a `u64` parameter.**
+  `memoryCardRelatedFunction` stored its "two" params with the callee-saved registers swapped
+  whatever the store order; the callers' `lwz r5, 0(rX); lwz r6, 4(rX)` gave it away. A `u64` param
+  (register pair r5:r6) and a `u64[2]` table fixed it. Check the callers when two adjacent params
+  are stored to adjacent words.
+- **A redundant cast on the second use of an index stops MWCC from CSE-ing the address across a
+  call.** In `characterAndBallDisplayRelated` the target rebuilds `lbl_8017EBB0[buffer]` after
+  `memset`; plain `[buffer]` twice kept base and index in two extra callee-saved registers (83%).
+  Writing the second one `[(u16)buffer]` on the `u16` parameter gave 99.85% (instruction-exact).
+  Inline helpers and an `mw_version` sweep did not.
+- **`bne; b L; li rX, 0; L:` is a ternary with a zero arm.** `i = kf[*cache].time <= time ? *cache : 0;`
+  (ANIMGetKeyFrameFromTrack); the `if (!(...)) i = 0;` form emits `mfcr; extrwi.`. Dropping a
+  `keyFrames` pointer local (reading `track->keyFrames` each time) then fixed an r10/r11 swap.
+- **A second null test right after an early `return` on the same pointer is an inlined getter.**
+  `getAnimRelatedCoordinates` has `bne; li r3,0; b exit` then `beq` again: an inline
+  `getPartBone(obj, part)` with `if (obj) return obj->bones[part]; return 0xFFFF;`. It returns
+  `int`; the target compares the untruncated value (`addis r0, r4, 0; cmplwi 0xffff`).
+- **A per-iteration pointer local moved one `li` by one slot** in a store-heavy reset loop
+  (`challengeMapMaybe`: `AnimObject* obj = &hugeAnimStruct.pool[i];`, 97.0% -> 99.8%), although
+  the addressing stayed relative to the global.
+- **MSSB's `ANIMGetKeyFrameFromTrack` takes a fifth `u16* cachedFrame`**: it starts the search at
+  the cached key frame and writes the hit back (`C3/anim.h` updated; no C callers yet).
+- **`report.json` scores the reloc-name-only misses as 100%; `objdiff-cli diff` does not.**
+  The five blocked units above show 100% in the report and 99.x% in the per-unit diff. Use the
+  per-unit diff to decide whether a unit can be flipped.
