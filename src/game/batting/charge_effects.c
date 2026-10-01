@@ -218,7 +218,7 @@ void maybeConfigureChargeEffectGraphics(int actorIndex) {
 }
 
 // .text:0x000C1344 size:0x42C mapped:0x807003D8
-void applyChargeAnimationEffect(int actorIndex, BOOL fullyCharged, f32 charge, f32 release) {
+void applyChargeAnimationEffect(int actorIndex, f32 charge, f32 release, BOOL fullyCharged) {
     ChargeAnimActor* actor;
     int slot;
 

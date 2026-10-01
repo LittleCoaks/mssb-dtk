@@ -874,7 +874,7 @@ void fn_3_7BC0C(void) {
 
 // .text:0x0007BC20 size:0x570 mapped:0x806BACB4
 void determineIfReplayShouldPlay(void) {
-    int reason = 0;
+    s32 reason = 0;
     int arg = 0;
     InMemBallType* ball = &g_Ball;
     inMemStrikes* strikes = &g_Strikes;
@@ -897,9 +897,12 @@ void determineIfReplayShouldPlay(void) {
         result = storedInningInfo.abResultTemporary;
         if (result >= 6 && result <= 10) {
             reason = 3;
-            if (reason == 3 && strikes->outs != 3 && g_Runners[0].runnerOnFieldOrOutOrScored != 2 &&
-                g_Runners[0].runnerOnFieldOrOutOrScored != 3) {
-                reason = 4;
+            if (reason == 3) {
+                InMemRunnerType* runner = &g_Runners[0];
+                if (strikes->outs != 3 && runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY &&
+                    runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DURING_PLAY) {
+                    reason = 4;
+                }
             }
             if (ball->fielderWithBallIndexStored2 != 6 && ball->fielderWithBallIndexStored2 != 7 &&
                 ball->fielderWithBallIndexStored2 != 8) {
@@ -999,7 +1002,7 @@ void determineIfReplayShouldPlay(void) {
                     reason = 6;
                 }
                 count2 = 0;
-                if (g_Runners[1].rosterID != -1) {
+                if (g_Runners[2].rosterID != -1) {
                     count2 = 1;
                 }
                 if (g_Runners[3].rosterID != -1) {

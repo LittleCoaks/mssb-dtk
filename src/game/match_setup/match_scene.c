@@ -83,11 +83,12 @@ extern void createTeamManagementScreen_inGame(int, s8, u8);
 extern void unregisterObjectByID(int id);
 
 #define REC(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
+#define REC_AT(scene, i, off) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (off)].object)
 
 #define SET_MENU(id)                                              \
     menuNumber[0] = (id);                                         \
     menuNumber[9] = menuNumber[8];                                \
-    menuNumber[8] = *(u16*)((u8*)lbl_800FEF70 + (id) * 16 + 8)
+    menuNumber[8] = lbl_800FEF70[(id)].label
 
 // .text:0x00099064 size:0x344 mapped:0x806D80F8
 void animatePauseMenu(void) {
@@ -129,12 +130,9 @@ void pauseMenu_openTeamManagement(void) {
     PauseControl* pc = &pauseControl;
 
     if (pc->_1D2 == 2) {
-        u32 port;
-
         insertGraphicDrawingFunction(fn_80053FE8, 2);
         memset(menuNumber, 0, 0x28);
-        port = *(u32*)&pauseControl;
-        switch (((u8*)&aiPosSwapInputs)[port + 0xCFA2]) {
+        switch (aiPosSwapInputs._CFA2[pauseControl.port]) {
         case 0:
             SET_MENU(g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE ? 0x1C : 8);
             break;
@@ -148,7 +146,7 @@ void pauseMenu_openTeamManagement(void) {
             SET_MENU(0x1F);
             break;
         }
-        createTeamManagementScreen_inGame(0, g_GameLogic.teams[port], port);
+        createTeamManagementScreen_inGame(0, g_GameLogic.teams[pauseControl.port], pauseControl.port);
     }
     if (pc->_1D2 == 5) {
         menuNumber[0x26] = 1;
@@ -243,12 +241,12 @@ void pauseOptionList_init(void) {
     REC(scene, 1)->elementIndex = row[0];
     REC(scene, 2)->elementIndex = row[1];
     REC(scene, 2)->frame = lbl_3_data_D860[pauseControl._1D0][1] << 16;
-    for (i = 0, k = 0; i < rows; i++, k++, row++) {
+    for (i = 0, k = 0; i < rows; row++, k++, i++) {
         int icon;
 
-        REC(scene, i + 3)->anchorSub = row[3];
-        REC(scene, i + 3)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, i + 3)->playMode = UI_PLAY_FORWARD;
+        REC_AT(scene, 3, i)->anchorSub = row[3];
+        REC_AT(scene, 3, i)->flags |= UI_FLAG_VISIBLE;
+        REC_AT(scene, 3, i)->playMode = UI_PLAY_FORWARD;
         icon = lbl_3_data_D860[pauseControl._1D0][2 + k];
         if (g_d_GameSettings.exhibitionMatchInd == 0 && icon == 3) {
             icon = 0x12;
@@ -271,20 +269,9 @@ void pauseOptionList_init(void) {
     currentDrawingItem->func = pauseOptionList_update;
 }
 
-// .text:0x00098434 size:0x518 mapped:0x806D74C8
-void pauseOptionList_update(void) {
+static inline int getPauseOptionDir(void) {
     int dir = 0;
-    PauseMenuScene* scene = (PauseMenuScene*)currentDrawingItem;
-    int i;
 
-    if (scene->counter < 0xFFFE) {
-        scene->counter = scene->counter + 1;
-    } else {
-        scene->counter = 0xFFFF;
-    }
-    if (animRelated[0x96] != 0) {
-        goto remove;
-    }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
         if (pauseControl._1D2 == 8) {
             dir = 1;
@@ -310,6 +297,24 @@ void pauseOptionList_update(void) {
             dir = 2;
         }
     }
+    return dir;
+}
+
+// .text:0x00098434 size:0x518 mapped:0x806D74C8
+void pauseOptionList_update(void) {
+    int dir = 0;
+    PauseMenuScene* scene = (PauseMenuScene*)currentDrawingItem;
+    int i;
+
+    if (scene->counter < 0xFFFE) {
+        scene->counter++;
+    } else {
+        scene->counter = 0xFFFF;
+    }
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    dir = getPauseOptionDir();
     if (dir != 0) {
         scene->alpha -= 0x10;
         if (scene->alpha <= 0x80) {
@@ -327,8 +332,8 @@ void pauseOptionList_update(void) {
         scene->state = scene->state + 1;
     } else if (scene->state == 1) {
         for (i = 0; i < scene->rows; i++) {
-            if ((s32)(REC(scene, i + 3)->frame >> 16) >= 3) {
-                REC(scene, i + 3)->playMode = UI_PLAY_STOP;
+            if ((s32)(REC_AT(scene, 3, i)->frame >> 16) >= 3) {
+                REC_AT(scene, 3, i)->playMode = UI_PLAY_STOP;
             }
         }
         if ((s32)(REC(scene, 1)->frame >> 16) >= lbl_3_data_D7E8[scene->rows - 2][2]) {
@@ -337,16 +342,16 @@ void pauseOptionList_update(void) {
     } else if (scene->state == 2) {
         for (i = 0; i < scene->rows; i++) {
             if (i == pauseControl._1DA) {
-                if ((s32)(REC(scene, i + 3)->frame >> 16) >= 8) {
-                    REC(scene, i + 3)->playMode = UI_PLAY_STOP;
+                if ((s32)(REC_AT(scene, 3, i)->frame >> 16) >= 8) {
+                    REC_AT(scene, 3, i)->playMode = UI_PLAY_STOP;
                 } else {
-                    REC(scene, i + 3)->playMode = UI_PLAY_FORWARD;
+                    REC_AT(scene, 3, i)->playMode = UI_PLAY_FORWARD;
                 }
             } else {
-                if ((s32)(REC(scene, i + 3)->frame >> 16) <= 3) {
-                    REC(scene, i + 3)->playMode = UI_PLAY_STOP;
+                if ((s32)(REC_AT(scene, 3, i)->frame >> 16) <= 3) {
+                    REC_AT(scene, 3, i)->playMode = UI_PLAY_STOP;
                 } else {
-                    REC(scene, i + 3)->playMode = UI_PLAY_BACKWARD;
+                    REC_AT(scene, 3, i)->playMode = UI_PLAY_BACKWARD;
                 }
             }
         }
@@ -362,9 +367,9 @@ void pauseOptionList_update(void) {
         for (i = 0; i < scene->rows; i++) {
             if (f <= lbl_3_data_D9B8[scene->rows - 2][i]) {
                 if (i == pauseControl._1DA) {
-                    REC(scene, i + 3)->playMode = UI_PLAY_FORWARD;
+                    REC_AT(scene, 3, i)->playMode = UI_PLAY_FORWARD;
                 } else {
-                    REC(scene, i + 3)->playMode = UI_PLAY_BACKWARD;
+                    REC_AT(scene, 3, i)->playMode = UI_PLAY_BACKWARD;
                 }
             }
         }
@@ -807,7 +812,9 @@ void manageEventStates(void) {
     BOOL started = FALSE;
     u8 status = g_GameLogic.gameStatus;
 
-    if (status == GAME_STATUS_INNING_TRANSITION || (u8)(status - 0x13) <= 4 || status == 0x18) {
+    if (status == GAME_STATUS_INNING_TRANSITION ||
+        (u8)(status - GAME_STATUS_HOMERUN_END) <= GAME_STATUS_CHAMPIONSHIP - GAME_STATUS_HOMERUN_END ||
+        status == GAME_STATUS_0x18) {
         g_UnkSound_32718.queue[0] = 0;
         g_UnkSound_32718.queue[1] = 0;
         g_UnkSound_32718.queue[2] = 0;
@@ -819,24 +826,19 @@ void manageEventStates(void) {
 
             if (next != 0) {
                 if (g_Stats.replayInd == 0) {
-                    u8 q1 = g_UnkSound_32718.queue[1];
-                    u8 q2 = g_UnkSound_32718.queue[2];
-                    u8 q3 = g_UnkSound_32718.queue[3];
-                    u8 q4 = g_UnkSound_32718.queue[4];
-
                     started = TRUE;
                     g_UnkSound_32718._07 = next;
-                    g_UnkSound_32718.queue[0] = q1;
-                    g_UnkSound_32718.queue[1] = q2;
-                    g_UnkSound_32718.queue[2] = q3;
-                    g_UnkSound_32718.queue[3] = q4;
+                    g_UnkSound_32718.queue[0] = g_UnkSound_32718.queue[1];
+                    g_UnkSound_32718.queue[1] = g_UnkSound_32718.queue[2];
+                    g_UnkSound_32718.queue[2] = g_UnkSound_32718.queue[3];
+                    g_UnkSound_32718.queue[3] = g_UnkSound_32718.queue[4];
                     g_UnkSound_32718.queue[4] = 0;
                     g_UnkSound_32718._00 = 0;
                 }
                 sndFXKeyOff(sound_crowd_EffectsStruct._1C);
             }
         } else {
-            g_UnkSound_32718._00 = g_UnkSound_32718._00 + 1;
+            g_UnkSound_32718._00++;
             if (g_UnkSound_32718.queue[0] != 0 && g_UnkSound_32718._00 < 60) {
                 g_UnkSound_32718._00 = 60;
             }
