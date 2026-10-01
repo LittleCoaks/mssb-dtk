@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void lineupOrderChangeRelated(void);
+int lineupOrderChangeRelated(u8 team, int rosterID);
 
 #endif // !__UNKNOWN_FILE_0X80042598_H_

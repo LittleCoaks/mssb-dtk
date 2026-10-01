@@ -11,31 +11,31 @@ void characterAndBallDisplayRelated(ActorObjectEntry* entry, u16 buffer, u16 slo
     layout->actorID = slot;
     entry->actor = f_InitActorWithLayout(layout, lbl_8017EBB0[(u16)buffer]);
     fn_800B4724(entry->actor, arg5);
-    entry->unk0E = 0;
-    entry->unk54 = 1.0f;
+    entry->seqNum = 0;
+    entry->speed = 1.0f;
     entry->unk64 = 0;
     entry->unk66 = 0;
     entry->unk68 = 0;
-    entry->unk6D = 0;
-    entry->unk70[0] = 0;
-    entry->unk70[1] = 0;
-    entry->unk70[2] = 0;
-    entry->unk70[3] = 0;
-    entry->unk70[4] = 0;
-    entry->unk70[5] = 0;
-    entry->unk70[6] = 0;
-    entry->unk70[7] = 0;
+    entry->drawArgCount = 0;
+    entry->drawArgs[0] = 0;
+    entry->drawArgs[1] = 0;
+    entry->drawArgs[2] = 0;
+    entry->drawArgs[3] = 0;
+    entry->drawArgs[4] = 0;
+    entry->drawArgs[5] = 0;
+    entry->drawArgs[6] = 0;
+    entry->drawArgs[7] = 0;
     entry->slot = slot;
-    entry->unk6C = 1;
+    entry->applyControl = 1;
     if (anim != NULL) {
         entry->anim = anim;
-        entry->unk58 = 1;
-        entry->unk5A = 1;
-        entry->unk59 = 1;
-        entry->unk60 = 0.0f;
+        entry->animPending = 1;
+        entry->speedPending = 1;
+        entry->framePending = 1;
+        entry->blendTime = 0.0f;
         if (entry->actor != NULL) {
             entry->actor->unk99 = 0;
         }
     }
-    entry->unk08 = 0;
+    entry->callback = NULL;
 }

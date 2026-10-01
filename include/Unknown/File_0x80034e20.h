@@ -64,7 +64,7 @@ typedef struct UIRecordDescriptor {
     /* 0x0C */ u32 rgba;                    // 0xFFFFFFFF
     /* 0x10 */ u8 mode;
     /* 0x11 */ u8 layer;
-    /* 0x12 */ u16 parent;                  // 0xFF = none
+    /* 0x12 */ s16 parent;                  // 0xFF = none
     /* 0x14 */ u8 tag;
     /* 0x15 */ u8 unk15[0x7];
     /* 0x1C */ u16 rate;                    // 1
@@ -109,7 +109,7 @@ typedef struct TextureHeader {
  * element -> {u32 nparts|flags; u32; u32 part[nparts]},
  * part -> {u16 count; u16 subSize; sub-records...}. */
 typedef struct TextureContainerSlot {
-    /* 0x00 */ u8 unk0[0x30];
+    /* 0x00 */ Mtx mtx;                   // reset to identity on unregister
     /* 0x30 */ void* buffer;
     /* 0x34 */ TextureHeader* textures;
     /* 0x38 */ void* layout;

@@ -88,6 +88,6 @@ void ACTTick(Actor *actor);
 void ACTSetBoneTime(sBone *bone, f32 time);
 void ACTSetBoneSpeed(sBone *bone, f32 speed);
 void ACTTickBone(sBone *bone);
-void ACTSetBoneTrack(sBone *bone, struct ANIMAnimTrack *track, f32 time);
+void ACTSetBoneTrack(sBone *bone, struct ANIMAnimTrack *track, f32 time, BOOL blend);
 
 #endif // _DOLPHIN_CP_ACTOR_H_

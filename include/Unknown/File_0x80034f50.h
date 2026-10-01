@@ -6,6 +6,6 @@
 
 /* Claims the first free UIRecord (flags == 0) in menuGraphicsStructures and
  * fills it from one UIRecordDescriptor. */
-void allocateGraphicsSlot(void);
+UIRecord* allocateGraphicsSlot(const UIRecordDescriptor* desc);
 
 #endif // !__UNKNOWN_FILE_0X80034F50_H_

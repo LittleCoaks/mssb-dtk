@@ -18,11 +18,15 @@ typedef struct MenuMusicState {
     /* 0x05 */ u8 stopping;
     /* 0x06 */ u8 fade;         // set to fade out and stop (0x803C671A)
     /* 0x07 */ u8 fadeStep;
-    /* 0x08 */ u8 unk8[0x8];
+    /* 0x08 */ u32 handle2;     // second looping voice (sfx 0), run by fn_8006295C
+    /* 0x0C */ u8 playing2;
+    /* 0x0D */ u8 stopping2;
+    /* 0x0E */ u8 unkE[0x2];
 } MenuMusicState; // size 0x10
 
 extern MenuMusicState menuMusic;
 extern u8 menuMusicStartVolume;   // 0x803CB888 (.sdata)
+extern u8 lbl_803CB889;           // start volume of the second voice
 
 /* ---- audio file / stream tables ------------------------------------------
  * audioFileTable (0x800EF508): 16 bytes per audio file index, handed to

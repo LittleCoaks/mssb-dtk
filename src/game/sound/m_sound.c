@@ -578,7 +578,7 @@ void fn_3_8C104(int arg0) {
     u8 tag;
     int value = 0;
 
-    if (audioFileDescriptors._398 == 0) {
+    if (audioFileDescriptors.enableMusic == 0) {
         return;
     }
 
@@ -1024,7 +1024,7 @@ void soundControl(void) {
     }
     fn_3_8D9C0();
 
-    if (audioFileDescriptors._398 == 0) {
+    if (audioFileDescriptors.enableMusic == 0) {
         if (sound_crowd_EffectsStruct._04 != -1) {
             if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
                 sndSeqVolume(0, 0, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);

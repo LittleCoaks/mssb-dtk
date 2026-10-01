@@ -2703,3 +2703,40 @@ instruction-exact but blocked by shared `.sdata2`/`.rodata` labels and keep chec
 - **`report.json` scores the reloc-name-only misses as 100%; `objdiff-cli diff` does not.**
   The five blocked units above show 100% in the report and 99.x% in the per-unit diff. Use the
   per-unit diff to decide whether a unit can be flipped.
+
+## Findings from the twelve-small-DOL-files pass (ActorObjectInitTable ... startMenuMusic)
+
+First seen: 2026-10. Three blocked groups were closed by merging splits into their real TUs:
+`File_0x800bd8c4.c` (fn_800BD8C4 .. ActorObjectInitTable, with the `.sdata2` pool, the sknRelated
+jump table and the init-table warning string), `File_0x8006295c.c` (both menu-music voices plus
+initializeUnknown/fn_80062A74, sharing the "sound end" string) and `File_0x800b4908.c` (the actor
+anim helpers through ACTSetAnimation; one function still at 98%). Matching flips: 8001c920,
+80034cec, 80035ca4, 8006c48c, 800bea04, 800bf074, 8006295c, 800bd8c4 (`4 files OK`).
+
+- **Before merging for a shared pool, check the pool's FIRST user.** MWCC orders a TU's pooled
+  literals by first use, so the split that first loads the lowest-address constant must be in the
+  merged unit. ActorObjectInitTable and animateBallRelated both load 1.0f before 0.0f, but the
+  pool holds 0.0f first, which only fn_800BD8C4 (earlier in `.text`) explains.
+- **A string that dtk shows in an unrelated auto split is evidence of the TU boundary.**
+  `startMenuMusic` matched and claimed "sound end \n" alone, but the Matching link failed with
+  `undefined: lbl_800E69A8`: the auto split fn_8006295C uses the same pooled string. Grep the
+  linked objects (the `main.elf` inputs in build.ninja) for the label before flipping.
+- **An inline helper for one sub-expression can fix a callee-saved rotation no declaration order
+  touches.** fn_800BD8C4 had table/m/i/base rotated through r28-r31 until
+  `actor->unk98 = (actor->unk98 & 0xFC) | fn_800B3C04(0, actor, m)` moved into a
+  `static inline updateDrawFlags(actor, m)`.
+- **A hand-inlined copy of a later function.** fn_800BD8C4 contains fn_800BDA24's body, but
+  fn_800BDA24 is defined after it, so `-inline auto` cannot inline it. Use a `static inline`
+  copy for the caller. The standalone function still needed its own spelling
+  (`Control* dst = &entry->actor->worldControl; Actor* actor = entry->actor;` gives the target's
+  `lwz r3; mr r31, r3`).
+- **`(x & 1) != 0` as a call argument** makes MWCC evaluate that argument before the others
+  (`clrlwi r4` ahead of `lwz r3`). Plain `x & 1` loads the first argument first.
+- **A second pointer temp for a field that is tested and then read** (`track = pipe->currentTrack`)
+  fixed a two-register swap in two sibling scan functions.
+- **`(int)u8field == ENUM` gives `cmpwi`; without the cast MWCC emits `cmplwi`.**
+  (challengeDrawStarsOnMissionMenu.)
+- **`s32 j` restores the vestigial `li r0,0; cmpwi r0,10; bge` guard** on a fully unrolled
+  10-store loop (addGraphicsElementToScene, 74% -> 87%), as in the ball_physics note above.
+- **`while (1) { x = ...; if (!x) break; ... }` keeps a list walk unrotated** where
+  `while ((x = ...) != 0)` is rotated (someGFXRenderingFn 92.9% -> 99.3%).

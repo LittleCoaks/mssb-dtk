@@ -15,7 +15,7 @@ typedef struct {
     /* 0x393 */ u8 _393[0x396 - 0x393];
     /* 0x396 */ u8 soundMode;   // OSGetSoundMode() at boot
     /* 0x397 */ u8 _397;
-    /* 0x398 */ u8 _398;
+    /* 0x398 */ E(u8, BOOL) enableMusic; // 0 stops menu music and crowd sequences
     /* 0x399 */ u8 _399[0x39C - 0x399];
 } AudioFileDescriptors; // size: 0x39C
 

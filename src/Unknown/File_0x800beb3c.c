@@ -2,10 +2,10 @@
 #include "Unknown/File_0x800bf038.h"
 
 void fn_800BEB3C(void) {
-    drawShadows.unk24 = 0;
-    drawShadows.unk28[0][0] = drawShadows.unk28[1][0] = drawShadows.unk28[2][0] = 100000000.0f;
-    drawShadows.unk28[0][1] = drawShadows.unk28[1][1] = drawShadows.unk28[2][1] = -100000000.0f;
-    drawShadows.unk40.x = drawShadows.unk40.y = drawShadows.unk40.z = 0.0f;
+    drawShadows.pointCount = 0;
+    drawShadows.bounds[0][0] = drawShadows.bounds[1][0] = drawShadows.bounds[2][0] = 100000000.0f;
+    drawShadows.bounds[0][1] = drawShadows.bounds[1][1] = drawShadows.bounds[2][1] = -100000000.0f;
+    drawShadows.pointSum.x = drawShadows.pointSum.y = drawShadows.pointSum.z = 0.0f;
 }
 
 MtxPtr returnMtxPtr(u8 index) {
