@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void stadiumCollisionRelated(void);
+int stadiumCollisionRelated(STADIUM_ID stadiumID, int collisionType);
 
 #endif // !__UNKNOWN_FILE_0X8004AD54_H_

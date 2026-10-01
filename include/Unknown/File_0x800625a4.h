@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void updateCharacterSelectProcessCode(int arg0, int arg1);
+void updateCharacterSelectProcessCode(int port, u8 process);
 
 #endif // !__UNKNOWN_FILE_0X800625A4_H_

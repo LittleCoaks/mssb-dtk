@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 
 void challenge_checkRecruitment(void);
-void intermediateStatBuffForScoutFlags(void);
-void starMissionMenu(void);
+f32 intermediateStatBuffForScoutFlags(void);
+f32 starMissionMenu(int charID);
 
 #endif // !__UNKNOWN_FILE_0X8006C9D8_H_

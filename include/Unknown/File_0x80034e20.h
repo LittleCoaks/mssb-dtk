@@ -83,7 +83,14 @@ typedef struct TextureRecord {
     /* 0x08 */ void* tlut;                  // palette (palette formats only)
     /* 0x0C */ u16 height;
     /* 0x0E */ u16 width;
-    /* 0x10 */ u8 unk10[0xB];
+    /* 0x10 */ u8 wrapS;                    // GXTexWrapMode
+    /* 0x11 */ u8 wrapT;
+    /* 0x12 */ u8 minFilter;                // GXTexFilter
+    /* 0x13 */ u8 magFilter;
+    /* 0x14 */ f32 lodBias;
+    /* 0x18 */ u8 unk18;
+    /* 0x19 */ u8 minLOD;
+    /* 0x1A */ u8 maxLOD;
     /* 0x1B */ u8 gxFormat;                 // GXTexFmt (8 = C4, 9 = C8, ...)
     /* 0x1C */ u16 tlutEntries;
     /* 0x1E */ u8 tlutFormat;

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void loadBatterModelFromDisk(void);
+BOOL loadBatterModelFromDisk(int index);
 
 #endif // !__UNKNOWN_FILE_0X80014F40_H_

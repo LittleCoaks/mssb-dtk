@@ -2596,3 +2596,42 @@ Findings from the same session:
 - **`ARRAY_SIZE()` is not codegen-neutral** for signed `%` / `<`: it is `size_t`, so `index % ARRAY_SIZE(t)` becomes unsigned (maybeFireworks 100 -> 81.7). Keep the literal or cast.
 - **Hoist a pointer load above independent int->float conversions** when the target interleaves it: moving `bone = model->list->bones[idx];` before six conversion stores took fn_3_C0134 80 -> 96 (MWCC won't move the loads above the stack stores itself).
 - **`Vec off[2]` instead of two `Vec` locals** when the target keeps `&b` in a callee-saved register across a call (fn_3_C0134).
+
+## Findings from the twelve-small-DOL-files pass (newPitcherEnteringGame ... ANIMGet)
+
+First seen: 2026-10, 12 `Unknown/` units. 8 reached 100%; 6 flipped to `Matching`
+(File_0x8004ac00, 80014f40, 800204cc, 800b0724, 800b2160, 800b508c). Checkpoints for the rest.
+
+- **MWCC gives `.data` 8-byte alignment too, so a split whose `.data` starts at a 4-aligned address
+  cannot link alone.** Same failure as the string-only `.rodata` note: `stadiumCollisionRelated`
+  (jump table at 0x800FBEF4) and File_0x8006c9d8 (float tables at 0x8010B4B4) are 100% in objdiff
+  with their `.data` claimed, but either flip fails the sha1 check. The jump table cannot be externed,
+  so these wait for a merge with the preceding data's owner.
+- **dtk folds a trailing 4-byte `.sdata2` pad into the previous symbol.** `lbl_803CCF10` was
+  `size:0x8` (1.0f + pad); our pool is 0xC bytes, so `.sdata2` scored 85.7%. Shrinking the symbol
+  to `size:0x4` gave 100%, and the flip linked because the next section is 8-aligned.
+- **Per-case `return a; return a+1;` becomes branchless.** In a switch, `if (t == 1) return 1;
+  return 0;` (or any pair of returns differing by one) emits `subfic/cntlzw/srwi` and `addi`.
+  Assigning a `ret` local in each case, `break`, and one `return ret;` kept the target's
+  `cmpwi; bne; li; blr` per case (stadiumCollisionRelated 54% -> 100%). A one-case inner `switch`
+  gives `beq; b` instead.
+- **`x == 0 ? 0 : v` vs `x != 0 ? v : 0`.** The first emits `cntlzw; extrwi 1,26; neg; andc`,
+  the second `neg; or; srawi; and` (updateCharacterSelectProcessCode).
+- **Byte-sized locals for the two components of a row index fixed the load registers.**
+  challenge_checkRecruitment: `u8 diff = cs->difficulty; u8 cap = cs->captain;` used as
+  `table->required[diff][cap]` matched; `int` locals or a single `row = diff * 6 + cap` local did
+  not. A per-iteration `ChallengeTrackingStruct* t = &cs->trackers[i];` (not a `t++` walker)
+  plus `t++, i++` ordering mattered too.
+- **A hoisted index local can be the whole scheduling difference.** loadBatterModelFromDisk's
+  target computes `mulli`/`addi` for the file index between the flag load and its compare; a
+  block-scope `int file = index * 0x13 + 1;` before the `if` gave 100% where the inline
+  expression in the call left the computation after the branch (69.6%).
+- **Pointer setup before the header fix-up.** ANIMGet matched only with the three derived
+  pointers (`sequences`, `tracks`, `keyFrames`) computed before `animBank->animSequences` is
+  relocated, plus index-form loops (`seq[i].x`), which give the target's `mr r4, r7` before the
+  last loop.
+- **`(u32)(p + 6) - (u32)p` survives as `addi; addi; subf`; the `char*` difference folds to `li 6`.**
+  The target computed a sub-record size that way (setIndicatorSlotState).
+- **Frame rounding sizes a stack struct, again.** `LayoutFrameInfo` (fn_8000CEF0's out param) was
+  0x58 bytes, which gave setIndicatorSlotState a 0x80 frame instead of 0x70. 0x4C..0x54 satisfies both
+  it and load_Icon; the header now uses 0x54.
