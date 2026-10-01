@@ -698,17 +698,17 @@ void initializeStats(void) {
             batter->currentPosition[5] = 0;
             batter->currentPosition[6] = 0;
             batter->currentPosition[7] = 0;
-            batter->currentPosition[8] = 0;
+            batter->_22 = 0;
             batter->BigPlays = 0;
             batter->StarHitsActivated = 0;
 
-            pitcher->_00 = 0;
+            pitcher->battersFaced = 0;
             pitcher->runsAllowed = 0;
             pitcher->earnedRunsAllowed = 0;
-            pitcher->_06 = 0;
-            pitcher->_08 = 0;
-            pitcher->_0A = 0;
-            pitcher->_0C = 0;
+            pitcher->walks = 0;
+            pitcher->battersHit = 0;
+            pitcher->hitsAllowed = 0;
+            pitcher->homeRunsAllowed = 0;
             pitcher->pitchesThrown = 0;
             pitcher->stamina = startingStamina;
             pitcher->wasPitcher = 0;
@@ -721,7 +721,7 @@ void initializeStats(void) {
             pitcher->_13[6] = 0;
             pitcher->outsAsPitcher = 0;
             pitcher->maxPitchSpeed = 0;
-            pitcher->_1C = 0;
+            pitcher->strikeouts = 0;
             pitcher->starPitchesThrown = 0;
 
             pitchingInfo_A_H[team][i][0] = 0;
@@ -768,9 +768,14 @@ void initializeStats(void) {
     StatsScreenScores.savePitcher = -1;
     StatsScreenScores.inning = 0;
     StatsScreenScores.noHitterKind = 0;
-    for (i = 6; i < 14; i++) {
-        StatsScreenScores._F8[i - 6] = -1;
-    }
+    StatsScreenScores.goAheadRunPitcher = -1;
+    StatsScreenScores.walkOffRunner = -1;
+    StatsScreenScores.walkOffBatter = -1;
+    StatsScreenScores.walkOffHomeRunBatter = -1;
+    StatsScreenScores.lateGoAheadHitTeam = -1;
+    StatsScreenScores.lateGoAheadHitBatter = -1;
+    StatsScreenScores.goAheadRbiTeam = -1;
+    StatsScreenScores.goAheadRbiBatter = -1;
 
     for (team = 0; team < 2; team++) {
         for (i = 0; i < 100; i++) {

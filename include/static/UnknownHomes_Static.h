@@ -158,27 +158,28 @@ typedef struct {
     /* 0x17 */ u8 RBI_W_RISP;
     /* 0x18 */ u8 HR_W_RISP;
     /* 0x19 */ u8 _19;
-    /* 0x1A */ u8 currentPosition[9];
+    /* 0x1A */ u8 currentPosition[8];
+    /* 0x22 */ u8 _22; // never written outside the reset in initializeStats; MVPCalculation weights it 5 points
     /* 0x23 */ u8 BigPlays;
     /* 0x24 */ u8 StarHitsActivated;
     /* 0x25 */ u8 _25;
 } StatisticsBatter; // size: 0x26
 
 typedef struct {
-    /* 0x00 */ u16 _00;
+    /* 0x00 */ u16 battersFaced;
     /* 0x02 */ u16 runsAllowed;
     /* 0x04 */ u16 earnedRunsAllowed;
-    /* 0x06 */ u16 _06;
-    /* 0x08 */ u16 _08;
-    /* 0x0A */ u16 _0A;
-    /* 0x0C */ u16 _0C;
+    /* 0x06 */ u16 walks;
+    /* 0x08 */ u16 battersHit;
+    /* 0x0A */ u16 hitsAllowed;
+    /* 0x0C */ u16 homeRunsAllowed;
     /* 0x0E */ u16 pitchesThrown;
     /* 0x10 */ u16 stamina;
     /* 0x12 */ u8 wasPitcher;
     /* 0x13 */ u8 _13[7];
     /* 0x1A */ u8 outsAsPitcher;
     /* 0x1B */ u8 maxPitchSpeed;
-    /* 0x1C */ u8 _1C;
+    /* 0x1C */ u8 strikeouts;
     /* 0x1D */ u8 starPitchesThrown;
 } StatisticsPitcher; // size: 0x1E
 
@@ -271,8 +272,15 @@ typedef struct {
     /* 0xF5 */ s8 savePitcher;
     /* 0xF6 */ u8 inning;
     /* 0xF7 */ u8 noHitterKind;
-    /* 0xF8 */ s8 _F8[8];
-    /* 0x100 */ s8 _100;
+    /* 0xF8 */ s8 goAheadRunPitcher;    // pitcher who allowed the latest go-ahead run
+    /* 0xF9 */ s8 walkOffRunner;        // runner who scored the walk-off winning run
+    /* 0xFA */ s8 walkOffBatter;        // batter at the plate for the walk-off
+    /* 0xFB */ s8 walkOffHomeRunBatter; // batter, only if the walk-off was a home run
+    /* 0xFC */ s8 lateGoAheadHitTeam;   // unsure: gated on g_Scores._pad_AC >= 3
+    /* 0xFD */ s8 lateGoAheadHitBatter; // unsure: same gate
+    /* 0xFE */ s8 goAheadRbiTeam;       // batting team on the latest go-ahead play
+    /* 0xFF */ s8 goAheadRbiBatter;     // batter on the latest go-ahead play
+    /* 0x100 */ s8 goAheadRbiWasHit; // 1 if goAheadRbiBatter reached base on the play
     /* 0x101 */ s8 mvpRosterLoc[2];
     /* 0x103 */ s8 mvpCharID;
     /* 0x104 */ u8 mvpKind;

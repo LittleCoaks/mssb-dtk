@@ -560,14 +560,14 @@ void compileStatsForBook(StatBookScene* scene) {
             StatisticsPitcher* p = &pitching[order[i]];
 
             drawBookNumbers(scene, i + 7, b->BigPlays, 3);
-            if (p->_00 == 0) {
+            if (p->battersFaced == 0) {
                 drawBookNumbers(scene, i + 0xD, 0, 0x15);
                 drawBookNumbers(scene, i + 0x13, 0, 0x15);
                 drawBookNumbers(scene, i + 0x19, 0, 0x15);
                 drawBookNumbers(scene, i + 0x1F, 0, 0x15);
             } else {
-                drawBookNumbers(scene, i + 0xD, p->_0A, 3);
-                drawBookNumbers(scene, i + 0x13, p->_1C, 3);
+                drawBookNumbers(scene, i + 0xD, p->hitsAllowed, 3);
+                drawBookNumbers(scene, i + 0x13, p->strikeouts, 3);
                 drawBookNumbers(scene, i + 0x19, p->runsAllowed, 3);
                 drawBookNumbers(scene, i + 0x1F, p->starPitchesThrown, 3);
             }
@@ -577,12 +577,12 @@ void compileStatsForBook(StatBookScene* scene) {
                     avg += 10;
                 }
                 avg = avg / 10;
-            } else if (p->_00 != 0) {
+            } else if (p->battersFaced != 0) {
                 avg = 9999;
             } else {
                 avg = 0;
             }
-            if (p->_00 == 0) {
+            if (p->battersFaced == 0) {
                 drawBookNumbers(scene, i + 0x25, 0, 0x16);
             } else {
                 drawBookNumbers(scene, i + 0x25, avg, 0xB);
@@ -595,12 +595,12 @@ void compileStatsForBook(StatBookScene* scene) {
         drawBookNumbers(scene, 0xC, sum, 3);
         sum = 0;
         for (k = 0; k < 9; k++) {
-            sum += pitching[k]._0A;
+            sum += pitching[k].hitsAllowed;
         }
         drawBookNumbers(scene, 0x12, sum, 3);
         sum = 0;
         for (k = 0; k < 9; k++) {
-            sum += pitching[k]._1C;
+            sum += pitching[k].strikeouts;
         }
         drawBookNumbers(scene, 0x18, sum, 3);
         sum = 0;
