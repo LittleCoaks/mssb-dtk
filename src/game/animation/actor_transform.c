@@ -6,6 +6,7 @@
 #include "game/stadium/stadium_framework.h"
 #include "C3/actor.h"
 #include "Dolphin/mtx.h"
+#include "stl/mem.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
@@ -47,15 +48,6 @@ typedef struct _ActorTransformEntry {
     /*0x1E*/ u8 slotA;
     /*0x1F*/ u8 slotB;
 } ActorTransformEntry;
-
-typedef struct _ActorTransformData {
-    /*0x000*/ s32 charOffset[54];
-    /*0x0D8*/ s32 tableB[18];
-    /*0x120*/ ActorTransformEntry entries[9][2];
-    /*0x360*/ u8 busy[0xC];
-    /*0x36C*/ u8 flags[0xE];
-    /*0x37A*/ u16 coordArg;
-} ActorTransformData;
 
 // DrawingSceneStruct view: +0x14.. is scratch owned by the transform draw functions.
 typedef struct _ActorTransformNode {
@@ -101,11 +93,41 @@ typedef struct _ActorTransformModel {
 } ActorTransformModel;
 
 extern ActorFxBlock lbl_3_common_bss_35154;
-extern ActorTransformData lbl_3_data_285A8;
-extern s32 lbl_3_data_28680[];
-extern u8 lbl_3_data_28914[];
-extern u16 lbl_3_data_28920[];
-extern u16 lbl_3_data_2891E[];
+// Per-character vertical offset of the effect, in 1/100000 units.
+static s32 lbl_3_data_285A8[NUM_CHOOSABLE_CHARACTERS] = {
+    -250000, -250000, -250000, -200000, -200000, -200000,
+    -250000, -240000, -240000, -250000, -200000, -150000,
+    -200000, -200000, -250000, -350000, -200000, -250000,
+    -200000, -200000, -250000, -200000, -200000, -200000,
+    -180000, -180000, -180000, -250000, -200000, -200000,
+    -200000, -200000, -200000, -250000, -250000, -250000,
+    -250000, -180000, -280000, -200000, -200000, -200000,
+    -250000, -250000, -200000, -200000, -200000, -200000,
+    -250000, -250000, -250000, -250000, -250000, -250000,
+};
+
+static s32 lbl_3_data_28680[18] = {
+    0, 50000, 0,
+    0, 50000, 0,
+    0, 50000, 0,
+    0, 0, 0,
+    0, 300000, 100000, 300000, 100000, 300000,
+};
+
+#define E_ { 0, mUpdateActorTransformAndAnimation }
+static ActorTransformEntry lbl_3_data_286C8[9][2] = {
+    { E_, E_ }, { E_, E_ }, { E_, E_ }, { E_, E_ }, { E_, E_ },
+    { E_, E_ }, { E_, E_ }, { E_, E_ }, { E_, E_ },
+};
+#undef E_
+
+// Per-slot "already queued this frame" flags, cleared once per frame by fn_3_1690C0.
+static E(u8, BOOL) lbl_3_data_28908[9] = { FALSE };
+static u8 lbl_3_data_28914[10] = { 0 };
+static u16 lbl_3_data_2891E = 9;
+static u16 lbl_3_data_28920 = 9;
+static u16 lbl_3_data_28922 = 9;
+
 extern struct {
     /*0x0000*/ u8 _0000[0x2C50];
     /*0x2C50*/ ActorTransformActor* actors[(0x3154 - 0x2C50) / 4];
@@ -119,6 +141,29 @@ extern struct {
 extern void fn_800A7D4C(s32 arg0, void* arg1);
 extern void fn_800BDA24(void* arg);
 
+// .text:0x00169150 size:0x2C
+void fn_3_169150(void) {
+    insertGraphicDrawingFunction(fn_3_1690C0, 0);
+}
+
+// .text:0x001690C0 size:0x90
+void fn_3_1690C0(void) {
+    int i;
+
+    memset(lbl_3_data_28908, 0, sizeof(lbl_3_data_28908));
+    if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154._479 != 0) {
+        removeCurrentDrawingItem();
+    } else {
+        u8* flags = &lbl_3_data_28914[8];
+        i = 8;
+        do {
+            *flags &= 0xFD;
+            flags--;
+        } while (i-- != 0);
+        removeCurrentDrawingItem();
+    }
+}
+
 // .text:0x00168FA0 size:0x120 mapped:0x807A8034
 void displayChem_antiChemGraphics(int fielder, BOOL anti) {
     ActorTransformNode* node;
@@ -128,7 +173,7 @@ void displayChem_antiChemGraphics(int fielder, BOOL anti) {
         node->slot = fielder;
         node->frame = 0;
         node->scale = lbl_3_data_28680[13] / 100000.0f;
-        getAnimRelatedCoordinates(fielder, lbl_3_data_2891E[0], &node->pos);
+        getAnimRelatedCoordinates(fielder, lbl_3_data_2891E, &node->pos);
         if (anti) {
             node->offsetIndex = 1;
             node->modelIndex = 3;
@@ -143,21 +188,22 @@ void displayChem_antiChemGraphics(int fielder, BOOL anti) {
 
 // .text:0x00168DFC size:0x1A4 mapped:0x807A7E90
 void fn_3_168DFC(void) {
-    ActorTransformData* data = &lbl_3_data_285A8;
     ActorTransformNode* node = (ActorTransformNode*)currentDrawingItem;
     ActorTransformEntry* entry;
+    ActorTransformActor* actor;
 
     if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154._479 != 0) {
         removeCurrentDrawingItem();
-    } else if (data->busy[node->slot] != 0) {
+    } else if (lbl_3_data_28908[node->slot] != 0) {
         removeCurrentDrawingItem();
     } else {
-        data->busy[node->slot] = 1;
-        entry = &data->entries[node->slot][drawStadiumRelated];
+        lbl_3_data_28908[node->slot] = TRUE;
+        actor = hugeAnimStruct.actors[node->slot];
+        entry = &lbl_3_data_286C8[node->slot][drawStadiumRelated];
         entry->draw = mUpdateActorTransformAndAnimation;
         entry->frame = node->frame;
         entry->pos.x = node->pos.x;
-        entry->pos.y = node->pos.y + data->charOffset[hugeAnimStruct.actors[node->slot]->charId] / 100000.0f;
+        entry->pos.y = node->pos.y + lbl_3_data_285A8[actor->charId] / 100000.0f;
         entry->pos.z = node->pos.z;
         entry->scale = node->scale;
         entry->modelIndex = node->modelIndex;
@@ -183,7 +229,7 @@ void fn_3_168CD8(ActorTransformActor* actor, f32 value) {
         node->slot = animIndex;
         node->frame = 0;
         node->scale = lbl_3_data_28680[15] / 100000.0f;
-        getAnimRelatedCoordinates(animIndex, lbl_3_data_28920[0], &node->pos);
+        getAnimRelatedCoordinates(animIndex, lbl_3_data_28920, &node->pos);
         node->offsetIndex = 2;
         node->modelIndex = 4;
         node->slotA = 7;
@@ -199,9 +245,9 @@ void mUpdateActorTransformAndAnimation(ActorTransformEntry* entry) {
     Mtx mtx;
     Mtx rot;
 
-    slot = &lbl_3_common_bss_35154.slots[entry->slotA];
-    handle = slot->handle;
     model = (ActorTransformModel*)(lbl_3_common_bss_35154.models + entry->modelIndex * 0x90 + 0x34);
+    slot = &lbl_3_common_bss_35154.slots[entry->slotA];
+    handle = lbl_3_common_bss_35154.slots[entry->slotA].handle;
     view = returnFloatFromModeIndex(returnsCurrentMode())->view;
     PSMTXTrans(mtx,
                lbl_3_data_28680[entry->offsetIndex * 3 + 1] / 100000.0f,
@@ -260,27 +306,26 @@ void fn_3_168704(void) {
     ActorTransformNode* node = (ActorTransformNode*)currentDrawingItem;
     ActorTransformEntry* entry;
     ActorTransformActor* actor;
-    ActorTransformData* data = &lbl_3_data_285A8;
 
     if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154._479 != 0) {
         removeCurrentDrawingItem();
-    } else if (data->busy[node->slot] != 0) {
+    } else if (lbl_3_data_28908[node->slot] != 0) {
         if (lbl_80366158._28 != 0) {
-            data->flags[node->slot] &= ~1;
+            lbl_3_data_28914[node->slot] &= ~1;
         }
         removeCurrentDrawingItem();
-    } else if ((data->flags[node->slot] & 2) == 0) {
-        data->flags[node->slot] &= ~1;
+    } else if ((lbl_3_data_28914[node->slot] & 2) == 0) {
+        lbl_3_data_28914[node->slot] &= ~1;
         removeCurrentDrawingItem();
     } else {
-        data->busy[node->slot] = 1;
+        lbl_3_data_28908[node->slot] = TRUE;
         actor = hugeAnimStruct.actors[node->slot];
-        entry = &data->entries[node->slot][drawStadiumRelated];
+        entry = &lbl_3_data_286C8[node->slot][drawStadiumRelated];
         entry->draw = fn_3_168414;
         entry->frame = node->frame;
-        getAnimRelatedCoordinates(node->slot, data->coordArg, &entry->pos);
-        entry->pos.y += data->charOffset[actor->charId] / 100000.0f;
-        entry->scale = data->tableB[13] / 100000.0f;
+        getAnimRelatedCoordinates(node->slot, lbl_3_data_28922, &entry->pos);
+        entry->pos.y += lbl_3_data_285A8[actor->charId] / 100000.0f;
+        entry->scale = lbl_3_data_28680[13] / 100000.0f;
         entry->modelIndex = node->modelIndex;
         entry->slotA = node->slotA;
         entry->slotB = node->slotB;
@@ -295,6 +340,7 @@ void fn_3_168704(void) {
 
 // .text:0x00168414 size:0x2F0 mapped:0x807A74A8
 void fn_3_168414(ActorTransformEntry* entry) {
+    ActorTransformChild* child;
     void* handles[2];
     ActorFxSlot* slots[2];
     Mtx mtx;
@@ -337,8 +383,8 @@ void fn_3_168414(ActorTransformEntry* entry) {
         case 1:
         case 2:
         case 3:
-        case 4: {
-            ActorTransformChild* child = model->root->children[i];
+        case 4:
+            child = model->root->children[i];
             PSMTXConcat(view, child->worldMtx, inv);
             PSMTXInverse(inv, inv);
             inv[2][3] = 0.0f;
@@ -346,7 +392,6 @@ void fn_3_168414(ActorTransformEntry* entry) {
             inv[0][3] = 0.0f;
             PSMTXConcat(child->worldMtx, inv, child->worldMtx);
             break;
-        }
         }
     }
 

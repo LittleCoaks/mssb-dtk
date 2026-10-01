@@ -182,6 +182,7 @@ game/baserunning/runner.c:
 game/sound/m_sound.c:
 	.text       start:0x0008B258 end:0x00090754
 	.rodata     start:0x00001508 end:0x00001610
+	.data       start:0x00008148 end:0x00008D88
 	.bss        start:0x00001760 end:0x000017F8
 
 game/hud/rep_1610.c:
@@ -260,7 +261,7 @@ game/stadium/stadium_framework.c:
 game/animation/scene_effects.c:
 	.text       start:0x000BA538 end:0x000C0810
 	.rodata     start:0x00001E08 end:0x00001F58
-	.data       start:0x000170F0 end:0x00017248
+	.data       start:0x000111A8 end:0x00017248
 	.bss        start:0x00009950 end:0x00009D20
 
 game/batting/charge_effects.c:
@@ -449,8 +450,9 @@ game/animation/magikoopa_star_anim.c:
 	.bss        start:0x0000B9E0 end:0x0000BA00
 
 game/animation/actor_transform.c:
-	.text       start:0x00168414 end:0x001690C0
+	.text       start:0x00168414 end:0x0016917C
 	.rodata     start:0x00003F60 end:0x00003FD8
+	.data       start:0x000285A8 end:0x00028928
 
 game/minigame/kinoko.c:
 	.text       start:0x0016917C end:0x0016C410

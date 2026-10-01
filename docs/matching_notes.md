@@ -478,6 +478,23 @@ base). Splitting the object into two symbols.txt symbols would change the
 containing struct (`ScreenTextPool` in include/text/text_channel.h)
 and access every region as a member through the one symbol.
 
+## One base register + `addi rX, base, off` + indexed load = the TU's own STATIC data (pooled)
+
+When a target function reaches several `.data` tables as `lis/addi base` of the FIRST object
+followed by `addi rX, base, 0x360; lbzx` (and even a literal `addi r3, r31, 0x0` for the object
+at the pool start), the tables are file-local `static` arrays of this TU: MWCC pools static data
+and addresses every object as pool + offset (our object shows the reloc as `...data.0`). Functions
+touching only one table fold the offset into the reloc, so dtk names them as separate
+`lbl_*` symbols there, and that makes the tables look like extern globals. No extern
+declaration shape reproduces it: struct view, pointer local, and direct global access all lost
+(`fn_3_168704` 56-76%). The fix was to give the unit a `.data` split covering the tables, define
+each one `static` with its real initialiser (zero-filled ones as `= { 0 }` so they stay in
+`.data`), split dtk's gap-sized symbols at the real object boundaries (`scope:local`), and pull
+any un-split neighbouring `.text` that also touches the tables into the unit. `fn_3_168704` went
+from 73% to 100% with no other change, `.data` from absent to 100%. First seen:
+`game/animation/actor_transform.c` (2026-09). The "Known unsolved" entry above is probably the
+same thing and worth retrying with static definitions.
+
 ## MWCC 2.x will not register-pool an extern data-symbol base, no matter the source shape
 
 Target DrawText (text/text_draw, DOL) holds lbl_800E8F60's address in callee-saved
@@ -2569,3 +2586,13 @@ Findings from the same session:
   r4 used as `i`) came from `node->stop = i = 0; for (; i < N; i++)`. Separate `node->stop = FALSE;`
   and `for (i = 0; ...)` emit two `li`.
 
+
+## Findings from the scene_effects / actor_transform second pass
+
+- **Static `.bss` is pooled like static `.data`.** A target function reaching several `.bss` objects off one base register (`addi r30, base@l` then offsets up to 0x3AC) means those objects are this TU's statics. Split dtk's gap symbols at the real object boundaries and use the statics directly; declare them in REVERSE address order (MWCC lays `.bss` out reversed). objdiff's `.bss` score stays 100% even with the wrong order -- only the pooled offsets in the code reveal it. First seen: `scene_effects.c` `fn_3_C0134` (52.8 -> 97.5).
+- **Dropping a `SceneFx* fx = &global` local** is often the fix when the target re-materialises `lis/addi global` mid-function: the original wrote the global directly. `scene_effects.c`: fn_3_BE1D4 94 -> 98.6, sunRelated 65 -> 82, drawSun 72 -> 79.
+- **Value-form `x == 2` (`subfic; cntlzw; srwi.; beq`) in an `if`:** a `static inline BOOL f(...) { return x == 2 ? TRUE : FALSE; }` reproduces it; plain `==`, `!= FALSE`, a BOOL local, `& 1`, int casts all give `cmplwi`. (fn_3_BE1D4.) Worth retrying on the "Known unsolved" float-equality entry.
+- **Var-first `fmuls x, 0.5`:** MWCC puts a float literal first in `x * 0.5f` whatever the source order; writing `x / 2` (integer 2) gives the target's `fmuls fX, fvar, f(0.5)` with a fresh destination register. `sunRelated` 93.9 -> 99.5, drawSun +2.7.
+- **`ARRAY_SIZE()` is not codegen-neutral** for signed `%` / `<`: it is `size_t`, so `index % ARRAY_SIZE(t)` becomes unsigned (maybeFireworks 100 -> 81.7). Keep the literal or cast.
+- **Hoist a pointer load above independent int->float conversions** when the target interleaves it: moving `bone = model->list->bones[idx];` before six conversion stores took fn_3_C0134 80 -> 96 (MWCC won't move the loads above the stack stores itself).
+- **`Vec off[2]` instead of two `Vec` locals** when the target keeps `&b` in a callee-saved register across a call (fn_3_C0134).
