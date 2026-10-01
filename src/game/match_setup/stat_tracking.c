@@ -702,13 +702,13 @@ void initializeStats(void) {
             batter->BigPlays = 0;
             batter->StarHitsActivated = 0;
 
-            pitcher->_00 = 0;
+            pitcher->battersFaced = 0;
             pitcher->runsAllowed = 0;
             pitcher->earnedRunsAllowed = 0;
-            pitcher->_06 = 0;
-            pitcher->_08 = 0;
-            pitcher->_0A = 0;
-            pitcher->_0C = 0;
+            pitcher->walks = 0;
+            pitcher->battersHit = 0;
+            pitcher->hitsAllowed = 0;
+            pitcher->homeRunsAllowed = 0;
             pitcher->pitchesThrown = 0;
             pitcher->stamina = startingStamina;
             pitcher->wasPitcher = 0;
@@ -721,7 +721,7 @@ void initializeStats(void) {
             pitcher->_13[6] = 0;
             pitcher->outsAsPitcher = 0;
             pitcher->maxPitchSpeed = 0;
-            pitcher->_1C = 0;
+            pitcher->strikeouts = 0;
             pitcher->starPitchesThrown = 0;
 
             pitchingInfo_A_H[team][i][0] = 0;

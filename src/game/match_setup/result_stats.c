@@ -38,7 +38,7 @@ static inline void mvpAddStatPoints(int* score, int team, int k) {
     *score += lbl_3_data_60F8[2] * BatterStats_P1_P2[team][k].HomeRuns;
     *score += lbl_3_data_60F8[3] * BatterStats_P1_P2[team][k].currentPosition[8];
     *score += lbl_3_data_60F8[5] * BatterStats_P1_P2[team][k].BigPlays;
-    *score += lbl_3_data_60F8[6] * PitcherStats_P1_P2[team][k]._1C;
+    *score += lbl_3_data_60F8[6] * PitcherStats_P1_P2[team][k].strikeouts;
     *score += lbl_3_data_60F8[7] * BatterStats_P1_P2[team][k].RBI;
     *score += lbl_3_data_60F8[8] * (BatterStats_P1_P2[team][k].Hits +
                                       BatterStats_P1_P2[team][k].Walks_4Balls +
@@ -224,7 +224,7 @@ void winningPitcher(void) {
         best = -1;
         for (k = 0; k < 9; k++) {
             cur = &ps[k];
-            if (cur->_00 != 0 && b3 != k) {
+            if (cur->battersFaced != 0 && b3 != k) {
                 if (best == -1) {
                     bestOuts = cur->outsAsPitcher;
                     best = k;
@@ -238,9 +238,9 @@ void winningPitcher(void) {
                         if (cur->earnedRunsAllowed < cmp->earnedRunsAllowed) {
                             best = k;
                         } else if (cur->earnedRunsAllowed == cmp->earnedRunsAllowed) {
-                            if (cur->_00 - cur->outsAsPitcher < cmp->_00 - cmp->outsAsPitcher) {
+                            if (cur->battersFaced - cur->outsAsPitcher < cmp->battersFaced - cmp->outsAsPitcher) {
                                 best = k;
-                            } else if (cur->_00 - cur->outsAsPitcher == cmp->_00 - cmp->outsAsPitcher) {
+                            } else if (cur->battersFaced - cur->outsAsPitcher == cmp->battersFaced - cmp->outsAsPitcher) {
                                 if (cur->outsAsPitcher > bestOuts) {
                                     best = k;
                                 } else if (bestOuts == cur->outsAsPitcher) {
@@ -286,9 +286,9 @@ void winningPitcher(void) {
                         if (cur->earnedRunsAllowed < cmp->earnedRunsAllowed) {
                             bestIdx = k;
                         } else if (cur->earnedRunsAllowed == cmp->earnedRunsAllowed) {
-                            if (cur->_00 < cmp->_00) {
+                            if (cur->battersFaced < cmp->battersFaced) {
                                 bestIdx = k;
-                            } else if (cur->_00 == cmp->_00) {
+                            } else if (cur->battersFaced == cmp->battersFaced) {
                                 if (cur->pitchesThrown < cmp->pitchesThrown) {
                                     bestIdx = k;
                                 }
@@ -579,7 +579,7 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
     }
 
     g_Scores._B1[g_GameLogic.awayTeamBattingInd_battingTeam] = pitcherSlot;
-    SAT_INC_U16(pitcher->_00);
+    SAT_INC_U16(pitcher->battersFaced);
     if (pitcher->outsAsPitcher < 0xFF - g_Strikes.outs - g_Strikes.storedOuts) {
         pitcher->outsAsPitcher += g_Strikes.outs - g_Strikes.storedOuts;
     } else {
@@ -591,23 +591,23 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
             g_Strikes.outs - g_Strikes.storedOuts;
     }
     if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN) {
-        SAT_INC_U16(pitcher->_0A);
+        SAT_INC_U16(pitcher->hitsAllowed);
     }
     if (result == AT_BAT_RESULT_HOME_RUN) {
-        SAT_INC_U16(pitcher->_0C);
+        SAT_INC_U16(pitcher->homeRunsAllowed);
     }
     if (result == AT_BAT_RESULT_STRIKEOUT) {
-        SAT_INC_U8(pitcher->_1C);
+        SAT_INC_U8(pitcher->strikeouts);
     }
     if (result == AT_BAT_RESULT_WALK) {
         if (g_Strikes._1E >= 0) {
-            SAT_INC_U16(PitcherStats_P1_P2[g_GameLogic.teamFielding][g_Strikes._1E]._06);
+            SAT_INC_U16(PitcherStats_P1_P2[g_GameLogic.teamFielding][g_Strikes._1E].walks);
         } else {
-            SAT_INC_U16(pitcher->_06);
+            SAT_INC_U16(pitcher->walks);
         }
     }
     if (result == AT_BAT_RESULT_HIT_BY_PITCH) {
-        SAT_INC_U16(pitcher->_08);
+        SAT_INC_U16(pitcher->battersHit);
     }
 
     if (NO_HITTER_TRACKER != 0) {

@@ -165,20 +165,20 @@ typedef struct {
 } StatisticsBatter; // size: 0x26
 
 typedef struct {
-    /* 0x00 */ u16 _00;
+    /* 0x00 */ u16 battersFaced;
     /* 0x02 */ u16 runsAllowed;
     /* 0x04 */ u16 earnedRunsAllowed;
-    /* 0x06 */ u16 _06;
-    /* 0x08 */ u16 _08;
-    /* 0x0A */ u16 _0A;
-    /* 0x0C */ u16 _0C;
+    /* 0x06 */ u16 walks;
+    /* 0x08 */ u16 battersHit;
+    /* 0x0A */ u16 hitsAllowed;
+    /* 0x0C */ u16 homeRunsAllowed;
     /* 0x0E */ u16 pitchesThrown;
     /* 0x10 */ u16 stamina;
     /* 0x12 */ u8 wasPitcher;
     /* 0x13 */ u8 _13[7];
     /* 0x1A */ u8 outsAsPitcher;
     /* 0x1B */ u8 maxPitchSpeed;
-    /* 0x1C */ u8 _1C;
+    /* 0x1C */ u8 strikeouts;
     /* 0x1D */ u8 starPitchesThrown;
 } StatisticsPitcher; // size: 0x1E
 
