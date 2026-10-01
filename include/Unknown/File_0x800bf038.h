@@ -7,12 +7,16 @@
 #include "game/stadium/stadium_framework.h"
 
 typedef struct _ShadowCamera {
-    /*0x00*/ u8 _00[0x40];
+    /*0x00*/ u8 _00[0x34];
+    /*0x34*/ Vec lightDir;
     /*0x40*/ Mtx viewMtx;
-} ShadowCamera;
+    /*0x70*/ u8 _70[0xB0 - 0x70];
+    /*0xB0*/ Mtx mtxB0;
+} ShadowCamera; // size: 0xE0
 
 typedef struct _ShadowState {
-    /*0x00*/ u8 _00[0x8];
+    /*0x00*/ E(u8, BOOL) enabled;
+    /*0x01*/ u8 _01[0x8 - 0x1];
     /*0x08*/ void* unk08;
     /*0x0C*/ GXTlutObj* tlut;
     /*0x10*/ u8 _10[0x4];
@@ -20,7 +24,13 @@ typedef struct _ShadowState {
     /*0x18*/ void (*callback18)(void);
     /*0x1C*/ void (*modelCallback)(StadiumModel* model, Mtx m);
     /*0x20*/ void (*callback20)(void);
-    /*0x24*/ u8 _24[0x50 - 0x24];
+    /*0x24*/ u16 unk24;
+    /*0x26*/ u8 _26[2];
+    /*0x28*/ f32 unk28[3][2]; // reset to {1e8, -1e8} pairs, so plausibly min/max extents
+    /*0x40*/ Vec unk40;
+    /*0x4C*/ u8 _4C;
+    /*0x4D*/ s8 unk4D;
+    /*0x4E*/ u8 _4E[0x50 - 0x4E];
 } ShadowState;
 
 extern ShadowState drawShadows;

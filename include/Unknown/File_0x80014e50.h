@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void loadSomethingFromDiskAtBeginningOfAB2(void);
+BOOL loadSomethingFromDiskAtBeginningOfAB2(int index);
 
 #endif // !__UNKNOWN_FILE_0X80014E50_H_

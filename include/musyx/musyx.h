@@ -443,6 +443,9 @@ bool32 sndAuxCallbackPrepareChorus(SND_AUX_CHORUS* ch);
 bool32 sndAuxCallbackShutdownChorus(SND_AUX_CHORUS* ch);
 bool32 sndAuxCallbackUpdateSettingsChorus(SND_AUX_CHORUS* ch);
 
+void sndSetAuxProcessingCallbacks(u8 studio, SND_AUX_CALLBACK auxA, void* userA, u8 midiA, SND_SEQID seqIDA,
+                                  SND_AUX_CALLBACK auxB, void* userB, u8 midiB, SND_SEQID seqIDB);
+
 #define SND_CROSSFADE_STOP 0x0       // Stop old song after fadedown
 #define SND_CROSSFADE_PAUSE 0x1      // Pause old song after fadedown
 #define SND_CROSSFADE_CONTINUE 0x2   // Continue previously paused song as new one

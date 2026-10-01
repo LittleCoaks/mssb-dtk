@@ -1,14 +1,7 @@
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800b0a14.h"
 
-extern struct {
-    /*0x00*/ u8 _00[0xC];
-    /*0x0C*/ u16 sceneArg;
-    /*0x0E*/ u8 _0E[2];
-    /*0x10*/ u8 currentScene;
-    /*0x11*/ u8 nextScene;
-    /*0x12*/ u8 _12[0x1C - 0x12];
-} lbl_8037169C;
+extern SceneChangeState lbl_8037169C;
 
 void fn_80020624(void);
 

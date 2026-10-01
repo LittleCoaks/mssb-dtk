@@ -2635,3 +2635,38 @@ First seen: 2026-10, 12 `Unknown/` units. 8 reached 100%; 6 flipped to `Matching
 - **Frame rounding sizes a stack struct, again.** `LayoutFrameInfo` (fn_8000CEF0's out param) was
   0x58 bytes, which gave setIndicatorSlotState a 0x80 frame instead of 0x70. 0x4C..0x54 satisfies both
   it and load_Icon; the header now uses 0x54.
+
+## Findings from the thirteen-small-DOL-files pass (initializeDVDSystem ... updateVectorInArray)
+
+First seen: 2026-10, 13 `Unknown/` units. 8 flipped to `Matching` (File_0x80014e50, 8001c588,
+8001cbd4, 800203e0, 80021308, 800219b4, 80042c44, 80062674); 5 are instruction-exact or nearly so
+but blocked by shared `.sdata2`/`.bss` and keep checkpoints (800a76bc, 800527c4, 80064344, 800bdc88,
+800beb3c).
+
+- **A TU's pooled statics are laid out in FIRST-USE order across the whole TU, not declaration
+  order.** `initializeDVDSystem` reaches two thread stacks and a `DVDFileInfo` through one base
+  register (`addi r6, r31, 0x0` is the tell: a pooled static at offset 0). Three file statics
+  reproduced the pooling (68.9% -> 98.4%), but every declaration order gave the same layout; only
+  an earlier function referencing the stacks first changed it. So a split that is a fragment of a
+  bigger TU cannot reproduce the pool order on its own; merge with the earlier users.
+- **A callee can be int-wide while every caller sees `u8`.** `isWorldPosOnScreen` ends in
+  `cntlzw; srwi r3, r0, 5` with no truncation, yet all three callers `clrlwi.` the result. A `u8`
+  definition emits `extrwi 8,19`. Defining it `BOOL` in a .c that does not include the `u8`
+  header keeps both views.
+- **`(u16)param` as a call argument makes MWCC pass the already-truncated copy.** In
+  `animateBallRelated` the plain `index` argument added an `mr r9, r4` to keep the raw register;
+  `(u16)index` reused the `clrlwi r0` the multiply needed.
+- **Truncation deferred to the merge point after an if/else means a `u8` inline parameter.**
+  `initStadiumLighting` computes `id + 7` / `id` into one register, stores it untruncated, then
+  `clrlwi`s it for the index. An `int` local plus a `static inline loadStadiumLights(u8 stadium)`
+  matched; the inline also fixed the loop's callee-saved numbering, which no declaration order
+  could. A second inline around the `Vec` copy + by-value call put the copy at the target's stack
+  slot.
+- **A template struct copy that the target does with `bl memcpy` needs an explicit `memcpy`.**
+  Struct assignment of the 0x70-byte template emitted an inline word loop (handleBallRollInWater).
+- **Exit-block threading again:** `loadFielderActors` reaches its fail block from a nested guard;
+  the early-return form duplicated the block (93%), `do { ... break; ... } while (0)` matched.
+- **A routine body copied from a sibling can still differ in store order.** The inlined
+  `changeScene(scene, 1)` in `challenge_setTransitionScreenCharacterPortrait` needed
+  `currentScene = 7;` before `sceneArg = 1;`, the reverse of `changeScene` itself, so it is a
+  hand-written copy rather than an inline of the sibling.

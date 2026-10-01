@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void loadFielderActors(void);
+BOOL loadFielderActors(int charID);
 
 #endif // !__UNKNOWN_FILE_0X8001C588_H_

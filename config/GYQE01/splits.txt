@@ -260,6 +260,7 @@ Unknown/File_0x80021308.c:
 	extab       start:0x80005A48 end:0x80005A50
 	extabindex  start:0x800072CC end:0x800072D8
 	.text       start:0x80021308 end:0x800213F4
+	.sdata2     start:0x803CC548 end:0x803CC560
 
 Unknown/File_0x80021410.c:
 	extab       start:0x80005A50 end:0x80005A58

@@ -3,12 +3,21 @@
 
 #include "mssbTypes.h"
 #include "Dolphin/dvd.h"
+#include "Dolphin/OS/OSThread.h"
+
+typedef void (*DriveStatusHandler)(void);
 
 /* Disk-loader state. dtk's 0x708-byte lbl_803C6CF8 label spans several
  * objects; the loader addresses all of them through this one base, so only
  * the fields in use are named. */
 typedef struct {
-    /* 0x000 */ u8 _000[0x6DC];
+    /* 0x000 */ OSThread readThread;
+    /* 0x318 */ OSThread thread2;
+    /* 0x630 */ u8 _630[0x6CC - 0x630];
+    /* 0x6CC */ DriveStatusHandler* driveStatusHandlers; // indexed by DVDGetDriveStatus() + 1
+    /* 0x6D0 */ u8 _6D0[0x6D8 - 0x6D0];
+    /* 0x6D8 */ u8 _6D8;
+    /* 0x6D9 */ u8 _6D9[0x6DC - 0x6D9];
     /* 0x6DC */ DVDFileInfo* fileInfo;
     /* 0x6E0 */ u8 _6E0[0x6FC - 0x6E0];
     /* 0x6FC */ void* pendingBlock;

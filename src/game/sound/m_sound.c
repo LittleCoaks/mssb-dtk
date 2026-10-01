@@ -700,7 +700,7 @@ static inline int getPanFromWorldPos(f32 x, f32 y, f32 z) {
     int screenY;
     int pan = 0x3f;
 
-    if (audioFileDescriptors._396 == 1) {
+    if (audioFileDescriptors.soundMode == 1) {
         fn_3_1650C(&screenX, &screenY, TRUE, x, -y, z);
         if (screenX < 0) {
             pan = 0;
@@ -2000,7 +2000,7 @@ BOOL fn_3_9056C(int index) {
 
     sound_crowd_EffectsStruct._08 =
         sndSeqPlayEx(entry->sgid, entry->sid, ((void**)lbl_3_bss_1774[0])[index], NULL, 0);
-    audioFileDescriptors._391[0] = lbl_3_data_830C[index * 2];
+    audioFileDescriptors.musicVolume = lbl_3_data_830C[index * 2];
     sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._08, SND_SEQVOL_CONTINUE);
     return TRUE;
 }
