@@ -768,9 +768,14 @@ void initializeStats(void) {
     StatsScreenScores.savePitcher = -1;
     StatsScreenScores.inning = 0;
     StatsScreenScores.noHitterKind = 0;
-    for (i = 6; i < 14; i++) {
-        StatsScreenScores._F8[i - 6] = -1;
-    }
+    StatsScreenScores.goAheadRunPitcher = -1;
+    StatsScreenScores.walkOffRunner = -1;
+    StatsScreenScores.walkOffBatter = -1;
+    StatsScreenScores.walkOffHomeRunBatter = -1;
+    StatsScreenScores.lateGoAheadHitTeam = -1;
+    StatsScreenScores.lateGoAheadHitBatter = -1;
+    StatsScreenScores.goAheadRbiTeam = -1;
+    StatsScreenScores.goAheadRbiBatter = -1;
 
     for (team = 0; team < 2; team++) {
         for (i = 0; i < 100; i++) {

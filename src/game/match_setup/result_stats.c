@@ -76,9 +76,9 @@ void MVPCalculation(void) {
     if (winner != 2 &&
         !((g_d_GameSettings.p2_CPU_match_code == 0 || g_d_GameSettings.p2_CPU_match_code == 3) &&
           ((g_GameLogic.teamIsCPU[0] == 0 && slot != 0) || (g_GameLogic.teamIsCPU[1] == 0 && slot == 0)))) {
-        if (StatsScreenScores._F8[3] >= 0) {
+        if (StatsScreenScores.walkOffHomeRunBatter >= 0) {
             mvpTeam = slot;
-            MVP_LEADER(winner) = StatsScreenScores._F8[3];
+            MVP_LEADER(winner) = StatsScreenScores.walkOffHomeRunBatter;
             StatsScreenScores.mvpRosterLoc[mvpTeam] = MVP_LEADER(winner);
             goto found;
         }
@@ -94,15 +94,15 @@ void MVPCalculation(void) {
             StatsScreenScores.mvpRosterLoc[mvpTeam] = MVP_LEADER(winner);
             goto found;
         }
-        if (StatsScreenScores._F8[2] >= 0) {
+        if (StatsScreenScores.walkOffBatter >= 0) {
             mvpTeam = slot;
-            MVP_LEADER(winner) = StatsScreenScores._F8[2];
+            MVP_LEADER(winner) = StatsScreenScores.walkOffBatter;
             StatsScreenScores.mvpRosterLoc[mvpTeam] = MVP_LEADER(winner);
             goto found;
         }
-        if (winner >= 0 && StatsScreenScores._F8[6] == slot && StatsScreenScores._F8[5] == StatsScreenScores._F8[7]) {
+        if (winner >= 0 && StatsScreenScores.goAheadRbiTeam == slot && StatsScreenScores.lateGoAheadHitBatter == StatsScreenScores.goAheadRbiBatter) {
             mvpTeam = slot;
-            MVP_LEADER(winner) = StatsScreenScores._F8[7];
+            MVP_LEADER(winner) = StatsScreenScores.goAheadRbiBatter;
             StatsScreenScores.mvpRosterLoc[mvpTeam] = MVP_LEADER(winner);
             goto found;
         }
@@ -116,8 +116,8 @@ void MVPCalculation(void) {
                     if (k == StatsScreenScores.winningPitcher) {
                         score[k] = lbl_3_data_60F8[0];
                     }
-                    if (k == StatsScreenScores._F8[7]) {
-                        if (StatsScreenScores._100 != 0) {
+                    if (k == StatsScreenScores.goAheadRbiBatter) {
+                        if (StatsScreenScores.goAheadRbiWasHit != 0) {
                             score[k] = lbl_3_data_60F8[1];
                         } else {
                             score[k] = lbl_3_data_60F8[4];

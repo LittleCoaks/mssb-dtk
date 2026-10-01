@@ -271,8 +271,15 @@ typedef struct {
     /* 0xF5 */ s8 savePitcher;
     /* 0xF6 */ u8 inning;
     /* 0xF7 */ u8 noHitterKind;
-    /* 0xF8 */ s8 _F8[8];
-    /* 0x100 */ s8 _100;
+    /* 0xF8 */ s8 goAheadRunPitcher;    // pitcher who allowed the latest go-ahead run
+    /* 0xF9 */ s8 walkOffRunner;        // runner who scored the walk-off winning run
+    /* 0xFA */ s8 walkOffBatter;        // batter at the plate for the walk-off
+    /* 0xFB */ s8 walkOffHomeRunBatter; // batter, only if the walk-off was a home run
+    /* 0xFC */ s8 lateGoAheadHitTeam;   // unsure: gated on g_Scores._pad_AC >= 3
+    /* 0xFD */ s8 lateGoAheadHitBatter; // unsure: same gate
+    /* 0xFE */ s8 goAheadRbiTeam;       // batting team on the latest go-ahead play
+    /* 0xFF */ s8 goAheadRbiBatter;     // batter on the latest go-ahead play
+    /* 0x100 */ s8 goAheadRbiWasHit; // 1 if goAheadRbiBatter reached base on the play
     /* 0x101 */ s8 mvpRosterLoc[2];
     /* 0x103 */ s8 mvpCharID;
     /* 0x104 */ u8 mvpKind;

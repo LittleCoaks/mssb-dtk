@@ -26,7 +26,7 @@ void runScored(void) {
         storedInningInfo.firstRunHalfInningBottomInd = g_Scores.halfInning;
         storedInningInfo.inningOfGoAheadRun = g_Scores.Inning;
         storedInningInfo.halfInningOfGoAheadRun = g_Scores.halfInning;
-        StatsScreenScores._F8[0] = g_Pitcher.rosterID;
+        StatsScreenScores.goAheadRunPitcher = g_Pitcher.rosterID;
         runScoredThisPlay = 1;
     } else if (fieldingScore == battingScore) {
         storedInningInfo.inningOfLastTie = g_Scores.Inning;
@@ -47,7 +47,7 @@ void runScored(void) {
                 storedInningInfo.inningOfGoAheadRun = g_Scores.Inning;
                 storedInningInfo.halfInningOfGoAheadRun = g_Scores.halfInning;
             }
-            StatsScreenScores._F8[0] = g_Pitcher.rosterID;
+            StatsScreenScores.goAheadRunPitcher = g_Pitcher.rosterID;
             runScoredThisPlay = 1;
         } else if (prevScore < battingScore) {
             storedInningInfo.inningOfComeback = g_Scores.Inning;
@@ -55,23 +55,23 @@ void runScored(void) {
             storedInningInfo.comebackCounter2++;
             storedInningInfo.inningOfGoAheadRun = g_Scores.Inning;
             storedInningInfo.halfInningOfGoAheadRun = g_Scores.halfInning;
-            StatsScreenScores._F8[0] = g_Pitcher.rosterID;
+            StatsScreenScores.goAheadRunPitcher = g_Pitcher.rosterID;
             runScoredThisPlay = 1;
         }
     }
     if (fieldingScore > battingScore && g_Scores.Inning >= g_Scores.inningLimit && g_Scores.halfInning != 0) {
         storedInningInfo.goAheadRunOccurrences = g_Scores.Inning;
-        StatsScreenScores._F8[2] = g_Batter.rosterID;
+        StatsScreenScores.walkOffBatter = g_Batter.rosterID;
         if (g_Ball.deadBallReason == 1) {
-            StatsScreenScores._F8[1] = g_Batter.rosterID;
-            StatsScreenScores._F8[3] = g_Batter.rosterID;
+            StatsScreenScores.walkOffRunner = g_Batter.rosterID;
+            StatsScreenScores.walkOffHomeRunBatter = g_Batter.rosterID;
         } else {
             scoringRunners = 0;
             for (i = 3; i >= 0; i--) {
                 if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     scoringRunners++;
                     if (prevScore + scoringRunners > battingScore) {
-                        StatsScreenScores._F8[1] = g_Runners[i].rosterID;
+                        StatsScreenScores.walkOffRunner = g_Runners[i].rosterID;
                         break;
                     }
                 }
@@ -83,19 +83,19 @@ void runScored(void) {
     }
     if (g_Scores._pad_AC >= 3) {
         if (storedInningInfo.batterResultBase > 0) {
-            StatsScreenScores._F8[4] = g_GameLogic.teamBatting;
-            StatsScreenScores._F8[5] = g_Batter.rosterID;
+            StatsScreenScores.lateGoAheadHitTeam = g_GameLogic.teamBatting;
+            StatsScreenScores.lateGoAheadHitBatter = g_Batter.rosterID;
         } else {
-            StatsScreenScores._F8[4] = -1;
-            StatsScreenScores._F8[5] = -1;
+            StatsScreenScores.lateGoAheadHitTeam = -1;
+            StatsScreenScores.lateGoAheadHitBatter = -1;
         }
     }
-    StatsScreenScores._F8[6] = g_GameLogic.teamBatting;
-    StatsScreenScores._F8[7] = g_Batter.rosterID;
+    StatsScreenScores.goAheadRbiTeam = g_GameLogic.teamBatting;
+    StatsScreenScores.goAheadRbiBatter = g_Batter.rosterID;
     if (storedInningInfo.batterResultBase > 0) {
-        StatsScreenScores._100 = 1;
+        StatsScreenScores.goAheadRbiWasHit = 1;
     } else {
-        StatsScreenScores._100 = 0;
+        StatsScreenScores.goAheadRbiWasHit = 0;
     }
 }
 
