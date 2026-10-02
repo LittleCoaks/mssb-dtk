@@ -885,10 +885,10 @@ void processToyFieldObjectCollisions(Mtx view, StadiumDrawOrder* order) {
 void fn_3_E7424(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
         roundCount++;
-        lbl_3_bss_AE80[0] = g_Minigame._1914 != 0;
-        lbl_3_bss_AE80[1] = g_Minigame._1915 != 0;
-        lbl_3_bss_AE80[2] = g_Minigame._1916 != 0;
-        lbl_3_bss_AE80[3] = g_Minigame._1917 != 0;
+        lbl_3_bss_AE80[0] = g_Minigame.toyField_runnerOnHome != 0;
+        lbl_3_bss_AE80[1] = g_Minigame.toyField_runnerOnFirst != 0;
+        lbl_3_bss_AE80[2] = g_Minigame.toyField_runnerOnSecond != 0;
+        lbl_3_bss_AE80[3] = g_Minigame.toyField_runnerOnThird != 0;
         lbl_3_data_1963F = -1;
         lbl_3_data_19640 = -1;
     }
