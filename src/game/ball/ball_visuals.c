@@ -342,7 +342,7 @@ void ballAnimations(void) {
                 model->visible = FALSE;
             }
         }
-        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Minigame.bODRelated3) {
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Minigame.bOD_hrFireworksLaunchedInd) {
             model->visible = FALSE;
             stopBallTrail();
         }

@@ -202,7 +202,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x80712164` | function | `chompState3_longDistanceAttack_Stalk` | `chompState3-longDistanceAttack/Stalk` |
 | `0x8072c524` | function | `toyField_draw_theCoinsBesideThe_CoinsX2_Graphic` | `toyField_draw_theCoinsBesideThe"CoinsX2"Graphic` |
 | `0x8072c8ac` | function | `toyField_hud_scores_BallsStrikesOuts` | `toyField_hud_scores&BallsStrikesOuts` |
-| `0x807500cc` | function | `unused_BODRelated` | `unused,BODRelated` |
+| `0x807500cc` | function | `bOD_ScoreHomeRun` | `unused,BODRelated` |
 | `0x80752458` | function | `wallBallMultiplayer_AIControl` | `wallBallMultiplayer/AIControl` |
 | `0x8076d8d0` | function | `unused_BarrelBatterRelated` | `unused,BarrelBatterRelated` |
 | `0x8079e4a4` | function | `animateMVP_GameEnd` | `animateMVP/GameEnd` |

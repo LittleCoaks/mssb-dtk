@@ -3,31 +3,31 @@
 
 #include "mssbTypes.h"
 
-void bobOmbDerbyBatterAI(void);
-void fn_3_110A04(void);
-s32 fn_3_110A38(void);
-void BODScoring(void);
-void unused_BODRelated(void);
-void fn_3_1111D0(void);
-void fn_3_111250(void);
-void bobOmbDerbyCalculatePoints(void);
-void unusedBODFunction(void);
+void bOD_BatterAI(void);
+void bOD_ClearInputs(void);
+s32 bOD_EstimatePitchFrames(void);
+void bOD_HomeRunFireworks(void);
+void bOD_ScoreHomeRun(void);
+void bOD_SetRunnerAngleFromHit(void);
+void bOD_FinishPitch(void);
+void bOD_LiveBallOutcome(void);
+void bOD_LiveBall(void);
 void bOD_bB_Pitcher_waitingForPitch(void);
-void fn_3_111A88(void);
-void fn_3_111AC4(void);
-void fn_3_111C5C(void);
-void fn_3_111F80(void);
-void fn_3_112070(void);
-void fn_3_1120E0(void);
-void fn_3_112128(void);
-void fn_3_1121A4(void);
-void bobOmbDerbyPitchTransition(void);
-void fn_3_112450(void);
-void fn_3_112558(void);
-void fn_3_1125D0(void);
+void bOD_FinishTurn(void);
+void bOD_AtBatOutcome(void);
+void bOD_AtBat(void);
+void bOD_RoundIntro(void);
+void bOD_Postgame(void);
+void bOD_CheckRoundsLeft(void);
+void bOD_EndTurn(void);
+void bOD_ResetPlayState(void);
+void bOD_PrepareNextPitch(void);
+void bOD_PrepareNextBatter(void);
+void bOD_StartRound(void);
+void bOD_TransitionToBatting(void);
 void bOD_LoadGame(void);
-void fn_3_1128E8(void);
-void fn_3_1128EC(void);
-void bobOmbDerbySimulation(void);
+void bOD_UpdateFieldObjects(void);
+void bOD_AmbientFireworks(void);
+void bobOmbDerbySwitcher(void);
 
 #endif // !__GAME_MINIGAME_BOBOMB_DERBY_H_
