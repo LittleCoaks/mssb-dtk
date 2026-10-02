@@ -1,5 +1,5 @@
-#ifndef __UNKNOWN_FILE_0X80024184_H_
-#define __UNKNOWN_FILE_0X80024184_H_
+#ifndef __UNKNOWN_SUB_H_
+#define __UNKNOWN_SUB_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/gx.h"
@@ -55,4 +55,4 @@ f32 LinearInterpolateToNewRange(f32 value, f32 prevMin, f32 prevMax, f32 nextMin
 BOOL isCharacterUnlocked(int charID);
 int fn_80024C6C(fn_80024C6C_s* obj, int arg1);
 
-#endif // !__UNKNOWN_FILE_0X80024184_H_
+#endif // !__UNKNOWN_SUB_H_

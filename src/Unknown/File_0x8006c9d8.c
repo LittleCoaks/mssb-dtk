@@ -77,7 +77,7 @@ f32 intermediateStatBuffForScoutFlags(void) {
     return challengeIntermediateStarBUffs_CPU[CHALLENGE->difficulty][CHALLENGE->scoutFlagRow];
 }
 
-f32 starMissionMenu(int charID) {
+f32 intermediateStatBuffForCompletedMissions(int charID) {
     ChallengeTrackingStruct* t = &starMissionCompletionTracker[charID];
     int count;
     int i;

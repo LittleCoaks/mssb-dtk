@@ -5,7 +5,7 @@
 #include "Dolphin/gx.h"
 #include "C3/geoPalette.h"
 #include "Unknown/File_0x80034e20.h"
-#include "Unknown/File_0x80024184.h"
+#include "Unknown/sub.h"
 
 #define TEX_SLOT_COUNT 13
 

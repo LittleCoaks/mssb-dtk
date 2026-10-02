@@ -1,5 +1,5 @@
 #include "Unknown/File_0x8003a688.h"
-#include "Unknown/File_0x80024184.h"
+#include "Unknown/sub.h"
 #include "Dolphin/mtx.h"
 #include "string.h"
 

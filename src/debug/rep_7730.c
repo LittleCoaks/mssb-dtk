@@ -14,7 +14,7 @@
 #include "Dolphin/os.h"
 #include "C3/control.h"
 #include "stl/math.h"
-#include "Unknown/File_0x80024184.h"
+#include "Unknown/sub.h"
 #include "Dolphin/GX/GXPixel.h"
 #include "stl/mem.h"
 #include "Dolphin/rand.h"

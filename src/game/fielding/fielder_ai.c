@@ -13,7 +13,7 @@
 #include "header_rep_data.h"
 #include "static/UnknownHomes_static.h"
 #include "game/sound/m_sound.h"
-#include "Unknown/File_0x80024184.h"
+#include "Unknown/sub.h"
 
 extern u8 lbl_3_data_4710[2];
 extern f32 lbl_3_data_4760[3];

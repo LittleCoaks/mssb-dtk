@@ -1,7 +1,7 @@
 #include "debug/rep_7BF0.h"
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x80024184.h"
+#include "Unknown/sub.h"
 #include "Dolphin/GX/GXFifo.h"
 #include "Dolphin/GX/GXGeometry.h"
 #include "Dolphin/GX/GXLight.h"

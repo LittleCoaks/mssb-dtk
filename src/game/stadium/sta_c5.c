@@ -35,7 +35,7 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x80024184.h"
+#include "Unknown/sub.h"
 #include "Unknown/File_0x80039aa8.h"
 #include "Unknown/File_0x80064430.h"
 #include "Unknown/File_0x800527c4.h"

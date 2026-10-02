@@ -5,6 +5,6 @@
 
 void challenge_checkRecruitment(void);
 f32 intermediateStatBuffForScoutFlags(void);
-f32 starMissionMenu(int charID);
+f32 intermediateStatBuffForCompletedMissions(int charID);
 
 #endif // !__UNKNOWN_FILE_0X8006C9D8_H_
