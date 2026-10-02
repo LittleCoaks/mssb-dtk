@@ -2800,3 +2800,24 @@ condition (`if (cb && (n->flags & 8)) cb();`) gives the identical sequence but w
 and no temp/inline variant moves it. The `r3` destination means the masked value is also the
 call's first argument: `if (cb && (n->flags & 8)) cb(n->flags & 8);` (CSE folds the two) matches.
 Pattern: a dead-looking `rlwinm.`/`clrlwi.` into `r3` right before an indirect call is an argument.
+
+## `li rA, 0` + `mr rB, rA` for two zero-assignments means the code was inlined
+
+First seen: `Unknown/File_0x80025c58.c` (`ACTActorRelated`, 2026-10). The target set two
+locals to 0 in the same block as `li r0, 0x0; mr r5, r0` (and `li r6, 0x0; mr r0, r6`). In a
+plain function, MWCC 2.6 emits `li; li` for `a = 0; b = 0;` regardless of the locals' types
+(u32/int/pointer all tried), and chained assignment (`a = b = 0`) or copying one into the
+other (`b = a`) is copy-propagated back to two `li`s. Verified on a scratch testbed: the exact
+same body wrapped in a `static inline` and called from a one-line wrapper emits `li; mr`.
+The same mechanism explains the existing `count = 0; for (i = 0; ...)` copy in
+`File_0x8006cbe4.c`, whose body is an inline. So when you see this pair, put the enclosing
+code in a `static inline` called from the real function. Note that inlining also changed how
+`p = &base->ptr[12]; v = *p;` compiled (it lost the `lwzu`); writing
+`if ((p = base->ptr) != NULL) { p = &p[12]; v = *p; }` brought the `lwzu` back.
+
+What remained after that was register allocation only, and local *declaration order* decided
+it. A script that tried random declaration orders and kept any single move or swap that
+raised the score went from 96.29% to 100% (one restart). Source statement order for two
+bitfield reads from adjacent bytes (`subType` before `type`) also changed which `lbz` got
+which register. Expect this kind of declaration-order search to be needed when the
+instructions already match but several locals are live across a loop.
