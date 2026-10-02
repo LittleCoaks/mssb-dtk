@@ -2791,3 +2791,12 @@ spelling (`v >> 16 & 0xFC`, `(v >> 18) << 2`, casts to `s32`/`u8`) is constant-f
 `li r0,0`, and reading through `u32*` gives `lwz` instead. Only mask-first,
 `(*(u16*)src & 0xFC0000) >> 16`, survives to codegen and matches. Pattern: a rotate that provably
 produces zero means the source masked before shifting.
+
+## A flag test computed straight into `r3` before a `bctrl` is the callback's argument
+
+Seen in `LoadFile` (`src/Unknown/File_0x800a8cbc.c`) and every jukebox-queue function around it:
+`lwz r0,0x8(rN); rlwinm. r3,r0,0,28,28; beq; mtctr r12; bctrl`. Writing the test as a plain
+condition (`if (cb && (n->flags & 8)) cb();`) gives the identical sequence but with `rlwinm. r0`,
+and no temp/inline variant moves it. The `r3` destination means the masked value is also the
+call's first argument: `if (cb && (n->flags & 8)) cb(n->flags & 8);` (CSE folds the two) matches.
+Pattern: a dead-looking `rlwinm.`/`clrlwi.` into `r3` right before an indirect call is an argument.

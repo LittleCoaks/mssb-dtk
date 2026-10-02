@@ -28,7 +28,8 @@ typedef struct {
     } cancel;
     /* 0x716 */ u8 _716;
     /* 0x717 */ u8 loadType;
-    /* 0x718 */ u8 _718[0x722 - 0x718];
+    /* 0x718 */ s32 entryNum; // DVD entry number used by DVDFastOpen
+    /* 0x71C */ u8 _71C[0x722 - 0x71C];
     /* 0x722 */ u8 unk722;
 } LoadState;
 
