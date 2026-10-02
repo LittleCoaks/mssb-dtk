@@ -2782,3 +2782,12 @@ stores is MWCC's copy of a local initializer (`Vec xAxis = {1.0f, 0.0f, 0.0f};`)
 the only reader of such objects and of its `.sdata2` literals, claim both ranges in `splits.txt`
 and mark the dtk labels `scope:local`; objdiff pairs the anonymous `@N` objects with them and the
 `Matching` link stays `4 files OK`. Check the range start is 8-aligned first.
+
+## An `rlwinm` that shifts a halfword by 16 is a mask-then-shift MWCC could not fold
+
+First seen: `Unknown/File_0x800bbf5c.c` (`GetColorFromQuant`, 2026-10). The target's GX_RGBA6
+case does `lhz; rlwinm r0,r0,16,24,29` -- an always-zero result for a 16-bit load. Every shift-first
+spelling (`v >> 16 & 0xFC`, `(v >> 18) << 2`, casts to `s32`/`u8`) is constant-folded by MWCC to
+`li r0,0`, and reading through `u32*` gives `lwz` instead. Only mask-first,
+`(*(u16*)src & 0xFC0000) >> 16`, survives to codegen and matches. Pattern: a rotate that provably
+produces zero means the source masked before shifting.
