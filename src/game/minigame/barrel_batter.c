@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "game/minigame/barrel_batter.h"
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
@@ -13,6 +14,9 @@
 #include "game/math/game_math.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800204cc.h"
+#include "game/minigame/toy_field.h"
+#include "game/match_setup/match_loading.h"
+#include "game/minigame/rep_3880.h"
 
 extern void SetGameStatus(GAME_STATUS status);
 extern u8 lbl_800EFBA4[0x10];
@@ -51,524 +55,435 @@ extern s16 lbl_3_data_217A4[12];
 extern s16 lbl_3_common_bss_37400[0x27];
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
-// .text:0x0012E8FC size:0x214 mapped:0x8076D990
-void bB_chooseBombBarrel_dropNewBarrels(void) {
-    BOOL bombBarrelChosen = FALSE;
-    int barrelsUntilBomb;
-    int i;
+extern BOOL checkForPauses(void);
+extern void bB_AI(void);
+extern void ballPhysica(void);
+extern u8 lbl_3_data_2127C[8][5];
+extern s16 bB_challengePointsRequired[4];
 
-    if (g_Minigame.barrelBatterChargeMeter >= lbl_3_data_21788.bombBarrelThreshold) {
-        int emptyCount = 0;
-        for (i = 0; i < 15; i++) {
-            if (g_Minigame.barrels[i].barrelState == BB_BARREL_STATE_EMPTY) {
-                emptyCount++;
-            }
-        }
-        barrelsUntilBomb = random_fn_3_9EE24(emptyCount);
-        g_Minigame.barrelBatterChargeMeter = 0;
-        bombBarrelChosen = TRUE;
+static inline void bB_shiftBarrelDown(int i) {
+    g_Minigame.barrels[i - 1].barrelState = g_Minigame.barrels[i].barrelState;
+    g_Minigame.barrels[i - 1].barrelColour = g_Minigame.barrels[i].barrelColour;
+    g_Minigame.barrels[i - 1].currentPos.x = g_Minigame.barrels[i].currentPos.x;
+    g_Minigame.barrels[i - 1].currentPos.y = g_Minigame.barrels[i].currentPos.y;
+    g_Minigame.barrels[i - 1].currentPos.z = g_Minigame.barrels[i].currentPos.z;
+    g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_EMPTY;
+}
+
+static inline BB_barrelStruct *bB_getBarrel(int barrelIndex) {
+    return &g_Minigame.barrels[barrelIndex];
+}
+
+// .text:0x001324E8 size:0x9F4 mapped:0x8077157C
+void barrelBatterSwitcher(void) {
+    switch (g_GameLogic.gameStatus) {
+    case GAME_STATUS_LOAD_GAME:
+        bB_LoadGame();
+        break;
+    case GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING:
+        fn_3_13207C();
+        break;
+    case GAME_STATUS_TRANSITION_TO_MINIGAME_START:
+        fn_3_131FFC();
+        break;
+    case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
+        fn_3_131EC4();
+        break;
+    case GAME_STATUS_DEFAULT:
+        fn_3_131C88();
+        break;
+    case GAME_STATUS_AT_BAT:
+        bB_AtBat();
+        break;
+    case GAME_STATUS_LIVE_BALL:
+        fn_3_1307D0();
+        break;
+    case GAME_STATUS_TRANSITION:
+        barrelBatterTransitionToMainFunction();
+        break;
+    case GAME_STATUS_MINIGAME_NEW_ROUND:
+        fn_3_13128C();
+        break;
+    case GAME_STATUS_INNING_TRANSITION:
+        fn_3_13119C();
+        break;
+    case GAME_STATUS_TRANSITION_MINIGAME_POSTGAME:
+        fn_3_1312D4();
+        break;
+    case GAME_STATUS_GAME_START_MOVIE:
+    case GAME_STATUS_END_OF_GAME:
+    case GAME_STATUS_0xA:
+    case GAME_STATUS_PAUSED:
+    case GAME_STATUS_0xC:
+    case GAME_STATUS_HOW_TO_PLAY_SCREEN:
+    case GAME_STATUS_MVP_END_GAME:
+    case GAME_STATUS_0x10:
+    case GAME_STATUS_0x11:
+    case GAME_STATUS_0x12:
+    case GAME_STATUS_HOMERUN_END:
+    case GAME_STATUS_HOMERUN_LAP:
+    case GAME_STATUS_BATTER_CELEBRATION:
+    case GAME_STATUS_STAR_CHANCE_VS:
+    case GAME_STATUS_CHAMPIONSHIP:
+    case GAME_STATUS_0x18:
+        break;
     }
+}
+
+// .text:0x001323CC size:0x11C mapped:0x80771460
+void fn_3_1323CC(void) {
+    u32 i;
 
     for (i = 0; i < 15; i++) {
-        if (g_Minigame.barrels[i].barrelState == BB_BARREL_STATE_EMPTY) {
-            int rollY;
-            g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_DROPPING;
-            g_Minigame.barrels[i].animationCounter = 0;
-            g_Minigame.barrels[i].currentPos.x = barrelBaseCoordinates[i].x;
-            g_Minigame.barrels[i].currentPos.y = barrelBaseCoordinates[i].y;
-            g_Minigame.barrels[i].currentPos.z = barrelBaseCoordinates[i].z;
-            g_Minigame.barrels[i].currentPos.y += lbl_3_data_21770[0];
-            rollY = random_fn_3_9EE24(0x65);
-            g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (rollY * 5) / 100.0;
-            g_Minigame.barrels[i].barrelColour = random_fn_3_9EE24(3);
-            if (bombBarrelChosen) {
-                if (barrelsUntilBomb == 0) {
-                    barrelsUntilBomb = -1;
-                    g_Minigame.barrels[i].barrelColour = BB_BARREL_COLOUR_BROWN;
-                    g_Minigame.bB_bombBarrelID = (s16)i;
-                } else if (barrelsUntilBomb > 0) {
-                    barrelsUntilBomb--;
-                }
-            }
-        }
-    }
-}
-
-// .text:0x0012EB10 size:0x270 mapped:0x8076DBA4
-void fn_3_12EB10(void) {
-    int row;
-    for (row = 0; row < 5; row++) {
-        int pos = 0;
-        while (pos < 2) {
-            if (g_Minigame.barrels[row * 3 + pos].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-                int k;
-                for (k = pos + 1; k < 3; k++) {
-                    g_Minigame.barrels[row * 3 + k - 1].barrelState = g_Minigame.barrels[row * 3 + k].barrelState;
-                    g_Minigame.barrels[row * 3 + k - 1].barrelColour = g_Minigame.barrels[row * 3 + k].barrelColour;
-                    g_Minigame.barrels[row * 3 + k - 1].currentPos.x = g_Minigame.barrels[row * 3 + k].currentPos.x;
-                    g_Minigame.barrels[row * 3 + k - 1].currentPos.y = g_Minigame.barrels[row * 3 + k].currentPos.y;
-                    g_Minigame.barrels[row * 3 + k - 1].currentPos.z = g_Minigame.barrels[row * 3 + k].currentPos.z;
-                    g_Minigame.barrels[row * 3 + k].barrelState = BB_BARREL_STATE_EMPTY;
-                }
-            } else {
-                pos++;
-            }
-        }
-    }
-
-    if (g_Minigame.barrels[2].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[2].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[5].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[5].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[8].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[8].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[11].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[11].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[14].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[14].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-}
-
-// .text:0x0012ED80 size:0xE8 mapped:0x8076DE14
-BOOL fn_3_12ED80(void) {
-    int i;
-    BB_barrelStruct *barrel = g_Minigame.barrels;
-    for (i = 0; i < 5; i++, barrel += 3) {
-        if (barrel[1].replacingBarrelInd) {
-            return 0;
-        }
-        if (barrel[2].replacingBarrelInd) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-// .text:0x0012EE68 size:0x13C mapped:0x8076DEFC
-void fn_3_12EE68(int barrelIndex) {
-    int posInRow = barrelIndex % 3;
-    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
-    BB_barrelStruct *nextBarrel;
-
-    if (posInRow == 2) {
-        return;
-    }
-
-    nextBarrel = &g_Minigame.barrels[barrelIndex + 1];
-
-    if (nextBarrel->barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        return;
-    }
-    if (nextBarrel->barrelState == BB_BARREL_STATE_READY_TO_BLOW_UP) {
-        if (nextBarrel->desiredPos.y - barrel->desiredPos.y > lbl_3_data_21770[3] + 0.3) {
-            return;
-        }
-    }
-
-    nextBarrel->replacingBarrelInd = 1;
-    nextBarrel->velo_bounceUpOnBlowUp = lbl_3_data_21770[4];
-
-    if ((barrelIndex + 1) % 3 == 1) {
-        nextBarrel->_28 = barrelBaseCoordinates[barrelIndex].y;
-    } else {
-        int flag = (g_Minigame.barrels[barrelIndex - 1].barrelState == BB_BARREL_STATE_NEUTRAL) |
-                   (g_Minigame.barrels[barrelIndex].barrelState == BB_BARREL_STATE_NEUTRAL);
-        nextBarrel->_28 = barrelBaseCoordinates[flag].y;
-    }
-}
-
-// .text:0x0012EFA4 size:0x2E8 mapped:0x8076E038
-void bB_likelyReplaceBlownUpBarrels(int barrelIndex) {
-    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
-    int posInRow;
-
-    barrel->currentPos.y += barrel->velo_bounceUpOnBlowUp;
-    posInRow = barrelIndex % 3;
-    if (barrel->velo_bounceUpOnBlowUp > 0.0f && posInRow == 1) {
-        BB_barrelStruct *next = &g_Minigame.barrels[barrelIndex + 1];
-        if (next->barrelState != BB_BARREL_STATE_BLOWN_UP &&
-            next->replacingBarrelInd == 0 &&
-            posInRow != 2 &&
-            (next->barrelState != BB_BARREL_STATE_READY_TO_BLOW_UP ||
-             next->currentPos.y - barrel->currentPos.y <= 0.3 + lbl_3_data_21770[3])) {
-            next->replacingBarrelInd = 1;
-            next->velo_bounceUpOnBlowUp = lbl_3_data_21770[4];
-            if ((barrelIndex + 1) % 3 == 1) {
-                next->_28 = barrelBaseCoordinates[barrelIndex].y;
-            } else {
-                int flag = (g_Minigame.barrels[barrelIndex - 1].barrelState == BB_BARREL_STATE_NEUTRAL) |
-                           (g_Minigame.barrels[barrelIndex].barrelState == BB_BARREL_STATE_NEUTRAL);
-                next->_28 = barrelBaseCoordinates[flag].y;
-            }
-        }
-        if (next->currentPos.y - barrel->currentPos.y < lbl_3_data_21770[3]) {
-            barrel->velo_bounceUpOnBlowUp -= lbl_3_data_21770[5];
-        }
-    }
-
-    barrel->velo_bounceUpOnBlowUp -= lbl_3_data_21770[5];
-    if (barrel->velo_bounceUpOnBlowUp > 0.0f && posInRow == 2 &&
-        barrel->currentPos.y - g_Minigame.barrels[barrelIndex - 1].currentPos.y < lbl_3_data_21770[3]) {
-        barrel->velo_bounceUpOnBlowUp += lbl_3_data_21770[5];
-    }
-
-    if (barrel->currentPos.y < barrel->_28) {
-        barrel->currentPos.y = barrel->_28;
-        barrel->velo_bounceUpOnBlowUp = 0.0f;
-        barrel->replacingBarrelInd = 0;
-        if (barrel->barrelState != BB_BARREL_STATE_BLOWN_UP) {
-            VecXYZ pos;
-            pos.x = barrel->currentPos.x;
-            pos.y = -barrel->currentPos.y;
-            pos.z = barrel->currentPos.z - 1.0f;
-            if (0.0f == barrel->_28) {
-                fn_8004C108(&pos, TRUE);
-                callSfx(0x2e4);
-            } else {
-                fn_8004C108(&pos, FALSE);
-                callSfx(0x2e5);
-            }
-        }
-    }
-}
-
-// .text:0x0012F28C size:0x198 mapped:0x8076E320
-void fn_3_12F28C(int barrelIndex) {
-    if (g_Minigame.barrels[barrelIndex].delayUntilBlownUp <= g_Minigame.barrels[barrelIndex].animationCounter) {
-        g_Minigame.barrels[barrelIndex].barrelState = BB_BARREL_STATE_BLOWN_UP;
-        g_Minigame.barrels[barrelIndex].animationCounter = 0;
-        if (barrelIndex % 3 != 2) {
-            fn_3_12EE68(barrelIndex);
-        }
-        setCharacterAnimations(g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID], 0);
-    }
-}
-
-// .text:0x0012F424 size:0x200 mapped:0x8076E4B8
-void bB_connectingBarrels(int barrelNum, s16 blowUpDelay, int bombBarrelHitInd) {
-    int barrelColour = g_Minigame.barrels[barrelNum].barrelColour;
-
-    if (barrelNum % 3 != 2) {
-        int barrelAbove = barrelNum + 1;
-        if (g_Minigame.barrels[barrelAbove].barrelState == BB_BARREL_STATE_NEUTRAL) {
-            if (barrelAbove != g_Minigame.bB_bombBarrelID) {
-                if (g_Minigame.barrels[barrelAbove].barrelColour == barrelColour || bombBarrelHitInd != 0) {
-                    g_Minigame.barrels[barrelAbove].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
-                    g_Minigame.barrels[barrelAbove].animationCounter = 0;
-                    g_Minigame.barrels[barrelAbove].delayUntilBlownUp = blowUpDelay;
-                }
-            }
-        }
-    }
-
-    if (barrelNum != (barrelNum / 3) * 3) {
-        int barrelBelow = barrelNum - 1;
-        if (g_Minigame.barrels[barrelBelow].barrelState == BB_BARREL_STATE_NEUTRAL) {
-            if (barrelBelow != g_Minigame.bB_bombBarrelID) {
-                if (g_Minigame.barrels[barrelBelow].barrelColour == barrelColour || bombBarrelHitInd != 0) {
-                    g_Minigame.barrels[barrelBelow].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
-                    g_Minigame.barrels[barrelBelow].animationCounter = 0;
-                    g_Minigame.barrels[barrelBelow].delayUntilBlownUp = blowUpDelay;
-                }
-            }
-        }
-    }
-
-    if (barrelNum / 3 > 0) {
-        int barrelToLeft = barrelNum - 3;
-        if (g_Minigame.barrels[barrelToLeft].barrelState == BB_BARREL_STATE_NEUTRAL &&
-            barrelToLeft != g_Minigame.bB_bombBarrelID &&
-            (g_Minigame.barrels[barrelToLeft].barrelColour == barrelColour || bombBarrelHitInd != 0)) {
-            g_Minigame.barrels[barrelToLeft].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
-            g_Minigame.barrels[barrelToLeft].animationCounter = 0;
-            g_Minigame.barrels[barrelToLeft].delayUntilBlownUp = blowUpDelay;
-        }
-    }
-
-    if (barrelNum / 3 > 3) {
-        return;
-    }
-
-    if (g_Minigame.barrels[barrelNum + 3].barrelState != BB_BARREL_STATE_NEUTRAL) {
-        return;
-    }
-    if (barrelNum + 3 == g_Minigame.bB_bombBarrelID) {
-        return;
-    }
-    if (g_Minigame.barrels[barrelNum + 3].barrelColour != barrelColour && bombBarrelHitInd == 0) {
-        return;
-    }
-    g_Minigame.barrels[barrelNum + 3].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
-    g_Minigame.barrels[barrelNum + 3].animationCounter = 0;
-    g_Minigame.barrels[barrelNum + 3].delayUntilBlownUp = blowUpDelay;
-}
-
-// .text:0x0012F624 size:0x3B0 mapped:0x8076E6B8
-void bB_checkIfBarrelHitAndCalculateScore(void) {
-    if (g_Ball.framesSinceHit > 0) {
-        if (g_Minigame.barrelBatter_scoreCalculatedInd == 0) {
-            if (barrelBaseCoordinates[0].z - lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.z) {
-                if (g_Batter.contactType != HIT_CONTACT_TYPE_RIGHT_SOUR && g_Batter.contactType < HIT_CONTACT_TYPE_LEFT_SOUR) {
-                    int barrelRow = 0;
-
-                    if (barrelBaseCoordinates[0].y + lbl_3_data_21770[3] <= g_Ball.AtBat_Contact_BallPos.y) {
-                        barrelRow = 1;
-                        if (barrelBaseCoordinates[1].y + lbl_3_data_21770[3] <= g_Ball.AtBat_Contact_BallPos.y) {
-                            barrelRow = 2;
-                            if (barrelBaseCoordinates[2].y + lbl_3_data_21770[3] <= g_Ball.AtBat_Contact_BallPos.y) {
-                                barrelRow = 3;
-                            }
-                        }
-                    }
-
-                    if (barrelRow < 3 && barrelBaseCoordinates[0].x - lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.x) {
-                        int barrelColumn = 0;
-
-                        if (barrelBaseCoordinates[0].x + lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.x) {
-                            barrelColumn = 3;
-                            if (barrelBaseCoordinates[3].x + lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.x) {
-                                barrelColumn = 6;
-                                if (barrelBaseCoordinates[6].x + lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.x) {
-                                    barrelColumn = 9;
-                                    if (barrelBaseCoordinates[9].x + lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.x) {
-                                        barrelColumn = 12;
-                                        if (barrelBaseCoordinates[12].x + lbl_3_data_21770[2] <= g_Ball.AtBat_Contact_BallPos.x) {
-                                            barrelColumn = 15;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (barrelColumn < 15) {
-                            int barrelHitFlags[15];
-                            int barrelID;
-                            int delayToBlowUp;
-                            int loopAgainInd;
-                            int counter;
-                            int basePoints, barrelsHit;
-                            BOOL challengeInd;
-
-                            for (counter = 0; counter < 15; counter++) {
-                                barrelHitFlags[counter] = 0;
-                            }
-
-                            g_Minigame.barrelBatter_hitBarrelID = (u8)(barrelColumn + barrelRow);
-                            barrelID = (s8)g_Minigame.barrelBatter_hitBarrelID;
-
-                            g_Minigame.barrels[barrelID].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
-                            delayToBlowUp = lbl_3_data_21788.baseBlowUpDelay + lbl_3_data_21788.blowUpDelayIncrement;
-                            g_Minigame.barrels[barrelID].animationCounter = 0;
-                            g_Minigame.barrels[barrelID].delayUntilBlownUp = lbl_3_data_21788.baseBlowUpDelay;
-
-                            if (g_Minigame.bB_bombBarrelID == barrelID && g_Minigame.barrels[barrelID].barrelColour == BB_BARREL_COLOUR_BROWN) {
-                                g_Minigame.bB_bombBarrelHitInd = 1;
-                            }
-
-                            do {
-                                loopAgainInd = 0;
-                                for (counter = 0; counter < 15; counter++) {
-                                    if (g_Minigame.barrels[counter].barrelState == BB_BARREL_STATE_READY_TO_BLOW_UP &&
-                                        g_Minigame.barrels[counter].delayUntilBlownUp != delayToBlowUp &&
-                                        barrelHitFlags[counter] == 0) {
-                                        if (g_Minigame.bB_bombBarrelHitInd == 0) {
-                                            bB_connectingBarrels(counter, (s16)delayToBlowUp, 0);
-                                        } else {
-                                            bB_connectingBarrels(counter, (s16)delayToBlowUp, 1);
-                                        }
-                                        barrelHitFlags[counter] = 1;
-                                        loopAgainInd = 1;
-                                        g_Minigame.barrelBatter_barrelsHit++;
-                                    }
-                                }
-                                if (!loopAgainInd) {
-                                    break;
-                                }
-                                delayToBlowUp += lbl_3_data_21788.blowUpDelayIncrement;
-                            } while (TRUE);
-
-                            if (g_Minigame.bB_bombBarrelHitInd == 0 && g_Minigame.barrelBatter_barrelsHit > 1) {
-                                g_Minigame.barrelBatterChargeMeter = g_Minigame.barrelBatter_barrelsHit + g_Minigame.barrelBatterChargeMeter - 1;
-                            }
-
-                            barrelsHit = g_Minigame.barrelBatter_barrelsHit;
-                            if ((u32)barrelsHit < 2) {
-                                basePoints = lbl_3_data_217A4[5];
-                            } else {
-                                basePoints = (barrelsHit - 1) * lbl_3_data_217A4[5];
-                            }
-
-                            challengeInd = !g_d_GameSettings.exhibitionMatchInd;
-                            *(s16 *)((u8 *)&g_Minigame + 0x1DF4) = (s16)(basePoints * barrelsHit);
-                            g_Minigame.miniGameCurrentPoints[(s8)g_Minigame.rosterID] += (s16)(basePoints * barrelsHit);
-
-                            if (challengeInd && (s8)g_Minigame.rosterID == lbl_3_common_bss_37400[0x20]) {
-                                starMissionsMinigamesSpecialAction(2, basePoints * barrelsHit, g_Minigame.barrelBatter_barrelsHit);
-                            }
-                        }
-                    }
-
-                    g_Minigame.barrelBatter_scoreCalculatedInd = 1;
-                }
-            }
-        }
-    }
-}
-
-// .text:0x0012F9D4 size:0xF0 mapped:0x8076EA68
-void fn_3_12F9D4(int barrelIndex) {
-    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
-
-    barrel->currentPos.y += lbl_3_data_21770[1];
-    if (barrel->currentPos.y < barrel->desiredPos.y) {
-        barrel->currentPos.y = barrel->desiredPos.y;
-        if (barrel->posAtStartOfTurn.y != barrel->desiredPos.y) {
-            VecXYZ pos;
-            pos.x = barrel->currentPos.x;
-            pos.y = -barrel->currentPos.y;
-            pos.z = barrel->currentPos.z - 1.0f;
-            if (barrel->currentPos.y <= 0.0f) {
-                fn_8004C108(&pos, TRUE);
-                callSfx(0x2e4);
-            } else {
-                fn_8004C108(&pos, FALSE);
-                callSfx(0x2e5);
-            }
-        }
-        barrel->barrelState = BB_BARREL_STATE_NEUTRAL;
-    }
-}
-
-// .text:0x0012FAC4 size:0x2A8 mapped:0x8076EB58
-void fn_3_12FAC4(void) {
-    int i;
-
-    bB_checkIfBarrelHitAndCalculateScore();
-    for (i = 0; i < 15; i++) {
-        BB_barrelStruct *barrel = &g_Minigame.barrels[i];
-
-        if (barrel->animationCounter < 0x7ffe) {
-            barrel->animationCounter++;
-        } else {
-            barrel->animationCounter = 0x7fff;
-        }
-
-        if (barrel->barrelState == BB_BARREL_STATE_DROPPING) {
+        if (g_Minigame.barrels[i].barrelState == BB_BARREL_STATE_DROPPING) {
             fn_3_12F9D4(i);
         }
-        if (barrel->barrelState == BB_BARREL_STATE_READY_TO_BLOW_UP) {
-            fn_3_12F28C(i);
-        }
-        if (barrel->replacingBarrelInd != 0) {
-            bB_likelyReplaceBlownUpBarrels(i);
-        }
     }
 }
 
-// .text:0x0012FD6C size:0x118 mapped:0x8076EE00
-void fn_3_12FD6C(void) {
-    int i;
-    for (i = 0; i < 15; i++) {
-        if (g_Minigame.barrels[i].barrelState != BB_BARREL_STATE_EMPTY) {
-            g_Minigame.barrels[i].posAtStartOfTurn.x = g_Minigame.barrels[i].currentPos.x;
-            g_Minigame.barrels[i].posAtStartOfTurn.y = g_Minigame.barrels[i].currentPos.y;
-            g_Minigame.barrels[i].posAtStartOfTurn.z = g_Minigame.barrels[i].currentPos.z;
-            g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_DROPPING;
+// .text:0x001320BC size:0x310 mapped:0x80771150
+void bB_LoadGame(void) {
+    s8 value;
+
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
+        initializeSomethingDuringTransition();
+
+        g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_BARREL_BATTER;
+
+        g_Minigame.miniGameCurrentPoints[0] = 0;
+        g_Minigame.miniGameLatestPoints[0] = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18BC) = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18BE) = 0;
+        *((s8 *)&g_Minigame + 0x18F4) = -1;
+        ((s8 *)g_Minigame.minigameFielderIndex)[0] = -1;
+        ((s8 *)g_Minigame._18FC)[0] = -1;
+        *(s8 *)&g_Minigame._1900[0] = -1;
+        *((u8 *)&g_Minigame + 0x18F0) = 1;
+
+        g_Minigame.miniGameCurrentPoints[1] = 0;
+        g_Minigame.miniGameLatestPoints[1] = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18C0) = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18C2) = 0;
+        *((s8 *)&g_Minigame + 0x18F5) = -1;
+        ((s8 *)g_Minigame.minigameFielderIndex)[1] = -1;
+        ((s8 *)g_Minigame._18FC)[1] = -1;
+        *(s8 *)&g_Minigame._1900[1] = -1;
+        *((u8 *)&g_Minigame + 0x18F1) = 1;
+
+        g_Minigame.miniGameCurrentPoints[2] = 0;
+        g_Minigame.miniGameLatestPoints[2] = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18C4) = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18C6) = 0;
+        *((s8 *)&g_Minigame + 0x18F6) = -1;
+        ((s8 *)g_Minigame.minigameFielderIndex)[2] = -1;
+        ((s8 *)g_Minigame._18FC)[2] = -1;
+        *(s8 *)&g_Minigame._1900[2] = -1;
+        *((u8 *)&g_Minigame + 0x18F2) = 1;
+
+        g_Minigame.miniGameCurrentPoints[3] = 0;
+        g_Minigame.miniGameLatestPoints[3] = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18C8) = 0;
+        *(s16 *)((u8 *)&g_Minigame + 0x18CA) = 0;
+        *((s8 *)&g_Minigame + 0x18F7) = -1;
+        ((s8 *)g_Minigame.minigameFielderIndex)[3] = -1;
+        ((s8 *)g_Minigame._18FC)[3] = -1;
+        *(s8 *)&g_Minigame._1900[3] = -1;
+        *((u8 *)&g_Minigame + 0x18F3) = 1;
+
+        g_Scores.Inning = 0;
+        g_Minigame.pointsReqToWin_challenge = 0;
+        g_Minigame._1A37 = 0;
+        *(s8 *)&g_Minigame.minigamePlayerSelectedOrder = -1;
+        g_Minigame.rosterID = -1;
+        g_Minigame._17C0 = 0;
+        g_Minigame.bB_bombBarrelHitInd = 0;
+        g_Minigame.bB_bombBarrelID = -1;
+
+        if (g_Minigame.multiPlayerInd == 0) {
+            value = lbl_3_data_2127C[g_Minigame.GameMode_MiniGame][g_Minigame.soloMinigameDifficulty];
+            g_Scores.inningLimit = 1;
+            g_Minigame.minigameControlStruct[0].aIStrength[0] = value;
+            g_Minigame.minigameControlStruct[0].aIStrength[1] = value;
+            g_Minigame.minigameControlStruct[0].aIStrength[2] = value;
+            g_Minigame.minigameControlStruct[0].aIStrength[3] = value;
+            if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD) {
+                g_Minigame.pointsReqToWin_challenge = bB_challengePointsRequired[g_Minigame.soloMinigameDifficulty];
+            }
+        } else {
+            if (g_Minigame._1A3C != 0) {
+                value = lbl_3_data_2127C[7][0];
+                g_Minigame.minigameControlStruct[0].aIStrength[0] = value;
+                g_Minigame.minigameControlStruct[0].aIStrength[1] = value;
+                g_Minigame.minigameControlStruct[0].aIStrength[2] = value;
+                g_Minigame.minigameControlStruct[0].aIStrength[3] = value;
+            }
+            g_Scores.inningLimit = cost_15_bB_pitchesPerRound_solo[5];
         }
-        g_Minigame.barrels[i].animationCounter = 0;
+
+        fn_3_12FE84();
+
+        g_Minigame.turnNumberWithinRound = 0;
+        g_Minigame.barrelBatter_scoreCalculatedInd = 0;
+        g_Minigame.barrelBatterChargeMeter = 0;
+        g_GameLogic._125++;
+    } else {
+        SetGameStatus(GAME_STATUS_GAME_START_MOVIE);
     }
 }
 
-// .text:0x0012FE84 size:0x150 mapped:0x8076EF18
-void fn_3_12FE84(void) {
-    int i;
-    for (i = 0; i < 15; i++) {
-        int rollY;
-        g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_DROPPING;
-        g_Minigame.barrels[i].animationCounter = 0;
-        g_Minigame.barrels[i].replacingBarrelInd = 0;
-        g_Minigame.barrels[i].desiredPos.x = barrelBaseCoordinates[i].x;
-        g_Minigame.barrels[i].desiredPos.y = barrelBaseCoordinates[i].y;
-        g_Minigame.barrels[i].desiredPos.z = barrelBaseCoordinates[i].z;
-        g_Minigame.barrels[i].currentPos.x = barrelBaseCoordinates[i].x;
-        g_Minigame.barrels[i].currentPos.y = barrelBaseCoordinates[i].y;
-        g_Minigame.barrels[i].currentPos.z = barrelBaseCoordinates[i].z;
-        g_Minigame.barrels[i].currentPos.y += lbl_3_data_21770[0];
-        rollY = random_fn_3_9EE24(0x65);
-        g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (rollY * 5) / 100.0;
-        g_Minigame.barrels[i].barrelColour = random_fn_3_9EE24(3);
+// .text:0x0013207C size:0x40 mapped:0x80771110
+void fn_3_13207C(void) {
+    sndFXStartEx(0x1bd, lbl_800EFBA4[6], 0x3f, 0);
+    SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
+}
+
+// .text:0x00131FFC size:0x80 mapped:0x80771090
+void fn_3_131FFC(void) {
+    g_Scores.Inning++;
+    g_Minigame.turnNumberWithinRound = 0;
+
+    if (g_Minigame.multiPlayerInd == 0) {
+        SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
+        return;
+    }
+
+    fn_3_10F550(4, 0);
+    if (g_Scores.Inning == 1) {
+        fn_3_10AD48();
+    }
+    SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
+}
+
+// .text:0x00131EC4 size:0x138 mapped:0x80770F58
+void fn_3_131EC4(void) {
+    switch (g_GameLogic._125) {
+    case TRANSITION_CALCULATION_TYPE_0:
+        g_Minigame.rosterID = ((s8 *)g_Minigame.minigameControlStruct[0].aIStrength)[g_Minigame.turnNumberWithinRound + 4];
+        g_GameLogic.pre_PostMiniGameInd = TRUE;
+        g_Minigame.miniGameTurnCounter = 0;
+        g_Minigame.pointsTargetReachedInd = 0;
+        if (g_Minigame.multiPlayerInd == 0) {
+            g_Minigame.bB_pitchesRemainingInTurn = cost_15_bB_pitchesPerRound_solo[g_Minigame.soloMinigameDifficulty];
+        } else {
+            g_Minigame.bB_pitchesRemainingInTurn = cost_15_bB_pitchesPerRound_solo[4];
+        }
+        resetBallValuesBetweenBatters();
+        resetPitcherValuesBetweenBatters(0);
+        setPitcherStatsToInMemPitcher(-1);
+        setBatterContactConstants();
+        setInMemBatterConstants(g_Minigame.rosterID);
+        highLevelSimulationFlag[2] = 0;
+        g_GameLogic._125++;
+        break;
+    case TRANSITION_CALCULATION_TYPE_1:
+        if (someAnimationIndFunction() != 0) {
+            us80893314[1] = 1;
+            g_GameLogic._125++;
+        }
+        break;
+    default:
+        animRelated[0xB6] = 1;
+        SetGameStatus(GAME_STATUS_DEFAULT);
+        break;
     }
 }
 
-// .text:0x0012FFD4 size:0x2B4 mapped:0x8076F068
-void fn_3_12FFD4(void) {
-    int row;
+// .text:0x00131C88 size:0x23C mapped:0x80770D1C
+void fn_3_131C88(void) {
+    fn_3_131114();
+    fn_3_12FD6C();
 
-    g_Minigame.bB_bombBarrelID = -1;
-    for (row = 0; row < 5; row++) {
-        int pos = 0;
-        while (pos < 2) {
-            if (g_Minigame.barrels[row * 3 + pos].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-                int k;
-                for (k = pos + 1; k < 3; k++) {
-                    g_Minigame.barrels[row * 3 + k - 1].barrelState = g_Minigame.barrels[row * 3 + k].barrelState;
-                    g_Minigame.barrels[row * 3 + k - 1].barrelColour = g_Minigame.barrels[row * 3 + k].barrelColour;
-                    g_Minigame.barrels[row * 3 + k - 1].currentPos.x = g_Minigame.barrels[row * 3 + k].currentPos.x;
-                    g_Minigame.barrels[row * 3 + k - 1].currentPos.y = g_Minigame.barrels[row * 3 + k].currentPos.y;
-                    g_Minigame.barrels[row * 3 + k - 1].currentPos.z = g_Minigame.barrels[row * 3 + k].currentPos.z;
-                    g_Minigame.barrels[row * 3 + k].barrelState = BB_BARREL_STATE_EMPTY;
-                }
-            } else {
-                pos++;
+    g_Minigame._18A0 = 0;
+    g_Minigame.turnOverStatus = 0;
+    g_Minigame.barrelBatter_scoreCalculatedInd = 0;
+    g_Minigame.barrelBatter_hitBarrelID = -1;
+    g_Minigame.barrelBatter_barrelsHit = 0;
+    g_Minigame.bB_bombBarrelHitInd = 0;
+    g_Ball.totalFramesAtPlay = 0;
+    g_Ball.framesSinceHit = -1;
+    g_Batter.swingInd = FALSE;
+    g_Batter.framesSinceStartOfSwing = 0;
+    g_Pitcher.windupCountdownUntilBallReleased = lbl_3_data_217A4[7];
+
+    if (g_GameLogic.pre_PostMiniGameInd) {
+        g_GameLogic.minigameLastTurnSuccessInd = TRUE;
+        g_GameLogic.hudElementLoadingInd = TRUE;
+    } else {
+        g_GameLogic.minigameLastTurnSuccessInd = FALSE;
+    }
+    g_GameLogic.pre_PostMiniGameInd = FALSE;
+
+    changeScene(1, 6);
+    SetGameStatus(GAME_STATUS_AT_BAT);
+}
+
+// .text:0x00131540 size:0x748 mapped:0x807705D4
+void barrelBatterTransitionToMainFunction(void) {
+    switch (g_GameLogic._125) {
+    case TRANSITION_CALCULATION_TYPE_0:
+        fn_3_12FD6C();
+        g_Minigame.turnNumberWithinRound++;
+        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic._125++;
+        break;
+    case TRANSITION_CALCULATION_TYPE_1:
+        if (g_Minigame._1A37 == 1) {
+            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= lbl_3_data_217A4[3]) {
+                g_GameLogic._125++;
+            }
+        } else {
+            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= lbl_3_data_217A4[2]) {
+                g_GameLogic._125++;
             }
         }
+        break;
+    case TRANSITION_CALCULATION_TYPE_2:
+        changeScene(3, 6);
+        g_GameLogic._125++;
+        break;
+    case TRANSITION_CALCULATION_TYPE_3:
+        if (lbl_8037169C[0x13] != 0) {
+            if (g_Minigame.multiPlayerInd != 0) {
+                if (g_Minigame.turnNumberWithinRound < g_Minigame.miniGameNumberOfParticipants) {
+                    SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
+                } else {
+                    SetGameStatus(GAME_STATUS_MINIGAME_NEW_ROUND);
+                }
+            } else {
+                fn_3_DE4FC();
+                SetGameStatus(GAME_STATUS_MVP_END_GAME);
+                fn_3_12FE84();
+                fn_3_12FD6C();
+            }
+            fn_3_14CA00();
+            animRelated[0xB7] = 1;
+        }
+        break;
     }
 
-    if (g_Minigame.barrels[2].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[2].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[5].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[5].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[8].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[8].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[11].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[11].barrelState = BB_BARREL_STATE_EMPTY;
-    }
-    if (g_Minigame.barrels[14].barrelState == BB_BARREL_STATE_BLOWN_UP) {
-        g_Minigame.barrels[14].barrelState = BB_BARREL_STATE_EMPTY;
-    }
+    fn_3_12FAC4();
+}
 
-    bB_chooseBombBarrel_dropNewBarrels();
-    if (g_Minigame.pointsTargetReachedInd == 0) {
-        SetGameStatus(GAME_STATUS_DEFAULT);
+// .text:0x001312D4 size:0x26C mapped:0x80770368
+void fn_3_1312D4(void) {
+    fn_3_DE4FC();
+    SetGameStatus(GAME_STATUS_MVP_END_GAME);
+    fn_3_12FE84();
+    fn_3_12FD6C();
+}
+
+// .text:0x0013128C size:0x48 mapped:0x80770320
+void fn_3_13128C(void) {
+    if (g_Scores.Inning >= g_Scores.inningLimit) {
+        SetGameStatus(GAME_STATUS_TRANSITION_MINIGAME_POSTGAME);
     } else {
-        SetGameStatus(GAME_STATUS_TRANSITION);
+        SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
     }
 }
 
-// .text:0x00130288 size:0x548 mapped:0x8076F31C
-void barrelBatterLiveBallSubFun(void) {
-    return;
+// .text:0x0013119C size:0xF0 mapped:0x80770230
+void fn_3_13119C(void) {
+    switch (g_GameLogic._125) {
+    case TRANSITION_CALCULATION_TYPE_0:
+        changeScene(1, 6);
+        g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
+        break;
+    case TRANSITION_CALCULATION_TYPE_1:
+        if (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[2] ||
+            (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[1] &&
+             checkForButtonPressToSkip(1, 0x1100))) {
+            changeScene(3, 6);
+            g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
+        }
+        break;
+    case TRANSITION_CALCULATION_TYPE_2:
+        if (lbl_8037169C[0x13] != 0) {
+            fn_3_FBD70();
+            fn_3_FBD58();
+            g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
+        }
+        break;
+    case TRANSITION_CALCULATION_TYPE_3:
+        SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
+        break;
+    }
 }
 
-// .text:0x001307D0 size:0x2B0 mapped:0x8076F864
-void fn_3_1307D0(void) {
-    return;
+// .text:0x00131114 size:0x88 mapped:0x807701A8
+void fn_3_131114(void) {
+    setInMemBatterConstants(g_Minigame.rosterID);
+    setDefaultInMemBall();
+    setDefaultInMemPitcher();
+    setDefaultInMemBatter();
+    setDefaultInMemRunner();
+    setDefaultInMemFielder();
+    memset(&g_Minigame._1D7C, 0, 0x78);
+    pauseAnimations();
+    pauseStateOnStadiums();
+    g_FieldingLogic.playOverCounter = 0;
+    g_UnkSimulation_31AC0._05 = 0;
+    g_UnkSimulation_31AC0._06 = 4;
 }
 
-// .text:0x00130A80 size:0x4C mapped:0x8076FB14
-void fn_3_130A80(void) {
-    g_Minigame.bB_bombBarrelID = -1;
-    g_GameLogic.pre_PostMiniGameInd = TRUE;
-    g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-    g_GameLogic.hudLoadingRelated = TRUE;
-    SetGameStatus(GAME_STATUS_TRANSITION);
+// .text:0x00130C6C size:0x4A8 mapped:0x8076FD00
+void bB_AtBat(void) {
+    s8 i;
+
+    if (g_Minigame.turnOverStatus == 0) {
+        if (checkForPauses()) {
+            return;
+        }
+        if (g_Minigame.miniGameTurnCounter != 0 || g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_217A4[8]) {
+            atBat_Pitcher();
+        }
+        bB_AI();
+        atBat_batter();
+        i = 0;
+        do {
+            g_Minigame.isAIControlled[i] = 0;
+            i++;
+        } while (i < 4);
+        running_MainFunction();
+        fn_3_12FAC4();
+    }
+
+    if (g_Minigame.turnOverStatus == 0) {
+        if (g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_NO_CONTACT) {
+            return;
+        }
+        if (g_Minigame.bB_pitchesRemainingInTurn == 0) {
+            g_Minigame.turnOverStatus = 1;
+            g_Minigame.pointsTargetReachedInd = 2;
+        }
+        g_Minigame.bB_bombBarrelHitInd = 0;
+        g_Minigame.bB_bombBarrelID = -1;
+        return;
+    }
+
+    if (g_Minigame.turnOverStatus == 1) {
+        g_Minigame.turnOverStatus = 2;
+        g_GameLogic.CountdownUntilFade = lbl_3_data_217A4[0];
+    }
+    g_GameLogic.CountdownUntilFade--;
+    if (g_Minigame.pointsTargetReachedInd != 0) {
+        if (g_GameLogic.CountdownUntilFade <= 0) {
+            g_Minigame.bB_bombBarrelID = -1;
+            g_GameLogic.pre_PostMiniGameInd = 1;
+            g_GameLogic.minigameLastTurnSuccessInd = 1;
+            g_GameLogic.hudLoadingRelated = 1;
+            SetGameStatus(GAME_STATUS_TRANSITION);
+        }
+    } else if (g_GameLogic.CountdownUntilFade <= 0) {
+        SetGameStatus(GAME_STATUS_DEFAULT);
+    }
+    if (g_Minigame.pointsTargetReachedInd != 0 &&
+        (g_Minigame.multiPlayerInd == 0 ||
+         (g_Minigame.multiPlayerInd != 0 &&
+          g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
+          g_Scores.Inning >= g_Scores.inningLimit)) &&
+        g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 1) {
+        sndFXStartEx(0x1be, lbl_800EFBA4[7], 0x3f, 0);
+    }
 }
 
 // .text:0x00130ACC size:0x1A0 mapped:0x8076FB60
@@ -610,197 +525,481 @@ void bobombDerbyRelated(void) {
     }
 }
 
-// .text:0x00130C6C size:0x4A8 mapped:0x8076FD00
-void bB_AtBat(void) {
-    return;
+// .text:0x00130A80 size:0x4C mapped:0x8076FB14
+void fn_3_130A80(void) {
+    g_Minigame.bB_bombBarrelID = -1;
+    g_GameLogic.pre_PostMiniGameInd = TRUE;
+    g_GameLogic.minigameLastTurnSuccessInd = TRUE;
+    g_GameLogic.hudLoadingRelated = TRUE;
+    SetGameStatus(GAME_STATUS_TRANSITION);
 }
 
-// .text:0x00131114 size:0x88 mapped:0x807701A8
-void fn_3_131114(void) {
-    setInMemBatterConstants(g_Minigame.rosterID);
-    setDefaultInMemBall();
-    setDefaultInMemPitcher();
-    setDefaultInMemBatter();
-    setDefaultInMemRunner();
-    setDefaultInMemFielder();
-    memset(&g_Minigame._1D7C, 0, 0x78);
-    pauseAnimations();
-    pauseStateOnStadiums();
-    g_FieldingLogic.playOverCounter = 0;
-    g_UnkSimulation_31AC0._05 = 0;
-    g_UnkSimulation_31AC0._06 = 4;
+// .text:0x001307D0 size:0x2B0 mapped:0x8076F864
+void fn_3_1307D0(void) {
+    ballPhysica();
+    fn_3_12FAC4();
+    barrelBatterLiveBallSubFun();
 }
 
-// .text:0x0013119C size:0xF0 mapped:0x80770230
-void fn_3_13119C(void) {
-    switch (g_GameLogic._125) {
-    case TRANSITION_CALCULATION_TYPE_0:
-        changeScene(1, 6);
-        g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
-        break;
-    case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[1] &&
-             checkForButtonPressToSkip(1, 0x1100))) {
-            changeScene(3, 6);
-            g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
+// .text:0x00130288 size:0x548 mapped:0x8076F31C
+void barrelBatterLiveBallSubFun(void) {
+    if (g_Minigame.turnOverStatus == 0) {
+        if (g_Ball.framesSinceHit >= lbl_3_data_217A4[4]) {
+            g_Minigame.turnOverStatus = 1;
+            if (g_Minigame.multiPlayerInd == 0 && g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD &&
+                g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] >= g_Minigame.pointsReqToWin_challenge) {
+                g_Minigame.pointsTargetReachedInd = 2;
+                g_Minigame._1A37 = 1;
+                g_Minigame.challenge_minigame_haven_tWonYetIndicator = 0;
+                fn_3_10F550(1, lbl_3_data_217A4[10]);
+            }
+
+            if (g_Minigame.bB_bombBarrelHitInd != 0) {
+                g_Minigame.bB_pitchesRemainingInTurn += cost_15_bB_pitchesPerRound_solo[g_Minigame.multiPlayerInd + 6];
+            }
+
+            if (g_Minigame.bB_pitchesRemainingInTurn == 0) {
+                g_Minigame.pointsTargetReachedInd = 2;
+            }
         }
-        break;
-    case TRANSITION_CALCULATION_TYPE_2:
-        if (lbl_8037169C[0x13] != 0) {
-            fn_3_FBD70();
-            fn_3_FBD58();
-            g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
+    }
+
+    if (g_Minigame.turnOverStatus == 0) {
+        return;
+    }
+    if (g_Minigame.turnOverStatus == 1) {
+        g_Minigame.turnOverStatus = 2;
+        g_GameLogic.CountdownUntilFade = lbl_3_data_217A4[1];
+    }
+
+    g_GameLogic.CountdownUntilFade--;
+    if (g_GameLogic.CountdownUntilFade <= 0) {
+        if (fn_3_12ED80()) {
+            fn_3_12FFD4();
         }
-        break;
-    case TRANSITION_CALCULATION_TYPE_3:
-        SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-        break;
+    }
+
+    if (g_Minigame.pointsTargetReachedInd != 0 &&
+        (g_Minigame.multiPlayerInd == 0 ||
+         (g_Minigame.multiPlayerInd != 0 &&
+          g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
+          g_Scores.Inning >= g_Scores.inningLimit)) &&
+        g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 1) {
+        sndFXStartEx(0x1be, lbl_800EFBA4[7], 0x3f, 0);
     }
 }
 
-// .text:0x0013128C size:0x48 mapped:0x80770320
-void fn_3_13128C(void) {
-    if (g_Scores.Inning >= g_Scores.inningLimit) {
-        SetGameStatus(GAME_STATUS_TRANSITION_MINIGAME_POSTGAME);
+// .text:0x0012FFD4 size:0x2B4 mapped:0x8076F068
+void fn_3_12FFD4(void) {
+    g_Minigame.bB_bombBarrelID = -1;
+    fn_3_12EB10();
+
+    bB_chooseBombBarrel_dropNewBarrels();
+    if (g_Minigame.pointsTargetReachedInd != 0) {
+        SetGameStatus(GAME_STATUS_TRANSITION);
     } else {
-        SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
-    }
-}
-
-// .text:0x001312D4 size:0x26C mapped:0x80770368
-void fn_3_1312D4(void) {
-    return;
-}
-
-// .text:0x00131540 size:0x748 mapped:0x807705D4
-void barrelBatterTransitionToMainFunction(void) {
-    return;
-}
-
-// .text:0x00131C88 size:0x23C mapped:0x80770D1C
-void fn_3_131C88(void) {
-    fn_3_131114();
-    fn_3_12FD6C();
-
-    g_Minigame._18A0 = 0;
-    g_Minigame.bB_bombBarrelHitInd = 0;
-    g_Minigame.turnOverStatus = 0;
-    g_Minigame.barrelBatter_scoreCalculatedInd = 0;
-    g_Minigame.barrelBatter_hitBarrelID = (u8)-1;
-    g_Minigame.barrelBatter_barrelsHit = 0;
-    g_Ball.totalFramesAtPlay = 0;
-    g_Ball.framesSinceHit = -1;
-    *(s16 *)((u8 *)&g_Batter + 0x66) = 0;
-    *((u8 *)&g_Batter + 0x8D) = 0;
-    g_Pitcher.windupCountdownUntilBallReleased = lbl_3_data_217A4[7];
-
-    if (g_GameLogic.pre_PostMiniGameInd != 0) {
-        g_GameLogic.minigameLastTurnSuccessInd = 1;
-        g_GameLogic.hudElementLoadingInd = 1;
-    } else {
-        g_GameLogic.minigameLastTurnSuccessInd = 0;
-    }
-    g_GameLogic.pre_PostMiniGameInd = 0;
-
-    changeScene(1, 6);
-    SetGameStatus(GAME_STATUS_AT_BAT);
-}
-
-// .text:0x00131EC4 size:0x138 mapped:0x80770F58
-void fn_3_131EC4(void) {
-    switch (g_GameLogic._125) {
-    case TRANSITION_CALCULATION_TYPE_0:
-        g_Minigame.rosterID = g_Minigame.minigameControlStruct[0].aIStrength[g_Minigame.turnNumberWithinRound + 4];
-        g_GameLogic.pre_PostMiniGameInd = 1;
-        g_Minigame.miniGameTurnCounter = 0;
-        g_Minigame.pointsTargetReachedInd = 0;
-        if (g_Minigame.multiPlayerInd == 0) {
-            g_Minigame.bB_pitchesRemainingInTurn = cost_15_bB_pitchesPerRound_solo[g_Minigame.soloMinigameDifficulty];
-        } else {
-            g_Minigame.bB_pitchesRemainingInTurn = cost_15_bB_pitchesPerRound_solo[4];
-        }
-        resetBallValuesBetweenBatters();
-        resetPitcherValuesBetweenBatters(0);
-        setPitcherStatsToInMemPitcher(-1);
-        setBatterContactConstants();
-        setInMemBatterConstants(g_Minigame.rosterID);
-        highLevelSimulationFlag[2] = 0;
-        g_GameLogic._125++;
-        break;
-    case TRANSITION_CALCULATION_TYPE_1:
-        if (someAnimationIndFunction() != 0) {
-            us80893314[1] = 1;
-            g_GameLogic._125++;
-        }
-        break;
-    default:
-        animRelated[0xB6] = 1;
         SetGameStatus(GAME_STATUS_DEFAULT);
-        break;
     }
 }
 
-// .text:0x00131FFC size:0x80 mapped:0x80771090
-void fn_3_131FFC(void) {
-    g_Scores.Inning++;
-    g_Minigame.turnNumberWithinRound = 0;
+// .text:0x0012FE84 size:0x150 mapped:0x8076EF18
+void fn_3_12FE84(void) {
+    int i;
+    for (i = 0; i < 15; i++) {
+        g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_DROPPING;
+        g_Minigame.barrels[i].animationCounter = 0;
+        g_Minigame.barrels[i].replacingBarrelInd = FALSE;
+        g_Minigame.barrels[i].desiredPos.x = barrelBaseCoordinates[i].x;
+        g_Minigame.barrels[i].desiredPos.y = barrelBaseCoordinates[i].y;
+        g_Minigame.barrels[i].desiredPos.z = barrelBaseCoordinates[i].z;
+        g_Minigame.barrels[i].currentPos.x = barrelBaseCoordinates[i].x;
+        g_Minigame.barrels[i].currentPos.y = barrelBaseCoordinates[i].y;
+        g_Minigame.barrels[i].currentPos.z = barrelBaseCoordinates[i].z;
+        g_Minigame.barrels[i].currentPos.y += lbl_3_data_21770[0];
+        g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (random_fn_3_9EE24(0x65) * 5) / 100.0;
+        g_Minigame.barrels[i].barrelColour = random_fn_3_9EE24(3);
+    }
+}
 
-    if (g_Minigame.multiPlayerInd == 0) {
-        SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
+// .text:0x0012FD6C size:0x118 mapped:0x8076EE00
+void fn_3_12FD6C(void) {
+    int i;
+    for (i = 0; i < 15; i++) {
+        if (g_Minigame.barrels[i].barrelState != BB_BARREL_STATE_EMPTY) {
+            g_Minigame.barrels[i].posAtStartOfTurn.x = g_Minigame.barrels[i].currentPos.x;
+            g_Minigame.barrels[i].posAtStartOfTurn.y = g_Minigame.barrels[i].currentPos.y;
+            g_Minigame.barrels[i].posAtStartOfTurn.z = g_Minigame.barrels[i].currentPos.z;
+            g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_DROPPING;
+        }
+        g_Minigame.barrels[i].animationCounter = 0;
+    }
+}
+
+// .text:0x0012FAC4 size:0x2A8 mapped:0x8076EB58
+void fn_3_12FAC4(void) {
+    BB_barrelStruct *barrel;
+    int i;
+
+    bB_checkIfBarrelHitAndCalculateScore();
+    for (i = 0; i < 15; i++) {
+        barrel = &g_Minigame.barrels[i];
+
+        if (barrel->animationCounter < 0x7ffe) {
+            barrel->animationCounter++;
+        } else {
+            barrel->animationCounter = 0x7fff;
+        }
+
+        if (barrel->barrelState == BB_BARREL_STATE_DROPPING) {
+            fn_3_12F9D4(i);
+        }
+        if (barrel->barrelState == BB_BARREL_STATE_READY_TO_BLOW_UP) {
+            fn_3_12F28C(i);
+        }
+        if (barrel->replacingBarrelInd != 0) {
+            bB_likelyReplaceBlownUpBarrels(i);
+        }
+    }
+}
+
+// .text:0x0012F9D4 size:0xF0 mapped:0x8076EA68
+void fn_3_12F9D4(int barrelIndex) {
+    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
+
+    barrel->currentPos.y += lbl_3_data_21770[1];
+    if (barrel->currentPos.y < barrel->desiredPos.y) {
+        barrel->currentPos.y = barrel->desiredPos.y;
+        if (barrel->posAtStartOfTurn.y != barrel->desiredPos.y) {
+            VecXYZ pos;
+            pos.x = barrel->currentPos.x;
+            pos.y = barrel->currentPos.y;
+            pos.z = barrel->currentPos.z;
+            pos.y = -pos.y;
+            pos.z -= 1.0f;
+            if (barrel->currentPos.y <= 0.0f) {
+                fn_8004C108(&pos, TRUE);
+                callSfx(0x2e4);
+            } else {
+                fn_8004C108(&pos, FALSE);
+                callSfx(0x2e5);
+            }
+        }
+        barrel->barrelState = BB_BARREL_STATE_NEUTRAL;
+    }
+}
+
+// .text:0x0012F624 size:0x3B0 mapped:0x8076E6B8
+void bB_checkIfBarrelHitAndCalculateScore(void) {
+    s32 counter;
+    int barrelRow;
+    int barrelColumn;
+    int barrelID;
+    int delayToBlowUp;
+    BOOL loopAgainInd;
+    int points;
+    int barrelHitFlags[15];
+
+    if (g_Ball.framesSinceHit <= 0) {
+        return;
+    }
+    if (g_Minigame.barrelBatter_scoreCalculatedInd != 0) {
+        return;
+    }
+    if (g_Ball.AtBat_Contact_BallPos.z < barrelBaseCoordinates[0].z - lbl_3_data_21770[2]) {
+        return;
+    }
+    if (g_Batter.contactType < HIT_CONTACT_TYPE_RIGHT_NICE || g_Batter.contactType > HIT_CONTACT_TYPE_LEFT_NICE) {
         return;
     }
 
-    fn_3_10F550(4, 0);
-    if (g_Scores.Inning == 1) {
-        fn_3_10AD48();
-    }
-    SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-}
-
-// .text:0x0013207C size:0x40 mapped:0x80771110
-void fn_3_13207C(void) {
-    sndFXStartEx(0x1bd, lbl_800EFBA4[6], 0x3f, 0);
-    SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
-}
-
-// .text:0x001320BC size:0x310 mapped:0x80771150
-void bB_LoadGame(void) {
-    return;
-}
-
-// .text:0x001323CC size:0x11C mapped:0x80771460
-void fn_3_1323CC(void) {
-    u32 i;
-    VecXYZ pos;
-
-    for (i = 0; i < 15; i++) {
-        BB_barrelStruct *barrel = &g_Minigame.barrels[i];
-        if (barrel->barrelState != BB_BARREL_STATE_DROPPING) {
-            continue;
+    for (barrelRow = 0; barrelRow < 3; barrelRow++) {
+        if (g_Ball.AtBat_Contact_BallPos.y < barrelBaseCoordinates[barrelRow].y + lbl_3_data_21770[3]) {
+            break;
         }
-        barrel->currentPos.y += lbl_3_data_21770[1];
-        if (barrel->currentPos.y < barrel->desiredPos.y) {
-            barrel->currentPos.y = barrel->desiredPos.y;
-            if (barrel->posAtStartOfTurn.y != barrel->desiredPos.y) {
-                pos.x = barrel->currentPos.x;
-                pos.y = -barrel->currentPos.y;
-                pos.z = barrel->currentPos.z - 1.0f;
-                if (barrel->currentPos.y <= 0.0f) {
-                    fn_8004C108(&pos, TRUE);
-                    callSfx(0x2e4);
-                } else {
-                    fn_8004C108(&pos, FALSE);
-                    callSfx(0x2e5);
+    }
+
+    if (barrelRow < 3 && !(g_Ball.AtBat_Contact_BallPos.x < barrelBaseCoordinates[0].x - lbl_3_data_21770[2])) {
+        for (barrelColumn = 0; barrelColumn < 15; barrelColumn += 3) {
+            if (g_Ball.AtBat_Contact_BallPos.x < barrelBaseCoordinates[barrelColumn].x + lbl_3_data_21770[2]) {
+                break;
+            }
+        }
+
+        if (barrelColumn < 15) {
+            g_Minigame.barrelBatter_hitBarrelID = barrelColumn + barrelRow;
+            for (counter = 0; counter < 15; counter++) {
+                barrelHitFlags[counter] = FALSE;
+            }
+
+            barrelID = g_Minigame.barrelBatter_hitBarrelID;
+            g_Minigame.barrels[barrelID].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
+            delayToBlowUp = lbl_3_data_21788.baseBlowUpDelay + lbl_3_data_21788.blowUpDelayIncrement;
+            g_Minigame.barrels[barrelID].animationCounter = 0;
+            g_Minigame.barrels[barrelID].delayUntilBlownUp = lbl_3_data_21788.baseBlowUpDelay;
+
+            if (g_Minigame.bB_bombBarrelID == barrelID && g_Minigame.barrels[barrelID].barrelColour == BB_BARREL_COLOUR_BROWN) {
+                g_Minigame.bB_bombBarrelHitInd = TRUE;
+            }
+
+            while (TRUE) {
+                loopAgainInd = FALSE;
+                for (counter = 0; counter < 15; counter++) {
+                    if (g_Minigame.barrels[counter].barrelState == BB_BARREL_STATE_READY_TO_BLOW_UP &&
+                        g_Minigame.barrels[counter].delayUntilBlownUp != delayToBlowUp &&
+                        barrelHitFlags[counter] == FALSE) {
+                        if (g_Minigame.bB_bombBarrelHitInd != 0) {
+                            bB_connectingBarrels(counter, delayToBlowUp, TRUE);
+                        } else {
+                            bB_connectingBarrels(counter, delayToBlowUp, FALSE);
+                        }
+                        barrelHitFlags[counter] = TRUE;
+                        loopAgainInd = TRUE;
+                        g_Minigame.barrelBatter_barrelsHit++;
+                    }
+                }
+                if (!loopAgainInd) {
+                    break;
+                }
+                delayToBlowUp += lbl_3_data_21788.blowUpDelayIncrement;
+            }
+
+            if (g_Minigame.bB_bombBarrelHitInd == 0 && g_Minigame.barrelBatter_barrelsHit >= 2) {
+                g_Minigame.barrelBatterChargeMeter += g_Minigame.barrelBatter_barrelsHit - 1;
+            }
+
+            if (g_Minigame.barrelBatter_barrelsHit <= 1) {
+                points = lbl_3_data_217A4[5] * g_Minigame.barrelBatter_barrelsHit;
+            } else {
+                points = g_Minigame.barrelBatter_barrelsHit * ((g_Minigame.barrelBatter_barrelsHit - 1) * lbl_3_data_217A4[5]);
+            }
+
+            g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += points;
+            *(s16 *)((u8 *)&g_Minigame + 0x1DF4) = points;
+            if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == lbl_3_common_bss_37400[0x20]) {
+                starMissionsMinigamesSpecialAction(2, points, g_Minigame.barrelBatter_barrelsHit);
+            }
+        }
+    }
+
+    g_Minigame.barrelBatter_scoreCalculatedInd = TRUE;
+}
+
+// .text:0x0012F424 size:0x200 mapped:0x8076E4B8
+void bB_connectingBarrels(int barrelNum, int blowUpDelay, BOOL bombBarrelHitInd) {
+    int barrelColour = g_Minigame.barrels[barrelNum].barrelColour;
+
+    if (barrelNum % 3 != 2) {
+        int barrelAbove = barrelNum + 1;
+        if (g_Minigame.barrels[barrelAbove].barrelState == BB_BARREL_STATE_NEUTRAL &&
+            barrelAbove != g_Minigame.bB_bombBarrelID &&
+            (g_Minigame.barrels[barrelAbove].barrelColour == barrelColour || bombBarrelHitInd)) {
+            g_Minigame.barrels[barrelAbove].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
+            g_Minigame.barrels[barrelAbove].animationCounter = 0;
+            g_Minigame.barrels[barrelAbove].delayUntilBlownUp = blowUpDelay;
+        }
+    }
+
+    if ((s32)barrelNum % 3 != 0) {
+        int barrelBelow = barrelNum - 1;
+        if (g_Minigame.barrels[barrelBelow].barrelState == BB_BARREL_STATE_NEUTRAL &&
+            barrelBelow != g_Minigame.bB_bombBarrelID &&
+            (g_Minigame.barrels[barrelBelow].barrelColour == barrelColour || bombBarrelHitInd)) {
+            g_Minigame.barrels[barrelBelow].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
+            g_Minigame.barrels[barrelBelow].animationCounter = 0;
+            g_Minigame.barrels[barrelBelow].delayUntilBlownUp = blowUpDelay;
+        }
+    }
+
+    if (barrelNum / 3 > 0) {
+        int barrelToLeft = barrelNum - 3;
+        if (g_Minigame.barrels[barrelToLeft].barrelState == BB_BARREL_STATE_NEUTRAL &&
+            barrelToLeft != g_Minigame.bB_bombBarrelID &&
+            (g_Minigame.barrels[barrelToLeft].barrelColour == barrelColour || bombBarrelHitInd)) {
+            g_Minigame.barrels[barrelToLeft].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
+            g_Minigame.barrels[barrelToLeft].animationCounter = 0;
+            g_Minigame.barrels[barrelToLeft].delayUntilBlownUp = blowUpDelay;
+        }
+    }
+
+    if (barrelNum / 3 < 4) {
+        int barrelToRight = barrelNum + 3;
+        if (g_Minigame.barrels[barrelToRight].barrelState == BB_BARREL_STATE_NEUTRAL &&
+            barrelToRight != g_Minigame.bB_bombBarrelID &&
+            (g_Minigame.barrels[barrelToRight].barrelColour == barrelColour || bombBarrelHitInd)) {
+            g_Minigame.barrels[barrelToRight].barrelState = BB_BARREL_STATE_READY_TO_BLOW_UP;
+            g_Minigame.barrels[barrelToRight].animationCounter = 0;
+            g_Minigame.barrels[barrelToRight].delayUntilBlownUp = blowUpDelay;
+        }
+    }
+}
+
+// .text:0x0012F28C size:0x198 mapped:0x8076E320
+void fn_3_12F28C(int barrelIndex) {
+    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
+
+    if (barrel->animationCounter >= barrel->delayUntilBlownUp) {
+        barrel->barrelState = BB_BARREL_STATE_BLOWN_UP;
+        barrel->animationCounter = 0;
+        fn_3_12EE68(barrelIndex);
+        setCharacterAnimations(g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID], 0);
+    }
+}
+
+// .text:0x0012EFA4 size:0x2E8 mapped:0x8076E038
+void bB_likelyReplaceBlownUpBarrels(int barrelIndex) {
+    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
+
+    barrel->currentPos.y += barrel->velo_bounceUpOnBlowUp;
+    if (barrel->velo_bounceUpOnBlowUp > 0.0f && barrelIndex % 3 == 1) {
+        BB_barrelStruct *next = &g_Minigame.barrels[barrelIndex + 1];
+
+        if (next->barrelState != BB_BARREL_STATE_BLOWN_UP && next->replacingBarrelInd == FALSE) {
+            fn_3_12EE68(barrelIndex);
+        }
+        if (next->currentPos.y - barrel->currentPos.y < lbl_3_data_21770[3]) {
+            barrel->velo_bounceUpOnBlowUp -= lbl_3_data_21770[5];
+        }
+    }
+
+    barrel->velo_bounceUpOnBlowUp -= lbl_3_data_21770[5];
+    if (barrel->velo_bounceUpOnBlowUp > 0.0f && barrelIndex % 3 == 2 &&
+        barrel->currentPos.y - bB_getBarrel(barrelIndex - 1)->currentPos.y < lbl_3_data_21770[3]) {
+        barrel->velo_bounceUpOnBlowUp += lbl_3_data_21770[5];
+    }
+
+    if (barrel->currentPos.y < barrel->_28) {
+        barrel->currentPos.y = barrel->_28;
+        barrel->velo_bounceUpOnBlowUp = 0.0f;
+        barrel->replacingBarrelInd = FALSE;
+        if (barrel->barrelState != BB_BARREL_STATE_BLOWN_UP) {
+            VecXYZ pos;
+            pos.x = barrel->currentPos.x;
+            pos.y = barrel->currentPos.y;
+            pos.z = barrel->currentPos.z;
+            pos.z -= 1.0f;
+            pos.y = -barrel->_28;
+            if (0.0f == barrel->_28) {
+                fn_8004C108(&pos, TRUE);
+                callSfx(0x2e4);
+            } else {
+                fn_8004C108(&pos, FALSE);
+                callSfx(0x2e5);
+            }
+        }
+    }
+}
+
+// .text:0x0012EE68 size:0x13C mapped:0x8076DEFC
+void fn_3_12EE68(int barrelIndex) {
+    int posInRow = barrelIndex % 3;
+    BB_barrelStruct *barrel = &g_Minigame.barrels[barrelIndex];
+    BB_barrelStruct *nextBarrel;
+
+    if (posInRow == 2) {
+        return;
+    }
+
+    nextBarrel = &g_Minigame.barrels[barrelIndex + 1];
+
+    if (nextBarrel->barrelState == BB_BARREL_STATE_BLOWN_UP) {
+        return;
+    }
+    if (nextBarrel->barrelState == BB_BARREL_STATE_READY_TO_BLOW_UP) {
+        if (nextBarrel->currentPos.y - barrel->currentPos.y > lbl_3_data_21770[3] + 0.3) {
+            return;
+        }
+    }
+
+    nextBarrel->replacingBarrelInd = TRUE;
+    nextBarrel->velo_bounceUpOnBlowUp = lbl_3_data_21770[4];
+
+    if ((barrelIndex + 1) % 3 == 1) {
+        nextBarrel->_28 = barrelBaseCoordinates[barrelIndex].y;
+    } else {
+        u8 neighbourSettled = FALSE;
+        neighbourSettled |= g_Minigame.barrels[barrelIndex - 1].barrelState == BB_BARREL_STATE_NEUTRAL;
+        neighbourSettled |= g_Minigame.barrels[barrelIndex].barrelState == BB_BARREL_STATE_NEUTRAL;
+        nextBarrel->_28 = barrelBaseCoordinates[neighbourSettled].y;
+    }
+}
+
+// .text:0x0012ED80 size:0xE8 mapped:0x8076DE14
+E(u8, BOOL) fn_3_12ED80(void) {
+    int i;
+    for (i = 1; i < 15; i += 3) {
+        if (g_Minigame.barrels[i].replacingBarrelInd) {
+            return FALSE;
+        }
+        if (g_Minigame.barrels[i + 1].replacingBarrelInd) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+// .text:0x0012EB10 size:0x270 mapped:0x8076DBA4
+void fn_3_12EB10(void) {
+    int row;
+    int pos;
+    int k;
+
+    for (row = 0; row < 5; row++) {
+        for (pos = 0; pos < 2; pos++) {
+            for (;;) {
+                if (g_Minigame.barrels[row * 3 + pos].barrelState != BB_BARREL_STATE_BLOWN_UP) {
+                    break;
+                }
+                for (k = pos + 1; k < 3; k++) {
+                    bB_shiftBarrelDown(row * 3 + k);
                 }
             }
-            barrel->barrelState = BB_BARREL_STATE_NEUTRAL;
+        }
+    }
+
+    for (row = 0; row < 5; row++) {
+        u8 *state = &bB_getBarrel(row * 3 + 2)->barrelState;
+        if (*state == BB_BARREL_STATE_BLOWN_UP) {
+            *state = BB_BARREL_STATE_EMPTY;
         }
     }
 }
 
-// .text:0x001324E8 size:0x9F4 mapped:0x8077157C
-void barrelBatterSwitcher(void) {
-    return;
-}
+// .text:0x0012E8FC size:0x214 mapped:0x8076D990
+void bB_chooseBombBarrel_dropNewBarrels(void) {
+    BOOL bombBarrelChosen = FALSE;
+    int barrelsUntilBomb;
+    int i;
 
+    if (g_Minigame.barrelBatterChargeMeter >= lbl_3_data_21788.bombBarrelThreshold) {
+        for (i = 0, barrelsUntilBomb = 0; i < 15; i++) {
+            if (g_Minigame.barrels[i].barrelState == BB_BARREL_STATE_EMPTY) {
+                barrelsUntilBomb++;
+            }
+        }
+        barrelsUntilBomb = random_fn_3_9EE24(barrelsUntilBomb);
+        g_Minigame.barrelBatterChargeMeter = 0;
+        bombBarrelChosen = TRUE;
+    }
+
+    for (i = 0; i < 15; i++) {
+        if (g_Minigame.barrels[i].barrelState == BB_BARREL_STATE_EMPTY) {
+            g_Minigame.barrels[i].barrelState = BB_BARREL_STATE_DROPPING;
+            g_Minigame.barrels[i].animationCounter = 0;
+            g_Minigame.barrels[i].currentPos.x = barrelBaseCoordinates[i].x;
+            g_Minigame.barrels[i].currentPos.y = barrelBaseCoordinates[i].y;
+            g_Minigame.barrels[i].currentPos.z = barrelBaseCoordinates[i].z;
+            g_Minigame.barrels[i].currentPos.y += lbl_3_data_21770[0];
+            g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (random_fn_3_9EE24(0x65) * 5) / 100.0;
+            g_Minigame.barrels[i].barrelColour = random_fn_3_9EE24(3);
+            if (bombBarrelChosen) {
+                if (barrelsUntilBomb == 0) {
+                    barrelsUntilBomb = -1;
+                    g_Minigame.barrels[i].barrelColour = BB_BARREL_COLOUR_BROWN;
+                    g_Minigame.bB_bombBarrelID = (s16)i;
+                } else if (barrelsUntilBomb > 0) {
+                    barrelsUntilBomb--;
+                }
+            }
+        }
+    }
+}

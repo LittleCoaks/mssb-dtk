@@ -169,7 +169,7 @@ void batterAIFrameToSwingAndStickInput(void) {
     g_AiLogic.batterAILeftRightInput = RandomIndexFromWeights(lbl_3_data_1BD8[g_Batter.characterClass], 3);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         int ia = ((s8*)g_Minigame.minigameFielderIndex)[(s8)g_Minigame.minigameControlStruct[1].aIStrength[3]];
-        int ib = ((s8*)g_Minigame.minigameFielderIndex)[(s8)g_Minigame.minigameControlStruct[1]._14];
+        int ib = ((s8*)g_Minigame.minigameFielderIndex)[(s8)g_Minigame.minigameControlStruct[1].aIStrength[4]];
         if (g_Fielders[ia].pos.x < 0.0f && g_Fielders[ib].pos.x < 0.0f) {
             if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
                 g_AiLogic.batterAILeftRightInput = 0;
