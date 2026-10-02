@@ -2740,3 +2740,25 @@ anim helpers through ACTSetAnimation; one function still at 98%). Matching flips
   10-store loop (addGraphicsElementToScene, 74% -> 87%), as in the ball_physics note above.
 - **`while (1) { x = ...; if (!x) break; ... }` keeps a list walk unrotated** where
   `while ((x = ...) != 0)` is rotated (someGFXRenderingFn 92.9% -> 99.3%).
+
+## Findings from the File_0x8003a688 merge (fn_8003A8A0, charPipeline display-state draw)
+
+First seen: 2026-10. `File_0x8003a688.c` (0x8003A688..0x8003AE54) reached 100% on all seven
+functions and flipped to `Matching` (`4 files OK`).
+
+- **An unrolled 13-attribute VCD loop is a 12-trip loop plus a hand-written 13th.** The target
+  showed `mtctr 2` with six copies of `type = (bits >> shift) & 3; if (type) {...}`, then a peeled
+  copy using the constant `extrwi. rX, r0, 2, 4` (shift 26). A 13-trip loop does not unroll at all
+  (`mtctr 13`). `for (attr = GX_VA_POS, shift = 2; attr <= GX_VA_TEX7; attr++, shift += 2)` followed
+  by an explicit `(bits >> 26) & 3` block for the last attribute matched. Putting `shift = 2` in the
+  `for` initialiser (after `attr`) rather than as a separate statement fixed the `li` order. The same
+  shape is open in `sta_c5.c` fn_3_EE67C.
+- **Volatile/callee-saved rotations here came from variable reuse, not declaration order.** A full
+  720-way declaration-order sweep changed nothing. The fixes were: a separate counter `j` for the
+  display-state loop (state pointer then got r31), and reusing the texture loop's `i` as the VCD
+  entry count (`vcd[i]`) instead of a fresh `n`. When the permutation sweep is flat, try merging or
+  splitting variables between disjoint live ranges.
+- **`GXSetArray(attr = GX_VA_TEX0 + i, ...)`** put the attribute computation after the inlined
+  component-size switch (the target's `addi r31, r28, 0xd` sits after it) while keeping it in a
+  callee-saved register for the second call. A `GXAttr attr = ...` initialiser computes it too early;
+  `GX_VA_TEX0 + i` written at both calls loses the callee-saved register.

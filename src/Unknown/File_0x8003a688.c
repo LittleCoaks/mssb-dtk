@@ -64,39 +64,15 @@ static inline u8 getCompSize(u8 compType) {
     }
 }
 
-static inline void setDisplayStateVCD(DisplayStateList* state) {
-    GXVtxDescList vcd[GX_VA_MAX_ATTR + 1];
-    u32 n;
-    u32 shift;
-    u32 attr;
-    u32 type;
-
-    GXClearVtxDesc();
-    n = 0;
-    type = state->setting & 3;
-    if (type != 0) {
-        vcd[n].mAttr = GX_VA_PNMTXIDX;
-        vcd[n].mType = type;
-        n++;
-    }
-    shift = 2;
-    for (attr = GX_VA_POS; attr <= GX_POS_MTX_ARRAY; attr++) {
-        type = (state->setting >> shift) & 3;
-        if (type != 0) {
-            vcd[n].mAttr = attr;
-            vcd[n].mType = type;
-            n++;
-        }
-        shift += 2;
-    }
-    vcd[n].mAttr = GX_VA_NULL;
-    GXSetVtxDescv(vcd);
-}
-
 void fn_8003A8A0(struct DODisplayObj* dispObj, MtxPtr camera, int flag) {
     Mtx mv;
+    GXVtxDescList vcd[GX_VA_MAX_ATTR + 1];
     DisplayStateList* state;
+    GXAttr attr;
     int i;
+    int j;
+    u32 shift;
+    u32 type;
 
     PSMTXConcat(camera, dispObj->worldMatrix, mv);
     GXLoadPosMtxImm(mv, GX_PNMTX0);
@@ -109,9 +85,7 @@ void fn_8003A8A0(struct DODisplayObj* dispObj, MtxPtr camera, int flag) {
 
     if (dispObj->textureData != NULL) {
         for (i = 0; i < dispObj->numTextureChannels; i++) {
-            GXAttr attr = GX_VA_TEX0 + i;
-
-            GXSetArray(attr, dispObj->textureData[i].textureCoordArray,
+            GXSetArray(attr = GX_VA_TEX0 + i, dispObj->textureData[i].textureCoordArray,
                        dispObj->textureData[i].compCount * getCompSize(dispObj->textureData[i].quantizeInfo >> 4));
             GXSetVtxAttrFmt(GX_VTXFMT0, attr, GX_TEX_ST, dispObj->textureData[i].quantizeInfo >> 4,
                             dispObj->textureData[i].quantizeInfo & 0xF);
@@ -123,7 +97,7 @@ void fn_8003A8A0(struct DODisplayObj* dispObj, MtxPtr camera, int flag) {
     }
 
     state = dispObj->displayData->displayStateList;
-    for (i = 0; i < dispObj->displayData->numStateEntries; i++) {
+    for (j = 0; j < dispObj->displayData->numStateEntries; j++) {
         switch (state->id) {
         case 1: {
             TEXPalettePtr pal = dispObj->textureData[(state->setting >> 13) & 7].texturePalette;
@@ -133,7 +107,30 @@ void fn_8003A8A0(struct DODisplayObj* dispObj, MtxPtr camera, int flag) {
             break;
         }
         case 2:
-            setDisplayStateVCD(state);
+            GXClearVtxDesc();
+            i = 0;
+            type = state->setting & 3;
+            if (type != 0) {
+                vcd[0].mType = type;
+                i = 1;
+                vcd[0].mAttr = GX_VA_PNMTXIDX;
+            }
+            for (attr = GX_VA_POS, shift = 2; attr <= GX_VA_TEX7; attr++, shift += 2) {
+                type = (state->setting >> shift) & 3;
+                if (type != 0) {
+                    vcd[i].mAttr = attr;
+                    vcd[i].mType = type;
+                    i++;
+                }
+            }
+            type = (state->setting >> 26) & 3;
+            if (type != 0) {
+                vcd[i].mAttr = attr;
+                vcd[i].mType = type;
+                i++;
+            }
+            vcd[i].mAttr = GX_VA_NULL;
+            GXSetVtxDescv(vcd);
             break;
         case 3:
             if (lbl_803CBCA8 != NULL) {
