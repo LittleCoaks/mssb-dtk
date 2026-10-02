@@ -507,7 +507,7 @@ void shuffleIntArray(int* values, int count, BOOL useGameRandom) {
 }
 
 // .text:0x0009E368 size:0x238 mapped:0x806DD3FC
-int bobOmbDerbyBatterAI2(int* weights, int count) {
+int RandomIndexFromIntWeights(int* weights, int count) {
     int buf[10];
     int total = 0;
     int i;

@@ -15,7 +15,7 @@ void setDefaultPlayTrackingVariables1(void);
 void initializeInningTrackers(void);
 void shuffleU8Array(u8* values, int count, BOOL useGameRandom);
 void shuffleIntArray(int* values, int count, BOOL useGameRandom);
-int bobOmbDerbyBatterAI2(int* weights, int count);
+int RandomIndexFromIntWeights(int* weights, int count);
 int RandomIndexFromWeights(u8* weights, int count);
 void iterateBatter(int team);
 BOOL fn_3_9E834(void);
