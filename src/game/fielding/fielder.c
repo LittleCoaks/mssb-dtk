@@ -16154,7 +16154,7 @@ void updateFielderPositionBasedOnBallState(int fielderIndex) {
         useCurrentPos = 1;
     }
 
-    if (g_Minigame._1939 && useCurrentPos) {
+    if (g_Minigame.toyField_coinsRemaining && useCurrentPos) {
         fielder->_0208 = 4;
     } else {
         if (useCurrentPos) {
