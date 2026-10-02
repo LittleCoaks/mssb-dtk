@@ -2596,3 +2596,42 @@ Findings from the same session:
 - **`ARRAY_SIZE()` is not codegen-neutral** for signed `%` / `<`: it is `size_t`, so `index % ARRAY_SIZE(t)` becomes unsigned (maybeFireworks 100 -> 81.7). Keep the literal or cast.
 - **Hoist a pointer load above independent int->float conversions** when the target interleaves it: moving `bone = model->list->bones[idx];` before six conversion stores took fn_3_C0134 80 -> 96 (MWCC won't move the loads above the stack stores itself).
 - **`Vec off[2]` instead of two `Vec` locals** when the target keeps `&b` in a callee-saved register across a call (fn_3_C0134).
+
+## Findings from toy_field_offscreen (second pass to 100%, flipped to Matching)
+
+- **Duplicate `extsb` on one byte (`lbz rA; extsb. r0,rA` for a sign test, later `extsb rA,rA` for an index)**
+  means the byte went into an `int` local with no cast, and each use casts it: `slot = u8field; if ((s8)slot < 0) ...;
+  arr[(s8)slot]`. MWCC does not CSE the two casts of a register variable. Casting the field directly at both uses, an
+  `s8`/`u8`/`int` local assigned with the cast, or an `s8`-returning inline all fold to one `extsb.`.
+  `toyfield_offScreenCharacterImage` 97.53 -> 98.41.
+- **Load order of a stack var vs a table bound** follows C evaluation order: `p = bound; if (x <= p)` loads the bound
+  first; `if (x <= (p = bound))` loads `x` first while still keeping `p` live in the same register. Splitting into
+  `if (x <= bound) { p = bound; ...}` fixed one site but broke a sibling site's allocation; the embedded assignment
+  fixed both (98.97 -> 100).
+- **Declaration order became significant only after the structural fix**: the original log recorded declaration order
+  as "no effect", but once the slot `int` local was in place, reordering locals (`alphaX alphaY i dir`) fixed the
+  remaining i/dir/alpha register swap (98.41 -> 98.97). Re-sweep declaration order after any structural change.
+
+## Findings from minigame_fielder_anim (second pass to 100%, flipped to Matching)
+
+- **Two strength-reduced walking pointers where the target has one** means one access goes through a raw
+  cast while its siblings go through struct fields: `((u8 *)&g_Minigame)[0x18F0 + i]` next to
+  `g_Minigame.minigameControlStruct[0].characterIndex[i]` got its own induction register (an extra `mr` in
+  the prologue and an extra `addi` in the loop latch). Spelling the byte through the struct
+  (`minigameControlStruct[1].battingHandedness[2 + i]`) put all of them on one pointer. 97.21 -> 98.89.
+- **Two `extsb` of one loaded byte, one for a `< 0` test and one into a saved register**, is
+  `int raw = field[i]; if ((s8)raw < 0) ...; slot = (s8)raw;` with `s8 slot` a separate local. Casting at
+  every use instead gives three `extsb`; testing the field and then assigning it CSEs to one.
+- **Register pairing across if/else arms follows loop-scope declaration order.** Both arms' locals declared
+  in their own blocks never reproduced the target's sharing; hoisting all of them to loop scope and
+  sweeping positions did (99.78 -> 99.84). A swapped pair of *volatile* registers (r5/r6) was a CSE'd
+  re-read of a global: making it a named loop-scope local assigned in the first test
+  (`if ((st = g.gameStatus) == X)`) and declared LAST fixed it (-> 100); declared anywhere earlier, or as
+  `int`, it stayed swapped.
+- A block-local that shadows (or is replaced by) the loop-scope variable of the same type is not free:
+  reusing the loop-scope `obj` in a side branch cost 0.3%; a separately named block-local kept 100%.
+- **`extern const f32 lbl_N_rodata_X` blocks the flip** when the label is `scope:local`: our object
+  cannot resolve it. Replacing it with the `0.0f` literal kept `.text` at 100% (the target loaded it once
+  per store group, so the extern's CSE advantage did not apply) and took `.rodata` to 100%.
+- A `cmpwi`+`bge` cascade sorting a small enum into 3+ groups is a real `switch` (case groups + `default`);
+  a hand-built `||` range chain with the same values does not reproduce MWCC's sparse-switch lowering.

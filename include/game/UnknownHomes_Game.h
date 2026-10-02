@@ -1280,9 +1280,7 @@ typedef struct _MiniGameControlStruct {
     /*0x00A*/ u8 _A;
     /*0x00B*/ u8 _B;
     /*0x00C*/ u8 battingHandedness[4];
-    /*0x010*/ u8 aIStrength[4];
-    /*0x014*/ u8 _14;
-    /*0x015*/ u8 _15;
+    /*0x010*/ u8 aIStrength[6];
 } MiniGameControlStruct; // size: 0x16
 
 /*foul	1
@@ -1793,7 +1791,7 @@ typedef struct _MiniGameStruct {
     /*0x1808*/ u8 pad11[136];
     /*0x1890*/ s16 miniGameCurrentPoints[4];
     /*0x1898*/ s16 miniGameLatestPoints[4];
-    /*0x18A0*/ s16 _18A0;
+    /*0x18A0*/ u16 _18A0;
     /*0x18A2*/ s16 bB_bombBarrelHitInd;
     /*0x18A4*/ s16 bB_bombBarrelID;
     /*0x18A6*/ s16 _18A6;
@@ -1802,14 +1800,11 @@ typedef struct _MiniGameStruct {
     /*0x18AC*/ u8 pad12[12];
     /*0x18B8*/ s16 _18B8;
     /*0x18BA*/ s16 _18BA;
-    /*0x18BC*/ s32 minigamePoints_current_Latest[4];
+    /*0x18BC*/ s16 minigamePoints_current_Latest[4][2];
     /*0x18CC*/ MiniGameControlStruct minigameControlStruct[2];
     /*0x18F8*/ u8 minigameFielderIndex[4];
     /*0x18FC*/ u8 _18FC[4];
-    /*0x1900*/ u8 _1900;
-    /*0x1901*/ u8 _1901;
-    /*0x1902*/ u8 _1902;
-    /*0x1903*/ u8 _1903;
+    /*0x1900*/ u8 _1900[4];
     /*0x1904*/ u8 minigamePlayerSelectedOrder;
     /*0x1905*/ s8 rosterID;
     /*0x1906*/ u8 miniGameNumberOfParticipants;
@@ -2109,15 +2104,7 @@ typedef struct _MiniGameStruct {
     /*0x1A8C*/ u8 _1A8C[2];
     /*0x1A8E*/ s16 bOD_HitPowerOfEachChar[4];
     /*0x1A96*/ u8 bODRelated5[10];
-    /*0x1AA0*/ u8 _1AA0[3];
-    /*0x1AA3*/ u8 _1AA3;
-    /*0x1AA4*/ u8 _1AA4;
-    /*0x1AA5*/ u8 _1AA5;
-    /*0x1AA6*/ u8 _1AA6;
-    /*0x1AA7*/ u8 _1AA7;
-    /*0x1AA8*/ u8 _1AA8;
-    /*0x1AA9*/ u8 _1AA9;
-    /*0x1AAA*/ u8 pad18[30];
+    /*0x1AA0*/ u8 bODHistory[4][10];
     /*0x1AC8*/ u8 bODRelated2;
     /*0x1AC9*/ u8 barrelBatter_BODPitchSelectionType;
     /*0x1ACA*/ u8 minigamePitchSpeedAdjustment;
@@ -2131,7 +2118,7 @@ typedef struct _MiniGameStruct {
     /*0x1AD9*/ u8 _1AD9;
     /*0x1ADA*/ u8 barrelBatterChargeMeter;
     /*0x1ADB*/ u8 barrelBatter_scoreCalculatedInd;
-    /*0x1ADC*/ u8 barrelBatter_hitBarrelID;
+    /*0x1ADC*/ s8 barrelBatter_hitBarrelID;
     /*0x1ADD*/ u8 barrelBatter_barrelsHit;
     /*0x1ADE*/ u8 _1ADE[2];
     /*0x1AE0*/ f32 _1AE0;
