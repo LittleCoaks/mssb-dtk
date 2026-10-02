@@ -425,11 +425,12 @@ Unknown/File_0x80039aa8.c:
 Unknown/File_0x8003a538.c:
 	.text       start:0x8003A538 end:0x8003A550
 
-Unknown/File_0x8003ad84.c:
-	extab       start:0x80005F58 end:0x80005F60
-	extabindex  start:0x80007A64 end:0x80007A70
-	.text       start:0x8003AD84 end:0x8003AE54
+Unknown/File_0x8003a688.c:
+	extab       start:0x80005F38 end:0x80005F60
+	extabindex  start:0x80007A34 end:0x80007A70
+	.text       start:0x8003A688 end:0x8003AE54
 	.data       start:0x800F7AC0 end:0x800F7AE0
+	.sdata2     start:0x803CC7D8 end:0x803CC7E8
 
 Unknown/File_0x8003c00c.c:
 	extab       start:0x80005F80 end:0x80005F88
@@ -1987,6 +1988,7 @@ Unknown/File_0x800bd3ec.c:
 	extab       start:0x80006B90 end:0x80006B98
 	extabindex  start:0x80008CB8 end:0x80008CC4
 	.text       start:0x800BD3EC end:0x800BD478
+	.sdata2     start:0x803CD058 end:0x803CD060
 
 Unknown/File_0x800bd8c4.c:
 	extab       start:0x80006BB0 end:0x80006BD8
