@@ -1352,8 +1352,13 @@ homerun	6	*/
 typedef enum _TOY_FIELD_RESULT {
     TOY_FIELD_RESULT_FOUL = 1,
     TOY_FIELD_RESULT_CAUGHT = 2,
+    TOY_FIELD_RESULT_SINGLE = 3, // 3..6 advance runners (result - 2) bases
     TOY_FIELD_RESULT_GROUND_RULE_DOUBLE = 4,
-    TOY_FIELD_RESULT_HOMERUN = 6
+    TOY_FIELD_RESULT_TRIPLE = 5,
+    TOY_FIELD_RESULT_HOMERUN = 6,
+    TOY_FIELD_RESULT_WALK = 7,
+    TOY_FIELD_RESULT_HIT_BY_PITCH = 8,
+    // 9/10 spawn coins, 11 and 12 are still unidentified
 } TOY_FIELD_RESULT;
 
 /*None	0
@@ -1855,20 +1860,20 @@ typedef struct _MiniGameStruct {
     /*0x1911*/ u8 _1911;
     /*0x1912*/ u8 pointsTargetReachedInd;
     /*0x1913*/ u8 _1913;
-    /*0x1914*/ u8 _1914;
-    /*0x1915*/ u8 _1915;
-    /*0x1916*/ u8 _1916;
-    /*0x1917*/ u8 _1917;
+    /*0x1914*/ u8 toyField_runnerOnHome;
+    /*0x1915*/ u8 toyField_runnerOnFirst;
+    /*0x1916*/ u8 toyField_runnerOnSecond;
+    /*0x1917*/ u8 toyField_runnerOnThird;
     /*0x1918*/ u8 _1918;
     /*0x1919*/ u8 _1919;
     /*0x191A*/ u8 _191A;
     /*0x191B*/ u8 _191B;
-    /*0x191C*/ u8 _191C;
-    /*0x191D*/ u8 _191D;
-    /*0x191E*/ u8 _191E;
-    /*0x191F*/ u8 _191F;
+    /*0x191C*/ s8 toyField_runnerBase0;
+    /*0x191D*/ s8 toyField_runnerBase1;
+    /*0x191E*/ s8 toyField_runnerBase2;
+    /*0x191F*/ s8 toyField_runnerBase3;
     /*0x1920*/ E(u8, TOY_FIELD_RESULT) toyFieldBallStateResult2;
-    /*0x1921*/ u8 _1921;
+    /*0x1921*/ u8 toyField_runsScored;
     /*0x1922*/ u8 _1922;
     /*0x1923*/ u8 minigameRelatedIndex;
     /*0x1924*/ u8 runnerNum;

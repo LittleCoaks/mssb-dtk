@@ -476,7 +476,7 @@ void bOD_CheckRoundsLeft(void) {
 
 // .text:0x00112070 size:0x70 mapped:0x80751104
 void bOD_Postgame(void) {
-    fn_3_DE4FC();
+    minigameCalculateRankings();
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
     g_Minigame.bOD_fireworksTimer = rand() % 30 + 15;
     bobOmbDerbyPitching();
