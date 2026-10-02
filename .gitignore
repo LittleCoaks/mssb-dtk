@@ -38,3 +38,5 @@ compile_commands.json
 
 # Derived Ghidra symbol/type dumps (rebuild with: python tools/ghidra_query.py refresh)
 .ghidra_cache/
+
+.DS_Store
