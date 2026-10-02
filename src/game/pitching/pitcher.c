@@ -21,7 +21,7 @@
 #include "game/match_setup/stat_tracking.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x8001c920.h"
-#include "Unknown/File_0x80024b00.h"
+#include "Unknown/File_0x80024184.h"
 
 /* minigamePlayerSelectedOrder is -1 when no player is selected. This file
  * reads it through a signed-byte lvalue; a plain (s8) cast of the u8 field

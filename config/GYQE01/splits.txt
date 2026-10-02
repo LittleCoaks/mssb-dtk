@@ -313,37 +313,12 @@ Unknown/File_0x80023b90.c:
 	.text       start:0x80023B90 end:0x80023CF4
 
 Unknown/File_0x80024184.c:
-	extab       start:0x80005B60 end:0x80005B68
-	extabindex  start:0x80007470 end:0x8000747C
-	.text       start:0x80024184 end:0x80024390
-
-Unknown/File_0x80024404.c:
-	extab       start:0x80005B70 end:0x80005B78
-	extabindex  start:0x80007488 end:0x80007494
-	.text       start:0x80024404 end:0x800245EC
-
-Unknown/File_0x800247e4.c:
-	.text       start:0x800247E4 end:0x80024974
-
-Unknown/File_0x80024974.c:
-	extab       start:0x80005B88 end:0x80005B90
-	extabindex  start:0x800074AC end:0x800074B8
-	.text       start:0x80024974 end:0x800249D8
-
-Unknown/File_0x800249d8.c:
-	extab       start:0x80005B90 end:0x80005B98
-	extabindex  start:0x800074B8 end:0x800074C4
-	.text       start:0x800249D8 end:0x80024B00
-
-Unknown/File_0x80024b00.c:
-	extab       start:0x80005B98 end:0x80005BA0
-	extabindex  start:0x800074C4 end:0x800074D0
-	.text       start:0x80024B00 end:0x80024BB4
-
-Unknown/File_0x80024bb4.c:
-	.text       start:0x80024BB4 end:0x80024D2C
-	.data       start:0x800F7720 end:0x800F7830
-	.sdata2     start:0x803CC5A0 end:0x803CC5A8
+	extab       start:0x80005B60 end:0x80005BA0
+	extabindex  start:0x80007470 end:0x800074D0
+	.text       start:0x80024184 end:0x80024D2C
+	.rodata     start:0x800E6720 end:0x800E6768
+	.data       start:0x800F76E0 end:0x800F7830
+	.sdata2     start:0x803CC580 end:0x803CC5A8
 
 Unknown/File_0x80025c58.c:
 	extab       start:0x80005BB8 end:0x80005BC0

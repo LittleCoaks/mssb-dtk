@@ -166,7 +166,6 @@ extern f32 lbl_1_rodata_7850;
 extern f32 lbl_1_bss_76E0[0x2000];
 extern void *_OSAllocFromHeap(s32 arg0, s32 arg1);
 extern void fn_80023F0C(void *arg0, void *arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7);
-extern void SetDisplayStateTexture(void *arg0, s32 arg1, s32 arg2);
 extern f32 lbl_1_rodata_77E8;
 extern u8 lbl_1_bss_F6E0[0x34800];
 extern f32 lbl_1_rodata_7894;
@@ -229,7 +228,7 @@ void fn_1_1D694(void *arg0) {
         GXSetProjection(mtx, 1);
         GXLoadPosMtxImm(mtx2, 0);
         GXSetCurrentMtx(0);
-        gOz_GXSetTexture(0, 0, 0);
+        gOz_GXSetTexture(GX_MODULATE, 0, FALSE);
         SetDisplayStateTexture(*(void **)(base + 0x8), 0, 0);
 
         GXBegin(GX_QUADS, GX_VTXFMT0, 4);
@@ -4323,7 +4322,7 @@ void fn_1_25F98(void) {
         GXSetTevOp(0, 3);
         GXLoadPosMtxImm(localMtx, 0);
         GXSetCurrentMtx(0);
-        SetDisplayStateTexture((u8 *)(*(void **)(textureContainerSlots + GFX_OBJ(item)[0x66] * 0x3c + 0x34)) + lbl_1_bss_6BDC * 0x20 + 4, 0, 0);
+        SetDisplayStateTexture((TextureBody *)((u8 *)(*(void **)(textureContainerSlots + GFX_OBJ(item)[0x66] * 0x3c + 0x34)) + lbl_1_bss_6BDC * 0x20 + 4), 0, 0);
 
         GXBegin(GX_QUADS, 0, 4);
 

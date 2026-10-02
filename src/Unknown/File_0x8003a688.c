@@ -1,5 +1,5 @@
 #include "Unknown/File_0x8003a688.h"
-#include "Unknown/File_0x80024404.h"
+#include "Unknown/File_0x80024184.h"
 #include "Dolphin/mtx.h"
 #include "string.h"
 
@@ -102,7 +102,7 @@ void fn_8003A8A0(struct DODisplayObj* dispObj, MtxPtr camera, int flag) {
         case 1: {
             TEXPalettePtr pal = dispObj->textureData[(state->setting >> 13) & 7].texturePalette;
             u16 index = *(u16*)((u8*)pal + (state->setting & 0x1FFF) * 0x20 + 0x20);
-            SetDisplayStateTexture((u8*)pal + index * 0x20 + 4, (state->setting >> 13) & 7,
+            SetDisplayStateTexture((TextureBody*)((u8*)pal + index * 0x20 + 4), (state->setting >> 13) & 7,
                                    (state->setting >> 13) & 7);
             break;
         }

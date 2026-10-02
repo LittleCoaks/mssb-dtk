@@ -256,7 +256,7 @@ void fn_1_28CE8(void *arg0) {
     GXLoadPosMtxImm(m, 0);
     GXSetCurrentMtx(0);
 
-    gOz_GXSetTexture(4, NULL, 0);
+    gOz_GXSetTexture(GX_PASSCLR, 0, FALSE);
 
     GXBegin(GX_LINES, GX_VTXFMT0, 6);
     GXPosition3f32(0.0f, 0.0f, 0.0f);

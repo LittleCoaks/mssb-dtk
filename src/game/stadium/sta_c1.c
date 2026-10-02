@@ -40,7 +40,7 @@
 #include "Unknown/File_0x80023b90.h"
 #include "Unknown/File_0x800beb3c.h"
 #include "game/stadium/sta_c2.h"
-#include "Unknown/File_0x80024404.h"
+#include "Unknown/File_0x80024184.h"
 #include "Unknown/File_0x800bd3ec.h"
 
 typedef struct _CastleMaterialFlags {

@@ -17,7 +17,7 @@
 #include "musyx/musyx.h"
 #include "static/UnknownHomes_Static.h"
 #include "text/text_channel.h"
-#include "Unknown/File_0x800247e4.h"
+#include "Unknown/File_0x80024184.h"
 #include "Unknown/File_0x80025c58.h"
 #include "Unknown/File_0x80025ddc.h"
 #include "Unknown/File_0x80033794.h"
@@ -251,7 +251,6 @@ extern GardenCrowdSeat lbl_3_data_11138[16];
 extern void fn_80035750(void* a, void* b, int c);
 extern void fn_8003403C(f32 w, f32 h);
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
-extern void fn_800245EC(void* camera, MtxPtr m, Vec* src, f32* dst, int count, int arg5);
 extern void fn_8003A144(void);
 extern void fn_800A7D4C(s32 arg0, void* arg1);
 extern u8 drawStadiumRelated;
