@@ -1006,7 +1006,7 @@ config.libs = [
             Object(NonMatching, "game/match_setup/match_scene.c"),
             Object(NonMatching, "game/hud/hud_gauges.c"),
             Object(Matching, "game/match_setup/run_scoring.c"),
-            Object(NonMatching, "game/ball/ball_trajectory.c"),
+            Object(Matching, "game/ball/ball_trajectory.c"),
             Object(NonMatching, "game/batting/at_bat_results.c"),
             Object(NonMatching, "game/math/game_math.c", extra_cflags=["-inline deferred,auto", "-fp_contract on"]),
             Object(NonMatching, "game/fielding/fielder_ai.c"),

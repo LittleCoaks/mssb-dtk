@@ -407,6 +407,13 @@ Checklist when a unit reaches 100%:
 5. Confirm objdiff still reports the unit 100% (`build/GYQE01/report.json`),
    since the flip changes what links, not what objdiff compares.
 
+For a local float object that the target references by symbol, put an `extern`
+declaration before the function and its `const f32` definition after the
+function. In `game/ball/ball_trajectory.c`, defining the float before its use
+made MWCC substitute an anonymous `@nnn` constant in the instruction
+relocation; moving the definition after the function preserved the named
+relocation and matched `.text` and `.rodata`.
+
 Third trap, first seen on `game/game/ball/foul_detection` (2026-09): objdiff scored the unit
 100% and the sha1 check passed while NonMatching, but the flipped link produced a `game.rel`
 64 bytes short. `include/header_rep_data.h`'s `repHeaderData` is a weak local static named
