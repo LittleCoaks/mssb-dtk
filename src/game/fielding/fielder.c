@@ -662,14 +662,14 @@ void setDefaultInMemFielder(void) {
         }
 
         fp += 0x4d0;
-        idx = (s8)g_Minigame.minigameControlStruct[1]._14;
+        idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[4];
         if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
             fp[0x695] = 1;
             fp[0x696] = 1;
         }
 
         fp += 0x268;
-        idx = (s8)g_Minigame.minigameControlStruct[1]._15;
+        idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[5];
         if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
             fp[0x695] = 1;
             fp[0x696] = 1;

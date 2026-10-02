@@ -1,4 +1,5 @@
 #define SQRT2_LINKAGE static
+#define REP_HEADER_DATA_FN getRepHeaderData_toyFieldOffscreen
 #include "game/minigame/toy_field_offscreen.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -31,26 +32,28 @@ void toyfield_offScreenCharacterImage(void) {
     int sy;
     int px;
     int py;
-    int dir;
     int alphaX;
     int alphaY;
     int i;
+    int dir;
     int k;
     int dx;
     int dz;
+    int slot;
 
     if (animRelated[0x96] == 0 && g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame._19CE == 0 &&
         g_Minigame.turnOverStatus == 0) {
         s16* bounds = lbl_3_data_D638;
 
         for (i = 0; i < 3; i++) {
-            if ((s8)g_Minigame.minigameControlStruct[1].aIStrength[2 + i] < 0) {
+            slot = g_Minigame.minigameControlStruct[1].aIStrength[2 + i];
+            if ((s8)slot < 0) {
                 continue;
             }
             dir = -1;
             alphaX = 0xFF;
             alphaY = 0xFF;
-            getAnimRelatedCoordinates(g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigameControlStruct[1].aIStrength[2 + i]], 4, &pos);
+            getAnimRelatedCoordinates(g_Minigame.minigameControlStruct[0].characterIndex[(s8)slot], 4, &pos);
             if (!fn_3_1650C(&sx, &sy, FALSE, pos.x, pos.y, pos.z)) {
                 for (k = 0; k < 3; k++) {
                     dx = g_pCamera->_284C.x - pos.x;
@@ -65,43 +68,35 @@ void toyfield_offScreenCharacterImage(void) {
                 }
             }
 
-            px = bounds[1];
-            if (sx <= px) {
+            if (sx <= (px = bounds[1])) {
                 dir = 2;
                 if (sx > lbl_3_data_D638[0]) {
                     alphaX = 255.0f * (1.0f - (f32)(sx - lbl_3_data_D638[0]) / (f32)(px - lbl_3_data_D638[0]));
                 }
-            } else {
-                px = bounds[3];
-                if (sx >= px) {
-                    dir = 5;
-                    if (sx < bounds[2]) {
-                        alphaX = 255.0f * (1.0f - (f32)(sx - bounds[2]) / (f32)(px - bounds[2]));
-                    }
-                } else {
-                    px = sx;
+            } else if (sx >= (px = bounds[3])) {
+                dir = 5;
+                if (sx < bounds[2]) {
+                    alphaX = 255.0f * (1.0f - (f32)(sx - bounds[2]) / (f32)(px - bounds[2]));
                 }
+            } else {
+                px = sx;
             }
             if (alphaX > 0xFF) {
                 alphaX = 0xFF;
             }
 
-            py = bounds[5];
-            if (sy <= py) {
+            if (sy <= (py = bounds[5])) {
                 dir += 1;
                 if (sy > bounds[4]) {
                     alphaY = 255.0f * (1.0f - (f32)(sy - bounds[4]) / (f32)(py - bounds[4]));
                 }
-            } else {
-                py = bounds[7];
-                if (sy >= py) {
-                    dir += 2;
-                    if (sy < bounds[6]) {
-                        alphaY = 255.0f * (1.0f - (f32)(sy - bounds[6]) / (f32)(py - bounds[6]));
-                    }
-                } else {
-                    py = sy;
+            } else if (sy >= (py = bounds[7])) {
+                dir += 2;
+                if (sy < bounds[6]) {
+                    alphaY = 255.0f * (1.0f - (f32)(sy - bounds[6]) / (f32)(py - bounds[6]));
                 }
+            } else {
+                py = sy;
             }
             if (alphaY > 0xFF) {
                 alphaY = 0xFF;
