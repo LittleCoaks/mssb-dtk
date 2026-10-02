@@ -2773,3 +2773,12 @@ functions and flipped to `Matching` (`4 files OK`).
   permutations of the locals topped out at 99.47%; moving the `do { b = *--p; ... } while (n != 0);`
   body into `copyLastDispObj(bone, src)` gave 100% immediately. Declaration order still fixed the
   outer function's registers (`owner` declared before `obj`).
+
+## A dtk-named `.rodata` "global" can be a local aggregate initializer
+
+First seen: `Unknown/File_0x80023b90.c` (`characterLightingRelated`, 2026-10). dtk named two
+`.rodata` objects `Vec_XPos`/`Vec_YPos`, but the target's `lis; lwzu; lwz; lwz` + three stack
+stores is MWCC's copy of a local initializer (`Vec xAxis = {1.0f, 0.0f, 0.0f};`). When a unit is
+the only reader of such objects and of its `.sdata2` literals, claim both ranges in `splits.txt`
+and mark the dtk labels `scope:local`; objdiff pairs the anonymous `@N` objects with them and the
+`Matching` link stays `4 files OK`. Check the range start is 8-aligned first.

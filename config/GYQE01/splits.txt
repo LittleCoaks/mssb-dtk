@@ -311,6 +311,8 @@ Unknown/File_0x80023b90.c:
 	extab       start:0x80005B48 end:0x80005B50
 	extabindex  start:0x8000744C end:0x80007458
 	.text       start:0x80023B90 end:0x80023CF4
+	.rodata     start:0x800E6708 end:0x800E6720
+	.sdata2     start:0x803CC568 end:0x803CC580
 
 Unknown/sub.c:
 	extab       start:0x80005B60 end:0x80005BA0
