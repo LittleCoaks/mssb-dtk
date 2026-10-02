@@ -2762,3 +2762,14 @@ functions and flipped to `Matching` (`4 files OK`).
   component-size switch (the target's `addi r31, r28, 0xd` sits after it) while keeping it in a
   callee-saved register for the second call. A `GXAttr attr = ...` initialiser computes it too early;
   `GX_VA_TEX0 + i` written at both calls loses the callee-saved register.
+
+## Findings from File_0x8001d180 (setHandModelAttached, first pass to 100%, flipped to Matching)
+
+- **`li rN, 0` ... `cmpwi rN, 0; subi rN, rN, 1; bne` with a pointer stepped by -4 is a one-pass
+  `do { x = arr[i]; ... } while (i-- != 0);` starting at `i = 0`.** MWCC does not fold it away; index
+  the array (`obj->actors[i]`) rather than hand-walking a pointer, which cost a register.
+- **A self-contained search loop at the end of a function whose temporaries reuse low registers
+  (r3..r6) that every declaration-order permutation misses is a `static inline` helper.** 120
+  permutations of the locals topped out at 99.47%; moving the `do { b = *--p; ... } while (n != 0);`
+  body into `copyLastDispObj(bone, src)` gave 100% immediately. Declaration order still fixed the
+  outer function's registers (`owner` declared before `obj`).
