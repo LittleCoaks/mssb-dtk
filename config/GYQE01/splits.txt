@@ -808,6 +808,8 @@ Unknown/File_0x800698f8.c:
 	extab       start:0x800064F0 end:0x800064F8
 	extabindex  start:0x800082C8 end:0x800082D4
 	.text       start:0x800698F8 end:0x80069A68
+	.rodata     start:0x800E69B8 end:0x800E6A00
+	.data       start:0x801091F4 end:0x8010924C
 
 Unknown/File_0x80069a98.c:
 	extab       start:0x80006500 end:0x80006508
