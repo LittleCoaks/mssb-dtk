@@ -195,7 +195,7 @@ void bB_LoadGame(void) {
         g_Minigame._1A37 = 0;
         *(s8 *)&g_Minigame.minigamePlayerSelectedOrder = -1;
         g_Minigame.rosterID = -1;
-        g_Minigame._17C0 = 0;
+        g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.bB_bombBarrelHitInd_bOD_hrYaw = 0;
         g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
 

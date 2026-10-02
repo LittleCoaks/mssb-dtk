@@ -1283,6 +1283,68 @@ typedef struct _MiniGameControlStruct {
     /*0x010*/ u8 aIStrength[6];
 } MiniGameControlStruct; // size: 0x16
 
+/* MiniGameStruct+0x18CC..0x1903 (MiniGameControlStruct[2] and the three
+ * index arrays after it), laid out as the per-player [4] arrays the code
+ * actually indexes. */
+typedef struct _MinigamePlayerSlots {
+    /*0x000*/ s8 characterIndex[4];
+    /*0x004*/ u8 _04[4];
+    /*0x008*/ u8 _08[4];
+    /*0x00C*/ E(u8, BOOL) aiControlledInd[4];
+    /*0x010*/ u8 aiStrength[4];
+    /*0x014*/ s8 _14[4];
+    /*0x018*/ u8 _18[4];
+    /*0x01C*/ u8 _1C[4];
+    /*0x020*/ u8 _20[4];
+    /*0x024*/ u8 _24[4];
+    /*0x028*/ s8 _28[4];
+    /*0x02C*/ s8 fielderIndex[4];
+    /*0x030*/ s8 runnerPlayerIndex[4]; // player slot of each runner
+    /*0x034*/ s8 playerRunnerIndex[4]; // runner index of each player slot
+} MinigamePlayerSlots; // size: 0x38
+
+/* Shared by Star Dash, Chain Chomp Sprint and the pitching machine. */
+typedef struct _MinigamePowerupStruct {
+    /*0x000*/ VecXYZ pos;
+    /*0x00C*/ VecXYZ _0C;
+    /*0x018*/ f32 basePathPos; // Chain Chomp Sprint: same units as fractionalBasesRan
+    /*0x01C*/ s16 timer;
+    /*0x01E*/ E(u8, BOOL) activeInd;
+    /*0x01F*/ u8 pad;
+} MinigamePowerupStruct; // size: 0x20
+
+/* Chain Chomp Sprint state at MiniGameStruct+0x1AE0; the chomp half is also
+ * read by the Wario Palace stadium code. */
+typedef struct _ChainChompSprintStruct {
+    /*0x000*/ VecXYZ chompPos;
+    /*0x00C*/ VecXYZ chompVelocity;
+    /*0x018*/ s16 chompYaw;
+    /*0x01A*/ s16 chompStateTimer;
+    /*0x01C*/ s16 _1C;
+    /*0x01E*/ s16 runFrames[4];
+    /*0x026*/ s16 _26;
+    /*0x028*/ s16 itemTimer[6];
+    /*0x034*/ s8 chasedPlayer;
+    /*0x035*/ u8 runnerChompHitState[4];
+    /*0x039*/ u8 chompState;
+    /*0x03A*/ u8 itemState[6];
+    /*0x040*/ u8 itemValue[6];
+    /*0x046*/ s8 segmentItems[4][2]; // item ids placed on each base path
+    /*0x04E*/ u8 specialItemCount;
+    /*0x04F*/ u8 targetInd[4];
+    /*0x053*/ u8 targetCount;
+} ChainChompSprintStruct; // size: 0x54
+
+typedef struct _ChainChompSprintAI {
+    /*0x000*/ s16 _0;
+    /*0x002*/ u8 state;
+    /*0x003*/ s8 _3;
+    /*0x004*/ s8 _4;
+    /*0x005*/ u8 _5;
+    /*0x006*/ s8 _6;
+    /*0x007*/ s8 _7;
+} ChainChompSprintAI; // size: 0x8
+
 /*foul	1
 caught	2
 groundRuleDouble	4
@@ -1399,7 +1461,7 @@ typedef struct _MiniGameStruct {
     /*0x031*/ u8 _31;
     /*0x032*/ u8 _32;
     /*0x033*/ u8 _33;
-    /*0x034*/ u8 _34;
+    /*0x034*/ s8 chasedPlayer;
     /*0x035*/ u8 _35[3];
     /*0x038*/ f32 _38;
     /*0x03C*/ f32 _3C;
@@ -1738,67 +1800,34 @@ typedef struct _MiniGameStruct {
     /*0xC6D*/ u8 _C6D[64];
     /*0xCAD*/ u8 _CAD;
     /*0xCAE*/ u8 pad4[2];
-    /*0xCB0*/ f32 _CB0;
-    /*0xCB4*/ f32 _CB4;
-    /*0xCB8*/ f32 _CB8;
-    /*0xCBC*/ f32 _CBC;
-    /*0xCC0*/ f32 _CC0;
-    /*0xCC4*/ f32 _CC4;
-    /*0xCC8*/ f32 _CC8;
-    /*0xCCC*/ s16 _CCC;
-    /*0xCCE*/ u8 _CCE[2];
-    /*0xCD0*/ VecXYZ wallBall_coinCoordinates;
-    /*0xCDC*/ u8 pad5[4];
-    /*0xCE0*/ f32 _CE0;
-    /*0xCE4*/ u8 pad6[160];
-    /*0xD84*/ VecXYZ _D84;
-    /*0xD90*/ u8 pad7[1008];
-    /*0x1180*/ VecXYZ wallBall_coinVelocity;
-    /*0x118C*/ u8 pad8[168];
-    /*0x1234*/ VecXYZ _1234;
-    /*0x1240*/ u8 pad9[1008];
-    /*0x1630*/ f32 _1630;
-    /*0x1634*/ u8 pad10[396];
-    /*0x17C0*/ s32 _17C0;
-    /*0x17C4*/ s32 _17C4;
-    /*0x17C8*/ s16 wallBall_coinsVisibleFrameCounter;
-    /*0x17CA*/ s16 _17CA;
-    /*0x17CC*/ s16 _17CC;
-    /*0x17CE*/ s16 _17CE;
-    /*0x17D0*/ s16 _17D0;
-    /*0x17D2*/ s16 _17D2;
-    /*0x17D4*/ s16 _17D4;
-    /*0x17D6*/ s16 _17D6;
-    /*0x17D8*/ s16 _17D8;
-    /*0x17DA*/ s16 _17DA;
-    /*0x17DC*/ s16 _17DC;
-    /*0x17DE*/ s16 _17DE;
-    /*0x17E0*/ s16 _17E0;
-    /*0x17E2*/ s16 _17E2;
-    /*0x17E4*/ s16 _17E4;
-    /*0x17E6*/ s16 _17E6;
-    /*0x17E8*/ s16 _17E8;
-    /*0x17EA*/ s16 _17EA;
-    /*0x17EC*/ s16 _17EC;
-    /*0x17EE*/ s16 _17EE;
-    /*0x17F0*/ s16 _17F0;
-    /*0x17F2*/ s16 _17F2;
-    /*0x17F4*/ s16 _17F4;
-    /*0x17F6*/ s16 _17F6;
-    /*0x17F8*/ s16 _17F8;
-    /*0x17FA*/ s16 _17FA;
-    /*0x17FC*/ s16 _17FC;
-    /*0x17FE*/ s16 _17FE;
-    /*0x1800*/ s16 _1800;
-    /*0x1802*/ s16 _1802;
-    /*0x1804*/ s16 _1804;
-    /*0x1806*/ s16 _1806;
-    /*0x1808*/ u8 pad11[136];
+    /*0xCB0*/ MinigamePowerupStruct powerup;
+    /* Minigame coin/collectible pool. The wallBall_* names are wall_ball.c's
+     * single-element views of the same arrays. */
+    /*0xCD0*/ union {
+        VecXYZ wallBall_coinCoordinates;
+        VecXYZ coinPos[100];
+    };
+    /*0x1180*/ union {
+        VecXYZ wallBall_coinVelocity;
+        VecXYZ coinVelocity[100];
+    };
+    /*0x1630*/ f32 coinBasePathPos[100]; // Chain Chomp Sprint
+    /*0x17C0*/ u32 minigameElapsedFrames;
+    /*0x17C4*/ u32 minigameFramesRemaining;
+    /*0x17C8*/ union {
+        s16 wallBall_coinsVisibleFrameCounter;
+        s16 coinFrameCounter[100];
+    };
     /*0x1890*/ s16 miniGameCurrentPoints[4];
     /*0x1898*/ s16 miniGameLatestPoints[4];
     /*0x18A0*/ u16 bOD_fireworkBurstCount;
-    /*0x18A2*/ s16 bB_bombBarrelHitInd_bOD_hrYaw;
-    /*0x18A4*/ s16 bB_bombBarrelID_bOD_hrPitch;
+    /*0x18A2*/ union {
+        struct {
+            /*0x18A2*/ s16 bB_bombBarrelHitInd_bOD_hrYaw;
+            /*0x18A4*/ s16 bB_bombBarrelID_bOD_hrPitch;
+        };
+        s16 ccsSpecialItemFrames[2]; // Chain Chomp Sprint: elapsed-frame thresholds
+    };
     /*0x18A6*/ s16 bOD_fireworksTimer;
     /*0x18A8*/ s16 bODControllerInputAllowedInd;
     /*0x18AA*/ s16 framesSincePanelHit;
@@ -1806,10 +1835,15 @@ typedef struct _MiniGameStruct {
     /*0x18B8*/ s16 _18B8;
     /*0x18BA*/ s16 _18BA;
     /*0x18BC*/ s16 minigamePoints_current_Latest[4][2];
-    /*0x18CC*/ MiniGameControlStruct minigameControlStruct[2];
-    /*0x18F8*/ u8 minigameFielderIndex[4];
-    /*0x18FC*/ u8 _18FC[4];
-    /*0x1900*/ u8 _1900[4];
+    /*0x18CC*/ union {
+        struct {
+            /*0x18CC*/ MiniGameControlStruct minigameControlStruct[2];
+            /*0x18F8*/ u8 minigameFielderIndex[4];
+            /*0x18FC*/ u8 _18FC[4];
+            /*0x1900*/ u8 _1900[4];
+        };
+        MinigamePlayerSlots playerSlots;
+    };
     /*0x1904*/ u8 minigamePlayerSelectedOrder;
     /*0x1905*/ s8 rosterID;
     /*0x1906*/ u8 miniGameNumberOfParticipants;
@@ -1855,108 +1889,15 @@ typedef struct _MiniGameStruct {
     /*0x1931*/ u8 _1931;
     /*0x1932*/ s16 _1932;
     /*0x1934*/ u8 _1934;
-    /*0x1935*/ s8 _1935;
-    /*0x1936*/ s8 _1936;
-    /*0x1937*/ s8 _1937;
-    /*0x1938*/ s8 _1938;
-    /*0x1939*/ u8 toyField_coinsRemaining;
-    /*0x193A*/ u8 wallBall_coinsVisibleInd;
-    /*0x193B*/ u8 _193B;
-    /*0x193C*/ u8 _193C;
-    /*0x193D*/ u8 _193D;
-    /*0x193E*/ u8 _193E;
-    /*0x193F*/ u8 _193F;
-    /*0x1940*/ u8 _1940;
-    /*0x1941*/ u8 _1941;
-    /*0x1942*/ u8 _1942;
-    /*0x1943*/ u8 _1943;
-    /*0x1944*/ u8 _1944;
-    /*0x1945*/ u8 _1945;
-    /*0x1946*/ u8 _1946;
-    /*0x1947*/ u8 _1947;
-    /*0x1948*/ u8 _1948;
-    /*0x1949*/ u8 _1949;
-    /*0x194A*/ u8 _194A;
-    /*0x194B*/ u8 _194B;
-    /*0x194C*/ u8 _194C;
-    /*0x194D*/ u8 _194D;
-    /*0x194E*/ u8 _194E;
-    /*0x194F*/ u8 _194F;
-    /*0x1950*/ u8 _1950;
-    /*0x1951*/ u8 _1951;
-    /*0x1952*/ u8 _1952;
-    /*0x1953*/ u8 _1953;
-    /*0x1954*/ u8 _1954;
-    /*0x1955*/ u8 _1955;
-    /*0x1956*/ u8 _1956;
-    /*0x1957*/ u8 _1957;
-    /*0x1958*/ u8 _1958;
-    /*0x1959*/ u8 _1959;
-    /*0x195A*/ u8 _195A;
-    /*0x195B*/ u8 _195B;
-    /*0x195C*/ u8 _195C;
-    /*0x195D*/ u8 _195D;
-    /*0x195E*/ u8 _195E;
-    /*0x195F*/ u8 _195F;
-    /*0x1960*/ u8 _1960;
-    /*0x1961*/ u8 _1961;
-    /*0x1962*/ u8 _1962;
-    /*0x1963*/ u8 _1963;
-    /*0x1964*/ u8 _1964;
-    /*0x1965*/ u8 _1965;
-    /*0x1966*/ u8 _1966;
-    /*0x1967*/ u8 _1967;
-    /*0x1968*/ u8 _1968;
-    /*0x1969*/ u8 _1969;
-    /*0x196A*/ u8 _196A;
-    /*0x196B*/ u8 _196B;
-    /*0x196C*/ u8 _196C;
-    /*0x196D*/ u8 _196D;
-    /*0x196E*/ u8 _196E;
-    /*0x196F*/ u8 _196F;
-    /*0x1970*/ u8 _1970;
-    /*0x1971*/ u8 _1971;
-    /*0x1972*/ u8 _1972;
-    /*0x1973*/ u8 _1973;
-    /*0x1974*/ u8 _1974;
-    /*0x1975*/ u8 _1975;
-    /*0x1976*/ u8 _1976;
-    /*0x1977*/ u8 _1977;
-    /*0x1978*/ u8 _1978;
-    /*0x1979*/ u8 _1979;
-    /*0x197A*/ u8 _197A;
-    /*0x197B*/ u8 _197B;
-    /*0x197C*/ u8 _197C;
-    /*0x197D*/ u8 _197D;
-    /*0x197E*/ u8 _197E;
-    /*0x197F*/ u8 _197F;
-    /*0x1980*/ u8 _1980;
-    /*0x1981*/ u8 _1981;
-    /*0x1982*/ u8 _1982;
-    /*0x1983*/ u8 _1983;
-    /*0x1984*/ u8 _1984;
-    /*0x1985*/ u8 _1985;
-    /*0x1986*/ u8 _1986;
-    /*0x1987*/ u8 _1987;
-    /*0x1988*/ u8 _1988;
-    /*0x1989*/ u8 _1989;
-    /*0x198A*/ u8 _198A;
-    /*0x198B*/ u8 _198B;
-    /*0x198C*/ u8 _198C;
-    /*0x198D*/ u8 _198D;
-    /*0x198E*/ u8 _198E;
-    /*0x198F*/ u8 _198F;
-    /*0x1990*/ u8 _1990;
-    /*0x1991*/ u8 _1991;
-    /*0x1992*/ u8 _1992;
-    /*0x1993*/ u8 _1993;
-    /*0x1994*/ u8 _1994;
-    /*0x1995*/ u8 _1995;
-    /*0x1996*/ u8 _1996;
-    /*0x1997*/ u8 _1997;
-    /*0x1998*/ u8 _1998;
-    /*0x1999*/ u8 _1999;
-    /*0x199A*/ u8 pad13[4];
+    /*0x1935*/ u8 _1935;
+    /*0x1936*/ u8 _1936;
+    /*0x1937*/ u8 _1937;
+    /*0x1938*/ u8 _1938;
+    /*0x1939*/ u8 _1939;
+    /*0x193A*/ union {
+        u8 wallBall_coinsVisibleInd;
+        u8 coinState[100];
+    };
     /*0x199E*/ u8 _199E;
     /*0x199F*/ u8 panelHitInd;
     /*0x19A0*/ u8 _19A0;
@@ -2126,55 +2067,7 @@ typedef struct _MiniGameStruct {
     /*0x1ADC*/ s8 barrelBatter_hitBarrelID;
     /*0x1ADD*/ u8 barrelBatter_barrelsHit;
     /*0x1ADE*/ u8 _1ADE[2];
-    /*0x1AE0*/ f32 _1AE0;
-    /*0x1AE4*/ f32 _1AE4;
-    /*0x1AE8*/ f32 _1AE8;
-    /*0x1AEC*/ f32 _1AEC;
-    /*0x1AF0*/ f32 _1AF0;
-    /*0x1AF4*/ f32 _1AF4;
-    /*0x1AF8*/ s16 _1AF8;
-    /*0x1AFA*/ s16 _1AFA;
-    /*0x1AFC*/ s16 _1AFC;
-    /*0x1AFE*/ u8 _1AFE[2];
-    /*0x1B00*/ s16 _1B00;
-    /*0x1B02*/ s16 _1B02;
-    /*0x1B04*/ s16 _1B04;
-    /*0x1B06*/ s16 _1B06;
-    /*0x1B08*/ s16 _1B08;
-    /*0x1B0A*/ s16 _1B0A;
-    /*0x1B0C*/ s16 _1B0C;
-    /*0x1B0E*/ s16 _1B0E;
-    /*0x1B10*/ s16 _1B10;
-    /*0x1B12*/ s16 _1B12;
-    /*0x1B14*/ u8 _1B14;
-    /*0x1B15*/ u8 _1B15[4];
-    /*0x1B19*/ u8 _1B19;
-    /*0x1B1A*/ u8 _1B1A;
-    /*0x1B1B*/ u8 _1B1B;
-    /*0x1B1C*/ u8 _1B1C;
-    /*0x1B1D*/ u8 _1B1D;
-    /*0x1B1E*/ u8 _1B1E;
-    /*0x1B1F*/ u8 _1B1F;
-    /*0x1B20*/ u8 _1B20;
-    /*0x1B21*/ u8 _1B21;
-    /*0x1B22*/ u8 _1B22;
-    /*0x1B23*/ u8 _1B23;
-    /*0x1B24*/ u8 _1B24;
-    /*0x1B25*/ u8 _1B25;
-    /*0x1B26*/ u8 _1B26;
-    /*0x1B27*/ u8 _1B27;
-    /*0x1B28*/ u8 _1B28;
-    /*0x1B29*/ u8 _1B29;
-    /*0x1B2A*/ u8 _1B2A;
-    /*0x1B2B*/ u8 _1B2B;
-    /*0x1B2C*/ u8 _1B2C;
-    /*0x1B2D*/ u8 _1B2D;
-    /*0x1B2E*/ u8 _1B2E;
-    /*0x1B2F*/ u8 _1B2F;
-    /*0x1B30*/ u8 _1B30;
-    /*0x1B31*/ u8 _1B31;
-    /*0x1B32*/ u8 _1B32;
-    /*0x1B33*/ u8 _1B33;
+    /*0x1AE0*/ ChainChompSprintStruct ccs;
     /*0x1B34*/ s16 _1B34;
     /*0x1B36*/ u8 _1B36[6];
     /*0x1B3C*/ s16 _1B3C;
@@ -2288,7 +2181,7 @@ typedef struct _MiniGameStruct {
     /*0x1D6E*/ u8 starDashStunType[4];
     /*0x1D72*/ u8 _1D72;
     /*0x1D73*/ u8 _1D73;
-    /*0x1D74*/ u8 playerIDWithPowerup[2];
+    /*0x1D74*/ s8 playerIDWithPowerup[2];
     /*0x1D76*/ s16 _1D76;
     /*0x1D78*/ u8 _1D78;
     /*0x1D79*/ u8 _1D79;
@@ -2299,18 +2192,26 @@ typedef struct _MiniGameStruct {
     /*0x1DC0*/ u8 _1DC0[4];
     /*0x1DC4*/ u8 portOfAIBeingProcessed[4];
     /*0x1DC8*/ u8 _1DC8[4];
-    /*0x1DCC*/ s16 ai_wbChargePower_bbSwingFrame;
-    /*0x1DCE*/ u8 ai_wbThrowType_bbVertAngle;
-    /*0x1DCF*/ u8 wallBallAISwitchVar;
-    /*0x1DD0*/ s16 minigameAICountDownTillAction;
-    /*0x1DD2*/ u8 _1DD2[6];
-    /*0x1DD8*/ s16 _1DD8;
-    /*0x1DDA*/ u8 _1DDA[18];
+    /*0x1DCC*/ union {
+        struct {
+            /*0x1DCC*/ s16 ai_wbChargePower_bbSwingFrame;
+            /*0x1DCE*/ u8 ai_wbThrowType_bbVertAngle;
+            /*0x1DCF*/ u8 wallBallAISwitchVar;
+            /*0x1DD0*/ s16 minigameAICountDownTillAction;
+            /*0x1DD2*/ u8 _1DD2[6];
+            /*0x1DD8*/ s16 _1DD8;
+            /*0x1DDA*/ u8 _1DDA[18];
+        };
+        ChainChompSprintAI ccsAI[4];
+    };
     /*0x1DEC*/ f32 _1DEC;
     /*0x1DF0*/ f32 _1DF0;
     /*0x1DF4*/ u8 _1DF4; // unsure
     /*0x1DF5*/ E(u8, BARREL_BATTER_PITCH_NUM) bODPitchType;
-    /*0x1DF6*/ u8 _1DF6[0x1E2C - 0x1DF6];
+    /*0x1DF6*/ u8 _1DF6[6];
+    /*0x1DFC*/ u8 _1DFC[4];
+    /*0x1E00*/ u8 _1E00;
+    /*0x1E01*/ u8 _1E01[0x1E2C - 0x1E01];
 } MiniGameStruct; // size: 0x1E2C
 
 extern MiniGameStruct g_Minigame;
