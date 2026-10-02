@@ -1126,7 +1126,7 @@ void running_chainChompSprintRelated(void) {
             f32 angle;
 
             atan2(-runner->velocity.x, -runner->velocity.y);
-            if (g_Minigame._1B15[(s8)g_Minigame._18FC[i]] == 1) {
+            if (g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[i]] == 1) {
                 angle = radianAngleReduction(3.1415927410125732 + atan2(-runner->velocity.x, -runner->velocity.z));
             } else if (runner->runningDirectionCode != 0 && runner->runningDirectionCode != 2) {
                 if (0.0f == runner->velocity.x && 0.0f == runner->velocity.z) {
@@ -4030,7 +4030,7 @@ int running_DirectionOverrides(int runnerIdx) {
         if (g_Minigame.turnOverStatus != 0) {
             return 2;
         }
-        if (g_Minigame._1B19 == 2 || g_Minigame._1B19 == 3) {
+        if (g_Minigame.ccs.chompState == 2 || g_Minigame.ccs.chompState == 3) {
             return 2;
         }
         return 0;
@@ -4731,14 +4731,14 @@ void cCSRunningFun(void) {
         if (runner->runningDirectionCode == 0) {
             runner->runningDirectionCode = 2;
         }
-        stage = &g_Minigame._1B15[(s8)g_Minigame._18FC[i]];
+        stage = &g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[i]];
         runner->turningAroundInd = 0;
         if (*stage == 4) {
             continue;
         }
         if (*stage == 1 || *stage == 2) {
             if (*stage == 2) {
-                if (g_Minigame._1B19 == 0) {
+                if (g_Minigame.ccs.chompState == 0) {
                     *stage = 3;
                     runner->runningToDugoutFrameCounter = 0;
                 }
@@ -4794,7 +4794,7 @@ void cCSRunningFun(void) {
                 runner->runningToDugoutFrameCounter = 0x7FFF;
             }
             if (runner->runningToDugoutFrameCounter >= lbl_3_data_21904[2]) {
-                g_Minigame._1B15[(s8)g_Minigame._18FC[i]] = 0;
+                g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[i]] = 0;
             }
         } else {
             if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame.turnOverStatus == 0) {
@@ -4930,10 +4930,10 @@ void runnerChangeDirectionHumanInput(int runnerIdx) {
 // .text:0x0007D9DC size:0x154 mapped:0x806BCA70
 void fn_3_7D9DC(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
-    f32 magnitude = dolsqrtf2(g_Minigame._1AEC * g_Minigame._1AEC + g_Minigame._1AF4 * g_Minigame._1AF4);
+    f32 magnitude = dolsqrtf2(g_Minigame.ccs.chompVelocity.x * g_Minigame.ccs.chompVelocity.x + g_Minigame.ccs.chompVelocity.z * g_Minigame.ccs.chompVelocity.z);
 
-    runner->velocity.x = lbl_3_data_218BC[7] * (g_Minigame._1AEC / magnitude);
-    runner->velocity.z = lbl_3_data_218BC[7] * (g_Minigame._1AF4 / magnitude);
+    runner->velocity.x = lbl_3_data_218BC[7] * (g_Minigame.ccs.chompVelocity.x / magnitude);
+    runner->velocity.z = lbl_3_data_218BC[7] * (g_Minigame.ccs.chompVelocity.z / magnitude);
     runner->runningToDugoutFrameCounter = 0;
 }
 
@@ -4942,11 +4942,11 @@ void fn_3_7D920(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int idx = (s8)g_Minigame._18FC[runnerIdx];
 
-    if (g_Minigame._1B15[idx] == 2) {
-        if (g_Minigame._1B19 != 0) {
+    if (g_Minigame.ccs.runnerChompHitState[idx] == 2) {
+        if (g_Minigame.ccs.chompState != 0) {
             return;
         }
-        g_Minigame._1B15[idx] = 3;
+        g_Minigame.ccs.runnerChompHitState[idx] = 3;
         runner->runningToDugoutFrameCounter = 0;
         return;
     }
@@ -4954,7 +4954,7 @@ void fn_3_7D920(int runnerIdx) {
         runner->position.x += runner->velocity.x;
         runner->position.z += runner->velocity.z;
     } else {
-        g_Minigame._1B15[idx] = 2;
+        g_Minigame.ccs.runnerChompHitState[idx] = 2;
     }
     if (runner->runningToDugoutFrameCounter < 0x7FFE) {
         runner->runningToDugoutFrameCounter++;
@@ -5006,6 +5006,6 @@ void fn_3_7D79C(int runnerIdx) {
         runner->runningToDugoutFrameCounter = 0x7FFF;
     }
     if (runner->runningToDugoutFrameCounter >= lbl_3_data_21904[2]) {
-        g_Minigame._1B15[(s8)g_Minigame._18FC[runnerIdx]] = 0;
+        g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[runnerIdx]] = 0;
     }
 }

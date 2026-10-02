@@ -384,7 +384,7 @@ game/minigame/star_dash.c:
 	.bss        start:0x0000B700 end:0x0000B790
 
 game/minigame/chain_chomp_sprint.c:
-	.text       start:0x0013C7BC end:0x00141A2C
+	.text       start:0x0013C790 end:0x00141C44
 	.rodata     start:0x000036D8 end:0x000037A8
 	.data       start:0x000265F0 end:0x00026698
 	.bss        start:0x0000B790 end:0x0000B7C0

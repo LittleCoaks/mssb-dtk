@@ -226,7 +226,7 @@ void updateMinigameFielderAnimations(void) {
             if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
                 runnerObj->_34 += lbl_3_data_217D8[i][0];
                 runnerObj->_3C += lbl_3_data_217D8[i][1];
-                if (g_Minigame._1B15[i] == 3 && (g_d_GameSettings.FrameCountWhileNotAtMainMenu & 1) != 0) {
+                if (g_Minigame.ccs.runnerChompHitState[i] == 3 && (g_d_GameSettings.FrameCountWhileNotAtMainMenu & 1) != 0) {
                     runnerObj->_25D = 2;
                 }
             }

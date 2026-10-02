@@ -254,7 +254,7 @@ void bOD_LoadGame(void) {
 
         initializeSomethingDuringTransition();
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_BOBOMB_DERBY;
-        g_Minigame._17C0 = 0;
+        g_Minigame.minigameElapsedFrames = 0;
 
         for (i = 0; i < 4; i++) {
             g_Minigame.miniGameCurrentPoints[i] = 0;
@@ -277,7 +277,7 @@ void bOD_LoadGame(void) {
         g_Minigame._1A37 = 0;
         g_Minigame.minigamePlayerSelectedOrder = -1;
         g_Minigame.rosterID = -1;
-        g_Minigame._17C0 = 0;
+        g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.bOD_KingBombInd = FALSE;
         g_Minigame.bODAngleIndexBasedOnHitPower = 0;
         g_Minigame.bOD_fireworkBurstCount = 0;
