@@ -36,6 +36,13 @@
 #include "musyx/musyx.h"
 #undef g_Minigame
 
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. */
+#undef fabs
+static inline f64 fabs(f64 x) {
+    return __fabs(x);
+}
+
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
@@ -56,7 +63,7 @@ extern s16 lbl_3_data_21B8C[];
 extern VecXZ base_MoundCoordinates[5];
 extern f32 lbl_3_data_21B18[2];
 extern VecXZ lbl_3_data_2198C[4];
-extern void fn_800115C8(int player);
+extern void fn_800115C8(s8 player);
 extern void fn_3_14E988(int player);
 extern void fn_3_150010(s8 player);
 extern void fn_3_169600(void);
@@ -133,6 +140,12 @@ typedef struct {
     /*0x7*/ s8 counter;
 } SDAI; // size: 0x8
 
+typedef struct {
+    /*0x00*/ SDAI ai[4];
+    /*0x20*/ f32 rotSin;
+    /*0x24*/ f32 rotCos;
+} SDAIState; // size: 0x28
+
 /* Star Dash's view of g_Minigame. */
 typedef struct _SDState {
     /*0x0000*/ u8 _0000[0xA8];
@@ -169,9 +182,7 @@ typedef struct _SDState {
     /*0x1D76*/ s16 x_1D76;
     /*0x1D78*/ u8 x_1D78[4];
     /*0x1D7C*/ u8 _1D7C[0x1DCC - 0x1D7C];
-    /*0x1DCC*/ SDAI ai[4];
-    /*0x1DEC*/ f32 rotSin;
-    /*0x1DF0*/ f32 rotCos;
+    /*0x1DCC*/ SDAIState aiState;
     /*0x1DF4*/ u8 _1DF4[4];
 } SDState;
 
@@ -184,6 +195,9 @@ extern SDMinigame g_Minigame;
 #define SD g_Minigame.sd
 
 #define SD_COUNTER_MAX 0x7FFF
+
+/* The fielder controlled by player slot p. */
+#define SD_FIELDER(p) g_Fielders[g_Minigame.playerSlots.fielderIndex[p]]
 
 s8 lbl_3_data_26580 = -1;
 
@@ -206,8 +220,8 @@ int fn_3_134908(const void* a, const void* b);
 int fn_3_134918(const void* a, const void* b);
 
 static inline f32 sdDistSqXZ(f32 ax, f32 az, f32 bx, f32 bz) {
-    f32 dz = az - bz;
     f32 dx = ax - bx;
+    f32 dz = az - bz;
     return dx * dx + dz * dz;
 }
 
@@ -243,12 +257,12 @@ static inline void sdBounce(VecXYZ* pos, VecXYZ* vel, VecSrcDst* probe, Collisio
     probe->dst.z = pos->z;
     type = checkCollision(probe, hit, 0, FALSE);
     if (type == BALL_COLLISION_TYPE_UNCLIMBABLE_WALL) {
-        hit->normal.y = hit->normal.y * -1.0f;
+        hit->normal.y *= -1.0f;
         dot = vel->x * hit->normal.x + vel->y * hit->normal.y + vel->z * hit->normal.z;
         dot *= 2.0f;
-        vel->x -= dot * hit->normal.x;
-        vel->y -= dot * hit->normal.y;
-        vel->z -= dot * hit->normal.z;
+        vel->x = vel->x - dot * hit->normal.x;
+        vel->y = vel->y - dot * hit->normal.y;
+        vel->z = vel->z - dot * hit->normal.z;
         pos->x = hit->position.x;
         pos->y = -hit->position.y;
         pos->z = hit->position.z;
@@ -258,12 +272,51 @@ static inline void sdBounce(VecXYZ* pos, VecXYZ* vel, VecSrcDst* probe, Collisio
 static inline void sdResetItem(SDItem* item, u32 level) {
     s16 lo;
     s16 hi;
+    int r;
 
     item->state = 0;
     item->frames = 0;
     lo = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][0];
     hi = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][1];
-    item->timer = lo * 60 + random_fn_3_9EE24((hi - lo) * 60);
+    r = random_fn_3_9EE24((hi - lo) * 60);
+    item->timer = lo * 60 + r;
+}
+
+static inline void sdClearCoins(void) {
+    int i;
+
+    for (i = 0; i < (s32)ARRAY_SIZE(g_Minigame.coinState); i++) {
+        g_Minigame.coinState[i] = 0;
+    }
+}
+
+static inline void sdInitItems(void) {
+    int k;
+
+    for (k = 0; k < 4; k++) {
+        memset(&SD.item[k].pos, 0, sizeof(Vec));
+        memset(&SD.item[k].vel, 0, sizeof(Vec));
+        memset(&SD.item[k].rot, 0, sizeof(Vec));
+        memset(&SD.item[k].rotVel, 0, sizeof(Vec));
+        SD.item[k].state = 0;
+    }
+    for (k = 0; k < lbl_3_bss_B780; k++) {
+        SD.item[k].timer = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
+                           random_fn_3_9EE24((lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][1] -
+                                              lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0]) * 60);
+        SD.item[k]._30 = 360 / lbl_3_bss_B780 * k;
+        SD.item[k]._34 = SD.item[k]._30 + 360 / lbl_3_data_21A88[lbl_3_bss_B781];
+    }
+}
+
+static inline void sdResetTrail(f32 y) {
+    int i;
+
+    for (i = 0; i < (s32)ARRAY_SIZE(SD.trail); i++) {
+        SD.trail[i].active = 0;
+        SD.trail[i].pos.y = y;
+        SD.trail[i]._22 = 0;
+    }
 }
 
 // .text:0x0013C468 size:0x328 mapped:0x8077B4FC
@@ -299,15 +352,10 @@ void fn_3_13C464(void) {
 void starDashSomething(void) {
     int i;
     int p;
-    int n;
-    int k;
-    u32 offset;
-    u32 x;
-    u32 y;
     f32 floorY;
     InMemFielder* fielder;
-    SDItem* item;
     u8 strength;
+    int n;
 
     if (g_GameLogic._125 == 0) {
         initializeSomethingDuringTransition();
@@ -346,14 +394,13 @@ void starDashSomething(void) {
             g_Minigame.minigameFramesRemaining = lbl_3_data_21984[4] * 60;
         }
         setDefaultInMemFielder();
-        n = 0;
-        for (p = 0; p < 4; p++) {
+        for (p = 0, n = 0; p < 4; p++) {
             if (g_Minigame.playerSlots.characterIndex[p] >= 0) {
                 g_Minigame.playerSlots._28[n] = p;
                 g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]] = n + 2;
                 setFielderValues(p, g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]]);
-                g_Minigame.starDashStunType[p] = 0;
                 fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]]];
+                g_Minigame.starDashStunType[p] = 0;
                 fielder->_020D = p;
                 fielder->pos.x = lbl_3_data_2198C[n].x;
                 fielder->pos.z = lbl_3_data_2198C[n].z;
@@ -364,9 +411,7 @@ void starDashSomething(void) {
                 n++;
             }
         }
-        for (i = 0; i < 100; i++) {
-            g_Minigame.coinState[i] = 0;
-        }
+        sdClearCoins();
         floorY = lbl_3_data_21A48.y;
         SD.spawnTimer = 30;
         SD.spawnedCoins = 0;
@@ -389,11 +434,7 @@ void starDashSomething(void) {
         SD.path[3].start.y = floorY;
         SD.path[3].end.y = floorY;
         SD.pathAngle[3] = 0xC00;
-        for (i = 0; i < 40; i++) {
-            SD.trail[i].active = 0;
-            SD.trail[i].pos.y = floorY;
-            SD.trail[i]._22 = 0;
-        }
+        sdResetTrail(floorY);
         if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0) {
             lbl_3_bss_B781 = g_Minigame.soloMinigameDifficulty;
             lbl_3_bss_B780 = lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty];
@@ -401,22 +442,7 @@ void starDashSomething(void) {
             lbl_3_bss_B781 = MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE;
             lbl_3_bss_B780 = 4;
         }
-        for (k = 0; k < 4; k++) {
-            memset(&SD.item[k].pos, 0, sizeof(Vec));
-            memset(&SD.item[k].vel, 0, sizeof(Vec));
-            memset(&SD.item[k].rot, 0, sizeof(Vec));
-            memset(&SD.item[k].rotVel, 0, sizeof(Vec));
-            SD.item[k].state = 0;
-        }
-        item = SD.item;
-        for (k = 0; k < lbl_3_bss_B780; k++) {
-            item->timer = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
-                          random_fn_3_9EE24((lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][1] -
-                                             lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0]) * 60);
-            item->_30 = 360 / lbl_3_bss_B780 * k;
-            item->_34 = item->_30 + 360 / lbl_3_data_21A88[lbl_3_bss_B781];
-            item++;
-        }
+        sdInitItems();
         SD.x_1D78[0] = 0;
         SD.x_1D78[1] = 0;
         SD.x_1D78[2] = 0;
@@ -425,26 +451,7 @@ void starDashSomething(void) {
         g_Minigame.powerup.timer = lbl_3_data_21B10[0];
         g_Minigame.powerup.activeInd = 0;
         g_Minigame.playerIDWithPowerup[0] = -1;
-        for (y = 0; y < 4; y++) {
-            for (x = 0; x < 4; x++) {
-                offset = fn_800247E4(x, y, 4, 4);
-                if (offset < 32) {
-                    lbl_3_bss_B740[offset + 2] = 0xFF;
-                    lbl_3_bss_B740[offset] = 0xFF;
-                    lbl_3_bss_B740[offset + 3] = 0x96;
-                    lbl_3_bss_B740[offset + 1] = 0x96;
-                } else {
-                    lbl_3_bss_B740[offset + 2] = 0x96;
-                    lbl_3_bss_B740[offset] = 0x96;
-                    lbl_3_bss_B740[offset + 3] = 0x96;
-                    lbl_3_bss_B740[offset + 1] = 0x96;
-                }
-            }
-        }
-        GXInitTexObj(&lbl_3_bss_B708, lbl_3_bss_B740, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
-        GXInitTexObjLOD(&lbl_3_bss_B708, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
-        lbl_3_bss_B704 = 0;
-        lbl_3_data_26580 = -1;
+        fn_3_133200();
         fn_3_169600();
         minigamesSetSomePointers();
         minigamesGXStuff();
@@ -591,28 +598,30 @@ void fn_3_13ADC0(Vec* out, Vec* in, Vec* normal) {
 
 // .text:0x0013ACB4 size:0x10C mapped:0x80779D48
 void fn_3_13ACB4(CollisionStruct* hit) {
-    f32 a = -hit->normal.z;
-    f32 b = hit->normal.x;
-    f32 dx0 = hit->position.x - SD.starPath[0].x;
-    f32 dz0 = hit->position.z - SD.starPath[0].z;
-    f32 d;
-    f32 dx2;
-    f32 dz2;
+    Vec normal;
+    Vec rel;
+    Vec out;
 
-    if (dx0 * a + dz0 * b > 0.0f) {
-        a *= -1.0f;
-        b *= -1.0f;
+    normal.x = -hit->normal.z;
+    normal.y = 0.0f;
+    normal.z = hit->normal.x;
+    rel.x = hit->position.x - SD.starPath[0].x;
+    rel.y = 0.0f;
+    rel.z = hit->position.z - SD.starPath[0].z;
+    if (rel.x * normal.x + rel.z * normal.z > 0.0f) {
+        normal.x *= -1.0f;
+        normal.z *= -1.0f;
     }
-    d = (dx0 * a + 0.0f + dz0 * b) * 2.0f;
-    SD.starPath[0].x = hit->position.x + (dx0 - d * a);
-    SD.starPath[0].z = hit->position.z + (dz0 - d * b);
-    a *= -1.0f;
-    b *= -1.0f;
-    dx2 = hit->position.x - SD.starPath[2].x;
-    dz2 = hit->position.z - SD.starPath[2].z;
-    d = (dx2 * a + 0.0f + dz2 * b) * 2.0f;
-    SD.starPath[2].x = hit->position.x + (dx2 - d * a);
-    SD.starPath[2].z = hit->position.z + (dz2 - d * b);
+    fn_3_13ADC0(&out, &rel, &normal);
+    SD.starPath[0].x = hit->position.x + out.x;
+    SD.starPath[0].z = hit->position.z + out.z;
+    rel.x = hit->position.x - SD.starPath[2].x;
+    rel.z = hit->position.z - SD.starPath[2].z;
+    normal.x *= -1.0f;
+    normal.z *= -1.0f;
+    fn_3_13ADC0(&out, &rel, &normal);
+    SD.starPath[2].x = hit->position.x + out.x;
+    SD.starPath[2].z = hit->position.z + out.z;
     SD.starPath[1].x = 0.5f * (SD.starPath[2].x + SD.starPath[0].x);
     SD.starPath[1].z = 0.5f * (SD.starPath[2].z + SD.starPath[0].z);
 }
@@ -627,7 +636,7 @@ void fn_3_13AA78(void) {
     if ((s8)g_Minigame._1D6D >= 0) {
         if (--SD.holderFrames < 0 || g_Minigame.turnOverStatus != 0) {
             fn_3_14E988(g_Minigame._1D6D);
-            fn_800115C8(g_Minigame._1D6D);
+            fn_800115C8(SD.holder);
             SD.holder = -1;
         }
     }
@@ -706,25 +715,29 @@ void starDashRelated(void) {
         probe.dst.z = SD.starPos.z;
         collision = checkCollision(&probe, &hit, 0, FALSE);
         if (collision == BALL_COLLISION_TYPE_UNCLIMBABLE_WALL) {
-            SD.starPos.x = hit.position.x;
-            fn_3_13ACB4(&hit);
             SD.starPos.z = probe.src.z;
+            fn_3_13ACB4(&hit);
+            SD.starPos.x = hit.position.x;
         }
         if (SD.starPos.y <= lbl_3_data_21A14[4]) {
-            SD.starBounces++;
             SD.starPos.y = lbl_3_data_21A14[4];
+            SD.starBounces++;
             fn_3_13A724();
         }
-        best = -1;
         bestDist = 999.9f;
-        for (p = 0; p < 4; p++) {
+        for (p = 0, best = -1; p < 4; p++) {
             if (g_Minigame.playerSlots.fielderIndex[p] >= 0) {
                 fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
                 if (!(fielder->hitbox_barrelCollisions + fielder->actionYOffset <
                       SD.starPos.y - lbl_3_data_21A14[5])) {
+                    f32 sqX;
+                    f32 sqZ;
+
                     dx = SD.starPos.x - fielder->pos.x;
                     dz = SD.starPos.z - fielder->pos.z;
-                    dist = dolsqrtf2(dx * dx + dz * dz);
+                    sqX = dx * dx;
+                    sqZ = dz * dz;
+                    dist = dolsqrtf2(sqX + sqZ);
                     if (dist < lbl_3_data_21A14[5] + fielderHitboxesForGarlicKnockout[fielder->Weight] &&
                         dist < bestDist) {
                         bestDist = dist;
@@ -747,7 +760,7 @@ void starDashRelated(void) {
             }
             fn_3_150010(best);
             fn_80011604((void*)(s32)(s8)best, fn_3_132EDC);
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && lbl_3_common_bss_37400[0x20] == best) {
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && best == lbl_3_common_bss_37400[0x20]) {
                 starMissionsMinigamesSpecialAction(3, 0, 0);
             }
         }
@@ -778,9 +791,9 @@ void fn_3_139F84(void) {
 void fn_3_139CA0(void) {
     SDBurst* burst = NULL;
     u8 burstMode = FALSE;
-    int count;
     int i;
-    s16 angle;
+    int count;
+    int angle;
     f32 base;
 
     if (g_Minigame.turnOverStatus != 0) {
@@ -869,10 +882,10 @@ void fn_3_139808(void) {
             SD.spawnedCoins--;
             continue;
         }
-        g_Minigame.coinVelocity[i].y += lbl_3_data_219B8[11];
         probe.src.x = g_Minigame.coinPos[i].x;
         probe.src.y = -g_Minigame.coinPos[i].y;
         probe.src.z = g_Minigame.coinPos[i].z;
+        g_Minigame.coinVelocity[i].y += lbl_3_data_219B8[11];
         g_Minigame.coinPos[i].x += g_Minigame.coinVelocity[i].x;
         g_Minigame.coinPos[i].y += g_Minigame.coinVelocity[i].y;
         g_Minigame.coinPos[i].z += g_Minigame.coinVelocity[i].z;
@@ -896,17 +909,18 @@ void fn_3_139808(void) {
         if (g_Minigame.turnOverStatus == 0) {
             bestDistSq = 99999.9f;
             reach = lbl_3_data_219B8[15];
-            best = -1;
-            for (p = 0; p < 4; p++) {
+            for (p = 0, best = -1; p < 4; p++) {
                 if (g_Minigame.playerSlots.fielderIndex[p] >= 0 &&
                     (g_Minigame.starDashStunType[p] == 0 || g_Minigame.starDashStunType[p] == 3)) {
                     fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
                     if (fielder->isJump == 0 || fielder->jumpCountUp <= 3) {
                         if (!(fielder->hitbox_barrelCollisions + fielder->actionYOffset <
                               g_Minigame.coinPos[i].y)) {
+                            f32 range = reach + fielderHitboxesForGarlicKnockout[fielder->Weight];
+                            range *= range;
                             distSq = sdDistSqXZ(fielder->pos.x, fielder->pos.z, g_Minigame.coinPos[i].x,
                                                 g_Minigame.coinPos[i].z);
-                            if (distSq < SQ(reach + fielderHitboxesForGarlicKnockout[fielder->Weight]) &&
+                            if (distSq < range &&
                                 distSq < bestDistSq) {
                                 bestDistSq = distSq;
                                 best = p;
@@ -973,14 +987,15 @@ void fn_3_1391C0(void) {
     int p;
     int k;
     int coin;
+    int angle;
 
     probe.src.x = burst->pos.x;
     probe.src.y = -burst->pos.y;
     probe.src.z = burst->pos.z;
     burst->vel.y += lbl_3_data_219B8[11];
-    burst->pos.x += burst->vel.x;
-    burst->pos.y += burst->vel.y;
-    burst->pos.z += burst->vel.z;
+    burst->pos.x = burst->vel.x + burst->pos.x;
+    burst->pos.y = burst->vel.y + burst->pos.y;
+    burst->pos.z = burst->vel.z + burst->pos.z;
     sdBounce(&burst->pos, &burst->vel, &probe, &hit);
     probe.dst.x = burst->pos.x;
     probe.dst.y = -burst->pos.y;
@@ -998,8 +1013,8 @@ void fn_3_1391C0(void) {
             g_Minigame.coinPos[coin].x = burst->pos.x;
             g_Minigame.coinPos[coin].y = burst->pos.y;
             g_Minigame.coinPos[coin].z = burst->pos.z;
-            getComponentsFromSAng(random_fn_3_9EE24(0x1000) +
-                                      (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
+            angle = random_fn_3_9EE24(0x1000);
+            getComponentsFromSAng(angle + (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
                                   &g_Minigame.coinVelocity[coin].x, &g_Minigame.coinVelocity[coin].z);
             speed = RandomF32_Game_Range(-lbl_3_data_219B8[9], lbl_3_data_219B8[10]);
             g_Minigame.coinVelocity[coin].x *= speed;
@@ -1019,8 +1034,10 @@ void fn_3_1391C0(void) {
                 fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
                 if (fielder->isJump == 0 || fielder->jumpCountUp <= 3) {
                     if (!(fielder->hitbox_barrelCollisions + fielder->actionYOffset < burst->pos.y)) {
+                        f32 range = reach + fielderHitboxesForGarlicKnockout[fielder->Weight];
+                        range *= range;
                         distSq = sdDistSqXZ(fielder->pos.x, fielder->pos.z, burst->pos.x, burst->pos.z);
-                        if (distSq < SQ(reach + fielderHitboxesForGarlicKnockout[fielder->Weight]) &&
+                        if (distSq < range &&
                             distSq < bestDistSq) {
                             bestDistSq = distSq;
                             best = p;
@@ -1036,8 +1053,8 @@ void fn_3_1391C0(void) {
                 g_Minigame.coinPos[coin].x = burst->pos.x;
                 g_Minigame.coinPos[coin].y = burst->pos.y;
                 g_Minigame.coinPos[coin].z = burst->pos.z;
+                angle = random_fn_3_9EE24(0x1000);
                 {
-                    s16 angle = random_fn_3_9EE24(0x1000);
                     f32 base = RandomF32_Game_Range(lbl_3_data_219B8[2], lbl_3_data_219B8[3]);
                     g_Minigame.coinState[coin] = 3;
                     getComponentsFromSAng(angle, &g_Minigame.coinVelocity[coin].x, &g_Minigame.coinVelocity[coin].z);
@@ -1091,16 +1108,16 @@ void fn_3_138AA4(void) {
 // .text:0x001384B4 size:0x5F0 mapped:0x80777548
 void fn_3_1384B4(SDItem* item) {
     Vec center = {0.0f, 0.0f, 20.0f};
-    Vec axis = {1.0f, 0.0f, 0.0f};
     Vec rel;
     Vec dir;
     Vec spawn;
+    Vec axis = {1.0f, 0.0f, 0.0f};
     s32 list[100];
     u32 hits = 0;
     u32 i;
-    f32 sumX = 0.0f;
     f32 sumZ = 0.0f;
     f32 varX;
+    f32 sumX = 0.0f;
     f32 varZ;
     f32 meanX;
     f32 meanZ;
@@ -1131,7 +1148,8 @@ void fn_3_1384B4(SDItem* item) {
             if (angle >= item->_30 && angle <= item->_34) {
                 sumX += rel.x;
                 sumZ += rel.z;
-                list[hits++] = i;
+                list[hits] = i;
+                hits++;
             }
         }
     }
@@ -1148,9 +1166,7 @@ void fn_3_1384B4(SDItem* item) {
         }
         sdX = sqrt(varX / (f32)hits);
         sdZ = sqrt(varZ / (f32)hits);
-        spawn.x = 0.0f;
-        spawn.y = 0.0f;
-        spawn.z = 0.0f;
+        spawn.x = spawn.y = spawn.z = 0.0f;
         if (sdX > 7.0f) {
             spawn.x = sdX * (fabs(meanX) / meanX) + meanX;
         } else {
@@ -1222,11 +1238,11 @@ void fn_3_138448(SDItem* item) {
 // .text:0x001382E0 size:0x168 mapped:0x80777374
 void fn_3_1382E0(SDItem* item) {
     u32 level;
-    u32 idx;
+    u32 rawLevel;
 
-    level = idx = g_Minigame.minigameElapsedFrames / 60 / 20;
+    level = rawLevel = g_Minigame.minigameElapsedFrames / 60 / 20;
     if (SD.x_72A != 0) {
-        sdResetItem(item, idx);
+        sdResetItem(item, rawLevel);
     } else {
         if (item->frames < (SD_COUNTER_MAX - 1)) {
             item->frames++;
@@ -1403,12 +1419,18 @@ BOOL fn_3_1379A0(int fielderIndex) {
     }
     for (i = 0; i < lbl_3_bss_B780; i++) {
         item = &SD.item[i];
-        if (SD.item[i].state == 3 || SD.item[i].state == 5) {
+        if (item->state == 3 || item->state == 5) {
             y = fielder->jumpY + (fielder->actionYOffset + fielder->pos.y);
-            limit = (y < item->pos.y) ? fielder->hitbox_barrelCollisions : 12.0f;
+            if (y < item->pos.y) {
+                limit = fielder->hitbox_barrelCollisions;
+            } else {
+                limit = 12.0f;
+            }
             if (!(limit < fabs(y - item->pos.y))) {
-                dx = fabs(item->pos.x - (fielder->pos.x + fielder->velocityX));
-                dz = fabs(item->pos.z - (fielder->pos.z + fielder->velocityZ));
+                dx = fielder->pos.x + fielder->velocityX;
+                dz = fielder->pos.z + fielder->velocityZ;
+                dx = fabs(item->pos.x - dx);
+                dz = fabs(item->pos.z - dz);
                 if (dx < 3.5f && dz < 3.125f) {
                     return TRUE;
                 }
@@ -1421,39 +1443,46 @@ BOOL fn_3_1379A0(int fielderIndex) {
 // .text:0x001373E0 size:0x5C0 mapped:0x80776474
 u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radius) {
     SDSide sides[4] = {{-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}};
-    f32 diameter = 2.0f * radius;
-    f32 halfX = 3.5f + radius;
-    f32 halfZ = 3.125f + radius;
+    f32 diameter;
+    f32 halfX;
+    f32 halfZ;
+    SDItem* item;
     u32 i;
     u8 pushedOut;
-    SDItem* item;
     SDSide* side;
-    Vec toDst;
-    Vec toSrc;
-    Vec dir;
-    Vec hit;
     Vec dstDiff;
+    Vec toSrc;
+    Vec toDst;
+    Vec hit;
+    Vec dir;
     f32 limit;
     f32 t;
     f32 ratio;
     f32 signX;
     f32 signZ;
 
+    halfX = 3.5f + radius;
+    diameter = 2.0f * radius;
+    halfZ = 3.125f + radius;
     for (i = 0; i < lbl_3_bss_B780; i++) {
         item = &SD.item[i];
         pushedOut = TRUE;
         if (item->state > 1 || item->state == 4) {
-            limit = (item->pos.y > -segment->dst.y) ? diameter : 12.0f;
+            if (item->pos.y > -segment->dst.y) {
+                limit = diameter;
+            } else {
+                limit = 12.0f;
+            }
             if (!(limit < fabs(item->pos.y + segment->dst.y))) {
                 PSVECSubtract(&segment->dst, (Vec*)&item->pos, &dstDiff);
                 if (!(fabs(dstDiff.x) > halfX) && !(fabs(dstDiff.z) > halfZ)) {
-                    if (PSVECMag(&dstDiff) != 0.0f) {
+                    if (PSVECMag(&dstDiff)) {
                         PSVECNormalize(&dstDiff, &toDst);
                     } else {
                         memset(&toDst, 0, sizeof(Vec));
                     }
                     PSVECSubtract(&segment->dst, &segment->src, &dir);
-                    if (PSVECMag(&dir) != 0.0f) {
+                    if (PSVECMag(&dir)) {
                         PSVECNormalize(&dir, &dir);
                     } else {
                         memset(&dir, 0, sizeof(Vec));
@@ -1465,7 +1494,7 @@ u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radi
                         if (fabs(toSrc.x) <= halfX && fabs(toSrc.z) <= halfZ) {
                             PSVECSubtract(&segment->src, &segment->dst, &dir);
                             dir.y = 0.0f;
-                            if (PSVECMag(&dir) != 0.0f) {
+                            if (PSVECMag(&dir)) {
                                 PSVECNormalize(&dir, &dir);
                                 segment->dst.x = segment->src.x;
                                 segment->dst.z = segment->src.z;
@@ -1475,8 +1504,8 @@ u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radi
                                 goto sweep;
                             }
                             ratio = toDst.z / toDst.x;
-                            signX = toDst.x;
                             signZ = toDst.z;
+                            signX = toDst.x;
                             if (0.8928571343421936 < fabs(ratio)) {
                                 signZ = fabs(signZ) / signZ;
                             } else if (0.8928571343421936 > fabs(ratio)) {
@@ -1500,8 +1529,8 @@ u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radi
                         t = -(segment->src.x * side->nx + segment->src.z * side->nz - side->d) /
                             (dir.x * side->nx + dir.z * side->nz);
                         hit.x = dir.x * t + segment->src.x;
-                        hit.z = dir.z * t + segment->src.z;
                         hit.y = -segment->src.y;
+                        hit.z = dir.z * t + segment->src.z;
                         if (fabs(hit.z - item->pos.z) <= halfZ && t >= 0.0f) {
                             memcpy(&out->normal, velocity, sizeof(Vec));
                             out->normal.x *= -1.0f;
@@ -1511,8 +1540,8 @@ u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radi
                             t = -(segment->src.x * side->nx + segment->src.z * side->nz - side->d) /
                                 (dir.x * side->nx + dir.z * side->nz);
                             hit.x = dir.x * t + segment->src.x;
-                            hit.z = dir.z * t + segment->src.z;
                             hit.y = -segment->src.y;
+                            hit.z = dir.z * t + segment->src.z;
                             memcpy(&out->normal, velocity, sizeof(Vec));
                             out->normal.z *= -1.0f;
                         }
@@ -1667,15 +1696,16 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
     }
     bestDistSq = 99999.9f;
     reach = lbl_3_data_21AF8[3];
-    best = -1;
-    for (p = 0; p < 4; p++) {
+    for (p = 0, best = -1; p < 4; p++) {
         if (g_Minigame.playerSlots.fielderIndex[p] >= 0 &&
             (g_Minigame.starDashStunType[p] == 0 || g_Minigame.starDashStunType[p] == 3)) {
             fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
             if (fielder->isJump == 0 || fielder->jumpCountUp <= 3) {
                 if (!(fielder->hitbox_barrelCollisions + fielder->actionYOffset < powerup->pos.y)) {
+                    f32 range = reach + fielderHitboxesForGarlicKnockout[fielder->Weight];
+                    range *= range;
                     distSq = sdDistSqXZ(fielder->pos.x, fielder->pos.z, powerup->pos.x, powerup->pos.z);
-                    if (distSq < SQ(reach + fielderHitboxesForGarlicKnockout[fielder->Weight]) &&
+                    if (distSq < range &&
                         distSq < bestDistSq) {
                         bestDistSq = distSq;
                         best = p;
@@ -1690,7 +1720,7 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
         if (g_Minigame.powerup.activeInd == 2) {
             if ((s8)g_Minigame._1D6D == best) {
                 fn_3_14E988(g_Minigame._1D6D);
-                fn_800115C8((s8)best);
+                fn_800115C8(best);
                 SD.holder = -1;
             }
             SD.factor = &lbl_3_data_21AF8[5];
@@ -2030,7 +2060,7 @@ void fn_3_1357A4(Vec* out, Vec* dir) {
 
 // .text:0x001356F8 size:0xAC mapped:0x8077478C
 void fn_3_1356F8(void) {
-    SDAI* ai = g_Minigame.sd.ai;
+    SDAI* ai = g_Minigame.sd.aiState.ai;
     u8 strength;
     u32 i;
 
@@ -2076,15 +2106,17 @@ int fn_3_13564C(f32 x, f32 z) {
 
 // .text:0x00135600 size:0x4C mapped:0x80774694
 void fn_3_135600(f32 x, f32 z, f32* outX, f32* outZ) {
+    SDAIState* st = &g_Minigame.sd.aiState;
+
     x -= lbl_3_data_21A48.x;
     z -= lbl_3_data_21A48.z;
-    *outX = x * g_Minigame.sd.rotCos - z * g_Minigame.sd.rotSin;
-    *outZ = x * g_Minigame.sd.rotSin + z * g_Minigame.sd.rotCos;
+    *outX = x * st->rotCos - z * st->rotSin;
+    *outZ = x * st->rotSin + z * st->rotCos;
 }
 
 #pragma dont_inline on
 // .text:0x00135520 size:0xE0 mapped:0x807745B4
-int fn_3_135520(f32 x, f32 z, f32 radius) {
+u32 fn_3_135520(f32 x, f32 z, f32 radius) {
     if (x >= 0.0f) {
         if (z >= 0.0f) {
             if (z <= radius) {
@@ -2123,7 +2155,7 @@ int fn_3_135520(f32 x, f32 z, f32 radius) {
 #pragma dont_inline reset
 
 // .text:0x001354BC size:0x64 mapped:0x80774550
-BOOL fn_3_1354BC(int item, f32 x, f32 z) {
+BOOL fn_3_1354BC(u32 item, f32 x, f32 z) {
     BOOL result = FALSE;
     f32 dx = fabs(g_Minigame.sd.item[item].pos.x - x);
     f32 dz = fabs(g_Minigame.sd.item[item].pos.z - z);
@@ -2135,15 +2167,14 @@ BOOL fn_3_1354BC(int item, f32 x, f32 z) {
 }
 
 // .text:0x001350BC size:0x400 mapped:0x80774150
-SDCoinEntry* fn_3_1350BC(u32 player, int quadrant, u32 count, SDCoinEntry* entries) {
-    u32 k;
+SDCoinEntry* fn_3_1350BC(u32 player, u32 quadrant, u32 count, SDCoinEntry* entries) {
     u32 i;
     u32 p;
+    u32 k;
     int strength;
     f32 holderLimit;
     f32 powerupLimit;
     SDCoinEntry* e;
-    VecXYZ* coin;
     f32 cx;
     f32 cz;
 
@@ -2184,22 +2215,22 @@ SDCoinEntry* fn_3_1350BC(u32 player, int quadrant, u32 count, SDCoinEntry* entri
                     }
                 }
             }
-            coin = &g_Minigame.coinPos[e->coin];
-            e->score = sdDistSqXZ(coin->x, coin->z, g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.x,
+            e->score = sdDistSqXZ(g_Minigame.coinPos[e->coin].x, g_Minigame.coinPos[e->coin].z,
+                                  g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.x,
                                   g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.z);
             for (p = 0; p < g_Minigame.miniGameNumberOfParticipants; p++) {
                 if (p != player) {
-                    InMemFielder* other = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
-                    f32 distSq = sdDistSqXZ(coin->x, coin->z, other->pos.x, other->pos.z);
+                    f32 distSq = sdDistSqXZ(g_Minigame.coinPos[e->coin].x, g_Minigame.coinPos[e->coin].z, SD_FIELDER(p).pos.x,
+                                            SD_FIELDER(p).pos.z);
                     if (distSq < 36.0f && distSq < e->score) {
                         e->score += 100.0f;
                     }
                 }
             }
             if (SD.phase != 0 && player != SD.holder) {
-                if (e->quadrant == ((quadrant + 1) & 3)) {
+                if (((quadrant + 1) & 3) == e->quadrant) {
                     e->score += 10000.0f;
-                } else if (e->quadrant == ((quadrant + 2) & 3)) {
+                } else if (((quadrant + 2) & 3) == e->quadrant) {
                     e->score += 400.0f;
                 }
                 if (fn_3_135520(e->x, e->z, 2.0f * lbl_3_data_21A54[2])) {
@@ -2337,7 +2368,7 @@ int fn_3_134908(const void* a, const void* b) {
 }
 
 // .text:0x00134658 size:0x2B0 mapped:0x807736EC
-void fn_3_134658(u32 target, f32* outX, f32* outZ, int* outQuadrant) {
+void fn_3_134658(u32 target, f32* outX, f32* outZ, u32* outQuadrant) {
     SDTargetEntry entries[4];
     u32 i;
     u32 count;
@@ -2390,7 +2421,7 @@ void fn_3_134658(u32 target, f32* outX, f32* outZ, int* outQuadrant) {
 }
 
 // .text:0x001345AC size:0xAC mapped:0x80773640
-s16 fn_3_1345AC(s16 a, s16 b, int c) {
+s16 fn_3_1345AC(s16 a, s16 b, u32 c) {
     s16 step;
 
     if (a < 0 || b < 0) {
@@ -2419,25 +2450,29 @@ BOOL fn_3_1344BC(int a, int b) {
 }
 
 // .text:0x0013334C size:0x1170 mapped:0x807723E0
+static inline int sdTangentAngle(s8 p) {
+    return radToShortAngle(atan2(-(SD_FIELDER(p).pos.x - lbl_3_data_21A48.x), SD_FIELDER(p).pos.z - lbl_3_data_21A48.z));
+}
+
 void fn_3_13334C(void) {
     SDCoinEntry* list;
     SDCoinEntry* entry;
-    InMemFielder* fielder;
     InMemFielder* holder;
     InputStruct* input;
-    FielderDash* dash = (FielderDash*)&g_FieldingLogic;
-    SDAI* ai = SD.ai;
-    VecXYZ* c = &lbl_3_data_21A48;
+    FielderDash* dash;
+    SDAIState* st = &SD.aiState;
+    SDAI* ai = st->ai;
     int count;
     int quadStar;
     int quadBurst;
     int quadPowerup;
     int quadrant;
-    int targetQuadrant;
     f32 targetX;
     f32 targetZ;
+    u32 targetQuadrant;
     f32 rx;
     f32 rz;
+    f32 holderAngle;
     f32 lx;
     f32 lz;
     f32 dxh;
@@ -2445,10 +2480,11 @@ void fn_3_13334C(void) {
     f32 radius;
     s16 angle;
     s16 candidate;
-    s16 side;
+    int side;
     s16 away;
     s16 tangent;
-    s16 half;
+    int half;
+    BOOL ccw;
     u8 strength;
     s8 p;
     s8 i;
@@ -2457,8 +2493,8 @@ void fn_3_13334C(void) {
 
     list = _OSAllocFromHeap(4, 1000);
     fn_3_133320();
-    SD.rotSin = sin(-fn_3_9FDD8(SD.pathAngle[0]));
-    SD.rotCos = cos(-fn_3_9FDD8(SD.pathAngle[0]));
+    st->rotSin = sin(-fn_3_9FDD8(SD.pathAngle[0]));
+    st->rotCos = cos(-fn_3_9FDD8(SD.pathAngle[0]));
     if (SD.x_72A != 0) {
         fn_3_135600(SD.starPos.x, SD.starPos.z, &rx, &rz);
         quadStar = fn_3_13564C(rx, rz);
@@ -2479,7 +2515,8 @@ void fn_3_13334C(void) {
     }
     count = 0;
     entry = list;
-    for (i = 0; i < 100; i++) {
+    i = 0;
+    do {
         if (g_Minigame.coinState[i] == 1) {
             entry->coin = i;
             fn_3_135600(g_Minigame.coinPos[i].x, g_Minigame.coinPos[i].z, &entry->x, &entry->z);
@@ -2487,26 +2524,26 @@ void fn_3_13334C(void) {
             entry++;
             count++;
         }
-    }
-    for (p = 0; p < 4; p++, dash++, ai++) {
+    } while (++i < 100);
+    dash = (FielderDash*)&g_FieldingLogic;
+    p = 0;
+    do {
         character = g_Minigame.playerSlots.characterIndex[p];
         if (character < 0 || character >= 4 || !g_Minigame.playerSlots.aiControlledInd[p]) {
             continue;
         }
         g_Minigame._1DC8[character] = 1;
+        memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
+        g_Minigame._1D7C[character].controlStickAngle = -1;
         input = &g_Minigame._1D7C[character];
-        memset(input, 0, sizeof(InputStruct));
-        input->controlStickAngle = -1;
-        fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
         strength = g_Minigame.playerSlots.aiStrength[p];
-        fn_3_135600(fielder->pos.x, fielder->pos.z, &rx, &rz);
+        fn_3_135600(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, &rx, &rz);
         quadrant = fn_3_13564C(rx, rz);
         switch (ai->state) {
         case 0:
             if (drawStadiumRelated != 0 && dash->sprintSpeedMultiplier <= lbl_3_data_21B28[strength]) {
                 if (SD.phase == 0 || p == SD.holder || fn_3_135520(rx, rz, 5.0f) == 0) {
-                    input->newButtonInput |= INPUT_BUTTON_B;
-                    input->buttonInput = input->newButtonInput;
+                    g_Minigame._1D7C[character].buttonInput = g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
                 }
             }
             targetQuadrant = 4;
@@ -2519,14 +2556,15 @@ void fn_3_13334C(void) {
                 targetQuadrant = quadStar;
             }
             if (targetQuadrant == 4 && SD.burst.active != 0) {
-                if (sdDistSqXZ(fielder->pos.x, fielder->pos.z, SD.burst.pos.x, SD.burst.pos.z) <=
+                if (sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.burst.pos.x, SD.burst.pos.z) <=
                     SQ(lbl_3_data_21B78[strength])) {
-                    for (k = 0; k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]; k++) {
+                    k = 0;
+                    do {
                         if (SD.item[k].state >= 1 && SD.item[k].state <= 3 &&
                             fn_3_1354BC(k, SD.burst.pos.x, SD.burst.pos.z)) {
                             break;
                         }
-                    }
+                    } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
                     if (k >= lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]) {
                         targetX = SD.burst.pos.x;
                         targetZ = SD.burst.pos.z;
@@ -2535,14 +2573,15 @@ void fn_3_13334C(void) {
                 }
             }
             if (targetQuadrant == 4 && g_Minigame.powerup.activeInd == 1) {
-                if (sdDistSqXZ(fielder->pos.x, fielder->pos.z, g_Minigame.powerup.pos.x,
+                if (sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, g_Minigame.powerup.pos.x,
                                g_Minigame.powerup.pos.z) <= SQ(lbl_3_data_21B68[strength])) {
-                    for (k = 0; k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]; k++) {
+                    k = 0;
+                    do {
                         if (SD.item[k].state >= 1 && SD.item[k].state <= 3 &&
                             fn_3_1354BC(k, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z)) {
                             break;
                         }
-                    }
+                    } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
                     if (k >= lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]) {
                         targetX = g_Minigame.powerup.pos.x;
                         targetZ = g_Minigame.powerup.pos.z;
@@ -2562,42 +2601,43 @@ void fn_3_13334C(void) {
                 if (fn_3_134C80(p, quadrant, targetQuadrant, targetX, targetZ)) {
                     targetQuadrant = fn_3_13493C(p, &targetX, &targetZ, 2);
                 }
-                angle = radToShortAngle(atan2(targetZ - fielder->pos.z, targetX - fielder->pos.x));
+                angle = radToShortAngle(atan2(targetZ - SD_FIELDER(p).pos.z, targetX - SD_FIELDER(p).pos.x));
                 input->controlStickAngle = fn_3_1345AC(ai->angle, angle, strength);
             }
             if (SD.holder >= 0 && p != SD.holder) {
                 holder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[SD.holder]];
-                fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
-                dzh = fielder->pos.z - holder->pos.z;
-                dxh = fielder->pos.x - holder->pos.x;
+                dzh = SD_FIELDER(p).pos.z - holder->pos.z;
+                dxh = SD_FIELDER(p).pos.x - holder->pos.x;
                 if (dxh * dxh + dzh * dzh <= SQ(lbl_3_data_21B38[strength])) {
-                    lx = fielder->pos.x - c->x;
-                    lz = fielder->pos.z - c->z;
-                    side = angleDifferenceNormalized(radToShortAngle(atan2(holder->pos.z - c->z, holder->pos.x - c->x)),
-                                                     radToShortAngle(atan2(lz, lx))) >= 0 ? 0 : 0x800;
+                    lx = SD_FIELDER(p).pos.x - lbl_3_data_21A48.x;
+                    lz = SD_FIELDER(p).pos.z - lbl_3_data_21A48.z;
+                    holderAngle = atan2(holder->pos.z - lbl_3_data_21A48.z, holder->pos.x - lbl_3_data_21A48.x);
+                    ccw = angleDifferenceNormalized(radToShortAngle(holderAngle), radToShortAngle(atan2(lz, lx))) >= 0;
+                    side = ccw ? 0 : 0x800;
                     away = radToShortAngle(atan2(dzh, dxh));
-                    tangent = radToShortAngle(atan2(-(fielder->pos.x - c->x), fielder->pos.z - c->z));
+                    tangent = radToShortAngle(atan2(-(SD_FIELDER(p).pos.x - lbl_3_data_21A48.x), SD_FIELDER(p).pos.z - lbl_3_data_21A48.z));
                     half = angleDifferenceNormalized(normalizeAngle(tangent + side), away) / 2;
                     input->controlStickAngle = normalizeAngle(radToShortAngle(atan2(dzh, dxh)) + half);
                 }
             }
             if (p != SD.holder) {
-                for (k = 0; k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]; k++) {
+                k = 0;
+                do {
                     if (SD.item[k].state >= 1 && SD.item[k].state <= 3 &&
-                        sdDistSqXZ(fielder->pos.x, fielder->pos.z, SD.item[k].pos.x, SD.item[k].pos.z) <=
+                        sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.item[k].pos.x, SD.item[k].pos.z) <=
                             SQ(lbl_3_data_21B48[strength])) {
-                        away = radToShortAngle(atan2(fielder->pos.z - SD.item[k].pos.z, fielder->pos.x - SD.item[k].pos.x));
+                        away = radToShortAngle(atan2(SD_FIELDER(p).pos.z - SD.item[k].pos.z, SD_FIELDER(p).pos.x - SD.item[k].pos.x));
                         candidate = normalizeAngle(input->controlStickAngle +
                                                    angleDifferenceNormalized(away, input->controlStickAngle) / 2);
                         input->controlStickAngle = fn_3_1345AC(input->controlStickAngle, candidate, strength);
                     }
-                }
+                } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
             }
             if (g_Minigame.powerup.activeInd == 2 &&
-                sdDistSqXZ(fielder->pos.x, fielder->pos.z, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z) <=
+                sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z) <=
                     SQ(lbl_3_data_21B58[strength])) {
-                away = radToShortAngle(atan2(fielder->pos.z - g_Minigame.powerup.pos.z,
-                                             fielder->pos.x - g_Minigame.powerup.pos.x));
+                away = radToShortAngle(atan2(SD_FIELDER(p).pos.z - g_Minigame.powerup.pos.z,
+                                             SD_FIELDER(p).pos.x - g_Minigame.powerup.pos.x));
                 candidate = normalizeAngle(input->controlStickAngle +
                                            angleDifferenceNormalized(away, input->controlStickAngle) / 2);
                 input->controlStickAngle = fn_3_1345AC(input->controlStickAngle, candidate, strength);
@@ -2606,8 +2646,7 @@ void fn_3_13334C(void) {
                 radius = ai->_0 + 0.20943952f * dolsqrtf2(rz * rz + rx * rx);
                 if (fn_3_135520(rx, rz, radius) == 1) {
                     ai->_0 = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
-                    input->controlStickAngle = normalizeAngle(radToShortAngle(
-                        atan2(-(fielder->pos.x - c->x), fielder->pos.z - c->z)));
+                    input->controlStickAngle = normalizeAngle(sdTangentAngle(p));
                     ai->state = 1;
                 }
             }
@@ -2616,22 +2655,21 @@ void fn_3_13334C(void) {
             ai->counter = 1;
             ai->state = 2;
         case 2:
-            input->controlStickAngle = normalizeAngle(radToShortAngle(
-                atan2(-(fielder->pos.x - c->x), fielder->pos.z - c->z)));
+            input->controlStickAngle = normalizeAngle(sdTangentAngle(p));
             if (ai->counter-- <= 0) {
-                input->buttonInput |= INPUT_BUTTON_A;
-                input->newButtonInput |= INPUT_BUTTON_A;
+                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
                 ai->state = 3;
             }
             break;
         case 3:
-            if (fielder->isJump == 0) {
+            if (SD_FIELDER(p).isJump == 0) {
                 ai->state = 0;
             }
             break;
         }
         ai->angle = input->controlStickAngle;
-    }
+    } while (dash++, ai++, ++p < 4);
     fn_800ACFB0(list);
 }
 
