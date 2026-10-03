@@ -56,7 +56,7 @@ extern s16 lbl_3_data_21B8C[];
 extern VecXZ base_MoundCoordinates[5];
 extern f32 lbl_3_data_21B18[2];
 extern VecXZ lbl_3_data_2198C[4];
-extern void fn_800115C8(u8 player);
+extern void fn_800115C8(int player);
 extern void fn_3_14E988(int player);
 extern void fn_3_150010(s8 player);
 extern void fn_3_169600(void);
@@ -253,6 +253,17 @@ static inline void sdBounce(VecXYZ* pos, VecXYZ* vel, VecSrcDst* probe, Collisio
         pos->y = -hit->position.y;
         pos->z = hit->position.z;
     }
+}
+
+static inline void sdResetItem(SDItem* item, u32 level) {
+    s16 lo;
+    s16 hi;
+
+    item->state = 0;
+    item->frames = 0;
+    lo = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][0];
+    hi = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][1];
+    item->timer = lo * 60 + random_fn_3_9EE24((hi - lo) * 60);
 }
 
 // .text:0x0013C468 size:0x328 mapped:0x8077B4FC
@@ -617,7 +628,7 @@ void fn_3_13AA78(void) {
         if (--SD.holderFrames < 0 || g_Minigame.turnOverStatus != 0) {
             fn_3_14E988(g_Minigame._1D6D);
             fn_800115C8(g_Minigame._1D6D);
-            g_Minigame._1D6D = -1;
+            SD.holder = -1;
         }
     }
 }
@@ -645,7 +656,6 @@ void fn_3_13A724(void) {
     Vec rel;
     f32 speed;
     f32 unused;
-    VecXYZ* path = SD.starPath;
 
     SD.starPath[0].x = SD.starPos.x;
     SD.starPath[0].y = SD.starPos.y;
@@ -653,8 +663,8 @@ void fn_3_13A724(void) {
     SD.pathDuration = RandomInt_Game_Range(lbl_3_data_21A30[3], lbl_3_data_21A30[4]);
     speed = RandomF32_Game_Range(lbl_3_data_21A14[0], lbl_3_data_21A14[1]);
     rel.x = lbl_3_data_219AC.x - SD.starPos.x;
-    rel.z = lbl_3_data_219AC.z - SD.starPos.z;
     rel.y = lbl_3_data_219AC.y - SD.starPos.y;
+    rel.z = lbl_3_data_219AC.z - SD.starPos.z;
     unused = dolsqrtf2(rel.x * rel.x + rel.z * rel.z);
     getComponentsFromSAng(random_fn_3_9EE24(0x1000), &rel.x, &rel.z);
     SD.starPath[2].x = rel.x * speed + SD.starPath[0].x;
@@ -1211,16 +1221,12 @@ void fn_3_138448(SDItem* item) {
 
 // .text:0x001382E0 size:0x168 mapped:0x80777374
 void fn_3_1382E0(SDItem* item) {
-    u32 level = g_Minigame.minigameElapsedFrames / 60 / 20;
-    s16 lo;
-    s16 hi;
+    u32 level;
+    u32 idx;
 
+    level = idx = g_Minigame.minigameElapsedFrames / 60 / 20;
     if (SD.x_72A != 0) {
-        item->state = 0;
-        item->frames = 0;
-        lo = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][0];
-        hi = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][1];
-        item->timer = lo * 60 + random_fn_3_9EE24((hi - lo) * 60);
+        sdResetItem(item, idx);
     } else {
         if (item->frames < (SD_COUNTER_MAX - 1)) {
             item->frames++;
@@ -1295,8 +1301,6 @@ void fn_3_137F14(SDItem* item) {
 // .text:0x00137DE4 size:0x130 mapped:0x80776E78
 void fn_3_137DE4(SDItem* item) {
     u32 level;
-    s16 lo;
-    s16 hi;
 
     PSVECAdd((Vec*)&item->pos, (Vec*)&item->vel, (Vec*)&item->pos);
     PSVECAdd((Vec*)&item->rot, (Vec*)&item->rotVel, (Vec*)&item->rot);
@@ -1310,19 +1314,13 @@ void fn_3_137DE4(SDItem* item) {
         if (level > 3) {
             level = 3;
         }
-        item->state = 0;
-        item->frames = 0;
-        lo = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][0];
-        hi = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][1];
-        item->timer = lo * 60 + random_fn_3_9EE24((hi - lo) * 60);
+        sdResetItem(item, level);
     }
 }
 
 // .text:0x00137CF8 size:0xEC mapped:0x80776D8C
 void fn_3_137CF8(SDItem* item) {
     u32 level;
-    s16 lo;
-    s16 hi;
 
     PSVECAdd((Vec*)&item->pos, (Vec*)&item->vel, (Vec*)&item->pos);
     if (!fn_3_137B10(item) && item->pos.y >= lbl_3_data_21A64[0]) {
@@ -1330,16 +1328,13 @@ void fn_3_137CF8(SDItem* item) {
         if (level > 3) {
             level = 3;
         }
-        item->state = 0;
-        item->frames = 0;
-        lo = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][0];
-        hi = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][1];
-        item->timer = lo * 60 + random_fn_3_9EE24((hi - lo) * 60);
+        sdResetItem(item, level);
     }
 }
 
 // .text:0x00137B10 size:0x1E8 mapped:0x80776BA4
 u8 fn_3_137B10(SDItem* item) {
+    int p;
     u8 result = FALSE;
     InMemFielder* fielder;
     Vec launch;
@@ -1347,7 +1342,6 @@ u8 fn_3_137B10(SDItem* item) {
     f32 limit;
     f32 dx;
     f32 dz;
-    int p;
 
     for (p = 0; p < 4; p++) {
         if (g_Minigame.playerSlots.fielderIndex[p] >= 0 &&
@@ -1554,7 +1548,7 @@ void fn_3_137224(Vec* pos) {
             PSVECSubtract(&coin, pos, &diff);
             strength = (36.0f - PSVECMag(&diff)) / 36.0f;
             diff.y = 0.0f;
-            if (PSVECMag(&diff) == 0.0f) {
+            if (!PSVECMag(&diff)) {
                 diff.z = -1.0f;
             }
             PSVECNormalize(&diff, &diff);
@@ -1617,21 +1611,24 @@ void fn_3_136CF4(MinigamePowerupStruct* powerup) {
             }
             g_Minigame.playerIDWithPowerup[0] = -1;
         }
-    } else if (--powerup->timer <= 0) {
-        if ((s8)(rand() % 100 - lbl_3_data_21B16) < 0) {
-            powerup->activeInd = 1;
-        } else {
-            powerup->activeInd = 2;
+    } else {
+        powerup->timer--;
+        if (powerup->timer <= 0) {
+            if ((s8)(rand() % 100 - lbl_3_data_21B16) < 0) {
+                powerup->activeInd = 1;
+            } else {
+                powerup->activeInd = 2;
+            }
+            powerup->pos.x = lbl_3_data_219AC.x;
+            powerup->pos.y = lbl_3_data_219AC.y;
+            powerup->pos.z = lbl_3_data_219AC.z;
+            powerup->_0C.y = lbl_3_data_21AF8[0];
+            angle = 360.0f * ((f32)rand() / 32767.0f);
+            angle = 0.017453292f * angle;
+            powerup->_0C.x = lbl_3_data_21AF8[1] * (f32)cos(angle);
+            powerup->_0C.z = lbl_3_data_21AF8[1] * (f32)sin(angle);
+            powerup->timer = lbl_3_data_21B10[1];
         }
-        powerup->pos.x = lbl_3_data_219AC.x;
-        powerup->pos.y = lbl_3_data_219AC.y;
-        powerup->pos.z = lbl_3_data_219AC.z;
-        powerup->_0C.y = lbl_3_data_21AF8[0];
-        angle = 360.0f * ((f32)rand() / 32767.0f);
-        angle = 0.017453292f * angle;
-        powerup->_0C.x = lbl_3_data_21AF8[1] * (f32)cos(angle);
-        powerup->_0C.z = lbl_3_data_21AF8[1] * (f32)sin(angle);
-        powerup->timer = lbl_3_data_21B10[1];
     }
 }
 
@@ -1650,9 +1647,9 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
     probe.src.y = -powerup->pos.y;
     probe.src.z = powerup->pos.z;
     powerup->_0C.y += lbl_3_data_21AF8[2];
-    powerup->pos.x += powerup->_0C.x;
-    powerup->pos.y += powerup->_0C.y;
-    powerup->pos.z += powerup->_0C.z;
+    powerup->pos.x = powerup->_0C.x + powerup->pos.x;
+    powerup->pos.y = powerup->_0C.y + powerup->pos.y;
+    powerup->pos.z = powerup->_0C.z + powerup->pos.z;
     if (powerup->pos.y < 0.0f) {
         powerup->pos.y = 0.0f;
         powerup->_0C.y = 0.0f;
@@ -1694,7 +1691,7 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
             if ((s8)g_Minigame._1D6D == best) {
                 fn_3_14E988(g_Minigame._1D6D);
                 fn_800115C8((s8)best);
-                g_Minigame._1D6D = -1;
+                SD.holder = -1;
             }
             SD.factor = &lbl_3_data_21AF8[5];
             callSfx(0x2F5);
@@ -1723,7 +1720,6 @@ void fn_3_136220(void) {
     CollisionStruct hit;
     u32 type;
     f32 len;
-    f32 factor;
     f32 dx;
     f32 dz;
     f32 dist;
@@ -1736,9 +1732,8 @@ void fn_3_136220(void) {
         if (fielder->onFire == 0) {
             if (g_Minigame.starDashStunType[p] == 1) {
                 len = VEC_LENGTH_XZ(&g_Minigame.starDashCollisionPushDelta[p]);
-                factor = lbl_3_data_21B18[0] / len;
-                g_Minigame.starDashCollisionPushDelta[p].x *= factor;
-                g_Minigame.starDashCollisionPushDelta[p].z *= factor;
+                g_Minigame.starDashCollisionPushDelta[p].x *= lbl_3_data_21B18[0] / len;
+                g_Minigame.starDashCollisionPushDelta[p].z *= lbl_3_data_21B18[0] / len;
                 g_Minigame.starDashCollisionPushDelta[p].y = 0.0f;
                 SD._1D5A[p] = 0;
                 g_Minigame.starDashStunType[p] = 2;
@@ -1792,9 +1787,9 @@ void fn_3_136220(void) {
         probe.dst.y = 1.0f;
         probe.dst.z = fielder->pos.z;
         type = checkCollision(&probe, &hit, 0, FALSE) & (BALL_COLLISION_TYPE_FOUL - 1);
-        if (type == BALL_COLLISION_TYPE_WALL || type == BALL_COLLISION_TYPE_STRUCTURE ||
-            (type >= BALL_COLLISION_TYPE_PIT_WALL && type <= BALL_COLLISION_TYPE_PIT) ||
-            type == BALL_COLLISION_TYPE_UNCLIMBABLE_WALL) {
+        if (!(type != BALL_COLLISION_TYPE_WALL && type != BALL_COLLISION_TYPE_STRUCTURE &&
+              type - BALL_COLLISION_TYPE_PIT_WALL > BALL_COLLISION_TYPE_PIT - BALL_COLLISION_TYPE_PIT_WALL &&
+              type != BALL_COLLISION_TYPE_UNCLIMBABLE_WALL)) {
             dz = base_MoundCoordinates[4].x - fielder->pos.z;
             dx = base_MoundCoordinates[4].x - fielder->pos.x;
             dist = dolsqrtf2(dx * dx + dz * dz);
@@ -1831,8 +1826,7 @@ void fn_3_1360BC(int player) {
         n = g_Minigame.miniGameCurrentPoints[player];
     }
     if (n != 0) {
-        count = 0;
-        for (i = 0; i < 50; i++) {
+        for (i = 0, count = 0; i < 50; i++) {
             if (g_Minigame.coinState[i] == 0) {
                 g_Minigame.coinPos[i].x = fielder->pos.x;
                 g_Minigame.coinPos[i].y = fielder->pos.y;
@@ -1873,7 +1867,9 @@ void fn_3_136048(void) {
 
 // .text:0x00135FF4 size:0x54 mapped:0x80775088
 void fn_3_135FF4(void) {
-    if (lbl_3_data_21A3C[SD.phaseIndex][0] * 60 == g_Minigame.minigameElapsedFrames) {
+    int start = lbl_3_data_21A3C[SD.phaseIndex][0] * 60;
+
+    if (start == g_Minigame.minigameElapsedFrames) {
         SD.phase = 1;
         SD.phaseFrames = 0;
         SD.phaseProgress = 0.0f;
@@ -1903,8 +1899,11 @@ void fn_3_135E98(void) {
 
 // .text:0x00135E38 size:0x60 mapped:0x80774ECC
 void fn_3_135E38(void) {
+    int end;
+
     fn_3_135C18();
-    if (lbl_3_data_21A3C[SD.phaseIndex - 1][1] * 60 == g_Minigame.minigameElapsedFrames) {
+    end = lbl_3_data_21A3C[SD.phaseIndex - 1][1] * 60;
+    if (end == g_Minigame.minigameElapsedFrames) {
         SD.phase = 3;
         SD.phaseFrames = 0;
     }
@@ -1915,19 +1914,17 @@ void fn_3_135C18(void) {
     int p;
     int k;
     int idx;
-    SDTrail* trail;
     f32 vx;
     f32 vz;
-    f32 d;
-    f32 stepLen;
     f32 span;
     f32 outerR;
+    f32 stepLen;
+    f32 d;
 
     span = SD.phaseProgress * lbl_3_data_21A54[1] - lbl_3_data_21A54[0];
     stepLen = (lbl_3_data_21A54[1] - lbl_3_data_21A54[0]) / (f32)lbl_3_data_21A60[1];
     outerR = span + lbl_3_data_21A54[0];
-    idx = 0;
-    for (p = 0; p < 4; p++) {
+    for (p = 0, idx = 0; p < 4; p++) {
         getComponentsFromSAng(SD.pathAngle[p], &vx, &vz);
         SD.path[p].start.x = vx * lbl_3_data_21A54[0] + lbl_3_data_21A48.x;
         SD.path[p].start.z = vz * lbl_3_data_21A54[0] + lbl_3_data_21A48.z;
@@ -1936,33 +1933,30 @@ void fn_3_135C18(void) {
         vx = (SD.path[p].end.x - SD.path[p].start.x) / span;
         vz = (SD.path[p].end.z - SD.path[p].start.z) / span;
         d = span;
-        trail = &SD.trail[idx];
-        for (k = 0; k < lbl_3_data_21A60[1]; k++) {
-            trail->pos.x = vx * d + SD.path[p].start.x;
-            trail->pos.z = vz * d + SD.path[p].start.z;
+        for (k = 0; k < lbl_3_data_21A60[1]; k++, idx++) {
+            SD.trail[idx].pos.x = vx * d + SD.path[p].start.x;
+            SD.trail[idx].pos.z = vz * d + SD.path[p].start.z;
             if (d < 0.0f) {
-                trail->active = 0;
+                SD.trail[idx].active = 0;
             } else {
                 d -= stepLen;
-                if (trail->active) {
-                    fn_3_156548(idx, trail->pos.x, -trail->pos.y, trail->pos.z);
+                if (SD.trail[idx].active) {
+                    fn_3_156548(idx, SD.trail[idx].pos.x, -SD.trail[idx].pos.y, SD.trail[idx].pos.z);
                 } else {
-                    fn_3_15730C(idx, trail->pos.x, -trail->pos.y, trail->pos.z);
-                    trail->active = 1;
+                    fn_3_15730C(idx, SD.trail[idx].pos.x, -SD.trail[idx].pos.y, SD.trail[idx].pos.z);
+                    SD.trail[idx].active = 1;
                 }
             }
-            trail++;
-            idx++;
         }
     }
 }
 
 // .text:0x00135A64 size:0x1B4 mapped:0x80774AF8
 void fn_3_135A64(void) {
+    InMemFielder* fielder;
     int p;
     int k;
-    InMemFielder* fielder;
-    s16 angle;
+    int angle;
     f32 dist;
 
     if (g_Minigame.turnOverStatus == 0 && !(SD.phaseProgress < 0.3f)) {
@@ -2025,7 +2019,7 @@ void fn_3_1357A4(Vec* out, Vec* dir) {
     Vec base = {0.0f, 0.0f, 20.0f};
     Vec offset;
 
-    if (out == NULL || dir == NULL) {
+    if (!out || !dir) {
         return;
     }
     PSVECNormalize(dir, &offset);
@@ -2036,9 +2030,9 @@ void fn_3_1357A4(Vec* out, Vec* dir) {
 
 // .text:0x001356F8 size:0xAC mapped:0x8077478C
 void fn_3_1356F8(void) {
-    u32 i;
-    u8 strength;
     SDAI* ai = g_Minigame.sd.ai;
+    u8 strength;
+    u32 i;
 
     memset(g_Minigame._1D7C, 0, 0x78);
     for (i = 0; i < 4; i++) {
@@ -2082,11 +2076,10 @@ int fn_3_13564C(f32 x, f32 z) {
 
 // .text:0x00135600 size:0x4C mapped:0x80774694
 void fn_3_135600(f32 x, f32 z, f32* outX, f32* outZ) {
-    f32 dx = x - lbl_3_data_21A48.x;
-    f32 dz = z - lbl_3_data_21A48.z;
-
-    *outX = dx * g_Minigame.sd.rotCos - dz * g_Minigame.sd.rotSin;
-    *outZ = dz * g_Minigame.sd.rotCos + dx * g_Minigame.sd.rotSin;
+    x -= lbl_3_data_21A48.x;
+    z -= lbl_3_data_21A48.z;
+    *outX = x * g_Minigame.sd.rotCos - z * g_Minigame.sd.rotSin;
+    *outZ = x * g_Minigame.sd.rotSin + z * g_Minigame.sd.rotCos;
 }
 
 #pragma dont_inline on
@@ -2326,10 +2319,7 @@ int fn_3_13493C(u32 player, f32* targetX, f32* targetZ, u32 depth) {
             fn_3_13493C(player, targetX, targetZ, depth - 1);
         }
     }
-    dz = *targetZ - lbl_3_data_21A48.z;
-    dx = *targetX - lbl_3_data_21A48.x;
-    rotX = dx * g_Minigame._1DF0 - dz * g_Minigame._1DEC;
-    rotZ = dz * g_Minigame._1DF0 + dx * g_Minigame._1DEC;
+    fn_3_135600(*targetX, *targetZ, &rotX, &rotZ);
     return fn_3_13564C(rotX, rotZ);
 }
 
@@ -2371,8 +2361,8 @@ void fn_3_134658(u32 target, f32* outX, f32* outZ, int* outQuadrant) {
             continue;
         }
         self = &g_Fielders[g_Minigame.playerSlots.fielderIndex[target]];
-        dz = other->pos.z - self->pos.z;
         dx = other->pos.x - self->pos.x;
+        dz = other->pos.z - self->pos.z;
         entries[count].distSq = dx * dx + dz * dz;
         entries[count].points = g_Minigame.miniGameCurrentPoints[i];
         entries[count].player = i;
@@ -2678,8 +2668,8 @@ void fn_3_133200(void) {
     }
     GXInitTexObj(&lbl_3_bss_B708, lbl_3_bss_B740, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
     GXInitTexObjLOD(&lbl_3_bss_B708, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
-    lbl_3_bss_B704 = 0;
     lbl_3_data_26580 = -1;
+    lbl_3_bss_B704 = 0;
 }
 
 // .text:0x001330E4 size:0x11C mapped:0x80772178
