@@ -281,7 +281,7 @@ void pP_LoadGame(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         initializeSomethingDuringTransition();
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_PIRANHA_PANIC;
-        g_Minigame._17C0 = 0;
+        g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.turnOverStatus = 0;
         g_Minigame._1A37 = 0;
         for (i = 0; i < PP_PLAYER_COUNT; i++) {
@@ -300,10 +300,10 @@ void pP_LoadGame(void) {
         g_Minigame.turnNumberWithinRound = 0;
         MINIGAME_SELECTED_ORDER = -1;
         g_Minigame.rosterID = -1;
-        g_Minigame._17C0 = 0;
+        g_Minigame.minigameElapsedFrames = 0;
         if (g_Minigame.multiPlayerInd == 0) {
             u8 value;
-            g_Minigame._17C4 = lbl_3_data_21E08[g_Minigame.soloMinigameDifficulty] * 60;
+            g_Minigame.minigameFramesRemaining = lbl_3_data_21E08[g_Minigame.soloMinigameDifficulty] * 60;
             value = lbl_3_data_2127C[g_Minigame.GameMode_MiniGame][g_Minigame.soloMinigameDifficulty];
             PP.aiStrength[0] = value;
             PP.aiStrength[1] = value;
@@ -317,7 +317,7 @@ void pP_LoadGame(void) {
                 PP.aiStrength[2] = value;
                 PP.aiStrength[3] = value;
             }
-            g_Minigame._17C4 = lbl_3_data_21E08[4] * 60;
+            g_Minigame.minigameFramesRemaining = lbl_3_data_21E08[4] * 60;
         }
         pPRelated();
         setDefaultInMemFielder();

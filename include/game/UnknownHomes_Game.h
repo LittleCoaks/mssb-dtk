@@ -1889,11 +1889,11 @@ typedef struct _MiniGameStruct {
     /*0x1931*/ u8 _1931;
     /*0x1932*/ s16 _1932;
     /*0x1934*/ u8 _1934;
-    /*0x1935*/ u8 _1935;
-    /*0x1936*/ u8 _1936;
-    /*0x1937*/ u8 _1937;
-    /*0x1938*/ u8 _1938;
-    /*0x1939*/ u8 _1939;
+    /*0x1935*/ s8 _1935;
+    /*0x1936*/ s8 _1936;
+    /*0x1937*/ s8 _1937;
+    /*0x1938*/ s8 _1938;
+    /*0x1939*/ u8 toyField_coinsRemaining;
     /*0x193A*/ union {
         u8 wallBall_coinsVisibleInd;
         u8 coinState[100];
