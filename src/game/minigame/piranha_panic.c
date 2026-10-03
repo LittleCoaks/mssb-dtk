@@ -90,6 +90,8 @@ extern u8 lbl_3_data_21E18[4];
 #define PP_HELD_BALL_COUNT 3
 #define PP_SCORE_ENTRY_COUNT 10
 
+/* One piranha plant: emerges from a hole (mode 1), is active (2), retracts (3)
+ * or is recovering after being fed (4); mode 0 is hidden. */
 typedef struct _PPSpawner {
     /*0x00*/ VecXYZ pos;
     /*0x0C*/ f32 _0C;
@@ -105,9 +107,9 @@ typedef struct _PPSpawner {
     /*0x26*/ s16 _26;
     /*0x28*/ u8 _28[2];
     /*0x2A*/ u8 mode;
-    /*0x2B*/ u8 _2B;
-    /*0x2C*/ u8 _2C;
-    /*0x2D*/ u8 _2D;
+    /*0x2B*/ u8 isBig; // the special plant that accepts any ball
+    /*0x2C*/ u8 kind; // hole / ball kind it accepts; 4 = any
+    /*0x2D*/ u8 hitsLeft;
     /*0x2E*/ u8 _2E;
     /*0x2F*/ s8 queue[4];
     /*0x33*/ u8 _33;
@@ -248,7 +250,7 @@ static inline void ppInitPulseTexture(void) {
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            offset = fn_3_142030(j, i, 4) * 4;
+            offset = pP_TiledTexelIndex(j, i, 4) * 4;
             if (offset < 32) {
                 lbl_3_bss_B800[offset + 2] = 0xFF;
                 lbl_3_bss_B800[offset] = 0xFF;
@@ -363,7 +365,7 @@ void piranhaPanicRelated(void) {
         for (k = 0; k < PP_SPAWNER_COUNT; k++) {
             PPSpawner* sp = PP_SPAWNER(k);
             sp->mode = 0;
-            sp->_2B = 0;
+            sp->isBig = 0;
             sp->_2E = 0;
             sp->_1A = 0;
             sp->_1C = -1;
@@ -406,7 +408,7 @@ void piranhaPanicRelated(void) {
 }
 
 // .text:0x001469CC size:0xC4 mapped:0x80785A60
-void fn_3_1469CC(void) {
+void pP_RoundIntro(void) {
     switch (g_GameLogic._125) {
         case TRANSITION_CALCULATION_TYPE_0:
             fn_3_10F550(2, lbl_3_data_21278[0]);
@@ -426,8 +428,8 @@ void fn_3_1469CC(void) {
 }
 
 // .text:0x00146928 size:0xA4 mapped:0x807859BC
-void fn_3_146928(void) {
-    fn_3_142C18();
+void pP_StartPlay(void) {
+    pP_InitAI();
     changeScene(1, 6);
     SetGameStatus(GAME_STATUS_LIVE_BALL);
 }
@@ -446,17 +448,17 @@ void piranhaPanicLiveBall(void) {
             callSfx(lbl_3_data_81FC[0x28]);
         }
     }
-    fn_3_145EB8();
-    fn_3_14443C();
-    fn_3_143714();
-    fn_3_142284();
-    fn_3_144CB8();
-    fn_3_142CA8();
-    fn_3_1461A4();
+    pP_UpdateBalls();
+    pP_UpdatePiranhas();
+    pP_UpdateProjectiles();
+    pP_UpdateAI();
+    pP_UpdatePlayers();
+    pP_TallyScores();
+    pP_UpdateTimeUp();
 }
 
 // .text:0x001461A4 size:0x264 mapped:0x80785238
-void fn_3_1461A4(void) {
+void pP_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (PP.framesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
@@ -473,13 +475,13 @@ void fn_3_1461A4(void) {
             changeScene(3, 6);
         }
         if (g_GameLogic.CountdownUntilFade <= 0) {
-            fn_3_145FF4();
+            pP_Postgame();
         }
     }
 }
 
 // .text:0x00145FF4 size:0x1B0 mapped:0x80785088
-void fn_3_145FF4(void) {
+void pP_Postgame(void) {
     u32 i;
 
     fn_3_157570();
@@ -498,16 +500,16 @@ void fn_3_145FF4(void) {
     }
     g_Minigame._1B4C = 60;
     for (i = 0; i < PP_SPAWNER_COUNT; i++) {
-        fn_3_14402C(i);
+        pP_UpdateHiddenPiranha(i);
         PP_SPAWNER(i)->mode = 2;
         PP_SPAWNER(i)->_1C = 1;
-        PP_SPAWNER(i)->_2B = 0;
+        PP_SPAWNER(i)->isBig = 0;
     }
     fn_3_154214();
 }
 
 // .text:0x00145EB8 size:0x13C mapped:0x80784F4C
-void fn_3_145EB8(void) {
+void pP_UpdateBalls(void) {
     int i;
 
     ppRelated();
@@ -516,7 +518,7 @@ void fn_3_145EB8(void) {
         if (state == 5 || state == 6) {
             piranhaPanicPoints(i);
         } else if (state == 2) {
-            fn_3_145AD0(i);
+            pP_SetHeldBallPos(i);
         }
     }
 }
@@ -546,7 +548,7 @@ void ppRelated(void) {
                         PP.x_1C1A[j] = 0;
                         PP.x_1C4C[j] = 0;
                         PP.spawnCount[i]++;
-                        fn_3_145AD0(j);
+                        pP_SetHeldBallPos(j);
                         break;
                     }
                 }
@@ -592,7 +594,7 @@ void ppRelated(void) {
 }
 
 // .text:0x00145AD0 size:0xC8 mapped:0x80784B64
-void fn_3_145AD0(int p) {
+void pP_SetHeldBallPos(int p) {
     int owner = PP.ballOwner[p];
     int k;
 
@@ -665,7 +667,7 @@ void piranhaPanicPoints(int p) {
             f32 dist = dolsqrtf2(SQ(PP_BALL_POS(p).x - lbl_3_data_21BC4[owner][1].x) + SQ(PP_BALL_POS(p).z - lbl_3_data_21BC4[owner][1].z));
             sp = PP_SPAWNER(owner);
             if (sp->mode == 2 && dist < lbl_3_data_21E24[1]) {
-                u8 kind = sp->_2C;
+                u8 kind = sp->kind;
                 if (PP.ballKind[p] == kind || kind == 4 || PP.ballKind[p] == 5) {
                     s8 gain;
                     VecXYZ hitPos;
@@ -685,25 +687,25 @@ void piranhaPanicPoints(int p) {
                     } else {
                         callSfx(0x2DC);
                     }
-                    remaining = sp->_2D - gain;
+                    remaining = sp->hitsLeft - gain;
                     if ((s16)remaining <= 0) {
-                        sp->_2D = 0;
+                        sp->hitsLeft = 0;
                     } else {
-                        sp->_2D = remaining;
+                        sp->hitsLeft = remaining;
                     }
                     PP.hitCount[player]++;
                     scores = PP.scoreEntries[player];
-                    scores[PP.scoreEntryCount[player]] = gain * lbl_3_data_21E18[sp->_2B * 2 + 1];
+                    scores[PP.scoreEntryCount[player]] = gain * lbl_3_data_21E18[sp->isBig * 2 + 1];
                     PP.scoreEntryCount[player]++;
                     sp->queue[0] = -1;
                     sp->queue[1] = -1;
                     sp->queue[2] = -1;
                     sp->queue[3] = -1;
                     sp->_2E = 0;
-                    if (sp->_2D == 0) {
-                        scores[PP.scoreEntryCount[player]] = lbl_3_data_21E18[sp->_2B * 2];
+                    if (sp->hitsLeft == 0) {
+                        scores[PP.scoreEntryCount[player]] = lbl_3_data_21E18[sp->isBig * 2];
                         PP.scoreEntryCount[player]++;
-                        if (sp->_2C == 4) {
+                        if (sp->kind == 4) {
                             PP.x_1CA3 = 0;
                             sp->_2E = 0;
                         } else if (PP.x_1CA2 != 0) {
@@ -712,9 +714,9 @@ void piranhaPanicPoints(int p) {
                         sp->_1C = lbl_3_data_21E68[8] - lbl_3_data_21E68[9];
                         sp->_1A = 0;
                         sp->mode = 4;
-                        PP.holeUsed[sp->_2C] = 0;
+                        PP.holeUsed[sp->kind] = 0;
                         if (!g_d_GameSettings.exhibitionMatchInd && player == lbl_3_common_bss_37400[0x20]) {
-                            starMissionsMinigamesSpecialAction(5, sp->_2C, 0);
+                            starMissionsMinigamesSpecialAction(5, sp->kind, 0);
                         }
                     }
                     sp->_1E = 1;
@@ -794,7 +796,7 @@ static inline void ppUpdateCrouch(int p) {
 }
 
 // .text:0x00144CB8 size:0x704 mapped:0x80783D4C
-void fn_3_144CB8(void) {
+void pP_UpdatePlayers(void) {
     int i;
 
     for (i = 0; i < PP_PLAYER_COUNT; i++) {
@@ -940,7 +942,7 @@ void fn_3_144CB8(void) {
 }
 
 // .text:0x00144ADC size:0x1DC mapped:0x80783B70
-void fn_3_144ADC(int p) {
+void pP_UpdateCrouch(int p) {
     InputStruct* input = &g_Controls[(s8)PP.character[p]];
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
 
@@ -1032,10 +1034,10 @@ void pP_relatedToCalculatingHeldBallLoc(int p) {
 }
 
 // .text:0x0014443C size:0x2E0 mapped:0x807834D0
-void fn_3_14443C(void) {
+void pP_UpdatePiranhas(void) {
     int k;
 
-    fn_3_14423C();
+    pP_ScheduleBigPiranha();
     for (k = 0; k < PP_SPAWNER_COUNT; k++) {
         PPSpawner* sp = PP_SPAWNER(k);
         SATURATING_INCREMENT(sp->_18);
@@ -1044,13 +1046,13 @@ void fn_3_14443C(void) {
             SATURATING_INCREMENT(sp->_1E);
         }
         if (sp->mode == 0) {
-            fn_3_14402C(k);
+            pP_UpdateHiddenPiranha(k);
         } else if (sp->mode == 1) {
             f32 hi;
             f32 lo;
             sp->_1C--;
-            hi = lbl_3_data_21D1C[sp->_2B * 2 + 1];
-            lo = lbl_3_data_21D1C[sp->_2B * 2];
+            hi = lbl_3_data_21D1C[sp->isBig * 2 + 1];
+            lo = lbl_3_data_21D1C[sp->isBig * 2];
             sp->pos.y = (hi - lo) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[5]) + lo;
             if (sp->_1C <= 0) {
                 sp->mode = 2;
@@ -1058,15 +1060,15 @@ void fn_3_14443C(void) {
             }
         } else if (sp->mode == 2) {
             ppStopSpawnerWaits();
-            fn_3_1439EC(k);
+            pP_PiranhaSpit(k);
         } else if (sp->mode == 3) {
-            f32 hi = lbl_3_data_21D1C[sp->_2B * 2 + 1];
-            f32 lo = lbl_3_data_21D1C[sp->_2B * 2];
+            f32 hi = lbl_3_data_21D1C[sp->isBig * 2 + 1];
+            f32 lo = lbl_3_data_21D1C[sp->isBig * 2];
             sp->pos.y = (lo - hi) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[6]) + lo;
             if (sp->_1A >= lbl_3_data_21E68[6]) {
                 sp->mode = 0;
                 sp->_1A = 0;
-                PP.holeUsed[sp->_2C] = 0;
+                PP.holeUsed[sp->kind] = 0;
                 if (PP.x_1CA3 != 0) {
                     PP.x_1CA3 = 0;
                 }
@@ -1084,7 +1086,7 @@ void fn_3_14443C(void) {
 }
 
 // .text:0x0014423C size:0x200 mapped:0x807832D0
-void fn_3_14423C(void) {
+void pP_ScheduleBigPiranha(void) {
     int low;
     int high;
     int k;
@@ -1134,9 +1136,9 @@ void fn_3_14423C(void) {
     {
         PPSpawner* sp = PP_SPAWNER(1);
         sp->mode = 1;
-        sp->_2B = 1;
-        sp->_2C = 4;
-        sp->_2D = lbl_3_data_21E10[PP.x_1CA4 + 4];
+        sp->isBig = 1;
+        sp->kind = 4;
+        sp->hitsLeft = lbl_3_data_21E10[PP.x_1CA4 + 4];
         sp->_18 = 0;
         sp->_1A = 0;
         sp->_1C = lbl_3_data_21E68[5];
@@ -1154,7 +1156,7 @@ void fn_3_14423C(void) {
 }
 
 // .text:0x0014402C size:0x210 mapped:0x807830C0
-void fn_3_14402C(int idx) {
+void pP_UpdateHiddenPiranha(int idx) {
     int free[4];
     int* freeEnd;
     int freeCount;
@@ -1173,15 +1175,15 @@ void fn_3_14402C(int idx) {
                         freeCount++;
                     }
                 }
-                PP.spawner[idx]._2C = free[random_fn_3_9EE24(freeCount)];
-                PP.holeUsed[PP.spawner[idx]._2C] = 1;
-                PP.spawner[idx]._2D = lbl_3_data_21E10[PP.spawner[idx]._2C];
+                PP.spawner[idx].kind = free[random_fn_3_9EE24(freeCount)];
+                PP.holeUsed[PP.spawner[idx].kind] = 1;
+                PP.spawner[idx].hitsLeft = lbl_3_data_21E10[PP.spawner[idx].kind];
                 PP.spawner[idx]._1C = lbl_3_data_21E68[5];
                 PP.spawner[idx]._18 = 0;
                 PP.spawner[idx]._1A = 0;
                 PP.spawner[idx]._1E = 0;
                 PP.spawner[idx].mode = 1;
-                PP.spawner[idx]._2B = 0;
+                PP.spawner[idx].isBig = 0;
                 PP.spawner[idx].pos.y = lbl_3_data_21D1C[1];
                 PP.spawner[idx]._22 = lbl_3_data_21E04[0] + RandomInt_Game_Range(lbl_3_data_21E04[0], lbl_3_data_21E04[1]);
                 PP.spawner[idx]._24 = PP.spawner[idx]._22;
@@ -1195,7 +1197,7 @@ void fn_3_14402C(int idx) {
 }
 
 // .text:0x00143FAC size:0x80 mapped:0x80783040
-void fn_3_143FAC(int idx) {
+void pP_UpdateActivePiranha(int idx) {
     int i;
 
     if (PP.x_1CA2 == 2) {
@@ -1207,14 +1209,14 @@ void fn_3_143FAC(int idx) {
             }
         }
     }
-    fn_3_1439EC(idx);
+    pP_PiranhaSpit(idx);
 }
 
 // .text:0x001439EC size:0x5C0 mapped:0x80782A80
-void fn_3_1439EC(int idx) {
+void pP_PiranhaSpit(int idx) {
     PPSpawner* sp = PP_SPAWNER(idx);
 
-    if (sp->_2B != 0) {
+    if (sp->isBig != 0) {
         sp->_20++;
         if (sp->_20 == 1) {
             sp->_2E = 0;
@@ -1223,7 +1225,7 @@ void fn_3_1439EC(int idx) {
             int i;
             sp->_20 = 0;
             for (i = 0; i < PP_PLAYER_COUNT; i++) {
-                fn_3_1430D0(idx, i);
+                pP_SpawnProjectile(idx, i);
                 callSfx(0x2DA);
             }
             sp->_2E = 1;
@@ -1231,7 +1233,7 @@ void fn_3_1439EC(int idx) {
     } else if (sp->_2E != 0) {
         sp->_26++;
         if (sp->_26 == lbl_3_data_21E68[13]) {
-            fn_3_1430D0(idx, sp->queue[0]);
+            pP_SpawnProjectile(idx, sp->queue[0]);
             sp->_34 = -1;
             sp->queue[0] = sp->queue[1];
             sp->queue[1] = sp->queue[2];
@@ -1247,7 +1249,7 @@ void fn_3_1439EC(int idx) {
 }
 
 // .text:0x00143770 size:0x27C mapped:0x80782804
-BOOL fn_3_143770(PPSpawner* sp) {
+BOOL pP_PiranhaAimAtPlayer(PPSpawner* sp) {
     int preferred[PP_PLAYER_COUNT];
     int fallback[PP_PLAYER_COUNT];
     Vec toFielder;
@@ -1309,18 +1311,18 @@ BOOL fn_3_143770(PPSpawner* sp) {
 }
 
 // .text:0x00143714 size:0x5C mapped:0x807827A8
-void fn_3_143714(void) {
+void pP_UpdateProjectiles(void) {
     int i;
 
     for (i = 0; i < PP_OBJECT_COUNT; i++) {
         if (PP_OBJECT(i)->state != 0) {
-            fn_3_143358(i);
+            pP_UpdateProjectile(i);
         }
     }
 }
 
 // .text:0x00143358 size:0x3BC mapped:0x807823EC
-void fn_3_143358(int idx) {
+void pP_UpdateProjectile(int idx) {
     PPObject* obj = PP_OBJECT(idx);
     InMemFielder* fielder;
     int i;
@@ -1388,7 +1390,7 @@ void fn_3_143358(int idx) {
 }
 
 // .text:0x001430D0 size:0x288 mapped:0x80782164
-void fn_3_1430D0(int arg, int owner) {
+void pP_SpawnProjectile(int arg, int owner) {
     PPObject* obj;
     int j;
 
@@ -1424,7 +1426,7 @@ void fn_3_1430D0(int arg, int owner) {
 }
 
 // .text:0x00142DB4 size:0x31C mapped:0x80781E48
-void fn_3_142DB4(int idx) {
+void pP_SpawnLobbedProjectile(int idx) {
     PPSpawner* sp = PP_SPAWNER(idx);
     PPObject* obj;
     int j;
@@ -1442,7 +1444,7 @@ void fn_3_142DB4(int idx) {
         f32 dy;
         f32 dz;
         obj = PP_OBJECT(j);
-        if (sp->_2B != 0) {
+        if (sp->isBig != 0) {
             obj->pos.x = lbl_3_data_21BC4[idx][3].x;
             obj->pos.y = lbl_3_data_21BC4[idx][3].y;
             obj->pos.z = lbl_3_data_21BC4[idx][3].z;
@@ -1471,7 +1473,7 @@ void fn_3_142DB4(int idx) {
 }
 
 // .text:0x00142CA8 size:0x10C mapped:0x80781D3C
-void fn_3_142CA8(void) {
+void pP_TallyScores(void) {
     int i;
     int j;
 
@@ -1485,7 +1487,7 @@ void fn_3_142CA8(void) {
 }
 
 // .text:0x00142C18 size:0x90 mapped:0x80781CAC
-void fn_3_142C18(void) {
+void pP_InitAI(void) {
     PPAI* ai = PP.ai;
     s8 i;
 
@@ -1501,7 +1503,7 @@ void fn_3_142C18(void) {
 }
 
 // .text:0x001428F0 size:0x328 mapped:0x80781984
-u8 fn_3_1428F0(s8 slot, u8 force) {
+u8 pP_AIThrow(s8 slot, u8 force) {
     PPAI* ai = &PP.ai[slot];
     s8 found = -1;
     s8 character = PP.character[slot];
@@ -1524,7 +1526,7 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
     do {
         if (PP.spawner[i].mode == 2) {
             count++;
-            if (PP.spawner[selection]._2C == 4) {
+            if (PP.spawner[selection].kind == 4) {
                 found = i;
                 break;
             }
@@ -1544,7 +1546,7 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
         }
         if (!hit) {
             if (PP.spawner[selection].mode == 2) {
-                u8 kind = PP.spawner[selection]._2C;
+                u8 kind = PP.spawner[selection].kind;
                 if (targetKind == kind || targetKind == 5 || kind == 4) {
                     hit = TRUE;
                 }
@@ -1554,7 +1556,7 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
             i = 0;
             do {
                 if (PP.spawner[i].mode == 2) {
-                    u8 kind = PP.spawner[i]._2C;
+                    u8 kind = PP.spawner[i].kind;
                     if (targetKind == kind || targetKind == 5 || kind == 4) {
                         selection = i;
                         hit = TRUE;
@@ -1590,7 +1592,7 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
 }
 
 // .text:0x00142570 size:0x380 mapped:0x80781604
-int fn_3_142570(s8 slot) {
+int pP_AIFramesUntilHit(s8 slot) {
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[slot]];
     f32 reach = lbl_3_data_21E24[2] + fielderHitboxesForGarlicKnockout[fielder->Weight];
     int best = 10000;
@@ -1638,7 +1640,7 @@ int fn_3_142570(s8 slot) {
 }
 
 // .text:0x00142284 size:0x2EC mapped:0x80781318
-void fn_3_142284(void) {
+void pP_UpdateAI(void) {
     int target[PP_PLAYER_COUNT];
     PPAI* ai = PP.ai;
     s8 i;
@@ -1647,7 +1649,7 @@ void fn_3_142284(void) {
     do {
         s8 character = PP.character[i];
         if (character >= 0 && character < PP_PLAYER_COUNT) {
-            target[i] = fn_3_142570(i);
+            target[i] = pP_AIFramesUntilHit(i);
             if (PP.aiControlled[i] != 0) {
                 u8 aiStrength;
                 memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
@@ -1658,7 +1660,7 @@ void fn_3_142284(void) {
                             switch (RandomIndexFromWeights(lbl_3_data_21E9C[aiStrength], 4)) {
                                 case 0:
                                     if (target[i] > LERPToNewRange_Float(PP.hitCount[i], 0, lbl_3_data_21E68[19], lbl_3_data_21E68[2], lbl_3_data_21E68[3]) + 3) {
-                                        if (fn_3_1428F0(i, FALSE)) {
+                                        if (pP_AIThrow(i, FALSE)) {
                                             ai[i].state = 1;
                                         }
                                     } else {
@@ -1669,7 +1671,7 @@ void fn_3_142284(void) {
                                     break;
                                 case 1:
                                     if (target[i] > lbl_3_data_21E68[2] + 3) {
-                                        if (fn_3_1428F0(i, FALSE)) {
+                                        if (pP_AIThrow(i, FALSE)) {
                                             ai[i].state = 1;
                                         }
                                     } else {
@@ -1684,13 +1686,13 @@ void fn_3_142284(void) {
                                     ai[i].state = 2;
                                     break;
                                 case 3:
-                                    if (fn_3_1428F0(i, TRUE)) {
+                                    if (pP_AIThrow(i, TRUE)) {
                                         ai[i].state = 1;
                                     }
                                     break;
                             }
                         } else {
-                            if (fn_3_1428F0(i, FALSE)) {
+                            if (pP_AIThrow(i, FALSE)) {
                                 ai[i].state = 1;
                             }
                         }
@@ -1728,19 +1730,19 @@ void fn_3_142284(void) {
 }
 
 // .text:0x0014225C size:0x28 mapped:0x807812F0
-void fn_3_14225C(void) {
-    fn_800B9948(fn_3_141C8C);
+void pP_SetPulseTevCallback(void) {
+    fn_800B9948(pP_PulseTevCallback);
 }
 
 // .text:0x00142088 size:0x1D4 mapped:0x8078111C
-void fn_3_142088(void) {
+void pP_InitPulseTexture(void) {
     u32 offset;
     u32 i;
     u32 j;
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            /* fn_3_142030(j, i, 4) * 4, written out */
+            /* pP_TiledTexelIndex(j, i, 4) * 4, written out */
             offset = (((int)i % 4) * 4 + ((int)i / 4) * 16 + (int)j % 4 + ((int)j / 4) * 16) * 4;
             if (offset < 32) {
                 lbl_3_bss_B800[offset + 2] = 0xFF;
@@ -1763,7 +1765,7 @@ void fn_3_142088(void) {
 }
 
 // .text:0x00142030 size:0x58 mapped:0x807810C4
-int fn_3_142030(int x, int y, int width) {
+int pP_TiledTexelIndex(int x, int y, int width) {
     int fineY;
     int fineX;
     int rowBase;
@@ -1777,7 +1779,7 @@ int fn_3_142030(int x, int y, int width) {
 }
 
 // .text:0x00141F30 size:0x100 mapped:0x80780FC4
-void fn_3_141F30(void) {
+void pP_UpdatePulseTexture(void) {
     int value;
     int i;
 
@@ -1802,12 +1804,12 @@ void fn_3_141F30(void) {
 }
 
 // .text:0x00141C8C size:0x2A4 mapped:0x80780D20
-void fn_3_141C8C(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
+void pP_PulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
     Mtx texMtx;
     Mtx postMtx;
     Mtx trans;
 
-    fn_3_141F30();
+    pP_UpdatePulseTexture();
     GXLoadTexObj(&lbl_3_bss_B7C4, *map);
     PSMTXIdentity(texMtx);
     PSMTXScale(postMtx, 0.5f, -0.5f, 0.0f);
