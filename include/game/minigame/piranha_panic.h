@@ -6,7 +6,7 @@
 
 struct _PPSpawner;
 
-void fn_3_141C44(void);
+void pP_CountPulseDraws(void);
 void pP_PulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords);
 void pP_UpdatePulseTexture(void);
 int pP_TiledTexelIndex(int x, int y, int width);
@@ -27,18 +27,18 @@ void pP_UpdateActivePiranha(int idx);
 void pP_UpdateHiddenPiranha(int idx);
 void pP_ScheduleBigPiranha(void);
 void pP_UpdatePiranhas(void);
-void pP_relatedToCalculatingHeldBallLoc(int p);
+void pP_ReleaseThrow(int p);
 void pP_UpdateCrouch(int p);
 void pP_UpdatePlayers(void);
-void piranhaPanicPoints(int p);
+void pP_UpdateThrownBall(int p);
 void pP_SetHeldBallPos(int p);
-void ppRelated(void);
+void pP_RefillHeldBalls(void);
 void pP_UpdateBalls(void);
 void pP_Postgame(void);
 void pP_UpdateTimeUp(void);
 void piranhaPanicLiveBall(void);
 void pP_StartPlay(void);
 void pP_RoundIntro(void);
-void piranhaPanicRelated(void);
+void pP_LoadGame(void);
 
 #endif // !__GAME_MINIGAME_PIRANHA_PANIC_H_

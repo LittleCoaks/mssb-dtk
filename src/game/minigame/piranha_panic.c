@@ -272,7 +272,7 @@ static inline void ppInitPulseTexture(void) {
 }
 
 // .text:0x00146A90 size:0x730 mapped:0x80785B24
-void piranhaPanicRelated(void) {
+void pP_LoadGame(void) {
     s32 i;
     s32 j;
     s32 p;
@@ -361,7 +361,7 @@ void piranhaPanicRelated(void) {
             PP.ballOwner[j] = -1;
         }
         g_Minigame._1B4C = 60;
-        ppRelated();
+        pP_RefillHeldBalls();
         for (k = 0; k < PP_SPAWNER_COUNT; k++) {
             PPSpawner* sp = PP_SPAWNER(k);
             sp->mode = 0;
@@ -512,11 +512,11 @@ void pP_Postgame(void) {
 void pP_UpdateBalls(void) {
     int i;
 
-    ppRelated();
+    pP_RefillHeldBalls();
     for (i = 0; i < PP_BALL_COUNT; i++) {
         u8 state = PP.ballState[i];
         if (state == 5 || state == 6) {
-            piranhaPanicPoints(i);
+            pP_UpdateThrownBall(i);
         } else if (state == 2) {
             pP_SetHeldBallPos(i);
         }
@@ -524,7 +524,7 @@ void pP_UpdateBalls(void) {
 }
 
 // .text:0x00145B98 size:0x320 mapped:0x80784C2C
-void ppRelated(void) {
+void pP_RefillHeldBalls(void) {
     int i;
     int j;
 
@@ -609,7 +609,7 @@ void pP_SetHeldBallPos(int p) {
 }
 
 // .text:0x001453BC size:0x714 mapped:0x80784450
-void piranhaPanicPoints(int p) {
+void pP_UpdateThrownBall(int p) {
     int player = PP.ballOwner[p];
 
     SATURATING_INCREMENT(PP.ballFrames[p]);
@@ -844,7 +844,7 @@ void pP_UpdatePlayers(void) {
             PP.swingFrames[i]++;
             swing = LERPToNewRange_Float(PP.hitCount[i], 0, lbl_3_data_21E68[19], lbl_3_data_21E68[2], lbl_3_data_21E68[3]);
             if (PP.swingFrames[i] == lbl_3_data_21E68[4]) {
-                pP_relatedToCalculatingHeldBallLoc(i);
+                pP_ReleaseThrow(i);
                 PP.heldBalls[i][0] = -1;
             } else if (PP.swingFrames[i] >= swing) {
                 PP.swingFrames[i] = -1;
@@ -981,7 +981,7 @@ void pP_UpdateCrouch(int p) {
 }
 
 // .text:0x0014471C size:0x3C0 mapped:0x807837B0
-void pP_relatedToCalculatingHeldBallLoc(int p) {
+void pP_ReleaseThrow(int p) {
     InMemFielder* fielder = &g_Fielders[(s8)PP.fielderIndex[p]];
     int character = PP.character[p];
     u8* state;
@@ -1828,11 +1828,11 @@ void pP_PulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, 
     (*map)++;
     (*nStages)++;
     (*nCoords)++;
-    fn_3_141C44();
+    pP_CountPulseDraws();
 }
 
 // .text:0x00141C44 size:0x48 mapped:0x80780CD8
-void fn_3_141C44(void) {
+void pP_CountPulseDraws(void) {
     lbl_3_bss_B7C1++;
     if (lbl_3_bss_B7C1 >= 6) {
         lbl_3_bss_B7C1 = 0;
