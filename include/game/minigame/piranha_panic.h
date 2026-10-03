@@ -2,39 +2,43 @@
 #define __GAME_MINIGAME_PIRANHA_PANIC_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/GX/GXEnum.h"
 
-void fn_3_141C8C(void);
-void fn_3_141F30(void);
-void fn_3_142030(void);
-void fn_3_142088(void);
-void fn_3_14225C(void);
-void fn_3_142284(void);
-void fn_3_142570(void);
-void fn_3_1428F0(void);
-void fn_3_142C18(void);
-void fn_3_142CA8(void);
-void fn_3_142DB4(void);
-void fn_3_1430D0(void);
-void fn_3_143358(void);
-void fn_3_143714(void);
-void fn_3_143770(void);
-void fn_3_1439EC(void);
-void fn_3_143FAC(void);
-void fn_3_14402C(void);
-void fn_3_14423C(void);
-void fn_3_14443C(void);
-void pP_relatedToCalculatingHeldBallLoc(void);
-void fn_3_144ADC(void);
-void fn_3_144CB8(void);
-void piranhaPanicPoints(void);
-void fn_3_145AD0(void);
-void ppRelated(void);
-void fn_3_145EB8(void);
-void fn_3_145FF4(void);
-void fn_3_1461A4(void);
+struct _PPSpawner;
+
+void pP_CountPulseDraws(void);
+void pP_PulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords);
+void pP_UpdatePulseTexture(void);
+int pP_TiledTexelIndex(int x, int y, int width);
+void pP_InitPulseTexture(void);
+void pP_SetPulseTevCallback(void);
+void pP_UpdateAI(void);
+int pP_AIFramesUntilHit(s8 slot);
+u8 pP_AIThrow(s8 slot, u8 force);
+void pP_InitAI(void);
+void pP_TallyScores(void);
+void pP_SpawnLobbedProjectile(int idx);
+void pP_SpawnProjectile(int arg, int owner);
+void pP_UpdateProjectile(int idx);
+void pP_UpdateProjectiles(void);
+BOOL pP_PiranhaAimAtPlayer(struct _PPSpawner* sp);
+void pP_PiranhaSpit(int idx);
+void pP_UpdateActivePiranha(int idx);
+void pP_UpdateHiddenPiranha(int idx);
+void pP_ScheduleBigPiranha(void);
+void pP_UpdatePiranhas(void);
+void pP_ReleaseThrow(int p);
+void pP_UpdateCrouch(int p);
+void pP_UpdatePlayers(void);
+void pP_UpdateThrownBall(int p);
+void pP_SetHeldBallPos(int p);
+void pP_RefillHeldBalls(void);
+void pP_UpdateBalls(void);
+void pP_Postgame(void);
+void pP_UpdateTimeUp(void);
 void piranhaPanicLiveBall(void);
-void fn_3_146928(void);
-void fn_3_1469CC(void);
-void piranhaPanicRelated(void);
+void pP_StartPlay(void);
+void pP_RoundIntro(void);
+void pP_LoadGame(void);
 
 #endif // !__GAME_MINIGAME_PIRANHA_PANIC_H_
