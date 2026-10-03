@@ -118,12 +118,12 @@ typedef struct {
     /*0x24*/ u8 _24[2];
     /*0x26*/ u8 active;
     /*0x27*/ u8 _27;
-} SDTrail; // size: 0x28
+} SDFireBarFlame; // size: 0x28
 
 typedef struct {
     /*0x00*/ VecXYZ start;
     /*0x0C*/ VecXYZ end;
-} SDPath; // size: 0x18
+} SDFireBar; // size: 0x18
 
 typedef struct {
     /*0x00*/ VecXYZ pos;
@@ -131,10 +131,10 @@ typedef struct {
     /*0x18*/ s32 coin[10];
     /*0x40*/ u8 active;
     /*0x41*/ u8 _41[3];
-} SDBurst; // size: 0x44
+} SDCoinBag; // size: 0x44
 
 typedef struct {
-    /*0x0*/ f32 _0;
+    /*0x0*/ f32 avoidMargin; // extra fire-bar clearance, 3.0 or 1.5
     /*0x4*/ s16 angle;
     /*0x6*/ u8 state;
     /*0x7*/ s8 counter;
@@ -149,35 +149,35 @@ typedef struct {
 /* Star Dash's view of g_Minigame. */
 typedef struct _SDState {
     /*0x0000*/ u8 _0000[0xA8];
-    /*0x00A8*/ SDTrail trail[40];
+    /*0x00A8*/ SDFireBarFlame fireBarFlame[40]; // 10 flames per fire bar
     /*0x06E8*/ VecXYZ starPos;
     /*0x06F4*/ VecXYZ starPath[3];
     /*0x0718*/ u8 _0718[0x724 - 0x718];
     /*0x0724*/ s16 starFrames;
     /*0x0726*/ s16 pathFrames;
     /*0x0728*/ s16 pathDuration;
-    /*0x072A*/ u8 x_72A;
+    /*0x072A*/ u8 starActive;
     /*0x072B*/ u8 starBounces;
     /*0x072C*/ u8 _072C[0xB6C - 0x72C];
-    /*0x0B6C*/ SDBurst burst;
-    /*0x0BB0*/ SDItem item[4];
+    /*0x0B6C*/ SDCoinBag coinBag;
+    /*0x0BB0*/ SDThwomp thwomp[4];
     /*0x0CB0*/ u8 _0CB0[0x1CE8 - 0xCB0];
-    /*0x1CE8*/ SDPath path[4];
-    /*0x1D48*/ f32 phaseProgress;
+    /*0x1CE8*/ SDFireBar fireBar[4];
+    /*0x1D48*/ f32 fireBarExtent; // 0..1 while growing/shrinking
     /*0x1D4C*/ f32* factor;
     /*0x1D50*/ s16 spawnTimer;
-    /*0x1D52*/ s16 _1D52;
+    /*0x1D52*/ s16 starSpawnTimer;
     /*0x1D54*/ u16 spawnCount;
     /*0x1D56*/ s16 holderFrames;
     /*0x1D58*/ s16 _1D58;
-    /*0x1D5A*/ s16 _1D5A[4];
-    /*0x1D62*/ s16 phaseFrames;
-    /*0x1D64*/ s16 pathAngle[4];
+    /*0x1D5A*/ s16 stunFrames[4];
+    /*0x1D62*/ s16 fireBarFrames;
+    /*0x1D64*/ s16 fireBarAngle[4];
     /*0x1D6C*/ u8 spawnedCoins;
     /*0x1D6D*/ s8 holder;
     /*0x1D6E*/ u8 _1D6E[4];
-    /*0x1D72*/ u8 phase;
-    /*0x1D73*/ u8 phaseIndex;
+    /*0x1D72*/ u8 fireBarPhase; // 0 off, 1 growing, 2 out, 3 shrinking
+    /*0x1D73*/ u8 fireBarWave;
     /*0x1D74*/ u8 _1D74[2];
     /*0x1D76*/ s16 x_1D76;
     /*0x1D78*/ u8 x_1D78[4];
@@ -199,14 +199,14 @@ extern SDMinigame g_Minigame;
 /* The fielder controlled by player slot p. */
 #define SD_FIELDER(p) g_Fielders[g_Minigame.playerSlots.fielderIndex[p]]
 
-s8 lbl_3_data_26580 = -1;
+s8 sD_pulseStep = -1;
 
-static u8 lbl_3_bss_B781;
-static u8 lbl_3_bss_B780;
-static u8 lbl_3_bss_B740[0x40] ATTRIBUTE_ALIGN(32);
-static GXTexObj lbl_3_bss_B708;
-static s32 lbl_3_bss_B704;
-static s16 lbl_3_bss_B702;
+static u8 sD_thwompDifficulty;
+static u8 sD_thwompCount;
+static u8 sD_pulseTexData[0x40] ATTRIBUTE_ALIGN(32);
+static GXTexObj sD_pulseTexObj;
+static s32 sD_pulseFrame;
+static s16 sD_cameraShakeFrames;
 static u8 lbl_3_bss_B700;
 
 
@@ -216,8 +216,8 @@ typedef struct {
     u8 player;
 } SDTargetEntry;
 
-int fn_3_134908(const void* a, const void* b);
-int fn_3_134918(const void* a, const void* b);
+int sD_CompareTargetPoints(const void* a, const void* b);
+int sD_CompareTargetDist(const void* a, const void* b);
 
 static inline f32 sdDistSqXZ(f32 ax, f32 az, f32 bx, f32 bz) {
     f32 dx = ax - bx;
@@ -229,21 +229,21 @@ static inline void sdUpdatePulseTexture(void) {
     int value;
     int i;
 
-    lbl_3_bss_B704 += !PauseSimulation;
-    if ((lbl_3_bss_B704 & 1) == 0) {
-        value = lbl_3_bss_B740[fn_800247E4(0, 0, 4, 4)];
-        value += lbl_3_data_26580 * 2;
+    sD_pulseFrame += !PauseSimulation;
+    if ((sD_pulseFrame & 1) == 0) {
+        value = sD_pulseTexData[fn_800247E4(0, 0, 4, 4)];
+        value += sD_pulseStep * 2;
         if (value > 255) {
             value = 255;
         } else if (value < 0) {
             value = 0;
         }
         for (i = 0; i < 32; i += 2) {
-            lbl_3_bss_B740[i] = value;
+            sD_pulseTexData[i] = value;
         }
-        DCFlushRange(lbl_3_bss_B740, 0x40);
-        if (value + lbl_3_data_26580 * 2 > 255 || value + lbl_3_data_26580 * 2 < 0) {
-            lbl_3_data_26580 *= -1;
+        DCFlushRange(sD_pulseTexData, 0x40);
+        if (value + sD_pulseStep * 2 > 255 || value + sD_pulseStep * 2 < 0) {
+            sD_pulseStep *= -1;
         }
     }
 }
@@ -269,7 +269,7 @@ static inline void sdBounce(VecXYZ* pos, VecXYZ* vel, VecSrcDst* probe, Collisio
     }
 }
 
-static inline void sdResetItem(SDItem* item, u32 level) {
+static inline void sdResetItem(SDThwomp* item, u32 level) {
     s16 lo;
     s16 hi;
     int r;
@@ -294,28 +294,28 @@ static inline void sdInitItems(void) {
     int k;
 
     for (k = 0; k < 4; k++) {
-        memset(&SD.item[k].pos, 0, sizeof(Vec));
-        memset(&SD.item[k].vel, 0, sizeof(Vec));
-        memset(&SD.item[k].rot, 0, sizeof(Vec));
-        memset(&SD.item[k].rotVel, 0, sizeof(Vec));
-        SD.item[k].state = 0;
+        memset(&SD.thwomp[k].pos, 0, sizeof(Vec));
+        memset(&SD.thwomp[k].vel, 0, sizeof(Vec));
+        memset(&SD.thwomp[k].rot, 0, sizeof(Vec));
+        memset(&SD.thwomp[k].rotVel, 0, sizeof(Vec));
+        SD.thwomp[k].state = 0;
     }
-    for (k = 0; k < lbl_3_bss_B780; k++) {
-        SD.item[k].timer = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
+    for (k = 0; k < sD_thwompCount; k++) {
+        SD.thwomp[k].timer = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
                            random_fn_3_9EE24((lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][1] -
                                               lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0]) * 60);
-        SD.item[k]._30 = 360 / lbl_3_bss_B780 * k;
-        SD.item[k]._34 = SD.item[k]._30 + 360 / lbl_3_data_21A88[lbl_3_bss_B781];
+        SD.thwomp[k].sectorStart = 360 / sD_thwompCount * k;
+        SD.thwomp[k].sectorEnd = SD.thwomp[k].sectorStart + 360 / lbl_3_data_21A88[sD_thwompDifficulty];
     }
 }
 
 static inline void sdResetTrail(f32 y) {
     int i;
 
-    for (i = 0; i < (s32)ARRAY_SIZE(SD.trail); i++) {
-        SD.trail[i].active = 0;
-        SD.trail[i].pos.y = y;
-        SD.trail[i]._22 = 0;
+    for (i = 0; i < (s32)ARRAY_SIZE(SD.fireBarFlame); i++) {
+        SD.fireBarFlame[i].active = 0;
+        SD.fireBarFlame[i].pos.y = y;
+        SD.fireBarFlame[i]._22 = 0;
     }
 }
 
@@ -323,19 +323,19 @@ static inline void sdResetTrail(f32 y) {
 void starDashSwitcher(void) {
     switch (g_GameLogic.gameStatus) {
     case GAME_STATUS_LOAD_GAME:
-        starDashSomething();
+        sD_LoadGame();
         break;
     case GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING:
-        fn_3_13BBF4();
+        sD_RoundIntro();
         break;
     case GAME_STATUS_DEFAULT:
-        fn_3_13BB30();
+        sD_StartPlay();
         break;
     case GAME_STATUS_LIVE_BALL:
         starDashLiveBall();
         break;
     case GAME_STATUS_TRANSITION_MINIGAME_POSTGAME:
-        fn_3_13B9C4();
+        sD_Postgame();
         break;
     }
     if (sound_crowd_EffectsStruct._30 != 0) {
@@ -344,12 +344,12 @@ void starDashSwitcher(void) {
 }
 
 // .text:0x0013C464 size:0x4 mapped:0x8077B4F8
-void fn_3_13C464(void) {
+void sD_EmptyHook(void) {
     return;
 }
 
 // .text:0x0013BCB8 size:0x7AC mapped:0x8077AD4C
-void starDashSomething(void) {
+void sD_LoadGame(void) {
     int i;
     int p;
     f32 floorY;
@@ -416,31 +416,31 @@ void starDashSomething(void) {
         SD.spawnTimer = 30;
         SD.spawnedCoins = 0;
         SD.spawnCount = 0;
-        SD.burst.active = 0;
-        SD.x_72A = 0;
-        SD._1D52 = 600;
+        SD.coinBag.active = 0;
+        SD.starActive = 0;
+        SD.starSpawnTimer = 600;
         SD.holder = -1;
-        SD.phase = 0;
-        SD.phaseIndex = 0;
-        SD.path[0].start.y = floorY;
-        SD.path[0].end.y = floorY;
-        SD.pathAngle[0] = 0;
-        SD.path[1].start.y = floorY;
-        SD.path[1].end.y = floorY;
-        SD.pathAngle[1] = 0x400;
-        SD.path[2].start.y = floorY;
-        SD.path[2].end.y = floorY;
-        SD.pathAngle[2] = 0x800;
-        SD.path[3].start.y = floorY;
-        SD.path[3].end.y = floorY;
-        SD.pathAngle[3] = 0xC00;
+        SD.fireBarPhase = 0;
+        SD.fireBarWave = 0;
+        SD.fireBar[0].start.y = floorY;
+        SD.fireBar[0].end.y = floorY;
+        SD.fireBarAngle[0] = 0;
+        SD.fireBar[1].start.y = floorY;
+        SD.fireBar[1].end.y = floorY;
+        SD.fireBarAngle[1] = 0x400;
+        SD.fireBar[2].start.y = floorY;
+        SD.fireBar[2].end.y = floorY;
+        SD.fireBarAngle[2] = 0x800;
+        SD.fireBar[3].start.y = floorY;
+        SD.fireBar[3].end.y = floorY;
+        SD.fireBarAngle[3] = 0xC00;
         sdResetTrail(floorY);
         if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0) {
-            lbl_3_bss_B781 = g_Minigame.soloMinigameDifficulty;
-            lbl_3_bss_B780 = lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty];
+            sD_thwompDifficulty = g_Minigame.soloMinigameDifficulty;
+            sD_thwompCount = lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty];
         } else {
-            lbl_3_bss_B781 = MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE;
-            lbl_3_bss_B780 = 4;
+            sD_thwompDifficulty = MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE;
+            sD_thwompCount = 4;
         }
         sdInitItems();
         SD.x_1D78[0] = 0;
@@ -451,7 +451,7 @@ void starDashSomething(void) {
         g_Minigame.powerup.timer = lbl_3_data_21B10[0];
         g_Minigame.powerup.activeInd = 0;
         g_Minigame.playerIDWithPowerup[0] = -1;
-        fn_3_133200();
+        sD_InitPulseTexture();
         fn_3_169600();
         minigamesSetSomePointers();
         minigamesGXStuff();
@@ -464,7 +464,7 @@ void starDashSomething(void) {
 }
 
 // .text:0x0013BBF4 size:0xC4 mapped:0x8077AC88
-void fn_3_13BBF4(void) {
+void sD_RoundIntro(void) {
     switch (g_GameLogic._125) {
     case 0:
         fn_3_10F550(2, lbl_3_data_21278[0]);
@@ -484,15 +484,15 @@ void fn_3_13BBF4(void) {
 }
 
 // .text:0x0013BB30 size:0xC4 mapped:0x8077ABC4
-void fn_3_13BB30(void) {
+void sD_StartPlay(void) {
     setDefaultInMemBall();
-    fn_3_1356F8();
+    sD_InitAI();
     changeScene(1, 6);
     SetGameStatus(GAME_STATUS_LIVE_BALL);
 }
 
 // .text:0x0013B9C4 size:0x16C mapped:0x8077AA58
-void fn_3_13B9C4(void) {
+void sD_Postgame(void) {
     u32 i;
 
     fn_3_157570();
@@ -504,10 +504,10 @@ void fn_3_13B9C4(void) {
     }
     SD.spawnTimer = 30;
     SD.spawnedCoins = 0;
-    SD.item[0].state = 0;
-    SD.item[1].state = 0;
-    SD.item[2].state = 0;
-    SD.item[3].state = 0;
+    SD.thwomp[0].state = 0;
+    SD.thwomp[1].state = 0;
+    SD.thwomp[2].state = 0;
+    SD.thwomp[3].state = 0;
     g_Minigame.powerup.activeInd = 0;
 }
 
@@ -523,22 +523,22 @@ void starDashLiveBall(void) {
         g_Minigame.minigameFramesRemaining != 0 && g_Minigame.minigameFramesRemaining % 60 == 0) {
         callSfx(lbl_3_data_81FC[40]);
     }
-    fn_3_13334C();
+    sD_UpdateAI();
     miniGameDash();
-    fn_3_133320();
-    fn_3_136220();
-    fn_3_139F84();
-    fn_3_139700();
-    fn_3_13AA78();
-    fn_3_136048();
-    fn_3_138AA4();
-    fn_3_136EA4();
-    fn_3_135924();
-    fn_3_13AFE4();
+    sD_ClearAIInputFlags();
+    sD_UpdateStuns();
+    sD_UpdateCoins();
+    sD_CheckCoinBag();
+    sD_UpdateStarAndHolder();
+    sD_RotateFireBars();
+    sD_UpdateThwomps();
+    sD_UpdatePowerup();
+    sD_PushCoinsOutOfPillar();
+    sD_UpdateTimeUp();
 }
 
 // .text:0x0013AFE4 size:0x2A0 mapped:0x8077A078
-void fn_3_13AFE4(void) {
+void sD_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (g_Minigame.minigameFramesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
@@ -556,12 +556,12 @@ void fn_3_13AFE4(void) {
         changeScene(3, 6);
     }
     if (g_GameLogic.CountdownUntilFade <= 0) {
-        fn_3_13AE1C();
+        sD_EndGame();
     }
 }
 
 // .text:0x0013AE1C size:0x1C8 mapped:0x80779EB0
-void fn_3_13AE1C(void) {
+void sD_EndGame(void) {
     u32 i;
 
     minigameCalculateRankings();
@@ -579,15 +579,15 @@ void fn_3_13AE1C(void) {
     }
     SD.spawnTimer = 30;
     SD.spawnedCoins = 0;
-    SD.item[0].state = 0;
-    SD.item[1].state = 0;
-    SD.item[2].state = 0;
-    SD.item[3].state = 0;
+    SD.thwomp[0].state = 0;
+    SD.thwomp[1].state = 0;
+    SD.thwomp[2].state = 0;
+    SD.thwomp[3].state = 0;
     g_Minigame.powerup.activeInd = 0;
 }
 
 // .text:0x0013ADC0 size:0x5C mapped:0x80779E54
-void fn_3_13ADC0(Vec* out, Vec* in, Vec* normal) {
+void sD_ReflectVec(Vec* out, Vec* in, Vec* normal) {
     f32 dot = in->x * normal->x + in->y * normal->y + in->z * normal->z;
 
     dot *= 2.0f;
@@ -597,7 +597,7 @@ void fn_3_13ADC0(Vec* out, Vec* in, Vec* normal) {
 }
 
 // .text:0x0013ACB4 size:0x10C mapped:0x80779D48
-void fn_3_13ACB4(CollisionStruct* hit) {
+void sD_ReflectStarArc(CollisionStruct* hit) {
     Vec normal;
     Vec rel;
     Vec out;
@@ -612,14 +612,14 @@ void fn_3_13ACB4(CollisionStruct* hit) {
         normal.x *= -1.0f;
         normal.z *= -1.0f;
     }
-    fn_3_13ADC0(&out, &rel, &normal);
+    sD_ReflectVec(&out, &rel, &normal);
     SD.starPath[0].x = hit->position.x + out.x;
     SD.starPath[0].z = hit->position.z + out.z;
     rel.x = hit->position.x - SD.starPath[2].x;
     rel.z = hit->position.z - SD.starPath[2].z;
     normal.x *= -1.0f;
     normal.z *= -1.0f;
-    fn_3_13ADC0(&out, &rel, &normal);
+    sD_ReflectVec(&out, &rel, &normal);
     SD.starPath[2].x = hit->position.x + out.x;
     SD.starPath[2].z = hit->position.z + out.z;
     SD.starPath[1].x = 0.5f * (SD.starPath[2].x + SD.starPath[0].x);
@@ -627,15 +627,15 @@ void fn_3_13ACB4(CollisionStruct* hit) {
 }
 
 // .text:0x0013AA78 size:0x23C mapped:0x80779B0C
-void fn_3_13AA78(void) {
-    if (SD.x_72A != 0) {
-        starDashRelated();
+void sD_UpdateStarAndHolder(void) {
+    if (SD.starActive != 0) {
+        sD_UpdateStar();
     } else {
-        fn_3_13A89C();
+        sD_UpdateStarSpawn();
     }
-    if ((s8)g_Minigame._1D6D >= 0) {
+    if ((s8)g_Minigame.starDashStarHolder >= 0) {
         if (--SD.holderFrames < 0 || g_Minigame.turnOverStatus != 0) {
-            fn_3_14E988(g_Minigame._1D6D);
+            fn_3_14E988(g_Minigame.starDashStarHolder);
             fn_800115C8(SD.holder);
             SD.holder = -1;
         }
@@ -643,17 +643,17 @@ void fn_3_13AA78(void) {
 }
 
 // .text:0x0013A89C size:0x1DC mapped:0x80779930
-void fn_3_13A89C(void) {
+void sD_UpdateStarSpawn(void) {
     if (g_Minigame.turnOverStatus == 0) {
-        if (--SD._1D52 <= 0) {
+        if (--SD.starSpawnTimer <= 0) {
             SD.starPos.x = lbl_3_data_219AC.x;
             SD.starPos.y = lbl_3_data_219AC.y;
             SD.starPos.z = lbl_3_data_219AC.z;
             SD.starBounces = 0;
-            fn_3_13A724();
-            SD.x_72A = 1;
+            sD_NewStarArc();
+            SD.starActive = 1;
             SD.starFrames = 0;
-            SD._1D52 = lbl_3_data_21A30[2];
+            SD.starSpawnTimer = lbl_3_data_21A30[2];
             fn_3_150010(4);
             fn_3_106EB0();
         }
@@ -661,7 +661,7 @@ void fn_3_13A89C(void) {
 }
 
 // .text:0x0013A724 size:0x178 mapped:0x807797B8
-void fn_3_13A724(void) {
+void sD_NewStarArc(void) {
     Vec rel;
     f32 speed;
     f32 unused;
@@ -686,7 +686,7 @@ void fn_3_13A724(void) {
 }
 
 // .text:0x0013A0AC size:0x678 mapped:0x80779140
-void starDashRelated(void) {
+void sD_UpdateStar(void) {
     u32 collision;
     VecSrcDst probe;
     CollisionStruct hit;
@@ -701,9 +701,9 @@ void starDashRelated(void) {
     SD.starFrames++;
     SD.pathFrames++;
     if (g_Minigame.turnOverStatus != 0) {
-        SD.x_72A = 0;
+        SD.starActive = 0;
     } else if (SD.starFrames > lbl_3_data_21A30[0]) {
-        SD.x_72A = 0;
+        SD.starActive = 0;
         fn_3_14E988(4);
     } else {
         probe.src.x = SD.starPos.x;
@@ -716,13 +716,13 @@ void starDashRelated(void) {
         collision = checkCollision(&probe, &hit, 0, FALSE);
         if (collision == BALL_COLLISION_TYPE_UNCLIMBABLE_WALL) {
             SD.starPos.z = probe.src.z;
-            fn_3_13ACB4(&hit);
+            sD_ReflectStarArc(&hit);
             SD.starPos.x = hit.position.x;
         }
         if (SD.starPos.y <= lbl_3_data_21A14[4]) {
             SD.starPos.y = lbl_3_data_21A14[4];
             SD.starBounces++;
-            fn_3_13A724();
+            sD_NewStarArc();
         }
         bestDist = 999.9f;
         for (p = 0, best = -1; p < 4; p++) {
@@ -748,8 +748,8 @@ void starDashRelated(void) {
         }
         if (best >= 0) {
             g_Minigame.miniGameCurrentPoints[best] += lbl_3_data_21A30[5];
-            SD.x_72A = 0;
-            g_Minigame._1D6D = best;
+            SD.starActive = 0;
+            g_Minigame.starDashStarHolder = best;
             SD.holderFrames = lbl_3_data_21A30[1];
             fn_3_14E988(4);
             if (g_Minigame.playerIDWithPowerup[0] == best) {
@@ -759,7 +759,7 @@ void starDashRelated(void) {
                 }
             }
             fn_3_150010(best);
-            fn_80011604((void*)(s32)(s8)best, fn_3_132EDC);
+            fn_80011604((void*)(s32)(s8)best, sD_PulseTevCallback);
             if (g_d_GameSettings.exhibitionMatchInd == 0 && best == lbl_3_common_bss_37400[0x20]) {
                 starMissionsMinigamesSpecialAction(3, 0, 0);
             }
@@ -781,15 +781,15 @@ void minigame_transferPoints(int toTeam, int fromTeam) {
 }
 
 // .text:0x00139F84 size:0xC4 mapped:0x80779018
-void fn_3_139F84(void) {
-    fn_3_139CA0();
-    fn_3_139808();
-    fn_3_13974C();
+void sD_UpdateCoins(void) {
+    sD_SpawnCoins();
+    sD_UpdateLooseCoins();
+    sD_UpdateCollectedCoins();
 }
 
 // .text:0x00139CA0 size:0x2E4 mapped:0x80778D34
-void fn_3_139CA0(void) {
-    SDBurst* burst = NULL;
+void sD_SpawnCoins(void) {
+    SDCoinBag* burst = NULL;
     u8 burstMode = FALSE;
     int i;
     int count;
@@ -803,9 +803,9 @@ void fn_3_139CA0(void) {
         return;
     }
     count = lbl_3_data_21A04[2];
-    if (SD.spawnCount % lbl_3_data_21A04[6] == 0 && 100 - SD.spawnedCoins >= 10 && SD.burst.active == 0) {
-        burst = &SD.burst;
-        SD.burst.active = 1;
+    if (SD.spawnCount % lbl_3_data_21A04[6] == 0 && 100 - SD.spawnedCoins >= 10 && SD.coinBag.active == 0) {
+        burst = &SD.coinBag;
+        SD.coinBag.active = 1;
         count = 10;
         burstMode = TRUE;
     }
@@ -861,7 +861,7 @@ void fn_3_139CA0(void) {
 }
 
 // .text:0x00139808 size:0x498 mapped:0x8077889C
-void fn_3_139808(void) {
+void sD_UpdateLooseCoins(void) {
     VecSrcDst probe;
     CollisionStruct hit;
     InMemFielder* fielder;
@@ -899,7 +899,7 @@ void fn_3_139808(void) {
         probe.dst.x = g_Minigame.coinPos[i].x;
         probe.dst.y = -g_Minigame.coinPos[i].y;
         probe.dst.z = g_Minigame.coinPos[i].z;
-        if (fn_3_1373E0(&probe, (Vec*)&g_Minigame.coinVelocity[i], &hit, lbl_3_data_219B8[15])) {
+        if (sD_CollideWithThwomps(&probe, (Vec*)&g_Minigame.coinVelocity[i], &hit, lbl_3_data_219B8[15])) {
             g_Minigame.coinPos[i].x = hit.position.x;
             g_Minigame.coinPos[i].y = hit.position.y;
             g_Minigame.coinPos[i].z = hit.position.z;
@@ -946,7 +946,7 @@ void fn_3_139808(void) {
 }
 
 // .text:0x0013974C size:0xBC mapped:0x807787E0
-void fn_3_13974C(void) {
+void sD_UpdateCollectedCoins(void) {
     u32 i;
 
     for (i = 0; i < 100; i++) {
@@ -963,19 +963,19 @@ void fn_3_13974C(void) {
 }
 
 // .text:0x00139700 size:0x4C mapped:0x80778794
-void fn_3_139700(void) {
-    if (SD.burst.active != 0) {
+void sD_CheckCoinBag(void) {
+    if (SD.coinBag.active != 0) {
         if (g_Minigame.turnOverStatus != 0) {
-            SD.burst.active = 0;
+            SD.coinBag.active = 0;
         } else {
-            fn_3_1391C0();
+            sD_UpdateCoinBag();
         }
     }
 }
 
 // .text:0x001391C0 size:0x540 mapped:0x80778254
-void fn_3_1391C0(void) {
-    SDBurst* burst = &SD.burst;
+void sD_UpdateCoinBag(void) {
+    SDCoinBag* burst = &SD.coinBag;
     VecSrcDst probe;
     CollisionStruct hit;
     InMemFielder* fielder;
@@ -1000,7 +1000,7 @@ void fn_3_1391C0(void) {
     probe.dst.x = burst->pos.x;
     probe.dst.y = -burst->pos.y;
     probe.dst.z = burst->pos.z;
-    if (fn_3_1373E0(&probe, (Vec*)&burst->vel, &hit, lbl_3_data_219B8[15])) {
+    if (sD_CollideWithThwomps(&probe, (Vec*)&burst->vel, &hit, lbl_3_data_219B8[15])) {
         burst->pos.x = hit.position.x;
         burst->pos.y = hit.position.y;
         burst->pos.z = hit.position.z;
@@ -1073,32 +1073,32 @@ void fn_3_1391C0(void) {
 }
 
 // .text:0x00138AA4 size:0x71C mapped:0x80777B38
-void fn_3_138AA4(void) {
+void sD_UpdateThwomps(void) {
     u32 i;
 
     if (g_Minigame.turnOverStatus == 0) {
-        for (i = 0; i < lbl_3_bss_B780; i++) {
+        for (i = 0; i < sD_thwompCount; i++) {
             if (i >= 4) {
                 break;
             }
-            switch (SD.item[i].state) {
+            switch (SD.thwomp[i].state) {
             case 0:
-                fn_3_138448(&SD.item[i]);
+                sD_ThwompWait(&SD.thwomp[i]);
                 break;
             case 1:
-                fn_3_1382E0(&SD.item[i]);
+                sD_ThwompHover(&SD.thwomp[i]);
                 break;
             case 2:
-                fn_3_13802C(&SD.item[i]);
+                sD_ThwompFall(&SD.thwomp[i]);
                 break;
             case 3:
-                fn_3_137F14(&SD.item[i]);
+                sD_ThwompGrounded(&SD.thwomp[i]);
                 break;
             case 4:
-                fn_3_137DE4(&SD.item[i]);
+                sD_ThwompKicked(&SD.thwomp[i]);
                 break;
             case 5:
-                fn_3_137CF8(&SD.item[i]);
+                sD_ThwompRise(&SD.thwomp[i]);
                 break;
             }
         }
@@ -1106,7 +1106,7 @@ void fn_3_138AA4(void) {
 }
 
 // .text:0x001384B4 size:0x5F0 mapped:0x80777548
-void fn_3_1384B4(SDItem* item) {
+void sD_ThwompPlace(SDThwomp* item) {
     Vec center = {0.0f, 0.0f, 20.0f};
     Vec rel;
     Vec dir;
@@ -1145,7 +1145,7 @@ void fn_3_1384B4(SDItem* item) {
             if (dir.z < 0.0f) {
                 angle = 360.0f - angle;
             }
-            if (angle >= item->_30 && angle <= item->_34) {
+            if (angle >= item->sectorStart && angle <= item->sectorEnd) {
                 sumX += rel.x;
                 sumZ += rel.z;
                 list[hits] = i;
@@ -1188,16 +1188,16 @@ void fn_3_1384B4(SDItem* item) {
             spawn.z *= 15.0f;
         }
     } else {
-        angle = item->_30;
-        angle = 0.017453292f * (angle + (item->_34 - angle) * ((f32)rand() / 32767.0f));
+        angle = item->sectorStart;
+        angle = 0.017453292f * (angle + (item->sectorEnd - angle) * ((f32)rand() / 32767.0f));
         spawn.x = cos(angle);
         spawn.z = sin(angle);
         spawn.y = 0.0f;
         PSVECNormalize(&spawn, &spawn);
         PSVECScale(&spawn, 10.0f * ((f32)rand() / 32767.0f) + 5.0f, &spawn);
     }
-    edgeCos = cos(0.017453292f * item->_34);
-    edgeSin = sin(0.017453292f * item->_34);
+    edgeCos = cos(0.017453292f * item->sectorEnd);
+    edgeSin = sin(0.017453292f * item->sectorEnd);
     along = spawn.x * edgeCos + spawn.z * edgeSin;
     projX = edgeCos * along;
     projZ = edgeSin * along;
@@ -1221,27 +1221,27 @@ void fn_3_1384B4(SDItem* item) {
 }
 
 // .text:0x00138448 size:0x6C mapped:0x807774DC
-void fn_3_138448(SDItem* item) {
-    if (SD.x_72A == 0) {
+void sD_ThwompWait(SDThwomp* item) {
+    if (SD.starActive == 0) {
         if (item->frames < (SD_COUNTER_MAX - 1)) {
             item->frames++;
         } else {
             item->frames = SD_COUNTER_MAX;
         }
         if (item->frames >= item->timer) {
-            item->_3E = 0;
-            fn_3_1384B4(item);
+            item->stunSfxPending = 0;
+            sD_ThwompPlace(item);
         }
     }
 }
 
 // .text:0x001382E0 size:0x168 mapped:0x80777374
-void fn_3_1382E0(SDItem* item) {
+void sD_ThwompHover(SDThwomp* item) {
     u32 level;
     u32 rawLevel;
 
     level = rawLevel = g_Minigame.minigameElapsedFrames / 60 / 20;
-    if (SD.x_72A != 0) {
+    if (SD.starActive != 0) {
         sdResetItem(item, rawLevel);
     } else {
         if (item->frames < (SD_COUNTER_MAX - 1)) {
@@ -1252,7 +1252,7 @@ void fn_3_1382E0(SDItem* item) {
         if (level > 3) {
             level = 3;
         }
-        if (item->frames / 60 >= lbl_3_data_21AD0[lbl_3_bss_B781][level]) {
+        if (item->frames / 60 >= lbl_3_data_21AD0[sD_thwompDifficulty][level]) {
             item->vel.z = 0.0f;
             item->vel.x = 0.0f;
             item->vel.y = -lbl_3_data_21A64[1];
@@ -1263,14 +1263,14 @@ void fn_3_1382E0(SDItem* item) {
 }
 
 // .text:0x0013802C size:0x2B4 mapped:0x807770C0
-void fn_3_13802C(SDItem* item) {
-    if (SD.x_72A != 0) {
+void sD_ThwompFall(SDThwomp* item) {
+    if (SD.starActive != 0) {
         item->vel.y = lbl_3_data_21A64[5];
         item->state = 5;
         item->frames = 0;
     } else {
         PSVECAdd((Vec*)&item->pos, (Vec*)&item->vel, (Vec*)&item->pos);
-        if (fn_3_137B10(item)) {
+        if (sD_ThwompHitPlayers(item)) {
             SD.x_1D78[item->owner] = 0;
             callSfx(0x30D);
         } else if (item->pos.y <= 0.0f) {
@@ -1278,9 +1278,9 @@ void fn_3_13802C(SDItem* item) {
             memset(&item->vel, 0, sizeof(Vec));
             item->frames = 0;
             item->state = 3;
-            lbl_3_bss_B702 = lbl_3_data_21AF0;
-            fn_800528AC(fn_3_1370A0);
-            fn_3_137224((Vec*)item);
+            sD_cameraShakeFrames = lbl_3_data_21AF0;
+            fn_800528AC(sD_CameraShakeCallback);
+            sD_ThwompScatterCoins((Vec*)item);
             SD.x_1D78[item->owner] = 0;
             callSfx(0x2F7);
         }
@@ -1288,17 +1288,17 @@ void fn_3_13802C(SDItem* item) {
 }
 
 // .text:0x00137F14 size:0x118 mapped:0x80776FA8
-void fn_3_137F14(SDItem* item) {
-    if (SD.x_72A != 0) {
+void sD_ThwompGrounded(SDThwomp* item) {
+    if (SD.starActive != 0) {
         item->vel.y = lbl_3_data_21A64[5];
         item->state = 5;
         item->frames = 0;
     } else {
-        if (item->_3E != 0) {
-            item->_3F++;
-            if (item->_3F >= 10) {
+        if (item->stunSfxPending != 0) {
+            item->stunSfxFrames++;
+            if (item->stunSfxFrames >= 10) {
                 callSfx(0x303);
-                item->_3E = 0;
+                item->stunSfxPending = 0;
             }
         }
         if (item->frames < (SD_COUNTER_MAX - 1)) {
@@ -1306,7 +1306,7 @@ void fn_3_137F14(SDItem* item) {
         } else {
             item->frames = SD_COUNTER_MAX;
         }
-        if (!fn_3_137B10(item) && (f32)item->frames >= lbl_3_data_21A64[6]) {
+        if (!sD_ThwompHitPlayers(item) && (f32)item->frames >= lbl_3_data_21A64[6]) {
             item->vel.y = lbl_3_data_21A64[5];
             item->state = 5;
             item->frames = 0;
@@ -1315,7 +1315,7 @@ void fn_3_137F14(SDItem* item) {
 }
 
 // .text:0x00137DE4 size:0x130 mapped:0x80776E78
-void fn_3_137DE4(SDItem* item) {
+void sD_ThwompKicked(SDThwomp* item) {
     u32 level;
 
     PSVECAdd((Vec*)&item->pos, (Vec*)&item->vel, (Vec*)&item->pos);
@@ -1335,11 +1335,11 @@ void fn_3_137DE4(SDItem* item) {
 }
 
 // .text:0x00137CF8 size:0xEC mapped:0x80776D8C
-void fn_3_137CF8(SDItem* item) {
+void sD_ThwompRise(SDThwomp* item) {
     u32 level;
 
     PSVECAdd((Vec*)&item->pos, (Vec*)&item->vel, (Vec*)&item->pos);
-    if (!fn_3_137B10(item) && item->pos.y >= lbl_3_data_21A64[0]) {
+    if (!sD_ThwompHitPlayers(item) && item->pos.y >= lbl_3_data_21A64[0]) {
         level = g_Minigame.minigameElapsedFrames / 60 / 20;
         if (level > 3) {
             level = 3;
@@ -1349,7 +1349,7 @@ void fn_3_137CF8(SDItem* item) {
 }
 
 // .text:0x00137B10 size:0x1E8 mapped:0x80776BA4
-u8 fn_3_137B10(SDItem* item) {
+u8 sD_ThwompHitPlayers(SDThwomp* item) {
     int p;
     u8 result = FALSE;
     InMemFielder* fielder;
@@ -1387,8 +1387,8 @@ u8 fn_3_137B10(SDItem* item) {
                             g_Minigame.starDashStunType[p] = 1;
                             g_Minigame.starDashCollisionPushDelta[p].x = fielder->pos.x - item->pos.x;
                             g_Minigame.starDashCollisionPushDelta[p].z = fielder->pos.z - item->pos.z;
-                            item->_3E = 1;
-                            item->_3F = 0;
+                            item->stunSfxPending = 1;
+                            item->stunSfxFrames = 0;
                         }
                     }
                 }
@@ -1399,9 +1399,9 @@ u8 fn_3_137B10(SDItem* item) {
 }
 
 // .text:0x001379A0 size:0x170 mapped:0x80776A34
-BOOL fn_3_1379A0(int fielderIndex) {
+BOOL sD_IsBlockedByThwomp(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    SDItem* item;
+    SDThwomp* item;
     u32 player;
     u32 i;
     f32 y;
@@ -1417,8 +1417,8 @@ BOOL fn_3_1379A0(int fielderIndex) {
     if (player == SD.holder) {
         return FALSE;
     }
-    for (i = 0; i < lbl_3_bss_B780; i++) {
-        item = &SD.item[i];
+    for (i = 0; i < sD_thwompCount; i++) {
+        item = &SD.thwomp[i];
         if (item->state == 3 || item->state == 5) {
             y = fielder->jumpY + (fielder->actionYOffset + fielder->pos.y);
             if (y < item->pos.y) {
@@ -1441,12 +1441,12 @@ BOOL fn_3_1379A0(int fielderIndex) {
 }
 
 // .text:0x001373E0 size:0x5C0 mapped:0x80776474
-u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radius) {
+u8 sD_CollideWithThwomps(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radius) {
     SDSide sides[4] = {{-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}};
     f32 diameter;
     f32 halfX;
     f32 halfZ;
-    SDItem* item;
+    SDThwomp* item;
     u32 i;
     u8 pushedOut;
     SDSide* side;
@@ -1464,8 +1464,8 @@ u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radi
     halfX = 3.5f + radius;
     diameter = 2.0f * radius;
     halfZ = 3.125f + radius;
-    for (i = 0; i < lbl_3_bss_B780; i++) {
-        item = &SD.item[i];
+    for (i = 0; i < sD_thwompCount; i++) {
+        item = &SD.thwomp[i];
         pushedOut = TRUE;
         if (item->state > 1 || item->state == 4) {
             if (item->pos.y > -segment->dst.y) {
@@ -1561,7 +1561,7 @@ u8 fn_3_1373E0(VecSrcDst* segment, Vec* velocity, CollisionStruct* out, f32 radi
 }
 
 // .text:0x00137224 size:0x1BC mapped:0x807762B8
-void fn_3_137224(Vec* pos) {
+void sD_ThwompScatterCoins(Vec* pos) {
     u32 i;
     Vec coin;
     Vec diff;
@@ -1591,13 +1591,13 @@ void fn_3_137224(Vec* pos) {
 }
 
 // .text:0x001371E8 size:0x3C mapped:0x8077627C
-void fn_3_1371E8(void) {
-    lbl_3_bss_B702 = lbl_3_data_21AF0;
-    fn_800528AC(fn_3_1370A0);
+void sD_StartCameraShake(void) {
+    sD_cameraShakeFrames = lbl_3_data_21AF0;
+    fn_800528AC(sD_CameraShakeCallback);
 }
 
 // .text:0x001370A0 size:0x148 mapped:0x80776134
-void fn_3_1370A0(camera_803c639c_s* cam) {
+void sD_CameraShakeCallback(camera_803c639c_s* cam) {
     Vec offset;
     Mtx invView;
 
@@ -1611,31 +1611,31 @@ void fn_3_1370A0(camera_803c639c_s* cam) {
     cam->target.x += offset.x;
     cam->target.y += offset.y;
     cam->target.z += offset.z;
-    if (--lbl_3_bss_B702 <= 0) {
-        lbl_3_bss_B702 = 0;
+    if (--sD_cameraShakeFrames <= 0) {
+        sD_cameraShakeFrames = 0;
         fn_800528B4();
     }
 }
 
 // .text:0x00136EA4 size:0x1FC mapped:0x80775F38
-void fn_3_136EA4(void) {
+void sD_UpdatePowerup(void) {
     if (g_Minigame.turnOverStatus != 0) {
         g_Minigame.playerIDWithPowerup[0] = -1;
         g_Minigame.powerup.activeInd = 0;
     } else if (g_Minigame.powerup.activeInd != 0) {
-        fn_3_13688C(&g_Minigame.powerup);
+        sD_UpdateLoosePowerup(&g_Minigame.powerup);
     } else {
-        fn_3_136CF4(&g_Minigame.powerup);
+        sD_UpdatePowerupTimer(&g_Minigame.powerup);
     }
 }
 
 // .text:0x00136CF4 size:0x1B0 mapped:0x80775D88
-void fn_3_136CF4(MinigamePowerupStruct* powerup) {
+void sD_UpdatePowerupTimer(MinigamePowerupStruct* powerup) {
     f32 angle;
 
     if (g_Minigame.playerIDWithPowerup[0] != -1) {
-        if (--g_Minigame._1D58 <= 0) {
-            if ((s8)g_Minigame._1D6D != g_Minigame.playerIDWithPowerup[0]) {
+        if (--g_Minigame.powerupHoldFrames <= 0) {
+            if ((s8)g_Minigame.starDashStarHolder != g_Minigame.playerIDWithPowerup[0]) {
                 fn_800115C8(g_Minigame.playerIDWithPowerup[0]);
             }
             g_Minigame.playerIDWithPowerup[0] = -1;
@@ -1662,7 +1662,7 @@ void fn_3_136CF4(MinigamePowerupStruct* powerup) {
 }
 
 // .text:0x0013688C size:0x468 mapped:0x80775920
-void fn_3_13688C(MinigamePowerupStruct* powerup) {
+void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
     VecSrcDst probe;
     CollisionStruct hit;
     InMemFielder* fielder;
@@ -1687,7 +1687,7 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
     probe.dst.x = powerup->pos.x;
     probe.dst.y = -powerup->pos.y;
     probe.dst.z = powerup->pos.z;
-    if (fn_3_1373E0(&probe, (Vec*)&powerup->_0C, &hit, lbl_3_data_21AF8[3])) {
+    if (sD_CollideWithThwomps(&probe, (Vec*)&powerup->_0C, &hit, lbl_3_data_21AF8[3])) {
         powerup->pos.x = hit.position.x;
         powerup->pos.y = hit.position.y;
         powerup->pos.z = hit.position.z;
@@ -1716,10 +1716,10 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
     }
     if (best >= 0) {
         g_Minigame.playerIDWithPowerup[0] = best;
-        g_Minigame._1D58 = lbl_3_data_21B10[2];
+        g_Minigame.powerupHoldFrames = lbl_3_data_21B10[2];
         if (g_Minigame.powerup.activeInd == 2) {
-            if ((s8)g_Minigame._1D6D == best) {
-                fn_3_14E988(g_Minigame._1D6D);
+            if ((s8)g_Minigame.starDashStarHolder == best) {
+                fn_3_14E988(g_Minigame.starDashStarHolder);
                 fn_800115C8(best);
                 SD.holder = -1;
             }
@@ -1743,7 +1743,7 @@ void fn_3_13688C(MinigamePowerupStruct* powerup) {
 }
 
 // .text:0x00136220 size:0x66C mapped:0x807752B4
-void fn_3_136220(void) {
+void sD_UpdateStuns(void) {
     InMemFielder* fielder;
     int p;
     VecSrcDst probe;
@@ -1765,18 +1765,18 @@ void fn_3_136220(void) {
                 g_Minigame.starDashCollisionPushDelta[p].x *= lbl_3_data_21B18[0] / len;
                 g_Minigame.starDashCollisionPushDelta[p].z *= lbl_3_data_21B18[0] / len;
                 g_Minigame.starDashCollisionPushDelta[p].y = 0.0f;
-                SD._1D5A[p] = 0;
+                SD.stunFrames[p] = 0;
                 g_Minigame.starDashStunType[p] = 2;
                 if (g_Minigame.playerIDWithPowerup[0] == p) {
                     fn_800115C8(g_Minigame.playerIDWithPowerup[0]);
                     g_Minigame.playerIDWithPowerup[0] = -1;
                 }
-                fn_3_1360BC(p);
+                sD_DropCoins(p);
                 callSfx(0x2E7);
                 playCharacterSound(fielder->CharID, 10);
                 setCharacterAnimations(g_Minigame.playerSlots.characterIndex[p], 2);
             } else if (g_Minigame.starDashStunType[p] == 2) {
-                SD._1D5A[p]++;
+                SD.stunFrames[p]++;
                 len = VEC_LENGTH_XZ(&g_Minigame.starDashCollisionPushDelta[p]);
                 if (len > 0.0f) {
                     probe.src.x = fielder->pos.x;
@@ -1796,16 +1796,16 @@ void fn_3_136220(void) {
                     g_Minigame.starDashCollisionPushDelta[p].x *= lbl_3_data_21B18[1];
                     g_Minigame.starDashCollisionPushDelta[p].z *= lbl_3_data_21B18[1];
                 }
-                if (SD._1D5A[p] > lbl_3_data_21B20[1]) {
+                if (SD.stunFrames[p] > lbl_3_data_21B20[1]) {
                     g_Minigame.starDashStunType[p] = 3;
                     fielder->velocityX = 0.0f;
                     fielder->velocityZ = 0.0f;
-                    SD._1D5A[p] = 0;
+                    SD.stunFrames[p] = 0;
                     fielder->currentVelocity = 0.0f;
                 }
             } else if (g_Minigame.starDashStunType[p] == 3) {
-                SD._1D5A[p]++;
-                if (SD._1D5A[p] > lbl_3_data_21B20[2]) {
+                SD.stunFrames[p]++;
+                if (SD.stunFrames[p] > lbl_3_data_21B20[2]) {
                     g_Minigame.starDashStunType[p] = 0;
                 }
             }
@@ -1843,7 +1843,7 @@ void fn_3_136220(void) {
 
 #pragma dont_inline on
 // .text:0x001360BC size:0x164 mapped:0x80775150
-void fn_3_1360BC(int player) {
+void sD_DropCoins(int player) {
     InMemFielder* fielder;
     int n;
     int i;
@@ -1886,61 +1886,61 @@ void fn_3_1360BC(int player) {
 #pragma dont_inline reset
 
 // .text:0x00136048 size:0x74 mapped:0x807750DC
-void fn_3_136048(void) {
+void sD_RotateFireBars(void) {
     int p;
 
     for (p = 0; p < 4; p++) {
-        SD.pathAngle[p] += lbl_3_data_21A44;
-        SD.pathAngle[p] = normalizeAngle(SD.pathAngle[p]);
+        SD.fireBarAngle[p] += lbl_3_data_21A44;
+        SD.fireBarAngle[p] = normalizeAngle(SD.fireBarAngle[p]);
     }
 }
 
 // .text:0x00135FF4 size:0x54 mapped:0x80775088
-void fn_3_135FF4(void) {
-    int start = lbl_3_data_21A3C[SD.phaseIndex][0] * 60;
+void sD_CheckFireBarStart(void) {
+    int start = lbl_3_data_21A3C[SD.fireBarWave][0] * 60;
 
     if (start == g_Minigame.minigameElapsedFrames) {
-        SD.phase = 1;
-        SD.phaseFrames = 0;
-        SD.phaseProgress = 0.0f;
-        SD.phaseIndex++;
+        SD.fireBarPhase = 1;
+        SD.fireBarFrames = 0;
+        SD.fireBarExtent = 0.0f;
+        SD.fireBarWave++;
     }
 }
 
 // .text:0x00135F4C size:0xA8 mapped:0x80774FE0
-void fn_3_135F4C(void) {
-    SD.phaseFrames++;
-    SD.phaseProgress = (f32)SD.phaseFrames / (f32)lbl_3_data_21A60[0];
-    fn_3_135C18();
-    if (SD.phaseFrames >= lbl_3_data_21A60[0]) {
-        SD.phase = 2;
+void sD_FireBarGrow(void) {
+    SD.fireBarFrames++;
+    SD.fireBarExtent = (f32)SD.fireBarFrames / (f32)lbl_3_data_21A60[0];
+    sD_UpdateFireBars();
+    if (SD.fireBarFrames >= lbl_3_data_21A60[0]) {
+        SD.fireBarPhase = 2;
     }
 }
 
 // .text:0x00135E98 size:0xB4 mapped:0x80774F2C
-void fn_3_135E98(void) {
-    SD.phaseFrames++;
-    SD.phaseProgress = 1.0f - (f32)SD.phaseFrames / (f32)lbl_3_data_21A60[0];
-    fn_3_135C18();
-    if (SD.phaseFrames >= lbl_3_data_21A60[0]) {
-        SD.phase = 0;
+void sD_FireBarShrink(void) {
+    SD.fireBarFrames++;
+    SD.fireBarExtent = 1.0f - (f32)SD.fireBarFrames / (f32)lbl_3_data_21A60[0];
+    sD_UpdateFireBars();
+    if (SD.fireBarFrames >= lbl_3_data_21A60[0]) {
+        SD.fireBarPhase = 0;
     }
 }
 
 // .text:0x00135E38 size:0x60 mapped:0x80774ECC
-void fn_3_135E38(void) {
+void sD_FireBarHold(void) {
     int end;
 
-    fn_3_135C18();
-    end = lbl_3_data_21A3C[SD.phaseIndex - 1][1] * 60;
+    sD_UpdateFireBars();
+    end = lbl_3_data_21A3C[SD.fireBarWave - 1][1] * 60;
     if (end == g_Minigame.minigameElapsedFrames) {
-        SD.phase = 3;
-        SD.phaseFrames = 0;
+        SD.fireBarPhase = 3;
+        SD.fireBarFrames = 0;
     }
 }
 
 // .text:0x00135C18 size:0x220 mapped:0x80774CAC
-void fn_3_135C18(void) {
+void sD_UpdateFireBars(void) {
     int p;
     int k;
     int idx;
@@ -1951,30 +1951,30 @@ void fn_3_135C18(void) {
     f32 stepLen;
     f32 d;
 
-    span = SD.phaseProgress * lbl_3_data_21A54[1] - lbl_3_data_21A54[0];
+    span = SD.fireBarExtent * lbl_3_data_21A54[1] - lbl_3_data_21A54[0];
     stepLen = (lbl_3_data_21A54[1] - lbl_3_data_21A54[0]) / (f32)lbl_3_data_21A60[1];
     outerR = span + lbl_3_data_21A54[0];
     for (p = 0, idx = 0; p < 4; p++) {
-        getComponentsFromSAng(SD.pathAngle[p], &vx, &vz);
-        SD.path[p].start.x = vx * lbl_3_data_21A54[0] + lbl_3_data_21A48.x;
-        SD.path[p].start.z = vz * lbl_3_data_21A54[0] + lbl_3_data_21A48.z;
-        SD.path[p].end.x = vx * outerR + lbl_3_data_21A48.x;
-        SD.path[p].end.z = vz * outerR + lbl_3_data_21A48.z;
-        vx = (SD.path[p].end.x - SD.path[p].start.x) / span;
-        vz = (SD.path[p].end.z - SD.path[p].start.z) / span;
+        getComponentsFromSAng(SD.fireBarAngle[p], &vx, &vz);
+        SD.fireBar[p].start.x = vx * lbl_3_data_21A54[0] + lbl_3_data_21A48.x;
+        SD.fireBar[p].start.z = vz * lbl_3_data_21A54[0] + lbl_3_data_21A48.z;
+        SD.fireBar[p].end.x = vx * outerR + lbl_3_data_21A48.x;
+        SD.fireBar[p].end.z = vz * outerR + lbl_3_data_21A48.z;
+        vx = (SD.fireBar[p].end.x - SD.fireBar[p].start.x) / span;
+        vz = (SD.fireBar[p].end.z - SD.fireBar[p].start.z) / span;
         d = span;
         for (k = 0; k < lbl_3_data_21A60[1]; k++, idx++) {
-            SD.trail[idx].pos.x = vx * d + SD.path[p].start.x;
-            SD.trail[idx].pos.z = vz * d + SD.path[p].start.z;
+            SD.fireBarFlame[idx].pos.x = vx * d + SD.fireBar[p].start.x;
+            SD.fireBarFlame[idx].pos.z = vz * d + SD.fireBar[p].start.z;
             if (d < 0.0f) {
-                SD.trail[idx].active = 0;
+                SD.fireBarFlame[idx].active = 0;
             } else {
                 d -= stepLen;
-                if (SD.trail[idx].active) {
-                    fn_3_156548(idx, SD.trail[idx].pos.x, -SD.trail[idx].pos.y, SD.trail[idx].pos.z);
+                if (SD.fireBarFlame[idx].active) {
+                    fn_3_156548(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
                 } else {
-                    fn_3_15730C(idx, SD.trail[idx].pos.x, -SD.trail[idx].pos.y, SD.trail[idx].pos.z);
-                    SD.trail[idx].active = 1;
+                    fn_3_15730C(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
+                    SD.fireBarFlame[idx].active = 1;
                 }
             }
         }
@@ -1982,14 +1982,14 @@ void fn_3_135C18(void) {
 }
 
 // .text:0x00135A64 size:0x1B4 mapped:0x80774AF8
-void fn_3_135A64(void) {
+void sD_FireBarBurnPlayers(void) {
     InMemFielder* fielder;
     int p;
     int k;
     int angle;
     f32 dist;
 
-    if (g_Minigame.turnOverStatus == 0 && !(SD.phaseProgress < 0.3f)) {
+    if (g_Minigame.turnOverStatus == 0 && !(SD.fireBarExtent < 0.3f)) {
         for (p = 0; p < 4; p++) {
             if (g_Minigame.playerSlots.fielderIndex[p] >= 0 && p != SD.holder &&
                 g_Minigame.starDashStunType[p] == 0) {
@@ -1998,14 +1998,14 @@ void fn_3_135A64(void) {
                     angle = calculateAngleFromCoordinates(fielder->pos.x - lbl_3_data_219AC.x,
                                                           fielder->pos.z - lbl_3_data_219AC.z);
                     for (k = 0; k < 4; k++) {
-                        if (getDifferenceInAngle(angle, SD.pathAngle[k]) <= 0x200) {
-                            dist = calculateBallInterceptDistance(&SD.path[k].start, &SD.path[k].end,
+                        if (getDifferenceInAngle(angle, SD.fireBarAngle[k]) <= 0x200) {
+                            dist = calculateBallInterceptDistance(&SD.fireBar[k].start, &SD.fireBar[k].end,
                                                                   &fielder->pos, NULL);
                             if (dist < lbl_3_data_21A54[2] + fielderHitboxesForGarlicKnockout[fielder->Weight] &&
                                 dist >= 0.0f) {
-                                fn_3_1360BC(p);
+                                sD_DropCoins(p);
                                 g_Minigame.starDashStunType[p] = 3;
-                                SD._1D5A[p] = 0;
+                                SD.stunFrames[p] = 0;
                                 maybeCastleFireballBurn(g_Minigame.playerSlots.fielderIndex[p], 2);
                                 setCharacterAnimations(g_Minigame.playerSlots.characterIndex[p], 2);
                                 break;
@@ -2019,18 +2019,18 @@ void fn_3_135A64(void) {
 }
 
 // .text:0x00135924 size:0x140 mapped:0x807749B8
-void fn_3_135924(void) {
+void sD_PushCoinsOutOfPillar(void) {
     u32 i;
 
     for (i = 0; i < 100; i++) {
         if (g_Minigame.coinState[i] == 1 && g_Minigame.coinPos[i].y < 3.0f) {
-            fn_3_13583C((Vec*)&g_Minigame.coinPos[i]);
+            sD_KeepOutOfPillar((Vec*)&g_Minigame.coinPos[i]);
         }
     }
 }
 
 // .text:0x0013583C size:0xE8 mapped:0x807748D0
-void fn_3_13583C(Vec* pos) {
+void sD_KeepOutOfPillar(Vec* pos) {
     Vec center = {0.0f, 0.0f, 20.0f};
     Vec diff;
 
@@ -2040,12 +2040,12 @@ void fn_3_13583C(Vec* pos) {
     PSVECSubtract(pos, &center, &diff);
     diff.y = 0.0f;
     if (PSVECMag(&diff) <= 3.5f) {
-        fn_3_1357A4(pos, &diff);
+        sD_PushToPillarEdge(pos, &diff);
     }
 }
 
 // .text:0x001357A4 size:0x98 mapped:0x80774838
-void fn_3_1357A4(Vec* out, Vec* dir) {
+void sD_PushToPillarEdge(Vec* out, Vec* dir) {
     Vec base = {0.0f, 0.0f, 20.0f};
     Vec offset;
 
@@ -2059,7 +2059,7 @@ void fn_3_1357A4(Vec* out, Vec* dir) {
 }
 
 // .text:0x001356F8 size:0xAC mapped:0x8077478C
-void fn_3_1356F8(void) {
+void sD_InitAI(void) {
     SDAI* ai = g_Minigame.sd.aiState.ai;
     u8 strength;
     u32 i;
@@ -2068,13 +2068,13 @@ void fn_3_1356F8(void) {
     for (i = 0; i < 4; i++) {
         strength = g_Minigame.playerSlots.aiStrength[i];
         ai->angle = -1;
-        ai->_0 = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
+        ai->avoidMargin = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
         ai++;
     }
 }
 
 // .text:0x00135698 size:0x60 mapped:0x8077472C
-int fn_3_135698(const void* a, const void* b) {
+int sD_CompareCoinEntries(const void* a, const void* b) {
     const SDCoinEntry* ea = a;
     const SDCoinEntry* eb = b;
 
@@ -2091,7 +2091,7 @@ int fn_3_135698(const void* a, const void* b) {
 }
 
 // .text:0x0013564C size:0x4C mapped:0x807746E0
-int fn_3_13564C(f32 x, f32 z) {
+int sD_GetQuadrant(f32 x, f32 z) {
     if (x >= 0.0f) {
         if (z >= 0.0f) {
             return 0;
@@ -2105,7 +2105,7 @@ int fn_3_13564C(f32 x, f32 z) {
 }
 
 // .text:0x00135600 size:0x4C mapped:0x80774694
-void fn_3_135600(f32 x, f32 z, f32* outX, f32* outZ) {
+void sD_ToFireBarSpace(f32 x, f32 z, f32* outX, f32* outZ) {
     SDAIState* st = &g_Minigame.sd.aiState;
 
     x -= lbl_3_data_21A48.x;
@@ -2116,7 +2116,7 @@ void fn_3_135600(f32 x, f32 z, f32* outX, f32* outZ) {
 
 #pragma dont_inline on
 // .text:0x00135520 size:0xE0 mapped:0x807745B4
-u32 fn_3_135520(f32 x, f32 z, f32 radius) {
+u32 sD_FireBarZone(f32 x, f32 z, f32 radius) {
     if (x >= 0.0f) {
         if (z >= 0.0f) {
             if (z <= radius) {
@@ -2155,10 +2155,10 @@ u32 fn_3_135520(f32 x, f32 z, f32 radius) {
 #pragma dont_inline reset
 
 // .text:0x001354BC size:0x64 mapped:0x80774550
-BOOL fn_3_1354BC(u32 item, f32 x, f32 z) {
+BOOL sD_IsNearThwomp(u32 item, f32 x, f32 z) {
     BOOL result = FALSE;
-    f32 dx = fabs(g_Minigame.sd.item[item].pos.x - x);
-    f32 dz = fabs(g_Minigame.sd.item[item].pos.z - z);
+    f32 dx = fabs(g_Minigame.sd.thwomp[item].pos.x - x);
+    f32 dz = fabs(g_Minigame.sd.thwomp[item].pos.z - z);
 
     if (dx <= 4.7f && dz <= 4.325f) {
         result = TRUE;
@@ -2167,7 +2167,7 @@ BOOL fn_3_1354BC(u32 item, f32 x, f32 z) {
 }
 
 // .text:0x001350BC size:0x400 mapped:0x80774150
-SDCoinEntry* fn_3_1350BC(u32 player, u32 quadrant, u32 count, SDCoinEntry* entries) {
+SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* entries) {
     u32 i;
     u32 p;
     u32 k;
@@ -2199,8 +2199,8 @@ SDCoinEntry* fn_3_1350BC(u32 player, u32 quadrant, u32 count, SDCoinEntry* entri
                 if (e->valid) {
                     i = 0;
                     do {
-                        if (SD.item[i].state >= 1 && SD.item[i].state <= 3) {
-                            if (fn_3_1354BC(i, cx, cz)) {
+                        if (SD.thwomp[i].state >= 1 && SD.thwomp[i].state <= 3) {
+                            if (sD_IsNearThwomp(i, cx, cz)) {
                                 e->valid = 0;
                                 break;
                             }
@@ -2227,25 +2227,25 @@ SDCoinEntry* fn_3_1350BC(u32 player, u32 quadrant, u32 count, SDCoinEntry* entri
                     }
                 }
             }
-            if (SD.phase != 0 && player != SD.holder) {
+            if (SD.fireBarPhase != 0 && player != SD.holder) {
                 if (((quadrant + 1) & 3) == e->quadrant) {
                     e->score += 10000.0f;
                 } else if (((quadrant + 2) & 3) == e->quadrant) {
                     e->score += 400.0f;
                 }
-                if (fn_3_135520(e->x, e->z, 2.0f * lbl_3_data_21A54[2])) {
+                if (sD_FireBarZone(e->x, e->z, 2.0f * lbl_3_data_21A54[2])) {
                     e->valid = 0;
                 }
             }
         } while (++k < count);
-        fn_800246D4(fn_3_135698, entries, entries, sizeof(SDCoinEntry), count);
+        fn_800246D4(sD_CompareCoinEntries, entries, entries, sizeof(SDCoinEntry), count);
         return entries;
     }
     return NULL;
 }
 
 // .text:0x00134D4C size:0x370 mapped:0x80773DE0
-u32 fn_3_134D4C(f32 cx, f32 cz, f32 radius, f32 ax, f32 az, f32 bx, f32 bz) {
+u32 sD_SegmentHitsCircle(f32 cx, f32 cz, f32 radius, f32 ax, f32 az, f32 bx, f32 bz) {
     f32 dx;
     f32 dz;
     f32 dist;
@@ -2288,19 +2288,19 @@ u32 fn_3_134D4C(f32 cx, f32 cz, f32 radius, f32 ax, f32 az, f32 bx, f32 bz) {
 }
 
 // .text:0x00134C80 size:0xCC mapped:0x80773D14
-BOOL fn_3_134C80(u32 player, int a, u32 b, f32 x, f32 z) {
-    if (g_Minigame._1D72 != 0 && player != (s8)g_Minigame._1D6D) {
+BOOL sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z) {
+    if (g_Minigame.starDashFireBarPhase != 0 && player != (s8)g_Minigame.starDashStarHolder) {
         if (b == ((a + 1) & 3) || b == ((a + 2) & 3)) {
             return TRUE;
         }
     }
-    return !!fn_3_134D4C(lbl_3_data_21A48.x, lbl_3_data_21A48.z, 4.5f,
+    return !!sD_SegmentHitsCircle(lbl_3_data_21A48.x, lbl_3_data_21A48.z, 4.5f,
                          g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.x,
                          g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.z, x, z);
 }
 
 // .text:0x0013493C size:0x344 mapped:0x807739D0
-int fn_3_13493C(u32 player, f32* targetX, f32* targetZ, u32 depth) {
+int sD_AIRouteAroundCenter(u32 player, f32* targetX, f32* targetZ, u32 depth) {
     f32 angle;
     f32 x1;
     f32 z1;
@@ -2316,7 +2316,7 @@ int fn_3_13493C(u32 player, f32* targetX, f32* targetZ, u32 depth) {
     dx = *targetX - g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.x;
     dz = *targetZ - g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.z;
     angle = atan2(dz, dx);
-    if (g_Minigame._1D72 != 0 && player != (s8)g_Minigame._1D6D) {
+    if (g_Minigame.starDashFireBarPhase != 0 && player != (s8)g_Minigame.starDashStarHolder) {
         angle += HALF_PI;
         angle = radianAngleReduction(angle);
         *targetX = 8.0f * COSF(angle) + lbl_3_data_21A48.x;
@@ -2344,18 +2344,18 @@ int fn_3_13493C(u32 player, f32* targetX, f32* targetZ, u32 depth) {
         }
     }
     if (depth != 0) {
-        if (fn_3_134D4C(lbl_3_data_21A48.x, lbl_3_data_21A48.z, 4.5f,
+        if (sD_SegmentHitsCircle(lbl_3_data_21A48.x, lbl_3_data_21A48.z, 4.5f,
                         g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.x,
                         g_Fielders[g_Minigame.playerSlots.fielderIndex[player]].pos.z, *targetX, *targetZ)) {
-            fn_3_13493C(player, targetX, targetZ, depth - 1);
+            sD_AIRouteAroundCenter(player, targetX, targetZ, depth - 1);
         }
     }
-    fn_3_135600(*targetX, *targetZ, &rotX, &rotZ);
-    return fn_3_13564C(rotX, rotZ);
+    sD_ToFireBarSpace(*targetX, *targetZ, &rotX, &rotZ);
+    return sD_GetQuadrant(rotX, rotZ);
 }
 
 // .text:0x00134918 size:0x24 mapped:0x807739AC
-int fn_3_134918(const void* a, const void* b) {
+int sD_CompareTargetDist(const void* a, const void* b) {
     if (((const SDTargetEntry*)a)->distSq < ((const SDTargetEntry*)b)->distSq) {
         return -1;
     }
@@ -2363,12 +2363,12 @@ int fn_3_134918(const void* a, const void* b) {
 }
 
 // .text:0x00134908 size:0x10 mapped:0x8077399C
-int fn_3_134908(const void* a, const void* b) {
+int sD_CompareTargetPoints(const void* a, const void* b) {
     return ((const SDTargetEntry*)b)->points - ((const SDTargetEntry*)a)->points;
 }
 
 // .text:0x00134658 size:0x2B0 mapped:0x807736EC
-void fn_3_134658(u32 target, f32* outX, f32* outZ, u32* outQuadrant) {
+void sD_AIPickTargetPlayer(u32 target, f32* outX, f32* outZ, u32* outQuadrant) {
     SDTargetEntry entries[4];
     u32 i;
     u32 count;
@@ -2401,27 +2401,27 @@ void fn_3_134658(u32 target, f32* outX, f32* outZ, u32* outQuadrant) {
     } while (++i < 4);
     if (count != 0) {
         u32 k;
-        fn_800246D4(fn_3_134918, entries, entries, 8, count);
+        fn_800246D4(sD_CompareTargetDist, entries, entries, 8, count);
         k = 0;
         do {
             if (entries[k].distSq <= 4.0f && entries[k].points > 0) {
                 *outX = g_Fielders[g_Minigame.playerSlots.fielderIndex[entries[k].player]].pos.x;
                 *outZ = g_Fielders[g_Minigame.playerSlots.fielderIndex[entries[k].player]].pos.z;
-                *outQuadrant = fn_3_13564C(*outX, *outZ);
+                *outQuadrant = sD_GetQuadrant(*outX, *outZ);
                 return;
             }
         } while (++k < count);
-        fn_800246D4(fn_3_134908, entries, entries, 8, count);
+        fn_800246D4(sD_CompareTargetPoints, entries, entries, 8, count);
         if (entries[0].points > 0) {
             *outX = g_Fielders[g_Minigame.playerSlots.fielderIndex[entries[0].player]].pos.x;
             *outZ = g_Fielders[g_Minigame.playerSlots.fielderIndex[entries[0].player]].pos.z;
-            *outQuadrant = fn_3_13564C(*outX, *outZ);
+            *outQuadrant = sD_GetQuadrant(*outX, *outZ);
         }
     }
 }
 
 // .text:0x001345AC size:0xAC mapped:0x80773640
-s16 fn_3_1345AC(s16 a, s16 b, u32 c) {
+s16 sD_AITurnToward(s16 a, s16 b, u32 c) {
     s16 step;
 
     if (a < 0 || b < 0) {
@@ -2435,7 +2435,7 @@ s16 fn_3_1345AC(s16 a, s16 b, u32 c) {
 }
 
 // .text:0x001344BC size:0xF0 mapped:0x80773550
-BOOL fn_3_1344BC(int a, int b) {
+BOOL sD_IsAheadAroundCenter(int a, int b) {
     f32 bX;
     f32 bZ;
     f32 aAngle;
@@ -2454,7 +2454,7 @@ static inline int sdTangentAngle(s8 p) {
     return radToShortAngle(atan2(-(SD_FIELDER(p).pos.x - lbl_3_data_21A48.x), SD_FIELDER(p).pos.z - lbl_3_data_21A48.z));
 }
 
-void fn_3_13334C(void) {
+void sD_UpdateAI(void) {
     SDCoinEntry* list;
     SDCoinEntry* entry;
     InMemFielder* holder;
@@ -2492,24 +2492,24 @@ void fn_3_13334C(void) {
     s8 k;
 
     list = _OSAllocFromHeap(4, 1000);
-    fn_3_133320();
-    st->rotSin = sin(-fn_3_9FDD8(SD.pathAngle[0]));
-    st->rotCos = cos(-fn_3_9FDD8(SD.pathAngle[0]));
-    if (SD.x_72A != 0) {
-        fn_3_135600(SD.starPos.x, SD.starPos.z, &rx, &rz);
-        quadStar = fn_3_13564C(rx, rz);
+    sD_ClearAIInputFlags();
+    st->rotSin = sin(-fn_3_9FDD8(SD.fireBarAngle[0]));
+    st->rotCos = cos(-fn_3_9FDD8(SD.fireBarAngle[0]));
+    if (SD.starActive != 0) {
+        sD_ToFireBarSpace(SD.starPos.x, SD.starPos.z, &rx, &rz);
+        quadStar = sD_GetQuadrant(rx, rz);
     } else {
         quadStar = 4;
     }
-    if (SD.burst.active != 0) {
-        fn_3_135600(SD.burst.pos.x, SD.burst.pos.z, &rx, &rz);
-        quadBurst = fn_3_13564C(rx, rz);
+    if (SD.coinBag.active != 0) {
+        sD_ToFireBarSpace(SD.coinBag.pos.x, SD.coinBag.pos.z, &rx, &rz);
+        quadBurst = sD_GetQuadrant(rx, rz);
     } else {
         quadBurst = 4;
     }
     if (g_Minigame.powerup.activeInd == 1) {
-        fn_3_135600(g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z, &rx, &rz);
-        quadPowerup = fn_3_13564C(rx, rz);
+        sD_ToFireBarSpace(g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z, &rx, &rz);
+        quadPowerup = sD_GetQuadrant(rx, rz);
     } else {
         quadPowerup = 4;
     }
@@ -2519,8 +2519,8 @@ void fn_3_13334C(void) {
     do {
         if (g_Minigame.coinState[i] == 1) {
             entry->coin = i;
-            fn_3_135600(g_Minigame.coinPos[i].x, g_Minigame.coinPos[i].z, &entry->x, &entry->z);
-            entry->quadrant = fn_3_13564C(entry->x, entry->z);
+            sD_ToFireBarSpace(g_Minigame.coinPos[i].x, g_Minigame.coinPos[i].z, &entry->x, &entry->z);
+            entry->quadrant = sD_GetQuadrant(entry->x, entry->z);
             entry++;
             count++;
         }
@@ -2532,42 +2532,42 @@ void fn_3_13334C(void) {
         if (character < 0 || character >= 4 || !g_Minigame.playerSlots.aiControlledInd[p]) {
             continue;
         }
-        g_Minigame._1DC8[character] = 1;
+        g_Minigame.aiDrivenInputInd[character] = 1;
         memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
         g_Minigame._1D7C[character].controlStickAngle = -1;
         input = &g_Minigame._1D7C[character];
         strength = g_Minigame.playerSlots.aiStrength[p];
-        fn_3_135600(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, &rx, &rz);
-        quadrant = fn_3_13564C(rx, rz);
+        sD_ToFireBarSpace(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, &rx, &rz);
+        quadrant = sD_GetQuadrant(rx, rz);
         switch (ai->state) {
         case 0:
             if (drawStadiumRelated != 0 && dash->sprintSpeedMultiplier <= lbl_3_data_21B28[strength]) {
-                if (SD.phase == 0 || p == SD.holder || fn_3_135520(rx, rz, 5.0f) == 0) {
+                if (SD.fireBarPhase == 0 || p == SD.holder || sD_FireBarZone(rx, rz, 5.0f) == 0) {
                     g_Minigame._1D7C[character].buttonInput = g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
                 }
             }
             targetQuadrant = 4;
             if (p == SD.holder) {
-                fn_3_134658(p, &targetX, &targetZ, &targetQuadrant);
+                sD_AIPickTargetPlayer(p, &targetX, &targetZ, &targetQuadrant);
             }
-            if (targetQuadrant == 4 && SD.x_72A != 0) {
+            if (targetQuadrant == 4 && SD.starActive != 0) {
                 targetX = SD.starPos.x;
                 targetZ = SD.starPos.z;
                 targetQuadrant = quadStar;
             }
-            if (targetQuadrant == 4 && SD.burst.active != 0) {
-                if (sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.burst.pos.x, SD.burst.pos.z) <=
+            if (targetQuadrant == 4 && SD.coinBag.active != 0) {
+                if (sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.coinBag.pos.x, SD.coinBag.pos.z) <=
                     SQ(lbl_3_data_21B78[strength])) {
                     k = 0;
                     do {
-                        if (SD.item[k].state >= 1 && SD.item[k].state <= 3 &&
-                            fn_3_1354BC(k, SD.burst.pos.x, SD.burst.pos.z)) {
+                        if (SD.thwomp[k].state >= 1 && SD.thwomp[k].state <= 3 &&
+                            sD_IsNearThwomp(k, SD.coinBag.pos.x, SD.coinBag.pos.z)) {
                             break;
                         }
                     } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
                     if (k >= lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]) {
-                        targetX = SD.burst.pos.x;
-                        targetZ = SD.burst.pos.z;
+                        targetX = SD.coinBag.pos.x;
+                        targetZ = SD.coinBag.pos.z;
                         targetQuadrant = quadBurst;
                     }
                 }
@@ -2577,8 +2577,8 @@ void fn_3_13334C(void) {
                                g_Minigame.powerup.pos.z) <= SQ(lbl_3_data_21B68[strength])) {
                     k = 0;
                     do {
-                        if (SD.item[k].state >= 1 && SD.item[k].state <= 3 &&
-                            fn_3_1354BC(k, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z)) {
+                        if (SD.thwomp[k].state >= 1 && SD.thwomp[k].state <= 3 &&
+                            sD_IsNearThwomp(k, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z)) {
                             break;
                         }
                     } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
@@ -2590,7 +2590,7 @@ void fn_3_13334C(void) {
                 }
             }
             if (targetQuadrant == 4 && g_Minigame.minigameFramesRemaining != 0) {
-                entry = fn_3_1350BC(p, quadrant, count, list);
+                entry = sD_AIRankCoins(p, quadrant, count, list);
                 if (entry != NULL && entry->valid != 0) {
                     targetX = g_Minigame.coinPos[entry->coin].x;
                     targetZ = g_Minigame.coinPos[entry->coin].z;
@@ -2598,11 +2598,11 @@ void fn_3_13334C(void) {
                 }
             }
             if (targetQuadrant != 4) {
-                if (fn_3_134C80(p, quadrant, targetQuadrant, targetX, targetZ)) {
-                    targetQuadrant = fn_3_13493C(p, &targetX, &targetZ, 2);
+                if (sD_AIPathBlocked(p, quadrant, targetQuadrant, targetX, targetZ)) {
+                    targetQuadrant = sD_AIRouteAroundCenter(p, &targetX, &targetZ, 2);
                 }
                 angle = radToShortAngle(atan2(targetZ - SD_FIELDER(p).pos.z, targetX - SD_FIELDER(p).pos.x));
-                input->controlStickAngle = fn_3_1345AC(ai->angle, angle, strength);
+                input->controlStickAngle = sD_AITurnToward(ai->angle, angle, strength);
             }
             if (SD.holder >= 0 && p != SD.holder) {
                 holder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[SD.holder]];
@@ -2623,13 +2623,13 @@ void fn_3_13334C(void) {
             if (p != SD.holder) {
                 k = 0;
                 do {
-                    if (SD.item[k].state >= 1 && SD.item[k].state <= 3 &&
-                        sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.item[k].pos.x, SD.item[k].pos.z) <=
+                    if (SD.thwomp[k].state >= 1 && SD.thwomp[k].state <= 3 &&
+                        sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.thwomp[k].pos.x, SD.thwomp[k].pos.z) <=
                             SQ(lbl_3_data_21B48[strength])) {
-                        away = radToShortAngle(atan2(SD_FIELDER(p).pos.z - SD.item[k].pos.z, SD_FIELDER(p).pos.x - SD.item[k].pos.x));
+                        away = radToShortAngle(atan2(SD_FIELDER(p).pos.z - SD.thwomp[k].pos.z, SD_FIELDER(p).pos.x - SD.thwomp[k].pos.x));
                         candidate = normalizeAngle(input->controlStickAngle +
                                                    angleDifferenceNormalized(away, input->controlStickAngle) / 2);
-                        input->controlStickAngle = fn_3_1345AC(input->controlStickAngle, candidate, strength);
+                        input->controlStickAngle = sD_AITurnToward(input->controlStickAngle, candidate, strength);
                     }
                 } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
             }
@@ -2640,12 +2640,12 @@ void fn_3_13334C(void) {
                                              SD_FIELDER(p).pos.x - g_Minigame.powerup.pos.x));
                 candidate = normalizeAngle(input->controlStickAngle +
                                            angleDifferenceNormalized(away, input->controlStickAngle) / 2);
-                input->controlStickAngle = fn_3_1345AC(input->controlStickAngle, candidate, strength);
+                input->controlStickAngle = sD_AITurnToward(input->controlStickAngle, candidate, strength);
             }
-            if (SD.phase != 0 && p != SD.holder) {
-                radius = ai->_0 + 0.20943952f * dolsqrtf2(rz * rz + rx * rx);
-                if (fn_3_135520(rx, rz, radius) == 1) {
-                    ai->_0 = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
+            if (SD.fireBarPhase != 0 && p != SD.holder) {
+                radius = ai->avoidMargin + 0.20943952f * dolsqrtf2(rz * rz + rx * rx);
+                if (sD_FireBarZone(rx, rz, radius) == 1) {
+                    ai->avoidMargin = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
                     input->controlStickAngle = normalizeAngle(sdTangentAngle(p));
                     ai->state = 1;
                 }
@@ -2674,16 +2674,16 @@ void fn_3_13334C(void) {
 }
 
 // .text:0x00133320 size:0x2C mapped:0x807723B4
-void fn_3_133320(void) {
+void sD_ClearAIInputFlags(void) {
     s8 i = 0;
 
     do {
-        g_Minigame._1DC8[i] = 0;
+        g_Minigame.aiDrivenInputInd[i] = 0;
     } while (++i < 4);
 }
 
 // .text:0x00133200 size:0x120 mapped:0x80772294
-void fn_3_133200(void) {
+void sD_InitPulseTexture(void) {
     u32 i;
     u32 j;
     u32 offset;
@@ -2692,33 +2692,33 @@ void fn_3_133200(void) {
         for (j = 0; j < 4; j++) {
             offset = fn_800247E4(j, i, 4, 4);
             if (offset < 32) {
-                lbl_3_bss_B740[offset + 2] = 0xFF;
-                lbl_3_bss_B740[offset] = 0xFF;
-                lbl_3_bss_B740[offset + 3] = 0x96;
-                lbl_3_bss_B740[offset + 1] = 0x96;
+                sD_pulseTexData[offset + 2] = 0xFF;
+                sD_pulseTexData[offset] = 0xFF;
+                sD_pulseTexData[offset + 3] = 0x96;
+                sD_pulseTexData[offset + 1] = 0x96;
             } else {
-                lbl_3_bss_B740[offset + 2] = 0x96;
-                lbl_3_bss_B740[offset] = 0x96;
-                lbl_3_bss_B740[offset + 3] = 0x96;
-                lbl_3_bss_B740[offset + 1] = 0x96;
+                sD_pulseTexData[offset + 2] = 0x96;
+                sD_pulseTexData[offset] = 0x96;
+                sD_pulseTexData[offset + 3] = 0x96;
+                sD_pulseTexData[offset + 1] = 0x96;
             }
         }
     }
-    GXInitTexObj(&lbl_3_bss_B708, lbl_3_bss_B740, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
-    GXInitTexObjLOD(&lbl_3_bss_B708, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
-    lbl_3_data_26580 = -1;
-    lbl_3_bss_B704 = 0;
+    GXInitTexObj(&sD_pulseTexObj, sD_pulseTexData, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
+    GXInitTexObjLOD(&sD_pulseTexObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
+    sD_pulseStep = -1;
+    sD_pulseFrame = 0;
 }
 
 // .text:0x001330E4 size:0x11C mapped:0x80772178
-void fn_3_1330E4(void) {
+void sD_UpdatePulseTexture(void) {
     sdUpdatePulseTexture();
 }
 
 // .text:0x00132EDC size:0x208 mapped:0x80771F70
-void fn_3_132EDC(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
+void sD_PulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
     sdUpdatePulseTexture();
-    GXLoadTexObj(&lbl_3_bss_B708, *map);
+    GXLoadTexObj(&sD_pulseTexObj, *map);
     GXSetTexCoordGen2(*coord, GX_TG_MTX3X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
     GXSetTevOrder(*stage, *coord, *map, GX_COLOR_NULL);
     GXSetTevColorIn(*stage, GX_CC_ZERO, GX_CC_TEXC, GX_CC_TEXA, GX_CC_CPREV);
