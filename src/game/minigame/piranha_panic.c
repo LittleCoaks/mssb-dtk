@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_piranhaPanic
+#define g_Minigame g_Minigame_shared
 #include "game/minigame/piranha_panic.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -25,6 +26,7 @@
 #include "stl/math.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/sub.h"
+#undef g_Minigame
 
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
@@ -85,6 +87,8 @@ extern u8 lbl_3_data_21E18[4];
 #define PP_SPAWNER_COUNT 3
 #define PP_OBJECT_COUNT 40
 #define PP_PLAYER_COUNT 4
+#define PP_HELD_BALL_COUNT 3
+#define PP_SCORE_ENTRY_COUNT 10
 
 typedef struct _PPSpawner {
     /*0x00*/ VecXYZ pos;
@@ -135,7 +139,7 @@ static u8 lbl_3_bss_B7C0;
 typedef struct _PPAI {
     /*0x0*/ s16 timer;
     /*0x2*/ s8 state;
-    /*0x3*/ u8 selection;
+    /*0x3*/ s8 selection;
 } PPAI; // size: 0x4
 
 
@@ -147,7 +151,7 @@ typedef struct _PPAI {
 typedef struct _PPState {
     /*0x0000*/ PPSpawner spawner[PP_SPAWNER_COUNT];
     /*0x00A8*/ PPObject object[PP_OBJECT_COUNT];
-    /*0x06E8*/ u8 _6E8[0xCD0 - 0x6E8];
+    /*0x06E8*/ u8 x_6E8[0xCD0 - 0x6E8];
     /*0x0CD0*/ VecXYZ ballPos[PP_BALL_COUNT];
     /*0x0F28*/ u8 _F28[0x1180 - 0xF28];
     /*0x1180*/ VecXYZ ballVel[PP_BALL_COUNT];
@@ -160,54 +164,65 @@ typedef struct _PPState {
     /*0x1898*/ s16 pointsB[PP_PLAYER_COUNT];
     /*0x18A0*/ u8 _18A0[0x18BC - 0x18A0];
     /*0x18BC*/ s16 pointsLatest[PP_PLAYER_COUNT][2];
-    /*0x18CC*/ u8 character[PP_PLAYER_COUNT];
+    /*0x18CC*/ s8 character[PP_PLAYER_COUNT];
     /*0x18D0*/ u8 _18D0[0x18D8 - 0x18D0];
-    /*0x18D8*/ u8 isHuman[PP_PLAYER_COUNT];
+    /*0x18D8*/ u8 aiControlled[PP_PLAYER_COUNT];
     /*0x18DC*/ u8 aiStrength[PP_PLAYER_COUNT];
     /*0x18E0*/ u8 _18E0[0x18E8 - 0x18E0];
     /*0x18E8*/ u8 _18E8[8];
     /*0x18F0*/ u8 _18F0[PP_PLAYER_COUNT];
-    /*0x18F4*/ u8 _18F4[PP_PLAYER_COUNT];
-    /*0x18F8*/ u8 fielderIndex[PP_PLAYER_COUNT];
-    /*0x18FC*/ u8 _18FC[PP_PLAYER_COUNT];
-    /*0x1900*/ u8 _1900[PP_PLAYER_COUNT];
+    /*0x18F4*/ s8 _18F4[PP_PLAYER_COUNT];
+    /*0x18F8*/ s8 fielderIndex[PP_PLAYER_COUNT];
+    /*0x18FC*/ s8 x_18FC[PP_PLAYER_COUNT];
+    /*0x1900*/ s8 x_1900[PP_PLAYER_COUNT];
     /*0x1904*/ u8 _1904[0x193A - 0x1904];
     /*0x193A*/ u8 ballState[PP_BALL_COUNT];
-    /*0x196C*/ u8 _196C[0x1B34 - 0x196C];
+    /*0x196C*/ u8 x_196C[0x1B34 - 0x196C];
     /*0x1B34*/ s16 swingFrames[PP_PLAYER_COUNT];
     /*0x1B3C*/ s16 stateFrames[PP_PLAYER_COUNT];
     /*0x1B44*/ s16 downFrames[PP_PLAYER_COUNT];
-    /*0x1B4C*/ s16 _1B4C;
-    /*0x1B4E*/ s16 _1B4E;
+    /*0x1B4C*/ s16 x_1B4C;
+    /*0x1B4E*/ s16 x_1B4E;
     /*0x1B50*/ s16 hitCount[PP_PLAYER_COUNT];
-    /*0x1B58*/ u8 scoreEntries[PP_PLAYER_COUNT][10];
+    /*0x1B58*/ u8 scoreEntries[PP_PLAYER_COUNT][PP_SCORE_ENTRY_COUNT];
     /*0x1B80*/ u8 scoreEntryCount[PP_PLAYER_COUNT];
     /*0x1B84*/ u8 ballKind[PP_BALL_COUNT];
     /*0x1BB6*/ s8 ballOwner[PP_BALL_COUNT];
-    /*0x1BE8*/ u8 ballTarget[PP_BALL_COUNT];
-    /*0x1C1A*/ u8 _1C1A[PP_BALL_COUNT];
-    /*0x1C4C*/ u8 _1C4C[PP_BALL_COUNT];
-    /*0x1C7E*/ s8 heldBalls[PP_PLAYER_COUNT][3];
+    /*0x1BE8*/ s8 ballTarget[PP_BALL_COUNT];
+    /*0x1C1A*/ u8 x_1C1A[PP_BALL_COUNT];
+    /*0x1C4C*/ u8 x_1C4C[PP_BALL_COUNT];
+    /*0x1C7E*/ s8 heldBalls[PP_PLAYER_COUNT][PP_HELD_BALL_COUNT];
     /*0x1C8A*/ u8 spawnCount[PP_PLAYER_COUNT];
     /*0x1C8E*/ u8 throwBall[PP_PLAYER_COUNT];
     /*0x1C92*/ s8 throwDirection[PP_PLAYER_COUNT];
     /*0x1C96*/ u8 _1C96[PP_PLAYER_COUNT];
     /*0x1C9A*/ u8 hitState[PP_PLAYER_COUNT];
     /*0x1C9E*/ u8 targeted[PP_PLAYER_COUNT];
-    /*0x1CA2*/ u8 _1CA2;
-    /*0x1CA3*/ u8 _1CA3;
-    /*0x1CA4*/ u8 _1CA4;
+    /*0x1CA2*/ u8 x_1CA2;
+    /*0x1CA3*/ u8 x_1CA3;
+    /*0x1CA4*/ u8 x_1CA4;
     /*0x1CA5*/ u8 playerState[PP_PLAYER_COUNT];
     /*0x1CA9*/ u8 holeUsed[PP_PLAYER_COUNT];
     /*0x1CAD*/ u8 goalIndex[PP_PLAYER_COUNT];
-    /*0x1CB1*/ u8 _1CB1[PP_PLAYER_COUNT];
+    /*0x1CB1*/ u8 x_1CB1[PP_PLAYER_COUNT];
     /*0x1CB5*/ u8 _1CB5[0x1DCC - 0x1CB5];
     /*0x1DCC*/ PPAI ai[PP_PLAYER_COUNT];
     /*0x1DDC*/ u8 _1DDC[0x1DF4 - 0x1DDC];
-    /*0x1DF4*/ u8 _1DF4[PP_PLAYER_COUNT];
+    /*0x1DF4*/ u8 x_1DF4[PP_PLAYER_COUNT];
 } PPState;
 
-#define PP (*(PPState*)&g_Minigame)
+typedef union _PPMinigame {
+    MiniGameStruct;
+    PPState;
+} PPMinigame;
+
+extern PPMinigame g_Minigame;
+
+#define PP g_Minigame
+
+/* minigamePlayerSelectedOrder is -1 when no player is selected; it is written
+ * through a signed-byte lvalue (the shared header still declares it u8). */
+#define MINIGAME_SELECTED_ORDER (*(s8*)&g_Minigame.minigamePlayerSelectedOrder)
 #define PP_BALL_POS(i) (PP.ballPos[i])
 #define PP_BALL_VEL(i) (PP.ballVel[i])
 #define PP_SPAWNER(i) (&PP.spawner[i])
@@ -216,7 +231,7 @@ typedef struct _PPState {
 static inline void ppStopSpawnerWaits(void) {
     int i;
 
-    if (PP._1CA2 == 2) {
+    if (PP.x_1CA2 == 2) {
         for (i = 0; i < PP_SPAWNER_COUNT; i++) {
             if (PP_SPAWNER(i)->mode == 2) {
                 PP_SPAWNER(i)->mode = 3;
@@ -226,17 +241,45 @@ static inline void ppStopSpawnerWaits(void) {
     }
 }
 
+static inline void ppInitPulseTexture(void) {
+    u32 offset;
+    u32 i;
+    u32 j;
+
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            offset = fn_3_142030(j, i, 4) * 4;
+            if (offset < 32) {
+                lbl_3_bss_B800[offset + 2] = 0xFF;
+                lbl_3_bss_B800[offset] = 0xFF;
+                lbl_3_bss_B800[offset + 3] = 0x96;
+                lbl_3_bss_B800[offset + 1] = 0x96;
+            } else {
+                lbl_3_bss_B800[offset + 2] = 0;
+                lbl_3_bss_B800[offset] = 0;
+                lbl_3_bss_B800[offset + 3] = 0;
+                lbl_3_bss_B800[offset + 1] = 0;
+            }
+        }
+    }
+    GXInitTexObj(&lbl_3_bss_B7C4, lbl_3_bss_B800, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
+    GXInitTexObjLOD(&lbl_3_bss_B7C4, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
+    lbl_3_data_266A4 = -1;
+    lbl_3_bss_B7E4 = 0;
+    lbl_3_bss_B7C1 = 0;
+}
+
 // .text:0x00146A90 size:0x730 mapped:0x80785B24
 void piranhaPanicRelated(void) {
-    int i;
-    int j;
-    int p;
-    int k;
+    s32 i;
+    s32 j;
+    s32 p;
+    s32 k;
 
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         initializeSomethingDuringTransition();
-        g_Minigame._17C0 = 0;
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_PIRANHA_PANIC;
+        g_Minigame._17C0 = 0;
         g_Minigame.turnOverStatus = 0;
         g_Minigame._1A37 = 0;
         for (i = 0; i < PP_PLAYER_COUNT; i++) {
@@ -246,14 +289,14 @@ void piranhaPanicRelated(void) {
             PP.pointsLatest[i][1] = 0;
             PP._18F4[i] = -1;
             PP.fielderIndex[i] = -1;
-            PP._18FC[i] = -1;
-            PP._1900[i] = -1;
+            PP.x_18FC[i] = -1;
+            PP.x_1900[i] = -1;
             PP._18F0[i] = 0;
         }
         g_Scores.Inning = 0;
         g_Minigame.pointsReqToWin_challenge = 0;
         g_Minigame.turnNumberWithinRound = 0;
-        g_Minigame.minigamePlayerSelectedOrder = -1;
+        MINIGAME_SELECTED_ORDER = -1;
         g_Minigame.rosterID = -1;
         g_Minigame._17C0 = 0;
         if (g_Minigame.multiPlayerInd == 0) {
@@ -276,37 +319,36 @@ void piranhaPanicRelated(void) {
         }
         pPRelated();
         setDefaultInMemFielder();
-        p = 0;
-        for (i = 0; i < PP_PLAYER_COUNT; i++) {
+        for (i = 0, p = 0; i < PP_PLAYER_COUNT; i++) {
             InMemFielder* fielder;
-            if ((s8)PP.character[i] < 0) {
+            if (PP.character[i] < 0) {
                 continue;
             }
             PP._18F4[p] = i;
-            PP.fielderIndex[(s8)PP._18F4[p]] = p + 2;
-            setFielderValues(i, (s8)PP.fielderIndex[(s8)PP._18F4[p]]);
-            fielder = &g_Fielders[(s8)PP.fielderIndex[(s8)PP._18F4[p]]];
+            PP.fielderIndex[PP._18F4[p]] = p + 2;
+            setFielderValues(i, PP.fielderIndex[PP._18F4[p]]);
+            fielder = &g_Fielders[PP.fielderIndex[PP._18F4[p]]];
+            fielder->_020D = i;
+            fielder->pos.x = lbl_3_data_21B94[p].x;
+            fielder->pos.y = lbl_3_data_21B94[p].y;
+            fielder->pos.z = lbl_3_data_21B94[p].z;
             PP.heldBalls[i][0] = -1;
             PP.heldBalls[i][1] = -1;
             PP.heldBalls[i][2] = -1;
             PP.spawnCount[i] = 0;
-            fielder->pos.x = lbl_3_data_21B94[p].x;
-            fielder->pos.y = lbl_3_data_21B94[p].y;
-            fielder->pos.z = lbl_3_data_21B94[p].z;
             fielder->actionYOffset = lbl_3_data_21D2C[1];
-            *(u8*)((u8*)fielder + 0x20D) = i;
             PP.swingFrames[i] = -1;
             PP.throwDirection[i] = -1;
             PP.hitState[i] = 0;
             PP.hitCount[i] = 0;
             PP.scoreEntryCount[i] = 0;
-            *(u8*)((u8*)fielder + 0x1D2) = 0;
+            fielder->lockoutDuration = 0;
             PP.playerState[i] = 0;
             fielder->currentVelocity = 0.0f;
             PP.goalIndex[i] = i;
             fielder->desiredMovementDirection = 1.5707964f;
-            PP._1CB1[i] = 0;
-            for (k = 0; k < 10; k++) {
+            PP.x_1CB1[i] = 0;
+            for (k = 0; k < PP_SCORE_ENTRY_COUNT; k++) {
                 PP.scoreEntries[i][k] = 0;
             }
             PP.targeted[i] = 0;
@@ -341,9 +383,9 @@ void piranhaPanicRelated(void) {
         PP.holeUsed[1] = 0;
         PP.holeUsed[2] = 0;
         PP.holeUsed[3] = 0;
-        PP._1CA2 = 0;
-        PP._1CA3 = 0;
-        PP._1CA4 = 0;
+        PP.x_1CA2 = 0;
+        PP.x_1CA3 = 0;
+        PP.x_1CA4 = 0;
         if (g_Minigame.multiPlayerInd == 0) {
             g_Minigame._1B4E = RandomInt_Game_Range(lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][0], lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][1]) * 60;
         } else {
@@ -360,7 +402,7 @@ void piranhaPanicRelated(void) {
     } else {
         SetGameStatus(GAME_STATUS_GAME_START_MOVIE);
     }
-    fn_3_142088();
+    ppInitPulseTexture();
 }
 
 // .text:0x001469CC size:0xC4 mapped:0x80785A60
@@ -419,7 +461,7 @@ void fn_3_1461A4(void) {
         if (PP.framesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
             fn_3_10F550(3, 0);
-            sndFXStartEx(0x1BE, 0x3F, lbl_800EFBA4[7], 0);
+            sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
         }
     } else {
         if (g_Minigame.turnOverStatus == 1) {
@@ -439,11 +481,10 @@ void fn_3_1461A4(void) {
 // .text:0x00145FF4 size:0x1B0 mapped:0x80785088
 void fn_3_145FF4(void) {
     u32 i;
-    u32 k;
 
     fn_3_157570();
     minigameCalculateRankings();
-    if (g_Minigame.soloMinigameDifficulty <= 2 && g_Minigame.multiPlayerInd == 0) {
+    if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
         if (PP._18E8[(s8)g_Minigame._1908] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
             g_Minigame._1A37 = 1;
         } else {
@@ -451,16 +492,16 @@ void fn_3_145FF4(void) {
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
-    for (i = 0; i < 50; i++) {
+    for (i = 0; i < PP_BALL_COUNT; i++) {
         PP.ballState[i] = 0;
         PP.ballOwner[i] = -1;
     }
     g_Minigame._1B4C = 60;
-    for (k = 0; k < PP_SPAWNER_COUNT; k++) {
-        fn_3_14402C(k);
-        PP_SPAWNER(k)->mode = 2;
-        PP_SPAWNER(k)->_1C = 1;
-        PP_SPAWNER(k)->_2B = 0;
+    for (i = 0; i < PP_SPAWNER_COUNT; i++) {
+        fn_3_14402C(i);
+        PP_SPAWNER(i)->mode = 2;
+        PP_SPAWNER(i)->_1C = 1;
+        PP_SPAWNER(i)->_2B = 0;
     }
     fn_3_154214();
 }
@@ -470,7 +511,7 @@ void fn_3_145EB8(void) {
     int i;
 
     ppRelated();
-    for (i = 0; i < 50; i++) {
+    for (i = 0; i < PP_BALL_COUNT; i++) {
         u8 state = PP.ballState[i];
         if (state == 5 || state == 6) {
             piranhaPanicPoints(i);
@@ -483,6 +524,7 @@ void fn_3_145EB8(void) {
 // .text:0x00145B98 size:0x320 mapped:0x80784C2C
 void ppRelated(void) {
     int i;
+    int j;
 
     if (g_Minigame.turnOverStatus != 0) {
         return;
@@ -493,17 +535,16 @@ void ppRelated(void) {
         }
         if (PP.heldBalls[i][2] < 0) {
             int k;
-            for (k = 0; k < 3; k++) {
-                int j;
-                for (j = 0; j < 50; j++) {
+            for (k = 0; k < PP_HELD_BALL_COUNT; k++) {
+                for (j = 0; j < PP_BALL_COUNT; j++) {
                     if (PP.ballState[j] == 0) {
                         PP.heldBalls[i][k] = j;
                         PP.ballOwner[j] = i;
                         PP.ballState[j] = 2;
                         PP.ballFrames[j] = 0;
                         PP.ballKind[j] = RandomInt_Game(4);
-                        PP._1C1A[j] = 0;
-                        PP._1C4C[j] = 0;
+                        PP.x_1C1A[j] = 0;
+                        PP.x_1C4C[j] = 0;
                         PP.spawnCount[i]++;
                         fn_3_145AD0(j);
                         break;
@@ -511,17 +552,16 @@ void ppRelated(void) {
                 }
             }
         } else if (PP.heldBalls[i][0] < 0) {
-            int j;
             PP.heldBalls[i][0] = PP.heldBalls[i][1];
             PP.heldBalls[i][1] = PP.heldBalls[i][2];
-            for (j = 0; j < 50; j++) {
+            for (j = 0; j < PP_BALL_COUNT; j++) {
                 if (PP.ballState[j] == 0) {
                     PP.heldBalls[i][2] = j;
                     PP.ballOwner[j] = i;
                     PP.ballState[j] = 2;
                     PP.ballFrames[j] = 0;
-                    PP._1C1A[j] = 0;
-                    PP._1C4C[j] = 0;
+                    PP.x_1C1A[j] = 0;
+                    PP.x_1C4C[j] = 0;
                     PP.spawnCount[i]++;
                     if (PP.spawnCount[i] <= lbl_3_data_21E68[1]) {
                         int open[4];
@@ -553,11 +593,11 @@ void ppRelated(void) {
 
 // .text:0x00145AD0 size:0xC8 mapped:0x80784B64
 void fn_3_145AD0(int p) {
-    s8 owner = PP.ballOwner[p];
+    int owner = PP.ballOwner[p];
     int k;
 
-    for (k = 0; k < 3; k++) {
-        if ((s8)PP.heldBalls[owner][k] == p) {
+    for (k = 0; k < PP_HELD_BALL_COUNT; k++) {
+        if (PP.heldBalls[owner][k] == p) {
             break;
         }
     }
@@ -568,7 +608,7 @@ void fn_3_145AD0(int p) {
 
 // .text:0x001453BC size:0x714 mapped:0x80784450
 void piranhaPanicPoints(int p) {
-    s8 player = (u8)PP.ballOwner[p];
+    int player = PP.ballOwner[p];
 
     SATURATING_INCREMENT(PP.ballFrames[p]);
     if (PP.ballState[p] == 6) {
@@ -588,19 +628,18 @@ void piranhaPanicPoints(int p) {
                 PP.hitState[owner] = 1;
                 PP.stateFrames[owner] = lbl_3_data_21E68[14];
                 PP.hitCount[owner] = 0;
-                dir.x = 0.0f;
-                dir.y = 0.0f;
+                dir.x = dir.y = 0.0f;
                 dir.z = -1.0f;
                 PSVECNormalize(&dir, &dir);
                 fielder->xMovementDir = dir.x;
-                PP._1DF4[owner] = 1;
+                PP.x_1DF4[owner] = 1;
                 fielder->zMovementDir = dir.z;
                 fielder->currentVelocity = lbl_3_data_21E24[15];
                 setCharacterAnimations((s8)PP.character[owner], 2);
-                if (PP._1CB1[owner] < 0xFFFE) {
-                    PP._1CB1[owner]++;
+                if (PP.x_1CB1[owner] < 0xFFFE) {
+                    PP.x_1CB1[owner]++;
                 } else {
-                    PP._1CB1[owner] = 0xFF;
+                    PP.x_1CB1[owner] = 0xFF;
                 }
             }
             PP.ballState[p] = 0;
@@ -620,7 +659,7 @@ void piranhaPanicPoints(int p) {
         return;
     }
     {
-        s8 owner = PP.ballTarget[p];
+        int owner = PP.ballTarget[p];
         PPSpawner* sp;
         if (owner >= 0) {
             f32 dist = dolsqrtf2(SQ(PP_BALL_POS(p).x - lbl_3_data_21BC4[owner][1].x) + SQ(PP_BALL_POS(p).z - lbl_3_data_21BC4[owner][1].z));
@@ -632,11 +671,7 @@ void piranhaPanicPoints(int p) {
                     VecXYZ hitPos;
                     u8* scores;
                     int remaining;
-                    if (PP.ballKind[p] == 5) {
-                        gain = lbl_3_data_21E68[24];
-                    } else {
-                        gain = 1;
-                    }
+                    gain = (PP.ballKind[p] == 5) ? lbl_3_data_21E68[24] : 1;
                     memcpy(&hitPos, &PP_BALL_POS(p), sizeof(VecXYZ));
                     hitPos.y *= -1.0f;
                     if (PP.ballKind[p] == 5) {
@@ -651,10 +686,10 @@ void piranhaPanicPoints(int p) {
                         callSfx(0x2DC);
                     }
                     remaining = sp->_2D - gain;
-                    if ((s16)remaining > 0) {
-                        sp->_2D = remaining;
-                    } else {
+                    if ((s16)remaining <= 0) {
                         sp->_2D = 0;
+                    } else {
+                        sp->_2D = remaining;
                     }
                     PP.hitCount[player]++;
                     scores = PP.scoreEntries[player];
@@ -669,10 +704,10 @@ void piranhaPanicPoints(int p) {
                         scores[PP.scoreEntryCount[player]] = lbl_3_data_21E18[sp->_2B * 2];
                         PP.scoreEntryCount[player]++;
                         if (sp->_2C == 4) {
-                            PP._1CA3 = 0;
+                            PP.x_1CA3 = 0;
                             sp->_2E = 0;
-                        } else if (PP._1CA2 != 0) {
-                            PP._1CA2 = 2;
+                        } else if (PP.x_1CA2 != 0) {
+                            PP.x_1CA2 = 2;
                         }
                         sp->_1C = lbl_3_data_21E68[8] - lbl_3_data_21E68[9];
                         sp->_1A = 0;
@@ -716,6 +751,48 @@ void piranhaPanicPoints(int p) {
     }
 }
 
+static inline void ppUpdateCrouch(int p) {
+    InputStruct* input = &g_Controls[(s8)PP.character[p]];
+    InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
+
+    if (PP.aiControlled[p] != 0) {
+        input = &g_Minigame._1D7C[(s8)PP.character[p]];
+    }
+    SATURATING_INCREMENT(PP.downFrames[p]);
+    switch (PP.playerState[p]) {
+        case 1:
+            {
+                f32 lo = lbl_3_data_21D2C[0];
+                f32 hi = lbl_3_data_21D2C[1];
+                f32 frames = (f32)PP.downFrames[p];
+                fielder->actionYOffset = (lo - hi) * (frames / (f32)lbl_3_data_21E68[16]) + hi;
+            }
+            if (PP.downFrames[p] >= lbl_3_data_21E68[16]) {
+                PP.playerState[p] = 2;
+                PP.downFrames[p] = 0;
+            }
+            break;
+        case 2:
+            if (!(input->buttonInput & INPUT_BUTTON_DOWN)) {
+                PP.playerState[p] = 3;
+                PP.downFrames[p] = 0;
+            }
+            break;
+        case 3:
+            {
+                f32 hi = lbl_3_data_21D2C[1];
+                f32 lo = lbl_3_data_21D2C[0];
+                f32 frames = (f32)PP.downFrames[p];
+                fielder->actionYOffset = (hi - lo) * (frames / (f32)lbl_3_data_21E68[16]) + lo;
+            }
+            if (PP.downFrames[p] >= lbl_3_data_21E68[16]) {
+                PP.playerState[p] = 0;
+                PP.downFrames[p] = 0;
+            }
+            break;
+    }
+}
+
 // .text:0x00144CB8 size:0x704 mapped:0x80783D4C
 void fn_3_144CB8(void) {
     int i;
@@ -728,13 +805,13 @@ void fn_3_144CB8(void) {
         if (fielderIndex < 0) {
             continue;
         }
-        fielder = &g_Fielders[fielderIndex];
+        fielder = &g_Fielders[PP.fielderIndex[i]];
         input = &g_Controls[(s8)PP.character[i]];
-        if (PP.isHuman[i] != 0) {
+        if (PP.aiControlled[i] != 0) {
             input = &g_Minigame._1D7C[(s8)PP.character[i]];
         }
         if (PP.playerState[i] != 0) {
-            fn_3_144ADC(i);
+            ppUpdateCrouch(i);
         } else if (PP.hitState[i] == 1) {
             PP.stateFrames[i]--;
             if (PP.stateFrames[i] <= 0) {
@@ -753,12 +830,11 @@ void fn_3_144CB8(void) {
             }
             PP.stateFrames[i]--;
             if (PP.stateFrames[i] <= 0) {
-                VecXYZ* goal = &lbl_3_data_21B94[PP.goalIndex[i]];
+                fielder->pos.x = lbl_3_data_21B94[PP.goalIndex[i]].x;
+                fielder->pos.y = lbl_3_data_21B94[PP.goalIndex[i]].y;
+                fielder->pos.z = lbl_3_data_21B94[PP.goalIndex[i]].z;
                 PP.hitState[i] = 0;
                 PP.playerState[i] = 2;
-                fielder->pos.x = goal->x;
-                fielder->pos.y = goal->y;
-                fielder->pos.z = goal->z;
                 fielder->actionYOffset = lbl_3_data_21D2C[0];
             }
         } else if (PP.swingFrames[i] >= 0) {
@@ -781,85 +857,70 @@ void fn_3_144CB8(void) {
                 PP.throwDirection[i] = 3;
             } else if (pressed & INPUT_BUTTON_A) {
                 s16 angle;
-                u16 held;
                 if (g_Minigame.turnOverStatus != 0) {
                     continue;
                 }
                 angle = input->controlStickAngle;
-                held = input->buttonInput;
-                if (angle >= 0xE00 || (held & INPUT_BUTTON_RIGHT)) {
+                if (angle >= 0xE00 || (input->buttonInput & INPUT_BUTTON_RIGHT)) {
                     PP.throwDirection[i] = 0;
                 } else if (angle >= 0xA00) {
                     continue;
-                } else if (angle >= 0x600 || (held & INPUT_BUTTON_LEFT)) {
+                } else if (angle >= 0x600 || (input->buttonInput & INPUT_BUTTON_LEFT)) {
                     PP.throwDirection[i] = 2;
-                } else if (angle >= 0x200 || (held & INPUT_BUTTON_UP)) {
+                } else if (angle >= 0x200 || (input->buttonInput & INPUT_BUTTON_UP)) {
                     PP.throwDirection[i] = 1;
-                } else if (angle < 0 && (held & INPUT_BUTTON_RIGHT) == 0) {
+                } else if (angle < 0 && (input->buttonInput & INPUT_BUTTON_RIGHT) == 0) {
                     continue;
                 } else {
                     PP.throwDirection[i] = 0;
                 }
             } else {
-                if (pressed & INPUT_BUTTON_DOWN) {
-                    PP.playerState[i] = 1;
-                    PP.downFrames[i] = 0;
-                    callSfx(0x2DB);
-                }
-                continue;
+                goto check_down;
             }
             {
-                u8 targetRaw = PP.heldBalls[i][0];
-                s8 target = targetRaw;
+                s8 target = PP.heldBalls[i][0];
                 s8 choice;
                 if (PP.ballKind[target] != 5 || PP.throwDirection[i] != 3) {
-                    VecXYZ* goal;
                     PP.ballTarget[target] = PP.throwDirection[i];
-                    goal = &lbl_3_data_21BC4[(s8)PP.ballTarget[target]][1];
-                    fielder->throwTarget.x = goal->x;
-                    fielder->throwTarget.y = goal->y;
-                    fielder->throwTarget.z = goal->z;
+                    fielder->throwTarget.x = lbl_3_data_21BC4[PP.ballTarget[target]][1].x;
+                    fielder->throwTarget.y = lbl_3_data_21BC4[PP.ballTarget[target]][1].y;
+                    fielder->throwTarget.z = lbl_3_data_21BC4[PP.ballTarget[target]][1].z;
                 } else {
-                    u8 order[3];
-                    int n = 0;
+                    s8 order[3];
+                    s8* orderEnd = order;
                     int k;
                     int a;
                     int b;
+                    u8* weight;
                     for (k = 0; k < 4; k++) {
                         if (k != i) {
-                            order[n++] = k;
+                            *orderEnd++ = k;
                         }
                     }
                     for (a = 0; a < 2; a++) {
                         for (b = a + 1; b < 3; b++) {
-                            if (PP.pointsA[(s8)order[a]] < PP.pointsA[(s8)order[b]]) {
-                                u8 swap = order[a];
+                            if (PP.pointsA[order[a]] < PP.pointsA[order[b]]) {
+                                s8 swap = order[a];
                                 order[a] = order[b];
                                 order[b] = swap;
                             }
                         }
                     }
                     choice = rand() % 100;
-                    choice -= lbl_3_data_21E20[0];
-                    if (choice < 0) {
+                    weight = lbl_3_data_21E20;
+                    if ((choice -= *weight++) < 0) {
                         choice = order[0];
-                    } else {
-                        choice -= lbl_3_data_21E20[1];
-                        if (choice < 0) {
-                            choice = order[1];
-                        } else {
-                            choice -= lbl_3_data_21E20[2];
-                            if (choice < 0) {
-                                choice = order[2];
-                            }
-                        }
+                    } else if ((choice -= *weight++) < 0) {
+                        choice = order[1];
+                    } else if ((choice -= *weight) < 0) {
+                        choice = order[2];
                     }
                     PP.ballTarget[target] = -1 - choice;
                     fielder->throwTarget.x = lbl_3_data_21B94[choice].x + 1.5 * (s8)((choice - i) / __abs(choice - i));
                     fielder->throwTarget.y = 0.0f;
                     fielder->throwTarget.z = lbl_3_data_21B94[choice].z;
                 }
-                PP.throwBall[i] = targetRaw;
+                PP.throwBall[i] = PP.heldBalls[i][0];
                 PP.ballState[target] = 3;
                 PP.swingFrames[i] = 0;
                 if (PP.throwDirection[i] == 3) {
@@ -867,16 +928,23 @@ void fn_3_144CB8(void) {
                 }
                 fielder->desiredMovementDirection = game_atan2(fielder->throwTarget.x - fielder->pos.x, fielder->throwTarget.z - fielder->pos.z);
             }
+            continue;
+        check_down:
+            if (input->buttonInput & INPUT_BUTTON_DOWN) {
+                PP.playerState[i] = 1;
+                PP.downFrames[i] = 0;
+                callSfx(0x2DB);
+            }
         }
     }
 }
 
 // .text:0x00144ADC size:0x1DC mapped:0x80783B70
 void fn_3_144ADC(int p) {
-    InMemFielder* fielder = &g_Fielders[(s8)PP.fielderIndex[p]];
     InputStruct* input = &g_Controls[(s8)PP.character[p]];
+    InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
 
-    if (PP.isHuman[p] != 0) {
+    if (PP.aiControlled[p] != 0) {
         input = &g_Minigame._1D7C[(s8)PP.character[p]];
     }
     SATURATING_INCREMENT(PP.downFrames[p]);
@@ -913,10 +981,10 @@ void fn_3_144ADC(int p) {
 // .text:0x0014471C size:0x3C0 mapped:0x807837B0
 void pP_relatedToCalculatingHeldBallLoc(int p) {
     InMemFielder* fielder = &g_Fielders[(s8)PP.fielderIndex[p]];
-    s8 character = PP.character[p];
+    int character = PP.character[p];
+    u8* state;
     u8 target = PP.throwBall[p];
     VecXYZ pos;
-    u8* state;
 
     if (fielder->CharID == CHAR_ID_PETEY) {
         getAnimRelatedCoordinates(character, 9, &pos);
@@ -925,13 +993,13 @@ void pP_relatedToCalculatingHeldBallLoc(int p) {
     } else {
         getAnimRelatedCoordinates(character, 0x13, &pos);
     }
-    PP_BALL_POS(target).x = pos.x;
-    PP_BALL_POS(target).y = -pos.y;
-    PP_BALL_POS(target).z = pos.z;
-    pos.x = fielder->throwTarget.x - PP_BALL_POS(target).x;
-    pos.y = fielder->throwTarget.y - PP_BALL_POS(target).y;
-    pos.z = fielder->throwTarget.z - PP_BALL_POS(target).z;
-    state = &PP.ballState[target];
+    PP.ballPos[target].x = pos.x;
+    PP.ballPos[target].y = -pos.y;
+    PP.ballPos[target].z = pos.z;
+    pos.x = fielder->throwTarget.x - PP.ballPos[target].x;
+    pos.y = fielder->throwTarget.y - PP.ballPos[target].y;
+    pos.z = fielder->throwTarget.z - PP.ballPos[target].z;
+    state = (u8*)PP.ballState + target;
     if (*state == 4) {
         if (PP.ballKind[target] != 5) {
             f32 dist = dolsqrtf2(SQ(pos.x) + SQ(pos.z));
@@ -946,8 +1014,8 @@ void pP_relatedToCalculatingHeldBallLoc(int p) {
             PP_BALL_VEL(target).y = lbl_3_data_21E24[10];
         } else {
             PP_BALL_VEL(target).x = pos.x / (f32)(lbl_3_data_21E68[23] + 10);
-            PP_BALL_VEL(target).y = (-lbl_3_data_21E24[11] * (f32)(lbl_3_data_21E68[23] + 10)) * 0.5f;
-            PP_BALL_VEL(target).z = pos.z / (f32)(lbl_3_data_21E68[23] + 10);
+            PP_BALL_VEL(target).z = (fielder->throwTarget.z - PP.ballPos[target].z) / (f32)(lbl_3_data_21E68[23] + 10);
+            PP_BALL_VEL(target).y = (-lbl_3_data_21E24[11] * (f32)(lbl_3_data_21E68[23] + 10)) / 2.0f;
         }
         *state = 6;
     } else {
@@ -978,8 +1046,12 @@ void fn_3_14443C(void) {
         if (sp->mode == 0) {
             fn_3_14402C(k);
         } else if (sp->mode == 1) {
+            f32 hi;
+            f32 lo;
             sp->_1C--;
-            sp->pos.y = (lbl_3_data_21D1C[sp->_2B * 2 + 1] - lbl_3_data_21D1C[sp->_2B * 2]) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[5]) + lbl_3_data_21D1C[sp->_2B * 2];
+            hi = lbl_3_data_21D1C[sp->_2B * 2 + 1];
+            lo = lbl_3_data_21D1C[sp->_2B * 2];
+            sp->pos.y = (hi - lo) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[5]) + lo;
             if (sp->_1C <= 0) {
                 sp->mode = 2;
                 sp->_1A = 0;
@@ -988,13 +1060,15 @@ void fn_3_14443C(void) {
             ppStopSpawnerWaits();
             fn_3_1439EC(k);
         } else if (sp->mode == 3) {
-            sp->pos.y = (lbl_3_data_21D1C[sp->_2B * 2] - lbl_3_data_21D1C[sp->_2B * 2 + 1]) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[6]) + lbl_3_data_21D1C[sp->_2B * 2];
+            f32 hi = lbl_3_data_21D1C[sp->_2B * 2 + 1];
+            f32 lo = lbl_3_data_21D1C[sp->_2B * 2];
+            sp->pos.y = (lo - hi) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[6]) + lo;
             if (sp->_1A >= lbl_3_data_21E68[6]) {
                 sp->mode = 0;
                 sp->_1A = 0;
                 PP.holeUsed[sp->_2C] = 0;
-                if (PP._1CA3 != 0) {
-                    PP._1CA3 = 0;
+                if (PP.x_1CA3 != 0) {
+                    PP.x_1CA3 = 0;
                 }
             }
         } else if (sp->mode == 4) {
@@ -1014,17 +1088,16 @@ void fn_3_14423C(void) {
     int low;
     int high;
     int k;
-    u8 sub;
 
     if (g_Minigame.turnOverStatus != 0) {
         return;
     }
-    if (PP._1CA3 != 0) {
+    if (PP.x_1CA3 != 0) {
         PPSpawner* sp = PP_SPAWNER(1);
         if (sp->mode != 2) {
             return;
         }
-        if (sp->_18 < lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][PP._1CA4 * 3 - 1] * 60) {
+        if (sp->_18 < lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][PP.x_1CA4 * 3 - 1] * 60) {
             return;
         }
         sp->mode = 3;
@@ -1032,19 +1105,18 @@ void fn_3_14423C(void) {
         sp->_1A = 0;
         return;
     }
-    sub = PP._1CA4;
-    if (sub >= 2) {
+    if (PP.x_1CA4 >= 2) {
         return;
     }
     if (g_Minigame.multiPlayerInd == 0) {
-        low = lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][sub * 3] * 60;
-        high = lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][sub * 3 + 1] * 60;
+        low = lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][PP.x_1CA4 * 3] * 60;
+        high = lbl_3_data_21DC8[g_Minigame.soloMinigameDifficulty][PP.x_1CA4 * 3 + 1] * 60;
     } else {
-        low = lbl_3_data_21DC8[4][sub * 3] * 60;
-        high = lbl_3_data_21DC8[4][sub * 3 + 1] * 60;
+        low = lbl_3_data_21DC8[4][PP.x_1CA4 * 3] * 60;
+        high = lbl_3_data_21DC8[4][PP.x_1CA4 * 3 + 1] * 60;
     }
     if (PP.frameCount < low || PP.frameCount > high) {
-        PP._1CA2 = 0;
+        PP.x_1CA2 = 0;
         return;
     }
     for (k = 0; k < PP_SPAWNER_COUNT; k++) {
@@ -1053,10 +1125,10 @@ void fn_3_14423C(void) {
         }
     }
     if (k < PP_SPAWNER_COUNT) {
-        if (PP._1CA2 != 0) {
+        if (PP.x_1CA2 != 0) {
             return;
         }
-        PP._1CA2 = 2;
+        PP.x_1CA2 = 2;
         return;
     }
     {
@@ -1064,7 +1136,7 @@ void fn_3_14423C(void) {
         sp->mode = 1;
         sp->_2B = 1;
         sp->_2C = 4;
-        sp->_2D = lbl_3_data_21E10[sub + 4];
+        sp->_2D = lbl_3_data_21E10[PP.x_1CA4 + 4];
         sp->_18 = 0;
         sp->_1A = 0;
         sp->_1C = lbl_3_data_21E68[5];
@@ -1075,50 +1147,48 @@ void fn_3_14423C(void) {
         sp->queue[1] = -1;
         sp->queue[2] = -1;
         sp->queue[3] = -1;
-        PP._1CA3 = 1;
-        PP._1CA2 = 0;
-        PP._1CA4 = sub + 1;
+        PP.x_1CA3 = 1;
+        PP.x_1CA2 = 0;
+        PP.x_1CA4++;
     }
 }
 
 // .text:0x0014402C size:0x210 mapped:0x807830C0
 void fn_3_14402C(int idx) {
-    PPSpawner* sp;
     int free[4];
+    int* freeEnd;
     int freeCount;
     int k;
-    int hole;
 
     if (g_Minigame.turnOverStatus == 0) {
-        sp = PP_SPAWNER(idx);
-        if (sp->_1C < 0) {
-            sp->_1C = RandomInt_Game_Range(lbl_3_data_21DC4[0], lbl_3_data_21DC4[1]);
-        } else if (PP._1CA3 == 0 && PP._1CA2 == 0) {
-            sp->_1C--;
-            if (sp->_1C == 0) {
-                freeCount = 0;
-                for (k = 0; k < 4; k++) {
+        if (PP.spawner[idx]._1C < 0) {
+            PP.spawner[idx]._1C = RandomInt_Game_Range(lbl_3_data_21DC4[0], lbl_3_data_21DC4[1]);
+        } else if (PP.x_1CA3 == 0 && PP.x_1CA2 == 0) {
+            PP.spawner[idx]._1C--;
+            if (PP.spawner[idx]._1C == 0) {
+                freeEnd = free;
+                for (k = 0, freeCount = 0; k < 4; k++) {
                     if (PP.holeUsed[k] == 0) {
-                        free[freeCount++] = k;
+                        *freeEnd++ = k;
+                        freeCount++;
                     }
                 }
-                hole = free[random_fn_3_9EE24(freeCount)];
-                sp->_2C = hole;
-                PP.holeUsed[hole] = 1;
-                sp->_2D = lbl_3_data_21E10[sp->_2C];
-                sp->_1C = lbl_3_data_21E68[5];
-                sp->_18 = 0;
-                sp->_1A = 0;
-                sp->_1E = 0;
-                sp->mode = 1;
-                sp->_2B = 0;
-                sp->pos.y = lbl_3_data_21D1C[1];
-                sp->_22 = lbl_3_data_21E04[0] + RandomInt_Game_Range(lbl_3_data_21E04[0], lbl_3_data_21E04[1]);
-                sp->_24 = sp->_22;
-                sp->_34 = -1;
-                sp->_14 = 0.0f;
-                sp->_0C = 0.0f;
-                sp->angle = lbl_3_data_26698[idx];
+                PP.spawner[idx]._2C = free[random_fn_3_9EE24(freeCount)];
+                PP.holeUsed[PP.spawner[idx]._2C] = 1;
+                PP.spawner[idx]._2D = lbl_3_data_21E10[PP.spawner[idx]._2C];
+                PP.spawner[idx]._1C = lbl_3_data_21E68[5];
+                PP.spawner[idx]._18 = 0;
+                PP.spawner[idx]._1A = 0;
+                PP.spawner[idx]._1E = 0;
+                PP.spawner[idx].mode = 1;
+                PP.spawner[idx]._2B = 0;
+                PP.spawner[idx].pos.y = lbl_3_data_21D1C[1];
+                PP.spawner[idx]._22 = lbl_3_data_21E04[0] + RandomInt_Game_Range(lbl_3_data_21E04[0], lbl_3_data_21E04[1]);
+                PP.spawner[idx]._24 = PP.spawner[idx]._22;
+                PP.spawner[idx]._34 = -1;
+                PP.spawner[idx]._14 = 0.0f;
+                PP.spawner[idx]._0C = 0.0f;
+                PP.spawner[idx].angle = lbl_3_data_26698[idx];
             }
         }
     }
@@ -1126,7 +1196,17 @@ void fn_3_14402C(int idx) {
 
 // .text:0x00143FAC size:0x80 mapped:0x80783040
 void fn_3_143FAC(int idx) {
-    ppStopSpawnerWaits();
+    int i;
+
+    if (PP.x_1CA2 == 2) {
+        for (i = 0; i < PP_SPAWNER_COUNT; i++) {
+            PPSpawner* sp = PP_SPAWNER(i);
+            if (sp->mode == 2) {
+                sp->mode = 3;
+                sp->_1A = 0;
+            }
+        }
+    }
     fn_3_1439EC(idx);
 }
 
@@ -1151,8 +1231,7 @@ void fn_3_1439EC(int idx) {
     } else if (sp->_2E != 0) {
         sp->_26++;
         if (sp->_26 == lbl_3_data_21E68[13]) {
-            s8 owner = sp->queue[0];
-            fn_3_1430D0(idx, owner);
+            fn_3_1430D0(idx, sp->queue[0]);
             sp->_34 = -1;
             sp->queue[0] = sp->queue[1];
             sp->queue[1] = sp->queue[2];
@@ -1169,17 +1248,16 @@ void fn_3_1439EC(int idx) {
 
 // .text:0x00143770 size:0x27C mapped:0x80782804
 BOOL fn_3_143770(PPSpawner* sp) {
-    Vec forward = {0.0f, 0.0f, -1.0f};
+    int preferred[PP_PLAYER_COUNT];
+    int fallback[PP_PLAYER_COUNT];
     Vec toFielder;
+    Vec forward = {0.0f, 0.0f, -1.0f};
+    int preferredCount;
+    int fallbackCount;
     f32 angle;
 
     if (sp->_2E == 0) {
-        int preferred[PP_PLAYER_COUNT];
-        int preferredCount = 0;
-        int fallback[PP_PLAYER_COUNT];
-        int fallbackCount = 0;
         int* preferredEnd = preferred;
-        int* fallbackEnd = fallback;
         int* list;
         int* count;
         int i;
@@ -1187,21 +1265,22 @@ BOOL fn_3_143770(PPSpawner* sp) {
         for (i = 0; i < PP_PLAYER_COUNT; i++) {
             preferred[i] = -1;
         }
+        preferredCount = 0;
+        fallbackCount = 0;
         for (i = 0; i < PP_PLAYER_COUNT; i++) {
             if (PP.hitState[i] == 0) {
                 if (PP.targeted[i] == 0) {
                     *preferredEnd++ = i;
                     preferredCount++;
                 }
-                *fallbackEnd++ = i;
+                fallback[i] = i;
                 fallbackCount++;
             }
         }
         if (preferredCount == 0) {
             if (fallbackCount == 0) {
-                for (i = 0; i < PP_PLAYER_COUNT; i++) {
-                    *fallbackEnd++ = i;
-                    fallbackCount++;
+                for (fallbackCount = 0; fallbackCount < PP_PLAYER_COUNT; fallbackCount++) {
+                    fallback[fallbackCount] = fallbackCount;
                 }
             }
             list = fallback;
@@ -1218,11 +1297,11 @@ BOOL fn_3_143770(PPSpawner* sp) {
     }
     PSVECSubtract((Vec*)&g_Fielders[sp->_34].pos, (Vec*)sp, &toFielder);
     toFielder.y = 0.0f;
-    if (PSVECMag(&toFielder) != 0.0f) {
+    if (PSVECMag(&toFielder)) {
         PSVECNormalize(&toFielder, &toFielder);
     }
     angle = acos(PSVECDotProduct(&toFielder, &forward));
-    if (toFielder.x < 0.0f) {
+    if (0.0f > toFielder.x) {
         angle = 6.283185258507729 - angle;
     }
     sp->angle = -angle;
@@ -1243,11 +1322,11 @@ void fn_3_143714(void) {
 // .text:0x00143358 size:0x3BC mapped:0x807823EC
 void fn_3_143358(int idx) {
     PPObject* obj = PP_OBJECT(idx);
-    s16 lifetime = lbl_3_data_21E68[10];
+    InMemFielder* fielder;
     int i;
 
     obj->_20++;
-    if (obj->_20 > lifetime) {
+    if (obj->_20 > lbl_3_data_21E68[10]) {
         obj->state = 0;
         return;
     }
@@ -1269,14 +1348,13 @@ void fn_3_143358(int idx) {
     }
     for (i = 0; i < PP_PLAYER_COUNT; i++) {
         s8 fielderIndex = PP.fielderIndex[i];
-        InMemFielder* fielder;
         if (fielderIndex < 0) {
             continue;
         }
+        fielder = &g_Fielders[fielderIndex];
         if (PP.playerState[i] != 0) {
             continue;
         }
-        fielder = &g_Fielders[fielderIndex];
         if (lbl_3_data_21E24[2] + fielderHitboxesForGarlicKnockout[fielder->Weight] > dolsqrtf2(SQ(obj->pos.x - fielder->pos.x) + SQ(obj->pos.z - fielder->pos.z))) {
             Vec dir;
             Vec unusedDir = {0.0f, 0.0f, -1.0f};
@@ -1295,14 +1373,14 @@ void fn_3_143358(int idx) {
             dir.z = obj->vel.z;
             PSVECNormalize(&dir, &dir);
             fielder->xMovementDir = dir.x;
-            PP._1DF4[i] = 1;
+            PP.x_1DF4[i] = 1;
             fielder->zMovementDir = dir.z;
             fielder->currentVelocity = lbl_3_data_21E24[15];
             setCharacterAnimations((s8)PP.character[i], 2);
-            if (PP._1CB1[i] < 0xFFFE) {
-                PP._1CB1[i]++;
+            if (PP.x_1CB1[i] < 0xFFFE) {
+                PP.x_1CB1[i]++;
             } else {
-                PP._1CB1[i] = 0xFF;
+                PP.x_1CB1[i] = 0xFF;
             }
             return;
         }
@@ -1311,6 +1389,7 @@ void fn_3_143358(int idx) {
 
 // .text:0x001430D0 size:0x288 mapped:0x80782164
 void fn_3_1430D0(int arg, int owner) {
+    PPObject* obj;
     int j;
 
     for (j = 0; j < PP_OBJECT_COUNT; j++) {
@@ -1319,22 +1398,21 @@ void fn_3_1430D0(int arg, int owner) {
         }
     }
     if (j < PP_OBJECT_COUNT) {
-        PPObject* obj = PP_OBJECT(j);
-        VecXYZ* goal;
         InMemFielder* fielder;
         f32 yOffset;
         f32 scaled;
         f32 dx;
         f32 dy;
         f32 dz;
+        obj = PP_OBJECT(j);
         fn_3_118358(arg, obj);
         fielder = &g_Fielders[(s8)PP.fielderIndex[owner]];
-        goal = &lbl_3_data_21B94[(u8)PP.goalIndex[owner]];
+        dx = lbl_3_data_21B94[PP.goalIndex[owner]].x - obj->pos.x;
+        dy = lbl_3_data_21B94[PP.goalIndex[owner]].y - obj->pos.y;
+        dz = lbl_3_data_21B94[PP.goalIndex[owner]].z - obj->pos.z;
         scaled = 0.01f * ((f32)barrelCollisionHitboxes[fielder->CharID] * charSizeMultipliers[fielder->CharID][0]);
         yOffset = lbl_3_data_21D2C[1] + scaled;
-        dx = goal->x - obj->pos.x;
-        dy = (goal->y - obj->pos.y) + yOffset;
-        dz = goal->z - obj->pos.z;
+        dy += yOffset;
         obj->vel.x = dx / (f32)lbl_3_data_21E68[21];
         obj->vel.y = dy / (f32)lbl_3_data_21E68[21];
         obj->vel.z = dz / (f32)lbl_3_data_21E68[21];
@@ -1348,6 +1426,7 @@ void fn_3_1430D0(int arg, int owner) {
 // .text:0x00142DB4 size:0x31C mapped:0x80781E48
 void fn_3_142DB4(int idx) {
     PPSpawner* sp = PP_SPAWNER(idx);
+    PPObject* obj;
     int j;
 
     for (j = 0; j < PP_OBJECT_COUNT; j++) {
@@ -1356,13 +1435,13 @@ void fn_3_142DB4(int idx) {
         }
     }
     if (j < PP_OBJECT_COUNT) {
-        PPObject* obj = PP_OBJECT(j);
-        VecXYZ* goal;
         InMemFielder* fielder;
         f32 yOffset;
+        f32 scaled;
         f32 dx;
         f32 dy;
         f32 dz;
+        obj = PP_OBJECT(j);
         if (sp->_2B != 0) {
             obj->pos.x = lbl_3_data_21BC4[idx][3].x;
             obj->pos.y = lbl_3_data_21BC4[idx][3].y;
@@ -1373,13 +1452,14 @@ void fn_3_142DB4(int idx) {
             obj->pos.z = lbl_3_data_21BC4[idx][2].z;
         }
         obj->_22 = sp->_35;
-        obj->_1C = sp->_35;
         fielder = &g_Fielders[sp->_34];
-        goal = &lbl_3_data_21B94[(u8)PP.goalIndex[sp->_35]];
-        yOffset = lbl_3_data_21D2C[1] + 0.01f * ((f32)barrelCollisionHitboxes[fielder->CharID] * charSizeMultipliers[fielder->CharID][0]);
-        dx = goal->x - obj->pos.x;
-        dy = (goal->y - obj->pos.y) + yOffset;
-        dz = goal->z - obj->pos.z;
+        obj->_1C = sp->_35;
+        dx = lbl_3_data_21B94[PP.goalIndex[sp->_35]].x - obj->pos.x;
+        dy = lbl_3_data_21B94[PP.goalIndex[sp->_35]].y - obj->pos.y;
+        dz = lbl_3_data_21B94[PP.goalIndex[sp->_35]].z - obj->pos.z;
+        scaled = 0.01f * ((f32)barrelCollisionHitboxes[fielder->CharID] * charSizeMultipliers[fielder->CharID][0]);
+        yOffset = lbl_3_data_21D2C[1] + scaled;
+        dy += yOffset;
         obj->vel.x = dx / (f32)lbl_3_data_21E68[22];
         obj->vel.y = dy / (f32)lbl_3_data_21E68[22];
         obj->vel.z = dz / (f32)lbl_3_data_21E68[22];
@@ -1396,7 +1476,7 @@ void fn_3_142CA8(void) {
     int j;
 
     for (i = 0; i < PP_PLAYER_COUNT; i++) {
-        for (j = 0; j < 10; j++) {
+        for (j = 0; j < (s32)PP_SCORE_ENTRY_COUNT; j++) {
             PP.pointsA[i] += PP.scoreEntries[i][j];
             PP.scoreEntries[i][j] = 0;
         }
@@ -1422,38 +1502,39 @@ void fn_3_142C18(void) {
 
 // .text:0x001428F0 size:0x328 mapped:0x80781984
 u8 fn_3_1428F0(s8 slot, u8 force) {
+    PPAI* ai = &PP.ai[slot];
     s8 found = -1;
+    s8 character = PP.character[slot];
+    u8 aiStrength = PP.aiStrength[slot];
+    s8 selection = PP.ai[slot].selection;
     u8 hit = FALSE;
     s8 count = 0;
-    u8 selection = PP.ai[slot].selection;
-    u8 character = PP.character[slot];
-    u8 aiStrength = PP.aiStrength[slot];
-    u8 target;
+    s8 target;
     u8 targetKind;
     s8 i;
 
     if (PP.ai[slot].timer >= 0) {
-        PP.ai[slot].timer--;
+        ai->timer--;
     }
     target = PP.heldBalls[slot][0];
-    if ((s8)target < 0) {
+    if (target < 0) {
         return 0;
     }
     i = 0;
     do {
-        if (PP_SPAWNER(i)->mode == 2) {
+        if (PP.spawner[i].mode == 2) {
             count++;
-            if (PP_SPAWNER((s8)selection)->_2C == 4) {
+            if (PP.spawner[selection]._2C == 4) {
                 found = i;
                 break;
             }
         }
         i++;
     } while (i < PP_SPAWNER_COUNT);
-    if (found < 0 && PP.ai[slot].timer >= 0 && !force) {
+    if (found < 0 && ai->timer >= 0 && !force) {
         return 0;
     }
-    targetKind = PP.ballKind[(s8)target];
+    targetKind = PP.ballKind[target];
     if (!(targetKind == 5 && (count == 0 || RandomInt_Game(100) < lbl_3_data_21EC0[aiStrength]))) {
         if (count == 0) {
             return 0;
@@ -1462,9 +1543,8 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
             hit = TRUE;
         }
         if (!hit) {
-            PPSpawner* sp = PP_SPAWNER((s8)selection);
-            if (sp->mode == 2) {
-                u8 kind = sp->_2C;
+            if (PP.spawner[selection].mode == 2) {
+                u8 kind = PP.spawner[selection]._2C;
                 if (targetKind == kind || targetKind == 5 || kind == 4) {
                     hit = TRUE;
                 }
@@ -1473,9 +1553,8 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
         if (!hit) {
             i = 0;
             do {
-                PPSpawner* sp = PP_SPAWNER(i);
-                if (sp->mode == 2) {
-                    u8 kind = sp->_2C;
+                if (PP.spawner[i].mode == 2) {
+                    u8 kind = PP.spawner[i]._2C;
                     if (targetKind == kind || targetKind == 5 || kind == 4) {
                         selection = i;
                         hit = TRUE;
@@ -1487,32 +1566,32 @@ u8 fn_3_1428F0(s8 slot, u8 force) {
         }
     }
     if (hit) {
-        switch ((s8)selection) {
+        switch (selection) {
             case 0:
-                g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
-                g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
+                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
+                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
                 break;
             case 1:
-                g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
-                g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
+                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
+                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
                 break;
             case 2:
-                g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
-                g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
+                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
+                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
                 break;
         }
-        PP.ai[slot].selection = selection;
+        ai->selection = selection;
     } else {
-        g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_B;
-        g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_B;
+        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
+        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_B;
     }
-    PP.ai[slot].timer = RandomInt_Game_Range(lbl_3_data_21EAC[aiStrength][0], lbl_3_data_21EAC[aiStrength][1]);
+    ai->timer = RandomInt_Game_Range(lbl_3_data_21EAC[aiStrength][0], lbl_3_data_21EAC[aiStrength][1]);
     return 1;
 }
 
 // .text:0x00142570 size:0x380 mapped:0x80781604
 int fn_3_142570(s8 slot) {
-    InMemFielder* fielder = &g_Fielders[(s8)PP.fielderIndex[slot]];
+    InMemFielder* fielder = &g_Fielders[PP.fielderIndex[slot]];
     f32 reach = lbl_3_data_21E24[2] + fielderHitboxesForGarlicKnockout[fielder->Weight];
     int best = 10000;
     u8 found = FALSE;
@@ -1526,15 +1605,13 @@ int fn_3_142570(s8 slot) {
             f32 dx = fielder->pos.x - obj->pos.x;
             f32 dist = dolsqrtf2(dx * dx + dz * dz);
             f32 speed;
-            f32 dirX;
-            f32 dirZ;
             if (dist < reach) {
                 return 0;
             }
-            dirX = dx / dist;
-            dirZ = dz / dist;
+            dx /= dist;
+            dz /= dist;
             speed = dolsqrtf2(obj->vel.x * obj->vel.x + obj->vel.z * obj->vel.z);
-            if (dirX * (obj->vel.x / speed) + dirZ * (obj->vel.z / speed) >= 0.9994f) {
+            if (dx * (obj->vel.x / speed) + dz * (obj->vel.z / speed) >= 0.9994f) {
                 int frames = (int)((dist - reach) / speed);
                 if (frames < best) {
                     best = frames;
@@ -1546,7 +1623,7 @@ int fn_3_142570(s8 slot) {
     } while (i < PP_OBJECT_COUNT);
     i = 0;
     do {
-        if (PP.ballState[i] == 6 && PP.ballKind[i] == 5 && slot == -1 - (PP.ballTarget)[i]) {
+        if (PP.ballState[i] == 6 && PP.ballKind[i] == 5 && slot == -1 - PP.ballTarget[i]) {
             int frames = lbl_3_data_21E68[23] - PP.ballFrames[i];
             if (frames >= 0) {
                 if (frames < best) {
@@ -1556,88 +1633,89 @@ int fn_3_142570(s8 slot) {
             }
         }
         i++;
-    } while (i < 50);
+    } while (i < PP_BALL_COUNT);
     return found ? best : -1;
 }
 
 // .text:0x00142284 size:0x2EC mapped:0x80781318
 void fn_3_142284(void) {
     int target[PP_PLAYER_COUNT];
+    PPAI* ai = PP.ai;
     s8 i;
 
     i = 0;
     do {
-        u8 character = PP.character[i];
-        if ((s8)character >= 0 && (s8)character < PP_PLAYER_COUNT) {
+        s8 character = PP.character[i];
+        if (character >= 0 && character < PP_PLAYER_COUNT) {
             target[i] = fn_3_142570(i);
-            if (PP.isHuman[i] != 0) {
+            if (PP.aiControlled[i] != 0) {
                 u8 aiStrength;
-                memset(&g_Minigame._1D7C[(s8)character], 0, sizeof(InputStruct));
+                memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
                 aiStrength = PP.aiStrength[i];
-                switch (PP.ai[i].state) {
+                switch (ai[i].state) {
                     case 0:
                         if (target[i] >= 0) {
                             switch (RandomIndexFromWeights(lbl_3_data_21E9C[aiStrength], 4)) {
                                 case 0:
                                     if (target[i] > LERPToNewRange_Float(PP.hitCount[i], 0, lbl_3_data_21E68[19], lbl_3_data_21E68[2], lbl_3_data_21E68[3]) + 3) {
-                                        if (fn_3_1428F0(i, 0)) {
-                                            PP.ai[i].state = 1;
+                                        if (fn_3_1428F0(i, FALSE)) {
+                                            ai[i].state = 1;
                                         }
                                     } else {
-                                        g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                        g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_DOWN;
-                                        PP.ai[i].state = 2;
+                                        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                        ai[i].state = 2;
                                     }
                                     break;
                                 case 1:
                                     if (target[i] > lbl_3_data_21E68[2] + 3) {
-                                        if (fn_3_1428F0(i, 0)) {
-                                            PP.ai[i].state = 1;
+                                        if (fn_3_1428F0(i, FALSE)) {
+                                            ai[i].state = 1;
                                         }
                                     } else {
-                                        g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                        g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_DOWN;
-                                        PP.ai[i].state = 2;
+                                        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                        ai[i].state = 2;
                                     }
                                     break;
                                 case 2:
-                                    g_Minigame._1D7C[(s8)character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                    g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_DOWN;
-                                    PP.ai[i].state = 2;
+                                    g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                    g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                    ai[i].state = 2;
                                     break;
                                 case 3:
-                                    if (fn_3_1428F0(i, 1)) {
-                                        PP.ai[i].state = 1;
+                                    if (fn_3_1428F0(i, TRUE)) {
+                                        ai[i].state = 1;
                                     }
                                     break;
                             }
                         } else {
-                            if (fn_3_1428F0(i, 0)) {
-                                PP.ai[i].state = 1;
+                            if (fn_3_1428F0(i, FALSE)) {
+                                ai[i].state = 1;
                             }
                         }
                         break;
                     case 1:
                         if (PP.throwDirection[i] < 0) {
-                            PP.ai[i].state = 0;
+                            ai[i].state = 0;
                         }
                         break;
                     case 2:
-                        g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_DOWN;
+                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
                         if (PP.playerState[i] != 1) {
-                            PP.ai[i].state = 3;
+                            ai[i].state = 3;
                         }
                         break;
                     case 3:
                         if (target[i] >= 0) {
-                            g_Minigame._1D7C[(s8)character].buttonInput |= INPUT_BUTTON_DOWN;
+                            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
                         } else {
-                            PP.ai[i].state = 4;
+                            ai[i].state = 4;
                         }
                         break;
                     case 4:
                         if (PP.playerState[i] != 3) {
-                            PP.ai[i].state = 0;
+                            ai[i].state = 0;
                         }
                         break;
                 }
@@ -1662,7 +1740,8 @@ void fn_3_142088(void) {
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            offset = fn_3_142030(j, i, 4) * 4;
+            /* fn_3_142030(j, i, 4) * 4, written out */
+            offset = (((int)i % 4) * 4 + ((int)i / 4) * 16 + (int)j % 4 + ((int)j / 4) * 16) * 4;
             if (offset < 32) {
                 lbl_3_bss_B800[offset + 2] = 0xFF;
                 lbl_3_bss_B800[offset] = 0xFF;
@@ -1678,8 +1757,8 @@ void fn_3_142088(void) {
     }
     GXInitTexObj(&lbl_3_bss_B7C4, lbl_3_bss_B800, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
     GXInitTexObjLOD(&lbl_3_bss_B7C4, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
-    lbl_3_bss_B7E4 = 0;
     lbl_3_data_266A4 = -1;
+    lbl_3_bss_B7E4 = 0;
     lbl_3_bss_B7C1 = 0;
 }
 
