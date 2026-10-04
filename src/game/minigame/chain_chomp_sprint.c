@@ -1037,9 +1037,9 @@ void fn_3_13E670(void) {
 void fn_3_13E3A4(MinigamePowerupStruct* powerup) {
     if (g_Minigame.playerIDWithPowerup[0] != -1) {
         if (g_Minigame.ccs.chompState != 2 && g_Minigame.ccs.chompState != 3) {
-            g_Minigame._1D58--;
+            g_Minigame.powerupHoldFrames--;
         }
-        if (g_Minigame._1D58 <= 0) {
+        if (g_Minigame.powerupHoldFrames <= 0) {
             fn_800115C8(g_Minigame.playerIDWithPowerup[0]);
             g_Minigame.playerIDWithPowerup[0] = -1;
         }
@@ -1109,7 +1109,7 @@ void fn_3_13E21C(MinigamePowerupStruct* powerup) {
     if (count != 0) {
         int who = candidates[RandomInt_Game(count)];
         g_Minigame.playerIDWithPowerup[0] = who;
-        g_Minigame._1D58 = lbl_3_data_21924[2];
+        g_Minigame.powerupHoldFrames = lbl_3_data_21924[2];
         powerup->activeInd = FALSE;
         powerup->timer = lbl_3_data_21924[0];
         callSfx(0x2F6);

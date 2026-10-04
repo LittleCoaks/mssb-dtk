@@ -49,7 +49,7 @@ extern s16 lbl_3_common_bss_37400[0x27];
 
 extern f32 ballDistCalculator(f32 x, f32 z);
 extern u8 fn_3_107D70(void);
-extern int fn_3_1379A0(int fielderIndex);
+extern int sD_IsBlockedByThwomp(int fielderIndex);
 extern void fieldingRelatedAnimations(void* anim, int state);
 extern void foulBall(void);
 extern void setFielderValues(int characterID, int fielderIndex);
@@ -2471,7 +2471,7 @@ void minigameFieldingRelated_collisions(void) {
                 if (g_Minigame.starDashStunType[innerIdx] != 0) {
                     continue;
                 }
-                currentTeam = (s8)g_Minigame._1D6D;
+                currentTeam = (s8)g_Minigame.starDashStarHolder;
                 if (outerIdx == currentTeam) {
                     g_Minigame.starDashStunType[innerIdx] = 1;
                     g_Minigame.starDashCollisionPushDelta[innerIdx].x = inner->pos.x - outer->pos.x;
@@ -3328,7 +3328,7 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
             return 1;
         }
 
-        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && (u8)fn_3_1379A0(fielderIndex)) {
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && (u8)sD_IsBlockedByThwomp(fielderIndex)) {
             memcpy(out, fielder, sizeof(VecXYZ));
             return 1;
         }
@@ -11111,7 +11111,7 @@ void setFielderVelocity_someSituation(int fielderIndex) {
     }
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
-        if ((s8)g_Minigame._1D6D == fielder->_020D) {
+        if ((s8)g_Minigame.starDashStarHolder == fielder->_020D) {
             fielder->currentVelocity = fielder->currentVelocity * lbl_3_data_21A14[6];
         }
         if ((s8)g_Minigame.playerIDWithPowerup[0] == fielder->_020D) {

@@ -2168,7 +2168,7 @@ typedef struct _MiniGameStruct {
     /*0x1D52*/ s16 _1D52;
     /*0x1D54*/ s16 _1D54;
     /*0x1D56*/ s16 _1D56;
-    /*0x1D58*/ s16 _1D58;
+    /*0x1D58*/ s16 powerupHoldFrames;
     /*0x1D5A*/ s16 _1D5A;
     /*0x1D5C*/ u8 _1D5C[6];
     /*0x1D62*/ s16 _1D62;
@@ -2177,9 +2177,9 @@ typedef struct _MiniGameStruct {
     /*0x1D68*/ s16 _1D68;
     /*0x1D6A*/ s16 _1D6A;
     /*0x1D6C*/ u8 _1D6C;
-    /*0x1D6D*/ u8 _1D6D;
+    /*0x1D6D*/ u8 starDashStarHolder; // s8 player slot, -1 = nobody
     /*0x1D6E*/ u8 starDashStunType[4];
-    /*0x1D72*/ u8 _1D72;
+    /*0x1D72*/ u8 starDashFireBarPhase;
     /*0x1D73*/ u8 _1D73;
     /*0x1D74*/ s8 playerIDWithPowerup[2];
     /*0x1D76*/ s16 _1D76;
@@ -2191,7 +2191,7 @@ typedef struct _MiniGameStruct {
     /*0x1DBC*/ u8 isAIControlled[4];
     /*0x1DC0*/ u8 _1DC0[4];
     /*0x1DC4*/ u8 portOfAIBeingProcessed[4];
-    /*0x1DC8*/ u8 _1DC8[4];
+    /*0x1DC8*/ u8 aiDrivenInputInd[4];
     /*0x1DCC*/ union {
         struct {
             /*0x1DCC*/ s16 ai_wbChargePower_bbSwingFrame;

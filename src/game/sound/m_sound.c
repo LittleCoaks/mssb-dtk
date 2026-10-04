@@ -1214,7 +1214,7 @@ void soundControl(void) {
         }
         sndSeqVolume(lbl_3_data_8284[134], 0xF, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
-            if ((s8)g_Minigame._1D6D >= 0) {
+            if ((s8)g_Minigame.starDashStarHolder >= 0) {
                 hold = TRUE;
                 if (g_Minigame.pauseInd != 0) {
                     sndFXKeyOff(sound_crowd_EffectsStruct._04);
