@@ -230,8 +230,20 @@ void CARDInit();
 s32 CARDCheck(s32 channel);
 s32 CARDCheckExAsync(s32 channel, s32* xferBytes, CARDCallback callback);
 
+s32 CARDCheckAsync(s32 channel, CARDCallback callback);
+
 // CARD BIOS functions.
 s32 CARDFreeBlocks(s32 channel, s32* byteNotUsed, s32* filesNotUsed);
+s32 CARDGetResultCode(s32 channel);
+s32 CARDGetXferredBytes(s32 channel);
+
+// CARD delete functions.
+s32 CARDDeleteAsync(s32 channel, const char* fileName, CARDCallback callback);
+s32 CARDDelete(s32 channel, char* fileName);
+
+// CARD attribute functions.
+s32 CARDSetAttributesAsync(s32 channel, s32 fileNo, u8 attr, CARDCallback callback);
+s32 CARDSetAttributes(s32 channel, s32 fileNo, u8 attr);
 
 // CARD mounting functions.
 BOOL CARDProbe(s32 channel);
@@ -242,6 +254,7 @@ s32 CARDUnmount(s32 channel);
 
 // CARD formatting functions.
 s32 CARDFormat(s32 channel);
+s32 CARDFormatAsync(s32 channel, CARDCallback callback);
 
 // CARD open/close.
 s32 CARDOpen(s32 channel, char* fileName, CARDFileInfo* fileInfo);
