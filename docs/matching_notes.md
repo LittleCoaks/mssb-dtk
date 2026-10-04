@@ -2860,3 +2860,28 @@ instructions already match but several locals are live across a loop.
   per store group, so the extern's CSE advantage did not apply) and took `.rodata` to 100%.
 - A `cmpwi`+`bge` cascade sorting a small enum into 3+ groups is a real `switch` (case groups + `default`);
   a hand-built `||` range chain with the same values does not reproduce MWCC's sparse-switch lowering.
+
+## Findings from the orderchange.c merge (swapPosMenu_*, star menus; 9 splits -> 1 unit, flipped to Matching)
+
+First seen: `Unknown/orderchange.c` (2026-10). Nine `Unknown/` splits (0x80042598..0x8004617C) were one
+TU: `OSPanic("orderchange.c", 0xD69, ...)` sits in `lineupOrderChangeRelated` and in its inlined copies
+inside both `swapPosMenu_*` functions, and their pooled strings and four jump tables could only be owned by
+one object. All 11 functions reached 100% and the unit links as `Matching` (`4 files OK`).
+
+- **A non-unrolled `ctr` copy of a function that is fully unrolled everywhere else, with `extsb` on
+  `i + 1`, means the function returns `s8`.** The standalone `lineupOrderChangeRelated` (9-trip scan) is
+  unrolled, as are 34 inlined copies; the copies searching for position 0 stayed a `mtctr 9` loop with
+  `addi r0, i, 1; extsb r0, r0`. Returning `int` unrolled those too (90.2%); returning `s8` reproduced
+  both shapes (100%) with the standalone function unchanged.
+- **Jump-table entries give the source order of the cases.** Case bodies are emitted in source order,
+  so sort the table's targets by address and write the `case` labels in that order (left/right: 98.59 ->
+  98.68; up/down needed it too).
+- **`AIPOSSWAPINPUTS_LOCAL_VIEW` also governs reloads within the same object.** With the 0x24C98-byte
+  type MWCC forwarded `prev = cur; cur -= n;` from registers; the target re-reads `cur` after storing
+  `prev`. A file-local view under 0xFFFF bytes reproduced the reloads (starMenuCursor 87.1 -> 99.95).
+- **`f = f - n` and `f -= n` on an `s8` field differ**: the long form subtracts from the sign-extended
+  value the preceding compare produced (`subf r0, n, r0`), the compound form from the raw byte.
+- **`srwi` on a `u8` field compared signed is `(s32)(field / 2U)`.** `field >> 1` gives `srawi`,
+  `(u32)field >> 1` makes the compare unsigned.
+- **A local caching a global byte can cost a register swap that reading the global at every use avoids**
+  (`g_d_GameSettings._06` in swapPosMenu_left_rightPress: local 99.95, `int` local 99.82, direct 100).
