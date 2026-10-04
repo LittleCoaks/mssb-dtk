@@ -1402,7 +1402,7 @@ void runnerAnimation_detailed(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     RunnerAnimSlot* slot = &lbl_3_common_bss_321A0[runnerIdx];
 
-    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT && g_Minigame._1B15[runnerIdx] == 1) {
+    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT && g_Minigame.ccs.runnerChompHitState[runnerIdx] == 1) {
         slot->state = 0x11;
         return;
     }

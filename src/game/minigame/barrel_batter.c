@@ -195,7 +195,7 @@ void bB_LoadGame(void) {
         g_Minigame._1A37 = 0;
         *(s8 *)&g_Minigame.minigamePlayerSelectedOrder = -1;
         g_Minigame.rosterID = -1;
-        g_Minigame._17C0 = 0;
+        g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.bB_bombBarrelHitInd_bOD_hrYaw = 0;
         g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
 
@@ -350,7 +350,7 @@ void barrelBatterTransitionToMainFunction(void) {
                     SetGameStatus(GAME_STATUS_MINIGAME_NEW_ROUND);
                 }
             } else {
-                fn_3_DE4FC();
+                minigameCalculateRankings();
                 SetGameStatus(GAME_STATUS_MVP_END_GAME);
                 fn_3_12FE84();
                 fn_3_12FD6C();
@@ -366,7 +366,7 @@ void barrelBatterTransitionToMainFunction(void) {
 
 // .text:0x001312D4 size:0x26C mapped:0x80770368
 void fn_3_1312D4(void) {
-    fn_3_DE4FC();
+    minigameCalculateRankings();
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
     fn_3_12FE84();
     fn_3_12FD6C();

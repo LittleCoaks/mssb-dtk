@@ -3444,16 +3444,16 @@ void maybeChainChompSprintCTRLRelated(void) {
 
 // .text:0x000CC5C4 size:0x258 mapped:0x8070B658
 void mPalaceObjHandling(StadiumObject* obj) {
-    obj->_CA = g_Minigame._1B19;
+    obj->_CA = g_Minigame.ccs.chompState;
     actorRelated(obj->effect, 0, 2);
     obj->_CB[0] = obj->_CA;
     obj->hasShadow = 1;
     ((Control*)obj)->type = 0;
     CTRLSetScale((Control*)obj, 0.75f, 0.75f, 0.75f);
-    obj->pos.x = g_Minigame._1AE0;
-    obj->pos.y = g_Minigame._1AE4;
-    obj->pos.z = g_Minigame._1AE8;
-    obj->yaw = shortAngleToRad(g_Minigame._1AF8);
+    obj->pos.x = g_Minigame.ccs.chompPos.x;
+    obj->pos.y = g_Minigame.ccs.chompPos.y;
+    obj->pos.z = g_Minigame.ccs.chompPos.z;
+    obj->yaw = shortAngleToRad(g_Minigame.ccs.chompYaw);
     CTRLSetRotation((Control*)obj, 0.0f, obj->yaw, 0.0f);
     CTRLSetTranslation((Control*)obj, obj->pos.x, -obj->pos.y, obj->pos.z);
     fn_3_CC438();
@@ -3514,7 +3514,7 @@ void fn_3_CC1D4(void) {
     u32 count;
     f32 ang;
 
-    ang = shortAngleToRad(g_Minigame._1AF8);
+    ang = shortAngleToRad(g_Minigame.ccs.chompYaw);
     PSMTXRotRad(m, 'Y', 0.017453292f * -ang);
     v.x = 4.5f;
     v.y = 9.0f;
@@ -3530,7 +3530,7 @@ void fn_3_CC1D4(void) {
     zero = 0.0f;
     for (i = first; i < first + 3; i++) {
         obj = &stadiumObjectCollision.objects[i];
-        CTRLSetTranslation((Control*)obj, g_Minigame._1AE0 + v.x, g_Minigame._1AE4 - v.y, g_Minigame._1AE8 + v.z);
+        CTRLSetTranslation((Control*)obj, g_Minigame.ccs.chompPos.x + v.x, g_Minigame.ccs.chompPos.y - v.y, g_Minigame.ccs.chompPos.z + v.z);
         actor = (ACTActor*)obj->model;
         ((PalaceSlotObject*)obj)->animPhase = i % 3 * 30;
         obj->pos.x = zero;
@@ -3585,15 +3585,15 @@ void palaceStadiumObjTransformationAndPhysics(StadiumObject* obj) {
 
 // .text:0x000CBC18 size:0x368 mapped:0x8070ACAC
 void fn_3_CBC18(StadiumObject* obj) {
-    obj->pos.x = g_Minigame._1AE0;
-    obj->pos.y = g_Minigame._1AE4;
-    obj->pos.z = g_Minigame._1AE8;
-    obj->yaw = -(57.29578f * shortAngleToRad(g_Minigame._1AF8));
+    obj->pos.x = g_Minigame.ccs.chompPos.x;
+    obj->pos.y = g_Minigame.ccs.chompPos.y;
+    obj->pos.z = g_Minigame.ccs.chompPos.z;
+    obj->yaw = -(57.29578f * shortAngleToRad(g_Minigame.ccs.chompYaw));
     CTRLSetTranslation((Control*)obj, obj->pos.x, -obj->pos.y, obj->pos.z);
     CTRLSetRotation((Control*)obj, 0.0f, obj->yaw, 0.0f);
     fn_3_CBAFC(obj);
-    if (g_Minigame._1B19 != obj->_CA) {
-        obj->_CA = g_Minigame._1B19;
+    if (g_Minigame.ccs.chompState != obj->_CA) {
+        obj->_CA = g_Minigame.ccs.chompState;
         fn_3_CB8A8(obj);
         palaceStadiumObjTransformationAndPhysics(obj);
     }

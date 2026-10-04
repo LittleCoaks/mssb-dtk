@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-f32 computeAdjustedFielderOrientation(s8 fielderIdx);
+f32 computeAdjustedFielderOrientation(int fielderIndex);
 void animateDefence(void);
 
 #endif // !__GAME_FIELDING_FIELDER_ORIENTATION_H_
