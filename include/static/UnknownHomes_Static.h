@@ -334,18 +334,74 @@ extern MatchInfo_s g_MatchInfo;
 
 /* ---- aiPosSwapInputs (0x803297E0, 0x24C98 bytes) ---------------------------
  * A large, mostly unlabelled block; only the members in use are named. */
+
+/* aiPosSwapInputs.teamManagementProcessID (Ghidra: teamManagementMenuProcesses). */
+typedef enum _TEAM_MANAGEMENT_PROCESS {
+    TEAM_MANAGEMENT_PROCESS_INITIALIZE = 0,
+    TEAM_MANAGEMENT_PROCESS_LOAD = 1,
+    TEAM_MANAGEMENT_PROCESS_ON_SCREEN = 2,
+    TEAM_MANAGEMENT_PROCESS_STAR_MENU_UNUSED = 3,
+    TEAM_MANAGEMENT_PROCESS_SCOUT_FLAGS_MENU = 4,
+    TEAM_MANAGEMENT_PROCESS_CHALLENGE_STARS_MENU = 5,
+    TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_2 = 10,
+    TEAM_MANAGEMENT_PROCESS_RETURN_TO_CSS_1 = 12,
+    TEAM_MANAGEMENT_PROCESS_RETURN_TO_CSS_2 = 13,
+    TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1 = 14,
+} TEAM_MANAGEMENT_PROCESS;
+
+/* aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber
+ * (Ghidra: challengeCheckStarsLoadingScreenNum). */
+typedef enum _CHECK_STARS_SCENE {
+    CHECK_STARS_SCENE_NONE = 0,
+    CHECK_STARS_SCENE_LOAD = 1,
+    CHECK_STARS_SCENE_EXIT = 2,
+    CHECK_STARS_SCENE_MOVE_IN_CHAR_LIST = 3,
+    CHECK_STARS_SCENE_MOVE_IN_STAR_LIST = 4,
+    CHECK_STARS_SCENE_LOAD_CHAR_VIEW = 5,
+    CHECK_STARS_SCENE_EXIT_CHAR_VIEW = 6,
+} CHECK_STARS_SCENE;
+
+/* aiPosSwapInputs.rosterView (Ghidra: enum_rosterView). */
+typedef enum _ROSTER_VIEW {
+    ROSTER_VIEW_BATTING_ORDER = 0,
+    ROSTER_VIEW_DEFENSIVE_ALIGNMENT = 1,
+} ROSTER_VIEW;
+
 typedef struct {
-    /* 0x0000 */ u8 _0000[0xCF38];
-    /* 0xCF38 */ u16 teamManagementProcessID;       // 0x80336718
+    /* 0x0000 */ controllerInputStruct playerInputs[4]; // indexed by Static_Stats_Tables.playerNumberByPort
+    /* 0x0018 */ u8 _0018[0xCF38 - 0x18];
+    /* 0xCF38 */ E(u16, TEAM_MANAGEMENT_PROCESS) teamManagementProcessID; // 0x80336718
     /* 0xCF3A */ s8 teamThatPaused;                 // -1 before a team is chosen
     /* 0xCF3B */ u8 playerWhoPaused;
-    /* 0xCF3C */ u8 _CF3C[0xCF42 - 0xCF3C];
+    /* 0xCF3C */ u8 charSelectedToBeSwapped[2];
+    /* 0xCF3E */ u8 charSelectedToBeSwappedCharID[2];
+    /* 0xCF40 */ u8 _CF40[0xCF42 - 0xCF40];
     /* 0xCF42 */ u8 onMainPauseMenu;
     /* 0xCF43 */ u8 _CF43[0xCF46 - 0xCF43];
     /* 0xCF46 */ s8 teamManagement_cursorPos[2];
-    /* 0xCF48 */ u8 _CF48[0xCF5D - 0xCF48];
+    /* 0xCF48 */ s8 teamManagement_prevCursorPos[2];
+    /* 0xCF4A */ u8 onFieldingAlignmentScreen2[2];
+    /* 0xCF4C */ u8 unkCF4C[2];                     // copy of onFieldingAlignmentScreen2 before a left/right press
+    /* 0xCF4E */ u8 _CF4E[0xCF52 - 0xCF4E];
+    /* 0xCF52 */ E(u8, ROSTER_VIEW) rosterView[2];
+    /* 0xCF54 */ u8 _CF54[0xCF5D - 0xCF54];
     /* 0xCF5D */ u8 unkCF5D[2];
-    /* 0xCF5F */ u8 _CF5F[0xCF9E - 0xCF5F];
+    /* 0xCF5F */ u8 _CF5F[0xCF74 - 0xCF5F];
+    /* 0xCF74 */ u8 unkCF74;                        // starMenuCursor: 2 after a cursor move, 3 on A/B
+    /* 0xCF75 */ s8 starMenuCursorPos;
+    /* 0xCF76 */ s8 starMenuPrevCursorPos;
+    /* 0xCF77 */ u8 _CF77[0xCF92 - 0xCF77];
+    /* 0xCF92 */ E(u8, CHECK_STARS_SCENE) challengeCheckStarsMenuSceneLoadingNumber;
+    /* 0xCF93 */ u8 challengeCheckStarsMenuLoadingInd;
+    /* 0xCF94 */ u8 _CF94;
+    /* 0xCF95 */ s8 checkStarsMenuPrevCharIndex;
+    /* 0xCF96 */ s8 checkStarsMenuCharIndex;
+    /* 0xCF97 */ s8 checkStarsMenuPrevStarIndex;
+    /* 0xCF98 */ s8 checkStarsMenuStarIndex;
+    /* 0xCF99 */ E(u8, BOOL) checkStarsMenuCharViewOpen;
+    /* 0xCF9A */ u8 numberOfChallengeStarsForPlayer;
+    /* 0xCF9B */ u8 _CF9B;
+    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into starMissionCompletionTracker
     /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
     /* 0xCF9F */ u8 _CF9F[0xCFA2 - 0xCF9F];
     /* 0xCFA2 */ u8 _CFA2[4];                      // per controller port; selects the team-management menu

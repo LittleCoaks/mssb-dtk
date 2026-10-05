@@ -2961,3 +2961,66 @@ instructions already match but several locals are live across a loop.
   locals all left one site in addi form. Even removing every other read of the global left it
   there. Removing unrelated code (memset, a later loop) flipped individual sites. The fold only
   happens when the `lis` and `addi` temporaries get the same register.
+
+## Findings from the orderchange.c merge (swapPosMenu_*, star menus; 9 splits -> 1 unit, flipped to Matching)
+
+First seen: `Unknown/orderchange.c` (2026-10). Nine `Unknown/` splits (0x80042598..0x8004617C) were one
+TU: `OSPanic("orderchange.c", 0xD69, ...)` sits in `lineupOrderChangeRelated` and in its inlined copies
+inside both `swapPosMenu_*` functions, and their pooled strings and four jump tables could only be owned by
+one object. All 11 functions reached 100% and the unit links as `Matching` (`4 files OK`).
+
+- **A non-unrolled `ctr` copy of a function that is fully unrolled everywhere else, with `extsb` on
+  `i + 1`, means the function returns `s8`.** The standalone `lineupOrderChangeRelated` (9-trip scan) is
+  unrolled, as are 34 inlined copies; the copies searching for position 0 stayed a `mtctr 9` loop with
+  `addi r0, i, 1; extsb r0, r0`. Returning `int` unrolled those too (90.2%); returning `s8` reproduced
+  both shapes (100%) with the standalone function unchanged.
+- **Jump-table entries give the source order of the cases.** Case bodies are emitted in source order,
+  so sort the table's targets by address and write the `case` labels in that order (left/right: 98.59 ->
+  98.68; up/down needed it too).
+- **`AIPOSSWAPINPUTS_LOCAL_VIEW` also governs reloads within the same object.** With the 0x24C98-byte
+  type MWCC forwarded `prev = cur; cur -= n;` from registers; the target re-reads `cur` after storing
+  `prev`. A file-local view under 0xFFFF bytes reproduced the reloads (starMenuCursor 87.1 -> 99.95).
+- **`f = f - n` and `f -= n` on an `s8` field differ**: the long form subtracts from the sign-extended
+  value the preceding compare produced (`subf r0, n, r0`), the compound form from the raw byte.
+- **`srwi` on a `u8` field compared signed is `(s32)(field / 2U)`.** `field >> 1` gives `srawi`,
+  `(u32)field >> 1` makes the compare unsigned.
+- **A local caching a global byte can cost a register swap that reading the global at every use avoids**
+  (`g_d_GameSettings._06` in swapPosMenu_left_rightPress: local 99.95, `int` local 99.82, direct 100).
+
+## Findings from the mcard.c merge (memory-card tasks; 2 units + 21 auto splits -> 1 unit, flipped to Matching)
+
+First seen: `Unknown/mcard.c` (2026-10). `OSPanic("mcard.c", ...)` and a shared string pool tie
+0x800A9864..0x800ACF14 together; all 23 functions reached 100% and the unit links as `Matching`.
+
+- **The OSPanic line numbers fall as addresses rise** (0xA6A at the first function, 0xEC at the last):
+  the original emitted functions in reverse source order. Writing the source in address order with the
+  DOL default `-inline auto` produced identical code to reversed order + `-inline deferred`.
+- **A string literal is pooled when the function containing it is code-generated, not when an inline
+  is parsed.** Two helpers (`mcardLoadOpeningBnr`, `UnpackTexPalette`) whose strings sit in the middle
+  of the pool had to be plain `static` functions defined at that point in the file; as `static inline`
+  their strings moved behind later functions' strings. MWCC also emits the plain statics standalone
+  (extra `.text` + extab/extabindex entries, so objdiff shows extab 95% / extabindex 0%), but **mwld
+  dead-strips unreferenced static functions together with their extab entries**: verified by adding an
+  unused static to a Matching unit (`4 files OK`) and by this unit's own flip.
+- **An index that becomes a byte offset in place** (`mcardChannelAt(chan *= sizeof(McardChannel))->x`,
+  then `mcardChannelAt(chan)->y`) is what makes MWCC keep `chan` and `chan * 0x28` in ONE callee-saved
+  register (`lbz r29; ...; mulli r29, r29, 0x28`). Plain array indexing, a pointer local, a fresh
+  `offset` local and even a separate `chan *= ...;` statement all gave the index its own register; only
+  the compound assignment inside the expression matched (six functions at once).
+- **Argument order of an inlined helper decides the parameter registers.** The target's inlined CRC
+  loop had data/len in r8/r7; calling the standalone `mcardCrc16(data, len)` (auto-inlined) swapped
+  them. A `static inline mcardChecksum(s32 length, u8* data)` with the parameters reversed matched.
+- **The SDK `CARDSetIconFormat/CARDSetIconSpeed(stat, i, f)` macros** produce the strength-reduced `2*i`
+  shift register the target uses; a hand-written shift variable gives different scheduling.
+  `u16 speed` (not `u32`) fixed the remaining callee-saved rotation, and `|= (u8)(x & MASK)` on a `u8`
+  field fixed a load scheduled one slot early.
+- **A dtk gap symbol spanning several strings scores reloc mismatches** for every `addi rX, base, off`
+  into it; split it at the real string boundaries in `symbols.txt` (here `lbl_800E7A38`, 0xF0 -> 7
+  strings).
+- **Claiming a unit's `.bss` can create a dtk link-order cycle** when an earlier unit claims a range in
+  the COMMON region near the end of `.bss` (0x803C4BE0..0x803CB734 holds globals in TU order:
+  `AtBat_ButtonInput1`, `mcardState`, `memoryUsedOrStorage`, `DSS_Head1`, ...). mcard's statics at
+  0x802EF2C0..0x802F93A0 stay unclaimed (extern) for that reason; File_0x800a6304/File_0x800a64e0's
+  `.bss` claims in that region are probably really `common`.
+- **`CARDFastDelete` (0x80088698) was really the SDK's `CARDDelete`**: it takes a file name and calls
+  `CARDDeleteAsync` + `__CARDSync`. Renamed in `symbols.txt` and `Dolphin/card/CARDDelete.c`.

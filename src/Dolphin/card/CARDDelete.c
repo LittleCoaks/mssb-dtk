@@ -69,7 +69,7 @@ s32 CARDDeleteAsync(s32 chan, const char *fileName, CARDCallback callback)
   return result;
 }
 
-s32 CARDFastDelete(s32 chan, char *fileName)
+s32 CARDDelete(s32 chan, char *fileName)
 {
   s32 res = CARDDeleteAsync(chan, fileName, __CARDSyncCallback);
 

@@ -419,46 +419,12 @@ Unknown/File_0x8004207c.c:
 	extabindex  start:0x80007B24 end:0x80007B30
 	.text       start:0x8004207C end:0x80042598
 
-Unknown/File_0x80042598.c:
-	extab       start:0x80005FE0 end:0x80005FE8
-	extabindex  start:0x80007B30 end:0x80007B3C
-	.text       start:0x80042598 end:0x800426DC
-
-Unknown/File_0x800426dc.c:
-	extab       start:0x80005FE8 end:0x80005FF0
-	extabindex  start:0x80007B3C end:0x80007B48
-	.text       start:0x800426DC end:0x80042BF0
-
-Unknown/File_0x80042bf0.c:
-	.text       start:0x80042BF0 end:0x80042C44
-
-Unknown/File_0x80042c44.c:
-	extab       start:0x80005FF0 end:0x80005FF8
-	extabindex  start:0x80007B48 end:0x80007B54
-	.text       start:0x80042C44 end:0x80042D38
-
-Unknown/File_0x80042d38.c:
-	.text       start:0x80042D38 end:0x80042DE8
-
-Unknown/File_0x80042de8.c:
-	extab       start:0x80005FF8 end:0x80006000
-	extabindex  start:0x80007B54 end:0x80007B60
-	.text       start:0x80042DE8 end:0x8004338C
-
-Unknown/File_0x8004338c.c:
-	extab       start:0x80006000 end:0x80006008
-	extabindex  start:0x80007B60 end:0x80007B6C
-	.text       start:0x8004338C end:0x80043880
-
-Unknown/File_0x80043880.c:
-	extab       start:0x80006008 end:0x80006010
-	extabindex  start:0x80007B6C end:0x80007B78
-	.text       start:0x80043880 end:0x80044C98
-
-Unknown/File_0x80044c98.c:
-	extab       start:0x80006010 end:0x80006018
-	extabindex  start:0x80007B78 end:0x80007B84
-	.text       start:0x80044C98 end:0x8004617C
+Unknown/orderchange.c:
+	extab       start:0x80005FE0 end:0x80006018
+	extabindex  start:0x80007B30 end:0x80007B84
+	.text       start:0x80042598 end:0x8004617C
+	.rodata     start:0x800E6920 end:0x800E6950
+	.data       start:0x800FB3F8 end:0x800FB488
 
 Unknown/File_0x8004617c.c:
 	extab       start:0x80006018 end:0x80006020
@@ -1628,15 +1594,14 @@ Unknown/File_0x800a983c.c:
 	extabindex  start:0x80008670 end:0x8000867C
 	.text       start:0x800A983C end:0x800A9864
 
-Unknown/File_0x800aaee4.c:
-	extab       start:0x800067B0 end:0x800067B8
-	extabindex  start:0x800086E8 end:0x800086F4
-	.text       start:0x800AAEE4 end:0x800AAFEC
-
-Unknown/File_0x800ac508.c:
-	extab       start:0x800067E8 end:0x800067F0
-	extabindex  start:0x8000873C end:0x80008748
-	.text       start:0x800AC508 end:0x800ACC6C
+Unknown/mcard.c:
+	extab       start:0x80006768 end:0x80006808
+	extabindex  start:0x8000867C end:0x8000876C
+	.text       start:0x800A9864 end:0x800ACF14
+	.rodata     start:0x800E7800 end:0x800E7B50
+	.data       start:0x80110090 end:0x801101B0
+	.sbss       start:0x803CC158 end:0x803CC170
+	.sdata2     start:0x803CCEE0 end:0x803CCEE8
 
 Unknown/File_0x800acf14.c:
 	.text       start:0x800ACF14 end:0x800AD070

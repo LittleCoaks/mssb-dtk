@@ -292,6 +292,20 @@ typedef enum _STADIUM_ID {
     STADIUM_ID_TOY_FIELD,
 } STADIUM_ID;
 
+/* Defensive positions (Ghidra: enumFielder). */
+typedef enum _FIELDING_POSITION {
+    FIELDING_POSITION_NONE = -1,
+    FIELDING_POSITION_PITCHER = 0,
+    FIELDING_POSITION_CATCHER = 1,
+    FIELDING_POSITION_FIRST_BASE = 2,
+    FIELDING_POSITION_SECOND_BASE = 3,
+    FIELDING_POSITION_THIRD_BASE = 4,
+    FIELDING_POSITION_SHORTSTOP = 5,
+    FIELDING_POSITION_LEFT_FIELD = 6,
+    FIELDING_POSITION_CENTER_FIELD = 7,
+    FIELDING_POSITION_RIGHT_FIELD = 8,
+} FIELDING_POSITION;
+
 #ifndef __cplusplus
 // `bool` itself is typedef'd in types.h. Prefer BOOL (int) for locals,
 // parameters and returns: a u8 flag forces a clrlwi truncation at each use
