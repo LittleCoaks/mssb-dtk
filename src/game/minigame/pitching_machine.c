@@ -53,8 +53,8 @@ extern u8 animRelated[0x124];
 
 static u32 MinigameCommonFiles_game[12] = { 0x40B, 0x40001640, 0x08EB4800, 0xC38, 0x40B, 0x400B2D00,
                                             0x08EB5800, 0x6A948, 0, 0x686, 0x08F20800, 0x688 };
-static f32 lbl_3_data_22620[3] = { 0.0f, -0.15f, 18.5f };
-static f32 lbl_3_data_2262C = 0.45f;
+static f32 mm_machinePos[3] = { 0.0f, -0.15f, 18.5f };
+static f32 mm_machineScale = 0.45f;
 static u8 lbl_3_data_22630[4] = { 0, 1, 3, 2 };
 static u8 lbl_3_data_22634[4] = { 15, 15, 15, 15 };
 static u8 lbl_3_data_22638[4] = { 2, 0, 3, 1 };
@@ -300,7 +300,7 @@ static inline void pmDisableWallBallEffects(void) {
 
 
 // .text:0x0011D2C8 size:0xE4 mapped:0x8075C35C
-void fn_3_11D2C8(int asset, int start, int count, int a, int b) {
+void mm_LoadModelAsset(int asset, int start, int count, int a, int b) {
     int i;
 
     for (i = start; i < start + count; i++) {
@@ -313,27 +313,27 @@ void fn_3_11D2C8(int asset, int start, int count, int a, int b) {
 }
 
 // .text:0x0011D1B0 size:0x118 mapped:0x8075C244
-void fn_3_11D1B0(void) {
+void mm_LoadModels(void) {
     int i;
 
     switch (g_Minigame.GameMode_MiniGame) {
     case MINI_GAME_ID_BOBOMB_DERBY:
-        fn_3_11CD00();
+        mm_LoadBobombDerbyModels();
         break;
     case MINI_GAME_ID_WALLBALL:
-        fn_3_11C5F8();
+        mm_LoadWallBallModels();
         break;
     case MINI_GAME_ID_BARREL_BATTER:
-        fn_3_11C2CC();
+        mm_LoadBarrelBatterModels();
         break;
     case MINI_GAME_ID_CHAINCHOMP_SPRINT:
-        fn_3_11C02C();
+        mm_LoadChainChompModels();
         break;
     case MINI_GAME_ID_STAR_DASH:
-        fn_3_11BBA4();
+        mm_LoadStarDashModels();
         break;
     case MINI_GAME_ID_PIRANHA_PANIC:
-        fn_3_11B75C();
+        mm_LoadPiranhaPanicModels();
         break;
     }
     for (i = 0; i < hugeAnimStruct.effectCount; i++) {
@@ -349,7 +349,7 @@ void fn_3_11D1B0(void) {
 }
 
 // .text:0x0011CF84 size:0x22C mapped:0x8075C018
-void fn_3_11CF84(void) {
+void mm_UnloadModels(void) {
     int i;
 
     if ((g_Minigame._1A3C == 0 || g_Minigame._1E01[0x29] >= 6) && g_Minigame._1A38 == 0) {
@@ -373,12 +373,12 @@ void fn_3_11CF84(void) {
     fn_800B993C();
     cleanupCharacters();
     if (g_Minigame._1A38 == 0 || g_Minigame._1A3C != 0) {
-        fn_3_11CF04();
+        mm_CleanupResources();
     }
 }
 
 // .text:0x0011CF04 size:0x80 mapped:0x8075BF98
-void fn_3_11CF04(void) {
+void mm_CleanupResources(void) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
         hugeAnimStruct.effectCount = 0;
     }
@@ -397,96 +397,96 @@ void fn_3_11CF04(void) {
 
 // .text:0x0011CD00 size:0x204 mapped:0x8075BD94
 #pragma dont_inline on
-void fn_3_11CD00(void) {
+void mm_LoadBobombDerbyModels(void) {
     hugeAnimStruct.effectCount = 3;
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
     hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
-    fn_3_11D2C8(13, 0, 1, 0, 0);
-    fn_3_11D2C8(14, 1, 1, 0, 0);
-    fn_3_11D2C8(15, 2, 1, 0, 0);
+    mm_LoadModelAsset(13, 0, 1, 0, 0);
+    mm_LoadModelAsset(14, 1, 1, 0, 0);
+    mm_LoadModelAsset(15, 2, 1, 0, 0);
     ANIM_RELATED->state.frame = 0.5f;
     ACTActorRelated(*(void**)animRelated, PM_MODEL(2));
 }
 
 // .text:0x0011C5F8 size:0x708 mapped:0x8075B68C
-void fn_3_11C5F8(void) {
+void mm_LoadWallBallModels(void) {
     u16 i;
 
     hugeAnimStruct.effectCount = 0x111;
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
     hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
-    fn_3_11D2C8(0, 0, 0x82, 0, 0);
-    fn_3_11D2C8(21, 0x82, 0x64, 0, 0);
-    fn_3_11D2C8(1, 0xE6, 7, 0, 0);
-    fn_3_11D2C8(2, 0xED, 7, 0, 0);
-    fn_3_11D2C8(3, 0xF4, 7, 0, 0);
-    fn_3_11D2C8(5, 0xFB, 1, 0, 0);
-    fn_3_11D2C8(6, 0xFC, 7, 0, 0);
-    fn_3_11D2C8(7, 0x103, 7, 0, 0);
-    fn_3_11D2C8(4, 0x10A, 7, 0, 0);
+    mm_LoadModelAsset(0, 0, 0x82, 0, 0);
+    mm_LoadModelAsset(21, 0x82, 0x64, 0, 0);
+    mm_LoadModelAsset(1, 0xE6, 7, 0, 0);
+    mm_LoadModelAsset(2, 0xED, 7, 0, 0);
+    mm_LoadModelAsset(3, 0xF4, 7, 0, 0);
+    mm_LoadModelAsset(5, 0xFB, 1, 0, 0);
+    mm_LoadModelAsset(6, 0xFC, 7, 0, 0);
+    mm_LoadModelAsset(7, 0x103, 7, 0, 0);
+    mm_LoadModelAsset(4, 0x10A, 7, 0, 0);
     for (i = 0; i < 7; i++) {
-        fn_3_11A38C(0xFC + i, 0);
-        fn_3_11A38C(0x103 + i, 2);
+        mm_StartWallAnim(0xFC + i, 0);
+        mm_StartWallAnim(0x103 + i, 2);
     }
 }
 
 // .text:0x0011C2CC size:0x32C mapped:0x8075B360
-void fn_3_11C2CC(void) {
+void mm_LoadBarrelBatterModels(void) {
     int i;
 
     hugeAnimStruct.effectCount = 0x20;
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
     hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
-    fn_3_11D2C8(8, 0, 0xF, 0, 0);
-    fn_3_11D2C8(9, 0xF, 1, 0, 0);
-    fn_3_11D2C8(10, 0x10, 0xF, 0, 0);
-    fn_3_11D2C8(16, 0x1F, 1, 0, 0);
+    mm_LoadModelAsset(8, 0, 0xF, 0, 0);
+    mm_LoadModelAsset(9, 0xF, 1, 0, 0);
+    mm_LoadModelAsset(10, 0x10, 0xF, 0, 0);
+    mm_LoadModelAsset(16, 0x1F, 1, 0, 0);
     for (i = 0; i < 15; i++) {
-        fn_3_119CA8(0x10 + i);
+        mm_StartBarrelAnim(0x10 + i);
     }
 }
 
 // .text:0x0011C02C size:0x2A0 mapped:0x8075B0C0
-void fn_3_11C02C(void) {
+void mm_LoadChainChompModels(void) {
     hugeAnimStruct.effectCount = 0xA7;
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
     hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
-    fn_3_11D2C8(0, 0, 0x82, 0, 0);
-    fn_3_11D2C8(11, 0x82, 0x23, 0, 0);
-    fn_3_11D2C8(12, 0xA5, 1, 0, 0);
-    fn_3_11D2C8(26, 0xA6, 1, 0, 0);
+    mm_LoadModelAsset(0, 0, 0x82, 0, 0);
+    mm_LoadModelAsset(11, 0x82, 0x23, 0, 0);
+    mm_LoadModelAsset(12, 0xA5, 1, 0, 0);
+    mm_LoadModelAsset(26, 0xA6, 1, 0, 0);
 }
 
 // .text:0x0011BBA4 size:0x488 mapped:0x8075AC38
-void fn_3_11BBA4(void) {
+void mm_LoadStarDashModels(void) {
     hugeAnimStruct.effectCount = 0xEE;
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
     hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
-    fn_3_11D2C8(0, 0, 0x82, 0, 0);
-    fn_3_11D2C8(21, 0x82, 0x64, 0, 0);
-    fn_3_11D2C8(22, 0xE6, 1, 0, 0);
-    fn_3_11D2C8(23, 0xE7, 1, 0, 0);
-    fn_3_11D2C8(24, 0xE8, 1, 0, 0);
-    fn_3_11D2C8(25, 0xE9, 4, 0, 0);
-    fn_3_11D2C8(26, 0xED, 1, 0, 0);
+    mm_LoadModelAsset(0, 0, 0x82, 0, 0);
+    mm_LoadModelAsset(21, 0x82, 0x64, 0, 0);
+    mm_LoadModelAsset(22, 0xE6, 1, 0, 0);
+    mm_LoadModelAsset(23, 0xE7, 1, 0, 0);
+    mm_LoadModelAsset(24, 0xE8, 1, 0, 0);
+    mm_LoadModelAsset(25, 0xE9, 4, 0, 0);
+    mm_LoadModelAsset(26, 0xED, 1, 0, 0);
 }
 
 // .text:0x0011B75C size:0x448 mapped:0x8075A7F0
-void fn_3_11B75C(void) {
+void mm_LoadPiranhaPanicModels(void) {
     hugeAnimStruct.effectCount = 0xF4;
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
     hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
-    fn_3_11D2C8(0, 0, 0x82, 0, 0);
-    fn_3_11D2C8(17, 0x82, 3, ANIM_WORD(0x78), ANIM_WORD(0x60));
-    fn_3_11D2C8(18, 0x85, 0x32, 0, 0);
-    fn_3_11D2C8(13, 0xB7, 0x32, 0, 0);
-    fn_3_11D2C8(19, 0xE9, 7, 0, 0);
-    fn_3_11D2C8(20, 0xF0, 4, 0, 0);
+    mm_LoadModelAsset(0, 0, 0x82, 0, 0);
+    mm_LoadModelAsset(17, 0x82, 3, ANIM_WORD(0x78), ANIM_WORD(0x60));
+    mm_LoadModelAsset(18, 0x85, 0x32, 0, 0);
+    mm_LoadModelAsset(13, 0xB7, 0x32, 0, 0);
+    mm_LoadModelAsset(19, 0xE9, 7, 0, 0);
+    mm_LoadModelAsset(20, 0xF0, 4, 0, 0);
 }
 #pragma dont_inline reset
 
 // .text:0x0011AC6C size:0xAF0 mapped:0x80759D00
-void fn_3_11AC6C(void) {
+void mm_UpdateModels(void) {
     PMEffect* fx;
     int i;
 
@@ -502,42 +502,42 @@ void fn_3_11AC6C(void) {
     } else {
         switch (g_Minigame.GameMode_MiniGame) {
         case MINI_GAME_ID_BOBOMB_DERBY:
-            loadPitchingMachineModel();
+            mm_UpdatePitchingMachine();
             break;
         case MINI_GAME_ID_WALLBALL:
-            fn_3_11A408();
-            fn_3_11A210();
+            mm_UpdateWallBallBlocks();
+            mm_UpdateWallBallCoins();
             break;
         case MINI_GAME_ID_BARREL_BATTER:
-            fn_3_119F6C();
-            fn_3_119D34();
+            mm_UpdateBarrels();
+            mm_UpdateBarrelBatterMachine();
             break;
         case MINI_GAME_ID_CHAINCHOMP_SPRINT:
-            fn_3_119934();
-            fn_3_119878();
+            mm_UpdateChainChompItems();
+            mm_UpdateChainChompPowerup();
             break;
         case MINI_GAME_ID_STAR_DASH:
-            fn_3_118164();
-            fn_3_1180A4();
-            fn_3_117FC8();
-            fn_3_11874C();
-            fn_3_117AE4();
-            fn_3_1179EC();
-            fn_3_117494();
+            mm_UpdateStarDashCoins();
+            mm_UpdateCoinBag();
+            mm_UpdateStar();
+            mm_UpdateObjectShadows();
+            mm_UpdateFireBarHub();
+            mm_UpdateThwomps();
+            mm_UpdateStarDashPowerup();
             break;
         case MINI_GAME_ID_PIRANHA_PANIC:
-            fn_3_1194FC();
-            fn_3_1192B8();
-            fn_3_11874C();
-            fn_3_11887C();
-            fn_3_1183FC();
+            mm_UpdatePiranhaBalls();
+            mm_UpdatePiranhas();
+            mm_UpdateObjectShadows();
+            mm_PlacePiranhaPipes();
+            mm_PlacePlayerMarkers();
             break;
         }
     }
 }
 
 // .text:0x0011AB2C size:0x140 mapped:0x80759BC0
-void loadPitchingMachineModel(void) {
+void mm_UpdatePitchingMachine(void) {
     int idx = 2;
     PMEffect* fx;
 
@@ -547,7 +547,7 @@ void loadPitchingMachineModel(void) {
     fx = &hugeAnimStruct.effects[idx];
     if (fx != NULL) {
         fx->visible = TRUE;
-        nonPracticePitchingMachineLogic(fx, idx);
+        mm_PlacePitchingMachine(fx, idx);
         if (g_Pitcher.pitcherActionState >= PITCHER_ACTION_STATE_WINDUP && PauseSimulation == 0) {
             PMAnimState* state = &ANIM_RELATED->state;
 
@@ -566,16 +566,16 @@ void loadPitchingMachineModel(void) {
 }
 
 // .text:0x0011A92C size:0x200 mapped:0x807599C0
-void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
+void mm_PlacePitchingMachine(PMEffect* fx, int idx) {
     VecXYZ v;
 
-    fx->pos.x = lbl_3_data_22620[0];
-    fx->pos.y = lbl_3_data_22620[1];
-    fx->pos.z = lbl_3_data_22620[2];
+    fx->pos.x = mm_machinePos[0];
+    fx->pos.y = mm_machinePos[1];
+    fx->pos.z = mm_machinePos[2];
     fx->rot.x = 0.0f;
     fx->rot.y = 0.0f;
     fx->rot.z = 0.0f;
-    applyUniformScaleToObject(lbl_3_data_2262C, idx);
+    applyUniformScaleToObject(mm_machineScale, idx);
     if (g_Minigame.pauseInd == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
             if (g_Pitcher.pitcherActionState >= PITCHER_ACTION_STATE_IN_AIR) {
@@ -588,12 +588,12 @@ void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
                     callSfx(0x2D6);
                 }
                 fx->pos.z += lbl_3_bss_B6BC;
-                lbl_3_bss_B6BC = lbl_3_bss_B6BC - 0.2 * (fx->pos.z - lbl_3_data_22620[2]);
+                lbl_3_bss_B6BC = lbl_3_bss_B6BC - 0.2 * (fx->pos.z - mm_machinePos[2]);
             }
         } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
             if (g_Pitcher.currentStateFrameCounter == 1) {
                 if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH) {
-                    fn_3_14B9A0(lbl_3_data_217A4[6] + lbl_3_data_217A4[7], lbl_3_data_22620);
+                    fn_3_14B9A0(lbl_3_data_217A4[6] + lbl_3_data_217A4[7], mm_machinePos);
                     callSfx(0x30E);
                 } else if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
                     v.x = lbl_3_data_21380.x;
@@ -607,7 +607,7 @@ void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
 }
 
 // .text:0x0011A408 size:0x524 mapped:0x8075949C
-void fn_3_11A408(void) {
+void mm_UpdateWallBallBlocks(void) {
     MaybeWallBallStruct* wall;
     int i;
     int idx;
@@ -636,15 +636,15 @@ void fn_3_11A408(void) {
                     v.x = wall->_0;
                     v.y = g_Ball.AtBat_Contact_BallPos.y;
                     v.z = wall->zPositionOfSomeWall;
-                    fn_3_11A38C(idx, 3);
+                    mm_StartWallAnim(idx, 3);
                     fn_3_151710(PM_MODEL(idx), &v);
                     callSfx(0x2EB);
                 } else {
-                    fn_3_11A38C(idx, 2);
+                    mm_StartWallAnim(idx, 2);
                     callSfx(0x2EC);
                 }
             } else if (wall->coinGenerationCategory == 0) {
-                fn_3_11A38C(idx, 0);
+                mm_StartWallAnim(idx, 0);
                 callSfx(0x2E2);
             } else {
                 if (wall->coinGenerationCategory == 1) {
@@ -715,7 +715,7 @@ void fn_3_11A408(void) {
 }
 
 // .text:0x0011A38C size:0x7C mapped:0x80759420
-void fn_3_11A38C(int idx, int kind) {
+void mm_StartWallAnim(int idx, int kind) {
     void* v;
     ActorObjectEntry* obj = PM_ENTRY(idx);
 
@@ -735,12 +735,12 @@ void fn_3_11A38C(int idx, int kind) {
 }
 
 // .text:0x0011A350 size:0x3C mapped:0x807593E4
-u32 fn_3_11A350(int idx) {
+u32 mm_ScanModelBones(int idx) {
     return (u32)scanBoneAttachmentData(PM_MODEL_AT(idx)->model);
 }
 
 // .text:0x0011A210 size:0x140 mapped:0x807592A4
-void fn_3_11A210(void) {
+void mm_UpdateWallBallCoins(void) {
     PMEffect* fx;
     PMEffect* shadow;
     int i;
@@ -773,11 +773,11 @@ void fn_3_11A210(void) {
 }
 
 // .text:0x0011A20C size:0x4 mapped:0x807592A0
-void fn_3_11A20C(void) {
+void mm_EmptyHook(void) {
 }
 
 // .text:0x00119F6C size:0x2A0 mapped:0x80759000
-void fn_3_119F6C(void) {
+void mm_UpdateBarrels(void) {
     PMEffect* fx;
     PMEffect* e;
     PMEffect* shadow;
@@ -800,7 +800,7 @@ void fn_3_119F6C(void) {
             if (barrel->barrelState == 4) {
                 e = shadow;
                 if (barrel->animationCounter == 0) {
-                    fn_3_119CA8(0x10 + i);
+                    mm_StartBarrelAnim(0x10 + i);
                     fn_3_14DC80(i);
                     callSfx(0x2E3);
                 }
@@ -844,9 +844,9 @@ void fn_3_119F6C(void) {
             }
             if (flag) {
                 flag = 0;
-                e->update = fn_3_119E30;
+                e->update = mm_FlashBombBarrel;
             } else if (barrel->barrelState != 4) {
-                e->update = fn_3_119EE0;
+                e->update = mm_SetBarrelColour;
             } else {
                 e->update = NULL;
             }
@@ -855,7 +855,7 @@ void fn_3_119F6C(void) {
 }
 
 // .text:0x00119EE0 size:0x8C mapped:0x80758F74
-void fn_3_119EE0(int idx) {
+void mm_SetBarrelColour(int idx) {
     PMMeshC* c = ((PMModel*)pmGetActor(idx))->parts[0]->b->c;
 
     c->d[1].frame = lbl_3_data_22638[g_Minigame.barrels[idx].barrelColour] * 3;
@@ -864,7 +864,7 @@ void fn_3_119EE0(int idx) {
 }
 
 // .text:0x00119E30 size:0xB0 mapped:0x80758EC4
-void fn_3_119E30(int idx) {
+void mm_FlashBombBarrel(int idx) {
     PMMeshC* c;
 
     if (g_Minigame.barrels[g_Minigame.bB_bombBarrelID_bOD_hrPitch].animationCounter % lbl_3_data_2263E != 0) {
@@ -877,25 +877,25 @@ void fn_3_119E30(int idx) {
 }
 
 // .text:0x00119D34 size:0xFC mapped:0x80758DC8
-void fn_3_119D34(void) {
+void mm_UpdateBarrelBatterMachine(void) {
     PMEffect* fx = &hugeAnimStruct.effects[0x1F];
 
     fx->visible = TRUE;
-    nonPracticePitchingMachineLogic(fx, 0x1F);
+    mm_PlacePitchingMachine(fx, 0x1F);
     if (PauseSimulation == 0 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
         g_Pitcher.pitchTotalTimeCounter == lbl_3_data_217A4[7]) {
-        fn_3_119C34();
+        mm_StartBarrelMachineAnim();
         callSfx(0x2E6);
     }
 }
 
 // .text:0x00119D28 size:0xC mapped:0x80758DBC
-f32 fn_3_119D28(void) {
-    return lbl_3_data_2262C;
+f32 mm_GetPitchingMachineScale(void) {
+    return mm_machineScale;
 }
 
 // .text:0x00119CA8 size:0x80 mapped:0x80758D3C
-void fn_3_119CA8(int idx) {
+void mm_StartBarrelAnim(int idx) {
     void* v;
     ActorObjectEntry* obj = PM_ENTRY(idx);
 
@@ -915,7 +915,7 @@ void fn_3_119CA8(int idx) {
 }
 
 // .text:0x00119C34 size:0x74 mapped:0x80758CC8
-void fn_3_119C34(void) {
+void mm_StartBarrelMachineAnim(void) {
     void* v;
     ActorObjectEntry* obj = PM_ENTRY(0x1F);
 
@@ -935,7 +935,7 @@ void fn_3_119C34(void) {
 }
 
 // .text:0x00119934 size:0x300 mapped:0x807589C8
-void fn_3_119934(void) {
+void mm_UpdateChainChompItems(void) {
     PMEffect* e;
     int kind;
     int i;
@@ -1004,7 +1004,7 @@ void fn_3_119934(void) {
 }
 
 // .text:0x00119878 size:0xBC mapped:0x8075890C
-void fn_3_119878(void) {
+void mm_UpdateChainChompPowerup(void) {
     PMMinigame* g = &g_Minigame;
     PMEffect* fx = &hugeAnimStruct.effects[0xA6];
 
@@ -1014,7 +1014,7 @@ void fn_3_119878(void) {
         if (g->powerup.timer > 60 || g->powerup.timer % 2 != 0 || g->ccs.chompState == 2 ||
             g->ccs.chompState == 3) {
             fx->visible = TRUE;
-            fx->update = fn_3_11741C;
+            fx->update = mm_SetPowerupFrame;
             fx->pos.x = g->powerup.pos.x;
             fx->pos.y = -g->powerup.pos.y;
             fx->pos.z = g->powerup.pos.z;
@@ -1024,7 +1024,7 @@ void fn_3_119878(void) {
 }
 
 // .text:0x00119854 size:0x24 mapped:0x807588E8
-f32 fn_3_119854(u8 kind) {
+f32 mm_GetItemScale(u8 kind) {
     if (kind > 2) {
         kind = 2;
     }
@@ -1032,7 +1032,7 @@ f32 fn_3_119854(u8 kind) {
 }
 
 // .text:0x001194FC size:0x358 mapped:0x80758590
-void fn_3_1194FC(void) {
+void mm_UpdatePiranhaBalls(void) {
     VecXYZ dir;
     VecXYZ ref = { 0.0f, 0.0f, 1.0f };
     PMEffect* a;
@@ -1058,7 +1058,7 @@ void fn_3_1194FC(void) {
                 a = b;
                 base = 0xB7;
             } else {
-                a->update = fn_3_1194AC;
+                a->update = mm_SetPiranhaBallColour;
                 base = 0x85;
             }
             a->visible = TRUE;
@@ -1105,7 +1105,7 @@ void fn_3_1194FC(void) {
                     fn_3_15521C(i, &a->pos, &a->rot);
                 }
                 if (PP.ballKind[i] == 5) {
-                    a->update = fn_3_119468;
+                    a->update = mm_AttachPulseTexture;
                 }
                 shadow->visible = TRUE;
                 shadow->pos.x = PP.ballPos[i].x;
@@ -1118,19 +1118,19 @@ void fn_3_1194FC(void) {
 }
 
 // .text:0x001194AC size:0x50 mapped:0x80758540
-void fn_3_1194AC(int idx) {
+void mm_SetPiranhaBallColour(int idx) {
     ((PMModel*)pmGetActor(idx))->parts[0]->b->c->d[1].frame = lbl_3_data_2265C[PP.ballKind[idx - 0x85]];
 }
 
 // .text:0x00119468 size:0x44 mapped:0x807584FC
-void fn_3_119468(int idx) {
+void mm_AttachPulseTexture(int idx) {
     if (PM_MODEL_AT(idx)->model->flags & 9) {
         pP_SetPulseTevCallback();
     }
 }
 
 // .text:0x001192B8 size:0x1B0 mapped:0x8075834C
-void fn_3_1192B8(void) {
+void mm_UpdatePiranhas(void) {
     PMEffect* fx;
     PPSpawner* sp;
     int i;
@@ -1162,20 +1162,20 @@ void fn_3_1192B8(void) {
             if (sp->mode == 4 && sp->_1C <= 0 && (sp->_1A & 1)) {
                 fx->visible = FALSE;
             }
-            fx->update = fn_3_11897C;
-            fn_3_118B18(i);
+            fx->update = mm_SetPiranhaColour;
+            mm_UpdatePiranhaAnim(i);
         }
     }
 }
 
 // .text:0x00118B18 size:0x7A0 mapped:0x80757BAC
-void fn_3_118B18(int slot) {
+void mm_UpdatePiranhaAnim(int slot) {
     PPSpawner* sp = &PP.spawner[slot];
 
     sp->_28++;
     if (sp->mode == 1) {
         if (sp->_1A <= 1) {
-            fn_3_1189C8(slot, 2, 0, 0, FALSE);
+            mm_SetPiranhaAnim(slot, 2, 0, 0, FALSE);
             applyUniformScaleToObject(0.01f, 0x82 + slot);
         } else {
             applyUniformScaleToObject(LinearInterpolateToNewRange(sp->_1A, 0.0f, lbl_3_data_21E68[5],
@@ -1184,21 +1184,21 @@ void fn_3_118B18(int slot) {
                                       0x82 + slot);
         }
         if (sp->_1C == 1) {
-            fn_3_1189C8(slot, 0, 0, 6, TRUE);
+            mm_SetPiranhaAnim(slot, 0, 0, 6, TRUE);
         }
     } else if (sp->mode == 4) {
         if (sp->_1A <= 1) {
-            fn_3_1189C8(slot, 4, 0, 0, FALSE);
+            mm_SetPiranhaAnim(slot, 4, 0, 0, FALSE);
         }
     } else if (sp->_1E == 2) {
         if (sp->isBig == 0) {
-            fn_3_1189C8(slot, 1, 0, 0, FALSE);
+            mm_SetPiranhaAnim(slot, 1, 0, 0, FALSE);
         } else {
-            fn_3_1189C8(slot, 5, 0, 0, FALSE);
+            mm_SetPiranhaAnim(slot, 5, 0, 0, FALSE);
         }
     } else if (sp->_1E == lbl_3_data_21E68[7]) {
         if (sp->_33 != 0) {
-            fn_3_1189C8(slot, 0, 0, 6, TRUE);
+            mm_SetPiranhaAnim(slot, 0, 0, 6, TRUE);
         }
     } else {
         if (sp->_2E != 0 && (sp->_26 == 1 || sp->isBig != 0)) {
@@ -1207,10 +1207,10 @@ void fn_3_118B18(int slot) {
             if (sp->isBig == 0) {
                 pP_PiranhaAimAtPlayer(sp);
             }
-            fn_3_1189C8(slot, 3, frame, 2, FALSE);
+            mm_SetPiranhaAnim(slot, 3, frame, 2, FALSE);
         }
         if (sp->_33 == 3 && sp->_28 == lbl_3_data_226B8[1] - lbl_3_data_226AC[3]) {
-            fn_3_1189C8(slot, 0, 0, 6, TRUE);
+            mm_SetPiranhaAnim(slot, 0, 0, 6, TRUE);
             PP.spawner[slot]._14 = 0.0f;
             PP.spawner[slot]._0C = 0.0f;
             PP.spawner[slot].angle = lbl_3_data_22688[slot];
@@ -1219,7 +1219,7 @@ void fn_3_118B18(int slot) {
 }
 
 // .text:0x001189C8 size:0x150 mapped:0x80757A5C
-void fn_3_1189C8(int slot, int kind, int frame, int divisor, u8 flag) {
+void mm_SetPiranhaAnim(int slot, int kind, int frame, int divisor, u8 flag) {
     PPSpawner* sp = &PP.spawner[slot];
     ActorObjectEntry* obj = PM_ENTRY(0x82 + slot);
     f32 rate = 0.0f;
@@ -1250,12 +1250,12 @@ void fn_3_1189C8(int slot, int kind, int frame, int divisor, u8 flag) {
 }
 
 // .text:0x0011897C size:0x4C mapped:0x80757A10
-void fn_3_11897C(int idx) {
+void mm_SetPiranhaColour(int idx) {
     ((PMMeshA*)pmGetActor(idx))->b->c->d[1].frame = lbl_3_data_22670[PP.spawner[idx - 0x82].kind];
 }
 
 // .text:0x0011887C size:0x100 mapped:0x80757910
-void fn_3_11887C(void) {
+void mm_PlacePiranhaPipes(void) {
     PMEffect* fx;
     int i;
 
@@ -1268,19 +1268,19 @@ void fn_3_11887C(void) {
             fx->pos.z = lbl_3_data_21B94[i].z;
             fx->pos.y = 0.0f;
             applyNonUniformScaleToObject(lbl_3_data_226C4[2], lbl_3_data_226C4[3], lbl_3_data_226C4[2], 0xE9 + i);
-            fx->update = fn_3_11881C;
+            fx->update = mm_SetPipeFrame;
         } else {
             fx->pos.x = lbl_3_data_21BC4[i - 4][0].x;
             fx->pos.y = -lbl_3_data_21BC4[i - 4][0].y;
             fx->pos.z = lbl_3_data_21BC4[i - 4][0].z;
             applyNonUniformScaleToObject(lbl_3_data_226C4[0], lbl_3_data_226C4[1], lbl_3_data_226C4[0], 0xE9 + i);
-            fx->update = fn_3_11881C;
+            fx->update = mm_SetPipeFrame;
         }
     }
 }
 
 // .text:0x0011881C size:0x60 mapped:0x807578B0
-void fn_3_11881C(int idx) {
+void mm_SetPipeFrame(int idx) {
     s16 frame;
 
     if (idx - 0xE9 < 4) {
@@ -1296,7 +1296,7 @@ void fn_3_11881C(int idx) {
 }
 
 // .text:0x0011874C size:0xD0 mapped:0x807577E0
-void fn_3_11874C(void) {
+void mm_UpdateObjectShadows(void) {
     int i;
 
     if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_STAR_DASH) {
@@ -1318,7 +1318,7 @@ void fn_3_11874C(void) {
 }
 
 // .text:0x00118614 size:0x138 mapped:0x807576A8
-void fn_3_118614(void) {
+void mm_AddFlameSprites(void) {
     DrawingSceneStruct* node = currentDrawingItem;
     int i;
 
@@ -1326,11 +1326,11 @@ void fn_3_118614(void) {
     for (i = 0; i < (s32)ARRAY_SIZE(SD.fireBarFlame); i++) {
         ((UIRecord*)graphicsRelatedArray[((MenuScene*)node)->firstHandle + i].object)->frame = 0x20000;
     }
-    currentDrawingItem->func = fn_3_118508;
+    currentDrawingItem->func = mm_RemoveFlameSprites;
 }
 
 // .text:0x00118508 size:0x10C mapped:0x8075759C
-void fn_3_118508(void) {
+void mm_RemoveFlameSprites(void) {
     DrawingSceneStruct* node = currentDrawingItem;
     int i;
 
@@ -1363,7 +1363,7 @@ static inline void pmPlaceMarker(int i) {
     fx->visible = TRUE;
 }
 
-void fn_3_1183FC(void) {
+void mm_PlacePlayerMarkers(void) {
     pmPlaceMarker(0);
     pmPlaceMarker(1);
     pmPlaceMarker(2);
@@ -1371,7 +1371,7 @@ void fn_3_1183FC(void) {
 }
 
 // .text:0x00118358 size:0xA4 mapped:0x807573EC
-void fn_3_118358(int slot, VecXYZ* out) {
+void mm_GetPiranhaSpitPos(int slot, VecXYZ* out) {
     sBone* bone = ((Actor*)PM_MODEL(0x82 + slot)->model)->boneArray[17];
 
     if (slot < 0 || slot > 2) {
@@ -1385,7 +1385,7 @@ void fn_3_118358(int slot, VecXYZ* out) {
 }
 
 // .text:0x00118164 size:0x1F4 mapped:0x807571F8
-void fn_3_118164(void) {
+void mm_UpdateStarDashCoins(void) {
     PMEffect* fx;
     PMEffect* shadow;
     int i;
@@ -1432,7 +1432,7 @@ void fn_3_118164(void) {
 }
 
 // .text:0x001180A4 size:0xC0 mapped:0x80757138
-void fn_3_1180A4(void) {
+void mm_UpdateCoinBag(void) {
     PMEffect* fx = hugeAnimStruct.effects;
 
     fx[100].visible = FALSE;
@@ -1455,7 +1455,7 @@ void fn_3_1180A4(void) {
 }
 
 // .text:0x00117FC8 size:0xDC mapped:0x8075705C
-void fn_3_117FC8(void) {
+void mm_UpdateStar(void) {
     PMEffect* fx = hugeAnimStruct.effects;
 
     fx[0xE8].visible = FALSE;
@@ -1471,12 +1471,12 @@ void fn_3_117FC8(void) {
         } else {
             fx[0xE8].rot.y = radianAngleReduction(0.1f + fx[0xE8].rot.y);
         }
-        fx[0xE8].update = fn_3_117B78;
+        fx[0xE8].update = mm_DrawStarGlow;
     }
 }
 
 // .text:0x00117B78 size:0x450 mapped:0x80756C0C
-void fn_3_117B78(int idx) {
+void mm_DrawStarGlow(int idx) {
     PMEffect* fx = &FX(idx);
     f32 uv[8] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
     VecXYZ v[4];
@@ -1518,7 +1518,7 @@ void fn_3_117B78(int idx) {
 }
 
 // .text:0x00117AE4 size:0x94 mapped:0x80756B78
-void fn_3_117AE4(void) {
+void mm_UpdateFireBarHub(void) {
     PMEffect* fx = hugeAnimStruct.effects;
 
     fx[0xE7].visible = TRUE;
@@ -1532,7 +1532,7 @@ void fn_3_117AE4(void) {
 }
 
 // .text:0x001179EC size:0xF8 mapped:0x80756A80
-void fn_3_1179EC(void) {
+void mm_UpdateThwomps(void) {
     PMEffect* fx;
     SDThwomp* thwomp;
     u32 i;
@@ -1551,13 +1551,13 @@ void fn_3_1179EC(void) {
             fx->rot.y = 0.017453292f * thwomp->rot.y;
             fx->rot.z = 0.017453292f * thwomp->rot.z;
             applyUniformScaleToObject(2.5f, 0xE9 + i);
-            fx->update = fn_3_117588;
+            fx->update = mm_DrawThwompShadow;
         }
     }
 }
 
 // .text:0x00117588 size:0x464 mapped:0x8075661C
-void fn_3_117588(int idx) {
+void mm_DrawThwompShadow(int idx) {
     f32 uv[8] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
     PMEffect* fx = &FX(idx);
     SDThwomp* thwomp = &SD.thwomp[idx - 0xE9];
@@ -1601,7 +1601,7 @@ void fn_3_117588(int idx) {
 }
 
 // .text:0x00117494 size:0xF4 mapped:0x80756528
-void fn_3_117494(void) {
+void mm_UpdateStarDashPowerup(void) {
     PMMinigame* g = &g_Minigame;
     PMEffect* fx = hugeAnimStruct.effects;
 
@@ -1611,7 +1611,7 @@ void fn_3_117494(void) {
     if (g->powerup.activeInd) {
         if (g->powerup.timer > 60 || g->powerup.timer % 2 != 0) {
             fx[0xED].visible = TRUE;
-            fx[0xED].update = fn_3_11741C;
+            fx[0xED].update = mm_SetPowerupFrame;
             fx[0xED].pos.x = g->powerup.pos.x;
             fx[0xED].pos.y = -g->powerup.pos.y;
             fx[0xED].pos.z = g->powerup.pos.z;
@@ -1626,7 +1626,7 @@ void fn_3_117494(void) {
 }
 
 // .text:0x0011741C size:0x78 mapped:0x807564B0
-void fn_3_11741C(int idx) {
+void mm_SetPowerupFrame(int idx) {
     PMModel* model;
     int frame;
     int i;
@@ -1639,40 +1639,40 @@ void fn_3_11741C(int idx) {
 }
 
 // .text:0x00116B74 size:0x8A8 mapped:0x80755C08
-void fn_3_116B74(void) {
+void mm_ResetModels(void) {
     int i;
     int j;
 
     switch (g_Minigame.GameMode_MiniGame) {
     case MINI_GAME_ID_BOBOMB_DERBY:
-        fn_3_116B38();
+        mm_ResetPitchingMachine();
         break;
     case MINI_GAME_ID_WALLBALL:
         pmDisableWallBallEffects();
         break;
     case MINI_GAME_ID_BARREL_BATTER:
-        fn_3_116B38();
-        fn_3_119F6C();
+        mm_ResetPitchingMachine();
+        mm_UpdateBarrels();
         break;
     case MINI_GAME_ID_CHAINCHOMP_SPRINT:
-        fn_3_119934();
-        fn_3_117494();
+        mm_UpdateChainChompItems();
+        mm_UpdateStarDashPowerup();
         break;
     case MINI_GAME_ID_STAR_DASH:
-        fn_3_118164();
-        fn_3_117FC8();
+        mm_UpdateStarDashCoins();
+        mm_UpdateStar();
         for (i = 0; i < 40; i++) {
             PMEffect* fx = &FX(i);
 
             fx->visible = FALSE;
             fx->update = NULL;
         }
-        fn_3_1179EC();
-        fn_3_117494();
+        mm_UpdateThwomps();
+        mm_UpdateStarDashPowerup();
         break;
     case MINI_GAME_ID_PIRANHA_PANIC:
-        fn_3_1194FC();
-        fn_3_116840();
+        mm_UpdatePiranhaBalls();
+        mm_ResetPiranhas();
         for (i = 0; i < 40; i++) {
             PMEffect* fx = &FX(i);
 
@@ -1690,7 +1690,7 @@ void fn_3_116B74(void) {
                 fx->pos.z = lbl_3_data_21BC4[j - 4][0].z;
                 applyNonUniformScaleToObject(lbl_3_data_226C4[0], lbl_3_data_226C4[1],
                                              lbl_3_data_226C4[0], 0xE9 + j);
-                fx->update = fn_3_11881C;
+                fx->update = mm_SetPipeFrame;
             }
         }
         FX(0xF0).visible = FALSE;
@@ -1702,7 +1702,7 @@ void fn_3_116B74(void) {
 }
 
 // .text:0x00116B38 size:0x3C mapped:0x80755BCC
-void fn_3_116B38(void) {
+void mm_ResetPitchingMachine(void) {
     int idx = 2;
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
@@ -1712,12 +1712,12 @@ void fn_3_116B38(void) {
 }
 
 // .text:0x001169D0 size:0x168 mapped:0x80755A64
-void fn_3_1169D0(void) {
+void mm_HideWallBallEffects(void) {
     pmDisableWallBallEffects();
 }
 
 // .text:0x00116840 size:0x190 mapped:0x807558D4
-void fn_3_116840(void) {
+void mm_ResetPiranhas(void) {
     int i;
 
     for (i = 0; i < PP_SPAWNER_COUNT; i++) {
@@ -1732,9 +1732,9 @@ void fn_3_116840(void) {
             fx->pos.z = sp->pos.z;
             applyUniformScaleToObject(lbl_3_data_22678[sp->isBig], 0x82 + i);
             fx->rot.y = lbl_3_data_22688[i];
-            fx->update = fn_3_11897C;
+            fx->update = mm_SetPiranhaColour;
             if (sp->_1C == 1) {
-                fn_3_1189C8(i, 0, 0, 6, TRUE);
+                mm_SetPiranhaAnim(i, 0, 0, 6, TRUE);
                 sp->_1C++;
             }
         }

@@ -1287,7 +1287,7 @@ void pP_SpawnProjectile(int arg, int owner) {
         f32 dy;
         f32 dz;
         obj = PP_OBJECT(j);
-        fn_3_118358(arg, &obj->pos);
+        mm_GetPiranhaSpitPos(arg, &obj->pos);
         fielder = &g_Fielders[(s8)PP.fielderIndex[owner]];
         dx = lbl_3_data_21B94[PP.goalIndex[owner]].x - obj->pos.x;
         dy = lbl_3_data_21B94[PP.goalIndex[owner]].y - obj->pos.y;

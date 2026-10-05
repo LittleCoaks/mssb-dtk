@@ -914,7 +914,7 @@ void toyFieldPostMenu(void) {
             fn_3_15F998();
             fn_3_147DFC();
             if (pauseControl.cursor == 1) {
-                fn_3_11CF84();
+                mm_UnloadModels();
             }
         }
         break;
