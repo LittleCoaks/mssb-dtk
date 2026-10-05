@@ -63,17 +63,17 @@ void initializeAIConstants(void) {
     if (g_GameLogic.teamIsCPU[g_GameLogic.homeTeamInd ^ 1]) {
         g_GameLogic.runnerAIInd[1] = 1;
     }
-    g_AiLogic.aIPitchDesiredEndingLocIndex = 0xFF;
+    g_AiLogic.aIPitchDesiredEndingLocIndex = U8_MAX;
 }
 
 // .text:0x0001E3EC size:0xCC mapped:0x8065D480
 void batterAIRollBuntIntent(void) {
     g_AiLogic.batterAIBuntPossibility = 0;
-    g_AiLogic.batterAIBuntInd = 0;
+    g_AiLogic.batterAIBuntInd = FALSE;
     if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_Strikes.outs <= 1 &&
         (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111)) {
         if (RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
-            g_AiLogic.batterAIBuntInd = 1;
+            g_AiLogic.batterAIBuntInd = TRUE;
         }
     }
 }

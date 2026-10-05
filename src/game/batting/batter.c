@@ -1233,10 +1233,7 @@ extern s16 BattingAngleRanges[3][2][15][2];
 extern s16 BarrelBatterBattingAngleRanges[3][2][15][2];
 extern s16 ToyFieldBattingAngleRanges[3][2][15][2];
 
-// .text:0x00011B9C size:0x334 mapped:0x80650c30
-void calculateBallHorizontalAngleHit(void) {
-    int angleRangeLower, angleRangeUpper, angleRange, horizAngle;
-    BOOL isCharge = TRUE;
+static inline InputStruct* selectBattingInput(void) {
     InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
 
     if (ACTIVE_TUTORIAL()) {
@@ -1247,6 +1244,14 @@ void calculateBallHorizontalAngleHit(void) {
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
+    return inputs;
+}
+
+// .text:0x00011B9C size:0x334 mapped:0x80650c30
+void calculateBallHorizontalAngleHit(void) {
+    int angleRangeLower, angleRangeUpper, angleRange, horizAngle;
+    BOOL isCharge = TRUE;
+    InputStruct* inputs = selectBattingInput();
 
     if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
         isCharge = FALSE;
