@@ -34,6 +34,7 @@
 #include "Dolphin/mtx.h"
 #include "C3/actor.h"
 #include "C3/skinning.h"
+#include "C3/anim.h"
 #include "Dolphin/vec.h"
 #include "Dolphin/os.h"
 #include "Dolphin/stl.h"
@@ -50,14 +51,6 @@ extern UIRecordDescriptor lbl_3_data_69D0[];
 extern u8 animRelated[0x124];
 
 
-typedef struct {
-    /*0x00*/ u8 frame[4];
-    /*0x04*/ f32 ballScale;
-    /*0x08*/ f32 shadowScale;
-    /*0x0C*/ f32 _78;
-    /*0x10*/ s32 _7C;
-} PMBallConsts; // size: 0x14
-
 static u32 MinigameCommonFiles_game[12] = { 0x40B, 0x40001640, 0x08EB4800, 0xC38, 0x40B, 0x400B2D00,
                                             0x08EB5800, 0x6A948, 0, 0x686, 0x08F20800, 0x688 };
 static f32 lbl_3_data_22620[3] = { 0.0f, -0.15f, 18.5f };
@@ -70,7 +63,10 @@ static u8 lbl_3_data_2263E = 2;
 static u8 lbl_3_data_2263F = 6;
 static f32 lbl_3_data_22640[4] = { 0.75f, 0.05f, 3.0f, 0.02f };
 static f32 lbl_3_data_22650[3] = { 5.0f, 5.0f, 10.0f };
-static PMBallConsts lbl_3_data_2265C = { { 1, 0, 2, 3 }, 2.0f, 8.0f, 1.0f, 60 };
+static u8 lbl_3_data_2265C[4] = { 1, 0, 2, 3 };
+static f32 lbl_3_data_22660[2] = { 2.0f, 8.0f };
+static f32 lbl_3_data_22668 = 1.0f;
+static s32 lbl_3_data_2266C = 60;
 static u8 lbl_3_data_22670[8] = { 2, 0, 3, 4, 1, 0, 0, 0 };
 static f32 lbl_3_data_22678[4] = { 2.0f, 2.5f, 1.0f, 1.0f };
 static f32 lbl_3_data_22688[3] = { 0.5f, 0.0f, -0.5f };
@@ -111,24 +107,11 @@ typedef struct {
     /*0x98*/ u8 flags;
 } PMModel;
 
-/* A record in hugeAnimStruct's model table, which has a 0x90-byte stride;
- * the fields below start 0x34 bytes into each record. */
+/* An ActorObjectEntry (File_0x800bdd74.h) of hugeAnimStruct's model table, viewed
+ * with its actor typed as the mesh chain this file walks. */
 typedef struct {
     /*0x00*/ PMModel* model;
-    /*0x04*/ s32 _04;
-    /*0x08*/ u8 _08[0xE - 0x8];
-    /*0x0E*/ s16 _0E;
-    /*0x10*/ u8 _10[0x54 - 0x10];
-    /*0x54*/ f32 _54;
-    /*0x58*/ u8 _58;
-    /*0x59*/ u8 _59;
-    /*0x5A*/ u8 _5A;
-    /*0x5B*/ u8 _5B;
-    /*0x5C*/ f32 _5C;
-    /*0x60*/ f32 _60;
-    /*0x64*/ u8 _64[0x6C - 0x64];
-    /*0x6C*/ u8 _6C;
-    /*0x6D*/ u8 _6D[0x90 - 0x6D];
+    /*0x04*/ u8 _04[0x90 - 0x4];
 } PMModelObj; // size: 0x90
 
 /* A 12-byte record in the table at hugeAnimStruct+0x2DA0; data is the model
@@ -158,6 +141,7 @@ extern PMHugeAnimStruct hugeAnimStruct;
 #define FX(i) (hugeAnimStruct.effects[i])
 #define PM_MODEL(i) ((PMModelObj*)(hugeAnimStruct.modelTable + (i) * 0x90 + 0x34))
 #define PM_ACTORS ((ActorObjectTable*)hugeAnimStruct.modelTable)
+#define PM_ENTRY(i) ((ActorObjectEntry*)(hugeAnimStruct.modelTable + (i) * 0x90 + 0x34))
 #define PM_MODEL_AT(i) (&((PMModelObj*)(hugeAnimStruct.modelTable + 0x34))[i])
 
 static inline Actor* pmGetActor(int idx) {
@@ -248,6 +232,7 @@ typedef struct {
 #define ANIM_RELATED ((PMAnimRelated*)animRelated)
 
 #define ANIM_WORD(off) (*(s32*)(animRelated + (off)))
+#define ANIM_PTR(off) (*(void**)(animRelated + (off)))
 
 #define PM_WALL_SIZE 0x2C
 #define PM_WALL(i) ((MaybeWallBallStruct*)((u8*)&g_Minigame + 0x72C + (i) * PM_WALL_SIZE))
@@ -623,27 +608,27 @@ void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
 
 // .text:0x0011A408 size:0x524 mapped:0x8075949C
 void fn_3_11A408(void) {
+    MaybeWallBallStruct* wall;
     int i;
-    u8 flag = 0;
+    int idx;
+    u8 flag;
+    PMEffect* fx;
 
+    flag = 0;
     FX(0xFB).visible = FALSE;
     for (i = 0; i < 7; i++) {
-        MaybeWallBallStruct* wall;
-        int idx;
-        PMEffect* fx;
-
+        wall = PM_WALL(i);
         FX(0xE6 + i).visible = FALSE;
         FX(0xED + i).visible = FALSE;
         FX(0xF4 + i).visible = FALSE;
         FX(0xFC + i).visible = FALSE;
         FX(0x103 + i).visible = FALSE;
         FX(0x10A + i).visible = FALSE;
-        wall = PM_WALL(i);
         if (wall->_28 == 0) {
             continue;
         }
         if (wall->_28 == 4) {
-            idx = i + (wall->coinGenerationCategory == 2) * 7 + 0xFC;
+            idx = 0xFC + i + (wall->coinGenerationCategory == 2) * 7;
             if (wall->coinGenerationCategory == 2) {
                 if (g_Minigame.wallBall_hitNoteBlock == 1) {
                     VecXYZ v;
@@ -676,7 +661,7 @@ void fn_3_11A408(void) {
         } else if (wall->_28 == 5) {
             u8 t;
 
-            idx = i + (wall->coinGenerationCategory == 2) * 7 + 0xFC;
+            idx = 0xFC + i + (wall->coinGenerationCategory == 2) * 7;
             t = (u32)scanBoneAttachmentData(PM_MODEL(idx)->model);
             if (t < lbl_3_data_22634[wall->coinGenerationCategory] / 2 && t % 2 == 0) {
                 PMModel* model = PM_MODEL(idx)->model;
@@ -731,22 +716,22 @@ void fn_3_11A408(void) {
 
 // .text:0x0011A38C size:0x7C mapped:0x80759420
 void fn_3_11A38C(int idx, int kind) {
-    s32 v;
-    PMModelObj* obj = PM_MODEL(idx);
+    void* v;
+    ActorObjectEntry* obj = PM_ENTRY(idx);
 
-    v = ANIM_WORD(0x70);
-    obj->_04 = v;
-    obj->_0E = kind;
-    obj->_5C = 0.0f;
-    obj->_58 = 1;
-    obj->_59 = v != 0;
-    obj->_5A = v != 0;
-    obj->_60 = 0.0f;
-    obj->_54 = 1.0f;
-    obj->_5A = 1;
-    obj->_5C = 0.0f;
-    obj->_59 = 1;
-    obj->_5B = 2;
+    v = ANIM_PTR(0x70);
+    obj->anim = v;
+    obj->seqNum = kind;
+    obj->frame = 0.0f;
+    obj->animPending = 1;
+    obj->framePending = v != NULL;
+    obj->speedPending = v != NULL;
+    obj->blendTime = 0.0f;
+    obj->speed = 1.0f;
+    obj->speedPending = 1;
+    obj->frame = 0.0f;
+    obj->framePending = 1;
+    obj->boneParam = 2;
 }
 
 // .text:0x0011A350 size:0x3C mapped:0x807593E4
@@ -793,17 +778,22 @@ void fn_3_11A20C(void) {
 
 // .text:0x00119F6C size:0x2A0 mapped:0x80759000
 void fn_3_119F6C(void) {
+    PMEffect* fx;
+    PMEffect* e;
+    PMEffect* shadow;
+    PMEffect* special;
+    BB_barrelStruct* barrel;
     int i;
-    u8 flag = 0;
-    PMEffect* fx = hugeAnimStruct.effects;
-    PMEffect* special = &fx[15];
+    u8 flag;
 
+    flag = 0;
+    fx = hugeAnimStruct.effects;
+    special = &fx[15];
     fx[15].visible = FALSE;
     for (i = 0; i < 15; i++) {
-        PMEffect* e = &FX(i);
-        PMEffect* shadow = &FX(0x10 + i);
-        BB_barrelStruct* barrel = &g_Minigame.barrels[i];
-
+        barrel = &g_Minigame.barrels[i];
+        e = &FX(i);
+        shadow = &FX(0x10 + i);
         shadow->visible = FALSE;
         e->visible = FALSE;
         if (barrel->barrelState != 0) {
@@ -819,14 +809,14 @@ void fn_3_119F6C(void) {
 
                     if (t <= lbl_3_data_2263F) {
                         if ((t & 1) == 0) {
-                            PMModel* model = PM_MODEL(0x10 + i)->model;
+                            Actor* actor = PM_ACTORS->entries[0x10 + i].actor;
                             u32 j;
 
-                            for (j = 0; j < model->count; j++) {
-                                f32* p = *(f32**)((u8*)model->parts[j] + 0xE8);
+                            for (j = 0; j < actor->totalBones; j++) {
+                                struct ANIMPipe* pipe = actor->boneArray[j]->animPipe;
 
-                                if (p != NULL) {
-                                    p[0] = p[0] + p[2];
+                                if (pipe != NULL) {
+                                    pipe->time = pipe->time + pipe->unk08;
                                 }
                             }
                             shadow->visible = FALSE;
@@ -906,54 +896,55 @@ f32 fn_3_119D28(void) {
 
 // .text:0x00119CA8 size:0x80 mapped:0x80758D3C
 void fn_3_119CA8(int idx) {
-    s32 v;
-    PMModelObj* obj = PM_MODEL(idx);
+    void* v;
+    ActorObjectEntry* obj = PM_ENTRY(idx);
 
-    v = ANIM_WORD(0x74);
-    obj->_04 = v;
-    obj->_0E = 0;
-    obj->_5C = 0.0f;
-    obj->_58 = 1;
-    obj->_59 = v != 0;
-    obj->_5A = v != 0;
-    obj->_60 = 0.0f;
-    obj->_54 = 1.0f;
-    obj->_5A = 1;
-    obj->_5C = 0.0f;
-    obj->_59 = 1;
-    obj->_5B = 2;
+    v = ANIM_PTR(0x74);
+    obj->anim = v;
+    obj->seqNum = 0;
+    obj->frame = 0.0f;
+    obj->animPending = 1;
+    obj->framePending = v != NULL;
+    obj->speedPending = v != NULL;
+    obj->blendTime = 0.0f;
+    obj->speed = 1.0f;
+    obj->speedPending = 1;
+    obj->frame = 0.0f;
+    obj->framePending = 1;
+    obj->boneParam = 2;
 }
 
 // .text:0x00119C34 size:0x74 mapped:0x80758CC8
 void fn_3_119C34(void) {
-    s32 v;
-    PMModelObj* obj = PM_MODEL(0x1F);
+    void* v;
+    ActorObjectEntry* obj = PM_ENTRY(0x1F);
 
-    v = ANIM_WORD(0x74);
-    obj->_04 = v;
-    obj->_0E = 1;
-    obj->_5C = 0.0f;
-    obj->_58 = 1;
-    obj->_59 = v != 0;
-    obj->_5A = v != 0;
-    obj->_60 = 0.0f;
-    obj->_54 = 1.0f;
-    obj->_5A = 1;
-    obj->_5C = 0.0f;
-    obj->_59 = 1;
-    obj->_5B = 2;
+    v = ANIM_PTR(0x74);
+    obj->anim = v;
+    obj->seqNum = 1;
+    obj->frame = 0.0f;
+    obj->animPending = 1;
+    obj->framePending = v != NULL;
+    obj->speedPending = v != NULL;
+    obj->blendTime = 0.0f;
+    obj->speed = 1.0f;
+    obj->speedPending = 1;
+    obj->frame = 0.0f;
+    obj->framePending = 1;
+    obj->boneParam = 2;
 }
 
 // .text:0x00119934 size:0x300 mapped:0x807589C8
 void fn_3_119934(void) {
-    PMEffect* fx = hugeAnimStruct.effects;
+    PMEffect* e;
+    int kind;
     int i;
+    PMEffect* fx;
 
+    fx = hugeAnimStruct.effects;
     fx[0xA5].visible = FALSE;
     for (i = 0; i < 15; i++) {
-        PMEffect* e = &FX(0x82 + i);
-        int kind;
-
+        e = &FX(0x82 + i);
         e->visible = FALSE;
         kind = (&g_Minigame.ccs.chompState)[g_Minigame.coinState[i]] - 2;
         if (kind == 2) {
@@ -981,8 +972,7 @@ void fn_3_119934(void) {
         }
     }
     for (i = 15; i < 35; i++) {
-        PMEffect* e = &FX(0x82 + i);
-
+        e = &FX(0x82 + i);
         e->visible = FALSE;
         if (g_Minigame.turnOverStatus == 0 && g_Minigame.coinState[i] == 1) {
             VecXYZ tmp;
@@ -1000,7 +990,7 @@ void fn_3_119934(void) {
                 tmp.y = 0.0f;
                 PSVECNormalize((Vec*)&tmp, (Vec*)&tmp);
                 angle = acos(tmp.x);
-                if (tmp.z < 0.0f) {
+                if (0.0f > tmp.z) {
                     angle = 6.2831855f - angle;
                 }
                 e->rot.y = angle;
@@ -1045,19 +1035,21 @@ f32 fn_3_119854(u8 kind) {
 void fn_3_1194FC(void) {
     VecXYZ dir;
     VecXYZ ref = { 0.0f, 0.0f, 1.0f };
+    PMEffect* a;
+    PMEffect* shadow;
+    int base;
+    PMEffect* b;
     int i;
     int step;
 
     for (i = 0; i < PP_BALL_COUNT; i++) {
-        PMEffect* a = &FX(0x85 + i);
-        PMEffect* b = &FX(0xB7 + i);
-        PMEffect* shadow = &FX(0x28 + i);
-        int base;
-
+        a = &FX(0x85 + i);
         a->visible = FALSE;
         a->update = NULL;
+        b = &FX(0xB7 + i);
         b->visible = FALSE;
         b->update = NULL;
+        shadow = &FX(0x28 + i);
         shadow->visible = FALSE;
         shadow->update = NULL;
         if (PP.ballState[i] != 0 && PP.ballState[i] != 3 && PP.ballState[i] != 4) {
@@ -1074,16 +1066,16 @@ void fn_3_1194FC(void) {
             a->pos.y = -PP.ballPos[i].y;
             a->pos.z = PP.ballPos[i].z;
             if (PP.ballState[i] == 2) {
-                f32 t = PP.x_1C4C[i] * (lbl_3_data_2265C.ballScale - lbl_3_data_2265C._78) / lbl_3_data_2265C._7C;
+                f32 scaleY = lbl_3_data_22660[0] - PP.x_1C4C[i] * (lbl_3_data_22660[0] - lbl_3_data_22668) / lbl_3_data_2266C;
 
                 if (PauseSimulation == 0) {
-                    applyNonUniformScaleToObject(lbl_3_data_2265C.ballScale, lbl_3_data_2265C.ballScale - t, lbl_3_data_2265C.ballScale, base + i);
-                    step = -(PP.x_1C1A[i] * 2) + PP.x_1C4C[i] + 1;
+                    applyNonUniformScaleToObject(lbl_3_data_22660[0], scaleY, lbl_3_data_22660[0], base + i);
+                    step = PP.x_1C4C[i] + (PP.x_1C1A[i] * -2 + 1);
                     PP.x_1C4C[i] = step;
                     if ((u8)step >= 0x3C) {
                         PP.x_1C1A[i] = PP.x_1C1A[i] == 0;
                     }
-                    PP.x_1C4C[i] = -(PP.x_1C1A[i] * 2) + PP.x_1C4C[i] + 1;
+                    PP.x_1C4C[i] += PP.x_1C1A[i] * -2 + 1;
                 }
                 a->rot.x = 0.0f;
                 a->rot.y = 0.0f;
@@ -1092,7 +1084,7 @@ void fn_3_1194FC(void) {
                     a->pos.y -= 0.5f;
                 }
             } else {
-                applyUniformScaleToObject(lbl_3_data_2265C.ballScale, base + i);
+                applyUniformScaleToObject(lbl_3_data_22660[0], base + i);
                 if (PP.ballState[i] != 6) {
                     f32 angle;
 
@@ -1101,7 +1093,7 @@ void fn_3_1194FC(void) {
                     dir.z = PP.ballVel[i].z;
                     PSVECNormalize((Vec*)&dir, (Vec*)&dir);
                     angle = acos(PSVECDotProduct((Vec*)&ref, (Vec*)&dir));
-                    if (dir.x < 0.0f) {
+                    if (0.0f > dir.x) {
                         angle = 6.2831855f - angle;
                     }
                     if (PauseSimulation == 0) {
@@ -1109,25 +1101,25 @@ void fn_3_1194FC(void) {
                         a->rot.x += -0.17453292f;
                     }
                 }
+                if (PP.ballKind[i] == 5 && PP.ballFrames[i] == 1) {
+                    fn_3_15521C(i, &a->pos, &a->rot);
+                }
+                if (PP.ballKind[i] == 5) {
+                    a->update = fn_3_119468;
+                }
+                shadow->visible = TRUE;
+                shadow->pos.x = PP.ballPos[i].x;
+                shadow->pos.y = -0.05f;
+                shadow->pos.z = PP.ballPos[i].z;
+                applyUniformScaleToObject(lbl_3_data_22660[1], 0x28 + i);
             }
-            if (PP.ballKind[i] == 5 && PP.ballFrames[i] == 1) {
-                fn_3_15521C(i, &a->pos, &a->rot);
-            }
-            if (PP.ballKind[i] == 5) {
-                a->update = fn_3_119468;
-            }
-            shadow->visible = TRUE;
-            shadow->pos.x = PP.ballPos[i].x;
-            shadow->pos.y = -0.05f;
-            shadow->pos.z = PP.ballPos[i].z;
-            applyUniformScaleToObject(lbl_3_data_2265C.shadowScale, 0x28 + i);
         }
     }
 }
 
 // .text:0x001194AC size:0x50 mapped:0x80758540
 void fn_3_1194AC(int idx) {
-    ((PMModel*)pmGetActor(idx))->parts[0]->b->c->d[1].frame = lbl_3_data_2265C.frame[PP.ballKind[idx - 0x85]];
+    ((PMModel*)pmGetActor(idx))->parts[0]->b->c->d[1].frame = lbl_3_data_2265C[PP.ballKind[idx - 0x85]];
 }
 
 // .text:0x00119468 size:0x44 mapped:0x807584FC
@@ -1229,29 +1221,29 @@ void fn_3_118B18(int slot) {
 // .text:0x001189C8 size:0x150 mapped:0x80757A5C
 void fn_3_1189C8(int slot, int kind, int frame, int divisor, u8 flag) {
     PPSpawner* sp = &PP.spawner[slot];
-    PMModelObj* obj = PM_MODEL(0x82 + slot);
+    ActorObjectEntry* obj = PM_ENTRY(0x82 + slot);
     f32 rate = 0.0f;
-    s32 v;
+    void* v;
 
     if (divisor != 0) {
         rate = 1.0f / divisor;
     }
-    v = *(s32*)(animRelated + 0x78);
-    obj->_04 = v;
-    obj->_0E = kind;
-    obj->_5C = 0.0f;
-    obj->_58 = 1;
-    obj->_59 = v != 0;
-    obj->_5A = v != 0;
-    obj->_60 = rate;
-    obj->_54 = lbl_3_data_22694[kind];
-    obj->_5A = 1;
-    obj->_5C = frame + lbl_3_data_226AC[kind];
-    obj->_59 = 1;
+    v = ANIM_PTR(0x78);
+    obj->anim = v;
+    obj->seqNum = kind;
+    obj->frame = 0.0f;
+    obj->animPending = 1;
+    obj->framePending = v != NULL;
+    obj->speedPending = v != NULL;
+    obj->blendTime = rate;
+    obj->speed = lbl_3_data_22694[kind];
+    obj->speedPending = 1;
+    obj->frame = frame + lbl_3_data_226AC[kind];
+    obj->framePending = 1;
     if (flag) {
-        obj->_5B = 3;
+        obj->boneParam = 3;
     } else {
-        obj->_5B = 2;
+        obj->boneParam = 2;
     }
     sp->_33 = kind;
     sp->_28 = frame;
