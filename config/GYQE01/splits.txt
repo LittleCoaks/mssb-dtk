@@ -721,61 +721,13 @@ Unknown/File_0x80064430.c:
 	extabindex  start:0x800081E4 end:0x800081F0
 	.text       start:0x80064430 end:0x80064534
 
-Unknown/File_0x80064754.c:
-	.text       start:0x80064754 end:0x800649BC
-
-Unknown/File_0x80064a04.c:
-	extab       start:0x80006470 end:0x80006478
-	extabindex  start:0x80008208 end:0x80008214
-	.text       start:0x80064A04 end:0x80065DEC
-
-Unknown/File_0x80065dec.c:
-	extab       start:0x80006478 end:0x80006480
-	extabindex  start:0x80008214 end:0x80008220
-	.text       start:0x80065DEC end:0x80066EAC
-
-Unknown/File_0x800671fc.c:
-	extab       start:0x80006488 end:0x80006490
-	extabindex  start:0x8000822C end:0x80008238
-	.text       start:0x800671FC end:0x80067264
-
-Unknown/File_0x80067264.c:
-	extab       start:0x80006490 end:0x80006498
-	extabindex  start:0x80008238 end:0x80008244
-	.text       start:0x80067264 end:0x800675C4
-
-Unknown/File_0x800675c4.c:
-	extab       start:0x80006498 end:0x800064A0
-	extabindex  start:0x80008244 end:0x80008250
-	.text       start:0x800675C4 end:0x800678CC
-
-Unknown/File_0x800678cc.c:
-	extab       start:0x800064A0 end:0x800064A8
-	extabindex  start:0x80008250 end:0x8000825C
-	.text       start:0x800678CC end:0x80067AC8
-
-Unknown/File_0x80067ac8.c:
-	.text       start:0x80067AC8 end:0x80067C48
-
-Unknown/File_0x80067f70.c:
-	extab       start:0x800064B0 end:0x800064B8
-	extabindex  start:0x80008268 end:0x80008274
-	.text       start:0x80067F70 end:0x800684A4
-
-Unknown/File_0x80068838.c:
-	extab       start:0x800064E0 end:0x800064E8
-	extabindex  start:0x800082B0 end:0x800082BC
-	.text       start:0x80068838 end:0x800697B0
-
-Unknown/File_0x80069854.c:
-	.text       start:0x80069854 end:0x800698F8
-
-Unknown/File_0x800698f8.c:
-	extab       start:0x800064F0 end:0x800064F8
-	extabindex  start:0x800082C8 end:0x800082D4
-	.text       start:0x800698F8 end:0x80069A68
+Unknown/mb_subfunc.c:
+	extab       start:0x80006468 end:0x800064F8
+	extabindex  start:0x800081FC end:0x800082D4
+	.text       start:0x80064754 end:0x80069A68
 	.rodata     start:0x800E69B8 end:0x800E6A00
-	.data       start:0x801091F4 end:0x8010924C
+	.data       start:0x80108DB8 end:0x8010924C
+	.sdata      start:0x803CB8D0 end:0x803CB8D8
 
 Unknown/File_0x80069a98.c:
 	extab       start:0x80006500 end:0x80006508
