@@ -15197,10 +15197,12 @@ void fn_3_300B8(int fielderIndex) {
 
     if (fielder->clamberStatus == 1) {
         s16 countdown = fielder->specialActionCountdown;
+        f32 deltaX = fielder->wallActionLocationX - fielder->pos.x;
+        f32 deltaZ = fielder->wallactionLocationZ - fielder->pos.z;
         fielder->pos.x = fielder->pos.x +
-            (fielder->wallActionLocationX - fielder->pos.x) / (f32)countdown;
+            deltaX / (f32)countdown;
         fielder->pos.z = fielder->pos.z +
-            (fielder->wallactionLocationZ - fielder->pos.z) / (f32)countdown;
+            deltaZ / (f32)countdown;
 
         fielder->wallActionVelo.y = fielder->wallActionVelo.y - fielderActionConstants[18];
         fielder->wallActionCurrentHeight = fielder->wallActionCurrentHeight + fielder->wallActionVelo.y;

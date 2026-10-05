@@ -55,19 +55,19 @@ BOOL batterAIBuntDecision(void) {
         return batterAI_buntForPractice() != 0;
     }
     if (g_AiLogic.batterAIBuntInd != 1) {
-        return 0;
+        return FALSE;
     }
     if (g_AiLogic.aISwingDecisionRelated_noSwingOverride != 0) {
-        return 0;
+        return FALSE;
     }
     if (g_Ball.pitchHangtimeCounter <= 0) {
-        return 1;
+        return TRUE;
     }
     if (g_Pitcher.framesUntilBallReachesBatterZ == g_AiLogic.batterAIZPosition && batterAIBallLocRelated() == 0) {
-        g_AiLogic.aISwingDecisionRelated_noSwingOverride = 1;
-        return 0;
+        g_AiLogic.aISwingDecisionRelated_noSwingOverride = TRUE;
+        return FALSE;
     }
-    return 1;
+    return TRUE;
 }
 
 // .text:0x0001E7F4 size:0x2B4 mapped:0x8065D888
@@ -756,10 +756,10 @@ void resetBatterAIBoxPosition(void) {
 // .text:0x00020B30 size:0x104 mapped:0x8065FBC4
 int aIPickoff(void) {
     if (g_AiLogic.aIPitcherPickOffInd == 0) {
-        return 0;
+        return FALSE;
     }
     if (g_Pitcher.currentStateFrameCounter > g_AiLogic.AIFrameToBeginPitch - 10) {
-            if (g_RunningLogic._02 == 0x1011) {
+        if (g_RunningLogic._02 == 0x1011) {
             if (RandomInt_Game(3) == 0) {
                 g_Pitcher.pickOffLoc = 3;
             } else {
@@ -776,9 +776,9 @@ int aIPickoff(void) {
         } else {
             g_Pitcher.pickOffLoc = 1;
         }
-        return 1;
+        return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 // .text:0x00020C34 size:0xB8 mapped:0x8065FCC8
@@ -786,7 +786,7 @@ void pitcherAIDecidePickoff(void) {
     int prob;
 
     if (g_AiLogic.pitcherAIPitchDownTheMiddleInd == 0) {
-        g_AiLogic.aIPitcherPickOffInd = 0;
+        g_AiLogic.aIPitcherPickOffInd = FALSE;
         if (g_RunningLogic._02 == 1 || g_RunningLogic._02 == 0x1111) {
             return;
         }
@@ -796,7 +796,7 @@ void pitcherAIDecidePickoff(void) {
             prob = pickOffProb[g_Pitcher.charClass][g_AiLogic.aIDifficultyInverse0Weak];
         }
         if (RandomInt_Game(100) < prob) {
-            g_AiLogic.aIPitcherPickOffInd = 1;
+            g_AiLogic.aIPitcherPickOffInd = TRUE;
         }
     }
 }

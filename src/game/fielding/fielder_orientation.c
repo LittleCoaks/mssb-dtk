@@ -11,7 +11,7 @@
 extern f32 radianAngleReduction(f32 angle);
 extern int radToShortAngle(f32 angle);
 extern int angleDifferenceNormalized(s16 a, s16 b);
-extern f32 shortAngleToRad(s16 angle);
+extern f32 shortAngleToRad(int angle);
 
 typedef struct {
     u8 _00[0x28];
@@ -97,36 +97,39 @@ f32 computeAdjustedFielderOrientation(int fielderIndex) {
     } else {
         return angle;
     }
-    return shortAngleToRad(currentAngle);
+    return shortAngleToRad((s16)currentAngle);
 }
 
 // .text:0x0006B144 size:0x384 mapped:0x806AA1D8
 void animateDefence(void) {
-    int i;
     E(u8, GAME_STATUS) status = g_GameLogic.gameStatus;
+    int i;
     FielderAnimObject* model;
     InMemFielder* fielder;
     FielderAnimSlot* anim;
     f32 orientation;
 
-    if (status == GAME_STATUS_DEFAULT || status == GAME_STATUS_AT_BAT ||
-        status == GAME_STATUS_LIVE_BALL || status == GAME_STATUS_TRANSITION ||
-        status == GAME_STATUS_INNING_TRANSITION || status == GAME_STATUS_STAR_CHANCE_VS ||
-        status == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING ||
-        (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && status == GAME_STATUS_PAUSED)) {
-        for (i = 0; i < 9; i++) {
-            model = hugeAnimStruct.objects[i];
-            if (model != 0) {
-                model->displayState = FALSE;
-            }
-        }
-        return;
-    }
-
-    fielder = g_Fielders;
-    anim = g_UnkAnimation_31EAC;
-    for (i = 0; i < 9; i++, fielder++, anim++) {
+    if (status == GAME_STATUS_DEFAULT) goto animate;
+    if (status == GAME_STATUS_AT_BAT) goto animate;
+    if (status == GAME_STATUS_LIVE_BALL) goto animate;
+    if (status == GAME_STATUS_TRANSITION) goto animate;
+    if (status == GAME_STATUS_INNING_TRANSITION) goto animate;
+    if (status == GAME_STATUS_STAR_CHANCE_VS) goto animate;
+    if (status == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING) goto animate;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && status == GAME_STATUS_PAUSED) goto animate;
+    for (i = 0; i < 9; i++) {
         model = hugeAnimStruct.objects[i];
+        if (model != 0) {
+            model->displayState = FALSE;
+        }
+    }
+    return;
+
+animate:
+    for (i = 0; i < 9; i++) {
+        model = hugeAnimStruct.objects[i];
+        fielder = &g_Fielders[i];
+        anim = &g_UnkAnimation_31EAC[i];
         if (model == 0) {
             continue;
         }

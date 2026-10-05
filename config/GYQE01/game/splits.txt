@@ -411,8 +411,9 @@ game/batting/star_swing_peach_daisy.c:
 	.data       start:0x00026F78 end:0x000271A8
 
 game/data_only/rep_3B70.c:
-	.text       start:0x0015C3F8 end:0x0015C5F4
+	.text       start:0x0015C230 end:0x0015C5F4
 	.rodata     start:0x00003B70 end:0x00003BD8
+	.data       start:0x000271A8 end:0x000273DC
 
 game/match_setup/stat_book.c:
 	.text       start:0x0015C5F4 end:0x0015F574
@@ -421,14 +422,17 @@ game/match_setup/stat_book.c:
 game/data_only/rep_3C28.c:
 	.text       start:0x0015F574 end:0x0015F648
 	.rodata     start:0x00003C28 end:0x00003C80
+	.data       start:0x00027C98 end:0x00027D58
 
 game/data_only/rep_3C80.c:
 	.text       start:0x0015F648 end:0x0015F874
 	.rodata     start:0x00003C80 end:0x00003CE0
+	.data       start:0x00027D58 end:0x00027EAC
 
 game/data_only/rep_3CE0.c:
-	.text       start:0x0015FB84 end:0x00160578
+	.text       start:0x0015F874 end:0x00160578
 	.rodata     start:0x00003CE0 end:0x00003D50
+	.data       start:0x00027EC0 end:0x000281F0
 
 game/data_only/rep_3D50.c:
 	.text       start:0x00160578 end:0x001608F0

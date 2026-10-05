@@ -975,6 +975,8 @@ typedef enum _GAME_STATUS {
     /* 0x25 */ GAME_STATUS_0x25,
     /* 0x26 */ GAME_STATUS_0x26,
     /* 0x27 */ GAME_STATUS_0x27,
+    /* 0x28 */ GAME_STATUS_0x28,
+    /* 0x29 */ GAME_STATUS_0x29,
 } GAME_STATUS;
 
 typedef enum _SCENE_ID {
@@ -1893,7 +1895,7 @@ typedef struct _MiniGameStruct {
     /*0x1936*/ u8 _1936;
     /*0x1937*/ u8 _1937;
     /*0x1938*/ u8 _1938;
-    /*0x1939*/ u8 _1939;
+    /*0x1939*/ u8 toyField_coinsRemaining;
     /*0x193A*/ union {
         u8 wallBall_coinsVisibleInd;
         u8 coinState[100];
@@ -2206,9 +2208,15 @@ typedef struct _MiniGameStruct {
     };
     /*0x1DEC*/ f32 _1DEC;
     /*0x1DF0*/ f32 _1DF0;
-    /*0x1DF4*/ u8 _1DF4; // unsure
-    /*0x1DF5*/ E(u8, BARREL_BATTER_PITCH_NUM) bODPitchType;
-    /*0x1DF6*/ u8 _1DF6[6];
+    /*0x1DF4*/ union {
+        struct {
+            /*0x1DF4*/ u8 _1DF4; // unsure
+            /*0x1DF5*/ E(u8, BARREL_BATTER_PITCH_NUM) bODPitchType;
+            /*0x1DF6*/ u8 _1DF6[6];
+        };
+        s16 ccsDisplayedPoints[4]; // Chain Chomp Sprint
+        s16 bB_totalPoints;        // Barrel Batter
+    };
     /*0x1DFC*/ u8 _1DFC[4];
     /*0x1E00*/ u8 _1E00;
     /*0x1E01*/ u8 _1E01[0x1E2C - 0x1E01];

@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "game/camera/camera.h"
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
@@ -7,6 +8,7 @@
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
 #include "game/ball/collision_primitives.h"
+#include "game/baserunning/runner_base_rounding.h"
 #include "Unknown/File_0x80052734.h"
 
 typedef struct {
@@ -814,9 +816,36 @@ void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, u16 arg5, 
     }
 }
 
+inline void fn_3_19FA4_updateView(int r31) {
+    lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
+    lbl_3_data_A40_s* second = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013 + 1]];
+    g_pCamera->_2878 = first->_0C + ((f32)g_pCamera->_000E / (f32)r31) * (second->_0C - first->_0C);
+    {
+        f32 pitch = radianAngleReduction(g_pCamera->_2874);
+        f32 horizontal = COSF(pitch) * 20.f;
+        f32 vertical = SINF(pitch);
+        f32 yaw = radianAngleReduction(g_pCamera->_2870);
+        f32 c = COSF(yaw);
+        f32 s = SINF(yaw);
+        Vec v;
+        v.x = c * horizontal;
+        v.z = s * horizontal;
+        v.y = vertical * 20.f;
+        fn_3_1C8AC_inline(&v, c, s);
+    }
+    g_pCamera->_289C = radToShortAngle(g_pCamera->_2870);
+    g_pCamera->_289E = normalizeAngleToRange(g_pCamera->_2874);
+    if (g_pCamera->_0010 < S16_MAX - 1) {
+        g_pCamera->_0010++;
+    } else {
+        g_pCamera->_0010 = S16_MAX;
+    }
+}
+
 // .text:0x00019FA4 size:0xEA0 mapped:0x80659038
 void fn_3_19FA4(void) {
     int r31;
+    int i;
     if (g_pCamera->_000E < S16_MAX - 1) {
         g_pCamera->_000E++;
     } else {
@@ -861,20 +890,71 @@ void fn_3_19FA4(void) {
             fn_3_1C8AC_inline(&v, _f31, _f6);
         }
     } else if (g_pCamera->_0015 != 0) {
-        int i;
-        int r9;
-        Vec sp50[5];
+        int totalFrames;
+        int angles[4];
+        f32 anglePoints[4];
+        Vec points[5];
+        VecXZ splinePoints[4];
+        VecXZ result;
+        f32 t;
         for (i = 0; i < g_pCamera->_0012; i++) {
-            VEC_COPY(&sp50[i], &cameraData_homePlateViews[i]._00);
+            lbl_3_data_A40_s* view = &cameraData_homePlateViews[g_pCamera->_0004[i]];
+            VEC_COPY(&points[i], &view->_00);
         }
-        r9 = 0;
+        totalFrames = 0;
+        for (i = 0; i < g_pCamera->_0012 - 1; i++) {
+            totalFrames += g_pCamera->_000A[i];
+        }
+        t = (f32)g_pCamera->_0010 / (f32)totalFrames;
+        spline3D_evaluate((Vec*)&g_pCamera->_2858, points, g_pCamera->_0012, t);
+
+        splinePoints[0].z = 0.0f;
+        totalFrames = 0;
+        for (i = 1; i < g_pCamera->_0012; i++) {
+            totalFrames += g_pCamera->_000A[i - 1];
+            splinePoints[i].z = (f32)totalFrames;
+        }
         for (i = 0; i < g_pCamera->_0012; i++) {
-            r9 += g_pCamera->_000A[i];
+            angles[i] = cameraData_homePlateViews[g_pCamera->_0004[i]]._10[0];
         }
-        
-        // spline3D_evaluate();
+        totalFrames = angles[0];
+        anglePoints[0] = (f32)totalFrames;
+        for (i = 1; i < g_pCamera->_0012; i++) {
+            int delta = angles[i] - angles[i - 1];
+            if (delta > 0x800) totalFrames -= 0x1000 - delta;
+            else if (delta < -0x800) totalFrames += 0x1000 + delta;
+            else totalFrames += delta;
+            anglePoints[i] = (f32)totalFrames;
+        }
+        for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = anglePoints[i];
+        running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
+        g_pCamera->_2870 = fn_3_9FDD8(result.x);
+
+        for (i = 0; i < g_pCamera->_0012; i++) {
+            angles[i] = cameraData_homePlateViews[g_pCamera->_0004[i]]._10[1];
+        }
+        for (i = 0; i < g_pCamera->_0012; i++) anglePoints[i] = (f32)angles[i];
+        for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = anglePoints[i];
+        running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
+        g_pCamera->_2874 = fn_3_9FDD8(result.x);
+        fn_3_19FA4_updateView(r31);
+    } else {
+        lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
+        lbl_3_data_A40_s* second = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013 + 1]];
+        g_pCamera->_2858.x = first->_00.x + ((f32)g_pCamera->_000E / (f32)r31) * (second->_00.x - first->_00.x);
+        g_pCamera->_2858.y = first->_00.y + ((f32)g_pCamera->_000E / (f32)r31) * (second->_00.y - first->_00.y);
+        g_pCamera->_2858.z = first->_00.z + ((f32)g_pCamera->_000E / (f32)r31) * (second->_00.z - first->_00.z);
+        for (i = 0; i < 2; i++) {
+            f32 a = shortAngleToRad_Capped(first->_10[i]);
+            f32 b = shortAngleToRad_Capped(second->_10[i]);
+            f32 delta = b - a;
+            if (delta > 3.1415927f) delta -= 6.2831855f;
+            if (delta < -3.1415927f) delta += 6.2831855f;
+            if (i == 0) g_pCamera->_2870 = radianAngleReduction(a + ((f32)g_pCamera->_000E / (f32)r31) * delta);
+            else g_pCamera->_2874 = radianAngleReduction(a + ((f32)g_pCamera->_000E / (f32)r31) * delta);
+        }
+        fn_3_19FA4_updateView(r31);
     }
-    cos(r31);
 }
 
 // .text:0x00019CB0 size:0x2F4 mapped:0x80658D44

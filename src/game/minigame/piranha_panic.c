@@ -1,5 +1,29 @@
+#define SQRT2_LINKAGE static
 #include "game/minigame/piranha_panic.h"
+#include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
+
+extern void fn_800B9948(void (*callback)(void));
+extern void fn_800B993C(void);
+extern void *memset(void *, int, size_t);
+extern int RandomInt_Game_Range(int min, int max);
+extern void changeScene(u8 scene, u16 arg);
+extern void SetGameStatus(int status);
+extern u8 lbl_3_bss_B7C1;
+extern s16 lbl_3_data_21EAC[];
+extern u8 lbl_80366158[];
+extern u32 lbl_3_bss_B7E4;
+extern u8 lbl_3_bss_B800[];
+extern s8 lbl_3_data_266A4;
+extern void DCFlushRange(void *addr, u32 numBytes);
+
+void fn_3_141C44(void) {
+    u8 count = ++lbl_3_bss_B7C1;
+    if (count >= 6) {
+        lbl_3_bss_B7C1 = 0;
+        fn_800B993C();
+    }
+}
 
 // .text:0x00141C8C size:0x2A4 mapped:0x80780D20
 void fn_3_141C8C(void) {
@@ -8,7 +32,27 @@ void fn_3_141C8C(void) {
 
 // .text:0x00141F30 size:0x100 mapped:0x80780FC4
 void fn_3_141F30(void) {
-    return;
+    int value;
+    int i;
+
+    lbl_3_bss_B7E4 += lbl_80366158[0x28] == 0;
+    if ((lbl_3_bss_B7E4 & 1) != 0) {
+        return;
+    }
+
+    value = lbl_3_bss_B800[0] + 2 * lbl_3_data_266A4;
+    if (value > 255) {
+        value = 255;
+    } else if (value < 0) {
+        value = 0;
+    }
+    for (i = 0; i < 0x20; i += 2) {
+        lbl_3_bss_B800[i] = value;
+    }
+    DCFlushRange(lbl_3_bss_B800, 0x40);
+    if (value + 2 * lbl_3_data_266A4 > 255 || value + 2 * lbl_3_data_266A4 < 0) {
+        lbl_3_data_266A4 = -lbl_3_data_266A4;
+    }
 }
 
 // .text:0x00142030 size:0x58 mapped:0x807810C4
@@ -23,7 +67,7 @@ void fn_3_142088(void) {
 
 // .text:0x0014225C size:0x28 mapped:0x807812F0
 void fn_3_14225C(void) {
-    return;
+    fn_800B9948(fn_3_141C8C);
 }
 
 // .text:0x00142284 size:0x2EC mapped:0x80781318
@@ -43,7 +87,21 @@ void fn_3_1428F0(void) {
 
 // .text:0x00142C18 size:0x90 mapped:0x80781CAC
 void fn_3_142C18(void) {
-    return;
+    u8 *slot = (u8 *)&g_Minigame + 0x1DCC;
+    u8 *choice;
+    s8 i;
+
+    memset((u8 *)&g_Minigame + 0x1D7C, 0, 0x78);
+    choice = &g_Minigame._0;
+    i = 0;
+    do {
+        int offset = choice[0x18DC] * 2;
+        slot[3] = TRUE;
+        *(u16 *)slot = RandomInt_Game_Range(lbl_3_data_21EAC[offset], lbl_3_data_21EAC[offset + 1]);
+        i++;
+        slot += 4;
+        choice++;
+    } while (i < 4);
 }
 
 // .text:0x00142CA8 size:0x10C mapped:0x80781D3C
@@ -68,7 +126,14 @@ void fn_3_143358(void) {
 
 // .text:0x00143714 size:0x5C mapped:0x807827A8
 void fn_3_143714(void) {
-    return;
+    u8 *entry = (u8 *)&g_Minigame;
+    int i;
+
+    for (i = 0; i < 40; i++, entry += 0x28) {
+        if (entry[0xCE] != 0) {
+            ((void (*)(int))fn_3_143358)(i);
+        }
+    }
 }
 
 // .text:0x00143770 size:0x27C mapped:0x80782804
@@ -77,13 +142,33 @@ void fn_3_143770(void) {
 }
 
 // .text:0x001439EC size:0x5C0 mapped:0x80782A80
+#pragma dont_inline on
 void fn_3_1439EC(void) {
     return;
 }
+#pragma dont_inline reset
 
 // .text:0x00143FAC size:0x80 mapped:0x80783040
 void fn_3_143FAC(void) {
-    return;
+    u8 *state = (u8 *)&g_Minigame;
+
+    if (state[0x1CA2] == 2) {
+        if (state[0x2A] == 2) {
+            state[0x2A] = 3;
+            *(u16 *)(state + 0x1A) = 0;
+        }
+        state += 0x38;
+        if (state[0x2A] == 2) {
+            state[0x2A] = 3;
+            *(u16 *)(state + 0x1A) = 0;
+        }
+        if (state[0x62] == 2) {
+            state += 0x38;
+            state[0x2A] = 3;
+            *(u16 *)(state + 0x1A) = 0;
+        }
+    }
+    fn_3_1439EC();
 }
 
 // .text:0x0014402C size:0x210 mapped:0x807830C0
@@ -153,7 +238,23 @@ void piranhaPanicLiveBall(void) {
 
 // .text:0x00146928 size:0xA4 mapped:0x807859BC
 void fn_3_146928(void) {
-    return;
+    u8 *slot = (u8 *)&g_Minigame + 0x1DCC;
+    u8 *choice;
+    s8 i;
+
+    memset((u8 *)&g_Minigame + 0x1D7C, 0, 0x78);
+    choice = &g_Minigame._0;
+    i = 0;
+    do {
+        int offset = choice[0x18DC] * 2;
+        slot[3] = TRUE;
+        *(u16 *)slot = RandomInt_Game_Range(lbl_3_data_21EAC[offset], lbl_3_data_21EAC[offset + 1]);
+        i++;
+        slot += 4;
+        choice++;
+    } while (i < 4);
+    changeScene(1, 6);
+    SetGameStatus(2);
 }
 
 // .text:0x001469CC size:0xC4 mapped:0x80785A60
@@ -165,4 +266,3 @@ void fn_3_1469CC(void) {
 void piranhaPanicRelated(void) {
     return;
 }
-

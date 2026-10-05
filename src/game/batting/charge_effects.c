@@ -28,7 +28,7 @@ typedef struct _ChargeAnimActor {
     /*0x040*/ u8 _040[0x5C - 0x40];
     /*0x05C*/ ChargeTevCallback tevCallback;
     /*0x060*/ u8 _060[0x252 - 0x60];
-    /*0x252*/ s8 charId;
+    /*0x252*/ E(s8, CHAR_ID) charId;
     /*0x253*/ u8 _253;
     /*0x254*/ s8 animIndex;
 } ChargeAnimActor;
@@ -114,7 +114,7 @@ typedef struct _ChargeSharedEffectsBlock {
     /*0x440*/ u8 _440[0x467 - 0x440];
     /*0x467*/ u8 starHitPitch;
     /*0x468*/ u8 _468[0x477 - 0x468];
-    /*0x477*/ u8 glowActive[2];
+    /*0x477*/ E(u8, BOOL) glowActive[2];
     /*0x479*/ u8 _479[0x480 - 0x479];
 } ChargeSharedEffectsBlock;
 
@@ -214,7 +214,7 @@ void maybeConfigureChargeEffectGraphics(int actorIndex) {
     chargeSlots[slot].burstTimer = 0;
     fn_80027918(getChargeEffectId(slot), 0.0f);
     fn_3_C0F8C();
-    lbl_3_common_bss_35154.glowActive[slot] = 0;
+    lbl_3_common_bss_35154.glowActive[slot] = FALSE;
 }
 
 // .text:0x000C1344 size:0x42C mapped:0x807003D8
@@ -253,8 +253,8 @@ void applyChargeAnimationEffect(int actorIndex, f32 charge, f32 release, BOOL fu
                    chargeAlpha[slot] * (0.5 * sin(release * chargeWaveFreq[slot] / 100.0f) + 0.5));
         chargeSlots[slot].phase = release;
     }
-    if (fullyCharged && lbl_3_common_bss_35154.glowActive[slot] == 0) {
-        lbl_3_common_bss_35154.glowActive[slot] = 1;
+    if (fullyCharged && lbl_3_common_bss_35154.glowActive[slot] == FALSE) {
+        lbl_3_common_bss_35154.glowActive[slot] = TRUE;
         fn_3_C0C4C(slot);
     }
 }
@@ -406,16 +406,16 @@ void fn_3_C0AD8(void) {
 
 // .text:0x000C095C size:0x17C mapped:0x806FF9F0
 void fn_3_C095C(ChargeGlowEntry* entry) {
-    ChargeAnimState* states[2];
     void* handles[2];
+    ChargeAnimState* states[2];
     StadiumModel* model = (StadiumModel*)(lbl_3_common_bss_35154.glowOwner + 0x34);
     Mtx mtx;
     int i;
 
-    states[0] = &lbl_3_common_bss_35154.glowStateA;
-    states[1] = &lbl_3_common_bss_35154.glowStateB;
     handles[0] = lbl_3_common_bss_35154.glowHandleA;
+    states[0] = &lbl_3_common_bss_35154.glowStateA;
     handles[1] = lbl_3_common_bss_35154.glowHandleB;
+    states[1] = &lbl_3_common_bss_35154.glowStateB;
 
     PSMTXTrans(mtx, entry->pos.x, entry->pos.y, entry->pos.z);
     PSMTXConcat(returnFloatFromModeIndex(returnsCurrentMode())->view, mtx, mtx);
@@ -447,4 +447,3 @@ void fn_3_C0854(void) {
         }
     }
 }
-
