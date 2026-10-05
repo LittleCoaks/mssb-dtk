@@ -2326,22 +2326,19 @@ First seen: 2026-09, 10 of 12 `Unknown/` units matched and flipped to `Matching`
 - **Float-literal splits:** `maybeTransformVectorByAnimationMatrix` (0x800B2C44) and `SetFogNone`
   (0x800B9974) are 100% except the `0.0f` `.sdata2` reloc, which is shared with other splits
   (0x800B43A0 etc. / SetFogNoneAgain etc.). Left `NonMatching` with checkpoints. SetFogNone was
-  later closed with `extern const f32 lbl_803CCFFC` (see the SetFog entry below).
+  later absorbed into the merged `Unknown/DisplayObject.c` unit, which owns the whole pool (see the
+  SetFog and DisplayObject entries below).
 
 ## Findings from the SetFog trio (File_0x800b9974 / 99c4 / 9a30)
 
-First seen: `Unknown/File_0x800b9974.c`, `File_0x800b99c4.c`, `File_0x800b9a30.c` (2026-09),
-all three 100% and `Matching`.
+First seen: `Unknown/File_0x800b9974.c`, `File_0x800b99c4.c`, `File_0x800b9a30.c` (2026-09). All three
+were later merged into `Unknown/DisplayObject.c` (2026-10, see "Findings from the DisplayObject.c merge").
 
-- **A shared `.sdata2` value constant can be claimed by name instead of by merging.**
-  `lbl_803CCFFC` (0.0f) is read by SetFogNone, SetFogNoneAgain and five later functions up to
-  `Custom_SetState`/`DODefaultUserTevMode`; the pool `0x803CCFF8..0x803CD0E0` starts with a
-  constant of `Custom_SetState` (0x800BA848 split), so a merged unit covering only the SetFog
-  splits could never own the range. `extern const f32 lbl_803CCFFC;` used at every 0.0f site gave
-  the same single `lfs` + `fmr` copies (the constant is loaded once either way here), 100% in
-  objdiff, and the `Matching` link resolves the name against dtk's asm split (`4 files OK`). Check
-  that the target loads the constant ONCE before doing this (see "`extern const f32
-  lbl_N_rodata_XXXX` only works for a SINGLE-USE constant").
+- **Superseded: claiming a shared `.sdata2` constant by name.** These splits first matched by
+  declaring `extern const f32 lbl_803CCFFC;` (0.0f) at every 0.0f site, because the pool
+  `0x803CCFF8..` is shared with `Custom_SetState`/`DODefaultUserTevMode`/... and no split could own it.
+  That workaround no longer exists: the merged `DisplayObject.c` unit owns the whole pool and writes
+  plain `0.0f`. Prefer merging to the TU that really owns the pool over naming a pooled literal.
 - **`frsp` of an `f32` parameter at a call site, while the stores use the unrounded register,
   means an explicit `(f64)` widening in the call.** `SetFog` stores its four `f32` params into a
   global with `stfs fN` and passes `frsp` copies to `GXSetFog` (so it first `fmr`s every param to
@@ -2351,7 +2348,7 @@ all three 100% and `Matching`.
   An `mw_version` / `-O` sweep changed nothing.
 - **A dtk symbol can collide with an SDK typedef.** The Ghidra import named the 0x18-byte fog-state
   global at 0x80111700 `GXFogType`, which cannot be referenced from C while `GXEnum.h` is visible.
-  Renamed to `fogSettings` (struct `FogSettings` in `include/Unknown/File_0x800b99c4.h`).
+  Renamed to `fogSettings` (struct `FogSettings`, now in `include/Unknown/DisplayObject.h`).
 
 ## Findings from the eleven-small-DOL-files pass (SndFree ... addOrRemoveCharacterToTeam)
 
@@ -3063,3 +3060,40 @@ together. All 27 functions reached 100% and the unit links as `Matching` (`4 fil
   `int captainKey = roster[j]` while the others' search kept `s8 key`.
 - **Redundant self-stores (`x = x;`) reproduce stores the target has after a loop** (`teamCompositionLogos`,
   `characterSelectScreen`, `unsure_FillRosterPositions`); reading the value once into a local does not.
+
+## Findings from the DisplayObject.c merge (charPipeline display objects; 14 splits + auto splits -> 1 unit, flipped to Matching)
+
+First seen: `Unknown/DisplayObject.c` (2026-10). The rodata string "Warning: DisplayObject.c: User TevMode
+%d not handled." named the TU; the `.sdata2` pool 0x803CCFF8..0x803CD058 (first use SetFogNone ..
+DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. All 21 functions reached
+100% and the unit links as `Matching` with `-cpp_exceptions on` (`4 files OK`).
+
+- **A cast argument to an inlined helper is evaluated into its own temporary; a bare variable is
+  substituted.** DOVARender's inlined lights loop hoisted its bound `(u32)numLights` into a register that
+  was swapped with the light pointer. `DOSetLights(amb, numLights, ...)` (any parameter type) substitutes
+  the caller's `u8` and the LICM-created bound is numbered last; `DOSetLights(amb, (u8)numLights, ...)`
+  (a cast that is a no-op in C) makes the argument a temp created at the call, which moved the bound to
+  the target's register and let the light/state pointers share one. Same mechanism as the literal-pool
+  finding below. When an inlined loop bound's register is wrong, try a cast on the argument.
+- **After that change, declaration order in the helpers mattered again** (`Light* light` before
+  `u32 i`; `u32 i` before `DisplayStateList* state`): orders that were all equal before the cast split
+  into 99.65 / 99.89 / 100. Re-sweep declaration order after any change to how a helper is inlined.
+- **Literal-pool order follows a pre-order walk of the post-inlining tree.** A `static inline` helper's
+  literals are pooled where it is expanded; a plain `static` helper (still auto-inlined) is also compiled
+  standalone at its definition, which pools its literals there. DOVARender's pool has `255.0f` (from the
+  lights helper) before `0.01f` (computed first in DOVARender); only a plain `static DOSetLights` defined
+  before DOVARender reproduced it. The standalone copies cost extab/extabindex rows in objdiff but mwld
+  dead-strips them at link (same as mcard.c).
+- **An inline returning `u32` from a `u8` local** (`static inline u32 DOGetColorSize(u8 type) { u8 size;
+  switch ...; return size; }`) gave the target's `clrlwi` after the switch AND kept the caller's
+  parameter registers; returning `u32` from a `u32` local reshuffled every callee-saved parameter.
+- **A stack local below struct-copy temporaries means it lives in an inlined helper.** DOVARender's
+  `GXColor color` sat at 0x8 under the GXColor argument copies; declaring it in DOVARender (any position or
+  block) put it above them, a local of the inlined lights helper put it exactly there.
+- **The first `.sdata2` word `{0,0,0,0x80}` was a file-scope `static const GXColor`** defined before
+  SetFogNone (so it pools first), copied into a function-scope `GXColor` by Custom_SetState.
+- **Switch shape decides compare-tree and block order:** `case 0: default:` first, then `case 1`,
+  `case 2` reproduced the target's inner switch; default-first alone or case-1-first did not.
+- **Enum fixes:** `GX_TG_MTX3X4`/`GX_TG_MTX2X4` were swapped in `GXEnum.h` (SDK: 3x4 = 0, 2x4 = 1) and
+  the `GXTevColorArg` C0..A2 values were wrong (SDK: C0=2, A0=3, C1=4, A1=5, C2=6, A2=7). Codegen of every
+  other object was unchanged; check these enums against the SDK when a GX call's constant looks off.

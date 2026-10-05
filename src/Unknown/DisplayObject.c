@@ -949,9 +949,9 @@ static inline u32 DOGetColorSize(u8 type) {
 // is unreferenced once inlined and mwld dead-strips it.
 static void DOSetLights(f32 amb, u8 numLights, va_list* list, GXColorSrc colorSrc) {
     GXColor color;
+    Light* light;
     u32 i;
     u32 lightMask;
-    Light* light;
 
     lightMask = GX_LIGHT_NULL;
     if (!lightingRelated(&color)) {
@@ -974,10 +974,9 @@ static void DOSetLights(f32 amb, u8 numLights, va_list* list, GXColorSrc colorSr
     GXSetChanCtrl(GX_COLOR0A0, GX_TRUE, GX_SRC_REG, colorSrc, lightMask, GX_DF_CLAMP, GX_AF_SPOT);
 }
 
-
 static void DODrawStates(struct DODisplayObj* dispObj, MtxPtr camera) {
-    DisplayStateList* state;
     u32 i;
+    DisplayStateList* state;
 
     state = dispObj->displayData->displayStateList;
     for (i = 0; i < dispObj->displayData->numStateEntries; i++) {
@@ -1071,7 +1070,9 @@ void DOVARender(struct DODisplayObj* dispObj, MtxPtr camera, u8 numLights, va_li
     }
 
     if (dispObj->lightingData != NULL && dispObj->colorData != NULL && numLights != 0) {
-        DOSetLights(0.01f * dispObj->lightingData->ambientPercentage, numLights, list, colorSrc);
+        // The cast is not a no-op for MWCC: a cast argument is evaluated into its own temporary at the
+        // inlined call instead of being substituted, which changes the inlined loop's register use.
+        DOSetLights(0.01f * dispObj->lightingData->ambientPercentage, (u8)numLights, list, colorSrc);
     } else {
         GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, colorSrc, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     }

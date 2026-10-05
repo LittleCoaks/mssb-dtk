@@ -835,7 +835,7 @@ config.libs = [
             Object(NonMatching, "Unknown/File_0x800b7718.c"),
             Object(Matching, "Unknown/File_0x800b79a0.c"),
             Object(NonMatching, "Unknown/File_0x800b79d0.c"),
-            Object(NonMatching, "Unknown/DisplayObject.c", extra_cflags=["-cpp_exceptions on"]),
+            Object(Matching, "Unknown/DisplayObject.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800bcb44.c"),
             Object(Matching, "Unknown/File_0x800bcd60.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x800bce38.c", extra_cflags=["-cpp_exceptions on"]),
