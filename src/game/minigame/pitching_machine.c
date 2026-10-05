@@ -32,6 +32,8 @@
 #include "game/stadium/stadium_framework.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/mtx.h"
+#include "C3/actor.h"
+#include "C3/skinning.h"
 #include "Dolphin/vec.h"
 #include "Dolphin/os.h"
 #include "Dolphin/stl.h"
@@ -73,7 +75,8 @@ static u8 lbl_3_data_22670[8] = { 2, 0, 3, 4, 1, 0, 0, 0 };
 static f32 lbl_3_data_22678[4] = { 2.0f, 2.5f, 1.0f, 1.0f };
 static f32 lbl_3_data_22688[3] = { 0.5f, 0.0f, -0.5f };
 static f32 lbl_3_data_22694[6] = { 0.5f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f };
-static s16 lbl_3_data_226AC[8] = { 0, 0, 20, 10, 0, 0, 0x0F50, 0 };
+static s16 lbl_3_data_226AC[6] = { 0, 0, 20, 10, 0, 0 };
+static u8 lbl_3_data_226B8[4] = { 15, 80, 0, 0 };
 static u8 lbl_3_data_226BC[8] = { 3, 1, 4, 2, 0, 0, 0, 0 };
 static f32 lbl_3_data_226C4[4] = { 1.5f, 0.7f, 1.0f, 0.5f };
 static f32 lbl_3_data_226D4[2] = { 1.0f, 30.0f };
@@ -154,7 +157,15 @@ extern PMHugeAnimStruct hugeAnimStruct;
 
 #define FX(i) (hugeAnimStruct.effects[i])
 #define PM_MODEL(i) ((PMModelObj*)(hugeAnimStruct.modelTable + (i) * 0x90 + 0x34))
+#define PM_ACTORS ((ActorObjectTable*)hugeAnimStruct.modelTable)
 #define PM_MODEL_AT(i) (&((PMModelObj*)(hugeAnimStruct.modelTable + 0x34))[i])
+
+static inline Actor* pmGetActor(int idx) {
+    ActorObjectEntry* e = ((ActorObjectTable*)hugeAnimStruct.modelTable)->entries;
+
+    e += idx;
+    return e->actor;
+}
 
 typedef union _PMMinigame {
     MiniGameStruct;
@@ -214,58 +225,29 @@ extern void fn_3_14B9A0(int frames, f32* pos);
 extern void barrelBatterRel(VecXYZ* pos);
 extern void fn_80062C24(VecXYZ* pos);
 
+/* The animation state that animRelated+0x10 hands to fn_80024DB0/fn_80024FA4
+ * (same layout as PerfectPitchState in perfect_pitch_gfx.c). */
 typedef struct {
-    /*0x00*/ u8 _00[0x11];
+    /*0x00*/ f32 time;
+    /*0x04*/ f32 frame;
+    /*0x08*/ u8 _08[0xC - 0x8];
+    /*0x0C*/ u16 _0C;
+    /*0x0E*/ s16 started;
+    /*0x10*/ u8 _10;
     /*0x11*/ u8 flag : 1;
     /*0x11*/ u8 _11 : 7;
-} PMAnimState;
+} PMAnimState; // size: 0x14
+
+typedef struct {
+    /*0x00*/ u8 _00[0x10];
+    /*0x10*/ PMAnimState state;
+    /*0x24*/ u8 _24[0x30 - 0x24];
+    /*0x30*/ void* stateHandle;
+} PMAnimRelated;
+
+#define ANIM_RELATED ((PMAnimRelated*)animRelated)
 
 #define ANIM_WORD(off) (*(s32*)(animRelated + (off)))
-
-static inline void pmInitModelAnim(PMModelObj* obj, s32 animFrames, s16 kind, f32 rate, f32 speed, f32 frame, u8 mode) {
-    obj->_04 = animFrames;
-    obj->_0E = kind;
-    obj->_5C = 0.0f;
-    obj->_58 = 1;
-    obj->_59 = animFrames != 0;
-    obj->_5A = animFrames != 0;
-    obj->_60 = rate;
-    obj->_54 = speed;
-    obj->_5A = 1;
-    obj->_5C = frame;
-    obj->_59 = 1;
-    obj->_5B = mode;
-}
-
-static inline void pmInitSpawnerAnim(int slot, int kind, int frame, int divisor, u8 flag) {
-    PMModelObj* obj = PM_MODEL(0x82 + slot);
-    PPSpawner* sp = &PP.spawner[slot];
-    f32 rate = 0.0f;
-    s32 v;
-
-    if (divisor != 0) {
-        rate = 1.0f / divisor;
-    }
-    v = ANIM_WORD(0x78);
-    obj->_04 = v;
-    obj->_0E = kind;
-    obj->_5C = 0.0f;
-    obj->_58 = 1;
-    obj->_59 = v != 0;
-    obj->_5A = v != 0;
-    obj->_60 = rate;
-    obj->_54 = lbl_3_data_22694[kind];
-    obj->_5A = 1;
-    obj->_5C = frame + lbl_3_data_226AC[kind];
-    obj->_59 = 1;
-    if (flag) {
-        obj->_5B = 3;
-    } else {
-        obj->_5B = 2;
-    }
-    sp->_33 = kind;
-    sp->_28 = frame;
-}
 
 #define PM_WALL_SIZE 0x2C
 #define PM_WALL(i) ((MaybeWallBallStruct*)((u8*)&g_Minigame + 0x72C + (i) * PM_WALL_SIZE))
@@ -331,43 +313,17 @@ static inline void pmDisableWallBallEffects(void) {
     FX(0x110).visible = FALSE;
 }
 
-static inline void pmUpdateSpawnerEffects(void) {
-    int i;
-
-    for (i = 0; i < PP_SPAWNER_COUNT; i++) {
-        PMEffect* fx = &FX(0x82 + i);
-        PPSpawner* sp = &PP.spawner[i];
-
-        fx->visible = FALSE;
-        if (sp->mode != 0) {
-            fx->visible = TRUE;
-            fx->pos.x = sp->pos.x;
-            fx->pos.y = -sp->pos.y;
-            fx->pos.z = sp->pos.z;
-            applyUniformScaleToObject(lbl_3_data_22678[sp->isBig], 0x82 + i);
-            fx->rot.y = lbl_3_data_22688[i];
-            fx->update = fn_3_11897C;
-            if (sp->_1C == 1) {
-                pmInitSpawnerAnim(i, 0, 0, 6, TRUE);
-                sp->_1C++;
-            }
-        }
-    }
-}
-
 
 // .text:0x0011D2C8 size:0xE4 mapped:0x8075C35C
 void fn_3_11D2C8(int asset, int start, int count, int a, int b) {
     int i;
-    int end = start + count;
-    PMModelSource* source = &hugeAnimStruct.sources[asset];
 
-    for (i = start; i < end; i++) {
-        animateBallRelated(hugeAnimStruct.modelTable, i, i, source->data, a, b);
-        fn_800BD548(hugeAnimStruct.modelTable + i * 0x90 + 0x34, 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
-                    hugeAnimStruct._AC[2], hugeAnimStruct._AC[3]);
-        CTRLSetTranslation((Control*)(hugeAnimStruct.modelTable + i * 0x90 + 0x44), 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation((Control*)(hugeAnimStruct.modelTable + i * 0x90 + 0x44), 0.0f, 0.0f, 0.0f);
+    for (i = start; i < start + count; i++) {
+        animateBallRelated(hugeAnimStruct.modelTable, i, i, hugeAnimStruct.sources[asset].data, a, b);
+        fn_800BD548(&PM_ACTORS->entries[i], 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1], hugeAnimStruct._AC[2],
+                    hugeAnimStruct._AC[3]);
+        CTRLSetTranslation(&PM_ACTORS->entries[i].control, 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation(&PM_ACTORS->entries[i].control, 0.0f, 0.0f, 0.0f);
     }
 }
 
@@ -463,7 +419,7 @@ void fn_3_11CD00(void) {
     fn_3_11D2C8(13, 0, 1, 0, 0);
     fn_3_11D2C8(14, 1, 1, 0, 0);
     fn_3_11D2C8(15, 2, 1, 0, 0);
-    *(f32*)(animRelated + 0x14) = 0.5f;
+    ANIM_RELATED->state.frame = 0.5f;
     ACTActorRelated(*(void**)animRelated, PM_MODEL(2));
 }
 
@@ -546,13 +502,13 @@ void fn_3_11B75C(void) {
 
 // .text:0x0011AC6C size:0xAF0 mapped:0x80759D00
 void fn_3_11AC6C(void) {
+    PMEffect* fx;
     int i;
 
     if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= 0x29) {
         if (hugeAnimStruct.effectCount != 0) {
             for (i = 0; i < hugeAnimStruct.effectCount; i++) {
-                PMEffect* fx = &hugeAnimStruct.effects[i];
-
+                fx = &hugeAnimStruct.effects[i];
                 if (fx != NULL) {
                     fx->visible = FALSE;
                 }
@@ -608,20 +564,17 @@ void loadPitchingMachineModel(void) {
         fx->visible = TRUE;
         nonPracticePitchingMachineLogic(fx, idx);
         if (g_Pitcher.pitcherActionState >= PITCHER_ACTION_STATE_WINDUP && PauseSimulation == 0) {
-            PMAnimState* state = (PMAnimState*)(animRelated + 0x10);
+            PMAnimState* state = &ANIM_RELATED->state;
 
             if (state != NULL) {
-                state->flag = 1;
+                ANIM_RELATED->state.flag = 1;
             }
             fn_80024DB0((u8*)state);
-            fn_80024FA4((StadiumModel*)PM_MODEL(idx), *(void**)(animRelated + 0x30), (u8*)state, -1);
+            fn_80024FA4((StadiumModel*)PM_MODEL(idx), ANIM_RELATED->stateHandle, (u8*)state, -1);
         } else if (g_Pitcher.pitcherActionState < PITCHER_ACTION_STATE_WINDUP) {
-            if (*(s16*)(animRelated + 0x1E) == 0) {
-                u16 zero = 0;
-
-                *(s16*)(animRelated + 0x1C) = zero;
-                *(s16*)(animRelated + 0x1E) = 1;
-                *(f32*)(animRelated + 0x10) = zero;
+            if (ANIM_RELATED->state.started == FALSE) {
+                ANIM_RELATED->state.time = ANIM_RELATED->state._0C = 0;
+                ANIM_RELATED->state.started = TRUE;
             }
         }
     }
@@ -629,6 +582,8 @@ void loadPitchingMachineModel(void) {
 
 // .text:0x0011A92C size:0x200 mapped:0x807599C0
 void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
+    VecXYZ v;
+
     fx->pos.x = lbl_3_data_22620[0];
     fx->pos.y = lbl_3_data_22620[1];
     fx->pos.z = lbl_3_data_22620[2];
@@ -640,12 +595,10 @@ void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
             if (g_Pitcher.pitcherActionState >= PITCHER_ACTION_STATE_IN_AIR) {
                 if (g_Pitcher.currentStateFrameCounter == 1 && g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
-                    VecXYZ v;
-
+                    lbl_3_bss_B6BC = 3.0f;
                     v.x = lbl_3_data_21380.x;
                     v.y = -lbl_3_data_21380.y;
                     v.z = lbl_3_data_21380.z - 0.5f;
-                    lbl_3_bss_B6BC = 3.0f;
                     fn_80062C24(&v);
                     callSfx(0x2D6);
                 }
@@ -658,8 +611,6 @@ void nonPracticePitchingMachineLogic(PMEffect* fx, int idx) {
                     fn_3_14B9A0(lbl_3_data_217A4[6] + lbl_3_data_217A4[7], lbl_3_data_22620);
                     callSfx(0x30E);
                 } else if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
-                    VecXYZ v;
-
                     v.x = lbl_3_data_21380.x;
                     v.y = 0.4f + lbl_3_data_21380.y;
                     v.z = lbl_3_data_21380.z - 0.5f;
@@ -700,15 +651,15 @@ void fn_3_11A408(void) {
                     v.x = wall->_0;
                     v.y = g_Ball.AtBat_Contact_BallPos.y;
                     v.z = wall->zPositionOfSomeWall;
-                    pmInitModelAnim(PM_MODEL(idx), ANIM_WORD(0x70), 3, 0.0f, 1.0f, 0.0f, 2);
+                    fn_3_11A38C(idx, 3);
                     fn_3_151710(PM_MODEL(idx), &v);
                     callSfx(0x2EB);
                 } else {
-                    pmInitModelAnim(PM_MODEL(idx), ANIM_WORD(0x70), 2, 0.0f, 1.0f, 0.0f, 2);
+                    fn_3_11A38C(idx, 2);
                     callSfx(0x2EC);
                 }
             } else if (wall->coinGenerationCategory == 0) {
-                pmInitModelAnim(PM_MODEL(idx), ANIM_WORD(0x70), 0, 0.0f, 1.0f, 0.0f, 2);
+                fn_3_11A38C(idx, 0);
                 callSfx(0x2E2);
             } else {
                 if (wall->coinGenerationCategory == 1) {
@@ -780,7 +731,22 @@ void fn_3_11A408(void) {
 
 // .text:0x0011A38C size:0x7C mapped:0x80759420
 void fn_3_11A38C(int idx, int kind) {
-    pmInitModelAnim(PM_MODEL(idx), ANIM_WORD(0x70), kind, 0.0f, 1.0f, 0.0f, 2);
+    s32 v;
+    PMModelObj* obj = PM_MODEL(idx);
+
+    v = ANIM_WORD(0x70);
+    obj->_04 = v;
+    obj->_0E = kind;
+    obj->_5C = 0.0f;
+    obj->_58 = 1;
+    obj->_59 = v != 0;
+    obj->_5A = v != 0;
+    obj->_60 = 0.0f;
+    obj->_54 = 1.0f;
+    obj->_5A = 1;
+    obj->_5C = 0.0f;
+    obj->_59 = 1;
+    obj->_5B = 2;
 }
 
 // .text:0x0011A350 size:0x3C mapped:0x807593E4
@@ -790,12 +756,12 @@ u32 fn_3_11A350(int idx) {
 
 // .text:0x0011A210 size:0x140 mapped:0x807592A4
 void fn_3_11A210(void) {
+    PMEffect* fx;
+    PMEffect* shadow;
     int i;
 
     for (i = 0; i < 100; i++) {
-        PMEffect* fx = &FX(0x82 + i);
-        PMEffect* shadow;
-
+        fx = &FX(0x82 + i);
         fx->visible = FALSE;
         fx->update = NULL;
         shadow = &FX(i);
@@ -844,7 +810,7 @@ void fn_3_119F6C(void) {
             if (barrel->barrelState == 4) {
                 e = shadow;
                 if (barrel->animationCounter == 0) {
-                    pmInitModelAnim(PM_MODEL(0x10 + i), ANIM_WORD(0x74), 0, 0.0f, 1.0f, 0.0f, 2);
+                    fn_3_119CA8(0x10 + i);
                     fn_3_14DC80(i);
                     callSfx(0x2E3);
                 }
@@ -900,7 +866,7 @@ void fn_3_119F6C(void) {
 
 // .text:0x00119EE0 size:0x8C mapped:0x80758F74
 void fn_3_119EE0(int idx) {
-    PMMeshC* c = PM_MODEL(idx)->model->parts[0]->b->c;
+    PMMeshC* c = ((PMModel*)pmGetActor(idx))->parts[0]->b->c;
 
     c->d[1].frame = lbl_3_data_22638[g_Minigame.barrels[idx].barrelColour] * 3;
     c->d[2].frame = lbl_3_data_22638[g_Minigame.barrels[idx].barrelColour] * 3 + 1;
@@ -914,7 +880,7 @@ void fn_3_119E30(int idx) {
     if (g_Minigame.barrels[g_Minigame.bB_bombBarrelID_bOD_hrPitch].animationCounter % lbl_3_data_2263E != 0) {
         return;
     }
-    c = PM_MODEL(idx)->model->parts[0]->b->c;
+    c = ((PMModel*)pmGetActor(idx))->parts[0]->b->c;
     c->d[1].frame = lbl_3_data_2263C[c->d[1].frame] == 0;
     c->d[2].frame = lbl_3_data_2263C[c->d[2].frame] == 0;
     c->d[3].frame = lbl_3_data_2263C[c->d[3].frame] == 0;
@@ -928,7 +894,7 @@ void fn_3_119D34(void) {
     nonPracticePitchingMachineLogic(fx, 0x1F);
     if (PauseSimulation == 0 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
         g_Pitcher.pitchTotalTimeCounter == lbl_3_data_217A4[7]) {
-        pmInitModelAnim(PM_MODEL(0x1F), ANIM_WORD(0x74), 1, 0.0f, 1.0f, 0.0f, 2);
+        fn_3_119C34();
         callSfx(0x2E6);
     }
 }
@@ -940,12 +906,42 @@ f32 fn_3_119D28(void) {
 
 // .text:0x00119CA8 size:0x80 mapped:0x80758D3C
 void fn_3_119CA8(int idx) {
-    pmInitModelAnim(PM_MODEL(idx), ANIM_WORD(0x74), 0, 0.0f, 1.0f, 0.0f, 2);
+    s32 v;
+    PMModelObj* obj = PM_MODEL(idx);
+
+    v = ANIM_WORD(0x74);
+    obj->_04 = v;
+    obj->_0E = 0;
+    obj->_5C = 0.0f;
+    obj->_58 = 1;
+    obj->_59 = v != 0;
+    obj->_5A = v != 0;
+    obj->_60 = 0.0f;
+    obj->_54 = 1.0f;
+    obj->_5A = 1;
+    obj->_5C = 0.0f;
+    obj->_59 = 1;
+    obj->_5B = 2;
 }
 
 // .text:0x00119C34 size:0x74 mapped:0x80758CC8
 void fn_3_119C34(void) {
-    pmInitModelAnim(PM_MODEL(0x1F), ANIM_WORD(0x74), 1, 0.0f, 1.0f, 0.0f, 2);
+    s32 v;
+    PMModelObj* obj = PM_MODEL(0x1F);
+
+    v = ANIM_WORD(0x74);
+    obj->_04 = v;
+    obj->_0E = 1;
+    obj->_5C = 0.0f;
+    obj->_58 = 1;
+    obj->_59 = v != 0;
+    obj->_5A = v != 0;
+    obj->_60 = 0.0f;
+    obj->_54 = 1.0f;
+    obj->_5A = 1;
+    obj->_5C = 0.0f;
+    obj->_59 = 1;
+    obj->_5B = 2;
 }
 
 // .text:0x00119934 size:0x300 mapped:0x807589C8
@@ -959,14 +955,14 @@ void fn_3_119934(void) {
         int kind;
 
         e->visible = FALSE;
-        kind = (&g_Minigame.ccs.chompState)[g_Minigame.coinState[i]];
-        if (kind - 2 == 2) {
+        kind = (&g_Minigame.ccs.chompState)[g_Minigame.coinState[i]] - 2;
+        if (kind == 2) {
             if (g_Minigame.coinState[i] >= 1 && g_Minigame.coinState[i] <= 6) {
                 fx[0xA5].visible = TRUE;
                 fx[0xA5].pos.x = g_Minigame.coinPos[i].x;
                 fx[0xA5].pos.y = g_Minigame.coinPos[i].y;
                 fx[0xA5].pos.z = g_Minigame.coinPos[i].z;
-                applyUniformScaleToObject(lbl_3_data_22650[kind - 2], 0xA5);
+                applyUniformScaleToObject(lbl_3_data_22650[kind], 0xA5);
                 fx[0xA5].rot.y += 0.005f;
                 if (fx[0xA5].rot.y > 3.1415927f) {
                     fx[0xA5].rot.y -= 6.2831855f;
@@ -977,7 +973,7 @@ void fn_3_119934(void) {
             e->pos.x = g_Minigame.coinPos[i].x;
             e->pos.y = g_Minigame.coinPos[i].y;
             e->pos.z = g_Minigame.coinPos[i].z;
-            applyUniformScaleToObject(lbl_3_data_22650[kind - 2], 0x82 + i);
+            applyUniformScaleToObject(lbl_3_data_22650[kind], 0x82 + i);
             e->rot.y += 0.005f;
             if (e->rot.y > 3.1415927f) {
                 e->rot.y -= 6.2831855f;
@@ -1020,18 +1016,18 @@ void fn_3_119934(void) {
 // .text:0x00119878 size:0xBC mapped:0x8075890C
 void fn_3_119878(void) {
     PMMinigame* g = &g_Minigame;
-    PMEffect* fx = hugeAnimStruct.effects;
+    PMEffect* fx = &hugeAnimStruct.effects[0xA6];
 
-    fx[0xA6].visible = FALSE;
-    fx[0xA6].update = NULL;
+    fx->visible = FALSE;
+    fx->update = NULL;
     if (g->powerup.activeInd) {
         if (g->powerup.timer > 60 || g->powerup.timer % 2 != 0 || g->ccs.chompState == 2 ||
             g->ccs.chompState == 3) {
-            fx[0xA6].visible = TRUE;
-            fx[0xA6].update = fn_3_11741C;
-            fx[0xA6].pos.x = g->powerup.pos.x;
-            fx[0xA6].pos.y = -g->powerup.pos.y;
-            fx[0xA6].pos.z = g->powerup.pos.z;
+            fx->visible = TRUE;
+            fx->update = fn_3_11741C;
+            fx->pos.x = g->powerup.pos.x;
+            fx->pos.y = -g->powerup.pos.y;
+            fx->pos.z = g->powerup.pos.z;
             applyUniformScaleToObject(3.5f, 0xA6);
         }
     }
@@ -1131,7 +1127,7 @@ void fn_3_1194FC(void) {
 
 // .text:0x001194AC size:0x50 mapped:0x80758540
 void fn_3_1194AC(int idx) {
-    PM_MODEL(idx)->model->parts[0]->b->c->d[1].frame = lbl_3_data_2265C.frame[PP.ballKind[idx - 0x85]];
+    ((PMModel*)pmGetActor(idx))->parts[0]->b->c->d[1].frame = lbl_3_data_2265C.frame[PP.ballKind[idx - 0x85]];
 }
 
 // .text:0x00119468 size:0x44 mapped:0x807584FC
@@ -1143,12 +1139,13 @@ void fn_3_119468(int idx) {
 
 // .text:0x001192B8 size:0x1B0 mapped:0x8075834C
 void fn_3_1192B8(void) {
+    PMEffect* fx;
+    PPSpawner* sp;
     int i;
 
     for (i = 0; i < PP_SPAWNER_COUNT; i++) {
-        PMEffect* fx = &FX(0x82 + i);
-        PPSpawner* sp = &PP.spawner[i];
-
+        fx = &FX(0x82 + i);
+        sp = &PP.spawner[i];
         fx->visible = FALSE;
         if (sp->mode != 0) {
             fx->visible = TRUE;
@@ -1159,9 +1156,9 @@ void fn_3_1192B8(void) {
                 applyUniformScaleToObject(lbl_3_data_22678[sp->isBig], 0x82 + i);
             } else {
                 f32 t = (f32)sp->_1A / (f32)lbl_3_data_21E68[6];
+                f32* scales = &lbl_3_data_22678[sp->isBig];
 
-                applyUniformScaleToObject((1.0f - t) * lbl_3_data_22678[sp->isBig] + lbl_3_data_22678[sp->isBig + 2] * t,
-                                          0x82 + i);
+                applyUniformScaleToObject((1.0f - t) * scales[0] + scales[2] * t, 0x82 + i);
             }
             if (sp->isBig == 0) {
                 fx->rot.y = sp->angle;
@@ -1186,7 +1183,7 @@ void fn_3_118B18(int slot) {
     sp->_28++;
     if (sp->mode == 1) {
         if (sp->_1A <= 1) {
-            pmInitSpawnerAnim(slot, 2, 0, 0, FALSE);
+            fn_3_1189C8(slot, 2, 0, 0, FALSE);
             applyUniformScaleToObject(0.01f, 0x82 + slot);
         } else {
             applyUniformScaleToObject(LinearInterpolateToNewRange(sp->_1A, 0.0f, lbl_3_data_21E68[5],
@@ -1195,44 +1192,44 @@ void fn_3_118B18(int slot) {
                                       0x82 + slot);
         }
         if (sp->_1C == 1) {
-            pmInitSpawnerAnim(slot, 0, 0, 6, TRUE);
+            fn_3_1189C8(slot, 0, 0, 6, TRUE);
         }
     } else if (sp->mode == 4) {
         if (sp->_1A <= 1) {
-            pmInitSpawnerAnim(slot, 4, 0, 0, FALSE);
+            fn_3_1189C8(slot, 4, 0, 0, FALSE);
         }
     } else if (sp->_1E == 2) {
         if (sp->isBig == 0) {
-            pmInitSpawnerAnim(slot, 1, 0, 0, FALSE);
+            fn_3_1189C8(slot, 1, 0, 0, FALSE);
         } else {
-            pmInitSpawnerAnim(slot, 5, 0, 0, FALSE);
+            fn_3_1189C8(slot, 5, 0, 0, FALSE);
         }
     } else if (sp->_1E == lbl_3_data_21E68[7]) {
         if (sp->_33 != 0) {
-            pmInitSpawnerAnim(slot, 0, 0, 6, TRUE);
+            fn_3_1189C8(slot, 0, 0, 6, TRUE);
         }
     } else {
         if (sp->_2E != 0 && (sp->_26 == 1 || sp->isBig != 0)) {
-            int frame = ((u8*)lbl_3_data_226AC)[0xC] - lbl_3_data_21E68[13] - 1;
+            int frame = lbl_3_data_226B8[0] - lbl_3_data_21E68[13] - 1;
 
             if (sp->isBig == 0) {
                 pP_PiranhaAimAtPlayer(sp);
             }
-            pmInitSpawnerAnim(slot, 3, frame, 2, FALSE);
+            fn_3_1189C8(slot, 3, frame, 2, FALSE);
         }
-        if (sp->_33 == 3 && sp->_28 == ((u8*)lbl_3_data_226AC)[0xD] - lbl_3_data_226AC[3]) {
-            pmInitSpawnerAnim(slot, 0, 0, 6, TRUE);
-            sp->_14 = 0.0f;
-            sp->_0C = 0.0f;
-            sp->angle = lbl_3_data_22688[slot];
+        if (sp->_33 == 3 && sp->_28 == lbl_3_data_226B8[1] - lbl_3_data_226AC[3]) {
+            fn_3_1189C8(slot, 0, 0, 6, TRUE);
+            PP.spawner[slot]._14 = 0.0f;
+            PP.spawner[slot]._0C = 0.0f;
+            PP.spawner[slot].angle = lbl_3_data_22688[slot];
         }
     }
 }
 
 // .text:0x001189C8 size:0x150 mapped:0x80757A5C
 void fn_3_1189C8(int slot, int kind, int frame, int divisor, u8 flag) {
-    PMModelObj* obj = PM_MODEL(0x82 + slot);
     PPSpawner* sp = &PP.spawner[slot];
+    PMModelObj* obj = PM_MODEL(0x82 + slot);
     f32 rate = 0.0f;
     s32 v;
 
@@ -1262,16 +1259,16 @@ void fn_3_1189C8(int slot, int kind, int frame, int divisor, u8 flag) {
 
 // .text:0x0011897C size:0x4C mapped:0x80757A10
 void fn_3_11897C(int idx) {
-    ((PMMeshA*)PM_MODEL_AT(idx)->model)->b->c->d[1].frame = lbl_3_data_22670[PP.spawner[idx - 0x82].kind];
+    ((PMMeshA*)pmGetActor(idx))->b->c->d[1].frame = lbl_3_data_22670[PP.spawner[idx - 0x82].kind];
 }
 
 // .text:0x0011887C size:0x100 mapped:0x80757910
 void fn_3_11887C(void) {
+    PMEffect* fx;
     int i;
 
     for (i = 0; i < 7; i++) {
-        PMEffect* fx = &FX(0xE9 + i);
-
+        fx = &FX(0xE9 + i);
         fx->visible = TRUE;
         if (i < 4) {
             fx->pos.x = lbl_3_data_21B94[i].x;
@@ -1293,14 +1290,17 @@ void fn_3_11887C(void) {
 // .text:0x0011881C size:0x60 mapped:0x807578B0
 void fn_3_11881C(int idx) {
     s16 frame;
-    int off = idx * 0x90;
 
     if (idx - 0xE9 < 4) {
         frame = lbl_3_data_226BC[idx - 0xE9];
     } else {
         frame = lbl_3_data_226BC[4];
     }
-    (*(PMModel**)(hugeAnimStruct.modelTable + 0x34 + off))->parts[0]->b->c->d[1].frame = frame;
+    {
+        ActorObjectEntry* e = ((ActorObjectTable*)hugeAnimStruct.modelTable)->entries;
+        e += idx;
+        ((PMModel*)e->actor)->parts[0]->b->c->d[1].frame = frame;
+    }
 }
 
 // .text:0x0011874C size:0xD0 mapped:0x807577E0
@@ -1310,13 +1310,14 @@ void fn_3_11874C(void) {
     if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_STAR_DASH) {
         for (i = 0; i < (s32)ARRAY_SIZE(SD.fireBarFlame); i++) {
             PMEffect* fx = &FX(i);
+            SDFireBarFlame* flame = &SD.fireBarFlame[i];
 
             fx->visible = FALSE;
             fx->update = NULL;
-            if (SD.fireBarFlame[i].active) {
+            if (flame->active) {
                 fx->visible = TRUE;
-                fx->pos.x = SD.fireBarFlame[i].pos.x;
-                fx->pos.z = SD.fireBarFlame[i].pos.z;
+                fx->pos.x = flame->pos.x;
+                fx->pos.z = flame->pos.z;
                 fx->pos.y = -0.01f;
                 applyNonUniformScaleToObject(lbl_3_data_226D4[1], 1.0f, lbl_3_data_226D4[1], i);
             }
@@ -1330,7 +1331,7 @@ void fn_3_118614(void) {
     int i;
 
     addGraphicsElementToScene(node, lbl_3_data_69D0);
-    for (i = 0; i < 40; i++) {
+    for (i = 0; i < (s32)ARRAY_SIZE(SD.fireBarFlame); i++) {
         ((UIRecord*)graphicsRelatedArray[((MenuScene*)node)->firstHandle + i].object)->frame = 0x20000;
     }
     currentDrawingItem->func = fn_3_118508;
@@ -1379,23 +1380,28 @@ void fn_3_1183FC(void) {
 
 // .text:0x00118358 size:0xA4 mapped:0x807573EC
 void fn_3_118358(int slot, VecXYZ* out) {
-    u8* part = *(u8**)((u8*)PM_MODEL(0x82 + slot)->model->parts + 0x44);
+    sBone* bone = ((Actor*)PM_MODEL(0x82 + slot)->model)->boneArray[17];
 
-    if (slot >= 0 && slot <= 2 && out != NULL) {
+    if (slot < 0 || slot > 2) {
+        return;
+    }
+    if (out != NULL) {
         memset(out, 0, sizeof(VecXYZ));
-        PSMTXMultVec(*(MtxPtr*)(part + 0xEC), (Vec*)out, (Vec*)out);
+        PSMTXMultVec(bone->forwardMtx, (Vec*)out, (Vec*)out);
         out->y *= -1.0f;
     }
 }
 
 // .text:0x00118164 size:0x1F4 mapped:0x807571F8
 void fn_3_118164(void) {
+    PMEffect* fx;
+    PMEffect* shadow;
     int i;
+    int idx;
 
     for (i = 0; i < 100; i++) {
-        PMEffect* fx = &FX(0x82 + i);
-        PMEffect* shadow;
-
+        idx = 0x82 + i;
+        fx = &FX(idx);
         fx->visible = FALSE;
         shadow = &FX(i);
         shadow->visible = FALSE;
@@ -1406,7 +1412,7 @@ void fn_3_118164(void) {
             fx->pos.z = g_Minigame.coinPos[i].z;
             fx->rot.x = 0.0f;
             fx->rot.z = 0.0f;
-            applyUniformScaleToObject(2.0f, 0x82 + i);
+            applyUniformScaleToObject(2.0f, idx);
             if (g_Minigame.coinFrameCounter[i] <= 1) {
                 fx->rot.y = RandomF32_Game_Range(-3.1415927f, 3.1415927f);
             } else if (g_Minigame.coinState[i] == 1) {
@@ -1479,8 +1485,8 @@ void fn_3_117FC8(void) {
 
 // .text:0x00117B78 size:0x450 mapped:0x80756C0C
 void fn_3_117B78(int idx) {
-    f32 uv[8] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
     PMEffect* fx = &FX(idx);
+    f32 uv[8] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
     VecXYZ v[4];
     VecXYZ tmp;
     GXColor color;
@@ -1490,14 +1496,10 @@ void fn_3_117B78(int idx) {
     f32 cosA;
 
     pmSetupQuadState();
-    v[0].x = -half;
-    v[0].z = half;
-    v[1].x = half;
-    v[1].z = half;
-    v[2].x = half;
-    v[2].z = -half;
-    v[3].x = -half;
-    v[3].z = -half;
+    v[0].z = v[1].z = half;
+    v[0].x = v[3].x = -half;
+    v[1].x = v[2].x = half;
+    v[2].z = v[3].z = -half;
     for (i = 0; i < 4; i++) {
         memcpy(&tmp, &v[i], sizeof(VecXYZ));
         sinA = sin(-fx->rot.y);
@@ -1505,38 +1507,22 @@ void fn_3_117B78(int idx) {
         v[i].x = tmp.x * cosA + tmp.z * -sinA;
         cosA = cos(-fx->rot.y);
         sinA = sin(-fx->rot.y);
-        v[i].z = tmp.z * cosA + tmp.x * sinA;
+        v[i].z = tmp.x * sinA + tmp.z * cosA;
     }
-    v[0].x += fx->pos.x;
-    v[1].x += fx->pos.x;
-    v[2].x += fx->pos.x;
-    v[3].x += fx->pos.x;
-    v[0].z += fx->pos.z;
-    v[1].z += fx->pos.z;
-    v[2].z += fx->pos.z;
-    v[3].z += fx->pos.z;
-    v[0].y = -0.06f;
-    v[1].y = -0.06f;
-    v[2].y = -0.06f;
-    v[3].y = -0.06f;
-    color.r = 0;
-    color.g = 0;
-    color.b = 0;
+    for (i = 0; i < 4; i++) {
+        v[i].x += fx->pos.x;
+        v[i].z += fx->pos.z;
+    }
+    v[0].y = v[1].y = v[2].y = v[3].y = -0.06f;
+    color.r = color.g = color.b = 0;
     color.a = 0x9B;
     pmSetupQuadCamera(0x14);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    GXPosition3f32(v[0].x, v[0].y, v[0].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[0], uv[1]);
-    GXPosition3f32(v[1].x, v[1].y, v[1].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[2], uv[3]);
-    GXPosition3f32(v[2].x, v[2].y, v[2].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[4], uv[5]);
-    GXPosition3f32(v[3].x, v[3].y, v[3].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[6], uv[7]);
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(v[i].x, v[i].y, v[i].z);
+        GXColor1u32(*(u32*)&color);
+        GXTexCoord2f32(uv[i * 2], uv[i * 2 + 1]);
+    }
 }
 
 // .text:0x00117AE4 size:0x94 mapped:0x80756B78
@@ -1555,12 +1541,13 @@ void fn_3_117AE4(void) {
 
 // .text:0x001179EC size:0xF8 mapped:0x80756A80
 void fn_3_1179EC(void) {
+    PMEffect* fx;
+    SDThwomp* thwomp;
     u32 i;
 
     for (i = 0; i < 4; i++) {
-        PMEffect* fx = &FX(0xE9 + i);
-        SDThwomp* thwomp = &SD.thwomp[i];
-
+        fx = &FX(0xE9 + i);
+        thwomp = &SD.thwomp[i];
         fx->visible = FALSE;
         fx->update = NULL;
         if (thwomp->state != 0) {
@@ -1588,45 +1575,29 @@ void fn_3_117588(int idx) {
     VecXYZ v[4];
     GXColor color;
     PMModel* model;
-    s16 frame;
+    int frame;
     int i;
 
     scale = 2.5f * (1.0f - (-fx->pos.y * 0.5f) / lbl_3_data_21A64[0]);
     pmSetupQuadState();
     halfW = 2.8f * scale * 0.5f;
     halfH = 2.5f * scale * 0.5f;
-    color.r = 0;
-    color.g = 0;
-    color.b = 0;
+    color.r = color.g = color.b = 0;
+    v[0].x = v[3].x = -halfW + fx->pos.x;
+    v[0].z = v[1].z = halfH + fx->pos.z;
+    v[1].x = v[2].x = halfW + fx->pos.x;
+    v[2].z = v[3].z = -halfH + fx->pos.z;
+    v[0].y = v[1].y = v[2].y = v[3].y = -0.06f;
     color.a = 0x9B;
-    v[0].x = -halfW + fx->pos.x;
-    v[0].y = -0.06f;
-    v[0].z = halfH + fx->pos.z;
-    v[1].x = halfW + fx->pos.x;
-    v[1].y = -0.06f;
-    v[1].z = halfH + fx->pos.z;
-    v[2].x = halfW + fx->pos.x;
-    v[2].y = -0.06f;
-    v[2].z = -halfH + fx->pos.z;
-    v[3].x = -halfW + fx->pos.x;
-    v[3].y = -0.06f;
-    v[3].z = -halfH + fx->pos.z;
     pmSetupQuadCamera(0x13);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    GXPosition3f32(v[0].x, v[0].y, v[0].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[0], uv[1]);
-    GXPosition3f32(v[1].x, v[1].y, v[1].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[2], uv[3]);
-    GXPosition3f32(v[2].x, v[2].y, v[2].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[4], uv[5]);
-    GXPosition3f32(v[3].x, v[3].y, v[3].z);
-    GXColor1u32(*(u32*)&color);
-    GXTexCoord2f32(uv[6], uv[7]);
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(v[i].x, v[i].y, v[i].z);
+        GXColor1u32(*(u32*)&color);
+        GXTexCoord2f32(uv[i * 2], uv[i * 2 + 1]);
+    }
 
-    model = PM_MODEL(idx)->model;
+    model = PM_MODEL_AT(idx)->model;
     if (thwomp->state == 1 || thwomp->state == 5) {
         frame = 0;
     } else {
@@ -1665,11 +1636,11 @@ void fn_3_117494(void) {
 // .text:0x0011741C size:0x78 mapped:0x807564B0
 void fn_3_11741C(int idx) {
     PMModel* model;
-    s16 frame;
+    int frame;
     int i;
 
-    frame = g_Minigame.powerup.activeInd == 1 ? 0 : 2;
     model = PM_MODEL_AT(idx)->model;
+    frame = g_Minigame.powerup.activeInd == 1 ? 0 : 2;
     for (i = 0; i < model->count; i++) {
         model->parts[i]->b->c->d[1].frame = frame;
     }
@@ -1709,7 +1680,7 @@ void fn_3_116B74(void) {
         break;
     case MINI_GAME_ID_PIRANHA_PANIC:
         fn_3_1194FC();
-        pmUpdateSpawnerEffects();
+        fn_3_116840();
         for (i = 0; i < 40; i++) {
             PMEffect* fx = &FX(i);
 
@@ -1755,5 +1726,25 @@ void fn_3_1169D0(void) {
 
 // .text:0x00116840 size:0x190 mapped:0x807558D4
 void fn_3_116840(void) {
-    pmUpdateSpawnerEffects();
+    int i;
+
+    for (i = 0; i < PP_SPAWNER_COUNT; i++) {
+        PMEffect* fx = &FX(0x82 + i);
+        PPSpawner* sp = &PP.spawner[i];
+
+        fx->visible = FALSE;
+        if (sp->mode != 0) {
+            fx->visible = TRUE;
+            fx->pos.x = sp->pos.x;
+            fx->pos.y = -sp->pos.y;
+            fx->pos.z = sp->pos.z;
+            applyUniformScaleToObject(lbl_3_data_22678[sp->isBig], 0x82 + i);
+            fx->rot.y = lbl_3_data_22688[i];
+            fx->update = fn_3_11897C;
+            if (sp->_1C == 1) {
+                fn_3_1189C8(i, 0, 0, 6, TRUE);
+                sp->_1C++;
+            }
+        }
+    }
 }
