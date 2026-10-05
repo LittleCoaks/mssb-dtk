@@ -773,7 +773,7 @@ config.libs = [
             Object(Matching, "Unknown/File_0x80063958.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x80064344.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x80064430.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(NonMatching, "Unknown/mb_subfunc.c", extra_cflags=["-cpp_exceptions on", "-inline deferred"]),
+            Object(Matching, "Unknown/mb_subfunc.c", extra_cflags=["-cpp_exceptions on", "-inline deferred"]),
             Object(Matching, "Unknown/File_0x80069a98.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x8006c48c.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x8006c7c4.c"),

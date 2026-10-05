@@ -314,7 +314,7 @@ extern u8 mapCaptainCursorPositionToCharID[0x350];
 /* ---- cursorPositions (0x803C6724, 0x5C bytes) ------------------------------
  * Two per-port cursor bytes, then the drafted rosters. */
 typedef struct {
-    /* 0x00 */ u8 rosterCharID[2][9];
+    /* 0x00 */ E(s8, CHAR_ID) rosterCharID[2][9];
     /* 0x12 */ u8 positionSwapMapping[2][9];
     /* 0x24 */ u8 chemWCaptain[2][9];
     /* 0x36 */ u8 unused[2][9];

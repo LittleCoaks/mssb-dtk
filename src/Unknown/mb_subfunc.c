@@ -107,19 +107,19 @@ u16 lbl_80108E38[69] = {
     0x02C0, 0x02C1, 0x02C2, 0x02C3, 0x02C4, 0x02C5, 0x02C6, 0x02C7, 0x02C8,
 };
 
-static u8 captainIDOrderedOnCapSS[12] = {
+u8 captainIDOrderedOnCapSS[12] = {
     CHAR_ID_MARIO, CHAR_ID_PEACH, CHAR_ID_WARIO, CHAR_ID_DK,
     CHAR_ID_YOSHI, CHAR_ID_BOWSER, CHAR_ID_LUIGI, CHAR_ID_DAISY,
     CHAR_ID_WALUIGI, CHAR_ID_DIDDY, CHAR_ID_BIRDO, CHAR_ID_BOWSERJR,
 };
 
-static u8 captainIDMappings[12] = {
+u8 captainIDMappings[12] = {
     CHAR_ID_MARIO, CHAR_ID_LUIGI, CHAR_ID_PEACH, CHAR_ID_DAISY,
     CHAR_ID_YOSHI, CHAR_ID_BIRDO, CHAR_ID_WARIO, CHAR_ID_WALUIGI,
     CHAR_ID_DK, CHAR_ID_DIDDY, CHAR_ID_BOWSER, CHAR_ID_BOWSERJR,
 };
 
-static s16 variantPairs[][5] = {
+s16 variantPairs[][5] = {
     { CHAR_ID_KOOPA_GREEN, CHAR_ID_KOOPA_RED, CHAR_ID_NONE, CHAR_ID_NONE, CHAR_ID_NONE },
     { CHAR_ID_TOAD_RED, CHAR_ID_TOAD_BLUE, CHAR_ID_TOAD_YELLOW, CHAR_ID_TOAD_GREEN, CHAR_ID_TOAD_PURPLE },
     { CHAR_ID_PARATROOPA_RED, CHAR_ID_PARATROOPA_GREEN, CHAR_ID_NONE, CHAR_ID_NONE, CHAR_ID_NONE },
@@ -378,8 +378,10 @@ static inline void tryAddRecruit(s8* avail, u8* count, s32 i) {
 
     if ((int)CHALLENGE_TRACKER.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
         if (addRemoveCharVariantRelated(0, i, 1)) {
-            for (row = 0; row < 9; row++) {
-                if (i == variantPairs[row][0]) {
+            s16 (*pair)[5] = variantPairs;
+
+            for (row = 0; row < 9; row++, pair++) {
+                if (i == (*pair)[0]) {
                     break;
                 }
             }
@@ -395,7 +397,6 @@ void unknownSettingTeamValues(void) {
     s8 avail[54];
     u8 count;
     s32 i;
-    int row;
     s32 team;
     u8 statCol;
     u8 n;
@@ -410,7 +411,7 @@ void unknownSettingTeamValues(void) {
     int handedness;
 
     count = 0;
-    memset(avail, -1, sizeof(avail));
+    memset(avail, CHAR_ID_NONE, sizeof(avail));
     for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
         tryAddRecruit(avail, &count, i);
     }
@@ -422,8 +423,8 @@ void unknownSettingTeamValues(void) {
                 break;
             }
         }
-        for (team = 0; team < 2; team++) {
-            for (slot = 0; slot < 9; slot++) {
+        for (team = 0; team < TEAMS_PER_GAME; team++) {
+            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                 if (team == 0) {
                     charID = Static_Stats_Tables.challengeRosters[captainIndex].charID[slot];
                 } else {
@@ -439,15 +440,15 @@ void unknownSettingTeamValues(void) {
         fn_80067C48(1);
         unsure_FillRosterPositions(1);
         characterSelectScreen(1);
-        for (slot = 0; slot < 9; slot++) {
+        for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
             CHALLENGE_TRACKER.savedLineup[slot].charID = inMemRoster[0][slot].stats.CharID;
             CHALLENGE_TRACKER.savedLineup[slot].battingOrder = lineUpInfoStruct[0][slot][1];
             CHALLENGE_TRACKER.savedLineup[slot].fieldingPosition = lineUpInfoStruct[0][slot][2];
             CHALLENGE_TRACKER.savedLineup[slot].handedness = inMemRoster[0][slot].stats.BattingStance + inMemRoster[0][slot].stats.FieldingArm * 2;
         }
     } else {
-        for (team = 0; team < 2; team++) {
-            for (slot = 0; slot < 9; slot++) {
+        for (team = 0; team < TEAMS_PER_GAME; team++) {
+            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                 if (team == 0) {
                     charID = CHALLENGE_TRACKER.savedLineup[slot].charID;
                 } else {
@@ -456,12 +457,12 @@ void unknownSettingTeamValues(void) {
                         do {
                             index = randRange_FUN_80042bf0(0, n - 1);
                             charID = avail[index];
-                        } while (charID == -1);
-                        avail[index] = -1;
+                        } while (charID == CHAR_ID_NONE);
+                        avail[index] = CHAR_ID_NONE;
                         Static_Stats_Tables.charOnCharacterGridSelected[charID] = 1;
                         for (k = 0; k < n - 1; k++) {
                             for (m = k + 1; m < n; m++) {
-                                if (avail[k] == -1) {
+                                if (avail[k] == CHAR_ID_NONE) {
                                     tmp = avail[k];
                                     avail[k] = avail[m];
                                     avail[m] = tmp;
@@ -814,7 +815,7 @@ u8 teamCompositionLogos(int team, int captain) {
     for (set = 0; set < 2; set++) {
         for (m = 0; m < 4; m++) {
             for (k = 0; k < 9; k++) {
-                if ((s8)cursorPositions.roster.rosterCharID[team][k] == lbl_80108F38[group * 2 + set][m]) {
+                if (cursorPositions.roster.rosterCharID[team][k] == lbl_80108F38[group * 2 + set][m]) {
                     found[m] = TRUE;
                     count++;
                 }
@@ -831,7 +832,7 @@ u8 teamCompositionLogos(int team, int captain) {
                 if (row != -1) {
                     for (v = 1; v < 5; v++) {
                         for (k = 0; k < 9; k++) {
-                            if ((s8)cursorPositions.roster.rosterCharID[team][k] == variantPairs[row][v]) {
+                            if (cursorPositions.roster.rosterCharID[team][k] == variantPairs[row][v]) {
                                 count++;
                                 found[m] = TRUE;
                                 if (count == 4) {
@@ -918,7 +919,7 @@ void fn_800670A0(u8 team) {
 
     for (i = 0; i < 9; i++) {
         if (cursorPositions.roster.chemWCaptain[team][i] != 0 &&
-            (s8)cursorPositions.roster.rosterCharID[team][i] != Static_Stats_Tables.captainSelectedID[team]) {
+            cursorPositions.roster.rosterCharID[team][i] != Static_Stats_Tables.captainSelectedID[team]) {
             sum += cursorPositions.roster.chemWCaptain[team][i];
             count++;
         }
@@ -1188,30 +1189,31 @@ void unsure_FillRosterPositions(u8 team) {
     int rankA;
     int captain;
     int rankB;
+    int captainKey;
 
     for (i = 0; i < 9; i++) {
-        others[i] = -1;
-        captains[i] = -1;
-        positions[i] = -1;
+        others[i] = CHAR_ID_NONE;
+        captains[i] = CHAR_ID_NONE;
+        positions[i] = FIELDING_POSITION_NONE;
     }
     captain = Static_Stats_Tables.captainSelectedID[team];
     position = FIELDING_POSITION_PITCHER;
     for (i = 0; i < 9; i++) {
-        if ((s8)cursorPositions.roster.rosterCharID[team][i] == captain) {
+        if (cursorPositions.roster.rosterCharID[team][i] == captain) {
             positions[i] = position;
         }
     }
     count = 0;
     for (j = 0; j < 9; j++) {
         for (k = 0; k < 12; k++) {
-            if ((s8)cursorPositions.roster.rosterCharID[team][j] == captainIDOrderedOnCapSS[k] &&
-                captain != (s8)cursorPositions.roster.rosterCharID[team][j]) {
-                ((u8*)captains)[count++] = cursorPositions.roster.rosterCharID[team][j];
+            if (cursorPositions.roster.rosterCharID[team][j] == captainIDOrderedOnCapSS[k] &&
+                captain != cursorPositions.roster.rosterCharID[team][j]) {
+                captains[count++] = cursorPositions.roster.rosterCharID[team][j];
             }
         }
     }
-    if (captains[0] != -1) {
-        if (captains[1] == -1) {
+    if (captains[0] != CHAR_ID_NONE) {
+        if (captains[1] == CHAR_ID_NONE) {
             statRow = captains[0] / 9;
             statCol = captains[0] % 9;
             charClass = Static_Stats_Tables.characterStats[statRow][statCol].stats.CharacterClass;
@@ -1224,7 +1226,7 @@ void unsure_FillRosterPositions(u8 team) {
                 }
                 if (m == 9) {
                     for (s = 0; s < 9; s++) {
-                        if (captains[0] == (s8)cursorPositions.roster.rosterCharID[team][s] && positions[s] == -1) {
+                        if (captains[0] == cursorPositions.roster.rosterCharID[team][s] && positions[s] == FIELDING_POSITION_NONE) {
                             positions[s] = position;
                             goto placedCaptain;
                         }
@@ -1233,7 +1235,7 @@ void unsure_FillRosterPositions(u8 team) {
             }
             if (j == 5) {
                 do {
-                    randomPosition = randRange_FUN_80042bf0(0, 8);
+                    randomPosition = randRange_FUN_80042bf0(FIELDING_POSITION_PITCHER, FIELDING_POSITION_RIGHT_FIELD);
                     for (m = 0; m < 9; m++) {
                         if (positions[m] == randomPosition) {
                             ok = FALSE;
@@ -1245,7 +1247,7 @@ void unsure_FillRosterPositions(u8 team) {
                     }
                 } while (!ok);
                 for (s = 0; s < 9; s++) {
-                    if (captains[0] == (s8)cursorPositions.roster.rosterCharID[team][s]) {
+                    if (captains[0] == cursorPositions.roster.rosterCharID[team][s]) {
                         positions[s] = randomPosition;
                         goto placedCaptain;
                     }
@@ -1253,21 +1255,21 @@ void unsure_FillRosterPositions(u8 team) {
             }
         } else {
             for (j = 0; j < 8; j++) {
-                if (captains[j] == -1) {
+                if (captains[j] == CHAR_ID_NONE) {
                     break;
                 }
-                key = cursorPositions.roster.rosterCharID[team][j];
-                for (r = 0; r < 54; r++) {
-                    if (Static_Stats_Tables.captainChemistryOrder[team][r] == key) {
+                captainKey = cursorPositions.roster.rosterCharID[team][j];
+                for (r = 0; r < NUM_CHOOSABLE_CHARACTERS; r++) {
+                    if (Static_Stats_Tables.captainChemistryOrder[team][r] == captainKey) {
                         rankA = r;
                         break;
                     }
                 }
-                for (k = j + 1; k < 9; k++) {
-                    if ((other = captains[k]) == -1) {
+                for (t = j + 1; t < 9; t++) {
+                    if ((other = captains[t]) == CHAR_ID_NONE) {
                         break;
                     }
-                    for (r = 0; r < 54; r++) {
+                    for (r = 0; r < NUM_CHOOSABLE_CHARACTERS; r++) {
                         if (Static_Stats_Tables.captainChemistryOrder[team][r] == other) {
                             rankB = r;
                             break;
@@ -1275,13 +1277,13 @@ void unsure_FillRosterPositions(u8 team) {
                     }
                     if (rankA > rankB) {
                         tmp = other;
-                        captains[k] = captains[j];
+                        captains[t] = captains[j];
                         captains[j] = tmp;
                     }
                 }
             }
             for (j = 0; j < 9; j++) {
-                if (captains[j] == -1) {
+                if (captains[j] == CHAR_ID_NONE) {
                     break;
                 }
                 statRow = captains[j] / 9;
@@ -1295,9 +1297,9 @@ void unsure_FillRosterPositions(u8 team) {
                         }
                     }
                     if (m == 9) {
-                        for (s = 0; s < 9; s++) {
-                            if (captains[j] == (s8)cursorPositions.roster.rosterCharID[team][s] && positions[s] == -1) {
-                                positions[s] = position;
+                        for (i = 0; i < 9; i++) {
+                            if (captains[j] == cursorPositions.roster.rosterCharID[team][i] && positions[i] == FIELDING_POSITION_NONE) {
+                                positions[i] = position;
                                 goto placedCaptain;
                             }
                         }
@@ -1305,7 +1307,7 @@ void unsure_FillRosterPositions(u8 team) {
                 }
                 if (k == 5) {
                     do {
-                        randomPosition = randRange_FUN_80042bf0(0, 8);
+                        randomPosition = randRange_FUN_80042bf0(FIELDING_POSITION_PITCHER, FIELDING_POSITION_RIGHT_FIELD);
                         for (m = 0; m < 9; m++) {
                             if (positions[m] == randomPosition) {
                                 ok = FALSE;
@@ -1317,7 +1319,7 @@ void unsure_FillRosterPositions(u8 team) {
                         }
                     } while (!ok);
                     for (s = 0; s < 9; s++) {
-                        if (captains[j] == (s8)cursorPositions.roster.rosterCharID[team][s]) {
+                        if (captains[j] == cursorPositions.roster.rosterCharID[team][s]) {
                             positions[s] = randomPosition;
                             break;
                         }
@@ -1331,7 +1333,7 @@ void unsure_FillRosterPositions(u8 team) {
     for (j = 0; j < 9; j++) {
         isCaptain = FALSE;
         for (k = 0; k < 12; k++) {
-            if ((s8)cursorPositions.roster.rosterCharID[team][j] == captainIDOrderedOnCapSS[k]) {
+            if (cursorPositions.roster.rosterCharID[team][j] == captainIDOrderedOnCapSS[k]) {
                 isCaptain = TRUE;
             }
         }
@@ -1342,20 +1344,20 @@ void unsure_FillRosterPositions(u8 team) {
         }
     }
     for (j = 0; j < 8; j++) {
-        if ((key = others[j]) == -1) {
+        if ((key = others[j]) == CHAR_ID_NONE) {
             break;
         }
-        for (r = 0; r < 54; r++) {
+        for (r = 0; r < NUM_CHOOSABLE_CHARACTERS; r++) {
             if (Static_Stats_Tables.captainChemistryOrder[team][r] == key) {
                 rankA = r;
                 break;
             }
         }
-        for (k = j + 1; k < 9; k++) {
-            if ((other = others[k]) == -1) {
+        for (t = j + 1; t < 9; t++) {
+            if ((other = others[t]) == CHAR_ID_NONE) {
                 break;
             }
-            for (r = 0; r < 54; r++) {
+            for (r = 0; r < NUM_CHOOSABLE_CHARACTERS; r++) {
                 if (Static_Stats_Tables.captainChemistryOrder[team][r] == other) {
                     rankB = r;
                     break;
@@ -1363,13 +1365,13 @@ void unsure_FillRosterPositions(u8 team) {
             }
             if (rankA > rankB) {
                 tmp = other;
-                others[k] = others[j];
+                others[t] = others[j];
                 others[j] = tmp;
             }
         }
     }
     for (j = 0; j < 9; j++) {
-        if (others[j] == -1) {
+        if (others[j] == CHAR_ID_NONE) {
             break;
         }
         charClass = Static_Stats_Tables.characterStats[others[j] / 9][others[j] % 9].stats.CharacterClass;
@@ -1382,7 +1384,7 @@ void unsure_FillRosterPositions(u8 team) {
             }
             if (m == 9) {
                 for (s = 0; s < 9; s++) {
-                    if (others[j] == (s8)cursorPositions.roster.rosterCharID[team][s] && positions[s] == -1) {
+                    if (others[j] == cursorPositions.roster.rosterCharID[team][s] && positions[s] == FIELDING_POSITION_NONE) {
                         positions[s] = position;
                         goto placedOther;
                     }
@@ -1391,7 +1393,7 @@ void unsure_FillRosterPositions(u8 team) {
         }
         if (k == 5) {
             do {
-                randomPosition = randRange_FUN_80042bf0(0, 8);
+                randomPosition = randRange_FUN_80042bf0(FIELDING_POSITION_PITCHER, FIELDING_POSITION_RIGHT_FIELD);
                 okOther = TRUE;
                 for (m = 0; m < 9; m++) {
                     if (positions[m] == randomPosition) {
@@ -1401,7 +1403,7 @@ void unsure_FillRosterPositions(u8 team) {
                 }
             } while (!okOther);
             for (t = 0; t < 9; t++) {
-                if (others[j] == (s8)cursorPositions.roster.rosterCharID[team][t] && positions[t] == -1) {
+                if (others[j] == cursorPositions.roster.rosterCharID[team][t] && positions[t] == FIELDING_POSITION_NONE) {
                     positions[t] = randomPosition;
                     break;
                 }

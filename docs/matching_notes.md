@@ -2930,3 +2930,42 @@ First seen: `Unknown/mcard.c` (2026-10). `OSPanic("mcard.c", ...)` and a shared 
   `.bss` claims in that region are probably really `common`.
 - **`CARDFastDelete` (0x80088698) was really the SDK's `CARDDelete`**: it takes a file name and calls
   `CARDDeleteAsync` + `__CARDSync`. Renamed in `symbols.txt` and `Dolphin/card/CARDDelete.c`.
+
+## Findings from the mb_subfunc.c merge (roster/team setup; 12 units + 9 auto splits -> 1 unit, flipped to Matching)
+
+First seen: `Unknown/mb_subfunc.c` (2026-10). `OSPanic("mb_subfunc.c", ...)` in `findCharacterID` named the
+TU; its `.data` (tables + five jump tables in function order) and `.sdata` tie 0x80064754..0x80069A68
+together. All 27 functions reached 100% and the unit links as `Matching` (`4 files OK`).
+
+- **A split whose `.data` starts only 4-aligned cannot be flipped on its own.** `findCharacterID` alone
+  (jump table at 0x801091F4) was instruction-exact but grew `main.dol` `.data` by 0x20 when flipped: MWCC
+  aligns each object's `.data` section to 8. The fix was the merge with the TU that really owned the
+  preceding `.data`; the merged unit starts 8-aligned and links byte-identically.
+- **A DOL function inlined into an EARLIER-address function means `-inline deferred` + reverse-order
+  source**, even on the DOL side. `unknownSettingTeamValues` (0x80068838) contains an inlined
+  `setCaptainLocInRoster` (0x80069854); `-inline auto` cannot inline a later definition. The unit uses
+  `extra_cflags=["-cpp_exceptions on", "-inline deferred"]` with definitions in reverse address order.
+- **A table referenced from another unit must stay global even though this TU addresses it through the
+  pool base.** Under these flags MWCC addresses the TU's own globals as `firstObject + off` just like
+  statics, so objdiff cannot tell; the link can. Making `captainIDOrderedOnCapSS`/`captainIDMappings`
+  `static` broke the menus/game REL imports, `variantPairs` alone `static` broke `fn_800415A8`.
+- **A struct-typed global beats every cast view of it.** The header declares
+  `starMissionCompletionTracker` as an array; the target's loops (s32 vestigial guard + CSE'd bases)
+  only appeared with the symbol declared as the real block struct. Done file-locally via
+  `#define name name_asArray` before the includes, `#undef`, then `extern Block name;`.
+- **If every use of a `u8` field is cast `(s8)`, the field is `s8`.** Retyping
+  `structCharSelect.rosterCharID` to `E(s8, CHAR_ID)` and dropping the casts fixed volatile-register
+  numbering in two loops at once (99.19 -> 99.49): the natural signed load and an explicit cast
+  produce the same instructions but different register numbering.
+- **Which existing local a loop uses matters even when the declaration order does not.** Two rank-sort
+  loops and one placement loop only matched once their counters were written with different existing
+  locals (`t`, `i`); moving `int k` to every position in the declaration list never reproduced it.
+  When register numbering is off by a swap in one loop, sweep "which variable", not just declaration order.
+- **An unrolled row search inside an inline helper: pointer walk vs index.** The target folded the
+  start offset into the first load (`lhau r0, 0x124(rBase)`); `variantPairs[row][0]` gave
+  `addi; lha`. A block-local row pointer `s16 (*pair)[5] = variantPairs; ... pair++` matched
+  (declared at the top of the helper it did not).
+- **A separate `int` key local can be needed beside an `s8` one.** The multi-captain rank search wanted
+  `int captainKey = roster[j]` while the others' search kept `s8 key`.
+- **Redundant self-stores (`x = x;`) reproduce stores the target has after a loop** (`teamCompositionLogos`,
+  `characterSelectScreen`, `unsure_FillRosterPositions`); reading the value once into a local does not.
