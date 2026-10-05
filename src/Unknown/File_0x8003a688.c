@@ -89,7 +89,7 @@ void fn_8003A8A0(struct DODisplayObj* dispObj, MtxPtr camera, int flag) {
                        dispObj->textureData[i].compCount * getCompSize(dispObj->textureData[i].quantizeInfo >> 4));
             GXSetVtxAttrFmt(GX_VTXFMT0, attr, GX_TEX_ST, dispObj->textureData[i].quantizeInfo >> 4,
                             dispObj->textureData[i].quantizeInfo & 0xF);
-            GXSetTexCoordGen2(GX_TEXCOORD0 + i, GX_TG_MTX3X4, GX_TG_TEX0 + i, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
+            GXSetTexCoordGen2(GX_TEXCOORD0 + i, GX_TG_MTX2X4, GX_TG_TEX0 + i, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
         }
         GXSetNumTexGens(dispObj->numTextureChannels);
     } else {

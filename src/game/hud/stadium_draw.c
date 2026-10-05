@@ -9,7 +9,7 @@
 #include "Unknown/File_0x800a70dc.h"
 #include "Unknown/File_0x80035ca4.h"
 #include "Unknown/File_0x800acf14.h"
-#include "Unknown/File_0x800b99c4.h"
+#include "Unknown/DisplayObject.h"
 #include "Dolphin/GX/GXFrameBuffer.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/mtx.h"

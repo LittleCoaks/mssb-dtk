@@ -1,6 +1,6 @@
 #include "Unknown/File_0x800b2ac8.h"
 #include "C3/geoPalette.h"
-#include "Unknown/File_0x800bc824.h"
+#include "Unknown/DisplayObject.h"
 #include "Unknown/File_0x800bf038.h"
 
 void ProcessActorBonesForShadows(ActorLayoutFile* layout) {

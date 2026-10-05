@@ -1817,7 +1817,7 @@ void pP_PulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, 
     PSMTXConcat(trans, postMtx, postMtx);
     GXLoadTexMtxImm(texMtx, GX_TEXMTX0 + *map * 3, GX_MTX3x4);
     GXLoadTexMtxImm(postMtx, GX_PTTEXMTX0 + *map * 3, GX_MTX3x4);
-    GXSetTexCoordGen2(*coord, GX_TG_MTX2X4, GX_TG_POS, GX_TEXMTX0 + *map * 3, GX_TRUE, GX_PTTEXMTX0 + *map * 3);
+    GXSetTexCoordGen2(*coord, GX_TG_MTX3X4, GX_TG_POS, GX_TEXMTX0 + *map * 3, GX_TRUE, GX_PTTEXMTX0 + *map * 3);
     GXSetTevOrder(*stage, *coord, *map, GX_COLOR_NULL);
     GXSetTevColorIn(*stage, GX_CC_ZERO, GX_CC_TEXC, GX_CC_TEXA, GX_CC_CPREV);
     GXSetTevColorOp(*stage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_ENABLE, GX_TEVPREV);

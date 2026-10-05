@@ -44,6 +44,8 @@ enum DOTextureSetting {
 
 typedef void * (*unkCB)(void *, struct DODisplayObj *, u32, void *, int, char *);
 
+typedef void (*DOUserTevModeFunc)(int mode, struct DODisplayObj *dispObj, MtxPtr camera, u8 *numTexGens, u8 *numTevStages);
+
 typedef struct {
     /* 0x00 */ PositionData *positionData;
     /* 0x04 */ ColorData *colorData;
@@ -53,7 +55,14 @@ typedef struct {
     /* 0x14 */ u8 numTextureChannels;
     /* 0x15 */ u8 pad8;
     /* 0x16 */ u16 pad16;
-} DODisplayLayout;
+    /* 0x18 */ u8 unk18[4];
+    /* 0x1C */ u8 unk1C[4];
+    /* 0x20 */ u8 unk20[4];
+    /* 0x24 */ u8 unk24[4];
+    /* 0x28 */ u8 unk28[4];
+    /* 0x2C */ u8 unk2C[4];
+    /* 0x30 */ u8 unk30[4];
+} DODisplayLayout; // size: 0x34 (MSSB extends the SDK layout)
 
 struct DODisplayObj {
     /* 0x00 */ PositionData *positionData;
@@ -64,12 +73,17 @@ struct DODisplayObj {
     /* 0x14 */ u8 numTextureChannels;
     /* 0x15 */ u8 pad8;
     /* 0x16 */ u8 visibility;
-    /* 0x17 */ u8 pad17;
+    /* 0x17 */ u8 overrideTevMode;
     /* 0x18 */ Mtx worldMatrix;
-    /* 0x48 */ u8 unk48[0x4];
-    /* 0x4C */ unkCB shaderFunc;
-    /* 0x50 */ void *shaderData;
-    /* 0x54 */ u8 unk54[0x18]; // MSSB's display object is 0x6C bytes (see DOGet)
+    /* 0x48 */ DOUserTevModeFunc userTevModeFunc;
+    /* 0x4C */ GXTexObj *shaderFunc;
+    /* 0x50 */ GXTexObj *shaderData;
+    /* 0x54 */ u8 unk54[4]; // MSSB's display object is 0x6C bytes (see DOGet)
+    /* 0x58 */ u8 unk58[4];
+    /* 0x5C */ u8 unk5C[4];
+    /* 0x60 */ u8 unk60[4];
+    /* 0x64 */ u8 unk64[4];
+    /* 0x68 */ u8 unk68[4];
 };
 
 typedef struct {

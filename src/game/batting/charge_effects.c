@@ -320,7 +320,7 @@ void fn_3_C0DD8(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapI
         texMtx[0][3] = 0.0f;
         texMtx[1][3] = slot;
         GXLoadTexMtxImm(texMtx, GX_TEXMTX0 + *map * 3, GX_MTX2x4);
-        GXSetTexCoordGen2(*coord, GX_TG_MTX3X4, GX_TG_TEX0, GX_TEXMTX0 + *map * 3, GX_FALSE, GX_PTIDENTITY);
+        GXSetTexCoordGen2(*coord, GX_TG_MTX2X4, GX_TG_TEX0, GX_TEXMTX0 + *map * 3, GX_FALSE, GX_PTIDENTITY);
         GXSetTevOrder(*stage, *coord, *map, GX_COLOR0A0);
         GXSetTevColorIn(*stage, GX_CC_ZERO, GX_CC_TEXC, GX_CC_TEXA, GX_CC_CPREV);
         GXSetTevColorOp(*stage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);

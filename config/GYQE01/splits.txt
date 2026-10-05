@@ -1763,70 +1763,13 @@ C3/control/control.c:
 	.bss        start:0x803CB1FC end:0x803CB49C
 	.sdata2     start:0x803CCFD8 end:0x803CCFF8
 
-Unknown/File_0x800b9974.c:
-	extab       start:0x80006AE0 end:0x80006AE8
-	extabindex  start:0x80008BB0 end:0x80008BBC
-	.text       start:0x800B9974 end:0x800B99C4
-
-Unknown/File_0x800b99c4.c:
-	extab       start:0x80006AE8 end:0x80006AF0
-	extabindex  start:0x80008BBC end:0x80008BC8
-	.text       start:0x800B99C4 end:0x800B9A30
-
-Unknown/File_0x800b9a30.c:
-	extab       start:0x80006AF0 end:0x80006AF8
-	extabindex  start:0x80008BC8 end:0x80008BD4
-	.text       start:0x800B9A30 end:0x800B9A9C
-
-Unknown/File_0x800b9a9c.c:
-	.text       start:0x800B9A9C end:0x800B9AB0
-
-Unknown/File_0x800ba44c.c:
-	extab       start:0x80006B08 end:0x80006B10
-	extabindex  start:0x80008BEC end:0x80008BF8
-	.text       start:0x800BA44C end:0x800BA848
-
-Unknown/File_0x800ba848.c:
-	extab       start:0x80006B10 end:0x80006B18
-	extabindex  start:0x80008BF8 end:0x80008C04
-	.text       start:0x800BA848 end:0x800BBB2C
-
-Unknown/File_0x800bbb2c.c:
-	extab       start:0x80006B18 end:0x80006B20
-	extabindex  start:0x80008C04 end:0x80008C10
-	.text       start:0x800BBB2C end:0x800BBF5C
-
-Unknown/File_0x800bbf5c.c:
-	.text       start:0x800BBF5C end:0x800BC0C4
-
-Unknown/File_0x800bc0c4.c:
-	extab       start:0x80006B20 end:0x80006B28
-	extabindex  start:0x80008C10 end:0x80008C1C
-	.text       start:0x800BC0C4 end:0x800BC7E8
-
-Unknown/File_0x800bc7e8.c:
-	extab       start:0x80006B28 end:0x80006B30
-	extabindex  start:0x80008C1C end:0x80008C28
-	.text       start:0x800BC7E8 end:0x800BC824
-
-Unknown/File_0x800bc824.c:
-	.text       start:0x800BC824 end:0x800BC834
-
-Unknown/File_0x800bc834.c:
-	extab       start:0x80006B30 end:0x80006B38
-	extabindex  start:0x80008C28 end:0x80008C34
-	.text       start:0x800BC834 end:0x800BC860
-
-Unknown/File_0x800bc860.c:
-	extab       start:0x80006B38 end:0x80006B40
-	extabindex  start:0x80008C34 end:0x80008C40
-	.text       start:0x800BC860 end:0x800BCAB8
-
-Unknown/File_0x800bcab8.c:
-	extab       start:0x80006B40 end:0x80006B48
-	extabindex  start:0x80008C40 end:0x80008C4C
-	.text       start:0x800BCAB8 end:0x800BCB44
-	.rodata     start:0x800E7F8C end:0x800E7FC8
+Unknown/DisplayObject.c:
+	extab       start:0x80006AE0 end:0x80006B48
+	extabindex  start:0x80008BB0 end:0x80008C4C
+	.text       start:0x800B993C end:0x800BCB44
+	.rodata     start:0x800E7E78 end:0x800E7FC8
+	.data       start:0x80111700 end:0x80111750
+	.sdata2     start:0x803CCFF8 end:0x803CD058
 
 Unknown/File_0x800bcb44.c:
 	.text       start:0x800BCB44 end:0x800BCD60

@@ -28,7 +28,7 @@
 #include "Unknown/File_0x800b508c.h"
 #include "Unknown/File_0x800bcd60.h"
 #include "Unknown/File_0x8005268c.h"
-#include "Unknown/File_0x800b9a9c.h"
+#include "Unknown/DisplayObject.h"
 #include "Unknown/File_0x800bd2b0.h"
 #include "Unknown/File_0x800bd300.h"
 #include "Unknown/File_0x800bda94.h"

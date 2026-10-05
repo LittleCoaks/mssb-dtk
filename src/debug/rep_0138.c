@@ -2,7 +2,6 @@
 #include "header_rep_data.h"
 #include "Dolphin/gx.h"
 #include "Unknown/File_0x800bd300.h"
-#include "Unknown/File_0x800b9a30.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/stl.h"
@@ -24,6 +23,7 @@ extern void fn_80048C28(void);
 extern void fn_80048C1C(void);
 extern void fn_80048D4C(void);
 extern void SetFog(s32 type, GXColor color, f32 nearZ, f32 farZ, f32 arg4, f32 arg5);
+extern void SetFogNoneAgain(void);
 
 extern void *lbl_1_data_848[3];
 extern u8 lbl_1_data_8C4[4];

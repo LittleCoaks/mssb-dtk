@@ -6,8 +6,7 @@
 #include "game/ball/collision_primitives.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/gx.h"
-#include "Unknown/File_0x800bc7e8.h"
-#include "Unknown/File_0x800bc834.h"
+#include "Unknown/DisplayObject.h"
 #include "C3/control.h"
 
 typedef struct _StadiumModelNode {

@@ -566,7 +566,7 @@ void fn_3_16943C(void) {
 void fn_3_16917C(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
     fn_3_16943C();
     GXLoadTexObj(curTexObj, *map);
-    GXSetTexCoordGen2(*coord, GX_TG_MTX3X4, GX_TG_TEX0, GX_IDENTITY, GX_DISABLE, GX_PTIDENTITY);
+    GXSetTexCoordGen2(*coord, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_DISABLE, GX_PTIDENTITY);
     GXSetTevOrder(*stage, *coord, *map, GX_COLOR_NULL);
     if (curTex == texA) {
         GXSetTevColorIn(*stage, GX_CC_CPREV, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ZERO);
