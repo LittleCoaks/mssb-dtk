@@ -1012,7 +1012,7 @@ config.libs = [
             Object(Matching, "game/minigame/minigame_fielder_anim.c"),
             Object(NonMatching, "game/stadium/sta_c3.c"),
             Object(NonMatching, "game/stadium/sta_c6.c"),
-            Object(Matching, "game/minigame/toy_field_offscreen.c"),
+            Object(NonMatching, "game/minigame/toy_field_offscreen.c"),
             Object(NonMatching, "game/stadium/sta_c5.c"),
             Object(NonMatching, "game/stadium/sta_c4.c"),
             Object(NonMatching, "game/math/rep_3090.c"),
