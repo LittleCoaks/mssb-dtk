@@ -1,164 +1,872 @@
+#define SQRT2_LINKAGE static
 #include "game/math/rep_3090.h"
+#include "game/UnknownHomes_Game.h"
+#include "static/UnknownHomes_Static.h"
+#include "game/math/game_math.h"
+#include "Dolphin/rand.h"
+#include "Dolphin/stl.h"
+#include "Dolphin/mtxext.h"
+#include "Dolphin/gx.h"
+#include "Unknown/File_0x800b2c44.h"
+#include "Unknown/File_0x800204cc.h"
+#include "Unknown/File_0x800b0a14.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_rep_3090
 #include "header_rep_data.h"
 
-// .text:0x000FC448 size:0x4F0 mapped:0x8073B4DC
-void fn_3_FC448(void) {
-    return;
+// A tracked object in the 0x2C50 object table of hugeAnimStruct.
+typedef struct CamActor {
+    /* 0x000 */ u8 _000[0x34];
+    /* 0x034 */ VecXYZ pos;
+    /* 0x040 */ u8 _040[0x68 - 0x40];
+    /* 0x068 */ s16 _068;
+    /* 0x06A */ u8 _06A[0x162 - 0x6A];
+    /* 0x162 */ u16 _162[1];
+    /* 0x164 */ u8 _164[0x252 - 0x164];
+    /* 0x252 */ s8 _252;
+    /* 0x253 */ u8 _253[4];
+    /* 0x257 */ s8 _257;
+} CamActor;
+
+typedef struct CamHugeAnim {
+    /* 0x0000 */ u8 _0000[0x2C50];
+    /* 0x2C50 */ CamActor* objects[13];
+} CamHugeAnim;
+
+// One tracked point on the overlay camera markers (0x2C bytes).
+typedef struct CamMarker {
+    /* 0x00 */ VecXYZ pos;
+    /* 0x0C */ u8 _0C[0x14 - 0xC];
+    /* 0x14 */ f32 _14;
+    /* 0x18 */ f32 _18;
+    /* 0x1C */ f32 _1C;
+    /* 0x20 */ f32 _20;
+    /* 0x24 */ u8 _24[4];
+    /* 0x28 */ u8 _28;
+    /* 0x29 */ u8 _29;
+    /* 0x2A */ u8 _2A[2];
+} CamMarker; // size 0x2C
+
+typedef struct CamAux {
+    /* 0x000 */ CamMarker markers[9];
+    /* 0x18C */ u8 _18C[0x23C - 0x18C];
+    /* 0x23C */ s16 _23C;
+    /* 0x23E */ s16 _23E;
+    /* 0x240 */ u8 _240[0x25A - 0x240];
+    /* 0x25A */ s16 _25A;
+    /* 0x25C */ u8 _25C;
+    /* 0x25D */ u8 _25D;
+    /* 0x25E */ u8 _25E[0x27F - 0x25E];
+    /* 0x27F */ u8 _27F;
+    /* 0x280 */ u8 _280;
+} CamAux;
+
+typedef struct CamDrawItem {
+    /* 0x00 */ u8 _00[0xC];
+    /* 0x0C */ struct CamDrawItem* _0C;
+    /* 0x10 */ s16 _10;
+    /* 0x12 */ u8 _12[0xC];
+    /* 0x1E */ u16 _1E;
+    /* 0x20 */ u8 _20[2];
+    /* 0x22 */ s16 _22;
+} CamDrawItem;
+
+extern CamAux* lbl_3_common_bss_1323C;
+extern CamHugeAnim hugeAnimStruct;
+extern u8 animRelated[0x124];
+extern u8 lbl_80366158[0x30];
+extern SceneChangeState lbl_8037169C;
+extern u8 lbl_3_data_1C0A8[];
+static Vec tstAxX = {1.0f, 0.0f, 0.0f};
+static Vec tstAxY = {0.0f, 1.0f, 0.0f};
+static Vec tstAxZ = {0.0f, 0.0f, 1.0f};
+extern VecXYZ lbl_3_data_1DB00[];
+extern s32 lbl_3_data_20FC4[];
+extern s32 lbl_3_data_20FD0[];
+extern VecXYZ lbl_3_data_20FEC;
+extern VecXYZ lbl_3_data_20FF8;
+extern VecXYZ lbl_3_data_21004;
+extern s32 lbl_3_data_37AC[];
+extern s32 lbl_3_data_3888[];
+extern s32 lbl_3_data_3964[];
+extern s32 lbl_3_data_3A40[];
+extern s32 lbl_3_data_3B1C[];
+extern s32 lbl_3_data_3B34[];
+extern s32 lbl_3_data_3B4C[];
+
+void fn_3_21C90(void);
+void fn_3_21DE4(void);
+void fn_3_21C7C(int, int);
+void fn_3_219CC(void);
+void fn_3_249E8(int);
+void fn_3_24ADC(int, int);
+BOOL fn_3_2273C(int);
+BOOL fn_3_2281C(int);
+void fn_3_BA150(void);
+extern void** fn_800111D8(void*);
+static s16 pad_05_0000B678_bss;
+static s16 lbl_3_bss_B67A[15];
+void fn_3_BBBC4(void);
+void fn_3_7BC0C(void);
+void fn_3_7BBF8(void);
+void setScissorMode(int);
+void fn_80011358(int, int);
+void fn_8001CA40(int);
+extern u8 LoadModel(void*);
+
+
+typedef struct CamSpline {
+    /* 0x00 */ CamPoint* pts;
+    /* 0x04 */ s32 _04;
+    /* 0x08 */ s32 _08;
+    /* 0x0C */ VecXYZ up;
+    /* 0x18 */ CamSample* samples;
+    /* 0x1C */ s32 _1C;
+    /* 0x20 */ s32 _20;
+    /* 0x24 */ s32 _24;
+    /* 0x28 */ s32 _28;
+    /* 0x2C */ f32 _2C;
+    /* 0x30 */ s32 _30;
+    /* 0x34 */ s32 _34;
+    /* 0x38 */ s32 _38;
+    /* 0x3C */ s32 _3C;
+    /* 0x40 */ s32 _40;
+    /* 0x44 */ f32 _44;
+} CamSpline;
+
+typedef struct CamGlobal {
+    u8 hdr[0x120];
+    CamScript scripts[2];
+} CamGlobal;
+
+#define CAMG ((CamGlobal*)&g_Camera)
+#define SPL(i) ((CamSpline*)&CAMG->scripts[i]._001C)
+
+#define CAM_POINT_CAPACITY 1000
+
+#define CTX ((CamScript*)unkStructPtr._0000)
+#define CAMF(type, off) (*(type*)((u8*)g_pCamera + (off)))
+#define CAMSCRIPT(i) (*(CamScript*)((u8*)g_pCamera + 0x120 + (i) * 0x9BC))
+#define CAMSCRIPT_G(i) (*(CamScript*)((u8*)&g_Camera + 0x120 + (i) * 0x9BC))
+#define CAMDATA(off) (lbl_3_data_1C0A8 + (off))
+#define CAM_LABEL(i) (((s32**)CAMDATA(0x4D64))[i])
+#define CAM_SCRIPT_TABLE(i) (((s32**)CAMDATA(0x18D8))[i])
+
+static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f32 a, f32 b, f32 c) {
+    VecXYZ toCur;
+    VecXYZ dIn;
+    VecXYZ dInScaled;
+    f32 dist;
+    f32 mag;
+
+    PSVECSubtract((Vec*)&prevOut, (Vec*)&cur, (Vec*)&toCur);
+    dist = PSVECDistance((Vec*)&prevOut, (Vec*)&cur);
+    PSVECSubtract((Vec*)&prevIn, (Vec*)&cur, (Vec*)&dIn);
+    PSVECScale((Vec*)&dIn, 0.01f, (Vec*)&dInScaled);
+    mag = a * (c - dist) + b * (PSVECDotProduct((Vec*)&dInScaled, (Vec*)&toCur) / dist);
+    PSVECNormalize((Vec*)&toCur, (Vec*)&toCur);
+    PSVECScale((Vec*)&toCur, mag * 0.01f, (Vec*)&toCur);
+    PSVECAdd((Vec*)&prevOut, (Vec*)&toCur, (Vec*)&prevOut);
+    return prevOut;
 }
 
-// .text:0x000FC938 size:0x500 mapped:0x8073B9CC
-void fn_3_FC938(void) {
-    return;
+#define CAM_FILTER_ANGLES(yaw, pitch) \
+    if (CTX->_09B4 != 0) { \
+        VecXYZ _in; \
+        VecXYZ _po; \
+        VecXYZ _pi; \
+        VecXYZ _out; \
+        f32 _yaw = radianAngleReduction(yaw); \
+        f32 _pitch = radianAngleReduction(pitch); \
+        _in.x = _yaw; \
+        _in.y = _pitch; \
+        _in.z = 0.0f; \
+        _po.x = CTX->_00D0.x; \
+        _po.y = CTX->_00D0.y; \
+        _po.z = CTX->_00D0.z; \
+        _pi.x = CTX->_00C4.x; \
+        _pi.y = CTX->_00C4.y; \
+        _pi.z = CTX->_00C4.z; \
+        _out = camFilterStep(_in, _pi, _po, CTX->_010C, CTX->_0110, CTX->_0114); \
+        CTX->_00C4.x = _yaw; \
+        CTX->_00C4.y = _pitch; \
+        CTX->_00C4.z = 0.0f; \
+        CTX->_00D0.x = _out.x; \
+        CTX->_00D0.y = _out.y; \
+        CTX->_00D0.z = _out.z; \
+        yaw = _out.x; \
+        pitch = _out.y; \
+    }
+
+#define CAM_FILTER_V(vp) \
+    if (CTX->_09B4 != 0) { \
+        VecXYZ _dead; \
+        VecXYZ _cur; \
+        VecXYZ _po; \
+        VecXYZ _pi; \
+        VecXYZ _out; \
+        memcpy(&_dead, (vp), sizeof(VecXYZ)); \
+        memcpy(&_cur, (vp), sizeof(VecXYZ)); \
+        _po.x = CTX->_00D0.x; \
+        _po.y = CTX->_00D0.y; \
+        _po.z = CTX->_00D0.z; \
+        _pi.x = CTX->_00C4.x; \
+        _pi.y = CTX->_00C4.y; \
+        _pi.z = CTX->_00C4.z; \
+        _out = camFilterStep(_cur, _pi, _po, CTX->_010C, CTX->_0110, CTX->_0114); \
+        CTX->_00C4.x = (vp)->x; \
+        CTX->_00C4.y = (vp)->y; \
+        CTX->_00C4.z = (vp)->z; \
+        CTX->_00D0.x = _out.x; \
+        CTX->_00D0.y = _out.y; \
+        CTX->_00D0.z = _out.z; \
+        (vp)->x = _out.x; \
+        (vp)->y = _out.y; \
+        (vp)->z = _out.z; \
+    }
+
+#define CAM_FILTER_POS() \
+    if (CTX->_09B4 != 0) { \
+        VecXYZ _cur; \
+        VecXYZ _po; \
+        VecXYZ _pi; \
+        VecXYZ _out; \
+        _cur.x = g_pCamera->_2840.x; \
+        _cur.y = g_pCamera->_2840.y; \
+        _cur.z = g_pCamera->_2840.z; \
+        _po.x = CTX->_00B8.x; \
+        _po.y = CTX->_00B8.y; \
+        _po.z = CTX->_00B8.z; \
+        _pi.x = CTX->_00AC.x; \
+        _pi.y = CTX->_00AC.y; \
+        _pi.z = CTX->_00AC.z; \
+        _out = camFilterStep(_cur, _pi, _po, CTX->_0100, CTX->_0104, CTX->_0108); \
+        g_pCamera->_2840.x = _out.x; \
+        g_pCamera->_2840.y = _out.y; \
+        g_pCamera->_2840.z = _out.z; \
+        CTX->_00B8.x = _out.x; \
+        CTX->_00B8.y = _out.y; \
+        CTX->_00B8.z = _out.z; \
+        CTX->_00AC.x = _cur.x; \
+        CTX->_00AC.y = _cur.y; \
+        CTX->_00AC.z = _cur.z; \
+    }
+
+#define CAM_INIT_POS_FILTER() \
+    CTX->_00AC.x = g_pCamera->_2840.x; \
+    CTX->_00AC.y = g_pCamera->_2840.y; \
+    CTX->_00AC.z = g_pCamera->_2840.z; \
+    CTX->_00B8.x = 0.00001f + g_pCamera->_2840.x; \
+    CTX->_00B8.y = 0.00001f + g_pCamera->_2840.y; \
+    CTX->_00B8.z = 0.00001f + g_pCamera->_2840.z
+
+#define CAM_INIT_V_FILTER() \
+    CTX->_00C4.x = 0.00001f + g_pCamera->_284C.x; \
+    CTX->_00C4.y = 0.00001f + g_pCamera->_284C.y; \
+    CTX->_00C4.z = 0.00001f + g_pCamera->_284C.z; \
+    CTX->_00D0.x = 0.00002f + g_pCamera->_284C.x; \
+    CTX->_00D0.y = 0.00002f + g_pCamera->_284C.y; \
+    CTX->_00D0.z = 0.00002f + g_pCamera->_284C.z
+
+#define CAM_INIT_ANGLE_FILTER(yaw, pitch) \
+    CTX->_00C4.x = yaw; \
+    CTX->_00C4.y = pitch; \
+    CTX->_00C4.z = 0.0f; \
+    CTX->_00D0.x = 0.00001f + yaw; \
+    CTX->_00D0.y = 0.00001f + pitch; \
+    CTX->_00D0.z = 0.0f
+
+#define CAM_COPY_POS() \
+    g_pCamera->_2840.x = g_pCamera->_2858.x; \
+    g_pCamera->_2840.y = g_pCamera->_2858.y; \
+    g_pCamera->_2840.z = g_pCamera->_2858.z; \
+    if (g_pCamera->_2840.y < 0.1f) { \
+        g_pCamera->_2840.y = 0.1f; \
+    }
+
+#define CAM_SET_VIEW_V() \
+    g_pCamera->_284C.x = v.x; \
+    g_pCamera->_284C.y = v.y; \
+    g_pCamera->_284C.z = v.z
+
+#define CAM_CLAMP_LOOKAT_Y() \
+    if (g_pCamera->_284C.y < 0.1f) { \
+        g_pCamera->_284C.y = 0.1f; \
+    }
+
+#define CAM_ROTATE_AROUND(px, py, pz, ang) \
+    PSMTXRotRad(rot, 'Y', ang); \
+    memcpy(&tmp, &g_pCamera->_2840, sizeof(VecXYZ)); \
+    tmp.x = g_pCamera->_2840.x - (px); \
+    tmp.y = g_pCamera->_2840.y - (py); \
+    tmp.z = g_pCamera->_2840.z - (pz); \
+    PSMTXMultVec(rot, (Vec*)&tmp, (Vec*)&tmp); \
+    tmp.x = tmp.x + (px); \
+    tmp.y = tmp.y + (py); \
+    tmp.z = tmp.z + (pz); \
+    memcpy(&g_pCamera->_2840, &tmp, sizeof(VecXYZ))
+
+
+#define CAM_SPLINE_COMP(c, scale) \
+    ctx->_0034[total].v[c] = (w1 * ctx->_001C[i + 1].v[c] + w0 * ctx->_001C[i].v[c] + \
+                              w2 * ctx->_001C[i + 2].v[c] + w3 * ctx->_001C[i + 3].v[c]) scale
+
+#define CAM_VIEWS_INIT() fn_3_FD5A8()
+
+#define CAM_EVAL_VIEW(script, time, a, b, outp) \
+    do { \
+        CamEval ev; \
+        VecXYZ basisZ; \
+        VecXYZ basisY; \
+        memset(&ev, 0, sizeof(ev)); \
+        ev.m[3][3] = 1.0f; \
+        ev.m[2][2] = 1.0f; \
+        ev.m[1][1] = 1.0f; \
+        ev.m[0][0] = 1.0f; \
+        ev._40 = 1.0f; \
+        fn_3_104B3C((script), (time), (a), (b), &ev); \
+        memcpy(&(outp)->pos, &ev._58, sizeof(VecXYZ)); \
+        memcpy(&(outp)->tgt, &ev._64, sizeof(VecXYZ)); \
+        memcpy(&(outp)->up, &ev._70, sizeof(VecXYZ)); \
+        (outp)->fov = ev._4C; \
+        PSMTX44MultVec(ev.m, &tstAxX, (Vec*)&(outp)->axes[0]); \
+        PSVECNormalize((Vec*)&(outp)->axes[0], (Vec*)&(outp)->axes[0]); \
+        basisY = (outp)->axes[1]; \
+        PSMTX44MultVec(ev.m, &tstAxY, (Vec*)&basisY); \
+        PSVECNormalize((Vec*)&basisY, (Vec*)&basisY); \
+        basisZ = (outp)->axes[2]; \
+        PSMTX44MultVec(ev.m, &tstAxZ, (Vec*)&basisZ); \
+        PSVECNormalize((Vec*)&basisZ, (Vec*)&basisZ); \
+        (outp)->_4C = ev._7C; \
+        (outp)->_50 = ev._80; \
+        (outp)->_54 = ev._84; \
+    } while (0)
+
+#define CAM_SCRIPT_SET_VIEW() \
+    do { \
+        CamView view; \
+        u32 time = CTX->_0118; \
+        u8* script = CTX->_0990; \
+        CAM_EVAL_VIEW(script, time, 0, 0, &view); \
+        memcpy(&CTX->_0064, &view.pos, sizeof(VecXYZ)); \
+        CTX->_00A0 = view.fov; \
+        CTX->_00A4 = view._4C; \
+        CTX->_00A8 = view._50; \
+        CTX->_09A7 = view._54; \
+        memcpy(&CTX->_0088, &view.tgt, sizeof(VecXYZ)); \
+        g_pCamera->_2858.x = view.pos.x; \
+        g_pCamera->_2858.y = view.pos.y; \
+        g_pCamera->_2858.z = view.pos.z; \
+        g_pCamera->_2870 = view._4C; \
+        g_pCamera->_2874 = view._50; \
+        g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870)); \
+        g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870)); \
+        g_pCamera->_2878 = 1.0f; \
+    } while (0)
+
+#define CAM_SCRIPT_START() \
+    do { \
+    int i; \
+    u32* table; \
+    u8* hdr; \
+    u32* p; \
+    s16 k; \
+ \
+    table = CAMF(u32*, 0x1B4); \
+    i = 0; \
+    while (*table != 0) { \
+        table++; \
+        i++; \
+    } \
+    CTX->_0120 = i; \
+    memcpy(CTX->_0990, (u8*)CAMF(u32*, 0x1B4) + CAMF(u32*, 0x1B4)[CTX->_0940], 0x8000); \
+    CTX->_0124 = 1; \
+    CTX->_0118 = 0; \
+    CTX->_011C = 0; \
+    CTX->_0928 = 0; \
+    for (i = 0; i < 0x200; i++) { \
+        CTX->_0128[i] = 0; \
+    } \
+    CAM_VIEWS_INIT(); \
+    hdr = CTX->_0990; \
+    p = (u32*)(hdr + 8); \
+    *p += (u32)hdr; \
+    for (k = 0; k < *(s16*)(hdr + 6); k++) { \
+        p[1] += (u32)hdr; \
+        p++; \
+    } \
+    CTX->_011C = *(u16*)(hdr + 4) << 16; \
+    CAM_SCRIPT_SET_VIEW(); \
+    } while (0)
+
+// .text:0x00106BA0 size:0x25C mapped:0x80745C34
+void fn_3_106BA0(void) {
+    int i;
+    for (i = 0; i < 2; i++) {
+        CAMG->scripts[i]._0124 = 1;
+        CAMG->scripts[i]._0118 = 0;
+        CAMG->scripts[i]._011C = 0;
+        CAMG->scripts[i]._0946 = 14;
+        CAMG->scripts[i]._09AE = 0;
+        CAMG->scripts[i]._09B1 = 0;
+        CAMG->scripts[i]._09AF = 0;
+        CAMG->scripts[i]._09B0 = 0;
+        CAMG->scripts[i]._092C = 0;
+        CAMG->scripts[i]._0928 = 0;
+        CAMG->scripts[i]._09B2 = 0;
+        CAMG->scripts[i]._09B4 = 0;
+        CAMG->scripts[i]._09B3 = 0;
+        CAMG->scripts[i]._09B5 = 0;
+        CAMG->scripts[i]._09B6 = 0;
+        CAMG->scripts[i]._09B7 = 0;
+        CAMG->scripts[i]._00D0.x = 0.0f;
+        CAMG->scripts[i]._00D0.y = 0.0f;
+        CAMG->scripts[i]._00D0.z = 0.0f;
+        CAMG->scripts[i]._00C4.x = 0.0f;
+        CAMG->scripts[i]._00C4.y = 0.0f;
+        CAMG->scripts[i]._00C4.z = 1.0f;
+        CAMG->scripts[i]._00DC.x = 1.0f;
+        CAMG->scripts[i]._00DC.y = 1.0f;
+        CAMG->scripts[i]._00DC.z = 1.0f;
+        CAMG->scripts[i]._0100 = 7.0f;
+        CAMG->scripts[i]._0104 = 2.0f;
+        CAMG->scripts[i]._0108 = 0.001f;
+        CAMG->scripts[i]._010C = 1.0f;
+        CAMG->scripts[i]._0110 = 2.0f;
+        CAMG->scripts[i]._0114 = 0.001f;
+        CAMG->scripts[i]._094A = 0;
+        memset(CAMG->scripts[i]._0128, 0, sizeof(CAMG->scripts[i]._0128));
+        memcpy(&CAMG->scripts[i]._00B8, &g_pCamera->_284C, sizeof(VecXYZ));
+    }
+    g_pCamera->_28A9 = 0;
+    CAM_VIEWS_INIT();
 }
 
-// .text:0x000FCE38 size:0x74 mapped:0x8073BECC
-void fn_3_FCE38(void) {
-    return;
+// .text:0x001069C0 size:0x1E0 mapped:0x80745A54
+void fn_3_1069C0(void) {
+    s32 i;
+    CTX->_0124 = 1;
+    CTX->_0118 = 0;
+    CTX->_011C = 0;
+    CTX->_0928 = 0;
+    for (i = 0; i < 0x200; i++) {
+        CTX->_0128[i] = 0;
+    }
+    CAM_VIEWS_INIT();
 }
 
-// .text:0x000FCEAC size:0x4 mapped:0x8073BF40
-void fn_3_FCEAC(void) {
-    return;
+// .text:0x001069B0 size:0x10 mapped:0x80745A44
+u8* fn_3_1069B0(u32* table, int idx) {
+    return (u8*)table + table[idx];
 }
 
-// .text:0x000FCEB0 size:0x70 mapped:0x8073BF44
-void fn_3_FCEB0(void) {
-    return;
+// .text:0x0010698C size:0x24 mapped:0x80745A20
+int fn_3_10698C(u32* table) {
+    int n = 0;
+    while (*table != 0) {
+        table++;
+        n++;
+    }
+    return n;
 }
 
-// .text:0x000FCF20 size:0x4 mapped:0x8073BFB4
-void fn_3_FCF20(void) {
-    return;
+// .text:0x00106270 size:0x71C mapped:0x80745304
+void fn_3_106270(VecXYZ* out) {
+    s16 sel = CTX->_0946;
+    VecXYZ loc;
+    if (sel < 9 && sel >= 0) {
+        memcpy(out, &g_Fielders[sel], sizeof(VecXYZ));
+        if (*(s16*)((u8*)&g_Fielders[sel] + 0x178) == -1) {
+            memcpy(&CTX->_00DC, out, sizeof(VecXYZ));
+        } else if (hugeAnimStruct.objects[sel] != NULL) {
+            if (g_Stats.replayInd != 0 && *((u8*)&g_Stats + 0x3C) == 7) {
+                memset(out, 0, sizeof(VecXYZ));
+                getAnimRelatedCoordinates(sel, 4, out);
+            }
+            if (CTX->_0938 == -1) {
+                CTX->_0938 = lbl_3_data_3B4C[g_Fielders[sel].CharID];
+                CTX->_0950 = 0;
+            }
+            memset(&loc, 0, sizeof(VecXYZ));
+            if (getAnimRelatedCoordinates(sel, CTX->_0938, &loc) == 0) {
+                memset(&loc, 0, sizeof(VecXYZ));
+                getAnimRelatedCoordinates(sel, 4, &loc);
+            }
+            if (CTX->_09B7 == 0) {
+                if (CTX->_0938 != CTX->_093C || CTX->_0948 != CTX->_0946 || CTX->_0942 != CTX->_0940 ||
+                    CTX->_094E != g_Fielders[sel].CharID) {
+                    CTX->_0950 = 0;
+                }
+                if (CTX->_0950 < 1) {
+                    memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
+                    CTX->_0950++;
+                } else {
+                    memcpy(&loc, &CTX->_00E8, sizeof(VecXYZ));
+                    if (CTX->_0950 < 3) {
+                        CTX->_0950++;
+                    }
+                }
+            } else {
+                memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
+            }
+            if (g_Stats.replayInd != 0 && *((u8*)&g_Stats + 0x3C) == 7) {
+                out->y = -1.0f * out->y + g_Fielders[sel].actionYOffset + lbl_3_data_1DB00[CTX->_094C].y;
+                out->x = out->x + lbl_3_data_1DB00[CTX->_094C].x;
+                out->z = out->z + lbl_3_data_1DB00[CTX->_094C].z;
+            } else {
+                out->y = -1.0f * loc.y + g_Fielders[sel].actionYOffset + lbl_3_data_1DB00[CTX->_094C].y;
+                out->x = loc.x + lbl_3_data_1DB00[CTX->_094C].x;
+                out->z = loc.z + lbl_3_data_1DB00[CTX->_094C].z;
+            }
+        }
+        if (*(s16*)((u8*)&g_Fielders[sel] + 0x178) != -1) {
+            CTX->_094E = g_Fielders[sel].CharID;
+        } else {
+            CTX->_094E = g_Fielders[sel].CharID;
+        }
+    } else if (sel < 13 && sel >= 0) {
+        InMemRunnerType* r = &g_Runners[sel - 9];
+        memcpy(out, r, sizeof(VecXYZ));
+        if (*(s16*)((u8*)r + 0xE0) != -1) {
+            if (hugeAnimStruct.objects[sel] != NULL) {
+                if (CTX->_0938 == -1) {
+                    CTX->_0938 = lbl_3_data_3B4C[r->charID];
+                    CTX->_0950 = 0;
+                }
+                memset(&loc, 0, sizeof(VecXYZ));
+                if (getAnimRelatedCoordinates(sel, CTX->_0938, &loc) == 0) {
+                    memset(&loc, 0, sizeof(VecXYZ));
+                    getAnimRelatedCoordinates(sel, 4, &loc);
+                }
+                loc.x = loc.x - r->position.x;
+                loc.y = loc.y - r->position.y;
+                loc.z = loc.z - r->position.z;
+                if (CTX->_0938 != CTX->_093C || CTX->_0948 != CTX->_0946 || CTX->_0942 != CTX->_0940 ||
+                    CTX->_094E != r->charID) {
+                    CTX->_0950 = 0;
+                }
+                if (CTX->_0950 < 1) {
+                    memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
+                    CTX->_0950++;
+                } else {
+                    memcpy(&loc, &CTX->_00E8, sizeof(VecXYZ));
+                    if (CTX->_0950 < 3) {
+                        CTX->_0950++;
+                    }
+                }
+                out->y = -1.0f * loc.y + out->y + lbl_3_data_1DB00[CTX->_094C].y;
+                out->x = out->x + loc.x + lbl_3_data_1DB00[CTX->_094C].x;
+                out->z = out->z + loc.z + lbl_3_data_1DB00[CTX->_094C].z;
+            }
+            CTX->_094E = r->charID;
+        }
+        memcpy(&CTX->_00DC, out, sizeof(VecXYZ));
+    } else if (sel == 13) {
+        memcpy(out, &g_Ball, sizeof(VecXYZ));
+        memcpy(&CTX->_00DC, &g_Ball, sizeof(VecXYZ));
+    } else if (sel == 14) {
+        memcpy(out, out, sizeof(VecXYZ));
+        memcpy(&CTX->_00DC, out, sizeof(VecXYZ));
+    } else if (sel == 15) {
+        memcpy(out, &CTX->_00DC, sizeof(VecXYZ));
+    }
 }
 
-// .text:0x000FCF24 size:0x4E4 mapped:0x8073BFB8
-void fn_3_FCF24(void) {
-    return;
+// .text:0x0010617C size:0xF4 mapped:0x80745210
+BOOL fn_3_10617C(int idx, int bone, Vec* out) {
+    CamActor* actor = hugeAnimStruct.objects[idx];
+    u16 boneIdx;
+    Vec tmp;
+    if (actor == NULL) {
+        return FALSE;
+    }
+    boneIdx = actor->_162[bone];
+    if (boneIdx == 0xFFFF) {
+        out->x = 0.0f;
+        out->y = 0.0f;
+        out->z = 0.0f;
+        return FALSE;
+    }
+    maybeTransformVectorByAnimationMatrix(*fn_800111D8(actor), boneIdx, &tmp);
+    out->x = tmp.x;
+    out->y = tmp.y;
+    out->z = tmp.z;
+    out->x = out->x + actor->pos.x;
+    out->y = out->y + actor->pos.y;
+    out->z = out->z + actor->pos.z;
+    return TRUE;
 }
 
-// .text:0x000FD408 size:0xD4 mapped:0x8073C49C
-void fn_3_FD408(void) {
-    return;
+// .text:0x001060D8 size:0xA4 mapped:0x8074516C
+void fn_3_1060D8(void) {
+    VecXYZ* pts = CTX->_0098;
+    int i;
+    lbl_3_bss_B67A[0] = 0;
+    for (i = 0; i < CAM_POINT_CAPACITY; i++) {
+        pts[i].x = pts[i].y = pts[i].z = -1000.0f;
+    }
 }
 
-// .text:0x000FD4DC size:0x40 mapped:0x8073C570
-void fn_3_FD4DC(void) {
-    return;
+// .text:0x00106014 size:0xC4 mapped:0x807450A8
+void fn_3_106014(f32 x, f32 y, f32 z) {
+    VecXYZ* pts = CTX->_0098;
+    if (lbl_3_bss_B67A[0] == 0) {
+        pts[lbl_3_bss_B67A[0]].x = x;
+        pts[lbl_3_bss_B67A[0]].y = y;
+        pts[lbl_3_bss_B67A[0]].z = z;
+        lbl_3_bss_B67A[0]++;
+        return;
+    }
+    if (x == pts[lbl_3_bss_B67A[0] - 1].x) {
+        return;
+    }
+    if (y == pts[lbl_3_bss_B67A[0] - 1].y) {
+        return;
+    }
+    if (z == pts[lbl_3_bss_B67A[0] - 1].z) {
+        return;
+    }
+    pts[lbl_3_bss_B67A[0]].x = x;
+    pts[lbl_3_bss_B67A[0]].y = y;
+    pts[lbl_3_bss_B67A[0]].z = z;
+    if (lbl_3_bss_B67A[0] >= CAM_POINT_CAPACITY) {
+        return;
+    }
+    lbl_3_bss_B67A[0]++;
 }
 
-// .text:0x000FD51C size:0x8C mapped:0x8073C5B0
-void fn_3_FD51C(void) {
-    return;
+#pragma dont_inline on
+// .text:0x00105E00 size:0x214 mapped:0x80744E94
+void fn_3_105E00(s16 x, s16 y, s16 w, s16 h) {
+    Mtx44 proj;
+    Mtx mtx;
+    C_MTXOrtho(proj, 0.0f, 448.0f, 0.0f, 640.0f, 0.0f, -100.0f);
+    GXSetProjection(proj, GX_ORTHOGRAPHIC);
+    PSMTXIdentity(mtx);
+    GXLoadPosMtxImm(mtx, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetColorUpdate(GX_TRUE);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XY, GX_S16, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA8, 0);
+    GXSetNumChans(1);
+    GXSetNumTexGens(0);
+    GXSetNumTevStages(1);
+    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+    GXSetChanCtrl(GX_COLOR0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetChanCtrl(GX_ALPHA0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
+    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    GXPosition2u16(x, y);
+    GXColor4u8(0, 255, 0, 200);
+    GXPosition2u16(x + w, y);
+    GXColor4u8(0, 255, 0, 200);
+    GXPosition2u16(x + w, y + h);
+    GXColor4u8(0, 255, 0, 200);
+    GXPosition2u16(x, y + h);
+    GXColor4u8(0, 255, 0, 200);
+}
+#pragma dont_inline reset
+
+// .text:0x00105CDC size:0x124 mapped:0x80744D70
+void fn_3_105CDC(void) {
+    VecXYZ* pts = CTX->_0098;
+    int i;
+    for (i = 0; i < CAM_POINT_CAPACITY; i++) {
+        VecXYZ* p = &pts[i];
+        if (-1000.0 != p->x && -1000.0 != p->y && -1000.0 != p->z) {
+            int ix = (int)p->x;
+            int iz = (int)p->z;
+            if (i == 0x87) {
+                i = 0x87;
+            }
+            if (i == 5) {
+                i = 5;
+            }
+            fn_3_105E00((ix * 320 + 320) / 100 + 150, -(iz * 224 + 224) / 100 + 400, 2, 2);
+        }
+    }
 }
 
-// .text:0x000FD5A8 size:0xC8 mapped:0x8073C63C
-void fn_3_FD5A8(void) {
-    return;
+// .text:0x00105C84 size:0x58 mapped:0x80744D18
+void fn_3_105C84(u8* hdr) {
+    u32* p = (u32*)(hdr + 8);
+    s16 k = 0;
+    *p += (u32)hdr;
+    while (k < *(s16*)(hdr + 6)) {
+        p[1] += (u32)hdr;
+        p++;
+        k++;
+    }
+    CTX->_011C = *(u16*)(hdr + 4) << 16;
 }
 
-// .text:0x000FD670 size:0x38C mapped:0x8073C704
-void fn_3_FD670(void) {
-    return;
+// .text:0x00105C28 size:0x5C mapped:0x80744CBC
+u32 fn_3_105C28(u8* script, u32 time) {
+    u8* tbl = *(u8**)(script + 8);
+    u32 frame = time >> 16;
+    u32 frac = time & 0xFFFF;
+    u16 n = *(u16*)tbl;
+    u8* e = tbl + 4;
+    u8* last;
+    u32 found = 0;
+    do {
+        last = e;
+        if (*(u16*)e == frame && frac == 0) {
+            found = *(u16*)(e + 2);
+        }
+        e += 4;
+        if (*(u16*)e > frame) {
+            break;
+        }
+        n--;
+    } while (n != 0);
+    return found | ((u32) * (u16*)(last + 2) << 16);
 }
 
-// .text:0x000FD9FC size:0x20 mapped:0x8073CA90
-void fn_3_FD9FC(void) {
-    return;
+// .text:0x00105BD8 size:0x50 mapped:0x80744C6C
+void fn_3_105BD8(CamEval* e) {
+    memset(e, 0, sizeof(CamEval));
+    e->m[3][3] = 1.0f;
+    e->m[2][2] = 1.0f;
+    e->m[1][1] = 1.0f;
+    e->m[0][0] = 1.0f;
+    e->_40 = 1.0f;
 }
 
-// .text:0x000FDA1C size:0x114 mapped:0x8073CAB0
-void manageDrawingItemState(void) {
-    return;
+// .text:0x00105ACC size:0x10C mapped:0x80744B60
+void fn_3_105ACC(f32* quat, Mtx out) {
+    Mtx44 m;
+    f32 x = quat[0];
+    f32 y = quat[1];
+    f32 z = quat[2];
+    f32 w = quat[3];
+    f32 x2 = x + x;
+    f32 y2 = y + y;
+    f32 z2 = z + z;
+    f32 xx = x * x2;
+    f32 yy = y * y2;
+    f32 zz = z * z2;
+    f32 xy = x * y2;
+    f32 xz = x * z2;
+    f32 wz = w * z2;
+    f32 wy = w * y2;
+    f32 yz = y * z2;
+    f32 wx = w * x2;
+    m[0][0] = 1.0f - (yy + zz);
+    m[0][1] = xy + wz;
+    m[0][2] = xz - wy;
+    m[0][3] = 0.0f;
+    m[1][0] = xy - wz;
+    m[1][1] = 1.0f - (xx + zz);
+    m[1][2] = yz + wx;
+    m[1][3] = 0.0f;
+    m[2][0] = xz + wy;
+    m[2][1] = yz - wx;
+    m[2][2] = 1.0f - (xx + yy);
+    m[2][3] = 0.0f;
+    m[3][0] = 0.0f;
+    m[3][1] = 0.0f;
+    m[3][2] = 0.0f;
+    m[3][3] = 1.0f;
+    memcpy(out, m, sizeof(Mtx));
 }
 
-// .text:0x000FDB30 size:0x24E8 mapped:0x8073CBC4
-void fn_3_FDB30(void) {
-    return;
+// .text:0x00105A10 size:0xBC mapped:0x80744AA4
+void fn_3_105A10(Vec* out, Vec* a, Vec* b, f32 t) {
+    VecXYZ va;
+    VecXYZ vb;
+    VecXYZ vc;
+    memcpy(&va, a, sizeof(VecXYZ));
+    memcpy(&vb, b, sizeof(VecXYZ));
+    vc.x = va.x * t + vb.x * (1.0f - t);
+    vc.y = va.y * t + vb.y * (1.0f - t);
+    vc.z = va.z * t + vb.z * (1.0f - t);
+    memcpy(out, &vc, sizeof(VecXYZ));
 }
 
-// .text:0x00100018 size:0x20 mapped:0x8073F0AC
-void fn_3_100018(void) {
-    return;
-}
+// .text:0x001054D0 size:0x540 mapped:0x80744564
+void fn_3_1054D0(u8* script, u32 time, s16 trackIdx) {
+    u8* track = *(u8**)(script + 0xC + trackIdx * 4);
+    u8* keys = track + 0xC;
+    u32 stride = lbl_3_data_20FC4[track[6]];
+    u16 count = *(u16*)(track + 4);
+    u8* key = keys + (count - 1) * stride;
+    u8* next;
+    u32 frame = time >> 16;
+    u32 frac = time & 0xFFFF;
+    u8 added = 0;
+    f32* k;
 
-// .text:0x00100038 size:0x44 mapped:0x8073F0CC
-void fn_3_100038(void) {
-    return;
-}
-
-// .text:0x0010007C size:0x5C mapped:0x8073F110
-void unkPauseSimulationCheck(void) {
-    return;
-}
-
-// .text:0x001000D8 size:0x1BEC mapped:0x8073F16C
-void fn_3_1000D8(void) {
-    return;
-}
-
-// .text:0x00101CC4 size:0x1F6C mapped:0x80740D58
-void fn_3_101CC4(void) {
-    return;
-}
-
-// .text:0x00103C30 size:0x24C mapped:0x80742CC4
-void fn_3_103C30(void) {
-    return;
-}
-
-// .text:0x00103E7C size:0x25C mapped:0x80742F10
-void fn_3_103E7C(void) {
-    return;
-}
-
-// .text:0x001040D8 size:0x260 mapped:0x8074316C
-void fn_3_1040D8(void) {
-    return;
-}
-
-// .text:0x00104338 size:0x270 mapped:0x807433CC
-void fn_3_104338(void) {
-    return;
-}
-
-// .text:0x001045A8 size:0x198 mapped:0x8074363C
-void fn_3_1045A8(void) {
-    return;
-}
-
-// .text:0x00104740 size:0x1A0 mapped:0x807437D4
-void fn_3_104740(void) {
-    return;
-}
-
-// .text:0x001048E0 size:0x15C mapped:0x80743974
-void fn_3_1048E0(void) {
-    return;
-}
-
-// .text:0x00104A3C size:0x4C mapped:0x80743AD0
-void fn_3_104A3C(void) {
-    return;
-}
-
-// .text:0x00104A88 size:0x4C mapped:0x80743B1C
-void fn_3_104A88(void) {
-    return;
-}
-
-// .text:0x00104AD4 size:0x4C mapped:0x80743B68
-void fn_3_104AD4(void) {
-    return;
-}
-
-// .text:0x00104B20 size:0x1C mapped:0x80743BB4
-void fn_3_104B20(void) {
-    return;
-}
-
-// .text:0x00104B3C size:0x990 mapped:0x80743BD0
-void fn_3_104B3C(void) {
-    return;
+    if (count == 1) {
+        CTX->_0128[CTX->_0124] = *(u16*)key;
+        added = 1;
+    } else if (frame <= *(u16*)key) {
+        if (frame == *(u16*)key) {
+            CTX->_0128[CTX->_0124] = *(u16*)key;
+            added = 1;
+        } else {
+            key = keys;
+            next = keys + stride;
+            while (((u32)*(u16*)next << 16) <= time) {
+                key = next;
+                next += stride;
+            }
+            if (*(u16*)key == frame && frac == 0) {
+                CTX->_0128[CTX->_0124] = *(u16*)next - *(u16*)key;
+                added = 1;
+            }
+        }
+    }
+    if (added) {
+        k = (f32*)key;
+        switch (track[6]) {
+        case 0:
+            if (CTX->_0124 == 1) {
+                memcpy((u8*)CTX->_009C + 4, key + 4, 12);
+                CTX->_009C[2] = CTX->_009C[2] * -1.0;
+                CTX->_009C[4] = -1.0f * k[5] + 1.5707964f;
+                CTX->_009C[5] = k[4] - 1.5707964f;
+                CTX->_0128[0] = CTX->_0128[CTX->_0124];
+            }
+            memcpy(&CTX->_009C[CTX->_0124 * 8 + 1], key + 4, 12);
+            CTX->_009C[CTX->_0124 * 8 + 2] = CTX->_009C[CTX->_0124 * 8 + 2] * -1.0;
+            CTX->_009C[CTX->_0124 * 8 + 4] = -1.0f * k[5] + 1.5707964f;
+            CTX->_009C[CTX->_0124 * 8 + 5] = k[4] - 1.5707964f;
+            *(u32*)&CTX->_009C[CTX->_0124 * 8 + 7] = frame;
+            break;
+        case 1:
+            if (CTX->_0124 == 1) {
+                memcpy((u8*)CTX->_009C + 4, key + 4, 12);
+                CTX->_009C[2] = CTX->_009C[2] * -1.0;
+                CTX->_009C[4] = -1.0f * k[5] + 1.5707964f;
+                CTX->_009C[5] = k[4] - 1.5707964f;
+                CTX->_0128[0] = CTX->_0128[CTX->_0124];
+            }
+            memcpy(&CTX->_009C[CTX->_0124 * 8 + 1], key + 4, 12);
+            CTX->_009C[CTX->_0124 * 8 + 2] = CTX->_009C[CTX->_0124 * 8 + 2] * -1.0;
+            CTX->_009C[CTX->_0124 * 8 + 4] = -1.0f * k[5] + 1.5707964f;
+            CTX->_009C[CTX->_0124 * 8 + 5] = k[4] - 1.5707964f;
+            *(u32*)&CTX->_009C[CTX->_0124 * 8 + 7] = frame;
+            break;
+        case 2:
+            if (CTX->_0124 == 1) {
+                memcpy((u8*)CTX->_009C + 4, key + 4, 12);
+                CTX->_009C[2] = CTX->_009C[2] * -1.0;
+                CTX->_0128[0] = CTX->_0128[CTX->_0124];
+            }
+            memcpy(&CTX->_009C[CTX->_0124 * 8 + 1], key + 4, 12);
+            CTX->_009C[CTX->_0124 * 8 + 2] = CTX->_009C[CTX->_0124 * 8 + 2] * -1.0;
+            *(u32*)&CTX->_009C[CTX->_0124 * 8 + 7] = frame;
+            break;
+        }
+        if (CTX->_0124 < 0x200) {
+            CTX->_0124++;
+        }
+    }
 }
 
 // .text:0x001054CC size:0x4 mapped:0x80744560
@@ -166,83 +874,1942 @@ void fn_3_1054CC(void) {
     return;
 }
 
-// .text:0x001054D0 size:0x540 mapped:0x80744564
-void fn_3_1054D0(void) {
-    return;
+// .text:0x00104B3C size:0x990 mapped:0x80743BD0
+void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
+    u8* track = *(u8**)(script + 0xC + a * 4);
+    u8* keys = track + 0xC;
+    u8* key;
+    u8* next;
+    f32* k;
+    u32 frame;
+    u32 frac;
+    u32 stride;
+    u16 count;
+    Mtx44 m1;
+    Mtx44 m2;
+    Mtx44 m3;
+    Mtx44 m4;
+    Mtx44 m5;
+    Mtx44 m6;
+    Mtx44 m7;
+    f32 interp[16];
+    VecXYZ ang;
+    VecXYZ dir;
+    VecXYZ right;
+    VecXYZ tgt;
+    CamEval ev2;
+    f32 roll;
+
+    if (*(s16*)track >= 0 && b != 0) {
+        fn_3_104B3C(script, time, *(s16*)track, b - 1, out);
+    }
+    stride = lbl_3_data_20FC4[track[6]];
+    count = *(u16*)(track + 4);
+    key = keys + (count - 1) * stride;
+    frame = time >> 16;
+    frac = time & 0xFFFF;
+    if (count != 1 && frame < *(u16*)key) {
+        key = keys;
+        next = keys + stride;
+        while (((u32)*(u16*)next << 16) <= time) {
+            key = next;
+            next += stride;
+        }
+        if (*(u16*)key != frame || frac != 0) {
+            u8* cur = key;
+            u8* nxt = next;
+            u32 i;
+            f32 t = (f32)(time - ((u32)*(u16*)key << 16)) / 65536.0f;
+            f32 alpha = t / (f32)(*(u16*)next - *(u16*)key);
+            f32 beta = 1.0f - alpha;
+            f32* dst = &interp[0];
+            for (i = 0; i < lbl_3_data_20FD0[track[6]]; i++) {
+                VecXYZ va;
+                VecXYZ vb;
+                VecXYZ vc;
+                memcpy(&va, nxt + 4, sizeof(VecXYZ));
+                memcpy(&vb, cur + 4, sizeof(VecXYZ));
+                vc.x = va.x * alpha + vb.x * beta;
+                vc.y = va.y * alpha + vb.y * beta;
+                vc.z = va.z * alpha + vb.z * beta;
+                memcpy(dst + 1, &vc, sizeof(VecXYZ));
+                nxt += 12;
+                cur += 12;
+                dst += 3;
+            }
+            key = (u8*)interp;
+        }
+    }
+    k = (f32*)key;
+    PSMTX44Identity(m1);
+    switch (track[6]) {
+    case 0:
+        out->_84 = 0;
+        PSMTX44Identity(m2);
+        m2[3][0] = k[1];
+        m2[3][1] = -1.0f * k[2];
+        m2[3][2] = k[3];
+        out->_58.x = k[1];
+        out->_58.y = -1.0f * k[2];
+        out->_58.z = k[3];
+        out->_7C = -1.0f * k[5] + 1.5707964f;
+        out->_80 = k[4] - 1.5707964f;
+        ang.x = -1.0f * k[5] + 1.5707964f;
+        ang.y = k[4] - 1.5707964f;
+        ang.z = k[6];
+        PSMTX44Identity(m3);
+        PSMTX44RotRad(m4, 'X', ang.x);
+        PSMTX44RotRad(m5, 'Y', ang.y);
+        PSMTX44Concat(m3, m4, m3);
+        PSMTX44Concat(m3, m5, m3);
+        PSMTX44Identity(m6);
+        m6[0][0] = k[7];
+        m6[1][1] = k[8];
+        m6[2][2] = k[9];
+        out->_70.x = k[7];
+        out->_70.y = k[8];
+        out->_70.z = k[9];
+        if (track[7] & 1) {
+            out->_40 = out->_40 * k[10];
+        } else {
+            out->_40 = k[10];
+        }
+        out->_44 = k[11];
+        if (out->_44 >= 0.0f) {
+            while ((f32)fabs(out->_44) > 1.0f) {
+                out->_44 = out->_44 - 1.0f;
+            }
+        } else {
+            while ((f32)fabs(out->_44) > 1.0f) {
+                out->_44 = out->_44 + 1.0f;
+            }
+        }
+        out->_48 = k[12];
+        if (out->_48 >= 0.0f) {
+            while ((f32)fabs(out->_48) > 1.0f) {
+                out->_48 = out->_48 - 1.0f;
+            }
+        } else {
+            while ((f32)fabs(out->_48) > 1.0f) {
+                out->_48 = out->_48 + 1.0f;
+            }
+        }
+        break;
+    case 1:
+        out->_84 = 1;
+        PSMTX44Identity(m2);
+        m2[3][0] = k[1];
+        m2[3][1] = -1.0f * k[2];
+        m2[3][2] = k[3];
+        out->_58.x = k[1];
+        out->_58.y = -1.0f * k[2];
+        out->_58.z = k[3];
+        out->_7C = -1.0f * k[5] + 1.5707964f;
+        out->_80 = k[4] - 1.5707964f;
+        ang.x = k[4] - 1.5707964f;
+        ang.y = -1.0f * k[5] + 1.5707964f;
+        ang.z = k[6];
+        PSMTX44Identity(m3);
+        PSMTX44RotRad(m4, 'X', ang.x);
+        PSMTX44RotRad(m5, 'Y', ang.y);
+        PSMTX44Concat(m3, m4, m3);
+        PSMTX44Concat(m3, m5, m3);
+        PSMTX44Identity(m6);
+        m6[0][0] = k[7];
+        m6[1][1] = k[8];
+        m6[2][2] = k[9];
+        out->_70.x = k[7];
+        out->_70.y = k[8];
+        out->_70.z = k[9];
+        out->_4C = k[11];
+        out->_50 = k[12];
+        out->_54 = k[12];
+        break;
+    case 2:
+        out->_84 = 2;
+        PSMTX44Identity(m2);
+        m2[3][0] = k[1];
+        m2[3][1] = -1.0f * k[2];
+        m2[3][2] = k[3];
+        ang.x = k[1];
+        ang.y = -1.0f * k[2];
+        ang.z = k[3];
+        PSMTX44Identity(m3);
+        memset(&ev2, 0, sizeof(ev2));
+        ev2.m[3][3] = 1.0f;
+        ev2.m[2][2] = 1.0f;
+        ev2.m[1][1] = 1.0f;
+        ev2.m[0][0] = 1.0f;
+        ev2._40 = 1.0f;
+        fn_3_104B3C(script, time, (s16) * (s32*)(track + 8), 0xFF, &ev2);
+        out->_64.x = ev2._58.x;
+        tgt.x = ev2._58.x;
+        out->_64.y = ev2._58.y;
+        tgt.y = ev2._58.y;
+        out->_64.z = ev2._58.z;
+        tgt.z = ev2._58.z;
+        if (CTX->_09B5 == 1) {
+            PSVECSubtract((Vec*)&ang, (Vec*)&tgt, (Vec*)&ang);
+            fn_3_106270(&tgt);
+            PSVECAdd((Vec*)&tgt, (Vec*)&ang, (Vec*)&ang);
+            memcpy(&out->_58, &ang, sizeof(VecXYZ));
+        } else {
+            memcpy(&out->_58, &ang, sizeof(VecXYZ));
+        }
+        PSVECSubtract((Vec*)&out->_64, (Vec*)&out->_58, (Vec*)&ang);
+        out->_7C = (f32)atan2(-ang.x, -ang.z);
+        out->_80 = (f32)atan2(-ang.z, -ang.y);
+        dir.x = m3[1][0];
+        dir.y = m3[1][1];
+        dir.z = m3[1][2];
+        tgt.x = ev2.m[3][0];
+        tgt.y = ev2.m[3][1];
+        tgt.z = ev2.m[3][2];
+        ang.x = m2[3][0];
+        ang.y = m2[3][1];
+        ang.z = m2[3][2];
+        PSVECSubtract((Vec*)&tgt, (Vec*)&ang, (Vec*)&dir);
+        PSVECNormalize((Vec*)&dir, (Vec*)&dir);
+        m3[1][0] = dir.x;
+        m3[1][1] = dir.y;
+        m3[1][2] = dir.z;
+        if (0.0f == dir.x && 0.0f == dir.z) {
+            ang.x = 0.0f;
+            ang.y = 0.0f;
+            ang.z = 1.0f;
+        } else {
+            ang.x = 0.0f;
+            ang.y = -1.0f;
+            ang.z = 0.0f;
+        }
+        right.x = m3[0][0];
+        right.y = m3[0][1];
+        right.z = m3[0][2];
+        PSVECCrossProduct((Vec*)&dir, (Vec*)&ang, (Vec*)&right);
+        PSVECNormalize((Vec*)&right, (Vec*)&right);
+        PSVECCrossProduct((Vec*)&right, (Vec*)&dir, (Vec*)&tgt);
+        PSVECNormalize((Vec*)&tgt, (Vec*)&tgt);
+        m3[0][0] = right.x;
+        m3[0][1] = right.y;
+        m3[0][2] = right.z;
+        m3[1][0] = dir.x;
+        m3[1][1] = dir.y;
+        m3[1][2] = dir.z;
+        m3[2][0] = tgt.x;
+        m3[2][1] = tgt.y;
+        m3[2][2] = tgt.z;
+        roll = k[4];
+        if (roll >= 0.0f) {
+            while ((f32)fabs(roll) > 3.1415927f) {
+                roll = roll - 6.2831855f;
+            }
+        } else {
+            while ((f32)fabs(roll) > 3.1415927f) {
+                roll = roll + 6.2831855f;
+            }
+        }
+        PSMTX44RotRad(m5, 'Y', -roll);
+        PSMTX44Concat(m1, m5, m7);
+        PSMTX44Concat(m3, m7, m3);
+        PSMTX44Identity(m6);
+        m6[0][0] = k[5];
+        m6[1][1] = k[6];
+        m6[2][2] = k[7];
+        out->_70.x = k[5];
+        out->_70.y = k[6];
+        out->_70.z = k[7];
+        out->_4C = k[9];
+        out->_50 = k[10];
+        out->_54 = k[10];
+        break;
+    }
+    PSMTX44Concat((f32(*)[4])out, m2, (f32(*)[4])out);
+    PSMTX44Concat((f32(*)[4])out, m3, (f32(*)[4])out);
+    PSMTX44Concat((f32(*)[4])out, m6, (f32(*)[4])out);
 }
 
-// .text:0x00105A10 size:0xBC mapped:0x80744AA4
-void fn_3_105A10(void) {
-    return;
+// .text:0x00104B20 size:0x1C mapped:0x80743BB4
+void fn_3_104B20(Vec* out, CamView* view) {
+    f32 x = view->axes[2].x;
+    f32 y = view->axes[2].y;
+    f32 z = view->axes[2].z;
+    out->x = x;
+    out->y = y;
+    out->z = z;
 }
 
-// .text:0x00105ACC size:0x10C mapped:0x80744B60
-void fn_3_105ACC(void) {
-    return;
+// .text:0x00104AD4 size:0x4C mapped:0x80743B68
+void fn_3_104AD4(Vec* out, Mtx44 m) {
+    PSMTX44MultVec(m, (Vec*)&lbl_3_data_20FEC, out);
+    PSVECNormalize(out, out);
 }
 
-// .text:0x00105BD8 size:0x50 mapped:0x80744C6C
-void fn_3_105BD8(void) {
-    return;
+// .text:0x00104A88 size:0x4C mapped:0x80743B1C
+void fn_3_104A88(Vec* out, Mtx44 m) {
+    PSMTX44MultVec(m, (Vec*)&lbl_3_data_20FF8, out);
+    PSVECNormalize(out, out);
 }
 
-// .text:0x00105C28 size:0x5C mapped:0x80744CBC
-void fn_3_105C28(void) {
-    return;
+// .text:0x00104A3C size:0x4C mapped:0x80743AD0
+void fn_3_104A3C(Vec* out, Mtx44 m) {
+    PSMTX44MultVec(m, (Vec*)&lbl_3_data_21004, out);
+    PSVECNormalize(out, out);
 }
 
-// .text:0x00105C84 size:0x58 mapped:0x80744D18
-void fn_3_105C84(void) {
-    return;
+// .text:0x001048E0 size:0x15C mapped:0x80743974
+void fn_3_1048E0(u8* script, u32 time, s16 a, u8 b, CamView* out) {
+    CAM_EVAL_VIEW(script, time, a, b, out);
 }
 
-// .text:0x00105CDC size:0x124 mapped:0x80744D70
-void fn_3_105CDC(void) {
-    return;
+// .text:0x00104740 size:0x1A0 mapped:0x807437D4
+void fn_3_104740(void) {
+    CamScript* c = CTX;
+    if (c->_09A7 == 2) {
+        c->_00C4.x = 0.00001f + g_pCamera->_284C.x;
+        CTX->_00C4.y = 0.00001f + g_pCamera->_284C.y;
+        CTX->_00C4.z = 0.00001f + g_pCamera->_284C.z;
+        CTX->_00D0.x = 0.00002f + g_pCamera->_284C.x;
+        CTX->_00D0.y = 0.00002f + g_pCamera->_284C.y;
+        CTX->_00D0.z = 0.00002f + g_pCamera->_284C.z;
+    } else {
+        c->_00C4.x = 0.00001f + g_pCamera->_2870;
+        CTX->_00C4.y = 0.00001f + g_pCamera->_2874;
+        CTX->_00C4.z = 0.0f;
+        CTX->_00D0.x = 0.00001f + g_pCamera->_2870;
+        CTX->_00D0.y = 0.00001f + g_pCamera->_2874;
+        CTX->_00D0.z = 0.0f;
+    }
+    CAM_INIT_POS_FILTER();
 }
 
-// .text:0x00105E00 size:0x214 mapped:0x80744E94
-void fn_3_105E00(void) {
-    return;
+// .text:0x001045A8 size:0x198 mapped:0x8074363C
+void fn_3_1045A8(void) {
+    f32 pitch = radianAngleReduction(g_pCamera->_2874);
+    f32 reach = 20.0f * COSF(pitch);
+    f32 sp = SINF(pitch);
+    f32 yaw = radianAngleReduction(g_pCamera->_2870);
+    f32 cy = COSF(yaw);
+    f32 sy = SINF(yaw);
+    g_pCamera->_2858.x = cy * g_pCamera->_287C + g_pCamera->_2858.x;
+    g_pCamera->_2858.z = sy * g_pCamera->_287C + g_pCamera->_2858.z;
+    g_pCamera->_2858.x = sy * g_pCamera->_2880 + g_pCamera->_2858.x;
+    g_pCamera->_2858.z = g_pCamera->_2858.z - cy * g_pCamera->_2880;
+    g_pCamera->_284C.x = cy * reach + g_pCamera->_2858.x;
+    g_pCamera->_284C.y = 20.0f * sp + g_pCamera->_2858.y;
+    g_pCamera->_284C.z = sy * reach + g_pCamera->_2858.z;
+    g_pCamera->_2840.x = g_pCamera->_2858.x;
+    g_pCamera->_2840.y = g_pCamera->_2858.y;
+    g_pCamera->_2840.z = g_pCamera->_2858.z;
+    g_pCamera->_287C = 0.0f;
+    g_pCamera->_2880 = 0.0f;
 }
 
-// .text:0x00106014 size:0xC4 mapped:0x807450A8
-void fn_3_106014(void) {
-    return;
+// .text:0x00104338 size:0x270 mapped:0x807433CC
+void fn_3_104338(void) {
+    CAM_SCRIPT_SET_VIEW();
 }
 
-// .text:0x001060D8 size:0xA4 mapped:0x8074516C
-void fn_3_1060D8(void) {
-    return;
+// .text:0x001040D8 size:0x260 mapped:0x8074316C
+void fn_3_1040D8(void) {
+    CAM_FILTER_POS();
 }
 
-// .text:0x0010617C size:0xF4 mapped:0x80745210
-void fn_3_10617C(void) {
-    return;
+// .text:0x00103E7C size:0x25C mapped:0x80742F10
+void fn_3_103E7C(f32* angles) {
+    if (CTX->_09B4 != 0) {
+        VecXYZ in;
+        VecXYZ po;
+        VecXYZ pi;
+        VecXYZ out;
+        angles[0] = radianAngleReduction(angles[0]);
+        angles[1] = radianAngleReduction(angles[1]);
+        in.x = angles[0];
+        in.y = angles[1];
+        in.z = 0.0f;
+        po.x = CTX->_00D0.x;
+        po.y = CTX->_00D0.y;
+        po.z = CTX->_00D0.z;
+        pi.x = CTX->_00C4.x;
+        pi.y = CTX->_00C4.y;
+        pi.z = CTX->_00C4.z;
+        out = camFilterStep(in, pi, po, CTX->_010C, CTX->_0110, CTX->_0114);
+        CTX->_00C4.x = angles[0];
+        CTX->_00C4.y = angles[1];
+        CTX->_00C4.z = 0.0f;
+        CTX->_00D0.x = out.x;
+        CTX->_00D0.y = out.y;
+        CTX->_00D0.z = out.z;
+        angles[0] = out.x;
+        angles[1] = out.y;
+    }
 }
 
-// .text:0x00106270 size:0x71C mapped:0x80745304
-void fn_3_106270(void) {
-    return;
+// .text:0x00103C30 size:0x24C mapped:0x80742CC4
+void fn_3_103C30(VecXYZ* v) {
+    CAM_FILTER_V(v);
 }
 
-// .text:0x0010698C size:0x24 mapped:0x80745A20
-void fn_3_10698C(void) {
-    return;
+// .text:0x00101CC4 size:0x1F6C mapped:0x80740D58
+void fn_3_101CC4(void) {
+    CamScript* c = CTX;
+    VecXYZ v;
+    VecXYZ tmp;
+    Mtx rot;
+    s16 sel = c->_0946;
+    if (c->_09A8 == 0) {
+        switch (c->_09A7) {
+        case 0:
+        case 1: {
+            f32 yaw;
+            f32 pitch;
+            f32 cp;
+            f32 cy;
+            f32 sp;
+            f32 cp2;
+            f32 sy;
+            memcpy(&g_pCamera->_2840, &g_pCamera->_2858, sizeof(VecXYZ));
+            if (g_pCamera->_2840.y < 0.1f) {
+                g_pCamera->_2840.y = 0.1f;
+            }
+            CAM_INIT_POS_FILTER();
+            yaw = radianAngleReduction(g_pCamera->_2870);
+            pitch = radianAngleReduction(g_pCamera->_2874);
+            CAM_INIT_ANGLE_FILTER(yaw, pitch);
+            CAM_FILTER_ANGLES(yaw, pitch);
+            cp = COSF(pitch);
+            cy = COSF(yaw);
+            sp = SINF(pitch);
+            cp2 = COSF(pitch);
+            sy = SINF(yaw);
+            g_pCamera->_284C.x = g_pCamera->_2858.x + 100.0f * cy * cp;
+            g_pCamera->_284C.y = g_pCamera->_2858.y + 100.0f * sp;
+            g_pCamera->_284C.z = g_pCamera->_2858.z + 100.0f * sy * cp2;
+            CAM_FILTER_POS();
+            break;
+        }
+        case 2:
+
+            if (CTX->_09AA == 0) {
+                CAM_COPY_POS();
+                CAM_INIT_POS_FILTER();
+                memcpy(&v, &CTX->_0088, sizeof(VecXYZ));
+                fn_3_106270(&v);
+                CAM_SET_VIEW_V();
+                CAM_INIT_V_FILTER();
+                CAM_FILTER_V(&v);
+                CAM_SET_VIEW_V();
+                CAM_FILTER_POS();
+            } else if (CTX->_09AA == 1) {
+                CAM_COPY_POS();
+                CAM_INIT_POS_FILTER();
+                if (sel < 9 && sel >= 0) {
+                    f32 ang = radianAngleReduction(1.5707964f + g_Fielders[sel].desiredMovementDirection);
+                    CAM_ROTATE_AROUND(g_Fielders[sel].pos.x, g_Fielders[sel].pos.y, g_Fielders[sel].pos.z, -ang);
+                } else if (sel < 13 && sel >= 0) {
+                    f32 ang = radianAngleReduction(g_Runners[sel - 9].runningAngle);
+                    CAM_ROTATE_AROUND(g_Runners[sel - 9].position.x, g_Runners[sel - 9].position.y, g_Runners[sel - 9].position.z, ang);
+                } else if (sel == 13) {
+                    f32 ang = ATAN2F(-(g_Ball.pastCoordinates[0].x - g_Ball.AtBat_Contact_BallPos.x),
+                                     -(g_Ball.pastCoordinates[0].z - g_Ball.AtBat_Contact_BallPos.z));
+                    CAM_ROTATE_AROUND(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, ang);
+                }
+                memcpy(&v, &CTX->_0088, sizeof(VecXYZ));
+                fn_3_106270(&v);
+                CAM_SET_VIEW_V();
+                CAM_INIT_V_FILTER();
+                CAM_FILTER_V(&v);
+                CAM_SET_VIEW_V();
+                CAM_FILTER_POS();
+            }
+            CAM_CLAMP_LOOKAT_Y();
+            break;
+        }
+    } else {
+        switch (c->_09A9) {
+        case 0:
+        case 1:
+            c->_00A0 = 0.87266463f;
+            g_pCamera->_2840.x = g_Ball.AtBat_Contact_BallPos.x;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = g_Ball.AtBat_Contact_BallPos.z;
+            break;
+        case 2:
+        case 3:
+            c->_00A0 = 0.87266463f;
+            g_pCamera->_2840.x = g_Ball.pastCoordinates[1].x;
+            g_pCamera->_2840.y = g_Ball.pastCoordinates[1].y;
+            g_pCamera->_2840.z = g_Ball.pastCoordinates[1].z;
+            break;
+        case 4: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dy;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            dy = g_Ball.AtBat_Contact_BallPos.y - g_Ball.pastCoordinates[0].y;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
+            g_pCamera->_2840.y = (g_Ball.AtBat_Contact_BallPos.y + dy) - dy * t;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
+            break;
+        }
+        case 5: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
+            break;
+        }
+        case 6: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dy;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            dy = g_Ball.AtBat_Contact_BallPos.y - g_Ball.pastCoordinates[0].y;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x - dx) + dx * t;
+            g_pCamera->_2840.y = (g_Ball.AtBat_Contact_BallPos.y - dy) + dy * t;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z - dz) + dz * t;
+            break;
+        }
+        case 7: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x - dx) + dx * t;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z - dz) + dz * t;
+            break;
+        }
+        case 8: {
+            f32 ang;
+            g_pCamera->_2840.x = g_pCamera->_2858.x;
+            g_pCamera->_2840.y = g_pCamera->_2858.y;
+            g_pCamera->_2840.z = g_pCamera->_2858.z;
+            ang = radianAngleReduction(1.5707964f + game_atan2(g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x,
+                                                               g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z));
+            CAM_ROTATE_AROUND(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, -ang);
+            break;
+        }
+        }
+        if (g_pCamera->_2840.y < 1.0f) {
+            g_pCamera->_2840.y = 1.0f;
+        }
+        switch (CTX->_09A9) {
+        case 0:
+            v.x = g_Ball.AtBat_Contact_BallPos.x + (g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x);
+            v.y = g_Ball.AtBat_Contact_BallPos.y + (g_Ball.AtBat_Contact_BallPos.y - g_Ball.pastCoordinates[0].y);
+            v.z = g_Ball.AtBat_Contact_BallPos.z + (g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z);
+            break;
+        case 1:
+            v.x = g_Ball.AtBat_Contact_BallPos.x + (g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x);
+            v.y = g_Ball.AtBat_Contact_BallPos.y;
+            v.z = g_Ball.AtBat_Contact_BallPos.z + (g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z);
+            break;
+        case 2:
+            v.x = g_Ball.pastCoordinates[2].x;
+            v.y = g_Ball.pastCoordinates[2].y;
+            v.z = g_Ball.pastCoordinates[2].z;
+            break;
+        case 3:
+            v.x = g_Ball.pastCoordinates[2].x;
+            v.y = g_Ball.pastCoordinates[1].y;
+            v.z = g_Ball.pastCoordinates[2].z;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+            memcpy(&v, &CTX->_0088, sizeof(VecXYZ));
+            fn_3_106270(&v);
+            break;
+        }
+        CAM_SET_VIEW_V();
+        CAM_INIT_V_FILTER();
+        CAM_FILTER_V(&v);
+        CAM_SET_VIEW_V();
+        CAM_FILTER_POS();
+        CAM_CLAMP_LOOKAT_Y();
+    }
 }
 
-// .text:0x001069B0 size:0x10 mapped:0x80745A44
-void fn_3_1069B0(void) {
-    return;
+// .text:0x001000D8 size:0x1BEC mapped:0x8073F16C
+void fn_3_1000D8(void) {
+    CamScript* c = CTX;
+    VecXYZ v;
+    VecXYZ tmp;
+    Mtx rot;
+    s16 sel = c->_0946;
+    if (c->_09A8 == 0) {
+        switch (c->_09A7) {
+        case 0:
+        case 1: {
+            f32 yaw;
+            f32 pitch;
+            f32 cp;
+            f32 cy;
+            f32 sp;
+            f32 cp2;
+            f32 sy;
+            g_pCamera->_2840.x = g_pCamera->_2858.x;
+            g_pCamera->_2840.y = g_pCamera->_2858.y;
+            g_pCamera->_2840.z = g_pCamera->_2858.z;
+            if (g_pCamera->_2840.y < 0.1f) {
+                g_pCamera->_2840.y = 0.1f;
+            }
+            yaw = radianAngleReduction(g_pCamera->_2870);
+            pitch = radianAngleReduction(g_pCamera->_2874);
+            CAM_FILTER_ANGLES(yaw, pitch);
+            cp = COSF(pitch);
+            cy = COSF(yaw);
+            sp = SINF(pitch);
+            cp2 = COSF(pitch);
+            sy = SINF(yaw);
+            g_pCamera->_284C.x = g_pCamera->_2858.x + 100.0f * cy * cp;
+            g_pCamera->_284C.y = g_pCamera->_2858.y + 100.0f * sp;
+            g_pCamera->_284C.z = g_pCamera->_2858.z + 100.0f * sy * cp2;
+            CAM_FILTER_POS();
+            break;
+        }
+        case 2:
+            if (sel < 13 && sel >= 0 && c->_0950 <= 2) {
+                fn_3_101CC4();
+            }
+            if (CTX->_09AA == 0) {
+                CAM_COPY_POS();
+
+                memcpy(&v, &CTX->_0088, sizeof(VecXYZ));
+                fn_3_106270(&v);
+                CAM_SET_VIEW_V();
+
+                CAM_FILTER_V(&v);
+                CAM_SET_VIEW_V();
+                CAM_FILTER_POS();
+            } else if (CTX->_09AA == 1) {
+                CAM_COPY_POS();
+
+                if (sel < 9 && sel >= 0) {
+                    f32 ang = radianAngleReduction(1.5707964f + g_Fielders[sel].desiredMovementDirection);
+                    CAM_ROTATE_AROUND(g_Fielders[sel].pos.x, g_Fielders[sel].pos.y, g_Fielders[sel].pos.z, -ang);
+                } else if (sel < 13 && sel >= 0) {
+                    f32 ang = radianAngleReduction(g_Runners[sel - 9].runningAngle);
+                    CAM_ROTATE_AROUND(g_Runners[sel - 9].position.x, g_Runners[sel - 9].position.y, g_Runners[sel - 9].position.z, ang);
+                } else if (sel == 13) {
+                    f32 ang = ATAN2F(-(g_Ball.pastCoordinates[0].x - g_Ball.AtBat_Contact_BallPos.x),
+                                     -(g_Ball.pastCoordinates[0].z - g_Ball.AtBat_Contact_BallPos.z));
+                    CAM_ROTATE_AROUND(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, ang);
+                }
+                memcpy(&v, &CTX->_0088, sizeof(VecXYZ));
+                fn_3_106270(&v);
+                CAM_SET_VIEW_V();
+
+                CAM_FILTER_V(&v);
+                CAM_SET_VIEW_V();
+                CAM_FILTER_POS();
+            }
+            CAM_CLAMP_LOOKAT_Y();
+            break;
+        }
+    } else {
+        switch (c->_09A9) {
+        case 0:
+        case 1:
+            c->_00A0 = 0.87266463f;
+            g_pCamera->_2840.x = g_Ball.AtBat_Contact_BallPos.x;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = g_Ball.AtBat_Contact_BallPos.z;
+            break;
+        case 2:
+        case 3:
+            c->_00A0 = 0.87266463f;
+            g_pCamera->_2840.x = g_Ball.pastCoordinates[1].x;
+            g_pCamera->_2840.y = g_Ball.pastCoordinates[1].y;
+            g_pCamera->_2840.z = g_Ball.pastCoordinates[1].z;
+            break;
+        case 4: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dy;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            dy = g_Ball.AtBat_Contact_BallPos.y - g_Ball.pastCoordinates[0].y;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
+            g_pCamera->_2840.y = (g_Ball.AtBat_Contact_BallPos.y + dy) - dy * t;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
+            break;
+        }
+        case 5: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
+            break;
+        }
+        case 6: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dy;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            dy = g_Ball.AtBat_Contact_BallPos.y - g_Ball.pastCoordinates[0].y;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x - dx) + dx * t;
+            g_pCamera->_2840.y = (g_Ball.AtBat_Contact_BallPos.y - dy) + dy * t;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z - dz) + dz * t;
+            break;
+        }
+        case 7: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x - dx) + dx * t;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z - dz) + dz * t;
+            break;
+        }
+        case 8: {
+            f32 ang;
+            g_pCamera->_2840.x = g_pCamera->_2858.x;
+            g_pCamera->_2840.y = g_pCamera->_2858.y;
+            g_pCamera->_2840.z = g_pCamera->_2858.z;
+            ang = radianAngleReduction(1.5707964f + game_atan2(g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x,
+                                                               g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z));
+            CAM_ROTATE_AROUND(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y, g_Ball.AtBat_Contact_BallPos.z, -ang);
+            break;
+        }
+        }
+        if (g_pCamera->_2840.y < 1.0f) {
+            g_pCamera->_2840.y = 1.0f;
+        }
+        switch (CTX->_09A9) {
+        case 0:
+            v.x = g_Ball.AtBat_Contact_BallPos.x + (g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x);
+            v.y = g_Ball.AtBat_Contact_BallPos.y + (g_Ball.AtBat_Contact_BallPos.y - g_Ball.pastCoordinates[0].y);
+            v.z = g_Ball.AtBat_Contact_BallPos.z + (g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z);
+            break;
+        case 1:
+            v.x = g_Ball.AtBat_Contact_BallPos.x + (g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x);
+            v.y = g_Ball.AtBat_Contact_BallPos.y;
+            v.z = g_Ball.AtBat_Contact_BallPos.z + (g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z);
+            break;
+        case 2:
+            v.x = g_Ball.pastCoordinates[2].x;
+            v.y = g_Ball.pastCoordinates[2].y;
+            v.z = g_Ball.pastCoordinates[2].z;
+            break;
+        case 3:
+            v.x = g_Ball.pastCoordinates[2].x;
+            v.y = g_Ball.pastCoordinates[1].y;
+            v.z = g_Ball.pastCoordinates[2].z;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+            memcpy(&v, &CTX->_0088, sizeof(VecXYZ));
+            fn_3_106270(&v);
+            break;
+        }
+        CAM_SET_VIEW_V();
+        CAM_FILTER_V(&v);
+        CAM_SET_VIEW_V();
+        CAM_FILTER_POS();
+        CAM_CLAMP_LOOKAT_Y();
+    }
 }
 
-// .text:0x001069C0 size:0x1E0 mapped:0x80745A54
-void fn_3_1069C0(void) {
-    return;
+// .text:0x0010007C size:0x5C mapped:0x8073F110
+BOOL unkPauseSimulationCheck(void) {
+    if (CTX->_09AB == 1) {
+        if (CTX->_0014 != 0) {
+            lbl_80366158[0x28] = 1;
+            return FALSE;
+        }
+        lbl_80366158[0x28] = 0;
+        return TRUE;
+    }
+    return TRUE;
 }
 
-// .text:0x00106BA0 size:0x25C mapped:0x80745C34
-void fn_3_106BA0(void) {
-    return;
+// .text:0x00100038 size:0x44 mapped:0x8073F0CC
+void fn_3_100038(void) {
+    CamScript* ctx = CTX;
+    if (ctx->_0118 > ctx->_011C) {
+        if (ctx->_09B1 == 0) {
+            ctx->_0118 = ctx->_011C;
+        } else {
+            ctx->_0118 = 0;
+        }
+    } else {
+        ctx->_0118 += 0x10000;
+    }
 }
 
+// .text:0x00100018 size:0x20 mapped:0x8073F0AC
+BOOL fn_3_100018(void) {
+    return CTX->_09B6 == 1;
+}
+
+// .text:0x000FDB30 size:0x24E8 mapped:0x8073CBC4
+BOOL fn_3_FDB30(void) {
+    CamScript* ctx = CTX;
+    CamDrawItem* item = (CamDrawItem*)currentDrawingItem;
+    u8 trackerA = *((u8*)starMissionCompletionTracker + 0x4415);
+    u8 trackerB = *((u8*)starMissionCompletionTracker + 0x441C);
+    int i;
+    int found;
+    s32* table;
+    int idx;
+
+    CAMF(s16, 0xA72) += 1;
+    if (CAMF(s16, 0xA72) == 10000) {
+        CAMF(s16, 0xA72) = 0;
+    }
+
+    if (ctx->_0008 != 0) {
+        ctx->_0008--;
+        fn_3_100038();
+        return FALSE;
+    }
+    if (ctx->_0014 != 0) {
+        ctx->_0014--;
+        fn_3_100038();
+        return FALSE;
+    }
+
+    while (TRUE) {
+        switch (ctx->_0000[0]) {
+        case 1:
+            idx = g_pCamera->_28A8;
+            CAMSCRIPT(idx)._0118 = 0;
+            CAMSCRIPT(idx)._011C = 0;
+            CAMSCRIPT(idx)._0946 = 14;
+            CAMSCRIPT(idx)._0100 = 9.0f;
+            CAMSCRIPT(idx)._0104 = 2.0f;
+            CAMSCRIPT(idx)._0108 = 0.001f;
+            CAMSCRIPT(idx)._010C = 9.0f;
+            CAMSCRIPT(idx)._0110 = 2.0f;
+            CAMSCRIPT(idx)._0114 = 0.001f;
+            CAMSCRIPT(idx)._0934 = random_fn_3_9EE24(0x10000);
+            CAMSCRIPT(idx)._0988 = 0;
+            CAMSCRIPT(idx)._09B2 = 0;
+            CAMSCRIPT(idx)._09B4 = 0;
+            CAMSCRIPT(idx)._09B3 = 0;
+            CAMSCRIPT(idx)._09B5 = 0;
+            CAMSCRIPT(idx)._09AA = 0;
+            CAMSCRIPT(idx)._09A8 = 0;
+            CAMSCRIPT(idx)._0938 = -1;
+            CAMSCRIPT(idx)._093C = CAMSCRIPT(idx)._0938;
+            CAMSCRIPT(idx)._094C = 0;
+            CAMSCRIPT(idx)._09B9 = 0;
+            CAMSCRIPT(idx)._09B7 = 0;
+            CAMSCRIPT(idx)._0018 = 0;
+            CAMF(s16, 0xA72) = 0;
+            ctx->_0000 += 1;
+            continue;
+        case 2:
+            if (g_Stats.replayInd != 0) {
+                g_Stats.replayPending = 5;
+            } else if (lbl_3_common_bss_1323C->_25D == 2) {
+                s16 v = lbl_3_common_bss_1323C->_23E - 0x5C;
+                if (lbl_3_common_bss_1323C->_23C < v) {
+                    lbl_3_common_bss_1323C->_23C = v;
+                }
+            } else {
+                s16 v = lbl_3_common_bss_1323C->_23E - 8;
+                if (lbl_3_common_bss_1323C->_23C < v) {
+                    lbl_3_common_bss_1323C->_23C = v;
+                }
+            }
+            CAMSCRIPT(g_pCamera->_28A8)._09B9 = 0;
+            setScissorMode(1);
+            animRelated[0xAD] = 0;
+            ctx->_0018 = 1;
+            return TRUE;
+        case 3:
+            fn_3_100038();
+            ctx->_0008 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            return FALSE;
+        case 98:
+            fn_3_100038();
+            ctx->_0008 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            return FALSE;
+        case 4:
+            if (CTX->_0118 > CTX->_011C) {
+                ctx->_0000 += 1;
+                continue;
+            }
+            CTX->_0118 += 0x10000;
+            return FALSE;
+        case 5:
+            CTX->_0940 = ctx->_0000[1];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 2;
+            continue;
+        case 38:
+            CTX->_0940 = (g_Batter.batterHand == 1) ? ctx->_0000[1] : ctx->_0000[2];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 3;
+            continue;
+        case 37:
+            CTX->_0940 = (CTX->_0986 > 1000) ? ctx->_0000[1] : ctx->_0000[2];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 3;
+            continue;
+        case 6:
+            CTX->_09AA = 0;
+            CTX->_09B5 = 0;
+            CTX->_0946 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 30:
+            CTX->_09AA = 0;
+            CTX->_09B5 = 1;
+            CTX->_0946 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 31:
+            CTX->_09AA = 1;
+            CTX->_09B5 = 1;
+            CTX->_0946 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 24:
+            CTX->_09AA = 0;
+            CTX->_0946 = 9;
+            ctx->_0000 += 1;
+            continue;
+        case 33:
+            CTX->_09AA = 0;
+            CTX->_09B5 = 1;
+            CTX->_0946 = storedInningInfo.catches[0].fielderIndex;
+            ctx->_0000 += 1;
+            continue;
+        case 7:
+            CTX->_09B1 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 8:
+            CTX->_09B2 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 9:
+            CTX->_09B4 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 10:
+            CTX->_09B3 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 11:
+            CTX->_09B5 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 12:
+            CTX->_0100 = (f32)ctx->_0000[1] / 1000.0f;
+            CTX->_0104 = (f32)ctx->_0000[2] / 1000.0f;
+            CTX->_0108 = (f32)ctx->_0000[3] / 1000.0f;
+            ctx->_0000 += 4;
+            continue;
+        case 13:
+            CTX->_010C = (f32)ctx->_0000[1] / 1000.0f;
+            CTX->_0110 = (f32)ctx->_0000[2] / 1000.0f;
+            CTX->_0114 = (f32)ctx->_0000[3] / 1000.0f;
+            ctx->_0000 += 4;
+            continue;
+        case 14:
+            table = CAM_SCRIPT_TABLE(ctx->_0000[1]);
+            CTX->_0940 = table[random_fn_3_9EE24(ctx->_0000[2])];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 3;
+            continue;
+        case 35:
+            if (CTX->_0986 > 1000) {
+                table = CAM_SCRIPT_TABLE(ctx->_0000[1]);
+            } else {
+                table = CAM_SCRIPT_TABLE(ctx->_0000[2]);
+            }
+            CTX->_0940 = table[random_fn_3_9EE24(ctx->_0000[3])];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 4;
+            continue;
+        case 36:
+            if (g_Batter.batterHand == 1) {
+                table = CAM_SCRIPT_TABLE(ctx->_0000[1]);
+            } else {
+                table = CAM_SCRIPT_TABLE(ctx->_0000[2]);
+            }
+            CTX->_0940 = table[random_fn_3_9EE24(ctx->_0000[3])];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 4;
+            continue;
+        case 15:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0954 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 16:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0956 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 17:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0958 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 18:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_095A + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 19:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_095E + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 20:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0960 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 21:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0962 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 22:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_099B[ctx->_0000[1]] + ctx->_0000[2]) {
+                return FALSE;
+            }
+            ctx->_0000 += 3;
+            continue;
+        case 23:
+            fn_3_100038();
+            ctx->_0014 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            return FALSE;
+        case 25: {
+            CamScript* v;
+            u8 slot;
+            fn_3_100038();
+            v = CTX;
+            slot = v->_099F;
+            if (g_Stats.playFrameCounter == v->_096C[slot] + ctx->_0000[1]) {
+                ctx->_0000 += 2;
+                continue;
+            }
+            if (slot != 3) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        }
+        case 26:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0974 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 27:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0976 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 34:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_097C + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 60:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0984 + ctx->_0000[1]) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 28:
+            ctx->_0000 += 4;
+            return FALSE;
+        case 29:
+            if (CTX->_099F == 3) {
+                ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
+            } else {
+                ctx->_0000 += 2;
+            }
+            continue;
+        case 32:
+            if (CTX->_0962 != 0) {
+                ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
+            } else {
+                ctx->_0000 += 2;
+            }
+            continue;
+        case 45:
+            ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
+            continue;
+        case 71:
+            if (g_Ball.landingSpotZoneAwayFromHome <= 1) {
+                ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
+            } else {
+                ctx->_0000 += 2;
+            }
+            continue;
+        case 39:
+            CAMF(s16, 0xA72) = 0;
+            lbl_3_common_bss_1323C->_23E = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 40:
+            fn_3_24ADC(ctx->_0000[1], 0);
+            ctx->_0000 += 2;
+            continue;
+        case 100:
+            fn_3_24ADC(ctx->_0000[1], 1);
+            ctx->_0000 += 2;
+            continue;
+        case 62:
+            if (g_Batter.batterHand == 1) {
+                fn_3_24ADC(ctx->_0000[1], 0);
+            } else {
+                fn_3_24ADC(ctx->_0000[2], 0);
+            }
+            ctx->_0000 += 3;
+            continue;
+        case 72:
+            if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                hugeAnimStruct.objects[*(u8*)(CAMDATA(0x238C) + ctx->_0000[1] * 0x1C + 0x14)]->_257) {
+                fn_3_24ADC(ctx->_0000[1], 0);
+            } else {
+                fn_3_24ADC(ctx->_0000[2], 0);
+            }
+            ctx->_0000 += 3;
+            continue;
+        case 41:
+            fn_3_100038();
+            if (lbl_3_common_bss_1323C->_23E - 1 != lbl_3_common_bss_1323C->_23C) {
+                return FALSE;
+            }
+            if (CAMF(u16, 0xAAA) == 0) {
+                CAMF(u16, 0xAAA) = 1;
+                CAMF(s16, 0xAAE) = 2;
+                insertGraphicDrawingFunction(fn_3_21DE4, 6);
+            }
+            ctx->_0000 += 1;
+            continue;
+        case 104:
+            if (CAMF(u16, 0xAAA) == 0) {
+                CAMF(u16, 0xAAA) = 1;
+                CAMF(s16, 0xAAE) = ctx->_0000[1];
+                insertGraphicDrawingFunction(fn_3_21DE4, 6);
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 48:
+            if (CAMF(u16, 0xAA8) == 0) {
+                CAMF(u16, 0xAA8) = 1;
+                CAMF(s16, 0xAAC) = ctx->_0000[1];
+                insertGraphicDrawingFunction(fn_3_21C90, 6);
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 42:
+            fn_3_7BC0C();
+            ctx->_0000 += 1;
+            continue;
+        case 43:
+            fn_3_7BBF8();
+            ctx->_0000 += 1;
+            continue;
+        case 44:
+            ctx->_0000 += 2;
+            continue;
+        case 70: {
+            u8* entry;
+            CamMarker* m;
+            lbl_3_common_bss_1323C->_27F = 1;
+            entry = CAMDATA(0x30E4) + ctx->_0000[1] * 0x14;
+            m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
+            m->_28 = 0;
+            m->_29 = 1;
+            m->_14 = *(f32*)(entry + 0xC);
+            memcpy(m, entry, 12);
+            ctx->_0000 += 2;
+            continue;
+        }
+        case 99: {
+            u8* entry;
+            CamMarker* m;
+            CamActor* actor;
+            lbl_3_common_bss_1323C->_27F = 2;
+            entry = CAMDATA(0x30E4) + ctx->_0000[1] * 0x14;
+            actor = hugeAnimStruct.objects[entry[0x10]];
+            m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
+            m->_28 = 0;
+            m->_29 = 1;
+            m->_14 = ((f32*)CAMDATA(0x3148))[actor->_252];
+            memcpy(m, entry, 12);
+            ctx->_0000 += 2;
+            continue;
+        }
+        case 102: {
+            u8* entry;
+            CamMarker* m;
+            CamActor* actor;
+            f32 d;
+            lbl_3_common_bss_1323C->_27F = 3;
+            entry = CAMDATA(0x30E4) + ctx->_0000[1] * 0x14;
+            actor = hugeAnimStruct.objects[entry[0x10]];
+            if (actor != NULL) {
+                m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
+                m->_28 = 0;
+                m->_29 = 1;
+                memcpy(m, entry, 12);
+                m->_18 = 0.3f + (f32)fabs(PSVECDistance((Vec*)lbl_3_common_bss_1323C, (Vec*)&actor->pos));
+                d = actor->_068 / 2;
+                if (d == 0.0f) {
+                    d = 1.0f;
+                }
+                m->_14 = m->_18 / d;
+                m->_20 = d;
+                m->_1C = ((f32*)CAMDATA(0x3220))[actor->_252];
+            }
+            ctx->_0000 += 2;
+            continue;
+        }
+        case 46:
+            CTX->_0934 = random_fn_3_9EE24(0x10000);
+            ctx->_0000 += 1;
+            continue;
+        case 47:
+            CTX->_0940 = CAM_SCRIPT_TABLE(ctx->_0000[1] + CTX->_0934 % ctx->_0000[2])[ctx->_0000[3]];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 4;
+            continue;
+        case 49: {
+            int first = (g_Batter.batterHand == 1) ? ctx->_0000[1] : ctx->_0000[2];
+            CTX->_0940 = CAM_SCRIPT_TABLE(first + CTX->_0934 % ctx->_0000[3])[ctx->_0000[4]];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 5;
+            continue;
+        }
+        case 50:
+            fn_3_100038();
+            if (CTX->_0118 > 0x30000 && fn_3_2281C(ctx->_0000[1]) != 0) {
+                ctx->_0000 += 2;
+                continue;
+            }
+            return FALSE;
+        case 77:
+            fn_3_100038();
+            if (CTX->_0118 > 0x30000 && fn_3_2273C(ctx->_0000[1]) != 0) {
+                ctx->_0000 += 2;
+                continue;
+            }
+            return FALSE;
+        case 51:
+            fn_3_21C7C(ctx->_0000[1], ctx->_0000[2]);
+            ctx->_0000 += 3;
+            continue;
+        case 52:
+        case 53:
+        case 54:
+        case 55:
+            CTX->_09A8 = ctx->_0000[1];
+            CTX->_0946 = 13;
+            CTX->_09B4 = 0;
+            switch (ctx->_0000[0]) {
+            case 0x34:
+                CTX->_09A9 = 0;
+                break;
+            case 0x35:
+                CTX->_09A9 = 1;
+                break;
+            case 0x36:
+                CTX->_09A9 = 2;
+                break;
+            case 0x37:
+                CTX->_09A9 = 3;
+                break;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 56:
+        case 57:
+        case 58:
+        case 59:
+        case 61:
+            CTX->_09AA = 0;
+            CTX->_09B5 = 1;
+            CTX->_0946 = 13;
+            CTX->_09A8 = ctx->_0000[1];
+            CTX->_0946 = 13;
+            switch (ctx->_0000[0]) {
+            case 0x38:
+                CTX->_09A9 = 4;
+                break;
+            case 0x39:
+                CTX->_09A9 = 5;
+                break;
+            case 0x3A:
+                CTX->_09A9 = 6;
+                break;
+            case 0x3B:
+                CTX->_09A9 = 7;
+                break;
+            case 0x3D:
+                CTX->_09A9 = 8;
+                break;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 63: {
+            s16 k = CTX->_0946;
+            if (k < 9 && k >= 0) {
+                CTX->_0938 = lbl_3_data_3B4C[g_Fielders[k].CharID];
+            } else if (k < 13 && k >= 0) {
+                CTX->_0938 = lbl_3_data_3B4C[g_Runners[k - 9].charID];
+            }
+            ctx->_0000 += 2;
+            continue;
+        }
+        case 87:
+            CTX->_0938 = lbl_3_data_3B4C[g_Fielders[ctx->_0000[1]].CharID];
+            ctx->_0000 += 2;
+            continue;
+        case 64:
+            CTX->_09B9 = ctx->_0000[1];
+            if (CTX->_09B9 == 1) {
+                setScissorMode(2);
+                animRelated[0xAD] = 1;
+            } else {
+                setScissorMode(1);
+                animRelated[0xAD] = 0;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 65:
+        case 66: {
+            int a;
+            int b;
+            CTX->_09B9 = 1;
+            if (ctx->_0000[2] >= 0) {
+                setScissorMode(2);
+                animRelated[0xAD] = 1;
+            } else {
+                setScissorMode(1);
+                animRelated[0xAD] = 0;
+            }
+            if (ctx->_0000[0] == 0x41) {
+                a = ctx->_0000[1];
+                b = ctx->_0000[2];
+            } else if (g_Batter.batterHand == 1) {
+                a = ctx->_0000[1];
+                b = ctx->_0000[2];
+            } else {
+                a = ctx->_0000[3];
+                b = ctx->_0000[4];
+            }
+            CAMSCRIPT(1)._09AB = 1;
+            CAMSCRIPT(1)._09AC = 1;
+            CAMSCRIPT(1)._09AF = 1;
+            CAMSCRIPT(1)._09B0 = 1;
+            CAMSCRIPT(1)._0018 = 0;
+            CAMSCRIPT(1)._0008 = 0;
+            CAMSCRIPT(1)._0014 = 0;
+            CAMSCRIPT(1)._092C = b;
+            CAMSCRIPT(1)._09AE = 1;
+            CAMSCRIPT(1)._0118 = 0;
+            CAMSCRIPT(1)._0944 = 0;
+            CAMSCRIPT(1)._0000 = CAM_LABEL(b);
+            CAMSCRIPT(0)._0000 = CAM_LABEL(a);
+            g_pCamera->_28A9 = 1;
+            return FALSE;
+        }
+        case 67:
+            ctx->_000C = ctx->_0000[1];
+            ctx->_0010 = 0;
+            ctx->_0004 = ctx->_0000 + 2;
+            ctx->_0000 += 2;
+            continue;
+        case 68:
+            if (ctx->_000C == -1) {
+                ctx->_0000 = ctx->_0004;
+                continue;
+            }
+            if (ctx->_0010 == ctx->_000C) {
+                ctx->_0000 += 1;
+                continue;
+            }
+            ctx->_0010++;
+            ctx->_0000 = ctx->_0004;
+            continue;
+        case 69:
+            fn_3_100038();
+            idx = ctx->_0000[1];
+            if (hugeAnimStruct.objects[idx] == NULL) {
+                ctx->_0000 += 2;
+                continue;
+            }
+            if (lbl_3_common_bss_1323C->markers[idx]._28 != 1) {
+                return FALSE;
+            }
+            lbl_3_common_bss_1323C->_27F = 0;
+            ctx->_0000 += 2;
+            continue;
+        case 73:
+            found = 0;
+            for (i = 0; i < 9; i++) {
+                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                    hugeAnimStruct.objects[i]->_257) {
+                    found = i;
+                }
+            }
+            CTX->_09AA = 0;
+            CTX->_09B5 = 0;
+            CTX->_0946 = found;
+            ctx->_0000 += 1;
+            continue;
+        case 74:
+        case 94:
+            ctx->_0000 += 1;
+            continue;
+        case 75:
+            fn_3_249E8(ctx->_0000[1]);
+            ctx->_0000 += 2;
+            continue;
+        case 78:
+            CTX->_09B7 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 79:
+            fn_3_BBBC4();
+            ctx->_0000 += 1;
+            continue;
+        case 80:
+            fn_3_BA150();
+            ctx->_0000 += 1;
+            continue;
+        case 81:
+            CTX->_0940 = lbl_3_data_37AC[g_Runners[0].charID];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 1;
+            continue;
+        case 82:
+            CTX->_0940 = lbl_3_data_3888[g_Runners[0].charID];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 1;
+            continue;
+        case 83:
+            CTX->_0940 = lbl_3_data_3964[g_Runners[0].charID];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 1;
+            continue;
+        case 84:
+            CTX->_0940 = lbl_3_data_3A40[g_Runners[0].charID];
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 1;
+            continue;
+        case 85:
+        case 86:
+            found = 0;
+            for (i = 0; i < 9; i++) {
+                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                    hugeAnimStruct.objects[i]->_257) {
+                    found = hugeAnimStruct.objects[i]->_252;
+                }
+            }
+            switch (found) {
+            case 0:
+                idx = 0;
+                break;
+            case 4:
+                idx = 1;
+                break;
+            case 10:
+                idx = 2;
+                break;
+            case 2:
+                idx = 3;
+                break;
+            case 6:
+                idx = 4;
+                break;
+            case 9:
+                idx = 5;
+                break;
+            default:
+                idx = 0;
+                break;
+            }
+            if (ctx->_0000[0] == 0x55) {
+                CTX->_0940 = lbl_3_data_3B1C[idx];
+            } else {
+                CTX->_0940 = lbl_3_data_3B34[idx];
+            }
+            CTX->_0118 = 0;
+            fn_3_FC938();
+            ctx->_0000 += 1;
+            continue;
+        case 88:
+            found = 0;
+            for (i = 0; i < 9; i++) {
+                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                    hugeAnimStruct.objects[i]->_257) {
+                    found = i;
+                }
+            }
+            fn_80011358(found, trackerA);
+            ctx->_0000 += 1;
+            continue;
+        case 89:
+            found = 0;
+            for (i = 0; i < 9; i++) {
+                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                    hugeAnimStruct.objects[i]->_257) {
+                    found = i;
+                }
+            }
+            fn_80011358(found, 4);
+            ctx->_0000 += 1;
+            continue;
+        case 90:
+            fn_3_219CC();
+            ctx->_0000 += 1;
+            continue;
+        case 91:
+            item->_10 = 0;
+            {
+                CamDrawItem* created = (CamDrawItem*)insertGraphicDrawingFunction(manageDrawingItemState, 4);
+                created->_22 = 0;
+                created->_1E = 0;
+            }
+            ctx->_0000 += 1;
+            continue;
+        case 92:
+            if (item->_10 == 1) {
+                ctx->_0000 += 1;
+            }
+            return FALSE;
+        case 93:
+            changeScene(1, 6);
+            ctx->_0000 += 1;
+            continue;
+        case 95:
+            fn_3_100038();
+            changeScene(3, 6);
+            ctx->_0000 += 1;
+            continue;
+        case 96:
+            if (lbl_8037169C._12[1] != 0) {
+                ctx->_0000 += 1;
+            }
+            return FALSE;
+        case 97:
+            for (i = 0; i < 9; i++) {
+                fn_3_21C7C(i, ctx->_0000[1]);
+            }
+            ctx->_0000 += 2;
+            return FALSE;
+        case 101:
+            fn_3_100038();
+            if (ctx->_0000[1] > CAMF(s16, 0xA72)) {
+                return FALSE;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 103:
+            fn_3_100038();
+            lbl_3_common_bss_1323C->_25A += 1;
+            if ((f32)lbl_3_common_bss_1323C->_25A >= 2.0f * ((f32*)CAMDATA(0x32F8))[trackerB]) {
+                ctx->_0000 += 1;
+                continue;
+            }
+            return FALSE;
+        case 105:
+            lbl_3_common_bss_1323C->_280 = ctx->_0000[1];
+            ctx->_0000 += 2;
+            continue;
+        case 106:
+            fn_8001CA40(ctx->_0000[1]);
+            ctx->_0000 += 2;
+            continue;
+        default:
+            return FALSE;
+        }
+    }
+}
+
+// .text:0x000FDA1C size:0x114 mapped:0x8073CAB0
+void manageDrawingItemState(void) {
+    CamDrawItem* item = (CamDrawItem*)currentDrawingItem;
+    switch (item->_22) {
+    case 0:
+        item->_22 = 1;
+        break;
+    case 1: {
+        u16 i = item->_1E;
+        CamActor* obj = hugeAnimStruct.objects[i];
+        if (g_Fielders[i].rosterLocSkippingCap == 0) {
+            if (i < 9) {
+                item->_1E = i + 1;
+                item->_22 = 0;
+            } else {
+                item->_22 = 2;
+            }
+        } else if (obj == NULL || LoadModel(obj) != 0) {
+            if (item->_1E < 9) {
+                item->_1E = item->_1E + 1;
+                item->_22 = 0;
+            } else {
+                item->_22 = 2;
+            }
+        }
+        break;
+    }
+    case 2:
+        item->_0C->_10 = 1;
+        removeCurrentDrawingItem();
+        item->_22 = 0;
+        break;
+    }
+}
+
+// .text:0x000FD9FC size:0x20 mapped:0x8073CA90
+BOOL fn_3_FD9FC(void) {
+    return CTX->_0018 == 1;
+}
+
+// .text:0x000FD670 size:0x38C mapped:0x8073C704
+void fn_3_FD670(void) {
+    if (g_GameLogic.framesOfExitingToMenu == 0) {
+        CAM_SCRIPT_SET_VIEW();
+        fn_3_1000D8();
+        CTX->_093C = CTX->_0938;
+        CTX->_0948 = CTX->_0946;
+        CTX->_0942 = CTX->_0940;
+        switch (CTX->_0944) {
+        case 0:
+            if (CTX->_09AE != 0) {
+                if (fn_3_FDB30() != 0) {
+                    CTX->_09AE = 0;
+                    CTX->_09AF = 0;
+                    CTX->_09B0 = 0;
+                }
+            } else if (CTX->_09AD == 1) {
+                CamScript* ctx = CTX;
+                u32 time = ctx->_0118;
+                u32 frame = time >> 16;
+                u16* e = *(u16**)(ctx->_0990 + 8);
+                u16 n = e[0];
+                e += 2;
+                do {
+                    e += 2;
+                    if (*e > frame) {
+                        break;
+                    }
+                    n--;
+                } while (n != 0);
+                if (time < ctx->_011C - 1) {
+                    ctx->_0118 += 0x10000;
+                } else {
+                    ctx->_09AD = 0;
+                }
+            }
+            break;
+        case 1:
+            if (CTX->_09AE == 0) {
+                CTX->_0944 = 0;
+            }
+            break;
+        }
+    }
+}
+
+// .text:0x000FD5A8 size:0xC8 mapped:0x8073C63C
+void fn_3_FD5A8(void) {
+    CamSpline* sp;
+    VecXYZ up = {0.0f, 1.0f, 0.0f};
+    int i;
+    for (i = 0; i < 2; i++) {
+        sp = SPL(i);
+        sp->_04 = 0;
+        sp->_08 = 0;
+        sp->up = up;
+        sp->_1C = 0;
+        sp->_20 = 0;
+        sp->_24 = 0;
+        sp->_28 = 0;
+        sp->_2C = 0.0f;
+        sp->_30 = 0;
+        sp->_34 = 0;
+        sp->_38 = 0;
+        sp->_3C = 0;
+        sp->_40 = 0;
+        sp->_44 = 0.0f;
+    }
+}
+
+// .text:0x000FD51C size:0x8C mapped:0x8073C5B0
+void fn_3_FD51C(int idx) {
+    CamSpline* sp = SPL(idx);
+    VecXYZ up = {0.0f, 1.0f, 0.0f};
+    sp->_04 = 0;
+    sp->_08 = 0;
+    sp->up = up;
+    sp->_1C = 0;
+    sp->_20 = 0;
+    sp->_24 = 0;
+    sp->_28 = 0;
+    sp->_2C = 0.0f;
+    sp->_30 = 0;
+    sp->_34 = 0;
+    sp->_38 = 0;
+    sp->_3C = 0;
+    sp->_40 = 0;
+    sp->_44 = 0.0f;
+}
+
+// .text:0x000FD4DC size:0x40 mapped:0x8073C570
+void fn_3_FD4DC(void) {
+    CamScript* ctx = CTX;
+    if ((ctx->_0118 >> 16) == 0) {
+        ctx->_0020 = ctx->_0124;
+    }
+    fn_3_FCF24();
+}
+
+// .text:0x000FD408 size:0xD4 mapped:0x8073C49C
+void fn_3_FD408(u32 idx, VecXYZ* outPos, f32* outExtra) {
+    CamScript* ctx = CTX;
+    if (ctx->_003C > idx) {
+        memcpy(outPos, &ctx->_0034[idx], sizeof(VecXYZ));
+        outExtra[0] = ctx->_0034[idx].v[3];
+        outExtra[1] = ctx->_0034[idx].v[4];
+    } else {
+        memcpy(outPos, &ctx->_0034[ctx->_003C - 1], sizeof(VecXYZ));
+        outExtra[0] = ctx->_0034[ctx->_003C - 1].v[3];
+        outExtra[1] = ctx->_0034[ctx->_003C - 1].v[4];
+    }
+}
+
+// .text:0x000FCF24 size:0x4E4 mapped:0x8073BFB8
+void fn_3_FCF24(void) {
+    CamScript* ctx = CTX;
+    int i;
+    int j;
+    int k;
+    int total = 0;
+    for (i = 0; i < ctx->_0020 - 3; i++) {
+        for (k = 0; k < 4; k++) {
+            ctx->_001C[i + k].v[0] = CTX->_009C[(i + k) * 8 + 1];
+            ctx->_001C[i + k].v[1] = CTX->_009C[(i + k) * 8 + 2];
+            ctx->_001C[i + k].v[2] = CTX->_009C[(i + k) * 8 + 3];
+            ctx->_001C[i + k].v[3] = CTX->_009C[(i + k) * 8 + 4];
+            ctx->_001C[i + k].v[4] = CTX->_009C[(i + k) * 8 + 5];
+        }
+        ctx->_0038 = CTX->_0128[i];
+        {
+            CamPoint* q = &ctx->_001C[i];
+            if (q[1].v[0] == q[2].v[0] && q[2].v[0] == q[3].v[0] && q[1].v[1] == q[2].v[1] &&
+                q[2].v[1] == q[3].v[1] && q[1].v[2] == q[2].v[2] && q[2].v[2] == q[3].v[2]) {
+                CTX->_0128[i] = 0;
+                ctx->_0038 = 0;
+            }
+        }
+        for (j = 0; j < ctx->_0038; j++) {
+            f32 t = (f32)j / (f32)ctx->_0038;
+            f32 t2 = t * t;
+            f32 t3 = t2 * t;
+            if (ctx->_0044 == 0) {
+                f32 w1 = 4.0f + (3.0f * t3 - 6.0f * t2);
+                f32 w0 = 1.0f + ((-1.0f * t3 + 3.0f * t2) - 3.0f * t);
+                f32 w2 = 1.0f + (3.0f * t + (-3.0f * t3 + 3.0f * t2));
+                f32 w3 = t3;
+                CAM_SPLINE_COMP(0, / 6.0f);
+                CAM_SPLINE_COMP(1, / 6.0f);
+                CAM_SPLINE_COMP(2, / 6.0f);
+                CAM_SPLINE_COMP(3, / 6.0f);
+                CAM_SPLINE_COMP(4, / 6.0f);
+            } else {
+                f32 w1 = 2.0f + (3.0f * t3 - 5.0f * t2);
+                f32 w0 = (-1.0f * t3 + 2.0f * t2) - t;
+                f32 w2 = t + (-3.0f * t3 + 4.0f * t2);
+                f32 w3 = t3 - t2;
+                CAM_SPLINE_COMP(0, * 0.5f);
+                CAM_SPLINE_COMP(1, * 0.5f);
+                CAM_SPLINE_COMP(2, * 0.5f);
+                CAM_SPLINE_COMP(3, * 0.5f);
+                CAM_SPLINE_COMP(4, * 0.5f);
+            }
+            total++;
+        }
+    }
+    ctx->_003C = total;
+}
+
+// .text:0x000FCF20 size:0x4 mapped:0x8073BFB4
+void fn_3_FCF20(void) {
+}
+
+// .text:0x000FCEB0 size:0x70 mapped:0x8073BF44
+int fn_3_FCEB0(f32 t) {
+    CamScript* ctx = CTX;
+    int i = 0;
+    if (t < 0.0) {
+        return -1;
+    }
+    while (i < ctx->_003C && t > ctx->_0034[i].v[15]) {
+        i++;
+    }
+    if (i < ctx->_003C) {
+        return i;
+    }
+    return -1;
+}
+
+// .text:0x000FCEAC size:0x4 mapped:0x8073BF40
+void fn_3_FCEAC(void) {
+}
+
+// .text:0x000FCE38 size:0x74 mapped:0x8073BECC
+int fn_3_FCE38(int idx, f32 t) {
+    CamScript* ctx = CTX;
+    while (idx < ctx->_003C && t > ctx->_0034[idx].v[15]) {
+        idx++;
+    }
+    while (idx > 0 && t <= ctx->_0034[idx - 1].v[15]) {
+        idx--;
+    }
+    return idx;
+}
+
+// .text:0x000FC938 size:0x500 mapped:0x8073B9CC
+void fn_3_FC938(void) {
+    CAM_SCRIPT_START();
+    fn_3_101CC4();
+}
+
+// .text:0x000FC448 size:0x4F0 mapped:0x8073B4DC
+void fn_3_FC448(void) {
+    int i;
+    for (i = 0; i < 2; i++) {
+        unkStructPtr._0000 = (void*)&CAMSCRIPT_G(i);
+        CAM_SCRIPT_START();
+        fn_3_101CC4();
+    }
+}
