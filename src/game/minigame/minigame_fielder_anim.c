@@ -204,7 +204,6 @@ void parkPlantsTevSetup(void) {
 
 // .text:0x000E19E8 size:0x278
 void graphicsFunction_minigames(void) {
-    MinigameModelRec *rec;
     int i;
 
     hugeAnimStruct._3087 = TRUE;
@@ -242,22 +241,7 @@ void graphicsFunction_minigames(void) {
         updateMinigameFielderAnimations();
         animateShadows_nonBall();
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            for (i = 0; i < 30; i++) {
-                rec = &hugeAnimStruct.models[i];
-
-                if (g_Minigame.coinState[i] == 0) {
-                    rec->_26 = FALSE;
-                } else if (g_Minigame.coinFrameCounter[0] > lbl_3_data_18BB0[g_Minigame._199E * 2 + 1] &&
-                           (g_Minigame.coinFrameCounter[0] & 1) != 0) {
-                    rec->_26 = FALSE;
-                } else {
-                    rec->_26 = TRUE;
-                    rec->_04 = g_Minigame.coinPos[i].x;
-                    rec->_08 = -g_Minigame.coinPos[i].y;
-                    rec->_0C = g_Minigame.coinPos[i].z;
-                    rec->_14 = radianAngleReduction(rec->_14 + toyFieldCoinSpinStep);
-                }
-            }
+            toyFieldUpdateCoinModels();
         } else {
             mm_UpdateModels();
         }
@@ -273,14 +257,7 @@ void graphicsFunction_minigames(void) {
 
 // .text:0x000E1964 size:0x84
 void toyFieldInitCoinModels(void) {
-    int i;
-    MinigameModelRec *rec;
-
-    for (i = 0; i < 30; i++) {
-        rec = &hugeAnimStruct.models[i];
-        applyUniformScaleToObject(lbl_3_data_18D98[0], i);
-        rec->_14 = shortAngleToRad_Capped((s16)(rand() % SANG_MAX_ANGLE));
-    }
+    unused_toyFieldInitCoinModels();
 }
 
 // .text:0x000E1478 size:0x4EC mapped:0x8072050C
