@@ -111,16 +111,16 @@ void wallBallSituationSwitcher(void) {
         wallBallInitializeValues();
         break;
     case GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING:
-        fn_3_115BDC();
+        wallBallTransitionToBatting();
         break;
     case GAME_STATUS_TRANSITION_TO_MINIGAME_START:
-        fn_3_115B5C();
+        wallBallStartRound();
         break;
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
-        fn_3_115AB4();
+        wallBallPrepareNextBatter();
         break;
     case GAME_STATUS_DEFAULT:
-        fn_3_115978();
+        wallBallPrepareNextPitch();
         break;
     case GAME_STATUS_AT_BAT: {
         if (checkForPauses() != 0) {
@@ -192,19 +192,19 @@ void wallBallSituationSwitcher(void) {
         break;
     }
     case GAME_STATUS_MINIGAME_NEW_ROUND:
-        fn_3_1158B0();
+        wallBallCheckRoundsLeft();
         break;
     case GAME_STATUS_INNING_TRANSITION:
-        fn_3_115738();
+        wallBallRoundIntro();
         break;
     case GAME_STATUS_TRANSITION_MINIGAME_POSTGAME:
-        fn_3_115828();
+        wallBallPostgame();
         break;
     }
 }
 
 // .text:0x001160B8 size:0x4
-void fn_3_1160B8(void) {
+void wallBallEmptyHook(void) {
 }
 
 // .text:0x00115C24 size:0x494
@@ -335,14 +335,14 @@ void wallBallInitializeValues(void) {
 }
 
 // .text:0x00115BDC size:0x48
-void fn_3_115BDC(void) {
+void wallBallTransitionToBatting(void) {
     sndFXStartEx(0x1bd, lbl_800EFBA4[6], 0x3f, 0);
     wallBallRotatePitchers(1);
     SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
 }
 
 // .text:0x00115B5C size:0x80
-void fn_3_115B5C(void) {
+void wallBallStartRound(void) {
     g_Scores.Inning++;
     g_Minigame.turnNumberWithinRound = 0;
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
@@ -353,7 +353,7 @@ void fn_3_115B5C(void) {
 }
 
 // .text:0x00115AB4 size:0xA8
-void fn_3_115AB4(void) {
+void wallBallPrepareNextBatter(void) {
     g_Minigame.minigamePlayerSelectedOrder = g_Minigame.minigameControlStruct[0].aIStrength[g_Minigame.turnNumberWithinRound + 4];
     g_GameLogic.pre_PostMiniGameInd = TRUE;
     g_Minigame.miniGameLatestPoints[0] = 0;
@@ -368,8 +368,8 @@ void fn_3_115AB4(void) {
 }
 
 // .text:0x00115978 size:0x13C
-void fn_3_115978(void) {
-    fn_3_1158F8();
+void wallBallPrepareNextPitch(void) {
+    wallBallResetPlayState();
     g_Minigame.turnOverStatus = 0;
     g_Minigame.ballStoppedBreakingWallsInd = FALSE;
     g_Minigame.postBallStoppedCounter = 0;
@@ -401,7 +401,7 @@ void fn_3_115978(void) {
 }
 
 // .text:0x001158F8 size:0x80
-void fn_3_1158F8(void) {
+void wallBallResetPlayState(void) {
     setPitcherStatsToInMemPitcher(*(s8*)&g_Minigame.minigamePlayerSelectedOrder);
     setDefaultInMemBall();
     setDefaultInMemPitcher();
@@ -414,7 +414,7 @@ void fn_3_1158F8(void) {
 }
 
 // .text:0x001158B0 size:0x48
-void fn_3_1158B0(void) {
+void wallBallCheckRoundsLeft(void) {
     if (g_Scores.Inning >= g_Scores.inningLimit) {
         SetGameStatus(GAME_STATUS_TRANSITION_MINIGAME_POSTGAME);
     } else {
@@ -423,7 +423,7 @@ void fn_3_1158B0(void) {
 }
 
 // .text:0x00115828 size:0x88
-void fn_3_115828(void) {
+void wallBallPostgame(void) {
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD &&
         g_Minigame.multiPlayerInd == 0) {
@@ -438,7 +438,7 @@ void fn_3_115828(void) {
 }
 
 // .text:0x00115738 size:0xF0
-void fn_3_115738(void) {
+void wallBallRoundIntro(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
         changeScene(1, 6);
@@ -466,7 +466,7 @@ void fn_3_115738(void) {
 }
 
 // .text:0x00115540 size:0x1F8
-void fn_3_115540(void) {
+void wallBallAtBat(void) {
     if (checkForPauses() != 0) {
         return;
     }
@@ -646,7 +646,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
 }
 
 // .text:0x0011502C size:0xDC
-void fn_3_11502C(void) {
+void wallBallTurnOverCountdown(void) {
     if (g_Minigame.turnOverStatus == 1) {
         g_Minigame.turnOverStatus = 2;
         g_GameLogic.CountdownUntilFade = lbl_3_data_2167C[0];
@@ -656,12 +656,12 @@ void fn_3_11502C(void) {
         changeScene(3, 6);
     }
     if (g_GameLogic.CountdownUntilFade <= 0) {
-        fn_3_114FC0();
+        wallBallEndTurn();
     }
 }
 
 // .text:0x00114FC0 size:0x6C
-void fn_3_114FC0(void) {
+void wallBallEndTurn(void) {
     g_GameLogic.pre_PostMiniGameInd = TRUE;
     g_GameLogic.minigameLastTurnSuccessInd = TRUE;
     g_GameLogic.hudLoadingRelated = TRUE;
