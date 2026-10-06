@@ -14,6 +14,14 @@
 #include "musyx/musyx.h"
 #include "game/sound/m_sound.h"
 #include "game/math/game_math.h"
+#include "Dolphin/stl.h"
+#include "Unknown/File_0x8004cc18.h"
+#include "game/match_setup/match_scene.h"
+#include "game/hud/hud_gauges.h"
+#include "Unknown/File_0x8004e5b4.h"
+#include "text/text_block.h"
+#include "game/batting/at_bat_results.h"
+#include "Unknown/File_0x8003649c.h"
 
 extern u8 animRelated[0x124];
 extern u8 pauseControl[0x264];
@@ -25,11 +33,11 @@ extern UIRecordDescriptor lbl_3_data_A9F8[];
 extern UIRecordDescriptor lbl_3_data_B0E0[];
 extern u16 lbl_3_data_B140[][2];
 extern UIRecordDescriptor lbl_3_data_AAB0[];
-extern u16 lbl_3_data_B010[];
+extern u16 lbl_3_data_B010[8][5];
 extern u16 lbl_3_data_B0D8[];
 extern s16 bOD_challenge_nPitches_Points[4][2];
 extern s16 bB_challengePointsRequired[4];
-extern u8 lbl_3_data_B060[];
+extern s8 lbl_3_data_B060[][3][5];
 extern struct {
     u8 _0[8];
     u16 label;
@@ -138,10 +146,1292 @@ extern int fn_3_107CD0(void);
 extern int fn_3_107C88(void);
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
 
-#define HUD_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
+extern void fn_8004D0F0(void);
+extern void fn_3_E911C(void);
+extern void fn_3_11DECC(void);
+extern u8 lbl_8037169C[];
+extern void fn_80053FE8(void);
+extern void fn_80051D00(void);
+extern void fn_80050F78(int arg0);
+extern void fn_3_11D780(void);
+extern void fn_3_11E364(void);
+extern void fn_3_11E7C4(void);
+extern void fn_3_EA454(void);
+extern void fn_3_EB6E0(void);
+extern UIRecordDescriptor lbl_3_data_9FB4[];
+extern UIRecordDescriptor lbl_3_data_9ECC[];
+extern UIRecordDescriptor lbl_3_data_92D4[];
+extern UIRecordDescriptor lbl_3_data_9208[];
+extern UIRecordDescriptor lbl_3_data_A598[];
+extern u16 lbl_3_data_92C8[];
+extern u16 lbl_3_data_A8B8[];
+extern u16 lbl_3_data_A9E8[];
+extern u8 lbl_3_data_21268[];
+extern u16 lbl_3_data_9D4C[];
+extern u16 lbl_3_data_9D48[];
+extern u8 lbl_3_data_9D50[][5];
+extern u8 lbl_3_data_A594[];
+extern u8 superstarUnlocked[0x130];
 
-static inline BOOL hudRecordFinished(UIRecord* rec) {
+#define MG_S16(off) (*(s16*)&MG_BYTE(off))
+extern u16 lbl_3_data_93F4[][2];
+extern u16 lbl_3_data_93D4[][2];
+extern void fn_8000F8F4(void* node);
+extern UIRecordDescriptor lbl_3_data_9D94[];
+extern UIRecordDescriptor lbl_3_data_9408[];
+extern u16 lbl_3_data_9D84[];
+extern u16 lbl_3_data_9EB4[][2];
+extern u8 lbl_3_data_9EBC[][8];
+
+#define HUD_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
+/* Record `i` of the group that starts at handle offset `base` within the node. */
+#define HUD_RECORD_AT(scene, base, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
+/* Record `k` past record `i` (same record as HUD_RECORD_AT(scene, k, i), different address arithmetic). */
+#define HUD_RECORD_PLUS(scene, i, k) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (k)].object)
+
+/* Overlay of the tables stored inside lbl_3_data_226E0 after its descriptor lists. */
+typedef struct {
+    u8 _0[0x420];
+    u8 anchors[8];
+    u16 elementIds[8];
+    u16 thresholds[8];
+} HudDescriptorTables;
+
+static inline u32 hudRecordFinished(UIRecord* rec) {
     return rec->unk69[0] == 2;
+}
+
+// .text:0x0012D1F4 size:0x960
+void minigameGraphics(void) {
+    u8 status = g_GameLogic.gameStatus;
+    DrawingSceneStruct* node;
+
+    if (status == GAME_STATUS_MINIGAME_SELECT || (u8)(status - GAME_STATUS_TOY_STADIUM_LOAD) <= 4
+        || status == GAME_STATUS_0x28) {
+        fn_3_12CA90();
+    } else if (status == GAME_STATUS_0x26) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_E911C, 2))->_18 = 1;
+        }
+    } else if (status == GAME_STATUS_0x29) {
+        if (animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
+            insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+        }
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
+            node = insertGraphicDrawingFunction(fn_3_11DECC, 2);
+            *(DrawingSceneStruct**)((u8*)&g_Minigame + 0x1E04) = node;
+        }
+    } else {
+        if (status == GAME_STATUS_MINIGAME_POST_MENU) {
+            if (pauseControl[0x1D2] == 1) {
+                insertGraphicDrawingFunction(pauseOptionList_init, 2);
+            }
+        } else {
+            animRelated[0xDA] = 0;
+        }
+        if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME || g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
+            fn_3_129458();
+        } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
+            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+                if (g_Minigame._1907 == 1) {
+                    insertGraphicDrawingFunction(fn_3_11D780, 2);
+                }
+                node = insertGraphicDrawingFunction(fn_3_127B68, 2);
+                *(DrawingSceneStruct**)((u8*)&g_Minigame + 0x1E04) = node;
+            }
+            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+                insertGraphicDrawingFunction(fn_3_1274B4, 2);
+            }
+        } else if (g_GameLogic.gameStatus == GAME_STATUS_0x27) {
+            fn_3_1293D0();
+        } else if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
+            if (lbl_8037169C[0x12] != 0 && g_Minigame._1E01[1] == 0) {
+                insertGraphicDrawingFunction(fn_3_1254F8, 2);
+            }
+        }
+        if (g_Minigame.pauseInd != 0) {
+            if (*(s16*)&pauseControl[0xA] == 1 && animRelated[0xAA] == 0) {
+                insertGraphicDrawingFunction(pauseSubPanel_init, 2);
+            }
+            if (pauseControl[0x1D2] == 0xA) {
+                if (pauseControl[0x1D4] == 2) {
+                    insertGraphicDrawingFunction(fn_3_128B90, 2);
+                }
+            } else if (pauseControl[0x1D2] == 0xB) {
+                if (pauseControl[0x1D4] == 2) {
+                    insertGraphicDrawingFunction(fn_3_126604, 2);
+                }
+            } else if (animRelated[0xAB] == 0) {
+                insertGraphicDrawingFunction(pauseOptionList_init, 2);
+            }
+        }
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
+            fn_3_12C984();
+        }
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
+            fn_3_12C868();
+        }
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
+            fn_3_12C74C();
+        }
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_CHAINCHOMP_SPRINT) {
+            fn_3_12C684();
+        }
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
+            fn_3_12C5CC();
+        }
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
+            fn_3_12C514();
+        }
+    }
+}
+
+// .text:0x0012CA90 size:0x764
+void fn_3_12CA90(void) {
+    if (g_GameLogic.gameStatus >= GAME_STATUS_MINIGAME_SELECT && g_GameLogic.gameStatus <= GAME_STATUS_0x20
+        && animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
+        insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+        insertGraphicDrawingFunction(fn_80053FE8, 2);
+        if (g_Minigame._190A != 0) {
+            SET_MENU(0x23);
+        } else {
+            SET_MENU(0x33);
+        }
+    }
+    if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            insertGraphicDrawingFunction(fn_3_129A18, 2);
+            if (animRelated[0xBC] == 0) {
+                insertGraphicDrawingFunction(fn_3_12BFE8, 2);
+            }
+        }
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            fn_8004CC4C(0, 1, 1, 0, 0x89);
+            insertGraphicDrawingFunction(fn_8004D0F0, 2);
+        }
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            if (animRelated[0xDC] == 0 && g_Minigame._19E0 == 0) {
+                insertGraphicDrawingFunction(fn_80051D00, 2);
+                animRelated[0xDC] = 1;
+            }
+            if (animRelated[0xDA] != 1) {
+                insertGraphicDrawingFunction(fn_3_12B7A0, 2);
+            }
+        }
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2) {
+            if (animRelated[0xDC] == 0 && g_Minigame._19DE != 5 && g_Minigame._19DE != 8
+                && g_Minigame._19DE != 6) {
+                insertGraphicDrawingFunction(fn_80051D00, 2);
+                animRelated[0xDC] = 1;
+            }
+            if (g_Minigame._19DE == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+                insertGraphicDrawingFunction(fn_3_12A6C4, 2);
+            }
+            if (g_Minigame._19DE == 5 || g_Minigame._19DE == 8) {
+                if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1 && g_Minigame._19DE == 5) {
+                    fn_80050F78(0);
+                    animRelated[0xDC] = 0;
+                    if (g_Minigame._190A != 0) {
+                        insertGraphicDrawingFunction(fn_3_129F48, 2);
+                    } else {
+                        insertGraphicDrawingFunction(fn_3_12A2B8, 2);
+                    }
+                }
+                if (g_Minigame._1A3C == 0) {
+                    if (g_Minigame._190A != 0) {
+                        SET_MENU(0x24);
+                    } else {
+                        SET_MENU(0x36);
+                    }
+                }
+            } else if (g_Minigame._19DE < 4) {
+                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                    if (g_Minigame._190A != 0) {
+                        SET_MENU(0x20);
+                    } else if (fn_3_9E834()) {
+                        SET_MENU(0x2F);
+                    } else {
+                        SET_MENU(0x2E);
+                    }
+                } else {
+                    if (g_Minigame._190A != 0) {
+                        SET_MENU(0x23);
+                    } else if (fn_3_9E834()) {
+                        SET_MENU(0x35);
+                    } else {
+                        SET_MENU(0x34);
+                    }
+                }
+            }
+        }
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_7) {
+            fn_80050F78(1);
+            animRelated[0xDC] = 0;
+        }
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_3) {
+            fn_80050F78(0);
+            animRelated[0xDC] = 0;
+        }
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_READY) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            insertGraphicDrawingFunction(fn_3_126604, 2);
+            if (g_Minigame._1A38 != 0 || g_Minigame._1A3C != 0) {
+                insertGraphicDrawingFunction(fn_80053FE8, 2);
+            }
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                if (g_Minigame._190A != 0) {
+                    SET_MENU(0x22);
+                } else {
+                    SET_MENU(0x32);
+                }
+            } else {
+                if (g_Minigame._190A != 0) {
+                    SET_MENU(0x26);
+                } else if (g_Minigame._1A3C != 0) {
+                    SET_MENU(0x3B);
+                } else {
+                    SET_MENU(0x38);
+                }
+            }
+            if (animRelated[0xD9] == 0) {
+                insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+            }
+        }
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_0x28) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1) {
+            insertGraphicDrawingFunction(fn_3_126604, 2);
+            SET_MENU(0x39);
+        }
+    }
+}
+
+// .text:0x0012C984 size:0x10C
+void fn_3_12C984(void) {
+    if (animRelated[0xB6] != 0) {
+        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        insertGraphicDrawingFunction(fn_3_121908, 2);
+        if (g_Minigame.multiPlayerInd != 0) {
+            insertGraphicDrawingFunction(minigameStateLogic, 2);
+        }
+        insertGraphicDrawingFunction(fn_3_124738, 2);
+        insertGraphicDrawingFunction(fn_3_1226D4, 2);
+        insertGraphicDrawingFunction(fn_3_122334, 2);
+        insertGraphicDrawingFunction(fn_3_1235B8, 2);
+        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(fn_3_EB6E0, 2);
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        insertGraphicDrawingFunction(fn_3_125850, 2);
+    }
+    manageEventStates();
+}
+
+// .text:0x0012C868 size:0x11C
+void fn_3_12C868(void) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING) {
+        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        insertGraphicDrawingFunction(fn_3_12026C, 2);
+        insertGraphicDrawingFunction(fn_3_12089C, 2);
+        if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0
+            && g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
+            insertGraphicDrawingFunction(fn_3_120FF8, 2);
+        } else {
+            insertGraphicDrawingFunction(minigameStateLogic, 2);
+            insertGraphicDrawingFunction(fn_3_123990, 2);
+        }
+        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(fn_3_121304, 2);
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(fn_3_99BDC, 2);
+    }
+}
+
+// .text:0x0012C74C size:0x11C
+void fn_3_12C74C(void) {
+    if (animRelated[0xB6] != 0) {
+        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        if (g_Minigame.multiPlayerInd == 0) {
+            insertGraphicDrawingFunction(fn_3_11F508, 2);
+        }
+        insertGraphicDrawingFunction(fn_3_11F778, 2);
+        insertGraphicDrawingFunction(fn_3_11FA58, 2);
+        insertGraphicDrawingFunction(fn_3_11FDB0, 2);
+        if (g_Minigame.multiPlayerInd != 0) {
+            insertGraphicDrawingFunction(minigameStateLogic, 2);
+        }
+        insertGraphicDrawingFunction(fn_3_124738, 2);
+        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(fn_3_EB6E0, 2);
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        insertGraphicDrawingFunction(fn_3_125850, 2);
+    }
+}
+
+// .text:0x0012C684 size:0xC8
+void fn_3_12C684(void) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
+        && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
+        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        insertGraphicDrawingFunction(fn_3_123990, 2);
+        insertGraphicDrawingFunction(fn_3_123EBC, 2);
+        insertGraphicDrawingFunction(fn_3_11EC28, 2);
+        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(fn_3_11F02C, 2);
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        insertGraphicDrawingFunction(fn_3_125850, 2);
+    }
+}
+
+// .text:0x0012C5CC size:0xB8
+void fn_3_12C5CC(void) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
+        && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
+        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        insertGraphicDrawingFunction(fn_3_123990, 2);
+        insertGraphicDrawingFunction(fn_3_123EBC, 2);
+        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(fn_3_11E7C4, 2);
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        insertGraphicDrawingFunction(fn_3_125850, 2);
+    }
+}
+
+// .text:0x0012C514 size:0xB8
+void fn_3_12C514(void) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
+        && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
+        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        insertGraphicDrawingFunction(fn_3_123990, 2);
+        insertGraphicDrawingFunction(fn_3_123EBC, 2);
+        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(fn_3_11E364, 2);
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        insertGraphicDrawingFunction(fn_3_125850, 2);
+    }
+}
+
+// .text:0x0012C3F0 size:0x124
+void fn_3_12C3F0(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    u16 element;
+
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9208);
+    animRelated[0xD9] = 1;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT || g_GameLogic.gameStatus == GAME_STATUS_0x1B
+            || g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_LOAD) {
+            element = lbl_3_data_92C8[0];
+        } else {
+            element = lbl_3_data_92C8[1];
+        }
+    } else if (g_Practice.practiceType_1 == 6) {
+        element = lbl_3_data_92C8[4];
+    } else {
+        element = lbl_3_data_92C8[3];
+    }
+    HUD_RECORD(scene, 1)->elementIndex = element;
+    HUD_RECORD(scene, 1)->frame = 0x28 << 16;
+    scene->state = element;
+    scene->_1E = 0;
+    currentDrawingItem->func = fn_3_12C1AC;
+}
+
+// .text:0x0012C1AC size:0x244
+void fn_3_12C1AC(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    u16 element;
+    u8 status;
+
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES
+        || g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        status = g_GameLogic.gameStatus;
+        if (status == GAME_STATUS_GAME_START_MOVIE) {
+            goto remove;
+        }
+        if (status == GAME_STATUS_0x28 || status == GAME_STATUS_MINIGAME_READY) {
+            element = lbl_3_data_92C8[2];
+        } else if (status == GAME_STATUS_0x1B || status == GAME_STATUS_MINIGAME_SELECT
+                   || status == GAME_STATUS_TOY_STADIUM_LOAD) {
+            element = lbl_3_data_92C8[0];
+        } else {
+            element = lbl_3_data_92C8[1];
+        }
+    } else {
+        if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_MENU) {
+            goto remove;
+        }
+        if (g_Practice.practiceType_1 == 6) {
+            element = lbl_3_data_92C8[4];
+        } else {
+            element = lbl_3_data_92C8[3];
+        }
+    }
+    if (scene->state != element) {
+        scene->state = element;
+        scene->_1E = 1;
+        HUD_RECORD(scene, 2)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 2)->playMode = UI_PLAY_FORWARD;
+        HUD_RECORD(scene, 2)->frame = 0;
+        HUD_RECORD(scene, 3)->elementIndex = element;
+        HUD_RECORD(scene, 0)->playMode = UI_PLAY_BACKWARD;
+    } else if (scene->_1E != 0) {
+        if ((HUD_RECORD(scene, 0)->frame >> 16) == 0) {
+            HUD_RECORD(scene, 2)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD(scene, 1)->elementIndex = scene->state;
+            HUD_RECORD(scene, 0)->frame = 0x28 << 16;
+            HUD_RECORD(scene, 0)->playMode = UI_PLAY_STOP;
+            scene->_1E = 0;
+        }
+    }
+    return;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+    animRelated[0xD9] = 0;
+    menuNumber[0x26] = 1;
+}
+
+// .text:0x0012BFE8 size:0x1C4
+void fn_3_12BFE8(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_92D4);
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
+        } else {
+            HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
+        }
+    }
+    animRelated[0xBC] = 1;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+        scene->_20 = g_Practice.practiceType_2;
+        HUD_RECORD(scene, 3)->elementIndex = 0x5F;
+        HUD_RECORD(scene, 4)->elementIndex = 0x5C;
+    } else {
+        scene->_20 = lbl_3_data_21268[(s8)g_Minigame._19E1];
+        HUD_RECORD(scene, 3)->elementIndex = 0x5E;
+        HUD_RECORD(scene, 4)->elementIndex = 0x5B;
+    }
+    scene->_1A = 0;
+    scene->state = 0;
+    scene->_22 = 0;
+    currentDrawingItem->func = fn_3_12BB64;
+}
+
+// .text:0x0012BB64 size:0x484
+void fn_3_12BB64(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    u32 mode;
+
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    mode = g_d_GameSettings.GameModeSelected;
+    if (mode == GAME_TYPE_PRACTICE) {
+        if (g_Practice.practiceType_1 == 6) {
+            goto remove;
+        }
+        if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_MENU) {
+            goto remove;
+        }
+    } else if (g_GameLogic.gameStatus != GAME_STATUS_MINIGAME_SELECT) {
+        goto remove;
+    }
+    if (mode == GAME_TYPE_PRACTICE) {
+        HUD_RECORD(scene, 3)->frame = lbl_3_data_93F4[g_Practice.practiceType_2][0] << 16;
+        HUD_RECORD(scene, 4)->frame = lbl_3_data_93F4[g_Practice.practiceType_2][1] << 16;
+        if (scene->_20 != g_Practice.practiceType_2) {
+            scene->_22 = 1;
+        }
+    } else {
+        if (g_d_GameSettings._12 < 1
+            && (lbl_3_data_21268[(s8)g_Minigame._19E1] == 6 || lbl_3_data_21268[(s8)g_Minigame._19E1] == 7)) {
+            HUD_RECORD(scene, 3)->frame = lbl_3_data_93D4[0][0] << 16;
+            HUD_RECORD(scene, 4)->frame = lbl_3_data_93D4[0][1] << 16;
+        } else if (g_d_GameSettings._12 < 2 && lbl_3_data_21268[(s8)g_Minigame._19E1] == 7) {
+            HUD_RECORD(scene, 3)->frame = lbl_3_data_93D4[0][0] << 16;
+            HUD_RECORD(scene, 4)->frame = lbl_3_data_93D4[0][1] << 16;
+        } else {
+            HUD_RECORD(scene, 3)->frame = lbl_3_data_93D4[lbl_3_data_21268[(s8)g_Minigame._19E1]][0] << 16;
+            HUD_RECORD(scene, 4)->frame = lbl_3_data_93D4[lbl_3_data_21268[(s8)g_Minigame._19E1]][1] << 16;
+        }
+        if (scene->_20 != lbl_3_data_21268[(s8)g_Minigame._19E1]) {
+            scene->_22 = 1;
+        }
+    }
+    if (scene->state == 0) {
+        scene->state = 1;
+    } else if (scene->state == 1) {
+        if ((s32)(HUD_RECORD(scene, 2)->frame >> 16) >= 0xE) {
+            scene->state = 2;
+        }
+    } else if (scene->state == 2) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+            if (g_Practice.practiceType_1 == 5 && g_Practice.practiceState == PRACTICE_STATE_3) {
+                scene->state = 3;
+            }
+        } else if (g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
+            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_6 && *(s16*)&MG_BYTE(0x18A2) == 0x1F) {
+                scene->state = 3;
+            }
+        } else if (g_GameLogic.gameStatus == GAME_STATUS_0x20) {
+            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5) {
+                scene->state = 3;
+            }
+        }
+    } else if (scene->state == 3) {
+        HUD_RECORD(scene, 0)->playMode = UI_PLAY_BACKWARD;
+        HUD_RECORD(scene, 2)->playMode = UI_PLAY_BACKWARD;
+        HUD_RECORD(scene, 1)->playMode = UI_PLAY_BACKWARD;
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+            if ((s32)(HUD_RECORD(scene, 6)->frame >> 16) > 9) {
+                HUD_RECORD(scene, 6)->frame = 9 << 16;
+            }
+            HUD_RECORD(scene, 6)->playMode = UI_PLAY_BACKWARD;
+        }
+    }
+    return;
+remove:
+    text_freeBlock(scene->_1E);
+    fn_8000F8F4(scene);
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+    animRelated[0xBC] = 0;
+}
+
+// .text:0x0012B7A0 size:0x3C4
+void fn_3_12B7A0(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    int i;
+
+    scene->state = 0;
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9408);
+    i = 0;
+    do {
+        load_Icon(scene, i + 0xD, 1, 0x1A, i);
+        HUD_RECORD_AT(scene, 0x32, i)->frame = i << 16;
+        HUD_RECORD_AT(scene, 0x3E, i)->frame = 0x36 << 16;
+        i++;
+    } while (i < 4);
+    i = 0;
+    do {
+        load_Icon(scene, i + 0x44, 1, 0x3C, i);
+        i++;
+    } while (i < 4);
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        if (g_Minigame._190A != 0) {
+            SET_MENU(0x20);
+        } else if (fn_3_9E834()) {
+            SET_MENU(0x2F);
+        } else {
+            SET_MENU(0x2E);
+        }
+    } else {
+        if (g_Minigame._190A != 0) {
+            SET_MENU(0x23);
+        } else if (fn_3_9E834()) {
+            SET_MENU(0x35);
+        } else {
+            SET_MENU(0x34);
+        }
+    }
+    if (g_Minigame._190A != 0) {
+        HUD_RECORD(scene, 0x48)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 0x48)->elementIndex = lbl_3_data_9D84[g_d_GameSettings._33];
+        for (i = 2; i < 5; i++) {
+            HUD_RECORD(scene, i)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 4, i)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 12, i)->flags &= ~UI_FLAG_VISIBLE;
+        }
+    }
+    animRelated[0xDA] = 1;
+    scene->_18 = 0;
+    scene->_1A = 0;
+    currentDrawingItem->func = fn_3_12A910;
+}
+
+// .text:0x0012A910 size:0xE90
+void fn_3_12A910(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    UIRecord* rec;
+    u32 status;
+    int i;
+    int j;
+    int count;
+    int last;
+    int active;
+
+    scene->_18++;
+    scene->_1A++;
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    status = g_GameLogic.gameStatus;
+    if (status != GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT && status != GAME_STATUS_0x20
+        && (status != GAME_STATUS_0x1F || g_GameLogic._125 != TRANSITION_CALCULATION_TYPE_0)) {
+        goto remove;
+    }
+    if (scene->state == 0) {
+        scene->state = 1;
+    } else if (scene->state == 1) {
+        rec = HUD_RECORD(scene, 0);
+        if ((s32)(rec->frame >> 16) >= lbl_3_data_9D4C[0]) {
+            rec->playMode = UI_PLAY_STOP;
+            HUD_RECORD(scene, 17)->playMode = UI_PLAY_STOP;
+            scene->state = 2;
+        }
+    } else if (scene->state == 2) {
+        for (i = 0; i < 4; i++) {
+            if (g_Minigame.selectSlotState[i] >= 0) {
+                if (g_Minigame.selectSlots[i].charID >= 0 && g_Minigame.selectSlots[i]._7 != 0) {
+                    HUD_RECORD_AT(scene, 9, i)->playMode = UI_PLAY_FORWARD;
+                } else {
+                    rec = HUD_RECORD_AT(scene, 9, i);
+                    if ((s32)(rec->frame >> 16) < 10) {
+                        rec->playMode = UI_PLAY_FORWARD;
+                    } else if ((s32)(rec->frame >> 16) > 10) {
+                        rec->playMode = UI_PLAY_BACKWARD;
+                    } else {
+                        rec->playMode = UI_PLAY_STOP;
+                    }
+                }
+                HUD_RECORD_AT(scene, 13, i)->playMode = UI_PLAY_FORWARD;
+                HUD_RECORD_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
+            } else {
+                HUD_RECORD_AT(scene, 9, i)->playMode = UI_PLAY_BACKWARD;
+                HUD_RECORD_AT(scene, 13, i)->playMode = UI_PLAY_BACKWARD;
+                HUD_RECORD_AT(scene, 1, i)->playMode = UI_PLAY_BACKWARD;
+            }
+        }
+        for (j = 0; j < 4; j++) {
+            if (g_Minigame.selectSlotState[j] == 0) {
+                load_Icon(scene, j + 0xD, 1, 0x1A, j);
+            } else if (g_Minigame.selectSlotState[j] == 1) {
+                load_Icon(scene, j + 0xD, 1, 0x1A, j + 4);
+            }
+        }
+        if (g_Minigame._19DE == 4) {
+            HUD_RECORD(scene, 66)->anchorSub = 3 - MG_S16(0x18A2);
+            HUD_RECORD(scene, 67)->anchorSub = 3 - MG_S16(0x18A2);
+            HUD_RECORD(scene, 66)->playMode = UI_PLAY_FORWARD;
+            HUD_RECORD(scene, 67)->playMode = UI_PLAY_FORWARD;
+            for (i = 0; i < 4; i++) {
+                if (g_Minigame.playerSlots.aiStrength[MG_S16(0x18A2)] == i) {
+                    HUD_RECORD_AT(scene, 68, i)->playMode = UI_PLAY_FORWARD;
+                    if ((s32)(HUD_RECORD_AT(scene, 68, i)->frame >> 16) >= 50) {
+                        HUD_RECORD_AT(scene, 68, i)->frame = 10 << 16;
+                    }
+                } else {
+                    HUD_RECORD_AT(scene, 68, i)->playMode = UI_PLAY_STOP;
+                    HUD_RECORD_AT(scene, 68, i)->frame = 0;
+                }
+            }
+        } else {
+            HUD_RECORD(scene, 66)->playMode = UI_PLAY_BACKWARD;
+            HUD_RECORD(scene, 67)->playMode = UI_PLAY_BACKWARD;
+        }
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_6) {
+            count = 0;
+            for (j = 0; j < 4; j++) {
+                if (g_Minigame.selectSlotState[j] == 0) {
+                    last = j;
+                    count++;
+                }
+            }
+            if (count > 1 || g_Minigame._1A3C != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                scene->state = 5;
+                animRelated[0xDB] = 4;
+            } else {
+                scene->state = 3;
+                animRelated[0xDB] = last;
+            }
+            scene->_1A = 0;
+        } else if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_3) {
+            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
+                scene->state = 6;
+                scene->_1A = 0;
+            }
+        }
+    } else if (scene->state == 6) {
+        if (scene->_1A == 1) {
+            HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
+            HUD_RECORD(scene, 17)->playMode = UI_PLAY_FORWARD;
+        }
+        if ((s32)(HUD_RECORD(scene, 0)->frame >> 16) >= 30) {
+            goto remove;
+        }
+    } else if (scene->state == 7) {
+        if (scene->_1A >= 30) {
+            if (animRelated[0xDB] != 4) {
+                HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_9D48[0];
+                HUD_RECORD(scene, 0)->frame = lbl_3_data_9D4C[0] << 16;
+                HUD_RECORD(scene, 0)->playMode = UI_PLAY_STOP;
+                HUD_RECORD(scene, 17)->elementIndex = lbl_3_data_9D48[0];
+                HUD_RECORD(scene, 17)->frame = lbl_3_data_9D4C[0] << 16;
+                HUD_RECORD(scene, 17)->playMode = UI_PLAY_STOP;
+            }
+            scene->state = 2;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        active = FALSE;
+        if (g_Minigame.selectSlotState[i] >= 0) {
+            if (g_Minigame._190A == 0 || i == g_d_GameSettings._35) {
+                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                    if (g_Minigame.selectSlots[i].charID >= 0) {
+                        active = TRUE;
+                    }
+                } else if (g_Minigame._19DE != 8 || (s8)g_Minigame._1908 == i) {
+                    active = TRUE;
+                }
+            }
+        }
+        if (active) {
+            HUD_RECORD_AT(scene, 18, i)->playMode = UI_PLAY_FORWARD;
+        } else {
+            HUD_RECORD_AT(scene, 18, i)->playMode = UI_PLAY_BACKWARD;
+        }
+        if (g_Minigame.selectSlots[i].charID < 0 || g_Minigame.selectSlots[i]._7 == 0) {
+            HUD_RECORD_AT(scene, 18, i)->flags &= ~UI_FLAG_VISIBLE;
+        } else {
+            HUD_RECORD_AT(scene, 18, i)->flags |= UI_FLAG_VISIBLE;
+        }
+        HUD_RECORD_AT(scene, 22, i)->frame = lbl_3_data_A594[g_Minigame.battingHandedness[i]] << 16;
+    }
+    for (i = 0; i < 4; i++) {
+        active = FALSE;
+        if (g_Minigame.selectSlotState[i] >= 0) {
+            if (g_Minigame._190A == 0 || i == g_d_GameSettings._35) {
+                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                    if (g_Minigame.selectSlots[i].charID >= 0 && g_Minigame.selectSlots[i]._1 == 0) {
+                        active = TRUE;
+                    }
+                } else if (g_Minigame._19DE != 8 || (s8)g_Minigame._1908 == i) {
+                    if (g_Minigame.selectSlots[i].charID >= 0 && g_Minigame.selectSlots[i]._6 == 0 && g_Minigame.selectSlots[i]._1 == 0) {
+                        active = TRUE;
+                    }
+                }
+            }
+        }
+        if (active && characterStaticIndexes[g_Minigame.selectSlots[i].charID * 6] != 0 && g_Minigame.selectSlots[i]._7 != 0) {
+            HUD_RECORD_AT(scene, 30, i)->flags |= UI_FLAG_VISIBLE;
+        } else {
+            HUD_RECORD_AT(scene, 30, i)->flags &= ~UI_FLAG_VISIBLE;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        active = FALSE;
+        if (g_Minigame.selectSlotState[i] >= 0) {
+            if (g_Minigame._190A == 0 || i == g_d_GameSettings._35) {
+                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                    if (g_Minigame.selectSlots[i].charID >= 0) {
+                        active = TRUE;
+                    }
+                } else if (g_Minigame._19DE != 8 || (s8)g_Minigame._1908 == i) {
+                    if (g_Minigame.selectSlots[i].charID >= 0 && g_Minigame.selectSlots[i]._6 == 0) {
+                        active = TRUE;
+                    }
+                }
+            }
+        }
+        if (active
+            && ((g_d_GameSettings.exhibitionMatchInd != 0 && superstarUnlocked[g_Minigame.selectSlots[i].charID] != 0)
+                || (g_d_GameSettings.exhibitionMatchInd == 0
+                    && ((u8*)starMissionCompletionTracker + g_Minigame.selectSlots[i].charID)[0x43D6] != 0))
+            && g_Minigame.selectSlots[i]._7 != 0) {
+            HUD_RECORD_AT(scene, 34, i)->flags |= UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 34, i)->playMode = UI_PLAY_FORWARD;
+            HUD_RECORD_AT(scene, 38, i)->playMode = UI_PLAY_FORWARD;
+            if (g_Minigame.playerSlots._08[i] != 0) {
+                if (HUD_RECORD_AT(scene, 38, i)->elementIndex == 0x3E) {
+                    HUD_RECORD_AT(scene, 38, i)->elementIndex = 0x40;
+                    HUD_RECORD_AT(scene, 38, i)->frame = 0;
+                }
+            } else {
+                if (HUD_RECORD_AT(scene, 38, i)->elementIndex == 0x40) {
+                    HUD_RECORD_AT(scene, 38, i)->elementIndex = 0x3E;
+                    HUD_RECORD_AT(scene, 38, i)->frame = 0;
+                }
+            }
+        } else {
+            HUD_RECORD_AT(scene, 34, i)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 34, i)->frame = 0;
+            HUD_RECORD_AT(scene, 34, i)->playMode = UI_PLAY_STOP;
+            HUD_RECORD_AT(scene, 38, i)->frame = 0;
+            HUD_RECORD_AT(scene, 38, i)->playMode = UI_PLAY_STOP;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        if (g_Minigame.selectSlotState[i] >= 0 && g_Minigame.selectSlots[i].charID >= 0 && g_Minigame.selectSlots[i]._7 != 0) {
+            if (g_Minigame.selectSlots[i].charID != (HUD_RECORD_AT(scene, 62, i)->frame >> 16)) {
+                HUD_RECORD_AT(scene, 42, i)->frame = 0;
+                HUD_RECORD_AT(scene, 46, i)->frame = 0;
+            }
+            HUD_RECORD_AT(scene, 42, i)->flags |= UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 42, i)->playMode = UI_PLAY_FORWARD;
+            HUD_RECORD_AT(scene, 46, i)->flags |= UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 46, i)->playMode = UI_PLAY_FORWARD;
+            HUD_RECORD_AT(scene, 62, i)->frame = g_Minigame.selectSlots[i].charID << 16;
+            HUD_RECORD_AT(scene, 54, i)->flags |= UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 54, i)->playMode = UI_PLAY_FORWARD;
+            last = lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[i].charID * 6]][characterStaticIndexes[g_Minigame.selectSlots[i].charID * 6 + 5]];
+            HUD_RECORD_AT(scene, 58, i)->frame = last << 16;
+        } else {
+            HUD_RECORD_AT(scene, 42, i)->frame = 0;
+            HUD_RECORD_AT(scene, 42, i)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 46, i)->frame = 0;
+            HUD_RECORD_AT(scene, 46, i)->flags &= ~UI_FLAG_VISIBLE;
+            HUD_RECORD_AT(scene, 62, i)->frame = 0x36 << 16;
+            HUD_RECORD_AT(scene, 54, i)->frame = 0;
+            HUD_RECORD_AT(scene, 54, i)->flags &= ~UI_FLAG_VISIBLE;
+        }
+    }
+    return;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+    animRelated[0xDA] = 2;
+}
+
+// .text:0x0012A6C4 size:0x24C
+void fn_3_12A6C4(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    int i;
+
+    scene->_1E = 0;
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9D94);
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
+        scene->_1E = 1;
+        HUD_RECORD(scene, 1)->elementIndex = 0x30;
+        HUD_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
+    }
+    for (i = 0; i < 4; i++) {
+        HUD_RECORD_AT(scene, 4, i)->anchorSub = lbl_3_data_9EBC[scene->_1E][i];
+    }
+    HUD_RECORD(scene, 3)->anchorSub = lbl_3_data_9EBC[scene->_1E][(s8)g_Minigame._19E3 + 4];
+    i = 0;
+    do {
+        load_Icon(scene, i + 4, 1, 0x32, i + 4);
+        if (i > g_Minigame._1A0E || i < g_Minigame._1A0D) {
+            HUD_RECORD_AT(scene, 4, i)->frame = 6 << 16;
+        } else {
+            HUD_RECORD_AT(scene, 4, i)->frame = 0;
+        }
+        i++;
+    } while (i < 4);
+    setIndicatorSlotState((DrawingSceneStruct*)scene, 2, 1, 0x35, 1);
+    scene->_18 = 0;
+    scene->_1A = 0;
+    scene->state = 0;
+    currentDrawingItem->func = fn_3_12A3F0;
+}
+
+// .text:0x0012A3F0 size:0x2D4
+void fn_3_12A3F0(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    UIRecord* rec;
+    int i;
+
+    if (scene->_18 < 0xFFFE) {
+        scene->_18++;
+    } else {
+        scene->_18 = 0xFFFF;
+    }
+    if (scene->_1A < 0xFFFE) {
+        scene->_1A++;
+    } else {
+        scene->_1A = 0xFFFF;
+    }
+    if (scene->state == 0) {
+        scene->state++;
+    } else if (scene->state == 1) {
+        rec = HUD_RECORD(scene, 1);
+        if ((s32)(rec->frame >> 16) >= lbl_3_data_9EB4[scene->_1E][0]) {
+            rec->playMode = UI_PLAY_STOP;
+            scene->state = 2;
+        }
+    } else if (scene->state == 2) {
+        HUD_RECORD(scene, 3)->anchorSub = lbl_3_data_9EBC[scene->_1E][(s8)g_Minigame._19E3 + 4];
+        for (i = 0; i < 4; i++) {
+            if (i > g_Minigame._1A0E || i < g_Minigame._1A0D) {
+                HUD_RECORD_AT(scene, 4, i)->playMode = UI_PLAY_STOP;
+                HUD_RECORD_AT(scene, 4, i)->frame = 6 << 16;
+            } else if (i == (s8)g_Minigame._19E3) {
+                HUD_RECORD_AT(scene, 4, i)->playMode = UI_PLAY_FORWARD;
+                if ((s32)(HUD_RECORD_AT(scene, 4, i)->frame >> 16) >= 5) {
+                    HUD_RECORD_AT(scene, 4, i)->playMode = UI_PLAY_STOP;
+                }
+            } else {
+                HUD_RECORD_AT(scene, 4, i)->playMode = UI_PLAY_STOP;
+                HUD_RECORD_AT(scene, 4, i)->frame = 0;
+            }
+        }
+        if (g_Minigame._19DE != 1) {
+            HUD_RECORD(scene, 1)->playMode = UI_PLAY_FORWARD;
+            scene->state = 3;
+        }
+    } else if (scene->state == 3) {
+        if ((s32)(HUD_RECORD(scene, 1)->frame >> 16) >= lbl_3_data_9EB4[scene->_1E][1]) {
+            goto remove;
+        }
+    }
+    return;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+}
+
+// .text:0x0012A2B8 size:0x138
+void fn_3_12A2B8(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    int n;
+    int i;
+
+    n = (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame];
+    if (g_Minigame._190A != 0) {
+        n = 2;
+    }
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9ECC);
+    for (i = 0; i < 4; i++) {
+        if (n >= i) {
+            load_Icon(scene, i + 2, 1, 0x6B, i);
+        } else {
+            load_Icon(scene, i + 2, 1, 0x6B, 4);
+        }
+    }
+    scene->state = 0;
+    if (animRelated[0xBF] != 0) {
+        HUD_RECORD(scene, 0)->frame = 0x16 << 16;
+        scene->state = 2;
+    }
+    scene->_18 = 0;
+    scene->_1A = 0;
+    animRelated[0xBE] = 1;
+    currentDrawingItem->func = fn_3_129FF8;
+}
+
+// .text:0x00129FF8 size:0x2C0
+void fn_3_129FF8(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    int i;
+
+    if (scene->_18 < 0xFFFE) {
+        scene->_18++;
+    } else {
+        scene->_18 = 0xFFFF;
+    }
+    if (scene->_1A < 0xFFFE) {
+        scene->_1A++;
+    } else {
+        scene->_1A = 0xFFFF;
+    }
+    if (animRelated[0x96] != 0 || g_GameLogic.gameStatus != GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
+        goto remove;
+    }
+    if (scene->state == 0) {
+        scene->state++;
+    } else if (scene->state == 1) {
+        if ((s32)(HUD_RECORD(scene, 0)->frame >> 16) >= 0xF) {
+            HUD_RECORD(scene, 0)->playMode = UI_PLAY_STOP;
+            scene->state++;
+        }
+    } else if (scene->state == 2) {
+        for (i = 0; i < 4; i++) {
+            if (i == (s8)MG_BYTE(0x19E4)) {
+                if (g_Minigame._19DE >= 8 || g_GameLogic._125 >= TRANSITION_CALCULATION_TYPE_6) {
+                    if ((HUD_RECORD_AT(scene, 2, i)->frame >> 16) <= 0x37) {
+                        HUD_RECORD_AT(scene, 2, i)->frame = 0x37 << 16;
+                    }
+                    HUD_RECORD_AT(scene, 2, i)->playMode = UI_PLAY_FORWARD;
+                } else {
+                    if ((HUD_RECORD_AT(scene, 2, i)->frame >> 16) >= 0x37) {
+                        HUD_RECORD_AT(scene, 2, i)->frame = 5 << 16;
+                    }
+                    HUD_RECORD_AT(scene, 2, i)->playMode = UI_PLAY_FORWARD;
+                }
+            } else {
+                HUD_RECORD_AT(scene, 2, i)->playMode = UI_PLAY_STOP;
+                HUD_RECORD_AT(scene, 2, i)->frame = 0;
+            }
+        }
+        if (g_Minigame._19DE == 0) {
+            HUD_RECORD(scene, 0)->playMode = UI_PLAY_BACKWARD;
+            HUD_RECORD(scene, 1)->playMode = UI_PLAY_BACKWARD;
+            scene->state = 3;
+        }
+    } else if (scene->state == 3) {
+        if ((s32)(HUD_RECORD(scene, 0)->frame >> 16) <= 0) {
+            goto remove;
+        }
+    }
+    return;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+    animRelated[0xBE] = 0;
+}
+
+// .text:0x00129F48 size:0xB0
+void fn_3_129F48(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9FB4);
+    scene->state = 0;
+    if (animRelated[0xBF] != 0) {
+        HUD_RECORD(scene, 0)->frame = 0x16 << 16;
+        scene->state = 2;
+    }
+    scene->_18 = 0;
+    scene->_1A = 0;
+    animRelated[0xBE] = 1;
+    currentDrawingItem->func = fn_3_129C88;
+}
+
+// .text:0x00129C88 size:0x2C0
+void fn_3_129C88(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    int i;
+
+    if (scene->_18 < 0xFFFE) {
+        scene->_18++;
+    } else {
+        scene->_18 = 0xFFFF;
+    }
+    if (scene->_1A < 0xFFFE) {
+        scene->_1A++;
+    } else {
+        scene->_1A = 0xFFFF;
+    }
+    if (animRelated[0x96] != 0 || g_GameLogic.gameStatus != GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
+        goto remove;
+    }
+    if (scene->state == 0) {
+        scene->state++;
+    } else if (scene->state == 1) {
+        if ((s32)(HUD_RECORD(scene, 0)->frame >> 16) >= 0xF) {
+            HUD_RECORD(scene, 0)->playMode = UI_PLAY_STOP;
+            scene->state++;
+        }
+    } else if (scene->state == 2) {
+        for (i = 0; i < 3; i++) {
+            if (i == (s8)MG_BYTE(0x19E4)) {
+                if (g_Minigame._19DE >= 8 || g_GameLogic._125 >= TRANSITION_CALCULATION_TYPE_6) {
+                    if ((HUD_RECORD_AT(scene, 2, i)->frame >> 16) <= 0x5A) {
+                        HUD_RECORD_AT(scene, 2, i)->frame = 0x5A << 16;
+                    }
+                    HUD_RECORD_AT(scene, 2, i)->playMode = UI_PLAY_FORWARD;
+                } else {
+                    if ((HUD_RECORD_AT(scene, 2, i)->frame >> 16) >= 0x5A) {
+                        HUD_RECORD_AT(scene, 2, i)->frame = 0xA << 16;
+                    }
+                    HUD_RECORD_AT(scene, 2, i)->playMode = UI_PLAY_FORWARD;
+                }
+            } else {
+                HUD_RECORD_AT(scene, 2, i)->playMode = UI_PLAY_STOP;
+                HUD_RECORD_AT(scene, 2, i)->frame = 0;
+            }
+        }
+        if (g_Minigame._19DE == 0) {
+            HUD_RECORD(scene, 0)->playMode = UI_PLAY_BACKWARD;
+            HUD_RECORD(scene, 1)->playMode = UI_PLAY_BACKWARD;
+            scene->state = 3;
+        }
+    } else if (scene->state == 3) {
+        if ((s32)(HUD_RECORD(scene, 0)->frame >> 16) <= 0) {
+            goto remove;
+        }
+    }
+    return;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+    animRelated[0xBE] = 0;
+}
+
+// .text:0x00129A18 size:0x270
+void fn_3_129A18(void) {
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    int n;
+    int i;
+    int j;
+
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_A598);
+    HUD_RECORD(scene, 0)->frame = 0;
+    scene->state = 0;
+    n = (s8)g_Minigame._19E1;
+    if (n >= 5) {
+        scene->state = n - 4;
+    }
+    for (i = 0, j = 0; i < 7; i++) {
+        HUD_RECORD_AT(scene, 0xE, i)->elementIndex = lbl_3_data_A9E8[lbl_3_data_21268[i]];
+        if (g_d_GameSettings._12 < 1 && lbl_3_data_21268[i] == 6) {
+            HUD_RECORD_AT(scene, 0xE, i)->elementIndex = lbl_3_data_A9E8[0];
+        } else if (g_d_GameSettings._12 < 2 && lbl_3_data_21268[i] == 7) {
+            HUD_RECORD_AT(scene, 0xE, i)->elementIndex = lbl_3_data_A9E8[0];
+        }
+        if (i < scene->state) {
+            HUD_RECORD(scene, i)->frame = lbl_3_data_A8B8[0] << 16;
+        } else if (j >= 5) {
+            HUD_RECORD(scene, i)->frame = lbl_3_data_A8B8[6] << 16;
+        } else {
+            j++;
+            HUD_RECORD(scene, i)->frame = lbl_3_data_A8B8[j] << 16;
+        }
+    }
+    animRelated[0xDA] = 0;
+    animRelated[0xBB] = 0;
+    SET_MENU(0x33);
+    animRelated[0xBA] = animRelated[0xB9];
+    animRelated[0xBD] = 0;
+    scene->_18 = 1;
+    scene->_1E = 0;
+    currentDrawingItem->func = fn_3_12955C;
+}
+
+// .text:0x0012955C size:0x4BC
+void fn_3_12955C(void) {
+    MinigameHudScene* scene;
+    UIRecord* rec;
+    int i;
+    int idx;
+
+    scene = (MinigameHudScene*)currentDrawingItem;
+    animRelated[0xBB] = 0;
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    if (scene->_18 == 1) {
+        for (i = 7; i < 14; i++) {
+            rec = HUD_RECORD(scene, i);
+            if ((rec->frame >> 16) >= 8) {
+                rec->playMode = UI_PLAY_STOP;
+                scene->_18 = 2;
+            }
+        }
+    } else if (scene->_18 == 2) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_3) {
+            scene->_18 = 3;
+            return;
+        }
+        for (i = 0; i < 7; i++) {
+            if (i == (s8)g_Minigame._19E1) {
+                HUD_RECORD_PLUS(scene, i, 7)->playMode = UI_PLAY_FORWARD;
+                HUD_RECORD_PLUS(scene, i, 14)->playMode = UI_PLAY_FORWARD;
+            } else {
+                rec = HUD_RECORD_PLUS(scene, i, 7);
+                if ((rec->frame >> 16) > 8) {
+                    rec->playMode = UI_PLAY_BACKWARD;
+                    animRelated[0xBB] = 1;
+                } else {
+                    rec->playMode = UI_PLAY_STOP;
+                }
+                HUD_RECORD_PLUS(scene, i, 14)->playMode = UI_PLAY_STOP;
+                HUD_RECORD_PLUS(scene, i, 14)->frame = 0;
+            }
+        }
+        if ((s8)g_Minigame._19E1 < scene->state) {
+            for (i = 0; i < 7; i++) {
+                idx = i - (s8)g_Minigame._19E1 + 1;
+                if (idx >= 6) {
+                    idx = 6;
+                }
+                if ((HUD_RECORD(scene, i)->frame >> 16) < lbl_3_data_A8B8[idx]) {
+                    HUD_RECORD(scene, i)->playMode = UI_PLAY_FORWARD;
+                    animRelated[0xBB] = 1;
+                } else {
+                    HUD_RECORD(scene, i)->playMode = UI_PLAY_STOP;
+                }
+            }
+            if (animRelated[0xBB] == 0) {
+                scene->state = (s8)g_Minigame._19E1;
+            }
+        } else if ((s8)g_Minigame._19E1 > scene->state + 4) {
+            for (i = 0; i < 7; i++) {
+                idx = 5 - (s8)g_Minigame._19E1 + i;
+                if (idx < 0) {
+                    idx = 0;
+                }
+                if ((HUD_RECORD(scene, i)->frame >> 16) > lbl_3_data_A8B8[idx]) {
+                    HUD_RECORD(scene, i)->playMode = UI_PLAY_BACKWARD;
+                    animRelated[0xBB] = 1;
+                } else {
+                    HUD_RECORD(scene, i)->playMode = UI_PLAY_STOP;
+                }
+            }
+            if (animRelated[0xBB] == 0) {
+                scene->state = (s8)g_Minigame._19E1 - 4;
+            }
+        }
+    } else {
+        if ((scene->_18 = 3) != 0) {
+            for (i = 7; i < 14; i++) {
+                HUD_RECORD(scene, i)->playMode = UI_PLAY_BACKWARD;
+            }
+            HUD_RECORD(scene, 21)->playMode = UI_PLAY_BACKWARD;
+            if ((HUD_RECORD_AT(scene, 7, (s8)g_Minigame._19E1)->frame >> 16) == 0) {
+                goto remove;
+            }
+        }
+    }
+    if (scene->state == 0) {
+        HUD_RECORD(scene, 22)->flags &= ~UI_FLAG_VISIBLE;
+    } else {
+        HUD_RECORD(scene, 22)->flags |= UI_FLAG_VISIBLE;
+    }
+    if (scene->state < 2) {
+        HUD_RECORD(scene, 23)->flags |= UI_FLAG_VISIBLE;
+    } else {
+        HUD_RECORD(scene, 23)->flags &= ~UI_FLAG_VISIBLE;
+    }
+    return;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
+}
+
+// .text:0x00129458 size:0x104
+void fn_3_129458(void) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1) {
+        animRelated[0xB7] = 0;
+        animRelated[0xB6] = 0;
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Minigame.multiPlayerInd == 0
+            && g_Minigame._1A3C == 0 && g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
+            insertGraphicDrawingFunction(fn_3_11D780, 2);
+        }
+        insertGraphicDrawingFunction(fn_3_EA454, 2);
+        insertGraphicDrawingFunction(fn_3_129370, 2);
+    }
+    if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
+        if (pauseControl[0x1D2] == 7 || g_GameLogic.framesOfExitingToMenu != 0) {
+            animRelated[0xB7] = 1;
+        }
+    }
+}
+
+// .text:0x001293D0 size:0x88
+void fn_3_1293D0(void) {
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
+        insertGraphicDrawingFunction(fn_3_129370, 2);
+    }
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        insertGraphicDrawingFunction(fn_8004D0F0, 2);
+    }
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_6) {
+        set803c5f77();
+    }
 }
 
 // .text:0x00129370 size:0x60 mapped:0x80768404
@@ -162,6 +1452,7 @@ void fn_3_128C18(void) {
     BOOL found;
     u32 i;
     u32 count;
+    int k;
     int x;
     int y;
     int id;
@@ -240,13 +1531,13 @@ void fn_3_128C18(void) {
             HUD_RECORD(scene, 0)->pos.y = 0.0f;
         } else {
             count = 0;
-            for (i = 0; i < 4; i++) {
-                if (g_Minigame.playerSlots._1C[i] == 1) {
-                    getAnimRelatedCoordinates(g_Minigame.playerSlots.characterIndex[i], 9, &pos);
-                    id = g_Minigame.playerSlots._04[i];
-                    pos.y = (0.01f * -(f32)barrelCollisionHitboxes[id]) * charSizeMultipliers[id][0] - 0.5f;
+            for (k = 0; k < 4; k++) {
+                if (g_Minigame.playerSlots._1C[k] == 1) {
+                    getAnimRelatedCoordinates(g_Minigame.playerSlots.characterIndex[k], 9, &pos);
+                    id = g_Minigame.playerSlots._04[k];
+                    pos.y = (f32)((0.01f * -(f32)barrelCollisionHitboxes[id]) * charSizeMultipliers[id][0]) - 0.5f;
                     fn_3_1650C(&x, &y, 0, pos.x, pos.y, pos.z);
-                    x = ((s16*)lbl_3_data_226E0)[g_Minigame.miniGameNumberOfParticipants * 4 + i - 4];
+                    x = ((s16(*)[4])lbl_3_data_226E0)[g_Minigame.miniGameNumberOfParticipants - 1][k];
                     HUD_RECORD(scene, count)->flags |= UI_FLAG_VISIBLE;
                     HUD_RECORD(scene, count)->playMode = UI_PLAY_FORWARD;
                     HUD_RECORD(scene, count)->pos.x = x;
@@ -296,36 +1587,38 @@ void fn_3_128A38(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     UIRecord* rec;
 
-    if (animRelated[0x96] == 0) {
-        if (scene->state == 1) {
-            rec = HUD_RECORD(scene, 0);
-            if ((rec->frame >> 16) >= 10) {
-                rec->playMode = UI_PLAY_STOP;
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    if (scene->state == 1) {
+        rec = HUD_RECORD(scene, 0);
+        if ((rec->frame >> 16) >= 10) {
+            rec->playMode = UI_PLAY_STOP;
+            scene->state++;
+        }
+        return;
+    }
+    if (scene->state == 2) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            if (pauseControl[0x1D2] == 5) {
+                HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
                 scene->state++;
             }
-            return;
-        }
-        if (scene->state == 2) {
-            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                if (pauseControl[0x1D2] == 5) {
-                    HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
-                    scene->state++;
-                }
-            } else {
-                if (pauseControl[0x1D4] == 5) {
-                    HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
-                    scene->state++;
-                }
+        } else {
+            if (pauseControl[0x1D4] == 5) {
+                HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
+                scene->state++;
             }
-            return;
         }
-        if (scene->state != 3) {
-            return;
-        }
-        if ((HUD_RECORD(scene, 0)->frame >> 16) < 0x14) {
-            return;
+        return;
+    }
+    if (scene->state == 3) {
+        if ((HUD_RECORD(scene, 0)->frame >> 16) >= 0x14) {
+            goto remove;
         }
     }
+    return;
+remove:
     removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
     removeCurrentDrawingItem();
 }
@@ -371,10 +1664,9 @@ void fn_3_127B68(void) {
         slot = (s8)g_Minigame._1908;
         character = g_Minigame.playerSlots.characterIndex[slot];
         HUD_RECORD(scene, 2)->frame = inMemRoster[0][character].stats.CharID << 16;
-        anchorTable = descriptors + 0x420;
         k = 0;
         do {
-            HUD_RECORD(scene, in.slot[k] + 3)->anchorSub = anchorTable[k];
+            HUD_RECORD(scene, in.slot[k] + 3)->anchorSub = ((HudDescriptorTables*)descriptors)->anchors[k];
             k++;
         } while (k < 6);
         n = in.v[0];
@@ -461,11 +1753,11 @@ void fn_3_127B68(void) {
         if (n > 9999) {
             n = 9999;
         }
-        HUD_RECORD(scene, 30)->elementIndex = ((u16*)(descriptors + 0x428))[(u8)fn_8006C100(n)];
+        HUD_RECORD(scene, 30)->elementIndex = ((HudDescriptorTables*)descriptors)->elementIds[(u8)fn_8006C100(n)];
         scene->state = 1;
         break;
     case 1:
-        if (HUD_RECORD(scene, 0)->unk69[0] == 2) {
+        if (hudRecordFinished(HUD_RECORD(scene, 0)) != FALSE) {
             if (HUD_RECORD(scene, 1)->unk69[0] == 2) {
                 if (HUD_RECORD(scene, 3)->unk69[0] == 2) {
                     HUD_RECORD(scene, 28)->playMode = UI_PLAY_FORWARD;
@@ -477,7 +1769,7 @@ void fn_3_127B68(void) {
         }
         break;
     case 2:
-        if (HUD_RECORD(scene, 29)->unk69[0] == 2) {
+        if (hudRecordFinished(HUD_RECORD(scene, 29)) != FALSE) {
             HUD_RECORD(scene, 30)->playMode = UI_PLAY_FORWARD;
             callSfx(lbl_3_data_81FC[0x31]);
             scene->state = 3;
@@ -538,7 +1830,7 @@ void fn_3_127B68(void) {
 
 // .text:0x001274B4 size:0x6B4 mapped:0x80766548
 void fn_3_1274B4(void) {
-    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    MinigameHudScene* scene;
     u8* descriptors;
     ResultEntry* entry;
     u32 i;
@@ -546,6 +1838,7 @@ void fn_3_1274B4(void) {
     s16 count;
 
     descriptors = (u8*)lbl_3_data_226E0;
+    scene = (MinigameHudScene*)currentDrawingItem;
     if (animRelated[0x96] != 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
@@ -572,12 +1865,12 @@ void fn_3_1274B4(void) {
         i = 0;
         do {
             if (g_Minigame._1A3C != 0) {
-                HUD_RECORD(scene, i + 5)->frame = 7 << 16;
+                HUD_RECORD_AT(scene, 5, i)->frame = 7 << 16;
             } else {
                 u16* frameTable = (u16*)(descriptors + 0x1198);
-                HUD_RECORD(scene, i + 5)->frame = frameTable[g_Minigame.GameMode_MiniGame] << 16;
+                HUD_RECORD_AT(scene, 5, i)->frame = frameTable[g_Minigame.GameMode_MiniGame] << 16;
             }
-            HUD_RECORD(scene, i + 0x14)->frame = entry->rank << 16;
+            HUD_RECORD_AT(scene, 0x14, i)->frame = entry->rank << 16;
             load_Icon(scene, i + 0x32, 1, 0x12, i);
             score = entry->score;
             if (g_Minigame._1A3C != 0) {
@@ -595,9 +1888,9 @@ void fn_3_1274B4(void) {
             load_Icon(scene, i * 4 + 0x43, 1, 0x16, score % 100 / 10);
             load_Icon(scene, i * 4 + 0x44, 1, 0x16, score % 10);
             if (g_Minigame._1A3C != 0) {
-                HUD_RECORD(scene, i + 0x5F)->frame = (u8)fn_8006C100((s16)entry->score) << 16;
-                HUD_RECORD(scene, i + 0x5A)->playMode = UI_PLAY_FORWARD;
-                HUD_RECORD(scene, i + 0x64)->playMode = UI_PLAY_FORWARD;
+                HUD_RECORD_AT(scene, 0x5F, i)->frame = (u8)fn_8006C100((s16)entry->score) << 16;
+                HUD_RECORD_AT(scene, 0x5A, i)->playMode = UI_PLAY_FORWARD;
+                HUD_RECORD_AT(scene, 0x64, i)->playMode = UI_PLAY_FORWARD;
             } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
                 count = entry->count;
                 if (count > 999) {
@@ -614,7 +1907,7 @@ void fn_3_1274B4(void) {
                     load_Icon(scene, i + 0x55, 4, 6, 10);
                 }
                 load_Icon(scene, i + 0x55, 3, 6, (s16)count % 10);
-                HUD_RECORD(scene, i + 0x55)->playMode = UI_PLAY_FORWARD;
+                HUD_RECORD_AT(scene, 0x55, i)->playMode = UI_PLAY_FORWARD;
             }
             i++;
             entry++;
@@ -642,16 +1935,16 @@ void fn_3_1274B4(void) {
 
 // .text:0x00126604 size:0xEB0 mapped:0x80765698
 void fn_3_126604(void) {
-    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int n;
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int i;
     int k;
     int slot;
-    int rowOffset;
+    int mode;
 
-    n = g_Minigame.GameMode_MiniGame;
+    mode = g_Minigame.GameMode_MiniGame;
     if (g_GameLogic.gameStatus == GAME_STATUS_0x28) {
-        n = 7;
+        mode = 7;
     }
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_AAB0);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
@@ -660,18 +1953,17 @@ void fn_3_126604(void) {
         }
     }
     HUD_RECORD(scene, 9)->elementIndex = lbl_3_data_B0D8[g_Minigame.miniGameNumberOfParticipants - 1];
-    rowOffset = n * 10;
-    HUD_RECORD(scene, 8)->elementIndex = ((u16*)((u8*)lbl_3_data_B010 + rowOffset))[4];
+    HUD_RECORD(scene, 8)->elementIndex = lbl_3_data_B010[mode][4];
     i = 0;
     for (k = 0; k < 4; k++) {
-        slot = g_Minigame.playerSlots.characterIndex[k];
-        if (slot >= 0) {
-            HUD_RECORD(scene, i + 0xE)->frame = slot << 16;
+        if (g_Minigame.playerSlots.characterIndex[k] >= 0) {
+            slot = g_Minigame.playerSlots.characterIndex[k];
+            HUD_RECORD_AT(scene, 0xE, i)->frame = slot << 16;
             if (g_Minigame.playerSlots.aiControlledInd[k] != 0) {
                 slot += 4;
             }
-            HUD_RECORD(scene, i + 0x16)->frame = slot << 16;
-            HUD_RECORD(scene, i + 0x12)->frame = g_Minigame.playerSlots._04[i] << 16;
+            HUD_RECORD_AT(scene, 0x16, i)->frame = slot << 16;
+            HUD_RECORD_AT(scene, 0x12, i)->frame = g_Minigame.playerSlots._04[i] << 16;
             i++;
             if (i >= g_Minigame.miniGameNumberOfParticipants) {
                 break;
@@ -685,8 +1977,8 @@ void fn_3_126604(void) {
         }
     } else if (g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
         HUD_RECORD(scene, 0x29)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 0x28)->frame = lbl_803616CC[g_Minigame.GameMode_MiniGame].rank << 16;
         n = lbl_803616CC[g_Minigame.GameMode_MiniGame].pointsToWin;
+        HUD_RECORD(scene, 0x28)->frame = lbl_803616CC[g_Minigame.GameMode_MiniGame].rank << 16;
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
             HUD_RECORD(scene, 0x26)->elementIndex = 0xD;
             if (g_d_GameSettings.exhibitionMatchInd == 0) {
@@ -817,20 +2109,20 @@ void fn_3_126604(void) {
         || g_GameLogic.gameStatus == GAME_STATUS_0x28) {
         HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
     } else if (g_d_GameSettings.exhibitionMatchInd == 0) {
-        load_Icon(scene, 5, 1, ((u16*)((u8*)lbl_3_data_B010 + rowOffset))[3], g_Minigame.soloMinigameDifficulty + 4);
+        load_Icon(scene, 5, 1, lbl_3_data_B010[mode][3], g_Minigame.soloMinigameDifficulty + 4);
     } else {
-        load_Icon(scene, 5, 1, ((u16*)((u8*)lbl_3_data_B010 + rowOffset))[3], g_Minigame.soloMinigameDifficulty);
+        load_Icon(scene, 5, 1, lbl_3_data_B010[mode][3], g_Minigame.soloMinigameDifficulty);
     }
-    HUD_RECORD(scene, 3)->elementIndex = ((u16*)((u8*)lbl_3_data_B010 + rowOffset))[0];
-    HUD_RECORD(scene, 4)->elementIndex = ((u16*)((u8*)lbl_3_data_B010 + rowOffset))[1];
-    HUD_RECORD(scene, 5)->elementIndex = ((u16*)((u8*)lbl_3_data_B010 + rowOffset))[2];
+    HUD_RECORD(scene, 3)->elementIndex = lbl_3_data_B010[mode][0];
+    HUD_RECORD(scene, 4)->elementIndex = lbl_3_data_B010[mode][1];
+    HUD_RECORD(scene, 5)->elementIndex = lbl_3_data_B010[mode][2];
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.gameStatus != GAME_STATUS_PAUSED) {
         load_Icon(scene, 0x20, 1, 0x116, 0xF);
         load_Icon(scene, 0x21, 1, 0x116, 0x10);
         load_Icon(scene, 0x22, 1, 0x116, 0x11);
         load_Icon(scene, 0x23, 1, 0x116, 0x12);
         load_Icon(scene, 0x24, 1, 0x116, 0x13);
-        HUD_RECORD(scene, 0x20 + MG_BYTE(0x1A24))->elementIndex = 0xF2;
+        HUD_RECORD_AT(scene, 0x20, MG_BYTE(0x1A24))->elementIndex = 0xF2;
     } else {
         HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
     }
@@ -852,8 +2144,8 @@ void fn_3_1258C0(void) {
     int i;
     E(u8, TRANSITION_CALCULATION_TYPE) transition;
 
-    animRelated[0xC4] = 0;
     scene = (MinigameHudScene*)currentDrawingItem;
+    animRelated[0xC4] = 0;
     if (animRelated[0x96] != 0) {
         goto remove;
     }
@@ -917,7 +2209,7 @@ void fn_3_1258C0(void) {
             } else {
                 HUD_RECORD(scene, 5)->flags |= UI_FLAG_VISIBLE;
             }
-            HUD_RECORD(scene, 4)->frame = ((s8*)lbl_3_data_B060)[g_Minigame.GameMode_MiniGame * 15 + MG_BYTE(0x1A20) * 5 + MG_BYTE(0x1A1E) - 1] << 16;
+            HUD_RECORD(scene, 4)->frame = lbl_3_data_B060[g_Minigame.GameMode_MiniGame][MG_BYTE(0x1A20)][MG_BYTE(0x1A1E) - 1] << 16;
             if (scene->_20 == 0) {
                 HUD_RECORD(scene, 3)->playMode = UI_PLAY_FORWARD;
                 HUD_RECORD(scene, 3)->frame = 0;
@@ -1032,15 +2324,15 @@ void fn_3_1258C0(void) {
             HUD_RECORD(scene, 27)->playMode = UI_PLAY_FORWARD;
             for (i = 0; i < 5; i++) {
                 if (MG_BYTE(0x1A24) != i) {
-                    HUD_RECORD(scene, 0x20 + i)->elementIndex = 0xF1;
-                    HUD_RECORD(scene, 0x20 + i)->frame = 0;
-                    HUD_RECORD(scene, 0x20 + i)->playMode = UI_PLAY_STOP;
+                    HUD_RECORD_AT(scene, 0x20, i)->elementIndex = 0xF1;
+                    HUD_RECORD_AT(scene, 0x20, i)->frame = 0;
+                    HUD_RECORD_AT(scene, 0x20, i)->playMode = UI_PLAY_STOP;
                 } else {
-                    if ((HUD_RECORD(scene, 0x20 + i)->frame >> 16) > 10) {
-                        HUD_RECORD(scene, 0x20 + i)->frame = 10 << 16;
+                    if ((HUD_RECORD_AT(scene, 0x20, i)->frame >> 16) > 10) {
+                        HUD_RECORD_AT(scene, 0x20, i)->frame = 10 << 16;
                     }
-                    HUD_RECORD(scene, 0x20 + i)->elementIndex = 0xF2;
-                    HUD_RECORD(scene, 0x20 + i)->playMode = UI_PLAY_BACKWARD;
+                    HUD_RECORD_AT(scene, 0x20, i)->elementIndex = 0xF2;
+                    HUD_RECORD_AT(scene, 0x20, i)->playMode = UI_PLAY_BACKWARD;
                 }
             }
             HUD_RECORD(scene, 30)->playMode = UI_PLAY_STOP;
@@ -1049,14 +2341,14 @@ void fn_3_1258C0(void) {
             HUD_RECORD(scene, 27)->frame = 0;
             HUD_RECORD(scene, 27)->playMode = UI_PLAY_STOP;
             for (i = 0; i < 5; i++) {
-                if ((HUD_RECORD(scene, 0x20 + i)->frame >> 16) >= 10) {
-                    HUD_RECORD(scene, 0x20 + i)->elementIndex = 0xF1;
+                if ((HUD_RECORD_AT(scene, 0x20, i)->frame >> 16) >= 10) {
+                    HUD_RECORD_AT(scene, 0x20, i)->elementIndex = 0xF1;
                 }
                 if (MG_BYTE(0x1A24) != i) {
-                    HUD_RECORD(scene, 0x20 + i)->frame = 0;
-                    HUD_RECORD(scene, 0x20 + i)->playMode = UI_PLAY_STOP;
+                    HUD_RECORD_AT(scene, 0x20, i)->frame = 0;
+                    HUD_RECORD_AT(scene, 0x20, i)->playMode = UI_PLAY_STOP;
                 } else {
-                    HUD_RECORD(scene, 0x20 + i)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 0x20, i)->playMode = UI_PLAY_FORWARD;
                 }
             }
             HUD_RECORD(scene, 30)->playMode = UI_PLAY_FORWARD;
@@ -1487,12 +2779,13 @@ void minigameStateLogic(void) {
 
 // .text:0x00123EBC size:0x4E8 mapped:0x80762F50
 void fn_3_123EBC(void) {
-    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    MinigameHudScene* scene;
     u8* descriptors;
     u32 n;
     u32 j;
 
     descriptors = (u8*)lbl_3_data_226E0;
+    scene = (MinigameHudScene*)currentDrawingItem;
     if (fn_3_12536C()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
@@ -1533,7 +2826,7 @@ void fn_3_123EBC(void) {
     case 4:
         HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         if (g_Minigame.ccs.chompState != 3) {
-            if (hudRecordFinished(HUD_RECORD(scene, 0))) {
+            if (hudRecordFinished(HUD_RECORD(scene, 0)) != FALSE) {
                 HUD_RECORD(scene, 0)->frame = 0;
                 scene->state = 1;
             }
@@ -1661,6 +2954,7 @@ void fn_3_123990(void) {
 void fn_3_1235B8(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 n;
+    u32 digit;
 
     if (fn_3_12536C()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
@@ -1682,19 +2976,22 @@ void fn_3_1235B8(void) {
             }
             if (n < 10) {
                 HUD_RECORD(scene, 1)->playMode = UI_PLAY_FORWARD;
-                load_Icon(scene, 1, 4, 0x104, n % 10);
-                load_Icon(scene, 1, 5, 0x104, n % 10);
-                load_Icon(scene, 1, 6, 0x104, n % 10);
+                digit = n % 10;
+                load_Icon(scene, 1, 4, 0x104, digit);
+                load_Icon(scene, 1, 5, 0x104, digit);
+                load_Icon(scene, 1, 6, 0x104, digit);
                 HUD_RECORD(scene, 2)->playMode = UI_PLAY_STOP;
                 HUD_RECORD(scene, 2)->frame = 0;
             } else {
                 HUD_RECORD(scene, 2)->playMode = UI_PLAY_FORWARD;
-                load_Icon(scene, 2, 4, 0x104, n % 10);
-                load_Icon(scene, 2, 5, 0x104, n % 10);
-                load_Icon(scene, 2, 6, 0x104, n % 10);
-                load_Icon(scene, 2, 7, 0x104, n % 100 / 10);
-                load_Icon(scene, 2, 8, 0x104, n % 100 / 10);
-                load_Icon(scene, 2, 9, 0x104, n % 100 / 10);
+                digit = n % 10;
+                load_Icon(scene, 2, 4, 0x104, digit);
+                load_Icon(scene, 2, 5, 0x104, digit);
+                load_Icon(scene, 2, 6, 0x104, digit);
+                digit = n % 100 / 10;
+                load_Icon(scene, 2, 7, 0x104, digit);
+                load_Icon(scene, 2, 8, 0x104, digit);
+                load_Icon(scene, 2, 9, 0x104, digit);
                 HUD_RECORD(scene, 1)->playMode = UI_PLAY_STOP;
                 HUD_RECORD(scene, 1)->frame = 0;
             }
@@ -1852,6 +3149,7 @@ void fn_3_122D24(void) {
 // .text:0x001226D4 size:0x650 mapped:0x80761768
 void fn_3_1226D4(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    MiniGameStruct* mg = &g_Minigame;
     u32 n;
     u32 digit;
     u32 k;
@@ -1880,8 +3178,8 @@ void fn_3_1226D4(void) {
         HUD_RECORD(scene, 3)->frame = 0;
         HUD_RECORD(scene, 4)->playMode = UI_PLAY_STOP;
         HUD_RECORD(scene, 4)->frame = 0;
-        if (g_Minigame._1DF6[1] != 0) {
-            g_Minigame._1DF6[1] = 0;
+        if (mg->_1DF6[1] != 0) {
+            mg->_1DF6[1] = 0;
             scene->_18 = 0;
             scene->_1A = 0;
             scene->state = 2;
@@ -1915,7 +3213,7 @@ void fn_3_1226D4(void) {
         }
         break;
     case 4:
-        if (HUD_RECORD(scene, 4)->unk69[0] == 2 && HUD_RECORD(scene, 3)->unk69[0] == 2
+        if (hudRecordFinished(HUD_RECORD(scene, 4)) != FALSE && HUD_RECORD(scene, 3)->unk69[0] == 2
             && HUD_RECORD(scene, 2)->unk69[0] == 2 && HUD_RECORD(scene, 1)->unk69[0] == 2) {
             HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
             scene->state = 5;
@@ -1973,6 +3271,7 @@ void fn_3_1226D4(void) {
 // .text:0x00122334 size:0x3A0 mapped:0x807613C8
 void fn_3_122334(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    MiniGameStruct* mg = &g_Minigame;
     int diff;
     u32 n;
 
@@ -1987,7 +3286,7 @@ void fn_3_122334(void) {
         scene->state = 1;
         break;
     case 1:
-        if (g_Minigame._1DF6[1] != 0) {
+        if (mg->_1DF6[1] != 0) {
             scene->_1E = 1;
         }
         if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
@@ -2036,6 +3335,7 @@ void fn_3_122334(void) {
 // .text:0x00121908 size:0xA2C mapped:0x8076099C
 void fn_3_121908(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    MiniGameStruct* mg = &g_Minigame;
     UIRecord* rec;
     u32 i;
     u32 n;
@@ -2066,7 +3366,7 @@ void fn_3_121908(void) {
         scene->sndHandle = 0xFFFFFFFF;
         scene->state = 1;
     case 1:
-        g_Minigame._1DF4 = 0;
+        mg->_1DF4 = 0;
         if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT && g_Pitcher.pitcherActionState == 1) {
             scene->state = 2;
         }
@@ -2118,7 +3418,7 @@ void fn_3_121908(void) {
         playMode = g_Minigame.pauseInd == 0;
         HUD_RECORD(scene, 1)->playMode = playMode;
         HUD_RECORD(scene, 6)->playMode = playMode;
-        if (HUD_RECORD(scene, 6)->unk69[0] == 2) {
+        if (hudRecordFinished(HUD_RECORD(scene, 6)) != FALSE) {
             if (HUD_RECORD(scene, 1)->unk69[0] == 2) {
                 scene->sndHandle = callSfx(lbl_3_data_81FC[0x1C]);
                 scene->state = 4;
@@ -2131,7 +3431,7 @@ void fn_3_121908(void) {
         } else {
             scene->_18 = 0xFFFF;
         }
-        if (g_Minigame._1907 != (g_Minigame.playerSlots.aiControlledInd[g_Minigame.rosterID] == 0)) {
+        if (g_Minigame._1907 - (g_Minigame.playerSlots.aiControlledInd[g_Minigame.rosterID] == 0)) {
             if (scene->_18 >= 0x6E) {
                 if (lbl_3_data_21460[(scene->_1E + 1U) % 7] == scene->_20) {
                     scene->_1A = 1;
@@ -2161,7 +3461,7 @@ void fn_3_121908(void) {
             }
         }
         HUD_RECORD(scene, 2)->playMode = g_Minigame.pauseInd == 0;
-        if (HUD_RECORD(scene, 2)->unk69[0] == 2) {
+        if (hudRecordFinished(HUD_RECORD(scene, 2)) != FALSE) {
             HUD_RECORD(scene, 2)->frame = 0;
             scene->_1E = (scene->_1E + 1U) % 7;
             if (scene->_1A != 0) {
@@ -2176,7 +3476,7 @@ void fn_3_121908(void) {
         break;
     case 5:
         HUD_RECORD(scene, 3)->playMode = g_Minigame.pauseInd == 0;
-        if (HUD_RECORD(scene, 3)->unk69[0] == 2) {
+        if (hudRecordFinished(HUD_RECORD(scene, 3)) != FALSE) {
             HUD_RECORD(scene, 3)->frame = 0;
             HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
             scene->state = 6;
@@ -2190,15 +3490,15 @@ void fn_3_121908(void) {
         HUD_RECORD(scene, 1)->playMode = playMode;
         HUD_RECORD(scene, 6)->playMode = playMode;
         if ((HUD_RECORD(scene, 6)->frame >> 16) == 0 && (HUD_RECORD(scene, 1)->frame >> 16) == 0) {
-            g_Minigame._1DF4 = 1;
-            g_Minigame.bODPitchType = lbl_3_data_21460[scene->_1E];
-            if (g_Minigame.bODPitchType == 5) {
+            mg->_1DF4 = 1;
+            mg->bODPitchType = lbl_3_data_21460[scene->_1E];
+            if (mg->bODPitchType == 5) {
                 do {
-                    g_Minigame.bODPitchType = random_fn_3_9EE24(5);
-                } while (scene->_22 != 0 && g_Minigame.bODPitchType == 3);
-                g_Minigame._1DF6[0] = 1;
+                    mg->bODPitchType = random_fn_3_9EE24(5);
+                } while (scene->_22 != 0 && mg->bODPitchType == 3);
+                mg->_1DF6[0] = 1;
             } else {
-                g_Minigame._1DF6[0] = 0;
+                mg->_1DF6[0] = 0;
             }
             scene->state = 7;
         }
@@ -2220,8 +3520,6 @@ void fn_3_121908(void) {
 // .text:0x00121304 size:0x604 mapped:0x80760398
 void fn_3_121304(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
-    u32 changed = 0;
-    u32 i;
     int leader;
     u32 flag;
     s8 slot;
@@ -2229,6 +3527,8 @@ void fn_3_121304(void) {
     s16* shown;
     int diff;
     u32 n;
+    u32 i;
+    u32 changed = 0;
 
     if (fn_3_12536C()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
@@ -2241,17 +3541,17 @@ void fn_3_121304(void) {
             do {
                 slot = g_Minigame.playerSlots._14[i];
                 if (slot < 0) {
-                    HUD_RECORD(scene, i + 1)->flags &= ~UI_FLAG_VISIBLE;
+                    HUD_RECORD_AT(scene, 1, i)->flags &= ~UI_FLAG_VISIBLE;
                 } else {
                     character = g_Minigame.playerSlots.characterIndex[slot];
                     load_Icon(scene, 9 + i, 1, 0x65, character);
-                    HUD_RECORD(scene, 0x11 + i)->frame = inMemRoster[0][character].stats.CharID << 16;
+                    HUD_RECORD_AT(scene, 0x11, i)->frame = inMemRoster[0][character].stats.CharID << 16;
                 }
                 i++;
             } while (i < 4);
             i = 0;
             do {
-                HUD_RECORD(scene, 0x2D + i)->flags &= ~UI_FLAG_VISIBLE;
+                HUD_RECORD_AT(scene, 0x2D, i)->flags &= ~UI_FLAG_VISIBLE;
                 i++;
             } while (i < 4);
             scene->state = 1;
@@ -2267,7 +3567,7 @@ void fn_3_121304(void) {
                     diff = g_Minigame.miniGameCurrentPoints[slot] - *shown;
                     if (diff != 0) {
                         if (diff > 0) {
-                            ((u8*)scene)[slot + 0x24] = 1;
+                            scene->scratch[slot] = 1;
                         }
                         if (diff / 8 != 0) {
                             *shown += diff / 8;
@@ -2277,14 +3577,14 @@ void fn_3_121304(void) {
                         changed = 1;
                     } else {
                         *shown = g_Minigame.miniGameCurrentPoints[slot];
-                        if (((u8*)scene)[slot + 0x24] != 0) {
-                            ((u8*)scene)[slot + 0x24] = 0;
-                            HUD_RECORD(scene, i + 0x19)->frame = 0;
-                            HUD_RECORD(scene, i + 0x19)->playMode = UI_PLAY_FORWARD;
-                            HUD_RECORD(scene, i * 4 + 0x1D)->frame = 0;
-                            HUD_RECORD(scene, i * 4 + 0x1E)->frame = 0;
-                            HUD_RECORD(scene, i * 4 + 0x1F)->frame = 0;
-                            HUD_RECORD(scene, i * 4 + 0x20)->frame = 0;
+                        if (scene->scratch[slot] != 0) {
+                            scene->scratch[slot] = 0;
+                            HUD_RECORD_AT(scene, 0x19, i)->frame = 0;
+                            HUD_RECORD_AT(scene, 0x19, i)->playMode = UI_PLAY_FORWARD;
+                            HUD_RECORD_AT(scene, 0x1D, i * 4)->frame = 0;
+                            HUD_RECORD_AT(scene, 0x1E, i * 4)->frame = 0;
+                            HUD_RECORD_AT(scene, 0x1F, i * 4)->frame = 0;
+                            HUD_RECORD_AT(scene, 0x20, i * 4)->frame = 0;
                         }
                     }
                     n = *shown;
@@ -2301,9 +3601,9 @@ void fn_3_121304(void) {
                         fn_3_125424(scene, i + 1, 0);
                     }
                     if (flag == 0 && *shown == g_Minigame.minigamePoints_current_Latest[leader][0]) {
-                        HUD_RECORD(scene, 0x2D + i)->flags |= UI_FLAG_VISIBLE;
+                        HUD_RECORD_AT(scene, 0x2D, i)->flags |= UI_FLAG_VISIBLE;
                     } else {
-                        HUD_RECORD(scene, 0x2D + i)->flags &= ~UI_FLAG_VISIBLE;
+                        HUD_RECORD_AT(scene, 0x2D, i)->flags &= ~UI_FLAG_VISIBLE;
                     }
                 }
                 i++;
@@ -2365,9 +3665,8 @@ void fn_3_120FF8(void) {
         }
         break;
     case 2:
-        rec = HUD_RECORD(scene, 0);
-        if (hudRecordFinished(rec)) {
-            rec->frame = 10 << 16;
+        if (hudRecordFinished(HUD_RECORD(scene, 0)) != FALSE) {
+            HUD_RECORD(scene, 0)->frame = 10 << 16;
             scene->state = 1;
         }
         break;
@@ -2492,14 +3791,14 @@ void fn_3_12089C(void) {
 // .text:0x0012026C size:0x630 mapped:0x8075F300
 void fn_3_12026C(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
+    s16* popup = (s16*)currentDrawingItem;
     u32 i;
     u32 k;
     s16 half;
     s16 third;
     s16 points;
-    u32 n;
     u32 type;
-    s16* popup = (s16*)scene;
+    u32 n;
 
     if (fn_3_12536C()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
@@ -2518,8 +3817,8 @@ void fn_3_12026C(void) {
         i = 0;
         do {
             for (k = 0; k < 4; k++) {
-                HUD_RECORD(scene, i * 4 + 5 + k)->playMode = UI_PLAY_STOP;
-                HUD_RECORD(scene, i * 4 + 5 + k)->frame = 0;
+                HUD_RECORD_AT(scene, 5 + k, i * 4)->playMode = UI_PLAY_STOP;
+                HUD_RECORD_AT(scene, 5 + k, i * 4)->frame = 0;
             }
             i++;
         } while (i < 4);
@@ -2577,20 +3876,20 @@ void fn_3_12026C(void) {
                 }
                 if (n != 0) {
                     if (n >= 100) {
-                        HUD_RECORD(scene, i + 1)->frame = 2 << 16;
+                        HUD_RECORD_AT(scene, 1, i)->frame = 2 << 16;
                     } else if (n >= 10) {
-                        HUD_RECORD(scene, i + 1)->frame = 1 << 16;
+                        HUD_RECORD_AT(scene, 1, i)->frame = 1 << 16;
                     } else {
-                        HUD_RECORD(scene, i + 1)->frame = 0;
+                        HUD_RECORD_AT(scene, 1, i)->frame = 0;
                     }
                     load_Icon(scene, i * 4 + 5, 1, type, 11);
                     load_Icon(scene, i * 4 + 6, 1, type, n % 1000 / 100);
                     load_Icon(scene, i * 4 + 7, 1, type, n % 100 / 10);
                     load_Icon(scene, i * 4 + 8, 1, type, n % 10);
-                    HUD_RECORD(scene, i * 4 + 5)->playMode = UI_PLAY_FORWARD;
-                    HUD_RECORD(scene, i * 4 + 6)->playMode = UI_PLAY_FORWARD;
-                    HUD_RECORD(scene, i * 4 + 7)->playMode = UI_PLAY_FORWARD;
-                    HUD_RECORD(scene, i * 4 + 8)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 5, i * 4)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 6, i * 4)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 7, i * 4)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 8, i * 4)->playMode = UI_PLAY_FORWARD;
                 }
             }
             i++;
@@ -2651,30 +3950,30 @@ void fn_3_11FDB0(void) {
         if (scene->_1E <= 3) {
             i = 0;
             do {
-                HUD_RECORD(scene, i + 3)->elementIndex = 0x122;
+                HUD_RECORD_AT(scene, 3, i)->elementIndex = 0x122;
                 i++;
             } while (i < 10);
             HUD_RECORD(scene, 13)->elementIndex = 0x126;
         } else if (scene->_1E <= 6) {
             i = 0;
             do {
-                HUD_RECORD(scene, i + 3)->elementIndex = 0x123;
+                HUD_RECORD_AT(scene, 3, i)->elementIndex = 0x123;
                 i++;
             } while (i < 10);
             HUD_RECORD(scene, 13)->elementIndex = 0x127;
         } else {
             i = 0;
             do {
-                HUD_RECORD(scene, i + 3)->elementIndex = 0x124;
+                HUD_RECORD_AT(scene, 3, i)->elementIndex = 0x124;
                 i++;
             } while (i < 10);
             HUD_RECORD(scene, 13)->elementIndex = 0x128;
         }
         for (i = 0; i < scene->_1E; i++) {
-            HUD_RECORD(scene, i + 3)->rgba = (HUD_RECORD(scene, i + 3)->rgba & 0xFFFFFF00) | 0xFF;
+            HUD_RECORD_AT(scene, 3, i)->rgba = (HUD_RECORD_AT(scene, 3, i)->rgba & 0xFFFFFF00) | 0xFF;
         }
         for (; i < 10; i++) {
-            HUD_RECORD(scene, i + 3)->rgba &= 0xFFFFFF00;
+            HUD_RECORD_AT(scene, 3, i)->rgba &= 0xFFFFFF00;
         }
         break;
     }
@@ -2849,11 +4148,11 @@ void fn_3_11F480(void) {
 // .text:0x0011F02C size:0x454 mapped:0x8075E0C0
 void fn_3_11F02C(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
-    u32 changed = 0;
     u32 i;
     int leader;
     u32 flag;
     u32 n;
+    u32 changed = 0;
 
     if (fn_3_12536C()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
@@ -2865,12 +4164,12 @@ void fn_3_11F02C(void) {
             i = 0;
             do {
                 load_Icon(scene, 9 + i, 1, 0x65, i);
-                HUD_RECORD(scene, 0x11 + i)->frame = inMemRoster[0][i].stats.CharID << 16;
+                HUD_RECORD_AT(scene, 0x11, i)->frame = inMemRoster[0][i].stats.CharID << 16;
                 i++;
             } while (i < 4);
             i = 0;
             do {
-                HUD_RECORD(scene, 0x25 + i)->flags &= ~UI_FLAG_VISIBLE;
+                HUD_RECORD_AT(scene, 0x25, i)->flags &= ~UI_FLAG_VISIBLE;
                 i++;
             } while (i < 4);
             scene->state = 1;
@@ -2882,25 +4181,25 @@ void fn_3_11F02C(void) {
             do {
                 if (g_Minigame._1DFC[i] != 0) {
                     g_Minigame._1DFC[i] = 0;
-                    HUD_RECORD(scene, i + 1)->frame = 0;
-                    HUD_RECORD(scene, i + 1)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 1, i)->frame = 0;
+                    HUD_RECORD_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
                 }
                 if (g_Minigame.ccsDisplayedPoints[i] > g_Minigame.miniGameCurrentPoints[i]) {
                     g_Minigame.ccsDisplayedPoints[i] = g_Minigame.miniGameCurrentPoints[i];
                 }
                 if (g_Minigame.ccsDisplayedPoints[i] - g_Minigame.minigamePoints_current_Latest[i][0] > 0) {
                     g_Minigame.minigamePoints_current_Latest[i][0]++;
-                    ((u8*)scene)[i + 0x24] = 1;
+                    scene->scratch[i] = 1;
                     changed = 1;
                 } else if (g_Minigame.ccsDisplayedPoints[i] - g_Minigame.minigamePoints_current_Latest[i][0] < 0) {
                     g_Minigame.minigamePoints_current_Latest[i][0]--;
                     changed = 1;
-                } else if (((u8*)scene)[i + 0x24] != 0) {
-                    ((u8*)scene)[i + 0x24] = 0;
-                    HUD_RECORD(scene, i + 0x19)->frame = 0;
-                    HUD_RECORD(scene, i + 0x19)->playMode = UI_PLAY_FORWARD;
-                    HUD_RECORD(scene, i * 2 + 0x1D)->frame = 0;
-                    HUD_RECORD(scene, i * 2 + 0x1E)->frame = 0;
+                } else if (scene->scratch[i] != 0) {
+                    scene->scratch[i] = 0;
+                    HUD_RECORD_AT(scene, 0x19, i)->frame = 0;
+                    HUD_RECORD_AT(scene, 0x19, i)->playMode = UI_PLAY_FORWARD;
+                    HUD_RECORD_AT(scene, 0x1D, i * 2)->frame = 0;
+                    HUD_RECORD_AT(scene, 0x1E, i * 2)->frame = 0;
                 }
                 n = g_Minigame.minigamePoints_current_Latest[i][0];
                 if (n > 99) {
@@ -2909,9 +4208,9 @@ void fn_3_11F02C(void) {
                 load_Icon(scene, i * 2 + 0x1D, 1, 0x66, n % 100 / 10);
                 load_Icon(scene, i * 2 + 0x1E, 1, 0x66, n % 10);
                 if (flag == 0 && g_Minigame.minigamePoints_current_Latest[i][0] == g_Minigame.minigamePoints_current_Latest[leader][0]) {
-                    HUD_RECORD(scene, 0x25 + i)->flags |= UI_FLAG_VISIBLE;
+                    HUD_RECORD_AT(scene, 0x25, i)->flags |= UI_FLAG_VISIBLE;
                 } else {
-                    HUD_RECORD(scene, 0x25 + i)->flags &= ~UI_FLAG_VISIBLE;
+                    HUD_RECORD_AT(scene, 0x25, i)->flags &= ~UI_FLAG_VISIBLE;
                 }
                 i++;
             } while (i < 4);
@@ -2953,19 +4252,20 @@ void fn_3_11EC28(void) {
             if (g_Minigame.ccs.targetCount != 0) {
                 for (i = 0; i < 4; i++) {
                     if (g_Minigame.ccs.targetInd[i] == 1) {
-                        HUD_RECORD(scene, 4 + i)->playMode = UI_PLAY_FORWARD;
+                        HUD_RECORD_AT(scene, 4, i)->playMode = UI_PLAY_FORWARD;
                         fn_800528C0(g_Runners[i].position.x, g_Runners[i].position.y, g_Runners[i].position.z, &x, &y);
                         if (x < 0x50) {
                             x = 0x50;
                         } else if (x > 0x230) {
                             x = 0x230;
                         }
-                        HUD_RECORD(scene, 4 + i)->pos.x = x;
-                        HUD_RECORD(scene, 4 + i)->pos.y = y;
+                        HUD_RECORD_AT(scene, 4, i)->pos.x = x;
+                        HUD_RECORD_AT(scene, 4, i)->pos.y = y;
                     }
                 }
             } else {
-                for (i = 0; i < 4; i++) {
+                i = 0;
+                do {
                     HUD_RECORD(scene, i)->playMode = UI_PLAY_FORWARD;
                     fn_800528C0(g_Runners[i].position.x, g_Runners[i].position.y, g_Runners[i].position.z, &x, &y);
                     if (x < 0x50) {
@@ -2975,7 +4275,8 @@ void fn_3_11EC28(void) {
                     }
                     HUD_RECORD(scene, i)->pos.x = x;
                     HUD_RECORD(scene, i)->pos.y = y;
-                }
+                    i++;
+                } while (i < 4);
             }
             scene->state = 2;
         }
