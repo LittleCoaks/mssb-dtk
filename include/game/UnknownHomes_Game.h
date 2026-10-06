@@ -803,7 +803,7 @@ typedef struct _PracticeStruct {
     artificial_padding(0x24, 0x140, int);
     /*0x140*/ frame_t totalFrames;
     /*0x142*/ frame_t framesInCurrTransitionState;
-    /*0x144*/ frame_t framesSincePracticeMenuDefaultTransition;
+    /*0x144*/ u16 framesSincePracticeMenuDefaultTransition;
     /*0x146*/ frame_t practiceMenu_framesOnCurrMenuScreen;
     /*0x148*/ u16 frames_sinceMovedToFromMenu;
     /*0x14A*/ frame_t _14A;
@@ -855,12 +855,14 @@ typedef struct _PracticeStruct {
     /*0x1A1*/ u8 aIEnabled;
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
-    artificial_padding(0x1a3, 0x1aa, u8);
+    /*0x1A4*/ u8 _1A4;
+    artificial_padding(0x1a4, 0x1aa, u8);
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     artificial_padding(0x1aa, 0x1af, u8);
     /*0x1AF*/ u8 returnToPracticeMenuState;
     /*0x1B0*/ u8 _1B0;
-    artificial_padding(0x1b0, 0x1c2, u8);
+    /*0x1B1*/ u8 _1B1;
+    /*0x1B2*/ u8 _1B2[4][4];
     /*0x1C2*/ s8 instructionNumber;
     /*0x1C3*/ u8 readyToMoveToNextInstruction; // unsure
     /*0x1C4*/ u8 practice_runner_countInputForMashing;
@@ -882,7 +884,10 @@ typedef struct _PracticeStruct {
     /*0x1D4*/ u8 loadingGuidedPractice; // unsure
     /*0x1D5*/ u8 _1D5;
     /*0x1D6*/ u8 practiceLevel_2;
-    artificial_padding(0x1d6, 0x1db, u8);
+    /*0x1D7*/ u8 _1D7;
+    /*0x1D8*/ u8 _1D8;
+    /*0x1D9*/ u8 _1D9;
+    artificial_padding(0x1d9, 0x1db, u8);
     /*0x1DB*/ u8 _1DB;
     artificial_padding(0x1db, 0x1e1, u8);
     /*0x1E1*/ u8 hitVariablesSetIndicator;
