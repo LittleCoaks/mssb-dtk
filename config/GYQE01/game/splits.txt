@@ -376,7 +376,7 @@ game/hud/rep_3448.c:
 	.data       start:0x000264D0 end:0x0002650C
 
 game/minigame/barrel_batter.c:
-	.text       start:0x0012E8FC end:0x00132EDC
+	.text       start:0x0012DB54 end:0x00132EDC
 	.rodata     start:0x000034B0 end:0x00003520
 	.data       start:0x00026510 end:0x0002657C
 
