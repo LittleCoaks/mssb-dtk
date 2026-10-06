@@ -395,11 +395,13 @@ game/minigame/chain_chomp_sprint.c:
 game/minigame/piranha_panic.c:
 	.text       start:0x00141C44 end:0x00147358
 	.rodata     start:0x000037A8 end:0x00003880
+	.data       start:0x00026698 end:0x000266A8
 	.bss        start:0x0000B7C0 end:0x0000B850
 
 game/minigame/rep_3880.c:
 	.text       start:0x00147358 end:0x00157DB8
 	.rodata     start:0x00003880 end:0x00003A48
+	.data       start:0x000266A8 end:0x00026F00
 	.bss        start:0x0000B850 end:0x0000B9B8
 
 game/data_only/rep_3A48.c:
