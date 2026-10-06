@@ -43,7 +43,7 @@ typedef struct TransitionScreenState {
 extern TransitionAnimView hugeAnimStruct;
 extern TransitionScreenState* lbl_3_common_bss_1323C;
 extern u8 animRelated[0x124];
-extern f32 lbl_3_data_18DD4[3];
+extern f32 charSelectFielderPositions[3];
 
 extern void clearAnimationRelatedPointers(void);
 extern void resetAnimationFlags(void);
@@ -160,9 +160,9 @@ void fn_3_6C000(void) {
         if (obj != NULL && g_Minigame._1A13 == 0 && (s8)g_Minigame._19EA >= 0 && (s8)g_Minigame._19EF != 0 &&
             (s8)g_Minigame._19DA >= 0) {
             obj->_25D = 1;
-            obj->x = lbl_3_data_18DD4[0];
-            obj->y = -lbl_3_data_18DD4[1];
-            obj->z = lbl_3_data_18DD4[2];
+            obj->x = charSelectFielderPositions[0];
+            obj->y = -charSelectFielderPositions[1];
+            obj->z = charSelectFielderPositions[2];
             obj->_40 = 0.0f;
             obj->_44 = 0.0f;
             obj->_48 = 0.0f;

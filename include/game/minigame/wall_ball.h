@@ -36,5 +36,20 @@ void wallBallCalculateNewWalls(void);
 int wallBallCompareWalls(const u8* first, const u8* second);
 void wallBallUpdateWalls(void);
 void wallBallRotatePitchers(int force);
+void wallBallEndTurn(void);
+void wallBallTurnOverCountdown(void);
+void wallBallCalculatePointsAndEndTurn(void);
+void wallBallAtBat(void);
+void wallBallRoundIntro(void);
+void wallBallPostgame(void);
+void wallBallCheckRoundsLeft(void);
+void wallBallResetPlayState(void);
+void wallBallPrepareNextPitch(void);
+void wallBallPrepareNextBatter(void);
+void wallBallStartRound(void);
+void wallBallTransitionToBatting(void);
+void wallBallInitializeValues(void);
+void wallBallEmptyHook(void);
+void wallBallSituationSwitcher(void);
 
 #endif // !__GAME_MINIGAME_WALL_BALL_H_

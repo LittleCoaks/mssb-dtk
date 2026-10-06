@@ -3,6 +3,15 @@
 
 #include "mssbTypes.h"
 
+void fn_3_12DB54(void);
+void bB_AI(void);
+BOOL fn_3_12DD88(void);
+void bB_AI_setSwingVariables(void);
+int fn_3_12E084(const void *a, const void *b);
+void fn_3_12E17C(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd);
+u8 fn_3_12E384(u8 *barrels, s8 barrelIndex, u8 colour);
+void fn_3_12E808(void);
+void unused_BarrelBatterRelated(void);
 void bB_chooseBombBarrel_dropNewBarrels(void);
 void fn_3_12EB10(void);
 E(u8, BOOL) fn_3_12ED80(void);

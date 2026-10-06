@@ -1306,7 +1306,7 @@ typedef struct _MinigamePlayerSlots {
     /*0x00C*/ E(u8, BOOL) aiControlledInd[4];
     /*0x010*/ u8 aiStrength[4];
     /*0x014*/ s8 _14[4];
-    /*0x018*/ u8 _18[4];
+    /*0x018*/ s8 _18[4];
     /*0x01C*/ u8 _1C[4];
     /*0x020*/ u8 _20[4];
     /*0x024*/ u8 _24[4];
@@ -1895,7 +1895,9 @@ typedef struct _MiniGameStruct {
     /*0x1927*/ u8 _1927;
     /*0x1928*/ s16 _1928;
     /*0x192A*/ u8 _192A;
-    /*0x192B*/ s16 _192B;
+    /*0x192B*/ u8 _192B;
+    /*0x192C*/ u8 _192C;
+    /*0x192D*/ u8 _192D;
     /*0x192E*/ u8 _192E;
     /*0x192F*/ u8 _192F;
     /*0x1930*/ u8 _1930;
@@ -2069,7 +2071,7 @@ typedef struct _MiniGameStruct {
     /*0x1A82*/ u8 wallIndexTracker[7];
     /*0x1A89*/ u8 wallBall_hitNoteBlock;
     /*0x1A8A*/ u8 wallBall_hitBowserWall;
-    /*0x1A8B*/ u8 _1A8B;
+    /*0x1A8B*/ s8 _1A8B;
     /*0x1A8C*/ u8 _1A8C[2];
     /*0x1A8E*/ s16 bOD_HitPowerOfEachChar[4];
     /*0x1A96*/ u8 bOD_celebrationAnimTimers[10];
@@ -2224,6 +2226,13 @@ typedef struct _MiniGameStruct {
             /*0x1DD2*/ u8 _1DD2[6];
             /*0x1DD8*/ s16 _1DD8;
             /*0x1DDA*/ u8 _1DDA[18];
+        };
+        struct {
+            /*0x1DCC*/ s16 bB_aiSwingFrame;
+            /*0x1DCE*/ u16 bB_aiVertButton; // INPUT_BUTTON
+            /*0x1DD0*/ s8 bB_aiSwingStage;
+            /*0x1DD1*/ u8 bB_aiSwingChosenInd;
+            /*0x1DD2*/ s8 bB_aiPrefersFewestBarrelsInd;
         };
         ChainChompSprintAI ccsAI[4];
     };
