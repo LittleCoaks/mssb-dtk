@@ -136,12 +136,12 @@ f32 lbl_3_data_18D98[14] = {
 };
 
 // .data:0x18DD0, size 0x4.
-f32 lbl_3_data_18DD0 = 0.2f;
+f32 toyFieldCoinSpinStep = 0.2f;
 
 // .data:0x18DD4, size 0x30 -- per-fielder {x, y, z} table (transition_init.c
-// declares `extern f32 lbl_3_data_18DD4[3];` for its own 1-element use; this
+// declares `extern f32 charSelectFielderPositions[3];` for its own 1-element use; this
 // file strides it per-fielder, 4 * 3 floats = 0x30).
-f32 lbl_3_data_18DD4[4][3] = {
+f32 charSelectFielderPositions[4][3] = {
     { -225.0f, -30.0f, 0.0f },
     { -75.0f, -30.0f, 0.0f },
     { 75.0f, -30.0f, 0.0f },
@@ -149,7 +149,7 @@ f32 lbl_3_data_18DD4[4][3] = {
 };
 
 // .data:0x18E04, size 0xC0 -- [participant count - 1][participant][x, y, z] offsets.
-f32 lbl_3_data_18E04[4][4][3] = {
+f32 resultsFielderOffsets[4][4][3] = {
     { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
     { { -1.2f, 0.0f, 0.0f }, { 1.2f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
     { { -2.4f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 2.4f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
@@ -157,7 +157,7 @@ f32 lbl_3_data_18E04[4][4][3] = {
 };
 
 // .data:0x18EC4, size 0xC.
-f32 lbl_3_data_18EC4[3] = { -1.5f, 0.0f, 1.5f };
+f32 resultsFielderRowOffsets[3] = { -1.5f, 0.0f, 1.5f };
 
 // .data:0x217D8, size 0x20 -- per-fielder {x, z} table.
 extern f32 lbl_3_data_217D8[4][2];
@@ -172,12 +172,12 @@ extern MinigameAnimObj *fn_800111FC(MinigameAnimObj *obj, BOOL flag);
 extern BOOL fn_8004ACC4(BOOL flag);
 
 // .text:0x000E1D00 size:0xB8
-void fn_3_E1D00(void) {
+void drawParkPlants(void) {
     StadiumObject *obj;
     int i;
 
     fn_800BF058(fn_3_B8184);
-    updateFunctionPtr(fn_3_E1C60);
+    updateFunctionPtr(parkPlantsTevSetup);
     for (i = 0; i < stadiumObjectCollision.objectCount; i++) {
         if (parkPlantData[i].usedFlag == 2) {
             break;
@@ -193,7 +193,7 @@ void fn_3_E1D00(void) {
 }
 
 // .text:0x000E1C60 size:0xA0
-void fn_3_E1C60(void) {
+void parkPlantsTevSetup(void) {
     GXSetNumTevStages(1);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_A2, GX_CC_RASC);
@@ -226,13 +226,13 @@ void graphicsFunction_minigames(void) {
         AnimBlr();
     } else if ((u8)(g_GameLogic.gameStatus - GAME_STATUS_MINIGAME_SELECT) <= 2 || g_GameLogic.gameStatus == GAME_STATUS_0x1F) {
         if (g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
-            fn_3_E11E0();
+            charSelectPlaceFielders();
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME || g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU ||
                g_GameLogic.gameStatus == GAME_STATUS_0x24 || g_GameLogic.gameStatus == GAME_STATUS_0x26 ||
                g_GameLogic.gameStatus == GAME_STATUS_0x27) {
         hugeAnimStruct._3087 = g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD;
-        fn_3_E07DC();
+        minigameUpdateResultsScene();
         mm_ResetModels();
     } else if (g_GameLogic.gameStatus == GAME_STATUS_LOAD_GAME) {
         return;
@@ -255,7 +255,7 @@ void graphicsFunction_minigames(void) {
                     rec->_04 = g_Minigame.coinPos[i].x;
                     rec->_08 = -g_Minigame.coinPos[i].y;
                     rec->_0C = g_Minigame.coinPos[i].z;
-                    rec->_14 = radianAngleReduction(rec->_14 + lbl_3_data_18DD0);
+                    rec->_14 = radianAngleReduction(rec->_14 + toyFieldCoinSpinStep);
                 }
             }
         } else {
@@ -272,7 +272,7 @@ void graphicsFunction_minigames(void) {
 }
 
 // .text:0x000E1964 size:0x84
-void fn_3_E1964(void) {
+void toyFieldInitCoinModels(void) {
     int i;
     MinigameModelRec *rec;
 
@@ -482,7 +482,7 @@ void fn_3_E1370(int mode) {
 }
 
 // .text:0x000E12F8 size:0x78 mapped:0x8072038C
-void fn_3_E12F8(void) {
+void hideMinigameFielders(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -495,7 +495,7 @@ void fn_3_E12F8(void) {
 }
 
 // .text:0x000E11E0 size:0x118 mapped:0x80720274
-void fn_3_E11E0(void) {
+void charSelectPlaceFielders(void) {
     int i;
 
     hugeAnimStruct._2D68 = -1;
@@ -539,9 +539,9 @@ void fn_3_E11E0(void) {
         }
 
         obj->_25D = 1;
-        obj->_34 = lbl_3_data_18DD4[i][0];
-        obj->_38 = -lbl_3_data_18DD4[i][1];
-        obj->_3C = lbl_3_data_18DD4[i][2];
+        obj->_34 = charSelectFielderPositions[i][0];
+        obj->_38 = -charSelectFielderPositions[i][1];
+        obj->_3C = charSelectFielderPositions[i][2];
         obj->_40 = 0.0f;
         obj->_44 = 0.0f;
         obj->_48 = 0.0f;
@@ -549,7 +549,7 @@ void fn_3_E11E0(void) {
 }
 
 // .text:0x000E07DC size:0xA04
-void fn_3_E07DC(void) {
+void minigameUpdateResultsScene(void) {
     Vec v;
     s32 values[4];
     int i;
@@ -721,9 +721,9 @@ void fn_3_E07DC(void) {
         h->_24BD = 1;
         fieldersRunningToDugoutCalculateOffsets(lbl_3_data_2130C[idx][3], lbl_3_data_2130C[idx][0], lbl_3_data_2130C[idx][2], &v.x, &v.z);
         v.y = lbl_3_data_2130C[idx][1];
-        h->_2294 = v.x + lbl_3_data_18E04[0][0][0];
-        h->_2298 = v.y + lbl_3_data_18E04[0][0][1];
-        h->_229C = v.z + lbl_3_data_18E04[0][0][2];
+        h->_2294 = v.x + resultsFielderOffsets[0][0][0];
+        h->_2298 = v.y + resultsFielderOffsets[0][0][1];
+        h->_229C = v.z + resultsFielderOffsets[0][0][2];
         h->_2298 = -h->_2298;
         h->_22A4 = lbl_3_data_2130C[idx][3];
         return;
@@ -759,35 +759,35 @@ void fn_3_E07DC(void) {
         fieldersRunningToDugoutCalculateOffsets(lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][3], lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][0],
                                                 lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][2], &v.x, &v.z);
         v.y = lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][1];
-        obj->_34 = v.x + lbl_3_data_18E04[participants - 1][k][0];
-        obj->_38 = v.y + lbl_3_data_18E04[participants - 1][k][1];
-        obj->_3C = v.z + lbl_3_data_18E04[participants - 1][k][2];
+        obj->_34 = v.x + resultsFielderOffsets[participants - 1][k][0];
+        obj->_38 = v.y + resultsFielderOffsets[participants - 1][k][1];
+        obj->_3C = v.z + resultsFielderOffsets[participants - 1][k][2];
         obj->_38 = -obj->_38;
         obj->_44 = lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][3];
         if (g_GameLogic.gameStatus == GAME_STATUS_0x27 || g_Minigame._1A3E != 0) {
             if (g_Minigame._1A3D <= 1) {
             } else if (g_Minigame.playerSlots._1C[i] == 1) {
-                obj->_3C += lbl_3_data_18EC4[0];
+                obj->_3C += resultsFielderRowOffsets[0];
             } else {
-                obj->_3C += lbl_3_data_18EC4[2];
+                obj->_3C += resultsFielderRowOffsets[2];
             }
         } else if (tWon != FALSE) {
             if (g_Minigame.playerSlots._04[i] == 0x26) {
-                obj->_3C += lbl_3_data_18EC4[1];
+                obj->_3C += resultsFielderRowOffsets[1];
             } else {
-                obj->_3C += lbl_3_data_18EC4[0];
+                obj->_3C += resultsFielderRowOffsets[0];
             }
         } else if (g_Minigame.playerSlots._20[i] == 1) {
-            obj->_3C += lbl_3_data_18EC4[0];
+            obj->_3C += resultsFielderRowOffsets[0];
         } else {
-            obj->_3C += lbl_3_data_18EC4[2];
+            obj->_3C += resultsFielderRowOffsets[2];
         }
         k++;
     }
 }
 
 // .text:0x000E0758 size:0x84
-void fn_3_E0758(void) {
+void unused_toyFieldInitCoinModels(void) {
     MinigameModelRec *rec;
     int i;
 
@@ -800,7 +800,7 @@ void fn_3_E0758(void) {
 }
 
 // .text:0x000E0668 size:0xF0
-void fn_3_E0668(void) {
+void toyFieldUpdateCoinModels(void) {
     MinigameModelRec *rec;
     int i;
 
@@ -817,7 +817,7 @@ void fn_3_E0668(void) {
             rec->_04 = g_Minigame.coinPos[i].x;
             rec->_08 = -g_Minigame.coinPos[i].y;
             rec->_0C = g_Minigame.coinPos[i].z;
-            rec->_14 = radianAngleReduction(rec->_14 + lbl_3_data_18DD0);
+            rec->_14 = radianAngleReduction(rec->_14 + toyFieldCoinSpinStep);
         }
     }
 }

@@ -34,7 +34,7 @@ extern u8* lbl_3_common_bss_1323C;
 static const f32 lbl_3_rodata_10E0[2] = { 0.0f, 0.0f };
 extern void resetAnimationRelatedPointers(void);
 extern void AnimBlr(void);
-extern void fn_3_E07DC(void);
+extern void minigameUpdateResultsScene(void);
 extern BOOL fn_8004ACDC(BOOL flag);
 extern BOOL fn_8004ACC4(BOOL flag);
 extern void fn_3_6A254(void);
@@ -72,7 +72,7 @@ void animateOffence(void) {
         resetAnimationRelatedPointers();
         AnimBlr();
         if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-            fn_3_E07DC();
+            minigameUpdateResultsScene();
         }
         return;
     }
