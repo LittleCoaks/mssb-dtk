@@ -364,6 +364,11 @@ reload rather than the contested fresh-temp-at-join case. Either outcome
 closes the lead decisively: a precedent scan can close a lead by *absence* of
 evidence. Record a zero-hit result in the checkpoint so it is never re-run.
 
+## rep_3D50 scene node and vector matching
+
+- A byte field read twice through a volatile global pointer can need two distinct local widths: `int` for the first table index emits `slwi`, while `u8` for the second emits `clrlslwi`. This closed `fn_3_160814` from 98.91% to 100%.
+- When target code uses `fcmpu f1,f0` against zero after `PSVECMag`, a truth test of the return value can retain that operand order where an explicit `!= 0.0f` comparison reverses it.
+
 ## Flipping a 100% unit to Object(Matching) — REL function order is REVERSED
 
 First seen: `menus/yd_step.c` (first REL unit ever flipped, 2026-08). Once a
@@ -501,6 +506,14 @@ any un-split neighbouring `.text` that also touches the tables into the unit. `f
 from 73% to 100% with no other change, `.data` from absent to 100%. First seen:
 `game/animation/actor_transform.c` (2026-09). The "Known unsolved" entry above is probably the
 same thing and worth retrying with static definitions.
+
+Second data point (2026-10): `data_only/rep_3B70` (92.85% -> Matching) and `rep_3C80`
+(82.37% -> Matching) closed the same way. Two link details: (1) end the `.data` split *before*
+the trailing zero padding that leads up to the next 0x20-aligned unit (`0x273DC`, not
+`0x273E0`), and shrink dtk's gap-sized symbol to match. MWCC does not emit that padding and our
+linker does not insert it, so a split covering it leaves `.data` 0x10 short and fails the sha
+check. (2) objdiff stays at ~99% after the flip because ours relocates against `...data.0+off`
+and the target against `lbl_3_data_*+off`. The bytes are identical, so trust the sha check.
 
 ## MWCC 2.x will not register-pool an extern data-symbol base, no matter the source shape
 
@@ -2361,6 +2374,11 @@ with a checkpoint.
 - **`slwi; addi rX, 8; lwzx` against a struct member is raw byte-offset indexing.** Every typed
   form (`table->elems[i]`, `((T**)table)[i + 2]`) folds the +8 into `add; lwz 8(rX)`. Only
   `*(T**)(bytePtr + i * 4 + 8)` with a `u8*` member kept the target's shape (handleUIAction).
+- **A typed graphics-slot index may hoist constant handles into extra saved base registers.**
+  In `rep_1610`, `graphicsRelatedArray[firstHandle + 1]` created separate `array + 8` and
+  `array + 16` bases, shifting the scene and loop registers. Byte-offset indexing through
+  `(u8*)graphicsRelatedArray + ((firstHandle + handle) << 3)` kept the target's `addi; slwi; lwzx`
+  sequence and reduced saved registers from six to four (76.58% -> 100%).
 - **An `int` local for a byte you compare against makes `cmpw`; a `u8` local makes `cmplw`.**
   (add_or_RemoveCharToATeam / addOrRemoveCharacterToTeam: 98% -> 100%.)
 - **A pointer local to a stack struct is how the target gets `addi r31, r1, 8` hoisted into a
@@ -2868,6 +2886,82 @@ instructions already match but several locals are live across a loop.
 - A `cmpwi`+`bge` cascade sorting a small enum into 3+ groups is a real `switch` (case groups + `default`);
   a hand-built `||` range chain with the same values does not reproduce MWCC's sparse-switch lowering.
 
+## Findings from stadium_draw (partial pass)
+
+- **Caller stack copies of `GXColor` can indicate aggregate arguments passed by value.**
+  MWCC implements these arguments through hidden pointers; a pointer-looking callee alone
+  does not establish a source pointer parameter. Compare callers with the SDK's
+  `GXSetTevColor(GXTevRegID, GXColor)` convention. In `stadium_draw`, correcting
+  `fn_3_42CC` and `fn_3_4F90` to by-value colors reproduced the caller copies;
+  direct aggregate expressions then compiled identically to explicit local copies.
+  The glyph caller also needed branch-local height assignments to preserve the target's
+  float lifetime. Recheck the whole unit when correcting an ABI.
+- **Complete branch-local GX setup sequences can survive separately.** Sharing the common
+  tail of two TEV setup branches omitted and reordered target calls. Reproducing all eight
+  calls in each branch took `fn_3_42CC` from 88.63% to 96.51%.
+- **A stored animation byte can be the subsequent lookup index.** `fn_3_5C68` writes the
+  incremented frame as `u8` before reading tile tables, then reloads that stored byte.
+  Indexing with the untruncated integer changes behavior for frame counts above 255;
+  delaying the store also changes aliasing behavior. Separate stride-4/stride-8 branches
+  recovered the target's load paths after preserving these semantics (73.40% to 91.08%).
+
+## Findings from the data_only near-miss pass and hud/rep_3448 first pass (2026-10)
+
+- **`x / C / 2.0f`, not `x / C * 0.5f`.** MWCC turns the trailing `/ 2.0f` into `* 0.5f` late, so
+  0.5 lands in the literal pool *after* C (the target's order). Each single-expression conversion
+  also gets its own stack scratch slot, which restored `rep_3B70`'s 0x70 frame.
+- **`#pragma optimization_level` / `opt_*` brackets do not explain `rep_3E00`'s `li 3; slwi 2`
+  and re-read fields.** Measured on `fn_3_166448` (baseline 71.78%, 408 bytes): level 0 31%,
+  level 1 35%, level 2 far worse (objdiff reported 0% at the target's exact 412 bytes), level 3
+  unchanged, `opt_propagation off` 72.18% (424 bytes), `opt_common_subs off` 56.7%,
+  `opt_lifetimes off` unchanged. Don't re-run these.
+- **A remove-on-failure tail is `if (ok) { body } else { remove }`.** The structured
+  early-return form scored 94.49% against 100% (`hud/rep_3448` `fn_3_125604`). When several early
+  conditions share one remove block, `goto remove` beat the structured form (`fn_3_128C18`
+  95.3% vs 86.84%).
+- **Child scene nodes:** `node = currentDrawingItem; parent = node->currentDrawingItem;
+  scene = (cast)node;` in that order matched 100% (`fn_3_122D24`, `fn_3_1231D4`).
+- **Unsolved in `rep_3448`:** the target loads `&g_Minigame` once at entry and shares it with an
+  inlined predicate (ours rematerialises it); `rec->unk69[0] == 2` compiles to
+  `subfic; cntlzw; srwi.; beq` in the target (seen right after a store to the same record) but to
+  `cmplwi; bne` for us; and `add r,first,i` operand order.
+- **`add rA,base,idx; stw v,0(rA)` instead of `stwx` = the address is also a call argument.**
+  `rep_3C28` `fn_3_15F574` sat at 93.11% for four passes on exactly this. `fn_8002C2D0` takes a
+  third argument, the effect entry (rep_3D50 already declared it that way). The target keeps
+  `base + idx*0x40` in r5 because it feeds the call too. Declaring the missing parameter and
+  passing `&table[idx]` matched 100%. Before you grind an addressing-mode difference, check
+  every callee prototype against the target's argument registers (r5/r6 set up but "unused").
+- **Pull in neighbouring un-split `.text` that touches the unit's data.** `0x15F874-0x15FB84`
+  sat between `rep_3C80` and `rep_3CE0` and referenced `lbl_3_data_27EC0/27F10`. That range was
+  five `rep_3CE0` functions, and one of them (`fn_3_15F874`, no callers) was the depth-clear
+  quad that draw had auto-inlined. Calling the real function instead of a hand-written
+  `static inline` was codegen-identical.
+- **Indexed `counts[i]` / `overlay->markers[i]` over hand-written cursors.** MWCC's induction
+  pointers are created after the declared locals, which changes register colouring. In
+  `rep_3CE0` setup, `counts[i]` instead of an `int* activeCount` cursor gave +1.7%, and
+  scoping `used` after the coord pointers gave +0.4%. In draw, the indexed loops were
+  codegen-identical to the cursor form and read far better.
+- **Statement order before a varargs `memset`/`va_start` decides addi-form vs direct loads.**
+  `rep_3CE0` setup went 90.3% -> 97.0% just by doing `overlay = getOverlay();` *before* the
+  `yOffset`/`slot` locals. That reproduced the target's `addi rX,@l; lbz 0(rX)` for
+  `drawStadiumRelated`.
+- **Unrolled byte-append loop:** `while (count-- != 0)` gives the target's 4x `srwi.`/`andi.`
+  unroll, while a `for (i<count)` loop with int or u32 gives an 8x unroll. To get
+  `add r,base,idx; stb v,0x473(r)` and not `addi; stbx`, write the store through a *global*
+  (`arr[0x473 + n++]`, or `(*(T*)arr).values[n++]`), not through a pointer local.
+- **A callback taking `void*` and casting to a struct pointer allocates differently from a typed
+  parameter.** `rep_3CE0` draw (`fn_3_15FF28`, installed as an overlay `draw` callback) sat at
+  99.12% for three passes with the param in r27 and the target's r28, swapped with a loop-counter
+  web. Copying a *typed* param into a local changed nothing. Declaring the param `void* arg` and
+  making the first local `Rep3CE0Overlay* overlay = (Rep3CE0Overlay*)arg;` made the code
+  byte-identical (99.91%, with only `...data.0` reloc names left). If a callback/drawing function's
+  param register is off by one callee-saved slot, try `void*` + cast before you grind decl orders.
+- **Folded `lbz sym@l(rA)` vs `addi rB,rA,sym@l; lbz 0(rB)` for the same global is a colouring
+  outcome, not a source shape.** In `rep_3CE0` setup, `volatile`, direct vs inline, and index
+  locals all left one site in addi form. Even removing every other read of the global left it
+  there. Removing unrelated code (memset, a later loop) flipped individual sites. The fold only
+  happens when the `lis` and `addi` temporaries get the same register.
+
 ## Findings from the orderchange.c merge (swapPosMenu_*, star menus; 9 splits -> 1 unit, flipped to Matching)
 
 First seen: `Unknown/orderchange.c` (2026-10). Nine `Unknown/` splits (0x80042598..0x8004617C) were one
@@ -2930,3 +3024,42 @@ First seen: `Unknown/mcard.c` (2026-10). `OSPanic("mcard.c", ...)` and a shared 
   `.bss` claims in that region are probably really `common`.
 - **`CARDFastDelete` (0x80088698) was really the SDK's `CARDDelete`**: it takes a file name and calls
   `CARDDeleteAsync` + `__CARDSync`. Renamed in `symbols.txt` and `Dolphin/card/CARDDelete.c`.
+
+## Findings from the mb_subfunc.c merge (roster/team setup; 12 units + 9 auto splits -> 1 unit, flipped to Matching)
+
+First seen: `Unknown/mb_subfunc.c` (2026-10). `OSPanic("mb_subfunc.c", ...)` in `findCharacterID` named the
+TU; its `.data` (tables + five jump tables in function order) and `.sdata` tie 0x80064754..0x80069A68
+together. All 27 functions reached 100% and the unit links as `Matching` (`4 files OK`).
+
+- **A split whose `.data` starts only 4-aligned cannot be flipped on its own.** `findCharacterID` alone
+  (jump table at 0x801091F4) was instruction-exact but grew `main.dol` `.data` by 0x20 when flipped: MWCC
+  aligns each object's `.data` section to 8. The fix was the merge with the TU that really owned the
+  preceding `.data`; the merged unit starts 8-aligned and links byte-identically.
+- **A DOL function inlined into an EARLIER-address function means `-inline deferred` + reverse-order
+  source**, even on the DOL side. `unknownSettingTeamValues` (0x80068838) contains an inlined
+  `setCaptainLocInRoster` (0x80069854); `-inline auto` cannot inline a later definition. The unit uses
+  `extra_cflags=["-cpp_exceptions on", "-inline deferred"]` with definitions in reverse address order.
+- **A table referenced from another unit must stay global even though this TU addresses it through the
+  pool base.** Under these flags MWCC addresses the TU's own globals as `firstObject + off` just like
+  statics, so objdiff cannot tell; the link can. Making `captainIDOrderedOnCapSS`/`captainIDMappings`
+  `static` broke the menus/game REL imports, `variantPairs` alone `static` broke `fn_800415A8`.
+- **A struct-typed global beats every cast view of it.** The header declares
+  `starMissionCompletionTracker` as an array; the target's loops (s32 vestigial guard + CSE'd bases)
+  only appeared with the symbol declared as the real block struct. Done file-locally via
+  `#define name name_asArray` before the includes, `#undef`, then `extern Block name;`.
+- **If every use of a `u8` field is cast `(s8)`, the field is `s8`.** Retyping
+  `structCharSelect.rosterCharID` to `E(s8, CHAR_ID)` and dropping the casts fixed volatile-register
+  numbering in two loops at once (99.19 -> 99.49): the natural signed load and an explicit cast
+  produce the same instructions but different register numbering.
+- **Which existing local a loop uses matters even when the declaration order does not.** Two rank-sort
+  loops and one placement loop only matched once their counters were written with different existing
+  locals (`t`, `i`); moving `int k` to every position in the declaration list never reproduced it.
+  When register numbering is off by a swap in one loop, sweep "which variable", not just declaration order.
+- **An unrolled row search inside an inline helper: pointer walk vs index.** The target folded the
+  start offset into the first load (`lhau r0, 0x124(rBase)`); `variantPairs[row][0]` gave
+  `addi; lha`. A block-local row pointer `s16 (*pair)[5] = variantPairs; ... pair++` matched
+  (declared at the top of the helper it did not).
+- **A separate `int` key local can be needed beside an `s8` one.** The multi-captain rank search wanted
+  `int captainKey = roster[j]` while the others' search kept `s8 key`.
+- **Redundant self-stores (`x = x;`) reproduce stores the target has after a loop** (`teamCompositionLogos`,
+  `characterSelectScreen`, `unsure_FillRosterPositions`); reading the value once into a local does not.

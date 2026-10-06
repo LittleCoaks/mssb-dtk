@@ -6,7 +6,7 @@
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x80035838.h"
 #include "Unknown/File_0x800625a4.h"
-#include "Unknown/File_0x80067f70.h"
+#include "Unknown/mb_subfunc.h"
 #include "Unknown/File_0x800acf14.h"
 
 extern u32 lbl_803CB750[4];
@@ -55,8 +55,8 @@ void fn_800684A4(void);
 void fn_800649BC(void);
 void copyInfoToInMemRoster(void);
 void teamLogoDetermination(int team);
-void unsure_FillRosterPositions(int team);
-void characterSelectScreen(int team);
+void unsure_FillRosterPositions(u8 team);
+void characterSelectScreen(u8 team);
 void setCaptainLocInRoster(void);
 void selectRandomStadium(void);
 

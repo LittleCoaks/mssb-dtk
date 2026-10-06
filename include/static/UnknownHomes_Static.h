@@ -183,6 +183,14 @@ typedef struct {
     /* 0x1D */ u8 starPitchesThrown;
 } StatisticsPitcher; // size: 0x1E
 
+// One saved Challenge-mode team (Ghidra: challengeRostersStruct).
+typedef struct {
+    /* 0x00 */ u8 charID[9];
+    /* 0x09 */ u8 _09[0x12 - 0x09];
+    /* 0x12 */ u8 characterTypes[9];
+    /* 0x1B */ u8 _1B[0x48 - 0x1B];
+} ChallengeRoster; // size: 0x48
+
 // lbl_80353260: one entry per roster slot, per team.
 typedef struct {
     /* 0x0 */ u8 a : 5;
@@ -208,7 +216,8 @@ typedef struct {
 
 typedef struct {
     /* 0x0000 */ CharacterStats characterStats[NUM_CHOOSABLE_CHARACTERS / 9][9]; // the master stat table, indexed [charID / 9][charID % 9] (copied into inMemRoster)
-    /* 0x21C0 */ u8 _21C0[0x46E0 - 0x21C0];
+    /* 0x21C0 */ u8 _21C0[0x4380 - 0x21C0];
+    /* 0x4380 */ ChallengeRoster challengeRosters[12]; // captain-select order; [11] is Bowser Jr.'s (Ghidra: bjChallengeRoster)
     /* 0x46E0 */ int captainSelectedID[2];
     /* 0x46E8 */ void* _46E8[4];
     /* 0x46F8 */ s8 playerNumberByPort[4];
@@ -230,8 +239,8 @@ typedef struct {
     /* 0x472C */ controllerInputStruct controllerInputs[4];
     /* 0x4744 */ u8 _4744[0x4757 - 0x4744];
     /* 0x4757 */ u8 charOnCharacterGridSelected[54]; // "taken" table, one byte per CHAR_ID (0x803530F7)
-    /* 0x478D */ u8 battingOrderIndex[9];
-    /* 0x4796 */ u8 _4796[0x489B - 0x4796];
+    /* 0x478D */ u8 captainChemistryOrder[2][54]; // every CHAR_ID, sorted by chemistry with the team's captain (Ghidra: battingOrderIndex[9])
+    /* 0x47F9 */ s8 highChemTeammates[2][9][9]; // per roster slot: teammates whose chemistry with it is >= 90 (100 excluded), -1 elsewhere, sorted ascending
     /* 0x489B */ u8 charIsStarred[2][9];
     /* 0x48AD */ u8 _48AD;
     /* 0x48AE */ u8 unk48AE; // set before findCharacterID; makes it return the alternate index for slot 0x11, then cleared
@@ -305,7 +314,7 @@ extern u8 mapCaptainCursorPositionToCharID[0x350];
 /* ---- cursorPositions (0x803C6724, 0x5C bytes) ------------------------------
  * Two per-port cursor bytes, then the drafted rosters. */
 typedef struct {
-    /* 0x00 */ u8 rosterCharID[2][9];
+    /* 0x00 */ E(s8, CHAR_ID) rosterCharID[2][9];
     /* 0x12 */ u8 positionSwapMapping[2][9];
     /* 0x24 */ u8 chemWCaptain[2][9];
     /* 0x36 */ u8 unused[2][9];
