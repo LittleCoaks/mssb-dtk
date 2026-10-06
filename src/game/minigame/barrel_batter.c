@@ -17,6 +17,7 @@
 #include "game/minigame/toy_field.h"
 #include "game/match_setup/match_loading.h"
 #include "game/minigame/rep_3880.h"
+#include "Unknown/sub.h"
 
 extern void SetGameStatus(GAME_STATUS status);
 extern u8 lbl_800EFBA4[0x10];
@@ -55,8 +56,20 @@ extern s16 lbl_3_data_217A4[12];
 extern s16 lbl_3_common_bss_37400[0x27];
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
+extern s8 lbl_3_data_217BC[8];
+extern u8 lbl_3_data_217C4[4];
+extern s8 lbl_3_data_217C8[4];
+extern s8 bBAI_chanceToMissTimeSwing[4];
+extern s8 bBAI_framesMistimedBy[4];
+extern s8 bBAI_chanceToOverrideVertAngleToMiddleRow[4];
+
+typedef struct {
+    s8 barrelIndex;
+    s8 barrelsCleared;
+    s16 score;
+} BB_AICandidate;
+
 extern BOOL checkForPauses(void);
-extern void bB_AI(void);
 extern void ballPhysica(void);
 extern u8 lbl_3_data_2127C[8][5];
 extern s16 bB_challengePointsRequired[4];
@@ -427,8 +440,6 @@ void fn_3_131114(void) {
 
 // .text:0x00130C6C size:0x4A8 mapped:0x8076FD00
 void bB_AtBat(void) {
-    s8 i;
-
     if (g_Minigame.turnOverStatus == 0) {
         if (checkForPauses()) {
             return;
@@ -438,11 +449,7 @@ void bB_AtBat(void) {
         }
         bB_AI();
         atBat_batter();
-        i = 0;
-        do {
-            g_Minigame.isAIControlled[i] = 0;
-            i++;
-        } while (i < 4);
+        fn_3_12DB54();
         running_MainFunction();
         fn_3_12FAC4();
     }
@@ -1002,4 +1009,308 @@ void bB_chooseBombBarrel_dropNewBarrels(void) {
             }
         }
     }
+}
+
+// .text:0x0012E83C size:0xC0 mapped:0x8076D8D0
+void unused_BarrelBatterRelated(void) {
+    int points;
+
+    if (g_Minigame.barrelBatter_barrelsHit <= 1) {
+        points = lbl_3_data_217A4[5] * g_Minigame.barrelBatter_barrelsHit;
+    } else {
+        points = g_Minigame.barrelBatter_barrelsHit * ((g_Minigame.barrelBatter_barrelsHit - 1) * lbl_3_data_217A4[5]);
+    }
+
+    g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += points;
+    g_Minigame.bB_totalPoints = points;
+    if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == lbl_3_common_bss_37400[0x20]) {
+        starMissionsMinigamesSpecialAction(2, points, g_Minigame.barrelBatter_barrelsHit);
+    }
+}
+
+// .text:0x0012E808 size:0x34 mapped:0x8076D89C
+void fn_3_12E808(void) {
+    memset(&g_Minigame._1D7C, 0, 0x78);
+}
+
+// .text:0x0012E384 size:0x484 mapped:0x8076D418
+u8 fn_3_12E384(u8 *barrels, s8 barrelIndex, u8 colour) {
+    u8 count;
+
+    if (colour == barrels[barrelIndex * 2 + 1] && barrels[barrelIndex * 2] == BB_BARREL_STATE_NEUTRAL) {
+        barrels[barrelIndex * 2] = BB_BARREL_STATE_EMPTY;
+        count = 1;
+        if (barrelIndex / 3 > 0) {
+            count += fn_3_12E384(barrels, barrelIndex - 3, colour);
+        }
+        if (barrelIndex / 3 < 4) {
+            count += fn_3_12E384(barrels, barrelIndex + 3, colour);
+        }
+        if (barrelIndex % 3 > 0) {
+            count += fn_3_12E384(barrels, barrelIndex - 1, colour);
+        }
+        if (barrelIndex % 3 < 2) {
+            count += fn_3_12E384(barrels, barrelIndex + 1, colour);
+        }
+        return count;
+    }
+    return 0;
+}
+
+// .text:0x0012E17C size:0x208 mapped:0x8076D210
+void fn_3_12E17C(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd) {
+    u8 simulated[15][2];
+    u8 scratch[15][2];
+    s8 i;
+    s8 pass;
+    s8 col;
+    s8 row;
+    s8 j;
+    s8 k;
+    s16 bestFollowUp;
+    s16 score;
+    int n;
+
+    i = 0;
+    do {
+        j = 0;
+        do {
+            simulated[j][0] = g_Minigame.barrels[j].barrelState;
+            simulated[j][1] = g_Minigame.barrels[j].barrelColour;
+            j++;
+        } while (j < 15);
+        barrelsCleared[i] = fn_3_12E384(&simulated[0][0], i, simulated[i][1]);
+        n = barrelsCleared[i];
+        if (n >= 2) {
+            scores[i] = (n - 1) * n;
+        } else {
+            scores[i] = n;
+        }
+
+        if (chainBonusInd) {
+            pass = 0;
+            do {
+                col = 0;
+                do {
+                    row = 0;
+                    do {
+                        if (simulated[col + row * 3][0] != BB_BARREL_STATE_NEUTRAL) {
+                            memcpy(&simulated[col + row * 3], &simulated[col + 1 + row * 3], 2);
+                            simulated[col + 1 + row * 3][0] = BB_BARREL_STATE_EMPTY;
+                        }
+                        row++;
+                    } while (row < 5);
+                    col++;
+                } while (col < 2);
+                pass++;
+            } while (pass < 2);
+
+            bestFollowUp = 0;
+            j = 0;
+            do {
+                k = 0;
+                do {
+                    memcpy(&scratch[k], &simulated[k], 2);
+                    k++;
+                } while (k < 15);
+                n = (s8)fn_3_12E384(&scratch[0][0], j, scratch[j][1]);
+                if (n >= 2) {
+                    score = (n - 1) * n;
+                } else {
+                    score = n;
+                }
+                if (score > bestFollowUp) {
+                    bestFollowUp = score;
+                }
+                j++;
+            } while (j < 15);
+            scores[i] += bestFollowUp;
+        }
+        i++;
+    } while (i < 15);
+}
+
+// .text:0x0012E084 size:0xF8 mapped:0x8076D118
+int fn_3_12E084(const void *a, const void *b) {
+    const BB_AICandidate *x = a;
+    const BB_AICandidate *y = b;
+    MiniGameStruct *mg = &g_Minigame;
+    s8 distX;
+    s8 distY;
+    int diff;
+
+    if (x->score != y->score) {
+        return y->score - x->score;
+    }
+    if (x->barrelsCleared != y->barrelsCleared) {
+        diff = y->barrelsCleared - x->barrelsCleared;
+        if (mg->bB_aiPrefersFewestBarrelsInd != 0) {
+            diff = x->barrelsCleared - y->barrelsCleared;
+        }
+        return diff;
+    }
+    distX = __abs(2 - x->barrelIndex / 3);
+    distY = __abs(2 - y->barrelIndex / 3);
+    if (distX != distY) {
+        return distX - distY;
+    }
+    distX = __abs(1 - x->barrelIndex % 3);
+    distY = __abs(1 - y->barrelIndex % 3);
+    return distX - distY;
+}
+
+// .text:0x0012DDCC size:0x2B8 mapped:0x8076CE60
+void bB_AI_setSwingVariables(void) {
+    MiniGameStruct *mg = &g_Minigame;
+    u8 aiStrength = mg->playerSlots.aiStrength[mg->rosterID];
+    s16 pitch;
+    s8 row;
+    s8 col;
+    u32 prefersFewestBarrels;
+    int direction;
+    s8 i;
+    s8 barrelsCleared[15];
+    s16 scores[15];
+    BB_AICandidate candidates[15];
+
+    pitch = mg->bB_bombBarrelID_bOD_hrPitch;
+    if (pitch >= 0) {
+        row = pitch / 3;
+        col = pitch % 3;
+    } else {
+        if (mg->bB_pitchesRemainingInTurn > 2 && lbl_3_data_217C4[aiStrength] != 0) {
+            prefersFewestBarrels = RandomInt_Game(100) < lbl_3_data_217C8[aiStrength];
+        } else {
+            prefersFewestBarrels = FALSE;
+        }
+
+        if (prefersFewestBarrels) {
+            fn_3_12E17C(barrelsCleared, scores, TRUE);
+        } else {
+            fn_3_12E17C(barrelsCleared, scores, FALSE);
+        }
+
+        i = 0;
+        do {
+            candidates[i].barrelIndex = i;
+            candidates[i].barrelsCleared = barrelsCleared[i];
+            candidates[i].score = scores[i];
+            i++;
+        } while (i < 15);
+
+        if (prefersFewestBarrels) {
+            mg->bB_aiPrefersFewestBarrelsInd = TRUE;
+        } else {
+            mg->bB_aiPrefersFewestBarrelsInd = FALSE;
+        }
+        fn_800246D4(fn_3_12E084, candidates, candidates, sizeof(BB_AICandidate), 15);
+
+        row = candidates[0].barrelIndex / 3;
+        col = candidates[0].barrelIndex % 3;
+    }
+
+    if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
+        row = 4 - row;
+    }
+
+    mg->bB_aiSwingFrame = swingSoundFrame[0][1] + lbl_3_data_217BC[row];
+
+    switch (col) {
+    case 0:
+        mg->bB_aiVertButton = INPUT_BUTTON_UP;
+        break;
+    case 1:
+    default:
+        mg->bB_aiVertButton = 0;
+        break;
+    case 2:
+        mg->bB_aiVertButton = INPUT_BUTTON_DOWN;
+        break;
+    }
+
+    if (RandomInt_Game(100) < bBAI_chanceToMissTimeSwing[aiStrength]) {
+        if (RandomInt_Game(2) != 0) {
+            direction = 1;
+        } else {
+            direction = -1;
+        }
+        mg->bB_aiSwingFrame += direction * (RandomInt_Game(bBAI_framesMistimedBy[aiStrength]) + 1);
+    }
+
+    if (RandomInt_Game(100) < bBAI_chanceToOverrideVertAngleToMiddleRow[aiStrength]) {
+        mg->bB_aiVertButton = 0;
+    }
+}
+
+// .text:0x0012DD88 size:0x44 mapped:0x8076CE1C
+BOOL fn_3_12DD88(void) {
+    u32 i;
+
+    i = 0;
+    do {
+        if (g_Minigame.barrels[i].barrelState != BB_BARREL_STATE_NEUTRAL) {
+            break;
+        }
+        i++;
+    } while (i < 15);
+    return i >= 15;
+}
+
+// .text:0x0012DB80 size:0x208 mapped:0x8076CC14
+void bB_AI(void) {
+    MiniGameStruct *mg = &g_Minigame;
+    s8 i;
+
+    fn_3_12DB54();
+
+    i = 0;
+    do {
+        s8 character = g_Minigame.playerSlots.characterIndex[i];
+
+        if (character >= 0 && character < 4 && i == g_Minigame.rosterID && g_Minigame.playerSlots.aiControlledInd[i]) {
+            g_Minigame.isAIControlled[character] = 1;
+            memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
+            switch (g_Pitcher.pitcherActionState) {
+            case PITCHER_ACTION_STATE_IN_AIR:
+                if (mg->bB_aiSwingChosenInd != 0) {
+                    if (g_Pitcher.framesUntilBallReachesBatterZ <= mg->bB_aiSwingFrame) {
+                        switch (mg->bB_aiSwingStage) {
+                        case 0:
+                            g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
+                            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+                            mg->bB_aiSwingStage++;
+                            break;
+                        case 1:
+                            g_Minigame._1D7C[character].newButtonInput |= mg->bB_aiVertButton;
+                            g_Minigame._1D7C[character].buttonInput |= mg->bB_aiVertButton | INPUT_BUTTON_A;
+                            mg->bB_aiSwingStage++;
+                            break;
+                        case 2:
+                            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+                            if (g_Batter.framesSinceStartOfSwing > 0) {
+                                g_Minigame._1D7C[character].buttonInput |= mg->bB_aiVertButton;
+                            }
+                            break;
+                        }
+                    }
+                } else if (fn_3_12DD88()) {
+                    bB_AI_setSwingVariables();
+                    mg->bB_aiSwingChosenInd = TRUE;
+                }
+                break;
+            }
+        }
+        i++;
+    } while (i < 4);
+}
+
+// .text:0x0012DB54 size:0x2C mapped:0x8076CBE8
+void fn_3_12DB54(void) {
+    s8 i;
+
+    i = 0;
+    do {
+        g_Minigame.isAIControlled[i] = 0;
+        i++;
+    } while (i < 4);
 }

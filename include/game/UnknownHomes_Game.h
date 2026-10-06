@@ -2206,6 +2206,13 @@ typedef struct _MiniGameStruct {
             /*0x1DD8*/ s16 _1DD8;
             /*0x1DDA*/ u8 _1DDA[18];
         };
+        struct {
+            /*0x1DCC*/ s16 bB_aiSwingFrame;
+            /*0x1DCE*/ u16 bB_aiVertButton; // INPUT_BUTTON
+            /*0x1DD0*/ s8 bB_aiSwingStage;
+            /*0x1DD1*/ u8 bB_aiSwingChosenInd;
+            /*0x1DD2*/ s8 bB_aiPrefersFewestBarrelsInd;
+        };
         ChainChompSprintAI ccsAI[4];
     };
     /*0x1DEC*/ f32 _1DEC;
