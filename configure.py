@@ -1016,7 +1016,7 @@ config.libs = [
             Object(NonMatching, "game/stadium/sta_c5.c"),
             Object(NonMatching, "game/stadium/sta_c4.c"),
             Object(NonMatching, "game/math/rep_3090.c"),
-            Object(Matching, "game/data_only/rep_31A0.c"),
+            Object(NonMatching, "game/data_only/rep_31A0.c"),
             Object(NonMatching, "game/minigame/bobomb_derby.c"),
             Object(NonMatching, "game/minigame/wall_ball.c"),
             Object(NonMatching, "game/minigame/pitching_machine.c"),
