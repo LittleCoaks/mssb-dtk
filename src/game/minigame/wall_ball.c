@@ -285,11 +285,13 @@ void wallBallInitializeValues(void) {
 
         j = 0;
         for (i = 0; i < 4; i++) {
-            if (g_Minigame.minigameControlStruct[0].characterIndex[i] >= 0) {
-                g_Minigame.minigameControlStruct[1].aIStrength[2 + j] = i;
-                g_Minigame.minigameFielderIndex[(s8)g_Minigame.minigameControlStruct[1].aIStrength[2 + j]] = j + 2;
-                g_Minigame.minigameControlStruct[0].aIStrength[4 + j] = i;
-                g_Fielders[j + 2]._020D = i;
+            if (g_Minigame.playerSlots.characterIndex[i] >= 0) {
+                int fielderIndex;
+                g_Minigame.playerSlots._28[j] = i;
+                fielderIndex = j + 2;
+                g_Fielders[fielderIndex]._020D = i;
+                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[j]] = fielderIndex;
+                g_Minigame.playerSlots._14[j] = i;
                 j++;
             }
         }
@@ -316,8 +318,9 @@ void wallBallInitializeValues(void) {
         g_Minigame.wallBall_UnknownAlways0 = 0;
         g_Minigame._1A8C[0] = 0;
 
-        for (coin = 0; coin < WALL_BALL_MAX_COINS; coin++) {
-            WALL_BALL_COIN_VISIBLE(coin) = FALSE;
+        coin = 0;
+        for (i = coin; i < WALL_BALL_MAX_COINS; i++) {
+            WALL_BALL_COIN_VISIBLE(i) = FALSE;
         }
 
         minigamesSetSomePointers();
