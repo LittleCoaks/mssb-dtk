@@ -257,7 +257,7 @@ void graphicsFunction_minigames(void) {
 
 // .text:0x000E1964 size:0x84
 void toyFieldInitCoinModels(void) {
-    unused_toyFieldInitCoinModels();
+    toyFieldSetCoinScaleAndSpin();
 }
 
 // .text:0x000E1478 size:0x4EC mapped:0x8072050C
@@ -764,7 +764,7 @@ void minigameUpdateResultsScene(void) {
 }
 
 // .text:0x000E0758 size:0x84
-void unused_toyFieldInitCoinModels(void) {
+void toyFieldSetCoinScaleAndSpin(void) {
     MinigameModelRec *rec;
     int i;
 

@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 
 void toyFieldUpdateCoinModels(void);
-void unused_toyFieldInitCoinModels(void);
+void toyFieldSetCoinScaleAndSpin(void);
 void minigameUpdateResultsScene(void);
 void charSelectPlaceFielders(void);
 void hideMinigameFielders(void);
