@@ -211,7 +211,6 @@ void wallBallEmptyHook(void) {
 void wallBallInitializeValues(void) {
     int i;
     int j;
-    int coin;
 
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         initializeSomethingDuringTransition();
@@ -318,8 +317,7 @@ void wallBallInitializeValues(void) {
         g_Minigame.wallBall_UnknownAlways0 = 0;
         g_Minigame._1A8C[0] = 0;
 
-        coin = 0;
-        for (i = coin; i < WALL_BALL_MAX_COINS; i++) {
+        for (i = 0; i < WALL_BALL_MAX_COINS; i++) {
             WALL_BALL_COIN_VISIBLE(i) = FALSE;
         }
 
