@@ -32,8 +32,8 @@
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
-extern s8 lbl_3_data_266A4;
-extern f32 lbl_3_data_26698[3];
+f32 lbl_3_data_26698[3] = { 0.5f, 0.0f, -0.5f };
+s8 lbl_3_data_266A4 = -1;
 extern s16 lbl_3_data_21E68[26];
 extern f32 lbl_3_data_21E24[17];
 extern f32 lbl_3_data_21D1C[4];
@@ -149,6 +149,28 @@ static inline void ppInitPulseTexture(void) {
     lbl_3_data_266A4 = -1;
     lbl_3_bss_B7E4 = 0;
     lbl_3_bss_B7C1 = 0;
+}
+
+// .text:0x001471C4 size:0x194 mapped:0x80786258
+void piranhaPanicSwitcher(void) {
+    switch (g_GameLogic.gameStatus) {
+        case GAME_STATUS_LOAD_GAME:
+            pP_LoadGame();
+            break;
+        case GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING:
+            pP_RoundIntro();
+            break;
+        case GAME_STATUS_DEFAULT:
+            pP_StartPlay();
+            break;
+        case GAME_STATUS_LIVE_BALL:
+            piranhaPanicLiveBall();
+            break;
+    }
+}
+
+// .text:0x001471C0 size:0x4 mapped:0x80786254
+void fn_3_1471C0(void) {
 }
 
 // .text:0x00146A90 size:0x730 mapped:0x80785B24
