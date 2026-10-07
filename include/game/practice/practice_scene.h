@@ -1,5 +1,5 @@
-#ifndef __GAME_DATA_ONLY_REP_3A48_H_
-#define __GAME_DATA_ONLY_REP_3A48_H_
+#ifndef __GAME_PRACTICE_PRACTICE_SCENE_H_
+#define __GAME_PRACTICE_PRACTICE_SCENE_H_
 
 #include "mssbTypes.h"
 
@@ -35,4 +35,4 @@ void fn_3_15B204(void);
 void fn_3_15B494(void);
 void freeFieldingPracticeControl(void);
 
-#endif // !__GAME_DATA_ONLY_REP_3A48_H_
+#endif // !__GAME_PRACTICE_PRACTICE_SCENE_H_

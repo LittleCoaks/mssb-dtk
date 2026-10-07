@@ -1,0 +1,7 @@
+#ifndef __GAME_PRACTICE_PRACTICE_MODES_H_
+#define __GAME_PRACTICE_PRACTICE_MODES_H_
+
+#include "mssbTypes.h"
+
+
+#endif // !__GAME_PRACTICE_PRACTICE_MODES_H_

@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_toyFieldOffscreen
-#include "game/minigame/toy_field_offscreen.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_toyFieldHud
+#include "game/minigame/toy_field_hud.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -10,6 +10,7 @@
 #include "game/hud/hud_scoreboard.h"
 #include "game/hud/toyfield_score_update.h"
 #include "game/match_setup/match_scene.h"
+#include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
 #include "text/text_channel.h"
 #include "Unknown/File_0x80021410.h"
@@ -19,6 +20,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8004cc18.h"
 
+extern u16 lbl_3_data_81FC[];
 extern u8 animRelated[0x124];
 extern u8 pauseControl[0x264];
 extern u8 menuNumber[0x28];
@@ -53,7 +55,6 @@ extern void fn_80053FE8(void);
 extern void fn_80051D00(void);
 extern void fn_80050F78(int arg0);
 extern void fn_8004D0F0(void);
-extern void fn_3_E911C(void);
 
 #define MG_BYTE(off) (((u8*)&g_Minigame)[off])
 #define SET_MENU(id)               \
@@ -378,11 +379,6 @@ static UIRecordDescriptor lbl_3_data_1AFB0[65] = {
 };
 
 static u16 lbl_3_data_1B7D0[4] = { 0x177, 0x178, 0x179, 0x175 };
-
-static void* jumptable_3_data_1B7D8[8] = {
-    (u8*)fn_3_E911C + 0xD0,  (u8*)fn_3_E911C + 0x31C, (u8*)fn_3_E911C + 0x738, (u8*)fn_3_E911C + 0x7FC,
-    (u8*)fn_3_E911C + 0xAD4, (u8*)fn_3_E911C + 0x930, (u8*)fn_3_E911C + 0x9B0, (u8*)fn_3_E911C + 0xA74,
-};
 // clang-format on
 
 static inline BOOL toyFieldRecordDone(UIRecord* rec) {
@@ -1677,3 +1673,262 @@ void toyfield_offScreenCharacterImage(void) {
         removeCurrentDrawingItem();
     }
 }
+
+// .text:0x000E911C size:0xC14
+#define NODE_SHOWN(i) (((u16*)node)[0x12 + (i)])
+void fn_3_E911C(void) {
+    DrawingSceneStruct* node = currentDrawingItem;
+    MinigameHudScene* scene = (MinigameHudScene*)node;
+    u8 order[8][2];
+    u32 tick = FALSE;
+    u32 i;
+    u32 j;
+    u32 count;
+
+    if (scene->_18 != 0) {
+        if (animRelated[0x96] != 0 || g_GameLogic.gameStatus != GAME_STATUS_0x26) {
+            removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+            removeCurrentDrawingItem();
+            return;
+        }
+    } else if (animRelated[0x96] != 0 || g_GameLogic.gameStatus != GAME_STATUS_INNING_TRANSITION) {
+        removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+        removeCurrentDrawingItem();
+        return;
+    }
+    switch (scene->state) {
+        case 0:
+            addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_1AFB0);
+            if (scene->_18 != 0) {
+                if (g_Minigame.grandPrixRound >= 6) {
+                    OFFSCREEN_RECORD(scene, 0)->elementIndex = 0x170;
+                    callSfx(lbl_3_data_81FC[0x36]);
+                } else {
+                    OFFSCREEN_RECORD(scene, 0)->elementIndex = 0x16F;
+                    callSfx(lbl_3_data_81FC[0x25]);
+                }
+            } else {
+                if (g_Minigame.toyField_turnNumber == 0) {
+                    OFFSCREEN_RECORD(scene, 0)->elementIndex = 0x171;
+                } else {
+                    OFFSCREEN_RECORD(scene, 0)->elementIndex = 0x16F;
+                }
+                toyFieldPlayHazardSound(0xE, 0x1C);
+            }
+            if (scene->_18 != 0) {
+                scene->_1E = 0;
+            } else {
+                scene->_1E = 2;
+            }
+            i = 0;
+            do {
+                OFFSCREEN_RECORD_AT(scene, 0x38, i)->flags &= ~UI_FLAG_VISIBLE;
+                i++;
+            } while (i < 4);
+            if (scene->_1E == 2 && g_Minigame.toyField_turnNumber == 0) {
+                OFFSCREEN_RECORD(scene, 0x1B)->flags &= ~UI_FLAG_VISIBLE;
+                i = 0;
+                do {
+                    OFFSCREEN_RECORD_AT(scene, 0x1C, i)->flags &= ~UI_FLAG_VISIBLE;
+                    i++;
+                } while (i < 4);
+            }
+            scene->state = 1;
+            break;
+        case 1:
+            if (scene->_18 != 0) {
+                if (scene->_20 != 0) {
+                    fn_3_1079C8(order, 1);
+                } else {
+                    fn_3_1079C8(order, 2);
+                }
+            } else {
+                fn_3_1079C8(order, 0);
+            }
+            if (scene->_18 == 0 && g_Minigame.toyField_turnNumber == 0) {
+                OFFSCREEN_RECORD(scene, 2)->elementIndex = 0x183;
+            } else {
+                OFFSCREEN_RECORD(scene, 2)->elementIndex = 0x184;
+            }
+            OFFSCREEN_RECORD(scene, 2)->frame = 0;
+            OFFSCREEN_RECORD(scene, 2)->playMode = UI_PLAY_FORWARD;
+            i = 0;
+            do {
+                int player = order[i][0];
+                int slot = g_Minigame.playerSlots.characterIndex[player];
+
+                OFFSCREEN_RECORD_AT(scene, 3, i)->frame = scene->_1E << 16;
+                OFFSCREEN_RECORD_AT(scene, 7, i)->frame = slot << 16;
+                OFFSCREEN_RECORD_AT(scene, 0xF, i * 2)->frame = inMemRoster[0][slot].stats.CharID << 16;
+                OFFSCREEN_RECORD_AT(scene, 0x10, i * 2)->frame = inMemRoster[0][slot].stats.CharID << 16;
+                OFFSCREEN_RECORD_AT(scene, 0x17, i)->elementIndex = lbl_3_data_1B7D0[order[i][1]];
+                OFFSCREEN_RECORD_AT(scene, 0x1C, i)->elementIndex = lbl_3_data_1AFA8[order[i][1]];
+                if (scene->_18 != 0) {
+                    if (scene->_20 != 0) {
+                        NODE_SHOWN(i) = g_Minigame._1E22[player];
+                    } else {
+                        NODE_SHOWN(i) = g_Minigame._1E22[player + 4];
+                    }
+                } else {
+                    NODE_SHOWN(i) = g_Minigame.miniGameCurrentPoints[player];
+                }
+                OFFSCREEN_RECORD_AT(scene, 0x24, i * 3)->frame = 0;
+                OFFSCREEN_RECORD_AT(scene, 0x25, i * 3)->frame = 0;
+                OFFSCREEN_RECORD_AT(scene, 0x26, i * 3)->frame = 0;
+                OFFSCREEN_RECORD_AT(scene, 0x24, i * 3)->playMode = UI_PLAY_FORWARD;
+                OFFSCREEN_RECORD_AT(scene, 0x25, i * 3)->playMode = UI_PLAY_FORWARD;
+                OFFSCREEN_RECORD_AT(scene, 0x26, i * 3)->playMode = UI_PLAY_FORWARD;
+                if (scene->_18 != 0 && scene->_20 == 0) {
+                    NODE_SHOWN(4 + i) = g_Minigame._1E22[player] - g_Minigame._1E22[player + 4];
+                    count = NODE_SHOWN(4 + i);
+                    if (count > 99) {
+                        count = 99;
+                    }
+                    if (count >= 10) {
+                        load_Icon(scene, 0x3C + i, 1, 0x174, 0xB);
+                    } else {
+                        load_Icon(scene, 0x3C + i, 1, 0x174, 0xA);
+                    }
+                    if (count >= 10) {
+                        load_Icon(scene, 0x3C + i, 2, 0x174, (count % 100) / 10);
+                    } else {
+                        load_Icon(scene, 0x3C + i, 2, 0x174, 0xB);
+                    }
+                    load_Icon(scene, 0x3C + i, 3, 0x174, count % 10);
+                }
+                OFFSCREEN_RECORD_AT(scene, 0x3C, i)->frame = 0;
+                OFFSCREEN_RECORD_AT(scene, 0x3C, i)->playMode = UI_PLAY_STOP;
+                i++;
+            } while (i < g_Minigame.miniGameNumberOfParticipants);
+            scene->state = 2;
+        case 2:
+            switch (scene->_1E) {
+                case 0:
+                case 1:
+                    if (scene->_20 != 0) {
+                        if (g_GameLogic._125 >= TRANSITION_CALCULATION_TYPE_5) {
+                            scene->state = 7;
+                        }
+                    } else if (OFFSCREEN_RECORD(scene, 2)->unk69[0] == 2) {
+                        scene->state = 5;
+                    }
+                    break;
+                case 2:
+                    if (g_Minigame.toyField_turnNumber == 0) {
+                        if (OFFSCREEN_RECORD(scene, 2)->unk69[0] == 2) {
+                            scene->_22 = 0;
+                            scene->state = 3;
+                        }
+                    }
+                    break;
+            }
+            break;
+        case 3:
+            scene->_22++;
+            if (scene->_22 >= 4) {
+                scene->_22 = 0;
+                scene->scratch[0x10]++;
+                if (scene->scratch[0x10] >= 4) {
+                    scene->scratch[0x10] = 0;
+                }
+                j = 0;
+                do {
+                    if (j == scene->scratch[0x10]) {
+                        OFFSCREEN_RECORD_AT(scene, 0x38, j)->flags |= UI_FLAG_VISIBLE;
+                    } else {
+                        OFFSCREEN_RECORD_AT(scene, 0x38, j)->flags &= ~UI_FLAG_VISIBLE;
+                    }
+                    j++;
+                } while (j < 4);
+                if (scene->scratch[0x10] == g_Minigame.rosterID) {
+                    scene->scratch[0x11]++;
+                    if (scene->scratch[0x11] >= 5) {
+                        OFFSCREEN_RECORD_AT(scene, 0x38, g_Minigame.rosterID)->playMode = UI_PLAY_FORWARD;
+                        scene->state = 4;
+                    }
+                }
+                sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+            }
+            break;
+        case 5:
+            i = 0;
+            do {
+                if (NODE_SHOWN(4 + i) != 0) {
+                    UIRecord* rec = OFFSCREEN_RECORD_AT(scene, 0x3C, i);
+
+                    if ((rec->frame >> 16) >= 9) {
+                        rec->playMode = UI_PLAY_STOP;
+                        scene->_22 = 0;
+                        scene->state = 6;
+                    } else {
+                        rec->playMode = UI_PLAY_FORWARD;
+                    }
+                }
+                i++;
+            } while (i < g_Minigame.miniGameNumberOfParticipants);
+            break;
+        case 6:
+            scene->_22++;
+            if (scene->_22 >= 4) {
+                i = 0;
+                do {
+                    if (NODE_SHOWN(4 + i) != 0) {
+                        NODE_SHOWN(i)++;
+                        tick = TRUE;
+                        NODE_SHOWN(4 + i)--;
+                    }
+                    i++;
+                } while (i < g_Minigame.miniGameNumberOfParticipants);
+                scene->_22 = 0;
+            }
+            i = 0;
+            do {
+                if (NODE_SHOWN(4 + i) != 0) {
+                    break;
+                }
+                i++;
+            } while (i < g_Minigame.miniGameNumberOfParticipants);
+            if (i >= g_Minigame.miniGameNumberOfParticipants) {
+                if (g_GameLogic._125 >= TRANSITION_CALCULATION_TYPE_3) {
+                    scene->state = 7;
+                }
+            }
+            break;
+        case 7:
+            if (fn_3_125424(scene, 2, 0)) {
+                switch (scene->_1E) {
+                    case 0:
+                        if (scene->_20 == 0) {
+                            if (g_Minigame.grandPrixRound >= 6) {
+                                scene->_1E = 1;
+                            }
+                            scene->_20 = 1;
+                            scene->state = 1;
+                        }
+                        break;
+                }
+            }
+            break;
+    }
+    if (scene->state >= 1) {
+        i = 0;
+        do {
+            count = NODE_SHOWN(i);
+            if (scene->_18 != 0) {
+                if (count > 99) {
+                    count = 99;
+                }
+            } else if (count > 999) {
+                count = 999;
+            }
+            load_Icon(scene, 0x24 + i * 3, 1, 0x66, (count % 1000) / 100);
+            load_Icon(scene, 0x25 + i * 3, 1, 0x66, (count % 100) / 10);
+            load_Icon(scene, 0x26 + i * 3, 1, 0x66, count % 10);
+            i++;
+        } while (i < g_Minigame.miniGameNumberOfParticipants);
+    }
+    if (tick != FALSE) {
+        sndFXStartEx(0x1C1, lbl_800EFBA4[0xA], 0x3F, 0);
+    }
+}
+#undef NODE_SHOWN

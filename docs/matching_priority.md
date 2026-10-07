@@ -62,7 +62,7 @@ priority.)
 |---|---|---|---|
 | `src/menus/rep_0788.c` | 150/150 | 0% | 0.6% |
 | `src/menus/rep_0B08.c` | 131/132 | 1% | 1.3% |
-| `src/game/minigame/rep_3880.c` | 119/123 | 3% | 0.7% |
+| `src/game/minigame/minigame_effects.c` | 119/123 | 3% | 0.7% |
 | `src/game/fielding/fielder.c` | 61/223 | 73% | 0.4% |
 | `src/game/camera/camera.c` | 64/76 | 16% | **72.0%** |
 | `src/game/baserunning/runner.c` | 30/78 | 62% | 0.6% |

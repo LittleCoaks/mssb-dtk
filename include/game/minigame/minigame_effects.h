@@ -1,5 +1,5 @@
-#ifndef __GAME_MINIGAME_REP_3880_H_
-#define __GAME_MINIGAME_REP_3880_H_
+#ifndef __GAME_MINIGAME_MINIGAME_EFFECTS_H_
+#define __GAME_MINIGAME_MINIGAME_EFFECTS_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/vec.h"
@@ -377,4 +377,4 @@ void fn_3_147778(MGEffect* effect, Vec* pos);
 int fn_3_14737C(MGEffect* effect);
 void fn_3_147358(void);
 
-#endif // !__GAME_MINIGAME_REP_3880_H_
+#endif // !__GAME_MINIGAME_MINIGAME_EFFECTS_H_

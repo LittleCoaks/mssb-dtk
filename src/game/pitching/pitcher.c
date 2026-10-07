@@ -11,7 +11,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "header_rep_data.h"
 #include "game/sound/m_sound.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "game/minigame/bobomb_derby.h"
 #include "Unknown/File_0x800204cc.h"
 #include "game/batting/batter_ai.h"

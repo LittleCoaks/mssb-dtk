@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#include "game/data_only/rep_3A48.h"
-#define REP_HEADER_DATA_FN getRepHeaderData_rep_3A48
+#include "game/practice/practice_scene.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_practiceScene
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/hud/hud_gauges.h"
@@ -9,7 +9,7 @@
 #include "game/hud/toyfield_score_update.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/match_scene.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "game/pitching/pitcher.h"
 #include "game/baserunning/runner.h"
 #include "game/ball/ball_physics.h"

@@ -5,7 +5,7 @@
 #include "Dolphin/stl.h"
 #include "stl/math.h"
 #include "game/minigame/toy_field.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "Unknown/File_0x80034220.h"
 #include "Unknown/File_0x8003452c.h"
 #include "Unknown/File_0x800348c8.h"

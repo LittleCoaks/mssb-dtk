@@ -74,7 +74,7 @@ extern void starMissionsMinigamesSpecialAction(int missionType, int points, int 
 extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 hugeAnimStruct[0x3154];
 extern VecXYZ lbl_3_data_21D34[4][3];
-extern u8 lbl_3_data_21E20[4];
+extern u8 lbl_3_data_21E20[3];
 extern u8 lbl_3_data_21E18[4];
 
 #define SATURATING_INCREMENT(counter) \

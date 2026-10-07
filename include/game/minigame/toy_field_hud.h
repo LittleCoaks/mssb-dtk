@@ -1,10 +1,11 @@
-#ifndef __GAME_MINIGAME_TOY_FIELD_OFFSCREEN_H_
-#define __GAME_MINIGAME_TOY_FIELD_OFFSCREEN_H_
+#ifndef __GAME_MINIGAME_TOY_FIELD_HUD_H_
+#define __GAME_MINIGAME_TOY_FIELD_HUD_H_
 
 #include "mssbTypes.h"
 
 void toyfield_offScreenCharacterImage(void);
 void toyfield_offScreenCharacterImage_loadFn(void);
+void fn_3_E911C(void);
 void fn_3_EA454(void);
 void fn_3_EA8FC(void);
 void fn_3_EAEF4(void);
@@ -29,4 +30,4 @@ void toyField_hud_scores_BallsStrikesOuts(void);
 void fn_3_EDA3C(void);
 void toyfield_drawHud(void);
 
-#endif // !__GAME_MINIGAME_TOY_FIELD_OFFSCREEN_H_
+#endif // !__GAME_MINIGAME_TOY_FIELD_HUD_H_

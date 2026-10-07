@@ -347,12 +347,12 @@
 "named": [],
 "bytes": 0
 },
-"data_only/rep_31A0.c": {
+"minigame/minigame_framework.c": {
 "total": 0,
 "named": [],
 "bytes": 0
 },
-"data_only/rep_3A48.c": {
+"practice/practice_scene.c": {
 "total": 0,
 "named": [],
 "bytes": 0
@@ -898,7 +898,7 @@
 ],
 "bytes": 27500
 },
-"minigame/rep_3880.c": {
+"minigame/minigame_effects.c": {
 "total": 123,
 "named": [
 "barrelBatterRel",
@@ -933,7 +933,7 @@
 ],
 "bytes": 19696
 },
-"minigame/toy_field_offscreen.c": {
+"minigame/toy_field_hud.c": {
 "total": 1,
 "named": [
 "toyfield_offScreenCharacterImage"

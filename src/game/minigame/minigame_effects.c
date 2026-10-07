@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep_3880
+#define REP_HEADER_DATA_FN getRepHeaderData_minigameEffects
 #define g_Minigame g_Minigame_shared
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
