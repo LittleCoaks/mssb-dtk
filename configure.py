@@ -990,7 +990,7 @@ config.libs = [
             Object(NonMatching, "game/batting/at_bat_results.c"),
             Object(NonMatching, "game/math/game_math.c", extra_cflags=["-inline deferred,auto", "-fp_contract on"]),
             Object(NonMatching, "game/fielding/fielder_ai.c"),
-            Object(Matching, "game/data_only/rep_1A80.c"),
+            Object(NonMatching, "game/match_setup/pause_menu.c"),
             Object(NonMatching, "game/practice/practice_modes.c"),
             Object(NonMatching, "game/practice/guided_practice.c"),
             Object(Matching, "game/match_setup/player_control_transition.c"),
