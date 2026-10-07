@@ -5,6 +5,7 @@
 
 void toyfield_offScreenCharacterImage(void);
 void toyfield_offScreenCharacterImage_loadFn(void);
+void fn_3_E911C(void);
 void fn_3_EA454(void);
 void fn_3_EA8FC(void);
 void fn_3_EAEF4(void);
