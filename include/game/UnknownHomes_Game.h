@@ -803,7 +803,7 @@ typedef struct _PracticeStruct {
     artificial_padding(0x24, 0x140, int);
     /*0x140*/ frame_t totalFrames;
     /*0x142*/ frame_t framesInCurrTransitionState;
-    /*0x144*/ frame_t framesSincePracticeMenuDefaultTransition;
+    /*0x144*/ u16 framesSincePracticeMenuDefaultTransition;
     /*0x146*/ frame_t practiceMenu_framesOnCurrMenuScreen;
     /*0x148*/ u16 frames_sinceMovedToFromMenu;
     /*0x14A*/ frame_t _14A;
@@ -855,12 +855,14 @@ typedef struct _PracticeStruct {
     /*0x1A1*/ u8 aIEnabled;
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
-    artificial_padding(0x1a3, 0x1aa, u8);
+    /*0x1A4*/ u8 _1A4;
+    artificial_padding(0x1a4, 0x1aa, u8);
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     artificial_padding(0x1aa, 0x1af, u8);
     /*0x1AF*/ u8 returnToPracticeMenuState;
     /*0x1B0*/ u8 _1B0;
-    artificial_padding(0x1b0, 0x1c2, u8);
+    /*0x1B1*/ u8 _1B1;
+    /*0x1B2*/ u8 _1B2[4][4];
     /*0x1C2*/ s8 instructionNumber;
     /*0x1C3*/ u8 readyToMoveToNextInstruction; // unsure
     /*0x1C4*/ u8 practice_runner_countInputForMashing;
@@ -882,7 +884,10 @@ typedef struct _PracticeStruct {
     /*0x1D4*/ u8 loadingGuidedPractice; // unsure
     /*0x1D5*/ u8 _1D5;
     /*0x1D6*/ u8 practiceLevel_2;
-    artificial_padding(0x1d6, 0x1db, u8);
+    /*0x1D7*/ u8 _1D7;
+    /*0x1D8*/ u8 _1D8;
+    /*0x1D9*/ u8 _1D9;
+    artificial_padding(0x1d9, 0x1db, u8);
     /*0x1DB*/ u8 _1DB;
     artificial_padding(0x1db, 0x1e1, u8);
     /*0x1E1*/ u8 hitVariablesSetIndicator;
@@ -1290,10 +1295,10 @@ typedef struct _MiniGameControlStruct {
 typedef struct _MinigameSelectSlot {
     /*0x00*/ s8 charID;
     /*0x01*/ s8 _1;
-    /*0x02*/ u8 _2[4];
+    /*0x02*/ s8 _2[4];
     /*0x06*/ s8 _6;
     /*0x07*/ s8 _7;
-    /*0x08*/ u8 _8;
+    /*0x08*/ s8 _8;
 } MinigameSelectSlot; // size: 0x9
 
 /* MiniGameStruct+0x18CC..0x1903 (MiniGameControlStruct[2] and the three
@@ -1951,10 +1956,10 @@ typedef struct _MiniGameStruct {
     /*0x19CF*/ u8 _19CF;
     /*0x19D0*/ u8 _19D0;
     /*0x19D1*/ u8 _19D1;
-    /*0x19D2*/ s16 _19D2;
-    /*0x19D4*/ s16 _19D4;
-    /*0x19D6*/ s16 _19D6;
-    /*0x19D8*/ s16 _19D8;
+    /*0x19D2*/ u16 _19D2;
+    /*0x19D4*/ u16 _19D4;
+    /*0x19D6*/ u16 _19D6;
+    /*0x19D8*/ u16 _19D8;
     /*0x19DA*/ union {
         struct {
             /*0x19DA*/ u8 _19DA;
@@ -1970,7 +1975,8 @@ typedef struct _MiniGameStruct {
     /*0x19E1*/ u8 _19E1;
     /*0x19E2*/ u8 _19E2;
     /*0x19E3*/ u8 _19E3;
-    /*0x19E4*/ s16 _19E4;
+    /*0x19E4*/ u8 _19E4;
+    /*0x19E5*/ u8 _19E5;
     /*0x19E6*/ u8 _19E6;
     /*0x19E7*/ u8 _19E7;
     /*0x19E8*/ union {
@@ -2011,10 +2017,10 @@ typedef struct _MiniGameStruct {
         };
         MinigameSelectSlot selectSlots[4];
     };
-    /*0x1A0C*/ u8 _1A0C;
+    /*0x1A0C*/ s8 _1A0C;
     /*0x1A0D*/ u8 _1A0D;
     /*0x1A0E*/ u8 _1A0E;
-    /*0x1A0F*/ u8 _1A0F;
+    /*0x1A0F*/ s8 _1A0F;
     /*0x1A10*/ u8 _1A10;
     /*0x1A11*/ u8 _1A11;
     /*0x1A12*/ u8 _1A12;
@@ -2032,7 +2038,7 @@ typedef struct _MiniGameStruct {
     /*0x1A28*/ s16 someGraphicFrameCountdown;
     /*0x1A2A*/ E(u8, MINI_GAME_ID) GameMode_MiniGame;
     /*0x1A2B*/ E(u8, MINIGAME_DIFFICULTY) soloMinigameDifficulty;
-    /*0x1A2C*/ u8 _1A2C;
+    /*0x1A2C*/ s8 _1A2C;
     /*0x1A2D*/ u8 miniGameTurnCounter;
     /*0x1A2E*/ u8 bB_pitchesRemainingInTurn;
     /*0x1A2F*/ u8 bODRoundStartingNumPitches;
@@ -2202,7 +2208,10 @@ typedef struct _MiniGameStruct {
     /*0x1D68*/ s16 _1D68;
     /*0x1D6A*/ s16 _1D6A;
     /*0x1D6C*/ u8 _1D6C;
-    /*0x1D6D*/ u8 starDashStarHolder; // s8 player slot, -1 = nobody
+    /*0x1D6D*/ union {
+        u8 starDashStarHolder; // player slot, -1 = nobody
+        s8 starDashStarHolderSigned;
+    };
     /*0x1D6E*/ u8 starDashStunType[4];
     /*0x1D72*/ u8 starDashFireBarPhase;
     /*0x1D73*/ u8 _1D73;
@@ -2248,8 +2257,23 @@ typedef struct _MiniGameStruct {
         s16 bB_totalPoints;        // Barrel Batter
     };
     /*0x1DFC*/ u8 _1DFC[4];
-    /*0x1E00*/ u8 _1E00;
-    /*0x1E01*/ u8 _1E01[0x1E2C - 0x1E01];
+    /*0x1E00*/ union {
+        struct {
+            /*0x1E00*/ u8 _1E00;
+            /*0x1E01*/ u8 _1E01[0x1E2C - 0x1E01];
+        };
+        struct {
+            /*0x1E00*/ u8 _1E00_pad[3];
+            /*0x1E03*/ u8 _1E03;
+            /*0x1E04*/ struct _MinigameResultsScene* resultsScene;
+            /*0x1E08*/ u8 grandPrixRanks[4][2];
+            /*0x1E10*/ s16 grandPrixPoints[6];
+            /*0x1E1C*/ u8 grandPrixOrder[6]; // MINI_GAME_ID of each round, shuffled
+            /*0x1E22*/ u8 _1E22[8];
+            /*0x1E2A*/ u8 grandPrixRound;
+            /*0x1E2B*/ u8 _1E2B;
+        };
+    };
 } MiniGameStruct; // size: 0x1E2C
 
 extern MiniGameStruct g_Minigame;
@@ -2268,7 +2292,7 @@ typedef struct _BatterReachStruct {
 
 extern BatterReachStruct BatterHitbox[54];
 
-extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(u8);
+extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
 
 extern u8 swingSoundFrame[2][4];
 
