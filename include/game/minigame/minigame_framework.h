@@ -1,5 +1,5 @@
-#ifndef __GAME_DATA_ONLY_REP_31A0_H_
-#define __GAME_DATA_ONLY_REP_31A0_H_
+#ifndef __GAME_MINIGAME_MINIGAME_FRAMEWORK_H_
+#define __GAME_MINIGAME_MINIGAME_FRAMEWORK_H_
 
 #include "mssbTypes.h"
 
@@ -87,4 +87,4 @@ void fn_3_106EB0(void);
 BOOL loadSomeDataFile(void);
 void someAllocFunction(void);
 
-#endif // !__GAME_DATA_ONLY_REP_31A0_H_
+#endif // !__GAME_MINIGAME_MINIGAME_FRAMEWORK_H_

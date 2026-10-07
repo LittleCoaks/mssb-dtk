@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_toyFieldOffscreen
-#include "game/minigame/toy_field_offscreen.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_toyFieldHud
+#include "game/minigame/toy_field_hud.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"

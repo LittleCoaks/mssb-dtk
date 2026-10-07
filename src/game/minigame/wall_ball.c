@@ -7,7 +7,7 @@
 #include "game/minigame/wall_ball.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "game/sound/m_sound.h"
 #include "game/math/game_math.h"
 #include "Dolphin/stl.h"

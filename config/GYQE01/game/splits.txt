@@ -327,7 +327,7 @@ game/stadium/sta_c6.c:
 	.data       start:0x00019018 end:0x00019770
 	.bss        start:0x0000AE50 end:0x0000AEE0
 
-game/minigame/toy_field_offscreen.c:
+game/minigame/toy_field_hud.c:
 	.text       start:0x000E9D30 end:0x000EDFAC
 	.rodata     start:0x00002BF8 end:0x00002C60
 	.data       start:0x00019770 end:0x0001B820
@@ -350,7 +350,7 @@ game/math/rep_3090.c:
 	.data       start:0x00021048 end:0x00021268
 	.bss        start:0x0000B678 end:0x0000B698
 
-game/data_only/rep_31A0.c:
+game/minigame/minigame_framework.c:
 	.text       start:0x00106DFC end:0x00110634
 	.rodata     start:0x000031A0 end:0x000031F0
 	.data       start:0x00021268 end:0x000224E8
@@ -400,13 +400,13 @@ game/minigame/piranha_panic.c:
 	.data       start:0x00026698 end:0x000266A8
 	.bss        start:0x0000B7C0 end:0x0000B850
 
-game/minigame/rep_3880.c:
+game/minigame/minigame_effects.c:
 	.text       start:0x00147358 end:0x00157DB8
 	.rodata     start:0x00003880 end:0x00003A48
 	.data       start:0x000266A8 end:0x00026F00
 	.bss        start:0x0000B850 end:0x0000B9B8
 
-game/data_only/rep_3A48.c:
+game/practice/practice_scene.c:
 	.text       start:0x00157DB8 end:0x0015B79C
 	.rodata     start:0x00003A48 end:0x00003A98
 	.data       start:0x00026F00 end:0x00026F78

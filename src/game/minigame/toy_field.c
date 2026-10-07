@@ -21,7 +21,7 @@
 #include "game/match_setup/at_bat_setup.h"
 #include "game/minigame/minigame_fielder_anim.h"
 #include "game/hud/stadium_draw.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "game/minigame/pitching_machine.h"
 #include "musyx/musyx.h"
 #include "Dolphin/stl.h"

@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep_31A0
-#include "game/data_only/rep_31A0.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_minigameFramework
+#include "game/minigame/minigame_framework.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -18,7 +18,7 @@
 #include "game/minigame/piranha_panic.h"
 #include "game/minigame/star_dash.h"
 #include "game/minigame/pitching_machine.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "game/minigame/minigame_fielder_anim.h"
 #include "game/sound/m_sound.h"
 #include "game/stadium/stadium_framework.h"

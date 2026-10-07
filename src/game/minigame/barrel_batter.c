@@ -16,7 +16,7 @@
 #include "Unknown/File_0x800204cc.h"
 #include "game/minigame/toy_field.h"
 #include "game/match_setup/match_loading.h"
-#include "game/minigame/rep_3880.h"
+#include "game/minigame/minigame_effects.h"
 #include "Unknown/sub.h"
 
 extern void SetGameStatus(GAME_STATUS status);
