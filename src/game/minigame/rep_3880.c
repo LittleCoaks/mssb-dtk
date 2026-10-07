@@ -41,6 +41,8 @@ extern MGMinigame g_Minigame;
 #define PP g_Minigame.pp
 
 extern u8 animRelated[0x124];
+extern u8 hugeAnimStruct[0x3154];
+extern f32 lbl_3_data_21770[6];
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_3_common_bss_35154[];
 
@@ -163,9 +165,31 @@ extern void fn_80033B58(void* tex, int sub, int a, int b);
 
 
 
+static inline void mgStarSparkOffset(MGParticle* p) {
+    Vec offset;
+    u32 node;
+
+    if (p->_4C < 5) {
+        node = (u32)rand() % 23;
+        offset.z = 0.0f;
+        offset.y = 0.0f;
+        offset.x = 0.0f;
+        if (!getAnimationCollisionOffset(p->_4C - 1, lbl_3_data_26CB8[node], &offset)) {
+            memset(&offset, 0, sizeof(Vec));
+            getAnimationCollisionOffset(p->_4C - 1, 4, &offset);
+        }
+    } else {
+        offset.x = g_Minigame.sd.starPos.x;
+        offset.y = -g_Minigame.sd.starPos.y;
+        offset.z = g_Minigame.sd.starPos.z;
+    }
+    p->origin.x += offset.x;
+    p->origin.y += offset.y;
+    p->origin.z += offset.z;
+}
+
 static inline void mgStarSparkPlace(MGParticle* p) {
     Vec v = { 0.0f, 0.0f, 0.0f };
-    Vec offset;
 
     if (p->_4C == 5) {
         v.x = v.x + (f32)(rand() % 10000 - 5000) / 10000.0f;
@@ -178,22 +202,7 @@ static inline void mgStarSparkPlace(MGParticle* p) {
         p->origin.y = 0.0f;
         p->origin.x = 0.0f;
     }
-    if (p->_4C < 5) {
-        offset.z = 0.0f;
-        offset.y = 0.0f;
-        offset.x = 0.0f;
-        if (!getAnimationCollisionOffset(p->_4C - 1, lbl_3_data_26CB8[(u32)rand() % 23], &offset)) {
-            memset(&offset, 0, sizeof(Vec));
-            getAnimationCollisionOffset(p->_4C - 1, 4, &offset);
-        }
-    } else {
-        offset.x = g_Minigame.sd.starPos.x;
-        offset.y = -g_Minigame.sd.starPos.y;
-        offset.z = g_Minigame.sd.starPos.z;
-    }
-    p->origin.x += offset.x;
-    p->origin.y += offset.y;
-    p->origin.z += offset.z;
+    mgStarSparkOffset(p);
 }
 
 static inline void mgStarSparksSetup(MGEffect* effect, s8 index) {
@@ -213,6 +222,131 @@ static inline void mgStarSparksSetup(MGEffect* effect, s8 index) {
             i++;
             p->_34 = 0.0f;
         }
+        p = p->next;
+    } while (p != NULL);
+}
+
+static inline void mgBarrelSparksSetup(MGEffect* effect, int barrelIndex) {
+    MGParticle* p = effect->particles;
+    s32 i = 0;
+
+    do {
+        if (p->_44 == 0 && p->_4A == 0) {
+            if (i < 3) {
+                p->_44 = 1;
+                p->_45 = (u8)barrelIndex;
+                p->_46 = 0xFF;
+                p->_4D = lbl_3_data_26D00[0];
+                p->_38 = p->_3C = (f32)lbl_3_data_26D00[4];
+                p->alphaByte = lbl_3_data_26D00[7];
+                fn_3_14D318(p);
+                p->_4A = lbl_3_data_26D00[17];
+                p->_48 = 0;
+            } else {
+                p->_44 = 2;
+                p->_45 = (u8)barrelIndex;
+                p->_46 = (i - 3) / 5;
+                p->_4D = lbl_3_data_26D00[1];
+                p->_38 = p->_3C = (f32)lbl_3_data_26D00[11];
+                p->alphaByte = lbl_3_data_26D00[14];
+                p->_48 = (i - 3) % 5 * 4 + 1;
+                p->_4A = lbl_3_data_26D00[18];
+            }
+            p->_40 = p->_41 = p->_42 = 0xFF;
+            i++;
+        }
+        p = p->next;
+    } while (p != NULL && i < 43);
+}
+
+static inline void mgBarrelRingInit(MGEffect* effect, Vec* pos) {
+    MGParticle* p;
+    u32 i = 0;
+    f32 angle;
+
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    do {
+        p->_4D = lbl_3_data_26E40[0];
+        p->_4E = 0;
+        p->_4A = lbl_3_data_26E40[2];
+        p->_48 = 0;
+        p->origin.x = pos->x;
+        p->origin.y = -pos->y;
+        p->origin.z = pos->z;
+        angle = 0.017453292f * (f32)(u32)(360 / lbl_3_data_26E40[1] * i);
+        p->origin.x = p->origin.x + (f32)lbl_3_data_26E40[3] * (f32)cos(angle) / 100000.0f;
+        p->origin.y = p->origin.y + (f32)lbl_3_data_26E40[3] * (f32)sin(angle) / 100000.0f;
+        p->_3C = p->_38 = (f32)lbl_3_data_26E40[5] / 100000.0f;
+        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->alphaByte = lbl_3_data_26E40[9];
+        p->velX = 0.0f;
+        p->velY = (f32)(lbl_3_data_26E40[12] - rand() % lbl_3_data_26E40[13]);
+        p->velY = p->velY / 100000.0f;
+        p->velY = p->velY * (f32)(1 - rand() % 2 * 2);
+        i++;
+        p->velZ = (f32)(lbl_3_data_26E40[6] - rand() % lbl_3_data_26E40[7]);
+        p->velZ = p->velZ / 100000.0f;
+        p = p->next;
+    } while (p != NULL);
+}
+
+static inline void mgStarParticleInit(s8 index, MGParticle* p) {
+    u8* actor = *(u8**)(hugeAnimStruct + 0x2C50 + index * 4);
+    s32 base = lbl_3_data_26E7C[6];
+    u8 lo = base;
+    u8 range;
+    s32 span;
+    f32 angle;
+    f32 s;
+    f32 c;
+
+    p->origin.x = 0.0f;
+    p->origin.y = -((f32)lbl_3_data_26E7C[5] / 100000.0f + *(f32*)(actor + 0x38));
+    p->origin.z = 0.0f;
+    angle = 0.017453292f * (15.0f * ((f32)(lbl_3_data_26E7C[0] / 2 - p->_4A) / ((f32)lbl_3_data_26E7C[0] * 0.5f)));
+    s = sin(angle);
+    c = cos(angle);
+    p->velX = s * (f32)lbl_3_data_26E7C[1] / 100000.0f;
+    p->velY = c * (f32)lbl_3_data_26E7C[1] / 100000.0f;
+    p->velZ = 0.0f;
+    p->alpha = p->_20 = p->_1C = 0.0f;
+    span = (s32)(1000.0f * ((f32)lbl_3_data_26E7C[2] / 100000.0f));
+    p->_28 = (f32)(rand() % span) / 1000.0f;
+    p->_2C = (f32)(rand() % span) / 1000.0f;
+    p->_30 = (f32)(rand() % span) / 1000.0f;
+    p->_47 = 0xFF;
+    p->alphaByte = 0xFF;
+    range = 0xFF - base;
+    p->_41 = lo + rand() % range;
+    p->_42 = lo + rand() % range;
+    p->_44 = lo + rand() % range;
+    p->_45 = lo + rand() % range;
+    p->_46 = lo + rand() % range;
+    p->_4C = 0;
+}
+
+static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
+    MGParticle* p = effect->particles;
+    f32 speed;
+
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    do {
+        p->_4D = lbl_3_data_26CD0[0];
+        p->_4E = 0;
+        p->origin.x = pos->x + (f32)(rand() % 1000 - 500) / 1000.0f;
+        p->origin.y = -(0.75f + pos->y);
+        p->origin.z = pos->z + (f32)(rand() % 1000 - 500) / 1000.0f;
+        p->velX = p->velZ = 0.0f;
+        p->velY = (f32)lbl_3_data_26CD0[9] / 100000.0f;
+        speed = p->velY;
+        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
+        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->alphaByte = lbl_3_data_26CD0[6];
+        p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
+        p->_38 = p->_3C = ((f32)lbl_3_data_26CD0[3] / 100000.0f) * p->_1C;
+        p->_4A = lbl_3_data_26CD0[2];
+        p->_48 = 0;
         p = p->next;
     } while (p != NULL);
 }
@@ -1841,326 +1975,1363 @@ int fn_3_14ED24(MGEffect* effect) {
 }
 
 // .text:0x14EAF4 size:0x230
-void fn_3_14EAF4(void) {
-    return;
+void fn_3_14EAF4(MGParticle* p) {
+    mgStarSparkPlace(p);
 }
 
 // .text:0x14E9F0 size:0x104
-void fn_3_14E9F0(void) {
-    return;
+void fn_3_14E9F0(MGParticle* p) {
+    mgStarSparkOffset(p);
 }
 
 // .text:0x14E988 size:0x68
-void fn_3_14E988(void) {
-    return;
+void fn_3_14E988(s8 index) {
+    MGEffect* effect = fn_800339F0(0, 0x1E);
+    MGParticle* p;
+
+    if (effect != NULL) {
+        p = effect->particles;
+        do {
+            if (p->_4C == index + 1) {
+                p->_4A = 0;
+            }
+            p = p->next;
+        } while (p != NULL);
+    }
 }
 
 // .text:0x14E920 size:0x68
-void fn_3_14E920(void) {
-    return;
+void fn_3_14E920(s8 index) {
+    MGEffect* effect = fn_800339F0(0, 0x1E);
+    MGParticle* p;
+
+    if (effect != NULL) {
+        p = effect->particles;
+        do {
+            if (p->_4C == index + 1) {
+                p->_4A = 0;
+            }
+            p = p->next;
+        } while (p != NULL);
+    }
 }
 
 // .text:0x14E894 size:0x8C
 void fn_3_14E894(void) {
-    return;
+    u32 i;
+
+    for (i = 0; i < 4; i++) {
+        fn_3_14E988(i);
+    }
+    pitchingMachinePitching(0x1E);
 }
 
 // .text:0x14E810 size:0x84
 void fn_3_14E810(void) {
-    return;
+    u32 i;
+
+    for (i = 0; i < 4; i++) {
+        fn_3_14E920(i);
+    }
+    pitchingMachinePitching(0x1E);
 }
 
 // .text:0x14E7C0 size:0x50
-void fn_3_14E7C0(void) {
-    return;
+void fn_3_14E7C0(MGEffect* arg) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH &&
+        arg != NULL) {
+        fn_3_14E234((Vec*)arg);
+    }
 }
 
 // .text:0x14E234 size:0x58C
-void fn_3_14E234(void) {
-    return;
+void fn_3_14E234(Vec* pos) {
+    MGEffect* existing = fn_800339F0(0, 0x1F);
+    MGEffect* fresh;
+    u8 scratch[0x80];
+
+    if (existing != NULL) {
+        fresh = fn_800337CC(scratch, lbl_3_data_26CD0[1], 1);
+        if (fresh != NULL) {
+            MGParticle* tail;
+
+            mgStarDashDustInit(fresh, pos);
+            tail = existing->particles;
+            while (tail->next != NULL) {
+                tail = tail->next;
+            }
+            tail->next = fresh->particles;
+            existing->count += fresh->count;
+        }
+    } else {
+        fresh = allocParticleEffect(fn_3_14DD04, 0x80, 0, lbl_3_data_26CD0[1], TRUE, 0x1F);
+        if (fresh != NULL) {
+            mgStarDashDustInit(fresh, pos);
+        }
+    }
 }
 
 // .text:0x14DF6C size:0x2C8
-void fn_3_14DF6C(void) {
-    return;
+void fn_3_14DF6C(MGEffect* effect, Vec* pos) {
+    MGParticle* p = effect->particles;
+    f32 speed;
+
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    do {
+        p->_4D = lbl_3_data_26CD0[0];
+        p->_4E = 0;
+        p->origin.x = pos->x + (f32)(rand() % 1000 - 500) / 1000.0f;
+        p->origin.y = -(0.75f + pos->y);
+        p->origin.z = pos->z + (f32)(rand() % 1000 - 500) / 1000.0f;
+        p->velX = p->velZ = 0.0f;
+        p->velY = (f32)lbl_3_data_26CD0[9] / 100000.0f;
+        speed = p->velY;
+        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
+        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->alphaByte = lbl_3_data_26CD0[6];
+        p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
+        p->_38 = p->_3C = ((f32)lbl_3_data_26CD0[3] / 100000.0f) * p->_1C;
+        p->_4A = lbl_3_data_26CD0[2];
+        p->_48 = 0;
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14DD04 size:0x268
-void fn_3_14DD04(void) {
-    return;
+int fn_3_14DD04(MGEffect* effect) {
+    MGParticle* p;
+    MGParticle** link;
+    MGParticle* removedTail = NULL;
+    u32 alive = 0;
+    s32 duration;
+    s32 alpha;
+    s32 alphaStep;
+    f32 sizeStep;
+
+    effect->particles = fn_80031F34(effect->particles, effect->count);
+    p = effect->particles;
+    link = &effect->particles;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
+    do {
+        if (p->_4A != 0) {
+            fn_8003403C(p->_38, p->_3C);
+            fn_80033CC8(p, effect->_10);
+            p->origin.y = p->origin.y - p->velY;
+            p->velY = p->velY - (f32)lbl_3_data_26CD0[10] / 100000.0f;
+            duration = lbl_3_data_26CD0[2];
+            alpha = p->alphaByte;
+            if (duration / p->_4A < 2) {
+                sizeStep = (f32)(lbl_3_data_26CD0[4] - lbl_3_data_26CD0[3]) / 100000.0f / (f32)(duration / 2) * p->_1C;
+                alphaStep = (lbl_3_data_26CD0[7] - lbl_3_data_26CD0[6]) / (duration / 2);
+            } else {
+                sizeStep = (f32)(lbl_3_data_26CD0[5] - lbl_3_data_26CD0[4]) / 100000.0f / (f32)(duration / 2) * p->_1C;
+                alphaStep = (lbl_3_data_26CD0[8] - lbl_3_data_26CD0[7]) / (duration / 2);
+            }
+            p->_38 += sizeStep;
+            p->_3C = p->_38;
+            alpha += alphaStep;
+            if (alpha < 0) {
+                alpha = 0;
+            } else if (alpha > 0xFF) {
+                alpha = 0xFF;
+            }
+            p->alphaByte = alpha;
+            p->_4A--;
+            if (p->_4A == 0) {
+                *link = p->next;
+                if (removedTail != NULL) {
+                    removedTail->next = p;
+                }
+                removedTail = p;
+                p->next = NULL;
+                effect->count--;
+            } else {
+                link = &p->next;
+                alive++;
+            }
+        }
+        p = *link;
+    } while (p != NULL);
+    return alive == 0;
 }
 
 // .text:0x14DCE0 size:0x24
 void fn_3_14DCE0(void) {
-    return;
+    pitchingMachinePitching(0x1F);
 }
 
 // .text:0x14DC80 size:0x60
-void fn_3_14DC80(void) {
-    return;
+void fn_3_14DC80(s8 index) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
+        if (index < 15 && index >= 0) {
+            fn_3_14D710(index);
+        }
+    }
 }
 
 // .text:0x14D710 size:0x570
-void fn_3_14D710(void) {
-    return;
+void fn_3_14D710(u8 index) {
+    MGEffect* effect = fn_800339F0(0, 0x20);
+
+    if (effect != NULL) {
+        mgBarrelSparksSetup(effect, index);
+    } else {
+        effect = allocParticleEffect(fn_3_14CECC, 0xF0, 0, lbl_3_data_26D00[2], TRUE, 0x20);
+        if (effect != NULL) {
+            fn_3_14D6D4(effect);
+            mgBarrelSparksSetup(effect, index);
+        }
+    }
 }
 
 // .text:0x14D6D4 size:0x3C
-void fn_3_14D6D4(void) {
-    return;
+void fn_3_14D6D4(MGEffect* effect) {
+    MGParticle* p;
+
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    do {
+        p->_46 = 0;
+        p->_45 = 0;
+        p->_44 = 0;
+        p->_4A = 0;
+        p->_4E = 0;
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14D44C size:0x288
-void fn_3_14D44C(void) {
-    return;
+void fn_3_14D44C(MGEffect* effect, int barrelIndex) {
+    mgBarrelSparksSetup(effect, barrelIndex);
 }
 
 // .text:0x14D318 size:0x134
-void fn_3_14D318(void) {
-    return;
+void fn_3_14D318(MGParticle* p) {
+    Vec* barrel = (Vec*)((u8*)&g_Minigame + 0x860 + p->_45 * 0x34);
+
+    p->origin.x = barrel->x;
+    p->origin.y = barrel->y - lbl_3_data_21770[3] * 0.5f;
+    p->origin.z = barrel->z;
+    p->origin.x = p->origin.x + (rand() % 100 - 50) / 100.0;
+    p->origin.y = p->origin.y + (rand() % 100 - 50) / 100.0;
 }
 
 // .text:0x14D2C0 size:0x58
-void fn_3_14D2C0(void) {
-    return;
+void fn_3_14D2C0(MGParticle* p) {
+    MGActorList* list = *(MGActorList**)(*(u8**)&hugeAnimStruct[0x68] + (p->_45 + 0x10) * 0x90 + 0x34);
+    MGActor* actor = list->actors[p->_46];
+
+    p->origin.x = actor->mtx[0][3];
+    p->origin.y = actor->mtx[1][3];
+    p->origin.z = actor->mtx[2][3];
 }
 
 // .text:0x14CECC size:0x3F4
-void fn_3_14CECC(void) {
-    return;
+int fn_3_14CECC(MGEffect* effect) {
+    MGParticle* p;
+
+    if (lbl_80366158[0x28] != 0) {
+        return 0;
+    }
+    fn_80033620(effect);
+    p = effect->particles;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    do {
+        if (p->_44 != 0 && p->_4A != 0) {
+            if (p->_48 <= 0) {
+                if (p->_44 == 1) {
+                    fn_3_14CD40(effect, p);
+                } else {
+                    if (p->_48 == 0) {
+                        fn_3_14D2C0(p);
+                    }
+                    fn_3_14CBB4(effect, p);
+                }
+                p->_4A--;
+                if (p->_4A == 0) {
+                    p->_44 = 0;
+                    p->_45 = 0xFF;
+                    p->_4A = 0;
+                    p->_4C = 0;
+                }
+            }
+            p->_48--;
+        }
+        p = p->next;
+    } while (p != NULL);
+    return 0;
 }
 
 // .text:0x14CD40 size:0x18C
-void fn_3_14CD40(void) {
-    return;
+void fn_3_14CD40(MGEffect* effect, MGParticle* p) {
+    s32 duration;
+    s32 range;
+    s32 alpha;
+    s32 alphaStep;
+    f32 sizeStep;
+
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
+    fn_8003403C(p->_38, p->_3C);
+    fn_80033CC8(p, effect->_10);
+    duration = lbl_3_data_26D00[3];
+    alpha = p->alphaByte;
+    if (-p->_48 < duration) {
+        sizeStep = (f32)lbl_3_data_26D00[5] / 100000.0f / (f32)duration;
+        alphaStep = lbl_3_data_26D00[8] / duration;
+    } else {
+        range = lbl_3_data_26D00[17] - duration;
+        sizeStep = (f32)(lbl_3_data_26D00[6] - lbl_3_data_26D00[5]) / 100000.0f / (f32)range;
+        alphaStep = (lbl_3_data_26D00[9] - lbl_3_data_26D00[8]) / range;
+    }
+    alpha += alphaStep;
+    if (alpha > 0xFF) {
+        alpha = 0xFF;
+    } else if (alpha < 0) {
+        alpha = 0;
+    }
+    p->alphaByte = alpha;
+    p->_40 = p->_41 = p->_42 = p->alphaByte;
+    p->_38 += sizeStep;
+    p->_3C = p->_38;
 }
 
 // .text:0x14CBB4 size:0x18C
-void fn_3_14CBB4(void) {
-    return;
+void fn_3_14CBB4(MGEffect* effect, MGParticle* p) {
+    s32 duration;
+    s32 range;
+    s32 alpha;
+    s32 alphaStep;
+    f32 sizeStep;
+
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    fn_8003403C(p->_38, p->_3C);
+    fn_80033CC8(p, effect->_10);
+    duration = lbl_3_data_26D00[10];
+    alpha = p->alphaByte;
+    if (-p->_48 < duration) {
+        sizeStep = (f32)lbl_3_data_26D00[12] / 100000.0f / (f32)duration;
+        alphaStep = lbl_3_data_26D00[15] / duration;
+    } else {
+        range = lbl_3_data_26D00[18] - duration;
+        sizeStep = (f32)(lbl_3_data_26D00[13] - lbl_3_data_26D00[12]) / 100000.0f / (f32)range;
+        alphaStep = (lbl_3_data_26D00[16] - lbl_3_data_26D00[15]) / range;
+    }
+    alpha += alphaStep;
+    if (alpha > 0xFF) {
+        alpha = 0xFF;
+    } else if (alpha < 0) {
+        alpha = 0;
+    }
+    p->alphaByte = alpha;
+    p->_40 = p->_41 = p->_42 = p->alphaByte;
+    p->_38 += sizeStep;
+    p->_3C = p->_38;
 }
 
 // .text:0x14CB28 size:0x8C
-void fn_3_14CB28(void) {
-    return;
+void fn_3_14CB28(s8 index) {
+    MGEffect* effect;
+    MGParticle* p;
+
+    if (index < 15 && index >= 0) {
+        effect = fn_800339F0(0, 0x20);
+        if (effect != NULL) {
+            p = effect->particles;
+            do {
+                if (p->_45 == index) {
+                    p->_44 = 0;
+                    p->_45 = 0xFF;
+                    p->_4A = 0;
+                    p->_4C = 0;
+                }
+                p = p->next;
+            } while (p != NULL);
+        }
+    }
 }
 
 // .text:0x14CAB4 size:0x74
-void fn_3_14CAB4(void) {
-    return;
+void fn_3_14CAB4(s8 index) {
+    MGEffect* effect = fn_800339F0(0, 0x20);
+    MGParticle* p;
+
+    if (effect != NULL) {
+        p = effect->particles;
+        do {
+            if (p->_45 == index) {
+                p->_44 = 0;
+                p->_45 = 0xFF;
+                p->_4A = 0;
+                p->_4C = 0;
+            }
+            p = p->next;
+        } while (p != NULL);
+    }
 }
 
 // .text:0x14CA98 size:0x1C
-void fn_3_14CA98(void) {
-    return;
+void fn_3_14CA98(MGParticle* p) {
+    p->_44 = 0;
+    p->_45 = 0xFF;
+    p->_4A = 0;
+    p->_4C = 0;
 }
 
 // .text:0x14CA00 size:0x98
 void fn_3_14CA00(void) {
-    return;
+    u32 i;
+
+    for (i = 0; i < 15; i++) {
+        fn_3_14CAB4(i);
+    }
+    pitchingMachinePitching(0x20);
 }
 
 // .text:0x14C904 size:0xFC
 void fn_3_14C904(void) {
-    return;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_CHAINCHOMP_SPRINT) {
+        fn_3_14C830();
+    }
 }
 
 // .text:0x14C830 size:0xD4
 void fn_3_14C830(void) {
-    return;
+    MGEffect* effect = allocParticleEffect(fn_3_14C4C8, 0x80, 0, lbl_3_data_26D5C[1], TRUE, 0xA);
+
+    if (effect != NULL) {
+        fn_3_14C79C(effect);
+    }
 }
 
 // .text:0x14C79C size:0x94
-void fn_3_14C79C(void) {
-    return;
+void fn_3_14C79C(MGEffect* effect) {
+    MGParticle* p;
+
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    p->_4D = lbl_3_data_26D5C[0];
+    p->_4E = 0;
+    p->_4A = lbl_3_data_26D5C[2];
+    p->_38 = p->_3C = (f32)lbl_3_data_26D5C[4] / 100000.0f;
+    p->alphaByte = lbl_3_data_26D5C[7];
+    p->_40 = p->_41 = p->_42 = 0xFF;
 }
 
 // .text:0x14C4C8 size:0x2D4
-void fn_3_14C4C8(void) {
-    return;
+int fn_3_14C4C8(MGEffect* effect) {
+    MGParticle* p;
+    s32 duration;
+    s32 remaining;
+    s32 alpha;
+    s32 alphaStep;
+    f32 sizeStep;
+
+    if (lbl_80366158[0x28] != 0) {
+        return 0;
+    }
+    p = effect->particles;
+    if (p->_4A == 0) {
+        return 1;
+    }
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
+    fn_3_14C3BC(p);
+    fn_8003403C(p->_38, p->_3C);
+    fn_80033CC8(p, effect->_10);
+    duration = lbl_3_data_26D5C[3];
+    remaining = lbl_3_data_26D5C[2] - duration;
+    alpha = p->alphaByte;
+    if (remaining < p->_4A) {
+        sizeStep = (f32)(lbl_3_data_26D5C[5] - lbl_3_data_26D5C[4]) / 100000.0f / (f32)duration;
+        alphaStep = (lbl_3_data_26D5C[8] - lbl_3_data_26D5C[7]) / duration;
+    } else {
+        sizeStep = (f32)(lbl_3_data_26D5C[6] - lbl_3_data_26D5C[5]) / 100000.0f / (f32)remaining;
+        alphaStep = (lbl_3_data_26D5C[9] - lbl_3_data_26D5C[8]) / remaining;
+    }
+    alpha += alphaStep;
+    if (alpha < 0) {
+        alpha = 0;
+    }
+    if (alpha > 0xFF) {
+        alpha = 0xFF;
+    }
+    p->_38 += sizeStep;
+    p->_3C = p->_38;
+    p->alphaByte = alpha;
+    p->_40 = p->_41 = p->_42 = p->alphaByte;
+    p->_4A--;
+    return 0;
 }
 
 // .text:0x14C3BC size:0x10C
-void fn_3_14C3BC(void) {
-    return;
+void fn_3_14C3BC(MGParticle* p) {
+    Vec offset;
+    Mtx rot;
+
+    PSVECScale(&lbl_3_data_26D50, 0.75f, &offset);
+    PSMTXRotRad(rot, 'Y', shortAngleToRad(g_Minigame.ccs.chompYaw));
+    PSMTXMultVec(rot, &offset, &offset);
+    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + (f32)lbl_3_data_26D5C[5] / 100000.0f * 0.5f;
+    p->origin.y = offset.y - ((f32)lbl_3_data_26D5C[5] / 100000.0f * 0.5f + g_Minigame.ccs.chompPos.y);
+    p->origin.z = g_Minigame.ccs.chompPos.z + offset.z;
 }
 
 // .text:0x14C398 size:0x24
 void fn_3_14C398(void) {
-    return;
+    pitchingMachinePitching(0x21);
 }
 
 // .text:0x14C348 size:0x50
-void fn_3_14C348(void) {
-    return;
+void fn_3_14C348(Vec* pos, u8 flag) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL && pos != NULL) {
+        fn_3_14BECC(pos, flag);
+    }
 }
 
 // .text:0x14BECC size:0x47C
-void fn_3_14BECC(void) {
-    return;
+void fn_3_14BECC(Vec* pos, u8 flag) {
+    MGEffect* existing = fn_800339F0(0, 0x22);
+    MGEffect* fresh;
+    u8 scratch[0x80];
+
+    if (existing != NULL) {
+        fresh = fn_800337CC(scratch, lbl_3_data_26D88[1], 1);
+        fn_3_14BCB0(fresh, pos, flag);
+        if (existing->particles != NULL) {
+            MGParticle* tail = existing->particles;
+
+            while (tail->next != NULL) {
+                tail = tail->next;
+            }
+            tail->next = fresh->particles;
+        } else {
+            existing->particles = fresh->particles;
+        }
+        existing->count += fresh->count;
+    } else {
+        fresh = allocParticleEffect(fn_3_14BA40, 0x80, 0, lbl_3_data_26D88[1], TRUE, 0x22);
+        if (fresh != NULL) {
+            fn_3_14BCB0(fresh, pos, flag);
+        }
+    }
 }
 
 // .text:0x14BCB0 size:0x21C
-void fn_3_14BCB0(void) {
-    return;
+void fn_3_14BCB0(MGEffect* effect, Vec* pos, u8 flag) {
+    MGParticle* p;
+    s32* tbl = lbl_3_data_26D88;
+    u32 count = 0;
+    f32 speed;
+    f32 angle;
+
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    if (flag != 0) {
+        tbl = lbl_3_data_26DC4;
+    }
+    do {
+        if (p->_4A == 0) {
+            p->_4D = tbl[0];
+            p->_4E = 0;
+            p->_4A = tbl[2];
+            p->_38 = p->_3C = (f32)tbl[4] / 100000.0f;
+            p->alphaByte = tbl[10];
+            p->_40 = tbl[7];
+            p->_41 = tbl[8];
+            p->_42 = tbl[9];
+            speed = 2.0f * (2.0 * ((f32)rand() / 32767.0f - 0.5));
+            angle = 0.017453292f * (f32)(180.0 / tbl[1] * count);
+            p->origin.x = pos->x + speed * (f32)cos(angle);
+            p->origin.y = pos->y - speed * (f32)sin(angle) - 1.0;
+            count++;
+            p->origin.z = pos->z;
+            p->_4F = flag;
+        }
+        p = p->next;
+    } while (p != NULL && count < lbl_3_data_26D88[1]);
 }
 
 // .text:0x14BA40 size:0x270
-void fn_3_14BA40(void) {
-    return;
+int fn_3_14BA40(MGEffect* effect) {
+    MGParticle* p;
+    MGParticle** link;
+    MGParticle* removedTail = NULL;
+    MGParticle* removedHead = NULL;
+    u32 alive = 0;
+    s32* tbl;
+    s32 duration;
+    s32 rampLength;
+    s32 alpha;
+    s32 alphaStep;
+    f32 sizeStep;
+
+    if (lbl_80366158[0x28] != 0) {
+        return 0;
+    }
+    effect->particles = fn_80031F34(effect->particles, effect->count);
+    p = effect->particles;
+    link = &effect->particles;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    do {
+        if (p->_4A != 0) {
+            tbl = lbl_3_data_26DC4;
+            if (p->_4F == 0) {
+                tbl = lbl_3_data_26D88;
+            }
+            duration = tbl[2];
+            rampLength = tbl[3];
+            fn_8003403C(p->_38, p->_3C);
+            fn_80033CC8(p, effect->_10);
+            alpha = p->alphaByte;
+            if (duration - p->_4A < rampLength) {
+                sizeStep = (f32)((tbl[5] - tbl[4]) / rampLength) / 100000.0f;
+                alphaStep = (tbl[11] - tbl[10]) / rampLength;
+            } else {
+                s32 remaining = duration - rampLength;
+
+                sizeStep = (f32)((tbl[6] - tbl[5]) / remaining) / 100000.0f;
+                alphaStep = (tbl[12] - tbl[11]) / remaining;
+            }
+            alpha += alphaStep;
+            if (alpha > 0xFF) {
+                alpha = 0xFF;
+            }
+            if (alpha < 0) {
+                alpha = 0;
+            }
+            p->alphaByte = alpha;
+            p->_38 += sizeStep;
+            p->_3C = p->_38;
+            p->_4A--;
+            if (p->_4A == 0) {
+                *link = p->next;
+                if (removedTail != NULL) {
+                    removedTail->next = p;
+                } else {
+                    removedHead = p;
+                }
+                removedTail = p;
+                p->next = NULL;
+                effect->count--;
+            } else {
+                link = &p->next;
+                alive++;
+            }
+        }
+        p = *link;
+    } while (p != NULL);
+    if (removedHead != NULL) {
+        p = removedHead;
+        do {
+            p->_4C = 0;
+            p->_48 = 0;
+            p = p->next;
+        } while (p != NULL);
+        fn_80033794(removedHead);
+    }
+    return alive == 0;
 }
 
 // .text:0x14B9F0 size:0x50
 void fn_3_14B9F0(void) {
-    return;
+    MGEffect* effect = fn_800339F0(0, 0x22);
+    MGParticle* p;
+
+    if (effect != NULL) {
+        p = effect->particles;
+        do {
+            p->_4A = 0;
+            p = p->next;
+        } while (p != NULL);
+    }
+    pitchingMachinePitching(0x22);
 }
 
 // .text:0x14B9A0 size:0x50
-void fn_3_14B9A0(void) {
-    return;
+void fn_3_14B9A0(s16 frames, Vec* start) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER &&
+        start != NULL) {
+        fn_3_14B92C(frames, start);
+    }
 }
 
 // .text:0x14B92C size:0x74
-void fn_3_14B92C(void) {
-    return;
+#pragma dont_inline on
+void fn_3_14B92C(s16 frames, Vec* start) {
+    MGPathEffect* effect = allocParticleEffect(fn_3_14AC40, 0x80, 0, lbl_3_data_26E24[2], TRUE, 0x23);
+    if (effect != NULL) {
+        fn_3_14B53C(effect, frames, start);
+    }
 }
+#pragma dont_inline reset
 
 // .text:0x14B53C size:0x3F0
-void fn_3_14B53C(void) {
-    return;
+void fn_3_14B53C(MGPathEffect* effect, s16 frames, Vec* start) {
+    MGParticle* p;
+    Vec diff;
+    f32 seg1;
+    f32 seg2;
+    u32 i = 0;
+
+    effect->base.x = start->x;
+    effect->base.y = start->y;
+    effect->base.z = start->z;
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->total = frames;
+    effect->remaining = frames;
+    PSVECSubtract((Vec*)(lbl_3_data_26E00 + 3), (Vec*)lbl_3_data_26E00, &diff);
+    seg1 = PSVECMag(&diff);
+    PSVECSubtract((Vec*)(lbl_3_data_26E00 + 6), (Vec*)(lbl_3_data_26E00 + 3), &diff);
+    seg2 = PSVECMag(&diff);
+    effect->span = seg1 / ((seg2 + seg1) / (f32)(u32)frames);
+    fn_3_14B3F4(effect);
+    p = effect->particles;
+    do {
+        p->_4D = lbl_3_data_26E24[0];
+        p->_4E = 0;
+        p->_48 = (s16)((f32)i * ((f32)effect->total / (f32)lbl_3_data_26E24[2]));
+        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->_4A = lbl_3_data_26E24[1];
+        if (p->_48 == 0) {
+            fn_3_14B248(effect, p);
+        }
+        p = p->next;
+        i++;
+    } while (p != NULL);
 }
 
 // .text:0x14B3F4 size:0x148
-void fn_3_14B3F4(void) {
-    return;
+void fn_3_14B3F4(MGPathEffect* effect) {
+    f32* from;
+    f32* to;
+    f32 t;
+    f32 scale;
+
+    if ((f32)(effect->total - effect->remaining) < effect->span) {
+        from = lbl_3_data_26E00;
+        to = from + 3;
+        t = (f32)(effect->total - effect->remaining) / effect->span;
+    } else {
+        from = lbl_3_data_26E00 + 3;
+        to = lbl_3_data_26E00 + 6;
+        t = ((f32)(effect->total - effect->remaining) - effect->span) / ((f32)effect->total - effect->span);
+    }
+    scale = mm_GetPitchingMachineScale();
+    effect->pos.x = scale * (from[0] * (1.0f - t) + to[0] * t) + effect->base.x;
+    effect->pos.y = scale * (from[1] * (1.0f - t) + to[1] * t) + effect->base.y;
+    effect->pos.z = scale * (from[2] * (1.0f - t) + to[2] * t) + effect->base.z;
 }
 
 // .text:0x14B248 size:0x1AC
-void fn_3_14B248(void) {
-    return;
+void fn_3_14B248(MGPathEffect* effect, MGParticle* p) {
+    f32 angle;
+    f32 radius;
+    f32 cosA;
+    f32 dx;
+    f32 dy;
+
+    p->_38 = p->_3C = (f32)lbl_3_data_26E24[3] / 100000.0f;
+    p->alphaByte = lbl_3_data_26E24[5];
+    angle = 0.017453292f * (f32)(rand() % 360);
+    radius = (f32)((u32)rand() % 200 / 1000.0);
+    cosA = cos(angle);
+    dx = radius * cosA;
+    dy = radius * (f32)sin(angle);
+    p->origin.x = effect->pos.x + dx;
+    p->origin.y = effect->pos.y + dy;
+    p->origin.z = effect->pos.z + 0.0f;
+    p->_4A = lbl_3_data_26E24[1];
 }
 
 // .text:0x14AC40 size:0x608
-void fn_3_14AC40(void) {
-    return;
+int fn_3_14AC40(MGPathEffect* effect) {
+    MGParticle* p;
+    s32 alphaStep;
+    s32 alpha;
+    f32 sizeStep;
+
+    if (lbl_80366158[0x28] != 0) {
+        return 0;
+    }
+    fn_80033620(effect);
+    p = effect->particles;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
+    if (lbl_80366158[0x28] == 0) {
+        fn_3_14B3F4(effect);
+        effect->remaining--;
+    }
+    sizeStep = 2.0f * ((f32)(lbl_3_data_26E24[4] - lbl_3_data_26E24[3]) / 100000.0f / (f32)lbl_3_data_26E24[1]);
+    alphaStep = (lbl_3_data_26E24[6] - lbl_3_data_26E24[5]) / lbl_3_data_26E24[1] * 2;
+    do {
+        if (p->_4A != 0) {
+            if (p->_48 > 0) {
+                p->_48--;
+                if (p->_48 == 0) {
+                    fn_3_14B248(effect, p);
+                }
+            } else {
+                fn_8003403C(p->_38, p->_3C);
+                fn_80033CC8(p, effect->_10);
+                alpha = p->alphaByte;
+                if (lbl_3_data_26E24[1] / p->_4A < 2) {
+                    sizeStep = fabs(sizeStep);
+                    alphaStep = (s32)fabs((f64)alphaStep);
+                } else {
+                    sizeStep = -1.0 * fabs(sizeStep);
+                    alphaStep = (s32)(-1.0 * fabs((f64)alphaStep));
+                }
+                alpha += alphaStep;
+                if (alpha > 0xFF) {
+                    alpha = 0xFF;
+                }
+                if (alpha < 0) {
+                    alpha = 0;
+                }
+                p->_38 += sizeStep;
+                p->_3C = p->_38;
+                p->alphaByte = alpha;
+                p->_4A--;
+                if (p->_4A == 0) {
+                    fn_3_14B248(effect, p);
+                }
+            }
+        }
+        p = p->next;
+    } while (p != NULL);
+    return effect->remaining == 0;
 }
 
 // .text:0x14AC1C size:0x24
 void fn_3_14AC1C(void) {
-    return;
+    pitchingMachinePitching(0x23);
 }
 
 // .text:0x14A90C size:0x310
-void barrelBatterRel(void) {
-    return;
+void barrelBatterRel(Vec* pos) {
+    MGEffect* effect;
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER &&
+        pos != NULL) {
+        effect = allocParticleEffect(fn_3_14A188, 0x80, 0, lbl_3_data_26E40[1], TRUE, 0x24);
+        if (effect != NULL) {
+            mgBarrelRingInit(effect, pos);
+        }
+    }
 }
 
 // .text:0x14A62C size:0x2E0
-void fn_3_14A62C(void) {
-    return;
+void fn_3_14A62C(Vec* pos) {
+    MGEffect* effect = allocParticleEffect(fn_3_14A188, 0x80, 0, lbl_3_data_26E40[1], TRUE, 0x24);
+
+    if (effect != NULL) {
+        mgBarrelRingInit(effect, pos);
+    }
 }
 
 // .text:0x14A37C size:0x2B0
-void fn_3_14A37C(void) {
-    return;
+void fn_3_14A37C(MGEffect* effect, Vec* pos) {
+    mgBarrelRingInit(effect, pos);
 }
 
 // .text:0x14A188 size:0x1F4
-void fn_3_14A188(void) {
-    return;
+int fn_3_14A188(MGEffect* effect) {
+    MGParticle* p;
+    u32 alive = 0;
+    s32 alpha;
+    s32 alphaStep;
+    s32 remaining;
+    f32 sizeStep;
+
+    if (lbl_80366158[0x28] != 0) {
+        return 0;
+    }
+    fn_80033620(effect);
+    p = effect->particles;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    do {
+        if (p->_4A != 0) {
+            alpha = p->alphaByte;
+            setParticleXform(p->_38, p->_3C, p->velX);
+            fn_80033CC8(p, effect->_10);
+            if (lbl_3_data_26E40[2] - p->_4A < lbl_3_data_26E40[4]) {
+                sizeStep = (p->velZ - (f32)lbl_3_data_26E40[5] / 100000.0f) / (f32)lbl_3_data_26E40[4];
+                alphaStep = (lbl_3_data_26E40[10] - lbl_3_data_26E40[9]) / lbl_3_data_26E40[4];
+            } else {
+                remaining = lbl_3_data_26E40[2] - lbl_3_data_26E40[4];
+                sizeStep = ((f32)lbl_3_data_26E40[8] / 100000.0f + p->velZ) / (f32)remaining;
+                alphaStep = (lbl_3_data_26E40[11] - lbl_3_data_26E40[10]) / remaining;
+            }
+            alpha += alphaStep;
+            if (alpha < 0) {
+                alpha = 0;
+            }
+            if (alpha > 0xFF) {
+                alpha = 0xFF;
+            }
+            p->alphaByte = alpha;
+            p->_38 += sizeStep;
+            p->_3C = p->_38;
+            p->velX += p->velY;
+            p->_4A--;
+            if (p->_4A != 0) {
+                alive++;
+            }
+        }
+        p = p->next;
+    } while (p != NULL);
+    return alive == 0;
 }
 
 // .text:0x14A164 size:0x24
 void fn_3_14A164(void) {
-    return;
+    pitchingMachinePitching(0x24);
 }
 
 // .text:0x14A070 size:0xF4
-void fn_3_14A070(void) {
-    return;
+void fn_3_14A070(s32* values, s32 count) {
+    s8* slots = (s8*)&lbl_3_bss_B85C;
+    u32 i;
+
+    slots[0] = -1;
+    slots[1] = -1;
+    slots[2] = -1;
+    slots[3] = -1;
+    if (count > 4) {
+        return;
+    }
+    if (count == 0) {
+        return;
+    }
+    if (values == NULL) {
+        return;
+    }
+    for (i = 0; i < count; i++) {
+        slots[i] = values[i];
+    }
 }
 
 // .text:0x149BA8 size:0x4C8
 void fn_3_149BA8(void) {
-    return;
+    s8* slots = (s8*)&lbl_3_bss_B85C;
+    u32 i;
+    s8 index;
+    MGStarEffect* effect;
+
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
+        lbl_3_data_26E7C[5] = 930000;
+    } else {
+        lbl_3_data_26E7C[5] = 750000;
+    }
+    for (i = 0; i < 4; i++) {
+        index = slots[i];
+        if (index > -1) {
+            effect = allocParticleEffect(fn_3_14841C, 0x80, 0, lbl_3_data_26E7C[0], TRUE, 0x25);
+            if (effect != NULL) {
+                effect->index = index;
+                fn_3_149340(effect);
+            }
+        }
+    }
 }
 
 // .text:0x14975C size:0x44C
-void fn_3_14975C(void) {
-    return;
+void fn_3_14975C(s8 index) {
+    MGStarEffect* effect = allocParticleEffect(fn_3_14841C, 0x80, 0, lbl_3_data_26E7C[0], TRUE, 0x25);
+
+    if (effect != NULL) {
+        effect->index = index;
+        fn_3_149340(effect);
+    }
 }
 
 // .text:0x149340 size:0x41C
-void fn_3_149340(void) {
-    return;
+void fn_3_149340(MGStarEffect* effect) {
+    MGParticle* p = effect->particles;
+    u32 i = 0;
+    s32 n;
+
+    do {
+        p->_4A = 0;
+        p->_38 = (f32)lbl_3_data_26E7C[3] / 100000.0f;
+        p->_3C = (f32)lbl_3_data_26E7C[4] / 100000.0f;
+        mgStarParticleInit(effect->index, p);
+        n = lbl_3_data_26E7C[0] / 5;
+        p->_48 = (i % 5 * n + rand() % n) * 2;
+        i++;
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x148FD0 size:0x370
-void fn_3_148FD0(void) {
-    return;
+void fn_3_148FD0(s8 index, MGParticle* p) {
+    mgStarParticleInit(index, p);
 }
 
 // .text:0x148EF0 size:0xE0
-void fn_3_148EF0(void) {
-    return;
+void fn_3_148EF0(Vec* out, f32 degrees) {
+    f32 angle = 0.017453292f * degrees;
+    f32 s = sin(angle);
+    f32 c = cos(angle);
+
+    out->x = s * (f32)lbl_3_data_26E7C[1] / 100000.0f;
+    out->y = c * (f32)lbl_3_data_26E7C[1] / 100000.0f;
+    out->z = 0.0f;
 }
 
 // .text:0x14841C size:0xAD4
-void fn_3_14841C(void) {
-    return;
+int fn_3_14841C(MGStarEffect* effect) {
+    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    MGParticle* p = effect->particles;
+
+    fn_3_147F94();
+    do {
+        if (p->_48 <= 0) {
+            fn_3_148254(effect, p);
+            fn_3_1480E0(p);
+            PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
+            PSVECAdd((Vec*)&p->_1C, (Vec*)&p->_28, (Vec*)&p->_1C);
+            if (rand() % 5 == 0) {
+                Vec ref = { 0.0f, 1.0f, 0.0f };
+                Vec dir;
+                f32 angle;
+                f32 jitter;
+                f32 rad;
+
+                memcpy(&dir, &p->velX, sizeof(Vec));
+                PSVECNormalize(&dir, &dir);
+                angle = 57.29578f * (f32)acos(PSVECDotProduct(&ref, &dir));
+                if (dir.x < 0.0f) {
+                    angle *= -1.0f;
+                }
+                jitter = 20.0 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
+                if (fabs(angle + jitter) > 20.0) {
+                    angle = 20.0 * (fabs(angle) / angle);
+                } else {
+                    angle += jitter;
+                }
+                rad = 0.017453292f * angle;
+                p->velX = (f32)sin(rad) * (f32)lbl_3_data_26E7C[1] / 100000.0f;
+                p->velY = (f32)cos(rad) * (f32)lbl_3_data_26E7C[1] / 100000.0f;
+                p->velZ = 0.0f;
+                p->_4C++;
+            }
+            if (-p->origin.y - p->_3C < actor[0x38 / 4]) {
+                mgStarParticleInit(effect->index, p);
+            }
+        } else {
+            p->_48--;
+        }
+        p = p->next;
+    } while (p != NULL);
+    fn_3_147E20();
+    return 0;
 }
 
 // .text:0x1483D4 size:0x48
-void fn_3_1483D4(void) {
-    return;
+BOOL fn_3_1483D4(void) {
+    return rand() % 5 == 0;
 }
 
 // .text:0x148254 size:0x180
-void fn_3_148254(void) {
-    return;
+void fn_3_148254(MGStarEffect* effect, MGParticle* p) {
+    f32 halfW = p->_38 * 0.5f;
+    f32 halfH = p->_3C * 0.5f;
+    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    f32* v = lbl_3_bss_B860;
+    Mtx mtx;
+    Vec pos;
+    Control ctrl;
+
+    v[3] = halfW;
+    v[0] = -halfW;
+    v[1] = -halfH;
+    v[4] = -halfH;
+    v[6] = halfW;
+    v[7] = halfH;
+    v[9] = -halfW;
+    v[10] = halfH;
+    PSMTXInverse(fn_80052768_getCamera(0)->view, mtx);
+    mtx[1][1] = 1.0f;
+    mtx[0][1] = 0.0f;
+    mtx[1][0] = 0.0f;
+    mtx[1][2] = 0.0f;
+    mtx[2][1] = 0.0f;
+    pos.x = p->origin.x;
+    pos.y = p->origin.y;
+    pos.z = p->origin.z;
+    PSMTXMultVecSR(mtx, &pos, &pos);
+    ctrl.type = 0;
+    CTRLSetRotation(&ctrl, p->_1C, p->_20, p->alpha);
+    CTRLSetTranslation(&ctrl, actor[0x34 / 4] + pos.x, -actor[0x38 / 4] + pos.y, actor[0x3C / 4] + pos.z);
+    CTRLBuildMatrix(&ctrl, mtx);
+    PSMTXConcat(fn_80052768_getCamera(0)->view, mtx, mtx);
+    GXLoadPosMtxImm(mtx, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
 }
 
 // .text:0x1480E0 size:0x174
-void fn_3_1480E0(void) {
-    return;
+void fn_3_1480E0(MGParticle* p) {
+    f32* v = lbl_3_bss_B860;
+    int i;
+
+    GXSetCullMode(GX_CULL_BACK);
+    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    for (i = 0; i < 4; i++) {
+        GXWGFifo.f32 = v[i * 3 + 0];
+        GXWGFifo.f32 = v[i * 3 + 1];
+        GXWGFifo.f32 = v[i * 3 + 2];
+        GXWGFifo.u32 = *(u32*)&p->_40;
+    }
+    GXSetCullMode(GX_CULL_FRONT);
+    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    for (i = 0; i < 4; i++) {
+        GXWGFifo.f32 = v[i * 3 + 0];
+        GXWGFifo.f32 = v[i * 3 + 1];
+        GXWGFifo.f32 = v[i * 3 + 2];
+        GXWGFifo.u32 = *(u32*)&p->_44;
+    }
 }
 
 // .text:0x147F94 size:0x14C
 void fn_3_147F94(void) {
-    return;
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(0);
+    GXSetNumTevStages(1);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_RASC);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
 }
 
 // .text:0x147E20 size:0x174
 void fn_3_147E20(void) {
-    return;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
 }
 
 // .text:0x147DFC size:0x24
 void fn_3_147DFC(void) {
-    return;
+    pitchingMachinePitching(0x26);
 }
 
 // .text:0x147CFC size:0x100
-void fn_3_147CFC(void) {
-    return;
+void fn_3_147CFC(Vec* pos) {
+    if (pos != NULL) {
+        fn_3_147C00(pos);
+    }
 }
 
 // .text:0x147C00 size:0xFC
-void fn_3_147C00(void) {
-    return;
+void fn_3_147C00(Vec* pos) {
+    MGEffect* existing = fn_800339F0(0, 0x26);
+    MGEffect* fresh;
+    u8 scratch[0x80];
+
+    if (existing != NULL) {
+        fresh = fn_800337CC(scratch, lbl_3_data_26E9C[2] + lbl_3_data_26E9C[12], 1);
+        if (fresh != NULL) {
+            MGParticle* tail;
+
+            fn_3_147778(fresh, pos);
+            tail = existing->particles;
+            while (tail->next != NULL) {
+                tail = tail->next;
+            }
+            tail->next = fresh->particles;
+            existing->count += fresh->count;
+        }
+    } else {
+        fresh = allocParticleEffect(fn_3_14737C, 0x80, 0, lbl_3_data_26E9C[2] + lbl_3_data_26E9C[12], TRUE, 0x26);
+        if (fresh != NULL) {
+            fn_3_147778(fresh, pos);
+        }
+    }
 }
 
 // .text:0x147778 size:0x488
-void fn_3_147778(void) {
-    return;
+void fn_3_147778(MGEffect* effect, Vec* pos) {
+    MGParticle* p;
+    u32 burstCount = (u8)lbl_3_data_26E9C[2];
+    u32 ringCount = (u8)lbl_3_data_26E9C[12];
+    u32 i = 0;
+    s32 delay = 0;
+    f64 angle;
+
+    if (pos->y > 0.0f) {
+        pos->y = pos->y * -1.0f;
+    }
+    effect->_10 = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    do {
+        if (i < burstCount) {
+            p->_4C = 1;
+            p->velX = (i == 0) ? 3.0f : 1.5f;
+            p->_4A = lbl_3_data_26E9C[1];
+            p->_38 = p->_3C = (f32)lbl_3_data_26E9C[4] / 100000.0f * p->velX;
+            p->alphaByte = lbl_3_data_26E9C[7];
+            memcpy(&p->origin, pos, sizeof(Vec));
+            if (i != 0) {
+                angle = 0.017453292519943295 * (360.0 / (f64)burstCount) * (f64)(i - 1);
+                p->origin.x += 1.5f * (f32)cos(angle);
+                p->origin.y += 1.5f * (f32)sin(angle);
+                p->origin.x = p->origin.x + 0.5 * ((f32)rand() / 32767.0f - 1.0);
+                p->origin.y = p->origin.y + 0.5 * ((f32)rand() / 32767.0f - 1.0);
+            }
+            p->_4D = lbl_3_data_26E9C[0];
+            p->_48 = delay;
+        } else {
+            p->_4C = 2;
+            p->_4A = lbl_3_data_26E9C[11];
+            p->_38 = p->_3C = (f32)lbl_3_data_26E9C[14] / 100000.0f;
+            p->alphaByte = lbl_3_data_26E9C[17];
+            memcpy(&p->origin, pos, sizeof(Vec));
+            angle = 0.017453292519943295 * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
+            p->origin.x += 2.5f * (f32)cos(angle);
+            p->origin.y += 2.5f * (f32)sin(angle);
+            p->origin.x = p->origin.x + 0.2 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
+            p->origin.y = p->origin.y + 0.2f * (-1.0f * ((f32)rand() / 32767.0f));
+            p->_4D = lbl_3_data_26E9C[10];
+            p->_48 = 5;
+        }
+        p->_40 = p->_41 = p->_42 = 0xFF;
+        delay += 2;
+        i++;
+        p->_4E = 0;
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14737C size:0x3FC
-void fn_3_14737C(void) {
-    return;
+int fn_3_14737C(MGEffect* effect) {
+    MGParticle* p;
+    MGParticle** link;
+    MGParticle* removedTail = NULL;
+    u32 alive = 0;
+    s32 idx;
+    s32 rampLength;
+    s32 duration;
+    s32 alpha;
+    s32 alphaStep;
+    s32 remaining;
+    f32 sizeStep;
+    f32 scale;
+
+    effect->particles = fn_80031F34(effect->particles, effect->count);
+    p = effect->particles;
+    link = &effect->particles;
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
+    do {
+        if (p->_4A != 0) {
+            if (p->_48 <= 0) {
+                if (p->_4C == 1) {
+                    rampLength = lbl_3_data_26E9C[3];
+                } else {
+                    rampLength = lbl_3_data_26E9C[13];
+                }
+                if (p->_4C == 1) {
+                    duration = lbl_3_data_26E9C[1];
+                } else {
+                    duration = lbl_3_data_26E9C[11];
+                }
+                if (p->_4C == 1) {
+                    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
+                } else {
+                    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+                }
+                fn_8003403C(p->_38, p->_3C);
+                fn_80033CC8(p, effect->_10);
+                alpha = p->alphaByte;
+                if (p->_4C == 1) {
+                    scale = p->velX;
+                } else {
+                    scale = 1.0f;
+                }
+                if (p->_4C == 1) {
+                    idx = 0;
+                } else {
+                    idx = 10;
+                }
+                if (rampLength > duration - p->_4A) {
+                    sizeStep = ((f32)lbl_3_data_26E9C[5 + idx] / 100000.0f - (f32)lbl_3_data_26E9C[4 + idx] / 100000.0f) /
+                               (f32)rampLength * scale;
+                    alphaStep = (lbl_3_data_26E9C[8 + idx] - lbl_3_data_26E9C[7 + idx]) / rampLength;
+                } else {
+                    remaining = duration - rampLength;
+                    sizeStep = ((f32)lbl_3_data_26E9C[6 + idx] / 100000.0f - (f32)lbl_3_data_26E9C[5 + idx] / 100000.0f) /
+                               (f32)remaining * scale;
+                    alphaStep = (lbl_3_data_26E9C[9 + idx] - lbl_3_data_26E9C[8 + idx]) / remaining;
+                }
+                alpha += alphaStep;
+                if (alpha < 0) {
+                    alpha = 0;
+                } else if (alpha > 0xFF) {
+                    alpha = 0xFF;
+                }
+                p->_38 += sizeStep;
+                p->_3C = p->_38;
+                p->alphaByte = alpha;
+                if (p->_4C == 1) {
+                    p->origin.y -= 0.0f;
+                } else {
+                    p->origin.y -= 0.05f;
+                }
+                p->_4A--;
+                if (p->_4A == 0) {
+                    *link = p->next;
+                    if (removedTail != NULL) {
+                        removedTail->next = p;
+                    }
+                    removedTail = p;
+                    p->next = NULL;
+                    effect->count--;
+                } else {
+                    link = &p->next;
+                    alive++;
+                }
+            } else {
+                p->_48--;
+                link = &p->next;
+                alive++;
+            }
+        }
+        p = *link;
+    } while (p != NULL);
+    return alive == 0;
 }
 
 // .text:0x147358 size:0x24
 void fn_3_147358(void) {
-    return;
+    pitchingMachinePitching(0x26);
 }
