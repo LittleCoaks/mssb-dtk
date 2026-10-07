@@ -55,7 +55,7 @@ extern void starMissionsMinigamesSpecialAction(int missionType, int points, int 
 extern u8 lbl_800EFBA4[];
 extern s16 lbl_3_common_bss_37400[];
 extern u16 lbl_3_data_81FC[];
-extern u8 lbl_3_data_21278[];
+extern u8 lbl_3_data_21278[2];
 extern u8 lbl_3_data_2127C[][5];
 extern VecXYZ lbl_3_data_217F8;
 extern s16 lbl_3_data_21804[][9];

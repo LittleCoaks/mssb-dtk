@@ -110,7 +110,7 @@ extern struct {
 extern u8 mapping_minigame_Stadium[8];
 extern s16 lbl_3_data_18BB0[4];
 extern f32 lbl_3_data_2130C[7][4];
-extern s16 lbl_3_data_2137C;
+extern s16 lbl_3_data_2137C[2];
 // Plant placement table owned by sta_c3.c; only the list terminator flag is read here.
 typedef struct MinigamePlantView {
     u8 _00[0x10];
@@ -661,9 +661,9 @@ void minigameUpdateResultsScene(void) {
     }
 
     if (tWon == FALSE) {
-        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C &&
+        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C[0] &&
              StatsScreenScores.mvpKind <= 1) ||
-            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C)) {
+            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C[0])) {
             BOOL ok = TRUE;
 
             if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame._1A3D == 1) {
