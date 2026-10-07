@@ -1298,7 +1298,7 @@ typedef struct _MinigameSelectSlot {
     /*0x02*/ s8 _2[4];
     /*0x06*/ s8 _6;
     /*0x07*/ s8 _7;
-    /*0x08*/ u8 _8;
+    /*0x08*/ s8 _8;
 } MinigameSelectSlot; // size: 0x9
 
 /* MiniGameStruct+0x18CC..0x1903 (MiniGameControlStruct[2] and the three
@@ -2208,7 +2208,10 @@ typedef struct _MiniGameStruct {
     /*0x1D68*/ s16 _1D68;
     /*0x1D6A*/ s16 _1D6A;
     /*0x1D6C*/ u8 _1D6C;
-    /*0x1D6D*/ s8 starDashStarHolder; // player slot, -1 = nobody
+    /*0x1D6D*/ union {
+        u8 starDashStarHolder; // player slot, -1 = nobody
+        s8 starDashStarHolderSigned;
+    };
     /*0x1D6E*/ u8 starDashStunType[4];
     /*0x1D72*/ u8 starDashFireBarPhase;
     /*0x1D73*/ u8 _1D73;
@@ -2260,9 +2263,10 @@ typedef struct _MiniGameStruct {
             /*0x1E01*/ u8 _1E01[0x1E2C - 0x1E01];
         };
         struct {
-            /*0x1E00*/ u8 _1E00_pad[4];
-            /*0x1E04*/ void* grandPrixResults;
-            /*0x1E08*/ u8 _1E08[8];
+            /*0x1E00*/ u8 _1E00_pad[3];
+            /*0x1E03*/ u8 _1E03;
+            /*0x1E04*/ struct _MinigameResultsScene* resultsScene;
+            /*0x1E08*/ u8 grandPrixRanks[4][2];
             /*0x1E10*/ s16 grandPrixPoints[6];
             /*0x1E1C*/ u8 grandPrixOrder[6]; // MINI_GAME_ID of each round, shuffled
             /*0x1E22*/ u8 _1E22[8];
@@ -2288,7 +2292,7 @@ typedef struct _BatterReachStruct {
 
 extern BatterReachStruct BatterHitbox[54];
 
-extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(u8);
+extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
 
 extern u8 swingSoundFrame[2][4];
 

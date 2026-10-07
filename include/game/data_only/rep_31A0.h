@@ -3,6 +3,12 @@
 
 #include "mssbTypes.h"
 
+typedef struct _MinigameResultsScene {
+    u8 _00[0x18];
+    u16 _18;
+    u16 _1A;
+} MinigameResultsScene;
+
 typedef struct {
     s32 score;
     s16 count;
@@ -52,33 +58,33 @@ void fn_3_10952C(void);
 void fn_3_109254(void);
 void postMinigame(void);
 void fn_3_1089E8(void);
-void checkForPauses(void);
+BOOL checkForPauses(void);
 void minigamePause(void);
 void fn_3_108230(void);
 void fn_3_107E80(void);
-u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(u8);
-void fn_3_107DF8(void);
-u32 AI_getPort(u8);
-void fn_3_107D70(void);
-void fn_3_107D34(void);
-void fn_3_107CD0(void);
-void fn_3_107C88(void);
-void fn_3_107C40(void);
-void fn_3_107C04(void);
-void fn_3_107BD0(void);
-void fn_3_107B9C(void);
+u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
+u32 fn_3_107DF8(s8 player);
+u32 AI_getPort(s8);
+u32 fn_3_107D70(s8 player);
+int fn_3_107D34(const void* a, const void* b);
+int fn_3_107CD0(void);
+BOOL fn_3_107C88(void);
+BOOL fn_3_107C40(void);
+int fn_3_107C04(const void* a, const void* b);
+int fn_3_107BD0(const void* a, const void* b);
+int fn_3_107B9C(const void* a, const void* b);
 void fn_3_1079C8(u8 (*order)[2], int mode);
-void fn_3_107988(void);
+BOOL fn_3_107988(u32 mode);
 void fn_3_1078F8(void);
 void minigames_0x28(void);
 void fn_3_10768C(void);
-void fn_3_10754C(void);
+void fn_3_10754C(MiniGrandPrixScoreInput* input);
 void minigames_0x26(void);
 void minigames_0x27(void);
 void fn_3_107078(void);
 void fn_3_106ED4(void);
 void fn_3_106EB0(void);
-void loadSomeDataFile(void);
+BOOL loadSomeDataFile(void);
 void someAllocFunction(void);
 
 #endif // !__GAME_DATA_ONLY_REP_31A0_H_
