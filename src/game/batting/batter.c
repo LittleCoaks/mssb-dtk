@@ -368,7 +368,7 @@ void batterHumanControlled(void) {
     inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
     if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
-        if (g_Practice._1C6 != 0 && g_Pitcher.framesUntilBallReachesBatterZ == swingSoundFrame[0][1]) {
+        if (g_Practice.scriptedSwingMode != 0 && g_Pitcher.framesUntilBallReachesBatterZ == swingSoundFrame[0][1]) {
             r26 = TRUE;
         }
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
@@ -387,10 +387,10 @@ void batterHumanControlled(void) {
              g_Batter.buntStatus == BUNT_STATUS_NONE)) {
 
             // Both tutorial outcomes fall through into the regular A-held / A-released handling below.
-            if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0) {
-                if (g_Practice._1C6 == 2) {
+            if (ACTIVE_TUTORIAL() && g_Practice.scriptedSwingMode != 0) {
+                if (g_Practice.scriptedSwingMode == 2) {
                     if (r26) {
-                        g_Practice._1C6 = 0;
+                        g_Practice.scriptedSwingMode = 0;
                         goto _270;
                     } else {
                         goto _228;
@@ -419,12 +419,12 @@ void batterHumanControlled(void) {
         if (!g_Batter.swingInd && g_Pitcher.pitcherActionState != 4 && g_Pitcher.pitcherActionState != 5 &&
             g_Batter._9C == 0) {
             if (g_Batter.buntStatus == BUNT_STATUS_NONE) {
-                if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0 && r26) {
+                if (ACTIVE_TUTORIAL() && g_Practice.scriptedSwingMode != 0 && r26) {
                     r27 = TRUE;
-                    if (g_Practice._1C6 == 3) {
+                    if (g_Practice.scriptedSwingMode == 3) {
                         r25 = TRUE;
                     }
-                    g_Practice._1C6 = 0;
+                    g_Practice.scriptedSwingMode = 0;
                 }
                 if (inputs->newButtonInput & INPUT_BUTTON_A) {
                     if (g_Batter.chargeStatus == CHARGE_SWING_STAGE_NONE && g_Batter.countUpUntilChargeEnables == 0) {

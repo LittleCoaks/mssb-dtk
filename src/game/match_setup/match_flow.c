@@ -615,7 +615,7 @@ void newPitch(void) {
     g_FieldingLogic.framesSince3rdOutWasMade = 0;
     g_RunningLogic._13 = 0;
     pauseControl[0x1D5] = 0;
-    g_Practice._1B0 = 0;
+    g_Practice.homeRunWaitSkipped = 0;
     if (g_GameLogic.pre_PostMiniGameInd != 0) {
         g_GameLogic.minigameLastTurnSuccessInd = 1;
         g_GameLogic.hudElementLoadingInd = 1;
@@ -799,9 +799,9 @@ void checkIfPlayOver(void) {
     if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel != 6 &&
             g_Practice.practiceLevel != 7) {
-            if (g_Practice._1B0 == 0) {
+            if (g_Practice.homeRunWaitSkipped == 0) {
                 if (g_Controls[g_Practice.homeAway].newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_START)) {
-                    g_Practice._1B0 = 1;
+                    g_Practice.homeRunWaitSkipped = 1;
                 }
                 endFrame = 0x12C;
             } else {

@@ -3500,7 +3500,7 @@ void updateSprintPointers(void) {
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE ||
                     g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING ||
                     g_Practice.practiceLevel == 2) {
-                    g_Practice._1CB = 1;
+                    g_Practice.fieldingSprintMaxed = 1;
                 }
             }
         } else if (g_FieldingLogic.dashPtr->framesSinceLastDashInput >= initialSprintCharge_10[2]) {

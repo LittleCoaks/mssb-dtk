@@ -884,7 +884,7 @@ void pitcherAnimation(void) {
     }
 
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_PITCHING && g_Practice.instructionNumber < 0 &&
-        g_Practice._1C7 != 0) {
+        g_Practice.completionMenuActive != 0) {
         return;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 4) {

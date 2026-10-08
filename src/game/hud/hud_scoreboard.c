@@ -439,7 +439,7 @@ void drawDiamondMiniMap_ongoing(void) {
         if (g_Practice.tutorialState == 0) {
             goto remove;
         }
-        if (g_Practice._1C7 != 0) {
+        if (g_Practice.completionMenuActive != 0) {
             goto remove;
         }
     }
@@ -619,7 +619,7 @@ void offscreenFielderIndicator_update(void) {
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING ||
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING ||
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_FIELDING) {
-            if (g_Practice._186 != 0) {
+            if (g_Practice.frames_sincePracticeCompleted != 0) {
                 REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
                 return;
             }

@@ -693,7 +693,7 @@ void displayBallTrail(void) {
             stopBallTrail();
             return;
         }
-        if (g_Practice._19F != 0 &&
+        if (g_Practice.pauseMenuActive != 0 &&
             (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9 || pauseControl[0x1D2] == 11)) {
             stopBallTrail();
             return;

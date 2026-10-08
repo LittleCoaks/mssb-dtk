@@ -1047,14 +1047,14 @@ void soundControl(void) {
             track = -1;
             goto pick;
         }
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             pauseState = pauseControl[0x1D2];
             if (pauseState == 6 || (u8)(pauseState - 7) <= 1 || pauseState == 9) {
                 track = -1;
                 goto pick;
             }
         }
-        if (g_Practice._1C7 != 0) {
+        if (g_Practice.completionMenuActive != 0) {
             pauseState = pauseControl[0x1D2];
             if (pauseState == 6 || pauseState == 7) {
                 track = -1;
@@ -1791,7 +1791,7 @@ void adjustBallSoundEffectBasedOnHeight(void) {
         goto stop;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             goto stop;
         }
         if (g_Practice.tutorialState == TUTORIAL_STATE_0) {

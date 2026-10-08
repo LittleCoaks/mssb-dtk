@@ -539,7 +539,7 @@ void QueueTextToDisplay(int arg0) {
         if (arg0 == 5) {
             return;
         }
-    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice._186 != 0) {
+    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.frames_sincePracticeCompleted != 0) {
         return;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && arg0 == 5) {

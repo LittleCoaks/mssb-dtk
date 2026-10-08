@@ -582,7 +582,7 @@ void practiceLogicRelatedPause(void) {
     incrementCapped((s16*)&pauseControl[0xA]);
     incrementCapped((s16*)&pauseControl[0xC]);
     incrementCapped((s16*)&pauseControl[0x12]);
-    incrementCapped(&g_Practice._188);
+    incrementCapped(&g_Practice.frames_onGuidedMessage);
 
     switch (pauseControl[0x1D2]) {
     case 0: {
@@ -616,7 +616,7 @@ void practiceLogicRelatedPause(void) {
         if (lbl_8037169C[0x13] != 0) {
             g_Practice.loadingGuidedPractice = 0;
             pauseControl[0x1D9] = 2;
-            g_Practice._19F = 0;
+            g_Practice.pauseMenuActive = 0;
             hugeAnimStruct[0x307D] = 0;
             if (pauseControl[0x1D2] == 0xB) {
                 g_Practice.practiceState = PRACTICE_STATE_0;
@@ -639,7 +639,7 @@ void practiceLogicRelatedPause(void) {
         if (lbl_8037169C[0x13] != 0) {
             g_Practice.loadingGuidedPractice = 0;
             pauseControl[0x1D9] = 2;
-            g_Practice._19F = 0;
+            g_Practice.pauseMenuActive = 0;
             hugeAnimStruct[0x307D] = 0;
             hugeAnimStruct[0x307E] = 0;
             practiceMenu_setScreen(0);
@@ -656,7 +656,7 @@ void practiceLogicRelatedPause(void) {
         int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[*(s32*)pauseControl].newButtonInput);
         switch (menuResult) {
         case 1:
-            if (g_Practice._1B1 != 0) {
+            if (g_Practice.progressNeedsSave != 0) {
                 fn_8004CC18();
                 fn_3_5B368();
             } else {
@@ -671,10 +671,10 @@ void practiceLogicRelatedPause(void) {
         break;
     }
     case 13:
-        if (g_Practice._1B1 != 0) {
+        if (g_Practice.progressNeedsSave != 0) {
             if (fn_3_5B220(3) != 0) {
                 changeScene(3, 6);
-                g_Practice._1B1 = 0;
+                g_Practice.progressNeedsSave = 0;
             }
         } else if (lbl_8037169C[0x13] != 0) {
             g_GameLogic.framesOfExitingToMenu = 1;
@@ -741,7 +741,7 @@ BOOL practice_checkForPause(void) {
     if (hugeAnimStruct[0x2D52] != 0) {
         return FALSE;
     }
-    if (g_Practice._186 != 0 || g_Practice.guidedPracticeCompletionRelated != 0) {
+    if (g_Practice.frames_sincePracticeCompleted != 0 || g_Practice.guidedPracticeCompletionRelated != 0) {
         return FALSE;
     }
     if (g_GameLogic.FrameCountOfCurrentPitch < 0x1E || lbl_8037169C[0x10] != 0) {
@@ -752,7 +752,7 @@ BOOL practice_checkForPause(void) {
         lbl_80366158[0x28] = 1;
         if (g_Practice.frames_sinceTimeCalled >= 0x3C) {
             g_Practice.pauseMenuLoading = 0;
-            g_Practice._19F = 1;
+            g_Practice.pauseMenuActive = 1;
             g_Practice.frames_onPauseScreen = 0;
             pauseControl[0x1D2] = 0;
             pauseControl[0x1DA] = 0;
@@ -773,7 +773,7 @@ BOOL practice_checkForPause(void) {
 }
 void practiceOpenPauseMenu(void) {
     g_Practice.pauseMenuLoading = 0;
-    g_Practice._19F = 1;
+    g_Practice.pauseMenuActive = 1;
     g_Practice.frames_onPauseScreen = 0;
     pauseControl[0x1D2] = 0;
     pauseControl[0x1DA] = 0;
@@ -817,7 +817,7 @@ void practicePauseRelated(void) {
         break;
     case 5:
         if (g_Practice.frames_onPauseScreen2 > 30) {
-            g_Practice._19F = 0;
+            g_Practice.pauseMenuActive = 0;
         }
         break;
     case 6:
@@ -837,7 +837,7 @@ void practicePauseRelated(void) {
             } while (i < 4);
         }
         pauseControl[0x1D9] = 2;
-        g_Practice._19F = 0;
+        g_Practice.pauseMenuActive = 0;
         hugeAnimStruct[0x307D] = 0;
         hugeAnimStruct[0x307E] = 0;
         if (pauseControl[0x1D2] == 9) {
@@ -868,7 +868,7 @@ void practicePauseRelated(void) {
         }
         break;
     case 11:
-        g_Practice._19F = 0;
+        g_Practice.pauseMenuActive = 0;
         pauseControl[0x1D9] = 2;
         hugeAnimStruct[0x307D] = 0;
         g_Practice.practiceLevel++;
@@ -881,7 +881,7 @@ void practicePauseRelated(void) {
         switch (menuResult) {
         case 1:
             pauseControl[0x1D2] = 0xD;
-            if (g_Practice._1B1 != 0) {
+            if (g_Practice.progressNeedsSave != 0) {
                 fn_8004CC18();
                 fn_3_5B368();
             } else {
@@ -895,10 +895,10 @@ void practicePauseRelated(void) {
         break;
     }
     case 13:
-        if (g_Practice._1B1 != 0) {
+        if (g_Practice.progressNeedsSave != 0) {
             if (fn_3_5B220(3) != 0) {
                 changeScene(3, 6);
-                g_Practice._1B1 = 0;
+                g_Practice.progressNeedsSave = 0;
             }
         } else if (lbl_8037169C[0x13] != 0) {
             g_GameLogic.framesOfExitingToMenu = 1;
@@ -1081,20 +1081,20 @@ void practiceRelatedInit(void) {
     g_Practice.allInstructionsComplete = 0;
     g_Practice.instructionComplete_readyToAdvance = 0;
     g_Practice.allowPlayToEndIndicator = 0;
-    g_Practice._1C7 = 0;
+    g_Practice.completionMenuActive = 0;
     g_Practice.guidedPracticeCompletionRelated = 0;
     g_Practice.guidedPracticeCounter = 0;
-    g_Practice.maybeControlFlag1 = 0;
-    g_Practice.maybeControlFlag2 = 0;
+    g_Practice.diagramElement = 0;
+    g_Practice.diagramFrame = 0;
     g_Practice.practice_runner_countInputForMashing = 0;
     g_Practice.practice_fielding_enableSprinting = 0;
-    g_Practice._1C6 = 0;
-    g_Practice.textRelatedIndicator = 0;
-    g_Practice.maybePreviousInput = 0;
-    g_Practice._17A = 0;
-    g_Practice.cpu_inputDuration = 0;
-    g_Practice._17E = 0;
-    g_Practice._186 = 0;
+    g_Practice.scriptedSwingMode = 0;
+    g_Practice.diagramPanelShown = 0;
+    g_Practice.cpu_heldButtons[0] = 0;
+    g_Practice.cpu_heldButtons[1] = 0;
+    g_Practice.cpu_inputDuration[0] = 0;
+    g_Practice.cpu_inputDuration[1] = 0;
+    g_Practice.frames_sincePracticeCompleted = 0;
     g_Practice.aIEnabled = 0;
     g_Practice.practiceBatterHandedness = 0;
     g_Practice.inputs[0].controlStickAngle = -1;
@@ -1237,8 +1237,8 @@ static inline void setCpuStickFromButtons(InputStruct* input) {
 void playPracticeCPUInputs(void) {
     InputStruct* input = &g_Controls[g_Practice.homeAway];
     s16 i;
-    s16* cpuInputDuration = &g_Practice.cpu_inputDuration;
-    s16* previousInput = &g_Practice.maybePreviousInput;
+    s16* cpuInputDuration = g_Practice.cpu_inputDuration;
+    s16* previousInput = g_Practice.cpu_heldButtons;
     s16* commandList;
 
     g_Practice.inputs[0].newButtonInput = 0;
@@ -1381,24 +1381,24 @@ void playPracticeCPUInputs(void) {
             g_Practice.practice_hitHorizontalAngle = commandList[g_Practice.commandIndex];
             break;
         case 0x3300:
-            g_Practice._1C6 = (u8)cmd;
-            g_Practice._1C6 = (u8)cmd + 1;
+            g_Practice.scriptedSwingMode = (u8)cmd;
+            g_Practice.scriptedSwingMode = (u8)cmd + 1;
             break;
         case 0x4100:
-            g_Practice.maybeControlFlag1 = 0;
-            g_Practice.maybeControlFlag2 = 0;
+            g_Practice.diagramElement = 0;
+            g_Practice.diagramFrame = 0;
             break;
         case 0x4200:
-            g_Practice.maybeControlFlag1 = (u8)cmd;
+            g_Practice.diagramElement = (u8)cmd;
             break;
         case 0x4300:
-            g_Practice.maybeControlFlag2 = (u8)cmd;
+            g_Practice.diagramFrame = (u8)cmd;
             break;
         case 0x4800:
-            g_Practice.textRelatedIndicator = 0;
+            g_Practice.diagramPanelShown = 0;
             break;
         case 0x4900:
-            g_Practice.textRelatedIndicator = 1;
+            g_Practice.diagramPanelShown = 1;
             break;
         case 0x5100:
             g_Camera._2819 = 1;
@@ -1420,15 +1420,15 @@ void playPracticeCPUInputs(void) {
 
 void practiceStartGuidedMessage(int arg0, int arg1) {
     g_Practice.loadingGuidedPractice = 1;
-    g_Practice._1D5 = 0;
+    g_Practice.guidedMessageSceneStarted = 0;
     g_Practice.practiceLevel_2 = arg0;
-    g_Practice._1D7 = arg1;
-    g_Practice._1D8 = 0;
-    g_Practice._188 = 0;
+    g_Practice.guidedMessageVariant = arg1;
+    g_Practice.guidedMessageIndex = 0;
+    g_Practice.frames_onGuidedMessage = 0;
 }
 
 BOOL loadGuidedPractice(void) {
-    InputStruct* input = &g_Controls[g_Practice._192];
+    InputStruct* input = &g_Controls[g_Practice.homeAwayByte];
 
     if (g_Practice.loadingGuidedPractice == 0) {
         return FALSE;
@@ -1436,10 +1436,10 @@ BOOL loadGuidedPractice(void) {
     if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
         return FALSE;
     }
-    incrementCapped(&g_Practice._188);
-    if (g_Practice._188 > 0x5A && (input->newButtonInput & (INPUT_BUTTON_START | INPUT_BUTTON_A))) {
-        g_Practice._1D8++;
-        if (g_Practice._1D8 >= 3 || practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice._1D7][g_Practice._1D8] < 0) {
+    incrementCapped(&g_Practice.frames_onGuidedMessage);
+    if (g_Practice.frames_onGuidedMessage > 0x5A && (input->newButtonInput & (INPUT_BUTTON_START | INPUT_BUTTON_A))) {
+        g_Practice.guidedMessageIndex++;
+        if (g_Practice.guidedMessageIndex >= 3 || practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex] < 0) {
             g_Practice.loadingGuidedPractice = 0;
         }
     }

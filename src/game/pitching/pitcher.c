@@ -1686,7 +1686,7 @@ void fn_3_70280(void) {
     int idx;
     int dx;
     int dz;
-    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_PITCHING && g_Practice._1DB == 0) {
+    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_PITCHING && g_Practice.pitchingPracticeBatterEnabled == 0) {
         return;
     }
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {

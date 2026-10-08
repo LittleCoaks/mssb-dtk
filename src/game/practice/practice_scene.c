@@ -123,8 +123,8 @@ void freeFieldingPracticeSwitcher(void) {
         hugeAnimStruct[0x2D7B] = 0;
         hugeAnimStruct[0x2D7C] = 0;
         animRelated[0x9C] = 0;
-        g_Practice._1D9 = 0;
-        g_Practice._1C7 = 0;
+        g_Practice.characterLoadStarted = 0;
+        g_Practice.completionMenuActive = 0;
         hugeAnimStruct[0x307D] = 0;
         freeFieldingPracticeLoadCharacters();
         fieldingPractice_resetMem();
@@ -239,7 +239,7 @@ void fieldingPractice_resetMem(void) {
     g_Practice.aIEnabled = 0;
     g_Practice.practiceBatterHandedness = 0;
     g_Practice.freePracticeInd_writeOnly = 0;
-    g_Practice._1A4 = 0;
+    g_Practice.freeFieldingInd_writeOnly = 0;
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         g_Practice.aIEnabled = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] = 1;
@@ -251,11 +251,11 @@ void fieldingPractice_resetMem(void) {
     } else {
         g_Practice.practiceBatterHandedness = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] = 1;
-        g_Practice._1A4 = 1;
+        g_Practice.freeFieldingInd_writeOnly = 1;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
         g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
     }
-    g_Practice._186 = 0;
+    g_Practice.frames_sincePracticeCompleted = 0;
     resetCount();
     resetInMemRunners();
     resetInMemBall();
@@ -377,11 +377,11 @@ void animatePracticeScene(void) {
         g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
         insertGraphicDrawingFunction(practiceAnimationRelated, 2);
     }
-    if (g_Practice._1C7 != 0) {
+    if (g_Practice.completionMenuActive != 0) {
         if (g_Practice.frames_onPauseScreen == 1) {
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
-    } else if (g_Practice._19F != 0) {
+    } else if (g_Practice.pauseMenuActive != 0) {
         if (pauseControl[0x1D2] == 1 && g_Practice.frames_onPauseScreen2 == 1) {
             if (animRelated[0xAA] == 0) {
                 insertGraphicDrawingFunction(pauseSubPanel_init, 2);
@@ -392,9 +392,9 @@ void animatePracticeScene(void) {
             insertGraphicDrawingFunction(pausePageIndicator_init, 2);
         }
     }
-    if (g_Practice.loadingGuidedPractice != 0 && g_Practice._1D5 == 0) {
+    if (g_Practice.loadingGuidedPractice != 0 && g_Practice.guidedMessageSceneStarted == 0) {
         insertGraphicDrawingFunction(practiceAnimationRelated2, 2);
-        g_Practice._1D5 = 1;
+        g_Practice.guidedMessageSceneStarted = 1;
     }
     manageEventStates();
     if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY || g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) {
@@ -455,13 +455,13 @@ void practice_drawHud(void) {
         if (pauseControl[0x1D5] != 0) {
             animRelated[0xA7] = 0xF0;
         }
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             if (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9 || pauseControl[0x1D2] == 0xB) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
             }
         }
-        if (g_Practice._1C7 != 0) {
+        if (g_Practice.completionMenuActive != 0) {
             if (pauseControl[0x1D2] == 5 || pauseControl[0x1D2] == 0xB || pauseControl[0x1D2] == 7) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
@@ -679,7 +679,7 @@ void graphicsRelated(void) {
         load_Icon(scene, i + 2, 2, 0x77, i + 4);
         if (g_Practice.practiceType_1 == 5 || g_Practice.practiceType_1 == 6) {
             PRACTICE_RECORD_AT(scene, 0xA, i)->flags &= ~UI_FLAG_VISIBLE;
-        } else if (g_Practice._1B2[g_Practice.practiceType_2][i] == 0) {
+        } else if (g_Practice.levelCompleted[g_Practice.practiceType_2][i] == 0) {
             PRACTICE_RECORD_AT(scene, 0xA, i)->flags &= ~UI_FLAG_VISIBLE;
         }
         scene->channels[i] = text_initializeNewChannel((UnkText988Arg*)scene, 0xE + i, (u16)i, 5, practiceMenu_subMenuTextIds[g_Practice.practiceType_2][i], 0);
@@ -915,7 +915,7 @@ void practiceAnimationRelated_text(void) {
             UIRecord* record = PRACTICE_RECORD(scene, 0);
             int frame = record->frame >> 16;
 
-            if (g_Practice.textRelatedIndicator != 0) {
+            if (g_Practice.diagramPanelShown != 0) {
                 if (frame <= 0xF) {
                     record->playMode = UI_PLAY_FORWARD;
                 } else if (record->unk69[0] == 2) {
@@ -929,8 +929,8 @@ void practiceAnimationRelated_text(void) {
                 record->playMode = UI_PLAY_STOP;
             }
         }
-        if (g_Practice.maybeControlFlag1 != 0 && flag) {
-            PRACTICE_RECORD(scene, 8)->elementIndex = practiceInstruction_diagramElements[g_Practice.maybeControlFlag1];
+        if (g_Practice.diagramElement != 0 && flag) {
+            PRACTICE_RECORD(scene, 8)->elementIndex = practiceInstruction_diagramElements[g_Practice.diagramElement];
             PRACTICE_RECORD(scene, 8)->flags |= UI_FLAG_VISIBLE;
             PRACTICE_RECORD(scene, 4)->playMode = UI_PLAY_FORWARD;
             PRACTICE_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
@@ -945,7 +945,7 @@ void practiceAnimationRelated_text(void) {
             PRACTICE_RECORD(scene, 5)->playMode = UI_PLAY_BACKWARD;
             PRACTICE_RECORD(scene, 10)->rgba &= ~0xFF;
         }
-        PRACTICE_RECORD(scene, 6)->frame = g_Practice.maybeControlFlag2 << 16;
+        PRACTICE_RECORD(scene, 6)->frame = g_Practice.diagramFrame << 16;
         if (g_Practice.lakituTextIndex >= 0) {
             g_Practice.lakituTextIndex_stored = g_Practice.lakituTextIndex;
             g_Practice.lakituTextIndex = -1;
@@ -976,7 +976,7 @@ void practiceAnimationRelated_text(void) {
 
 void practice_insertGoalHudScenes(void) {
     if (g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING || g_Practice.practiceType_2 == PRACTICE_TYPE_BATTING || g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING) {
-        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice._1C7 == 0) {
+        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice.completionMenuActive == 0) {
             if (animRelated[0xC6] == 0) {
                 insertGraphicDrawingFunction(practiceGoalHud_init, 2);
                 animRelated[0xC6] = 1;
@@ -985,20 +985,20 @@ void practice_insertGoalHudScenes(void) {
                 insertGraphicDrawingFunction(drawDiamondMiniMap_init, 2);
             }
             if (g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING) {
-                if (g_Practice._186 == 0x3C) {
+                if (g_Practice.frames_sincePracticeCompleted == 0x3C) {
                     insertGraphicDrawingFunction(practiceCompleteBanner_init, 2);
                 }
-            } else if (g_Practice._186 == 1) {
+            } else if (g_Practice.frames_sincePracticeCompleted == 1) {
                 insertGraphicDrawingFunction(practiceCompleteBanner_init, 2);
             }
         }
     } else if (g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) {
-        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice._1C7 == 0) {
+        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice.completionMenuActive == 0) {
             if (animRelated[0xC7] == 0) {
                 insertGraphicDrawingFunction(practiceGoalHud_init, 2);
                 insertGraphicDrawingFunction(drawDiamondMiniMap_init, 2);
             }
-            if (g_Practice._186 == 1) {
+            if (g_Practice.frames_sincePracticeCompleted == 1) {
                 insertGraphicDrawingFunction(practiceCompleteBanner_init, 2);
             }
         }
@@ -1037,8 +1037,8 @@ void practiceGoalHud_update(void) {
     int i;
     BOOL freed;
 
-    if (animRelated[0x96] == 0 && (g_Practice._1C7 == 0 || pauseControl[0x1D2] != 0) &&
-        (g_Practice._19F == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
+    if (animRelated[0x96] == 0 && (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) &&
+        (g_Practice.pauseMenuActive == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
         if (scene->_18 == 0) {
             for (i = 0; i < 4; i++) {
                 s16* entry = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
@@ -1111,7 +1111,7 @@ void practiceCompleteBanner_update(void) {
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING) {
             limit = 0x5A;
         }
-        if (g_Practice._186 < limit - 0x14) {
+        if (g_Practice.frames_sincePracticeCompleted < limit - 0x14) {
             UIRecord* record = PRACTICE_RECORD(scene, 0);
 
             if ((record->frame >> 16) >= 0x21) {
@@ -1120,7 +1120,7 @@ void practiceCompleteBanner_update(void) {
         } else {
             PRACTICE_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         }
-        if (g_Practice._1C7 == 0 || pauseControl[0x1D2] != 0) {
+        if (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) {
             return;
         }
     }
@@ -1156,7 +1156,7 @@ void practiceAnimationRelated4(void) {
             record->playMode = UI_PLAY_STOP;
         }
         if (g_Practice.loadingGuidedPractice == 0) {
-            if (g_Practice._1C7 != 0) {
+            if (g_Practice.completionMenuActive != 0) {
                 goto remove;
             }
             PRACTICE_RECORD(scene, 1)->playMode = UI_PLAY_BACKWARD;
@@ -1170,13 +1170,13 @@ void practiceAnimationRelated4(void) {
         }
     }
 
-    if (g_Practice._1C7 != 0) {
+    if (g_Practice.completionMenuActive != 0) {
         PRACTICE_RECORD(scene, 3)->flags &= ~UI_FLAG_VISIBLE;
     } else {
         PRACTICE_RECORD(scene, 3)->flags |= UI_FLAG_VISIBLE;
     }
-    if (g_Practice._188 == 1) {
-        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice._1D7][g_Practice._1D8]);
+    if (g_Practice.frames_onGuidedMessage == 1) {
+        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex]);
     }
     g_Practice.currentMessageDoneTyping = screenTextArray.blocks[scene->_1E].unk34;
     return;

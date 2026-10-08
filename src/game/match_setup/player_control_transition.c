@@ -9,10 +9,10 @@
 void transitionToPlayerControl(void) {
     g_GameLogic.hudElementLoadingInd = 1;
     g_Practice.instructionNumber = -1;
-    g_Practice._1C7 = 0;
+    g_Practice.completionMenuActive = 0;
     g_Practice.guidedPracticeCompletionRelated = 0;
     g_Practice.guidedPracticeCounter = 0;
-    g_Practice._186 = 0;
+    g_Practice.frames_sincePracticeCompleted = 0;
     g_Practice.frames_sinceMovedToFromMenu = 0;
     g_Practice.practiceState = PRACTICE_STATE_0;
     g_Practice.tutorialState = TUTORIAL_STATE_3;

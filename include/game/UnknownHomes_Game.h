@@ -810,7 +810,7 @@ typedef struct _PracticeStruct {
     /*0x14C*/ frame_t frames_sinceTimeCalled;
     /*0x14E*/ frame_t frames_onPauseScreen;
     /*0x150*/ frame_t frames_onPauseScreen2; // used For Allowing Cursor To Move
-    /*0x152*/ frame_t _152;                  // count To 60 then Set Hit Vars For Fielding Practice
+    /*0x152*/ frame_t frames_sincePlayStart; // counts to 60 (fieldingPractice_frameThresholds[0]) then the hit variables are set
     /*0x154*/ frame_t _154;
     /*0x156*/ frame_t _156;
     /*0x158*/ frame_t _158;
@@ -829,66 +829,64 @@ typedef struct _PracticeStruct {
     /*0x172*/ frame_t diagramTitleTextIndex_stored;
     /*0x174*/ frame_t cpuCommandDuration;
     /*0x176*/ frame_t maybeInputResetCountdown;
-    /*0x178*/ frame_t maybePreviousInput;
-    /*0x17A*/ frame_t _17A;
-    /*0x17C*/ frame_t cpu_inputDuration;
-    /*0x17E*/ frame_t _17E;
+    /*0x178*/ frame_t cpu_heldButtons[2]; // per team: buttons the script is holding
+    /*0x17C*/ frame_t cpu_inputDuration[2]; // per team: frames left to hold
     /*0x180*/ frame_t practice_hitHorizontalPower;
     /*0x182*/ frame_t practice_hitVerticalAngle;
     /*0x184*/ frame_t practice_hitHorizontalAngle;
-    /*0x186*/ frame_t _186;
-    /*0x188*/ frame_t _188;
+    /*0x186*/ frame_t frames_sincePracticeCompleted; // counts once the goal is reached; the completion menu opens at 150
+    /*0x188*/ frame_t frames_onGuidedMessage;
     /*0x18A*/ s16 maybeCommandData[4]; // unsure
-    /*0x192*/ u8 _192;
+    /*0x192*/ u8 homeAwayByte; // byte copy of homeAway (controller port)
     /*0x193*/ E(u8, PRACTICE_TYPE) practiceType_2;
-    /*0x194*/ u8 practiceLevel;
+    /*0x194*/ u8 practiceLevel; // 0..3 guided level within practiceType_2; 4 = free bat and running, 5 = free fielding (FREEPLAY); 6/7 also tested by the HUD and play-end code
     /*0x195*/ E(u8, PRACTICE_STATE) practiceState;
     /*0x196*/ E(u8, TUTORIAL_STATE) tutorialState;
     /*0x197*/ u8 _197;
-    /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1;
-    /*0x199*/ E(u8, PRACTICE_TYPE) practiceType;
+    /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1; // actually the practice menu screen (0..6, not PRACTICE_TYPE): 0 type select (menuNumber 0x3C), 1..5 sub-menu select for type-1 (0x3D), 6 character select (0x3E)
+    /*0x199*/ E(u8, PRACTICE_TYPE) practiceType; // highlighted entry on the type-select screen
     /*0x19A*/ u8 subMenuCursor;
     artificial_padding(0x19a, 0x19e, u8);
     /*0x19E*/ u8 pauseMenuLoading; // unsure
-    /*0x19F*/ u8 _19F;
+    /*0x19F*/ u8 pauseMenuActive;
     /*0x1A0*/ u8 _1A0;
     /*0x1A1*/ u8 aIEnabled;
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
-    /*0x1A4*/ u8 _1A4;
+    /*0x1A4*/ u8 freeFieldingInd_writeOnly;
     artificial_padding(0x1a4, 0x1aa, u8);
     /*0x1AA*/ u8 transitioningIndicator; // unsure
-    artificial_padding(0x1aa, 0x1af, u8);
+    /*0x1AB*/ u8 baserunningActiveRunners[4]; // g_Runners[0..3] enabled in baserunning practice
     /*0x1AF*/ u8 returnToPracticeMenuState;
-    /*0x1B0*/ u8 _1B0;
-    /*0x1B1*/ u8 _1B1;
-    /*0x1B2*/ u8 _1B2[4][4];
+    /*0x1B0*/ u8 homeRunWaitSkipped; // A/Start pressed during the home run wait
+    /*0x1B1*/ u8 progressNeedsSave; // a level was newly completed; memory card write pending
+    /*0x1B2*/ u8 levelCompleted[4][4]; // [practiceType_2][practiceLevel]
     /*0x1C2*/ s8 instructionNumber;
     /*0x1C3*/ u8 readyToMoveToNextInstruction; // unsure
     /*0x1C4*/ u8 practice_runner_countInputForMashing;
     /*0x1C5*/ u8 practice_fielding_enableSprinting;
-    /*0x1C6*/ u8 _1C6;
-    /*0x1C7*/ u8 _1C7;
+    /*0x1C6*/ u8 scriptedSwingMode; // set by script opcode 0x33: 0 off, 1..3 forced swing variants (batter.c)
+    /*0x1C7*/ u8 completionMenuActive;
     /*0x1C8*/ u8 guidedPracticeCompletionRelated;
     /*0x1C9*/ u8 guidedPracticeCompletionRelated2;
     /*0x1CA*/ u8 guidedPracticeCounter;
-    /*0x1CB*/ u8 _1CB;
+    /*0x1CB*/ u8 fieldingSprintMaxed;
     /*0x1CC*/ u8 currentMessageDoneTyping;
     /*0x1CD*/ u8 commandIndex;
     /*0x1CE*/ u8 allInstructionsComplete;
     /*0x1CF*/ u8 instructionComplete_readyToAdvance;
     /*0x1D0*/ u8 allowPlayToEndIndicator;
-    /*0x1D1*/ u8 maybeControlFlag1;
-    /*0x1D2*/ u8 textRelatedIndicator;
-    /*0x1D3*/ u8 maybeControlFlag2;
+    /*0x1D1*/ u8 diagramElement; // script opcode 0x42; index into practiceInstruction_diagramElements
+    /*0x1D2*/ u8 diagramPanelShown; // script opcodes 0x48 (hide) / 0x49 (show)
+    /*0x1D3*/ u8 diagramFrame; // script opcode 0x43
     /*0x1D4*/ u8 loadingGuidedPractice; // unsure
-    /*0x1D5*/ u8 _1D5;
+    /*0x1D5*/ u8 guidedMessageSceneStarted;
     /*0x1D6*/ u8 practiceLevel_2;
-    /*0x1D7*/ u8 _1D7;
-    /*0x1D8*/ u8 _1D8;
-    /*0x1D9*/ u8 _1D9;
+    /*0x1D7*/ u8 guidedMessageVariant; // 0 shown before the attempt, 1 shown on completion
+    /*0x1D8*/ u8 guidedMessageIndex;
+    /*0x1D9*/ u8 characterLoadStarted;
     artificial_padding(0x1d9, 0x1db, u8);
-    /*0x1DB*/ u8 _1DB;
+    /*0x1DB*/ u8 pitchingPracticeBatterEnabled; // gates atBat_batter in pitching practice (never set non-zero)
     artificial_padding(0x1db, 0x1dd, u8);
     /*0x1DD*/ u8 _1DD;
     /*0x1DE*/ u8 _1DE;
@@ -897,7 +895,7 @@ typedef struct _PracticeStruct {
     /*0x1E1*/ u8 hitVariablesSetIndicator;
     /*0x1E2*/ u8 _1E2;
     /*0x1E3*/ u8 aiBuntIndicator; // unsure
-    /*0x1E4*/ u8 _1E4;
+    /*0x1E4*/ u8 fieldingPlayStatus; // 0 pending, 1 counted, 2 timed out
     artificial_padding(0x1e4, 0x1ee, u8);
     /*0x1EE*/ u8 _1EE;
     /*0x1EF*/ u8 rosterID; // unsure
