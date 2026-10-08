@@ -48,7 +48,7 @@ extern u8 characterStaticIndexes[0x144];
 extern s16 lbl_3_common_bss_37400[0x27];
 
 extern f32 ballDistCalculator(f32 x, f32 z);
-extern u8 fn_3_107D70(void);
+extern u8 minigame_getAIDrivenInputInd(void);
 extern int sD_IsBlockedByThwomp(int fielderIndex);
 extern void fieldingRelatedAnimations(void* anim, int state);
 extern void foulBall(void);
@@ -15564,7 +15564,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
 
     control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
 
-    if (fn_3_107D70()) {
+    if (minigame_getAIDrivenInputInd()) {
         control = &g_Minigame._1D7C[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
     }
 

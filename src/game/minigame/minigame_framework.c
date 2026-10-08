@@ -138,13 +138,13 @@ extern void minigameSelectSwitcher(void);
 extern void minigameStartSwitcher(void);
 extern void minigameEndSwitcher(void);
 extern void toyFieldCharSelectSwitcher(void);
-extern void fn_3_10B8D0(void);
-extern void fn_3_109254(void);
+extern void minigameReadySwitcher(void);
+extern void minigameResultsSwitcher(void);
 extern void postMinigame(void);
 extern void minigames_0x26(void);
 extern void minigames_0x27(void);
 extern void minigames_0x28(void);
-extern void fn_3_10F684(void);
+extern void minigames_setupChallengeRoster(void);
 extern void minigames_pickOpponentsAndLoadStats(void);
 
 extern MinigameResultEntry lbl_803616CC[][5];
@@ -681,7 +681,7 @@ void unusedBattingSomething(void) {
     } while (i < 4);
 }
 
-void fn_3_1104A8(void) {
+void minigameClearAIControlled(void) {
     s8 i;
 
     i = 0;
@@ -709,7 +709,7 @@ static inline void minigamesFillRoster(void) {
             if (g_Minigame.playerSlots.aiControlledInd[g_Minigame.miniGameNumberOfParticipants] == 0) {
                 g_Minigame._1907++;
             }
-            fn_3_10C450(i, g_Minigame.selectSlots[i].charID);
+            minigames_loadCharStats(i, g_Minigame.selectSlots[i].charID);
             g_Minigame.playerSlots._04[g_Minigame.miniGameNumberOfParticipants] = inMemRoster[0][i].stats.CharID;
             g_Minigame.miniGameNumberOfParticipants++;
         }
@@ -719,7 +719,7 @@ static inline void minigamesFillRoster(void) {
 static inline void minigamesRosterSetup(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
-        fn_3_10F684();
+        minigames_setupChallengeRoster();
         animRelated[0xD8] = 0;
         g_GameLogic._125++;
         break;
@@ -746,7 +746,7 @@ void minigameSimulation(void) {
 
     switch (g_GameLogic.gameStatus) {
     case GAME_STATUS_0x1B:
-        fn_3_10FB74();
+        minigames_0x1B();
         break;
     case GAME_STATUS_MINIGAME_SELECT:
         minigameSelectSwitcher();
@@ -758,19 +758,19 @@ void minigameSimulation(void) {
         toyFieldCharSelectSwitcher();
         break;
     case GAME_STATUS_MINIGAME_READY:
-        fn_3_10B8D0();
+        minigameReadySwitcher();
         break;
     case GAME_STATUS_GAME_START_MOVIE:
         minigameStartSwitcher();
         break;
     case GAME_STATUS_0x23:
-        fn_3_10AE18();
+        minigames_0x23();
         break;
     case GAME_STATUS_MVP_END_GAME:
         minigameEndSwitcher();
         break;
     case GAME_STATUS_0x24:
-        fn_3_109254();
+        minigameResultsSwitcher();
         break;
     case GAME_STATUS_MINIGAME_POST_MENU:
         postMinigame();
@@ -782,7 +782,7 @@ void minigameSimulation(void) {
         minigames_0x28();
         break;
     case GAME_STATUS_0x29:
-        fn_3_10768C();
+        minigameGrandPrixNextRound();
         break;
     case GAME_STATUS_0x27:
         minigames_0x27();
@@ -811,7 +811,7 @@ void minigameSimulation(void) {
     }
 }
 
-void fn_3_10FBE4(void) {
+void minigames_init(void) {
     int i;
 
     g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_MINI_GAME_MENU;
@@ -872,7 +872,7 @@ void fn_3_10FBE4(void) {
     }
 }
 
-void fn_3_10FB74(void) {
+void minigames_0x1B(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
         animRelated[0xD8] = 0;
@@ -884,11 +884,11 @@ void fn_3_10FB74(void) {
     SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
 }
 
-void fn_3_10F91C(void) {
+void minigames_0x25(void) {
     minigamesRosterSetup();
 }
 
-void fn_3_10F684(void) {
+void minigames_setupChallengeRoster(void) {
     int arr[6];
     int i;
     int n;
@@ -958,7 +958,7 @@ static inline void minigameStadiumSetup(void) {
     insertGraphicDrawingFunction(manageStadiumLoading, 0);
 }
 
-void fn_3_10F5BC(void) {
+void minigames_startStadiumLoad(void) {
     if (g_Minigame._1A2C >= 0) {
         hugeAnimStruct[0x307E] = 0;
         cleanupMinigameResources();
@@ -967,7 +967,7 @@ void fn_3_10F5BC(void) {
     minigameStadiumSetup();
 }
 
-BOOL fn_3_10F564(void) {
+BOOL minigames_isStadiumLoading(void) {
     if (g_Minigame._1A2C == -1) {
         if (FrameCountOfEntireGame[0x10] != 0) {
             g_Minigame._1A2C = mapping_minigame_Stadium[g_Minigame.GameMode_MiniGame];
@@ -978,7 +978,7 @@ BOOL fn_3_10F564(void) {
     return FALSE;
 }
 
-void fn_3_10F550(u8 arg0, s16 arg1) {
+void minigameQueueHudEvent(u8 arg0, s16 arg1) {
     g_Minigame._1A41 = arg0;
     g_Minigame.someGraphicFrameCountdown = arg1;
 }
@@ -989,7 +989,7 @@ void toyFieldStadiumLoad(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
         stadiumMusic(-1);
-        fn_3_10C7A4();
+        minigameCharSelectReset();
         sound_crowd_EffectsStruct._2C = 0;
         g_GameLogic._125++;
         // fallthrough
@@ -1038,7 +1038,7 @@ void minigameSelectSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        fn_3_10EFAC();
+        minigameSelectMenuUpdate();
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         break;
     case TRANSITION_CALCULATION_TYPE_3:
@@ -1085,7 +1085,7 @@ void minigameSelectSwitcher(void) {
     }
 }
 
-void fn_3_10EFAC(void) {
+void minigameSelectMenuUpdate(void) {
     InputStruct* input = &g_Controls[lbl_80366158[0x27]];
 
     if (animRelated[0xBB] == 0) {
@@ -1217,7 +1217,7 @@ void toyFieldCharSelectSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        fn_3_10CC20();
+        minigameCharSelectUpdate();
         break;
     case TRANSITION_CALCULATION_TYPE_3:
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
@@ -1294,11 +1294,11 @@ void toyFieldCharSelectSwitcher(void) {
         }
     }
     if (g_GameLogic._125 >= 2) {
-        fn_3_10C81C();
+        minigameCharLoadQueueUpdate();
     }
 }
 
-void fn_3_10CC20(void) {
+void minigameCharSelectUpdate(void) {
     s8 sel[4];
     u8 used[12];
     int port;
@@ -1828,7 +1828,7 @@ tail:
     }
 }
 
-void fn_3_10C81C(void) {
+void minigameCharLoadQueueUpdate(void) {
     struct {
         int idx;
         int val;
@@ -1935,7 +1935,7 @@ void fn_3_10C81C(void) {
     }
 }
 
-void fn_3_10C7A4(void) {
+void minigameCharSelectReset(void) {
     int i;
 
     fn_8001CA40(0);
@@ -1950,7 +1950,7 @@ void minigames_fillRoster(void) {
     minigamesFillRoster();
 }
 
-void fn_3_10C450(int slot, int charID) {
+void minigames_loadCharStats(int slot, int charID) {
     CharacterStats* roster = &inMemRoster[0][slot];
 
     memcpy(roster, &((CharacterStats*)&Static_Stats_Tables)[charID], sizeof(CharacterStats));
@@ -2078,7 +2078,7 @@ void minigames_pickOpponentsAndLoadStats(void) {
     }
 }
 
-void fn_3_10B8D0(void) {
+void minigameReadySwitcher(void) {
     int i;
 
     switch (g_GameLogic._125) {
@@ -2162,7 +2162,7 @@ void fn_3_10B8D0(void) {
         g_GameLogic._125++;
         break;
     case TRANSITION_CALCULATION_TYPE_6:
-        if (!fn_3_10F564()) {
+        if (!minigames_isStadiumLoading()) {
             g_GameLogic._125++;
         }
         break;
@@ -2200,11 +2200,11 @@ void fn_3_10B8D0(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_11:
         g_Minigame._1A38 = 0;
-        fn_3_10B200();
+        minigameBackToCharSelect();
         break;
     }
     if (g_GameLogic._125 >= 2 && g_Minigame.battingHandedness[6] == 0) {
-        fn_3_10B27C();
+        minigameHelpMenuUpdate();
     }
 }
 
@@ -2233,7 +2233,7 @@ static inline void minigameOptionSetup(u8 selected) {
     }
 }
 
-void fn_3_10B27C(void) {
+void minigameHelpMenuUpdate(void) {
     if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
         minigameOptionSetup(0);
     }
@@ -2338,7 +2338,7 @@ void fn_3_10B27C(void) {
     }
 }
 
-void fn_3_10B200(void) {
+void minigameBackToCharSelect(void) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
         *(s16*)&hugeAnimStruct[0x3078] = 0;
     }
@@ -2370,7 +2370,7 @@ void minigameStartSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        fn_3_10C81C();
+        minigameCharLoadQueueUpdate();
         if (g_Minigame._1A0F < 0) {
             fn_3_E1370(lbl_3_data_18918[g_Minigame.GameMode_MiniGame]);
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
@@ -2440,12 +2440,12 @@ void minigameStartSwitcher(void) {
     }
 }
 
-void fn_3_10AE18(void) {
-    fn_3_10AD48();
+void minigames_0x23(void) {
+    minigames_shufflePlayOrder();
     SetGameStatus(GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING);
 }
 
-void fn_3_10AD48(void) {
+void minigames_shufflePlayOrder(void) {
     int order[4];
     int i;
 
@@ -2562,7 +2562,7 @@ void minigameEndSwitcher(void) {
             }
             if (eligible) {
                 buildResultEntry(&entry);
-                rank = fn_3_109CE8(&entry);
+                rank = minigameGetScoreRank(&entry);
                 if (rank >= 5) {
                     g_Minigame._1A43 = 0;
                 } else {
@@ -2739,10 +2739,10 @@ void minigameEndSwitcher(void) {
         g_GameLogic.framesOfExitingToMenu = 1;
         break;
     }
-    fn_3_10A01C();
+    minigameEndHook();
 }
 
-void fn_3_10A01C(void) {
+void minigameEndHook(void) {
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
         bOD_UpdateFieldObjects();
     } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
@@ -2758,11 +2758,11 @@ void fn_3_10A01C(void) {
     }
 }
 
-void fn_3_109DE0(MinigameResultEntry* out) {
+void minigameBuildResultEntry(MinigameResultEntry* out) {
     buildResultEntry(out);
 }
 
-MinigameResultEntry* fn_3_109D88(void) {
+MinigameResultEntry* minigameGetScoreTable(void) {
     if (g_Minigame._1A3C != 0) {
         return &lbl_803616CC[7][0];
     }
@@ -2772,14 +2772,14 @@ MinigameResultEntry* fn_3_109D88(void) {
     return &lbl_803616CC[0][0];
 }
 
-int fn_3_109CE8(MinigameResultEntry* entry) {
+int minigameGetScoreRank(MinigameResultEntry* entry) {
     MinigameResultEntry* table;
     u32 i;
 
     if (g_Minigame._1907 != 1) {
         return;
     }
-    table = fn_3_109D88();
+    table = minigameGetScoreTable();
     i = 0;
     do {
         if (entry->score > table[i].score) {
@@ -2793,7 +2793,7 @@ int fn_3_109CE8(MinigameResultEntry* entry) {
     return i;
 }
 
-void fn_3_10952C(void) {
+void minigameUpdateHighScores(void) {
     MinigameResultEntry entry;
     MiniGrandPrixScoreInput input;
     MiniGrandPrixScoreInput* best;
@@ -2814,10 +2814,10 @@ void fn_3_10952C(void) {
         return;
     }
     buildResultEntry(&entry);
-    rank = fn_3_109CE8(&entry);
+    rank = minigameGetScoreRank(&entry);
     g_Minigame._1E03 = rank;
     if (rank < 5) {
-        table = fn_3_109D88();
+        table = minigameGetScoreTable();
         for (i = 4; i > rank; i--) {
             memcpy(&table[i], &table[i - 1], sizeof(MinigameResultEntry));
         }
@@ -2843,7 +2843,7 @@ void fn_3_10952C(void) {
     }
 }
 
-void fn_3_109254(void) {
+void minigameResultsSwitcher(void) {
     InputStruct* input = &g_Controls[lbl_80366158[0x27]];
 
     switch (g_GameLogic._125) {
@@ -2851,7 +2851,7 @@ void fn_3_109254(void) {
         fn_3_5B368();
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         if (g_Minigame._1907 == 1) {
-            fn_3_10952C();
+            minigameUpdateHighScores();
             if (g_Minigame._1A3C != 0) {
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
             } else {
@@ -2971,7 +2971,7 @@ void postMinigame(void) {
         }
         break;
     case 3:
-        fn_3_1089E8();
+        postMinigameMenuUpdate();
         pauseControl.counter = 0;
         pauseControl._12 = 0;
         break;
@@ -3081,7 +3081,7 @@ void postMinigame(void) {
     }
 }
 
-void fn_3_1089E8(void) {
+void postMinigameMenuUpdate(void) {
     int count;
     int menu;
     int pressed;
@@ -3198,7 +3198,7 @@ void minigamePause(void) {
         }
         break;
     case 3:
-        fn_3_108230();
+        minigamePauseMenuUpdate();
         pauseControl.counter = 0;
         pauseControl._12 = 0;
         pauseControl._1D4 = 0;
@@ -3258,10 +3258,10 @@ void minigamePause(void) {
         }
         break;
     case 10:
-        fn_3_107E80();
+        minigamePauseHelpUpdate();
         break;
     case 11:
-        fn_3_107E80();
+        minigamePauseHelpUpdate();
         break;
     case 12:
         changeScene(3, 6);
@@ -3282,7 +3282,7 @@ void minigamePause(void) {
     }
 }
 
-void fn_3_108230(void) {
+void minigamePauseMenuUpdate(void) {
     int type;
     int count;
     InputStruct* input;
@@ -3346,7 +3346,7 @@ void fn_3_108230(void) {
     }
 }
 
-void fn_3_107E80(void) {
+void minigamePauseHelpUpdate(void) {
     InputStruct* input = &g_Controls[pauseControl.port];
 
     switch (pauseControl._1D4) {
@@ -3417,7 +3417,7 @@ u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8 player) {
     return 0;
 }
 
-u32 fn_3_107DF8(s8 player) {
+u32 minigame_getCcsAIControlledInd(s8 player) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && player >= 0 && player < 4) {
         return g_Minigame._1DC0[player];
     }
@@ -3431,14 +3431,14 @@ u32 AI_getPort(s8 player) {
     return 0;
 }
 
-u32 fn_3_107D70(s8 player) {
+u32 minigame_getAIDrivenInputInd(s8 player) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && player >= 0 && player < 4) {
         return g_Minigame.aiDrivenInputInd[player];
     }
     return 0;
 }
 
-int fn_3_107D34(const void* a, const void* b) {
+int minigame_compareDisplayedPoints(const void* a, const void* b) {
     int pointsB = g_Minigame.minigamePoints_current_Latest[*(const u8*)b][0];
     int pointsA = g_Minigame.minigamePoints_current_Latest[*(const u8*)a][0];
 
@@ -3457,11 +3457,11 @@ int minigame_getLeadingPlayer(void) {
         order[i] = i;
         i++;
     } while (i < g_Minigame.miniGameNumberOfParticipants);
-    fn_800246D4(fn_3_107D34, order, order, 1, g_Minigame.miniGameNumberOfParticipants);
+    fn_800246D4(minigame_compareDisplayedPoints, order, order, 1, g_Minigame.miniGameNumberOfParticipants);
     return order[0];
 }
 
-BOOL fn_3_107C88(void) {
+BOOL minigame_displayedPointsAllTied(void) {
     u32 i;
 
     for (i = 1; i < g_Minigame.miniGameNumberOfParticipants; i++) {
@@ -3472,7 +3472,7 @@ BOOL fn_3_107C88(void) {
     return TRUE;
 }
 
-BOOL fn_3_107C40(void) {
+BOOL minigame_pointsAllTied(void) {
     u32 i;
 
     for (i = 1; i < g_Minigame.miniGameNumberOfParticipants; i++) {
@@ -3483,7 +3483,7 @@ BOOL fn_3_107C40(void) {
     return TRUE;
 }
 
-int fn_3_107C04(const void* a, const void* b) {
+int minigame_comparePoints(const void* a, const void* b) {
     int pointsB = g_Minigame.miniGameCurrentPoints[*(const u8*)b];
     int pointsA = g_Minigame.miniGameCurrentPoints[*(const u8*)a];
 
@@ -3493,7 +3493,7 @@ int fn_3_107C04(const void* a, const void* b) {
     return pointsB - pointsA;
 }
 
-int fn_3_107BD0(const void* a, const void* b) {
+int minigame_compareGrandPrixTotals(const void* a, const void* b) {
     u32 valueB = g_Minigame._1E22[*(const u8*)b];
     u32 valueA = g_Minigame._1E22[*(const u8*)a];
 
@@ -3503,7 +3503,7 @@ int fn_3_107BD0(const void* a, const void* b) {
     return valueB - valueA;
 }
 
-int fn_3_107B9C(const void* a, const void* b) {
+int minigame_compareGrandPrixPrevTotals(const void* a, const void* b) {
     u32 valueB = (&g_Minigame._1E22[4])[*(const u8*)b];
     u32 valueA = (&g_Minigame._1E22[4])[*(const u8*)a];
 
@@ -3513,7 +3513,7 @@ int fn_3_107B9C(const void* a, const void* b) {
     return valueB - valueA;
 }
 
-void fn_3_1079C8(u8 (*order)[2], int mode) {
+void minigame_rankPlayers(u8 (*order)[2], int mode) {
     u8 sorted[4];
     s16 points[4];
     u32 i;
@@ -3527,7 +3527,7 @@ void fn_3_1079C8(u8 (*order)[2], int mode) {
     switch (mode) {
     case 0:
     default:
-        fn_800246D4(fn_3_107C04, sorted, sorted, 1, g_Minigame.miniGameNumberOfParticipants);
+        fn_800246D4(minigame_comparePoints, sorted, sorted, 1, g_Minigame.miniGameNumberOfParticipants);
         i = 0;
         do {
             points[i] = g_Minigame.miniGameCurrentPoints[i];
@@ -3535,7 +3535,7 @@ void fn_3_1079C8(u8 (*order)[2], int mode) {
         } while (i < g_Minigame.miniGameNumberOfParticipants);
         break;
     case 1:
-        fn_800246D4(fn_3_107BD0, sorted, sorted, 1, g_Minigame.miniGameNumberOfParticipants);
+        fn_800246D4(minigame_compareGrandPrixTotals, sorted, sorted, 1, g_Minigame.miniGameNumberOfParticipants);
         i = 0;
         do {
             points[i] = g_Minigame._1E22[i];
@@ -3543,7 +3543,7 @@ void fn_3_1079C8(u8 (*order)[2], int mode) {
         } while (i < g_Minigame.miniGameNumberOfParticipants);
         break;
     case 2:
-        fn_800246D4(fn_3_107B9C, sorted, sorted, 1, g_Minigame.miniGameNumberOfParticipants);
+        fn_800246D4(minigame_compareGrandPrixPrevTotals, sorted, sorted, 1, g_Minigame.miniGameNumberOfParticipants);
         i = 0;
         do {
             points[i] = (&g_Minigame._1E22[4])[i];
@@ -3565,7 +3565,7 @@ void fn_3_1079C8(u8 (*order)[2], int mode) {
     }
 }
 
-BOOL fn_3_107988(u32 mode) {
+BOOL minigame_grandPrixHasPlayed(u32 mode) {
     u32 i;
 
     for (i = 0; i < g_Minigame.grandPrixRound - 1; i++) {
@@ -3607,7 +3607,7 @@ void minigames_0x28(void) {
         g_GameLogic._125++;
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        fn_3_10B27C();
+        minigameHelpMenuUpdate();
         if (g_Minigame.battingHandedness[6] == 2) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_5;
         } else if (g_Minigame.battingHandedness[6] != 0) {
@@ -3637,7 +3637,7 @@ void minigames_0x28(void) {
     }
 }
 
-void fn_3_10768C(void) {
+void minigameGrandPrixNextRound(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
         g_Minigame.GameMode_MiniGame = g_Minigame.grandPrixOrder[g_Minigame.grandPrixRound++];
@@ -3681,7 +3681,7 @@ void minigameFillGrandPrixScoreInput(MiniGrandPrixScoreInput* input) {
             input->bytes[i] = g_Minigame.grandPrixOrder[i];
             i++;
         } while (i < 6);
-        fn_3_1079C8(order, 1);
+        minigame_rankPlayers(order, 1);
         j = 0;
         do {
             if (g_Minigame._1908 == order[j][0]) {
@@ -3707,13 +3707,13 @@ void minigames_0x26(void) {
             (&g_Minigame._1E22[4])[i] = g_Minigame._1E22[i];
             i++;
         } while (i < g_Minigame.miniGameNumberOfParticipants);
-        fn_3_1079C8(order, 0);
+        minigame_rankPlayers(order, 0);
         i = 0;
         do {
             g_Minigame._1E22[order[i][0]] += lbl_3_data_21EC4[order[i][1]] * ((g_Minigame.grandPrixRound >= 6) + 1);
             i++;
         } while (i < g_Minigame.miniGameNumberOfParticipants);
-        fn_3_1079C8(g_Minigame.grandPrixRanks, 1);
+        minigame_rankPlayers(g_Minigame.grandPrixRanks, 1);
         if (g_Minigame._1907 == 1) {
             g_Minigame.grandPrixPoints[g_Minigame.GameMode_MiniGame - 1] = g_Minigame.miniGameCurrentPoints[g_Minigame._1908];
         }
@@ -3782,7 +3782,7 @@ void minigames_0x27(void) {
         g_Minigame._1A3D = g_Minigame._1907;
         animRelated[0xB8] = 0;
         if (g_Minigame._1907 == 1) {
-            fn_3_107078();
+            minigameGrandPrixCheckWin();
         }
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
@@ -3821,13 +3821,13 @@ void minigames_0x27(void) {
     }
 }
 
-void fn_3_107078(void) {
+void minigameGrandPrixCheckWin(void) {
     if (g_Minigame.playerSlots._1C[g_Minigame._1908] == 1) {
         g_Minigame._1A3F = 1;
     }
 }
 
-void fn_3_106ED4(void) {
+void minigameAwardCoins(void) {
     awardMinigameCoins();
 }
 

@@ -59,7 +59,7 @@ extern u8 lbl_3_data_21278[2];
 extern u8 lbl_3_data_2127C[8][5];
 extern u8 lbl_3_data_21E08[8];
 extern BOOL checkForPauses(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_157570(void);
 extern void fn_3_157588(int arg);
 extern void fn_3_154214(void);
@@ -313,7 +313,7 @@ void pP_LoadGame(void) {
 void pP_RoundIntro(void) {
     switch (g_GameLogic._125) {
         case TRANSITION_CALCULATION_TYPE_0:
-            fn_3_10F550(2, lbl_3_data_21278[0]);
+            minigameQueueHudEvent(2, lbl_3_data_21278[0]);
             changeScene(1, 6);
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
@@ -364,7 +364,7 @@ void pP_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (PP.framesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
-            fn_3_10F550(3, 0);
+            minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
         }
     } else {

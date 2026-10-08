@@ -59,7 +59,7 @@ extern u8 lbl_8037169C[0x1C];
 extern u8 us80893314[8];
 extern void fn_3_FBD70(void);
 extern void fn_3_FBD58(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigameQueueHudEvent(int a, int b);
 extern BOOL checkForPauses(void);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
@@ -346,7 +346,7 @@ void wallBallStartRound(void) {
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
     if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
         g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
-        fn_3_10F550(4, 0);
+        minigameQueueHudEvent(4, 0);
     }
 }
 
@@ -636,7 +636,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
             if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
                 g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 if (g_Minigame.turnNumberWithinRound == 0) {
-                    fn_3_10F550(4, 0);
+                    minigameQueueHudEvent(4, 0);
                 }
             }
         }

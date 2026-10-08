@@ -115,7 +115,7 @@ extern void cleanupCharacters(void);
 extern void fn_3_90434(void);
 extern void unregisterMatchHudObjects(void);
 extern void toyFieldInit(void);
-extern void fn_3_10FBE4(void);
+extern void minigames_init(void);
 extern void clearScoutState(void);
 extern void fn_3_1663AC(void);
 extern void fn_3_59C2C(void);
@@ -2144,7 +2144,7 @@ void fn_3_5AE0C(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         toyFieldInit();
     } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        fn_3_10FBE4();
+        minigames_init();
     }
     g_Minigame._19AB = 0;
     fn_3_6C150();

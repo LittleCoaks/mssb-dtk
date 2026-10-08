@@ -924,8 +924,8 @@ static inline void pmDisableWallBallEffects(void) {
 extern void convertTextureHeader(void* tex);
 extern void UpdateTexturePalettePointers(void* geo, void* tex);
 extern int minigame_getLeadingPlayer(void);
-extern int fn_3_107C88(void);
-extern int fn_3_107988(void);
+extern int minigame_displayedPointsAllTied(void);
+extern int minigame_grandPrixHasPlayed(void);
 extern void minigame_pointsTally(void);
 extern u8 pauseControl[0x264];
 extern u8 lbl_800EFBA4[];
@@ -937,7 +937,7 @@ typedef struct {
     /*0x6*/ s16 extra;
 } PMScoreRecord;
 
-extern void fn_3_109DE0(PMScoreRecord* out);
+extern void minigameBuildResultEntry(PMScoreRecord* out);
 
 static inline u16 pmCrc16(u8* data, u32 len) {
     u32 crc = 0;
@@ -1008,7 +1008,7 @@ void fn_3_11E7C4(void) {
         break;
     case 1: {
         u32 leader = minigame_getLeadingPlayer();
-        u32 flag = fn_3_107C88();
+        u32 flag = minigame_displayedPointsAllTied();
         s16* leaderPoints = &g_Minigame.minigamePoints_current_Latest[leader][0];
 
         for (i = 0; i < 4; i++) {
@@ -1076,7 +1076,7 @@ void fn_3_11E364(void) {
         break;
     case 1: {
         u32 leader = minigame_getLeadingPlayer();
-        u32 flag = fn_3_107C88();
+        u32 flag = minigame_displayedPointsAllTied();
         s16* leaderPoints = &g_Minigame.minigamePoints_current_Latest[leader][0];
 
         for (i = 0; i < 4; i++) {
@@ -1219,7 +1219,7 @@ void fn_3_11DECC(void) {
         PM_REC(scene, 10 + i)->firstChild = (UIRecord*)PM_REC(scene, 15 + next);
         PM_REC(scene, 15 + next)->parent = (UIRecord*)PM_REC(scene, 10 + i);
         if (PM_REC(scene, 10 + i)->playMode == UI_PLAY_STOP) {
-            PM_REC(scene, 10 + i)->frame = (fn_3_107988() == 0) << 16;
+            PM_REC(scene, 10 + i)->frame = (minigame_grandPrixHasPlayed() == 0) << 16;
         }
     }
 }
@@ -1243,7 +1243,7 @@ void mm_EncodeResultCode(u8* out, u8* raw, u8 a, u8 b) {
     u32 crc;
     u32 i;
 
-    fn_3_109DE0(&rec);
+    minigameBuildResultEntry(&rec);
     if (g_Minigame._1A3C != 0) {
         score = rec.score;
         flag = 1;

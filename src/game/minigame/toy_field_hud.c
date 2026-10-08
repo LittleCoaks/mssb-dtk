@@ -47,9 +47,9 @@ extern UIRecordDescriptor lbl_3_data_8F64[];
 extern UIRecordDescriptor lbl_3_data_8FCC[];
 extern UIRecordDescriptor lbl_3_data_900C[];
 
-extern void fn_3_1079C8(u8 (*order)[2], int mode);
-extern u32 fn_3_107C40(void);
-extern int fn_3_107C88(void);
+extern void minigame_rankPlayers(u8 (*order)[2], int mode);
+extern u32 minigame_pointsAllTied(void);
+extern int minigame_displayedPointsAllTied(void);
 extern int minigame_getLeadingPlayer(void);
 extern void fn_80053FE8(void);
 extern void fn_80051D00(void);
@@ -1154,7 +1154,7 @@ void fn_3_EB6E0(void) {
 
                     fn_3_125424(scene, 0, 0);
                     leader = minigame_getLeadingPlayer();
-                    tied = fn_3_107C88();
+                    tied = minigame_displayedPointsAllTied();
                     i = 0;
                     do {
                         int slot =
@@ -1327,7 +1327,7 @@ void fn_3_EAEF4(void) {
         fn_3_125424(scene, 0, 10);
     }
     leader = minigame_getLeadingPlayer();
-    tied = fn_3_107C88();
+    tied = minigame_displayedPointsAllTied();
     i = 0;
     do {
         u32 points = g_Minigame.minigamePoints_current_Latest[i][0];
@@ -1502,7 +1502,7 @@ void fn_3_EA454(void) {
                 } else {
                     OFFSCREEN_RECORD(scene, 1)->elementIndex = 0x175;
                 }
-                fn_3_1079C8(order, 0);
+                minigame_rankPlayers(order, 0);
                 OFFSCREEN_RECORD(scene, 2)->elementIndex =
                     lbl_3_data_1AF90[g_Minigame.miniGameNumberOfParticipants - 1];
                 i = 0;
@@ -1511,7 +1511,7 @@ void fn_3_EA454(void) {
 
                     OFFSCREEN_RECORD_AT(scene, 3, i)->frame = lbl_3_data_1AF98[g_Minigame.GameMode_MiniGame] << 16;
                     OFFSCREEN_RECORD_AT(scene, 7, i)->frame = character << 16;
-                    if (fn_3_107C40()) {
+                    if (minigame_pointsAllTied()) {
                         OFFSCREEN_RECORD_AT(scene, 0x13, i)->elementIndex = 0x175;
                     } else {
                         j = 0;
@@ -1738,12 +1738,12 @@ void minigame_pointsTally(void) {
         case 1:
             if (scene->_18 != 0) {
                 if (scene->_20 != 0) {
-                    fn_3_1079C8(order, 1);
+                    minigame_rankPlayers(order, 1);
                 } else {
-                    fn_3_1079C8(order, 2);
+                    minigame_rankPlayers(order, 2);
                 }
             } else {
-                fn_3_1079C8(order, 0);
+                minigame_rankPlayers(order, 0);
             }
             if (scene->_18 == 0 && g_Minigame.toyField_turnNumber == 0) {
                 OFFSCREEN_RECORD(scene, 2)->elementIndex = 0x183;

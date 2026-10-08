@@ -40,7 +40,7 @@ typedef struct {
 extern BOOL checkForPauses(void);
 extern void fn_80011578(void);
 extern void fn_800115C8(u8 player);
-extern void fn_3_10F550(int a, int b);
+extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_106EB0(void);
 extern void fn_3_DE4FC(void);
 extern void fn_3_11F480(void);
@@ -251,7 +251,7 @@ void fn_3_1413E4(void) {
     cCSRunningFun();
     switch (g_GameLogic._125) {
     case 0:
-        fn_3_10F550(2, lbl_3_data_21278[0]);
+        minigameQueueHudEvent(2, lbl_3_data_21278[0]);
         changeScene(1, 6);
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_GameLogic._125 = 1;
@@ -341,7 +341,7 @@ void chainChompSpringMainFun(void) {
 void fn_3_140BCC(void) {
     if (!g_Minigame.turnOverStatus) {
         if (g_Minigame.minigameFramesRemaining == 0) {
-            fn_3_10F550(3, 0);
+            minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
             fn_3_151798();
             fn_3_11F480();

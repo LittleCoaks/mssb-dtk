@@ -42,7 +42,7 @@ extern s16 lbl_3_data_21904[];
 extern VecXZ lbl_3_data_4A54[][13];
 extern s16 lbl_3_data_4B90[];
 extern void initializeInMemRunner(int rosterID, int runnerIdx);
-extern u32 fn_3_107DF8(int port);
+extern u32 minigame_getCcsAIControlledInd(int port);
 extern void QueueTextToDisplay(int code, int arg1);
 extern u8 pauseControl[0x264];
 extern f32 lbl_3_data_4B88[];
@@ -4874,7 +4874,7 @@ void runnerChangeDirectionHumanInput(int runnerIdx) {
     InputStruct* inputs = &g_Controls[(s8)g_Minigame._18FC[runnerIdx]];
 
     runner = &g_Runners[runnerIdx];
-    if (fn_3_107DF8(g_Minigame._18FC[runnerIdx])) {
+    if (minigame_getCcsAIControlledInd(g_Minigame._18FC[runnerIdx])) {
         inputs = &g_Minigame._1D7C[(s8)g_Minigame._18FC[runnerIdx]];
     }
 

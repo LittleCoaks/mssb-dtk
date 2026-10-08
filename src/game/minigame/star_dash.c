@@ -68,7 +68,7 @@ extern void fn_3_14E988(int player);
 extern void fn_3_150010(s8 player);
 extern void fn_3_169600(void);
 extern void fn_3_106EB0(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_14E894(void);
 extern void fn_3_157570(void);
 extern void fn_80011578(void);
@@ -393,7 +393,7 @@ void sD_LoadGame(void) {
 void sD_RoundIntro(void) {
     switch (g_GameLogic._125) {
     case 0:
-        fn_3_10F550(2, lbl_3_data_21278[0]);
+        minigameQueueHudEvent(2, lbl_3_data_21278[0]);
         changeScene(1, 6);
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_GameLogic._125 = 1;
@@ -468,7 +468,7 @@ void sD_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (g_Minigame.minigameFramesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
-            fn_3_10F550(3, 0);
+            minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
         }
         return;

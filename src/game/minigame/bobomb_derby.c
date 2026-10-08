@@ -30,8 +30,8 @@
 
 extern void SetGameStatus(GAME_STATUS status);
 extern u8 lbl_800EFBA4[0x10];
-extern void fn_3_10AD48(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigames_shufflePlayOrder(void);
+extern void minigameQueueHudEvent(int a, int b);
 extern u8 animRelated[0x124];
 extern u8 lbl_3_common_bss_32220[0x10];
 extern s16 lbl_3_data_18C48[10];
@@ -346,10 +346,10 @@ void bOD_StartRound(void) {
     }
 
     if (g_Scores.Inning == 1) {
-        fn_3_10AD48();
+        minigames_shufflePlayOrder();
     }
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-    fn_3_10F550(4, 0);
+    minigameQueueHudEvent(4, 0);
 }
 
 // .text:0x00112450 size:0x108 mapped:0x807514E4
@@ -679,7 +679,7 @@ void bOD_LiveBallOutcome(void) {
                 g_Minigame.pointsTargetReachedInd = 1;
                 g_Minigame._1A37 = 1;
                 g_Minigame.challenge_minigame_haven_tWonYetIndicator = 0;
-                fn_3_10F550(1, lbl_3_data_21448[9]);
+                minigameQueueHudEvent(1, lbl_3_data_21448[9]);
             } else if (g_Minigame.miniGameTurnCounter >= g_Minigame.bODRoundStartingNumPitches) {
                 if (g_Minigame.multiPlayerInd == 0 &&
                     g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE &&

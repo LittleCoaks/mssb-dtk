@@ -30,8 +30,8 @@ extern u8 highLevelSimulationFlag[3];
 extern u8 us80893314[8];
 extern u8 cost_15_bB_pitchesPerRound_solo[12];
 extern u8 animRelated[0x124];
-extern void fn_3_10AD48(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigames_shufflePlayOrder(void);
+extern void minigameQueueHudEvent(int a, int b);
 
 typedef struct {
     u8 _00[5];
@@ -260,9 +260,9 @@ void fn_3_131FFC(void) {
         return;
     }
 
-    fn_3_10F550(4, 0);
+    minigameQueueHudEvent(4, 0);
     if (g_Scores.Inning == 1) {
-        fn_3_10AD48();
+        minigames_shufflePlayOrder();
     }
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
 }
@@ -558,7 +558,7 @@ void barrelBatterLiveBallSubFun(void) {
                 g_Minigame.pointsTargetReachedInd = 2;
                 g_Minigame._1A37 = 1;
                 g_Minigame.challenge_minigame_haven_tWonYetIndicator = 0;
-                fn_3_10F550(1, lbl_3_data_217A4[10]);
+                minigameQueueHudEvent(1, lbl_3_data_217A4[10]);
             }
 
             if (g_Minigame.bB_bombBarrelHitInd_bOD_hrYaw != 0) {

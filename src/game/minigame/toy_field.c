@@ -53,12 +53,12 @@ extern struct {
 extern void QueueTextToDisplay(int code, int arg1);
 extern void ballPhysica(void);
 extern void fn_3_15F998(void);
-extern void fn_3_10C81C(void);
+extern void minigameCharLoadQueueUpdate(void);
 extern void toyFieldStadiumLoad(void);
 extern void toyFieldCharSelectSwitcher(void);
-extern void fn_3_10B8D0(void);
+extern void minigameReadySwitcher(void);
 extern void minigameEndSwitcher(void);
-extern void fn_3_109254(void);
+extern void minigameResultsSwitcher(void);
 extern void howToPlayScreen(void);
 extern int fn_3_59AE4(void);
 extern void loadToyFieldCharacterFiles(void);
@@ -68,8 +68,8 @@ extern int fn_3_FD9FC(void);
 extern u8 lbl_3_data_21270;
 extern u8 us80893314[8];
 extern u8 animRelated[0x124];
-extern void fn_3_107E80(void);
-extern void fn_3_1079C8(u8 (*order)[2], int mode);
+extern void minigamePauseHelpUpdate(void);
+extern void minigame_rankPlayers(u8 (*order)[2], int mode);
 extern void fn_3_AFD80(int arg0);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 extern struct {
@@ -362,7 +362,7 @@ void toyfieldSimulation(void) {
         toyFieldCharSelectSwitcher();
         break;
     case GAME_STATUS_MINIGAME_READY:
-        fn_3_10B8D0();
+        minigameReadySwitcher();
         break;
     case GAME_STATUS_MINIGAME_POST_MENU:
         toyFieldPostMenu();
@@ -401,7 +401,7 @@ void toyfieldSimulation(void) {
         minigameEndSwitcher();
         break;
     case GAME_STATUS_0x24:
-        fn_3_109254();
+        minigameResultsSwitcher();
         break;
     case GAME_STATUS_PAUSED:
         toyFieldPause();
@@ -534,7 +534,7 @@ void initializeMinigameData(void) {
 // .text:0x000DF820 size:0xB4 mapped:0x8071E8B4
 void toyFieldWaitForCharacterLoad(void) {
     int i;
-    fn_3_10C81C();
+    minigameCharLoadQueueUpdate();
     for (i = 0; i < 4; i++) {
         if ((s8)MG_BYTE(0x19E8 + i * 9) != (s8)MG_BYTE(0x19EA + i * 9)) {
             break;
@@ -598,7 +598,7 @@ void toyFieldGameStartMovie(void) {
         }
         break;
     case 1:
-        fn_3_10C81C();
+        minigameCharLoadQueueUpdate();
         if ((s8)g_Minigame._1A0F < 0) {
             loadToyFieldCharacterFiles();
             g_GameLogic._125 = 2;
@@ -1360,7 +1360,7 @@ void toyFieldPause(void) {
         }
         break;
     case 8:
-        fn_3_107E80();
+        minigamePauseHelpUpdate();
         break;
     case 9:
         switch (exitMenu_main()) {
@@ -2063,7 +2063,7 @@ static inline u32 toyFieldCountRank(u8 (*order)[2], u32 rank) {
 void toyFieldPickEventTargets(void) {
     u8 order[4][2];
     u32 count;
-    fn_3_1079C8(order, 0);
+    minigame_rankPlayers(order, 0);
     count = toyFieldCountRank(order, 0);
     switch (g_Minigame._192D) {
     case 0: {

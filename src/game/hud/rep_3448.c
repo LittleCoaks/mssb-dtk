@@ -60,7 +60,7 @@ typedef struct {
     s16 rank;
 } ResultEntry;
 
-extern ResultEntry* fn_3_109D88(void);
+extern ResultEntry* minigameGetScoreTable(void);
 
 typedef struct {
     s16 v[6];
@@ -143,7 +143,7 @@ typedef struct {
 extern CCSGemType lbl_3_data_21884[];
 
 extern int minigame_getLeadingPlayer(void);
-extern int fn_3_107C88(void);
+extern int minigame_displayedPointsAllTied(void);
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
 
 extern void fn_8004D0F0(void);
@@ -1861,7 +1861,7 @@ void fn_3_1274B4(void) {
         if (g_Minigame._1A3C == 0 && g_Minigame.GameMode_MiniGame != MINI_GAME_ID_NONE) {
             HUD_RECORD(scene, 2)->playMode = UI_PLAY_FORWARD;
         }
-        entry = fn_3_109D88();
+        entry = minigameGetScoreTable();
         i = 0;
         do {
             if (g_Minigame._1A3C != 0) {
@@ -3558,7 +3558,7 @@ void fn_3_121304(void) {
             break;
         case 1:
             leader = minigame_getLeadingPlayer();
-            flag = fn_3_107C88();
+            flag = minigame_displayedPointsAllTied();
             i = 0;
             do {
                 slot = g_Minigame.playerSlots._14[i];
@@ -4176,7 +4176,7 @@ void fn_3_11F02C(void) {
             break;
         case 1:
             leader = minigame_getLeadingPlayer();
-            flag = fn_3_107C88();
+            flag = minigame_displayedPointsAllTied();
             i = 0;
             do {
                 if (g_Minigame._1DFC[i] != 0) {
