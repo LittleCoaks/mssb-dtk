@@ -881,7 +881,7 @@ typedef struct _PracticeStruct {
     /*0x1D3*/ u8 diagramFrame; // script opcode 0x43
     /*0x1D4*/ u8 loadingGuidedPractice; // unsure
     /*0x1D5*/ u8 guidedMessageSceneStarted;
-    /*0x1D6*/ u8 practiceLevel_2;
+    /*0x1D6*/ u8 guidedMessageSet; // practice type * 4 + level
     /*0x1D7*/ u8 guidedMessageVariant; // 0 shown before the attempt, 1 shown on completion
     /*0x1D8*/ u8 guidedMessageIndex;
     /*0x1D9*/ u8 characterLoadStarted;

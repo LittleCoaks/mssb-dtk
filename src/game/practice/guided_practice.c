@@ -1421,7 +1421,7 @@ void playPracticeCPUInputs(void) {
 void practiceStartGuidedMessage(int arg0, int arg1) {
     g_Practice.loadingGuidedPractice = 1;
     g_Practice.guidedMessageSceneStarted = 0;
-    g_Practice.practiceLevel_2 = arg0;
+    g_Practice.guidedMessageSet = arg0;
     g_Practice.guidedMessageVariant = arg1;
     g_Practice.guidedMessageIndex = 0;
     g_Practice.frames_onGuidedMessage = 0;
@@ -1439,7 +1439,7 @@ BOOL loadGuidedPractice(void) {
     incrementCapped(&g_Practice.frames_onGuidedMessage);
     if (g_Practice.frames_onGuidedMessage > 0x5A && (input->newButtonInput & (INPUT_BUTTON_START | INPUT_BUTTON_A))) {
         g_Practice.guidedMessageIndex++;
-        if (g_Practice.guidedMessageIndex >= 3 || practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex] < 0) {
+        if (g_Practice.guidedMessageIndex >= 3 || practiceGuidedMessage_textIds[g_Practice.guidedMessageSet][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex] < 0) {
             g_Practice.loadingGuidedPractice = 0;
         }
     }

@@ -360,7 +360,7 @@ void animatePracticeScene(void) {
     if ((g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING || g_Practice.practiceType_2 == PRACTICE_TYPE_BATTING || g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING ||
          g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) &&
         g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
-        insertGraphicDrawingFunction(practiceAnimationRelated, 2);
+        insertGraphicDrawingFunction(practiceInstruction_init, 2);
     }
     if (g_Practice.completionMenuActive != 0) {
         if (g_Practice.frames_onPauseScreen == 1) {
@@ -378,7 +378,7 @@ void animatePracticeScene(void) {
         }
     }
     if (g_Practice.loadingGuidedPractice != 0 && g_Practice.guidedMessageSceneStarted == 0) {
-        insertGraphicDrawingFunction(practiceAnimationRelated2, 2);
+        insertGraphicDrawingFunction(practiceGuidedMessage_init, 2);
         g_Practice.guidedMessageSceneStarted = 1;
     }
     manageEventStates();
@@ -492,7 +492,7 @@ void animationOrDrawingRelated(void) {
                 insertGraphicDrawingFunction(practiceMenu_typeIcons_init, 2);
             }
             if (animRelated[0xC1] == 0) {
-                insertGraphicDrawingFunction(graphicsRelated, 2);
+                insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);
             }
             if (animRelated[0xBC] == 0) {
                 insertGraphicDrawingFunction(fn_3_12BFE8, 2);
@@ -506,7 +506,7 @@ void animationOrDrawingRelated(void) {
         if (g_Practice.practiceState == PRACTICE_STATE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
             if (animRelated[0xC1] == 0) {
                 animRelated[0xC2] = 1;
-                insertGraphicDrawingFunction(graphicsRelated, 2);
+                insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);
             }
             insertGraphicDrawingFunction(fn_80051D00, 2);
             insertGraphicDrawingFunction(practiceMenu_charSelect_init, 2);
@@ -649,7 +649,7 @@ void practiceMenu_typeIcons_update(void) {
     }
 }
 
-void graphicsRelated(void) {
+void practiceMenu_subMenu_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
@@ -855,11 +855,11 @@ remove:
 
 void practice_insertInstructionScene(void) {
     if (g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
-        insertGraphicDrawingFunction(practiceAnimationRelated, 2);
+        insertGraphicDrawingFunction(practiceInstruction_init, 2);
     }
 }
 
-void practiceAnimationRelated(void) {
+void practiceInstruction_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceInstruction_uiRecords);
@@ -873,10 +873,10 @@ void practiceAnimationRelated(void) {
     scene->_1C = 0;
     scene->_1E = 0;
     scene->_20 = 0;
-    currentDrawingItem->func = practiceAnimationRelated_text;
+    currentDrawingItem->func = practiceInstruction_update;
 }
 
-void practiceAnimationRelated_text(void) {
+void practiceInstruction_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     BOOL flag = FALSE;
 
@@ -1113,16 +1113,16 @@ void practiceCompleteBanner_update(void) {
     removeCurrentDrawingItem();
 }
 
-void practiceAnimationRelated2(void) {
+void practiceGuidedMessage_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceGuidedMessage_uiRecords);
     scene->_1C = 0;
     scene->_1E = 0;
-    currentDrawingItem->func = practiceAnimationRelated4;
+    currentDrawingItem->func = practiceGuidedMessage_update;
 }
 
-void practiceAnimationRelated4(void) {
+void practiceGuidedMessage_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
     if (animRelated[0x96] != 0) {
@@ -1161,7 +1161,7 @@ void practiceAnimationRelated4(void) {
         PRACTICE_RECORD(scene, 3)->flags |= UI_FLAG_VISIBLE;
     }
     if (g_Practice.frames_onGuidedMessage == 1) {
-        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex]);
+        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.guidedMessageSet][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex]);
     }
     g_Practice.currentMessageDoneTyping = screenTextArray.blocks[scene->_1E].unk34;
     return;
