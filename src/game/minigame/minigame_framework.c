@@ -6,6 +6,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "game/character_stats.h"
 #include "game/math/game_math.h"
+#include "game/match_setup/pause_menu.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/match_setup/star_missions.h"
@@ -83,29 +84,6 @@ extern void fn_8004D0F0(void);
 extern u8 cameraDataFileDescriptor[];
 extern s16 challenge_baseCoinsAwarded[];
 extern void starMissionsMinigamesTotalPoints(void);
-extern struct {
-    /*0x000*/ s32 controllerPort;
-    /*0x004*/ u16 _04;
-    /*0x006*/ u16 _06;
-    /*0x008*/ u16 _08;
-    /*0x00A*/ s16 _0A;
-    /*0x00C*/ s16 _0C;
-    /*0x00E*/ u8 _0E[0x12 - 0x0E];
-    /*0x012*/ s16 _12;
-    /*0x014*/ u8 _14[0x1D0 - 0x14];
-    /*0x1D0*/ u8 _1D0;
-    /*0x1D1*/ u8 _1D1;
-    /*0x1D2*/ u8 state;
-    /*0x1D3*/ u8 _1D3;
-    /*0x1D4*/ u8 _1D4;
-    /*0x1D5*/ u8 _1D5;
-    /*0x1D6*/ u8 _1D6[0x1D9 - 0x1D6];
-    /*0x1D9*/ u8 _1D9;
-    /*0x1DA*/ s8 cursor;
-    /*0x1DB*/ u8 _1DB[0x220 - 0x1DB];
-    /*0x220*/ u8 _220;
-    /*0x221*/ u8 _221[0x264 - 0x221];
-} pauseControl;
 extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_8037169C[0x1C];
 extern SuperstarStatBonus stonNiceContactIncrement;
@@ -2959,8 +2937,8 @@ void postMinigame(void) {
     u32 k;
     CharacterStats* stats;
 
-    SATURATING_INCREMENT(pauseControl._0A);
-    SATURATING_INCREMENT(pauseControl._0C);
+    SATURATING_INCREMENT(pauseControl._00A);
+    SATURATING_INCREMENT(pauseControl.counter);
     SATURATING_INCREMENT(pauseControl._12);
     switch (pauseControl.state) {
     case 0:
@@ -2978,23 +2956,23 @@ void postMinigame(void) {
                 pauseControl._1D0 = 14;
             }
         }
-        pauseControl._0A = 0;
-        pauseControl._0C = 0;
+        pauseControl._00A = 0;
+        pauseControl.counter = 0;
         pauseControl.cursor = 0;
         pauseControl.state = 1;
         break;
     case 1:
-        pauseControl._0C = 0;
+        pauseControl.counter = 0;
         pauseControl.state = 2;
         break;
     case 2:
-        if (pauseControl._0C >= 20) {
+        if (pauseControl.counter >= 20) {
             pauseControl.state = 3;
         }
         break;
     case 3:
         fn_3_1089E8();
-        pauseControl._0C = 0;
+        pauseControl.counter = 0;
         pauseControl._12 = 0;
         break;
     case 6:
@@ -3076,7 +3054,7 @@ void postMinigame(void) {
         pauseControl._1D9 = 2;
         break;
     case 8:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.controllerPort].newButtonInput)) {
+        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 9;
@@ -3149,7 +3127,7 @@ void fn_3_1089E8(void) {
                 break;
             }
         }
-        pauseControl.controllerPort = pressed - 1;
+        pauseControl.port = pressed - 1;
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         if (pauseControl.state == 8) {
             fn_3_5B408();
@@ -3187,8 +3165,8 @@ BOOL checkForPauses(void) {
         return FALSE;
     }
     g_Minigame.pauseInd = 1;
-    pauseControl.controllerPort = g_Minigame.playerSlots.characterIndex[i];
-    pauseControl._0A = 0;
+    pauseControl.port = g_Minigame.playerSlots.characterIndex[i];
+    pauseControl._00A = 0;
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         pauseControl._1D0 = 16;
     } else if (g_Minigame._1A3C != 0) {
@@ -3203,25 +3181,25 @@ BOOL checkForPauses(void) {
 
 void minigamePause(void) {
     lbl_80366158[0x28] = 1;
-    SATURATING_INCREMENT(pauseControl._0A);
-    SATURATING_INCREMENT(pauseControl._0C);
+    SATURATING_INCREMENT(pauseControl._00A);
+    SATURATING_INCREMENT(pauseControl.counter);
     SATURATING_INCREMENT(pauseControl._12);
     switch (pauseControl.state) {
     case 0:
-        pauseControl._0C = 0;
+        pauseControl.counter = 0;
         pauseControl.state = 1;
         break;
     case 1:
         pauseControl.state = 3;
         break;
     case 2:
-        if (pauseControl._0C > 20) {
+        if (pauseControl.counter > 20) {
             pauseControl.state = 3;
         }
         break;
     case 3:
         fn_3_108230();
-        pauseControl._0C = 0;
+        pauseControl.counter = 0;
         pauseControl._12 = 0;
         pauseControl._1D4 = 0;
         break;
@@ -3251,7 +3229,7 @@ void minigamePause(void) {
         SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
         break;
     case 8:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.controllerPort].newButtonInput)) {
+        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 9;
@@ -3310,7 +3288,7 @@ void fn_3_108230(void) {
     InputStruct* input;
 
     type = 0;
-    input = &g_Controls[pauseControl.controllerPort];
+    input = &g_Controls[pauseControl.port];
     count = 6;
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         type = 2;
@@ -3369,7 +3347,7 @@ void fn_3_108230(void) {
 }
 
 void fn_3_107E80(void) {
-    InputStruct* input = &g_Controls[pauseControl.controllerPort];
+    InputStruct* input = &g_Controls[pauseControl.port];
 
     switch (pauseControl._1D4) {
     case 0:
@@ -3425,7 +3403,7 @@ void fn_3_107E80(void) {
         break;
     case 5:
         if (pauseControl._12 > 20) {
-            pauseControl._0C = 0;
+            pauseControl.counter = 0;
             pauseControl.state = 1;
         }
         break;

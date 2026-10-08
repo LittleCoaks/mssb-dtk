@@ -6,21 +6,8 @@
 #include "game/batting/batter_ai.h"
 #include "game/pitching/pitcher_ai.h"
 #include "game/math/game_math.h"
+#include "game/match_setup/pause_menu.h"
 
-typedef struct {
-    /*0x000*/ u8 _000[0x168];
-    /*0x168*/ s16 battingOrderCopy[2][20];
-    /*0x1B8*/ u8 _1B8[0x202 - 0x1B8];
-    /*0x202*/ u8 _202;
-    /*0x203*/ u8 _203;
-    /*0x204*/ u8 _204[0x20A - 0x204];
-    /*0x20A*/ u8 lineupCopy[2][9];
-    /*0x21C*/ u8 _21C;
-    /*0x21D*/ u8 _21D;
-    /*0x21E*/ u8 _21E[0x264 - 0x21E];
-} PauseControlStruct; // size: 0x264
-
-extern PauseControlStruct pauseControl;
 extern s8 lineUpInfoStruct[2][9][4];
 
 // .text:0x0001E154 size:0x24 mapped:0x8065D1E8
@@ -53,8 +40,8 @@ void initializeAIConstants(void) {
     g_AiLogic._46 = (int)g_GameLogic.AIDifficulty0Special3Weak[0] * 0xFF / 4;
     g_AiLogic._47 = (int)g_GameLogic.AIDifficulty0Special3Weak[1] * 0xFF / 4;
     resetBatterAIBoxPosition();
-    pauseControl._202 = 0;
-    pauseControl._203 = 0;
+    pauseControl._202[0] = 0;
+    pauseControl._202[1] = 0;
     pauseControl._21C = 0;
     pauseControl._21D = 0;
     if (g_GameLogic.teamIsCPU[g_GameLogic.homeTeamInd]) {
