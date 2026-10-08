@@ -147,7 +147,7 @@ extern int fn_3_107C88(void);
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
 
 extern void fn_8004D0F0(void);
-extern void fn_3_E911C(void);
+extern void minigame_pointsTally(void);
 extern void fn_3_11DECC(void);
 extern u8 lbl_8037169C[];
 extern void fn_80053FE8(void);
@@ -211,7 +211,7 @@ void minigameGraphics(void) {
         fn_3_12CA90();
     } else if (status == GAME_STATUS_0x26) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-            ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_E911C, 2))->_18 = 1;
+            ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 1;
         }
     } else if (status == GAME_STATUS_0x29) {
         if (animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {

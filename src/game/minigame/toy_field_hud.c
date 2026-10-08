@@ -436,7 +436,7 @@ void toyfield_drawHud(void) {
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-            ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_E911C, 2))->_18 = 0;
+            ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 0;
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
@@ -1676,7 +1676,7 @@ void toyfield_offScreenCharacterImage(void) {
 
 // .text:0x000E911C size:0xC14
 #define NODE_SHOWN(i) (((u16*)node)[0x12 + (i)])
-void fn_3_E911C(void) {
+void minigame_pointsTally(void) {
     DrawingSceneStruct* node = currentDrawingItem;
     MinigameHudScene* scene = (MinigameHudScene*)node;
     u8 order[8][2];

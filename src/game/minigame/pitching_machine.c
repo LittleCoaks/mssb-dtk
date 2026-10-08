@@ -926,7 +926,7 @@ extern void UpdateTexturePalettePointers(void* geo, void* tex);
 extern int fn_3_107CD0(void);
 extern int fn_3_107C88(void);
 extern int fn_3_107988(void);
-extern void fn_3_E911C(void);
+extern void minigame_pointsTally(void);
 extern u8 pauseControl[0x264];
 extern u8 lbl_800EFBA4[];
 extern u16 lbl_3_data_81FC[];
@@ -1123,7 +1123,7 @@ void fn_3_11E364(void) {
 
 void fn_3_11E308(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-        ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_E911C, 2))->_18 = 1;
+        ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 1;
     }
 }
 
