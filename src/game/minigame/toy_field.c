@@ -353,7 +353,7 @@ void toyfieldSimulation(void) {
     SATURATING_INCREMENT(g_Ball.totalFramesAtPlay);
     switch (g_GameLogic.gameStatus) {
     case GAME_STATUS_0x1B:
-        fn_3_DF820();
+        toyFieldWaitForCharacterLoad();
         break;
     case GAME_STATUS_TOY_STADIUM_LOAD:
         toyFieldStadiumLoad();
@@ -368,7 +368,7 @@ void toyfieldSimulation(void) {
         toyFieldPostMenu();
         break;
     case GAME_STATUS_0x25:
-        fn_3_DF6D4();
+        toyFieldApplyGameSettings();
         break;
     case GAME_STATUS_DEFAULT:
         initializeToyFieldSomething();
@@ -449,7 +449,7 @@ void toyfieldSimulation(void) {
 }
 
 // .text:0x000DFA20 size:0x18C mapped:0x8071EAB4
-void fn_3_DFA20(void) {
+void toyFieldInit(void) {
     int i;
     g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_TOY_FIELD;
     insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
@@ -532,7 +532,7 @@ void initializeMinigameData(void) {
 }
 
 // .text:0x000DF820 size:0xB4 mapped:0x8071E8B4
-void fn_3_DF820(void) {
+void toyFieldWaitForCharacterLoad(void) {
     int i;
     fn_3_10C81C();
     for (i = 0; i < 4; i++) {
@@ -546,10 +546,10 @@ void fn_3_DF820(void) {
 }
 
 // .text:0x000DF6D4 size:0x14C mapped:0x8071E768
-void fn_3_DF6D4(void) {
+void toyFieldApplyGameSettings(void) {
     switch (g_GameLogic._125) {
     case 0:
-        fn_3_DF608();
+        toyFieldSetupOpponents();
         g_GameLogic._125++;
         break;
     }
@@ -562,7 +562,7 @@ void fn_3_DF6D4(void) {
 }
 
 // .text:0x000DF608 size:0xCC mapped:0x8071E69C
-void fn_3_DF608(void) {
+void toyFieldSetupOpponents(void) {
     int i;
     u8* src = lbl_3_data_18980;
     (&g_Minigame._19DA)[g_d_GameSettings._35] = 0;
@@ -715,7 +715,7 @@ void toyFieldTransitionPrepareNextPlay(void) {
         g_Minigame.playerSlots.fielderIndex[1] = -1;
         g_Minigame.playerSlots.fielderIndex[2] = -1;
         g_Minigame.playerSlots.fielderIndex[3] = -1;
-        fn_3_DEB90();
+        toyFieldAssignTurnRoles();
         resetBallValuesBetweenBatters();
         resetPitcherValuesBetweenBatters(0);
         setBatterContactConstants();
@@ -761,7 +761,7 @@ void toyFieldTransitionPrepareNextPlay(void) {
 }
 
 // .text:0x000DEB90 size:0x47C mapped:0x8071DC24
-void fn_3_DEB90(void) {
+void toyFieldAssignTurnRoles(void) {
     u8* slot;
     int i;
     g_Minigame._19C7 = 0;
@@ -1695,7 +1695,7 @@ void toyFieldPoints(void) {
                 }
             } else if (g_Minigame.toyFieldBallStateResult2 == 0xB) {
                 toyFieldRelated();
-                fn_3_D9868();
+                toyFieldPickEventTargets();
                 g_Minigame.TF_framesSinceHittingPanel = 1;
             } else if (g_Minigame.toyFieldBallStateResult2 == 9 || g_Minigame.toyFieldBallStateResult2 == 10) {
                 if (g_Minigame.lastKnownBallPosX < 0.0f) {
@@ -1807,7 +1807,7 @@ void toyFieldPoints(void) {
                 }
             } else if (g_Minigame._1934 != 1) {
                 if (g_Minigame._1934 == 2) {
-                    fn_3_D8CD0();
+                    toyFieldApplyPanelEvent();
                     g_Minigame._1934 = 3;
                 } else {
                     if (g_Minigame._192D == 6) {
@@ -2060,7 +2060,7 @@ static inline u32 toyFieldCountRank(u8 (*order)[2], u32 rank) {
 
 #pragma dont_inline on
 // .text:0x000D9868 size:0x1C8 mapped:0x807188FC
-void fn_3_D9868(void) {
+void toyFieldPickEventTargets(void) {
     u8 order[4][2];
     u32 count;
     fn_3_1079C8(order, 0);
@@ -2103,7 +2103,7 @@ void fn_3_D9868(void) {
 #pragma dont_inline reset
 
 // .text:0x000D8CD0 size:0xB98 mapped:0x80717D64
-void fn_3_D8CD0(void) {
+void toyFieldApplyPanelEvent(void) {
     s32 i;
     g_Minigame._18BA = 0;
     if (g_Minigame._192D == 0 || g_Minigame._192D == 3 || g_Minigame._192D == 4 || g_Minigame._192D == 5) {
