@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_scene.h"
+#include "game/match_setup/pause_menu.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_matchScene
@@ -17,26 +18,6 @@
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x80069a98.h"
 #include "Unknown/File_0x800b0a14.h"
-
-// The pause menu's shared state block.
-typedef struct PauseControl {
-    /* 0x000 */ u32 port;
-    /* 0x004 */ u8 _004[0xE];
-    /* 0x012 */ s16 _12;
-    /* 0x014 */ u8 _014[0x1D0 - 0x14];
-    /* 0x1D0 */ u8 _1D0;
-    /* 0x1D1 */ u8 _1D1;
-    /* 0x1D2 */ u8 _1D2;
-    /* 0x1D3 */ u8 _1D3;
-    /* 0x1D4 */ u8 _1D4[5];
-    /* 0x1D9 */ u8 _1D9;
-    /* 0x1DA */ s8 _1DA;
-    /* 0x1DB */ u8 _1DB[0x221 - 0x1DB];
-    /* 0x221 */ u8 _221;
-    /* 0x222 */ u8 _222[0x23F - 0x222];
-    /* 0x23F */ u8 _23F[2];
-    /* 0x241 */ u8 _241[0x264 - 0x241];
-} PauseControl;
 
 // Drawing-script node of a pause-menu screen.
 typedef struct PauseMenuScene {
@@ -57,7 +38,6 @@ typedef struct MenuLabel {
 } MenuLabel;
 
 extern u8 animRelated[0x124];
-extern PauseControl pauseControl;
 extern u8 menuNumber[0x28];
 extern MenuLabel lbl_800FEF70[];
 extern struct {
@@ -96,7 +76,7 @@ void animatePauseMenu(void) {
     u8 mode;
 
     if (pc->_1D1 == 2 || pc->_1D1 == 9) {
-        if (pauseControl._1D2 == 0) {
+        if (pauseControl.state == 0) {
             if (animRelated[0xAA] == 0) {
                 insertGraphicDrawingFunction(pauseSubPanel_init, 2);
             }
@@ -108,12 +88,12 @@ void animatePauseMenu(void) {
         pauseMenu_openTeamManagement();
     }
     if (pc->_1D1 == 6 || pc->_1D1 == 0xD) {
-        if (pauseControl._1D2 == 2) {
+        if (pauseControl.state == 2) {
             insertGraphicDrawingFunction(pausePageIndicator_init, 2);
         }
     }
     if (pc->_1D1 == 0xC || pc->_1D1 == 5) {
-        if (pauseControl._1D2 == 1) {
+        if (pauseControl.state == 1) {
             insertGraphicDrawingFunction(fn_80053FE8, 0);
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 SET_MENU(9);
@@ -129,7 +109,7 @@ void animatePauseMenu(void) {
 void pauseMenu_openTeamManagement(void) {
     PauseControl* pc = &pauseControl;
 
-    if (pc->_1D2 == 2) {
+    if (pc->state == 2) {
         insertGraphicDrawingFunction(fn_80053FE8, 2);
         memset(menuNumber, 0, 0x28);
         switch (aiPosSwapInputs._CFA2[pauseControl.port]) {
@@ -148,7 +128,7 @@ void pauseMenu_openTeamManagement(void) {
         }
         createTeamManagementScreen_inGame(0, g_GameLogic.teams[pauseControl.port], pauseControl.port);
     }
-    if (pc->_1D2 == 5) {
+    if (pc->state == 5) {
         menuNumber[0x26] = 1;
     }
 }
@@ -180,28 +160,28 @@ void pauseSubPanel_update(void) {
     } else if (scene->state == 1) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             if (g_Practice._19F != 0) {
-                if (pauseControl._1D2 == 4) {
+                if (pauseControl.state == 4) {
                     scene->state = 2;
                 }
             } else {
                 goto remove;
             }
         } else if (g_d_GameSettings.minigamesEnabled) {
-            if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED && pauseControl._1D2 == 4) {
+            if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED && pauseControl.state == 4) {
                 scene->state = 2;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-                if (pauseControl._1D2 == 4) {
+                if (pauseControl.state == 4) {
                     scene->state = 2;
                 }
-                if (pauseControl._1D2 == 7 || pauseControl._1D2 == 0xD) {
+                if (pauseControl.state == 7 || pauseControl.state == 0xD) {
                     goto remove;
                 }
                 return;
             }
         } else {
             if (pauseControl._1D1 == 2 || pauseControl._1D1 == 9) {
-                if (pauseControl._1D2 == 4) {
+                if (pauseControl.state == 4) {
                     goto remove;
                 }
             }
@@ -273,27 +253,27 @@ static inline int getPauseOptionDir(void) {
     int dir = 0;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        if (pauseControl._1D2 == 8) {
+        if (pauseControl.state == 8) {
             dir = 1;
-        } else if (pauseControl._1D2 == 9) {
+        } else if (pauseControl.state == 9) {
             dir = 2;
         }
     } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        if (pauseControl._1D2 == 9) {
+        if (pauseControl.state == 9) {
             dir = 1;
-        } else if (pauseControl._1D2 == 0xA) {
+        } else if (pauseControl.state == 0xA) {
             dir = 2;
         }
     } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        if (pauseControl._1D2 == 0xC) {
+        if (pauseControl.state == 0xC) {
             dir = 1;
-        } else if (pauseControl._1D2 == 0xD) {
+        } else if (pauseControl.state == 0xD) {
             dir = 2;
         }
     } else {
-        if (pauseControl._1D2 == 7) {
+        if (pauseControl.state == 7) {
             dir = 1;
-        } else if (pauseControl._1D2 == 8) {
+        } else if (pauseControl.state == 8) {
             dir = 2;
         }
     }
@@ -341,7 +321,7 @@ void pauseOptionList_update(void) {
         }
     } else if (scene->state == 2) {
         for (i = 0; i < scene->rows; i++) {
-            if (i == pauseControl._1DA) {
+            if (i == pauseControl.cursor) {
                 if ((s32)(REC_AT(scene, 3, i)->frame >> 16) >= 8) {
                     REC_AT(scene, 3, i)->playMode = UI_PLAY_STOP;
                 } else {
@@ -366,7 +346,7 @@ void pauseOptionList_update(void) {
 
         for (i = 0; i < scene->rows; i++) {
             if (f <= lbl_3_data_D9B8[scene->rows - 2][i]) {
-                if (i == pauseControl._1DA) {
+                if (i == pauseControl.cursor) {
                     REC_AT(scene, 3, i)->playMode = UI_PLAY_FORWARD;
                 } else {
                     REC_AT(scene, 3, i)->playMode = UI_PLAY_BACKWARD;
@@ -414,7 +394,7 @@ void pausePageIndicator_update(void) {
     int x = 0;
     PauseMenuScene* scene = (PauseMenuScene*)currentDrawingItem;
 
-    if (animRelated[0x96] != 0 || pauseControl._1D2 == 6) {
+    if (animRelated[0x96] != 0 || pauseControl.state == 6) {
         goto remove;
     }
     if (inningSetting.starSkillsSetting == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
@@ -450,7 +430,7 @@ void pausePageIndicator_update(void) {
         animRelated[0xC3] = 0;
         mode = g_d_GameSettings.GameModeSelected;
         if ((mode == GAME_TYPE_PRACTICE && pauseControl._1D3 == 6) ||
-            (mode != GAME_TYPE_PRACTICE && pauseControl._1D2 == 5)) {
+            (mode != GAME_TYPE_PRACTICE && pauseControl.state == 5)) {
             REC(scene, 0)->playMode = UI_PLAY_FORWARD;
             scene->alpha = 0;
             scene->state = 4;
@@ -557,10 +537,10 @@ void pauseControlsMenu_update(void) {
     int a;
     int on;
 
-    if (animRelated[0x96] != 0 || pauseControl._1D2 == 6) {
+    if (animRelated[0x96] != 0 || pauseControl.state == 6) {
         goto remove;
     }
-    if (pauseControl._1D2 == 4) {
+    if (pauseControl.state == 4) {
         REC(scene, 0)->playMode = UI_PLAY_BACKWARD;
         REC(scene, 2)->playMode = UI_PLAY_BACKWARD;
         menuNumber[0x26] = 1;

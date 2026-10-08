@@ -150,7 +150,7 @@ static void pauseMenu_scanLineup(void) {
 // Returns the pause screen to its entry state with the frame counters cleared.
 static void pauseMenu_enterScreen(int screen) {
     pauseControl._1D1 = screen;
-    pauseControl._1D2 = 0;
+    pauseControl.state = 0;
     pauseControl.counter = 0;
     pauseControl._00E = 0;
     pauseControl._010 = 0;
@@ -216,7 +216,7 @@ void setPausedTo0AndOtherStateVars(void) {
 
 void fn_3_AFD80(int arg0) {
     pauseControl._1D1 = arg0;
-    pauseControl._1D2 = 0;
+    pauseControl.state = 0;
     pauseControl.counter = 0;
     pauseControl._00E = 0;
     pauseControl._010 = 0;
@@ -287,7 +287,7 @@ void match_checkForPause(void) {
 
     pauseControl._1D5 = TRUE;
     pauseControl._1D1 = 0;
-    pauseControl._1D2 = 0;
+    pauseControl.state = 0;
     pauseControl.counter = 0;
     pauseControl._00E = 0;
     pauseControl._010 = 0;
@@ -319,7 +319,7 @@ void transitionToPauseScreen(void) {
             }
         }
         pauseControl._1D1 = 1;
-        pauseControl._1D2 = 0;
+        pauseControl.state = 0;
         pauseControl.counter = 0;
         pauseControl._00E = 0;
         pauseControl._010 = 0;
@@ -380,7 +380,7 @@ void fn_3_AF5A4(void) {
         positionSwap();
         break;
     case 5:
-        switch (pauseControl._1D2) {
+        switch (pauseControl.state) {
         case 0:
             pauseControl._23F[pauseControl.port] = 0;
             other = pauseControl.port ^ 1;
@@ -389,15 +389,15 @@ void fn_3_AF5A4(void) {
             } else {
                 pauseControl._23F[other] = 0xFF;
             }
-            pauseControl._1D2 = 1;
+            pauseControl.state = 1;
             break;
         case 1:
             pauseControl._12 = 0;
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
             break;
         case 2:
             if (pauseControl._12 > 0x14) {
-                pauseControl._1D2 = 3;
+                pauseControl.state = 3;
             }
             break;
         case 3:
@@ -405,16 +405,16 @@ void fn_3_AF5A4(void) {
             break;
         case 4:
             pauseControl._12 = 0;
-            pauseControl._1D2 = 5;
+            pauseControl.state = 5;
             break;
         case 5:
             if (pauseControl._12 > 0x14) {
-                pauseControl._1D2 = 6;
+                pauseControl.state = 6;
             }
             break;
         case 6:
             pauseControl._1D1 = 2;
-            pauseControl._1D2 = 0;
+            pauseControl.state = 0;
             pauseControl.counter = 0;
             pauseControl._00E = 0;
             pauseControl._010 = 0;
@@ -448,7 +448,7 @@ void fn_3_AF5A4(void) {
         positionSwap();
         break;
     case 12:
-        switch (pauseControl._1D2) {
+        switch (pauseControl.state) {
         case 0:
             pauseControl._23F[pauseControl.port] = 0;
             other = pauseControl.port ^ 1;
@@ -457,15 +457,15 @@ void fn_3_AF5A4(void) {
             } else {
                 pauseControl._23F[other] = 0xFF;
             }
-            pauseControl._1D2 = 1;
+            pauseControl.state = 1;
             break;
         case 1:
             pauseControl._12 = 0;
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
             break;
         case 2:
             if (pauseControl._12 > 0x14) {
-                pauseControl._1D2 = 3;
+                pauseControl.state = 3;
             }
             break;
         case 3:
@@ -473,16 +473,16 @@ void fn_3_AF5A4(void) {
             break;
         case 4:
             pauseControl._12 = 0;
-            pauseControl._1D2 = 5;
+            pauseControl.state = 5;
             break;
         case 5:
             if (pauseControl._12 > 0x14) {
-                pauseControl._1D2 = 6;
+                pauseControl.state = 6;
             }
             break;
         case 6:
             pauseControl._1D1 = 9;
-            pauseControl._1D2 = 0;
+            pauseControl.state = 0;
             pauseControl.counter = 0;
             pauseControl._00E = 0;
             pauseControl._010 = 0;
@@ -517,7 +517,7 @@ void loadPauseMenu(void) {
 
         pauseMenu_scanLineup();
 
-        pauseControl._1DA = 0;
+        pauseControl.cursor = 0;
         pauseControl._206 = 0xD;
         if (g_GameLogic.teamIsCPU[pauseControl.port] != FALSE) {
             pauseControl._201 = TRUE;
@@ -540,7 +540,7 @@ void loadPauseMenu(void) {
             } else {
                 pauseControl._1D1 = 9;
             }
-            pauseControl._1D2 = 0;
+            pauseControl.state = 0;
             pauseControl.counter = 0;
             pauseControl._00E = 0;
             pauseControl._010 = 0;
@@ -560,10 +560,10 @@ void fn_3_AEC50(void) {
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         flag = TRUE;
     }
-    switch (pauseControl._1D2) {
+    switch (pauseControl.state) {
     case 0:
         pauseControl._12 = 0;
-        pauseControl._1D2 = 1;
+        pauseControl.state = 1;
         if (sound_crowd_EffectsStruct._2A != FALSE) {
             sound_crowd_EffectsStruct._2A = 2;
             sound_crowd_EffectsStruct._24 = 0x78;
@@ -571,7 +571,7 @@ void fn_3_AEC50(void) {
         break;
     case 1:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
         }
         break;
     case 2:
@@ -585,22 +585,22 @@ void fn_3_AEC50(void) {
             sound_crowd_EffectsStruct._24 = 5;
         }
         if (lbl_8037169C[0x13] != FALSE) {
-            pauseControl._1D2 = 4;
+            pauseControl.state = 4;
         }
         break;
     case 4:
-        if (lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 9] == 0) {
+        if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9] == 0) {
             pauseMenu_enterScreen(0xA);
         }
         pauseControl._1D9 = 2;
         break;
     case 5:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 6;
+            pauseControl.state = 6;
         }
         break;
     case 6:
-        result = lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 9];
+        result = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9];
         switch (result) {
         case 1:
             pauseMenu_enterScreen(0xE);
@@ -623,10 +623,10 @@ void fn_3_AEC50(void) {
     case 7:
         result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
         if (result == 2) {
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
         } else if (result == 1) {
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
-            pauseControl._1D2 = 8;
+            pauseControl.state = 8;
         }
         break;
     case 8:
@@ -664,37 +664,37 @@ void fn_3_AE900(void) {
     if (pauseControl._004[1] & INPUT_BUTTON_START) {
         for (i = 0; i < 6; i++) {
             if (lbl_3_data_F918[(flag << 4) + i + 9] != 0) {
-                pauseControl._1DA = i;
+                pauseControl.cursor = i;
                 break;
             }
         }
-        pauseControl._1D2 = 3;
+        pauseControl.state = 3;
         pauseMenu_playSound(0x1B8, 1);
         return;
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_A) {
-        row = lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 9];
+        row = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9];
         switch (row) {
         case 1:
         case 2:
         case 3:
             pauseControl._1D9 = 1;
             pauseControl._12 = 0;
-            pauseControl._1D2 = 5;
+            pauseControl.state = 5;
             break;
         case 4:
         case 5:
             pauseControl._1D9 = 1;
-            pauseControl._1D2 = 5;
+            pauseControl.state = 5;
             break;
         case 6:
             fn_3_5B408();
-            pauseControl._1D2 = 7;
+            pauseControl.state = 7;
             pauseMenu_playSound(0x1B8, 1);
             break;
         default:
-            pauseControl._1D2 = 3;
+            pauseControl.state = 3;
             pauseMenu_playSound(0x1B8, 1);
             break;
         }
@@ -702,33 +702,33 @@ void fn_3_AE900(void) {
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_B) {
-        if (lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 9] != 0) {
+        if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9] != 0) {
             for (i = 0; i < 6; i++) {
                 if (lbl_3_data_F918[(flag << 4) + i + 9] != 0) {
-                    pauseControl._1DA = i;
+                    pauseControl.cursor = i;
                     break;
                 }
             }
         }
-        pauseControl._1D2 = 3;
+        pauseControl.state = 3;
         pauseMenu_playSound(0x1B9, 2);
         return;
     }
 
     if (pauseControl._004[2] & INPUT_BUTTON_UP) {
-        if (pauseControl._1DA == 0) {
-            pauseControl._1DA = lbl_3_data_F918[(flag << 4) + 8] - 1;
+        if (pauseControl.cursor == 0) {
+            pauseControl.cursor = lbl_3_data_F918[(flag << 4) + 8] - 1;
         } else {
-            pauseControl._1DA = pauseControl._1DA - 1;
+            pauseControl.cursor = pauseControl.cursor - 1;
         }
         pauseMenu_playSound(0x1B7, 0);
         return;
     }
 
     if (pauseControl._004[2] & INPUT_BUTTON_DOWN) {
-        pauseControl._1DA = pauseControl._1DA + 1;
-        if (pauseControl._1DA >= lbl_3_data_F918[(flag << 4) + 8]) {
-            pauseControl._1DA = 0;
+        pauseControl.cursor = pauseControl.cursor + 1;
+        if (pauseControl.cursor >= lbl_3_data_F918[(flag << 4) + 8]) {
+            pauseControl.cursor = 0;
         }
         pauseMenu_playSound(0x1B7, 0);
     }
@@ -758,10 +758,10 @@ void fn_3_AE334(void) {
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         flag = TRUE;
     }
-    switch (pauseControl._1D2) {
+    switch (pauseControl.state) {
     case 0:
         pauseMenu_copyLineupFlags(pauseControl.port);
-        pauseControl._1D2 = 1;
+        pauseControl.state = 1;
         pauseControl._12 = 0;
         pauseControl._260 = FALSE;
         if (sound_crowd_EffectsStruct._2A != FALSE) {
@@ -771,7 +771,7 @@ void fn_3_AE334(void) {
         break;
     case 1:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
         }
         break;
     case 2:
@@ -785,22 +785,22 @@ void fn_3_AE334(void) {
             sound_crowd_EffectsStruct._24 = 5;
         }
         if (lbl_8037169C[0x13] != FALSE) {
-            pauseControl._1D2 = 4;
+            pauseControl.state = 4;
         }
         break;
     case 4:
-        if (lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 1] == 0) {
+        if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] == 0) {
             pauseMenu_enterScreen(3);
         }
         pauseControl._1D9 = 2;
         break;
     case 5:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 6;
+            pauseControl.state = 6;
         }
         break;
     case 6:
-        result = lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 1];
+        result = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1];
         switch (result) {
         case 1:
             pauseMenu_enterScreen(7);
@@ -823,10 +823,10 @@ void fn_3_AE334(void) {
     case 7:
         result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
         if (result == 2) {
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
         } else if (result == 1) {
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
-            pauseControl._1D2 = 8;
+            pauseControl.state = 8;
         }
         break;
     case 8:
@@ -863,7 +863,7 @@ void fn_3_ADEDC(void) {
     }
     if (pauseControl._201 != FALSE) {
         if (pauseControl._204[g_GameLogic.teamFielding] != FALSE) {
-            if (lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 1] == 0) {
+            if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] == 0) {
                 if (pauseControl._206 <= 0) {
                     pauseMenu_setStickMode(0x100);
                 }
@@ -873,7 +873,7 @@ void fn_3_ADEDC(void) {
                 }
             }
         } else {
-            if (lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 1] == 3) {
+            if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] == 3) {
                 if (pauseControl._206 <= 0) {
                     pauseMenu_setStickMode(0x100);
                 }
@@ -888,17 +888,17 @@ void fn_3_ADEDC(void) {
     if (pauseControl._004[1] & INPUT_BUTTON_START) {
         for (i = 0; i < 6; i++) {
             if (lbl_3_data_F918[(flag << 4) + i + 1] != 0) {
-                pauseControl._1DA = i;
+                pauseControl.cursor = i;
                 break;
             }
         }
-        pauseControl._1D2 = 3;
+        pauseControl.state = 3;
         pauseMenu_playSound(0x1B8, 1);
         return;
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_A) {
-        row = lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 1];
+        row = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1];
         switch (row) {
         case 1:
         case 2:
@@ -906,15 +906,15 @@ void fn_3_ADEDC(void) {
         case 4:
             pauseControl._1D9 = 1;
             pauseControl._12 = 0;
-            pauseControl._1D2 = 5;
+            pauseControl.state = 5;
             break;
         case 6:
             fn_3_5B408();
-            pauseControl._1D2 = 7;
+            pauseControl.state = 7;
             pauseMenu_playSound(0x1B8, 1);
             break;
         default:
-            pauseControl._1D2 = 3;
+            pauseControl.state = 3;
             pauseMenu_playSound(0x1B8, 1);
             break;
         }
@@ -922,56 +922,56 @@ void fn_3_ADEDC(void) {
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_B) {
-        if (lbl_3_data_F918[(flag << 4) + pauseControl._1DA + 1] != 0) {
+        if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] != 0) {
             for (i = 0; i < 6; i++) {
                 if (lbl_3_data_F918[(flag << 4) + i + 1] != 0) {
-                    pauseControl._1DA = i;
+                    pauseControl.cursor = i;
                     break;
                 }
             }
         }
-        pauseControl._1D2 = 3;
+        pauseControl.state = 3;
         pauseMenu_playSound(0x1B9, 2);
         return;
     }
 
     if (pauseControl._004[2] & INPUT_BUTTON_UP) {
-        if (pauseControl._1DA == 0) {
-            pauseControl._1DA = lbl_3_data_F918[(flag << 4)] - 1;
+        if (pauseControl.cursor == 0) {
+            pauseControl.cursor = lbl_3_data_F918[(flag << 4)] - 1;
         } else {
-            pauseControl._1DA = pauseControl._1DA - 1;
+            pauseControl.cursor = pauseControl.cursor - 1;
         }
         pauseMenu_playSound(0x1B7, 0);
         return;
     }
 
     if (pauseControl._004[2] & INPUT_BUTTON_DOWN) {
-        pauseControl._1DA = pauseControl._1DA + 1;
-        if (pauseControl._1DA >= lbl_3_data_F918[(flag << 4)]) {
-            pauseControl._1DA = 0;
+        pauseControl.cursor = pauseControl.cursor + 1;
+        if (pauseControl.cursor >= lbl_3_data_F918[(flag << 4)]) {
+            pauseControl.cursor = 0;
         }
         pauseMenu_playSound(0x1B7, 0);
     }
 }
 
 void fn_3_ADA3C(void) {
-    if (pauseControl._1D2 == 0) {
+    if (pauseControl.state == 0) {
         fn_80035B50(0x13);
         pauseMenu_syncBattingOrder();
         initFielders();
         setPitcherStatsToInMemPitcher(g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0]);
         animRelated[0x9B] = 0;
-        pauseControl._1D2 = pauseControl._1D2 + 1;
-    } else if (pauseControl._1D2 == 1) {
+        pauseControl.state = pauseControl.state + 1;
+    } else if (pauseControl.state == 1) {
         if (pauseControl._260 == FALSE) {
-            pauseControl._1D2 = pauseControl._1D2 + 1;
+            pauseControl.state = pauseControl.state + 1;
         } else if (championshipScreenGraphics() != FALSE) {
-            pauseControl._1D2 = pauseControl._1D2 + 1;
+            pauseControl.state = pauseControl.state + 1;
         }
-    } else if (pauseControl._1D2 == 2) {
+    } else if (pauseControl.state == 2) {
         pauseMenu_loadLineupActors();
         if (pauseControl._254[0] < 0 && pauseControl._254[2] < 0 && pauseControl._254[1] < 0 && pauseControl._254[3] < 0) {
-            pauseControl._1D2 = pauseControl._1D2 + 1;
+            pauseControl.state = pauseControl.state + 1;
         }
     } else {
         resetPitcherValuesBetweenBatters(TRUE);
@@ -994,7 +994,7 @@ void positionSwap(void) {
     int screen;
 
     screen = pauseControl._1D1;
-    switch (pauseControl._1D2) {
+    switch (pauseControl.state) {
     case 0:
         aiPosSwapInputs._CFA2[pauseControl.port] = (screen != 4);
         pauseControl._12 = 0;
@@ -1002,17 +1002,17 @@ void positionSwap(void) {
             aiPosSwapInputs._CFA2[pauseControl.port] = 2;
         } else if (screen == 0xF) {
             pauseControl._12 = 0;
-            pauseControl._1D2 = 3;
+            pauseControl.state = 3;
         } else if (screen == 8) {
             aiPosSwapInputs._CFA2[pauseControl.port] = 3;
-            pauseControl._1D2 = 2;
+            pauseControl.state = 2;
         }
         break;
     case 1:
         break;
     case 2:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 4;
+            pauseControl.state = 4;
         }
         break;
     case 3:
@@ -1020,7 +1020,7 @@ void positionSwap(void) {
         break;
     case 4:
         pauseControl._12 = 0;
-        pauseControl._1D2 = 6;
+        pauseControl.state = 6;
         break;
     case 5:
         if (pauseControl._12 > 0x14) {
@@ -1032,7 +1032,7 @@ void positionSwap(void) {
             } else {
                 pauseControl._1D1 = 2;
             }
-            pauseControl._1D2 = 0;
+            pauseControl.state = 0;
             pauseControl.counter = 0;
             pauseControl._00E = 0;
             pauseControl._010 = 0;
@@ -1065,7 +1065,7 @@ void fn_3_AD2A0(void) {
 }
 
 void pauseMenuControl(void) {
-    switch (pauseControl._1D2) {
+    switch (pauseControl.state) {
     case 0:
         pauseControl._23F[pauseControl.port] = 0;
         if (g_GameLogic.teamIsCPU[pauseControl.port ^ 1] == FALSE) {
@@ -1073,15 +1073,15 @@ void pauseMenuControl(void) {
         } else {
             pauseControl._23F[pauseControl.port ^ 1] = 0xFF;
         }
-        pauseControl._1D2 = 1;
+        pauseControl.state = 1;
         break;
     case 1:
         pauseControl._12 = 0;
-        pauseControl._1D2 = 2;
+        pauseControl.state = 2;
         break;
     case 2:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 3;
+            pauseControl.state = 3;
         }
         break;
     case 3:
@@ -1089,11 +1089,11 @@ void pauseMenuControl(void) {
         break;
     case 4:
         pauseControl._12 = 0;
-        pauseControl._1D2 = 5;
+        pauseControl.state = 5;
         break;
     case 5:
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 6;
+            pauseControl.state = 6;
         }
         break;
     case 6:
@@ -1102,7 +1102,7 @@ void pauseMenuControl(void) {
         } else {
             pauseControl._1D1 = 9;
         }
-        pauseControl._1D2 = 0;
+        pauseControl.state = 0;
         pauseControl.counter = 0;
         pauseControl._00E = 0;
         pauseControl._010 = 0;
@@ -1122,7 +1122,7 @@ void controlOptionsMenu(void) {
             if (g_Controls[team].newButtonInput & INPUT_BUTTON_A) {
                 if (pauseControl._23F[i] == 0) {
                     pauseMenu_playSound(0x1B8, 1);
-                    pauseControl._1D2 = 4;
+                    pauseControl.state = 4;
                 }
             } else if (g_Controls[team]._08 & INPUT_BUTTON_UP) {
                 if (pauseControl._23F[i] == 0) {
@@ -1214,23 +1214,23 @@ void controlOptionsMenu(void) {
 }
 
 void howToPlayScreen(void) {
-    switch (pauseControl._1D2) {
+    switch (pauseControl.state) {
     case 0:
         pauseControl._12 = 0;
         pauseControl._221 = TRUE;
         pauseControl._222 = 3;
-        pauseControl._1D2 = 2;
+        pauseControl.state = 2;
         break;
     case 1:
         break;
     case 2:
         pauseControl._12 = 0;
-        pauseControl._1D2 = 3;
+        pauseControl.state = 3;
         break;
     case 3:
         changeScene(1, 6);
         if (pauseControl._12 > 0x14) {
-            pauseControl._1D2 = 4;
+            pauseControl.state = 4;
         }
         break;
     case 4:
@@ -1238,7 +1238,7 @@ void howToPlayScreen(void) {
             break;
         }
         if (pauseControl._004[1] & INPUT_BUTTON_B) {
-            pauseControl._1D2 = 5;
+            pauseControl.state = 5;
             pauseMenu_playSound(0x1B9, 2);
         } else if (g_d_GameSettings.GameModeSelected != 6) {
             if (pauseControl._004[2] & INPUT_BUTTON_LEFT) {
@@ -1257,12 +1257,12 @@ void howToPlayScreen(void) {
         break;
     case 5:
         if (pauseControl._12 > 0x14 && animRelated[0xC3] == FALSE) {
-            pauseControl._1D2 = 6;
+            pauseControl.state = 6;
         }
         break;
     case 6:
         if (g_d_GameSettings.GameModeSelected == 6) {
-            pauseControl._1D2 = 0;
+            pauseControl.state = 0;
             SetGameStatus(GAME_STATUS_PAUSED);
         } else {
             if (pauseControl._1D8 == FALSE) {
@@ -1270,7 +1270,7 @@ void howToPlayScreen(void) {
             } else {
                 pauseControl._1D1 = 9;
             }
-            pauseControl._1D2 = 0;
+            pauseControl.state = 0;
             pauseControl.counter = 0;
             pauseControl._00E = 0;
             pauseControl._010 = 0;
@@ -1284,7 +1284,7 @@ void fn_3_AC9F8(void) {
         return;
     }
     if (pauseControl._004[1] & INPUT_BUTTON_B) {
-        pauseControl._1D2 = 5;
+        pauseControl.state = 5;
         pauseMenu_playSound(0x1B9, 2);
         return;
     }

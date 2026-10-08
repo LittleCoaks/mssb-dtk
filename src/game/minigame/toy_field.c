@@ -5,6 +5,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
+#include "game/match_setup/pause_menu.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/match_setup/roster_init.h"
@@ -34,29 +35,6 @@
 #include "Unknown/File_0x80052f98.h"
 #include "Unknown/File_0x800b0a14.h"
 
-extern struct {
-    /*0x000*/ s32 controllerPort;
-    /*0x004*/ u16 _04;
-    /*0x006*/ u16 _06;
-    /*0x008*/ u16 _08;
-    /*0x00A*/ u8 _0A[0x0C - 0x0A];
-    /*0x00C*/ s16 _0C;
-    /*0x00E*/ u8 _0E[0x12 - 0x0E];
-    /*0x012*/ s16 _12;
-    /*0x014*/ u8 _14[0x1D0 - 0x14];
-    /*0x1D0*/ u8 _1D0;
-    /*0x1D1*/ u8 _1D1;
-    /*0x1D2*/ u8 state;
-    /*0x1D3*/ u8 _1D3;
-    /*0x1D4*/ u8 _1D4;
-    /*0x1D5*/ u8 _1D5;
-    /*0x1D6*/ u8 _1D6[0x1D9 - 0x1D6];
-    /*0x1D9*/ u8 _1D9;
-    /*0x1DA*/ s8 cursor;
-    /*0x1DB*/ u8 _1DB[0x220 - 0x1DB];
-    /*0x220*/ u8 _220;
-    /*0x221*/ u8 _221[0x264 - 0x221];
-} pauseControl;
 
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_8037169C[0x1C];
@@ -431,9 +409,9 @@ void toyfieldSimulation(void) {
     case GAME_STATUS_HOW_TO_PLAY_SCREEN:
         highLevelSimulationFlag[0] = TRUE;
         SATURATING_INCREMENT(pauseControl._12);
-        pauseControl._04 = g_Controls[pauseControl.controllerPort].buttonInput;
-        pauseControl._06 = g_Controls[pauseControl.controllerPort].newButtonInput;
-        pauseControl._08 = g_Controls[pauseControl.controllerPort]._08;
+        pauseControl._004[0] = g_Controls[pauseControl.port].buttonInput;
+        pauseControl._004[1] = g_Controls[pauseControl.port].newButtonInput;
+        pauseControl._004[2] = g_Controls[pauseControl.port]._08;
         howToPlayScreen();
         break;
     }
@@ -1313,7 +1291,7 @@ void toyFieldCheckForPause(void) {
         if (port >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[i] == 0 &&
             (g_Controls[port].newButtonInput & INPUT_BUTTON_START)) {
             pauseControl._1D5 = 1;
-            pauseControl.controllerPort = g_Minigame.minigameControlStruct[0].characterIndex[i];
+            pauseControl.port = g_Minigame.minigameControlStruct[0].characterIndex[i];
             fn_3_AFD80(0);
             QueueTextToDisplay(14, 0);
             break;
@@ -1323,9 +1301,9 @@ void toyFieldCheckForPause(void) {
 
 // .text:0x000DCED0 size:0x74 mapped:0x8071BF64
 void toyFieldWaitForPause(void) {
-    SATURATING_INCREMENT(pauseControl._0C);
+    SATURATING_INCREMENT(pauseControl.counter);
     highLevelSimulationFlag[0] = TRUE;
-    if (pauseControl._0C > 60) {
+    if (pauseControl.counter > 60) {
         fn_3_AFD80(1);
         SetGameStatus(GAME_STATUS_PAUSED);
     } else {
@@ -1335,12 +1313,12 @@ void toyFieldWaitForPause(void) {
 
 // .text:0x000DCC80 size:0x250 mapped:0x8071BD14
 void toyFieldPause(void) {
-    SATURATING_INCREMENT(pauseControl._0C);
+    SATURATING_INCREMENT(pauseControl.counter);
     SATURATING_INCREMENT(pauseControl._12);
     highLevelSimulationFlag[0] = TRUE;
-    pauseControl._04 = g_Controls[pauseControl.controllerPort].buttonInput;
-    pauseControl._06 = g_Controls[pauseControl.controllerPort].newButtonInput;
-    pauseControl._08 = g_Controls[pauseControl.controllerPort]._08;
+    pauseControl._004[0] = g_Controls[pauseControl.port].buttonInput;
+    pauseControl._004[1] = g_Controls[pauseControl.port].newButtonInput;
+    pauseControl._004[2] = g_Controls[pauseControl.port]._08;
     switch (pauseControl.state) {
     case 0:
         pauseControl.cursor = 0;
@@ -1411,10 +1389,10 @@ void toyFieldPause(void) {
 
 // .text:0x000DCA68 size:0x218 mapped:0x8071BAFC
 void toyFieldPauseMenuInput(void) {
-    if (pauseControl._06 & INPUT_BUTTON_START) {
+    if (((u16*)pauseControl._004)[1] & INPUT_BUTTON_START) {
         pauseControl.state = 4;
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-    } else if (pauseControl._06 & INPUT_BUTTON_A) {
+    } else if (((u16*)pauseControl._004)[1] & INPUT_BUTTON_A) {
         if (pauseControl.cursor == 0) {
             pauseControl.state = 4;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -1430,21 +1408,21 @@ void toyFieldPauseMenuInput(void) {
             pauseControl.state = 9;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         }
-    } else if (pauseControl._06 & INPUT_BUTTON_B) {
+    } else if (((u16*)pauseControl._004)[1] & INPUT_BUTTON_B) {
         if (pauseControl.cursor != 0) {
             pauseControl.cursor = 0;
         } else {
             pauseControl.state = 4;
         }
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
-    } else if (pauseControl._08 & INPUT_BUTTON_UP) {
+    } else if (((u16*)pauseControl._004)[2] & INPUT_BUTTON_UP) {
         if (pauseControl.cursor > 0) {
             pauseControl.cursor--;
         } else {
             pauseControl.cursor = 3;
         }
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
-    } else if (pauseControl._08 & INPUT_BUTTON_DOWN) {
+    } else if (((u16*)pauseControl._004)[2] & INPUT_BUTTON_DOWN) {
         pauseControl.cursor++;
         if (pauseControl.cursor >= 4) {
             pauseControl.cursor = 0;
@@ -1508,7 +1486,7 @@ void toyFieldPostMenu(void) {
         break;
     }
     case 9:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.controllerPort].newButtonInput)) {
+        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             fn_3_15F998();
             fn_3_147DFC();
@@ -1537,7 +1515,7 @@ void toyFieldPostMenu(void) {
 void toyFieldPostMenuInput(void) {
     int pressed = checkForButtonPressToSkip(1, INPUT_BUTTON_A);
     if (pressed) {
-        pauseControl.controllerPort = pressed - 1;
+        pauseControl.port = pressed - 1;
         if (pauseControl.cursor == 2) {
             fn_3_5B408();
             pauseControl.state = 9;
