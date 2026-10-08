@@ -8,7 +8,7 @@
 #include "game/batting/star_hit_sprites.h"
 #include "game/ball/ball_visuals.h"
 #include "game/math/game_math.h"
-#include "game/minigame/pitching_machine.h"
+#include "game/minigame/minigame_models.h"
 #include "game/stadium/stadium_framework.h"
 #include "Unknown/File_0x800bf038.h"
 #include "Unknown/File_0x8003a538.h"

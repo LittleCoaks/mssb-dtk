@@ -688,7 +688,7 @@
 "named": [],
 "bytes": 952
 },
-"hud/rep_3448.c": {
+"minigame/minigame_hud.c": {
 "total": 38,
 "named": [
 "minigameStateLogic"
@@ -890,7 +890,7 @@
 ],
 "bytes": 21812
 },
-"minigame/pitching_machine.c": {
+"minigame/minigame_models.c": {
 "total": 55,
 "named": [
 "nonPracticePitchingMachineLogic",

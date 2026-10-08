@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep3448
-#include "game/hud/rep_3448.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_minigameHud
+#include "game/minigame/minigame_hud.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "text/text_channel.h"

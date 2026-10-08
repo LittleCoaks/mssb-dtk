@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_pitchingMachine
+#define REP_HEADER_DATA_FN getRepHeaderData_minigameModels
 #define g_Minigame g_Minigame_shared
-#include "game/minigame/pitching_machine.h"
+#include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -9,7 +9,7 @@
 #include "game/minigame/piranha_panic.h"
 #include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
-#include "game/hud/rep_3448.h"
+#include "game/minigame/minigame_hud.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x800a70dc.h"
 #include "Unknown/File_0x800a7568.h"

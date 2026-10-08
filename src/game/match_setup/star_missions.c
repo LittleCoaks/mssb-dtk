@@ -3,7 +3,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "Dolphin/rand.h"
-#include "game/minigame/pitching_machine.h"
+#include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
 
 typedef struct CharStaticIndex {

@@ -5,7 +5,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/camera/camera.h"
-#include "game/hud/rep_3448.h"
+#include "game/minigame/minigame_hud.h"
 #include "game/hud/hud_gauges.h"
 #include "game/hud/hud_scoreboard.h"
 #include "game/hud/toyfield_score_update.h"
