@@ -15531,7 +15531,7 @@ void miniGameDash(void) {
                 (UnkInputRelated*) ((u8*) &g_FieldingLogic.specialActionChecks + i * 6);
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19BC != 0 &&
-                i == (s8) g_Minigame._19C6) {
+                i == (s8) g_Minigame.toyField_turnPlayer) {
                 if (minigameDashUpdateFieldingVals(i)) {
                     continue;
                 }
@@ -15558,18 +15558,18 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     s32 i;
 
     fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
-    g_Minigame._1922 = minigameFielderSlot;
+    g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
-    control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+    control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
     if (minigame_getAIDrivenInputInd()) {
-        control = &g_Minigame._1D7C[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+        control = &g_Minigame._1D7C[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
     }
 
     charHist =
-        lbl_3_bss_C8.characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+        lbl_3_bss_C8.characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
     for (i = 19; i >= 1; i--) {
         fielderControlStick_continuousAngleHistory[i] = charHist[i - 1];
@@ -15695,7 +15695,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
         }
 
         g_Minigame.minigameRelatedIndex = fielderIndex;
-        g_Minigame._1922 = minigameFielderSlot;
+        g_Minigame.activeFielderSlot = minigameFielderSlot;
 
         if (g_Ball.framesSinceHit == 1) {
             setFielderCatchStrategy_calcFramesToGetToDropSpot(fielderIndex);
@@ -15859,7 +15859,7 @@ void fn_3_2E41C(void) {
             s32 j;
 
             g_Minigame.minigameRelatedIndex = g_Minigame.minigameFielderIndex[i];
-            g_Minigame._1922 = i;
+            g_Minigame.activeFielderSlot = i;
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD &&
                 g_Minigame.minigameControlStruct[0].battingHandedness[i] != 0) {
@@ -15942,7 +15942,7 @@ void fn_3_2E41C(void) {
 
 // .text:0x0002DDB4 size:0x668 mapped:0x8066CE48
 void fn_3_2DDB4(void) {
-    u8 playerIndex = g_Minigame._1922;
+    u8 playerIndex = g_Minigame.activeFielderSlot;
     u8 fielderIndex = g_Minigame.minigameRelatedIndex;
     InputStruct* control = &g_Controls[playerIndex];
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -16349,7 +16349,7 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     int fielderIndex;
 
     fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
-    g_Minigame._1922 = minigameFielderSlot;
+    g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
@@ -18787,7 +18787,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     g_FieldingLogic._0142 = 0;
     g_FieldingLogic.birdoFarThrowInd_forAnimation = 0;
     g_Batter.invisibleBallForPeachStarHit = 0;
-    g_Minigame._19C6 = fielder->_020D;
+    g_Minigame.toyField_turnPlayer = fielder->_020D;
     if (g_FieldingLogic.unused_always0_ == 1) {
         g_FieldingLogic.unused_always0_ = 2;
     }

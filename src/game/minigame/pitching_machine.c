@@ -1014,8 +1014,8 @@ void fn_3_11E7C4(void) {
         for (i = 0; i < 4; i++) {
             u32 points;
 
-            if (MG_BYTE(0x1DF4 + i) != 0) {
-                MG_BYTE(0x1DF4 + i) = 0;
+            if (g_Minigame.hudPulseInd[i] != 0) {
+                g_Minigame.hudPulseInd[i] = 0;
                 PM_REC_AT(scene, 1, i)->frame = 0;
                 PM_REC_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
             }
@@ -1082,8 +1082,8 @@ void fn_3_11E364(void) {
         for (i = 0; i < 4; i++) {
             u32 points;
 
-            if (MG_BYTE(0x1DF4 + i) != 0) {
-                MG_BYTE(0x1DF4 + i) = 0;
+            if (g_Minigame.hudPulseInd[i] != 0) {
+                g_Minigame.hudPulseInd[i] = 0;
                 PM_REC_AT(scene, 1, i)->frame = 0;
                 PM_REC_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
             }
@@ -1140,7 +1140,7 @@ void fn_3_11DECC(void) {
                 scene->sndHandle = 0xFFFFFFFF;
             }
         }
-        *(DrawingSceneStruct**)&MG_BYTE(0x1E04) = NULL;
+        *(DrawingSceneStruct**)&g_Minigame.resultsScene = NULL;
         removeGraphicsElementFromScene(node);
         removeCurrentDrawingItem();
         return;
@@ -1148,8 +1148,8 @@ void fn_3_11DECC(void) {
     switch (scene->state) {
     case 0:
         addGraphicsElementToScene(node, lbl_3_data_25EE4);
-        if (MG_BYTE(0x1E2A) >= 1) {
-            scene->_1E = MG_BYTE(0x1E1B + MG_BYTE(0x1E2A)) - 1;
+        if (g_Minigame.grandPrixRound >= 1) {
+            scene->_1E = g_Minigame.grandPrixOrder[g_Minigame.grandPrixRound - 1] - 1;
         }
         scene->sndHandle = 0xFFFFFFFF;
         scene->state = 1;
@@ -1182,7 +1182,7 @@ void fn_3_11DECC(void) {
             if ((s16)scene->_1E < 0) {
                 scene->_1E = 5;
             }
-            if (scene->_1E == MG_BYTE(0x1E1B + MG_BYTE(0x1E2A)) - 1) {
+            if (scene->_1E == g_Minigame.grandPrixOrder[g_Minigame.grandPrixRound - 1] - 1) {
                 scene->_18++;
                 if (scene->_18 >= 2) {
                     PM_REC(scene, 3)->playMode = UI_PLAY_STOP;
@@ -1226,7 +1226,7 @@ void fn_3_11DECC(void) {
 
 void fn_3_11DE80(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
-        *(DrawingSceneStruct**)&MG_BYTE(0x1E04) = insertGraphicDrawingFunction(fn_3_11DECC, 2);
+        *(DrawingSceneStruct**)&g_Minigame.resultsScene = insertGraphicDrawingFunction(fn_3_11DECC, 2);
     }
 }
 
@@ -1516,7 +1516,7 @@ void mm_LoadModels(void) {
 void mm_UnloadModels(void) {
     int i;
 
-    if ((g_Minigame.grandPrixInd == 0 || g_Minigame._1E01[0x29] >= 6) && g_Minigame.retryInd == 0) {
+    if ((g_Minigame.grandPrixInd == 0 || g_Minigame.grandPrixRound >= 6) && g_Minigame.retryInd == 0) {
         for (i = 0; i < 4; i++) {
             fn_80011B64(i);
         }

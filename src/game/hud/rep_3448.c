@@ -245,7 +245,7 @@ void minigameGraphics(void) {
         } else if (g_GameLogic.gameStatus == GAME_STATUS_0x27) {
             fn_3_1293D0();
         } else if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
-            if (lbl_8037169C[0x12] != 0 && g_Minigame._1E01[1] == 0) {
+            if (lbl_8037169C[0x12] != 0 && g_Minigame.startMovieHudInd == 0) {
                 insertGraphicDrawingFunction(fn_3_1254F8, 2);
             }
         }
@@ -824,12 +824,12 @@ void fn_3_12A910(void) {
             }
         }
         if (g_Minigame.charSelectState == 4) {
-            HUD_RECORD(scene, 66)->anchorSub = 3 - MG_S16(0x18A2);
-            HUD_RECORD(scene, 67)->anchorSub = 3 - MG_S16(0x18A2);
+            HUD_RECORD(scene, 66)->anchorSub = 3 - g_Minigame.charSelectOpponentSlot;
+            HUD_RECORD(scene, 67)->anchorSub = 3 - g_Minigame.charSelectOpponentSlot;
             HUD_RECORD(scene, 66)->playMode = UI_PLAY_FORWARD;
             HUD_RECORD(scene, 67)->playMode = UI_PLAY_FORWARD;
             for (i = 0; i < 4; i++) {
-                if (g_Minigame.playerSlots.aiStrength[MG_S16(0x18A2)] == i) {
+                if (g_Minigame.playerSlots.aiStrength[g_Minigame.charSelectOpponentSlot] == i) {
                     HUD_RECORD_AT(scene, 68, i)->playMode = UI_PLAY_FORWARD;
                     if ((s32)(HUD_RECORD_AT(scene, 68, i)->frame >> 16) >= 50) {
                         HUD_RECORD_AT(scene, 68, i)->frame = 10 << 16;
@@ -955,7 +955,7 @@ void fn_3_12A910(void) {
             HUD_RECORD_AT(scene, 34, i)->flags |= UI_FLAG_VISIBLE;
             HUD_RECORD_AT(scene, 34, i)->playMode = UI_PLAY_FORWARD;
             HUD_RECORD_AT(scene, 38, i)->playMode = UI_PLAY_FORWARD;
-            if (g_Minigame.playerSlots._08[i] != 0) {
+            if (g_Minigame.playerSlots.superstarBoostInd[i] != 0) {
                 if (HUD_RECORD_AT(scene, 38, i)->elementIndex == 0x3E) {
                     HUD_RECORD_AT(scene, 38, i)->elementIndex = 0x40;
                     HUD_RECORD_AT(scene, 38, i)->frame = 0;
@@ -1150,7 +1150,7 @@ void fn_3_129FF8(void) {
         }
     } else if (scene->state == 2) {
         for (i = 0; i < 4; i++) {
-            if (i == (s8)MG_BYTE(0x19E4)) {
+            if (i == (s8)g_Minigame.selectedDifficulty) {
                 if (g_Minigame.charSelectState >= 8 || g_GameLogic._125 >= TRANSITION_CALCULATION_TYPE_6) {
                     if ((HUD_RECORD_AT(scene, 2, i)->frame >> 16) <= 0x37) {
                         HUD_RECORD_AT(scene, 2, i)->frame = 0x37 << 16;
@@ -1227,7 +1227,7 @@ void fn_3_129C88(void) {
         }
     } else if (scene->state == 2) {
         for (i = 0; i < 3; i++) {
-            if (i == (s8)MG_BYTE(0x19E4)) {
+            if (i == (s8)g_Minigame.selectedDifficulty) {
                 if (g_Minigame.charSelectState >= 8 || g_GameLogic._125 >= TRANSITION_CALCULATION_TYPE_6) {
                     if ((HUD_RECORD_AT(scene, 2, i)->frame >> 16) <= 0x5A) {
                         HUD_RECORD_AT(scene, 2, i)->frame = 0x5A << 16;
@@ -1490,13 +1490,13 @@ void fn_3_128C18(void) {
     if (status == GAME_STATUS_0x27 && g_Minigame.grandPrixFinalHumanCount == 1) {
         found = FALSE;
         for (i = 0; i < 4; i++) {
-            if (g_Minigame._1E01[7 + i * 2] == (s8)g_Minigame.soloPlayerSlot && g_Minigame._1E01[8 + i * 2] == 0) {
+            if (g_Minigame.grandPrixRanks[i][0] == (s8)g_Minigame.soloPlayerSlot && g_Minigame.grandPrixRanks[i][1] == 0) {
                 found = TRUE;
                 break;
             }
         }
-        if (g_Minigame._1E01[8] == 0 && g_Minigame._1E01[10] == 0 && g_Minigame._1E01[12] == 0
-            && g_Minigame._1E01[14] == 0) {
+        if (g_Minigame.grandPrixRanks[0][1] == 0 && g_Minigame.grandPrixRanks[1][1] == 0 && g_Minigame.grandPrixRanks[2][1] == 0
+            && g_Minigame.grandPrixRanks[3][1] == 0) {
             HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[2];
         } else if (found) {
             HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[8];
@@ -1532,9 +1532,9 @@ void fn_3_128C18(void) {
         } else {
             count = 0;
             for (k = 0; k < 4; k++) {
-                if (g_Minigame.playerSlots._1C[k] == 1) {
+                if (g_Minigame.playerSlots.rank[k] == 1) {
                     getAnimRelatedCoordinates(g_Minigame.playerSlots.characterIndex[k], 9, &pos);
-                    id = g_Minigame.playerSlots._04[k];
+                    id = g_Minigame.playerSlots.charID[k];
                     pos.y = (f32)((0.01f * -(f32)barrelCollisionHitboxes[id]) * charSizeMultipliers[id][0]) - 0.5f;
                     fn_3_1650C(&x, &y, 0, pos.x, pos.y, pos.z);
                     x = ((s16(*)[4])lbl_3_data_226E0)[g_Minigame.miniGameNumberOfParticipants - 1][k];
@@ -1917,7 +1917,7 @@ void fn_3_1274B4(void) {
     case 1:
         i = 0;
         do {
-            if (i != g_Minigame._1E01[2]) {
+            if (i != g_Minigame.newRecordRow) {
                 fn_3_125424(scene, i + 10, 10);
             }
             if ((HUD_RECORD(scene, 4)->frame >> 16) == ((u16*)(descriptors + 0x11A8))[i]) {
@@ -1963,7 +1963,7 @@ void fn_3_126604(void) {
                 slot += 4;
             }
             HUD_RECORD_AT(scene, 0x16, i)->frame = slot << 16;
-            HUD_RECORD_AT(scene, 0x12, i)->frame = g_Minigame.playerSlots._04[i] << 16;
+            HUD_RECORD_AT(scene, 0x12, i)->frame = g_Minigame.playerSlots.charID[i] << 16;
             i++;
             if (i >= g_Minigame.miniGameNumberOfParticipants) {
                 break;
@@ -2434,17 +2434,17 @@ void fn_3_1254F8(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
     if (g_GameLogic.gameStatus != GAME_STATUS_GAME_START_MOVIE) {
-        g_Minigame._1E01[1] = 0;
+        g_Minigame.startMovieHudInd = 0;
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
     }
     switch (scene->state) {
     case 0:
-        g_Minigame._1E01[1] = 1;
+        g_Minigame.startMovieHudInd = 1;
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23894);
         HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_238F4[g_Minigame.GameMode_MiniGame];
-        if (g_Minigame.grandPrixInd != 0 && g_Minigame._1E01[0x29] >= 6) {
+        if (g_Minigame.grandPrixInd != 0 && g_Minigame.grandPrixRound >= 6) {
             HUD_RECORD(scene, 1)->flags |= UI_FLAG_VISIBLE;
         }
         scene->state = 1;
@@ -3178,8 +3178,8 @@ void fn_3_1226D4(void) {
         HUD_RECORD(scene, 3)->frame = 0;
         HUD_RECORD(scene, 4)->playMode = UI_PLAY_STOP;
         HUD_RECORD(scene, 4)->frame = 0;
-        if (mg->_1DF6[1] != 0) {
-            mg->_1DF6[1] = 0;
+        if (mg->bOD_hrHudEvent != 0) {
+            mg->bOD_hrHudEvent = 0;
             scene->_18 = 0;
             scene->_1A = 0;
             scene->state = 2;
@@ -3286,7 +3286,7 @@ void fn_3_122334(void) {
         scene->state = 1;
         break;
     case 1:
-        if (mg->_1DF6[1] != 0) {
+        if (mg->bOD_hrHudEvent != 0) {
             scene->_1E = 1;
         }
         if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
@@ -3366,7 +3366,7 @@ void fn_3_121908(void) {
         scene->sndHandle = 0xFFFFFFFF;
         scene->state = 1;
     case 1:
-        mg->_1DF4 = 0;
+        mg->bOD_pitchTypeReadyInd = 0;
         if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT && g_Pitcher.pitcherActionState == 1) {
             scene->state = 2;
         }
@@ -3490,15 +3490,15 @@ void fn_3_121908(void) {
         HUD_RECORD(scene, 1)->playMode = playMode;
         HUD_RECORD(scene, 6)->playMode = playMode;
         if ((HUD_RECORD(scene, 6)->frame >> 16) == 0 && (HUD_RECORD(scene, 1)->frame >> 16) == 0) {
-            mg->_1DF4 = 1;
+            mg->bOD_pitchTypeReadyInd = 1;
             mg->bODPitchType = bOD_bB_pitchRouletteTypes[scene->_1E];
             if (mg->bODPitchType == 5) {
                 do {
                     mg->bODPitchType = random_fn_3_9EE24(5);
                 } while (scene->_22 != 0 && mg->bODPitchType == 3);
-                mg->_1DF6[0] = 1;
+                mg->bOD_randomPitchInd = 1;
             } else {
-                mg->_1DF6[0] = 0;
+                mg->bOD_randomPitchInd = 0;
             }
             scene->state = 7;
         }
@@ -3539,7 +3539,7 @@ void fn_3_121304(void) {
             addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_240A4);
             i = 0;
             do {
-                slot = g_Minigame.playerSlots._14[i];
+                slot = g_Minigame.playerSlots.playOrder[i];
                 if (slot < 0) {
                     HUD_RECORD_AT(scene, 1, i)->flags &= ~UI_FLAG_VISIBLE;
                 } else {
@@ -3561,7 +3561,7 @@ void fn_3_121304(void) {
             flag = minigame_displayedPointsAllTied();
             i = 0;
             do {
-                slot = g_Minigame.playerSlots._14[i];
+                slot = g_Minigame.playerSlots.playOrder[i];
                 if (slot >= 0) {
                     shown = &g_Minigame.minigamePoints_current_Latest[slot][0];
                     diff = g_Minigame.miniGameCurrentPoints[slot] - *shown;
@@ -3839,7 +3839,7 @@ void fn_3_12026C(void) {
         third = half / 3;
         i = 0;
         do {
-            if (g_Minigame.playerSlots._14[i] >= 0) {
+            if (g_Minigame.playerSlots.playOrder[i] >= 0) {
                 if (i == g_Minigame.turnNumberWithinRound) {
                     popup[0x12 + i] = -half;
                 } else {
@@ -4179,8 +4179,8 @@ void fn_3_11F02C(void) {
             flag = minigame_displayedPointsAllTied();
             i = 0;
             do {
-                if (g_Minigame._1DFC[i] != 0) {
-                    g_Minigame._1DFC[i] = 0;
+                if (g_Minigame.ccs_biteHudPending[i] != 0) {
+                    g_Minigame.ccs_biteHudPending[i] = 0;
                     HUD_RECORD_AT(scene, 1, i)->frame = 0;
                     HUD_RECORD_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
                 }
@@ -4247,8 +4247,8 @@ void fn_3_11EC28(void) {
             HUD_RECORD(scene, i)->frame = 0;
             i++;
         } while (i < 8);
-        if (g_Minigame._1E00 != 0) {
-            g_Minigame._1E00 = 0;
+        if (g_Minigame.ccs_targetHudPending != 0) {
+            g_Minigame.ccs_targetHudPending = 0;
             if (g_Minigame.ccs.targetCount != 0) {
                 for (i = 0; i < 4; i++) {
                     if (g_Minigame.ccs.targetInd[i] == 1) {

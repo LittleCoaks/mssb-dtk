@@ -536,7 +536,7 @@ void pP_UpdateThrownBall(int p) {
                 dir.z = -1.0f;
                 PSVECNormalize(&dir, &dir);
                 fielder->xMovementDir = dir.x;
-                PP.x_1DF4[owner] = 1;
+                g_Minigame.hudPulseInd[owner] = 1;
                 fielder->zMovementDir = dir.z;
                 fielder->currentVelocity = pP_ballPhysicsConsts[15];
                 setCharacterAnimations((s8)PP.character[owner], 2);
@@ -1277,7 +1277,7 @@ void pP_UpdateProjectile(int idx) {
             dir.z = obj->vel.z;
             PSVECNormalize(&dir, &dir);
             fielder->xMovementDir = dir.x;
-            PP.x_1DF4[i] = 1;
+            g_Minigame.hudPulseInd[i] = 1;
             fielder->zMovementDir = dir.z;
             fielder->currentVelocity = pP_ballPhysicsConsts[15];
             setCharacterAnimations((s8)PP.character[i], 2);

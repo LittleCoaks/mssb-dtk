@@ -1378,7 +1378,7 @@ void gameplay_Camera(void) {
         }
     }
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19CE != 0) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame.toyField_turnEndState != 0) {
         if (g_Minigame._19BA == 1) {
             camera_switchScene(0x67);
         }

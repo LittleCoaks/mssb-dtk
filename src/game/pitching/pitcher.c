@@ -1650,7 +1650,7 @@ void pitchCall(void) {
                 g_GameLogic.IsStarChance = 2;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                g_Minigame._19C6 = MINIGAME_SELECTED_ORDER;
+                g_Minigame.toyField_turnPlayer = MINIGAME_SELECTED_ORDER;
             }
         } else {
             QueueTextToDisplay(8, 0);

@@ -140,11 +140,11 @@ void chainChompSprintRelated(void) {
             g_Minigame.miniGameLatestPoints[i] = 0;
             g_Minigame.minigamePoints_current_Latest[i][0] = 0;
             g_Minigame.minigamePoints_current_Latest[i][1] = 0;
-            g_Minigame.playerSlots._28[i] = -1;
+            g_Minigame.playerSlots.participantSlot[i] = -1;
             g_Minigame.playerSlots.fielderIndex[i] = -1;
             g_Minigame.playerSlots.runnerPlayerIndex[i] = -1;
             g_Minigame.playerSlots.playerRunnerIndex[i] = -1;
-            g_Minigame.playerSlots._24[i] = 1;
+            g_Minigame.playerSlots.batterInd[i] = 1;
         }
         g_Minigame.pointsReqToWin_challenge = 0;
         *(s8*)&g_Minigame.minigamePlayerSelectedOrder = -1;
@@ -373,7 +373,7 @@ void fn_3_1409AC(void) {
 
     fn_3_DE4FC();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && !g_Minigame.multiPlayerInd) {
-        if (g_Minigame.playerSlots._1C[g_Minigame.soloPlayerSlot] == 1 &&
+        if (g_Minigame.playerSlots.rank[g_Minigame.soloPlayerSlot] == 1 &&
             !g_Minigame.challenge_minigame_haven_tWonYetIndicator) {
             g_Minigame.winLossResult = 1;
         } else {
@@ -500,7 +500,7 @@ void fn_3_140284(void) {
     int threshold;
     int i;
 
-    g_Minigame._1E00 = 1;
+    g_Minigame.ccs_targetHudPending = 1;
     for (i = 0; i < 4; i++) {
         g_Minigame.ccs.targetInd[i] = -1;
     }
@@ -612,7 +612,7 @@ hit:
         g_Minigame.playerIDWithPowerup[0] = -1;
     }
     g_Minigame.miniGameCurrentPoints[g_Minigame.ccs.chasedPlayer] /= 2;
-    g_Minigame._1DFC[g_Minigame.ccs.chasedPlayer] = 1;
+    g_Minigame.ccs_biteHudPending[g_Minigame.ccs.chasedPlayer] = 1;
     setCharacterAnimations(g_Minigame.ccs.chasedPlayer, 2);
     if (--g_Minigame.ccs.targetCount == 0) {
         g_Minigame.ccs.chompState = 4;
@@ -1306,7 +1306,7 @@ void fn_3_13C7BC(void) {
 
     i = 0;
     do {
-        g_Minigame._1DC0[i] = 0;
+        g_Minigame.ccs_aiControlledInd[i] = 0;
     } while (++i < 4);
     p = 0;
     do {
@@ -1352,7 +1352,7 @@ void fn_3_13C7BC(void) {
         if (c < 0 || c >= 4 || !g_Minigame.playerSlots.aiControlledInd[i]) {
             continue;
         }
-        g_Minigame._1DC0[c] = 1;
+        g_Minigame.ccs_aiControlledInd[c] = 1;
         memset(&g_Minigame._1D7C[c], 0, sizeof(InputStruct));
         strength = g_Minigame.playerSlots.aiStrength[i];
         if ((ai->state < 10 || ai->state > 13) &&
@@ -1538,6 +1538,6 @@ void fn_3_13C790(void) {
     s8 i = 0;
 
     do {
-        g_Minigame._1DC0[i] = 0;
+        g_Minigame.ccs_aiControlledInd[i] = 0;
     } while (++i < 4);
 }

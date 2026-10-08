@@ -664,7 +664,7 @@ void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node) {
     outs = g_Strikes.outs;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        outs = g_Minigame._190D - g_Minigame._1910;
+        outs = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;
     }
 
     for (i = 0; i < 7; i++) {

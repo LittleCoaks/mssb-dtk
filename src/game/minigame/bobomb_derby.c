@@ -588,7 +588,7 @@ void bOD_bB_Pitcher_waitingForPitch(void) {
         pitchTiming = bOD_bB_frameConsts[6];
     }
     if (!isBarrelBatter) {
-        starPitch = g_Minigame._1DF4;
+        starPitch = g_Minigame.bOD_pitchTypeReadyInd;
     }
 
     if (g_Pitcher.currentStateFrameCounter > pitchTiming && starPitch) {
@@ -808,7 +808,7 @@ void bOD_HomeRunFireworks(void) {
         }
 
         g_Minigame.bOD_hrFireworksLaunchedInd = 1;
-        g_Minigame._1DF6[1] = 1;
+        g_Minigame.bOD_hrHudEvent = 1;
         g_Minigame.bOD_fireworkBurstCount = 1;
         g_Minigame.bOD_fireworksTimer = RandomInt_Game_Range(bOD_fireworkTimerRanges[0], bOD_fireworkTimerRanges[1]);
 
@@ -816,7 +816,7 @@ void bOD_HomeRunFireworks(void) {
             g_Minigame.bODControllerInputAllowedInd = FALSE;
         } else if (g_Minigame.bODCharacterHRStreakTracker[g_Minigame.rosterID][0] <= 1 || g_Minigame.bOD_KingBombInd != 0) {
             g_Minigame.bODControllerInputAllowedInd = TRUE;
-            g_Minigame._1DF6[2] = 1;
+            g_Minigame._1DF8[0] = 1;
         } else {
             g_Minigame.bODControllerInputAllowedInd = FALSE;
         }
@@ -870,12 +870,12 @@ void bOD_HomeRunFireworks(void) {
             if (g_Pitcher.starPitchInd != 0) {
                 if (g_Minigame.bOD_fireworkBurstCount >= 10) {
                     g_Minigame.bODControllerInputAllowedInd = TRUE;
-                    g_Minigame._1DF6[2] = 1;
+                    g_Minigame._1DF8[0] = 1;
                 }
             } else if (g_Minigame.bOD_fireworkBurstCount >= g_Minigame.bODCharacterHRStreakTracker[g_Minigame.rosterID][0] ||
                        g_Minigame.bOD_fireworkBurstCount >= bOD_frameConsts[7]) {
                 g_Minigame.bODControllerInputAllowedInd = TRUE;
-                g_Minigame._1DF6[2] = 1;
+                g_Minigame._1DF8[0] = 1;
             }
 
             for (i = 0; i < 10; i++) {
@@ -921,7 +921,7 @@ void bOD_BatterAI(void) {
     do {
         weights1[i] = bOD_aiBaseWeights[aiDifficulty][i];
         weights1[i] += g_Minigame.bODCharacterHRStreakTracker[g_Minigame.rosterID][0] * bOD_aiChargeWeightsPerStreak[aiDifficulty][i];
-        if (g_Minigame._1DF6[0] != 0) {
+        if (g_Minigame.bOD_randomPitchInd != 0) {
             weights1[i] += bOD_aiChargeWeightsRandomPitch[aiDifficulty][i];
         } else if (g_Minigame.bOD_KingBombInd != 0) {
             weights1[i] += bOD_aiChargeWeightsKingBomb[aiDifficulty][i];
@@ -936,7 +936,7 @@ void bOD_BatterAI(void) {
     do {
         weights2[i] = bOD_aiBaseWeights[aiDifficulty][i];
         weights2[i] += g_Minigame.bODCharacterHRStreakTracker[g_Minigame.rosterID][0] * bOD_aiTimingWeightsPerStreak[aiDifficulty][i];
-        if (g_Minigame._1DF6[0] != 0) {
+        if (g_Minigame.bOD_randomPitchInd != 0) {
             weights2[i] += bOD_aiTimingWeightsRandomPitch[aiDifficulty][i];
         } else if (g_Minigame.bOD_KingBombInd != 0) {
             weights2[i] += bOD_aiTimingWeightsKingBomb[aiDifficulty][i];

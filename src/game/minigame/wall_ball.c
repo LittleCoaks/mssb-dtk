@@ -286,11 +286,11 @@ void wallBallInitializeValues(void) {
         for (i = 0; i < 4; i++) {
             if (g_Minigame.playerSlots.characterIndex[i] >= 0) {
                 int fielderIndex;
-                g_Minigame.playerSlots._28[j] = i;
+                g_Minigame.playerSlots.participantSlot[j] = i;
                 fielderIndex = j + 2;
                 g_Fielders[fielderIndex]._020D = i;
-                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[j]] = fielderIndex;
-                g_Minigame.playerSlots._14[j] = i;
+                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[j]] = fielderIndex;
+                g_Minigame.playerSlots.playOrder[j] = i;
                 j++;
             }
         }

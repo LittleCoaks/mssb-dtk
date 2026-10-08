@@ -1248,7 +1248,7 @@ void soundControl(void) {
 
     if (minigamesEnabled != 0) {
         if (status == GAME_STATUS_MINIGAME_POST_MENU || status == GAME_STATUS_PAUSED ||
-            status == GAME_STATUS_HOW_TO_PLAY_SCREEN || g_Minigame._19CE != 0) {
+            status == GAME_STATUS_HOW_TO_PLAY_SCREEN || g_Minigame.toyField_turnEndState != 0) {
             if (sound_crowd_EffectsStruct._22 != -1) {
                 fn_800A8878(lbl_800E88A4[0x13], lbl_800E88A4[0x13]);
             }

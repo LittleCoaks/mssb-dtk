@@ -294,11 +294,11 @@ void sD_LoadGame(void) {
             g_Minigame.miniGameLatestPoints[i] = 0;
             g_Minigame.minigamePoints_current_Latest[i][0] = 0;
             g_Minigame.minigamePoints_current_Latest[i][1] = 0;
-            g_Minigame.playerSlots._28[i] = -1;
+            g_Minigame.playerSlots.participantSlot[i] = -1;
             g_Minigame.playerSlots.fielderIndex[i] = -1;
             g_Minigame.playerSlots.runnerPlayerIndex[i] = -1;
             g_Minigame.playerSlots.playerRunnerIndex[i] = -1;
-            g_Minigame.playerSlots._24[i] = 0;
+            g_Minigame.playerSlots.batterInd[i] = 0;
         }
         g_Minigame.pointsReqToWin_challenge = 0;
         *(s8*)&g_Minigame.minigamePlayerSelectedOrder = -1;
@@ -322,10 +322,10 @@ void sD_LoadGame(void) {
         setDefaultInMemFielder();
         for (p = 0, n = 0; p < 4; p++) {
             if (g_Minigame.playerSlots.characterIndex[p] >= 0) {
-                g_Minigame.playerSlots._28[n] = p;
-                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]] = n + 2;
-                setFielderValues(p, g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]]);
-                fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]]];
+                g_Minigame.playerSlots.participantSlot[n] = p;
+                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]] = n + 2;
+                setFielderValues(p, g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]]);
+                fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]]];
                 g_Minigame.starDashStunType[p] = 0;
                 fielder->_020D = p;
                 fielder->pos.x = sD_fielderStartPositions[n].x;
@@ -492,7 +492,7 @@ void sD_EndGame(void) {
 
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
-        if (g_Minigame.playerSlots._1C[g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+        if (g_Minigame.playerSlots.rank[g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
             g_Minigame.winLossResult = 1;
         } else {
             g_Minigame.winLossResult = 2;
@@ -1776,7 +1776,7 @@ void sD_DropCoins(int player) {
     int count;
 
     fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[player]];
-    SD._1DF4[player] = 1;
+    g_Minigame.hudPulseInd[player] = 1;
     n = lbl_3_data_21B20[3];
     if (g_Minigame.miniGameCurrentPoints[player] < n) {
         n = g_Minigame.miniGameCurrentPoints[player];

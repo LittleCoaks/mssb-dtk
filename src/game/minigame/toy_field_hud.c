@@ -419,7 +419,7 @@ void toyfield_drawHud(void) {
         ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_EA8FC, 2))->_18 = 1;
         insertGraphicDrawingFunction(fn_3_EAEF4, 2);
     }
-    if (g_Minigame._19CE != 0 && g_Minigame._19BA == 1) {
+    if (g_Minigame.toyField_turnEndState != 0 && g_Minigame._19BA == 1) {
         insertGraphicDrawingFunction(fn_3_ED2A8, 2);
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME ||
@@ -427,7 +427,7 @@ void toyfield_drawHud(void) {
         fn_3_129458();
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
-        if (g_Minigame._1E01[1] == 0) {
+        if (g_Minigame.startMovieHudInd == 0) {
             insertGraphicDrawingFunction(fn_3_1254F8, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
@@ -695,7 +695,7 @@ void fn_3_ED058(void) {
 // .text:0x000ECD48 size:0x310
 void fn_3_ECD48(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
-    u8* flags = &g_Minigame._1DF4;
+    u8* flags = g_Minigame.hudPulseInd;
     u32 i;
 
     if (animRelated[0x96] != 0) {
@@ -716,7 +716,7 @@ void fn_3_ECD48(void) {
                 if ((OFFSCREEN_RECORD(scene, 0)->frame >> 16) == 0xA0) {
                     i = 0;
                     do {
-                        OFFSCREEN_RECORD_AT(scene, 1, (s8)(&g_Minigame._1936)[i])->playMode = UI_PLAY_FORWARD;
+                        OFFSCREEN_RECORD_AT(scene, 1, (s8)g_Minigame.toyField_eventPlayers[i + 1])->playMode = UI_PLAY_FORWARD;
                         i++;
                     } while (i < g_Minigame.miniGameNumberOfParticipants - 1);
                     scene->state = 2;
@@ -727,13 +727,13 @@ void fn_3_ECD48(void) {
                 }
                 break;
             case 2:
-                if ((OFFSCREEN_RECORD_AT(scene, 1, (s8)g_Minigame._1936)->frame >> 16) >= 6) {
+                if ((OFFSCREEN_RECORD_AT(scene, 1, (s8)g_Minigame.toyField_eventVictim)->frame >> 16) >= 6) {
                     i = 0;
                     do {
-                        flags[(s8)(&g_Minigame._1936)[i]] = 2;
+                        flags[(s8)g_Minigame.toyField_eventPlayers[i + 1]] = 2;
                         i++;
                     } while (i < g_Minigame.miniGameNumberOfParticipants - 1);
-                    g_Minigame._1934 = 2;
+                    g_Minigame.toyField_slotStage = 2;
                     scene->state = 3;
                 }
                 break;
@@ -746,7 +746,7 @@ void fn_3_ECD48(void) {
 // .text:0x000ECBB0 size:0x198
 void fn_3_ECBB0(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
-    u8* flags = &g_Minigame._1DF4;
+    u8* flags = g_Minigame.hudPulseInd;
     u32 i;
 
     if (animRelated[0x96] != 0) {
@@ -765,14 +765,14 @@ void fn_3_ECBB0(void) {
                     OFFSCREEN_RECORD_AT(scene, 2, i)->flags &= ~UI_FLAG_VISIBLE;
                     i++;
                 } while (i < 4);
-                OFFSCREEN_RECORD_AT(scene, 2, g_Minigame._1935)->flags |= UI_FLAG_VISIBLE;
-                OFFSCREEN_RECORD_AT(scene, 2, g_Minigame._1936)->flags |= UI_FLAG_VISIBLE;
-                flags[g_Minigame._1935] = 1;
-                flags[g_Minigame._1936] = 1;
+                OFFSCREEN_RECORD_AT(scene, 2, g_Minigame.toyField_eventActor)->flags |= UI_FLAG_VISIBLE;
+                OFFSCREEN_RECORD_AT(scene, 2, g_Minigame.toyField_eventVictim)->flags |= UI_FLAG_VISIBLE;
+                flags[g_Minigame.toyField_eventActor] = 1;
+                flags[g_Minigame.toyField_eventVictim] = 1;
                 scene->state = 1;
                 break;
             case 1:
-                g_Minigame._1934 = 2;
+                g_Minigame.toyField_slotStage = 2;
                 scene->state = 2;
                 break;
             case 2:
@@ -784,7 +784,7 @@ void fn_3_ECBB0(void) {
 // .text:0x000EC804 size:0x3AC
 void fn_3_EC804(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
-    u8* flags = &g_Minigame._1DF4;
+    u8* flags = g_Minigame.hudPulseInd;
 
     if (animRelated[0x96] != 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
@@ -796,10 +796,10 @@ void fn_3_EC804(void) {
         switch (scene->state) {
             case 0:
                 addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_19910);
-                OFFSCREEN_RECORD(scene, 0)->elementIndex = lbl_3_data_19970[(s8)g_Minigame._1936];
+                OFFSCREEN_RECORD(scene, 0)->elementIndex = lbl_3_data_19970[(s8)g_Minigame.toyField_eventVictim];
                 OFFSCREEN_RECORD(scene, 1)->elementIndex = (scene->_18 != 0) + 0xF;
-                scene->_1E = lbl_3_data_19978[(s8)g_Minigame._1936];
-                scene->_20 = lbl_3_data_19980[(s8)g_Minigame._1936];
+                scene->_1E = lbl_3_data_19978[(s8)g_Minigame.toyField_eventVictim];
+                scene->_20 = lbl_3_data_19980[(s8)g_Minigame.toyField_eventVictim];
                 toyFieldPlayHazardSound(0x10, 0x20);
                 scene->state = 1;
                 break;
@@ -812,8 +812,8 @@ void fn_3_EC804(void) {
                     }
                 }
                 if ((OFFSCREEN_RECORD(scene, 0)->frame >> 16) >= scene->_20) {
-                    flags[(s8)g_Minigame._1936] = 2;
-                    g_Minigame._1934 = 2;
+                    flags[(s8)g_Minigame.toyField_eventVictim] = 2;
+                    g_Minigame.toyField_slotStage = 2;
                     scene->state = 2;
                 }
                 break;
@@ -839,7 +839,7 @@ void fn_3_EC014(void) {
         removeCurrentDrawingItem();
         return;
     }
-    if (g_Minigame._19CE != 0) {
+    if (g_Minigame.toyField_turnEndState != 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -849,7 +849,7 @@ void fn_3_EC014(void) {
             addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_19988);
             i = 0;
             do {
-                MG_BYTE(0x1931 + i) = 0;
+                g_Minigame.toyField_reelHudStage[i] = 0;
                 i++;
             } while (i < 3);
             scene->sndHandle = SND_ID_ERROR;
@@ -873,35 +873,35 @@ void fn_3_EC014(void) {
             do {
                 if (toyFieldRecordDone(OFFSCREEN_RECORD_AT(scene, 1, i))) {
                     OFFSCREEN_RECORD_AT(scene, 1, i)->frame = 0;
-                    MG_BYTE(0x192A + i)++;
-                    if (MG_BYTE(0x192A + i) >= 7) {
-                        MG_BYTE(0x192A + i) = 0;
+                    g_Minigame.toyField_reelPos[i]++;
+                    if (g_Minigame.toyField_reelPos[i] >= 7) {
+                        g_Minigame.toyField_reelPos[i] = 0;
                     }
-                    switch (MG_BYTE(0x1931 + i)) {
+                    switch (g_Minigame.toyField_reelHudStage[i]) {
                         case 0:
-                            if (MG_BYTE(0x1927 + i) >= 1) {
+                            if (g_Minigame.toyField_reelState[i] >= 1) {
                                 OFFSCREEN_RECORD_AT(scene, 1, i)->elementIndex = 0x1F;
-                                MG_BYTE(0x1931 + i) = 1;
+                                g_Minigame.toyField_reelHudStage[i] = 1;
                             }
                             break;
                         case 1:
-                            if (MG_BYTE(0x1927 + i) >= 2 &&
-                                MG_BYTE(0x192E + i) == lbl_3_data_189C4[i][(MG_BYTE(0x192A + i) + 1) % 7]) {
+                            if (g_Minigame.toyField_reelState[i] >= 2 &&
+                                g_Minigame.toyField_reelTarget[i] == lbl_3_data_189C4[i][(g_Minigame.toyField_reelPos[i] + 1) % 7]) {
                                 OFFSCREEN_RECORD_AT(scene, 1, i)->elementIndex = 0x20;
-                                MG_BYTE(0x1931 + i) = 2;
+                                g_Minigame.toyField_reelHudStage[i] = 2;
                             }
                             break;
                         case 2:
-                            if (MG_BYTE(0x192E + i) == lbl_3_data_189C4[i][MG_BYTE(0x192A + i)]) {
+                            if (g_Minigame.toyField_reelTarget[i] == lbl_3_data_189C4[i][g_Minigame.toyField_reelPos[i]]) {
                                 OFFSCREEN_RECORD_AT(scene, 1, i)->playMode = UI_PLAY_STOP;
-                                MG_BYTE(0x1927 + i) = 3;
+                                g_Minigame.toyField_reelState[i] = 3;
                                 toyFieldPlayHazardSound(3, 6);
                                 if (i == 2) {
                                     sndFXKeyOff(scene->sndHandle);
                                     sndFXCtrl(scene->sndHandle, 7, 0);
                                     scene->sndHandle = SND_ID_ERROR;
                                 }
-                                MG_BYTE(0x1931 + i) = 3;
+                                g_Minigame.toyField_reelHudStage[i] = 3;
                             }
                             break;
                         case 3:
@@ -913,7 +913,7 @@ void fn_3_EC014(void) {
             count = 0;
             i = 0;
             do {
-                if (MG_BYTE(0x1931 + i) == 3) {
+                if (g_Minigame.toyField_reelHudStage[i] == 3) {
                     count++;
                 }
                 i++;
@@ -928,12 +928,12 @@ void fn_3_EC014(void) {
                 OFFSCREEN_RECORD_AT(scene, 5, i)->playMode = UI_PLAY_FORWARD;
                 i++;
             } while (i < 3);
-            switch (MG_BYTE(0x192D)) {
+            switch (g_Minigame.toyField_slotEvent) {
                 case 0:
                 case 3:
                 case 4:
                 case 5:
-                    g_Minigame._1934 = 1;
+                    g_Minigame.toyField_slotStage = 1;
                     scene->state = 4;
                     break;
                 case 1:
@@ -941,7 +941,7 @@ void fn_3_EC014(void) {
                 case 6:
                 case 7:
                 case 8:
-                    g_Minigame._1934 = 2;
+                    g_Minigame.toyField_slotStage = 2;
                     scene->state = 8;
                     break;
             }
@@ -960,7 +960,7 @@ void fn_3_EC014(void) {
         case 6:
             if ((OFFSCREEN_RECORD(scene, 0)->frame >> 16) == 0 && (OFFSCREEN_RECORD(scene, 12)->frame >> 16) == 0 &&
                 (OFFSCREEN_RECORD(scene, 13)->frame >> 16) == 0) {
-                switch (MG_BYTE(0x192D)) {
+                switch (g_Minigame.toyField_slotEvent) {
                     case 0:
                         insertGraphicDrawingFunction(fn_3_ECD48, 2);
                         break;
@@ -984,11 +984,11 @@ void fn_3_EC014(void) {
     }
     i = 0;
     do {
-        int frame = lbl_3_data_189C4[i][MG_BYTE(0x192A + i)];
+        int frame = lbl_3_data_189C4[i][g_Minigame.toyField_reelPos[i]];
 
         load_Icon(scene, 5 + i, 1, 0x21, lbl_3_data_19B88[frame]);
         load_Icon(scene, 5 + i, 2, 0x22, lbl_3_data_19B88[frame]);
-        frame = lbl_3_data_189C4[i][(MG_BYTE(0x192A + i) + 1) % 7];
+        frame = lbl_3_data_189C4[i][(g_Minigame.toyField_reelPos[i] + 1) % 7];
         load_Icon(scene, 8 + i, 1, 0x21, lbl_3_data_19B88[frame]);
         load_Icon(scene, 8 + i, 2, 0x22, lbl_3_data_19B88[frame]);
         i++;
@@ -1057,14 +1057,14 @@ void fn_3_EB6E0(void) {
             scene->state = 1;
             break;
         case 1:
-            g_Minigame._19A0 = 0;
+            g_Minigame.toyField_pointsCountingInd = 0;
             i = 0;
             do {
-                int slot = g_Minigame.playerSlots._14[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
+                int slot = g_Minigame.playerSlots.playOrder[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
                 int diff = g_Minigame.miniGameCurrentPoints[slot] - g_Minigame.minigamePoints_current_Latest[slot][0];
                 if (diff < 0) {
                     int step = diff / 8;
-                    g_Minigame._19A0 = 1;
+                    g_Minigame.toyField_pointsCountingInd = 1;
                     if (step != 0) {
                         g_Minigame.minigamePoints_current_Latest[slot][0] += step;
                     } else {
@@ -1074,11 +1074,11 @@ void fn_3_EB6E0(void) {
                 }
                 i++;
             } while (i < g_Minigame.miniGameNumberOfParticipants);
-            if (g_Minigame._19A0 == 0) {
+            if (g_Minigame.toyField_pointsCountingInd == 0) {
                 i = 0;
                 do {
                     if (g_Minigame.miniGameCurrentPoints[i] != g_Minigame.minigamePoints_current_Latest[i][0]) {
-                        g_Minigame._19A0 = 1;
+                        g_Minigame.toyField_pointsCountingInd = 1;
                         scene->state = 2;
                     }
                     i++;
@@ -1086,14 +1086,14 @@ void fn_3_EB6E0(void) {
             }
             break;
         case 2:
-            g_Minigame._19A0 = 0;
+            g_Minigame.toyField_pointsCountingInd = 0;
             i = 0;
             do {
-                int slot = g_Minigame.playerSlots._14[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
+                int slot = g_Minigame.playerSlots.playOrder[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
                 int diff = g_Minigame.miniGameCurrentPoints[slot] - g_Minigame.minigamePoints_current_Latest[slot][0];
                 if (diff > 0) {
                     int step = diff / 8;
-                    g_Minigame._19A0 = 1;
+                    g_Minigame.toyField_pointsCountingInd = 1;
                     ((u8*)node)[0x24 + slot] = 1;
                     if (step != 0) {
                         g_Minigame.minigamePoints_current_Latest[slot][0] += step;
@@ -1115,11 +1115,11 @@ void fn_3_EB6E0(void) {
                 }
                 i++;
             } while (i < g_Minigame.miniGameNumberOfParticipants);
-            if (g_Minigame._19A0 == 0) {
+            if (g_Minigame.toyField_pointsCountingInd == 0) {
                 i = 0;
                 do {
                     if (g_Minigame.miniGameCurrentPoints[i] != g_Minigame.minigamePoints_current_Latest[i][0]) {
-                        g_Minigame._19A0 = 1;
+                        g_Minigame.toyField_pointsCountingInd = 1;
                     }
                     i++;
                 } while (i < g_Minigame.miniGameNumberOfParticipants);
@@ -1158,7 +1158,7 @@ void fn_3_EB6E0(void) {
                     i = 0;
                     do {
                         int slot =
-                            g_Minigame.playerSlots._14[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
+                            g_Minigame.playerSlots.playOrder[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
                         int character = g_Minigame.minigameControlStruct[0].characterIndex[slot];
                         u32 points;
 
@@ -1222,7 +1222,7 @@ void fn_3_EAEF4(void) {
     }
     switch (scene->state) {
         case 0: {
-            u8* p = &mg->_1DF4;
+            u8* p = mg->hudPulseInd;
             i = 0;
             do {
                 *p = 0;
@@ -1249,12 +1249,12 @@ void fn_3_EAEF4(void) {
             scene->state = 1;
             break;
         case 1:
-            g_Minigame._19A0 = 0;
+            g_Minigame.toyField_pointsCountingInd = 0;
             i = 0;
             do {
                 int diff = g_Minigame.miniGameCurrentPoints[i] - g_Minigame.minigamePoints_current_Latest[i][0];
                 if (diff < 0) {
-                    g_Minigame._19A0 = 1;
+                    g_Minigame.toyField_pointsCountingInd = 1;
                     if ((OFFSCREEN_RECORD(scene, 0)->frame >> 16) >= 10) {
                         int step = diff / 8;
                         if (step != 0) {
@@ -1267,11 +1267,11 @@ void fn_3_EAEF4(void) {
                 }
                 i++;
             } while (i < g_Minigame.miniGameNumberOfParticipants);
-            if (g_Minigame._19A0 == 0) {
+            if (g_Minigame.toyField_pointsCountingInd == 0) {
                 i = 0;
                 do {
                     if (g_Minigame.miniGameCurrentPoints[i] != g_Minigame.minigamePoints_current_Latest[i][0]) {
-                        g_Minigame._19A0 = 1;
+                        g_Minigame.toyField_pointsCountingInd = 1;
                         scene->state = 2;
                     }
                     i++;
@@ -1279,12 +1279,12 @@ void fn_3_EAEF4(void) {
             }
             break;
         case 2:
-            g_Minigame._19A0 = 0;
+            g_Minigame.toyField_pointsCountingInd = 0;
             i = 0;
             do {
                 int diff = g_Minigame.miniGameCurrentPoints[i] - g_Minigame.minigamePoints_current_Latest[i][0];
                 if (diff > 0) {
-                    g_Minigame._19A0 = 1;
+                    g_Minigame.toyField_pointsCountingInd = 1;
                     scene->scratch[i] = 1;
                     if ((OFFSCREEN_RECORD(scene, 0)->frame >> 16) >= 10) {
                         int step = diff / 8;
@@ -1305,11 +1305,11 @@ void fn_3_EAEF4(void) {
                 }
                 i++;
             } while (i < g_Minigame.miniGameNumberOfParticipants);
-            if (g_Minigame._19A0 == 0) {
+            if (g_Minigame.toyField_pointsCountingInd == 0) {
                 i = 0;
                 do {
                     if (g_Minigame.miniGameCurrentPoints[i] != g_Minigame.minigamePoints_current_Latest[i][0]) {
-                        g_Minigame._19A0 = 1;
+                        g_Minigame.toyField_pointsCountingInd = 1;
                     }
                     i++;
                 } while (i < g_Minigame.miniGameNumberOfParticipants);
@@ -1320,7 +1320,7 @@ void fn_3_EAEF4(void) {
     if (g_UnkSound_32718._07 == 5) {
         scene->_22 = 1;
     }
-    OFFSCREEN_RECORD(scene, 0)->elementIndex = lbl_3_data_1A728[(s8)g_Minigame._19C6];
+    OFFSCREEN_RECORD(scene, 0)->elementIndex = lbl_3_data_1A728[(s8)g_Minigame.toyField_turnPlayer];
     if (scene->_22 != 0) {
         OFFSCREEN_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
     } else {
@@ -1348,7 +1348,7 @@ void fn_3_EAEF4(void) {
     } while (i < g_Minigame.miniGameNumberOfParticipants);
     i = 0;
     do {
-        u8 state = (&mg->_1DF4)[i];
+        u8 state = mg->hudPulseInd[i];
 
         if (state != 0) {
             switch (state) {
@@ -1361,7 +1361,7 @@ void fn_3_EAEF4(void) {
             }
             OFFSCREEN_RECORD_AT(scene, 0xD, i)->frame = 0;
             OFFSCREEN_RECORD_AT(scene, 0xD, i)->playMode = UI_PLAY_FORWARD;
-            (&mg->_1DF4)[i] = 0;
+            mg->hudPulseInd[i] = 0;
         }
         i++;
     } while (i < g_Minigame.miniGameNumberOfParticipants);
@@ -1414,7 +1414,7 @@ void fn_3_EA8FC(void) {
                     slot = i;
                 } else {
                     slot = g_Minigame.playerSlots
-                               ._14[(g_Minigame.turnNumberWithinRound + i) % g_Minigame.miniGameNumberOfParticipants];
+                               .playOrder[(g_Minigame.turnNumberWithinRound + i) % g_Minigame.miniGameNumberOfParticipants];
                 }
                 points = g_Minigame.minigamePoints_current_Latest[slot][1];
                 if (points != 0) {
@@ -1446,7 +1446,7 @@ void fn_3_EA8FC(void) {
                     load_Icon(scene, 6 + i * 4, 1, icon, points % 1000 / 100);
                     load_Icon(scene, 7 + i * 4, 1, icon, points % 100 / 10);
                     load_Icon(scene, 8 + i * 4, 1, icon, points % 10);
-                    if (g_Minigame._19A0 != 0) {
+                    if (g_Minigame.toyField_pointsCountingInd != 0) {
                         fn_3_125424(scene, 5 + i * 4, 8);
                         fn_3_125424(scene, 6 + i * 4, 8);
                         fn_3_125424(scene, 7 + i * 4, 8);
@@ -1586,7 +1586,7 @@ void toyfield_offScreenCharacterImage(void) {
     int dz;
     int slot;
 
-    if (animRelated[0x96] == 0 && g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame._19CE == 0 &&
+    if (animRelated[0x96] == 0 && g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame.toyField_turnEndState == 0 &&
         g_Minigame.turnOverStatus == 0) {
         s16* bounds = lbl_3_data_D638;
 
@@ -1765,9 +1765,9 @@ void minigame_pointsTally(void) {
                 OFFSCREEN_RECORD_AT(scene, 0x1C, i)->elementIndex = lbl_3_data_1AFA8[order[i][1]];
                 if (scene->_18 != 0) {
                     if (scene->_20 != 0) {
-                        NODE_SHOWN(i) = g_Minigame._1E22[player];
+                        NODE_SHOWN(i) = g_Minigame.grandPrixTotals[player];
                     } else {
-                        NODE_SHOWN(i) = g_Minigame._1E22[player + 4];
+                        NODE_SHOWN(i) = g_Minigame.grandPrixPrevTotals[player];
                     }
                 } else {
                     NODE_SHOWN(i) = g_Minigame.miniGameCurrentPoints[player];
@@ -1779,7 +1779,7 @@ void minigame_pointsTally(void) {
                 OFFSCREEN_RECORD_AT(scene, 0x25, i * 3)->playMode = UI_PLAY_FORWARD;
                 OFFSCREEN_RECORD_AT(scene, 0x26, i * 3)->playMode = UI_PLAY_FORWARD;
                 if (scene->_18 != 0 && scene->_20 == 0) {
-                    NODE_SHOWN(4 + i) = g_Minigame._1E22[player] - g_Minigame._1E22[player + 4];
+                    NODE_SHOWN(4 + i) = g_Minigame.grandPrixTotals[player] - g_Minigame.grandPrixPrevTotals[player];
                     count = NODE_SHOWN(4 + i);
                     if (count > 99) {
                         count = 99;
