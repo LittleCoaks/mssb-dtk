@@ -22,17 +22,8 @@ extern u8 animRelated[0x124];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 highLevelSimulationFlag[4];
 extern u8 lbl_80354768[];
-extern s16 lbl_3_data_FBF8[];
 extern s16 lbl_3_data_FC1C[];
-extern s16 lbl_3_data_FB04[];
-extern u8 guidedPracticeThresholds[][4];
-extern s16 hitVarsForFieldingPractice[][3];
 extern int random_fn_3_9EE24(int max);
-extern s16 lbl_3_data_FB44[][3];
-extern s16 lbl_3_data_FB80[][3];
-extern s16 lbl_3_data_FBBC[][3];
-extern void* practice_instructions_freePracticePtrs[4];
-extern void* practice_instructions_battingPtrs[4];
 extern void practice_loadCharacter(int arg0, int arg1, int arg2, int arg3);
 extern void transitionToPlayerControl(void);
 
