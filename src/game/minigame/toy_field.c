@@ -553,7 +553,7 @@ void toyFieldApplyGameSettings(void) {
         break;
     }
     g_Minigame.challengeModeInd = 1;
-    (&g_Minigame._19DA)[g_d_GameSettings._35] = g_d_GameSettings._35;
+    g_Minigame.selectSlotState[g_d_GameSettings._35] = g_d_GameSettings._35;
     lbl_3_common_bss_37400.humanTeam = g_d_GameSettings._35;
     g_Minigame.GameMode_MiniGame = g_d_GameSettings._33;
     g_Minigame.nextGameStatus = 30;
@@ -564,7 +564,7 @@ void toyFieldApplyGameSettings(void) {
 void toyFieldSetupOpponents(void) {
     int i;
     u8* src = lbl_3_data_18980;
-    (&g_Minigame._19DA)[g_d_GameSettings._35] = 0;
+    g_Minigame.selectSlotState[g_d_GameSettings._35] = 0;
     for (i = 0; i < 4; i++) {
         if (g_d_GameSettings._35 != i) {
             g_Minigame.playerSlots.aiStrength[i] = *src++;

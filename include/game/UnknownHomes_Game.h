@@ -1954,10 +1954,7 @@ typedef struct _MiniGameStruct {
     /*0x19D0*/ u8 _19D0;
     /*0x19D1*/ u8 _19D1;
     /*0x19D2*/ u16 charChangeFrames[4]; // frames since each slot's cursor last changed character
-    /*0x19DA*/ union {
-        u8 _19DA; // u8 view of selectSlotState[0]; toy_field.c indexes it with (&_19DA)[i]
-        s8 selectSlotState[4];
-    };
+    /*0x19DA*/ s8 selectSlotState[4];
     /*0x19DE*/ u8 charSelectState;
     /*0x19DF*/ u8 nextGameStatus;
     /*0x19E0*/ u8 charReselectInd;
