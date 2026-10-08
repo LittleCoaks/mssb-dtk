@@ -1379,7 +1379,7 @@ void gameplay_Camera(void) {
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame.toyField_turnEndState != 0) {
-        if (g_Minigame._19BA == 1) {
+        if (g_Minigame.toyField_turnEndFrames == 1) {
             camera_switchScene(0x67);
         }
     } else if (g_GameLogic.sceneID == SCENE_ID_AT_BAT || g_GameLogic.sceneID == SCENE_ID_REPLAY_AT_BAT) {

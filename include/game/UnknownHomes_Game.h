@@ -1861,8 +1861,8 @@ typedef struct _MiniGameStruct {
         struct {
             /*0x18CC*/ MiniGameControlStruct minigameControlStruct[2];
             /*0x18F8*/ u8 minigameFielderIndex[4];
-            /*0x18FC*/ u8 _18FC[4];
-            /*0x1900*/ u8 _1900[4];
+            /*0x18FC*/ u8 runnerPlayerIndexU8[4]; // u8 view of playerSlots.runnerPlayerIndex
+            /*0x1900*/ u8 playerRunnerIndexU8[4]; // u8 view of playerSlots.playerRunnerIndex
         };
         MinigamePlayerSlots playerSlots;
     };
@@ -1935,7 +1935,7 @@ typedef struct _MiniGameStruct {
     /*0x19B4*/ s16 toyField_selectedTurns;
     /*0x19B6*/ s16 toyField_turnNumber;
     /*0x19B8*/ s16 TF_framesSinceHittingPanel;
-    /*0x19BA*/ s16 _19BA;
+    /*0x19BA*/ s16 toyField_turnEndFrames;
     /*0x19BC*/ s16 _19BC;
     /*0x19BE*/ u8 toyField_roleRecord[4][2]; // per player: [0] last role, [1] turns in a row in it
     /*0x19C6*/ u8 toyField_turnPlayer;
@@ -2025,7 +2025,7 @@ typedef struct _MiniGameStruct {
     /*0x1A82*/ u8 wallIndexTracker[7];
     /*0x1A89*/ u8 wallBall_hitNoteBlock;
     /*0x1A8A*/ u8 wallBall_hitBowserWall;
-    /*0x1A8B*/ s8 _1A8B;
+    /*0x1A8B*/ s8 wallBall_bowserWallIndex;
     /*0x1A8C*/ u8 _1A8C[2];
     /*0x1A8E*/ s16 bOD_HitPowerOfEachChar[4];
     /*0x1A96*/ u8 bOD_celebrationAnimTimers[10];
@@ -2039,20 +2039,17 @@ typedef struct _MiniGameStruct {
     /*0x1AD5*/ u8 bOD_KingBombInd;
     /*0x1AD6*/ u8 bODAngleIndexBasedOnHitPower;
     /*0x1AD7*/ u8 bOD_hitFinishedInd;
-    /*0x1AD8*/ u8 _1AD8;
-    /*0x1AD9*/ u8 _1AD9;
+    /*0x1AD8*/ u8 bOD_kingBombTurn;
+    /*0x1AD9*/ u8 bOD_kingBombInning;
     /*0x1ADA*/ u8 barrelBatterChargeMeter;
     /*0x1ADB*/ u8 barrelBatter_scoreCalculatedInd;
     /*0x1ADC*/ s8 barrelBatter_hitBarrelID;
     /*0x1ADD*/ u8 barrelBatter_barrelsHit;
     /*0x1ADE*/ u8 _1ADE[2];
     /*0x1AE0*/ ChainChompSprintStruct ccs;
-    /*0x1B34*/ s16 _1B34;
-    /*0x1B36*/ u8 _1B36[6];
-    /*0x1B3C*/ s16 _1B3C;
-    /*0x1B3E*/ u8 _1B3E[6];
-    /*0x1B44*/ s16 _1B44;
-    /*0x1B46*/ u8 _1B46[6];
+    /*0x1B34*/ s16 pP_swingFrames[4]; // Piranha Panic, per player (PPState names the same bytes)
+    /*0x1B3C*/ s16 pP_stateFrames[4];
+    /*0x1B44*/ s16 pP_downFrames[4];
     /*0x1B4C*/ s16 _1B4C;
     /*0x1B4E*/ s16 _1B4E;
     /*0x1B50*/ s16 _1B50;
@@ -2113,10 +2110,9 @@ typedef struct _MiniGameStruct {
     /*0x1C81*/ u8 _1C81[9];
     /*0x1C8A*/ u8 _1C8A[4];
     /*0x1C8E*/ u8 _1C8E[4];
-    /*0x1C92*/ u8 _1C92[8];
-    /*0x1C9A*/ u8 _1C9A;
-    /*0x1C9B*/ u8 _1C9B;
-    /*0x1C9C*/ s16 _1C9C;
+    /*0x1C92*/ u8 pP_throwDirection[4]; // Piranha Panic, per player
+    /*0x1C96*/ u8 pP_unk1C96[4];
+    /*0x1C9A*/ u8 pP_hitState[4];
     /*0x1C9E*/ u8 _1C9E;
     /*0x1C9F*/ u8 _1C9F;
     /*0x1CA0*/ u8 _1CA0[2];
@@ -2169,7 +2165,7 @@ typedef struct _MiniGameStruct {
     /*0x1D79*/ u8 _1D79;
     /*0x1D7A*/ u8 _1D7A;
     /*0x1D7B*/ u8 _1D7B;
-    /*0x1D7C*/ InputStruct _1D7C[4];
+    /*0x1D7C*/ InputStruct aiInputs[4]; // synthetic pad input of AI-controlled players, read in place of g_Controls
     /*0x1DBC*/ u8 isAIControlled[4];
     /*0x1DC0*/ u8 ccs_aiControlledInd[4];
     /*0x1DC4*/ u8 portOfAIBeingProcessed[4];

@@ -660,7 +660,7 @@ static inline void ppUpdateCrouch(int p) {
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
 
     if (PP.aiControlled[p] != 0) {
-        input = &g_Minigame._1D7C[(s8)PP.character[p]];
+        input = &g_Minigame.aiInputs[(s8)PP.character[p]];
     }
     SATURATING_INCREMENT(PP.downFrames[p]);
     switch (PP.playerState[p]) {
@@ -712,7 +712,7 @@ void pP_UpdatePlayers(void) {
         fielder = &g_Fielders[PP.fielderIndex[i]];
         input = &g_Controls[(s8)PP.character[i]];
         if (PP.aiControlled[i] != 0) {
-            input = &g_Minigame._1D7C[(s8)PP.character[i]];
+            input = &g_Minigame.aiInputs[(s8)PP.character[i]];
         }
         if (PP.playerState[i] != 0) {
             ppUpdateCrouch(i);
@@ -849,7 +849,7 @@ void pP_UpdateCrouch(int p) {
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
 
     if (PP.aiControlled[p] != 0) {
-        input = &g_Minigame._1D7C[(s8)PP.character[p]];
+        input = &g_Minigame.aiInputs[(s8)PP.character[p]];
     }
     SATURATING_INCREMENT(PP.downFrames[p]);
     switch (PP.playerState[p]) {
@@ -1393,7 +1393,7 @@ void pP_InitAI(void) {
     PPAI* ai = PP.ai;
     s8 i;
 
-    memset(g_Minigame._1D7C, 0, 0x78);
+    memset(g_Minigame.aiInputs, 0, 0x78);
     i = 0;
     do {
         u8 aiStrength = PP.aiStrength[i];
@@ -1472,22 +1472,22 @@ u8 pP_AIThrow(s8 slot, u8 force) {
     if (hit) {
         switch (selection) {
             case 0:
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
                 break;
             case 1:
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
                 break;
             case 2:
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
                 break;
         }
         ai->selection = selection;
     } else {
-        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
-        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_B;
+        g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_B;
+        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_B;
     }
     ai->timer = RandomInt_Game_Range(pP_aiActionDelayRanges[aiStrength][0], pP_aiActionDelayRanges[aiStrength][1]);
     return 1;
@@ -1554,7 +1554,7 @@ void pP_UpdateAI(void) {
             target[i] = pP_AIFramesUntilHit(i);
             if (PP.aiControlled[i] != 0) {
                 u8 aiStrength;
-                memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
+                memset(&g_Minigame.aiInputs[character], 0, sizeof(InputStruct));
                 aiStrength = PP.aiStrength[i];
                 switch (ai[i].state) {
                     case 0:
@@ -1566,8 +1566,8 @@ void pP_UpdateAI(void) {
                                             ai[i].state = 1;
                                         }
                                     } else {
-                                        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                                         ai[i].state = 2;
                                     }
                                     break;
@@ -1577,14 +1577,14 @@ void pP_UpdateAI(void) {
                                             ai[i].state = 1;
                                         }
                                     } else {
-                                        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                                         ai[i].state = 2;
                                     }
                                     break;
                                 case 2:
-                                    g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                    g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                    g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                    g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                                     ai[i].state = 2;
                                     break;
                                 case 3:
@@ -1605,14 +1605,14 @@ void pP_UpdateAI(void) {
                         }
                         break;
                     case 2:
-                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                         if (PP.playerState[i] != 1) {
                             ai[i].state = 3;
                         }
                         break;
                     case 3:
                         if (target[i] >= 0) {
-                            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                         } else {
                             ai[i].state = 4;
                         }

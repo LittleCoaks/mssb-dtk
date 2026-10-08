@@ -658,7 +658,7 @@ void unusedBattingSomething(void) {
         if (slot >= 0 && slot < 4 && isCurrentRoster(i) &&
             g_Minigame.minigameControlStruct[0].battingHandedness[i] != 0) {
             g_Minigame.isAIControlled[slot] = TRUE;
-            memset(&g_Minigame._1D7C[slot], 0, sizeof(InputStruct));
+            memset(&g_Minigame.aiInputs[slot], 0, sizeof(InputStruct));
 
             switch (g_Pitcher.pitcherActionState) {
             case PITCHER_ACTION_STATE_WINDUP:
@@ -667,12 +667,12 @@ void unusedBattingSomething(void) {
                     *(u8 *)&g_Minigame.minigameAICountDownTillAction = 1;
                 }
                 if (g_Pitcher.windupCountdownUntilBallReleased <= g_Minigame.ai_wbChargePower_bbSwingFrame) {
-                    g_Minigame._1D7C[slot].buttonInput |= INPUT_BUTTON_A;
+                    g_Minigame.aiInputs[slot].buttonInput |= INPUT_BUTTON_A;
                 }
                 break;
             case PITCHER_ACTION_STATE_IN_AIR:
                 if (g_Ball.pitchHangtimeCounter < g_Pitcher.frameWhenUnhittable - *(s16 *)&g_Minigame.ai_wbThrowType_bbVertAngle) {
-                    g_Minigame._1D7C[slot].buttonInput |= INPUT_BUTTON_A;
+                    g_Minigame.aiInputs[slot].buttonInput |= INPUT_BUTTON_A;
                 }
                 break;
             }

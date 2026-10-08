@@ -919,7 +919,6 @@ static inline void pmDisableWallBallEffects(void) {
 /* Record `i` of the group that starts at handle offset `base` within the node. */
 #define PM_REC_AT(scene, base, i) \
     ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
-#define MG_BYTE(off) (((u8*)&g_Minigame)[off])
 
 extern void convertTextureHeader(void* tex);
 extern void UpdateTexturePalettePointers(void* geo, void* tex);

@@ -130,7 +130,7 @@ static inline void bOD_AI(void) {
         if (slot >= 0 && slot < 4 && bOD_isCurrentRoster(i) &&
             g_Minigame.minigameControlStruct[0].battingHandedness[i] != 0) {
             g_Minigame.isAIControlled[slot] = TRUE;
-            memset(&g_Minigame._1D7C[slot], 0, sizeof(InputStruct));
+            memset(&g_Minigame.aiInputs[slot], 0, sizeof(InputStruct));
 
             switch (g_Pitcher.pitcherActionState) {
             case PITCHER_ACTION_STATE_WINDUP:
@@ -139,12 +139,12 @@ static inline void bOD_AI(void) {
                     *(u8 *)&g_Minigame.minigameAICountDownTillAction = 1;
                 }
                 if (g_Pitcher.windupCountdownUntilBallReleased <= g_Minigame.ai_wbChargePower_bbSwingFrame) {
-                    g_Minigame._1D7C[slot].buttonInput |= INPUT_BUTTON_A;
+                    g_Minigame.aiInputs[slot].buttonInput |= INPUT_BUTTON_A;
                 }
                 break;
             case PITCHER_ACTION_STATE_IN_AIR:
                 if (g_Ball.pitchHangtimeCounter < g_Pitcher.frameWhenUnhittable - *(s16 *)&g_Minigame.ai_wbThrowType_bbVertAngle) {
-                    g_Minigame._1D7C[slot].buttonInput |= INPUT_BUTTON_A;
+                    g_Minigame.aiInputs[slot].buttonInput |= INPUT_BUTTON_A;
                 }
                 break;
             }
@@ -262,8 +262,8 @@ void bOD_LoadGame(void) {
             g_Minigame.minigamePoints_current_Latest[i][0] = 0;
             g_Minigame.minigamePoints_current_Latest[i][1] = 0;
             g_Minigame.minigameControlStruct[1].aIStrength[i + 2] = -1;
-            g_Minigame._18FC[i] = -1;
-            g_Minigame._1900[i] = -1;
+            g_Minigame.runnerPlayerIndexU8[i] = -1;
+            g_Minigame.playerRunnerIndexU8[i] = -1;
             g_Minigame.minigameControlStruct[1].battingHandedness[i + 2] = 1;
             g_Minigame.minigameFielderIndex[i] = -1;
             g_Minigame.bOD_HitPowerOfEachChar[i] = 0;
@@ -310,17 +310,17 @@ void bOD_LoadGame(void) {
         if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0) {
             if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0 &&
                 g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
-                g_Minigame._1AD8 = 9;
+                g_Minigame.bOD_kingBombTurn = 9;
             } else {
-                g_Minigame._1AD8 = RandomInt_Game_Range(4, 9);
+                g_Minigame.bOD_kingBombTurn = RandomInt_Game_Range(4, 9);
             }
-            g_Minigame._1AD9 = 1;
+            g_Minigame.bOD_kingBombInning = 1;
         } else if (g_Minigame.grandPrixInd != 0) {
-            g_Minigame._1AD8 = RandomInt_Game_Range(0, 2);
-            g_Minigame._1AD9 = RandomInt_Game_Range(2, 3);
+            g_Minigame.bOD_kingBombTurn = RandomInt_Game_Range(0, 2);
+            g_Minigame.bOD_kingBombInning = RandomInt_Game_Range(2, 3);
         } else {
-            g_Minigame._1AD8 = 9;
-            g_Minigame._1AD9 = 1;
+            g_Minigame.bOD_kingBombTurn = 9;
+            g_Minigame.bOD_kingBombInning = 1;
         }
 
         g_GameLogic._125++;
@@ -441,7 +441,7 @@ void bOD_ResetPlayState(void) {
     setDefaultInMemBatter();
     setDefaultInMemRunner();
     setDefaultInMemFielder();
-    memset(&g_Minigame._1D7C, 0, 0x78);
+    memset(&g_Minigame.aiInputs, 0, 0x78);
     pauseAnimations();
     Set_803cb848(1);
 
@@ -904,7 +904,7 @@ s32 bOD_EstimatePitchFrames(void) {
 
 // .text:0x00110A04 size:0x34 mapped:0x8074FA98
 void bOD_ClearInputs(void) {
-    memset(&g_Minigame._1D7C, 0, 0x78);
+    memset(&g_Minigame.aiInputs, 0, 0x78);
 }
 
 // .text:0x00110634 size:0x3D0 mapped:0x8074F6C8

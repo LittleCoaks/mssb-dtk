@@ -430,7 +430,7 @@ void waitingForPitch(void) {
         }
         controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
         if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) != 0) {
-            controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+            controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
         }
         if (g_Pitcher.AIInd != 0) {
             pitcherAI_prePitchSetConstants();
@@ -478,7 +478,7 @@ void pitcherMovementOnMound(void) {
         controls = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) !=
                0) {
-        controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+        controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     }
@@ -517,7 +517,7 @@ void pitchingWindUpFunction(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
         controls = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) != 0) {
-        controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+        controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         if (MINIGAME_SELECTED_ORDER >= 0) {
             controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
@@ -1136,7 +1136,7 @@ void pitchSetPhysicsConstants(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
         controls = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) != 0) {
-        controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+        controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     } else if (g_d_GameSettings.minigamesEnabled && MINIGAME_SELECTED_ORDER >= 0) {
         controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     }
@@ -1441,7 +1441,7 @@ void pitchCurve(void) {
                 controls = &g_Practice.inputs[g_GameLogic.teamFielding];
             } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) !=
                        0) {
-                controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+                controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             } else if (g_d_GameSettings.minigamesEnabled) {
                 controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             }
@@ -1819,7 +1819,7 @@ BOOL waitingForPitch_checkForPickoffs(void) {
                 controls = &g_Practice.inputs[g_GameLogic.teamFielding];
             } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) !=
                        0) {
-                controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+                controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             } else if (g_d_GameSettings.minigamesEnabled && MINIGAME_SELECTED_ORDER >= 0) {
                 controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             }

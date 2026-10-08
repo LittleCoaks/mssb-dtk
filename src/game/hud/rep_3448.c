@@ -173,7 +173,6 @@ extern u8 lbl_3_data_9D50[][5];
 extern u8 lbl_3_data_A594[];
 extern u8 superstarUnlocked[0x130];
 
-#define MG_S16(off) (*(s16*)&MG_BYTE(off))
 extern u16 lbl_3_data_93F4[][2];
 extern u16 lbl_3_data_93D4[][2];
 extern void fn_8000F8F4(void* node);
@@ -219,7 +218,7 @@ void minigameGraphics(void) {
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
             node = insertGraphicDrawingFunction(fn_3_11DECC, 2);
-            *(DrawingSceneStruct**)((u8*)&g_Minigame + 0x1E04) = node;
+            *(DrawingSceneStruct**)&g_Minigame.resultsScene = node;
         }
     } else {
         if (status == GAME_STATUS_MINIGAME_POST_MENU) {
@@ -237,7 +236,7 @@ void minigameGraphics(void) {
                     insertGraphicDrawingFunction(mm_DrawResultCode, 2);
                 }
                 node = insertGraphicDrawingFunction(fn_3_127B68, 2);
-                *(DrawingSceneStruct**)((u8*)&g_Minigame + 0x1E04) = node;
+                *(DrawingSceneStruct**)&g_Minigame.resultsScene = node;
             }
             if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
                 insertGraphicDrawingFunction(fn_3_1274B4, 2);
@@ -409,7 +408,7 @@ void fn_3_12CA90(void) {
 // .text:0x0012C984 size:0x10C
 void fn_3_12C984(void) {
     if (animRelated[0xB6] != 0) {
-        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         insertGraphicDrawingFunction(fn_3_121908, 2);
         if (g_Minigame.multiPlayerInd != 0) {
             insertGraphicDrawingFunction(minigameStateLogic, 2);
@@ -430,7 +429,7 @@ void fn_3_12C984(void) {
 // .text:0x0012C868 size:0x11C
 void fn_3_12C868(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING) {
-        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         insertGraphicDrawingFunction(fn_3_12026C, 2);
         insertGraphicDrawingFunction(fn_3_12089C, 2);
         if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0
@@ -452,7 +451,7 @@ void fn_3_12C868(void) {
 // .text:0x0012C74C size:0x11C
 void fn_3_12C74C(void) {
     if (animRelated[0xB6] != 0) {
-        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         if (g_Minigame.multiPlayerInd == 0) {
             insertGraphicDrawingFunction(fn_3_11F508, 2);
         }
@@ -475,7 +474,7 @@ void fn_3_12C74C(void) {
 void fn_3_12C684(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
         && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
-        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         insertGraphicDrawingFunction(fn_3_123990, 2);
         insertGraphicDrawingFunction(fn_3_123EBC, 2);
         insertGraphicDrawingFunction(fn_3_11EC28, 2);
@@ -491,7 +490,7 @@ void fn_3_12C684(void) {
 void fn_3_12C5CC(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
         && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
-        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         insertGraphicDrawingFunction(fn_3_123990, 2);
         insertGraphicDrawingFunction(fn_3_123EBC, 2);
         insertGraphicDrawingFunction(fn_3_124CE0, 2);
@@ -506,7 +505,7 @@ void fn_3_12C5CC(void) {
 void fn_3_12C514(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
         && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
-        memset((u8*)&g_Minigame + 0x1DF4, 0, 0xE);
+        memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         insertGraphicDrawingFunction(fn_3_123990, 2);
         insertGraphicDrawingFunction(fn_3_123EBC, 2);
         insertGraphicDrawingFunction(fn_3_124CE0, 2);
@@ -1645,13 +1644,13 @@ void fn_3_127B68(void) {
     scene = (MinigameHudScene*)node;
     shown = (s16*)node;
     if (scene->state >= 6) {
-        *(u32*)((u8*)&g_Minigame + 0x1E04) = 0;
+        *(u32*)&g_Minigame.resultsScene = 0;
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
     }
     if (g_GameLogic.gameStatus != GAME_STATUS_0x24) {
-        *(u32*)((u8*)&g_Minigame + 0x1E04) = 0;
+        *(u32*)&g_Minigame.resultsScene = 0;
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3393,7 +3392,7 @@ void fn_3_121908(void) {
             } else {
                 tier = g_Minigame.soloMinigameDifficulty;
             }
-            if (g_Minigame.miniGameTurnCounter % 10 == g_Minigame._1AD8) {
+            if (g_Minigame.miniGameTurnCounter % 10 == g_Minigame.bOD_kingBombTurn) {
                 scene->_20 = 3;
             } else {
                 scene->_20 = RandomIndexFromWeights(&bOD_bB_pitchRouletteWeights[tier * 6], 6);
@@ -3401,7 +3400,7 @@ void fn_3_121908(void) {
             scene->_22 = 1;
         } else if (g_Minigame.grandPrixInd != 0 && g_Minigame.humanPlayerCount == 1
                    && g_Minigame.playerSlots.aiControlledInd[g_Minigame.rosterID] == 0) {
-            if (g_Minigame.miniGameTurnCounter % 10 == g_Minigame._1AD8 && g_Scores.Inning == g_Minigame._1AD9) {
+            if (g_Minigame.miniGameTurnCounter % 10 == g_Minigame.bOD_kingBombTurn && g_Scores.Inning == g_Minigame.bOD_kingBombInning) {
                 scene->_20 = 3;
             } else {
                 scene->_20 = RandomIndexFromWeights(bOD_bB_pitchRouletteWeightsDefault, 6);

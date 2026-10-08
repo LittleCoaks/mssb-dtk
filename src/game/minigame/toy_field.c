@@ -248,7 +248,6 @@ s16 minigameTuningConstants[10] = {
 
 #define TOY_FIELD_COIN_COUNT 100
 #define MG_BYTE(offset) (*((u8*)&g_Minigame + (offset)))
-#define MG_SBYTE(offset) (*((s8*)&g_Minigame + (offset)))
 
 #define SATURATING_INCREMENT(counter) \
     if ((counter) < 0x7FFE) {         \
@@ -1128,7 +1127,7 @@ void toyFieldLiveBallOutcome(void) {
         if (g_Minigame.toyField_turnEndState == 1) {
             TOY_FIELD_AWARD_POINTS(lbl_3_data_18BB8[36], lbl_3_data_18BB8[37], lbl_3_data_18BB8[38]);
             toyFieldRecordPoints();
-            g_Minigame._19BA = 0;
+            g_Minigame.toyField_turnEndFrames = 0;
             g_Minigame.toyField_turnEndState = 2;
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.toyField_prevRunnerOn[i] != 0) {
@@ -1139,8 +1138,8 @@ void toyFieldLiveBallOutcome(void) {
                 toyFieldPlayHazardSound(0x1A, 0x34);
             }
         }
-        SATURATING_INCREMENT(g_Minigame._19BA);
-        if (g_Minigame._19BA > minigameTuningConstants[3]) {
+        SATURATING_INCREMENT(g_Minigame.toyField_turnEndFrames);
+        if (g_Minigame.toyField_turnEndFrames > minigameTuningConstants[3]) {
             g_Minigame.toyField_turnEndState = 3;
         }
     }
@@ -2195,7 +2194,7 @@ void fn_3_D8A10(void) {
         int i;
         TOY_FIELD_AWARD_POINTS(lbl_3_data_18BB8[36], lbl_3_data_18BB8[37], lbl_3_data_18BB8[38]);
         toyFieldRecordPoints();
-        g_Minigame._19BA = 0;
+        g_Minigame.toyField_turnEndFrames = 0;
         g_Minigame.toyField_turnEndState = 2;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.toyField_prevRunnerOn[i] != 0) {
@@ -2206,8 +2205,8 @@ void fn_3_D8A10(void) {
             toyFieldPlayHazardSound(0x1A, 0x34);
         }
     }
-    SATURATING_INCREMENT(g_Minigame._19BA);
-    if (g_Minigame._19BA > minigameTuningConstants[3]) {
+    SATURATING_INCREMENT(g_Minigame.toyField_turnEndFrames);
+    if (g_Minigame.toyField_turnEndFrames > minigameTuningConstants[3]) {
         g_Minigame.toyField_turnEndState = 3;
     }
 }

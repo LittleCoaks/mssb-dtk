@@ -373,7 +373,7 @@ void batterHumanControlled(void) {
         }
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -510,7 +510,7 @@ void batterInBoxMovement(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -1240,7 +1240,7 @@ static inline InputStruct* selectBattingInput(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -1330,7 +1330,7 @@ void calculateVerticalAngle(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -1656,7 +1656,7 @@ void calculateBuntHorizontalAngle(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }

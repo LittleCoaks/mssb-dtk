@@ -1172,7 +1172,7 @@ void fn_3_13DEA4(void) {
     ChainChompSprintAI* ai = g_Minigame.ccsAI;
     s8 i;
 
-    memset(g_Minigame._1D7C, 0, 0x78);
+    memset(g_Minigame.aiInputs, 0, 0x78);
     i = 0;
     do {
         u8 strength = g_Minigame.playerSlots.aiStrength[i];
@@ -1353,7 +1353,7 @@ void fn_3_13C7BC(void) {
             continue;
         }
         g_Minigame.ccs_aiControlledInd[c] = 1;
-        memset(&g_Minigame._1D7C[c], 0, sizeof(InputStruct));
+        memset(&g_Minigame.aiInputs[c], 0, sizeof(InputStruct));
         strength = g_Minigame.playerSlots.aiStrength[i];
         if ((ai->state < 10 || ai->state > 13) &&
             (g_Minigame.ccs.chompState == 1 || g_Minigame.ccs._26 - g_Minigame.ccs.chompStateTimer <= ai->_0)) {
@@ -1366,7 +1366,7 @@ void fn_3_13C7BC(void) {
                 break;
             }
             if (ai->_4-- <= 0) {
-                g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_B;
+                g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_B;
                 ai->_4 = RandomInt_Game_Range(ccsAI_bPressDelayRanges[strength][0], ccsAI_bPressDelayRanges[strength][1]);
             }
             if (ai->_7-- > 0) {
@@ -1424,7 +1424,7 @@ void fn_3_13C7BC(void) {
             if (g_Runners[i].runningDirectionCode == 1 || g_Runners[i].nextDirectionBeingProcessed == 1) {
                 ai->state = 0;
             } else {
-                g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_Y;
+                g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
                 ai->state = 2;
             }
             break;
@@ -1432,14 +1432,14 @@ void fn_3_13C7BC(void) {
             ai->state = 3;
             break;
         case 3:
-            g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_Y;
+            g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
             ai->state = 0;
             break;
         case 4:
             if (g_Runners[i].runningDirectionCode == 3 || g_Runners[i].nextDirectionBeingProcessed == 3) {
                 ai->state = 0;
             } else {
-                g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_X;
+                g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
                 ai->state = 5;
             }
             break;
@@ -1447,14 +1447,14 @@ void fn_3_13C7BC(void) {
             ai->state = 6;
             break;
         case 6:
-            g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_X;
+            g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
             ai->state = 0;
             break;
         case 7:
             if (g_Runners[i].runningDirectionCode == 1) {
-                g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_X;
+                g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
             } else if (g_Runners[i].runningDirectionCode == 3) {
-                g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_Y;
+                g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
             }
             ai->state = 8;
             break;
@@ -1495,9 +1495,9 @@ void fn_3_13C7BC(void) {
         case 11:
             if (ai->_3-- <= 0) {
                 if (g_Runners[i].runningDirectionCode == 1) {
-                    g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_X;
+                    g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
                 } else if (g_Runners[i].runningDirectionCode == 3) {
-                    g_Minigame._1D7C[c].buttonInput = g_Minigame._1D7C[c].newButtonInput |= INPUT_BUTTON_Y;
+                    g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
                 }
                 ai->state = 12;
             }

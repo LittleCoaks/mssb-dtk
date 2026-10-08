@@ -56,7 +56,6 @@ extern void fn_80051D00(void);
 extern void fn_80050F78(int arg0);
 extern void fn_8004D0F0(void);
 
-#define MG_BYTE(off) (((u8*)&g_Minigame)[off])
 #define SET_MENU(id)               \
     menuNumber[0] = (id);          \
     menuNumber[9] = menuNumber[8]; \
@@ -419,7 +418,7 @@ void toyfield_drawHud(void) {
         ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_EA8FC, 2))->_18 = 1;
         insertGraphicDrawingFunction(fn_3_EAEF4, 2);
     }
-    if (g_Minigame.toyField_turnEndState != 0 && g_Minigame._19BA == 1) {
+    if (g_Minigame.toyField_turnEndState != 0 && g_Minigame.toyField_turnEndFrames == 1) {
         insertGraphicDrawingFunction(fn_3_ED2A8, 2);
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME ||

@@ -1990,7 +1990,7 @@ void sD_InitAI(void) {
     u8 strength;
     u32 i;
 
-    memset(g_Minigame._1D7C, 0, 0x78);
+    memset(g_Minigame.aiInputs, 0, 0x78);
     for (i = 0; i < 4; i++) {
         strength = g_Minigame.playerSlots.aiStrength[i];
         ai->angle = -1;
@@ -2459,9 +2459,9 @@ void sD_UpdateAI(void) {
             continue;
         }
         g_Minigame.aiDrivenInputInd[character] = 1;
-        memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
-        g_Minigame._1D7C[character].controlStickAngle = -1;
-        input = &g_Minigame._1D7C[character];
+        memset(&g_Minigame.aiInputs[character], 0, sizeof(InputStruct));
+        g_Minigame.aiInputs[character].controlStickAngle = -1;
+        input = &g_Minigame.aiInputs[character];
         strength = g_Minigame.playerSlots.aiStrength[p];
         sD_ToFireBarSpace(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, &rx, &rz);
         quadrant = sD_GetQuadrant(rx, rz);
@@ -2469,7 +2469,7 @@ void sD_UpdateAI(void) {
         case 0:
             if (drawStadiumRelated != 0 && dash->sprintSpeedMultiplier <= sD_aiSprintThresholds[strength]) {
                 if (SD.fireBarPhase == 0 || p == SD.holder || sD_FireBarZone(rx, rz, 5.0f) == 0) {
-                    g_Minigame._1D7C[character].buttonInput = g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
+                    g_Minigame.aiInputs[character].buttonInput = g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_B;
                 }
             }
             targetQuadrant = 4;
@@ -2583,8 +2583,8 @@ void sD_UpdateAI(void) {
         case 2:
             input->controlStickAngle = normalizeAngle(sdTangentAngle(p));
             if (ai->counter-- <= 0) {
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A;
                 ai->state = 3;
             }
             break;

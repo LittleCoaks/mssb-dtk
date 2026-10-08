@@ -285,7 +285,7 @@ void resetAndRunAnimations(int arg) {
     if (hugeAnimStruct._307D == 0) {
         for (k = 0; k < 4; k++) {
             if (!g_d_GameSettings.minigamesEnabled || (k == 0 && (s8)g_Minigame.rosterID >= 0) ||
-                (s8)g_Minigame._18FC[k] >= 0) {
+                (s8)g_Minigame.runnerPlayerIndexU8[k] >= 0) {
                 lbl_3_common_bss_321A0[k]._10 = -1;
                 lbl_3_common_bss_321A0[k]._18 = 0;
                 lbl_3_common_bss_321A0[k]._19 = 0;
@@ -699,7 +699,7 @@ void minigameEndOfGameAnimations(void) {
             } else {
                 us80893314[2] = 0;
             }
-        } else if (status == GAME_STATUS_0x27 && ((u8*)&g_Minigame)[0x1A3D] == 1) {
+        } else if (status == GAME_STATUS_0x27 && g_Minigame.grandPrixFinalHumanCount == 1) {
             s8 player = g_Minigame.soloPlayerSlot;
             BOOL found = FALSE;
 
@@ -709,8 +709,8 @@ void minigameEndOfGameAnimations(void) {
                     break;
                 }
             }
-            if (((u8*)&g_Minigame)[0x1E09] == 0 && ((u8*)&g_Minigame)[0x1E0B] == 0 && ((u8*)&g_Minigame)[0x1E0D] == 0 &&
-                ((u8*)&g_Minigame)[0x1E0F] == 0) {
+            if (g_Minigame.grandPrixRanks[0][1] == 0 && g_Minigame.grandPrixRanks[1][1] == 0 && g_Minigame.grandPrixRanks[2][1] == 0 &&
+                g_Minigame.grandPrixRanks[3][1] == 0) {
                 us80893314[2 + player] = 2;
             } else if (found) {
                 us80893314[2 + player] = 0;
@@ -719,8 +719,8 @@ void minigameEndOfGameAnimations(void) {
             }
         } else if (g_Minigame.miniGameNumberOfParticipants == 1) {
             u8 difficulty = g_Minigame.soloMinigameDifficulty;
-            u8 a = ((u8*)&g_Minigame)[0x19AA];
-            u8 b = ((u8*)&g_Minigame)[0x1A37];
+            u8 a = g_Minigame.newRecordInd;
+            u8 b = g_Minigame.winLossResult;
 
             for (k = 0; k < 4; k++) {
                 if (((s8*)&g_Minigame)[0x18CC + k] >= 0) {
@@ -738,7 +738,7 @@ void minigameEndOfGameAnimations(void) {
                 }
             }
         } else {
-            u8 x = ((u8*)&g_Minigame)[0x19A8];
+            u8 x = g_Minigame.challenge_minigame_haven_tWonYetIndicator;
 
             for (k = 0; k < 4; k++) {
                 if (((s8*)&g_Minigame)[0x18CC + k] >= 0) {
@@ -755,7 +755,7 @@ void minigameEndOfGameAnimations(void) {
     }
 
     if ((!g_d_GameSettings.minigamesEnabled && g_GameLogic._125 < 4) ||
-        (g_d_GameSettings.minigamesEnabled && ((u8*)&g_Minigame)[0x19A9] <= 1)) {
+        (g_d_GameSettings.minigamesEnabled && g_Minigame.endSequencePhase <= 1)) {
         for (k = 0; k < 4; k++) {
             if (!g_d_GameSettings.minigamesEnabled) {
                 idx = 9;
@@ -788,9 +788,9 @@ void minigameEndOfGameAnimations(void) {
             }
         }
     } else if ((!g_d_GameSettings.minigamesEnabled && g_GameLogic._125 == 4 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) ||
-               (g_d_GameSettings.minigamesEnabled && ((u8*)&g_Minigame)[0x19A9] == 2) ||
+               (g_d_GameSettings.minigamesEnabled && g_Minigame.endSequencePhase == 2) ||
                (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic._125 == 0)) {
-        ((u8*)&g_Minigame)[0x19A9] = 3;
+        g_Minigame.endSequencePhase = 3;
         for (k = 0; k < 4; k++) {
             if (!g_d_GameSettings.minigamesEnabled) {
                 idx = 9;
@@ -989,7 +989,7 @@ void pitcherAnimation(void) {
     }
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL && g_Minigame.soloMinigameDifficulty == 3) {
-        if (((u8*)&g_Minigame)[0x1A8C] == 0) {
+        if (g_Minigame._1A8C[0] == 0) {
             return;
         }
         if (obj->animId == 0x40) {
@@ -999,7 +999,7 @@ void pitcherAnimation(void) {
         }
         QueueCharacterAnimation(idx, 0x3F, 1, 1, 0, flag, 0xC);
         us80893310.state = 3;
-        ((u8*)&g_Minigame)[0x1A8C] = 0;
+        g_Minigame._1A8C[0] = 0;
         return;
     }
 
@@ -1157,8 +1157,8 @@ void batterAnimations(void) {
             trigger = FALSE;
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
                 if (g_d_GameSettings.GameModeSelected == 6) {
-                    if (((u8*)&g_Minigame)[0x19A5] != 0) {
-                        ((u8*)&g_Minigame)[0x19A5] = 0;
+                    if (g_Minigame._19A5 != 0) {
+                        g_Minigame._19A5 = 0;
                         trigger = TRUE;
                     }
                 } else if (g_Pitcher.nPitchesThisAB == 0 && g_Pitcher.nPickoffAttempts == 0 &&
@@ -1382,7 +1382,7 @@ void runnerAnimations(void) {
         InMemRunnerType* runner = &g_Runners[i];
 
         slot->prevState = slot->state;
-        if (g_d_GameSettings.minigamesEnabled && (s8)g_Minigame._18FC[i] < 0) {
+        if (g_d_GameSettings.minigamesEnabled && (s8)g_Minigame.runnerPlayerIndexU8[i] < 0) {
             continue;
         }
         if (runner->runnerOnFieldOrOutOrScored == 0) {
@@ -1456,7 +1456,7 @@ void runnerAnimation_general(int runnerIdx) {
     u8 cls;
 
     if (g_d_GameSettings.minigamesEnabled) {
-        idx = ((s8*)&g_Minigame)[0x18FC + runnerIdx];
+        idx = g_Minigame.playerSlots.runnerPlayerIndex[runnerIdx];
         obj = hugeAnimStruct.objects[idx];
     }
     if (obj != NULL) {
@@ -1829,7 +1829,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
 
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_WALLBALL) {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
-            u8 state = (&g_Minigame._1C9A)[fielder->_020D];
+            u8 state = g_Minigame.pP_hitState[fielder->_020D];
             if (state == 1) {
                 if (animId != 0x24) {
                     playCharacterSound(fielder->CharID, 10);
@@ -2462,7 +2462,7 @@ BOOL fielderBodyCheckAnimation(int fielderIdx) {
 BOOL minigameFielderAnimCheck(int fielderIdx) {
     int idx = MINIGAME_SLOT_OF(fielderIdx);
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
-    s16 flag = (&g_Minigame._1B34)[idx];
+    s16 flag = g_Minigame.pP_swingFrames[idx];
     AnimObject* obj = hugeAnimStruct.objects[idx];
     s16 animId = obj->animId;
 
@@ -2473,7 +2473,7 @@ BOOL minigameFielderAnimCheck(int fielderIdx) {
         return FALSE;
     }
     if (flag == 0) {
-        if ((int)g_Minigame._1C92[idx] == 3) {
+        if ((int)g_Minigame.pP_throwDirection[idx] == 3) {
             AnimateCharacter(idx, 0x1F, 0, 3, 0, 0, slot->_40, -1);
         } else {
             AnimateCharacter(idx, 0x1D, 0, 3, 0, 0, slot->_40, -1);

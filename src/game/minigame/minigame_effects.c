@@ -2208,7 +2208,7 @@ void fn_3_14D44C(MGEffect* effect, int barrelIndex) {
 
 // .text:0x14D318 size:0x134
 void fn_3_14D318(MGParticle* p) {
-    Vec* barrel = (Vec*)((u8*)&g_Minigame + 0x860 + p->_45 * 0x34);
+    Vec* barrel = (Vec*)&g_Minigame.barrels[p->_45];
 
     p->origin.x = barrel->x;
     p->origin.y = barrel->y - bB_barrelConsts[3] * 0.5f;

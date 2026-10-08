@@ -220,40 +220,40 @@ void wallBallInitializeValues(void) {
         g_Minigame.miniGameLatestPoints[0] = 0;
         g_Minigame.minigamePoints_current_Latest[0][0] = 0;
         g_Minigame.minigamePoints_current_Latest[0][1] = 0;
-        *(s8*)&g_Minigame.minigameControlStruct[1].aIStrength[2] = -1;
+        g_Minigame.playerSlots.participantSlot[0] = -1;
         ((s8*)g_Minigame.minigameFielderIndex)[0] = -1;
-        ((s8*)g_Minigame._18FC)[0] = -1;
-        *(s8*)&g_Minigame._1900[0] = -1;
+        g_Minigame.playerSlots.runnerPlayerIndex[0] = -1;
+        g_Minigame.playerSlots.playerRunnerIndex[0] = -1;
         g_Minigame.minigameControlStruct[1].battingHandedness[2] = 0;
 
         g_Minigame.miniGameCurrentPoints[1] = 0;
         g_Minigame.miniGameLatestPoints[1] = 0;
         g_Minigame.minigamePoints_current_Latest[1][0] = 0;
         g_Minigame.minigamePoints_current_Latest[1][1] = 0;
-        *(s8*)&g_Minigame.minigameControlStruct[1].aIStrength[3] = -1;
+        g_Minigame.playerSlots.participantSlot[1] = -1;
         ((s8*)g_Minigame.minigameFielderIndex)[1] = -1;
-        ((s8*)g_Minigame._18FC)[1] = -1;
-        *(s8*)&g_Minigame._1900[1] = -1;
+        g_Minigame.playerSlots.runnerPlayerIndex[1] = -1;
+        g_Minigame.playerSlots.playerRunnerIndex[1] = -1;
         g_Minigame.minigameControlStruct[1].battingHandedness[3] = 0;
 
         g_Minigame.miniGameCurrentPoints[2] = 0;
         g_Minigame.miniGameLatestPoints[2] = 0;
         g_Minigame.minigamePoints_current_Latest[2][0] = 0;
         g_Minigame.minigamePoints_current_Latest[2][1] = 0;
-        *(s8*)&g_Minigame.minigameControlStruct[1].aIStrength[4] = -1;
+        g_Minigame.playerSlots.participantSlot[2] = -1;
         ((s8*)g_Minigame.minigameFielderIndex)[2] = -1;
-        ((s8*)g_Minigame._18FC)[2] = -1;
-        *(s8*)&g_Minigame._1900[2] = -1;
+        g_Minigame.playerSlots.runnerPlayerIndex[2] = -1;
+        g_Minigame.playerSlots.playerRunnerIndex[2] = -1;
         g_Minigame.minigameControlStruct[1].battingHandedness[4] = 0;
 
         g_Minigame.miniGameCurrentPoints[3] = 0;
         g_Minigame.miniGameLatestPoints[3] = 0;
         g_Minigame.minigamePoints_current_Latest[3][0] = 0;
         g_Minigame.minigamePoints_current_Latest[3][1] = 0;
-        *(s8*)&g_Minigame.minigameControlStruct[1].aIStrength[5] = -1;
+        g_Minigame.playerSlots.participantSlot[3] = -1;
         ((s8*)g_Minigame.minigameFielderIndex)[3] = -1;
-        ((s8*)g_Minigame._18FC)[3] = -1;
-        *(s8*)&g_Minigame._1900[3] = -1;
+        g_Minigame.playerSlots.runnerPlayerIndex[3] = -1;
+        g_Minigame.playerSlots.playerRunnerIndex[3] = -1;
         g_Minigame.minigameControlStruct[1].battingHandedness[5] = 0;
 
         g_Scores.Inning = 0;
@@ -313,7 +313,7 @@ void wallBallInitializeValues(void) {
         g_Minigame.wallBallRotatePitchersInd = FALSE;
         g_Minigame.wallBall_hitNoteBlock = 0;
         g_Minigame.wallBall_hitBowserWall = 0;
-        g_Minigame._1A8B = -1;
+        g_Minigame.wallBall_bowserWallIndex = -1;
         g_Minigame.wallBall_UnknownAlways0 = 0;
         g_Minigame._1A8C[0] = 0;
 
@@ -375,7 +375,7 @@ void wallBallPrepareNextPitch(void) {
     g_Minigame.wallBallPitchPowerRemaining = 0;
     g_Minigame.wallBall_hitNoteBlock = 0;
     g_Minigame.wallBall_hitBowserWall = 0;
-    g_Minigame._1A8B = -1;
+    g_Minigame.wallBall_bowserWallIndex = -1;
     g_Ball.totalFramesAtPlay = 0;
 
     if (g_Minigame.miniGameTurnCounter == 0) {
@@ -404,7 +404,7 @@ void wallBallResetPlayState(void) {
     setDefaultInMemBall();
     setDefaultInMemPitcher();
     setDefaultInMemFielder();
-    memset(&g_Minigame._1D7C, 0, 0x78);
+    memset(&g_Minigame.aiInputs, 0, 0x78);
     Set_803cb848(TRUE);
     g_FieldingLogic.playOverCounter = 0;
     g_UnkSimulation_31AC0._05 = 0;
@@ -1142,7 +1142,7 @@ void wallBallCalc_WallsBroken(void) {
         u8 index = g_Minigame.wallIndexTracker[i];
         MaybeWallBallStruct* wall = WALL_BALL_WALL(index);
         if (wall->coinGenerationCategory == 1) {
-            g_Minigame._1A8B = i;
+            g_Minigame.wallBall_bowserWallIndex = i;
             g_Minigame.wallBall_hitBowserWall = TRUE;
         }
     }
@@ -1183,7 +1183,7 @@ void wallBallUpdateCoins(void) {
 
 // .text:0x0011391C size:0x34 mapped:0x807529B0
 void wallBallClearInputs(void) {
-    memset(&g_Minigame._1D7C, 0, 0x78);
+    memset(&g_Minigame.aiInputs, 0, 0x78);
 }
 
 // .text:0x001136FC size:0x220 mapped:0x80752790
@@ -1257,7 +1257,7 @@ void wallBallMultiplayer_AIControl(void) {
         if (!*((u8*)base + MINIGAME_OFFSET(minigameControlStruct[0].battingHandedness) + i)) continue;
 
         g_Minigame.portOfAIBeingProcessed[character] = TRUE;
-        memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
+        memset(&g_Minigame.aiInputs[character], 0, sizeof(InputStruct));
 
         switch ((s8)base->wallBallAISwitchVar) {
         case WALL_BALL_AI_STATE_CALCULATE_PITCH:
@@ -1284,28 +1284,28 @@ void wallBallMultiplayer_AIControl(void) {
             }
             break;
         case WALL_BALL_AI_STATE_PERFECT_PITCH:
-            g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
-            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             base->wallBallAISwitchVar = WALL_BALL_AI_STATE_PERFECT_PITCH_FILL_BAR;
             break;
         case WALL_BALL_AI_STATE_PERFECT_PITCH_FILL_BAR:
             if (g_Pitcher.windupCountdownUntilBallReleased < lbl_3_data_5F3C[2]) {
                 base->wallBallAISwitchVar = WALL_BALL_AI_STATE_UNKNOWN_9;
             } else {
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             }
             break;
         case WALL_BALL_AI_STATE_OVERCHARGE:
-            g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
-            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             base->wallBallAISwitchVar = WALL_BALL_AI_STATE_OVERCHARGE_HOLD_A;
             break;
         case WALL_BALL_AI_STATE_OVERCHARGE_HOLD_A:
-            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             break;
         case WALL_BALL_AI_STATE_CHARGE_PITCH:
-            g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
-            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             base->wallBallAISwitchVar = WALL_BALL_AI_STATE_CHARGE_PITCH_CHARGE_UP_BAR;
             break;
         case WALL_BALL_AI_STATE_CHARGE_PITCH_CHARGE_UP_BAR:
@@ -1316,12 +1316,12 @@ void wallBallMultiplayer_AIControl(void) {
                     base->ai_wbChargePower_bbSwingFrame) {
                 base->wallBallAISwitchVar = WALL_BALL_AI_STATE_UNKNOWN_9;
             } else {
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             }
             break;
         case WALL_BALL_AI_STATE_CURVE_BALL:
-            g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
-            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A;
+            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
             base->wallBallAISwitchVar = WALL_BALL_AI_STATE_UNKNOWN_9;
             break;
         case WALL_BALL_AI_STATE_UNKNOWN_9:

@@ -858,7 +858,7 @@ void handleGameSound(void) {
             hugeAnimStruct[0x307D] == 0) {
             actor = *(u8**)(hugeAnimStruct + 0x2C74);
             if (g_d_GameSettings.minigamesEnabled) {
-                actorIndex = ((s8*)&g_Minigame)[0x18CC + g_Minigame.rosterID];
+                actorIndex = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
                 actor = hugeAnimStruct + 0xC04 + actorIndex * 0x27C;
             }
             if (actor != NULL && *(s16*)(actor + 0x62) == 0x60 && *(s16*)(actor + 0x6A) == 5) {
@@ -985,7 +985,6 @@ void fn_3_8D9C0(void) {
 }
 
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
-#define MINIGAME_BYTE(off) (((u8*)&g_Minigame)[off])
 
 void soundControl(void) {
     int track = -1;
@@ -1096,7 +1095,7 @@ void soundControl(void) {
                 fn_3_8C104(-1);
                 return;
             }
-            if (MINIGAME_BYTE(0x18E8 + roster) == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+            if (g_Minigame.playerSlots.rank[roster] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                 track = 0xC;
             } else {
                 track = 0xD;
@@ -1138,7 +1137,7 @@ void soundControl(void) {
                     }
                 } else {
                     roster = g_Minigame.soloPlayerSlot;
-                    if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
+                    if (g_Minigame.playerSlots.rank[roster] == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 0xC;
                     } else {
@@ -1150,7 +1149,7 @@ void soundControl(void) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
                 roster = g_Minigame.soloPlayerSlot;
                 if (roster >= 0) {
-                    if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
+                    if (g_Minigame.playerSlots.rank[roster] == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 5;
                     } else {
@@ -1164,7 +1163,7 @@ void soundControl(void) {
             if (g_Minigame.multiPlayerInd != 0) {
                 if (g_Minigame.grandPrixInd != 0 && g_Minigame.humanPlayerCount == 1) {
                     roster = g_Minigame.soloPlayerSlot;
-                    if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
+                    if (g_Minigame.playerSlots.rank[roster] == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 5;
                     } else {
