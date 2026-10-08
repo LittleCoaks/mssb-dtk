@@ -7,7 +7,7 @@ void fieldingPracticeResetTutorialState(void);
 void fieldingPracticeControl(void);
 void fieldingPracticeRelated(void);
 void fieldingPracticeInitialization(void);
-BOOL practiceRelatedUnused(void);
+BOOL fieldingPracticeUpdateCompletion(void);
 void fieldingPracticePrepareNextPlay(void);
 void fieldingPracticeBeginPlay(void);
 void fieldingPracticeAtBat(void);

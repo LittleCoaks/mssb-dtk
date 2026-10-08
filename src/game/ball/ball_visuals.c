@@ -19,6 +19,7 @@
 #include "game/math/game_math.h"
 #include "game/ball/collision_primitives.h"
 #include "game/stadium/stadium_framework.h"
+#include "game/match_setup/pause_menu.h"
 
 extern void setScissorAndProjection(int);
 extern void SetDisplayStateTexture(void* texture, int arg1, int arg2);
@@ -32,7 +33,6 @@ extern BOOL fn_80023D98(void* list, Vec* out);
 extern u8 drawStadiumRelated;
 extern u8 lbl_80366158[0x30];
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_803CB740[];
 extern f32 ballScaleFactors[13][3];
@@ -694,7 +694,7 @@ void displayBallTrail(void) {
             return;
         }
         if (g_Practice.pauseMenuActive != 0 &&
-            (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9 || pauseControl[0x1D2] == 11)) {
+            (pauseControl.state == 7 || pauseControl.state == 9 || pauseControl.state == 11)) {
             stopBallTrail();
             return;
         }

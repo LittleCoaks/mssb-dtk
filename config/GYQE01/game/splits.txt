@@ -407,13 +407,13 @@ game/minigame/piranha_panic.c:
 	.bss        start:0x0000B7C0 end:0x0000B850
 
 game/minigame/minigame_effects.c:
-	.text       start:0x00147358 end:0x00157DB8
+	.text       start:0x00147358 end:0x00157E28
 	.rodata     start:0x00003880 end:0x00003A48
 	.data       start:0x000266A8 end:0x00026F00
 	.bss        start:0x0000B850 end:0x0000B9B8
 
 game/practice/practice_scene.c:
-	.text       start:0x00157DB8 end:0x0015B79C
+	.text       start:0x00157E28 end:0x0015B79C
 	.rodata     start:0x00003A48 end:0x00003A98
 	.data       start:0x00026F00 end:0x00026F78
 

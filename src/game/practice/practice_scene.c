@@ -26,9 +26,9 @@
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8004e5b4.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 menuNumber[0x28];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 hugeAnimStruct[0x3154];
@@ -85,21 +85,6 @@ typedef struct PracticeScene {
         u16 channels[4];
     };
 } PracticeScene;
-
-typedef struct PracticeEffectData {
-    /* 0x00 */ u8 _00[0x40];
-    /* 0x40 */ s32 _40;
-    /* 0x44 */ u8 _44[9];
-    /* 0x4D */ u8 _4D;
-} PracticeEffectData;
-
-typedef struct PracticeEffect {
-    /* 0x00 */ u8 _00[0xC];
-    /* 0x0C */ PracticeEffectData* data;
-    /* 0x10 */ u8 _10[8];
-    /* 0x18 */ s32 _18;
-    /* 0x1C */ void* owner;
-} PracticeEffect;
 
 #define PRACTICE_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 #define PRACTICE_RECORD_PLUS(scene, i, k) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (k)].object)
@@ -375,25 +360,25 @@ void animatePracticeScene(void) {
     if ((g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING || g_Practice.practiceType_2 == PRACTICE_TYPE_BATTING || g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING ||
          g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) &&
         g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
-        insertGraphicDrawingFunction(practiceAnimationRelated, 2);
+        insertGraphicDrawingFunction(practiceInstruction_init, 2);
     }
     if (g_Practice.completionMenuActive != 0) {
         if (g_Practice.frames_onPauseScreen == 1) {
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
     } else if (g_Practice.pauseMenuActive != 0) {
-        if (pauseControl[0x1D2] == 1 && g_Practice.frames_onPauseScreen2 == 1) {
+        if (pauseControl.state == 1 && g_Practice.frames_onPauseScreen2 == 1) {
             if (animRelated[0xAA] == 0) {
                 insertGraphicDrawingFunction(pauseSubPanel_init, 2);
             }
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
-        if (pauseControl[0x1D2] == 3 && pauseControl[0x1D3] == 3) {
+        if (pauseControl.state == 3 && pauseControl._1D3 == 3) {
             insertGraphicDrawingFunction(pausePageIndicator_init, 2);
         }
     }
     if (g_Practice.loadingGuidedPractice != 0 && g_Practice.guidedMessageSceneStarted == 0) {
-        insertGraphicDrawingFunction(practiceAnimationRelated2, 2);
+        insertGraphicDrawingFunction(practiceGuidedMessage_init, 2);
         g_Practice.guidedMessageSceneStarted = 1;
     }
     manageEventStates();
@@ -452,17 +437,17 @@ void practice_drawHud(void) {
             g_GameLogic.gameStatus != GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
             animRelated[0xA7] = 0xF0;
         }
-        if (pauseControl[0x1D5] != 0) {
+        if (pauseControl._1D5 != 0) {
             animRelated[0xA7] = 0xF0;
         }
         if (g_Practice.pauseMenuActive != 0) {
-            if (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9 || pauseControl[0x1D2] == 0xB) {
+            if (pauseControl.state == 7 || pauseControl.state == 9 || pauseControl.state == 0xB) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
             }
         }
         if (g_Practice.completionMenuActive != 0) {
-            if (pauseControl[0x1D2] == 5 || pauseControl[0x1D2] == 0xB || pauseControl[0x1D2] == 7) {
+            if (pauseControl.state == 5 || pauseControl.state == 0xB || pauseControl.state == 7) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
             }
@@ -507,7 +492,7 @@ void animationOrDrawingRelated(void) {
                 insertGraphicDrawingFunction(practiceMenu_typeIcons_init, 2);
             }
             if (animRelated[0xC1] == 0) {
-                insertGraphicDrawingFunction(graphicsRelated, 2);
+                insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);
             }
             if (animRelated[0xBC] == 0) {
                 insertGraphicDrawingFunction(fn_3_12BFE8, 2);
@@ -521,7 +506,7 @@ void animationOrDrawingRelated(void) {
         if (g_Practice.practiceState == PRACTICE_STATE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
             if (animRelated[0xC1] == 0) {
                 animRelated[0xC2] = 1;
-                insertGraphicDrawingFunction(graphicsRelated, 2);
+                insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);
             }
             insertGraphicDrawingFunction(fn_80051D00, 2);
             insertGraphicDrawingFunction(practiceMenu_charSelect_init, 2);
@@ -664,7 +649,7 @@ void practiceMenu_typeIcons_update(void) {
     }
 }
 
-void graphicsRelated(void) {
+void practiceMenu_subMenu_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
@@ -870,11 +855,11 @@ remove:
 
 void practice_insertInstructionScene(void) {
     if (g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
-        insertGraphicDrawingFunction(practiceAnimationRelated, 2);
+        insertGraphicDrawingFunction(practiceInstruction_init, 2);
     }
 }
 
-void practiceAnimationRelated(void) {
+void practiceInstruction_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceInstruction_uiRecords);
@@ -888,10 +873,10 @@ void practiceAnimationRelated(void) {
     scene->_1C = 0;
     scene->_1E = 0;
     scene->_20 = 0;
-    currentDrawingItem->func = practiceAnimationRelated_text;
+    currentDrawingItem->func = practiceInstruction_update;
 }
 
-void practiceAnimationRelated_text(void) {
+void practiceInstruction_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     BOOL flag = FALSE;
 
@@ -1037,8 +1022,8 @@ void practiceGoalHud_update(void) {
     int i;
     BOOL freed;
 
-    if (animRelated[0x96] == 0 && (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) &&
-        (g_Practice.pauseMenuActive == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
+    if (animRelated[0x96] == 0 && (g_Practice.completionMenuActive == 0 || pauseControl.state != 0) &&
+        (g_Practice.pauseMenuActive == 0 || (pauseControl.state != 7 && pauseControl.state != 0xB))) {
         if (scene->_18 == 0) {
             for (i = 0; i < 4; i++) {
                 s16* entry = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
@@ -1120,7 +1105,7 @@ void practiceCompleteBanner_update(void) {
         } else {
             PRACTICE_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         }
-        if (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) {
+        if (g_Practice.completionMenuActive == 0 || pauseControl.state != 0) {
             return;
         }
     }
@@ -1128,16 +1113,16 @@ void practiceCompleteBanner_update(void) {
     removeCurrentDrawingItem();
 }
 
-void practiceAnimationRelated2(void) {
+void practiceGuidedMessage_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceGuidedMessage_uiRecords);
     scene->_1C = 0;
     scene->_1E = 0;
-    currentDrawingItem->func = practiceAnimationRelated4;
+    currentDrawingItem->func = practiceGuidedMessage_update;
 }
 
-void practiceAnimationRelated4(void) {
+void practiceGuidedMessage_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
     if (animRelated[0x96] != 0) {
@@ -1176,7 +1161,7 @@ void practiceAnimationRelated4(void) {
         PRACTICE_RECORD(scene, 3)->flags |= UI_FLAG_VISIBLE;
     }
     if (g_Practice.frames_onGuidedMessage == 1) {
-        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex]);
+        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.guidedMessageSet][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex]);
     }
     g_Practice.currentMessageDoneTyping = screenTextArray.blocks[scene->_1E].unk34;
     return;
@@ -1188,13 +1173,3 @@ remove:
     removeCurrentDrawingItem();
 }
 
-void chainChomp_spawnTrailEffect(void* owner) {
-    PracticeEffect* effect = allocParticleEffect(fn_3_157AC4, 0x80, 0, 1, 1, 0x16);
-
-    if (effect != NULL) {
-        effect->_18 = 0;
-        effect->owner = owner;
-        effect->data->_4D = 0;
-        effect->data->_40 = -1;
-    }
-}

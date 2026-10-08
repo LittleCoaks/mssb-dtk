@@ -309,7 +309,7 @@ void fieldingPracticeInitialization(void) {
     g_Strikes.outs = 0;
 }
 
-BOOL practiceRelatedUnused(void) {
+BOOL fieldingPracticeUpdateCompletion(void) {
     if (g_Practice.pauseMenuLoading != 0) {
         return FALSE;
     }

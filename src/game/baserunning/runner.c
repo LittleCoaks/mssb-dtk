@@ -8,6 +8,7 @@
 #include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/sound/m_sound.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 runnerConstants[][5];
 extern f32 lbl_3_data_4B44[];
@@ -44,7 +45,6 @@ extern s16 lbl_3_data_4B90[];
 extern void initializeInMemRunner(int rosterID, int runnerIdx);
 extern u32 minigame_getCcsAIControlledInd(int port);
 extern void QueueTextToDisplay(int code, int arg1);
-extern u8 pauseControl[0x264];
 extern f32 lbl_3_data_4B88[];
 extern f32 lbl_3_data_2191C[];
 extern void endOfGameCheck(int arg);
@@ -3053,7 +3053,7 @@ void running_CalculateSpeedVariables(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int turnaroundCode = runner->turnaroundCode;
 
-    if (pauseControl[0x1d5] != 0) {
+    if (pauseControl._1D5 != 0) {
         return;
     }
     runner->groundVelocity[3] = runner->groundVelocity[2];

@@ -351,6 +351,19 @@ static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
     } while (p != NULL);
 }
 
+// .text:0x157DB8 size:0x70
+// Spawns the trail effect that follows the chomp; it lives for `duration` frames.
+void chainChomp_spawnTrailEffect(s32 duration) {
+    MGEffect* effect = allocParticleEffect(fn_3_157AC4, 0x80, 0, 1, 1, 0x16);
+
+    if (effect != NULL) {
+        effect->frame = 0;
+        effect->duration = duration;
+        effect->particles->_4D = 0;
+        *(u32*)&effect->particles->_40 = 0xFFFFFFFF; // RGBA white
+    }
+}
+
 // .text:0x157AC4 size:0x2F4
 int fn_3_157AC4(MGEffect* effect) {
     MGParticle* p = effect->particles;

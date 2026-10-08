@@ -37,6 +37,7 @@
 #include "Unknown/File_0x80062a50.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u32 FrameCountOfEntireGame[5];
 extern u8 lbl_80366158[0x30];
@@ -98,7 +99,6 @@ extern void fn_3_90AB0(int);
 extern int fn_3_90C14(int);
 extern void fn_8002024C(void);
 extern void handleDVDCancelAndARQRemoval(void);
-extern u8 pauseControl[0x264];
 extern int practice_checkForPause(void);
 extern void match_checkForPause(void);
 extern void transitionToPauseScreen(void);
@@ -207,7 +207,7 @@ void baseballMatchSimulation(void) {
     adjustBallSoundEffectBasedOnHeight();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_DEMO || g_UnkSimulation_31AC0._08 == 0) {
-            if (pauseControl[0x1D5] == 0) {
+            if (pauseControl._1D5 == 0) {
                 v = *(s16*)&animRelated[0x9E];
                 if (v >= 0) {
                     if (loadBatterModelFromDisk() != 0) {
@@ -614,7 +614,7 @@ void newPitch(void) {
     g_FieldingLogic.always0__ = 0;
     g_FieldingLogic.framesSince3rdOutWasMade = 0;
     g_RunningLogic._13 = 0;
-    pauseControl[0x1D5] = 0;
+    pauseControl._1D5 = 0;
     g_Practice.homeRunWaitSkipped = 0;
     if (g_GameLogic.pre_PostMiniGameInd != 0) {
         g_GameLogic.minigameLastTurnSuccessInd = 1;
@@ -654,7 +654,7 @@ void atBatScreen(void) {
         }
     } else {
         match_checkForPause();
-        if (pauseControl[0x1D5] != 0) {
+        if (pauseControl._1D5 != 0) {
             transitionToPauseScreen();
             return;
         }
@@ -1666,18 +1666,18 @@ void matchEndGameScreenFunction(void) {
     u32 stage = g_GameLogic._125;
 
     if (stage >= 3) {
-        if (*(s16*)&pauseControl[0x12] < 0x7FFE) {
-            (*(s16*)&pauseControl[0x12])++;
+        if (pauseControl._12 < 0x7FFE) {
+            (pauseControl._12)++;
         } else {
-            *(s16*)&pauseControl[0x12] = 0x7FFF;
+            pauseControl._12 = 0x7FFF;
         }
     }
     switch (stage) {
     case 0:
-        pauseControl[0x1DA] = 0;
-        pauseControl[0x1DB] = 0;
-        pauseControl[0x1D8] = 0;
-        *(s16*)&pauseControl[0x12] = 0;
+        pauseControl.cursor = 0;
+        pauseControl._1DB = 0;
+        pauseControl._1D8 = 0;
+        pauseControl._12 = 0;
         g_GameLogic.scoreBook_teamDisplayed = 0;
         g_GameLogic.scoreBook_batter_pitcherStatsDisplayed = 0;
         g_GameLogic.scoreBook_scrollIndex = 0;
@@ -1757,8 +1757,8 @@ void matchEndGameScreenFunction(void) {
         break;
     case 8:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
-            *(s16*)&pauseControl[0x12] = 0;
-            pauseControl[0x1D8] ^= 1;
+            pauseControl._12 = 0;
+            pauseControl._1D8 ^= 1;
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             g_GameLogic._125 = 7;
         }
@@ -1804,9 +1804,9 @@ void matchEndGameScreenFunction(void) {
 void endOfGame_menuControl(void) {
     InputStruct* input = &g_Controls[lbl_80366158[0x27]];
 
-    if (pauseControl[0x1D8] == 0) {
+    if (pauseControl._1D8 == 0) {
         if (input->newButtonInput & INPUT_BUTTON_A) {
-            if ((s8)pauseControl[0x1DA] == 0) {
+            if (pauseControl.cursor == 0) {
                 g_GameLogic._125 = 9;
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             } else {
@@ -1816,13 +1816,13 @@ void endOfGame_menuControl(void) {
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             }
         } else if (input->newButtonInput & INPUT_BUTTON_RIGHT) {
-            if ((s8)pauseControl[0x1DA] == 0) {
-                pauseControl[0x1DA] = 1;
+            if (pauseControl.cursor == 0) {
+                pauseControl.cursor = 1;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
         } else if (input->newButtonInput & INPUT_BUTTON_LEFT) {
-            if ((int)pauseControl[0x1DA] == 1) {
-                pauseControl[0x1DA] = 0;
+            if (pauseControl.cursor == 1) {
+                pauseControl.cursor = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
         }

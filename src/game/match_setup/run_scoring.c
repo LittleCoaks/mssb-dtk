@@ -5,9 +5,9 @@
 #include "game/hud/hud_gauges.h"
 #include "game/hud/hud_scoreboard.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 
 // .text:0x0009C794 size:0x35C mapped:0x806DB828
 void runScored(void) {
@@ -138,7 +138,7 @@ void matchHudDrawingControl(void) {
                 animRelated[0xA7] = 0xF0;
             }
         }
-        if (pauseControl[0x1D5] != 0) {
+        if (pauseControl._1D5 != 0) {
             animRelated[0xA7] = 0xF0;
         }
     }

@@ -9,9 +9,9 @@
 #include "Unknown/File_0x800363d8.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_statBook
 #include "header_rep_data.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 lineUpInfoStruct[2][9][4];
 extern UIRecordDescriptor lbl_3_data_273E0[];
 extern UIRecordDescriptor lbl_3_data_27420[];
@@ -41,7 +41,7 @@ void animateMVP_GameEnd(void) {
         }
         if (g_GameLogic._125 == 7) {
             if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
-                if (pauseControl[0x1D8] == 0 && g_GameLogic._11A != 0) {
+                if (pauseControl._1D8 == 0 && g_GameLogic._11A != 0) {
                     insertGraphicDrawingFunction(manageScoreboardGraphic, 2);
                     insertGraphicDrawingFunction(mvpScoreboard_init, 2);
                     g_GameLogic._11A = 0;
@@ -103,7 +103,7 @@ void mvpScoreboard_update(void) {
     if (g_GameLogic._125 == 10) {
         goto remove;
     }
-    if ((s8)pauseControl[0x1DA] == 0) {
+    if (pauseControl.cursor == 0) {
         REC(scene, 1)->playMode = UI_PLAY_FORWARD;
         REC(scene, 2)->playMode = UI_PLAY_BACKWARD;
         if ((REC(scene, 2)->frame >> 16) > 10) {

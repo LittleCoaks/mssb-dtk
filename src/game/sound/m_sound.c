@@ -11,6 +11,7 @@
 #include "game/ball/foul_detection.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x80062a94.h"
+#include "game/match_setup/pause_menu.h"
 
 extern void fn_3_8B094(void);
 
@@ -56,7 +57,6 @@ typedef struct SoundEffectMix {
 } SoundEffectMix;
 
 extern u8 hugeAnimStruct[];
-extern u8 pauseControl[0x264];
 extern u8 animRelated[0x124];
 extern u8 lbl_3_common_bss_37400[0x4E];
 extern u8 lbl_3_common_bss_134C4[0x284];
@@ -1048,14 +1048,14 @@ void soundControl(void) {
             goto pick;
         }
         if (g_Practice.pauseMenuActive != 0) {
-            pauseState = pauseControl[0x1D2];
+            pauseState = pauseControl.state;
             if (pauseState == 6 || (u8)(pauseState - 7) <= 1 || pauseState == 9) {
                 track = -1;
                 goto pick;
             }
         }
         if (g_Practice.completionMenuActive != 0) {
-            pauseState = pauseControl[0x1D2];
+            pauseState = pauseControl.state;
             if (pauseState == 6 || pauseState == 7) {
                 track = -1;
                 goto pick;
@@ -1113,12 +1113,12 @@ void soundControl(void) {
             status == GAME_STATUS_0x27) {
             if (status == GAME_STATUS_MINIGAME_POST_MENU) {
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                    pauseState = pauseControl[0x1D2];
+                    pauseState = pauseControl.state;
                     if (pauseState == 0xA || pauseState == 4 || pauseState == 5) {
                         goto fadeOutShort;
                     }
                 } else {
-                    pauseState = pauseControl[0x1D2];
+                    pauseState = pauseControl.state;
                     if (pauseState == 9 || (u8)(pauseState - 6) <= 1) {
                         goto fadeOutShort;
                     }
@@ -1233,7 +1233,7 @@ void soundControl(void) {
             track = 0x15;
         }
         if (g_Minigame.pauseInd != 0) {
-            pauseState = pauseControl[0x1D2];
+            pauseState = pauseControl.state;
             if (pauseState == 7 || pauseState == 9) {
                 track = -1;
                 goto pick;
@@ -1302,7 +1302,7 @@ notMinigame:
 
 common:
     if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
-        if (pauseControl[0x1D1] == 1) {
+        if (pauseControl._1D1 == 1) {
             goto pick;
         }
         if (sound_crowd_EffectsStruct._20 != 0x15) {
