@@ -34,8 +34,8 @@ extern u8 lbl_800FEF70[0x5D0];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 constantList[0x1C];
 extern u8 guidedPracticeThresholds[][4];
-extern s16 lbl_3_data_103B8[4][4][4][2];
-extern s16 lbl_3_data_104B8[16][2][3];
+extern s16 practiceGoalHud_entries[4][4][4][2];
+extern s16 practiceGuidedMessage_textIds[16][2][3];
 extern UIRecordDescriptor lbl_3_data_BA70[];
 extern UIRecordDescriptor lbl_3_data_BD50[];
 extern UIRecordDescriptor lbl_3_data_BD90[];
@@ -47,10 +47,10 @@ extern s16 lbl_3_data_B834[][4];
 extern u16 lbl_3_data_BA5C[];
 extern u16 lbl_3_data_B3DC[];
 extern u16 lbl_3_data_B3E8[];
-extern u8 lbl_3_data_FAC4[];
+extern u8 practiceMenu_typeIconOrder[];
 extern u8 lbl_3_data_A594[];
 extern u8 lbl_3_data_9D50[][5];
-extern s16 lbl_3_data_FC1C;
+extern s16 practiceFrameConsts;
 
 extern void fn_8000F8F4(void* scene);
 extern void fn_80011BE4(int arg0);
@@ -358,7 +358,7 @@ void fn_3_15ADD4(void) {
 }
 
 void practice_startPitchAfter90Frames(void) {
-    if (g_Pitcher.currentStateFrameCounter > lbl_3_data_FC1C) {
+    if (g_Pitcher.currentStateFrameCounter > practiceFrameConsts) {
         pitcherAITransitionFromPrePitchToWindup(2);
     }
 }
@@ -544,7 +544,7 @@ void fn_3_15A244(void) {
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_B1BC);
     for (i = 0; i < 5; i++) {
-        PRACTICE_RECORD_PLUS(scene, i, 6)->frame = lbl_3_data_B3DC[lbl_3_data_FAC4[i]] << 16;
+        PRACTICE_RECORD_PLUS(scene, i, 6)->frame = lbl_3_data_B3DC[practiceMenu_typeIconOrder[i]] << 16;
     }
     scene->_1C = 1;
     if (g_Practice.practiceType_1 == 1 || g_Practice.practiceType_1 == 2 || g_Practice.practiceType_1 == 3 ||
@@ -1020,7 +1020,7 @@ void fn_3_1586B0(void) {
         fn_3_158264(scene);
     }
     for (i = 0; i < 4; i++) {
-        s16 value = lbl_3_data_103B8[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0];
+        s16 value = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0];
 
         if (value == 0) {
             PRACTICE_RECORD_AT(scene, 2, i)->flags &= ~UI_FLAG_VISIBLE;
@@ -1041,7 +1041,7 @@ void fn_3_1583AC(void) {
         (g_Practice._19F == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
         if (scene->_18 == 0) {
             for (i = 0; i < 4; i++) {
-                s16* entry = lbl_3_data_103B8[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
+                s16* entry = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
 
                 if (entry[0] != 0) {
                     scene->channels[i] = text_initializeNewChannel((UnkText988Arg*)scene, 0x12 + i, 0, 5, entry[1], 0);
@@ -1055,7 +1055,7 @@ void fn_3_1583AC(void) {
     } else {
         freed = FALSE;
         for (i = 0; i < 4; i++) {
-            if (lbl_3_data_103B8[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0] > 0) {
+            if (practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0] > 0) {
                 text_freeBlock(scene->channels[i]);
                 freed = TRUE;
             }
@@ -1176,7 +1176,7 @@ void practiceAnimationRelated4(void) {
         PRACTICE_RECORD(scene, 3)->flags |= UI_FLAG_VISIBLE;
     }
     if (g_Practice._188 == 1) {
-        text_setPtrToWhereCharsAreStored(scene->_1E, 5, lbl_3_data_104B8[g_Practice.practiceLevel_2][g_Practice._1D7][g_Practice._1D8]);
+        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice._1D7][g_Practice._1D8]);
     }
     g_Practice.currentMessageDoneTyping = screenTextArray.blocks[scene->_1E].unk34;
     return;
