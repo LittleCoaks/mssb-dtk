@@ -5,7 +5,6 @@
 
 struct PracticeScene;
 
-void chainChomp_spawnTrailEffect(void* owner);
 void practiceAnimationRelated4(void);
 void practiceAnimationRelated2(void);
 void practiceCompleteBanner_update(void);

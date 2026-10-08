@@ -252,6 +252,7 @@ typedef struct _MGFxTail {
     /*0x300*/ f32 tail[2];
 } MGFxTail; // size: 0x308
 
+void chainChomp_spawnTrailEffect(s32 duration);
 int fn_3_157AC4(MGEffect* effect);
 f32 fn_3_15791C(s32 frame);
 void fn_3_1578F8(void);

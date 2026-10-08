@@ -86,21 +86,6 @@ typedef struct PracticeScene {
     };
 } PracticeScene;
 
-typedef struct PracticeEffectData {
-    /* 0x00 */ u8 _00[0x40];
-    /* 0x40 */ s32 _40;
-    /* 0x44 */ u8 _44[9];
-    /* 0x4D */ u8 _4D;
-} PracticeEffectData;
-
-typedef struct PracticeEffect {
-    /* 0x00 */ u8 _00[0xC];
-    /* 0x0C */ PracticeEffectData* data;
-    /* 0x10 */ u8 _10[8];
-    /* 0x18 */ s32 _18;
-    /* 0x1C */ void* owner;
-} PracticeEffect;
-
 #define PRACTICE_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 #define PRACTICE_RECORD_PLUS(scene, i, k) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (k)].object)
 #define PRACTICE_RECORD_AT(scene, base, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
@@ -1188,13 +1173,3 @@ remove:
     removeCurrentDrawingItem();
 }
 
-void chainChomp_spawnTrailEffect(void* owner) {
-    PracticeEffect* effect = allocParticleEffect(fn_3_157AC4, 0x80, 0, 1, 1, 0x16);
-
-    if (effect != NULL) {
-        effect->_18 = 0;
-        effect->owner = owner;
-        effect->data->_4D = 0;
-        effect->data->_40 = -1;
-    }
-}

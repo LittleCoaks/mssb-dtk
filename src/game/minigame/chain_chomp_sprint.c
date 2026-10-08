@@ -48,7 +48,7 @@ extern void fn_3_14C904(void);
 extern void fn_3_151798(void);
 extern void fn_3_152AB4(u8 coin, u8 runner);
 extern void fn_3_1541C4(u8 coin, u8 type, VecXYZ* pos);
-extern void chainChomp_spawnTrailEffect(int frames);
+extern void chainChomp_spawnTrailEffect(s32 duration);
 extern void fn_3_1578F8(void);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
