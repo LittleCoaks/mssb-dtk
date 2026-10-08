@@ -22,9 +22,9 @@
 #include "text/text_block.h"
 #include "game/batting/at_bat_results.h"
 #include "Unknown/File_0x8003649c.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 lbl_800EFBA4[];
 extern UIRecordDescriptor lbl_3_data_25344[];
 extern UIRecordDescriptor lbl_3_data_24E04[];
@@ -222,7 +222,7 @@ void minigameGraphics(void) {
         }
     } else {
         if (status == GAME_STATUS_MINIGAME_POST_MENU) {
-            if (pauseControl[0x1D2] == 1) {
+            if (pauseControl.state == 1) {
                 insertGraphicDrawingFunction(pauseOptionList_init, 2);
             }
         } else {
@@ -249,15 +249,15 @@ void minigameGraphics(void) {
             }
         }
         if (g_Minigame.pauseInd != 0) {
-            if (*(s16*)&pauseControl[0xA] == 1 && animRelated[0xAA] == 0) {
+            if (pauseControl._00A == 1 && animRelated[0xAA] == 0) {
                 insertGraphicDrawingFunction(pauseSubPanel_init, 2);
             }
-            if (pauseControl[0x1D2] == 0xA) {
-                if (pauseControl[0x1D4] == 2) {
+            if (pauseControl.state == 0xA) {
+                if (pauseControl._1D4 == 2) {
                     insertGraphicDrawingFunction(fn_3_128B90, 2);
                 }
-            } else if (pauseControl[0x1D2] == 0xB) {
-                if (pauseControl[0x1D4] == 2) {
+            } else if (pauseControl.state == 0xB) {
+                if (pauseControl._1D4 == 2) {
                     insertGraphicDrawingFunction(fn_3_126604, 2);
                 }
             } else if (animRelated[0xAB] == 0) {
@@ -1414,7 +1414,7 @@ void fn_3_129458(void) {
         insertGraphicDrawingFunction(fn_3_129370, 2);
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
-        if (pauseControl[0x1D2] == 7 || g_GameLogic.framesOfExitingToMenu != 0) {
+        if (pauseControl.state == 7 || g_GameLogic.framesOfExitingToMenu != 0) {
             animRelated[0xB7] = 1;
         }
     }
@@ -1462,11 +1462,11 @@ void fn_3_128C18(void) {
     }
     mode = g_d_GameSettings.GameModeSelected;
     if (mode == GAME_TYPE_TOY_FIELD) {
-        if (pauseControl[0x1D2] == 5) {
+        if (pauseControl.state == 5) {
             goto remove;
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
-        if (pauseControl[0x1D2] == 7) {
+        if (pauseControl.state == 7) {
             goto remove;
         }
         if (g_GameLogic.framesOfExitingToMenu != 0) {
@@ -1599,12 +1599,12 @@ void fn_3_128A38(void) {
     }
     if (scene->state == 2) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            if (pauseControl[0x1D2] == 5) {
+            if (pauseControl.state == 5) {
                 HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
                 scene->state++;
             }
         } else {
-            if (pauseControl[0x1D4] == 5) {
+            if (pauseControl._1D4 == 5) {
                 HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
                 scene->state++;
             }
@@ -2281,7 +2281,7 @@ void fn_3_1258C0(void) {
             scene->_1E = 3;
         } else if (g_Minigame.pauseInd != 0
                    || (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && status == GAME_STATUS_PAUSED)) {
-            if (pauseControl[0x1D4] == 5) {
+            if (pauseControl._1D4 == 5) {
                 HUD_RECORD(scene, 3)->playMode = UI_PLAY_FORWARD;
                 scene->_20 = 0;
                 scene->_1E = 3;
@@ -2312,7 +2312,7 @@ void fn_3_1258C0(void) {
         }
         if (g_Minigame.pauseInd != 0
             || (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.gameStatus == GAME_STATUS_PAUSED)) {
-            if (pauseControl[0x1D4] == 5 && scene->_1E == 0) {
+            if (pauseControl._1D4 == 5 && scene->_1E == 0) {
                 goto remove;
             }
         }
@@ -2499,10 +2499,10 @@ u32 fn_3_12536C(void) {
         return TRUE;
     }
     if (g_Minigame.pauseInd != 0) {
-        if (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9) {
+        if (pauseControl.state == 7 || pauseControl.state == 9) {
             return TRUE;
         }
-        if (pauseControl[0x1D2] == 0xD) {
+        if (pauseControl.state == 0xD) {
             return TRUE;
         }
     }

@@ -9,8 +9,8 @@
 #include "Unknown/File_0x80035838.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_guidedPractice
 #include "header_rep_data.h"
+#include "game/match_setup/pause_menu.h"
 
-extern u8 pauseControl[0x264];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_8037169C[0x1C];
 extern u8 lbl_80366158[0x30];
@@ -571,54 +571,54 @@ static inline void incrementCapped(s16* value) {
 
 void practiceResetPauseMenuState(void) {
     g_Practice.frames_onPauseScreen = 0;
-    pauseControl[0x1D2] = 0;
-    pauseControl[0x1DA] = 0;
+    pauseControl.state = 0;
+    pauseControl.cursor = 0;
 }
 
 void practiceLogicRelatedPause(void) {
     lbl_80366158[0x28] = 1;
     incrementCapped(&g_Practice.frames_onPauseScreen);
     incrementCapped(&g_Practice.frames_onPauseScreen2);
-    incrementCapped((s16*)&pauseControl[0xA]);
-    incrementCapped((s16*)&pauseControl[0xC]);
-    incrementCapped((s16*)&pauseControl[0x12]);
+    incrementCapped(&pauseControl._00A);
+    incrementCapped(&pauseControl.counter);
+    incrementCapped(&pauseControl._12);
     incrementCapped(&g_Practice.frames_onGuidedMessage);
 
-    switch (pauseControl[0x1D2]) {
+    switch (pauseControl.state) {
     case 0: {
         u8 subMenuLength = practice_subMenu_length[g_Practice.practiceType_2 * 5];
         if (g_Practice.practiceLevel == subMenuLength - 1) {
-            pauseControl[0x1D0] = 8;
+            pauseControl._1D0 = 8;
         } else {
-            pauseControl[0x1D0] = 7;
+            pauseControl._1D0 = 7;
         }
         g_Practice.frames_onPauseScreen2 = 0;
-        *(s32*)pauseControl = g_Practice.homeAway;
-        pauseControl[0x1D2] = 1;
+        pauseControl.port = g_Practice.homeAway;
+        pauseControl.state = 1;
         break;
     }
     case 1:
         if (g_Practice.frames_onPauseScreen2 > 30) {
-            pauseControl[0x1D2] = 2;
+            pauseControl.state = 2;
         }
         break;
     case 2:
         practiceMenuLogic();
-        *(s16*)&pauseControl[0x12] = 0;
+        pauseControl._12 = 0;
         break;
     case 4:
     case 10:
         changeScene(3, 6);
-        pauseControl[0x1D2]++;
+        pauseControl.state++;
         break;
     case 5:
     case 11:
         if (lbl_8037169C[0x13] != 0) {
             g_Practice.loadingGuidedPractice = 0;
-            pauseControl[0x1D9] = 2;
+            pauseControl._1D9 = 2;
             g_Practice.pauseMenuActive = 0;
             hugeAnimStruct[0x307D] = 0;
-            if (pauseControl[0x1D2] == 0xB) {
+            if (pauseControl.state == 0xB) {
                 g_Practice.practiceState = PRACTICE_STATE_0;
                 g_Practice.practiceLevel++;
                 g_Practice.tutorialState = TUTORIAL_STATE_0;
@@ -633,12 +633,12 @@ void practiceLogicRelatedPause(void) {
         break;
     case 6:
         changeScene(3, 6);
-        pauseControl[0x1D2] = 7;
+        pauseControl.state = 7;
         break;
     case 7:
         if (lbl_8037169C[0x13] != 0) {
             g_Practice.loadingGuidedPractice = 0;
-            pauseControl[0x1D9] = 2;
+            pauseControl._1D9 = 2;
             g_Practice.pauseMenuActive = 0;
             hugeAnimStruct[0x307D] = 0;
             hugeAnimStruct[0x307E] = 0;
@@ -653,7 +653,7 @@ void practiceLogicRelatedPause(void) {
         }
         break;
     case 12: {
-        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[*(s32*)pauseControl].newButtonInput);
+        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput);
         switch (menuResult) {
         case 1:
             if (g_Practice.progressNeedsSave != 0) {
@@ -662,10 +662,10 @@ void practiceLogicRelatedPause(void) {
             } else {
                 changeScene(3, 6);
             }
-            pauseControl[0x1D2] = 0xD;
+            pauseControl.state = 0xD;
             break;
         case 2:
-            pauseControl[0x1D2] = 2;
+            pauseControl.state = 2;
             break;
         }
         break;
@@ -678,7 +678,7 @@ void practiceLogicRelatedPause(void) {
             }
         } else if (lbl_8037169C[0x13] != 0) {
             g_GameLogic.framesOfExitingToMenu = 1;
-            pauseControl[0x1D9] = 2;
+            pauseControl._1D9 = 2;
             fn_8004CC18();
         }
         break;
@@ -698,33 +698,33 @@ void practiceMenuLogic(void) {
 
     if (input->newButtonInput & INPUT_BUTTON_A) {
         if (g_Practice.currentMessageDoneTyping != 0) {
-            switch (practiceCompletionMenu_actions[altMenu * 5 + (s8)pauseControl[0x1DA] + 1]) {
+            switch (practiceCompletionMenu_actions[altMenu * 5 + pauseControl.cursor + 1]) {
             case 0:
-                pauseControl[0x1D2] = 0xA;
+                pauseControl.state = 0xA;
                 break;
             case 1:
-                pauseControl[0x1D2] = 4;
+                pauseControl.state = 4;
                 break;
             case 2:
-                pauseControl[0x1D2] = 6;
+                pauseControl.state = 6;
                 break;
             case 3:
                 fn_3_5B408();
-                pauseControl[0x1D2] = 0xC;
+                pauseControl.state = 0xC;
                 break;
             }
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         }
     } else if (input->_08 & INPUT_BUTTON_DOWN) {
-        pauseControl[0x1DA]++;
-        if ((s8)pauseControl[0x1DA] >= practiceCompletionMenu_actions[altMenu * 5]) {
-            pauseControl[0x1DA] = 0;
+        pauseControl.cursor++;
+        if (pauseControl.cursor >= practiceCompletionMenu_actions[altMenu * 5]) {
+            pauseControl.cursor = 0;
         }
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     } else if (input->_08 & INPUT_BUTTON_UP) {
-        pauseControl[0x1DA]--;
-        if ((s8)pauseControl[0x1DA] < 0) {
-            pauseControl[0x1DA] = practiceCompletionMenu_actions[altMenu * 5] - 1;
+        pauseControl.cursor--;
+        if (pauseControl.cursor < 0) {
+            pauseControl.cursor = practiceCompletionMenu_actions[altMenu * 5] - 1;
         }
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     }
@@ -754,8 +754,8 @@ BOOL practice_checkForPause(void) {
             g_Practice.pauseMenuLoading = 0;
             g_Practice.pauseMenuActive = 1;
             g_Practice.frames_onPauseScreen = 0;
-            pauseControl[0x1D2] = 0;
-            pauseControl[0x1DA] = 0;
+            pauseControl.state = 0;
+            pauseControl.cursor = 0;
         }
         return TRUE;
     }
@@ -775,33 +775,33 @@ void practiceOpenPauseMenu(void) {
     g_Practice.pauseMenuLoading = 0;
     g_Practice.pauseMenuActive = 1;
     g_Practice.frames_onPauseScreen = 0;
-    pauseControl[0x1D2] = 0;
-    pauseControl[0x1DA] = 0;
+    pauseControl.state = 0;
+    pauseControl.cursor = 0;
 }
 
 void practicePauseRelated(void) {
     lbl_80366158[0x28] = 1;
     incrementCapped(&g_Practice.frames_onPauseScreen);
     incrementCapped(&g_Practice.frames_onPauseScreen2);
-    incrementCapped((s16*)&pauseControl[0xA]);
-    incrementCapped((s16*)&pauseControl[0xC]);
-    incrementCapped((s16*)&pauseControl[0x12]);
+    incrementCapped(&pauseControl._00A);
+    incrementCapped(&pauseControl.counter);
+    incrementCapped(&pauseControl._12);
 
-    switch (pauseControl[0x1D2]) {
+    switch (pauseControl.state) {
     case 0:
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
-            pauseControl[0x1D0] = 6;
+            pauseControl._1D0 = 6;
         } else if (g_Practice.practiceLevel == practice_subMenu_length[g_Practice.practiceType_2 * 5] - 1) {
-            pauseControl[0x1D0] = 5;
+            pauseControl._1D0 = 5;
         } else {
-            pauseControl[0x1D0] = 4;
+            pauseControl._1D0 = 4;
         }
         g_Practice.frames_onPauseScreen2 = 0;
-        pauseControl[0x1D2] = 1;
+        pauseControl.state = 1;
         break;
     case 1:
         if (g_Practice.frames_onPauseScreen2 > 30) {
-            pauseControl[0x1D2] = 2;
+            pauseControl.state = 2;
         }
         break;
     case 2:
@@ -811,9 +811,9 @@ void practicePauseRelated(void) {
         practice_pause_unloadPauseMenu();
         break;
     case 4:
-        pauseControl[0x1D9] = 1;
+        pauseControl._1D9 = 1;
         g_Practice.frames_onPauseScreen2 = 0;
-        pauseControl[0x1D2] = 5;
+        pauseControl.state = 5;
         break;
     case 5:
         if (g_Practice.frames_onPauseScreen2 > 30) {
@@ -823,7 +823,7 @@ void practicePauseRelated(void) {
     case 6:
         changeScene(3, 6);
         if (lbl_8037169C[0x13] != 0) {
-            pauseControl[0x1D2] = 7;
+            pauseControl.state = 7;
         }
         break;
     case 7:
@@ -836,11 +836,11 @@ void practicePauseRelated(void) {
                 i++;
             } while (i < 4);
         }
-        pauseControl[0x1D9] = 2;
+        pauseControl._1D9 = 2;
         g_Practice.pauseMenuActive = 0;
         hugeAnimStruct[0x307D] = 0;
         hugeAnimStruct[0x307E] = 0;
-        if (pauseControl[0x1D2] == 9) {
+        if (pauseControl.state == 9) {
             practiceMenu_setScreen(6);
         } else {
             practiceMenu_setScreen(0);
@@ -858,18 +858,18 @@ void practicePauseRelated(void) {
     case 8:
         changeScene(3, 6);
         if (lbl_8037169C[0x13] != 0) {
-            pauseControl[0x1D2] = 9;
+            pauseControl.state = 9;
         }
         break;
     case 10:
         changeScene(3, 6);
         if (lbl_8037169C[0x13] != 0) {
-            pauseControl[0x1D2] = 0xB;
+            pauseControl.state = 0xB;
         }
         break;
     case 11:
         g_Practice.pauseMenuActive = 0;
-        pauseControl[0x1D9] = 2;
+        pauseControl._1D9 = 2;
         hugeAnimStruct[0x307D] = 0;
         g_Practice.practiceLevel++;
         g_Practice.practiceState = PRACTICE_STATE_0;
@@ -877,10 +877,10 @@ void practicePauseRelated(void) {
         g_Practice.framesSincePracticeMenuDefaultTransition = 0;
         break;
     case 12: {
-        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[*(s32*)pauseControl].newButtonInput);
+        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput);
         switch (menuResult) {
         case 1:
-            pauseControl[0x1D2] = 0xD;
+            pauseControl.state = 0xD;
             if (g_Practice.progressNeedsSave != 0) {
                 fn_8004CC18();
                 fn_3_5B368();
@@ -889,7 +889,7 @@ void practicePauseRelated(void) {
             }
             break;
         case 2:
-            pauseControl[0x1D2] = 2;
+            pauseControl.state = 2;
             break;
         }
         break;
@@ -902,7 +902,7 @@ void practicePauseRelated(void) {
             }
         } else if (lbl_8037169C[0x13] != 0) {
             g_GameLogic.framesOfExitingToMenu = 1;
-            pauseControl[0x1D9] = 2;
+            pauseControl._1D9 = 2;
             fn_8004CC18();
         }
         break;
@@ -915,94 +915,94 @@ void practicePauseMenuControl(void) {
     InputStruct* input = &g_Controls[g_Practice.homeAway];
     int menuLength = 5;
 
-    if (pauseControl[0x1D0] == 6) {
+    if (pauseControl._1D0 == 6) {
         menuLength = 5;
-    } else if (pauseControl[0x1D0] == 5) {
+    } else if (pauseControl._1D0 == 5) {
         menuLength = 4;
     }
     if (input->newButtonInput & INPUT_BUTTON_START) {
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        pauseControl[0x1D2] = 4;
+        pauseControl.state = 4;
     } else if (input->newButtonInput & INPUT_BUTTON_A) {
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        if (pauseControl[0x1D0] == 6) {
-            switch ((s8)pauseControl[0x1DA]) {
+        if (pauseControl._1D0 == 6) {
+            switch (pauseControl.cursor) {
             case 0:
-                pauseControl[0x1D2] = 4;
+                pauseControl.state = 4;
                 break;
             case 1:
-                pauseControl[0x1D3] = 0;
-                pauseControl[0x1D2] = 3;
+                pauseControl._1D3 = 0;
+                pauseControl.state = 3;
                 break;
             case 2:
-                pauseControl[0x1D2] = 8;
+                pauseControl.state = 8;
                 break;
             case 3:
-                pauseControl[0x1D2] = 6;
+                pauseControl.state = 6;
                 break;
             case 4:
                 fn_3_5B408();
-                *(s16*)&pauseControl[0x12] = 0;
-                pauseControl[0x1D2] = 0xC;
+                pauseControl._12 = 0;
+                pauseControl.state = 0xC;
                 break;
             }
-        } else if (pauseControl[0x1D0] == 5) {
-            switch ((s8)pauseControl[0x1DA]) {
+        } else if (pauseControl._1D0 == 5) {
+            switch (pauseControl.cursor) {
             case 0:
-                pauseControl[0x1D2] = 4;
+                pauseControl.state = 4;
                 break;
             case 1:
-                pauseControl[0x1D3] = 0;
-                pauseControl[0x1D2] = 3;
+                pauseControl._1D3 = 0;
+                pauseControl.state = 3;
                 break;
             case 2:
-                pauseControl[0x1D2] = 6;
+                pauseControl.state = 6;
                 break;
             case 3:
                 fn_3_5B408();
-                *(s16*)&pauseControl[0x12] = 0;
-                pauseControl[0x1D2] = 0xC;
+                pauseControl._12 = 0;
+                pauseControl.state = 0xC;
                 break;
             }
         } else {
-            switch ((s8)pauseControl[0x1DA]) {
+            switch (pauseControl.cursor) {
             case 0:
-                pauseControl[0x1D2] = 4;
+                pauseControl.state = 4;
                 break;
             case 1:
-                pauseControl[0x1D3] = 0;
-                pauseControl[0x1D2] = 3;
+                pauseControl._1D3 = 0;
+                pauseControl.state = 3;
                 break;
             case 2:
-                pauseControl[0x1D2] = 0xA;
+                pauseControl.state = 0xA;
                 break;
             case 3:
-                pauseControl[0x1D2] = 6;
+                pauseControl.state = 6;
                 break;
             case 4:
                 fn_3_5B408();
-                *(s16*)&pauseControl[0x12] = 0;
-                pauseControl[0x1D2] = 0xC;
+                pauseControl._12 = 0;
+                pauseControl.state = 0xC;
                 break;
             }
         }
     } else if (input->newButtonInput & INPUT_BUTTON_B) {
-        if ((s8)pauseControl[0x1DA] != 0) {
-            pauseControl[0x1DA] = 0;
+        if (pauseControl.cursor != 0) {
+            pauseControl.cursor = 0;
         } else {
-            pauseControl[0x1D2] = 4;
+            pauseControl.state = 4;
         }
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
     } else if (input->_08 & INPUT_BUTTON_DOWN) {
-        pauseControl[0x1DA]++;
-        if ((s8)pauseControl[0x1DA] >= menuLength) {
-            pauseControl[0x1DA] = 0;
+        pauseControl.cursor++;
+        if (pauseControl.cursor >= menuLength) {
+            pauseControl.cursor = 0;
         }
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     } else if (input->_08 & INPUT_BUTTON_UP) {
-        pauseControl[0x1DA]--;
-        if ((s8)pauseControl[0x1DA] < 0) {
-            pauseControl[0x1DA] = menuLength - 1;
+        pauseControl.cursor--;
+        if (pauseControl.cursor < 0) {
+            pauseControl.cursor = menuLength - 1;
         }
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     }
@@ -1011,54 +1011,54 @@ void practicePauseMenuControl(void) {
 void practice_pause_unloadPauseMenu(void) {
     InputStruct* input = &g_Controls[g_Practice.homeAway];
 
-    switch (pauseControl[0x1D3]) {
+    switch (pauseControl._1D3) {
     case 0:
-        pauseControl[0x221] = 1;
-        pauseControl[0x222] = 3;
-        pauseControl[0x1D9] = 1;
-        pauseControl[0x1D3] = 1;
+        pauseControl._221 = 1;
+        pauseControl._222 = 3;
+        pauseControl._1D9 = 1;
+        pauseControl._1D3 = 1;
         break;
     case 1:
         if (diskReadRelated(CommonUIFiles_practicePause + 0x20, 0x13) != 0) {
-            pauseControl[0x1D3] = 2;
+            pauseControl._1D3 = 2;
         }
         break;
     case 2:
-        if (pauseControl[0x1D9] == 3) {
-            pauseControl[0x1D3] = 3;
+        if (pauseControl._1D9 == 3) {
+            pauseControl._1D3 = 3;
         }
         break;
     case 3:
-        pauseControl[0x1D3] = 4;
+        pauseControl._1D3 = 4;
         break;
     case 4:
         if (animRelated[0xC3] == 0) {
-            pauseControl[0x1D3] = 5;
+            pauseControl._1D3 = 5;
         }
         break;
     case 5:
         if (animRelated[0xC3] == 0) {
             if (input->newButtonInput & INPUT_BUTTON_B) {
-                pauseControl[0x1D3] = 6;
+                pauseControl._1D3 = 6;
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
-            } else if ((input->_08 & INPUT_BUTTON_LEFT) && pauseControl[0x221] != 0) {
-                pauseControl[0x221]--;
+            } else if ((input->_08 & INPUT_BUTTON_LEFT) && pauseControl._221 != 0) {
+                pauseControl._221--;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             } else if (input->_08 & INPUT_BUTTON_RIGHT) {
-                if (pauseControl[0x221] < pauseControl[0x222] - 1) {
-                    pauseControl[0x221]++;
+                if (pauseControl._221 < pauseControl._222 - 1) {
+                    pauseControl._221++;
                     sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
                 }
             }
         }
         break;
     case 6:
-        pauseControl[0x1D3] = 7;
+        pauseControl._1D3 = 7;
         break;
     case 7:
         if (animRelated[0xC3] == 0) {
             fn_80035B50(0x13);
-            pauseControl[0x1D2] = 0;
+            pauseControl.state = 0;
         }
         break;
     default:

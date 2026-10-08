@@ -26,9 +26,9 @@
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8004e5b4.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 menuNumber[0x28];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 hugeAnimStruct[0x3154];
@@ -367,13 +367,13 @@ void animatePracticeScene(void) {
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
     } else if (g_Practice.pauseMenuActive != 0) {
-        if (pauseControl[0x1D2] == 1 && g_Practice.frames_onPauseScreen2 == 1) {
+        if (pauseControl.state == 1 && g_Practice.frames_onPauseScreen2 == 1) {
             if (animRelated[0xAA] == 0) {
                 insertGraphicDrawingFunction(pauseSubPanel_init, 2);
             }
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
-        if (pauseControl[0x1D2] == 3 && pauseControl[0x1D3] == 3) {
+        if (pauseControl.state == 3 && pauseControl._1D3 == 3) {
             insertGraphicDrawingFunction(pausePageIndicator_init, 2);
         }
     }
@@ -437,17 +437,17 @@ void practice_drawHud(void) {
             g_GameLogic.gameStatus != GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
             animRelated[0xA7] = 0xF0;
         }
-        if (pauseControl[0x1D5] != 0) {
+        if (pauseControl._1D5 != 0) {
             animRelated[0xA7] = 0xF0;
         }
         if (g_Practice.pauseMenuActive != 0) {
-            if (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9 || pauseControl[0x1D2] == 0xB) {
+            if (pauseControl.state == 7 || pauseControl.state == 9 || pauseControl.state == 0xB) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
             }
         }
         if (g_Practice.completionMenuActive != 0) {
-            if (pauseControl[0x1D2] == 5 || pauseControl[0x1D2] == 0xB || pauseControl[0x1D2] == 7) {
+            if (pauseControl.state == 5 || pauseControl.state == 0xB || pauseControl.state == 7) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
             }
@@ -1022,8 +1022,8 @@ void practiceGoalHud_update(void) {
     int i;
     BOOL freed;
 
-    if (animRelated[0x96] == 0 && (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) &&
-        (g_Practice.pauseMenuActive == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
+    if (animRelated[0x96] == 0 && (g_Practice.completionMenuActive == 0 || pauseControl.state != 0) &&
+        (g_Practice.pauseMenuActive == 0 || (pauseControl.state != 7 && pauseControl.state != 0xB))) {
         if (scene->_18 == 0) {
             for (i = 0; i < 4; i++) {
                 s16* entry = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
@@ -1105,7 +1105,7 @@ void practiceCompleteBanner_update(void) {
         } else {
             PRACTICE_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         }
-        if (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) {
+        if (g_Practice.completionMenuActive == 0 || pauseControl.state != 0) {
             return;
         }
     }

@@ -12,6 +12,7 @@
 #include "musyx/musyx.h"
 #include "game/ball/foul_detection.h"
 #include "game/sound/m_sound.h"
+#include "game/match_setup/pause_menu.h"
 
 void fielderControl_classifyControlStickDirection(void);
 
@@ -34,7 +35,6 @@ extern s16 lbl_3_data_484C[10];
 extern s16 lbl_3_data_48A4[3][5];
 extern s16 barrelCollisionHitboxes[54];
 extern u8 hugeAnimStruct[0x3154];
-extern u8 pauseControl[0x264];
 extern f32 jumpArray[2][4];
 extern u8 BobbleArray[2][4][6];
 extern f32 lbl_3_data_5FC4[12];
@@ -14856,7 +14856,7 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
         }
 
         if (fielder->currentVelocity > 0.0f) {
-            if (pauseControl[0x1d5] == 0) {
+            if (pauseControl._1D5 == 0) {
                 fielder->desiredMovementDirection = ATAN2F(fielder->velocityZ, fielder->velocityX);
             }
         } else if (g_Pitcher.pitchTotalTimeCounter > 0 ||
@@ -14893,7 +14893,7 @@ void fielding_prePitchAutomovement(void) {
     int i;
     InMemFielder* fielder;
 
-    if (pauseControl[0x1d5] == 0) {
+    if (pauseControl._1D5 == 0) {
         for (i = 2; i < 9; i++) {
             f32 outZ;
             f32 outX;
@@ -15833,7 +15833,7 @@ void fn_3_2E41C(void) {
     int i;
     int fielderIdx;
 
-    if (pauseControl[0x1d5] != 0) {
+    if (pauseControl._1D5 != 0) {
         return;
     }
 

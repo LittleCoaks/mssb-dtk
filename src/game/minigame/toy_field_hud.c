@@ -19,10 +19,10 @@
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8004cc18.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u16 lbl_3_data_81FC[];
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 menuNumber[0x28];
 extern u8 lbl_3_data_84B8[];
 extern u16 stadiumHazardSoundIDs[16];
@@ -430,7 +430,7 @@ void toyfield_drawHud(void) {
             insertGraphicDrawingFunction(fn_3_1254F8, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
-        if (pauseControl[0x1D2] == 1) {
+        if (pauseControl.state == 1) {
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION) {
@@ -443,11 +443,11 @@ void toyfield_drawHud(void) {
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_END_OF_GAME) {
     } else if (g_GameLogic.gameStatus == GAME_STATUS_HOW_TO_PLAY_SCREEN) {
-        if (pauseControl[0x1D2] == 2) {
+        if (pauseControl.state == 2) {
             insertGraphicDrawingFunction(fn_3_128B90, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
-        if (pauseControl[0x1D2] == 8 && pauseControl[0x1D4] == 2) {
+        if (pauseControl.state == 8 && pauseControl._1D4 == 2) {
             insertGraphicDrawingFunction(fn_3_126604, 2);
         }
     }
@@ -540,7 +540,7 @@ void toyField_hud_scores_BallsStrikesOuts(void) {
             animRelated[0xA7] = 0xF0;
         }
     }
-    if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED && pauseControl[0x1D2] == 1) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED && pauseControl.state == 1) {
         insertGraphicDrawingFunction(pauseOptionList_init, 2);
         if (animRelated[0xAA] == 0) {
             insertGraphicDrawingFunction(pauseSubPanel_init, 2);
@@ -1473,11 +1473,11 @@ void fn_3_EA454(void) {
     if (animRelated[0x96] != 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
-    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && pauseControl[0x1D2] == 5) {
+    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && pauseControl.state == 5) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU &&
-               (pauseControl[0x1D2] == 7 || g_GameLogic.framesOfExitingToMenu != 0)) {
+               (pauseControl.state == 7 || g_GameLogic.framesOfExitingToMenu != 0)) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
     } else if (g_GameLogic.gameStatus == GAME_STATUS_0x26) {

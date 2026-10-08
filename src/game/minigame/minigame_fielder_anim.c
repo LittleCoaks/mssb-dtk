@@ -14,6 +14,7 @@
 #include "Unknown/File_0x8003a538.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
+#include "game/match_setup/pause_menu.h"
 
 // This file's own local view of hugeAnimStruct (extern, defined elsewhere):
 // only the object-pointer array at +0x2C50 is touched here. Per-TU local
@@ -100,12 +101,6 @@ typedef struct MinigameResultView {
 
 #define MG_RESULT ((MinigameResultView *)&g_Minigame)
 
-// pauseControl (declared with a larger local view in toy_field.c); only the
-// state byte is touched here.
-extern struct {
-    u8 _00[0x1D2];
-    u8 state;
-} pauseControl;
 
 extern u8 mapping_minigame_Stadium[8];
 extern s16 lbl_3_data_18BB0[4];

@@ -12,9 +12,9 @@
 #include "Unknown/File_0x800b0a14.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_hudScoreboard
 #include "header_rep_data.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern u8 menuNumber[0x28];
 extern UIRecordDescriptor lbl_3_data_BF6C[];
 extern UIRecordDescriptor lbl_3_data_F350[];
@@ -579,8 +579,8 @@ void drawDiamondMiniMap_ongoing(void) {
         }
         setMiniMapAlpha(scene, alpha);
     }
-    if (pauseControl[0x1D5] != 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
-        alpha = 0xF0 - (*(s16*)&pauseControl[0xC] << 4);
+    if (pauseControl._1D5 != 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
+        alpha = 0xF0 - (pauseControl.counter << 4);
         if (alpha <= 0) {
             goto remove;
         }

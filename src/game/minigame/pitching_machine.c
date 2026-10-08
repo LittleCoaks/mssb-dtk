@@ -47,6 +47,7 @@
 #include "Dolphin/stl.h"
 #include "stl/stdlib.h"
 #include "stl/math.h"
+#include "game/match_setup/pause_menu.h"
 #undef g_Minigame
 
 extern f32 lbl_3_data_21A64[9];
@@ -926,7 +927,6 @@ extern int minigame_getLeadingPlayer(void);
 extern int minigame_displayedPointsAllTied(void);
 extern int minigame_grandPrixHasPlayed(void);
 extern void minigame_pointsTally(void);
-extern u8 pauseControl[0x264];
 extern u8 lbl_800EFBA4[];
 extern u16 lbl_3_data_81FC[];
 
@@ -972,10 +972,10 @@ static inline u32 pmHudSceneShouldClose(void) {
         return TRUE;
     }
     if (g_Minigame.pauseInd != 0) {
-        if (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9) {
+        if (pauseControl.state == 7 || pauseControl.state == 9) {
             return TRUE;
         }
-        if (pauseControl[0x1D2] == 0xD) {
+        if (pauseControl.state == 0xD) {
             return TRUE;
         }
     }

@@ -8,9 +8,9 @@
 #include "Unknown/File_0x8003649c.h"
 #include "Unknown/File_0x800363d8.h"
 #include "static/UnknownHomes_Static.h"
+#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 pauseControl[0x264];
 extern UIRecordDescriptor lbl_3_data_D378[];
 extern UIRecordDescriptor lbl_3_data_D258[];
 extern UIRecordDescriptor lbl_3_data_D4F8[];
@@ -183,7 +183,7 @@ void wallBallAnimationRelated(void) {
         if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_POSTGAME) {
             goto remove;
         }
-        if (g_Minigame.pauseInd != 0 && (pauseControl[0x1d2] == 7 || pauseControl[0x1d2] == 0xd)) {
+        if (g_Minigame.pauseInd != 0 && (pauseControl.state == 7 || pauseControl.state == 0xd)) {
             goto remove;
         }
     } else if (animRelated[0xA7] == 0) {
@@ -320,7 +320,7 @@ void draw_ongoingStarGuageHud(void) {
         goto remove;
     }
 
-    if (g_GameLogic.IsStarChance == 0 || pauseControl[0x1D5] != 0) {
+    if (g_GameLogic.IsStarChance == 0 || pauseControl._1D5 != 0) {
         if (animRelated[0xA7] == 0) {
             goto remove;
         }
@@ -335,7 +335,7 @@ void draw_ongoingStarGuageHud(void) {
         }
     }
 
-    if (pauseControl[0x1D5] != 0) {
+    if (pauseControl._1D5 != 0) {
         if (animRelated[0xA7] == 0) {
             goto remove;
         }
