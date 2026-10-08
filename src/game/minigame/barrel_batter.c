@@ -449,7 +449,7 @@ void bB_AtBat(void) {
         }
         bB_AI();
         atBat_batter();
-        fn_3_12DB54();
+        bB_clearAIControlled();
         running_MainFunction();
         fn_3_12FAC4();
     }
@@ -1034,23 +1034,23 @@ void fn_3_12E808(void) {
 }
 
 // .text:0x0012E384 size:0x484 mapped:0x8076D418
-u8 fn_3_12E384(u8 *barrels, s8 barrelIndex, u8 colour) {
+u8 bB_countConnectedBarrels(u8 *barrels, s8 barrelIndex, u8 colour) {
     u8 count;
 
     if (colour == barrels[barrelIndex * 2 + 1] && barrels[barrelIndex * 2] == BB_BARREL_STATE_NEUTRAL) {
         barrels[barrelIndex * 2] = BB_BARREL_STATE_EMPTY;
         count = 1;
         if (barrelIndex / 3 > 0) {
-            count += fn_3_12E384(barrels, barrelIndex - 3, colour);
+            count += bB_countConnectedBarrels(barrels, barrelIndex - 3, colour);
         }
         if (barrelIndex / 3 < 4) {
-            count += fn_3_12E384(barrels, barrelIndex + 3, colour);
+            count += bB_countConnectedBarrels(barrels, barrelIndex + 3, colour);
         }
         if (barrelIndex % 3 > 0) {
-            count += fn_3_12E384(barrels, barrelIndex - 1, colour);
+            count += bB_countConnectedBarrels(barrels, barrelIndex - 1, colour);
         }
         if (barrelIndex % 3 < 2) {
-            count += fn_3_12E384(barrels, barrelIndex + 1, colour);
+            count += bB_countConnectedBarrels(barrels, barrelIndex + 1, colour);
         }
         return count;
     }
@@ -1058,7 +1058,7 @@ u8 fn_3_12E384(u8 *barrels, s8 barrelIndex, u8 colour) {
 }
 
 // .text:0x0012E17C size:0x208 mapped:0x8076D210
-void fn_3_12E17C(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd) {
+void bB_scoreEachBarrelChoice(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd) {
     u8 simulated[15][2];
     u8 scratch[15][2];
     s8 i;
@@ -1079,7 +1079,7 @@ void fn_3_12E17C(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd) {
             simulated[j][1] = g_Minigame.barrels[j].barrelColour;
             j++;
         } while (j < 15);
-        barrelsCleared[i] = fn_3_12E384(&simulated[0][0], i, simulated[i][1]);
+        barrelsCleared[i] = bB_countConnectedBarrels(&simulated[0][0], i, simulated[i][1]);
         n = barrelsCleared[i];
         if (n >= 2) {
             scores[i] = (n - 1) * n;
@@ -1113,7 +1113,7 @@ void fn_3_12E17C(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd) {
                     memcpy(&scratch[k], &simulated[k], 2);
                     k++;
                 } while (k < 15);
-                n = (s8)fn_3_12E384(&scratch[0][0], j, scratch[j][1]);
+                n = (s8)bB_countConnectedBarrels(&scratch[0][0], j, scratch[j][1]);
                 if (n >= 2) {
                     score = (n - 1) * n;
                 } else {
@@ -1131,7 +1131,7 @@ void fn_3_12E17C(s8 *barrelsCleared, s16 *scores, u8 chainBonusInd) {
 }
 
 // .text:0x0012E084 size:0xF8 mapped:0x8076D118
-int fn_3_12E084(const void *a, const void *b) {
+int bB_AI_compareCandidates(const void *a, const void *b) {
     const BB_AICandidate *x = a;
     const BB_AICandidate *y = b;
     MiniGameStruct *mg = &g_Minigame;
@@ -1185,9 +1185,9 @@ void bB_AI_setSwingVariables(void) {
         }
 
         if (prefersFewestBarrels) {
-            fn_3_12E17C(barrelsCleared, scores, TRUE);
+            bB_scoreEachBarrelChoice(barrelsCleared, scores, TRUE);
         } else {
-            fn_3_12E17C(barrelsCleared, scores, FALSE);
+            bB_scoreEachBarrelChoice(barrelsCleared, scores, FALSE);
         }
 
         i = 0;
@@ -1203,7 +1203,7 @@ void bB_AI_setSwingVariables(void) {
         } else {
             mg->bB_aiPrefersFewestBarrelsInd = FALSE;
         }
-        fn_800246D4(fn_3_12E084, candidates, candidates, sizeof(BB_AICandidate), 15);
+        fn_800246D4(bB_AI_compareCandidates, candidates, candidates, sizeof(BB_AICandidate), 15);
 
         row = candidates[0].barrelIndex / 3;
         col = candidates[0].barrelIndex % 3;
@@ -1243,7 +1243,7 @@ void bB_AI_setSwingVariables(void) {
 }
 
 // .text:0x0012DD88 size:0x44 mapped:0x8076CE1C
-BOOL fn_3_12DD88(void) {
+BOOL bB_areAllBarrelsNeutral(void) {
     u32 i;
 
     i = 0;
@@ -1261,7 +1261,7 @@ void bB_AI(void) {
     MiniGameStruct *mg = &g_Minigame;
     s8 i;
 
-    fn_3_12DB54();
+    bB_clearAIControlled();
 
     i = 0;
     do {
@@ -1293,7 +1293,7 @@ void bB_AI(void) {
                             break;
                         }
                     }
-                } else if (fn_3_12DD88()) {
+                } else if (bB_areAllBarrelsNeutral()) {
                     bB_AI_setSwingVariables();
                     mg->bB_aiSwingChosenInd = TRUE;
                 }
@@ -1305,7 +1305,7 @@ void bB_AI(void) {
 }
 
 // .text:0x0012DB54 size:0x2C mapped:0x8076CBE8
-void fn_3_12DB54(void) {
+void bB_clearAIControlled(void) {
     s8 i;
 
     i = 0;
