@@ -49,10 +49,10 @@ extern struct {
     f32 _00;
     f32 _04;
     f32 _08;
-} lbl_3_data_21438;
+} bOD_ballConsts;
 extern s16 bODPowerThresholdsForVertAngles[5];
 extern s16 bODHitVertTraj[5][5][2];
-extern s16 lbl_3_data_2141C[6][2];
+extern s16 bOD_hitVertAngleRanges[6][2];
 extern f32 horizTrajPowerMultipliers[3][5];
 
 extern u8 ChargePowerConstants[NUM_CHOOSABLE_CHARACTERS][2];
@@ -368,12 +368,12 @@ void batterHumanControlled(void) {
     inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
     if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
-        if (g_Practice._1C6 != 0 && g_Pitcher.framesUntilBallReachesBatterZ == swingSoundFrame[0][1]) {
+        if (g_Practice.scriptedSwingMode != 0 && g_Pitcher.framesUntilBallReachesBatterZ == swingSoundFrame[0][1]) {
             r26 = TRUE;
         }
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -387,10 +387,10 @@ void batterHumanControlled(void) {
              g_Batter.buntStatus == BUNT_STATUS_NONE)) {
 
             // Both tutorial outcomes fall through into the regular A-held / A-released handling below.
-            if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0) {
-                if (g_Practice._1C6 == 2) {
+            if (ACTIVE_TUTORIAL() && g_Practice.scriptedSwingMode != 0) {
+                if (g_Practice.scriptedSwingMode == 2) {
                     if (r26) {
-                        g_Practice._1C6 = 0;
+                        g_Practice.scriptedSwingMode = 0;
                         goto _270;
                     } else {
                         goto _228;
@@ -419,12 +419,12 @@ void batterHumanControlled(void) {
         if (!g_Batter.swingInd && g_Pitcher.pitcherActionState != 4 && g_Pitcher.pitcherActionState != 5 &&
             g_Batter._9C == 0) {
             if (g_Batter.buntStatus == BUNT_STATUS_NONE) {
-                if (ACTIVE_TUTORIAL() && g_Practice._1C6 != 0 && r26) {
+                if (ACTIVE_TUTORIAL() && g_Practice.scriptedSwingMode != 0 && r26) {
                     r27 = TRUE;
-                    if (g_Practice._1C6 == 3) {
+                    if (g_Practice.scriptedSwingMode == 3) {
                         r25 = TRUE;
                     }
-                    g_Practice._1C6 = 0;
+                    g_Practice.scriptedSwingMode = 0;
                 }
                 if (inputs->newButtonInput & INPUT_BUTTON_A) {
                     if (g_Batter.chargeStatus == CHARGE_SWING_STAGE_NONE && g_Batter.countUpUntilChargeEnables == 0) {
@@ -510,7 +510,7 @@ void batterInBoxMovement(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -1240,7 +1240,7 @@ static inline InputStruct* selectBattingInput(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -1330,7 +1330,7 @@ void calculateVerticalAngle(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }
@@ -1579,7 +1579,7 @@ void calculateHorizontalPower(void) {
 
             g_Ball.bODQualifyingHitInd = 1;
             g_Minigame.bODAngleIndexBasedOnHitPower = 0;
-            power *= lbl_3_data_21438._08;
+            power *= bOD_ballConsts._08;
 
             for (; g_Minigame.bODAngleIndexBasedOnHitPower < 5; g_Minigame.bODAngleIndexBasedOnHitPower++) {
                 if (power < bODPowerThresholdsForVertAngles[g_Minigame.bODAngleIndexBasedOnHitPower]) {
@@ -1587,11 +1587,11 @@ void calculateHorizontalPower(void) {
                 }
             }
             g_Ball.Hit_VerticalAngle =
-                RandomInt_Game_Range(lbl_3_data_2141C[g_Minigame.bODAngleIndexBasedOnHitPower + 1][0],
-                                     lbl_3_data_2141C[g_Minigame.bODAngleIndexBasedOnHitPower + 1][1]);
+                RandomInt_Game_Range(bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][0],
+                                     bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][1]);
             g_UnkSound_32718._08 = 2;
         } else {
-            g_Ball.Hit_VerticalAngle = RandomInt_Game_Range(lbl_3_data_2141C[0][0], lbl_3_data_2141C[0][1]);
+            g_Ball.Hit_VerticalAngle = RandomInt_Game_Range(bOD_hitVertAngleRanges[0][0], bOD_hitVertAngleRanges[0][1]);
             power *= 0.7f;
         }
     }
@@ -1656,7 +1656,7 @@ void calculateBuntHorizontalAngle(void) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
                    g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID])) {
-        inputs = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
+        inputs = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         inputs = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID]];
     }

@@ -42,7 +42,7 @@ extern s16 lbl_3_data_21904[];
 extern VecXZ lbl_3_data_4A54[][13];
 extern s16 lbl_3_data_4B90[];
 extern void initializeInMemRunner(int rosterID, int runnerIdx);
-extern u32 fn_3_107DF8(int port);
+extern u32 minigame_getCcsAIControlledInd(int port);
 extern void QueueTextToDisplay(int code, int arg1);
 extern u8 pauseControl[0x264];
 extern f32 lbl_3_data_4B88[];
@@ -1126,7 +1126,7 @@ void running_chainChompSprintRelated(void) {
             f32 angle;
 
             atan2(-runner->velocity.x, -runner->velocity.y);
-            if (g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[i]] == 1) {
+            if (g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]] == 1) {
                 angle = radianAngleReduction(3.1415927410125732 + atan2(-runner->velocity.x, -runner->velocity.z));
             } else if (runner->runningDirectionCode != 0 && runner->runningDirectionCode != 2) {
                 if (0.0f == runner->velocity.x && 0.0f == runner->velocity.z) {
@@ -4731,7 +4731,7 @@ void cCSRunningFun(void) {
         if (runner->runningDirectionCode == 0) {
             runner->runningDirectionCode = 2;
         }
-        stage = &g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[i]];
+        stage = &g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]];
         runner->turningAroundInd = 0;
         if (*stage == 4) {
             continue;
@@ -4794,7 +4794,7 @@ void cCSRunningFun(void) {
                 runner->runningToDugoutFrameCounter = 0x7FFF;
             }
             if (runner->runningToDugoutFrameCounter >= lbl_3_data_21904[2]) {
-                g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[i]] = 0;
+                g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]] = 0;
             }
         } else {
             if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame.turnOverStatus == 0) {
@@ -4871,11 +4871,11 @@ void fn_3_7DD24(int runnerIdx) {
 // .text:0x0007DB30 size:0x1F4 mapped:0x806BCBC4
 void runnerChangeDirectionHumanInput(int runnerIdx) {
     InMemRunnerType* runner;
-    InputStruct* inputs = &g_Controls[(s8)g_Minigame._18FC[runnerIdx]];
+    InputStruct* inputs = &g_Controls[(s8)g_Minigame.runnerPlayerIndexU8[runnerIdx]];
 
     runner = &g_Runners[runnerIdx];
-    if (fn_3_107DF8(g_Minigame._18FC[runnerIdx])) {
-        inputs = &g_Minigame._1D7C[(s8)g_Minigame._18FC[runnerIdx]];
+    if (minigame_getCcsAIControlledInd(g_Minigame.runnerPlayerIndexU8[runnerIdx])) {
+        inputs = &g_Minigame.aiInputs[(s8)g_Minigame.runnerPlayerIndexU8[runnerIdx]];
     }
 
     if (runner->runningDirectionCode == 3) {
@@ -4940,7 +4940,7 @@ void fn_3_7D9DC(int runnerIdx) {
 // .text:0x0007D920 size:0xBC mapped:0x806BC9B4
 void fn_3_7D920(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
-    int idx = (s8)g_Minigame._18FC[runnerIdx];
+    int idx = (s8)g_Minigame.runnerPlayerIndexU8[runnerIdx];
 
     if (g_Minigame.ccs.runnerChompHitState[idx] == 2) {
         if (g_Minigame.ccs.chompState != 0) {
@@ -5006,6 +5006,6 @@ void fn_3_7D79C(int runnerIdx) {
         runner->runningToDugoutFrameCounter = 0x7FFF;
     }
     if (runner->runningToDugoutFrameCounter >= lbl_3_data_21904[2]) {
-        g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame._18FC[runnerIdx]] = 0;
+        g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[runnerIdx]] = 0;
     }
 }

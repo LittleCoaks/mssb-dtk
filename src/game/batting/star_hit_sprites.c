@@ -166,7 +166,7 @@ void fn_3_6A9B0(void) {
     int actor;
 
     if (g_d_GameSettings.minigamesEnabled != FALSE) {
-        actor = ((s8*)&g_Minigame)[0x18CC + g_Minigame.rosterID];
+        actor = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
     } else {
         actor = 9;
     }
@@ -203,7 +203,7 @@ void fn_3_6A83C(void) {
         return;
     }
     if (g_d_GameSettings.minigamesEnabled != FALSE) {
-        actor = ((s8*)&g_Minigame)[0x18CC + (s8)g_Minigame.minigamePlayerSelectedOrder];
+        actor = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
     }
     if (timer < 0) {
         return;

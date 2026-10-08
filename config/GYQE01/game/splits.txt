@@ -226,14 +226,20 @@ game/fielding/fielder_ai.c:
 	.data       start:0x0000F4E0 end:0x0000F50C
 	.bss        start:0x000017F8 end:0x00001900
 
-game/data_only/rep_1A80.c:
+game/match_setup/pause_menu.c:
+	.text       start:0x000AC9F8 end:0x000AFDC0
 	.rodata     start:0x00001A80 end:0x00001AD0
+	.data       start:0x0000F50C end:0x0000FA68
 
-game/data_only/rep_1AD0.c:
+game/practice/practice_modes.c:
+	.text       start:0x000AFDC0 end:0x000B1CB0
 	.rodata     start:0x00001AD0 end:0x00001B20
+	.data       start:0x0000FA68 end:0x0000FAA8
 
-game/data_only/rep_1B20.c:
+game/practice/guided_practice.c:
+	.text       start:0x000B1CB0 end:0x000B3A4C
 	.rodata     start:0x00001B20 end:0x00001B70
+	.data       start:0x0000FAA8 end:0x00010A08
 
 game/match_setup/player_control_transition.c:
 	.text       start:0x000B3A4C end:0x000B3B70
@@ -306,13 +312,14 @@ game/stadium/sta_c2.c:
 	.bss        start:0x0000A018 end:0x0000AE00
 
 game/minigame/toy_field.c:
-	.text       start:0x000D9EA0 end:0x000DEB90
+	.text       start:0x000D8A10 end:0x000E0668
 	.rodata     start:0x000028A8 end:0x00002940
-	.data       start:0x000188E8 end:0x00018CD8
+	.data       start:0x000188E8 end:0x00018D98
 
 game/minigame/minigame_fielder_anim.c:
-	.text       start:0x000E11E0 end:0x000E1964
+	.text       start:0x000E0668 end:0x000E1DB8
 	.rodata     start:0x00002940 end:0x00002998
+	.data       start:0x00018D98 end:0x00018ED0
 
 game/stadium/sta_c3.c:
 	.text       start:0x000E1DB8 end:0x000E587C
@@ -326,9 +333,10 @@ game/stadium/sta_c6.c:
 	.data       start:0x00019018 end:0x00019770
 	.bss        start:0x0000AE50 end:0x0000AEE0
 
-game/minigame/toy_field_offscreen.c:
-	.text       start:0x000E9D30 end:0x000EA340
+game/minigame/toy_field_hud.c:
+	.text       start:0x000E911C end:0x000EDFAC
 	.rodata     start:0x00002BF8 end:0x00002C60
+	.data       start:0x00019770 end:0x0001B820
 
 game/stadium/sta_c5.c:
 	.text       start:0x000EDFAC end:0x000F8444
@@ -348,8 +356,10 @@ game/math/rep_3090.c:
 	.data       start:0x00021048 end:0x00021268
 	.bss        start:0x0000B678 end:0x0000B698
 
-game/data_only/rep_31A0.c:
+game/minigame/minigame_framework.c:
+	.text       start:0x00106DFC end:0x00110634
 	.rodata     start:0x000031A0 end:0x000031F0
+	.data       start:0x00021268 end:0x000224E8
 
 game/minigame/bobomb_derby.c:
 	.text       start:0x00110634 end:0x00113398
@@ -358,22 +368,23 @@ game/minigame/bobomb_derby.c:
 	.bss        start:0x0000B698 end:0x0000B6B8
 
 game/minigame/wall_ball.c:
-	.text       start:0x001133C4 end:0x00114FC0
+	.text       start:0x001133C4 end:0x0011669C
 	.rodata     start:0x00003290 end:0x00003310
-	.data       start:0x00022558 end:0x00022580
+	.data       start:0x00022558 end:0x000225F0
 
 game/minigame/pitching_machine.c:
-	.text       start:0x00116840 end:0x0011D3AC
+	.text       start:0x0011669C end:0x0011EC28
 	.rodata     start:0x00003310 end:0x00003448
+	.data       start:0x000225F0 end:0x000264D0
 	.bss        start:0x0000B6B8 end:0x0000B700
 
 game/hud/rep_3448.c:
-	.text       start:0x0011EC28 end:0x001293D0
+	.text       start:0x0011EC28 end:0x0012DB54
 	.rodata     start:0x00003448 end:0x000034B0
 	.data       start:0x000264D0 end:0x0002650C
 
 game/minigame/barrel_batter.c:
-	.text       start:0x0012E8FC end:0x00132EDC
+	.text       start:0x0012DB54 end:0x00132EDC
 	.rodata     start:0x000034B0 end:0x00003520
 	.data       start:0x00026510 end:0x0002657C
 
@@ -390,17 +401,21 @@ game/minigame/chain_chomp_sprint.c:
 	.bss        start:0x0000B790 end:0x0000B7C0
 
 game/minigame/piranha_panic.c:
-	.text       start:0x00141C44 end:0x001471C0
+	.text       start:0x00141C44 end:0x00147358
 	.rodata     start:0x000037A8 end:0x00003880
+	.data       start:0x00026698 end:0x000266A8
 	.bss        start:0x0000B7C0 end:0x0000B850
 
-game/minigame/rep_3880.c:
-	.text       start:0x0014737C end:0x00157DB8
+game/minigame/minigame_effects.c:
+	.text       start:0x00147358 end:0x00157DB8
 	.rodata     start:0x00003880 end:0x00003A48
+	.data       start:0x000266A8 end:0x00026F00
 	.bss        start:0x0000B850 end:0x0000B9B8
 
-game/data_only/rep_3A48.c:
+game/practice/practice_scene.c:
+	.text       start:0x00157DB8 end:0x0015B79C
 	.rodata     start:0x00003A48 end:0x00003A98
+	.data       start:0x00026F00 end:0x00026F78
 
 game/data_only/rep_3A98.c:
 	.rodata     start:0x00003A98 end:0x00003AE8

@@ -43,7 +43,7 @@ StarPowerCosts starPowerCosts = { 5, 1, 2, 1 };
 
 u8 lbl_3_data_60F8[0xC] = { 5, 10, 10, 5, 5, 5, 3, 3, 1, 1, 0, 0 };
 
-s8 lbl_3_data_6104[8] = { 0, 1, 4, 3, 2, 5, 0, 0 };
+s8 challengeTransitionPortraitIDs[8] = { 0, 1, 4, 3, 2, 5, 0, 0 };
 
 f32 lbl_3_data_610C[6] = { 0.1f, 0.4f, 0.7f, 0.2f, 0.5f, 1.0f };
 

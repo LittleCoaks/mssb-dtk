@@ -212,7 +212,7 @@ void fn_3_16A07C(void) {
     int i;
     u8 alpha;
 
-    if (g_d_GameSettings._55 != 0 || g_Minigame._1A40 != 0) {
+    if (g_d_GameSettings._55 != 0 || g_Minigame.minigameInactiveInd != 0) {
         removeCurrentDrawingItem();
         memset(&RIBBON_STATE, 0, sizeof(RibbonState));
         return;

@@ -63,7 +63,7 @@ extern void initializeSomethingDuringTransition(void);
 extern int fn_3_59BCC(int arg0);
 extern ChallengeSituation lbl_3_data_5FF4[2][4][2];
 extern s16 lbl_3_data_6074[4];
-extern s8 lbl_3_data_6104[];
+extern s8 challengeTransitionPortraitIDs[];
 extern u8 lbl_8037169C[];
 extern int fn_3_FD9FC(void);
 extern void fn_3_FBD70(void);
@@ -114,8 +114,8 @@ extern void starMissionRelated2(void);
 extern void cleanupCharacters(void);
 extern void fn_3_90434(void);
 extern void unregisterMatchHudObjects(void);
-extern void fn_3_DFA20(void);
-extern void fn_3_10FBE4(void);
+extern void toyFieldInit(void);
+extern void minigames_init(void);
 extern void clearScoutState(void);
 extern void fn_3_1663AC(void);
 extern void fn_3_59C2C(void);
@@ -615,7 +615,7 @@ void newPitch(void) {
     g_FieldingLogic.framesSince3rdOutWasMade = 0;
     g_RunningLogic._13 = 0;
     pauseControl[0x1D5] = 0;
-    g_Practice._1B0 = 0;
+    g_Practice.homeRunWaitSkipped = 0;
     if (g_GameLogic.pre_PostMiniGameInd != 0) {
         g_GameLogic.minigameLastTurnSuccessInd = 1;
         g_GameLogic.hudElementLoadingInd = 1;
@@ -799,9 +799,9 @@ void checkIfPlayOver(void) {
     if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel != 6 &&
             g_Practice.practiceLevel != 7) {
-            if (g_Practice._1B0 == 0) {
+            if (g_Practice.homeRunWaitSkipped == 0) {
                 if (g_Controls[g_Practice.homeAway].newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_START)) {
-                    g_Practice._1B0 = 1;
+                    g_Practice.homeRunWaitSkipped = 1;
                 }
                 endFrame = 0x12C;
             } else {
@@ -1406,7 +1406,7 @@ void endOfMatch(void) {
     case 2:
         if (!g_d_GameSettings.exhibitionMatchInd && g_d_GameSettings.bJMatchInd == 1) {
             challenge_setTransitionScreenCharacterPortrait(
-                0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
+                0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
         } else {
             changeScene(3, 6);
         }
@@ -1768,9 +1768,9 @@ void matchEndGameScreenFunction(void) {
             changeScene(3, 6);
         } else if (!g_d_GameSettings.exhibitionMatchInd) {
             if (g_d_GameSettings.bJMatchInd == 1) {
-                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
             } else {
-                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441E]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441E]]);
             }
         } else {
             changeScene(4, 6);
@@ -2019,8 +2019,8 @@ int fn_3_5B220(int arg0) {
     }
     switch (g_GameLogic.endGameStage) {
     case 0:
-        if (arg0 == 1 && g_Minigame._1A3C == 0 && g_Minigame._1A44 == 0 && g_Minigame._1A45 == 0 &&
-            g_Minigame._1A43 == 0) {
+        if (arg0 == 1 && g_Minigame.grandPrixInd == 0 && g_Minigame.difficultyUnlockedInd == 0 && g_Minigame.grandPrixUnlockedInd == 0 &&
+            g_Minigame.newRecordRank == 0) {
             return 1;
         }
         fn_8003BF54(lbl_80366158[0x27], 0, 0, 1, 0, 4, 5, 0, 0);
@@ -2142,9 +2142,9 @@ void fn_3_5AE0C(void) {
     g_UnkSimulation_31AC0._07 = 0;
     gameInitRelated();
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        fn_3_DFA20();
+        toyFieldInit();
     } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        fn_3_10FBE4();
+        minigames_init();
     }
     g_Minigame._19AB = 0;
     fn_3_6C150();

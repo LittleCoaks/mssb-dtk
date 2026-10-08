@@ -61,7 +61,7 @@ extern int fn_3_1665E4(void);
 extern void loadSomeDataFile(void);
 extern void someAllocFunction(void);
 extern int maybeLoadHUDObjectFromMemory(void);
-extern int fn_3_11D6A0(void);
+extern int mm_LoadCommonArchiveStep(void);
 extern void fn_800111B4(TextBank* bank);
 extern int calledWhenStartingMatch(void);
 extern int fn_80020218(void);
@@ -314,7 +314,7 @@ void fn_3_59F40(void) {
         }
         break;
     case 9:
-        if (fn_3_11D6A0()) {
+        if (mm_LoadCommonArchiveStep()) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -539,7 +539,7 @@ void QueueTextToDisplay(int arg0) {
         if (arg0 == 5) {
             return;
         }
-    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice._186 != 0) {
+    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.frames_sincePracticeCompleted != 0) {
         return;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && arg0 == 5) {

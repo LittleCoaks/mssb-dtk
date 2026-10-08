@@ -2,6 +2,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_piranhaPanic
 #define g_Minigame g_Minigame_shared
 #include "game/minigame/piranha_panic.h"
+#include "game/minigame/pitching_machine.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -31,40 +32,39 @@
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
-extern s8 lbl_3_data_266A4;
-extern f32 lbl_3_data_26698[3];
+f32 lbl_3_data_26698[3] = { 0.5f, 0.0f, -0.5f };
+s8 lbl_3_data_266A4 = -1;
 extern s16 lbl_3_data_21E68[26];
-extern f32 lbl_3_data_21E24[17];
-extern f32 lbl_3_data_21D1C[4];
+extern f32 pP_ballPhysicsConsts[17];
+extern f32 pP_spawnerYRanges[4];
 extern f32 lbl_3_data_21D2C[2];
-extern VecXYZ lbl_3_data_21B94[4];
-extern s16 lbl_3_data_21DC4[2];
+extern VecXYZ pP_fielderStartPositions[4];
+extern s16 pP_spawnDelayRange[2];
 extern s16 lbl_3_data_21E04[2];
-extern u8 lbl_3_data_21E10[8];
-extern s16 lbl_3_data_21EAC[4][2];
-extern u8 lbl_3_data_21E9C[4][4];
+extern u8 pP_hitsRequiredByKind[8];
+extern s16 pP_aiActionDelayRanges[4][2];
+extern u8 pP_aiActionWeights[4][4];
 extern s8 lbl_3_data_21EBC[4];
 extern s8 lbl_3_data_21EC0[4];
-extern u8 lbl_3_data_21E1C[2];
+extern u8 pP_throwFramesRange[2];
 extern s16 lbl_3_data_21DC8[5][6];
 
 extern s16 barrelCollisionHitboxes[];
-extern VecXYZ lbl_3_data_21BC4[][4];
+extern VecXYZ pP_spawnerPositions[][4];
 extern f32 fielderHitboxesForGarlicKnockout[];
 
 extern u8 lbl_800EFBA4[0x10];
 extern u16 lbl_3_data_81FC[0x30];
-extern u8 lbl_3_data_21278[2];
-extern u8 lbl_3_data_2127C[8][5];
-extern u8 lbl_3_data_21E08[8];
+extern u8 minigameIntroFrames[2];
+extern u8 minigameAIStrengthTable[8][5];
+extern u8 pP_timeLimitSeconds[8];
 extern BOOL checkForPauses(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_157570(void);
 extern void fn_3_157588(int arg);
 extern void fn_3_154214(void);
 extern void fn_800B993C(void);
 extern void fn_800B9948(void* callback);
-extern void fn_3_118358(int arg, void* obj);
 extern void fn_3_15730C(int index, f32 x, f32 y, f32 z);
 extern void fn_3_1573AC(int arg);
 extern void fn_3_147CFC(VecXYZ* pos);
@@ -73,8 +73,8 @@ extern void fn_80062BE4(Vec* pos);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 hugeAnimStruct[0x3154];
-extern VecXYZ lbl_3_data_21D34[4][3];
-extern u8 lbl_3_data_21E20[4];
+extern VecXYZ pP_goalBallPositions[4][3];
+extern u8 lbl_3_data_21E20[3];
 extern u8 lbl_3_data_21E18[4];
 
 #define SATURATING_INCREMENT(counter) \
@@ -84,52 +84,6 @@ extern u8 lbl_3_data_21E18[4];
         (counter) = 0x7FFF;           \
     }
 
-#define PP_SPAWNER_COUNT 3
-#define PP_OBJECT_COUNT 40
-#define PP_PLAYER_COUNT 4
-#define PP_HELD_BALL_COUNT 3
-#define PP_SCORE_ENTRY_COUNT 10
-
-/* One piranha plant: emerges from a hole (mode 1), is active (2), retracts (3)
- * or is recovering after being fed (4); mode 0 is hidden. */
-typedef struct _PPSpawner {
-    /*0x00*/ VecXYZ pos;
-    /*0x0C*/ f32 _0C;
-    /*0x10*/ f32 angle;
-    /*0x14*/ f32 _14;
-    /*0x18*/ s16 _18;
-    /*0x1A*/ s16 _1A;
-    /*0x1C*/ s16 _1C;
-    /*0x1E*/ s16 _1E;
-    /*0x20*/ s16 _20;
-    /*0x22*/ s16 _22;
-    /*0x24*/ s16 _24;
-    /*0x26*/ s16 _26;
-    /*0x28*/ u8 _28[2];
-    /*0x2A*/ u8 mode;
-    /*0x2B*/ u8 isBig; // the special plant that accepts any ball
-    /*0x2C*/ u8 kind; // hole / ball kind it accepts; 4 = any
-    /*0x2D*/ u8 hitsLeft;
-    /*0x2E*/ u8 _2E;
-    /*0x2F*/ s8 queue[4];
-    /*0x33*/ u8 _33;
-    /*0x34*/ s8 _34;
-    /*0x35*/ s8 _35;
-    /*0x36*/ u8 _36[2];
-} PPSpawner; // size: 0x38
-
-typedef struct _PPObject {
-    /*0x00*/ VecXYZ pos;
-    /*0x0C*/ VecXYZ vel;
-    /*0x18*/ f32 _18;
-    /*0x1C*/ s32 _1C;
-    /*0x20*/ s16 _20;
-    /*0x22*/ s16 _22;
-    /*0x24*/ s16 _24;
-    /*0x26*/ u8 state;
-    /*0x27*/ u8 _27;
-} PPObject; // size: 0x28
-
 
 static u8 lbl_3_bss_B840[0x10];
 static u8 lbl_3_bss_B800[4 * 4 * 4] ATTRIBUTE_ALIGN(32);
@@ -138,80 +92,6 @@ static GXTexObj lbl_3_bss_B7C4;
 static u8 lbl_3_bss_B7C1;
 static u8 lbl_3_bss_B7C0;
 
-typedef struct _PPAI {
-    /*0x0*/ s16 timer;
-    /*0x2*/ s8 state;
-    /*0x3*/ s8 selection;
-} PPAI; // size: 0x4
-
-
-#define PP_BALL_COUNT 50
-
-/* Piranha Panic's view of g_Minigame: the mini-game state overlays storage that
- * MiniGameStruct does not name for this mode. Fields MiniGameStruct already
- * names (turnOverStatus, multiPlayerInd, ...) are still read through g_Minigame. */
-typedef struct _PPState {
-    /*0x0000*/ PPSpawner spawner[PP_SPAWNER_COUNT];
-    /*0x00A8*/ PPObject object[PP_OBJECT_COUNT];
-    /*0x06E8*/ u8 x_6E8[0xCD0 - 0x6E8];
-    /*0x0CD0*/ VecXYZ ballPos[PP_BALL_COUNT];
-    /*0x0F28*/ u8 _F28[0x1180 - 0xF28];
-    /*0x1180*/ VecXYZ ballVel[PP_BALL_COUNT];
-    /*0x13D8*/ u8 _13D8[0x17C0 - 0x13D8];
-    /*0x17C0*/ u32 frameCount;
-    /*0x17C4*/ u32 framesRemaining;
-    /*0x17C8*/ s16 ballFrames[PP_BALL_COUNT];
-    /*0x182C*/ u8 _182C[0x1890 - 0x182C];
-    /*0x1890*/ s16 pointsA[PP_PLAYER_COUNT];
-    /*0x1898*/ s16 pointsB[PP_PLAYER_COUNT];
-    /*0x18A0*/ u8 _18A0[0x18BC - 0x18A0];
-    /*0x18BC*/ s16 pointsLatest[PP_PLAYER_COUNT][2];
-    /*0x18CC*/ s8 character[PP_PLAYER_COUNT];
-    /*0x18D0*/ u8 _18D0[0x18D8 - 0x18D0];
-    /*0x18D8*/ u8 aiControlled[PP_PLAYER_COUNT];
-    /*0x18DC*/ u8 aiStrength[PP_PLAYER_COUNT];
-    /*0x18E0*/ u8 _18E0[0x18E8 - 0x18E0];
-    /*0x18E8*/ u8 _18E8[8];
-    /*0x18F0*/ u8 _18F0[PP_PLAYER_COUNT];
-    /*0x18F4*/ s8 _18F4[PP_PLAYER_COUNT];
-    /*0x18F8*/ s8 fielderIndex[PP_PLAYER_COUNT];
-    /*0x18FC*/ s8 x_18FC[PP_PLAYER_COUNT];
-    /*0x1900*/ s8 x_1900[PP_PLAYER_COUNT];
-    /*0x1904*/ u8 _1904[0x193A - 0x1904];
-    /*0x193A*/ u8 ballState[PP_BALL_COUNT];
-    /*0x196C*/ u8 x_196C[0x1B34 - 0x196C];
-    /*0x1B34*/ s16 swingFrames[PP_PLAYER_COUNT];
-    /*0x1B3C*/ s16 stateFrames[PP_PLAYER_COUNT];
-    /*0x1B44*/ s16 downFrames[PP_PLAYER_COUNT];
-    /*0x1B4C*/ s16 x_1B4C;
-    /*0x1B4E*/ s16 x_1B4E;
-    /*0x1B50*/ s16 hitCount[PP_PLAYER_COUNT];
-    /*0x1B58*/ u8 scoreEntries[PP_PLAYER_COUNT][PP_SCORE_ENTRY_COUNT];
-    /*0x1B80*/ u8 scoreEntryCount[PP_PLAYER_COUNT];
-    /*0x1B84*/ u8 ballKind[PP_BALL_COUNT];
-    /*0x1BB6*/ s8 ballOwner[PP_BALL_COUNT];
-    /*0x1BE8*/ s8 ballTarget[PP_BALL_COUNT];
-    /*0x1C1A*/ u8 x_1C1A[PP_BALL_COUNT];
-    /*0x1C4C*/ u8 x_1C4C[PP_BALL_COUNT];
-    /*0x1C7E*/ s8 heldBalls[PP_PLAYER_COUNT][PP_HELD_BALL_COUNT];
-    /*0x1C8A*/ u8 spawnCount[PP_PLAYER_COUNT];
-    /*0x1C8E*/ u8 throwBall[PP_PLAYER_COUNT];
-    /*0x1C92*/ s8 throwDirection[PP_PLAYER_COUNT];
-    /*0x1C96*/ u8 _1C96[PP_PLAYER_COUNT];
-    /*0x1C9A*/ u8 hitState[PP_PLAYER_COUNT];
-    /*0x1C9E*/ u8 targeted[PP_PLAYER_COUNT];
-    /*0x1CA2*/ u8 x_1CA2;
-    /*0x1CA3*/ u8 x_1CA3;
-    /*0x1CA4*/ u8 x_1CA4;
-    /*0x1CA5*/ u8 playerState[PP_PLAYER_COUNT];
-    /*0x1CA9*/ u8 holeUsed[PP_PLAYER_COUNT];
-    /*0x1CAD*/ u8 goalIndex[PP_PLAYER_COUNT];
-    /*0x1CB1*/ u8 x_1CB1[PP_PLAYER_COUNT];
-    /*0x1CB5*/ u8 _1CB5[0x1DCC - 0x1CB5];
-    /*0x1DCC*/ PPAI ai[PP_PLAYER_COUNT];
-    /*0x1DDC*/ u8 _1DDC[0x1DF4 - 0x1DDC];
-    /*0x1DF4*/ u8 x_1DF4[PP_PLAYER_COUNT];
-} PPState;
 
 typedef union _PPMinigame {
     MiniGameStruct;
@@ -271,6 +151,28 @@ static inline void ppInitPulseTexture(void) {
     lbl_3_bss_B7C1 = 0;
 }
 
+// .text:0x001471C4 size:0x194 mapped:0x80786258
+void piranhaPanicSwitcher(void) {
+    switch (g_GameLogic.gameStatus) {
+        case GAME_STATUS_LOAD_GAME:
+            pP_LoadGame();
+            break;
+        case GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING:
+            pP_RoundIntro();
+            break;
+        case GAME_STATUS_DEFAULT:
+            pP_StartPlay();
+            break;
+        case GAME_STATUS_LIVE_BALL:
+            piranhaPanicLiveBall();
+            break;
+    }
+}
+
+// .text:0x001471C0 size:0x4 mapped:0x80786254
+void fn_3_1471C0(void) {
+}
+
 // .text:0x00146A90 size:0x730 mapped:0x80785B24
 void pP_LoadGame(void) {
     s32 i;
@@ -283,7 +185,7 @@ void pP_LoadGame(void) {
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_PIRANHA_PANIC;
         g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.turnOverStatus = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         for (i = 0; i < PP_PLAYER_COUNT; i++) {
             PP.pointsA[i] = 0;
             PP.pointsB[i] = 0;
@@ -303,21 +205,21 @@ void pP_LoadGame(void) {
         g_Minigame.minigameElapsedFrames = 0;
         if (g_Minigame.multiPlayerInd == 0) {
             u8 value;
-            g_Minigame.minigameFramesRemaining = lbl_3_data_21E08[g_Minigame.soloMinigameDifficulty] * 60;
-            value = lbl_3_data_2127C[g_Minigame.GameMode_MiniGame][g_Minigame.soloMinigameDifficulty];
+            g_Minigame.minigameFramesRemaining = pP_timeLimitSeconds[g_Minigame.soloMinigameDifficulty] * 60;
+            value = minigameAIStrengthTable[g_Minigame.GameMode_MiniGame][g_Minigame.soloMinigameDifficulty];
             PP.aiStrength[0] = value;
             PP.aiStrength[1] = value;
             PP.aiStrength[2] = value;
             PP.aiStrength[3] = value;
         } else {
-            if (g_Minigame._1A3C != 0) {
-                u8 value = lbl_3_data_2127C[7][0];
+            if (g_Minigame.grandPrixInd != 0) {
+                u8 value = minigameAIStrengthTable[7][0];
                 PP.aiStrength[0] = value;
                 PP.aiStrength[1] = value;
                 PP.aiStrength[2] = value;
                 PP.aiStrength[3] = value;
             }
-            g_Minigame.minigameFramesRemaining = lbl_3_data_21E08[4] * 60;
+            g_Minigame.minigameFramesRemaining = pP_timeLimitSeconds[4] * 60;
         }
         pPRelated();
         setDefaultInMemFielder();
@@ -331,9 +233,9 @@ void pP_LoadGame(void) {
             setFielderValues(i, PP.fielderIndex[PP._18F4[p]]);
             fielder = &g_Fielders[PP.fielderIndex[PP._18F4[p]]];
             fielder->_020D = i;
-            fielder->pos.x = lbl_3_data_21B94[p].x;
-            fielder->pos.y = lbl_3_data_21B94[p].y;
-            fielder->pos.z = lbl_3_data_21B94[p].z;
+            fielder->pos.x = pP_fielderStartPositions[p].x;
+            fielder->pos.y = pP_fielderStartPositions[p].y;
+            fielder->pos.z = pP_fielderStartPositions[p].z;
             PP.heldBalls[i][0] = -1;
             PP.heldBalls[i][1] = -1;
             PP.heldBalls[i][2] = -1;
@@ -373,9 +275,9 @@ void pP_LoadGame(void) {
             sp->_20 = 0;
             sp->_22 = 0;
             sp->_33 = 0xFF;
-            sp->pos.x = lbl_3_data_21BC4[k][0].x;
-            sp->pos.y = lbl_3_data_21BC4[k][0].y;
-            sp->pos.z = lbl_3_data_21BC4[k][0].z;
+            sp->pos.x = pP_spawnerPositions[k][0].x;
+            sp->pos.y = pP_spawnerPositions[k][0].y;
+            sp->pos.z = pP_spawnerPositions[k][0].z;
             sp->queue[0] = -1;
             sp->queue[1] = -1;
             sp->queue[2] = -1;
@@ -411,13 +313,13 @@ void pP_LoadGame(void) {
 void pP_RoundIntro(void) {
     switch (g_GameLogic._125) {
         case TRANSITION_CALCULATION_TYPE_0:
-            fn_3_10F550(2, lbl_3_data_21278[0]);
+            minigameQueueHudEvent(2, minigameIntroFrames[0]);
             changeScene(1, 6);
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
             break;
         case TRANSITION_CALCULATION_TYPE_1:
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > lbl_3_data_21278[0] + lbl_3_data_21278[1]) {
+            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
             }
             break;
@@ -462,7 +364,7 @@ void pP_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (PP.framesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
-            fn_3_10F550(3, 0);
+            minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
         }
     } else {
@@ -487,10 +389,10 @@ void pP_Postgame(void) {
     fn_3_157570();
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
-        if (PP._18E8[(s8)g_Minigame._1908] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
-            g_Minigame._1A37 = 1;
+        if (PP._18E8[(s8)g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+            g_Minigame.winLossResult = 1;
         } else {
-            g_Minigame._1A37 = 2;
+            g_Minigame.winLossResult = 2;
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
@@ -603,9 +505,9 @@ void pP_SetHeldBallPos(int p) {
             break;
         }
     }
-    PP_BALL_POS(p).x = lbl_3_data_21D34[PP.goalIndex[owner]][k].x;
-    PP_BALL_POS(p).y = lbl_3_data_21D34[PP.goalIndex[owner]][k].y;
-    PP_BALL_POS(p).z = lbl_3_data_21D34[PP.goalIndex[owner]][k].z;
+    PP_BALL_POS(p).x = pP_goalBallPositions[PP.goalIndex[owner]][k].x;
+    PP_BALL_POS(p).y = pP_goalBallPositions[PP.goalIndex[owner]][k].y;
+    PP_BALL_POS(p).z = pP_goalBallPositions[PP.goalIndex[owner]][k].z;
 }
 
 // .text:0x001453BC size:0x714 mapped:0x80784450
@@ -614,10 +516,10 @@ void pP_UpdateThrownBall(int p) {
 
     SATURATING_INCREMENT(PP.ballFrames[p]);
     if (PP.ballState[p] == 6) {
-        PP_BALL_VEL(p).y += lbl_3_data_21E24[11];
+        PP_BALL_VEL(p).y += pP_ballPhysicsConsts[11];
         if (PP.ballKind[p] != 5) {
-            PP_BALL_VEL(p).x *= lbl_3_data_21E24[12];
-            PP_BALL_VEL(p).z *= lbl_3_data_21E24[12];
+            PP_BALL_VEL(p).x *= pP_ballPhysicsConsts[12];
+            PP_BALL_VEL(p).z *= pP_ballPhysicsConsts[12];
         } else if (PP.ballFrames[p] >= lbl_3_data_21E68[23]) {
             s8 owner = -1 - PP.ballTarget[p];
             fn_3_147CFC(&PP_BALL_POS(p));
@@ -634,9 +536,9 @@ void pP_UpdateThrownBall(int p) {
                 dir.z = -1.0f;
                 PSVECNormalize(&dir, &dir);
                 fielder->xMovementDir = dir.x;
-                PP.x_1DF4[owner] = 1;
+                g_Minigame.hudPulseInd[owner] = 1;
                 fielder->zMovementDir = dir.z;
-                fielder->currentVelocity = lbl_3_data_21E24[15];
+                fielder->currentVelocity = pP_ballPhysicsConsts[15];
                 setCharacterAnimations((s8)PP.character[owner], 2);
                 if (PP.x_1CB1[owner] < 0xFFFE) {
                     PP.x_1CB1[owner]++;
@@ -664,9 +566,9 @@ void pP_UpdateThrownBall(int p) {
         int owner = PP.ballTarget[p];
         PPSpawner* sp;
         if (owner >= 0) {
-            f32 dist = dolsqrtf2(SQ(PP_BALL_POS(p).x - lbl_3_data_21BC4[owner][1].x) + SQ(PP_BALL_POS(p).z - lbl_3_data_21BC4[owner][1].z));
+            f32 dist = dolsqrtf2(SQ(PP_BALL_POS(p).x - pP_spawnerPositions[owner][1].x) + SQ(PP_BALL_POS(p).z - pP_spawnerPositions[owner][1].z));
             sp = PP_SPAWNER(owner);
-            if (sp->mode == 2 && dist < lbl_3_data_21E24[1]) {
+            if (sp->mode == 2 && dist < pP_ballPhysicsConsts[1]) {
                 u8 kind = sp->kind;
                 if (PP.ballKind[p] == kind || kind == 4 || PP.ballKind[p] == 5) {
                     s8 gain;
@@ -758,7 +660,7 @@ static inline void ppUpdateCrouch(int p) {
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
 
     if (PP.aiControlled[p] != 0) {
-        input = &g_Minigame._1D7C[(s8)PP.character[p]];
+        input = &g_Minigame.aiInputs[(s8)PP.character[p]];
     }
     SATURATING_INCREMENT(PP.downFrames[p]);
     switch (PP.playerState[p]) {
@@ -810,7 +712,7 @@ void pP_UpdatePlayers(void) {
         fielder = &g_Fielders[PP.fielderIndex[i]];
         input = &g_Controls[(s8)PP.character[i]];
         if (PP.aiControlled[i] != 0) {
-            input = &g_Minigame._1D7C[(s8)PP.character[i]];
+            input = &g_Minigame.aiInputs[(s8)PP.character[i]];
         }
         if (PP.playerState[i] != 0) {
             ppUpdateCrouch(i);
@@ -820,10 +722,10 @@ void pP_UpdatePlayers(void) {
                 PP.hitState[i] = 2;
                 PP.stateFrames[i] = lbl_3_data_21E68[15];
             } else {
-                fielder->pos.x = fielder->xMovementDir * lbl_3_data_21E24[14] + fielder->pos.x;
+                fielder->pos.x = fielder->xMovementDir * pP_ballPhysicsConsts[14] + fielder->pos.x;
                 fielder->pos.y += fielder->currentVelocity;
-                fielder->pos.z = fielder->zMovementDir * lbl_3_data_21E24[14] + fielder->pos.z;
-                fielder->currentVelocity -= lbl_3_data_21E24[16];
+                fielder->pos.z = fielder->zMovementDir * pP_ballPhysicsConsts[14] + fielder->pos.z;
+                fielder->currentVelocity -= pP_ballPhysicsConsts[16];
             }
             fn_3_1573AC(*(int*)(hugeAnimStruct + 0x2C50 + i * 4));
         } else if (PP.hitState[i] == 2) {
@@ -832,9 +734,9 @@ void pP_UpdatePlayers(void) {
             }
             PP.stateFrames[i]--;
             if (PP.stateFrames[i] <= 0) {
-                fielder->pos.x = lbl_3_data_21B94[PP.goalIndex[i]].x;
-                fielder->pos.y = lbl_3_data_21B94[PP.goalIndex[i]].y;
-                fielder->pos.z = lbl_3_data_21B94[PP.goalIndex[i]].z;
+                fielder->pos.x = pP_fielderStartPositions[PP.goalIndex[i]].x;
+                fielder->pos.y = pP_fielderStartPositions[PP.goalIndex[i]].y;
+                fielder->pos.z = pP_fielderStartPositions[PP.goalIndex[i]].z;
                 PP.hitState[i] = 0;
                 PP.playerState[i] = 2;
                 fielder->actionYOffset = lbl_3_data_21D2C[0];
@@ -884,9 +786,9 @@ void pP_UpdatePlayers(void) {
                 s8 choice;
                 if (PP.ballKind[target] != 5 || PP.throwDirection[i] != 3) {
                     PP.ballTarget[target] = PP.throwDirection[i];
-                    fielder->throwTarget.x = lbl_3_data_21BC4[PP.ballTarget[target]][1].x;
-                    fielder->throwTarget.y = lbl_3_data_21BC4[PP.ballTarget[target]][1].y;
-                    fielder->throwTarget.z = lbl_3_data_21BC4[PP.ballTarget[target]][1].z;
+                    fielder->throwTarget.x = pP_spawnerPositions[PP.ballTarget[target]][1].x;
+                    fielder->throwTarget.y = pP_spawnerPositions[PP.ballTarget[target]][1].y;
+                    fielder->throwTarget.z = pP_spawnerPositions[PP.ballTarget[target]][1].z;
                 } else {
                     s8 order[3];
                     s8* orderEnd = order;
@@ -918,9 +820,9 @@ void pP_UpdatePlayers(void) {
                         choice = order[2];
                     }
                     PP.ballTarget[target] = -1 - choice;
-                    fielder->throwTarget.x = lbl_3_data_21B94[choice].x + 1.5 * (s8)((choice - i) / __abs(choice - i));
+                    fielder->throwTarget.x = pP_fielderStartPositions[choice].x + 1.5 * (s8)((choice - i) / __abs(choice - i));
                     fielder->throwTarget.y = 0.0f;
-                    fielder->throwTarget.z = lbl_3_data_21B94[choice].z;
+                    fielder->throwTarget.z = pP_fielderStartPositions[choice].z;
                 }
                 PP.throwBall[i] = PP.heldBalls[i][0];
                 PP.ballState[target] = 3;
@@ -947,7 +849,7 @@ void pP_UpdateCrouch(int p) {
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[p]];
 
     if (PP.aiControlled[p] != 0) {
-        input = &g_Minigame._1D7C[(s8)PP.character[p]];
+        input = &g_Minigame.aiInputs[(s8)PP.character[p]];
     }
     SATURATING_INCREMENT(PP.downFrames[p]);
     switch (PP.playerState[p]) {
@@ -1007,21 +909,21 @@ void pP_ReleaseThrow(int p) {
             f32 dist = dolsqrtf2(SQ(pos.x) + SQ(pos.z));
             f32 scale;
             if (p == 0 || p == 3) {
-                scale = lbl_3_data_21E24[8] / dist;
+                scale = pP_ballPhysicsConsts[8] / dist;
             } else {
-                scale = lbl_3_data_21E24[9] / dist;
+                scale = pP_ballPhysicsConsts[9] / dist;
             }
             PP_BALL_VEL(target).x = pos.x * scale;
             PP_BALL_VEL(target).z = pos.z * scale;
-            PP_BALL_VEL(target).y = lbl_3_data_21E24[10];
+            PP_BALL_VEL(target).y = pP_ballPhysicsConsts[10];
         } else {
             PP_BALL_VEL(target).x = pos.x / (f32)(lbl_3_data_21E68[23] + 10);
             PP_BALL_VEL(target).z = (fielder->throwTarget.z - PP.ballPos[target].z) / (f32)(lbl_3_data_21E68[23] + 10);
-            PP_BALL_VEL(target).y = (-lbl_3_data_21E24[11] * (f32)(lbl_3_data_21E68[23] + 10)) / 2.0f;
+            PP_BALL_VEL(target).y = (-pP_ballPhysicsConsts[11] * (f32)(lbl_3_data_21E68[23] + 10)) / 2.0f;
         }
         *state = 6;
     } else {
-        f32 frames = (f32)LERPToNewRange_Float(fielder->throwingArm, 0, 100, lbl_3_data_21E1C[0], lbl_3_data_21E1C[1]);
+        f32 frames = (f32)LERPToNewRange_Float(fielder->throwingArm, 0, 100, pP_throwFramesRange[0], pP_throwFramesRange[1]);
         PP_BALL_VEL(target).x = pos.x / frames;
         PP_BALL_VEL(target).y = pos.y / frames;
         PP_BALL_VEL(target).z = pos.z / frames;
@@ -1051,8 +953,8 @@ void pP_UpdatePiranhas(void) {
             f32 hi;
             f32 lo;
             sp->_1C--;
-            hi = lbl_3_data_21D1C[sp->isBig * 2 + 1];
-            lo = lbl_3_data_21D1C[sp->isBig * 2];
+            hi = pP_spawnerYRanges[sp->isBig * 2 + 1];
+            lo = pP_spawnerYRanges[sp->isBig * 2];
             sp->pos.y = (hi - lo) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[5]) + lo;
             if (sp->_1C <= 0) {
                 sp->mode = 2;
@@ -1062,8 +964,8 @@ void pP_UpdatePiranhas(void) {
             ppStopSpawnerWaits();
             pP_PiranhaSpit(k);
         } else if (sp->mode == 3) {
-            f32 hi = lbl_3_data_21D1C[sp->isBig * 2 + 1];
-            f32 lo = lbl_3_data_21D1C[sp->isBig * 2];
+            f32 hi = pP_spawnerYRanges[sp->isBig * 2 + 1];
+            f32 lo = pP_spawnerYRanges[sp->isBig * 2];
             sp->pos.y = (lo - hi) * ((f32)sp->_1A / (f32)lbl_3_data_21E68[6]) + lo;
             if (sp->_1A >= lbl_3_data_21E68[6]) {
                 sp->mode = 0;
@@ -1138,13 +1040,13 @@ void pP_ScheduleBigPiranha(void) {
         sp->mode = 1;
         sp->isBig = 1;
         sp->kind = 4;
-        sp->hitsLeft = lbl_3_data_21E10[PP.x_1CA4 + 4];
+        sp->hitsLeft = pP_hitsRequiredByKind[PP.x_1CA4 + 4];
         sp->_18 = 0;
         sp->_1A = 0;
         sp->_1C = lbl_3_data_21E68[5];
         sp->_20 = 0;
         sp->_2E = 0;
-        sp->pos.y = lbl_3_data_21D1C[3];
+        sp->pos.y = pP_spawnerYRanges[3];
         sp->queue[0] = -1;
         sp->queue[1] = -1;
         sp->queue[2] = -1;
@@ -1164,7 +1066,7 @@ void pP_UpdateHiddenPiranha(int idx) {
 
     if (g_Minigame.turnOverStatus == 0) {
         if (PP.spawner[idx]._1C < 0) {
-            PP.spawner[idx]._1C = RandomInt_Game_Range(lbl_3_data_21DC4[0], lbl_3_data_21DC4[1]);
+            PP.spawner[idx]._1C = RandomInt_Game_Range(pP_spawnDelayRange[0], pP_spawnDelayRange[1]);
         } else if (PP.x_1CA3 == 0 && PP.x_1CA2 == 0) {
             PP.spawner[idx]._1C--;
             if (PP.spawner[idx]._1C == 0) {
@@ -1177,14 +1079,14 @@ void pP_UpdateHiddenPiranha(int idx) {
                 }
                 PP.spawner[idx].kind = free[random_fn_3_9EE24(freeCount)];
                 PP.holeUsed[PP.spawner[idx].kind] = 1;
-                PP.spawner[idx].hitsLeft = lbl_3_data_21E10[PP.spawner[idx].kind];
+                PP.spawner[idx].hitsLeft = pP_hitsRequiredByKind[PP.spawner[idx].kind];
                 PP.spawner[idx]._1C = lbl_3_data_21E68[5];
                 PP.spawner[idx]._18 = 0;
                 PP.spawner[idx]._1A = 0;
                 PP.spawner[idx]._1E = 0;
                 PP.spawner[idx].mode = 1;
                 PP.spawner[idx].isBig = 0;
-                PP.spawner[idx].pos.y = lbl_3_data_21D1C[1];
+                PP.spawner[idx].pos.y = pP_spawnerYRanges[1];
                 PP.spawner[idx]._22 = lbl_3_data_21E04[0] + RandomInt_Game_Range(lbl_3_data_21E04[0], lbl_3_data_21E04[1]);
                 PP.spawner[idx]._24 = PP.spawner[idx]._22;
                 PP.spawner[idx]._34 = -1;
@@ -1338,7 +1240,7 @@ void pP_UpdateProjectile(int idx) {
     if (obj->state == 2) {
         obj->vel.y += obj->_18;
     }
-    if (obj->pos.y < lbl_3_data_21E24[13]) {
+    if (obj->pos.y < pP_ballPhysicsConsts[13]) {
         if (obj->pos.z < 0.0f) {
             if (obj->state == 2) {
                 PP.targeted[obj->_1C] = 0;
@@ -1357,7 +1259,7 @@ void pP_UpdateProjectile(int idx) {
         if (PP.playerState[i] != 0) {
             continue;
         }
-        if (lbl_3_data_21E24[2] + fielderHitboxesForGarlicKnockout[fielder->Weight] > dolsqrtf2(SQ(obj->pos.x - fielder->pos.x) + SQ(obj->pos.z - fielder->pos.z))) {
+        if (pP_ballPhysicsConsts[2] + fielderHitboxesForGarlicKnockout[fielder->Weight] > dolsqrtf2(SQ(obj->pos.x - fielder->pos.x) + SQ(obj->pos.z - fielder->pos.z))) {
             Vec dir;
             Vec unusedDir = {0.0f, 0.0f, -1.0f};
             if (obj->state == 2) {
@@ -1375,9 +1277,9 @@ void pP_UpdateProjectile(int idx) {
             dir.z = obj->vel.z;
             PSVECNormalize(&dir, &dir);
             fielder->xMovementDir = dir.x;
-            PP.x_1DF4[i] = 1;
+            g_Minigame.hudPulseInd[i] = 1;
             fielder->zMovementDir = dir.z;
-            fielder->currentVelocity = lbl_3_data_21E24[15];
+            fielder->currentVelocity = pP_ballPhysicsConsts[15];
             setCharacterAnimations((s8)PP.character[i], 2);
             if (PP.x_1CB1[i] < 0xFFFE) {
                 PP.x_1CB1[i]++;
@@ -1407,11 +1309,11 @@ void pP_SpawnProjectile(int arg, int owner) {
         f32 dy;
         f32 dz;
         obj = PP_OBJECT(j);
-        fn_3_118358(arg, obj);
+        mm_GetPiranhaSpitPos(arg, &obj->pos);
         fielder = &g_Fielders[(s8)PP.fielderIndex[owner]];
-        dx = lbl_3_data_21B94[PP.goalIndex[owner]].x - obj->pos.x;
-        dy = lbl_3_data_21B94[PP.goalIndex[owner]].y - obj->pos.y;
-        dz = lbl_3_data_21B94[PP.goalIndex[owner]].z - obj->pos.z;
+        dx = pP_fielderStartPositions[PP.goalIndex[owner]].x - obj->pos.x;
+        dy = pP_fielderStartPositions[PP.goalIndex[owner]].y - obj->pos.y;
+        dz = pP_fielderStartPositions[PP.goalIndex[owner]].z - obj->pos.z;
         scaled = 0.01f * ((f32)barrelCollisionHitboxes[fielder->CharID] * charSizeMultipliers[fielder->CharID][0]);
         yOffset = lbl_3_data_21D2C[1] + scaled;
         dy += yOffset;
@@ -1445,20 +1347,20 @@ void pP_SpawnLobbedProjectile(int idx) {
         f32 dz;
         obj = PP_OBJECT(j);
         if (sp->isBig != 0) {
-            obj->pos.x = lbl_3_data_21BC4[idx][3].x;
-            obj->pos.y = lbl_3_data_21BC4[idx][3].y;
-            obj->pos.z = lbl_3_data_21BC4[idx][3].z;
+            obj->pos.x = pP_spawnerPositions[idx][3].x;
+            obj->pos.y = pP_spawnerPositions[idx][3].y;
+            obj->pos.z = pP_spawnerPositions[idx][3].z;
         } else {
-            obj->pos.x = lbl_3_data_21BC4[idx][2].x;
-            obj->pos.y = lbl_3_data_21BC4[idx][2].y;
-            obj->pos.z = lbl_3_data_21BC4[idx][2].z;
+            obj->pos.x = pP_spawnerPositions[idx][2].x;
+            obj->pos.y = pP_spawnerPositions[idx][2].y;
+            obj->pos.z = pP_spawnerPositions[idx][2].z;
         }
         obj->_22 = sp->_35;
         fielder = &g_Fielders[sp->_34];
         obj->_1C = sp->_35;
-        dx = lbl_3_data_21B94[PP.goalIndex[sp->_35]].x - obj->pos.x;
-        dy = lbl_3_data_21B94[PP.goalIndex[sp->_35]].y - obj->pos.y;
-        dz = lbl_3_data_21B94[PP.goalIndex[sp->_35]].z - obj->pos.z;
+        dx = pP_fielderStartPositions[PP.goalIndex[sp->_35]].x - obj->pos.x;
+        dy = pP_fielderStartPositions[PP.goalIndex[sp->_35]].y - obj->pos.y;
+        dz = pP_fielderStartPositions[PP.goalIndex[sp->_35]].z - obj->pos.z;
         scaled = 0.01f * ((f32)barrelCollisionHitboxes[fielder->CharID] * charSizeMultipliers[fielder->CharID][0]);
         yOffset = lbl_3_data_21D2C[1] + scaled;
         dy += yOffset;
@@ -1491,12 +1393,12 @@ void pP_InitAI(void) {
     PPAI* ai = PP.ai;
     s8 i;
 
-    memset(g_Minigame._1D7C, 0, 0x78);
+    memset(g_Minigame.aiInputs, 0, 0x78);
     i = 0;
     do {
         u8 aiStrength = PP.aiStrength[i];
         ai->selection = 1;
-        ai->timer = RandomInt_Game_Range(lbl_3_data_21EAC[aiStrength][0], lbl_3_data_21EAC[aiStrength][1]);
+        ai->timer = RandomInt_Game_Range(pP_aiActionDelayRanges[aiStrength][0], pP_aiActionDelayRanges[aiStrength][1]);
         ai++;
         i++;
     } while (i < PP_PLAYER_COUNT);
@@ -1570,31 +1472,31 @@ u8 pP_AIThrow(s8 slot, u8 force) {
     if (hit) {
         switch (selection) {
             case 0:
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_RIGHT;
                 break;
             case 1:
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_UP;
                 break;
             case 2:
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A | INPUT_BUTTON_LEFT;
                 break;
         }
         ai->selection = selection;
     } else {
-        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
-        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_B;
+        g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_B;
+        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_B;
     }
-    ai->timer = RandomInt_Game_Range(lbl_3_data_21EAC[aiStrength][0], lbl_3_data_21EAC[aiStrength][1]);
+    ai->timer = RandomInt_Game_Range(pP_aiActionDelayRanges[aiStrength][0], pP_aiActionDelayRanges[aiStrength][1]);
     return 1;
 }
 
 // .text:0x00142570 size:0x380 mapped:0x80781604
 int pP_AIFramesUntilHit(s8 slot) {
     InMemFielder* fielder = &g_Fielders[PP.fielderIndex[slot]];
-    f32 reach = lbl_3_data_21E24[2] + fielderHitboxesForGarlicKnockout[fielder->Weight];
+    f32 reach = pP_ballPhysicsConsts[2] + fielderHitboxesForGarlicKnockout[fielder->Weight];
     int best = 10000;
     u8 found = FALSE;
     s8 i;
@@ -1652,20 +1554,20 @@ void pP_UpdateAI(void) {
             target[i] = pP_AIFramesUntilHit(i);
             if (PP.aiControlled[i] != 0) {
                 u8 aiStrength;
-                memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
+                memset(&g_Minigame.aiInputs[character], 0, sizeof(InputStruct));
                 aiStrength = PP.aiStrength[i];
                 switch (ai[i].state) {
                     case 0:
                         if (target[i] >= 0) {
-                            switch (RandomIndexFromWeights(lbl_3_data_21E9C[aiStrength], 4)) {
+                            switch (RandomIndexFromWeights(pP_aiActionWeights[aiStrength], 4)) {
                                 case 0:
                                     if (target[i] > LERPToNewRange_Float(PP.hitCount[i], 0, lbl_3_data_21E68[19], lbl_3_data_21E68[2], lbl_3_data_21E68[3]) + 3) {
                                         if (pP_AIThrow(i, FALSE)) {
                                             ai[i].state = 1;
                                         }
                                     } else {
-                                        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                                         ai[i].state = 2;
                                     }
                                     break;
@@ -1675,14 +1577,14 @@ void pP_UpdateAI(void) {
                                             ai[i].state = 1;
                                         }
                                     } else {
-                                        g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                                         ai[i].state = 2;
                                     }
                                     break;
                                 case 2:
-                                    g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_DOWN;
-                                    g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                                    g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_DOWN;
+                                    g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                                     ai[i].state = 2;
                                     break;
                                 case 3:
@@ -1703,14 +1605,14 @@ void pP_UpdateAI(void) {
                         }
                         break;
                     case 2:
-                        g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                        g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                         if (PP.playerState[i] != 1) {
                             ai[i].state = 3;
                         }
                         break;
                     case 3:
                         if (target[i] >= 0) {
-                            g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_DOWN;
+                            g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_DOWN;
                         } else {
                             ai[i].state = 4;
                         }

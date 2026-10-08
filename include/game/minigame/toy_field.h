@@ -3,6 +3,10 @@
 
 #include "mssbTypes.h"
 
+void fn_3_D8A10(void);
+void toyFieldApplyPanelEvent(void);
+void toyFieldPickEventTargets(void);
+void toyFieldRelated(void);
 void toyFieldUpdateCoins(void);
 void toyFieldSpawnCoins(int count, int type);
 void toyFieldPoints(void);
@@ -26,5 +30,15 @@ void toyFieldAwardPoints(int type);
 void minigameCalculateRankings(void);
 void toyFieldEndTurn(void);
 void initializeToyFieldSomething(void);
+void initializeMinigameData(void);
+void toyFieldAssignTurnRoles(void);
+void toyFieldTransitionPrepareNextPlay(void);
+void toyFieldTransitionToMinigameStart(void);
+void toyFieldGameStartMovie(void);
+void toyFieldSetupOpponents(void);
+void toyFieldApplyGameSettings(void);
+void toyFieldWaitForCharacterLoad(void);
+void toyFieldInit(void);
+void toyfieldSimulation(void);
 
 #endif // !__GAME_MINIGAME_TOY_FIELD_H_

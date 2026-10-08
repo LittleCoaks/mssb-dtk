@@ -48,59 +48,59 @@ extern u8 lbl_80366158[0x30];
 
 extern f32 fielderHitboxesForGarlicKnockout[];
 extern VecXYZ lbl_3_data_21A48;
-extern f32 lbl_3_data_21A54[3];
-extern s16 lbl_3_data_21A60[2];
-extern s16 lbl_3_data_21A3C[2][2];
-extern s16 lbl_3_data_21A44;
-extern s16 lbl_3_data_21A88[4];
-extern VecXYZ lbl_3_data_219AC;
+extern f32 sD_fireBarRadii[3];
+extern s16 sD_fireBarGrowParams[2];
+extern s16 sD_fireBarWaveTimes[2][2];
+extern s16 sD_fireBarAngleStep;
+extern s16 sD_thwompSectorDivisors[4];
+extern VecXYZ sD_starSpawnPos;
 extern f32 lbl_3_data_219B8[19];
 extern s16 lbl_3_data_21B20[4];
-extern f32 lbl_3_data_21B58[4];
-extern s8 lbl_3_data_21B88[4];
-extern s16 lbl_3_data_21B8C[];
+extern f32 sD_aiPowerup2Radii[4];
+extern s8 sD_aiFireBarWideAvoidChance[4];
+extern s16 sD_aiTurnDivisors[];
 
 extern VecXZ base_MoundCoordinates[5];
-extern f32 lbl_3_data_21B18[2];
-extern VecXZ lbl_3_data_2198C[4];
+extern f32 sD_stunPushFactors[2];
+extern VecXZ sD_fielderStartPositions[4];
 extern void fn_800115C8(s8 player);
 extern void fn_3_14E988(int player);
 extern void fn_3_150010(s8 player);
 extern void fn_3_169600(void);
 extern void fn_3_106EB0(void);
-extern void fn_3_10F550(int a, int b);
+extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_14E894(void);
 extern void fn_3_157570(void);
 extern void fn_80011578(void);
 extern void fn_80011604(void* model, void (*cb)(void*, GXTevStageID*, GXTexCoordID*, GXTexMapID*, s8*, s8*));
 extern u8 lbl_800EFBA4[0x10];
 extern u16 lbl_3_data_81FC[0x30];
-extern u8 lbl_3_data_21278[2];
-extern u8 lbl_3_data_2127C[8][5];
-extern u8 lbl_3_data_21984[5];
+extern u8 minigameIntroFrames[2];
+extern u8 minigameAIStrengthTable[8][5];
+extern u8 sD_timeLimitSeconds[5];
 extern BOOL checkForPauses(void);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 extern s16 lbl_3_common_bss_37400[];
 extern f32 lbl_3_data_21A14[6];
-extern s16 lbl_3_data_21A30[6];
+extern s16 sD_starTimings[6];
 extern void fn_3_1695A4(s8 charID, u8 alt);
 extern void fn_3_16C394(s8 charID);
-extern f32 lbl_3_data_21AF8[6];
+extern f32 sD_powerupConsts[6];
 extern f32 lbl_3_data_21A64[9];
 extern s16 lbl_3_data_21A04[8];
 extern u8 lbl_3_data_88DC[2];
-extern s16 lbl_3_data_21A90[4][4][2];
+extern s16 sD_thwompTimingRanges[4][4][2];
 extern s16 lbl_3_data_21AD0[4][4];
-extern u8 lbl_3_data_21B16;
-extern s16 lbl_3_data_21B10[3];
-extern s16 lbl_3_data_21AF0;
-extern f32 lbl_3_data_21AF4;
+extern u8 sD_powerupRollThreshold;
+extern s16 sD_powerupTimers[3];
+extern s16 sD_cameraShakeDuration;
+extern f32 sD_cameraShakeAmplitude;
 extern u8 drawStadiumRelated;
-extern f32 lbl_3_data_21B28[4];
-extern f32 lbl_3_data_21B38[4];
-extern f32 lbl_3_data_21B48[4];
-extern f32 lbl_3_data_21B68[4];
-extern f32 lbl_3_data_21B78[4];
+extern f32 sD_aiSprintThresholds[4];
+extern f32 sD_aiHolderChaseRadii[4];
+extern f32 sD_aiThwompAvoidRadii[4];
+extern f32 sD_aiPowerup1Radii[4];
+extern f32 sD_aiCoinBagRadii[4];
 extern void fn_3_156548(int index, f32 x, f32 y, f32 z);
 extern void fn_3_15730C(int index, f32 x, f32 y, f32 z);
 
@@ -111,80 +111,6 @@ typedef struct {
 } SDSide;
 
 
-typedef struct {
-    /*0x00*/ VecXYZ pos;
-    /*0x0C*/ u8 _0C[0x22 - 0x0C];
-    /*0x22*/ s16 _22;
-    /*0x24*/ u8 _24[2];
-    /*0x26*/ u8 active;
-    /*0x27*/ u8 _27;
-} SDFireBarFlame; // size: 0x28
-
-typedef struct {
-    /*0x00*/ VecXYZ start;
-    /*0x0C*/ VecXYZ end;
-} SDFireBar; // size: 0x18
-
-typedef struct {
-    /*0x00*/ VecXYZ pos;
-    /*0x0C*/ VecXYZ vel;
-    /*0x18*/ s32 coin[10];
-    /*0x40*/ u8 active;
-    /*0x41*/ u8 _41[3];
-} SDCoinBag; // size: 0x44
-
-typedef struct {
-    /*0x0*/ f32 avoidMargin; // extra fire-bar clearance, 3.0 or 1.5
-    /*0x4*/ s16 angle;
-    /*0x6*/ u8 state;
-    /*0x7*/ s8 counter;
-} SDAI; // size: 0x8
-
-typedef struct {
-    /*0x00*/ SDAI ai[4];
-    /*0x20*/ f32 rotSin;
-    /*0x24*/ f32 rotCos;
-} SDAIState; // size: 0x28
-
-/* Star Dash's view of g_Minigame. */
-typedef struct _SDState {
-    /*0x0000*/ u8 _0000[0xA8];
-    /*0x00A8*/ SDFireBarFlame fireBarFlame[40]; // 10 flames per fire bar
-    /*0x06E8*/ VecXYZ starPos;
-    /*0x06F4*/ VecXYZ starPath[3];
-    /*0x0718*/ u8 _0718[0x724 - 0x718];
-    /*0x0724*/ s16 starFrames;
-    /*0x0726*/ s16 pathFrames;
-    /*0x0728*/ s16 pathDuration;
-    /*0x072A*/ u8 starActive;
-    /*0x072B*/ u8 starBounces;
-    /*0x072C*/ u8 _072C[0xB6C - 0x72C];
-    /*0x0B6C*/ SDCoinBag coinBag;
-    /*0x0BB0*/ SDThwomp thwomp[4];
-    /*0x0CB0*/ u8 _0CB0[0x1CE8 - 0xCB0];
-    /*0x1CE8*/ SDFireBar fireBar[4];
-    /*0x1D48*/ f32 fireBarExtent; // 0..1 while growing/shrinking
-    /*0x1D4C*/ f32* factor;
-    /*0x1D50*/ s16 spawnTimer;
-    /*0x1D52*/ s16 starSpawnTimer;
-    /*0x1D54*/ u16 spawnCount;
-    /*0x1D56*/ s16 holderFrames;
-    /*0x1D58*/ s16 _1D58;
-    /*0x1D5A*/ s16 stunFrames[4];
-    /*0x1D62*/ s16 fireBarFrames;
-    /*0x1D64*/ s16 fireBarAngle[4];
-    /*0x1D6C*/ u8 spawnedCoins;
-    /*0x1D6D*/ s8 holder;
-    /*0x1D6E*/ u8 _1D6E[4];
-    /*0x1D72*/ u8 fireBarPhase; // 0 off, 1 growing, 2 out, 3 shrinking
-    /*0x1D73*/ u8 fireBarWave;
-    /*0x1D74*/ u8 _1D74[2];
-    /*0x1D76*/ s16 x_1D76;
-    /*0x1D78*/ u8 x_1D78[4];
-    /*0x1D7C*/ u8 _1D7C[0x1DCC - 0x1D7C];
-    /*0x1DCC*/ SDAIState aiState;
-    /*0x1DF4*/ u8 _1DF4[4];
-} SDState;
 
 typedef union _SDMinigame {
     MiniGameStruct;
@@ -276,8 +202,8 @@ static inline void sdResetItem(SDThwomp* item, u32 level) {
 
     item->state = 0;
     item->frames = 0;
-    lo = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][0];
-    hi = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][level][1];
+    lo = sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][level][0];
+    hi = sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][level][1];
     r = random_fn_3_9EE24((hi - lo) * 60);
     item->timer = lo * 60 + r;
 }
@@ -301,11 +227,11 @@ static inline void sdInitItems(void) {
         SD.thwomp[k].state = 0;
     }
     for (k = 0; k < sD_thwompCount; k++) {
-        SD.thwomp[k].timer = lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
-                           random_fn_3_9EE24((lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][1] -
-                                              lbl_3_data_21A90[g_Minigame.soloMinigameDifficulty][0][0]) * 60);
+        SD.thwomp[k].timer = sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
+                           random_fn_3_9EE24((sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][1] -
+                                              sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][0]) * 60);
         SD.thwomp[k].sectorStart = 360 / sD_thwompCount * k;
-        SD.thwomp[k].sectorEnd = SD.thwomp[k].sectorStart + 360 / lbl_3_data_21A88[sD_thwompDifficulty];
+        SD.thwomp[k].sectorEnd = SD.thwomp[k].sectorStart + 360 / sD_thwompSectorDivisors[sD_thwompDifficulty];
     }
 }
 
@@ -362,48 +288,48 @@ void sD_LoadGame(void) {
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_STAR_DASH;
         g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.turnOverStatus = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         for (i = 0; i < 4; i++) {
             g_Minigame.miniGameCurrentPoints[i] = 0;
             g_Minigame.miniGameLatestPoints[i] = 0;
             g_Minigame.minigamePoints_current_Latest[i][0] = 0;
             g_Minigame.minigamePoints_current_Latest[i][1] = 0;
-            g_Minigame.playerSlots._28[i] = -1;
+            g_Minigame.playerSlots.participantSlot[i] = -1;
             g_Minigame.playerSlots.fielderIndex[i] = -1;
             g_Minigame.playerSlots.runnerPlayerIndex[i] = -1;
             g_Minigame.playerSlots.playerRunnerIndex[i] = -1;
-            g_Minigame.playerSlots._24[i] = 0;
+            g_Minigame.playerSlots.batterInd[i] = 0;
         }
         g_Minigame.pointsReqToWin_challenge = 0;
         *(s8*)&g_Minigame.minigamePlayerSelectedOrder = -1;
         g_Minigame.rosterID = -1;
         sound_crowd_EffectsStruct._30 = 0;
         if (!g_Minigame.multiPlayerInd) {
-            g_Minigame.minigameFramesRemaining = lbl_3_data_21984[g_Minigame.soloMinigameDifficulty] * 60;
-            strength = lbl_3_data_2127C[g_Minigame.GameMode_MiniGame][g_Minigame.soloMinigameDifficulty];
+            g_Minigame.minigameFramesRemaining = sD_timeLimitSeconds[g_Minigame.soloMinigameDifficulty] * 60;
+            strength = minigameAIStrengthTable[g_Minigame.GameMode_MiniGame][g_Minigame.soloMinigameDifficulty];
             for (i = 0; i < 4; i++) {
                 g_Minigame.playerSlots.aiStrength[i] = strength;
             }
         } else {
-            if (g_Minigame._1A3C) {
-                strength = lbl_3_data_2127C[7][0];
+            if (g_Minigame.grandPrixInd) {
+                strength = minigameAIStrengthTable[7][0];
                 for (i = 0; i < 4; i++) {
                     g_Minigame.playerSlots.aiStrength[i] = strength;
                 }
             }
-            g_Minigame.minigameFramesRemaining = lbl_3_data_21984[4] * 60;
+            g_Minigame.minigameFramesRemaining = sD_timeLimitSeconds[4] * 60;
         }
         setDefaultInMemFielder();
         for (p = 0, n = 0; p < 4; p++) {
             if (g_Minigame.playerSlots.characterIndex[p] >= 0) {
-                g_Minigame.playerSlots._28[n] = p;
-                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]] = n + 2;
-                setFielderValues(p, g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]]);
-                fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots._28[n]]];
+                g_Minigame.playerSlots.participantSlot[n] = p;
+                g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]] = n + 2;
+                setFielderValues(p, g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]]);
+                fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]]];
                 g_Minigame.starDashStunType[p] = 0;
                 fielder->_020D = p;
-                fielder->pos.x = lbl_3_data_2198C[n].x;
-                fielder->pos.z = lbl_3_data_2198C[n].z;
+                fielder->pos.x = sD_fielderStartPositions[n].x;
+                fielder->pos.z = sD_fielderStartPositions[n].z;
                 fielder->pos.y = 0.0f;
                 fielder->actionYOffset = 0.0f;
                 fielder->lockoutDuration = 0;
@@ -435,9 +361,9 @@ void sD_LoadGame(void) {
         SD.fireBar[3].end.y = floorY;
         SD.fireBarAngle[3] = 0xC00;
         sdResetTrail(floorY);
-        if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0) {
+        if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0) {
             sD_thwompDifficulty = g_Minigame.soloMinigameDifficulty;
-            sD_thwompCount = lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty];
+            sD_thwompCount = sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty];
         } else {
             sD_thwompDifficulty = MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE;
             sD_thwompCount = 4;
@@ -448,7 +374,7 @@ void sD_LoadGame(void) {
         SD.x_1D78[2] = 0;
         SD.x_1D78[3] = 0;
         SD.x_1D76 = 0;
-        g_Minigame.powerup.timer = lbl_3_data_21B10[0];
+        g_Minigame.powerup.timer = sD_powerupTimers[0];
         g_Minigame.powerup.activeInd = 0;
         g_Minigame.playerIDWithPowerup[0] = -1;
         sD_InitPulseTexture();
@@ -467,13 +393,13 @@ void sD_LoadGame(void) {
 void sD_RoundIntro(void) {
     switch (g_GameLogic._125) {
     case 0:
-        fn_3_10F550(2, lbl_3_data_21278[0]);
+        minigameQueueHudEvent(2, minigameIntroFrames[0]);
         changeScene(1, 6);
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_GameLogic._125 = 1;
         break;
     case 1:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > lbl_3_data_21278[0] + lbl_3_data_21278[1]) {
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
             g_GameLogic._125 = 2;
         }
         break;
@@ -542,7 +468,7 @@ void sD_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (g_Minigame.minigameFramesRemaining == 0) {
             g_Minigame.turnOverStatus = 1;
-            fn_3_10F550(3, 0);
+            minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
         }
         return;
@@ -566,10 +492,10 @@ void sD_EndGame(void) {
 
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
-        if (g_Minigame.playerSlots._1C[g_Minigame._1908] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
-            g_Minigame._1A37 = 1;
+        if (g_Minigame.playerSlots.rank[g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+            g_Minigame.winLossResult = 1;
         } else {
-            g_Minigame._1A37 = 2;
+            g_Minigame.winLossResult = 2;
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
@@ -646,14 +572,14 @@ void sD_UpdateStarAndHolder(void) {
 void sD_UpdateStarSpawn(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (--SD.starSpawnTimer <= 0) {
-            SD.starPos.x = lbl_3_data_219AC.x;
-            SD.starPos.y = lbl_3_data_219AC.y;
-            SD.starPos.z = lbl_3_data_219AC.z;
+            SD.starPos.x = sD_starSpawnPos.x;
+            SD.starPos.y = sD_starSpawnPos.y;
+            SD.starPos.z = sD_starSpawnPos.z;
             SD.starBounces = 0;
             sD_NewStarArc();
             SD.starActive = 1;
             SD.starFrames = 0;
-            SD.starSpawnTimer = lbl_3_data_21A30[2];
+            SD.starSpawnTimer = sD_starTimings[2];
             fn_3_150010(4);
             fn_3_106EB0();
         }
@@ -669,11 +595,11 @@ void sD_NewStarArc(void) {
     SD.starPath[0].x = SD.starPos.x;
     SD.starPath[0].y = SD.starPos.y;
     SD.starPath[0].z = SD.starPos.z;
-    SD.pathDuration = RandomInt_Game_Range(lbl_3_data_21A30[3], lbl_3_data_21A30[4]);
+    SD.pathDuration = RandomInt_Game_Range(sD_starTimings[3], sD_starTimings[4]);
     speed = RandomF32_Game_Range(lbl_3_data_21A14[0], lbl_3_data_21A14[1]);
-    rel.x = lbl_3_data_219AC.x - SD.starPos.x;
-    rel.y = lbl_3_data_219AC.y - SD.starPos.y;
-    rel.z = lbl_3_data_219AC.z - SD.starPos.z;
+    rel.x = sD_starSpawnPos.x - SD.starPos.x;
+    rel.y = sD_starSpawnPos.y - SD.starPos.y;
+    rel.z = sD_starSpawnPos.z - SD.starPos.z;
     unused = dolsqrtf2(rel.x * rel.x + rel.z * rel.z);
     getComponentsFromSAng(random_fn_3_9EE24(0x1000), &rel.x, &rel.z);
     SD.starPath[2].x = rel.x * speed + SD.starPath[0].x;
@@ -702,7 +628,7 @@ void sD_UpdateStar(void) {
     SD.pathFrames++;
     if (g_Minigame.turnOverStatus != 0) {
         SD.starActive = 0;
-    } else if (SD.starFrames > lbl_3_data_21A30[0]) {
+    } else if (SD.starFrames > sD_starTimings[0]) {
         SD.starActive = 0;
         fn_3_14E988(4);
     } else {
@@ -747,14 +673,14 @@ void sD_UpdateStar(void) {
             }
         }
         if (best >= 0) {
-            g_Minigame.miniGameCurrentPoints[best] += lbl_3_data_21A30[5];
+            g_Minigame.miniGameCurrentPoints[best] += sD_starTimings[5];
             SD.starActive = 0;
             g_Minigame.starDashStarHolder = best;
-            SD.holderFrames = lbl_3_data_21A30[1];
+            SD.holderFrames = sD_starTimings[1];
             fn_3_14E988(4);
             if (g_Minigame.playerIDWithPowerup[0] == best) {
                 fn_800115C8(best);
-                if (SD.factor == &lbl_3_data_21AF8[5]) {
+                if (SD.factor == &sD_powerupConsts[5]) {
                     g_Minigame.playerIDWithPowerup[0] = -1;
                 }
             }
@@ -822,9 +748,9 @@ void sD_SpawnCoins(void) {
                     count--;
                 }
             } else {
-                burst->pos.x = lbl_3_data_219AC.x;
-                burst->pos.y = lbl_3_data_219AC.y;
-                burst->pos.z = lbl_3_data_219AC.z;
+                burst->pos.x = sD_starSpawnPos.x;
+                burst->pos.y = sD_starSpawnPos.y;
+                burst->pos.z = sD_starSpawnPos.z;
                 getComponentsFromSAng(angle + (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
                                       &burst->vel.x, &burst->vel.z);
                 {
@@ -836,9 +762,9 @@ void sD_SpawnCoins(void) {
                 break;
             }
         } else if (g_Minigame.coinState[i] == 0) {
-            g_Minigame.coinPos[i].x = lbl_3_data_219AC.x;
-            g_Minigame.coinPos[i].y = lbl_3_data_219AC.y;
-            g_Minigame.coinPos[i].z = lbl_3_data_219AC.z;
+            g_Minigame.coinPos[i].x = sD_starSpawnPos.x;
+            g_Minigame.coinPos[i].y = sD_starSpawnPos.y;
+            g_Minigame.coinPos[i].z = sD_starSpawnPos.z;
             getComponentsFromSAng(angle + (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
                                   &g_Minigame.coinVelocity[i].x, &g_Minigame.coinVelocity[i].z);
             {
@@ -1278,7 +1204,7 @@ void sD_ThwompFall(SDThwomp* item) {
             memset(&item->vel, 0, sizeof(Vec));
             item->frames = 0;
             item->state = 3;
-            sD_cameraShakeFrames = lbl_3_data_21AF0;
+            sD_cameraShakeFrames = sD_cameraShakeDuration;
             fn_800528AC(sD_CameraShakeCallback);
             sD_ThwompScatterCoins((Vec*)item);
             SD.x_1D78[item->owner] = 0;
@@ -1592,7 +1518,7 @@ void sD_ThwompScatterCoins(Vec* pos) {
 
 // .text:0x001371E8 size:0x3C mapped:0x8077627C
 void sD_StartCameraShake(void) {
-    sD_cameraShakeFrames = lbl_3_data_21AF0;
+    sD_cameraShakeFrames = sD_cameraShakeDuration;
     fn_800528AC(sD_CameraShakeCallback);
 }
 
@@ -1602,7 +1528,7 @@ void sD_CameraShakeCallback(camera_803c639c_s* cam) {
     Mtx invView;
 
     memset(&offset, 0, sizeof(Vec));
-    offset.y = lbl_3_data_21AF4 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
+    offset.y = sD_cameraShakeAmplitude * (2.0 * ((f32)rand() / 32767.0f - 0.5));
     PSMTXInverse(cam->view, invView);
     PSMTXMultVecSR(invView, &offset, &offset);
     cam->eye.x += offset.x;
@@ -1643,20 +1569,20 @@ void sD_UpdatePowerupTimer(MinigamePowerupStruct* powerup) {
     } else {
         powerup->timer--;
         if (powerup->timer <= 0) {
-            if ((s8)(rand() % 100 - lbl_3_data_21B16) < 0) {
+            if ((s8)(rand() % 100 - sD_powerupRollThreshold) < 0) {
                 powerup->activeInd = 1;
             } else {
                 powerup->activeInd = 2;
             }
-            powerup->pos.x = lbl_3_data_219AC.x;
-            powerup->pos.y = lbl_3_data_219AC.y;
-            powerup->pos.z = lbl_3_data_219AC.z;
-            powerup->_0C.y = lbl_3_data_21AF8[0];
+            powerup->pos.x = sD_starSpawnPos.x;
+            powerup->pos.y = sD_starSpawnPos.y;
+            powerup->pos.z = sD_starSpawnPos.z;
+            powerup->_0C.y = sD_powerupConsts[0];
             angle = 360.0f * ((f32)rand() / 32767.0f);
             angle = 0.017453292f * angle;
-            powerup->_0C.x = lbl_3_data_21AF8[1] * (f32)cos(angle);
-            powerup->_0C.z = lbl_3_data_21AF8[1] * (f32)sin(angle);
-            powerup->timer = lbl_3_data_21B10[1];
+            powerup->_0C.x = sD_powerupConsts[1] * (f32)cos(angle);
+            powerup->_0C.z = sD_powerupConsts[1] * (f32)sin(angle);
+            powerup->timer = sD_powerupTimers[1];
         }
     }
 }
@@ -1675,7 +1601,7 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
     probe.src.x = powerup->pos.x;
     probe.src.y = -powerup->pos.y;
     probe.src.z = powerup->pos.z;
-    powerup->_0C.y += lbl_3_data_21AF8[2];
+    powerup->_0C.y += sD_powerupConsts[2];
     powerup->pos.x = powerup->_0C.x + powerup->pos.x;
     powerup->pos.y = powerup->_0C.y + powerup->pos.y;
     powerup->pos.z = powerup->_0C.z + powerup->pos.z;
@@ -1687,7 +1613,7 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
     probe.dst.x = powerup->pos.x;
     probe.dst.y = -powerup->pos.y;
     probe.dst.z = powerup->pos.z;
-    if (sD_CollideWithThwomps(&probe, (Vec*)&powerup->_0C, &hit, lbl_3_data_21AF8[3])) {
+    if (sD_CollideWithThwomps(&probe, (Vec*)&powerup->_0C, &hit, sD_powerupConsts[3])) {
         powerup->pos.x = hit.position.x;
         powerup->pos.y = hit.position.y;
         powerup->pos.z = hit.position.z;
@@ -1695,7 +1621,7 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
         sdBounce(&powerup->pos, &powerup->_0C, &probe, &hit);
     }
     bestDistSq = 99999.9f;
-    reach = lbl_3_data_21AF8[3];
+    reach = sD_powerupConsts[3];
     for (p = 0, best = -1; p < 4; p++) {
         if (g_Minigame.playerSlots.fielderIndex[p] >= 0 &&
             (g_Minigame.starDashStunType[p] == 0 || g_Minigame.starDashStunType[p] == 3)) {
@@ -1716,28 +1642,28 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
     }
     if (best >= 0) {
         g_Minigame.playerIDWithPowerup[0] = best;
-        g_Minigame.powerupHoldFrames = lbl_3_data_21B10[2];
+        g_Minigame.powerupHoldFrames = sD_powerupTimers[2];
         if (g_Minigame.powerup.activeInd == 2) {
             if ((s8)g_Minigame.starDashStarHolder == best) {
                 fn_3_14E988(g_Minigame.starDashStarHolder);
                 fn_800115C8(best);
                 SD.holder = -1;
             }
-            SD.factor = &lbl_3_data_21AF8[5];
+            SD.factor = &sD_powerupConsts[5];
             callSfx(0x2F5);
             fn_3_1695A4(best, 0);
         } else {
-            SD.factor = &lbl_3_data_21AF8[4];
+            SD.factor = &sD_powerupConsts[4];
             callSfx(0x2F6);
             fn_3_16C394(best);
         }
         powerup->activeInd = 0;
-        powerup->timer = lbl_3_data_21B10[0];
+        powerup->timer = sD_powerupTimers[0];
     } else {
         powerup->timer--;
         if (powerup->timer <= 0) {
             powerup->activeInd = 0;
-            powerup->timer = lbl_3_data_21B10[0];
+            powerup->timer = sD_powerupTimers[0];
         }
     }
 }
@@ -1762,8 +1688,8 @@ void sD_UpdateStuns(void) {
         if (fielder->onFire == 0) {
             if (g_Minigame.starDashStunType[p] == 1) {
                 len = VEC_LENGTH_XZ(&g_Minigame.starDashCollisionPushDelta[p]);
-                g_Minigame.starDashCollisionPushDelta[p].x *= lbl_3_data_21B18[0] / len;
-                g_Minigame.starDashCollisionPushDelta[p].z *= lbl_3_data_21B18[0] / len;
+                g_Minigame.starDashCollisionPushDelta[p].x *= sD_stunPushFactors[0] / len;
+                g_Minigame.starDashCollisionPushDelta[p].z *= sD_stunPushFactors[0] / len;
                 g_Minigame.starDashCollisionPushDelta[p].y = 0.0f;
                 SD.stunFrames[p] = 0;
                 g_Minigame.starDashStunType[p] = 2;
@@ -1793,8 +1719,8 @@ void sD_UpdateStuns(void) {
                     fielder->pos.x += g_Minigame.starDashCollisionPushDelta[p].x;
                     fielder->pos.y += g_Minigame.starDashCollisionPushDelta[p].y;
                     fielder->pos.z += g_Minigame.starDashCollisionPushDelta[p].z;
-                    g_Minigame.starDashCollisionPushDelta[p].x *= lbl_3_data_21B18[1];
-                    g_Minigame.starDashCollisionPushDelta[p].z *= lbl_3_data_21B18[1];
+                    g_Minigame.starDashCollisionPushDelta[p].x *= sD_stunPushFactors[1];
+                    g_Minigame.starDashCollisionPushDelta[p].z *= sD_stunPushFactors[1];
                 }
                 if (SD.stunFrames[p] > lbl_3_data_21B20[1]) {
                     g_Minigame.starDashStunType[p] = 3;
@@ -1824,8 +1750,8 @@ void sD_UpdateStuns(void) {
             dx = base_MoundCoordinates[4].x - fielder->pos.x;
             dist = dolsqrtf2(dx * dx + dz * dz);
             if (dist == 0.0f) {
-                fielder->pos.x = lbl_3_data_2198C[p].x;
-                fielder->pos.z = lbl_3_data_2198C[p].z;
+                fielder->pos.x = sD_fielderStartPositions[p].x;
+                fielder->pos.z = sD_fielderStartPositions[p].z;
             } else {
                 dx /= dist;
                 dz /= dist;
@@ -1850,7 +1776,7 @@ void sD_DropCoins(int player) {
     int count;
 
     fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[player]];
-    SD._1DF4[player] = 1;
+    g_Minigame.hudPulseInd[player] = 1;
     n = lbl_3_data_21B20[3];
     if (g_Minigame.miniGameCurrentPoints[player] < n) {
         n = g_Minigame.miniGameCurrentPoints[player];
@@ -1890,14 +1816,14 @@ void sD_RotateFireBars(void) {
     int p;
 
     for (p = 0; p < 4; p++) {
-        SD.fireBarAngle[p] += lbl_3_data_21A44;
+        SD.fireBarAngle[p] += sD_fireBarAngleStep;
         SD.fireBarAngle[p] = normalizeAngle(SD.fireBarAngle[p]);
     }
 }
 
 // .text:0x00135FF4 size:0x54 mapped:0x80775088
 void sD_CheckFireBarStart(void) {
-    int start = lbl_3_data_21A3C[SD.fireBarWave][0] * 60;
+    int start = sD_fireBarWaveTimes[SD.fireBarWave][0] * 60;
 
     if (start == g_Minigame.minigameElapsedFrames) {
         SD.fireBarPhase = 1;
@@ -1910,9 +1836,9 @@ void sD_CheckFireBarStart(void) {
 // .text:0x00135F4C size:0xA8 mapped:0x80774FE0
 void sD_FireBarGrow(void) {
     SD.fireBarFrames++;
-    SD.fireBarExtent = (f32)SD.fireBarFrames / (f32)lbl_3_data_21A60[0];
+    SD.fireBarExtent = (f32)SD.fireBarFrames / (f32)sD_fireBarGrowParams[0];
     sD_UpdateFireBars();
-    if (SD.fireBarFrames >= lbl_3_data_21A60[0]) {
+    if (SD.fireBarFrames >= sD_fireBarGrowParams[0]) {
         SD.fireBarPhase = 2;
     }
 }
@@ -1920,9 +1846,9 @@ void sD_FireBarGrow(void) {
 // .text:0x00135E98 size:0xB4 mapped:0x80774F2C
 void sD_FireBarShrink(void) {
     SD.fireBarFrames++;
-    SD.fireBarExtent = 1.0f - (f32)SD.fireBarFrames / (f32)lbl_3_data_21A60[0];
+    SD.fireBarExtent = 1.0f - (f32)SD.fireBarFrames / (f32)sD_fireBarGrowParams[0];
     sD_UpdateFireBars();
-    if (SD.fireBarFrames >= lbl_3_data_21A60[0]) {
+    if (SD.fireBarFrames >= sD_fireBarGrowParams[0]) {
         SD.fireBarPhase = 0;
     }
 }
@@ -1932,7 +1858,7 @@ void sD_FireBarHold(void) {
     int end;
 
     sD_UpdateFireBars();
-    end = lbl_3_data_21A3C[SD.fireBarWave - 1][1] * 60;
+    end = sD_fireBarWaveTimes[SD.fireBarWave - 1][1] * 60;
     if (end == g_Minigame.minigameElapsedFrames) {
         SD.fireBarPhase = 3;
         SD.fireBarFrames = 0;
@@ -1951,19 +1877,19 @@ void sD_UpdateFireBars(void) {
     f32 stepLen;
     f32 d;
 
-    span = SD.fireBarExtent * lbl_3_data_21A54[1] - lbl_3_data_21A54[0];
-    stepLen = (lbl_3_data_21A54[1] - lbl_3_data_21A54[0]) / (f32)lbl_3_data_21A60[1];
-    outerR = span + lbl_3_data_21A54[0];
+    span = SD.fireBarExtent * sD_fireBarRadii[1] - sD_fireBarRadii[0];
+    stepLen = (sD_fireBarRadii[1] - sD_fireBarRadii[0]) / (f32)sD_fireBarGrowParams[1];
+    outerR = span + sD_fireBarRadii[0];
     for (p = 0, idx = 0; p < 4; p++) {
         getComponentsFromSAng(SD.fireBarAngle[p], &vx, &vz);
-        SD.fireBar[p].start.x = vx * lbl_3_data_21A54[0] + lbl_3_data_21A48.x;
-        SD.fireBar[p].start.z = vz * lbl_3_data_21A54[0] + lbl_3_data_21A48.z;
+        SD.fireBar[p].start.x = vx * sD_fireBarRadii[0] + lbl_3_data_21A48.x;
+        SD.fireBar[p].start.z = vz * sD_fireBarRadii[0] + lbl_3_data_21A48.z;
         SD.fireBar[p].end.x = vx * outerR + lbl_3_data_21A48.x;
         SD.fireBar[p].end.z = vz * outerR + lbl_3_data_21A48.z;
         vx = (SD.fireBar[p].end.x - SD.fireBar[p].start.x) / span;
         vz = (SD.fireBar[p].end.z - SD.fireBar[p].start.z) / span;
         d = span;
-        for (k = 0; k < lbl_3_data_21A60[1]; k++, idx++) {
+        for (k = 0; k < sD_fireBarGrowParams[1]; k++, idx++) {
             SD.fireBarFlame[idx].pos.x = vx * d + SD.fireBar[p].start.x;
             SD.fireBarFlame[idx].pos.z = vz * d + SD.fireBar[p].start.z;
             if (d < 0.0f) {
@@ -1995,13 +1921,13 @@ void sD_FireBarBurnPlayers(void) {
                 g_Minigame.starDashStunType[p] == 0) {
                 fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[p]];
                 if (fielder->isJump == 0 || fielder->jumpCountUp <= 3) {
-                    angle = calculateAngleFromCoordinates(fielder->pos.x - lbl_3_data_219AC.x,
-                                                          fielder->pos.z - lbl_3_data_219AC.z);
+                    angle = calculateAngleFromCoordinates(fielder->pos.x - sD_starSpawnPos.x,
+                                                          fielder->pos.z - sD_starSpawnPos.z);
                     for (k = 0; k < 4; k++) {
                         if (getDifferenceInAngle(angle, SD.fireBarAngle[k]) <= 0x200) {
                             dist = calculateBallInterceptDistance(&SD.fireBar[k].start, &SD.fireBar[k].end,
                                                                   &fielder->pos, NULL);
-                            if (dist < lbl_3_data_21A54[2] + fielderHitboxesForGarlicKnockout[fielder->Weight] &&
+                            if (dist < sD_fireBarRadii[2] + fielderHitboxesForGarlicKnockout[fielder->Weight] &&
                                 dist >= 0.0f) {
                                 sD_DropCoins(p);
                                 g_Minigame.starDashStunType[p] = 3;
@@ -2064,11 +1990,11 @@ void sD_InitAI(void) {
     u8 strength;
     u32 i;
 
-    memset(g_Minigame._1D7C, 0, 0x78);
+    memset(g_Minigame.aiInputs, 0, 0x78);
     for (i = 0; i < 4; i++) {
         strength = g_Minigame.playerSlots.aiStrength[i];
         ai->angle = -1;
-        ai->avoidMargin = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
+        ai->avoidMargin = RandomInt_Game(100) < sD_aiFireBarWideAvoidChance[strength] ? 3.0f : 1.5f;
         ai++;
     }
 }
@@ -2191,7 +2117,7 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
             } else if (player != SD.holder) {
                 if (SD.holder >= 0) {
                     InMemFielder* holder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[SD.holder]];
-                    holderLimit = lbl_3_data_21B38[strength];
+                    holderLimit = sD_aiHolderChaseRadii[strength];
                     if (sdDistSqXZ(cx, cz, holder->pos.x, holder->pos.z) <= holderLimit * holderLimit) {
                         e->valid = 0;
                     }
@@ -2205,10 +2131,10 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
                                 break;
                             }
                         }
-                    } while (++i < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
+                    } while (++i < sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty]);
                 }
                 if (e->valid && g_Minigame.powerup.activeInd == 2) {
-                    powerupLimit = lbl_3_data_21B58[strength];
+                    powerupLimit = sD_aiPowerup2Radii[strength];
                     if (sdDistSqXZ(cx, cz, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z) <=
                         powerupLimit * powerupLimit) {
                         e->valid = 0;
@@ -2233,7 +2159,7 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
                 } else if (((quadrant + 2) & 3) == e->quadrant) {
                     e->score += 400.0f;
                 }
-                if (sD_FireBarZone(e->x, e->z, 2.0f * lbl_3_data_21A54[2])) {
+                if (sD_FireBarZone(e->x, e->z, 2.0f * sD_fireBarRadii[2])) {
                     e->valid = 0;
                 }
             }
@@ -2427,7 +2353,7 @@ s16 sD_AITurnToward(s16 a, s16 b, u32 c) {
     if (a < 0 || b < 0) {
         return b;
     }
-    step = angleDifferenceNormalized(b, a) / lbl_3_data_21B8C[c];
+    step = angleDifferenceNormalized(b, a) / sD_aiTurnDivisors[c];
     if (step == 0 || __abs(step) > 1500) {
         return b;
     }
@@ -2533,17 +2459,17 @@ void sD_UpdateAI(void) {
             continue;
         }
         g_Minigame.aiDrivenInputInd[character] = 1;
-        memset(&g_Minigame._1D7C[character], 0, sizeof(InputStruct));
-        g_Minigame._1D7C[character].controlStickAngle = -1;
-        input = &g_Minigame._1D7C[character];
+        memset(&g_Minigame.aiInputs[character], 0, sizeof(InputStruct));
+        g_Minigame.aiInputs[character].controlStickAngle = -1;
+        input = &g_Minigame.aiInputs[character];
         strength = g_Minigame.playerSlots.aiStrength[p];
         sD_ToFireBarSpace(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, &rx, &rz);
         quadrant = sD_GetQuadrant(rx, rz);
         switch (ai->state) {
         case 0:
-            if (drawStadiumRelated != 0 && dash->sprintSpeedMultiplier <= lbl_3_data_21B28[strength]) {
+            if (drawStadiumRelated != 0 && dash->sprintSpeedMultiplier <= sD_aiSprintThresholds[strength]) {
                 if (SD.fireBarPhase == 0 || p == SD.holder || sD_FireBarZone(rx, rz, 5.0f) == 0) {
-                    g_Minigame._1D7C[character].buttonInput = g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_B;
+                    g_Minigame.aiInputs[character].buttonInput = g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_B;
                 }
             }
             targetQuadrant = 4;
@@ -2557,15 +2483,15 @@ void sD_UpdateAI(void) {
             }
             if (targetQuadrant == 4 && SD.coinBag.active != 0) {
                 if (sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.coinBag.pos.x, SD.coinBag.pos.z) <=
-                    SQ(lbl_3_data_21B78[strength])) {
+                    SQ(sD_aiCoinBagRadii[strength])) {
                     k = 0;
                     do {
                         if (SD.thwomp[k].state >= 1 && SD.thwomp[k].state <= 3 &&
                             sD_IsNearThwomp(k, SD.coinBag.pos.x, SD.coinBag.pos.z)) {
                             break;
                         }
-                    } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
-                    if (k >= lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]) {
+                    } while (++k < sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty]);
+                    if (k >= sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty]) {
                         targetX = SD.coinBag.pos.x;
                         targetZ = SD.coinBag.pos.z;
                         targetQuadrant = quadBurst;
@@ -2574,15 +2500,15 @@ void sD_UpdateAI(void) {
             }
             if (targetQuadrant == 4 && g_Minigame.powerup.activeInd == 1) {
                 if (sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, g_Minigame.powerup.pos.x,
-                               g_Minigame.powerup.pos.z) <= SQ(lbl_3_data_21B68[strength])) {
+                               g_Minigame.powerup.pos.z) <= SQ(sD_aiPowerup1Radii[strength])) {
                     k = 0;
                     do {
                         if (SD.thwomp[k].state >= 1 && SD.thwomp[k].state <= 3 &&
                             sD_IsNearThwomp(k, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z)) {
                             break;
                         }
-                    } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
-                    if (k >= lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]) {
+                    } while (++k < sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty]);
+                    if (k >= sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty]) {
                         targetX = g_Minigame.powerup.pos.x;
                         targetZ = g_Minigame.powerup.pos.z;
                         targetQuadrant = quadPowerup;
@@ -2608,7 +2534,7 @@ void sD_UpdateAI(void) {
                 holder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[SD.holder]];
                 dzh = SD_FIELDER(p).pos.z - holder->pos.z;
                 dxh = SD_FIELDER(p).pos.x - holder->pos.x;
-                if (dxh * dxh + dzh * dzh <= SQ(lbl_3_data_21B38[strength])) {
+                if (dxh * dxh + dzh * dzh <= SQ(sD_aiHolderChaseRadii[strength])) {
                     lx = SD_FIELDER(p).pos.x - lbl_3_data_21A48.x;
                     lz = SD_FIELDER(p).pos.z - lbl_3_data_21A48.z;
                     holderAngle = atan2(holder->pos.z - lbl_3_data_21A48.z, holder->pos.x - lbl_3_data_21A48.x);
@@ -2625,17 +2551,17 @@ void sD_UpdateAI(void) {
                 do {
                     if (SD.thwomp[k].state >= 1 && SD.thwomp[k].state <= 3 &&
                         sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, SD.thwomp[k].pos.x, SD.thwomp[k].pos.z) <=
-                            SQ(lbl_3_data_21B48[strength])) {
+                            SQ(sD_aiThwompAvoidRadii[strength])) {
                         away = radToShortAngle(atan2(SD_FIELDER(p).pos.z - SD.thwomp[k].pos.z, SD_FIELDER(p).pos.x - SD.thwomp[k].pos.x));
                         candidate = normalizeAngle(input->controlStickAngle +
                                                    angleDifferenceNormalized(away, input->controlStickAngle) / 2);
                         input->controlStickAngle = sD_AITurnToward(input->controlStickAngle, candidate, strength);
                     }
-                } while (++k < lbl_3_data_21A88[g_Minigame.soloMinigameDifficulty]);
+                } while (++k < sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty]);
             }
             if (g_Minigame.powerup.activeInd == 2 &&
                 sdDistSqXZ(SD_FIELDER(p).pos.x, SD_FIELDER(p).pos.z, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z) <=
-                    SQ(lbl_3_data_21B58[strength])) {
+                    SQ(sD_aiPowerup2Radii[strength])) {
                 away = radToShortAngle(atan2(SD_FIELDER(p).pos.z - g_Minigame.powerup.pos.z,
                                              SD_FIELDER(p).pos.x - g_Minigame.powerup.pos.x));
                 candidate = normalizeAngle(input->controlStickAngle +
@@ -2645,7 +2571,7 @@ void sD_UpdateAI(void) {
             if (SD.fireBarPhase != 0 && p != SD.holder) {
                 radius = ai->avoidMargin + 0.20943952f * dolsqrtf2(rz * rz + rx * rx);
                 if (sD_FireBarZone(rx, rz, radius) == 1) {
-                    ai->avoidMargin = RandomInt_Game(100) < lbl_3_data_21B88[strength] ? 3.0f : 1.5f;
+                    ai->avoidMargin = RandomInt_Game(100) < sD_aiFireBarWideAvoidChance[strength] ? 3.0f : 1.5f;
                     input->controlStickAngle = normalizeAngle(sdTangentAngle(p));
                     ai->state = 1;
                 }
@@ -2657,8 +2583,8 @@ void sD_UpdateAI(void) {
         case 2:
             input->controlStickAngle = normalizeAngle(sdTangentAngle(p));
             if (ai->counter-- <= 0) {
-                g_Minigame._1D7C[character].buttonInput |= INPUT_BUTTON_A;
-                g_Minigame._1D7C[character].newButtonInput |= INPUT_BUTTON_A;
+                g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_A;
+                g_Minigame.aiInputs[character].newButtonInput |= INPUT_BUTTON_A;
                 ai->state = 3;
             }
             break;

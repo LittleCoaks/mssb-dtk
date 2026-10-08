@@ -122,7 +122,7 @@ void fn_3_1663AC(void) {
             }
         }
     } else if (g_Practice.practiceLevel == 4) {
-        loadPitchingMachineModel();
+        mm_UpdatePitchingMachine();
     }
 }
 

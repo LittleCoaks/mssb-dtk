@@ -211,8 +211,8 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `wall_ball.c` | `rep_3290` | 13 (7) | 7,164 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
 | `pitching_machine.c` | `rep_3310` | 55 (2) | 27,500 | Model loading plus actor transform/animation (`CTRLSetTranslation`/`Rotation`, `ActorObjectInitTable`). | med |
 | `minigame_fielder_anim.c` | `rep_2940` | 4 (1) | 1,924 | Minigame fielder animations. | med |
-| `toy_field_offscreen.c` | `rep_2BF8` | 1 (1) | 1,552 | Toy Field off-screen character indicator. | high |
-| `rep_3880.c` | *(unchanged)* | 123 (4) | 68,156 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
+| `toy_field_hud.c` | `rep_2BF8` | 1 (1) | 1,552 | Toy Field off-screen character indicator. | high |
+| `minigame_effects.c` | *(unchanged)* | 123 (4) | 68,156 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
 
 ## data_only/ — 24 files, 7 fns
 
@@ -587,7 +587,7 @@ already here.
 ## Where the unfinished work actually is
 
 Ranked by un-decompiled bytes in files that contain code, the largest gaps are
-`minigame/rep_3880.c` (123 fns, 4 named), `math/rep_3090.c` (49/2),
+`minigame/minigame_effects.c` (123 fns, 4 named), `math/rep_3090.c` (49/2),
 `hud/rep_3448.c` (38/1), `minigame/pitching_machine.c` (55/2) and
 `minigame/star_dash.c` (69/5).
 

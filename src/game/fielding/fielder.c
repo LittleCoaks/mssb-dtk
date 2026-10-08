@@ -48,7 +48,7 @@ extern u8 characterStaticIndexes[0x144];
 extern s16 lbl_3_common_bss_37400[0x27];
 
 extern f32 ballDistCalculator(f32 x, f32 z);
-extern u8 fn_3_107D70(void);
+extern u8 minigame_getAIDrivenInputInd(void);
 extern int sD_IsBlockedByThwomp(int fielderIndex);
 extern void fieldingRelatedAnimations(void* anim, int state);
 extern void foulBall(void);
@@ -519,7 +519,7 @@ void initializeMiniGameCharacters(void) {
     g_GameLogic.rosterLoc_skippingCap = 0;
     if (g_d_GameSettings.minigamesEnabled) {
         for (i = 0; i < 4; i++) {
-            charId = *((s8*)&g_Minigame + 0x18f4 + i);
+            charId = g_Minigame.playerSlots.participantSlot[i];
             if (charId < 0) {
                 continue;
             }
@@ -527,9 +527,9 @@ void initializeMiniGameCharacters(void) {
             setFielderValues(charId, idx);
             fielder = &g_Fielders[idx];
             if (idx == 0) {
-                fielder->lockoutDuration = fielderLockout[*((u8*)&g_Minigame + 0x18d8 + i)][0];
+                fielder->lockoutDuration = fielderLockout[g_Minigame.playerSlots.aiControlledInd[i]][0];
             } else {
-                fielder->lockoutDuration = fielderLockout[*((u8*)&g_Minigame + 0x18d8 + i)][7];
+                fielder->lockoutDuration = fielderLockout[g_Minigame.playerSlots.aiControlledInd[i]][7];
             }
         }
     }
@@ -2849,11 +2849,11 @@ clamber_return1:
     }
 
     if (g_Minigame.GameMode_MiniGame == 5) {
-        if (*((u8*)&g_Minigame + 0x1c9a + idx) != 0) {
+        if (g_Minigame.pP_hitState[idx] != 0) {
             return 2;
         }
     } else if (g_Minigame.GameMode_MiniGame == 6) {
-        u8 stunType = *((u8*)&g_Minigame + 0x1d6e + idx);
+        u8 stunType = g_Minigame.starDashStunType[idx];
         if (stunType == 1 || stunType == 2) {
             return 2;
         }
@@ -3500,7 +3500,7 @@ void updateSprintPointers(void) {
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE ||
                     g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING ||
                     g_Practice.practiceLevel == 2) {
-                    g_Practice._1CB = 1;
+                    g_Practice.fieldingSprintMaxed = 1;
                 }
             }
         } else if (g_FieldingLogic.dashPtr->framesSinceLastDashInput >= initialSprintCharge_10[2]) {
@@ -10878,7 +10878,7 @@ void moveFielder_CheckForAndSetJump(int fielderIndex) {
     minigameIdx = fielderIndex;
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            minigameIdx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            minigameIdx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             minigameIdx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -10904,7 +10904,7 @@ void moveFielder_CheckForAndSetJump(int fielderIndex) {
         jumpAnimIdx = fielderIndex;
         if (g_d_GameSettings.minigamesEnabled) {
             if (fielderIndex == 0) {
-                jumpAnimIdx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+                jumpAnimIdx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
             } else {
                 jumpAnimIdx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
             }
@@ -11048,7 +11048,7 @@ void setFielderVelocity_someSituation(int fielderIndex) {
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -15403,8 +15403,8 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
             fielder->wallSplatStageCountDown = specialFielderActionConstants._00[8];
 
             if (g_d_GameSettings.minigamesEnabled) {
-                if (*((u8*)&g_Minigame + 0x18d8 + fielder->_020D) == 0) {
-                    setCharacterAnimations(*((s8*)&g_Minigame + 0x18cc + fielder->_020D), 2);
+                if (g_Minigame.playerSlots.aiControlledInd[fielder->_020D] == 0) {
+                    setCharacterAnimations(g_Minigame.minigameControlStruct[0].characterIndex[fielder->_020D], 2);
                 }
             } else {
                 if (!g_GameLogic.teamIsCPU[g_GameLogic.teamFielding]) {
@@ -15449,7 +15449,7 @@ void fn_3_2F7D4(int fielderIndex) {
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -15531,7 +15531,7 @@ void miniGameDash(void) {
                 (UnkInputRelated*) ((u8*) &g_FieldingLogic.specialActionChecks + i * 6);
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19BC != 0 &&
-                i == (s8) g_Minigame._19C6) {
+                i == (s8) g_Minigame.toyField_turnPlayer) {
                 if (minigameDashUpdateFieldingVals(i)) {
                     continue;
                 }
@@ -15558,18 +15558,18 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     s32 i;
 
     fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
-    g_Minigame._1922 = minigameFielderSlot;
+    g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
-    control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+    control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
-    if (fn_3_107D70()) {
-        control = &g_Minigame._1D7C[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+    if (minigame_getAIDrivenInputInd()) {
+        control = &g_Minigame.aiInputs[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
     }
 
     charHist =
-        lbl_3_bss_C8.characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+        lbl_3_bss_C8.characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
     for (i = 19; i >= 1; i--) {
         fielderControlStick_continuousAngleHistory[i] = charHist[i - 1];
@@ -15695,7 +15695,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
         }
 
         g_Minigame.minigameRelatedIndex = fielderIndex;
-        g_Minigame._1922 = minigameFielderSlot;
+        g_Minigame.activeFielderSlot = minigameFielderSlot;
 
         if (g_Ball.framesSinceHit == 1) {
             setFielderCatchStrategy_calcFramesToGetToDropSpot(fielderIndex);
@@ -15859,7 +15859,7 @@ void fn_3_2E41C(void) {
             s32 j;
 
             g_Minigame.minigameRelatedIndex = g_Minigame.minigameFielderIndex[i];
-            g_Minigame._1922 = i;
+            g_Minigame.activeFielderSlot = i;
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD &&
                 g_Minigame.minigameControlStruct[0].battingHandedness[i] != 0) {
@@ -15942,7 +15942,7 @@ void fn_3_2E41C(void) {
 
 // .text:0x0002DDB4 size:0x668 mapped:0x8066CE48
 void fn_3_2DDB4(void) {
-    u8 playerIndex = g_Minigame._1922;
+    u8 playerIndex = g_Minigame.activeFielderSlot;
     u8 fielderIndex = g_Minigame.minigameRelatedIndex;
     InputStruct* control = &g_Controls[playerIndex];
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -16349,7 +16349,7 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     int fielderIndex;
 
     fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
-    g_Minigame._1922 = minigameFielderSlot;
+    g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
@@ -16425,7 +16425,7 @@ void checkForCatchBallAction(int fielderIndex) {
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -17414,7 +17414,7 @@ int checkForAndSetFielderWallActionsOrDives(int fielderIndex) {
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -18787,7 +18787,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     g_FieldingLogic._0142 = 0;
     g_FieldingLogic.birdoFarThrowInd_forAnimation = 0;
     g_Batter.invisibleBallForPeachStarHit = 0;
-    g_Minigame._19C6 = fielder->_020D;
+    g_Minigame.toyField_turnPlayer = fielder->_020D;
     if (g_FieldingLogic.unused_always0_ == 1) {
         g_FieldingLogic.unused_always0_ = 2;
     }
@@ -18834,7 +18834,7 @@ void calculateBobble(int fielderIndex) {
     idx = fielderIndex;
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -19025,7 +19025,7 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
     idx = fielderIndex;
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -19144,7 +19144,7 @@ int fn_3_258D8(int fielderIndex) {
     idx = fielderIndex;
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            idx = *((s8*)&g_Minigame + 0x18cc + (s8)g_Minigame.minigamePlayerSelectedOrder);
+            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
         }
@@ -19270,8 +19270,8 @@ int processFielderKnockout(int fielderIndex, sAng knockOutAngle) {
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
-        if (*((u8*)&g_Minigame + 0x18d8 + fielder->_020D) == 0) {
-            setCharacterAnimations(*((s8*)&g_Minigame + 0x18cc + fielder->_020D), 2);
+        if (g_Minigame.playerSlots.aiControlledInd[fielder->_020D] == 0) {
+            setCharacterAnimations(g_Minigame.minigameControlStruct[0].characterIndex[fielder->_020D], 2);
         }
     } else {
         if (!g_GameLogic.teamIsCPU[g_GameLogic.teamFielding]) {
