@@ -374,7 +374,7 @@ void drawDiamondMiniMap_init(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_8D88.toyFieldMiniMap);
         for (i = 1; i < 4; i++) {
-            if (((u8*)&g_Minigame)[0x1914 + i] != 0) {
+            if ((&g_Minigame.toyField_runnerOnHome)[i] != 0) {
                 REC_AT(scene, 1, i)->flags |= UI_FLAG_VISIBLE;
                 REC_AT(scene, 1, i)->playMode = UI_PLAY_STOP;
                 scene->slots[i] = i;
@@ -439,7 +439,7 @@ void drawDiamondMiniMap_ongoing(void) {
         if (g_Practice.tutorialState == 0) {
             goto remove;
         }
-        if (g_Practice._1C7 != 0) {
+        if (g_Practice.completionMenuActive != 0) {
             goto remove;
         }
     }
@@ -454,7 +454,7 @@ void drawDiamondMiniMap_ongoing(void) {
         if (g_Minigame.framesSincePanelHit == 1) {
             anyReady = FALSE;
             for (k = 0; k < 4; k++) {
-                if (((s8*)&g_Minigame)[0x191C + k] > k) {
+                if ((&g_Minigame.toyField_runnerBase0)[k] > k) {
                     anyReady = TRUE;
                 }
             }
@@ -473,10 +473,10 @@ void drawDiamondMiniMap_ongoing(void) {
 
                     if (state == 4) {
                         scene->slots[i] = 14;
-                    } else if (state < ((s8*)&g_Minigame)[0x191C + i]) {
+                    } else if (state < (&g_Minigame.toyField_runnerBase0)[i]) {
                         scene->slots[i]++;
                         REC(scene, scene->slots[i] % 10 % 4 + 1)->flags |= UI_FLAG_VISIBLE;
-                    } else if (state > 0 && state < 4 && state == ((s8*)&g_Minigame)[0x191C + i]) {
+                    } else if (state > 0 && state < 4 && state == (&g_Minigame.toyField_runnerBase0)[i]) {
                         REC(scene, state % 4 + 1)->flags |= UI_FLAG_VISIBLE;
                         if (scene->slots[i] < 10) {
                             scene->slots[i] += 10;
@@ -488,15 +488,15 @@ void drawDiamondMiniMap_ongoing(void) {
                 u16 slot = scene->slots[i];
                 int bit = slot % 10 % 4 + 1;
 
-                if (slot <= ((s8*)&g_Minigame)[0x191C + i]) {
+                if (slot <= (&g_Minigame.toyField_runnerBase0)[i]) {
                     if (bit == 1) {
                         REC(scene, bit)->flags |= UI_FLAG_VISIBLE;
                     } else if (phase <= 15 || phase > 30) {
                         REC(scene, bit)->flags |= UI_FLAG_VISIBLE;
                     }
-                    ((u8*)&g_Minigame)[0x1925] |= 1 << (bit - 1);
+                    g_Minigame._1925 |= 1 << (bit - 1);
                 } else if (slot >= 10) {
-                    ((u8*)&g_Minigame)[0x1925] |= 1 << (bit - 1);
+                    g_Minigame._1925 |= 1 << (bit - 1);
                     REC(scene, bit)->flags |= UI_FLAG_VISIBLE;
                 }
             }
@@ -619,7 +619,7 @@ void offscreenFielderIndicator_update(void) {
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING ||
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING ||
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_FIELDING) {
-            if (g_Practice._186 != 0) {
+            if (g_Practice.frames_sincePracticeCompleted != 0) {
                 REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
                 return;
             }

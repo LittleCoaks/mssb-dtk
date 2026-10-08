@@ -1670,7 +1670,7 @@ void fielderControl_classifyControlStickDirection(void) {
     if (ACTIVE_TUTORIAL()) {
         input = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (g_d_GameSettings.minigamesEnabled) {
-        input = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+        input = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
     }
     priorClassification = g_FieldingLogic.stickAngleClassification;
     if (input->controlStickAngle >= 0xe00) {
@@ -1714,7 +1714,7 @@ void checkForBufferedThrow(void) {
     if (ACTIVE_TUTORIAL()) {
         input = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (g_d_GameSettings.minigamesEnabled) {
-        input = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+        input = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
     }
     if (!(input->buttonInput & INPUT_BUTTON_A)) {
         g_FieldingLogic.smashThrow_framesDirectionHeld = 0;
@@ -1798,7 +1798,7 @@ void fielderHasBall(void) {
             controls = &g_Practice.inputs[g_GameLogic.teamFielding];
         } else if (g_d_GameSettings.minigamesEnabled) {
             fielderIndex = g_Minigame.minigameRelatedIndex;
-            controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame._1922]];
+            controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
         }
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
             if (!(controls->buttonInput & INPUT_BUTTON_A)) {

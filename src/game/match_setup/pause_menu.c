@@ -26,7 +26,7 @@ extern s8 lineUpInfoStruct[2][9][4];
 extern u8 CommonUIFiles_pauseMenu[0x3E0];
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_3_data_F918[];
-extern u8 lbl_3_data_6104[];
+extern u8 challengeTransitionPortraitIDs[];
 extern u8 lbl_8037169C[];
 void fn_3_AE900(void);
 void fn_3_ADEDC(void);
@@ -635,9 +635,9 @@ void fn_3_AEC50(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8 *)starMissionCompletionTracker)[0x441C]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441C]]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8 *)starMissionCompletionTracker)[0x441E]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441E]]);
                 }
             } else {
                 changeScene(4, 6);
@@ -850,9 +850,9 @@ void fn_3_AE334(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8 *)starMissionCompletionTracker)[0x441C]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441C]]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8 *)starMissionCompletionTracker)[0x441E]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441E]]);
                 }
             } else {
                 changeScene(4, 6);

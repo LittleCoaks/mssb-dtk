@@ -1378,8 +1378,8 @@ void gameplay_Camera(void) {
         }
     }
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19CE != 0) {
-        if (g_Minigame._19BA == 1) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame.toyField_turnEndState != 0) {
+        if (g_Minigame.toyField_turnEndFrames == 1) {
             camera_switchScene(0x67);
         }
     } else if (g_GameLogic.sceneID == SCENE_ID_AT_BAT || g_GameLogic.sceneID == SCENE_ID_REPLAY_AT_BAT) {
@@ -1710,7 +1710,7 @@ void fn_3_16900(void) {
         fn_3_FD670();
     } else {
         lbl_3_data_A40_s* p = &lbl_3_data_1594[g_Minigame.GameMode_MiniGame];
-        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame._1908 >= 0) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame.soloPlayerSlot >= 0) {
             if (g_GameLogic._125 == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
                 camera_switchScene(0x69);
             }

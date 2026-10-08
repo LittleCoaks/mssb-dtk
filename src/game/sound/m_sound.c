@@ -858,7 +858,7 @@ void handleGameSound(void) {
             hugeAnimStruct[0x307D] == 0) {
             actor = *(u8**)(hugeAnimStruct + 0x2C74);
             if (g_d_GameSettings.minigamesEnabled) {
-                actorIndex = ((s8*)&g_Minigame)[0x18CC + g_Minigame.rosterID];
+                actorIndex = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
                 actor = hugeAnimStruct + 0xC04 + actorIndex * 0x27C;
             }
             if (actor != NULL && *(s16*)(actor + 0x62) == 0x60 && *(s16*)(actor + 0x6A) == 5) {
@@ -985,7 +985,6 @@ void fn_3_8D9C0(void) {
 }
 
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
-#define MINIGAME_BYTE(off) (((u8*)&g_Minigame)[off])
 
 void soundControl(void) {
     int track = -1;
@@ -1048,14 +1047,14 @@ void soundControl(void) {
             track = -1;
             goto pick;
         }
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             pauseState = pauseControl[0x1D2];
             if (pauseState == 6 || (u8)(pauseState - 7) <= 1 || pauseState == 9) {
                 track = -1;
                 goto pick;
             }
         }
-        if (g_Practice._1C7 != 0) {
+        if (g_Practice.completionMenuActive != 0) {
             pauseState = pauseControl[0x1D2];
             if (pauseState == 6 || pauseState == 7) {
                 track = -1;
@@ -1084,8 +1083,8 @@ void soundControl(void) {
 
     status = g_GameLogic.gameStatus;
     if (status == GAME_STATUS_0x27 || status == GAME_STATUS_0x24 || status == GAME_STATUS_MINIGAME_POST_MENU) {
-        roster = g_Minigame._1908;
-        if (roster >= 0 && g_Minigame._1A3C != 0) {
+        roster = g_Minigame.soloPlayerSlot;
+        if (roster >= 0 && g_Minigame.grandPrixInd != 0) {
             if (status == GAME_STATUS_MINIGAME_POST_MENU) {
                 return;
             }
@@ -1096,7 +1095,7 @@ void soundControl(void) {
                 fn_3_8C104(-1);
                 return;
             }
-            if (MINIGAME_BYTE(0x18E8 + roster) == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+            if (g_Minigame.playerSlots.rank[roster] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                 track = 0xC;
             } else {
                 track = 0xD;
@@ -1131,14 +1130,14 @@ void soundControl(void) {
             if (!g_d_GameSettings.exhibitionMatchInd) {
                 if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY ||
                     g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
-                    if (g_Minigame._1A37 == 1) {
+                    if (g_Minigame.winLossResult == 1) {
                         track = 0xC;
                     } else {
                         track = 0xD;
                     }
                 } else {
-                    roster = g_Minigame._1908;
-                    if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
+                    roster = g_Minigame.soloPlayerSlot;
+                    if (g_Minigame.playerSlots.rank[roster] == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 0xC;
                     } else {
@@ -1148,9 +1147,9 @@ void soundControl(void) {
                 goto pick;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                roster = g_Minigame._1908;
+                roster = g_Minigame.soloPlayerSlot;
                 if (roster >= 0) {
-                    if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
+                    if (g_Minigame.playerSlots.rank[roster] == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 5;
                     } else {
@@ -1162,9 +1161,9 @@ void soundControl(void) {
                 goto pick;
             }
             if (g_Minigame.multiPlayerInd != 0) {
-                if (g_Minigame._1A3C != 0 && g_Minigame._1907 == 1) {
-                    roster = g_Minigame._1908;
-                    if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
+                if (g_Minigame.grandPrixInd != 0 && g_Minigame.humanPlayerCount == 1) {
+                    roster = g_Minigame.soloPlayerSlot;
+                    if (g_Minigame.playerSlots.rank[roster] == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 5;
                     } else {
@@ -1177,20 +1176,20 @@ void soundControl(void) {
                 }
                 goto pick;
             }
-            if (g_Minigame.soloMinigameDifficulty == 3 && g_Minigame._1A3C == 0) {
+            if (g_Minigame.soloMinigameDifficulty == 3 && g_Minigame.grandPrixInd == 0) {
                 if (g_GameLogic.FrameCountOfCurrentPitch == 0) {
                     return;
                 }
-                if (g_Minigame._1A43 == 1) {
+                if (g_Minigame.newRecordRank == 1) {
                     track = 0xE;
-                } else if (g_Minigame._1A43 != 0) {
+                } else if (g_Minigame.newRecordRank != 0) {
                     track = 0xF;
                 } else {
                     track = 7;
                 }
                 goto pick;
             }
-            if (g_Minigame._1A37 == 1) {
+            if (g_Minigame.winLossResult == 1) {
                 track = 5;
             } else {
                 track = 7;
@@ -1248,7 +1247,7 @@ void soundControl(void) {
 
     if (minigamesEnabled != 0) {
         if (status == GAME_STATUS_MINIGAME_POST_MENU || status == GAME_STATUS_PAUSED ||
-            status == GAME_STATUS_HOW_TO_PLAY_SCREEN || g_Minigame._19CE != 0) {
+            status == GAME_STATUS_HOW_TO_PLAY_SCREEN || g_Minigame.toyField_turnEndState != 0) {
             if (sound_crowd_EffectsStruct._22 != -1) {
                 fn_800A8878(lbl_800E88A4[0x13], lbl_800E88A4[0x13]);
             }
@@ -1792,7 +1791,7 @@ void adjustBallSoundEffectBasedOnHeight(void) {
         goto stop;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             goto stop;
         }
         if (g_Practice.tutorialState == TUTORIAL_STATE_0) {

@@ -16,9 +16,9 @@ typedef struct {
     /*0x27*/ u8 _27;
 } PMEffect; // size: 0x28
 
-void fn_3_11669C(void);
-void fn_3_1166CC(void);
-void fn_3_11678C(void);
+void mm_HidePlayerMarkers(void);
+void mm_ClearFirst40Effects(void);
+void mm_PlaceExtraPipes(void);
 void mm_ResetPiranhas(void);
 void mm_HideWallBallEffects(void);
 void mm_ResetPitchingMachine(void);
@@ -74,11 +74,11 @@ void mm_CleanupResources(void);
 void mm_UnloadModels(void);
 void mm_LoadModels(void);
 void mm_LoadModelAsset(int asset, int start, int count, int a, int b);
-void fn_3_11D3AC(void);
-int fn_3_11D6A0(void);
-void fn_3_11D780(void);
-void fn_3_11DACC(u8* out, u8* raw, u8 a, u8 b);
-u16 fn_3_11DDC4(u8* data, u32 len);
+void mm_ParseCommonArchive(void);
+int mm_LoadCommonArchiveStep(void);
+void mm_DrawResultCode(void);
+void mm_EncodeResultCode(u8* out, u8* raw, u8 a, u8 b);
+u16 mm_Crc16(u8* data, u32 len);
 void fn_3_11DE80(void);
 void fn_3_11DECC(void);
 void fn_3_11E308(void);

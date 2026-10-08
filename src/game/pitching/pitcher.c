@@ -34,7 +34,7 @@ extern struct {
     u8 _00[0x28];
     u8 _28;
 } lbl_80366158;
-extern f32 lbl_3_data_21380[3];
+extern f32 bOD_bB_pitchBallPos[3];
 extern u8 lbl_3_data_5F44[];
 static u32 lbl_3_bss_172C[7];
 
@@ -430,7 +430,7 @@ void waitingForPitch(void) {
         }
         controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
         if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) != 0) {
-            controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+            controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
         }
         if (g_Pitcher.AIInd != 0) {
             pitcherAI_prePitchSetConstants();
@@ -478,7 +478,7 @@ void pitcherMovementOnMound(void) {
         controls = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) !=
                0) {
-        controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+        controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     }
@@ -517,7 +517,7 @@ void pitchingWindUpFunction(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
         controls = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) != 0) {
-        controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+        controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     } else if (g_d_GameSettings.minigamesEnabled) {
         if (MINIGAME_SELECTED_ORDER >= 0) {
             controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
@@ -996,9 +996,9 @@ void pitchBeingReleased(void) {
     character = 0;
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY || g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER ||
         (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 4)) {
-        ballCoords.x = lbl_3_data_21380[0];
-        ballCoords.y = lbl_3_data_21380[1];
-        ballCoords.z = lbl_3_data_21380[2];
+        ballCoords.x = bOD_bB_pitchBallPos[0];
+        ballCoords.y = bOD_bB_pitchBallPos[1];
+        ballCoords.z = bOD_bB_pitchBallPos[2];
         ballCoords.y = -ballCoords.y;
     } else {
         if (g_d_GameSettings.minigamesEnabled) {
@@ -1136,7 +1136,7 @@ void pitchSetPhysicsConstants(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
         controls = &g_Practice.inputs[g_GameLogic.teamFielding];
     } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) != 0) {
-        controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+        controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     } else if (g_d_GameSettings.minigamesEnabled && MINIGAME_SELECTED_ORDER >= 0) {
         controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
     }
@@ -1441,7 +1441,7 @@ void pitchCurve(void) {
                 controls = &g_Practice.inputs[g_GameLogic.teamFielding];
             } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) !=
                        0) {
-                controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+                controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             } else if (g_d_GameSettings.minigamesEnabled) {
                 controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             }
@@ -1650,7 +1650,7 @@ void pitchCall(void) {
                 g_GameLogic.IsStarChance = 2;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                g_Minigame._19C6 = MINIGAME_SELECTED_ORDER;
+                g_Minigame.toyField_turnPlayer = MINIGAME_SELECTED_ORDER;
             }
         } else {
             QueueTextToDisplay(8, 0);
@@ -1686,7 +1686,7 @@ void fn_3_70280(void) {
     int idx;
     int dx;
     int dz;
-    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_PITCHING && g_Practice._1DB == 0) {
+    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_PITCHING && g_Practice.pitchingPracticeBatterEnabled == 0) {
         return;
     }
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
@@ -1819,7 +1819,7 @@ BOOL waitingForPitch_checkForPickoffs(void) {
                 controls = &g_Practice.inputs[g_GameLogic.teamFielding];
             } else if (AI_getPort(g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]) !=
                        0) {
-                controls = &g_Minigame._1D7C[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
+                controls = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             } else if (g_d_GameSettings.minigamesEnabled && MINIGAME_SELECTED_ORDER >= 0) {
                 controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             }

@@ -157,8 +157,8 @@ void fn_3_6C000(void) {
     }
     if (g_Practice.practiceState != PRACTICE_STATE_6 && g_Practice.practiceState > PRACTICE_STATE_1) {
         obj = hugeAnimStruct.objects[9];
-        if (obj != NULL && g_Minigame._1A13 == 0 && (s8)g_Minigame._19EA >= 0 && (s8)g_Minigame._19EF != 0 &&
-            (s8)g_Minigame._19DA >= 0) {
+        if (obj != NULL && g_Minigame.charLoadPending[0] == 0 && (s8)g_Minigame.selectSlots[0].loadedCharID >= 0 && (s8)g_Minigame.selectSlots[0].charReadyInd != 0 &&
+            (s8)g_Minigame.selectSlotState[0] >= 0) {
             obj->_25D = 1;
             obj->x = charSelectFielderPositions[0];
             obj->y = -charSelectFielderPositions[1];

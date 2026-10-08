@@ -810,7 +810,7 @@ typedef struct _PracticeStruct {
     /*0x14C*/ frame_t frames_sinceTimeCalled;
     /*0x14E*/ frame_t frames_onPauseScreen;
     /*0x150*/ frame_t frames_onPauseScreen2; // used For Allowing Cursor To Move
-    /*0x152*/ frame_t _152;                  // count To 60 then Set Hit Vars For Fielding Practice
+    /*0x152*/ frame_t frames_sincePlayStart; // counts to 60 (fieldingPractice_frameThresholds[0]) then the hit variables are set
     /*0x154*/ frame_t _154;
     /*0x156*/ frame_t _156;
     /*0x158*/ frame_t _158;
@@ -829,71 +829,74 @@ typedef struct _PracticeStruct {
     /*0x172*/ frame_t diagramTitleTextIndex_stored;
     /*0x174*/ frame_t cpuCommandDuration;
     /*0x176*/ frame_t maybeInputResetCountdown;
-    /*0x178*/ frame_t maybePreviousInput;
-    /*0x17A*/ frame_t _17A;
-    /*0x17C*/ frame_t cpu_inputDuration;
-    /*0x17E*/ frame_t _17E;
+    /*0x178*/ frame_t cpu_heldButtons[2]; // per team: buttons the script is holding
+    /*0x17C*/ frame_t cpu_inputDuration[2]; // per team: frames left to hold
     /*0x180*/ frame_t practice_hitHorizontalPower;
     /*0x182*/ frame_t practice_hitVerticalAngle;
     /*0x184*/ frame_t practice_hitHorizontalAngle;
-    /*0x186*/ frame_t _186;
-    /*0x188*/ frame_t _188;
+    /*0x186*/ frame_t frames_sincePracticeCompleted; // counts once the goal is reached; the completion menu opens at 150
+    /*0x188*/ frame_t frames_onGuidedMessage;
     /*0x18A*/ s16 maybeCommandData[4]; // unsure
-    /*0x192*/ u8 _192;
+    /*0x192*/ u8 homeAwayByte; // byte copy of homeAway (controller port)
     /*0x193*/ E(u8, PRACTICE_TYPE) practiceType_2;
-    /*0x194*/ u8 practiceLevel;
+    /*0x194*/ u8 practiceLevel; // 0..3 guided level within practiceType_2; 4 = free bat and running, 5 = free fielding (FREEPLAY); 6/7 also tested by the HUD and play-end code
     /*0x195*/ E(u8, PRACTICE_STATE) practiceState;
     /*0x196*/ E(u8, TUTORIAL_STATE) tutorialState;
     /*0x197*/ u8 _197;
-    /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1;
-    /*0x199*/ E(u8, PRACTICE_TYPE) practiceType;
+    /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1; // actually the practice menu screen (0..6, not PRACTICE_TYPE): 0 type select (menuNumber 0x3C), 1..5 sub-menu select for type-1 (0x3D), 6 character select (0x3E)
+    /*0x199*/ E(u8, PRACTICE_TYPE) practiceType; // highlighted entry on the type-select screen
     /*0x19A*/ u8 subMenuCursor;
     artificial_padding(0x19a, 0x19e, u8);
     /*0x19E*/ u8 pauseMenuLoading; // unsure
-    /*0x19F*/ u8 _19F;
+    /*0x19F*/ u8 pauseMenuActive;
     /*0x1A0*/ u8 _1A0;
     /*0x1A1*/ u8 aIEnabled;
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
-    /*0x1A4*/ u8 _1A4;
+    /*0x1A4*/ u8 freeFieldingInd_writeOnly;
     artificial_padding(0x1a4, 0x1aa, u8);
     /*0x1AA*/ u8 transitioningIndicator; // unsure
-    artificial_padding(0x1aa, 0x1af, u8);
+    /*0x1AB*/ u8 baserunningActiveRunners[4]; // g_Runners[0..3] enabled in baserunning practice
     /*0x1AF*/ u8 returnToPracticeMenuState;
-    /*0x1B0*/ u8 _1B0;
-    /*0x1B1*/ u8 _1B1;
-    /*0x1B2*/ u8 _1B2[4][4];
+    /*0x1B0*/ u8 homeRunWaitSkipped; // A/Start pressed during the home run wait
+    /*0x1B1*/ u8 progressNeedsSave; // a level was newly completed; memory card write pending
+    /*0x1B2*/ u8 levelCompleted[4][4]; // [practiceType_2][practiceLevel]
     /*0x1C2*/ s8 instructionNumber;
     /*0x1C3*/ u8 readyToMoveToNextInstruction; // unsure
     /*0x1C4*/ u8 practice_runner_countInputForMashing;
     /*0x1C5*/ u8 practice_fielding_enableSprinting;
-    /*0x1C6*/ u8 _1C6;
-    /*0x1C7*/ u8 _1C7;
+    /*0x1C6*/ u8 scriptedSwingMode; // set by script opcode 0x33: 0 off, 1..3 forced swing variants (batter.c)
+    /*0x1C7*/ u8 completionMenuActive;
     /*0x1C8*/ u8 guidedPracticeCompletionRelated;
     /*0x1C9*/ u8 guidedPracticeCompletionRelated2;
     /*0x1CA*/ u8 guidedPracticeCounter;
-    /*0x1CB*/ u8 _1CB;
+    /*0x1CB*/ u8 fieldingSprintMaxed;
     /*0x1CC*/ u8 currentMessageDoneTyping;
     /*0x1CD*/ u8 commandIndex;
     /*0x1CE*/ u8 allInstructionsComplete;
     /*0x1CF*/ u8 instructionComplete_readyToAdvance;
     /*0x1D0*/ u8 allowPlayToEndIndicator;
-    /*0x1D1*/ u8 maybeControlFlag1;
-    /*0x1D2*/ u8 textRelatedIndicator;
-    /*0x1D3*/ u8 maybeControlFlag2;
+    /*0x1D1*/ u8 diagramElement; // script opcode 0x42; index into practiceInstruction_diagramElements
+    /*0x1D2*/ u8 diagramPanelShown; // script opcodes 0x48 (hide) / 0x49 (show)
+    /*0x1D3*/ u8 diagramFrame; // script opcode 0x43
     /*0x1D4*/ u8 loadingGuidedPractice; // unsure
-    /*0x1D5*/ u8 _1D5;
+    /*0x1D5*/ u8 guidedMessageSceneStarted;
     /*0x1D6*/ u8 practiceLevel_2;
-    /*0x1D7*/ u8 _1D7;
-    /*0x1D8*/ u8 _1D8;
-    /*0x1D9*/ u8 _1D9;
+    /*0x1D7*/ u8 guidedMessageVariant; // 0 shown before the attempt, 1 shown on completion
+    /*0x1D8*/ u8 guidedMessageIndex;
+    /*0x1D9*/ u8 characterLoadStarted;
     artificial_padding(0x1d9, 0x1db, u8);
-    /*0x1DB*/ u8 _1DB;
-    artificial_padding(0x1db, 0x1e1, u8);
+    /*0x1DB*/ u8 pitchingPracticeBatterEnabled; // gates atBat_batter in pitching practice (never set non-zero)
+    artificial_padding(0x1db, 0x1dd, u8);
+    /*0x1DD*/ u8 _1DD;
+    /*0x1DE*/ u8 _1DE;
+    /*0x1DF*/ u8 _1DF;
+    /*0x1E0*/ u8 _1E0;
     /*0x1E1*/ u8 hitVariablesSetIndicator;
     /*0x1E2*/ u8 _1E2;
     /*0x1E3*/ u8 aiBuntIndicator; // unsure
-    artificial_padding(0x1e3, 0x1ee, u8);
+    /*0x1E4*/ u8 fieldingPlayStatus; // 0 pending, 1 counted, 2 timed out
+    artificial_padding(0x1e4, 0x1ee, u8);
     /*0x1EE*/ u8 _1EE;
     /*0x1EF*/ u8 rosterID; // unsure
 } PracticeStruct;          // size: 0x1f0
@@ -1294,11 +1297,14 @@ typedef struct _MiniGameControlStruct {
  * MiniGameStruct+0x19E8; charID is a CHAR_ID, -1 for an empty slot. */
 typedef struct _MinigameSelectSlot {
     /*0x00*/ s8 charID;
-    /*0x01*/ s8 _1;
-    /*0x02*/ s8 _2[4];
-    /*0x06*/ s8 _6;
-    /*0x07*/ s8 _7;
-    /*0x08*/ s8 _8;
+    /*0x01*/ s8 confirmedInd; // the player locked in this character
+    /*0x02*/ s8 loadedCharID; // character whose model is loaded, CHAR_ID_NONE if none
+    /*0x03*/ s8 pendingCharID; // character being loaded, CHAR_ID_NONE if none
+    /*0x04*/ s8 loadedHandedness; // FieldingArm * 2 + BattingStance of the loaded model
+    /*0x05*/ s8 wantedHandedness;
+    /*0x06*/ s8 onBottomControlInd; // cursor is on a bottom control instead of a character
+    /*0x07*/ s8 charReadyInd; // the displayed model matches charID
+    /*0x08*/ s8 charReadyPrevInd; // charReadyInd of the previous frame
 } MinigameSelectSlot; // size: 0x9
 
 /* MiniGameStruct+0x18CC..0x1903 (MiniGameControlStruct[2] and the three
@@ -1306,16 +1312,16 @@ typedef struct _MinigameSelectSlot {
  * actually indexes. */
 typedef struct _MinigamePlayerSlots {
     /*0x000*/ s8 characterIndex[4];
-    /*0x004*/ u8 _04[4];
-    /*0x008*/ u8 _08[4];
+    /*0x004*/ u8 charID[4]; // CharID of each participant's character, 0xFF = none
+    /*0x008*/ u8 superstarBoostInd[4]; // stats boosted by stonNiceContactIncrement
     /*0x00C*/ E(u8, BOOL) aiControlledInd[4];
     /*0x010*/ u8 aiStrength[4];
-    /*0x014*/ s8 _14[4];
+    /*0x014*/ s8 playOrder[4]; // shuffled participant order
     /*0x018*/ s8 _18[4];
-    /*0x01C*/ u8 _1C[4];
-    /*0x020*/ u8 _20[4];
-    /*0x024*/ u8 _24[4];
-    /*0x028*/ s8 _28[4];
+    /*0x01C*/ u8 rank[4]; // 1 = first, ties share a rank
+    /*0x020*/ u8 rankCopy[4]; // rank as computed when the minigame ended
+    /*0x024*/ u8 batterInd[4]; // slot is currently batting
+    /*0x028*/ s8 participantSlot[4]; // player slot of the n-th participant (toy field: [0] pitcher, [1..2] fielders)
     /*0x02C*/ s8 fielderIndex[4];
     /*0x030*/ s8 runnerPlayerIndex[4]; // player slot of each runner
     /*0x034*/ s8 playerRunnerIndex[4]; // runner index of each player slot
@@ -1845,36 +1851,37 @@ typedef struct _MiniGameStruct {
             /*0x18A4*/ s16 bB_bombBarrelID_bOD_hrPitch;
         };
         s16 ccsSpecialItemFrames[2]; // Chain Chomp Sprint: elapsed-frame thresholds
+        s16 charSelectOpponentSlot; // character select: opponent slot whose AI strength is being chosen, -1 = none
     };
     /*0x18A6*/ s16 bOD_fireworksTimer;
     /*0x18A8*/ s16 bODControllerInputAllowedInd;
     /*0x18AA*/ s16 framesSincePanelHit;
     /*0x18AC*/ u8 pad12[12];
-    /*0x18B8*/ s16 _18B8;
-    /*0x18BA*/ s16 _18BA;
+    /*0x18B8*/ s16 toyField_slotSpinFrames;
+    /*0x18BA*/ s16 toyField_slotResultFrames;
     /*0x18BC*/ s16 minigamePoints_current_Latest[4][2];
     /*0x18CC*/ union {
         struct {
             /*0x18CC*/ MiniGameControlStruct minigameControlStruct[2];
             /*0x18F8*/ u8 minigameFielderIndex[4];
-            /*0x18FC*/ u8 _18FC[4];
-            /*0x1900*/ u8 _1900[4];
+            /*0x18FC*/ u8 runnerPlayerIndexU8[4]; // u8 view of playerSlots.runnerPlayerIndex
+            /*0x1900*/ u8 playerRunnerIndexU8[4]; // u8 view of playerSlots.playerRunnerIndex
         };
         MinigamePlayerSlots playerSlots;
     };
     /*0x1904*/ u8 minigamePlayerSelectedOrder;
     /*0x1905*/ s8 rosterID;
     /*0x1906*/ u8 miniGameNumberOfParticipants;
-    /*0x1907*/ u8 _1907;
-    /*0x1908*/ s8 _1908;
+    /*0x1907*/ u8 humanPlayerCount;
+    /*0x1908*/ s8 soloPlayerSlot;
     /*0x1909*/ u8 multiPlayerInd;
-    /*0x190A*/ u8 _190A;
+    /*0x190A*/ u8 challengeModeInd;
     /*0x190B*/ u8 turnOverStatus;
     /*0x190C*/ u8 turnNumberWithinRound;
-    /*0x190D*/ u8 _190D;
+    /*0x190D*/ u8 toyField_maxOuts;
     /*0x190E*/ u8 _190E;
     /*0x190F*/ u8 _190F;
-    /*0x1910*/ u8 _1910;
+    /*0x1910*/ u8 toyField_outsRemaining;
     /*0x1911*/ u8 _1911;
     /*0x1912*/ u8 pointsTargetReachedInd;
     /*0x1913*/ u8 _1913;
@@ -1882,37 +1889,31 @@ typedef struct _MiniGameStruct {
     /*0x1915*/ u8 toyField_runnerOnFirst;
     /*0x1916*/ u8 toyField_runnerOnSecond;
     /*0x1917*/ u8 toyField_runnerOnThird;
-    /*0x1918*/ u8 _1918;
-    /*0x1919*/ u8 _1919;
-    /*0x191A*/ u8 _191A;
-    /*0x191B*/ u8 _191B;
+    /*0x1918*/ u8 toyField_prevRunnerOn[4]; // toyField_runnerOn* at the start of the turn
     /*0x191C*/ s8 toyField_runnerBase0;
     /*0x191D*/ s8 toyField_runnerBase1;
     /*0x191E*/ s8 toyField_runnerBase2;
     /*0x191F*/ s8 toyField_runnerBase3;
     /*0x1920*/ E(u8, TOY_FIELD_RESULT) toyFieldBallStateResult2;
     /*0x1921*/ u8 toyField_runsScored;
-    /*0x1922*/ u8 _1922;
+    /*0x1922*/ u8 activeFielderSlot;
     /*0x1923*/ u8 minigameRelatedIndex;
     /*0x1924*/ u8 runnerNum;
     /*0x1925*/ u8 _1925;
     /*0x1926*/ u8 toyFieldStateInd_collisionRelated;
-    /*0x1927*/ u8 _1927;
-    /*0x1928*/ s16 _1928;
-    /*0x192A*/ u8 _192A;
-    /*0x192B*/ u8 _192B;
-    /*0x192C*/ u8 _192C;
-    /*0x192D*/ u8 _192D;
-    /*0x192E*/ u8 _192E;
-    /*0x192F*/ u8 _192F;
-    /*0x1930*/ u8 _1930;
-    /*0x1931*/ u8 _1931;
-    /*0x1932*/ s16 _1932;
-    /*0x1934*/ u8 _1934;
-    /*0x1935*/ s8 _1935;
-    /*0x1936*/ s8 _1936;
-    /*0x1937*/ s8 _1937;
-    /*0x1938*/ s8 _1938;
+    /*0x1927*/ u8 toyField_reelState[3]; // slot machine reels: 0 spinning, 1 slowing, 2 stopping, 3 stopped
+    /*0x192A*/ u8 toyField_reelPos[3]; // symbol index 0..6 shown on each reel
+    /*0x192D*/ u8 toyField_slotEvent; // event awarded by the slot machine
+    /*0x192E*/ u8 toyField_reelTarget[3]; // symbol each reel stops on
+    /*0x1931*/ u8 toyField_reelHudStage[3];
+    /*0x1934*/ u8 toyField_slotStage; // 0 spinning, 2 apply the event, 3 applied
+    /*0x1935*/ union {
+        struct {
+            /*0x1935*/ s8 toyField_eventActor;
+            /*0x1936*/ s8 toyField_eventVictim;
+        };
+        s8 toyField_eventPlayers[4];
+    };
     /*0x1939*/ u8 toyField_coinsRemaining;
     /*0x193A*/ union {
         u8 wallBall_coinsVisibleInd;
@@ -1920,7 +1921,7 @@ typedef struct _MiniGameStruct {
     };
     /*0x199E*/ u8 _199E;
     /*0x199F*/ u8 panelHitInd;
-    /*0x19A0*/ u8 _19A0;
+    /*0x19A0*/ u8 toyField_pointsCountingInd; // displayed points are still counting down
     /*0x19A1*/ u8 _19A1;
     /*0x19A2*/ u8 _19A2;
     /*0x19A3*/ u8 _19A3;
@@ -1929,22 +1930,18 @@ typedef struct _MiniGameStruct {
     /*0x19A6*/ u8 _19A6;
     /*0x19A7*/ u8 _19A7;
     /*0x19A8*/ u8 challenge_minigame_haven_tWonYetIndicator;
-    /*0x19A9*/ u8 _19A9;
-    /*0x19AA*/ u8 _19AA;
+    /*0x19A9*/ u8 endSequencePhase;
+    /*0x19AA*/ u8 newRecordInd;
     /*0x19AB*/ u8 _19AB;
     /*0x19AC*/ f32 lastKnownBallPosX;
     /*0x19B0*/ f32 lastKnownBallPosZ;
     /*0x19B4*/ s16 toyField_selectedTurns;
     /*0x19B6*/ s16 toyField_turnNumber;
     /*0x19B8*/ s16 TF_framesSinceHittingPanel;
-    /*0x19BA*/ s16 _19BA;
+    /*0x19BA*/ s16 toyField_turnEndFrames;
     /*0x19BC*/ s16 _19BC;
-    /*0x19BE*/ u8 _19BE;
-    /*0x19BF*/ u8 _19BF;
-    /*0x19C0*/ s16 _19C0;
-    /*0x19C2*/ s16 _19C2;
-    /*0x19C4*/ s16 _19C4;
-    /*0x19C6*/ u8 _19C6;
+    /*0x19BE*/ u8 toyField_roleRecord[4][2]; // per player: [0] last role, [1] turns in a row in it
+    /*0x19C6*/ u8 toyField_turnPlayer;
     /*0x19C7*/ u8 _19C7;
     /*0x19C8*/ u8 maybeTFCollisionResultState;
     /*0x19C9*/ E(u8, TOY_FIELD_RESULT) toyFieldBallStateResult;
@@ -1952,113 +1949,67 @@ typedef struct _MiniGameStruct {
     /*0x19CB*/ u8 toyField_pointMultiplier;
     /*0x19CC*/ u8 toyfield_waitFor_CoinsX2_AnimationToEnd;
     /*0x19CD*/ u8 _19CD;
-    /*0x19CE*/ u8 _19CE;
+    /*0x19CE*/ u8 toyField_turnEndState; // 0 playing, 1..2 awarding, 3 done
     /*0x19CF*/ u8 _19CF;
     /*0x19D0*/ u8 _19D0;
     /*0x19D1*/ u8 _19D1;
-    /*0x19D2*/ u16 _19D2;
-    /*0x19D4*/ u16 _19D4;
-    /*0x19D6*/ u16 _19D6;
-    /*0x19D8*/ u16 _19D8;
+    /*0x19D2*/ u16 charChangeFrames[4]; // frames since each slot's cursor last changed character
     /*0x19DA*/ union {
-        struct {
-            /*0x19DA*/ u8 _19DA;
-            /*0x19DB*/ u8 _19DB;
-            /*0x19DC*/ u8 _19DC;
-            /*0x19DD*/ u8 _19DD;
-        };
+        u8 _19DA; // u8 view of selectSlotState[0]; toy_field.c indexes it with (&_19DA)[i]
         s8 selectSlotState[4];
     };
-    /*0x19DE*/ u8 _19DE;
-    /*0x19DF*/ u8 _19DF;
-    /*0x19E0*/ u8 _19E0;
-    /*0x19E1*/ u8 _19E1;
+    /*0x19DE*/ u8 charSelectState;
+    /*0x19DF*/ u8 nextGameStatus;
+    /*0x19E0*/ u8 charReselectInd;
+    /*0x19E1*/ u8 selectMenuCursor;
     /*0x19E2*/ u8 _19E2;
-    /*0x19E3*/ u8 _19E3;
-    /*0x19E4*/ u8 _19E4;
+    /*0x19E3*/ u8 extraOpponentCursor;
+    /*0x19E4*/ u8 selectedDifficulty;
     /*0x19E5*/ u8 _19E5;
-    /*0x19E6*/ u8 _19E6;
-    /*0x19E7*/ u8 _19E7;
-    /*0x19E8*/ union {
-        struct {
-            /*0x19E8*/ u8 _19E8;
-            /*0x19E9*/ u8 _19E9;
-            /*0x19EA*/ u8 _19EA;
-            /*0x19EB*/ u8 _19EB;
-            /*0x19EC*/ u8 _19EC;
-            /*0x19ED*/ u8 _19ED;
-            /*0x19EE*/ u8 _19EE;
-            /*0x19EF*/ u8 _19EF;
-            /*0x19F0*/ u8 _19F0;
-            /*0x19F1*/ u8 _19F1;
-            /*0x19F2*/ u8 _19F2;
-            /*0x19F3*/ u8 _19F3;
-            /*0x19F4*/ u8 _19F4;
-            /*0x19F5*/ u8 _19F5;
-            /*0x19F6*/ u8 pad14[2];
-            /*0x19F8*/ u8 _19F8;
-            /*0x19F9*/ u8 _19F9;
-            /*0x19FA*/ u8 _19FA;
-            /*0x19FB*/ u8 _19FB;
-            /*0x19FC*/ u8 _19FC;
-            /*0x19FD*/ u8 _19FD;
-            /*0x19FE*/ u8 _19FE;
-            /*0x19FF*/ u8 pad15[2];
-            /*0x1A01*/ u8 _1A01;
-            /*0x1A02*/ u8 _1A02;
-            /*0x1A03*/ u8 _1A03;
-            /*0x1A04*/ u8 _1A04;
-            /*0x1A05*/ u8 _1A05;
-            /*0x1A06*/ u8 _1A06;
-            /*0x1A07*/ u8 _1A07;
-            /*0x1A08*/ u8 pad16[2];
-            /*0x1A0A*/ u8 _1A0A;
-            /*0x1A0B*/ u8 _1A0B;
-        };
-        MinigameSelectSlot selectSlots[4];
-    };
-    /*0x1A0C*/ s8 _1A0C;
-    /*0x1A0D*/ u8 _1A0D;
-    /*0x1A0E*/ u8 _1A0E;
-    /*0x1A0F*/ s8 _1A0F;
-    /*0x1A10*/ u8 _1A10;
-    /*0x1A11*/ u8 _1A11;
-    /*0x1A12*/ u8 _1A12;
-    /*0x1A13*/ u8 _1A13;
-    /*0x1A14*/ u8 _1A14;
-    /*0x1A15*/ u8 _1A15;
-    /*0x1A16*/ u8 _1A16;
-    /*0x1A17*/ u8 battingHandedness[9];
-    /*0x1A20*/ u8 _1A20;
-    /*0x1A21*/ u8 _1A21;
-    /*0x1A22*/ u8 _1A22;
-    /*0x1A23*/ u8 _1A23;
-    /*0x1A24*/ u8 _1A24[2];
+    /*0x19E6*/ u8 targetParticipantCount;
+    /*0x19E7*/ u8 joinedPlayerCount;
+    /*0x19E8*/ MinigameSelectSlot selectSlots[4];
+    /*0x1A0C*/ s8 charLoadSlot;
+    /*0x1A0D*/ u8 minExtraOpponents;
+    /*0x1A0E*/ u8 maxExtraOpponents;
+    /*0x1A0F*/ s8 charLoadQueue[4]; // slots waiting for their character model, -1 = empty
+    /*0x1A13*/ u8 charLoadPending[4];
+    /*0x1A17*/ u8 battingHandedness[4];
+    /*0x1A1B*/ u8 charLoadStartedInd;
+    /*0x1A1C*/ u8 menuMusicStartedInd;
+    /*0x1A1D*/ u8 helpMenuResult; // 0 = none, 1 = start, 2 = back
+    /*0x1A1E*/ u8 helpPage;
+    /*0x1A1F*/ u8 helpPageDelay;
+    /*0x1A20*/ u8 helpPageMode;
+    /*0x1A21*/ u8 helpPageCount;
+    /*0x1A22*/ u8 helpPageDirLeft;
+    /*0x1A23*/ u8 toyField_settingsRow;
+    /*0x1A24*/ u8 toyField_inningOptions[2]; // [0] = innings option, inningLimit = [0] * 2 + 1
     /*0x1A26*/ s16 pointsReqToWin_challenge;
     /*0x1A28*/ s16 someGraphicFrameCountdown;
     /*0x1A2A*/ E(u8, MINI_GAME_ID) GameMode_MiniGame;
     /*0x1A2B*/ E(u8, MINIGAME_DIFFICULTY) soloMinigameDifficulty;
-    /*0x1A2C*/ s8 _1A2C;
+    /*0x1A2C*/ s8 loadedStadiumID;
     /*0x1A2D*/ u8 miniGameTurnCounter;
     /*0x1A2E*/ u8 bB_pitchesRemainingInTurn;
     /*0x1A2F*/ u8 bODRoundStartingNumPitches;
     /*0x1A30*/ u8 pad17[7];
-    /*0x1A37*/ u8 _1A37;
-    /*0x1A38*/ u8 _1A38;
-    /*0x1A39*/ u8 _1A39;
-    /*0x1A3A*/ u8 _1A3A;
+    /*0x1A37*/ u8 winLossResult;
+    /*0x1A38*/ u8 retryInd;
+    /*0x1A39*/ u8 nextDifficultyInd;
+    /*0x1A3A*/ u8 ccs_timePhase;
     /*0x1A3B*/ u8 pauseInd;
-    /*0x1A3C*/ u8 _1A3C;
-    /*0x1A3D*/ u8 _1A3D;
-    /*0x1A3E*/ u8 _1A3E;
-    /*0x1A3F*/ u8 _1A3F;
-    /*0x1A40*/ u8 _1A40;
-    /*0x1A41*/ u8 _1A41;
+    /*0x1A3C*/ u8 grandPrixInd;
+    /*0x1A3D*/ u8 grandPrixFinalHumanCount;
+    /*0x1A3E*/ u8 grandPrixFinalInd;
+    /*0x1A3F*/ u8 grandPrixWonInd;
+    /*0x1A40*/ u8 minigameInactiveInd;
+    /*0x1A41*/ u8 hudEventType;
     /*0x1A42*/ u8 bODRelated;
-    /*0x1A43*/ u8 _1A43;
-    /*0x1A44*/ u8 _1A44;
-    /*0x1A45*/ u8 _1A45;
-    /*0x1A46*/ u8 _1A46[2];
+    /*0x1A43*/ u8 newRecordRank;
+    /*0x1A44*/ u8 difficultyUnlockedInd;
+    /*0x1A45*/ u8 grandPrixUnlockedInd;
+    /*0x1A46*/ u8 grandPrixNewBestInd[2]; // [0]: a grand prix best record was beaten
     /*0x1A48*/ f32 wallBallSomeXPos;
     /*0x1A4C*/ f32 wallBallSomeZPos;
     /*0x1A50*/ f32 wallBallWaitingLocations[8];
@@ -2077,7 +2028,7 @@ typedef struct _MiniGameStruct {
     /*0x1A82*/ u8 wallIndexTracker[7];
     /*0x1A89*/ u8 wallBall_hitNoteBlock;
     /*0x1A8A*/ u8 wallBall_hitBowserWall;
-    /*0x1A8B*/ s8 _1A8B;
+    /*0x1A8B*/ s8 wallBall_bowserWallIndex;
     /*0x1A8C*/ u8 _1A8C[2];
     /*0x1A8E*/ s16 bOD_HitPowerOfEachChar[4];
     /*0x1A96*/ u8 bOD_celebrationAnimTimers[10];
@@ -2091,20 +2042,17 @@ typedef struct _MiniGameStruct {
     /*0x1AD5*/ u8 bOD_KingBombInd;
     /*0x1AD6*/ u8 bODAngleIndexBasedOnHitPower;
     /*0x1AD7*/ u8 bOD_hitFinishedInd;
-    /*0x1AD8*/ u8 _1AD8;
-    /*0x1AD9*/ u8 _1AD9;
+    /*0x1AD8*/ u8 bOD_kingBombTurn;
+    /*0x1AD9*/ u8 bOD_kingBombInning;
     /*0x1ADA*/ u8 barrelBatterChargeMeter;
     /*0x1ADB*/ u8 barrelBatter_scoreCalculatedInd;
     /*0x1ADC*/ s8 barrelBatter_hitBarrelID;
     /*0x1ADD*/ u8 barrelBatter_barrelsHit;
     /*0x1ADE*/ u8 _1ADE[2];
     /*0x1AE0*/ ChainChompSprintStruct ccs;
-    /*0x1B34*/ s16 _1B34;
-    /*0x1B36*/ u8 _1B36[6];
-    /*0x1B3C*/ s16 _1B3C;
-    /*0x1B3E*/ u8 _1B3E[6];
-    /*0x1B44*/ s16 _1B44;
-    /*0x1B46*/ u8 _1B46[6];
+    /*0x1B34*/ s16 pP_swingFrames[4]; // Piranha Panic, per player (PPState names the same bytes)
+    /*0x1B3C*/ s16 pP_stateFrames[4];
+    /*0x1B44*/ s16 pP_downFrames[4];
     /*0x1B4C*/ s16 _1B4C;
     /*0x1B4E*/ s16 _1B4E;
     /*0x1B50*/ s16 _1B50;
@@ -2165,10 +2113,9 @@ typedef struct _MiniGameStruct {
     /*0x1C81*/ u8 _1C81[9];
     /*0x1C8A*/ u8 _1C8A[4];
     /*0x1C8E*/ u8 _1C8E[4];
-    /*0x1C92*/ u8 _1C92[8];
-    /*0x1C9A*/ u8 _1C9A;
-    /*0x1C9B*/ u8 _1C9B;
-    /*0x1C9C*/ s16 _1C9C;
+    /*0x1C92*/ u8 pP_throwDirection[4]; // Piranha Panic, per player
+    /*0x1C96*/ u8 pP_unk1C96[4];
+    /*0x1C9A*/ u8 pP_hitState[4];
     /*0x1C9E*/ u8 _1C9E;
     /*0x1C9F*/ u8 _1C9F;
     /*0x1CA0*/ u8 _1CA0[2];
@@ -2221,9 +2168,9 @@ typedef struct _MiniGameStruct {
     /*0x1D79*/ u8 _1D79;
     /*0x1D7A*/ u8 _1D7A;
     /*0x1D7B*/ u8 _1D7B;
-    /*0x1D7C*/ InputStruct _1D7C[4];
+    /*0x1D7C*/ InputStruct aiInputs[4]; // synthetic pad input of AI-controlled players, read in place of g_Controls
     /*0x1DBC*/ u8 isAIControlled[4];
-    /*0x1DC0*/ u8 _1DC0[4];
+    /*0x1DC0*/ u8 ccs_aiControlledInd[4];
     /*0x1DC4*/ u8 portOfAIBeingProcessed[4];
     /*0x1DC8*/ u8 aiDrivenInputInd[4];
     /*0x1DCC*/ union {
@@ -2249,27 +2196,32 @@ typedef struct _MiniGameStruct {
     /*0x1DF0*/ f32 _1DF0;
     /*0x1DF4*/ union {
         struct {
-            /*0x1DF4*/ u8 _1DF4; // unsure
+            /*0x1DF4*/ u8 bOD_pitchTypeReadyInd; // the pitch roulette stopped, the pitch may start
             /*0x1DF5*/ E(u8, BARREL_BATTER_PITCH_NUM) bODPitchType;
-            /*0x1DF6*/ u8 _1DF6[6];
+            /*0x1DF6*/ u8 bOD_randomPitchInd; // the roulette landed on the random slot
+            /*0x1DF7*/ u8 bOD_hrHudEvent; // set by a home run, cleared by the HUD
+            /*0x1DF8*/ u8 _1DF8[4];
         };
+        u8 hudPulseInd[4]; // star dash / piranha panic / toy field: per-player flag set by the game, cleared by the HUD
         s16 ccsDisplayedPoints[4]; // Chain Chomp Sprint
         s16 bB_totalPoints;        // Barrel Batter
     };
-    /*0x1DFC*/ u8 _1DFC[4];
+    /*0x1DFC*/ u8 ccs_biteHudPending[4]; // a runner was bitten by the chomp, the HUD plays its animation
     /*0x1E00*/ union {
         struct {
-            /*0x1E00*/ u8 _1E00;
+            /*0x1E00*/ u8 ccs_targetHudPending; // the chomp picked targets, the HUD marks them
             /*0x1E01*/ u8 _1E01[0x1E2C - 0x1E01];
         };
         struct {
-            /*0x1E00*/ u8 _1E00_pad[3];
-            /*0x1E03*/ u8 _1E03;
+            /*0x1E00*/ u8 _1E00_pad[2];
+            /*0x1E02*/ u8 startMovieHudInd; // the game start HUD overlay exists
+            /*0x1E03*/ u8 newRecordRow; // row of the new record in the top 5 table, 5 = none
             /*0x1E04*/ struct _MinigameResultsScene* resultsScene;
             /*0x1E08*/ u8 grandPrixRanks[4][2];
             /*0x1E10*/ s16 grandPrixPoints[6];
             /*0x1E1C*/ u8 grandPrixOrder[6]; // MINI_GAME_ID of each round, shuffled
-            /*0x1E22*/ u8 _1E22[8];
+            /*0x1E22*/ u8 grandPrixTotals[4]; // running grand prix points per player
+            /*0x1E26*/ u8 grandPrixPrevTotals[4]; // totals before the current round
             /*0x1E2A*/ u8 grandPrixRound;
             /*0x1E2B*/ u8 _1E2B;
         };

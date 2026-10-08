@@ -34,23 +34,23 @@ extern u8 lbl_800FEF70[0x5D0];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 constantList[0x1C];
 extern u8 guidedPracticeThresholds[][4];
-extern s16 lbl_3_data_103B8[4][4][4][2];
-extern s16 lbl_3_data_104B8[16][2][3];
-extern UIRecordDescriptor lbl_3_data_BA70[];
-extern UIRecordDescriptor lbl_3_data_BD50[];
-extern UIRecordDescriptor lbl_3_data_BD90[];
-extern UIRecordDescriptor lbl_3_data_B3F4[];
-extern UIRecordDescriptor lbl_3_data_B5D4[];
-extern UIRecordDescriptor lbl_3_data_B85C[];
-extern UIRecordDescriptor lbl_3_data_B1BC[];
-extern s16 lbl_3_data_B834[][4];
-extern u16 lbl_3_data_BA5C[];
-extern u16 lbl_3_data_B3DC[];
-extern u16 lbl_3_data_B3E8[];
-extern u8 lbl_3_data_FAC4[];
-extern u8 lbl_3_data_A594[];
+extern s16 practiceGoalHud_entries[4][4][4][2];
+extern s16 practiceGuidedMessage_textIds[16][2][3];
+extern UIRecordDescriptor practiceGoalHud_uiRecords[];
+extern UIRecordDescriptor practiceCompleteBanner_uiRecords[];
+extern UIRecordDescriptor practiceGuidedMessage_uiRecords[];
+extern UIRecordDescriptor practiceMenu_charSelect_uiRecords[];
+extern UIRecordDescriptor practiceMenu_subMenu_uiRecords[];
+extern UIRecordDescriptor practiceInstruction_uiRecords[];
+extern UIRecordDescriptor practiceMenu_typeIcons_uiRecords[];
+extern s16 practiceMenu_subMenuTextIds[][4];
+extern u16 practiceInstruction_diagramElements[];
+extern u16 practiceMenu_typeIconFrames[];
+extern u16 practiceMenu_typeTitleElements[];
+extern u8 practiceMenu_typeIconOrder[];
+extern u8 charSelect_handednessIconFrames[];
 extern u8 lbl_3_data_9D50[][5];
-extern s16 lbl_3_data_FC1C;
+extern s16 practiceFrameConsts;
 
 extern void fn_8000F8F4(void* scene);
 extern void fn_80011BE4(int arg0);
@@ -108,7 +108,7 @@ typedef struct PracticeEffect {
 void freeFieldingPracticeControl(void) {
     switch (g_Practice.tutorialState) {
     case TUTORIAL_STATE_0:
-        fn_3_15B494();
+        freeFieldingPracticeSwitcher();
         break;
     case TUTORIAL_STATE_3:
         unused_matchSimulationRelated();
@@ -116,29 +116,29 @@ void freeFieldingPracticeControl(void) {
     }
 }
 
-void fn_3_15B494(void) {
+void freeFieldingPracticeSwitcher(void) {
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0:
         hugeAnimStruct[0x2D77] = 0;
         hugeAnimStruct[0x2D7B] = 0;
         hugeAnimStruct[0x2D7C] = 0;
         animRelated[0x9C] = 0;
-        g_Practice._1D9 = 0;
-        g_Practice._1C7 = 0;
+        g_Practice.characterLoadStarted = 0;
+        g_Practice.completionMenuActive = 0;
         hugeAnimStruct[0x307D] = 0;
-        fn_3_15B204();
+        freeFieldingPracticeLoadCharacters();
         fieldingPractice_resetMem();
         fn_80011BE4(9);
-        updatePracticeTransitionState(1);
+        updatePracticeTransitionState(PRACTICE_STATE_1);
         break;
     case PRACTICE_STATE_1:
         if (practice_loadAllGraphics(g_GameLogic.teamFielding)) {
-            updatePracticeTransitionState(2);
+            updatePracticeTransitionState(PRACTICE_STATE_2);
         }
         break;
     case PRACTICE_STATE_2:
         if (loadPitcherActor()) {
-            updatePracticeTransitionState(3);
+            updatePracticeTransitionState(PRACTICE_STATE_3);
         }
         break;
     case PRACTICE_STATE_3: {
@@ -147,13 +147,13 @@ void fn_3_15B494(void) {
 
         if (loadSomethingFromDiskAtBeginningOfAB1(
                 inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[team][batter][0]].stats.CharID)) {
-            updatePracticeTransitionState(4);
+            updatePracticeTransitionState(PRACTICE_STATE_4);
         }
         break;
     }
     case PRACTICE_STATE_4:
         if (practice_relatedToSettingCharacters()) {
-            updatePracticeTransitionState(7);
+            updatePracticeTransitionState(PRACTICE_STATE_7);
         }
         break;
     case PRACTICE_STATE_5:
@@ -165,12 +165,12 @@ void fn_3_15B494(void) {
         g_GameLogic.TeamStars[0] = 5;
         g_GameLogic.TeamStars[1] = 5;
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-        setTutorialState(3);
+        setTutorialState(TUTORIAL_STATE_3);
         break;
     }
 }
 
-void fn_3_15B204(void) {
+void freeFieldingPracticeLoadCharacters(void) {
     int i;
     int j;
 
@@ -239,7 +239,7 @@ void fieldingPractice_resetMem(void) {
     g_Practice.aIEnabled = 0;
     g_Practice.practiceBatterHandedness = 0;
     g_Practice.freePracticeInd_writeOnly = 0;
-    g_Practice._1A4 = 0;
+    g_Practice.freeFieldingInd_writeOnly = 0;
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         g_Practice.aIEnabled = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] = 1;
@@ -251,11 +251,11 @@ void fieldingPractice_resetMem(void) {
     } else {
         g_Practice.practiceBatterHandedness = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] = 1;
-        g_Practice._1A4 = 1;
+        g_Practice.freeFieldingInd_writeOnly = 1;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
         g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
     }
-    g_Practice._186 = 0;
+    g_Practice.frames_sincePracticeCompleted = 0;
     resetCount();
     resetInMemRunners();
     resetInMemBall();
@@ -296,7 +296,7 @@ void unused_matchSimulationRelated(void) {
         }
         break;
     case GAME_STATUS_TRANSITION:
-        fn_3_15ADD4();
+        freeFieldingPracticeTransition();
         break;
     case GAME_STATUS_0xA:
         fn_3_5CD24();
@@ -345,7 +345,7 @@ void practiceRelated(void) {
 }
 #pragma dont_inline reset
 
-void fn_3_15ADD4(void) {
+void freeFieldingPracticeTransition(void) {
     matchTransitionFunction2();
     g_GameLogic.writeOnly_always0 = 0;
     g_GameLogic.writeOnly_always0_2 = 0;
@@ -358,7 +358,7 @@ void fn_3_15ADD4(void) {
 }
 
 void practice_startPitchAfter90Frames(void) {
-    if (g_Pitcher.currentStateFrameCounter > lbl_3_data_FC1C) {
+    if (g_Pitcher.currentStateFrameCounter > practiceFrameConsts) {
         pitcherAITransitionFromPrePitchToWindup(2);
     }
 }
@@ -377,11 +377,11 @@ void animatePracticeScene(void) {
         g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
         insertGraphicDrawingFunction(practiceAnimationRelated, 2);
     }
-    if (g_Practice._1C7 != 0) {
+    if (g_Practice.completionMenuActive != 0) {
         if (g_Practice.frames_onPauseScreen == 1) {
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
-    } else if (g_Practice._19F != 0) {
+    } else if (g_Practice.pauseMenuActive != 0) {
         if (pauseControl[0x1D2] == 1 && g_Practice.frames_onPauseScreen2 == 1) {
             if (animRelated[0xAA] == 0) {
                 insertGraphicDrawingFunction(pauseSubPanel_init, 2);
@@ -392,9 +392,9 @@ void animatePracticeScene(void) {
             insertGraphicDrawingFunction(pausePageIndicator_init, 2);
         }
     }
-    if (g_Practice.loadingGuidedPractice != 0 && g_Practice._1D5 == 0) {
+    if (g_Practice.loadingGuidedPractice != 0 && g_Practice.guidedMessageSceneStarted == 0) {
         insertGraphicDrawingFunction(practiceAnimationRelated2, 2);
-        g_Practice._1D5 = 1;
+        g_Practice.guidedMessageSceneStarted = 1;
     }
     manageEventStates();
     if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY || g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) {
@@ -406,7 +406,7 @@ void animatePracticeScene(void) {
     if (g_Practice.practiceLevel == 7 || g_Practice.practiceLevel == 6) {
         hud_ScoreUpdate_ToyFieldOffScreenPlayers();
     }
-    fn_3_1589C4();
+    practice_insertGoalHudScenes();
 }
 
 void practice_drawHud(void) {
@@ -455,13 +455,13 @@ void practice_drawHud(void) {
         if (pauseControl[0x1D5] != 0) {
             animRelated[0xA7] = 0xF0;
         }
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             if (pauseControl[0x1D2] == 7 || pauseControl[0x1D2] == 9 || pauseControl[0x1D2] == 0xB) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
             }
         }
-        if (g_Practice._1C7 != 0) {
+        if (g_Practice.completionMenuActive != 0) {
             if (pauseControl[0x1D2] == 5 || pauseControl[0x1D2] == 0xB || pauseControl[0x1D2] == 7) {
                 animRelated[0xA7] = 0;
                 animRelated[0xA5] = 0;
@@ -486,7 +486,7 @@ void animationOrDrawingRelated(void) {
         if (g_Practice.practiceType_1 == 0) {
             if (g_Practice.practiceState == PRACTICE_STATE_2) {
                 if (animRelated[0xC0] == 0) {
-                    insertGraphicDrawingFunction(fn_3_15A244, 2);
+                    insertGraphicDrawingFunction(practiceMenu_typeIcons_init, 2);
                 }
                 if (animRelated[0xBC] == 0) {
                     insertGraphicDrawingFunction(fn_3_12BFE8, 2);
@@ -504,7 +504,7 @@ void animationOrDrawingRelated(void) {
              g_Practice.practiceType_1 == 4 || g_Practice.practiceType_1 == 5) &&
             g_Practice.practiceState == PRACTICE_STATE_0) {
             if (animRelated[0xC0] == 0) {
-                insertGraphicDrawingFunction(fn_3_15A244, 2);
+                insertGraphicDrawingFunction(practiceMenu_typeIcons_init, 2);
             }
             if (animRelated[0xC1] == 0) {
                 insertGraphicDrawingFunction(graphicsRelated, 2);
@@ -524,7 +524,7 @@ void animationOrDrawingRelated(void) {
                 insertGraphicDrawingFunction(graphicsRelated, 2);
             }
             insertGraphicDrawingFunction(fn_80051D00, 2);
-            insertGraphicDrawingFunction(fn_3_159590, 2);
+            insertGraphicDrawingFunction(practiceMenu_charSelect_init, 2);
             menuNumber[0] = 0x3E;
             menuNumber[9] = menuNumber[8];
             menuNumber[8] = *(u16*)&lbl_800FEF70[0x3E8];
@@ -538,18 +538,18 @@ void animationOrDrawingRelated(void) {
     }
 }
 
-void fn_3_15A244(void) {
+void practiceMenu_typeIcons_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_B1BC);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceMenu_typeIcons_uiRecords);
     for (i = 0; i < 5; i++) {
-        PRACTICE_RECORD_PLUS(scene, i, 6)->frame = lbl_3_data_B3DC[lbl_3_data_FAC4[i]] << 16;
+        PRACTICE_RECORD_PLUS(scene, i, 6)->frame = practiceMenu_typeIconFrames[practiceMenu_typeIconOrder[i]] << 16;
     }
     scene->_1C = 1;
     if (g_Practice.practiceType_1 == 1 || g_Practice.practiceType_1 == 2 || g_Practice.practiceType_1 == 3 ||
         g_Practice.practiceType_1 == 4 || g_Practice.practiceType_1 == 5) {
-        PRACTICE_RECORD(scene, 0)->elementIndex = lbl_3_data_B3E8[g_Practice.practiceType];
+        PRACTICE_RECORD(scene, 0)->elementIndex = practiceMenu_typeTitleElements[g_Practice.practiceType];
         PRACTICE_RECORD(scene, 0)->frame = 0x32 << 16;
         PRACTICE_RECORD(scene, 0)->playMode = UI_PLAY_BACKWARD;
         PRACTICE_RECORD_AT(scene, 1, g_Practice.practiceType)->frame = 0x69 << 16;
@@ -557,10 +557,10 @@ void fn_3_15A244(void) {
         scene->_1C = 5;
     }
     animRelated[0xC0] = 1;
-    currentDrawingItem->func = fn_3_159D50;
+    currentDrawingItem->func = practiceMenu_typeIcons_update;
 }
 
-void fn_3_159D50(void) {
+void practiceMenu_typeIcons_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
@@ -605,7 +605,7 @@ void fn_3_159D50(void) {
             }
             if (g_Practice.practiceState == PRACTICE_STATE_5) {
                 PRACTICE_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
-                PRACTICE_RECORD(scene, 0)->elementIndex = lbl_3_data_B3E8[g_Practice.practiceType];
+                PRACTICE_RECORD(scene, 0)->elementIndex = practiceMenu_typeTitleElements[g_Practice.practiceType];
                 PRACTICE_RECORD_AT(scene, 1, g_Practice.practiceType)->playMode = UI_PLAY_FORWARD;
                 PRACTICE_RECORD_AT(scene, 1, g_Practice.practiceType)->frame = 0x5A << 16;
                 PRACTICE_RECORD_AT(scene, 0xB, g_Practice.practiceType)->playMode = UI_PLAY_FORWARD;
@@ -668,7 +668,7 @@ void graphicsRelated(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_B5D4);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceMenu_subMenu_uiRecords);
     scene->_1C = 0xFFFF;
     scene->_1E = 0xFFFF;
     scene->_20 = 0xFFFF;
@@ -679,10 +679,10 @@ void graphicsRelated(void) {
         load_Icon(scene, i + 2, 2, 0x77, i + 4);
         if (g_Practice.practiceType_1 == 5 || g_Practice.practiceType_1 == 6) {
             PRACTICE_RECORD_AT(scene, 0xA, i)->flags &= ~UI_FLAG_VISIBLE;
-        } else if (g_Practice._1B2[g_Practice.practiceType_2][i] == 0) {
+        } else if (g_Practice.levelCompleted[g_Practice.practiceType_2][i] == 0) {
             PRACTICE_RECORD_AT(scene, 0xA, i)->flags &= ~UI_FLAG_VISIBLE;
         }
-        scene->channels[i] = text_initializeNewChannel((UnkText988Arg*)scene, 0xE + i, (u16)i, 5, lbl_3_data_B834[g_Practice.practiceType_2][i], 0);
+        scene->channels[i] = text_initializeNewChannel((UnkText988Arg*)scene, 0xE + i, (u16)i, 5, practiceMenu_subMenuTextIds[g_Practice.practiceType_2][i], 0);
         i++;
     } while (i < 4);
     for (; i < 4; i++) {
@@ -698,10 +698,10 @@ void graphicsRelated(void) {
     }
     animRelated[0xC1] = 1;
     scene->_1A = 0;
-    currentDrawingItem->func = fn_3_1595F4;
+    currentDrawingItem->func = practiceMenu_subMenu_update;
 }
 
-void fn_3_1595F4(void) {
+void practiceMenu_subMenu_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     UIRecord* record;
     int i;
@@ -775,17 +775,17 @@ void fn_3_1595F4(void) {
     }
 }
 
-void fn_3_159590(void) {
+void practiceMenu_charSelect_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_B3F4);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceMenu_charSelect_uiRecords);
     scene->_18 = 0;
     scene->_1A = 0;
     scene->_1C = 0;
-    currentDrawingItem->func = fn_3_159114;
+    currentDrawingItem->func = practiceMenu_charSelect_update;
 }
 
-void fn_3_159114(void) {
+void practiceMenu_charSelect_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
@@ -815,9 +815,9 @@ void fn_3_159114(void) {
     } else if (scene->_1E == 2) {
         int charID = g_Minigame.selectSlots[g_Practice.homeAway].charID;
 
-        PRACTICE_RECORD(scene, 5)->frame = lbl_3_data_A594[g_Minigame.battingHandedness[g_Practice.homeAway]] << 16;
+        PRACTICE_RECORD(scene, 5)->frame = charSelect_handednessIconFrames[g_Minigame.battingHandedness[g_Practice.homeAway]] << 16;
         if (characterStaticIndexes[charID * 6] != 0 &&
-            g_Minigame.selectSlots[g_Practice.homeAway]._1 == 0 && g_Minigame.selectSlots[g_Practice.homeAway]._6 == 0) {
+            g_Minigame.selectSlots[g_Practice.homeAway].confirmedInd == 0 && g_Minigame.selectSlots[g_Practice.homeAway].onBottomControlInd == 0) {
             PRACTICE_RECORD(scene, 7)->flags |= UI_FLAG_VISIBLE;
         } else {
             PRACTICE_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
@@ -868,7 +868,7 @@ remove:
     removeCurrentDrawingItem();
 }
 
-void fn_3_1590C8(void) {
+void practice_insertInstructionScene(void) {
     if (g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == PRACTICE_STATE_7) {
         insertGraphicDrawingFunction(practiceAnimationRelated, 2);
     }
@@ -877,7 +877,7 @@ void fn_3_1590C8(void) {
 void practiceAnimationRelated(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_B85C);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceInstruction_uiRecords);
     PRACTICE_RECORD(scene, 8)->flags &= ~UI_FLAG_VISIBLE;
     load_Icon(scene, 0xD, 1, 0xE, g_Practice.practiceLevel);
     load_Icon(scene, 0xD, 2, 0xE, g_Practice.practiceLevel);
@@ -915,7 +915,7 @@ void practiceAnimationRelated_text(void) {
             UIRecord* record = PRACTICE_RECORD(scene, 0);
             int frame = record->frame >> 16;
 
-            if (g_Practice.textRelatedIndicator != 0) {
+            if (g_Practice.diagramPanelShown != 0) {
                 if (frame <= 0xF) {
                     record->playMode = UI_PLAY_FORWARD;
                 } else if (record->unk69[0] == 2) {
@@ -929,8 +929,8 @@ void practiceAnimationRelated_text(void) {
                 record->playMode = UI_PLAY_STOP;
             }
         }
-        if (g_Practice.maybeControlFlag1 != 0 && flag) {
-            PRACTICE_RECORD(scene, 8)->elementIndex = lbl_3_data_BA5C[g_Practice.maybeControlFlag1];
+        if (g_Practice.diagramElement != 0 && flag) {
+            PRACTICE_RECORD(scene, 8)->elementIndex = practiceInstruction_diagramElements[g_Practice.diagramElement];
             PRACTICE_RECORD(scene, 8)->flags |= UI_FLAG_VISIBLE;
             PRACTICE_RECORD(scene, 4)->playMode = UI_PLAY_FORWARD;
             PRACTICE_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
@@ -945,7 +945,7 @@ void practiceAnimationRelated_text(void) {
             PRACTICE_RECORD(scene, 5)->playMode = UI_PLAY_BACKWARD;
             PRACTICE_RECORD(scene, 10)->rgba &= ~0xFF;
         }
-        PRACTICE_RECORD(scene, 6)->frame = g_Practice.maybeControlFlag2 << 16;
+        PRACTICE_RECORD(scene, 6)->frame = g_Practice.diagramFrame << 16;
         if (g_Practice.lakituTextIndex >= 0) {
             g_Practice.lakituTextIndex_stored = g_Practice.lakituTextIndex;
             g_Practice.lakituTextIndex = -1;
@@ -974,42 +974,42 @@ void practiceAnimationRelated_text(void) {
     }
 }
 
-void fn_3_1589C4(void) {
+void practice_insertGoalHudScenes(void) {
     if (g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING || g_Practice.practiceType_2 == PRACTICE_TYPE_BATTING || g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING) {
-        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice._1C7 == 0) {
+        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice.completionMenuActive == 0) {
             if (animRelated[0xC6] == 0) {
-                insertGraphicDrawingFunction(fn_3_1586B0, 2);
+                insertGraphicDrawingFunction(practiceGoalHud_init, 2);
                 animRelated[0xC6] = 1;
             }
             if (g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING && g_Ball.totalFramesAtPlay == 1) {
                 insertGraphicDrawingFunction(drawDiamondMiniMap_init, 2);
             }
             if (g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING) {
-                if (g_Practice._186 == 0x3C) {
-                    insertGraphicDrawingFunction(fn_3_1581FC, 2);
+                if (g_Practice.frames_sincePracticeCompleted == 0x3C) {
+                    insertGraphicDrawingFunction(practiceCompleteBanner_init, 2);
                 }
-            } else if (g_Practice._186 == 1) {
-                insertGraphicDrawingFunction(fn_3_1581FC, 2);
+            } else if (g_Practice.frames_sincePracticeCompleted == 1) {
+                insertGraphicDrawingFunction(practiceCompleteBanner_init, 2);
             }
         }
     } else if (g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) {
-        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice._1C7 == 0) {
+        if (g_Practice.tutorialState == TUTORIAL_STATE_3 && g_Practice.completionMenuActive == 0) {
             if (animRelated[0xC7] == 0) {
-                insertGraphicDrawingFunction(fn_3_1586B0, 2);
+                insertGraphicDrawingFunction(practiceGoalHud_init, 2);
                 insertGraphicDrawingFunction(drawDiamondMiniMap_init, 2);
             }
-            if (g_Practice._186 == 1) {
-                insertGraphicDrawingFunction(fn_3_1581FC, 2);
+            if (g_Practice.frames_sincePracticeCompleted == 1) {
+                insertGraphicDrawingFunction(practiceCompleteBanner_init, 2);
             }
         }
     }
 }
 
-void fn_3_1586B0(void) {
+void practiceGoalHud_init(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_BA70);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceGoalHud_uiRecords);
     if (g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING || g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) {
         PRACTICE_RECORD(scene, 0)->elementIndex = 0x3B;
     }
@@ -1017,10 +1017,10 @@ void fn_3_1586B0(void) {
     if (g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING) {
         PRACTICE_RECORD(scene, 1)->flags &= ~UI_FLAG_VISIBLE;
     } else {
-        fn_3_158264(scene);
+        practiceGoalHud_updateCounter(scene);
     }
     for (i = 0; i < 4; i++) {
-        s16 value = lbl_3_data_103B8[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0];
+        s16 value = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0];
 
         if (value == 0) {
             PRACTICE_RECORD_AT(scene, 2, i)->flags &= ~UI_FLAG_VISIBLE;
@@ -1029,19 +1029,19 @@ void fn_3_1586B0(void) {
         }
     }
     scene->_18 = 0;
-    currentDrawingItem->func = fn_3_1583AC;
+    currentDrawingItem->func = practiceGoalHud_update;
 }
 
-void fn_3_1583AC(void) {
+void practiceGoalHud_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int i;
     BOOL freed;
 
-    if (animRelated[0x96] == 0 && (g_Practice._1C7 == 0 || pauseControl[0x1D2] != 0) &&
-        (g_Practice._19F == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
+    if (animRelated[0x96] == 0 && (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) &&
+        (g_Practice.pauseMenuActive == 0 || (pauseControl[0x1D2] != 7 && pauseControl[0x1D2] != 0xB))) {
         if (scene->_18 == 0) {
             for (i = 0; i < 4; i++) {
-                s16* entry = lbl_3_data_103B8[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
+                s16* entry = practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i];
 
                 if (entry[0] != 0) {
                     scene->channels[i] = text_initializeNewChannel((UnkText988Arg*)scene, 0x12 + i, 0, 5, entry[1], 0);
@@ -1051,11 +1051,11 @@ void fn_3_1583AC(void) {
             }
             scene->_18++;
         }
-        fn_3_158264(scene);
+        practiceGoalHud_updateCounter(scene);
     } else {
         freed = FALSE;
         for (i = 0; i < 4; i++) {
-            if (lbl_3_data_103B8[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0] > 0) {
+            if (practiceGoalHud_entries[g_Practice.practiceType_2][g_Practice.practiceLevel][i][0] > 0) {
                 text_freeBlock(scene->channels[i]);
                 freed = TRUE;
             }
@@ -1069,7 +1069,7 @@ void fn_3_1583AC(void) {
     }
 }
 
-void fn_3_158264(PracticeScene* scene) {
+void practiceGoalHud_updateCounter(PracticeScene* scene) {
     int threshold = guidedPracticeThresholds[g_Practice.practiceType_2][g_Practice.practiceLevel];
     int count;
 
@@ -1094,15 +1094,15 @@ void fn_3_158264(PracticeScene* scene) {
     }
 }
 
-void fn_3_1581FC(void) {
-    addGraphicsElementToScene(currentDrawingItem, lbl_3_data_BD50);
+void practiceCompleteBanner_init(void) {
+    addGraphicsElementToScene(currentDrawingItem, practiceCompleteBanner_uiRecords);
     if (audioFileDescriptors.enableMusic == TRUE) {
         playSoundEffect(0x1AD);
     }
-    currentDrawingItem->func = fn_3_15810C;
+    currentDrawingItem->func = practiceCompleteBanner_update;
 }
 
-void fn_3_15810C(void) {
+void practiceCompleteBanner_update(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
     int limit;
 
@@ -1111,7 +1111,7 @@ void fn_3_15810C(void) {
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING) {
             limit = 0x5A;
         }
-        if (g_Practice._186 < limit - 0x14) {
+        if (g_Practice.frames_sincePracticeCompleted < limit - 0x14) {
             UIRecord* record = PRACTICE_RECORD(scene, 0);
 
             if ((record->frame >> 16) >= 0x21) {
@@ -1120,7 +1120,7 @@ void fn_3_15810C(void) {
         } else {
             PRACTICE_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         }
-        if (g_Practice._1C7 == 0 || pauseControl[0x1D2] != 0) {
+        if (g_Practice.completionMenuActive == 0 || pauseControl[0x1D2] != 0) {
             return;
         }
     }
@@ -1131,7 +1131,7 @@ void fn_3_15810C(void) {
 void practiceAnimationRelated2(void) {
     PracticeScene* scene = (PracticeScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_BD90);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, practiceGuidedMessage_uiRecords);
     scene->_1C = 0;
     scene->_1E = 0;
     currentDrawingItem->func = practiceAnimationRelated4;
@@ -1156,7 +1156,7 @@ void practiceAnimationRelated4(void) {
             record->playMode = UI_PLAY_STOP;
         }
         if (g_Practice.loadingGuidedPractice == 0) {
-            if (g_Practice._1C7 != 0) {
+            if (g_Practice.completionMenuActive != 0) {
                 goto remove;
             }
             PRACTICE_RECORD(scene, 1)->playMode = UI_PLAY_BACKWARD;
@@ -1170,13 +1170,13 @@ void practiceAnimationRelated4(void) {
         }
     }
 
-    if (g_Practice._1C7 != 0) {
+    if (g_Practice.completionMenuActive != 0) {
         PRACTICE_RECORD(scene, 3)->flags &= ~UI_FLAG_VISIBLE;
     } else {
         PRACTICE_RECORD(scene, 3)->flags |= UI_FLAG_VISIBLE;
     }
-    if (g_Practice._188 == 1) {
-        text_setPtrToWhereCharsAreStored(scene->_1E, 5, lbl_3_data_104B8[g_Practice.practiceLevel_2][g_Practice._1D7][g_Practice._1D8]);
+    if (g_Practice.frames_onGuidedMessage == 1) {
+        text_setPtrToWhereCharsAreStored(scene->_1E, 5, practiceGuidedMessage_textIds[g_Practice.practiceLevel_2][g_Practice.guidedMessageVariant][g_Practice.guidedMessageIndex]);
     }
     g_Practice.currentMessageDoneTyping = screenTextArray.blocks[scene->_1E].unk34;
     return;
@@ -1188,7 +1188,7 @@ remove:
     removeCurrentDrawingItem();
 }
 
-void fn_3_157DB8(void* owner) {
+void chainChomp_spawnTrailEffect(void* owner) {
     PracticeEffect* effect = allocParticleEffect(fn_3_157AC4, 0x80, 0, 1, 1, 0x16);
 
     if (effect != NULL) {

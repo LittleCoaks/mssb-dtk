@@ -109,8 +109,8 @@ extern struct {
 
 extern u8 mapping_minigame_Stadium[8];
 extern s16 lbl_3_data_18BB0[4];
-extern f32 lbl_3_data_2130C[7][4];
-extern s16 lbl_3_data_2137C[2];
+extern f32 resultsFielderMinigameOffsets[7][4];
+extern s16 minigameResultsFrames[2];
 // Plant placement table owned by sta_c3.c; only the list terminator flag is read here.
 typedef struct MinigamePlantView {
     u8 _00[0x10];
@@ -160,7 +160,7 @@ f32 resultsFielderOffsets[4][4][3] = {
 f32 resultsFielderRowOffsets[3] = { -1.5f, 0.0f, 1.5f };
 
 // .data:0x217D8, size 0x20 -- per-fielder {x, z} table.
-extern f32 lbl_3_data_217D8[4][2];
+extern f32 ccs_resultsRunnerOffsets[4][2];
 
 extern void resetAnimationRelatedPointers(void);
 extern void AnimBlr(void);
@@ -412,8 +412,8 @@ void updateMinigameFielderAnimations(void) {
             runnerObj->_48 = 0.0f;
 
             if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                runnerObj->_34 += lbl_3_data_217D8[i][0];
-                runnerObj->_3C += lbl_3_data_217D8[i][1];
+                runnerObj->_34 += ccs_resultsRunnerOffsets[i][0];
+                runnerObj->_3C += ccs_resultsRunnerOffsets[i][1];
                 if (g_Minigame.ccs.runnerChompHitState[i] == 3 && (g_d_GameSettings.FrameCountWhileNotAtMainMenu & 1) != 0) {
                     runnerObj->_25D = 2;
                 }
@@ -451,8 +451,8 @@ void fn_3_E1370(int mode) {
                 }
             }
             if (obj != NULL) {
-                obj->_25A = ((s8 *)&g_Minigame)[0x19EC + i * 9] / 2;
-                obj->_25B = ((s8 *)&g_Minigame)[0x19EC + i * 9] % 2;
+                obj->_25A = g_Minigame.selectSlots[i].loadedHandedness / 2;
+                obj->_25B = g_Minigame.selectSlots[i].loadedHandedness % 2;
             }
         }
     }
@@ -479,38 +479,38 @@ void charSelectPlaceFielders(void) {
 
     for (i = 0; i < 4; i++) {
         MinigameAnimObj *obj = hugeAnimStruct.objects[i];
-        s8 throwDestField;
-        s8 ballSpinField;
-        s8 charField;
+        s8 loadedChar;
+        s8 charReady;
+        s8 slotState;
 
         if (obj == NULL) {
             continue;
         }
         obj->_25D = 0;
 
-        if (((u8 *)&g_Minigame)[0x1A13 + i] != 0) {
+        if (g_Minigame.charLoadPending[i] != 0) {
             continue;
         }
-        throwDestField = ((s8 *)&g_Minigame)[0x19EA + i * 9];
-        if (throwDestField < 0) {
+        loadedChar = g_Minigame.selectSlots[i].loadedCharID;
+        if (loadedChar < 0) {
             continue;
         }
-        ballSpinField = ((s8 *)&g_Minigame)[0x19EF + i * 9];
-        if (ballSpinField == 0) {
+        charReady = g_Minigame.selectSlots[i].charReadyInd;
+        if (charReady == 0) {
             continue;
         }
-        charField = ((s8 *)&g_Minigame)[0x19DA + i];
-        if (charField < 0) {
+        slotState = g_Minigame.selectSlotState[i];
+        if (slotState < 0) {
             continue;
         }
 
         if (!g_d_GameSettings.exhibitionMatchInd) {
-            if (charField >= 1) {
+            if (slotState >= 1) {
                 continue;
             }
-        } else if (g_Minigame._19E6 == 1 && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD &&
-                   g_Minigame._1A3C == 0) {
-            if (charField >= 1) {
+        } else if (g_Minigame.targetParticipantCount == 1 && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD &&
+                   g_Minigame.grandPrixInd == 0) {
+            if (slotState >= 1) {
                 continue;
             }
         }
@@ -558,7 +558,7 @@ void minigameUpdateResultsScene(void) {
 
     if (g_GameLogic.gameStatus == GAME_STATUS_0x27) {
         tWon = TRUE;
-        if (g_Minigame._1A3D == 1) {
+        if (g_Minigame.grandPrixFinalHumanCount == 1) {
             tWon = FALSE;
             if (MG_RESULT->score[0] == MG_RESULT->score[1] && MG_RESULT->score[0] == MG_RESULT->score[2] &&
                 MG_RESULT->score[0] == MG_RESULT->score[3]) {
@@ -566,7 +566,7 @@ void minigameUpdateResultsScene(void) {
             }
         } else {
             for (i = 0; i < 4; i++) {
-                if (g_Minigame.playerSlots._1C[i] != 1) {
+                if (g_Minigame.playerSlots.rank[i] != 1) {
                     tWon = FALSE;
                     break;
                 }
@@ -587,7 +587,7 @@ void minigameUpdateResultsScene(void) {
 
     if (showWinners) {
         count = 0;
-        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 || g_Minigame._1A3E != 0) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 || g_Minigame.grandPrixFinalInd != 0) {
             int best = -1;
 
             for (i = 0; i < 4; i++) {
@@ -595,8 +595,8 @@ void minigameUpdateResultsScene(void) {
                     best = MG_RESULT->score[i];
                 }
             }
-            if (g_Minigame._1A3D == 1) {
-                s8 me = g_Minigame._1908;
+            if (g_Minigame.grandPrixFinalHumanCount == 1) {
+                s8 me = g_Minigame.soloPlayerSlot;
 
                 for (i = 0; i < 4; i++) {
                     if (MG_RESULT->slot[i][0] == me && MG_RESULT->slot[i][1] == 0) {
@@ -625,20 +625,20 @@ void minigameUpdateResultsScene(void) {
             s32 *out = values;
 
             for (i = 0; i < g_Minigame.miniGameNumberOfParticipants; i++) {
-                if (g_Minigame.playerSlots._1C[i] == 1) {
+                if (g_Minigame.playerSlots.rank[i] == 1) {
                     *out++ = g_Minigame.playerSlots.characterIndex[i];
                     count++;
                 }
             }
             StatsScreenScores.mvpKind = 0;
         } else if (g_Minigame.soloMinigameDifficulty == 3) {
-            if (g_Minigame._1A43 == 1 || g_Minigame._19AA != 0) {
+            if (g_Minigame.newRecordRank == 1 || g_Minigame.newRecordInd != 0) {
                 count = 1;
                 values[0] = g_Minigame.playerSlots.characterIndex[0];
             }
         } else {
             values[0] = g_Minigame.playerSlots.characterIndex[0];
-            if (g_Minigame._1A37 == 1) {
+            if (g_Minigame.winLossResult == 1) {
                 StatsScreenScores.mvpKind = 0;
                 count = 1;
             }
@@ -661,13 +661,13 @@ void minigameUpdateResultsScene(void) {
     }
 
     if (tWon == FALSE) {
-        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C[0] &&
+        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == minigameResultsFrames[0] &&
              StatsScreenScores.mvpKind <= 1) ||
-            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C[0])) {
+            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == minigameResultsFrames[0])) {
             BOOL ok = TRUE;
 
-            if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame._1A3D == 1) {
-                s8 me = g_Minigame._1908;
+            if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame.grandPrixFinalHumanCount == 1) {
+                s8 me = g_Minigame.soloPlayerSlot;
 
                 ok = FALSE;
                 for (i = 0; i < 4; i++) {
@@ -696,13 +696,13 @@ void minigameUpdateResultsScene(void) {
             }
         }
         h->_24BD = 1;
-        fieldersRunningToDugoutCalculateOffsets(lbl_3_data_2130C[idx][3], lbl_3_data_2130C[idx][0], lbl_3_data_2130C[idx][2], &v.x, &v.z);
-        v.y = lbl_3_data_2130C[idx][1];
+        fieldersRunningToDugoutCalculateOffsets(resultsFielderMinigameOffsets[idx][3], resultsFielderMinigameOffsets[idx][0], resultsFielderMinigameOffsets[idx][2], &v.x, &v.z);
+        v.y = resultsFielderMinigameOffsets[idx][1];
         h->_2294 = v.x + resultsFielderOffsets[0][0][0];
         h->_2298 = v.y + resultsFielderOffsets[0][0][1];
         h->_229C = v.z + resultsFielderOffsets[0][0][2];
         h->_2298 = -h->_2298;
-        h->_22A4 = lbl_3_data_2130C[idx][3];
+        h->_22A4 = resultsFielderMinigameOffsets[idx][3];
         return;
     }
 
@@ -726,35 +726,35 @@ void minigameUpdateResultsScene(void) {
         if (g_Minigame.playerSlots.characterIndex[k] != i) {
             continue;
         }
-        if (g_Minigame._1A3D == 1) {
-            if (g_Minigame.playerSlots.characterIndex[i] != g_Minigame._1908) {
+        if (g_Minigame.grandPrixFinalHumanCount == 1) {
+            if (g_Minigame.playerSlots.characterIndex[i] != g_Minigame.soloPlayerSlot) {
                 continue;
             }
             participants = 1;
         }
         obj->_25D = 1;
-        fieldersRunningToDugoutCalculateOffsets(lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][3], lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][0],
-                                                lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][2], &v.x, &v.z);
-        v.y = lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][1];
+        fieldersRunningToDugoutCalculateOffsets(resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][3], resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][0],
+                                                resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][2], &v.x, &v.z);
+        v.y = resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][1];
         obj->_34 = v.x + resultsFielderOffsets[participants - 1][k][0];
         obj->_38 = v.y + resultsFielderOffsets[participants - 1][k][1];
         obj->_3C = v.z + resultsFielderOffsets[participants - 1][k][2];
         obj->_38 = -obj->_38;
-        obj->_44 = lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][3];
-        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 || g_Minigame._1A3E != 0) {
-            if (g_Minigame._1A3D <= 1) {
-            } else if (g_Minigame.playerSlots._1C[i] == 1) {
+        obj->_44 = resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][3];
+        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 || g_Minigame.grandPrixFinalInd != 0) {
+            if (g_Minigame.grandPrixFinalHumanCount <= 1) {
+            } else if (g_Minigame.playerSlots.rank[i] == 1) {
                 obj->_3C += resultsFielderRowOffsets[0];
             } else {
                 obj->_3C += resultsFielderRowOffsets[2];
             }
         } else if (tWon != FALSE) {
-            if (g_Minigame.playerSlots._04[i] == 0x26) {
+            if (g_Minigame.playerSlots.charID[i] == 0x26) {
                 obj->_3C += resultsFielderRowOffsets[1];
             } else {
                 obj->_3C += resultsFielderRowOffsets[0];
             }
-        } else if (g_Minigame.playerSlots._20[i] == 1) {
+        } else if (g_Minigame.playerSlots.rankCopy[i] == 1) {
             obj->_3C += resultsFielderRowOffsets[0];
         } else {
             obj->_3C += resultsFielderRowOffsets[2];

@@ -52,8 +52,8 @@
 extern f32 lbl_3_data_21A64[9];
 extern VecXYZ lbl_3_data_21A48;
 extern s16 lbl_3_data_21A04[8];
-extern VecXYZ lbl_3_data_21B94[4];
-extern VecXYZ lbl_3_data_21BC4[][4];
+extern VecXYZ pP_fielderStartPositions[4];
+extern VecXYZ pP_spawnerPositions[][4];
 extern UIRecordDescriptor lbl_3_data_69D0[];
 extern u8 animRelated[0x124];
 
@@ -809,11 +809,11 @@ static inline void pmSetupQuadCamera(int sub) {
 }
 
 extern s16 lbl_3_data_21E68[26];
-extern s16 lbl_3_data_217A4[];
-extern VecXYZ lbl_3_data_21380;
-extern s16 lbl_3_data_21654[];
-extern VecXYZ lbl_3_data_21520[];
-extern f32 lbl_3_data_2188C[];
+extern s16 bOD_bB_frameConsts[];
+extern VecXYZ bOD_bB_pitchBallPos;
+extern s16 wallBall_pitchPowerAndCoinTable[];
+extern VecXYZ wallBall_wallPosTable[];
+extern f32 ccs_coinPhysicsConsts[];
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
@@ -919,14 +919,13 @@ static inline void pmDisableWallBallEffects(void) {
 /* Record `i` of the group that starts at handle offset `base` within the node. */
 #define PM_REC_AT(scene, base, i) \
     ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
-#define MG_BYTE(off) (((u8*)&g_Minigame)[off])
 
 extern void convertTextureHeader(void* tex);
 extern void UpdateTexturePalettePointers(void* geo, void* tex);
-extern int fn_3_107CD0(void);
-extern int fn_3_107C88(void);
-extern int fn_3_107988(void);
-extern void fn_3_E911C(void);
+extern int minigame_getLeadingPlayer(void);
+extern int minigame_displayedPointsAllTied(void);
+extern int minigame_grandPrixHasPlayed(void);
+extern void minigame_pointsTally(void);
 extern u8 pauseControl[0x264];
 extern u8 lbl_800EFBA4[];
 extern u16 lbl_3_data_81FC[];
@@ -937,7 +936,7 @@ typedef struct {
     /*0x6*/ s16 extra;
 } PMScoreRecord;
 
-extern void fn_3_109DE0(PMScoreRecord* out);
+extern void minigameBuildResultEntry(PMScoreRecord* out);
 
 static inline u16 pmCrc16(u8* data, u32 len) {
     u32 crc = 0;
@@ -1007,15 +1006,15 @@ void fn_3_11E7C4(void) {
         scene->state = 1;
         break;
     case 1: {
-        u32 leader = fn_3_107CD0();
-        u32 flag = fn_3_107C88();
+        u32 leader = minigame_getLeadingPlayer();
+        u32 flag = minigame_displayedPointsAllTied();
         s16* leaderPoints = &g_Minigame.minigamePoints_current_Latest[leader][0];
 
         for (i = 0; i < 4; i++) {
             u32 points;
 
-            if (MG_BYTE(0x1DF4 + i) != 0) {
-                MG_BYTE(0x1DF4 + i) = 0;
+            if (g_Minigame.hudPulseInd[i] != 0) {
+                g_Minigame.hudPulseInd[i] = 0;
                 PM_REC_AT(scene, 1, i)->frame = 0;
                 PM_REC_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
             }
@@ -1075,15 +1074,15 @@ void fn_3_11E364(void) {
         scene->state = 1;
         break;
     case 1: {
-        u32 leader = fn_3_107CD0();
-        u32 flag = fn_3_107C88();
+        u32 leader = minigame_getLeadingPlayer();
+        u32 flag = minigame_displayedPointsAllTied();
         s16* leaderPoints = &g_Minigame.minigamePoints_current_Latest[leader][0];
 
         for (i = 0; i < 4; i++) {
             u32 points;
 
-            if (MG_BYTE(0x1DF4 + i) != 0) {
-                MG_BYTE(0x1DF4 + i) = 0;
+            if (g_Minigame.hudPulseInd[i] != 0) {
+                g_Minigame.hudPulseInd[i] = 0;
                 PM_REC_AT(scene, 1, i)->frame = 0;
                 PM_REC_AT(scene, 1, i)->playMode = UI_PLAY_FORWARD;
             }
@@ -1123,7 +1122,7 @@ void fn_3_11E364(void) {
 
 void fn_3_11E308(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-        ((MinigameHudScene*)insertGraphicDrawingFunction(fn_3_E911C, 2))->_18 = 1;
+        ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 1;
     }
 }
 
@@ -1140,7 +1139,7 @@ void fn_3_11DECC(void) {
                 scene->sndHandle = 0xFFFFFFFF;
             }
         }
-        *(DrawingSceneStruct**)&MG_BYTE(0x1E04) = NULL;
+        *(DrawingSceneStruct**)&g_Minigame.resultsScene = NULL;
         removeGraphicsElementFromScene(node);
         removeCurrentDrawingItem();
         return;
@@ -1148,8 +1147,8 @@ void fn_3_11DECC(void) {
     switch (scene->state) {
     case 0:
         addGraphicsElementToScene(node, lbl_3_data_25EE4);
-        if (MG_BYTE(0x1E2A) >= 1) {
-            scene->_1E = MG_BYTE(0x1E1B + MG_BYTE(0x1E2A)) - 1;
+        if (g_Minigame.grandPrixRound >= 1) {
+            scene->_1E = g_Minigame.grandPrixOrder[g_Minigame.grandPrixRound - 1] - 1;
         }
         scene->sndHandle = 0xFFFFFFFF;
         scene->state = 1;
@@ -1182,7 +1181,7 @@ void fn_3_11DECC(void) {
             if ((s16)scene->_1E < 0) {
                 scene->_1E = 5;
             }
-            if (scene->_1E == MG_BYTE(0x1E1B + MG_BYTE(0x1E2A)) - 1) {
+            if (scene->_1E == g_Minigame.grandPrixOrder[g_Minigame.grandPrixRound - 1] - 1) {
                 scene->_18++;
                 if (scene->_18 >= 2) {
                     PM_REC(scene, 3)->playMode = UI_PLAY_STOP;
@@ -1219,22 +1218,22 @@ void fn_3_11DECC(void) {
         PM_REC(scene, 10 + i)->firstChild = (UIRecord*)PM_REC(scene, 15 + next);
         PM_REC(scene, 15 + next)->parent = (UIRecord*)PM_REC(scene, 10 + i);
         if (PM_REC(scene, 10 + i)->playMode == UI_PLAY_STOP) {
-            PM_REC(scene, 10 + i)->frame = (fn_3_107988() == 0) << 16;
+            PM_REC(scene, 10 + i)->frame = (minigame_grandPrixHasPlayed() == 0) << 16;
         }
     }
 }
 
 void fn_3_11DE80(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
-        *(DrawingSceneStruct**)&MG_BYTE(0x1E04) = insertGraphicDrawingFunction(fn_3_11DECC, 2);
+        *(DrawingSceneStruct**)&g_Minigame.resultsScene = insertGraphicDrawingFunction(fn_3_11DECC, 2);
     }
 }
 
-u16 fn_3_11DDC4(u8* data, u32 len) {
+u16 mm_Crc16(u8* data, u32 len) {
     return pmCrc16(data, len);
 }
 
-void fn_3_11DACC(u8* out, u8* raw, u8 a, u8 b) {
+void mm_EncodeResultCode(u8* out, u8* raw, u8 a, u8 b) {
     PMScoreRecord rec;
     int flag;
     u32 score;
@@ -1243,8 +1242,8 @@ void fn_3_11DACC(u8* out, u8* raw, u8 a, u8 b) {
     u32 crc;
     u32 i;
 
-    fn_3_109DE0(&rec);
-    if (g_Minigame._1A3C != 0) {
+    minigameBuildResultEntry(&rec);
+    if (g_Minigame.grandPrixInd != 0) {
         score = rec.score;
         flag = 1;
         count = random_fn_3_9EE24(1000);
@@ -1308,7 +1307,7 @@ void fn_3_11DACC(u8* out, u8* raw, u8 a, u8 b) {
     } while (i < 16);
 }
 
-void fn_3_11D780(void) {
+void mm_DrawResultCode(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u8 raw[8];
     u8 code[16];
@@ -1319,7 +1318,7 @@ void fn_3_11D780(void) {
         removeCurrentDrawingItem();
         return;
     }
-    if (g_Minigame._1A3C != 0) {
+    if (g_Minigame.grandPrixInd != 0) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_4) {
             removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
             removeCurrentDrawingItem();
@@ -1342,7 +1341,7 @@ void fn_3_11D780(void) {
             return;
         }
     }
-    if (g_Minigame._1907 != 1) {
+    if (g_Minigame.humanPlayerCount != 1) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -1350,7 +1349,7 @@ void fn_3_11D780(void) {
     switch (scene->state) {
     case 0:
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_26254);
-        if (g_Minigame._1A3C != 0) {
+        if (g_Minigame.grandPrixInd != 0) {
             PM_REC(scene, 0)->elementIndex = 0xBF;
             scene->_1E = 3;
         } else {
@@ -1361,7 +1360,7 @@ void fn_3_11D780(void) {
         scene->_22 = random_fn_3_9EE24(0x1A);
         scene->state = 1;
     case 1:
-        fn_3_11DACC(code, raw, scene->_20, scene->_22);
+        mm_EncodeResultCode(code, raw, scene->_20, scene->_22);
         for (i = 0; i < 16; i++) {
             load_Icon(scene, 2 + i, 1, 0xBD, code[i]);
             load_Icon(scene, 2 + i, 2, 0xBD, code[i]);
@@ -1393,7 +1392,7 @@ void fn_3_11D780(void) {
     }
 }
 
-int fn_3_11D6A0(void) {
+int mm_LoadCommonArchiveStep(void) {
     switch (animRelated[0xD8]) {
     case 0:
         hugeAnimStruct.archive = ARAMTransfer(&MinigameCommonFiles_game[4], 0, 0, 0);
@@ -1406,7 +1405,7 @@ int fn_3_11D6A0(void) {
         break;
     case 2:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
-            fn_3_11D3AC();
+            mm_ParseCommonArchive();
         }
         animRelated[0xD8]++;
         break;
@@ -1416,7 +1415,7 @@ int fn_3_11D6A0(void) {
     return FALSE;
 }
 
-void fn_3_11D3AC(void) {
+void mm_ParseCommonArchive(void) {
     u8* file = (u8*)hugeAnimStruct.archive;
     u32* offsets = (u32*)file;
     int i;
@@ -1516,7 +1515,7 @@ void mm_LoadModels(void) {
 void mm_UnloadModels(void) {
     int i;
 
-    if ((g_Minigame._1A3C == 0 || g_Minigame._1E01[0x29] >= 6) && g_Minigame._1A38 == 0) {
+    if ((g_Minigame.grandPrixInd == 0 || g_Minigame.grandPrixRound >= 6) && g_Minigame.retryInd == 0) {
         for (i = 0; i < 4; i++) {
             fn_80011B64(i);
         }
@@ -1536,7 +1535,7 @@ void mm_UnloadModels(void) {
     }
     fn_800B993C();
     cleanupCharacters();
-    if (g_Minigame._1A38 == 0 || g_Minigame._1A3C != 0) {
+    if (g_Minigame.retryInd == 0 || g_Minigame.grandPrixInd != 0) {
         mm_CleanupResources();
     }
 }
@@ -1745,9 +1744,9 @@ void mm_PlacePitchingMachine(PMEffect* fx, int idx) {
             if (g_Pitcher.pitcherActionState >= PITCHER_ACTION_STATE_IN_AIR) {
                 if (g_Pitcher.currentStateFrameCounter == 1 && g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
                     lbl_3_bss_B6BC = 3.0f;
-                    v.x = lbl_3_data_21380.x;
-                    v.y = -lbl_3_data_21380.y;
-                    v.z = lbl_3_data_21380.z - 0.5f;
+                    v.x = bOD_bB_pitchBallPos.x;
+                    v.y = -bOD_bB_pitchBallPos.y;
+                    v.z = bOD_bB_pitchBallPos.z - 0.5f;
                     fn_80062C24(&v);
                     callSfx(0x2D6);
                 }
@@ -1757,12 +1756,12 @@ void mm_PlacePitchingMachine(PMEffect* fx, int idx) {
         } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
             if (g_Pitcher.currentStateFrameCounter == 1) {
                 if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH) {
-                    fn_3_14B9A0(lbl_3_data_217A4[6] + lbl_3_data_217A4[7], mm_machinePos);
+                    fn_3_14B9A0(bOD_bB_frameConsts[6] + bOD_bB_frameConsts[7], mm_machinePos);
                     callSfx(0x30E);
                 } else if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
-                    v.x = lbl_3_data_21380.x;
-                    v.y = 0.4f + lbl_3_data_21380.y;
-                    v.z = lbl_3_data_21380.z - 0.5f;
+                    v.x = bOD_bB_pitchBallPos.x;
+                    v.y = 0.4f + bOD_bB_pitchBallPos.y;
+                    v.z = bOD_bB_pitchBallPos.z - 0.5f;
                     barrelBatterRel(&v);
                 }
             }
@@ -1841,7 +1840,7 @@ void mm_UpdateWallBallBlocks(void) {
                 continue;
             }
         } else if (wall->coinGenerationCategory == 0) {
-            if (wall->_24 > lbl_3_data_21654[wall->coinGenerationCategory + 4] / 2) {
+            if (wall->_24 > wallBall_pitchPowerAndCoinTable[wall->coinGenerationCategory + 4] / 2) {
                 idx = i + 0xED;
             } else {
                 idx = 0xFB;
@@ -1862,7 +1861,7 @@ void mm_UpdateWallBallBlocks(void) {
         fx->rot.z = 0.0f;
         fx->rot.x = wall->_18;
         applyUniformScaleToObject(1.75f, idx);
-        if (-fx->pos.y <= lbl_3_data_21520[7].y && wall->_28 < 4) {
+        if (-fx->pos.y <= wallBall_wallPosTable[7].y && wall->_28 < 4) {
             PMEffect* shadow = &FX(0xE6 + i);
 
             shadow->visible = TRUE;
@@ -1873,7 +1872,7 @@ void mm_UpdateWallBallBlocks(void) {
             shadow->rot.x = 0.0f;
             shadow->rot.y = 0.0f;
             shadow->rot.z = 0.0f;
-            applyUniformScaleToObject(1.75f * (1.0f - -fx->pos.y / lbl_3_data_21520[7].y), 0xE6 + i);
+            applyUniformScaleToObject(1.75f * (1.0f - -fx->pos.y / wallBall_wallPosTable[7].y), 0xE6 + i);
         }
     }
 }
@@ -2047,7 +2046,7 @@ void mm_UpdateBarrelBatterMachine(void) {
     fx->visible = TRUE;
     mm_PlacePitchingMachine(fx, 0x1F);
     if (PauseSimulation == 0 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
-        g_Pitcher.pitchTotalTimeCounter == lbl_3_data_217A4[7]) {
+        g_Pitcher.pitchTotalTimeCounter == bOD_bB_frameConsts[7]) {
         mm_StartBarrelMachineAnim();
         callSfx(0x2E6);
     }
@@ -2161,7 +2160,7 @@ void mm_UpdateChainChompItems(void) {
             } else if (PauseSimulation == 0) {
                 memcpy(&tmp, &g_Minigame.coinVelocity[i], sizeof(VecXYZ));
                 tmp.y = 0.0f;
-                e->rot.x += 0.05f * PSVECMag((Vec*)&tmp) / lbl_3_data_2188C[3];
+                e->rot.x += 0.05f * PSVECMag((Vec*)&tmp) / ccs_coinPhysicsConsts[3];
             }
         }
     }
@@ -2427,16 +2426,16 @@ void mm_PlacePiranhaPipes(void) {
         fx = &FX(0xE9 + i);
         fx->visible = TRUE;
         if (i < 4) {
-            fx->pos.x = lbl_3_data_21B94[i].x;
-            fx->pos.y = -lbl_3_data_21B94[i].y;
-            fx->pos.z = lbl_3_data_21B94[i].z;
+            fx->pos.x = pP_fielderStartPositions[i].x;
+            fx->pos.y = -pP_fielderStartPositions[i].y;
+            fx->pos.z = pP_fielderStartPositions[i].z;
             fx->pos.y = 0.0f;
             applyNonUniformScaleToObject(lbl_3_data_226C4[2], lbl_3_data_226C4[3], lbl_3_data_226C4[2], 0xE9 + i);
             fx->update = mm_SetPipeFrame;
         } else {
-            fx->pos.x = lbl_3_data_21BC4[i - 4][0].x;
-            fx->pos.y = -lbl_3_data_21BC4[i - 4][0].y;
-            fx->pos.z = lbl_3_data_21BC4[i - 4][0].z;
+            fx->pos.x = pP_spawnerPositions[i - 4][0].x;
+            fx->pos.y = -pP_spawnerPositions[i - 4][0].y;
+            fx->pos.z = pP_spawnerPositions[i - 4][0].z;
             applyNonUniformScaleToObject(lbl_3_data_226C4[0], lbl_3_data_226C4[1], lbl_3_data_226C4[0], 0xE9 + i);
             fx->update = mm_SetPipeFrame;
         }
@@ -2519,9 +2518,9 @@ void mm_RemoveFlameSprites(void) {
 static inline void pmPlaceMarker(int i) {
     PMEffect* fx = &hugeAnimStruct.effects[0xF0 + i];
 
-    fx->pos.x = lbl_3_data_21B94[i].x;
-    fx->pos.y = -lbl_3_data_21B94[i].y;
-    fx->pos.z = lbl_3_data_21B94[i].z;
+    fx->pos.x = pP_fielderStartPositions[i].x;
+    fx->pos.y = -pP_fielderStartPositions[i].y;
+    fx->pos.z = pP_fielderStartPositions[i].z;
     fx->pos.y = 0.0f;
     fx->pos.z -= lbl_3_data_226DC;
     fx->visible = TRUE;
@@ -2849,9 +2848,9 @@ void mm_ResetModels(void) {
             fx->visible = FALSE;
             if (j >= 4) {
                 fx->visible = TRUE;
-                fx->pos.x = lbl_3_data_21BC4[j - 4][0].x;
-                fx->pos.y = -lbl_3_data_21BC4[j - 4][0].y;
-                fx->pos.z = lbl_3_data_21BC4[j - 4][0].z;
+                fx->pos.x = pP_spawnerPositions[j - 4][0].x;
+                fx->pos.y = -pP_spawnerPositions[j - 4][0].y;
+                fx->pos.z = pP_spawnerPositions[j - 4][0].z;
                 applyNonUniformScaleToObject(lbl_3_data_226C4[0], lbl_3_data_226C4[1],
                                              lbl_3_data_226C4[0], 0xE9 + j);
                 fx->update = mm_SetPipeFrame;
@@ -2905,7 +2904,7 @@ void mm_ResetPiranhas(void) {
     }
 }
 
-void fn_3_11678C(void) {
+void mm_PlaceExtraPipes(void) {
     PMEffect* fx;
     int i;
 
@@ -2914,16 +2913,16 @@ void fn_3_11678C(void) {
         fx->visible = FALSE;
         if (i >= 4) {
             fx->visible = TRUE;
-            fx->pos.x = lbl_3_data_21BC4[i - 4][0].x;
-            fx->pos.y = -lbl_3_data_21BC4[i - 4][0].y;
-            fx->pos.z = lbl_3_data_21BC4[i - 4][0].z;
+            fx->pos.x = pP_spawnerPositions[i - 4][0].x;
+            fx->pos.y = -pP_spawnerPositions[i - 4][0].y;
+            fx->pos.z = pP_spawnerPositions[i - 4][0].z;
             applyNonUniformScaleToObject(lbl_3_data_226C4[0], lbl_3_data_226C4[1], lbl_3_data_226C4[0], 0xE9 + i);
             fx->update = mm_SetPipeFrame;
         }
     }
 }
 
-void fn_3_1166CC(void) {
+void mm_ClearFirst40Effects(void) {
     int i;
 
     for (i = 0; i < 40; i++) {
@@ -2934,7 +2933,7 @@ void fn_3_1166CC(void) {
     }
 }
 
-void fn_3_11669C(void) {
+void mm_HidePlayerMarkers(void) {
     FX(0xF0).visible = FALSE;
     FX(0xF1).visible = FALSE;
     FX(0xF2).visible = FALSE;

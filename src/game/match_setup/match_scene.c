@@ -159,7 +159,7 @@ void pauseSubPanel_update(void) {
         scene->state = 1;
     } else if (scene->state == 1) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            if (g_Practice._19F != 0) {
+            if (g_Practice.pauseMenuActive != 0) {
                 if (pauseControl.state == 4) {
                     scene->state = 2;
                 }
@@ -234,9 +234,9 @@ void pauseOptionList_init(void) {
         load_Icon(scene, i + 3, 1, 0xCF, icon);
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        if (g_Practice._19F != 0) {
+        if (g_Practice.pauseMenuActive != 0) {
             REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
-        } else if (g_Practice._1C7 != 0) {
+        } else if (g_Practice.completionMenuActive != 0) {
             REC(scene, 0)->layer = 5;
         }
     }

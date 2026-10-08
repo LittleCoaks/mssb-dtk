@@ -58,7 +58,7 @@ extern struct {
     f32 _00;
     f32 _04;
     f32 _08;
-} lbl_3_data_21438;
+} bOD_ballConsts;
 extern int peachDaisyStarSwingRelated(void);
 extern void peachDaisyStarSwingRelated2(void);
 
@@ -1527,7 +1527,7 @@ void liveBallHitPhysics(int mode) {
     }
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Ball.bODQualifyingHitInd != 0) {
-        g_Ball.physicsSubstruct.velocity.y -= lbl_3_data_21438._00;
+        g_Ball.physicsSubstruct.velocity.y -= bOD_ballConsts._00;
     } else {
         g_Ball.physicsSubstruct.velocity.y -= g_Ball.physicsSubstruct.gravity;
         adjustVeloByAirResistance();

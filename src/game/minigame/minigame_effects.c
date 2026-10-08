@@ -42,7 +42,7 @@ extern MGMinigame g_Minigame;
 
 extern u8 animRelated[0x124];
 extern u8 hugeAnimStruct[0x3154];
-extern f32 lbl_3_data_21770[6];
+extern f32 bB_barrelConsts[6];
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_3_common_bss_35154[];
 
@@ -371,7 +371,7 @@ int fn_3_157AC4(MGEffect* effect) {
     if (lbl_80366158[0x28] == 0) {
         effect->frame++;
     }
-    if (g_Minigame._1A40 != 0) {
+    if (g_Minigame.minigameInactiveInd != 0) {
         return TRUE;
     }
     if (effect->frame == effect->duration && g_GameLogic.gameStatus != GAME_STATUS_MVP_END_GAME) {
@@ -2208,10 +2208,10 @@ void fn_3_14D44C(MGEffect* effect, int barrelIndex) {
 
 // .text:0x14D318 size:0x134
 void fn_3_14D318(MGParticle* p) {
-    Vec* barrel = (Vec*)((u8*)&g_Minigame + 0x860 + p->_45 * 0x34);
+    Vec* barrel = (Vec*)&g_Minigame.barrels[p->_45];
 
     p->origin.x = barrel->x;
-    p->origin.y = barrel->y - lbl_3_data_21770[3] * 0.5f;
+    p->origin.y = barrel->y - bB_barrelConsts[3] * 0.5f;
     p->origin.z = barrel->z;
     p->origin.x = p->origin.x + (rand() % 100 - 50) / 100.0;
     p->origin.y = p->origin.y + (rand() % 100 - 50) / 100.0;
