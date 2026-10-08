@@ -34,7 +34,7 @@ extern struct {
     u8 _00[0x28];
     u8 _28;
 } lbl_80366158;
-extern f32 lbl_3_data_21380[3];
+extern f32 bOD_bB_pitchBallPos[3];
 extern u8 lbl_3_data_5F44[];
 static u32 lbl_3_bss_172C[7];
 
@@ -996,9 +996,9 @@ void pitchBeingReleased(void) {
     character = 0;
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY || g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER ||
         (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 4)) {
-        ballCoords.x = lbl_3_data_21380[0];
-        ballCoords.y = lbl_3_data_21380[1];
-        ballCoords.z = lbl_3_data_21380[2];
+        ballCoords.x = bOD_bB_pitchBallPos[0];
+        ballCoords.y = bOD_bB_pitchBallPos[1];
+        ballCoords.z = bOD_bB_pitchBallPos[2];
         ballCoords.y = -ballCoords.y;
     } else {
         if (g_d_GameSettings.minigamesEnabled) {

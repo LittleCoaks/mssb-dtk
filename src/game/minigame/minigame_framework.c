@@ -99,21 +99,21 @@ extern u8 lbl_80366158[0x30];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 FrameCountOfEntireGame[];
 extern u8 mapping_minigame_Stadium[8];
-extern u8 lbl_3_data_18944[8];
-extern u8 lbl_3_data_1894C[44];
-extern u8 lbl_3_data_18978[8];
+extern u8 minigameChallengeOpponentCounts[8];
+extern u8 minigameChallengeOpponentPools[44];
+extern u8 minigameChallengeAIStrength[8];
 extern void manageStadiumLoading(void);
-extern s16 lbl_3_data_18C48[10];
+extern s16 minigameTuningConstants[10];
 extern u8 lbl_3_data_18918[8];
-extern u8 lbl_3_data_188E8[20];
-extern u8 lbl_3_data_6104[];
-extern u8 lbl_3_data_188FC[16];
-extern u8 lbl_3_data_18920[36];
+extern u8 minigamePauseMenuActions[20];
+extern u8 challengeTransitionPortraitIDs[];
+extern u8 postMinigameMenuActions[16];
+extern u8 minigameParticipantCounts[36];
 extern void fn_3_FBD70(void);
 extern void fn_3_FBD58(void);
 extern int fn_80016F7C(void);
 extern int fn_3_90DD8(void);
-extern s8 lbl_3_data_B060[8][3][5];
+extern s8 minigameHelpPageIDs[8][3][5];
 extern void fn_80035B50(int arg0);
 extern void fn_3_908E8(void);
 extern void fn_800189B8(void);
@@ -152,10 +152,10 @@ extern s16 lbl_80109410[];
 extern void fn_8006C398(MiniGrandPrixScoreInput* input);
 extern int fn_8006C13C(MiniGrandPrixScoreInput* input);
 
-u8 lbl_3_data_21268[8] = { 1, 2, 4, 5, 3, 6, 7, 0 };
+u8 minigameSelectMenuGameIDs[8] = { 1, 2, 4, 5, 3, 6, 7, 0 };
 u8 lbl_3_data_21270[8] = { 1, 4, 1, 4, 0, 3, 1, 0 };
-u8 lbl_3_data_21278[2] = { 30, 60 };
-u8 lbl_3_data_2127C[8][5] = {
+u8 minigameIntroFrames[2] = { 30, 60 };
+u8 minigameAIStrengthTable[8][5] = {
     { 0, 1, 2, 3, 0 },
     { 0, 1, 2, 2, 0 },
     { 0, 1, 2, 2, 0 },
@@ -165,7 +165,7 @@ u8 lbl_3_data_2127C[8][5] = {
     { 0, 1, 2, 2, 0 },
     { 2, 2, 2, 2, 0 },
 };
-u8 lbl_3_data_212A4[104] = {
+u8 minigame_exhibitionOpponentCharIDs[104] = {
     0, 1, 4, 5, 2, 3, 13, 12,
     17, 21, 24, 28, 6, 5, 7, 8,
     38, 11, 0, 1, 2, 4, 9, 10,
@@ -180,7 +180,7 @@ u8 lbl_3_data_212A4[104] = {
     33, 11, 41, 2, 38, 9, 19, 48,
     41, 2, 38, 9, 19, 48, 0, 0,
 };
-f32 lbl_3_data_2130C[7][4] = {
+f32 resultsFielderMinigameOffsets[7][4] = {
     { 0.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 0.0f },
@@ -189,11 +189,11 @@ f32 lbl_3_data_2130C[7][4] = {
     { 0.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 0.0f },
 };
-s16 lbl_3_data_2137C[2] = { 120, 60 };
-f32 lbl_3_data_21380[3] = { 0.0f, 1.6f, 18.0f };
+s16 minigameResultsFrames[2] = { 120, 60 };
+f32 bOD_bB_pitchBallPos[3] = { 0.0f, 1.6f, 18.0f };
 f32 bOD_bB_maxMovement[4] = { 0.005f, 0.005f, 0.005f, 0.005f };
 u8 minigamePitchSpeeds_base[8] = { 120, 140, 160, 170, 190, 0, 0, 0 };
-u8 lbl_3_data_213A4[48] = {
+u8 bOD_pitchSpeedWeights[48] = {
     0, 100, 0, 0, 0, 0, 50, 50,
     0, 0, 0, 40, 0, 60, 0, 0,
     30, 10, 20, 40, 10, 20, 0, 20,
@@ -202,10 +202,10 @@ u8 lbl_3_data_213A4[48] = {
     20, 20, 20, 0, 0, 0, 50, 50,
 };
 u8 soloBODPitchSelectionType[8] = { 0, 0, 1, 2, 2, 3, 0, 0 };
-u8 lbl_3_data_213DC[4] = { 0, 2, 4, 0 };
-u8 lbl_3_data_213E0[4] = { 25, 55, 15, 30 };
-u8 lbl_3_data_213E4[8] = { 3, 3, 3, 3, 3, 3, 0, 0 };
-s16 lbl_3_data_213EC[10] = {
+u8 bOD_multiPitchSelectionTypes[4] = { 0, 2, 4, 0 };
+u8 bOD_fireworkTimerRanges[4] = { 25, 55, 15, 30 };
+u8 bOD_multiInningsAndPitches[8] = { 3, 3, 3, 3, 3, 3, 0, 0 };
+s16 bOD_scoreConsts[10] = {
     50, 60, 70, 80, 90, 100, 25, 200,
     15, 0,
 };
@@ -216,24 +216,24 @@ s16 bOD_challenge_nPitches_Points[4][2] = {
     { 10, 0 },
 };
 s16 bODPowerThresholdsForVertAngles[6] = { 250, 260, 270, 280, 300, 0 };
-s16 lbl_3_data_2141C[14] = {
+s16 bOD_hitVertAngleRanges[14] = {
     0, 150, 270, 290, 280, 300, 290, 320,
     310, 340, 330, 360, 350, 380,
 };
-f32 lbl_3_data_21438[4] = { 0.001f, 1.7e+02f, 1.5f, 1.3e+02f };
-s16 lbl_3_data_21448[10] = {
+f32 bOD_ballConsts[4] = { 0.001f, 1.7e+02f, 1.5f, 1.3e+02f };
+s16 bOD_frameConsts[10] = {
     90, 30, 160, 90, 90, 128, 64, 10,
     30, 90,
 };
 u16 lbl_3_data_2145C[2] = { 20, 70 };
-u8 lbl_3_data_21460[8] = { 0, 1, 2, 4, 3, 5, 3, 0 };
-u8 lbl_3_data_21468[24] = {
+u8 bOD_bB_pitchRouletteTypes[8] = { 0, 1, 2, 4, 3, 5, 3, 0 };
+u8 bOD_bB_pitchRouletteWeights[24] = {
     60, 30, 10, 0, 0, 0, 30, 40,
     10, 0, 10, 10, 20, 20, 20, 0,
     20, 20, 15, 10, 10, 0, 25, 40,
 };
-u8 lbl_3_data_21480[8] = { 20, 20, 20, 0, 20, 20, 0, 0 };
-u8 lbl_3_data_21488[8][3] = {
+u8 bOD_bB_pitchRouletteWeightsDefault[8] = { 20, 20, 20, 0, 20, 20, 0, 0 };
+u8 bOD_aiBaseWeights[8][3] = {
     { 0, 100, 0 },
     { 0, 100, 0 },
     { 0, 100, 0 },
@@ -243,50 +243,50 @@ u8 lbl_3_data_21488[8][3] = {
     { 0, 100, 0 },
     { 0, 100, 0 },
 };
-s8 lbl_3_data_214A0[4][6] = {
+s8 bOD_aiTimingOffsetRanges[4][6] = {
     { 0, 0, -6, 4, 0, 0 },
     { 0, 0, -4, 3, 0, 0 },
     { 0, 0, -3, 2, 0, 0 },
     { 0, 0, -3, 1, 0, 0 },
 };
-s8 lbl_3_data_214B8[4][3] = {
+s8 bOD_aiChargeWeightsPerStreak[4][3] = {
     { 15, -10, 10 },
     { 10, -10, 10 },
     { 5, -10, 5 },
     { 5, -10, 5 },
 };
-s8 lbl_3_data_214C4[4][3] = {
+s8 bOD_aiTimingWeightsPerStreak[4][3] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 0, 0, 0 },
 };
-s8 lbl_3_data_214D0[4][3] = {
+s8 bOD_aiChargeWeightsKingBomb[4][3] = {
     { 22, -20, 20 },
     { 15, -20, 20 },
     { 10, -20, 10 },
     { 5, -20, 10 },
 };
-s8 lbl_3_data_214DC[4][3] = {
+s8 bOD_aiTimingWeightsKingBomb[4][3] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 0, 0, 0 },
 };
-s8 lbl_3_data_214E8[4][3] = {
+s8 bOD_aiChargeWeightsRandomPitch[4][3] = {
     { 35, -30, 30 },
     { 30, -30, 30 },
     { 20, -30, 20 },
     { 15, -30, 20 },
 };
-s8 lbl_3_data_214F4[4][3] = {
+s8 bOD_aiTimingWeightsRandomPitch[4][3] = {
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 0, 0, 0 },
     { 0, 0, 0 },
 };
-f32 lbl_3_data_21500[8] = { 0.0f, 0.0f, -5.0f, 25.0f, 5.0f, 25.0f, 1e+01f, 25.0f };
-f32 lbl_3_data_21520[42] = {
+f32 wallBall_pitcherWaitingOffsets[8] = { 0.0f, 0.0f, -5.0f, 25.0f, 5.0f, 25.0f, 1e+01f, 25.0f };
+f32 wallBall_wallPosTable[42] = {
     0.0f, 0.0f, 10.2f, 0.0f, 0.0f, 8.5f, 0.0f, 0.0f,
     6.8f, 0.0f, 0.0f, 5.1f, 0.0f, 0.0f, 3.4f, 0.0f,
     0.0f, 1.7f, 0.0f, 0.0f, 0.0f, 0.0f, 2e+01f, 0.0f,
@@ -294,37 +294,37 @@ f32 lbl_3_data_21520[42] = {
     0.0f, 0.0f, 32.0f, 0.0f, 0.0f, 35.0f, 0.0f, 0.0f,
     38.0f, 0.0f,
 };
-f32 lbl_3_data_215C8[6] = { 0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.2f };
-f32 lbl_3_data_215E0[21] = {
+f32 wallBall_wallStateOffsets[6] = { 0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.2f };
+f32 wallBall_coinSpawnPositions[21] = {
     0.0f, 1.5f, 10.2f, 0.0f, 1.5f, 8.5f, 0.0f, 1.5f,
     6.8f, 0.0f, 1.5f, 5.1f, 0.0f, 1.5f, 3.4f, 0.0f,
     1.5f, 1.7f, 0.0f, 1.5f, 0.0f,
 };
-f32 lbl_3_data_21634[5] = { 0.2f, 0.1f, 0.0044f, 0.5f, 0.3f };
+f32 wallBall_coinPhysicsConsts[5] = { 0.2f, 0.1f, 0.0044f, 0.5f, 0.3f };
 u32 wallBall_nCoinsToGenerate[3] = { 0x1, 0x2, 0x5 };
-s16 lbl_3_data_21654[12] = {
+s16 wallBall_pitchPowerAndCoinTable[12] = {
     30, 123, 150, 10, 17, 22, 17, 5,
     10, 15, 100, 50,
 };
-u8 lbl_3_data_2166C[5] = { 3, 3, 3, 3, 3 };
-u8 lbl_3_data_21671 = 3;
-s16 lbl_3_data_21672 = 1;
-f32 lbl_3_data_21674[2] = { 0.1f, 0.1f };
-s16 lbl_3_data_2167C[6] = { 90, 60, 90, 30, 60, 0 };
-f32 lbl_3_data_21688[3] = { 0.1f, 0.3f, 1.0f };
-s8 lbl_3_data_21694[4][7] = {
+u8 wallBall_inningLimits[5] = { 3, 3, 3, 3, 3 };
+u8 wallBall_inningLimitThreshold = 3;
+s16 wallBall_lastInningMultiplier = 1;
+f32 wallBall_wallBounceConsts[2] = { 0.1f, 0.1f };
+s16 wallBall_frameConsts[6] = { 90, 60, 90, 30, 60, 0 };
+f32 wallBall_wallMotionConsts[3] = { 0.1f, 0.3f, 1.0f };
+s8 wallBall_aiOffsetChance[4][7] = {
     { 90, 95, 100, 100, 100, 100, 80 },
     { 75, 80, 85, 85, 85, 90, 65 },
     { 55, 60, 65, 65, 65, 70, 40 },
     { 55, 60, 65, 65, 65, 70, 40 },
 };
-s8 lbl_3_data_216B0[4][2] = {
+s8 wallBall_aiOffsetRange[4][2] = {
     { -40, 40 },
     { -30, 30 },
     { -20, 20 },
     { -15, 15 },
 };
-s8 lbl_3_data_216B8[4] = { 80, 60, 40, 30 };
+s8 wallBall_aiPerfectMissChance[4] = { 80, 60, 40, 30 };
 f32 barrelBaseCoordinates[45] = {
     -8.4f, 0.0f, 25.0f, -8.4f, 4.5f, 25.0f, -8.4f, 9.0f,
     25.0f, -4.2f, 0.0f, 25.0f, -4.2f, 4.5f, 25.0f, -4.2f,
@@ -333,31 +333,31 @@ f32 barrelBaseCoordinates[45] = {
     25.0f, 4.2f, 9.0f, 25.0f, 8.4f, 0.0f, 25.0f, 8.4f,
     4.5f, 25.0f, 8.4f, 9.0f, 25.0f,
 };
-f32 lbl_3_data_21770[6] = { 2e+01f, -1.0f, 2.1f, 4.5f, 0.2f, 0.1f };
-s16 lbl_3_data_21788[4] = { 3, 5, 10, 0 };
+f32 bB_barrelConsts[6] = { 2e+01f, -1.0f, 2.1f, 4.5f, 0.2f, 0.1f };
+s16 bB_dropConsts[4] = { 3, 5, 10, 0 };
 s16 bB_challengePointsRequired[4] = { 1000, 1500, 2000, 0 };
 u8 cost_15_bB_pitchesPerRound_solo[12] = {
     15, 15, 15, 15, 5, 3, 3, 0,
     63, 0, 0, 0,
 };
-s16 lbl_3_data_217A4[12] = {
+s16 bOD_bB_frameConsts[12] = {
     20, 30, 80, 180, 45, 4, 20, 30,
     120, 130, 90, 0,
 };
-s8 lbl_3_data_217BC[8] = { 1, 0, -1, -3, -4, 0, 0, 0 };
-u8 lbl_3_data_217C4[4] = { 1, 1, 1, 1 };
-s8 lbl_3_data_217C8[4] = { 15, 20, 30, 50 };
+s8 bBAI_swingFrameOffsetByRow[8] = { 1, 0, -1, -3, -4, 0, 0, 0 };
+u8 bBAI_canPreferFewestBarrels[4] = { 1, 1, 1, 1 };
+s8 bBAI_chanceToPreferFewestBarrels[4] = { 15, 20, 30, 50 };
 s8 bBAI_chanceToMissTimeSwing[4] = { 70, 55, 45, 30 };
 s8 bBAI_framesMistimedBy[4] = { 3, 2, 2, 1 };
 s8 bBAI_chanceToOverrideVertAngleToMiddleRow[4] = { 30, 25, 15, 15 };
-f32 lbl_3_data_217D8[4][2] = {
+f32 ccs_resultsRunnerOffsets[4][2] = {
     { 1.5f, 0.0f },
     { 0.5f, 0.0f },
     { -0.5f, 0.0f },
     { -1.5f, 0.0f },
 };
-f32 lbl_3_data_217F8[3] = { 0.0f, 0.0f, 18.5f };
-s16 lbl_3_data_21804[46] = {
+f32 ccs_chompStartPos[3] = { 0.0f, 0.0f, 18.5f };
+s16 ccs_chompJumpRollWeights[46] = {
     50, 90, 110, 150, 150, 150, 150, 150,
     -1, 70, 110, 120, 140, 140, 140, 140,
     140, -1, 100, 100, 100, 140, 140, 140,
@@ -372,17 +372,17 @@ u8 lbl_3_data_21860[5][4] = {
     { 0, 1, 2, 3 },
     { 0, 1, 2, 3 },
 };
-u8 lbl_3_data_21874[8] = { 60, 60, 60, 90, 60, 0, 0, 0 };
-u8 lbl_3_data_2187C[4][2] = {
+u8 ccs_timeLimitSeconds[8] = { 60, 60, 60, 90, 60, 0, 0, 0 };
+u8 ccs_itemWeightsByPhase[4][2] = {
     { 95, 5 },
     { 90, 10 },
     { 80, 20 },
     { 0, 0 },
 };
-u8 lbl_3_data_21884[8] = { 1, 1, 5, 1, 1, 10, 0, 0 };
-f32 lbl_3_data_2188C[7] = { 0.1f, 0.3f, 0.1f, 0.3f, -0.01f, 0.7f, 0.5f };
-s16 lbl_3_data_218A8 = 120;
-u8 lbl_3_data_218AC[16] = {
+u8 ccs_itemGemCounts[8] = { 1, 1, 5, 1, 1, 10, 0, 0 };
+f32 ccs_coinPhysicsConsts[7] = { 0.1f, 0.3f, 0.1f, 0.3f, -0.01f, 0.7f, 0.5f };
+s16 ccs_coinLifetimeFrames = 120;
+u8 ccs_chompTargetThresholds[16] = {
     180, 160, 150, 160, 140, 140, 130, 110,
     100, 130, 120, 110, 150, 130, 110, 0,
 };
@@ -396,14 +396,14 @@ s16 lbl_3_data_21904[12] = {
     50, 120, 10, 0,
 };
 f32 lbl_3_data_2191C[2] = { 0.85f, 2.0f };
-s16 lbl_3_data_21924[4] = { 545, 300, 180, 0 };
-s8 lbl_3_data_2192C[4][2] = {
+s16 ccs_powerupTimers[4] = { 545, 300, 180, 0 };
+s8 ccsAI_bPressDelayRanges[4][2] = {
     { 30, 40 },
     { 10, 20 },
     { 5, 10 },
     { 5, 10 },
 };
-f32 lbl_3_data_21934[4] = { 0.7f, 0.6f, 0.5f, 0.4f };
+f32 ccsAI_targetDistThresholds[4] = { 0.7f, 0.6f, 0.5f, 0.4f };
 s8 lbl_3_data_21944[4][2] = {
     { 30, 40 },
     { 20, 30 },
@@ -436,9 +436,9 @@ s8 lbl_3_data_21974[4][2] = {
 };
 s8 lbl_3_data_2197C[4] = { 10, 20, 30, 30 };
 s8 lbl_3_data_21980[4] = { 4, 5, 6, 7 };
-u8 lbl_3_data_21984[8] = { 60, 60, 60, 90, 60, 0, 0, 0 };
-f32 lbl_3_data_2198C[8] = { 0.0f, 1e+01f, -1e+01f, 2e+01f, 1e+01f, 2e+01f, 0.0f, 3e+01f };
-f32 lbl_3_data_219AC[3] = { 0.0f, 4.0f, 2e+01f };
+u8 sD_timeLimitSeconds[8] = { 60, 60, 60, 90, 60, 0, 0, 0 };
+f32 sD_fielderStartPositions[8] = { 0.0f, 1e+01f, -1e+01f, 2e+01f, 1e+01f, 2e+01f, 0.0f, 3e+01f };
+f32 sD_starSpawnPos[3] = { 0.0f, 4.0f, 2e+01f };
 f32 lbl_3_data_219B8[19] = {
     0.28f, 0.3f, 0.05f, 0.18f, 0.03f, 0.25f, 0.55f, 0.5f,
     0.5f, 0.05f, 0.15f, -0.01f, 0.5f, 0.5f, 0.45f, 0.3f,
@@ -446,21 +446,21 @@ f32 lbl_3_data_219B8[19] = {
 };
 s16 lbl_3_data_21A04[8] = { 15, 30, 1, 420, 128, 1, 10, 10 };
 f32 lbl_3_data_21A14[7] = { 14.0f, 15.0f, 1e+01f, 13.0f, 1.4f, 1.5f, 1.05f };
-s16 lbl_3_data_21A30[6] = { 480, 420, 600, 90, 100, 10 };
-s16 lbl_3_data_21A3C[2][2] = {
+s16 sD_starTimings[6] = { 480, 420, 600, 90, 100, 10 };
+s16 sD_fireBarWaveTimes[2][2] = {
     { 500, 505 },
     { -1, -1 },
 };
-s16 lbl_3_data_21A44 = 2;
+s16 sD_fireBarAngleStep = 2;
 f32 lbl_3_data_21A48[3] = { 0.0f, 0.5f, 2e+01f };
-f32 lbl_3_data_21A54[3] = { 2.0f, 13.0f, 0.4f };
-s16 lbl_3_data_21A60[2] = { 60, 10 };
+f32 sD_fireBarRadii[3] = { 2.0f, 13.0f, 0.4f };
+s16 sD_fireBarGrowParams[2] = { 60, 10 };
 f32 lbl_3_data_21A64[9] = {
     3e+01f, 1.5f, 0.4f, 0.7f, 5e+01f, 0.5f, 6e+01f, 1.2e+02f,
     3e+02f,
 };
-s16 lbl_3_data_21A88[4] = { 2, 3, 4, 4 };
-s16 lbl_3_data_21A90[4][4][2] = {
+s16 sD_thwompSectorDivisors[4] = { 2, 3, 4, 4 };
+s16 sD_thwompTimingRanges[4][4][2] = {
     {
         { 3, 5 },
         { 3, 5 },
@@ -492,26 +492,26 @@ s16 lbl_3_data_21AD0[4][4] = {
     { 4, 3, 2, 1 },
     { 4, 3, 2, 1 },
 };
-s16 lbl_3_data_21AF0 = 20;
-f32 lbl_3_data_21AF4 = 0.2f;
-f32 lbl_3_data_21AF8[6] = { 0.3f, 0.15f, -0.01f, 0.85f, 1.5f, 0.5f };
-s16 lbl_3_data_21B10[3] = { 60, 300, 300 };
-u8 lbl_3_data_21B16 = 80;
-f32 lbl_3_data_21B18[2] = { 0.1f, 0.95f };
+s16 sD_cameraShakeDuration = 20;
+f32 sD_cameraShakeAmplitude = 0.2f;
+f32 sD_powerupConsts[6] = { 0.3f, 0.15f, -0.01f, 0.85f, 1.5f, 0.5f };
+s16 sD_powerupTimers[3] = { 60, 300, 300 };
+u8 sD_powerupRollThreshold = 80;
+f32 sD_stunPushFactors[2] = { 0.1f, 0.95f };
 s16 lbl_3_data_21B20[4] = { 90, 120, 180, 10 };
-f32 lbl_3_data_21B28[4] = { 1.0f, 1.2f, 1.3f, 1.3f };
-f32 lbl_3_data_21B38[4] = { 3.0f, 4.0f, 5.0f, 6.0f };
-f32 lbl_3_data_21B48[4] = { 2.0f, 3.0f, 5.0f, 6.0f };
-f32 lbl_3_data_21B58[4] = { 2.0f, 3.0f, 4.0f, 5.0f };
-f32 lbl_3_data_21B68[4] = { 3.0f, 4.0f, 6.0f, 7.0f };
-f32 lbl_3_data_21B78[4] = { 3.0f, 4.0f, 6.0f, 7.0f };
-s8 lbl_3_data_21B88[4] = { 30, 20, 10, 5 };
-s16 lbl_3_data_21B8C[4] = { 15, 10, 9, 8 };
-f32 lbl_3_data_21B94[12] = {
+f32 sD_aiSprintThresholds[4] = { 1.0f, 1.2f, 1.3f, 1.3f };
+f32 sD_aiHolderChaseRadii[4] = { 3.0f, 4.0f, 5.0f, 6.0f };
+f32 sD_aiThwompAvoidRadii[4] = { 2.0f, 3.0f, 5.0f, 6.0f };
+f32 sD_aiPowerup2Radii[4] = { 2.0f, 3.0f, 4.0f, 5.0f };
+f32 sD_aiPowerup1Radii[4] = { 3.0f, 4.0f, 6.0f, 7.0f };
+f32 sD_aiCoinBagRadii[4] = { 3.0f, 4.0f, 6.0f, 7.0f };
+s8 sD_aiFireBarWideAvoidChance[4] = { 30, 20, 10, 5 };
+s16 sD_aiTurnDivisors[4] = { 15, 10, 9, 8 };
+f32 pP_fielderStartPositions[12] = {
     -7.5f, 0.0f, 0.0f, -2.5f, 0.0f, 0.0f, 2.5f, 0.0f,
     0.0f, 7.5f, 0.0f, 0.0f,
 };
-f32 lbl_3_data_21BC4[86] = {
+f32 pP_spawnerPositions[86] = {
     14.0f, 0.0f, 18.0f, 14.0f, 6.0f, 18.0f, 1e+01f, 5.0f,
     15.0f, 14.0f, 7.0f, 18.0f, 0.0f, 0.0f, 3e+01f, 0.0f,
     6.0f, 3e+01f, 0.0f, 5.0f, 25.0f, 0.0f, 7.0f, 3e+01f,
@@ -524,16 +524,16 @@ f32 lbl_3_data_21BC4[86] = {
     0.0f, 0.0f, -1e+01f, 0.0f, 0.0f, -1e+01f, 0.0f, 0.0f,
     -1e+01f, 0.0f, 0.0f, -1e+01f, 1.5f, 1.75f,
 };
-f32 lbl_3_data_21D1C[4] = { 0.35f, 1.0f, 0.35f, 1.0f };
+f32 pP_spawnerYRanges[4] = { 0.35f, 1.0f, 0.35f, 1.0f };
 f32 lbl_3_data_21D2C[2] = { 0.0f, 1.0f };
-f32 lbl_3_data_21D34[36] = {
+f32 pP_goalBallPositions[36] = {
     -7.5f, 1.0f, -2.0f, -7.5f, 0.5f, -4.0f, -7.5f, 0.0f,
     -6.0f, -2.5f, 1.0f, -2.0f, -2.5f, 0.5f, -4.0f, -2.5f,
     0.0f, -6.0f, 2.5f, 1.0f, -2.0f, 2.5f, 0.5f, -4.0f,
     2.5f, 0.0f, -6.0f, 7.5f, 1.0f, -2.0f, 7.5f, 0.5f,
     -4.0f, 7.5f, 0.0f, -6.0f,
 };
-s16 lbl_3_data_21DC4[2] = { 30, 45 };
+s16 pP_spawnDelayRange[2] = { 30, 45 };
 s16 lbl_3_data_21DC8[5][6] = {
     { 20, 30, 20, 50, 60, 50 },
     { 20, 30, 20, 50, 60, 50 },
@@ -542,12 +542,12 @@ s16 lbl_3_data_21DC8[5][6] = {
     { 20, 30, 20, 50, 60, 50 },
 };
 s16 lbl_3_data_21E04[2] = { 180, 240 };
-u8 lbl_3_data_21E08[8] = { 60, 60, 60, 90, 60, 0, 0, 0 };
-u8 lbl_3_data_21E10[8] = { 5, 5, 5, 5, 30, 40, 0, 0 };
+u8 pP_timeLimitSeconds[8] = { 60, 60, 60, 90, 60, 0, 0, 0 };
+u8 pP_hitsRequiredByKind[8] = { 5, 5, 5, 5, 30, 40, 0, 0 };
 u8 lbl_3_data_21E18[4] = { 1, 1, 2, 2 };
-u8 lbl_3_data_21E1C[2] = { 45, 30 };
+u8 pP_throwFramesRange[2] = { 45, 30 };
 u8 lbl_3_data_21E20[3] = { 70, 20, 10 };
-f32 lbl_3_data_21E24[17] = {
+f32 pP_ballPhysicsConsts[17] = {
     0.5f, 2.0f, 0.25f, 1.0f, 0.75f, 1.0f, 0.75f, 1.0f,
     0.3f, 0.3f, 0.2f, -0.01f, 0.99f, 0.75f, 1.0f, 3.0f,
     0.01f,
@@ -558,13 +558,13 @@ s16 lbl_3_data_21E68[26] = {
     10, 90, 30, 0, 150, 50, 80, 60,
     3, 0,
 };
-u8 lbl_3_data_21E9C[4][4] = {
+u8 pP_aiActionWeights[4][4] = {
     { 0, 10, 20, 70 },
     { 15, 15, 30, 40 },
     { 40, 20, 20, 20 },
     { 50, 20, 20, 20 },
 };
-s16 lbl_3_data_21EAC[4][2] = {
+s16 pP_aiActionDelayRanges[4][2] = {
     { 30, 60 },
     { 20, 35 },
     { 8, 15 },
@@ -572,7 +572,7 @@ s16 lbl_3_data_21EAC[4][2] = {
 };
 s8 lbl_3_data_21EBC[4] = { 70, 40, 20, 15 };
 s8 lbl_3_data_21EC0[4] = { 30, 50, 70, 85 };
-u8 lbl_3_data_21EC4[4] = { 10, 6, 3, 0 };
+u8 minigameGrandPrixRankPoints[4] = { 10, 6, 3, 0 };
 u32 CommonUIFiles_minigame[62][4] = {
     { 0x40B, 0x4013764C, 0x1A635000, 0x7DB48 },
     { 0x40B, 0x4003E3DC, 0x1A6B3000, 0x21420 },
@@ -907,29 +907,29 @@ void minigames_setupChallengeRoster(void) {
         } else {
             g_Minigame.selectSlotState[i] = 1;
             n++;
-            g_Minigame.playerSlots.aiStrength[i] = lbl_3_data_18978[g_d_GameSettings.challengeDifficulty];
-            if (n >= lbl_3_data_18944[g_Minigame.GameMode_MiniGame]) {
+            g_Minigame.playerSlots.aiStrength[i] = minigameChallengeAIStrength[g_d_GameSettings.challengeDifficulty];
+            if (n >= minigameChallengeOpponentCounts[g_Minigame.GameMode_MiniGame]) {
                 break;
             }
         }
     }
 
-    g_Minigame.miniGameNumberOfParticipants = lbl_3_data_18944[g_Minigame.GameMode_MiniGame] + 1;
+    g_Minigame.miniGameNumberOfParticipants = minigameChallengeOpponentCounts[g_Minigame.GameMode_MiniGame] + 1;
     g_Minigame._1907 = 1;
     g_Minigame.multiPlayerInd = 1;
     g_Minigame.soloMinigameDifficulty = 0;
     for (k = 0; k < 6; k++) {
-        arr[k] = lbl_3_data_1894C[g_Minigame.GameMode_MiniGame * 7 + 1 + k];
+        arr[k] = minigameChallengeOpponentPools[g_Minigame.GameMode_MiniGame * 7 + 1 + k];
     }
     idx = 0;
-    for (j = 0; j < lbl_3_data_18944[g_Minigame.GameMode_MiniGame]; j++) {
+    for (j = 0; j < minigameChallengeOpponentCounts[g_Minigame.GameMode_MiniGame]; j++) {
         for (;;) {
             if (g_Minigame.selectSlotState[idx] == 1) {
                 break;
             }
             idx++;
         }
-        r = random_fn_3_9EE24(lbl_3_data_1894C[g_Minigame.GameMode_MiniGame * 7] - j);
+        r = random_fn_3_9EE24(minigameChallengeOpponentPools[g_Minigame.GameMode_MiniGame * 7] - j);
         for (k = 0; k < 6; k++) {
             if (arr[k] == 0xFF) {
                 continue;
@@ -1090,7 +1090,7 @@ void minigameSelectMenuUpdate(void) {
 
     if (animRelated[0xBB] == 0) {
         if (input->newButtonInput & INPUT_BUTTON_A) {
-            u8 id = lbl_3_data_21268[(s8)g_Minigame._19E1];
+            u8 id = minigameSelectMenuGameIDs[(s8)g_Minigame._19E1];
 
             if (id == MINI_GAME_ID_STAR_DASH && g_d_GameSettings._12 < 1) {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
@@ -1116,7 +1116,7 @@ void minigameSelectMenuUpdate(void) {
             }
         }
     }
-    g_Minigame.GameMode_MiniGame = lbl_3_data_21268[(s8)g_Minigame._19E1];
+    g_Minigame.GameMode_MiniGame = minigameSelectMenuGameIDs[(s8)g_Minigame._19E1];
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_MARIO_GRAND_PRIX) {
         g_Minigame._1A3C = 1;
     } else {
@@ -1478,18 +1478,18 @@ void minigameCharSelectUpdate(void) {
                 g_Minigame._19DE = 7;
             } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_d_GameSettings.exhibitionMatchInd != FALSE) {
                 g_Minigame._19DE = 2;
-                g_Minigame._19E6 = lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + 4];
-            } else if (g_Minigame._19E7 >= lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + 4]) {
+                g_Minigame._19E6 = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4];
+            } else if (g_Minigame._19E7 >= minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4]) {
                 g_Minigame._19DE = 1;
-                if (g_Minigame._19E7 >= lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + 4]) {
+                if (g_Minigame._19E7 >= minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4]) {
                     g_Minigame._1A0D = 0;
                 } else {
-                    g_Minigame._1A0D = lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + 4] - g_Minigame._19E7;
+                    g_Minigame._1A0D = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4] - g_Minigame._19E7;
                 }
                 g_Minigame._1A0E = 4 - g_Minigame._19E7;
                 g_Minigame._19E3 = g_Minigame._1A0D;
             } else {
-                g_Minigame._19E6 = lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + 4];
+                g_Minigame._19E6 = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4];
                 g_Minigame._19DE = 2;
             }
         }
@@ -1766,7 +1766,7 @@ void minigameCharSelectUpdate(void) {
                     sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
                 }
             }
-            g_Minigame._19E6 = lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + (s8)g_Minigame._19E4];
+            g_Minigame._19E6 = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + (s8)g_Minigame._19E4];
         }
     } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 90) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
@@ -1989,8 +1989,8 @@ void minigames_pickOpponentsAndLoadStats(void) {
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_d_GameSettings.exhibitionMatchInd == FALSE) {
-        for (i = 0; i < lbl_3_data_1894C[0]; i++) {
-            pool[i] = lbl_3_data_1894C[i + 1];
+        for (i = 0; i < minigameChallengeOpponentPools[0]; i++) {
+            pool[i] = minigameChallengeOpponentPools[i + 1];
         }
     } else if (g_Minigame._1A3C != 0) {
         for (i = 0; i < 12; i++) {
@@ -2044,7 +2044,7 @@ void minigames_pickOpponentsAndLoadStats(void) {
                     pool[i] = -1;
                 }
             } else {
-                u8* row = lbl_3_data_212A4 + idx * 6;
+                u8* row = minigame_exhibitionOpponentCharIDs + idx * 6;
 
                 for (i = 0; i < 6; i++) {
                     pool[i] = row[i];
@@ -2227,7 +2227,7 @@ static inline void minigameOptionSetup(u8 selected) {
     }
     g_Minigame._1A21 = 0;
     for (k = 0; k < 5; k++) {
-        if (lbl_3_data_B060[mode][g_Minigame._1A20][k] >= 0) {
+        if (minigameHelpPageIDs[mode][g_Minigame._1A20][k] >= 0) {
             g_Minigame._1A21++;
         }
     }
@@ -2394,8 +2394,8 @@ void minigameStartSwitcher(void) {
         if (lbl_8037169C[0x12] == 0) {
             return;
         }
-        if (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[1] && checkForButtonPressToSkip(2, 0x1100))) {
+        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2] ||
+            (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[1] && checkForButtonPressToSkip(2, 0x1100))) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_7;
             changeScene(3, 6);
             fn_8003A540(0);
@@ -2602,7 +2602,7 @@ void minigameEndSwitcher(void) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == lbl_3_data_2137C[1]) {
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == minigameResultsFrames[1]) {
             animRelated[0xB8] = 1;
         }
         if (g_Minigame._1A44 == 1) {
@@ -2716,7 +2716,7 @@ void minigameEndSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_9:
-        challenge_setTransitionScreenCharacterPortrait(12, (s8)lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
+        challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
         if (lbl_8037169C[0x13] != 0) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_10;
         }
@@ -3003,7 +3003,7 @@ void postMinigame(void) {
                 SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
             }
         } else {
-            switch ((lbl_3_data_188FC + pauseControl._1D0 * 5)[pauseControl.cursor - 0x32]) {
+            switch ((postMinigameMenuActions + pauseControl._1D0 * 5)[pauseControl.cursor - 0x32]) {
             case 0:
                 g_Minigame._1A38 = 1;
                 SetGameStatus(GAME_STATUS_LOAD_GAME);
@@ -3032,7 +3032,7 @@ void postMinigame(void) {
         mm_UnloadModels();
         if (g_Minigame._1A39 != 0) {
             minigames_pickOpponentsAndLoadStats();
-            g_Minigame.miniGameNumberOfParticipants = lbl_3_data_18920[g_Minigame.GameMode_MiniGame * 5 + g_Minigame.soloMinigameDifficulty];
+            g_Minigame.miniGameNumberOfParticipants = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + g_Minigame.soloMinigameDifficulty];
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.aiControlledInd[i] != 0) {
                     if (g_Minigame.miniGameNumberOfParticipants == 1) {
@@ -3118,7 +3118,7 @@ void postMinigameMenuUpdate(void) {
                 pauseControl.state = 6;
             }
         } else {
-            switch ((lbl_3_data_188FC + menu * 5)[pauseControl.cursor]) {
+            switch ((postMinigameMenuActions + menu * 5)[pauseControl.cursor]) {
             case 4:
                 pauseControl.state = 8;
                 break;
@@ -3242,7 +3242,7 @@ void minigamePause(void) {
     case 9:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
-                challenge_setTransitionScreenCharacterPortrait(12, (s8)lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
+                challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
             } else {
                 changeScene(4, 6);
             }
@@ -3302,7 +3302,7 @@ void minigamePauseMenuUpdate(void) {
         pauseControl.state = 4;
     } else if (input->newButtonInput & INPUT_BUTTON_A) {
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        switch ((lbl_3_data_188E8 + type * 6)[pauseControl.cursor]) {
+        switch ((minigamePauseMenuActions + type * 6)[pauseControl.cursor]) {
         case 0:
             pauseControl.state = 4;
             break;
@@ -3710,7 +3710,7 @@ void minigames_0x26(void) {
         minigame_rankPlayers(order, 0);
         i = 0;
         do {
-            g_Minigame._1E22[order[i][0]] += lbl_3_data_21EC4[order[i][1]] * ((g_Minigame.grandPrixRound >= 6) + 1);
+            g_Minigame._1E22[order[i][0]] += minigameGrandPrixRankPoints[order[i][1]] * ((g_Minigame.grandPrixRound >= 6) + 1);
             i++;
         } while (i < g_Minigame.miniGameNumberOfParticipants);
         minigame_rankPlayers(g_Minigame.grandPrixRanks, 1);
@@ -3789,7 +3789,7 @@ void minigames_0x27(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_1:
         changeScene(1, 6);
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == lbl_3_data_2137C[1]) {
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == minigameResultsFrames[1]) {
             animRelated[0xB8] = 1;
         }
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 300) {

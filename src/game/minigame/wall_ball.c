@@ -30,29 +30,29 @@
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x8004abd8.h"
 
-extern f32 lbl_3_data_21674[];
-extern f32 lbl_3_data_21634[];
-extern s16 lbl_3_data_2167C[];
+extern f32 wallBall_wallBounceConsts[];
+extern f32 wallBall_coinPhysicsConsts[];
+extern s16 wallBall_frameConsts[];
 extern f32 lbl_3_data_219B8[];
-extern f32 lbl_3_data_21688[];
-extern f32 lbl_3_data_215C8[];
-extern VecXYZ lbl_3_data_215E0[];
-extern s16 lbl_3_data_21654[];
+extern f32 wallBall_wallMotionConsts[];
+extern f32 wallBall_wallStateOffsets[];
+extern VecXYZ wallBall_coinSpawnPositions[];
+extern s16 wallBall_pitchPowerAndCoinTable[];
 extern u32 wallBall_nCoinsToGenerate[];
-extern s8 lbl_3_data_21694[4][7];
-extern s8 lbl_3_data_216B0[4][2];
-extern s8 lbl_3_data_216B8[];
+extern s8 wallBall_aiOffsetChance[4][7];
+extern s8 wallBall_aiOffsetRange[4][2];
+extern s8 wallBall_aiPerfectMissChance[];
 extern s16 lbl_3_data_5F3C[];
-extern f32 lbl_3_data_21500[];
+extern f32 wallBall_pitcherWaitingOffsets[];
 extern f32 fieldingStartingCoords_regular[];
-extern VecXYZ lbl_3_data_21520[];
+extern VecXYZ wallBall_wallPosTable[];
 extern void fn_800246D4(void* cmp, void* base, void* scratch, int size, int count);
 extern void fn_8004C108(VecXYZ* pos, BOOL flag);
-extern s16 lbl_3_data_18C48[10];
-extern u8 lbl_3_data_2166C[5];
-extern u8 lbl_3_data_21671;
-extern s16 lbl_3_data_21672;
-extern u8 lbl_3_data_2127C[8][5];
+extern s16 minigameTuningConstants[10];
+extern u8 wallBall_inningLimits[5];
+extern u8 wallBall_inningLimitThreshold;
+extern s16 wallBall_lastInningMultiplier;
+extern u8 minigameAIStrengthTable[8][5];
 extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_8037169C[0x1C];
@@ -161,11 +161,11 @@ void wallBallSituationSwitcher(void) {
             u8* visible = (u8*)&g_Minigame;
             u8* frames = (u8*)&g_Minigame;
             u8* vector = (u8*)&g_Minigame;
-            f32 gravity = lbl_3_data_21634[2];
+            f32 gravity = wallBall_coinPhysicsConsts[2];
             f32 floor = lbl_3_data_219B8[14];
-            f32 bounce = lbl_3_data_21634[3];
-            f32 damping = lbl_3_data_21634[4];
-            s16 lifetime = lbl_3_data_2167C[4];
+            f32 bounce = wallBall_coinPhysicsConsts[3];
+            f32 damping = wallBall_coinPhysicsConsts[4];
+            s16 lifetime = wallBall_frameConsts[4];
 
             for (i = 0; i < WALL_BALL_MAX_COINS; i++, visible++, frames += 2, vector += 12) {
                 if (visible[WALL_BALL_COIN_VISIBLE_OFFSET]) {
@@ -267,19 +267,19 @@ void wallBallInitializeValues(void) {
         if (g_Minigame.multiPlayerInd == 0) {
             int diff = g_Minigame.soloMinigameDifficulty;
 
-            g_Scores.inningLimit = lbl_3_data_2166C[diff];
-            g_Minigame.minigameControlStruct[0].aIStrength[0] = lbl_3_data_2127C[g_Minigame.GameMode_MiniGame][diff];
+            g_Scores.inningLimit = wallBall_inningLimits[diff];
+            g_Minigame.minigameControlStruct[0].aIStrength[0] = minigameAIStrengthTable[g_Minigame.GameMode_MiniGame][diff];
             g_Minigame.minigameControlStruct[0].aIStrength[1] = g_Minigame.minigameControlStruct[0].aIStrength[0];
             g_Minigame.minigameControlStruct[0].aIStrength[2] = g_Minigame.minigameControlStruct[0].aIStrength[0];
             g_Minigame.minigameControlStruct[0].aIStrength[3] = g_Minigame.minigameControlStruct[0].aIStrength[0];
         } else {
             if (g_Minigame._1A3C != 0) {
-                g_Minigame.minigameControlStruct[0].aIStrength[0] = lbl_3_data_2127C[7][0];
-                g_Minigame.minigameControlStruct[0].aIStrength[1] = lbl_3_data_2127C[7][0];
-                g_Minigame.minigameControlStruct[0].aIStrength[2] = lbl_3_data_2127C[7][0];
-                g_Minigame.minigameControlStruct[0].aIStrength[3] = lbl_3_data_2127C[7][0];
+                g_Minigame.minigameControlStruct[0].aIStrength[0] = minigameAIStrengthTable[7][0];
+                g_Minigame.minigameControlStruct[0].aIStrength[1] = minigameAIStrengthTable[7][0];
+                g_Minigame.minigameControlStruct[0].aIStrength[2] = minigameAIStrengthTable[7][0];
+                g_Minigame.minigameControlStruct[0].aIStrength[3] = minigameAIStrengthTable[7][0];
             }
-            g_Scores.inningLimit = lbl_3_data_2166C[4];
+            g_Scores.inningLimit = wallBall_inningLimits[4];
         }
 
         j = 0;
@@ -443,8 +443,8 @@ void wallBallRoundIntro(void) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= lbl_3_data_18C48[1] &&
+        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2] ||
+            (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[1] &&
              checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_A))) {
             changeScene(3, 6);
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
@@ -503,11 +503,11 @@ void wallBallAtBat(void) {
         u8* visible = (u8*)&g_Minigame;
         u8* frames = (u8*)&g_Minigame;
         u8* vector = (u8*)&g_Minigame;
-        f32 gravity = lbl_3_data_21634[2];
+        f32 gravity = wallBall_coinPhysicsConsts[2];
         f32 floor = lbl_3_data_219B8[14];
-        f32 bounce = lbl_3_data_21634[3];
-        f32 damping = lbl_3_data_21634[4];
-        s16 lifetime = lbl_3_data_2167C[4];
+        f32 bounce = wallBall_coinPhysicsConsts[3];
+        f32 damping = wallBall_coinPhysicsConsts[4];
+        s16 lifetime = wallBall_frameConsts[4];
 
         for (i = 0; i < WALL_BALL_MAX_COINS; i++, visible++, frames += 2, vector += 12) {
             if (visible[WALL_BALL_COIN_VISIBLE_OFFSET]) {
@@ -544,10 +544,10 @@ void wallBallCalculatePointsAndEndTurn(void) {
                    g_Pitcher.currentStateFrameCounter == 74) {
             g_Minigame._1A8C[0] = 1;
         }
-    } else if (g_Minigame.postBallStoppedCounter > lbl_3_data_2167C[2]) {
+    } else if (g_Minigame.postBallStoppedCounter > wallBall_frameConsts[2]) {
         turnEnded = TRUE;
     } else if (g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE &&
-               g_Minigame.postBallStoppedCounter == lbl_3_data_2167C[2]) {
+               g_Minigame.postBallStoppedCounter == wallBall_frameConsts[2]) {
         g_Minigame._1A8C[0] = 1;
     }
 
@@ -560,12 +560,12 @@ void wallBallCalculatePointsAndEndTurn(void) {
             if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
                 g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 if (g_Scores.Inning == g_Scores.inningLimit) {
-                    multiplier = lbl_3_data_21672;
+                    multiplier = wallBall_lastInningMultiplier;
                 }
             }
 
             if (g_Minigame.wallBall_hitNoteBlock == 1) {
-                delta = g_Minigame.wallBall_UnknownAlways0 + lbl_3_data_21654[10] * multiplier;
+                delta = g_Minigame.wallBall_UnknownAlways0 + wallBall_pitchPowerAndCoinTable[10] * multiplier;
                 g_Minigame.miniGameCurrentPoints[(s8)g_Minigame.minigamePlayerSelectedOrder] += delta;
                 g_Minigame.wallBall_UnknownAlways0 = 0;
             } else {
@@ -608,7 +608,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
                 g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 g_Scores.Inning--;
                 if (g_Minigame.wallBall_hitNoteBlock == 1) {
-                    if (g_Scores.inningLimit < lbl_3_data_21671) {
+                    if (g_Scores.inningLimit < wallBall_inningLimitThreshold) {
                         g_Scores.inningLimit++;
                     }
                 } else {
@@ -647,7 +647,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
 void wallBallTurnOverCountdown(void) {
     if (g_Minigame.turnOverStatus == 1) {
         g_Minigame.turnOverStatus = 2;
-        g_GameLogic.CountdownUntilFade = lbl_3_data_2167C[0];
+        g_GameLogic.CountdownUntilFade = wallBall_frameConsts[0];
     }
     g_GameLogic.CountdownUntilFade--;
     if (g_GameLogic.CountdownUntilFade == 7) {
@@ -696,8 +696,8 @@ void wallBallRotatePitchers(int force) {
                 g_Minigame.wallBallWaitingLocations[(s8)*((u8*)base + 0x18E0 + i) * 2] = fieldingStartingCoords_regular[0];
                 g_Minigame.wallBallWaitingLocations[(s8)*((u8*)base + 0x18E0 + i) * 2 + 1] = fieldingStartingCoords_regular[1];
             } else {
-                g_Minigame.wallBallWaitingLocations[(s8)*((u8*)base + 0x18E0 + i) * 2] = lbl_3_data_21500[relative * 2];
-                g_Minigame.wallBallWaitingLocations[(s8)*((u8*)base + 0x18E0 + i) * 2 + 1] = lbl_3_data_21500[relative * 2 + 1];
+                g_Minigame.wallBallWaitingLocations[(s8)*((u8*)base + 0x18E0 + i) * 2] = wallBall_pitcherWaitingOffsets[relative * 2];
+                g_Minigame.wallBallWaitingLocations[(s8)*((u8*)base + 0x18E0 + i) * 2 + 1] = wallBall_pitcherWaitingOffsets[relative * 2 + 1];
             }
         }
         if (force) {
@@ -710,7 +710,7 @@ void wallBallRotatePitchers(int force) {
             return;
         }
     }
-    if (g_Minigame.wallBallPitcherRotationCounter >= lbl_3_data_2167C[1]) {
+    if (g_Minigame.wallBallPitcherRotationCounter >= wallBall_frameConsts[1]) {
         g_Minigame.wallBallRotatePitchersInd = FALSE;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.minigameControlStruct[0].characterIndex[i] >= 0) {
@@ -722,7 +722,7 @@ void wallBallRotatePitchers(int force) {
     }
 
     {
-        f32 frames = (f32)(lbl_3_data_2167C[1] - g_Minigame.wallBallPitcherRotationCounter);
+        f32 frames = (f32)(wallBall_frameConsts[1] - g_Minigame.wallBallPitcherRotationCounter);
         f32 factor = 1.0f / frames;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.minigameControlStruct[0].characterIndex[i] >= 0) {
@@ -837,22 +837,22 @@ void wallBallCalculateNewWalls(void) {
         do {
             u8 index = *((u8*)&g_Minigame + MINIGAME_OFFSET(wallIndexTracker) + rank);
             MaybeWallBallStruct* wall = WALL_BALL_WALL(index);
-            wall->_C = lbl_3_data_21520[wall->coinRelated[0]].x;
-            wall->_10 = lbl_3_data_21520[wall->coinRelated[0]].y;
-            wall->_14 = lbl_3_data_21520[wall->coinRelated[0]].z;
+            wall->_C = wallBall_wallPosTable[wall->coinRelated[0]].x;
+            wall->_10 = wallBall_wallPosTable[wall->coinRelated[0]].y;
+            wall->_14 = wallBall_wallPosTable[wall->coinRelated[0]].z;
             if (rank < active) {
                 wall->_28 = 2;
             } else {
                 wall->_0 = wall->_C;
                 wall->_4 = wall->_10;
                 wall->zPositionOfSomeWall = wall->_14;
-                wall->_0 += lbl_3_data_21520[WALL_BALL_WALL_COUNT + wall->coinRelated[0]].x;
-                wall->_4 += lbl_3_data_21520[WALL_BALL_WALL_COUNT + wall->coinRelated[0]].y;
-                wall->zPositionOfSomeWall += lbl_3_data_21520[WALL_BALL_WALL_COUNT + wall->coinRelated[0]].z;
+                wall->_0 += wallBall_wallPosTable[WALL_BALL_WALL_COUNT + wall->coinRelated[0]].x;
+                wall->_4 += wallBall_wallPosTable[WALL_BALL_WALL_COUNT + wall->coinRelated[0]].y;
+                wall->zPositionOfSomeWall += wallBall_wallPosTable[WALL_BALL_WALL_COUNT + wall->coinRelated[0]].z;
                 wall->_28 = 1;
                 wall->coinGenerationCategory = 1;
                 counts[wall->coinGenerationCategory]++;
-                wall->_24 = lbl_3_data_21654[4 + wall->coinGenerationCategory];
+                wall->_24 = wallBall_pitchPowerAndCoinTable[4 + wall->coinGenerationCategory];
             }
             wall->_26 = 0;
             wall->_20 = wall->_1C = wall->_18 = 0.0f;
@@ -880,7 +880,7 @@ void wallBallCalculateNewWalls(void) {
             {
                 MaybeWallBallStruct* wall = WALL_BALL_WALL(g_Minigame.wallIndexTracker[chosen]);
                 wall->coinGenerationCategory = 2;
-                wall->_24 = lbl_3_data_21654[4 + wall->coinGenerationCategory];
+                wall->_24 = wallBall_pitchPowerAndCoinTable[4 + wall->coinGenerationCategory];
                 counts[1]--;
             }
         }
@@ -912,7 +912,7 @@ void wallBallCalculateNewWalls(void) {
                     MaybeWallBallStruct* wall = WALL_BALL_WALL(g_Minigame.wallIndexTracker[candidates[selected]]);
                     wall->coinGenerationCategory = 0;
                     counts[1]--;
-                    wall->_24 = lbl_3_data_21654[4 + wall->coinGenerationCategory];
+                    wall->_24 = wallBall_pitchPowerAndCoinTable[4 + wall->coinGenerationCategory];
                     {
                         unsigned int shift = selected;
                         for (; shift < candidateCount - 1; shift++) candidates[shift] = candidates[shift + 1];
@@ -954,9 +954,9 @@ void wallBallDropInNewWalls(void) {
     for (i = 0; i < WALL_BALL_WALL_COUNT; i++) {
         MaybeWallBallStruct* wall = WALL_BALL_WALL(i);
         if (wall->_28 == 2) {
-            wall->_0 += lbl_3_data_215C8[3];
-            wall->_4 += lbl_3_data_215C8[4];
-            wall->zPositionOfSomeWall += lbl_3_data_215C8[5];
+            wall->_0 += wallBall_wallStateOffsets[3];
+            wall->_4 += wallBall_wallStateOffsets[4];
+            wall->zPositionOfSomeWall += wallBall_wallStateOffsets[5];
             if (wall->zPositionOfSomeWall >= wall->_14) {
                 wall->zPositionOfSomeWall = wall->_14;
                 wall->_28 = 3;
@@ -969,9 +969,9 @@ void wallBallDropInNewWalls(void) {
         for (i = 0; i < WALL_BALL_WALL_COUNT; i++) {
             MaybeWallBallStruct* wall = WALL_BALL_WALL(i);
             if (wall->_28 == 1) {
-                wall->_0 += lbl_3_data_215C8[0];
-                wall->_4 += lbl_3_data_215C8[1];
-                wall->zPositionOfSomeWall += lbl_3_data_215C8[2];
+                wall->_0 += wallBall_wallStateOffsets[0];
+                wall->_4 += wallBall_wallStateOffsets[1];
+                wall->zPositionOfSomeWall += wallBall_wallStateOffsets[2];
                 if (wall->_4 <= wall->_10) {
                     wall->_4 = wall->_10;
                     wall->_28 = 3;
@@ -995,7 +995,7 @@ void wallBallHandleWallHit(void) {
 
     for (i = 0; i < WALL_BALL_WALL_COUNT; i++) {
         MaybeWallBallStruct* wall = WALL_BALL_WALL(i);
-        f32 ballZ = g_Ball.AtBat_Contact_BallPos.z - g_Ball.groundYForBounces - lbl_3_data_21674[1];
+        f32 ballZ = g_Ball.AtBat_Contact_BallPos.z - g_Ball.groundYForBounces - wallBall_wallBounceConsts[1];
         if (wall->_28 != 3 || !(ballZ <= wall->zPositionOfSomeWall) || g_Minigame.ballStoppedBreakingWallsInd) continue;
 
         wall->_24 -= g_Minigame.wallBallPitchPowerRemaining;
@@ -1004,28 +1004,28 @@ void wallBallHandleWallHit(void) {
             u8 count;
             g_Minigame.wallBallPitchPowerRemaining = -wall->_24;
             wall->_28 = 4;
-            g_Minigame.miniGameLatestPoints[(s8)g_Minigame.minigamePlayerSelectedOrder] += lbl_3_data_21654[7 + wall->coinGenerationCategory];
+            g_Minigame.miniGameLatestPoints[(s8)g_Minigame.minigamePlayerSelectedOrder] += wallBall_pitchPowerAndCoinTable[7 + wall->coinGenerationCategory];
             count = (u8)wallBall_nCoinsToGenerate[wall->coinGenerationCategory];
             for (coin = 0; coin < WALL_BALL_MAX_COINS; coin++) {
                 if (WALL_BALL_COIN_VISIBLE(coin) == FALSE) {
                     f32 angle;
                     WALL_BALL_COIN_FRAMES(coin) = 0;
                     WALL_BALL_COIN_VISIBLE(coin) = TRUE;
-                    WALL_BALL_COIN_POSITION(coin)->x = lbl_3_data_215E0[wall->coinRelated[0]].x;
-                    WALL_BALL_COIN_POSITION(coin)->y = lbl_3_data_215E0[wall->coinRelated[0]].y;
-                    WALL_BALL_COIN_POSITION(coin)->z = lbl_3_data_215E0[wall->coinRelated[0]].z;
+                    WALL_BALL_COIN_POSITION(coin)->x = wallBall_coinSpawnPositions[wall->coinRelated[0]].x;
+                    WALL_BALL_COIN_POSITION(coin)->y = wallBall_coinSpawnPositions[wall->coinRelated[0]].y;
+                    WALL_BALL_COIN_POSITION(coin)->z = wallBall_coinSpawnPositions[wall->coinRelated[0]].z;
                     angle = MTXDegToRad((f32)(rand() % 180));
-                    WALL_BALL_COIN_VELOCITY(coin)->x = lbl_3_data_21634[1] * (f32)cos(angle);
-                    WALL_BALL_COIN_VELOCITY(coin)->z = lbl_3_data_21634[1] * (f32)sin(angle);
-                    WALL_BALL_COIN_VELOCITY(coin)->y = lbl_3_data_21634[0];
+                    WALL_BALL_COIN_VELOCITY(coin)->x = wallBall_coinPhysicsConsts[1] * (f32)cos(angle);
+                    WALL_BALL_COIN_VELOCITY(coin)->z = wallBall_coinPhysicsConsts[1] * (f32)sin(angle);
+                    WALL_BALL_COIN_VELOCITY(coin)->y = wallBall_coinPhysicsConsts[0];
                     if ((u8)--count == 0) break;
                 }
             }
             setCharacterAnimations(g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder], 0);
         } else {
             wall->_18 = 0.0f;
-            wall->_1C = lbl_3_data_21688[0];
-            wall->_20 = lbl_3_data_21688[1];
+            wall->_1C = wallBall_wallMotionConsts[0];
+            wall->_20 = wallBall_wallMotionConsts[1];
             callSfx(0x2E1);
             wallBallBounceBallOffWall();
         }
@@ -1035,7 +1035,7 @@ void wallBallHandleWallHit(void) {
 
 // .text:0x00113EC0 size:0x54 mapped:0x80752F54
 void wallBallBounceBallOffWall(void) {
-    f32 factor = lbl_3_data_21674[0];
+    f32 factor = wallBall_wallBounceConsts[0];
     g_Pitcher.ballVelocity.z = -g_Pitcher.ballVelocity.z;
     g_Pitcher.ballVelocity.x *= factor;
     g_Pitcher.ballVelocity.y *= factor;
@@ -1073,8 +1073,8 @@ void wallBallUpdateWallWobble(void) {
         }
 
         if (crossed) {
-            wall->_1C *= lbl_3_data_21688[2];
-            if (fabs(wall->_1C) < wall->_20 * lbl_3_data_21688[2]) {
+            wall->_1C *= wallBall_wallMotionConsts[2];
+            if (fabs(wall->_1C) < wall->_20 * wallBall_wallMotionConsts[2]) {
                 wall->_20 = 0.0f;
                 wall->_1C = 0.0f;
                 wall->_18 = 0.0f;
@@ -1093,12 +1093,12 @@ void wallBallCalc_WallsBroken(void) {
 
     if (g_Ball.pitchHangtimeCounter != 1) return;
 
-    g_Minigame.wallBallPitchPower = lbl_3_data_21654[3];
+    g_Minigame.wallBallPitchPower = wallBall_pitchPowerAndCoinTable[3];
     if (g_Pitcher.ChargePitchType == 3) {
-        g_Minigame.wallBallPitchPower = lbl_3_data_21654[2];
+        g_Minigame.wallBallPitchPower = wallBall_pitchPowerAndCoinTable[2];
     } else if (g_Pitcher.ChargePitchType >= 2) {
         g_Minigame.wallBallPitchPower = (s16)LinearInterpolateToNewRange(
-            g_Pitcher.pitchChargeUp, 0.0f, 1.0f, (f32)lbl_3_data_21654[0], (f32)lbl_3_data_21654[1]);
+            g_Pitcher.pitchChargeUp, 0.0f, 1.0f, (f32)wallBall_pitchPowerAndCoinTable[0], (f32)wallBall_pitchPowerAndCoinTable[1]);
     }
     g_Minigame.wallBallPitchPowerRemaining = g_Minigame.wallBallPitchPower;
 
@@ -1154,11 +1154,11 @@ void wallBallUpdateCoins(void) {
     u8* visible = (u8*)&g_Minigame;
     u8* frames = (u8*)&g_Minigame;
     u8* vector = (u8*)&g_Minigame;
-    f32 gravity = lbl_3_data_21634[2];
+    f32 gravity = wallBall_coinPhysicsConsts[2];
     f32 floor = lbl_3_data_219B8[14];
-    f32 bounce = lbl_3_data_21634[3];
-    f32 damping = lbl_3_data_21634[4];
-    s16 lifetime = lbl_3_data_2167C[4];
+    f32 bounce = wallBall_coinPhysicsConsts[3];
+    f32 damping = wallBall_coinPhysicsConsts[4];
+    s16 lifetime = wallBall_frameConsts[4];
 
     for (i = 0; i < WALL_BALL_MAX_COINS; i++, visible++, frames += 2, vector += 12) {
         if (visible[WALL_BALL_COIN_VISIBLE_OFFSET]) {
@@ -1214,26 +1214,26 @@ void wallBallAIPitches(void) {
         maximum = minimum + wall->_24 - 1;
     }
 
-    if (RandomInt_Game(100) < lbl_3_data_21694[difficulty][(s8)lastSpecial]) {
-        int offset = RandomInt_Game_Range(lbl_3_data_216B0[difficulty][0], lbl_3_data_216B0[difficulty][1]);
+    if (RandomInt_Game(100) < wallBall_aiOffsetChance[difficulty][(s8)lastSpecial]) {
+        int offset = RandomInt_Game_Range(wallBall_aiOffsetRange[difficulty][0], wallBall_aiOffsetRange[difficulty][1]);
         minimum += (s16)offset;
         maximum += (s16)offset;
     }
 
-    if (minimum <= lbl_3_data_21654[2] && lbl_3_data_21654[2] <= maximum) {
+    if (minimum <= wallBall_pitchPowerAndCoinTable[2] && wallBall_pitchPowerAndCoinTable[2] <= maximum) {
         minigame->ai_wbThrowType_bbVertAngle = WALL_BALL_AI_THROW_TYPE_PERFECT;
-    } else if (minimum <= lbl_3_data_21654[3] && lbl_3_data_21654[3] <= maximum) {
+    } else if (minimum <= wallBall_pitchPowerAndCoinTable[3] && wallBall_pitchPowerAndCoinTable[3] <= maximum) {
         minigame->ai_wbThrowType_bbVertAngle = WALL_BALL_AI_THROW_TYPE_CURVE_BALL;
-    } else if (maximum >= lbl_3_data_21654[0] && minimum <= lbl_3_data_21654[1]) {
+    } else if (maximum >= wallBall_pitchPowerAndCoinTable[0] && minimum <= wallBall_pitchPowerAndCoinTable[1]) {
         minigame->ai_wbThrowType_bbVertAngle = WALL_BALL_AI_THROW_TYPE_CHARGE;
-        if (minimum < lbl_3_data_21654[0]) minimum = lbl_3_data_21654[0];
-        if (maximum > lbl_3_data_21654[1]) maximum = lbl_3_data_21654[1];
+        if (minimum < wallBall_pitchPowerAndCoinTable[0]) minimum = wallBall_pitchPowerAndCoinTable[0];
+        if (maximum > wallBall_pitchPowerAndCoinTable[1]) maximum = wallBall_pitchPowerAndCoinTable[1];
         minigame->ai_wbChargePower_bbSwingFrame = RandomInt_Game_Range(minimum, maximum);
     } else {
         minigame->ai_wbThrowType_bbVertAngle = WALL_BALL_AI_THROW_TYPE_OVERCHARGE;
     }
 
-    if (minigame->ai_wbThrowType_bbVertAngle == WALL_BALL_AI_THROW_TYPE_PERFECT && RandomInt_Game(100) < lbl_3_data_216B8[difficulty]) {
+    if (minigame->ai_wbThrowType_bbVertAngle == WALL_BALL_AI_THROW_TYPE_PERFECT && RandomInt_Game(100) < wallBall_aiPerfectMissChance[difficulty]) {
         minigame->ai_wbThrowType_bbVertAngle = WALL_BALL_AI_THROW_TYPE_OVERCHARGE;
     }
 }
@@ -1312,7 +1312,7 @@ void wallBallMultiplayer_AIControl(void) {
             if (g_Pitcher.framesAHeldForChargePitches == 0 &&
                 (s16)LinearInterpolateToNewRange(
                     1.0f - (f32)g_Pitcher.windupCountdownUntilBallReleased / (f32)g_Pitcher.pitchWindUpCountDown,
-                    0.0f, 1.0f, (f32)lbl_3_data_21654[0], (f32)lbl_3_data_21654[1]) >=
+                    0.0f, 1.0f, (f32)wallBall_pitchPowerAndCoinTable[0], (f32)wallBall_pitchPowerAndCoinTable[1]) >=
                     base->ai_wbChargePower_bbSwingFrame) {
                 base->wallBallAISwitchVar = WALL_BALL_AI_STATE_UNKNOWN_9;
             } else {

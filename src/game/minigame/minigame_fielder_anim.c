@@ -109,8 +109,8 @@ extern struct {
 
 extern u8 mapping_minigame_Stadium[8];
 extern s16 lbl_3_data_18BB0[4];
-extern f32 lbl_3_data_2130C[7][4];
-extern s16 lbl_3_data_2137C[2];
+extern f32 resultsFielderMinigameOffsets[7][4];
+extern s16 minigameResultsFrames[2];
 // Plant placement table owned by sta_c3.c; only the list terminator flag is read here.
 typedef struct MinigamePlantView {
     u8 _00[0x10];
@@ -160,7 +160,7 @@ f32 resultsFielderOffsets[4][4][3] = {
 f32 resultsFielderRowOffsets[3] = { -1.5f, 0.0f, 1.5f };
 
 // .data:0x217D8, size 0x20 -- per-fielder {x, z} table.
-extern f32 lbl_3_data_217D8[4][2];
+extern f32 ccs_resultsRunnerOffsets[4][2];
 
 extern void resetAnimationRelatedPointers(void);
 extern void AnimBlr(void);
@@ -412,8 +412,8 @@ void updateMinigameFielderAnimations(void) {
             runnerObj->_48 = 0.0f;
 
             if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                runnerObj->_34 += lbl_3_data_217D8[i][0];
-                runnerObj->_3C += lbl_3_data_217D8[i][1];
+                runnerObj->_34 += ccs_resultsRunnerOffsets[i][0];
+                runnerObj->_3C += ccs_resultsRunnerOffsets[i][1];
                 if (g_Minigame.ccs.runnerChompHitState[i] == 3 && (g_d_GameSettings.FrameCountWhileNotAtMainMenu & 1) != 0) {
                     runnerObj->_25D = 2;
                 }
@@ -661,9 +661,9 @@ void minigameUpdateResultsScene(void) {
     }
 
     if (tWon == FALSE) {
-        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C[0] &&
+        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == minigameResultsFrames[0] &&
              StatsScreenScores.mvpKind <= 1) ||
-            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == lbl_3_data_2137C[0])) {
+            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == minigameResultsFrames[0])) {
             BOOL ok = TRUE;
 
             if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame._1A3D == 1) {
@@ -696,13 +696,13 @@ void minigameUpdateResultsScene(void) {
             }
         }
         h->_24BD = 1;
-        fieldersRunningToDugoutCalculateOffsets(lbl_3_data_2130C[idx][3], lbl_3_data_2130C[idx][0], lbl_3_data_2130C[idx][2], &v.x, &v.z);
-        v.y = lbl_3_data_2130C[idx][1];
+        fieldersRunningToDugoutCalculateOffsets(resultsFielderMinigameOffsets[idx][3], resultsFielderMinigameOffsets[idx][0], resultsFielderMinigameOffsets[idx][2], &v.x, &v.z);
+        v.y = resultsFielderMinigameOffsets[idx][1];
         h->_2294 = v.x + resultsFielderOffsets[0][0][0];
         h->_2298 = v.y + resultsFielderOffsets[0][0][1];
         h->_229C = v.z + resultsFielderOffsets[0][0][2];
         h->_2298 = -h->_2298;
-        h->_22A4 = lbl_3_data_2130C[idx][3];
+        h->_22A4 = resultsFielderMinigameOffsets[idx][3];
         return;
     }
 
@@ -733,14 +733,14 @@ void minigameUpdateResultsScene(void) {
             participants = 1;
         }
         obj->_25D = 1;
-        fieldersRunningToDugoutCalculateOffsets(lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][3], lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][0],
-                                                lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][2], &v.x, &v.z);
-        v.y = lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][1];
+        fieldersRunningToDugoutCalculateOffsets(resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][3], resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][0],
+                                                resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][2], &v.x, &v.z);
+        v.y = resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][1];
         obj->_34 = v.x + resultsFielderOffsets[participants - 1][k][0];
         obj->_38 = v.y + resultsFielderOffsets[participants - 1][k][1];
         obj->_3C = v.z + resultsFielderOffsets[participants - 1][k][2];
         obj->_38 = -obj->_38;
-        obj->_44 = lbl_3_data_2130C[g_Minigame.GameMode_MiniGame][3];
+        obj->_44 = resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][3];
         if (g_GameLogic.gameStatus == GAME_STATUS_0x27 || g_Minigame._1A3E != 0) {
             if (g_Minigame._1A3D <= 1) {
             } else if (g_Minigame.playerSlots._1C[i] == 1) {

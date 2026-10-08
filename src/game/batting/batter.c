@@ -49,10 +49,10 @@ extern struct {
     f32 _00;
     f32 _04;
     f32 _08;
-} lbl_3_data_21438;
+} bOD_ballConsts;
 extern s16 bODPowerThresholdsForVertAngles[5];
 extern s16 bODHitVertTraj[5][5][2];
-extern s16 lbl_3_data_2141C[6][2];
+extern s16 bOD_hitVertAngleRanges[6][2];
 extern f32 horizTrajPowerMultipliers[3][5];
 
 extern u8 ChargePowerConstants[NUM_CHOOSABLE_CHARACTERS][2];
@@ -1579,7 +1579,7 @@ void calculateHorizontalPower(void) {
 
             g_Ball.bODQualifyingHitInd = 1;
             g_Minigame.bODAngleIndexBasedOnHitPower = 0;
-            power *= lbl_3_data_21438._08;
+            power *= bOD_ballConsts._08;
 
             for (; g_Minigame.bODAngleIndexBasedOnHitPower < 5; g_Minigame.bODAngleIndexBasedOnHitPower++) {
                 if (power < bODPowerThresholdsForVertAngles[g_Minigame.bODAngleIndexBasedOnHitPower]) {
@@ -1587,11 +1587,11 @@ void calculateHorizontalPower(void) {
                 }
             }
             g_Ball.Hit_VerticalAngle =
-                RandomInt_Game_Range(lbl_3_data_2141C[g_Minigame.bODAngleIndexBasedOnHitPower + 1][0],
-                                     lbl_3_data_2141C[g_Minigame.bODAngleIndexBasedOnHitPower + 1][1]);
+                RandomInt_Game_Range(bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][0],
+                                     bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][1]);
             g_UnkSound_32718._08 = 2;
         } else {
-            g_Ball.Hit_VerticalAngle = RandomInt_Game_Range(lbl_3_data_2141C[0][0], lbl_3_data_2141C[0][1]);
+            g_Ball.Hit_VerticalAngle = RandomInt_Game_Range(bOD_hitVertAngleRanges[0][0], bOD_hitVertAngleRanges[0][1]);
             power *= 0.7f;
         }
     }

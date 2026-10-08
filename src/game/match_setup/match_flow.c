@@ -63,7 +63,7 @@ extern void initializeSomethingDuringTransition(void);
 extern int fn_3_59BCC(int arg0);
 extern ChallengeSituation lbl_3_data_5FF4[2][4][2];
 extern s16 lbl_3_data_6074[4];
-extern s8 lbl_3_data_6104[];
+extern s8 challengeTransitionPortraitIDs[];
 extern u8 lbl_8037169C[];
 extern int fn_3_FD9FC(void);
 extern void fn_3_FBD70(void);
@@ -1406,7 +1406,7 @@ void endOfMatch(void) {
     case 2:
         if (!g_d_GameSettings.exhibitionMatchInd && g_d_GameSettings.bJMatchInd == 1) {
             challenge_setTransitionScreenCharacterPortrait(
-                0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
+                0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
         } else {
             changeScene(3, 6);
         }
@@ -1768,9 +1768,9 @@ void matchEndGameScreenFunction(void) {
             changeScene(3, 6);
         } else if (!g_d_GameSettings.exhibitionMatchInd) {
             if (g_d_GameSettings.bJMatchInd == 1) {
-                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441C]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
             } else {
-                challenge_setTransitionScreenCharacterPortrait(0xC, lbl_3_data_6104[((u8*)starMissionCompletionTracker)[0x441E]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441E]]);
             }
         } else {
             changeScene(4, 6);
