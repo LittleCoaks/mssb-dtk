@@ -24,6 +24,7 @@ typedef enum _WALL_BALL_AI_THROW_TYPE {
 } WALL_BALL_AI_THROW_TYPE;
 
 void wallBallMultiplayer_AIControl(void);
+void wallBallClearAIControlled(void);
 void wallBallAIPitches(void);
 void wallBallClearInputs(void);
 void wallBallUpdateCoins(void);

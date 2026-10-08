@@ -94,15 +94,6 @@ extern UnkSimulationStruct_31AC0 g_UnkSimulation_31AC0;
 #define WALL_BALL_COIN_POSITION(i) ((VecXYZ*)((u8*)&g_Minigame + WALL_BALL_COIN_POSITION_OFFSET + (i) * 12))
 #define WALL_BALL_COIN_VELOCITY(i) ((VecXYZ*)((u8*)&g_Minigame + WALL_BALL_COIN_VELOCITY_OFFSET + (i) * 12))
 
-static inline void wallBallClearAIControlled(void) {
-    s8 i;
-
-    i = 0;
-    do {
-        g_Minigame.portOfAIBeingProcessed[i] = FALSE;
-        i++;
-    } while (i < 4);
-}
 
 // .text:0x001160BC size:0x5E0
 void wallBallSituationSwitcher(void) {
@@ -1328,4 +1319,15 @@ void wallBallMultiplayer_AIControl(void) {
             break;
         }
     } while (++i < 4);
+}
+
+// .text:0x00113398 size:0x2C
+void wallBallClearAIControlled(void) {
+    s8 i;
+
+    i = 0;
+    do {
+        g_Minigame.portOfAIBeingProcessed[i] = FALSE;
+        i++;
+    } while (i < 4);
 }
