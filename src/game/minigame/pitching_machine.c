@@ -1244,7 +1244,7 @@ void mm_EncodeResultCode(u8* out, u8* raw, u8 a, u8 b) {
     u32 i;
 
     minigameBuildResultEntry(&rec);
-    if (g_Minigame._1A3C != 0) {
+    if (g_Minigame.grandPrixInd != 0) {
         score = rec.score;
         flag = 1;
         count = random_fn_3_9EE24(1000);
@@ -1319,7 +1319,7 @@ void mm_DrawResultCode(void) {
         removeCurrentDrawingItem();
         return;
     }
-    if (g_Minigame._1A3C != 0) {
+    if (g_Minigame.grandPrixInd != 0) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_4) {
             removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
             removeCurrentDrawingItem();
@@ -1342,7 +1342,7 @@ void mm_DrawResultCode(void) {
             return;
         }
     }
-    if (g_Minigame._1907 != 1) {
+    if (g_Minigame.humanPlayerCount != 1) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -1350,7 +1350,7 @@ void mm_DrawResultCode(void) {
     switch (scene->state) {
     case 0:
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_26254);
-        if (g_Minigame._1A3C != 0) {
+        if (g_Minigame.grandPrixInd != 0) {
             PM_REC(scene, 0)->elementIndex = 0xBF;
             scene->_1E = 3;
         } else {
@@ -1516,7 +1516,7 @@ void mm_LoadModels(void) {
 void mm_UnloadModels(void) {
     int i;
 
-    if ((g_Minigame._1A3C == 0 || g_Minigame._1E01[0x29] >= 6) && g_Minigame._1A38 == 0) {
+    if ((g_Minigame.grandPrixInd == 0 || g_Minigame._1E01[0x29] >= 6) && g_Minigame.retryInd == 0) {
         for (i = 0; i < 4; i++) {
             fn_80011B64(i);
         }
@@ -1536,7 +1536,7 @@ void mm_UnloadModels(void) {
     }
     fn_800B993C();
     cleanupCharacters();
-    if (g_Minigame._1A38 == 0 || g_Minigame._1A3C != 0) {
+    if (g_Minigame.retryInd == 0 || g_Minigame.grandPrixInd != 0) {
         mm_CleanupResources();
     }
 }

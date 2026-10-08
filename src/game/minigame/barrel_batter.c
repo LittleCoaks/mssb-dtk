@@ -205,7 +205,7 @@ void bB_LoadGame(void) {
 
         g_Scores.Inning = 0;
         g_Minigame.pointsReqToWin_challenge = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         *(s8 *)&g_Minigame.minigamePlayerSelectedOrder = -1;
         g_Minigame.rosterID = -1;
         g_Minigame.minigameElapsedFrames = 0;
@@ -223,7 +223,7 @@ void bB_LoadGame(void) {
                 g_Minigame.pointsReqToWin_challenge = bB_challengePointsRequired[g_Minigame.soloMinigameDifficulty];
             }
         } else {
-            if (g_Minigame._1A3C != 0) {
+            if (g_Minigame.grandPrixInd != 0) {
                 value = minigameAIStrengthTable[7][0];
                 g_Minigame.minigameControlStruct[0].aIStrength[0] = value;
                 g_Minigame.minigameControlStruct[0].aIStrength[1] = value;
@@ -340,7 +340,7 @@ void barrelBatterTransitionToMainFunction(void) {
         g_GameLogic._125++;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_Minigame._1A37 == 1) {
+        if (g_Minigame.winLossResult == 1) {
             if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= bOD_bB_frameConsts[3]) {
                 g_GameLogic._125++;
             }
@@ -488,7 +488,7 @@ void bB_AtBat(void) {
          (g_Minigame.multiPlayerInd != 0 &&
           g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
           g_Scores.Inning >= g_Scores.inningLimit)) &&
-        g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 1) {
+        g_Minigame.winLossResult == 0 && g_GameLogic.CountdownUntilFade == 1) {
         sndFXStartEx(0x1be, lbl_800EFBA4[7], 0x3f, 0);
     }
 }
@@ -526,7 +526,7 @@ void bobombDerbyRelated(void) {
              (g_Minigame.multiPlayerInd != 0 &&
               g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
               g_Scores.Inning >= g_Scores.inningLimit)) &&
-            g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 1) {
+            g_Minigame.winLossResult == 0 && g_GameLogic.CountdownUntilFade == 1) {
             sndFXStartEx(0x1be, lbl_800EFBA4[7], 0x3f, 0);
         }
     }
@@ -556,7 +556,7 @@ void barrelBatterLiveBallSubFun(void) {
             if (g_Minigame.multiPlayerInd == 0 && g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD &&
                 g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] >= g_Minigame.pointsReqToWin_challenge) {
                 g_Minigame.pointsTargetReachedInd = 2;
-                g_Minigame._1A37 = 1;
+                g_Minigame.winLossResult = 1;
                 g_Minigame.challenge_minigame_haven_tWonYetIndicator = 0;
                 minigameQueueHudEvent(1, bOD_bB_frameConsts[10]);
             }
@@ -591,7 +591,7 @@ void barrelBatterLiveBallSubFun(void) {
          (g_Minigame.multiPlayerInd != 0 &&
           g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
           g_Scores.Inning >= g_Scores.inningLimit)) &&
-        g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 1) {
+        g_Minigame.winLossResult == 0 && g_GameLogic.CountdownUntilFade == 1) {
         sndFXStartEx(0x1be, lbl_800EFBA4[7], 0x3f, 0);
     }
 }

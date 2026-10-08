@@ -185,7 +185,7 @@ void pP_LoadGame(void) {
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_PIRANHA_PANIC;
         g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.turnOverStatus = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         for (i = 0; i < PP_PLAYER_COUNT; i++) {
             PP.pointsA[i] = 0;
             PP.pointsB[i] = 0;
@@ -212,7 +212,7 @@ void pP_LoadGame(void) {
             PP.aiStrength[2] = value;
             PP.aiStrength[3] = value;
         } else {
-            if (g_Minigame._1A3C != 0) {
+            if (g_Minigame.grandPrixInd != 0) {
                 u8 value = minigameAIStrengthTable[7][0];
                 PP.aiStrength[0] = value;
                 PP.aiStrength[1] = value;
@@ -389,10 +389,10 @@ void pP_Postgame(void) {
     fn_3_157570();
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
-        if (PP._18E8[(s8)g_Minigame._1908] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
-            g_Minigame._1A37 = 1;
+        if (PP._18E8[(s8)g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+            g_Minigame.winLossResult = 1;
         } else {
-            g_Minigame._1A37 = 2;
+            g_Minigame.winLossResult = 2;
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);

@@ -261,7 +261,7 @@ void wallBallInitializeValues(void) {
         g_Minigame.pointsReqToWin_challenge = 0;
         g_Minigame.rosterID = -1;
         g_Minigame.minigameElapsedFrames = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         g_Minigame.miniGameTurnCounter = 0;
 
         if (g_Minigame.multiPlayerInd == 0) {
@@ -273,7 +273,7 @@ void wallBallInitializeValues(void) {
             g_Minigame.minigameControlStruct[0].aIStrength[2] = g_Minigame.minigameControlStruct[0].aIStrength[0];
             g_Minigame.minigameControlStruct[0].aIStrength[3] = g_Minigame.minigameControlStruct[0].aIStrength[0];
         } else {
-            if (g_Minigame._1A3C != 0) {
+            if (g_Minigame.grandPrixInd != 0) {
                 g_Minigame.minigameControlStruct[0].aIStrength[0] = minigameAIStrengthTable[7][0];
                 g_Minigame.minigameControlStruct[0].aIStrength[1] = minigameAIStrengthTable[7][0];
                 g_Minigame.minigameControlStruct[0].aIStrength[2] = minigameAIStrengthTable[7][0];
@@ -344,7 +344,7 @@ void wallBallStartRound(void) {
     g_Scores.Inning++;
     g_Minigame.turnNumberWithinRound = 0;
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-    if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
+    if (g_Minigame.multiPlayerInd != 0 || g_Minigame.grandPrixInd != 0 ||
         g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
         minigameQueueHudEvent(4, 0);
     }
@@ -425,11 +425,11 @@ void wallBallPostgame(void) {
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD &&
         g_Minigame.multiPlayerInd == 0) {
-        if (g_Minigame.minigameControlStruct[0].aIStrength[(s8)g_Minigame._1908 + 12] == 1 &&
+        if (g_Minigame.minigameControlStruct[0].aIStrength[(s8)g_Minigame.soloPlayerSlot + 12] == 1 &&
             g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
-            g_Minigame._1A37 = 1;
+            g_Minigame.winLossResult = 1;
         } else {
-            g_Minigame._1A37 = 2;
+            g_Minigame.winLossResult = 2;
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
@@ -557,7 +557,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
         if (g_Minigame.wallBall_hitBowserWall == 0) {
             s16 multiplier = 1;
 
-            if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
+            if (g_Minigame.multiPlayerInd != 0 || g_Minigame.grandPrixInd != 0 ||
                 g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 if (g_Scores.Inning == g_Scores.inningLimit) {
                     multiplier = wallBall_lastInningMultiplier;
@@ -574,7 +574,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
             }
         } else {
             delta = 0;
-            if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
+            if (g_Minigame.multiPlayerInd != 0 || g_Minigame.grandPrixInd != 0 ||
                 g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 s16 half;
                 s16 i;
@@ -604,7 +604,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
             g_Minigame.turnNumberWithinRound -= g_Minigame.miniGameNumberOfParticipants;
             g_Scores.Inning++;
 
-            if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0 &&
+            if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0 &&
                 g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 g_Scores.Inning--;
                 if (g_Minigame.wallBall_hitNoteBlock == 1) {
@@ -633,7 +633,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
         } else {
             g_Minigame.wallBallGameState = WALL_BALL_GAME_STATE_CALCULATE_NEW_WALLS;
             SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-            if (g_Minigame.multiPlayerInd != 0 || g_Minigame._1A3C != 0 ||
+            if (g_Minigame.multiPlayerInd != 0 || g_Minigame.grandPrixInd != 0 ||
                 g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 if (g_Minigame.turnNumberWithinRound == 0) {
                     minigameQueueHudEvent(4, 0);
@@ -793,7 +793,7 @@ void wallBallCalculateNewWalls(void) {
     unsigned int counts[3];
     int candidates[WALL_BALL_WALL_COUNT];
 
-    if (g_Minigame.multiPlayerInd || g_Minigame._1A3C ||
+    if (g_Minigame.multiPlayerInd || g_Minigame.grandPrixInd ||
         g_Minigame.soloMinigameDifficulty != MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
         switch (g_Scores.Inning) {
         case 1: desired = 1; break;

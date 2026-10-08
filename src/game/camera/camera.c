@@ -1710,7 +1710,7 @@ void fn_3_16900(void) {
         fn_3_FD670();
     } else {
         lbl_3_data_A40_s* p = &lbl_3_data_1594[g_Minigame.GameMode_MiniGame];
-        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame._1908 >= 0) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame.soloPlayerSlot >= 0) {
             if (g_GameLogic._125 == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
                 camera_switchScene(0x69);
             }

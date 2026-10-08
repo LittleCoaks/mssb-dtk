@@ -1084,8 +1084,8 @@ void soundControl(void) {
 
     status = g_GameLogic.gameStatus;
     if (status == GAME_STATUS_0x27 || status == GAME_STATUS_0x24 || status == GAME_STATUS_MINIGAME_POST_MENU) {
-        roster = g_Minigame._1908;
-        if (roster >= 0 && g_Minigame._1A3C != 0) {
+        roster = g_Minigame.soloPlayerSlot;
+        if (roster >= 0 && g_Minigame.grandPrixInd != 0) {
             if (status == GAME_STATUS_MINIGAME_POST_MENU) {
                 return;
             }
@@ -1131,13 +1131,13 @@ void soundControl(void) {
             if (!g_d_GameSettings.exhibitionMatchInd) {
                 if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY ||
                     g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
-                    if (g_Minigame._1A37 == 1) {
+                    if (g_Minigame.winLossResult == 1) {
                         track = 0xC;
                     } else {
                         track = 0xD;
                     }
                 } else {
-                    roster = g_Minigame._1908;
+                    roster = g_Minigame.soloPlayerSlot;
                     if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 0xC;
@@ -1148,7 +1148,7 @@ void soundControl(void) {
                 goto pick;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                roster = g_Minigame._1908;
+                roster = g_Minigame.soloPlayerSlot;
                 if (roster >= 0) {
                     if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
@@ -1162,8 +1162,8 @@ void soundControl(void) {
                 goto pick;
             }
             if (g_Minigame.multiPlayerInd != 0) {
-                if (g_Minigame._1A3C != 0 && g_Minigame._1907 == 1) {
-                    roster = g_Minigame._1908;
+                if (g_Minigame.grandPrixInd != 0 && g_Minigame.humanPlayerCount == 1) {
+                    roster = g_Minigame.soloPlayerSlot;
                     if (MINIGAME_BYTE(0x18E8 + roster) == 1 &&
                         g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
                         track = 5;
@@ -1177,20 +1177,20 @@ void soundControl(void) {
                 }
                 goto pick;
             }
-            if (g_Minigame.soloMinigameDifficulty == 3 && g_Minigame._1A3C == 0) {
+            if (g_Minigame.soloMinigameDifficulty == 3 && g_Minigame.grandPrixInd == 0) {
                 if (g_GameLogic.FrameCountOfCurrentPitch == 0) {
                     return;
                 }
-                if (g_Minigame._1A43 == 1) {
+                if (g_Minigame.newRecordRank == 1) {
                     track = 0xE;
-                } else if (g_Minigame._1A43 != 0) {
+                } else if (g_Minigame.newRecordRank != 0) {
                     track = 0xF;
                 } else {
                     track = 7;
                 }
                 goto pick;
             }
-            if (g_Minigame._1A37 == 1) {
+            if (g_Minigame.winLossResult == 1) {
                 track = 5;
             } else {
                 track = 7;

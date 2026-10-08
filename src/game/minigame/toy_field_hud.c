@@ -473,11 +473,11 @@ void fn_3_EDA3C(void) {
             }
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2) {
-            if (animRelated[0xDC] == 0 && g_Minigame._19DE != 5 && g_Minigame._19DE != 8) {
+            if (animRelated[0xDC] == 0 && g_Minigame.charSelectState != 5 && g_Minigame.charSelectState != 8) {
                 insertGraphicDrawingFunction(fn_80051D00, 2);
                 animRelated[0xDC] = 1;
             }
-            if (g_Minigame._19DE == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            if (g_Minigame.charSelectState == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
                 insertGraphicDrawingFunction(fn_3_12A6C4, 2);
             }
         }
@@ -1493,8 +1493,8 @@ void fn_3_EA454(void) {
                 addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_1A9F0);
                 OFFSCREEN_RECORD(scene, 0)->elementIndex = lbl_3_data_1AF70[g_Minigame.GameMode_MiniGame];
                 if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_NONE && g_Minigame.multiPlayerInd == 0 &&
-                    g_Minigame._1A3C == 0) {
-                    if (g_Minigame._190A != 0) {
+                    g_Minigame.grandPrixInd == 0) {
+                    if (g_Minigame.challengeModeInd != 0) {
                         OFFSCREEN_RECORD(scene, 1)->elementIndex = lbl_3_data_1AF88[g_Minigame.soloMinigameDifficulty];
                     } else {
                         OFFSCREEN_RECORD(scene, 1)->elementIndex = lbl_3_data_1AF80[g_Minigame.soloMinigameDifficulty];

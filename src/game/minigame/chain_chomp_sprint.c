@@ -132,9 +132,9 @@ void chainChompSprintRelated(void) {
         initializeSomethingDuringTransition();
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT;
         g_Minigame.minigameElapsedFrames = 0;
-        g_Minigame._1A3A = 0;
+        g_Minigame.ccs_timePhase = 0;
         g_Minigame.turnOverStatus = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         for (i = 0; i < 4; i++) {
             g_Minigame.miniGameCurrentPoints[i] = 0;
             g_Minigame.miniGameLatestPoints[i] = 0;
@@ -157,7 +157,7 @@ void chainChompSprintRelated(void) {
                 g_Minigame.playerSlots.aiStrength[i] = strength;
             }
         } else {
-            if (g_Minigame._1A3C) {
+            if (g_Minigame.grandPrixInd) {
                 u8 strength = minigameAIStrengthTable[7][0];
                 for (i = 0; i < 4; i++) {
                     g_Minigame.playerSlots.aiStrength[i] = strength;
@@ -318,9 +318,9 @@ void chainChompSpringMainFun(void) {
     }
     if (!g_Minigame.turnOverStatus) {
         if (++g_Minigame.minigameElapsedFrames >= 3600) {
-            g_Minigame._1A3A = 2;
+            g_Minigame.ccs_timePhase = 2;
         } else if (g_Minigame.minigameElapsedFrames >= 1800) {
-            g_Minigame._1A3A = 1;
+            g_Minigame.ccs_timePhase = 1;
         }
     }
     if (g_Minigame.minigameFramesRemaining != 0 && --g_Minigame.minigameFramesRemaining < 600 &&
@@ -373,11 +373,11 @@ void fn_3_1409AC(void) {
 
     fn_3_DE4FC();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && !g_Minigame.multiPlayerInd) {
-        if (g_Minigame.playerSlots._1C[g_Minigame._1908] == 1 &&
+        if (g_Minigame.playerSlots._1C[g_Minigame.soloPlayerSlot] == 1 &&
             !g_Minigame.challenge_minigame_haven_tWonYetIndicator) {
-            g_Minigame._1A37 = 1;
+            g_Minigame.winLossResult = 1;
         } else {
-            g_Minigame._1A37 = 2;
+            g_Minigame.winLossResult = 2;
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
@@ -508,9 +508,9 @@ void fn_3_140284(void) {
     target = -1;
     g_Minigame.ccs.targetCount = 0;
     if (!g_Minigame.multiPlayerInd) {
-        threshold = ccs_chompTargetThresholds[g_Minigame.soloMinigameDifficulty][g_Minigame._1A3A];
+        threshold = ccs_chompTargetThresholds[g_Minigame.soloMinigameDifficulty][g_Minigame.ccs_timePhase];
     } else {
-        threshold = ccs_chompTargetThresholds[4][g_Minigame._1A3A];
+        threshold = ccs_chompTargetThresholds[4][g_Minigame.ccs_timePhase];
     }
     for (i = 0; i < 4; i++) {
         if (g_Minigame.playerSlots.playerRunnerIndex[i] >= 0 && g_Minigame.ccs.runFrames[i] > best) {

@@ -2019,8 +2019,8 @@ int fn_3_5B220(int arg0) {
     }
     switch (g_GameLogic.endGameStage) {
     case 0:
-        if (arg0 == 1 && g_Minigame._1A3C == 0 && g_Minigame._1A44 == 0 && g_Minigame._1A45 == 0 &&
-            g_Minigame._1A43 == 0) {
+        if (arg0 == 1 && g_Minigame.grandPrixInd == 0 && g_Minigame.difficultyUnlockedInd == 0 && g_Minigame.grandPrixUnlockedInd == 0 &&
+            g_Minigame.newRecordRank == 0) {
             return 1;
         }
         fn_8003BF54(lbl_80366158[0x27], 0, 0, 1, 0, 4, 5, 0, 0);

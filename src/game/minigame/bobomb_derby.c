@@ -274,7 +274,7 @@ void bOD_LoadGame(void) {
         g_Scores.Inning = 0;
         g_Minigame.turnNumberWithinRound = 0;
         g_Minigame.pointsReqToWin_challenge = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         g_Minigame.minigamePlayerSelectedOrder = -1;
         g_Minigame.rosterID = -1;
         g_Minigame.minigameElapsedFrames = 0;
@@ -297,7 +297,7 @@ void bOD_LoadGame(void) {
             g_Minigame.minigameControlStruct[0].aIStrength[2] = g_Minigame.minigameControlStruct[0].aIStrength[0];
             g_Minigame.minigameControlStruct[0].aIStrength[3] = g_Minigame.minigameControlStruct[0].aIStrength[0];
         } else {
-            if (g_Minigame._1A3C != 0) {
+            if (g_Minigame.grandPrixInd != 0) {
                 g_Minigame.minigameControlStruct[0].aIStrength[0] = minigameAIStrengthTable[7][0];
                 g_Minigame.minigameControlStruct[0].aIStrength[1] = minigameAIStrengthTable[7][0];
                 g_Minigame.minigameControlStruct[0].aIStrength[2] = minigameAIStrengthTable[7][0];
@@ -307,15 +307,15 @@ void bOD_LoadGame(void) {
             g_Minigame.bODRoundStartingNumPitches = bOD_multiInningsAndPitches[g_Minigame.miniGameNumberOfParticipants * 2 - 3];
         }
 
-        if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0) {
-            if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0 &&
+        if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0) {
+            if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0 &&
                 g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
                 g_Minigame._1AD8 = 9;
             } else {
                 g_Minigame._1AD8 = RandomInt_Game_Range(4, 9);
             }
             g_Minigame._1AD9 = 1;
-        } else if (g_Minigame._1A3C != 0) {
+        } else if (g_Minigame.grandPrixInd != 0) {
             g_Minigame._1AD8 = RandomInt_Game_Range(0, 2);
             g_Minigame._1AD9 = RandomInt_Game_Range(2, 3);
         } else {
@@ -556,7 +556,7 @@ void bOD_AtBatOutcome(void) {
              (g_Minigame.multiPlayerInd != 0 &&
               g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
               g_Scores.Inning >= g_Scores.inningLimit)) &&
-            g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 0x43) {
+            g_Minigame.winLossResult == 0 && g_GameLogic.CountdownUntilFade == 0x43) {
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
         }
 
@@ -677,7 +677,7 @@ void bOD_LiveBallOutcome(void) {
                 g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD &&
                 g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] >= g_Minigame.pointsReqToWin_challenge) {
                 g_Minigame.pointsTargetReachedInd = 1;
-                g_Minigame._1A37 = 1;
+                g_Minigame.winLossResult = 1;
                 g_Minigame.challenge_minigame_haven_tWonYetIndicator = 0;
                 minigameQueueHudEvent(1, bOD_frameConsts[9]);
             } else if (g_Minigame.miniGameTurnCounter >= g_Minigame.bODRoundStartingNumPitches) {
@@ -702,7 +702,7 @@ void bOD_LiveBallOutcome(void) {
                  (g_Minigame.multiPlayerInd != 0 &&
                   g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
                   g_Scores.Inning >= g_Scores.inningLimit)) &&
-                g_Minigame._1A37 == 0 && g_GameLogic.CountdownUntilFade == 0x43) {
+                g_Minigame.winLossResult == 0 && g_GameLogic.CountdownUntilFade == 0x43) {
                 sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
             }
 

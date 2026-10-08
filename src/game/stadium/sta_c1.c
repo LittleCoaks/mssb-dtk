@@ -826,7 +826,7 @@ void fn_3_C298C(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
         if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED || g_GameLogic.gameStatus >= GAME_STATUS_MINIGAME_POST_MENU) {
-            if (g_Minigame._1A40 != 0 && g_Minigame._1A38 == 0) {
+            if (g_Minigame.minigameInactiveInd != 0 && g_Minigame.retryInd == 0) {
                 removeCurrentDrawingItem();
             }
         }

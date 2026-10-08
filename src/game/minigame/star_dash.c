@@ -288,7 +288,7 @@ void sD_LoadGame(void) {
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_STAR_DASH;
         g_Minigame.minigameElapsedFrames = 0;
         g_Minigame.turnOverStatus = 0;
-        g_Minigame._1A37 = 0;
+        g_Minigame.winLossResult = 0;
         for (i = 0; i < 4; i++) {
             g_Minigame.miniGameCurrentPoints[i] = 0;
             g_Minigame.miniGameLatestPoints[i] = 0;
@@ -311,7 +311,7 @@ void sD_LoadGame(void) {
                 g_Minigame.playerSlots.aiStrength[i] = strength;
             }
         } else {
-            if (g_Minigame._1A3C) {
+            if (g_Minigame.grandPrixInd) {
                 strength = minigameAIStrengthTable[7][0];
                 for (i = 0; i < 4; i++) {
                     g_Minigame.playerSlots.aiStrength[i] = strength;
@@ -361,7 +361,7 @@ void sD_LoadGame(void) {
         SD.fireBar[3].end.y = floorY;
         SD.fireBarAngle[3] = 0xC00;
         sdResetTrail(floorY);
-        if (g_Minigame.multiPlayerInd == 0 && g_Minigame._1A3C == 0) {
+        if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0) {
             sD_thwompDifficulty = g_Minigame.soloMinigameDifficulty;
             sD_thwompCount = sD_thwompSectorDivisors[g_Minigame.soloMinigameDifficulty];
         } else {
@@ -492,10 +492,10 @@ void sD_EndGame(void) {
 
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
-        if (g_Minigame.playerSlots._1C[g_Minigame._1908] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
-            g_Minigame._1A37 = 1;
+        if (g_Minigame.playerSlots._1C[g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
+            g_Minigame.winLossResult = 1;
         } else {
-            g_Minigame._1A37 = 2;
+            g_Minigame.winLossResult = 2;
         }
     }
     SetGameStatus(GAME_STATUS_MVP_END_GAME);

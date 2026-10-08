@@ -456,24 +456,24 @@ void toyFieldInit(void) {
     insertGraphicDrawingFunction(drawStadium, 4);
     g_d_GameSettings._33 = 0;
     g_Minigame.GameMode_MiniGame = 0;
-    g_Minigame._19DF = 30;
-    MG_SBYTE(0x1A2C) = -1;
-    MG_SBYTE(0x1A0C) = -1;
-    g_Minigame._19E6 = 2;
-    g_Minigame._19E7 = 1;
-    g_Minigame._1A3C = 0;
+    g_Minigame.nextGameStatus = 30;
+    g_Minigame.loadedStadiumID = -1;
+    g_Minigame.charLoadSlot = -1;
+    g_Minigame.targetParticipantCount = 2;
+    g_Minigame.joinedPlayerCount = 1;
+    g_Minigame.grandPrixInd = 0;
     g_Minigame._19A7 = lbl_3_data_21270;
-    g_Minigame._1A38 = 0;
-    g_Minigame._1A39 = 0;
-    g_Minigame.battingHandedness[5] = 0;
+    g_Minigame.retryInd = 0;
+    g_Minigame.nextDifficultyInd = 0;
+    g_Minigame.menuMusicStartedInd = 0;
     for (i = 0; i < 4; i++) {
-        MG_SBYTE(0x19DA + i) = -1;
+        g_Minigame.selectSlotState[i] = -1;
         MG_SBYTE(0x19E8 + i * 9) = -1;
         MG_SBYTE(0x19EA + i * 9) = -1;
         MG_SBYTE(0x19EB + i * 9) = -1;
-        MG_SBYTE(0x1A0F + i) = -1;
-        (&g_Minigame._19D2)[i] = 20;
-        (&g_Minigame._1A13)[i] = 0;
+        g_Minigame.charLoadQueue[i] = -1;
+        g_Minigame.charChangeFrames[i] = 20;
+        g_Minigame.charLoadPending[i] = 0;
     }
     for (i = 0; i < 4; i++) {
         g_Minigame.playerSlots.characterIndex[i] = -1;
@@ -483,7 +483,7 @@ void toyFieldInit(void) {
     sound_crowd_EffectsStruct._30 = 0;
     initializeMinigameData();
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
-        g_Minigame._190A = 1;
+        g_Minigame.challengeModeInd = 1;
         SetGameStatus(GAME_STATUS_0x25);
     } else {
         SetGameStatus(GAME_STATUS_0x1B);
@@ -512,14 +512,14 @@ void initializeMinigameData(void) {
     g_Minigame._190D = 3;
     g_Minigame._19A6 = 0;
     g_Minigame.challenge_minigame_haven_tWonYetIndicator = TRUE;
-    g_Minigame._19A9 = 0;
+    g_Minigame.endSequencePhase = 0;
     g_Minigame._1911 = 0;
     g_Minigame.toyField_pointMultiplier = 1;
     g_Minigame.toyfield_waitFor_CoinsX2_AnimationToEnd = 0;
     g_Minigame._19CD = 0;
     g_Minigame._19CE = 0;
     g_Minigame._19CF = 0;
-    g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[g_Minigame._1A24[0]];
+    g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[g_Minigame.toyField_inningOptions[0]];
     g_Minigame.toyField_turnNumber = 0;
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[5];
@@ -553,11 +553,11 @@ void toyFieldApplyGameSettings(void) {
         g_GameLogic._125++;
         break;
     }
-    g_Minigame._190A = 1;
+    g_Minigame.challengeModeInd = 1;
     (&g_Minigame._19DA)[g_d_GameSettings._35] = g_d_GameSettings._35;
     lbl_3_common_bss_37400.humanTeam = g_d_GameSettings._35;
     g_Minigame.GameMode_MiniGame = g_d_GameSettings._33;
-    g_Minigame._19DF = 30;
+    g_Minigame.nextGameStatus = 30;
     SetGameStatus(GAME_STATUS_0x1B);
 }
 
@@ -571,7 +571,7 @@ void toyFieldSetupOpponents(void) {
             g_Minigame.playerSlots.aiStrength[i] = *src++;
         }
     }
-    g_Minigame._1907 = 1;
+    g_Minigame.humanPlayerCount = 1;
     g_Minigame.multiPlayerInd = 1;
     g_Minigame.miniGameNumberOfParticipants = minigameChallengeOpponentCounts[g_Minigame.GameMode_MiniGame] + 1;
     g_Scores.inningLimit = 1;
@@ -583,14 +583,14 @@ void toyFieldGameStartMovie(void) {
     case 0:
         fn_3_E8AC8();
         challenge_setTransitionScreenCharacterPortrait(7, 0);
-        g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[g_Minigame._1A24[0]];
+        g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[g_Minigame.toyField_inningOptions[0]];
         if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
             g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[5];
         }
         hugeAnimStruct[0x307E] = 1;
         hugeAnimStruct[0x2D8E] = 0;
         hugeAnimStruct[0x307A] = 3;
-        if (g_Minigame._190A != 0) {
+        if (g_Minigame.challengeModeInd != 0) {
             g_GameLogic._125 = 1;
         } else {
             loadToyFieldCharacterFiles();
@@ -599,7 +599,7 @@ void toyFieldGameStartMovie(void) {
         break;
     case 1:
         minigameCharLoadQueueUpdate();
-        if ((s8)g_Minigame._1A0F < 0) {
+        if ((s8)g_Minigame.charLoadQueue[0] < 0) {
             loadToyFieldCharacterFiles();
             g_GameLogic._125 = 2;
         }
@@ -613,7 +613,7 @@ void toyFieldGameStartMovie(void) {
         if (fn_80016F7C() == 0) {
             break;
         }
-        if (g_Minigame._1A38 != 0) {
+        if (g_Minigame.retryInd != 0) {
             g_GameLogic._125 = 6;
         } else {
             g_GameLogic._125 = 4;
@@ -644,7 +644,7 @@ void toyFieldGameStartMovie(void) {
         break;
     case 8:
         toyFieldInitCoinModels();
-        g_Minigame._1A38 = 0;
+        g_Minigame.retryInd = 0;
         g_Minigame._19A2 = 0;
         hugeAnimStruct[0x307A] = 1;
         SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
@@ -1192,7 +1192,7 @@ void toyFieldInningTransition(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (g_Minigame.toyField_turnNumber == 0) {
-            if (random_fn_3_9EE24(100) < minigameTuningConstants[7] || g_Minigame._1907 == 4) {
+            if (random_fn_3_9EE24(100) < minigameTuningConstants[7] || g_Minigame.humanPlayerCount == 4) {
                 int attempts = 0;
                 do {
                     g_Minigame.rosterID = random_fn_3_9EE24(4);
@@ -1254,7 +1254,7 @@ void toyFieldStateTransitionRelated(void) {
         break;
     case 2:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
-            if (g_Minigame._190A != 0) {
+            if (g_Minigame.challengeModeInd != 0) {
                 g_GameLogic._125 = 4;
             } else {
                 g_GameLogic._125 = 3;
@@ -1468,10 +1468,10 @@ void toyFieldPostMenu(void) {
         start = FALSE;
         if (pauseControl.cursor == 0) {
             SetGameStatus(GAME_STATUS_GAME_START_MOVIE);
-            g_Minigame._1A38 = 1;
+            g_Minigame.retryInd = 1;
             start = TRUE;
         } else if (pauseControl.cursor == 1) {
-            g_Minigame._19DF = 30;
+            g_Minigame.nextGameStatus = 30;
             SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
             start = TRUE;
         }

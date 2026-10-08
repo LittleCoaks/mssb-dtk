@@ -817,7 +817,7 @@ void fn_3_159114(void) {
 
         PRACTICE_RECORD(scene, 5)->frame = lbl_3_data_A594[g_Minigame.battingHandedness[g_Practice.homeAway]] << 16;
         if (characterStaticIndexes[charID * 6] != 0 &&
-            g_Minigame.selectSlots[g_Practice.homeAway]._1 == 0 && g_Minigame.selectSlots[g_Practice.homeAway]._6 == 0) {
+            g_Minigame.selectSlots[g_Practice.homeAway].confirmedInd == 0 && g_Minigame.selectSlots[g_Practice.homeAway].onBottomControlInd == 0) {
             PRACTICE_RECORD(scene, 7)->flags |= UI_FLAG_VISIBLE;
         } else {
             PRACTICE_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;

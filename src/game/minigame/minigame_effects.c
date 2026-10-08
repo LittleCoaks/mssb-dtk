@@ -371,7 +371,7 @@ int fn_3_157AC4(MGEffect* effect) {
     if (lbl_80366158[0x28] == 0) {
         effect->frame++;
     }
-    if (g_Minigame._1A40 != 0) {
+    if (g_Minigame.minigameInactiveInd != 0) {
         return TRUE;
     }
     if (effect->frame == effect->duration && g_GameLogic.gameStatus != GAME_STATUS_MVP_END_GAME) {
