@@ -889,11 +889,16 @@ typedef struct _PracticeStruct {
     /*0x1D9*/ u8 _1D9;
     artificial_padding(0x1d9, 0x1db, u8);
     /*0x1DB*/ u8 _1DB;
-    artificial_padding(0x1db, 0x1e1, u8);
+    artificial_padding(0x1db, 0x1dd, u8);
+    /*0x1DD*/ u8 _1DD;
+    /*0x1DE*/ u8 _1DE;
+    /*0x1DF*/ u8 _1DF;
+    /*0x1E0*/ u8 _1E0;
     /*0x1E1*/ u8 hitVariablesSetIndicator;
     /*0x1E2*/ u8 _1E2;
     /*0x1E3*/ u8 aiBuntIndicator; // unsure
-    artificial_padding(0x1e3, 0x1ee, u8);
+    /*0x1E4*/ u8 _1E4;
+    artificial_padding(0x1e4, 0x1ee, u8);
     /*0x1EE*/ u8 _1EE;
     /*0x1EF*/ u8 rosterID; // unsure
 } PracticeStruct;          // size: 0x1f0
