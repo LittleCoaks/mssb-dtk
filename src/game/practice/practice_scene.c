@@ -5,7 +5,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "game/hud/hud_gauges.h"
 #include "game/hud/hud_scoreboard.h"
-#include "game/hud/rep_3448.h"
+#include "game/minigame/minigame_hud.h"
 #include "game/hud/toyfield_score_update.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/match_scene.h"

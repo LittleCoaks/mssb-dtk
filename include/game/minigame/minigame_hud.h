@@ -1,5 +1,5 @@
-#ifndef __GAME_HUD_REP_3448_H_
-#define __GAME_HUD_REP_3448_H_
+#ifndef __GAME_MINIGAME_MINIGAME_HUD_H_
+#define __GAME_MINIGAME_MINIGAME_HUD_H_
 
 #include "mssbTypes.h"
 
@@ -85,4 +85,4 @@ void fn_3_12C984(void);
 void fn_3_12CA90(void);
 void minigameGraphics(void);
 
-#endif // !__GAME_HUD_REP_3448_H_
+#endif // !__GAME_MINIGAME_MINIGAME_HUD_H_

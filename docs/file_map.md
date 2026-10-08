@@ -108,7 +108,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `hud_scoreboard.c` | `rep_16B8` | 43 (11) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. | high |
 | `hud_gauges.c` | `rep_1770` | 14 (8) | 12,752 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links. | high |
 | `stadium_draw.c` | `rep_1C0` | 14 (3) | 9,564 | Stadium and stadium-object drawing, inning score display. | med |
-| `rep_3448.c` | *(unchanged)* | 38 (1) | 42,920 | 181 `load_Icon`, 30 each add/remove `GraphicsElementFromScene`. Almost certainly the HUD icon layer. | inferred |
+| `minigame_hud.c` | `hud/rep_3448` | 38 (1) | 42,920 | The minigame HUD (`minigameGraphics`, `minigameStateLogic`): score panels, timers, intro/result banners and per-minigame icons; 337 `g_Minigame` references. Moved from `hud/` because it sits inside the minigame block. | high |
 | `rep_4138.c` | *(unchanged)* | 3 (0) | 1,972 | Immediate-mode GX primitive drawing (`GXBegin`, vtx/Tev/projection setup). | inferred |
 | `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
 | `rep_1610.c` | *(unchanged)* | 1 (0) | 392 | One function calling `setIndicatorSlotState` + `addGraphicsElementToScene`. | inferred |
@@ -209,7 +209,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `bobomb_derby.c` | `rep_31F0` | 26 (9) | 11,620 | Scoring, batter AI, pitch transitions, load. | high |
 | `toy_field.c` | `rep_28A8` | 23 (8) | 19,696 | Toy Field gameplay — points, ball state, inning transitions, pause. | high |
 | `wall_ball.c` | `rep_3290` | 13 (7) | 7,164 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
-| `pitching_machine.c` | `rep_3310` | 55 (2) | 27,500 | Model loading plus actor transform/animation (`CTRLSetTranslation`/`Rotation`, `ActorObjectInitTable`). | med |
+| `minigame_models.c` | `rep_3310`, then `pitching_machine.c` | 55 (2) | 27,500 | The minigame model layer (`mm_` prefix): loads, updates and unloads every minigame's models (piranhas, Thwomps, fire bars, barrels, blocks, coins, the pitching machine), the shared archive, and the result-code HUD. Only 4 of its functions are pitching-machine specific. | med |
 | `minigame_fielder_anim.c` | `rep_2940` | 4 (1) | 1,924 | Minigame fielder animations. | med |
 | `toy_field_hud.c` | `rep_2BF8` | 1 (1) | 1,552 | Toy Field off-screen character indicator. | high |
 | `minigame_effects.c` | *(unchanged)* | 123 (4) | 68,156 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
@@ -588,7 +588,7 @@ already here.
 
 Ranked by un-decompiled bytes in files that contain code, the largest gaps are
 `minigame/minigame_effects.c` (123 fns, 4 named), `math/rep_3090.c` (49/2),
-`hud/rep_3448.c` (38/1), `minigame/pitching_machine.c` (55/2) and
+`minigame/minigame_hud.c` (38/1), `minigame/minigame_models.c` (55/2) and
 `minigame/star_dash.c` (69/5).
 
 Four of those five are also the weakest-evidence rows in this document — the

@@ -368,17 +368,17 @@ game/minigame/bobomb_derby.c:
 	.bss        start:0x0000B698 end:0x0000B6B8
 
 game/minigame/wall_ball.c:
-	.text       start:0x001133C4 end:0x0011669C
+	.text       start:0x00113398 end:0x0011669C
 	.rodata     start:0x00003290 end:0x00003310
 	.data       start:0x00022558 end:0x000225F0
 
-game/minigame/pitching_machine.c:
+game/minigame/minigame_models.c:
 	.text       start:0x0011669C end:0x0011EC28
 	.rodata     start:0x00003310 end:0x00003448
 	.data       start:0x000225F0 end:0x000264D0
 	.bss        start:0x0000B6B8 end:0x0000B700
 
-game/hud/rep_3448.c:
+game/minigame/minigame_hud.c:
 	.text       start:0x0011EC28 end:0x0012DB54
 	.rodata     start:0x00003448 end:0x000034B0
 	.data       start:0x000264D0 end:0x0002650C

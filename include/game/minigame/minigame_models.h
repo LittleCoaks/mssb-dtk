@@ -1,5 +1,5 @@
-#ifndef __GAME_MINIGAME_PITCHING_MACHINE_H_
-#define __GAME_MINIGAME_PITCHING_MACHINE_H_
+#ifndef __GAME_MINIGAME_MINIGAME_MODELS_H_
+#define __GAME_MINIGAME_MINIGAME_MODELS_H_
 
 #include "mssbTypes.h"
 #include "game/UnknownHomes_Game.h"
@@ -85,4 +85,4 @@ void fn_3_11E308(void);
 void fn_3_11E364(void);
 void fn_3_11E7C4(void);
 
-#endif // !__GAME_MINIGAME_PITCHING_MACHINE_H_
+#endif // !__GAME_MINIGAME_MINIGAME_MODELS_H_

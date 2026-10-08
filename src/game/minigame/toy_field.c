@@ -23,7 +23,7 @@
 #include "game/minigame/minigame_fielder_anim.h"
 #include "game/hud/stadium_draw.h"
 #include "game/minigame/minigame_effects.h"
-#include "game/minigame/pitching_machine.h"
+#include "game/minigame/minigame_models.h"
 #include "musyx/musyx.h"
 #include "Dolphin/stl.h"
 #include "stl/stdlib.h"

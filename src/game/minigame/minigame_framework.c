@@ -18,7 +18,7 @@
 #include "game/minigame/chain_chomp_sprint.h"
 #include "game/minigame/piranha_panic.h"
 #include "game/minigame/star_dash.h"
-#include "game/minigame/pitching_machine.h"
+#include "game/minigame/minigame_models.h"
 #include "game/minigame/minigame_effects.h"
 #include "game/minigame/minigame_fielder_anim.h"
 #include "game/sound/m_sound.h"
