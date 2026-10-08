@@ -412,7 +412,7 @@ void fn_3_B11D0(void) {
     setDefaultPlayTrackingVariables2();
 }
 
-void fn_3_B116C(void) {
+void fieldingPracticeAtBat(void) {
     if (g_Practice.instructionNumber < 0) {
         if (practice_checkForPause() != 0) {
             return;
@@ -427,7 +427,7 @@ void fn_3_B116C(void) {
     atBat_Fielders();
 }
 
-void fn_3_B1120(void) {
+void fieldingPracticeLiveBall(void) {
     if (g_Practice.instructionNumber < 0) {
         if (practice_checkForPause() != 0) {
             return;
@@ -907,7 +907,7 @@ void someBattingPitchingCallFuns(void) {
     atBat_Fielders();
 }
 
-void fn_3_B01E0(void) {
+void battingPracticeLiveBall(void) {
     ballPhysica();
     fielderMainFunction();
     if (g_Ball.framesSinceHit == 0x3C) {
