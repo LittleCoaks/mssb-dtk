@@ -170,7 +170,7 @@ extern u8 minigameSelectMenuGameIDs[];
 extern u16 lbl_3_data_9D4C[];
 extern u16 lbl_3_data_9D48[];
 extern u8 lbl_3_data_9D50[][5];
-extern u8 lbl_3_data_A594[];
+extern u8 charSelect_handednessIconFrames[];
 extern u8 superstarUnlocked[0x130];
 
 extern u16 lbl_3_data_93F4[][2];
@@ -908,7 +908,7 @@ void fn_3_12A910(void) {
         } else {
             HUD_RECORD_AT(scene, 18, i)->flags |= UI_FLAG_VISIBLE;
         }
-        HUD_RECORD_AT(scene, 22, i)->frame = lbl_3_data_A594[g_Minigame.battingHandedness[i]] << 16;
+        HUD_RECORD_AT(scene, 22, i)->frame = charSelect_handednessIconFrames[g_Minigame.battingHandedness[i]] << 16;
     }
     for (i = 0; i < 4; i++) {
         active = FALSE;

@@ -48,7 +48,7 @@ extern void fn_3_14C904(void);
 extern void fn_3_151798(void);
 extern void fn_3_152AB4(u8 coin, u8 runner);
 extern void fn_3_1541C4(u8 coin, u8 type, VecXYZ* pos);
-extern void fn_3_157DB8(int frames);
+extern void chainChomp_spawnTrailEffect(int frames);
 extern void fn_3_1578F8(void);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
@@ -453,7 +453,7 @@ void fn_3_1405D8(void) {
         } while (ccs_chompJumpRollWeights[row][g_Minigame.ccs._26] >= 0);
         g_Minigame.ccs._26 *= 120;
         g_Minigame.ccs._26 -= 48;
-        fn_3_157DB8(g_Minigame.ccs._26);
+        chainChomp_spawnTrailEffect(g_Minigame.ccs._26);
     } else {
         g_Minigame.ccs.chompYaw = 0xE00;
         if (g_Minigame.ccs.chompStateTimer >= g_Minigame.ccs._26) {

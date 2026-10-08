@@ -5,34 +5,34 @@
 
 struct PracticeScene;
 
-void fn_3_157DB8(void* owner);
+void chainChomp_spawnTrailEffect(void* owner);
 void practiceAnimationRelated4(void);
 void practiceAnimationRelated2(void);
-void fn_3_15810C(void);
-void fn_3_1581FC(void);
-void fn_3_158264(struct PracticeScene* scene);
-void fn_3_1583AC(void);
-void fn_3_1586B0(void);
-void fn_3_1589C4(void);
+void practiceCompleteBanner_update(void);
+void practiceCompleteBanner_init(void);
+void practiceGoalHud_updateCounter(struct PracticeScene* scene);
+void practiceGoalHud_update(void);
+void practiceGoalHud_init(void);
+void practice_insertGoalHudScenes(void);
 void practiceAnimationRelated_text(void);
 void practiceAnimationRelated(void);
-void fn_3_1590C8(void);
-void fn_3_159114(void);
-void fn_3_159590(void);
-void fn_3_1595F4(void);
+void practice_insertInstructionScene(void);
+void practiceMenu_charSelect_update(void);
+void practiceMenu_charSelect_init(void);
+void practiceMenu_subMenu_update(void);
 void graphicsRelated(void);
-void fn_3_159D50(void);
-void fn_3_15A244(void);
+void practiceMenu_typeIcons_update(void);
+void practiceMenu_typeIcons_init(void);
 void animationOrDrawingRelated(void);
 void practice_drawHud(void);
 void animatePracticeScene(void);
 void practice_startPitchAfter90Frames(void);
-void fn_3_15ADD4(void);
+void freeFieldingPracticeTransition(void);
 void practiceRelated(void);
 void unused_matchSimulationRelated(void);
 void fieldingPractice_resetMem(void);
-void fn_3_15B204(void);
-void fn_3_15B494(void);
+void freeFieldingPracticeLoadCharacters(void);
+void freeFieldingPracticeSwitcher(void);
 void freeFieldingPracticeControl(void);
 
 #endif // !__GAME_PRACTICE_PRACTICE_SCENE_H_
