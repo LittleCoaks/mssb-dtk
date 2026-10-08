@@ -3,16 +3,25 @@
 
 #include "mssbTypes.h"
 
+typedef struct PauseSwapEntry {
+    /* 0x0 */ s16 action;
+    /* 0x2 */ s16 empty;
+    /* 0x4 */ s16 _04;
+    /* 0x6 */ s16 _06;
+} PauseSwapEntry;
+
 // Shared state block of the in-match pause menu.
 typedef struct PauseControl {
-    /* 0x000 */ u32 port;
-    /* 0x004 */ s16 _004[3];
+    /* 0x000 */ s32 port;
+    /* 0x004 */ u16 _004[3];
     /* 0x00A */ s16 _00A;
     /* 0x00C */ s16 counter;
     /* 0x00E */ s16 _00E;
     /* 0x010 */ s16 _010;
     /* 0x012 */ s16 _12;
-    /* 0x014 */ u8 _014[0x168 - 0x14];
+    /* 0x014 */ u8 _014[0x18 - 0x14];
+    /* 0x018 */ PauseSwapEntry swapEntries[2][10];
+    /* 0x0B8 */ u8 _0B8[0x168 - 0xB8];
     /* 0x168 */ s16 battingOrderCopy[2][20];
     /* 0x1B8 */ u8 _1B8[0x1D0 - 0x1B8];
     /* 0x1D0 */ u8 _1D0;
@@ -56,6 +65,14 @@ extern PauseControl pauseControl;
 
 void setPausedTo0AndOtherStateVars(void);
 void fn_3_AFD80(int arg0);
+BOOL fn_3_AFD48(int arg0);
+void fn_3_AF5A4(void);
+void fn_3_AF428(void);
+void fn_3_AEFF8(void);
+void fn_3_AE770(void);
+void fn_3_AD2A0(void);
+void pauseMenuControl(int side);
+void fn_3_AC9F8(void);
 void howToPlayScreen(void);
 void match_checkForPause(void);
 void transitionToPauseScreen(void);

@@ -22,7 +22,7 @@
 extern u8 hugeAnimStruct[0x3154];
 extern u8 animRelated[0x124];
 extern u8 highLevelSimulationFlag[4];
-extern u8 lineUpInfoStruct[2][9][4];
+extern s8 lineUpInfoStruct[2][9][4];
 extern u8 CommonUIFiles_pauseMenu[0x3E0];
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_3_data_F918[];
@@ -110,14 +110,6 @@ static inline void pauseMenu_loadLineupActors(void) {
     }
 }
 
-static void pauseMenu_incSaturating(u8 *v) {
-    if (*v < 0xFE) {
-        *v = *v + 1;
-    } else {
-        *v = 0xFF;
-    }
-}
-
 static void pauseMenu_scanLineup(void) {
     int i;
 
@@ -125,24 +117,12 @@ static void pauseMenu_scanLineup(void) {
     pauseControl._254[2] = -1;
     pauseControl._254[1] = -1;
     pauseControl._254[3] = -1;
-    for (i = 0; i < 9; i += 3) {
+    for (i = 0; i < 9; i++) {
         if (lineUpInfoStruct[pauseControl.port][i][2] == 0) {
             pauseControl._254[4] = i;
         }
         if (lineUpInfoStruct[pauseControl.port][i][2] == 1) {
             pauseControl._254[5] = i;
-        }
-        if (lineUpInfoStruct[pauseControl.port][i + 1][2] == 0) {
-            pauseControl._254[4] = i + 1;
-        }
-        if (lineUpInfoStruct[pauseControl.port][i + 1][2] == 1) {
-            pauseControl._254[5] = i + 1;
-        }
-        if (lineUpInfoStruct[pauseControl.port][i + 2][2] == 0) {
-            pauseControl._254[4] = i + 2;
-        }
-        if (lineUpInfoStruct[pauseControl.port][i + 2][2] == 1) {
-            pauseControl._254[5] = i + 2;
         }
     }
 }
@@ -161,19 +141,18 @@ static void pauseMenu_playSound(int sfx, int tableIndex) {
     sndFXStartEx(sfx, lbl_800EFBA4[tableIndex], 0x3F, 0);
 }
 
-// Copies byte 2 of the first nine lineup slots for `port` into pauseControl._242.
-static void pauseMenu_copyLineupFlags(int port) {
+// Copies byte 2 of the first nine lineup slots of the paused team into pauseControl._242.
+static void pauseMenu_copyLineupFlags(void) {
     int i;
-    int j;
 
-    for (i = 0; i < 3; i++) {
-        for (j = 0; j < 3; j++) {
-            pauseControl._242[i * 3 + j] = (s8)lineUpInfoStruct[port][i * 3 + j][2];
-        }
+    for (i = 0; i < 9; i += 3) {
+        pauseControl._242[i] = lineUpInfoStruct[pauseControl.port][i][2];
+        pauseControl._242[i + 1] = lineUpInfoStruct[pauseControl.port][i + 1][2];
+        pauseControl._242[i + 2] = lineUpInfoStruct[pauseControl.port][i + 2][2];
     }
 }
 
-// Sets the pause menu's analog-stick style movement flags from the screen's table row.
+// Injects `value` as the pause menu's simulated button input and restarts the input delay.
 static void pauseMenu_setStickMode(int value) {
     pauseControl._004[0] = value;
     pauseControl._004[1] = value;
@@ -182,30 +161,33 @@ static void pauseMenu_setStickMode(int value) {
 }
 
 // Writes each lineup slot's value from pauseControl._242 into the batting order of the batting team.
-static void pauseMenu_syncBattingOrder(void) {
+static inline void pauseMenu_syncLineup(void) {
     int i;
     int j;
-    int team;
     int pitcherId;
 
-    team = g_GameLogic.awayTeamBattingInd_battingTeam;
-    pitcherId = g_GameLogic.battingOrderAndPositionMapping[team][0][0];
+    pitcherId = g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0];
     for (i = 0; i < 9; i++) {
         for (j = 1; j < 10; j++) {
-            if (g_GameLogic.battingOrderAndPositionMapping[team][j][0] == i) {
-                if (g_GameLogic.battingOrderAndPositionMapping[team][j][1] != pauseControl._242[i]) {
+            if (i == g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][j][0]) {
+                if (g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][j][1] !=
+                    pauseControl._242[i]) {
                     pauseControl._260 = TRUE;
-                    g_GameLogic.battingOrderAndPositionMapping[team][j][1] = pauseControl._242[i];
-                    if (pauseControl._242[i] == 0) {
-                        g_GameLogic.battingOrderAndPositionMapping[team][j][0] = i;
-                    }
-                    if (pitcherId != g_GameLogic.battingOrderAndPositionMapping[team][j][0]) {
+                }
+                g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][j][1] =
+                    pauseControl._242[i];
+                if (pauseControl._242[i] == 0) {
+                    g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0] = i;
+                    if (pitcherId !=
+                        g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0]) {
                         g_GameLogic.playOverInd = TRUE;
                     }
                 }
             }
         }
     }
+    initFielders();
+    setPitcherStatsToInMemPitcher(g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0]);
 }
 
 void setPausedTo0AndOtherStateVars(void) {
@@ -500,32 +482,43 @@ void fn_3_AF428(void) {
 }
 
 void loadPauseMenu(void) {
-    int port;
-
     if (pauseControl.counter <= 1) {
         if (pauseControl._1D8 == FALSE) {
-            port = g_GameLogic.teamFielding;
-            pauseControl.port = port;
-            pauseMenu_incSaturating(&g_GameLogic._131[port]);
-            pauseMenu_incSaturating(&g_GameLogic._131[port + 2]);
+            pauseControl.port = g_GameLogic.teamFielding;
+            if (g_GameLogic._131[g_GameLogic.teamFielding] < 0xFE) {
+                g_GameLogic._131[g_GameLogic.teamFielding]++;
+            } else {
+                g_GameLogic._131[g_GameLogic.teamFielding] = 0xFF;
+            }
+            if (g_GameLogic._131[g_GameLogic.teamFielding + 2] < 0xFE) {
+                g_GameLogic._131[g_GameLogic.teamFielding + 2]++;
+            } else {
+                g_GameLogic._131[g_GameLogic.teamFielding + 2] = 0xFF;
+            }
         } else {
-            port = g_GameLogic.teamBatting;
-            pauseControl.port = port;
-            pauseMenu_incSaturating(&g_GameLogic._131[port]);
-            pauseMenu_incSaturating(&g_GameLogic._131[port + 2]);
+            pauseControl.port = g_GameLogic.teamBatting;
+            if (g_GameLogic._131[g_GameLogic.teamBatting] < 0xFE) {
+                g_GameLogic._131[g_GameLogic.teamBatting]++;
+            } else {
+                g_GameLogic._131[g_GameLogic.teamBatting] = 0xFF;
+            }
+            if (g_GameLogic._131[g_GameLogic.teamBatting + 2] < 0xFE) {
+                g_GameLogic._131[g_GameLogic.teamBatting + 2]++;
+            } else {
+                g_GameLogic._131[g_GameLogic.teamBatting + 2] = 0xFF;
+            }
         }
 
         pauseMenu_scanLineup();
 
         pauseControl.cursor = 0;
         pauseControl._206 = 0xD;
-        if (g_GameLogic.teamIsCPU[pauseControl.port] != FALSE) {
-            pauseControl._201 = TRUE;
-        } else {
-            pauseControl._201 = FALSE;
-        }
+        pauseControl._201 = FALSE;
         pauseControl._207 = 0;
         pauseControl._208 = 0;
+        if (g_GameLogic.teamIsCPU[pauseControl.port] != FALSE) {
+            pauseControl._201 = TRUE;
+        }
 
         pauseControl._1DB = 0;
         pauseControl._1DC = 0;
@@ -537,13 +530,17 @@ void loadPauseMenu(void) {
         if (diskReadRelated(CommonUIFiles_pauseMenu + 0x20, 0x13) != 0) {
             if (pauseControl._1D8 == FALSE) {
                 pauseControl._1D1 = 2;
+                pauseControl.state = 0;
+                pauseControl.counter = 0;
+                pauseControl._00E = 0;
+                pauseControl._010 = 0;
             } else {
                 pauseControl._1D1 = 9;
+                pauseControl.state = 0;
+                pauseControl.counter = 0;
+                pauseControl._00E = 0;
+                pauseControl._010 = 0;
             }
-            pauseControl.state = 0;
-            pauseControl.counter = 0;
-            pauseControl._00E = 0;
-            pauseControl._010 = 0;
         }
     }
 }
@@ -589,8 +586,10 @@ void fn_3_AEC50(void) {
         }
         break;
     case 4:
-        if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9] == 0) {
+        switch (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9]) {
+        case 0:
             pauseMenu_enterScreen(0xA);
+            break;
         }
         pauseControl._1D9 = 2;
         break;
@@ -602,31 +601,34 @@ void fn_3_AEC50(void) {
     case 6:
         result = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9];
         switch (result) {
+        case 3:
+            pauseMenu_enterScreen(0xB);
+            break;
+        case 5:
+            pauseControl._220 = 0;
+            pauseMenu_enterScreen(0xD);
+            break;
+        case 4:
+            pauseMenu_enterScreen(0xC);
+            break;
         case 1:
             pauseMenu_enterScreen(0xE);
             break;
         case 2:
             pauseMenu_enterScreen(0xF);
             break;
-        case 3:
-            pauseMenu_enterScreen(0xB);
-            break;
-        case 4:
-            pauseMenu_enterScreen(0xC);
-            break;
-        case 5:
-            pauseControl._220 = 0;
-            pauseMenu_enterScreen(0xD);
-            break;
         }
         break;
     case 7:
         result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
-        if (result == 2) {
-            pauseControl.state = 2;
-        } else if (result == 1) {
+        switch (result) {
+        case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 8;
+            break;
+        case 2:
+            pauseControl.state = 2;
+            break;
         }
         break;
     case 8:
@@ -655,16 +657,15 @@ void fn_3_AEC50(void) {
 void fn_3_AE900(void) {
     int flag;
     int i;
-    int row;
 
     flag = FALSE;
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         flag = TRUE;
     }
     if (pauseControl._004[1] & INPUT_BUTTON_START) {
-        for (i = 0; i < 6; i++) {
-            if (lbl_3_data_F918[(flag << 4) + i + 9] != 0) {
-                pauseControl.cursor = i;
+        for (i = 1; i < 7; i++) {
+            if (lbl_3_data_F918[(flag << 4) + i + 8] == 0) {
+                pauseControl.cursor = i - 1;
                 break;
             }
         }
@@ -674,43 +675,54 @@ void fn_3_AE900(void) {
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_A) {
-        row = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9];
-        switch (row) {
+        switch (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9]) {
+        case 6:
+            fn_3_5B408();
+            pauseControl.state = 7;
+            pauseMenu_playSound(0x1B8, 1);
+            break;
         case 1:
+            pauseControl._1D9 = 1;
+            pauseControl._12 = 0;
+            pauseControl.state = 5;
+            break;
         case 2:
+            pauseControl._1D9 = 1;
+            pauseControl._12 = 0;
+            pauseControl.state = 5;
+            break;
         case 3:
             pauseControl._1D9 = 1;
             pauseControl._12 = 0;
             pauseControl.state = 5;
             break;
         case 4:
+            pauseControl._1D9 = 1;
+            pauseControl.state = 5;
+            break;
         case 5:
             pauseControl._1D9 = 1;
             pauseControl.state = 5;
             break;
-        case 6:
-            fn_3_5B408();
-            pauseControl.state = 7;
-            pauseMenu_playSound(0x1B8, 1);
-            break;
         default:
             pauseControl.state = 3;
-            pauseMenu_playSound(0x1B8, 1);
             break;
         }
+        pauseMenu_playSound(0x1B8, 1);
         return;
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_B) {
         if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 9] != 0) {
-            for (i = 0; i < 6; i++) {
-                if (lbl_3_data_F918[(flag << 4) + i + 9] != 0) {
-                    pauseControl.cursor = i;
+            for (i = 1; i < 7; i++) {
+                if (lbl_3_data_F918[(flag << 4) + i + 8] == 0) {
+                    pauseControl.cursor = i - 1;
                     break;
                 }
             }
+        } else {
+            pauseControl.state = 3;
         }
-        pauseControl.state = 3;
         pauseMenu_playSound(0x1B9, 2);
         return;
     }
@@ -760,7 +772,7 @@ void fn_3_AE334(void) {
     }
     switch (pauseControl.state) {
     case 0:
-        pauseMenu_copyLineupFlags(pauseControl.port);
+        pauseMenu_copyLineupFlags();
         pauseControl.state = 1;
         pauseControl._12 = 0;
         pauseControl._260 = FALSE;
@@ -789,8 +801,10 @@ void fn_3_AE334(void) {
         }
         break;
     case 4:
-        if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] == 0) {
+        switch (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1]) {
+        case 0:
             pauseMenu_enterScreen(3);
+            break;
         }
         pauseControl._1D9 = 2;
         break;
@@ -802,31 +816,34 @@ void fn_3_AE334(void) {
     case 6:
         result = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1];
         switch (result) {
+        case 3:
+            pauseMenu_enterScreen(4);
+            break;
+        case 5:
+            pauseControl._220 = TRUE;
+            pauseMenu_enterScreen(6);
+            break;
+        case 4:
+            pauseMenu_enterScreen(5);
+            break;
         case 1:
             pauseMenu_enterScreen(7);
             break;
         case 2:
             pauseMenu_enterScreen(8);
             break;
-        case 3:
-            pauseMenu_enterScreen(4);
-            break;
-        case 4:
-            pauseMenu_enterScreen(5);
-            break;
-        case 5:
-            pauseControl._220 = TRUE;
-            pauseMenu_enterScreen(6);
-            break;
         }
         break;
     case 7:
         result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
-        if (result == 2) {
-            pauseControl.state = 2;
-        } else if (result == 1) {
+        switch (result) {
+        case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 8;
+            break;
+        case 2:
+            pauseControl.state = 2;
+            break;
         }
         break;
     case 8:
@@ -855,7 +872,6 @@ void fn_3_AE334(void) {
 void fn_3_ADEDC(void) {
     int flag;
     int i;
-    int row;
 
     flag = FALSE;
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
@@ -865,30 +881,30 @@ void fn_3_ADEDC(void) {
         if (pauseControl._204[g_GameLogic.teamFielding] != FALSE) {
             if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] == 0) {
                 if (pauseControl._206 <= 0) {
-                    pauseMenu_setStickMode(0x100);
+                    pauseMenu_setStickMode(INPUT_BUTTON_A);
                 }
             } else {
                 if (pauseControl._206 <= 0) {
-                    pauseMenu_setStickMode(0x8);
+                    pauseMenu_setStickMode(INPUT_BUTTON_UP);
                 }
             }
         } else {
             if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] == 3) {
                 if (pauseControl._206 <= 0) {
-                    pauseMenu_setStickMode(0x100);
+                    pauseMenu_setStickMode(INPUT_BUTTON_A);
                 }
             } else {
                 if (pauseControl._206 <= 0) {
-                    pauseMenu_setStickMode(0x4);
+                    pauseMenu_setStickMode(INPUT_BUTTON_DOWN);
                 }
             }
         }
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_START) {
-        for (i = 0; i < 6; i++) {
-            if (lbl_3_data_F918[(flag << 4) + i + 1] != 0) {
-                pauseControl.cursor = i;
+        for (i = 1; i < 7; i++) {
+            if (lbl_3_data_F918[(flag << 4) + i] == 0) {
+                pauseControl.cursor = i - 1;
                 break;
             }
         }
@@ -898,39 +914,55 @@ void fn_3_ADEDC(void) {
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_A) {
-        row = lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1];
-        switch (row) {
+        switch (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1]) {
+        case 6:
+            fn_3_5B408();
+            pauseControl.state = 7;
+            break;
         case 1:
+            pauseControl._1D9 = 1;
+            pauseControl._12 = 0;
+            pauseControl.state = 5;
+            break;
         case 2:
-        case 3:
+            pauseControl._1D9 = 1;
+            pauseControl._12 = 0;
+            pauseControl.state = 5;
+            break;
         case 4:
             pauseControl._1D9 = 1;
             pauseControl._12 = 0;
             pauseControl.state = 5;
             break;
-        case 6:
-            fn_3_5B408();
-            pauseControl.state = 7;
-            pauseMenu_playSound(0x1B8, 1);
+        case 3:
+            pauseControl._1D9 = 1;
+            pauseControl._12 = 0;
+            pauseControl.state = 5;
+            break;
+        case 5:
+            pauseControl._1D9 = 1;
+            pauseControl._12 = 0;
+            pauseControl.state = 5;
             break;
         default:
             pauseControl.state = 3;
-            pauseMenu_playSound(0x1B8, 1);
             break;
         }
+        pauseMenu_playSound(0x1B8, 1);
         return;
     }
 
     if (pauseControl._004[1] & INPUT_BUTTON_B) {
         if (lbl_3_data_F918[(flag << 4) + pauseControl.cursor + 1] != 0) {
-            for (i = 0; i < 6; i++) {
-                if (lbl_3_data_F918[(flag << 4) + i + 1] != 0) {
-                    pauseControl.cursor = i;
+            for (i = 1; i < 7; i++) {
+                if (lbl_3_data_F918[(flag << 4) + i] == 0) {
+                    pauseControl.cursor = i - 1;
                     break;
                 }
             }
+        } else {
+            pauseControl.state = 3;
         }
-        pauseControl.state = 3;
         pauseMenu_playSound(0x1B9, 2);
         return;
     }
@@ -957,9 +989,7 @@ void fn_3_ADEDC(void) {
 void fn_3_ADA3C(void) {
     if (pauseControl.state == 0) {
         fn_80035B50(0x13);
-        pauseMenu_syncBattingOrder();
-        initFielders();
-        setPitcherStatsToInMemPitcher(g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0]);
+        pauseMenu_syncLineup();
         animRelated[0x9B] = 0;
         pauseControl.state = pauseControl.state + 1;
     } else if (pauseControl.state == 1) {
@@ -991,80 +1021,198 @@ void fn_3_ADA3C(void) {
 }
 
 void positionSwap(void) {
-    int screen;
+    int port;
 
-    screen = pauseControl._1D1;
     switch (pauseControl.state) {
     case 0:
-        aiPosSwapInputs._CFA2[pauseControl.port] = (screen != 4);
+        port = pauseControl.port;
+        aiPosSwapInputs._CFA2[port] = (pauseControl._1D1 != 4);
         pauseControl._12 = 0;
-        if (screen == 7) {
-            aiPosSwapInputs._CFA2[pauseControl.port] = 2;
-        } else if (screen == 0xF) {
-            pauseControl._12 = 0;
-            pauseControl.state = 3;
-        } else if (screen == 8) {
-            aiPosSwapInputs._CFA2[pauseControl.port] = 3;
-            pauseControl.state = 2;
+        if (pauseControl._1D1 == 0xE || pauseControl._1D1 == 7) {
+            aiPosSwapInputs._CFA2[port] = 2;
+        } else if (pauseControl._1D1 == 0xF || pauseControl._1D1 == 8) {
+            aiPosSwapInputs._CFA2[port] = 3;
         }
+        pauseControl.state = 2;
         break;
     case 1:
         break;
     case 2:
+        pauseControl._12 = 0;
+        pauseControl.state = 3;
+        break;
+    case 3:
         if (pauseControl._12 > 0x14) {
             pauseControl.state = 4;
         }
         break;
-    case 3:
+    case 4:
         positionSwapScreenInputs();
         break;
-    case 4:
+    case 5:
         pauseControl._12 = 0;
         pauseControl.state = 6;
         break;
-    case 5:
+    case 6:
         if (pauseControl._12 > 0x14) {
-            if (screen == 0xB || screen == 0xE) {
-                break;
-            }
-            if (screen == 0xF) {
+            if (pauseControl._1D1 == 0xB || pauseControl._1D1 == 0xE || pauseControl._1D1 == 0xF) {
                 pauseControl._1D1 = 9;
+                pauseControl.state = 0;
+                pauseControl.counter = 0;
+                pauseControl._00E = 0;
+                pauseControl._010 = 0;
             } else {
                 pauseControl._1D1 = 2;
+                pauseControl.state = 0;
+                pauseControl.counter = 0;
+                pauseControl._00E = 0;
+                pauseControl._010 = 0;
             }
-            pauseControl.state = 0;
-            pauseControl.counter = 0;
-            pauseControl._00E = 0;
-            pauseControl._010 = 0;
         }
-        break;
-    case 6:
         break;
     }
 }
 
 void positionSwapScreenInputs(void) {
+    int val;
+    int step;
+    int i;
+    int port;
+    int found;
+    int action;
+
     if (pauseControl._201 != FALSE) {
-        switch (pauseControl._207) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-            break;
+        val = 0;
+        if (pauseControl._206 <= 0) {
+            step = pauseControl._207;
+            switch (step) {
+            case 0:
+                val = 4;
+                if (++pauseControl._208 >= 3) {
+                    pauseControl._208 = 0;
+                    pauseControl._207 = step + 1;
+                }
+                break;
+            case 1:
+                pauseControl._208 = 0;
+                pauseControl._207 = step + 1;
+                val = 0x100;
+                break;
+            case 2:
+                if (++pauseControl._208 >= 2) {
+                    pauseControl._208 = 0;
+                    pauseControl._207 = step + 1;
+                }
+                break;
+            case 3:
+                found = g_GameLogic.teamFielding;
+                for (i = 1; i < 10; i++) {
+                    if (pauseControl.swapEntries[found][i].empty == 0) {
+                        action = pauseControl.swapEntries[found][i].action;
+                        break;
+                    }
+                }
+                if (pauseControl._208 == 0) {
+                    if (action == 1) {
+                        val = 4;
+                        pauseControl._207++;
+                    } else if (action == 3 || action == 5 || action == 7) {
+                        val = 8;
+                        if (action == 5) {
+                            pauseControl._207++;
+                        }
+                    } else if (action == 2 || action == 8) {
+                        val = 2;
+                        if (action == 2) {
+                            pauseControl._207++;
+                        }
+                    } else {
+                        val = 1;
+                        if (action == 4) {
+                            pauseControl._207++;
+                        }
+                    }
+                    pauseControl._208 = pauseControl._208 + 1;
+                } else {
+                    val = 8;
+                    if (action == 3) {
+                        val = 2;
+                    }
+                    pauseControl._207++;
+                }
+                break;
+            case 4:
+                pauseControl._208 = 0;
+                pauseControl._207 = step + 1;
+                val = 0x100;
+                break;
+            case 5:
+                if (++pauseControl._208 >= 2) {
+                    pauseControl._208 = 0;
+                    pauseControl._207 = step + 1;
+                    val = 0x200;
+                }
+                break;
+            case 6:
+                if (++pauseControl._208 >= 2) {
+                    val = 0x100;
+                    pauseControl._204[g_GameLogic.teamFielding] = 1;
+                }
+                break;
+            }
+        }
+        port = pauseControl.port;
+        for (i = 0; i < 4; i++) {
+            if (port == i) {
+                aiPosSwapInputs.playerInputs[i].currentHeldInput = val;
+                aiPosSwapInputs.playerInputs[i].newInput = val;
+                aiPosSwapInputs.playerInputs[i].processedInput = val;
+            } else {
+                aiPosSwapInputs.playerInputs[i].currentHeldInput = 0;
+                aiPosSwapInputs.playerInputs[i].newInput = 0;
+                aiPosSwapInputs.playerInputs[i].processedInput = 0;
+            }
+        }
+    } else {
+        port = pauseControl.port;
+        for (i = 0; i < 4; i++) {
+            if (port == i) {
+                aiPosSwapInputs.playerInputs[i].currentHeldInput = g_Controls[g_GameLogic.teams[port]].buttonInput;
+                aiPosSwapInputs.playerInputs[i].newInput = g_Controls[g_GameLogic.teams[port]].newButtonInput;
+                aiPosSwapInputs.playerInputs[i].processedInput = g_Controls[g_GameLogic.teams[port]]._08;
+            } else {
+                aiPosSwapInputs.playerInputs[i].currentHeldInput = 0;
+                aiPosSwapInputs.playerInputs[i].newInput = 0;
+                aiPosSwapInputs.playerInputs[i].processedInput = 0;
+            }
+        }
+    }
+
+    if (pauseControl._1D1 == 4 || pauseControl._1D1 == 0xB || pauseControl._1D1 == 0xE ||
+        (u8)(pauseControl._1D1 - 7) <= 1 || pauseControl._1D1 == 0xF) {
+        if (aiPosSwapInputs.onMainPauseMenu != 0) {
+            pauseControl.state = 5;
+            if (pauseControl._1D1 == 4) {
+                for (i = 0; i < 9; i++) {
+                    if (pauseControl._242[i] != (s8)lineUpInfoStruct[pauseControl.port][i][2]) {
+                        if ((s8)lineUpInfoStruct[pauseControl.port][i][2] == 0) {
+                            pauseControl._254[0] = i;
+                        } else if ((s8)lineUpInfoStruct[pauseControl.port][i][2] == 1) {
+                            pauseControl._254[1] = i;
+                        }
+                        pauseControl._242[i] = (s8)lineUpInfoStruct[pauseControl.port][i][2];
+                    }
+                }
+            }
         }
     }
 }
 
 void fn_3_AD2A0(void) {
-    pauseMenu_syncBattingOrder();
-    initFielders();
-    setPitcherStatsToInMemPitcher(g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0]);
+    pauseMenu_syncLineup();
 }
 
-void pauseMenuControl(void) {
+void pauseMenuControl(int side) {
     switch (pauseControl.state) {
     case 0:
         pauseControl._23F[pauseControl.port] = 0;
@@ -1097,15 +1245,19 @@ void pauseMenuControl(void) {
         }
         break;
     case 6:
-        if (pauseControl._1D8 != FALSE) {
+        if (side == 0) {
             pauseControl._1D1 = 2;
+            pauseControl.state = 0;
+            pauseControl.counter = 0;
+            pauseControl._00E = 0;
+            pauseControl._010 = 0;
         } else {
             pauseControl._1D1 = 9;
+            pauseControl.state = 0;
+            pauseControl.counter = 0;
+            pauseControl._00E = 0;
+            pauseControl._010 = 0;
         }
-        pauseControl.state = 0;
-        pauseControl.counter = 0;
-        pauseControl._00E = 0;
-        pauseControl._010 = 0;
         break;
     }
 }
@@ -1113,18 +1265,16 @@ void pauseMenuControl(void) {
 // Toggles one of the per-team control options from the directional input on a side's menu row.
 void controlOptionsMenu(void) {
     int i;
-    int team;
     int row;
 
     for (i = 0; i < 2; i++) {
         if (g_GameLogic.teamIsCPU[i] == FALSE) {
-            team = g_GameLogic.teams[i];
-            if (g_Controls[team].newButtonInput & INPUT_BUTTON_A) {
+            if (g_Controls[g_GameLogic.teams[i]].newButtonInput & INPUT_BUTTON_A) {
                 if (pauseControl._23F[i] == 0) {
                     pauseMenu_playSound(0x1B8, 1);
                     pauseControl.state = 4;
                 }
-            } else if (g_Controls[team]._08 & INPUT_BUTTON_UP) {
+            } else if (g_Controls[g_GameLogic.teams[i]]._08 & INPUT_BUTTON_UP) {
                 if (pauseControl._23F[i] == 0) {
                     pauseControl._23F[i] = 4;
                 } else if (pauseControl._23F[i] == 1) {
@@ -1137,7 +1287,7 @@ void controlOptionsMenu(void) {
                     pauseControl._23F[i] = pauseControl._23F[i] - 1;
                 }
                 pauseMenu_playSound(0x1B7, 0);
-            } else if (g_Controls[team]._08 & INPUT_BUTTON_DOWN) {
+            } else if (g_Controls[g_GameLogic.teams[i]]._08 & INPUT_BUTTON_DOWN) {
                 if (pauseControl._23F[i] == 4) {
                     if (i == pauseControl.port) {
                         pauseControl._23F[i] = 0;
@@ -1148,61 +1298,61 @@ void controlOptionsMenu(void) {
                     pauseControl._23F[i] = pauseControl._23F[i] + 1;
                 }
                 pauseMenu_playSound(0x1B7, 0);
-            } else if (g_Controls[team]._08 & INPUT_BUTTON_RIGHT) {
+            } else if (g_Controls[g_GameLogic.teams[i]]._08 & INPUT_BUTTON_RIGHT) {
                 row = pauseControl._23F[i];
                 if (row != 0) {
                     switch (row) {
                     case 1:
-                        if (inningSetting.controlOptions[team].easyBatting == FALSE) {
-                            inningSetting.controlOptions[team].easyBatting = TRUE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].easyBatting == FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].easyBatting = TRUE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     case 2:
-                        if (inningSetting.controlOptions[team].autoFielding == FALSE) {
-                            inningSetting.controlOptions[team].autoFielding = TRUE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding == FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding = TRUE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     case 3:
-                        if (inningSetting.controlOptions[team].autoRunning == FALSE) {
-                            inningSetting.controlOptions[team].autoRunning = TRUE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning == FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning = TRUE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     case 4:
-                        if (inningSetting.controlOptions[team].dropSpot == 1) {
-                            inningSetting.controlOptions[team].dropSpot = FALSE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].dropSpot == 1) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].dropSpot = FALSE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     }
                 }
-            } else if (g_Controls[team]._08 & INPUT_BUTTON_LEFT) {
+            } else if (g_Controls[g_GameLogic.teams[i]]._08 & INPUT_BUTTON_LEFT) {
                 row = pauseControl._23F[i];
                 if (row != 0) {
                     switch (row) {
                     case 1:
-                        if (inningSetting.controlOptions[team].easyBatting != FALSE) {
-                            inningSetting.controlOptions[team].easyBatting = FALSE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].easyBatting != FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].easyBatting = FALSE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     case 2:
-                        if (inningSetting.controlOptions[team].autoFielding != FALSE) {
-                            inningSetting.controlOptions[team].autoFielding = FALSE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding != FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding = FALSE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     case 3:
-                        if (inningSetting.controlOptions[team].autoRunning != FALSE) {
-                            inningSetting.controlOptions[team].autoRunning = FALSE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning != FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning = FALSE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
                     case 4:
-                        if (inningSetting.controlOptions[team].dropSpot == FALSE) {
-                            inningSetting.controlOptions[team].dropSpot = TRUE;
+                        if (inningSetting.controlOptions[g_GameLogic.teams[i]].dropSpot == FALSE) {
+                            inningSetting.controlOptions[g_GameLogic.teams[i]].dropSpot = TRUE;
                             pauseMenu_playSound(0x1B7, 0);
                         }
                         break;
@@ -1241,11 +1391,9 @@ void howToPlayScreen(void) {
             pauseControl.state = 5;
             pauseMenu_playSound(0x1B9, 2);
         } else if (g_d_GameSettings.GameModeSelected != 6) {
-            if (pauseControl._004[2] & INPUT_BUTTON_LEFT) {
-                if (pauseControl._221 != 0) {
-                    pauseControl._221 = pauseControl._221 - 1;
-                    pauseMenu_playSound(0x1B7, 0);
-                }
+            if ((pauseControl._004[2] & INPUT_BUTTON_LEFT) && pauseControl._221 != 0) {
+                pauseControl._221 = pauseControl._221 - 1;
+                pauseMenu_playSound(0x1B7, 0);
             } else if (pauseControl._004[2] & INPUT_BUTTON_RIGHT) {
                 if (pauseControl._221 < pauseControl._222 - 1) {
                     pauseControl._221 = pauseControl._221 + 1;
@@ -1267,13 +1415,17 @@ void howToPlayScreen(void) {
         } else {
             if (pauseControl._1D8 == FALSE) {
                 pauseControl._1D1 = 2;
+                pauseControl.state = 0;
+                pauseControl.counter = 0;
+                pauseControl._00E = 0;
+                pauseControl._010 = 0;
             } else {
                 pauseControl._1D1 = 9;
+                pauseControl.state = 0;
+                pauseControl.counter = 0;
+                pauseControl._00E = 0;
+                pauseControl._010 = 0;
             }
-            pauseControl.state = 0;
-            pauseControl.counter = 0;
-            pauseControl._00E = 0;
-            pauseControl._010 = 0;
         }
         break;
     }
@@ -1291,11 +1443,9 @@ void fn_3_AC9F8(void) {
     if (g_d_GameSettings.GameModeSelected == 6) {
         return;
     }
-    if (pauseControl._004[2] & INPUT_BUTTON_LEFT) {
-        if (pauseControl._221 != 0) {
-            pauseControl._221 = pauseControl._221 - 1;
-            pauseMenu_playSound(0x1B7, 0);
-        }
+    if ((pauseControl._004[2] & INPUT_BUTTON_LEFT) && pauseControl._221 != 0) {
+        pauseControl._221 = pauseControl._221 - 1;
+        pauseMenu_playSound(0x1B7, 0);
     } else if (pauseControl._004[2] & INPUT_BUTTON_RIGHT) {
         if (pauseControl._221 < pauseControl._222 - 1) {
             pauseControl._221 = pauseControl._221 + 1;
