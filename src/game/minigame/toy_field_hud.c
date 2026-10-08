@@ -50,7 +50,7 @@ extern UIRecordDescriptor lbl_3_data_900C[];
 extern void fn_3_1079C8(u8 (*order)[2], int mode);
 extern u32 fn_3_107C40(void);
 extern int fn_3_107C88(void);
-extern int fn_3_107CD0(void);
+extern int minigame_getLeadingPlayer(void);
 extern void fn_80053FE8(void);
 extern void fn_80051D00(void);
 extern void fn_80050F78(int arg0);
@@ -1153,7 +1153,7 @@ void fn_3_EB6E0(void) {
                     u32 tied;
 
                     fn_3_125424(scene, 0, 0);
-                    leader = fn_3_107CD0();
+                    leader = minigame_getLeadingPlayer();
                     tied = fn_3_107C88();
                     i = 0;
                     do {
@@ -1326,7 +1326,7 @@ void fn_3_EAEF4(void) {
     } else {
         fn_3_125424(scene, 0, 10);
     }
-    leader = fn_3_107CD0();
+    leader = minigame_getLeadingPlayer();
     tied = fn_3_107C88();
     i = 0;
     do {

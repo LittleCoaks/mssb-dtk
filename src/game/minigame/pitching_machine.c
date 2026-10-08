@@ -923,7 +923,7 @@ static inline void pmDisableWallBallEffects(void) {
 
 extern void convertTextureHeader(void* tex);
 extern void UpdateTexturePalettePointers(void* geo, void* tex);
-extern int fn_3_107CD0(void);
+extern int minigame_getLeadingPlayer(void);
 extern int fn_3_107C88(void);
 extern int fn_3_107988(void);
 extern void minigame_pointsTally(void);
@@ -1007,7 +1007,7 @@ void fn_3_11E7C4(void) {
         scene->state = 1;
         break;
     case 1: {
-        u32 leader = fn_3_107CD0();
+        u32 leader = minigame_getLeadingPlayer();
         u32 flag = fn_3_107C88();
         s16* leaderPoints = &g_Minigame.minigamePoints_current_Latest[leader][0];
 
@@ -1075,7 +1075,7 @@ void fn_3_11E364(void) {
         scene->state = 1;
         break;
     case 1: {
-        u32 leader = fn_3_107CD0();
+        u32 leader = minigame_getLeadingPlayer();
         u32 flag = fn_3_107C88();
         s16* leaderPoints = &g_Minigame.minigamePoints_current_Latest[leader][0];
 

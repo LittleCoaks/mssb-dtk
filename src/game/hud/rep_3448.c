@@ -69,7 +69,7 @@ typedef struct {
     u8 count;
 } ToyResultsIn;
 
-extern void fn_3_10754C(ToyResultsIn* in);
+extern void minigameFillGrandPrixScoreInput(ToyResultsIn* in);
 extern void fn_8006C2B4(s16* out, ToyResultsIn* in);
 extern int fn_8006C268(s16* out);
 extern int fn_8006C100(s16 score);
@@ -142,7 +142,7 @@ typedef struct {
 } CCSGemType;
 extern CCSGemType lbl_3_data_21884[];
 
-extern int fn_3_107CD0(void);
+extern int minigame_getLeadingPlayer(void);
 extern int fn_3_107C88(void);
 extern void fn_800528C0(f32 x, f32 y, f32 z, s16* outX, s16* outY);
 
@@ -1656,7 +1656,7 @@ void fn_3_127B68(void) {
         removeCurrentDrawingItem();
         return;
     }
-    fn_3_10754C(&in);
+    minigameFillGrandPrixScoreInput(&in);
     fn_8006C2B4(out, &in);
     switch (scene->state) {
     case 0:
@@ -3557,7 +3557,7 @@ void fn_3_121304(void) {
             scene->state = 1;
             break;
         case 1:
-            leader = fn_3_107CD0();
+            leader = minigame_getLeadingPlayer();
             flag = fn_3_107C88();
             i = 0;
             do {
@@ -4175,7 +4175,7 @@ void fn_3_11F02C(void) {
             scene->state = 1;
             break;
         case 1:
-            leader = fn_3_107CD0();
+            leader = minigame_getLeadingPlayer();
             flag = fn_3_107C88();
             i = 0;
             do {

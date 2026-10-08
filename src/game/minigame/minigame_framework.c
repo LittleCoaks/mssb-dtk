@@ -1282,7 +1282,7 @@ void toyFieldCharSelectSwitcher(void) {
         hugeAnimStruct[0x307A] = 0;
         g_Minigame.battingHandedness[6] = 0;
         if (g_Minigame._1A3C != 0) {
-            fn_3_1078F8();
+            minigameStartGrandPrix();
         } else {
             SetGameStatus(GAME_STATUS_MINIGAME_READY);
         }
@@ -1946,7 +1946,7 @@ void fn_3_10C7A4(void) {
     }
 }
 
-void fn_3_10C58C(void) {
+void minigames_fillRoster(void) {
     minigamesFillRoster();
 }
 
@@ -2506,7 +2506,7 @@ static inline void buildResultEntry(MinigameResultEntry* out) {
         if (g_Minigame._1A3C != 0) {
             MiniGrandPrixScoreInput input;
 
-            fn_3_10754C(&input);
+            minigameFillGrandPrixScoreInput(&input);
             out->score = (s16)fn_8006C13C(&input);
             out->count = 0;
         } else {
@@ -2825,14 +2825,14 @@ void fn_3_10952C(void) {
         g_Minigame._1A43 = rank + 1;
     }
     if (g_Minigame._1A3C != 0) {
-        fn_3_10754C(&input);
+        minigameFillGrandPrixScoreInput(&input);
         category = characterStaticIndexes[input.charID * 6 + 2];
         best = (MiniGrandPrixScoreInput*)((u8*)lbl_803616CC + 0x140) + category;
         if ((s16)fn_8006C13C(&input) > (s16)fn_8006C13C(best)) {
-            fn_3_10754C(best);
+            minigameFillGrandPrixScoreInput(best);
             g_Minigame._1A46[0] = 1;
         } else if ((s16)fn_8006C13C(&input) == (s16)fn_8006C13C(best) && input.placeRank < best->placeRank) {
-            fn_3_10754C(best);
+            minigameFillGrandPrixScoreInput(best);
             g_Minigame._1A46[0] = 1;
         }
         bestPlace = (s8*)lbl_803616CC + 0x400 + category;
@@ -2986,7 +2986,7 @@ void postMinigame(void) {
             if (g_Minigame.grandPrixRound >= 6) {
                 if (pauseControl.cursor == 0) {
                     g_Minigame._1A38 = 1;
-                    fn_3_1078F8();
+                    minigameStartGrandPrix();
                     SetGameStatus(GAME_STATUS_0x29);
                 } else if (pauseControl.cursor == 1) {
                     g_Minigame._19DF = GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT;
@@ -3448,7 +3448,7 @@ int fn_3_107D34(const void* a, const void* b) {
     return pointsB - pointsA;
 }
 
-int fn_3_107CD0(void) {
+int minigame_getLeadingPlayer(void) {
     u8 order[4];
     u32 i;
 
@@ -3576,7 +3576,7 @@ BOOL fn_3_107988(u32 mode) {
     return FALSE;
 }
 
-void fn_3_1078F8(void) {
+void minigameStartGrandPrix(void) {
     u32 k;
 
     memset(&g_Minigame.resultsScene, 0, 0x28);
@@ -3664,7 +3664,7 @@ void fn_3_10768C(void) {
     }
 }
 
-void fn_3_10754C(MiniGrandPrixScoreInput* input) {
+void minigameFillGrandPrixScoreInput(MiniGrandPrixScoreInput* input) {
     fn_8006C398(input);
     if (g_Minigame._1A3C != 0 && g_Minigame._1908 >= 0 && g_Minigame._1908 < 4) {
         u32 i;
