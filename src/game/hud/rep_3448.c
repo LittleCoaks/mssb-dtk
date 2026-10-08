@@ -153,7 +153,7 @@ extern u8 lbl_8037169C[];
 extern void fn_80053FE8(void);
 extern void fn_80051D00(void);
 extern void fn_80050F78(int arg0);
-extern void fn_3_11D780(void);
+extern void mm_DrawResultCode(void);
 extern void fn_3_11E364(void);
 extern void fn_3_11E7C4(void);
 extern void fn_3_EA454(void);
@@ -234,7 +234,7 @@ void minigameGraphics(void) {
         } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
             if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
                 if (g_Minigame._1907 == 1) {
-                    insertGraphicDrawingFunction(fn_3_11D780, 2);
+                    insertGraphicDrawingFunction(mm_DrawResultCode, 2);
                 }
                 node = insertGraphicDrawingFunction(fn_3_127B68, 2);
                 *(DrawingSceneStruct**)((u8*)&g_Minigame + 0x1E04) = node;
@@ -1409,7 +1409,7 @@ void fn_3_129458(void) {
         animRelated[0xB6] = 0;
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Minigame.multiPlayerInd == 0
             && g_Minigame._1A3C == 0 && g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
-            insertGraphicDrawingFunction(fn_3_11D780, 2);
+            insertGraphicDrawingFunction(mm_DrawResultCode, 2);
         }
         insertGraphicDrawingFunction(fn_3_EA454, 2);
         insertGraphicDrawingFunction(fn_3_129370, 2);

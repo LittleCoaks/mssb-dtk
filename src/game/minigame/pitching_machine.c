@@ -1230,11 +1230,11 @@ void fn_3_11DE80(void) {
     }
 }
 
-u16 fn_3_11DDC4(u8* data, u32 len) {
+u16 mm_Crc16(u8* data, u32 len) {
     return pmCrc16(data, len);
 }
 
-void fn_3_11DACC(u8* out, u8* raw, u8 a, u8 b) {
+void mm_EncodeResultCode(u8* out, u8* raw, u8 a, u8 b) {
     PMScoreRecord rec;
     int flag;
     u32 score;
@@ -1308,7 +1308,7 @@ void fn_3_11DACC(u8* out, u8* raw, u8 a, u8 b) {
     } while (i < 16);
 }
 
-void fn_3_11D780(void) {
+void mm_DrawResultCode(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u8 raw[8];
     u8 code[16];
@@ -1361,7 +1361,7 @@ void fn_3_11D780(void) {
         scene->_22 = random_fn_3_9EE24(0x1A);
         scene->state = 1;
     case 1:
-        fn_3_11DACC(code, raw, scene->_20, scene->_22);
+        mm_EncodeResultCode(code, raw, scene->_20, scene->_22);
         for (i = 0; i < 16; i++) {
             load_Icon(scene, 2 + i, 1, 0xBD, code[i]);
             load_Icon(scene, 2 + i, 2, 0xBD, code[i]);
@@ -1393,7 +1393,7 @@ void fn_3_11D780(void) {
     }
 }
 
-int fn_3_11D6A0(void) {
+int mm_LoadCommonArchiveStep(void) {
     switch (animRelated[0xD8]) {
     case 0:
         hugeAnimStruct.archive = ARAMTransfer(&MinigameCommonFiles_game[4], 0, 0, 0);
@@ -1406,7 +1406,7 @@ int fn_3_11D6A0(void) {
         break;
     case 2:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
-            fn_3_11D3AC();
+            mm_ParseCommonArchive();
         }
         animRelated[0xD8]++;
         break;
@@ -1416,7 +1416,7 @@ int fn_3_11D6A0(void) {
     return FALSE;
 }
 
-void fn_3_11D3AC(void) {
+void mm_ParseCommonArchive(void) {
     u8* file = (u8*)hugeAnimStruct.archive;
     u32* offsets = (u32*)file;
     int i;
@@ -2905,7 +2905,7 @@ void mm_ResetPiranhas(void) {
     }
 }
 
-void fn_3_11678C(void) {
+void mm_PlaceExtraPipes(void) {
     PMEffect* fx;
     int i;
 
@@ -2923,7 +2923,7 @@ void fn_3_11678C(void) {
     }
 }
 
-void fn_3_1166CC(void) {
+void mm_ClearFirst40Effects(void) {
     int i;
 
     for (i = 0; i < 40; i++) {
@@ -2934,7 +2934,7 @@ void fn_3_1166CC(void) {
     }
 }
 
-void fn_3_11669C(void) {
+void mm_HidePlayerMarkers(void) {
     FX(0xF0).visible = FALSE;
     FX(0xF1).visible = FALSE;
     FX(0xF2).visible = FALSE;

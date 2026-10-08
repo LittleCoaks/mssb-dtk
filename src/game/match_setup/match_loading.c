@@ -61,7 +61,7 @@ extern int fn_3_1665E4(void);
 extern void loadSomeDataFile(void);
 extern void someAllocFunction(void);
 extern int maybeLoadHUDObjectFromMemory(void);
-extern int fn_3_11D6A0(void);
+extern int mm_LoadCommonArchiveStep(void);
 extern void fn_800111B4(TextBank* bank);
 extern int calledWhenStartingMatch(void);
 extern int fn_80020218(void);
@@ -314,7 +314,7 @@ void fn_3_59F40(void) {
         }
         break;
     case 9:
-        if (fn_3_11D6A0()) {
+        if (mm_LoadCommonArchiveStep()) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
