@@ -22,5 +22,6 @@ void fn_3_16B488(Vec* pos, s8 bone);
 void fn_3_16B5B4(struct _RibbonPoint* p, s8 bone, int frame);
 void fn_3_16B884(void);
 void fn_3_16C394(s8 charID);
+void gardenSFXRelated(u8 alt);
 
 #endif // !__GAME_MINIGAME_KINOKO_H_

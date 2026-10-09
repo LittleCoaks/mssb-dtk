@@ -7,6 +7,7 @@
 #include "Dolphin/gx.h"
 #include "Dolphin/os.h"
 #include "Dolphin/stl.h"
+#include "musyx/musyx.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/sub.h"
 #include "Unknown/File_0x8001b728.h"
@@ -87,6 +88,9 @@ extern u8 lbl_80366158[0x30];
 extern u8 drawStadiumRelated;
 extern void fn_80011604(void* model, void (*cb)(void*, GXTevStageID*, GXTexCoordID*, GXTexMapID*, s8*, s8*));
 extern void fn_800A7D4C(s32 arg0, void* arg1);
+extern u16 stadiumHazardSoundIDs[16];
+extern u8 stadiumHazardSoundFxRelated[0xB4];
+extern u8 lbl_3_data_84B8[0x3C];
 
 #define PauseSimulation lbl_80366158[0x28]
 #define RIBBON_STATE ribbonState
@@ -115,6 +119,44 @@ static GXTexObj texObjB;
 static u32 pulseFrame;
 static GXTexObj* curTexObj;
 static u8* curTex;
+
+// .text:0x0016C410 size:0x138
+void gardenSFXRelated(u8 alt) {
+    u32 stadiumID;
+    int mode;
+    u8 vol;
+    u8 ctrlValue;
+    SND_VOICEID voice;
+
+    if (alt) {
+        if (g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN) {
+            mode = 5;
+        } else {
+            mode = 14;
+        }
+    } else {
+        if (g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN) {
+            mode = 4;
+        } else {
+            mode = 13;
+        }
+    }
+    stadiumID = g_d_GameSettings.StadiumID;
+    if (stadiumID == STADIUM_ID_PEACH_GARDEN) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            vol = lbl_3_data_84B8[mode * 2];
+        } else {
+            vol = stadiumHazardSoundFxRelated[stadiumID * 0x1E + mode * 2];
+        }
+        voice = sndFXStartEx(stadiumHazardSoundIDs[stadiumID] + mode, vol, 0x3F, 0);
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            ctrlValue = lbl_3_data_84B8[mode * 2 + 1];
+        } else {
+            ctrlValue = stadiumHazardSoundFxRelated[stadiumID * 0x1E + mode * 2 + 1];
+        }
+        sndFXCtrl(voice, SND_MIDICTRL_REVERB, ctrlValue);
+    }
+}
 
 // .text:0x0016C394 size:0x7C mapped:0x807AB428
 void fn_3_16C394(s8 charID) {

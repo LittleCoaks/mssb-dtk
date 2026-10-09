@@ -99,6 +99,16 @@ extern PerfectPitchEntry lbl_3_data_17D18[2][2];
 extern void fn_800A7D4C(s32 arg0, void* arg1);
 extern void fn_800BDA24(void* arg);
 
+// .text:0x000CB344 size:0x68
+void fn_3_CB344(int actorIndex, int starType) {
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES
+        || (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BOBOMB_DERBY
+            && g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BARREL_BATTER)) {
+        maybeConfigureChargeEffectGraphics(actorIndex);
+    }
+    lbl_3_common_bss_35154.starHitPitch = starType;
+}
+
 // .text:0x000CB284 size:0xC0 mapped:0x8070A318
 void fn_3_CB284(int actorIndex, int frame, f32 charge) {
     PerfectPitchActor* actor;
@@ -259,4 +269,14 @@ void fn_3_CABF0(PerfectPitchTrail* trail) {
     fn_800BDA24(model);
     model->root[0x98] = 0xFF;
     sknRelated(model, mtx);
+}
+
+// .text:0x000CABB4 size:0x3C
+void fn_3_CABB4(void) {
+    if (lbl_3_data_17D10[0] != NULL) {
+        lbl_3_data_17D10[0]->stop = TRUE;
+    }
+    if (lbl_3_data_17D10[1] != NULL) {
+        lbl_3_data_17D10[1]->stop = TRUE;
+    }
 }

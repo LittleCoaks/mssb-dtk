@@ -54,10 +54,38 @@ extern struct {
 
 extern FireEmitterData lbl_3_data_17DC0;
 extern u16 lbl_3_data_6660[];
+extern struct {
+    /*0x00*/ u32 texture;
+    /*0x04*/ u8 _04[0x58 - 0x4];
+} lbl_3_data_18268;
+extern u32 lbl_3_bss_9FDC;
 
 extern void fn_8002F5F4(Vec* start, Vec* dir);
 extern void fn_80030D88(Vec* start, Vec* dir, FireEmitterSlot* slot, int arg);
 extern void fn_80030470(Vec* start, Vec* dir, Vec* end, FireEmitterSlot* slot, int arg);
+extern void fn_8002955C(Vec* pos, int arg, void* emitter);
+extern void convertTextureHeader(void* tex);
+
+// .text:0x000CB6EC size:0x4C
+void fn_3_CB6EC(f32 x, f32 y, f32 z) {
+    Vec pos;
+
+    pos.x = x;
+    pos.y = y;
+    pos.z = z;
+    lbl_3_data_18268.texture = lbl_3_common_bss_35154.burstTexture;
+    fn_8002955C(&pos, 0, &lbl_3_data_18268);
+}
+
+// .text:0x000CB6B4 size:0x38
+void fn_3_CB6B4(void* arg) {
+    u32 texture;
+
+    *(u32*)arg += (u32)arg;
+    texture = *(u32*)arg;
+    lbl_3_bss_9FDC = texture;
+    convertTextureHeader((void*)texture);
+}
 
 // .text:0x000CB538 size:0x17C mapped:0x8070A5CC
 void fn_3_CB538(int mode) {
