@@ -9,7 +9,7 @@ Sections:
 game/match_setup/rep_0.c:
 	.text       start:0x00000000 end:0x000004F4
 	.rodata     start:0x00000000 end:0x00000060
-	.data       start:0x00000000 end:0x00000118
+	.data       start:0x00000000 end:0x000001D0
 	.bss        start:0x00000000 end:0x00000018
 
 game/match_setup/loading_state.c:
@@ -47,6 +47,9 @@ game/camera/camera.c:
 	.rodata     start:0x00000720 end:0x00000868
 	.data       start:0x00000A38 end:0x00001880
 	.bss        start:0x00000040 end:0x00000098
+
+game/data_only/data_1880.c:
+	.data       start:0x00001880 end:0x00003A40
 
 game/pitching/pitcher_stamina.c:
 	.text       start:0x0001D86C end:0x0001DEB8
@@ -102,6 +105,9 @@ game/match_setup/match_loading.c:
 	.text       start:0x00059918 end:0x0005A684
 	.data       start:0x00003D60 end:0x0000428C
 
+game/data_only/data_428C.c:
+	.data       start:0x0000428C end:0x00005FF4
+
 game/match_setup/match_flow_data.c:
 	.data       start:0x00005FF4 end:0x00006510
 
@@ -119,6 +125,9 @@ game/ball/ball_visuals.c:
 	.rodata     start:0x00000EA0 end:0x00000F80
 	.data       start:0x00006820 end:0x000069C0
 	.bss        start:0x00000200 end:0x00001728
+
+game/data_only/data_69C0.c:
+	.data       start:0x000069C0 end:0x00008088
 
 game/batting/star_hit_sprites.c:
 	.text       start:0x0006A2A4 end:0x0006AEC0
@@ -190,6 +199,9 @@ game/sound/m_sound.c:
 	.data       start:0x00008148 end:0x00008D88
 	.bss        start:0x00001760 end:0x000017F8
 
+game/data_only/data_8D88.c:
+	.data       start:0x00008D88 end:0x0000F448
+
 game/match_setup/character_loading.c:
 	.text       start:0x00090754 end:0x000912B4
 
@@ -213,6 +225,7 @@ game/match_setup/match_scene.c:
 game/hud/hud_gauges.c:
 	.text       start:0x000993A8 end:0x0009C578
 	.rodata     start:0x00001770 end:0x000017E0
+	.data       start:0x0000F4A4 end:0x0000F4E0
 
 game/match_setup/run_scoring.c:
 	.text       start:0x0009C578 end:0x0009CAF0
@@ -274,7 +287,7 @@ game/ball/foul_detection.c:
 game/stadium/stadium_framework.c:
 	.text       start:0x000B7EF0 end:0x000BA150
 	.rodata     start:0x00001D58 end:0x00001E08
-	.data       start:0x00011178 end:0x000111A8
+	.data       start:0x00010AB0 end:0x000111A8
 	.bss        start:0x00001900 end:0x00009950
 
 game/animation/scene_effects.c:
@@ -298,6 +311,7 @@ game/stadium/sta_c1.c:
 game/hud/rep_21F8.c:
 	.text       start:0x000C937C end:0x000C9744
 	.rodata     start:0x000021F8 end:0x00002288
+	.data       start:0x00017898 end:0x00017B98
 	.bss        start:0x00009F20 end:0x00009F38
 
 game/stadium/sta_c0.c:
@@ -315,6 +329,7 @@ game/pitching/pitcher_fire_effect.c:
 	.text       start:0x000CB3AC end:0x000CB738
 	.rodata     start:0x00002390 end:0x000023E8
 	.data       start:0x00017DC0 end:0x000182C0
+	.bss        start:0x00009FDC end:0x0000A018
 
 game/stadium/stadium_star.c:
 	.text       start:0x000CB738 end:0x000CB8A8
@@ -449,6 +464,7 @@ game/data_only/rep_3B70.c:
 game/match_setup/stat_book.c:
 	.text       start:0x0015C5F4 end:0x0015F574
 	.rodata     start:0x00003BD8 end:0x00003C28
+	.data       start:0x000273DC end:0x00027C98
 
 game/data_only/rep_3C28.c:
 	.text       start:0x0015F574 end:0x0015F648
@@ -468,6 +484,7 @@ game/data_only/rep_3CE0.c:
 game/data_only/rep_3D50.c:
 	.text       start:0x00160578 end:0x001608F0
 	.rodata     start:0x00003D50 end:0x00003DA8
+	.data       start:0x000281F0 end:0x00028418
 	.bss        start:0x0000B9B8 end:0x0000B9E0
 
 game/match_setup/star_missions.c:
@@ -505,4 +522,5 @@ game/ball/ball_fielder_collision.c:
 game/hud/rep_4138.c:
 	.text       start:0x0016D810 end:0x0016E3A4
 	.rodata     start:0x00004138 end:0x000041B8
+	.data       start:0x0002A448 end:0x0002A4A8
 	.bss        start:0x0000D6E0 end:0x0000D714
