@@ -230,9 +230,12 @@ guided instructions and pause handling, and the scene/HUD code.
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 | `free_fielding_practice.c` | `rep_3A98` + tail of old `practice_scene.c` | 8 (8) | 2,568 | Free fielding practice: load, switcher, control, memory reset. | high |
 
-## data_only/ — 15 files, 7 fns
+## data_only/ — 14 files, 7 fns
 
-These kept their original names, so there is nothing to look up.
+These kept their original names, so there is nothing to look up. The
+exceptions are `data_1880.c`, `data_428C.c`, `data_69C0.c` and `data_8D88.c`,
+data-only units added for shared `.data` tables with no code owner and named
+by address (see [Unowned game REL `.data`](splits.md#unowned-game-rel-data-2026-10-08)).
 
 As of 2026-10-08, `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
 **no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table

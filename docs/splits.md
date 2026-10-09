@@ -122,6 +122,30 @@ Later on 2026-10-08:
   `pitcher_fire_effect.c`, `0x16C410` -> `kinoko.c`, `0xC0810` ->
   `scene_effects.c`. No game REL `.text` is unowned any more.
 
+### Unowned game REL `.data` (2026-10-08)
+
+Data sections link in splits.txt order, so an unowned `.data` block belongs to
+a unit that sits between its neighbours in link order. Blocks used by exactly
+one unit went to that unit: `0x118-0x1D0` -> `rep_0.c`, `0x273DC-0x27C98` ->
+`stat_book.c`, `0x281F0-0x28418` -> `rep_3D50.c`, `0x17898-0x17B98` ->
+`rep_21F8.c` (one 0x300-byte `lbl_3_data_17898`; the seven sub-symbols were
+merged because `fn_3_C937C`'s codegen depends on the full size),
+`0x2A448-0x2A4A8` -> `rep_4138.c`, `0x10AB0-0x111A8` (per-stadium tables) ->
+`stadium_framework.c`, `0xF4A4-0xF4E0` -> `hud_gauges.c`, and `.bss
+0x9FDC-0xA018` -> `pitcher_fire_effect.c`.
+
+Four large shared tables have no code unit between their link-order
+neighbours, so each is a data-only unit (like `match_flow_data.c`), named by
+address: `data_only/data_1880.c` (AI and versus tables, after `camera.c`),
+`data_428C.c` (field coordinates, hit and fielding constants, after
+`match_loading.c`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
+after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`).
+All are 100%.
+
+Left unowned on purpose: common `.bss` from `0xD714` (shared globals used by
+almost every unit), the 4-byte alignment gaps, `0x228`
+`FrameCountOfEntireGame` (no clear owner), `0x6804-0x6820` and `0x27EAC`.
+
 Still open, as of 2026-10-08:
 
 | header-only unit(s) | `.text` window | contents |
