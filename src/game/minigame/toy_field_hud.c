@@ -1062,8 +1062,9 @@ void fn_3_EB6E0(void) {
                 int slot = g_Minigame.playerSlots.playOrder[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
                 int diff = g_Minigame.miniGameCurrentPoints[slot] - g_Minigame.minigamePoints_current_Latest[slot][0];
                 if (diff < 0) {
-                    int step = diff / 8;
+                    int step;
                     g_Minigame.toyField_pointsCountingInd = 1;
+                    step = diff / 8;
                     if (step != 0) {
                         g_Minigame.minigamePoints_current_Latest[slot][0] += step;
                     } else {
@@ -1091,9 +1092,10 @@ void fn_3_EB6E0(void) {
                 int slot = g_Minigame.playerSlots.playOrder[(scene->_1E + i) % g_Minigame.miniGameNumberOfParticipants];
                 int diff = g_Minigame.miniGameCurrentPoints[slot] - g_Minigame.minigamePoints_current_Latest[slot][0];
                 if (diff > 0) {
-                    int step = diff / 8;
+                    int step;
                     g_Minigame.toyField_pointsCountingInd = 1;
                     ((u8*)node)[0x24 + slot] = 1;
+                    step = diff / 8;
                     if (step != 0) {
                         g_Minigame.minigamePoints_current_Latest[slot][0] += step;
                     } else {
@@ -1208,10 +1210,11 @@ u32 fn_3_EB684(void) {
 void fn_3_EAEF4(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     MiniGameStruct* mg = &g_Minigame;
-    BOOL changed = FALSE;
+    u32 changed = FALSE;
     u32 i;
     int leader;
-    int tied;
+    u32 tied;
+    u8* p;
 
     if (fn_3_EB684()) {
         animRelated[0xD6] = 0;
@@ -1345,9 +1348,10 @@ void fn_3_EAEF4(void) {
         }
         i++;
     } while (i < g_Minigame.miniGameNumberOfParticipants);
+    p = mg->hudPulseInd;
     i = 0;
     do {
-        u8 state = mg->hudPulseInd[i];
+        u8 state = *p;
 
         if (state != 0) {
             switch (state) {
@@ -1360,8 +1364,9 @@ void fn_3_EAEF4(void) {
             }
             OFFSCREEN_RECORD_AT(scene, 0xD, i)->frame = 0;
             OFFSCREEN_RECORD_AT(scene, 0xD, i)->playMode = UI_PLAY_FORWARD;
-            mg->hudPulseInd[i] = 0;
+            *p = 0;
         }
+        p++;
         i++;
     } while (i < g_Minigame.miniGameNumberOfParticipants);
     if (changed && g_Minigame.toyField_coinsRemaining == 0) {
@@ -1465,10 +1470,10 @@ void fn_3_EA8FC(void) {
 
 // .text:0x000EA454 size:0x4A8
 void fn_3_EA454(void) {
-    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u8 order[4][2];
     u32 i;
     u32 j;
+    MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
     if (animRelated[0x96] != 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);

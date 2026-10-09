@@ -1579,10 +1579,244 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
 
 // .text:0x00161078 size:0x510
 void starMissionsMinigamesTotalPoints(void) {
-    return;
+    u8 slot = g_d_GameSettings._35;
+    u8 charID = g_Minigame.playerSlots.charID[slot];
+    u8 trackerIdx = characterStaticIndexes[charID].trackerIdx;
+    u8 requirementRow = characterStaticIndexes[charID].requirementRow;
+    ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+    StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+    u8 mode = g_Minigame.GameMode_MiniGame;
+    u8 difficulty = g_d_GameSettings.challengeDifficulty;
+    int i;
+    int j;
+    int k;
+
+    for (j = 0; j < 10; j++) {
+        s8 status = ct->inGameMissionTracker[j].starMissionStatus;
+
+        if (status == -2) {
+            continue;
+        }
+        if (status == -1) {
+            if (req[j].flags & 2) {
+                if (difficulty < 1) {
+                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                }
+            } else if (req[j].flags & 4) {
+                if (difficulty < 2) {
+                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                }
+            } else if (req[j].flags & 8) {
+                if (difficulty < 3) {
+                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                }
+            }
+            if (req[j].flags & 1) {
+                if (g_Minigame.playerSlots.rank[slot] != 1) {
+                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                }
+            }
+            continue;
+        }
+
+        if (req[j].flags & 2) {
+            if (difficulty < 1) {
+                continue;
+            }
+        } else if (req[j].flags & 4) {
+            if (difficulty < 2) {
+                continue;
+            }
+        } else if (req[j].flags & 8) {
+            if (difficulty < 3) {
+                continue;
+            }
+        }
+        if ((req[j].flags & 1) && g_Minigame.playerSlots.rank[slot] != 1) {
+            continue;
+        }
+        {
+            BOOL anyModeFlag = FALSE;
+            BOOL modeMatches = FALSE;
+
+            for (k = 0; k < 7; k++) {
+                if (req[j].flags & (0x10 << k)) {
+                    anyModeFlag = TRUE;
+                    if (mode == k) {
+                        modeMatches = TRUE;
+                    }
+                }
+            }
+            if (anyModeFlag && !modeMatches) {
+                continue;
+            }
+        }
+
+        switch (req[j].type) {
+        case 0x2F:
+            if (g_Minigame.playerSlots.rank[slot] <= req[j].target) {
+                ct->inGameMissionTracker[j].starMissionStatus = -1;
+            }
+            break;
+        case 0x30: {
+            int target = req[j].target;
+
+            if (mode == 1 || mode == 3) {
+                target *= 100;
+            } else if (mode == 0 || mode == 2) {
+                target *= 10;
+            }
+            if (g_Minigame.miniGameCurrentPoints[slot] >= target) {
+                ct->inGameMissionTracker[j].starMissionStatus = -1;
+            }
+            break;
+        }
+        case 0x31: {
+            int matches = 0;
+            int ahead = 0;
+
+            for (i = 0; i < 4; i++) {
+                if (g_Minigame.playerSlots.characterIndex[i] >= 0 && i != slot) {
+                    if (characterStaticIndexes[g_Minigame.playerSlots.charID[i]].requirementRow == req[j].target) {
+                        matches++;
+                        if (g_Minigame.playerSlots.rank[slot] < g_Minigame.playerSlots.rank[i]) {
+                            ahead++;
+                        }
+                    }
+                }
+            }
+            if (matches != 0 && ahead == matches && g_Minigame.playerSlots.rank[slot] == 1) {
+                ct->inGameMissionTracker[j].starMissionStatus = -1;
+            }
+            break;
+        }
+        case 0x36:
+            if (mode == 5 && g_Minigame._1CB1[slot] <= req[j].target) {
+                ct->inGameMissionTracker[j].starMissionStatus = -1;
+            }
+            break;
+        }
+    }
+
+    for (i = 0; i < 54; i++) {
+        for (j = 0; j < 10; j++) {
+            if (starMissionCompletionTracker[i].inGameMissionTracker[j].starMissionStatus <= -1) {
+                starMissionCompletionTracker[i].inGameMissionTracker[j].starMissionStatus = -2;
+            } else {
+                starMissionCompletionTracker[i].inGameMissionTracker[j].starMissionStatus = 0;
+            }
+        }
+    }
 }
 
 // .text:0x001608F0 size:0x788
 void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit) {
-    return;
+    u8 charID = g_Minigame.playerSlots.charID[g_d_GameSettings._35];
+    u8 trackerIdx = characterStaticIndexes[charID].trackerIdx;
+    u8 requirementRow = characterStaticIndexes[charID].requirementRow;
+    BOOL found = FALSE;
+    int i;
+
+    switch (missionType) {
+    case 0: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x32 && points >= req[i].target) {
+                found = TRUE;
+                break;
+            }
+        }
+        break;
+    }
+    case 1: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x33) {
+                if (barrelsHit == 0) {
+                    ct->inGameMissionTracker[i].starMissionStatus = 0;
+                } else {
+                    ct->inGameMissionTracker[i].starMissionStatus++;
+                    if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
+                        found = TRUE;
+                        break;
+                    }
+                }
+            }
+        }
+        break;
+    }
+    case 2: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x34 && barrelsHit >= 15) {
+                ct->inGameMissionTracker[i].starMissionStatus++;
+                if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
+                    found = TRUE;
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    case 3: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x35 && points == 2) {
+                ct->inGameMissionTracker[i].starMissionStatus++;
+                if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
+                    found = TRUE;
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    case 5: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x37 && points == 4) {
+                ct->inGameMissionTracker[i].starMissionStatus++;
+                if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
+                    found = TRUE;
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    case 6: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x38) {
+                ct->inGameMissionTracker[i].starMissionStatus++;
+                if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
+                    found = TRUE;
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    case 7: {
+        ChallengeTrackingStruct* ct = &starMissionCompletionTracker[trackerIdx];
+        StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
+        for (i = 0; i < 10; i++) {
+            if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0x39 && points == req[i].target) {
+                found = TRUE;
+                break;
+            }
+        }
+        break;
+    }
+    }
+
+    if (found) {
+        starMissionCompletionTracker[trackerIdx].inGameMissionTracker[i].starMissionStatus = -1;
+    }
 }

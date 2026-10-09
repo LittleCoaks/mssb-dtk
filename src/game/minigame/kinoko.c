@@ -21,6 +21,8 @@
 #define RIBBON_POINTS 25
 #define RIBBON_QUADS 149
 #define RIBBON_COLORS 6
+#define RIBBON_FRAMES_PER_COLOR_STEP 5
+#define RIBBON_HALF_WIDTH 0.15f
 
 typedef struct _RibbonPoint {
     /*0x00*/ Vec pos;
@@ -42,7 +44,7 @@ typedef struct _RibbonState {
     /*0x19C8*/ u8 _19C8[0x19D4 - 0x19C8];
     /*0x19D4*/ s32 frame;
     /*0x19D8*/ u8 _19D8[4];
-    /*0x19DC*/ s8 charID;
+    /*0x19DC*/ E(s8, CHAR_ID) charID;
     /*0x19DD*/ E(u8, BOOL) enabled;
     /*0x19DE*/ u8 _19DE[2];
 } RibbonState; // size: 0x19E0
@@ -151,7 +153,7 @@ void fn_3_16B884(void) {
     RIBBON_STATE.ribbons[5].points[0].colorTo = 0;
     fn_3_16B5B4(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, 0);
     for (i = 1; i < RIBBON_POINTS; i++) {
-        alpha = (24 - i) * 8;
+        alpha = (RIBBON_POINTS - 1 - i) * 8;
         memcpy(&RIBBON_STATE.ribbons[0].points[i], &RIBBON_STATE.ribbons[0].points[i - 1], sizeof(RibbonPoint));
         RIBBON_STATE.ribbons[0].points[i].color[3] = alpha;
         memcpy(&RIBBON_STATE.ribbons[1].points[i], &RIBBON_STATE.ribbons[1].points[i - 1], sizeof(RibbonPoint));
@@ -169,7 +171,7 @@ void fn_3_16B884(void) {
 
 // .text:0x0016B5B4 size:0x2D0 mapped:0x807AA648
 void fn_3_16B5B4(RibbonPoint* p, s8 bone, int frame) {
-    f32 t = (f32)frame / 5.0f;
+    f32 t = (f32)frame / RIBBON_FRAMES_PER_COLOR_STEP;
 
     p->color[0] = (1.0 - t) * ribbonColors[p->colorFrom][0] + t * ribbonColors[p->colorTo][0];
     p->color[1] = (1.0 - t) * ribbonColors[p->colorFrom][1] + t * ribbonColors[p->colorTo][1];
@@ -186,7 +188,7 @@ void fn_3_16B488(Vec* pos, s8 bone) {
     }
     memset(pos, 0, sizeof(Vec));
     if (!getAnimationCollisionOffset(RIBBON_STATE.charID, bone, pos)) {
-        switch (bone) {
+        switch ((s32)bone) {
         case RIBBON_BONE_HAND_L:
             getAnimationCollisionOffset(RIBBON_STATE.charID, RIBBON_BONE_HAND_L_ALT, pos);
             break;
@@ -217,7 +219,7 @@ void fn_3_16A07C(void) {
         memset(&RIBBON_STATE, 0, sizeof(RibbonState));
         return;
     }
-    if ((s8)g_Minigame.playerIDWithPowerup[0] == -1 || !RIBBON_STATE.enabled) {
+    if ((s8)g_Minigame.playerIDWithPowerup[0] == CHAR_ID_NONE || !RIBBON_STATE.enabled) {
         removeCurrentDrawingItem();
         memset(&RIBBON_STATE, 0, sizeof(RibbonState));
         return;
@@ -225,7 +227,7 @@ void fn_3_16A07C(void) {
     if (!PauseSimulation) {
         RIBBON_STATE.frame++;
         for (i = RIBBON_POINTS - 1; i != 0; i--) {
-            alpha = (24 - i) * 8;
+            alpha = (RIBBON_POINTS - 1 - i) * 8;
             memcpy(&RIBBON_STATE.ribbons[0].points[i], &RIBBON_STATE.ribbons[0].points[i - 1], sizeof(RibbonPoint));
             RIBBON_STATE.ribbons[0].points[i].color[3] = alpha;
             memcpy(&RIBBON_STATE.ribbons[1].points[i], &RIBBON_STATE.ribbons[1].points[i - 1], sizeof(RibbonPoint));
@@ -239,7 +241,7 @@ void fn_3_16A07C(void) {
             memcpy(&RIBBON_STATE.ribbons[5].points[i], &RIBBON_STATE.ribbons[5].points[i - 1], sizeof(RibbonPoint));
             RIBBON_STATE.ribbons[5].points[i].color[3] = alpha;
         }
-        if (RIBBON_STATE.frame % 5 == 0) {
+        if (RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP == 0) {
             RIBBON_STATE.ribbons[0].points[0].colorFrom++;
             if (RIBBON_STATE.ribbons[0].points[0].colorFrom >= RIBBON_COLORS) {
                 RIBBON_STATE.ribbons[0].points[0].colorFrom -= RIBBON_COLORS;
@@ -289,12 +291,12 @@ void fn_3_16A07C(void) {
                 RIBBON_STATE.ribbons[5].points[0].colorTo -= RIBBON_COLORS;
             }
         }
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[0].points[0], RIBBON_BONE_HAND_L, RIBBON_STATE.frame % 5);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[1].points[0], RIBBON_BONE_HAND_R, RIBBON_STATE.frame % 5);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[2].points[0], RIBBON_BONE_TORSO, RIBBON_STATE.frame % 5);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[3].points[0], RIBBON_BONE_HEAD, RIBBON_STATE.frame % 5);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[4].points[0], RIBBON_BONE_FOOT_L, RIBBON_STATE.frame % 5);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, RIBBON_STATE.frame % 5);
+        fn_3_16B5B4(&RIBBON_STATE.ribbons[0].points[0], RIBBON_BONE_HAND_L, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        fn_3_16B5B4(&RIBBON_STATE.ribbons[1].points[0], RIBBON_BONE_HAND_R, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        fn_3_16B5B4(&RIBBON_STATE.ribbons[2].points[0], RIBBON_BONE_TORSO, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        fn_3_16B5B4(&RIBBON_STATE.ribbons[3].points[0], RIBBON_BONE_HEAD, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        fn_3_16B5B4(&RIBBON_STATE.ribbons[4].points[0], RIBBON_BONE_FOOT_L, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        fn_3_16B5B4(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
     }
     fn_3_169E70(RIBBON_STATE.ribbons[0].points);
     fn_3_169E70(RIBBON_STATE.ribbons[1].points);
@@ -360,8 +362,8 @@ void fn_3_169E70(RibbonPoint* points) {
                 side.x = -1.0f;
             }
             PSVECNormalize(&side, &side);
-            PSVECScale(&side, -0.15f, &p->edgeA);
-            PSVECScale(&side, 0.15f, &p->edgeB);
+            PSVECScale(&side, -RIBBON_HALF_WIDTH, &p->edgeA);
+            PSVECScale(&side, RIBBON_HALF_WIDTH, &p->edgeB);
             PSVECAdd(&p->edgeA, &p->pos, &p->edgeA);
             PSVECAdd(&p->edgeB, &p->pos, &p->edgeB);
         }

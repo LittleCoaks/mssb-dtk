@@ -586,8 +586,7 @@ void practiceLogicRelatedPause(void) {
 
     switch (pauseControl.state) {
     case 0: {
-        u8 subMenuLength = practice_subMenu_length[g_Practice.practiceType_2 * 5];
-        if (g_Practice.practiceLevel == subMenuLength - 1) {
+        if (g_Practice.practiceLevel == practice_subMenu_length[g_Practice.practiceType_2 * 5] - 1) {
             pauseControl._1D0 = 8;
         } else {
             pauseControl._1D0 = 7;
@@ -748,8 +747,8 @@ BOOL practice_checkForPause(void) {
         return FALSE;
     }
     if (g_Practice.pauseMenuLoading != 0) {
-        g_Practice.frames_sinceTimeCalled++;
         lbl_80366158[0x28] = 1;
+        g_Practice.frames_sinceTimeCalled++;
         if (g_Practice.frames_sinceTimeCalled >= 0x3C) {
             g_Practice.pauseMenuLoading = 0;
             g_Practice.pauseMenuActive = 1;
@@ -1203,12 +1202,13 @@ int setUpPlayerTryingSkill(void) {
         default:
             break;
         }
-        return FALSE;
-    }
+    } else {
 transition:
-    minigamesSetSomePointers();
-    transitionToPlayerControl();
-    return TRUE;
+        minigamesSetSomePointers();
+        transitionToPlayerControl();
+        return TRUE;
+    }
+    return FALSE;
 }
 
 static inline void setCpuStickFromButtons(InputStruct* input) {

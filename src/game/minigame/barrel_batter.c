@@ -475,9 +475,9 @@ void bB_AtBat(void) {
     if (g_Minigame.pointsTargetReachedInd != 0) {
         if (g_GameLogic.CountdownUntilFade <= 0) {
             g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
-            g_GameLogic.pre_PostMiniGameInd = 1;
-            g_GameLogic.minigameLastTurnSuccessInd = 1;
-            g_GameLogic.hudLoadingRelated = 1;
+            g_GameLogic.pre_PostMiniGameInd = TRUE;
+            g_GameLogic.minigameLastTurnSuccessInd = TRUE;
+            g_GameLogic.hudLoadingRelated = TRUE;
             SetGameStatus(GAME_STATUS_TRANSITION);
         }
     } else if (g_GameLogic.CountdownUntilFade <= 0) {
@@ -513,9 +513,9 @@ void bobombDerbyRelated(void) {
         if (g_Minigame.pointsTargetReachedInd != 0) {
             if (g_GameLogic.CountdownUntilFade <= 0) {
                 g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
-                g_GameLogic.pre_PostMiniGameInd = 1;
-                g_GameLogic.minigameLastTurnSuccessInd = 1;
-                g_GameLogic.hudLoadingRelated = 1;
+                g_GameLogic.pre_PostMiniGameInd = TRUE;
+                g_GameLogic.minigameLastTurnSuccessInd = TRUE;
+                g_GameLogic.hudLoadingRelated = TRUE;
                 SetGameStatus(GAME_STATUS_TRANSITION);
             }
         } else if (g_GameLogic.CountdownUntilFade <= 0) {
@@ -1137,17 +1137,15 @@ int bB_AI_compareCandidates(const void *a, const void *b) {
     MiniGameStruct *mg = &g_Minigame;
     s8 distX;
     s8 distY;
-    int diff;
 
     if (x->score != y->score) {
         return y->score - x->score;
     }
     if (x->barrelsCleared != y->barrelsCleared) {
-        diff = y->barrelsCleared - x->barrelsCleared;
         if (mg->bB_aiPrefersFewestBarrelsInd != 0) {
-            diff = x->barrelsCleared - y->barrelsCleared;
+            return x->barrelsCleared - y->barrelsCleared;
         }
-        return diff;
+        return y->barrelsCleared - x->barrelsCleared;
     }
     distX = __abs(2 - x->barrelIndex / 3);
     distY = __abs(2 - y->barrelIndex / 3);
@@ -1261,7 +1259,11 @@ void bB_AI(void) {
     MiniGameStruct *mg = &g_Minigame;
     s8 i;
 
-    bB_clearAIControlled();
+    i = 0;
+    do {
+        g_Minigame.isAIControlled[i] = 0;
+        i++;
+    } while (i < 4);
 
     i = 0;
     do {

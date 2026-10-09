@@ -192,6 +192,11 @@ static inline int getChargeEffectId(int slot) {
     return effectId;
 }
 
+// .text:0x000C1930 size:0x34
+int fn_3_C1930(int actorIndex) {
+    return findChargeSlot(actorIndex);
+}
+
 // .text:0x000C1770 size:0x1C0 mapped:0x80700804
 void maybeConfigureChargeEffectGraphics(int actorIndex) {
     ChargeAnimActor* actor = hugeAnimStruct.actors[actorIndex];
@@ -446,9 +451,4 @@ void fn_3_C0854(void) {
             fn_3_C11CC(chargeSlots[i].actorIndex, TRUE);
         }
     }
-}
-
-// .text:0x000C1930 size:0x34
-void fn_3_C1930(void) {
-    return;
 }

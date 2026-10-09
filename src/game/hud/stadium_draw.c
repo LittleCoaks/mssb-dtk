@@ -544,7 +544,6 @@ void inningScoreDisplayRelated(int stadiumID) {
     int firstVisibleInning;
     int offset = 0;
     int lastInning;
-    u8* logic = (u8*)&g_GameLogic;
 
     GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
     lastInning = g_Scores.Inning;
@@ -555,7 +554,7 @@ void inningScoreDisplayRelated(int stadiumID) {
     inning = firstVisibleInning;
     while (inning <= lastInning) {
         s16 runs = g_Scores.scores[0].byInning[inning - 1];
-        if (inning == lastInning && runs == 0 && g_Scores.halfInning == 0 && logic[0x127] == 0) {
+        if (inning == lastInning && runs == 0 && g_Scores.halfInning == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
             break;
         }
         fn_3_4F90(&texture, topInnings[stadium][0] + offset,
@@ -568,7 +567,7 @@ void inningScoreDisplayRelated(int stadiumID) {
                  g_Scores.scores[0].total, digitSlots[stadium],
                  colors[stadium][0], colors[stadium][1], 0);
 
-    if (logic[0x127] == 0) {
+    if (((u8*)&g_GameLogic)[0x127] == 0) {
         lastInning = g_Scores.Inning + g_Scores.halfInning;
     } else {
         lastInning = g_Scores.inningLimit + 1;
@@ -581,7 +580,7 @@ void inningScoreDisplayRelated(int stadiumID) {
         if (inning >= g_Scores.inningLimit && g_Scores.scores[1].total > runs) {
             outline = 1;
         }
-        if (inning == g_Scores.Inning && runs == 0 && outline == 0 && logic[0x127] == 0) {
+        if (inning == g_Scores.Inning && runs == 0 && outline == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
             break;
         }
         fn_3_4F90(&texture, bottomInnings[stadium][0] + offset,
@@ -705,19 +704,17 @@ void fn_3_5518(void) {
 
 // .text:0x0000567C size:0x530 mapped:0x80644710
 void drawStadiumObjects(void) {
-    u8* stadium = (u8*)&g_UNK_StadiumDetails;
     u8* frameData = FrameCountOfEntireGame;
-    u8* logic = (u8*)&g_GameLogic;
     u8* sunData;
     int cameraCount;
     int slot;
     f32 rotation;
-    int mode = logic[0x120];
+    int mode = ((u8*)&g_GameLogic)[0x120];
 
     if (mode < 3 && mode >= 1) {
-        sunData = stadium + 0x738 + (mode - 1) * 0x10;
+        sunData = ((u8*)&g_UNK_StadiumDetails) + 0x738 + (mode - 1) * 0x10;
     } else {
-        sunData = stadium + 0x758;
+        sunData = ((u8*)&g_UNK_StadiumDetails) + 0x758;
     }
     if (hugeAnimStruct[0x307E] == 0) {
         return;
@@ -727,55 +724,55 @@ void drawStadiumObjects(void) {
         sunRelated((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
     }
     fn_3_B8C08((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
-    rotation = *(f32*)(stadium + 0x710) + *(f32*)(stadium + 0x768);
-    *(f32*)(stadium + 0x710) = rotation;
+    rotation = *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) + *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x768);
+    *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
     if (rotation >= lbl_3_rodata_534) {
         rotation -= lbl_3_rodata_534;
-        *(f32*)(stadium + 0x710) = rotation;
+        *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
     }
     cameraCount = ((int (*)(void))returnScissorMode)();
     if (cameraCount >= 2) {
-        u8* object = stadium + 0x2A8 + drawStadiumRelated * 0x70;
+        u8* object = ((u8*)&g_UNK_StadiumDetails) + 0x2A8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 1;
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
         fn_800A7D4C(0, frameData + 0x748 + drawStadiumRelated * 8);
-        object = stadium + 0x1C8 + drawStadiumRelated * 0x70;
+        object = ((u8*)&g_UNK_StadiumDetails) + 0x1C8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 1;
-        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(stadium + 0x710));
+        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
-        if (logic[0x121] != 3) {
+        if (((u8*)&g_GameLogic)[0x121] != 3) {
             fn_800A7D4C(0, object);
         }
         fn_800A7D4C(0, frameData + 0x7A0 + drawStadiumRelated * 0xC);
     }
     if (((int (*)(void))returnScissorMode)() > 2) {
         for (slot = 0; slot < 0; slot++) {
-            u8* object = stadium + 0x548 + drawStadiumRelated * 0x70 + slot * 0xE0;
+            u8* object = ((u8*)&g_UNK_StadiumDetails) + 0x548 + drawStadiumRelated * 0x70 + slot * 0xE0;
             *(u32*)(object + 0x6C) = slot + 2;
             PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
             fn_800A7D4C(0, object);
             fn_800A7D4C(0, frameData + 0x738 + (slot + 2) * 0x10 + drawStadiumRelated * 8);
-            object = stadium + 0x388 + drawStadiumRelated * 0x70 + slot * 0xE0;
+            object = ((u8*)&g_UNK_StadiumDetails) + 0x388 + drawStadiumRelated * 0x70 + slot * 0xE0;
             *(u32*)(object + 0x6C) = slot + 2;
-            PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(stadium + 0x710));
+            PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
             PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
-            if (logic[0x121] != 3) {
+            if (((u8*)&g_GameLogic)[0x121] != 3) {
                 fn_800A7D4C(0, object);
             }
             fn_800A7D4C(0, frameData + 0x788 + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
         }
     }
     {
-        u8* object = stadium + 0xE8 + drawStadiumRelated * 0x70;
+        u8* object = ((u8*)&g_UNK_StadiumDetails) + 0xE8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 0;
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
         fn_800A7D4C(0, frameData + 0x738 + drawStadiumRelated * 8);
         fn_800A7D4C(0, frameData + 0x5B4 + drawStadiumRelated * 8);
-        object = stadium + 8 + drawStadiumRelated * 0x70;
+        object = ((u8*)&g_UNK_StadiumDetails) + 8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 0;
-        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(stadium + 0x710));
+        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
         fn_800A7D4C(0, frameData + 0x788 + drawStadiumRelated * 0xC);
@@ -926,9 +923,8 @@ s16 fn_3_6424(void* base, void*** tableOut) {
     void** table = (void**)((u8*)base + 4);
     void** cursor = table;
     int i;
-    int limit = count + 1;
     *tableOut = table;
-    for (i = 0; i < limit; i++) {
+    for (i = 0; i <= count; i++) {
         *cursor = (u8*)((u32)*cursor + (u32)base);
         cursor++;
     }
@@ -943,7 +939,6 @@ void fn_3_64DC(void) {
 
 void updateStadiumFileHeaders(void* file) {
     u8* bytes = (u8*)file;
-    u8* stadium = (u8*)&g_UNK_StadiumDetails;
     u8* actor = bytes + *(u32*)(bytes + 0);
     u8* geometry = bytes + *(u32*)(bytes + 0xC);
     u8* texture = bytes + *(u32*)(bytes + 0x14);
@@ -952,28 +947,28 @@ void updateStadiumFileHeaders(void* file) {
     s16 pointerCount = *(u16*)pointerBlock;
     int i;
 
-    *(void**)(stadium + 0x70C) = pointerList;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70C) = pointerList;
     for (i = 0; i <= pointerCount; i++) {
         ((u32*)pointerList)[i] += (u32)pointerBlock;
     }
-    *(s16*)(stadium + 0x70A) = pointerCount;
+    *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x70A) = pointerCount;
     AdjustActorPointers(actor);
     AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
     convertTextureHeader(texture);
     UpdateTexturePalettePointers((UnkTexPalGeo*)geometry, texture);
     haveActLayoutPointToGeoHeader(actor, geometry);
     ProcessActorBonesForShadows((ActorLayoutFile*)actor);
-    *(void**)(stadium + 4) = texture;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 4) = texture;
 
-    PSMTXIdentity((MtxPtr)(stadium + 0xF0));
-    *(u32*)(stadium + 0xE8) = 2;
-    *(void**)(stadium + 0xEC) = (void*)CTRLBuildMatrixRelated;
-    *(void**)(stadium + 0x150) = actor;
-    *(StadiumRenderEntry*)(stadium + 0x158) = *(StadiumRenderEntry*)(stadium + 0xE8);
-    *(StadiumRenderEntry*)(stadium + 0x2A8) = *(StadiumRenderEntry*)(stadium + 0xE8);
-    *(StadiumRenderEntry*)(stadium + 0x318) = *(StadiumRenderEntry*)(stadium + 0xE8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(stadium + 0xE8),
-                                stadium + 0x548, stadium + 0x5B8, 0);
+    PSMTXIdentity((MtxPtr)(((u8*)&g_UNK_StadiumDetails) + 0xF0));
+    *(u32*)(((u8*)&g_UNK_StadiumDetails) + 0xE8) = 2;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0xEC) = (void*)CTRLBuildMatrixRelated;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x150) = actor;
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x158) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x2A8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x318) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8),
+                                ((u8*)&g_UNK_StadiumDetails) + 0x548, ((u8*)&g_UNK_StadiumDetails) + 0x5B8, 0);
 
     actor = bytes + *(u32*)(bytes + 4);
     geometry = bytes + *(u32*)(bytes + 0x10);
@@ -981,14 +976,14 @@ void updateStadiumFileHeaders(void* file) {
     AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
     UpdateTexturePalettePointers((UnkTexPalGeo*)geometry, texture);
     haveActLayoutPointToGeoHeader(actor, geometry);
-    *(u32*)(stadium + 8) = 2;
-    *(void**)(stadium + 0xC) = (void*)CTRLBuildMatrixRelated;
-    *(void**)(stadium + 0x70) = actor;
-    *(StadiumRenderEntry*)(stadium + 0x78) = *(StadiumRenderEntry*)(stadium + 8);
-    *(StadiumRenderEntry*)(stadium + 0x1C8) = *(StadiumRenderEntry*)(stadium + 8);
-    *(StadiumRenderEntry*)(stadium + 0x238) = *(StadiumRenderEntry*)(stadium + 8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(stadium + 8),
-                                stadium + 0x388, stadium + 0x3F8, 0);
+    *(u32*)(((u8*)&g_UNK_StadiumDetails) + 8) = 2;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0xC) = (void*)CTRLBuildMatrixRelated;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70) = actor;
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x78) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x1C8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x238) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8),
+                                ((u8*)&g_UNK_StadiumDetails) + 0x388, ((u8*)&g_UNK_StadiumDetails) + 0x3F8, 0);
 
     {
         typedef struct StadiumStyleRecord {
@@ -996,11 +991,11 @@ void updateStadiumFileHeaders(void* file) {
         } StadiumStyleRecord;
         u32* selected = lbl_3_data_23C +
             (g_d_GameSettings.miniGameStadiumIndicator * 7 + g_d_GameSettings.StadiumID) * 24;
-        *(StadiumStyleRecord*)(stadium + 0x714) = *(StadiumStyleRecord*)selected;
+        *(StadiumStyleRecord*)(((u8*)&g_UNK_StadiumDetails) + 0x714) = *(StadiumStyleRecord*)selected;
     }
-    *(void**)(stadium + 0) = texture + 4;
-    stadium[0x774] = 0;
-    fn_8003AE5C(stadium[0x771]);
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0) = texture + 4;
+    ((u8*)&g_UNK_StadiumDetails)[0x774] = 0;
+    fn_8003AE5C(((u8*)&g_UNK_StadiumDetails)[0x771]);
 
     texture = bytes + *(u32*)(bytes + 0x28);
     convertTextureHeader(texture);
@@ -1011,13 +1006,13 @@ void updateStadiumFileHeaders(void* file) {
         pointerBlock = bytes + *(u32*)(bytes + 0x2C);
         pointerList = pointerBlock + 4;
         pointerCount = *(u16*)pointerBlock;
-        *(void**)(stadium + 0x778) = pointerList;
+        *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x778) = pointerList;
         for (i = 0; i <= pointerCount; i++) {
             ((u32*)pointerList)[i] += (u32)pointerBlock;
         }
-        *(s16*)(stadium + 0x77C) = pointerCount;
+        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = pointerCount;
     } else {
-        *(s16*)(stadium + 0x77C) = 0;
+        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = 0;
     }
     if (*(u32*)(bytes + 0x30) != 0) {
         texture = bytes + *(u32*)(bytes + 0x30);

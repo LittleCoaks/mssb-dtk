@@ -16,5 +16,6 @@ void fn_3_C1004(void);
 void fn_3_C11CC(int actorIndex, BOOL immediate);
 void applyChargeAnimationEffect(int actorIndex, f32 charge, f32 release, BOOL fullyCharged);
 void maybeConfigureChargeEffectGraphics(int actorIndex);
+int fn_3_C1930(int actorIndex);
 
 #endif // !__GAME_BATTING_CHARGE_EFFECTS_H_

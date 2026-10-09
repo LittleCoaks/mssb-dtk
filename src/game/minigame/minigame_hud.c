@@ -1341,7 +1341,7 @@ void fn_3_12955C(void) {
                 HUD_RECORD_PLUS(scene, i, 14)->frame = 0;
             }
         }
-        if ((s8)g_Minigame.selectMenuCursor < scene->state) {
+        if (scene->state > (s8)g_Minigame.selectMenuCursor) {
             for (i = 0; i < 7; i++) {
                 idx = i - (s8)g_Minigame.selectMenuCursor + 1;
                 if (idx >= 6) {
@@ -1446,8 +1446,8 @@ void fn_3_129370(void) {
 // .text:0x00128C18 size:0x758 mapped:0x80767CAC
 void fn_3_128C18(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
-    u32 mode;
     u32 status;
+    u32 mode;
     BOOL found;
     u32 i;
     u32 count;
@@ -1835,9 +1835,11 @@ void fn_3_1274B4(void) {
     u32 i;
     s16 score;
     s16 count;
+    u16* iconTable;
+    u16* frameTable;
 
-    descriptors = (u8*)lbl_3_data_226E0;
     scene = (MinigameHudScene*)currentDrawingItem;
+    descriptors = (u8*)lbl_3_data_226E0;
     if (animRelated[0x96] != 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
@@ -1848,13 +1850,14 @@ void fn_3_1274B4(void) {
         removeCurrentDrawingItem();
         return;
     }
+    iconTable = (u16*)(descriptors + 0x1188);
+    frameTable = (u16*)(descriptors + 0x1198);
     switch (scene->state) {
     case 0:
         addGraphicsElementToScene((DrawingSceneStruct*)scene, (UIRecordDescriptor*)(descriptors + 0x448));
         if (g_Minigame.grandPrixInd != 0) {
             HUD_RECORD(scene, 1)->elementIndex = 0xB1;
         } else {
-            u16* iconTable = (u16*)(descriptors + 0x1188);
             HUD_RECORD(scene, 1)->elementIndex = iconTable[g_Minigame.GameMode_MiniGame];
         }
         if (g_Minigame.grandPrixInd == 0 && g_Minigame.GameMode_MiniGame != MINI_GAME_ID_NONE) {
@@ -1866,7 +1869,6 @@ void fn_3_1274B4(void) {
             if (g_Minigame.grandPrixInd != 0) {
                 HUD_RECORD_AT(scene, 5, i)->frame = 7 << 16;
             } else {
-                u16* frameTable = (u16*)(descriptors + 0x1198);
                 HUD_RECORD_AT(scene, 5, i)->frame = frameTable[g_Minigame.GameMode_MiniGame] << 16;
             }
             HUD_RECORD_AT(scene, 0x14, i)->frame = entry->rank << 16;

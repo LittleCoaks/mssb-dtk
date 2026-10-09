@@ -3,61 +3,19 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_freeFieldingPractice
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
-#include "game/hud/hud_gauges.h"
-#include "game/hud/hud_scoreboard.h"
-#include "game/minigame/minigame_hud.h"
-#include "game/hud/toyfield_score_update.h"
 #include "game/match_setup/match_flow.h"
-#include "game/match_setup/match_scene.h"
-#include "game/minigame/minigame_effects.h"
 #include "game/pitching/pitcher.h"
 #include "game/baserunning/runner.h"
 #include "game/ball/ball_physics.h"
 #include "game/fielding/fielder.h"
-#include "game/sound/m_sound.h"
-#include "text/text_block.h"
-#include "text/text_channel.h"
 #include "Unknown/File_0x80014d4c.h"
-#include "Unknown/File_0x80021410.h"
-#include "Unknown/File_0x80033794.h"
-#include "Unknown/File_0x80034cec.h"
-#include "Unknown/File_0x80034e20.h"
-#include "Unknown/File_0x8004cc18.h"
-#include "Unknown/File_0x800363d8.h"
-#include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x8004e5b4.h"
-#include "game/match_setup/pause_menu.h"
 
 extern u8 animRelated[0x124];
-extern u8 menuNumber[0x28];
-extern u8 lbl_800FEF70[0x5D0];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 constantList[0x1C];
-extern u8 guidedPracticeThresholds[][4];
-extern s16 practiceGoalHud_entries[4][4][4][2];
-extern s16 practiceGuidedMessage_textIds[16][2][3];
-extern UIRecordDescriptor practiceGoalHud_uiRecords[];
-extern UIRecordDescriptor practiceCompleteBanner_uiRecords[];
-extern UIRecordDescriptor practiceGuidedMessage_uiRecords[];
-extern UIRecordDescriptor practiceMenu_charSelect_uiRecords[];
-extern UIRecordDescriptor practiceMenu_subMenu_uiRecords[];
-extern UIRecordDescriptor practiceInstruction_uiRecords[];
-extern UIRecordDescriptor practiceMenu_typeIcons_uiRecords[];
-extern s16 practiceMenu_subMenuTextIds[][4];
-extern u16 practiceInstruction_diagramElements[];
-extern u16 practiceMenu_typeIconFrames[];
-extern u16 practiceMenu_typeTitleElements[];
-extern u8 practiceMenu_typeIconOrder[];
-extern u8 charSelect_handednessIconFrames[];
-extern u8 lbl_3_data_9D50[][5];
 extern s16 practiceFrameConsts;
 
-extern void fn_8000F8F4(void* scene);
 extern void fn_80011BE4(int arg0);
-extern void fn_8004D0F0(void);
-extern void fn_80050F78(int arg0);
-extern void fn_80051D00(void);
-extern void fn_80053FE8(void);
 extern void matchTransitionFunction2(void);
 extern void practiceRelatedReset(void);
 extern void practice_loadCharacter(int arg0, int arg1, int arg2, int arg3);
@@ -275,10 +233,10 @@ void practiceRelated(void) {
     int j;
 
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
-        slots[0] = 1;
-        slots[1] = 2;
-        slots[2] = 3;
         slots[3] = 4;
+        slots[2] = 3;
+        slots[1] = 2;
+        slots[0] = 1;
         for (i = 0; i < 4; i++) {
             for (j = 1; j < 4; j++) {
                 if (g_Runners[j].rosterID == slots[i]) {

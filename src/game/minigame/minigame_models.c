@@ -941,7 +941,7 @@ static inline u16 pmCrc16(u8* data, u32 len) {
     u32 crc = 0;
     u32 i;
 
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++, data++) {
         u32 byte = *data;
         int j;
 
@@ -954,7 +954,6 @@ static inline u16 pmCrc16(u8* data, u32 len) {
             }
             byte >>= 1;
         }
-        data++;
     }
     return crc;
 }
@@ -1652,7 +1651,7 @@ void mm_UpdateModels(void) {
     PMEffect* fx;
     int i;
 
-    if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= 0x29) {
+    if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= GAME_STATUS_0x29) {
         if (hugeAnimStruct.effectCount != 0) {
             for (i = 0; i < hugeAnimStruct.effectCount; i++) {
                 fx = &hugeAnimStruct.effects[i];
@@ -1958,8 +1957,8 @@ void mm_UpdateBarrels(void) {
         shadow = &FX(0x10 + i);
         shadow->visible = FALSE;
         e->visible = FALSE;
-        if (barrel->barrelState != 0) {
-            if (barrel->barrelState == 4) {
+        if (barrel->barrelState != BB_BARREL_STATE_EMPTY) {
+            if (barrel->barrelState == BB_BARREL_STATE_BLOWN_UP) {
                 e = shadow;
                 if (barrel->animationCounter == 0) {
                     mm_StartBarrelAnim(0x10 + i);
@@ -1988,7 +1987,7 @@ void mm_UpdateBarrels(void) {
                         }
                     }
                 }
-            } else if (barrel->barrelColour == 3 && i == g_Minigame.bB_bombBarrelID_bOD_hrPitch) {
+            } else if (barrel->barrelColour == BB_BARREL_COLOUR_BROWN && i == g_Minigame.bB_bombBarrelID_bOD_hrPitch) {
                 flag = 1;
                 e = special;
             }
@@ -2007,7 +2006,7 @@ void mm_UpdateBarrels(void) {
             if (flag) {
                 flag = 0;
                 e->update = mm_FlashBombBarrel;
-            } else if (barrel->barrelState != 4) {
+            } else if (barrel->barrelState != BB_BARREL_STATE_BLOWN_UP) {
                 e->update = mm_SetBarrelColour;
             } else {
                 e->update = NULL;
@@ -2314,7 +2313,7 @@ void mm_UpdatePiranhas(void) {
 
                 applyUniformScaleToObject((1.0f - t) * scales[0] + scales[2] * t, 0x82 + i);
             }
-            if (sp->isBig == 0) {
+            if (sp->isBig == FALSE) {
                 fx->rot.y = sp->angle;
                 fx->rot.x = 0.0f;
                 fx->rot.z = 0.0f;
@@ -2450,11 +2449,7 @@ void mm_SetPipeFrame(int idx) {
     } else {
         frame = lbl_3_data_226BC[4];
     }
-    {
-        ActorObjectEntry* e = ((ActorObjectTable*)hugeAnimStruct.modelTable)->entries;
-        e += idx;
-        ((PMModel*)e->actor)->parts[0]->b->c->d[1].frame = frame;
-    }
+    ((PMModel*)pmGetActor(idx))->parts[0]->b->c->d[1].frame = frame;
 }
 
 // .text:0x0011874C size:0xD0 mapped:0x807577E0

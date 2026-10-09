@@ -145,7 +145,7 @@ void baseRunningPracticeRelated(void) {
                 g_FieldingLogic.playOverCounter = 0;
                 break;
             }
-        } else if (g_Runners[1].runnerOnFieldOrOutOrScored == 3) {
+        } else if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
             g_Practice.guidedPracticeCompletionRelated = TRUE;
             break;
         }

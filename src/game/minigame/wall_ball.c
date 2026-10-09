@@ -290,15 +290,19 @@ void wallBallInitializeValues(void) {
         wallBallRotatePitchers(TRUE);
 
         for (i = 0; i < WALL_BALL_WALL_COUNT; i++) {
-            WALL_BALL_WALL(i)->_28 = 0;
-            WALL_BALL_WALL(i)->coinRelated[0] = i;
+            MaybeWallBallStruct* wall = WALL_BALL_WALL(i);
+            wall->_28 = 0;
+            wall->coinRelated[0] = i;
             g_Minigame.wallIndexTracker[i] = i;
         }
         g_Minigame.wallBallGameState = WALL_BALL_GAME_STATE_CALCULATE_NEW_WALLS;
         g_Minigame._1A80 = 0;
         g_Minigame._1A78 = 0;
-        for (i = 0; i < 2; i++) {
-            *((u8*)&g_Minigame + MINIGAME_OFFSET(wallBallSpecialWallPos) + i) = (i & 1) ? 0 : 6;
+        {
+            u8* special = (u8*)&g_Minigame + MINIGAME_OFFSET(wallBallSpecialWallPos);
+            for (i = 0; i < 2; i++) {
+                *special++ = (i & 1) ? 0 : 6;
+            }
         }
         g_Minigame.wallBallPitcherRotationCounter = 0;
         g_Minigame.wallBallRotatePitchersInd = FALSE;

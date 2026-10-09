@@ -78,10 +78,10 @@ extern u8 lbl_3_data_21E20[3];
 extern u8 lbl_3_data_21E18[4];
 
 #define SATURATING_INCREMENT(counter) \
-    if ((counter) < 0x7FFE) {         \
+    if ((counter) < S16_MAX - 1) {    \
         (counter)++;                  \
     } else {                          \
-        (counter) = 0x7FFF;           \
+        (counter) = S16_MAX;          \
     }
 
 
@@ -474,7 +474,7 @@ void pP_RefillHeldBalls(void) {
                         int openCount = 0;
                         int q;
                         for (q = 0; q < 4; q++) {
-                            if (PP.holeUsed[q] == 1) {
+                            if (PP.holeUsed[q] == TRUE) {
                                 *openEnd++ = q;
                                 openCount++;
                             }
@@ -536,7 +536,7 @@ void pP_UpdateThrownBall(int p) {
                 dir.z = -1.0f;
                 PSVECNormalize(&dir, &dir);
                 fielder->xMovementDir = dir.x;
-                g_Minigame.hudPulseInd[owner] = 1;
+                g_Minigame.hudPulseInd[owner] = TRUE;
                 fielder->zMovementDir = dir.z;
                 fielder->currentVelocity = pP_ballPhysicsConsts[15];
                 setCharacterAnimations((s8)PP.character[owner], 2);
@@ -1038,7 +1038,7 @@ void pP_ScheduleBigPiranha(void) {
     {
         PPSpawner* sp = PP_SPAWNER(1);
         sp->mode = 1;
-        sp->isBig = 1;
+        sp->isBig = TRUE;
         sp->kind = 4;
         sp->hitsLeft = pP_hitsRequiredByKind[PP.x_1CA4 + 4];
         sp->_18 = 0;
@@ -1051,7 +1051,7 @@ void pP_ScheduleBigPiranha(void) {
         sp->queue[1] = -1;
         sp->queue[2] = -1;
         sp->queue[3] = -1;
-        PP.x_1CA3 = 1;
+        PP.x_1CA3 = TRUE;
         PP.x_1CA2 = 0;
         PP.x_1CA4++;
     }
@@ -1078,7 +1078,7 @@ void pP_UpdateHiddenPiranha(int idx) {
                     }
                 }
                 PP.spawner[idx].kind = free[random_fn_3_9EE24(freeCount)];
-                PP.holeUsed[PP.spawner[idx].kind] = 1;
+                PP.holeUsed[PP.spawner[idx].kind] = TRUE;
                 PP.spawner[idx].hitsLeft = pP_hitsRequiredByKind[PP.spawner[idx].kind];
                 PP.spawner[idx]._1C = lbl_3_data_21E68[5];
                 PP.spawner[idx]._18 = 0;
@@ -1195,7 +1195,7 @@ BOOL pP_PiranhaAimAtPlayer(PPSpawner* sp) {
         }
         sp->_35 = list[random_fn_3_9EE24(*count)];
         sp->_34 = PP.fielderIndex[sp->_35];
-        PP.targeted[sp->_35] = 1;
+        PP.targeted[sp->_35] = TRUE;
     } else {
         sp->_34 = PP.fielderIndex[sp->queue[0]];
     }
@@ -1277,7 +1277,7 @@ void pP_UpdateProjectile(int idx) {
             dir.z = obj->vel.z;
             PSVECNormalize(&dir, &dir);
             fielder->xMovementDir = dir.x;
-            g_Minigame.hudPulseInd[i] = 1;
+            g_Minigame.hudPulseInd[i] = TRUE;
             fielder->zMovementDir = dir.z;
             fielder->currentVelocity = pP_ballPhysicsConsts[15];
             setCharacterAnimations((s8)PP.character[i], 2);
@@ -1422,7 +1422,7 @@ u8 pP_AIThrow(s8 slot, u8 force) {
     }
     target = PP.heldBalls[slot][0];
     if (target < 0) {
-        return 0;
+        return FALSE;
     }
     i = 0;
     do {
@@ -1436,12 +1436,12 @@ u8 pP_AIThrow(s8 slot, u8 force) {
         i++;
     } while (i < PP_SPAWNER_COUNT);
     if (found < 0 && ai->timer >= 0 && !force) {
-        return 0;
+        return FALSE;
     }
     targetKind = PP.ballKind[target];
     if (!(targetKind == 5 && (count == 0 || RandomInt_Game(100) < lbl_3_data_21EC0[aiStrength]))) {
         if (count == 0) {
-            return 0;
+            return FALSE;
         }
         if (RandomInt_Game(100) < lbl_3_data_21EBC[aiStrength]) {
             hit = TRUE;
@@ -1490,7 +1490,7 @@ u8 pP_AIThrow(s8 slot, u8 force) {
         g_Minigame.aiInputs[character].buttonInput |= INPUT_BUTTON_B;
     }
     ai->timer = RandomInt_Game_Range(pP_aiActionDelayRanges[aiStrength][0], pP_aiActionDelayRanges[aiStrength][1]);
-    return 1;
+    return TRUE;
 }
 
 // .text:0x00142570 size:0x380 mapped:0x80781604

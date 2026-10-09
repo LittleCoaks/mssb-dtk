@@ -42,7 +42,7 @@ extern void fn_80011578(void);
 extern void fn_800115C8(u8 player);
 extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_106EB0(void);
-extern void fn_3_DE4FC(void);
+extern void minigameCalculateRankings(void);
 extern void fn_3_11F480(void);
 extern void fn_3_14C904(void);
 extern void fn_3_151798(void);
@@ -278,7 +278,7 @@ void fn_3_1412BC(void) {
 void mVPRelated(void) {
     u32 k;
 
-    fn_3_DE4FC();
+    minigameCalculateRankings();
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
     g_Minigame.ccs.chompYaw = 0;
     g_Minigame.ccs.chompState = 0;
@@ -290,15 +290,15 @@ void mVPRelated(void) {
     g_Minigame.ccs.chompVelocity.z = 0.0f;
     g_Minigame.ccs.chompStateTimer = 0;
     g_Minigame.ccs.chompYaw = 0xE00;
-    for (k = 0; k < 100; k++) {
+    for (k = 0; k < ARRAY_SIZE(g_Minigame.coinState); k++) {
         g_Minigame.coinState[k] = 0;
         g_Minigame.coinFrameCounter[k] = 0;
     }
-    for (k = 0; k < 6; k++) {
+    for (k = 0; k < ARRAY_SIZE(g_Minigame.ccs.itemState); k++) {
         g_Minigame.ccs.itemState[k] = 0;
         g_Minigame.ccs.itemTimer[k] = 0;
     }
-    for (k = 0; k < 4; k++) {
+    for (k = 0; k < ARRAY_SIZE(g_Minigame.ccs.segmentItems); k++) {
         g_Minigame.ccs.segmentItems[k][0] = -1;
         g_Minigame.ccs.segmentItems[k][1] = -1;
     }
@@ -371,7 +371,7 @@ void fn_3_140BCC(void) {
 void fn_3_1409AC(void) {
     u32 k;
 
-    fn_3_DE4FC();
+    minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && !g_Minigame.multiPlayerInd) {
         if (g_Minigame.playerSlots.rank[g_Minigame.soloPlayerSlot] == 1 &&
             !g_Minigame.challenge_minigame_haven_tWonYetIndicator) {
@@ -391,15 +391,15 @@ void fn_3_1409AC(void) {
     g_Minigame.ccs.chompVelocity.z = 0.0f;
     g_Minigame.ccs.chompStateTimer = 0;
     g_Minigame.ccs.chompYaw = 0xE00;
-    for (k = 0; k < 100; k++) {
+    for (k = 0; k < ARRAY_SIZE(g_Minigame.coinState); k++) {
         g_Minigame.coinState[k] = 0;
         g_Minigame.coinFrameCounter[k] = 0;
     }
-    for (k = 0; k < 6; k++) {
+    for (k = 0; k < ARRAY_SIZE(g_Minigame.ccs.itemState); k++) {
         g_Minigame.ccs.itemState[k] = 0;
         g_Minigame.ccs.itemTimer[k] = 0;
     }
-    for (k = 0; k < 4; k++) {
+    for (k = 0; k < ARRAY_SIZE(g_Minigame.ccs.segmentItems); k++) {
         g_Minigame.ccs.segmentItems[k][0] = -1;
         g_Minigame.ccs.segmentItems[k][1] = -1;
     }

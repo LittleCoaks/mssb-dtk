@@ -829,7 +829,7 @@ typedef struct _PracticeStruct {
     /*0x172*/ frame_t diagramTitleTextIndex_stored;
     /*0x174*/ frame_t cpuCommandDuration;
     /*0x176*/ frame_t maybeInputResetCountdown;
-    /*0x178*/ frame_t cpu_heldButtons[2]; // per team: buttons the script is holding
+    /*0x178*/ u16 cpu_heldButtons[2]; // per team: buttons the script is holding
     /*0x17C*/ frame_t cpu_inputDuration[2]; // per team: frames left to hold
     /*0x180*/ frame_t practice_hitHorizontalPower;
     /*0x182*/ frame_t practice_hitVerticalAngle;
@@ -896,7 +896,9 @@ typedef struct _PracticeStruct {
     /*0x1E2*/ u8 _1E2;
     /*0x1E3*/ u8 aiBuntIndicator; // unsure
     /*0x1E4*/ u8 fieldingPlayStatus; // 0 pending, 1 counted, 2 timed out
-    artificial_padding(0x1e4, 0x1ee, u8);
+    artificial_padding(0x1e4, 0x1ec, u8);
+    /*0x1EC*/ u8 _1EC;
+    /*0x1ED*/ u8 _1ED;
     /*0x1EE*/ u8 _1EE;
     /*0x1EF*/ u8 rosterID; // unsure
 } PracticeStruct;          // size: 0x1f0

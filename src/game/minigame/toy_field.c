@@ -467,9 +467,9 @@ void toyFieldInit(void) {
     g_Minigame.menuMusicStartedInd = 0;
     for (i = 0; i < 4; i++) {
         g_Minigame.selectSlotState[i] = -1;
-        g_Minigame.selectSlots[i].charID = -1;
-        g_Minigame.selectSlots[i].loadedCharID = -1;
-        g_Minigame.selectSlots[i].pendingCharID = -1;
+        g_Minigame.selectSlots[i].charID = CHAR_ID_NONE;
+        g_Minigame.selectSlots[i].loadedCharID = CHAR_ID_NONE;
+        g_Minigame.selectSlots[i].pendingCharID = CHAR_ID_NONE;
         g_Minigame.charLoadQueue[i] = -1;
         g_Minigame.charChangeFrames[i] = 20;
         g_Minigame.charLoadPending[i] = 0;
@@ -656,7 +656,7 @@ void toyFieldTransitionToMinigameStart(void) {
     int i;
     int j;
     int remaining;
-    u8* picked;
+    int pickedCount;
     g_Scores.Inning++;
     g_Scores._pad_AC = evaluateInningCondition(g_Scores.Inning);
     g_Strikes.outs = 0;
@@ -677,16 +677,16 @@ void toyFieldTransitionToMinigameStart(void) {
         g_Minigame.playerSlots._18[i] = i;
     }
     remaining = g_Minigame.miniGameNumberOfParticipants;
-    picked = (u8*)&g_Minigame;
+    pickedCount = 0;
     for (i = 0; i < g_Minigame.miniGameNumberOfParticipants; i++) {
         int skip = random_fn_3_9EE24(remaining);
         for (j = 0; j < g_Minigame.miniGameNumberOfParticipants; j++) {
             if (g_Minigame.playerSlots._18[j] >= 0) {
                 if (skip == 0) {
-                    picked[0x18E0] = j;
+                    g_Minigame.playerSlots.playOrder[pickedCount] = j;
                     g_Minigame.playerSlots._18[j] = -1;
                     remaining--;
-                    picked++;
+                    pickedCount++;
                     break;
                 }
                 skip--;
@@ -723,8 +723,8 @@ void toyFieldTransitionPrepareNextPlay(void) {
         betweenABSetPitcherBatter();
         fn_3_E1370(0);
         us80893314[1] = 1;
-        g_GameLogic.pre_PostMiniGameInd = 1;
-        g_GameLogic.minigameLastTurnSuccessInd = 1;
+        g_GameLogic.pre_PostMiniGameInd = TRUE;
+        g_GameLogic.minigameLastTurnSuccessInd = TRUE;
         g_Strikes.strikes = 0;
         g_Strikes.balls = 0;
         highLevelSimulationFlag[2] = 0;
@@ -761,12 +761,12 @@ void toyFieldTransitionPrepareNextPlay(void) {
 
 // .text:0x000DEB90 size:0x47C mapped:0x8071DC24
 void toyFieldAssignTurnRoles(void) {
-    u8* slot;
     int i;
-    g_Minigame._19C7 = 0;
+    int nextSlot;
+    g_Minigame._19C7 = FALSE;
     if (g_Minigame.toyField_turnNumber == 0) {
         int skip;
-        g_Minigame._19C7 = 1;
+        g_Minigame._19C7 = TRUE;
         skip = random_fn_3_9EE24(3);
         for (i = 0; i < 4; i++) {
             if (g_Minigame.rosterID != i) {
@@ -777,11 +777,11 @@ void toyFieldAssignTurnRoles(void) {
                 skip--;
             }
         }
-        slot = (u8*)&g_Minigame + 1;
+        nextSlot = 1;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.rosterID != i && (s8)g_Minigame.minigamePlayerSelectedOrder != i) {
-                slot[0x18F4] = i;
-                slot++;
+                g_Minigame.playerSlots.participantSlot[nextSlot] = i;
+                nextSlot++;
             }
         }
     } else {
@@ -800,31 +800,31 @@ void toyFieldAssignTurnRoles(void) {
                 int pick = random_fn_3_9EE24(2) + 1;
                 g_Minigame.minigamePlayerSelectedOrder = g_Minigame.playerSlots.participantSlot[pick];
             }
-            g_Minigame._19C7 = 1;
+            g_Minigame._19C7 = TRUE;
             g_Minigame.rosterID = g_Minigame.toyField_turnPlayer;
         }
         {
             s8 j;
-            slot = (u8*)&g_Minigame + 1;
+            nextSlot = 1;
             for (j = 0; j < 4; j++) {
                 if (j != (s8)g_Minigame.minigamePlayerSelectedOrder && j != g_Minigame.rosterID) {
-                    slot[0x18F4] = j;
-                    slot++;
+                    g_Minigame.playerSlots.participantSlot[nextSlot] = j;
+                    nextSlot++;
                 }
             }
         }
     }
-    g_Minigame.playerSlots.batterInd[g_Minigame.rosterID] = 1;
+    g_Minigame.playerSlots.batterInd[g_Minigame.rosterID] = TRUE;
     setInMemBatterConstants(g_Minigame.rosterID);
     g_Minigame.toyField_turnPlayer = g_Minigame.rosterID;
     g_Minigame.playerSlots.participantSlot[0] = g_Minigame.minigamePlayerSelectedOrder;
-    g_Minigame.playerSlots.batterInd[(s8)g_Minigame.minigamePlayerSelectedOrder] = 0;
+    g_Minigame.playerSlots.batterInd[(s8)g_Minigame.minigamePlayerSelectedOrder] = FALSE;
     g_Minigame.playerSlots.fielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder] = 0;
     g_Fielders[g_Minigame.playerSlots.fielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder]]._020D = g_Minigame.playerSlots.participantSlot[0];
-    g_Minigame.playerSlots.batterInd[g_Minigame.playerSlots.participantSlot[1]] = 0;
+    g_Minigame.playerSlots.batterInd[g_Minigame.playerSlots.participantSlot[1]] = FALSE;
     g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[1]] = 3;
     g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[1]]]._020D = g_Minigame.playerSlots.participantSlot[1];
-    g_Minigame.playerSlots.batterInd[g_Minigame.playerSlots.participantSlot[2]] = 0;
+    g_Minigame.playerSlots.batterInd[g_Minigame.playerSlots.participantSlot[2]] = FALSE;
     g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[2]] = 4;
     g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[2]]]._020D = g_Minigame.playerSlots.participantSlot[2];
     for (i = 0; i < 4; i++) {

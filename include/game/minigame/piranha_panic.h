@@ -28,7 +28,7 @@ typedef struct _PPSpawner {
     /*0x26*/ s16 _26;
     /*0x28*/ s16 _28;
     /*0x2A*/ u8 mode;
-    /*0x2B*/ u8 isBig; // the special plant that accepts any ball
+    /*0x2B*/ E(u8, BOOL) isBig; // the special plant that accepts any ball
     /*0x2C*/ u8 kind; // hole / ball kind it accepts; 4 = any
     /*0x2D*/ u8 hitsLeft;
     /*0x2E*/ u8 _2E;
@@ -79,7 +79,7 @@ typedef struct _PPState {
     /*0x1898*/ s16 pointsB[PP_PLAYER_COUNT];
     /*0x18A0*/ u8 _18A0[0x18BC - 0x18A0];
     /*0x18BC*/ s16 pointsLatest[PP_PLAYER_COUNT][2];
-    /*0x18CC*/ s8 character[PP_PLAYER_COUNT];
+    /*0x18CC*/ E(s8, CHAR_ID) character[PP_PLAYER_COUNT];
     /*0x18D0*/ u8 _18D0[0x18D8 - 0x18D0];
     /*0x18D8*/ u8 aiControlled[PP_PLAYER_COUNT];
     /*0x18DC*/ u8 aiStrength[PP_PLAYER_COUNT];
@@ -112,12 +112,12 @@ typedef struct _PPState {
     /*0x1C92*/ s8 throwDirection[PP_PLAYER_COUNT];
     /*0x1C96*/ u8 _1C96[PP_PLAYER_COUNT];
     /*0x1C9A*/ u8 hitState[PP_PLAYER_COUNT];
-    /*0x1C9E*/ u8 targeted[PP_PLAYER_COUNT];
+    /*0x1C9E*/ E(u8, BOOL) targeted[PP_PLAYER_COUNT];
     /*0x1CA2*/ u8 x_1CA2;
     /*0x1CA3*/ u8 x_1CA3;
     /*0x1CA4*/ u8 x_1CA4;
     /*0x1CA5*/ u8 playerState[PP_PLAYER_COUNT];
-    /*0x1CA9*/ u8 holeUsed[PP_PLAYER_COUNT];
+    /*0x1CA9*/ E(u8, BOOL) holeUsed[PP_PLAYER_COUNT];
     /*0x1CAD*/ u8 goalIndex[PP_PLAYER_COUNT];
     /*0x1CB1*/ u8 x_1CB1[PP_PLAYER_COUNT];
     /*0x1CB5*/ u8 _1CB5[0x1DCC - 0x1CB5];

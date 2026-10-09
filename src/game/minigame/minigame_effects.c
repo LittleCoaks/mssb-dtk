@@ -508,7 +508,6 @@ void fn_3_1573AC(MGFxActor* actor) {
     Vec dir;
     Mtx mtx;
     Control ctrl;
-    MGFxSlot** slots;
     s32 effectId;
 
     offset.x = data->offsets[actor->offsetIndex][0] / 100000.0f;
@@ -522,16 +521,15 @@ void fn_3_1573AC(MGFxActor* actor) {
     dir.y = 0.0f;
     dir.z = 1.0f;
     PSMTXMultVec(mtx, &dir, &dir);
-    slots = data->slotPtrs;
-    slots[2]->texture = *(u32*)&animRelated[0x6C];
-    slots[1]->texture = *(u32*)&animRelated[0x6C];
+    data->slotPtrs[2]->texture = *(u32*)&animRelated[0x6C];
+    data->slotPtrs[1]->texture = *(u32*)&animRelated[0x6C];
     data->slotPtrs[0]->texture = *(u32*)&animRelated[0x6C];
     effectId = data->effectIds[actor->slotIndex][1];
-    slots[1]->effectId = effectId;
+    data->slotPtrs[1]->effectId = effectId;
     data->slotPtrs[0]->effectId = effectId;
     fn_80030D88(&offset, &dir, data->slotPtrs[0], 0x29);
-    fn_80030D88(&offset, &dir, slots[1], 0x29);
-    fn_80030D88(&offset, &dir, slots[2], 0x29);
+    fn_80030D88(&offset, &dir, data->slotPtrs[1], 0x29);
+    fn_80030D88(&offset, &dir, data->slotPtrs[2], 0x29);
 }
 
 // .text:0x15730C size:0xA0
@@ -904,9 +902,10 @@ void fn_3_155264(void) {
 
 // .text:0x15521C size:0x48
 void fn_3_15521C(s16 id, Vec* pos, Vec* rot) {
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && pos != NULL && rot != NULL) {
-        fn_3_154C7C(id, pos, rot);
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES || pos == NULL || rot == NULL) {
+        return;
     }
+    fn_3_154C7C(id, pos, rot);
 }
 
 // .text:0x154C7C size:0x5A0
@@ -1126,6 +1125,8 @@ void fn_3_153E8C(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
     p->_44 = 0;
 }
 
+static const Vec sFwdAxis = { 0.0f, 0.0f, -1.0f };
+
 // .text:0x1536A8 size:0x7E4
 void fn_3_1536A8(MGParticle* p, u8 kind) {
     MGFxData* data = (MGFxData*)&lbl_3_data_266A8;
@@ -1144,7 +1145,7 @@ void fn_3_1536A8(MGParticle* p, u8 kind) {
                 scale = mm_GetItemScale(0);
             }
             {
-            Vec axis = { 0.0f, 0.0f, -1.0f };
+            Vec axis = sFwdAxis;
             Vec rotAxis;
             Vec dir;
             Vec v;
@@ -1188,7 +1189,7 @@ void fn_3_1536A8(MGParticle* p, u8 kind) {
                 scale = mm_GetItemScale(0);
             }
             {
-            Vec axis = { 0.0f, 0.0f, -1.0f };
+            Vec axis = sFwdAxis;
             Vec rotAxis;
             Vec dir;
             Vec v;
@@ -1235,7 +1236,7 @@ void fn_3_1536A8(MGParticle* p, u8 kind) {
                 scale = mm_GetItemScale(0);
             }
             {
-            Vec axis = { 0.0f, 0.0f, -1.0f };
+            Vec axis = sFwdAxis;
             Vec rotAxis;
             Vec dir;
             Vec v;
@@ -1861,11 +1862,16 @@ void fn_3_150070(void) {
 
 // .text:0x150010 size:0x60
 void fn_3_150010(s8 index) {
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
-        if (index <= 4 && index >= 0) {
-            fn_3_14F930(index);
-        }
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+        return;
     }
+    if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_STAR_DASH) {
+        return;
+    }
+    if (index > 4 || index < 0) {
+        return;
+    }
+    fn_3_14F930(index);
 }
 
 // .text:0x14F930 size:0x6E0
@@ -2032,9 +2038,22 @@ void fn_3_14E920(s8 index) {
 // .text:0x14E894 size:0x8C
 void fn_3_14E894(void) {
     u32 i;
+    s8 index;
+    MGEffect* effect;
+    MGParticle* p;
 
     for (i = 0; i < 4; i++) {
-        fn_3_14E988(i);
+        index = i;
+        effect = fn_800339F0(0, 0x1E);
+        if (effect != NULL) {
+            p = effect->particles;
+            do {
+                if (p->_4C == index + 1) {
+                    p->_4A = 0;
+                }
+                p = p->next;
+            } while (p != NULL);
+        }
     }
     pitchingMachinePitching(0x1E);
 }
@@ -2347,20 +2366,21 @@ void fn_3_14CB28(s8 index) {
     MGEffect* effect;
     MGParticle* p;
 
-    if (index < 15 && index >= 0) {
-        effect = fn_800339F0(0, 0x20);
-        if (effect != NULL) {
-            p = effect->particles;
-            do {
-                if (p->_45 == index) {
-                    p->_44 = 0;
-                    p->_45 = 0xFF;
-                    p->_4A = 0;
-                    p->_4C = 0;
-                }
-                p = p->next;
-            } while (p != NULL);
-        }
+    if (index >= 15 || index < 0) {
+        return;
+    }
+    effect = fn_800339F0(0, 0x20);
+    if (effect != NULL) {
+        p = effect->particles;
+        do {
+            if (p->_45 == index) {
+                p->_44 = 0;
+                p->_45 = 0xFF;
+                p->_4A = 0;
+                p->_4C = 0;
+            }
+            p = p->next;
+        } while (p != NULL);
     }
 }
 
@@ -2919,11 +2939,10 @@ void fn_3_14A070(s32* values, s32 count) {
     if (count == 0) {
         return;
     }
-    if (values == NULL) {
-        return;
-    }
-    for (i = 0; i < count; i++) {
-        slots[i] = values[i];
+    if (values != NULL) {
+        for (i = 0; i < count; i++) {
+            slots[i] = values[i];
+        }
     }
 }
 

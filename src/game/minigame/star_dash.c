@@ -120,7 +120,7 @@ typedef union _SDMinigame {
 extern SDMinigame g_Minigame;
 #define SD g_Minigame.sd
 
-#define SD_COUNTER_MAX 0x7FFF
+#define SD_COUNTER_MAX S16_MAX
 
 /* The fielder controlled by player slot p. */
 #define SD_FIELDER(p) g_Fielders[g_Minigame.playerSlots.fielderIndex[p]]
@@ -239,7 +239,7 @@ static inline void sdResetTrail(f32 y) {
     int i;
 
     for (i = 0; i < (s32)ARRAY_SIZE(SD.fireBarFlame); i++) {
-        SD.fireBarFlame[i].active = 0;
+        SD.fireBarFlame[i].active = FALSE;
         SD.fireBarFlame[i].pos.y = y;
         SD.fireBarFlame[i]._22 = 0;
     }
@@ -283,7 +283,7 @@ void sD_LoadGame(void) {
     u8 strength;
     int n;
 
-    if (g_GameLogic._125 == 0) {
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         initializeSomethingDuringTransition();
         g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_STAR_DASH;
         g_Minigame.minigameElapsedFrames = 0;
@@ -343,7 +343,7 @@ void sD_LoadGame(void) {
         SD.spawnedCoins = 0;
         SD.spawnCount = 0;
         SD.coinBag.active = 0;
-        SD.starActive = 0;
+        SD.starActive = FALSE;
         SD.starSpawnTimer = 600;
         SD.holder = -1;
         SD.fireBarPhase = 0;
@@ -392,18 +392,18 @@ void sD_LoadGame(void) {
 // .text:0x0013BBF4 size:0xC4 mapped:0x8077AC88
 void sD_RoundIntro(void) {
     switch (g_GameLogic._125) {
-    case 0:
+    case TRANSITION_CALCULATION_TYPE_0:
         minigameQueueHudEvent(2, minigameIntroFrames[0]);
         changeScene(1, 6);
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
-        g_GameLogic._125 = 1;
+        g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
-    case 1:
+    case TRANSITION_CALCULATION_TYPE_1:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
-            g_GameLogic._125 = 2;
+            g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
         }
         break;
-    case 2:
+    case TRANSITION_CALCULATION_TYPE_2:
         SetGameStatus(GAME_STATUS_DEFAULT);
         break;
     }
@@ -577,7 +577,7 @@ void sD_UpdateStarSpawn(void) {
             SD.starPos.z = sD_starSpawnPos.z;
             SD.starBounces = 0;
             sD_NewStarArc();
-            SD.starActive = 1;
+            SD.starActive = TRUE;
             SD.starFrames = 0;
             SD.starSpawnTimer = sD_starTimings[2];
             fn_3_150010(4);
@@ -627,9 +627,9 @@ void sD_UpdateStar(void) {
     SD.starFrames++;
     SD.pathFrames++;
     if (g_Minigame.turnOverStatus != 0) {
-        SD.starActive = 0;
+        SD.starActive = FALSE;
     } else if (SD.starFrames > sD_starTimings[0]) {
-        SD.starActive = 0;
+        SD.starActive = FALSE;
         fn_3_14E988(4);
     } else {
         probe.src.x = SD.starPos.x;
@@ -674,7 +674,7 @@ void sD_UpdateStar(void) {
         }
         if (best >= 0) {
             g_Minigame.miniGameCurrentPoints[best] += sD_starTimings[5];
-            SD.starActive = 0;
+            SD.starActive = FALSE;
             g_Minigame.starDashStarHolder = best;
             SD.holderFrames = sD_starTimings[1];
             fn_3_14E988(4);
@@ -1155,7 +1155,7 @@ void sD_ThwompWait(SDThwomp* item) {
             item->frames = SD_COUNTER_MAX;
         }
         if (item->frames >= item->timer) {
-            item->stunSfxPending = 0;
+            item->stunSfxPending = FALSE;
             sD_ThwompPlace(item);
         }
     }
@@ -1224,7 +1224,7 @@ void sD_ThwompGrounded(SDThwomp* item) {
             item->stunSfxFrames++;
             if (item->stunSfxFrames >= 10) {
                 callSfx(0x303);
-                item->stunSfxPending = 0;
+                item->stunSfxPending = FALSE;
             }
         }
         if (item->frames < (SD_COUNTER_MAX - 1)) {
@@ -1313,7 +1313,7 @@ u8 sD_ThwompHitPlayers(SDThwomp* item) {
                             g_Minigame.starDashStunType[p] = 1;
                             g_Minigame.starDashCollisionPushDelta[p].x = fielder->pos.x - item->pos.x;
                             g_Minigame.starDashCollisionPushDelta[p].z = fielder->pos.z - item->pos.z;
-                            item->stunSfxPending = 1;
+                            item->stunSfxPending = TRUE;
                             item->stunSfxFrames = 0;
                         }
                     }
@@ -1776,7 +1776,7 @@ void sD_DropCoins(int player) {
     int count;
 
     fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[player]];
-    g_Minigame.hudPulseInd[player] = 1;
+    g_Minigame.hudPulseInd[player] = TRUE;
     n = lbl_3_data_21B20[3];
     if (g_Minigame.miniGameCurrentPoints[player] < n) {
         n = g_Minigame.miniGameCurrentPoints[player];
@@ -1893,14 +1893,14 @@ void sD_UpdateFireBars(void) {
             SD.fireBarFlame[idx].pos.x = vx * d + SD.fireBar[p].start.x;
             SD.fireBarFlame[idx].pos.z = vz * d + SD.fireBar[p].start.z;
             if (d < 0.0f) {
-                SD.fireBarFlame[idx].active = 0;
+                SD.fireBarFlame[idx].active = FALSE;
             } else {
                 d -= stepLen;
                 if (SD.fireBarFlame[idx].active) {
                     fn_3_156548(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
                 } else {
                     fn_3_15730C(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
-                    SD.fireBarFlame[idx].active = 1;
+                    SD.fireBarFlame[idx].active = TRUE;
                 }
             }
         }
@@ -2109,17 +2109,17 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
         k = 0;
         do {
             e = &entries[k];
-            e->valid = 1;
+            e->valid = TRUE;
             cx = g_Minigame.coinPos[e->coin].x;
             cz = g_Minigame.coinPos[e->coin].z;
             if (sdDistSqXZ(cx, cz, lbl_3_data_21A48.x, lbl_3_data_21A48.z) < 20.25f) {
-                e->valid = 0;
+                e->valid = FALSE;
             } else if (player != SD.holder) {
                 if (SD.holder >= 0) {
                     InMemFielder* holder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[SD.holder]];
                     holderLimit = sD_aiHolderChaseRadii[strength];
                     if (sdDistSqXZ(cx, cz, holder->pos.x, holder->pos.z) <= holderLimit * holderLimit) {
-                        e->valid = 0;
+                        e->valid = FALSE;
                     }
                 }
                 if (e->valid) {
@@ -2127,7 +2127,7 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
                     do {
                         if (SD.thwomp[i].state >= 1 && SD.thwomp[i].state <= 3) {
                             if (sD_IsNearThwomp(i, cx, cz)) {
-                                e->valid = 0;
+                                e->valid = FALSE;
                                 break;
                             }
                         }
@@ -2137,7 +2137,7 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
                     powerupLimit = sD_aiPowerup2Radii[strength];
                     if (sdDistSqXZ(cx, cz, g_Minigame.powerup.pos.x, g_Minigame.powerup.pos.z) <=
                         powerupLimit * powerupLimit) {
-                        e->valid = 0;
+                        e->valid = FALSE;
                     }
                 }
             }
@@ -2160,7 +2160,7 @@ SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* en
                     e->score += 400.0f;
                 }
                 if (sD_FireBarZone(e->x, e->z, 2.0f * sD_fireBarRadii[2])) {
-                    e->valid = 0;
+                    e->valid = FALSE;
                 }
             }
         } while (++k < count);

@@ -626,7 +626,7 @@ void minigameUpdateResultsScene(void) {
                 }
             }
             StatsScreenScores.mvpKind = 0;
-        } else if (g_Minigame.soloMinigameDifficulty == 3) {
+        } else if (g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
             if (g_Minigame.newRecordRank == 1 || g_Minigame.newRecordInd != 0) {
                 count = 1;
                 values[0] = g_Minigame.playerSlots.characterIndex[0];
@@ -744,7 +744,7 @@ void minigameUpdateResultsScene(void) {
                 obj->_3C += resultsFielderRowOffsets[2];
             }
         } else if (tWon != FALSE) {
-            if (g_Minigame.playerSlots.charID[i] == 0x26) {
+            if (g_Minigame.playerSlots.charID[i] == CHAR_ID_PETEY) {
                 obj->_3C += resultsFielderRowOffsets[1];
             } else {
                 obj->_3C += resultsFielderRowOffsets[0];

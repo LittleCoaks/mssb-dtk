@@ -13,7 +13,7 @@ typedef struct {
     /*0x08*/ f32 x;
     /*0x0C*/ f32 z;
     /*0x10*/ u8 quadrant;
-    /*0x11*/ u8 valid;
+    /*0x11*/ E(u8, BOOL) valid;
     /*0x12*/ u8 _12[2];
 } SDCoinEntry; // size: 0x14
 
@@ -28,7 +28,7 @@ typedef struct _SDThwomp {
     /*0x3A*/ s16 frames;
     /*0x3C*/ s8 owner;
     /*0x3D*/ u8 state;
-    /*0x3E*/ u8 stunSfxPending;
+    /*0x3E*/ E(u8, BOOL) stunSfxPending;
     /*0x3F*/ u8 stunSfxFrames;
 } SDThwomp; // size: 0x40
 
@@ -37,7 +37,7 @@ typedef struct {
     /*0x0C*/ u8 _0C[0x22 - 0x0C];
     /*0x22*/ s16 _22;
     /*0x24*/ u8 _24[2];
-    /*0x26*/ u8 active;
+    /*0x26*/ E(u8, BOOL) active;
     /*0x27*/ u8 _27;
 } SDFireBarFlame; // size: 0x28
 
@@ -77,7 +77,7 @@ typedef struct _SDState {
     /*0x0724*/ s16 starFrames;
     /*0x0726*/ s16 pathFrames;
     /*0x0728*/ s16 pathDuration;
-    /*0x072A*/ u8 starActive;
+    /*0x072A*/ E(u8, BOOL) starActive;
     /*0x072B*/ u8 starBounces;
     /*0x072C*/ u8 _072C[0xB6C - 0x72C];
     /*0x0B6C*/ SDCoinBag coinBag;

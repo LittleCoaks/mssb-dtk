@@ -7,7 +7,7 @@ void fn_3_B5E7C(void);
 void fn_3_B5F7C(void);
 void fn_3_B60F0(void);
 void fn_3_B61C0(void);
-void practiceRelUnuse(void);
+BOOL practiceRelUnuse(void);
 void pitchingPractice_BaseballControl(void);
 void pitchingPracticeRelated(void);
 void fn_3_B6B70(void);
