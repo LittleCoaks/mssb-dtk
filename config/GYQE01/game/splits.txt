@@ -62,11 +62,11 @@ game/match_setup/at_bat_setup.c:
 	.text       start:0x0001E154 end:0x0001E4B8
 
 game/batting/batter_ai.c:
-	.text       start:0x0001E4B8 end:0x00020CEC
+	.text       start:0x0001E4B8 end:0x00020B30
 	.rodata     start:0x000008C8 end:0x00000940
 
 game/pitching/pitcher_ai.c:
-	.text       start:0x00020CEC end:0x000219CC
+	.text       start:0x00020B30 end:0x000219CC
 	.rodata     start:0x00000940 end:0x000009B0
 
 game/hud/runner_items.c:

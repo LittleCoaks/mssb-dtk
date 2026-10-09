@@ -4,7 +4,6 @@
 #include "static/UnknownHomes_Static.h"
 #include "header_rep_data.h"
 
-extern u8 pickOffProb[4][4];
 
 // .text:0x0001E4B8 size:0x26C mapped:0x8065D54C
 void fn_3_1E4B8(void) {
@@ -751,52 +750,4 @@ void resetBatterAIBoxPosition(void) {
     g_AiLogic._1C = lbl_3_rodata_93C;
     g_AiLogic.batterAIDesiredXPosInBox = lbl_3_rodata_930;
     g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
-}
-
-// .text:0x00020B30 size:0x104 mapped:0x8065FBC4
-int aIPickoff(void) {
-    if (g_AiLogic.aIPitcherPickOffInd == 0) {
-        return FALSE;
-    }
-    if (g_Pitcher.currentStateFrameCounter > g_AiLogic.AIFrameToBeginPitch - 10) {
-        if (g_RunningLogic._02 == 0x1011) {
-            if (RandomInt_Game(3) == 0) {
-                g_Pitcher.pickOffLoc = 3;
-            } else {
-                g_Pitcher.pickOffLoc = 1;
-            }
-        } else if (g_RunningLogic._02 == 0x1101) {
-            g_Pitcher.pickOffLoc = 3;
-        } else if (g_RunningLogic._02 == 0x111) {
-            g_Pitcher.pickOffLoc = 2;
-        } else if (g_RunningLogic._02 == 0x1001) {
-            g_Pitcher.pickOffLoc = 3;
-        } else if (g_RunningLogic._02 == 0x101) {
-            g_Pitcher.pickOffLoc = 2;
-        } else {
-            g_Pitcher.pickOffLoc = 1;
-        }
-        return TRUE;
-    }
-    return FALSE;
-}
-
-// .text:0x00020C34 size:0xB8 mapped:0x8065FCC8
-void pitcherAIDecidePickoff(void) {
-    int prob;
-
-    if (g_AiLogic.pitcherAIPitchDownTheMiddleInd == 0) {
-        g_AiLogic.aIPitcherPickOffInd = FALSE;
-        if (g_RunningLogic._02 == 1 || g_RunningLogic._02 == 0x1111) {
-            return;
-        }
-        if (g_AiLogic.always0_AIPickoffRelated != 0) {
-            prob = 5;
-        } else {
-            prob = pickOffProb[g_Pitcher.charClass][g_AiLogic.aIDifficultyInverse0Weak];
-        }
-        if (RandomInt_Game(100) < prob) {
-            g_AiLogic.aIPitcherPickOffInd = TRUE;
-        }
-    }
 }

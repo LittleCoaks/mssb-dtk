@@ -11,5 +11,7 @@ void pitcherAISelectPitch(void);
 void pitcherAI_prePitchSetConstants(void);
 void pitcherAINewBatter(void);
 void resetPitcherPreAB(void);
+int aIPickoff(void);
+void pitcherAIDecidePickoff(void);
 
 #endif // !__GAME_PITCHING_PITCHER_AI_H_
