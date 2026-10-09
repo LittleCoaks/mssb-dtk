@@ -124,7 +124,7 @@ s16 normalizeAngle(s16 ang) {
 }
 
 // .text:0x0009FDD8 size:0x94 mapped:0x806DEE6C
-f32 fn_3_9FDD8(f32 ang) {
+f32 shortAngleF32ToRad(f32 ang) {
     f32 v;
     if (ang < 0) {
         while (ang < 0) {
@@ -291,7 +291,7 @@ void getComponentsFromRad(f32 v, f32* x, f32* y) {
 }
 
 // .text:0x0009F79C size:0x1C8 mapped:0x806DE830
-void fieldersRunningToDugoutCalculateOffsets(f32 a, f32 x, f32 y, f32* outX, f32* outY) {
+void rotate2DByAngle(f32 a, f32 x, f32 y, f32* outX, f32* outY) {
     f32 c, s, v, mag;
     mag = game_atan2(x, y);
     getComponentsFromRad(mag + a, &c, &s);
@@ -426,7 +426,7 @@ int RandomInt_Game(int max) {
 }
 
 // .text:0x0009EE24 size:0x94 mapped:0x806DDEB8
-int random_fn_3_9EE24(int max) {
+int RandomInt_Sim(int max) {
     int ret, r2;
     int orig = max;
     if (max < 0) {
@@ -461,6 +461,6 @@ f32 RandomF32_Game_Range(f32 a, f32 b) {
 }
 
 // .text:0x0009EAE4 size:0xE8 mapped:0x806DDB78
-f32 RandomF32_UNK_Range(f32 a, f32 b) {
+f32 RandomF32_Sim_Range(f32 a, f32 b) {
     return randomIntSimInline((int)((b - a) * 1000.f) + 1) * (1.f / 1000.f) + a;
 }

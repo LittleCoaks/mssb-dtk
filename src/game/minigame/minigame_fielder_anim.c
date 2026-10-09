@@ -651,7 +651,7 @@ void minigameUpdateResultsScene(void) {
             }
         }
         h->_24BD = 1;
-        fieldersRunningToDugoutCalculateOffsets(resultsFielderMinigameOffsets[idx][3], resultsFielderMinigameOffsets[idx][0], resultsFielderMinigameOffsets[idx][2], &v.x, &v.z);
+        rotate2DByAngle(resultsFielderMinigameOffsets[idx][3], resultsFielderMinigameOffsets[idx][0], resultsFielderMinigameOffsets[idx][2], &v.x, &v.z);
         v.y = resultsFielderMinigameOffsets[idx][1];
         h->_2294 = v.x + resultsFielderOffsets[0][0][0];
         h->_2298 = v.y + resultsFielderOffsets[0][0][1];
@@ -688,7 +688,7 @@ void minigameUpdateResultsScene(void) {
             participants = 1;
         }
         obj->_25D = 1;
-        fieldersRunningToDugoutCalculateOffsets(resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][3], resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][0],
+        rotate2DByAngle(resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][3], resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][0],
                                                 resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][2], &v.x, &v.z);
         v.y = resultsFielderMinigameOffsets[g_Minigame.GameMode_MiniGame][1];
         obj->_34 = v.x + resultsFielderOffsets[participants - 1][k][0];

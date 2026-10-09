@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 
 void practiceRelatedReset(void);
-void baserunningPracticeRelated(void);
+void practiceSetupRunnerStatus(void);
 void fn_3_B3C64(void);
 void setTutorialState(int state);
 void updatePracticeTransitionState(int state);

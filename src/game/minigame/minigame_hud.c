@@ -3363,7 +3363,7 @@ void fn_3_121908(void) {
     case 0:
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23F64);
         HUD_RECORD(scene, 8)->flags &= ~UI_FLAG_VISIBLE;
-        scene->_1E = random_fn_3_9EE24(6);
+        scene->_1E = RandomInt_Sim(6);
         scene->sndHandle = 0xFFFFFFFF;
         scene->state = 1;
     case 1:
@@ -3409,7 +3409,7 @@ void fn_3_121908(void) {
             }
             scene->_22 = 1;
         } else {
-            scene->_20 = random_fn_3_9EE24(6);
+            scene->_20 = RandomInt_Sim(6);
             scene->_22 = 1;
         }
         scene->_18 = 0;
@@ -3495,7 +3495,7 @@ void fn_3_121908(void) {
             mg->bODPitchType = bOD_bB_pitchRouletteTypes[scene->_1E];
             if (mg->bODPitchType == 5) {
                 do {
-                    mg->bODPitchType = random_fn_3_9EE24(5);
+                    mg->bODPitchType = RandomInt_Sim(5);
                 } while (scene->_22 != 0 && mg->bODPitchType == 3);
                 mg->bOD_randomPitchInd = 1;
             } else {

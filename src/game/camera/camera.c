@@ -781,7 +781,7 @@ void fn_3_1AEB8(void) {
         Vec v;
         f32 f28;
         VEC_SUB(&v, &g_pCamera->_284C, &g_pCamera->_2840);
-        f28 = RandomF32_UNK_Range(p->_0, p->_4) / dolsqrtf2(SQ(v.x) + SQ(v.y) + SQ(v.z));
+        f28 = RandomF32_Sim_Range(p->_0, p->_4) / dolsqrtf2(SQ(v.x) + SQ(v.y) + SQ(v.z));
         VEC_SCALE(&v, &v, f28);
         VEC_SUB(&g_pCamera->_281C, &g_pCamera->_2828, &v);
         g_pCamera->_2834 = p->_8;
@@ -928,7 +928,7 @@ void fn_3_19FA4(void) {
         }
         for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = anglePoints[i];
         running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
-        g_pCamera->_2870 = fn_3_9FDD8(result.x);
+        g_pCamera->_2870 = shortAngleF32ToRad(result.x);
 
         for (i = 0; i < g_pCamera->_0012; i++) {
             angles[i] = cameraData_homePlateViews[g_pCamera->_0004[i]]._10[1];
@@ -936,7 +936,7 @@ void fn_3_19FA4(void) {
         for (i = 0; i < g_pCamera->_0012; i++) anglePoints[i] = (f32)angles[i];
         for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = anglePoints[i];
         running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
-        g_pCamera->_2874 = fn_3_9FDD8(result.x);
+        g_pCamera->_2874 = shortAngleF32ToRad(result.x);
         fn_3_19FA4_updateView(r31);
     } else {
         lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
@@ -1178,19 +1178,19 @@ void fn_3_18FF8(void) {
         } else {
             s16 ang = calculateAngleFromCoordinates(f31, f30);
             if (ang < 0x240 || ang > 0xc00) {
-                if (random_fn_3_9EE24(3) != 0) {
+                if (RandomInt_Sim(3) != 0) {
                     r30 = 2;
                 } else {
                     r30 = 0;
                 }
             } else if (ang > 0x5c0) {
-                if (random_fn_3_9EE24(3) != 0) {
+                if (RandomInt_Sim(3) != 0) {
                     r30 = 1;
                 } else {
                     r30 = 0;
                 }
             } else if (f29 > 100.0f) {
-                r30 = random_fn_3_9EE24(4);
+                r30 = RandomInt_Sim(4);
                 if (f31 > 0.0f) {
                     // definitely some sort of inline here, or something weird
                     if (r30 = 3) {
@@ -1198,7 +1198,7 @@ void fn_3_18FF8(void) {
                     }
                 }
             } else {
-                switch (random_fn_3_9EE24(5)) {
+                switch (RandomInt_Sim(5)) {
                     case 0:
                     case 1:
                         r30 = 1;
@@ -1266,19 +1266,19 @@ void fn_3_18FF8(void) {
     if (r30 >= 0) {
         switch (r30) {
             case 0:
-                cam->_11C = random_fn_3_9EE24(2);
+                cam->_11C = RandomInt_Sim(2);
                 break;
             case 1:
-                cam->_11C = random_fn_3_9EE24(3) + 2;
+                cam->_11C = RandomInt_Sim(3) + 2;
                 break;
             case 2:
-                cam->_11C = random_fn_3_9EE24(3) + 5;
+                cam->_11C = RandomInt_Sim(3) + 5;
                 break;
             case 3:
-                cam->_11C = random_fn_3_9EE24(2) + 8;
+                cam->_11C = RandomInt_Sim(2) + 8;
                 break;
             case 4:
-                cam->_11C = random_fn_3_9EE24(2) + 10;
+                cam->_11C = RandomInt_Sim(2) + 10;
                 break;
         }
 
@@ -1443,7 +1443,7 @@ void fn_3_17B2C(void) {
     lbl_3_data_A40_s* p;
     if (g_GameLogic.sceneID == SCENE_ID_REPLAY_AT_BAT) {
         if (g_pCamera->_28A0 == 0) {
-            g_pCamera->_0000 = random_fn_3_9EE24(4) + 0x4d;
+            g_pCamera->_0000 = RandomInt_Sim(4) + 0x4d;
         }
     } else {
         g_pCamera->_0000 = g_pCamera->_28A7;
@@ -1825,11 +1825,11 @@ void fn_3_16328(void) {
         if (settings->GameModeSelected == GAME_TYPE_CHALLENGE) {
             camera_switchScene(settings->StadiumID + 0x39);
         } else if (settings->GameModeSelected == GAME_TYPE_MINIGAMES) {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x24 + fn_3_164A8());
+            camera_switchScene(RandomInt_Sim(0) + 0x24 + fn_3_164A8());
         } else if (settings->GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x24 + fn_3_164A8());
+            camera_switchScene(RandomInt_Sim(0) + 0x24 + fn_3_164A8());
         } else {
-            camera_switchScene(random_fn_3_9EE24(0) + 8 + settings->StadiumID);
+            camera_switchScene(RandomInt_Sim(0) + 8 + settings->StadiumID);
         }
     }
     fn_3_FD670();
@@ -1839,11 +1839,11 @@ void fn_3_16328(void) {
 void fn_3_161C0(void) {    
     if (g_GameLogic.FrameCountOfCurrentPitch == 0) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x2b + fn_3_164A8());
+            camera_switchScene(RandomInt_Sim(0) + 0x2b + fn_3_164A8());
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x2b + fn_3_164A8());
+            camera_switchScene(RandomInt_Sim(0) + 0x2b + fn_3_164A8());
         } else {
-            camera_switchScene(random_fn_3_9EE24(0) + 0xf + g_d_GameSettings.StadiumID);
+            camera_switchScene(RandomInt_Sim(0) + 0xf + g_d_GameSettings.StadiumID);
         }
     }
     fn_3_FD670();
@@ -1853,11 +1853,11 @@ void fn_3_161C0(void) {
 void fn_3_16058(void) {
     if (g_GameLogic.FrameCountOfCurrentPitch <= 1) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x32 + fn_3_164A8());
+            camera_switchScene(RandomInt_Sim(0) + 0x32 + fn_3_164A8());
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x32 + fn_3_164A8());
+            camera_switchScene(RandomInt_Sim(0) + 0x32 + fn_3_164A8());
         } else {
-            camera_switchScene(random_fn_3_9EE24(0) + 0x16 + g_d_GameSettings.StadiumID);
+            camera_switchScene(RandomInt_Sim(0) + 0x16 + g_d_GameSettings.StadiumID);
         }
     }
     fn_3_FD670();
@@ -1885,7 +1885,7 @@ void fn_3_15FD0(void) {
 
 // .text:0x00015F94 size:0x3C mapped:0x80655028
 void pauseMenuCameraAngle(void) {
-    camera_switchScene(0x1d + random_fn_3_9EE24(0) + g_d_GameSettings.StadiumID);
+    camera_switchScene(0x1d + RandomInt_Sim(0) + g_d_GameSettings.StadiumID);
 }
 
 // .text:0x00015F74 size:0x20 mapped:0x80655008

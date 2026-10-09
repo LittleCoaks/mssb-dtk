@@ -187,7 +187,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x806dd634` | function | `RandomIndexFromWeights` | `WeightedRandomIndex` |
 | `0x806ddc60` | function | `RandomF32_Game_Range` | `randomInRange` |
 | `0x806dddb0` | function | `RandomInt_Game_Range` | `randBetween` |
-| `0x806ddeb8` | function | `random_fn_3_9EE24` | `RandomInt` |
+| `0x806ddeb8` | function | `RandomInt_Sim` | `RandomInt` |
 | `0x806de9f8` | function | `getComponentsFromRad` | `sinAndCosOfAngle` |
 | `0x806dea5c` | function | `getComponentsFromSAng` | `getAngleComponents` |
 | `0x806debd4` | function | `game_atan2` | `radianAngleToPoint` |
@@ -207,7 +207,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x8076d8d0` | function | `unused_BarrelBatterRelated` | `unused,BarrelBatterRelated` |
 | `0x8079e4a4` | function | `animateMVP_GameEnd` | `animateMVP/GameEnd` |
 | `0x807a13a0` | function | `starMissionsOffensive_StarChange_DoublePlay` | `starMissionsOffensive/StarChange/DoublePlay` |
-| `0x807a3b08` | function | `challengeModeRelated_checkScoutMissionSuccess` | `challengeModeRelated,checkScoutMissionSuccess?` |
+| `0x807a3b08` | function | `scoutFlag_checkMissionSuccess` | `challengeModeRelated,checkScoutMissionSuccess?` |
 | `0x807a8034` | function | `displayChem_antiChemGraphics` | `displayChem/antiChemGraphics` |
 | `0x807adea8` | data | `const_pi_180` | `const_pi/180` |
 | `0x807af200` | data | `PI_180` | `PI/180` |

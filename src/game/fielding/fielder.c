@@ -9736,7 +9736,7 @@ void autoMovement17_runningOffField(int fielderIndex) {
     z = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].z;
 
     if (fielder->rosterLocation != g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding]) {
-        fieldersRunningToDugoutCalculateOffsets(lbl_3_data_4348[g_d_GameSettings.StadiumID][g_GameLogic.teamFielding],
+        rotate2DByAngle(lbl_3_data_4348[g_d_GameSettings.StadiumID][g_GameLogic.teamFielding],
                                                  lbl_3_data_4300[fielderIndex].x,
                                                  lbl_3_data_4300[fielderIndex].z, &outX, &outZ);
         z += outZ;

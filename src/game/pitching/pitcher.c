@@ -83,7 +83,7 @@ extern void SetGameStatus(int status);
 extern u8 hugeAnimStruct[0x3154];
 extern void practice_startPitchAfter90Frames(void);
 extern void lastPlayStats(void);
-extern void challengeModeRelated_checkScoutMissionSuccess(void);
+extern void scoutFlag_checkMissionSuccess(void);
 extern f32 lbl_3_data_5F08[13];
 extern s16 lbl_3_data_5EDC[];
 extern int getAdjustedPitcherStamina(int team, int rosterID, int flag);
@@ -789,7 +789,7 @@ void endAtBatNonHit(void) {
     }
     if (g_Pitcher.framesSinceAtBatEnded == 1) {
         if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Stats.replayInd == 0) {
-            challengeModeRelated_checkScoutMissionSuccess();
+            scoutFlag_checkMissionSuccess();
             lbl_3_common_bss_37400.scoutCountdown = 0xB4;
         }
         if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic._10 == 4) {

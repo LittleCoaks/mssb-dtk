@@ -800,7 +800,7 @@ BOOL fn_3_22A20(void) {
 }
 
 // .text:0x00022948 size:0xD8 mapped:0x806619DC
-void fn_3_22948(void) {
+void resetVsSituations(void) {
     s32 i;
 
     for (i = 0; i < VS_SITUATION_COUNT; i++) {

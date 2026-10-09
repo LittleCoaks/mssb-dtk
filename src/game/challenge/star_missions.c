@@ -349,7 +349,7 @@ void clearScoutState(void) {
 }
 
 // .text:0x00164A74 size:0xE7C mapped:0x807A3B08
-void challengeModeRelated_checkScoutMissionSuccess(void) {
+void scoutFlag_checkMissionSuccess(void) {
     ScoutState* scout = &lbl_3_common_bss_37400;
     ScoutMission* missions = scoutMissionTable;
     ChallengeTrackingStruct* trackers = starMissionCompletionTracker;

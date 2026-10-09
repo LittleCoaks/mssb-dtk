@@ -28,7 +28,7 @@ void fn_3_12FFD4(void);
 void barrelBatterLiveBallSubFun(void);
 void fn_3_1307D0(void);
 void fn_3_130A80(void);
-void bobombDerbyRelated(void);
+void barrelBatterUpdateTurnOver(void);
 void bB_AtBat(void);
 void fn_3_131114(void);
 void fn_3_13119C(void);

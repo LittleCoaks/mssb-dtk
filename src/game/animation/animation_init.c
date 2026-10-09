@@ -67,7 +67,7 @@ void fn_3_24F24(int scriptIndex) {
     }
     lbl_3_common_bss_1323C->_25E = *cursor++;
     if (extraRoll != 0) {
-        lbl_3_common_bss_1323C->_25E += random_fn_3_9EE24(extraRoll);
+        lbl_3_common_bss_1323C->_25E += RandomInt_Sim(extraRoll);
     }
     for (;;) {
         u8 index = *cursor;

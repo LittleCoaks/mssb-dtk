@@ -24,7 +24,7 @@ extern u8 highLevelSimulationFlag[4];
 extern u8 lbl_80354768[];
 #define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
 extern s16 practiceFrameConsts[];
-extern int random_fn_3_9EE24(int max);
+extern int RandomInt_Sim(int max);
 extern void practice_loadCharacter(int arg0, int arg1, int arg2, int arg3);
 extern void transitionToPlayerControl(void);
 
@@ -578,22 +578,22 @@ void fieldingPractice_setHitVariables(void) {
         return;
     }
     if (g_Practice.practiceLevel == 0) {
-        idx = random_fn_3_9EE24(10);
+        idx = RandomInt_Sim(10);
         g_Ball.Hit_HorizontalPower = hitVarsForFieldingPractice[idx][0];
         g_Ball.Hit_VerticalAngle = hitVarsForFieldingPractice[idx][1];
         g_Ball.Hit_HorizontalAngle = hitVarsForFieldingPractice[idx][2];
     } else if (g_Practice.practiceLevel == 1) {
-        idx = random_fn_3_9EE24(10);
+        idx = RandomInt_Sim(10);
         g_Ball.Hit_HorizontalPower = hitVarsForFieldingPractice_level1[idx][0];
         g_Ball.Hit_VerticalAngle = hitVarsForFieldingPractice_level1[idx][1];
         g_Ball.Hit_HorizontalAngle = hitVarsForFieldingPractice_level1[idx][2];
     } else if (g_Practice.practiceLevel == 2) {
-        idx = random_fn_3_9EE24(10);
+        idx = RandomInt_Sim(10);
         g_Ball.Hit_HorizontalPower = hitVarsForFieldingPractice_level2[idx][0];
         g_Ball.Hit_VerticalAngle = hitVarsForFieldingPractice_level2[idx][1];
         g_Ball.Hit_HorizontalAngle = hitVarsForFieldingPractice_level2[idx][2];
     } else if (g_Practice.practiceLevel == 3) {
-        idx = random_fn_3_9EE24(10);
+        idx = RandomInt_Sim(10);
         g_Ball.Hit_HorizontalPower = hitVarsForFieldingPractice_level3[idx][0];
         g_Ball.Hit_VerticalAngle = hitVarsForFieldingPractice_level3[idx][1];
         g_Ball.Hit_HorizontalAngle = hitVarsForFieldingPractice_level3[idx][2];

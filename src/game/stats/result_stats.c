@@ -70,7 +70,7 @@ void MVPCalculation(void) {
     } else if (result == 1) {
         StatsScreenScores.mvpCharID = inMemRoster[slot][g_GameLogic.Team_CaptainRosterLoc[slot]].stats.CharID;
     } else {
-        StatsScreenScores.mvpCharID = inMemRoster[slot][g_GameLogic.Team_CaptainRosterLoc[random_fn_3_9EE24(2)]].stats.CharID;
+        StatsScreenScores.mvpCharID = inMemRoster[slot][g_GameLogic.Team_CaptainRosterLoc[RandomInt_Sim(2)]].stats.CharID;
     }
 
     if (winner != 2 &&

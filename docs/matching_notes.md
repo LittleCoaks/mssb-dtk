@@ -2479,7 +2479,7 @@ First seen: `game/game/batting/at_bat_results`, `game/game/match_setup/stat_trac
 `game/game/math/game_math` (2026-09).
 
 - **The same routine can need two spellings: one for the standalone function, one for its inlined
-  copies.** `RandomInt_Game` and `random_fn_3_9EE24` match with `int orig = max; if (max < 0) max = -max;`,
+  copies.** `RandomInt_Game` and `RandomInt_Sim` match with `int orig = max; if (max < 0) max = -max;`,
   but the copies inlined into the `Random*_Range` wrappers match the `ABS()` form. Rewriting the
   shared body helped one side and broke the other. Keeping the old body as a `static inline` helper
   for the wrappers took `game_math.c` from 99.34% to 99.75%. `at_bat_results.c` needed the same pair.

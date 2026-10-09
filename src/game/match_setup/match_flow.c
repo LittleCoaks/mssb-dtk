@@ -105,7 +105,7 @@ extern void match_checkForPause(void);
 extern void transitionToPauseScreen(void);
 extern void ballPhysica(void);
 extern void fielderMainFunction(void);
-extern void challengeModeRelated_checkScoutMissionSuccess(void);
+extern void scoutFlag_checkMissionSuccess(void);
 extern void setScoutMissionRelatedToZero(void);
 extern int loadFielderActors(int charID);
 extern void unkPauseSimulationCheck(void);
@@ -290,7 +290,7 @@ void initializeGame(void) {
     initializeReplayVariables();
     initializeSounds();
     initializeAnimations();
-    initializeCamera();
+    initializeSoundEmitters();
     initializeUnknown();
 }
 
@@ -534,7 +534,7 @@ void matchTransitionPrepareNextAB(void) {
             break;
         }
         SetGameStatus(GAME_STATUS_STAR_CHANCE_VS);
-        versusStarChanceSetPointers();
+        cpuCheckPitcherRelief();
         g_GameLogic.IsStarChance = 0;
         animRelated[0xAC] = 0;
         if (inningSetting.starSkillsSetting != 0) {
@@ -549,7 +549,7 @@ void matchTransitionPrepareNextAB(void) {
             if ((g_RunningLogic._02 & 0xFFF0) != 0) {
                 break;
             }
-            if (random_fn_3_9EE24(100) < lbl_3_data_60F0) {
+            if (RandomInt_Sim(100) < lbl_3_data_60F0) {
                 g_GameLogic.IsStarChance = 1;
                 animRelated[0xAC] = 1;
             }
@@ -941,7 +941,7 @@ void checkIfPlayOver(void) {
         }
         if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 &&
             g_Stats.replayInd == 0 && g_GameLogic.playOver != 0) {
-            challengeModeRelated_checkScoutMissionSuccess();
+            scoutFlag_checkMissionSuccess();
             if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                 lbl_3_common_bss_37400.scoutCountdown = 0x78;
             }

@@ -11,16 +11,16 @@
 #define SANG_ANG_270 (SANG_ANG_90 * 3)
 #define SANG_ANG_360 (SANG_MAX_ANGLE)
 
-f32 RandomF32_UNK_Range(f32 a, f32 b);
+f32 RandomF32_Sim_Range(f32 a, f32 b);
 f32 RandomF32_Game_Range(f32 a, f32 b);
 int RandomInt_Game_Range(int min, int max);
-int random_fn_3_9EE24(int max);
+int RandomInt_Sim(int max);
 int RandomInt_Game(int max);
 // void static_clamp(void);
 f32 calculateBallInterceptDistance(VecXYZ* a, VecXYZ* b, VecXYZ* c, VecXYZ* d);
 bool calculateLineIntersection(VecXZ* out, VecXZ* a, VecXZ* b);
 void normalizeVector(VecXYZ* out, VecXYZ* v);
-void fieldersRunningToDugoutCalculateOffsets(f32 a, f32 b, f32 c, f32* x, f32* y);
+void rotate2DByAngle(f32 a, f32 b, f32 c, f32* x, f32* y);
 void getComponentsFromRad(f32 v, f32* x, f32* y);
 void getComponentsFromSAng(s16 ang, f32* x, f32* y);
 f32 fn_3_9FAA4(f32 x, f32 y);
@@ -31,7 +31,7 @@ s16 angleDifferenceNormalized(s16 a, s16 b);
 s16 getDifferenceInAngle(s16 a, s16 b);
 s16 normalizeAnglebetween_2048And2047(s16 ang);
 s16 fn_3_9FD6C(s16 ang);
-f32 fn_3_9FDD8(f32);
+f32 shortAngleF32ToRad(f32);
 s16 normalizeAngle(s16);
 f32 radianAngleReduction(f32 v);
 s16 normalizeAngleToRange(f32 v);

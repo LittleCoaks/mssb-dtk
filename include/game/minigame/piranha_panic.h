@@ -160,7 +160,7 @@ void piranhaPanicLiveBall(void);
 void pP_StartPlay(void);
 void pP_RoundIntro(void);
 void pP_LoadGame(void);
-void fn_3_1471C0(void);
+void pP_EmptyHook(void);
 void piranhaPanicSwitcher(void);
 
 #endif // !__GAME_MINIGAME_PIRANHA_PANIC_H_

@@ -879,7 +879,7 @@ void minigames_setupChallengeRoster(void) {
             }
             idx++;
         }
-        r = random_fn_3_9EE24(minigameChallengeOpponentPools[g_Minigame.GameMode_MiniGame * 7] - j);
+        r = RandomInt_Sim(minigameChallengeOpponentPools[g_Minigame.GameMode_MiniGame * 7] - j);
         for (k = 0; k < 6; k++) {
             if (arr[k] == 0xFF) {
                 continue;
@@ -1512,7 +1512,7 @@ void minigameCharSelectUpdate(void) {
                 }
                 for (i = 0; i < 4; i++) {
                     if (g_Minigame.selectSlotState[i] == 1 && g_Minigame.selectSlots[i].confirmedInd == 0) {
-                        pick = random_fn_3_9EE24(remaining);
+                        pick = RandomInt_Sim(remaining);
                         for (k = 0; k < 12; k++) {
                             if (used[k] == 0) {
                                 if (pick == 0) {
@@ -2700,9 +2700,9 @@ void minigameEndHook(void) {
     } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
         fn_3_1323CC();
     } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_CHAINCHOMP_SPRINT) {
-        fn_3_141A2C();
+        ccs_EmptyHook();
     } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
-        fn_3_1471C0();
+        pP_EmptyHook();
     } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
         sD_EmptyHook();
     }

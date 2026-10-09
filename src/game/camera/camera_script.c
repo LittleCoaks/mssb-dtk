@@ -2855,7 +2855,7 @@ BOOL fn_3_FDB30(void) {
             CAMSCRIPT(idx)._010C = 9.0f;
             CAMSCRIPT(idx)._0110 = 2.0f;
             CAMSCRIPT(idx)._0114 = 0.001f;
-            CAMSCRIPT(idx)._0934 = random_fn_3_9EE24(0x10000);
+            CAMSCRIPT(idx)._0934 = RandomInt_Sim(0x10000);
             CAMSCRIPT(idx)._0988 = 0;
             CAMSCRIPT(idx)._09B2 = 0;
             CAMSCRIPT(idx)._09B4 = 0;
@@ -2989,7 +2989,7 @@ BOOL fn_3_FDB30(void) {
             continue;
         case 14:
             table = CAM_SCRIPT_TABLE(ctx->_0000[1]);
-            CTX->_0940 = table[random_fn_3_9EE24(ctx->_0000[2])];
+            CTX->_0940 = table[RandomInt_Sim(ctx->_0000[2])];
             CTX->_0118 = 0;
             fn_3_FC938();
             ctx->_0000 += 3;
@@ -3000,7 +3000,7 @@ BOOL fn_3_FDB30(void) {
             } else {
                 table = CAM_SCRIPT_TABLE(ctx->_0000[2]);
             }
-            CTX->_0940 = table[random_fn_3_9EE24(ctx->_0000[3])];
+            CTX->_0940 = table[RandomInt_Sim(ctx->_0000[3])];
             CTX->_0118 = 0;
             fn_3_FC938();
             ctx->_0000 += 4;
@@ -3011,7 +3011,7 @@ BOOL fn_3_FDB30(void) {
             } else {
                 table = CAM_SCRIPT_TABLE(ctx->_0000[2]);
             }
-            CTX->_0940 = table[random_fn_3_9EE24(ctx->_0000[3])];
+            CTX->_0940 = table[RandomInt_Sim(ctx->_0000[3])];
             CTX->_0118 = 0;
             fn_3_FC938();
             ctx->_0000 += 4;
@@ -3271,7 +3271,7 @@ BOOL fn_3_FDB30(void) {
             continue;
         }
         case 46:
-            CTX->_0934 = random_fn_3_9EE24(0x10000);
+            CTX->_0934 = RandomInt_Sim(0x10000);
             ctx->_0000 += 1;
             continue;
         case 47:
@@ -3920,7 +3920,7 @@ static inline void camera_setScene(s32 scene) {
 }
 
 static inline void camera_setReplayShot(int table) {
-    s32 scene = lbl_3_data_1DAE4[table][random_fn_3_9EE24(3)];
+    s32 scene = lbl_3_data_1DAE4[table][RandomInt_Sim(3)];
 
     camera_setScene(scene);
 }

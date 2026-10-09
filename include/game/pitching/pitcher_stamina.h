@@ -5,7 +5,7 @@
 
 BOOL staminaRelated(void);
 void fn_3_1DB5C(void);
-void versusStarChanceSetPointers(void);
+void cpuCheckPitcherRelief(void);
 void trackLastPitchInfo(void);
 void updateHighUrgencySituationTracker(void);
 

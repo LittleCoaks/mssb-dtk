@@ -16,7 +16,7 @@ void assignScoutFlagRewardRandom(void);
 void assignScoutFlagRewardToTarget(void);
 void applyScoutFlagRewards(void);
 void awardScoutFlagsSequential(void);
-void challengeModeRelated_checkScoutMissionSuccess(void);
+void scoutFlag_checkMissionSuccess(void);
 void clearScoutState(void);
 void fn_3_165978(void);
 void setScoutMissionRelatedToZero(void);

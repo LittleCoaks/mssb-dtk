@@ -84,7 +84,7 @@ void trackLastPitchInfo(void) {
 }
 
 // .text:0x0001DC30 size:0x118 mapped:0x8065CCC4
-void versusStarChanceSetPointers(void) {
+void cpuCheckPitcherRelief(void) {
     int changed;
     int i;
     if (g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] != 0) {
@@ -138,7 +138,7 @@ BOOL staminaRelated(void) {
         }
     }
     if (nDiff != 0) {
-        pick = random_fn_3_9EE24(nDiff);
+        pick = RandomInt_Sim(nDiff);
         for (i = 0; i < nCand; i++) {
             if (cand[i].differentClass != 0) {
                 if (pick == 0) {
@@ -149,7 +149,7 @@ BOOL staminaRelated(void) {
             }
         }
     }
-    pick = random_fn_3_9EE24(nCand);
+    pick = RandomInt_Sim(nCand);
     for (i = 0; i < nCand; i++) {
         if (pick == 0) {
             newPitcher = cand[i].rosterID;

@@ -213,7 +213,7 @@ void practiceRel(void) {
         for (i = 0; i < 4; i++) {
             g_Practice.baserunningActiveRunners[i] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + i];
         }
-        baserunningPracticeRelated();
+        practiceSetupRunnerStatus();
         animRelated[0x9A] = 0;
         highLevelSimulationFlag[2] = 0;
         g_Practice.characterLoadStarted = 0;
@@ -266,7 +266,7 @@ void baseRunningPracticeControl(void) {
             g_Practice.baserunningActiveRunners[1] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + 1];
             g_Practice.baserunningActiveRunners[2] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + 2];
             g_Practice.baserunningActiveRunners[3] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + 3];
-            baserunningPracticeRelated();
+            practiceSetupRunnerStatus();
             animRelated[0x9A] = 0;
             highLevelSimulationFlag[2] = 0;
             g_Practice.characterLoadStarted = 0;

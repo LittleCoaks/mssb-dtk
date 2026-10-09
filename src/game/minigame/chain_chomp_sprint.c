@@ -112,13 +112,13 @@ void chainChompSprintSwitcher(void) {
         chainChompSpringMainFun();
         break;
     case GAME_STATUS_TRANSITION_MINIGAME_POSTGAME:
-        mVPRelated();
+        chainChompSprintEndGame();
         break;
     }
 }
 
 // .text:0x00141A2C size:0x4 mapped:0x80780AC0
-void fn_3_141A2C(void) {
+void ccs_EmptyHook(void) {
 }
 
 // .text:0x001414AC size:0x580 mapped:0x80780540
@@ -275,7 +275,7 @@ void fn_3_1412BC(void) {
 }
 
 // .text:0x001410F0 size:0x1CC mapped:0x80780184
-void mVPRelated(void) {
+void chainChompSprintEndGame(void) {
     u32 k;
 
     minigameCalculateRankings();
@@ -819,7 +819,7 @@ void fn_3_13EC44(int item) {
                 }
             }
             if (count != 0) {
-                pos = list[random_fn_3_9EE24(count)] * 10;
+                pos = list[RandomInt_Sim(count)] * 10;
             } else {
                 next = list;
                 for (i = 0; i < 4; i++) {
@@ -828,7 +828,7 @@ void fn_3_13EC44(int item) {
                         count++;
                     }
                 }
-                pos = list[random_fn_3_9EE24(count)] * 10;
+                pos = list[RandomInt_Sim(count)] * 10;
             }
             break;
         }
@@ -856,19 +856,19 @@ void fn_3_13EC44(int item) {
                 gemCount = baseCount;
                 continue;
             }
-            seg = list[random_fn_3_9EE24(count)];
-            pos = random_fn_3_9EE24(6) + 2 + seg * 10;
+            seg = list[RandomInt_Sim(count)];
+            pos = RandomInt_Sim(6) + 2 + seg * 10;
         } else {
-            seg = list[random_fn_3_9EE24(count)];
+            seg = list[RandomInt_Sim(count)];
             if (runnersOnSeg[seg] == 0) {
-                pos = random_fn_3_9EE24(8) + 1 + seg * 10;
+                pos = RandomInt_Sim(8) + 1 + seg * 10;
             } else {
                 int other;
                 int skip;
                 int k;
                 pos = seg * 10;
                 other = g_Minigame.ccs.itemValue[g_Minigame.ccs.segmentItems[seg][0]] % 10;
-                skip = random_fn_3_9EE24(8) + 1;
+                skip = RandomInt_Sim(8) + 1;
                 for (k = 0; k < 10; k++) {
                     if (other != k) {
                         if (skip == 0) {

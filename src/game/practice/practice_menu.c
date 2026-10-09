@@ -1043,7 +1043,7 @@ void fn_3_B3C64(void) {
 }
 #pragma dont_inline reset
 
-void baserunningPracticeRelated(void) {
+void practiceSetupRunnerStatus(void) {
     int i;
     for (i = 0; i < 4; i++) {
         if (g_Practice.baserunningActiveRunners[i] != 0) {

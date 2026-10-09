@@ -561,7 +561,7 @@ void fn_3_8BDF4(void) {
 }
 
 // .text:0x0008BE8C size:0x1F0 mapped:0x806CAF20
-void initializeCamera(void) {
+void initializeSoundEmitters(void) {
     SND_FVECTOR pos = lbl_3_rodata_1558;
     int i = 0;
 

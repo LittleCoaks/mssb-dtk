@@ -1244,7 +1244,7 @@ void mm_EncodeResultCode(u8* out, u8* raw, u8 a, u8 b) {
     if (g_Minigame.grandPrixInd != 0) {
         score = rec.score;
         flag = 1;
-        count = random_fn_3_9EE24(1000);
+        count = RandomInt_Sim(1000);
     } else {
         score = rec.score;
         flag = 0;
@@ -1354,8 +1354,8 @@ void mm_DrawResultCode(void) {
             PM_REC(scene, 0)->elementIndex = 0xBE;
             scene->_1E = 7;
         }
-        scene->_20 = random_fn_3_9EE24(0x100);
-        scene->_22 = random_fn_3_9EE24(0x1A);
+        scene->_20 = RandomInt_Sim(0x100);
+        scene->_22 = RandomInt_Sim(0x1A);
         scene->state = 1;
     case 1:
         mm_EncodeResultCode(code, raw, scene->_20, scene->_22);

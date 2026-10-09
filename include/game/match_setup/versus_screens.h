@@ -10,7 +10,7 @@ BOOL fn_3_2273C(void);
 BOOL fn_3_2281C(int index);
 void resetSomethingRelatedToVersus(void);
 void fn_3_22944(void);
-void fn_3_22948(void);
+void resetVsSituations(void);
 BOOL fn_3_22A20(void);
 int fn_3_22ABC(void);
 void versusScreen_seemsToDoNothing(void);

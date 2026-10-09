@@ -494,7 +494,7 @@ void bB_AtBat(void) {
 }
 
 // .text:0x00130ACC size:0x1A0 mapped:0x8076FB60
-void bobombDerbyRelated(void) {
+void barrelBatterUpdateTurnOver(void) {
     if (g_Minigame.turnOverStatus == 0) {
         if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_NO_CONTACT) {
             if (g_Minigame.bB_pitchesRemainingInTurn == 0) {
@@ -623,8 +623,8 @@ void fn_3_12FE84(void) {
         g_Minigame.barrels[i].currentPos.y = barrelBaseCoordinates[i].y;
         g_Minigame.barrels[i].currentPos.z = barrelBaseCoordinates[i].z;
         g_Minigame.barrels[i].currentPos.y += bB_barrelConsts[0];
-        g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (random_fn_3_9EE24(0x65) * 5) / 100.0;
-        g_Minigame.barrels[i].barrelColour = random_fn_3_9EE24(3);
+        g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (RandomInt_Sim(0x65) * 5) / 100.0;
+        g_Minigame.barrels[i].barrelColour = RandomInt_Sim(3);
     }
 }
 
@@ -983,7 +983,7 @@ void bB_chooseBombBarrel_dropNewBarrels(void) {
                 barrelsUntilBomb++;
             }
         }
-        barrelsUntilBomb = random_fn_3_9EE24(barrelsUntilBomb);
+        barrelsUntilBomb = RandomInt_Sim(barrelsUntilBomb);
         g_Minigame.barrelBatterChargeMeter = 0;
         bombBarrelChosen = TRUE;
     }
@@ -996,8 +996,8 @@ void bB_chooseBombBarrel_dropNewBarrels(void) {
             g_Minigame.barrels[i].currentPos.y = barrelBaseCoordinates[i].y;
             g_Minigame.barrels[i].currentPos.z = barrelBaseCoordinates[i].z;
             g_Minigame.barrels[i].currentPos.y += bB_barrelConsts[0];
-            g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (random_fn_3_9EE24(0x65) * 5) / 100.0;
-            g_Minigame.barrels[i].barrelColour = random_fn_3_9EE24(3);
+            g_Minigame.barrels[i].currentPos.y += (i % 3) * 10 - (RandomInt_Sim(0x65) * 5) / 100.0;
+            g_Minigame.barrels[i].barrelColour = RandomInt_Sim(3);
             if (bombBarrelChosen) {
                 if (barrelsUntilBomb == 0) {
                     barrelsUntilBomb = -1;

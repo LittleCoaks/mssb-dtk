@@ -204,7 +204,7 @@ static inline void sdResetItem(SDThwomp* item, u32 level) {
     item->frames = 0;
     lo = sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][level][0];
     hi = sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][level][1];
-    r = random_fn_3_9EE24((hi - lo) * 60);
+    r = RandomInt_Sim((hi - lo) * 60);
     item->timer = lo * 60 + r;
 }
 
@@ -228,7 +228,7 @@ static inline void sdInitItems(void) {
     }
     for (k = 0; k < sD_thwompCount; k++) {
         SD.thwomp[k].timer = sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][0] * 60 +
-                           random_fn_3_9EE24((sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][1] -
+                           RandomInt_Sim((sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][1] -
                                               sD_thwompTimingRanges[g_Minigame.soloMinigameDifficulty][0][0]) * 60);
         SD.thwomp[k].sectorStart = 360 / sD_thwompCount * k;
         SD.thwomp[k].sectorEnd = SD.thwomp[k].sectorStart + 360 / sD_thwompSectorDivisors[sD_thwompDifficulty];
@@ -601,7 +601,7 @@ void sD_NewStarArc(void) {
     rel.y = sD_starSpawnPos.y - SD.starPos.y;
     rel.z = sD_starSpawnPos.z - SD.starPos.z;
     unused = dolsqrtf2(rel.x * rel.x + rel.z * rel.z);
-    getComponentsFromSAng(random_fn_3_9EE24(0x1000), &rel.x, &rel.z);
+    getComponentsFromSAng(RandomInt_Sim(0x1000), &rel.x, &rel.z);
     SD.starPath[2].x = rel.x * speed + SD.starPath[0].x;
     SD.starPath[2].z = rel.z * speed + SD.starPath[0].z;
     SD.starPath[2].y = lbl_3_data_21A14[4];
@@ -735,7 +735,7 @@ void sD_SpawnCoins(void) {
         count = 10;
         burstMode = TRUE;
     }
-    angle = random_fn_3_9EE24(0x1000);
+    angle = RandomInt_Sim(0x1000);
     base = RandomF32_Game_Range(lbl_3_data_219B8[2], lbl_3_data_219B8[3]);
     for (i = 0; i < 100; i++) {
         if (burstMode) {
@@ -751,7 +751,7 @@ void sD_SpawnCoins(void) {
                 burst->pos.x = sD_starSpawnPos.x;
                 burst->pos.y = sD_starSpawnPos.y;
                 burst->pos.z = sD_starSpawnPos.z;
-                getComponentsFromSAng(angle + (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
+                getComponentsFromSAng(angle + (RandomInt_Sim(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
                                       &burst->vel.x, &burst->vel.z);
                 {
                     f32 speed = base + RandomF32_Game_Range(-lbl_3_data_219B8[4], lbl_3_data_219B8[4]);
@@ -765,7 +765,7 @@ void sD_SpawnCoins(void) {
             g_Minigame.coinPos[i].x = sD_starSpawnPos.x;
             g_Minigame.coinPos[i].y = sD_starSpawnPos.y;
             g_Minigame.coinPos[i].z = sD_starSpawnPos.z;
-            getComponentsFromSAng(angle + (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
+            getComponentsFromSAng(angle + (RandomInt_Sim(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
                                   &g_Minigame.coinVelocity[i].x, &g_Minigame.coinVelocity[i].z);
             {
                 f32 speed = base + RandomF32_Game_Range(-lbl_3_data_219B8[4], lbl_3_data_219B8[4]);
@@ -939,8 +939,8 @@ void sD_UpdateCoinBag(void) {
             g_Minigame.coinPos[coin].x = burst->pos.x;
             g_Minigame.coinPos[coin].y = burst->pos.y;
             g_Minigame.coinPos[coin].z = burst->pos.z;
-            angle = random_fn_3_9EE24(0x1000);
-            getComponentsFromSAng(angle + (random_fn_3_9EE24(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
+            angle = RandomInt_Sim(0x1000);
+            getComponentsFromSAng(angle + (RandomInt_Sim(lbl_3_data_21A04[4] * 2) - lbl_3_data_21A04[4]),
                                   &g_Minigame.coinVelocity[coin].x, &g_Minigame.coinVelocity[coin].z);
             speed = RandomF32_Game_Range(-lbl_3_data_219B8[9], lbl_3_data_219B8[10]);
             g_Minigame.coinVelocity[coin].x *= speed;
@@ -979,7 +979,7 @@ void sD_UpdateCoinBag(void) {
                 g_Minigame.coinPos[coin].x = burst->pos.x;
                 g_Minigame.coinPos[coin].y = burst->pos.y;
                 g_Minigame.coinPos[coin].z = burst->pos.z;
-                angle = random_fn_3_9EE24(0x1000);
+                angle = RandomInt_Sim(0x1000);
                 {
                     f32 base = RandomF32_Game_Range(lbl_3_data_219B8[2], lbl_3_data_219B8[3]);
                     g_Minigame.coinState[coin] = 3;
@@ -1789,7 +1789,7 @@ void sD_DropCoins(int player) {
                 g_Minigame.coinPos[i].z = fielder->pos.z;
                 g_Minigame.coinPos[i].y = fielder->hitbox_barrelCollisions;
                 g_Minigame.coinVelocity[i].y = lbl_3_data_219B8[18];
-                getComponentsFromSAng(random_fn_3_9EE24(0x1000), &g_Minigame.coinVelocity[i].x,
+                getComponentsFromSAng(RandomInt_Sim(0x1000), &g_Minigame.coinVelocity[i].x,
                                       &g_Minigame.coinVelocity[i].z);
                 {
                     f32 speed = RandomF32_Game_Range(lbl_3_data_219B8[16], lbl_3_data_219B8[17]);
@@ -2419,8 +2419,8 @@ void sD_UpdateAI(void) {
 
     list = _OSAllocFromHeap(4, 1000);
     sD_ClearAIInputFlags();
-    st->rotSin = sin(-fn_3_9FDD8(SD.fireBarAngle[0]));
-    st->rotCos = cos(-fn_3_9FDD8(SD.fireBarAngle[0]));
+    st->rotSin = sin(-shortAngleF32ToRad(SD.fireBarAngle[0]));
+    st->rotCos = cos(-shortAngleF32ToRad(SD.fireBarAngle[0]));
     if (SD.starActive != 0) {
         sD_ToFireBarSpace(SD.starPos.x, SD.starPos.z, &rx, &rz);
         quadStar = sD_GetQuadrant(rx, rz);

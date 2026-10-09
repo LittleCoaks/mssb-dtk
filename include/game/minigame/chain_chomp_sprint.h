@@ -36,11 +36,11 @@ void fn_3_1406F4(void);
 void fn_3_1409AC(void);
 void fn_3_140BCC(void);
 void chainChompSpringMainFun(void);
-void mVPRelated(void);
+void chainChompSprintEndGame(void);
 void fn_3_1412BC(void);
 void fn_3_1413E4(void);
 void chainChompSprintRelated(void);
-void fn_3_141A2C(void);
+void ccs_EmptyHook(void);
 void chainChompSprintSwitcher(void);
 
 #endif // !__GAME_MINIGAME_CHAIN_CHOMP_SPRINT_H_

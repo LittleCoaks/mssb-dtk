@@ -170,7 +170,7 @@ void piranhaPanicSwitcher(void) {
 }
 
 // .text:0x001471C0 size:0x4 mapped:0x80786254
-void fn_3_1471C0(void) {
+void pP_EmptyHook(void) {
 }
 
 // .text:0x00146A90 size:0x730 mapped:0x80785B24
@@ -1077,7 +1077,7 @@ void pP_UpdateHiddenPiranha(int idx) {
                         freeCount++;
                     }
                 }
-                PP.spawner[idx].kind = free[random_fn_3_9EE24(freeCount)];
+                PP.spawner[idx].kind = free[RandomInt_Sim(freeCount)];
                 PP.holeUsed[PP.spawner[idx].kind] = TRUE;
                 PP.spawner[idx].hitsLeft = pP_hitsRequiredByKind[PP.spawner[idx].kind];
                 PP.spawner[idx]._1C = lbl_3_data_21E68[5];
@@ -1193,7 +1193,7 @@ BOOL pP_PiranhaAimAtPlayer(PPSpawner* sp) {
             list = preferred;
             count = &preferredCount;
         }
-        sp->_35 = list[random_fn_3_9EE24(*count)];
+        sp->_35 = list[RandomInt_Sim(*count)];
         sp->_34 = PP.fielderIndex[sp->_35];
         PP.targeted[sp->_35] = TRUE;
     } else {

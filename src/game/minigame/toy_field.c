@@ -679,7 +679,7 @@ void toyFieldTransitionToMinigameStart(void) {
     remaining = g_Minigame.miniGameNumberOfParticipants;
     pickedCount = 0;
     for (i = 0; i < g_Minigame.miniGameNumberOfParticipants; i++) {
-        int skip = random_fn_3_9EE24(remaining);
+        int skip = RandomInt_Sim(remaining);
         for (j = 0; j < g_Minigame.miniGameNumberOfParticipants; j++) {
             if (g_Minigame.playerSlots._18[j] >= 0) {
                 if (skip == 0) {
@@ -748,7 +748,7 @@ void toyFieldTransitionPrepareNextPlay(void) {
         }
         SATURATING_INCREMENT(g_Minigame.toyField_turnNumber);
         if (g_Minigame.toyField_turnNumber < g_Minigame.toyField_selectedTurns && g_Minigame.toyField_turnNumber % 10 == 1) {
-            g_Minigame.toyField_next_CoinsX2_TurnNumber = 4 + random_fn_3_9EE24(6) + g_Minigame.toyField_turnNumber;
+            g_Minigame.toyField_next_CoinsX2_TurnNumber = 4 + RandomInt_Sim(6) + g_Minigame.toyField_turnNumber;
         }
         if (g_Minigame.toyField_next_CoinsX2_TurnNumber == g_Minigame.toyField_turnNumber) {
             g_Minigame.toyField_pointMultiplier = 2;
@@ -767,7 +767,7 @@ void toyFieldAssignTurnRoles(void) {
     if (g_Minigame.toyField_turnNumber == 0) {
         int skip;
         g_Minigame._19C7 = TRUE;
-        skip = random_fn_3_9EE24(3);
+        skip = RandomInt_Sim(3);
         for (i = 0; i < 4; i++) {
             if (g_Minigame.rosterID != i) {
                 if (skip == 0) {
@@ -797,7 +797,7 @@ void toyFieldAssignTurnRoles(void) {
             } else if (TOY_FIELD_ROLE_STREAK(g_Minigame.playerSlots.participantSlot[1]) > TOY_FIELD_ROLE_STREAK(g_Minigame.playerSlots.participantSlot[2])) {
                 g_Minigame.minigamePlayerSelectedOrder = g_Minigame.playerSlots.participantSlot[1];
             } else {
-                int pick = random_fn_3_9EE24(2) + 1;
+                int pick = RandomInt_Sim(2) + 1;
                 g_Minigame.minigamePlayerSelectedOrder = g_Minigame.playerSlots.participantSlot[pick];
             }
             g_Minigame._19C7 = TRUE;
@@ -1191,16 +1191,16 @@ void toyFieldInningTransition(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (g_Minigame.toyField_turnNumber == 0) {
-            if (random_fn_3_9EE24(100) < minigameTuningConstants[7] || g_Minigame.humanPlayerCount == 4) {
+            if (RandomInt_Sim(100) < minigameTuningConstants[7] || g_Minigame.humanPlayerCount == 4) {
                 int attempts = 0;
                 do {
-                    g_Minigame.rosterID = random_fn_3_9EE24(4);
+                    g_Minigame.rosterID = RandomInt_Sim(4);
                     attempts++;
                 } while (attempts < 100 && g_Minigame.minigameControlStruct[0].battingHandedness[(s8)g_Minigame.rosterID] != 0);
             } else {
                 int attempts = 0;
                 do {
-                    g_Minigame.rosterID = random_fn_3_9EE24(4);
+                    g_Minigame.rosterID = RandomInt_Sim(4);
                     attempts++;
                 } while (attempts < 100 && g_Minigame.minigameControlStruct[0].battingHandedness[(s8)g_Minigame.rosterID] == 0);
             }
@@ -2021,19 +2021,19 @@ void toyFieldRelated(void) {
     }
 
     for (i = 0; i < 3; i++) {
-        g_Minigame.toyField_reelPos[i] = random_fn_3_9EE24(7);
+        g_Minigame.toyField_reelPos[i] = RandomInt_Sim(7);
         g_Minigame.toyField_reelState[i] = 0;
         if (g_Minigame.toyField_slotEvent == 8) {
             if (special) {
                 if (i == 0) {
-                    g_Minigame.toyField_reelTarget[0] = lbl_3_data_189C4[i][random_fn_3_9EE24(7)];
+                    g_Minigame.toyField_reelTarget[0] = lbl_3_data_189C4[i][RandomInt_Sim(7)];
                 } else if (i == 1) {
                     g_Minigame.toyField_reelTarget[1] = g_Minigame.toyField_reelTarget[0];
                 } else {
                     TOY_FIELD_NEXT_PANEL_CODE(g_Minigame.toyField_reelTarget[2], g_Minigame.toyField_reelTarget[0]);
                 }
             } else {
-                g_Minigame.toyField_reelTarget[i] = lbl_3_data_189C4[i][random_fn_3_9EE24(7)];
+                g_Minigame.toyField_reelTarget[i] = lbl_3_data_189C4[i][RandomInt_Sim(7)];
                 if (i == 2 && g_Minigame.toyField_reelTarget[0] == g_Minigame.toyField_reelTarget[1] && g_Minigame.toyField_reelTarget[0] == g_Minigame.toyField_reelTarget[2]) {
                     TOY_FIELD_NEXT_PANEL_CODE(g_Minigame.toyField_reelTarget[2], g_Minigame.toyField_reelTarget[2]);
                 }
@@ -2082,7 +2082,7 @@ void toyFieldPickEventTargets(void) {
     case 3:
         g_Minigame.toyField_eventActor = g_Minigame.rosterID;
         do {
-            g_Minigame.toyField_eventVictim = random_fn_3_9EE24(g_Minigame.miniGameNumberOfParticipants);
+            g_Minigame.toyField_eventVictim = RandomInt_Sim(g_Minigame.miniGameNumberOfParticipants);
         } while (g_Minigame.toyField_eventVictim == g_Minigame.toyField_eventActor);
         break;
     case 4:
@@ -2090,10 +2090,10 @@ void toyFieldPickEventTargets(void) {
         g_Minigame.toyField_eventActor = g_Minigame.rosterID;
         if (count == 1 && order[0][0] == g_Minigame.rosterID) {
             u32 tied = toyFieldCountRank(order, 1);
-            g_Minigame.toyField_eventVictim = order[1 + random_fn_3_9EE24(tied)][0];
+            g_Minigame.toyField_eventVictim = order[1 + RandomInt_Sim(tied)][0];
         } else {
             do {
-                g_Minigame.toyField_eventVictim = order[random_fn_3_9EE24(count)][0];
+                g_Minigame.toyField_eventVictim = order[RandomInt_Sim(count)][0];
             } while (g_Minigame.toyField_eventVictim == g_Minigame.toyField_eventActor);
         }
         break;
