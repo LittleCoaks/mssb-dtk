@@ -12,7 +12,5 @@ void fn_3_E1370(int mode);
 void updateMinigameFielderAnimations(void);
 void toyFieldInitCoinModels(void);
 void graphicsFunction_minigames(void);
-void parkPlantsTevSetup(void);
-void drawParkPlants(void);
 
 #endif // !__GAME_MINIGAME_MINIGAME_FIELDER_ANIM_H_

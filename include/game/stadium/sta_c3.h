@@ -36,5 +36,7 @@ TriangleGroup* fn_3_E4BE8(int offset, Mtx m);
 void processYoshiParkPlantBoundingBoxes(s32* idx, s32* count);
 void fn_3_E4EF4(void);
 void loadYoshiPark(void** files);
+void parkPlantsTevSetup(void);
+void drawParkPlants(void);
 
 #endif // !__GAME_STADIUM_STA_C3_H_

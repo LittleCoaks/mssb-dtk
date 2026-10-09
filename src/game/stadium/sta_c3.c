@@ -2,6 +2,10 @@
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
+#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x8003a538.h"
+
+extern void fn_800BDF70(StadiumModel *model);
 #include "Dolphin/mtx.h"
 #include "Dolphin/vec.h"
 #include "C3/control.h"
@@ -156,6 +160,37 @@ static s32 ambientTimerB;
 static s32 ambientEmitter;
 static u8 lbl_3_bss_AE01;
 static u8 lbl_3_bss_AE00;
+
+// .text:0x000E1C60 size:0xA0
+void parkPlantsTevSetup(void) {
+    GXSetNumTevStages(1);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_A2, GX_CC_RASC);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+}
+
+// .text:0x000E1D00 size:0xB8
+void drawParkPlants(void) {
+    StadiumObject *obj;
+    int i;
+
+    fn_800BF058(fn_3_B8184);
+    updateFunctionPtr(parkPlantsTevSetup);
+    for (i = 0; i < stadiumObjectCollision.objectCount; i++) {
+        if (parkPlantData[i].usedFlag == 2) {
+            break;
+        }
+        obj = &stadiumObjectCollision.objects[i];
+        fn_3_B828C((s32)obj);
+        if (obj->model != NULL) {
+            obj->model->root->drawFlags = obj->nodeDrawFlags | 6;
+            fn_800BDF70(obj->model);
+        }
+    }
+    updateFunctionPtr(NULL);
+}
 
 // .text:0x000E1DB8 size:0x1F0 mapped:0x80720E4C
 void fn_3_E1DB8(void) {

@@ -6,6 +6,5 @@
 void betweenABSetPitcherBatter(void);
 void someRosterMemoryManagement(void);
 void initializeAIConstants(void);
-void batterAIRollBuntIntent(void);
 
 #endif // !__GAME_MATCH_SETUP_AT_BAT_SETUP_H_

@@ -10,6 +10,7 @@
 #include "game/hud/stadium_draw.h"
 #include "game/match_setup/match_loading.h"
 #include "game/minigame/minigame_framework.h"
+#include "game/math/rep_3090.h"
 #include "game/stadium/stadium_framework.h"
 #include "static/UnknownHomes_Static.h"
 

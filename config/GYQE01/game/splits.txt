@@ -59,10 +59,10 @@ game/match_setup/ai_defaults.c:
 	.rodata     start:0x00000868 end:0x000008C8
 
 game/match_setup/at_bat_setup.c:
-	.text       start:0x0001E154 end:0x0001E4B8
+	.text       start:0x0001E154 end:0x0001E3EC
 
 game/batting/batter_ai.c:
-	.text       start:0x0001E4B8 end:0x00020B30
+	.text       start:0x0001E3EC end:0x00020B30
 	.rodata     start:0x000008C8 end:0x00000940
 
 game/pitching/pitcher_ai.c:
@@ -347,12 +347,12 @@ game/minigame/toy_field.c:
 	.data       start:0x000188E8 end:0x00018D98
 
 game/minigame/minigame_fielder_anim.c:
-	.text       start:0x000E0668 end:0x000E1DB8
+	.text       start:0x000E0668 end:0x000E1C60
 	.rodata     start:0x00002940 end:0x00002998
 	.data       start:0x00018D98 end:0x00018ED0
 
 game/stadium/sta_c3.c:
-	.text       start:0x000E1DB8 end:0x000E587C
+	.text       start:0x000E1C60 end:0x000E587C
 	.rodata     start:0x00002998 end:0x00002B40
 	.data       start:0x00018ED0 end:0x00019018
 	.bss        start:0x0000AE00 end:0x0000AE50
@@ -381,13 +381,13 @@ game/stadium/sta_c4.c:
 	.bss        start:0x0000B570 end:0x0000B678
 
 game/math/rep_3090.c:
-	.text       start:0x000FBD58 end:0x00106DFC
+	.text       start:0x000FBD58 end:0x00106EB0
 	.rodata     start:0x00003090 end:0x000031A0
 	.data       start:0x0001C0A8 end:0x00021268
 	.bss        start:0x0000B678 end:0x0000B698
 
 game/minigame/minigame_framework.c:
-	.text       start:0x00106DFC end:0x001104A8
+	.text       start:0x00106EB0 end:0x001104A8
 	.rodata     start:0x000031A0 end:0x000031F0
 	.data       start:0x00021268 end:0x000224E8
 

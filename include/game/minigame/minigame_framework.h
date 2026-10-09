@@ -82,7 +82,5 @@ void minigames_0x27(void);
 void minigameGrandPrixCheckWin(void);
 void minigameAwardCoins(void);
 void fn_3_106EB0(void);
-BOOL loadSomeDataFile(void);
-void someAllocFunction(void);
 
 #endif // !__GAME_MINIGAME_MINIGAME_FRAMEWORK_H_

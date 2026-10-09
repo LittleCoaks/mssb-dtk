@@ -73,5 +73,6 @@ void batterAIRNGValueSetting(void);
 void resetBatterPreAB(void);
 void resetLastPitchData(void);
 void resetBatterAIBoxPosition(void);
+void batterAIRollBuntIntent(void);
 
 #endif // !__GAME_BATTING_BATTER_AI_H_

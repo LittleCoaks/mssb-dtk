@@ -1,5 +1,8 @@
 #define SQRT2_LINKAGE static
 #include "game/math/rep_3090.h"
+#include "Unknown/File_0x800a7568.h"
+#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/File_0x800acf14.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
@@ -1458,6 +1461,21 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
     CTX->_011C = *(u16*)(hdr + 4) << 16; \
     CAM_SCRIPT_SET_VIEW(); \
     } while (0)
+
+// .text:0x00106E50 size:0x60
+BOOL loadSomeDataFile(void) {
+    if (lbl_803C6CF8.cancel.bytes[1] == 1) {
+        *(void**)((u8*)&g_Camera + 0x1B4) = ARAMTransfer(cameraDataFileDescriptor, 0, 0, 0);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+// .text:0x00106DFC size:0x54
+void someAllocFunction(void) {
+    CAMSCRIPT_G(0)._0990 = _OSAllocFromHeap(4, 0x8000);
+    CAMSCRIPT_G(1)._0990 = _OSAllocFromHeap(4, 0x8000);
+}
 
 // .text:0x00106BA0 size:0x25C mapped:0x80745C34
 void fn_3_106BA0(void) {

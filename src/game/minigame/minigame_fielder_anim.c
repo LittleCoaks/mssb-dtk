@@ -106,16 +106,7 @@ extern u8 mapping_minigame_Stadium[8];
 extern s16 lbl_3_data_18BB0[4];
 extern f32 resultsFielderMinigameOffsets[7][4];
 extern s16 minigameResultsFrames[2];
-// Plant placement table owned by sta_c3.c; only the list terminator flag is read here.
-typedef struct MinigamePlantView {
-    u8 _00[0x10];
-    u8 usedFlag;
-    u8 _11[0x1C - 0x11];
-} MinigamePlantView;
 
-extern MinigamePlantView parkPlantData[];
-
-extern void fn_800BDF70(StadiumModel *model);
 extern void applyUniformScaleToObject(f32 scale, int model);
 extern void fn_3_14A070(s32 *values, int count);
 extern void fn_3_149BA8(void);
@@ -165,37 +156,6 @@ extern void AnimBlr(void);
 extern MinigameAnimObj *fn_800111FC(MinigameAnimObj *obj, BOOL flag);
 // Engine-wide .dol function, likewise undeclared elsewhere.
 extern BOOL fn_8004ACC4(BOOL flag);
-
-// .text:0x000E1D00 size:0xB8
-void drawParkPlants(void) {
-    StadiumObject *obj;
-    int i;
-
-    fn_800BF058(fn_3_B8184);
-    updateFunctionPtr(parkPlantsTevSetup);
-    for (i = 0; i < stadiumObjectCollision.objectCount; i++) {
-        if (parkPlantData[i].usedFlag == 2) {
-            break;
-        }
-        obj = &stadiumObjectCollision.objects[i];
-        fn_3_B828C((s32)obj);
-        if (obj->model != NULL) {
-            obj->model->root->drawFlags = obj->nodeDrawFlags | 6;
-            fn_800BDF70(obj->model);
-        }
-    }
-    updateFunctionPtr(NULL);
-}
-
-// .text:0x000E1C60 size:0xA0
-void parkPlantsTevSetup(void) {
-    GXSetNumTevStages(1);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_A2, GX_CC_RASC);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-}
 
 // .text:0x000E19E8 size:0x278
 void graphicsFunction_minigames(void) {

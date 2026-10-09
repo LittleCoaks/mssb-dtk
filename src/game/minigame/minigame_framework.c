@@ -81,7 +81,6 @@ extern void fn_8004CC18(void);
 extern void set803c5f77(void);
 extern void fn_8004CC4C(int, int, int, int, int);
 extern void fn_8004D0F0(void);
-extern u8 cameraDataFileDescriptor[];
 extern s16 challenge_baseCoinsAwarded[];
 extern void starMissionsMinigamesTotalPoints(void);
 extern u8 hugeAnimStruct[0x3154];
@@ -3788,17 +3787,4 @@ void minigameAwardCoins(void) {
 
 void fn_3_106EB0(void) {
     callSfx(0x30B);
-}
-
-BOOL loadSomeDataFile(void) {
-    if (lbl_803C6CF8.cancel.bytes[1] == 1) {
-        *(void**)((u8*)&g_Camera + 0x1B4) = ARAMTransfer(cameraDataFileDescriptor, 0, 0, 0);
-        return TRUE;
-    }
-    return FALSE;
-}
-
-void someAllocFunction(void) {
-    CAMSCRIPT_G(0)._0990 = _OSAllocFromHeap(4, 0x8000);
-    CAMSCRIPT_G(1)._0990 = _OSAllocFromHeap(4, 0x8000);
 }

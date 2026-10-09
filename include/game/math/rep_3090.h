@@ -216,5 +216,7 @@ void fn_3_FC2FC(Vec *dst, Vec *a, Vec *b, f32 scale, f32 k1, f32 k2, f32 d0, Vec
 
 
 void fn_3_106BA0(void);
+BOOL loadSomeDataFile(void);
+void someAllocFunction(void);
 
 #endif // !__GAME_MATH_REP_3090_H_

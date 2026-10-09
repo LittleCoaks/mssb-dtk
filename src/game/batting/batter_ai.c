@@ -5,6 +5,18 @@
 #include "header_rep_data.h"
 
 
+// .text:0x0001E3EC size:0xCC mapped:0x8065D480
+void batterAIRollBuntIntent(void) {
+    g_AiLogic.batterAIBuntPossibility = 0;
+    g_AiLogic.batterAIBuntInd = FALSE;
+    if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_Strikes.outs <= 1 &&
+        (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111)) {
+        if (RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
+            g_AiLogic.batterAIBuntInd = TRUE;
+        }
+    }
+}
+
 // .text:0x0001E4B8 size:0x26C mapped:0x8065D54C
 void fn_3_1E4B8(void) {
     int roll;
