@@ -1576,3 +1576,13 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
     }
 #undef QUANTITY_SIMPLE
 }
+
+// .text:0x00161078 size:0x510
+void starMissionsMinigamesTotalPoints(void) {
+    return;
+}
+
+// .text:0x001608F0 size:0x788
+void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit) {
+    return;
+}

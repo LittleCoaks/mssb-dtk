@@ -447,3 +447,8 @@ void fn_3_C0854(void) {
         }
     }
 }
+
+// .text:0x000C1930 size:0x34
+void fn_3_C1930(void) {
+    return;
+}

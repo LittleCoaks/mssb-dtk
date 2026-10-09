@@ -971,3 +971,13 @@ void bOD_BatterAI(void) {
         mg->ai_wbChargePower_bbSwingFrame = g_hitShorts.framesUntilChargeIsEnabled + 1;
     }
 }
+
+// .text:0x001104D4 size:0x160
+void unusedBattingSomething(void) {
+    bOD_AI();
+}
+
+// .text:0x001104A8 size:0x2C
+void minigameClearAIControlled(void) {
+    bOD_clearAIControlled();
+}

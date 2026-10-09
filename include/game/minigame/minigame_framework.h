@@ -23,8 +23,6 @@ typedef struct {
     u8 charID;
 } MiniGrandPrixScoreInput;
 
-void unusedBattingSomething(void);
-void minigameClearAIControlled(void);
 void minigameSimulation(void);
 void minigames_init(void);
 void minigames_0x1B(void);

@@ -638,59 +638,6 @@ u32 CommonUIFiles_minigame[62][4] = {
     { 0x0, 0x28240, 0x1AD09000, 0x28240 },
 };
 
-static inline BOOL isCurrentRoster(s8 i) {
-    return i == g_Minigame.rosterID;
-}
-
-void unusedBattingSomething(void) {
-    s8 i;
-
-    i = 0;
-    do {
-        g_Minigame.isAIControlled[i] = FALSE;
-        i++;
-    } while (i < 4);
-
-    i = 0;
-    do {
-        s8 slot = g_Minigame.minigameControlStruct[0].characterIndex[i];
-
-        if (slot >= 0 && slot < 4 && isCurrentRoster(i) &&
-            g_Minigame.minigameControlStruct[0].battingHandedness[i] != 0) {
-            g_Minigame.isAIControlled[slot] = TRUE;
-            memset(&g_Minigame.aiInputs[slot], 0, sizeof(InputStruct));
-
-            switch (g_Pitcher.pitcherActionState) {
-            case PITCHER_ACTION_STATE_WINDUP:
-                if (*(u8 *)&g_Minigame.minigameAICountDownTillAction == 0) {
-                    bOD_BatterAI();
-                    *(u8 *)&g_Minigame.minigameAICountDownTillAction = 1;
-                }
-                if (g_Pitcher.windupCountdownUntilBallReleased <= g_Minigame.ai_wbChargePower_bbSwingFrame) {
-                    g_Minigame.aiInputs[slot].buttonInput |= INPUT_BUTTON_A;
-                }
-                break;
-            case PITCHER_ACTION_STATE_IN_AIR:
-                if (g_Ball.pitchHangtimeCounter < g_Pitcher.frameWhenUnhittable - *(s16 *)&g_Minigame.ai_wbThrowType_bbVertAngle) {
-                    g_Minigame.aiInputs[slot].buttonInput |= INPUT_BUTTON_A;
-                }
-                break;
-            }
-        }
-        i++;
-    } while (i < 4);
-}
-
-void minigameClearAIControlled(void) {
-    s8 i;
-
-    i = 0;
-    do {
-        g_Minigame.isAIControlled[i] = FALSE;
-        i++;
-    } while (i < 4);
-}
-
 static inline void minigamesFillRoster(void) {
     int i;
 

@@ -30,4 +30,7 @@ void bOD_UpdateFieldObjects(void);
 void bOD_AmbientFireworks(void);
 void bobOmbDerbySwitcher(void);
 
+void unusedBattingSomething(void);
+void minigameClearAIControlled(void);
+
 #endif // !__GAME_MINIGAME_BOBOMB_DERBY_H_

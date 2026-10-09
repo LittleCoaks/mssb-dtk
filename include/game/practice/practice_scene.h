@@ -25,13 +25,5 @@ void practiceMenu_typeIcons_init(void);
 void animationOrDrawingRelated(void);
 void practice_drawHud(void);
 void animatePracticeScene(void);
-void practice_startPitchAfter90Frames(void);
-void freeFieldingPracticeTransition(void);
-void practiceRelated(void);
-void unused_matchSimulationRelated(void);
-void fieldingPractice_resetMem(void);
-void freeFieldingPracticeLoadCharacters(void);
-void freeFieldingPracticeSwitcher(void);
-void freeFieldingPracticeControl(void);
 
 #endif // !__GAME_PRACTICE_PRACTICE_SCENE_H_

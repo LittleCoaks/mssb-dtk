@@ -24,4 +24,7 @@ BOOL shouldScoutMissionBeEnabled(int mission);
 BOOL decideScoutFlagMission(void);
 void fn_3_1663AC(void);
 
+void starMissionsMinigamesTotalPoints(void);
+void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
+
 #endif // !__GAME_MATCH_SETUP_STAR_MISSIONS_H_

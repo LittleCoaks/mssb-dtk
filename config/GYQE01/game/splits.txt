@@ -245,11 +245,15 @@ game/match_setup/player_control_transition.c:
 	.text       start:0x000B3A4C end:0x000B3B70
 	.rodata     start:0x00001B70 end:0x00001BC8
 
-game/data_only/rep_1BC8.c:
+game/practice/practice_menu.c:
+	.text       start:0x000B3B70 end:0x000B5E7C
 	.rodata     start:0x00001BC8 end:0x00001C18
+	.data       start:0x00010A08 end:0x00010A90
 
-game/data_only/rep_1C18.c:
+game/practice/pitching_practice.c:
+	.text       start:0x000B5E7C end:0x000B707C
 	.rodata     start:0x00001C18 end:0x00001C68
+	.data       start:0x00010A90 end:0x00010AB0
 
 game/practice/baserunning_practice.c:
 	.text       start:0x000B707C end:0x000B79AC
@@ -272,7 +276,7 @@ game/animation/scene_effects.c:
 	.bss        start:0x00009950 end:0x00009D20
 
 game/batting/charge_effects.c:
-	.text       start:0x000C0854 end:0x000C1930
+	.text       start:0x000C0854 end:0x000C1964
 	.rodata     start:0x00001F58 end:0x00001FD8
 	.data       start:0x00017248 end:0x00017508
 	.bss        start:0x00009D20 end:0x00009D80
@@ -358,12 +362,12 @@ game/math/rep_3090.c:
 	.bss        start:0x0000B678 end:0x0000B698
 
 game/minigame/minigame_framework.c:
-	.text       start:0x00106DFC end:0x00110634
+	.text       start:0x00106DFC end:0x001104A8
 	.rodata     start:0x000031A0 end:0x000031F0
 	.data       start:0x00021268 end:0x000224E8
 
 game/minigame/bobomb_derby.c:
-	.text       start:0x00110634 end:0x00113398
+	.text       start:0x001104A8 end:0x00113398
 	.rodata     start:0x000031F0 end:0x00003290
 	.data       start:0x000224E8 end:0x00022554
 	.bss        start:0x0000B698 end:0x0000B6B8
@@ -414,12 +418,13 @@ game/minigame/minigame_effects.c:
 	.bss        start:0x0000B850 end:0x0000B9B8
 
 game/practice/practice_scene.c:
-	.text       start:0x00157E28 end:0x0015B79C
+	.text       start:0x00157E28 end:0x0015AD94
 	.rodata     start:0x00003A48 end:0x00003A98
-	.data       start:0x00026F00 end:0x00026F78
 
-game/data_only/rep_3A98.c:
+game/practice/free_fielding_practice.c:
+	.text       start:0x0015AD94 end:0x0015B79C
 	.rodata     start:0x00003A98 end:0x00003AE8
+	.data       start:0x00026F00 end:0x00026F78
 
 game/batting/star_swing_peach_daisy.c:
 	.text       start:0x0015B79C end:0x0015C230
@@ -456,7 +461,7 @@ game/data_only/rep_3D50.c:
 	.bss        start:0x0000B9B8 end:0x0000B9E0
 
 game/match_setup/star_missions.c:
-	.text       start:0x00161588 end:0x00166448
+	.text       start:0x001608F0 end:0x00166448
 	.rodata     start:0x00003DA8 end:0x00003E00
 	.data       start:0x00028438 end:0x000284E8
 
