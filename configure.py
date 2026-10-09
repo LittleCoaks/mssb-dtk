@@ -926,7 +926,7 @@ config.libs = [
         "game",
         [
             Object(NonMatching, "game/match_setup/rep_0.c"),
-            Object(NonMatching, "game/match_setup/loading_state.c"),
+            Object(Matching, "game/match_setup/loading_state.c"),
             Object(NonMatching, "game/ball/collision_primitives.c"),
             Object(NonMatching, "game/baserunning/runner_base_rounding.c"),
             Object(NonMatching, "game/hud/stadium_draw.c"),
