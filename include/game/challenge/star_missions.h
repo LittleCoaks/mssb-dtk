@@ -1,5 +1,5 @@
-#ifndef __GAME_MATCH_SETUP_STAR_MISSIONS_H_
-#define __GAME_MATCH_SETUP_STAR_MISSIONS_H_
+#ifndef __GAME_CHALLENGE_STAR_MISSIONS_H_
+#define __GAME_CHALLENGE_STAR_MISSIONS_H_
 
 #include "mssbTypes.h"
 
@@ -27,4 +27,4 @@ void fn_3_1663AC(void);
 void starMissionsMinigamesTotalPoints(void);
 void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
-#endif // !__GAME_MATCH_SETUP_STAR_MISSIONS_H_
+#endif // !__GAME_CHALLENGE_STAR_MISSIONS_H_

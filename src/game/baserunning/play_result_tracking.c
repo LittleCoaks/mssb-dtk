@@ -3,8 +3,8 @@
 #include "game/UnknownHomes_Game.h"
 #include "game/fielding/fielder_ai.h"
 
-#include "game/match_setup/result_stats.h"
-#include "game/match_setup/star_missions.h"
+#include "game/stats/result_stats.h"
+#include "game/challenge/star_missions.h"
 #include "static/UnknownHomes_Static.h"
 
 extern VecXZ base_MoundCoordinates[5];

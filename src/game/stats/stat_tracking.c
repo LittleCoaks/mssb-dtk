@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/match_setup/stat_tracking.h"
+#include "game/stats/stat_tracking.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/baserunning/play_result_tracking.h"

@@ -1,5 +1,5 @@
-#ifndef __GAME_MATCH_SETUP_REPLAY_STATE_H_
-#define __GAME_MATCH_SETUP_REPLAY_STATE_H_
+#ifndef __GAME_REPLAY_REPLAY_STATE_H_
+#define __GAME_REPLAY_REPLAY_STATE_H_
 
 #include "mssbTypes.h"
 
@@ -27,4 +27,4 @@ void fn_3_7D39C(void);
 void ReplayRelatedCopying_storeDataBeforePlay(void);
 void initializeReplayVariables(void);
 
-#endif // !__GAME_MATCH_SETUP_REPLAY_STATE_H_
+#endif // !__GAME_REPLAY_REPLAY_STATE_H_

@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
-#include "game/match_setup/replay_state.h"
-#include "game/match_setup/replay_inputs.h"
-#include "game/match_setup/stat_tracking.h"
+#include "game/replay/replay_state.h"
+#include "game/replay/replay_inputs.h"
+#include "game/stats/stat_tracking.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/camera/camera.h"

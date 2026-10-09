@@ -1,5 +1,5 @@
-#ifndef __GAME_MATCH_SETUP_STAT_TRACKING_H_
-#define __GAME_MATCH_SETUP_STAT_TRACKING_H_
+#ifndef __GAME_STATS_STAT_TRACKING_H_
+#define __GAME_STATS_STAT_TRACKING_H_
 
 #include "mssbTypes.h"
 #include "static/UnknownHomes_Static.h"
@@ -25,4 +25,4 @@ StatisticsPitcher* getCurrentPitcherStats(void);
 void fn_3_7BBF8(void);
 void fn_3_7BC0C(void);
 
-#endif // !__GAME_MATCH_SETUP_STAT_TRACKING_H_
+#endif // !__GAME_STATS_STAT_TRACKING_H_

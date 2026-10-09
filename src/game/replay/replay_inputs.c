@@ -1,9 +1,9 @@
 #define SQRT2_LINKAGE static
-#include "game/match_setup/replay_inputs.h"
+#include "game/replay/replay_inputs.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_replayInputs
 #include "header_rep_data.h"
-#include "game/match_setup/replay_state.h"
-#include "game/match_setup/stat_tracking.h"
+#include "game/replay/replay_state.h"
+#include "game/stats/stat_tracking.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/camera/camera.h"

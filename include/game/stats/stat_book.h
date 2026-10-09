@@ -1,5 +1,5 @@
-#ifndef __GAME_MATCH_SETUP_STAT_BOOK_H_
-#define __GAME_MATCH_SETUP_STAT_BOOK_H_
+#ifndef __GAME_STATS_STAT_BOOK_H_
+#define __GAME_STATS_STAT_BOOK_H_
 
 #include "mssbTypes.h"
 
@@ -29,4 +29,4 @@ void gameEndScene_update(void);
 void gameEndScene_init(void);
 void animateMVP_GameEnd(void);
 
-#endif // !__GAME_MATCH_SETUP_STAT_BOOK_H_
+#endif // !__GAME_STATS_STAT_BOOK_H_

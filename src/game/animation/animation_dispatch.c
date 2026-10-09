@@ -5,7 +5,7 @@
 #include "game/ball/foul_detection.h"
 #include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
-#include "game/match_setup/stat_lookups.h"
+#include "game/stats/stat_lookups.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_animationDispatch
 #include "header_rep_data.h"
 

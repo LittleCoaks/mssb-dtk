@@ -9,7 +9,7 @@
 #include "game/match_setup/pause_menu.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/scene_skip.h"
-#include "game/match_setup/star_missions.h"
+#include "game/challenge/star_missions.h"
 #include "game/match_setup/match_scene.h"
 #include "game/batting/at_bat_results.h"
 #include "game/minigame/bobomb_derby.h"
