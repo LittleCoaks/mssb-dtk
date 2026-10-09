@@ -200,8 +200,8 @@ void wallBallEmptyHook(void) {
 
 // .text:0x00115C24 size:0x494
 void wallBallInitializeValues(void) {
-    int i;
     int j;
+    int i;
 
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         initializeSomethingDuringTransition();

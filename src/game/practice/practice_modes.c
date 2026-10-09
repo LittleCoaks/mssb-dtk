@@ -22,6 +22,7 @@ extern u8 animRelated[0x124];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 highLevelSimulationFlag[4];
 extern u8 lbl_80354768[];
+#define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
 extern s16 practiceFrameConsts[];
 extern int random_fn_3_9EE24(int max);
 extern void practice_loadCharacter(int arg0, int arg1, int arg2, int arg3);
@@ -99,9 +100,9 @@ void fieldingPracticeRelated(void) {
         animRelated[0x9A] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[2] = 0;
-        g_Practice.aIEnabled = 1;
+        g_Practice.aIEnabled = TRUE;
         g_Practice.practiceBatterHandedness = 1;
-        g_Practice.characterLoadStarted = 0;
+        g_Practice.characterLoadStarted = FALSE;
         fn_80011BE4(9);
         updatePracticeTransitionState(PRACTICE_STATE_1);
         break;
@@ -132,7 +133,7 @@ void fieldingPracticeRelated(void) {
         practiceRelatedReset();
         practiceRelatedInit();
         g_Practice.commandList = practice_instructions_fieldingPtrs[g_Practice.practiceLevel];
-        changeScene(1, 6);
+        changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
         setTutorialState(TUTORIAL_STATE_1);
         break;
@@ -175,11 +176,11 @@ void fieldingPracticeInitialization(void) {
             g_Practice.frames_sincePracticeCompleted++;
             if (g_Practice.frames_sincePracticeCompleted > 0x96) {
                 if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
-                    g_Practice.progressNeedsSave = 1;
+                    g_Practice.progressNeedsSave = TRUE;
                     g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
-                    lbl_80354768[0xCF4E + g_Practice.practiceType_2 * 4 + g_Practice.practiceLevel] = 1;
+                    PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
                 }
-                g_Practice.completionMenuActive = 1;
+                g_Practice.completionMenuActive = TRUE;
                 practiceResetPauseMenuState();
                 practiceStartGuidedMessage(g_Practice.practiceLevel + 8, 1);
                 skipRemainder = 1;
@@ -221,12 +222,12 @@ void fieldingPracticeInitialization(void) {
         g_RunningLogic._13 = 0;
         g_GameLogic.pre_PostMiniGameInd = 0;
         g_GameLogic.minigameLastTurnSuccessInd = 0;
-        g_Practice.hitVariablesSetIndicator = 0;
+        g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
-        g_Practice.fieldingSprintMaxed = 0;
+        g_Practice.fieldingSprintMaxed = FALSE;
         g_Strikes.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
-        changeScene(1, 6);
+        changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_AT_BAT);
         setDefaultPlayTrackingVariables2();
         break;
@@ -290,12 +291,12 @@ void fieldingPracticeInitialization(void) {
         g_RunningLogic._13 = 0;
         g_GameLogic.pre_PostMiniGameInd = 0;
         g_GameLogic.minigameLastTurnSuccessInd = 0;
-        g_Practice.hitVariablesSetIndicator = 0;
+        g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
-        g_Practice.fieldingSprintMaxed = 0;
+        g_Practice.fieldingSprintMaxed = FALSE;
         g_Strikes.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
-        changeScene(1, 6);
+        changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_AT_BAT);
         setDefaultPlayTrackingVariables2();
         resetAndRunAnimations(0);
@@ -322,11 +323,11 @@ BOOL fieldingPracticeUpdateCompletion(void) {
     g_Practice.frames_sincePracticeCompleted++;
     if (g_Practice.frames_sincePracticeCompleted > 0x96) {
         if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
-            g_Practice.progressNeedsSave = 1;
+            g_Practice.progressNeedsSave = TRUE;
             g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
-            lbl_80354768[0xCF4E + g_Practice.practiceType_2 * 4 + g_Practice.practiceLevel] = 1;
+            PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
         }
-        g_Practice.completionMenuActive = 1;
+        g_Practice.completionMenuActive = TRUE;
         practiceResetPauseMenuState();
         practiceStartGuidedMessage(g_Practice.practiceLevel + 8, 1);
         return TRUE;
@@ -369,12 +370,12 @@ void fieldingPracticePrepareNextPlay(void) {
         g_RunningLogic._13 = 0;
         g_GameLogic.pre_PostMiniGameInd = 0;
         g_GameLogic.minigameLastTurnSuccessInd = 0;
-        g_Practice.hitVariablesSetIndicator = 0;
+        g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
-        g_Practice.fieldingSprintMaxed = 0;
+        g_Practice.fieldingSprintMaxed = FALSE;
         g_Strikes.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
-        changeScene(1, 6);
+        changeScene(SCENE_ID_AT_BAT, 6);
     SetGameStatus(GAME_STATUS_AT_BAT);
     setDefaultPlayTrackingVariables2();
     resetAndRunAnimations(0);
@@ -402,12 +403,12 @@ void fieldingPracticeBeginPlay(void) {
         g_RunningLogic._13 = 0;
         g_GameLogic.pre_PostMiniGameInd = 0;
         g_GameLogic.minigameLastTurnSuccessInd = 0;
-        g_Practice.hitVariablesSetIndicator = 0;
+        g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
-        g_Practice.fieldingSprintMaxed = 0;
+        g_Practice.fieldingSprintMaxed = FALSE;
         g_Strikes.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
-    changeScene(1, 6);
+    changeScene(SCENE_ID_AT_BAT, 6);
     SetGameStatus(GAME_STATUS_AT_BAT);
     setDefaultPlayTrackingVariables2();
 }
@@ -440,7 +441,6 @@ void fieldingPracticeLiveBall(void) {
 }
 
 void practice_fieldingRelated(void) {
-    u8 state;
     s16 threshold;
 
     threshold = 7;
@@ -452,28 +452,27 @@ void practice_fieldingRelated(void) {
             return;
         }
     } else if (g_Practice.fieldingPlayStatus != 2) {
-        state = g_Practice.fieldingPlayStatus;
         {
             if (g_Practice.practiceLevel == 0) {
                 if (g_Ball.numThrowsDuringPlay != 0) {
                     threshold = fieldingPractice_frameThresholds[1];
-                    if (state == 0) {
+                    if (g_Practice.fieldingPlayStatus == 0) {
                         g_Practice.fieldingPlayStatus = 1;
                         g_Practice.guidedPracticeCounter++;
                     }
                 }
             } else if (g_Practice.practiceLevel == 1) {
-                if (g_Strikes.outs != 0 || state == 1) {
+                if (g_Strikes.outs != 0 || g_Practice.fieldingPlayStatus == 1) {
                     threshold = fieldingPractice_frameThresholds[2];
-                    if (state == 0) {
+                    if (g_Practice.fieldingPlayStatus == 0) {
                         g_Practice.fieldingPlayStatus = 1;
                         g_Practice.guidedPracticeCounter++;
                     }
                 }
                 if (g_Runners[0].currentBase >= 1) {
-                    if (g_Ball.AtBat_ContactResult != 0) {
+                    if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_IN_AIR) {
                         threshold = fieldingPractice_frameThresholds[2];
-                        if (state == 0) {
+                        if (g_Practice.fieldingPlayStatus == 0) {
                             g_Practice.fieldingPlayStatus = 1;
                         }
                     }
@@ -481,7 +480,7 @@ void practice_fieldingRelated(void) {
             } else if (g_Practice.practiceLevel == 2) {
                 if (g_Ball.numberOfThrowsDuringPlay != 0) {
                     threshold = fieldingPractice_frameThresholds[3];
-                    if (state == 0) {
+                    if (g_Practice.fieldingPlayStatus == 0) {
                         if (g_Practice.fieldingSprintMaxed != 0) {
                             g_Practice.guidedPracticeCounter++;
                         }
@@ -493,7 +492,7 @@ void practice_fieldingRelated(void) {
             } else if (g_Practice.practiceLevel == 3) {
                 if (g_Ball.numberOfThrowsDuringPlay != 0) {
                     threshold = fieldingPractice_frameThresholds[5];
-                    if (state == 0) {
+                    if (g_Practice.fieldingPlayStatus == 0) {
                         if (g_FieldingLogic.fielderActionBeingProcessed == 2) {
                             g_Practice.guidedPracticeCounter++;
                         }
@@ -504,7 +503,7 @@ void practice_fieldingRelated(void) {
                 }
             }
             if (g_Practice.guidedPracticeCounter >= guidedPracticeThresholds[g_Practice.practiceType_2][g_Practice.practiceLevel]) {
-                g_Practice.guidedPracticeCompletionRelated = 1;
+                g_Practice.guidedPracticeCompletionRelated = TRUE;
             }
             if (g_Practice.fieldingPlayStatus == 0) {
                 return;
@@ -521,19 +520,19 @@ void practice_fieldingRelated(void) {
         return;
     }
     if (g_FieldingLogic.playOverCounter >= threshold) {
-        g_Practice.allowPlayToEndIndicator = 0;
+        g_Practice.allowPlayToEndIndicator = FALSE;
         g_GameLogic.pre_PostMiniGameInd = 1;
         g_GameLogic.minigameLastTurnSuccessInd = 1;
         g_GameLogic.hudLoadingRelated = 1;
         trackLastPitchInfo();
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
     } else if (g_FieldingLogic.playOverCounter == threshold - 6) {
-        changeScene(3, 6);
+        changeScene(SCENE_ID_REPLAY_AT_BAT, 6);
     }
 }
 
 void fieldingPracticeEndPlay(void) {
-    g_Practice.allowPlayToEndIndicator = 0;
+    g_Practice.allowPlayToEndIndicator = FALSE;
     g_GameLogic.pre_PostMiniGameInd = 1;
     g_GameLogic.minigameLastTurnSuccessInd = 1;
     g_GameLogic.hudLoadingRelated = 1;
@@ -599,7 +598,7 @@ void fieldingPractice_setHitVariables(void) {
         g_Ball.Hit_VerticalAngle = hitVarsForFieldingPractice_level3[idx][1];
         g_Ball.Hit_HorizontalAngle = hitVarsForFieldingPractice_level3[idx][2];
     }
-    g_Practice.hitVariablesSetIndicator = 1;
+    g_Practice.hitVariablesSetIndicator = TRUE;
     if (g_Practice.maybeCommandData[0] < 0x7FFE) {
         g_Practice.maybeCommandData[0]++;
     } else {
@@ -656,7 +655,7 @@ void battingPracticeSwitcher(void) {
         animRelated[0x9A] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[2] = 0;
-        g_Practice.characterLoadStarted = 0;
+        g_Practice.characterLoadStarted = FALSE;
         fn_80011BE4(9);
         updatePracticeTransitionState(PRACTICE_STATE_1);
         break;
@@ -695,7 +694,7 @@ void battingPracticeSwitcher(void) {
             g_Practice.commandList = practice_instructions_battingPtrs[g_Practice.practiceLevel];
             setTutorialState(TUTORIAL_STATE_1);
         }
-        changeScene(1, 6);
+        changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
         break;
     }
@@ -731,11 +730,11 @@ void battingPracticeSomething(void) {
             g_Practice.frames_sincePracticeCompleted++;
             if (g_Practice.frames_sincePracticeCompleted > 0x96) {
                 if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
-                    g_Practice.progressNeedsSave = 1;
+                    g_Practice.progressNeedsSave = TRUE;
                     g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
-                    lbl_80354768[0xCF4E + g_Practice.practiceType_2 * 4 + g_Practice.practiceLevel] = 1;
+                    PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
                 }
-                g_Practice.completionMenuActive = 1;
+                g_Practice.completionMenuActive = TRUE;
                 practiceResetPauseMenuState();
                 practiceStartGuidedMessage(g_Practice.practiceLevel + 4, 1);
                 skipRemainder = 1;
@@ -827,11 +826,11 @@ BOOL battingPracticeUpdateCompletion(void) {
     g_Practice.frames_sincePracticeCompleted++;
     if (g_Practice.frames_sincePracticeCompleted > 0x96) {
         if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
-            g_Practice.progressNeedsSave = 1;
+            g_Practice.progressNeedsSave = TRUE;
             g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
-            lbl_80354768[0xCF4E + g_Practice.practiceType_2 * 4 + g_Practice.practiceLevel] = 1;
+            PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
         }
-        g_Practice.completionMenuActive = 1;
+        g_Practice.completionMenuActive = TRUE;
         practiceResetPauseMenuState();
         practiceStartGuidedMessage(g_Practice.practiceLevel + 4, 1);
         return TRUE;
@@ -884,9 +883,9 @@ void battingPracticeRelated(void) {
     }
     g_GameLogic.pre_PostMiniGameInd = 0;
     g_GameLogic.minigameLastTurnSuccessInd = 0;
-    g_Practice.guidedPracticeCompletionRelated2 = 0;
-    g_Practice.homeRunWaitSkipped = 0;
-    changeScene(1, 6);
+    g_Practice.guidedPracticeCompletionRelated2 = FALSE;
+    g_Practice.homeRunWaitSkipped = FALSE;
+    changeScene(SCENE_ID_AT_BAT, 6);
     SetGameStatus(GAME_STATUS_AT_BAT);
     setDefaultPlayTrackingVariables2();
     if (sound_crowd_EffectsStruct._2A != 0) {
@@ -929,7 +928,7 @@ void guidedPracticeRelated(void) {
     if (g_Practice.guidedPracticeCompletionRelated2 != 0) {
         return;
     }
-    if (g_Ball.deadBallReason != 0) {
+    if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
         if (g_Ball.framesOnGroundUntilPickedUp == 0 && g_Practice.homeRunWaitSkipped == 0) {
             if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames < battingPractice_resultDelayFrames[0]) {
                 return;
@@ -943,22 +942,22 @@ void guidedPracticeRelated(void) {
 
     switch (g_Practice.practiceLevel) {
     case 0:
-        if (g_Batter.hitGeneralType != 3) {
+        if (g_Batter.hitGeneralType != BAT_CONTACT_TYPE_BUNT) {
             g_Practice.guidedPracticeCounter++;
         }
         break;
     case 1:
-        if (g_Batter.hitGeneralType == 1 || (g_Batter.hitGeneralType == 2 && g_Batter.moonShotInd != 0)) {
+        if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE || (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_STAR && g_Batter.moonShotInd != 0)) {
             g_Practice.guidedPracticeCounter++;
         }
         break;
     case 2:
-        if (g_Batter.hitGeneralType == 3) {
+        if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_BUNT) {
             g_Practice.guidedPracticeCounter++;
         }
         break;
     case 3:
-        if (g_Batter.hitGeneralType == 2) {
+        if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_STAR) {
             if (g_Batter.moonShotInd == 0) {
                 g_Practice.guidedPracticeCounter++;
             }
@@ -966,9 +965,9 @@ void guidedPracticeRelated(void) {
         break;
     }
     if (g_Practice.guidedPracticeCounter >= guidedPracticeThresholds[g_Practice.practiceType_2][g_Practice.practiceLevel]) {
-        g_Practice.guidedPracticeCompletionRelated = 1;
+        g_Practice.guidedPracticeCompletionRelated = TRUE;
     }
-    g_Practice.guidedPracticeCompletionRelated2 = 1;
+    g_Practice.guidedPracticeCompletionRelated2 = TRUE;
 }
 
 void practiceRelatedPostPlay(void) {
@@ -985,7 +984,7 @@ void practiceRelatedPostPlay(void) {
             return;
         }
     } else {
-        if (g_Ball.AtBat_ContactResult == 0) {
+        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             g_FieldingLogic.playOverCounter = 0;
             return;
         }
@@ -993,10 +992,10 @@ void practiceRelatedPostPlay(void) {
             g_FieldingLogic.playOverCounter = 0;
             return;
         }
-        if (g_Ball.deadBallReason == 1) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
             if (g_Practice.homeRunWaitSkipped == 0) {
                 if ((controls->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_START)) != 0) {
-                    g_Practice.homeRunWaitSkipped = 1;
+                    g_Practice.homeRunWaitSkipped = TRUE;
                 }
                 frames = 300;
             } else {
@@ -1021,13 +1020,13 @@ void practiceRelatedPostPlay(void) {
         }
     }
     if (g_FieldingLogic.playOverCounter >= frames) {
-        g_Practice.allowPlayToEndIndicator = 0;
+        g_Practice.allowPlayToEndIndicator = FALSE;
         g_GameLogic.pre_PostMiniGameInd = 1;
         g_GameLogic.minigameLastTurnSuccessInd = 1;
         trackLastPitchInfo();
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
     } else if (g_FieldingLogic.playOverCounter >= frames - 6) {
-        changeScene(3, 6);
+        changeScene(SCENE_ID_REPLAY_AT_BAT, 6);
     } else if (g_FieldingLogic.playOverCounter == frames - 0x1E) {
         g_FieldingLogic.playOverInd = 1;
         g_FieldingLogic.framesSincePlayEnded = 1;
@@ -1037,7 +1036,7 @@ void practiceRelatedPostPlay(void) {
 }
 
 void battingPracticeEndPlay(void) {
-    g_Practice.allowPlayToEndIndicator = 0;
+    g_Practice.allowPlayToEndIndicator = FALSE;
     g_GameLogic.pre_PostMiniGameInd = 1;
     g_GameLogic.minigameLastTurnSuccessInd = 1;
     trackLastPitchInfo();

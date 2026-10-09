@@ -68,20 +68,23 @@ Done so far with this method:
 | `rep_3BD8` | `0x15C5F4-0x15F574` | `match_setup/stat_book.c` |
 | `rep_1720` | `0x97144-0x993A8` | `match_setup/match_scene.c` |
 | `rep_1668` | `0x9143C-0x91520` | `hud/toyfield_score_update.c` |
+| `rep_1A80` | `0xAC9F8-0xAFDC0` | `match_setup/pause_menu.c` |
+| `rep_1AD0` | `0xAFDC0-0xB1CB0` | `practice/practice_modes.c` |
+| `rep_1B20` | `0xB1CB0-0xB3A4C` | `practice/guided_practice.c` |
+| `rep_31A0` | `0x106DFC-0x110634` | `minigame/minigame_framework.c` |
+| `rep_1C68` | `0xB707C-0xB79AC` | `practice/baserunning_practice.c` (grouping supported by names/call graph and section order; original TU boundary inferred) |
 
 By rule 2, gap `0x20A60-0x20CEC` was folded into `batting/batter_ai.c`,
 since it shares batter_ai's pooled constants at `.rodata` 0x930-0x93C.
 
-Still open, as of 2026-09-30:
+Still open, as of 2026-10-08:
 
 | header-only unit(s) | `.text` window | contents |
 |---|---|---|
 | `rep_9B0` | `0x219CC-0x21C90` | 4 fns, runner drawing items |
 | `rep_A78` | `0x249E8-0x251E4` | 7 fns incl. `initializeAnimations` |
-| `rep_1A80`, `rep_1AD0`, `rep_1B20` | `0xAC9F8-0xB3A4C` | 65 fns: pause menu, how-to-play, practice modes; 3 TUs share this window |
-| `rep_1BC8`, `rep_1C18`, `rep_1C68` | `0xB3B70-0xB79AC` | 41 fns: practice menus and batting, pitching and baserunning practice; 3 TUs |
-| `rep_31A0` | `0x106DFC-0x110634` | 63 fns: minigame flow (select, start/end switchers, pause) |
-| `rep_3A48`, `rep_3A98` | `0x157DB8-0x15B79C` | 29 fns: practice animation and HUD; 2 TUs |
+| `rep_1BC8`, `rep_1C18` | `0xB3B70-0xB707C` | 35 fns: practice menus and pitching practice; 2 TUs |
+| `rep_3A48`, `rep_3A98` | `0x157E28-0x15B79C` | 28 fns currently assigned to `practice/practice_scene.c` via `rep_3A48`; likely 20 HUD/menu functions followed by 8 free-fielding functions belonging to `rep_3A98`. The latter reference all three jump tables at `.data 0x26F00-0x26F78`. Exact TU boundary still needs verification. |
 | `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` | `0x5985C` gap (2 fns) plus, by position, part of `fielding/fielder.c` | 4 TUs sit between fielder.c's rodata and match_loading's, so `fielder.c`'s 214 KB `.text` range probably spans several original TUs |
 
 Where several header-only units share one window, split the window at

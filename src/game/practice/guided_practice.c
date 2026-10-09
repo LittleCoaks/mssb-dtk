@@ -689,8 +689,8 @@ void practiceLogicRelatedPause(void) {
 
 #pragma dont_inline on
 void practiceMenuLogic(void) {
-    BOOL altMenu = FALSE;
     InputStruct* input = &g_Controls[g_Practice.homeAway];
+    BOOL altMenu = FALSE;
 
     if (g_Practice.practiceLevel == 3) {
         altMenu = TRUE;
@@ -1237,8 +1237,6 @@ static inline void setCpuStickFromButtons(InputStruct* input) {
 void playPracticeCPUInputs(void) {
     InputStruct* input = &g_Controls[g_Practice.homeAway];
     s16 i;
-    s16* cpuInputDuration = g_Practice.cpu_inputDuration;
-    s16* previousInput = g_Practice.cpu_heldButtons;
     s16* commandList;
 
     g_Practice.inputs[0].newButtonInput = 0;
@@ -1267,30 +1265,13 @@ void playPracticeCPUInputs(void) {
         }
     }
 
-    g_Practice.inputs[0].controlStickAngle = -1;
-    g_Practice.inputs[0].controlStickMagnitude = 0;
-    g_Practice.inputs[0].buttonInput = 0;
-    g_Practice.inputs[0].newButtonInput = 0;
-    g_Practice.inputs[0]._08 = 0;
-    g_Practice.inputs[0].right_left = 0;
-    g_Practice.inputs[0].up_down = 0;
-    g_Practice.inputs[0].rightTriggerDistance = 0;
-    g_Practice.inputs[0].leftTriggerDistance = 0;
-    g_Practice.inputs[1].controlStickAngle = -1;
-    g_Practice.inputs[1].controlStickMagnitude = 0;
-    g_Practice.inputs[1].buttonInput = 0;
-    g_Practice.inputs[1].newButtonInput = 0;
-    g_Practice.inputs[1]._08 = 0;
-    g_Practice.inputs[1].right_left = 0;
-    g_Practice.inputs[1].up_down = 0;
-    g_Practice.inputs[1].rightTriggerDistance = 0;
-    g_Practice.inputs[1].leftTriggerDistance = 0;
+    practiceResetInputs();
 
     for (i = 0; i < 2; i++) {
-        if (cpuInputDuration[i] != 0) {
-            cpuInputDuration[i]--;
-            if (cpuInputDuration[i] != 0) {
-                g_Practice.inputs[i].buttonInput = previousInput[i];
+        if (g_Practice.cpu_inputDuration[i] != 0) {
+            g_Practice.cpu_inputDuration[i]--;
+            if (g_Practice.cpu_inputDuration[i] != 0) {
+                g_Practice.inputs[i].buttonInput = g_Practice.cpu_heldButtons[i];
                 setCpuStickFromButtons(&g_Practice.inputs[i]);
             }
         }
@@ -1331,20 +1312,20 @@ void playPracticeCPUInputs(void) {
             return;
         case 0x1100:
         case 0x1300:
-            team = (key == 0x1100) ? g_GameLogic.teamBatting : g_GameLogic.teamFielding;
+            team = (key == 0x1100) ? (s16)g_GameLogic.teamBatting : (s16)g_GameLogic.teamFielding;
             g_Practice.commandIndex++;
             g_Practice.inputs[team].newButtonInput |= commandList[g_Practice.commandIndex] & 0xFFF;
             break;
         case 0x1200:
         case 0x1400:
-            team = (key == 0x1200) ? g_GameLogic.teamBatting : g_GameLogic.teamFielding;
+            team = (key == 0x1200) ? (s16)g_GameLogic.teamBatting : (s16)g_GameLogic.teamFielding;
             g_Practice.commandIndex++;
-            previousInput[team] = commandList[g_Practice.commandIndex];
-            g_Practice.inputs[team].buttonInput |= previousInput[team];
-            g_Practice.inputs[team].newButtonInput |= previousInput[team];
+            g_Practice.cpu_heldButtons[team] = commandList[g_Practice.commandIndex];
+            g_Practice.inputs[team].buttonInput |= g_Practice.cpu_heldButtons[team];
+            g_Practice.inputs[team].newButtonInput |= g_Practice.cpu_heldButtons[team];
             g_Practice.commandIndex++;
             setCpuStickFromButtons(&g_Practice.inputs[team]);
-            cpuInputDuration[team] = commandList[g_Practice.commandIndex] & 0xFFF;
+            g_Practice.cpu_inputDuration[team] = commandList[g_Practice.commandIndex] & 0xFFF;
             break;
         case 0x1500:
             g_Practice.practice_runner_countInputForMashing = 1;

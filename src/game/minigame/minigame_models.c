@@ -922,7 +922,6 @@ static inline void pmDisableWallBallEffects(void) {
     ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
 
 extern void convertTextureHeader(void* tex);
-extern void UpdateTexturePalettePointers(void* geo, void* tex);
 extern int minigame_getLeadingPlayer(void);
 extern int minigame_displayedPointsAllTied(void);
 extern int minigame_grandPrixHasPlayed(void);

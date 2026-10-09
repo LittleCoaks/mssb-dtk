@@ -214,12 +214,26 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `toy_field_hud.c` | `rep_2BF8` | 1 (1) | 1,552 | Toy Field off-screen character indicator. | high |
 | `minigame_effects.c` | *(unchanged)* | 123 (4) | 68,156 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
 
-## data_only/ — 24 files, 7 fns
+## practice/ — 4 files, 77 fns (74 named)
+
+The dedicated practice units now cover batting and fielding modes, guided
+instructions and pause handling, baserunning practice, and practice scene/HUD
+updates. The unassigned practice menu and pitching groups remain listed in
+[the split inventory](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `practice_modes.c` | `rep_1AD0` + unassigned `.text` | 28 (27) | 7,920 | Batting and fielding practice state machines, AI input, play setup and completion tracking. | high |
+| `guided_practice.c` | `rep_1B20` + unassigned `.text` | 15 (15) | 7,580 | Guided instructions, practice pause/menu controls, input reset and CPU input playback. | high |
+| `baserunning_practice.c` | `rep_1C68` + unassigned `.text` | 6 (4) | 2,352 | Baserunning practice setup, control, level completion and transition helpers. The contiguous code and header table support this grouping; the original TU boundary is inferred. | med |
+| `practice_scene.c` | `rep_3A48` + unassigned `.text` | 28 (28) | 14,708 | Practice instructions, goal HUD and scene updates, currently including an eight-function free-fielding tail that may belong to `rep_3A98`. | high |
+
+## data_only/ — 15 files, 7 fns
 
 These kept their original names, so there is nothing to look up.
 
-`rep_1A80`, `rep_1AD0`, `rep_1B20`, `rep_1BC8`, `rep_1C18`,
-`rep_1C68`, `rep_31A0`, `rep_3A48`, `rep_3A98`, `rep_9B0`, `rep_A78`,
+As of 2026-10-08, `rep_1BC8`, `rep_1C18`,
+`rep_3A98`, `rep_9B0`, `rep_A78`,
 `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
 **no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
 (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
@@ -229,14 +243,20 @@ same position: see [Game REL: pairing header-only units with un-split
 `.text` gaps](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
 `rep_3BD8`, `rep_1720` and `rep_1668` were paired this way and moved out of
 this folder (`stat_book.c`, `match_scene.c`, `toyfield_score_update.c`).
+The latest main also pairs `rep_1A80`, `rep_1AD0`, `rep_1B20`, and `rep_31A0`
+with `pause_menu.c`, `practice_modes.c`, `guided_practice.c`, and
+`minigame_framework.c`. `rep_3A48` is now `practice_scene.c`; its 28-function
+range may still include the free-fielding code belonging to `rep_3A98`.
+`rep_1C68` is now `practice/baserunning_practice.c`, covering `0xB707C-0xB79AC`.
 
 Plus `rep_3B70`, `rep_3C28`, `rep_3C80`, `rep_3CE0`, `rep_3D50`, `rep_3E00`, which
-are near-empty for the same reason and hold only one or two small functions.
+hold one or two reconstructed functions each. Their matching checkpoints
+track the remaining instruction differences; they are not code-free units.
 
-These are translation units whose every function was inlined or dropped, leaving
-only the shared table. **They need no decompilation work and should not be
-counted as unfinished.** They live in their own folder because no gameplay
-category applies, not because they belong together functionally.
+A header table alone does not prove that all of a unit's functions were inlined
+or dropped. The unassigned code and section ownership still need to be checked
+before declaring such a unit complete. The folder records current split ownership,
+not a shared gameplay purpose.
 
 ## src/menus — the menu REL
 

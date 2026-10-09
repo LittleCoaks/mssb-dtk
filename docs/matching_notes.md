@@ -3097,3 +3097,18 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
 - **Enum fixes:** `GX_TG_MTX3X4`/`GX_TG_MTX2X4` were swapped in `GXEnum.h` (SDK: 3x4 = 0, 2x4 = 1) and
   the `GXTevColorArg` C0..A2 values were wrong (SDK: C0=2, A0=3, C1=4, A1=5, C2=6, A2=7). Codegen of every
   other object was unchanged; check these enums against the SDK when a GX call's constant looks off.
+
+## Findings from practice_modes (full match, flipped to Matching)
+
+- **A two-dimensional byte view can restore index evaluation order.** Four completion
+  routines accessed the progress mirror as `base[offset + type * 4 + level]`.
+  MWCC loaded `level` first and combined it with the base before shifting `type`;
+  the target loaded and shifted `type` first. A four-column view rooted at the
+  same offset, indexed `[type][level]`, matched all four. Reordering the scalar
+  expression alone had no effect. Keep the observed row width and underlying
+  storage unchanged.
+- **A cached state can change register allocation throughout a routine.** Removing
+  the one-use `state` local in `practice_fieldingRelated` and testing the field
+  directly took it from 93.925% to 100%; widening the local or threshold did not.
+  The complete 28-function unit and all its sections remained 100% after the
+  readability pass and linked with `4 files OK`.

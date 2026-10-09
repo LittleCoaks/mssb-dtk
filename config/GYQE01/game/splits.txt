@@ -251,7 +251,8 @@ game/data_only/rep_1BC8.c:
 game/data_only/rep_1C18.c:
 	.rodata     start:0x00001C18 end:0x00001C68
 
-game/data_only/rep_1C68.c:
+game/practice/baserunning_practice.c:
+	.text       start:0x000B707C end:0x000B79AC
 	.rodata     start:0x00001C68 end:0x00001CB8
 
 game/ball/foul_detection.c:
