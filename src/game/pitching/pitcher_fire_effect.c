@@ -204,7 +204,7 @@ static FireEmitterConfig lbl_3_data_18268 = {
     },
 };
 extern u16 lbl_3_data_6660[];
-extern u32 lbl_3_bss_9FDC;
+static u32 lbl_3_bss_9FDC[0xF];
 
 extern void fn_8002F5F4(Vec* start, Vec* dir);
 extern void fn_80030D88(Vec* start, Vec* dir, FireEmitterSlot* slot, int arg);
@@ -229,7 +229,7 @@ void fn_3_CB6B4(void* arg) {
 
     *(u32*)arg += (u32)arg;
     texture = *(u32*)arg;
-    lbl_3_bss_9FDC = texture;
+    lbl_3_bss_9FDC[0] = texture;
     convertTextureHeader((void*)texture);
 }
 

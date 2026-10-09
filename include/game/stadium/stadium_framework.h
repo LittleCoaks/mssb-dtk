@@ -221,7 +221,7 @@ typedef struct _StadiumAnimData {
 
 extern StadiumObjectCollision stadiumObjectCollision;
 extern u8 lbl_3_data_11168[];
-extern void (*callStadiumPointerFun[7])(void*);
+extern void (*callStadiumPointerFun[7])(void**);
 
 void fn_3_35E4(int arg);
 void fn_8001B200(void);
