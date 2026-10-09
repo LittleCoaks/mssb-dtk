@@ -39,6 +39,7 @@ extern struct {
     FielderAnimObject* objects[13];
 } hugeAnimStruct;
 extern u8 lbl_3_data_69C0[];
+extern u8 animRelated[0x124];
 extern u8* lbl_3_common_bss_1323C;
 extern const f32 lbl_3_rodata_1030;
 extern const f32 lbl_3_rodata_1034;
@@ -195,6 +196,26 @@ animate:
             model->displayState = 3;
         }
     }
+}
+
+// .text:0x0006AEE0 size:0xBC
+void resetAnimationFlags(void) {
+    int i;
+
+    for (i = 0; i < 9; i++) {
+        FielderAnimObject* model = hugeAnimStruct.objects[i];
+        if (model != 0) {
+            model->displayState = FALSE;
+        }
+    }
+}
+
+// .text:0x0006AEC0 size:0x20
+void fn_3_6AEC0(void) {
+    animRelated[0xC8] = FALSE;
+    animRelated[0xC9] = FALSE;
+    animRelated[0xCA] = FALSE;
+    animRelated[0xD4] = FALSE;
 }
 
 const f32 lbl_3_rodata_1030 = 1.5707964f;

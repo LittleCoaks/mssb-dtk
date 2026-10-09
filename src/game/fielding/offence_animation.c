@@ -26,9 +26,12 @@ typedef struct OffenceAnimView {
     OffenceAnimObject* objects[13];
     u8 _2C84[0x2D77 - 0x2C84];
     u8 hideRunners;
+    u8 _2D78[0x2D90 - 0x2D78];
+    u8* animRelatedObj;
 } OffenceAnimView;
 
 extern OffenceAnimView hugeAnimStruct;
+extern u8 animRelated[0x124];
 extern u8 lbl_3_data_6EF0[8];
 extern u8* lbl_3_common_bss_1323C;
 static const f32 lbl_3_rodata_10E0[2] = { 0.0f, 0.0f };
@@ -141,4 +144,37 @@ void animateOffence(void) {
             runnerObj->displayState = FALSE;
         }
     }
+}
+
+// .text:0x0006C4CC size:0x4
+void fn_3_6C4CC(void) {
+}
+
+// .text:0x0006C454 size:0x78
+void resetAnimationFlags2(void) {
+    int i;
+
+    for (i = 9; i < 13; i++) {
+        OffenceAnimObject* obj = hugeAnimStruct.objects[i];
+        if (obj != NULL) {
+            obj->displayState = FALSE;
+        }
+    }
+    resetAnimationRelatedPointers();
+    AnimBlr();
+}
+
+// .text:0x0006C42C size:0x28
+void fn_3_6C42C(void) {
+    hugeAnimStruct.animRelatedObj[0xC6] = FALSE;
+    *(s16*)&animRelated[0x90] = -1;
+}
+
+// .text:0x0006C428 size:0x4
+void emptyFunction(void) {
+}
+
+// .text:0x0006C410 size:0x18
+void resetAnimRelatedPointer(void) {
+    hugeAnimStruct.animRelatedObj[0xC6] = FALSE;
 }

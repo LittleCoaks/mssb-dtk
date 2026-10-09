@@ -911,3 +911,38 @@ int randomizeAndLoadSoundEffect(int soundId, int arg) {
     pos.z = 100.0f * (f32)sin(angle) + pos.z;
     return initializeStadiumObjectEmitter(soundId, &pos, NULL, arg);
 }
+
+// .text:0x000B7F70 size:0x58
+s16 rng(int max) {
+    s16 divisor = (s16)max;
+    s32 seed;
+    u32 v;
+    u32 sign;
+    u32 t;
+
+    if (divisor < 0) {
+        divisor = (s16)-divisor;
+    }
+    seed = stadiumObjectCollision.rngConfig;
+    v = (u32)(seed * 5 + 1);
+    sign = v >> 31;
+    t = (v << 17) - sign;
+    t = (t << 15) | (t >> 17);
+    t += sign;
+    stadiumObjectCollision.rngConfig = (s16)t;
+    return (s16)((s16)t % divisor);
+}
+
+void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
+
+// .text:0x000B7F18 size:0x58
+void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b) {
+    out->x = a->y * b->z - a->z * b->y;
+    out->y = a->z * b->x - a->x * b->z;
+    out->z = a->x * b->y - a->y * b->x;
+}
+
+// .text:0x000B7EF0 size:0x28
+f32 vecDotProduct(VecXYZ* a, VecXYZ* b) {
+    return a->x * b->x + a->y * b->y + a->z * b->z;
+}
