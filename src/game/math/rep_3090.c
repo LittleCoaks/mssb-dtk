@@ -142,12 +142,15 @@ typedef struct CamGlobal {
 #define SPL(i) ((CamSpline*)&CAMG->scripts[i]._001C)
 
 #define CAM_POINT_CAPACITY 1000
+// Value of an unused overlay point (x, y and z).
+#define CAM_POINT_UNUSED (-1000.0f)
 
 #define CTX ((CamScript*)unkStructPtr._0000)
 #define CAMF(type, off) (*(type*)((u8*)g_pCamera + (off)))
 #define CAMSCRIPT(i) (*(CamScript*)((u8*)g_pCamera + 0x120 + (i) * 0x9BC))
 #define CAMSCRIPT_G(i) (*(CamScript*)((u8*)&g_Camera + 0x120 + (i) * 0x9BC))
 #define CAMDATA(off) (lbl_3_data_1C0A8 + (off))
+#define DATA_L(off) (data + (off))
 #define CAM_LABEL(i) (((s32**)CAMDATA(0x4D64))[i])
 #define CAM_SCRIPT_TABLE(i) (((s32**)CAMDATA(0x18D8))[i])
 
@@ -199,10 +202,10 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
 
 #define CAM_FILTER_V(vp) \
     if (CTX->_09B4 != 0) { \
-        VecXYZ _dead; \
-        VecXYZ _cur; \
         VecXYZ _po; \
         VecXYZ _pi; \
+        VecXYZ _dead; \
+        VecXYZ _cur; \
         VecXYZ _out; \
         memcpy(&_dead, (vp), sizeof(VecXYZ)); \
         memcpy(&_cur, (vp), sizeof(VecXYZ)); \
@@ -599,10 +602,10 @@ BOOL fn_3_10617C(int idx, int bone, Vec* out) {
 // .text:0x001060D8 size:0xA4 mapped:0x8074516C
 void fn_3_1060D8(void) {
     VecXYZ* pts = CTX->_0098;
-    int i;
+    s32 i;
     lbl_3_bss_B67A[0] = 0;
     for (i = 0; i < CAM_POINT_CAPACITY; i++) {
-        pts[i].x = pts[i].y = pts[i].z = -1000.0f;
+        pts[i].x = pts[i].y = pts[i].z = CAM_POINT_UNUSED;
     }
 }
 
@@ -677,16 +680,18 @@ void fn_3_105CDC(void) {
     int i;
     for (i = 0; i < CAM_POINT_CAPACITY; i++) {
         VecXYZ* p = &pts[i];
-        if (-1000.0 != p->x && -1000.0 != p->y && -1000.0 != p->z) {
+        if ((double)CAM_POINT_UNUSED != p->x && (double)CAM_POINT_UNUSED != p->y && (double)CAM_POINT_UNUSED != p->z) {
             int ix = (int)p->x;
             int iz = (int)p->z;
+            int sx = ix * 320 + 320;
+            int sz = iz * 224 + 224;
             if (i == 0x87) {
                 i = 0x87;
             }
             if (i == 5) {
                 i = 5;
             }
-            fn_3_105E00((ix * 320 + 320) / 100 + 150, -(iz * 224 + 224) / 100 + 400, 2, 2);
+            fn_3_105E00(sx / 50 + 150, -sz / 50 + 400, 2, 2);
         }
     }
 }
@@ -1734,6 +1739,10 @@ BOOL fn_3_100018(void) {
 BOOL fn_3_FDB30(void) {
     CamScript* ctx = CTX;
     CamDrawItem* item = (CamDrawItem*)currentDrawingItem;
+    u8* data = lbl_3_data_1C0A8;
+    GameInitVariables* gs = &g_d_GameSettings;
+    GameControlsStruct* gl = &g_GameLogic;
+    u8* anim = animRelated;
     u8 trackerA = *((u8*)starMissionCompletionTracker + 0x4415);
     u8 trackerB = *((u8*)starMissionCompletionTracker + 0x441C);
     int i;
@@ -1803,7 +1812,7 @@ BOOL fn_3_FDB30(void) {
             }
             CAMSCRIPT(g_pCamera->_28A8)._09B9 = 0;
             setScissorMode(1);
-            animRelated[0xAD] = 0;
+            anim[0xAD] = 0;
             ctx->_0018 = 1;
             return TRUE;
         case 3:
@@ -2085,8 +2094,8 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 3;
             continue;
         case 72:
-            if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
-                hugeAnimStruct.objects[*(u8*)(CAMDATA(0x238C) + ctx->_0000[1] * 0x1C + 0x14)]->_257) {
+            if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
+                hugeAnimStruct.objects[*(u8*)(DATA_L(0x238C) + ctx->_0000[1] * 0x1C + 0x14)]->_257) {
                 fn_3_24ADC(ctx->_0000[1], 0);
             } else {
                 fn_3_24ADC(ctx->_0000[2], 0);
@@ -2136,7 +2145,7 @@ BOOL fn_3_FDB30(void) {
             u8* entry;
             CamMarker* m;
             lbl_3_common_bss_1323C->_27F = 1;
-            entry = CAMDATA(0x30E4) + ctx->_0000[1] * 0x14;
+            entry = DATA_L(0x30E4) + ctx->_0000[1] * 0x14;
             m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
             m->_28 = 0;
             m->_29 = 1;
@@ -2150,12 +2159,12 @@ BOOL fn_3_FDB30(void) {
             CamMarker* m;
             CamActor* actor;
             lbl_3_common_bss_1323C->_27F = 2;
-            entry = CAMDATA(0x30E4) + ctx->_0000[1] * 0x14;
+            entry = DATA_L(0x30E4) + ctx->_0000[1] * 0x14;
             actor = hugeAnimStruct.objects[entry[0x10]];
             m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
             m->_28 = 0;
             m->_29 = 1;
-            m->_14 = ((f32*)CAMDATA(0x3148))[actor->_252];
+            m->_14 = ((f32*)DATA_L(0x3148))[actor->_252];
             memcpy(m, entry, 12);
             ctx->_0000 += 2;
             continue;
@@ -2166,7 +2175,7 @@ BOOL fn_3_FDB30(void) {
             CamActor* actor;
             f32 d;
             lbl_3_common_bss_1323C->_27F = 3;
-            entry = CAMDATA(0x30E4) + ctx->_0000[1] * 0x14;
+            entry = DATA_L(0x30E4) + ctx->_0000[1] * 0x14;
             actor = hugeAnimStruct.objects[entry[0x10]];
             if (actor != NULL) {
                 m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
@@ -2180,7 +2189,7 @@ BOOL fn_3_FDB30(void) {
                 }
                 m->_14 = m->_18 / d;
                 m->_20 = d;
-                m->_1C = ((f32*)CAMDATA(0x3220))[actor->_252];
+                m->_1C = ((f32*)DATA_L(0x3220))[actor->_252];
             }
             ctx->_0000 += 2;
             continue;
@@ -2291,10 +2300,10 @@ BOOL fn_3_FDB30(void) {
             CTX->_09B9 = ctx->_0000[1];
             if (CTX->_09B9 == 1) {
                 setScissorMode(2);
-                animRelated[0xAD] = 1;
+                anim[0xAD] = 1;
             } else {
                 setScissorMode(1);
-                animRelated[0xAD] = 0;
+                anim[0xAD] = 0;
             }
             ctx->_0000 += 2;
             continue;
@@ -2305,10 +2314,10 @@ BOOL fn_3_FDB30(void) {
             CTX->_09B9 = 1;
             if (ctx->_0000[2] >= 0) {
                 setScissorMode(2);
-                animRelated[0xAD] = 1;
+                anim[0xAD] = 1;
             } else {
                 setScissorMode(1);
-                animRelated[0xAD] = 0;
+                anim[0xAD] = 0;
             }
             if (ctx->_0000[0] == 0x41) {
                 a = ctx->_0000[1];
@@ -2370,7 +2379,7 @@ BOOL fn_3_FDB30(void) {
         case 73:
             found = 0;
             for (i = 0; i < 9; i++) {
-                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
                     hugeAnimStruct.objects[i]->_257) {
                     found = i;
                 }
@@ -2428,7 +2437,7 @@ BOOL fn_3_FDB30(void) {
         case 86:
             found = 0;
             for (i = 0; i < 9; i++) {
-                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
                     hugeAnimStruct.objects[i]->_257) {
                     found = hugeAnimStruct.objects[i]->_252;
                 }
@@ -2468,7 +2477,7 @@ BOOL fn_3_FDB30(void) {
         case 88:
             found = 0;
             for (i = 0; i < 9; i++) {
-                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
                     hugeAnimStruct.objects[i]->_257) {
                     found = i;
                 }
@@ -2479,7 +2488,7 @@ BOOL fn_3_FDB30(void) {
         case 89:
             found = 0;
             for (i = 0; i < 9; i++) {
-                if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] ==
+                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
                     hugeAnimStruct.objects[i]->_257) {
                     found = i;
                 }
@@ -2535,7 +2544,7 @@ BOOL fn_3_FDB30(void) {
         case 103:
             fn_3_100038();
             lbl_3_common_bss_1323C->_25A += 1;
-            if ((f32)lbl_3_common_bss_1323C->_25A >= 2.0f * ((f32*)CAMDATA(0x32F8))[trackerB]) {
+            if ((f32)lbl_3_common_bss_1323C->_25A >= 2.0f * ((f32*)DATA_L(0x32F8))[trackerB]) {
                 ctx->_0000 += 1;
                 continue;
             }
@@ -2709,11 +2718,11 @@ void fn_3_FD408(u32 idx, VecXYZ* outPos, f32* outExtra) {
 
 // .text:0x000FCF24 size:0x4E4 mapped:0x8073BFB8
 void fn_3_FCF24(void) {
-    CamScript* ctx = CTX;
     int i;
     int j;
     int k;
     int total = 0;
+    CamScript* ctx = CTX;
     for (i = 0; i < ctx->_0020 - 3; i++) {
         for (k = 0; k < 4; k++) {
             ctx->_001C[i + k].v[0] = CTX->_009C[(i + k) * 8 + 1];
