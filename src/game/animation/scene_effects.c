@@ -1645,8 +1645,8 @@ void fn_3_BF238(void) {
     HudAct* act;
     void* effect;
     int actorCount;
-    int actorOffset;
     int i;
+    int actorOffset;
 
     if (lbl_803C6CF8.cancel.bytes[1] == 1) {
         actorCount = 0;
@@ -1701,84 +1701,120 @@ void fn_3_BF238(void) {
                     break;
                 case 4:
                 case 5:
-                    file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
-                    FX_ENTRY(i - 4).file40 = file;
-                    adjustInternalPointers(file);
-                    ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x34);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 4);
+                        file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
+                        ent->file40 = file;
+                        adjustInternalPointers(file);
+                        ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x34);
+                        break;
+                    }
                 case 12:
                 case 13:
                 case 14:
-                    file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
-                    FX_ENTRY(i - 10).file40 = file;
-                    adjustInternalPointers(file);
-                    ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0xC4);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 10);
+                        file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
+                        ent->file40 = file;
+                        adjustInternalPointers(file);
+                        ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0xC4);
+                        break;
+                    }
                 case 22:
-                    file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
-                    FX_ENTRY(i - 0x11).file40 = file;
-                    adjustInternalPointers(file);
-                    ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x154);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x11);
+                        file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
+                        ent->file40 = file;
+                        adjustInternalPointers(file);
+                        ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x154);
+                        break;
+                    }
                 case 28:
-                    file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
-                    FX_ENTRY(i - 0x16).file40 = file;
-                    adjustInternalPointers(file);
-                    ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x1E4);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x16);
+                        file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
+                        ent->file40 = file;
+                        adjustInternalPointers(file);
+                        ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x1E4);
+                        break;
+                    }
                 case 34:
-                    file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
-                    FX_ENTRY(i - 0x1B).file40 = file;
-                    adjustInternalPointers(file);
-                    ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x274);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x1B);
+                        file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
+                        ent->file40 = file;
+                        adjustInternalPointers(file);
+                        ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x274);
+                        break;
+                    }
                 case 40:
                 case 41:
-                    file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
-                    FX_ENTRY(i - 0x20).file40 = file;
-                    adjustInternalPointers(file);
-                    ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x304);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x20);
+                        file = (void*)((u32*)lbl_3_common_bss_35154._0C)[i];
+                        ent->file40 = file;
+                        adjustInternalPointers(file);
+                        ACTActorRelated(file, lbl_3_common_bss_35154.actorList + 0x304);
+                        break;
+                    }
                 case 6:
                 case 7:
-                    FX_ENTRY(i - 6).file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
-                    effect = &FX_ENTRY(i - 6).file14;
-                    actRelated(FX_ENTRY(i - 6).file40, effect);
-                    actorRelated(effect, 0, 0);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 6);
+                        ent->file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
+                        effect = &ent->file14;
+                        actRelated(ent->file40, effect);
+                        actorRelated(effect, 0, 0);
+                        break;
+                    }
                 case 15:
                 case 16:
                 case 17:
-                    FX_ENTRY(i - 0xD).file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
-                    effect = &FX_ENTRY(i - 0xD).file14;
-                    actRelated(FX_ENTRY(i - 0xD).file40, effect);
-                    actorRelated(effect, 0, 0);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0xD);
+                        ent->file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
+                        effect = &ent->file14;
+                        actRelated(ent->file40, effect);
+                        actorRelated(effect, 0, 0);
+                        break;
+                    }
                 case 23:
-                    FX_ENTRY(i - 0x12).file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
-                    effect = &FX_ENTRY(i - 0x12).file14;
-                    actRelated(FX_ENTRY(i - 0x12).file40, effect);
-                    actorRelated(effect, 0, 0);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x12);
+                        ent->file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
+                        effect = &ent->file14;
+                        actRelated(ent->file40, effect);
+                        actorRelated(effect, 0, 0);
+                        break;
+                    }
                 case 29:
-                    FX_ENTRY(i - 0x17).file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
-                    effect = &FX_ENTRY(i - 0x17).file14;
-                    actRelated(FX_ENTRY(i - 0x17).file40, effect);
-                    actorRelated(effect, 0, 0);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x17);
+                        ent->file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
+                        effect = &ent->file14;
+                        actRelated(ent->file40, effect);
+                        actorRelated(effect, 0, 0);
+                        break;
+                    }
                 case 35:
-                    FX_ENTRY(i - 0x1C).file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
-                    effect = &FX_ENTRY(i - 0x1C).file14;
-                    actRelated(FX_ENTRY(i - 0x1C).file40, effect);
-                    actorRelated(effect, 0, 0);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x1C);
+                        ent->file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
+                        effect = &ent->file14;
+                        actRelated(ent->file40, effect);
+                        actorRelated(effect, 0, 0);
+                        break;
+                    }
                 case 42:
                 case 43:
-                    FX_ENTRY(i - 0x22).file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
-                    effect = &FX_ENTRY(i - 0x22).file14;
-                    actRelated(FX_ENTRY(i - 0x22).file40, effect);
-                    actorRelated(effect, 0, 0);
-                    break;
+                    {
+                        SceneFxEntry* ent = &FX_ENTRY(i - 0x22);
+                        ent->file14 = ((void**)lbl_3_common_bss_35154._0C)[i];
+                        effect = &ent->file14;
+                        actRelated(ent->file40, effect);
+                        actorRelated(effect, 0, 0);
+                        break;
+                    }
                 }
             }
         }
