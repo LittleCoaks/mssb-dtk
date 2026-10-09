@@ -93,12 +93,39 @@ Boundary fixes from the 2026-10-08 gap review (every function's local
 - Gap `0xC1930-0xC1964` (`fn_3_C1930`) folded into `batting/charge_effects.c`;
   it references charge_effects' `.data` 0x17260.
 
+Later on 2026-10-08:
+
+- `rep_9B0` paired with `0x219CC-0x21C90` as `hud/runner_items.c` (the name
+  is provisional; its functions may sit closer to animation or the versus
+  screens). `rep_A78` paired with `0x249E8-0x251E4` as
+  `animation/animation_init.c`.
+- New code-only units (no rodata of their own): `match_setup/match_transitions.c`
+  (`0x6B4C8-0x6BEA4`) and `match_setup/character_loading.c` (`0x90754-0x912B4`).
+- Gap `0xFBD58-0xFC448` (camera scene switching) joined `math/rep_3090.c`,
+  which also takes `.data 0x1C0A8-0x21268`. That data is only used by the
+  camera functions and rep_3090, and sits between its neighbours' data, so
+  both belong to one TU.
+- Gap `0x167CC4-0x168414` (`fieldingRelatedAnimations` and helpers) joined
+  `animation/magikoopa_star_anim.c` for the same data-contiguity reason
+  (`.data 0x28508-0x285A8`). `fn_3_1665E4` (`0x1665E4-0x1666B0`) joined
+  `data_only/rep_3E00.c` with `.data 0x284E8-0x28508`.
+- Small gaps folded into the unit before them: `0xFF4C` -> `ball_physics.c`,
+  `0x8B094` -> `m_sound.c`, `0xBA150` -> `scene_effects.c`; `0x6F4E8` into
+  `pitcher.c` as its start.
+- The last tiny gaps had no local data references, so the call graph decided,
+  and a gap next to a Matching unit went to the other side:
+  `0x5985C` -> `fielder.c`, `0x674E0` -> `animation_dispatch.c`, `0x6A160` ->
+  `ball_visuals.c`, `0x6AEC0` -> `fielder_orientation.c`, `0x6C410` ->
+  `offence_animation.c` (whose functions call these animation resets),
+  `0xB7EF0` (`vecDotProduct`, `CrossProduct`, `rng`) -> `stadium_framework.c`,
+  `0xCABB4` and `0xCB344` -> `perfect_pitch_gfx.c`, `0xCB6B4` ->
+  `pitcher_fire_effect.c`, `0x16C410` -> `kinoko.c`. Only `0xC0810` (2 tiny
+  functions between `scene_effects.c` and `charge_effects.c`) is still unowned.
+
 Still open, as of 2026-10-08:
 
 | header-only unit(s) | `.text` window | contents |
 |---|---|---|
-| `rep_9B0` | `0x219CC-0x21C90` | 4 fns, runner drawing items |
-| `rep_A78` | `0x249E8-0x251E4` | 7 fns incl. `initializeAnimations` |
 | `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` | `0x5985C` gap (2 fns) plus, by position, part of `fielding/fielder.c` | 4 TUs sit between fielder.c's rodata and match_loading's, so `fielder.c`'s 214 KB `.text` range probably spans several original TUs |
 
 Where several header-only units share one window, split the window at

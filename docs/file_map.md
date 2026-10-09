@@ -234,8 +234,7 @@ guided instructions and pause handling, and the scene/HUD code.
 
 These kept their original names, so there is nothing to look up.
 
-As of 2026-10-08, `rep_9B0`, `rep_A78`,
-`rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
+As of 2026-10-08, `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
 **no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
 (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
 axis-direction table) that a shared header emits into all 92 units. Each of
@@ -248,7 +247,8 @@ The latest main also pairs `rep_1A80`, `rep_1AD0`, `rep_1B20`, and `rep_31A0`
 with `pause_menu.c`, `practice_modes.c`, `guided_practice.c`, and
 `minigame_framework.c`. `rep_3A48` is now `practice_scene.c`, `rep_3A98`
 `free_fielding_practice.c`, `rep_1BC8` `practice_menu.c`, `rep_1C18`
-`pitching_practice.c` and `rep_1C68` `baserunning_practice.c`.
+`pitching_practice.c`, `rep_1C68` `baserunning_practice.c`, `rep_9B0`
+`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`.
 
 Plus `rep_3B70`, `rep_3C28`, `rep_3C80`, `rep_3CE0`, `rep_3D50`, `rep_3E00`, which
 hold one or two reconstructed functions each. Their matching checkpoints
