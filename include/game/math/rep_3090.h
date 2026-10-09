@@ -2,6 +2,7 @@
 #define __GAME_MATH_REP_3090_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/vec.h"
 #include "game/UnknownHomes_Game.h"
 
 // One sampled step of the camera spline (0x40 bytes). v[0..2] position, v[3..4] extra channels, v[15] cumulative distance.
@@ -207,6 +208,13 @@ void fn_3_106270(VecXYZ* v);
 int fn_3_10698C(u32* table);
 u8* fn_3_1069B0(u32* table, int idx);
 void fn_3_1069C0(void);
+void fn_3_FBD58(void);
+void fn_3_FBD70(void);
+void camera_switchScene(int scene);
+void camera_replay(void);
+void fn_3_FC2FC(Vec *dst, Vec *a, Vec *b, f32 scale, f32 k1, f32 k2, f32 d0, Vec *c);
+
+
 void fn_3_106BA0(void);
 
 #endif // !__GAME_MATH_REP_3090_H_

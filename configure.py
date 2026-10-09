@@ -1004,7 +1004,6 @@ config.libs = [
             Object(NonMatching, "game/minigame/toy_field_hud.c"),
             Object(NonMatching, "game/stadium/sta_c5.c"),
             Object(NonMatching, "game/stadium/sta_c4.c"),
-            Object(NonMatching, "game/camera/camera_scene.c"),
             Object(NonMatching, "game/math/rep_3090.c"),
             Object(NonMatching, "game/minigame/minigame_framework.c"),
             Object(NonMatching, "game/minigame/bobomb_derby.c"),

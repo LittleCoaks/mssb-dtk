@@ -7,6 +7,7 @@
 #include "Dolphin/stl.h"
 #include "Dolphin/mtxext.h"
 #include "Dolphin/gx.h"
+#include "Dolphin/mtx.h"
 #include "Unknown/File_0x800b2c44.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800b0a14.h"
@@ -2821,4 +2822,110 @@ void fn_3_FC448(void) {
         CAM_SCRIPT_START();
         fn_3_101CC4();
     }
+}
+
+#define CAM ((CamScript *)unkStructPtr._0000)
+
+extern s32 *lbl_3_data_1DAE4[7];
+extern s32 *lbl_3_data_20E0C[110];
+
+static inline void camera_setScene(s32 scene) {
+    CamScript *cam = CAM;
+
+    cam->_09AB = TRUE;
+    CAM->_09AC = TRUE;
+    CAM->_09AF = TRUE;
+    CAM->_09B0 = TRUE;
+    cam->_0018 = 0;
+    cam->_0008 = 0;
+    cam->_0014 = 0;
+    CAM->_092C = scene;
+    CAM->_0000 = lbl_3_data_20E0C[scene];
+    CAM->_09AE = TRUE;
+    CAM->_0118 = 0;
+    CAM->_0944 = 0;
+}
+
+static inline void camera_setReplayShot(int table) {
+    s32 scene = lbl_3_data_1DAE4[table][random_fn_3_9EE24(3)];
+
+    camera_setScene(scene);
+}
+
+// .text:0x000FC2FC size:0x14C
+void fn_3_FC2FC(Vec *dst, Vec *a, Vec *b, f32 scale, f32 k1, f32 k2, f32 d0, Vec *c) {
+    Vec ab;
+    Vec cb;
+    Vec scaledCb;
+    f32 dist;
+    f32 w;
+
+    PSVECSubtract(a, b, &ab);
+    dist = PSVECDistance(a, b);
+    PSVECSubtract(c, b, &cb);
+    PSVECScale(&cb, scale, &scaledCb);
+    w = k1 * (d0 - dist) + k2 * (PSVECDotProduct(&scaledCb, &ab) / dist);
+    PSVECNormalize(&ab, &ab);
+    PSVECScale(&ab, w * scale, &ab);
+    PSVECAdd(a, &ab, a);
+    *dst = *a;
+}
+
+// .text:0x000FBE24 size:0x4D8
+void camera_replay(void) {
+    switch (g_Stats.replayReason) {
+    case 2:
+    case 9:
+        camera_setReplayShot(0);
+        break;
+    case 3:
+    case 4:
+    case 10:
+        camera_setReplayShot(2);
+        break;
+    case 5:
+    case 11:
+        camera_setReplayShot(3);
+        break;
+    case 6:
+        camera_setScene(lbl_3_data_1DAE4[4][1]);
+        break;
+    case 7:
+        camera_setReplayShot(5);
+        break;
+    case 8:
+        camera_setReplayShot(6);
+        break;
+    case 13:
+        camera_setReplayShot(1);
+        break;
+    case 0:
+    case 1:
+    case 12:
+    default:
+        camera_setReplayShot(0);
+        break;
+    }
+}
+
+// .text:0x000FBDAC size:0x78
+void camera_switchScene(int scene) {
+    camera_setScene(scene);
+}
+
+// .text:0x000FBD70 size:0x3C
+void fn_3_FBD70(void) {
+    CamScript *cam = CAM;
+
+    cam->_09AF = FALSE;
+    CAM->_09B0 = FALSE;
+    CAM->_09AE = FALSE;
+    CAM->_09AB = FALSE;
+    CAM->_09B6 = FALSE;
+    cam->_0018 = 0;
+}
+
+// .text:0x000FBD58 size:0x18
+void fn_3_FBD58(void) {
+    CAM->_09AC = FALSE;
 }
