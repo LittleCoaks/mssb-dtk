@@ -1,5 +1,5 @@
-#ifndef __GAME_HUD_STADIUM_DRAW_H_
-#define __GAME_HUD_STADIUM_DRAW_H_
+#ifndef __GAME_STADIUM_STADIUM_DRAW_H_
+#define __GAME_STADIUM_STADIUM_DRAW_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/gx.h"
@@ -33,4 +33,4 @@ s16 fn_3_6424(void* base, void*** tableOut);
 void fn_3_64DC(void);
 void updateStadiumFileHeaders(void* file);
 
-#endif // !__GAME_HUD_STADIUM_DRAW_H_
+#endif // !__GAME_STADIUM_STADIUM_DRAW_H_

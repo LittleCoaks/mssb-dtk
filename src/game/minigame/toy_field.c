@@ -21,7 +21,7 @@
 #include "game/stadium/sta_c6.h"
 #include "game/match_setup/at_bat_setup.h"
 #include "game/minigame/minigame_fielder_anim.h"
-#include "game/hud/stadium_draw.h"
+#include "game/stadium/stadium_draw.h"
 #include "game/minigame/minigame_effects.h"
 #include "game/minigame/minigame_models.h"
 #include "musyx/musyx.h"

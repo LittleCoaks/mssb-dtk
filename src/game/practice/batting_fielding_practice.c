@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/practice/practice_modes.h"
+#include "game/practice/batting_fielding_practice.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/roster_init.h"
@@ -15,7 +15,7 @@
 #include "game/pitching/pitcher_stamina.h"
 #include "game/practice/guided_practice.h"
 #include "Unknown/File_0x800204cc.h"
-#define REP_HEADER_DATA_FN getRepHeaderData_practiceModes
+#define REP_HEADER_DATA_FN getRepHeaderData_battingFieldingPractice
 #include "header_rep_data.h"
 
 extern u8 animRelated[0x124];

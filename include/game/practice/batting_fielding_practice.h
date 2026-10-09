@@ -1,5 +1,5 @@
-#ifndef __GAME_PRACTICE_PRACTICE_MODES_H_
-#define __GAME_PRACTICE_PRACTICE_MODES_H_
+#ifndef __GAME_PRACTICE_BATTING_FIELDING_PRACTICE_H_
+#define __GAME_PRACTICE_BATTING_FIELDING_PRACTICE_H_
 
 #include "mssbTypes.h"
 
@@ -32,4 +32,4 @@ void guidedPracticeRelated(void);
 void practiceRelatedPostPlay(void);
 void battingPracticeEndPlay(void);
 
-#endif // !__GAME_PRACTICE_PRACTICE_MODES_H_
+#endif // !__GAME_PRACTICE_BATTING_FIELDING_PRACTICE_H_

@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/fielding/fielder.h"
 #include "game/UnknownHomes_Game.h"
-#include "game/animation/magikoopa_star_anim.h"
+#include "game/animation/star_sparks.h"
 #include "game/math/game_math.h"
 #include "game/ball/collision_primitives.h"
 #include "stl/math.h"

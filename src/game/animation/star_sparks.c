@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#include "game/animation/magikoopa_star_anim.h"
-#define REP_HEADER_DATA_FN getRepHeaderData_magikoopa_star_anim
+#include "game/animation/star_sparks.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_starSparks
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"

@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/hud/rep_4138.h"
+#include "game/stadium/stadium_scoreboard_digits.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x8005268c.h"
@@ -7,7 +7,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/stl.h"
-#define REP_HEADER_DATA_FN getRepHeaderData_rep4138
+#define REP_HEADER_DATA_FN getRepHeaderData_stadiumScoreboardDigits
 #include "header_rep_data.h"
 
 void fn_3_16DFC4(void);

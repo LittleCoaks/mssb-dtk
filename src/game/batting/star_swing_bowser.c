@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep3C28
-#include "game/data_only/rep_3C28.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_starSwingBowser
+#include "game/batting/star_swing_bowser.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/mtx.h"

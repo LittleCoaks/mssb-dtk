@@ -23,7 +23,7 @@
 #include "game/minigame/minigame_fielder_anim.h"
 #include "game/sound/m_sound.h"
 #include "game/stadium/stadium_framework.h"
-#include "game/hud/stadium_draw.h"
+#include "game/stadium/stadium_draw.h"
 #include "game/animation/animation_dispatch.h"
 #include "game/animation/scene_effects.h"
 #include "game/batting/star_hit_sprites.h"

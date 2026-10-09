@@ -1,5 +1,5 @@
-#ifndef __GAME_ANIMATION_MAGIKOOPA_STAR_ANIM_H_
-#define __GAME_ANIMATION_MAGIKOOPA_STAR_ANIM_H_
+#ifndef __GAME_ANIMATION_STAR_SPARKS_H_
+#define __GAME_ANIMATION_STAR_SPARKS_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/vec.h"
@@ -24,4 +24,4 @@ void fn_3_167F14(void);
 void fn_3_1680D4(void);
 void fieldingRelatedAnimations(void *anim, s8 kind);
 
-#endif // !__GAME_ANIMATION_MAGIKOOPA_STAR_ANIM_H_
+#endif // !__GAME_ANIMATION_STAR_SPARKS_H_

@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/hud/stadium_draw.h"
+#include "game/stadium/stadium_draw.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/ball/collision_primitives.h"

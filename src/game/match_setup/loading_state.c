@@ -7,7 +7,7 @@
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8001cbd4.h"
-#include "game/hud/stadium_draw.h"
+#include "game/stadium/stadium_draw.h"
 #include "game/match_setup/match_loading.h"
 #include "game/minigame/minigame_framework.h"
 #include "game/camera/camera_script.h"

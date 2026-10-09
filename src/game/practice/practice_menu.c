@@ -4,7 +4,7 @@
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/practice/guided_practice.h"
-#include "game/practice/practice_modes.h"
+#include "game/practice/batting_fielding_practice.h"
 #include "game/practice/practice_scene.h"
 #include "game/match_setup/roster_init.h"
 #include "game/match_setup/pause_menu.h"

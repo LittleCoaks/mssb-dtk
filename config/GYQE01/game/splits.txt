@@ -6,7 +6,7 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:32
 
-game/match_setup/rep_0.c:
+game/match_setup/game_rel_entry.c:
 	.text       start:0x00000000 end:0x000004F4
 	.rodata     start:0x00000000 end:0x00000060
 	.data       start:0x00000000 end:0x000001D0
@@ -26,7 +26,7 @@ game/math/spline.c:
 	.text       start:0x000014A4 end:0x000035D4
 	.rodata     start:0x00000140 end:0x000001C0
 
-game/hud/stadium_draw.c:
+game/stadium/stadium_draw.c:
 	.text       start:0x000035D4 end:0x00006530
 	.rodata     start:0x000001C0 end:0x00000540
 	.data       start:0x0000023C end:0x00000A18
@@ -252,7 +252,7 @@ game/match_setup/pause_menu.c:
 	.rodata     start:0x00001A80 end:0x00001AD0
 	.data       start:0x0000F50C end:0x0000FA68
 
-game/practice/practice_modes.c:
+game/practice/batting_fielding_practice.c:
 	.text       start:0x000AFDC0 end:0x000B1CB0
 	.rodata     start:0x00001AD0 end:0x00001B20
 	.data       start:0x0000FA68 end:0x0000FAA8
@@ -466,7 +466,7 @@ game/match_setup/stat_book.c:
 	.rodata     start:0x00003BD8 end:0x00003C28
 	.data       start:0x000273DC end:0x00027C98
 
-game/data_only/rep_3C28.c:
+game/batting/star_swing_bowser.c:
 	.text       start:0x0015F574 end:0x0015F648
 	.rodata     start:0x00003C28 end:0x00003C80
 	.data       start:0x00027C98 end:0x00027D58
@@ -481,7 +481,7 @@ game/data_only/rep_3CE0.c:
 	.rodata     start:0x00003CE0 end:0x00003D50
 	.data       start:0x00027EC0 end:0x000281F0
 
-game/data_only/rep_3D50.c:
+game/batting/star_swing_wario_waluigi.c:
 	.text       start:0x00160578 end:0x001608F0
 	.rodata     start:0x00003D50 end:0x00003DA8
 	.data       start:0x000281F0 end:0x00028418
@@ -497,7 +497,7 @@ game/data_only/rep_3E00.c:
 	.rodata     start:0x00003E00 end:0x00003E58
 	.data       start:0x000284E8 end:0x00028508
 
-game/animation/magikoopa_star_anim.c:
+game/animation/star_sparks.c:
 	.text       start:0x001666B0 end:0x00168414
 	.rodata     start:0x00003E58 end:0x00003F60
 	.data       start:0x00028508 end:0x000285A8
@@ -519,7 +519,7 @@ game/ball/ball_fielder_collision.c:
 	.rodata     start:0x00004090 end:0x00004138
 	.data       start:0x0002A408 end:0x0002A448
 
-game/hud/rep_4138.c:
+game/stadium/stadium_scoreboard_digits.c:
 	.text       start:0x0016D810 end:0x0016E3A4
 	.rodata     start:0x00004138 end:0x000041B8
 	.data       start:0x0002A448 end:0x0002A4A8

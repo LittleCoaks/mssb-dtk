@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep3D50
-#include "game/data_only/rep_3D50.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_starSwingWarioWaluigi
+#include "game/batting/star_swing_wario_waluigi.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"

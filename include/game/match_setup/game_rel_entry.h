@@ -1,5 +1,5 @@
-#ifndef __GAME_MATCH_SETUP_REP_0_H_
-#define __GAME_MATCH_SETUP_REP_0_H_
+#ifndef __GAME_MATCH_SETUP_GAME_REL_ENTRY_H_
+#define __GAME_MATCH_SETUP_GAME_REL_ENTRY_H_
 
 #include "mssbTypes.h"
 
@@ -13,4 +13,4 @@ void fn_80036C88(void* arg0, void* arg1);
 void fn_800B0D28(void* arg0);
 void fn_8004B270(void);
 
-#endif // !__GAME_MATCH_SETUP_REP_0_H_
+#endif // !__GAME_MATCH_SETUP_GAME_REL_ENTRY_H_
