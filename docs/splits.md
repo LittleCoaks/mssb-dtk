@@ -119,8 +119,8 @@ Later on 2026-10-08:
   `offence_animation.c` (whose functions call these animation resets),
   `0xB7EF0` (`vecDotProduct`, `CrossProduct`, `rng`) -> `stadium_framework.c`,
   `0xCABB4` and `0xCB344` -> `perfect_pitch_gfx.c`, `0xCB6B4` ->
-  `pitcher_fire_effect.c`, `0x16C410` -> `kinoko.c`. Only `0xC0810` (2 tiny
-  functions between `scene_effects.c` and `charge_effects.c`) is still unowned.
+  `pitcher_fire_effect.c`, `0x16C410` -> `kinoko.c`, `0xC0810` ->
+  `scene_effects.c`. No game REL `.text` is unowned any more.
 
 Still open, as of 2026-10-08:
 
