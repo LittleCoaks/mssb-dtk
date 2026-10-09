@@ -197,11 +197,19 @@ Units renamed or re-foldered (link order unchanged):
 Kept on purpose: `kinoko.c`, `m_sound.c` and `sta_c0/2/4/5/6.c` are original
 filenames (their `OSPanic` `__FILE__` strings are in the binary).
 
-Still open, for a later pass: `fielder.c` (214 KB) probably spans several
-original TUs; count its `repHeaderData` copies before splitting it. Splits
-proposed but not made: the pause UI half of `match_scene.c`
+TU-count check: the target REL holds exactly **92** `repHeaderData` tables,
+and every unit with `.rodata` has exactly one. So `fielder.c` (214 KB),
+`match_scene.c`, `versus_screens.c` and `star_missions.c` are each one
+original TU, and the theme-based splits proposed for them were not made: the pause UI half of `match_scene.c`
 (`0x978DC-0x993A8`), the home-run celebrations in `versus_screens.c`
 (`0x23890-0x24598`), scout flags out of `star_missions.c` (from `0x163948`).
+Thirteen code units have no table and no `.rodata` at all, and use no float
+constants, so the test cannot place them: `at_bat_results`, `at_bat_setup`,
+`character_loading`, `match_flow`, `match_loading`, `match_transitions`,
+`scene_skip`, `pitcher_stamina`, `replay_state`, `result_stats`,
+`run_scoring`, `stat_lookups`, `stat_tracking`. Each is either a TU that never
+included the shared header or the tail of its link-order predecessor; all
+were cut from unowned gaps.
 `fn_3_1695A4` is declared `(s8 charID, u8 alt)` in `star_dash.c` but defined
 `(void* model, u8 alt)` in `kinoko.c`; the first argument is really a player ID.
 
