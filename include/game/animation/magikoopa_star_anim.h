@@ -18,4 +18,10 @@ void fn_3_167178(void);
 void fn_3_1674D0(void);
 void fn_3_1678A8(void);
 
+void fn_3_167CC4(void);
+void fn_3_167D4C(void);
+void fn_3_167F14(void);
+void fn_3_1680D4(void);
+void fieldingRelatedAnimations(void *anim, s8 kind);
+
 #endif // !__GAME_ANIMATION_MAGIKOOPA_STAR_ANIM_H_

@@ -77,6 +77,153 @@ static struct {
     u8 _pad[0x1F];
 } lbl_3_bss_B9E0;
 
+typedef struct _FieldingAnimObj {
+    /*0x00*/ u8 _00[0x62];
+    /*0x62*/ s16 animId;
+    /*0x64*/ u8 _64[0x254 - 0x64];
+    /*0x254*/ s8 charIdx;
+} FieldingAnimObj;
+
+typedef struct _FieldingDrawItem {
+    /*0x00*/ u8 _00[0x14];
+    /*0x14*/ FieldingAnimObj* obj;
+    /*0x18*/ s16 frame;
+    /*0x1A*/ s8 kind;
+    /*0x1B*/ E(u8, BOOL) started;
+} FieldingDrawItem;
+
+
+static inline void fieldingSpawnSpark(FieldingDrawItem *item) {
+    StarSparkParams spark;
+    s8 node;
+    FieldingAnimObj *obj;
+    Vec offset;
+
+    node = (s8)lbl_3_data_28558[(u32)rand() % ARRAY_COUNT(lbl_3_data_28558)];
+    obj = item->obj;
+    memset(&offset, 0, sizeof(offset));
+    memcpy(&spark, &lbl_3_data_28508, sizeof(spark));
+    spark.texture = lbl_803CBD0C;
+    if (!getAnimationCollisionOffset(obj->charIdx, node, &offset)) {
+        memset(&offset, 0, sizeof(offset));
+        getAnimationCollisionOffset(obj->charIdx, 4, &offset);
+    }
+    memcpy(&spark.pos, &offset, sizeof(offset));
+    spark.color[0] = (u8)(rand() % 256);
+    spark.color[1] = (u8)(rand() % 256);
+    spark.color[2] = (u8)(rand() % 256);
+    fn_80026998(&spark);
+    item->started = TRUE;
+}
+
+// .text:0x001682AC size:0x168
+void fieldingRelatedAnimations(void *anim, s8 kind) {
+    DrawingSceneStruct *item = NULL;
+
+    if (anim == NULL) {
+        return;
+    }
+    switch (kind) {
+    case 1:
+        item = insertGraphicDrawingFunction(fn_3_1680D4, 0xFFFA);
+        break;
+    case 2:
+        item = insertGraphicDrawingFunction(fn_3_167F14, 0xFFFA);
+        break;
+    case 4:
+        item = insertGraphicDrawingFunction(fn_3_167CC4, 0xFFFA);
+        break;
+    case 3:
+        item = insertGraphicDrawingFunction(fn_3_167D4C, 0xFFFA);
+        break;
+    case 10:
+        item = insertGraphicDrawingFunction(fn_3_1678A8, 0xFFFA);
+        break;
+    case 8:
+        item = insertGraphicDrawingFunction(fn_3_1674D0, 0xFFFA);
+        break;
+    case 6:
+        item = insertGraphicDrawingFunction(fn_3_166FCC, 0xFFFA);
+        break;
+    case 12:
+        item = insertGraphicDrawingFunction(fn_3_167178, 0xFFFA);
+        break;
+    case 11:
+        item = insertGraphicDrawingFunction(fn_3_166E04, 0xFFFA);
+        break;
+    case 7:
+        item = insertGraphicDrawingFunction(fn_3_166D40, 0xFFFA);
+        break;
+    }
+    if (item != NULL) {
+        FieldingDrawItem *drawItem = (FieldingDrawItem *)item;
+
+        drawItem->obj = anim;
+        drawItem->frame = 0;
+        drawItem->kind = kind;
+        drawItem->started = FALSE;
+    }
+}
+
+// .text:0x001680D4 size:0x1D8
+void fn_3_1680D4(void) {
+    FieldingDrawItem *item = (FieldingDrawItem *)currentDrawingItem;
+
+    if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154.effectsDisabled != 0) {
+        removeCurrentDrawingItem();
+    } else if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        removeCurrentDrawingItem();
+    } else if (item->obj->animId == 0x26 || (u16)(item->obj->animId - 0x28) <= 3 ||
+               item->obj->animId == 0x2C) {
+        fieldingSpawnSpark(item);
+    } else if (item->started) {
+        removeCurrentDrawingItem();
+    }
+}
+
+// .text:0x00167F14 size:0x1C0
+void fn_3_167F14(void) {
+    FieldingDrawItem *item = (FieldingDrawItem *)currentDrawingItem;
+
+    if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154.effectsDisabled != 0) {
+        removeCurrentDrawingItem();
+    } else if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        removeCurrentDrawingItem();
+    } else if (item->obj->animId == 0x26) {
+        fieldingSpawnSpark(item);
+    } else if (item->started) {
+        removeCurrentDrawingItem();
+    }
+}
+
+// .text:0x00167D4C size:0x1C8
+void fn_3_167D4C(void) {
+    FieldingDrawItem *item = (FieldingDrawItem *)currentDrawingItem;
+
+    if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154.effectsDisabled != 0) {
+        removeCurrentDrawingItem();
+    } else if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        removeCurrentDrawingItem();
+    } else if (item->obj->animId == 0x1B || item->obj->animId == 0x1A) {
+        fieldingSpawnSpark(item);
+    } else if (item->started) {
+        removeCurrentDrawingItem();
+    }
+}
+
+// .text:0x00167CC4 size:0x88
+void fn_3_167CC4(void) {
+    if (g_d_GameSettings._55 != 0 || lbl_3_common_bss_35154.effectsDisabled != 0) {
+        removeCurrentDrawingItem();
+    } else if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        removeCurrentDrawingItem();
+    } else if (g_Ball.ballState == BALL_STATE_THROWN) {
+        applyStarRelatedTransformations();
+    } else {
+        removeCurrentDrawingItem();
+    }
+}
+
 // .text:0x001678A8 size:0x41C mapped:0x807A693C
 void fn_3_1678A8(void) {
     MagiDrawItem* item = (MagiDrawItem*)currentDrawingItem;

@@ -1275,7 +1275,7 @@ extern s32 fn_8004ABE0(void);
 extern void* _OSAllocFromHeap(s32 heap, s32 size);
 extern void fn_800ACFB0(void* p);
 extern void fn_800246D4(void* cmp, void* base, void* scratch, int size, int count);
-extern void fn_3_BA174(void);
+extern int fn_3_BA174(SceneSortEntry* a, SceneSortEntry* b);
 extern void fn_800B24D4(int a);
 extern void fn_800B27DC(camera_803c639c_s* cam, int a);
 extern void setTextRenderingMode(s32 mode);
@@ -3086,25 +3086,87 @@ void fn_3_BA538(SceneQuad* quad) {
 
 // .text:0x000BA3EC size:0x14C
 void fn_3_BA3EC(void) {
-    return;
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(0);
+    GXSetNumTevStages(1);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_RASC);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
 }
 
 // .text:0x000BA268 size:0x184
 void fn_3_BA268(void) {
-    return;
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    GXSetProjection(fn_80052768_getCamera(0)->proj, GX_PERSPECTIVE);
 }
 
 // .text:0x000BA1A0 size:0xC8
-void fn_3_BA1A0(void) {
-    return;
+SceneParticle* fn_3_BA1A0(SceneParticle* head, int count) {
+    SceneSortEntry* sorted;
+    SceneSortEntry* e;
+    SceneParticle* p;
+
+    sorted = _OSAllocFromHeap(0x20, count * 8);
+    e = sorted;
+    for (p = head; p != NULL; p = p->next) {
+        e->p = p;
+        e->depth = p->size;
+        e++;
+    }
+    fn_800246D4(fn_3_BA174, sorted, sorted, 8, count);
+    head = sorted[0].p;
+    e = sorted;
+    while (--count != 0) {
+        e->p->next = e[1].p;
+        e++;
+    }
+    e->p->next = NULL;
+    fn_800ACFB0(sorted);
+    return head;
 }
 
 // .text:0x000BA174 size:0x2C
-void fn_3_BA174(void) {
-    return;
+int fn_3_BA174(SceneSortEntry* a, SceneSortEntry* b) {
+    if (a->depth < b->depth) {
+        return 1;
+    }
+    if (a->depth > b->depth) {
+        return -1;
+    }
+    return 0;
 }
 
 // .text:0x000BA150 size:0x24
 void fn_3_BA150(void) {
-    return;
+    pitchingMachinePitching(0x19);
 }

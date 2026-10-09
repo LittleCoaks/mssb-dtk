@@ -1027,7 +1027,6 @@ config.libs = [
             Object(NonMatching, "game/match_setup/star_missions.c"),
             Object(NonMatching, "game/data_only/rep_3E00.c"),
             Object(NonMatching, "game/animation/magikoopa_star_anim.c"),
-            Object(NonMatching, "game/animation/fielding_animations.c"),
             Object(Matching, "game/animation/actor_transform.c"),
             Object(NonMatching, "game/minigame/kinoko.c"),
             Object(NonMatching, "game/ball/ball_fielder_collision.c"),

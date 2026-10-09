@@ -474,16 +474,15 @@ game/match_setup/star_missions.c:
 	.data       start:0x00028418 end:0x000284E8
 
 game/data_only/rep_3E00.c:
-	.text       start:0x00166448 end:0x001665E4
+	.text       start:0x00166448 end:0x001666B0
 	.rodata     start:0x00003E00 end:0x00003E58
+	.data       start:0x000284E8 end:0x00028508
 
 game/animation/magikoopa_star_anim.c:
-	.text       start:0x001666B0 end:0x00167CC4
+	.text       start:0x001666B0 end:0x00168414
 	.rodata     start:0x00003E58 end:0x00003F60
+	.data       start:0x00028508 end:0x000285A8
 	.bss        start:0x0000B9E0 end:0x0000BA00
-
-game/animation/fielding_animations.c:
-	.text       start:0x00167CC4 end:0x00168414
 
 game/animation/actor_transform.c:
 	.text       start:0x00168414 end:0x0016917C

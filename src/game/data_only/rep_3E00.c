@@ -81,3 +81,8 @@ void fn_3_166448(void) {
     animRelated.speed = lbl_3_rodata_3E50;
     ACTActorRelated(animRelated.animation, (u8*)hugeAnimStruct.actorTable + 0x34);
 }
+
+// .text:0x001665E4 size:0xCC
+int fn_3_1665E4(void) {
+    return 0;
+}
