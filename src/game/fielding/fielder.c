@@ -238,6 +238,38 @@ extern VecXZ fielderStartingCoords_bunt[4];
 extern VecXZ fielderStartingCoords_holdRunners[4][3];
 extern VecXZ lbl_3_data_45D4[4];
 
+// .text:0x000598D0 size:0x48
+void fielderMainFunction(void) {
+    fielderResetAndStoreValuesEachFrame();
+    if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam]) {
+        liveBallFielderControlAITeam();
+    } else {
+        liveBallFielderControlHumanTeam();
+    }
+}
+
+// .text:0x0005985C size:0x74
+void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+
+    if (fielderIndex == -1) {
+        return;
+    }
+    fielder->autoMovementFunctionIndex = newLocation;
+    if (autoMovementFunctions[newLocation].code >= 0) {
+        g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[newLocation].code;
+    }
+    fielder->unknown_writeOnly = 0;
+    fielder->fielderVeloAdjustmentCode = 0;
+    fielder->unknown_writeOnly_always0 = 0;
+    fielder->timeSinceThrowWasCaught = 0;
+    fielder->fielderTrackingBallState = 0;
+    if (newLocation != 0x18) {
+        return;
+    }
+    g_FieldingLogic.someFielderIndex = fielderIndex;
+}
+
 // .text:0x000596F8 size:0x164 mapped:0x8069878C
 void initFielders(void) {
     int i;

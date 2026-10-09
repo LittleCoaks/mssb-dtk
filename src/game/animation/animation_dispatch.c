@@ -230,6 +230,14 @@ u16 lbl_3_data_6660[0xAE] = {
     0x0000, 0x0000, 0x0000, 0x0000, 0x0101, 0x0000,
 };
 
+// .text:0x000674E0 size:0x2C
+void fn_3_674E0(void) {
+    us80893314[0] = 0;
+    us80893310.state = 0;
+    us80893314[1] = 0;
+    lbl_3_common_bss_32220._0A = 0;
+}
+
 // .text:0x0006714C size:0x394 mapped:0x806A61E0
 void resetAndRunAnimations(int arg) {
     int i;

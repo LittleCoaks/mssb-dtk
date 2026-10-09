@@ -13,6 +13,9 @@ extern AutoMovementFunction autoMovementFunctions[29];
 
 void autoMovement10_HasBall(int fielderIndex);
 
+void fielderMainFunction(void);
+void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation);
+
 void knockOut_setPosAndVelo(int fielderIndex);
 int processFielderKnockout(int fielderIndex, sAng knockOutAngle);
 void fielderOnFirePosAndVelo(int fielderIndex);

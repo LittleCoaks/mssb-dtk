@@ -33,5 +33,6 @@ void matchAnimations(void);
 void unsure_updateAnimations(void);
 void setDefaultPlayTrackingVariables3(void);
 void resetAndRunAnimations(int arg);
+void fn_3_674E0(void);
 
 #endif // !__GAME_ANIMATION_ANIMATION_DISPATCH_H_

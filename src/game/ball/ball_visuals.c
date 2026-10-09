@@ -38,13 +38,16 @@ extern f32 lbl_803CB740[];
 extern f32 ballScaleFactors[13][3];
 extern void displayChem_antiChemGraphics(int fielder, BOOL anti);
 extern void baseballCTRLSetScale(f32 x, f32 y, f32 z, int model);
+extern void setContactWordSprite(int kind, f32 x, f32 y, f32 z);
 extern void applyUniformScaleToObject(f32 scale, int model);
 
 // The part of the shared effects block (lbl_3_common_bss_35154) this unit reads.
 extern struct {
     /*0x000*/ u8 _000[4];
     /*0x004*/ TextureHeader* textures;
-    /*0x008*/ u8 _008[0x47A - 0x8];
+    /*0x008*/ u8 _008[0x3AC - 0x8];
+    /*0x3AC*/ u32 flags;
+    /*0x3B0*/ u8 _3B0[0x47A - 0x3B0];
     /*0x47A*/ u16 garlicSplitFrames[2];
 } lbl_3_common_bss_35154;
 
@@ -168,6 +171,53 @@ static inline void stopBallTrail(void) {
 }
 
 #define BALL_SPIN g_Ball.matchFramesAndBallAngle.ballSpinAngle
+
+// .text:0x0006A25C size:0x48
+void resetAnimationRelatedPointers(void) {
+    if (hugeAnimStruct.ballModels != NULL) {
+        hugeAnimStruct.ballModels[17].visible = FALSE;
+        hugeAnimStruct.ballModels[18].visible = FALSE;
+        hugeAnimStruct.ballModels[19].visible = FALSE;
+        hugeAnimStruct.ballModels[20].visible = FALSE;
+    }
+    animRelated[0xD4] = 0;
+}
+
+// .text:0x0006A258 size:0x4
+void fn_3_6A258(void) {
+}
+
+// .text:0x0006A254 size:0x4
+void fn_3_6A254(void) {
+}
+
+// .text:0x0006A250 size:0x4
+void AnimBlr(void) {
+}
+
+// .text:0x0006A160 size:0xF0
+void fn_3_6A160(void) {
+    int type;
+
+    if (g_Ball.framesSinceHit == 0 && (lbl_3_common_bss_35154.flags & 3) == 0) {
+        if (g_Batter.captainStarSwingActivated != 0 || g_Batter.didNonCaptainStarSwingConnect != 0) {
+            type = 4;
+        } else if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_BUNT) {
+            type = 0;
+        } else if (g_Batter.displayContactSprite != 0) {
+            type = 3;
+        } else if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
+            type = 2;
+        } else {
+            type = 1;
+        }
+        if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
+            setContactWordSprite(type, g_Batter.hitContactPos.x, -g_Batter.hitContactPos.y, g_Batter.hitContactPos.z);
+        } else {
+            setContactWordSprite(type, -g_Batter.hitContactPos.x, -g_Batter.hitContactPos.y, g_Batter.hitContactPos.z);
+        }
+    }
+}
 
 // .text:0x000697CC size:0x994 mapped:0x806A8860
 void ballAnimations(void) {

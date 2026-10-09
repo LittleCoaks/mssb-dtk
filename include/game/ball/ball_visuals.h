@@ -17,5 +17,10 @@ void ballAnimationSubFun3(void);
 void ballAnimationSubFun2(void);
 void ballAnimationSubFun1(BOOL visible);
 void ballAnimations(void);
+void fn_3_6A160(void);
+void AnimBlr(void);
+void fn_3_6A254(void);
+void fn_3_6A258(void);
+void resetAnimationRelatedPointers(void);
 
 #endif // !__GAME_BALL_BALL_VISUALS_H_
