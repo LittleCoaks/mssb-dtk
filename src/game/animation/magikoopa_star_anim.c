@@ -15,7 +15,7 @@
 // One 0x50-byte spark record, copied from a .data template and handed to fn_80026998.
 typedef struct _StarSparkParams {
     /*0x00*/ void* texture;
-    /*0x04*/ u8 _04[0x0C];
+    /*0x04*/ u32 _04[3];
     /*0x10*/ Vec vel;
     /*0x1C*/ f32 unk1C;
     /*0x20*/ f32 unk20;
@@ -24,14 +24,22 @@ typedef struct _StarSparkParams {
     /*0x2C*/ f32 unk2C;
     /*0x30*/ f32 scaleStart;
     /*0x34*/ f32 scaleEnd;
-    /*0x38*/ u8 _38[0x08];
+    /*0x38*/ u32 _38[2];
     /*0x40*/ Vec pos;
     /*0x4C*/ u8 color[3];
     /*0x4F*/ u8 _4F;
 } StarSparkParams; // size: 0x50
 
-extern StarSparkParams lbl_3_data_28508;
-extern u8 lbl_3_data_28558[23];
+// Spark template, copied into a local record before every spawn.
+static StarSparkParams lbl_3_data_28508 = {
+    0, { 0x20, 0x1, 0x24 }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.25f, { 0xFF, 0 },
+    { 0.0f, 0.0f, 0.0f }, { 0xFF, 0xFF, 0xFF }, 0,
+};
+// Bone node ids picked at random for the star-spark collision offset (23 entries + pad byte).
+static u8 lbl_3_data_28558[0x18] = {
+    0x04, 0x05, 0x06, 0x07, 0x08, 0x10, 0x11, 0x12, 0x13, 0x14, 0x16, 0x17,
+    0x18, 0x19, 0x1A, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x00,
+};
 extern void* lbl_803CBD0C;
 extern void fn_80026998(StarSparkParams* params);
 
@@ -99,7 +107,7 @@ static inline void fieldingSpawnSpark(FieldingDrawItem *item) {
     FieldingAnimObj *obj;
     Vec offset;
 
-    node = (s8)lbl_3_data_28558[(u32)rand() % ARRAY_COUNT(lbl_3_data_28558)];
+    node = (s8)lbl_3_data_28558[(u32)rand() % 23];
     obj = item->obj;
     memset(&offset, 0, sizeof(offset));
     memcpy(&spark, &lbl_3_data_28508, sizeof(spark));
