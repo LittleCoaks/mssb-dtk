@@ -62,6 +62,87 @@ extern struct {
 extern int peachDaisyStarSwingRelated(void);
 extern void peachDaisyStarSwingRelated2(void);
 
+// .text:0x0001014C size:0x17C
+void ballPhysica(void) {
+    if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames != 0) {
+        if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames < 0x7FFE) {
+            g_Ball.matchFramesAndBallAngle.ballOverWallFrames++;
+        } else {
+            g_Ball.matchFramesAndBallAngle.ballOverWallFrames = 0x7FFF;
+        }
+    }
+    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_Ball.framesSincePickOff < 0x7FFE) {
+            g_Ball.framesSincePickOff++;
+        } else {
+            g_Ball.framesSincePickOff = 0x7FFF;
+        }
+    }
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
+        if (g_Ball.matchFramesAndBallAngle.framesSinceFoulCalled < 0x7FFE) {
+            g_Ball.matchFramesAndBallAngle.framesSinceFoulCalled++;
+        } else {
+            g_Ball.matchFramesAndBallAngle.framesSinceFoulCalled = 0x7FFF;
+        }
+    }
+    if (g_Ball.framesSinceBallHitWall != 0) {
+        if (g_Ball.framesSinceBallHitWall < 0x7FFE) {
+            g_Ball.framesSinceBallHitWall++;
+        } else {
+            g_Ball.framesSinceBallHitWall = 0x7FFF;
+        }
+    }
+    if (g_Ball.pauseBallMovementWhenInPlant == 0 && g_Ball.frameCountdownAfterLeavingPlant != 0) {
+        g_Ball.frameCountdownAfterLeavingPlant--;
+    }
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD || !g_Minigame.TF_ballDespawnedInd) {
+        if (g_Ball.groundRuleDoubleInd == 0) {
+            if (g_Ball.ballState == BALL_STATE_HELD) {
+                updateFrameCountersAndBallPastCoordinatesWhenFielderHoldingBall();
+            } else if (g_Ball.framesSinceHit >= 0) {
+                liveBallHitPhysics(0);
+            }
+        }
+    }
+    calculateImplicationsOfTheHitTrajectory();
+}
+
+// .text:0x00010030 size:0x11C
+void fn_3_10030(void) {
+    s32 mixed;
+
+    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16 +
+            (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
+    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8 +
+            (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
+}
+
+// .text:0x0000FF98 size:0x98
+void fn_3_FF98(void) {
+    s32 mixed;
+
+    mixed = g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1 * (FrameCountOfEntireGame % 10 + 1) +
+            (g_Ball.StaticRandomInt2 << 4) + (FrameCountOfEntireGame >> 1) +
+            g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
+    g_Ball.StaticRandomInt1_prePitch = g_Ball.StaticRandomInt1;
+    mixed = g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1) * (FrameCountOfEntireGame % 10 + 1) +
+            (g_Ball.StaticRandomInt1 << 3) + (FrameCountOfEntireGame >> 1) +
+            (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
+}
+
+// .text:0x0000FF4C size:0x4C
+void UpdateRandomInts(void) {
+    s32 s1 = g_Ball.StaticRandomInt1;
+    s32 s2 = g_Ball.StaticRandomInt2;
+
+    g_Ball.StaticRandomInt1 = ((s1 << 3) + (s1 >> 1) + (s1 & 0x505)) & 0x7FFF;
+    g_Ball.StaticRandomInt2 = ((s2 << 3) + (s2 >> 2) + (s2 & 0x505)) & 0x7FFF;
+}
+
 // .text:0x00006530 size:0x78 mapped:0x806455C4
 void chompCollision_processStarHitVariables(void) {
     g_Ball.someCollisionInd = 1;
@@ -3163,24 +3244,4 @@ void initBallAndGameStateOnLoad(void) {
     mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8
             + (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
-}
-
-// .text:0x0001014C size:0x17C
-void ballPhysica(void) {
-    return;
-}
-
-// .text:0x00010030 size:0x11C
-void fn_3_10030(void) {
-    return;
-}
-
-// .text:0x0000FF98 size:0x98
-void fn_3_FF98(void) {
-    return;
-}
-
-// .text:0x0000FF4C size:0x4C
-void UpdateRandomInts(void) {
-    return;
 }

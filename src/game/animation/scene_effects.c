@@ -3136,14 +3136,14 @@ SceneParticle* fn_3_BA1A0(SceneParticle* head, int count) {
     SceneSortEntry* e;
     SceneParticle* p;
 
-    sorted = _OSAllocFromHeap(0x20, count * 8);
+    sorted = _OSAllocFromHeap(0x20, count * sizeof(SceneSortEntry));
     e = sorted;
     for (p = head; p != NULL; p = p->next) {
         e->p = p;
         e->depth = p->size;
         e++;
     }
-    fn_800246D4(fn_3_BA174, sorted, sorted, 8, count);
+    fn_800246D4(fn_3_BA174, sorted, sorted, sizeof(SceneSortEntry), count);
     head = sorted[0].p;
     e = sorted;
     while (--count != 0) {

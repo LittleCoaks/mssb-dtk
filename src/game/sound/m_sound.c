@@ -11,6 +11,7 @@
 #include "game/ball/foul_detection.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x80062a94.h"
+#include "Unknown/File_0x800a8cbc.h"
 #include "game/match_setup/pause_menu.h"
 
 extern void fn_3_8B094(void);
@@ -42,7 +43,13 @@ bool32 sndUpdateEmitter(SND_EMITTER* em, SND_FVECTOR* pos, SND_FVECTOR* dir, u8 
 bool32 sndSeqGetValid(s32 unk);
 
 extern u8 lbl_800E88A4[];
-extern void fn_800A88C0(void);
+extern u8 jukeboxWork[][0x50];
+extern u8* fn_800A88C0(void);
+extern u32 fn_800A88C8(void);
+extern u32 fn_800A88D0(void);
+extern void fn_800A8AB0(u32 mode);
+extern void fn_800A8AB8(u32 mode);
+extern BOOL fn_800A8518(u32 mode);
 extern void fn_800A8B78(void);
 extern u16 fn_800A8864(void);
 extern void fn_800A8878(u32 arg1, u32 arg2);
@@ -2032,5 +2039,55 @@ void fn_3_906FC(void) {
 
 // .text:0x0008B094 size:0x1C4
 void fn_3_8B094(void) {
-    return;
+    SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
+    SoundReplayEventRecord* rec;
+    u8 nextTail;
+    u8 vol;
+    s8 streamId;
+    s8 cmd;
+
+    if (queue->head == queue->tail) {
+        return;
+    }
+    if (fn_800A88C8() == 3) {
+        return;
+    }
+    nextTail = (queue->tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
+    rec = &queue->entries[queue->tail];
+    cmd = (s8)rec->arg2;
+    streamId = (s8)rec->arg1;
+    switch (cmd) {
+    case 0:
+        vol = rec->arg3;
+        fn_800A8878(vol, vol);
+        if (jukeboxWork[streamId] == fn_800A88C0()) {
+            rec->arg2 = 2;
+        } else {
+            fn_800A8AB8(0);
+            rec->arg2++;
+        }
+        return;
+    case 1:
+        fn_800A8AB0(2);
+        LoadFile((char**)&streamDescriptors[streamId], (LoadFileNode*)jukeboxWork[streamId], 0, 0, 1);
+        rec->arg2++;
+        /* fall through */
+    case 2:
+        if (fn_800A8518(1)) {
+            queue->tail = nextTail;
+        }
+        return;
+    case 3:
+        if (fn_800A88D0() == 0 || fn_800A8518(2)) {
+            queue->tail = nextTail;
+        }
+        return;
+    case 4:
+        if (fn_800A8518(3)) {
+            queue->tail = nextTail;
+        }
+        return;
+    default:
+        return;
+    }
 }
