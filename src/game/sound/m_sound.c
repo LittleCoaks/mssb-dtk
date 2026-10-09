@@ -367,7 +367,9 @@ void stadiumMusic(int stadiumID) {
         for (i = 0; i < 12; i++) {
             charSoundFxVol[0x180 + i] = lbl_3_data_8278[i];
         }
-    } else if (stadiumID == STADIUM_ID_TOY_FIELD) {
+        return;
+    }
+    if (stadiumID == STADIUM_ID_TOY_FIELD) {
         for (i = 0; i < 7; i++) {
             lbl_3_data_84B8[i * 2 + 1] = lbl_3_data_8270[i];
         }
@@ -377,16 +379,16 @@ void stadiumMusic(int stadiumID) {
         for (i = 0; i < 102; i++) {
             lbl_3_data_8338[i].reverb = lbl_3_data_8284[i];
         }
-    } else {
-        for (i = 0; i < 7; i++) {
-            lbl_3_data_84B8[i * 2 + 1] = 0;
-        }
-        for (i = 0; i < 12; i++) {
-            charSoundFxVol[0x180 + i] = 0;
-        }
-        for (i = 0; i < 102; i++) {
-            lbl_3_data_8338[i].reverb = 0;
-        }
+        return;
+    }
+    for (i = 0; i < 7; i++) {
+        lbl_3_data_84B8[i * 2 + 1] = 0;
+    }
+    for (i = 0; i < 12; i++) {
+        charSoundFxVol[0x180 + i] = 0;
+    }
+    for (i = 0; i < 102; i++) {
+        lbl_3_data_8338[i].reverb = 0;
     }
 }
 
@@ -996,7 +998,7 @@ void fn_3_8D9C0(void) {
 void soundControl(void) {
     int track = -1;
     BOOL hold = FALSE;
-    BOOL paused;
+    u8 paused;
     BOOL result;
     s16 trackId;
     u8 status;
@@ -1444,7 +1446,10 @@ common:
         if (sound_crowd_EffectsStruct._24 == 0x78) {
             fn_3_8C104(0);
         }
-        paused = g_GameLogic.gameStatus == GAME_STATUS_PAUSED;
+        paused = FALSE;
+        if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
+            paused = TRUE;
+        }
         result = fn_3_8C2DC(sound_crowd_EffectsStruct._24, paused);
         if (!result) {
             sound_crowd_EffectsStruct._2A = 0;
