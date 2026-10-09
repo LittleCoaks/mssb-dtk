@@ -68,16 +68,27 @@ int fn_3_1665E4(void) {
     return FALSE;
 }
 
+static inline void initializeRep3E00Effect(void* arg) {
+    Rep3E00Effect* effect = arg;
+    s32 inactive = FALSE;
+    s32 active = TRUE;
+    adjustInternalPointers(effect->animation);
+    actRelated(effect->animation, &effect->animationData);
+    actorRelated(&effect->animationData, 0, 0);
+    if (inactive == FALSE) {
+        effect->active = active;
+    }
+}
+
 #pragma dont_inline on
 // .text:0x00166448 size:0x19C mapped:0x807A54DC
 void fn_3_166448(void) {
     u32* packed = hugeAnimStruct.packedFile;
-    u32* offsets = packed + 3;
+    s32 index = 3;
+    u32* offsets = &packed[index++];
     void* layout;
     void* geometry;
     void* texture;
-    int inactive;
-    int active;
 
     hugeAnimStruct.layout = (u8*)packed + packed[0];
     hugeAnimStruct.geometry = (u8*)packed + packed[1];
@@ -94,14 +105,7 @@ void fn_3_166448(void) {
     convertTextureHeader(texture);
     UpdateTexturePalettePointers(geometry, texture);
 
-    adjustInternalPointers(animRelated.animation);
-    actRelated(animRelated.animation, &animRelated.animationData);
-    actorRelated(&animRelated.animationData, 0, 0);
-    inactive = 0;
-    active = 1;
-    if (inactive == 0) {
-        animRelated.active = active;
-    }
+    initializeRep3E00Effect(&animRelated);
 
     hugeAnimStruct.actorCount = 1;
     hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);

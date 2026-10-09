@@ -53,17 +53,14 @@ extern const f32 lbl_3_rodata_534;
 extern void fn_8003A2C0(void);
 extern void fn_8003AE5C(u8 mode);
 extern u32 GXGetTexObjHeight(GXTexObj* texture);
+#define STADIUM_EXTRA_VIEW_COUNT 0
+#define STADIUM_RENDER_PAIR_STRIDE 0xE0
+#define STADIUM_STYLE_RECORD_WORDS 24
+#define STADIUM_STYLE_STADIUM_COUNT 7
+
 typedef struct {
     u32 words[28];
 } StadiumRenderEntry;
-static inline void copyExtraStadiumEntries(StadiumRenderEntry* source, u8* first,
-                                               u8* second, int count) {
-    int index;
-    for (index = 0; index < count; index++) {
-        *(StadiumRenderEntry*)(first + index * 0xE0) = *source;
-        *(StadiumRenderEntry*)(second + index * 0xE0) = *source;
-    }
-}
 typedef struct { s16 offsets[7]; } StadiumTextureOffsets;
 static const StadiumTextureOffsets stadiumTextureOffsetsSource = {{0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0}};
 u32 lbl_3_data_23C[364] = {
@@ -918,16 +915,18 @@ void fn_3_5E60(void) {
     fn_800ACFB0(*(void**)(hugeAnimStruct + 4));
 }
 
-s16 fn_3_6424(void* base, void*** tableOut) {
+s16 rebaseStadiumPointerTable(void* base, void*** tableOut) {
     s16 count = *(u16*)base;
     void** table = (void**)((u8*)base + 4);
-    void** cursor = table;
-    int i;
-    *tableOut = table;
-    for (i = 0; i <= count; i++) {
+    void** cursor;
+    int remaining;
+    cursor = *tableOut = table;
+
+    for (remaining = count; remaining >= 0; remaining--) {
         *cursor = (u8*)((u32)*cursor + (u32)base);
         cursor++;
     }
+
     return count;
 }
 
@@ -943,15 +942,12 @@ void updateStadiumFileHeaders(void* file) {
     u8* geometry = bytes + *(u32*)(bytes + 0xC);
     u8* texture = bytes + *(u32*)(bytes + 0x14);
     u8* pointerBlock = bytes + *(u32*)(bytes + 8);
-    u8* pointerList = pointerBlock + 4;
-    s16 pointerCount = *(u16*)pointerBlock;
-    int i;
+    s16 pointerCount;
+    s32 index;
 
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70C) = pointerList;
-    for (i = 0; i <= pointerCount; i++) {
-        ((u32*)pointerList)[i] += (u32)pointerBlock;
-    }
-    *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x70A) = pointerCount;
+    pointerCount = rebaseStadiumPointerTable(pointerBlock,
+        (void***)&g_UNK_StadiumDetails.pCollisionBoxes);
+    g_UNK_StadiumDetails.numCollisionBoxes = pointerCount;
     AdjustActorPointers(actor);
     AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
     convertTextureHeader(texture);
@@ -967,8 +963,10 @@ void updateStadiumFileHeaders(void* file) {
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x158) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x2A8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x318) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8),
-                                ((u8*)&g_UNK_StadiumDetails) + 0x548, ((u8*)&g_UNK_StadiumDetails) + 0x5B8, 0);
+    for (index = 0; index < STADIUM_EXTRA_VIEW_COUNT; index++) {
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x548 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x5B8 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    }
 
     actor = bytes + *(u32*)(bytes + 4);
     geometry = bytes + *(u32*)(bytes + 0x10);
@@ -982,15 +980,17 @@ void updateStadiumFileHeaders(void* file) {
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x78) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x1C8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x238) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8),
-                                ((u8*)&g_UNK_StadiumDetails) + 0x388, ((u8*)&g_UNK_StadiumDetails) + 0x3F8, 0);
+    for (index = 0; index < STADIUM_EXTRA_VIEW_COUNT; index++) {
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x388 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x3F8 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    }
 
     {
         typedef struct StadiumStyleRecord {
-            u32 words[24];
+            u32 words[STADIUM_STYLE_RECORD_WORDS];
         } StadiumStyleRecord;
         u32* selected = lbl_3_data_23C +
-            (g_d_GameSettings.miniGameStadiumIndicator * 7 + g_d_GameSettings.StadiumID) * 24;
+            (g_d_GameSettings.miniGameStadiumIndicator * STADIUM_STYLE_STADIUM_COUNT + g_d_GameSettings.StadiumID) * STADIUM_STYLE_RECORD_WORDS;
         *(StadiumStyleRecord*)(((u8*)&g_UNK_StadiumDetails) + 0x714) = *(StadiumStyleRecord*)selected;
     }
     *(void**)(((u8*)&g_UNK_StadiumDetails) + 0) = texture + 4;
@@ -1004,15 +1004,11 @@ void updateStadiumFileHeaders(void* file) {
 
     if (*(u32*)(bytes + 0x2C) != 0) {
         pointerBlock = bytes + *(u32*)(bytes + 0x2C);
-        pointerList = pointerBlock + 4;
-        pointerCount = *(u16*)pointerBlock;
-        *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x778) = pointerList;
-        for (i = 0; i <= pointerCount; i++) {
-            ((u32*)pointerList)[i] += (u32)pointerBlock;
-        }
-        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = pointerCount;
+        pointerCount = rebaseStadiumPointerTable(pointerBlock,
+            (void***)&g_UNK_StadiumDetails.pCollisionBoxes_778);
+        g_UNK_StadiumDetails.numCollisionBoxes_77C = pointerCount;
     } else {
-        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = 0;
+        g_UNK_StadiumDetails.numCollisionBoxes_77C = 0;
     }
     if (*(u32*)(bytes + 0x30) != 0) {
         texture = bytes + *(u32*)(bytes + 0x30);

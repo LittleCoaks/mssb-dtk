@@ -19,7 +19,11 @@
 #include "Unknown/File_0x80062a94.h"
 
 extern u8 hugeAnimStruct[];
-extern u8 lbl_80354768[];
+typedef struct PracticeProgressView {
+    /* 0x0000 */ u8 _00[0xCF4E];
+    /* 0xCF4E */ u8 levelCompleted[4][4];
+} PracticeProgressView;
+extern PracticeProgressView lbl_80354768;
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_8037169C[];
 extern u8 lbl_803C6CF8[];
@@ -832,9 +836,9 @@ void loadPracticeScreen(void) {
         PRACTICE_BYTE(0x1AA) = FALSE;
         PRACTICE_BYTE(0x1D4) = FALSE;
         PRACTICE_BYTE(0x1D5) = FALSE;
-        for (row = 0; row < 4; row++) {
-            for (col = 0; col < 4; col++) {
-                g_Practice.levelCompleted[row][col] = lbl_80354768[0xCF4E + row * 4 + col];
+        for (row = 0; row < (int)ARRAY_COUNT(g_Practice.levelCompleted); row++) {
+            for (col = 0; col < (int)ARRAY_COUNT(g_Practice.levelCompleted[0]); col++) {
+                g_Practice.levelCompleted[row][col] = lbl_80354768.levelCompleted[row][col];
             }
         }
         break;
@@ -894,17 +898,19 @@ void practice_loadCharacter(int team, int slot, int character, int flags) {
     if (slot >= 0 && slot <= 8) {
         fn_80011BE4(slot);
     }
-    memcpy((u8*)inMemRoster + team * 0x5A0 + slot * 0xA0, (u8*)&Static_Stats_Tables + character * 0xA0, 0xA0);
+    team *= 0x5A0;
+    slot *= 0xA0;
+    memcpy((u8*)inMemRoster + team + slot, (u8*)&Static_Stats_Tables + character * 0xA0, 0xA0);
     if (flags >= 0) {
         if (flags == 0 || flags == 1) {
-            *((u8*)inMemRoster + team * 0x5A0 + slot * 0xA0 + 0x26) = 0;
+            *((u8*)inMemRoster + team + slot + 0x26) = 0;
         } else {
-            *((u8*)inMemRoster + team * 0x5A0 + slot * 0xA0 + 0x26) = 1;
+            *((u8*)inMemRoster + team + slot + 0x26) = 1;
         }
         if (flags == 0 || flags == 2) {
-            *((u8*)inMemRoster + team * 0x5A0 + slot * 0xA0 + 0x27) = 0;
+            *((u8*)inMemRoster + team + slot + 0x27) = 0;
         } else {
-            *((u8*)inMemRoster + team * 0x5A0 + slot * 0xA0 + 0x27) = 1;
+            *((u8*)inMemRoster + team + slot + 0x27) = 1;
         }
     }
 }
@@ -932,9 +938,9 @@ void practiceLoadingRelatedMaybe(void) {
     g_Practice.transitioningIndicator = FALSE;
     g_Practice.loadingGuidedPractice = FALSE;
     g_Practice.guidedMessageSceneStarted = FALSE;
-    for (row = 0; row < 4; row++) {
-        for (col = 0; col < 4; col++) {
-            g_Practice.levelCompleted[row][col] = lbl_80354768[0xCF4E + row * 4 + col];
+    for (row = 0; row < (int)ARRAY_COUNT(g_Practice.levelCompleted); row++) {
+        for (col = 0; col < (int)ARRAY_COUNT(g_Practice.levelCompleted[0]); col++) {
+            g_Practice.levelCompleted[row][col] = lbl_80354768.levelCompleted[row][col];
         }
     }
 }

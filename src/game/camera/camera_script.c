@@ -81,8 +81,6 @@ extern u8 animRelated[0x124];
 extern u8 lbl_80366158[0x30];
 extern SceneChangeState lbl_8037169C;
 
-static Vec tstAxX = {1.0f, 0.0f, 0.0f};
-
 // Camera data tables, .data 0x1C0A8-0x21010 (address order). Jump tables for the
 // switches in the camera script code are emitted by the compiler and not listed here.
 s32 lbl_3_data_1C0A8[] = {1, 2};
@@ -1215,10 +1213,10 @@ typedef struct CamGlobal {
 #define CAM_LABEL(i) (((s32**)CAMDATA(0x4D64))[i])
 #define CAM_SCRIPT_TABLE(i) (((s32**)CAMDATA(0x18D8))[i])
 
-static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f32 a, f32 b, f32 c) {
+static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f32 a, f32 b, f32 c) {
     VecXYZ toCur;
-    VecXYZ dIn;
     VecXYZ dInScaled;
+    VecXYZ dIn;
     f32 dist;
     f32 mag;
 
@@ -1228,7 +1226,7 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
     PSVECScale((Vec*)&dIn, 0.01f, (Vec*)&dInScaled);
     mag = a * (c - dist) + b * (PSVECDotProduct((Vec*)&dInScaled, (Vec*)&toCur) / dist);
     PSVECNormalize((Vec*)&toCur, (Vec*)&toCur);
-    PSVECScale((Vec*)&toCur, mag * 0.01f, (Vec*)&toCur);
+    PSVECScale((Vec*)&toCur, 0.01f * mag, (Vec*)&toCur);
     PSVECAdd((Vec*)&prevOut, (Vec*)&toCur, (Vec*)&prevOut);
     return prevOut;
 }
@@ -1250,7 +1248,7 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
         _pi.x = CTX->_00C4.x; \
         _pi.y = CTX->_00C4.y; \
         _pi.z = CTX->_00C4.z; \
-        _out = camFilterStep(_in, _pi, _po, CTX->_010C, CTX->_0110, CTX->_0114); \
+        _out = camFilterStep(_po, _in, _pi, CTX->_010C, CTX->_0110, CTX->_0114); \
         CTX->_00C4.x = _yaw; \
         CTX->_00C4.y = _pitch; \
         CTX->_00C4.z = 0.0f; \
@@ -1261,59 +1259,6 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
         pitch = _out.y; \
     }
 
-#define CAM_FILTER_V(vp) \
-    if (CTX->_09B4 != 0) { \
-        VecXYZ _po; \
-        VecXYZ _pi; \
-        VecXYZ _dead; \
-        VecXYZ _cur; \
-        VecXYZ _out; \
-        memcpy(&_dead, (vp), sizeof(VecXYZ)); \
-        memcpy(&_cur, (vp), sizeof(VecXYZ)); \
-        _po.x = CTX->_00D0.x; \
-        _po.y = CTX->_00D0.y; \
-        _po.z = CTX->_00D0.z; \
-        _pi.x = CTX->_00C4.x; \
-        _pi.y = CTX->_00C4.y; \
-        _pi.z = CTX->_00C4.z; \
-        _out = camFilterStep(_cur, _pi, _po, CTX->_010C, CTX->_0110, CTX->_0114); \
-        CTX->_00C4.x = (vp)->x; \
-        CTX->_00C4.y = (vp)->y; \
-        CTX->_00C4.z = (vp)->z; \
-        CTX->_00D0.x = _out.x; \
-        CTX->_00D0.y = _out.y; \
-        CTX->_00D0.z = _out.z; \
-        (vp)->x = _out.x; \
-        (vp)->y = _out.y; \
-        (vp)->z = _out.z; \
-    }
-
-#define CAM_FILTER_POS() \
-    if (CTX->_09B4 != 0) { \
-        VecXYZ _cur; \
-        VecXYZ _po; \
-        VecXYZ _pi; \
-        VecXYZ _out; \
-        _cur.x = g_pCamera->_2840.x; \
-        _cur.y = g_pCamera->_2840.y; \
-        _cur.z = g_pCamera->_2840.z; \
-        _po.x = CTX->_00B8.x; \
-        _po.y = CTX->_00B8.y; \
-        _po.z = CTX->_00B8.z; \
-        _pi.x = CTX->_00AC.x; \
-        _pi.y = CTX->_00AC.y; \
-        _pi.z = CTX->_00AC.z; \
-        _out = camFilterStep(_cur, _pi, _po, CTX->_0100, CTX->_0104, CTX->_0108); \
-        g_pCamera->_2840.x = _out.x; \
-        g_pCamera->_2840.y = _out.y; \
-        g_pCamera->_2840.z = _out.z; \
-        CTX->_00B8.x = _out.x; \
-        CTX->_00B8.y = _out.y; \
-        CTX->_00B8.z = _out.z; \
-        CTX->_00AC.x = _cur.x; \
-        CTX->_00AC.y = _cur.y; \
-        CTX->_00AC.z = _cur.z; \
-    }
 
 #define CAM_INIT_POS_FILTER() \
     CTX->_00AC.x = g_pCamera->_2840.x; \
@@ -1376,90 +1321,14 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
 
 #define CAM_VIEWS_INIT() fn_3_FD5A8()
 
-#define CAM_EVAL_VIEW(script, time, a, b, outp) \
-    do { \
-        CamEval ev; \
-        VecXYZ basisZ; \
-        VecXYZ basisY; \
-        memset(&ev, 0, sizeof(ev)); \
-        ev.m[3][3] = 1.0f; \
-        ev.m[2][2] = 1.0f; \
-        ev.m[1][1] = 1.0f; \
-        ev.m[0][0] = 1.0f; \
-        ev._40 = 1.0f; \
-        fn_3_104B3C((script), (time), (a), (b), &ev); \
-        memcpy(&(outp)->pos, &ev._58, sizeof(VecXYZ)); \
-        memcpy(&(outp)->tgt, &ev._64, sizeof(VecXYZ)); \
-        memcpy(&(outp)->up, &ev._70, sizeof(VecXYZ)); \
-        (outp)->fov = ev._4C; \
-        PSMTX44MultVec(ev.m, &tstAxX, (Vec*)&(outp)->axes[0]); \
-        PSVECNormalize((Vec*)&(outp)->axes[0], (Vec*)&(outp)->axes[0]); \
-        basisY = (outp)->axes[1]; \
-        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_20FEC, (Vec*)&basisY); \
-        PSVECNormalize((Vec*)&basisY, (Vec*)&basisY); \
-        basisZ = (outp)->axes[2]; \
-        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_20FF8, (Vec*)&basisZ); \
-        PSVECNormalize((Vec*)&basisZ, (Vec*)&basisZ); \
-        (outp)->_4C = ev._7C; \
-        (outp)->_50 = ev._80; \
-        (outp)->_54 = ev._84; \
-    } while (0)
-
-#define CAM_SCRIPT_SET_VIEW() \
-    do { \
-        CamView view; \
-        u32 time = CTX->_0118; \
-        u8* script = CTX->_0990; \
-        CAM_EVAL_VIEW(script, time, 0, 0, &view); \
-        memcpy(&CTX->_0064, &view.pos, sizeof(VecXYZ)); \
-        CTX->_00A0 = view.fov; \
-        CTX->_00A4 = view._4C; \
-        CTX->_00A8 = view._50; \
-        CTX->_09A7 = view._54; \
-        memcpy(&CTX->_0088, &view.tgt, sizeof(VecXYZ)); \
-        g_pCamera->_2858.x = view.pos.x; \
-        g_pCamera->_2858.y = view.pos.y; \
-        g_pCamera->_2858.z = view.pos.z; \
-        g_pCamera->_2870 = view._4C; \
-        g_pCamera->_2874 = view._50; \
-        g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870)); \
-        g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870)); \
-        g_pCamera->_2878 = 1.0f; \
-    } while (0)
 
 #define CAM_SCRIPT_START() \
     do { \
-    int i; \
-    u32* table; \
-    u8* hdr; \
-    u32* p; \
-    s16 k; \
- \
-    table = CAMF(u32*, 0x1B4); \
-    i = 0; \
-    while (*table != 0) { \
-        table++; \
-        i++; \
-    } \
-    CTX->_0120 = i; \
-    memcpy(CTX->_0990, (u8*)CAMF(u32*, 0x1B4) + CAMF(u32*, 0x1B4)[CTX->_0940], 0x8000); \
-    CTX->_0124 = 1; \
-    CTX->_0118 = 0; \
-    CTX->_011C = 0; \
-    CTX->_0928 = 0; \
-    for (i = 0; i < 0x200; i++) { \
-        CTX->_0128[i] = 0; \
-    } \
-    CAM_VIEWS_INIT(); \
-    hdr = CTX->_0990; \
-    p = (u32*)(hdr + 8); \
-    *p += (u32)hdr; \
-    for (k = 0; k < *(s16*)(hdr + 6); k++) { \
-        p[1] += (u32)hdr; \
-        p++; \
-    } \
-    CTX->_011C = *(u16*)(hdr + 4) << 16; \
-    CAM_SCRIPT_SET_VIEW(); \
+        CTX->_0120 = fn_3_10698C(CAMF(u32*, 0x1B4)); \
+        memcpy(CTX->_0990, fn_3_1069B0(CAMF(u32*, 0x1B4), CTX->_0940), 0x8000); \
+        fn_3_1069C0(); \
+        fn_3_105C84(CTX->_0990); \
+        fn_3_104338(); \
     } while (0)
 
 // .text:0x00106E50 size:0x60
@@ -1653,19 +1522,18 @@ void fn_3_106270(VecXYZ* out) {
 // .text:0x0010617C size:0xF4 mapped:0x80745210
 BOOL fn_3_10617C(int idx, int bone, Vec* out) {
     CamActor* actor = hugeAnimStruct.objects[idx];
-    u16 boneIdx;
     Vec tmp;
     if (actor == NULL) {
         return FALSE;
     }
-    boneIdx = actor->_162[bone];
-    if (boneIdx == 0xFFFF) {
+    bone = actor->_162[bone];
+    if (bone == U16_MAX) {
         out->x = 0.0f;
         out->y = 0.0f;
         out->z = 0.0f;
         return FALSE;
     }
-    maybeTransformVectorByAnimationMatrix(*fn_800111D8(actor), boneIdx, &tmp);
+    maybeTransformVectorByAnimationMatrix(*fn_800111D8(actor), bone, &tmp);
     out->x = tmp.x;
     out->y = tmp.y;
     out->z = tmp.z;
@@ -1774,12 +1642,14 @@ void fn_3_105CDC(void) {
 
 // .text:0x00105C84 size:0x58 mapped:0x80744D18
 void fn_3_105C84(u8* hdr) {
-    u32* p = (u32*)(hdr + 8);
+    u32* first = (u32*)(hdr + 8);
+    u32* cursor;
     s16 k = 0;
-    *p += (u32)hdr;
+    *first += (u32)hdr;
+    cursor = first;
     while (k < *(s16*)(hdr + 6)) {
-        p[1] += (u32)hdr;
-        p++;
+        cursor[1] += (u32)hdr;
+        cursor++;
         k++;
     }
     CTX->_011C = *(u16*)(hdr + 4) << 16;
@@ -1824,13 +1694,13 @@ void fn_3_105ACC(f32* quat, Mtx out) {
     f32 x = quat[0];
     f32 y = quat[1];
     f32 z = quat[2];
-    f32 w = quat[3];
     f32 x2 = x + x;
     f32 y2 = y + y;
     f32 z2 = z + z;
     f32 xx = x * x2;
     f32 yy = y * y2;
     f32 zz = z * z2;
+    f32 w = quat[3];
     f32 xy = x * y2;
     f32 xz = x * z2;
     f32 wz = w * z2;
@@ -2002,18 +1872,9 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
             u32 i;
             f32 t = (f32)(time - ((u32)*(u16*)key << 16)) / 65536.0f;
             f32 alpha = t / (f32)(*(u16*)next - *(u16*)key);
-            f32 beta = 1.0f - alpha;
             f32* dst = &interp[0];
             for (i = 0; i < lbl_3_data_20FD0[track[6]]; i++) {
-                VecXYZ va;
-                VecXYZ vb;
-                VecXYZ vc;
-                memcpy(&va, nxt + 4, sizeof(VecXYZ));
-                memcpy(&vb, cur + 4, sizeof(VecXYZ));
-                vc.x = va.x * alpha + vb.x * beta;
-                vc.y = va.y * alpha + vb.y * beta;
-                vc.z = va.z * alpha + vb.z * beta;
-                memcpy(dst + 1, &vc, sizeof(VecXYZ));
+                fn_3_105A10((Vec*)(dst + 1), (Vec*)(nxt + 4), (Vec*)(cur + 4), alpha);
                 nxt += 12;
                 cur += 12;
                 dst += 3;
@@ -2116,12 +1977,7 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         ang.y = -1.0f * k[2];
         ang.z = k[3];
         PSMTX44Identity(m3);
-        memset(&ev2, 0, sizeof(ev2));
-        ev2.m[3][3] = 1.0f;
-        ev2.m[2][2] = 1.0f;
-        ev2.m[1][1] = 1.0f;
-        ev2.m[0][0] = 1.0f;
-        ev2._40 = 1.0f;
+        fn_3_105BD8(&ev2);
         fn_3_104B3C(script, time, (s16) * (s32*)(track + 8), 0xFF, &ev2);
         out->_64.x = ev2._58.x;
         tgt.x = ev2._58.x;
@@ -2239,7 +2095,23 @@ void fn_3_104A3C(Vec* out, Mtx44 m) {
 
 // .text:0x001048E0 size:0x15C mapped:0x80743974
 void fn_3_1048E0(u8* script, u32 time, s16 a, u8 b, CamView* out) {
-    CAM_EVAL_VIEW(script, time, a, b, out);
+    CamEval ev;
+    VecXYZ basisY;
+    VecXYZ basisZ;
+    fn_3_105BD8(&ev);
+    fn_3_104B3C(script, time, a, b, &ev);
+    memcpy(&out->pos, &ev._58, sizeof(VecXYZ));
+    memcpy(&out->tgt, &ev._64, sizeof(VecXYZ));
+    memcpy(&out->up, &ev._70, sizeof(VecXYZ));
+    out->fov = ev._4C;
+    fn_3_104AD4((Vec*)&out->axes[0], ev.m);
+    basisY = out->axes[1];
+    fn_3_104A88((Vec*)&basisY, ev.m);
+    basisZ = out->axes[2];
+    fn_3_104A3C((Vec*)&basisZ, ev.m);
+    out->_4C = ev._7C;
+    out->_50 = ev._80;
+    out->_54 = ev._84;
 }
 
 // .text:0x00104740 size:0x1A0 mapped:0x807437D4
@@ -2287,12 +2159,53 @@ void fn_3_1045A8(void) {
 
 // .text:0x00104338 size:0x270 mapped:0x807433CC
 void fn_3_104338(void) {
-    CAM_SCRIPT_SET_VIEW();
+    CamView view;
+    u32 time = CTX->_0118;
+    u8* script = CTX->_0990;
+    fn_3_1048E0(script, time, 0, 0, &view);
+    memcpy(&CTX->_0064, &view.pos, sizeof(VecXYZ));
+    CTX->_00A0 = view.fov;
+    CTX->_00A4 = view._4C;
+    CTX->_00A8 = view._50;
+    CTX->_09A7 = view._54;
+    memcpy(&CTX->_0088, &view.tgt, sizeof(VecXYZ));
+    g_pCamera->_2858.x = view.pos.x;
+    g_pCamera->_2858.y = view.pos.y;
+    g_pCamera->_2858.z = view.pos.z;
+    g_pCamera->_2870 = view._4C;
+    g_pCamera->_2874 = view._50;
+    g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870));
+    g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870));
+    g_pCamera->_2878 = 1.0f;
 }
 
 // .text:0x001040D8 size:0x260 mapped:0x8074316C
 void fn_3_1040D8(void) {
-    CAM_FILTER_POS();
+    if (CTX->_09B4 != 0) {
+        VecXYZ _cur;
+        VecXYZ _po;
+        VecXYZ _pi;
+        VecXYZ _out;
+        _cur.x = g_pCamera->_2840.x;
+        _cur.y = g_pCamera->_2840.y;
+        _cur.z = g_pCamera->_2840.z;
+        _po.x = CTX->_00B8.x;
+        _po.y = CTX->_00B8.y;
+        _po.z = CTX->_00B8.z;
+        _pi.x = CTX->_00AC.x;
+        _pi.y = CTX->_00AC.y;
+        _pi.z = CTX->_00AC.z;
+        _out = camFilterStep(_po, _cur, _pi, CTX->_0100, CTX->_0104, CTX->_0108);
+        g_pCamera->_2840.x = _out.x;
+        g_pCamera->_2840.y = _out.y;
+        g_pCamera->_2840.z = _out.z;
+        CTX->_00B8.x = _out.x;
+        CTX->_00B8.y = _out.y;
+        CTX->_00B8.z = _out.z;
+        CTX->_00AC.x = _cur.x;
+        CTX->_00AC.y = _cur.y;
+        CTX->_00AC.z = _cur.z;
+    }
 }
 
 // .text:0x00103E7C size:0x25C mapped:0x80742F10
@@ -2313,7 +2226,7 @@ void fn_3_103E7C(f32* angles) {
         pi.x = CTX->_00C4.x;
         pi.y = CTX->_00C4.y;
         pi.z = CTX->_00C4.z;
-        out = camFilterStep(in, pi, po, CTX->_010C, CTX->_0110, CTX->_0114);
+        out = camFilterStep(po, in, pi, CTX->_010C, CTX->_0110, CTX->_0114);
         CTX->_00C4.x = angles[0];
         CTX->_00C4.y = angles[1];
         CTX->_00C4.z = 0.0f;
@@ -2327,7 +2240,31 @@ void fn_3_103E7C(f32* angles) {
 
 // .text:0x00103C30 size:0x24C mapped:0x80742CC4
 void fn_3_103C30(VecXYZ* v) {
-    CAM_FILTER_V(v);
+    if (CTX->_09B4 != 0) {
+        VecXYZ _out;
+        VecXYZ _po;
+        VecXYZ _cur;
+        VecXYZ _pi;
+        VecXYZ _dead;
+        memcpy(&_dead, v, sizeof(VecXYZ));
+        _po.x = CTX->_00D0.x;
+        _po.y = CTX->_00D0.y;
+        _po.z = CTX->_00D0.z;
+        memcpy(&_cur, v, sizeof(VecXYZ));
+        _pi.x = CTX->_00C4.x;
+        _pi.y = CTX->_00C4.y;
+        _pi.z = CTX->_00C4.z;
+        _out = camFilterStep(_po, _cur, _pi, CTX->_010C, CTX->_0110, CTX->_0114);
+        CTX->_00C4.x = v->x;
+        CTX->_00C4.y = v->y;
+        CTX->_00C4.z = v->z;
+        CTX->_00D0.x = _out.x;
+        CTX->_00D0.y = _out.y;
+        CTX->_00D0.z = _out.z;
+        v->x = _out.x;
+        v->y = _out.y;
+        v->z = _out.z;
+    }
 }
 
 // .text:0x00101CC4 size:0x1F6C mapped:0x80740D58
@@ -2365,7 +2302,7 @@ void fn_3_101CC4(void) {
             g_pCamera->_284C.x = g_pCamera->_2858.x + 100.0f * cy * cp;
             g_pCamera->_284C.y = g_pCamera->_2858.y + 100.0f * sp;
             g_pCamera->_284C.z = g_pCamera->_2858.z + 100.0f * sy * cp2;
-            CAM_FILTER_POS();
+            fn_3_1040D8();
             break;
         }
         case 2:
@@ -2377,9 +2314,9 @@ void fn_3_101CC4(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
                 CAM_INIT_V_FILTER();
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
                 CAM_INIT_POS_FILTER();
@@ -2398,9 +2335,9 @@ void fn_3_101CC4(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
                 CAM_INIT_V_FILTER();
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
             }
             CAM_CLAMP_LOOKAT_Y();
             break;
@@ -2547,9 +2484,9 @@ void fn_3_101CC4(void) {
         }
         CAM_SET_VIEW_V();
         CAM_INIT_V_FILTER();
-        CAM_FILTER_V(&v);
+        fn_3_103C30(&v);
         CAM_SET_VIEW_V();
-        CAM_FILTER_POS();
+        fn_3_1040D8();
         CAM_CLAMP_LOOKAT_Y();
     }
 }
@@ -2589,7 +2526,7 @@ void fn_3_1000D8(void) {
             g_pCamera->_284C.x = g_pCamera->_2858.x + 100.0f * cy * cp;
             g_pCamera->_284C.y = g_pCamera->_2858.y + 100.0f * sp;
             g_pCamera->_284C.z = g_pCamera->_2858.z + 100.0f * sy * cp2;
-            CAM_FILTER_POS();
+            fn_3_1040D8();
             break;
         }
         case 2:
@@ -2603,9 +2540,9 @@ void fn_3_1000D8(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
 
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
 
@@ -2624,9 +2561,9 @@ void fn_3_1000D8(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
 
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
             }
             CAM_CLAMP_LOOKAT_Y();
             break;
@@ -2772,9 +2709,9 @@ void fn_3_1000D8(void) {
             break;
         }
         CAM_SET_VIEW_V();
-        CAM_FILTER_V(&v);
+        fn_3_103C30(&v);
         CAM_SET_VIEW_V();
-        CAM_FILTER_POS();
+        fn_3_1040D8();
         CAM_CLAMP_LOOKAT_Y();
     }
 }
@@ -3682,7 +3619,7 @@ BOOL fn_3_FD9FC(void) {
 // .text:0x000FD670 size:0x38C mapped:0x8073C704
 void fn_3_FD670(void) {
     if (g_GameLogic.framesOfExitingToMenu == 0) {
-        CAM_SCRIPT_SET_VIEW();
+        fn_3_104338();
         fn_3_1000D8();
         CTX->_093C = CTX->_0938;
         CTX->_0948 = CTX->_0946;
@@ -3892,7 +3829,7 @@ void fn_3_FC938(void) {
 // .text:0x000FC448 size:0x4F0 mapped:0x8073B4DC
 void fn_3_FC448(void) {
     int i;
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < (int)ARRAY_COUNT(CAMG->scripts); i++) {
         unkStructPtr._0000 = (void*)&CAMSCRIPT_G(i);
         CAM_SCRIPT_START();
         fn_3_101CC4();

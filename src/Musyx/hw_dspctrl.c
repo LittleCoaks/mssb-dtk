@@ -307,29 +307,32 @@ static void HandleDepopVoice(DSPstudioinfo* stp, DSPvoice* dsp_vptr) {
   dsp_vptr->postBreak = 0;
   dsp_vptr->pb->state = 0;
   pb = dsp_vptr->pb;
-  AddDpop(&stp->hostDPopSum.l, pb->dpop.aL);
-  AddDpop(&stp->hostDPopSum.r, pb->dpop.aR);
-
+  if ((pb->mixerCtrl & 0x01) != 0) {
+    AddDpop(&stp->hostDPopSum.l, pb->dpop.aL);
+  }
+  if ((pb->mixerCtrl & 0x02) != 0) {
+    AddDpop(&stp->hostDPopSum.r, pb->dpop.aR);
+  }
   if ((pb->mixerCtrl & 0x04) != 0) {
     AddDpop(&stp->hostDPopSum.s, pb->dpop.aS);
   }
-
-  if ((pb->mixerCtrl & 0x01) != 0) {
+  if ((pb->mixerCtrl & 0x10) != 0) {
     AddDpop(&stp->hostDPopSum.lA, pb->dpop.aAuxAL);
-    AddDpop(&stp->hostDPopSum.rA, pb->dpop.aAuxAR);
-
-    if ((pb->mixerCtrl & 0x14) != 0) {
-      AddDpop(&stp->hostDPopSum.sA, pb->dpop.aAuxAS);
-    }
   }
-
-  if ((pb->mixerCtrl & 0x12) != 0) {
+  if ((pb->mixerCtrl & 0x20) != 0) {
+    AddDpop(&stp->hostDPopSum.rA, pb->dpop.aAuxAR);
+  }
+  if ((pb->mixerCtrl & 0x80) != 0) {
+    AddDpop(&stp->hostDPopSum.sA, pb->dpop.aAuxAS);
+  }
+  if ((pb->mixerCtrl & 0x200) != 0) {
     AddDpop(&stp->hostDPopSum.lB, pb->dpop.aAuxBL);
+  }
+  if ((pb->mixerCtrl & 0x400) != 0) {
     AddDpop(&stp->hostDPopSum.rB, pb->dpop.aAuxBR);
-
-    if ((pb->mixerCtrl & 0x4) != 0) {
-      AddDpop(&stp->hostDPopSum.sB, pb->dpop.aAuxBS);
-    }
+  }
+  if ((pb->mixerCtrl & 0x1000) != 0) {
+    AddDpop(&stp->hostDPopSum.sB, pb->dpop.aAuxBS);
   }
 }
 

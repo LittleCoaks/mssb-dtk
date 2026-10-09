@@ -29,7 +29,7 @@ void CTRLBuildMatrixRelated(void* object);
 void fn_3_35F0(void);
 void fn_3_3818(void);
 void fn_3_5E60(void);
-s16 fn_3_6424(void* base, void*** tableOut);
+s16 rebaseStadiumPointerTable(void* base, void*** tableOut);
 void fn_3_64DC(void);
 void updateStadiumFileHeaders(void* file);
 

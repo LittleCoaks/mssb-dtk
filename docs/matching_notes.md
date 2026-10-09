@@ -1355,6 +1355,20 @@ Second data point: `game/game/match_setup/versus_screens` (2026-09). Switching `
 on the fixed-trip unrolled store loops restored the guard and fixed about seven functions in one
 sweep. When a from-scratch file has many such loops, make this the first blanket change.
 
+Third data point (2026-10-09): `at_bat_setup.c` reached 100% by using `s32`
+for both counters and indexing the fielding-team field directly. A cached
+team local hoisted its load before the guard and stayed at 85.91%; direct
+field reads gave 100%. `ARRAY_COUNT` with an `s32` cast removed the guards
+again (66.01%); named integer-literal trip counts preserve them. The unused
+`header_rep_data.h` include emitted an unowned 80-byte constant table and
+failed the linked checksum; removing it preserved 100% and passed all four
+checksums.
+
+The same counter change in `stadium_draw.c`'s `copyExtraStadiumEntries`
+restored both zero-trip copy blocks that prior passes could not reproduce:
+`updateStadiumFileHeaders` 70.68% -> 84.96%, with all siblings unchanged.
+The helper count remains `int`; only its loop counter changes to `s32`.
+
 ## A search loop's `mtctr` value distinguishes two source shapes
 
 First seen: `game/game/ball/ball_physics` (2026-09).
@@ -3112,3 +3126,38 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   directly took it from 93.925% to 100%; widening the local or threshold did not.
   The complete 28-function unit and all its sections remained 100% after the
   readability pass and linked with `4 files OK`.
+
+
+## Findings from the low-match game REL pass (2026-10-09)
+
+- **Restore actual helper calls before tuning macro-expanded locals.** In
+  `camera_script.c`, normal definitions of the view evaluator, view setter,
+  header fixup, and startup helpers auto-inline under the existing deferred
+  inlining settings. Reusing them instead of copying their bodies into macros
+  matched `fn_3_1048E0` and `fn_3_FC448` and improved every affected caller.
+  The complete `fn_3_FC938` is too large to inline into the two-camera loop;
+  its constituent calls still need the small startup macro.
+- **Verify the relocation base together with data layout.** An extra camera
+  axis object shifted later data by 12 bytes. Equal numeric operands hid two
+  wrong vector references. The target's base plus 0x4F44/0x4F50/0x4F5C selects
+  the existing Y, Z, and negative-Z vectors. Correcting all three references
+  removed the extra object and restored the exact data-section size.
+- **A copy between two history loads is significant.** The vector filter
+  loads its previous output before copying its current input. Moving that
+  copy restored the target's instruction sequence and improved both large
+  camera-update routines. By-value helper argument order controls the
+  inlined vector slots and register groups too; use the whole-unit diff.
+- **A mapped 16-bit ID may still use an int-width parameter.** Reusing the
+  bone parameter after reading its ID from the actor table matched the
+  sentinel test and output registers in `fn_3_10617C`; a separate `u16` local
+  emitted a different comparison.
+- **Preserve the stadium pointer-table countdown.**
+  `rebaseStadiumPointerTable` processes count + 1 entries and skips negative
+  counts. Chaining the output-table assignment with its cursor initializer
+  reproduces the target's unrolled loop. Reusing one function-scope index
+  for the zero-trip header copies also resolves their register allocation.
+- **Scale existing roster parameters before repeated accesses.** In
+  `practice_loadCharacter`, scaling team and slot once preserves the
+  target's repeated address formation across the flag branches. A cached
+  destination pointer produces different code. The typed four-column
+  progress view also matches the index order in the practice-loading copy.
