@@ -10,13 +10,25 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_rep4138
 #include "header_rep_data.h"
 
-extern f32 lbl_3_data_2A448[12];
-extern f32 lbl_3_data_2A478[8];
+void fn_3_16DFC4(void);
+
+f32 lbl_3_data_2A448[12] = {
+    0.0f, 0.0f, 101.785f, 1.8f,
+    0.0f, 101.785f, 1.8f, 2.28f,
+    101.785f, 0.0f, 2.28f, 101.785f,
+};
+f32 lbl_3_data_2A478[8] = {
+    0.0f, 0.0f, 0.09765625f, 0.0f,
+    0.09765625f, 1.0f, 0.0f, 1.0f,
+};
 extern void fn_80033B58(void*, int, int, int);
 extern void fn_800A7D4C(int, void*);
 extern u8 drawStadiumRelated;
 extern volatile u8 hugeAnimStruct[];
-extern u8 lbl_3_data_2A498[2][8];
+void* lbl_3_data_2A498[2][2] = {
+    {0, (void*)fn_3_16DFC4},
+    {0, (void*)fn_3_16DFC4},
+};
 
 static const u32 lbl_3_rodata_4188 = 0xffffffff;
 static const f32 lbl_3_rodata_418C = 50.0f;

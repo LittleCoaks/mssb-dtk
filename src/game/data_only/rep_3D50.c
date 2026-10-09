@@ -29,9 +29,46 @@ typedef struct {
 
 extern Rep3D50Shared lbl_3_common_bss_35154;
 extern u8 lbl_80366158[];
-extern u8 lbl_3_data_281F0[];
-extern u8 lbl_3_data_283F0[];
-extern u8 lbl_3_data_28410[];
+u32 lbl_3_data_281F0[8][0x10] = {
+    {
+        0x00000000, 0x00000004, 0x00000003, 0x0001ADB0, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xFFFF0000, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x00000003, 0x0001ADB0, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xFFFF0000, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x0000000C, 0x00030D40, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xFFFF0000, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x00000001, 0x00015F90, 0x0001B198, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xFFFF0000, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x00000003, 0x0001ADB0, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xB559FF00, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x00000003, 0x0001ADB0, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xB559FF00, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x0000000C, 0x00030D40, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xB559FF00, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+    {
+        0x00000000, 0x00000004, 0x00000001, 0x00011170, 0x000003E8, 0x00015F90, 0x00000028, 0x00000001,
+        0x00018E70, 0x00018A88, 0x00000064, 0x00989680, 0xB559FF00, 0x00000000, 0x0000C350, 0x00004E20,
+    },
+};
+u32 lbl_3_data_283F0[8] = {
+    0x0000000A, 0x0000000A, 0x0000000A, 0x0000000A, 0x0000000A, 0x0000000A, 0x0000000A, 0x00000001,
+};
+u32 lbl_3_data_28410[2] = {
+    0x00000028, 0x00000028,
+};
 extern void fn_8002C2D0(VecXYZ*, VecXYZ*, void*);
 
 struct {
@@ -54,10 +91,10 @@ void fn_3_160814(int side) {
         activeNode = lbl_3_bss_B9B8.node;
         nodeSide = activeNode->side;
         activeNode->state = 0;
-        lbl_3_bss_B9B8.node->delay = *(u32*)(lbl_3_data_283F0 + nodeSide * 0x10);
+        lbl_3_bss_B9B8.node->delay = *(u32*)((u8*)lbl_3_data_283F0 + nodeSide * 0x10);
         lbl_3_bss_B9B8.node->remaining = 0;
         tableSide = lbl_3_bss_B9B8.node->side;
-        lbl_3_common_bss_35154.duration[tableSide != 0] = *(u32*)(lbl_3_data_28410 + (tableSide << 2));
+        lbl_3_common_bss_35154.duration[tableSide != 0] = *(u32*)((u8*)lbl_3_data_28410 + (tableSide << 2));
     }
 }
 
@@ -100,8 +137,8 @@ void fn_3_160578(void) {
     }
     PSVECSubtract((Vec*)&lbl_3_common_bss_35154.previousPosition, (Vec*)&lbl_3_common_bss_35154.position, (Vec*)&delta);
     if (PSVECMag((Vec*)&delta)) {
-        *(u32*)(lbl_3_data_281F0 + effectIndex * 0x40) = *(u32*)((u8*)&lbl_3_common_bss_35154 + 4);
-        fn_8002C2D0(&lbl_3_common_bss_35154.position, &delta, lbl_3_data_281F0 + effectIndex * 0x40);
+        *(u32*)((u8*)lbl_3_data_281F0 + effectIndex * 0x40) = *(u32*)((u8*)&lbl_3_common_bss_35154 + 4);
+        fn_8002C2D0(&lbl_3_common_bss_35154.position, &delta, (u8*)lbl_3_data_281F0 + effectIndex * 0x40);
     }
     ballPosition.x = *(f32*)((u8*)&g_Ball + 0x1A80);
     ballPosition.y = -*(f32*)((u8*)&g_Ball + 0x1A84);
@@ -112,7 +149,7 @@ void fn_3_160578(void) {
             if (g_Ball.framesUntilBallHitsGround == lbl_3_common_bss_35154.duration[node->side != 0]) {
                 effectIndex--;
             }
-            fn_8002C2D0(&ballPosition, &delta, lbl_3_data_281F0 + effectIndex * 0x40);
+            fn_8002C2D0(&ballPosition, &delta, (u8*)lbl_3_data_281F0 + effectIndex * 0x40);
         }
     }
     if (node->state == 2) {

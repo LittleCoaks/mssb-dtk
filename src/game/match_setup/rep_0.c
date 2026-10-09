@@ -12,7 +12,6 @@
 #include "static/UnknownHomes_Static.h"
 
 extern s8 lineUpInfoStruct[TEAMS_PER_GAME][PLAYERS_PER_TEAM][4];
-extern u8 lbl_3_data_118[0xB8];
 
 MatchFileDescriptor rosterFileDescriptorGame = {0x00000000, 0x000046E0, 0x06CF8800, 0x000046E0};
 
@@ -31,6 +30,21 @@ char lbl_3_data_10[12][22] = {
     "Sapporo Dome        ",
 };
 
+u32 lbl_3_data_118[0x2E] = {
+    0x00001040, 0x00000000, 0x00000000, 0x00001880,
+    0x00001C40, 0x000065A0, 0x00006B20, 0x00002E40,
+    0x00000000, 0x00000FA0, 0x00000000, 0x00000000,
+    0x00000000, 0x00000940, 0x00001000, 0x00000560,
+    0x00000BE0, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000,
+};
+
 static u32 lbl_3_bss_0;
 static void* lbl_3_bss_4[3];
 static struct {
@@ -44,8 +58,8 @@ static struct {
 void _prolog(void) {
     insertGraphicDrawingFunction(transferSomeValuesOnMatchLoad, 1);
     fn_3_C0824();
-    fn_80036C88(lbl_3_data_118, lbl_3_data_118 + 0x5C);
-    fn_800B0D28(lbl_3_data_118 + 0x5C);
+    fn_80036C88(lbl_3_data_118, (u8*)lbl_3_data_118 + 0x5C);
+    fn_800B0D28((u8*)lbl_3_data_118 + 0x5C);
     fn_8004B270();
 }
 
