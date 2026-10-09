@@ -31,8 +31,8 @@ extern u8 *lbl_3_data_1F40[];
 void initializeAnimations(void) {
     int i;
 
-    lbl_3_common_bss_1323C->_25C = 0;
-    for (i = 0; i < VS_ROW_COUNT; i++) {
+    lbl_3_common_bss_1323C->_25C = i = 0;
+    for (; i < VS_ROW_COUNT; i++) {
         vsSituations[i]._34 = 0;
         vsSituations[i]._38 = 0;
         vsSituations[i]._3C = 0;
