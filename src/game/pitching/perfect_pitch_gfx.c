@@ -28,14 +28,20 @@ typedef struct _PerfectPitchModel {
     /*0x60*/ f32 animTime;
 } PerfectPitchModel;
 
-// Per-camera-slot drawing entry.
+// Per-camera-slot drawing entry; _04 is the draw callback that receives the entry.
 typedef struct _PerfectPitchEntry {
     /*0x00*/ u32 _00;
-    /*0x04*/ u32 _04;
+    /*0x04*/ void (*_04)(PerfectPitchTrail* trail);
     /*0x08*/ VecXYZ pos;
     /*0x14*/ Quaternion rot;
     /*0x24*/ u32 frame;
 } PerfectPitchEntry;
+
+// Two entries per camera slot, plus two trailing words.
+typedef struct _PerfectPitchEntryTable {
+    /*0x00*/ PerfectPitchEntry entries[2][2];
+    /*0xA0*/ u32 _A0[2];
+} PerfectPitchEntryTable;
 
 // DrawingSceneStruct view: +0x14.. is scratch owned by fn_3_CAE00.
 typedef struct _PerfectPitchNode {
@@ -92,9 +98,17 @@ extern struct {
     u8 _28;
 } lbl_80366158;
 
-extern int lbl_3_data_17D08[2];
-extern PerfectPitchNode* lbl_3_data_17D10[2];
-extern PerfectPitchEntry lbl_3_data_17D18[2][2];
+static int lbl_3_data_17D08[2] = { 0x59D8, 8 };
+static PerfectPitchNode* lbl_3_data_17D10[2] = { NULL, NULL };
+static PerfectPitchEntryTable lbl_3_data_17D18 = {
+    {
+        { { 0, fn_3_CABF0, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, 0 },
+          { 0, fn_3_CABF0, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, 0 } },
+        { { 0, fn_3_CABF0, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, 0 },
+          { 0, fn_3_CABF0, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, 0 } },
+    },
+    { 3, 0 },
+};
 
 extern void fn_800A7D4C(s32 arg0, void* arg1);
 extern void fn_800BDA24(void* arg);
@@ -207,12 +221,12 @@ void fn_3_CAE00(void) {
     PerfectPitchActor* actor = hugeAnimStruct.actors[node->actorIndex];
 
     if (node->stop == FALSE && actor != NULL) {
-        fn_800A7D4C(0, &lbl_3_data_17D18[node->slot][drawStadiumRelated]);
-        lbl_3_data_17D18[node->slot][drawStadiumRelated].frame = node->frame;
-        lbl_3_data_17D18[node->slot][drawStadiumRelated].pos.x = node->pos.x;
-        lbl_3_data_17D18[node->slot][drawStadiumRelated].pos.y = node->pos.y;
-        lbl_3_data_17D18[node->slot][drawStadiumRelated].pos.z = node->pos.z;
-        lbl_3_data_17D18[node->slot][drawStadiumRelated].rot = node->rot;
+        fn_800A7D4C(0, &lbl_3_data_17D18.entries[node->slot][drawStadiumRelated]);
+        lbl_3_data_17D18.entries[node->slot][drawStadiumRelated].frame = node->frame;
+        lbl_3_data_17D18.entries[node->slot][drawStadiumRelated].pos.x = node->pos.x;
+        lbl_3_data_17D18.entries[node->slot][drawStadiumRelated].pos.y = node->pos.y;
+        lbl_3_data_17D18.entries[node->slot][drawStadiumRelated].pos.z = node->pos.z;
+        lbl_3_data_17D18.entries[node->slot][drawStadiumRelated].rot = node->rot;
         if (lbl_80366158._28 == 0) {
             node->frame++;
         }
