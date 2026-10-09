@@ -3083,3 +3083,28 @@ void fn_3_BA538(SceneQuad* quad) {
         GXColor1u32(quad->colorBack);
     }
 }
+
+// .text:0x000BA3EC size:0x14C
+void fn_3_BA3EC(void) {
+    return;
+}
+
+// .text:0x000BA268 size:0x184
+void fn_3_BA268(void) {
+    return;
+}
+
+// .text:0x000BA1A0 size:0xC8
+void fn_3_BA1A0(void) {
+    return;
+}
+
+// .text:0x000BA174 size:0x2C
+void fn_3_BA174(void) {
+    return;
+}
+
+// .text:0x000BA150 size:0x24
+void fn_3_BA150(void) {
+    return;
+}

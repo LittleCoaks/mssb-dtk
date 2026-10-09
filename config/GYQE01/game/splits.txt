@@ -33,7 +33,7 @@ game/hud/stadium_draw.c:
 	.bss        start:0x00000018 end:0x00000030
 
 game/ball/ball_physics.c:
-	.text       start:0x00006530 end:0x0000FF4C
+	.text       start:0x00006530 end:0x000102C8
 	.rodata     start:0x00000540 end:0x00000680
 	.data       start:0x00000A18 end:0x00000A38
 
@@ -154,7 +154,7 @@ game/match_setup/roster_init.c:
 	.rodata     start:0x00001188 end:0x00001200
 
 game/pitching/pitcher.c:
-	.text       start:0x0006F6CC end:0x000759BC
+	.text       start:0x0006F4E8 end:0x000759BC
 	.rodata     start:0x00001200 end:0x000012D0
 	.data       start:0x00008088 end:0x000080A8
 	.bss        start:0x00001728 end:0x00001748
@@ -185,7 +185,7 @@ game/baserunning/runner.c:
 	.rodata     start:0x000013B8 end:0x00001508
 
 game/sound/m_sound.c:
-	.text       start:0x0008B258 end:0x00090754
+	.text       start:0x0008B094 end:0x00090754
 	.rodata     start:0x00001508 end:0x00001610
 	.data       start:0x00008148 end:0x00008D88
 	.bss        start:0x00001760 end:0x000017F8
@@ -278,7 +278,7 @@ game/stadium/stadium_framework.c:
 	.bss        start:0x00001900 end:0x00009950
 
 game/animation/scene_effects.c:
-	.text       start:0x000BA538 end:0x000C0810
+	.text       start:0x000BA150 end:0x000C0810
 	.rodata     start:0x00001E08 end:0x00001F58
 	.data       start:0x000111A8 end:0x00017248
 	.bss        start:0x00009950 end:0x00009D20

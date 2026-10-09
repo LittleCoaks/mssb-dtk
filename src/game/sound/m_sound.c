@@ -2030,3 +2030,7 @@ void fn_3_906FC(void) {
     lbl_3_bss_1774[0] = base;
 }
 
+// .text:0x0008B094 size:0x1C4
+void fn_3_8B094(void) {
+    return;
+}

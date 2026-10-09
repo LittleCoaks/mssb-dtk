@@ -3164,3 +3164,23 @@ void initBallAndGameStateOnLoad(void) {
             + (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
+
+// .text:0x0001014C size:0x17C
+void ballPhysica(void) {
+    return;
+}
+
+// .text:0x00010030 size:0x11C
+void fn_3_10030(void) {
+    return;
+}
+
+// .text:0x0000FF98 size:0x98
+void fn_3_FF98(void) {
+    return;
+}
+
+// .text:0x0000FF4C size:0x4C
+void UpdateRandomInts(void) {
+    return;
+}
