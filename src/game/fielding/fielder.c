@@ -50,7 +50,6 @@ extern s16 lbl_3_common_bss_37400[0x27];
 extern f32 ballDistCalculator(f32 x, f32 z);
 extern u8 minigame_getAIDrivenInputInd(void);
 extern int sD_IsBlockedByThwomp(int fielderIndex);
-extern void fieldingRelatedAnimations(void* anim, int state);
 extern void foulBall(void);
 extern void setFielderValues(int characterID, int fielderIndex);
 extern void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex);
@@ -9375,14 +9374,14 @@ void fn_3_3E468(void) {
     g_FieldingLogic.playerAtMoundCutoffLocation = 0;
 
     for (baseIndex = 0; baseIndex < 4; baseIndex++) {
+        int k;
         int best;
         f32 minDist = 9999.9f;
-        int k;
 
         for (k = 0; k < 6; k++) {
             if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
                 f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (d < minDist) {
+                if (minDist > d) {
                     minDist = d;
                     best = k;
                 }
@@ -11795,7 +11794,7 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
     InMemFielder* fielder = &g_Fielders[newFielder];
     InMemFielder* prior;
     int priorSelectedFielder = g_FieldingLogic.selectedFielder;
-    int loc;
+    s16 loc;
     s16 hist;
 
     if (newFielder < 0) {
@@ -14875,7 +14874,7 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
             fielder->runningAngle = -1;
         }
 
-        if (minigamesEnabled) {
+        if (g_d_GameSettings.minigamesEnabled) {
             g_Minigame.minigameRelatedIndex = i;
             fielding_handleCollisionsAndSpecialActions();
         }
