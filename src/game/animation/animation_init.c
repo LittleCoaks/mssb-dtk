@@ -29,14 +29,13 @@ extern u8 *lbl_3_data_1F40[];
 
 // .text:0x000250FC size:0xE8
 void initializeAnimations(void) {
-    int i = 0;
+    int i;
 
-    lbl_3_common_bss_1323C->_25C = i;
-    while (i < VS_ROW_COUNT) {
+    lbl_3_common_bss_1323C->_25C = 0;
+    for (i = 0; i < VS_ROW_COUNT; i++) {
         vsSituations[i]._34 = 0;
         vsSituations[i]._38 = 0;
         vsSituations[i]._3C = 0;
-        i++;
     }
     lbl_3_common_bss_1323C->_27B = 0;
 }

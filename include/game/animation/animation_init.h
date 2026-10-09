@@ -65,7 +65,7 @@ typedef struct AnimScreenState {
     /*0x27B*/ u8 _27B;
     /*0x27C*/ u8 _27C;
     /*0x27D*/ u8 _27D;
-    /*0x27E*/ u8 _27E;
+    /*0x27E*/ s8 _27E;
     /*0x27F*/ u8 _27F;
     /*0x280*/ u8 _280;
     /*0x281*/ u8 _281[0x288 - 0x281];
