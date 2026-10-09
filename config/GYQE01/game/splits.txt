@@ -309,10 +309,12 @@ game/stadium/sta_c0.c:
 game/pitching/perfect_pitch_gfx.c:
 	.text       start:0x000CABB4 end:0x000CB3AC
 	.rodata     start:0x00002308 end:0x00002390
+	.data       start:0x00017D08 end:0x00017DC0
 
 game/pitching/pitcher_fire_effect.c:
 	.text       start:0x000CB3AC end:0x000CB738
 	.rodata     start:0x00002390 end:0x000023E8
+	.data       start:0x00017DC0 end:0x000182C0
 
 game/stadium/stadium_star.c:
 	.text       start:0x000CB738 end:0x000CB8A8
