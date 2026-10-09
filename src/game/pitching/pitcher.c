@@ -4,6 +4,7 @@
  * constant-pool entry 16 bytes past the offsets the linked module has. */
 #define SQRT2_LINKAGE static
 #include "game/pitching/pitcher.h"
+#include "game/match_setup/replay_inputs.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/baserunning/runner.h"
 #include "game/ball/ball_physics.h"

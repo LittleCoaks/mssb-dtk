@@ -24,8 +24,5 @@ StatisticsBatter* getCurrentBatterStats(void);
 StatisticsPitcher* getCurrentPitcherStats(void);
 void fn_3_7BBF8(void);
 void fn_3_7BC0C(void);
-void determineIfReplayShouldPlay(void);
-void fn_3_7C190(void);
-BOOL checkReplaySkipButton(void);
 
 #endif // !__GAME_MATCH_SETUP_STAT_TRACKING_H_

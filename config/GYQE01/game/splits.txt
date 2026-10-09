@@ -152,11 +152,11 @@ game/match_setup/scene_skip.c:
 	.text       start:0x0006C854 end:0x0006CD88
 
 game/match_setup/controller_input.c:
-	.text       start:0x0006CD88 end:0x0006D4A0
+	.text       start:0x0006CD88 end:0x0006D564
 	.rodata     start:0x000010E8 end:0x00001188
 
 game/match_setup/stat_lookups.c:
-	.text       start:0x0006D4A0 end:0x0006D6D4
+	.text       start:0x0006D564 end:0x0006D6D4
 
 game/match_setup/roster_init.c:
 	.text       start:0x0006D6D4 end:0x0006F4E8
@@ -178,12 +178,12 @@ game/baserunning/play_result_tracking.c:
 	.data       start:0x000080E8 end:0x00008110
 
 game/match_setup/stat_tracking.c:
-	.text       start:0x0007976C end:0x0007C1FC
-	.data       start:0x00008110 end:0x00008148
+	.text       start:0x0007976C end:0x0007BC20
 
 game/match_setup/replay_inputs.c:
-	.text       start:0x0007C1FC end:0x0007CE90
+	.text       start:0x0007BC20 end:0x0007CE90
 	.rodata     start:0x00001330 end:0x000013B8
+	.data       start:0x00008110 end:0x00008148
 	.bss        start:0x00001748 end:0x00001760
 
 game/match_setup/replay_state.c:
@@ -203,10 +203,10 @@ game/data_only/data_8D88.c:
 	.data       start:0x00008D88 end:0x0000F448
 
 game/match_setup/character_loading.c:
-	.text       start:0x00090754 end:0x000912B4
+	.text       start:0x00090754 end:0x000910F4
 
 game/hud/rep_1610.c:
-	.text       start:0x000912B4 end:0x0009143C
+	.text       start:0x000910F4 end:0x0009143C
 	.rodata     start:0x00001610 end:0x00001668
 
 game/hud/toyfield_score_update.c:
@@ -223,12 +223,12 @@ game/match_setup/match_scene.c:
 	.rodata     start:0x00001720 end:0x00001770
 
 game/hud/hud_gauges.c:
-	.text       start:0x000993A8 end:0x0009C578
+	.text       start:0x000993A8 end:0x0009C794
 	.rodata     start:0x00001770 end:0x000017E0
 	.data       start:0x0000F4A4 end:0x0000F4E0
 
 game/match_setup/run_scoring.c:
-	.text       start:0x0009C578 end:0x0009CAF0
+	.text       start:0x0009C794 end:0x0009CAF0
 
 game/ball/ball_trajectory.c:
 	.text       start:0x0009CAF0 end:0x0009CD90

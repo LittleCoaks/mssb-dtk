@@ -18,5 +18,6 @@ void draw_ScoreInningHud(void);
 void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node);
 void update_BallStrikeOutHud(void);
 void init_BallStrikeOutHud(void);
+void matchHudDrawingControl(void);
 
 #endif // !__GAME_HUD_HUD_GAUGES_H_

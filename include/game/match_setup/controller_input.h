@@ -5,5 +5,6 @@
 
 void InterpretControllerInputsIntoMagnitude(int port);
 void UpdateControllerInputs(void);
+void resetInputTrackers(void);
 
 #endif // !__GAME_MATCH_SETUP_CONTROLLER_INPUT_H_

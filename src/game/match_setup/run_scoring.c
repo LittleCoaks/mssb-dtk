@@ -7,8 +7,6 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "game/match_setup/pause_menu.h"
 
-extern u8 animRelated[0x124];
-
 // .text:0x0009C794 size:0x35C mapped:0x806DB828
 void runScored(void) {
     int scoringRunners;
@@ -96,54 +94,5 @@ void runScored(void) {
         StatsScreenScores.goAheadRbiWasHit = 1;
     } else {
         StatsScreenScores.goAheadRbiWasHit = 0;
-    }
-}
-
-// .text:0x0009C578 size:0x21C mapped:0x806DB60C
-void matchHudDrawingControl(void) {
-    if (g_GameLogic.hudElementLoadingInd != 0 && animRelated[0xA5] == 0) {
-        animRelated[0xA5] = 1;
-        animRelated[0xA6] = 0;
-        animRelated[0xA7] = 0xFF;
-        insertGraphicDrawingFunction(init_BallStrikeOutHud, 2);
-        insertGraphicDrawingFunction(draw_ScoreInningHud, 2);
-        if (animRelated[0xA8] == 0) {
-            insertGraphicDrawingFunction(draw_initStarGuageHud, 2);
-        }
-        if (g_Batter.chemLinksOnBase != 0) {
-            insertGraphicDrawingFunction(draw_OnBaseChemLinks, 2);
-        }
-    }
-    if (animRelated[0xAC] == 1 && g_GameLogic.FrameCountOfCurrentPitch == 10) {
-        insertGraphicDrawingFunction(HUD_initStarChance, 2);
-        animRelated[0xAC] = 2;
-    }
-    if (animRelated[0xA5] != 0 && animRelated[0xA6] < 0xFF) {
-        if (animRelated[0xA6] < 0xF0) {
-            animRelated[0xA6] += 0x10;
-        } else {
-            animRelated[0xA6] = 0xFF;
-        }
-    }
-    if (animRelated[0xA7] != 0 && animRelated[0xA7] < 0xFF) {
-        if (animRelated[0xA7] <= 0x10) {
-            animRelated[0xA7] = 0;
-            animRelated[0xA5] = 0;
-        } else {
-            animRelated[0xA7] -= 0x10;
-        }
-    } else if (animRelated[0xA5] != 0) {
-        if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_DEFAULT) {
-            if (g_Batter.moonShotInd == 0 || g_Ball.framesSinceHit > 1) {
-                animRelated[0xA7] = 0xF0;
-            }
-        }
-        if (pauseControl._1D5 != 0) {
-            animRelated[0xA7] = 0xF0;
-        }
-    }
-    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION) {
-        animRelated[0xA7] = 0;
-        animRelated[0xA5] = 0;
     }
 }

@@ -7,6 +7,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/camera/camera.h"
+#include "game/match_setup/scene_skip.h"
 #include "game/animation/scene_effects.h"
 #include "game/sound/m_sound.h"
 #include "game/ball/ball_visuals.h"
@@ -175,4 +176,205 @@ void replaceGameStructs_postReplay(int arg) {
     if (lbl_3_bss_1748[0] != 0) {
         sndFXKeyOff(lbl_3_bss_1748[0]);
     }
+}
+
+// .text:0x0007C194 size:0x68 mapped:0x806BB228
+BOOL checkReplaySkipButton(void) {
+    if (g_Stats.playFrameCounter < 0x5A) {
+        return FALSE;
+    }
+    if (g_Stats.playFrameCounter > g_Stats._0028 - 0x3C) {
+        return FALSE;
+    }
+    return checkForButtonPressToSkip(1, 0x1100) != 0;
+}
+
+// .text:0x0007C190 size:0x4 mapped:0x806BB224
+void fn_3_7C190(void) {
+    return;
+}
+
+// .text:0x0007BC20 size:0x570 mapped:0x806BACB4
+void determineIfReplayShouldPlay(void) {
+    s32 reason = 0;
+    int arg = 0;
+    InMemBallType* ball = &g_Ball;
+    inMemStrikes* strikes = &g_Strikes;
+    int result;
+    int count;
+    int count2;
+
+    if (g_GameLogic.freeFieldingPracticeInd != 0) {
+        return;
+    }
+    if (ball->deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
+        reason = 2;
+        if (storedInningInfo.goAheadRunOccurrences != 0) {
+            reason = 9;
+        }
+        if (g_Ball.homeRunClassification == 1) {
+            reason = 0xD;
+        }
+    } else if (g_Scores._C2 != 0) {
+        result = storedInningInfo.abResultTemporary;
+        if (result >= 6 && result <= 10) {
+            reason = 3;
+            if (reason == 3) {
+                InMemRunnerType* runner = &g_Runners[0];
+                if (strikes->outs != 3 && runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY &&
+                    runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DURING_PLAY) {
+                    reason = 4;
+                }
+            }
+            if (ball->fielderWithBallIndexStored2 != 6 && ball->fielderWithBallIndexStored2 != 7 &&
+                ball->fielderWithBallIndexStored2 != 8) {
+                arg = reason;
+                reason = 1;
+            }
+            if (g_pCamera->_AC6 == 3) {
+                arg = reason;
+                reason = 1;
+            }
+        }
+        if (result == 0x11) {
+            if (g_Scores._A6 <= 1) {
+                reason = 5;
+            } else if (g_Scores._A6 <= 1 && g_Scores._pad_AC >= 3) {
+                reason = 5;
+            }
+            if (storedInningInfo.goAheadRunOccurrences != 0) {
+                reason = 0xB;
+            }
+        }
+        result = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total -
+                 g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
+        if (result > 4 || result < -4) {
+            reason = 0;
+        }
+    } else {
+        inMemCamera* cam = g_pCamera;
+        BOOL gameEnding = g_GameLogic.EventTriggers_EndOfGame;
+
+        if (cam->_A50 >= 2) {
+            if (gameEnding) {
+                if (cam->_A98 > 0 &&
+                    (storedInningInfo.abResultTemporary == 0x12 || storedInningInfo.abResultTemporary == 0x13 ||
+                     storedInningInfo.abResultTemporary == 0x1A)) {
+                    reason = 7;
+                } else if (cam->_A98 > 0 && storedInningInfo.abResultTemporary >= 0x14 &&
+                           storedInningInfo.abResultTemporary <= 0x1B) {
+                    reason = 8;
+                }
+            } else {
+                count = 0;
+                if (g_Runners[1].rosterID != -1) {
+                    count = 1;
+                }
+                if (g_Runners[2].rosterID != -1) {
+                    count++;
+                }
+                if (g_Runners[3].rosterID != -1) {
+                    count++;
+                }
+                if (g_Scores._A6 <= 4 && count == 3) {
+                    if (cam->_A98 > 0 &&
+                    (storedInningInfo.abResultTemporary == 0x12 || storedInningInfo.abResultTemporary == 0x13 ||
+                     storedInningInfo.abResultTemporary == 0x1A)) {
+                    reason = 7;
+                } else if (cam->_A98 > 0 && storedInningInfo.abResultTemporary >= 0x14 &&
+                           storedInningInfo.abResultTemporary <= 0x1B) {
+                    reason = 8;
+                }
+                }
+                count2 = 0;
+                if (g_Runners[2].rosterID != -1) {
+                    count2 = 1;
+                }
+                if (g_Runners[3].rosterID != -1) {
+                    count2++;
+                }
+                if (g_Scores._A6 <= count2 && count2 > 0) {
+                    if (cam->_A98 > 0 &&
+                    (storedInningInfo.abResultTemporary == 0x12 || storedInningInfo.abResultTemporary == 0x13 ||
+                     storedInningInfo.abResultTemporary == 0x1A)) {
+                    reason = 7;
+                } else if (cam->_A98 > 0 && storedInningInfo.abResultTemporary >= 0x14 &&
+                           storedInningInfo.abResultTemporary <= 0x1B) {
+                    reason = 8;
+                }
+                }
+            }
+        }
+        result = storedInningInfo.abResultTemporary;
+        if (result >= 0x24 && result <= 0x26 && cam->_A50 == 2) {
+            if (g_GameLogic.EventTriggers_EndOfGame) {
+                reason = 6;
+            } else {
+                count = 0;
+                if (g_Runners[1].rosterID != -1) {
+                    count = 1;
+                }
+                if (g_Runners[2].rosterID != -1) {
+                    count++;
+                }
+                if (g_Runners[3].rosterID != -1) {
+                    count++;
+                }
+                if (g_Scores._A6 <= 4 && count == 3) {
+                    reason = 6;
+                }
+                count2 = 0;
+                if (g_Runners[2].rosterID != -1) {
+                    count2 = 1;
+                }
+                if (g_Runners[3].rosterID != -1) {
+                    count2++;
+                }
+                if (g_Scores._A6 <= count2 && count2 > 0) {
+                    reason = 6;
+                }
+            }
+        }
+    }
+
+    if (reason == 0) {
+        return;
+    }
+    switch (reason) {
+    case 2:
+    case 9:
+        g_Stats.replayReason = 2;
+        break;
+    case 13:
+        g_Stats.replayReason = 0xD;
+        break;
+    case 3:
+    case 10:
+        g_Stats.replayReason = 3;
+        break;
+    case 4:
+        g_Stats.replayReason = 4;
+        break;
+    case 5:
+        g_Stats.replayReason = 5;
+        break;
+    case 6:
+        g_Stats.replayReason = 6;
+        break;
+    case 7:
+        g_Stats.replayReason = 7;
+        break;
+    case 8:
+        g_Stats.replayReason = 1;
+        g_Stats.replayArg = 0;
+        break;
+    case 11:
+        g_Stats.replayReason = 0xB;
+        break;
+    default:
+        g_Stats.replayReason = 1;
+        g_Stats.replayArg = arg;
+        break;
+    }
+    g_Stats.replayPending = 1;
 }

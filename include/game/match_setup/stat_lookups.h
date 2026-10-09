@@ -3,7 +3,6 @@
 
 #include "mssbTypes.h"
 
-void resetInputTrackers(void);
 int getAdjustedPitcherStamina(int team, int rosterID, int flag);
 BOOL checkFieldingStat(int team, int rosterID, int ability);
 int calculateChemistry(int team, int charIdA, int charIdB);

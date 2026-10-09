@@ -2,6 +2,7 @@
 #include "game/match_setup/match_flow.h"
 #include "mem.h"
 #include "Dolphin/rand.h"
+#include "game/match_setup/replay_inputs.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/animation/animation_dispatch.h"
@@ -122,7 +123,6 @@ extern void fn_3_59C2C(void);
 extern void fn_3_59F40(void);
 extern void fn_3_5A28C(void);
 extern void fn_8003BF54(int, int, int, int, int, int, int, int, int);
-extern void resetInputTrackers(void);
 extern void UpdateRandomInts(void);
 extern void practiceSimulation(void);
 extern void toyfieldSimulation(void);
