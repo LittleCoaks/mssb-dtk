@@ -48,9 +48,6 @@ BOOL championshipScreenGraphics(void) {
 // .text:0x0006BA64 size:0x308
 BOOL loadRunnerActors(void) {
     int mode;
-    int secondaryMode;
-    int team;
-    int idx;
     int next;
     int cur;
 
@@ -71,35 +68,32 @@ BOOL loadRunnerActors(void) {
     } while ((u8)hugeAnimStruct[0x2D7A] < 4);
 
     mode = g_d_GameSettings.GameModeSelected;
-    secondaryMode = g_GameLogic.secondaryGameMode;
 
-    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && secondaryMode == 0x10)) {
+    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && g_GameLogic.secondaryGameMode == 0x10)) {
         *(s16*)&animRelated[0x9E] = g_Runners[0].charID;
-    } else if (mode == 2 && secondaryMode == 0xF) {
+    } else if (mode == 2 && g_GameLogic.secondaryGameMode == 0xF) {
         *(s16*)&animRelated[0x9E] = constantList[g_Practice.rosterID];
     }
 
-    team = g_GameLogic.teamBatting;
-    idx = g_GameLogic.homeTeamBattingInd_fieldingTeam;
-    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && secondaryMode == 0x10)) {
-        cur = g_GameLogic.currentBatterPerTeam[idx];
+    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && g_GameLogic.secondaryGameMode == 0x10)) {
+        cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         next = cur + 1;
         if (next > 9) {
             next = 1;
         }
-        *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[team][g_GameLogic.battingOrderAndPositionMapping[idx][next][0]] + 0x24);
-    } else if (mode == 2 && secondaryMode == 0xF) {
-        cur = g_GameLogic.currentBatterPerTeam[idx];
-        *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[team][g_GameLogic.battingOrderAndPositionMapping[idx][cur][0]] + 0x24);
+        *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0]] + 0x24);
+    } else if (mode == 2 && g_GameLogic.secondaryGameMode == 0xF) {
+        cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
+        *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][cur][0]] + 0x24);
     }
 
     if (mode == 0 || mode == 5 || mode == 4) {
-        cur = g_GameLogic.currentBatterPerTeam[idx];
+        cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         next = cur + 1;
         if (next > 9) {
             next = 1;
         }
-        *(s16*)&animRelated[0xA2] = *(s16*)((u8*)&inMemRoster[team][g_GameLogic.battingOrderAndPositionMapping[idx][next][0]] + 0x24);
+        *(s16*)&animRelated[0xA2] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0]] + 0x24);
     }
     return TRUE;
 }
@@ -114,25 +108,28 @@ void matchTransitionFunction2(void) {
                 fn_80011BE4(i + 9);
             }
         }
+    } else if (g_GameLogic.gameStatus == 0xA) {
+        for (i = 1; i < 4; i++) {
+            if (g_RunningLogic.runnerTransferIndex[i] == -1) {
+                fn_80011BE4(i + 9);
+            }
+        }
     } else {
         for (i = 1; i < 4; i++) {
             if (g_RunningLogic.runnerTransferIndex[i] == -1) {
                 fn_80011BE4(i + 9);
             }
         }
-        if (g_GameLogic.gameStatus != 0xA) {
-            if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF)) {
-                fn_80011BE4(9);
-            }
+        if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF)) {
+            fn_80011BE4(9);
         }
     }
 
-    if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF)) {
-        *(void**)&hugeAnimStruct[0x2C74] = NULL;
+    for (i = 9; i < 13; i++) {
+        if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF && i == 9)) {
+            *(void**)&hugeAnimStruct[0x2C50 + i * 4] = NULL;
+        }
     }
-    *(void**)&hugeAnimStruct[0x2C78] = NULL;
-    *(void**)&hugeAnimStruct[0x2C7C] = NULL;
-    *(void**)&hugeAnimStruct[0x2C80] = NULL;
 }
 
 // .text:0x0006B674 size:0x1FC
@@ -151,11 +148,15 @@ void animateShadows_nonBall(void) {
             fn_800BDE8C(1);
         }
     } else {
-        fn_800BDE8C(g_GameLogic.sceneID == 1 ? 2 : 1);
+        if (g_GameLogic.sceneID == 1) {
+            fn_800BDE8C(2);
+        } else {
+            fn_800BDE8C(1);
+        }
     }
 
     for (i = 0; i < 13; i++) {
-        obj = *(u8**)&hugeAnimStruct[0x2C50 + i * 4];
+        obj = ((u8**)&hugeAnimStruct[0x2C50])[i];
         if (obj == NULL) {
             continue;
         }
@@ -166,8 +167,11 @@ void animateShadows_nonBall(void) {
 
         shadowOn = 1;
         if (g_d_GameSettings.minigamesEnabled != 0) {
-            if (g_GameLogic.gameStatus == 0x1F) {
-                shadowOn = 0;
+            if (g_GameLogic.gameStatus == 0x1C || g_GameLogic.gameStatus == 0x1D ||
+                g_GameLogic.gameStatus == 0x1E || g_GameLogic.gameStatus == 0x1F) {
+                if (g_GameLogic.gameStatus == 0x1F) {
+                    shadowOn = 0;
+                }
             }
             if (g_d_GameSettings.GameModeSelected == 6 && g_GameLogic.sceneID == 1 &&
                 ((s8)((u8*)&g_Minigame)[0x18F8 + i]) >= 1) {
@@ -223,17 +227,16 @@ BOOL fn_3_6B4C8(void) {
 
     team = g_d_GameSettings.humanTeamNumber;
     value = *(s32*)((u8*)&Static_Stats_Tables + team * 4 + 0x46E0);
-    if (fn_80016344(value, 12, 1, ((u8*)&Static_Stats_Tables)[team + 0x4709]) == 0) {
-        return FALSE;
-    }
-
-    for (i = 0; i < 9; i++) {
-        u8* obj = *(u8**)&hugeAnimStruct[0x2C50 + i * 4];
-        if ((s8)obj[0x252] == value) {
-            *(u8**)&hugeAnimStruct[0x2C50 + i * 4] = &hugeAnimStruct[0x29D4];
-            *(s32*)&hugeAnimStruct[0x2C80] = 0;
-            break;
+    if (fn_80016344(value, 12, 1, ((u8*)&Static_Stats_Tables)[team + 0x4709]) != 0) {
+        for (i = 0; i < 9; i++) {
+            u8* obj = ((u8**)&hugeAnimStruct[0x2C50])[i];
+            if ((s8)obj[0x252] == *(s32*)((u8*)&Static_Stats_Tables + g_d_GameSettings.humanTeamNumber * 4 + 0x46E0)) {
+                *(u8**)&hugeAnimStruct[0x2C50 + i * 4] = &hugeAnimStruct[0x29D4];
+                *(s32*)&hugeAnimStruct[0x2C80] = 0;
+                break;
+            }
         }
+        return TRUE;
     }
-    return TRUE;
+    return FALSE;
 }
