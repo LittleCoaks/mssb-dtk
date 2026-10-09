@@ -138,6 +138,15 @@ static u8 lbl_3_bss_B85C;
 static f32 lbl_3_bss_B860[13];
 static u8 lbl_3_bss_B894[0x124];
 
+static inline s32 mgFxTableRow(MGParticle* p) {
+    s32 row = 10;
+
+    if (p->_4C == 1) {
+        row = 0;
+    }
+    return row;
+}
+
 static inline void mgInitFollowParticle(MGFollowParticle* p) {
     Vec rot;
 
@@ -3271,7 +3280,6 @@ int fn_3_14737C(MGEffect* effect) {
     MGParticle** link;
     MGParticle* removedTail = NULL;
     u32 alive = 0;
-    s32 idx;
     s32 rampLength;
     s32 duration;
     s32 alpha;
@@ -3310,20 +3318,17 @@ int fn_3_14737C(MGEffect* effect) {
                 } else {
                     scale = 1.0f;
                 }
-                if (p->_4C == 1) {
-                    idx = 0;
-                } else {
-                    idx = 10;
-                }
                 if (rampLength > duration - p->_4A) {
-                    sizeStep = ((f32)lbl_3_data_26E9C[5 + idx] / 100000.0f - (f32)lbl_3_data_26E9C[4 + idx] / 100000.0f) /
+                    sizeStep = ((f32)lbl_3_data_26E9C[5 + mgFxTableRow(p)] / 100000.0f -
+                                (f32)lbl_3_data_26E9C[4 + mgFxTableRow(p)] / 100000.0f) /
                                (f32)rampLength * scale;
-                    alphaStep = (lbl_3_data_26E9C[8 + idx] - lbl_3_data_26E9C[7 + idx]) / rampLength;
+                    alphaStep = (lbl_3_data_26E9C[8 + mgFxTableRow(p)] - lbl_3_data_26E9C[7 + mgFxTableRow(p)]) / rampLength;
                 } else {
                     remaining = duration - rampLength;
-                    sizeStep = ((f32)lbl_3_data_26E9C[6 + idx] / 100000.0f - (f32)lbl_3_data_26E9C[5 + idx] / 100000.0f) /
+                    sizeStep = ((f32)lbl_3_data_26E9C[6 + mgFxTableRow(p)] / 100000.0f -
+                                (f32)lbl_3_data_26E9C[5 + mgFxTableRow(p)] / 100000.0f) /
                                (f32)remaining * scale;
-                    alphaStep = (lbl_3_data_26E9C[9 + idx] - lbl_3_data_26E9C[8 + idx]) / remaining;
+                    alphaStep = (lbl_3_data_26E9C[9 + mgFxTableRow(p)] - lbl_3_data_26E9C[8 + mgFxTableRow(p)]) / remaining;
                 }
                 alpha += alphaStep;
                 if (alpha < 0) {
@@ -3334,11 +3339,7 @@ int fn_3_14737C(MGEffect* effect) {
                 p->_38 += sizeStep;
                 p->_3C = p->_38;
                 p->alphaByte = alpha;
-                if (p->_4C == 1) {
-                    p->origin.y -= 0.0f;
-                } else {
-                    p->origin.y -= 0.05f;
-                }
+                p->origin.y -= (p->_4C == 1) ? 0.0f : 0.05f;
                 p->_4A--;
                 if (p->_4A == 0) {
                     *link = p->next;

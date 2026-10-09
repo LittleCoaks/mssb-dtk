@@ -125,9 +125,13 @@ void matchTransitionFunction2(void) {
         }
     }
 
-    for (i = 9; i < 13; i++) {
-        if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF && i == 9)) {
-            *(void**)&hugeAnimStruct[0x2C50 + i * 4] = NULL;
+    {
+        void** slots = (void**)&hugeAnimStruct[0x2C50];
+
+        for (i = 9; i < 13; i++) {
+            if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF && i == 9)) {
+                slots[i] = NULL;
+            }
         }
     }
 }
