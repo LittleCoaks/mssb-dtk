@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#define ARRAY_COUNT(x) (sizeof(x) / (*(x)))
+#define ARRAY_COUNT(x) (sizeof(x) / sizeof(*(x)))
 #define OFFSET_OF(structName, field) (size_t)(&(((structName*)NULL)->field))
 
 // used to pad structs when there are unused variables/still filling out the struct
