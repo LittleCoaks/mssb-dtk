@@ -81,7 +81,7 @@ game/animation/animation_init.c:
 	.rodata     start:0x00000A78 end:0x00000AC8
 
 game/fielding/fielder.c:
-	.text       start:0x000251E4 end:0x0005985C
+	.text       start:0x000251E4 end:0x00059918
 	.rodata     start:0x00000AC8 end:0x00000CC8
 	.data       start:0x00003C40 end:0x00003D60
 	.bss        start:0x000000C8 end:0x00000200
@@ -110,12 +110,12 @@ game/match_setup/match_flow.c:
 	.data       start:0x00006510 end:0x000065EC
 
 game/animation/animation_dispatch.c:
-	.text       start:0x00060768 end:0x000674E0
+	.text       start:0x00060768 end:0x0006750C
 	.rodata     start:0x00000E08 end:0x00000EA0
 	.data       start:0x000065F0 end:0x00006804
 
 game/ball/ball_visuals.c:
-	.text       start:0x0006750C end:0x0006A160
+	.text       start:0x0006750C end:0x0006A2A4
 	.rodata     start:0x00000EA0 end:0x00000F80
 	.data       start:0x00006820 end:0x000069C0
 	.bss        start:0x00000200 end:0x00001728
@@ -125,7 +125,7 @@ game/batting/star_hit_sprites.c:
 	.rodata     start:0x00000F80 end:0x00000FE0
 
 game/fielding/fielder_orientation.c:
-	.text       start:0x0006AF9C end:0x0006B4C8
+	.text       start:0x0006AEC0 end:0x0006B4C8
 	.rodata     start:0x00000FE0 end:0x00001038
 
 game/match_setup/match_transitions.c:
@@ -136,7 +136,7 @@ game/match_setup/transition_init.c:
 	.rodata     start:0x00001038 end:0x00001090
 
 game/fielding/offence_animation.c:
-	.text       start:0x0006C4D0 end:0x0006C854
+	.text       start:0x0006C410 end:0x0006C854
 	.rodata     start:0x00001090 end:0x000010E8
 
 game/match_setup/scene_skip.c:
@@ -272,7 +272,7 @@ game/ball/foul_detection.c:
 	.rodata     start:0x00001CB8 end:0x00001D58
 
 game/stadium/stadium_framework.c:
-	.text       start:0x000B7FC8 end:0x000BA150
+	.text       start:0x000B7EF0 end:0x000BA150
 	.rodata     start:0x00001D58 end:0x00001E08
 	.data       start:0x00011178 end:0x000111A8
 	.bss        start:0x00001900 end:0x00009950
@@ -307,11 +307,11 @@ game/stadium/sta_c0.c:
 	.bss        start:0x00009F38 end:0x00009FDC
 
 game/pitching/perfect_pitch_gfx.c:
-	.text       start:0x000CABF0 end:0x000CB344
+	.text       start:0x000CABB4 end:0x000CB3AC
 	.rodata     start:0x00002308 end:0x00002390
 
 game/pitching/pitcher_fire_effect.c:
-	.text       start:0x000CB3AC end:0x000CB6B4
+	.text       start:0x000CB3AC end:0x000CB738
 	.rodata     start:0x00002390 end:0x000023E8
 
 game/stadium/stadium_star.c:
@@ -490,7 +490,7 @@ game/animation/actor_transform.c:
 	.data       start:0x000285A8 end:0x00028928
 
 game/minigame/kinoko.c:
-	.text       start:0x0016917C end:0x0016C410
+	.text       start:0x0016917C end:0x0016C548
 	.rodata     start:0x00003FD8 end:0x00004090
 	.data       start:0x00028928 end:0x0002A404
 	.bss        start:0x0000BA00 end:0x0000D6E0
