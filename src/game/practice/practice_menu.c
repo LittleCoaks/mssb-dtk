@@ -884,7 +884,7 @@ void practice_loadCharacterData(void) {
 #pragma dont_inline on
 void practice_loadCharacter(int team, int slot, int character, int flags) {
     if (team == 0 && slot == 0) {
-        *(int*)((u8*)&g_GameLogic + 0x3C) = slot;
+        *(int*)((u8*)&g_GameLogic + team * 0x50 + 0x3C) = slot;
     }
     lineUpInfoStruct[team][slot][0] = slot;
     lineUpInfoStruct[team][slot][1] = slot;

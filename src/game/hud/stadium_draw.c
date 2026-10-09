@@ -283,8 +283,8 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
                   const GXColor* background, u8 alternate) {
     u16* text = screenTextArray.textBanks[0]->strings[textIndex];
     GXTexObj texture;
-    int cursorX = x;
     int cursorY = y;
+    int cursorX = x;
     int value;
     for (;;) {
         value = *text++;
