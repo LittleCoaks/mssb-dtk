@@ -1287,6 +1287,19 @@ extern void fn_8003656C(void* scene, int handle, u32 part, u32 element, int fram
 extern SceneAnimModel* fn_800111D8(SceneActor* actor);
 extern void spline3D_resample(Vec* out, Vec* points, int count, int outCount);
 
+void fn_3_C0810(void);
+void fn_3_C0824(void);
+
+// .text:0x000C0824 size:0x30
+void fn_3_C0824(void) {
+    insertGraphicDrawingFunction(fn_3_C0810, 0xFFFF);
+}
+
+// .text:0x000C0810 size:0x14
+void fn_3_C0810(void) {
+    lbl_3_common_bss_35154.paused = FALSE;
+}
+
 // .text:0x000C07B0 size:0x60 mapped:0x8070A844
 void fn_3_C07B0(void) {
     if (fn_80033928(0x10) != 0 || allocParticleEffect(fn_3_C0134, 0x80, 0, 0, 0, 0x10) != NULL) {
