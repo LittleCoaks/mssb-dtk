@@ -146,6 +146,65 @@ Left unowned on purpose: common `.bss` from `0xD714` (shared globals used by
 almost every unit), the 4-byte alignment gaps, `0x228`
 `FrameCountOfEntireGame` (no clear owner), `0x6804-0x6820` and `0x27EAC`.
 
+### Reorganisation after full `.text` ownership (2026-10-08)
+
+With every game REL `.text` byte owned, each unit was reviewed against what
+its code does. Links in older text above refer to the names before this pass.
+
+Edge functions moved into the adjacent unit they serve (only boundaries
+between link-order neighbours can move; each moved function was already
+100%, and its data either stays global or moves with it):
+
+| functions | from -> to | evidence |
+|---|---|---|
+| `aIPickoff`, `pitcherAIDecidePickoff` (`0x20B30`) | `batter_ai` -> `pitcher_ai` | pitcher pickoff state and `pickOffProb`, also rolled by `pitcherAINewBatter`; no batter rodata |
+| `batterAIRollBuntIntent` (`0x1E3EC`) | `at_bat_setup` -> `batter_ai` | sets the flag `batterAIBuntDecision` reads; shares `lbl_3_data_1C10` with `batterAIRNGValueSetting` |
+| `resetInputTrackers` (`0x6D4A0`) | `stat_lookups` -> `controller_input` | clears `g_Controls` |
+| `determineIfReplayShouldPlay`, `fn_3_7C190`, `checkReplaySkipButton` (`0x7BC20`) + `.data 0x8110` jump table | `stat_tracking` -> `replay_inputs` | replay trigger; the jump table is its switch |
+| `fn_3_910F4`, `fn_3_911A8` (`0x910F4`) | `character_loading` -> `outs_indicator` | outs-lamp update, installed as the per-frame func by `fn_3_912B4` |
+| `matchHudDrawingControl` (`0x9C578`) | `run_scoring` -> `hud_gauges` | only registers `hud_gauges`' own draw functions |
+| `parkPlantsTevSetup`, `drawParkPlants` (`0xE1C60`) | `minigame_fielder_anim` -> `sta_c3` | only data is `sta_c3`'s `parkPlantData` |
+| `loadSomeDataFile`, `someAllocFunction` (`0x106DFC`) | `minigame_framework` -> `camera_script` | camera-script heap and its data file (`cameraDataFileDescriptor`) |
+
+Considered and **rejected** because the data says otherwise: the charge-glow
+tail of `scene_effects.c` (`0xC0134-0xC0854`; its `.bss` is at the *start* of
+`scene_effects`' range and it shares pooled floats with `drawSun`), and the
+Toy Field coin functions at the start of `minigame_fielder_anim.c` (their
+data is shared with `toyFieldInitCoinModels` in the same unit).
+
+Units renamed or re-foldered (link order unchanged):
+
+| was | now |
+|---|---|
+| `math/rep_3090.c` | `camera/camera_script.c` |
+| `hud/rep_1610.c` | `hud/outs_indicator.c` |
+| `baserunning/runner_base_rounding.c` | `math/spline.c` |
+| `data_only/rep_3C80.c` | `ball/ball_contact_burst.c` |
+| `data_only/rep_3C28.c` | `batting/star_swing_bowser.c` |
+| `data_only/rep_3D50.c` | `batting/star_swing_wario_waluigi.c` |
+| `hud/rep_4138.c` | `stadium/stadium_scoreboard_digits.c` |
+| `hud/stadium_draw.c` | `stadium/stadium_draw.c` |
+| `match_setup/rep_0.c` | `match_setup/game_rel_entry.c` |
+| `match_setup/player_control_transition.c` | `practice/player_control_transition.c` |
+| `fielding/fielder_orientation.c` | `animation/defence_animation.c` |
+| `fielding/offence_animation.c` | `animation/offence_animation.c` |
+| `animation/magikoopa_star_anim.c` | `animation/star_sparks.c` |
+| `practice/practice_modes.c` | `practice/batting_fielding_practice.c` |
+| `match_setup/replay_inputs.c`, `replay_state.c` | `replay/` |
+| `match_setup/stat_tracking.c`, `stat_book.c`, `result_stats.c`, `stat_lookups.c`, `run_scoring.c` | `stats/` |
+| `match_setup/star_missions.c` | `challenge/star_missions.c` |
+
+Kept on purpose: `kinoko.c`, `m_sound.c` and `sta_c0/2/4/5/6.c` are original
+filenames (their `OSPanic` `__FILE__` strings are in the binary).
+
+Still open, for a later pass: `fielder.c` (214 KB) probably spans several
+original TUs; count its `repHeaderData` copies before splitting it. Splits
+proposed but not made: the pause UI half of `match_scene.c`
+(`0x978DC-0x993A8`), the home-run celebrations in `versus_screens.c`
+(`0x23890-0x24598`), scout flags out of `star_missions.c` (from `0x163948`).
+`fn_3_1695A4` is declared `(s8 charID, u8 alt)` in `star_dash.c` but defined
+`(void* model, u8 alt)` in `kinoko.c`; the first argument is really a player ID.
+
 Still open, as of 2026-10-08:
 
 | header-only unit(s) | `.text` window | contents |

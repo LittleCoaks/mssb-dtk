@@ -37,130 +37,148 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 
 ---
 
-## ball/ — 6 files, 72 fns (53 named)
+## ball/ — 7 files, 82 fns (59 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `ball_physics.c` | `rep_540` | 40 (32) | 39,452 | Core ball state machine: bounce/roll, air→landed, fair/foul, dead ball, ground-rule double, hit classification, throw-time estimation. | high |
-| `ball_visuals.c` | `rep_EA0` | 15 (9) | 11,348 | Trail effect, spin, animation sub-passes. | high |
-| `foul_detection.c` | `rep_1CB8` | 7 (5) | 1,348 | Foul determination and terrain/fielder catchability tests. | high |
-| `collision_primitives.c` | `rep_D0` | 4 (4) | 2,960 | Bounding boxes, triangles, stadium hazards. | high |
+| `ball_contact_burst.c` | `rep_3C80` | 1 (0) | 556 | Particle burst and emitter at bat-ball contact; sole caller `ball_physics.c`. | med |
 | `ball_fielder_collision.c` | `rep_4090` | 5 (2) | 4,808 | Ball↔fielder collision detection. | med |
+| `ball_physics.c` | `rep_540` | 44 (34) | 40,344 | Core ball state machine: bounce/roll, air→landed, fair/foul, dead ball, ground-rule double, hit classification, throw-time estimation. | high |
 | `ball_trajectory.c` | `rep_17E0` | 1 (1) | 672 | `categorizeBallTrajectory` only. | high |
+| `ball_visuals.c` | `rep_EA0` | 20 (11) | 11,672 | Trail effect, spin, animation sub-passes. | high |
+| `collision_primitives.c` | `rep_D0` | 4 (4) | 2,960 | Bounding boxes, triangles, stadium hazards. | high |
+| `foul_detection.c` | `rep_1CB8` | 7 (7) | 1,348 | Foul determination and terrain/fielder catchability tests. | high |
 
-## batting/ — 6 files, 85 fns (55 named)
+## batting/ — 8 files, 82 fns (57 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `batter.c` | `game_batter` | 28 (27) | 16,184 | Batter at-bat: swing/bunt decisions, contact and hit-type calculation, launch angle and power, star swings. Nearly fully named. | high |
-| `batter_ai.c` | `rep_8C8` + `auto_00_00020A60` | 19 (14) | 10,292 | Swing timing, stick input, ball tracking, RNG; tail: pre-at-bat batter/last-pitch resets, AI pickoff roll and execution (`pitcherAIDecidePickoff`, `aIPickoff`). The tail was folded in because it shares this unit's pooled float constants (`.rodata` 0x930–0x93C). | high |
-| `charge_effects.c` | `rep_1F58` | 12 (2) | 4,316 | Charge animation graphics. | med |
-| `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
-| `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (2) | 2,708 | Peach/Daisy star-swing special case. | med |
 | `at_bat_results.c` | `auto_00_0009CD90` | 17 (13) | 7,508 | At-bat result codes: outs, strikeouts/walks, bunts, forced runners; `setAtBatResult`, `iterateBatter`; array shuffles and weighted random picks. | high |
+| `batter.c` | `game_batter` | 19 (19) | 16,184 | Batter at-bat: swing/bunt decisions, contact and hit-type calculation, launch angle and power, star swings. Nearly fully named. | high |
+| `batter_ai.c` | `rep_8C8` + `auto_00_00020A60` | 18 (16) | 10,052 | Swing timing, stick input, ball tracking, RNG; the pre-at-bat bunt roll (`batterAIRollBuntIntent`) and pre-at-bat batter/last-pitch resets. | high |
+| `charge_effects.c` | `rep_1F58` | 13 (2) | 4,368 | Charge animation graphics. | med |
+| `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
+| `star_swing_bowser.c` | `rep_3C28` | 1 (0) | 212 | Bowser / Bowser Jr. branch of the captain star-swing effect dispatch in `scene_effects.c`: an emitter along the ball path. | med |
+| `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (5) | 2,708 | Peach/Daisy star-swing special case. | med |
+| `star_swing_wario_waluigi.c` | `rep_3D50` | ? | ? | Wario / Waluigi branch of the captain star-swing effect dispatch (garlic effect; reads `warioWaluGarlicIsActive`). | med |
 
-## pitching/ — 5 files, 62 fns (35 named)
+## pitching/ — 5 files, 69 fns (39 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `pitcher.c` | `rep_1200` | 41 (22) | 25,328 | Windup, release, curve, physics constants, pickoffs, count/at-bat reset. | high |
-| `pitcher_ai.c` | `rep_940` | 8 (7) | 3,296 | Pitch selection, curve direction, mound movement. | high |
-| `perfect_pitch_gfx.c` | `rep_2308` | 6 (1) | 1,876 | Perfect-pitch graphics. | med |
-| `pitcher_fire_effect.c` | `rep_2390` | 2 (1) | 776 | Hand-on-fire effect. | med |
+| `perfect_pitch_gfx.c` | `rep_2308` | 8 (1) | 2,040 | Perfect-pitch graphics. | med |
+| `pitcher.c` | `rep_1200` | 42 (23) | 25,812 | Windup, release, curve, physics constants, pickoffs, count/at-bat reset. | high |
+| `pitcher_ai.c` | `rep_940` | 10 (10) | 3,740 | Pitch selection, curve direction, mound movement, and the AI pickoff roll and execution (`pitcherAIDecidePickoff`, `aIPickoff`). | high |
+| `pitcher_fire_effect.c` | `rep_2390` | 4 (1) | 908 | Hand-on-fire effect (`animatePitchersHandOnFire`) and the Mario/Luigi star-swing fire trail (`fn_3_CB538`). | med |
 | `pitcher_stamina.c` | `auto_00_0001D86C` | 5 (4) | 1,612 | Reliever swap on low stamina (`staminaRelated`), lineup copy, `trackLastPitchInfo`, AI urgency tracker. | med |
 
-## baserunning/ — 3 files, 95 fns (56 named)
+## baserunning/ — 2 files, 86 fns (55 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `runner.c` | `rep_13B8` | 78 (48) | 55,544 | Human and AI baserunning: direction input, base rounding, overrun, slide/body-check, position and RBI tracking. | high |
 | `play_result_tracking.c` | `rep_12D0` | 8 (7) | 7,768 | Post-play bookkeeping: stats, errors, forced-out targeting, total bases. | high |
-| `runner_base_rounding.c` | `rep_140` | 9 (1) | 8,496 | Base-rounding position helper. | med |
+| `runner.c` | `rep_13B8` | 78 (48) | 55,544 | Human and AI baserunning: direction input, base rounding, overrun, slide/body-check, position and RBI tracking. | high |
 
-## fielding/ — 4 files, 285 fns (196 named)
+## fielding/ — 2 files, 284 fns (196 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `fielder.c` | `rep_AC8` | 223 (162) | 214,648 | Largest gameplay unit. Fielder behaviour end to end: per-frame movement and position, the 29-entry `autoMovement` dispatch table, fielder selection, catches (dive/run/jump/bobble), throw interception and cutoff positioning, wall jumps and clambers, knockouts, minigame fielding. | high |
+| `fielder.c` | `rep_AC8` | 225 (165) | 214,836 | Largest gameplay unit. Fielder behaviour end to end: per-frame movement and position, the 29-entry `autoMovement` dispatch table, fielder selection, catches (dive/run/jump/bobble), throw interception and cutoff positioning, wall jumps and clambers, knockouts, minigame fielding. | high |
 | `fielder_ai.c` | `rep_18E8` | 59 (31) | 51,548 | Which runner to target, throw-vs-chase, tag plays, throw/run timing estimates. | high |
-| `fielder_orientation.c` | `rep_FE0` | 2 (2) | 1,324 | Orientation + `animateDefence`. | high |
-| `offence_animation.c` | `rep_1090` | 1 (1) | 900 | `animateOffence`. | high |
 
-## camera/ — 1 file, 79 fns (12 named)
+## camera/ — 2 files, 132 fns (19 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `camera.c` | `rep_720` | 79 (12) | 36,024 | All in-match camera work: live-ball tracking, replay cameras, fielder-action zoom, pause-menu angles, Bob-omb Derby camera. | high |
+| `camera.c` | `rep_720` | 76 (13) | 36,024 | All in-match camera work: live-ball tracking, replay cameras, fielder-action zoom, pause-menu angles, Bob-omb Derby camera. | high |
+| `camera_script.c` | `rep_3090` + gap `0xFBD58` (camera scene switching) | 56 (6) | 45,400 | Camera-script interpreter: per-scene camera scripts run as bytecode (`CamScript`/`CTX` state; some opcodes call `animation_init` setups and `scene_effects`), scene switching (`camera_switchScene`, `camera_replay`), filter steps, and the script heap and data-file load (`someAllocFunction`, `loadSomeDataFile`). Formerly misread as transform math. | med |
 
-## animation/ — 4 files, 93 fns (31 named)
-
-| file | was | fns (named) | bytes | purpose | conf |
-|---|---|---|---|---|---|
-| `animation_dispatch.c` | `rep_E08` | 28 (15) | 28,024 | Central dispatcher — per-role entry points for fielder, runner, batter, pitcher, minigame, match. | high |
-| `scene_effects.c` | `rep_1E08` | 47 (12) | 25,144 | Sprites, dust clouds, sun, fireworks, contact-word sprites, pause-state visuals. | med |
-| `magikoopa_star_anim.c` | `rep_3E58` | 11 (2) | 5,652 | Magikoopa animation, star transforms. | med |
-| `actor_transform.c` | `rep_3F60` | 7 (2) | 3,244 | Actor transform/animation update, chemistry-link graphics. | med |
-
-## hud/ — 7 files, 115 fns (23 named)
+## animation/ — 7 files, 128 fns (54 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `hud_scoreboard.c` | `rep_16B8` | 43 (11) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. | high |
-| `hud_gauges.c` | `rep_1770` | 14 (8) | 12,752 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links. | high |
-| `stadium_draw.c` | `rep_1C0` | 14 (3) | 9,564 | Stadium and stadium-object drawing, inning score display. | med |
-| `minigame_hud.c` | `hud/rep_3448` | 38 (1) | 42,920 | The minigame HUD (`minigameGraphics`, `minigameStateLogic`): score panels, timers, intro/result banners and per-minigame icons; 337 `g_Minigame` references. Moved from `hud/` because it sits inside the minigame block. | high |
-| `rep_4138.c` | *(unchanged)* | 3 (0) | 1,972 | Immediate-mode GX primitive drawing (`GXBegin`, vtx/Tev/projection setup). | inferred |
+| `actor_transform.c` | `rep_3F60` | 9 (2) | 3,432 | Actor transform/animation update, chemistry-link graphics. | med |
+| `animation_dispatch.c` | `rep_E08` | 29 (28) | 28,068 | Central dispatcher — per-role entry points for fielder, runner, batter, pitcher, minigame, match. | high |
+| `animation_init.c` | `rep_A78` | 7 (1) | 2,044 | `initializeAnimations` plus the helpers that apply animation setup-table entries; the camera-script VM calls them. | med |
+| `defence_animation.c` | `rep_FE0` | 4 (3) | 1,544 | `animateDefence` (writes `hugeAnimStruct` objects 0–8 for the fielders), `computeAdjustedFielderOrientation`, `resetAnimationFlags`. | high |
+| `offence_animation.c` | `rep_1090` | 6 (4) | 1,092 | `animateOffence`: writes `hugeAnimStruct` objects 9–12 from `g_Runners`; called next to `animateDefence` in the per-frame chain. | high |
+| `scene_effects.c` | `rep_1E08` | 57 (13) | 26,372 | Sprites, dust clouds, sun, fireworks, contact-word sprites, pause-state visuals. | med |
+| `star_sparks.c` | `rep_3E58` | 16 (3) | 7,524 | Star-spark particle effects over a shared template: `fieldingSpawnSpark`/`fieldingRelatedAnimations` (used by fielders and runners), star-swing transforms (`applyStarRelatedTransformations`), and the Magikoopa catch animation. | med |
+
+## hud/ — 6 files, 68 fns (33 named)
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `hud_gauges.c` | `rep_1770` | 15 (9) | 13,292 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links, and `matchHudDrawingControl`, which registers those draws. | high |
+| `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. | high |
+| `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_Strikes.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
 | `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
-| `rep_1610.c` | *(unchanged)* | 1 (0) | 392 | One function calling `setIndicatorSlotState` + `addGraphicsElementToScene`. | inferred |
+| `runner_items.c` | `rep_9B0` | 4 (0) | 708 | Small helpers used by the versus screens and replay (a `VsFadeItem` callback, an `AnimScreenState` setter, fielder roster-slot setup). No HUD drawing; the name is provisional. | inferred |
 | `toyfield_score_update.c` | `rep_1668` + `auto_00_0009143C` | 1 (1) | 228 | `hud_ScoreUpdate_ToyFieldOffScreenPlayers`: queues the off-screen-player and RBI score-update drawing functions. Matching. | high |
 
-## math/ — 2 files, 76 fns (26 named)
+## math/ — 2 files, 34 fns (31 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `game_math.c` | `rep_1838` | 27 (24) | 5,524 | Angle and vector library: short-angle↔radian conversion, `atan2`, normalisation, line intersection, clamping, game RNG. | high |
-| `rep_3090.c` | *(unchanged)* | 49 (2) | 43,444 | Heavy `PSVEC*`/`PSMTX44*` and `memcpy`, no GX calls — transform math rather than rendering. | inferred |
+| `game_math.c` | `rep_1838` | 26 (24) | 5,524 | Angle and vector library: short-angle↔radian conversion, `atan2`, normalisation, line intersection, clamping, game RNG. | high |
+| `spline.c` | `rep_140` | 8 (7) | 8,496 | Generic 2D/3D spline build, resample and evaluate; `running_roundBasePosition` is the baserunning wrapper. Also used by the camera, scene effects and Star Dash. | high |
 
-## sound/ — 1 file, 26 fns (14 named)
-
-| file | was | fns (named) | bytes | purpose | conf |
-|---|---|---|---|---|---|
-| `m_sound.c` | *(unchanged)* | 26 (14) | 19,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
-
-## match_setup/ — 22 files, 174 fns (131 named)
-
-The glue that stands a match up and tears it down — roster construction,
-loading and transition state, controller input, and the screens either side of
-play (versus, championship, home-run trot) — plus the match state machine that
-drives play itself (`match_flow.c`) and its bookkeeping: at-bat and in-play
-stats, results and MVP, and replay record/playback.
+## sound/ — 1 file, 39 fns (19 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `versus_screens.c` | `rep_A00` | 20 (8) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
-| `roster_init.c` | `rep_1188` | 7 (6) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
-| `transition_init.c` | `rep_1038` | 7 (4) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
-| `star_missions.c` | `rep_3DA8` + `auto_00_001658F0` | 20 (13) | 19,160 | Challenge-mode star missions (quantity-based, offensive, whole-game, per-pitch tracking, mercy recruiting) and scout-flag missions (`shouldScoutMissionBeEnabled`, `decideScoutFlagMission`, reward assignment). | high |
-| `stat_book.c` | `rep_3BD8` + `auto_00_0015C5F4` | 11 (11) | 12,160 | Post-game stat book: `compileStatsForBook` (per-player batting/pitching page totals), `drawBookNumbers`, the page/team/scroll state machine (`statBook_init`/`_update`), MVP banner and MVP scoreboard scenes, `animateMVP_GameEnd`. `rep_3BD8` owned only the repHeaderData .rodata block; this code-only gap sits at the matching place in .text order and uses no float constants, so it is that TU's code. | high |
-| `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (15) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
-| `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
-| `controller_input.c` | `rep_10E8` | 2 (2) | 1,816 | Controller input reading and magnitude interpretation. | high |
-| `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
-| `replay_inputs.c` | `rep_1330` | 4 (4) | 3,220 | Replay playback: restore the `g_Stats` snapshot, save live structs, per-frame input playback (`useReplayInputs`). | high |
+| `m_sound.c` | *(unchanged)* | 39 (19) | 22,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
+
+## match_setup/ — 16 files, 139 fns (92 named)
+
+The glue that stands a match up and tears it down — loading and transition state,
+controller input, the versus/championship/home-run screens and pause entry — plus the
+match state machine (`match_flow.c`). Replay, stat bookkeeping and challenge-mode units
+moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
 | `ai_defaults.c` | `rep_868` | 1 (1) | 668 | `setDefaultAIValues`. | high |
-| `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
-| `rep_0.c` | *(unchanged)* | 0 (0) | — | 1268 B of un-decompiled `.text`; calls `memcpy`, `ARAMTransfer`, `maybeUpdateFunctionPointer`. REL entry/setup. | inferred |
+| `at_bat_setup.c` | `auto_00_0001E154` | 3 (3) | 664 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`. | med |
+| `character_loading.c` | gap `0x90754` | 17 (1) | 2,464 | Match-load step functions for character models and animation files, called from `match_loading.c`. | med |
+| `controller_input.c` | `rep_10E8` | 3 (3) | 2,012 | Controller input reading and magnitude interpretation; `resetInputTrackers`. | high |
+| `game_rel_entry.c` | `rep_0` | 0 (0) | — | REL `_prolog`/`_epilog`; a leftover debug mode/stadium picker (`fn_3_258`, whose data still lists Japanese NPB stadium names) and the roster ARAM load (`maybeProcessTeamData`). | med |
+| `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
 | `match_flow.c` | `auto_00_0005985C` | 47 (37) | 24,804 | The match state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, end-of-game and challenge-mode flow. | high |
 | `match_flow_data.c` | `auto_00_0005985C (.data)` | 0 (0) | 0 | Initialised data for `match_flow.c` (challenge coin tables, `CommonUIFiles_matchEnd`, star power costs). Separate unit because the target references each object by symbol. | inferred |
 | `match_loading.c` | `auto_00_0005985C` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
-| `stat_tracking.c` | `auto_00_0007976C` | 23 (17) | 10,896 | In-play stat bookkeeping: pitch counts, total bases, forced outs, save situations, new-inning resets, `initializeStats`, replay trigger (`determineIfReplayShouldPlay`). | high |
-| `result_stats.c` | `auto_00_000759BC` | 6 (5) | 8,024 | Stats per at-bat result, steals/pickoffs, MVP calculation, winning/losing/save pitcher. | high |
-| `replay_state.c` | `auto_00_0007CE90` | 6 (4) | 2,316 | Pre-play snapshot of every game struct into `g_Stats`, last-play stats, per-frame replay input recording. | high |
-| `at_bat_setup.c` | `auto_00_0001E154` | 4 (4) | 868 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`, AI pre-at-bat bunt roll (`batterAIRollBuntIntent`). No shared data ties it to a neighbour, so it is its own unit. | med |
-| `stat_lookups.c` | `auto_00_0006D4A0` | 4 (4) | 564 | Per-player stat lookups: `getAdjustedPitcherStamina`, `checkFieldingStat`, `calculateChemistry`; plus `resetInputTrackers`. | high |
-| `run_scoring.c` | `auto_00_0009C578` | 2 (2) | 1,400 | `runScored` (score, go-ahead/comeback, pitcher runs-allowed bookkeeping) and `matchHudDrawingControl`. | high |
+| `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (14) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
+| `match_transitions.c` | gap `0x6B4C8` | 6 (5) | 2,524 | Transition loaders used by `match_flow`/`versus_screens` (`loadMVPMaybe`, `loadRunnerActors`, `championshipScreenGraphics`) and `animateShadows_nonBall`. | med |
+| `pause_menu.c` | `rep_1A80` | ? | ? | Pause entry and teardown: `match_checkForPause`, `transitionToPauseScreen`, `loadPauseMenu`. | high |
+| `roster_init.c` | `rep_1188` | 7 (7) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
+| `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
+| `transition_init.c` | `rep_1038` | 7 (5) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
+| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
 
-## stadium/ — 9 files, 335 fns (98 named)
+## replay/ — 2 files, 13 fns (10 named)
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `replay_inputs.c` | `rep_1330` | 7 (6) | 4,720 | Replay trigger and playback: `determineIfReplayShouldPlay`, skip button, restore the `g_Stats` snapshot, save live structs, per-frame input playback (`useReplayInputs`). | high |
+| `replay_state.c` | `auto_00_0007CE90` | 6 (4) | 2,316 | Pre-play snapshot of every game struct into `g_Stats`, last-play stats, per-frame replay input recording. | high |
+
+## stats/ — 5 files, 41 fns (35 named)
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `result_stats.c` | `auto_00_000759BC` | 6 (5) | 8,024 | Stats per at-bat result, steals/pickoffs, MVP calculation, winning/losing/save pitcher. | high |
+| `run_scoring.c` | `auto_00_0009C578` | 1 (1) | 860 | `runScored`: score, go-ahead/comeback, pitcher runs-allowed bookkeeping. | high |
+| `stat_book.c` | `rep_3BD8` + `auto_00_0015C5F4` | 11 (11) | 12,160 | Post-game stat book: `compileStatsForBook` (per-player batting/pitching page totals), `drawBookNumbers`, the page/team/scroll state machine (`statBook_init`/`_update`), MVP banner and MVP scoreboard scenes, `animateMVP_GameEnd`. `rep_3BD8` owned only the repHeaderData .rodata block; this code-only gap sits at the matching place in .text order and uses no float constants, so it is that TU's code. | high |
+| `stat_lookups.c` | `auto_00_0006D4A0` | 3 (3) | 368 | Per-player stat lookups: `getAdjustedPitcherStamina`, `checkFieldingStat`, `calculateChemistry`. | high |
+| `stat_tracking.c` | `auto_00_0007976C` | 20 (15) | 9,396 | In-play stat bookkeeping: pitch counts, total bases, forced outs, save situations, new-inning resets, `initializeStats`. | high |
+
+## challenge/ — 1 file, 22 fns (20 named)
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `star_missions.c` | `rep_3DA8` + `auto_00_001658F0` | 22 (20) | 23,384 | Challenge-mode star missions (quantity-based, offensive, whole-game, per-pitch tracking, mercy recruiting) and scout-flag missions (`shouldScoutMissionBeEnabled`, `decideScoutFlagMission`, reward assignment). | high |
+
+## stadium/ — 11 files, 373 fns (120 named)
 
 **The five `sta_c*.c` filenames are CONFIRMED original filenames, not
 inferences.** Each of those units emits its own source filename as an
@@ -185,36 +203,40 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 `stadium_bowser_castle.c` / `stadium_yoshi_park.c` (originally `rep_1FD8` /
 `rep_2998`). If a filename string for either ever turns up, it overrides this.
 
-| file | was | fns (named) | bytes | stadium | conf |
+| file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
+| `sta_c0.c` | `sta_c0` | 8 (4) | 5,232 | Mario Stadium (`loadMarioStadium`, fan animation). | high |
+| `sta_c1.c` | `rep_1FD8` | 49 (14) | 31,256 | Bowser Castle — thwomps, fireballs, star pads, screen shake. Filename inferred from the `sta_c<STADIUM_ID>` pattern. | high (name: inferred) |
 | `sta_c2.c` | `sta_c2` | 88 (23) | 53,608 | Wario Palace — chain chomp state machine, sand/star hazards, haze texture. | high |
-| `sta_c5.c` | `sta_c5` | 71 (23) | 41,796 | DK Jungle — Klaptrap AI (roam/chase/launched), barrel cannon, barrel physics. | high |
-| `sta_c1.c` | `rep_1FD8` | 47 (12) | 31,156 | Bowser Castle — thwomps, fireballs, star pads, screen shake. Filename inferred from the `sta_c<STADIUM_ID>` pattern. | high (name: inferred) |
-| `stadium_framework.c` | `rep_1D58` | 36 (20) | 8,584 | Shared framework: object/hazard loading, bounding boxes, collision triangles, lighting. Used by all stadiums. | high |
-| `sta_c6.c` | `sta_c6` | 30 (2) | 14,184 | Toy Field (`loadToyField`, object collisions). | med |
-| `sta_c3.c` | `rep_2998` | 29 (11) | 14,548 | Yoshi Park — piranha plants (catch/spit/aim), nado. Filename inferred from the `sta_c<STADIUM_ID>` pattern. | high (name: inferred) |
-| `sta_c4.c` | `sta_c4` | 24 (2) | 14,252 | Peach Garden (`loadPeachGarden`). | med |
-| `sta_c0.c` | `sta_c0` | 7 (3) | 4,924 | Mario Stadium (`loadMarioStadium`, fan animation). | high |
+| `sta_c3.c` | `rep_2998` | 32 (15) | 15,388 | Yoshi Park — piranha plants (catch/spit/aim), nado. Filename inferred from the `sta_c<STADIUM_ID>` pattern. Also the park-plant draw (`drawParkPlants`). | high (name: inferred) |
+| `sta_c4.c` | `sta_c4` | 27 (2) | 14,612 | Peach Garden (`loadPeachGarden`). | med |
+| `sta_c5.c` | `sta_c5` | 72 (28) | 42,004 | DK Jungle — Klaptrap AI (roam/chase/launched), barrel cannon, barrel physics. | high |
+| `sta_c6.c` | `sta_c6` | 32 (4) | 14,496 | Toy Field (`loadToyField`, object collisions). | med |
+| `stadium_draw.c` | `rep_1C0` | 14 (3) | 9,564 | Stadium and stadium-object drawing, inning score display. | med |
+| `stadium_framework.c` | `rep_1D58` | 39 (23) | 8,800 | Shared framework: object/hazard loading, bounding boxes, collision triangles, lighting. Used by all stadiums. | high |
+| `stadium_scoreboard_digits.c` | `rep_4138` | 9 (2) | 2,964 | In-stadium scoreboard digits: world-space quads for score, inning and ball/strike/out (`animateScoreBoard`); only Mario Stadium (`sta_c0`) calls it. | med |
 | `stadium_star.c` | `rep_23E8` | 3 (2) | 368 | The stadium star: `stadiumStarAwarded` (called by every hazard stadium — Wario Palace, Peach Garden, DK Jungle, Bowser Castle, Yoshi Park) spawns the star at the hit position, plays the star sound and gives the batting team a star (max 5); `stadiumStarAnimation` drifts and spins it for 80 frames. No filename string in the binary, so the name is descriptive. | high |
 
-## minigame/ — 12 files, 425 fns (56 named)
+## minigame/ — 14 files, 569 fns (303 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `star_dash.c` | `rep_3520` | 69 (5) | 38,288 | Star Dash. | med |
-| `kinoko.c` | `stadium/kinoko.c` | 14 (0) | 11,668 | The power-up ribbon effect: six colour-cycling ribbons trail from a powered-up minigame player's hands, torso, head and feet, plus a pulsing TEV glow layer. Called only by Star Dash and Chain Chomp Sprint. | high |
-| `chain_chomp_sprint.c` | `rep_36D8` | 34 (4) | 21,104 | Chain Chomp Sprint. | med |
-| `piranha_panic.c` | `rep_37A8` | 33 (5) | 21,812 | Piranha Panic. | med |
-| `barrel_batter.c` | `rep_34B0` | 30 (10) | 17,888 | Barrel selection/replacement, hit scoring. | high |
-| `bobomb_derby.c` | `rep_31F0` + 2 fns from `minigame_framework.c` | 28 (9) | 12,016 | Scoring, batter AI (incl. its clear-AI and AI-input routines at `0x1104A8`), pitch transitions, load. | high |
-| `toy_field.c` | `rep_28A8` | 23 (8) | 19,696 | Toy Field gameplay — points, ball state, inning transitions, pause. | high |
-| `wall_ball.c` | `rep_3290` | 13 (7) | 7,164 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
-| `minigame_models.c` | `rep_3310`, then `pitching_machine.c` | 55 (2) | 27,500 | The minigame model layer (`mm_` prefix): loads, updates and unloads every minigame's models (piranhas, Thwomps, fire bars, barrels, blocks, coins, the pitching machine), the shared archive, and the result-code HUD. Only 4 of its functions are pitching-machine specific. | med |
-| `minigame_fielder_anim.c` | `rep_2940` | 4 (1) | 1,924 | Minigame fielder animations. | med |
-| `toy_field_hud.c` | `rep_2BF8` | 1 (1) | 1,552 | Toy Field off-screen character indicator. | high |
-| `minigame_effects.c` | *(unchanged)* | 123 (4) | 68,156 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
+| `barrel_batter.c` | `rep_34B0` | 39 (19) | 21,384 | Barrel selection/replacement, hit scoring. | high |
+| `bobomb_derby.c` | `rep_31F0` + 2 fns from `minigame_framework.c` | 28 (28) | 12,016 | Scoring, batter AI (incl. its clear-AI and AI-input routines at `0x1104A8`), pitch transitions, load. | high |
+| `chain_chomp_sprint.c` | `rep_36D8` | 37 (6) | 21,684 | Chain Chomp Sprint. | med |
+| `kinoko.c` | `stadium/kinoko.c` | 15 (1) | 13,260 | The power-up ribbon effect: six colour-cycling ribbons trail from a powered-up minigame player's hands, torso, head and feet, plus a pulsing TEV glow layer. Called only by Star Dash and Chain Chomp Sprint. | high |
+| `minigame_effects.c` | *(unchanged)* | 125 (5) | 68,304 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
+| `minigame_fielder_anim.c` | `rep_2940` | 9 (8) | 5,624 | Minigame fielder animations, Toy Field coin models, character-select and results fielder placement. | med |
+| `minigame_framework.c` | `rep_31A0` | ? | ? | Shared minigame state machine: mode dispatch on `GAME_STATUS`, character select, stadium load, grand-prix ordering, rankings and coin awards, and the per-minigame constant tables in its `.data`. | high |
+| `minigame_hud.c` | `hud/rep_3448` | 62 (2) | 61,228 | The minigame HUD (`minigameGraphics`, `minigameStateLogic`): score panels, timers, intro/result banners and per-minigame icons; 337 `g_Minigame` references. Moved from `hud/` because it sits inside the minigame block. | high |
+| `minigame_models.c` | `rep_3310`, then `pitching_machine.c` | 55 (55) | 27,500 | The minigame model layer (`mm_` prefix): loads, updates and unloads every minigame's models (piranhas, Thwomps, fire bars, barrels, blocks, coins, the pitching machine), the shared archive, and the result-code HUD. Only 4 of its functions are pitching-machine specific. | med |
+| `piranha_panic.c` | `rep_37A8` | 36 (36) | 22,292 | Piranha Panic. | med |
+| `star_dash.c` | `rep_3520` | 71 (71) | 39,092 | Star Dash. | med |
+| `toy_field.c` | `rep_28A8` | 37 (36) | 31,832 | Toy Field gameplay — points, ball state, inning transitions, pause. | high |
+| `toy_field_hud.c` | `rep_2BF8` | 26 (7) | 20,112 | Toy Field off-screen character indicator. | high |
+| `wall_ball.c` | `rep_3290` | 29 (29) | 13,060 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
 
-## practice/ — 7 files, 112 fns
+## practice/ — 8 files, 103 fns (89 named)
 
 Every practice function is now in a practice unit: menus, the three
 practice modes (batting/fielding, pitching, baserunning, free fielding),
@@ -222,15 +244,16 @@ guided instructions and pause handling, and the scene/HUD code.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `practice_modes.c` | `rep_1AD0` + unassigned `.text` | 28 (27) | 7,920 | Batting and fielding practice state machines, AI input, play setup and completion tracking. | high |
-| `guided_practice.c` | `rep_1B20` + unassigned `.text` | 15 (15) | 7,580 | Guided instructions, practice pause/menu controls, input reset and CPU input playback. | high |
 | `baserunning_practice.c` | `rep_1C68` + unassigned `.text` | 6 (4) | 2,352 | Baserunning practice setup, control, level completion and transition helpers. The contiguous code and header table support this grouping; the original TU boundary is inferred. | med |
-| `practice_menu.c` | `rep_1BC8` + unassigned `.text` | 21 (17) | 8,972 | Practice state reset, character loading, practice screen load, main/sub menu state handling. | med |
-| `pitching_practice.c` | `rep_1C18` + unassigned `.text` | 14 (3) | 4,608 | Pitching practice ball control and state machine. | med |
-| `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
+| `batting_fielding_practice.c` | `rep_1AD0` + unassigned `.text` | 28 (27) | 7,920 | Batting and fielding practice state machines, AI input, play setup and completion tracking. | high |
 | `free_fielding_practice.c` | `rep_3A98` + tail of old `practice_scene.c` | 8 (8) | 2,568 | Free fielding practice: load, switcher, control, memory reset. | high |
+| `guided_practice.c` | `rep_1B20` + unassigned `.text` | 15 (15) | 7,580 | Guided instructions, practice pause/menu controls, input reset and CPU input playback. | high |
+| `pitching_practice.c` | `rep_1C18` + unassigned `.text` | 14 (4) | 4,608 | Pitching practice ball control and state machine. | med |
+| `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
+| `practice_menu.c` | `rep_1BC8` + unassigned `.text` | 11 (10) | 6,804 | Practice state reset, character loading, practice screen load, main/sub menu state handling. | med |
+| `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
-## data_only/ — 14 files, 7 fns
+## data_only/ — 11 files, 11 fns (0 named)
 
 These kept their original names, so there is nothing to look up. The
 exceptions are `data_1880.c`, `data_428C.c`, `data_69C0.c` and `data_8D88.c`,
@@ -251,16 +274,33 @@ with `pause_menu.c`, `practice_modes.c`, `guided_practice.c`, and
 `minigame_framework.c`. `rep_3A48` is now `practice_scene.c`, `rep_3A98`
 `free_fielding_practice.c`, `rep_1BC8` `practice_menu.c`, `rep_1C18`
 `pitching_practice.c`, `rep_1C68` `baserunning_practice.c`, `rep_9B0`
-`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`.
+`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`. `practice_modes.c`
+is now `batting_fielding_practice.c`.
 
-Plus `rep_3B70`, `rep_3C28`, `rep_3C80`, `rep_3CE0`, `rep_3D50`, `rep_3E00`, which
-hold one or two reconstructed functions each. Their matching checkpoints
-track the remaining instruction differences; they are not code-free units.
+Plus `rep_3B70`, `rep_3CE0` and `rep_3E00`, which hold a few reconstructed
+functions each but whose purpose is not yet clear enough for a name or a
+subsystem folder. `rep_3C28`, `rep_3C80` and `rep_3D50` were identified and
+moved out on 2026-10-08 (`batting/star_swing_bowser.c`,
+`ball/ball_contact_burst.c`, `batting/star_swing_wario_waluigi.c`).
 
 A header table alone does not prove that all of a unit's functions were inlined
 or dropped. The unassigned code and section ownership still need to be checked
 before declaring such a unit complete. The folder records current split ownership,
 not a shared gameplay purpose.
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `data_1880.c` | — | 0 (0) | — | Shared AI probability tables, `AnimSetupEntry` table, home-run camera scene IDs and `vsSituations`. | inferred |
+| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants. | inferred |
+| `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
+| `data_8D88.c` | — | 0 (0) | — | Menu, character-select and HUD icon/descriptor tables. | inferred |
+| `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
+| `rep_3CE0.c` | *(unchanged)* | 7 (0) | 3,332 | Fade plus four actor markers sized by character; called from `scene_effects.c` and `minigame_fielder_anim.c`. | inferred |
+| `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |
+| `rep_CC8.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
+| `rep_D18.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
+| `rep_D68.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
+| `rep_DB8.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
 
 ## src/menus — the menu REL
 
@@ -611,7 +651,7 @@ already here.
 ## Where the unfinished work actually is
 
 Ranked by un-decompiled bytes in files that contain code, the largest gaps are
-`minigame/minigame_effects.c` (123 fns, 4 named), `math/rep_3090.c` (49/2),
+`minigame/minigame_effects.c` (123 fns, 4 named), `camera/camera_script.c` (56/6),
 `minigame/minigame_hud.c` (38/1), `minigame/minigame_models.c` (55/2) and
 `minigame/star_dash.c` (69/5).
 
