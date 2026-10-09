@@ -73,9 +73,25 @@ Done so far with this method:
 | `rep_1B20` | `0xB1CB0-0xB3A4C` | `practice/guided_practice.c` |
 | `rep_31A0` | `0x106DFC-0x110634` | `minigame/minigame_framework.c` |
 | `rep_1C68` | `0xB707C-0xB79AC` | `practice/baserunning_practice.c` (grouping supported by names/call graph and section order; original TU boundary inferred) |
+| `rep_1BC8` | `0xB3B70-0xB5E7C` | `practice/practice_menu.c` (owns the four jump tables at `.data 0x10A08-0x10A90`) |
+| `rep_1C18` | `0xB5E7C-0xB707C` | `practice/pitching_practice.c` (owns the jump table at `.data 0x10A90`; boundary after `practiceMenu`, where the pitching-practice state references begin) |
+| `rep_3A98` | `0x15AD94-0x15B79C` | `practice/free_fielding_practice.c`, split off the tail of `practice_scene.c` (owns the three jump tables at `.data 0x26F00-0x26F78`) |
 
 By rule 2, gap `0x20A60-0x20CEC` was folded into `batting/batter_ai.c`,
 since it shares batter_ai's pooled constants at `.rodata` 0x930-0x93C.
+
+Boundary fixes from the 2026-10-08 gap review (every function's local
+`.rodata`/`.data`/`.bss` references were checked against its unit; only
+`fn_3_C1930` disagreed):
+
+- `0x1104A8-0x110634` (`minigameClearAIControlled`, `unusedBattingSomething`)
+  moved from `minigame_framework.c` to the start of `bobomb_derby.c`.
+  bobomb_derby already inlines both bodies, and every minigame TU opens with
+  its own clear-AI routine (cf. `wallBallClearAIControlled`).
+- Gap `0x1608F0-0x161588` (`starMissionsMinigamesSpecialAction`,
+  `starMissionsMinigamesTotalPoints`) folded into `match_setup/star_missions.c`.
+- Gap `0xC1930-0xC1964` (`fn_3_C1930`) folded into `batting/charge_effects.c`;
+  it references charge_effects' `.data` 0x17260.
 
 Still open, as of 2026-10-08:
 
@@ -83,8 +99,6 @@ Still open, as of 2026-10-08:
 |---|---|---|
 | `rep_9B0` | `0x219CC-0x21C90` | 4 fns, runner drawing items |
 | `rep_A78` | `0x249E8-0x251E4` | 7 fns incl. `initializeAnimations` |
-| `rep_1BC8`, `rep_1C18` | `0xB3B70-0xB707C` | 35 fns: practice menus and pitching practice; 2 TUs |
-| `rep_3A48`, `rep_3A98` | `0x157E28-0x15B79C` | 28 fns currently assigned to `practice/practice_scene.c` via `rep_3A48`; likely 20 HUD/menu functions followed by 8 free-fielding functions belonging to `rep_3A98`. The latter reference all three jump tables at `.data 0x26F00-0x26F78`. Exact TU boundary still needs verification. |
 | `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` | `0x5985C` gap (2 fns) plus, by position, part of `fielding/fielder.c` | 4 TUs sit between fielder.c's rodata and match_loading's, so `fielder.c`'s 214 KB `.text` range probably spans several original TUs |
 
 Where several header-only units share one window, split the window at

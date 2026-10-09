@@ -206,7 +206,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `chain_chomp_sprint.c` | `rep_36D8` | 34 (4) | 21,104 | Chain Chomp Sprint. | med |
 | `piranha_panic.c` | `rep_37A8` | 33 (5) | 21,812 | Piranha Panic. | med |
 | `barrel_batter.c` | `rep_34B0` | 30 (10) | 17,888 | Barrel selection/replacement, hit scoring. | high |
-| `bobomb_derby.c` | `rep_31F0` | 26 (9) | 11,620 | Scoring, batter AI, pitch transitions, load. | high |
+| `bobomb_derby.c` | `rep_31F0` + 2 fns from `minigame_framework.c` | 28 (9) | 12,016 | Scoring, batter AI (incl. its clear-AI and AI-input routines at `0x1104A8`), pitch transitions, load. | high |
 | `toy_field.c` | `rep_28A8` | 23 (8) | 19,696 | Toy Field gameplay — points, ball state, inning transitions, pause. | high |
 | `wall_ball.c` | `rep_3290` | 13 (7) | 7,164 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
 | `minigame_models.c` | `rep_3310`, then `pitching_machine.c` | 55 (2) | 27,500 | The minigame model layer (`mm_` prefix): loads, updates and unloads every minigame's models (piranhas, Thwomps, fire bars, barrels, blocks, coins, the pitching machine), the shared archive, and the result-code HUD. Only 4 of its functions are pitching-machine specific. | med |
@@ -214,26 +214,27 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `toy_field_hud.c` | `rep_2BF8` | 1 (1) | 1,552 | Toy Field off-screen character indicator. | high |
 | `minigame_effects.c` | *(unchanged)* | 123 (4) | 68,156 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
 
-## practice/ — 4 files, 77 fns (74 named)
+## practice/ — 7 files, 112 fns
 
-The dedicated practice units now cover batting and fielding modes, guided
-instructions and pause handling, baserunning practice, and practice scene/HUD
-updates. The unassigned practice menu and pitching groups remain listed in
-[the split inventory](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
+Every practice function is now in a practice unit: menus, the three
+practice modes (batting/fielding, pitching, baserunning, free fielding),
+guided instructions and pause handling, and the scene/HUD code.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `practice_modes.c` | `rep_1AD0` + unassigned `.text` | 28 (27) | 7,920 | Batting and fielding practice state machines, AI input, play setup and completion tracking. | high |
 | `guided_practice.c` | `rep_1B20` + unassigned `.text` | 15 (15) | 7,580 | Guided instructions, practice pause/menu controls, input reset and CPU input playback. | high |
 | `baserunning_practice.c` | `rep_1C68` + unassigned `.text` | 6 (4) | 2,352 | Baserunning practice setup, control, level completion and transition helpers. The contiguous code and header table support this grouping; the original TU boundary is inferred. | med |
-| `practice_scene.c` | `rep_3A48` + unassigned `.text` | 28 (28) | 14,708 | Practice instructions, goal HUD and scene updates, currently including an eight-function free-fielding tail that may belong to `rep_3A98`. | high |
+| `practice_menu.c` | `rep_1BC8` + unassigned `.text` | 21 (17) | 8,972 | Practice state reset, character loading, practice screen load, main/sub menu state handling. | med |
+| `pitching_practice.c` | `rep_1C18` + unassigned `.text` | 14 (3) | 4,608 | Pitching practice ball control and state machine. | med |
+| `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
+| `free_fielding_practice.c` | `rep_3A98` + tail of old `practice_scene.c` | 8 (8) | 2,568 | Free fielding practice: load, switcher, control, memory reset. | high |
 
 ## data_only/ — 15 files, 7 fns
 
 These kept their original names, so there is nothing to look up.
 
-As of 2026-10-08, `rep_1BC8`, `rep_1C18`,
-`rep_3A98`, `rep_9B0`, `rep_A78`,
+As of 2026-10-08, `rep_9B0`, `rep_A78`,
 `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
 **no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
 (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
@@ -245,9 +246,9 @@ same position: see [Game REL: pairing header-only units with un-split
 this folder (`stat_book.c`, `match_scene.c`, `toyfield_score_update.c`).
 The latest main also pairs `rep_1A80`, `rep_1AD0`, `rep_1B20`, and `rep_31A0`
 with `pause_menu.c`, `practice_modes.c`, `guided_practice.c`, and
-`minigame_framework.c`. `rep_3A48` is now `practice_scene.c`; its 28-function
-range may still include the free-fielding code belonging to `rep_3A98`.
-`rep_1C68` is now `practice/baserunning_practice.c`, covering `0xB707C-0xB79AC`.
+`minigame_framework.c`. `rep_3A48` is now `practice_scene.c`, `rep_3A98`
+`free_fielding_practice.c`, `rep_1BC8` `practice_menu.c`, `rep_1C18`
+`pitching_practice.c` and `rep_1C68` `baserunning_practice.c`.
 
 Plus `rep_3B70`, `rep_3C28`, `rep_3C80`, `rep_3CE0`, `rep_3D50`, `rep_3E00`, which
 hold one or two reconstructed functions each. Their matching checkpoints
