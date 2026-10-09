@@ -66,7 +66,8 @@ game/pitching/pitcher_ai.c:
 	.text       start:0x00020CEC end:0x000219CC
 	.rodata     start:0x00000940 end:0x000009B0
 
-game/data_only/rep_9B0.c:
+game/hud/runner_items.c:
+	.text       start:0x000219CC end:0x00021C90
 	.rodata     start:0x000009B0 end:0x00000A00
 
 game/match_setup/versus_screens.c:
@@ -75,7 +76,8 @@ game/match_setup/versus_screens.c:
 	.data       start:0x00003A40 end:0x00003C40
 	.bss        start:0x00000098 end:0x000000C8
 
-game/data_only/rep_A78.c:
+game/animation/animation_init.c:
+	.text       start:0x000249E8 end:0x000251E4
 	.rodata     start:0x00000A78 end:0x00000AC8
 
 game/fielding/fielder.c:
@@ -125,6 +127,9 @@ game/batting/star_hit_sprites.c:
 game/fielding/fielder_orientation.c:
 	.text       start:0x0006AF9C end:0x0006B4C8
 	.rodata     start:0x00000FE0 end:0x00001038
+
+game/match_setup/match_transitions.c:
+	.text       start:0x0006B4C8 end:0x0006BEA4
 
 game/match_setup/transition_init.c:
 	.text       start:0x0006BEA4 end:0x0006C410
@@ -184,6 +189,9 @@ game/sound/m_sound.c:
 	.rodata     start:0x00001508 end:0x00001610
 	.data       start:0x00008148 end:0x00008D88
 	.bss        start:0x00001760 end:0x000017F8
+
+game/match_setup/character_loading.c:
+	.text       start:0x00090754 end:0x000912B4
 
 game/hud/rep_1610.c:
 	.text       start:0x000912B4 end:0x0009143C
@@ -355,6 +363,9 @@ game/stadium/sta_c4.c:
 	.data       start:0x0001BA88 end:0x0001C0A8
 	.bss        start:0x0000B570 end:0x0000B678
 
+game/camera/camera_scene.c:
+	.text       start:0x000FBD58 end:0x000FC448
+
 game/math/rep_3090.c:
 	.text       start:0x000FC448 end:0x00106DFC
 	.rodata     start:0x00003090 end:0x000031A0
@@ -473,6 +484,9 @@ game/animation/magikoopa_star_anim.c:
 	.text       start:0x001666B0 end:0x00167CC4
 	.rodata     start:0x00003E58 end:0x00003F60
 	.bss        start:0x0000B9E0 end:0x0000BA00
+
+game/animation/fielding_animations.c:
+	.text       start:0x00167CC4 end:0x00168414
 
 game/animation/actor_transform.c:
 	.text       start:0x00168414 end:0x0016917C
