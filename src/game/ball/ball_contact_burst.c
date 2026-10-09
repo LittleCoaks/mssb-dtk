@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep3C80
+#define REP_HEADER_DATA_FN getRepHeaderData_ballContactBurst
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"

@@ -3,12 +3,12 @@
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
-#include "game/math/rep_3090.h"
+#include "game/camera/camera_script.h"
 #include "game/math/game_math.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
 #include "game/ball/collision_primitives.h"
-#include "game/baserunning/runner_base_rounding.h"
+#include "game/math/spline.h"
 #include "Unknown/File_0x80052734.h"
 
 typedef struct {

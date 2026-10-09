@@ -2,7 +2,7 @@
 #include "game/hud/toyfield_score_update.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
-#include "game/hud/rep_1610.h"
+#include "game/hud/outs_indicator.h"
 #include "game/hud/hud_scoreboard.h"
 #include "Unknown/File_0x800b0a14.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_toyfieldScoreUpdate

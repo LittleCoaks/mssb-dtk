@@ -1,4 +1,4 @@
-#include "game/fielding/offence_animation.h"
+#include "game/animation/offence_animation.h"
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_offenceAnimation
 #include "header_rep_data.h"

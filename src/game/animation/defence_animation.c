@@ -1,5 +1,5 @@
-#include "game/fielding/fielder_orientation.h"
-#define REP_HEADER_DATA_FN getRepHeaderData_fielderOrientation
+#include "game/animation/defence_animation.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_defenceAnimation
 #include "header_rep_data.h"
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"

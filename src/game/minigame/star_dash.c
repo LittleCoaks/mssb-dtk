@@ -11,7 +11,7 @@
 #include "game/match_setup/roster_init.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/baserunning/runner.h"
-#include "game/baserunning/runner_base_rounding.h"
+#include "game/math/spline.h"
 #include "game/ball/ball_physics.h"
 #include "game/ball/collision_primitives.h"
 #include "game/fielding/fielder.h"

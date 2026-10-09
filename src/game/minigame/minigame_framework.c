@@ -46,7 +46,7 @@
 #include "Unknown/File_0x800628d4.h"
 #include "Unknown/File_0x800a70dc.h"
 #include "Unknown/File_0x800a7568.h"
-#include "game/math/rep_3090.h"
+#include "game/camera/camera_script.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/sub.h"

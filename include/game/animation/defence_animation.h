@@ -1,5 +1,5 @@
-#ifndef __GAME_FIELDING_FIELDER_ORIENTATION_H_
-#define __GAME_FIELDING_FIELDER_ORIENTATION_H_
+#ifndef __GAME_ANIMATION_DEFENCE_ANIMATION_H_
+#define __GAME_ANIMATION_DEFENCE_ANIMATION_H_
 
 #include "mssbTypes.h"
 
@@ -8,4 +8,4 @@ void animateDefence(void);
 void resetAnimationFlags(void);
 void fn_3_6AEC0(void);
 
-#endif // !__GAME_FIELDING_FIELDER_ORIENTATION_H_
+#endif // !__GAME_ANIMATION_DEFENCE_ANIMATION_H_

@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/match_setup/player_control_transition.h"
+#include "game/practice/player_control_transition.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_playerControlTransition
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"

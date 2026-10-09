@@ -4,7 +4,7 @@
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
-#include "game/fielding/fielder_orientation.h"
+#include "game/animation/defence_animation.h"
 #include "game/batting/star_hit_sprites.h"
 #include "game/ball/ball_visuals.h"
 #include "game/math/game_math.h"

@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/baserunning/runner.h"
 #include "header_rep_data.h"
-#include "game/baserunning/runner_base_rounding.h"
+#include "game/math/spline.h"
 #include "game/fielding/fielder.h"
 #include "game/math/game_math.h"
 #include "game/ball/collision_primitives.h"

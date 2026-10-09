@@ -1,4 +1,4 @@
-#include "game/hud/rep_1610.h"
+#include "game/hud/outs_indicator.h"
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -8,7 +8,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80034cec.h"
 extern u8 animRelated[0x124];
-#define REP_HEADER_DATA_FN getRepHeaderData_rep1610
+#define REP_HEADER_DATA_FN getRepHeaderData_outsIndicator
 #include "header_rep_data.h"
 
 extern UIRecordDescriptor lbl_3_data_D5B8[];

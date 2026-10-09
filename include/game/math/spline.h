@@ -1,5 +1,5 @@
-#ifndef __GAME_BASERUNNING_RUNNER_BASE_ROUNDING_H_
-#define __GAME_BASERUNNING_RUNNER_BASE_ROUNDING_H_
+#ifndef __GAME_MATH_SPLINE_H_
+#define __GAME_MATH_SPLINE_H_
 
 #include "mssbTypes.h"
 #include "game/UnknownHomes_Game.h"
@@ -14,4 +14,4 @@ void spline3D_evaluate(Vec* out, Vec* points, int count, f32 t);
 void fn_3_2D6C(Vec* out, void* list, int outCount);
 void spline3D_resample(Vec* out, Vec* points, int count, int outCount);
 
-#endif // !__GAME_BASERUNNING_RUNNER_BASE_ROUNDING_H_
+#endif // !__GAME_MATH_SPLINE_H_

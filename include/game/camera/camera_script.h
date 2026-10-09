@@ -1,5 +1,5 @@
-#ifndef __GAME_MATH_REP_3090_H_
-#define __GAME_MATH_REP_3090_H_
+#ifndef __GAME_CAMERA_CAMERA_SCRIPT_H_
+#define __GAME_CAMERA_CAMERA_SCRIPT_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/vec.h"
@@ -219,4 +219,4 @@ void fn_3_106BA0(void);
 BOOL loadSomeDataFile(void);
 void someAllocFunction(void);
 
-#endif // !__GAME_MATH_REP_3090_H_
+#endif // !__GAME_CAMERA_CAMERA_SCRIPT_H_

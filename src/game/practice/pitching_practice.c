@@ -17,7 +17,7 @@
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
 #include "game/match_setup/roster_init.h"
-#include "game/match_setup/player_control_transition.h"
+#include "game/practice/player_control_transition.h"
 #include "Unknown/File_0x800204cc.h"
 
 extern u8 animRelated[0x124];

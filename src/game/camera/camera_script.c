@@ -1,5 +1,5 @@
 #define SQRT2_LINKAGE static
-#include "game/math/rep_3090.h"
+#include "game/camera/camera_script.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800a70dc.h"
 #include "Unknown/File_0x800acf14.h"
@@ -15,7 +15,7 @@
 #include "Unknown/File_0x800b2c44.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800b0a14.h"
-#define REP_HEADER_DATA_FN getRepHeaderData_rep_3090
+#define REP_HEADER_DATA_FN getRepHeaderData_cameraScript
 #include "header_rep_data.h"
 
 // A tracked object in the 0x2C50 object table of hugeAnimStruct.
