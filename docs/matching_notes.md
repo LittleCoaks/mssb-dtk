@@ -3210,3 +3210,44 @@ functions. These lessons are not specific to one file:
   module's `symbols:` pointed at an edited copy, run `dtk dol split <copy> <out>`, and score with
   a throwaway `objdiff.json` (`build_target`/`build_base` false). Keep the copy under `build/`:
   from the system temp directory the split failed an unrelated `rep_0010` rodata-size check.
+
+### Debug REL batch 2 first passes (rep_0010, rep_00B0, rep_0250, rep_02A8)
+
+- **objdiff pairs `.data`/`.bss` symbols and relocations by address, not by name, but the
+  symbol has to START at the same address.** `rep_7BF0`'s statics had descriptive names
+  (`gDebugMenu`, ...) and scored `.data` 0%, with seven byte-identical functions at 99.x%.
+  Moving the dtk labels in symbols.txt onto the real object boundaries, while keeping the
+  `lbl_1_data_*` names, took `.data` to 100% and the functions to 100%. So if a function is
+  byte-identical but scores under 100% on data relocations, fix the label boundaries.
+- **dtk labels at odd addresses with size 3 are usually a pad byte plus a 2-byte object.**
+  `lbl_1_data_FBD` (rep_0250) and `lbl_1_data_1CA1` (rep_02A8) became `FBE`/`1CA2` size 0x2.
+  Defining the pad as a zero object moves it to `.bss` and shifts everything after it.
+- **The data pool base is the section's first static, and MWCC pools only when a function
+  references about three or more distinct statics.** One big struct, or non-static globals,
+  give `lis/addi` per access. A `u32[4]` that forced a second base register had to become
+  four scalars (`rep_02A8`).
+- **`.bss` statics pack tightly in reverse declaration order with no alignment fill.** Fill
+  gaps with `u8`/`u16` pad statics. Pad arrays get 4-byte aligned (`rep_0250`).
+- **Loop shapes:**
+  - `subic.`/`bne` with no entry test is `do { } while (--n)`.
+  - A `ctr` loop unrolled by `(n+1)>>2` behind `cmpwi n,0; blt` is
+    `for (i = n; i >= 0; i--)`. The up-counting form unrolls by 8 and was about 450 bytes
+    larger (`rep_0010`).
+  - A plain `for` with a constant trip count was fully unrolled.
+- **Local arrays make MWCC hoist `&arr[k]` into callee-saved registers at entry. Separate
+  scalars don't.** `Vec t[3]` instead of three `Vec`s took `rep_00B0` `fn_1_4A24` from 74% to
+  91%.
+- **Switch shape follows the case labels exactly.** Empty `case` labels reproduce a
+  binary-search tree, and a spurious extra case changes it. Stacked `case 1:`...`case 9:`
+  give a range test.
+- **A `SND_FXID` argument wants a `u16` local:** `u16 id = tbl[i / 13] + i % 13; fn(id);`.
+  `s32`, `u32` and a direct expression all missed (`rep_02A8` Voice screens, 92% to 100%).
+- **Decrement then signed test of a `u8` static needs two statements:**
+  `x--; if ((s8)x < 0) x = N;`. `if ((s8)--x < 0)` puts the `extsb` before the `stb`.
+- **Unowned `.text` gaps in the debug REL.** These ranges are in no unit's split:
+  0x1538-0x19AC, 0x4DD8-0x4E98, 0x85A8-0x8CD4, 0x9EA0-0xA2E4, 0xC2A4-0xC5AC,
+  0x17EFC-0x182C0, 0x1D590-0x1D694 and 0x26AF8-0x26B7C. Evidence so far:
+  - 0x85A8-0x8CD4 only references `rep_0250`'s `.data` (`skyPanoramaFileDescriptorDebug`).
+  - 0x9EA0-0xA2E4 and 0xC2A4-0xC5AC use `rep_02A8`'s data and functions.
+  - A static in a unit that a gap function references blocks that unit's flip until the gap
+    joins it.
