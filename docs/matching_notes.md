@@ -384,8 +384,12 @@ both now solved:
    yd_step.c with `-inline auto` emits source order; with `-inline deferred`
    emits exact reverse source order. **Fix: write the function definitions in
    the .c file in reverse address order** (highest `.text` offset first).
-   Codegen is unaffected (see previous section — order is a codegen no-op),
-   so the match stays 100%. This applies to every REL unit (menus/game/
+   Instruction codegen is unaffected (see previous section), but the
+   literal pool is not: MWCC lays out `@N` float/string constants in
+   code-generation order, so in a unit with literals the reversal can change
+   `.rodata` order (in `debug/rep_7A28` it fixed five 99.x% functions).
+   Reverse the order while drafting, not just before the flip, and keep
+   `static inline` helpers above their callers when you reorder. This applies to every REL unit (menus/game/
    debug use cflags_rel); DOL-side units don't use `-inline deferred`.
 
 2. **dtk's synthetic string-literal symbols trigger harmless linker
@@ -3164,3 +3168,45 @@ functions. These lessons are not specific to one file:
   combined helper did not.
 - **Read float constants from their bit pattern.** A limit that looked like `3.1384f` was
   0x4048DD97 (3.1385248f) in the target. The rounded literal produced different `.rodata` bits.
+
+### Second-pass (Opus) findings on the same files
+
+`rep_7978` and `rep_7A28` were matched and flipped. `rep_7BF0`'s bytes match except
+`fn_1_29A9C` (91.70%, GPR numbering in the `fn_80037768` argument setup).
+
+- **A power-of-two reciprocal that comes out first in `fmuls` should be written as `x / 2^n`.**
+  `x * 0.0078125f` puts the constant first and pools it early. `x / 128.f` is rewritten by
+  MWCC into a value-first multiply and pools the reciprocal late. That fixed both the operand
+  order and the `.rodata` order (PI, 180, 1/128, 60) in `rep_7978` `fn_1_26D28` and
+  `rep_7BF0` `fn_1_2858C`. Keep the grouping, e.g. `x / 128.f / 60.f`. This extends the
+  `x / 2` -> `fmuls x, 0.5` note to any 2^-n.
+- **`extrwi` + `xoris r0,r0,0x8000` before an int-to-float conversion means a signed int.**
+  `(u32 >> n) & 1` converts as unsigned and leaves out the `xoris`. Both
+  `(s32)((v >> n) & 1)` and `((v & INPUT_BUTTON_X) != 0)` match, and the second form uses
+  the enum.
+- **A pool-name mismatch (`@N` vs `lbl_*_rodata_*`) is usually a pool-order problem.**
+  objdiff pairs relocations by target address + addend and ignores names and binding.
+  `scope:local` doesn't change the score, though it still silences FORCEACTIVE warnings.
+  The other side of this: `X+8` vs a separate symbol `Y` at the same address is a mismatch,
+  so data symbols have to start where the code's base + offset pattern says.
+- **Scheduling can reveal the data shape.** If loads and stores are right but ordered
+  differently, check whether the target treats a run of dtk-split `.data` symbols as one
+  object. Stores into one known object let MWCC hoist an unrelated load above them. Separate
+  objects or a cast pointer don't. `rep_7A28` needed 41 dtk symbols merged into
+  `DbgTexEntry lbl_1_data_10908[3]` for `fn_1_27560`/`fn_1_28118`.
+- **An extra `addi rX,rBase,0` before a field load means the target pooled the file's
+  statics.** MWCC pools behind one base register only when a function references enough
+  distinct statics (two weren't enough in `rep_7BF0` `fn_1_28CE8`, four were). Splitting a
+  composite static into separate statics can turn pooling on.
+- **One `lbz` but two `extsb` means a signed byte field read twice through an `s8 *`.** The
+  load is CSE'd but the conversions aren't. A `(s8)x` cast written twice does get CSE'd
+  (`rep_7BF0` `fn_1_28AE0`).
+- **Arguments set up before a branch that computes another argument** point to a
+  `static inline` helper whose parameters were bound first (`rep_7BF0` `fn_1_2948C`).
+- **Inputs loaded into volatile registers and copied with `mr` to callee-saved ones** mean the
+  source masked the copies in place (`v &= ~m`) and re-read the global, rather than
+  `v = in & ~m` from a local.
+- **Testing a symbols.txt change without touching the shared file:** copy `config.yml` with the
+  module's `symbols:` pointed at an edited copy, run `dtk dol split <copy> <out>`, and score with
+  a throwaway `objdiff.json` (`build_target`/`build_base` false). Keep the copy under `build/`:
+  from the system temp directory the split failed an unrelated `rep_0010` rodata-size check.
