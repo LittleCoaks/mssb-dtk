@@ -1,4 +1,6 @@
 #include "debug/rep_7BF0.h"
+#define SQRT2_LINKAGE static
+#include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/sub.h"
@@ -10,7 +12,6 @@
 #include "Dolphin/GX/GXTransform.h"
 #include "Dolphin/mtx.h"
 #include "static/UnknownHomes_Static.h"
-#include "Dolphin/pad.h"
 #include "stl/math.h"
 
 extern void fn_800AD038(void *arg0);
@@ -100,12 +101,6 @@ typedef struct DebugEnvData {
     s32 val5C;
 } DebugEnvData;
 
-typedef struct DebugCubeData {
-    f32 cubePos[24];
-    u32 cubeColor[6];
-    u32 padD8[2];
-    u8 cubeList[0x40];
-} DebugCubeData;
 
 
 static u8 gBssC[0xD8];
@@ -121,12 +116,11 @@ static DebugEnvData gDebugEnv = {
     100000000, 100, 100, 980665, 100, 100, 1000, 314000, 0,
 };
 
-static DebugCubeData gDebugCube = {
-    { -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f },
-    { 0xFF0000FF, 0x00FF00FF, 0x0000FFFF, 0xFFFF00FF, 0xFF00FFFF, 0x00FFFFFF },
-    { 0, 0 },
-    { 0x80, 0x00, 0x18, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x04, 0x01, 0x07, 0x01, 0x06, 0x01, 0x05, 0x01, 0x00, 0x02, 0x04, 0x02, 0x05, 0x02, 0x01, 0x02, 0x01, 0x03, 0x05, 0x03, 0x06, 0x03, 0x02, 0x03, 0x02, 0x04, 0x06, 0x04, 0x07, 0x04, 0x03, 0x04, 0x03, 0x05, 0x07, 0x05, 0x04, 0x05, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-};
+static f32 gCubePos[24] = { -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f };
+
+static u32 gCubeColor[8] = { 0xFF0000FF, 0x00FF00FF, 0x0000FFFF, 0xFFFF00FF, 0xFF00FFFF, 0x00FFFFFF, 0, 0 };
+
+static u8 gCubeList[0x40] = { 0x80, 0x00, 0x18, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x04, 0x01, 0x07, 0x01, 0x06, 0x01, 0x05, 0x01, 0x00, 0x02, 0x04, 0x02, 0x05, 0x02, 0x01, 0x02, 0x01, 0x03, 0x05, 0x03, 0x06, 0x03, 0x02, 0x03, 0x02, 0x04, 0x06, 0x04, 0x07, 0x04, 0x03, 0x04, 0x03, 0x05, 0x07, 0x05, 0x04, 0x05, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 static const char *gRootName = "MAIN MENU";
 
@@ -173,12 +167,7 @@ static const Vec sZeroVec = { 0.0f, 0.0f, 0.0f };
 
 // .text:0x00029A9C size:0x1C0
 void fn_1_29A9C(void) {
-    f32 v0 = (f32)gDebugMenu.val00 / 100000.0f;
-    f32 v4 = (f32)gDebugMenu.val04 / 100000.0f;
-    f32 v8 = (f32)gDebugMenu.val08 / 100000.0f;
-    f32 vC = (f32)gDebugMenu.val0C / 100000.0f;
-
-    fn_80037768(gCamObj, 2, gDebugMenu.val34, v0, v4, v8, vC);
+    fn_1_2935C(gCamObj);
     fn_1_273D8(gBssC);
 
     gDebugMenu.mode = 0;
@@ -206,16 +195,28 @@ void fn_1_295E8(void) {
     fn_1_29414(item);
 }
 
+static inline void menuInput(MenuDescendState *state, u16 hold, u16 trg, u16 rep) {
+    s32 mask;
+
+    if (hold & INPUT_BUTTON_Y) {
+        mask = 0x91;
+    } else {
+        mask = (hold & INPUT_BUTTON_X) ? 0x50 : 0;
+    }
+    fn_80048820(state, hold, trg, rep, mask);
+}
+
 // .text:0x0002948C size:0x15C
 void fn_1_2948C(void *arg0) {
-    u16 in0 = AtBat_ButtonInput1._00;
-    u16 in2 = AtBat_ButtonInput1._02;
-    u16 in4 = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 0x4);
-    u16 v0 = in0;
-    u16 v2 = in2;
-    u16 v4 = in4;
+    u16 hold;
+    u16 trg;
+    u16 rep;
 
-    if (in2 & PAD_BUTTON_START) {
+    hold = AtBat_ButtonInput1._00;
+    trg = AtBat_ButtonInput1._02;
+    rep = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 0x4);
+
+    if (AtBat_ButtonInput1._02 & INPUT_BUTTON_START) {
         u8 flag = *((u8 *)arg0 + 0x14) ^ 1;
         *((u8 *)arg0 + 0x14) = flag;
         if (*((u8 *)arg0 + 0x14) != 0) {
@@ -224,22 +225,15 @@ void fn_1_2948C(void *arg0) {
             fn_800A97D0(0x10, 0x1e);
         }
     } else if (*((u8 *)arg0 + 0x14) != 0) {
-        s32 mask;
-
-        if (in0 & PAD_BUTTON_Y) {
-            mask = 0x91;
-        } else {
-            mask = (in0 & PAD_BUTTON_X) ? 0x50 : 0;
-        }
-        fn_80048820(&gMenuState, in0, in2, in4, (u8)mask);
-        v0 = in0 & ~(PAD_BUTTON_X | PAD_BUTTON_Y);
-        v2 = in2 & ~(PAD_BUTTON_X | PAD_BUTTON_Y);
-        v4 = in4 & ~(PAD_BUTTON_X | PAD_BUTTON_Y);
-    } else if (in2 & PAD_BUTTON_B) {
+        menuInput(&gMenuState, AtBat_ButtonInput1._00, AtBat_ButtonInput1._02, rep);
+        hold &= ~(INPUT_BUTTON_X | INPUT_BUTTON_Y);
+        trg &= ~(INPUT_BUTTON_X | INPUT_BUTTON_Y);
+        rep &= ~(INPUT_BUTTON_X | INPUT_BUTTON_Y);
+    } else if (AtBat_ButtonInput1._02 & INPUT_BUTTON_B) {
         fn_1_29A48();
     }
 
-    fn_1_26D28(gBssC, v0, v2, v4, (u8 *)&AtBat_ButtonInput1 + 0x10);
+    fn_1_26D28(gBssC, hold, trg, rep, (u8 *)&AtBat_ButtonInput1 + 0x10);
     fn_1_27330(gBssC);
 }
 
@@ -304,7 +298,6 @@ void fn_1_2905C(void) {
 
 // .text:0x00028CE8 size:0x374
 void fn_1_28CE8(void *arg0) {
-    u8 *base = (u8 *)&gDebugMenu;
     Mtx m;
     f32 scaleXY = (f32)gDebugMenu.val08 / 100000.0f;
     f32 scaleZ = (f32)gDebugMenu.val00 / 100000.0f;
@@ -337,8 +330,8 @@ void fn_1_28CE8(void *arg0) {
     GXSetVtxDesc(GX_VA_CLR0, GX_INDEX8);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetArray(GX_VA_POS, base + 0x60, 0xC);
-    GXSetArray(GX_VA_CLR0, base + 0xC0, 0x4);
+    GXSetArray(GX_VA_POS, gCubePos, 0xC);
+    GXSetArray(GX_VA_CLR0, gCubeColor, 0x4);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2X4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);
@@ -348,7 +341,7 @@ void fn_1_28CE8(void *arg0) {
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetCullMode(GX_CULL_BACK);
-    GXCallDisplayList(base + 0xE0, 0x40);
+    GXCallDisplayList(gCubeList, 0x40);
 
     {
         Vec v;
@@ -384,15 +377,13 @@ void fn_1_28C34(MenuDescendState *state, s32 level, const char *value) {
 
 // .text:0x00028AE0 size:0x154
 s32 fn_1_28AE0(MenuDescendState *state) {
-    u8 *scene = (u8 *)currentDrawingItem;
-    s8 leaf;
+    s8 *scene = (s8 *)currentDrawingItem;
 
     scene[0x15] = state->items[state->index].leafFlag;
-    leaf = scene[0x15];
-    if (leaf < 0) {
+    if (scene[0x15] < 0) {
         fn_1_29A48();
     } else {
-        fn_1_28C34(state, leaf, state->items[state->index].name);
+        fn_1_28C34(state, scene[0x15], state->items[state->index].name);
     }
     return 0;
 }
@@ -401,26 +392,26 @@ s32 fn_1_28AE0(MenuDescendState *state) {
 s32 fn_1_289E0(MenuDescendState *state, u16 input) {
     switch (gDebugMenu.mode) {
     case 0:
-        if (input & PAD_BUTTON_A) {
+        if (input & INPUT_BUTTON_A) {
             gDebugMenu.mode = 2;
-        } else if (input & PAD_BUTTON_X) {
+        } else if (input & INPUT_BUTTON_X) {
             gDebugMenu.modeChanged = 1;
             gDebugMenu.mode = 1;
         }
         break;
     case 1:
-        if (input & PAD_BUTTON_A) {
+        if (input & INPUT_BUTTON_A) {
             gDebugMenu.mode = 2;
-        } else if (input & PAD_BUTTON_B) {
+        } else if (input & INPUT_BUTTON_B) {
             gDebugMenu.mode = 0;
-        } else if (input & PAD_BUTTON_X) {
+        } else if (input & INPUT_BUTTON_X) {
             gDebugMenu.modeChanged = 1;
         }
         break;
     case 2:
-        if (input & PAD_BUTTON_A) {
+        if (input & INPUT_BUTTON_A) {
             gDebugMenu.mode = 1;
-        } else if (input & PAD_BUTTON_B) {
+        } else if (input & INPUT_BUTTON_B) {
             gDebugMenu.mode = 0;
         }
         break;
@@ -442,13 +433,13 @@ void fn_1_2858C(DebugCamState *state, u32 buttons, u32 flags, s32 arg3, u8 *stic
     Mtx m;
     f32 v0, v1;
 
-    if (flags & 0x10) {
+    if (flags & INPUT_TRIGGER_Z) {
         fn_1_273D8(state);
         return;
     }
 
-    state->yaw -= ((PI * state->turnSpeed / 180.0f) * (f32)(s8)stick[2]) * 0.0078125f / 60.0f;
-    state->pitch += ((PI * state->turnSpeed / 180.0f) * (f32)(s8)stick[3]) * 0.0078125f / 60.0f;
+    state->yaw -= ((PI * state->turnSpeed / 180.0f) * (f32)(s8)stick[2]) / 128.0f / 60.0f;
+    state->pitch += ((PI * state->turnSpeed / 180.0f) * (f32)(s8)stick[3]) / 128.0f / 60.0f;
 
     while (state->yaw < -PI) {
         state->yaw += 2.0f * PI;
@@ -477,17 +468,17 @@ void fn_1_2858C(DebugCamState *state, u32 buttons, u32 flags, s32 arg3, u8 *stic
     PSMTXQuat(m, &q);
     PSMTXMultVec(m, &state->dir, &state->dir);
 
-    tmp.x = (state->moveScale * (f32)-(s8)stick[0]) * 0.0078125f / 60.0f;
-    tmp.z = (state->moveScale * (f32)(s8)stick[1]) * 0.0078125f / 60.0f;
+    tmp.x = (state->moveScale * (f32)-(s8)stick[0]) / 128.0f / 60.0f;
+    tmp.z = (state->moveScale * (f32)(s8)stick[1]) / 128.0f / 60.0f;
     tmp.y = tmp.y - (state->moveScale * (f32)stick[4]) / 150.0f / 60.0f;
     tmp.y = tmp.y + (state->moveScale * (f32)stick[5]) / 150.0f / 60.0f;
 
     PSMTXMultVec(m, &tmp, &tmp);
     PSVECAdd(&state->pos, &tmp, &state->pos);
 
-    v0 = (f32)((buttons & 0x400) != 0);
+    v0 = (f32)((buttons & INPUT_BUTTON_X) != 0);
     state->zoomDist += (state->zoomSpeed * v0) / 60.0f;
-    v1 = (f32)((buttons & 0x800) != 0);
+    v1 = (f32)((buttons & INPUT_BUTTON_Y) != 0);
     state->zoomDist -= (state->zoomSpeed * v1) / 60.0f;
 
     v0 = (f32)(state->zoomDist == 0.0f);
