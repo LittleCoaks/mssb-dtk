@@ -13,6 +13,7 @@ debug/rep_0010.c:
 debug/rep_00B0.c:
 	.text       start:0x000019AC end:0x00004DD8
 	.rodata     start:0x000000B0 end:0x00000138
+	.data       start:0x00000200 end:0x00000298
 	.bss        start:0x00000060 end:0x000000C0
 
 debug/rep_0138.c:
@@ -23,12 +24,13 @@ debug/rep_0138.c:
 debug/rep_0250.c:
 	.text       start:0x00008CD4 end:0x00009EA0
 	.rodata     start:0x00000250 end:0x000002A8
+	.data       start:0x00000AB0 end:0x00000FC0
 	.bss        start:0x00002FA8 end:0x00002FD8
 
 debug/rep_02A8.c:
 	.text       start:0x0000A2E4 end:0x0000C2A4
 	.rodata     start:0x000002A8 end:0x00000610
-	.data       start:0x00000FC0 end:0x0000196C
+	.data       start:0x00000FC0 end:0x00001DC0
 	.bss        start:0x00002FD8 end:0x00003070
 
 debug/rep_0610.c:
