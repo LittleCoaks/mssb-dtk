@@ -3112,3 +3112,23 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   directly took it from 93.925% to 100%; widening the local or threshold did not.
   The complete 28-function unit and all its sections remained 100% after the
   readability pass and linked with `4 files OK`.
+
+## Findings from debug/rep_7920.c (full match, flipped to Matching)
+
+- **An auto-inlined call with an address-expression argument schedules differently from
+  the same body written out on a local.** `fn_1_26C2C` inlines `fn_1_26B7C` (an init
+  routine). Writing `slot = &arr[idx]; fn_1_26B7C(slot);` or hand-expanding the body on
+  `slot` matched the logic but not the float-setup schedule or the hoisted `slot+0x11`
+  pointer (91-92%). Passing the expression straight in and dropping the local entirely
+  (`fn_1_26B7C(&arr[idx]); ... return &arr[idx];`) gave 100%. The tell: the target
+  re-materialises `&arr[idx]` (lis/addi/add) for the later stores, and the inlined body
+  shows a pointer hoist the standalone copy does not. If a function inlines a
+  same-file helper and the residue is only scheduling around the inlined body, try the
+  argument as an expression with no local before grinding registers.
+- **A gap-sized `.bss` array can pass objdiff and still break the flip.** dtk sized
+  `lbl_1_bss_47052` as 6 bytes (the gap up to the next unit's 8-aligned `.bss`), and
+  `u16 [3]` scored 100% in objdiff. After the flip it failed the sha1: once declared in
+  the correct reverse order, MWCC 4-aligned the 6-byte array, which moved it to 0x47054.
+  Only element 0 was ever referenced. The real object is a plain `u16` (symbols.txt
+  size 0x2), and the last 4 bytes are inter-unit padding. If the flip fails because the
+  REL relocation addends are off by 2 or 4, suspect an array dtk sized from the gap.
