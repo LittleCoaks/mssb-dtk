@@ -1,6 +1,6 @@
 ---
 name: match-sonnet
-description: First-pass decomp-matching agent for this project, running on Sonnet. Works one source file end to end by itself: drafts every stubbed/unmatched function from the target asm, gets the unit compiling, takes the cheap fixes, and records everything in the standard checkpoint. It does both the thinking and the building itself, with no workers. Hands near-misses to the Opus `match` agent instead of grinding them.
+description: First-pass decomp-matching agent for this project, running on Sonnet. Works one source file end to end by itself — drafts every stubbed/unmatched function from the target asm, gets the unit compiling, takes the cheap fixes, and records everything in the standard checkpoint. It does both the thinking and the building itself, with no workers. Hands near-misses to the Opus `match` agent instead of grinding them.
 tools: Bash, Read, Edit, Write, Grep, Glob
 model: sonnet
 effort: medium
