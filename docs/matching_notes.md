@@ -3132,3 +3132,35 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   Only element 0 was ever referenced. The real object is a plain `u16` (symbols.txt
   size 0x2), and the last 4 bytes are inter-unit padding. If the flip fails because the
   REL relocation addends are off by 2 or 4, suspect an array dtk sized from the gap.
+
+
+## Findings from the debug REL first passes (rep_7978, rep_7A28, rep_7BA0, rep_7BF0; 2026-10)
+
+`rep_7BA0` was matched and flipped to Matching. The other three are NonMatching with pending
+functions. These lessons are not specific to one file:
+
+- **Every flipped debug unit after `rep_7920` needs its own `REP_HEADER_DATA_FN`.** `rep_7920`
+  uses the default `getRepHeaderData`. Flipping `rep_7BA0` without the define left `debug.rel`'s
+  `.rodata` 0x50 short (see the foul_detection entry above). Use `getRepHeaderData_rep<addr>`.
+- **`SQRT2_LINKAGE` works in the debug REL too, so use `INPUT_BUTTON`.** Two first passes used
+  `PAD_BUTTON_*` because including `game/UnknownHomes_Game.h` broke `.rodata`. With
+  `#define SQRT2_LINKAGE static` before the include, `rep_7BA0` kept 100% and passed the sha1
+  check with `INPUT_BUTTON_*` and an `E(u16, INPUT_BUTTON)` local.
+- **If the target addresses several `.data` symbols off one base register, define them in the
+  file.** For example `addi r7,r31,0x20` and `stw 0x110(r31)` from one `lis/addi`. In
+  `rep_7A28`, moving all the data from extern to definitions in the `.c` took `.data` from 0%
+  to 100% and made the addressing match exactly. In `rep_7BF0` the boundaries followed the
+  addressing: an address-of that gets a fresh `lis/addi` starts a new object, and so does a
+  scalar read at a fixed offset (`base+0x120`).
+- **A zero-initialised scalar lands in `.bss`, not `.data`.** It shifts every later `.data`
+  object by its size. `void *x[1] = {0};` keeps it in `.data` (`rep_7A28`,
+  `lbl_1_data_10918`/`1091C`).
+- **Use the GX inline helpers, not the raw FIFO macros.** `GXPosition3f32(x, y, z)` plus
+  `GXColor1u32(c)` took `rep_7A28`'s `fn_1_27BB8` from 91% to 99.9%, where `GX_WRITE_F32`/
+  `GX_WRITE_U32` did not.
+- **A helper inlined with stores in between may be two inlines.** `rep_7978`'s camera init runs
+  `PSVECAdd` + `C_MTXLookAt`, then some field stores, then the `C_MTXFrustum` math. Two
+  `static inline` helpers (view, projection), called on either side of the stores, matched. One
+  combined helper did not.
+- **Read float constants from their bit pattern.** A limit that looked like `3.1384f` was
+  0x4048DD97 (3.1385248f) in the target. The rounded literal produced different `.rodata` bits.
