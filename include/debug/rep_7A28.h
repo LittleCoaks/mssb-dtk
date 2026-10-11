@@ -20,10 +20,29 @@ typedef struct DbgMenu {
     DbgMenuItem *items;
 } DbgMenu;
 
+/* Particle emitter settings; fields from num on are edited through the
+   debug menu, whose item labels give the names. */
 typedef struct DbgTexEntry {
-    void *tex;
-    s32 fmt;
-    u8 pad8[0x50 - 0x8];
+    /* 0x00 */ void *tex;
+    /* 0x04 */ s32 fmt;
+    /* 0x08 */ s32 num;
+    /* 0x0C */ s32 size;
+    /* 0x10 */ s32 speed;
+    /* 0x14 */ s32 slowdown;
+    /* 0x18 */ s32 life;
+    /* 0x1C */ s32 lifeTurn;
+    /* 0x20 */ s32 scaleUp;
+    /* 0x24 */ s32 scaleDown;
+    /* 0x28 */ s32 unk28;
+    /* 0x2C */ s32 maxAlpha;
+    /* 0x30 */ s32 spAngle;
+    /* 0x34 */ s32 hAngMax;
+    /* 0x38 */ s32 vAngMin;
+    /* 0x3C */ s32 vAngMax;
+    /* 0x40 */ u32 color;
+    /* 0x44 */ s32 unk44;
+    /* 0x48 */ s32 bias;
+    /* 0x4C */ s32 unk4C;
 } DbgTexEntry;
 
 /* View of the drawing-script node used by this debug scene. */

@@ -1101,7 +1101,7 @@ config.libs = [
             Object(NonMatching, "debug/rep_7730.c"),
             Object(Matching, "debug/rep_7920.c"),
             Object(Matching, "debug/rep_7978.c"),
-            Object(NonMatching, "debug/rep_7A28.c"),
+            Object(Matching, "debug/rep_7A28.c"),
             Object(Matching, "debug/rep_7BA0.c"),
             Object(NonMatching, "debug/rep_7BF0.c"),
         ]
