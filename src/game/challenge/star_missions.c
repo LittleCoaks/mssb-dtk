@@ -231,7 +231,7 @@ BOOL decideScoutFlagMission(void) {
                 }
             }
         }
-    } else if (logic->teamBatting != g_d_GameSettings.humanTeamNumber) {
+    } else if (!(logic->teamBatting == g_d_GameSettings.humanTeamNumber)) {
         if (g_RunningLogic._10 >= 3 && g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] == 0) {
             if (shouldScoutMissionBeEnabled(5)) {
                 scout->scoutMissionID = 5;
@@ -1753,7 +1753,7 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
             if (barrelsHit != 0) {
                 SPECIAL_ADVANCE
             } else {
-                ct->inGameMissionTracker[i].starMissionStatus = 0;
+                ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
         SPECIAL_LOOP_END
         break;
@@ -1795,6 +1795,6 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
 
 missionFound:
     if (found) {
-        starMissionCompletionTracker[trackerIdx].inGameMissionTracker[i].starMissionStatus = -1;
+        starMissionCompletionTracker[trackerIdx].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
     }
 }
