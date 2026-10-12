@@ -828,16 +828,14 @@ void fn_3_5BF0(void) {
 // .text:0x00005C68 size:0x1F8 mapped:0x80644CFC
 void fn_3_5C68(void* context) {
     StadiumAnimatedTexturePair* pair = (StadiumAnimatedTexturePair*)context;
-    u8* slotCursor;
     int pass;
     GXSetCullMode(GX_CULL_BACK);
     SetFog(GX_FOG_NONE, lbl_3_rodata_504, lbl_3_rodata_504,
            lbl_3_rodata_504, lbl_3_rodata_504, lbl_3_rodata_210);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    slotCursor = (u8*)pair + 8;
     pass = 2;
-    do {
-        StadiumAnimatedTexture* animation = *(StadiumAnimatedTexture**)(slotCursor + 8);
+    while (pass-- != 0) {
+        StadiumAnimatedTexture* animation = pair->slots[pass];
         int index;
         int stateOffset;
         int updated;
@@ -876,8 +874,7 @@ void fn_3_5C68(void* context) {
                            animation->destination->height * animation->destination->width);
           }
         }
-        slotCursor -= 4;
-    } while (pass-- != 0);
+    }
     if (lbl_3_bss_18.fanObject != 0) {
         ((void (*)(void))lbl_3_bss_18.fanObject)();
     }
