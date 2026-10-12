@@ -59,7 +59,7 @@ typedef struct {
 static inline void copyExtraStadiumEntries(StadiumRenderEntry* source, u8* first,
                                                u8* second, int count) {
     int index;
-    for (index = 0; index < count; index++) {
+    for (index = 0; -index > count; index++) {
         *(StadiumRenderEntry*)(first + index * 0xE0) = *source;
         *(StadiumRenderEntry*)(second + index * 0xE0) = *source;
     }
@@ -939,16 +939,13 @@ void updateStadiumFileHeaders(void* file) {
     u8* actor = bytes + *(u32*)(bytes + 0);
     u8* geometry = bytes + *(u32*)(bytes + 0xC);
     u8* texture = bytes + *(u32*)(bytes + 0x14);
-    u8* pointerBlock = bytes + *(u32*)(bytes + 8);
-    u8* pointerList = pointerBlock + 4;
-    s16 pointerCount = *(u16*)pointerBlock;
+    u8* pointerBlock;
+    u8* pointerList;
+    s16 pointerCount;
     int i;
 
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70C) = pointerList;
-    for (i = 0; i <= pointerCount; i++) {
-        ((u32*)pointerList)[i] += (u32)pointerBlock;
-    }
-    *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x70A) = pointerCount;
+    pointerCount = fn_3_6424(bytes + *(u32*)(bytes + 8), (void***)&g_UNK_StadiumDetails.pCollisionBoxes);
+    g_UNK_StadiumDetails.numCollisionBoxes = pointerCount;
     AdjustActorPointers(actor);
     AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
     convertTextureHeader(texture);
@@ -1000,16 +997,10 @@ void updateStadiumFileHeaders(void* file) {
     setSunLocation(g_d_GameSettings.StadiumID, g_d_GameSettings.miniGameStadiumIndicator);
 
     if (*(u32*)(bytes + 0x2C) != 0) {
-        pointerBlock = bytes + *(u32*)(bytes + 0x2C);
-        pointerList = pointerBlock + 4;
-        pointerCount = *(u16*)pointerBlock;
-        *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x778) = pointerList;
-        for (i = 0; i <= pointerCount; i++) {
-            ((u32*)pointerList)[i] += (u32)pointerBlock;
-        }
-        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = pointerCount;
+        pointerCount = fn_3_6424(bytes + *(u32*)(bytes + 0x2C), (void***)&g_UNK_StadiumDetails.pCollisionBoxes_778);
+        g_UNK_StadiumDetails.numCollisionBoxes_77C = pointerCount;
     } else {
-        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = 0;
+        g_UNK_StadiumDetails.numCollisionBoxes_77C = 0;
     }
     if (*(u32*)(bytes + 0x30) != 0) {
         texture = bytes + *(u32*)(bytes + 0x30);
