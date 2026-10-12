@@ -210,7 +210,7 @@ constants, so the test cannot place them: `at_bat_results`, `at_bat_setup`,
 `run_scoring`, `stat_lookups`, `stat_tracking`. Each is either a TU that never
 included the shared header or the tail of its link-order predecessor; all
 were cut from unowned gaps.
-`fn_3_1695A4` is declared `(s8 charID, u8 alt)` in `star_dash.c` but defined
+`kinoko_startPulseGlow` is declared `(s8 charID, u8 alt)` in `star_dash.c` but defined
 `(void* model, u8 alt)` in `kinoko.c`; the first argument is really a player ID.
 
 Still open, as of 2026-10-08:

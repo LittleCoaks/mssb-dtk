@@ -66,7 +66,7 @@ extern VecXZ sD_fielderStartPositions[4];
 extern void fn_800115C8(s8 player);
 extern void starDash_stopSparks(int player);
 extern void starDash_startSparks(s8 player);
-extern void fn_3_169600(void);
+extern void kinoko_initPulseTextures(void);
 extern void fn_3_106EB0(void);
 extern void minigameQueueHudEvent(int a, int b);
 extern void starDash_stopAllSparks(void);
@@ -83,8 +83,8 @@ extern void starMissionsMinigamesSpecialAction(int missionType, int points, int 
 extern s16 lbl_3_common_bss_37400[];
 extern f32 lbl_3_data_21A14[6];
 extern s16 sD_starTimings[6];
-extern void fn_3_1695A4(s8 charID, u8 alt);
-extern void fn_3_16C394(s8 charID);
+extern void kinoko_startPulseGlow(s8 charID, u8 alt);
+extern void kinoko_startRibbon(s8 charID);
 extern f32 sD_powerupConsts[6];
 extern f32 lbl_3_data_21A64[9];
 extern s16 lbl_3_data_21A04[8];
@@ -378,7 +378,7 @@ void sD_LoadGame(void) {
         g_Minigame.powerup.activeInd = 0;
         g_Minigame.playerIDWithPowerup[0] = -1;
         sD_InitPulseTexture();
-        fn_3_169600();
+        kinoko_initPulseTextures();
         minigamesSetSomePointers();
         minigamesGXStuff();
         minigamesSetSomePointers2();
@@ -1651,11 +1651,11 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
             }
             SD.factor = &sD_powerupConsts[5];
             callSfx(0x2F5);
-            fn_3_1695A4(best, 0);
+            kinoko_startPulseGlow(best, 0);
         } else {
             SD.factor = &sD_powerupConsts[4];
             callSfx(0x2F6);
-            fn_3_16C394(best);
+            kinoko_startRibbon(best);
         }
         powerup->activeInd = 0;
         powerup->timer = sD_powerupTimers[0];

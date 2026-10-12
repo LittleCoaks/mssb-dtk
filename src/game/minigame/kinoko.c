@@ -15,6 +15,10 @@
 #include "Unknown/File_0x80052734.h"
 #include "Unknown/File_0x800b0a14.h"
 
+// Powerup visual effects shared by Star Dash and Chain Chomp Sprint ("kinoko" =
+// mushroom): a pulsing glow texture applied to the powerup holder's model, and the
+// ribbon trail drawn behind the holder (g_Minigame.playerIDWithPowerup[0]).
+//
 // The ribbon effect: six ribbons trail from a character's bones (both hands,
 // torso, head and both feet), each a history of 25 points that fades out.
 
@@ -106,8 +110,8 @@ static u8 ribbonColors[RIBBON_COLORS][4] = {
     {0x00, 0xFF, 0xFF, 0xC8}, {0x00, 0x00, 0xFF, 0xC8}, {0xFF, 0x00, 0xFF, 0xC8},
 };
 static RibbonDrawEntry ribbonDraw[2] = {
-    {0, fn_3_169984},
-    {0, fn_3_169984},
+    {0, kinoko_drawRibbons},
+    {0, kinoko_drawRibbons},
 };
 static s8 pulseStep = -1;
 
@@ -159,18 +163,18 @@ void gardenSFXRelated(u8 alt) {
 }
 
 // .text:0x0016C394 size:0x7C mapped:0x807AB428
-void fn_3_16C394(s8 charID) {
+void kinoko_startRibbon(s8 charID) {
     memset(&RIBBON_STATE, 0, sizeof(RibbonState));
     memset(ribbonQuads, 0, sizeof(ribbonQuads));
     RIBBON_STATE.charID = charID;
     RIBBON_STATE.enabled = TRUE;
     RIBBON_STATE.frame = 1;
-    fn_3_16B884();
-    insertGraphicDrawingFunction(fn_3_16A07C, 0);
+    kinoko_initRibbonHistory();
+    insertGraphicDrawingFunction(kinoko_updateRibbons, 0);
 }
 
 // .text:0x0016B884 size:0xB10 mapped:0x807AA918
-void fn_3_16B884(void) {
+void kinoko_initRibbonHistory(void) {
     u32 i;
     u8 alpha;
     int c;
@@ -178,22 +182,22 @@ void fn_3_16B884(void) {
     c = 0;
     RIBBON_STATE.ribbons[0].points[0].colorFrom = c++;
     RIBBON_STATE.ribbons[0].points[0].colorTo = c;
-    fn_3_16B5B4(&RIBBON_STATE.ribbons[0].points[0], RIBBON_BONE_HAND_L, 0);
+    kinoko_setRibbonHead(&RIBBON_STATE.ribbons[0].points[0], RIBBON_BONE_HAND_L, 0);
     RIBBON_STATE.ribbons[1].points[0].colorFrom = c++;
     RIBBON_STATE.ribbons[1].points[0].colorTo = c;
-    fn_3_16B5B4(&RIBBON_STATE.ribbons[1].points[0], RIBBON_BONE_HAND_R, 0);
+    kinoko_setRibbonHead(&RIBBON_STATE.ribbons[1].points[0], RIBBON_BONE_HAND_R, 0);
     RIBBON_STATE.ribbons[2].points[0].colorFrom = c++;
     RIBBON_STATE.ribbons[2].points[0].colorTo = c;
-    fn_3_16B5B4(&RIBBON_STATE.ribbons[2].points[0], RIBBON_BONE_TORSO, 0);
+    kinoko_setRibbonHead(&RIBBON_STATE.ribbons[2].points[0], RIBBON_BONE_TORSO, 0);
     RIBBON_STATE.ribbons[3].points[0].colorFrom = c++;
     RIBBON_STATE.ribbons[3].points[0].colorTo = c;
-    fn_3_16B5B4(&RIBBON_STATE.ribbons[3].points[0], RIBBON_BONE_HEAD, 0);
+    kinoko_setRibbonHead(&RIBBON_STATE.ribbons[3].points[0], RIBBON_BONE_HEAD, 0);
     RIBBON_STATE.ribbons[4].points[0].colorFrom = c++;
     RIBBON_STATE.ribbons[4].points[0].colorTo = c;
-    fn_3_16B5B4(&RIBBON_STATE.ribbons[4].points[0], RIBBON_BONE_FOOT_L, 0);
+    kinoko_setRibbonHead(&RIBBON_STATE.ribbons[4].points[0], RIBBON_BONE_FOOT_L, 0);
     RIBBON_STATE.ribbons[5].points[0].colorFrom = c++;
     RIBBON_STATE.ribbons[5].points[0].colorTo = 0;
-    fn_3_16B5B4(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, 0);
+    kinoko_setRibbonHead(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, 0);
     for (i = 1; i < RIBBON_POINTS; i++) {
         alpha = (RIBBON_POINTS - 1 - i) * 8;
         memcpy(&RIBBON_STATE.ribbons[0].points[i], &RIBBON_STATE.ribbons[0].points[i - 1], sizeof(RibbonPoint));
@@ -212,7 +216,7 @@ void fn_3_16B884(void) {
 }
 
 // .text:0x0016B5B4 size:0x2D0 mapped:0x807AA648
-void fn_3_16B5B4(RibbonPoint* p, s8 bone, int frame) {
+void kinoko_setRibbonHead(RibbonPoint* p, s8 bone, int frame) {
     f32 t = (f32)frame / RIBBON_FRAMES_PER_COLOR_STEP;
 
     p->color[0] = (1.0 - t) * ribbonColors[p->colorFrom][0] + t * ribbonColors[p->colorTo][0];
@@ -220,11 +224,11 @@ void fn_3_16B5B4(RibbonPoint* p, s8 bone, int frame) {
     p->color[2] = (1.0 - t) * ribbonColors[p->colorFrom][2] + t * ribbonColors[p->colorTo][2];
     p->color[3] = (1.0 - t) * ribbonColors[p->colorFrom][3] + t * ribbonColors[p->colorTo][3];
     p->active = TRUE;
-    fn_3_16B488(&p->pos, bone);
+    kinoko_getBonePos(&p->pos, bone);
 }
 
 // .text:0x0016B488 size:0x12C mapped:0x807AA51C
-void fn_3_16B488(Vec* pos, s8 bone) {
+void kinoko_getBonePos(Vec* pos, s8 bone) {
     if (pos == NULL) {
         OSPanic("kinoko.c", 0x11C, "Ribbon Effect Pos Data None\n");
     }
@@ -251,7 +255,7 @@ void fn_3_16B488(Vec* pos, s8 bone) {
 }
 
 // .text:0x0016A07C size:0x140C mapped:0x807A9110
-void fn_3_16A07C(void) {
+void kinoko_updateRibbons(void) {
     u32 count;
     int i;
     u8 alpha;
@@ -333,32 +337,32 @@ void fn_3_16A07C(void) {
                 RIBBON_STATE.ribbons[5].points[0].colorTo -= RIBBON_COLORS;
             }
         }
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[0].points[0], RIBBON_BONE_HAND_L, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[1].points[0], RIBBON_BONE_HAND_R, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[2].points[0], RIBBON_BONE_TORSO, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[3].points[0], RIBBON_BONE_HEAD, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[4].points[0], RIBBON_BONE_FOOT_L, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
-        fn_3_16B5B4(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        kinoko_setRibbonHead(&RIBBON_STATE.ribbons[0].points[0], RIBBON_BONE_HAND_L, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        kinoko_setRibbonHead(&RIBBON_STATE.ribbons[1].points[0], RIBBON_BONE_HAND_R, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        kinoko_setRibbonHead(&RIBBON_STATE.ribbons[2].points[0], RIBBON_BONE_TORSO, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        kinoko_setRibbonHead(&RIBBON_STATE.ribbons[3].points[0], RIBBON_BONE_HEAD, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        kinoko_setRibbonHead(&RIBBON_STATE.ribbons[4].points[0], RIBBON_BONE_FOOT_L, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
+        kinoko_setRibbonHead(&RIBBON_STATE.ribbons[5].points[0], RIBBON_BONE_FOOT_R, RIBBON_STATE.frame % RIBBON_FRAMES_PER_COLOR_STEP);
     }
-    fn_3_169E70(RIBBON_STATE.ribbons[0].points);
-    fn_3_169E70(RIBBON_STATE.ribbons[1].points);
-    fn_3_169E70(RIBBON_STATE.ribbons[2].points);
-    fn_3_169E70(RIBBON_STATE.ribbons[3].points);
-    fn_3_169E70(RIBBON_STATE.ribbons[4].points);
-    fn_3_169E70(RIBBON_STATE.ribbons[5].points);
+    kinoko_buildRibbonEdges(RIBBON_STATE.ribbons[0].points);
+    kinoko_buildRibbonEdges(RIBBON_STATE.ribbons[1].points);
+    kinoko_buildRibbonEdges(RIBBON_STATE.ribbons[2].points);
+    kinoko_buildRibbonEdges(RIBBON_STATE.ribbons[3].points);
+    kinoko_buildRibbonEdges(RIBBON_STATE.ribbons[4].points);
+    kinoko_buildRibbonEdges(RIBBON_STATE.ribbons[5].points);
     count = 0;
     memset(ribbonQuads, 0, sizeof(ribbonQuads));
-    fn_3_169D00(&RIBBON_STATE.ribbons[0], &count);
-    fn_3_169D00(&RIBBON_STATE.ribbons[1], &count);
-    fn_3_169D00(&RIBBON_STATE.ribbons[2], &count);
-    fn_3_169D00(&RIBBON_STATE.ribbons[3], &count);
-    fn_3_169D00(&RIBBON_STATE.ribbons[4], &count);
-    fn_3_169D00(&RIBBON_STATE.ribbons[5], &count);
+    kinoko_queueRibbonQuads(&RIBBON_STATE.ribbons[0], &count);
+    kinoko_queueRibbonQuads(&RIBBON_STATE.ribbons[1], &count);
+    kinoko_queueRibbonQuads(&RIBBON_STATE.ribbons[2], &count);
+    kinoko_queueRibbonQuads(&RIBBON_STATE.ribbons[3], &count);
+    kinoko_queueRibbonQuads(&RIBBON_STATE.ribbons[4], &count);
+    kinoko_queueRibbonQuads(&RIBBON_STATE.ribbons[5], &count);
     fn_800A7D4C(1, &ribbonDraw[drawStadiumRelated]);
 }
 
 // .text:0x00169E70 size:0x20C mapped:0x807A8F04
-void fn_3_169E70(RibbonPoint* points) {
+void kinoko_buildRibbonEdges(RibbonPoint* points) {
     camera_803c639c_s* cam = fn_80052768_getCamera(0);
     RibbonPoint* p = points;
     Vec forward;
@@ -413,7 +417,7 @@ void fn_3_169E70(RibbonPoint* points) {
 }
 
 // .text:0x00169D00 size:0x170 mapped:0x807A8D94
-void fn_3_169D00(Ribbon* ribbon, u32* count) {
+void kinoko_queueRibbonQuads(Ribbon* ribbon, u32* count) {
     RibbonPoint* cur;
     RibbonPoint* prev;
     u32 i;
@@ -439,7 +443,7 @@ void fn_3_169D00(Ribbon* ribbon, u32* count) {
 }
 
 // .text:0x00169984 size:0x37C mapped:0x807A8A18
-void fn_3_169984(void) {
+void kinoko_drawRibbons(void) {
     RibbonDepth tmp;
     Mtx view;
     Vec center;
@@ -475,7 +479,7 @@ void fn_3_169984(void) {
             }
         }
     }
-    fn_3_169804();
+    kinoko_setupRibbonGX();
     for (i = 0; i < RIBBON_QUADS; i++) {
         q = &ribbonQuads[order[i].index];
         if (q->active) {
@@ -493,7 +497,7 @@ void fn_3_169984(void) {
 }
 
 // .text:0x00169804 size:0x180 mapped:0x807A8898
-void fn_3_169804(void) {
+void kinoko_setupRibbonGX(void) {
     GXSetZMode(GX_ENABLE, GX_LEQUAL, GX_DISABLE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);
     GXSetCullMode(GX_CULL_BACK);
@@ -518,7 +522,7 @@ void fn_3_169804(void) {
 }
 
 // .text:0x00169600 size:0x204 mapped:0x807A8694
-void fn_3_169600(void) {
+void kinoko_initPulseTextures(void) {
     u32 offset;
     u32 x;
     u32 y;
@@ -566,7 +570,7 @@ void fn_3_169600(void) {
 }
 
 // .text:0x001695A4 size:0x5C mapped:0x807A8638
-void fn_3_1695A4(void* model, u8 alt) {
+void kinoko_startPulseGlow(void* model, u8 alt) {
     if (!alt) {
         curTex = texA;
         curTexObj = &texObjA;
@@ -574,7 +578,7 @@ void fn_3_1695A4(void* model, u8 alt) {
         curTex = texB;
         curTexObj = &texObjB;
     }
-    fn_80011604(model, fn_3_16917C);
+    fn_80011604(model, kinoko_pulseTevCallback);
 }
 
 // .text:0x001695A0 size:0x4 mapped:0x807A8634
@@ -583,7 +587,7 @@ void fn_3_1695A0(void) {
 }
 
 // .text:0x0016943C size:0x164 mapped:0x807A84D0
-void fn_3_16943C(void) {
+void kinoko_updatePulseTexture(void) {
     int value;
     int i;
 
@@ -607,8 +611,8 @@ void fn_3_16943C(void) {
 }
 
 // .text:0x0016917C size:0x2C0 mapped:0x807A8210
-void fn_3_16917C(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
-    fn_3_16943C();
+void kinoko_pulseTevCallback(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords) {
+    kinoko_updatePulseTexture();
     GXLoadTexObj(curTexObj, *map);
     GXSetTexCoordGen2(*coord, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_DISABLE, GX_PTIDENTITY);
     GXSetTevOrder(*stage, *coord, *map, GX_COLOR_NULL);

@@ -239,7 +239,7 @@ void chainChompSprintRelated(void) {
         g_Minigame.powerup.activeInd = FALSE;
         g_Minigame.powerup.timer = ccs_powerupTimers[0];
         g_Minigame.playerIDWithPowerup[0] = -1;
-        fn_3_169600();
+        kinoko_initPulseTextures();
         g_GameLogic._125++;
     } else {
         SetGameStatus(GAME_STATUS_GAME_START_MOVIE);
@@ -1113,7 +1113,7 @@ void ccs_updatePowerupOnField(MinigamePowerupStruct* powerup) {
         powerup->activeInd = FALSE;
         powerup->timer = ccs_powerupTimers[0];
         callSfx(0x2F6);
-        fn_3_16C394(who);
+        kinoko_startRibbon(who);
     } else {
         if (g_Minigame.ccs.chompState != 2 && g_Minigame.ccs.chompState != 3) {
             powerup->timer--;
