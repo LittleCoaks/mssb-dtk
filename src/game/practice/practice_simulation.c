@@ -131,8 +131,8 @@ void loadPracticeScreen(void) {
     case 0:
         g_GameLogic.battingOrderAndPositionMapping[0][0][0] = constantList[0];
         g_GameLogic.battingOrderAndPositionMapping[1][0][0] = constantList[0];
-        for (team = 0; team < 2; team++) {
-            for (slot = 0; slot < 9; slot++) {
+        for (team = 0; team < TEAMS_PER_GAME; team++) {
+            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                 g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = constantList[9 + slot];
                 g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = constantList[9 + slot];
                 lineUpInfoStruct[team][slot][0] = slot;
@@ -140,8 +140,8 @@ void loadPracticeScreen(void) {
                 lineUpInfoStruct[team][slot][2] = slot;
             }
         }
-        for (team = 0; team < 2; team++) {
-            for (slot = 0; slot < 9; slot++) {
+        for (team = 0; team < TEAMS_PER_GAME; team++) {
+            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                 int character = g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0];
                 memcpy(&inMemRoster[team][slot], &CHAR_STATS(character), sizeof(CharacterStats));
             }
@@ -230,8 +230,8 @@ void practice_loadCharacterData(void) {
 
     g_GameLogic.battingOrderAndPositionMapping[0][0][0] = constantList[0];
     g_GameLogic.battingOrderAndPositionMapping[1][0][0] = constantList[0];
-    for (team = 0; team < 2; team++) {
-        for (slot = 0; slot < 9; slot++) {
+    for (team = 0; team < TEAMS_PER_GAME; team++) {
+        for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
             g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = constantList[9 + slot];
             g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = constantList[9 + slot];
             lineUpInfoStruct[team][slot][0] = slot;
@@ -239,8 +239,8 @@ void practice_loadCharacterData(void) {
             lineUpInfoStruct[team][slot][2] = slot;
         }
     }
-    for (team = 0; team < 2; team++) {
-        for (slot = 0; slot < 9; slot++) {
+    for (team = 0; team < TEAMS_PER_GAME; team++) {
+        for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
             int character = g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0];
             memcpy(&inMemRoster[team][slot], &CHAR_STATS(character), sizeof(CharacterStats));
         }
