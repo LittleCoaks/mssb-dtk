@@ -941,8 +941,7 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
                   const GXColor* background, u8 alternate) {
     u16* text = screenTextArray.textBanks[0]->strings[textIndex];
     GXTexObj texture;
-    int cursorY = y;
-    int cursorX = x;
+    int lineStart = x;
     int value;
     for (;;) {
         value = *text++;
@@ -951,14 +950,14 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
             case 0:
                 return;
             case 1:
-                cursorX = x;
-                cursorY += 22;
+                x = lineStart;
+                y += 22;
                 break;
             case 2:
-                cursorX += 11;
+                x += 11;
                 break;
             case 3:
-                cursorX += 22;
+                x += 22;
                 break;
             default:
                 break;
@@ -988,12 +987,12 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
                 drawHeight = 18.0f;
             }
             GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
-            fn_3_42CC(&texture, cursorX, cursorY,
-                         (s16)((f32)(s16)cursorX + drawWidth),
-                         (s16)((f32)(s16)cursorY + drawHeight),
+            fn_3_42CC(&texture, x, y,
+                         (s16)((f32)(s16)x + drawWidth),
+                         (s16)((f32)(s16)y + drawHeight),
                          column, row, cellWidth, cellHeight,
                          *foreground, *background, alternate & 1);
-            cursorX = (s16)((f32)(s16)cursorX + drawWidth);
+            x = (s16)((f32)(s16)x + drawWidth);
         }
     }
 }
