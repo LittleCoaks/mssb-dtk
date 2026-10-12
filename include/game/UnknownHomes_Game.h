@@ -846,7 +846,9 @@ typedef struct _PracticeStruct {
     /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1; // actually the practice menu screen (0..6, not PRACTICE_TYPE): 0 type select (menuNumber 0x3C), 1..5 sub-menu select for type-1 (0x3D), 6 character select (0x3E)
     /*0x199*/ E(u8, PRACTICE_TYPE) practiceType; // highlighted entry on the type-select screen
     /*0x19A*/ u8 subMenuCursor;
-    artificial_padding(0x19a, 0x19e, u8);
+    /*0x19B*/ u8 _19B;
+    /*0x19C*/ u8 menuGraphicsLoaded; // practice_loadAllGraphics finished for the current practice menu screen
+    /*0x19D*/ u8 subMenuGraphicsLoaded; // second load pass on the sub-menu screens finished
     /*0x19E*/ u8 pauseMenuLoading; // unsure
     /*0x19F*/ u8 pauseMenuActive;
     /*0x1A0*/ u8 _1A0;
@@ -854,7 +856,11 @@ typedef struct _PracticeStruct {
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
     /*0x1A4*/ u8 freeFieldingInd_writeOnly;
-    artificial_padding(0x1a4, 0x1aa, u8);
+    /*0x1A5*/ u8 _1A5;
+    /*0x1A6*/ u8 _1A6;
+    /*0x1A7*/ u8 _1A7;
+    /*0x1A8*/ u8 _1A8;
+    /*0x1A9*/ u8 _1A9;
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     /*0x1AB*/ u8 baserunningActiveRunners[4]; // g_Runners[0..3] enabled in baserunning practice
     /*0x1AF*/ u8 returnToPracticeMenuState;
@@ -885,7 +891,7 @@ typedef struct _PracticeStruct {
     /*0x1D7*/ u8 guidedMessageVariant; // 0 shown before the attempt, 1 shown on completion
     /*0x1D8*/ u8 guidedMessageIndex;
     /*0x1D9*/ u8 characterLoadStarted;
-    artificial_padding(0x1d9, 0x1db, u8);
+    /*0x1DA*/ u8 showMenuIntro; // set when the practice menu is entered from a fresh load; plays the intro animation
     /*0x1DB*/ u8 pitchingPracticeBatterEnabled; // gates atBat_batter in pitching practice (never set non-zero)
     artificial_padding(0x1db, 0x1dd, u8);
     /*0x1DD*/ u8 _1DD;
