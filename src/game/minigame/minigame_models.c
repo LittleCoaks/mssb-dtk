@@ -253,15 +253,15 @@ struct {
     { 0x0, 0x4, 0x8, 0xC, 0x10, 0x0 },
 };
 
-UIRecordDescriptor lbl_3_data_23894[3] = {
+UIRecordDescriptor minigameHudStartMovieRecords[3] = {
     { 0, 0xA6, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0xA5, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 3, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-u16 lbl_3_data_238F4[8] = { 0xA6, 0x9F, 0xA0, 0xA1, 0xA3, 0xA2, 0xA4, 0x0 };
+u16 minigameHudStartMovieElements[8] = { 0xA6, 0x9F, 0xA0, 0xA1, 0xA3, 0xA2, 0xA4, 0x0 };
 
-UIRecordDescriptor lbl_3_data_23904[10] = {
+UIRecordDescriptor minigameHudTargetPointsRecords[10] = {
     { 0, 0x147, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x148, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x146, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -274,7 +274,7 @@ UIRecordDescriptor lbl_3_data_23904[10] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23A44[5] = {
+UIRecordDescriptor minigameHudPitchesRemainingRecords[5] = {
     { 0, 0x14B, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x149, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x14C, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -282,7 +282,7 @@ UIRecordDescriptor lbl_3_data_23A44[5] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23AE4[13] = {
+UIRecordDescriptor minigameStateLogicRecords[13] = {
     { 0, 0x13E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x13F, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x13D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -298,7 +298,7 @@ UIRecordDescriptor lbl_3_data_23AE4[13] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23C84[5] = {
+UIRecordDescriptor minigameHudPlayerMarkersRecords[5] = {
     { 0, 0xB3, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0xB3, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0xB3, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -306,26 +306,26 @@ UIRecordDescriptor lbl_3_data_23C84[5] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23D24[4] = {
+UIRecordDescriptor minigameHudBodStreakRecords[4] = {
     { 0, 0x103, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x101, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x102, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23DA4[3] = {
+UIRecordDescriptor minigameHudBodKingBombBonusRecords[3] = {
     { 0, 0x164, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x165, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23E04[3] = {
+UIRecordDescriptor minigameHudBodStreakBonusRecords[3] = {
     { 0, 0x164, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x162, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 1 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23E64[6] = {
+UIRecordDescriptor minigameHudBodHomeRunPointsRecords[6] = {
     { 0, 0x107, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x105, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x106, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 1 },
@@ -334,12 +334,12 @@ UIRecordDescriptor lbl_3_data_23E64[6] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23F24[2] = {
+UIRecordDescriptor minigameHudBodDistanceRecords[2] = {
     { 0, 0x168, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23F64[10] = {
+UIRecordDescriptor minigameHudBodPitchRouletteRecords[10] = {
     { 0, 0x156, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x153, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x158, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -352,7 +352,7 @@ UIRecordDescriptor lbl_3_data_23F64[10] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_240A4[50] = {
+UIRecordDescriptor minigameHudWallBallScoreboardRecords[50] = {
     { 0, 0x4D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x4E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 3 },
     { 0, 0x4E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 2 },
@@ -405,7 +405,7 @@ UIRecordDescriptor lbl_3_data_240A4[50] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_246E4[5] = {
+UIRecordDescriptor minigameHudWallBallTurnsRemainingRecords[5] = {
     { 0, 0x118, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x117, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x114, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -413,7 +413,7 @@ UIRecordDescriptor lbl_3_data_246E4[5] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24784[6] = {
+UIRecordDescriptor minigameHudWallBallPointsPopupRecords[6] = {
     { 0, 0x116, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 9, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x112, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x113, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 9, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -422,7 +422,7 @@ UIRecordDescriptor lbl_3_data_24784[6] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24844[22] = {
+UIRecordDescriptor minigameHudWallBallBowserPenaltyRecords[22] = {
     { 0, 0x4D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x57, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 3 },
     { 0, 0x57, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 2 },
@@ -447,7 +447,7 @@ UIRecordDescriptor lbl_3_data_24844[22] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24B04[15] = {
+UIRecordDescriptor minigameHudBarrelBatterChargeMeterRecords[15] = {
     { 0, 0x120, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x11E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x125, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -465,25 +465,25 @@ UIRecordDescriptor lbl_3_data_24B04[15] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24CE4[3] = {
+UIRecordDescriptor minigameHudBarrelBatterPointsRecords[3] = {
     { 0, 0x131, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x130, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24D44[3] = {
+UIRecordDescriptor minigameHudBarrelBatterBarrelsHitRecords[3] = {
     { 0, 0x12B, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x129, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24DA4[3] = {
+UIRecordDescriptor minigameHudBarrelBatterBombBarrelRecords[3] = {
     { 0, 0x12E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x12D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24E04[42] = {
+UIRecordDescriptor minigameHudCcsScoreboardRecords[42] = {
     { 0, 0x5E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x63, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 3 },
     { 0, 0x63, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 2 },
@@ -528,7 +528,7 @@ UIRecordDescriptor lbl_3_data_24E04[42] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_25344[9] = {
+UIRecordDescriptor minigameHudCcsTargetMarkersRecords[9] = {
     { 0, 0x135, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x135, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x135, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },

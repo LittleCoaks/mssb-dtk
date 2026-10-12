@@ -232,7 +232,7 @@ s16 bOD_frameConsts[10] = {
     90, 30, 160, 90, 90, 128, 64, 10,
     30, 90,
 };
-u16 lbl_3_data_2145C[2] = { 20, 70 };
+u16 minigameHudBodHomeRunPointsDelays[2] = { 20, 70 };
 u8 bOD_bB_pitchRouletteTypes[8] = { 0, 1, 2, 4, 3, 5, 3, 0 };
 u8 bOD_bB_pitchRouletteWeights[24] = {
     60, 30, 10, 0, 0, 0, 30, 40,

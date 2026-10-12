@@ -26,15 +26,15 @@
 
 extern u8 animRelated[0x124];
 extern u8 lbl_800EFBA4[];
-extern UIRecordDescriptor lbl_3_data_25344[];
-extern UIRecordDescriptor lbl_3_data_24E04[];
-extern UIRecordDescriptor lbl_3_data_91BC[];
-extern UIRecordDescriptor lbl_3_data_A9F8[];
-extern UIRecordDescriptor lbl_3_data_B0E0[];
-extern u16 lbl_3_data_B140[][2];
-extern UIRecordDescriptor lbl_3_data_AAB0[];
-extern u16 lbl_3_data_B010[8][5];
-extern u16 lbl_3_data_B0D8[];
+extern UIRecordDescriptor minigameHudCcsTargetMarkersRecords[];
+extern UIRecordDescriptor minigameHudCcsScoreboardRecords[];
+extern UIRecordDescriptor minigameHudEventBannerRecords[];
+extern UIRecordDescriptor minigameHudResultBannerRecords[];
+extern UIRecordDescriptor minigameHudPauseHelpBannerRecords[];
+extern u16 minigameHudPauseHelpBannerElements[][2];
+extern UIRecordDescriptor minigameHudHelpRecords[];
+extern u16 minigameHudHelpGameElements[8][5];
+extern u16 minigameHudHelpParticipantElements[];
 extern s16 bOD_challenge_nPitches_Points[4][2];
 extern s16 bB_challengePointsRequired[4];
 extern s8 minigameHelpPageIDs[][3][5];
@@ -87,12 +87,12 @@ static inline void toyPlaySound(int sfx, int slot) {
                   : stadiumHazardSoundFxRelated[stadiumID * 0x1E + slot + 1]);
 }
 
-extern u16 lbl_3_data_AA98[];
+extern u16 minigameHudResultBannerElements[];
 extern s16 barrelCollisionHitboxes[54];
 extern u8 menuNumber[0x28];
-extern u16 lbl_3_data_91FC[];
+extern u16 minigameHudEventBannerElements[];
 extern void fn_800362F0(DrawingSceneStruct* node, int arg);
-extern UIRecordDescriptor lbl_3_data_23904[];
+extern UIRecordDescriptor minigameHudTargetPointsRecords[];
 extern struct {
     u32 pointsToWin;
     u8 _04[2];
@@ -100,39 +100,39 @@ extern struct {
     u8 _08[0x20];
 } lbl_803616CC[];
 extern s16 lbl_80109410[];
-extern UIRecordDescriptor lbl_3_data_23A44[];
-extern UIRecordDescriptor lbl_3_data_23AE4[];
+extern UIRecordDescriptor minigameHudPitchesRemainingRecords[];
+extern UIRecordDescriptor minigameStateLogicRecords[];
 extern UIRecordDescriptor lbl_3_data_226E0[];
 extern struct {
     u8 _00[0x28];
     u8 _28;
 } lbl_80366158;
-extern UIRecordDescriptor lbl_3_data_23C84[];
-extern UIRecordDescriptor lbl_3_data_23D24[];
-extern UIRecordDescriptor lbl_3_data_23E04[];
-extern UIRecordDescriptor lbl_3_data_23DA4[];
+extern UIRecordDescriptor minigameHudPlayerMarkersRecords[];
+extern UIRecordDescriptor minigameHudBodStreakRecords[];
+extern UIRecordDescriptor minigameHudBodStreakBonusRecords[];
+extern UIRecordDescriptor minigameHudBodKingBombBonusRecords[];
 extern s16 bOD_scoreConsts[];
-extern UIRecordDescriptor lbl_3_data_23E64[];
-extern u16 lbl_3_data_2145C[];
-extern UIRecordDescriptor lbl_3_data_23F24[];
-extern UIRecordDescriptor lbl_3_data_23F64[];
+extern UIRecordDescriptor minigameHudBodHomeRunPointsRecords[];
+extern u16 minigameHudBodHomeRunPointsDelays[];
+extern UIRecordDescriptor minigameHudBodDistanceRecords[];
+extern UIRecordDescriptor minigameHudBodPitchRouletteRecords[];
 extern u8 bOD_bB_pitchRouletteTypes[];
 extern u8 bOD_bB_pitchRouletteWeights[];
 extern u8 bOD_bB_pitchRouletteWeightsDefault[];
 extern u16 lbl_3_data_81FC[];
 extern u8 lbl_3_data_84F4[];
-extern UIRecordDescriptor lbl_3_data_240A4[];
-extern UIRecordDescriptor lbl_3_data_246E4[];
-extern UIRecordDescriptor lbl_3_data_24784[];
-extern UIRecordDescriptor lbl_3_data_24844[];
-extern UIRecordDescriptor lbl_3_data_24B04[];
+extern UIRecordDescriptor minigameHudWallBallScoreboardRecords[];
+extern UIRecordDescriptor minigameHudWallBallTurnsRemainingRecords[];
+extern UIRecordDescriptor minigameHudWallBallPointsPopupRecords[];
+extern UIRecordDescriptor minigameHudWallBallBowserPenaltyRecords[];
+extern UIRecordDescriptor minigameHudBarrelBatterChargeMeterRecords[];
 extern s16 bB_dropConsts[];
-extern UIRecordDescriptor lbl_3_data_24CE4[];
-extern UIRecordDescriptor lbl_3_data_24D44[];
-extern UIRecordDescriptor lbl_3_data_24DA4[];
+extern UIRecordDescriptor minigameHudBarrelBatterPointsRecords[];
+extern UIRecordDescriptor minigameHudBarrelBatterBarrelsHitRecords[];
+extern UIRecordDescriptor minigameHudBarrelBatterBombBarrelRecords[];
 extern u8 cost_15_bB_pitchesPerRound_solo[12];
-extern UIRecordDescriptor lbl_3_data_23894[];
-extern u16 lbl_3_data_238F4[];
+extern UIRecordDescriptor minigameHudStartMovieRecords[];
+extern u16 minigameHudStartMovieElements[];
 extern s16 wallBall_pitchPowerAndCoinTable[];
 extern s16 wallBall_lastInningMultiplier;
 
@@ -158,29 +158,29 @@ extern void fn_3_11E364(void);
 extern void fn_3_11E7C4(void);
 extern void fn_3_EA454(void);
 extern void fn_3_EB6E0(void);
-extern UIRecordDescriptor lbl_3_data_9FB4[];
-extern UIRecordDescriptor lbl_3_data_9ECC[];
-extern UIRecordDescriptor lbl_3_data_92D4[];
-extern UIRecordDescriptor lbl_3_data_9208[];
-extern UIRecordDescriptor lbl_3_data_A598[];
-extern u16 lbl_3_data_92C8[];
-extern u16 lbl_3_data_A8B8[];
-extern u16 lbl_3_data_A9E8[];
+extern UIRecordDescriptor minigameHudChallengeDifficultyRecords[];
+extern UIRecordDescriptor minigameHudDifficultyRecords[];
+extern UIRecordDescriptor minigameHudSelectInfoRecords[];
+extern UIRecordDescriptor minigameHudBannerRecords[];
+extern UIRecordDescriptor minigameHudSelectMenuRecords[];
+extern u16 minigameHudBannerElements[];
+extern u16 minigameHudSelectMenuFrames[];
+extern u16 minigameHudSelectMenuGameElements[];
 extern u8 minigameSelectMenuGameIDs[];
-extern u16 lbl_3_data_9D4C[];
-extern u16 lbl_3_data_9D48[];
+extern u16 minigameHudCharSelectFrame[];
+extern u16 minigameHudCharSelectElement[];
 extern u8 lbl_3_data_9D50[][5];
 extern u8 charSelect_handednessIconFrames[];
 extern u8 superstarUnlocked[0x130];
 
-extern u16 lbl_3_data_93F4[][2];
-extern u16 lbl_3_data_93D4[][2];
+extern u16 minigameHudSelectInfoPracticeFrames[][2];
+extern u16 minigameHudSelectInfoGameFrames[][2];
 extern void fn_8000F8F4(void* node);
-extern UIRecordDescriptor lbl_3_data_9D94[];
-extern UIRecordDescriptor lbl_3_data_9408[];
-extern u16 lbl_3_data_9D84[];
-extern u16 lbl_3_data_9EB4[][2];
-extern u8 lbl_3_data_9EBC[][8];
+extern UIRecordDescriptor minigameHudExtraOpponentRecords[];
+extern UIRecordDescriptor minigameHudCharSelectRecords[];
+extern u16 minigameHudCharSelectChallengeElements[];
+extern u16 minigameHudExtraOpponentFrames[][2];
+extern u8 minigameHudExtraOpponentAnchors[][8];
 
 #define HUD_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 /* Record `i` of the group that starts at handle offset `base` within the node. */
@@ -521,19 +521,19 @@ void minigameHudBannerInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u16 element;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9208);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBannerRecords);
     animRelated[0xD9] = 1;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
         if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT || g_GameLogic.gameStatus == GAME_STATUS_0x1B
             || g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_LOAD) {
-            element = lbl_3_data_92C8[0];
+            element = minigameHudBannerElements[0];
         } else {
-            element = lbl_3_data_92C8[1];
+            element = minigameHudBannerElements[1];
         }
     } else if (g_Practice.practiceType_1 == 6) {
-        element = lbl_3_data_92C8[4];
+        element = minigameHudBannerElements[4];
     } else {
-        element = lbl_3_data_92C8[3];
+        element = minigameHudBannerElements[3];
     }
     HUD_RECORD(scene, 1)->elementIndex = element;
     HUD_RECORD(scene, 1)->frame = 0x28 << 16;
@@ -558,21 +558,21 @@ void minigameHudBannerUpdate(void) {
             goto remove;
         }
         if (status == GAME_STATUS_0x28 || status == GAME_STATUS_MINIGAME_READY) {
-            element = lbl_3_data_92C8[2];
+            element = minigameHudBannerElements[2];
         } else if (status == GAME_STATUS_0x1B || status == GAME_STATUS_MINIGAME_SELECT
                    || status == GAME_STATUS_TOY_STADIUM_LOAD) {
-            element = lbl_3_data_92C8[0];
+            element = minigameHudBannerElements[0];
         } else {
-            element = lbl_3_data_92C8[1];
+            element = minigameHudBannerElements[1];
         }
     } else {
         if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_MENU) {
             goto remove;
         }
         if (g_Practice.practiceType_1 == 6) {
-            element = lbl_3_data_92C8[4];
+            element = minigameHudBannerElements[4];
         } else {
-            element = lbl_3_data_92C8[3];
+            element = minigameHudBannerElements[3];
         }
     }
     if (scene->state != element) {
@@ -604,7 +604,7 @@ remove:
 void minigameHudSelectInfoInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_92D4);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudSelectInfoRecords);
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
             HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
@@ -650,22 +650,22 @@ void minigameHudSelectInfoUpdate(void) {
         goto remove;
     }
     if (mode == GAME_TYPE_PRACTICE) {
-        HUD_RECORD(scene, 3)->frame = lbl_3_data_93F4[g_Practice.practiceType_2][0] << 16;
-        HUD_RECORD(scene, 4)->frame = lbl_3_data_93F4[g_Practice.practiceType_2][1] << 16;
+        HUD_RECORD(scene, 3)->frame = minigameHudSelectInfoPracticeFrames[g_Practice.practiceType_2][0] << 16;
+        HUD_RECORD(scene, 4)->frame = minigameHudSelectInfoPracticeFrames[g_Practice.practiceType_2][1] << 16;
         if (scene->_20 != g_Practice.practiceType_2) {
             scene->_22 = 1;
         }
     } else {
         if (g_d_GameSettings._12 < 1
             && (minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == 6 || minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == 7)) {
-            HUD_RECORD(scene, 3)->frame = lbl_3_data_93D4[0][0] << 16;
-            HUD_RECORD(scene, 4)->frame = lbl_3_data_93D4[0][1] << 16;
+            HUD_RECORD(scene, 3)->frame = minigameHudSelectInfoGameFrames[0][0] << 16;
+            HUD_RECORD(scene, 4)->frame = minigameHudSelectInfoGameFrames[0][1] << 16;
         } else if (g_d_GameSettings._12 < 2 && minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == 7) {
-            HUD_RECORD(scene, 3)->frame = lbl_3_data_93D4[0][0] << 16;
-            HUD_RECORD(scene, 4)->frame = lbl_3_data_93D4[0][1] << 16;
+            HUD_RECORD(scene, 3)->frame = minigameHudSelectInfoGameFrames[0][0] << 16;
+            HUD_RECORD(scene, 4)->frame = minigameHudSelectInfoGameFrames[0][1] << 16;
         } else {
-            HUD_RECORD(scene, 3)->frame = lbl_3_data_93D4[minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor]][0] << 16;
-            HUD_RECORD(scene, 4)->frame = lbl_3_data_93D4[minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor]][1] << 16;
+            HUD_RECORD(scene, 3)->frame = minigameHudSelectInfoGameFrames[minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor]][0] << 16;
+            HUD_RECORD(scene, 4)->frame = minigameHudSelectInfoGameFrames[minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor]][1] << 16;
         }
         if (scene->_20 != minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor]) {
             scene->_22 = 1;
@@ -717,7 +717,7 @@ void minigameHudCharSelectInit(void) {
     int i;
 
     scene->state = 0;
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9408);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudCharSelectRecords);
     i = 0;
     do {
         load_Icon(scene, i + 0xD, 1, 0x1A, i);
@@ -749,7 +749,7 @@ void minigameHudCharSelectInit(void) {
     }
     if (g_Minigame.challengeModeInd != 0) {
         HUD_RECORD(scene, 0x48)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 0x48)->elementIndex = lbl_3_data_9D84[g_d_GameSettings._33];
+        HUD_RECORD(scene, 0x48)->elementIndex = minigameHudCharSelectChallengeElements[g_d_GameSettings._33];
         for (i = 2; i < 5; i++) {
             HUD_RECORD(scene, i)->flags &= ~UI_FLAG_VISIBLE;
             HUD_RECORD_AT(scene, 4, i)->flags &= ~UI_FLAG_VISIBLE;
@@ -787,7 +787,7 @@ void minigameHudCharSelectUpdate(void) {
         scene->state = 1;
     } else if (scene->state == 1) {
         rec = HUD_RECORD(scene, 0);
-        if ((s32)(rec->frame >> 16) >= lbl_3_data_9D4C[0]) {
+        if ((s32)(rec->frame >> 16) >= minigameHudCharSelectFrame[0]) {
             rec->playMode = UI_PLAY_STOP;
             HUD_RECORD(scene, 17)->playMode = UI_PLAY_STOP;
             scene->state = 2;
@@ -875,11 +875,11 @@ void minigameHudCharSelectUpdate(void) {
     } else if (scene->state == 7) {
         if (scene->_1A >= 30) {
             if (animRelated[0xDB] != 4) {
-                HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_9D48[0];
-                HUD_RECORD(scene, 0)->frame = lbl_3_data_9D4C[0] << 16;
+                HUD_RECORD(scene, 0)->elementIndex = minigameHudCharSelectElement[0];
+                HUD_RECORD(scene, 0)->frame = minigameHudCharSelectFrame[0] << 16;
                 HUD_RECORD(scene, 0)->playMode = UI_PLAY_STOP;
-                HUD_RECORD(scene, 17)->elementIndex = lbl_3_data_9D48[0];
-                HUD_RECORD(scene, 17)->frame = lbl_3_data_9D4C[0] << 16;
+                HUD_RECORD(scene, 17)->elementIndex = minigameHudCharSelectElement[0];
+                HUD_RECORD(scene, 17)->frame = minigameHudCharSelectFrame[0] << 16;
                 HUD_RECORD(scene, 17)->playMode = UI_PLAY_STOP;
             }
             scene->state = 2;
@@ -1011,16 +1011,16 @@ void minigameHudExtraOpponentInit(void) {
     int i;
 
     scene->_1E = 0;
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9D94);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudExtraOpponentRecords);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
         scene->_1E = 1;
         HUD_RECORD(scene, 1)->elementIndex = 0x30;
         HUD_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
     }
     for (i = 0; i < 4; i++) {
-        HUD_RECORD_AT(scene, 4, i)->anchorSub = lbl_3_data_9EBC[scene->_1E][i];
+        HUD_RECORD_AT(scene, 4, i)->anchorSub = minigameHudExtraOpponentAnchors[scene->_1E][i];
     }
-    HUD_RECORD(scene, 3)->anchorSub = lbl_3_data_9EBC[scene->_1E][(s8)g_Minigame.extraOpponentCursor + 4];
+    HUD_RECORD(scene, 3)->anchorSub = minigameHudExtraOpponentAnchors[scene->_1E][(s8)g_Minigame.extraOpponentCursor + 4];
     i = 0;
     do {
         load_Icon(scene, i + 4, 1, 0x32, i + 4);
@@ -1058,12 +1058,12 @@ void minigameHudExtraOpponentUpdate(void) {
         scene->state++;
     } else if (scene->state == 1) {
         rec = HUD_RECORD(scene, 1);
-        if ((s32)(rec->frame >> 16) >= lbl_3_data_9EB4[scene->_1E][0]) {
+        if ((s32)(rec->frame >> 16) >= minigameHudExtraOpponentFrames[scene->_1E][0]) {
             rec->playMode = UI_PLAY_STOP;
             scene->state = 2;
         }
     } else if (scene->state == 2) {
-        HUD_RECORD(scene, 3)->anchorSub = lbl_3_data_9EBC[scene->_1E][(s8)g_Minigame.extraOpponentCursor + 4];
+        HUD_RECORD(scene, 3)->anchorSub = minigameHudExtraOpponentAnchors[scene->_1E][(s8)g_Minigame.extraOpponentCursor + 4];
         for (i = 0; i < 4; i++) {
             if (i > g_Minigame.maxExtraOpponents || i < g_Minigame.minExtraOpponents) {
                 HUD_RECORD_AT(scene, 4, i)->playMode = UI_PLAY_STOP;
@@ -1083,7 +1083,7 @@ void minigameHudExtraOpponentUpdate(void) {
             scene->state = 3;
         }
     } else if (scene->state == 3) {
-        if ((s32)(HUD_RECORD(scene, 1)->frame >> 16) >= lbl_3_data_9EB4[scene->_1E][1]) {
+        if ((s32)(HUD_RECORD(scene, 1)->frame >> 16) >= minigameHudExtraOpponentFrames[scene->_1E][1]) {
             goto remove;
         }
     }
@@ -1103,7 +1103,7 @@ void minigameHudDifficultyInit(void) {
     if (g_Minigame.challengeModeInd != 0) {
         n = 2;
     }
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9ECC);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudDifficultyRecords);
     for (i = 0; i < 4; i++) {
         if (n >= i) {
             load_Icon(scene, i + 2, 1, 0x6B, i);
@@ -1187,7 +1187,7 @@ remove:
 void minigameHudChallengeDifficultyInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9FB4);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudChallengeDifficultyRecords);
     scene->state = 0;
     if (animRelated[0xBF] != 0) {
         HUD_RECORD(scene, 0)->frame = 0x16 << 16;
@@ -1267,7 +1267,7 @@ void minigameHudSelectMenuInit(void) {
     int i;
     int j;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_A598);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudSelectMenuRecords);
     HUD_RECORD(scene, 0)->frame = 0;
     scene->state = 0;
     n = (s8)g_Minigame.selectMenuCursor;
@@ -1275,19 +1275,19 @@ void minigameHudSelectMenuInit(void) {
         scene->state = n - 4;
     }
     for (i = 0, j = 0; i < 7; i++) {
-        HUD_RECORD_AT(scene, 0xE, i)->elementIndex = lbl_3_data_A9E8[minigameSelectMenuGameIDs[i]];
+        HUD_RECORD_AT(scene, 0xE, i)->elementIndex = minigameHudSelectMenuGameElements[minigameSelectMenuGameIDs[i]];
         if (g_d_GameSettings._12 < 1 && minigameSelectMenuGameIDs[i] == 6) {
-            HUD_RECORD_AT(scene, 0xE, i)->elementIndex = lbl_3_data_A9E8[0];
+            HUD_RECORD_AT(scene, 0xE, i)->elementIndex = minigameHudSelectMenuGameElements[0];
         } else if (g_d_GameSettings._12 < 2 && minigameSelectMenuGameIDs[i] == 7) {
-            HUD_RECORD_AT(scene, 0xE, i)->elementIndex = lbl_3_data_A9E8[0];
+            HUD_RECORD_AT(scene, 0xE, i)->elementIndex = minigameHudSelectMenuGameElements[0];
         }
         if (i < scene->state) {
-            HUD_RECORD(scene, i)->frame = lbl_3_data_A8B8[0] << 16;
+            HUD_RECORD(scene, i)->frame = minigameHudSelectMenuFrames[0] << 16;
         } else if (j >= 5) {
-            HUD_RECORD(scene, i)->frame = lbl_3_data_A8B8[6] << 16;
+            HUD_RECORD(scene, i)->frame = minigameHudSelectMenuFrames[6] << 16;
         } else {
             j++;
-            HUD_RECORD(scene, i)->frame = lbl_3_data_A8B8[j] << 16;
+            HUD_RECORD(scene, i)->frame = minigameHudSelectMenuFrames[j] << 16;
         }
     }
     animRelated[0xDA] = 0;
@@ -1347,7 +1347,7 @@ void minigameHudSelectMenuUpdate(void) {
                 if (idx >= 6) {
                     idx = 6;
                 }
-                if ((HUD_RECORD(scene, i)->frame >> 16) < lbl_3_data_A8B8[idx]) {
+                if ((HUD_RECORD(scene, i)->frame >> 16) < minigameHudSelectMenuFrames[idx]) {
                     HUD_RECORD(scene, i)->playMode = UI_PLAY_FORWARD;
                     animRelated[0xBB] = 1;
                 } else {
@@ -1363,7 +1363,7 @@ void minigameHudSelectMenuUpdate(void) {
                 if (idx < 0) {
                     idx = 0;
                 }
-                if ((HUD_RECORD(scene, i)->frame >> 16) > lbl_3_data_A8B8[idx]) {
+                if ((HUD_RECORD(scene, i)->frame >> 16) > minigameHudSelectMenuFrames[idx]) {
                     HUD_RECORD(scene, i)->playMode = UI_PLAY_BACKWARD;
                     animRelated[0xBB] = 1;
                 } else {
@@ -1437,7 +1437,7 @@ void minigameHudGraphics0x27(void) {
 void minigameHudResultBannerInit(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
-    addGraphicsElementToScene(node, lbl_3_data_A9F8);
+    addGraphicsElementToScene(node, minigameHudResultBannerRecords);
     ((MinigameHudScene*)node)->_18 = 0;
     ((MinigameHudScene*)node)->_1A = 0;
     currentDrawingItem->func = minigameHudResultBannerUpdate;
@@ -1496,11 +1496,11 @@ void minigameHudResultBannerUpdate(void) {
         }
         if (g_Minigame.grandPrixRanks[0][1] == 0 && g_Minigame.grandPrixRanks[1][1] == 0 && g_Minigame.grandPrixRanks[2][1] == 0
             && g_Minigame.grandPrixRanks[3][1] == 0) {
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[2];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[2];
         } else if (found) {
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[8];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[8];
         } else {
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[10];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[10];
         }
         HUD_RECORD(scene, 0)->flags |= UI_FLAG_VISIBLE;
         HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
@@ -1510,11 +1510,11 @@ void minigameHudResultBannerUpdate(void) {
     } else if (g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE
                || (mode == GAME_TYPE_TOY_FIELD && g_Minigame.soloPlayerSlot >= 0 && g_Minigame.newRecordRank != 0)) {
         if (g_Minigame.newRecordRank == 1) {
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[7];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[7];
         } else if (g_Minigame.newRecordRank != 0) {
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[6];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[6];
         } else {
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[5];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[5];
         }
         HUD_RECORD(scene, 0)->flags |= UI_FLAG_VISIBLE;
         HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
@@ -1525,7 +1525,7 @@ void minigameHudResultBannerUpdate(void) {
         if (g_Minigame.challenge_minigame_haven_tWonYetIndicator != 0) {
             HUD_RECORD(scene, 0)->flags |= UI_FLAG_VISIBLE;
             HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
-            HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_AA98[2];
+            HUD_RECORD(scene, 0)->elementIndex = minigameHudResultBannerElements[2];
             HUD_RECORD(scene, 0)->pos.x = 0.0f;
             HUD_RECORD(scene, 0)->pos.y = 0.0f;
         } else {
@@ -1541,7 +1541,7 @@ void minigameHudResultBannerUpdate(void) {
                     HUD_RECORD(scene, count)->playMode = UI_PLAY_FORWARD;
                     HUD_RECORD(scene, count)->pos.x = x;
                     HUD_RECORD(scene, count)->pos.y = y;
-                    HUD_RECORD(scene, count)->elementIndex = lbl_3_data_AA98[1];
+                    HUD_RECORD(scene, count)->elementIndex = minigameHudResultBannerElements[1];
                     count++;
                 }
             }
@@ -1553,9 +1553,9 @@ void minigameHudResultBannerUpdate(void) {
                 HUD_RECORD(scene, count)->flags |= UI_FLAG_VISIBLE;
                 HUD_RECORD(scene, count)->playMode = UI_PLAY_FORWARD;
                 if (g_Minigame.winLossResult == 1) {
-                    HUD_RECORD(scene, count)->elementIndex = lbl_3_data_AA98[0];
+                    HUD_RECORD(scene, count)->elementIndex = minigameHudResultBannerElements[0];
                 } else {
-                    HUD_RECORD(scene, count)->elementIndex = lbl_3_data_AA98[4];
+                    HUD_RECORD(scene, count)->elementIndex = minigameHudResultBannerElements[4];
                 }
                 count++;
             }
@@ -1574,9 +1574,9 @@ remove:
 void minigameHudPauseHelpBannerInit(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
-    lbl_3_data_B0E0[0].elementIndex = lbl_3_data_B140[g_Minigame.GameMode_MiniGame][0];
-    lbl_3_data_B0E0[1].elementIndex = lbl_3_data_B140[g_Minigame.GameMode_MiniGame][1];
-    addGraphicsElementToScene(node, lbl_3_data_B0E0);
+    minigameHudPauseHelpBannerRecords[0].elementIndex = minigameHudPauseHelpBannerElements[g_Minigame.GameMode_MiniGame][0];
+    minigameHudPauseHelpBannerRecords[1].elementIndex = minigameHudPauseHelpBannerElements[g_Minigame.GameMode_MiniGame][1];
+    addGraphicsElementToScene(node, minigameHudPauseHelpBannerRecords);
     ((MinigameHudScene*)node)->state = 1;
     currentDrawingItem->func = minigameHudPauseHelpBannerUpdate;
 }
@@ -1947,14 +1947,14 @@ void minigameHudHelpInit(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_0x28) {
         mode = 7;
     }
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_AAB0);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudHelpRecords);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
         for (i = 0; i < 6; i++) {
             HUD_RECORD(scene, i)->layer = 2;
         }
     }
-    HUD_RECORD(scene, 9)->elementIndex = lbl_3_data_B0D8[g_Minigame.miniGameNumberOfParticipants - 1];
-    HUD_RECORD(scene, 8)->elementIndex = lbl_3_data_B010[mode][4];
+    HUD_RECORD(scene, 9)->elementIndex = minigameHudHelpParticipantElements[g_Minigame.miniGameNumberOfParticipants - 1];
+    HUD_RECORD(scene, 8)->elementIndex = minigameHudHelpGameElements[mode][4];
     i = 0;
     for (k = 0; k < 4; k++) {
         if (g_Minigame.playerSlots.characterIndex[k] >= 0) {
@@ -2110,13 +2110,13 @@ void minigameHudHelpInit(void) {
         || g_GameLogic.gameStatus == GAME_STATUS_0x28) {
         HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
     } else if (g_d_GameSettings.exhibitionMatchInd == 0) {
-        load_Icon(scene, 5, 1, lbl_3_data_B010[mode][3], g_Minigame.soloMinigameDifficulty + 4);
+        load_Icon(scene, 5, 1, minigameHudHelpGameElements[mode][3], g_Minigame.soloMinigameDifficulty + 4);
     } else {
-        load_Icon(scene, 5, 1, lbl_3_data_B010[mode][3], g_Minigame.soloMinigameDifficulty);
+        load_Icon(scene, 5, 1, minigameHudHelpGameElements[mode][3], g_Minigame.soloMinigameDifficulty);
     }
-    HUD_RECORD(scene, 3)->elementIndex = lbl_3_data_B010[mode][0];
-    HUD_RECORD(scene, 4)->elementIndex = lbl_3_data_B010[mode][1];
-    HUD_RECORD(scene, 5)->elementIndex = lbl_3_data_B010[mode][2];
+    HUD_RECORD(scene, 3)->elementIndex = minigameHudHelpGameElements[mode][0];
+    HUD_RECORD(scene, 4)->elementIndex = minigameHudHelpGameElements[mode][1];
+    HUD_RECORD(scene, 5)->elementIndex = minigameHudHelpGameElements[mode][2];
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.gameStatus != GAME_STATUS_PAUSED) {
         load_Icon(scene, 0x20, 1, 0x116, 0xF);
         load_Icon(scene, 0x21, 1, 0x116, 0x10);
@@ -2368,7 +2368,7 @@ remove:
 void minigameHudEventBannerInit(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
-    addGraphicsElementToScene(node, lbl_3_data_91BC);
+    addGraphicsElementToScene(node, minigameHudEventBannerRecords);
     g_Minigame.bODRelated = 0;
     ((MinigameHudScene*)node)->_18 = 0;
     ((MinigameHudScene*)node)->_1A = 0;
@@ -2390,7 +2390,7 @@ void minigameHudEventBannerUpdate(void) {
             if (g_Minigame.hudEventType != 0) {
                 g_Minigame.someGraphicFrameCountdown--;
                 if (g_Minigame.someGraphicFrameCountdown <= 0) {
-                    HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_91FC[g_Minigame.hudEventType];
+                    HUD_RECORD(scene, 0)->elementIndex = minigameHudEventBannerElements[g_Minigame.hudEventType];
                     HUD_RECORD(scene, 0)->flags |= UI_FLAG_VISIBLE;
                     HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
                     HUD_RECORD(scene, 0)->frame = 0;
@@ -2443,8 +2443,8 @@ void minigameHudStartMovie(void) {
     switch (scene->state) {
     case 0:
         g_Minigame.startMovieHudInd = 1;
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23894);
-        HUD_RECORD(scene, 0)->elementIndex = lbl_3_data_238F4[g_Minigame.GameMode_MiniGame];
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudStartMovieRecords);
+        HUD_RECORD(scene, 0)->elementIndex = minigameHudStartMovieElements[g_Minigame.GameMode_MiniGame];
         if (g_Minigame.grandPrixInd != 0 && g_Minigame.grandPrixRound >= 6) {
             HUD_RECORD(scene, 1)->flags |= UI_FLAG_VISIBLE;
         }
@@ -2540,7 +2540,7 @@ void minigameHudTargetPoints(void) {
             removeCurrentDrawingItem();
             return;
         }
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23904);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudTargetPointsRecords);
         switch (g_Minigame.GameMode_MiniGame) {
         case MINI_GAME_ID_BOBOMB_DERBY:
             HUD_RECORD(scene, 0)->frame = 0;
@@ -2633,7 +2633,7 @@ void minigameHudPitchesRemaining(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23A44);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudPitchesRemainingRecords);
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
             load_Icon(scene, 1, 4, 0x14D, 1);
         }
@@ -2717,7 +2717,7 @@ void minigameStateLogic(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23AE4);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameStateLogicRecords);
         switch (g_Minigame.GameMode_MiniGame) {
         case MINI_GAME_ID_BOBOMB_DERBY:
             HUD_RECORD(scene, 0)->frame = 0;
@@ -2872,7 +2872,7 @@ void minigameHudPlayerMarkers(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23C84);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudPlayerMarkersRecords);
         i = 0;
         do {
             switch (g_Minigame.GameMode_MiniGame) {
@@ -2964,7 +2964,7 @@ void minigameHudBodStreak(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23D24);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodStreakRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3018,7 +3018,7 @@ void minigameHudBodKingBombBonus(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23DA4);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodKingBombBonusRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3084,7 +3084,7 @@ void minigameHudBodStreakBonus(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23E04);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodStreakBonusRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3165,7 +3165,7 @@ void minigameHudBodHomeRunPoints(void) {
     case 0:
         insertGraphicDrawingFunction(minigameHudBodStreakBonus, ((DrawingSceneStruct*)scene)->priority);
         insertGraphicDrawingFunction(minigameHudBodKingBombBonus, ((DrawingSceneStruct*)scene)->priority);
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23E64);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodHomeRunPointsRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3204,7 +3204,7 @@ void minigameHudBodHomeRunPoints(void) {
             } else {
                 scene->_18 = 0xFFFF;
             }
-            if (scene->_18 >= lbl_3_data_2145C[scene->_1A]) {
+            if (scene->_18 >= minigameHudBodHomeRunPointsDelays[scene->_1A]) {
                 scene->_18 = 0;
                 scene->_1A++;
             }
@@ -3283,7 +3283,7 @@ void minigameHudBodDistance(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23F24);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodDistanceRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3361,7 +3361,7 @@ void minigameHudBodPitchRoulette(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23F64);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodPitchRouletteRecords);
         HUD_RECORD(scene, 8)->flags &= ~UI_FLAG_VISIBLE;
         scene->_1E = RandomInt_Sim(6);
         scene->sndHandle = 0xFFFFFFFF;
@@ -3537,7 +3537,7 @@ void minigameHudWallBallScoreboard(void) {
     } else {
         switch (scene->state) {
         case 0:
-            addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_240A4);
+            addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudWallBallScoreboardRecords);
             i = 0;
             do {
                 slot = g_Minigame.playerSlots.playOrder[i];
@@ -3630,7 +3630,7 @@ void minigameHudWallBallTurnsRemaining(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_246E4);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudWallBallTurnsRemainingRecords);
         HUD_RECORD(scene, 2)->frame = 13 << 16;
         scene->_1E = scene->_20 = g_Scores.inningLimit;
         scene->state = 1;
@@ -3705,7 +3705,7 @@ void minigameHudWallBallPointsPopup(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24784);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudWallBallPointsPopupRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3811,7 +3811,7 @@ void minigameHudWallBallBowserPenalty(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24844);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudWallBallBowserPenaltyRecords);
         scene->state = 1;
         break;
     case 1:
@@ -3920,7 +3920,7 @@ void minigameHudBarrelBatterChargeMeter(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24B04);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBarrelBatterChargeMeterRecords);
         i = 0;
         HUD_RECORD(scene, 0)->elementIndex = 0x120 + (g_Batter.batterHand != 0 ? -1 : 0);
         do {
@@ -4000,7 +4000,7 @@ void minigameHudBarrelBatterPoints(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24CE4);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBarrelBatterPointsRecords);
         scene->state = 1;
         break;
     case 1:
@@ -4048,7 +4048,7 @@ void minigameHudBarrelBatterBarrelsHit(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24D44);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBarrelBatterBarrelsHitRecords);
         scene->state = 1;
         break;
     case 1:
@@ -4095,7 +4095,7 @@ void minigameHudBarrelBatterBombBarrel(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24DA4);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBarrelBatterBombBarrelRecords);
         scene->state = 1;
         break;
     case 1:
@@ -4161,7 +4161,7 @@ void minigameHudCcsScoreboard(void) {
     } else {
         switch (scene->state) {
         case 0:
-            addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_24E04);
+            addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudCcsScoreboardRecords);
             i = 0;
             do {
                 load_Icon(scene, 9 + i, 1, 0x65, i);
@@ -4238,7 +4238,7 @@ void minigameHudCcsTargetMarkers(void) {
     }
     switch (scene->state) {
     case 0:
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_25344);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudCcsTargetMarkersRecords);
         scene->state = 1;
         break;
     case 1:
