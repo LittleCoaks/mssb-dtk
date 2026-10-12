@@ -1584,7 +1584,7 @@ void fn_3_1519F8(MGEffect* effect, MGParticle* p) {
             p->_4A = 0;
         }
         if (p->_4A == 0 && p->_45 != 0) {
-            fn_3_11F4B4(p->_44, p->_4D == 1);
+            minigameHudCcsAddGemPoints(p->_44, p->_4D == 1);
             p->_45 = 0;
         }
     }

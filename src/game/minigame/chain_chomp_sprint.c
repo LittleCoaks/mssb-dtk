@@ -43,7 +43,7 @@ extern void fn_800115C8(u8 player);
 extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_106EB0(void);
 extern void minigameCalculateRankings(void);
-extern void fn_3_11F480(void);
+extern void minigameHudCcsSyncDisplayedPoints(void);
 extern void fn_3_14C904(void);
 extern void fn_3_151798(void);
 extern void fn_3_152AB4(u8 coin, u8 runner);
@@ -344,7 +344,7 @@ void fn_3_140BCC(void) {
             minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
             fn_3_151798();
-            fn_3_11F480();
+            minigameHudCcsSyncDisplayedPoints();
             fn_80011578();
             g_Minigame.powerup.activeInd = FALSE;
             g_Minigame.turnOverStatus = 1;

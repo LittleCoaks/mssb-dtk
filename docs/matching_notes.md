@@ -2913,11 +2913,11 @@ instructions already match but several locals are live across a loop.
   unchanged, `opt_propagation off` 72.18% (424 bytes), `opt_common_subs off` 56.7%,
   `opt_lifetimes off` unchanged. Don't re-run these.
 - **A remove-on-failure tail is `if (ok) { body } else { remove }`.** The structured
-  early-return form scored 94.49% against 100% (`hud/rep_3448` `fn_3_125604`). When several early
-  conditions share one remove block, `goto remove` beat the structured form (`fn_3_128C18`
+  early-return form scored 94.49% against 100% (`hud/rep_3448` `minigameHudEventBannerUpdate`). When several early
+  conditions share one remove block, `goto remove` beat the structured form (`minigameHudResultBannerUpdate`
   95.3% vs 86.84%).
 - **Child scene nodes:** `node = currentDrawingItem; parent = node->currentDrawingItem;
-  scene = (cast)node;` in that order matched 100% (`fn_3_122D24`, `fn_3_1231D4`).
+  scene = (cast)node;` in that order matched 100% (`minigameHudBodStreakBonus`, `minigameHudBodKingBombBonus`).
 - **Unsolved in `rep_3448`:** the target loads `&g_Minigame` once at entry and shares it with an
   inlined predicate (ours rematerialises it); `rec->unk69[0] == 2` compiles to
   `subfic; cntlzw; srwi.; beq` in the target (seen right after a store to the same record) but to

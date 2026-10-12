@@ -423,11 +423,11 @@ void toyfield_drawHud(void) {
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME ||
         g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
-        fn_3_129458();
+        minigameHudEndGameGraphics();
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
         if (g_Minigame.startMovieHudInd == 0) {
-            insertGraphicDrawingFunction(fn_3_1254F8, 2);
+            insertGraphicDrawingFunction(minigameHudStartMovie, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
         if (pauseControl.state == 1) {
@@ -439,16 +439,16 @@ void toyfield_drawHud(void) {
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-            insertGraphicDrawingFunction(fn_3_1274B4, 2);
+            insertGraphicDrawingFunction(minigameHudHighScoreTable, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_END_OF_GAME) {
     } else if (g_GameLogic.gameStatus == GAME_STATUS_HOW_TO_PLAY_SCREEN) {
         if (pauseControl.state == 2) {
-            insertGraphicDrawingFunction(fn_3_128B90, 2);
+            insertGraphicDrawingFunction(minigameHudPauseHelpBannerInit, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
         if (pauseControl.state == 8 && pauseControl._1D4 == 2) {
-            insertGraphicDrawingFunction(fn_3_126604, 2);
+            insertGraphicDrawingFunction(minigameHudHelpInit, 2);
         }
     }
 }
@@ -457,7 +457,7 @@ void toyfield_drawHud(void) {
 void fn_3_EDA3C(void) {
     if (g_GameLogic.gameStatus >= GAME_STATUS_MINIGAME_SELECT && g_GameLogic.gameStatus <= GAME_STATUS_0x20 &&
         animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
-        insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+        insertGraphicDrawingFunction(minigameHudBannerInit, 2);
         insertGraphicDrawingFunction(fn_80053FE8, 2);
         SET_MENU(0x2E);
     }
@@ -468,7 +468,7 @@ void fn_3_EDA3C(void) {
                 animRelated[0xDC] = 1;
             }
             if (animRelated[0xDA] != 1) {
-                insertGraphicDrawingFunction(fn_3_12B7A0, 2);
+                insertGraphicDrawingFunction(minigameHudCharSelectInit, 2);
             }
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2) {
@@ -477,7 +477,7 @@ void fn_3_EDA3C(void) {
                 animRelated[0xDC] = 1;
             }
             if (g_Minigame.charSelectState == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
-                insertGraphicDrawingFunction(fn_3_12A6C4, 2);
+                insertGraphicDrawingFunction(minigameHudExtraOpponentInit, 2);
             }
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_7) {
@@ -493,10 +493,10 @@ void fn_3_EDA3C(void) {
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_READY) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
-            insertGraphicDrawingFunction(fn_3_126604, 2);
+            insertGraphicDrawingFunction(minigameHudHelpInit, 2);
             SET_MENU(0x32);
             if (g_d_GameSettings.exhibitionMatchInd == 0 && animRelated[0xD9] == 0) {
-                insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+                insertGraphicDrawingFunction(minigameHudBannerInit, 2);
             }
         }
     }
@@ -1012,7 +1012,7 @@ void fn_3_EB6E0(void) {
     u32 count;
 
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_NONE) {
-        if (fn_3_12536C()) {
+        if (minigameHudShouldRemove()) {
             removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
             removeCurrentDrawingItem();
             return;
@@ -1130,7 +1130,7 @@ void fn_3_EB6E0(void) {
     }
     switch (scene->_20) {
         case 0:
-            if (fn_3_125424(scene, 0, 10)) {
+            if (minigameHudSeekRecordFrame(scene, 0, 10)) {
                 scene->_20 = 2;
             }
             break;
@@ -1148,12 +1148,12 @@ void fn_3_EB6E0(void) {
         case 2:
             if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
                 if (g_GameLogic.gameStatus == GAME_STATUS_DEFAULT || g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
-                    fn_3_125424(scene, 0, 10);
+                    minigameHudSeekRecordFrame(scene, 0, 10);
                 } else {
                     int leader;
                     u32 tied;
 
-                    fn_3_125424(scene, 0, 0);
+                    minigameHudSeekRecordFrame(scene, 0, 0);
                     leader = minigame_getLeadingPlayer();
                     tied = minigame_displayedPointsAllTied();
                     i = 0;
@@ -1326,7 +1326,7 @@ void fn_3_EAEF4(void) {
     if (scene->_22 != 0) {
         OFFSCREEN_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
     } else {
-        fn_3_125424(scene, 0, 10);
+        minigameHudSeekRecordFrame(scene, 0, 10);
     }
     leader = minigame_getLeadingPlayer();
     tied = minigame_displayedPointsAllTied();
@@ -1451,10 +1451,10 @@ void fn_3_EA8FC(void) {
                     load_Icon(scene, 7 + i * 4, 1, icon, points % 100 / 10);
                     load_Icon(scene, 8 + i * 4, 1, icon, points % 10);
                     if (g_Minigame.toyField_pointsCountingInd != 0) {
-                        fn_3_125424(scene, 5 + i * 4, 8);
-                        fn_3_125424(scene, 6 + i * 4, 8);
-                        fn_3_125424(scene, 7 + i * 4, 8);
-                        fn_3_125424(scene, 8 + i * 4, 8);
+                        minigameHudSeekRecordFrame(scene, 5 + i * 4, 8);
+                        minigameHudSeekRecordFrame(scene, 6 + i * 4, 8);
+                        minigameHudSeekRecordFrame(scene, 7 + i * 4, 8);
+                        minigameHudSeekRecordFrame(scene, 8 + i * 4, 8);
                     } else {
                         OFFSCREEN_RECORD_AT(scene, 5, i * 4)->playMode = UI_PLAY_FORWARD;
                         OFFSCREEN_RECORD_AT(scene, 6, i * 4)->playMode = UI_PLAY_FORWARD;
@@ -1899,7 +1899,7 @@ void minigame_pointsTally(void) {
             }
             break;
         case 7:
-            if (fn_3_125424(scene, 2, 0)) {
+            if (minigameHudSeekRecordFrame(scene, 2, 0)) {
                 switch (scene->_1E) {
                     case 0:
                         if (scene->_20 == 0) {

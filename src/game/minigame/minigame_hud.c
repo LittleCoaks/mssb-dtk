@@ -207,14 +207,14 @@ void minigameGraphics(void) {
 
     if (status == GAME_STATUS_MINIGAME_SELECT || (u8)(status - GAME_STATUS_TOY_STADIUM_LOAD) <= 4
         || status == GAME_STATUS_0x28) {
-        fn_3_12CA90();
+        minigameHudMenuGraphics();
     } else if (status == GAME_STATUS_0x26) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
             ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 1;
         }
     } else if (status == GAME_STATUS_0x29) {
         if (animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
-            insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+            insertGraphicDrawingFunction(minigameHudBannerInit, 2);
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
             node = insertGraphicDrawingFunction(fn_3_11DECC, 2);
@@ -229,23 +229,23 @@ void minigameGraphics(void) {
             animRelated[0xDA] = 0;
         }
         if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME || g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
-            fn_3_129458();
+            minigameHudEndGameGraphics();
         } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
             if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
                 if (g_Minigame.humanPlayerCount == 1) {
                     insertGraphicDrawingFunction(mm_DrawResultCode, 2);
                 }
-                node = insertGraphicDrawingFunction(fn_3_127B68, 2);
+                node = insertGraphicDrawingFunction(minigameHudResultsScene, 2);
                 *(DrawingSceneStruct**)&g_Minigame.resultsScene = node;
             }
             if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-                insertGraphicDrawingFunction(fn_3_1274B4, 2);
+                insertGraphicDrawingFunction(minigameHudHighScoreTable, 2);
             }
         } else if (g_GameLogic.gameStatus == GAME_STATUS_0x27) {
-            fn_3_1293D0();
+            minigameHudGraphics0x27();
         } else if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
             if (lbl_8037169C[0x12] != 0 && g_Minigame.startMovieHudInd == 0) {
-                insertGraphicDrawingFunction(fn_3_1254F8, 2);
+                insertGraphicDrawingFunction(minigameHudStartMovie, 2);
             }
         }
         if (g_Minigame.pauseInd != 0) {
@@ -254,42 +254,42 @@ void minigameGraphics(void) {
             }
             if (pauseControl.state == 0xA) {
                 if (pauseControl._1D4 == 2) {
-                    insertGraphicDrawingFunction(fn_3_128B90, 2);
+                    insertGraphicDrawingFunction(minigameHudPauseHelpBannerInit, 2);
                 }
             } else if (pauseControl.state == 0xB) {
                 if (pauseControl._1D4 == 2) {
-                    insertGraphicDrawingFunction(fn_3_126604, 2);
+                    insertGraphicDrawingFunction(minigameHudHelpInit, 2);
                 }
             } else if (animRelated[0xAB] == 0) {
                 insertGraphicDrawingFunction(pauseOptionList_init, 2);
             }
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
-            fn_3_12C984();
+            minigameHudSpawnBobombDerby();
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
-            fn_3_12C868();
+            minigameHudSpawnWallBall();
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
-            fn_3_12C74C();
+            minigameHudSpawnBarrelBatter();
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_CHAINCHOMP_SPRINT) {
-            fn_3_12C684();
+            minigameHudSpawnChainChompSprint();
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
-            fn_3_12C5CC();
+            minigameHudSpawnStarDash();
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
-            fn_3_12C514();
+            minigameHudSpawnPiranhaPanic();
         }
     }
 }
 
 // .text:0x0012CA90 size:0x764
-void fn_3_12CA90(void) {
+void minigameHudMenuGraphics(void) {
     if (g_GameLogic.gameStatus >= GAME_STATUS_MINIGAME_SELECT && g_GameLogic.gameStatus <= GAME_STATUS_0x20
         && animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
-        insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+        insertGraphicDrawingFunction(minigameHudBannerInit, 2);
         insertGraphicDrawingFunction(fn_80053FE8, 2);
         if (g_Minigame.challengeModeInd != 0) {
             SET_MENU(0x23);
@@ -299,9 +299,9 @@ void fn_3_12CA90(void) {
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-            insertGraphicDrawingFunction(fn_3_129A18, 2);
+            insertGraphicDrawingFunction(minigameHudSelectMenuInit, 2);
             if (animRelated[0xBC] == 0) {
-                insertGraphicDrawingFunction(fn_3_12BFE8, 2);
+                insertGraphicDrawingFunction(minigameHudSelectInfoInit, 2);
             }
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
@@ -315,7 +315,7 @@ void fn_3_12CA90(void) {
                 animRelated[0xDC] = 1;
             }
             if (animRelated[0xDA] != 1) {
-                insertGraphicDrawingFunction(fn_3_12B7A0, 2);
+                insertGraphicDrawingFunction(minigameHudCharSelectInit, 2);
             }
         }
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2) {
@@ -325,16 +325,16 @@ void fn_3_12CA90(void) {
                 animRelated[0xDC] = 1;
             }
             if (g_Minigame.charSelectState == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
-                insertGraphicDrawingFunction(fn_3_12A6C4, 2);
+                insertGraphicDrawingFunction(minigameHudExtraOpponentInit, 2);
             }
             if (g_Minigame.charSelectState == 5 || g_Minigame.charSelectState == 8) {
                 if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1 && g_Minigame.charSelectState == 5) {
                     fn_80050F78(0);
                     animRelated[0xDC] = 0;
                     if (g_Minigame.challengeModeInd != 0) {
-                        insertGraphicDrawingFunction(fn_3_129F48, 2);
+                        insertGraphicDrawingFunction(minigameHudChallengeDifficultyInit, 2);
                     } else {
-                        insertGraphicDrawingFunction(fn_3_12A2B8, 2);
+                        insertGraphicDrawingFunction(minigameHudDifficultyInit, 2);
                     }
                 }
                 if (g_Minigame.grandPrixInd == 0) {
@@ -374,7 +374,7 @@ void fn_3_12CA90(void) {
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_READY) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
-            insertGraphicDrawingFunction(fn_3_126604, 2);
+            insertGraphicDrawingFunction(minigameHudHelpInit, 2);
             if (g_Minigame.retryInd != 0 || g_Minigame.grandPrixInd != 0) {
                 insertGraphicDrawingFunction(fn_80053FE8, 2);
             }
@@ -394,130 +394,130 @@ void fn_3_12CA90(void) {
                 }
             }
             if (animRelated[0xD9] == 0) {
-                insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+                insertGraphicDrawingFunction(minigameHudBannerInit, 2);
             }
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_0x28) {
         if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1) {
-            insertGraphicDrawingFunction(fn_3_126604, 2);
+            insertGraphicDrawingFunction(minigameHudHelpInit, 2);
             SET_MENU(0x39);
         }
     }
 }
 
 // .text:0x0012C984 size:0x10C
-void fn_3_12C984(void) {
+void minigameHudSpawnBobombDerby(void) {
     if (animRelated[0xB6] != 0) {
         memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
-        insertGraphicDrawingFunction(fn_3_121908, 2);
+        insertGraphicDrawingFunction(minigameHudBodPitchRoulette, 2);
         if (g_Minigame.multiPlayerInd != 0) {
             insertGraphicDrawingFunction(minigameStateLogic, 2);
         }
-        insertGraphicDrawingFunction(fn_3_124738, 2);
-        insertGraphicDrawingFunction(fn_3_1226D4, 2);
-        insertGraphicDrawingFunction(fn_3_122334, 2);
-        insertGraphicDrawingFunction(fn_3_1235B8, 2);
-        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(minigameHudPitchesRemaining, 2);
+        insertGraphicDrawingFunction(minigameHudBodHomeRunPoints, 2);
+        insertGraphicDrawingFunction(minigameHudBodDistance, 2);
+        insertGraphicDrawingFunction(minigameHudBodStreak, 2);
+        insertGraphicDrawingFunction(minigameHudTargetPoints, 2);
         insertGraphicDrawingFunction(fn_3_EB6E0, 2);
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
-        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(minigameHudEventBannerInit, 2);
     }
     manageEventStates();
 }
 
 // .text:0x0012C868 size:0x11C
-void fn_3_12C868(void) {
+void minigameHudSpawnWallBall(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING) {
         memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
-        insertGraphicDrawingFunction(fn_3_12026C, 2);
-        insertGraphicDrawingFunction(fn_3_12089C, 2);
+        insertGraphicDrawingFunction(minigameHudWallBallBowserPenalty, 2);
+        insertGraphicDrawingFunction(minigameHudWallBallPointsPopup, 2);
         if (g_Minigame.multiPlayerInd == 0 && g_Minigame.grandPrixInd == 0
             && g_Minigame.soloMinigameDifficulty == MINIGAME_DIFFICULTY_SOLO_NON_CHALLENGE) {
-            insertGraphicDrawingFunction(fn_3_120FF8, 2);
+            insertGraphicDrawingFunction(minigameHudWallBallTurnsRemaining, 2);
         } else {
             insertGraphicDrawingFunction(minigameStateLogic, 2);
-            insertGraphicDrawingFunction(fn_3_123990, 2);
+            insertGraphicDrawingFunction(minigameHudPlayerMarkers, 2);
         }
-        insertGraphicDrawingFunction(fn_3_124CE0, 2);
-        insertGraphicDrawingFunction(fn_3_121304, 2);
+        insertGraphicDrawingFunction(minigameHudTargetPoints, 2);
+        insertGraphicDrawingFunction(minigameHudWallBallScoreboard, 2);
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
-        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(minigameHudEventBannerInit, 2);
         insertGraphicDrawingFunction(fn_3_99BDC, 2);
     }
 }
 
 // .text:0x0012C74C size:0x11C
-void fn_3_12C74C(void) {
+void minigameHudSpawnBarrelBatter(void) {
     if (animRelated[0xB6] != 0) {
         memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
         if (g_Minigame.multiPlayerInd == 0) {
-            insertGraphicDrawingFunction(fn_3_11F508, 2);
+            insertGraphicDrawingFunction(minigameHudBarrelBatterBombBarrel, 2);
         }
-        insertGraphicDrawingFunction(fn_3_11F778, 2);
-        insertGraphicDrawingFunction(fn_3_11FA58, 2);
-        insertGraphicDrawingFunction(fn_3_11FDB0, 2);
+        insertGraphicDrawingFunction(minigameHudBarrelBatterBarrelsHit, 2);
+        insertGraphicDrawingFunction(minigameHudBarrelBatterPoints, 2);
+        insertGraphicDrawingFunction(minigameHudBarrelBatterChargeMeter, 2);
         if (g_Minigame.multiPlayerInd != 0) {
             insertGraphicDrawingFunction(minigameStateLogic, 2);
         }
-        insertGraphicDrawingFunction(fn_3_124738, 2);
-        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(minigameHudPitchesRemaining, 2);
+        insertGraphicDrawingFunction(minigameHudTargetPoints, 2);
         insertGraphicDrawingFunction(fn_3_EB6E0, 2);
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
-        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(minigameHudEventBannerInit, 2);
     }
 }
 
 // .text:0x0012C684 size:0xC8
-void fn_3_12C684(void) {
+void minigameHudSpawnChainChompSprint(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
         && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
-        insertGraphicDrawingFunction(fn_3_123990, 2);
-        insertGraphicDrawingFunction(fn_3_123EBC, 2);
-        insertGraphicDrawingFunction(fn_3_11EC28, 2);
-        insertGraphicDrawingFunction(fn_3_124CE0, 2);
-        insertGraphicDrawingFunction(fn_3_11F02C, 2);
+        insertGraphicDrawingFunction(minigameHudPlayerMarkers, 2);
+        insertGraphicDrawingFunction(minigameHudTimer, 2);
+        insertGraphicDrawingFunction(minigameHudCcsTargetMarkers, 2);
+        insertGraphicDrawingFunction(minigameHudTargetPoints, 2);
+        insertGraphicDrawingFunction(minigameHudCcsScoreboard, 2);
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
-        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(minigameHudEventBannerInit, 2);
     }
 }
 
 // .text:0x0012C5CC size:0xB8
-void fn_3_12C5CC(void) {
+void minigameHudSpawnStarDash(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
         && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
-        insertGraphicDrawingFunction(fn_3_123990, 2);
-        insertGraphicDrawingFunction(fn_3_123EBC, 2);
-        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(minigameHudPlayerMarkers, 2);
+        insertGraphicDrawingFunction(minigameHudTimer, 2);
+        insertGraphicDrawingFunction(minigameHudTargetPoints, 2);
         insertGraphicDrawingFunction(fn_3_11E7C4, 2);
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
-        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(minigameHudEventBannerInit, 2);
     }
 }
 
 // .text:0x0012C514 size:0xB8
-void fn_3_12C514(void) {
+void minigameHudSpawnPiranhaPanic(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING
         && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         memset(&g_Minigame.bOD_pitchTypeReadyInd, 0, 0xE);
-        insertGraphicDrawingFunction(fn_3_123990, 2);
-        insertGraphicDrawingFunction(fn_3_123EBC, 2);
-        insertGraphicDrawingFunction(fn_3_124CE0, 2);
+        insertGraphicDrawingFunction(minigameHudPlayerMarkers, 2);
+        insertGraphicDrawingFunction(minigameHudTimer, 2);
+        insertGraphicDrawingFunction(minigameHudTargetPoints, 2);
         insertGraphicDrawingFunction(fn_3_11E364, 2);
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
-        insertGraphicDrawingFunction(fn_3_125850, 2);
+        insertGraphicDrawingFunction(minigameHudEventBannerInit, 2);
     }
 }
 
 // .text:0x0012C3F0 size:0x124
-void fn_3_12C3F0(void) {
+void minigameHudBannerInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u16 element;
 
@@ -539,11 +539,11 @@ void fn_3_12C3F0(void) {
     HUD_RECORD(scene, 1)->frame = 0x28 << 16;
     scene->state = element;
     scene->_1E = 0;
-    currentDrawingItem->func = fn_3_12C1AC;
+    currentDrawingItem->func = minigameHudBannerUpdate;
 }
 
 // .text:0x0012C1AC size:0x244
-void fn_3_12C1AC(void) {
+void minigameHudBannerUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u16 element;
     u8 status;
@@ -601,7 +601,7 @@ remove:
 }
 
 // .text:0x0012BFE8 size:0x1C4
-void fn_3_12BFE8(void) {
+void minigameHudSelectInfoInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_92D4);
@@ -627,11 +627,11 @@ void fn_3_12BFE8(void) {
     scene->_1A = 0;
     scene->state = 0;
     scene->_22 = 0;
-    currentDrawingItem->func = fn_3_12BB64;
+    currentDrawingItem->func = minigameHudSelectInfoUpdate;
 }
 
 // .text:0x0012BB64 size:0x484
-void fn_3_12BB64(void) {
+void minigameHudSelectInfoUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 mode;
 
@@ -712,7 +712,7 @@ remove:
 }
 
 // .text:0x0012B7A0 size:0x3C4
-void fn_3_12B7A0(void) {
+void minigameHudCharSelectInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int i;
 
@@ -759,11 +759,11 @@ void fn_3_12B7A0(void) {
     animRelated[0xDA] = 1;
     scene->_18 = 0;
     scene->_1A = 0;
-    currentDrawingItem->func = fn_3_12A910;
+    currentDrawingItem->func = minigameHudCharSelectUpdate;
 }
 
 // .text:0x0012A910 size:0xE90
-void fn_3_12A910(void) {
+void minigameHudCharSelectUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     UIRecord* rec;
     u32 status;
@@ -1006,7 +1006,7 @@ remove:
 }
 
 // .text:0x0012A6C4 size:0x24C
-void fn_3_12A6C4(void) {
+void minigameHudExtraOpponentInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int i;
 
@@ -1035,11 +1035,11 @@ void fn_3_12A6C4(void) {
     scene->_18 = 0;
     scene->_1A = 0;
     scene->state = 0;
-    currentDrawingItem->func = fn_3_12A3F0;
+    currentDrawingItem->func = minigameHudExtraOpponentUpdate;
 }
 
 // .text:0x0012A3F0 size:0x2D4
-void fn_3_12A3F0(void) {
+void minigameHudExtraOpponentUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     UIRecord* rec;
     int i;
@@ -1094,7 +1094,7 @@ remove:
 }
 
 // .text:0x0012A2B8 size:0x138
-void fn_3_12A2B8(void) {
+void minigameHudDifficultyInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int n;
     int i;
@@ -1119,11 +1119,11 @@ void fn_3_12A2B8(void) {
     scene->_18 = 0;
     scene->_1A = 0;
     animRelated[0xBE] = 1;
-    currentDrawingItem->func = fn_3_129FF8;
+    currentDrawingItem->func = minigameHudDifficultyUpdate;
 }
 
 // .text:0x00129FF8 size:0x2C0
-void fn_3_129FF8(void) {
+void minigameHudDifficultyUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int i;
 
@@ -1184,7 +1184,7 @@ remove:
 }
 
 // .text:0x00129F48 size:0xB0
-void fn_3_129F48(void) {
+void minigameHudChallengeDifficultyInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_9FB4);
@@ -1196,11 +1196,11 @@ void fn_3_129F48(void) {
     scene->_18 = 0;
     scene->_1A = 0;
     animRelated[0xBE] = 1;
-    currentDrawingItem->func = fn_3_129C88;
+    currentDrawingItem->func = minigameHudChallengeDifficultyUpdate;
 }
 
 // .text:0x00129C88 size:0x2C0
-void fn_3_129C88(void) {
+void minigameHudChallengeDifficultyUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int i;
 
@@ -1261,7 +1261,7 @@ remove:
 }
 
 // .text:0x00129A18 size:0x270
-void fn_3_129A18(void) {
+void minigameHudSelectMenuInit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int n;
     int i;
@@ -1297,11 +1297,11 @@ void fn_3_129A18(void) {
     animRelated[0xBD] = 0;
     scene->_18 = 1;
     scene->_1E = 0;
-    currentDrawingItem->func = fn_3_12955C;
+    currentDrawingItem->func = minigameHudSelectMenuUpdate;
 }
 
 // .text:0x0012955C size:0x4BC
-void fn_3_12955C(void) {
+void minigameHudSelectMenuUpdate(void) {
     MinigameHudScene* scene;
     UIRecord* rec;
     int i;
@@ -1402,7 +1402,7 @@ remove:
 }
 
 // .text:0x00129458 size:0x104
-void fn_3_129458(void) {
+void minigameHudEndGameGraphics(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1) {
         animRelated[0xB7] = 0;
         animRelated[0xB6] = 0;
@@ -1411,7 +1411,7 @@ void fn_3_129458(void) {
             insertGraphicDrawingFunction(mm_DrawResultCode, 2);
         }
         insertGraphicDrawingFunction(fn_3_EA454, 2);
-        insertGraphicDrawingFunction(fn_3_129370, 2);
+        insertGraphicDrawingFunction(minigameHudResultBannerInit, 2);
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
         if (pauseControl.state == 7 || g_GameLogic.framesOfExitingToMenu != 0) {
@@ -1421,9 +1421,9 @@ void fn_3_129458(void) {
 }
 
 // .text:0x001293D0 size:0x88
-void fn_3_1293D0(void) {
+void minigameHudGraphics0x27(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
-        insertGraphicDrawingFunction(fn_3_129370, 2);
+        insertGraphicDrawingFunction(minigameHudResultBannerInit, 2);
     }
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
         insertGraphicDrawingFunction(fn_8004D0F0, 2);
@@ -1434,17 +1434,17 @@ void fn_3_1293D0(void) {
 }
 
 // .text:0x00129370 size:0x60 mapped:0x80768404
-void fn_3_129370(void) {
+void minigameHudResultBannerInit(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
     addGraphicsElementToScene(node, lbl_3_data_A9F8);
     ((MinigameHudScene*)node)->_18 = 0;
     ((MinigameHudScene*)node)->_1A = 0;
-    currentDrawingItem->func = fn_3_128C18;
+    currentDrawingItem->func = minigameHudResultBannerUpdate;
 }
 
 // .text:0x00128C18 size:0x758 mapped:0x80767CAC
-void fn_3_128C18(void) {
+void minigameHudResultBannerUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 status;
     u32 mode;
@@ -1571,18 +1571,18 @@ remove:
 }
 
 // .text:0x00128B90 size:0x88 mapped:0x80767C24
-void fn_3_128B90(void) {
+void minigameHudPauseHelpBannerInit(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
     lbl_3_data_B0E0[0].elementIndex = lbl_3_data_B140[g_Minigame.GameMode_MiniGame][0];
     lbl_3_data_B0E0[1].elementIndex = lbl_3_data_B140[g_Minigame.GameMode_MiniGame][1];
     addGraphicsElementToScene(node, lbl_3_data_B0E0);
     ((MinigameHudScene*)node)->state = 1;
-    currentDrawingItem->func = fn_3_128A38;
+    currentDrawingItem->func = minigameHudPauseHelpBannerUpdate;
 }
 
 // .text:0x00128A38 size:0x158 mapped:0x80767ACC
-void fn_3_128A38(void) {
+void minigameHudPauseHelpBannerUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     UIRecord* rec;
 
@@ -1623,7 +1623,7 @@ remove:
 }
 
 // .text:0x00127B68 size:0xED0 mapped:0x80766BFC
-void fn_3_127B68(void) {
+void minigameHudResultsScene(void) {
     DrawingSceneStruct* node = currentDrawingItem;
     MinigameHudScene* scene;
     s16* shown;
@@ -1828,7 +1828,7 @@ void fn_3_127B68(void) {
 }
 
 // .text:0x001274B4 size:0x6B4 mapped:0x80766548
-void fn_3_1274B4(void) {
+void minigameHudHighScoreTable(void) {
     MinigameHudScene* scene;
     u8* descriptors;
     ResultEntry* entry;
@@ -1919,7 +1919,7 @@ void fn_3_1274B4(void) {
         i = 0;
         do {
             if (i != g_Minigame.newRecordRow) {
-                fn_3_125424(scene, i + 10, 10);
+                minigameHudSeekRecordFrame(scene, i + 10, 10);
             }
             if ((HUD_RECORD(scene, 4)->frame >> 16) == ((u16*)(descriptors + 0x11A8))[i]) {
                 if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_NONE) {
@@ -1935,7 +1935,7 @@ void fn_3_1274B4(void) {
 }
 
 // .text:0x00126604 size:0xEB0 mapped:0x80765698
-void fn_3_126604(void) {
+void minigameHudHelpInit(void) {
     int n;
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int i;
@@ -2135,11 +2135,11 @@ void fn_3_126604(void) {
     scene->state = g_Minigame.helpPage;
     scene->_1E = 0;
     scene->_20 = 0;
-    currentDrawingItem->func = fn_3_1258C0;
+    currentDrawingItem->func = minigameHudHelpUpdate;
 }
 
 // .text:0x001258C0 size:0xD44 mapped:0x80764954
-void fn_3_1258C0(void) {
+void minigameHudHelpUpdate(void) {
     MinigameHudScene* scene;
     u32 status;
     int i;
@@ -2365,7 +2365,7 @@ remove:
 }
 
 // .text:0x00125850 size:0x70 mapped:0x807648E4
-void fn_3_125850(void) {
+void minigameHudEventBannerInit(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
     addGraphicsElementToScene(node, lbl_3_data_91BC);
@@ -2373,11 +2373,11 @@ void fn_3_125850(void) {
     ((MinigameHudScene*)node)->_18 = 0;
     ((MinigameHudScene*)node)->_1A = 0;
     ((MinigameHudScene*)node)->state = 0;
-    currentDrawingItem->func = fn_3_125604;
+    currentDrawingItem->func = minigameHudEventBannerUpdate;
 }
 
 // .text:0x00125604 size:0x24C mapped:0x80764698
-void fn_3_125604(void) {
+void minigameHudEventBannerUpdate(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
     if (g_Minigame.minigameInactiveInd == 0) {
@@ -2431,7 +2431,7 @@ void fn_3_125604(void) {
 }
 
 // .text:0x001254F8 size:0x10C mapped:0x8076458C
-void fn_3_1254F8(void) {
+void minigameHudStartMovie(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
 
     if (g_GameLogic.gameStatus != GAME_STATUS_GAME_START_MOVIE) {
@@ -2456,7 +2456,7 @@ void fn_3_1254F8(void) {
 }
 
 // .text:0x00125480 size:0x78 mapped:0x80764514
-u32 fn_3_125480(MinigameHudScene* scene) {
+u32 minigameHudAnyRecordPlaying(MinigameHudScene* scene) {
     UIRecord* rec;
     u32 i;
 
@@ -2477,7 +2477,7 @@ u32 fn_3_125480(MinigameHudScene* scene) {
 }
 
 // .text:0x00125424 size:0x5C mapped:0x807644B8
-u32 fn_3_125424(MinigameHudScene* scene, int handle, u32 targetFrame) {
+u32 minigameHudSeekRecordFrame(MinigameHudScene* scene, int handle, u32 targetFrame) {
     UIRecord* rec = HUD_RECORD(scene, handle);
 
     if ((rec->frame >> 16) < targetFrame) {
@@ -2493,7 +2493,7 @@ u32 fn_3_125424(MinigameHudScene* scene, int handle, u32 targetFrame) {
 }
 
 // .text:0x0012536C size:0xB8 mapped:0x80764400
-u32 fn_3_12536C(void) {
+u32 minigameHudShouldRemove(void) {
     if (animRelated[0x96] != 0 || animRelated[0xB7] != 0) {
         return TRUE;
     }
@@ -2515,12 +2515,12 @@ u32 fn_3_12536C(void) {
 }
 
 // .text:0x00124CE0 size:0x68C mapped:0x80763D74
-void fn_3_124CE0(void) {
+void minigameHudTargetPoints(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 target;
     s16 maxTarget;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -2622,11 +2622,11 @@ void fn_3_124CE0(void) {
 }
 
 // .text:0x00124738 size:0x5A8 mapped:0x807637CC
-void fn_3_124738(void) {
+void minigameHudPitchesRemaining(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -2683,11 +2683,11 @@ void fn_3_124738(void) {
                 if ((s8)scene->scratch[0] <= 1 && g_Pitcher.pitcherActionState >= 4) {
                     HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
                 } else {
-                    fn_3_125424(scene, 0, 14);
+                    minigameHudSeekRecordFrame(scene, 0, 14);
                 }
             } else {
                 if ((HUD_RECORD(scene, 0)->frame >> 16) != 0) {
-                    if (fn_3_125424(scene, 0, 0x18)) {
+                    if (minigameHudSeekRecordFrame(scene, 0, 0x18)) {
                         HUD_RECORD(scene, 0)->frame = 0;
                     }
                 }
@@ -2697,7 +2697,7 @@ void fn_3_124738(void) {
                 && g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
                 HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
             } else {
-                fn_3_125424(scene, 0, 14);
+                minigameHudSeekRecordFrame(scene, 0, 14);
             }
         }
         break;
@@ -2710,7 +2710,7 @@ void minigameStateLogic(void) {
     u32 inning;
     u32 limit;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -2779,7 +2779,7 @@ void minigameStateLogic(void) {
 }
 
 // .text:0x00123EBC size:0x4E8 mapped:0x80762F50
-void fn_3_123EBC(void) {
+void minigameHudTimer(void) {
     MinigameHudScene* scene;
     u8* descriptors;
     u32 n;
@@ -2787,7 +2787,7 @@ void fn_3_123EBC(void) {
 
     descriptors = (u8*)lbl_3_data_226E0;
     scene = (MinigameHudScene*)currentDrawingItem;
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -2810,16 +2810,16 @@ void fn_3_123EBC(void) {
     case 1:
         switch (g_Minigame.GameMode_MiniGame) {
         case MINI_GAME_ID_CHAINCHOMP_SPRINT:
-            fn_3_125424(scene, 0, 12);
+            minigameHudSeekRecordFrame(scene, 0, 12);
             if (g_Minigame.ccs.chompState == 3) {
                 scene->state = 2;
             }
             break;
         case MINI_GAME_ID_PIRANHA_PANIC:
-            fn_3_125424(scene, 0, 10);
+            minigameHudSeekRecordFrame(scene, 0, 10);
             break;
         case MINI_GAME_ID_STAR_DASH:
-            fn_3_125424(scene, 0, 10);
+            minigameHudSeekRecordFrame(scene, 0, 10);
             break;
         }
         break;
@@ -2859,13 +2859,13 @@ void fn_3_123EBC(void) {
 }
 
 // .text:0x00123990 size:0x52C mapped:0x80762A24
-void fn_3_123990(void) {
+void minigameHudPlayerMarkers(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 i;
     s16 x;
     s16 y;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -2952,12 +2952,12 @@ void fn_3_123990(void) {
 }
 
 // .text:0x001235B8 size:0x3D8 mapped:0x8076264C
-void fn_3_1235B8(void) {
+void minigameHudBodStreak(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 n;
     u32 digit;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3005,13 +3005,13 @@ void fn_3_1235B8(void) {
 }
 
 // .text:0x001231D4 size:0x3E4 mapped:0x80762268
-void fn_3_1231D4(void) {
+void minigameHudBodKingBombBonus(void) {
     DrawingSceneStruct* node = currentDrawingItem;
     MinigameHudScene* parent = (MinigameHudScene*)node->currentDrawingItem;
     MinigameHudScene* scene = (MinigameHudScene*)node;
     u32 total;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3070,14 +3070,14 @@ void fn_3_1231D4(void) {
 }
 
 // .text:0x00122D24 size:0x4B0 mapped:0x80761DB8
-void fn_3_122D24(void) {
+void minigameHudBodStreakBonus(void) {
     DrawingSceneStruct* node = currentDrawingItem;
     MinigameHudScene* parent = (MinigameHudScene*)node->currentDrawingItem;
     MinigameHudScene* scene = (MinigameHudScene*)node;
     u32 streak;
     u32 total;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3148,7 +3148,7 @@ void fn_3_122D24(void) {
 }
 
 // .text:0x001226D4 size:0x650 mapped:0x80761768
-void fn_3_1226D4(void) {
+void minigameHudBodHomeRunPoints(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     MiniGameStruct* mg = &g_Minigame;
     u32 n;
@@ -3156,15 +3156,15 @@ void fn_3_1226D4(void) {
     u32 k;
     int diff;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
     }
     switch (scene->state) {
     case 0:
-        insertGraphicDrawingFunction(fn_3_122D24, ((DrawingSceneStruct*)scene)->priority);
-        insertGraphicDrawingFunction(fn_3_1231D4, ((DrawingSceneStruct*)scene)->priority);
+        insertGraphicDrawingFunction(minigameHudBodStreakBonus, ((DrawingSceneStruct*)scene)->priority);
+        insertGraphicDrawingFunction(minigameHudBodKingBombBonus, ((DrawingSceneStruct*)scene)->priority);
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_23E64);
         scene->state = 1;
         break;
@@ -3198,7 +3198,7 @@ void fn_3_1226D4(void) {
         scene->state = 3;
         break;
     case 3:
-        if (fn_3_125424(scene, 0, 0x10)) {
+        if (minigameHudSeekRecordFrame(scene, 0, 0x10)) {
             if (scene->_18 < 0xFFFE) {
                 scene->_18++;
             } else {
@@ -3270,13 +3270,13 @@ void fn_3_1226D4(void) {
 }
 
 // .text:0x00122334 size:0x3A0 mapped:0x807613C8
-void fn_3_122334(void) {
+void minigameHudBodDistance(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     MiniGameStruct* mg = &g_Minigame;
     int diff;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3294,7 +3294,7 @@ void fn_3_122334(void) {
             if (scene->_1E != 0) {
                 HUD_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
             } else {
-                fn_3_125424(scene, 0, 10);
+                minigameHudSeekRecordFrame(scene, 0, 10);
             }
             if (g_Ball.deadBallReason != 0 && g_Ball.bODQualifyingHitInd != 0) {
                 diff = g_Ball.Hit_HorizontalPower - scene->_20;
@@ -3334,7 +3334,7 @@ void fn_3_122334(void) {
 }
 
 // .text:0x00121908 size:0xA2C mapped:0x8076099C
-void fn_3_121908(void) {
+void minigameHudBodPitchRoulette(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     MiniGameStruct* mg = &g_Minigame;
     UIRecord* rec;
@@ -3344,7 +3344,7 @@ void fn_3_121908(void) {
     u32 tier;
     int pitchType;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         if (scene->state != 0) {
             if (scene->sndHandle != 0xFFFFFFFF) {
                 sndFXKeyOff(scene->sndHandle);
@@ -3519,7 +3519,7 @@ void fn_3_121908(void) {
 }
 
 // .text:0x00121304 size:0x604 mapped:0x80760398
-void fn_3_121304(void) {
+void minigameHudWallBallScoreboard(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     int leader;
     u32 flag;
@@ -3531,7 +3531,7 @@ void fn_3_121304(void) {
     u32 i;
     u32 changed = 0;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
     } else {
@@ -3597,9 +3597,9 @@ void fn_3_121304(void) {
                     load_Icon(scene, i * 4 + 0x1F, 1, 0x66, n % 100 / 10);
                     load_Icon(scene, i * 4 + 0x20, 1, 0x66, n % 10);
                     if (i == g_Minigame.turnNumberWithinRound) {
-                        fn_3_125424(scene, i + 1, 10);
+                        minigameHudSeekRecordFrame(scene, i + 1, 10);
                     } else {
-                        fn_3_125424(scene, i + 1, 0);
+                        minigameHudSeekRecordFrame(scene, i + 1, 0);
                     }
                     if (flag == 0 && *shown == g_Minigame.minigamePoints_current_Latest[leader][0]) {
                         HUD_RECORD_AT(scene, 0x2D, i)->flags |= UI_FLAG_VISIBLE;
@@ -3618,12 +3618,12 @@ void fn_3_121304(void) {
 }
 
 // .text:0x00120FF8 size:0x30C mapped:0x8076008C
-void fn_3_120FF8(void) {
+void minigameHudWallBallTurnsRemaining(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     UIRecord* rec;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3675,7 +3675,7 @@ void fn_3_120FF8(void) {
 }
 
 // .text:0x00120F5C size:0x9C mapped:0x8075FFF0
-int fn_3_120F5C(void) {
+int minigameHudWallBallHitPoints(void) {
     s16 multiplier = 1;
 
     if (g_Minigame.multiPlayerInd != 0 || g_Minigame.grandPrixInd != 0
@@ -3691,11 +3691,11 @@ int fn_3_120F5C(void) {
 }
 
 // .text:0x0012089C size:0x6C0 mapped:0x8075F930
-void fn_3_12089C(void) {
+void minigameHudWallBallPointsPopup(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3755,7 +3755,7 @@ void fn_3_12089C(void) {
                 }
             }
         } else {
-            n = fn_3_120F5C();
+            n = minigameHudWallBallHitPoints();
             if (n > 999) {
                 n = 999;
             }
@@ -3780,7 +3780,7 @@ void fn_3_12089C(void) {
         scene->state = 2;
         break;
     case 2:
-        if (!fn_3_125480(scene)) {
+        if (!minigameHudAnyRecordPlaying(scene)) {
             if (scene->_1E != 0) {
                 scene->state = 1;
             }
@@ -3790,7 +3790,7 @@ void fn_3_12089C(void) {
 }
 
 // .text:0x0012026C size:0x630 mapped:0x8075F300
-void fn_3_12026C(void) {
+void minigameHudWallBallBowserPenalty(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     s16* popup = (s16*)currentDrawingItem;
     u32 i;
@@ -3801,7 +3801,7 @@ void fn_3_12026C(void) {
     u32 type;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3898,7 +3898,7 @@ void fn_3_12026C(void) {
         scene->state = 3;
         break;
     case 3:
-        if (!fn_3_125480(scene)) {
+        if (!minigameHudAnyRecordPlaying(scene)) {
             scene->state = 1;
         }
         break;
@@ -3906,14 +3906,14 @@ void fn_3_12026C(void) {
 }
 
 // .text:0x0011FDB0 size:0x4BC mapped:0x8075EE44
-void fn_3_11FDB0(void) {
+void minigameHudBarrelBatterChargeMeter(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 i;
     u32 j;
     u32 limit;
     s16 hrPitch;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -3988,12 +3988,12 @@ void fn_3_11FDB0(void) {
 }
 
 // .text:0x0011FA58 size:0x358 mapped:0x8075EAEC
-void fn_3_11FA58(void) {
+void minigameHudBarrelBatterPoints(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     s16 points;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -4037,11 +4037,11 @@ void fn_3_11FA58(void) {
 }
 
 // .text:0x0011F778 size:0x2E0 mapped:0x8075E80C
-void fn_3_11F778(void) {
+void minigameHudBarrelBatterBarrelsHit(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -4084,11 +4084,11 @@ void fn_3_11F778(void) {
 }
 
 // .text:0x0011F508 size:0x270 mapped:0x8075E59C
-void fn_3_11F508(void) {
+void minigameHudBarrelBatterBombBarrel(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 n;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
@@ -4125,7 +4125,7 @@ void fn_3_11F508(void) {
 }
 
 // .text:0x0011F4B4 size:0x54 mapped:0x8075E548
-void fn_3_11F4B4(int player, int bonus) {
+void minigameHudCcsAddGemPoints(int player, int bonus) {
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_CHAINCHOMP_SPRINT) {
         return;
     }
@@ -4133,7 +4133,7 @@ void fn_3_11F4B4(int player, int bonus) {
 }
 
 // .text:0x0011F480 size:0x34 mapped:0x8075E514
-void fn_3_11F480(void) {
+void minigameHudCcsSyncDisplayedPoints(void) {
     u32 i;
 
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_CHAINCHOMP_SPRINT) {
@@ -4147,7 +4147,7 @@ void fn_3_11F480(void) {
 }
 
 // .text:0x0011F02C size:0x454 mapped:0x8075E0C0
-void fn_3_11F02C(void) {
+void minigameHudCcsScoreboard(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 i;
     int leader;
@@ -4155,7 +4155,7 @@ void fn_3_11F02C(void) {
     u32 n;
     u32 changed = 0;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
     } else {
@@ -4224,14 +4224,14 @@ void fn_3_11F02C(void) {
 }
 
 // .text:0x0011EC28 size:0x404 mapped:0x8075DCBC
-void fn_3_11EC28(void) {
+void minigameHudCcsTargetMarkers(void) {
     MinigameHudScene* scene = (MinigameHudScene*)currentDrawingItem;
     u32 i;
     u32 j;
     s16 x;
     s16 y;
 
-    if (fn_3_12536C()) {
+    if (minigameHudShouldRemove()) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;

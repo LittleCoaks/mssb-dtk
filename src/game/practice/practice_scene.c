@@ -204,7 +204,7 @@ void practice_drawHud(void) {
 void animationOrDrawingRelated(void) {
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_MENU) {
         if (animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
-            insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+            insertGraphicDrawingFunction(minigameHudBannerInit, 2);
             insertGraphicDrawingFunction(fn_80053FE8, 2);
             menuNumber[0] = 0x3C;
             menuNumber[9] = menuNumber[8];
@@ -216,7 +216,7 @@ void animationOrDrawingRelated(void) {
                     insertGraphicDrawingFunction(practiceMenu_typeIcons_init, 2);
                 }
                 if (animRelated[0xBC] == 0) {
-                    insertGraphicDrawingFunction(fn_3_12BFE8, 2);
+                    insertGraphicDrawingFunction(minigameHudSelectInfoInit, 2);
                 }
                 menuNumber[0] = 0x3C;
                 menuNumber[9] = menuNumber[8];
@@ -237,7 +237,7 @@ void animationOrDrawingRelated(void) {
                 insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);
             }
             if (animRelated[0xBC] == 0) {
-                insertGraphicDrawingFunction(fn_3_12BFE8, 2);
+                insertGraphicDrawingFunction(minigameHudSelectInfoInit, 2);
             }
             menuNumber[0] = 0x3D;
             menuNumber[9] = menuNumber[8];
