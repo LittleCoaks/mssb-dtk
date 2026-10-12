@@ -853,7 +853,7 @@ void fn_3_F9E78(int idx, int arg1, void* hit) {
                 act = (ACTActor*)d->model;
                 ACTSetAnimation(act->actor, act->animBank, NULL, act->sequenceNum, 0.0f, act->animTime);
                 setActorAnimFrame(act->actor, act->animFrame);
-                fn_800B4C04(act->actor, act->animSpeed);
+                ACTSetSpeed(act->actor, act->animSpeed);
                 updateBoneParam(act->actor, act->applyFlags & 1);
                 ((GardenBlockObj*)d)->debrisFrame = 0.0f;
                 ((Control*)d)->type = 0;

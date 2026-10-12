@@ -279,7 +279,7 @@ void fn_3_CABF0(PerfectPitchTrail* trail) {
     model->root[0x99] = 1;
     ACTSetAnimation((Actor*)model->root, model->animBank, NULL, model->sequenceNum, 0.0f, model->animTime);
     setActorAnimFrame(model->root, trail->frame);
-    fn_800B4C04(model->root, 1.0f);
+    ACTSetSpeed((Actor*)model->root, 1.0f);
     fn_800BDA24(model);
     model->root[0x98] = 0xFF;
     sknRelated(model, mtx);

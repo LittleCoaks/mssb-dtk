@@ -483,7 +483,7 @@ void actorSetAnimBank(ACTActor* act, u32 animBankId) {
         setActorAnimFrame(act->actor, act->animFrame);
     }
     if (act->applySpeed) {
-        fn_800B4C04(act->actor, act->animSpeed);
+        ACTSetSpeed(act->actor, act->animSpeed);
     }
     if (act->applyFlags & 1) {
         updateBoneParam(act->actor, act->applyFlags & 1);

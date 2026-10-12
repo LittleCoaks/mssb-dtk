@@ -78,8 +78,7 @@ void setAllBoneEventFlags(void* obj, BOOL flag) {
     }
 }
 
-void fn_800B4C04(void* obj, f32 speed) {
-    Actor* actor = obj;
+void ACTSetSpeed(Actor* actor, f32 speed) {
     u32 i;
 
     for (i = 0; i < actor->totalBones; i++) {

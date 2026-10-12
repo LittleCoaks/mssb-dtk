@@ -454,7 +454,7 @@ E(u8, BOOL) fn_3_E29B4(YoshiPlantObj* plant) {
         }
         plant->actor->animSpeed = animSpeeds[rng(3)];
         plant->actor->applySpeed = 1;
-        fn_800B4C04(plant->actor->actor, plant->actor->animSpeed);
+        ACTSetSpeed(plant->actor->actor, plant->actor->animSpeed);
         return TRUE;
     }
     return FALSE;

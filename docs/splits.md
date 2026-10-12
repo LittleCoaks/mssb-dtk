@@ -382,7 +382,7 @@ in `include/C3/actor.h`) except that the binary's own `__FILE__` string says `ac
 
 `actorAnim.c` links as `Matching` (it was the 99.7% `File_0x800b4908` minus `LoadActorLayout`, which
 is 98% and went to `act.c`). `act.c` is `NonMatching`: it holds eleven functions that have no C yet
-(`fn_800B2BA8`..`fn_800B2C10`, `fn_800B2C88`, `fn_800B2D5C`, `fn_800B2DD0`, `fn_800B313C`, `fn_800B3A78`,
+(`fn_800B2BA8`..`fn_800B2C10`, `fn_800B2C88`, `fn_800B2D5C`, `fn_800B2DD0`, `fn_800B313C`, `ACTRender`,
 `fn_800B3C04`, `fn_800B3F20`, `fn_800B4278`, `fn_800B4724`) and five stubs. Five previously `Matching`
 units became part of it (`ProcessActorBonesForShadows`, `fn_800B2B4C`/`54`/`6C`, `callDSInsertListObject`,
 `ACTSort`, `maybeBallRelated`).
@@ -571,3 +571,26 @@ functions in front of it (`fn_800BD478`, `fn_800BD548`, `fn_800BD670`, `0x800BD4
 tables `0x80112338` and `0x8011235C`) stay unowned: the tables are 4-aligned, so those two functions share a
 unit, but nothing in the data says whether that unit is `File_0x800bd8c4.c`'s, `light.c`'s or its own, and
 merging them would turn a `Matching` unit into a `NonMatching` one for a guess.
+
+### Renames
+
+Only placeholders whose function, signature and place in the module all agree with the SDK were renamed
+(`config/GYQE01/symbols.txt` and every use; the demo configs are untouched):
+
+| was | now | evidence |
+|---|---|---|
+| `fn_800B3A78` | `ACTRender` | collects a `va_list` (`stfd f1-f8` behind the `bne cr1`, `r3-r10` spilled) and forwards it to `DOVARender`/`DOVARenderSkin` after `SKNIt`; every caller passes `(actor, camera, numLights, extra args...)`, which is `ACTRender(Actor *actor, MtxPtr camera, u8 numLights, ...)` in `include/C3/actor.h` |
+| `fn_800B4C04` | `ACTSetSpeed` | writes `ANIMPipe::unk08` for every bone; its callers pass the literal `1.0f` or a field named `animSpeed`; in `actorAnim.c` the functions run `ACTSetAnimation`, `setActorAnimFrame` (= `ACTSetTime`), `fn_800B4C04`, `AnimateActorBones` (= `ACTTick`) in reverse address order, which is exactly the SDK's source order `ACTSetAnimation, ACTSetTime, ACTSetSpeed, ACTTick` with the engine's extras interleaved |
+
+`setActorAnimFrame` and `AnimateActorBones` already carry descriptive names and were left alone. Their
+callers needed `(Actor*)` casts at the eight `ACTSetSpeed` sites because `include/C3/actor.h` declares the SDK
+prototype.
+
+Candidates that were **not** renamed for lack of evidence: `fn_800B313C` (looks like `ACTBuildMatrices`:
+`CTRLBuildMatrix`, `DOSetWorldMatrix`, `PSMTXInverse`/`PSMTXTranspose`, one actor argument; but it also
+does the engine's bone blending), `fn_800B2D5C` (a 0x74-byte loop, perhaps `ACTSetAmbientPercentage`),
+`fn_800B3C04` (frustum test plus shadow bounds, an engine function), `processModelDataRelated` (the second
+`SKNIt` copy, selected when the skin header's shift byte is not `0x40`), `LoadGeoPalette` (the SDK's
+`GEOGetPalette` takes a name, this one takes the loaded file), and the `DisplayObject.c` placeholders
+(`fn_800B9950` writes two floats under a mask like `DOOverrideTextureState`, but with a different
+signature).

@@ -271,7 +271,7 @@ void mUpdateActorTransformAndAnimation(ActorTransformEntry* entry) {
     ((u8*)model->root)[0x99] = 1;
     ACTSetAnimation((Actor*)model->root, model->animBank, NULL, model->sequenceNum, 0.0f, model->animTime);
     setActorAnimFrame(model->root, entry->frame);
-    fn_800B4C04(model->root, 1.0f);
+    ACTSetSpeed((Actor*)model->root, 1.0f);
     fn_800BDA24(model);
     ((u8*)model->root)[0x98] = 0xFF;
     sknRelated(model, mtx);
@@ -375,7 +375,7 @@ void fn_3_168414(ActorTransformEntry* entry) {
     ((u8*)model->root)[0x99] = 1;
     ACTSetAnimation((Actor*)model->root, model->animBank, NULL, model->sequenceNum, 0.0f, model->animTime);
     setActorAnimFrame(model->root, entry->frame + 15);
-    fn_800B4C04(model->root, 1.0f);
+    ACTSetSpeed((Actor*)model->root, 1.0f);
     fn_800BDA24(model);
 
     for (i = 0; i < model->root->count; i++) {
