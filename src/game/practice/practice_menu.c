@@ -450,53 +450,40 @@ void unref(void) {
 // .text:0x000B4C40 size:0x450
 void practiceRelatedMenu(void) {
     if (g_GameLogic._125 <= 2) {
-        g_Minigame.selectSlots[0].charReadyPrevInd = g_Minigame.selectSlots[0].charReadyInd;
-        g_Minigame.selectSlots[0].charReadyInd = TRUE;
-        g_Minigame.selectSlots[1].charReadyPrevInd = g_Minigame.selectSlots[1].charReadyInd;
-        g_Minigame.selectSlots[1].charReadyInd = TRUE;
-        g_Minigame.selectSlots[2].charReadyPrevInd = g_Minigame.selectSlots[2].charReadyInd;
-        g_Minigame.selectSlots[2].charReadyInd = TRUE;
-        g_Minigame.selectSlots[3].charReadyPrevInd = g_Minigame.selectSlots[3].charReadyInd;
-        g_Minigame.selectSlots[3].charReadyInd = TRUE;
+        int slot;
+
+        for (slot = 0; slot < 4; slot++) {
+            g_Minigame.selectSlots[slot].charReadyPrevInd = g_Minigame.selectSlots[slot].charReadyInd;
+            g_Minigame.selectSlots[slot].charReadyInd = TRUE;
+        }
     }
 
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0: {
         int slots[4];
+        int i;
 
-        slots[0] = FALSE;
-        slots[1] = FALSE;
-        slots[2] = FALSE;
-        slots[3] = FALSE;
+        for (i = 0; i < 4; i++) {
+            slots[i] = FALSE;
+        }
         slots[g_Practice.homeAway] = TRUE;
         css_initValues(slots[0], slots[1], slots[2], slots[3], TRUE, TRUE);
         cssLoadingRelated_1(0, 0, 0, 0, 0, 0);
-        g_Minigame.selectSlots[0].loadedCharID = CHAR_ID_NONE;
-        g_Minigame.battingHandedness[0] = PLAYER_KEY(g_Minigame.selectSlots[0].charID);
-        g_Minigame.selectSlots[0].confirmedInd = 0;
-        g_Minigame.charChangeFrames[0] = 20;
-        g_Minigame.selectSlots[1].loadedCharID = CHAR_ID_NONE;
-        g_Minigame.selectSlots[1].confirmedInd = 0;
-        g_Minigame.charChangeFrames[1] = 20;
-        g_Minigame.battingHandedness[1] = PLAYER_KEY(g_Minigame.selectSlots[1].charID);
-        g_Minigame.selectSlots[2].loadedCharID = CHAR_ID_NONE;
-        g_Minigame.selectSlots[2].confirmedInd = 0;
-        g_Minigame.charChangeFrames[2] = 20;
-        g_Minigame.battingHandedness[2] = PLAYER_KEY(g_Minigame.selectSlots[2].charID);
-        g_Minigame.selectSlots[3].loadedCharID = CHAR_ID_NONE;
-        g_Minigame.selectSlots[3].confirmedInd = 0;
-        g_Minigame.charChangeFrames[3] = 20;
-        g_Minigame.battingHandedness[3] = PLAYER_KEY(g_Minigame.selectSlots[3].charID);
+        for (i = 0; i < 4; i++) {
+            g_Minigame.selectSlots[i].loadedCharID = CHAR_ID_NONE;
+            g_Minigame.selectSlots[i].confirmedInd = 0;
+            g_Minigame.charChangeFrames[i] = 20;
+            g_Minigame.battingHandedness[i] = PLAYER_KEY(g_Minigame.selectSlots[i].charID);
+        }
         ANIM_BYTE(0x2D77) = FALSE;
         ANIM_BYTE(0x307A) = 5;
         g_Minigame.charLoadSlot = -1;
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_Practice.characterLoadStarted = FALSE;
         g_Practice.practiceState++;
-        g_Minigame.charLoadPending[0] = TRUE;
-        g_Minigame.charLoadPending[1] = TRUE;
-        g_Minigame.charLoadPending[2] = TRUE;
-        g_Minigame.charLoadPending[3] = TRUE;
+        for (i = 0; i < 4; i++) {
+            g_Minigame.charLoadPending[i] = TRUE;
+        }
         break;
     }
     case PRACTICE_STATE_1: {
