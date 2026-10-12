@@ -2921,14 +2921,14 @@ BOOL fn_3_FDB30(void) {
             fn_3_100038();
             ctx->_0008 = ctx->_0000[1];
             ctx->_0000 += 2;
-            return FALSE;
+            break;
         case 4:
             if (CTX->_0118 > CTX->_011C) {
                 ctx->_0000 += 1;
                 continue;
             }
             CTX->_0118 += 0x10000;
-            return FALSE;
+            break;
         case 5:
             CTX->_0940 = ctx->_0000[1];
             CTX->_0118 = 0;
@@ -3039,57 +3039,57 @@ BOOL fn_3_FDB30(void) {
             continue;
         case 15:
             fn_3_100038();
-            if (g_Stats.playFrameCounter != CTX->_0954 + ctx->_0000[1]) {
-                return FALSE;
+            if (g_Stats.playFrameCounter == CTX->_0954 + ctx->_0000[1]) {
+                ctx->_0000 += 2;
+                continue;
             }
-            ctx->_0000 += 2;
-            continue;
+            break;
         case 16:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0956 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 17:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0958 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 18:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_095A + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 19:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_095E + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 20:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0960 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 21:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0962 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 22:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_099B[ctx->_0000[1]] + ctx->_0000[2]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 3;
             continue;
@@ -3097,7 +3097,7 @@ BOOL fn_3_FDB30(void) {
             fn_3_100038();
             ctx->_0014 = ctx->_0000[1];
             ctx->_0000 += 2;
-            return FALSE;
+            break;
         case 25: {
             CamScript* v;
             u8 slot;
@@ -3117,28 +3117,28 @@ BOOL fn_3_FDB30(void) {
         case 26:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0974 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 27:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0976 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 34:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_097C + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
         case 60:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0984 + ctx->_0000[1]) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
@@ -3202,7 +3202,7 @@ BOOL fn_3_FDB30(void) {
         case 41:
             fn_3_100038();
             if (lbl_3_common_bss_1323C->_23E - 1 != lbl_3_common_bss_1323C->_23C) {
-                return FALSE;
+                break;
             }
             if (CAMF(u16, 0xAAA) == 0) {
                 CAMF(u16, 0xAAA) = 1;
@@ -3315,14 +3315,14 @@ BOOL fn_3_FDB30(void) {
                 ctx->_0000 += 2;
                 continue;
             }
-            return FALSE;
+            break;
         case 77:
             fn_3_100038();
             if (CTX->_0118 > 0x30000 && fn_3_2273C(ctx->_0000[1]) != 0) {
                 ctx->_0000 += 2;
                 continue;
             }
-            return FALSE;
+            break;
         case 51:
             fn_3_21C7C(ctx->_0000[1], ctx->_0000[2]);
             ctx->_0000 += 3;
@@ -3440,7 +3440,7 @@ BOOL fn_3_FDB30(void) {
             CAMSCRIPT(1)._0000 = CAM_LABEL(b);
             CAMSCRIPT(0)._0000 = CAM_LABEL(a);
             g_pCamera->_28A9 = 1;
-            return FALSE;
+            break;
         }
         case 67:
             ctx->_000C = ctx->_0000[1];
@@ -3468,7 +3468,7 @@ BOOL fn_3_FDB30(void) {
                 continue;
             }
             if (lbl_3_common_bss_1323C->markers[idx]._28 != 1) {
-                return FALSE;
+                break;
             }
             lbl_3_common_bss_1323C->_27F = 0;
             ctx->_0000 += 2;
@@ -3610,7 +3610,7 @@ BOOL fn_3_FDB30(void) {
             if (item->_10 == 1) {
                 ctx->_0000 += 1;
             }
-            return FALSE;
+            break;
         case 93:
             changeScene(1, 6);
             ctx->_0000 += 1;
@@ -3624,17 +3624,17 @@ BOOL fn_3_FDB30(void) {
             if (lbl_8037169C._12[1] != 0) {
                 ctx->_0000 += 1;
             }
-            return FALSE;
+            break;
         case 97:
             for (i = 0; i < 9; i++) {
                 fn_3_21C7C(i, ctx->_0000[1]);
             }
             ctx->_0000 += 2;
-            return FALSE;
+            break;
         case 101:
             fn_3_100038();
             if (ctx->_0000[1] > CAMF(s16, 0xA72)) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
@@ -3645,7 +3645,7 @@ BOOL fn_3_FDB30(void) {
                 ctx->_0000 += 1;
                 continue;
             }
-            return FALSE;
+            break;
         case 105:
             lbl_3_common_bss_1323C->_280 = ctx->_0000[1];
             ctx->_0000 += 2;
@@ -3655,8 +3655,9 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 2;
             continue;
         default:
-            return FALSE;
+            break;
         }
+        return FALSE;
     }
 }
 
