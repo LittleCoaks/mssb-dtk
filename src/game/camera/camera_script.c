@@ -1777,11 +1777,12 @@ void fn_3_105CDC(void) {
 // .text:0x00105C84 size:0x58 mapped:0x80744D18
 void fn_3_105C84(u8* hdr) {
     u32* p = (u32*)(hdr + 8);
+    u32* q = p;
     s16 k = 0;
     *p += (u32)hdr;
     while (k < *(s16*)(hdr + 6)) {
-        p[1] += (u32)hdr;
-        p++;
+        q[1] += (u32)hdr;
+        q++;
         k++;
     }
     CTX->_011C = *(u16*)(hdr + 4) << 16;
@@ -1789,25 +1790,25 @@ void fn_3_105C84(u8* hdr) {
 
 // .text:0x00105C28 size:0x5C mapped:0x80744CBC
 u32 fn_3_105C28(u8* script, u32 time) {
-    u8* tbl = *(u8**)(script + 8);
     u32 frame = time >> 16;
     u32 frac = time & 0xFFFF;
-    u16 n = *(u16*)tbl;
-    u8* e = tbl + 4;
-    u8* last;
+    u16* e = (u16*)(*(u8**)(script + 8));
+    u16 n = *e;
+    u16* last;
     u32 found = 0;
+    e += 2;
     do {
         last = e;
-        if (*(u16*)e == frame && frac == 0) {
-            found = *(u16*)(e + 2);
+        if (e[0] == frame && frac == 0) {
+            found = e[1];
         }
-        e += 4;
-        if (*(u16*)e > frame) {
+        e += 2;
+        if (e[0] > frame) {
             break;
         }
         n--;
     } while (n != 0);
-    return found | ((u32) * (u16*)(last + 2) << 16);
+    return found | ((u32)last[1] << 16);
 }
 
 // .text:0x00105BD8 size:0x50 mapped:0x80744C6C
