@@ -64,13 +64,11 @@ static inline void copyExtraStadiumEntries(StadiumRenderEntry* source, u8* first
         *(StadiumRenderEntry*)(second + index * 0xE0) = *source;
     }
 }
-typedef struct { s16 offsets[7]; } StadiumTextureOffsets;
 typedef struct {
     u8 _00[8];
     u32 a;
     u32 b;
 } StadiumLightSlot;
-static const StadiumTextureOffsets stadiumTextureOffsetsSource = {{0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0}};
 u32 lbl_3_data_23C[364] = {
     /* 0x000 */ 0xAABED200, 0x42A00000, 0x43E10000, 0xAABED200,
     /* 0x010 */ 0x42A00000, 0x43E10000, 0xAABED200, 0x42A00000,
@@ -682,10 +680,10 @@ void fn_3_53E0(const u16* encoded, s16* column, s16* row, s16* width, s16* heigh
 void fn_3_5518(void) {
     Mtx44 projection;
     Mtx identity;
-    StadiumTextureOffsets stadiumTextureOffsets = stadiumTextureOffsetsSource;
+    s16 offsets[7] = {0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0};
     u8 stadiumID = g_d_GameSettings.StadiumID;
     u8* textureTable = (u8*)g_UNK_StadiumDetails._00;
-    int textureOffset = stadiumTextureOffsets.offsets[stadiumID] << 5;
+    int textureOffset = offsets[stadiumID] << 5;
     void* texture;
 
     GXSetZMode(TRUE, GX_ALWAYS, TRUE);
