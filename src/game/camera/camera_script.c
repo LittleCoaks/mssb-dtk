@@ -2369,6 +2369,9 @@ void fn_3_101CC4(void) {
             f32 sp;
             f32 cp2;
             f32 sy;
+            f32 rx;
+            f32 ry;
+            f32 rz;
             memcpy(&g_pCamera->_2840, &g_pCamera->_2858, sizeof(VecXYZ));
             if (g_pCamera->_2840.y < 0.1f) {
                 g_pCamera->_2840.y = 0.1f;
@@ -2383,9 +2386,12 @@ void fn_3_101CC4(void) {
             sp = SINF(pitch);
             cp2 = COSF(pitch);
             sy = SINF(yaw);
-            g_pCamera->_284C.x = g_pCamera->_2858.x + 100.0f * cy * cp;
-            g_pCamera->_284C.y = g_pCamera->_2858.y + 100.0f * sp;
-            g_pCamera->_284C.z = g_pCamera->_2858.z + 100.0f * sy * cp2;
+            rx = 100.0f * cy * cp;
+            ry = 100.0f * sp;
+            rz = 100.0f * sy * cp2;
+            g_pCamera->_284C.x = g_pCamera->_2858.x + rx;
+            g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
+            g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
             CAM_FILTER_POS();
             break;
         }
@@ -2593,6 +2599,9 @@ void fn_3_1000D8(void) {
             f32 sp;
             f32 cp2;
             f32 sy;
+            f32 rx;
+            f32 ry;
+            f32 rz;
             g_pCamera->_2840.x = g_pCamera->_2858.x;
             g_pCamera->_2840.y = g_pCamera->_2858.y;
             g_pCamera->_2840.z = g_pCamera->_2858.z;
@@ -2607,9 +2616,12 @@ void fn_3_1000D8(void) {
             sp = SINF(pitch);
             cp2 = COSF(pitch);
             sy = SINF(yaw);
-            g_pCamera->_284C.x = g_pCamera->_2858.x + 100.0f * cy * cp;
-            g_pCamera->_284C.y = g_pCamera->_2858.y + 100.0f * sp;
-            g_pCamera->_284C.z = g_pCamera->_2858.z + 100.0f * sy * cp2;
+            rx = 100.0f * cy * cp;
+            ry = 100.0f * sp;
+            rz = 100.0f * sy * cp2;
+            g_pCamera->_284C.x = g_pCamera->_2858.x + rx;
+            g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
+            g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
             CAM_FILTER_POS();
             break;
         }
