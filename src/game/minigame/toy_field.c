@@ -1,6 +1,8 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_toyField
 #include "game/minigame/toy_field.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -71,11 +73,6 @@ extern u8 animRelated[0x124];
 extern void minigamePauseHelpUpdate(void);
 extern void minigame_rankPlayers(u8 (*order)[2], int mode);
 extern void fn_3_AFD80(int arg0);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
-extern struct {
-    u8 _00[0x40];
-    s16 humanTeam;
-} lbl_3_common_bss_37400;
 extern void fn_3_FBD58(void);
 extern void fn_3_FBD70(void);
 
@@ -554,7 +551,7 @@ void toyFieldApplyGameSettings(void) {
     }
     g_Minigame.challengeModeInd = 1;
     g_Minigame.selectSlotState[g_d_GameSettings._35] = g_d_GameSettings._35;
-    lbl_3_common_bss_37400.humanTeam = g_d_GameSettings._35;
+    scoutState.humanTeam = g_d_GameSettings._35;
     g_Minigame.GameMode_MiniGame = g_d_GameSettings._33;
     g_Minigame.nextGameStatus = 30;
     SetGameStatus(GAME_STATUS_0x1B);
@@ -2002,8 +1999,8 @@ void toyFieldRelated(void) {
 
     mode = RandomIndexFromWeights(lbl_3_data_189F0[g_Minigame.miniGameNumberOfParticipants - 2][stage][rank], 8);
     g_Minigame.toyField_slotEvent = mode;
-    if (g_d_GameSettings.exhibitionMatchInd == FALSE && g_Minigame.rosterID == lbl_3_common_bss_37400.humanTeam) {
-        starMissionsMinigamesSpecialAction(7, mode, 0);
+    if (g_d_GameSettings.exhibitionMatchInd == FALSE && g_Minigame.rosterID == scoutState.humanTeam) {
+        starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_TOY_FIELD, mode, 0);
     }
 
     if (g_Minigame.toyField_slotEvent == 7) {

@@ -5,6 +5,8 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_wallBall
 #include "game/minigame/wall_ball.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/minigame/minigame_effects.h"
@@ -53,7 +55,6 @@ extern u8 wallBall_inningLimits[5];
 extern u8 wallBall_inningLimitThreshold;
 extern s16 wallBall_lastInningMultiplier;
 extern u8 minigameAIStrengthTable[8][5];
-extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_8037169C[0x1C];
 extern u8 us80893314[8];
@@ -61,7 +62,6 @@ extern void fn_3_FBD70(void);
 extern void fn_3_FBD58(void);
 extern void minigameQueueHudEvent(int a, int b);
 extern BOOL checkForPauses(void);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
 typedef struct {
     u8 _00[5];
@@ -587,8 +587,8 @@ void wallBallCalculatePointsAndEndTurn(void) {
         }
 
         if (g_d_GameSettings.exhibitionMatchInd == 0 &&
-            (s8)g_Minigame.minigamePlayerSelectedOrder == lbl_3_common_bss_37400[0x20]) {
-            starMissionsMinigamesSpecialAction(1, delta, g_Minigame.wallBall_hitNoteBlock);
+            (s8)g_Minigame.minigamePlayerSelectedOrder == scoutState.humanTeam) {
+            starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_WALL_BALL_NOTE_BLOCKS, delta, g_Minigame.wallBall_hitNoteBlock);
         }
 
         g_Minigame.wallBallSomeXPos = g_Pitcher.pitcherCoord.x;

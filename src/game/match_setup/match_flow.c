@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_flow.h"
+#include "game/challenge/scout_state.h"
 #include "mem.h"
 #include "Dolphin/rand.h"
 #include "game/replay/replay_inputs.h"
@@ -48,16 +49,6 @@ extern u8 hugeAnimStruct[0x3154];
 extern u8 animRelated[0x124];
 extern void* lbl_3_common_bss_1323C[];
 extern u8 lbl_3_common_bss_134C4[];
-extern struct {
-    u8 _00[0x40];
-    s16 _40;
-    s16 scoutCountdown;
-    u8 _44[2];
-    u8 scoutMissionID;
-    u8 _47;
-    u8 scoutFlag;
-    u8 _49[5];
-} lbl_3_common_bss_37400;
 extern s16 challenge_baseCoinsAwarded[16];
 
 extern void QueueTextToDisplay(int code, int arg1);
@@ -83,7 +74,6 @@ extern void fn_8004CA48(int, int, int, int);
 extern int loadMVPMaybe(void);
 extern u8 lbl_803C5F74[];
 extern u8 lbl_800EFBA4[];
-extern u8 challengeInnings[];
 extern void betweenABSetPitcherBatter(void);
 extern void someRosterMemoryManagement(void);
 extern void setPausedTo0AndOtherStateVars(void);
@@ -106,19 +96,19 @@ extern void transitionToPauseScreen(void);
 extern void ballPhysica(void);
 extern void fielderMainFunction(void);
 extern void scoutFlag_checkMissionSuccess(void);
-extern void setScoutMissionRelatedToZero(void);
+extern void resetScoutChanceTier(void);
 extern int loadFielderActors(int charID);
 extern void unkPauseSimulationCheck(void);
 extern BOOL checkForButtonPressToSkip(int a, int b);
 extern void playOverSounds(int param);
-extern void starMissionRelated2(void);
+extern void challenge_leftoverTeammatesJoinBowserJr(void);
 extern void cleanupCharacters(void);
 extern void fn_3_90434(void);
 extern void unregisterMatchHudObjects(void);
 extern void toyFieldInit(void);
 extern void minigames_init(void);
 extern void clearScoutState(void);
-extern void fn_3_1663AC(void);
+extern void practice_postGraphicsUpdate(void);
 extern void fn_3_59C2C(void);
 extern void fn_3_59F40(void);
 extern void fn_3_5A28C(void);
@@ -539,7 +529,7 @@ void matchTransitionPrepareNextAB(void) {
         animRelated[0xAC] = 0;
         if (inningSetting.starSkillsSetting != 0) {
             if (!g_d_GameSettings.exhibitionMatchInd) {
-                if (lbl_3_common_bss_37400.scoutMissionID != 0) {
+                if (scoutState.scoutMissionID != SCOUT_MISSION_NONE) {
                     break;
                 }
             }
@@ -867,24 +857,24 @@ void checkIfPlayOver(void) {
         g_Stats.replayInd == 0) {
         lastPlayStats();
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Stats.replayInd == 0 &&
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0 &&
         g_GameLogic.playOver != 0 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
-        lbl_3_common_bss_37400.scoutCountdown--;
-        if (g_FieldingLogic.playOverCounter >= endFrame || lbl_3_common_bss_37400.scoutCountdown <= 5) {
+        scoutState.scoutCountdown--;
+        if (g_FieldingLogic.playOverCounter >= endFrame || scoutState.scoutCountdown <= 5) {
             lastPlayStats();
         }
-        if (lbl_3_common_bss_37400.scoutCountdown == 5 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
+        if (scoutState.scoutCountdown == 5 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
             g_GameLogic.walkOffWinInd = 1;
             changeScene(3, 6);
-            if (lbl_3_common_bss_37400._47 != 0) {
+            if (scoutState.scoutResult != SCOUT_RESULT_PENDING) {
                 playOverSounds(6);
             }
         }
-        if (lbl_3_common_bss_37400.scoutCountdown <= 0) {
+        if (scoutState.scoutCountdown <= 0) {
             playOverTransitionStuff();
         }
         if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN && g_Stats.replayPending != 0 &&
-            lbl_3_common_bss_37400.scoutCountdown == 0x1E) {
+            scoutState.scoutCountdown == 0x1E) {
             animRelated[0xB1] = 1;
         }
     } else if (g_FieldingLogic.playOverCounter >= endFrame) {
@@ -939,29 +929,29 @@ void checkIfPlayOver(void) {
                 }
             }
         }
-        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 &&
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE &&
             g_Stats.replayInd == 0 && g_GameLogic.playOver != 0) {
             scoutFlag_checkMissionSuccess();
             if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
-                lbl_3_common_bss_37400.scoutCountdown = 0x78;
+                scoutState.scoutCountdown = 0x78;
             }
-            if (lbl_3_common_bss_37400.scoutFlag == 0) {
+            if (scoutState.scoutFlag == 0) {
                 if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) {
                     animRelated[0xB4] = 1;
-                } else if (g_Strikes.outs >= 3 || lbl_3_common_bss_37400._47 != 0) {
+                } else if (g_Strikes.outs >= 3 || scoutState.scoutResult != SCOUT_RESULT_PENDING) {
                     animRelated[0xB4] = 1;
                 } else {
-                    lbl_3_common_bss_37400.scoutCountdown = 8;
+                    scoutState.scoutCountdown = 8;
                 }
             } else if (g_Stats.replayPending != 0) {
-                lbl_3_common_bss_37400.scoutCountdown = endFrame - 0x4C;
+                scoutState.scoutCountdown = endFrame - 0x4C;
             } else {
-                lbl_3_common_bss_37400.scoutCountdown = 8;
+                scoutState.scoutCountdown = 8;
             }
         }
         g_Stats._003B = 1;
     } else if (g_FieldingLogic.playOverCounter - 1 == endFrame - 0x1E) {
-        if (lbl_3_common_bss_37400._47 == 0 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN &&
+        if (scoutState.scoutResult == SCOUT_RESULT_PENDING && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN &&
             g_Stats.replayPending != 0) {
             animRelated[0xB1] = 1;
         }
@@ -991,9 +981,9 @@ void playOverTransitionStuff(void) {
         didTransition = handleABEndEvent();
     }
     postPlayTrackStats();
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400._47 != 0) {
-        lbl_3_common_bss_37400.scoutMissionID = 0;
-        lbl_3_common_bss_37400._47 = 0;
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutResult != SCOUT_RESULT_PENDING) {
+        scoutState.scoutMissionID = SCOUT_MISSION_NONE;
+        scoutState.scoutResult = SCOUT_RESULT_PENDING;
     }
     if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         SetGameStatus(GAME_STATUS_TRANSITION);
@@ -1258,10 +1248,10 @@ void inningImportanceAI(void) {
     g_Scores._pad_AC = evaluateInningCondition(g_Scores.Inning);
     g_Scores._pad_BF[2] = 0;
     g_Scores._C6 = 0;
-    lbl_3_common_bss_37400.scoutFlag = 0;
+    scoutState.scoutFlag = 0;
     setInningEndingKIndTo0();
     if (!settings->exhibitionMatchInd) {
-        setScoutMissionRelatedToZero();
+        resetScoutChanceTier();
     }
 }
 
@@ -1351,7 +1341,7 @@ void endOfGameCheck(int arg0) {
     } else {
         return;
     }
-    fn_3_5CFD0();
+    challenge_onGameEnd();
     if (g_GameLogic.winType == WIN_TYPE_5 || g_GameLogic.winType == WIN_TYPE_6) {
         if (!g_d_GameSettings.exhibitionMatchInd) {
             if (g_d_GameSettings.humanTeamNumber == (g_Scores.winnerCd ^ g_GameLogic.homeTeamInd)) {
@@ -1363,18 +1353,19 @@ void endOfGameCheck(int arg0) {
 }
 
 // .text:0x0005CFD0 size:0xC4 mapped:0x8069C064
-void fn_3_5CFD0(void) {
-    u8* tracker = (u8*)starMissionCompletionTracker;
-    int a = tracker[0x441C];
-    int b = tracker[0x441E];
+void challenge_onGameEnd(void) {
+    ChallengeState* tracker = &starMissionCompletionTracker;
+    int a = tracker->captain;
+    int b = tracker->opponentCaptain;
 
     if (!g_d_GameSettings.exhibitionMatchInd) {
         if (g_Scores.winnerCd <= 1) {
-            if (g_Scores.winnerCd ^ (g_GameLogic.homeTeamInd == lbl_3_common_bss_37400._40)) {
-                if ((tracker[0x4422] >= 4 && b == 5) || (tracker[0x4422] >= 5 && (int)tracker[0x44EF] == 1 && a == 5)) {
+            if (g_Scores.winnerCd ^ (g_GameLogic.homeTeamInd == scoutState.humanTeam)) {
+                if ((tracker->stage >= 4 && b == CHALLENGE_CAPTAIN_BOWSER) ||
+                    (tracker->stage >= 5 && (int)tracker->_44EF == 1 && a == CHALLENGE_CAPTAIN_BOWSER)) {
                     g_GameLogic.playOverFadeOutStarted = 0;
                 }
-                starMissionRelated2();
+                challenge_leftoverTeammatesJoinBowserJr();
             }
         }
     }
@@ -1406,7 +1397,7 @@ void endOfMatch(void) {
     case 2:
         if (!g_d_GameSettings.exhibitionMatchInd && g_d_GameSettings.bJMatchInd == 1) {
             challenge_setTransitionScreenCharacterPortrait(
-                0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
+                0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.captain]);
         } else {
             changeScene(3, 6);
         }
@@ -1768,9 +1759,9 @@ void matchEndGameScreenFunction(void) {
             changeScene(3, 6);
         } else if (!g_d_GameSettings.exhibitionMatchInd) {
             if (g_d_GameSettings.bJMatchInd == 1) {
-                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441C]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.captain]);
             } else {
-                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8*)starMissionCompletionTracker)[0x441E]]);
+                challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.opponentCaptain]);
             }
         } else {
             changeScene(4, 6);
@@ -1932,19 +1923,19 @@ void startChallengeModeMatch(void) {
             initializeARunner();
             g_d_GameSettings.home_AwaySetting ^= 1;
         } else {
-            if (Static_Stats_Tables.captainSelectedID[1] == 9 || *(s16*)&((u8*)starMissionCompletionTracker)[0x16C2] == 0x2A) {
-                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty * 3 + 1];
+            if (Static_Stats_Tables.captainSelectedID[1] == CHAR_ID_BOWSER || starMissionCompletionTracker._16C2 == 0x2A) {
+                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty].finalBossInningLimit;
             } else {
-                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty * 3];
+                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty].inningLimit;
             }
             g_Scores.maxNumberOfExtraInnings = g_Scores.inningLimit + 3;
         }
-        g_Scores.mercyThreshold = challengeInnings[g_d_GameSettings.challengeDifficulty * 3 + 2];
+        g_Scores.mercyThreshold = challengeInnings[g_d_GameSettings.challengeDifficulty].mercyThreshold;
     }
     for (i = 0; i < 54; i++) {
         for (j = 0; j < 10; j++) {
-            if ((s8)starMissionCompletionTracker[i].inGameMissionTracker[j].starMissionStatus != -2) {
-                starMissionCompletionTracker[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
+            if (starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus != STAR_MISSION_TRACKING_COMPLETED_SAVED) {
+                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
         }
     }
@@ -2071,7 +2062,7 @@ graphics:
     } else {
         graphicsFunction_nonMiniGame();
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fn_3_1663AC();
+            practice_postGraphicsUpdate();
         }
     }
     cameraControl();
@@ -2270,7 +2261,7 @@ void gameInitRelated(void) {
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         g_GameLogic.teamIsCPU[1] = 1;
         g_GameLogic._140[home ^ 1] = 1;
-        lbl_3_common_bss_37400._40 = 0;
+        scoutState.humanTeam = 0;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd ^ 1] = 1;
@@ -2279,7 +2270,7 @@ void gameInitRelated(void) {
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_3) {
         g_GameLogic.teamIsCPU[0] = 1;
         g_GameLogic._140[home] = 1;
-        lbl_3_common_bss_37400._40 = 1;
+        scoutState.humanTeam = 1;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd] = 1;

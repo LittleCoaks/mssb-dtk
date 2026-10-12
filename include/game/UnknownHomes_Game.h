@@ -1137,56 +1137,7 @@ typedef struct _GameControlsStruct {
 
 extern GameControlsStruct g_GameLogic;
 
-typedef enum _CHALLENGE_CAPTAIN {
-    CHALLENGE_CAPTAIN_MARIO,
-    CHALLENGE_CAPTAIN_PEACH,
-    CHALLENGE_CAPTAIN_WARIO,
-    CHALLENGE_CAPTAIN_DK,
-    CHALLENGE_CAPTAIN_YOSHI,
-    CHALLENGE_CAPTAIN_BOWSER,
-} CHALLENGE_CAPTAIN;
-
-typedef enum _CHARACTER_VARIANT_CLASSIFICATION {
-    CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_CAPTAIN,
-    CHARACTER_VARIANT_CLASSIFICATION_SECONDARY_CAPTAIN,
-    CHARACTER_VARIANT_CLASSIFICATION_UNIQUE_NON_CAPTAIN,
-    CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT,
-    CHARACTER_VARIANT_CLASSIFICATION_SECONDARY_VARIANT,
-} CHARACTER_VARIANT_CLASSIFICATION;
-
-typedef enum _STAR_MISSION_TRACKING {
-    STAR_MISSION_TRACKING_NOT_COMPLETED = 0,
-    STAR_MISSION_TRACKING_TRACK1_COMPLETION = 1,
-    STAR_MISSION_TRACKING_COMPLETED_SAVED = 254,
-    STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY = 255,
-} STAR_MISSION_TRACKING;
-
-typedef enum _CHALLENGE_RECRUITMENT_CD {
-    CHALLENGE_RECRUITMENT_CD_NOT_RECRUITED,
-    CHALLENGE_RECRUITMENT_CD_RECRUITED,
-    CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM,
-} CHALLENGE_RECRUITMENT_CD;
-
-typedef struct _starMissionTrackingPair {
-    /*0x000*/ E(s8, STAR_MISSION_TRACKING) starMissionStatus;
-    /*0x001*/ u8 shownOnPauseMenu;
-} starMissionTrackingPair;
-
-// This is pack disabled in ghidra.
-typedef struct _ChallengeTrackingStruct {
-    /*0x000*/ void* scoutFlagPointer;
-    /*0x004*/ E(u8, CHALLENGE_CAPTAIN) challengeCaptain; // Created by retype action
-    /*0x005*/ E(s8, CHARACTER_VARIANT_CLASSIFICATION) variantClassification;
-    /*0x006*/ u8 scoutFlagsAchieved;
-    /*0x007*/ u8 _7;
-    /*0x008*/ u8 _8;
-    /*0x009*/ starMissionTrackingPair inGameMissionTracker[10];
-    /*0x01D*/ starMissionTrackingPair saveFileMissionTracker[10];
-    /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) _31;
-    /*0x032*/ u8 _32;
-    /*0x033*/ u8 _33;
-} ChallengeTrackingStruct; // size: 0x34
-
+#include "game/challenge/challenge_state.h"
 #include "game/character_stats.h"   // StatTable, ChemistryTable, CharacterStats
 
 extern CharacterStats inMemRoster[TEAMS_PER_GAME][PLAYERS_PER_TEAM];
@@ -1206,7 +1157,6 @@ extern UnkSimulationRelatedStruct unkSimulationRelatedStruct;
 
 extern f32 vecDotProduct(VecXYZ* a, VecXYZ* b);
 
-extern ChallengeTrackingStruct starMissionCompletionTracker[54];
 
 typedef struct _SomeStarDashStruct {
     /*0x000*/ s16 _0[2];

@@ -4,6 +4,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "text/text_channel.h"
 #include "menus/yd_step.h"
+#include "game/challenge/challenge_state.h"
 #include "Dolphin/vec.h"
 #include "Dolphin/mtx.h"
 #include "musyx/musyx.h"
@@ -14,11 +15,10 @@ extern u8 *lbl_2_bss_1A8230;
 extern u8 *lbl_2_bss_1A8234;
 extern u8 *lbl_2_bss_1A823C;
 extern u8 *lbl_2_bss_1A8244;
-extern u8 *lbl_2_bss_1A8248;
+extern ChallengeState *lbl_2_bss_1A8248;
 extern u8 *lbl_2_bss_1A824C;
 extern u8 lbl_2_bss_1A8250[0x1978FC];
 extern u8 lbl_2_data_1F8F0[];
-extern u8 starMissionCompletionTracker[0x4508];
 extern u8 superstarUnlocked[0x130];
 extern u8 menuNumber[0x28];
 extern menuControlStruct *menuControlVariables;
@@ -100,7 +100,7 @@ void fn_2_54BB0(void) {
     lbl_2_bss_1A8234 = w;
     lbl_2_bss_1A823C = (u8 *)&inningSetting.rel;
     lbl_2_bss_1A8244 = superstarUnlocked;
-    lbl_2_bss_1A8248 = starMissionCompletionTracker;
+    lbl_2_bss_1A8248 = &starMissionCompletionTracker;
     lbl_2_bss_1A824C = w;
     item = currentDrawingItem;
 
@@ -365,11 +365,11 @@ void fn_2_54BB0(void) {
     }
 
     if (hugeAnimStruct[0x307A] == 2) {
-        if (lbl_2_bss_1A8248[0x44F2] != 4) {
+        if (lbl_2_bss_1A8248->_44F2 != 4) {
             fn_2_68E68();
         }
         fn_2_47FF8();
-        if (lbl_2_bss_1A8248[0x44F2] != 4) {
+        if (lbl_2_bss_1A8248->_44F2 != 4) {
             fn_2_47CFC();
         }
     }

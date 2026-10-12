@@ -1,6 +1,7 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_minigameHud
 #include "game/minigame/minigame_hud.h"
+#include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "text/text_channel.h"
@@ -926,7 +927,7 @@ void minigameHudCharSelectUpdate(void) {
                 }
             }
         }
-        if (active && characterStaticIndexes[g_Minigame.selectSlots[i].charID * 6] != 0 && g_Minigame.selectSlots[i].charReadyInd != 0) {
+        if (active && characterStaticIndexes[g_Minigame.selectSlots[i].charID].variantGroup != 0 && g_Minigame.selectSlots[i].charReadyInd != 0) {
             HUD_RECORD_AT(scene, 30, i)->flags |= UI_FLAG_VISIBLE;
         } else {
             HUD_RECORD_AT(scene, 30, i)->flags &= ~UI_FLAG_VISIBLE;
@@ -950,7 +951,7 @@ void minigameHudCharSelectUpdate(void) {
         if (active
             && ((g_d_GameSettings.exhibitionMatchInd != 0 && superstarUnlocked[g_Minigame.selectSlots[i].charID] != 0)
                 || (g_d_GameSettings.exhibitionMatchInd == 0
-                    && ((u8*)starMissionCompletionTracker + g_Minigame.selectSlots[i].charID)[0x43D6] != 0))
+                    && starMissionCompletionTracker.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0))
             && g_Minigame.selectSlots[i].charReadyInd != 0) {
             HUD_RECORD_AT(scene, 34, i)->flags |= UI_FLAG_VISIBLE;
             HUD_RECORD_AT(scene, 34, i)->playMode = UI_PLAY_FORWARD;
@@ -987,7 +988,7 @@ void minigameHudCharSelectUpdate(void) {
             HUD_RECORD_AT(scene, 62, i)->frame = g_Minigame.selectSlots[i].charID << 16;
             HUD_RECORD_AT(scene, 54, i)->flags |= UI_FLAG_VISIBLE;
             HUD_RECORD_AT(scene, 54, i)->playMode = UI_PLAY_FORWARD;
-            last = lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[i].charID * 6]][characterStaticIndexes[g_Minigame.selectSlots[i].charID * 6 + 5]];
+            last = lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[i].charID].variantGroup][characterStaticIndexes[g_Minigame.selectSlots[i].charID].variantIndex];
             HUD_RECORD_AT(scene, 58, i)->frame = last << 16;
         } else {
             HUD_RECORD_AT(scene, 42, i)->frame = 0;

@@ -5,7 +5,7 @@
 
 void fn_3_21C90(void);
 void fn_3_21DE4(void);
-BOOL maybeSetVsIndOrScoutFlagChance(void);
+BOOL chooseVsScreenSituation(void);
 BOOL fn_3_2273C(void);
 BOOL fn_3_2281C(int index);
 void resetSomethingRelatedToVersus(void);

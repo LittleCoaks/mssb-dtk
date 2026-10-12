@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/character_loading.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x80021410.h"
@@ -9,7 +10,6 @@
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/mb_subfunc.h"
 
-extern u8 characterStaticIndexes[0x144];
 extern u8 unkCharacterArray[32];
 extern u8 lbl_3_data_81D4[8];
 
@@ -77,10 +77,10 @@ BOOL fn_3_90DD8(void) {
             sound_crowd_EffectsStruct._2C += 2;
             return FALSE;
         }
-        target = characterStaticIndexes[MINIGAME_U8(0x18D0 + idx) * CHAR_SLOT_STRIDE + 1];
+        target = characterStaticIndexes[MINIGAME_U8(0x18D0 + idx)].trackerIdx;
         slotChar = (u8 *)&g_Minigame;
         for (m = 0; m < idx; m++, slotChar++) {
-            if (target == characterStaticIndexes[slotChar[0x18D0] * CHAR_SLOT_STRIDE + 1]) {
+            if (target == characterStaticIndexes[slotChar[0x18D0]].trackerIdx) {
                 sound_crowd_EffectsStruct._2C += 2;
                 if (sound_crowd_EffectsStruct._2C >= 8) {
                     g_Minigame._19AB = TRUE;
@@ -118,8 +118,8 @@ void cleanupCharacters(void) {
                 s32 m;
 
                 for (m = 0; m < j; m++) {
-                    if (characterStaticIndexes[MINIGAME_U8(0x18D0 + j) * CHAR_SLOT_STRIDE + 1] ==
-                        characterStaticIndexes[MINIGAME_U8(0x18D0 + m) * CHAR_SLOT_STRIDE + 1]) {
+                    if (characterStaticIndexes[MINIGAME_U8(0x18D0 + j)].trackerIdx ==
+                        characterStaticIndexes[MINIGAME_U8(0x18D0 + m)].trackerIdx) {
                         dup = TRUE;
                         break;
                     }

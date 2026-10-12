@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/practice/practice_scene.h"
+#include "game/challenge/star_mission_data.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_practiceScene
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -543,7 +544,7 @@ void practiceMenu_charSelect_update(void) {
         int charID = g_Minigame.selectSlots[g_Practice.homeAway].charID;
 
         PRACTICE_RECORD(scene, 5)->frame = charSelect_handednessIconFrames[g_Minigame.battingHandedness[g_Practice.homeAway]] << 16;
-        if (characterStaticIndexes[charID * 6] != 0 &&
+        if (characterStaticIndexes[charID].variantGroup != 0 &&
             g_Minigame.selectSlots[g_Practice.homeAway].confirmedInd == 0 && g_Minigame.selectSlots[g_Practice.homeAway].onBottomControlInd == 0) {
             PRACTICE_RECORD(scene, 7)->flags |= UI_FLAG_VISIBLE;
         } else {
@@ -577,8 +578,8 @@ void practiceMenu_charSelect_update(void) {
         PRACTICE_RECORD(scene, 0xB)->flags |= UI_FLAG_VISIBLE;
         PRACTICE_RECORD(scene, 0xB)->playMode = UI_PLAY_FORWARD;
         PRACTICE_RECORD(scene, 0xC)->frame =
-            lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[0].charID * 6]]
-                           [characterStaticIndexes[g_Minigame.selectSlots[0].charID * 6 + 5]] << 16;
+            lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[0].charID].variantGroup]
+                           [characterStaticIndexes[g_Minigame.selectSlots[0].charID].variantIndex] << 16;
     } else {
         for (i = 0; i < 2; i++) {
             PRACTICE_RECORD_AT(scene, 8, i)->frame = 0;

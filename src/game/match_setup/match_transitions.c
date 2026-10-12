@@ -1,11 +1,11 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_transitions.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 
 extern u8 animRelated[0x124];
 extern u8 hugeAnimStruct[0x3154];
-extern u8 characterStaticIndexes[0x144];
 extern u8 constantList[0x1C];
 extern BOOL practice_loadAllGraphics(int team);
 extern void fn_8001196C(void);
@@ -35,7 +35,7 @@ BOOL championshipScreenGraphics(void) {
             for (slot = 0; slot < 9; slot++) {
                 u8* entry = (u8*)&inMemRoster[team][slot];
                 s16 charID = *(s16*)(entry + 0x24);
-                if (characterStaticIndexes[charID * 6 + 2] == 0x19) {
+                if (characterStaticIndexes[charID].requirementRow == 0x19) {
                     entry[0x26] = 0;
                     entry[0x27] = 1;
                 }

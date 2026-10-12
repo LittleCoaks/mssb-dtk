@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_scene.h"
+#include "game/challenge/scout_state.h"
 #include "game/match_setup/pause_menu.h"
 #include "game/hud/hud_gauges.h"
 #include "game/UnknownHomes_Game.h"
@@ -41,10 +42,6 @@ typedef struct MenuLabel {
 extern u8 animRelated[0x124];
 extern u8 menuNumber[0x28];
 extern MenuLabel lbl_800FEF70[];
-extern struct {
-    u8 _00[0x47];
-    u8 scoutResult;
-} lbl_3_common_bss_37400;
 extern s16 lbl_3_data_BE50[][4];
 extern UIRecordDescriptor lbl_3_data_D648[];
 extern UIRecordDescriptor lbl_3_data_D7A8[];
@@ -682,14 +679,14 @@ void animateMatchScene(void) {
             hud_ScoreUpdate_ToyFieldOffScreenPlayers();
             if (animRelated[0xB4] == 1) {
                 animRelated[0xB4] = 2;
-                insertGraphicDrawingFunction(fn_3_952DC, 2);
-                if (lbl_3_common_bss_37400.scoutResult == 2) {
+                insertGraphicDrawingFunction(scoutMissionCountdown_init, 2);
+                if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
                     insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 }
             }
             if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
                 animRelated[0xB3] == 1 && g_UnkSound_32718._07 == 0) {
-                insertGraphicDrawingFunction(fn_3_95124, 2);
+                insertGraphicDrawingFunction(scoutMissionStart_init, 2);
                 insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 animRelated[0xB3] = 2;
             }
@@ -718,7 +715,7 @@ void animateMatchScene(void) {
             } else if (g_GameLogic.gameStatus == GAME_STATUS_STAR_CHANCE_VS) {
                 if (animRelated[0xAD] != 0) {
                     if (g_d_GameSettings.exhibitionMatchInd == 0) {
-                        insertGraphicDrawingFunction(fn_3_953FC, 2);
+                        insertGraphicDrawingFunction(scoutMissionIntro_init, 2);
                         insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                     } else {
                         insertGraphicDrawingFunction(fn_3_9551C, 2);

@@ -2,6 +2,8 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_piranhaPanic
 #define g_Minigame g_Minigame_shared
 #include "game/minigame/piranha_panic.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -70,8 +72,6 @@ extern void piranhaPanic_emitFielderHitFire(int arg);
 extern void piranhaPanic_spawnBombExplosion(VecXYZ* pos);
 extern void bobOmbFuseSpark_removeFollow(s16 index);
 extern void fn_80062BE4(Vec* pos);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
-extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 hugeAnimStruct[0x3154];
 extern VecXYZ pP_goalBallPositions[4][3];
 extern u8 lbl_3_data_21E20[3];
@@ -617,8 +617,8 @@ void pP_UpdateThrownBall(int p) {
                         sp->_1A = 0;
                         sp->mode = 4;
                         PP.holeUsed[sp->kind] = 0;
-                        if (!g_d_GameSettings.exhibitionMatchInd && player == lbl_3_common_bss_37400[0x20]) {
-                            starMissionsMinigamesSpecialAction(5, sp->kind, 0);
+                        if (!g_d_GameSettings.exhibitionMatchInd && player == scoutState.humanTeam) {
+                            starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_PIRANHA_PANIC, sp->kind, 0);
                         }
                     }
                     sp->_1E = 1;

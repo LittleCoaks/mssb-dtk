@@ -4,6 +4,8 @@
  * constant-pool entry 16 bytes past the offsets the linked module has. */
 #define SQRT2_LINKAGE static
 #include "game/pitching/pitcher.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/replay/replay_inputs.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/baserunning/runner.h"
@@ -51,7 +53,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern s16 lbl_3_data_5F7C[];
 extern u8 bulletBallConstants[];
 extern u8 hitByPitchHitboxes[];
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4474[4];
 extern u32 AI_getPort(u8 idx);
 extern int aIPickoff(void);
@@ -68,15 +69,6 @@ extern u8 animRelated[0x124];
 extern u8 highLevelSimulationFlag[2];
 extern void transitionToLiveBallWithoutContact(int arg);
 extern s16 lbl_3_data_8080[];
-extern struct {
-    u8 _00[0x42];
-    s16 scoutCountdown;
-    u8 _44[2];
-    u8 scoutMissionID;
-    u8 _47;
-    u8 scoutFlag;
-    u8 _49[5];
-} lbl_3_common_bss_37400;
 extern s16 lbl_3_common_bss_32220[8];
 extern int runnerStealing_TransitionToLiveViewIndicator(void);
 extern void SetGameStatus(int status);
@@ -788,9 +780,9 @@ void endAtBatNonHit(void) {
         }
     }
     if (g_Pitcher.framesSinceAtBatEnded == 1) {
-        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Stats.replayInd == 0) {
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0) {
             scoutFlag_checkMissionSuccess();
-            lbl_3_common_bss_37400.scoutCountdown = 0xB4;
+            scoutState.scoutCountdown = 0xB4;
         }
         if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic._10 == 4) {
             if (g_Scores.halfInning != 0) {
@@ -808,10 +800,10 @@ void endAtBatNonHit(void) {
             g_Pitcher.walkedInRunInd = 1;
         }
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Stats.replayInd == 0 &&
-        lbl_3_common_bss_37400.scoutFlag == 0) {
-        lbl_3_common_bss_37400.scoutCountdown = lbl_3_common_bss_37400.scoutCountdown - 1;
-        if (lbl_3_common_bss_37400.scoutCountdown == 0x78) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0 &&
+        scoutState.scoutFlag == 0) {
+        scoutState.scoutCountdown = scoutState.scoutCountdown - 1;
+        if (scoutState.scoutCountdown == 0x78) {
             animRelated[0xB4] = 1;
         }
         transitionFrames = 0x78;
@@ -1704,7 +1696,7 @@ void fn_3_70280(void) {
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
         dx = -dx;
     }
-    idx = characterStaticIndexes[g_Batter.charID * 6 + 2] * 3;
+    idx = characterStaticIndexes[g_Batter.charID].requirementRow * 3;
     if (dz <= hitByPitchHitboxes[idx] && (f32)dz >= 0.0f && dx <= hitByPitchHitboxes[idx + 1] &&
         dx >= -hitByPitchHitboxes[idx + 2]) {
         hit = 1;

@@ -1,5 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/versus_screens.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 
 #include "game/UnknownHomes_Game.h"
@@ -41,15 +43,7 @@ extern BOOL decideScoutFlagMission(void);
 extern s8 lbl_803C6CF8[0x708];
 extern u8 lbl_8037169C[0x1C];
 extern u8 animRelated[0x124];
-extern u8 characterStaticIndexes[0x144];
 extern s16 lbl_3_data_7F7C[][4];
-typedef struct VsScoutMission {
-    /*0x00*/ u8 _00[0xD];
-    /*0x0D*/ s8 starMission;
-    /*0x0E*/ u8 _0E;
-} VsScoutMission; // size: 0xF
-
-extern VsScoutMission scoutMissionTable[13];
 
 extern s32 lbl_3_data_1F74[VS_SITUATION_COUNT];
 extern s32 lbl_3_data_2368[6];
@@ -167,15 +161,6 @@ typedef struct VsFadeParams {
 } VsFadeParams;
 
 extern VsFadeParams lbl_803C5090;
-
-typedef struct VsScoutState {
-    /*0x00*/ u8 _00[0x40];
-    /*0x40*/ s16 humanTeam;
-    /*0x42*/ u8 _42[4];
-    /*0x46*/ u8 scoutMissionID;
-} VsScoutState;
-
-extern VsScoutState lbl_3_common_bss_37400;
 
 s32 lbl_3_data_3A40[55] = {
     0x78, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76,
@@ -391,7 +376,7 @@ void postReplayBatterCelebration(void) {
     }
 
     if (hugeAnimStruct.objects[9]->_62 == 0x3A) {
-        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID * 6 + 2]][2]) {
+        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][2]) {
             playCharacterSound(g_Batter.charID, 0);
         }
     }
@@ -452,7 +437,7 @@ void homeRunEnd(void) {
     }
 
     if (hugeAnimStruct.objects[9]->_62 == 0x3C) {
-        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID * 6 + 2]][0]) {
+        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][0]) {
             playCharacterSound(g_Batter.charID, 0);
         }
     }
@@ -547,7 +532,7 @@ void starChanceVsScreenProcess(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (lbl_803C6CF8[0x715] == 1) {
-            if (g_GameLogic.playOverInd == 0 && maybeSetVsIndOrScoutFlagChance() == 0) {
+            if (g_GameLogic.playOverInd == 0 && chooseVsScreenSituation() == 0) {
                 lbl_3_common_bss_1323C->_25C = 0;
                 changeScene(1, 6);
                 fn_3_FBD58();
@@ -674,12 +659,12 @@ void championshipScreen(void) {
         fn_3_8C104(-1);
         vsScreenBegin(2);
         {
-            u8 *tracker = (u8 *)starMissionCompletionTracker;
+            ChallengeState *tracker = &starMissionCompletionTracker;
 
             if (inning->goAheadRunOccurrences != 0) {
-                camera_switchScene(lbl_3_data_2368[tracker[0x441C]]);
+                camera_switchScene(lbl_3_data_2368[tracker->captain]);
             } else {
-                camera_switchScene(lbl_3_data_2380[tracker[0x441C]]);
+                camera_switchScene(lbl_3_data_2380[tracker->captain]);
             }
         }
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -725,10 +710,10 @@ void championshipScreen(void) {
     }
 
     {
-        int team = lbl_3_common_bss_37400.humanTeam;
+        int team = scoutState.humanTeam;
         int charID = inMemRoster[team][g_GameLogic.Team_CaptainRosterLoc[team]].stats.CharID;
 
-        if (lbl_3_common_bss_1323C->frame == lbl_3_data_7F7C[characterStaticIndexes[charID * 6 + 2]][3]) {
+        if (lbl_3_common_bss_1323C->frame == lbl_3_data_7F7C[characterStaticIndexes[charID].requirementRow][3]) {
             playCharacterSound(charID, 7);
         }
     }
@@ -853,18 +838,18 @@ BOOL fn_3_2273C(void) {
 }
 
 // .text:0x00021F14 size:0x828 mapped:0x80660FA8
-BOOL maybeSetVsIndOrScoutFlagChance(void) {
+BOOL chooseVsScreenSituation(void) {
     GameInitVariables *settings = &g_d_GameSettings;
     VsData *data = &lbl_3_data_1D28;
-    u8 *tracker = (u8 *)starMissionCompletionTracker;
-    VsScoutState *scout = &lbl_3_common_bss_37400;
-    VsScoutMission *scoutMissions = scoutMissionTable;
+    ChallengeState *tracker = &starMissionCompletionTracker;
+    ScoutState *scout = &scoutState;
+    ScoutMission *scoutMissions = scoutMissionTable;
     BOOL scoutMission = FALSE;
     s32 i;
 
     if (settings->exhibitionMatchInd == 0) {
-        if (tracker[0x441E] == 5 ||
-            *(s16 *)(tracker + 0x16C2) == 0x2A) {
+        if (tracker->opponentCaptain == CHALLENGE_CAPTAIN_BOWSER ||
+            tracker->_16C2 == 0x2A) {
             scoutMission = FALSE;
         } else {
             scoutMission = decideScoutFlagMission();
@@ -875,7 +860,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
         if (scoutMission) {
             if (scoutMissions[scout->scoutMissionID].starMission != 0) {
                 lbl_3_common_bss_1323C->situation = 0x1C;
-                tracker[0x44F1] = 0;
+                tracker->scoutMissionPending = 0;
                 return TRUE;
             }
         }

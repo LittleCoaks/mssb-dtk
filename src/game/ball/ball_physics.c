@@ -2,6 +2,9 @@
  * _half/_three local statics would otherwise sit at the head of .rodata. */
 #define SQRT2_LINKAGE static
 #include "game/ball/ball_physics.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
 #include "game/UnknownHomes_Game.h"
@@ -19,8 +22,6 @@ extern void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
 extern void fn_3_15F648(int kind, u8 animByte, VecXYZ* pos, VecXYZ* vel);
 extern void handleBallRollInWater(VecXYZ* pos, VecXYZ* vel);
 extern void processBallFielderCollision(u8 fielderIndex);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
-extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 animRelated[0x124];
 extern f32 lbl_3_data_610C[6];
 extern f32 lbl_3_data_6124[3];
@@ -54,7 +55,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern BallBounceConstants lbl_3_data_4414;
 extern f32 lbl_3_data_4604;
 extern u8 lbl_3_data_4608;
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4428[7];
 extern f32 fielderActionConstants[43];
 extern struct {
@@ -1538,7 +1538,7 @@ void fielding_setHeldBallOffset(void) {
             getAnimRelatedCoordinates(character, 0x42, &throwReleaseOffset);
         } else if (fielder->CharID == CHAR_ID_PETEY) {
             getAnimRelatedCoordinates(character, 9, &throwReleaseOffset);
-        } else if (characterStaticIndexes[fielder->CharID * 6 + 1] == CHAR_ID_MAGIKOOPA_BLUE) {
+        } else if (characterStaticIndexes[fielder->CharID].trackerIdx == CHAR_ID_MAGIKOOPA_BLUE) {
             if (fielder->throwingHandedness == 0) {
                 getAnimRelatedCoordinates(character, 0x4F, &throwReleaseOffset);
             } else {
@@ -2541,8 +2541,8 @@ void ballCollisionLogic(void) {
         }
         g_Ball.hitNoteBlockInd = 0;
         g_FieldingLogic.knockoutFinished = 1;
-        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamBatting) {
-            starMissionsQuantityBased(0, g_Batter.rosterID);
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamBatting) {
+            starMissionsQuantityBased(STAR_MISSION_EVENT_NOTE_BLOCK_HIT, g_Batter.rosterID);
         }
     }
 

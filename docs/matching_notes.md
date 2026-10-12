@@ -3112,3 +3112,22 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   directly took it from 93.925% to 100%; widening the local or threshold did not.
   The complete 28-function unit and all its sections remained 100% after the
   readability pass and linked with `4 files OK`.
+
+## Findings from the Challenge-mode state / star mission data pass
+
+- **`starMissionCompletionTracker` is one 0x4508-byte `ChallengeState`** (`game/challenge/challenge_state.h`),
+  not `ChallengeTrackingStruct[54]`. Converting users from `(u8*)tracker + 0x....` to fields was neutral
+  everywhere except where a function kept one base pointer across many accesses: those need a local
+  `ChallengeState* cs = &starMissionCompletionTracker;` (decideScoutFlagMission 92.9 -> 98.3 versus a bare
+  global per access). Byte-pointer walks over `savedLineup` in text_0323C (stride 6, odd start offsets)
+  stay byte pointers; `CHALLENGE_STATE_OFFSET(member)` names the offsets.
+- **Flat byte tables sometimes encode the original indexing.** `characterStaticIndexes[(id) * 6 + 2]` in
+  practice_simulation.c fuses the `+ 2` into the base register; `characterStaticIndexes[id].requirementRow`
+  and `[id][2]` both lose 8% there, so that TU keeps the flat form.
+- **Tables shared by several TUs can be claimed by the neighbouring text TU.** The Challenge tables at
+  0x80109420-0x8010B4B4 are referenced from half a dozen units; they sit in File_0x8006c48c.c because the
+  previous TU ends at `jumptable_801093C4` and the next one (File_0x8006c9d8) starts its buff tables at
+  0x8010B4B4. The trailing 2 bytes after `starRankByMissionCount` are alignment padding (symbol size
+  0x70 vs 0x6E of data), which costs .data 0.012%.
+- **A symbol rename only needs symbols.txt plus source:** the menus/game asm and relocations regenerate
+  from `config/GYQE01/symbols.txt` on the next `ninja`.

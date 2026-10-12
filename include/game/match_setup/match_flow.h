@@ -41,7 +41,7 @@ void transitionToLiveBallWithoutContact(int arg0);
 void processScoreChanges(int arg0);
 void fn_3_5CD24(void);
 void endOfMatch(void);
-void fn_3_5CFD0(void);
+void challenge_onGameEnd(void);
 void endOfGameCheck(int arg0);
 void inningImportanceAI(void);
 void switchHalfInning(void);

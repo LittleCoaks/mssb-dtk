@@ -1,4 +1,5 @@
 #include "game/sound/m_sound.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
 #include "musyx/seq.h"
@@ -65,7 +66,6 @@ typedef struct SoundEffectMix {
 
 extern u8 hugeAnimStruct[];
 extern u8 animRelated[0x124];
-extern u8 lbl_3_common_bss_37400[0x4E];
 extern u8 lbl_3_common_bss_134C4[0x284];
 bool32 sndSeqLoop(s32 unk, bool32 b);
 #define SOUND_EFFECT_MIX_FIRST_ID 0x151
@@ -1346,7 +1346,7 @@ common:
         return;
     }
 
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x46] != 0) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE) {
         if (status == GAME_STATUS_STAR_CHANCE_VS) {
             if (((u8*)&g_GameLogic)[g_GameLogic.teamFielding + 0x133] == 0) {
                 sound_crowd_EffectsStruct._32 = 1;
@@ -1368,7 +1368,7 @@ common:
             }
         }
         if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && g_Stats.replayInd == 0) {
-            if (lbl_3_common_bss_37400[0x47] == 1) {
+            if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
                 if (g_Ball.deadBallReason != 1) {
                     track = 0xB;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
@@ -1376,7 +1376,7 @@ common:
                     }
                     goto pick;
                 }
-            } else if (lbl_3_common_bss_37400[0x47] == 2) {
+            } else if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
                 if (g_Ball.deadBallReason != 1) {
                     track = 0xA;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {

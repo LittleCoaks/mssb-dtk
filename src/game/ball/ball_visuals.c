@@ -1,4 +1,5 @@
 #include "game/ball/ball_visuals.h"
+#include "game/challenge/star_mission_data.h"
 
 /* ball_visuals.c never calls dolsqrtf2(), so keep it internal. With the
  * header's default `extern` linkage MWCC materialises the unused out-of-line
@@ -33,7 +34,6 @@ extern BOOL fn_80023D98(void* list, Vec* out);
 extern u8 drawStadiumRelated;
 extern u8 lbl_80366158[0x30];
 extern u8 animRelated[0x124];
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_803CB740[];
 extern f32 ballScaleFactors[13][3];
 extern void displayChem_antiChemGraphics(int fielder, BOOL anti);
@@ -346,7 +346,7 @@ void ballAnimations(void) {
     if (g_Ball.ballState != BALL_STATE_HELD) {
         show = 1;
     } else if (g_Ball.fielderWBallIndex >= 0 &&
-               characterStaticIndexes[g_Fielders[g_Ball.fielderWBallIndex].CharID * 6 + 1] == CHAR_ID_MAGIKOOPA_BLUE) {
+               characterStaticIndexes[g_Fielders[g_Ball.fielderWBallIndex].CharID].trackerIdx == CHAR_ID_MAGIKOOPA_BLUE) {
         show = 2;
         avg.x = g_Ball.offsetWhilePickedUpHistory[1].x;
         avg.y = g_Ball.offsetWhilePickedUpHistory[1].y;

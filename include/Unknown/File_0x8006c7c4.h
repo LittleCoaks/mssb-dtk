@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void starMissionRelated2(void);
+void challenge_leftoverTeammatesJoinBowserJr(void);
 
 #endif // !__UNKNOWN_FILE_0X8006C7C4_H_
