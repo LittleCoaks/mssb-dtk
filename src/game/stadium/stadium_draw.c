@@ -21,7 +21,7 @@
 #include "C3/actor/act.h"
 #include "C3/actor/actorAnim.h"
 #include "C3/geoPalette/geoPalette.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "C3/skinning/SKNAsm.h"
 #include "Unknown/File_0x800c0770.h"
 #include "Unknown/File_0x8003a688.h"

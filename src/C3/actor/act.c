@@ -1,7 +1,7 @@
 #include "C3/actor/act.h"
 #include "C3/geoPalette.h"
 #include "C3/geoPalette/DisplayObject.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "C3/skinning.h"
 #include "C3/actor.h"
 #include "C3/anim.h"

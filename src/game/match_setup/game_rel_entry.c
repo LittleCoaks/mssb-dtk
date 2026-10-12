@@ -5,7 +5,7 @@
 #include "Unknown/File_0x800a70dc.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "game/animation/scene_effects.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/match_loading.h"

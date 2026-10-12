@@ -10,7 +10,7 @@
 #include "game/math/game_math.h"
 #include "game/minigame/minigame_models.h"
 #include "game/stadium/stadium_framework.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "Unknown/File_0x8003a538.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"

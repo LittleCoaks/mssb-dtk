@@ -542,3 +542,32 @@ previously `Matching` units (`DrawNullSprite`, `renderSprite`, `DrawSprite_TexOb
 because nothing else of the unit was in front of them; the pool evidence makes them part of it.
 The draw-list functions before it (`0x800B0A14-0x800B0D28`) share `.data 0x80111300` and `.sbss
 0x803CC1B0` among themselves but no pool with `sprt.c`, so they were left as they are.
+
+### The shadow pass: `Unknown/File_0x800bde8c.c` (`0x800BDE8C-0x800BF074`)
+
+`File_0x800bea04` (`setVectors`), `File_0x800beb3c`, `File_0x800bf008` (`loadTlutRelated`),
+`File_0x800bf038` (`ShouldDrawShadows` and the callback setters) and the unowned `fn_800BDE8C`,
+`fn_800BDEA0`, `fn_800BDF70`, `fn_800BDFE0`, `fn_800BE09C`, `fn_800BE158`, `fn_800BE498` and
+`fn_800BEC30` are one unit: every one of them reads or writes the 0x50-byte `drawShadows` state
+(`.bss 0x803009F8`) and the `.sdata2` pool `0x803CD068-0x803CD0E0` runs through `fn_800BDEA0`,
+`fn_800BE09C`, `fn_800BE158`, `fn_800BE498`, `fn_800BEB3C` and `fn_800BEC30` (`0.0f` at `0x803CD070` is
+shared by five of them, `1.0f` at `0x803CD07C` by three). Its `1e8`/`-1e8` bounds, `0.0f` and `1.0f`
+repeat the previous unit's pool (`0x803CD060`/`0x803CD064`), which is what fixes the boundary with
+`File_0x800bd8c4.c`; the other end is `ShouldDrawShadows` (`0x800BF068`), directly followed by
+`SKNLoadFile`. Other data: `.rodata 0x800E8030-0x800E8060` (six floats read by `fn_800BEC30`) and
+`.sdata 0x803CBB68-0x803CBB70` (`fn_800BE158`).
+
+The role (a shadow-map pass: `GXCopyTex`, `GXInitTexObjCI` with a TLUT, ortho/light matrices and the
+min/max point accumulator `setVectors`) is clear, the file name is not, so the unit keeps an
+address name. `drawShadows` itself (`.bss`) stays unowned for the same reason as the sound heap.
+
+`NonMatching`: eight functions (about 0x1600 bytes) have no C yet. Three `Matching` units were
+absorbed (`setVectors`, `loadTlutRelated`, the four `File_0x800bf038` helpers); `File_0x800beb3c` was
+already `NonMatching` although all its functions are 100%. Linked DOL units 260 -> 257.
+
+Not merged (considered): the actor-object unit `File_0x800bd8c4.c` (`0x800BD8C4-0x800BDE8C`,
+`.rodata 0x800E7FC8`, `.data 0x80112380`, `.sdata2 0x803CD060`) keeps its split, and the three
+functions in front of it (`fn_800BD478`, `fn_800BD548`, `fn_800BD670`, `0x800BD478-0x800BD8C4`, jump
+tables `0x80112338` and `0x8011235C`) stay unowned: the tables are 4-aligned, so those two functions share a
+unit, but nothing in the data says whether that unit is `File_0x800bd8c4.c`'s, `light.c`'s or its own, and
+merging them would turn a `Matching` unit into a `NonMatching` one for a guess.

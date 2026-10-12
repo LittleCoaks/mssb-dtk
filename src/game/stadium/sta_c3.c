@@ -2,7 +2,7 @@
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "Unknown/File_0x8003a538.h"
 
 extern void fn_800BDF70(StadiumModel *model);

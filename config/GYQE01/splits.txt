@@ -1690,21 +1690,13 @@ Unknown/File_0x800bd8c4.c:
 	.data       start:0x80112380 end:0x801123A8
 	.sdata2     start:0x803CD060 end:0x803CD068
 
-Unknown/File_0x800bea04.c:
-	extab       start:0x80006C08 end:0x80006C10
-	extabindex  start:0x80008D6C end:0x80008D78
-	.text       start:0x800BEA04 end:0x800BEB3C
-
-Unknown/File_0x800beb3c.c:
-	.text       start:0x800BEB3C end:0x800BEC30
-
-Unknown/File_0x800bf008.c:
-	extab       start:0x80006C18 end:0x80006C20
-	extabindex  start:0x80008D84 end:0x80008D90
-	.text       start:0x800BF008 end:0x800BF038
-
-Unknown/File_0x800bf038.c:
-	.text       start:0x800BF038 end:0x800BF074
+Unknown/File_0x800bde8c.c:
+	extab       start:0x80006BD8 end:0x80006C20
+	extabindex  start:0x80008D24 end:0x80008D90
+	.text       start:0x800BDE8C end:0x800BF074
+	.rodata     start:0x800E8030 end:0x800E8060
+	.sdata      start:0x803CBB68 end:0x803CBB70
+	.sdata2     start:0x803CD068 end:0x803CD0E0
 
 C3/skinning/SKNControl.c:
 	extab       start:0x80006C20 end:0x80006C40

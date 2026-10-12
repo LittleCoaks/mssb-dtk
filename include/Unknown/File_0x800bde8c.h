@@ -1,10 +1,11 @@
-#ifndef __UNKNOWN_FILE_0X800BF038_H_
-#define __UNKNOWN_FILE_0X800BF038_H_
+#ifndef __UNKNOWN_FILE_0X800BDE8C_H_
+#define __UNKNOWN_FILE_0X800BDE8C_H_
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/gx.h"
 #include "game/stadium/stadium_framework.h"
+#include "Dolphin/vec.h"
 
 typedef struct _ShadowCamera {
     /*0x00*/ u8 _00[0x34];
@@ -40,4 +41,16 @@ void fn_800BF048(void (*func)(void));
 void fn_800BF058(void (*func)(StadiumModel* model, Mtx m));
 ShadowState* ShouldDrawShadows(void);
 
-#endif // !__UNKNOWN_FILE_0X800BF038_H_
+void setVectors(Vec v);
+
+void fn_800BEB3C(void);
+MtxPtr returnMtxPtr(u8 index);
+u8 returnDrawShadows(void);
+u8 GetDrawShadows(void);
+void DrawShadows(u8 enable);
+void updateVectorInArray(u8 index, Vec v);
+void fn_800BEC00(BOOL flag);
+
+void loadTlutRelated(void);
+
+#endif // !__UNKNOWN_FILE_0X800BDE8C_H_
