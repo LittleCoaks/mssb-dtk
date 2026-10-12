@@ -600,8 +600,9 @@ signature).
 
 ### Summary of the charPipeline pass (2026-10-12)
 
-Main-DOL linked (`Matching`) units 280 -> 257, no function score fell (the 22 functions that had a
-stub or no C and are now 100%, or better, are listed in the commit messages). Old unit -> new unit:
+Main-DOL linked (`Matching`) units 280 -> 257, no function score fell (15 functions that were stubs
+or had no C are now 100%: `initSound`, `fn_800B0934`, `LITXForm` and the small `act.c` and `sprt.c` gap
+functions; `checkObjectVisibility` rose from 0.5% to 0.7% with its real prototype). Old unit -> new unit:
 
 | new unit | status | replaces |
 |---|---|---|
