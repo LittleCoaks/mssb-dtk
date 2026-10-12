@@ -1,5 +1,5 @@
 #include "Unknown/File_0x800219b4.h"
-#include "Unknown/File_0x800b0834.h"
+#include "Unknown/sound.h"
 #include "Unknown/File_0x800a6304.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x80062a94.h"
@@ -17,7 +17,7 @@ void f_initSound(void) {
     lbl_80158740[1] = 'N';
     lbl_80158740[2] = 'D';
     lbl_80158740[3] = '@';
-    initSound(lbl_800EFBB4, NULL, lbl_8015C740, sizeof(lbl_8015C740));
+    initSound((SndConfig*)lbl_800EFBB4, NULL, lbl_8015C740, sizeof(lbl_8015C740));
     jukeboxStop();
     fn_800A648C();
     mode = OSGetSoundMode();

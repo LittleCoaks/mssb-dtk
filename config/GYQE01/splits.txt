@@ -1578,22 +1578,14 @@ Unknown/File_0x800b0724.c:
 	.text       start:0x800B0724 end:0x800B07FC
 	.sdata2     start:0x803CCF08 end:0x803CCF18
 
-Unknown/File_0x800b07fc.c:
-	extab       start:0x800068F0 end:0x800068F8
-	extabindex  start:0x800088C8 end:0x800088D4
-	.text       start:0x800B07FC end:0x800B0834
-	.sdata2     start:0x803CCF20 end:0x803CCF28
-
-Unknown/File_0x800b0834.c:
-	extab       start:0x800068F8 end:0x80006900
-	extabindex  start:0x800088D4 end:0x800088E0
-	.text       start:0x800B0834 end:0x800B0934
-
-Unknown/File_0x800b0938.c:
-	extab       start:0x80006900 end:0x80006910
-	extabindex  start:0x800088E0 end:0x800088F8
-	.text       start:0x800B0938 end:0x800B0A14
-	.rodata     start:0x800E7CD8 end:0x800E7D10
+Unknown/sound.c:
+	extab       start:0x800068F0 end:0x80006910
+	extabindex  start:0x800088C8 end:0x800088F8
+	.text       start:0x800B07FC end:0x800B0A14
+	.rodata     start:0x800E7CB0 end:0x800E7D10
+	.data       start:0x801112F0 end:0x80111300
+	.sdata      start:0x803CBB10 end:0x803CBB18
+	.sdata2     start:0x803CCF18 end:0x803CCF30
 
 Unknown/File_0x800b0a14.c:
 	.text       start:0x800B0A14 end:0x800B0CB8

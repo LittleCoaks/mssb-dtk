@@ -483,3 +483,34 @@ the kernels; it became `Unknown/File_0x800c0770.c`. The merge sort `fn_800C07BC`
 `SKNControl.c` is `NonMatching` (the two driver copies are stubs, now with the SDK's
 `(sBone**, sHdr*)` signature); `SKNLoadFile`, the three flush/zero helpers and `SKNInit` are 100% but
 four `Matching` units were absorbed. `SKNAsm.c` is six stubs.
+
+### The game's sound wrapper: `Unknown/sound.c` (`0x800B07FC-0x800B0A14`)
+
+`File_0x800b07fc` (`soundQuit`), `File_0x800b0834` (`initSound`, was a stub), the unowned `fn_800B0934`
+(an empty function) and `File_0x800b0938` (`SndFree`, `SndAlloc`) are one unit; the binary names it:
+`initSound` passes `"sound.c"` (`.sdata2 0x803CCF28`) to `OSPanic`.
+
+- `.sdata2 0x803CCF18-0x803CCF30`: `soundQuit` and `initSound` each copy a two-pointer `SND_HOOKS`
+  aggregate out of the pool (`{SndAlloc, fn_800B0934}` at `0x803CCF20`, `{SndAlloc, SndFree}` at
+  `0x803CCF18`) and the file name string follows. The pool holds initSound's table *first* although
+  `soundQuit` comes first in `.text`; building the unit with `-inline deferred` and defining the
+  functions in reverse address order (helpers first, which is also what lets `initSound` use `SndAlloc`
+  and `SndFree` without prototypes) reproduces that, the same way `control.c` is written. The two 4-byte
+  labels `lbl_803CCF18`/`lbl_803CCF1C` were merged into one 8-byte local object.
+- `.sdata 0x803CBB10` (pointer to the sound heap descriptors) is read by `initSound`, `SndFree` and
+  `SndAlloc`; `.data 0x801112F0` is `initSound`'s default `sndInit` configuration (the `0x40, 0x30,
+  0x10, 1` voice counts and an 8 MB ARAM size); `.rodata 0x800E7CB0-0x800E7D10` are the three panic
+  messages (`0x800E7CB0` was unowned before).
+- Boundaries: `makeLookAtMatrix` (`0x800B0724`) is a separate unit, since its `.sdata2` (`0x803CCF08-0x803CCF14`)
+  ends with a 4-byte hole before this unit's 8-aligned pool, and the draw-list unit starts at
+  `removeCurrentDrawingItem` (`0x800B0A14`), the first user of `.sbss 0x803CC1B0`.
+- The heap descriptors (`lbl_802FE8A0`, 0x18 bytes) cannot be claimed in `.bss`: the unowned `.bss`
+  between `SIBios` and `File_0x800a6304` is a single auto object, and splitting it for one unit makes
+  dtk's link-order resolution cyclic (every unit between has its `.bss` elsewhere). The symbol stays
+  `extern` in the unit.
+
+The unit links as `Matching`. `initSound` was written from the asm (100% on the first structural
+attempt after the register order of the parameter reuse): the default config is the `config == NULL`
+fallback, `sndInit` takes the config fields in order, and the failure path is `OSPanic("sound.c", 278, ...)`.
+`fn_800B0934` is the empty free hook that `soundQuit` installs. Two `Matching` units became one; linked
+DOL units 265 -> 264.
