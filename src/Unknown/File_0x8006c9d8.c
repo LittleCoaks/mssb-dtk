@@ -19,6 +19,13 @@ f32 challengeIntermediateStarBUffs_CPU[4][7] = {
     {10.0f, 10.0f, 15.0f, 15.0f, 25.0f, 25.0f, 0.0f},
 };
 
+ChallengeInningRule challengeInnings[4] = {
+    {3, 5, 10},
+    {3, 5, 10},
+    {3, 5, 10},
+    {5, 7, 10},
+};
+
 void challenge_checkRecruitment(void) {
     int i;
     u8 diff;

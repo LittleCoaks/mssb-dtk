@@ -113,4 +113,13 @@ typedef struct _ChallengeState {
 
 extern ChallengeState starMissionCompletionTracker;
 
+// Innings rules by challengeDifficulty.
+typedef struct _ChallengeInningRule {
+    /*0x0*/ u8 inningLimit;
+    /*0x1*/ u8 finalBossInningLimit; // used against Bowser's team
+    /*0x2*/ u8 mercyThreshold;       // run lead that ends the game
+} ChallengeInningRule; // size: 0x3
+
+extern ChallengeInningRule challengeInnings[4];
+
 #endif

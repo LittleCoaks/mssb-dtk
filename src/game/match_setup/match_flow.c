@@ -74,7 +74,6 @@ extern void fn_8004CA48(int, int, int, int);
 extern int loadMVPMaybe(void);
 extern u8 lbl_803C5F74[];
 extern u8 lbl_800EFBA4[];
-extern u8 challengeInnings[];
 extern void betweenABSetPitcherBatter(void);
 extern void someRosterMemoryManagement(void);
 extern void setPausedTo0AndOtherStateVars(void);
@@ -1925,13 +1924,13 @@ void startChallengeModeMatch(void) {
             g_d_GameSettings.home_AwaySetting ^= 1;
         } else {
             if (Static_Stats_Tables.captainSelectedID[1] == CHAR_ID_BOWSER || starMissionCompletionTracker._16C2 == 0x2A) {
-                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty * 3 + 1];
+                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty].finalBossInningLimit;
             } else {
-                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty * 3];
+                g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty].inningLimit;
             }
             g_Scores.maxNumberOfExtraInnings = g_Scores.inningLimit + 3;
         }
-        g_Scores.mercyThreshold = challengeInnings[g_d_GameSettings.challengeDifficulty * 3 + 2];
+        g_Scores.mercyThreshold = challengeInnings[g_d_GameSettings.challengeDifficulty].mercyThreshold;
     }
     for (i = 0; i < 54; i++) {
         for (j = 0; j < 10; j++) {
