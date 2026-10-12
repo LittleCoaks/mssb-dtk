@@ -81,7 +81,6 @@ extern u8 animRelated[0x124];
 extern u8 lbl_80366158[0x30];
 extern SceneChangeState lbl_8037169C;
 
-static Vec tstAxX = {1.0f, 0.0f, 0.0f};
 
 // Camera data tables, .data 0x1C0A8-0x21010 (address order). Jump tables for the
 // switches in the camera script code are emitted by the compiler and not listed here.
@@ -1376,11 +1375,7 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
 
 #define CAM_VIEWS_INIT() fn_3_FD5A8()
 
-#define CAM_EVAL_VIEW(script, time, a, b, outp) \
-    do { \
-        CamEval ev; \
-        VecXYZ basisZ; \
-        VecXYZ basisY; \
+#define CAM_EVAL_VIEW_BODY(script, time, a, b, outp) \
         memset(&ev, 0, sizeof(ev)); \
         ev.m[3][3] = 1.0f; \
         ev.m[2][2] = 1.0f; \
@@ -1392,17 +1387,24 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
         memcpy(&(outp)->tgt, &ev._64, sizeof(VecXYZ)); \
         memcpy(&(outp)->up, &ev._70, sizeof(VecXYZ)); \
         (outp)->fov = ev._4C; \
-        PSMTX44MultVec(ev.m, &tstAxX, (Vec*)&(outp)->axes[0]); \
+        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_20FEC, (Vec*)&(outp)->axes[0]); \
         PSVECNormalize((Vec*)&(outp)->axes[0], (Vec*)&(outp)->axes[0]); \
         basisY = (outp)->axes[1]; \
-        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_20FEC, (Vec*)&basisY); \
+        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_20FF8, (Vec*)&basisY); \
         PSVECNormalize((Vec*)&basisY, (Vec*)&basisY); \
         basisZ = (outp)->axes[2]; \
-        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_20FF8, (Vec*)&basisZ); \
+        PSMTX44MultVec(ev.m, (Vec*)&lbl_3_data_21004, (Vec*)&basisZ); \
         PSVECNormalize((Vec*)&basisZ, (Vec*)&basisZ); \
         (outp)->_4C = ev._7C; \
         (outp)->_50 = ev._80; \
-        (outp)->_54 = ev._84; \
+        (outp)->_54 = ev._84
+
+#define CAM_EVAL_VIEW(script, time, a, b, outp) \
+    do { \
+        CamEval ev; \
+        VecXYZ basisZ; \
+        VecXYZ basisY; \
+        CAM_EVAL_VIEW_BODY(script, time, a, b, outp); \
     } while (0)
 
 #define CAM_SCRIPT_SET_VIEW() \
@@ -2239,7 +2241,10 @@ void fn_3_104A3C(Vec* out, Mtx44 m) {
 
 // .text:0x001048E0 size:0x15C mapped:0x80743974
 void fn_3_1048E0(u8* script, u32 time, s16 a, u8 b, CamView* out) {
-    CAM_EVAL_VIEW(script, time, a, b, out);
+    CamEval ev;
+    VecXYZ basisY;
+    VecXYZ basisZ;
+    CAM_EVAL_VIEW_BODY(script, time, a, b, out);
 }
 
 // .text:0x00104740 size:0x1A0 mapped:0x807437D4
