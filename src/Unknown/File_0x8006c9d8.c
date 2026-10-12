@@ -1,8 +1,8 @@
 #define SQRT2_LINKAGE static
 #include "Unknown/File_0x8006c9d8.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 
-extern u8 characterStaticIndexes[NUM_CHOOSABLE_CHARACTERS][6];
 
 f32 challengeIntermediateStarBuffs[5][11] = {
     {0.0f, 0.0f, 10.0f, 10.0f, 10.0f, 20.0f, 20.0f, 25.0f, 25.0f, 25.0f, 30.0f},
@@ -60,7 +60,7 @@ f32 intermediateStatBuffForCompletedMissions(int charID) {
     int count;
     int i;
 
-    if (characterStaticIndexes[charID][3] == 0) {
+    if (characterStaticIndexes[charID].hasOwnStarMissions == 0) {
         count = 0;
     } else {
         count = 0;

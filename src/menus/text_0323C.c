@@ -1,4 +1,5 @@
 #include "menus/text_0323C.h"
+#include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "menus/yd_step.h"
@@ -61,7 +62,6 @@ extern u8 lbl_8037169C[0x1C];
 extern u8 inMemRoster[0xB40];
 extern u8 lineUpInfoStruct[0x48];
 extern u8 lbl_8010902C[0x18];
-extern u8 characterStaticIndexes[0x144];
 extern u8 unlockableCharacter_noDupeNoGapCharID[0x8];
 extern menuControlStruct *menuControlVariables;
 extern u8 lbl_2_bss_3E0[4];
@@ -160,7 +160,7 @@ void fn_2_348C(void) {
         s32 rec;
 
         for (rec = 0; rec < 54; rec++) {
-            if (characterStaticIndexes[rec * 6 + 2] == target) {
+            if (characterStaticIndexes[rec].requirementRow == target) {
                 ((u8 *)&Static_Stats_Tables)[0x4757 + rec] = flag;
             }
         }
@@ -2105,7 +2105,7 @@ void cssLoadingScreenRelated(void) {
             u8 target = unlockableCharacter_noDupeNoGapCharID[k];
             s32 rec;
             for (rec = 0; rec < 54; rec++) {
-                if (characterStaticIndexes[rec * 6 + 2] == target) {
+                if (characterStaticIndexes[rec].requirementRow == target) {
                     Static_Stats_Tables.charOnCharacterGridSelected[rec] = flag;
                 }
             }

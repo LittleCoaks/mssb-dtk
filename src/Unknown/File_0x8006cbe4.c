@@ -1,7 +1,7 @@
 #include "Unknown/File_0x8006cbe4.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 
-extern u8 characterStaticIndexes[0x144];
 extern s16 starRankByMissionCount[][11];
 
 BOOL challengeStarRelatedInd(int charID, int mission);
@@ -10,7 +10,7 @@ static inline int countStarMissions(int charID) {
     int i;
     int count;
 
-    if (characterStaticIndexes[charID * 6 + 3] == 0) {
+    if (characterStaticIndexes[charID].hasOwnStarMissions == 0) {
         return 0;
     }
     count = 0;

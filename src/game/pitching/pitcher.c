@@ -4,6 +4,7 @@
  * constant-pool entry 16 bytes past the offsets the linked module has. */
 #define SQRT2_LINKAGE static
 #include "game/pitching/pitcher.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/replay/replay_inputs.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/baserunning/runner.h"
@@ -51,7 +52,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern s16 lbl_3_data_5F7C[];
 extern u8 bulletBallConstants[];
 extern u8 hitByPitchHitboxes[];
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4474[4];
 extern u32 AI_getPort(u8 idx);
 extern int aIPickoff(void);
@@ -1704,7 +1704,7 @@ void fn_3_70280(void) {
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
         dx = -dx;
     }
-    idx = characterStaticIndexes[g_Batter.charID * 6 + 2] * 3;
+    idx = characterStaticIndexes[g_Batter.charID].requirementRow * 3;
     if (dz <= hitByPitchHitboxes[idx] && (f32)dz >= 0.0f && dx <= hitByPitchHitboxes[idx + 1] &&
         dx >= -hitByPitchHitboxes[idx + 2]) {
         hit = 1;

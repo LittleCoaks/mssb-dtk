@@ -3,15 +3,7 @@
 #include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 
-typedef struct CharStaticIndex {
-    /*0x0*/ u8 _0;
-    /*0x1*/ u8 trackerIdx;
-    /*0x2*/ u8 requirementRow;
-    /*0x3*/ u8 _3;
-    /*0x4*/ u8 _4[2];
-} CharStaticIndex; // size: 0x6
 
-extern CharStaticIndex characterStaticIndexes[54];
 
 ScoutMission scoutMissionTable[13] = {
     /*  0 */ {{0, 0, 0, 0}, {0, 0, 0, 0}, 0, {0, 0, 0, 0}, 0, 0},
@@ -881,7 +873,7 @@ static inline int countStarMissions(int charID) {
     int i;
     int count;
 
-    if (characterStaticIndexes[charID]._3 == 0) {
+    if (characterStaticIndexes[charID].hasOwnStarMissions == 0) {
         return 0;
     }
     count = 0;
@@ -904,7 +896,7 @@ void challengeDrawStarsOnMissionMenu(void) {
 
     scoutRow = starMissionCompletionTracker.difficulty;
     for (c = 0; c < 54; c++) {
-        if (characterStaticIndexes[c]._3 == 1 && (int)starMissionCompletionTracker.characters[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+        if (characterStaticIndexes[c].hasOwnStarMissions == 1 && (int)starMissionCompletionTracker.characters[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             for (m = 0; m < 10; m++) {
                 rule = &starMissionDisplayRules[characterStaticIndexes[c].requirementRow][m];
                 mode = rule->mode;

@@ -2,6 +2,7 @@
  * _half/_three local statics would otherwise sit at the head of .rodata. */
 #define SQRT2_LINKAGE static
 #include "game/ball/ball_physics.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
 #include "game/UnknownHomes_Game.h"
@@ -54,7 +55,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern BallBounceConstants lbl_3_data_4414;
 extern f32 lbl_3_data_4604;
 extern u8 lbl_3_data_4608;
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4428[7];
 extern f32 fielderActionConstants[43];
 extern struct {
@@ -1538,7 +1538,7 @@ void fielding_setHeldBallOffset(void) {
             getAnimRelatedCoordinates(character, 0x42, &throwReleaseOffset);
         } else if (fielder->CharID == CHAR_ID_PETEY) {
             getAnimRelatedCoordinates(character, 9, &throwReleaseOffset);
-        } else if (characterStaticIndexes[fielder->CharID * 6 + 1] == CHAR_ID_MAGIKOOPA_BLUE) {
+        } else if (characterStaticIndexes[fielder->CharID].trackerIdx == CHAR_ID_MAGIKOOPA_BLUE) {
             if (fielder->throwingHandedness == 0) {
                 getAnimRelatedCoordinates(character, 0x4F, &throwReleaseOffset);
             } else {

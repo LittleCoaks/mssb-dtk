@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/animation/animation_dispatch.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/ball/foul_detection.h"
@@ -145,7 +146,6 @@ typedef struct RunnerAnimSlot {
 
 extern AnimView hugeAnimStruct;
 extern RunnerAnimSlot lbl_3_common_bss_321A0[4];
-extern u8 characterStaticIndexes[54][6];
 extern s16 lbl_3_data_7870[][3];
 extern u8 runnerConstants[][5];
 extern AnimSlot g_UnkAnimation_31EAC[9];
@@ -987,7 +987,7 @@ void pitcherAnimation(void) {
             stage = 0;
         }
         if (obj->_252 == 3 || obj->_252 == 0xE || (u8)(obj->_252 - 0x25) <= 1 ||
-            characterStaticIndexes[obj->_252][2] == 0x17) {
+            characterStaticIndexes[obj->_252].requirementRow == 0x17) {
             QueueCharacterAnimation(idx, 0x3F, 1, 1, 0, flag, 0xC);
         } else {
             QueueCharacterAnimation(idx, stage + 0x49, 1, 1, 0, flag, -1);
@@ -1028,7 +1028,7 @@ void pitcherAnimation(void) {
             u8 variant;
 
             if (obj->_252 == 3 || obj->_252 == 0xE || (u8)(obj->_252 - 0x25) <= 1 ||
-                characterStaticIndexes[obj->_252][2] == 0x17) {
+                characterStaticIndexes[obj->_252].requirementRow == 0x17) {
                 AnimateCharacter(idx, 0x3F, 1, 2, 1, 0, flag, 0xC);
                 us80893310.state = 3;
                 return;
@@ -1052,7 +1052,7 @@ void pitcherAnimation(void) {
         if ((outcome == 1 && us80893310.state != 4) || ((outcome == 2 || outcome == 3) && us80893310.state != 5)) {
             if (obj->framesLeft == 0 || obj->animId == 0x49 || obj->animId == 0x4A) {
                 if (outcome == 1) {
-                    if (characterStaticIndexes[obj->_252][2] == 0xB) {
+                    if (characterStaticIndexes[obj->_252].requirementRow == 0xB) {
                         AnimateCharacter(idx, 0x44, 0, 1, 1, 0, flag, 0);
                     } else {
                         AnimateCharacter(idx, 0x44, 0, 1, 1, 0, flag, -1);
@@ -1476,7 +1476,7 @@ void runnerAnimation_general(int runnerIdx) {
             return;
         case 2:
             flag = FALSE;
-            cls = characterStaticIndexes[runner->charID][2];
+            cls = characterStaticIndexes[runner->charID].requirementRow;
             if (cls == 0xE || cls == 0x14 || cls == 0x1A || cls == 0x1E) {
                 flag = TRUE;
             }
@@ -1492,7 +1492,7 @@ void runnerAnimation_general(int runnerIdx) {
         case 3:
             if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_NONE) {
                 AnimateCharacter(idx, 0x39, 1, 1, 1, 0, 0, -1);
-            } else if (characterStaticIndexes[runner->charID][2] == 0xC) {
+            } else if (characterStaticIndexes[runner->charID].requirementRow == 0xC) {
                 AnimateCharacter(idx, 0x39, 1, 1, 1, 0, 0, -1);
             } else {
                 AnimateCharacter(idx, 0x38, 1, 1, 1, 0, 0, -1);

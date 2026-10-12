@@ -7,14 +7,7 @@
 #include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
 
-typedef struct CharStaticIndex {
-    /*0x0*/ u8 _0;
-    /*0x1*/ u8 trackerIdx;
-    /*0x2*/ u8 requirementRow;
-    /*0x3*/ u8 _3[3];
-} CharStaticIndex; // size: 0x6
 
-extern CharStaticIndex characterStaticIndexes[54];
 
 typedef struct ScoutPair {
     /*0x0*/ s8 cur;

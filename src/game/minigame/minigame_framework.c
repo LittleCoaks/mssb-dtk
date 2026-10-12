@@ -1,6 +1,7 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_minigameFramework
 #include "game/minigame/minigame_framework.h"
+#include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -2776,7 +2777,7 @@ void minigameUpdateHighScores(void) {
     }
     if (g_Minigame.grandPrixInd != 0) {
         minigameFillGrandPrixScoreInput(&input);
-        category = characterStaticIndexes[input.charID * 6 + 2];
+        category = characterStaticIndexes[input.charID].requirementRow;
         best = (MiniGrandPrixScoreInput*)((u8*)lbl_803616CC + 0x140) + category;
         if ((s16)fn_8006C13C(&input) > (s16)fn_8006C13C(best)) {
             minigameFillGrandPrixScoreInput(best);

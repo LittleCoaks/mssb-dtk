@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/stats/result_stats.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
@@ -8,7 +9,6 @@ extern void starMissionsWholeGame(void);
 extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern u8 lbl_3_data_60F8[10];
 extern u8 lbl_80354768[];
-extern u8 characterStaticIndexes[0x144];
 extern u8 pitchingInfo_A_H[2][9][5];
 extern u8 abResultList[2][100];
 extern struct {
@@ -169,7 +169,7 @@ mvpChosen:
             (g_d_GameSettings.p2_CPU_match_code == 3 && mvpTeam == 1)) {
             if (g_Scores.inningLimit >= 5 && StatsScreenScores.mvpKind == 1) {
                 if (g_d_GameSettings.exhibitionMatchInd != 0) {
-                    lbl_80354768[0xCF18 + characterStaticIndexes[StatsScreenScores.mvpCharID * 6 + 1]] = 1;
+                    lbl_80354768[0xCF18 + characterStaticIndexes[StatsScreenScores.mvpCharID].trackerIdx] = 1;
                 }
                 g_GameLogic._13D = 1;
             }

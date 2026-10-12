@@ -1,4 +1,5 @@
 #include "menus/text_01254.h"
+#include "game/challenge/star_mission_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
@@ -49,7 +50,6 @@ void changeScreenVariables(u16 screen);
 void fn_800670A0(u8 arg0);
 
 extern u8 unlockableCharacter_noDupeNoGapCharID[0x8];
-extern u8 characterStaticIndexes[0x144];
 
 void fn_800684A4(void);
 void fn_800649BC(void);

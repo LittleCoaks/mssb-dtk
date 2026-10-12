@@ -114,6 +114,18 @@ typedef struct _ScoutMission {
     /*0xE*/ u8 _E;
 } ScoutMission; // size: 0xF
 
+// Per-character lookup (indexed by CHAR_ID) into the tracker and requirement tables. Variants of a
+// character share the primary's tracker and requirement row.
+typedef struct _CharStaticIndex {
+    /*0x0*/ u8 variantGroup;       // 0 for characters without variants
+    /*0x1*/ E(u8, CHAR_ID) trackerIdx; // CHAR_ID of the group's primary character, indexes ChallengeState.characters
+    /*0x2*/ u8 requirementRow;     // row of starMissionRequirementsTable
+    /*0x3*/ u8 hasOwnStarMissions; // 0 for variants
+    /*0x4*/ u8 _4;
+    /*0x5*/ u8 variantIndex;       // position within the variant group, 0 for the primary
+} CharStaticIndex; // size: 0x6
+
+extern CharStaticIndex characterStaticIndexes[54];
 extern ScoutMission scoutMissionTable[13];
 extern StarMissionRequirement starMissionRequirementsTable[32][10];
 extern StarMissionDisplayRule starMissionDisplayRules[32][10];
