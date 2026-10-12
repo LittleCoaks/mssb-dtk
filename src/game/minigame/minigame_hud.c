@@ -657,10 +657,11 @@ void minigameHudSelectInfoUpdate(void) {
         }
     } else {
         if (g_d_GameSettings._12 < 1
-            && (minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == 6 || minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == 7)) {
+            && (minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == MINI_GAME_ID_STAR_DASH
+                || minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == MINI_GAME_ID_MARIO_GRAND_PRIX)) {
             HUD_RECORD(scene, 3)->frame = minigameHudSelectInfoGameFrames[0][0] << 16;
             HUD_RECORD(scene, 4)->frame = minigameHudSelectInfoGameFrames[0][1] << 16;
-        } else if (g_d_GameSettings._12 < 2 && minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == 7) {
+        } else if (g_d_GameSettings._12 < 2 && minigameSelectMenuGameIDs[(s8)g_Minigame.selectMenuCursor] == MINI_GAME_ID_MARIO_GRAND_PRIX) {
             HUD_RECORD(scene, 3)->frame = minigameHudSelectInfoGameFrames[0][0] << 16;
             HUD_RECORD(scene, 4)->frame = minigameHudSelectInfoGameFrames[0][1] << 16;
         } else {
@@ -1276,9 +1277,9 @@ void minigameHudSelectMenuInit(void) {
     }
     for (i = 0, j = 0; i < 7; i++) {
         HUD_RECORD_AT(scene, 0xE, i)->elementIndex = minigameHudSelectMenuGameElements[minigameSelectMenuGameIDs[i]];
-        if (g_d_GameSettings._12 < 1 && minigameSelectMenuGameIDs[i] == 6) {
+        if (g_d_GameSettings._12 < 1 && minigameSelectMenuGameIDs[i] == MINI_GAME_ID_STAR_DASH) {
             HUD_RECORD_AT(scene, 0xE, i)->elementIndex = minigameHudSelectMenuGameElements[0];
-        } else if (g_d_GameSettings._12 < 2 && minigameSelectMenuGameIDs[i] == 7) {
+        } else if (g_d_GameSettings._12 < 2 && minigameSelectMenuGameIDs[i] == MINI_GAME_ID_MARIO_GRAND_PRIX) {
             HUD_RECORD_AT(scene, 0xE, i)->elementIndex = minigameHudSelectMenuGameElements[0];
         }
         if (i < scene->state) {
@@ -1945,7 +1946,7 @@ void minigameHudHelpInit(void) {
 
     mode = g_Minigame.GameMode_MiniGame;
     if (g_GameLogic.gameStatus == GAME_STATUS_0x28) {
-        mode = 7;
+        mode = MINI_GAME_ID_MARIO_GRAND_PRIX;
     }
     addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudHelpRecords);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
@@ -3346,17 +3347,17 @@ void minigameHudBodPitchRoulette(void) {
 
     if (minigameHudShouldRemove()) {
         if (scene->state != 0) {
-            if (scene->sndHandle != 0xFFFFFFFF) {
+            if (scene->sndHandle != SND_ID_ERROR) {
                 sndFXKeyOff(scene->sndHandle);
                 sndFXCtrl(scene->sndHandle, 7, 0);
-                scene->sndHandle = 0xFFFFFFFF;
+                scene->sndHandle = SND_ID_ERROR;
             }
         }
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
         return;
     }
-    if (scene->sndHandle != 0xFFFFFFFF) {
+    if (scene->sndHandle != SND_ID_ERROR) {
         sndFXCtrl(scene->sndHandle, 7, g_Minigame.pauseInd != 0 ? 0 : lbl_3_data_84F4[0x1C]);
     }
     switch (scene->state) {
@@ -3364,7 +3365,7 @@ void minigameHudBodPitchRoulette(void) {
         addGraphicsElementToScene((DrawingSceneStruct*)scene, minigameHudBodPitchRouletteRecords);
         HUD_RECORD(scene, 8)->flags &= ~UI_FLAG_VISIBLE;
         scene->_1E = RandomInt_Sim(6);
-        scene->sndHandle = 0xFFFFFFFF;
+        scene->sndHandle = SND_ID_ERROR;
         scene->state = 1;
     case 1:
         mg->bOD_pitchTypeReadyInd = 0;
@@ -3469,7 +3470,7 @@ void minigameHudBodPitchRoulette(void) {
                 HUD_RECORD(scene, 2)->playMode = UI_PLAY_STOP;
                 sndFXKeyOff(scene->sndHandle);
                 sndFXCtrl(scene->sndHandle, 7, 0);
-                scene->sndHandle = 0xFFFFFFFF;
+                scene->sndHandle = SND_ID_ERROR;
                 callSfx(lbl_3_data_81FC[0x1D]);
                 scene->state = 5;
             }
