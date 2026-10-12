@@ -744,6 +744,7 @@ Unknown/File_0x8006c7c4.c:
 	extab       start:0x800065B8 end:0x800065C0
 	extabindex  start:0x800083F4 end:0x80008400
 	.text       start:0x8006C7C4 end:0x8006C9D8
+	.sdata      start:0x803CB8F0 end:0x803CB8F8
 
 Unknown/File_0x8006c9d8.c:
 	.text       start:0x8006C9D8 end:0x8006CBE4

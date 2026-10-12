@@ -97,19 +97,19 @@ extern void transitionToPauseScreen(void);
 extern void ballPhysica(void);
 extern void fielderMainFunction(void);
 extern void scoutFlag_checkMissionSuccess(void);
-extern void setScoutMissionRelatedToZero(void);
+extern void resetScoutChanceTier(void);
 extern int loadFielderActors(int charID);
 extern void unkPauseSimulationCheck(void);
 extern BOOL checkForButtonPressToSkip(int a, int b);
 extern void playOverSounds(int param);
-extern void starMissionRelated2(void);
+extern void challenge_leftoverTeammatesJoinBowserJr(void);
 extern void cleanupCharacters(void);
 extern void fn_3_90434(void);
 extern void unregisterMatchHudObjects(void);
 extern void toyFieldInit(void);
 extern void minigames_init(void);
 extern void clearScoutState(void);
-extern void fn_3_1663AC(void);
+extern void practice_postGraphicsUpdate(void);
 extern void fn_3_59C2C(void);
 extern void fn_3_59F40(void);
 extern void fn_3_5A28C(void);
@@ -1252,7 +1252,7 @@ void inningImportanceAI(void) {
     scoutState.scoutFlag = 0;
     setInningEndingKIndTo0();
     if (!settings->exhibitionMatchInd) {
-        setScoutMissionRelatedToZero();
+        resetScoutChanceTier();
     }
 }
 
@@ -1342,7 +1342,7 @@ void endOfGameCheck(int arg0) {
     } else {
         return;
     }
-    fn_3_5CFD0();
+    challenge_onGameEnd();
     if (g_GameLogic.winType == WIN_TYPE_5 || g_GameLogic.winType == WIN_TYPE_6) {
         if (!g_d_GameSettings.exhibitionMatchInd) {
             if (g_d_GameSettings.humanTeamNumber == (g_Scores.winnerCd ^ g_GameLogic.homeTeamInd)) {
@@ -1354,7 +1354,7 @@ void endOfGameCheck(int arg0) {
 }
 
 // .text:0x0005CFD0 size:0xC4 mapped:0x8069C064
-void fn_3_5CFD0(void) {
+void challenge_onGameEnd(void) {
     ChallengeState* tracker = &starMissionCompletionTracker;
     int a = tracker->captain;
     int b = tracker->opponentCaptain;
@@ -1366,7 +1366,7 @@ void fn_3_5CFD0(void) {
                     (tracker->stage >= 5 && (int)tracker->_44EF == 1 && a == CHALLENGE_CAPTAIN_BOWSER)) {
                     g_GameLogic.playOverFadeOutStarted = 0;
                 }
-                starMissionRelated2();
+                challenge_leftoverTeammatesJoinBowserJr();
             }
         }
     }
@@ -2063,7 +2063,7 @@ graphics:
     } else {
         graphicsFunction_nonMiniGame();
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fn_3_1663AC();
+            practice_postGraphicsUpdate();
         }
     }
     cameraControl();

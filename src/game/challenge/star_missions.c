@@ -48,7 +48,7 @@ static inline void fillRosterCharIDs(s16* ids) {
 }
 
 // .text:0x001663AC size:0x9C mapped:0x807A5440
-void fn_3_1663AC(void) {
+void practice_postGraphicsUpdate(void) {
     if (g_GameLogic.secondaryGameMode == 0xA || g_GameLogic.secondaryGameMode == 0x12) {
         if (hugeAnimStruct.entryCount != 0) {
             AnimEntry* entry;
@@ -226,7 +226,7 @@ chosen:
         animRelated[0xB3] = 1;
         g_GameLogic.IsStarChance = 0;
         animRelated[0xAC] = 0;
-        setScoutMissionRelatedToZero();
+        resetScoutChanceTier();
         return TRUE;
     }
     return FALSE;
@@ -250,7 +250,7 @@ BOOL shouldScoutMissionBeEnabled(int mission) {
         return FALSE;
     }
     roll = rand() % 100;
-    if (scout->_4A == 0) {
+    if (scout->chanceTier == 0) {
         chance = scoutMissionTable[mission].chanceA[rowA];
     } else {
         chance = scoutMissionTable[mission].chanceB[rowA];
@@ -263,13 +263,13 @@ BOOL shouldScoutMissionBeEnabled(int mission) {
 #pragma dont_inline reset
 
 // .text:0x0016598C size:0x14 mapped:0x807A4A20
-void setScoutMissionRelatedToZero(void) {
-    scoutState._4A = 0;
+void resetScoutChanceTier(void) {
+    scoutState.chanceTier = 0;
 }
 
 // .text:0x00165978 size:0x14 mapped:0x807A4A0C
-void fn_3_165978(void) {
-    scoutState._4A = 0;
+void resetScoutChanceTier_2(void) {
+    scoutState.chanceTier = 0;
 }
 
 // .text:0x001658F0 size:0x88 mapped:0x807A4984

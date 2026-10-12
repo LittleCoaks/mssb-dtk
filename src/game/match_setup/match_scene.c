@@ -679,14 +679,14 @@ void animateMatchScene(void) {
             hud_ScoreUpdate_ToyFieldOffScreenPlayers();
             if (animRelated[0xB4] == 1) {
                 animRelated[0xB4] = 2;
-                insertGraphicDrawingFunction(fn_3_952DC, 2);
+                insertGraphicDrawingFunction(scoutMissionCountdown_init, 2);
                 if (scoutState.scoutResult == 2) {
                     insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 }
             }
             if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
                 animRelated[0xB3] == 1 && g_UnkSound_32718._07 == 0) {
-                insertGraphicDrawingFunction(fn_3_95124, 2);
+                insertGraphicDrawingFunction(scoutMissionStart_init, 2);
                 insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 animRelated[0xB3] = 2;
             }
@@ -715,7 +715,7 @@ void animateMatchScene(void) {
             } else if (g_GameLogic.gameStatus == GAME_STATUS_STAR_CHANCE_VS) {
                 if (animRelated[0xAD] != 0) {
                     if (g_d_GameSettings.exhibitionMatchInd == 0) {
-                        insertGraphicDrawingFunction(fn_3_953FC, 2);
+                        insertGraphicDrawingFunction(scoutMissionIntro_init, 2);
                         insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                     } else {
                         insertGraphicDrawingFunction(fn_3_9551C, 2);

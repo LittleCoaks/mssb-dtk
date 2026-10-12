@@ -532,7 +532,7 @@ void starChanceVsScreenProcess(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (lbl_803C6CF8[0x715] == 1) {
-            if (g_GameLogic.playOverInd == 0 && maybeSetVsIndOrScoutFlagChance() == 0) {
+            if (g_GameLogic.playOverInd == 0 && chooseVsScreenSituation() == 0) {
                 lbl_3_common_bss_1323C->_25C = 0;
                 changeScene(1, 6);
                 fn_3_FBD58();
@@ -838,7 +838,7 @@ BOOL fn_3_2273C(void) {
 }
 
 // .text:0x00021F14 size:0x828 mapped:0x80660FA8
-BOOL maybeSetVsIndOrScoutFlagChance(void) {
+BOOL chooseVsScreenSituation(void) {
     GameInitVariables *settings = &g_d_GameSettings;
     VsData *data = &lbl_3_data_1D28;
     ChallengeState *tracker = &starMissionCompletionTracker;

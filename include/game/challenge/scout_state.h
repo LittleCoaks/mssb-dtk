@@ -30,7 +30,7 @@ typedef struct _ScoutState {
     /*0x47*/ u8 scoutResult;    // 0 = failed / undecided, 2 = succeeded
     /*0x48*/ u8 scoutFlag;      // 1 while the mission is still running, 2 = to be cleared
     /*0x49*/ s8 baseReward;
-    /*0x4A*/ s8 _4A;
+    /*0x4A*/ s8 chanceTier; // 0 selects ScoutMission.chanceA, otherwise chanceB
     /*0x4B*/ u8 _4B[3];
 } ScoutState; // size: 0x4E
 

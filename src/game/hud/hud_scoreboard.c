@@ -25,19 +25,19 @@ extern u16 lbl_3_data_F344[];
 extern UIRecordDescriptor lbl_3_data_EABC[];
 extern UIRecordDescriptor lbl_3_data_E75C[];
 extern UIRecordDescriptor lbl_3_data_F3F0[];
-extern u8 lbl_3_data_E758[];
-extern UIRecordDescriptor lbl_3_data_E378[];
+extern u8 scoutMissionProgressRowBases[];
+extern UIRecordDescriptor scoutMissionProgressDescriptors[];
 extern UIRecordDescriptor lbl_3_data_EC1C[];
 extern UIRecordDescriptor lbl_3_data_BFEC[];
 extern f32 lbl_3_data_C1CC[];
 extern UIRecordDescriptor lbl_3_data_C1EC[];
-extern UIRecordDescriptor lbl_3_data_E278[];
-extern UIRecordDescriptor lbl_3_data_E21C[];
-extern UIRecordDescriptor lbl_3_data_E160[];
+extern UIRecordDescriptor scoutMissionStartDescriptors[];
+extern UIRecordDescriptor scoutMissionCountdownDescriptors[];
+extern UIRecordDescriptor scoutMissionIntroDescriptors[];
 extern UIRecordDescriptor lbl_3_data_E120[];
 extern UIRecordDescriptor lbl_3_data_E0E0[];
-extern UIRecordDescriptor lbl_3_data_E2F8[];
-extern u16 lbl_3_data_E200[];
+extern UIRecordDescriptor scoutMissionBannerDescriptors[];
+extern u16 scoutMissionBannerFrames[];
 extern UIRecordDescriptor lbl_3_data_E85C[];
 extern u8 lbl_3_data_F430[][2];
 extern u8 lbl_3_data_F200[];
@@ -666,19 +666,19 @@ void fn_3_954C4(void) {
 }
 
 // .text:0x000953FC size:0xC8 mapped:0x806D4490
-void fn_3_953FC(void) {
+void scoutMissionIntro_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E160);
-    REC(scene, 2)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
-    REC(scene, 3)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionIntroDescriptors);
+    REC(scene, 2)->frame = scoutMissionBannerFrames[scoutState.scoutMissionID] << 16;
+    REC(scene, 3)->frame = scoutMissionBannerFrames[scoutState.scoutMissionID] << 16;
     animRelated[0xB4] = 0;
     animRelated[0xB3] = 0;
-    currentDrawingItem->func = fn_3_9538C;
+    currentDrawingItem->func = scoutMissionIntro_update;
 }
 
 // .text:0x0009538C size:0x70 mapped:0x806D4420
-void fn_3_9538C(void) {
+void scoutMissionIntro_update(void) {
     DrawingSceneStruct* node = currentDrawingItem;
 
     if (animRelated[0x96] != 0 || g_GameLogic.gameStatus != GAME_STATUS_STAR_CHANCE_VS) {
@@ -689,23 +689,23 @@ void fn_3_9538C(void) {
 }
 
 // .text:0x000952DC size:0xB0 mapped:0x806D4370
-void fn_3_952DC(void) {
+void scoutMissionCountdown_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     if (animRelated[0xB5] != 0) {
         removeCurrentDrawingItem();
     } else {
-        addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E21C);
+        addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionCountdownDescriptors);
         if (scoutState.scoutResult == 1) {
             REC(scene, 0)->elementIndex = 0x5A;
         }
         animRelated[0xB5] = 1;
-        currentDrawingItem->func = fn_3_951B4;
+        currentDrawingItem->func = scoutMissionCountdown_update;
     }
 }
 
 // .text:0x000951B4 size:0x128 mapped:0x806D4248
-void fn_3_951B4(void) {
+void scoutMissionCountdown_update(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
@@ -730,16 +730,16 @@ void fn_3_951B4(void) {
 }
 
 // .text:0x00095124 size:0x90 mapped:0x806D41B8
-void fn_3_95124(void) {
+void scoutMissionStart_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E278);
-    REC(scene, 2)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
-    currentDrawingItem->func = fn_3_95098;
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionStartDescriptors);
+    REC(scene, 2)->frame = scoutMissionBannerFrames[scoutState.scoutMissionID] << 16;
+    currentDrawingItem->func = scoutMissionStart_update;
 }
 
 // .text:0x00095098 size:0x8C mapped:0x806D412C
-void fn_3_95098(void) {
+void scoutMissionStart_update(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     if (animRelated[0x96] != 0 || REC(scene, 0)->unk69[0] == 2) {
@@ -754,14 +754,14 @@ void fn_3_95098(void) {
 void scoutMissionBanner_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E2F8);
-    REC(scene, 2)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionBannerDescriptors);
+    REC(scene, 2)->frame = scoutMissionBannerFrames[scoutState.scoutMissionID] << 16;
     scene->unk1C = scoutState.scoutMissionID;
-    currentDrawingItem->func = fn_3_94E68;
+    currentDrawingItem->func = scoutMissionBanner_update;
 }
 
 // .text:0x00094E68 size:0x198 mapped:0x806D3EFC
-void fn_3_94E68(void) {
+void scoutMissionBanner_update(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     if (!(animRelated[0x96] != 0 ||
@@ -800,12 +800,12 @@ void scoutMissionProgress_init(void) {
     } else {
         scene->unk1C = 0;
     }
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E378);
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionProgressDescriptors);
     shown = 0;
     entry = scoutState.entries;
     for (i = 0; i < 9; i++, entry++) {
         if (entry->active != 0) {
-            int base = lbl_3_data_E758[shown];
+            int base = scoutMissionProgressRowBases[shown];
 
             REC(scene, base)->frame = entry->trackerIdx << 16;
             for (k = 0; k < 5; k++) {
@@ -819,7 +819,7 @@ void scoutMissionProgress_init(void) {
                     REC(scene, slot)->frame = 0;
                     if (k < (s8)entry->achieved) {
                         REC(scene, slot)->frame = 1 << 16;
-                    } else if (k < (s8)(s8)entry->achieved + entry->amount) {
+                    } else if (k < (s8)entry->achieved + entry->amount) {
                         if (scene->unk1C == 2) {
                             REC(scene, slot)->frame = 40 << 16;
                         } else {
@@ -869,7 +869,7 @@ void scoutMissionProgress_update(void) {
         if (scene->unk1C != 2) {
             for (i = 0; i < scene->unk1A; i++) {
                 for (k = 1; k <= 5; k++) {
-                    UIRecord* rec = (UIRecord*)graphicsRelatedArray[lbl_3_data_E758[i] + scene->firstHandle + k].object;
+                    UIRecord* rec = (UIRecord*)graphicsRelatedArray[scoutMissionProgressRowBases[i] + scene->firstHandle + k].object;
 
                     if ((rec->frame >> 16) > 40) {
                         rec->frame = 60 << 16;

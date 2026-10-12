@@ -18,11 +18,11 @@ void applyScoutFlagRewards(void);
 void awardScoutFlagsSequential(void);
 void scoutFlag_checkMissionSuccess(void);
 void clearScoutState(void);
-void fn_3_165978(void);
-void setScoutMissionRelatedToZero(void);
+void resetScoutChanceTier_2(void);
+void resetScoutChanceTier(void);
 BOOL shouldScoutMissionBeEnabled(int mission);
 BOOL decideScoutFlagMission(void);
-void fn_3_1663AC(void);
+void practice_postGraphicsUpdate(void);
 
 void starMissionsMinigamesTotalPoints(void);
 void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
