@@ -1380,7 +1380,7 @@ void challenge_postPitchStarMissionTracking(void) {
 }
 
 // .text:0x00161588 size:0xAF8 mapped:0x807A061C
-void starMissionsQuantityBased(int missionType, int rosterLocation) {
+void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int rosterLocation) {
     s16 charID = inMemRoster[scoutState.humanTeam][rosterLocation].stats.CharID;
     u8 trackerIdx = characterStaticIndexes[charID].trackerIdx;
     u8 requirementRow = characterStaticIndexes[charID].requirementRow;
@@ -1402,16 +1402,16 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
     }
 
     switch (missionType) {
-    case 0:
+    case STAR_MISSION_EVENT_NOTE_BLOCK_HIT:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_NOTE_BLOCK_HITS)
         break;
-    case 1:
+    case STAR_MISSION_EVENT_BALL_FIELDED:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_FIELD_BALLS)
         break;
-    case 3:
+    case STAR_MISSION_EVENT_ACTION_CATCH:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_37)
         break;
-    case 2:
+    case STAR_MISSION_EVENT_BIG_PLAY:
         ct = &starMissionCompletionTracker.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
         {
@@ -1440,10 +1440,10 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
             }
         }
         break;
-    case 4:
+    case STAR_MISSION_EVENT_CATCH_ANIM_6:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_35)
         break;
-    case 5: {
+    case STAR_MISSION_EVENT_CATCH_ANIM_5: {
         int contact;
         ct = &starMissionCompletionTracker.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
@@ -1461,10 +1461,10 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         }
         break;
     }
-    case 6:
+    case STAR_MISSION_EVENT_TAG:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_39)
         break;
-    case 7:
+    case STAR_MISSION_EVENT_CHEMISTRY_THROW:
         ct = &starMissionCompletionTracker.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
         {
@@ -1482,10 +1482,10 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
             }
         }
         break;
-    case 8:
+    case STAR_MISSION_EVENT_LASER_THROW_OUT:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_LASER_THROW_OUTS)
         break;
-    case 9: {
+    case STAR_MISSION_EVENT_HANDLED_BALL_NO_THROW: {
         int contact;
         ct = &starMissionCompletionTracker.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
@@ -1503,13 +1503,13 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         }
         break;
     }
-    case 10:
+    case STAR_MISSION_EVENT_STOLEN_BASE:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_STOLEN_BASES)
         break;
-    case 11:
+    case STAR_MISSION_EVENT_RUN_SCORED:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_RUNS_SCORED)
         break;
-    case 12:
+    case STAR_MISSION_EVENT_BODY_CHECK:
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_BODY_CHECKS)
         break;
     }
@@ -1649,7 +1649,7 @@ void starMissionsMinigamesTotalPoints(void) {
 }
 
 // .text:0x001608F0 size:0x788
-void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit) {
+void starMissionsMinigamesSpecialAction(E(int, STAR_MISSION_MINIGAME_EVENT) missionType, int points, int barrelsHit) {
     BOOL found = FALSE;
     u8 charID = g_Minigame.playerSlots.charID[g_d_GameSettings._35];
     u8 requirementRow = characterStaticIndexes[charID].requirementRow;
@@ -1679,7 +1679,7 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
     }
 
     switch (missionType) {
-    case 0:
+    case STAR_MISSION_MINIGAME_EVENT_BOBOMB_DERBY_HIT:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_50)
             if (points >= req[i].target) {
                 found = TRUE;
@@ -1687,7 +1687,7 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
             }
         SPECIAL_LOOP_END
         break;
-    case 1:
+    case STAR_MISSION_MINIGAME_EVENT_WALL_BALL_NOTE_BLOCKS:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_51)
             if (barrelsHit != 0) {
                 SPECIAL_ADVANCE
@@ -1696,33 +1696,33 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
             }
         SPECIAL_LOOP_END
         break;
-    case 2:
+    case STAR_MISSION_MINIGAME_EVENT_BARREL_BATTER_BARRELS:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_52)
             if (barrelsHit >= 15) {
                 SPECIAL_ADVANCE
             }
         SPECIAL_LOOP_END
         break;
-    case 3:
+    case STAR_MISSION_MINIGAME_EVENT_CHAIN_CHOMP_SPRINT:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_53)
             if (points == 2) {
                 SPECIAL_ADVANCE
             }
         SPECIAL_LOOP_END
         break;
-    case 5:
+    case STAR_MISSION_MINIGAME_EVENT_PIRANHA_PANIC:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_55)
             if (points == 4) {
                 SPECIAL_ADVANCE
             }
         SPECIAL_LOOP_END
         break;
-    case 6:
+    case STAR_MISSION_MINIGAME_EVENT_UNKNOWN_6:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_56)
             SPECIAL_ADVANCE
         SPECIAL_LOOP_END
         break;
-    case 7:
+    case STAR_MISSION_MINIGAME_EVENT_TOY_FIELD:
         SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_57)
             if (points == req[i].target) {
                 found = TRUE;

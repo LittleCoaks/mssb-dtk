@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/minigame/barrel_batter.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
@@ -54,7 +55,6 @@ typedef struct {
 extern BB_dropConstsStruct bB_dropConsts;
 extern VecXYZ barrelBaseCoordinates[15];
 extern s16 bOD_bB_frameConsts[12];
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
 extern s8 bBAI_swingFrameOffsetByRow[8];
 extern u8 bBAI_canPreferFewestBarrels[4];
@@ -783,7 +783,7 @@ void bB_checkIfBarrelHitAndCalculateScore(void) {
             g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += points;
             g_Minigame.bB_totalPoints = points;
             if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == scoutState.humanTeam) {
-                starMissionsMinigamesSpecialAction(2, points, g_Minigame.barrelBatter_barrelsHit);
+                starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_BARREL_BATTER_BARRELS, points, g_Minigame.barrelBatter_barrelsHit);
             }
         }
     }
@@ -1024,7 +1024,7 @@ void unused_BarrelBatterRelated(void) {
     g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += points;
     g_Minigame.bB_totalPoints = points;
     if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == scoutState.humanTeam) {
-        starMissionsMinigamesSpecialAction(2, points, g_Minigame.barrelBatter_barrelsHit);
+        starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_BARREL_BATTER_BARRELS, points, g_Minigame.barrelBatter_barrelsHit);
     }
 }
 

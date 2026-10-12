@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/fielding/fielder.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -56,7 +57,6 @@ extern void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex);
 extern void fielderKnockback(int fielderIndex);
 extern void minigame_transferPoints(int toTeam, int fromTeam);
 extern void QueueTextToDisplay(int code, int arg1);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 
 extern s16 chemThresholds[4];
 extern struct {
@@ -18686,7 +18686,7 @@ void updateVariablesPostCatch(int fielderIndex) {
         if (!g_d_GameSettings.exhibitionMatchInd &&
             scoutState.humanTeam == g_GameLogic.teamFielding &&
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
-            starMissionsQuantityBased(2, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, fielder->rosterLocation);
         }
     }
 
@@ -18698,7 +18698,7 @@ void updateVariablesPostCatch(int fielderIndex) {
             if (!g_d_GameSettings.exhibitionMatchInd &&
                 scoutState.humanTeam == g_GameLogic.teamFielding &&
                 g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
-                starMissionsQuantityBased(2, fielder->rosterLocation);
+                starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, fielder->rosterLocation);
             }
         }
     }
@@ -18710,13 +18710,13 @@ void updateVariablesPostCatch(int fielderIndex) {
         if (!g_d_GameSettings.exhibitionMatchInd &&
             scoutState.humanTeam == g_GameLogic.teamFielding &&
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
-            starMissionsQuantityBased(3, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_ACTION_CATCH, fielder->rosterLocation);
         }
     }
 
     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
         g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && fielder->action == 2) {
-        starMissionsQuantityBased(3, fielder->rosterLocation);
+        starMissionsQuantityBased(STAR_MISSION_EVENT_ACTION_CATCH, fielder->rosterLocation);
     }
 
     if (g_Ball.currentStarSwing == 1 || g_Ball.currentStarSwing == 2) {
@@ -18726,15 +18726,15 @@ void updateVariablesPostCatch(int fielderIndex) {
     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
         g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 0) {
         if (g_Ball.numFieldersWhoHandledBallDuringPlay == 0) {
-            starMissionsQuantityBased(1, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_BALL_FIELDED, fielder->rosterLocation);
         }
         if (g_Ball.numFieldersWhoHandledBallDuringPlay != 0 && g_Ball.numberOfThrowsDuringPlay == 0) {
-            starMissionsQuantityBased(9, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_HANDLED_BALL_NO_THROW, fielder->rosterLocation);
         }
         if (fielder->catchAnimation == 6) {
-            starMissionsQuantityBased(4, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_CATCH_ANIM_6, fielder->rosterLocation);
         } else if (fielder->catchAnimation == 5) {
-            starMissionsQuantityBased(5, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_CATCH_ANIM_5, fielder->rosterLocation);
         }
     }
 

@@ -2,6 +2,7 @@
  * _half/_three local statics would otherwise sit at the head of .rodata. */
 #define SQRT2_LINKAGE static
 #include "game/ball/ball_physics.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "game/challenge/star_mission_data.h"
 #include "game/baserunning/runner.h"
@@ -21,7 +22,6 @@ extern void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
 extern void fn_3_15F648(int kind, u8 animByte, VecXYZ* pos, VecXYZ* vel);
 extern void handleBallRollInWater(VecXYZ* pos, VecXYZ* vel);
 extern void processBallFielderCollision(u8 fielderIndex);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern u8 animRelated[0x124];
 extern f32 lbl_3_data_610C[6];
 extern f32 lbl_3_data_6124[3];
@@ -2542,7 +2542,7 @@ void ballCollisionLogic(void) {
         g_Ball.hitNoteBlockInd = 0;
         g_FieldingLogic.knockoutFinished = 1;
         if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamBatting) {
-            starMissionsQuantityBased(0, g_Batter.rosterID);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_NOTE_BLOCK_HIT, g_Batter.rosterID);
         }
     }
 

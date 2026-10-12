@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/minigame/bobomb_derby.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -50,7 +51,6 @@ extern u8 minigamePitchSpeeds_base[8];
 extern u8 bOD_multiPitchSelectionTypes[8];
 extern u8 soloBODPitchSelectionType[8];
 extern s16 bOD_scoreConsts[10];
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 extern s16 bOD_challenge_nPitches_Points[4][2];
 extern u8 minigameAIStrengthTable[8][5];
 extern u8 bOD_multiInningsAndPitches[8];
@@ -777,7 +777,7 @@ void bOD_ScoreHomeRun(void) {
     g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += (s16)points;
 
     if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == scoutState.humanTeam) {
-        starMissionsMinigamesSpecialAction(0, (int)points, g_Minigame.bOD_KingBombInd);
+        starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_BOBOMB_DERBY_HIT, (int)points, g_Minigame.bOD_KingBombInd);
     }
 }
 

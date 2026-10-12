@@ -5,6 +5,7 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_wallBall
 #include "game/minigame/wall_ball.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -61,7 +62,6 @@ extern void fn_3_FBD70(void);
 extern void fn_3_FBD58(void);
 extern void minigameQueueHudEvent(int a, int b);
 extern BOOL checkForPauses(void);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
 typedef struct {
     u8 _00[5];
@@ -588,7 +588,7 @@ void wallBallCalculatePointsAndEndTurn(void) {
 
         if (g_d_GameSettings.exhibitionMatchInd == 0 &&
             (s8)g_Minigame.minigamePlayerSelectedOrder == scoutState.humanTeam) {
-            starMissionsMinigamesSpecialAction(1, delta, g_Minigame.wallBall_hitNoteBlock);
+            starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_WALL_BALL_NOTE_BLOCKS, delta, g_Minigame.wallBall_hitNoteBlock);
         }
 
         g_Minigame.wallBallSomeXPos = g_Pitcher.pitcherCoord.x;

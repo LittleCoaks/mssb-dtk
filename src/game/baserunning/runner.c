@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/baserunning/runner.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/math/spline.h"
@@ -29,7 +30,6 @@ extern s16 lbl_3_data_1C58[][4];
 extern s16 neg20ForRunningAI[];
 extern VecXZ base_MoundCoordinates[5];
 extern int estimatedThrowFramesBetweenTwoPoints(f32 x1, f32 z1, f32 x2, f32 z2);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern VecXZ lbl_3_data_4B28[];
 extern f32 lbl_3_data_4B24;
 extern f32 lbl_3_data_4B50;
@@ -942,13 +942,13 @@ void running_checkForOuts(void) {
                             g_UnkSound_32718._08 = 4;
                             g_FieldingLogic.bigPlayFielderIndex = fielder;
                             if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                                starMissionsQuantityBased(2, g_Fielders[fielder].rosterLocation);
+                                starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, g_Fielders[fielder].rosterLocation);
                             }
                         }
                     }
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
-                            starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
+                            starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
                 }
@@ -960,7 +960,7 @@ void running_checkForOuts(void) {
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
-                            starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
+                            starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
                 } else if ((runner->baseStandingOn < 0 || runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) &&
@@ -976,7 +976,7 @@ void running_checkForOuts(void) {
                     }
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
-                            starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
+                            starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
                 }
@@ -990,7 +990,7 @@ void running_checkForOuts(void) {
                 g_Runners[g_Ball.baseBallAndFielderAreOn].outType = 4;
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                     if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
-                        starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
+                        starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                     }
                 }
             }
@@ -1026,14 +1026,14 @@ void unused_forceOutSomething(void) {
                     g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
                     if (g_FieldingLogic.laser_2 != 0 && !g_d_GameSettings.exhibitionMatchInd) {
                         if (scoutState.humanTeam == g_GameLogic.teamFielding) {
-                            starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
+                            starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
                     if ((s8)g_FieldingLogic.fielderActionBeingProcessed_prev > 0 && g_FieldingLogic.bigPlayPotential != 0) {
                         g_UnkSound_32718._08 = 4;
                         g_FieldingLogic.bigPlayFielderIndex = g_Ball.fielderWithBallIndexStored2;
                         if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                            starMissionsQuantityBased(2, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
+                            starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
                         }
                     }
                 }
@@ -1277,7 +1277,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                         g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
                         if (g_FieldingLogic.laser_2 != 0 && !g_d_GameSettings.exhibitionMatchInd) {
                             if (scoutState.humanTeam == g_GameLogic.teamFielding) {
-                                starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
+                                starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                             }
                         }
                         if ((s8)g_FieldingLogic.fielderActionBeingProcessed_prev > 0 &&
@@ -1286,7 +1286,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                             g_FieldingLogic.bigPlayFielderIndex = g_Ball.fielderWithBallIndexStored2;
                             if (!g_d_GameSettings.exhibitionMatchInd &&
                                 scoutState.humanTeam == g_GameLogic.teamFielding) {
-                                starMissionsQuantityBased(2, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
+                                starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
                             }
                         }
                     }
@@ -1311,7 +1311,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                     target->tagType = 2;
                 }
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                    starMissionsQuantityBased(6, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
+                    starMissionsQuantityBased(STAR_MISSION_EVENT_TAG, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
                 }
             }
         }
@@ -1414,7 +1414,7 @@ void fn_3_870AC(void) {
                 runner->tagType = 2;
             }
             if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                starMissionsQuantityBased(6, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
+                starMissionsQuantityBased(STAR_MISSION_EVENT_TAG, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
             }
         }
     }
@@ -4219,7 +4219,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
             if (RandomInt_Game(100) < probability) {
                 runner->actionCode = 2;
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamBatting) {
-                    starMissionsQuantityBased(12, runner->rosterID);
+                    starMissionsQuantityBased(STAR_MISSION_EVENT_BODY_CHECK, runner->rosterID);
                 }
             } else {
                 runner->actionCode = 3;

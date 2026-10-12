@@ -5,6 +5,7 @@
 #define SQRT2_LINKAGE static
 
 #include "game/fielding/fielder_ai.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "game/fielding/fielder.h"
 #include "game/ball/collision_primitives.h"
@@ -43,7 +44,6 @@ extern u8 lbl_3_data_4908[2];
 extern int calculateChemistry(int teamFielding, int charIdA, int charIdB);
 extern s16 chemThresholds[4];
 extern u8 getThrowSpeedBasedOnArmStrengthStat(u8 arm);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern void liveBallHitPhysics(int arg);
 extern void pickoff_infieldThrow_related(int fielderIndex);
 extern void initialize_runnersBeingTargetedWhileBatterCanBeForcedOut(void);
@@ -345,7 +345,7 @@ void makeThrowVariables(int fielderIndex) {
             g_FieldingLogic.IsChemistryThrow = 2;
         }
         if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-            starMissionsQuantityBased(7, fielder->rosterLocation);
+            starMissionsQuantityBased(STAR_MISSION_EVENT_CHEMISTRY_THROW, fielder->rosterLocation);
         }
     }
     throwSpeed = armSpeed / 200.0f;

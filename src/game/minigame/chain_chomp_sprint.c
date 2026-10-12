@@ -1,6 +1,7 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_chainChompSprint
 #include "game/minigame/chain_chomp_sprint.h"
+#include "game/challenge/star_missions.h"
 #include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -51,7 +52,6 @@ extern void chainChomp_flyItemSparklesToScore(u8 coin, u8 runner);
 extern void chainChomp_spawnItemSparkle(u8 coin, u8 type, VecXYZ* pos);
 extern void chainChomp_spawnTrailEffect(s32 duration);
 extern void chainChomp_stopTrailEffect(void);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
 extern u8 lbl_800EFBA4[];
 extern u16 lbl_3_data_81FC[];
@@ -941,7 +941,7 @@ void chainChompSpringPoints(void) {
                     callSfx(0x2DD);
                 }
                 if (!g_d_GameSettings.exhibitionMatchInd && who == scoutState.humanTeam) {
-                    starMissionsMinigamesSpecialAction(3, type, 0);
+                    starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_CHAIN_CHOMP_SPRINT, type, 0);
                 }
             }
         }
