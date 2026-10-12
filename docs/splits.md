@@ -234,7 +234,7 @@ in source order and does not share literal pools between units).
 
 | section | range | was |
 |---|---|---|
-| `.text` | `0x8006C48C-0x8006CEBC` | `File_0x8006c48c` (`0x8006C48C-0x8006C5CC`), unowned gap `0x8006C5CC-0x8006C7C4` (`fn_8006C5CC`, `fn_8006C6C4`, `fn_8006C79C`), `File_0x8006c7c4`, `File_0x8006c9d8`, `File_0x8006cbe4`, `File_0x8006cca4` |
+| `.text` | `0x8006C48C-0x8006CEBC` | `File_0x8006c48c` (`0x8006C48C-0x8006C5CC`), unowned gap `0x8006C5CC-0x8006C7C4` (`challenge_hasRecruitedEnoughNonBowserCharacters`, `challenge_countRecruitedCharacters`, `fn_8006C79C`), `File_0x8006c7c4`, `File_0x8006c9d8`, `File_0x8006cbe4`, `File_0x8006cca4` |
 | `extab` / `extabindex` | `0x800065B0-0x800065C8` / `0x800083E8-0x8000840C` | the three units that had any |
 | `.data` | `0x80109420-0x8010B610` | `File_0x8006c48c` + `File_0x8006c9d8` |
 | `.sdata` | `0x803CB8F0-0x803CB8F8` | `File_0x8006c7c4` |
@@ -259,7 +259,7 @@ Evidence:
   `Dolphin/os/OS.c` starts. `.sdata` begins at `challengeCaptainCharIDs`
   (`0x803CB8F0`) and ends 2 bytes of pad before `__OSVersion`. The unit has no
   `.sdata2`, `.sbss` or `.rodata`.
-- **Gap functions.** `fn_8006C5CC`, `fn_8006C6C4` and `fn_8006C79C` only read
+- **Gap functions.** `challenge_hasRecruitedEnoughNonBowserCharacters`, `challenge_countRecruitedCharacters` and `fn_8006C79C` only read
   `g_Challenge` (they count characters whose recruitment byte
   is 1) and sit between two members of the unit, so they belong to it.
 
@@ -268,7 +268,7 @@ menu-graphics load/unload pair; `fn_8006CF6C` is installed by `SetMenuNumber`
 and reads `lbl_801075A8` from the menu `.data` block, so it is menu glue, not
 Challenge logic), and `fn_8006C488` (empty function, no evidence either way).
 
-The unit is `NonMatching` for now: `fn_8006C5CC` (87%) and `fn_8006C6C4`
+The unit is `NonMatching` for now: `challenge_hasRecruitedEnoughNonBowserCharacters` (87%) and `challenge_countRecruitedCharacters`
 (91%) are drafts whose loop unroll factor differs from the target, the two
 `File_0x8006cca4` functions are still stubs, and
 `challenge_leftoverTeammatesJoinBowserJr` is at 96.9%. `fn_8006C79C` is 100%

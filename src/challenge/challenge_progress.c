@@ -915,7 +915,7 @@ void challengeDrawStarsOnMissionMenu(void) {
     }
 }
 
-BOOL fn_8006C5CC(void) {
+BOOL challenge_hasRecruitedEnoughNonBowserCharacters(void) {
     int i;
     int count = 0;
 
@@ -928,7 +928,7 @@ BOOL fn_8006C5CC(void) {
     return count >= 28;
 }
 
-int fn_8006C6C4(void) {
+int challenge_countRecruitedCharacters(void) {
     int i;
     int count = 0;
 
