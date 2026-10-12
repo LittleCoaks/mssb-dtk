@@ -200,7 +200,7 @@ void fn_3_105BD8(CamEval* e);
 u32 fn_3_105C28(u8* script, u32 time);
 void fn_3_105C84(u8* hdr);
 void fn_3_105CDC(void);
-void fn_3_105E00(s16 x, s16 y, s16 w, s16 h);
+void fn_3_105E00(int x, int y, int w, int h);
 void fn_3_106014(f32 x, f32 y, f32 z);
 void fn_3_1060D8(void);
 BOOL fn_3_10617C(int idx, int bone, Vec* out);

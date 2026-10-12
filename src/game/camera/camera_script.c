@@ -1658,7 +1658,7 @@ void fn_3_106270(VecXYZ* out) {
 // .text:0x0010617C size:0xF4 mapped:0x80745210
 BOOL fn_3_10617C(int idx, int bone, Vec* out) {
     CamActor* actor = hugeAnimStruct.objects[idx];
-    u16 boneIdx;
+    s32 boneIdx;
     Vec tmp;
     if (actor == NULL) {
         return FALSE;
@@ -1720,7 +1720,7 @@ void fn_3_106014(f32 x, f32 y, f32 z) {
 
 #pragma dont_inline on
 // .text:0x00105E00 size:0x214 mapped:0x80744E94
-void fn_3_105E00(s16 x, s16 y, s16 w, s16 h) {
+void fn_3_105E00(int x, int y, int w, int h) {
     Mtx44 proj;
     Mtx mtx;
     C_MTXOrtho(proj, 0.0f, 448.0f, 0.0f, 640.0f, 0.0f, -100.0f);
