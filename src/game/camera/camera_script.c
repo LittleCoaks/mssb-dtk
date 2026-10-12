@@ -1214,7 +1214,7 @@ typedef struct CamGlobal {
 #define CAM_LABEL(i) (((s32**)CAMDATA(0x4D64))[i])
 #define CAM_SCRIPT_TABLE(i) (((s32**)CAMDATA(0x18D8))[i])
 
-static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f32 a, f32 b, f32 c) {
+static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f32 a, f32 b, f32 c) {
     VecXYZ toCur;
     VecXYZ dIn;
     VecXYZ dInScaled;
@@ -1249,7 +1249,7 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
         _pi.x = CTX->_00C4.x; \
         _pi.y = CTX->_00C4.y; \
         _pi.z = CTX->_00C4.z; \
-        _out = camFilterStep(_in, _pi, _po, CTX->_010C, CTX->_0110, CTX->_0114); \
+        _out = camFilterStep(_po, _in, _pi, CTX->_010C, CTX->_0110, CTX->_0114); \
         CTX->_00C4.x = _yaw; \
         CTX->_00C4.y = _pitch; \
         CTX->_00C4.z = 0.0f; \
@@ -1275,7 +1275,7 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
         _pi.x = CTX->_00C4.x; \
         _pi.y = CTX->_00C4.y; \
         _pi.z = CTX->_00C4.z; \
-        _out = camFilterStep(_cur, _pi, _po, CTX->_010C, CTX->_0110, CTX->_0114); \
+        _out = camFilterStep(_po, _cur, _pi, CTX->_010C, CTX->_0110, CTX->_0114); \
         CTX->_00C4.x = (vp)->x; \
         CTX->_00C4.y = (vp)->y; \
         CTX->_00C4.z = (vp)->z; \
@@ -1289,29 +1289,32 @@ static inline VecXYZ camFilterStep(VecXYZ cur, VecXYZ prevIn, VecXYZ prevOut, f3
 
 #define CAM_FILTER_POS() \
     if (CTX->_09B4 != 0) { \
+        VecXYZ _out; \
         VecXYZ _cur; \
         VecXYZ _po; \
         VecXYZ _pi; \
-        VecXYZ _out; \
-        _cur.x = g_pCamera->_2840.x; \
-        _cur.y = g_pCamera->_2840.y; \
-        _cur.z = g_pCamera->_2840.z; \
+        f32 _cx = g_pCamera->_2840.x; \
+        f32 _cy = g_pCamera->_2840.y; \
+        f32 _cz = g_pCamera->_2840.z; \
+        _cur.x = _cx; \
+        _cur.y = _cy; \
+        _cur.z = _cz; \
         _po.x = CTX->_00B8.x; \
         _po.y = CTX->_00B8.y; \
         _po.z = CTX->_00B8.z; \
         _pi.x = CTX->_00AC.x; \
         _pi.y = CTX->_00AC.y; \
         _pi.z = CTX->_00AC.z; \
-        _out = camFilterStep(_cur, _pi, _po, CTX->_0100, CTX->_0104, CTX->_0108); \
+        _out = camFilterStep(_po, _cur, _pi, CTX->_0100, CTX->_0104, CTX->_0108); \
         g_pCamera->_2840.x = _out.x; \
         g_pCamera->_2840.y = _out.y; \
         g_pCamera->_2840.z = _out.z; \
         CTX->_00B8.x = _out.x; \
         CTX->_00B8.y = _out.y; \
         CTX->_00B8.z = _out.z; \
-        CTX->_00AC.x = _cur.x; \
-        CTX->_00AC.y = _cur.y; \
-        CTX->_00AC.z = _cur.z; \
+        CTX->_00AC.x = _cx; \
+        CTX->_00AC.y = _cy; \
+        CTX->_00AC.z = _cz; \
     }
 
 #define CAM_INIT_POS_FILTER() \
@@ -2319,7 +2322,7 @@ void fn_3_103E7C(f32* angles) {
         pi.x = CTX->_00C4.x;
         pi.y = CTX->_00C4.y;
         pi.z = CTX->_00C4.z;
-        out = camFilterStep(in, pi, po, CTX->_010C, CTX->_0110, CTX->_0114);
+        out = camFilterStep(po, in, pi, CTX->_010C, CTX->_0110, CTX->_0114);
         CTX->_00C4.x = angles[0];
         CTX->_00C4.y = angles[1];
         CTX->_00C4.z = 0.0f;
