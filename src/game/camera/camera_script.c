@@ -1234,18 +1234,18 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
 
 #define CAM_FILTER_ANGLES(yaw, pitch) \
     if (CTX->_09B4 != 0) { \
-        VecXYZ _in; \
-        VecXYZ _po; \
-        VecXYZ _pi; \
         VecXYZ _out; \
+        VecXYZ _po; \
+        VecXYZ _in; \
+        VecXYZ _pi; \
         f32 _yaw = radianAngleReduction(yaw); \
         f32 _pitch = radianAngleReduction(pitch); \
-        _in.x = _yaw; \
-        _in.y = _pitch; \
-        _in.z = 0.0f; \
         _po.x = CTX->_00D0.x; \
         _po.y = CTX->_00D0.y; \
         _po.z = CTX->_00D0.z; \
+        _in.x = _yaw; \
+        _in.y = _pitch; \
+        _in.z = 0.0f; \
         _pi.x = CTX->_00C4.x; \
         _pi.y = CTX->_00C4.y; \
         _pi.z = CTX->_00C4.z; \
