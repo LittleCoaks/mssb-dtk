@@ -158,7 +158,7 @@ typedef struct _MGFxActor {
     /*0x255*/ s8 animIndex;
 } MGFxActor;
 
-/* First part of the minigame effect tuning data (.data object lbl_3_data_266A8, 0x266A8..0x26B9C). */
+/* First part of the minigame effect tuning data (.data object minigameFxData, 0x266A8..0x26B9C). */
 typedef struct _MGFxBase {
     /*0x000*/ f32 chompTrailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
@@ -172,7 +172,7 @@ typedef struct _MGFxBase {
     /*0x4EC*/ f32 tail[2];
 } MGFxBase; // size: 0x4F4
 
-/* View of lbl_3_data_266A8 extended over the small tables that follow it (.data 0x266A8..0x26F00); used where the code addresses those tables relative to lbl_3_data_266A8. */
+/* View of minigameFxData extended over the small tables that follow it (.data 0x266A8..0x26F00); used where the code addresses those tables relative to minigameFxData. */
 typedef struct _MGFxData {
     /*0x000*/ f32 chompTrailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
@@ -234,7 +234,7 @@ typedef struct _MGQuadVertex {
     /*0x12*/ u16 t;
 } MGQuadVertex; // size: 0x14
 
-/* First part of the minigame effect tuning data (.data object lbl_3_data_266A8). */
+/* First part of the minigame effect tuning data (.data object minigameFxData). */
 typedef struct _MGFxHead {
     /*0x000*/ f32 trailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
@@ -242,7 +242,7 @@ typedef struct _MGFxHead {
     /*0x13C*/ s16 effectIds[4][2];
 } MGFxHead; // size: 0x14C
 
-/* Object at lbl_3_data_26894: the last slot, the slot pointer table and the offset/colour tables. */
+/* Object at minigameFxTail: the last slot, the slot pointer table and the offset/colour tables. */
 typedef struct _MGFxTail {
     /*0x000*/ MGFxSlot slot;
     /*0x050*/ MGFxSlot* slotPtrs[3];
