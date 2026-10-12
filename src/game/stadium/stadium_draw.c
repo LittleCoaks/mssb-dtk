@@ -857,7 +857,6 @@ void fn_3_3EE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
                   s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight) {
     u8* record = (u8*)textureRecord;
     GXTexObj texture;
-    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     volatile f32* fifo = (volatile f32*)0xCC008000;
     f32 x0 = left;
     f32 y0 = top;
@@ -867,6 +866,7 @@ void fn_3_3EE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
     f32 v0 = (f32)textureY / *(u16*)(record + 8);
     f32 u1 = (f32)(textureX + textureWidth) / *(u16*)(record + 0xA);
     f32 v1 = (f32)(textureY + textureHeight) / *(u16*)(record + 8);
+    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     GXInitTexObj(&texture, *(void**)record, *(u16*)(record + 0xA), *(u16*)(record + 8),
                     0, 0, 0, FALSE);
     GXInitTexObjLOD(&texture, 0, 0, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
@@ -899,13 +899,13 @@ void fn_3_3BE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
                   s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight) {
     u8* record = (u8*)textureRecord;
     GXTexObj texture;
-    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     volatile f32* position = (volatile f32*)0xCC008000;
     volatile u16* uv = (volatile u16*)0xCC008000;
     f32 x0 = left;
     f32 y0 = top;
     f32 x1 = right;
     f32 y1 = bottom;
+    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     GXInitTexObj(&texture, *(void**)record, *(u16*)(record + 0xA), *(u16*)(record + 8),
                     0, 0, 0, FALSE);
     GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
