@@ -54,7 +54,10 @@ typedef struct {
     /* 0x6C */ MtxPtr orientationInvMtxArray;
     /* 0x70 */ DSList drawPriorityList;
     /* 0x7C */ sHdr * skHeader;
-    /* 0x80 */ u8 unk80[0x8C - 0x80];
+    /* 0x80 */ u16 unk80;
+    /* 0x82 */ u16 unk82;
+    /* 0x84 */ u16 unk84;
+    /* 0x86 */ u8 unk86[0x8C - 0x86];
     /* 0x8C */ f32 unk8C; // advanced by unk90 each tick, capped at 1.0
     /* 0x90 */ f32 unk90;
     /* 0x94 */ u32 unk94;

@@ -1,4 +1,6 @@
 #include "C3/actor/act.h"
+#include "C3/skinning/SKNControl.h"
+#include "C3/skinning/GQRSetup.h"
 #include "C3/geoPalette.h"
 #include "C3/geoPalette/DisplayObject.h"
 #include "Unknown/File_0x800bde8c.h"
@@ -35,6 +37,39 @@ void callDSInsertListObject(UnkB2B4C* obj, u16 index) {
     DSInsertListObject(&obj->drawPriorityList, obj->drawPriorityList.Tail, (Ptr)obj->entries[index]);
 }
 
+struct DODisplayObj* fn_800B2BA8(Actor* actor, u16 bone, Actor* src, u16 srcBone) {
+    sBone* dst = actor->boneArray[bone];
+    struct DODisplayObj* prev = dst->dispObj;
+
+    if (src != NULL) {
+        dst->dispObj = src->boneArray[srcBone]->dispObj;
+    } else {
+        dst->dispObj = NULL;
+    }
+    return prev;
+}
+
+void fn_800B2BE4(Actor* actor, u16 bone) {
+    sBone* b = actor->boneArray[bone];
+
+    b->dispObj = b->unk18;
+}
+
+void fn_800B2BFC(StadiumModelNode* node, u16 arg1, u16 arg2) {
+    Actor* actor = (Actor*)node;
+
+    actor->unk80 = arg1;
+    actor->unk82 = arg2;
+}
+
+void fn_800B2C08(Actor* actor, u16 value) {
+    actor->unk84 = value;
+}
+
+void fn_800B2C10(Actor* actor, u16 bone, Vec* vec) {
+    PSMTXMultVec(((Mtx*)actor->forwardMtxArray)[bone], vec, vec);
+}
+
 /* MSSB's actor is larger than the SDK's `Actor` in C3/actor.h; the
  * per-bone forward matrix array sits at 0x60 here. */
 typedef struct {
@@ -47,6 +82,10 @@ void maybeTransformVectorByAnimationMatrix(void* actor, u16 boneIndex, Vec* out)
     out->y = 0.0f;
     out->z = 0.0f;
     PSMTXMultVec(((ActorBoneMtxView*)actor)->forwardMtxArray[boneIndex], out, out);
+}
+
+void fn_800B2C88(Actor* actor, u16 bone, Mtx out) {
+    PSMTXCopy(((Mtx*)actor->forwardMtxArray)[bone], out);
 }
 
 void ACTSort(Actor* actor) {
@@ -66,6 +105,15 @@ void ACTSort(Actor* actor) {
             }
             DSInsertListObject(&actor->drawPriorityList, cursor, (Ptr)actor->boneArray[i]);
         }
+    }
+}
+
+void fn_800B2D5C(Actor* actor) {
+    GQRSetup5(8, 4, 8, 4);
+    if (actor->skinObject->positionData->quantizeInfo == 0x40) {
+        SKNIt(actor->boneArray, actor->skHeader, actor->skinObject->positionData->positionArray);
+    } else {
+        processModelDataRelated(actor->boneArray, actor->skHeader, actor->skinObject->positionData->positionArray);
     }
 }
 
@@ -89,6 +137,10 @@ void InitBone(void) {
 
 Actor* maybeProcessActLayout(ActorLayout* layout) {
     return NULL;
+}
+
+void fn_800B4724(Actor* actor, int value) {
+    actor->skHeader = (sHdr*)value;
 }
 
 void renderingRelated(void) {

@@ -104,7 +104,7 @@ void GQRSetup7(u32 loadScale, u32 loadType, u32 storeScale, u32 storeType);
 extern sAccBuffers SKAccBuffers[2];
 extern void * SKBuffers[4];
 
-void SKNIt(sBone **bones, sHdr *hdr);
+void SKNIt(sBone **bones, sHdr *hdr, void *vtx);
 void SKNInit(void);
 void SKNBzero32B(void * base, u32 size);
 void SKNLCBzero(void * base, u32 size);

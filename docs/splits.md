@@ -381,9 +381,12 @@ in `include/C3/actor.h`) except that the binary's own `__FILE__` string says `ac
 (`fn_800B2854`, `.sdata2 0x803CCF38`).
 
 `actorAnim.c` links as `Matching` (it was the 99.7% `File_0x800b4908` minus `LoadActorLayout`, which
-is 98% and went to `act.c`). `act.c` is `NonMatching`: it holds eleven functions that have no C yet
-(`fn_800B2BA8`..`fn_800B2C10`, `fn_800B2C88`, `fn_800B2D5C`, `fn_800B2DD0`, `fn_800B313C`, `ACTRender`,
-`fn_800B3C04`, `fn_800B3F20`, `fn_800B4278`, `fn_800B4724`) and five stubs. Five previously `Matching`
+is 98% and went to `act.c`). `act.c` is `NonMatching`: it holds six functions that have no C yet
+(`fn_800B2DD0`, `fn_800B313C`, `ACTRender`, `fn_800B3C04`, `fn_800B3F20`, `fn_800B4278`) and five stubs. The
+eight small gap functions (`fn_800B2BA8`, `fn_800B2BE4`, `fn_800B2BFC`, `fn_800B2C08`, `fn_800B2C10`,
+`fn_800B2C88`, `fn_800B2D5C` (the skinning step: `GQRSetup5`, then `SKNIt` or `processModelDataRelated` on
+the skin object's position array) and `fn_800B4724`) were written in this pass and are 100%; `SKNIt`
+and `processModelDataRelated` therefore take the vertex array as a third argument. Five previously `Matching`
 units became part of it (`ProcessActorBonesForShadows`, `fn_800B2B4C`/`54`/`6C`, `callDSInsertListObject`,
 `ACTSort`, `maybeBallRelated`).
 

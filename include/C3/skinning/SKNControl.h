@@ -15,7 +15,7 @@ void SKNBzero32B(void* base, u32 size);
 
 void SKNInit(void);
 
-void processModelDataRelated(sBone** bones, sHdr* hdr);
+void processModelDataRelated(sBone** bones, sHdr* hdr, void* vtx);
 
 
 #endif // _C3_SKINNING_SKNCONTROL_H_

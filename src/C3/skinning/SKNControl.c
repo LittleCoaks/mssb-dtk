@@ -101,10 +101,10 @@ void SKNInit(void) {
     GQRSetup5(8, 4, 8, 4);
 }
 
-void processModelDataRelated(sBone** bones, sHdr* hdr) {
+void processModelDataRelated(sBone** bones, sHdr* hdr, void* vtx) {
     return;
 }
 
-void SKNIt(sBone** bones, sHdr* hdr) {
+void SKNIt(sBone** bones, sHdr* hdr, void* vtx) {
     return;
 }
