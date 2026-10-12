@@ -65,6 +65,11 @@ static inline void copyExtraStadiumEntries(StadiumRenderEntry* source, u8* first
     }
 }
 typedef struct { s16 offsets[7]; } StadiumTextureOffsets;
+typedef struct {
+    u8 _00[8];
+    u32 a;
+    u32 b;
+} StadiumLightSlot;
 static const StadiumTextureOffsets stadiumTextureOffsetsSource = {{0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0}};
 u32 lbl_3_data_23C[364] = {
     /* 0x000 */ 0xAABED200, 0x42A00000, 0x43E10000, 0xAABED200,
@@ -706,8 +711,11 @@ void fn_3_5518(void) {
 void drawStadiumObjects(void) {
     u8* frameData = FrameCountOfEntireGame;
     u8* sunData;
+    u8* tableA = frameData + 0x738;
+    u8* tableB = frameData + 0x788;
     int cameraCount;
     int slot;
+    int notFirst;
     f32 rotation;
     int mode = ((u8*)&g_GameLogic)[0x120];
 
@@ -719,8 +727,9 @@ void drawStadiumObjects(void) {
     if (hugeAnimStruct[0x307E] == 0) {
         return;
     }
-    *(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) = mode != 1;
-    if (mode != 1) {
+    notFirst = mode != 1;
+    *(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) = notFirst;
+    if (notFirst) {
         sunRelated((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
     }
     fn_3_B8C08((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
@@ -736,7 +745,7 @@ void drawStadiumObjects(void) {
         *(u32*)(object + 0x6C) = 1;
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
-        fn_800A7D4C(0, frameData + 0x748 + drawStadiumRelated * 8);
+        fn_800A7D4C(0, tableA + 0x10 + drawStadiumRelated * 8);
         object = ((u8*)&g_UNK_StadiumDetails) + 0x1C8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 1;
         PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
@@ -744,23 +753,23 @@ void drawStadiumObjects(void) {
         if (((u8*)&g_GameLogic)[0x121] != 3) {
             fn_800A7D4C(0, object);
         }
-        fn_800A7D4C(0, frameData + 0x7A0 + drawStadiumRelated * 0xC);
+        fn_800A7D4C(0, tableB + 0x18 + drawStadiumRelated * 0xC);
     }
     if (((int (*)(void))returnScissorMode)() > 2) {
         for (slot = 0; slot < 0; slot++) {
-            u8* object = ((u8*)&g_UNK_StadiumDetails) + 0x548 + drawStadiumRelated * 0x70 + slot * 0xE0;
+            u8* object = ((u8*)&g_UNK_StadiumDetails) + slot * 0xE0 + 0x548 + drawStadiumRelated * 0x70;
             *(u32*)(object + 0x6C) = slot + 2;
             PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
             fn_800A7D4C(0, object);
-            fn_800A7D4C(0, frameData + 0x738 + (slot + 2) * 0x10 + drawStadiumRelated * 8);
-            object = ((u8*)&g_UNK_StadiumDetails) + 0x388 + drawStadiumRelated * 0x70 + slot * 0xE0;
+            fn_800A7D4C(0, tableA + (slot + 2) * 0x10 + drawStadiumRelated * 8);
+            object = ((u8*)&g_UNK_StadiumDetails) + slot * 0xE0 + 0x388 + drawStadiumRelated * 0x70;
             *(u32*)(object + 0x6C) = slot + 2;
             PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
             PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
             if (((u8*)&g_GameLogic)[0x121] != 3) {
                 fn_800A7D4C(0, object);
             }
-            fn_800A7D4C(0, frameData + 0x788 + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
+            fn_800A7D4C(0, tableB + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
         }
     }
     {
@@ -768,24 +777,29 @@ void drawStadiumObjects(void) {
         *(u32*)(object + 0x6C) = 0;
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
-        fn_800A7D4C(0, frameData + 0x738 + drawStadiumRelated * 8);
+        fn_800A7D4C(0, tableA + drawStadiumRelated * 8);
         fn_800A7D4C(0, frameData + 0x5B4 + drawStadiumRelated * 8);
         object = ((u8*)&g_UNK_StadiumDetails) + 8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 0;
         PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
-        fn_800A7D4C(0, frameData + 0x788 + drawStadiumRelated * 0xC);
+        fn_800A7D4C(0, tableB + drawStadiumRelated * 0xC);
     }
-    if ((g_d_GameSettings.GameModeSelected == 0 || g_d_GameSettings.GameModeSelected == 4) &&
-        g_d_GameSettings.StadiumID != 2) {
-        *(u32*)(frameData + 0x71C + drawStadiumRelated * 0x10) = *(u32*)((u8*)&stadiumObjectCollision + 8);
-        *(u32*)(frameData + 0x720 + drawStadiumRelated * 0x10) = *(u32*)((u8*)&stadiumObjectCollision + 0xC);
-    } else {
-        *(u32*)(frameData + 0x71C + drawStadiumRelated * 0x10) = 0;
-        *(u32*)(frameData + 0x720 + drawStadiumRelated * 0x10) = 0;
+    switch (g_d_GameSettings.StadiumID) {
+    case STADIUM_ID_PEACH_GARDEN:
+    case STADIUM_ID_MARIO_STADIUM:
+        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
+            (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).a = *(u32*)((u8*)&stadiumObjectCollision + 8);
+            (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).b = *(u32*)((u8*)&stadiumObjectCollision + 0xC);
+            break;
+        }
+    default:
+        (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).a = 0;
+        (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).b = 0;
+        break;
     }
-    fn_800A7D4C(0, frameData + 0x714 + drawStadiumRelated * 0x10);
+    fn_800A7D4C(0, &(((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]));
     if (*(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) != 0) {
         drawSun();
     }
