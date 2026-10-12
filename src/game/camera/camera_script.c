@@ -3719,10 +3719,10 @@ void fn_3_FD670(void) {
                 }
             } else if (CTX->_09AD == 1) {
                 CamScript* ctx = CTX;
-                u32 time = ctx->_0118;
-                u32 frame = time >> 16;
                 u16* e = *(u16**)(ctx->_0990 + 8);
                 u16 n = e[0];
+                u32 time = ctx->_0118;
+                u32 frame = time >> 16;
                 e += 2;
                 do {
                     e += 2;
