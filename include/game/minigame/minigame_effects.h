@@ -31,20 +31,20 @@ typedef struct _MGParticle {
     /*0x2C*/ f32 _2C;
     /*0x30*/ f32 _30;
     /*0x34*/ f32 _34;
-    /*0x38*/ f32 _38;
-    /*0x3C*/ f32 _3C;
-    /*0x40*/ u8 _40;
-    /*0x41*/ u8 _41;
-    /*0x42*/ u8 _42;
+    /*0x38*/ f32 sizeX;
+    /*0x3C*/ f32 sizeY;
+    /*0x40*/ u8 colorR;
+    /*0x41*/ u8 colorG;
+    /*0x42*/ u8 colorB;
     /*0x43*/ u8 alphaByte;
     /*0x44*/ u8 _44;
     /*0x45*/ u8 _45;
     /*0x46*/ u8 _46;
     /*0x47*/ u8 _47;
-    /*0x48*/ s16 _48;
-    /*0x4A*/ s16 _4A;
-    /*0x4C*/ u8 _4C;
-    /*0x4D*/ u8 _4D;
+    /*0x48*/ s16 delay;
+    /*0x4A*/ s16 life;
+    /*0x4C*/ u8 kind;
+    /*0x4D*/ u8 texIndex;
     /*0x4E*/ u8 _4E;
     /*0x4F*/ u8 _4F;
     /*0x50*/ u8 _50;
@@ -54,7 +54,7 @@ typedef struct _MGParticle {
 typedef struct _MGEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u16 _14 : 4;
     /*0x14*/ u16 count : 12;
     /*0x16*/ u8 _16[2];
@@ -70,17 +70,17 @@ typedef struct _MGFollowParticle {
     /*0x14*/ Vec* rot;
     /*0x18*/ s16 id;
     /*0x1A*/ u8 _1A[0x38 - 0x1A];
-    /*0x38*/ f32 _38;
-    /*0x3C*/ f32 _3C;
-    /*0x40*/ u8 _40;
-    /*0x41*/ u8 _41;
-    /*0x42*/ u8 _42;
+    /*0x38*/ f32 sizeX;
+    /*0x3C*/ f32 sizeY;
+    /*0x40*/ u8 colorR;
+    /*0x41*/ u8 colorG;
+    /*0x42*/ u8 colorB;
     /*0x43*/ u8 alphaByte;
     /*0x44*/ u8 _44[0x48 - 0x44];
-    /*0x48*/ s16 _48;
-    /*0x4A*/ s16 _4A;
-    /*0x4C*/ u8 _4C;
-    /*0x4D*/ u8 _4D;
+    /*0x48*/ s16 delay;
+    /*0x4A*/ s16 life;
+    /*0x4C*/ u8 kind;
+    /*0x4D*/ u8 texIndex;
     /*0x4E*/ u8 _4E;
 } MGFollowParticle;
 
@@ -104,7 +104,7 @@ typedef struct _MGWeatherCtx {
 typedef struct _MGWeatherEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u8 _14[0x18 - 0x14];
     /*0x18*/ MGWeatherCtx* ctx;
     /*0x1C*/ Vec pos;
@@ -114,7 +114,7 @@ typedef struct _MGWeatherEffect {
 typedef struct _MGPathEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u8 _14[0x18 - 0x14];
     /*0x18*/ Vec base;
     /*0x24*/ Vec pos;
@@ -127,7 +127,7 @@ typedef struct _MGPathEffect {
 typedef struct _MGStarEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u16 _14 : 4;
     /*0x14*/ u16 count : 12;
     /*0x16*/ u8 _16[2];

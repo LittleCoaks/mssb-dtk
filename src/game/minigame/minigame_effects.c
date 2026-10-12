@@ -141,7 +141,7 @@ static u8 lbl_3_bss_B894[0x124];
 static inline s32 mgFxTableRow(MGParticle* p) {
     s32 row = 10;
 
-    if (p->_4C == 1) {
+    if (p->kind == 1) {
         row = 0;
     }
     return row;
@@ -178,14 +178,14 @@ static inline void mgStarSparkOffset(MGParticle* p) {
     Vec offset;
     u32 node;
 
-    if (p->_4C < 5) {
+    if (p->kind < 5) {
         node = (u32)rand() % 23;
         offset.z = 0.0f;
         offset.y = 0.0f;
         offset.x = 0.0f;
-        if (!getAnimationCollisionOffset(p->_4C - 1, starDash_sparkBoneNodes[node], &offset)) {
+        if (!getAnimationCollisionOffset(p->kind - 1, starDash_sparkBoneNodes[node], &offset)) {
             memset(&offset, 0, sizeof(Vec));
-            getAnimationCollisionOffset(p->_4C - 1, 4, &offset);
+            getAnimationCollisionOffset(p->kind - 1, 4, &offset);
         }
     } else {
         offset.x = g_Minigame.sd.starPos.x;
@@ -200,7 +200,7 @@ static inline void mgStarSparkOffset(MGParticle* p) {
 static inline void mgStarSparkPlace(MGParticle* p) {
     Vec v = { 0.0f, 0.0f, 0.0f };
 
-    if (p->_4C == 5) {
+    if (p->kind == 5) {
         v.x = v.x + (f32)(rand() % 10000 - 5000) / 10000.0f;
         v.y = v.y + (f32)(rand() % 10000 - 5000) / 10000.0f;
         p->origin.x = v.x;
@@ -219,15 +219,15 @@ static inline void mgStarSparksSetup(MGEffect* effect, s8 index) {
     u32 i = 0;
 
     do {
-        if (p->_4C == index + 1) {
-            p->_4A = starDash_sparkParams[7];
+        if (p->kind == index + 1) {
+            p->life = starDash_sparkParams[7];
             p->alphaByte = starDash_sparkParams[5];
-            p->_38 = p->_3C = (f32)starDash_sparkParams[2] / 100000.0f;
-            p->_48 = (s16)((f32)p->_4A / 18.0f * (f32)i);
-            if (p->_48 == 0) {
+            p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
+            p->delay = (s16)((f32)p->life / 18.0f * (f32)i);
+            if (p->delay == 0) {
                 mgStarSparkPlace(p);
             }
-            p->_40 = p->_41 = p->_42 = 0xFF;
+            p->colorR = p->colorG = p->colorB = 0xFF;
             i++;
             p->_34 = 0.0f;
         }
@@ -240,28 +240,28 @@ static inline void mgBarrelSparksSetup(MGEffect* effect, int barrelIndex) {
     s32 i = 0;
 
     do {
-        if (p->_44 == 0 && p->_4A == 0) {
+        if (p->_44 == 0 && p->life == 0) {
             if (i < 3) {
                 p->_44 = 1;
                 p->_45 = (u8)barrelIndex;
                 p->_46 = 0xFF;
-                p->_4D = barrelBatter_explosionParams[0];
-                p->_38 = p->_3C = (f32)barrelBatter_explosionParams[4];
+                p->texIndex = barrelBatter_explosionParams[0];
+                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[4];
                 p->alphaByte = barrelBatter_explosionParams[7];
                 barrelBatter_placeExplosionFlash(p);
-                p->_4A = barrelBatter_explosionParams[17];
-                p->_48 = 0;
+                p->life = barrelBatter_explosionParams[17];
+                p->delay = 0;
             } else {
                 p->_44 = 2;
                 p->_45 = (u8)barrelIndex;
                 p->_46 = (i - 3) / 5;
-                p->_4D = barrelBatter_explosionParams[1];
-                p->_38 = p->_3C = (f32)barrelBatter_explosionParams[11];
+                p->texIndex = barrelBatter_explosionParams[1];
+                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[11];
                 p->alphaByte = barrelBatter_explosionParams[14];
-                p->_48 = (i - 3) % 5 * 4 + 1;
-                p->_4A = barrelBatter_explosionParams[18];
+                p->delay = (i - 3) % 5 * 4 + 1;
+                p->life = barrelBatter_explosionParams[18];
             }
-            p->_40 = p->_41 = p->_42 = 0xFF;
+            p->colorR = p->colorG = p->colorB = 0xFF;
             i++;
         }
         p = p->next;
@@ -273,21 +273,21 @@ static inline void mgBarrelRingInit(MGEffect* effect, Vec* pos) {
     u32 i = 0;
     f32 angle;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     do {
-        p->_4D = barrelBatter_releaseRingParams[0];
+        p->texIndex = barrelBatter_releaseRingParams[0];
         p->_4E = 0;
-        p->_4A = barrelBatter_releaseRingParams[2];
-        p->_48 = 0;
+        p->life = barrelBatter_releaseRingParams[2];
+        p->delay = 0;
         p->origin.x = pos->x;
         p->origin.y = -pos->y;
         p->origin.z = pos->z;
         angle = 0.017453292f * (f32)(u32)(360 / barrelBatter_releaseRingParams[1] * i);
         p->origin.x = p->origin.x + (f32)barrelBatter_releaseRingParams[3] * (f32)cos(angle) / 100000.0f;
         p->origin.y = p->origin.y + (f32)barrelBatter_releaseRingParams[3] * (f32)sin(angle) / 100000.0f;
-        p->_3C = p->_38 = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
-        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->sizeY = p->sizeX = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
+        p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = barrelBatter_releaseRingParams[9];
         p->velX = 0.0f;
         p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
@@ -313,7 +313,7 @@ static inline void mgStarParticleInit(s8 index, MGParticle* p) {
     p->origin.x = 0.0f;
     p->origin.y = -((f32)minigameWinnerStars_params[5] / 100000.0f + *(f32*)(actor + 0x38));
     p->origin.z = 0.0f;
-    angle = 0.017453292f * (15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->_4A) / ((f32)minigameWinnerStars_params[0] * 0.5f)));
+    angle = 0.017453292f * (15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] * 0.5f)));
     s = sin(angle);
     c = cos(angle);
     p->velX = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
@@ -327,21 +327,21 @@ static inline void mgStarParticleInit(s8 index, MGParticle* p) {
     p->_47 = 0xFF;
     p->alphaByte = 0xFF;
     range = 0xFF - base;
-    p->_41 = lo + rand() % range;
-    p->_42 = lo + rand() % range;
+    p->colorG = lo + rand() % range;
+    p->colorB = lo + rand() % range;
     p->_44 = lo + rand() % range;
     p->_45 = lo + rand() % range;
     p->_46 = lo + rand() % range;
-    p->_4C = 0;
+    p->kind = 0;
 }
 
 static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
     MGParticle* p = effect->particles;
     f32 speed;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     do {
-        p->_4D = starDash_dustParams[0];
+        p->texIndex = starDash_dustParams[0];
         p->_4E = 0;
         p->origin.x = pos->x + (f32)(rand() % 1000 - 500) / 1000.0f;
         p->origin.y = -(0.75f + pos->y);
@@ -350,12 +350,12 @@ static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
         p->velY = (f32)starDash_dustParams[9] / 100000.0f;
         speed = p->velY;
         p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
-        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = starDash_dustParams[6];
         p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
-        p->_38 = p->_3C = ((f32)starDash_dustParams[3] / 100000.0f) * p->_1C;
-        p->_4A = starDash_dustParams[2];
-        p->_48 = 0;
+        p->sizeX = p->sizeY = ((f32)starDash_dustParams[3] / 100000.0f) * p->_1C;
+        p->life = starDash_dustParams[2];
+        p->delay = 0;
         p = p->next;
     } while (p != NULL);
 }
@@ -368,8 +368,8 @@ void chainChomp_spawnTrailEffect(s32 duration) {
     if (effect != NULL) {
         effect->frame = 0;
         effect->duration = duration;
-        effect->particles->_4D = 0;
-        *(u32*)&effect->particles->_40 = 0xFFFFFFFF; // RGBA white
+        effect->particles->texIndex = 0;
+        *(u32*)&effect->particles->colorR = 0xFFFFFFFF; // RGBA white
     }
 }
 
@@ -383,12 +383,12 @@ int chainChomp_updateTrailEffect(MGEffect* effect) {
     PSMTXRotRad(rot, 'Y', shortAngleToRad(g_Minigame.ccs.chompYaw));
     PSMTXMultVec(rot, &offset, &offset);
     scale = chainChomp_trailScale(effect->frame);
-    p->_3C = scale;
-    p->_38 = scale;
-    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + p->_38 * minigameFxData.trailScale[0];
-    p->origin.y = g_Minigame.ccs.chompPos.y + offset.y + p->_3C * minigameFxData.trailScale[1];
+    p->sizeY = scale;
+    p->sizeX = scale;
+    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + p->sizeX * minigameFxData.trailScale[0];
+    p->origin.y = g_Minigame.ccs.chompPos.y + offset.y + p->sizeY * minigameFxData.trailScale[1];
     p->origin.z = g_Minigame.ccs.chompPos.z + offset.z;
-    fn_8003403C(p->_38, p->_3C);
+    fn_8003403C(p->sizeX, p->sizeY);
     fn_80033CC8(effect->particles, *(s32*)&animRelated[0x64]);
     if (lbl_80366158[0x28] == 0) {
         effect->frame++;
@@ -806,13 +806,13 @@ void bobOmbFuseSpark_initAtPitch(MGEffect* effect) {
     MGParticle* p = effect->particles;
     u32 i = 0;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     do {
-        p->_48 = (u8)i;
+        p->delay = (u8)i;
         i++;
-        p->_4D = bobOmbFuseSpark_params[0];
+        p->texIndex = bobOmbFuseSpark_params[0];
         p->_4E = 0;
-        if (p->_48 == 0) {
+        if (p->delay == 0) {
             mgInitHitParticle(p);
         }
         p = p->next;
@@ -826,7 +826,7 @@ void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot) {
     Vec offset;
     Vec scale;
 
-    p->_4A = bobOmbFuseSpark_params[6];
+    p->life = bobOmbFuseSpark_params[6];
     ctrl.type = 0;
     CTRLSetRotation(&ctrl, rot->x, rot->y, rot->z);
     CTRLBuildMatrix(&ctrl, mtx);
@@ -845,7 +845,7 @@ void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot) {
     p->origin.x = offset.x;
     p->origin.y = offset.y;
     p->origin.z = offset.z;
-    p->_3C = p->_38 = (f32)bobOmbFuseSpark_params[2];
+    p->sizeY = p->sizeX = (f32)bobOmbFuseSpark_params[2];
     p->alphaByte = bobOmbFuseSpark_params[4];
 }
 
@@ -861,37 +861,37 @@ int bobOmbFuseSpark_updateAtPitch(MGEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     do {
-        if (p->_48 != 0) {
-            p->_48--;
-            if (p->_48 == 0) {
+        if (p->delay != 0) {
+            p->delay--;
+            if (p->delay == 0) {
                 mgInitHitParticle(p);
             }
-        } else if (p->_4A != 0) {
+        } else if (p->life != 0) {
             s32 alpha;
 
-            fn_8003403C(p->_38, p->_3C);
-            fn_80033CC8(p, effect->_10);
-            if (bobOmbFuseSpark_params[6] / p->_4A < 2) {
+            fn_8003403C(p->sizeX, p->sizeY);
+            fn_80033CC8(p, effect->texture);
+            if (bobOmbFuseSpark_params[6] / p->life < 2) {
                 alpha = p->alphaByte + bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha > bobOmbFuseSpark_params[5]) {
                     alpha = bobOmbFuseSpark_params[5];
                 }
                 p->alphaByte = alpha;
-                p->_38 += ((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2);
-                p->_3C = p->_38;
+                p->sizeX += ((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2);
+                p->sizeY = p->sizeX;
             } else {
                 alpha = p->alphaByte - bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha < bobOmbFuseSpark_params[4]) {
                     alpha = bobOmbFuseSpark_params[4];
                 }
                 p->alphaByte = alpha;
-                p->_38 -= ((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2);
-                p->_3C = p->_38;
+                p->sizeX -= ((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2);
+                p->sizeY = p->sizeX;
             }
-            p->_40 = p->_41 = p->_42 = (u8)(255.0f * ((f32)p->alphaByte / 255.0f));
-            p->_4A--;
+            p->colorR = p->colorG = p->colorB = (u8)(255.0f * ((f32)p->alphaByte / 255.0f));
+            p->life--;
         }
-        if (p->_4A == 0 && p->_48 <= 0) {
+        if (p->life == 0 && p->delay <= 0) {
             mgInitHitParticle(p);
         }
         p = p->next;
@@ -953,16 +953,16 @@ void bobOmbFuseSpark_initFollow(MGEffect* effect, s16 id, Vec* pos, Vec* rot) {
     MGFollowParticle* p = (MGFollowParticle*)effect->particles;
     u32 i = 0;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     do {
         p->id = id;
         p->pos = pos;
         p->rot = rot;
-        p->_48 = (u8)i;
+        p->delay = (u8)i;
         i++;
-        p->_4D = bobOmbFuseSpark_params[0];
+        p->texIndex = bobOmbFuseSpark_params[0];
         p->_4E = 0;
-        if (p->_48 == 0) {
+        if (p->delay == 0) {
             bobOmbFuseSpark_placeParticle((MGParticle*)p, pos, rot);
         }
         p = (MGFollowParticle*)p->next;
@@ -984,37 +984,37 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     do {
-        if (p->_48 != 0) {
-            p->_48--;
-            if (p->_48 == 0) {
+        if (p->delay != 0) {
+            p->delay--;
+            if (p->delay == 0) {
                 mgInitFollowParticle(p);
             }
-        } else if (p->_4A != 0) {
+        } else if (p->life != 0) {
             s32 alpha;
 
-            fn_8003403C(p->_38, p->_3C);
-            fn_80033CC8(p, effect->_10);
-            if (bobOmbFuseSpark_params[6] / p->_4A < 2) {
+            fn_8003403C(p->sizeX, p->sizeY);
+            fn_80033CC8(p, effect->texture);
+            if (bobOmbFuseSpark_params[6] / p->life < 2) {
                 alpha = p->alphaByte + bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha > bobOmbFuseSpark_params[5]) {
                     alpha = bobOmbFuseSpark_params[5];
                 }
                 p->alphaByte = alpha;
-                p->_38 += 3.0f * (((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2));
-                p->_3C = p->_38;
+                p->sizeX += 3.0f * (((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2));
+                p->sizeY = p->sizeX;
             } else {
                 alpha = p->alphaByte - bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha < bobOmbFuseSpark_params[4]) {
                     alpha = bobOmbFuseSpark_params[4];
                 }
                 p->alphaByte = alpha;
-                p->_38 -= 3.0f * (((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2));
-                p->_3C = p->_38;
+                p->sizeX -= 3.0f * (((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2));
+                p->sizeY = p->sizeX;
             }
-            p->_40 = p->_41 = p->_42 = (u8)(255.0f * ((f32)p->alphaByte / 255.0f));
-            p->_4A--;
+            p->colorR = p->colorG = p->colorB = (u8)(255.0f * ((f32)p->alphaByte / 255.0f));
+            p->life--;
         }
-        if (p->_4A == 0 && p->_48 <= 0) {
+        if (p->life == 0 && p->delay <= 0) {
             mgInitFollowParticle(p);
         }
         p = (MGFollowParticle*)p->next;
@@ -1081,8 +1081,8 @@ void chainChomp_spawnItemSparkleEffect(u8 kind, u8 mode, Vec* pos) {
         effect = allocParticleEffect(chainChomp_updateItemSparkles, 0x80, 0, chainChomp_itemSparkleParams[0] * 15, TRUE, 0x1C);
         if (effect != NULL) {
             for (p = effect->particles; p != NULL; p = p->next) {
-                p->_4A = 0;
-                p->_4C = 0;
+                p->life = 0;
+                p->kind = 0;
                 p->_4F = 0xFF;
             }
             chainChomp_initItemSparkleParticles(effect, kind, mode, pos);
@@ -1099,9 +1099,9 @@ void chainChomp_initItemSparkleParticles(MGEffect* effect, u8 kind, u8 mode, Vec
     u32 i = 0;
     u8 index;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     do {
-        if (p->_4A == 0) {
+        if (p->life == 0) {
             index = i;
             chainChomp_initItemSparkleParticle(p, pos, kind, mode, index);
             chainChomp_placeItemSparkleLayer(p, (index != 0) + 1);
@@ -1116,14 +1116,14 @@ void chainChomp_initItemSparkleParticles(MGEffect* effect, u8 kind, u8 mode, Vec
 void chainChomp_initItemSparkleParticle(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
     f32 scale;
 
-    p->_48 = index * chainChomp_itemSparkleParams[3] / chainChomp_itemSparkleParams[0] + (index != 0) * chainChomp_itemSparkleLayer1Params[3];
-    p->_4D = (mode == 4);
+    p->delay = index * chainChomp_itemSparkleParams[3] / chainChomp_itemSparkleParams[0] + (index != 0) * chainChomp_itemSparkleLayer1Params[3];
+    p->texIndex = (mode == 4);
     p->_4E = 0;
     p->_4F = kind;
-    p->_40 = p->_41 = p->_42 = 0xFF;
+    p->colorR = p->colorG = p->colorB = 0xFF;
     p->alphaByte = chainChomp_itemSparkleParams[1];
     p->_1C = pos->x;
-    if (p->_4D != 0) {
+    if (p->texIndex != 0) {
         scale = mm_GetItemScale(2);
     } else {
         scale = mm_GetItemScale(0);
@@ -1148,7 +1148,7 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
             f32 angle;
             s32* tbl;
 
-            if (p->_4D != 0) {
+            if (p->texIndex != 0) {
                 scale = mm_GetItemScale(2);
             } else {
                 scale = mm_GetItemScale(0);
@@ -1177,9 +1177,9 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
             p->origin.x = p->_1C + v.x;
             p->origin.y = p->_20 + v.y;
             p->origin.z = p->alpha + v.z;
-            p->_38 = p->_3C = (f32)data->itemFxB[0];
-            p->_4C = 1;
-            p->_4A = tbl[3];
+            p->sizeX = p->sizeY = (f32)data->itemFxB[0];
+            p->kind = 1;
+            p->life = tbl[3];
             p->velX = p->velZ = 0.0f;
             p->velY = ((f32)tbl[2] / 100000.0f);
             }
@@ -1192,7 +1192,7 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
             f32 angle;
             s32* tbl;
 
-            if (p->_4D != 0) {
+            if (p->texIndex != 0) {
                 scale = mm_GetItemScale(2);
             } else {
                 scale = mm_GetItemScale(0);
@@ -1224,9 +1224,9 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
             p->origin.x = p->_1C + v.x;
             p->origin.y = p->_20 + v.y;
             p->origin.z = p->alpha + v.z;
-            p->_38 = p->_3C = (f32)data->itemFxC[0];
-            p->_4C = 2;
-            p->_4A = tbl[3];
+            p->sizeX = p->sizeY = (f32)data->itemFxC[0];
+            p->kind = 2;
+            p->life = tbl[3];
             p->velX = p->velZ = 0.0f;
             p->velY = ((f32)tbl[2] / 100000.0f);
             }
@@ -1239,7 +1239,7 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
             f32 angle;
             s32* tbl;
 
-            if (p->_4D != 0) {
+            if (p->texIndex != 0) {
                 scale = mm_GetItemScale(2);
             } else {
                 scale = mm_GetItemScale(0);
@@ -1271,9 +1271,9 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
             p->origin.x = p->_1C + v.x;
             p->origin.y = p->_20 + v.y;
             p->origin.z = p->alpha + v.z;
-            p->_38 = p->_3C = (f32)data->itemFxD[0];
-            p->_4C = 3;
-            p->_4A = tbl[3];
+            p->sizeX = p->sizeY = (f32)data->itemFxD[0];
+            p->kind = 3;
+            p->life = tbl[3];
             p->velX = p->velZ = 0.0f;
             p->velY = -((f32)tbl[2] / 100000.0f);
             }
@@ -1285,9 +1285,9 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
 // .text:0x1534C0 size:0x1E8
 void chainChomp_initItemSparkleLayer1(MGParticle* p) {
     chainChomp_placeItemSparkle(p, FALSE);
-    p->_3C = p->_38 = (f32)chainChomp_itemSparkleLayer1Params[0];
-    p->_4C = 1;
-    p->_4A = chainChomp_itemSparkleLayer1Params[3];
+    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleLayer1Params[0];
+    p->kind = 1;
+    p->life = chainChomp_itemSparkleLayer1Params[3];
     p->velX = p->velZ = 0.0f;
     p->velY = ((f32)chainChomp_itemSparkleLayer1Params[2] / 100000.0f);
 }
@@ -1295,9 +1295,9 @@ void chainChomp_initItemSparkleLayer1(MGParticle* p) {
 // .text:0x1531A4 size:0x31C
 void chainChomp_initItemSparkleLayer2(MGParticle* p) {
     chainChomp_placeItemSparkle(p, TRUE);
-    p->_3C = p->_38 = (f32)chainChomp_itemSparkleLayer2Params[0];
-    p->_4C = 2;
-    p->_4A = chainChomp_itemSparkleLayer2Params[3];
+    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleLayer2Params[0];
+    p->kind = 2;
+    p->life = chainChomp_itemSparkleLayer2Params[3];
     p->velX = p->velZ = 0.0f;
     p->velY = ((f32)chainChomp_itemSparkleLayer2Params[2] / 100000.0f);
 }
@@ -1324,8 +1324,8 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
             cornerY = cornerX + 1;
             p = effect->particles;
             do {
-                if (p->_4F == id && p->_4A != 0) {
-                    p->_48 = 0;
+                if (p->_4F == id && p->life != 0) {
+                    p->delay = 0;
                     p->_4F = 0xFF;
                     chainChomp_placeItemSparkle(p, TRUE);
                     cam = returnFloatFromModeIndex(returnsCurrentMode());
@@ -1343,15 +1343,15 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     p->origin.x = view.x;
                     p->origin.y = view.y;
                     p->origin.z = view.z;
-                    p->_3C = p->_38 = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
-                    world.x = p->_38;
-                    world.y = p->_38;
+                    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
+                    world.x = p->sizeX;
+                    world.y = p->sizeX;
                     world.z = p->_34;
                     PSMTX44MultVec(cam->proj, &world, &view);
-                    p->_38 = view.x * (p->_4D != 0 ? 1.5 : 1.0);
-                    p->_3C = view.y * (p->_4D != 0 ? 1.5 : 1.0);
-                    p->_4C = 3;
-                    p->_4A = chainChomp_itemSparkleFlyParams[3];
+                    p->sizeX = view.x * (p->texIndex != 0 ? 1.5 : 1.0);
+                    p->sizeY = view.y * (p->texIndex != 0 ? 1.5 : 1.0);
+                    p->kind = 3;
+                    p->life = chainChomp_itemSparkleFlyParams[3];
                     angle = 0.017453292f * (f32)(90.0 * (2.0 * ((f32)rand() / 32767.0f - 0.5)));
                     dir.x = *cornerX - p->origin.x;
                     dir.y = *cornerY - p->origin.y;
@@ -1388,9 +1388,9 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
 // .text:0x152794 size:0x320
 void chainChomp_initItemSparkleFly(MGParticle* p) {
     chainChomp_placeItemSparkle(p, TRUE);
-    p->_3C = p->_38 = (f32)chainChomp_itemSparkleFlyParams[0];
-    p->_4C = 3;
-    p->_4A = chainChomp_itemSparkleFlyParams[3];
+    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleFlyParams[0];
+    p->kind = 3;
+    p->life = chainChomp_itemSparkleFlyParams[3];
     p->velX = p->velZ = 0.0f;
     p->velY = -((f32)chainChomp_itemSparkleFlyParams[2] / 100000.0f);
 }
@@ -1405,7 +1405,7 @@ void chainChomp_placeItemSparkle(MGParticle* p, u8 randomize) {
     Vec rotAxis;
     f32 angle;
 
-    if (p->_4D != 0) {
+    if (p->texIndex != 0) {
         scale = mm_GetItemScale(2);
     } else {
         scale = mm_GetItemScale(0);
@@ -1449,20 +1449,20 @@ int chainChomp_updateItemSparkles(MGEffect* effect) {
     }
     fn_80033620(effect);
     p = effect->particles;
-    if (p->_4C != 3) {
+    if (p->kind != 3) {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     } else {
         GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
     }
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
     do {
-        if (p->_48 <= 0 && p->_4A != 0) {
-            if (p->_4D != 0) {
+        if (p->delay <= 0 && p->life != 0) {
+            if (p->texIndex != 0) {
                 scale = mm_GetItemScale(2);
             } else {
                 scale = mm_GetItemScale(0);
             }
-            switch (p->_4C) {
+            switch (p->kind) {
             case 1:
                 chainChomp_updateItemSparkleLayer1(effect, p);
                 break;
@@ -1473,10 +1473,10 @@ int chainChomp_updateItemSparkles(MGEffect* effect) {
                 chainChomp_updateItemSparkleFly(effect, p);
                 break;
             }
-        } else if (p->_48 != 0) {
-            p->_48--;
+        } else if (p->delay != 0) {
+            p->delay--;
         }
-        if (p->_4A == 0 && (p->_4C == 1 || p->_4C == 2)) {
+        if (p->life == 0 && (p->kind == 1 || p->kind == 2)) {
             chainChomp_placeItemSparkleLayer(p, 2);
         }
         p = p->next;
@@ -1492,16 +1492,16 @@ void chainChomp_updateItemSparkleLayer1(MGEffect* effect, MGParticle* p) {
     f32 sizeStep;
     f32 scale;
 
-    fn_8003403C(p->_38, p->_3C);
-    fn_80033CC8(p, effect->_10);
-    if (p->_4D != 0) {
+    fn_8003403C(p->sizeX, p->sizeY);
+    fn_80033CC8(p, effect->texture);
+    if (p->texIndex != 0) {
         scale = mm_GetItemScale(2);
     } else {
         scale = mm_GetItemScale(0);
     }
     duration = chainChomp_itemSparkleLayer1Params[3];
     alpha = p->alphaByte;
-    if (duration / p->_4A < 2) {
+    if (duration / p->life < 2) {
         alphaStep = chainChomp_itemSparkleParams[2] / (duration / 2);
         sizeStep = (f32)chainChomp_itemSparkleLayer1Params[1] * scale / 100000.0f / (f32)(duration / 2);
     } else {
@@ -1515,10 +1515,10 @@ void chainChomp_updateItemSparkleLayer1(MGEffect* effect, MGParticle* p) {
         alpha = 0xFF;
     }
     p->alphaByte = alpha;
-    p->_38 += sizeStep;
-    p->_3C = p->_38;
+    p->sizeX += sizeStep;
+    p->sizeY = p->sizeX;
     PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
-    p->_4A--;
+    p->life--;
 }
 
 // .text:0x151BAC size:0x1C0
@@ -1529,16 +1529,16 @@ void chainChomp_updateItemSparkleLayer2(MGEffect* effect, MGParticle* p) {
     f32 sizeStep;
     f32 scale;
 
-    fn_8003403C(p->_38, p->_3C);
-    fn_80033CC8(p, effect->_10);
-    if (p->_4D != 0) {
+    fn_8003403C(p->sizeX, p->sizeY);
+    fn_80033CC8(p, effect->texture);
+    if (p->texIndex != 0) {
         scale = mm_GetItemScale(2);
     } else {
         scale = mm_GetItemScale(0);
     }
     duration = chainChomp_itemSparkleLayer2Params[3];
     alpha = p->alphaByte;
-    if (duration / p->_4A < 2) {
+    if (duration / p->life < 2) {
         alphaStep = chainChomp_itemSparkleParams[2] / (duration / 2);
         sizeStep = (f32)chainChomp_itemSparkleLayer2Params[1] * scale / 100000.0f / (f32)(duration / 2);
     } else {
@@ -1552,10 +1552,10 @@ void chainChomp_updateItemSparkleLayer2(MGEffect* effect, MGParticle* p) {
         alpha = 0xFF;
     }
     p->alphaByte = alpha;
-    p->_38 += sizeStep;
-    p->_3C = p->_38;
+    p->sizeX += sizeStep;
+    p->sizeY = p->sizeX;
     PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
-    p->_4A--;
+    p->life--;
 }
 
 // .text:0x1519F8 size:0x1B4
@@ -1581,10 +1581,10 @@ void chainChomp_updateItemSparkleFly(MGEffect* effect, MGParticle* p) {
         target.z = 0.0f;
         PSVECNormalize(&target, &target);
         if (PSVECDotProduct(&unit, &target) < 0.0f || 0.0f == dist) {
-            p->_4A = 0;
+            p->life = 0;
         }
-        if (p->_4A == 0 && p->_45 != 0) {
-            minigameHudCcsAddGemPoints(p->_44, p->_4D == 1);
+        if (p->life == 0 && p->_45 != 0) {
+            minigameHudCcsAddGemPoints(p->_44, p->texIndex == 1);
             p->_45 = 0;
         }
     }
@@ -1596,8 +1596,8 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     Mtx44 proj;
     f32 corner[4][3];
     f32 uv[4][2] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-    f32 halfW = p->_38 * 0.5f;
-    f32 halfH = p->_3C * 0.5f;
+    f32 halfW = p->sizeX * 0.5f;
+    f32 halfH = p->sizeY * 0.5f;
     int i;
     int k;
 
@@ -1618,7 +1618,7 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     GXLoadPosMtxImm(mtx, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    fn_80033B58((void*)effect->_10, p->_4D, 0, 0);
+    fn_80033B58((void*)effect->texture, p->texIndex, 0, 0);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     k = 0;
     for (i = 0; i < 2; i++) {
@@ -1627,14 +1627,14 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
         GXWGFifo.f32 = p->origin.x + corner[i * 2][0];
         GXWGFifo.f32 = p->origin.y + corner[i * 2][1];
         GXWGFifo.f32 = -1.0f;
-        GXWGFifo.u32 = *(u32*)&p->_40;
+        GXWGFifo.u32 = *(u32*)&p->colorR;
         t = uv[p->_4E + k++];
         GXWGFifo.f32 = t[0];
         GXWGFifo.f32 = t[1];
         GXWGFifo.f32 = p->origin.x + corner[i * 2 + 1][0];
         GXWGFifo.f32 = p->origin.y + corner[i * 2 + 1][1];
         GXWGFifo.f32 = -1.0f;
-        GXWGFifo.u32 = *(u32*)&p->_40;
+        GXWGFifo.u32 = *(u32*)&p->colorR;
         t = uv[p->_4E + k++];
         GXWGFifo.f32 = t[0];
         GXWGFifo.f32 = t[1];
@@ -1680,23 +1680,23 @@ void wallBall_initNoteBlockBurst(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec
     u32 snowCount = 0;
     u32 rainCount = 0;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     effect->ctx = ctx;
     memcpy(&effect->pos, pos, sizeof(Vec));
     p = effect->particles;
     do {
         if (snowCount < wallBall_noteBlockBurstParams[1]) {
-            p->_48 = ++snowCount;
-            p->_4D = wallBall_noteBlockBurstParams[0];
-            p->_4C = 1;
-            p->_4A = wallBall_noteBlockBurstParams[6];
-            if (p->_48 == 0) {
+            p->delay = ++snowCount;
+            p->texIndex = wallBall_noteBlockBurstParams[0];
+            p->kind = 1;
+            p->life = wallBall_noteBlockBurstParams[6];
+            if (p->delay == 0) {
                 wallBall_placeNoteParticle(effect, p);
             }
         } else {
-            p->_48 = rainCount++;
-            p->_4D = wallBall_noteBlockBurstParams[8];
-            p->_4C = 2;
+            p->delay = rainCount++;
+            p->texIndex = wallBall_noteBlockBurstParams[8];
+            p->kind = 2;
             wallBall_placeBounceParticle(effect, p);
         }
         p->_4E = 0;
@@ -1712,7 +1712,7 @@ void wallBall_placeNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     f32 y;
     f32 z;
 
-    p->_4A = wallBall_noteBlockBurstParams[6];
+    p->life = wallBall_noteBlockBurstParams[6];
     actor = effect->ctx->list->actors[wallBall_noteBlockBurstParams[7]];
     PSMTXIdentity(mtx);
     x = actor->mtx[0][3];
@@ -1723,7 +1723,7 @@ void wallBall_placeNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     p->origin.x = x;
     p->origin.y = y;
     p->origin.z = z;
-    p->_3C = p->_38 = (f32)wallBall_noteBlockBurstParams[2];
+    p->sizeY = p->sizeX = (f32)wallBall_noteBlockBurstParams[2];
     p->alphaByte = wallBall_noteBlockBurstParams[4];
 }
 
@@ -1732,11 +1732,11 @@ void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     f32 angle;
     f32 speed;
 
-    p->_4A = wallBall_noteBlockBurstParams[20];
+    p->life = wallBall_noteBlockBurstParams[20];
     p->origin.x = effect->pos.x;
     p->origin.y = -effect->pos.y;
     p->origin.z = effect->pos.z;
-    p->_3C = p->_38 = (f32)(wallBall_noteBlockBurstParams[10] + rand() % (wallBall_noteBlockBurstParams[11] - wallBall_noteBlockBurstParams[10])) / 100000.0f;
+    p->sizeY = p->sizeX = (f32)(wallBall_noteBlockBurstParams[10] + rand() % (wallBall_noteBlockBurstParams[11] - wallBall_noteBlockBurstParams[10])) / 100000.0f;
     p->velY = (f32)(wallBall_noteBlockBurstParams[12] + rand() % (wallBall_noteBlockBurstParams[13] - wallBall_noteBlockBurstParams[12])) / 100000.0f;
     angle = 0.017453292f * (f32)((rand() % 36000) / 100.0);
     speed = (f32)(wallBall_noteBlockBurstParams[16] + rand() % (wallBall_noteBlockBurstParams[17] - wallBall_noteBlockBurstParams[16])) / 100000.0f;
@@ -1744,7 +1744,7 @@ void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     p->velZ = speed * (f32)sin(angle);
     p->_1C = 57.29578f * ((f32)(wallBall_noteBlockBurstParams[18] + rand() % (wallBall_noteBlockBurstParams[19] - wallBall_noteBlockBurstParams[18])) / 100000.0f);
     p->_1C = p->_1C * (f32)(1 - (rand() % 2) * 2);
-    p->_40 = p->_41 = p->_42 = p->alphaByte = 0xFF;
+    p->colorR = p->colorG = p->colorB = p->alphaByte = 0xFF;
 }
 
 // .text:0x150940 size:0x444
@@ -1762,10 +1762,10 @@ int wallBall_updateNoteBlockBurst(MGWeatherEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
     do {
-        if (p->_4A != 0) {
-            if (p->_4C == 1) {
+        if (p->life != 0) {
+            if (p->kind == 1) {
                 wallBall_updateNoteParticle(effect, p);
-            } else if (p->_4C == 2) {
+            } else if (p->kind == 2) {
                 wallBall_updateBounceParticle(effect, p);
             }
         }
@@ -1781,18 +1781,18 @@ void wallBall_updateNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     s32 alphaStep;
     f32 sizeStep;
 
-    if (p->_48 != 0) {
-        p->_48--;
-        if (p->_48 == 0) {
+    if (p->delay != 0) {
+        p->delay--;
+        if (p->delay == 0) {
             wallBall_placeNoteParticle(effect, p);
         }
         return;
     }
-    fn_8003403C(p->_38, p->_3C);
-    fn_80033CC8(p, effect->_10);
+    fn_8003403C(p->sizeX, p->sizeY);
+    fn_80033CC8(p, effect->texture);
     duration = wallBall_noteBlockBurstParams[6];
     alpha = p->alphaByte;
-    if (duration / p->_4A < 2) {
+    if (duration / p->life < 2) {
         alphaStep = wallBall_noteBlockBurstParams[5] / (duration / 2);
         sizeStep = (f32)wallBall_noteBlockBurstParams[3] / 100000.0f / (f32)(duration / 2);
     } else {
@@ -1806,22 +1806,22 @@ void wallBall_updateNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
         alpha = 0;
     }
     p->alphaByte = alpha;
-    p->_38 += sizeStep;
-    p->_3C = p->_38;
-    p->_4A--;
-    if (p->_4A == 0) {
+    p->sizeX += sizeStep;
+    p->sizeY = p->sizeX;
+    p->life--;
+    if (p->life == 0) {
         wallBall_placeNoteParticle(effect, p);
     }
 }
 
 // .text:0x150120 size:0x3CC
 void wallBall_updateBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
-    if (p->_48 != 0) {
-        p->_48--;
+    if (p->delay != 0) {
+        p->delay--;
         return;
     }
-    setParticleXform(p->_38, p->_3C, p->_1C);
-    fn_80033CC8(p, effect->_10);
+    setParticleXform(p->sizeX, p->sizeY, p->_1C);
+    fn_80033CC8(p, effect->texture);
     p->origin.x += p->velX;
     p->origin.y -= p->velY;
     p->origin.z += p->velZ;
@@ -1829,8 +1829,8 @@ void wallBall_updateBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
         p->origin.y = 0.0f;
         p->velY = -p->velY * ((f32)wallBall_noteBlockBurstParams[15] / 100000.0f);
     }
-    p->_4A--;
-    if (p->_4A == 0) {
+    p->life--;
+    if (p->life == 0) {
         wallBall_placeBounceParticle(effect, p);
     }
 }
@@ -1843,9 +1843,9 @@ void wallBall_updateSomePointers(void) {
     if (effect != NULL) {
         p = effect->particles;
         do {
-            p->_4A = 0;
-            p->_48 = 0;
-            p->_4C = 0;
+            p->life = 0;
+            p->delay = 0;
+            p->kind = 0;
             p = p->next;
         } while (p != NULL);
     }
@@ -1860,9 +1860,9 @@ void wallBall_updateSomePointers2(void) {
     if (effect != NULL) {
         p = effect->particles;
         do {
-            p->_4A = 0;
-            p->_48 = 0;
-            p->_4C = 0;
+            p->life = 0;
+            p->delay = 0;
+            p->kind = 0;
             p = p->next;
         } while (p != NULL);
     }
@@ -1902,13 +1902,13 @@ void starDash_initSparksEffect(MGEffect* effect) {
     MGParticle* p;
     u32 i = 0;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     do {
         p->_4F = 0;
-        p->_4D = starDash_sparkParams[0];
+        p->texIndex = starDash_sparkParams[0];
         p->_4E = 0;
-        p->_4C = i / 18 + 1;
+        p->kind = i / 18 + 1;
         i++;
         p = p->next;
     } while (p != NULL);
@@ -1921,9 +1921,9 @@ void starDash_setupSparks(MGEffect* effect, s8 index) {
 
 // .text:0x14F544 size:0x60
 void starDash_resetSparkParticle(MGParticle* p) {
-    p->_4A = starDash_sparkParams[7];
+    p->life = starDash_sparkParams[7];
     p->alphaByte = starDash_sparkParams[5];
-    p->_38 = p->_3C = (f32)starDash_sparkParams[2] / 100000.0f;
+    p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
 }
 
 // .text:0x14F3CC size:0x178
@@ -1933,13 +1933,13 @@ void starDash_randomizeSparkOrigin(MGParticle* p) {
     s16 rangeX;
     s16 rangeY;
 
-    if (p->_4C < 5) {
+    if (p->kind < 5) {
         yOffset = 1.25f;
     } else {
         yOffset = 0.5f;
     }
-    rangeX = (p->_4C < 5) ? 20000 : 10000;
-    rangeY = (p->_4C < 5) ? 20000 : 10000;
+    rangeX = (p->kind < 5) ? 20000 : 10000;
+    rangeY = (p->kind < 5) ? 20000 : 10000;
     v.x = v.x + (f32)(rand() % rangeX - rangeX / 2) / 10000.0f;
     v.y = v.y + (f32)(rand() % rangeY - rangeY / 2) / 10000.0f;
     p->origin.x = v.x;
@@ -1958,21 +1958,21 @@ int starDash_updateSparks(MGEffect* effect) {
     p = effect->particles;
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     do {
-        if (p->_4A != 0) {
-            if (p->_48 <= 0) {
+        if (p->life != 0) {
+            if (p->delay <= 0) {
                 GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
-                fn_8003403C(p->_38, p->_3C);
-                fn_80033CC8(p, effect->_10);
+                fn_8003403C(p->sizeX, p->sizeY);
+                fn_80033CC8(p, effect->texture);
                 duration = starDash_sparkParams[7];
-                if (duration / p->_4A < 2) {
+                if (duration / p->life < 2) {
                     alpha = p->alphaByte + starDash_sparkParams[6] / (duration / 2);
                     if (alpha > starDash_sparkParams[6]) {
                         alpha = starDash_sparkParams[6];
                     }
                     p->alphaByte = alpha;
                     sizeStep = (f32)(starDash_sparkParams[3] - starDash_sparkParams[2]) / 100000.0f / (f32)(duration / 2);
-                    p->_38 += sizeStep;
-                    p->_3C = p->_38;
+                    p->sizeX += sizeStep;
+                    p->sizeY = p->sizeX;
                 } else {
                     alpha = p->alphaByte - starDash_sparkParams[6] / (duration / 2);
                     if (alpha < starDash_sparkParams[5]) {
@@ -1980,19 +1980,19 @@ int starDash_updateSparks(MGEffect* effect) {
                     }
                     p->alphaByte = alpha;
                     sizeStep = (f32)(starDash_sparkParams[4] - starDash_sparkParams[3]) / 100000.0f / (f32)(duration / 2);
-                    p->_38 += sizeStep;
-                    p->_3C = p->_38;
+                    p->sizeX += sizeStep;
+                    p->sizeY = p->sizeX;
                 }
-                p->_4A--;
-                if (p->_4A == 0) {
-                    p->_4A = starDash_sparkParams[7];
+                p->life--;
+                if (p->life == 0) {
+                    p->life = starDash_sparkParams[7];
                     p->alphaByte = starDash_sparkParams[5];
-                    p->_38 = p->_3C = (f32)starDash_sparkParams[2] / 100000.0f;
+                    p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
                     mgStarSparkPlace(p);
                 }
             } else {
-                p->_48--;
-                if (p->_48 == 0) {
+                p->delay--;
+                if (p->delay == 0) {
                     mgStarSparkPlace(p);
                 }
             }
@@ -2020,8 +2020,8 @@ void starDash_stopSparks(s8 index) {
     if (effect != NULL) {
         p = effect->particles;
         do {
-            if (p->_4C == index + 1) {
-                p->_4A = 0;
+            if (p->kind == index + 1) {
+                p->life = 0;
             }
             p = p->next;
         } while (p != NULL);
@@ -2036,8 +2036,8 @@ void starDash_stopSparks2(s8 index) {
     if (effect != NULL) {
         p = effect->particles;
         do {
-            if (p->_4C == index + 1) {
-                p->_4A = 0;
+            if (p->kind == index + 1) {
+                p->life = 0;
             }
             p = p->next;
         } while (p != NULL);
@@ -2057,8 +2057,8 @@ void starDash_stopAllSparks(void) {
         if (effect != NULL) {
             p = effect->particles;
             do {
-                if (p->_4C == index + 1) {
-                    p->_4A = 0;
+                if (p->kind == index + 1) {
+                    p->life = 0;
                 }
                 p = p->next;
             } while (p != NULL);
@@ -2117,9 +2117,9 @@ void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
     MGParticle* p = effect->particles;
     f32 speed;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     do {
-        p->_4D = starDash_dustParams[0];
+        p->texIndex = starDash_dustParams[0];
         p->_4E = 0;
         p->origin.x = pos->x + (f32)(rand() % 1000 - 500) / 1000.0f;
         p->origin.y = -(0.75f + pos->y);
@@ -2128,12 +2128,12 @@ void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
         p->velY = (f32)starDash_dustParams[9] / 100000.0f;
         speed = p->velY;
         p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
-        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = starDash_dustParams[6];
         p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
-        p->_38 = p->_3C = ((f32)starDash_dustParams[3] / 100000.0f) * p->_1C;
-        p->_4A = starDash_dustParams[2];
-        p->_48 = 0;
+        p->sizeX = p->sizeY = ((f32)starDash_dustParams[3] / 100000.0f) * p->_1C;
+        p->life = starDash_dustParams[2];
+        p->delay = 0;
         p = p->next;
     } while (p != NULL);
 }
@@ -2155,22 +2155,22 @@ int starDash_updateDust(MGEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
     do {
-        if (p->_4A != 0) {
-            fn_8003403C(p->_38, p->_3C);
-            fn_80033CC8(p, effect->_10);
+        if (p->life != 0) {
+            fn_8003403C(p->sizeX, p->sizeY);
+            fn_80033CC8(p, effect->texture);
             p->origin.y = p->origin.y - p->velY;
             p->velY = p->velY - (f32)starDash_dustParams[10] / 100000.0f;
             duration = starDash_dustParams[2];
             alpha = p->alphaByte;
-            if (duration / p->_4A < 2) {
+            if (duration / p->life < 2) {
                 sizeStep = (f32)(starDash_dustParams[4] - starDash_dustParams[3]) / 100000.0f / (f32)(duration / 2) * p->_1C;
                 alphaStep = (starDash_dustParams[7] - starDash_dustParams[6]) / (duration / 2);
             } else {
                 sizeStep = (f32)(starDash_dustParams[5] - starDash_dustParams[4]) / 100000.0f / (f32)(duration / 2) * p->_1C;
                 alphaStep = (starDash_dustParams[8] - starDash_dustParams[7]) / (duration / 2);
             }
-            p->_38 += sizeStep;
-            p->_3C = p->_38;
+            p->sizeX += sizeStep;
+            p->sizeY = p->sizeX;
             alpha += alphaStep;
             if (alpha < 0) {
                 alpha = 0;
@@ -2178,8 +2178,8 @@ int starDash_updateDust(MGEffect* effect) {
                 alpha = 0xFF;
             }
             p->alphaByte = alpha;
-            p->_4A--;
-            if (p->_4A == 0) {
+            p->life--;
+            if (p->life == 0) {
                 *link = p->next;
                 if (removedTail != NULL) {
                     removedTail->next = p;
@@ -2230,13 +2230,13 @@ void barrelBatter_spawnBarrelExplosionEffect(u8 index) {
 void barrelBatter_initBarrelExplosion(MGEffect* effect) {
     MGParticle* p;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     do {
         p->_46 = 0;
         p->_45 = 0;
         p->_44 = 0;
-        p->_4A = 0;
+        p->life = 0;
         p->_4E = 0;
         p = p->next;
     } while (p != NULL);
@@ -2279,25 +2279,25 @@ int barrelBatter_updateBarrelExplosion(MGEffect* effect) {
     p = effect->particles;
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     do {
-        if (p->_44 != 0 && p->_4A != 0) {
-            if (p->_48 <= 0) {
+        if (p->_44 != 0 && p->life != 0) {
+            if (p->delay <= 0) {
                 if (p->_44 == 1) {
                     barrelBatter_updateExplosionFlash(effect, p);
                 } else {
-                    if (p->_48 == 0) {
+                    if (p->delay == 0) {
                         barrelBatter_attachExplosionToBone(p);
                     }
                     barrelBatter_updateExplosionEmber(effect, p);
                 }
-                p->_4A--;
-                if (p->_4A == 0) {
+                p->life--;
+                if (p->life == 0) {
                     p->_44 = 0;
                     p->_45 = 0xFF;
-                    p->_4A = 0;
-                    p->_4C = 0;
+                    p->life = 0;
+                    p->kind = 0;
                 }
             }
-            p->_48--;
+            p->delay--;
         }
         p = p->next;
     } while (p != NULL);
@@ -2313,11 +2313,11 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
     f32 sizeStep;
 
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
-    fn_8003403C(p->_38, p->_3C);
-    fn_80033CC8(p, effect->_10);
+    fn_8003403C(p->sizeX, p->sizeY);
+    fn_80033CC8(p, effect->texture);
     duration = barrelBatter_explosionParams[3];
     alpha = p->alphaByte;
-    if (-p->_48 < duration) {
+    if (-p->delay < duration) {
         sizeStep = (f32)barrelBatter_explosionParams[5] / 100000.0f / (f32)duration;
         alphaStep = barrelBatter_explosionParams[8] / duration;
     } else {
@@ -2332,9 +2332,9 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
         alpha = 0;
     }
     p->alphaByte = alpha;
-    p->_40 = p->_41 = p->_42 = p->alphaByte;
-    p->_38 += sizeStep;
-    p->_3C = p->_38;
+    p->colorR = p->colorG = p->colorB = p->alphaByte;
+    p->sizeX += sizeStep;
+    p->sizeY = p->sizeX;
 }
 
 // .text:0x14CBB4 size:0x18C
@@ -2346,11 +2346,11 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
     f32 sizeStep;
 
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    fn_8003403C(p->_38, p->_3C);
-    fn_80033CC8(p, effect->_10);
+    fn_8003403C(p->sizeX, p->sizeY);
+    fn_80033CC8(p, effect->texture);
     duration = barrelBatter_explosionParams[10];
     alpha = p->alphaByte;
-    if (-p->_48 < duration) {
+    if (-p->delay < duration) {
         sizeStep = (f32)barrelBatter_explosionParams[12] / 100000.0f / (f32)duration;
         alphaStep = barrelBatter_explosionParams[15] / duration;
     } else {
@@ -2365,9 +2365,9 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
         alpha = 0;
     }
     p->alphaByte = alpha;
-    p->_40 = p->_41 = p->_42 = p->alphaByte;
-    p->_38 += sizeStep;
-    p->_3C = p->_38;
+    p->colorR = p->colorG = p->colorB = p->alphaByte;
+    p->sizeX += sizeStep;
+    p->sizeY = p->sizeX;
 }
 
 // .text:0x14CB28 size:0x8C
@@ -2385,8 +2385,8 @@ void barrelBatter_releaseBarrelExplosion(s8 index) {
             if (p->_45 == index) {
                 p->_44 = 0;
                 p->_45 = 0xFF;
-                p->_4A = 0;
-                p->_4C = 0;
+                p->life = 0;
+                p->kind = 0;
             }
             p = p->next;
         } while (p != NULL);
@@ -2404,8 +2404,8 @@ void barrelBatter_releaseBarrelExplosion2(s8 index) {
             if (p->_45 == index) {
                 p->_44 = 0;
                 p->_45 = 0xFF;
-                p->_4A = 0;
-                p->_4C = 0;
+                p->life = 0;
+                p->kind = 0;
             }
             p = p->next;
         } while (p != NULL);
@@ -2416,8 +2416,8 @@ void barrelBatter_releaseBarrelExplosion2(s8 index) {
 void barrelBatter_clearExplosionParticle(MGParticle* p) {
     p->_44 = 0;
     p->_45 = 0xFF;
-    p->_4A = 0;
-    p->_4C = 0;
+    p->life = 0;
+    p->kind = 0;
 }
 
 // .text:0x14CA00 size:0x98
@@ -2450,14 +2450,14 @@ void chainChomp_spawnLaunchFlashEffect(void) {
 void chainChomp_initLaunchFlash(MGEffect* effect) {
     MGParticle* p;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
-    p->_4D = chainChomp_launchFlashParams[0];
+    p->texIndex = chainChomp_launchFlashParams[0];
     p->_4E = 0;
-    p->_4A = chainChomp_launchFlashParams[2];
-    p->_38 = p->_3C = (f32)chainChomp_launchFlashParams[4] / 100000.0f;
+    p->life = chainChomp_launchFlashParams[2];
+    p->sizeX = p->sizeY = (f32)chainChomp_launchFlashParams[4] / 100000.0f;
     p->alphaByte = chainChomp_launchFlashParams[7];
-    p->_40 = p->_41 = p->_42 = 0xFF;
+    p->colorR = p->colorG = p->colorB = 0xFF;
 }
 
 // .text:0x14C4C8 size:0x2D4
@@ -2473,18 +2473,18 @@ int chainChomp_updateLaunchFlash(MGEffect* effect) {
         return 0;
     }
     p = effect->particles;
-    if (p->_4A == 0) {
+    if (p->life == 0) {
         return 1;
     }
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     chainChomp_placeLaunchFlash(p);
-    fn_8003403C(p->_38, p->_3C);
-    fn_80033CC8(p, effect->_10);
+    fn_8003403C(p->sizeX, p->sizeY);
+    fn_80033CC8(p, effect->texture);
     duration = chainChomp_launchFlashParams[3];
     remaining = chainChomp_launchFlashParams[2] - duration;
     alpha = p->alphaByte;
-    if (remaining < p->_4A) {
+    if (remaining < p->life) {
         sizeStep = (f32)(chainChomp_launchFlashParams[5] - chainChomp_launchFlashParams[4]) / 100000.0f / (f32)duration;
         alphaStep = (chainChomp_launchFlashParams[8] - chainChomp_launchFlashParams[7]) / duration;
     } else {
@@ -2498,11 +2498,11 @@ int chainChomp_updateLaunchFlash(MGEffect* effect) {
     if (alpha > 0xFF) {
         alpha = 0xFF;
     }
-    p->_38 += sizeStep;
-    p->_3C = p->_38;
+    p->sizeX += sizeStep;
+    p->sizeY = p->sizeX;
     p->alphaByte = alpha;
-    p->_40 = p->_41 = p->_42 = p->alphaByte;
-    p->_4A--;
+    p->colorR = p->colorG = p->colorB = p->alphaByte;
+    p->life--;
     return 0;
 }
 
@@ -2567,21 +2567,21 @@ void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag) {
     f32 speed;
     f32 angle;
 
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     if (flag != 0) {
         tbl = wallBall_wallHitDarkPuffParams;
     }
     do {
-        if (p->_4A == 0) {
-            p->_4D = tbl[0];
+        if (p->life == 0) {
+            p->texIndex = tbl[0];
             p->_4E = 0;
-            p->_4A = tbl[2];
-            p->_38 = p->_3C = (f32)tbl[4] / 100000.0f;
+            p->life = tbl[2];
+            p->sizeX = p->sizeY = (f32)tbl[4] / 100000.0f;
             p->alphaByte = tbl[10];
-            p->_40 = tbl[7];
-            p->_41 = tbl[8];
-            p->_42 = tbl[9];
+            p->colorR = tbl[7];
+            p->colorG = tbl[8];
+            p->colorB = tbl[9];
             speed = 2.0f * (2.0 * ((f32)rand() / 32767.0f - 0.5));
             angle = 0.017453292f * (f32)(180.0 / tbl[1] * count);
             p->origin.x = pos->x + speed * (f32)cos(angle);
@@ -2617,17 +2617,17 @@ int wallBall_updateWallHitPuff(MGEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     do {
-        if (p->_4A != 0) {
+        if (p->life != 0) {
             tbl = wallBall_wallHitDarkPuffParams;
             if (p->_4F == 0) {
                 tbl = wallBall_wallHitPuffParams;
             }
             duration = tbl[2];
             rampLength = tbl[3];
-            fn_8003403C(p->_38, p->_3C);
-            fn_80033CC8(p, effect->_10);
+            fn_8003403C(p->sizeX, p->sizeY);
+            fn_80033CC8(p, effect->texture);
             alpha = p->alphaByte;
-            if (duration - p->_4A < rampLength) {
+            if (duration - p->life < rampLength) {
                 sizeStep = (f32)((tbl[5] - tbl[4]) / rampLength) / 100000.0f;
                 alphaStep = (tbl[11] - tbl[10]) / rampLength;
             } else {
@@ -2644,10 +2644,10 @@ int wallBall_updateWallHitPuff(MGEffect* effect) {
                 alpha = 0;
             }
             p->alphaByte = alpha;
-            p->_38 += sizeStep;
-            p->_3C = p->_38;
-            p->_4A--;
-            if (p->_4A == 0) {
+            p->sizeX += sizeStep;
+            p->sizeY = p->sizeX;
+            p->life--;
+            if (p->life == 0) {
                 *link = p->next;
                 if (removedTail != NULL) {
                     removedTail->next = p;
@@ -2667,8 +2667,8 @@ int wallBall_updateWallHitPuff(MGEffect* effect) {
     if (removedHead != NULL) {
         p = removedHead;
         do {
-            p->_4C = 0;
-            p->_48 = 0;
+            p->kind = 0;
+            p->delay = 0;
             p = p->next;
         } while (p != NULL);
         fn_80033794(removedHead);
@@ -2684,7 +2684,7 @@ void wallBall_stopWallHitPuff(void) {
     if (effect != NULL) {
         p = effect->particles;
         do {
-            p->_4A = 0;
+            p->life = 0;
             p = p->next;
         } while (p != NULL);
     }
@@ -2720,7 +2720,7 @@ void barrelBatter_initMachineSparks(MGPathEffect* effect, s16 frames, Vec* start
     effect->base.x = start->x;
     effect->base.y = start->y;
     effect->base.z = start->z;
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     effect->total = frames;
     effect->remaining = frames;
     PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 3), (Vec*)barrelBatter_machineSparkPath, &diff);
@@ -2731,12 +2731,12 @@ void barrelBatter_initMachineSparks(MGPathEffect* effect, s16 frames, Vec* start
     barrelBatter_updateMachineSparkPos(effect);
     p = effect->particles;
     do {
-        p->_4D = barrelBatter_machineSparkParams[0];
+        p->texIndex = barrelBatter_machineSparkParams[0];
         p->_4E = 0;
-        p->_48 = (s16)((f32)i * ((f32)effect->total / (f32)barrelBatter_machineSparkParams[2]));
-        p->_40 = p->_41 = p->_42 = 0xFF;
-        p->_4A = barrelBatter_machineSparkParams[1];
-        if (p->_48 == 0) {
+        p->delay = (s16)((f32)i * ((f32)effect->total / (f32)barrelBatter_machineSparkParams[2]));
+        p->colorR = p->colorG = p->colorB = 0xFF;
+        p->life = barrelBatter_machineSparkParams[1];
+        if (p->delay == 0) {
             barrelBatter_respawnMachineSpark(effect, p);
         }
         p = p->next;
@@ -2774,7 +2774,7 @@ void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
     f32 dx;
     f32 dy;
 
-    p->_38 = p->_3C = (f32)barrelBatter_machineSparkParams[3] / 100000.0f;
+    p->sizeX = p->sizeY = (f32)barrelBatter_machineSparkParams[3] / 100000.0f;
     p->alphaByte = barrelBatter_machineSparkParams[5];
     angle = 0.017453292f * (f32)(rand() % 360);
     radius = (f32)((u32)rand() % 200 / 1000.0);
@@ -2784,7 +2784,7 @@ void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
     p->origin.x = effect->pos.x + dx;
     p->origin.y = effect->pos.y + dy;
     p->origin.z = effect->pos.z + 0.0f;
-    p->_4A = barrelBatter_machineSparkParams[1];
+    p->life = barrelBatter_machineSparkParams[1];
 }
 
 // .text:0x14AC40 size:0x608
@@ -2808,17 +2808,17 @@ int barrelBatter_updateMachineSparks(MGPathEffect* effect) {
     sizeStep = 2.0f * ((f32)(barrelBatter_machineSparkParams[4] - barrelBatter_machineSparkParams[3]) / 100000.0f / (f32)barrelBatter_machineSparkParams[1]);
     alphaStep = (barrelBatter_machineSparkParams[6] - barrelBatter_machineSparkParams[5]) / barrelBatter_machineSparkParams[1] * 2;
     do {
-        if (p->_4A != 0) {
-            if (p->_48 > 0) {
-                p->_48--;
-                if (p->_48 == 0) {
+        if (p->life != 0) {
+            if (p->delay > 0) {
+                p->delay--;
+                if (p->delay == 0) {
                     barrelBatter_respawnMachineSpark(effect, p);
                 }
             } else {
-                fn_8003403C(p->_38, p->_3C);
-                fn_80033CC8(p, effect->_10);
+                fn_8003403C(p->sizeX, p->sizeY);
+                fn_80033CC8(p, effect->texture);
                 alpha = p->alphaByte;
-                if (barrelBatter_machineSparkParams[1] / p->_4A < 2) {
+                if (barrelBatter_machineSparkParams[1] / p->life < 2) {
                     sizeStep = fabs(sizeStep);
                     alphaStep = (s32)fabs((f64)alphaStep);
                 } else {
@@ -2832,11 +2832,11 @@ int barrelBatter_updateMachineSparks(MGPathEffect* effect) {
                 if (alpha < 0) {
                     alpha = 0;
                 }
-                p->_38 += sizeStep;
-                p->_3C = p->_38;
+                p->sizeX += sizeStep;
+                p->sizeY = p->sizeX;
                 p->alphaByte = alpha;
-                p->_4A--;
-                if (p->_4A == 0) {
+                p->life--;
+                if (p->life == 0) {
                     barrelBatter_respawnMachineSpark(effect, p);
                 }
             }
@@ -2895,11 +2895,11 @@ int barrelBatter_updateReleaseRing(MGEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     do {
-        if (p->_4A != 0) {
+        if (p->life != 0) {
             alpha = p->alphaByte;
-            setParticleXform(p->_38, p->_3C, p->velX);
-            fn_80033CC8(p, effect->_10);
-            if (barrelBatter_releaseRingParams[2] - p->_4A < barrelBatter_releaseRingParams[4]) {
+            setParticleXform(p->sizeX, p->sizeY, p->velX);
+            fn_80033CC8(p, effect->texture);
+            if (barrelBatter_releaseRingParams[2] - p->life < barrelBatter_releaseRingParams[4]) {
                 sizeStep = (p->velZ - (f32)barrelBatter_releaseRingParams[5] / 100000.0f) / (f32)barrelBatter_releaseRingParams[4];
                 alphaStep = (barrelBatter_releaseRingParams[10] - barrelBatter_releaseRingParams[9]) / barrelBatter_releaseRingParams[4];
             } else {
@@ -2915,11 +2915,11 @@ int barrelBatter_updateReleaseRing(MGEffect* effect) {
                 alpha = 0xFF;
             }
             p->alphaByte = alpha;
-            p->_38 += sizeStep;
-            p->_3C = p->_38;
+            p->sizeX += sizeStep;
+            p->sizeY = p->sizeX;
             p->velX += p->velY;
-            p->_4A--;
-            if (p->_4A != 0) {
+            p->life--;
+            if (p->life != 0) {
                 alive++;
             }
         }
@@ -2996,12 +2996,12 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
     s32 n;
 
     do {
-        p->_4A = 0;
-        p->_38 = (f32)minigameWinnerStars_params[3] / 100000.0f;
-        p->_3C = (f32)minigameWinnerStars_params[4] / 100000.0f;
+        p->life = 0;
+        p->sizeX = (f32)minigameWinnerStars_params[3] / 100000.0f;
+        p->sizeY = (f32)minigameWinnerStars_params[4] / 100000.0f;
         mgStarParticleInit(effect->index, p);
         n = minigameWinnerStars_params[0] / 5;
-        p->_48 = (i % 5 * n + rand() % n) * 2;
+        p->delay = (i % 5 * n + rand() % n) * 2;
         i++;
         p = p->next;
     } while (p != NULL);
@@ -3030,7 +3030,7 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
 
     minigameWinnerStars_beginDraw();
     do {
-        if (p->_48 <= 0) {
+        if (p->delay <= 0) {
             minigameWinnerStars_setupMtx(effect, p);
             minigameWinnerStars_drawQuad(p);
             PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
@@ -3058,13 +3058,13 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
                 p->velX = (f32)sin(rad) * (f32)minigameWinnerStars_params[1] / 100000.0f;
                 p->velY = (f32)cos(rad) * (f32)minigameWinnerStars_params[1] / 100000.0f;
                 p->velZ = 0.0f;
-                p->_4C++;
+                p->kind++;
             }
-            if (-p->origin.y - p->_3C < actor[0x38 / 4]) {
+            if (-p->origin.y - p->sizeY < actor[0x38 / 4]) {
                 mgStarParticleInit(effect->index, p);
             }
         } else {
-            p->_48--;
+            p->delay--;
         }
         p = p->next;
     } while (p != NULL);
@@ -3079,8 +3079,8 @@ BOOL minigameWinnerStars_rollTurn(void) {
 
 // .text:0x148254 size:0x180
 void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
-    f32 halfW = p->_38 * 0.5f;
-    f32 halfH = p->_3C * 0.5f;
+    f32 halfW = p->sizeX * 0.5f;
+    f32 halfH = p->sizeY * 0.5f;
     f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
     f32* v = minigameWinnerStars_quadVerts;
     Mtx mtx;
@@ -3125,7 +3125,7 @@ void minigameWinnerStars_drawQuad(MGParticle* p) {
         GXWGFifo.f32 = v[i * 3 + 0];
         GXWGFifo.f32 = v[i * 3 + 1];
         GXWGFifo.f32 = v[i * 3 + 2];
-        GXWGFifo.u32 = *(u32*)&p->_40;
+        GXWGFifo.u32 = *(u32*)&p->colorR;
     }
     GXSetCullMode(GX_CULL_FRONT);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
@@ -3233,14 +3233,14 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
     if (pos->y > 0.0f) {
         pos->y = pos->y * -1.0f;
     }
-    effect->_10 = *(u32*)&animRelated[0x6C];
+    effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     do {
         if (i < burstCount) {
-            p->_4C = 1;
+            p->kind = 1;
             p->velX = (i == 0) ? 3.0f : 1.5f;
-            p->_4A = piranhaPanic_bombExplosionParams[1];
-            p->_38 = p->_3C = (f32)piranhaPanic_bombExplosionParams[4] / 100000.0f * p->velX;
+            p->life = piranhaPanic_bombExplosionParams[1];
+            p->sizeX = p->sizeY = (f32)piranhaPanic_bombExplosionParams[4] / 100000.0f * p->velX;
             p->alphaByte = piranhaPanic_bombExplosionParams[7];
             memcpy(&p->origin, pos, sizeof(Vec));
             if (i != 0) {
@@ -3250,12 +3250,12 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
                 p->origin.x = p->origin.x + 0.5 * ((f32)rand() / 32767.0f - 1.0);
                 p->origin.y = p->origin.y + 0.5 * ((f32)rand() / 32767.0f - 1.0);
             }
-            p->_4D = piranhaPanic_bombExplosionParams[0];
-            p->_48 = delay;
+            p->texIndex = piranhaPanic_bombExplosionParams[0];
+            p->delay = delay;
         } else {
-            p->_4C = 2;
-            p->_4A = piranhaPanic_bombExplosionParams[11];
-            p->_38 = p->_3C = (f32)piranhaPanic_bombExplosionParams[14] / 100000.0f;
+            p->kind = 2;
+            p->life = piranhaPanic_bombExplosionParams[11];
+            p->sizeX = p->sizeY = (f32)piranhaPanic_bombExplosionParams[14] / 100000.0f;
             p->alphaByte = piranhaPanic_bombExplosionParams[17];
             memcpy(&p->origin, pos, sizeof(Vec));
             angle = 0.017453292519943295 * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
@@ -3263,10 +3263,10 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             p->origin.y += 2.5f * (f32)sin(angle);
             p->origin.x = p->origin.x + 0.2 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
             p->origin.y = p->origin.y + 0.2f * (-1.0f * ((f32)rand() / 32767.0f));
-            p->_4D = piranhaPanic_bombExplosionParams[10];
-            p->_48 = 5;
+            p->texIndex = piranhaPanic_bombExplosionParams[10];
+            p->delay = 5;
         }
-        p->_40 = p->_41 = p->_42 = 0xFF;
+        p->colorR = p->colorG = p->colorB = 0xFF;
         delay += 2;
         i++;
         p->_4E = 0;
@@ -3293,32 +3293,32 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
     link = &effect->particles;
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
     do {
-        if (p->_4A != 0) {
-            if (p->_48 <= 0) {
-                if (p->_4C == 1) {
+        if (p->life != 0) {
+            if (p->delay <= 0) {
+                if (p->kind == 1) {
                     rampLength = piranhaPanic_bombExplosionParams[3];
                 } else {
                     rampLength = piranhaPanic_bombExplosionParams[13];
                 }
-                if (p->_4C == 1) {
+                if (p->kind == 1) {
                     duration = piranhaPanic_bombExplosionParams[1];
                 } else {
                     duration = piranhaPanic_bombExplosionParams[11];
                 }
-                if (p->_4C == 1) {
+                if (p->kind == 1) {
                     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
                 } else {
                     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
                 }
-                fn_8003403C(p->_38, p->_3C);
-                fn_80033CC8(p, effect->_10);
+                fn_8003403C(p->sizeX, p->sizeY);
+                fn_80033CC8(p, effect->texture);
                 alpha = p->alphaByte;
-                if (p->_4C == 1) {
+                if (p->kind == 1) {
                     scale = p->velX;
                 } else {
                     scale = 1.0f;
                 }
-                if (rampLength > duration - p->_4A) {
+                if (rampLength > duration - p->life) {
                     sizeStep = ((f32)piranhaPanic_bombExplosionParams[5 + mgFxTableRow(p)] / 100000.0f -
                                 (f32)piranhaPanic_bombExplosionParams[4 + mgFxTableRow(p)] / 100000.0f) /
                                (f32)rampLength * scale;
@@ -3336,12 +3336,12 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
                 } else if (alpha > 0xFF) {
                     alpha = 0xFF;
                 }
-                p->_38 += sizeStep;
-                p->_3C = p->_38;
+                p->sizeX += sizeStep;
+                p->sizeY = p->sizeX;
                 p->alphaByte = alpha;
-                p->origin.y -= (p->_4C == 1) ? 0.0f : 0.05f;
-                p->_4A--;
-                if (p->_4A == 0) {
+                p->origin.y -= (p->kind == 1) ? 0.0f : 0.05f;
+                p->life--;
+                if (p->life == 0) {
                     *link = p->next;
                     if (removedTail != NULL) {
                         removedTail->next = p;
@@ -3354,7 +3354,7 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
                     alive++;
                 }
             } else {
-                p->_48--;
+                p->delay--;
                 link = &p->next;
                 alive++;
             }
