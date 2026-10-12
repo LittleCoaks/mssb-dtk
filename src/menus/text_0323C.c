@@ -954,14 +954,14 @@ void teamReady1(u8 port) {
         u8 *lineUp = lineUpInfoStruct;
 
         for (idx = 0; idx < 9; idx++) {
-            *(s16 *)&tracker[0x40B8] = (s8)cursor[2];
-            tracker[0x40BA] = idx;
-            tracker[0x40BB] = cursor[0x14];
+            *(s16 *)&tracker[CHALLENGE_STATE_OFFSET(savedLineup[0].charID)] = (s8)cursor[2];
+            tracker[CHALLENGE_STATE_OFFSET(savedLineup[0].battingOrder)] = idx;
+            tracker[CHALLENGE_STATE_OFFSET(savedLineup[0].fieldingPosition)] = cursor[0x14];
             *(s16 *)&roster[0x24] = (s8)cursor[2];
             lineUp[2] = cursor[0x14];
             cursor++;
             roster += 0xA0;
-            tracker += 6;
+            tracker += sizeof(SavedChallengeSlot);
             lineUp += 4;
         }
         updateCharacterSelectProcessCode(0, 0x13);
@@ -1911,26 +1911,26 @@ void cssResetRosterStruct(void) {
         s32 j;
 
         if (team == 0) {
-            s8 base = (s8)trkP[0x40bb];
+            s8 base = (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[0].fieldingPosition)];
             allDifferent = 1;
 
             discriminator = ((ChallengeState *)trkP)->captainCharID;
 
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
-            trkP += 0xc;
-            if (base == (s8)trkP[0x40bb]) allDifferent = 0;
-            trkP += 6;
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
-            trkP += 6;
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
-            trkP += 6;
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
-            trkP += 6;
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
-            trkP += 6;
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
-            trkP += 6;
-            if (base == (s8)trkP[0x40c1]) allDifferent = 0;
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
+            trkP += 2 * sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[0].fieldingPosition)]) allDifferent = 0;
+            trkP += sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
+            trkP += sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
+            trkP += sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
+            trkP += sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
+            trkP += sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
+            trkP += sizeof(SavedChallengeSlot);
+            if (base == (s8)trkP[CHALLENGE_STATE_OFFSET(savedLineup[1].fieldingPosition)]) allDifferent = 0;
         } else {
             discriminator = (s8)starMissionCompletionTracker.opponentCaptainCharID;
         }
@@ -1942,11 +1942,11 @@ void cssResetRosterStruct(void) {
             s8 charID = (s8)cur[2 + i];
 
             if (team == 0 && (flagCF == 0 || allDifferent != 0)) {
-                cur[0x14 + i] = trkP[0x40bb];
+                cur[0x14 + i] = trkP[CHALLENGE_STATE_OFFSET(savedLineup[0].fieldingPosition)];
             } else {
                 cur[0x14 + i] = (u8)j;
             }
-            trkP += 6;
+            trkP += sizeof(SavedChallengeSlot);
 
             cur[0x26 + i] = ((u8 *)&Static_Stats_Tables)[discriminator + (charID / 9) * 0x5A0 + (charID % 9) * 0xA0 + 0x3B];
         }
@@ -2334,7 +2334,7 @@ void copyInfoToInMemRoster(void) {
 
             if (team == 0) {
                 if (((u8 *)&g_d_GameSettings)[7] == 5) {
-                    u8 packed = lbl_2_bss_3A8[*(s16 *)&track[0x40b8]];
+                    u8 packed = lbl_2_bss_3A8[*(s16 *)&track[CHALLENGE_STATE_OFFSET(savedLineup[0].charID)]];
                     dst[0x26] = packed / 2;
                     dst[0x27] = packed % 2;
                 }
@@ -2342,7 +2342,7 @@ void copyInfoToInMemRoster(void) {
 
             dst += 0xa0;
             lineup += 4;
-            track += 6;
+            track += sizeof(SavedChallengeSlot);
             cur += 1;
         }
         rosterBase += 0x5a0;

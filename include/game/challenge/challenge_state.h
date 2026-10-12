@@ -113,6 +113,9 @@ typedef struct _ChallengeState {
 
 extern ChallengeState starMissionCompletionTracker;
 
+// Byte offset of a ChallengeState member, for code that walks the block through a byte pointer.
+#define CHALLENGE_STATE_OFFSET(member) ((u32) & ((ChallengeState*)0)->member)
+
 // Innings rules by challengeDifficulty.
 typedef struct _ChallengeInningRule {
     /*0x0*/ u8 inningLimit;
