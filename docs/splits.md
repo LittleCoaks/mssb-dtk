@@ -467,3 +467,19 @@ declared before the flag so the flag lands at `0x803CC220`. `geoPalette.c` is `N
 (`LoadGeoPalette` and `AdjustGPLDataPointers` are stubs; `fn_800BCDBC` has no C yet). Merging
 `LoadGeoPalette` into the same unit as `convertGeometryAndSknHeader` let the stub inline into it
 (`convertGeometryAndSknHeader` fell from 100% to 44%); the stub is marked `dont_inline`.
+
+### Skinning: `SKNControl.c` and `SKNAsm.c` (`0x800BF074-0x800C0770`)
+
+| unit | `.text` | other sections | evidence |
+|---|---|---|---|
+| `C3/skinning/SKNControl.c` | `0x800BF074-0x800BFE90` | `.bss 0x803CB6FC-0x803CB734`, extab `0x80006C20-0x80006C40` | `SKNInit`, `SKNIt` and `processModelDataRelated` are the only users of `SKAccBuffers` (`0x803CB6FC`, 0x28) and `SKBuffers` (`0x803CB724`, 0x10); `SKNLoadFile` calls `SKNInit`, and `SKNFlushByIndex1/2`/`SKNBzero32B` (`asm`) are `SKNIt`'s helpers. `include/C3/skinning.h` files `SKNIt`, `SKNInit` and `SKNBzero32B` under `SKNControl.c` |
+| `C3/skinning/SKNAsm.c` | `0x800BFE90-0x800C0770` | - | the six vertex kernels `SKN1Vecs16Norms16`, `SKN2Vecs16Norms16NoTouch`, `SKNAccVecs16Norms16Iu16` and their second copies (`fn_800BFF9C`, `fn_800C02C8`, `SKNAccVecs16Norms16Iu162`). **Name and the boundary are proposals**: the kernels carry no data, and `asm` functions also sit inside `SKNControl.c` (`SKNFlushByIndex1/2`), so extab absence proves nothing. They come in X/Y pairs in the order 1V, 2V, Acc, while the two C drivers come Y, X (`processModelDataRelated` calls `GQRSetup6` and the `fn_800BFF9C`/`fn_800C02C8` copies, `SKNIt` calls `GQRSetup7` and the others), which looks like two different generators, so they were kept apart |
+
+`convertTextureHeader` (`0x800C0770-0x800C07BC`), which used to be the tail of
+`File_0x800bfe90.c`, is a C function (a header fixup loop with a 0x20 stride) that has nothing to do with
+the kernels; it became `Unknown/File_0x800c0770.c`. The merge sort `fn_800C07BC` after it
+(`0x800C07BC-0x800C0A8C`) is still an unowned gap.
+
+`SKNControl.c` is `NonMatching` (the two driver copies are stubs, now with the SDK's
+`(sBone**, sHdr*)` signature); `SKNLoadFile`, the three flush/zero helpers and `SKNInit` are 100% but
+four `Matching` units were absorbed. `SKNAsm.c` is six stubs.

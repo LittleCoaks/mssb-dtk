@@ -1732,31 +1732,17 @@ Unknown/File_0x800bf008.c:
 Unknown/File_0x800bf038.c:
 	.text       start:0x800BF038 end:0x800BF074
 
-Unknown/File_0x800bf074.c:
-	extab       start:0x80006C20 end:0x80006C28
-	extabindex  start:0x80008D90 end:0x80008D9C
-	.text       start:0x800BF074 end:0x800BF1A4
+C3/skinning/SKNControl.c:
+	extab       start:0x80006C20 end:0x80006C40
+	extabindex  start:0x80008D90 end:0x80008DC0
+	.text       start:0x800BF074 end:0x800BFE90
+	.bss        start:0x803CB6FC end:0x803CB734
 
-Unknown/File_0x800bf1a4.c:
-	.text       start:0x800BF1A4 end:0x800BF204
+C3/skinning/SKNAsm.c:
+	.text       start:0x800BFE90 end:0x800C0770
 
-Unknown/File_0x800bf204.c:
-	extab       start:0x80006C28 end:0x80006C30
-	extabindex  start:0x80008D9C end:0x80008DA8
-	.text       start:0x800BF204 end:0x800BF2A8
-
-Unknown/File_0x800bf2a8.c:
-	extab       start:0x80006C30 end:0x80006C38
-	extabindex  start:0x80008DA8 end:0x80008DB4
-	.text       start:0x800BF2A8 end:0x800BF89C
-
-Unknown/File_0x800bf89c.c:
-	extab       start:0x80006C38 end:0x80006C40
-	extabindex  start:0x80008DB4 end:0x80008DC0
-	.text       start:0x800BF89C end:0x800BFE90
-
-Unknown/File_0x800bfe90.c:
-	.text       start:0x800BFE90 end:0x800C07BC
+Unknown/File_0x800c0770.c:
+	.text       start:0x800C0770 end:0x800C07BC
 
 Musyx/seq.c:
 	.text       start:0x800C0A8C end:0x800C4AB4

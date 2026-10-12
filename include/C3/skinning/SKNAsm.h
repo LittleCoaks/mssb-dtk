@@ -1,5 +1,5 @@
-#ifndef __UNKNOWN_FILE_0X800BFE90_H_
-#define __UNKNOWN_FILE_0X800BFE90_H_
+#ifndef _C3_SKINNING_SKNASM_H_
+#define _C3_SKINNING_SKNASM_H_
 
 #include "mssbTypes.h"
 
@@ -9,6 +9,5 @@ void SKN2Vecs16Norms16NoTouch(void);
 void fn_800C02C8(void);
 void SKNAccVecs16Norms16Iu161(void);
 void SKNAccVecs16Norms16Iu162(void);
-void convertTextureHeader(void* tex);
 
-#endif // !__UNKNOWN_FILE_0X800BFE90_H_
+#endif // _C3_SKINNING_SKNASM_H_

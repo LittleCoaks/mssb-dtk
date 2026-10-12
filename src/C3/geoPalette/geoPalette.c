@@ -1,5 +1,5 @@
 #include "C3/geoPalette/geoPalette.h"
-#include "Unknown/File_0x800bf074.h"
+#include "C3/skinning/SKNControl.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Dolphin/mtx.h"
 #include "C3/geoPalette.h"

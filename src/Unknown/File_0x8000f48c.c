@@ -1,5 +1,6 @@
 #include "Unknown/File_0x8000f48c.h"
-#include "Unknown/File_0x800bfe90.h"
+#include "C3/skinning/SKNAsm.h"
+#include "Unknown/File_0x800c0770.h"
 
 extern u8 lbl_800E9920[0x3620];
 extern void* lbl_803CBBE8;

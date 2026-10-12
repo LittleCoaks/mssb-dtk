@@ -1,4 +1,4 @@
-#include "Unknown/File_0x800bfe90.h"
+#include "C3/skinning/SKNAsm.h"
 
 void SKN1Vecs16Norms16(void) {
     return;
@@ -21,9 +21,5 @@ void SKNAccVecs16Norms16Iu161(void) {
 }
 
 void SKNAccVecs16Norms16Iu162(void) {
-    return;
-}
-
-void convertTextureHeader(void* tex) {
     return;
 }
