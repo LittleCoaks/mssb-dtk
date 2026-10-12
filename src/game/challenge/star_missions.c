@@ -37,7 +37,7 @@ extern u8 animRelated[0x124];
 #define MISSION_ADVANCE(ct, req, i)                                                    \
     (ct)->inGameMissionTracker[i].starMissionStatus++;                                 \
     if ((ct)->inGameMissionTracker[i].starMissionStatus >= (req)[i].target) {          \
-        (ct)->inGameMissionTracker[i].starMissionStatus = -1;                          \
+        (ct)->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;                          \
     }
 
 static inline void fillRosterCharIDs(s16* ids) {
@@ -896,22 +896,22 @@ void starMissionsWholeGame(void) {
             for (i = 0; i < 10; i++) {
                 if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                     int type = req[i].type;
-                    if (type == 7) {
+                    if (type == STAR_MISSION_TYPE_NO_HITTER) {
                         if (*noHitter == 1) {
-                            ct->inGameMissionTracker[i].starMissionStatus = -1;
+                            ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                         }
-                    } else if (type == 9 || type == 6) {
+                    } else if (type == STAR_MISSION_TYPE_SHUTOUT || type == STAR_MISSION_TYPE_SHUTOUT_AGAINST_CAPTAIN) {
                         if (*pitched != 0) {
-                            if (type == 6) {
+                            if (type == STAR_MISSION_TYPE_SHUTOUT_AGAINST_CAPTAIN) {
                                 if (req[i].target == *captainRow) {
-                                    ct->inGameMissionTracker[i].starMissionStatus = -1;
+                                    ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                                 }
                             } else {
-                                ct->inGameMissionTracker[i].starMissionStatus = -1;
+                                ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                             }
                         }
-                    } else if (type == 8) {
-                        ct->inGameMissionTracker[i].starMissionStatus = -1;
+                    } else if (type == STAR_MISSION_TYPE_COMPLETE_GAME) {
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                     }
                 }
             }
@@ -924,13 +924,13 @@ void starMissionsWholeGame(void) {
             StarMissionRequirement* req = MISSION_REQS(&characterStaticIndexes[ci->trackerIdx]);
             for (i = 0; i < 10; i++) {
                 if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
-                    if (req[i].type == 0x19 && batterStats[p].AtBats != 0) {
+                    if (req[i].type == STAR_MISSION_TYPE_BATTING_AVERAGE && batterStats[p].AtBats != 0) {
                         if ((batterStats[p].Hits * 10) / batterStats[p].AtBats >= req[i].target) {
-                            ct->inGameMissionTracker[i].starMissionStatus = -1;
+                            ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                         }
                     }
-                    if (req[i].type == 0x1A && batterStats[p].Strikeouts == 0) {
-                        ct->inGameMissionTracker[i].starMissionStatus = -1;
+                    if (req[i].type == STAR_MISSION_TYPE_NO_STRIKEOUTS && batterStats[p].Strikeouts == 0) {
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                     }
                 }
             }
@@ -941,8 +941,8 @@ void starMissionsWholeGame(void) {
             ChallengeTrackingStruct* ct = MISSION_TRACKER(mvp);
             StarMissionRequirement* req = MISSION_REQS(mvp);
             for (i = 0; i < 10; i++) {
-                if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 1) {
-                    ct->inGameMissionTracker[i].starMissionStatus = -1;
+                if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == STAR_MISSION_TYPE_WIN_AS_MVP) {
+                    ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                 }
             }
             for (p = 0; p < 9; p++) {
@@ -950,9 +950,9 @@ void starMissionsWholeGame(void) {
                 ct = MISSION_TRACKER(ci);
                 req = MISSION_REQS(&characterStaticIndexes[ci->trackerIdx]);
                 for (i = 0; i < 10; i++) {
-                    if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == 0 &&
+                    if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && req[i].type == STAR_MISSION_TYPE_WIN_AT_STADIUM &&
                         g_d_GameSettings.StadiumID == req[i].target) {
-                        ct->inGameMissionTracker[i].starMissionStatus = -1;
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                     }
                 }
             }
@@ -962,8 +962,8 @@ void starMissionsWholeGame(void) {
                 ChallengeTrackingStruct* ct = MISSION_TRACKER(ci);
                 StarMissionRequirement* req = MISSION_REQS(&characterStaticIndexes[ci->trackerIdx]);
                 for (i = 0; i < 10; i++) {
-                    if (ct->inGameMissionTracker[i].starMissionStatus == -1 && (req[i].flags & 1)) {
-                        ct->inGameMissionTracker[i].starMissionStatus = 0;
+                    if (ct->inGameMissionTracker[i].starMissionStatus == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY && (req[i].flags & STAR_MISSION_FLAG_REQUIRES_WIN)) {
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                     }
                 }
             }
@@ -976,18 +976,18 @@ void starMissionsWholeGame(void) {
         ChallengeTrackingStruct* ct = MISSION_TRACKER(ci);
         StarMissionRequirement* req = MISSION_REQS(&characterStaticIndexes[ci->trackerIdx]);
         for (i = 0; i < 10; i++) {
-            if (ct->inGameMissionTracker[i].starMissionStatus == -1) {
-                if (req[i].flags & 2) {
+            if (ct->inGameMissionTracker[i].starMissionStatus == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
+                if (req[i].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
                     if (difficulty < 1) {
-                        ct->inGameMissionTracker[i].starMissionStatus = 0;
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                     }
-                } else if (req[i].flags & 4) {
+                } else if (req[i].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
                     if (difficulty < 2) {
-                        ct->inGameMissionTracker[i].starMissionStatus = 0;
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                     }
-                } else if (req[i].flags & 8) {
+                } else if (req[i].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
                     if (difficulty < 3) {
-                        ct->inGameMissionTracker[i].starMissionStatus = 0;
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                     }
                 }
             }
@@ -999,10 +999,10 @@ void starMissionsWholeGame(void) {
         ChallengeTrackingStruct* ct = MISSION_TRACKER(ci);
         StarMissionRequirement* req = MISSION_REQS(&characterStaticIndexes[ci->trackerIdx]);
         for (i = 0; i < 10; i++) {
-            if (ct->inGameMissionTracker[i].starMissionStatus == -1) {
-                if ((req[i].flags & 0x800) && Static_Stats_Tables.captainSelectedID[1] != 9 &&
+            if (ct->inGameMissionTracker[i].starMissionStatus == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
+                if ((req[i].flags & STAR_MISSION_FLAG_BOWSER_UNLOCK) && Static_Stats_Tables.captainSelectedID[1] != CHAR_ID_BOWSER &&
                     starMissionCompletionTracker._16C2 != 0x2A) {
-                    ct->inGameMissionTracker[i].starMissionStatus = 0;
+                    ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
             }
         }
@@ -1036,26 +1036,26 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                 StarMissionRequirement* mreq = &req[i];
                 BOOL done = FALSE;
-                if (mreq->type == 2) {
+                if (mreq->type == STAR_MISSION_TYPE_STAR_CHANCES) {
                     if (g_GameLogic.IsStarChance == 2) {
                         MISSION_ADVANCE(ct, req, i);
                     }
                 } else {
                     u8* batterRow = &characterStaticIndexes[g_Batter.charID].requirementRow;
-                    for (k = 4; k < 13; k++) {
+                    for (k = STAR_MISSION_TYPE_STRIKE_OUT_BATTER; k <= STAR_MISSION_TYPE_CHARGE_PITCHES; k++) {
                         if (mreq->type == k) {
                             switch (k) {
-                            case 4:
+                            case STAR_MISSION_TYPE_STRIKE_OUT_BATTER:
                                 if (result == AT_BAT_RESULT_STRIKEOUT && mreq->target == *batterRow) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 5:
+                            case STAR_MISSION_TYPE_HIT_BATTER_WITH_PITCH:
                                 if (result == AT_BAT_RESULT_HIT_BY_PITCH && mreq->target == *batterRow) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 10:
+                            case STAR_MISSION_TYPE_STRIKEOUTS:
                                 if (result == AT_BAT_RESULT_STRIKEOUT) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= mreq->target) {
@@ -1065,7 +1065,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                 break;
                             }
                             if (done) {
-                                ct->inGameMissionTracker[i].starMissionStatus = -1;
+                                ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                             }
                         }
                     }
@@ -1082,7 +1082,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
             for (i = 0; i < 10; i++) {
                 StarMissionRequirement* mreq = &req[i];
 
-                if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && mreq->type == 0x2B &&
+                if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && mreq->type == STAR_MISSION_TYPE_DOUBLE_PLAY_WITH &&
                     outsBefore + 2 <= outs) {
                     int flags = 0;
                     int m;
@@ -1101,7 +1101,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                         }
                     }
                     if (flags == 0x11) {
-                        ct->inGameMissionTracker[i].starMissionStatus = -1;
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                     }
                 }
             }
@@ -1121,7 +1121,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
         for (i = 0; i < 10; i++) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                 BOOL done = FALSE;
-                if (req[i].type == 2) {
+                if (req[i].type == STAR_MISSION_TYPE_STAR_CHANCES) {
                     if (g_GameLogic.IsStarChance == 3 || g_GameLogic.stadiumStarObtained != 0) {
                         MISSION_ADVANCE(ct, req, i);
                     }
@@ -1139,40 +1139,40 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                     f32 chargeUp = g_Batter.chargeUp;
                     u8 nonCaptainSwing = g_Batter.nonCaptainStarSwingActivated;
 
-                    for (k = 13; k <= 32; k++) {
+                    for (k = STAR_MISSION_TYPE_HOME_RUN_IN_INNING; k <= STAR_MISSION_TYPE_FIELD_BALLS; k++) {
                         if (req[i].type == k) {
                             switch (k) {
-                            case 13:
+                            case STAR_MISSION_TYPE_HOME_RUN_IN_INNING:
                                 if (result == AT_BAT_RESULT_HOME_RUN && inning == req[i].target) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 14:
+                            case STAR_MISSION_TYPE_HOME_RUN_WITH_RBIS:
                                 if (result == AT_BAT_RESULT_HOME_RUN && rbis >= req[i].target) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 15:
-                                if (result >= req[i].target + 6 && result <= AT_BAT_RESULT_HOME_RUN) {
+                            case STAR_MISSION_TYPE_HIT_AT_LEAST_BASES:
+                                if (result >= AT_BAT_RESULT_SINGLE - 1 + req[i].target && result <= AT_BAT_RESULT_HOME_RUN) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 16:
+                            case STAR_MISSION_TYPE_HIT_OFF_PITCHER:
                                 if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN && pitcherChar == req[i].target) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 17:
+                            case STAR_MISSION_TYPE_HOME_RUN_OFF_PITCHER:
                                 if (result == AT_BAT_RESULT_HOME_RUN && req[i].target == pc->requirementRow) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 18:
+                            case STAR_MISSION_TYPE_RBI_OFF_PITCHER:
                                 if (rbis != 0 && req[i].target == pc->requirementRow) {
                                     done = TRUE;
                                 }
                                 break;
-                            case 19:
+                            case STAR_MISSION_TYPE_HITS:
                                 if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
@@ -1180,10 +1180,10 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 20:
-                            case 21:
+                            case STAR_MISSION_TYPE_BUNTS:
+                            case STAR_MISSION_TYPE_BUNT_FORCES_IN_RUN:
                                 if (result == AT_BAT_RESULT_BUNT) {
-                                    if (k == 21) {
+                                    if (k == STAR_MISSION_TYPE_BUNT_FORCES_IN_RUN) {
                                         if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total >
                                                 runsBefore &&
                                             lastRunnerStatus != RUNNER_STATUS_NONE && lastRunnerForced != 0) {
@@ -1200,7 +1200,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 22:
+                            case STAR_MISSION_TYPE_RBIS:
                                 if (rbis != 0) {
                                     ct->inGameMissionTracker[i].starMissionStatus += rbis;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
@@ -1208,7 +1208,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 23:
+                            case STAR_MISSION_TYPE_HOME_RUNS:
                                 if (result == AT_BAT_RESULT_HOME_RUN) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
@@ -1216,19 +1216,19 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 30:
+                            case STAR_MISSION_TYPE_HOME_RUN_WITH_TEAMMATE:
                                 if (result == AT_BAT_RESULT_HOME_RUN) {
                                     for (j = 0; j < 9; j++) {
                                         if (req[i].target ==
                                                 characterStaticIndexes[roster[j].stats.CharID].requirementRow &&
                                             bs[j].HomeRuns != 0) {
-                                            ct->inGameMissionTracker[i].starMissionStatus = -1;
+                                            ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                                             break;
                                         }
                                     }
                                 }
                                 break;
-                            case 24:
+                            case STAR_MISSION_TYPE_STAR_SWING_RBIS:
                                 if (starSwing != 0 && rbis != 0) {
                                     ct->inGameMissionTracker[i].starMissionStatus += rbis;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
@@ -1236,7 +1236,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 27:
+                            case STAR_MISSION_TYPE_CHARGE_HITS:
                                 if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN && hitType == BAT_CONTACT_TYPE_CHARGE && chargeUp >= 1.0f &&
                                     nonCaptainSwing == 0) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
@@ -1245,13 +1245,13 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 28:
+                            case STAR_MISSION_TYPE_HOME_RUN_WITH_DIDDY_AND_DIXIE_ON_BASE:
                                 if (result == AT_BAT_RESULT_HOME_RUN) {
                                     int count = 0;
                                     int r;
                                     for (r = 1; r < 4; r++) {
                                         if (g_Runners[r].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
-                                            (g_Runners[r].charID == 3 || g_Runners[r].charID == 0x27)) {
+                                            (g_Runners[r].charID == CHAR_ID_DIDDY || g_Runners[r].charID == CHAR_ID_DIXIE)) {
                                             count++;
                                         }
                                     }
@@ -1260,7 +1260,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     }
                                 }
                                 break;
-                            case 29:
+                            case STAR_MISSION_TYPE_BUNT_HITS:
                                 if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN && hitType == BAT_CONTACT_TYPE_BUNT) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
@@ -1270,7 +1270,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                 break;
                             }
                             if (done) {
-                                ct->inGameMissionTracker[i].starMissionStatus = -1;
+                                ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                             }
                         }
                     }
@@ -1287,9 +1287,9 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                 ChallengeTrackingStruct* rct = MISSION_TRACKER(rc);
                 StarMissionRequirement* rreq = MISSION_REQS(rc);
                 for (i = 0; i < 10; i++) {
-                    if (rct->inGameMissionTracker[i].starMissionStatus >= 0 && rreq[i].type == 0x1E &&
+                    if (rct->inGameMissionTracker[i].starMissionStatus >= 0 && rreq[i].type == STAR_MISSION_TYPE_HOME_RUN_WITH_TEAMMATE &&
                         rreq[i].target == characterStaticIndexes[g_Batter.charID].requirementRow && bs[j].HomeRuns != 0) {
-                        rct->inGameMissionTracker[i].starMissionStatus = -1;
+                        rct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                     }
                 }
             }
@@ -1310,21 +1310,21 @@ void challenge_postPitchStarMissionTracking(void) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                 StarMissionRequirement* mreq = &req[i];
                 BOOL done = FALSE;
-                if (mreq->type == 3) {
+                if (mreq->type == STAR_MISSION_TYPE_STAR_PITCH_AND_STAR_SWING) {
                     if (g_Pitcher.starPitchType != 0) {
                         ct->inGameMissionTracker[i].starMissionStatus |= 1;
                         if (ct->inGameMissionTracker[i].starMissionStatus == 0x11) {
-                            ct->inGameMissionTracker[i].starMissionStatus = -1;
+                            ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                         }
                     }
                 } else {
                     int k;
                     u8 starPitch = g_Pitcher.starPitchType;
                     u8 chargePitch = g_Pitcher.ChargePitchType;
-                    for (k = 4; k < 13; k++) {
+                    for (k = STAR_MISSION_TYPE_STRIKE_OUT_BATTER; k <= STAR_MISSION_TYPE_CHARGE_PITCHES; k++) {
                         if (mreq->type == k) {
                             switch (k) {
-                            case 11:
+                            case STAR_MISSION_TYPE_STAR_PITCHES:
                                 if (starPitch != 0) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= mreq->target) {
@@ -1332,7 +1332,7 @@ void challenge_postPitchStarMissionTracking(void) {
                                     }
                                 }
                                 break;
-                            case 12:
+                            case STAR_MISSION_TYPE_CHARGE_PITCHES:
                                 if (chargePitch == 3) {
                                     ct->inGameMissionTracker[i].starMissionStatus++;
                                     if (ct->inGameMissionTracker[i].starMissionStatus >= mreq->target) {
@@ -1342,7 +1342,7 @@ void challenge_postPitchStarMissionTracking(void) {
                                 break;
                             }
                             if (done) {
-                                ct->inGameMissionTracker[i].starMissionStatus = -1;
+                                ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                             }
                         }
                     }
@@ -1360,17 +1360,17 @@ void challenge_postPitchStarMissionTracking(void) {
         u8 stadiumStar = g_GameLogic.stadiumStarObtained;
         for (i = 0; i < 10; i++) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
-                if (req[i].type == 3 && starSwing != 0) {
+                if (req[i].type == STAR_MISSION_TYPE_STAR_PITCH_AND_STAR_SWING && starSwing != 0) {
                     ct->inGameMissionTracker[i].starMissionStatus |= 0x10;
                     if (ct->inGameMissionTracker[i].starMissionStatus == 0x11) {
-                        ct->inGameMissionTracker[i].starMissionStatus = -1;
+                        ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                     }
                 }
-                if (req[i].type == 2) {
+                if (req[i].type == STAR_MISSION_TYPE_STAR_CHANCES) {
                     if (starChance == 3 || stadiumStar != 0) {
                         ct->inGameMissionTracker[i].starMissionStatus++;
                         if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
-                            ct->inGameMissionTracker[i].starMissionStatus = -1;
+                            ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                         }
                     }
                 }
@@ -1403,13 +1403,13 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
 
     switch (missionType) {
     case 0:
-        QUANTITY_SIMPLE(0x1F)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_NOTE_BLOCK_HITS)
         break;
     case 1:
-        QUANTITY_SIMPLE(0x20)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_FIELD_BALLS)
         break;
     case 3:
-        QUANTITY_SIMPLE(0x25)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_37)
         break;
     case 2:
         ct = &starMissionCompletionTracker.characters[trackerIdx];
@@ -1420,17 +1420,17 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
             for (i = 0; i < 10; i++) {
                 if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                     switch (req[i].type) {
-                    case 0x21:
+                    case STAR_MISSION_TYPE_BIG_PLAYS:
                         MISSION_ADVANCE(ct, req, i);
                         break;
-                    case 0x22:
+                    case STAR_MISSION_TYPE_BIG_PLAY_CATCHES:
                         if (contact == BALL_RESULT_TYPE_CAUGHT) {
                             MISSION_ADVANCE(ct, req, i);
                         }
                         break;
-                    case 0x23:
+                    case STAR_MISSION_TYPE_UNK_35:
                         break;
-                    case 0x24:
+                    case STAR_MISSION_TYPE_UNK_36:
                         if (starSwing == 5 || starSwing == 6) {
                             MISSION_ADVANCE(ct, req, i);
                         }
@@ -1441,7 +1441,7 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         }
         break;
     case 4:
-        QUANTITY_SIMPLE(0x23)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_35)
         break;
     case 5: {
         int contact;
@@ -1451,7 +1451,7 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         for (i = 0; i < 10; i++) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                 switch (req[i].type) {
-                case 0x26:
+                case STAR_MISSION_TYPE_UNK_38:
                     if (contact == BALL_RESULT_TYPE_CAUGHT) {
                         MISSION_ADVANCE(ct, req, i);
                     }
@@ -1462,7 +1462,7 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         break;
     }
     case 6:
-        QUANTITY_SIMPLE(0x27)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_39)
         break;
     case 7:
         ct = &starMissionCompletionTracker.characters[trackerIdx];
@@ -1472,9 +1472,9 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
             for (i = 0; i < 10; i++) {
                 if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                     switch (req[i].type) {
-                    case 0x28:
+                    case STAR_MISSION_TYPE_CHEMISTRY_THROW_TO:
                         if (req[i].target == characterStaticIndexes[*thrownTo].requirementRow) {
-                            ct->inGameMissionTracker[i].starMissionStatus = -1;
+                            ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
                         }
                         break;
                     }
@@ -1483,7 +1483,7 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         }
         break;
     case 8:
-        QUANTITY_SIMPLE(0x29)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_LASER_THROW_OUTS)
         break;
     case 9: {
         int contact;
@@ -1493,7 +1493,7 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         for (i = 0; i < 10; i++) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
                 switch (req[i].type) {
-                case 0x2A:
+                case STAR_MISSION_TYPE_UNK_42:
                     if (contact == BALL_RESULT_TYPE_CAUGHT) {
                         MISSION_ADVANCE(ct, req, i);
                     }
@@ -1504,13 +1504,13 @@ void starMissionsQuantityBased(int missionType, int rosterLocation) {
         break;
     }
     case 10:
-        QUANTITY_SIMPLE(0x2C)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_STOLEN_BASES)
         break;
     case 11:
-        QUANTITY_SIMPLE(0x2D)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_RUNS_SCORED)
         break;
     case 12:
-        QUANTITY_SIMPLE(0x2E)
+        QUANTITY_SIMPLE(STAR_MISSION_TYPE_BODY_CHECKS)
         break;
     }
 #undef QUANTITY_SIMPLE
@@ -1533,45 +1533,45 @@ void starMissionsMinigamesTotalPoints(void) {
     for (j = 0; j < 10; j++) {
         s8 status = ct->inGameMissionTracker[j].starMissionStatus;
 
-        if (status == -2) {
+        if (status == STAR_MISSION_TRACKING_COMPLETED_SAVED) {
             continue;
         }
-        if (status == -1) {
-            if (req[j].flags & 2) {
+        if (status == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
+            if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
                 if (difficulty < 1) {
-                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                    ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
-            } else if (req[j].flags & 4) {
+            } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
                 if (difficulty < 2) {
-                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                    ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
-            } else if (req[j].flags & 8) {
+            } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
                 if (difficulty < 3) {
-                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                    ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
             }
-            if (req[j].flags & 1) {
+            if (req[j].flags & STAR_MISSION_FLAG_REQUIRES_WIN) {
                 if (g_Minigame.playerSlots.rank[slot] != 1) {
-                    ct->inGameMissionTracker[j].starMissionStatus = 0;
+                    ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
             }
             continue;
         }
 
-        if (req[j].flags & 2) {
+        if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
             if (difficulty < 1) {
                 continue;
             }
-        } else if (req[j].flags & 4) {
+        } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
             if (difficulty < 2) {
                 continue;
             }
-        } else if (req[j].flags & 8) {
+        } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
             if (difficulty < 3) {
                 continue;
             }
         }
-        if ((req[j].flags & 1) && g_Minigame.playerSlots.rank[slot] != 1) {
+        if ((req[j].flags & STAR_MISSION_FLAG_REQUIRES_WIN) && g_Minigame.playerSlots.rank[slot] != 1) {
             continue;
         }
         {
@@ -1579,7 +1579,7 @@ void starMissionsMinigamesTotalPoints(void) {
             BOOL modeMatches = FALSE;
 
             for (k = 0; k < 7; k++) {
-                if (req[j].flags & (0x10 << k)) {
+                if (req[j].flags & STAR_MISSION_FLAG_MINI_GAME(k)) {
                     anyModeFlag = TRUE;
                     if (mode == k) {
                         modeMatches = TRUE;
@@ -1592,25 +1592,25 @@ void starMissionsMinigamesTotalPoints(void) {
         }
 
         switch (req[j].type) {
-        case 0x2F:
+        case STAR_MISSION_TYPE_MINIGAME_RANK:
             if (g_Minigame.playerSlots.rank[slot] <= req[j].target) {
-                ct->inGameMissionTracker[j].starMissionStatus = -1;
+                ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
             }
             break;
-        case 0x30: {
+        case STAR_MISSION_TYPE_MINIGAME_POINTS: {
             int target = req[j].target;
 
-            if (mode == 1 || mode == 3) {
+            if (mode == MINI_GAME_ID_BOBOMB_DERBY || mode == MINI_GAME_ID_BARREL_BATTER) {
                 target *= 100;
-            } else if (mode == 0 || mode == 2) {
+            } else if (mode == MINI_GAME_ID_NONE || mode == MINI_GAME_ID_WALLBALL) {
                 target *= 10;
             }
             if (g_Minigame.miniGameCurrentPoints[slot] >= target) {
-                ct->inGameMissionTracker[j].starMissionStatus = -1;
+                ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
             }
             break;
         }
-        case 0x31: {
+        case STAR_MISSION_TYPE_MINIGAME_BEAT_CHARACTER: {
             int matches = 0;
             int ahead = 0;
 
@@ -1625,13 +1625,13 @@ void starMissionsMinigamesTotalPoints(void) {
                 }
             }
             if (matches != 0 && ahead == matches && g_Minigame.playerSlots.rank[slot] == 1) {
-                ct->inGameMissionTracker[j].starMissionStatus = -1;
+                ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
             }
             break;
         }
-        case 0x36:
-            if (mode == 5 && g_Minigame._1CB1[slot] <= req[j].target) {
-                ct->inGameMissionTracker[j].starMissionStatus = -1;
+        case STAR_MISSION_TYPE_UNK_54:
+            if (mode == MINI_GAME_ID_PIRANHA_PANIC && g_Minigame._1CB1[slot] <= req[j].target) {
+                ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
             }
             break;
         }
@@ -1640,9 +1640,9 @@ void starMissionsMinigamesTotalPoints(void) {
     for (i = 0; i < 54; i++) {
         for (j = 0; j < 10; j++) {
             if (starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus <= -1) {
-                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = -2;
+                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
             } else {
-                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = 0;
+                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
         }
     }
@@ -1680,7 +1680,7 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
 
     switch (missionType) {
     case 0:
-        SPECIAL_LOOP_BEGIN(0x32)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_50)
             if (points >= req[i].target) {
                 found = TRUE;
                 goto missionFound;
@@ -1688,7 +1688,7 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
         SPECIAL_LOOP_END
         break;
     case 1:
-        SPECIAL_LOOP_BEGIN(0x33)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_51)
             if (barrelsHit != 0) {
                 SPECIAL_ADVANCE
             } else {
@@ -1697,33 +1697,33 @@ void starMissionsMinigamesSpecialAction(int missionType, int points, int barrels
         SPECIAL_LOOP_END
         break;
     case 2:
-        SPECIAL_LOOP_BEGIN(0x34)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_52)
             if (barrelsHit >= 15) {
                 SPECIAL_ADVANCE
             }
         SPECIAL_LOOP_END
         break;
     case 3:
-        SPECIAL_LOOP_BEGIN(0x35)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_53)
             if (points == 2) {
                 SPECIAL_ADVANCE
             }
         SPECIAL_LOOP_END
         break;
     case 5:
-        SPECIAL_LOOP_BEGIN(0x37)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_55)
             if (points == 4) {
                 SPECIAL_ADVANCE
             }
         SPECIAL_LOOP_END
         break;
     case 6:
-        SPECIAL_LOOP_BEGIN(0x38)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_56)
             SPECIAL_ADVANCE
         SPECIAL_LOOP_END
         break;
     case 7:
-        SPECIAL_LOOP_BEGIN(0x39)
+        SPECIAL_LOOP_BEGIN(STAR_MISSION_TYPE_UNK_57)
             if (points == req[i].target) {
                 found = TRUE;
                 goto missionFound;

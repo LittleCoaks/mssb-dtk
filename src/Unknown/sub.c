@@ -205,29 +205,29 @@ BOOL challengeStarRelatedInd(int charID, int mission) {
     s8 status = starMissionCompletionTracker.characters[charID].inGameMissionTracker[mission].starMissionStatus;
     s16 flags;
 
-    if (status == (s8)STAR_MISSION_TRACKING_COMPLETED_SAVED) {
+    if (status == STAR_MISSION_TRACKING_COMPLETED_SAVED) {
         return TRUE;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE &&
-        status == (s8)STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
+        status == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
         flags = starMissionRequirementsTable[row][mission].flags;
-        if (flags & 1) {
+        if (flags & STAR_MISSION_FLAG_REQUIRES_WIN) {
             return FALSE;
         }
-        if (flags & 2) {
+        if (flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
             if (g_d_GameSettings.challengeDifficulty < 1) {
                 return FALSE;
             }
-        } else if (flags & 4) {
+        } else if (flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
             if (g_d_GameSettings.challengeDifficulty < 2) {
                 return FALSE;
             }
-        } else if (flags & 8) {
+        } else if (flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
             if (g_d_GameSettings.challengeDifficulty < 3) {
                 return FALSE;
             }
         }
-        if (flags & 0x800) {
+        if (flags & STAR_MISSION_FLAG_BOWSER_UNLOCK) {
             if (starMissionCompletionTracker._44EF == 0 && starMissionCompletionTracker._44F0 == 0 &&
                 Static_Stats_Tables.captainSelectedID[1] != CHAR_ID_BOWSER) {
                 return FALSE;

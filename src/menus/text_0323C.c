@@ -1724,7 +1724,7 @@ void cssUnloadScreen(void) {
         if (starMissionCompletionTracker.resumeSavedTeams == 0) {
             s32 i;
 
-            if (starMissionCompletionTracker.captainCharID == 9 && starMissionCompletionTracker._44EF != 0) {
+            if (starMissionCompletionTracker.captainCharID == CHAR_ID_BOWSER && starMissionCompletionTracker._44EF != 0) {
                 u8 *cur = (u8 *)&cursorPositions;
                 u8 *info = lineUpInfoStruct;
 

@@ -20,11 +20,13 @@ typedef enum _CHARACTER_VARIANT_CLASSIFICATION {
     CHARACTER_VARIANT_CLASSIFICATION_SECONDARY_VARIANT,
 } CHARACTER_VARIANT_CLASSIFICATION;
 
+// starMissionStatus: values >= 0 are progress counters (bit 0 / bit 4 also track the two halves of
+// STAR_MISSION_TYPE_STAR_PITCH_AND_STAR_SWING); negative values mean completed.
 typedef enum _STAR_MISSION_TRACKING {
+    STAR_MISSION_TRACKING_COMPLETED_SAVED = -2, // completed in an earlier game and written to the save
+    STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY = -1, // completed in this game; kept or reset by the game result
     STAR_MISSION_TRACKING_NOT_COMPLETED = 0,
     STAR_MISSION_TRACKING_TRACK1_COMPLETION = 1,
-    STAR_MISSION_TRACKING_COMPLETED_SAVED = 254,
-    STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY = 255,
 } STAR_MISSION_TRACKING;
 
 typedef enum _CHALLENGE_RECRUITMENT_CD {

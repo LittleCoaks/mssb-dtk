@@ -1924,7 +1924,7 @@ void startChallengeModeMatch(void) {
             initializeARunner();
             g_d_GameSettings.home_AwaySetting ^= 1;
         } else {
-            if (Static_Stats_Tables.captainSelectedID[1] == 9 || starMissionCompletionTracker._16C2 == 0x2A) {
+            if (Static_Stats_Tables.captainSelectedID[1] == CHAR_ID_BOWSER || starMissionCompletionTracker._16C2 == 0x2A) {
                 g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty * 3 + 1];
             } else {
                 g_Scores.inningLimit = challengeInnings[g_d_GameSettings.challengeDifficulty * 3];
@@ -1935,7 +1935,7 @@ void startChallengeModeMatch(void) {
     }
     for (i = 0; i < 54; i++) {
         for (j = 0; j < 10; j++) {
-            if ((s8)starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus != -2) {
+            if (starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus != STAR_MISSION_TRACKING_COMPLETED_SAVED) {
                 starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
         }
