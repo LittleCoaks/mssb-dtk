@@ -597,3 +597,54 @@ does the engine's bone blending), `fn_800B2D5C` (a 0x74-byte loop, perhaps `ACTS
 `GEOGetPalette` takes a name, this one takes the loaded file), and the `DisplayObject.c` placeholders
 (`fn_800B9950` writes two floats under a mask like `DOOverrideTextureState`, but with a different
 signature).
+
+### Summary of the charPipeline pass (2026-10-12)
+
+Main-DOL linked (`Matching`) units 280 -> 257, no function score fell (the 22 functions that had a
+stub or no C and are now 100%, or better, are listed in the commit messages). Old unit -> new unit:
+
+| new unit | status | replaces |
+|---|---|---|
+| `C3/texPalette/texPalette.c`, `C3/structures/List.c`, `dolphinString.c`, `Tree.c` | all `Matching` | `File_0x80091450` |
+| `Unknown/sound.c` | `Matching` | `File_0x800b07fc`, `0834`, `0938`, `fn_800B0934` |
+| `Unknown/sprt.c` | `NonMatching` | `File_0x800b0d68`, `12a4`, `1314`, `1350`, `1500`, `2160` + 15 gap functions |
+| `C3/actor/act.c` | `NonMatching` | `File_0x800b2ac8`, `2b4c`, `2b74`, `2c44`, `2cbc`, `34b4`, `37a4`, `4048`, `4084`, `43a0`, `472c`, `4908` (first part) + gaps |
+| `C3/actor/actorAnim.c` | `Matching` | `File_0x800b4908` (second part) |
+| `C3/anim/animBank.c` | `Matching` | `File_0x800b4e9c`, `4f9c`, `4fec`, `508c` |
+| `C3/anim/animPipe.c` | `NonMatching` | `File_0x800b516c`, `560c`, `5da8`, `63dc`, `6e0c`, `71c0`, `7718`, `79a0` |
+| `C3/actor/boneAnim.c` | `NonMatching` | `File_0x800b79d0` |
+| `C3/control/frustum.c` | `NonMatching` | first 0x720 bytes of `C3/control/control.c` |
+| `C3/control/control.c` | `NonMatching` | (shrunk to `0x800B845C-0x800B993C`) |
+| `C3/geoPalette/DisplayObject.c`, `normalTable.c` | `Matching` | `Unknown/DisplayObject.c` (moved), new data-only unit |
+| `C3/geoPalette/geoPalette.c` | `NonMatching` | `File_0x800bcb44`, `bcd60`, `bce38`, `bcef8`, `bd190` (first part) + gap |
+| `C3/skinning/GQRSetup.c` | `Matching` | `File_0x800bd190` (second part), `bd208`, `bd240`, `bd278` |
+| `C3/light/light.c` | `Matching` | `File_0x800bd2b0`, `bd300`, `bd3a0`, `bd3cc`, `bd3ec` |
+| `Unknown/File_0x800bde8c.c` | `NonMatching` | `File_0x800bea04`, `beb3c`, `bf008`, `bf038` + 8 gap functions |
+| `C3/skinning/SKNControl.c`, `SKNAsm.c` | `NonMatching` | `File_0x800bf074`, `bf1a4`, `bf204`, `bf2a8`, `bf89c`, `bfe90` |
+| `Unknown/File_0x800c0770.c` | `NonMatching` | tail of `File_0x800bfe90` |
+
+`Matching` units that became part of a `NonMatching` unit: `ProcessActorBonesForShadows`,
+`fn_800B2B4C`/`54`/`6C`, `callDSInsertListObject`, `ACTSort`, `maybeBallRelated` (act.c); `ANIMBind`
+(animPipe.c); `convertGeometryAndSknHeader`, `AdjustGEOPalettePointers`, `UpdateTexturePalettePointers`
+with `fn_800BD1E8` (geoPalette.c); `SKNLoadFile`, the flush/zero helpers, `SKNInit` (SKNControl.c);
+`DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode` with its two helpers
+(sprt.c); `setVectors`, `loadTlutRelated`, the `File_0x800bf038` helpers (`File_0x800bde8c.c`).
+
+Left in `Unknown/` on purpose:
+
+- `File_0x800b0724` (`makeLookAtMatrix`): its own unit by the `.sdata2` hole at `0x803CCF14`; game math,
+  not charPipeline.
+- `File_0x800b0a14` + `File_0x800b0cb8` (draw list, `0x800B0A14-0x800B0D28`): the boundaries on both
+  sides are fixed (sound unit before, sprite unit after) but nothing says whether the seven functions are
+  one unit or two (they share `.data 0x80111300` and `.sbss 0x803CC1B0`, which are globals, not pooled
+  literals); merging would also cost a `Matching` unit.
+- `File_0x800bd8c4` and the unowned `0x800BD478-0x800BD8C4` (the actor-object functions): see the shadow
+  section above.
+- `File_0x800c0770` (`convertTextureHeader`) and the merge sort `fn_800C07BC` (`0x800C07BC-0x800C0A8C`,
+  unowned): no data, and nothing ties them to a neighbour.
+
+Open questions: who defines `.sbss 0x803CC1E8` (written by `act.c`, read by `control.c`); the real file
+name of the frustum unit and of the six skinning kernels; whether the draw-list functions are one unit; whether
+`0x800BD478-0x800BD8C4` belongs to `File_0x800bd8c4.c`; the `.bss` of the sound heap, sprite buffers and
+`drawShadows` (low `.bss`, unowned auto object) would need the whole auto object split before any
+unit can claim it.
