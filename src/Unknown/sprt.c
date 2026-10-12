@@ -1,4 +1,30 @@
-#include "Unknown/File_0x800b2160.h"
+#include "Unknown/sprt.h"
+
+void AllocateSprite(void) {
+    return;
+}
+
+void DrawNullSprite(void* vtx, s32 count) {
+    DrawSprite(0x98, vtx, count, NULL, 0, 0);
+}
+
+void renderSprite(void* vtx, void* tex, u16 sMax, u16 tMax) {
+    DrawSprite(0x80, vtx, 4, tex, sMax, tMax);
+}
+
+typedef struct {
+    /*0x00*/ u8 _00[8];
+    /*0x08*/ u16 arg5;
+    /*0x0A*/ u16 arg4;
+} SpriteTexObj;
+
+void DrawSprite_TexObj(void* vtx, void* texObj, s32 arg2) {
+    DrawSprite(0x80, vtx, 4, texObj, ((SpriteTexObj*)texObj)->arg4, ((SpriteTexObj*)texObj)->arg5);
+}
+
+void DrawSprite(u32 flags, void* vtx, s32 count, void* texObj, u16 arg4, u16 arg5) {
+    return;
+}
 
 typedef struct SpriteRenderState {
     /*0x00*/ u8 _00[0x78];

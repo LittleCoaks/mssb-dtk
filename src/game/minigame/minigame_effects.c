@@ -18,7 +18,7 @@
 #include "Unknown/File_0x8001b728.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800b2160.h"
+#include "Unknown/sprt.h"
 #include "C3/control.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/GX/GXFifo.h"

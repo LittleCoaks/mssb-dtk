@@ -514,3 +514,31 @@ attempt after the register order of the parameter reuse): the default config is 
 fallback, `sndInit` takes the config fields in order, and the failure path is `OSPanic("sound.c", 278, ...)`.
 `fn_800B0934` is the empty free hook that `soundQuit` installs. Two `Matching` units became one; linked
 DOL units 265 -> 264.
+
+### The sprite renderer: `Unknown/sprt.c` (`0x800B0D28-0x800B2AC8`)
+
+Six `Unknown` units and fourteen unowned functions (`fn_800B0D28`, `fn_800B0D38`, `fn_800B117C`,
+`fn_800B1188`, `fn_800B12DC`, `fn_800B1388`, `fn_800B13C0`, `fn_800B1468`, `fn_800B1EBC`, `fn_800B2240`,
+`fn_800B24D4`, `fn_800B251C`, `fn_800B27A4`, `fn_800B27DC`, `fn_800B2854`) form one unit, again named by
+its own `OSPanic` string: `DrawSprite` and `fn_800B1EBC` both pass `"sprt.c"` (`.sdata2 0x803CCF40`)
+with the message `"SPRITE BUFFER OVERFLOW\n"` (`.rodata 0x800E7D10`).
+
+- One `.sdata2` pool spans the whole range: `1.0f` (`0x803CCF30`, `fn_800B1188`), the int-to-float
+  magic double (`0x803CCF38`, `fn_800B27DC`/`fn_800B2854`), the file name, `0.0f` (`0x803CCF48`, shared by
+  `DrawSprite` and `fn_800B2240`) and the unsigned magic double (`0x803CCF50`, `DrawSprite`/`fn_800B1EBC`).
+  `fn_800B2240` and the functions after it share these with `DrawSprite`, so there is no unit boundary in
+  `0x800B1500-0x800B2AC8`; the start is fixed from below by the draw-list unit's last function
+  (`RunDrawScripts_with_stack_variables`, ends `0x800B0D28`) and `fn_800B0D28`/`fn_800B0D38` (the
+  per-slot setters for `.data 0x80111340` and `.sbss 0x803CC1D8`), which belong to the sprite arrays.
+- `.sdata 0x803CBB18-0x803CBB48` (the sprite buffer pointers, `lbl_803CBB34` is read by nearly every
+  function), `.sbss 0x803CC1C0-0x803CC1E8` and `.data 0x80111340-0x80111640` (the per-slot tables; their
+  ends meet `act.c`'s `0x80111640`) are used by these functions only.
+- The sprite buffers in `.bss` (`0x802FE8B8-0x803009F8`, and `0x803C8A24`) are not claimed: like the
+  sound heap, they sit in the big unowned `.bss` objects that dtk cannot split without a cycle.
+
+`NonMatching`: `AllocateSprite` and `DrawSprite` are stubs and fourteen functions have no C. Four
+previously `Matching` units (`DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj` and the three
+`setTextRenderingMode` helpers) were absorbed; linked DOL units 264 -> 260. They were only `Matching`
+because nothing else of the unit was in front of them; the pool evidence makes them part of it.
+The draw-list functions before it (`0x800B0A14-0x800B0D28`) share `.data 0x80111300` and `.sbss
+0x803CC1B0` among themselves but no pool with `sprt.c`, so they were left as they are.

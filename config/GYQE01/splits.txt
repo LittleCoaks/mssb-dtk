@@ -1595,33 +1595,15 @@ Unknown/File_0x800b0cb8.c:
 	extabindex  start:0x800088F8 end:0x80008904
 	.text       start:0x800B0CB8 end:0x800B0D28
 
-Unknown/File_0x800b0d68.c:
-	extab       start:0x80006918 end:0x80006920
-	extabindex  start:0x80008904 end:0x80008910
-	.text       start:0x800B0D68 end:0x800B117C
-
-Unknown/File_0x800b12a4.c:
-	extab       start:0x80006928 end:0x80006930
-	extabindex  start:0x8000891C end:0x80008928
-	.text       start:0x800B12A4 end:0x800B12DC
-
-Unknown/File_0x800b1314.c:
-	extab       start:0x80006938 end:0x80006940
-	extabindex  start:0x80008934 end:0x80008940
-	.text       start:0x800B1314 end:0x800B1350
-
-Unknown/File_0x800b1350.c:
-	extab       start:0x80006940 end:0x80006948
-	extabindex  start:0x80008940 end:0x8000894C
-	.text       start:0x800B1350 end:0x800B1388
-
-Unknown/File_0x800b1500.c:
-	extab       start:0x80006960 end:0x80006968
-	extabindex  start:0x80008970 end:0x8000897C
-	.text       start:0x800B1500 end:0x800B1EBC
-
-Unknown/File_0x800b2160.c:
-	.text       start:0x800B2160 end:0x800B2240
+Unknown/sprt.c:
+	extab       start:0x80006918 end:0x80006990
+	extabindex  start:0x80008904 end:0x800089B8
+	.text       start:0x800B0D28 end:0x800B2AC8
+	.rodata     start:0x800E7D10 end:0x800E7D28
+	.data       start:0x80111340 end:0x80111640
+	.sdata      start:0x803CBB18 end:0x803CBB48
+	.sbss       start:0x803CC1C0 end:0x803CC1E8
+	.sdata2     start:0x803CCF30 end:0x803CCF58
 
 C3/actor/act.c:
 	extab       start:0x80006990 end:0x80006A28
