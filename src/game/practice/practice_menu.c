@@ -715,7 +715,6 @@ void practiceSimulation(void) {
 #pragma dont_inline on
 // .text:0x000B43E8 size:0x444
 void loadPracticeScreen(void) {
-    int i;
     int team;
     int slot;
     int row;
@@ -726,29 +725,12 @@ void loadPracticeScreen(void) {
         g_GameLogic.battingOrderAndPositionMapping[0][0][0] = constantList[0];
         g_GameLogic.battingOrderAndPositionMapping[1][0][0] = constantList[0];
         for (team = 0; team < 2; team++) {
-            u8* lineUp = (u8*)lineUpInfoStruct + team * 0x24;
-            int* game = &g_GameLogic.battingOrderAndPositionMapping[team][1][0];
-            u8* values = constantList;
-
-            for (i = 0; i < 3; i++) {
-                lineUp[0] = 3 * i;
-                lineUp[1] = 3 * i;
-                lineUp[2] = 3 * i;
-                lineUp[4] = 3 * i + 1;
-                lineUp[5] = 3 * i + 1;
-                lineUp[6] = 3 * i + 1;
-                lineUp[8] = 3 * i + 2;
-                lineUp[9] = 3 * i + 2;
-                lineUp[10] = 3 * i + 2;
-                game[0] = values[9];
-                game[1] = values[9];
-                game[2] = values[10];
-                game[3] = values[10];
-                game[4] = values[11];
-                game[5] = values[11];
-                lineUp += 12;
-                game += 6;
-                values += 3;
+            for (slot = 0; slot < 9; slot++) {
+                g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = constantList[9 + slot];
+                g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = constantList[9 + slot];
+                lineUpInfoStruct[team][slot][0] = slot;
+                lineUpInfoStruct[team][slot][1] = slot;
+                lineUpInfoStruct[team][slot][2] = slot;
             }
         }
         for (team = 0; team < 2; team++) {
@@ -777,15 +759,15 @@ void loadPracticeScreen(void) {
     case 2:
         if ((s8)lbl_803C6CF8[0x715] == 1) {
             fn_800111B4(screenTextArray.textBanks[5]);
-            sound_crowd_EffectsStruct._2C = 0;
             g_GameLogic._125 = g_GameLogic._125 + 1;
+            sound_crowd_EffectsStruct._2C = 0;
             fn_8000F4B8(g_Practice.homeAwayByte, -1, -1, -1);
         }
         break;
     case 3:
         if (fn_3_90C14(0)) {
-            g_GameLogic._125 = g_GameLogic._125 + 1;
             sound_crowd_EffectsStruct._2C = 0;
+            g_GameLogic._125 = g_GameLogic._125 + 1;
         }
         break;
     default:
