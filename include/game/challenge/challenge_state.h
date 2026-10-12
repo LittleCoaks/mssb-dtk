@@ -3,6 +3,8 @@
 
 #include "mssbTypes.h"
 
+#define STAR_MISSIONS_PER_CHARACTER 10
+
 typedef enum _CHALLENGE_CAPTAIN {
     CHALLENGE_CAPTAIN_MARIO,
     CHALLENGE_CAPTAIN_PEACH,
@@ -60,8 +62,8 @@ typedef struct _ChallengeTrackingStruct {
     /*0x006*/ u8 scoutFlagsAchieved;
     /*0x007*/ u8 _7;
     /*0x008*/ u8 _8;
-    /*0x009*/ starMissionTrackingPair inGameMissionTracker[10];
-    /*0x01D*/ starMissionTrackingPair saveFileMissionTracker[10];
+    /*0x009*/ starMissionTrackingPair inGameMissionTracker[STAR_MISSIONS_PER_CHARACTER];
+    /*0x01D*/ starMissionTrackingPair saveFileMissionTracker[STAR_MISSIONS_PER_CHARACTER];
     /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) _31;
     /*0x032*/ u8 _32;
     /*0x033*/ u8 _33;
