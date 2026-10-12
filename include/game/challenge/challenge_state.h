@@ -38,9 +38,21 @@ typedef struct _starMissionTrackingPair {
     /*0x001*/ u8 shownOnPauseMenu;
 } starMissionTrackingPair;
 
+// Per-character scout flag record: seeds the tracker's captain / variant and gives the scout flags
+// needed to recruit the character, by difficulty and captain.
+typedef struct _ScoutFlagTable {
+    /*0x00*/ E(u8, CHALLENGE_CAPTAIN) challengeCaptain;
+    /*0x01*/ E(s8, CHARACTER_VARIANT_CLASSIFICATION) variantClassification;
+    /*0x02*/ u8 _2;
+    /*0x03*/ u8 _3;
+    /*0x04*/ s8 flagsRequired[4][6]; // [difficulty][CHALLENGE_CAPTAIN]
+} ScoutFlagTable; // size: 0x1C
+
+extern ScoutFlagTable scoutFlagTables[55];
+
 // This is pack disabled in ghidra.
 typedef struct _ChallengeTrackingStruct {
-    /*0x000*/ void* scoutFlagPointer;
+    /*0x000*/ ScoutFlagTable* scoutFlagPointer;
     /*0x004*/ E(u8, CHALLENGE_CAPTAIN) challengeCaptain; // Created by retype action
     /*0x005*/ E(s8, CHARACTER_VARIANT_CLASSIFICATION) variantClassification;
     /*0x006*/ u8 scoutFlagsAchieved;

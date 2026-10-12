@@ -738,6 +738,7 @@ Unknown/File_0x8006c48c.c:
 	extab       start:0x800065B0 end:0x800065B8
 	extabindex  start:0x800083E8 end:0x800083F4
 	.text       start:0x8006C48C end:0x8006C5CC
+	.data       start:0x80109420 end:0x8010B4B4
 
 Unknown/File_0x8006c7c4.c:
 	extab       start:0x800065B8 end:0x800065C0

@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-s16 challengeRelated(int charID);
+s16 challenge_getStarRank(int charID);
 
 #endif // !__UNKNOWN_FILE_0X8006CBE4_H_

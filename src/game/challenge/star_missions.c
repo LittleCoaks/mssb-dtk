@@ -1,6 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/challenge/star_missions.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/challenge/star_mission_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "Dolphin/rand.h"
 #include "game/minigame/minigame_models.h"
@@ -14,15 +15,6 @@ typedef struct CharStaticIndex {
 } CharStaticIndex; // size: 0x6
 
 extern CharStaticIndex characterStaticIndexes[54];
-
-typedef struct StarMissionRequirement {
-    /*0x0*/ s16 type;
-    /*0x2*/ s16 target;
-    /*0x4*/ s16 flags;
-    /*0x6*/ s16 _6[2];
-} StarMissionRequirement; // size: 0xA
-
-extern StarMissionRequirement starMissionRequirementsTable[32][10];
 
 typedef struct ScoutPair {
     /*0x0*/ s8 cur;
@@ -54,16 +46,6 @@ typedef struct ScoutState {
 
 extern ScoutState lbl_3_common_bss_37400;
 
-typedef struct ScoutMission {
-    /*0x0*/ s8 chanceA[4];
-    /*0x4*/ s8 chanceB[5];
-    /*0x9*/ s8 reward[4];
-    /*0xD*/ s8 starMission;
-    /*0xE*/ u8 _E;
-} ScoutMission; // size: 0xF
-
-extern ScoutMission scoutMissionTable[13];
-
 typedef struct AnimEntry {
     /*0x00*/ u8 _00[0x26];
     /*0x26*/ u8 _26;
@@ -83,13 +65,7 @@ extern u8 animRelated[0x124];
 #define SCOUT_ROW_A (starMissionCompletionTracker.difficulty)
 #define SCOUT_ROW_B (starMissionCompletionTracker.captain)
 
-typedef struct ScoutFlagTable {
-    /*0x0*/ u8 _0[4];
-    /*0x4*/ s8 max[4][6];
-} ScoutFlagTable;
-
-#define SCOUT_FLAG_MAX(t, rowA, rowB) (((ScoutFlagTable*)(t)->scoutFlagPointer)->max[rowA][rowB])
-#define SCOUT_FLAG_ROWS(t) ((s8(*)[6])((u8*)(t)->scoutFlagPointer + 4))
+#define SCOUT_FLAG_MAX(t, rowA, rowB) ((t)->scoutFlagPointer->flagsRequired[rowA][rowB])
 
 #define MISSION_TRACKER(ci) (&starMissionCompletionTracker.characters[(ci)->trackerIdx])
 #define MISSION_REQS(ci) (starMissionRequirementsTable[(ci)->requirementRow])
@@ -222,7 +198,7 @@ BOOL decideScoutFlagMission(void) {
             idx = pitcher->scoutFlagRelated;
             if (idx != -1) {
                 ChallengeTrackingStruct* t = &cs->characters[idx];
-                s8 max = SCOUT_FLAG_ROWS(t)[rowA][rowB];
+                s8 max = SCOUT_FLAG_MAX(t, rowA, rowB);
                 if (max != 0 && (s8)t->scoutFlagsAchieved < max) {
                     if (shouldScoutMissionBeEnabled(2)) {
                         scout->scoutMissionID = 2;
@@ -251,7 +227,7 @@ BOOL decideScoutFlagMission(void) {
             idx = batter->charIDForScoutFlagMission;
             if (idx != -1) {
                 ChallengeTrackingStruct* t = &cs->characters[idx];
-                s8 max = SCOUT_FLAG_ROWS(t)[rowA][rowB];
+                s8 max = SCOUT_FLAG_MAX(t, rowA, rowB);
                 if (max != 0 && (s8)t->scoutFlagsAchieved < max) {
                     if (shouldScoutMissionBeEnabled(1)) {
                         scout->scoutMissionID = 1;
@@ -662,7 +638,7 @@ void scoutFlag_checkMissionSuccess(void) {
                 }
             }
             t->scoutFlagsAchieved += reward;
-            max = SCOUT_FLAG_ROWS(t)[rowA][rowB];
+            max = SCOUT_FLAG_MAX(t, rowA, rowB);
             if ((s8)t->scoutFlagsAchieved > max) {
                 t->scoutFlagsAchieved = max;
             }

@@ -2,11 +2,6 @@
 #include "Unknown/File_0x8006c9d8.h"
 #include "game/UnknownHomes_Game.h"
 
-typedef struct ScoutFlagTable {
-    /*0x0*/ u8 _0[4];
-    /*0x4*/ s8 required[4][6];
-} ScoutFlagTable;
-
 extern u8 characterStaticIndexes[NUM_CHOOSABLE_CHARACTERS][6];
 
 f32 challengeIntermediateStarBuffs[5][11] = {
@@ -40,8 +35,8 @@ void challenge_checkRecruitment(void) {
         if (recruited == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             continue;
         }
-        if ((s8)t->scoutFlagsAchieved != ((ScoutFlagTable*)t->scoutFlagPointer)->required[diff][cap] ||
-            ((ScoutFlagTable*)t->scoutFlagPointer)->required[diff][cap] == 0) {
+        if ((s8)t->scoutFlagsAchieved != t->scoutFlagPointer->flagsRequired[diff][cap] ||
+            t->scoutFlagPointer->flagsRequired[diff][cap] == 0) {
             continue;
         }
         if ((int)cs->opponentCaptainCharID == CHAR_ID_BOWSERJR) {

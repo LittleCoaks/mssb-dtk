@@ -2,7 +2,7 @@
 #include "game/UnknownHomes_Game.h"
 
 extern u8 characterStaticIndexes[0x144];
-extern s16 starMissionsUnlockedDifficulty[][11];
+extern s16 starRankByMissionCount[][11];
 
 BOOL challengeStarRelatedInd(int charID, int mission);
 
@@ -22,8 +22,8 @@ static inline int countStarMissions(int charID) {
     return count;
 }
 
-s16 challengeRelated(int charID) {
+s16 challenge_getStarRank(int charID) {
     ChallengeTrackingStruct* tracker = &starMissionCompletionTracker.characters[charID];
 
-    return starMissionsUnlockedDifficulty[tracker->variantClassification][countStarMissions(charID)];
+    return starRankByMissionCount[tracker->variantClassification][countStarMissions(charID)];
 }
