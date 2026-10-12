@@ -43,7 +43,7 @@ extern const f32 lbl_3_rodata_524;
 extern const f32 lbl_3_rodata_528;
 extern const f32 lbl_3_rodata_52C;
 extern const f32 lbl_3_rodata_530;
-extern const GXColor lbl_3_rodata_210;
+static const GXColor fogBlack = {0, 0, 0, 0};
 extern void fn_80023F0C(void* source, void* destination, s32 sourceX, s32 sourceY,
                        s32 width, s32 height, s32 destinationX, s32 destinationY);
 extern int checkObjectVisibility(int mode, void* box, MtxPtr matrix);
@@ -383,7 +383,7 @@ void fn_3_5C68(void* context) {
     int pass;
     GXSetCullMode(GX_CULL_BACK);
     SetFog(GX_FOG_NONE, lbl_3_rodata_504, lbl_3_rodata_504,
-           lbl_3_rodata_504, lbl_3_rodata_504, lbl_3_rodata_210);
+           lbl_3_rodata_504, lbl_3_rodata_504, fogBlack);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     pass = 2;
     while (pass-- != 0) {
