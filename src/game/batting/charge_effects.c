@@ -16,7 +16,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
 
 typedef void (*ChargeTevCallback)(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords);

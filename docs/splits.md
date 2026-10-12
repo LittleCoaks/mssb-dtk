@@ -362,3 +362,30 @@ translation units. No data, so this follows the SDK file layout only (the header
 | `C3/structures/Tree.c` | `0x8009155C-0x80091608` | `DSInitTree`, `DSInsertBranchBelow` |
 
 All four are `Matching` (the old unit was one `Matching` file, so the linked count goes up by 3).
+
+### Actor: `act.c` and `actorAnim.c` (`0x800B2AC8-0x800B4E9C`)
+
+Twelve `Unknown/File_0x800b2ac8 ... 4908` units plus six unowned gaps become two translation units.
+
+| unit | `.text` | other sections | boundary evidence |
+|---|---|---|---|
+| `C3/actor/act.c` | `0x800B2AC8-0x800B4A44` | `.rodata 0x800E7D28-0x800E7D58`, `.data 0x80111640-0x80111670`, `.sdata2 0x803CCF58-0x803CCF78`, extab `0x80006990-0x80006A28` | the `"act.c"` string (`0x803CCF70`) is the `OSPanic` file name of `maybeProcessActLayout` ("Incorrect number of bones in actor", `.rodata 0x800E7D34`); the `.rodata` run `0x800E7D28-0x800E7D58` starts where the sprite unit's `"SPRITE BUFFER OVERFLOW"` ends and ends 8-aligned; `.data 0x80111640` (a 0x30 matrix) is read by `fn_800B313C` and `fn_800B3F20` only |
+| `C3/actor/actorAnim.c` | `0x800B4A44-0x800B4E9C` | `.sdata2 0x803CCF78-0x803CCF80` | its pool is `0.0f` (`0x803CCF78`) and `1.0f` (`0x803CCF7C`); `act.c` already pooled both at `0x803CCF58`/`0x803CCF5C`, and MWCC pools a literal once per unit, so the two pools belong to different units. First user of the second pool is `fn_800B4A44` (bone time), which starts the per-bone animation functions (`AnimateActorBones`, `setActorAnimFrame`, `ACTSetAnimation`) |
+
+The boundary between `act.c` and `actorAnim.c` can sit anywhere in `0x800B4724-0x800B4A44`
+(`renderingRelated`, `haveActLayoutPointToGeoHeader`, `LoadActorLayout`, `AdjustActorPointers` have no
+constants of their own); it was put after `AdjustActorPointers`, i.e. as late as the pools allow, because
+those four are layout/render code, not animation. The file names are the SDK's (`actor.c`/`actorAnim.c`
+in `include/C3/actor.h`) except that the binary's own `__FILE__` string says `act.c`. The start at
+`0x800B2AC8` is the first `Actor`-field accessor after the sprite unit's last data user
+(`fn_800B2854`, `.sdata2 0x803CCF38`).
+
+`actorAnim.c` links as `Matching` (it was the 99.7% `File_0x800b4908` minus `LoadActorLayout`, which
+is 98% and went to `act.c`). `act.c` is `NonMatching`: it holds eleven functions that have no C yet
+(`fn_800B2BA8`..`fn_800B2C10`, `fn_800B2C88`, `fn_800B2D5C`, `fn_800B2DD0`, `fn_800B313C`, `fn_800B3A78`,
+`fn_800B3C04`, `fn_800B3F20`, `fn_800B4278`, `fn_800B4724`) and five stubs. Five previously `Matching`
+units became part of it (`ProcessActorBonesForShadows`, `fn_800B2B4C`/`54`/`6C`, `callDSInsertListObject`,
+`ACTSort`, `maybeBallRelated`).
+
+`.sbss 0x803CC1E8` (8 bytes) is written by `fn_800B313C` (`act.c`) and read by `fn_800B84AC` (`control.c`);
+which of the two units defines it is not decidable from the binary, so it stays unowned.

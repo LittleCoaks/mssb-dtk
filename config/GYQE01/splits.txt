@@ -1631,63 +1631,18 @@ Unknown/File_0x800b1500.c:
 Unknown/File_0x800b2160.c:
 	.text       start:0x800B2160 end:0x800B2240
 
-Unknown/File_0x800b2ac8.c:
-	extab       start:0x80006990 end:0x80006998
-	extabindex  start:0x800089B8 end:0x800089C4
-	.text       start:0x800B2AC8 end:0x800B2B4C
+C3/actor/act.c:
+	extab       start:0x80006990 end:0x80006A28
+	extabindex  start:0x800089B8 end:0x80008A9C
+	.text       start:0x800B2AC8 end:0x800B4A44
+	.rodata     start:0x800E7D28 end:0x800E7D58
+	.data       start:0x80111640 end:0x80111670
+	.sdata2     start:0x803CCF58 end:0x803CCF78
 
-Unknown/File_0x800b2b4c.c:
-	.text       start:0x800B2B4C end:0x800B2B74
-
-Unknown/File_0x800b2b74.c:
-	extab       start:0x80006998 end:0x800069A0
-	extabindex  start:0x800089C4 end:0x800089D0
-	.text       start:0x800B2B74 end:0x800B2BA8
-
-Unknown/File_0x800b2c44.c:
-	extab       start:0x800069A8 end:0x800069B0
-	extabindex  start:0x800089DC end:0x800089E8
-	.text       start:0x800B2C44 end:0x800B2C88
-
-Unknown/File_0x800b2cbc.c:
-	extab       start:0x800069B8 end:0x800069C0
-	extabindex  start:0x800089F4 end:0x80008A00
-	.text       start:0x800B2CBC end:0x800B2D5C
-
-Unknown/File_0x800b34b4.c:
-	extab       start:0x800069D8 end:0x800069E0
-	extabindex  start:0x80008A24 end:0x80008A30
-	.text       start:0x800B34B4 end:0x800B37A4
-
-Unknown/File_0x800b37a4.c:
-	extab       start:0x800069E0 end:0x800069E8
-	extabindex  start:0x80008A30 end:0x80008A3C
-	.text       start:0x800B37A4 end:0x800B3A78
-
-Unknown/File_0x800b4048.c:
-	extab       start:0x80006A00 end:0x80006A08
-	extabindex  start:0x80008A60 end:0x80008A6C
-	.text       start:0x800B4048 end:0x800B4084
-
-Unknown/File_0x800b4084.c:
-	extab       start:0x80006A08 end:0x80006A10
-	extabindex  start:0x80008A6C end:0x80008A78
-	.text       start:0x800B4084 end:0x800B4278
-
-Unknown/File_0x800b43a0.c:
-	extab       start:0x80006A18 end:0x80006A20
-	extabindex  start:0x80008A84 end:0x80008A90
-	.text       start:0x800B43A0 end:0x800B4724
-
-Unknown/File_0x800b472c.c:
-	extab       start:0x80006A20 end:0x80006A28
-	extabindex  start:0x80008A90 end:0x80008A9C
-	.text       start:0x800B472C end:0x800B4908
-
-Unknown/File_0x800b4908.c:
+C3/actor/actorAnim.c:
 	extab       start:0x80006A28 end:0x80006A40
 	extabindex  start:0x80008A9C end:0x80008AC0
-	.text       start:0x800B4908 end:0x800B4E9C
+	.text       start:0x800B4A44 end:0x800B4E9C
 	.sdata2     start:0x803CCF78 end:0x803CCF80
 
 Unknown/File_0x800b4e9c.c:

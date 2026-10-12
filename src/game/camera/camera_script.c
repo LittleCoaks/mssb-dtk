@@ -12,7 +12,7 @@
 #include "Dolphin/mtxext.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/mtx.h"
-#include "Unknown/File_0x800b2c44.h"
+#include "C3/actor/act.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800b0a14.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_cameraScript

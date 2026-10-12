@@ -14,7 +14,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
 
 // The perfect-pitch trail model: a stadium model whose root actor is driven

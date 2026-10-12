@@ -1,64 +1,8 @@
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
-#include "Unknown/File_0x800b4d64.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800b4f9c.h"
 #include "Unknown/File_0x800acf14.h"
-#include "C3/actor.h"
 #include "C3/anim.h"
 #include "C3/skinning.h"
-
-void haveActLayoutPointToGeoHeader(void* layout, void* geo) {
-    ((ActorLayout*)layout)->geoPaletteName = geo;
-}
-
-void LoadActorLayout(void* data) {
-    ActorLayoutFile* layout = data;
-    ActorBone* bone;
-    u32 i;
-
-    if (layout->header.userDataSize && layout->header.userData) {
-        layout->header.userData = (char*)((u32)layout->header.userData + (u32)layout);
-    }
-    if (layout->header.hierarchy.Root) {
-        layout->header.hierarchy.Root = (Ptr)((u32)layout->header.hierarchy.Root + (u32)layout);
-    }
-    if (layout->header.geoPaletteName) {
-        layout->header.geoPaletteName = (char*)((u32)layout->header.geoPaletteName + (u32)layout);
-    }
-    bone = layout->bones;
-    for (i = 0; i < layout->header.totalBones; i++) {
-        if (bone->orientationCtrl) {
-            bone->orientationCtrl = (Control*)((u32)layout + (u32)bone->orientationCtrl);
-        }
-        if (bone->branch.Prev) {
-            bone->branch.Prev = (Ptr)((u32)layout + (u32)bone->branch.Prev);
-        }
-        if (bone->branch.Next) {
-            bone->branch.Next = (Ptr)((u32)layout + (u32)bone->branch.Next);
-        }
-        if (bone->branch.Parent) {
-            bone->branch.Parent = (Ptr)((u32)layout + (u32)bone->branch.Parent);
-        }
-        if (bone->branch.Children) {
-            bone->branch.Children = (Ptr)((u32)layout + (u32)bone->branch.Children);
-        }
-        bone++;
-    }
-}
-
-void AdjustActorPointers(void* data) {
-    ActorLayoutFile* layout = data;
-    int i;
-
-    layout->header.hierarchy.Offset = (u32)layout + layout->header.hierarchy.Offset;
-    layout->header.hierarchy.Root = (Ptr)((u32)layout + (u32)layout->header.hierarchy.Root);
-    layout->header.geoPaletteName = (char*)((u32)layout + (u32)layout->header.geoPaletteName);
-    layout->header.userData = (char*)((u32)layout + (u32)layout->header.userData);
-    for (i = 0; i < layout->header.totalBones; i++) {
-        layout->bones[i].orientationCtrl = (Control*)((u32)layout + (u32)layout->bones[i].orientationCtrl);
-    }
-}
 
 f32 fn_800B4A44(void* obj, u16 bone) {
     Actor* actor = obj;
