@@ -2320,17 +2320,17 @@ void fn_3_1040D8(void) {
 void fn_3_103E7C(f32* angles) {
     if (CTX->_09B4 != 0) {
         VecXYZ out;
-        VecXYZ in;
         VecXYZ po;
+        VecXYZ in;
         VecXYZ pi;
         angles[0] = radianAngleReduction(angles[0]);
         angles[1] = radianAngleReduction(angles[1]);
-        in.x = angles[0];
-        in.y = angles[1];
-        in.z = 0.0f;
         po.x = CTX->_00D0.x;
         po.y = CTX->_00D0.y;
         po.z = CTX->_00D0.z;
+        in.x = angles[0];
+        in.y = angles[1];
+        in.z = 0.0f;
         pi.x = CTX->_00C4.x;
         pi.y = CTX->_00C4.y;
         pi.z = CTX->_00C4.z;
