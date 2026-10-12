@@ -837,32 +837,17 @@ void loadPracticeScreen(void) {
 
 #pragma dont_inline on
 void practice_loadCharacterData(void) {
-    int team, slot, i;
+    int slot, team;
 
     g_GameLogic.battingOrderAndPositionMapping[0][0][0] = constantList[0];
     g_GameLogic.battingOrderAndPositionMapping[1][0][0] = constantList[0];
     for (team = 0; team < 2; team++) {
-        u8* lineUp = (u8*)lineUpInfoStruct + team * 0x24;
-        int* game = &g_GameLogic.battingOrderAndPositionMapping[team][1][0];
-
-        for (i = 0; i < 3; i++) {
-            lineUp[0] = 3 * i;
-            lineUp[1] = 3 * i;
-            lineUp[2] = 3 * i;
-            lineUp[4] = 3 * i + 1;
-            lineUp[5] = 3 * i + 1;
-            lineUp[6] = 3 * i + 1;
-            lineUp[8] = 3 * i + 2;
-            lineUp[9] = 3 * i + 2;
-            lineUp[10] = 3 * i + 2;
-            game[0] = constantList[9 + 3 * i];
-            game[1] = constantList[9 + 3 * i];
-            game[2] = constantList[10 + 3 * i];
-            game[3] = constantList[10 + 3 * i];
-            game[4] = constantList[11 + 3 * i];
-            game[5] = constantList[11 + 3 * i];
-            lineUp += 12;
-            game += 6;
+        for (slot = 0; slot < 9; slot++) {
+            g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = constantList[9 + slot];
+            g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = constantList[9 + slot];
+            lineUpInfoStruct[team][slot][0] = slot;
+            lineUpInfoStruct[team][slot][1] = slot;
+            lineUpInfoStruct[team][slot][2] = slot;
         }
     }
     for (team = 0; team < 2; team++) {
