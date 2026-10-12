@@ -47,7 +47,7 @@ extern void practicePauseRelated(void);
 extern void baseRunningPracticeControl(void);
 extern void freeFieldingPracticeControl(void);
 extern BOOL loadSomethingFromDiskAtBeginningOfAB1(int index);
-extern void css_initValues(int a, int b, int c, int d);
+extern void css_initValues(int a, int b, int c, int d, int e, int f);
 extern void cssLoadingRelated_1(int a, int b, int c, int d, int e, int f);
 extern int cssCursorOnBottomControl_maybe(int team, int buttons, int newButtons, int other, int extra);
 extern u8 charSelectStruct[];
@@ -70,13 +70,10 @@ extern void SetGameStatus(int status);
 #define PRACTICE_BYTE(offset) (*((u8*)&g_Practice + (offset)))
 #define GAME_BYTE(offset) (*((u8*)&g_GameLogic + (offset)))
 #define ANIM_BYTE(offset) (hugeAnimStruct[(offset)])
-#define MINI_BYTE(offset) (*((u8*)&g_Minigame + (offset)))
-#define MINI_SBYTE(offset) (*((s8*)&g_Minigame + (offset)))
-#define MINI_HALF(offset) (*(s16*)((u8*)&g_Minigame + (offset)))
 #define ANIM_HALF(offset) (*(s16*)&animRelated[(offset)])
-#define MINI_U16(offset) (*(u16*)((u8*)&g_Minigame + (offset)))
 #define GAME_HALF(offset) (*(u16*)((u8*)&g_GameLogic + (offset)))
-#define PLAYER_KEY(charIdx) (((u8*)&Static_Stats_Tables)[(charIdx) * 0xA0 + 0x26] * 2 + ((u8*)&Static_Stats_Tables)[(charIdx) * 0xA0 + 0x27])
+#define CHAR_STATS(charID) (((CharacterStats*)&Static_Stats_Tables)[(charID)])
+#define PLAYER_KEY(charID) (CHAR_STATS(charID).stats.FieldingArm * 2 + CHAR_STATS(charID).stats.BattingStance)
 
 #pragma dont_inline on
 // .text:0x000B5D78 size:0x104
@@ -482,15 +479,15 @@ void unref(void) {
 
 // .text:0x000B4C40 size:0x450
 void practiceRelatedMenu(void) {
-    if (GAME_BYTE(0x125) <= 2) {
-        MINI_BYTE(0x19F0) = MINI_BYTE(0x19EF);
-        MINI_BYTE(0x19EF) = TRUE;
-        MINI_BYTE(0x19F9) = MINI_BYTE(0x19F8);
-        MINI_BYTE(0x19F8) = TRUE;
-        MINI_BYTE(0x1A02) = MINI_BYTE(0x1A01);
-        MINI_BYTE(0x1A01) = TRUE;
-        MINI_BYTE(0x1A0B) = MINI_BYTE(0x1A0A);
-        MINI_BYTE(0x1A0A) = TRUE;
+    if (g_GameLogic._125 <= 2) {
+        g_Minigame.selectSlots[0].charReadyPrevInd = g_Minigame.selectSlots[0].charReadyInd;
+        g_Minigame.selectSlots[0].charReadyInd = TRUE;
+        g_Minigame.selectSlots[1].charReadyPrevInd = g_Minigame.selectSlots[1].charReadyInd;
+        g_Minigame.selectSlots[1].charReadyInd = TRUE;
+        g_Minigame.selectSlots[2].charReadyPrevInd = g_Minigame.selectSlots[2].charReadyInd;
+        g_Minigame.selectSlots[2].charReadyInd = TRUE;
+        g_Minigame.selectSlots[3].charReadyPrevInd = g_Minigame.selectSlots[3].charReadyInd;
+        g_Minigame.selectSlots[3].charReadyInd = TRUE;
     }
 
     switch (g_Practice.practiceState) {
@@ -502,62 +499,61 @@ void practiceRelatedMenu(void) {
         slots[2] = FALSE;
         slots[3] = FALSE;
         slots[g_Practice.homeAway] = TRUE;
-        css_initValues(slots[0], slots[1], slots[2], slots[3]);
+        css_initValues(slots[0], slots[1], slots[2], slots[3], TRUE, TRUE);
         cssLoadingRelated_1(0, 0, 0, 0, 0, 0);
-        MINI_SBYTE(0x19EA) = -1;
-        MINI_BYTE(0x1A17) = PLAYER_KEY((s8)MINI_BYTE(0x19E8));
-        MINI_BYTE(0x19E9) = 0;
-        MINI_HALF(0x19D2) = 20;
-        MINI_BYTE(0x19F3) = -1;
-        MINI_BYTE(0x19F2) = 0;
-        MINI_HALF(0x19D4) = 20;
-        MINI_BYTE(0x1A18) = PLAYER_KEY((s8)MINI_BYTE(0x19F1));
-        MINI_BYTE(0x19FC) = -1;
-        MINI_BYTE(0x19FB) = 0;
-        MINI_HALF(0x19D6) = 20;
-        MINI_BYTE(0x1A19) = PLAYER_KEY((s8)MINI_BYTE(0x19FA));
-        MINI_BYTE(0x1A05) = -1;
-        MINI_BYTE(0x1A04) = 0;
-        MINI_HALF(0x19D8) = 20;
-        MINI_BYTE(0x1A1A) = PLAYER_KEY((s8)MINI_BYTE(0x1A03));
+        g_Minigame.selectSlots[0].loadedCharID = CHAR_ID_NONE;
+        g_Minigame.battingHandedness[0] = PLAYER_KEY(g_Minigame.selectSlots[0].charID);
+        g_Minigame.selectSlots[0].confirmedInd = 0;
+        g_Minigame.charChangeFrames[0] = 20;
+        g_Minigame.selectSlots[1].loadedCharID = CHAR_ID_NONE;
+        g_Minigame.selectSlots[1].confirmedInd = 0;
+        g_Minigame.charChangeFrames[1] = 20;
+        g_Minigame.battingHandedness[1] = PLAYER_KEY(g_Minigame.selectSlots[1].charID);
+        g_Minigame.selectSlots[2].loadedCharID = CHAR_ID_NONE;
+        g_Minigame.selectSlots[2].confirmedInd = 0;
+        g_Minigame.charChangeFrames[2] = 20;
+        g_Minigame.battingHandedness[2] = PLAYER_KEY(g_Minigame.selectSlots[2].charID);
+        g_Minigame.selectSlots[3].loadedCharID = CHAR_ID_NONE;
+        g_Minigame.selectSlots[3].confirmedInd = 0;
+        g_Minigame.charChangeFrames[3] = 20;
+        g_Minigame.battingHandedness[3] = PLAYER_KEY(g_Minigame.selectSlots[3].charID);
         ANIM_BYTE(0x2D77) = FALSE;
         ANIM_BYTE(0x307A) = 5;
-        MINI_BYTE(0x1A0C) = -1;
-        GAME_HALF(0xFE) = 0;
+        g_Minigame.charLoadSlot = -1;
+        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         PRACTICE_BYTE(0x1D9) = FALSE;
         g_Practice.practiceState++;
-        MINI_BYTE(0x1A13) = TRUE;
-        MINI_BYTE(0x1A14) = TRUE;
-        MINI_BYTE(0x1A15) = TRUE;
-        MINI_BYTE(0x1A16) = TRUE;
+        g_Minigame.charLoadPending[0] = TRUE;
+        g_Minigame.charLoadPending[1] = TRUE;
+        g_Minigame.charLoadPending[2] = TRUE;
+        g_Minigame.charLoadPending[3] = TRUE;
         break;
     }
     case PRACTICE_STATE_1: {
-        InputStruct* input = &g_Controls[g_Practice.homeAway];
-
         changeScene(1, 6);
-        if (GAME_HALF(0xFE) == 1) {
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            InputStruct* input = &g_Controls[g_Practice.homeAway];
             int sel = cssCursorOnBottomControl_maybe(g_Practice.homeAway, input->buttonInput, input->newButtonInput, input->_08, 0);
 
-            MINI_BYTE(0x19E8 + g_Practice.homeAway * 9) = sel;
-            MINI_BYTE(0x1A17 + g_Practice.homeAway) = PLAYER_KEY((s8)MINI_BYTE(0x19E8 + g_Practice.homeAway * 9));
+            g_Minigame.selectSlots[g_Practice.homeAway].charID = sel;
+            g_Minigame.battingHandedness[g_Practice.homeAway] = PLAYER_KEY(g_Minigame.selectSlots[g_Practice.homeAway].charID);
         }
-        if (GAME_HALF(0xFE) > 30) {
-            MINI_BYTE(0x19DE) = 0;
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+            g_Minigame.charSelectState = 0;
             g_Practice.practiceState++;
         }
         break;
     }
     case PRACTICE_STATE_2:
         fn_3_B49D4();
-        practice_loadCharacter(0, 0, (s8)MINI_BYTE(0x19E8 + g_Practice.homeAway * 9), MINI_BYTE(0x1A17 + g_Practice.homeAway));
+        practice_loadCharacter(0, 0, g_Minigame.selectSlots[g_Practice.homeAway].charID, g_Minigame.battingHandedness[g_Practice.homeAway]);
         sound_crowd_EffectsStruct._2C = 0;
         break;
     case PRACTICE_STATE_3:
         if (!practice_relatedToSettingCharacters()) {
             break;
         }
-        if (GAME_HALF(0xFE) >= 0x5A) {
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 0x5A) {
             changeScene(3, 6);
         }
         if (lbl_8037169C[0x13] != 0) {
@@ -578,11 +574,11 @@ void practiceRelatedMenu(void) {
         setTutorialState(TUTORIAL_STATE_0);
         break;
     case PRACTICE_STATE_5:
-        GAME_HALF(0xFE) = 0;
+        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_Practice.practiceState++;
         break;
     case PRACTICE_STATE_6:
-        if (GAME_HALF(0xFE) >= 15) {
+        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 15) {
             practiceMenu_setScreen(5);
         }
         break;
@@ -598,56 +594,56 @@ void fn_3_B49D4(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
-        InputStruct* input = &g_Controls[i];
-        u8* slot = (u8*)&g_Minigame + i * 9;
-        u8* cursor = (u8*)&g_Minigame + i;
-        u16* frames = (u16*)((u8*)&g_Minigame + i * 2 + 0x19D2);
+        InputStruct* input;
 
         if (i != g_Practice.homeAway) {
             continue;
         }
-        if (*frames < 0xFFFE) {
-            (*frames)++;
+        if (g_Minigame.charChangeFrames[i] < 0xFFFE) {
+            g_Minigame.charChangeFrames[i]++;
         } else {
-            *frames = 0xFFFF;
+            g_Minigame.charChangeFrames[i] = 0xFFFF;
         }
+        input = &g_Controls[i];
 
-        if ((input->newButtonInput & INPUT_BUTTON_A) && (s8)slot[0x19E8] >= 0 && slot[0x19EE] == 0) {
-            if ((s8)charSelectStruct[0x7F + i] < 0 && (s8)slot[0x19E8] == (s8)slot[0x19EA] &&
-                (s8)slot[0x19EC] == (s8)slot[0x19ED] && slot[0x19EF] != 0 && slot[0x19F0] != 0) {
-                slot[0x19E9] = TRUE;
-                addOrRemoveCharacterToTeam(i, (s8)slot[0x19E8], TRUE);
-                playPlayerSelectedSound((s8)slot[0x19E8]);
-                GAME_HALF(0xFE) = 0;
+        if ((input->newButtonInput & INPUT_BUTTON_A) && g_Minigame.selectSlots[i].charID >= 0 &&
+            g_Minigame.selectSlots[i].onBottomControlInd == 0) {
+            if ((s8)charSelectStruct[0x7F + i] < 0 && g_Minigame.selectSlots[i].charID == g_Minigame.selectSlots[i].loadedCharID &&
+                g_Minigame.selectSlots[i].loadedHandedness == g_Minigame.selectSlots[i].wantedHandedness &&
+                g_Minigame.selectSlots[i].charReadyInd != 0 && g_Minigame.selectSlots[i].charReadyPrevInd != 0) {
+                g_Minigame.selectSlots[i].confirmedInd = TRUE;
+                addOrRemoveCharacterToTeam(i, g_Minigame.selectSlots[i].charID, TRUE);
+                playPlayerSelectedSound(g_Minigame.selectSlots[i].charID);
+                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
                 g_Practice.practiceState = PRACTICE_STATE_3;
             }
         } else if (input->newButtonInput & INPUT_BUTTON_B) {
-            GAME_HALF(0xFE) = 0;
+            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             g_Practice.practiceState = PRACTICE_STATE_5;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
             break;
         } else {
-            int prevChar = (s8)slot[0x19E8];
+            int prevChar = g_Minigame.selectSlots[i].charID;
             int sel = cssCursorOnBottomControl_maybe(i, input->buttonInput, input->newButtonInput, input->_08, 0);
 
-            if (sel < 0) {
-                slot[0x19E8] = fn_8004FD64(i);
-                slot[0x19EE] = TRUE;
-                slot[0x19EF] = FALSE;
-            } else {
-                slot[0x19E8] = sel;
-                if (prevChar != (s8)slot[0x19E8]) {
-                    *frames = 0;
-                    cursor[0x1A17] = PLAYER_KEY((s8)slot[0x19E8]);
+            if (sel >= 0) {
+                g_Minigame.selectSlots[i].charID = sel;
+                if (prevChar != g_Minigame.selectSlots[i].charID) {
+                    g_Minigame.charChangeFrames[i] = 0;
+                    g_Minigame.battingHandedness[i] = PLAYER_KEY(g_Minigame.selectSlots[i].charID);
                 }
-                slot[0x19EE] = FALSE;
+                g_Minigame.selectSlots[i].onBottomControlInd = FALSE;
+            } else {
+                g_Minigame.selectSlots[i].charID = fn_8004FD64(i);
+                g_Minigame.selectSlots[i].onBottomControlInd = TRUE;
+                g_Minigame.selectSlots[i].charReadyInd = FALSE;
             }
         }
 
         if (input->newButtonInput & INPUT_BUTTON_X) {
-            cursor[0x1A17] = cursor[0x1A17] + 1;
-            if (cursor[0x1A17] > 3) {
-                cursor[0x1A17] = 0;
+            g_Minigame.battingHandedness[i] = g_Minigame.battingHandedness[i] + 1;
+            if (g_Minigame.battingHandedness[i] > 3) {
+                g_Minigame.battingHandedness[i] = 0;
             }
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
         }
@@ -727,7 +723,7 @@ void loadPracticeScreen(void) {
     int row;
     int col;
 
-    switch (GAME_BYTE(0x125)) {
+    switch (g_GameLogic._125) {
     case 0:
         *(int*)((u8*)&g_GameLogic + 0x3C) = constantList[0];
         *(int*)((u8*)&g_GameLogic + 0x8C) = constantList[0];
@@ -774,23 +770,23 @@ void loadPracticeScreen(void) {
         *(int*)((u8*)&g_GameLogic + 0xF0) = lbl_80366158[0x27];
         *(int*)((u8*)&g_GameLogic + 0xF4) = 0;
         *(int*)((u8*)&g_GameLogic + 0xF8) = 0;
-        GAME_BYTE(0x125) = GAME_BYTE(0x125) + 1;
+        g_GameLogic._125 = g_GameLogic._125 + 1;
         break;
     case 1:
         *(void**)(screenTextArray + 0x7AC) = ARAMTransfer(PracticeScreenFiles, 0, 1, 0);
-        GAME_BYTE(0x125) = GAME_BYTE(0x125) + 1;
+        g_GameLogic._125 = g_GameLogic._125 + 1;
         break;
     case 2:
         if (lbl_803C6CF8[0x715] == 1) {
             fn_800111B4(*(void**)(screenTextArray + 0x7AC));
             sound_crowd_EffectsStruct._2C = 0;
-            GAME_BYTE(0x125) = GAME_BYTE(0x125) + 1;
+            g_GameLogic._125 = g_GameLogic._125 + 1;
             fn_8000F4B8(g_Practice.homeAwayByte, -1, -1, -1);
         }
         break;
     case 3:
         if (fn_3_90C14(0)) {
-            GAME_BYTE(0x125) = GAME_BYTE(0x125) + 1;
+            g_GameLogic._125 = g_GameLogic._125 + 1;
             sound_crowd_EffectsStruct._2C = 0;
         }
         break;
@@ -958,7 +954,7 @@ BOOL practice_relatedToSettingCharacters(void) {
         case PRACTICE_TYPE_BASERUNNING:
             return TRUE;
         case PRACTICE_TYPE_FREEPLAY:
-            primary = MINI_SBYTE(0x19E8 + g_Practice.homeAway * 9);
+            primary = g_Minigame.selectSlots[g_Practice.homeAway].charID;
             break;
         case PRACTICE_TYPE_PITCHING:
             break;
