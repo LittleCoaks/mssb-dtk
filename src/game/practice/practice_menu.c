@@ -20,6 +20,7 @@
 
 extern u8 hugeAnimStruct[];
 extern u8 lbl_80354768[];
+#define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_8037169C[];
 extern u8 lbl_803C6CF8[];
@@ -208,8 +209,8 @@ void practice_mainMenu_stateHandling(void) {
         }
         practiceType = g_Practice.practiceType;
         g_Practice.framesSincePracticeMenuDefaultTransition = 0;
-        animRelated[0xB9] = practiceType;
         g_Practice.practiceType_2 = practiceMenu_typeIconOrder[practiceType];
+        animRelated[0xB9] = practiceType;
         break;
     }
     case PRACTICE_STATE_5:
@@ -316,8 +317,8 @@ void notReferenced(void) {
         }
     }
     practiceType = g_Practice.practiceType;
-    animRelated[0xB9] = practiceType;
     g_Practice.practiceType_2 = practiceMenu_typeIconOrder[practiceType];
+    animRelated[0xB9] = practiceType;
 }
 
 // .text:0x000B51E4 size:0x4B0
@@ -829,7 +830,7 @@ void loadPracticeScreen(void) {
         PRACTICE_BYTE(0x1D5) = FALSE;
         for (row = 0; row < 4; row++) {
             for (col = 0; col < 4; col++) {
-                g_Practice.levelCompleted[row][col] = lbl_80354768[0xCF4E + row * 4 + col];
+                g_Practice.levelCompleted[row][col] = PRACTICE_PROGRESS_FLAGS[row][col];
             }
         }
         break;
@@ -929,7 +930,7 @@ void practiceLoadingRelatedMaybe(void) {
     g_Practice.guidedMessageSceneStarted = FALSE;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 4; col++) {
-            g_Practice.levelCompleted[row][col] = lbl_80354768[0xCF4E + row * 4 + col];
+            g_Practice.levelCompleted[row][col] = PRACTICE_PROGRESS_FLAGS[row][col];
         }
     }
 }
