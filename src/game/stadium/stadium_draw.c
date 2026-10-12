@@ -919,12 +919,12 @@ void fn_3_5E60(void) {
 }
 
 s16 fn_3_6424(void* base, void*** tableOut) {
-    s16 count = *(u16*)base;
-    void** table = (void**)((u8*)base + 4);
-    void** cursor = table;
+    s16 count;
+    void** cursor;
     int i;
-    *tableOut = table;
-    for (i = 0; i <= count; i++) {
+    count = *(u16*)base;
+    cursor = *tableOut = (void**)((u8*)base + 4);
+    for (i = count; i >= 0; i--) {
         *cursor = (u8*)((u32)*cursor + (u32)base);
         cursor++;
     }
