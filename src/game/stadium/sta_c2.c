@@ -34,7 +34,8 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 typedef struct _PalaceMaterialFlags {
     /*0x00*/ u8 _00[0x74];

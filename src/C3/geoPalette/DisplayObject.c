@@ -5,12 +5,12 @@
 #include "C3/charPipeline.h"
 #include "stl/math.h"
 #include "Unknown/sub.h"
-#include "Unknown/File_0x800bd2b0.h"
+#include "C3/light/light.h"
 #include "stl/stdarg.h"
 #include "Unknown/File_0x800beb3c.h"
 #include "Unknown/File_0x800bf008.h"
 #include "Unknown/File_0x800bf038.h"
-#include "Unknown/File_0x800bd190.h"
+#include "C3/geoPalette/geoPalette.h"
 
 static const GXColor lbl_803CCFF8 = {0, 0, 0, 0x80};
 

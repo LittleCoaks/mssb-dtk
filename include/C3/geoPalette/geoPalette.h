@@ -1,7 +1,16 @@
-#ifndef __UNKNOWN_FILE_0X800BD190_H_
-#define __UNKNOWN_FILE_0X800BD190_H_
+#ifndef _C3_GEOPALETTE_GEOPALETTE_H_
+#define _C3_GEOPALETTE_GEOPALETTE_H_
 
 #include "mssbTypes.h"
+#include "C3/geoPalette.h"
+
+void* LoadGeoPalette(void* geoFile);
+
+void convertGeometryAndSknHeader(void* geo, void* skn);
+
+void AdjustGEOPalettePointers(DODisplayDataPtr pal);
+
+void AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispObj);
 
 typedef struct {
     /* 0x00 */ u8 unk00[0xC];
@@ -30,8 +39,5 @@ typedef void (*UnkShadowCallback)(void*, void*, void*, void*, void*, void*);
 
 void UpdateTexturePalettePointers(UnkTexPalGeo* geo, void* tex);
 void fn_800BD1E8(UnkShadowCallback cb);
-void __MTGQR5(register u32 val);
-void __MTGQR6(register u32 val);
-void __MTGQR7(register u32 val);
 
-#endif // !__UNKNOWN_FILE_0X800BD190_H_
+#endif // _C3_GEOPALETTE_GEOPALETTE_H_

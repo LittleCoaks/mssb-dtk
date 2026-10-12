@@ -1691,62 +1691,21 @@ C3/geoPalette/normalTable.c:
 	.data       start:0x80111750 end:0x80112338
 	.sdata      start:0x803CBB60 end:0x803CBB68
 
-Unknown/File_0x800bcb44.c:
-	.text       start:0x800BCB44 end:0x800BCD60
+C3/geoPalette/geoPalette.c:
+	extab       start:0x80006B48 end:0x80006B68
+	extabindex  start:0x80008C4C end:0x80008C7C
+	.text       start:0x800BCB44 end:0x800BD1F0
 
-Unknown/File_0x800bcd60.c:
-	extab       start:0x80006B48 end:0x80006B50
-	extabindex  start:0x80008C4C end:0x80008C58
-	.text       start:0x800BCD60 end:0x800BCDBC
+C3/skinning/GQRSetup.c:
+	extab       start:0x80006B68 end:0x80006B80
+	extabindex  start:0x80008C7C end:0x80008CA0
+	.text       start:0x800BD1F0 end:0x800BD2B0
 
-Unknown/File_0x800bce38.c:
-	extab       start:0x80006B58 end:0x80006B60
-	extabindex  start:0x80008C64 end:0x80008C70
-	.text       start:0x800BCE38 end:0x800BCEF8
-
-Unknown/File_0x800bcef8.c:
-	extab       start:0x80006B60 end:0x80006B68
-	extabindex  start:0x80008C70 end:0x80008C7C
-	.text       start:0x800BCEF8 end:0x800BD190
-
-Unknown/File_0x800bd190.c:
-	.text       start:0x800BD190 end:0x800BD208
-
-Unknown/File_0x800bd208.c:
-	extab       start:0x80006B68 end:0x80006B70
-	extabindex  start:0x80008C7C end:0x80008C88
-	.text       start:0x800BD208 end:0x800BD240
-
-Unknown/File_0x800bd240.c:
-	extab       start:0x80006B70 end:0x80006B78
-	extabindex  start:0x80008C88 end:0x80008C94
-	.text       start:0x800BD240 end:0x800BD278
-
-Unknown/File_0x800bd278.c:
-	extab       start:0x80006B78 end:0x80006B80
-	extabindex  start:0x80008C94 end:0x80008CA0
-	.text       start:0x800BD278 end:0x800BD2B0
-
-Unknown/File_0x800bd2b0.c:
-	.text       start:0x800BD2B0 end:0x800BD300
-
-Unknown/File_0x800bd300.c:
-	extab       start:0x80006B80 end:0x80006B88
-	extabindex  start:0x80008CA0 end:0x80008CAC
-	.text       start:0x800BD300 end:0x800BD3A0
-
-Unknown/File_0x800bd3a0.c:
-	.text       start:0x800BD3A0 end:0x800BD3CC
-
-Unknown/File_0x800bd3cc.c:
-	extab       start:0x80006B88 end:0x80006B90
-	extabindex  start:0x80008CAC end:0x80008CB8
-	.text       start:0x800BD3CC end:0x800BD3EC
-
-Unknown/File_0x800bd3ec.c:
-	extab       start:0x80006B90 end:0x80006B98
-	extabindex  start:0x80008CB8 end:0x80008CC4
-	.text       start:0x800BD3EC end:0x800BD478
+C3/light/light.c:
+	extab       start:0x80006B80 end:0x80006B98
+	extabindex  start:0x80008CA0 end:0x80008CC4
+	.text       start:0x800BD2B0 end:0x800BD478
+	.sbss       start:0x803CC220 end:0x803CC228
 	.sdata2     start:0x803CD058 end:0x803CD060
 
 Unknown/File_0x800bd8c4.c:

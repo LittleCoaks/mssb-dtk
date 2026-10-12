@@ -40,7 +40,8 @@
 #include "Unknown/File_0x800beb3c.h"
 #include "game/stadium/sta_c2.h"
 #include "Unknown/sub.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 typedef struct _CastleMaterialFlags {
     /*0x00*/ u8 _00[4];

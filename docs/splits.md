@@ -449,3 +449,21 @@ light) are insensitive to the version.
 the 7 pad bytes). Both directly continue `DisplayObject.c`'s own `.data`/`.sdata`, and no text
 function touches them except through `DOVARender`. It is `Matching` (data 99.7%: the 7 `.sdata` pad
 bytes). The table has 254 entries; the SDK header declared 252.
+
+### geoPalette, GQRSetup and light (`0x800BCB44-0x800BD478`)
+
+| unit | `.text` | other sections | evidence |
+|---|---|---|---|
+| `C3/geoPalette/geoPalette.c` | `0x800BCB44-0x800BD1F0` | extab `0x80006B48-0x80006B68` | no data; SDK layout (`geoPalette.c` holds `GEOGetPalette` = `LoadGeoPalette` and its pointer-fixup helpers) and the neighbours: `DisplayObject.c` ends at `DOGet` (its string at `.rodata 0x800E7F8C` is 4-aligned directly after `DOVARender`'s, which a new unit could not do, see `DisplayObject.c` above) and `GQRSetup.c` starts at the first asm helper. `fn_800BD1E8` (a setter for `DisplayObject.c`'s `.sbss 0x803CC20C` callback) sits at its end |
+| `C3/skinning/GQRSetup.c` | `0x800BD1F0-0x800BD2B0` | - | SDK layout (`GQRSetup.c`, `include/C3/skinning.h`): `__MTGQR5/6/7` (asm) then `GQRSetup7/6/5`; the SDK's `GQRSetup0-4` were dead-stripped |
+| `C3/light/light.c` | `0x800BD2B0-0x800BD478` | `.sbss 0x803CC220-0x803CC228`, `.sdata2 0x803CD058-0x803CD060` | `LITAlloc` pools `0.0f`/`1.0f` at `0x803CD058`, a pool that `DisplayObject.c` (`0x803CCFFC`, `0x803CD004`) and the next unit (`0x803CD060`, `0x803CD064`) repeat. The `.sbss` pair is the `lightingRelated`/`adjustLightingParams`/`fn_800BD2DC` ambient-colour override (the engine's addition in front of the SDK `LIT*` functions) |
+
+`light.c` and `GQRSetup.c` link `Matching`. `LITXForm` was a stub; its body is the SDK one
+(`CTRLBuildMatrix`, `PSMTXConcat` with parent and camera, `PSMTXMultVec`, `PSMTXInverse`,
+`PSMTXTranspose`, `PSMTXMultVec`) and came out 100% first try. `maybeDoLighting` and
+`lightingDataArray` are now `static` definitions in the unit; the colour needs
+`__attribute__((aligned(4)))` (the target keeps it in a 4-aligned word at `0x803CC224`) and must be
+declared before the flag so the flag lands at `0x803CC220`. `geoPalette.c` is `NonMatching`
+(`LoadGeoPalette` and `AdjustGPLDataPointers` are stubs; `fn_800BCDBC` has no C yet). Merging
+`LoadGeoPalette` into the same unit as `convertGeometryAndSknHeader` let the stub inline into it
+(`convertGeometryAndSknHeader` fell from 100% to 44%); the stub is marked `dont_inline`.

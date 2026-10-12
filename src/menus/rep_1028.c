@@ -1,7 +1,7 @@
 #include "menus/rep_1028.h"
 #include "header_rep_data.h"
 #include "Dolphin/GX/GXTypes.h"
-#include "Unknown/File_0x800bd2b0.h"
+#include "C3/light/light.h"
 #include "C3/actor/act.h"
 #include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800b0a14.h"

@@ -6,7 +6,7 @@
 #include "Dolphin/GX/GXEnum.h"
 #include "Dolphin/mtx.h"
 #include "C3/geoPalette.h"
-#include "Unknown/File_0x800bd190.h"
+#include "C3/geoPalette/geoPalette.h"
 
 typedef struct FogSettings {
     /* 0x00 */ GXFogType type;

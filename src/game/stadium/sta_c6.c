@@ -20,7 +20,8 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
 #include "game/sound/m_sound.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // A display-list colour attribute: `formatBits >> 4` is the GXCompType colour format.
 typedef struct _ToyColorAttr {

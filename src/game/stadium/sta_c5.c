@@ -41,7 +41,8 @@
 #include "Unknown/File_0x8001b728.h"
 #include "C3/actor/act.h"
 #include "Unknown/File_0x80033f64.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 hugeAnimStruct[0x3154];

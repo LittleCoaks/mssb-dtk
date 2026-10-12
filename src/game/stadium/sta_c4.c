@@ -31,7 +31,8 @@
 #include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // The kinds of block the garden places; `variant` is the kind a block turns
 // into when hit (a mystery block rolls one at load).

@@ -25,7 +25,8 @@ extern void fn_800BDF70(StadiumModel *model);
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // One entry per piranha-plant slot (11 slots, 10 usable; `usedFlag == 2` ends the list).
 typedef struct _YoshiPlantPlacement {
