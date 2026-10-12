@@ -1,5 +1,6 @@
 #include "menus/rep_0788.h"
 #include "header_rep_data.h"
+#include "game/challenge/challenge_state.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
 #include "text/text_channel.h"
@@ -9,7 +10,7 @@
 extern DrawingSceneStruct *currentDrawingItem;
 extern s16 lbl_2_data_3D30[][4];
 extern u8 *lbl_2_bss_1A824C;
-extern u8 *lbl_2_bss_1A8248;
+extern ChallengeState *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3714[];
 extern u8 lbl_800E869C[0x20];
 extern s32 fn_8006C79C(u8 arg0);
@@ -762,7 +763,7 @@ void fn_2_26F80(void *arg0, void *arg1) {
     case 4:
         break;
     case 2: {
-        u8 v = lbl_2_bss_1A8248[0x441c];
+        u8 v = lbl_2_bss_1A8248->captain;
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         *(u32 *)((u8 *)obj + 0x5C) = (u32)v << 16;
         obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -1790,7 +1791,7 @@ void fn_2_2C860(void *arg0, void *arg1) {
         break;
     case 2: {
         s16 v = *(s16 *)((u8 *)arg1 + 0xA);
-        s8 flag = lbl_2_bss_1A8248[v + 0x43c2];
+        s8 flag = lbl_2_bss_1A8248->_43C2[v];
         TextGraphicsObject *obj;
         if (flag == 1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;

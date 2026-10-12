@@ -2,6 +2,7 @@
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "menus/yd_step.h"
+#include "game/challenge/challenge_state.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x800204cc.h"
@@ -56,7 +57,6 @@ extern u8 lbl_2_bss_F468[0xC4C];
 extern u8 lbl_2_bss_100B4;
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 lbl_2_data_3CE0[0x8];
-extern u8 starMissionCompletionTracker[0x4508];
 extern u8 lbl_8037169C[0x1C];
 extern u8 inMemRoster[0xB40];
 extern u8 lineUpInfoStruct[0x48];
@@ -122,35 +122,29 @@ void cssTransitionToNewScreen_maybe(void) {
 
 // .text:0x000033BC size:0xD0 mapped:0x80642450
 s32 fn_2_33BC(void) {
-    u8 *p = starMissionCompletionTracker;
-    s8 val = (s8)p[0x40BB];
+    SavedChallengeSlot *slot = starMissionCompletionTracker.savedLineup;
+    s8 val = (s8)slot[0].fieldingPosition;
     s32 result = 1;
 
-    if (val == (s8)p[0x40C1]) {
+    if (val == (s8)slot[1].fieldingPosition) {
         result = 0;
     }
-    p += 0xC;
-    if (val == (s8)p[0x40BB]) {
+    if (val == (s8)slot[2].fieldingPosition) {
         result = 0;
     }
-    p += 6;
-    if (val == (s8)p[0x40C1]) {
+    if (val == (s8)slot[4].fieldingPosition) {
         result = 0;
     }
-    p += 6;
-    if (val == (s8)p[0x40C1]) {
+    if (val == (s8)slot[5].fieldingPosition) {
         result = 0;
     }
-    p += 6;
-    if (val == (s8)p[0x40C1]) {
+    if (val == (s8)slot[6].fieldingPosition) {
         result = 0;
     }
-    p += 6;
-    if (val == (s8)p[0x40C1]) {
+    if (val == (s8)slot[7].fieldingPosition) {
         result = 0;
     }
-    p += 6;
-    if (val == (s8)p[0x40C1]) {
+    if (val == (s8)slot[8].fieldingPosition) {
         result = 0;
     }
     return result;
@@ -412,7 +406,7 @@ void fn_2_3624(u8 team) {
         bf[slot + 0x61] = (u8)-1;
         bf[slot + 0x65] = 1;
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-            u8 *smct = starMissionCompletionTracker + 0x40b8;
+            SavedChallengeSlot *smct = starMissionCompletionTracker.savedLineup;
             u8 *ros = inMemRoster;
             u8 *lu = lineUpInfoStruct;
             u8 *cq2 = cp;
@@ -425,15 +419,15 @@ void fn_2_3624(u8 team) {
                 u8 f15 = cq2[0x15];
                 u8 f16 = cq2[0x16];
 
-                *(s16 *)(smct + 0x0) = f2;
-                smct[0x2] = (u8)i;
-                smct[0x3] = f14;
-                *(s16 *)(smct + 0x6) = f3;
-                smct[0x8] = (u8)(i + 1);
-                smct[0x9] = f15;
-                *(s16 *)(smct + 0xc) = f4;
-                smct[0xe] = (u8)(i + 2);
-                smct[0xf] = f16;
+                smct[0].charID = f2;
+                smct[0].battingOrder = (u8)i;
+                smct[0].fieldingPosition = f14;
+                smct[1].charID = f3;
+                smct[1].battingOrder = (u8)(i + 1);
+                smct[1].fieldingPosition = f15;
+                smct[2].charID = f4;
+                smct[2].battingOrder = (u8)(i + 2);
+                smct[2].fieldingPosition = f16;
 
                 *(s16 *)(ros + 0x24) = f2;
                 *(s16 *)(ros + 0xc4) = f3;
@@ -444,7 +438,7 @@ void fn_2_3624(u8 team) {
                 lu[0xa] = f16;
 
                 cq2 += 3;
-                smct += 0x12;
+                smct += 3;
                 ros += 0x1e0;
                 lu += 0xc;
             }
@@ -956,7 +950,7 @@ void teamReady1(u8 port) {
         s32 idx;
         u8 *cursor = (u8 *)&cursorPositions;
         u8 *roster = inMemRoster;
-        u8 *tracker = starMissionCompletionTracker;
+        u8 *tracker = (u8 *)&starMissionCompletionTracker;
         u8 *lineUp = lineUpInfoStruct;
 
         for (idx = 0; idx < 9; idx++) {
@@ -1577,10 +1571,10 @@ void fn_2_6884(void) {
     u8 key;
 
     for (i = 0; i < 9; i++) {
-        id = *(s16 *)&starMissionCompletionTracker[i * 6 + 0x40B8];
+        id = starMissionCompletionTracker.savedLineup[i].charID;
         key = id;
 
-        lineUpInfoStruct[i * 4 + 1] = starMissionCompletionTracker[i * 6 + 0x40BA];
+        lineUpInfoStruct[i * 4 + 1] = starMissionCompletionTracker.savedLineup[i].battingOrder;
         ((u8 *)&cursorPositions)[i + 2] = id;
         lineUpInfoStruct[i * 4] = i;
         ((u8 *)&cursorPositions)[i + 0x4A] = 1;
@@ -1629,7 +1623,7 @@ void fn_2_6AF4(void) {
     s32 i;
     s32 j;
     u8 found;
-    s8 target = (s8)starMissionCompletionTracker[0x441F];
+    s8 target = (s8)starMissionCompletionTracker.opponentCaptainCharID;
 
     for (i = 0; i < 12; i++) {
         if (target == captainIDOrderedOnCapSS[i]) {
@@ -1649,11 +1643,11 @@ void fn_2_6AF4(void) {
         ((u8 *)&cursorPositions)[j + 0x53] = 1;
     }
 
-    *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0] = starMissionCompletionTracker[0x441D];
-    *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = (s8)starMissionCompletionTracker[0x441F];
+    *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0] = starMissionCompletionTracker.captainCharID;
+    *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = (s8)starMissionCompletionTracker.opponentCaptainCharID;
 
     for (j = 0; j < 9; j++) {
-        if ((s8)starMissionCompletionTracker[(s8)((u8 *)&cursorPositions)[j + 0xB] * 0x34 + 0x31] == 1) {
+        if ((s8)starMissionCompletionTracker.characters[(s8)((u8 *)&cursorPositions)[j + 0xB]]._31 == 1) {
             ((u8 *)&cursorPositions)[j + 0xB] = 0x36;
         }
     }
@@ -1712,8 +1706,8 @@ void cssUnloadScreen(void) {
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        if (starMissionCompletionTracker[0x4445] != 0) {
-            starMissionCompletionTracker[0x4445] = 0;
+        if (starMissionCompletionTracker.resumeSavedTeams != 0) {
+            starMissionCompletionTracker.resumeSavedTeams = 0;
             ((u8 *)&aiPosSwapInputs)[0xCFA1] = 1;
             if (((u8 *)&superstarUnlocked)[0xE4] != 0) {
                 ((u8 *)&aiPosSwapInputs)[0xCF70] = 0;
@@ -1727,10 +1721,10 @@ void cssUnloadScreen(void) {
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        if (starMissionCompletionTracker[0x4445] == 0) {
+        if (starMissionCompletionTracker.resumeSavedTeams == 0) {
             s32 i;
 
-            if (starMissionCompletionTracker[0x441D] == 9 && (s8)starMissionCompletionTracker[0x44EF] != 0) {
+            if (starMissionCompletionTracker.captainCharID == 9 && starMissionCompletionTracker._44EF != 0) {
                 u8 *cur = (u8 *)&cursorPositions;
                 u8 *info = lineUpInfoStruct;
 
@@ -1771,7 +1765,7 @@ void cssUnloadScreen(void) {
             } else {
                 s32 j;
                 u8 found;
-                s8 target = (s8)starMissionCompletionTracker[0x441F];
+                s8 target = (s8)starMissionCompletionTracker.opponentCaptainCharID;
 
                 for (j = 0; j < 12; j++) {
                     if (target == captainIDOrderedOnCapSS[j]) {
@@ -1791,19 +1785,19 @@ void cssUnloadScreen(void) {
                     ((u8 *)&cursorPositions)[j + 0x53] = 1;
                 }
 
-                *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0] = starMissionCompletionTracker[0x441D];
-                *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = (s8)starMissionCompletionTracker[0x441F];
+                *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0] = starMissionCompletionTracker.captainCharID;
+                *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = (s8)starMissionCompletionTracker.opponentCaptainCharID;
 
                 for (j = 0; j < 9; j++) {
-                    if ((s8)starMissionCompletionTracker[(s8)((u8 *)&cursorPositions)[j + 0xB] * 0x34 + 0x31] == 1) {
+                    if ((s8)starMissionCompletionTracker.characters[(s8)((u8 *)&cursorPositions)[j + 0xB]]._31 == 1) {
                         ((u8 *)&cursorPositions)[j + 0xB] = 0x36;
                     }
                 }
             }
 
             for (i = 0; i < 9; i++) {
-                s16 id = *(s16 *)&starMissionCompletionTracker[i * 6 + 0x40B8];
-                u8 byteB = starMissionCompletionTracker[i * 6 + 0x40BA];
+                s16 id = starMissionCompletionTracker.savedLineup[i].charID;
+                u8 byteB = starMissionCompletionTracker.savedLineup[i].battingOrder;
                 u8 key = (u8)id;
                 s32 rec;
                 s32 k;
@@ -1909,7 +1903,7 @@ void cssResetRosterStruct(void) {
     {
     u8 *cur = (u8 *)&cursorPositions;
     for (team = 0; team < 2; team++) {
-        u8 *trkP = starMissionCompletionTracker;
+        u8 *trkP = (u8 *)&starMissionCompletionTracker;
         s32 discriminator;
         s32 allDifferent;
         u8 flagCF;
@@ -1920,7 +1914,7 @@ void cssResetRosterStruct(void) {
             s8 base = (s8)trkP[0x40bb];
             allDifferent = 1;
 
-            discriminator = trkP[0x441d];
+            discriminator = ((ChallengeState *)trkP)->captainCharID;
 
             if (base == (s8)trkP[0x40c1]) allDifferent = 0;
             trkP += 0xc;
@@ -1938,11 +1932,11 @@ void cssResetRosterStruct(void) {
             trkP += 6;
             if (base == (s8)trkP[0x40c1]) allDifferent = 0;
         } else {
-            discriminator = (s8)starMissionCompletionTracker[0x441f];
+            discriminator = (s8)starMissionCompletionTracker.opponentCaptainCharID;
         }
 
         flagCF = ((u8 *)&aiPosSwapInputs)[0xCFA1];
-        trkP = starMissionCompletionTracker;
+        trkP = (u8 *)&starMissionCompletionTracker;
 
         for (i = 0, j = 0; i < 9; i++, j++) {
             s8 charID = (s8)cur[2 + i];
@@ -1977,15 +1971,15 @@ void cssResetRosterStruct(void) {
         goto TAIL;
     }
 
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40b8]] = starMissionCompletionTracker[0x40bc];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40be]] = starMissionCompletionTracker[0x40c2];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40c4]] = starMissionCompletionTracker[0x40c8];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40ca]] = starMissionCompletionTracker[0x40ce];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40d0]] = starMissionCompletionTracker[0x40d4];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40d6]] = starMissionCompletionTracker[0x40da];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40dc]] = starMissionCompletionTracker[0x40e0];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40e2]] = starMissionCompletionTracker[0x40e6];
-    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker[0x40e8]] = starMissionCompletionTracker[0x40ec];
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[0].charID] = starMissionCompletionTracker.savedLineup[0].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[1].charID] = starMissionCompletionTracker.savedLineup[1].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[2].charID] = starMissionCompletionTracker.savedLineup[2].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[3].charID] = starMissionCompletionTracker.savedLineup[3].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[4].charID] = starMissionCompletionTracker.savedLineup[4].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[5].charID] = starMissionCompletionTracker.savedLineup[5].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[6].charID] = starMissionCompletionTracker.savedLineup[6].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[7].charID] = starMissionCompletionTracker.savedLineup[7].handedness;
+    lbl_2_bss_3A8[*(u16 *)&starMissionCompletionTracker.savedLineup[8].charID] = starMissionCompletionTracker.savedLineup[8].handedness;
 
 TAIL:
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
@@ -2088,7 +2082,7 @@ void cssLoadingScreenRelated(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         for (i = 0; i < 54; i++) {
-            if (starMissionCompletionTracker[i * 0x34 + 0x31] == 1) {
+            if (starMissionCompletionTracker.characters[i]._31 == 1) {
                 Static_Stats_Tables.charOnCharacterGridSelected[i] = 0;
                 addOrRemoveCharacterToTeam(0, i, 0);
             } else {
@@ -2097,7 +2091,7 @@ void cssLoadingScreenRelated(void) {
                 partner = (s16)fn_80067AC8(i, 0);
                 if (partner == -1) {
                     addOrRemoveCharacterToTeam(0, i, 1);
-                } else if (starMissionCompletionTracker[partner * 0x34 + 0x31] == 1) {
+                } else if (starMissionCompletionTracker.characters[partner]._31 == 1) {
                     addOrRemoveCharacterToTeam(0, i, 0);
                 } else {
                     addOrRemoveCharacterToTeam(0, i, 1);
@@ -2196,7 +2190,7 @@ void cssLoadingScreenRelated(void) {
 // .text:0x000086EC size:0x94 mapped:0x80647780
 void fn_2_86EC(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && lbl_8037169C[0x12] == 0) {
-        challenge_setTransitionScreenCharacterPortrait(10, (s8)lbl_2_data_3CE0[starMissionCompletionTracker[0x441E]]);
+        challenge_setTransitionScreenCharacterPortrait(10, (s8)lbl_2_data_3CE0[starMissionCompletionTracker.opponentCaptain]);
     }
     cssLoadingScreenRelated();
     cssResetRosterStruct();
@@ -2286,7 +2280,7 @@ void copyInfoToInMemRoster(void) {
         u8 *cur = cursorWalk;
         u8 *dst = rosterBase;
         u8 *lineup = lineupBase;
-        u8 *track = starMissionCompletionTracker;
+        u8 *track = (u8 *)&starMissionCompletionTracker;
 
         for (player = 0; player < 9; player++) {
             u8 *src;
@@ -2719,7 +2713,7 @@ void fn_2_95D8(void) {
 
                 *statusPtr = (team == 0) ? 0xFF0F : 0xF00F;
 
-                lastVal = (s8)starMissionCompletionTracker[0x441F];
+                lastVal = (s8)starMissionCompletionTracker.opponentCaptainCharID;
 
                 for (j = 0; j < 9; j++) {
                     for (k = 0; k < 9; k++) {
@@ -3597,8 +3591,8 @@ void fn_2_B920(void) {
             }
         }
     } else {
-        u8 y = starMissionCompletionTracker[0x441d];
-        s8 x = (s8)starMissionCompletionTracker[0x441f];
+        u8 y = starMissionCompletionTracker.captainCharID;
+        s8 x = (s8)starMissionCompletionTracker.opponentCaptainCharID;
         for (k = 0; k < 12; k++) {
             u8 v = captainIDOrderedOnCapSS[k];
             if (v == y) {
@@ -3735,7 +3729,7 @@ void challengeSetRoster(void) {
     memset(&((u8 *)&Static_Stats_Tables)[0x4757], 0, 0x36);
 
     last = -1;
-    target = (s8)starMissionCompletionTracker[0x441F];
+    target = (s8)starMissionCompletionTracker.opponentCaptainCharID;
     for (i = 0; i < 12; i++) {
         if (captainIDOrderedOnCapSS[i] == target) {
             ((u8 *)&Static_Stats_Tables)[0x470C] = i;
