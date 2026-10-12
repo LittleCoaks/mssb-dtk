@@ -680,7 +680,7 @@ void animateMatchScene(void) {
             if (animRelated[0xB4] == 1) {
                 animRelated[0xB4] = 2;
                 insertGraphicDrawingFunction(scoutMissionCountdown_init, 2);
-                if (scoutState.scoutResult == 2) {
+                if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
                     insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 }
             }

@@ -780,7 +780,7 @@ void endAtBatNonHit(void) {
         }
     }
     if (g_Pitcher.framesSinceAtBatEnded == 1) {
-        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != 0 && g_Stats.replayInd == 0) {
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0) {
             scoutFlag_checkMissionSuccess();
             scoutState.scoutCountdown = 0xB4;
         }
@@ -800,7 +800,7 @@ void endAtBatNonHit(void) {
             g_Pitcher.walkedInRunInd = 1;
         }
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != 0 && g_Stats.replayInd == 0 &&
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0 &&
         scoutState.scoutFlag == 0) {
         scoutState.scoutCountdown = scoutState.scoutCountdown - 1;
         if (scoutState.scoutCountdown == 0x78) {

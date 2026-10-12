@@ -696,7 +696,7 @@ void scoutMissionCountdown_init(void) {
         removeCurrentDrawingItem();
     } else {
         addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionCountdownDescriptors);
-        if (scoutState.scoutResult == 1) {
+        if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
             REC(scene, 0)->elementIndex = 0x5A;
         }
         animRelated[0xB5] = 1;
@@ -765,10 +765,10 @@ void scoutMissionBanner_update(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     if (!(animRelated[0x96] != 0 ||
-          (scene->unk1C != scoutState.scoutMissionID && scoutState.scoutResult != 2) ||
+          (scene->unk1C != scoutState.scoutMissionID && scoutState.scoutResult != SCOUT_RESULT_SUCCEEDED) ||
           g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION ||
-          (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION && scoutState.scoutResult != 0) ||
-          (g_GameLogic.gameStatus == GAME_STATUS_DEFAULT && scoutState.scoutResult == 2))) {
+          (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION && scoutState.scoutResult != SCOUT_RESULT_PENDING) ||
+          (g_GameLogic.gameStatus == GAME_STATUS_DEFAULT && scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED))) {
         if (g_Stats.replayInd != 0) {
             REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
             REC(scene, 1)->flags &= ~UI_FLAG_VISIBLE;

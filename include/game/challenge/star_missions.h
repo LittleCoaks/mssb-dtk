@@ -2,6 +2,7 @@
 #define __GAME_CHALLENGE_STAR_MISSIONS_H_
 
 #include "mssbTypes.h"
+#include "game/challenge/scout_state.h"
 
 // First argument of starMissionsQuantityBased: the fielding / running event being counted.
 typedef enum _STAR_MISSION_EVENT {
@@ -48,7 +49,7 @@ void scoutFlag_checkMissionSuccess(void);
 void clearScoutState(void);
 void resetScoutChanceTier_2(void);
 void resetScoutChanceTier(void);
-BOOL shouldScoutMissionBeEnabled(int mission);
+BOOL shouldScoutMissionBeEnabled(E(int, SCOUT_MISSION) mission);
 BOOL decideScoutFlagMission(void);
 void practice_postGraphicsUpdate(void);
 

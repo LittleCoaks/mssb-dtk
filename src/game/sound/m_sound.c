@@ -1346,7 +1346,7 @@ common:
         return;
     }
 
-    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != 0) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE) {
         if (status == GAME_STATUS_STAR_CHANCE_VS) {
             if (((u8*)&g_GameLogic)[g_GameLogic.teamFielding + 0x133] == 0) {
                 sound_crowd_EffectsStruct._32 = 1;
@@ -1368,7 +1368,7 @@ common:
             }
         }
         if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && g_Stats.replayInd == 0) {
-            if (scoutState.scoutResult == 1) {
+            if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
                 if (g_Ball.deadBallReason != 1) {
                     track = 0xB;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
@@ -1376,7 +1376,7 @@ common:
                     }
                     goto pick;
                 }
-            } else if (scoutState.scoutResult == 2) {
+            } else if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
                 if (g_Ball.deadBallReason != 1) {
                     track = 0xA;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {

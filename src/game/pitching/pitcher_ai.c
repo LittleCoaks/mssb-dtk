@@ -55,7 +55,7 @@ void pitcherAINewBatter(void) {
     } else {
         g_AiLogic.AIFrameToBeginPitch = RandomInt_Game_Range(lbl_3_data_1934[0], lbl_3_data_1934[1]);
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != 0 && g_Pitcher.nPitchesThisAB == 0) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Pitcher.nPitchesThisAB == 0) {
         g_AiLogic.AIFrameToBeginPitch = lbl_3_data_1934[1] + 60;
     }
     if (g_AiLogic.pitcherAIPitchDownTheMiddleInd == 0) {
