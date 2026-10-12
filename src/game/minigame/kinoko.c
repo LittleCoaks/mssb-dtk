@@ -28,6 +28,7 @@
 #define RIBBON_COLORS 6
 #define RIBBON_FRAMES_PER_COLOR_STEP 5
 #define RIBBON_HALF_WIDTH 0.15f
+#define PULSE_TEX_DIM 4
 
 typedef struct _RibbonPoint {
     /*0x00*/ Vec pos;
@@ -116,8 +117,8 @@ static RibbonDrawEntry ribbonDraw[2] = {
 static s8 pulseStep = -1;
 
 static RibbonQuad ribbonQuads[RIBBON_QUADS];
-static u8 texA[4 * 4 * 4] ATTRIBUTE_ALIGN(32);
-static u8 texB[4 * 4 * 4] ATTRIBUTE_ALIGN(32);
+static u8 texA[PULSE_TEX_DIM * PULSE_TEX_DIM * 4] ATTRIBUTE_ALIGN(32);
+static u8 texB[PULSE_TEX_DIM * PULSE_TEX_DIM * 4] ATTRIBUTE_ALIGN(32);
 static GXTexObj texObjA;
 static GXTexObj texObjB;
 static u32 pulseFrame;
@@ -529,9 +530,9 @@ void kinoko_initPulseTextures(void) {
     u32 i;
     u32 j;
 
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            offset = fn_800247E4(j, i, 4, 4);
+    for (i = 0; i < PULSE_TEX_DIM; i++) {
+        for (j = 0; j < PULSE_TEX_DIM; j++) {
+            offset = fn_800247E4(j, i, PULSE_TEX_DIM, PULSE_TEX_DIM);
             if (offset < 32) {
                 texA[offset + 2] = 0xFF;
                 texA[offset] = 0xFF;
@@ -545,9 +546,9 @@ void kinoko_initPulseTextures(void) {
             }
         }
     }
-    for (y = 0; y < 4; y++) {
-        for (x = 0; x < 4; x++) {
-            offset = fn_800247E4(x, y, 4, 4);
+    for (y = 0; y < PULSE_TEX_DIM; y++) {
+        for (x = 0; x < PULSE_TEX_DIM; x++) {
+            offset = fn_800247E4(x, y, PULSE_TEX_DIM, PULSE_TEX_DIM);
             if (offset < 32) {
                 texB[offset + 2] = 0xFF;
                 texB[offset] = 0xFF;
@@ -561,9 +562,9 @@ void kinoko_initPulseTextures(void) {
             }
         }
     }
-    GXInitTexObj(&texObjA, texA, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
+    GXInitTexObj(&texObjA, texA, PULSE_TEX_DIM, PULSE_TEX_DIM, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
     GXInitTexObjLOD(&texObjA, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
-    GXInitTexObj(&texObjB, texB, 4, 4, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
+    GXInitTexObj(&texObjB, texB, PULSE_TEX_DIM, PULSE_TEX_DIM, GX_TF_RGBA8, GX_REPEAT, GX_REPEAT, GX_DISABLE);
     GXInitTexObjLOD(&texObjB, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_DISABLE, GX_DISABLE, GX_ANISO_1);
     pulseStep = -1;
     pulseFrame = 0;
@@ -593,7 +594,7 @@ void kinoko_updatePulseTexture(void) {
 
     pulseFrame += !PauseSimulation;
     if ((pulseFrame & 1) == 0) {
-        value = curTex[fn_800247E4(0, 0, 4, 4)];
+        value = curTex[fn_800247E4(0, 0, PULSE_TEX_DIM, PULSE_TEX_DIM)];
         value += pulseStep * 2;
         if (value > 255) {
             value = 255;
