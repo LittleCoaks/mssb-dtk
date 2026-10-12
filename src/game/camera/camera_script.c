@@ -2274,19 +2274,31 @@ void fn_3_104740(void) {
 
 // .text:0x001045A8 size:0x198 mapped:0x8074363C
 void fn_3_1045A8(void) {
-    f32 pitch = radianAngleReduction(g_pCamera->_2874);
-    f32 reach = 20.0f * COSF(pitch);
-    f32 sp = SINF(pitch);
-    f32 yaw = radianAngleReduction(g_pCamera->_2870);
-    f32 cy = COSF(yaw);
-    f32 sy = SINF(yaw);
+    f32 pitch;
+    f32 yaw;
+    f32 cy;
+    f32 sp;
+    f32 reach;
+    f32 sy;
+    f32 rx;
+    f32 ry;
+    f32 rz;
+    pitch = radianAngleReduction(g_pCamera->_2874);
+    reach = 20.0f * COSF(pitch);
+    sp = SINF(pitch);
+    yaw = radianAngleReduction(g_pCamera->_2870);
+    cy = COSF(yaw);
+    sy = SINF(yaw);
+    rx = cy * reach;
+    ry = 20.0f * sp;
+    rz = sy * reach;
     g_pCamera->_2858.x = cy * g_pCamera->_287C + g_pCamera->_2858.x;
     g_pCamera->_2858.z = sy * g_pCamera->_287C + g_pCamera->_2858.z;
     g_pCamera->_2858.x = sy * g_pCamera->_2880 + g_pCamera->_2858.x;
     g_pCamera->_2858.z = g_pCamera->_2858.z - cy * g_pCamera->_2880;
-    g_pCamera->_284C.x = cy * reach + g_pCamera->_2858.x;
-    g_pCamera->_284C.y = 20.0f * sp + g_pCamera->_2858.y;
-    g_pCamera->_284C.z = sy * reach + g_pCamera->_2858.z;
+    g_pCamera->_284C.x = rx + g_pCamera->_2858.x;
+    g_pCamera->_284C.y = ry + g_pCamera->_2858.y;
+    g_pCamera->_284C.z = rz + g_pCamera->_2858.z;
     g_pCamera->_2840.x = g_pCamera->_2858.x;
     g_pCamera->_2840.y = g_pCamera->_2858.y;
     g_pCamera->_2840.z = g_pCamera->_2858.z;
@@ -2307,10 +2319,10 @@ void fn_3_1040D8(void) {
 // .text:0x00103E7C size:0x25C mapped:0x80742F10
 void fn_3_103E7C(f32* angles) {
     if (CTX->_09B4 != 0) {
+        VecXYZ out;
         VecXYZ in;
         VecXYZ po;
         VecXYZ pi;
-        VecXYZ out;
         angles[0] = radianAngleReduction(angles[0]);
         angles[1] = radianAngleReduction(angles[1]);
         in.x = angles[0];
