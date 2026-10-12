@@ -291,7 +291,7 @@ is unchanged.
   0x803CBD30` with `fn_80069B68`, which reads
   `titleScreenTexturesFileDescriptor`. It belongs to the title/boot-screen
   code `0x80069A68-0x8006C488` (data `0x8010924C-0x80109420`, `.sdata
-  0x803CB8D8-0x803CB8F0`, `.sdata2 0x803CC8F8-0x803CC938`, `.sbss
+  0x803CB8D8-0x803CB8F0`, `.sdata2 0x803CC8F8-0x803CC940`, `.sbss
   0x803CBD30-0x803CBD40`), which ends where Challenge starts. That unit is
   still unsplit.
 - **`maybeUpdateFielderTerrainStatus`, `handleBallRollInWater`,
