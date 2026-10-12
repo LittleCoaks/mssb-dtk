@@ -520,7 +520,7 @@ DOL units 265 -> 264.
 
 ### The sprite renderer: `Unknown/sprt.c` (`0x800B0D28-0x800B2AC8`)
 
-Six `Unknown` units and fourteen unowned functions (`fn_800B0D28`, `fn_800B0D38`, `fn_800B117C`,
+Six `Unknown` units and fifteen unowned functions (`fn_800B0D28`, `fn_800B0D38`, `fn_800B117C`,
 `fn_800B1188`, `fn_800B12DC`, `fn_800B1388`, `fn_800B13C0`, `fn_800B1468`, `fn_800B1EBC`, `fn_800B2240`,
 `fn_800B24D4`, `fn_800B251C`, `fn_800B27A4`, `fn_800B27DC`, `fn_800B2854`) form one unit, again named by
 its own `OSPanic` string: `DrawSprite` and `fn_800B1EBC` both pass `"sprt.c"` (`.sdata2 0x803CCF40`)
@@ -539,7 +539,7 @@ with the message `"SPRITE BUFFER OVERFLOW\n"` (`.rodata 0x800E7D10`).
 - The sprite buffers in `.bss` (`0x802FE8B8-0x803009F8`, and `0x803C8A24`) are not claimed: like the
   sound heap, they sit in the big unowned `.bss` objects that dtk cannot split without a cycle.
 
-`NonMatching`: `AllocateSprite` and `DrawSprite` are stubs and fourteen functions have no C. Four
+`NonMatching`: `AllocateSprite` and `DrawSprite` are stubs and eleven functions have no C (four small ones, `fn_800B0D28`, `fn_800B117C`, `fn_800B12DC` and `fn_800B1388`, were written in this pass and are 100%). Four
 previously `Matching` units (`DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj` and the three
 `setTextRenderingMode` helpers) were absorbed; linked DOL units 264 -> 260. They were only `Matching`
 because nothing else of the unit was in front of them; the pool evidence makes them part of it.
