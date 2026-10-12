@@ -1216,8 +1216,8 @@ typedef struct CamGlobal {
 
 static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f32 a, f32 b, f32 c) {
     VecXYZ toCur;
-    VecXYZ dIn;
     VecXYZ dInScaled;
+    VecXYZ dIn;
     f32 dist;
     f32 mag;
 
@@ -1290,8 +1290,8 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
 #define CAM_FILTER_POS() \
     if (CTX->_09B4 != 0) { \
         VecXYZ _out; \
-        VecXYZ _cur; \
         VecXYZ _po; \
+        VecXYZ _cur; \
         VecXYZ _pi; \
         f32 _cx = g_pCamera->_2840.x; \
         f32 _cy = g_pCamera->_2840.y; \
