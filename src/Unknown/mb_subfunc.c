@@ -344,7 +344,7 @@ static inline void sortHighChemTeammates(int team, CharacterStats* roster) {
 static inline void tryAddRecruit(s8* avail, u8* count, s32 i) {
     int row;
 
-    if ((int)g_Challenge.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
+    if ((int)g_Challenge.characters[i].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
         if (addRemoveCharVariantRelated(0, i, 1)) {
             s16 (*pair)[5] = variantPairs;
 

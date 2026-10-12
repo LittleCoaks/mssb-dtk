@@ -64,7 +64,7 @@ typedef struct _ChallengeTrackingStruct {
     /*0x008*/ u8 _8;
     /*0x009*/ starMissionTrackingPair inGameMissionTracker[STAR_MISSIONS_PER_CHARACTER];
     /*0x01D*/ starMissionTrackingPair saveFileMissionTracker[STAR_MISSIONS_PER_CHARACTER];
-    /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) _31;
+    /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) recruitmentStatus;
     /*0x032*/ u8 _32;
     /*0x033*/ u8 _33;
 } ChallengeTrackingStruct; // size: 0x34

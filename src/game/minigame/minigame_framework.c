@@ -1096,7 +1096,7 @@ void toyFieldCharSelectSwitcher(void) {
         if (g_Minigame.challengeModeInd != 0) {
             css_initValues(1, 1, 1, 1, 1, 0);
             for (i = 0; i < 54; i++) {
-                if ((s8)g_Challenge.characters[i]._31 != CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                if ((s8)g_Challenge.characters[i].recruitmentStatus != CHALLENGE_RECRUITMENT_CD_RECRUITED) {
                     fn_8004FDA0(i);
                 }
             }

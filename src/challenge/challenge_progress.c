@@ -895,7 +895,7 @@ void challengeDrawStarsOnMissionMenu(void) {
 
     scoutRow = g_Challenge.difficulty;
     for (c = 0; c < 54; c++) {
-        if (characterStaticIndexes[c].hasOwnStarMissions == 1 && (int)g_Challenge.characters[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+        if (characterStaticIndexes[c].hasOwnStarMissions == 1 && (int)g_Challenge.characters[c].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             for (m = 0; m < 10; m++) {
                 rule = &starMissionDisplayRules[characterStaticIndexes[c].requirementRow][m];
                 mode = rule->mode;
@@ -920,7 +920,7 @@ BOOL fn_8006C5CC(void) {
     int count = 0;
 
     for (i = 0; i < 45; i++) {
-        if ((int)g_Challenge.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED &&
+        if ((int)g_Challenge.characters[i].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED &&
             (int)g_Challenge.characters[i].challengeCaptain != CHALLENGE_CAPTAIN_BOWSER) {
             count++;
         }
@@ -933,7 +933,7 @@ int fn_8006C6C4(void) {
     int count = 0;
 
     for (i = 0; i < 48; i++) {
-        if ((int)g_Challenge.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+        if ((int)g_Challenge.characters[i].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             count++;
         }
     }
@@ -943,7 +943,7 @@ int fn_8006C6C4(void) {
 BOOL challenge_isCharRecruited(int charID) {
     ChallengeTrackingStruct* t = &g_Challenge.characters[charID];
 
-    return (s8)t->_31 == CHALLENGE_RECRUITMENT_CD_RECRUITED;
+    return (s8)t->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED;
 }
 
 u8 challengeCaptainCharIDs[6] = {
@@ -964,16 +964,16 @@ void challenge_leftoverTeammatesJoinBowserJr(void) {
     for (c = 0; c < NUM_CHOOSABLE_CHARACTERS; c++) {
         t = &cs->characters[c];
         for (k = 0; k < 6; k++) {
-            if (c == challengeCaptainCharIDs[k] && (int)t->_31 == CHALLENGE_RECRUITMENT_CD_RECRUITED && k != captain) {
+            if (c == challengeCaptainCharIDs[k] && (int)t->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED && k != captain) {
                 captainJoined[k] = TRUE;
             }
         }
     }
     for (k = 0; k < 6; k++) {
-        if (captainJoined[k] && (s8)t->_31 == 0) {
+        if (captainJoined[k] && (s8)t->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_NOT_RECRUITED) {
             for (c = 0; c < NUM_CHOOSABLE_CHARACTERS; c++) {
-                if ((s8)cs->characters[c]._31 == 0 && k == (s8)cs->characters[c].challengeCaptain) {
-                    cs->characters[c]._31 = CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM;
+                if ((s8)cs->characters[c].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_NOT_RECRUITED && k == (s8)cs->characters[c].challengeCaptain) {
+                    cs->characters[c].recruitmentStatus = CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM;
                 }
             }
         }
@@ -1014,7 +1014,7 @@ void challenge_checkRecruitment(void) {
     cap = cs->captain;
     for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
         ChallengeTrackingStruct* t = &cs->characters[i];
-        recruited = (s8)t->_31;
+        recruited = (s8)t->recruitmentStatus;
         if (recruited == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             continue;
         }
@@ -1024,11 +1024,11 @@ void challenge_checkRecruitment(void) {
         }
         if ((int)cs->opponentCaptainCharID == CHAR_ID_BOWSERJR) {
             if (recruited == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
-                t->_31 = CHALLENGE_RECRUITMENT_CD_RECRUITED;
+                t->recruitmentStatus = CHALLENGE_RECRUITMENT_CD_RECRUITED;
                 cs->recruitedChar[i] = TRUE;
             }
         } else if (recruited != CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM && (s8)t->challengeCaptain == cs->opponentCaptain) {
-            t->_31 = CHALLENGE_RECRUITMENT_CD_RECRUITED;
+            t->recruitmentStatus = CHALLENGE_RECRUITMENT_CD_RECRUITED;
             cs->recruitedChar[i] = TRUE;
         }
     }

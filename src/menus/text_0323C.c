@@ -1647,7 +1647,7 @@ void fn_2_6AF4(void) {
     *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = (s8)g_Challenge.opponentCaptainCharID;
 
     for (j = 0; j < 9; j++) {
-        if ((s8)g_Challenge.characters[(s8)((u8 *)&cursorPositions)[j + 0xB]]._31 == 1) {
+        if ((s8)g_Challenge.characters[(s8)((u8 *)&cursorPositions)[j + 0xB]].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             ((u8 *)&cursorPositions)[j + 0xB] = 0x36;
         }
     }
@@ -1789,7 +1789,7 @@ void cssUnloadScreen(void) {
                 *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = (s8)g_Challenge.opponentCaptainCharID;
 
                 for (j = 0; j < 9; j++) {
-                    if ((s8)g_Challenge.characters[(s8)((u8 *)&cursorPositions)[j + 0xB]]._31 == 1) {
+                    if ((s8)g_Challenge.characters[(s8)((u8 *)&cursorPositions)[j + 0xB]].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
                         ((u8 *)&cursorPositions)[j + 0xB] = 0x36;
                     }
                 }
@@ -2082,7 +2082,7 @@ void cssLoadingScreenRelated(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         for (i = 0; i < 54; i++) {
-            if (g_Challenge.characters[i]._31 == 1) {
+            if (g_Challenge.characters[i].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
                 Static_Stats_Tables.charOnCharacterGridSelected[i] = 0;
                 addOrRemoveCharacterToTeam(0, i, 0);
             } else {
@@ -2091,7 +2091,7 @@ void cssLoadingScreenRelated(void) {
                 partner = (s16)fn_80067AC8(i, 0);
                 if (partner == -1) {
                     addOrRemoveCharacterToTeam(0, i, 1);
-                } else if (g_Challenge.characters[partner]._31 == 1) {
+                } else if (g_Challenge.characters[partner].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
                     addOrRemoveCharacterToTeam(0, i, 0);
                 } else {
                     addOrRemoveCharacterToTeam(0, i, 1);
