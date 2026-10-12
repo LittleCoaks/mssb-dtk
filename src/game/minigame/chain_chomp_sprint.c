@@ -500,7 +500,7 @@ void ccs_updateChompPickTargets(void) {
     int threshold;
     int i;
 
-    g_Minigame.ccs_targetHudPending = 1;
+    g_Minigame.ccs_targetHudPending = TRUE;
     for (i = 0; i < 4; i++) {
         g_Minigame.ccs.targetInd[i] = -1;
     }
@@ -612,7 +612,7 @@ hit:
         g_Minigame.playerIDWithPowerup[0] = -1;
     }
     g_Minigame.miniGameCurrentPoints[g_Minigame.ccs.chasedPlayer] /= 2;
-    g_Minigame.ccs_biteHudPending[g_Minigame.ccs.chasedPlayer] = 1;
+    g_Minigame.ccs_biteHudPending[g_Minigame.ccs.chasedPlayer] = TRUE;
     setCharacterAnimations(g_Minigame.ccs.chasedPlayer, 2);
     if (--g_Minigame.ccs.targetCount == 0) {
         g_Minigame.ccs.chompState = 4;
@@ -1306,7 +1306,7 @@ void ccsAI_update(void) {
 
     i = 0;
     do {
-        g_Minigame.ccs_aiControlledInd[i] = 0;
+        g_Minigame.ccs_aiControlledInd[i] = FALSE;
     } while (++i < 4);
     p = 0;
     do {
@@ -1352,7 +1352,7 @@ void ccsAI_update(void) {
         if (c < 0 || c >= 4 || !g_Minigame.playerSlots.aiControlledInd[i]) {
             continue;
         }
-        g_Minigame.ccs_aiControlledInd[c] = 1;
+        g_Minigame.ccs_aiControlledInd[c] = TRUE;
         memset(&g_Minigame.aiInputs[c], 0, sizeof(InputStruct));
         strength = g_Minigame.playerSlots.aiStrength[i];
         if ((ai->state < 10 || ai->state > 13) &&
@@ -1538,6 +1538,6 @@ void ccsAI_clearControlled(void) {
     s8 i = 0;
 
     do {
-        g_Minigame.ccs_aiControlledInd[i] = 0;
+        g_Minigame.ccs_aiControlledInd[i] = FALSE;
     } while (++i < 4);
 }
