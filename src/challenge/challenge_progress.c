@@ -915,16 +915,35 @@ void challengeDrawStarsOnMissionMenu(void) {
     }
 }
 
-void fn_8006C5CC(void) {
-    return;
+BOOL fn_8006C5CC(void) {
+    int i;
+    int count = 0;
+
+    for (i = 0; i < 45; i++) {
+        if ((int)starMissionCompletionTracker.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED &&
+            (int)starMissionCompletionTracker.characters[i].challengeCaptain != CHALLENGE_CAPTAIN_BOWSER) {
+            count++;
+        }
+    }
+    return count >= 28;
 }
 
-void fn_8006C6C4(void) {
-    return;
+int fn_8006C6C4(void) {
+    int i;
+    int count = 0;
+
+    for (i = 0; i < 48; i++) {
+        if ((int)starMissionCompletionTracker.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            count++;
+        }
+    }
+    return count;
 }
 
-void fn_8006C79C(void) {
-    return;
+BOOL challenge_isCharRecruited(int charID) {
+    ChallengeTrackingStruct* t = &starMissionCompletionTracker.characters[charID];
+
+    return (s8)t->_31 == CHALLENGE_RECRUITMENT_CD_RECRUITED;
 }
 
 u8 challengeCaptainCharIDs[6] = {

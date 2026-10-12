@@ -4,9 +4,9 @@
 #include "mssbTypes.h"
 
 void challengeDrawStarsOnMissionMenu(void);
-void fn_8006C5CC(void);
-void fn_8006C6C4(void);
-void fn_8006C79C(void);
+BOOL fn_8006C5CC(void);
+int fn_8006C6C4(void);
+BOOL challenge_isCharRecruited(int charID);
 void challenge_leftoverTeammatesJoinBowserJr(void);
 void challenge_checkRecruitment(void);
 f32 intermediateStatBuffForScoutFlags(void);

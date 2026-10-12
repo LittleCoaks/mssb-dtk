@@ -268,8 +268,12 @@ menu-graphics load/unload pair; `fn_8006CF6C` is installed by `SetMenuNumber`
 and reads `lbl_801075A8` from the menu `.data` block, so it is menu glue, not
 Challenge logic), and `fn_8006C488` (empty function, no evidence either way).
 
-The unit is `NonMatching` for now: `fn_8006C5CC`/`fn_8006C6C4`/`fn_8006C79C`
-and the two `File_0x8006cca4` functions are still stubs, and
-`challenge_leftoverTeammatesJoinBowserJr` is at 96.9%. Before the merge
+The unit is `NonMatching` for now: `fn_8006C5CC` (87%) and `fn_8006C6C4`
+(91%) are drafts whose loop unroll factor differs from the target, the two
+`File_0x8006cca4` functions are still stubs, and
+`challenge_leftoverTeammatesJoinBowserJr` is at 96.9%. `fn_8006C79C` is 100%
+and renamed `challenge_isCharRecruited` (it returns whether
+`characters[charID]._31` is `CHALLENGE_RECRUITMENT_CD_RECRUITED`; the menu REL
+calls it with fixed character IDs). Before the merge
 `File_0x8006c48c` and `File_0x8006cbe4` were `Matching`; every function's score
 is unchanged.

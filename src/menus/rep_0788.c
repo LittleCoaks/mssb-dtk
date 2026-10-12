@@ -13,7 +13,7 @@ extern u8 *lbl_2_bss_1A824C;
 extern ChallengeState *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3714[];
 extern u8 lbl_800E869C[0x20];
-extern s32 fn_8006C79C(u8 arg0);
+extern s32 challenge_isCharRecruited(u8 arg0);
 
 void fn_2_54354(void *arg0, int count);
 void fn_2_54234(void *arg0, int count);
@@ -2009,7 +2009,7 @@ void fn_2_2DCA8(void *arg0, void *arg1) {
     case 2: {
         TextGraphicsObject *obj;
         load_Icon(arg0, *(s16 *)((u8 *)arg1 + 0xE), 1, 0x43, *(s16 *)((u8 *)arg1 + 0x10));
-        if (fn_8006C79C(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
+        if (challenge_isCharRecruited(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
             *(u32 *)((u8 *)obj + 0x5C) = 0;
         } else {
