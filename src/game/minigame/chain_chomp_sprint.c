@@ -444,19 +444,19 @@ void ccs_updateChompWait(void) {
             row = 4;
         }
         roll = RandomInt_Game_Range(0, 1000);
-        g_Minigame.ccs._26 = 0;
+        g_Minigame.ccs.chompWaitFrames = 0;
         do {
-            roll -= ccs_chompJumpRollWeights[row][g_Minigame.ccs._26++];
+            roll -= ccs_chompJumpRollWeights[row][g_Minigame.ccs.chompWaitFrames++];
             if (roll <= 0) {
                 break;
             }
-        } while (ccs_chompJumpRollWeights[row][g_Minigame.ccs._26] >= 0);
-        g_Minigame.ccs._26 *= 120;
-        g_Minigame.ccs._26 -= 48;
-        chainChomp_spawnTrailEffect(g_Minigame.ccs._26);
+        } while (ccs_chompJumpRollWeights[row][g_Minigame.ccs.chompWaitFrames] >= 0);
+        g_Minigame.ccs.chompWaitFrames *= 120;
+        g_Minigame.ccs.chompWaitFrames -= 48;
+        chainChomp_spawnTrailEffect(g_Minigame.ccs.chompWaitFrames);
     } else {
         g_Minigame.ccs.chompYaw = 0xE00;
-        if (g_Minigame.ccs.chompStateTimer >= g_Minigame.ccs._26) {
+        if (g_Minigame.ccs.chompStateTimer >= g_Minigame.ccs.chompWaitFrames) {
             g_Minigame.ccs.chompState = 1;
             g_Minigame.ccs.chompStateTimer = 0;
             g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[3];
@@ -534,7 +534,7 @@ void ccs_updateChompPickTargets(void) {
             g_Minigame.ccs.targetCount++;
         }
     }
-    g_Minigame.ccs._1C = 0;
+    g_Minigame.ccs.chaseStep = 0;
     g_Minigame.ccs.chompState = 3;
     g_Minigame.ccs.chompStateTimer = 0;
 }
@@ -547,7 +547,7 @@ void ccs_updateChompChase(void) {
     f32 dx;
     InMemRunnerType* runner;
 
-    if (g_Minigame.ccs._1C < 1) {
+    if (g_Minigame.ccs.chaseStep < 1) {
         for (i = 0; i < 4; i++) {
             if (g_Minigame.ccs.targetInd[i] == 1) {
                 InMemRunnerType* target = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[i]];
@@ -559,7 +559,7 @@ void ccs_updateChompChase(void) {
             }
         }
     }
-    if (++g_Minigame.ccs._1C <= 1) {
+    if (++g_Minigame.ccs.chaseStep <= 1) {
         for (i = 0; i < 4; i++) {
             if (g_Minigame.ccs.targetInd[i] == 1) {
                 g_Minigame.ccs.chasedPlayer = i;
@@ -620,7 +620,7 @@ hit:
         g_Minigame.ccs.chasedPlayer = -1;
         g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[5];
     } else {
-        g_Minigame.ccs._1C = 0;
+        g_Minigame.ccs.chaseStep = 0;
     }
 }
 
@@ -1176,7 +1176,7 @@ void ccsAI_init(void) {
     i = 0;
     do {
         u8 strength = g_Minigame.playerSlots.aiStrength[i];
-        ai->_0 = RandomInt_Game_Range(ccsAI_evadeLeadRanges[strength][0], ccsAI_evadeLeadRanges[strength][1]);
+        ai->evadeLeadFrames = RandomInt_Game_Range(ccsAI_evadeLeadRanges[strength][0], ccsAI_evadeLeadRanges[strength][1]);
         if (RandomInt_Game(100) < lbl_3_data_2197C[strength]) {
             if (lbl_3_data_21980[strength] < 8) {
                 ai->_6 = RandomInt_Game_Range(lbl_3_data_21980[strength], 8);
@@ -1186,8 +1186,8 @@ void ccsAI_init(void) {
         } else {
             ai->_6 = 0x7F;
         }
-        ai->_5 = 2;
-        ai->_7 = RandomInt_Game_Range(ccsAI_decisionDelayRanges[strength][0], ccsAI_decisionDelayRanges[strength][1]);
+        ai->targetKind = 2;
+        ai->decisionDelay = RandomInt_Game_Range(ccsAI_decisionDelayRanges[strength][0], ccsAI_decisionDelayRanges[strength][1]);
         ai++;
     } while (++i < 4);
 }
@@ -1356,7 +1356,7 @@ void ccsAI_update(void) {
         memset(&g_Minigame.aiInputs[c], 0, sizeof(InputStruct));
         strength = g_Minigame.playerSlots.aiStrength[i];
         if ((ai->state < 10 || ai->state > 13) &&
-            (g_Minigame.ccs.chompState == 1 || g_Minigame.ccs._26 - g_Minigame.ccs.chompStateTimer <= ai->_0)) {
+            (g_Minigame.ccs.chompState == 1 || g_Minigame.ccs.chompWaitFrames - g_Minigame.ccs.chompStateTimer <= ai->evadeLeadFrames)) {
             ai->state = 10;
         }
         switch (ai->state) {
@@ -1365,15 +1365,15 @@ void ccsAI_update(void) {
                 ai->state = 7;
                 break;
             }
-            if (ai->_4-- <= 0) {
+            if (ai->bPressDelay-- <= 0) {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_B;
-                ai->_4 = RandomInt_Game_Range(ccsAI_bPressDelayRanges[strength][0], ccsAI_bPressDelayRanges[strength][1]);
+                ai->bPressDelay = RandomInt_Game_Range(ccsAI_bPressDelayRanges[strength][0], ccsAI_bPressDelayRanges[strength][1]);
             }
-            if (ai->_7-- > 0) {
+            if (ai->decisionDelay-- > 0) {
                 break;
             }
-            ai->_7 = RandomInt_Game_Range(ccsAI_decisionDelayRanges[strength][0], ccsAI_decisionDelayRanges[strength][1]);
-            ai->_5 = 0;
+            ai->decisionDelay = RandomInt_Game_Range(ccsAI_decisionDelayRanges[strength][0], ccsAI_decisionDelayRanges[strength][1]);
+            ai->targetKind = 0;
             if (special >= 0) {
                 f32 forward;
                 f32 backward;
@@ -1385,7 +1385,7 @@ void ccsAI_update(void) {
                 } else if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
                     ai->state = RandomInt_Game(2) ? 1 : 4;
                 }
-                ai->_5 = 4;
+                ai->targetKind = 4;
             } else if (target >= 0) {
                 if (ccsAI_getDistPastClosestRunner((f32)target / 10.0f, i, &direction) <= ccsAI_targetDistThresholds[strength]) {
                     if (direction == 1) {
@@ -1393,10 +1393,10 @@ void ccsAI_update(void) {
                     } else {
                         ai->state = 4;
                     }
-                    ai->_5 = 3;
+                    ai->targetKind = 3;
                 }
             }
-            if (ai->_5 == 0 && count != 0) {
+            if (ai->targetKind == 0 && count != 0) {
                 k = 0;
                 do {
                     targets[k].pos = itemPos[k];
@@ -1411,12 +1411,12 @@ void ccsAI_update(void) {
                         } else {
                             ai->state = 4;
                         }
-                        ai->_5 = 2;
+                        ai->targetKind = 2;
                         break;
                     }
                 } while (++k < count);
             }
-            if (ai->_5 == 0 && (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2)) {
+            if (ai->targetKind == 0 && (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2)) {
                 ai->state = RandomInt_Game(2) ? 1 : 4;
             }
             break;
@@ -1469,7 +1469,7 @@ void ccsAI_update(void) {
             if (g_Minigame.ccs.chompStateTimer % 120 >= 96) {
                 if (RandomInt_Game(100) < lbl_3_data_2197C[strength]) {
                     int lap = g_Minigame.ccs.chompStateTimer / 120 + 2;
-                    int lastLap = g_Minigame.ccs._26 / 120 + 1;
+                    int lastLap = g_Minigame.ccs.chompWaitFrames / 120 + 1;
                     if (lap < lastLap) {
                         ai->_6 = RandomInt_Game_Range(lap, lastLap);
                     } else {
@@ -1486,14 +1486,14 @@ void ccsAI_update(void) {
                 ai->state = 13;
                 break;
             }
-            if (ai->_5 == 4) {
-                ai->_3 = RandomInt_Game_Range(ccsAI_dodgeDelayRangesSpecial[strength][0], ccsAI_dodgeDelayRangesSpecial[strength][1]);
+            if (ai->targetKind == 4) {
+                ai->dodgeDelay = RandomInt_Game_Range(ccsAI_dodgeDelayRangesSpecial[strength][0], ccsAI_dodgeDelayRangesSpecial[strength][1]);
             } else {
-                ai->_3 = RandomInt_Game_Range(ccsAI_dodgeDelayRanges[strength][0], ccsAI_dodgeDelayRanges[strength][1]);
+                ai->dodgeDelay = RandomInt_Game_Range(ccsAI_dodgeDelayRanges[strength][0], ccsAI_dodgeDelayRanges[strength][1]);
             }
             ai->state = 11;
         case 11:
-            if (ai->_3-- <= 0) {
+            if (ai->dodgeDelay-- <= 0) {
                 if (g_Runners[i].runningDirectionCode == 1) {
                     g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
                 } else if (g_Runners[i].runningDirectionCode == 3) {
@@ -1506,22 +1506,22 @@ void ccsAI_update(void) {
             if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
                 ai->state = 13;
             } else {
-                ai->_3 = 1;
+                ai->dodgeDelay = 1;
                 ai->state = 11;
             }
             break;
         case 13:
             if (g_Minigame.ccs.chompState == 0 || g_Minigame.ccs.chompState == 4) {
                 if (ccsAI_isBehindInPoints(i) || g_Minigame.minigameFramesRemaining <= 1200) {
-                    ai->_0 = RandomInt_Game_Range(ccsAI_evadeLeadRangesBehind[strength][0], ccsAI_evadeLeadRangesBehind[strength][1]);
+                    ai->evadeLeadFrames = RandomInt_Game_Range(ccsAI_evadeLeadRangesBehind[strength][0], ccsAI_evadeLeadRangesBehind[strength][1]);
                 } else {
-                    ai->_0 = RandomInt_Game_Range(ccsAI_evadeLeadRanges[strength][0], ccsAI_evadeLeadRanges[strength][1]);
+                    ai->evadeLeadFrames = RandomInt_Game_Range(ccsAI_evadeLeadRanges[strength][0], ccsAI_evadeLeadRanges[strength][1]);
                 }
                 if (RandomInt_Game(100) < lbl_3_data_2197C[strength]) {
-                    if (lbl_3_data_21980[strength] < g_Minigame.ccs._26 / 120 + 1) {
-                        ai->_6 = RandomInt_Game_Range(lbl_3_data_21980[strength], g_Minigame.ccs._26 / 120 + 1);
+                    if (lbl_3_data_21980[strength] < g_Minigame.ccs.chompWaitFrames / 120 + 1) {
+                        ai->_6 = RandomInt_Game_Range(lbl_3_data_21980[strength], g_Minigame.ccs.chompWaitFrames / 120 + 1);
                     } else {
-                        ai->_6 = g_Minigame.ccs._26 / 120 + 1;
+                        ai->_6 = g_Minigame.ccs.chompWaitFrames / 120 + 1;
                     }
                 } else {
                     ai->_6 = 0x7F;

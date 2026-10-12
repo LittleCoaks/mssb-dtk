@@ -1352,9 +1352,9 @@ typedef struct _ChainChompSprintStruct {
     /*0x00C*/ VecXYZ chompVelocity;
     /*0x018*/ s16 chompYaw;
     /*0x01A*/ s16 chompStateTimer;
-    /*0x01C*/ s16 _1C;
+    /*0x01C*/ s16 chaseStep; // 0 = waiting for the targeted runners to stop, 1 = chase setup
     /*0x01E*/ s16 runFrames[4];
-    /*0x026*/ s16 _26;
+    /*0x026*/ s16 chompWaitFrames; // frames in chomp state 0 before the jump
     /*0x028*/ s16 itemTimer[6];
     /*0x034*/ s8 chasedPlayer;
     /*0x035*/ u8 runnerChompHitState[4];
@@ -1368,13 +1368,13 @@ typedef struct _ChainChompSprintStruct {
 } ChainChompSprintStruct; // size: 0x54
 
 typedef struct _ChainChompSprintAI {
-    /*0x000*/ s16 _0;
+    /*0x000*/ s16 evadeLeadFrames; // start evading once the chomp launch is this close
     /*0x002*/ u8 state;
-    /*0x003*/ s8 _3;
-    /*0x004*/ s8 _4;
-    /*0x005*/ u8 _5;
+    /*0x003*/ s8 dodgeDelay;
+    /*0x004*/ s8 bPressDelay;
+    /*0x005*/ u8 targetKind; // 0 none, 2 coin, 3 gem row, 4 special item
     /*0x006*/ s8 _6;
-    /*0x007*/ s8 _7;
+    /*0x007*/ s8 decisionDelay;
 } ChainChompSprintAI; // size: 0x8
 
 /*foul	1
