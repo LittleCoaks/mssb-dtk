@@ -277,3 +277,48 @@ and renamed `challenge_isCharRecruited` (it returns whether
 calls it with fixed character IDs). Before the merge
 `File_0x8006c48c` and `File_0x8006cbe4` were `Matching`; every function's score
 is unchanged.
+
+### What sits next to the Challenge unit, and what does not belong to it (2026-10-12)
+
+- **`mb_subfunc.c`** (`0x80064754-0x80069A68`) is a real original filename: the
+  string `"mb_subfunc.c"` opens its `.rodata` (`0x800E69B8`) and
+  `findCharacterID`, its last function, asserts with it. Its code is
+  main-menu support (character select, rosters, team logos, draft demo), not
+  Challenge. Its `.data` ends with `findCharacterID`'s jump table at
+  `0x8010924C`, followed by the 4-byte pad to the next unit's 8-aligned start
+  (`0x80109250`), and its `.sbss` ends at `0x803CBD30`.
+- **`endDemo`** (`0x80069A98`) is not `mb_subfunc`'s: it shares `.sbss
+  0x803CBD30` with `fn_80069B68`, which reads
+  `titleScreenTexturesFileDescriptor`. It belongs to the title/boot-screen
+  code `0x80069A68-0x8006C488` (data `0x8010924C-0x80109420`, `.sdata
+  0x803CB8D8-0x803CB8F0`, `.sdata2 0x803CC8F8-0x803CC938`, `.sbss
+  0x803CBD30-0x803CBD40`), which ends where Challenge starts. That unit is
+  still unsplit.
+- **`maybeUpdateFielderTerrainStatus`, `handleBallRollInWater`,
+  `spawnDustPuff`** (`0x80063958-0x80064534`) sit in front of `mb_subfunc`.
+  They share `.sbss 0x803CBD0C` with `fn_800639BC` and `fn_80062BE4`/`C60`/`D94`
+  and read the small `.data` tables `0x80108D30-0x80108DB8`; they are
+  field-terrain effects with no Challenge links. Left as they are.
+- **Challenge menu functions** (`0x80056AE4-0x80059B38`: `drawStarProgressionMenu`,
+  `someChallengeStarFunction`/`2`, `challengeCheckStarsMenuLoading`, `starMenu`,
+  `scoutFlagMenu`, `zMenuLoadGraphics`, `starMissionRelated1`) do **not** form a
+  Challenge-only unit; they are part of a much larger menu unit, and no split was made.
+  Why: (1) `jumptable_80108AA8` (`fn_80059458`) and `jumptable_80108ADC`
+  (`teamManagementGraphics_steadyState`, `0x80060184`) are adjacent and the
+  second starts on a 4-aligned address, so everything from `0x80059458` through
+  `0x80060184` (including `starMissionRelated1`, `battingOrderProcessInputs` and
+  the `teamManagementGraphics_*` functions) is one unit; (2) the tables read by
+  `scoutFlagMenu` (`lbl_80107688`) and `starMenu` (`lbl_80108048`) lie *after*
+  the ones read by `teamManagementGraphics_initialLoad` (`0x801000A8`,
+  `0x801041C8`) although their code lies before it, which units in text order
+  could not produce, so `0x80057C08-0x8006236C` is one unit; (3)
+  `lbl_800FEF70` is read by `fn_800531D0`, `fn_80053810`, `fn_80053FE8`,
+  `fn_80055374`, `controlOptionsScreen`, `gameSettingsControllerInputs`,
+  `startGameRelated`, `updateMenuNumbers` and `SetMenuNumber`, which stretches
+  the same unit back to the options screens at `0x800531D0`. The star and
+  scout screens are therefore one slice of a shared menu unit that also holds
+  non-Challenge screens, and its start and end are not pinned down.
+  `fn_8006CEBC`/`fn_8006CF6C` (`0x8006CEBC-0x8006D024`) are menu glue of the
+  same family (`SetMenuNumber` installs `fn_8006CF6C`, which loads
+  `lbl_801075A8` from this menu data block), which is why they stay out of
+  `challenge_progress.c`.
