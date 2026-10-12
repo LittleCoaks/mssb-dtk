@@ -1,4 +1,4 @@
-#include "Unknown/DisplayObject.h"
+#include "C3/geoPalette/DisplayObject.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Dolphin/os.h"
 #include "Dolphin/stl.h"

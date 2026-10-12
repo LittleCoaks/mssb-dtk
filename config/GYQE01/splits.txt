@@ -1679,13 +1679,17 @@ C3/control/control.c:
 	.data       start:0x801116A0 end:0x80111700
 	.sdata2     start:0x803CCFD8 end:0x803CCFF8
 
-Unknown/DisplayObject.c:
+C3/geoPalette/DisplayObject.c:
 	extab       start:0x80006AE0 end:0x80006B48
 	extabindex  start:0x80008BB0 end:0x80008C4C
 	.text       start:0x800B993C end:0x800BCB44
 	.rodata     start:0x800E7E78 end:0x800E7FC8
 	.data       start:0x80111700 end:0x80111750
 	.sdata2     start:0x803CCFF8 end:0x803CD058
+
+C3/geoPalette/normalTable.c:
+	.data       start:0x80111750 end:0x80112338
+	.sdata      start:0x803CBB60 end:0x803CBB68
 
 Unknown/File_0x800bcb44.c:
 	.text       start:0x800BCB44 end:0x800BCD60

@@ -125,9 +125,7 @@ void DOGet(struct DODisplayObj **dispObj, DODisplayDataPtr pal, u16 id, char *na
 
 // normalTable.c
 extern u8 normalTableQuantizeInfo;
-extern u8 normalTableNumComponents;
-extern u16 normalTableNumNormals;
 
-extern f32 normalTable[252][3];
+extern f32 normalTable[254][3]; // MSSB's table has 254 normals (the SDK's has 252)
 
 #endif // _DOLPHIN_CP_GEOPALETTE_H_

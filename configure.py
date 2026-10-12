@@ -805,7 +805,6 @@ config.libs = [
             Object(Matching, "Unknown/File_0x800b1350.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800b1500.c"),
             Object(Matching, "Unknown/File_0x800b2160.c"),
-            Object(Matching, "Unknown/DisplayObject.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800bcb44.c"),
             Object(Matching, "Unknown/File_0x800bcd60.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x800bce38.c", extra_cflags=["-cpp_exceptions on"]),
@@ -849,6 +848,8 @@ config.libs = [
             Object(NonMatching, "C3/actor/boneAnim.c"),
             Object(NonMatching, "C3/control/frustum.c"),
             Object(NonMatching, "C3/control/control.c", extra_cflags=["-inline deferred"]),
+            Object(Matching, "C3/geoPalette/DisplayObject.c", mw_version="GC/2.6"),
+            Object(Matching, "C3/geoPalette/normalTable.c"),
         ],
     },
     MusyxLib(

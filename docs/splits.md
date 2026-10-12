@@ -431,3 +431,21 @@ binary gives no file name. Link order puts the unit between `boneAnim.c` and `co
 list is case-insensitive alphabetical (as `act`, `actorAnim`, `animBank`, `animPipe`, `boneAnim`,
 `control` are), the real name sorts in `bo...-co...`, so `frustum.c` is likely not it (`clip...`,
 `cam...`, `collision...` would fit).
+
+### DisplayObject and normalTable (`0x800B993C-0x800BCB44`)
+
+`Unknown/DisplayObject.c` moved to `C3/geoPalette/DisplayObject.c` (the SDK keeps `displayObject.c`
+in the geoPalette module, `include/C3/geoPalette.h`; the binary's file name, from the warning
+`"Warning: DisplayObject.c: User TevMode %d not handled."`, is `DisplayObject.c`). Its split is unchanged
+and it still builds with `mw_version="GC/2.6"`: a sweep over the range showed only `SetFog` and
+`updateVectorInArray` (the latter in the shadow unit) change under `GC/1.3.2` (`SetFog` 100% -> 77%),
+while `CTRL_GetQuatUnk` in `control.c` needs `GC/1.3.2` (75% under 2.6). So the pipeline code is not one
+compiler: `control.c` is 1.3.2 and `DisplayObject.c` is 2.6. The other pipeline units (act, anim, geo,
+light) are insensitive to the version.
+
+`C3/geoPalette/normalTable.c` is the data-only unit that follows it: `.data 0x80111750-0x80112338`
+(the 0xBE8-byte table of 254 unit normals, which `DOVARender` hands to `GXSetArray`) and `.sdata
+0x803CBB60-0x803CBB68` (`normalTableQuantizeInfo`, the byte `DOVARender` reads; dtk sizes it 8 because of
+the 7 pad bytes). Both directly continue `DisplayObject.c`'s own `.data`/`.sdata`, and no text
+function touches them except through `DOVARender`. It is `Matching` (data 99.7%: the 7 `.sdata` pad
+bytes). The table has 254 entries; the SDK header declared 252.
