@@ -674,12 +674,12 @@ void championshipScreen(void) {
         fn_3_8C104(-1);
         vsScreenBegin(2);
         {
-            u8 *tracker = (u8 *)starMissionCompletionTracker;
+            ChallengeState *tracker = &starMissionCompletionTracker;
 
             if (inning->goAheadRunOccurrences != 0) {
-                camera_switchScene(lbl_3_data_2368[tracker[0x441C]]);
+                camera_switchScene(lbl_3_data_2368[tracker->captain]);
             } else {
-                camera_switchScene(lbl_3_data_2380[tracker[0x441C]]);
+                camera_switchScene(lbl_3_data_2380[tracker->captain]);
             }
         }
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -856,15 +856,15 @@ BOOL fn_3_2273C(void) {
 BOOL maybeSetVsIndOrScoutFlagChance(void) {
     GameInitVariables *settings = &g_d_GameSettings;
     VsData *data = &lbl_3_data_1D28;
-    u8 *tracker = (u8 *)starMissionCompletionTracker;
+    ChallengeState *tracker = &starMissionCompletionTracker;
     VsScoutState *scout = &lbl_3_common_bss_37400;
     VsScoutMission *scoutMissions = scoutMissionTable;
     BOOL scoutMission = FALSE;
     s32 i;
 
     if (settings->exhibitionMatchInd == 0) {
-        if (tracker[0x441E] == 5 ||
-            *(s16 *)(tracker + 0x16C2) == 0x2A) {
+        if (tracker->opponentCaptain == CHALLENGE_CAPTAIN_BOWSER ||
+            tracker->_16C2 == 0x2A) {
             scoutMission = FALSE;
         } else {
             scoutMission = decideScoutFlagMission();
@@ -875,7 +875,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
         if (scoutMission) {
             if (scoutMissions[scout->scoutMissionID].starMission != 0) {
                 lbl_3_common_bss_1323C->situation = 0x1C;
-                tracker[0x44F1] = 0;
+                tracker->scoutMissionPending = 0;
                 return TRUE;
             }
         }

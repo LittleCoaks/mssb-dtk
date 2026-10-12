@@ -950,7 +950,7 @@ void minigameHudCharSelectUpdate(void) {
         if (active
             && ((g_d_GameSettings.exhibitionMatchInd != 0 && superstarUnlocked[g_Minigame.selectSlots[i].charID] != 0)
                 || (g_d_GameSettings.exhibitionMatchInd == 0
-                    && ((u8*)starMissionCompletionTracker + g_Minigame.selectSlots[i].charID)[0x43D6] != 0))
+                    && starMissionCompletionTracker.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0))
             && g_Minigame.selectSlots[i].charReadyInd != 0) {
             HUD_RECORD_AT(scene, 34, i)->flags |= UI_FLAG_VISIBLE;
             HUD_RECORD_AT(scene, 34, i)->playMode = UI_PLAY_FORWARD;

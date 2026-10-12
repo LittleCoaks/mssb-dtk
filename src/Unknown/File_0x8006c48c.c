@@ -48,22 +48,22 @@ void challengeDrawStarsOnMissionMenu(void) {
     int minScoutRow;
     int scoutRow;
 
-    scoutRow = ((u8*)starMissionCompletionTracker)[0x4415];
+    scoutRow = starMissionCompletionTracker.difficulty;
     for (c = 0; c < 54; c++) {
-        if (characterStaticIndexes[c]._3 == 1 && (int)starMissionCompletionTracker[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+        if (characterStaticIndexes[c]._3 == 1 && (int)starMissionCompletionTracker.characters[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             for (m = 0; m < 10; m++) {
                 rule = &lbl_8010A768[characterStaticIndexes[c].requirementRow][m];
                 mode = rule->mode;
                 minStars = rule->minStars;
                 minScoutRow = rule->minScoutRow;
                 if (mode == 0) {
-                    starMissionCompletionTracker[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
+                    starMissionCompletionTracker.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
                 }
                 if (challengeStarRelatedInd(c, m)) {
-                    starMissionCompletionTracker[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
+                    starMissionCompletionTracker.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
                 }
                 if (mode == 1 && countStarMissions(c) >= minStars && scoutRow >= minScoutRow) {
-                    starMissionCompletionTracker[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
+                    starMissionCompletionTracker.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
                 }
             }
         }

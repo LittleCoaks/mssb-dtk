@@ -2,27 +2,10 @@
 #include "Unknown/File_0x8006c9d8.h"
 #include "game/UnknownHomes_Game.h"
 
-typedef struct ChallengeState {
-    /*0x0000*/ ChallengeTrackingStruct trackers[NUM_CHOOSABLE_CHARACTERS];
-    /*0x0AF8*/ u8 _0AF8[0x4415 - 0xAF8];
-    /*0x4415*/ u8 difficulty;
-    /*0x4416*/ u8 _4416[0x441C - 0x4416];
-    /*0x441C*/ E(u8, CHALLENGE_CAPTAIN) captain;
-    /*0x441D*/ u8 _441D;
-    /*0x441E*/ E(u8, CHALLENGE_CAPTAIN) opponentCaptain;
-    /*0x441F*/ E(u8, CHAR_ID) opponentCaptainCharID;
-    /*0x4420*/ u8 _4420[2];
-    /*0x4422*/ u8 scoutFlagRow;
-    /*0x4423*/ u8 _4423[0x444D - 0x4423];
-    /*0x444D*/ E(u8, BOOL) recruitedChar[NUM_CHOOSABLE_CHARACTERS];
-} ChallengeState;
-
 typedef struct ScoutFlagTable {
     /*0x0*/ u8 _0[4];
     /*0x4*/ s8 required[4][6];
 } ScoutFlagTable;
-
-#define CHALLENGE ((ChallengeState*)starMissionCompletionTracker)
 
 extern u8 characterStaticIndexes[NUM_CHOOSABLE_CHARACTERS][6];
 
@@ -48,11 +31,11 @@ void challenge_checkRecruitment(void) {
     int recruited;
     ChallengeState* cs;
 
-    cs = CHALLENGE;
+    cs = &starMissionCompletionTracker;
     diff = cs->difficulty;
     cap = cs->captain;
     for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
-        ChallengeTrackingStruct* t = &cs->trackers[i];
+        ChallengeTrackingStruct* t = &cs->characters[i];
         recruited = (s8)t->_31;
         if (recruited == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             continue;
@@ -74,11 +57,11 @@ void challenge_checkRecruitment(void) {
 }
 
 f32 intermediateStatBuffForScoutFlags(void) {
-    return challengeIntermediateStarBUffs_CPU[CHALLENGE->difficulty][CHALLENGE->scoutFlagRow];
+    return challengeIntermediateStarBUffs_CPU[starMissionCompletionTracker.difficulty][starMissionCompletionTracker.stage];
 }
 
 f32 intermediateStatBuffForCompletedMissions(int charID) {
-    ChallengeTrackingStruct* t = &starMissionCompletionTracker[charID];
+    ChallengeTrackingStruct* t = &starMissionCompletionTracker.characters[charID];
     int count;
     int i;
 

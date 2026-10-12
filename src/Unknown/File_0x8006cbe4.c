@@ -23,7 +23,7 @@ static inline int countStarMissions(int charID) {
 }
 
 s16 challengeRelated(int charID) {
-    ChallengeTrackingStruct* tracker = &starMissionCompletionTracker[charID];
+    ChallengeTrackingStruct* tracker = &starMissionCompletionTracker.characters[charID];
 
     return starMissionsUnlockedDifficulty[tracker->variantClassification][countStarMissions(charID)];
 }

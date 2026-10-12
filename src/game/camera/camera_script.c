@@ -2852,8 +2852,8 @@ BOOL fn_3_FDB30(void) {
     GameInitVariables* gs = &g_d_GameSettings;
     GameControlsStruct* gl = &g_GameLogic;
     u8* anim = animRelated;
-    u8 trackerA = *((u8*)starMissionCompletionTracker + 0x4415);
-    u8 trackerB = *((u8*)starMissionCompletionTracker + 0x441C);
+    u8 trackerA = starMissionCompletionTracker.difficulty;
+    u8 trackerB = starMissionCompletionTracker.captain;
     int i;
     int found;
     s32* table;

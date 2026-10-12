@@ -216,7 +216,7 @@ int fn_800247E4(int x, int y, int width, int bytesPerPixel) {
 
 BOOL challengeStarRelatedInd(int charID, int mission) {
     u8 row = characterStaticIndexes[charID].requirementRow;
-    s8 status = starMissionCompletionTracker[charID].inGameMissionTracker[mission].starMissionStatus;
+    s8 status = starMissionCompletionTracker.characters[charID].inGameMissionTracker[mission].starMissionStatus;
     s16 flags;
 
     if (status == (s8)STAR_MISSION_TRACKING_COMPLETED_SAVED) {
@@ -242,7 +242,7 @@ BOOL challengeStarRelatedInd(int charID, int mission) {
             }
         }
         if (flags & 0x800) {
-            if (((s8*)starMissionCompletionTracker)[0x44EF] == 0 && ((s8*)starMissionCompletionTracker)[0x44F0] == 0 &&
+            if (starMissionCompletionTracker._44EF == 0 && starMissionCompletionTracker._44F0 == 0 &&
                 Static_Stats_Tables.captainSelectedID[1] != CHAR_ID_BOWSER) {
                 return FALSE;
             }

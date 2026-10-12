@@ -260,7 +260,7 @@ void challengeStarMenu(void) {
     input.currentHeldInput = aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].currentHeldInput;
     input.newInput = aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].newInput;
     input.processedInput = aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].processedInput;
-    if (starMissionCompletionTracker[aiPosSwapInputs.playerIndexNoVariants].variantClassification ==
+    if (starMissionCompletionTracker.characters[aiPosSwapInputs.playerIndexNoVariants].variantClassification ==
         CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT) {
         isVariant = TRUE;
     }
@@ -403,7 +403,7 @@ void starMenuCursor(void) {
                                ? aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].processedInput
                                : Static_Stats_Tables.controllerInputs[0].processedInput;
 
-    variant = starMissionCompletionTracker[aiPosSwapInputs.playerIndexNoVariants].variantClassification;
+    variant = starMissionCompletionTracker.characters[aiPosSwapInputs.playerIndexNoVariants].variantClassification;
     size = starMenuSizes[variant];
     if (variant == CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT) {
         isVariant = TRUE;
