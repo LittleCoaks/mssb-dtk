@@ -36,20 +36,12 @@ extern u8 drawStadiumRelated;
 extern u8 hugeAnimStruct[];
 extern void* fn_80009028(void);
 extern void fn_800BCDBC(void* block);
-extern const f32 lbl_3_rodata_520;
-extern const f32 lbl_3_rodata_538;
-extern const f32 lbl_3_rodata_504;
-extern const f32 lbl_3_rodata_524;
-extern const f32 lbl_3_rodata_528;
-extern const f32 lbl_3_rodata_52C;
-extern const f32 lbl_3_rodata_530;
 static const GXColor fogBlack = {0, 0, 0, 0};
 extern void fn_80023F0C(void* source, void* destination, s32 sourceX, s32 sourceY,
                        s32 width, s32 height, s32 destinationX, s32 destinationY);
 extern int checkObjectVisibility(int mode, void* box, MtxPtr matrix);
 extern u8 FrameCountOfEntireGame[];
 extern u8 lbl_3_common_bss_35154[];
-extern const f32 lbl_3_rodata_534;
 extern void fn_8003A2C0(void);
 extern void fn_8003AE5C(u8 mode);
 extern u32 GXGetTexObjHeight(GXTexObj* texture);
@@ -382,8 +374,8 @@ void fn_3_5C68(void* context) {
     StadiumAnimatedTexturePair* pair = (StadiumAnimatedTexturePair*)context;
     int pass;
     GXSetCullMode(GX_CULL_BACK);
-    SetFog(GX_FOG_NONE, lbl_3_rodata_504, lbl_3_rodata_504,
-           lbl_3_rodata_504, lbl_3_rodata_504, fogBlack);
+    SetFog(GX_FOG_NONE, 0.0f, 0.0f,
+           0.0f, 0.0f, fogBlack);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     pass = 2;
     while (pass-- != 0) {
@@ -442,7 +434,7 @@ void fn_3_5BF0(void) {
     }
     color = *(GXColor*)(stadium + 0x714);
     SetFog((GXFogType)stadium[0x717], *(f32*)(stadium + 0x718), *(f32*)(stadium + 0x71C),
-           lbl_3_rodata_520, lbl_3_rodata_538, color);
+           1.0f, 512.0f, color);
 }
 
 // .text:0x00005BCC size:0x24 mapped:0x80644C60
@@ -483,8 +475,8 @@ void drawStadiumObjects(void) {
     fn_3_B8C08((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
     rotation = *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) + *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x768);
     *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
-    if (rotation >= lbl_3_rodata_534) {
-        rotation -= lbl_3_rodata_534;
+    if (rotation >= 6.2831855f) {
+        rotation -= 6.2831855f;
         *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
     }
     cameraCount = ((int (*)(void))returnScissorMode)();
@@ -553,7 +545,7 @@ void drawStadiumObjects(void) {
     }
     lbl_803C5090[0x1D] = sunData[0xC];
     *(f32*)(lbl_803C5090 + 0) = *(f32*)(sunData + 0);
-    *(f32*)(lbl_803C5090 + 4) = lbl_3_rodata_520 / *(f32*)((u8*)fn_80052768_getCamera(0) + 0xA4);
+    *(f32*)(lbl_803C5090 + 4) = 1.0f / *(f32*)((u8*)fn_80052768_getCamera(0) + 0xA4);
     *(f32*)(lbl_803C5090 + 8) = *(f32*)(sunData + 4);
     *(f32*)(lbl_803C5090 + 0xC) = *(f32*)(sunData + 8);
     *(u16*)(lbl_803C5090 + 0x14) = *(u16*)(sunData + 0xE);
@@ -577,9 +569,9 @@ void fn_3_5518(void) {
 
     GXSetZMode(TRUE, GX_ALWAYS, TRUE);
     GXSetScissor(0, 0, 640, 448);
-    C_MTXOrtho(projection, lbl_3_rodata_504, lbl_3_rodata_524,
-               lbl_3_rodata_504, lbl_3_rodata_528,
-               lbl_3_rodata_52C, lbl_3_rodata_530);
+    C_MTXOrtho(projection, 0.0f, 480.0f,
+               0.0f, 640.0f,
+               0.5f, 1.5f);
     GXSetProjection(projection, GX_ORTHOGRAPHIC);
     GXSetCullMode(GX_CULL_NONE);
     PSMTXIdentity(identity);
@@ -770,9 +762,9 @@ void fn_3_4984(void) {
     Mtx44 projection;
     GXSetZMode(TRUE, GX_ALWAYS, TRUE);
     GXSetScissor(0, 0, 640, 448);
-    C_MTXOrtho(projection, lbl_3_rodata_504, lbl_3_rodata_524,
-               lbl_3_rodata_504, lbl_3_rodata_528,
-               lbl_3_rodata_52C, lbl_3_rodata_530);
+    C_MTXOrtho(projection, 0.0f, 480.0f,
+               0.0f, 640.0f,
+               0.5f, 1.5f);
     GXSetProjection(projection, GX_ORTHOGRAPHIC);
     GXSetCullMode(GX_CULL_NONE);
     PSMTXIdentity(identity);
