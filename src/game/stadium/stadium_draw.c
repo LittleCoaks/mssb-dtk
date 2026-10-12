@@ -524,7 +524,8 @@ void fn_3_4984(void) {
 }
 
 // .text:0x00004A38 size:0x558 mapped:0x80643ACC
-void inningScoreDisplayRelated(int stadiumID) {
+void inningScoreDisplayRelated(u8 stadium) {
+    GXTexObj texture;
     GXColor colors[7][2] = {
         {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
         {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
@@ -534,40 +535,57 @@ void inningScoreDisplayRelated(int stadiumID) {
         {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
         {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
     };
-    s16 firstInning[8] = {10, 9, 0, 0, 0, 0, 0, 0};
+    s16 deadA[7] = {72, 148, 506, 288, 433, 252, 72};
+    s16 deadB[7] = {0};
+    s16 deadC[7][2] = {{16, 18}, {16, 18}, {16, 18}, {16, 18}, {16, 18}, {16, 18}, {16, 18}};
+    s16 deadD[4] = {32, 16, 0, 0};
+    s16 deadE[7][2] = {{6, 192}, {0, 138}};
+    s16 deadF[7][2] = {{6, 214}, {0, 159}};
+    s16 deadG[7][2] = {0};
+    s16 firstInning[7] = {10, 9};
     s16 topInnings[7][2] = {{28, 192}, {18, 138}};
     s16 bottomInnings[7][2] = {{28, 214}, {18, 159}};
     s16 topTotal[7][2] = {{250, 192}, {180, 138}};
     s16 bottomTotal[7][2] = {{250, 214}, {180, 159}};
+    u8 digitSlots[7] = {1, 1};
     s16 inningStep[7][2] = {{22, 18}, {18, 18}};
-    u8 digitSlots[8] = {1, 1};
-    GXTexObj texture;
-    int stadium = (u8)stadiumID;
+    s16 deadH[7][2] = {0};
+    s16 deadI[7][2] = {0};
+    s16 deadJ[7][2] = {{22, 18}, {18, 18}};
+    s16 deadK[7][2] = {{0, 272}, {198, 138}};
+    s16 deadL[7][2] = {{0, 298}, {198, 159}};
+    u8 deadM[7] = {1, 1};
+    s16 deadN[7][2] = {{24, 272}, {216, 138}};
+    s16 deadO[7][2] = {{24, 298}, {216, 159}};
+    s16 deadP[7][2] = {{0, 336}, {0, 362}, {0, 388}, {261, 117}, {261, 139}, {261, 161}};
+    s16 deadQ[7][2] = {0};
+    s16 deadR[7][2] = {0};
+    s16 deadS[7][2] = {{16, 18}, {16, 16}};
+    s16 deadT[7][2] = {{26, 18}, {21, 18}};
     int inning;
     int firstVisibleInning;
-    int offset = 0;
+    int offset;
     int lastInning;
+    u8 outline;
+    u8 slots;
 
     GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
+    firstVisibleInning = (g_Scores.Inning < firstInning[stadium] + 1) ? 1 : firstInning[stadium] + 1;
     lastInning = g_Scores.Inning;
-    firstVisibleInning = firstInning[stadium] + 1;
-    if (lastInning < firstVisibleInning) {
-        firstVisibleInning = 1;
-    }
-    inning = firstVisibleInning;
-    while (inning <= lastInning) {
-        s16 runs = g_Scores.scores[0].byInning[inning - 1];
-        if (inning == lastInning && runs == 0 && g_Scores.halfInning == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
+    offset = 0;
+    for (inning = firstVisibleInning; inning <= lastInning; inning++) {
+        if (inning == g_Scores.Inning && g_Scores.scores[0].byInning[inning - 1] == 0 &&
+            g_Scores.halfInning == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
             break;
         }
         fn_3_4F90(&texture, topInnings[stadium][0] + offset,
-                     topInnings[stadium][1], runs, 1,
+                     topInnings[stadium][1], g_Scores.scores[0].byInning[inning - 1], 1,
                      colors[stadium][0], colors[stadium][1], 0);
         offset += inningStep[stadium][0];
-        inning++;
     }
+    slots = digitSlots[stadium];
     fn_3_4F90(&texture, topTotal[stadium][0], topTotal[stadium][1],
-                 g_Scores.scores[0].total, digitSlots[stadium],
+                 g_Scores.scores[0].total, slots,
                  colors[stadium][0], colors[stadium][1], 0);
 
     if (((u8*)&g_GameLogic)[0x127] == 0) {
@@ -576,24 +594,23 @@ void inningScoreDisplayRelated(int stadiumID) {
         lastInning = g_Scores.inningLimit + 1;
     }
     offset = 0;
-    inning = firstVisibleInning;
-    while (inning < lastInning) {
-        s16 runs = g_Scores.scores[1].byInning[inning - 1];
-        int outline = 0;
-        if (inning >= g_Scores.inningLimit && g_Scores.scores[1].total > runs) {
+    for (inning = firstVisibleInning; inning < lastInning; inning++) {
+        if (inning >= g_Scores.inningLimit && g_Scores.scores[1].total > g_Scores.scores[0].total) {
             outline = 1;
+        } else {
+            outline = 0;
         }
-        if (inning == g_Scores.Inning && runs == 0 && outline == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
+        if (inning == g_Scores.Inning && g_Scores.scores[1].byInning[inning - 1] == 0 &&
+            outline == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
             break;
         }
         fn_3_4F90(&texture, bottomInnings[stadium][0] + offset,
-                     bottomInnings[stadium][1], runs, 1,
+                     bottomInnings[stadium][1], g_Scores.scores[1].byInning[inning - 1], 1,
                      colors[stadium][0], colors[stadium][1], outline);
         offset += inningStep[stadium][0];
-        inning++;
     }
     fn_3_4F90(&texture, bottomTotal[stadium][0], bottomTotal[stadium][1],
-                 g_Scores.scores[1].total, digitSlots[stadium],
+                 g_Scores.scores[1].total, slots,
                  colors[stadium][0], colors[stadium][1], 0);
 }
 
