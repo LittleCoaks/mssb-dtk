@@ -1262,16 +1262,16 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
 
 #define CAM_FILTER_V(vp) \
     if (CTX->_09B4 != 0) { \
+        VecXYZ _out; \
         VecXYZ _po; \
+        VecXYZ _cur; \
         VecXYZ _pi; \
         VecXYZ _dead; \
-        VecXYZ _cur; \
-        VecXYZ _out; \
-        memcpy(&_dead, (vp), sizeof(VecXYZ)); \
         memcpy(&_cur, (vp), sizeof(VecXYZ)); \
         _po.x = CTX->_00D0.x; \
         _po.y = CTX->_00D0.y; \
         _po.z = CTX->_00D0.z; \
+        memcpy(&_dead, (vp), sizeof(VecXYZ)); \
         _pi.x = CTX->_00C4.x; \
         _pi.y = CTX->_00C4.y; \
         _pi.z = CTX->_00C4.z; \
