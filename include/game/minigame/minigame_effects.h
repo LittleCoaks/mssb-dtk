@@ -318,7 +318,7 @@ void starDash_stopSparks(s8 index);
 void starDash_stopSparks2(s8 index);
 void starDash_stopAllSparks(void);
 void starDash_stopAllSparks2(void);
-void starDash_spawnDust(MGEffect* arg);
+void starDash_spawnDust(Vec* pos);
 void starDash_spawnDustEffect(Vec* pos);
 void starDash_initDustParticles(MGEffect* effect, Vec* pos);
 int starDash_updateDust(MGEffect* effect);

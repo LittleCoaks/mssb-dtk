@@ -40,6 +40,11 @@ typedef union _MGMinigame {
 extern MGMinigame g_Minigame;
 #define PP g_Minigame.pp
 
+#define MG_PLAYER_COUNT 4
+#define BB_BARREL_COUNT 15
+/* Spark group index of the star itself; 0..3 are the players. */
+#define SD_STAR_SPARK_INDEX 4
+
 extern u8 animRelated[0x124];
 extern u8 hugeAnimStruct[0x3154];
 extern f32 bB_barrelConsts[6];
@@ -363,7 +368,7 @@ static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
 // .text:0x157DB8 size:0x70
 // Spawns the trail effect that follows the chomp; it lives for `duration` frames.
 void chainChomp_spawnTrailEffect(s32 duration) {
-    MGEffect* effect = allocParticleEffect(chainChomp_updateTrailEffect, 0x80, 0, 1, 1, 0x16);
+    MGEffect* effect = allocParticleEffect(chainChomp_updateTrailEffect, 0x80, 0, 1, TRUE, 0x16);
 
     if (effect != NULL) {
         effect->frame = 0;
@@ -1877,7 +1882,7 @@ void starDash_startSparks(s8 index) {
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_STAR_DASH) {
         return;
     }
-    if (index > 4 || index < 0) {
+    if (index > SD_STAR_SPARK_INDEX || index < 0) {
         return;
     }
     starDash_spawnSparksEffect(index);
@@ -2051,7 +2056,7 @@ void starDash_stopAllSparks(void) {
     MGEffect* effect;
     MGParticle* p;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < MG_PLAYER_COUNT; i++) {
         index = i;
         effect = fn_800339F0(0, 0x1E);
         if (effect != NULL) {
@@ -2071,17 +2076,17 @@ void starDash_stopAllSparks(void) {
 void starDash_stopAllSparks2(void) {
     u32 i;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < MG_PLAYER_COUNT; i++) {
         starDash_stopSparks2(i);
     }
     pitchingMachinePitching(0x1E);
 }
 
 // .text:0x14E7C0 size:0x50
-void starDash_spawnDust(MGEffect* arg) {
+void starDash_spawnDust(Vec* pos) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH &&
-        arg != NULL) {
-        starDash_spawnDustEffect((Vec*)arg);
+        pos != NULL) {
+        starDash_spawnDustEffect(pos);
     }
 }
 
@@ -2205,7 +2210,7 @@ void starDash_stopDust(void) {
 // .text:0x14DC80 size:0x60
 void barrelBatter_spawnBarrelExplosion(s8 index) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
-        if (index < 15 && index >= 0) {
+        if (index < BB_BARREL_COUNT && index >= 0) {
             barrelBatter_spawnBarrelExplosionEffect(index);
         }
     }
@@ -2375,7 +2380,7 @@ void barrelBatter_releaseBarrelExplosion(s8 index) {
     MGEffect* effect;
     MGParticle* p;
 
-    if (index >= 15 || index < 0) {
+    if (index >= BB_BARREL_COUNT || index < 0) {
         return;
     }
     effect = fn_800339F0(0, 0x20);
@@ -2424,7 +2429,7 @@ void barrelBatter_clearExplosionParticle(MGParticle* p) {
 void barrelBatter_stopBarrelExplosions(void) {
     u32 i;
 
-    for (i = 0; i < 15; i++) {
+    for (i = 0; i < BB_BARREL_COUNT; i++) {
         barrelBatter_releaseBarrelExplosion2(i);
     }
     pitchingMachinePitching(0x20);
@@ -2942,7 +2947,7 @@ void minigameWinnerStars_setWinners(s32* values, s32 count) {
     slots[1] = -1;
     slots[2] = -1;
     slots[3] = -1;
-    if (count > 4) {
+    if (count > MG_PLAYER_COUNT) {
         return;
     }
     if (count == 0) {
@@ -2967,7 +2972,7 @@ void minigameWinnerStars_spawn(void) {
     } else {
         minigameWinnerStars_params[5] = 750000;
     }
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < MG_PLAYER_COUNT; i++) {
         index = slots[i];
         if (index > -1) {
             effect = allocParticleEffect(minigameWinnerStars_update, 0x80, 0, minigameWinnerStars_params[0], TRUE, 0x25);
