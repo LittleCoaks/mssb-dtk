@@ -1664,12 +1664,19 @@ C3/actor/boneAnim.c:
 	.text       start:0x800B79D0 end:0x800B7D3C
 	.sdata2     start:0x803CCFB8 end:0x803CCFC0
 
-C3/control/control.c:
-	extab       start:0x80006A90 end:0x80006AE0
-	extabindex  start:0x80008B38 end:0x80008BB0
-	.text       start:0x800B7D3C end:0x800B993C
-	.data       start:0x801116A0 end:0x80111700
+C3/control/frustum.c:
+	extab       start:0x80006A90 end:0x80006AA8
+	extabindex  start:0x80008B38 end:0x80008B5C
+	.text       start:0x800B7D3C end:0x800B845C
+	.data       start:0x80111670 end:0x801116A0
 	.bss        start:0x803CB1FC end:0x803CB49C
+	.sdata2     start:0x803CCFC0 end:0x803CCFD8
+
+C3/control/control.c:
+	extab       start:0x80006AA8 end:0x80006AE0
+	extabindex  start:0x80008B5C end:0x80008BB0
+	.text       start:0x800B845C end:0x800B993C
+	.data       start:0x801116A0 end:0x80111700
 	.sdata2     start:0x803CCFD8 end:0x803CCFF8
 
 Unknown/DisplayObject.c:

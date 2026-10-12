@@ -568,18 +568,3 @@ void CTRL_GetQuatUnk(const Control *control, float *x, float *y, float *z, float
     *z = control->controlParams.q.z;
     *w = control->controlParams.q.w;
 }
-
-void checkPlaneIntersection()
-{
-
-}
-
-void fn_800B806C()
-{
-    
-}
-
-void checkObjectVisibility()
-{
-    
-}

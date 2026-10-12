@@ -403,3 +403,31 @@ which of the two units defines it is not decidable from the binary, so it stays 
 stub now has the real 4-parameter prototype from `C3/actor.h`). The order of files matches the SDK
 (`actor.c`, `actorAnim.c`, `animBank.c`, `animPipe.c`, `boneAnim.c`, `control.c`: case-insensitive
 alphabetical, with the frustum unit sitting between `boneAnim` and `control`).
+
+### Frustum culling is not part of `control.c` (`0x800B7D3C-0x800B845C`)
+
+`C3/control/control.c` was cut as `0x800B7D3C-0x800B993C` and held three stubs
+(`checkObjectVisibility`, `fn_800B806C`, `checkPlaneIntersection`) at the start of its `.text`. Their
+data does not belong to the CTRL functions:
+
+- Their `.sdata2` pool is `-1.0f, 1.0f, 2.0f, 0.0f, -2.0f` at `0x803CCFC0-0x803CCFD4`; the CTRL pool at
+  `0x803CCFD8` repeats `1.0f`, `0.0f`, `-1.0f`, and the `boneAnim.c` pool at `0x803CCFB8` repeats `1.0f`
+  and `0.0f`. One unit pools a literal once, so both boundaries are certain.
+- `.bss 0x803CB1FC-0x803CB49C` (four 0xA8-byte frustums, written by `fn_800B806C`, read by
+  `checkObjectVisibility`) and `.data 0x80111670-0x801116A0` (two 0x18-byte tables read by
+  `checkPlaneIntersection` / `checkObjectVisibility`) are touched by nothing in the CTRL group; the CTRL
+  `.data` starts at `flipYMatrix` (`0x801116A0`).
+
+`control.c` is now `0x800B845C-0x800B993C` (`CTRL_GetQuatUnk` through `CTRLSetScale`), with
+`.data 0x801116A0-0x80111700` and `.sdata2 0x803CCFD8-0x803CCFF8`; it has no `.bss`. The 16 functions
+that have C are 100%; only `fn_800B84AC` (the quaternion blend helper, which reads the `.sbss
+0x803CC1E8` flag that `act.c`'s `fn_800B313C` writes) is a stub. The new
+`C3/control/frustum.c` (`.text 0x800B7D3C-0x800B845C`, `.data 0x80111670-0x801116A0`, `.bss
+0x803CB1FC-0x803CB49C`, `.sdata2 0x803CCFC0-0x803CCFD8`) is a stub unit.
+
+**Name is a proposal.** `fn_800B806C(slot, ...)` fills a frustum from seven floats and
+`checkObjectVisibility(slot, corners, mtx)` tests eight corners against it, hence `frustum.c`. The
+binary gives no file name. Link order puts the unit between `boneAnim.c` and `control.c`; if the SDK
+list is case-insensitive alphabetical (as `act`, `actorAnim`, `animBank`, `animPipe`, `boneAnim`,
+`control` are), the real name sorts in `bo...-co...`, so `frustum.c` is likely not it (`clip...`,
+`cam...`, `collision...` would fit).

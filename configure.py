@@ -847,6 +847,7 @@ config.libs = [
             Object(Matching, "C3/anim/animBank.c"),
             Object(NonMatching, "C3/anim/animPipe.c"),
             Object(NonMatching, "C3/actor/boneAnim.c"),
+            Object(NonMatching, "C3/control/frustum.c"),
             Object(NonMatching, "C3/control/control.c", extra_cflags=["-inline deferred"]),
         ],
     },
