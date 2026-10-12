@@ -776,7 +776,6 @@ config.libs = [
             Object(Matching, "Unknown/mb_subfunc.c", extra_cflags=["-cpp_exceptions on", "-inline deferred"]),
             Object(Matching, "Unknown/File_0x80069a98.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "challenge/challenge_progress.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(Matching, "Unknown/File_0x80091450.c", mw_version="GC/1.2.5n"),
             Object(NonMatching, "Unknown/File_0x800a6900.c"),
             Object(NonMatching, "Unknown/File_0x800a70dc.c"),
             Object(Matching, "Unknown/File_0x800a7544.c", extra_cflags=["-cpp_exceptions on"]),
@@ -864,6 +863,10 @@ config.libs = [
         "cflags": cflags_base + ["-O4,p", "-sym on", "-cpp_exceptions on"],
         "host": False,
         "objects": [
+            Object(Matching, "C3/texPalette/texPalette.c", mw_version="GC/1.2.5n"),
+            Object(Matching, "C3/structures/List.c", mw_version="GC/1.2.5n"),
+            Object(Matching, "C3/structures/dolphinString.c", mw_version="GC/1.2.5n"),
+            Object(Matching, "C3/structures/Tree.c", mw_version="GC/1.2.5n"),
             Object(NonMatching, "C3/control/control.c", extra_cflags=["-inline deferred"]),
         ],
     },

@@ -322,3 +322,43 @@ is unchanged.
   same family (`SetMenuNumber` installs `fn_8006CF6C`, which loads
   `lbl_801075A8` from this menu data block), which is why they stay out of
   `challenge_progress.c`.
+
+## Main DOL: the charPipeline (C3) translation units (2026-10-12)
+
+The Dolphin SDK "Character Pipeline" code in the main DOL sits in two places: the `structures`
+and `texPalette` modules at `0x80091450` (inside the SDK libraries, between `GXPerf` and
+`TRK_MINNOW_DOLPHIN`) and the rest of the pipeline at `0x800B2AC8-0x800C0770`, interleaved with
+the game's own engine code (sound, draw list, sprites, shadows). Boundaries below come from
+how the linker laid out each section; SDK file names (from the headers in `include/C3/` and
+`include/charPipeline/`) are used for pieces that carry no data of their own and are marked
+"SDK layout" where the binary gives no further evidence.
+
+Evidence used, in decreasing order of strength:
+
+- **Duplicate `.sdata2` constants.** MWCC pools each literal once per translation unit, so the
+  same value (`1.0f`, `0.0f`, ...) appearing twice in `.sdata2` means a unit boundary lies between
+  the two copies. `.sdata2` starts every unit 8-aligned, so a 4-byte hole before an 8-aligned
+  constant is a boundary too (`0x803CCF14`, between `makeLookAtMatrix` and the sound unit).
+- **`__FILE__` strings** the code passes to `OSPanic`: `"sound.c"` (`.sdata2 0x803CCF28`),
+  `"sprt.c"` (`0x803CCF40`), `"act.c"` (`0x803CCF70`), `"animPipe.c"` (`.rodata 0x800E7D88`),
+  `"DisplayObject.c"` (inside the warning at `0x800E7F20`).
+- **Which functions touch which data object**, laid out in link order in every section
+  (`.data`, `.rodata`, `.sdata`, `.sbss`, `.bss`).
+- **`extab`/`extabindex`** rows only exist for non-leaf functions of a `-cpp_exceptions on` unit, and
+  the hand-written asm skinning routines have none.
+- For text-only runs with no data of their own, the SDK file layout decides.
+
+### Structures and texPalette (`0x80091450-0x80091608`)
+
+`Unknown/File_0x80091450.c` (6 functions, all 100% under `mw_version="GC/1.2.5n"`) is four SDK
+translation units. No data, so this follows the SDK file layout only (the header names in
+`include/charPipeline/structures/` are the SDK's file names):
+
+| new unit | `.text` | functions |
+|---|---|---|
+| `C3/texPalette/texPalette.c` | `0x80091450-0x80091460` | `TEXGet` |
+| `C3/structures/List.c` | `0x80091460-0x8009150C` | `DSInitList`, `DSInsertListObject` |
+| `C3/structures/dolphinString.c` | `0x8009150C-0x8009155C` | `Strcmp` (the SDK declares it in `dolphinString.h`; `Strcat`/`Strcpy`/`Strlen` were dead-stripped) |
+| `C3/structures/Tree.c` | `0x8009155C-0x80091608` | `DSInitTree`, `DSInsertBranchBelow` |
+
+All four are `Matching` (the old unit was one `Matching` file, so the linked count goes up by 3).
