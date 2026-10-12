@@ -70,6 +70,8 @@ extern void SetGameStatus(int status);
 
 #define ANIM_BYTE(offset) (hugeAnimStruct[(offset)])
 #define ANIM_HALF(offset) (*(s16*)&animRelated[(offset)])
+#define CHAR_STATIC_TRACKER_IDX(charID) characterStaticIndexes[(charID) * 6 + 1]
+#define CHAR_STATIC_ROW(charID) characterStaticIndexes[(charID) * 6 + 2]
 #define CHAR_STATS(charID) (((CharacterStats*)&Static_Stats_Tables)[(charID)])
 #define PLAYER_KEY(charID) (CHAR_STATS(charID).stats.FieldingArm * 2 + CHAR_STATS(charID).stats.BattingStance)
 
@@ -930,45 +932,47 @@ BOOL practice_relatedToSettingCharacters(void) {
             secondary = -1;
         }
         if (primary < 0) return TRUE;
-        if (secondary >= 0 && characterStaticIndexes[primary * 6 + 2] == characterStaticIndexes[secondary * 6 + 2]) {
+        if (secondary >= 0 && CHAR_STATIC_ROW(primary) == CHAR_STATIC_ROW(secondary)) {
             secondary = -1;
         }
         if (secondary < 0) {
-            if ((g_Practice.someCharID1 >= 0 && characterStaticIndexes[g_Practice.someCharID1 * 6 + 2] == characterStaticIndexes[primary * 6 + 2]) ||
-                (g_Practice.someCharID2 >= 0 && characterStaticIndexes[g_Practice.someCharID2 * 6 + 2] == characterStaticIndexes[primary * 6 + 2])) {
+            if ((g_Practice.someCharID1 >= 0 && CHAR_STATIC_ROW(g_Practice.someCharID1) == CHAR_STATIC_ROW(primary)) ||
+                (g_Practice.someCharID2 >= 0 && CHAR_STATIC_ROW(g_Practice.someCharID2) == CHAR_STATIC_ROW(primary))) {
                 return TRUE;
             }
             previous = g_Practice.someCharID2;
             if (previous >= 0) {
-                fn_3_90AB0(characterStaticIndexes[previous * 6 + 1]);
-                g_Practice.someCharID2 = characterStaticIndexes[primary * 6 + 1];
+                fn_3_90AB0(CHAR_STATIC_TRACKER_IDX(previous));
+                g_Practice.someCharID2 = CHAR_STATIC_TRACKER_IDX(primary);
             } else if (g_Practice.someCharID1 < 0) {
-                g_Practice.someCharID1 = characterStaticIndexes[primary * 6 + 1];
+                g_Practice.someCharID1 = CHAR_STATIC_TRACKER_IDX(primary);
             } else {
-                g_Practice.someCharID2 = characterStaticIndexes[primary * 6 + 1];
+                g_Practice.someCharID2 = CHAR_STATIC_TRACKER_IDX(primary);
             }
-            g_Practice.someCharID3 = characterStaticIndexes[primary * 6 + 1];
+            g_Practice.someCharID3 = CHAR_STATIC_TRACKER_IDX(primary);
         } else if (g_Practice.someCharID1 >= 0) {
-            previous = g_Practice.someCharID1;
-            if (characterStaticIndexes[previous * 6 + 1] != characterStaticIndexes[secondary * 6 + 1] &&
-                characterStaticIndexes[previous * 6 + 1] != characterStaticIndexes[primary * 6 + 1]) {
-                fn_3_90AB0(characterStaticIndexes[previous * 6 + 1]);
-                fn_3_90AB0(characterStaticIndexes[g_Practice.someCharID2 * 6 + 1]);
-                g_Practice.someCharID3 = characterStaticIndexes[primary * 6 + 1];
-                g_Practice.someCharID4 = characterStaticIndexes[secondary * 6 + 1];
-                g_Practice.someCharID1 = characterStaticIndexes[primary * 6 + 1];
-                g_Practice.someCharID2 = characterStaticIndexes[secondary * 6 + 1];
-            } else {
-                if (characterStaticIndexes[previous * 6 + 1] != characterStaticIndexes[secondary * 6 + 1]) {
-                    primary = secondary;
+            do {
+                previous = g_Practice.someCharID1;
+                if (CHAR_STATIC_TRACKER_IDX(previous) != CHAR_STATIC_TRACKER_IDX(secondary)) {
+                    if (CHAR_STATIC_TRACKER_IDX(previous) == CHAR_STATIC_TRACKER_IDX(primary)) {
+                        primary = secondary;
+                    } else {
+                        fn_3_90AB0(CHAR_STATIC_TRACKER_IDX(previous));
+                        fn_3_90AB0(CHAR_STATIC_TRACKER_IDX(g_Practice.someCharID2));
+                        g_Practice.someCharID3 = CHAR_STATIC_TRACKER_IDX(primary);
+                        g_Practice.someCharID4 = CHAR_STATIC_TRACKER_IDX(secondary);
+                        g_Practice.someCharID1 = CHAR_STATIC_TRACKER_IDX(primary);
+                        g_Practice.someCharID2 = CHAR_STATIC_TRACKER_IDX(secondary);
+                        break;
+                    }
                 }
                 previous = g_Practice.someCharID2;
-                if (characterStaticIndexes[previous * 6 + 1] != characterStaticIndexes[primary * 6 + 1]) {
-                    fn_3_90AB0(characterStaticIndexes[previous * 6 + 1]);
-                    g_Practice.someCharID3 = characterStaticIndexes[primary * 6 + 1];
-                    g_Practice.someCharID2 = characterStaticIndexes[primary * 6 + 1];
+                if (CHAR_STATIC_TRACKER_IDX(previous) != CHAR_STATIC_TRACKER_IDX(primary)) {
+                    fn_3_90AB0(CHAR_STATIC_TRACKER_IDX(previous));
+                    g_Practice.someCharID3 = CHAR_STATIC_TRACKER_IDX(primary);
+                    g_Practice.someCharID2 = CHAR_STATIC_TRACKER_IDX(primary);
                 }
-            }
+            } while (0);
         }
     }
     if (g_Practice.someCharID3 >= 0 && !fn_3_90B14(g_Practice.someCharID3, g_Practice.someCharID4)) return FALSE;
