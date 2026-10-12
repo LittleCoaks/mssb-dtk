@@ -3731,10 +3731,10 @@ void fn_3_FD670(void) {
                     }
                     n--;
                 } while (n != 0);
-                if (time < ctx->_011C - 1) {
-                    ctx->_0118 += 0x10000;
-                } else {
+                if (time >= ctx->_011C - 1) {
                     ctx->_09AD = 0;
+                } else {
+                    ctx->_0118 += 0x10000;
                 }
             }
             break;
