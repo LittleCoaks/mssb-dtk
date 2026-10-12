@@ -99,10 +99,10 @@ void practiceMenu(void) {
             break;
         }
     } else {
-        if ((u16)g_Practice.practiceMenu_framesOnCurrMenuScreen < 0xFFFE) {
+        if (g_Practice.practiceMenu_framesOnCurrMenuScreen < 0xFFFE) {
             g_Practice.practiceMenu_framesOnCurrMenuScreen++;
         } else {
-            g_Practice.practiceMenu_framesOnCurrMenuScreen = 0x10000 - 1;
+            g_Practice.practiceMenu_framesOnCurrMenuScreen = 0xFFFF;
         }
         switch (g_Practice.practiceType_1) {
         case 0:
@@ -609,7 +609,7 @@ void fn_3_B49D4(void) {
         if (*frames < 0xFFFE) {
             (*frames)++;
         } else {
-            *frames = 0x10000 - 1;
+            *frames = 0xFFFF;
         }
 
         if ((input->newButtonInput & INPUT_BUTTON_A) && (s8)slot[0x19E8] >= 0 && slot[0x19EE] == 0) {
@@ -663,23 +663,26 @@ void practiceSimulation(void) {
         return;
     }
 
-    if ((u16)g_Practice.framesInCurrTransitionState < 0xFFFE) {
+    if (g_Practice.framesInCurrTransitionState < 0xFFFE) {
         g_Practice.framesInCurrTransitionState++;
     } else {
-        g_Practice.framesInCurrTransitionState = 0x10000 - 1;
+        g_Practice.framesInCurrTransitionState = 0xFFFF;
     }
-    if ((u16)g_Practice.framesSincePracticeMenuDefaultTransition < 0xFFFE) {
+    if (g_Practice.framesSincePracticeMenuDefaultTransition < 0xFFFE) {
         g_Practice.framesSincePracticeMenuDefaultTransition++;
     } else {
-        g_Practice.framesSincePracticeMenuDefaultTransition = 0x10000 - 1;
+        g_Practice.framesSincePracticeMenuDefaultTransition = 0xFFFF;
     }
-    if ((u16)g_Practice.totalFrames < 0xFFFE) {
+    if (g_Practice.totalFrames < 0xFFFE) {
         g_Practice.totalFrames++;
     } else {
-        g_Practice.totalFrames = 0x10000 - 1;
+        g_Practice.totalFrames = 0xFFFF;
     }
 
     switch (g_GameLogic.secondaryGameMode) {
+    case SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN:
+        loadPracticeScreen();
+        break;
     case SECONDARY_GAME_MODE_PRACTICE_MENU:
         practiceMenu();
         break;
@@ -700,10 +703,7 @@ void practiceSimulation(void) {
         freeFieldingPracticeControl();
         break;
     case SECONDARY_GAME_MODE_RETURN_TO_MENU:
-        fn_3_B3C64();
-        break;
-    case SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN:
-        loadPracticeScreen();
+        g_GameLogic.framesOfExitingToMenu = TRUE;
         break;
     }
 
@@ -942,7 +942,7 @@ void practiceLoadingRelatedMaybe(void) {
 BOOL practice_relatedToSettingCharacters(void) {
     int primary = 0;
     int secondary = -1;
-    int previous;
+    s16 previous;
 
     if (!g_Practice.characterLoadStarted) {
         g_Practice.characterLoadStarted = TRUE;
@@ -950,16 +950,17 @@ BOOL practice_relatedToSettingCharacters(void) {
         g_Practice.someCharID4 = -1;
         switch (g_Practice.practiceType_2) {
         case PRACTICE_TYPE_BATTING:
+            secondary = 1;
+            break;
         case PRACTICE_TYPE_FIELDING:
             secondary = 1;
             break;
         case PRACTICE_TYPE_BASERUNNING:
             return TRUE;
         case PRACTICE_TYPE_FREEPLAY:
-            primary = (s8)MINI_BYTE(0x19E8 + g_Practice.homeAway * 9);
+            primary = MINI_SBYTE(0x19E8 + g_Practice.homeAway * 9);
             break;
         case PRACTICE_TYPE_PITCHING:
-        default:
             break;
         }
         if (primary == 0) primary = -1;
@@ -973,10 +974,11 @@ BOOL practice_relatedToSettingCharacters(void) {
             secondary = -1;
         }
         if (secondary < 0) {
-            previous = g_Practice.someCharID1;
-            if (previous >= 0 && characterStaticIndexes[previous * 6 + 2] == characterStaticIndexes[primary * 6 + 2]) return TRUE;
+            if ((g_Practice.someCharID1 >= 0 && characterStaticIndexes[g_Practice.someCharID1 * 6 + 2] == characterStaticIndexes[primary * 6 + 2]) ||
+                (g_Practice.someCharID2 >= 0 && characterStaticIndexes[g_Practice.someCharID2 * 6 + 2] == characterStaticIndexes[primary * 6 + 2])) {
+                return TRUE;
+            }
             previous = g_Practice.someCharID2;
-            if (previous >= 0 && characterStaticIndexes[previous * 6 + 2] == characterStaticIndexes[primary * 6 + 2]) return TRUE;
             if (previous >= 0) {
                 fn_3_90AB0(characterStaticIndexes[previous * 6 + 1]);
                 g_Practice.someCharID2 = characterStaticIndexes[primary * 6 + 1];
@@ -1046,14 +1048,15 @@ void fn_3_B3C64(void) {
 void practiceSetupRunnerStatus(void) {
     int i;
     for (i = 0; i < 4; i++) {
+        InMemRunnerType* runner = &g_Runners[i];
         if (g_Practice.baserunningActiveRunners[i] != 0) {
             if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
                 initializeInMemRunner(i - 1, i);
             }
-            g_Runners[i].runnerOnFieldOrOutOrScored = RUNNER_STATUS_ON_FIELD;
+            runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_ON_FIELD;
         } else {
-            g_Runners[i].runnerOnFieldOrOutOrScored = RUNNER_STATUS_NONE;
-            g_Runners[i].rosterID = -1;
+            runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_NONE;
+            runner->rosterID = -1;
         }
     }
 }
