@@ -42,28 +42,17 @@ extern s32 fn_80035DD4(s32 arg0);
 extern void fn_800385F0(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
 extern void fn_1_273D8(void *arg0);
 
-extern u8 StadiumFiles_debug_10674[0x150];
-extern void (*lbl_1_data_1066C[])(s16);
 extern u8 lbl_803C6CF8[0x708];
-extern u8 chainModelFileDescriptorDebug[0x14];
 extern u8 lbl_80366158[0x30];
 extern u8 drawStadiumRelated;
-extern u8 lbl_1_data_107E4[0x38];
-extern u8 lbl_1_data_107C4[0x20];
-extern u8 lbl_1_data_FB98[0x7AC];
 extern u8 textureContainerSlots[0x4B0];
-extern void (*lbl_1_data_104A8[])(void);
 extern void removeGraphicsElementFromScene(void *arg0);
 extern void fn_8000CEF0(void *arg0);
 extern void fn_80035A00(void);
-extern u8 lbl_1_data_10344[0x40];
 extern void fn_80038E2C(void *arg0);
 extern void fn_80048C1C(void);
 extern void fn_80048D4C(void);
 extern void fn_80048C28(void);
-extern void (*lbl_1_data_10508[])(DrawingSceneStruct *arg0);
-extern void (*lbl_1_data_10510[])(DrawingSceneStruct *arg0);
-extern u32 lbl_1_data_104DC[6];
 
 extern void LITAlloc(void *slot);
 extern void LITInitAttn(void *light, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6);
@@ -73,15 +62,11 @@ extern void LITInitColor(void *light, GXColor *color);
 extern void *ActorObjectInitTable(s32 arg0, u32 arg1, void *arg2);
 extern void LoadActorLayout(void *arg0);
 extern void convertGeometryAndSknHeader(void *arg0, s32 arg1);
-extern void animateBallRelated(void *arg0, s32 arg1, s32 arg2, void *arg3, s32 arg4, s32 arg5);
+extern void animateBallRelated(void *arg0, u16 arg1, u16 arg2, void *arg3, s32 arg4, s32 arg5);
 extern void fn_800B2C08(void *arg0, s32 arg1);
-extern void fn_800BD548(void *arg0, s32 arg1, void *arg2);
+extern void fn_800BD548(void *arg0, s32 arg1, ...);
 extern void haveActLayoutPointToGeoHeader(void *arg0, void *arg1);
 
-extern u8 lbl_1_data_10384[0x120];
-extern f32 lbl_1_data_104A4;
-extern s16 (*lbl_1_data_10668[])(s16 arg0);
-extern s32 lbl_1_data_10670[];
 extern void fn_1_26D28(void *arg0, u16 arg1, u16 arg2, u16 arg3, void *arg4);
 extern void fn_1_27330(void *arg0);
 extern void fn_80037BAC(void *arg0);
@@ -89,14 +74,233 @@ extern s32 fn_80048EA8(s32 arg0);
 extern void fn_80038B48(void *arg0, void *arg1, s32 arg2, void *arg3);
 extern void fn_80038CD0(u8 arg0, void *arg1, void *arg2, f32 arg3, f32 arg4);
 extern void convertTextureHeader(void *arg0);
-extern u8 StadiumFiles_debug_10518[0x150];
 extern void fn_800BDA24(void *arg0);
 extern void fn_800BD670(void *arg0, void *arg1);
-extern f32 lbl_1_data_104D0[3];
 extern void fn_1_121D4(void *arg0);
 extern void *_OSAllocFromHeap(s32 arg0, s32 arg1);
 extern void fn_80023F0C(void *arg0, void *arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7);
 extern void fn_1_F2C(s32 arg0);
+
+typedef struct {
+    u32 files[0x40][4];
+    char names[0x3AC];
+} DebugFileTable;
+
+static DebugFileTable lbl_1_data_FB98 = {
+    {
+        {0x40B, 0x4023491C, 0x19135800, 0x82928},
+        {0x40B, 0x4013764C, 0x1A635000, 0x7DB48},
+        {0x40B, 0x4003E3DC, 0x1A6B3000, 0x21420},
+        {0x40B, 0x4002EC10, 0x1A6D4800, 0x13108},
+        {0x40B, 0x400E72C0, 0x1A6E8000, 0x60768},
+        {0x40B, 0x40049404, 0x1A748800, 0x20E34},
+        {0x40B, 0x40076AE0, 0x18ED7000, 0x36BC8},
+        {0x40B, 0x4010FD70, 0x1A769800, 0x5E284},
+        {0x40B, 0x400DB738, 0x1A7C8000, 0x49AB4},
+        {0x40B, 0x400E9864, 0x1A812000, 0x59DC0},
+        {0x40B, 0x400B7718, 0x1A86C000, 0x50288},
+        {0x40B, 0x400D87FC, 0x1A8BC800, 0x47BC4},
+        {0x40B, 0x400D643C, 0x1A904800, 0x4E3AC},
+        {0x40B, 0x400D5C7C, 0x1A953000, 0x48D9C},
+        {0x40B, 0x400B767C, 0x1A99C000, 0x47518},
+        {0x40B, 0x400441F8, 0x1A9E3800, 0x1AA84},
+        {0x40B, 0x40106568, 0x1A9FE800, 0x68C10},
+        {0x40B, 0x4010E5A0, 0xE97A800, 0x9BCAC},
+        {0x40B, 0x40016980, 0xEA16800, 0xD6C4},
+        {0x40B, 0x40016980, 0xEA24000, 0xC944},
+        {0x40B, 0x40016980, 0xEA31000, 0xE700},
+        {0x40B, 0x40016980, 0xEA3F800, 0xD64C},
+        {0x40B, 0x40016980, 0xEA4D000, 0xC900},
+        {0x40B, 0x40016980, 0xEA5A000, 0xCFFC},
+        {0x40B, 0x40016980, 0xEA67000, 0xD720},
+        {0x40B, 0x40016980, 0xEA74800, 0xD6CC},
+        {0x40B, 0x40016980, 0xEA82000, 0xD21C},
+        {0x40B, 0x40016980, 0xEA8F800, 0xD0BC},
+        {0x40B, 0x40016980, 0xEA9D000, 0xB544},
+        {0x40B, 0x40016980, 0xEAA8800, 0xC4F8},
+        {0x40B, 0x400ADFFC, 0x18AEE800, 0x4BAB0},
+        {0x40B, 0x4037CF5C, 0x18B3A800, 0x208AF0},
+        {0x40B, 0x4000A820, 0x18ED3800, 0x3758},
+        {0x40B, 0x4011EC24, 0x18F0E000, 0xD8818},
+        {0x40B, 0x400193E8, 0x191B8800, 0x89D8},
+        {0x40B, 0x4006C850, 0x6C96000, 0x2C884},
+        {0x40B, 0x4005B178, 0x6CC3000, 0x3555C},
+        {0x40B, 0x401EB174, 0x18D43800, 0xFB220},
+        {0x40B, 0x4001ED60, 0x1AA67800, 0xCFF0},
+        {0x40B, 0x4000BF30, 0x1AA74800, 0x26E0},
+        {0x40B, 0x40003498, 0x1AA77000, 0xE28},
+        {0x40B, 0x4000BDE0, 0x1AA78000, 0x24F4},
+        {0x40B, 0x40006088, 0x1AA7A800, 0x1290},
+        {0x40B, 0x400049F0, 0x1AA7C000, 0x18F4},
+        {0x40B, 0x40005ECC, 0x1AA7E000, 0x1D38},
+        {0x40B, 0x40002670, 0x1AA80000, 0xBE8},
+        {0x0, 0x28240, 0x1AA81000, 0x28240},
+        {0x0, 0x28240, 0x1AAA9800, 0x28240},
+        {0x0, 0x28240, 0x1AAD2000, 0x28240},
+        {0x0, 0x28240, 0x1AAFA800, 0x28240},
+        {0x0, 0x28240, 0x1AB23000, 0x28240},
+        {0x0, 0x28240, 0x1AB4B800, 0x28240},
+        {0x0, 0x28240, 0x1AB74000, 0x28240},
+        {0x0, 0x28240, 0x1AB9C800, 0x28240},
+        {0x0, 0x28240, 0x1ABC5000, 0x28240},
+        {0x0, 0x28240, 0x1ABED800, 0x28240},
+        {0x0, 0x28240, 0x1AC16000, 0x28240},
+        {0x0, 0x28240, 0x1AC3E800, 0x28240},
+        {0x0, 0x28240, 0x1AC67000, 0x28240},
+        {0x0, 0x28240, 0x1AC8F800, 0x28240},
+        {0x0, 0x28240, 0x1ACB8000, 0x28240},
+        {0x0, 0x28240, 0x1ACE0800, 0x28240},
+        {0x0, 0x28240, 0x1AD09000, 0x28240},
+        {0x0, 0x0, 0x0, 0x0}
+    },
+    "game_td\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "result\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "operation\0\0\0\0\0\0\0\0\0\0\0"
+    "game_toy\0\0\0\0\0\0\0\0\0\0\0\0"
+    "game_slot\0\0\0\0\0\0\0\0\0\0\0"
+    "score\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "rule_toy\0\0\0\0\0\0\0\0\0\0\0\0"
+    "rule_mini_01\0\0\0\0\0\0\0\0"
+    "rule_mini_02\0\0\0\0\0\0\0\0"
+    "rule_mini_03\0\0\0\0\0\0\0\0"
+    "rule_mini_05\0\0\0\0\0\0\0\0"
+    "rule_mini_04\0\0\0\0\0\0\0\0"
+    "rule_mini_06\0\0\0\0\0\0\0\0"
+    "rule_mini_07\0\0\0\0\0\0\0\0"
+    "training\0\0\0\0\0\0\0\0\0\0\0\0"
+    "common\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_all\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_00\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_01\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_02\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_03\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_04\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_05\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_06\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_07\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_08\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_09\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_10\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_11\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "chara_sel\0\0\0\0\0\0\0\0\0\0\0"
+    "select\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "dictionary\0\0\0\0\0\0\0\0\0\0"
+    "score\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "end\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "option\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "logo_all\0\0\0\0\0\0\0\0\0\0\0\0"
+    "title\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "comingsoon\0\0\0\0\0\0\0\0\0\0"
+    "bg_test\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "load\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade00\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade01\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade02\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade03\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade04\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade05\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    "fade06\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+};
+
+static u8 lbl_1_data_10344[0x40] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+    0x01, 0x04, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+static u32 lbl_1_data_10384[8][7] = {
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF},
+    {0xFF0000FF, 0x00FF00FF, 0xFFFF00FF, 0x0000FFFF, 0xFF00FFFF, 0x00FFFFFF, 0xFFFFFFFF}
+};
+
+static u32 lbl_1_data_10464 = 100;
+static f32 lbl_1_data_10468 = 200.0f;
+static f32 lbl_1_data_1046C = 100.0f;
+static f32 lbl_1_data_10470 = 20.0f;
+static u32 lbl_1_data_10474 = 10;
+static f32 lbl_1_data_10478 = 1.0f;
+static f32 lbl_1_data_1047C = 1.0f;
+static Vec lbl_1_data_10480 = {0.0f, -1.0f, 0.0f};
+static Vec lbl_1_data_1048C = {0.0f, 0.0f, -5.0f};
+static Vec lbl_1_data_10498 = {0.0f, 0.0f, 0.0f};
+static f32 lbl_1_data_104A4 = 50.0f;
+static void (*lbl_1_data_104A8[4])(void) = {fn_1_1F2D8, fn_1_24410, fn_1_22644, fn_1_2040C};
+static f32 lbl_1_data_104B8 = 0.3f;
+static f32 lbl_1_data_104BC = 0.031496063f;
+static f32 lbl_1_data_104C0 = 1.0f;
+static f32 lbl_1_data_104C4 = 0.98f;
+static f32 lbl_1_data_104C8 = 0.05f;
+static u32 lbl_1_data_104CC = 0x400;
+static f32 lbl_1_data_104D0[3] = {0.125f, 0.125f, 0.125f};
+static u32 lbl_1_data_104DC[6] = {0xFF8080FF, 0x80FF80FF, 0x8080FFFF, 0xFFFF80FF, 0xFF80FFFF, 0x80FFFFFF};
+static u32 chainModelFileDescriptorDebug[4] = {0x40B, 0x40000528, 0x09438800, 0x424};
+static char lbl_1_data_10504[2] = ">";
+static void (*lbl_1_data_10508[2])(DrawingSceneStruct *) = {(void (*)(DrawingSceneStruct *))fn_1_1FD78, (void (*)(DrawingSceneStruct *))fn_1_1F418};
+static void (*lbl_1_data_10510[2])(DrawingSceneStruct *) = {(void (*)(DrawingSceneStruct *))fn_1_1F900, (void (*)(DrawingSceneStruct *))fn_1_1F618};
+static u32 StadiumFiles_debug_10518[21][4] = {
+    {0x40B, 0x40168A6C, 0x6CFD000, 0xC69A8},
+    {0x40B, 0x401331E0, 0x6DC4000, 0xB67C4},
+    {0x40B, 0x4011924C, 0x6E7A800, 0xA5764},
+    {0x40B, 0x400FBAE0, 0x6F20000, 0xBE038},
+    {0x40B, 0x400E5AC0, 0x6FDE800, 0xB4FB8},
+    {0x40B, 0x40131200, 0x7093800, 0xA317C},
+    {0x40B, 0x4011B660, 0x7137000, 0xD0294},
+    {0x40B, 0x4011B660, 0x7137000, 0xD0294},
+    {0x40B, 0x4011B660, 0x7137000, 0xD0294},
+    {0x40B, 0x40141C60, 0x7207800, 0xCE904},
+    {0x40B, 0x4013CA40, 0x72D6800, 0xCA560},
+    {0x40B, 0x40141C60, 0x7207800, 0xCE904},
+    {0x40B, 0x4016C138, 0x73A1000, 0xED41C},
+    {0x40B, 0x401157B8, 0x748E800, 0xCA83C},
+    {0x40B, 0x4016C138, 0x73A1000, 0xED41C},
+    {0x40B, 0x400EB1C0, 0x7559800, 0xA3510},
+    {0x40B, 0x400EB1C0, 0x7559800, 0xA3510},
+    {0x40B, 0x400EB1C0, 0x7559800, 0xA3510},
+    {0x40B, 0x400D04E0, 0x75FD000, 0x87390},
+    {0x40B, 0x400D04E0, 0x75FD000, 0x87390},
+    {0x40B, 0x400D04E0, 0x75FD000, 0x87390}
+};
+static s16 (*lbl_1_data_10668[1])(s16) = {(s16 (*)(s16))fn_1_1DE60};
+static void (*lbl_1_data_1066C[1])(s16) = {(void (*)(s16))fn_1_1DE5C};
+static s32 lbl_1_data_10670[1] = {4};
+static u32 StadiumFiles_debug_10674[21][4] = {
+    {0x40B, 0x40168A6C, 0x6CFD000, 0xC69A8},
+    {0x40B, 0x401331E0, 0x6DC4000, 0xB67C4},
+    {0x40B, 0x4011924C, 0x6E7A800, 0xA5764},
+    {0x40B, 0x400FBAE0, 0x6F20000, 0xBE038},
+    {0x40B, 0x400E5AC0, 0x6FDE800, 0xB4FB8},
+    {0x40B, 0x40131200, 0x7093800, 0xA317C},
+    {0x40B, 0x4011B660, 0x7137000, 0xD0294},
+    {0x40B, 0x4011B660, 0x7137000, 0xD0294},
+    {0x40B, 0x4011B660, 0x7137000, 0xD0294},
+    {0x40B, 0x40141C60, 0x7207800, 0xCE904},
+    {0x40B, 0x4013CA40, 0x72D6800, 0xCA560},
+    {0x40B, 0x40141C60, 0x7207800, 0xCE904},
+    {0x40B, 0x4016C138, 0x73A1000, 0xED41C},
+    {0x40B, 0x401157B8, 0x748E800, 0xCA83C},
+    {0x40B, 0x4016C138, 0x73A1000, 0xED41C},
+    {0x40B, 0x400EB1C0, 0x7559800, 0xA3510},
+    {0x40B, 0x400EB1C0, 0x7559800, 0xA3510},
+    {0x40B, 0x400EB1C0, 0x7559800, 0xA3510},
+    {0x40B, 0x400D04E0, 0x75FD000, 0x87390},
+    {0x40B, 0x400D04E0, 0x75FD000, 0x87390},
+    {0x40B, 0x400D04E0, 0x75FD000, 0x87390}
+};
+static u8 lbl_1_data_107C4[0x20] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+    0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A
+};
+static void *lbl_1_data_107E4[2][7] = {
+    {0, fn_1_1D694, 0, 0, 0, 0, 0},
+    {0, fn_1_1D694, 0, 0, 0, 0, 0}
+};
 
 static Mtx44 lbl_1_bss_47010;
 static u8 lbl_1_bss_45868[0x17A8];
@@ -107,10 +311,17 @@ static f32 lbl_1_bss_76E0[0x2000];
 static f32 lbl_1_bss_74E0[0x80];
 static u8 lbl_1_bss_6FE0[0x500];
 static u8 lbl_1_bss_6FB8[0x28];
-static u8 lbl_1_bss_6FA4[0x14];
+typedef struct {
+    void *light;
+    Vec pos;
+    f32 pad;
+} LightSlot;
+
+static LightSlot lbl_1_bss_6FA4;
 static GXTexObj lbl_1_bss_6EA4[8];
 static GXTlutObj lbl_1_bss_6E44[8];
-static u8 lbl_1_bss_6D48[0xFC];
+static u32 lbl_1_bss_6E24[8];
+static u8 lbl_1_bss_6D48[0xDC];
 static u8 lbl_1_bss_6BF4[0x154];
 static f32 lbl_1_bss_6BE4[4];
 static void *lbl_1_bss_6BE0;
@@ -170,7 +381,7 @@ void fn_1_267F4(void) {
     switch (*((u8 *)item + 0x1e)) {
     case 0: {
         u8 idx = *((u8 *)item + 0x20);
-        u8 *entry = lbl_1_data_FB98 + idx * 0x10;
+        u8 *entry = (u8 *)lbl_1_data_FB98.files + idx * 0x10;
 
         if (diskReadRelated(entry, 0) != 0) {
             *((u8 *)item + 0x1e) += 1;
@@ -420,38 +631,40 @@ void fn_1_25C68(void) {
     f32 signedVal;
     f32 invSigned;
     f32 value24;
+    DrawingSceneStruct *cur;
 
     GXSetCopyClear(*(GXColor *)&colorWord, 0xffffff);
 
     C_MTXFrustum(lbl_1_bss_47010, (-224.0f), 224.0f, (-320.0f),
         320.0f, 1.0f, 512.0f);
 
-    C_MTXLookAt(*(Mtx *)lbl_1_bss_43F68, (Vec *)(lbl_1_data_FB98 + 0x8f4), (Vec *)(lbl_1_data_FB98 + 0x8e8),
-        (Vec *)(lbl_1_data_FB98 + 0x900));
+    C_MTXLookAt((f32 (*)[4])(lbl_1_bss_43EE0 + 0x58), &lbl_1_data_1048C, &lbl_1_data_10480,
+        &lbl_1_data_10498);
 
-    *(s16 *)((u8 *)item + 0x18) = (s16)(s32)(*(f32 *)(lbl_1_data_FB98 + 0x8d0) * 64.0f);
-    *(s16 *)((u8 *)item + 0x1c) = (s16)(s32)(*(f32 *)(lbl_1_data_FB98 + 0x8d4) * 64.0f);
-    *(s16 *)((u8 *)item + 0x1a) = (s16)(s32)*(f32 *)(lbl_1_data_FB98 + 0x8d8);
+    *(s16 *)((u8 *)item + 0x18) = (s16)(s32)(lbl_1_data_10468 * 64.0f);
+    *(s16 *)((u8 *)item + 0x1c) = (s16)(s32)(lbl_1_data_1046C * 64.0f);
+    *(s16 *)((u8 *)item + 0x1a) = (s16)(s32)lbl_1_data_10470;
     *(s16 *)((u8 *)item + 0x1e) = 0x20;
-    *((u8 *)item + 0x2a) = (u8)*(s32 *)(lbl_1_data_FB98 + 0x8dc);
+    *((u8 *)item + 0x2a) = (u8)(s32)lbl_1_data_10474;
     *(s16 *)((u8 *)item + 0x22) = 0xa;
     *((u8 *)item + 0x2b) = 0x14;
-    *(s16 *)((u8 *)item + 0x20) = (s16)(s32)(*(f32 *)(lbl_1_data_FB98 + 0x8e4) * 64.0f);
-    *(s16 *)((u8 *)item + 0x24) = (s16)(s32)(*(f32 *)(lbl_1_data_FB98 + 0x8e0) * 64.0f);
+    *(s16 *)((u8 *)item + 0x20) = (s16)(s32)(lbl_1_data_1047C * 64.0f);
+    *(s16 *)((u8 *)item + 0x24) = (s16)(s32)(lbl_1_data_10478 * 64.0f);
     item->unk_14 = 0.5f;
     *(s16 *)((u8 *)item + 0x26) = 0x64;
     *(s16 *)((u8 *)item + 0x28) = 0xa;
 
+    cur = currentDrawingItem;
     fn_80038E2C(lbl_1_bss_45868);
 
-    *(f32 *)(lbl_1_bss_45868 + 0x0) = (f32)*(u16 *)((u8 *)currentDrawingItem + 0x1a);
-    *(f32 *)(lbl_1_bss_45868 + 0x4) = *(f32 *)((u8 *)currentDrawingItem + 0x14);
-    *(f32 *)(lbl_1_bss_45868 + 0x8) = (f32)*(u16 *)((u8 *)currentDrawingItem + 0x18) * 0.015625f;
-    *(f32 *)(lbl_1_bss_45868 + 0xc) = (f32)*(u16 *)((u8 *)currentDrawingItem + 0x1c) * 0.015625f;
-    *(f32 *)(lbl_1_bss_45868 + 0x10) = (f32)*(u16 *)((u8 *)currentDrawingItem + 0x1e) * 0.015625f;
-    *(f32 *)(lbl_1_bss_45868 + 0x14) = (f32)*(u16 *)((u8 *)currentDrawingItem + 0x20) / 10000.0f;
+    *(f32 *)(lbl_1_bss_45868 + 0x0) = (f32)*(u16 *)((u8 *)cur + 0x1a);
+    *(f32 *)(lbl_1_bss_45868 + 0x4) = *(f32 *)((u8 *)cur + 0x14);
+    *(f32 *)(lbl_1_bss_45868 + 0x8) = (f32)*(u16 *)((u8 *)cur + 0x18) / 64.0f;
+    *(f32 *)(lbl_1_bss_45868 + 0xc) = (f32)*(u16 *)((u8 *)cur + 0x1c) / 64.0f;
+    *(f32 *)(lbl_1_bss_45868 + 0x10) = (f32)*(u16 *)((u8 *)cur + 0x1e) / 64.0f;
+    *(f32 *)(lbl_1_bss_45868 + 0x14) = (f32)*(u16 *)((u8 *)cur + 0x20) / 10000.0f;
 
-    rawByte = *((u8 *)currentDrawingItem + 0x2a);
+    rawByte = *((u8 *)cur + 0x2a);
     *(u32 *)(lbl_1_bss_45868 + 0x20) = rawByte;
     signedVal = (f32)(s32)rawByte;
     invSigned = 1.0f / signedVal;
@@ -463,8 +676,8 @@ void fn_1_25C68(void) {
         *(u32 *)(lbl_1_bss_45868 + 0x20) = 1;
     }
 
-    value24 = (f32)*(u16 *)((u8 *)currentDrawingItem + 0x24) * 0.015625f;
-    fn_80038CD0(*((u8 *)currentDrawingItem + 0x2b), lbl_1_bss_45868, lbl_1_bss_43F68, 10.0f,
+    value24 = (f32)*(u16 *)((u8 *)cur + 0x24) / 64.0f;
+    fn_80038CD0(*((u8 *)cur + 0x2b), lbl_1_bss_45868, lbl_1_bss_43F68, 10.0f,
         value24);
 
     currentDrawingItem->func = fn_1_25064;
@@ -747,7 +960,7 @@ void fn_1_24C4C(u8 *arg0, s32 count, Vec *arg2, f32 argF1, f32 argF2, f32 argF3,
                 if (threshold <= limit) {
                     f32 mag = PSVECMag((Vec *)(p3 + 0x20));
                     if (mag != zero) {
-                        f32 f24 = (f32)*(u16 *)((u8 *)item + 0x1e) * 0.015625f * *(f32 *)(p3 + 0x30);
+                        f32 f24 = (f32)*(u16 *)((u8 *)item + 0x1e) / 64.0f * *(f32 *)(p3 + 0x30);
                         Vec local;
                         f32 mag2;
 
@@ -789,9 +1002,9 @@ void fn_1_24A8C(void) {
 
     *(f32 *)(lbl_1_bss_45868 + 0x0) = (f32)*(u16 *)((u8 *)item + 0x1a);
     *(f32 *)(lbl_1_bss_45868 + 0x4) = *(f32 *)((u8 *)item + 0x14);
-    *(f32 *)(lbl_1_bss_45868 + 0x8) = (f32)*(u16 *)((u8 *)item + 0x18) * 0.015625f;
-    *(f32 *)(lbl_1_bss_45868 + 0xc) = (f32)*(u16 *)((u8 *)item + 0x1c) * 0.015625f;
-    *(f32 *)(lbl_1_bss_45868 + 0x10) = (f32)*(u16 *)((u8 *)item + 0x1e) * 0.015625f;
+    *(f32 *)(lbl_1_bss_45868 + 0x8) = (f32)*(u16 *)((u8 *)item + 0x18) / 64.0f;
+    *(f32 *)(lbl_1_bss_45868 + 0xc) = (f32)*(u16 *)((u8 *)item + 0x1c) / 64.0f;
+    *(f32 *)(lbl_1_bss_45868 + 0x10) = (f32)*(u16 *)((u8 *)item + 0x1e) / 64.0f;
     *(f32 *)(lbl_1_bss_45868 + 0x14) = (f32)*(u16 *)((u8 *)item + 0x20) / 10000.0f;
 
     rawByte = *((u8 *)item + 0x2a);
@@ -814,72 +1027,60 @@ void fn_1_24A8C(void) {
 void fn_1_248BC(s32 count) {
     u8 width;
     GXTexOffset offset;
-    u8 *table1;
-    u8 *table2;
+    s32 i;
 
     GXGetLineWidth(&width, &offset);
     GXSetLineWidth(0x18, offset);
     GXBegin(GX_LINESTRIP, 0, (u16)count);
 
-    table1 = lbl_1_bss_43F68 + count * 0x40;
-    table2 = lbl_1_data_10384 + count * 4;
+    i = count;
+    while (i-- != 0) {
+        u8 *p = lbl_1_bss_43F68 + i * 0x40;
 
-    {
-        u8 *p1 = table1;
-        u8 *p2 = table2;
-
-        while (p1 != lbl_1_bss_43F68) {
-            GX_WRITE_F32(*(f32 *)(p1 + 0xc));
-            GX_WRITE_F32(*(f32 *)(p1 + 0x10));
-            GX_WRITE_F32(*(f32 *)(p1 + 0x14));
-            GX_WRITE_U32(*(u32 *)p2);
-            p1 -= 0x40;
-            p2 -= 4;
-        }
+        GX_WRITE_F32(*(f32 *)(p + 0xc));
+        GX_WRITE_F32(*(f32 *)(p + 0x10));
+        GX_WRITE_F32(*(f32 *)(p + 0x14));
+        GX_WRITE_U32(((u32 *)lbl_1_data_10384)[i]);
     }
 
     GXSetLineWidth(width, offset);
     GXBegin(GX_LINES, 0, (u16)(count * 4));
 
-    while (table1 != lbl_1_bss_43F68) {
-        f32 x = *(f32 *)(table1 + 0xc);
-        f32 y = *(f32 *)(table1 + 0x10);
-        f32 z = *(f32 *)(table1 + 0x14);
-        u32 color = *(u32 *)table2;
+    i = count;
+    while (i-- != 0) {
+        u8 *p = lbl_1_bss_43F68 + i * 0x40;
+        u32 *color = &((u32 *)lbl_1_data_10384)[i];
 
-        GX_WRITE_F32(x);
-        GX_WRITE_F32(y);
-        GX_WRITE_F32(z);
-        GX_WRITE_U32(color);
+        GX_WRITE_F32(*(f32 *)(p + 0xc));
+        GX_WRITE_F32(*(f32 *)(p + 0x10));
+        GX_WRITE_F32(*(f32 *)(p + 0x14));
+        GX_WRITE_U32(*color);
 
-        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x30) + x);
-        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x34) + y);
-        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x38) + z);
-        GX_WRITE_U32(color);
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(p + 0x30) + *(f32 *)(p + 0xc));
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(p + 0x34) + *(f32 *)(p + 0x10));
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(p + 0x38) + *(f32 *)(p + 0x14));
+        GX_WRITE_U32(*color);
 
-        GX_WRITE_F32(x);
-        GX_WRITE_F32(y);
-        GX_WRITE_F32(z);
-        GX_WRITE_U32(color ^ 0xffffff00);
+        GX_WRITE_F32(*(f32 *)(p + 0xc));
+        GX_WRITE_F32(*(f32 *)(p + 0x10));
+        GX_WRITE_F32(*(f32 *)(p + 0x14));
+        GX_WRITE_U32(*color ^ 0xffffff00);
 
-        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x24) + x);
-        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x28) + y);
-        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(table1 + 0x2c) + z);
-        GX_WRITE_U32(color ^ 0xffffff00);
-
-        table1 -= 0x40;
-        table2 -= 4;
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(p + 0x24) + *(f32 *)(p + 0xc));
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(p + 0x28) + *(f32 *)(p + 0x10));
+        GX_WRITE_F32(lbl_1_data_104A4 * *(f32 *)(p + 0x2c) + *(f32 *)(p + 0x14));
+        GX_WRITE_U32(*color ^ 0xffffff00);
     }
 }
 
 // .text:0x000247A0 size:0x11C
 void fn_1_247A0(void) {
-    s8 c = *((s8 *)&AtBat_ButtonInput1 + 0x13);
-    s8 b = *((s8 *)&AtBat_ButtonInput1 + 0x11);
-    DrawingSceneStruct *item = currentDrawingItem;
     s8 a = *((s8 *)&AtBat_ButtonInput1 + 0x10);
+    s8 c = *((s8 *)&AtBat_ButtonInput1 + 0x13);
+    DrawingSceneStruct *item = currentDrawingItem;
+    s8 b = *((s8 *)&AtBat_ButtonInput1 + 0x11);
     u16 amount = *(u16 *)((u8 *)item + 0x22);
-    u8 idx = *((u8 *)item + 0x2b);
+    s32 idx = *((u8 *)item + 0x2b);
     f32 tableVal = *(f32 *)(lbl_1_bss_43F68 - 0x40 + idx * 0x40);
     f32 fa = (f32)a * tableVal;
     f32 fc = (f32)c * tableVal;
@@ -970,7 +1171,6 @@ void fn_1_24410(void) {
 
 // .text:0x00023B54 size:0x8BC
 void fn_1_23B54(void) {
-    u8 *table = lbl_1_data_FB98;
     DrawingSceneStruct *item = currentDrawingItem;
     u16 flags;
     s32 row;
@@ -1138,11 +1338,11 @@ void fn_1_23B54(void) {
             src = lbl_1_bss_76E0 + (pingFlag & 1) * 0x1000;
             dst = lbl_1_bss_76E0 + (1 - (pingFlag & 1)) * 0x1000;
 
-            wSq = (0.016666666666666666 * *(f32 *)(table + 0x928)) / *(f32 *)(table + 0x924);
+            wSq = (0.016666666666666666 * lbl_1_data_104C0) / lbl_1_data_104BC;
             wSq = wSq * wSq;
             coeffNeighbor = (f32)wSq;
             coeffCenter = (f32)(2.0 - 4.0 * wSq);
-            damp = *(f32 *)(table + 0x92c);
+            damp = lbl_1_data_104C4;
 
             for (r = 0; r < 0x20; r++) {
                 s32 prevRow = (r + 0x1f) % 0x20;
@@ -1169,8 +1369,8 @@ void fn_1_23B54(void) {
 
             buf = lbl_1_bss_76E0 + (*((u8 *)item + 0x2c) & 1) * 0x1000;
             rowPtr = lbl_1_bss_F6E0;
-            maxZ = 100.0f;
             minZ = (-100.0f);
+            maxZ = 100.0f;
 
             for (gr = 0; gr < *((u8 *)item + 0x28); gr++) {
                 u8 *cell = rowPtr;
@@ -1542,7 +1742,7 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
     s32 mMinus1;
     s32 i;
 
-    wSq = (0.016666666666666666 * *(f32 *)(lbl_1_data_FB98 + 0x928)) / *(f32 *)(lbl_1_data_FB98 + 0x924);
+    wSq = (0.016666666666666666 * lbl_1_data_104C0) / lbl_1_data_104BC;
     wSq = wSq * wSq;
     coeffNeighbor = (f32)wSq;
     coeffCenter = (f32)(2.0 - 4.0 * wSq);
@@ -1567,8 +1767,48 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
             sum = coeffCenter * val + sum;
             sum -= other[k];
             dst[k] = sum;
-            dst[k] = dst[k] * *(f32 *)(lbl_1_data_FB98 + 0x92c);
+            dst[k] = dst[k] * lbl_1_data_104C4;
         }
+    }
+}
+
+static inline void stepGrid(DrawingSceneStruct *arg0) {
+    f32 c1 = 1.0f;
+    s32 val = *((u8 *)arg0 + 0x20);
+    f32 floatVal = (f32)val;
+    u16 flag = AtBat_ButtonInput1._00;
+    u8 *item = (lbl_1_bss_6FB8);
+    f32 ratio = c1 / floatVal;
+    f32 c3 = 2.0f;
+    f32 speed;
+    f32 t;
+    f32 speed2;
+    f32 result;
+    u8 idx;
+
+    *(u32 *)(item + 0x20) = val;
+    speed = ratio / 60.0f;
+    t = c3 * speed;
+    *(f32 *)(item + 0x18) = speed;
+    speed2 = speed * speed;
+    result = c1 / t;
+    *(f32 *)(item + 0x1c) = speed2;
+    *(f32 *)(item + 0x24) = result;
+
+    if ((flag & 0x400) != 0) {
+        *(u32 *)(item + 0x20) = 1;
+    }
+
+    idx = *((u8 *)arg0 + 0x21);
+    fn_80038CD0(idx, item, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)arg0 + 0x18));
+
+    {
+        u8 *entry = (lbl_1_bss_6FE0) + (*((u8 *)arg0 + 0x21) - 1) * 0x40;
+
+        lbl_1_bss_6FA4.pos.x = *(f32 *)(entry + 0xc);
+        lbl_1_bss_6FA4.pos.y = *(f32 *)(entry + 0x10);
+        lbl_1_bss_6FA4.pos.z = *(f32 *)(entry + 0x14);
+        *(u32 *)(entry + 0x3c) = *((u8 *)arg0 + 0x23);
     }
 }
 
@@ -1585,45 +1825,7 @@ void fn_1_22DF4(DrawingSceneStruct *arg0) {
 
     fn_80038E2C((lbl_1_bss_6FB8));
 
-    {
-        f32 c1 = 1.0f;
-        u32 val = *((u8 *)arg0 + 0x20);
-        f32 floatVal = (f32)val;
-        u16 flag = AtBat_ButtonInput1._00;
-        u8 *item = (lbl_1_bss_6FB8);
-        f32 ratio = c1 / floatVal;
-        f32 c3 = 2.0f;
-        f32 speed;
-        f32 t;
-        f32 speed2;
-        f32 result;
-        u8 idx;
-
-        *(u32 *)(item + 0x20) = val;
-        speed = ratio / 60.0f;
-        t = c3 * speed;
-        *(f32 *)(item + 0x18) = speed;
-        speed2 = speed * speed;
-        result = c1 / t;
-        *(f32 *)(item + 0x1c) = speed2;
-        *(f32 *)(item + 0x24) = result;
-
-        if ((flag & 0x400) != 0) {
-            *(u32 *)(item + 0x20) = 1;
-        }
-
-        idx = *((u8 *)arg0 + 0x21);
-        fn_80038CD0(idx, item, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)arg0 + 0x18));
-
-        {
-            u8 *entry = (lbl_1_bss_6FE0) + (*((u8 *)arg0 + 0x21) - 1) * 0x40;
-
-            *(f32 *)((lbl_1_bss_6FA4 + 0x4)) = *(f32 *)(entry + 0xc);
-            *(f32 *)((lbl_1_bss_6FA4 + 0x8)) = *(f32 *)(entry + 0x10);
-            *(f32 *)((lbl_1_bss_6FA4 + 0xC)) = *(f32 *)(entry + 0x14);
-            *(u32 *)(entry + 0x3c) = *((u8 *)arg0 + 0x23);
-        }
-    }
+    stepGrid(arg0);
 }
 
 // .text:0x00022874 size:0x580
@@ -1819,60 +2021,7 @@ void fn_1_22644(void) {
     fn_800AD038(*(void **)(lbl_80366158 + 0x8));
     *((u8 *)item + 0x25) = 0;
 
-    {
-        DrawingSceneStruct *scratch = currentDrawingItem;
-
-        *(f32 *)((u8 *)scratch + 0x18) = 0.01f;
-        *(f32 *)((u8 *)scratch + 0x1c) = 20.0f;
-        *((u8 *)scratch + 0x25) = 0;
-        *((u8 *)scratch + 0x20) = 0xa;
-        *((u8 *)scratch + 0x21) = 0xa;
-        *((u8 *)scratch + 0x22) = 1;
-        *((u8 *)scratch + 0x23) = 0;
-        *((u8 *)scratch + 0x24) = 0;
-
-        fn_80038E2C((lbl_1_bss_6FB8));
-
-        {
-            f32 c1 = 1.0f;
-            u32 val = *((u8 *)scratch + 0x20);
-            u8 *phys = (lbl_1_bss_6FB8);
-            f32 floatVal = (f32)val;
-            u16 flag = AtBat_ButtonInput1._00;
-            f32 ratio = c1 / floatVal;
-            f32 c3 = 2.0f;
-            f32 speed;
-            f32 t;
-            f32 speed2;
-            f32 result;
-            u8 idx;
-
-            *(u32 *)(phys + 0x20) = val;
-            speed = ratio / 60.0f;
-            t = c3 * speed;
-            *(f32 *)(phys + 0x18) = speed;
-            speed2 = speed * speed;
-            result = c1 / t;
-            *(f32 *)(phys + 0x1c) = speed2;
-            *(f32 *)(phys + 0x24) = result;
-
-            if ((flag & 0x400) != 0) {
-                *(u32 *)(phys + 0x20) = 1;
-            }
-
-            idx = *((u8 *)scratch + 0x21);
-            fn_80038CD0(idx, phys, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)scratch + 0x18));
-
-            {
-                u8 *entry = (lbl_1_bss_6FE0) + (*((u8 *)scratch + 0x21) - 1) * 0x40;
-
-                *(f32 *)((lbl_1_bss_6FA4 + 0x4)) = *(f32 *)(entry + 0xc);
-                *(f32 *)((lbl_1_bss_6FA4 + 0x8)) = *(f32 *)(entry + 0x10);
-                *(f32 *)((lbl_1_bss_6FA4 + 0xC)) = *(f32 *)(entry + 0x14);
-                *(u32 *)(entry + 0x3c) = *((u8 *)scratch + 0x23);
-            }
-        }
-    }
+    fn_1_22DF4(currentDrawingItem);
 
     fn_1_23AD8(lbl_1_bss_47010, (f32 *)(lbl_1_bss_43EE0 + 0x48), (f32 *)(lbl_1_bss_43EE0 + 0x3c));
 
@@ -1906,37 +2055,7 @@ void fn_1_21CE8(void) {
     s32 i;
 
     if (fn_1_22874() != 0 || (AtBat_ButtonInput1._02 & 0x100)) {
-        u8 val = *((u8 *)item + 0x20);
-        f32 ratio = 1.0f / (f32)val;
-        f32 speed;
-        f32 t;
-        f32 speed2;
-        f32 result;
-        u8 *p = (lbl_1_bss_6FB8);
-        u8 idx;
-        u8 *entry;
-
-        speed = ratio / 60.0f;
-        t = 2.0f * speed;
-        *(u32 *)(p + 0x20) = val;
-        *(f32 *)(p + 0x18) = speed;
-        speed2 = speed * speed;
-        result = 1.0f / t;
-        *(f32 *)(p + 0x1c) = speed2;
-        *(f32 *)(p + 0x24) = result;
-
-        if (AtBat_ButtonInput1._00 & 0x400) {
-            *(u32 *)(p + 0x20) = 1;
-        }
-
-        idx = *((u8 *)item + 0x21);
-        fn_80038CD0(idx, p, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)item + 0x18));
-
-        entry = (lbl_1_bss_6FE0) + (*((u8 *)item + 0x21) - 1) * 0x40;
-        *(f32 *)((lbl_1_bss_6FA4 + 0x4)) = *(f32 *)(entry + 0xc);
-        *(f32 *)((lbl_1_bss_6FA4 + 0x8)) = *(f32 *)(entry + 0x10);
-        *(f32 *)((lbl_1_bss_6FA4 + 0xC)) = *(f32 *)(entry + 0x14);
-        *(u32 *)(entry + 0x3c) = *((u8 *)item + 0x23);
+        stepGrid(item);
     } else if (AtBat_ButtonInput1._02 & 0x200) {
         currentDrawingItem->func = fn_1_21408;
     }
@@ -2150,37 +2269,7 @@ void fn_1_21408(void) {
     if (AtBat_ButtonInput1._02 & 0x1000) {
         item->func = fn_1_21CE8;
     } else if (AtBat_ButtonInput1._02 & 0x100) {
-        u8 val = *((u8 *)item + 0x20);
-        f32 ratio = 1.0f / (f32)val;
-        f32 speed;
-        f32 t;
-        f32 speed2;
-        f32 result;
-        u8 *p = (lbl_1_bss_6FB8);
-        u8 idx;
-        u8 *entry;
-
-        speed = ratio / 60.0f;
-        t = 2.0f * speed;
-        *(u32 *)(p + 0x20) = val;
-        *(f32 *)(p + 0x18) = speed;
-        speed2 = speed * speed;
-        result = 1.0f / t;
-        *(f32 *)(p + 0x1c) = speed2;
-        *(f32 *)(p + 0x24) = result;
-
-        if (AtBat_ButtonInput1._00 & 0x400) {
-            *(u32 *)(p + 0x20) = 1;
-        }
-
-        idx = *((u8 *)item + 0x21);
-        fn_80038CD0(idx, p, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)item + 0x18));
-
-        entry = (lbl_1_bss_6FE0) + (*((u8 *)item + 0x21) - 1) * 0x40;
-        *(f32 *)((lbl_1_bss_6FA4 + 0x4)) = *(f32 *)(entry + 0xc);
-        *(f32 *)((lbl_1_bss_6FA4 + 0x8)) = *(f32 *)(entry + 0x10);
-        *(f32 *)((lbl_1_bss_6FA4 + 0xC)) = *(f32 *)(entry + 0x14);
-        *(u32 *)(entry + 0x3c) = *((u8 *)item + 0x23);
+        stepGrid(item);
     } else if (AtBat_ButtonInput1._02 & 0x200) {
         lbl_1_bss_6BE0 = NULL;
         item->func = fn_1_24778;
@@ -2390,13 +2479,16 @@ void fn_1_21408(void) {
 
 // .text:0x00021298 size:0x170
 void fn_1_21298(DrawingSceneStruct *arg0) {
+    s32 i;
+    u8 *entry;
+
     if (*((u8 *)arg0 + 0x22) != 0) {
-        u8 count = *((u8 *)arg0 + 0x21);
-        u8 *entry = lbl_1_bss_6FE0 + (count - 1) * 0x40;
+        GXBegin(GX_LINESTRIP, 0, (*((u8 *)arg0 + 0x21) - 1) * 2);
 
-        GXBegin(GX_LINESTRIP, 0, (count - 1) * 2);
+        i = *((u8 *)arg0 + 0x21);
+        while (--i != 0) {
+            entry = lbl_1_bss_6FE0 + i * 0x40;
 
-        while (entry != lbl_1_bss_6FE0) {
             GX_WRITE_F32(*(f32 *)(entry + 0xc));
             GX_WRITE_F32(0.0f);
             GX_WRITE_F32(*(f32 *)(entry + 0x14));
@@ -2406,76 +2498,35 @@ void fn_1_21298(DrawingSceneStruct *arg0) {
             GX_WRITE_F32(0.0f);
             GX_WRITE_F32(*(f32 *)(entry - 0x2c));
             GX_WRITE_U32(0x80);
-
-            entry -= 0x40;
         }
     }
 
     if (*((u8 *)arg0 + 0x24) != 0) {
-        u8 count = *((u8 *)arg0 + 0x21);
-        u8 *entry = lbl_1_bss_6FE0 + (count - 1) * 0x40;
-        s32 i = count - 1;
+        GXBegin(GX_LINESTRIP, 0, (*((u8 *)arg0 + 0x21) - 1) * 2);
 
-        GXBegin(GX_LINESTRIP, 0, (count - 1) * 2);
+        i = *((u8 *)arg0 + 0x21);
+        while (--i != 0) {
+            u32 color;
 
-        while (entry != lbl_1_bss_6FE0) {
-            u32 color = lbl_1_data_104DC[i % 6];
+            entry = lbl_1_bss_6FE0 + i * 0x40;
 
             GX_WRITE_F32(*(f32 *)(entry + 0xc));
             GX_WRITE_F32(-*(f32 *)(entry + 0x10));
             GX_WRITE_F32(*(f32 *)(entry + 0x14));
+            color = lbl_1_data_104DC[i % 6];
             GX_WRITE_U32(color);
 
             GX_WRITE_F32(*(f32 *)(entry - 0x34));
             GX_WRITE_F32(-*(f32 *)(entry - 0x30));
             GX_WRITE_F32(*(f32 *)(entry - 0x2c));
             GX_WRITE_U32(color);
-
-            entry -= 0x40;
-            i--;
         }
     }
 }
 
 // .text:0x00021180 size:0x118
 void fn_1_21180(DrawingSceneStruct *arg0) {
-    f32 c1 = 1.0f;
-    u32 val = *((u8 *)arg0 + 0x20);
-    f32 floatVal = (f32)val;
-    u16 flag = AtBat_ButtonInput1._00;
-    u8 *item = (lbl_1_bss_6FB8);
-    f32 ratio = c1 / floatVal;
-    f32 c3 = 2.0f;
-    f32 speed;
-    f32 t;
-    f32 speed2;
-    f32 result;
-    u8 idx;
-
-    *(u32 *)(item + 0x20) = val;
-    speed = ratio / 60.0f;
-    t = c3 * speed;
-    *(f32 *)(item + 0x18) = speed;
-    speed2 = speed * speed;
-    result = c1 / t;
-    *(f32 *)(item + 0x1c) = speed2;
-    *(f32 *)(item + 0x24) = result;
-
-    if ((flag & 0x400) != 0) {
-        *(u32 *)(item + 0x20) = 1;
-    }
-
-    idx = *((u8 *)arg0 + 0x21);
-    fn_80038CD0(idx, item, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)arg0 + 0x18));
-
-    {
-        u8 *entry = (lbl_1_bss_6FE0) + (*((u8 *)arg0 + 0x21) - 1) * 0x40;
-
-        *(f32 *)((lbl_1_bss_6FA4 + 0x4)) = *(f32 *)(entry + 0xc);
-        *(f32 *)((lbl_1_bss_6FA4 + 0x8)) = *(f32 *)(entry + 0x10);
-        *(f32 *)((lbl_1_bss_6FA4 + 0xC)) = *(f32 *)(entry + 0x14);
-        *(u32 *)(entry + 0x3c) = *((u8 *)arg0 + 0x23);
-    }
+    stepGrid(arg0);
 }
 
 // .text:0x00021040 size:0x140
@@ -2485,29 +2536,31 @@ void fn_1_21040(void) {
     GXBegin(GX_LINES, 0, 0x2c);
 
     for (i = 0; i < 11; i++) {
-        f32 n = (f32)((i - 5) * 10);
         u32 c1 = (i == 5) ? 0xff0000ff : -1;
-        u32 c2 = (i == 5) ? 0xff00ff : -1;
 
-        GX_WRITE_F32(n);
+        GX_WRITE_F32((f32)((i - 5) * 10));
         GX_WRITE_F32(0.0f);
         GX_WRITE_F32((-50.0f));
         GX_WRITE_U32(c1);
 
-        GX_WRITE_F32(n);
+        GX_WRITE_F32((f32)((i - 5) * 10));
         GX_WRITE_F32(0.0f);
         GX_WRITE_F32(50.0f);
         GX_WRITE_U32(c1);
 
-        GX_WRITE_F32((-50.0f));
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32(n);
-        GX_WRITE_U32(c2);
+        {
+            c1 = (i == 5) ? 0xff00ff : -1;
 
-        GX_WRITE_F32(50.0f);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32(n);
-        GX_WRITE_U32(c2);
+            GX_WRITE_F32((-50.0f));
+            GX_WRITE_F32(0.0f);
+            GX_WRITE_F32((f32)((i - 5) * 10));
+            GX_WRITE_U32(c1);
+
+            GX_WRITE_F32(50.0f);
+            GX_WRITE_F32(0.0f);
+            GX_WRITE_F32((f32)((i - 5) * 10));
+            GX_WRITE_U32(c1);
+        }
     }
 }
 
@@ -2535,20 +2588,22 @@ void fn_1_20F8C(void) {
 // .text:0x00020E00 size:0x18C
 void fn_1_20E00(void *arg0) {
     GXColor lightColor = {0x80, 0x80, 0xFF, 0xFF};
+    GXColor color;
     u8 *field;
     u32 field0;
     u32 field1;
-    u8 *geo;
     u8 *layout;
+    u8 *geo;
     u16 j;
 
-    LITAlloc(lbl_1_bss_6FA4);
-    LITInitAttn(*(void **)lbl_1_bss_6FA4, 1.0f, 0.0f, 0.0f,
+    LITAlloc(&lbl_1_bss_6FA4);
+    LITInitAttn(lbl_1_bss_6FA4.light, 1.0f, 0.0f, 0.0f,
                 1.0f, 0.0f, 0.0f);
-    LITInitPos(*(void **)lbl_1_bss_6FA4, 5.0f, 5.0f, 5.0f);
-    LITInitDir(*(void **)lbl_1_bss_6FA4, 0.0f, 0.0f, 0.0f);
+    LITInitPos(lbl_1_bss_6FA4.light, 5.0f, 5.0f, 5.0f);
+    LITInitDir(lbl_1_bss_6FA4.light, 0.0f, 0.0f, 0.0f);
 
-    LITInitColor(*(void **)lbl_1_bss_6FA4, &lightColor);
+    color = lightColor;
+    LITInitColor(lbl_1_bss_6FA4.light, &color);
 
     field = *(u8 **)((u8 *)arg0 + 0x14);
     field0 = *(u32 *)field;
@@ -2565,7 +2620,7 @@ void fn_1_20E00(void *arg0) {
     for (j = 0; j < 20; j++) {
         animateBallRelated(lbl_1_bss_6BE0, j, j, layout, 0, 0);
         fn_800B2C08(*(void **)((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34), 0);
-        fn_800BD548((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34, 1, *(void **)lbl_1_bss_6FA4);
+        fn_800BD548((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34, 1, lbl_1_bss_6FA4.light);
     }
 }
 
@@ -2592,39 +2647,7 @@ void fn_1_20BD8(void) {
     }
     case 1: {
         if (item->state != 0) {
-            GXColor lightColor = {0x80, 0x80, 0xFF, 0xFF};
-            u8 *field;
-            u32 field0;
-            u32 field1;
-            u8 *layout;
-            u8 *geo;
-            u16 j;
-
-            LITAlloc(lbl_1_bss_6FA4);
-            LITInitAttn(*(void **)lbl_1_bss_6FA4, 1.0f, 0.0f, 0.0f,
-                        1.0f, 0.0f, 0.0f);
-            LITInitPos(*(void **)lbl_1_bss_6FA4, 5.0f, 5.0f, 5.0f);
-            LITInitDir(*(void **)lbl_1_bss_6FA4, 0.0f, 0.0f, 0.0f);
-
-            LITInitColor(*(void **)lbl_1_bss_6FA4, &lightColor);
-
-            field = *(u8 **)((u8 *)item + 0x14);
-            field0 = *(u32 *)field;
-            field1 = *(u32 *)(field + 4);
-            layout = field + field0;
-            geo = field + field1;
-
-            lbl_1_bss_6BE0 = ActorObjectInitTable(0x14, field0, field);
-
-            LoadActorLayout(layout);
-            convertGeometryAndSknHeader(geo, 0);
-            haveActLayoutPointToGeoHeader(layout, geo);
-
-            for (j = 0; j < 20; j++) {
-                animateBallRelated(lbl_1_bss_6BE0, j, j, layout, 0, 0);
-                fn_800B2C08(*(void **)((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34), 0);
-                fn_800BD548((u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34, 1, *(void **)lbl_1_bss_6FA4);
-            }
+            fn_1_20E00(item);
 
             item->currentDrawingItem->state = 1;
             removeCurrentDrawingItem();
@@ -2890,7 +2913,7 @@ void fn_1_2004C(void) {
         convertTextureHeader(*(void **)((u8 *)item + 0x14));
 
         for (i = 0; i < 8; i++) {
-            u32 *entry = (u32 *)((lbl_1_bss_6D48 + 0xDC)) + i;
+            u32 *entry = lbl_1_bss_6E24 + i;
             u8 *info;
 
             *entry = i;
@@ -3033,15 +3056,15 @@ void fn_1_1F900(void *arg0) {
     u8 *item = arg0;
     s32 n;
 
-    for (n = 0; n < *(s32 *)(item + 0x1c); n++) {
+    for (n = 0; n < *(u32 *)(item + 0x1c); n++) {
         s32 cell = (n % 480) % 48;
-        s32 yIdx = cell / 8;
         s32 xIdx = cell % 8;
+        s32 yIdx = cell / 8;
         u32 entries[4];
         s32 i;
 
         for (i = 0; i < *(item + 0x22); i++) {
-            entries[i] = *((u32 *)((lbl_1_bss_6D48 + 0xDC)) + (xIdx + yIdx) % 8);
+            entries[i] = lbl_1_bss_6E24[(xIdx + yIdx) % 8];
         }
 
         GXSetNumTevStages(*(item + 0x22));
@@ -3073,24 +3096,22 @@ void fn_1_1F900(void *arg0) {
 
         GXBegin(GX_QUADS, 0, 4);
         {
-            u8 sp = *(item + 0x23);
-
-            GXPosition3f32((f32)(xIdx * sp), (f32)(yIdx * sp), 0.0f);
+            GXPosition3f32((f32)(xIdx * *(item + 0x23)), (f32)(yIdx * *(item + 0x23)), 0.0f);
             GX_WRITE_U32(-128);
             GX_WRITE_U16(0);
             GX_WRITE_U16(0);
 
-            GXPosition3f32((f32)(xIdx * sp), (f32)((yIdx + 1) * sp), 0.0f);
+            GXPosition3f32((f32)(xIdx * *(item + 0x23)), (f32)(yIdx * *(item + 0x23) + *(item + 0x23)), 0.0f);
             GX_WRITE_U32(-128);
             GX_WRITE_U16(0);
             GX_WRITE_U16(0x100);
 
-            GXPosition3f32((f32)((xIdx + 1) * sp), (f32)((yIdx + 1) * sp), 0.0f);
+            GXPosition3f32((f32)(xIdx * *(item + 0x23) + *(item + 0x23)), (f32)(yIdx * *(item + 0x23) + *(item + 0x23)), 0.0f);
             GX_WRITE_U32(-128);
             GX_WRITE_U16(0x100);
             GX_WRITE_U16(0x100);
 
-            GXPosition3f32((f32)((xIdx + 1) * sp), (f32)(yIdx * sp), 0.0f);
+            GXPosition3f32((f32)(xIdx * *(item + 0x23) + *(item + 0x23)), (f32)(yIdx * *(item + 0x23)), 0.0f);
             GX_WRITE_U32(-128);
             GX_WRITE_U16(0x100);
             GX_WRITE_U16(0);
@@ -3106,15 +3127,18 @@ void fn_1_1F618(void *arg0) {
     f32 c1 = 0.5f;
 
     for (; outerCount != 0; outerCount--) {
-        s32 entryVal = outerCount % 4;
-        s32 *entry = &entryVal;
+        u32 entries[4];
         f32 z;
         s32 i;
+
+        entries[0] = outerCount % 4;
 
         GXSetNumTevStages(*(item + 0x22));
         GXSetNumTexGens(*(item + 0x22));
 
         for (i = 0; i < *(item + 0x22); i++) {
+            u32 idx;
+
             GXSetTexCoordGen2(i, 1, 4, 0x3c, 0, 0x7d);
 
             if (i != 0) {
@@ -3129,16 +3153,16 @@ void fn_1_1F618(void *arg0) {
                 GXSetTevAlphaOp(i, 0, 0, 0, 1, 0);
             }
 
-            GXLoadTexObj(&lbl_1_bss_6EA4[*entry], i);
-
-            if (*entry >= 2) {
-                GXLoadTlut(&lbl_1_bss_6E44[*entry], i);
+            idx = entries[i] & 0x7fffffff;
+            GXLoadTexObj(&lbl_1_bss_6EA4[idx], i);
+            if ((entries[i] & 0x80000000) != 0) {
+                GXLoadTlut(&lbl_1_bss_6E44[idx], i);
             }
         }
 
         GXBegin(GX_QUADS, 0, 4);
 
-        z = c1 - c2 * (f32)(u32)outerCount;
+        z = c1 - c2 * (f32)outerCount;
 
         GX_WRITE_F32(0.0f);
         GX_WRITE_F32(0.0f);
@@ -3379,44 +3403,44 @@ void fn_1_1EFF4(void) {
 #pragma dont_inline on
 s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
     DrawingSceneStruct *item = currentDrawingItem;
-    s32 row = arg0;
     f32 v14 = item->unk_14;
     f32 v18 = *(f32 *)((u8 *)item + 0x18);
     f32 v1c = *(f32 *)((u8 *)item + 0x1c);
     f32 v20 = *(f32 *)((u8 *)item + 0x20);
     f32 v24 = *(f32 *)((u8 *)item + 0x24);
-    s16 ret = lbl_1_data_10668[*(s32 *)((u8 *)item + 0x28)]((s16)(row - 8));
+    s16 ret = lbl_1_data_10668[*(s32 *)((u8 *)item + 0x28)]((s16)(arg0 - 8)) + 8;
 
-    if (row != ret + 8) {
-        s32 m = lbl_1_data_10670[*(s32 *)((u8 *)item + 0x28)] + 8;
-        row = (ret + 8 + m) % m;
+    if (arg0 != ret) {
+        s32 m = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)] + 8;
+        arg0 = (ret + m) % m;
         goto tail;
     }
 
     if (arg2 & 0x100) {
-        if (row == 2) {
-            *(u32 *)((u8 *)item + 0x2c) ^= 4;
-        } else if (row == 1) {
-            fn_800385F0(item->unk_14, *(f32 *)((u8 *)item + 0x18), *(f32 *)((u8 *)item + 0x1c),
-                *(f32 *)((u8 *)item + 0x20));
+        switch (arg0) {
+        case 0:
+            break;
+        case 1:
+            fn_800385F0(currentDrawingItem->unk_14, *(f32 *)((u8 *)currentDrawingItem + 0x18), *(f32 *)((u8 *)currentDrawingItem + 0x1c),
+                *(f32 *)((u8 *)currentDrawingItem + 0x20));
             *(f32 *)(lbl_1_bss_6BF4 + 0xec) += 2.0f;
-            *(f32 *)(lbl_1_bss_6BF4 + 0x50) = -*(f32 *)((u8 *)item + 0x24);
-            *(u32 *)((u8 *)item + 0x2c) &= ~0x6;
-            *(u32 *)((u8 *)item + 0x2c) |= 0x2;
+            *(f32 *)(lbl_1_bss_6BF4 + 0x50) = -*(f32 *)((u8 *)currentDrawingItem + 0x24);
+            *(u32 *)((u8 *)currentDrawingItem + 0x2c) &= ~0x2;
+            *(u32 *)((u8 *)currentDrawingItem + 0x2c) |= 0x2;
+            break;
+        case 2:
+            *(u32 *)((u8 *)currentDrawingItem + 0x2c) ^= 4;
+            break;
         }
         goto tail;
     }
 
     if (arg3 & 1) {
-        if (row > 7) {
-            goto tail;
-        }
-
-        switch (row) {
+        switch (arg0) {
         case 0:
-            *(s32 *)((u8 *)item + 0x28) = (*(s32 *)((u8 *)item + 0x28) + 7) % 8;
+            *(s32 *)((u8 *)currentDrawingItem + 0x28) = (*(s32 *)((u8 *)currentDrawingItem + 0x28) + 7) % 8;
             break;
-        case 1: {
+        case 3: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3435,7 +3459,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 2: {
+        case 4: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3454,7 +3478,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 3: {
+        case 5: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3473,7 +3497,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 4: {
+        case 7: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3494,15 +3518,11 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
         }
         }
     } else if (arg3 & 2) {
-        if (row > 7) {
-            goto tail;
-        }
-
-        switch (row) {
+        switch (arg0) {
         case 0:
-            *(s32 *)((u8 *)item + 0x28) = (*(s32 *)((u8 *)item + 0x28) + 1) % 8;
+            *(s32 *)((u8 *)currentDrawingItem + 0x28) = (*(s32 *)((u8 *)currentDrawingItem + 0x28) + 1) % 8;
             break;
-        case 1: {
+        case 3: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3520,7 +3540,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 2: {
+        case 4: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3538,7 +3558,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 3: {
+        case 5: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3556,7 +3576,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 4: {
+        case 6: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3574,7 +3594,7 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
             }
             break;
         }
-        case 5: {
+        case 7: {
             f32 delta = 0.01f;
 
             if (arg1 & 0x40) {
@@ -3594,30 +3614,27 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
         }
         }
     } else if (arg3 & 8) {
-        if (*(s32 *)((u8 *)item + 0x28) < 8) {
-            DrawingSceneStruct *item2 = currentDrawingItem;
-            s32 m = lbl_1_data_10670[*(s32 *)((u8 *)item2 + 0x28)] + 8;
+        if (*(s32 *)((u8 *)currentDrawingItem + 0x28) < 8) {
+            s32 m = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)] + 8;
 
-            row = (row + m - 1) % m;
+            arg0 = (arg0 + m - 1) % m;
         }
     } else if (arg3 & 4) {
-        if (*(s32 *)((u8 *)item + 0x28) < 8) {
-            DrawingSceneStruct *item2 = currentDrawingItem;
-            s32 m = lbl_1_data_10670[*(s32 *)((u8 *)item2 + 0x28)] + 8;
+        if (*(s32 *)((u8 *)currentDrawingItem + 0x28) < 8) {
+            s32 m = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)] + 8;
 
-            row = (row + 1) % m;
+            arg0 = (arg0 + 1) % m;
         }
     }
 
 tail:
-    item = currentDrawingItem;
-    item->unk_14 = v14;
-    *(f32 *)((u8 *)item + 0x18) = v18;
-    *(f32 *)((u8 *)item + 0x1c) = v1c;
-    *(f32 *)((u8 *)item + 0x20) = v20;
-    *(f32 *)((u8 *)item + 0x24) = v24;
+    currentDrawingItem->unk_14 = v14;
+    *(f32 *)((u8 *)currentDrawingItem + 0x18) = v18;
+    *(f32 *)((u8 *)currentDrawingItem + 0x1c) = v1c;
+    *(f32 *)((u8 *)currentDrawingItem + 0x20) = v20;
+    *(f32 *)((u8 *)currentDrawingItem + 0x24) = v24;
 
-    return (s16)row;
+    return arg0;
 }
 #pragma dont_inline reset
 
@@ -4244,7 +4261,7 @@ void fn_1_1D944(void) {
     }
 
     {
-        u8 *elem = lbl_1_data_107E4 + drawStadiumRelated * 0x1c;
+        u8 *elem = (u8 *)lbl_1_data_107E4 + drawStadiumRelated * 0x1c;
 
         *(void **)(elem + 0xc) = (u8 *)(*(void **)((u8 *)item + 0x18)) +
             ((*(u16 *)((u8 *)item + 0x28) + *(u16 *)((u8 *)item + 0x1e)) << 5) + 4;
@@ -4346,3 +4363,5 @@ void fn_1_1D694(void *arg0) {
         GX_WRITE_U16(0);
     }
 }
+
+static u8 lbl_1_data_108E0[8] = {1, 1, 0, 0, 0, 0, 0, 0};

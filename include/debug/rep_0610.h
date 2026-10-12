@@ -2,10 +2,247 @@
 #define __UNUSED_REL_REP_0610_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
+
+typedef struct DbgLight DbgLight;
+
+typedef struct DbgPartData {
+    /*0x00*/ f32 value;
+    /*0x04*/ u8 pad4[8];
+    /*0x0C*/ u32 flag;
+} DbgPartData;
+
+typedef struct DbgPart {
+    /*0x00*/ u8 pad0[0xE8];
+    /*0xE8*/ DbgPartData *data;
+} DbgPart;
+
+typedef struct DbgModel {
+    /*0x00*/ u8 pad0[6];
+    /*0x06*/ u16 count;
+    /*0x08*/ u8 pad8[8];
+    /*0x10*/ u32 f10;
+    /*0x14*/ u8 pad14[4];
+    /*0x18*/ DbgPart **parts;
+} DbgModel;
+
+typedef struct DbgActorObj {
+    /*0x00*/ u8 pad0[0x34];
+    /*0x34*/ DbgModel *model;
+    /*0x38*/ u8 pad38[0x90 - 0x38];
+} DbgActorObj; // size 0x90
+
+typedef struct DbgAnimEntry {
+    /*0x00*/ u8 pad0[4];
+    /*0x04*/ u32 (*p4)[3];
+} DbgAnimEntry;
+
+typedef struct DbgActor {
+    /*0x000*/ u8 pad0[0x4];
+    /*0x004*/ void *p4;
+    /*0x008*/ DbgModel *p8;
+    /*0x00C*/ u8 padC[4];
+    /*0x010*/ DbgAnimEntry *tbl[(0x34 - 0x10) / 4];
+    /*0x034*/ Vec pos;
+    /*0x040*/ f32 rotX;
+    /*0x044*/ f32 rotY;
+    /*0x048*/ f32 rotZ;
+    /*0x04C*/ u8 pad4C[0x276 - 0x4C];
+    /*0x276*/ u8 flags;
+    /*0x277*/ u8 pad277[0x27C - 0x277];
+} DbgActor; // size 0x27C
+
+typedef struct DbgHuge {
+    /*0x000*/ u8 pad0[0x60];
+    /*0x060*/ DbgActorObj *objs;
+    /*0x064*/ u8 pad64[0xAC - 0x64];
+    /*0x0AC*/ DbgLight *lights[3];
+    /*0x0B8*/ u8 padB8[0xC04 - 0xB8];
+    /*0xC04*/ DbgActor slots[4];
+    /*0x15F4*/ u8 pad15F4[0x2C50 - 0x15F4];
+    /*0x2C50*/ DbgActor *actors[13];
+    /*0x2C84*/ u8 pad2C84[0x3083 - 0x2C84];
+    /*0x3083*/ u8 f3083;
+    /*0x3084*/ u8 f3084;
+} DbgHuge;
+
+extern DbgHuge hugeAnimStruct;
+
+typedef struct DbgGauge {
+    /*0x00*/ u8 pad0[0x54];
+    /*0x54*/ f32 value;
+    /*0x58*/ u8 pad58[2];
+    /*0x5A*/ u8 dirty;
+} DbgGauge;
+
+typedef struct DbgGaugeLink {
+    /*0x00*/ u8 pad0[4];
+    /*0x04*/ f32 value;
+    /*0x08*/ u8 pad8[9];
+    /*0x11*/ u8 bits0 : 3;
+    u8 mode : 2;
+    u8 bits1 : 3;
+} DbgGaugeLink;
+
+typedef struct DbgScene {
+    /*0x00*/ void (*func)(void);
+    /*0x04*/ struct DbgScene *prev;
+    /*0x08*/ struct DbgScene *next;
+    /*0x0C*/ struct DbgScene *parent;
+    /*0x10*/ s16 state;
+    /*0x12*/ u16 priority;
+    /*0x14*/ void *data;
+    /*0x18*/ u16 count;
+    /*0x1A*/ u8 pad1A[2];
+    /*0x1C*/ u32 tick;
+} DbgScene;
+
+typedef struct DbgSceneB {
+    /*0x00*/ void (*func)(void);
+    /*0x04*/ u8 pad4[0xC];
+    /*0x10*/ s16 state;
+    /*0x12*/ u16 priority;
+    /*0x14*/ u8 b14;
+    /*0x15*/ s8 b15;
+    /*0x16*/ u8 pad16[0xA];
+    /*0x20*/ u8 b20;
+} DbgSceneB;
+
+typedef struct DbgSceneT {
+    /*0x00*/ void (*func)(void);
+    /*0x04*/ u8 pad4[0xC];
+    /*0x10*/ s16 state;
+    /*0x12*/ u16 priority;
+    /*0x14*/ u8 pad14[0xC];
+    /*0x20*/ s32 w20;
+    /*0x24*/ s32 w24;
+} DbgSceneT;
+
+typedef struct DbgLightHolder {
+    /*0x00*/ u8 pad0[0x70];
+    /*0x70*/ void *light70;
+} DbgLightHolder;
+
+typedef struct DbgRowEnt {
+    /*0x0*/ u8 kind;
+    /*0x1*/ u8 c;
+    /*0x2*/ s16 a;
+    /*0x4*/ s16 b;
+    /*0x6*/ s16 d;
+} DbgRowEnt;
+
+typedef struct DbgRow {
+    /*0x00*/ char name[0x10];
+    /*0x10*/ DbgRowEnt ent[8];
+} DbgRow; // size 0x50
+
+typedef struct DbgSlotEnt {
+    /*0x0*/ s16 f0;
+    /*0x2*/ s16 f2;
+    /*0x4*/ s16 f4;
+    /*0x6*/ s16 f6;
+} DbgSlotEnt;
+
+typedef struct DbgRowTbl {
+    /*0x0*/ s16 cur;
+    /*0x2*/ s16 pad2;
+    /*0x4*/ DbgRow *tbl;
+} DbgRowTbl;
+
+typedef struct DbgDrawRow {
+    /*0x00*/ u32 w0;
+    /*0x04*/ u32 w4;
+    /*0x08*/ Mtx mtx;
+} DbgDrawRow; // size 0x38
+
+typedef struct DbgSel {
+    /*0x00*/ u8 pad0[0x44];
+    /*0x44*/ u8 f44;
+    /*0x45*/ u8 f45;
+    /*0x46*/ u8 f46;
+    /*0x47*/ u8 pad47;
+} DbgSel; // size 0x48
+
+typedef struct DbgBuf30C0 {
+    /*0x00*/ f32 f0[6];
+    /*0x18*/ u8 pad18[0x38];
+    /*0x50*/ f32 f50;
+    /*0x54*/ u8 pad54[4];
+    /*0x58*/ Mtx mtx58;
+    /*0x88*/ u8 pad88[0xA0];
+    /*0x128*/ Vec v128;
+    /*0x134*/ u8 pad134[0xC];
+    /*0x140*/ Vec v140;
+    /*0x14C*/ u8 pad14C[8];
+} DbgBuf30C0; // size 0x154
+
+typedef struct DbgBuf68FC {
+    /*0x00*/ u8 pad0[0x10];
+    /*0x10*/ Mtx mtx10;
+    /*0x40*/ u8 f40[4];
+} DbgBuf68FC; // size 0x44
+
+typedef struct DbgBuf67E0 {
+    /*0x00*/ Mtx mtx0;
+    /*0x30*/ u8 light30[0xC0];
+    /*0xF0*/ s16 fF0;
+    /*0xF2*/ s16 fF2;
+    /*0xF4*/ u8 padF4[4];
+    /*0xF8*/ f32 fF8;
+    /*0xFC*/ f32 fFC;
+    /*0x100*/ f32 f100;
+    /*0x104*/ f32 f104;
+    /*0x108*/ f32 f108;
+    /*0x10C*/ f32 f10C;
+    /*0x110*/ f32 f110;
+    /*0x114*/ u32 f114;
+    /*0x118*/ u8 f118;
+    /*0x119*/ u8 pad119[3];
+} DbgBuf67E0; // size 0x11C
+
+typedef struct DbgBlob {
+    /*0x00*/ u8 pad0[8];
+    /*0x08*/ Mtx mtx8;
+} DbgBlob;
+
+struct DbgLight {
+    /*0x00*/ u8 pad0[0x40];
+    /*0x40*/ f32 f40;
+    /*0x44*/ f32 f44;
+    /*0x48*/ f32 f48;
+    /*0x4C*/ u8 pad4C[0xC];
+    /*0x58*/ f32 f58;
+    /*0x5C*/ f32 f5C;
+    /*0x60*/ f32 f60;
+    /*0x64*/ u8 pad64[0xC];
+    /*0x70*/ u8 r;
+    /*0x71*/ u8 g;
+    /*0x72*/ u8 b;
+};
+
+typedef struct DbgPairObj {
+    /*0x000*/ u8 pad0[0x72];
+    /*0x072*/ u16 a[0x78];
+    /*0x162*/ u16 b[0x78];
+} DbgPairObj;
+
+typedef struct DbgSceneP {
+    /*0x00*/ void (*func)(void);
+    /*0x04*/ u8 pad4[0xC];
+    /*0x10*/ s16 state;
+    /*0x12*/ u16 priority;
+    /*0x14*/ Vec pos;
+    /*0x20*/ Vec vel;
+    /*0x2C*/ Vec acc;
+    /*0x38*/ s32 w38;
+    /*0x3C*/ s16 h3C;
+    /*0x3E*/ u8 b3E;
+    /*0x3F*/ u8 b3F;
+} DbgSceneP;
 
 void fn_1_C5AC(void);
-void fn_1_C9E0(void);
-void fn_1_CB9C(void);
+void fn_1_C9E0(DbgBlob *blob);
+void fn_1_CB9C(BOOL flag);
 void fn_1_CC24(void);
 void fn_1_CCC8(void);
 void fn_1_CDC8(void);
@@ -13,25 +250,25 @@ void fn_1_D13C(void);
 void fn_1_D2F0(void);
 void fn_1_D300(void);
 void fn_1_D4BC(void);
-void fn_1_D590(void);
-void fn_1_D638(void);
+void fn_1_D590(s32 a, s32 b, f32 v);
+u8 fn_1_D638(void);
 void fn_1_D650(void);
-void fn_1_D660(void);
-void fn_1_D67C(void);
+BOOL fn_1_D660(void);
+void fn_1_D67C(u8 value);
 void fn_1_D688(void);
 void fn_1_D6B4(void);
-void fn_1_D6E4(void);
-void fn_1_D71C(void);
-void fn_1_D7A4(void);
+u32 fn_1_D6E4(void);
+f32 fn_1_D71C(s32 idx);
+void fn_1_D7A4(s32 row);
 void fn_1_D8A0(void);
 void fn_1_D9B8(void);
 void fn_1_DE1C(void);
 void fn_1_DF14(void);
 void fn_1_E098(void);
 void fn_1_E8D4(void);
-void fn_1_E9F8(void);
+void fn_1_E9F8(DbgModel *m, s32 start, s32 count);
 void fn_1_EA20(void);
-void fn_1_ECF8(void);
+void fn_1_ECF8(s32 a, s32 b, s32 c);
 void fn_1_F040(void);
 void fn_1_F0D0(void);
 void fn_1_F1D8(void);
@@ -39,38 +276,38 @@ void fn_1_F2F8(void);
 void fn_1_F37C(void);
 void fn_1_F50C(void);
 void fn_1_F6E4(void);
-void fn_1_F798(void);
+void fn_1_F798(s32 *vals, u8 *map, s32 n);
 void fn_1_FB98(void);
 void fn_1_10044(void);
 void fn_1_10458(void);
 void fn_1_10560(void);
 void fn_1_10670(void);
-void fn_1_106A4(void);
+u32 fn_1_106A4(void);
 void fn_1_106B4(void);
 void fn_1_106C4(void);
-void fn_1_1073C(void);
+void fn_1_1073C(DbgActor *a);
 void fn_1_107B8(void);
-void fn_1_10AA4(void);
+void fn_1_10AA4(DbgGauge *g, f32 v);
 void fn_1_10ACC(void);
-void fn_1_10CEC(void);
-void fn_1_10E2C(void);
+void fn_1_10CEC(DbgBlob *blob);
+void fn_1_10E2C(void *a, void *b, u32 c, u32 d, u32 e);
 void fn_1_1125C(void);
-void fn_1_116EC(void);
+void fn_1_116EC(void *tex);
 void fn_1_11714(void);
 void fn_1_11C98(void);
 void fn_1_11D00(void);
 void fn_1_11F08(void);
-void fn_1_121D4(void);
+void fn_1_121D4(void *a);
 void fn_1_126CC(void);
-void fn_1_12820(void);
+void fn_1_12820(void *a, void *b);
 void fn_1_129D0(void);
-void fn_1_12F18(void);
+void fn_1_12F18(DbgScene *s);
 void fn_1_12F8C(void);
 void fn_1_131E4(void);
 void fn_1_1347C(void);
 void fn_1_135C0(void);
-void fn_1_14710(void);
-void fn_1_14888(void);
+void fn_1_14710(DbgPairObj *o);
+void fn_1_14888(DbgLightHolder *h);
 void fn_1_148CC(void);
 void fn_1_14928(void);
 void fn_1_1496C(void);
@@ -80,15 +317,15 @@ void fn_1_151F8(void);
 void fn_1_1540C(void);
 void fn_1_15760(void);
 void fn_1_15CE0(void);
-void fn_1_160D8(void);
-void fn_1_160F8(void);
+s32 fn_1_160D8(s8 a, s8 b);
+void fn_1_160F8(s32 dir);
 void fn_1_161D0(void);
 void fn_1_1620C(void);
 void fn_1_163FC(void);
-void fn_1_16400(void);
+void fn_1_16400(s8 delta);
 void fn_1_1644C(void);
-void fn_1_16558(void);
-void fn_1_16590(void);
+u32 fn_1_16558(s32 a, s32 b);
+u32 fn_1_16590(void);
 void fn_1_165E0(void);
 void fn_1_168C8(void);
 void fn_1_16978(void);
