@@ -222,3 +222,54 @@ Still open, as of 2026-10-08:
 Where several header-only units share one window, split the window at
 function boundaries so that each TU's functions stay contiguous; the call
 graph and function names usually show where the themes change.
+
+## Main DOL: the Challenge translation unit (2026-10-12)
+
+Main-DOL code has no `repHeaderData` signature, so the boundaries below come
+from how the linker lays the unit's data out (`.data` objects are 4-aligned
+inside a unit but every unit's `.data` starts 8-aligned; MWCC emits functions
+in source order and does not share literal pools between units).
+
+`challenge/challenge_progress.c` replaces five `Unknown/` units:
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8006C48C-0x8006CEBC` | `File_0x8006c48c` (`0x8006C48C-0x8006C5CC`), unowned gap `0x8006C5CC-0x8006C7C4` (`fn_8006C5CC`, `fn_8006C6C4`, `fn_8006C79C`), `File_0x8006c7c4`, `File_0x8006c9d8`, `File_0x8006cbe4`, `File_0x8006cca4` |
+| `extab` / `extabindex` | `0x800065B0-0x800065C8` / `0x800083E8-0x8000840C` | the three units that had any |
+| `.data` | `0x80109420-0x8010B610` | `File_0x8006c48c` + `File_0x8006c9d8` |
+| `.sdata` | `0x803CB8F0-0x803CB8F8` | `File_0x8006c7c4` |
+
+Evidence:
+
+- **`.data` is one 8-aligned run.** Inside `0x80109420-0x8010B610` the objects
+  `starMenuSizes` (`0x8010B42C`), `starRankByMissionCount` (`0x8010B444`) and
+  `challengeIntermediateStarBuffs` (`0x8010B4B4`) start on 4-aligned,
+  non-8-aligned addresses, so no unit boundary can be there. The old
+  `File_0x8006c9d8` split started its `.data` at `0x8010B4B4`, which no real
+  unit can do. The table order also reverses the text order
+  (`starRankByMissionCount` at `0xB444`, used by `challenge_getStarRank`
+  `0x8006CBE4`, sits *below* `challengeIntermediateStarBuffs` at `0xB4B4`,
+  used by `intermediateStatBuffForCompletedMissions` `0x8006CAC8`), which two
+  units in text order could not produce. Everything from the first Challenge
+  function to `challenge_getStarRank` is therefore one unit.
+- **Neighbours.** The `.data` run begins where the title-screen unit's data
+  ends (`lbl_80109410`, `0x80109420`; its code `0x80069AD4-0x8006C488`, which
+  also owns `.sdata 0x803CB8D8-0x803CB8F0` and `.sbss 0x803CBD30-0x803CBD40`)
+  and ends at the 4-byte pad after `challengeInnings` (`0x8010B60C`), where
+  `Dolphin/os/OS.c` starts. `.sdata` begins at `challengeCaptainCharIDs`
+  (`0x803CB8F0`) and ends 2 bytes of pad before `__OSVersion`. The unit has no
+  `.sdata2`, `.sbss` or `.rodata`.
+- **Gap functions.** `fn_8006C5CC`, `fn_8006C6C4` and `fn_8006C79C` only read
+  `starMissionCompletionTracker` (they count characters whose recruitment byte
+  is 1) and sit between two members of the unit, so they belong to it.
+
+Left out on purpose: `fn_8006CEBC`/`fn_8006CF6C` (`0x8006CEBC-0x8006D024`,
+menu-graphics load/unload pair; `fn_8006CF6C` is installed by `SetMenuNumber`
+and reads `lbl_801075A8` from the menu `.data` block, so it is menu glue, not
+Challenge logic), and `fn_8006C488` (empty function, no evidence either way).
+
+The unit is `NonMatching` for now: `fn_8006C5CC`/`fn_8006C6C4`/`fn_8006C79C`
+and the two `File_0x8006cca4` functions are still stubs, and
+`challenge_leftoverTeammatesJoinBowserJr` is at 96.9%. Before the merge
+`File_0x8006c48c` and `File_0x8006cbe4` were `Matching`; every function's score
+is unchanged.

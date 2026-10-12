@@ -1,9 +1,8 @@
-#include "Unknown/File_0x8006c48c.h"
+#define SQRT2_LINKAGE static
+#include "challenge/challenge_progress.h"
 #include "Unknown/sub.h"
 #include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
-
-
 
 ScoutMission scoutMissionTable[13] = {
     /*  0 */ {{0, 0, 0, 0}, {0, 0, 0, 0}, 0, {0, 0, 0, 0}, 0, 0},
@@ -914,4 +913,140 @@ void challengeDrawStarsOnMissionMenu(void) {
             }
         }
     }
+}
+
+void fn_8006C5CC(void) {
+    return;
+}
+
+void fn_8006C6C4(void) {
+    return;
+}
+
+void fn_8006C79C(void) {
+    return;
+}
+
+u8 challengeCaptainCharIDs[6] = {
+    CHAR_ID_MARIO, CHAR_ID_PEACH, CHAR_ID_WARIO, CHAR_ID_DK, CHAR_ID_YOSHI, CHAR_ID_BOWSER,
+};
+
+void challenge_leftoverTeammatesJoinBowserJr(void) {
+    BOOL captainJoined[6];
+    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeTrackingStruct* t;
+    u8 captain = cs->captain;
+    int c;
+    int k;
+
+    for (k = 0; k < 6; k++) {
+        captainJoined[k] = FALSE;
+    }
+    for (c = 0; c < NUM_CHOOSABLE_CHARACTERS; c++) {
+        t = &cs->characters[c];
+        for (k = 0; k < 6; k++) {
+            if (c == challengeCaptainCharIDs[k] && (int)t->_31 == CHALLENGE_RECRUITMENT_CD_RECRUITED && k != captain) {
+                captainJoined[k] = TRUE;
+            }
+        }
+    }
+    for (k = 0; k < 6; k++) {
+        if (captainJoined[k] && (s8)t->_31 == 0) {
+            for (c = 0; c < NUM_CHOOSABLE_CHARACTERS; c++) {
+                if ((s8)cs->characters[c]._31 == 0 && k == (s8)cs->characters[c].challengeCaptain) {
+                    cs->characters[c]._31 = CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM;
+                }
+            }
+        }
+    }
+}
+
+f32 challengeIntermediateStarBuffs[5][11] = {
+    {0.0f, 0.0f, 10.0f, 10.0f, 10.0f, 20.0f, 20.0f, 25.0f, 25.0f, 25.0f, 30.0f},
+    {0.0f, 0.0f, 10.0f, 10.0f, 10.0f, 20.0f, 20.0f, 20.0f, 25.0f, 25.0f, 25.0f},
+    {0.0f, 0.0f, 10.0f, 10.0f, 18.0f, 18.0f, 22.0f, 22.0f, 22.0f, 22.0f, 22.0f},
+    {0.0f, 0.0f, 10.0f, 10.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+};
+
+f32 challengeIntermediateStarBUffs_CPU[4][7] = {
+    {-10.0f, -10.0f, -5.0f, -5.0f, 10.0f, 10.0f, 0.0f},
+    {0.0f, 0.0f, 5.0f, 5.0f, 15.0f, 15.0f, 0.0f},
+    {5.0f, 5.0f, 10.0f, 10.0f, 20.0f, 20.0f, 0.0f},
+    {10.0f, 10.0f, 15.0f, 15.0f, 25.0f, 25.0f, 0.0f},
+};
+
+ChallengeInningRule challengeInnings[4] = {
+    {3, 5, 10},
+    {3, 5, 10},
+    {3, 5, 10},
+    {5, 7, 10},
+};
+
+void challenge_checkRecruitment(void) {
+    int i;
+    u8 diff;
+    u8 cap;
+    int recruited;
+    ChallengeState* cs;
+
+    cs = &starMissionCompletionTracker;
+    diff = cs->difficulty;
+    cap = cs->captain;
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        ChallengeTrackingStruct* t = &cs->characters[i];
+        recruited = (s8)t->_31;
+        if (recruited == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            continue;
+        }
+        if ((s8)t->scoutFlagsAchieved != t->scoutFlagPointer->flagsRequired[diff][cap] ||
+            t->scoutFlagPointer->flagsRequired[diff][cap] == 0) {
+            continue;
+        }
+        if ((int)cs->opponentCaptainCharID == CHAR_ID_BOWSERJR) {
+            if (recruited == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
+                t->_31 = CHALLENGE_RECRUITMENT_CD_RECRUITED;
+                cs->recruitedChar[i] = TRUE;
+            }
+        } else if (recruited != CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM && (s8)t->challengeCaptain == cs->opponentCaptain) {
+            t->_31 = CHALLENGE_RECRUITMENT_CD_RECRUITED;
+            cs->recruitedChar[i] = TRUE;
+        }
+    }
+}
+
+f32 intermediateStatBuffForScoutFlags(void) {
+    return challengeIntermediateStarBUffs_CPU[starMissionCompletionTracker.difficulty][starMissionCompletionTracker.stage];
+}
+
+f32 intermediateStatBuffForCompletedMissions(int charID) {
+    ChallengeTrackingStruct* t = &starMissionCompletionTracker.characters[charID];
+    int count;
+    int i;
+
+    if (characterStaticIndexes[charID].hasOwnStarMissions == 0) {
+        count = 0;
+    } else {
+        count = 0;
+        for (i = 0; i < 10; i++) {
+            if (t->inGameMissionTracker[i].starMissionStatus < 0) {
+                count++;
+            }
+        }
+    }
+    return challengeIntermediateStarBuffs[t->variantClassification][count];
+}
+
+s16 challenge_getStarRank(int charID) {
+    ChallengeTrackingStruct* tracker = &starMissionCompletionTracker.characters[charID];
+
+    return starRankByMissionCount[tracker->variantClassification][countStarMissions(charID)];
+}
+
+void determineIfMissionDescriptionIsShown(void) {
+    return;
+}
+
+void fn_8006CDC0(void) {
+    return;
 }
