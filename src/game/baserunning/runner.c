@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/baserunning/runner.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/math/spline.h"
 #include "game/fielding/fielder.h"
@@ -25,7 +26,6 @@ extern f32 ccs_gameplayConsts[];
 extern f32 lbl_3_data_4C44[];
 extern s16 lbl_3_data_4C54[];
 extern s16 lbl_3_data_1C58[][4];
-extern s16 lbl_3_common_bss_37400[0x27];
 extern s16 neg20ForRunningAI[];
 extern VecXZ base_MoundCoordinates[5];
 extern int estimatedThrowFramesBetweenTwoPoints(f32 x1, f32 z1, f32 x2, f32 z2);
@@ -941,12 +941,12 @@ void running_checkForOuts(void) {
                             g_Ball.timeSinceBallPickedUp < specialFielderActionConstants._40[7]) {
                             g_UnkSound_32718._08 = 4;
                             g_FieldingLogic.bigPlayFielderIndex = fielder;
-                            if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                            if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                                 starMissionsQuantityBased(2, g_Fielders[fielder].rosterLocation);
                             }
                         }
                     }
-                    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
                             starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
@@ -958,7 +958,7 @@ void running_checkForOuts(void) {
                     runnerOut(g_FieldingLogic.runnerBeingTargettedForOut);
                     runner->outType = 4;
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
-                    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
                             starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
@@ -974,7 +974,7 @@ void running_checkForOuts(void) {
                     if (g_Ball.fielderWhoGotLastOut < 0) {
                         g_Ball.fielderWhoGotLastOut = g_Ball.fielderWithBallIndexStored2;
                     }
-                    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
                             starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
@@ -988,7 +988,7 @@ void running_checkForOuts(void) {
             if (g_Ball.baseBallAndFielderAreOn >= 1 && g_Runners[g_Ball.baseBallAndFielderAreOn].tagUpInd == TAG_UP_TYPE_TAGGED) {
                 runnerOut(g_Ball.baseBallAndFielderAreOn);
                 g_Runners[g_Ball.baseBallAndFielderAreOn].outType = 4;
-                if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                     if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
                         starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                     }
@@ -1025,14 +1025,14 @@ void unused_forceOutSomething(void) {
                 } else {
                     g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
                     if (g_FieldingLogic.laser_2 != 0 && !g_d_GameSettings.exhibitionMatchInd) {
-                        if (lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                        if (scoutState.humanTeam == g_GameLogic.teamFielding) {
                             starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
                     if ((s8)g_FieldingLogic.fielderActionBeingProcessed_prev > 0 && g_FieldingLogic.bigPlayPotential != 0) {
                         g_UnkSound_32718._08 = 4;
                         g_FieldingLogic.bigPlayFielderIndex = g_Ball.fielderWithBallIndexStored2;
-                        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                             starMissionsQuantityBased(2, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
                         }
                     }
@@ -1276,7 +1276,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                     } else {
                         g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
                         if (g_FieldingLogic.laser_2 != 0 && !g_d_GameSettings.exhibitionMatchInd) {
-                            if (lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                            if (scoutState.humanTeam == g_GameLogic.teamFielding) {
                                 starMissionsQuantityBased(8, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                             }
                         }
@@ -1285,7 +1285,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                             g_UnkSound_32718._08 = 4;
                             g_FieldingLogic.bigPlayFielderIndex = g_Ball.fielderWithBallIndexStored2;
                             if (!g_d_GameSettings.exhibitionMatchInd &&
-                                lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                                scoutState.humanTeam == g_GameLogic.teamFielding) {
                                 starMissionsQuantityBased(2, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
                             }
                         }
@@ -1310,7 +1310,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                 if (g_FieldingLogic.framesRunnerIsOutBy < 5 && target->actionCode != 0) {
                     target->tagType = 2;
                 }
-                if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+                if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                     starMissionsQuantityBased(6, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
                 }
             }
@@ -1413,7 +1413,7 @@ void fn_3_870AC(void) {
             if (g_FieldingLogic.framesRunnerIsOutBy < 5 && runner->actionCode != 0) {
                 runner->tagType = 2;
             }
-            if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+            if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                 starMissionsQuantityBased(6, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
             }
         }
@@ -4218,7 +4218,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
             probability = bodyCheckProbabiliities[weight][fielderWeight];
             if (RandomInt_Game(100) < probability) {
                 runner->actionCode = 2;
-                if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamBatting) {
+                if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamBatting) {
                     starMissionsQuantityBased(12, runner->rosterID);
                 }
             } else {

@@ -2,42 +2,13 @@
 #include "game/challenge/star_missions.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/challenge/star_mission_data.h"
+#include "game/challenge/scout_state.h"
 #include "static/UnknownHomes_Static.h"
 #include "Dolphin/rand.h"
 #include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
 
 
-
-typedef struct ScoutPair {
-    /*0x0*/ s8 cur;
-    /*0x1*/ s8 max;
-} ScoutPair;
-
-typedef struct ScoutEntry {
-    /*0x0*/ u8 achieved;
-    /*0x1*/ u8 max;
-    /*0x2*/ u8 amount;
-    /*0x3*/ s8 active;
-    /*0x4*/ u8 trackerIdx;
-} ScoutEntry; // size: 0x5
-
-typedef struct ScoutState {
-    /*0x00*/ ScoutPair pairs[9];
-    /*0x12*/ ScoutEntry entries[9];
-    /*0x3F*/ u8 _3F;
-    /*0x40*/ s16 humanTeam;
-    /*0x42*/ s16 scoutCountdown;
-    /*0x44*/ s16 targetRosterID;
-    /*0x46*/ u8 scoutMissionID;
-    /*0x47*/ u8 scoutResult;
-    /*0x48*/ u8 scoutFlag;
-    /*0x49*/ s8 baseReward;
-    /*0x4A*/ s8 _4A;
-    /*0x4B*/ u8 _4B[3];
-} ScoutState; // size: 0x4E
-
-extern ScoutState lbl_3_common_bss_37400;
 
 typedef struct AnimEntry {
     /*0x00*/ u8 _00[0x26];
@@ -100,7 +71,7 @@ BOOL decideScoutFlagMission(void) {
     GameControlsStruct* logic = &g_GameLogic;
     ChallengeState* cs = &starMissionCompletionTracker;
     InMemBatterType* batter = &g_Batter;
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     InMemRunnerType* runners = g_Runners;
     InMemPitcherType* pitcher = &g_Pitcher;
     u8 rowB = cs->captain;
@@ -264,7 +235,7 @@ chosen:
 #pragma dont_inline on
 // .text:0x001659A0 size:0x384 mapped:0x807A4A34
 BOOL shouldScoutMissionBeEnabled(int mission) {
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     u8 rowA = SCOUT_ROW_A;
     BOOL enabled;
     int roll;
@@ -293,17 +264,17 @@ BOOL shouldScoutMissionBeEnabled(int mission) {
 
 // .text:0x0016598C size:0x14 mapped:0x807A4A20
 void setScoutMissionRelatedToZero(void) {
-    lbl_3_common_bss_37400._4A = 0;
+    scoutState._4A = 0;
 }
 
 // .text:0x00165978 size:0x14 mapped:0x807A4A0C
 void fn_3_165978(void) {
-    lbl_3_common_bss_37400._4A = 0;
+    scoutState._4A = 0;
 }
 
 // .text:0x001658F0 size:0x88 mapped:0x807A4984
 void clearScoutState(void) {
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     s32 i;
     for (i = 0; i < 9; i++) {
         scout->entries[i].max = 0;
@@ -318,7 +289,7 @@ void clearScoutState(void) {
 
 // .text:0x00164A74 size:0xE7C mapped:0x807A3B08
 void scoutFlag_checkMissionSuccess(void) {
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     ScoutMission* missions = scoutMissionTable;
     ChallengeState* cs = &starMissionCompletionTracker;
     u8 rowB = cs->captain;
@@ -591,9 +562,9 @@ void scoutFlag_checkMissionSuccess(void) {
                 scout->scoutFlag = 0;
             } else if (g_Strikes.outs >= 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
                 if ((g_Scores.scores[1].total > g_Scores.scores[0].total &&
-                     lbl_3_common_bss_37400.humanTeam == g_GameLogic.teamBatting) ||
+                     scoutState.humanTeam == g_GameLogic.teamBatting) ||
                     (g_Scores.scores[1].total < g_Scores.scores[0].total &&
-                     lbl_3_common_bss_37400.humanTeam == g_GameLogic.teamFielding)) {
+                     scoutState.humanTeam == g_GameLogic.teamFielding)) {
                     scout->scoutResult = 2;
                 }
                 scout->scoutFlag = 0;
@@ -652,7 +623,7 @@ void awardScoutFlagsSequential(void) {
     int amount;
     BOOL enabled;
 
-    amount = missions[lbl_3_common_bss_37400.scoutMissionID].reward[0];
+    amount = missions[scoutState.scoutMissionID].reward[0];
     fillRosterCharIDs(ids);
     k = 0;
     enabled = anyScoutFlagIncomplete();
@@ -678,7 +649,7 @@ void awardScoutFlagsSequential(void) {
 void applyScoutFlagRewards(void) {
     s16 ids[9];
     ChallengeState* cs = &starMissionCompletionTracker;
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     u8 rowB = cs->captain;
     u8 rowA = cs->difficulty;
     int i;
@@ -700,7 +671,7 @@ void applyScoutFlagRewards(void) {
 // .text:0x0016440C size:0x148 mapped:0x807A34A0
 void assignScoutFlagRewardToTarget(void) {
     s16 ids[9];
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     ScoutMission* missions = scoutMissionTable;
     ChallengeState* cs = &starMissionCompletionTracker;
     InMemBatterType* batter = &g_Batter;
@@ -743,7 +714,7 @@ void assignScoutFlagRewardRandom(void) {
     s16 ids[9];
     ScoutMission* missions = scoutMissionTable;
     ChallengeState* cs = &starMissionCompletionTracker;
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     u8 rowB = cs->captain;
     u8 rowA = cs->difficulty;
     int k;
@@ -782,7 +753,7 @@ void assignScoutFlagRewardRandom(void) {
 void snapshotScoutFlagProgress(void) {
     s16 ids[9];
     ChallengeState* cs = &starMissionCompletionTracker;
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     u8 rowB = cs->captain;
     u8 rowA = cs->difficulty;
     s32 i;
@@ -831,7 +802,7 @@ BOOL isScoutTargetFlagAvailable(void) {
     s16 ids[9];
     BOOL found;
     ChallengeState* cs = &starMissionCompletionTracker;
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     InMemBatterType* batter = &g_Batter;
     InMemPitcherType* pitcher = &g_Pitcher;
     u8 rowB = cs->captain;
@@ -859,7 +830,7 @@ BOOL isScoutTargetFlagAvailable(void) {
 // .text:0x00163948 size:0x134 mapped:0x807A29DC
 BOOL anyScoutPairIncomplete(void) {
     s16 ids[9];
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     BOOL found;
     s32 i;
 
@@ -905,7 +876,7 @@ void recruitWholeTeamAfterMercy(void) {
 
 // .text:0x00162D54 size:0xA98 mapped:0x807A1DE8
 void starMissionsWholeGame(void) {
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     int slot = scout->humanTeam ^ g_GameLogic.homeTeamInd;
     int i;
     int p;
@@ -1050,7 +1021,7 @@ void starMissionsWholeGame(void) {
 
 // .text:0x0016230C size:0xA48 mapped:0x807A13A0
 void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     int i;
     int k;
     int f;
@@ -1328,7 +1299,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
 
 // .text:0x00162080 size:0x28C mapped:0x807A1114
 void challenge_postPitchStarMissionTracking(void) {
-    ScoutState* scout = &lbl_3_common_bss_37400;
+    ScoutState* scout = &scoutState;
     int i;
 
     if (scout->humanTeam == g_GameLogic.teamFielding) {
@@ -1410,7 +1381,7 @@ void challenge_postPitchStarMissionTracking(void) {
 
 // .text:0x00161588 size:0xAF8 mapped:0x807A061C
 void starMissionsQuantityBased(int missionType, int rosterLocation) {
-    s16 charID = inMemRoster[lbl_3_common_bss_37400.humanTeam][rosterLocation].stats.CharID;
+    s16 charID = inMemRoster[scoutState.humanTeam][rosterLocation].stats.CharID;
     u8 trackerIdx = characterStaticIndexes[charID].trackerIdx;
     u8 requirementRow = characterStaticIndexes[charID].requirementRow;
     ChallengeTrackingStruct* ct;

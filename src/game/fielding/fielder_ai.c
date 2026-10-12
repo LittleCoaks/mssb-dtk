@@ -5,6 +5,7 @@
 #define SQRT2_LINKAGE static
 
 #include "game/fielding/fielder_ai.h"
+#include "game/challenge/scout_state.h"
 #include "game/fielding/fielder.h"
 #include "game/ball/collision_primitives.h"
 #include "game/UnknownHomes_Game.h"
@@ -41,7 +42,6 @@ extern f32 thresholdToBeConsideredCoveringBase_ByWeight[5];
 extern u8 lbl_3_data_4908[2];
 extern int calculateChemistry(int teamFielding, int charIdA, int charIdB);
 extern s16 chemThresholds[4];
-extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 getThrowSpeedBasedOnArmStrengthStat(u8 arm);
 extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern void liveBallHitPhysics(int arg);
@@ -344,7 +344,7 @@ void makeThrowVariables(int fielderIndex) {
         } else {
             g_FieldingLogic.IsChemistryThrow = 2;
         }
-        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding) {
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
             starMissionsQuantityBased(7, fielder->rosterLocation);
         }
     }

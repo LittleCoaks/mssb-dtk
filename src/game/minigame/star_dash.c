@@ -2,6 +2,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_starDash
 #define g_Minigame g_Minigame_shared
 #include "game/minigame/star_dash.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/math/game_math.h"
@@ -80,7 +81,6 @@ extern u8 minigameAIStrengthTable[8][5];
 extern u8 sD_timeLimitSeconds[5];
 extern BOOL checkForPauses(void);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
-extern s16 lbl_3_common_bss_37400[];
 extern f32 lbl_3_data_21A14[6];
 extern s16 sD_starTimings[6];
 extern void kinoko_startPulseGlow(s8 charID, u8 alt);
@@ -686,7 +686,7 @@ void sD_UpdateStar(void) {
             }
             starDash_startSparks(best);
             fn_80011604((void*)(s32)(s8)best, sD_PulseTevCallback);
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && best == lbl_3_common_bss_37400[0x20]) {
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && best == scoutState.humanTeam) {
                 starMissionsMinigamesSpecialAction(3, 0, 0);
             }
         }

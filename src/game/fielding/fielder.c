@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/fielding/fielder.h"
+#include "game/challenge/scout_state.h"
 #include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/animation/star_sparks.h"
@@ -45,7 +46,6 @@ extern u8 fielderLockout[2][9];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
-extern s16 lbl_3_common_bss_37400[0x27];
 
 extern f32 ballDistCalculator(f32 x, f32 z);
 extern u8 minigame_getAIDrivenInputInd(void);
@@ -18684,7 +18684,7 @@ void updateVariablesPostCatch(int fielderIndex) {
         g_UnkSound_32718._08 = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
         if (!g_d_GameSettings.exhibitionMatchInd &&
-            lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding &&
+            scoutState.humanTeam == g_GameLogic.teamFielding &&
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
             starMissionsQuantityBased(2, fielder->rosterLocation);
         }
@@ -18696,7 +18696,7 @@ void updateVariablesPostCatch(int fielderIndex) {
             g_UnkSound_32718._08 = 4;
             g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
             if (!g_d_GameSettings.exhibitionMatchInd &&
-                lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding &&
+                scoutState.humanTeam == g_GameLogic.teamFielding &&
                 g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
                 starMissionsQuantityBased(2, fielder->rosterLocation);
             }
@@ -18708,13 +18708,13 @@ void updateVariablesPostCatch(int fielderIndex) {
         g_UnkSound_32718._08 = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
         if (!g_d_GameSettings.exhibitionMatchInd &&
-            lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding &&
+            scoutState.humanTeam == g_GameLogic.teamFielding &&
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
             starMissionsQuantityBased(3, fielder->rosterLocation);
         }
     }
 
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding &&
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
         g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && fielder->action == 2) {
         starMissionsQuantityBased(3, fielder->rosterLocation);
     }
@@ -18723,7 +18723,7 @@ void updateVariablesPostCatch(int fielderIndex) {
         fielder->stunFramesOnFireBall = ((s16*)&g_hitShorts)[g_Batter.lightFireballStunID + 4];
     }
 
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamFielding &&
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
         g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 0) {
         if (g_Ball.numFieldersWhoHandledBallDuringPlay == 0) {
             starMissionsQuantityBased(1, fielder->rosterLocation);

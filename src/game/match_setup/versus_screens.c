@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/versus_screens.h"
+#include "game/challenge/scout_state.h"
 #include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 
@@ -160,15 +161,6 @@ typedef struct VsFadeParams {
 } VsFadeParams;
 
 extern VsFadeParams lbl_803C5090;
-
-typedef struct VsScoutState {
-    /*0x00*/ u8 _00[0x40];
-    /*0x40*/ s16 humanTeam;
-    /*0x42*/ u8 _42[4];
-    /*0x46*/ u8 scoutMissionID;
-} VsScoutState;
-
-extern VsScoutState lbl_3_common_bss_37400;
 
 s32 lbl_3_data_3A40[55] = {
     0x78, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76,
@@ -718,7 +710,7 @@ void championshipScreen(void) {
     }
 
     {
-        int team = lbl_3_common_bss_37400.humanTeam;
+        int team = scoutState.humanTeam;
         int charID = inMemRoster[team][g_GameLogic.Team_CaptainRosterLoc[team]].stats.CharID;
 
         if (lbl_3_common_bss_1323C->frame == lbl_3_data_7F7C[characterStaticIndexes[charID].requirementRow][3]) {
@@ -850,7 +842,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
     GameInitVariables *settings = &g_d_GameSettings;
     VsData *data = &lbl_3_data_1D28;
     ChallengeState *tracker = &starMissionCompletionTracker;
-    VsScoutState *scout = &lbl_3_common_bss_37400;
+    ScoutState *scout = &scoutState;
     ScoutMission *scoutMissions = scoutMissionTable;
     BOOL scoutMission = FALSE;
     s32 i;

@@ -5324,4 +5324,4 @@ g_Practice = .bss:0x00034EF4; // type:object size:0x1F0 data:byte
 stadiumObjectCollision = .bss:0x000350E4; // type:object size:0x70 data:4byte
 lbl_3_common_bss_35154 = .bss:0x00035154; // type:object size:0x480 data:byte
 g_Minigame = .bss:0x000355D4; // type:object size:0x1E2C data:byte
-lbl_3_common_bss_37400 = .bss:0x00037400; // type:object size:0x4E data:byte
+scoutState = .bss:0x00037400; // type:object size:0x4E data:byte

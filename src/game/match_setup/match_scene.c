@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_scene.h"
+#include "game/challenge/scout_state.h"
 #include "game/match_setup/pause_menu.h"
 #include "game/hud/hud_gauges.h"
 #include "game/UnknownHomes_Game.h"
@@ -41,10 +42,6 @@ typedef struct MenuLabel {
 extern u8 animRelated[0x124];
 extern u8 menuNumber[0x28];
 extern MenuLabel lbl_800FEF70[];
-extern struct {
-    u8 _00[0x47];
-    u8 scoutResult;
-} lbl_3_common_bss_37400;
 extern s16 lbl_3_data_BE50[][4];
 extern UIRecordDescriptor lbl_3_data_D648[];
 extern UIRecordDescriptor lbl_3_data_D7A8[];
@@ -683,7 +680,7 @@ void animateMatchScene(void) {
             if (animRelated[0xB4] == 1) {
                 animRelated[0xB4] = 2;
                 insertGraphicDrawingFunction(fn_3_952DC, 2);
-                if (lbl_3_common_bss_37400.scoutResult == 2) {
+                if (scoutState.scoutResult == 2) {
                     insertGraphicDrawingFunction(scoutMissionProgress_init, 2);
                 }
             }

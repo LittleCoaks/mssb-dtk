@@ -1,4 +1,5 @@
 #include "game/pitching/pitcher_ai.h"
+#include "game/challenge/scout_state.h"
 #include "game/pitching/pitcher.h"
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
@@ -20,15 +21,6 @@ extern u8 pickOffProb[4][4];
 extern s16 lbl_3_data_1934[4];
 extern u8 invertAILevels[8];
 
-extern struct {
-    u8 _00[0x42];
-    s16 scoutCountdown;
-    u8 _44[2];
-    u8 scoutMissionID;
-    u8 _47;
-    u8 scoutFlag;
-    u8 _49[5];
-} lbl_3_common_bss_37400;
 
 // .text:0x000219A0 size:0x2C mapped:0x80660A34
 void resetPitcherPreAB(void) {
@@ -63,7 +55,7 @@ void pitcherAINewBatter(void) {
     } else {
         g_AiLogic.AIFrameToBeginPitch = RandomInt_Game_Range(lbl_3_data_1934[0], lbl_3_data_1934[1]);
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Pitcher.nPitchesThisAB == 0) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != 0 && g_Pitcher.nPitchesThisAB == 0) {
         g_AiLogic.AIFrameToBeginPitch = lbl_3_data_1934[1] + 60;
     }
     if (g_AiLogic.pitcherAIPitchDownTheMiddleInd == 0) {

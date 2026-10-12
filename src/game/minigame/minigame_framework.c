@@ -1,6 +1,7 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_minigameFramework
 #include "game/minigame/minigame_framework.h"
+#include "game/challenge/scout_state.h"
 #include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -124,10 +125,6 @@ extern void fn_3_909B0(void);
 extern void fn_3_9081C(void);
 extern int fn_3_90860(void);
 extern int fn_3_90A18(void);
-extern struct {
-    u8 _00[0x40];
-    s16 humanTeam;
-} lbl_3_common_bss_37400;
 
 extern void fn_8001CA40(int);
 extern void fn_80011BE4(int);
@@ -813,7 +810,7 @@ void minigames_init(void) {
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
         g_Minigame.challengeModeInd = TRUE;
         g_Minigame.selectSlotState[g_d_GameSettings._35] = g_d_GameSettings._35;
-        lbl_3_common_bss_37400.humanTeam = g_d_GameSettings._35;
+        scoutState.humanTeam = g_d_GameSettings._35;
         g_Minigame.GameMode_MiniGame = g_d_GameSettings._33;
         clearScoutState();
         g_Minigame.nextGameStatus = GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT;
@@ -1103,7 +1100,7 @@ void toyFieldCharSelectSwitcher(void) {
                     fn_8004FDA0(i);
                 }
             }
-            g_Minigame.selectSlots[lbl_3_common_bss_37400.humanTeam].charID = g_d_GameSettings._36;
+            g_Minigame.selectSlots[scoutState.humanTeam].charID = g_d_GameSettings._36;
         } else {
             css_initValues(1, 1, 1, 1, 1, 1);
             for (i = 0; i < 4; i++) {

@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/hud/hud_scoreboard.h"
+#include "game/challenge/scout_state.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "text/text_channel.h"
@@ -53,29 +54,6 @@ typedef struct HudScene {
     /*0x1E*/ u16 unk1E;
     /*0x20*/ u16 unk20;
 } HudScene;
-
-// The scout-mission tracker's per-mission rows, as the scout HUD reads them
-// (signed: a row is live when active is nonzero).
-typedef struct HudScoutEntry {
-    /*0x0*/ s8 achieved;
-    /*0x1*/ s8 max;
-    /*0x2*/ s8 amount;
-    /*0x3*/ s8 active;
-    /*0x4*/ s8 trackerIdx;
-} HudScoutEntry; // size 0x5
-
-typedef struct HudScoutState {
-    /*0x00*/ u8 _00[0x12];
-    /*0x12*/ HudScoutEntry entries[9];
-    /*0x3F*/ u8 _3F;
-    /*0x40*/ s16 humanTeam;
-    /*0x42*/ s16 scoutCountdown;
-    /*0x44*/ s16 targetRosterID;
-    /*0x46*/ u8 scoutMissionID;
-    /*0x47*/ u8 scoutResult;
-} HudScoutState;
-
-extern HudScoutState lbl_3_common_bss_37400;
 
 typedef struct HudEventTiming {
     /*0x0*/ s16 elementIndex;
@@ -692,8 +670,8 @@ void fn_3_953FC(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E160);
-    REC(scene, 2)->frame = lbl_3_data_E200[lbl_3_common_bss_37400.scoutMissionID] << 16;
-    REC(scene, 3)->frame = lbl_3_data_E200[lbl_3_common_bss_37400.scoutMissionID] << 16;
+    REC(scene, 2)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
+    REC(scene, 3)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
     animRelated[0xB4] = 0;
     animRelated[0xB3] = 0;
     currentDrawingItem->func = fn_3_9538C;
@@ -718,7 +696,7 @@ void fn_3_952DC(void) {
         removeCurrentDrawingItem();
     } else {
         addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E21C);
-        if (lbl_3_common_bss_37400.scoutResult == 1) {
+        if (scoutState.scoutResult == 1) {
             REC(scene, 0)->elementIndex = 0x5A;
         }
         animRelated[0xB5] = 1;
@@ -741,7 +719,7 @@ void fn_3_951B4(void) {
         if (g_UnkSound_32718._07 == 0 || g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
             REC(scene, 0)->playMode = UI_PLAY_FORWARD;
         }
-        if (animRelated[0x96] == 0 && lbl_3_common_bss_37400.scoutCountdown != 0 &&
+        if (animRelated[0x96] == 0 && scoutState.scoutCountdown != 0 &&
             (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL)) {
             return;
         }
@@ -756,7 +734,7 @@ void fn_3_95124(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E278);
-    REC(scene, 2)->frame = lbl_3_data_E200[lbl_3_common_bss_37400.scoutMissionID] << 16;
+    REC(scene, 2)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
     currentDrawingItem->func = fn_3_95098;
 }
 
@@ -777,8 +755,8 @@ void scoutMissionBanner_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E2F8);
-    REC(scene, 2)->frame = lbl_3_data_E200[lbl_3_common_bss_37400.scoutMissionID] << 16;
-    scene->unk1C = lbl_3_common_bss_37400.scoutMissionID;
+    REC(scene, 2)->frame = lbl_3_data_E200[scoutState.scoutMissionID] << 16;
+    scene->unk1C = scoutState.scoutMissionID;
     currentDrawingItem->func = fn_3_94E68;
 }
 
@@ -787,10 +765,10 @@ void fn_3_94E68(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
 
     if (!(animRelated[0x96] != 0 ||
-          (scene->unk1C != lbl_3_common_bss_37400.scoutMissionID && lbl_3_common_bss_37400.scoutResult != 2) ||
+          (scene->unk1C != scoutState.scoutMissionID && scoutState.scoutResult != 2) ||
           g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION ||
-          (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION && lbl_3_common_bss_37400.scoutResult != 0) ||
-          (g_GameLogic.gameStatus == GAME_STATUS_DEFAULT && lbl_3_common_bss_37400.scoutResult == 2))) {
+          (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION && scoutState.scoutResult != 0) ||
+          (g_GameLogic.gameStatus == GAME_STATUS_DEFAULT && scoutState.scoutResult == 2))) {
         if (g_Stats.replayInd != 0) {
             REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
             REC(scene, 1)->flags &= ~UI_FLAG_VISIBLE;
@@ -810,7 +788,7 @@ void fn_3_94E68(void) {
 // .text:0x00094BC4 size:0x2A4 mapped:0x806D3C58
 void scoutMissionProgress_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
-    HudScoutEntry* entry;
+    ScoutEntry* entry;
     int i;
     int k;
     int shown;
@@ -824,7 +802,7 @@ void scoutMissionProgress_init(void) {
     }
     addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_E378);
     shown = 0;
-    entry = lbl_3_common_bss_37400.entries;
+    entry = scoutState.entries;
     for (i = 0; i < 9; i++, entry++) {
         if (entry->active != 0) {
             int base = lbl_3_data_E758[shown];
@@ -839,9 +817,9 @@ void scoutMissionProgress_init(void) {
                     REC(scene, slot)->flags |= UI_FLAG_VISIBLE;
                     REC(scene, slot)->playMode = UI_PLAY_STOP;
                     REC(scene, slot)->frame = 0;
-                    if (k < entry->achieved) {
+                    if (k < (s8)entry->achieved) {
                         REC(scene, slot)->frame = 1 << 16;
-                    } else if (k < entry->achieved + entry->amount) {
+                    } else if (k < (s8)(s8)entry->achieved + entry->amount) {
                         if (scene->unk1C == 2) {
                             REC(scene, slot)->frame = 40 << 16;
                         } else {

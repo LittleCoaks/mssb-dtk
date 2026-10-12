@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/stats/result_stats.h"
+#include "game/challenge/scout_state.h"
 #include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
@@ -11,10 +12,6 @@ extern u8 lbl_3_data_60F8[10];
 extern u8 lbl_80354768[];
 extern u8 pitchingInfo_A_H[2][9][5];
 extern u8 abResultList[2][100];
-extern struct {
-    u8 _00[0x40];
-    s16 humanTeam;
-} lbl_3_common_bss_37400;
 
 #define MVP_LEADER(team) (&storedInningInfo.mvpLeader)[(team) * 2]
 #define MVP_POINTS(team) (&storedInningInfo.mvpLeader)[(team) * 2 + 1]
@@ -400,7 +397,7 @@ void steal_pickoff_incrementSteal_runsStats(void) {
             }
             if (g_Runners[i].forceOutCd <= 0) {
                 SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].BasesStolen);
-                if (g_d_GameSettings.exhibitionMatchInd == 0 && lbl_3_common_bss_37400.humanTeam == g_GameLogic.teamBatting) {
+                if (g_d_GameSettings.exhibitionMatchInd == 0 && scoutState.humanTeam == g_GameLogic.teamBatting) {
                     starMissionsQuantityBased(10, g_Runners[i].rosterID);
                 }
             }
@@ -415,7 +412,7 @@ void steal_pickoff_incrementSteal_runsStats(void) {
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
             SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].runs);
             runs--;
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == lbl_3_common_bss_37400.humanTeam) {
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == scoutState.humanTeam) {
                 starMissionsQuantityBased(11, g_Runners[i].rosterID);
             }
         }
@@ -572,7 +569,7 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
             SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].runs);
             runs--;
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == lbl_3_common_bss_37400.humanTeam) {
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == scoutState.humanTeam) {
                 starMissionsQuantityBased(11, g_Runners[i].rosterID);
             }
         }
