@@ -801,10 +801,10 @@ typedef struct _PracticeStruct {
     /*0x020*/ void* commandList; // unsure
     /*0x024*/ int homeAway;
     artificial_padding(0x24, 0x140, int);
-    /*0x140*/ frame_t totalFrames;
-    /*0x142*/ frame_t framesInCurrTransitionState;
+    /*0x140*/ u16 totalFrames;
+    /*0x142*/ u16 framesInCurrTransitionState;
     /*0x144*/ u16 framesSincePracticeMenuDefaultTransition;
-    /*0x146*/ frame_t practiceMenu_framesOnCurrMenuScreen;
+    /*0x146*/ u16 practiceMenu_framesOnCurrMenuScreen;
     /*0x148*/ u16 frames_sinceMovedToFromMenu;
     /*0x14A*/ frame_t _14A;
     /*0x14C*/ frame_t frames_sinceTimeCalled;
@@ -846,7 +846,9 @@ typedef struct _PracticeStruct {
     /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1; // actually the practice menu screen (0..6, not PRACTICE_TYPE): 0 type select (menuNumber 0x3C), 1..5 sub-menu select for type-1 (0x3D), 6 character select (0x3E)
     /*0x199*/ E(u8, PRACTICE_TYPE) practiceType; // highlighted entry on the type-select screen
     /*0x19A*/ u8 subMenuCursor;
-    artificial_padding(0x19a, 0x19e, u8);
+    /*0x19B*/ u8 _19B;
+    /*0x19C*/ u8 menuGraphicsLoaded; // practice_loadAllGraphics finished for the current practice menu screen
+    /*0x19D*/ u8 subMenuGraphicsLoaded; // second load pass on the sub-menu screens finished
     /*0x19E*/ u8 pauseMenuLoading; // unsure
     /*0x19F*/ u8 pauseMenuActive;
     /*0x1A0*/ u8 _1A0;
@@ -854,7 +856,11 @@ typedef struct _PracticeStruct {
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
     /*0x1A4*/ u8 freeFieldingInd_writeOnly;
-    artificial_padding(0x1a4, 0x1aa, u8);
+    /*0x1A5*/ u8 _1A5;
+    /*0x1A6*/ u8 _1A6;
+    /*0x1A7*/ u8 _1A7;
+    /*0x1A8*/ u8 _1A8;
+    /*0x1A9*/ u8 _1A9;
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     /*0x1AB*/ u8 baserunningActiveRunners[4]; // g_Runners[0..3] enabled in baserunning practice
     /*0x1AF*/ u8 returnToPracticeMenuState;
@@ -885,7 +891,7 @@ typedef struct _PracticeStruct {
     /*0x1D7*/ u8 guidedMessageVariant; // 0 shown before the attempt, 1 shown on completion
     /*0x1D8*/ u8 guidedMessageIndex;
     /*0x1D9*/ u8 characterLoadStarted;
-    artificial_padding(0x1d9, 0x1db, u8);
+    /*0x1DA*/ u8 showMenuIntro; // set when the practice menu is entered from a fresh load; plays the intro animation
     /*0x1DB*/ u8 pitchingPracticeBatterEnabled; // gates atBat_batter in pitching practice (never set non-zero)
     artificial_padding(0x1db, 0x1dd, u8);
     /*0x1DD*/ u8 _1DD;
@@ -1346,9 +1352,9 @@ typedef struct _ChainChompSprintStruct {
     /*0x00C*/ VecXYZ chompVelocity;
     /*0x018*/ s16 chompYaw;
     /*0x01A*/ s16 chompStateTimer;
-    /*0x01C*/ s16 _1C;
+    /*0x01C*/ s16 chaseStep; // 0 = waiting for the targeted runners to stop, 1 = chase setup
     /*0x01E*/ s16 runFrames[4];
-    /*0x026*/ s16 _26;
+    /*0x026*/ s16 chompWaitFrames; // frames in chomp state 0 before the jump
     /*0x028*/ s16 itemTimer[6];
     /*0x034*/ s8 chasedPlayer;
     /*0x035*/ u8 runnerChompHitState[4];
@@ -1362,13 +1368,13 @@ typedef struct _ChainChompSprintStruct {
 } ChainChompSprintStruct; // size: 0x54
 
 typedef struct _ChainChompSprintAI {
-    /*0x000*/ s16 _0;
+    /*0x000*/ s16 evadeLeadFrames; // start evading once the chomp launch is this close
     /*0x002*/ u8 state;
-    /*0x003*/ s8 _3;
-    /*0x004*/ s8 _4;
-    /*0x005*/ u8 _5;
+    /*0x003*/ s8 dodgeDelay;
+    /*0x004*/ s8 bPressDelay;
+    /*0x005*/ u8 targetKind; // 0 none, 2 coin, 3 gem row, 4 special item
     /*0x006*/ s8 _6;
-    /*0x007*/ s8 _7;
+    /*0x007*/ s8 decisionDelay;
 } ChainChompSprintAI; // size: 0x8
 
 /*foul	1

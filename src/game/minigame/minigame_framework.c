@@ -232,7 +232,7 @@ s16 bOD_frameConsts[10] = {
     90, 30, 160, 90, 90, 128, 64, 10,
     30, 90,
 };
-u16 lbl_3_data_2145C[2] = { 20, 70 };
+u16 minigameHudBodHomeRunPointsDelays[2] = { 20, 70 };
 u8 bOD_bB_pitchRouletteTypes[8] = { 0, 1, 2, 4, 3, 5, 3, 0 };
 u8 bOD_bB_pitchRouletteWeights[24] = {
     60, 30, 10, 0, 0, 0, 30, 40,
@@ -372,7 +372,7 @@ s16 ccs_chompJumpRollWeights[46] = {
     140, 140, 140, -1, 100, 100, 100, 140,
     140, 140, 140, 140, -1, 0,
 };
-u8 lbl_3_data_21860[5][4] = {
+u8 ccs_runnerStartBases[5][4] = {
     { 0, 1, 2, 3 },
     { 0, 1, 2, 3 },
     { 0, 1, 2, 3 },
@@ -393,12 +393,12 @@ u8 ccs_chompTargetThresholds[16] = {
     180, 160, 150, 160, 140, 140, 130, 110,
     100, 130, 120, 110, 150, 130, 110, 0,
 };
-f32 lbl_3_data_218BC[18] = {
+f32 ccs_gameplayConsts[18] = {
     4.0f, 0.3f, 0.07f, 0.3f, 0.2f, 0.2f, 0.04f, 0.5f,
     0.05f, 0.05f, 0.1f, 0.1f, 15.0f, 3e+01f, 0.1f, 0.2f,
     0.04f, 1.8f,
 };
-s16 lbl_3_data_21904[12] = {
+s16 ccs_timingConsts[12] = {
     90, 120, 60, 90, 180, 10, 20, 30,
     50, 120, 10, 0,
 };
@@ -411,31 +411,31 @@ s8 ccsAI_bPressDelayRanges[4][2] = {
     { 5, 10 },
 };
 f32 ccsAI_targetDistThresholds[4] = { 0.7f, 0.6f, 0.5f, 0.4f };
-s8 lbl_3_data_21944[4][2] = {
+s8 ccsAI_decisionDelayRanges[4][2] = {
     { 30, 40 },
     { 20, 30 },
     { 15, 20 },
     { 10, 15 },
 };
-s16 lbl_3_data_2194C[4][2] = {
+s16 ccsAI_evadeLeadRanges[4][2] = {
     { 0, 0 },
     { 0, 0 },
     { 0, 0 },
     { 0, 0 },
 };
-s16 lbl_3_data_2195C[4][2] = {
+s16 ccsAI_evadeLeadRangesBehind[4][2] = {
     { 0, 0 },
     { 0, 0 },
     { 0, 0 },
     { 0, 0 },
 };
-s8 lbl_3_data_2196C[4][2] = {
+s8 ccsAI_dodgeDelayRanges[4][2] = {
     { 70, 80 },
     { 50, 60 },
     { 20, 30 },
     { 10, 20 },
 };
-s8 lbl_3_data_21974[4][2] = {
+s8 ccsAI_dodgeDelayRangesSpecial[4][2] = {
     { 80, 90 },
     { 60, 70 },
     { 30, 40 },
@@ -2684,7 +2684,7 @@ void minigameEndSwitcher(void) {
             g_d_GameSettings._38 = g_Minigame.playerSlots.rank[g_d_GameSettings._35];
         }
         fn_3_15F998();
-        fn_3_147DFC();
+        minigameStopBombExplosion();
         mm_UnloadModels();
         g_GameLogic.framesOfExitingToMenu = 1;
         break;
@@ -2999,7 +2999,7 @@ void postMinigame(void) {
         g_Minigame.minigameInactiveInd = TRUE;
         g_Minigame.endSequencePhase = 0;
         fn_3_15F998();
-        fn_3_147DFC();
+        minigameStopBombExplosion();
         hugeAnimStruct[0x307A] = 0;
         pauseControl._1D9 = 2;
         break;
@@ -3022,7 +3022,7 @@ void postMinigame(void) {
             g_Minigame.minigameInactiveInd = TRUE;
             pauseControl._1D9 = 2;
             fn_3_15F998();
-            fn_3_147DFC();
+            minigameStopBombExplosion();
             mm_UnloadModels();
             fn_8004CC18();
             g_GameLogic.framesOfExitingToMenu = 1;
@@ -3717,7 +3717,7 @@ void minigames_0x26(void) {
     case TRANSITION_CALCULATION_TYPE_7:
         if (g_Minigame.grandPrixRound >= 6) {
             fn_3_15F998();
-            fn_3_147DFC();
+            minigameStopBombExplosion();
             sound_crowd_EffectsStruct._31 = 0;
             SetGameStatus(GAME_STATUS_0x27);
         } else {

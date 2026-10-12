@@ -36,20 +36,12 @@ extern u8 drawStadiumRelated;
 extern u8 hugeAnimStruct[];
 extern void* fn_80009028(void);
 extern void fn_800BCDBC(void* block);
-extern const f32 lbl_3_rodata_520;
-extern const f32 lbl_3_rodata_538;
-extern const f32 lbl_3_rodata_504;
-extern const f32 lbl_3_rodata_524;
-extern const f32 lbl_3_rodata_528;
-extern const f32 lbl_3_rodata_52C;
-extern const f32 lbl_3_rodata_530;
-extern const GXColor lbl_3_rodata_210;
+static const GXColor fogBlack = {0, 0, 0, 0};
 extern void fn_80023F0C(void* source, void* destination, s32 sourceX, s32 sourceY,
                        s32 width, s32 height, s32 destinationX, s32 destinationY);
 extern int checkObjectVisibility(int mode, void* box, MtxPtr matrix);
 extern u8 FrameCountOfEntireGame[];
 extern u8 lbl_3_common_bss_35154[];
-extern const f32 lbl_3_rodata_534;
 extern void fn_8003A2C0(void);
 extern void fn_8003AE5C(u8 mode);
 extern u32 GXGetTexObjHeight(GXTexObj* texture);
@@ -59,13 +51,16 @@ typedef struct {
 static inline void copyExtraStadiumEntries(StadiumRenderEntry* source, u8* first,
                                                u8* second, int count) {
     int index;
-    for (index = 0; index < count; index++) {
+    for (index = 0; -index > count; index++) {
         *(StadiumRenderEntry*)(first + index * 0xE0) = *source;
         *(StadiumRenderEntry*)(second + index * 0xE0) = *source;
     }
 }
-typedef struct { s16 offsets[7]; } StadiumTextureOffsets;
-static const StadiumTextureOffsets stadiumTextureOffsetsSource = {{0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0}};
+typedef struct {
+    u8 _00[8];
+    u32 a;
+    u32 b;
+} StadiumLightSlot;
 u32 lbl_3_data_23C[364] = {
     /* 0x000 */ 0xAABED200, 0x42A00000, 0x43E10000, 0xAABED200,
     /* 0x010 */ 0x42A00000, 0x43E10000, 0xAABED200, 0x42A00000,
@@ -271,157 +266,510 @@ typedef struct {
     StadiumAnimatedTexture* slots[3];
 } StadiumAnimatedTexturePair;
 
-void fn_3_35F0(void) {
-    if (fn_80009028() == 0) {
-        GXColor clearColor = *(GXColor*)((u8*)&g_UNK_StadiumDetails + 0x76C);
-        GXSetCopyClear(clearColor, 0xFFFFFF);
+void fn_3_64DC(void) {
+    u8 stadium = g_d_GameSettings.StadiumID;
+    u8 variant = g_d_GameSettings.miniGameStadiumIndicator;
+    ARAMTransfer(StadiumFiles_game[stadium * 3 + variant], 0, 0, 0);
+}
+
+s16 fn_3_6424(void* base, void*** tableOut) {
+    s16 count;
+    void** cursor;
+    int i;
+    count = *(u16*)base;
+    cursor = *tableOut = (void**)((u8*)base + 4);
+    for (i = count; i >= 0; i--) {
+        *cursor = (u8*)((u32)*cursor + (u32)base);
+        cursor++;
+    }
+    return count;
+}
+
+void updateStadiumFileHeaders(void* file) {
+    u8* bytes = (u8*)file;
+    u8* actor = bytes + *(u32*)(bytes + 0);
+    u8* geometry = bytes + *(u32*)(bytes + 0xC);
+    u8* texture = bytes + *(u32*)(bytes + 0x14);
+    u8* pointerBlock;
+    u8* pointerList;
+    s16 pointerCount;
+    int i;
+
+    pointerCount = fn_3_6424(bytes + *(u32*)(bytes + 8), (void***)&g_UNK_StadiumDetails.pCollisionBoxes);
+    g_UNK_StadiumDetails.numCollisionBoxes = pointerCount;
+    AdjustActorPointers(actor);
+    AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
+    convertTextureHeader(texture);
+    UpdateTexturePalettePointers((UnkTexPalGeo*)geometry, texture);
+    haveActLayoutPointToGeoHeader(actor, geometry);
+    ProcessActorBonesForShadows((ActorLayoutFile*)actor);
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 4) = texture;
+
+    PSMTXIdentity((MtxPtr)(((u8*)&g_UNK_StadiumDetails) + 0xF0));
+    *(u32*)(((u8*)&g_UNK_StadiumDetails) + 0xE8) = 2;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0xEC) = (void*)CTRLBuildMatrixRelated;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x150) = actor;
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x158) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x2A8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x318) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8),
+                                ((u8*)&g_UNK_StadiumDetails) + 0x548, ((u8*)&g_UNK_StadiumDetails) + 0x5B8, 0);
+
+    actor = bytes + *(u32*)(bytes + 4);
+    geometry = bytes + *(u32*)(bytes + 0x10);
+    AdjustActorPointers(actor);
+    AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
+    UpdateTexturePalettePointers((UnkTexPalGeo*)geometry, texture);
+    haveActLayoutPointToGeoHeader(actor, geometry);
+    *(u32*)(((u8*)&g_UNK_StadiumDetails) + 8) = 2;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0xC) = (void*)CTRLBuildMatrixRelated;
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70) = actor;
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x78) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x1C8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x238) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8),
+                                ((u8*)&g_UNK_StadiumDetails) + 0x388, ((u8*)&g_UNK_StadiumDetails) + 0x3F8, 0);
+
+    {
+        typedef struct StadiumStyleRecord {
+            u32 words[24];
+        } StadiumStyleRecord;
+        u32* selected = lbl_3_data_23C +
+            (g_d_GameSettings.miniGameStadiumIndicator * 7 + g_d_GameSettings.StadiumID) * 24;
+        *(StadiumStyleRecord*)(((u8*)&g_UNK_StadiumDetails) + 0x714) = *(StadiumStyleRecord*)selected;
+    }
+    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0) = texture + 4;
+    ((u8*)&g_UNK_StadiumDetails)[0x774] = 0;
+    fn_8003AE5C(((u8*)&g_UNK_StadiumDetails)[0x771]);
+
+    texture = bytes + *(u32*)(bytes + 0x28);
+    convertTextureHeader(texture);
+    *(void**)(lbl_3_common_bss_35154 + 0x3B4) = texture + 4;
+    setSunLocation(g_d_GameSettings.StadiumID, g_d_GameSettings.miniGameStadiumIndicator);
+
+    if (*(u32*)(bytes + 0x2C) != 0) {
+        pointerCount = fn_3_6424(bytes + *(u32*)(bytes + 0x2C), (void***)&g_UNK_StadiumDetails.pCollisionBoxes_778);
+        g_UNK_StadiumDetails.numCollisionBoxes_77C = pointerCount;
+    } else {
+        g_UNK_StadiumDetails.numCollisionBoxes_77C = 0;
+    }
+    if (*(u32*)(bytes + 0x30) != 0) {
+        texture = bytes + *(u32*)(bytes + 0x30);
+        convertTextureHeader(texture);
+        GXTexObjRelated((TextureRecord*)texture);
+    }
+    maybeUpdateFunctionPointer(fn_3_35F0);
+}
+
+void fn_3_5E60(void) {
+    u8* block = *(u8**)(hugeAnimStruct + 4);
+    unregisterObjectByID(5);
+    fn_800BCDBC(block + *(u32*)(block + 0x10));
+    fn_800BCDBC(block + *(u32*)(block + 0xC));
+    fn_800ACFB0(*(void**)(hugeAnimStruct + 4));
+}
+
+// .text:0x00005C68 size:0x1F8 mapped:0x80644CFC
+void fn_3_5C68(void* context) {
+    StadiumAnimatedTexturePair* pair = (StadiumAnimatedTexturePair*)context;
+    int pass;
+    GXSetCullMode(GX_CULL_BACK);
+    SetFog(GX_FOG_NONE, 0.0f, 0.0f,
+           0.0f, 0.0f, fogBlack);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    pass = 2;
+    while (pass-- != 0) {
+        StadiumAnimatedTexture* animation = pair->slots[pass];
+        int index;
+        int stateOffset;
+        int updated;
+        if (animation != 0) {
+          updated = 0;
+          for (index = 0, stateOffset = 0; index < animation->tileCount; index++, stateOffset += 3) {
+            u8 previous = animation->animationState[stateOffset + 2]--;
+            if (previous == 0) {
+                int destinationX = (index % 8) * 32;
+                int destinationY = (index / 8) * 64;
+                int frame = (animation->animationState[stateOffset + 1] + 1) % animation->frameCount;
+                int tile;
+                int mapIndex;
+                int sourceX;
+                int sourceY;
+                animation->animationState[stateOffset + 1] = frame;
+                tile = animation->tileIndex[animation->animationState[stateOffset + 1]];
+                if (pass != 0) {
+                    mapIndex = animation->animationState[stateOffset] * 4 + tile * 2;
+                    sourceX = animation->tileMap[mapIndex] * 32;
+                    sourceY = animation->tileMap[mapIndex + 1] * 64;
+                } else {
+                    mapIndex = animation->animationState[stateOffset] * 8 + tile * 2;
+                    sourceX = animation->tileMap[mapIndex] * 32;
+                    sourceY = animation->tileMap[mapIndex + 1] * 64;
+                }
+                fn_80023F0C(animation->source, animation->destination,
+                              sourceX, sourceY, 32, 64, destinationX,
+                              destinationY);
+                animation->animationState[stateOffset + 2] = animation->resetFrames;
+                updated++;
+            }
+          }
+          if (updated != 0) {
+              DCStoreRange(animation->destination->pixels,
+                           animation->destination->height * animation->destination->width);
+          }
+        }
+    }
+    if (lbl_3_bss_18.fanObject != 0) {
+        ((void (*)(void))lbl_3_bss_18.fanObject)();
+    }
+    GXSetZCompLoc(FALSE);
+}
+
+// .text:0x00005BF0 size:0x78 mapped:0x80644C84
+void fn_3_5BF0(void) {
+    u8* stadium = (u8*)&g_UNK_StadiumDetails;
+    GXColor color;
+    if (lbl_3_bss_18.fanObject != 0) {
+        ((void (*)(void))lbl_3_bss_18.fanObject)();
+    }
+    color = *(GXColor*)(stadium + 0x714);
+    SetFog((GXFogType)stadium[0x717], *(f32*)(stadium + 0x718), *(f32*)(stadium + 0x71C),
+           1.0f, 512.0f, color);
+}
+
+// .text:0x00005BCC size:0x24 mapped:0x80644C60
+void fn_3_5BCC(void* context) {
+    setScissorAndProjection(*(s32*)((u8*)context + 8));
+}
+
+// .text:0x00005BAC size:0x20 mapped:0x80644C40
+void drawStadium(void) {
+    drawStadiumObjects();
+}
+
+// .text:0x0000567C size:0x530 mapped:0x80644710
+void drawStadiumObjects(void) {
+    u8* frameData = FrameCountOfEntireGame;
+    u8* sunData;
+    u8* tableA = frameData + 0x738;
+    u8* tableB = frameData + 0x788;
+    int cameraCount;
+    int slot;
+    int notFirst;
+    f32 rotation;
+    int mode = ((u8*)&g_GameLogic)[0x120];
+
+    if (mode < 3 && mode >= 1) {
+        sunData = ((u8*)&g_UNK_StadiumDetails) + 0x738 + (mode - 1) * 0x10;
+    } else {
+        sunData = ((u8*)&g_UNK_StadiumDetails) + 0x758;
+    }
+    if (hugeAnimStruct[0x307E] == 0) {
+        return;
+    }
+    notFirst = mode != 1;
+    *(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) = notFirst;
+    if (notFirst) {
+        sunRelated((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
+    }
+    fn_3_B8C08((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
+    rotation = *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) + *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x768);
+    *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
+    if (rotation >= 6.2831855f) {
+        rotation -= 6.2831855f;
+        *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
+    }
+    cameraCount = ((int (*)(void))returnScissorMode)();
+    if (cameraCount >= 2) {
+        u8* object = ((u8*)&g_UNK_StadiumDetails) + 0x2A8 + drawStadiumRelated * 0x70;
+        *(u32*)(object + 0x6C) = 1;
+        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
+        fn_800A7D4C(0, object);
+        fn_800A7D4C(0, tableA + 0x10 + drawStadiumRelated * 8);
+        object = ((u8*)&g_UNK_StadiumDetails) + 0x1C8 + drawStadiumRelated * 0x70;
+        *(u32*)(object + 0x6C) = 1;
+        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
+        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
+        if (((u8*)&g_GameLogic)[0x121] != 3) {
+            fn_800A7D4C(0, object);
+        }
+        fn_800A7D4C(0, tableB + 0x18 + drawStadiumRelated * 0xC);
+    }
+    if (((int (*)(void))returnScissorMode)() > 2) {
+        for (slot = 0; slot < 0; slot++) {
+            u8* object = ((u8*)&g_UNK_StadiumDetails) + slot * 0xE0 + 0x548 + drawStadiumRelated * 0x70;
+            *(u32*)(object + 0x6C) = slot + 2;
+            PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
+            fn_800A7D4C(0, object);
+            fn_800A7D4C(0, tableA + (slot + 2) * 0x10 + drawStadiumRelated * 8);
+            object = ((u8*)&g_UNK_StadiumDetails) + slot * 0xE0 + 0x388 + drawStadiumRelated * 0x70;
+            *(u32*)(object + 0x6C) = slot + 2;
+            PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
+            PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
+            if (((u8*)&g_GameLogic)[0x121] != 3) {
+                fn_800A7D4C(0, object);
+            }
+            fn_800A7D4C(0, tableB + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
+        }
+    }
+    {
+        u8* object = ((u8*)&g_UNK_StadiumDetails) + 0xE8 + drawStadiumRelated * 0x70;
+        *(u32*)(object + 0x6C) = 0;
+        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
+        fn_800A7D4C(0, object);
+        fn_800A7D4C(0, tableA + drawStadiumRelated * 8);
+        fn_800A7D4C(0, frameData + 0x5B4 + drawStadiumRelated * 8);
+        object = ((u8*)&g_UNK_StadiumDetails) + 8 + drawStadiumRelated * 0x70;
+        *(u32*)(object + 0x6C) = 0;
+        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
+        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
+        fn_800A7D4C(0, object);
+        fn_800A7D4C(0, tableB + drawStadiumRelated * 0xC);
+    }
+    switch (g_d_GameSettings.StadiumID) {
+    case STADIUM_ID_PEACH_GARDEN:
+    case STADIUM_ID_MARIO_STADIUM:
+        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
+            (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).a = *(u32*)((u8*)&stadiumObjectCollision + 8);
+            (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).b = *(u32*)((u8*)&stadiumObjectCollision + 0xC);
+            break;
+        }
+    default:
+        (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).a = 0;
+        (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).b = 0;
+        break;
+    }
+    fn_800A7D4C(0, &(((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]));
+    if (*(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) != 0) {
+        drawSun();
+    }
+    lbl_803C5090[0x1D] = sunData[0xC];
+    *(f32*)(lbl_803C5090 + 0) = *(f32*)(sunData + 0);
+    *(f32*)(lbl_803C5090 + 4) = 1.0f / *(f32*)((u8*)fn_80052768_getCamera(0) + 0xA4);
+    *(f32*)(lbl_803C5090 + 8) = *(f32*)(sunData + 4);
+    *(f32*)(lbl_803C5090 + 0xC) = *(f32*)(sunData + 8);
+    *(u16*)(lbl_803C5090 + 0x14) = *(u16*)(sunData + 0xE);
+    lbl_803C5090[0x17] = sunData[0xD];
+    lbl_803C5090[0x18] = 0;
+    lbl_803C5090[0x1A] = 0xFF;
+    lbl_803C5090[0x1B] = 0xFF;
+    lbl_803C5090[0x1C] = 0xFF;
+    fn_8003A2C0();
+}
+
+// .text:0x00005518 size:0x164 mapped:0x806445AC
+void fn_3_5518(void) {
+    Mtx44 projection;
+    Mtx identity;
+    s16 offsets[7] = {0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0};
+    u8 stadiumID = g_d_GameSettings.StadiumID;
+    u8* textureTable = (u8*)g_UNK_StadiumDetails._00;
+    int textureOffset = offsets[stadiumID] << 5;
+    void* texture;
+
+    GXSetZMode(TRUE, GX_ALWAYS, TRUE);
+    GXSetScissor(0, 0, 640, 448);
+    C_MTXOrtho(projection, 0.0f, 480.0f,
+               0.0f, 640.0f,
+               0.5f, 1.5f);
+    GXSetProjection(projection, GX_ORTHOGRAPHIC);
+    GXSetCullMode(GX_CULL_NONE);
+    PSMTXIdentity(identity);
+    GXLoadPosMtxImm(identity, 0);
+    GXSetCurrentMtx(0);
+    GXSetTexCopySrc(0, 0, 512, 480);
+    GXSetTexCopyDst(512, 480, 0x20, FALSE);
+    inningScoreDisplayRelated(g_d_GameSettings.StadiumID);
+    texture = *(void**)(textureTable + textureOffset);
+    GXDrawDone();
+    GXCopyTex(texture, TRUE);
+    GXPixModeSync();
+}
+
+// .text:0x000053E0 size:0x138 mapped:0x80644474
+void fn_3_53E0(const u16* encoded, s16* column, s16* row, s16* width, s16* height, s16* page) {
+    int value = *encoded;
+    if (value & STADIUM_ATLAS_SKIP_FLAG) {
+        return;
+    }
+    if (value & STADIUM_ATLAS_PAGED_FLAG) {
+        u16 remainder;
+        value &= 0x7FFF;
+        *page = value / STADIUM_ATLAS_CELLS_PER_PAGE;
+        remainder = value % STADIUM_ATLAS_CELLS_PER_PAGE;
+        *column = remainder % STADIUM_ATLAS_COLUMNS;
+        *row = (remainder / STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
+        *column *= STADIUM_ATLAS_CELL_SIZE;
+        *width = STADIUM_ATLAS_CELL_SIZE;
+        *height = STADIUM_ATLAS_CELL_SIZE;
+    } else {
+        *column = value % STADIUM_ATLAS_HALF_COLUMNS;
+        *row = (value / STADIUM_ATLAS_HALF_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
+        *column = (((*column / 2) * 2) + (*column % 2)) * STADIUM_ATLAS_HALF_CELL_SIZE;
+        *width = STADIUM_ATLAS_HALF_CELL_SIZE;
+        *height = STADIUM_ATLAS_CELL_SIZE;
+        *page = 0;
     }
 }
 
-// .text:0x00003904 size:0x2E4 mapped:0x80642998
-void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
-                  const GXColor* background, u8 alternate) {
-    u16* text = screenTextArray.textBanks[0]->strings[textIndex];
-    GXTexObj texture;
-    int cursorY = y;
-    int cursorX = x;
-    int value;
-    for (;;) {
-        value = *text++;
-        if (value & STADIUM_ATLAS_SKIP_FLAG) {
-            switch (value & 0x3FFF) {
-            case 0:
-                return;
-            case 1:
-                cursorX = x;
-                cursorY += 22;
-                break;
-            case 2:
-                cursorX += 11;
-                break;
-            case 3:
-                cursorX += 22;
-                break;
-            default:
-                break;
-            }
-            continue;
-        }
-        {
-            s16 column, row, cellWidth, cellHeight;
-            f32 drawWidth;
-            f32 drawHeight;
-            if (value & STADIUM_ATLAS_PAGED_FLAG) {
-                u16 cell = (value & 0x7FFF) % STADIUM_ATLAS_CELLS_PER_PAGE;
-                column = cell % STADIUM_ATLAS_COLUMNS;
-                row = (cell / STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
-                column *= STADIUM_ATLAS_CELL_SIZE;
-                cellWidth = 22;
-                cellHeight = 22;
-                drawWidth = 16.0f;
-                drawHeight = 18.0f;
-            } else {
-                column = value % STADIUM_ATLAS_HALF_COLUMNS;
-                row = (value / STADIUM_ATLAS_HALF_COLUMNS) * 22;
-                column = ((column / 2) * 2 + column % 2) * 11;
-                cellWidth = 11;
-                cellHeight = 22;
-                drawWidth = 8.0f;
-                drawHeight = 18.0f;
-            }
-            GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
-            fn_3_42CC(&texture, cursorX, cursorY,
-                         (s16)((f32)(s16)cursorX + drawWidth),
-                         (s16)((f32)(s16)cursorY + drawHeight),
+// .text:0x00004F90 size:0x450 mapped:0x80644024
+void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
+                  GXColor foreground, GXColor background, u8 outline) {
+    u16** digits = screenTextArray.textBanks[0]->strings;
+    int count;
+    s16 width;
+    s16 cursor;
+    int drawn;
+    if (value > 99) {
+        value = 99;
+    }
+    count = value >= 10 ? 2 : 1;
+    if (outline != 0 && value != 0) {
+        count++;
+    }
+    width = digitSlots < count ? digitSlots * 16 / count : 16;
+    cursor = x + digitSlots * 16 - width;
+    if (outline != 0) {
+        volatile f32* fifo = (volatile f32*)0xCC008000;
+        GXClearVtxDesc();
+        GXSetTevColor(1, foreground);
+        GXSetVtxDesc(9, 1);
+        GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+        GXSetTevColorIn(0, 15, 15, 2, 2);
+        GXSetTevAlphaIn(0, 7, 7, 7, 1);
+        GXSetTevOrder(0, 0xFF, 0xFF, 4);
+        GXSetNumTexGens(0);
+        GXSetNumChans(1);
+        GXSetNumTevStages(1);
+        GXSetLineWidth(18, 0);
+        GXBegin(GX_LINES, 0, 4);
+        *fifo = cursor; *fifo = y; *fifo = -0.5f;
+        *fifo = cursor + width; *fifo = y; *fifo = -0.5f;
+        *fifo = cursor + width; *fifo = y + 18; *fifo = -0.5f;
+        *fifo = cursor; *fifo = y + 18; *fifo = -0.5f;
+        GXSetLineWidth(18, 0);
+        cursor -= width;
+        count--;
+    }
+    for (drawn = 0; drawn < count; drawn++) {
+        u16 glyph = *digits[value % 10];
+        if ((glyph & STADIUM_ATLAS_SKIP_FLAG) == 0) {
+            s16 column, row, cellWidth, cellHeight, page;
+            fn_3_53E0(&glyph, &column, &row, &cellWidth, &cellHeight, &page);
+            fn_3_42CC(texture, cursor, y, cursor + width, y + 18,
                          column, row, cellWidth, cellHeight,
-                         *foreground, *background, alternate & 1);
-            cursorX = (s16)((f32)(s16)cursorX + drawWidth);
+                         foreground, background, 0);
         }
+        cursor -= width;
+        value /= 10;
     }
 }
 
-// .text:0x00003BE8 size:0x300 mapped:0x80642C7C
-void fn_3_3BE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
-                  s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight) {
-    u8* record = (u8*)textureRecord;
+// .text:0x00004A38 size:0x558 mapped:0x80643ACC
+void inningScoreDisplayRelated(u8 stadium) {
     GXTexObj texture;
-    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
-    volatile f32* position = (volatile f32*)0xCC008000;
-    volatile u16* uv = (volatile u16*)0xCC008000;
-    f32 x0 = left;
-    f32 y0 = top;
-    f32 x1 = right;
-    f32 y1 = bottom;
-    GXInitTexObj(&texture, *(void**)record, *(u16*)(record + 0xA), *(u16*)(record + 8),
-                    0, 0, 0, FALSE);
+    GXColor colors[7][2] = {
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
+    };
+    s16 deadA[7] = {72, 148, 506, 288, 433, 252, 72};
+    s16 deadB[7] = {0};
+    s16 deadC[7][2] = {{16, 18}, {16, 18}, {16, 18}, {16, 18}, {16, 18}, {16, 18}, {16, 18}};
+    s16 deadD[4] = {32, 16, 0, 0};
+    s16 deadE[7][2] = {{6, 192}, {0, 138}};
+    s16 deadF[7][2] = {{6, 214}, {0, 159}};
+    s16 deadG[7][2] = {0};
+    s16 firstInning[7] = {10, 9};
+    s16 topInnings[7][2] = {{28, 192}, {18, 138}};
+    s16 bottomInnings[7][2] = {{28, 214}, {18, 159}};
+    s16 topTotal[7][2] = {{250, 192}, {180, 138}};
+    s16 bottomTotal[7][2] = {{250, 214}, {180, 159}};
+    u8 digitSlots[7] = {1, 1};
+    s16 inningStep[7][2] = {{22, 18}, {18, 18}};
+    s16 deadH[7][2] = {0};
+    s16 deadI[7][2] = {0};
+    s16 deadJ[7][2] = {{22, 18}, {18, 18}};
+    s16 deadK[7][2] = {{0, 272}, {198, 138}};
+    s16 deadL[7][2] = {{0, 298}, {198, 159}};
+    u8 deadM[7] = {1, 1};
+    s16 deadN[7][2] = {{24, 272}, {216, 138}};
+    s16 deadO[7][2] = {{24, 298}, {216, 159}};
+    s16 deadP[7][2] = {{0, 336}, {0, 362}, {0, 388}, {261, 117}, {261, 139}, {261, 161}};
+    s16 deadQ[7][2] = {0};
+    s16 deadR[7][2] = {0};
+    s16 deadS[7][2] = {{16, 18}, {16, 16}};
+    s16 deadT[7][2] = {{26, 18}, {21, 18}};
+    int inning;
+    int firstVisibleInning;
+    int offset;
+    int lastInning;
+    u8 outline;
+    u8 slots;
+
     GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
-    GXClearVtxDesc();
-    GXSetVtxDesc(9, 1);
-    GXSetVtxDesc(13, 1);
-    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
-    GXSetVtxAttrFmt(0, 13, 1, 3, 9);
-    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
-    GXSetNumChans(0);
-    GXSetNumTexGens(1);
-    GXSetTevColor(1, white);
-    GXSetTevColorIn(0, 15, 15, 15, 8);
-    GXSetTevAlphaIn(0, 7, 7, 7, 1);
-    GXSetTevColorOp(0, 0, 0, 0, 0, 0);
-    GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
-    GXSetTevOrder(0, 0, 0, 4);
-    GXSetBlendMode(1, 4, 5, 7);
-    GXLoadTexObj(&texture, 0);
-    GXBegin(GX_QUADS, 0, 4);
-    *position = x0; *position = y0; *position = -0.5f;
-    *uv = textureX; *uv = textureY;
-    *position = x1; *position = y0; *position = -0.5f;
-    *uv = textureX + textureWidth; *uv = textureY;
-    *position = x1; *position = y1; *position = -0.5f;
-    *uv = textureX + textureWidth; *uv = textureY + textureHeight;
-    *position = x0; *position = y1; *position = -0.5f;
-    *uv = textureX; *uv = textureY + textureHeight;
+    firstVisibleInning = (g_Scores.Inning < firstInning[stadium] + 1) ? 1 : firstInning[stadium] + 1;
+    lastInning = g_Scores.Inning;
+    offset = 0;
+    for (inning = firstVisibleInning; inning <= lastInning; inning++) {
+        if (inning == g_Scores.Inning && g_Scores.scores[0].byInning[inning - 1] == 0 &&
+            g_Scores.halfInning == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
+            break;
+        }
+        fn_3_4F90(&texture, topInnings[stadium][0] + offset,
+                     topInnings[stadium][1], g_Scores.scores[0].byInning[inning - 1], 1,
+                     colors[stadium][0], colors[stadium][1], 0);
+        offset += inningStep[stadium][0];
+    }
+    slots = digitSlots[stadium];
+    fn_3_4F90(&texture, topTotal[stadium][0], topTotal[stadium][1],
+                 g_Scores.scores[0].total, slots,
+                 colors[stadium][0], colors[stadium][1], 0);
+
+    if (((u8*)&g_GameLogic)[0x127] == 0) {
+        lastInning = g_Scores.Inning + g_Scores.halfInning;
+    } else {
+        lastInning = g_Scores.inningLimit + 1;
+    }
+    offset = 0;
+    for (inning = firstVisibleInning; inning < lastInning; inning++) {
+        if (inning >= g_Scores.inningLimit && g_Scores.scores[1].total > g_Scores.scores[0].total) {
+            outline = 1;
+        } else {
+            outline = 0;
+        }
+        if (inning == g_Scores.Inning && g_Scores.scores[1].byInning[inning - 1] == 0 &&
+            outline == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
+            break;
+        }
+        fn_3_4F90(&texture, bottomInnings[stadium][0] + offset,
+                     bottomInnings[stadium][1], g_Scores.scores[1].byInning[inning - 1], 1,
+                     colors[stadium][0], colors[stadium][1], outline);
+        offset += inningStep[stadium][0];
+    }
+    fn_3_4F90(&texture, bottomTotal[stadium][0], bottomTotal[stadium][1],
+                 g_Scores.scores[1].total, slots,
+                 colors[stadium][0], colors[stadium][1], 0);
 }
 
-// .text:0x00003EE8 size:0x3E4 mapped:0x80642F7C
-void fn_3_3EE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
-                  s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight) {
-    u8* record = (u8*)textureRecord;
-    GXTexObj texture;
-    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
-    volatile f32* fifo = (volatile f32*)0xCC008000;
-    f32 x0 = left;
-    f32 y0 = top;
-    f32 x1 = right;
-    f32 y1 = bottom;
-    f32 u0 = (f32)textureX / *(u16*)(record + 0xA);
-    f32 v0 = (f32)textureY / *(u16*)(record + 8);
-    f32 u1 = (f32)(textureX + textureWidth) / *(u16*)(record + 0xA);
-    f32 v1 = (f32)(textureY + textureHeight) / *(u16*)(record + 8);
-    GXInitTexObj(&texture, *(void**)record, *(u16*)(record + 0xA), *(u16*)(record + 8),
-                    0, 0, 0, FALSE);
-    GXInitTexObjLOD(&texture, 0, 0, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
-    GXClearVtxDesc();
-    GXSetVtxDesc(9, 1);
-    GXSetVtxDesc(13, 1);
-    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
-    GXSetVtxAttrFmt(0, 13, 1, 4, 0);
-    GXSetChanCtrl(4, 0, 0, 0, 0, 0, 2);
-    GXSetNumChans(0);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetTevColor(1, white);
-    GXSetTevColorIn(0, 15, 15, 15, 8);
-    GXSetTevAlphaIn(0, 7, 7, 7, 1);
-    GXSetTevColorOp(0, 0, 0, 0, 0, 0);
-    GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
-    GXSetTevOrder(0, 0, 0, 4);
-    GXSetBlendMode(0, 4, 5, 7);
-    GXLoadTexObj(&texture, 0);
-    GXBegin(GX_QUADS, 0, 4);
-    *fifo = x0; *fifo = y0; *fifo = -0.5f; *fifo = u0; *fifo = v0;
-    *fifo = x1; *fifo = y0; *fifo = -0.5f; *fifo = u1; *fifo = v0;
-    *fifo = x1; *fifo = y1; *fifo = -0.5f; *fifo = u1; *fifo = v1;
-    *fifo = x0; *fifo = y1; *fifo = -0.5f; *fifo = u0; *fifo = v1;
+// .text:0x00004984 size:0xB4 mapped:0x80643A18
+void fn_3_4984(void) {
+    Mtx identity;
+    Mtx44 projection;
+    GXSetZMode(TRUE, GX_ALWAYS, TRUE);
+    GXSetScissor(0, 0, 640, 448);
+    C_MTXOrtho(projection, 0.0f, 480.0f,
+               0.0f, 640.0f,
+               0.5f, 1.5f);
+    GXSetProjection(projection, GX_ORTHOGRAPHIC);
+    GXSetCullMode(GX_CULL_NONE);
+    PSMTXIdentity(identity);
+    GXLoadPosMtxImm(identity, 0);
+    GXSetCurrentMtx(0);
 }
 
 // .text:0x000042CC size:0x6B8 mapped:0x80643360
@@ -504,384 +852,149 @@ void fn_3_42CC(GXTexObj* texture, s16 left, s16 top, s16 right, s16 bottom,
     *fifo = x0; *fifo = y1; *fifo = -0.5f; *fifo = u0; *fifo = v1;
 }
 
-// .text:0x00004984 size:0xB4 mapped:0x80643A18
-void fn_3_4984(void) {
-    Mtx identity;
-    Mtx44 projection;
-    GXSetZMode(TRUE, GX_ALWAYS, TRUE);
-    GXSetScissor(0, 0, 640, 448);
-    C_MTXOrtho(projection, lbl_3_rodata_504, lbl_3_rodata_524,
-               lbl_3_rodata_504, lbl_3_rodata_528,
-               lbl_3_rodata_52C, lbl_3_rodata_530);
-    GXSetProjection(projection, GX_ORTHOGRAPHIC);
-    GXSetCullMode(GX_CULL_NONE);
-    PSMTXIdentity(identity);
-    GXLoadPosMtxImm(identity, 0);
-    GXSetCurrentMtx(0);
-}
-
-// .text:0x00004A38 size:0x558 mapped:0x80643ACC
-void inningScoreDisplayRelated(int stadiumID) {
-    GXColor colors[7][2] = {
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-        {{0x66, 0x66, 0x66, 0xFF}, {0, 0, 0, 0xFF}},
-    };
-    s16 firstInning[8] = {10, 9, 0, 0, 0, 0, 0, 0};
-    s16 topInnings[7][2] = {{28, 192}, {18, 138}};
-    s16 bottomInnings[7][2] = {{28, 214}, {18, 159}};
-    s16 topTotal[7][2] = {{250, 192}, {180, 138}};
-    s16 bottomTotal[7][2] = {{250, 214}, {180, 159}};
-    s16 inningStep[7][2] = {{22, 18}, {18, 18}};
-    u8 digitSlots[8] = {1, 1};
+// .text:0x00003EE8 size:0x3E4 mapped:0x80642F7C
+void fn_3_3EE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
+                  s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight) {
+    u8* record = (u8*)textureRecord;
     GXTexObj texture;
-    int stadium = (u8)stadiumID;
-    int inning;
-    int firstVisibleInning;
-    int offset = 0;
-    int lastInning;
+    volatile f32* fifo = (volatile f32*)0xCC008000;
+    f32 x0 = left;
+    f32 y0 = top;
+    f32 x1 = right;
+    f32 y1 = bottom;
+    f32 u0 = (f32)textureX / *(u16*)(record + 0xA);
+    f32 v0 = (f32)textureY / *(u16*)(record + 8);
+    f32 u1 = (f32)(textureX + textureWidth) / *(u16*)(record + 0xA);
+    f32 v1 = (f32)(textureY + textureHeight) / *(u16*)(record + 8);
+    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
+    GXInitTexObj(&texture, *(void**)record, *(u16*)(record + 0xA), *(u16*)(record + 8),
+                    0, 0, 0, FALSE);
+    GXInitTexObjLOD(&texture, 0, 0, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
+    GXClearVtxDesc();
+    GXSetVtxDesc(9, 1);
+    GXSetVtxDesc(13, 1);
+    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+    GXSetVtxAttrFmt(0, 13, 1, 4, 0);
+    GXSetChanCtrl(4, 0, 0, 0, 0, 0, 2);
+    GXSetNumChans(0);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetTevColor(1, white);
+    GXSetTevColorIn(0, 15, 15, 15, 8);
+    GXSetTevAlphaIn(0, 7, 7, 7, 1);
+    GXSetTevColorOp(0, 0, 0, 0, 0, 0);
+    GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
+    GXSetTevOrder(0, 0, 0, 4);
+    GXSetBlendMode(0, 4, 5, 7);
+    GXLoadTexObj(&texture, 0);
+    GXBegin(GX_QUADS, 0, 4);
+    *fifo = x0; *fifo = y0; *fifo = -0.5f; *fifo = u0; *fifo = v0;
+    *fifo = x1; *fifo = y0; *fifo = -0.5f; *fifo = u1; *fifo = v0;
+    *fifo = x1; *fifo = y1; *fifo = -0.5f; *fifo = u1; *fifo = v1;
+    *fifo = x0; *fifo = y1; *fifo = -0.5f; *fifo = u0; *fifo = v1;
+}
 
+// .text:0x00003BE8 size:0x300 mapped:0x80642C7C
+void fn_3_3BE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
+                  s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight) {
+    u8* record = (u8*)textureRecord;
+    GXTexObj texture;
+    volatile f32* position = (volatile f32*)0xCC008000;
+    volatile u16* uv = (volatile u16*)0xCC008000;
+    f32 x0 = left;
+    f32 y0 = top;
+    f32 x1 = right;
+    f32 y1 = bottom;
+    GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
+    GXInitTexObj(&texture, *(void**)record, *(u16*)(record + 0xA), *(u16*)(record + 8),
+                    0, 0, 0, FALSE);
     GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
-    lastInning = g_Scores.Inning;
-    firstVisibleInning = firstInning[stadium] + 1;
-    if (lastInning < firstVisibleInning) {
-        firstVisibleInning = 1;
-    }
-    inning = firstVisibleInning;
-    while (inning <= lastInning) {
-        s16 runs = g_Scores.scores[0].byInning[inning - 1];
-        if (inning == lastInning && runs == 0 && g_Scores.halfInning == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
-            break;
-        }
-        fn_3_4F90(&texture, topInnings[stadium][0] + offset,
-                     topInnings[stadium][1], runs, 1,
-                     colors[stadium][0], colors[stadium][1], 0);
-        offset += inningStep[stadium][0];
-        inning++;
-    }
-    fn_3_4F90(&texture, topTotal[stadium][0], topTotal[stadium][1],
-                 g_Scores.scores[0].total, digitSlots[stadium],
-                 colors[stadium][0], colors[stadium][1], 0);
-
-    if (((u8*)&g_GameLogic)[0x127] == 0) {
-        lastInning = g_Scores.Inning + g_Scores.halfInning;
-    } else {
-        lastInning = g_Scores.inningLimit + 1;
-    }
-    offset = 0;
-    inning = firstVisibleInning;
-    while (inning < lastInning) {
-        s16 runs = g_Scores.scores[1].byInning[inning - 1];
-        int outline = 0;
-        if (inning >= g_Scores.inningLimit && g_Scores.scores[1].total > runs) {
-            outline = 1;
-        }
-        if (inning == g_Scores.Inning && runs == 0 && outline == 0 && ((u8*)&g_GameLogic)[0x127] == 0) {
-            break;
-        }
-        fn_3_4F90(&texture, bottomInnings[stadium][0] + offset,
-                     bottomInnings[stadium][1], runs, 1,
-                     colors[stadium][0], colors[stadium][1], outline);
-        offset += inningStep[stadium][0];
-        inning++;
-    }
-    fn_3_4F90(&texture, bottomTotal[stadium][0], bottomTotal[stadium][1],
-                 g_Scores.scores[1].total, digitSlots[stadium],
-                 colors[stadium][0], colors[stadium][1], 0);
+    GXClearVtxDesc();
+    GXSetVtxDesc(9, 1);
+    GXSetVtxDesc(13, 1);
+    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
+    GXSetVtxAttrFmt(0, 13, 1, 3, 9);
+    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
+    GXSetNumChans(0);
+    GXSetNumTexGens(1);
+    GXSetTevColor(1, white);
+    GXSetTevColorIn(0, 15, 15, 15, 8);
+    GXSetTevAlphaIn(0, 7, 7, 7, 1);
+    GXSetTevColorOp(0, 0, 0, 0, 0, 0);
+    GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
+    GXSetTevOrder(0, 0, 0, 4);
+    GXSetBlendMode(1, 4, 5, 7);
+    GXLoadTexObj(&texture, 0);
+    GXBegin(GX_QUADS, 0, 4);
+    *position = x0; *position = y0; *position = -0.5f;
+    *uv = textureX; *uv = textureY;
+    *position = x1; *position = y0; *position = -0.5f;
+    *uv = textureX + textureWidth; *uv = textureY;
+    *position = x1; *position = y1; *position = -0.5f;
+    *uv = textureX + textureWidth; *uv = textureY + textureHeight;
+    *position = x0; *position = y1; *position = -0.5f;
+    *uv = textureX; *uv = textureY + textureHeight;
 }
 
-// .text:0x00004F90 size:0x450 mapped:0x80644024
-void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
-                  GXColor foreground, GXColor background, u8 outline) {
-    u16** digits = screenTextArray.textBanks[0]->strings;
-    int count;
-    s16 width;
-    s16 cursor;
-    int drawn;
-    if (value > 99) {
-        value = 99;
-    }
-    count = value >= 10 ? 2 : 1;
-    if (outline != 0 && value != 0) {
-        count++;
-    }
-    width = digitSlots < count ? digitSlots * 16 / count : 16;
-    cursor = x + digitSlots * 16 - width;
-    if (outline != 0) {
-        volatile f32* fifo = (volatile f32*)0xCC008000;
-        GXClearVtxDesc();
-        GXSetTevColor(1, foreground);
-        GXSetVtxDesc(9, 1);
-        GXSetVtxAttrFmt(0, 9, 1, 4, 0);
-        GXSetTevColorIn(0, 15, 15, 2, 2);
-        GXSetTevAlphaIn(0, 7, 7, 7, 1);
-        GXSetTevOrder(0, 0xFF, 0xFF, 4);
-        GXSetNumTexGens(0);
-        GXSetNumChans(1);
-        GXSetNumTevStages(1);
-        GXSetLineWidth(18, 0);
-        GXBegin(GX_LINES, 0, 4);
-        *fifo = cursor; *fifo = y; *fifo = -0.5f;
-        *fifo = cursor + width; *fifo = y; *fifo = -0.5f;
-        *fifo = cursor + width; *fifo = y + 18; *fifo = -0.5f;
-        *fifo = cursor; *fifo = y + 18; *fifo = -0.5f;
-        GXSetLineWidth(18, 0);
-        cursor -= width;
-        count--;
-    }
-    for (drawn = 0; drawn < count; drawn++) {
-        u16 glyph = *digits[value % 10];
-        if ((glyph & STADIUM_ATLAS_SKIP_FLAG) == 0) {
-            s16 column, row, cellWidth, cellHeight, page;
-            fn_3_53E0(&glyph, &column, &row, &cellWidth, &cellHeight, &page);
-            fn_3_42CC(texture, cursor, y, cursor + width, y + 18,
+// .text:0x00003904 size:0x2E4 mapped:0x80642998
+void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
+                  const GXColor* background, u8 alternate) {
+    u16* text = screenTextArray.textBanks[0]->strings[textIndex];
+    GXTexObj texture;
+    int lineStart = x;
+    int value;
+    for (;;) {
+        value = *text++;
+        if (value & STADIUM_ATLAS_SKIP_FLAG) {
+            switch (value & 0x3FFF) {
+            case 0:
+                return;
+            case 1:
+                x = lineStart;
+                y += 22;
+                break;
+            case 2:
+                x += 11;
+                break;
+            case 3:
+                x += 22;
+                break;
+            default:
+                break;
+            }
+            continue;
+        }
+        {
+            s16 column, row, cellWidth, cellHeight;
+            f32 drawWidth;
+            f32 drawHeight;
+            if (value & STADIUM_ATLAS_PAGED_FLAG) {
+                u16 cell = (value & 0x7FFF) % STADIUM_ATLAS_CELLS_PER_PAGE;
+                column = cell % STADIUM_ATLAS_COLUMNS;
+                row = (cell / STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
+                column *= STADIUM_ATLAS_CELL_SIZE;
+                cellWidth = 22;
+                cellHeight = 22;
+                drawWidth = 16.0f;
+                drawHeight = 18.0f;
+            } else {
+                column = value % STADIUM_ATLAS_HALF_COLUMNS;
+                row = (value / STADIUM_ATLAS_HALF_COLUMNS) * 22;
+                column = ((column / 2) * 2 + column % 2) * 11;
+                cellWidth = 11;
+                cellHeight = 22;
+                drawWidth = 8.0f;
+                drawHeight = 18.0f;
+            }
+            GXInitTexObjLOD(&texture, 1, 1, 0.0f, 0.0f, 0.0f, FALSE, FALSE, 0);
+            fn_3_42CC(&texture, x, y,
+                         (s16)((f32)(s16)x + drawWidth),
+                         (s16)((f32)(s16)y + drawHeight),
                          column, row, cellWidth, cellHeight,
-                         foreground, background, 0);
-        }
-        cursor -= width;
-        value /= 10;
-    }
-}
-
-// .text:0x000053E0 size:0x138 mapped:0x80644474
-void fn_3_53E0(const u16* encoded, s16* column, s16* row, s16* width, s16* height, s16* page) {
-    int value = *encoded;
-    if (value & STADIUM_ATLAS_SKIP_FLAG) {
-        return;
-    }
-    if (value & STADIUM_ATLAS_PAGED_FLAG) {
-        u16 remainder;
-        value &= 0x7FFF;
-        *page = value / STADIUM_ATLAS_CELLS_PER_PAGE;
-        remainder = value % STADIUM_ATLAS_CELLS_PER_PAGE;
-        *column = remainder % STADIUM_ATLAS_COLUMNS;
-        *row = (remainder / STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
-        *column *= STADIUM_ATLAS_CELL_SIZE;
-        *width = STADIUM_ATLAS_CELL_SIZE;
-        *height = STADIUM_ATLAS_CELL_SIZE;
-    } else {
-        *column = value % STADIUM_ATLAS_HALF_COLUMNS;
-        *row = (value / STADIUM_ATLAS_HALF_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
-        *column = (((*column / 2) * 2) + (*column % 2)) * STADIUM_ATLAS_HALF_CELL_SIZE;
-        *width = STADIUM_ATLAS_HALF_CELL_SIZE;
-        *height = STADIUM_ATLAS_CELL_SIZE;
-        *page = 0;
-    }
-}
-
-// .text:0x00005518 size:0x164 mapped:0x806445AC
-void fn_3_5518(void) {
-    Mtx44 projection;
-    Mtx identity;
-    StadiumTextureOffsets stadiumTextureOffsets = stadiumTextureOffsetsSource;
-    u8 stadiumID = g_d_GameSettings.StadiumID;
-    u8* textureTable = (u8*)g_UNK_StadiumDetails._00;
-    int textureOffset = stadiumTextureOffsets.offsets[stadiumID] << 5;
-    void* texture;
-
-    GXSetZMode(TRUE, GX_ALWAYS, TRUE);
-    GXSetScissor(0, 0, 640, 448);
-    C_MTXOrtho(projection, lbl_3_rodata_504, lbl_3_rodata_524,
-               lbl_3_rodata_504, lbl_3_rodata_528,
-               lbl_3_rodata_52C, lbl_3_rodata_530);
-    GXSetProjection(projection, GX_ORTHOGRAPHIC);
-    GXSetCullMode(GX_CULL_NONE);
-    PSMTXIdentity(identity);
-    GXLoadPosMtxImm(identity, 0);
-    GXSetCurrentMtx(0);
-    GXSetTexCopySrc(0, 0, 512, 480);
-    GXSetTexCopyDst(512, 480, 0x20, FALSE);
-    inningScoreDisplayRelated(g_d_GameSettings.StadiumID);
-    texture = *(void**)(textureTable + textureOffset);
-    GXDrawDone();
-    GXCopyTex(texture, TRUE);
-    GXPixModeSync();
-}
-
-// .text:0x0000567C size:0x530 mapped:0x80644710
-void drawStadiumObjects(void) {
-    u8* frameData = FrameCountOfEntireGame;
-    u8* sunData;
-    int cameraCount;
-    int slot;
-    f32 rotation;
-    int mode = ((u8*)&g_GameLogic)[0x120];
-
-    if (mode < 3 && mode >= 1) {
-        sunData = ((u8*)&g_UNK_StadiumDetails) + 0x738 + (mode - 1) * 0x10;
-    } else {
-        sunData = ((u8*)&g_UNK_StadiumDetails) + 0x758;
-    }
-    if (hugeAnimStruct[0x307E] == 0) {
-        return;
-    }
-    *(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) = mode != 1;
-    if (mode != 1) {
-        sunRelated((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
-    }
-    fn_3_B8C08((MtxPtr)((u8*)fn_80052768_getCamera(0) + 0x40));
-    rotation = *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) + *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x768);
-    *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
-    if (rotation >= lbl_3_rodata_534) {
-        rotation -= lbl_3_rodata_534;
-        *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
-    }
-    cameraCount = ((int (*)(void))returnScissorMode)();
-    if (cameraCount >= 2) {
-        u8* object = ((u8*)&g_UNK_StadiumDetails) + 0x2A8 + drawStadiumRelated * 0x70;
-        *(u32*)(object + 0x6C) = 1;
-        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
-        fn_800A7D4C(0, object);
-        fn_800A7D4C(0, frameData + 0x748 + drawStadiumRelated * 8);
-        object = ((u8*)&g_UNK_StadiumDetails) + 0x1C8 + drawStadiumRelated * 0x70;
-        *(u32*)(object + 0x6C) = 1;
-        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
-        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
-        if (((u8*)&g_GameLogic)[0x121] != 3) {
-            fn_800A7D4C(0, object);
-        }
-        fn_800A7D4C(0, frameData + 0x7A0 + drawStadiumRelated * 0xC);
-    }
-    if (((int (*)(void))returnScissorMode)() > 2) {
-        for (slot = 0; slot < 0; slot++) {
-            u8* object = ((u8*)&g_UNK_StadiumDetails) + 0x548 + drawStadiumRelated * 0x70 + slot * 0xE0;
-            *(u32*)(object + 0x6C) = slot + 2;
-            PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
-            fn_800A7D4C(0, object);
-            fn_800A7D4C(0, frameData + 0x738 + (slot + 2) * 0x10 + drawStadiumRelated * 8);
-            object = ((u8*)&g_UNK_StadiumDetails) + 0x388 + drawStadiumRelated * 0x70 + slot * 0xE0;
-            *(u32*)(object + 0x6C) = slot + 2;
-            PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
-            PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
-            if (((u8*)&g_GameLogic)[0x121] != 3) {
-                fn_800A7D4C(0, object);
-            }
-            fn_800A7D4C(0, frameData + 0x788 + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
+                         *foreground, *background, alternate & 1);
+            x = (s16)((f32)(s16)x + drawWidth);
         }
     }
-    {
-        u8* object = ((u8*)&g_UNK_StadiumDetails) + 0xE8 + drawStadiumRelated * 0x70;
-        *(u32*)(object + 0x6C) = 0;
-        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
-        fn_800A7D4C(0, object);
-        fn_800A7D4C(0, frameData + 0x738 + drawStadiumRelated * 8);
-        fn_800A7D4C(0, frameData + 0x5B4 + drawStadiumRelated * 8);
-        object = ((u8*)&g_UNK_StadiumDetails) + 8 + drawStadiumRelated * 0x70;
-        *(u32*)(object + 0x6C) = 0;
-        PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
-        PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
-        fn_800A7D4C(0, object);
-        fn_800A7D4C(0, frameData + 0x788 + drawStadiumRelated * 0xC);
-    }
-    if ((g_d_GameSettings.GameModeSelected == 0 || g_d_GameSettings.GameModeSelected == 4) &&
-        g_d_GameSettings.StadiumID != 2) {
-        *(u32*)(frameData + 0x71C + drawStadiumRelated * 0x10) = *(u32*)((u8*)&stadiumObjectCollision + 8);
-        *(u32*)(frameData + 0x720 + drawStadiumRelated * 0x10) = *(u32*)((u8*)&stadiumObjectCollision + 0xC);
-    } else {
-        *(u32*)(frameData + 0x71C + drawStadiumRelated * 0x10) = 0;
-        *(u32*)(frameData + 0x720 + drawStadiumRelated * 0x10) = 0;
-    }
-    fn_800A7D4C(0, frameData + 0x714 + drawStadiumRelated * 0x10);
-    if (*(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) != 0) {
-        drawSun();
-    }
-    lbl_803C5090[0x1D] = sunData[0xC];
-    *(f32*)(lbl_803C5090 + 0) = *(f32*)(sunData + 0);
-    *(f32*)(lbl_803C5090 + 4) = lbl_3_rodata_520 / *(f32*)((u8*)fn_80052768_getCamera(0) + 0xA4);
-    *(f32*)(lbl_803C5090 + 8) = *(f32*)(sunData + 4);
-    *(f32*)(lbl_803C5090 + 0xC) = *(f32*)(sunData + 8);
-    *(u16*)(lbl_803C5090 + 0x14) = *(u16*)(sunData + 0xE);
-    lbl_803C5090[0x17] = sunData[0xD];
-    lbl_803C5090[0x18] = 0;
-    lbl_803C5090[0x1A] = 0xFF;
-    lbl_803C5090[0x1B] = 0xFF;
-    lbl_803C5090[0x1C] = 0xFF;
-    fn_8003A2C0();
-}
-
-// .text:0x00005BAC size:0x20 mapped:0x80644C40
-void drawStadium(void) {
-    drawStadiumObjects();
-}
-
-// .text:0x00005BCC size:0x24 mapped:0x80644C60
-void fn_3_5BCC(void* context) {
-    setScissorAndProjection(*(s32*)((u8*)context + 8));
-}
-
-// .text:0x00005BF0 size:0x78 mapped:0x80644C84
-void fn_3_5BF0(void) {
-    u8* stadium = (u8*)&g_UNK_StadiumDetails;
-    GXColor color;
-    if (lbl_3_bss_18.fanObject != 0) {
-        ((void (*)(void))lbl_3_bss_18.fanObject)();
-    }
-    color = *(GXColor*)(stadium + 0x714);
-    SetFog((GXFogType)stadium[0x717], *(f32*)(stadium + 0x718), *(f32*)(stadium + 0x71C),
-           lbl_3_rodata_520, lbl_3_rodata_538, color);
-}
-
-// .text:0x00005C68 size:0x1F8 mapped:0x80644CFC
-void fn_3_5C68(void* context) {
-    StadiumAnimatedTexturePair* pair = (StadiumAnimatedTexturePair*)context;
-    u8* slotCursor;
-    int pass;
-    GXSetCullMode(GX_CULL_BACK);
-    SetFog(GX_FOG_NONE, lbl_3_rodata_504, lbl_3_rodata_504,
-           lbl_3_rodata_504, lbl_3_rodata_504, lbl_3_rodata_210);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    slotCursor = (u8*)pair + 8;
-    pass = 2;
-    do {
-        StadiumAnimatedTexture* animation = *(StadiumAnimatedTexture**)(slotCursor + 8);
-        int index;
-        int stateOffset;
-        int updated;
-        if (animation != 0) {
-          updated = 0;
-          for (index = 0, stateOffset = 0; index < animation->tileCount; index++, stateOffset += 3) {
-            u8 previous = animation->animationState[stateOffset + 2]--;
-            if (previous == 0) {
-                int destinationX = (index % 8) * 32;
-                int destinationY = (index / 8) * 64;
-                int frame = (animation->animationState[stateOffset + 1] + 1) % animation->frameCount;
-                int tile;
-                int mapIndex;
-                int sourceX;
-                int sourceY;
-                animation->animationState[stateOffset + 1] = frame;
-                tile = animation->tileIndex[animation->animationState[stateOffset + 1]];
-                if (pass != 0) {
-                    mapIndex = animation->animationState[stateOffset] * 4 + tile * 2;
-                    sourceX = animation->tileMap[mapIndex] * 32;
-                    sourceY = animation->tileMap[mapIndex + 1] * 64;
-                } else {
-                    mapIndex = animation->animationState[stateOffset] * 8 + tile * 2;
-                    sourceX = animation->tileMap[mapIndex] * 32;
-                    sourceY = animation->tileMap[mapIndex + 1] * 64;
-                }
-                fn_80023F0C(animation->source, animation->destination,
-                              sourceX, sourceY, 32, 64, destinationX,
-                              destinationY);
-                animation->animationState[stateOffset + 2] = animation->resetFrames;
-                updated++;
-            }
-          }
-          if (updated != 0) {
-              DCStoreRange(animation->destination->pixels,
-                           animation->destination->height * animation->destination->width);
-          }
-        }
-        slotCursor -= 4;
-    } while (pass-- != 0);
-    if (lbl_3_bss_18.fanObject != 0) {
-        ((void (*)(void))lbl_3_bss_18.fanObject)();
-    }
-    GXSetZCompLoc(FALSE);
 }
 
 void fn_3_38E8(void (*func)(Mtx view, int flag, u32 pass)) {
@@ -900,126 +1013,6 @@ void fn_3_3818(void) {
         } while (mode-- != 0);
         lbl_3_data_A10[!drawStadiumRelated] = 0;
     }
-}
-
-void fn_3_35E4(int fanObject) {
-    lbl_3_bss_18.fanObject = (void*)fanObject;
-}
-
-void* setFanObjPtr(void) {
-    return lbl_3_bss_18.fanObject;
-}
-
-void fn_3_5E60(void) {
-    u8* block = *(u8**)(hugeAnimStruct + 4);
-    unregisterObjectByID(5);
-    fn_800BCDBC(block + *(u32*)(block + 0x10));
-    fn_800BCDBC(block + *(u32*)(block + 0xC));
-    fn_800ACFB0(*(void**)(hugeAnimStruct + 4));
-}
-
-s16 fn_3_6424(void* base, void*** tableOut) {
-    s16 count = *(u16*)base;
-    void** table = (void**)((u8*)base + 4);
-    void** cursor = table;
-    int i;
-    *tableOut = table;
-    for (i = 0; i <= count; i++) {
-        *cursor = (u8*)((u32)*cursor + (u32)base);
-        cursor++;
-    }
-    return count;
-}
-
-void fn_3_64DC(void) {
-    u8 stadium = g_d_GameSettings.StadiumID;
-    u8 variant = g_d_GameSettings.miniGameStadiumIndicator;
-    ARAMTransfer(StadiumFiles_game[stadium * 3 + variant], 0, 0, 0);
-}
-
-void updateStadiumFileHeaders(void* file) {
-    u8* bytes = (u8*)file;
-    u8* actor = bytes + *(u32*)(bytes + 0);
-    u8* geometry = bytes + *(u32*)(bytes + 0xC);
-    u8* texture = bytes + *(u32*)(bytes + 0x14);
-    u8* pointerBlock = bytes + *(u32*)(bytes + 8);
-    u8* pointerList = pointerBlock + 4;
-    s16 pointerCount = *(u16*)pointerBlock;
-    int i;
-
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70C) = pointerList;
-    for (i = 0; i <= pointerCount; i++) {
-        ((u32*)pointerList)[i] += (u32)pointerBlock;
-    }
-    *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x70A) = pointerCount;
-    AdjustActorPointers(actor);
-    AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
-    convertTextureHeader(texture);
-    UpdateTexturePalettePointers((UnkTexPalGeo*)geometry, texture);
-    haveActLayoutPointToGeoHeader(actor, geometry);
-    ProcessActorBonesForShadows((ActorLayoutFile*)actor);
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 4) = texture;
-
-    PSMTXIdentity((MtxPtr)(((u8*)&g_UNK_StadiumDetails) + 0xF0));
-    *(u32*)(((u8*)&g_UNK_StadiumDetails) + 0xE8) = 2;
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0xEC) = (void*)CTRLBuildMatrixRelated;
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x150) = actor;
-    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x158) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
-    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x2A8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
-    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x318) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8),
-                                ((u8*)&g_UNK_StadiumDetails) + 0x548, ((u8*)&g_UNK_StadiumDetails) + 0x5B8, 0);
-
-    actor = bytes + *(u32*)(bytes + 4);
-    geometry = bytes + *(u32*)(bytes + 0x10);
-    AdjustActorPointers(actor);
-    AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
-    UpdateTexturePalettePointers((UnkTexPalGeo*)geometry, texture);
-    haveActLayoutPointToGeoHeader(actor, geometry);
-    *(u32*)(((u8*)&g_UNK_StadiumDetails) + 8) = 2;
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0xC) = (void*)CTRLBuildMatrixRelated;
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x70) = actor;
-    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x78) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
-    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x1C8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
-    *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x238) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8),
-                                ((u8*)&g_UNK_StadiumDetails) + 0x388, ((u8*)&g_UNK_StadiumDetails) + 0x3F8, 0);
-
-    {
-        typedef struct StadiumStyleRecord {
-            u32 words[24];
-        } StadiumStyleRecord;
-        u32* selected = lbl_3_data_23C +
-            (g_d_GameSettings.miniGameStadiumIndicator * 7 + g_d_GameSettings.StadiumID) * 24;
-        *(StadiumStyleRecord*)(((u8*)&g_UNK_StadiumDetails) + 0x714) = *(StadiumStyleRecord*)selected;
-    }
-    *(void**)(((u8*)&g_UNK_StadiumDetails) + 0) = texture + 4;
-    ((u8*)&g_UNK_StadiumDetails)[0x774] = 0;
-    fn_8003AE5C(((u8*)&g_UNK_StadiumDetails)[0x771]);
-
-    texture = bytes + *(u32*)(bytes + 0x28);
-    convertTextureHeader(texture);
-    *(void**)(lbl_3_common_bss_35154 + 0x3B4) = texture + 4;
-    setSunLocation(g_d_GameSettings.StadiumID, g_d_GameSettings.miniGameStadiumIndicator);
-
-    if (*(u32*)(bytes + 0x2C) != 0) {
-        pointerBlock = bytes + *(u32*)(bytes + 0x2C);
-        pointerList = pointerBlock + 4;
-        pointerCount = *(u16*)pointerBlock;
-        *(void**)(((u8*)&g_UNK_StadiumDetails) + 0x778) = pointerList;
-        for (i = 0; i <= pointerCount; i++) {
-            ((u32*)pointerList)[i] += (u32)pointerBlock;
-        }
-        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = pointerCount;
-    } else {
-        *(s16*)(((u8*)&g_UNK_StadiumDetails) + 0x77C) = 0;
-    }
-    if (*(u32*)(bytes + 0x30) != 0) {
-        texture = bytes + *(u32*)(bytes + 0x30);
-        convertTextureHeader(texture);
-        GXTexObjRelated((TextureRecord*)texture);
-    }
-    maybeUpdateFunctionPointer(fn_3_35F0);
 }
 
 void CTRLBuildMatrixRelated(void* object) {
@@ -1071,4 +1064,19 @@ void CTRLBuildMatrixRelated(void* object) {
         }
         DOVARender((struct DODisplayObj*)child, (MtxPtr)(base + 0x38), 0, 0);
     }
+}
+
+void fn_3_35F0(void) {
+    if (fn_80009028() == 0) {
+        GXColor clearColor = *(GXColor*)((u8*)&g_UNK_StadiumDetails + 0x76C);
+        GXSetCopyClear(clearColor, 0xFFFFFF);
+    }
+}
+
+void fn_3_35E4(int fanObject) {
+    lbl_3_bss_18.fanObject = (void*)fanObject;
+}
+
+void* setFanObjPtr(void) {
+    return lbl_3_bss_18.fanObject;
 }

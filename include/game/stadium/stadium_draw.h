@@ -14,7 +14,7 @@ void fn_3_42CC(GXTexObj* texture, s16 left, s16 top, s16 right, s16 bottom,
                   s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight,
                   GXColor foreground, GXColor background, u8 alternate);
 void fn_3_4984(void);
-void inningScoreDisplayRelated(int stadiumID);
+void inningScoreDisplayRelated(u8 stadium);
 void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
                   GXColor foreground, GXColor background, u8 outline);
 void fn_3_53E0(const u16* encoded, s16* column, s16* row, s16* width, s16* height, s16* page);

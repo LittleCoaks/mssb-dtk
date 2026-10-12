@@ -28,7 +28,7 @@ extern void fn_8001D074(int index, int enable);
 extern void resetAndRunAnimations(int arg);
 extern void fn_3_8C104(int arg);
 extern int fn_3_6B4C8(void);
-extern void fn_3_147DFC(void);
+extern void minigameStopBombExplosion(void);
 extern void fn_3_FBD70(void);
 extern void fn_3_FBD58(void);
 extern void fn_3_21AA8(void);
@@ -660,7 +660,7 @@ void championshipScreen(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (lbl_803C6CF8[0x715] == 1) {
-            fn_3_147DFC();
+            minigameStopBombExplosion();
             animRelated[0x9A] = 0;
             g_GameLogic._125 = 1;
         }

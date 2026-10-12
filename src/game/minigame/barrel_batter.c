@@ -368,7 +368,7 @@ void barrelBatterTransitionToMainFunction(void) {
                 fn_3_12FE84();
                 fn_3_12FD6C();
             }
-            fn_3_14CA00();
+            barrelBatter_stopBarrelExplosions();
             animRelated[0xB7] = 1;
         }
         break;

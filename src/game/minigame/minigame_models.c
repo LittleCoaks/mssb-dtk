@@ -253,15 +253,15 @@ struct {
     { 0x0, 0x4, 0x8, 0xC, 0x10, 0x0 },
 };
 
-UIRecordDescriptor lbl_3_data_23894[3] = {
+UIRecordDescriptor minigameHudStartMovieRecords[3] = {
     { 0, 0xA6, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0xA5, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 3, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-u16 lbl_3_data_238F4[8] = { 0xA6, 0x9F, 0xA0, 0xA1, 0xA3, 0xA2, 0xA4, 0x0 };
+u16 minigameHudStartMovieElements[8] = { 0xA6, 0x9F, 0xA0, 0xA1, 0xA3, 0xA2, 0xA4, 0x0 };
 
-UIRecordDescriptor lbl_3_data_23904[10] = {
+UIRecordDescriptor minigameHudTargetPointsRecords[10] = {
     { 0, 0x147, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x148, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x146, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -274,7 +274,7 @@ UIRecordDescriptor lbl_3_data_23904[10] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23A44[5] = {
+UIRecordDescriptor minigameHudPitchesRemainingRecords[5] = {
     { 0, 0x14B, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x149, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x14C, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -282,7 +282,7 @@ UIRecordDescriptor lbl_3_data_23A44[5] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23AE4[13] = {
+UIRecordDescriptor minigameStateLogicRecords[13] = {
     { 0, 0x13E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x13F, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x13D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -298,7 +298,7 @@ UIRecordDescriptor lbl_3_data_23AE4[13] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23C84[5] = {
+UIRecordDescriptor minigameHudPlayerMarkersRecords[5] = {
     { 0, 0xB3, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0xB3, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0xB3, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -306,26 +306,26 @@ UIRecordDescriptor lbl_3_data_23C84[5] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23D24[4] = {
+UIRecordDescriptor minigameHudBodStreakRecords[4] = {
     { 0, 0x103, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x101, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x102, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23DA4[3] = {
+UIRecordDescriptor minigameHudBodKingBombBonusRecords[3] = {
     { 0, 0x164, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x165, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23E04[3] = {
+UIRecordDescriptor minigameHudBodStreakBonusRecords[3] = {
     { 0, 0x164, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x162, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 1 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23E64[6] = {
+UIRecordDescriptor minigameHudBodHomeRunPointsRecords[6] = {
     { 0, 0x107, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x105, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x106, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 1 },
@@ -334,12 +334,12 @@ UIRecordDescriptor lbl_3_data_23E64[6] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23F24[2] = {
+UIRecordDescriptor minigameHudBodDistanceRecords[2] = {
     { 0, 0x168, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_23F64[10] = {
+UIRecordDescriptor minigameHudBodPitchRouletteRecords[10] = {
     { 0, 0x156, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x153, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x158, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -352,7 +352,7 @@ UIRecordDescriptor lbl_3_data_23F64[10] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_240A4[50] = {
+UIRecordDescriptor minigameHudWallBallScoreboardRecords[50] = {
     { 0, 0x4D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x4E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 3 },
     { 0, 0x4E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 2 },
@@ -405,7 +405,7 @@ UIRecordDescriptor lbl_3_data_240A4[50] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_246E4[5] = {
+UIRecordDescriptor minigameHudWallBallTurnsRemainingRecords[5] = {
     { 0, 0x118, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x117, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x114, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -413,7 +413,7 @@ UIRecordDescriptor lbl_3_data_246E4[5] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24784[6] = {
+UIRecordDescriptor minigameHudWallBallPointsPopupRecords[6] = {
     { 0, 0x116, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 9, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x112, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x113, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 9, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -422,7 +422,7 @@ UIRecordDescriptor lbl_3_data_24784[6] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24844[22] = {
+UIRecordDescriptor minigameHudWallBallBowserPenaltyRecords[22] = {
     { 0, 0x4D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x57, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 3 },
     { 0, 0x57, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 2 },
@@ -447,7 +447,7 @@ UIRecordDescriptor lbl_3_data_24844[22] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24B04[15] = {
+UIRecordDescriptor minigameHudBarrelBatterChargeMeterRecords[15] = {
     { 0, 0x120, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x11E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x125, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 1, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -465,25 +465,25 @@ UIRecordDescriptor lbl_3_data_24B04[15] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24CE4[3] = {
+UIRecordDescriptor minigameHudBarrelBatterPointsRecords[3] = {
     { 0, 0x131, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x130, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24D44[3] = {
+UIRecordDescriptor minigameHudBarrelBatterBarrelsHitRecords[3] = {
     { 0, 0x12B, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x129, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24DA4[3] = {
+UIRecordDescriptor minigameHudBarrelBatterBombBarrelRecords[3] = {
     { 0, 0x12E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x12D, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_24E04[42] = {
+UIRecordDescriptor minigameHudCcsScoreboardRecords[42] = {
     { 0, 0x5E, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 1, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x63, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 3 },
     { 0, 0x63, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 0, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 2 },
@@ -528,7 +528,7 @@ UIRecordDescriptor lbl_3_data_24E04[42] = {
     { 3, 0x0, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0x00000000, 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0 }, 0x0, 0 },
 };
 
-UIRecordDescriptor lbl_3_data_25344[9] = {
+UIRecordDescriptor minigameHudCcsTargetMarkersRecords[9] = {
     { 0, 0x135, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x135, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
     { 0, 0x135, { 0, 0, 0, 0, 0, 0, 0, 0 }, 0xFFFFFFFF, 0, 7, 255, 3, { 0, 0, 0, 0, 0, 0, 0 }, 0x1, 0 },
@@ -818,11 +818,11 @@ extern f32 ccs_coinPhysicsConsts[];
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
-extern void fn_3_14DC80(s8 slot);
-extern void fn_3_14CB28(s8 slot);
-extern void fn_3_151710(void* modelObj, VecXYZ* pos);
-extern void fn_3_15521C(s16 idx, VecXYZ* pos, VecXYZ* rot);
-extern void fn_3_14B9A0(int frames, f32* pos);
+extern void barrelBatter_spawnBarrelExplosion(s8 slot);
+extern void barrelBatter_releaseBarrelExplosion(s8 slot);
+extern void wallBall_spawnNoteBlockBurst(void* modelObj, VecXYZ* pos);
+extern void bobOmbFuseSpark_spawnFollow(s16 idx, VecXYZ* pos, VecXYZ* rot);
+extern void barrelBatter_spawnMachineSparks(int frames, f32* pos);
 extern void barrelBatterRel(VecXYZ* pos);
 extern void fn_80062C24(VecXYZ* pos);
 
@@ -854,7 +854,7 @@ typedef struct {
 #define PM_WALL_SIZE 0x2C
 #define PM_WALL(i) ((MaybeWallBallStruct*)((u8*)&g_Minigame + 0x72C + (i) * PM_WALL_SIZE))
 
-extern void fn_3_14C348(MaybeWallBallStruct* wall, u8 flag);
+extern void wallBall_spawnWallHitPuff(MaybeWallBallStruct* wall, u8 flag);
 extern void fn_3_1666B0(MaybeWallBallStruct* wall);
 
 static f32 lbl_3_bss_B6BC;
@@ -1754,7 +1754,7 @@ void mm_PlacePitchingMachine(PMEffect* fx, int idx) {
         } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
             if (g_Pitcher.currentStateFrameCounter == 1) {
                 if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH) {
-                    fn_3_14B9A0(bOD_bB_frameConsts[6] + bOD_bB_frameConsts[7], mm_machinePos);
+                    barrelBatter_spawnMachineSparks(bOD_bB_frameConsts[6] + bOD_bB_frameConsts[7], mm_machinePos);
                     callSfx(0x30E);
                 } else if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
                     v.x = bOD_bB_pitchBallPos.x;
@@ -1798,7 +1798,7 @@ void mm_UpdateWallBallBlocks(void) {
                     v.y = g_Ball.AtBat_Contact_BallPos.y;
                     v.z = wall->zPositionOfSomeWall;
                     mm_StartWallAnim(idx, 3);
-                    fn_3_151710(PM_MODEL(idx), &v);
+                    wallBall_spawnNoteBlockBurst(PM_MODEL(idx), &v);
                     callSfx(0x2EB);
                 } else {
                     mm_StartWallAnim(idx, 2);
@@ -1813,7 +1813,7 @@ void mm_UpdateWallBallBlocks(void) {
                 }
                 callSfx(0x2FF);
             }
-            fn_3_14C348(wall, flag);
+            wallBall_spawnWallHitPuff(wall, flag);
             if (flag) {
                 wall->_28 = 0;
                 continue;
@@ -1962,7 +1962,7 @@ void mm_UpdateBarrels(void) {
                 e = shadow;
                 if (barrel->animationCounter == 0) {
                     mm_StartBarrelAnim(0x10 + i);
-                    fn_3_14DC80(i);
+                    barrelBatter_spawnBarrelExplosion(i);
                     callSfx(0x2E3);
                 }
                 {
@@ -1983,7 +1983,7 @@ void mm_UpdateBarrels(void) {
                             shadow->visible = FALSE;
                             continue;
                         } else if (t == 0) {
-                            fn_3_14CB28(i);
+                            barrelBatter_releaseBarrelExplosion(i);
                         }
                     }
                 }
@@ -2263,7 +2263,7 @@ void mm_UpdatePiranhaBalls(void) {
                     }
                 }
                 if (PP.ballKind[i] == 5 && PP.ballFrames[i] == 1) {
-                    fn_3_15521C(i, &a->pos, &a->rot);
+                    bobOmbFuseSpark_spawnFollow(i, &a->pos, &a->rot);
                 }
                 if (PP.ballKind[i] == 5) {
                     a->update = mm_AttachPulseTexture;

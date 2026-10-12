@@ -236,7 +236,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `toy_field_hud.c` | `rep_2BF8` | 26 (7) | 20,112 | Toy Field off-screen character indicator. | high |
 | `wall_ball.c` | `rep_3290` | 29 (29) | 13,060 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
 
-## practice/ — 8 files, 103 fns (89 named)
+## practice/ — 9 files, 103 fns (89 named)
 
 Every practice function is now in a practice unit: menus, the three
 practice modes (batting/fielding, pitching, baserunning, free fielding),
@@ -250,7 +250,8 @@ guided instructions and pause handling, and the scene/HUD code.
 | `guided_practice.c` | `rep_1B20` + unassigned `.text` | 15 (15) | 7,580 | Guided instructions, practice pause/menu controls, input reset and CPU input playback. | high |
 | `pitching_practice.c` | `rep_1C18` + unassigned `.text` | 14 (4) | 4,608 | Pitching practice ball control and state machine. | med |
 | `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
-| `practice_menu.c` | `rep_1BC8` + unassigned `.text` | 11 (10) | 6,804 | Practice state reset, character loading, practice screen load, main/sub menu state handling. | med |
+| `practice_menu.c` | `rep_1BC8` (second half) + unassigned `.text` | 9 (8) | 5,288 | Practice main/sub menu state handling, character-select menu and its cursor update, menu screen switching. Owns the three jump tables at `.data 0x10A30-0x10A90`. | med |
+| `practice_simulation.c` | `rep_1BC8` (first half) + unassigned `.text` | 12 (11) | 3,684 | Practice per-frame simulation dispatcher, practice screen load, roster/character loading, state-transition helpers. Owns `rep_1BC8`'s `.rodata` and the jump table at `.data 0x10A08` (plus the 4-byte linker pad). | med |
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
 ## data_only/ — 11 files, 11 fns (0 named)

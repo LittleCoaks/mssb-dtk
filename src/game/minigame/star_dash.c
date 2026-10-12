@@ -64,13 +64,13 @@ extern VecXZ base_MoundCoordinates[5];
 extern f32 sD_stunPushFactors[2];
 extern VecXZ sD_fielderStartPositions[4];
 extern void fn_800115C8(s8 player);
-extern void fn_3_14E988(int player);
-extern void fn_3_150010(s8 player);
-extern void fn_3_169600(void);
+extern void starDash_stopSparks(int player);
+extern void starDash_startSparks(s8 player);
+extern void kinoko_initPulseTextures(void);
 extern void fn_3_106EB0(void);
 extern void minigameQueueHudEvent(int a, int b);
-extern void fn_3_14E894(void);
-extern void fn_3_157570(void);
+extern void starDash_stopAllSparks(void);
+extern void minigameTrail_finish(void);
 extern void fn_80011578(void);
 extern void fn_80011604(void* model, void (*cb)(void*, GXTevStageID*, GXTexCoordID*, GXTexMapID*, s8*, s8*));
 extern u8 lbl_800EFBA4[0x10];
@@ -83,8 +83,8 @@ extern void starMissionsMinigamesSpecialAction(int missionType, int points, int 
 extern s16 lbl_3_common_bss_37400[];
 extern f32 lbl_3_data_21A14[6];
 extern s16 sD_starTimings[6];
-extern void fn_3_1695A4(s8 charID, u8 alt);
-extern void fn_3_16C394(s8 charID);
+extern void kinoko_startPulseGlow(s8 charID, u8 alt);
+extern void kinoko_startRibbon(s8 charID);
 extern f32 sD_powerupConsts[6];
 extern f32 lbl_3_data_21A64[9];
 extern s16 lbl_3_data_21A04[8];
@@ -101,8 +101,8 @@ extern f32 sD_aiHolderChaseRadii[4];
 extern f32 sD_aiThwompAvoidRadii[4];
 extern f32 sD_aiPowerup1Radii[4];
 extern f32 sD_aiCoinBagRadii[4];
-extern void fn_3_156548(int index, f32 x, f32 y, f32 z);
-extern void fn_3_15730C(int index, f32 x, f32 y, f32 z);
+extern void starDash_drawFireBarTrail(int index, f32 x, f32 y, f32 z);
+extern void minigameTrail_setPoint(int index, f32 x, f32 y, f32 z);
 
 typedef struct {
     f32 nx;
@@ -378,7 +378,7 @@ void sD_LoadGame(void) {
         g_Minigame.powerup.activeInd = 0;
         g_Minigame.playerIDWithPowerup[0] = -1;
         sD_InitPulseTexture();
-        fn_3_169600();
+        kinoko_initPulseTextures();
         minigamesSetSomePointers();
         minigamesGXStuff();
         minigamesSetSomePointers2();
@@ -421,7 +421,7 @@ void sD_StartPlay(void) {
 void sD_Postgame(void) {
     u32 i;
 
-    fn_3_157570();
+    minigameTrail_finish();
     minigameCalculateRankings();
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
     fn_80011578();
@@ -476,7 +476,7 @@ void sD_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 1) {
         g_Minigame.turnOverStatus = 2;
         g_GameLogic.CountdownUntilFade = lbl_3_data_21B20[0];
-        fn_3_14E894();
+        starDash_stopAllSparks();
     }
     if (--g_GameLogic.CountdownUntilFade == 7) {
         changeScene(3, 6);
@@ -561,7 +561,7 @@ void sD_UpdateStarAndHolder(void) {
     }
     if ((s8)g_Minigame.starDashStarHolder >= 0) {
         if (--SD.holderFrames < 0 || g_Minigame.turnOverStatus != 0) {
-            fn_3_14E988(g_Minigame.starDashStarHolder);
+            starDash_stopSparks(g_Minigame.starDashStarHolder);
             fn_800115C8(SD.holder);
             SD.holder = -1;
         }
@@ -580,7 +580,7 @@ void sD_UpdateStarSpawn(void) {
             SD.starActive = TRUE;
             SD.starFrames = 0;
             SD.starSpawnTimer = sD_starTimings[2];
-            fn_3_150010(4);
+            starDash_startSparks(4);
             fn_3_106EB0();
         }
     }
@@ -630,7 +630,7 @@ void sD_UpdateStar(void) {
         SD.starActive = FALSE;
     } else if (SD.starFrames > sD_starTimings[0]) {
         SD.starActive = FALSE;
-        fn_3_14E988(4);
+        starDash_stopSparks(4);
     } else {
         probe.src.x = SD.starPos.x;
         probe.src.y = -(lbl_3_data_21A14[2] * 0.5f);
@@ -677,14 +677,14 @@ void sD_UpdateStar(void) {
             SD.starActive = FALSE;
             g_Minigame.starDashStarHolder = best;
             SD.holderFrames = sD_starTimings[1];
-            fn_3_14E988(4);
+            starDash_stopSparks(4);
             if (g_Minigame.playerIDWithPowerup[0] == best) {
                 fn_800115C8(best);
                 if (SD.factor == &sD_powerupConsts[5]) {
                     g_Minigame.playerIDWithPowerup[0] = -1;
                 }
             }
-            fn_3_150010(best);
+            starDash_startSparks(best);
             fn_80011604((void*)(s32)(s8)best, sD_PulseTevCallback);
             if (g_d_GameSettings.exhibitionMatchInd == 0 && best == lbl_3_common_bss_37400[0x20]) {
                 starMissionsMinigamesSpecialAction(3, 0, 0);
@@ -1645,17 +1645,17 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
         g_Minigame.powerupHoldFrames = sD_powerupTimers[2];
         if (g_Minigame.powerup.activeInd == 2) {
             if ((s8)g_Minigame.starDashStarHolder == best) {
-                fn_3_14E988(g_Minigame.starDashStarHolder);
+                starDash_stopSparks(g_Minigame.starDashStarHolder);
                 fn_800115C8(best);
                 SD.holder = -1;
             }
             SD.factor = &sD_powerupConsts[5];
             callSfx(0x2F5);
-            fn_3_1695A4(best, 0);
+            kinoko_startPulseGlow(best, 0);
         } else {
             SD.factor = &sD_powerupConsts[4];
             callSfx(0x2F6);
-            fn_3_16C394(best);
+            kinoko_startRibbon(best);
         }
         powerup->activeInd = 0;
         powerup->timer = sD_powerupTimers[0];
@@ -1897,9 +1897,9 @@ void sD_UpdateFireBars(void) {
             } else {
                 d -= stepLen;
                 if (SD.fireBarFlame[idx].active) {
-                    fn_3_156548(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
+                    starDash_drawFireBarTrail(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
                 } else {
-                    fn_3_15730C(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
+                    minigameTrail_setPoint(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
                     SD.fireBarFlame[idx].active = TRUE;
                 }
             }
