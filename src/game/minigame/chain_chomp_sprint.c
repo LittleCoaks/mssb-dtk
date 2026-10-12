@@ -44,12 +44,12 @@ extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_106EB0(void);
 extern void minigameCalculateRankings(void);
 extern void minigameHudCcsSyncDisplayedPoints(void);
-extern void fn_3_14C904(void);
-extern void fn_3_151798(void);
-extern void fn_3_152AB4(u8 coin, u8 runner);
-extern void fn_3_1541C4(u8 coin, u8 type, VecXYZ* pos);
+extern void chainChomp_spawnLaunchFlash(void);
+extern void chainChomp_stopItemSparkles(void);
+extern void chainChomp_flyItemSparklesToScore(u8 coin, u8 runner);
+extern void chainChomp_spawnItemSparkle(u8 coin, u8 type, VecXYZ* pos);
 extern void chainChomp_spawnTrailEffect(s32 duration);
-extern void fn_3_1578F8(void);
+extern void chainChomp_stopTrailEffect(void);
 extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
 extern u8 lbl_800EFBA4[];
@@ -343,7 +343,7 @@ void fn_3_140BCC(void) {
         if (g_Minigame.minigameFramesRemaining == 0) {
             minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
-            fn_3_151798();
+            chainChomp_stopItemSparkles();
             minigameHudCcsSyncDisplayedPoints();
             fn_80011578();
             g_Minigame.powerup.activeInd = FALSE;
@@ -359,7 +359,7 @@ void fn_3_140BCC(void) {
         }
         if (g_GameLogic.CountdownUntilFade == 7) {
             changeScene(3, 6);
-            fn_3_1578F8();
+            chainChomp_stopTrailEffect();
         }
         if (g_GameLogic.CountdownUntilFade <= 0) {
             fn_3_1409AC();
@@ -460,7 +460,7 @@ void fn_3_1405D8(void) {
             g_Minigame.ccs.chompState = 1;
             g_Minigame.ccs.chompStateTimer = 0;
             g_Minigame.ccs.chompVelocity.y = lbl_3_data_218BC[3];
-            fn_3_14C904();
+            chainChomp_spawnLaunchFlash();
             callSfx(0x2E0);
         }
     }
@@ -898,7 +898,7 @@ void fn_3_13EC44(int item) {
                 g_Minigame.coinBasePathPos[coin] = (f32)pos / 100.0f;
                 g_Minigame.coinFrameCounter[coin] = 0;
                 fn_3_7FED4((VecXYZ*)&g_Minigame.coinPos[coin], g_Minigame.coinBasePathPos[coin], (f32)(pos % 100) / 100.0f);
-                fn_3_1541C4(coin, *state, &g_Minigame.coinPos[coin]);
+                chainChomp_spawnItemSparkle(coin, *state, &g_Minigame.coinPos[coin]);
                 break;
             }
         }
@@ -933,7 +933,7 @@ void chainChompSpringPoints(void) {
                 int who = candidates[RandomInt_Game(count)];
                 g_Minigame.miniGameCurrentPoints[g_Minigame.playerSlots.runnerPlayerIndex[who]] += ccs_itemGemCounts[type].points;
                 g_Minigame.coinState[coin] += 100;
-                fn_3_152AB4(coin, who);
+                chainChomp_flyItemSparklesToScore(coin, who);
                 if (type == 2) {
                     callSfx(0x2EA);
                     playCharacterSound(g_Runners[who].charID, 0);

@@ -818,11 +818,11 @@ extern f32 ccs_coinPhysicsConsts[];
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
-extern void fn_3_14DC80(s8 slot);
-extern void fn_3_14CB28(s8 slot);
-extern void fn_3_151710(void* modelObj, VecXYZ* pos);
-extern void fn_3_15521C(s16 idx, VecXYZ* pos, VecXYZ* rot);
-extern void fn_3_14B9A0(int frames, f32* pos);
+extern void barrelBatter_spawnBarrelExplosion(s8 slot);
+extern void barrelBatter_releaseBarrelExplosion(s8 slot);
+extern void wallBall_spawnNoteBlockBurst(void* modelObj, VecXYZ* pos);
+extern void bobOmbFuseSpark_spawnFollow(s16 idx, VecXYZ* pos, VecXYZ* rot);
+extern void barrelBatter_spawnMachineSparks(int frames, f32* pos);
 extern void barrelBatterRel(VecXYZ* pos);
 extern void fn_80062C24(VecXYZ* pos);
 
@@ -854,7 +854,7 @@ typedef struct {
 #define PM_WALL_SIZE 0x2C
 #define PM_WALL(i) ((MaybeWallBallStruct*)((u8*)&g_Minigame + 0x72C + (i) * PM_WALL_SIZE))
 
-extern void fn_3_14C348(MaybeWallBallStruct* wall, u8 flag);
+extern void wallBall_spawnWallHitPuff(MaybeWallBallStruct* wall, u8 flag);
 extern void fn_3_1666B0(MaybeWallBallStruct* wall);
 
 static f32 lbl_3_bss_B6BC;
@@ -1754,7 +1754,7 @@ void mm_PlacePitchingMachine(PMEffect* fx, int idx) {
         } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
             if (g_Pitcher.currentStateFrameCounter == 1) {
                 if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH) {
-                    fn_3_14B9A0(bOD_bB_frameConsts[6] + bOD_bB_frameConsts[7], mm_machinePos);
+                    barrelBatter_spawnMachineSparks(bOD_bB_frameConsts[6] + bOD_bB_frameConsts[7], mm_machinePos);
                     callSfx(0x30E);
                 } else if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
                     v.x = bOD_bB_pitchBallPos.x;
@@ -1798,7 +1798,7 @@ void mm_UpdateWallBallBlocks(void) {
                     v.y = g_Ball.AtBat_Contact_BallPos.y;
                     v.z = wall->zPositionOfSomeWall;
                     mm_StartWallAnim(idx, 3);
-                    fn_3_151710(PM_MODEL(idx), &v);
+                    wallBall_spawnNoteBlockBurst(PM_MODEL(idx), &v);
                     callSfx(0x2EB);
                 } else {
                     mm_StartWallAnim(idx, 2);
@@ -1813,7 +1813,7 @@ void mm_UpdateWallBallBlocks(void) {
                 }
                 callSfx(0x2FF);
             }
-            fn_3_14C348(wall, flag);
+            wallBall_spawnWallHitPuff(wall, flag);
             if (flag) {
                 wall->_28 = 0;
                 continue;
@@ -1962,7 +1962,7 @@ void mm_UpdateBarrels(void) {
                 e = shadow;
                 if (barrel->animationCounter == 0) {
                     mm_StartBarrelAnim(0x10 + i);
-                    fn_3_14DC80(i);
+                    barrelBatter_spawnBarrelExplosion(i);
                     callSfx(0x2E3);
                 }
                 {
@@ -1983,7 +1983,7 @@ void mm_UpdateBarrels(void) {
                             shadow->visible = FALSE;
                             continue;
                         } else if (t == 0) {
-                            fn_3_14CB28(i);
+                            barrelBatter_releaseBarrelExplosion(i);
                         }
                     }
                 }
@@ -2263,7 +2263,7 @@ void mm_UpdatePiranhaBalls(void) {
                     }
                 }
                 if (PP.ballKind[i] == 5 && PP.ballFrames[i] == 1) {
-                    fn_3_15521C(i, &a->pos, &a->rot);
+                    bobOmbFuseSpark_spawnFollow(i, &a->pos, &a->rot);
                 }
                 if (PP.ballKind[i] == 5) {
                     a->update = mm_AttachPulseTexture;

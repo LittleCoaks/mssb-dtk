@@ -153,7 +153,7 @@ static inline void mgInitFollowParticle(MGFollowParticle* p) {
     rot.x = 57.29578f * p->rot->x;
     rot.y = 57.29578f * p->rot->y;
     rot.z = 57.29578f * p->rot->z;
-    fn_3_1559E4((MGParticle*)p, p->pos, &rot);
+    bobOmbFuseSpark_placeParticle((MGParticle*)p, p->pos, &rot);
 }
 
 static inline void mgInitHitParticle(MGParticle* p) {
@@ -162,7 +162,7 @@ static inline void mgInitHitParticle(MGParticle* p) {
     rot.x = 57.29578f * shortAngleToRad(g_Ball.matchFramesAndBallAngle.ballSpinAngle.yaw);
     rot.y = 57.29578f * shortAngleToRad(g_Ball.matchFramesAndBallAngle.ballSpinAngle.pitch);
     rot.z = 57.29578f * shortAngleToRad(g_Ball.matchFramesAndBallAngle.ballSpinAngle.roll);
-    fn_3_1559E4(p, (Vec*)&g_Ball.AtBat_Contact_BallPos, &rot);
+    bobOmbFuseSpark_placeParticle(p, (Vec*)&g_Ball.AtBat_Contact_BallPos, &rot);
 }
 
 /* Entry `slot` of the texture-id table at the pointer stored in animRelated[table]: each id selects a
@@ -248,7 +248,7 @@ static inline void mgBarrelSparksSetup(MGEffect* effect, int barrelIndex) {
                 p->_4D = lbl_3_data_26D00[0];
                 p->_38 = p->_3C = (f32)lbl_3_data_26D00[4];
                 p->alphaByte = lbl_3_data_26D00[7];
-                fn_3_14D318(p);
+                barrelBatter_placeExplosionFlash(p);
                 p->_4A = lbl_3_data_26D00[17];
                 p->_48 = 0;
             } else {
@@ -363,7 +363,7 @@ static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
 // .text:0x157DB8 size:0x70
 // Spawns the trail effect that follows the chomp; it lives for `duration` frames.
 void chainChomp_spawnTrailEffect(s32 duration) {
-    MGEffect* effect = allocParticleEffect(fn_3_157AC4, 0x80, 0, 1, 1, 0x16);
+    MGEffect* effect = allocParticleEffect(chainChomp_updateTrailEffect, 0x80, 0, 1, 1, 0x16);
 
     if (effect != NULL) {
         effect->frame = 0;
@@ -374,7 +374,7 @@ void chainChomp_spawnTrailEffect(s32 duration) {
 }
 
 // .text:0x157AC4 size:0x2F4
-int fn_3_157AC4(MGEffect* effect) {
+int chainChomp_updateTrailEffect(MGEffect* effect) {
     MGParticle* p = effect->particles;
     Vec offset = { 2.775f, -6.975f, 0.0f };
     Mtx rot;
@@ -382,7 +382,7 @@ int fn_3_157AC4(MGEffect* effect) {
 
     PSMTXRotRad(rot, 'Y', shortAngleToRad(g_Minigame.ccs.chompYaw));
     PSMTXMultVec(rot, &offset, &offset);
-    scale = fn_3_15791C(effect->frame);
+    scale = chainChomp_trailScale(effect->frame);
     p->_3C = scale;
     p->_38 = scale;
     p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + p->_38 * lbl_3_data_266A8.trailScale[0];
@@ -403,7 +403,7 @@ int fn_3_157AC4(MGEffect* effect) {
 }
 
 // .text:0x15791C size:0x1A8
-f32 fn_3_15791C(s32 frame) {
+f32 chainChomp_trailScale(s32 frame) {
     s32 shifted = frame + 0x30;
     s32 cycles = shifted / 0x78;
     s32 phase = shifted % 0x78;
@@ -428,12 +428,12 @@ f32 fn_3_15791C(s32 frame) {
 }
 
 // .text:0x1578F8 size:0x24
-void fn_3_1578F8(void) {
+void chainChomp_stopTrailEffect(void) {
     pitchingMachinePitching(0x16);
 }
 
 // .text:0x15767C size:0x27C
-void fn_3_15767C(void) {
+void piranhaPanic_updateSpitTrailEffect(void) {
     MGFxData* data = (MGFxData*)&lbl_3_data_266A8;
     MGFxSlot* slot0 = &data->slotsA[0];
     MGFxSlot* slot1 = &data->slotsA[1];
@@ -453,7 +453,7 @@ void fn_3_15767C(void) {
                 target.x = obj->pos.x;
                 target.y = -obj->pos.y;
                 target.z = obj->pos.z;
-                point = fn_3_1575F0(i);
+                point = minigameTrail_getPoint(i);
                 PSVECSubtract(point, &target, &dir);
                 if (0.0f != PSVECMag(&dir)) {
                     s32 kind = obj->_1C;
@@ -485,7 +485,7 @@ void fn_3_15767C(void) {
 }
 
 // .text:0x1575F0 size:0x8C
-Vec* fn_3_1575F0(u32 index) {
+Vec* minigameTrail_getPoint(u32 index) {
     MGTrailNode* node;
 
     if (lbl_3_bss_B850 != NULL) {
@@ -500,18 +500,18 @@ Vec* fn_3_1575F0(u32 index) {
 }
 
 // .text:0x157588 size:0x68
-void fn_3_157588(int count) {
-    lbl_3_bss_B850 = allocParticleEffect(fn_3_15767C, 0x80, 0, (count + 6) / 7, TRUE, 0x28);
+void minigameTrail_alloc(int count) {
+    lbl_3_bss_B850 = allocParticleEffect(piranhaPanic_updateSpitTrailEffect, 0x80, 0, (count + 6) / 7, TRUE, 0x28);
     lbl_3_bss_B850->done = FALSE;
 }
 
 // .text:0x157570 size:0x18
-void fn_3_157570(void) {
+void minigameTrail_finish(void) {
     lbl_3_bss_B850->done = TRUE;
 }
 
 // .text:0x1573AC size:0x1C4
-void fn_3_1573AC(MGFxActor* actor) {
+void piranhaPanic_emitFielderHitFire(MGFxActor* actor) {
     MGFxData* data = (MGFxData*)&lbl_3_data_266A8;
     Vec offset;
     Vec dir;
@@ -542,8 +542,8 @@ void fn_3_1573AC(MGFxActor* actor) {
 }
 
 // .text:0x15730C size:0xA0
-void fn_3_15730C(u32 index, f32 x, f32 y, f32 z) {
-    Vec* point = fn_3_1575F0(index);
+void minigameTrail_setPoint(u32 index, f32 x, f32 y, f32 z) {
+    Vec* point = minigameTrail_getPoint(index);
 
     if (point == NULL) {
         return;
@@ -554,7 +554,7 @@ void fn_3_15730C(u32 index, f32 x, f32 y, f32 z) {
 }
 
 // .text:0x156D04 size:0x608
-void fn_3_156D04(u32 index, f32 x, f32 y, f32 z) {
+void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
     MGFxData* data = (MGFxData*)&lbl_3_data_266A8;
     u32* colors = data->colors;
     s32 colorIndex = PP.object[index]._1C;
@@ -574,7 +574,7 @@ void fn_3_156D04(u32 index, f32 x, f32 y, f32 z) {
 
     inv = 1.0f / fn_80052768_getCamera(0)->zoom;
     fn_800B24D4(0xD);
-    point = fn_3_1575F0(index);
+    point = minigameTrail_getPoint(index);
     if (point != NULL) {
         C_MTXFrustum(proj, -0.175f * inv, 0.175f * inv, 0.25f * inv, -0.25f * inv, 1.0f, 512.0f);
         GXSetProjection(proj, GX_PERSPECTIVE);
@@ -621,7 +621,7 @@ void fn_3_156D04(u32 index, f32 x, f32 y, f32 z) {
                 quad[3].z = step.z;
                 GXSetBlendMode(GX_BM_SUBTRACT, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
                 if (lbl_3_bss_B858 != 0) {
-                    fn_3_156970(quad, -1, (MGTexRecord*)MG_TEX_RECORD(0x68, 0));
+                    minigameTrail_drawQuad(quad, -1, (MGTexRecord*)MG_TEX_RECORD(0x68, 0));
                 }
                 if (i >= 4) {
                     g = (f32)(7 - i) * 0.25f + 1.0f;
@@ -638,7 +638,7 @@ void fn_3_156D04(u32 index, f32 x, f32 y, f32 z) {
                 quad[3].x = step.x + h;
                 quad[3].y = step.y - h;
                 GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
-                fn_3_156970(quad, colors[colorIndex], (MGTexRecord*)MG_TEX_RECORD(0x6C, i + 10));
+                minigameTrail_drawQuad(quad, colors[colorIndex], (MGTexRecord*)MG_TEX_RECORD(0x6C, i + 10));
                 break;
             }
         } while (i-- != 0);
@@ -646,7 +646,7 @@ void fn_3_156D04(u32 index, f32 x, f32 y, f32 z) {
 }
 
 // .text:0x156970 size:0x394
-void fn_3_156970(Vec* positions, u32 color, MGTexRecord* tex) {
+void minigameTrail_drawQuad(Vec* positions, u32 color, MGTexRecord* tex) {
     MGQuadVertex verts[4];
     Mtx identity;
     GXTexObj texObj;
@@ -710,7 +710,7 @@ void fn_3_156970(Vec* positions, u32 color, MGTexRecord* tex) {
 }
 
 // .text:0x156548 size:0x428
-void fn_3_156548(u32 index, f32 x, f32 y, f32 z) {
+void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
     Mtx44 proj;
     Vec screen;
     Vec step;
@@ -724,7 +724,7 @@ void fn_3_156548(u32 index, f32 x, f32 y, f32 z) {
 
     inv = 1.0f / fn_80052768_getCamera(0)->zoom;
     fn_800B24D4(0xD);
-    point = fn_3_1575F0(index);
+    point = minigameTrail_getPoint(index);
     if (point != NULL) {
         C_MTXFrustum(proj, -0.175f * inv, 0.175f * inv, 0.25f * inv, -0.25f * inv, 1.0f, 512.0f);
         fn_800B27DC(proj, 0);
@@ -788,21 +788,21 @@ void fn_3_156548(u32 index, f32 x, f32 y, f32 z) {
 // .text:0x156218 size:0x330
 void bODPitchAnimation(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
-        fn_3_155F08();
+        bobOmbFuseSpark_spawnAtPitch();
     }
 }
 
 // .text:0x155F08 size:0x310
-void fn_3_155F08(void) {
-    MGEffect* effect = allocParticleEffect(fn_3_1552AC, 0x80, 0, lbl_3_data_26BC0[1], TRUE, 0x1B);
+void bobOmbFuseSpark_spawnAtPitch(void) {
+    MGEffect* effect = allocParticleEffect(bobOmbFuseSpark_updateAtPitch, 0x80, 0, lbl_3_data_26BC0[1], TRUE, 0x1B);
 
     if (effect != NULL) {
-        fn_3_155C28(effect);
+        bobOmbFuseSpark_initAtPitch(effect);
     }
 }
 
 // .text:0x155C28 size:0x2E0
-void fn_3_155C28(MGEffect* effect) {
+void bobOmbFuseSpark_initAtPitch(MGEffect* effect) {
     MGParticle* p = effect->particles;
     u32 i = 0;
 
@@ -820,7 +820,7 @@ void fn_3_155C28(MGEffect* effect) {
 }
 
 // .text:0x1559E4 size:0x244
-void fn_3_1559E4(MGParticle* p, Vec* base, Vec* rot) {
+void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot) {
     Control ctrl;
     Mtx mtx;
     Vec offset;
@@ -850,7 +850,7 @@ void fn_3_1559E4(MGParticle* p, Vec* base, Vec* rot) {
 }
 
 // .text:0x1552AC size:0x738
-int fn_3_1552AC(MGEffect* effect) {
+int bobOmbFuseSpark_updateAtPitch(MGEffect* effect) {
     MGParticle* p;
 
     if (lbl_80366158[0x28] != 0) {
@@ -905,20 +905,20 @@ void bobOmbDerbyPitching(void) {
 }
 
 // .text:0x155264 size:0x24
-void fn_3_155264(void) {
+void bobOmbDerbyPitching2(void) {
     pitchingMachinePitching(0x1B);
 }
 
 // .text:0x15521C size:0x48
-void fn_3_15521C(s16 id, Vec* pos, Vec* rot) {
+void bobOmbFuseSpark_spawnFollow(s16 id, Vec* pos, Vec* rot) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES || pos == NULL || rot == NULL) {
         return;
     }
-    fn_3_154C7C(id, pos, rot);
+    bobOmbFuseSpark_spawnFollowEffect(id, pos, rot);
 }
 
 // .text:0x154C7C size:0x5A0
-void fn_3_154C7C(s16 id, Vec* pos, Vec* rot) {
+void bobOmbFuseSpark_spawnFollowEffect(s16 id, Vec* pos, Vec* rot) {
     MGEffect* existing = fn_800339F0(0, 0x27);
     MGEffect* fresh;
     u8 scratch[0x80];
@@ -928,7 +928,7 @@ void fn_3_154C7C(s16 id, Vec* pos, Vec* rot) {
         if (fresh != NULL) {
             MGParticle* tail;
 
-            fn_3_1549F0(fresh, id, pos, rot);
+            bobOmbFuseSpark_initFollow(fresh, id, pos, rot);
             if (existing->particles != NULL) {
                 tail = existing->particles;
                 while (tail->next != NULL) {
@@ -941,15 +941,15 @@ void fn_3_154C7C(s16 id, Vec* pos, Vec* rot) {
             existing->count += fresh->count;
         }
     } else {
-        fresh = allocParticleEffect(fn_3_1542F4, 0x80, 0, lbl_3_data_26BC0[1], TRUE, 0x27);
+        fresh = allocParticleEffect(bobOmbFuseSpark_updateFollow, 0x80, 0, lbl_3_data_26BC0[1], TRUE, 0x27);
         if (fresh != NULL) {
-            fn_3_1549F0(fresh, id, pos, rot);
+            bobOmbFuseSpark_initFollow(fresh, id, pos, rot);
         }
     }
 }
 
 // .text:0x1549F0 size:0x28C
-void fn_3_1549F0(MGEffect* effect, s16 id, Vec* pos, Vec* rot) {
+void bobOmbFuseSpark_initFollow(MGEffect* effect, s16 id, Vec* pos, Vec* rot) {
     MGFollowParticle* p = (MGFollowParticle*)effect->particles;
     u32 i = 0;
 
@@ -963,14 +963,14 @@ void fn_3_1549F0(MGEffect* effect, s16 id, Vec* pos, Vec* rot) {
         p->_4D = lbl_3_data_26BC0[0];
         p->_4E = 0;
         if (p->_48 == 0) {
-            fn_3_1559E4((MGParticle*)p, pos, rot);
+            bobOmbFuseSpark_placeParticle((MGParticle*)p, pos, rot);
         }
         p = (MGFollowParticle*)p->next;
     } while (p != NULL);
 }
 
 // .text:0x1542F4 size:0x6FC
-int fn_3_1542F4(MGEffect* effect) {
+int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
     MGFollowParticle* p;
 
     if (lbl_80366158[0x28] != 0) {
@@ -1023,7 +1023,7 @@ int fn_3_1542F4(MGEffect* effect) {
 }
 
 // .text:0x154238 size:0xBC
-void fn_3_154238(s16 id) {
+void bobOmbFuseSpark_removeFollow(s16 id) {
     MGEffect* effect = fn_800339F0(0, 0x27);
     MGParticle* p;
     MGParticle** link;
@@ -1058,34 +1058,34 @@ void fn_3_154238(s16 id) {
 }
 
 // .text:0x154214 size:0x24
-void fn_3_154214(void) {
+void bobOmbFuseSpark_stopFollow(void) {
     pitchingMachinePitching(0x27);
 }
 
 // .text:0x1541C4 size:0x50
-void fn_3_1541C4(u8 kind, u8 mode, Vec* pos) {
+void chainChomp_spawnItemSparkle(u8 kind, u8 mode, Vec* pos) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_CHAINCHOMP_SPRINT &&
         pos != NULL) {
-        fn_3_1540E4(kind, mode, pos);
+        chainChomp_spawnItemSparkleEffect(kind, mode, pos);
     }
 }
 
 // .text:0x1540E4 size:0xE0
 #pragma dont_inline on
-void fn_3_1540E4(u8 kind, u8 mode, Vec* pos) {
+void chainChomp_spawnItemSparkleEffect(u8 kind, u8 mode, Vec* pos) {
     MGEffect* effect = fn_800339F0(0, 0x1C);
     MGParticle* p;
     if (effect != NULL) {
-        fn_3_153F8C(effect, kind, mode, pos);
+        chainChomp_initItemSparkleParticles(effect, kind, mode, pos);
     } else {
-        effect = allocParticleEffect(fn_3_151F2C, 0x80, 0, lbl_3_data_26BDC[0] * 15, TRUE, 0x1C);
+        effect = allocParticleEffect(chainChomp_updateItemSparkles, 0x80, 0, lbl_3_data_26BDC[0] * 15, TRUE, 0x1C);
         if (effect != NULL) {
             for (p = effect->particles; p != NULL; p = p->next) {
                 p->_4A = 0;
                 p->_4C = 0;
                 p->_4F = 0xFF;
             }
-            fn_3_153F8C(effect, kind, mode, pos);
+            chainChomp_initItemSparkleParticles(effect, kind, mode, pos);
             memset(lbl_3_bss_B894, 0, 0xF);
         }
     }
@@ -1094,7 +1094,7 @@ void fn_3_1540E4(u8 kind, u8 mode, Vec* pos) {
 
 // .text:0x153F8C size:0x158
 #pragma dont_inline on
-void fn_3_153F8C(MGEffect* effect, u8 kind, u8 mode, Vec* pos) {
+void chainChomp_initItemSparkleParticles(MGEffect* effect, u8 kind, u8 mode, Vec* pos) {
     MGParticle* p = effect->particles;
     u32 i = 0;
     u8 index;
@@ -1103,8 +1103,8 @@ void fn_3_153F8C(MGEffect* effect, u8 kind, u8 mode, Vec* pos) {
     do {
         if (p->_4A == 0) {
             index = i;
-            fn_3_153E8C(p, pos, kind, mode, index);
-            fn_3_1536A8(p, (index != 0) + 1);
+            chainChomp_initItemSparkleParticle(p, pos, kind, mode, index);
+            chainChomp_placeItemSparkleLayer(p, (index != 0) + 1);
             i++;
         }
         p = p->next;
@@ -1113,7 +1113,7 @@ void fn_3_153F8C(MGEffect* effect, u8 kind, u8 mode, Vec* pos) {
 #pragma dont_inline reset
 
 // .text:0x153E8C size:0x100
-void fn_3_153E8C(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
+void chainChomp_initItemSparkleParticle(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
     f32 scale;
 
     p->_48 = index * lbl_3_data_26BDC[3] / lbl_3_data_26BDC[0] + (index != 0) * lbl_3_data_26BEC[3];
@@ -1137,7 +1137,7 @@ void fn_3_153E8C(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
 static const Vec sFwdAxis = { 0.0f, 0.0f, -1.0f };
 
 // .text:0x1536A8 size:0x7E4
-void fn_3_1536A8(MGParticle* p, u8 kind) {
+void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
     MGFxData* data = (MGFxData*)&lbl_3_data_266A8;
 
     switch (kind) {
@@ -1283,8 +1283,8 @@ void fn_3_1536A8(MGParticle* p, u8 kind) {
 }
 
 // .text:0x1534C0 size:0x1E8
-void fn_3_1534C0(MGParticle* p) {
-    fn_3_1524E8(p, FALSE);
+void chainChomp_initItemSparkleLayer1(MGParticle* p) {
+    chainChomp_placeItemSparkle(p, FALSE);
     p->_3C = p->_38 = (f32)lbl_3_data_26BEC[0];
     p->_4C = 1;
     p->_4A = lbl_3_data_26BEC[3];
@@ -1293,8 +1293,8 @@ void fn_3_1534C0(MGParticle* p) {
 }
 
 // .text:0x1531A4 size:0x31C
-void fn_3_1531A4(MGParticle* p) {
-    fn_3_1524E8(p, TRUE);
+void chainChomp_initItemSparkleLayer2(MGParticle* p) {
+    chainChomp_placeItemSparkle(p, TRUE);
     p->_3C = p->_38 = (f32)lbl_3_data_26BFC[0];
     p->_4C = 2;
     p->_4A = lbl_3_data_26BFC[3];
@@ -1303,7 +1303,7 @@ void fn_3_1531A4(MGParticle* p) {
 }
 
 // .text:0x152AB4 size:0x6F0
-void fn_3_152AB4(u8 id, u8 flag) {
+void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
     MGParticle* p;
     MGEffect* effect;
     f32* cornerY;
@@ -1327,7 +1327,7 @@ void fn_3_152AB4(u8 id, u8 flag) {
                 if (p->_4F == id && p->_4A != 0) {
                     p->_48 = 0;
                     p->_4F = 0xFF;
-                    fn_3_1524E8(p, TRUE);
+                    chainChomp_placeItemSparkle(p, TRUE);
                     cam = returnFloatFromModeIndex(returnsCurrentMode());
                     world.x = p->origin.x;
                     world.y = p->origin.y;
@@ -1386,8 +1386,8 @@ void fn_3_152AB4(u8 id, u8 flag) {
 }
 
 // .text:0x152794 size:0x320
-void fn_3_152794(MGParticle* p) {
-    fn_3_1524E8(p, TRUE);
+void chainChomp_initItemSparkleFly(MGParticle* p) {
+    chainChomp_placeItemSparkle(p, TRUE);
     p->_3C = p->_38 = (f32)lbl_3_data_26C0C[0];
     p->_4C = 3;
     p->_4A = lbl_3_data_26C0C[3];
@@ -1396,7 +1396,7 @@ void fn_3_152794(MGParticle* p) {
 }
 
 // .text:0x1524E8 size:0x2AC
-void fn_3_1524E8(MGParticle* p, u8 randomize) {
+void chainChomp_placeItemSparkle(MGParticle* p, u8 randomize) {
     camera_803c639c_s* cam = returnFloatFromModeIndex(returnsCurrentMode());
     f32 scale;
     Mtx rotMtx;
@@ -1439,7 +1439,7 @@ void fn_3_1524E8(MGParticle* p, u8 randomize) {
 }
 
 // .text:0x151F2C size:0x5BC
-int fn_3_151F2C(MGEffect* effect) {
+int chainChomp_updateItemSparkles(MGEffect* effect) {
     MGFxData* data = (MGFxData*)&lbl_3_data_266A8;
     MGParticle* p;
     f32 scale;
@@ -1464,20 +1464,20 @@ int fn_3_151F2C(MGEffect* effect) {
             }
             switch (p->_4C) {
             case 1:
-                fn_3_151D6C(effect, p);
+                chainChomp_updateItemSparkleLayer1(effect, p);
                 break;
             case 2:
-                fn_3_151BAC(effect, p);
+                chainChomp_updateItemSparkleLayer2(effect, p);
                 break;
             case 3:
-                fn_3_1519F8(effect, p);
+                chainChomp_updateItemSparkleFly(effect, p);
                 break;
             }
         } else if (p->_48 != 0) {
             p->_48--;
         }
         if (p->_4A == 0 && (p->_4C == 1 || p->_4C == 2)) {
-            fn_3_1536A8(p, 2);
+            chainChomp_placeItemSparkleLayer(p, 2);
         }
         p = p->next;
     } while (p != NULL);
@@ -1485,7 +1485,7 @@ int fn_3_151F2C(MGEffect* effect) {
 }
 
 // .text:0x151D6C size:0x1C0
-void fn_3_151D6C(MGEffect* effect, MGParticle* p) {
+void chainChomp_updateItemSparkleLayer1(MGEffect* effect, MGParticle* p) {
     s32 duration;
     s32 alpha;
     s32 alphaStep;
@@ -1522,7 +1522,7 @@ void fn_3_151D6C(MGEffect* effect, MGParticle* p) {
 }
 
 // .text:0x151BAC size:0x1C0
-void fn_3_151BAC(MGEffect* effect, MGParticle* p) {
+void chainChomp_updateItemSparkleLayer2(MGEffect* effect, MGParticle* p) {
     s32 duration;
     s32 alpha;
     s32 alphaStep;
@@ -1559,13 +1559,13 @@ void fn_3_151BAC(MGEffect* effect, MGParticle* p) {
 }
 
 // .text:0x1519F8 size:0x1B4
-void fn_3_1519F8(MGEffect* effect, MGParticle* p) {
+void chainChomp_updateItemSparkleFly(MGEffect* effect, MGParticle* p) {
     Vec dir;
     Vec unit;
     Vec target;
     f32 dist;
 
-    fn_3_1517D0(p, effect);
+    chainChomp_drawItemSparkleOnHud(p, effect);
     if (lbl_80366158[0x28] == 0) {
         PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
         memcpy(&dir, &p->origin, sizeof(Vec));
@@ -1591,7 +1591,7 @@ void fn_3_1519F8(MGEffect* effect, MGParticle* p) {
 }
 
 // .text:0x1517D0 size:0x228
-void fn_3_1517D0(MGParticle* p, MGEffect* effect) {
+void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     Mtx mtx;
     Mtx44 proj;
     f32 corner[4][3];
@@ -1645,37 +1645,37 @@ void fn_3_1517D0(MGParticle* p, MGEffect* effect) {
 }
 
 // .text:0x151798 size:0x38
-void fn_3_151798(void) {
+void chainChomp_stopItemSparkles(void) {
     memset(lbl_3_bss_B894, 0, 0xF);
     pitchingMachinePitching(0x1C);
 }
 
 // .text:0x151760 size:0x38
-void fn_3_151760(void) {
+void chainChomp_stopItemSparkles2(void) {
     memset(lbl_3_bss_B894, 0, 0xF);
     pitchingMachinePitching(0x1C);
 }
 
 // .text:0x151710 size:0x50
-void fn_3_151710(MGWeatherCtx* ctx, Vec* pos) {
+void wallBall_spawnNoteBlockBurst(MGWeatherCtx* ctx, Vec* pos) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL &&
         ctx != NULL) {
-        fn_3_151694(ctx, pos);
+        wallBall_spawnNoteBlockBurstEffect(ctx, pos);
     }
 }
 
 // .text:0x151694 size:0x7C
-void fn_3_151694(MGWeatherCtx* ctx, Vec* pos) {
+void wallBall_spawnNoteBlockBurstEffect(MGWeatherCtx* ctx, Vec* pos) {
     MGWeatherEffect* effect =
-        allocParticleEffect(fn_3_150940, 0x80, 0, lbl_3_data_26C3C[1] + lbl_3_data_26C3C[9], TRUE, 0x1D);
+        allocParticleEffect(wallBall_updateNoteBlockBurst, 0x80, 0, lbl_3_data_26C3C[1] + lbl_3_data_26C3C[9], TRUE, 0x1D);
 
     if (effect != NULL) {
-        fn_3_151204(effect, ctx, pos);
+        wallBall_initNoteBlockBurst(effect, ctx, pos);
     }
 }
 
 // .text:0x151204 size:0x490
-void fn_3_151204(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec* pos) {
+void wallBall_initNoteBlockBurst(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec* pos) {
     MGParticle* p;
     u32 snowCount = 0;
     u32 rainCount = 0;
@@ -1691,13 +1691,13 @@ void fn_3_151204(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec* pos) {
             p->_4C = 1;
             p->_4A = lbl_3_data_26C3C[6];
             if (p->_48 == 0) {
-                fn_3_151068(effect, p);
+                wallBall_placeNoteParticle(effect, p);
             }
         } else {
             p->_48 = rainCount++;
             p->_4D = lbl_3_data_26C3C[8];
             p->_4C = 2;
-            fn_3_150D84(effect, p);
+            wallBall_placeBounceParticle(effect, p);
         }
         p->_4E = 0;
         p = p->next;
@@ -1705,7 +1705,7 @@ void fn_3_151204(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec* pos) {
 }
 
 // .text:0x151068 size:0x19C
-void fn_3_151068(MGWeatherEffect* effect, MGParticle* p) {
+void wallBall_placeNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     Mtx mtx;
     MGActor* actor;
     f32 x;
@@ -1728,7 +1728,7 @@ void fn_3_151068(MGWeatherEffect* effect, MGParticle* p) {
 }
 
 // .text:0x150D84 size:0x2E4
-void fn_3_150D84(MGWeatherEffect* effect, MGParticle* p) {
+void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     f32 angle;
     f32 speed;
 
@@ -1748,7 +1748,7 @@ void fn_3_150D84(MGWeatherEffect* effect, MGParticle* p) {
 }
 
 // .text:0x150940 size:0x444
-int fn_3_150940(MGWeatherEffect* effect) {
+int wallBall_updateNoteBlockBurst(MGWeatherEffect* effect) {
     MGParticle* p;
 
     if (lbl_80366158[0x28] != 0) {
@@ -1764,9 +1764,9 @@ int fn_3_150940(MGWeatherEffect* effect) {
     do {
         if (p->_4A != 0) {
             if (p->_4C == 1) {
-                fn_3_1504EC(effect, p);
+                wallBall_updateNoteParticle(effect, p);
             } else if (p->_4C == 2) {
-                fn_3_150120(effect, p);
+                wallBall_updateBounceParticle(effect, p);
             }
         }
         p = p->next;
@@ -1775,7 +1775,7 @@ int fn_3_150940(MGWeatherEffect* effect) {
 }
 
 // .text:0x1504EC size:0x454
-void fn_3_1504EC(MGWeatherEffect* effect, MGParticle* p) {
+void wallBall_updateNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     s32 duration;
     s32 alpha;
     s32 alphaStep;
@@ -1784,7 +1784,7 @@ void fn_3_1504EC(MGWeatherEffect* effect, MGParticle* p) {
     if (p->_48 != 0) {
         p->_48--;
         if (p->_48 == 0) {
-            fn_3_151068(effect, p);
+            wallBall_placeNoteParticle(effect, p);
         }
         return;
     }
@@ -1810,12 +1810,12 @@ void fn_3_1504EC(MGWeatherEffect* effect, MGParticle* p) {
     p->_3C = p->_38;
     p->_4A--;
     if (p->_4A == 0) {
-        fn_3_151068(effect, p);
+        wallBall_placeNoteParticle(effect, p);
     }
 }
 
 // .text:0x150120 size:0x3CC
-void fn_3_150120(MGWeatherEffect* effect, MGParticle* p) {
+void wallBall_updateBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     if (p->_48 != 0) {
         p->_48--;
         return;
@@ -1831,7 +1831,7 @@ void fn_3_150120(MGWeatherEffect* effect, MGParticle* p) {
     }
     p->_4A--;
     if (p->_4A == 0) {
-        fn_3_150D84(effect, p);
+        wallBall_placeBounceParticle(effect, p);
     }
 }
 
@@ -1853,7 +1853,7 @@ void wallBall_updateSomePointers(void) {
 }
 
 // .text:0x150070 size:0x58
-void fn_3_150070(void) {
+void wallBall_updateSomePointers2(void) {
     MGEffect* effect = fn_800339F0(0, 0x1D);
     MGParticle* p;
 
@@ -1870,7 +1870,7 @@ void fn_3_150070(void) {
 }
 
 // .text:0x150010 size:0x60
-void fn_3_150010(s8 index) {
+void starDash_startSparks(s8 index) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
         return;
     }
@@ -1880,25 +1880,25 @@ void fn_3_150010(s8 index) {
     if (index > 4 || index < 0) {
         return;
     }
-    fn_3_14F930(index);
+    starDash_spawnSparksEffect(index);
 }
 
 // .text:0x14F930 size:0x6E0
-void fn_3_14F930(s8 index) {
+void starDash_spawnSparksEffect(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x1E);
     if (effect != NULL) {
         mgStarSparksSetup(effect, index);
     } else {
-        effect = allocParticleEffect(fn_3_14ED24, 0x80, 0, lbl_3_data_26C94[1], TRUE, 0x1E);
+        effect = allocParticleEffect(starDash_updateSparks, 0x80, 0, lbl_3_data_26C94[1], TRUE, 0x1E);
         if (effect != NULL) {
-            fn_3_14F8D0(effect);
+            starDash_initSparksEffect(effect);
             mgStarSparksSetup(effect, index);
         }
     }
 }
 
 // .text:0x14F8D0 size:0x60
-void fn_3_14F8D0(MGEffect* effect) {
+void starDash_initSparksEffect(MGEffect* effect) {
     MGParticle* p;
     u32 i = 0;
 
@@ -1915,19 +1915,19 @@ void fn_3_14F8D0(MGEffect* effect) {
 }
 
 // .text:0x14F5A4 size:0x32C
-void fn_3_14F5A4(MGEffect* effect, s8 index) {
+void starDash_setupSparks(MGEffect* effect, s8 index) {
     mgStarSparksSetup(effect, index);
 }
 
 // .text:0x14F544 size:0x60
-void fn_3_14F544(MGParticle* p) {
+void starDash_resetSparkParticle(MGParticle* p) {
     p->_4A = lbl_3_data_26C94[7];
     p->alphaByte = lbl_3_data_26C94[5];
     p->_38 = p->_3C = (f32)lbl_3_data_26C94[2] / 100000.0f;
 }
 
 // .text:0x14F3CC size:0x178
-void fn_3_14F3CC(MGParticle* p) {
+void starDash_randomizeSparkOrigin(MGParticle* p) {
     Vec v = { 0.0f, 0.0f, 0.0f };
     f32 yOffset;
     s16 rangeX;
@@ -1948,7 +1948,7 @@ void fn_3_14F3CC(MGParticle* p) {
 }
 
 // .text:0x14ED24 size:0x6A8
-int fn_3_14ED24(MGEffect* effect) {
+int starDash_updateSparks(MGEffect* effect) {
     MGParticle* p;
     s32 duration;
     s32 alpha;
@@ -2003,17 +2003,17 @@ int fn_3_14ED24(MGEffect* effect) {
 }
 
 // .text:0x14EAF4 size:0x230
-void fn_3_14EAF4(MGParticle* p) {
+void starDash_placeSparkParticle(MGParticle* p) {
     mgStarSparkPlace(p);
 }
 
 // .text:0x14E9F0 size:0x104
-void fn_3_14E9F0(MGParticle* p) {
+void starDash_offsetSparkToBone(MGParticle* p) {
     mgStarSparkOffset(p);
 }
 
 // .text:0x14E988 size:0x68
-void fn_3_14E988(s8 index) {
+void starDash_stopSparks(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x1E);
     MGParticle* p;
 
@@ -2029,7 +2029,7 @@ void fn_3_14E988(s8 index) {
 }
 
 // .text:0x14E920 size:0x68
-void fn_3_14E920(s8 index) {
+void starDash_stopSparks2(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x1E);
     MGParticle* p;
 
@@ -2045,7 +2045,7 @@ void fn_3_14E920(s8 index) {
 }
 
 // .text:0x14E894 size:0x8C
-void fn_3_14E894(void) {
+void starDash_stopAllSparks(void) {
     u32 i;
     s8 index;
     MGEffect* effect;
@@ -2068,25 +2068,25 @@ void fn_3_14E894(void) {
 }
 
 // .text:0x14E810 size:0x84
-void fn_3_14E810(void) {
+void starDash_stopAllSparks2(void) {
     u32 i;
 
     for (i = 0; i < 4; i++) {
-        fn_3_14E920(i);
+        starDash_stopSparks2(i);
     }
     pitchingMachinePitching(0x1E);
 }
 
 // .text:0x14E7C0 size:0x50
-void fn_3_14E7C0(MGEffect* arg) {
+void starDash_spawnDust(MGEffect* arg) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH &&
         arg != NULL) {
-        fn_3_14E234((Vec*)arg);
+        starDash_spawnDustEffect((Vec*)arg);
     }
 }
 
 // .text:0x14E234 size:0x58C
-void fn_3_14E234(Vec* pos) {
+void starDash_spawnDustEffect(Vec* pos) {
     MGEffect* existing = fn_800339F0(0, 0x1F);
     MGEffect* fresh;
     u8 scratch[0x80];
@@ -2105,7 +2105,7 @@ void fn_3_14E234(Vec* pos) {
             existing->count += fresh->count;
         }
     } else {
-        fresh = allocParticleEffect(fn_3_14DD04, 0x80, 0, lbl_3_data_26CD0[1], TRUE, 0x1F);
+        fresh = allocParticleEffect(starDash_updateDust, 0x80, 0, lbl_3_data_26CD0[1], TRUE, 0x1F);
         if (fresh != NULL) {
             mgStarDashDustInit(fresh, pos);
         }
@@ -2113,7 +2113,7 @@ void fn_3_14E234(Vec* pos) {
 }
 
 // .text:0x14DF6C size:0x2C8
-void fn_3_14DF6C(MGEffect* effect, Vec* pos) {
+void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
     MGParticle* p = effect->particles;
     f32 speed;
 
@@ -2139,7 +2139,7 @@ void fn_3_14DF6C(MGEffect* effect, Vec* pos) {
 }
 
 // .text:0x14DD04 size:0x268
-int fn_3_14DD04(MGEffect* effect) {
+int starDash_updateDust(MGEffect* effect) {
     MGParticle* p;
     MGParticle** link;
     MGParticle* removedTail = NULL;
@@ -2198,36 +2198,36 @@ int fn_3_14DD04(MGEffect* effect) {
 }
 
 // .text:0x14DCE0 size:0x24
-void fn_3_14DCE0(void) {
+void starDash_stopDust(void) {
     pitchingMachinePitching(0x1F);
 }
 
 // .text:0x14DC80 size:0x60
-void fn_3_14DC80(s8 index) {
+void barrelBatter_spawnBarrelExplosion(s8 index) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
         if (index < 15 && index >= 0) {
-            fn_3_14D710(index);
+            barrelBatter_spawnBarrelExplosionEffect(index);
         }
     }
 }
 
 // .text:0x14D710 size:0x570
-void fn_3_14D710(u8 index) {
+void barrelBatter_spawnBarrelExplosionEffect(u8 index) {
     MGEffect* effect = fn_800339F0(0, 0x20);
 
     if (effect != NULL) {
         mgBarrelSparksSetup(effect, index);
     } else {
-        effect = allocParticleEffect(fn_3_14CECC, 0xF0, 0, lbl_3_data_26D00[2], TRUE, 0x20);
+        effect = allocParticleEffect(barrelBatter_updateBarrelExplosion, 0xF0, 0, lbl_3_data_26D00[2], TRUE, 0x20);
         if (effect != NULL) {
-            fn_3_14D6D4(effect);
+            barrelBatter_initBarrelExplosion(effect);
             mgBarrelSparksSetup(effect, index);
         }
     }
 }
 
 // .text:0x14D6D4 size:0x3C
-void fn_3_14D6D4(MGEffect* effect) {
+void barrelBatter_initBarrelExplosion(MGEffect* effect) {
     MGParticle* p;
 
     effect->_10 = *(u32*)&animRelated[0x6C];
@@ -2243,12 +2243,12 @@ void fn_3_14D6D4(MGEffect* effect) {
 }
 
 // .text:0x14D44C size:0x288
-void fn_3_14D44C(MGEffect* effect, int barrelIndex) {
+void barrelBatter_setupBarrelExplosion(MGEffect* effect, int barrelIndex) {
     mgBarrelSparksSetup(effect, barrelIndex);
 }
 
 // .text:0x14D318 size:0x134
-void fn_3_14D318(MGParticle* p) {
+void barrelBatter_placeExplosionFlash(MGParticle* p) {
     Vec* barrel = (Vec*)&g_Minigame.barrels[p->_45];
 
     p->origin.x = barrel->x;
@@ -2259,7 +2259,7 @@ void fn_3_14D318(MGParticle* p) {
 }
 
 // .text:0x14D2C0 size:0x58
-void fn_3_14D2C0(MGParticle* p) {
+void barrelBatter_attachExplosionToBone(MGParticle* p) {
     MGActorList* list = *(MGActorList**)(*(u8**)&hugeAnimStruct[0x68] + (p->_45 + 0x10) * 0x90 + 0x34);
     MGActor* actor = list->actors[p->_46];
 
@@ -2269,7 +2269,7 @@ void fn_3_14D2C0(MGParticle* p) {
 }
 
 // .text:0x14CECC size:0x3F4
-int fn_3_14CECC(MGEffect* effect) {
+int barrelBatter_updateBarrelExplosion(MGEffect* effect) {
     MGParticle* p;
 
     if (lbl_80366158[0x28] != 0) {
@@ -2282,12 +2282,12 @@ int fn_3_14CECC(MGEffect* effect) {
         if (p->_44 != 0 && p->_4A != 0) {
             if (p->_48 <= 0) {
                 if (p->_44 == 1) {
-                    fn_3_14CD40(effect, p);
+                    barrelBatter_updateExplosionFlash(effect, p);
                 } else {
                     if (p->_48 == 0) {
-                        fn_3_14D2C0(p);
+                        barrelBatter_attachExplosionToBone(p);
                     }
-                    fn_3_14CBB4(effect, p);
+                    barrelBatter_updateExplosionEmber(effect, p);
                 }
                 p->_4A--;
                 if (p->_4A == 0) {
@@ -2305,7 +2305,7 @@ int fn_3_14CECC(MGEffect* effect) {
 }
 
 // .text:0x14CD40 size:0x18C
-void fn_3_14CD40(MGEffect* effect, MGParticle* p) {
+void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
     s32 duration;
     s32 range;
     s32 alpha;
@@ -2338,7 +2338,7 @@ void fn_3_14CD40(MGEffect* effect, MGParticle* p) {
 }
 
 // .text:0x14CBB4 size:0x18C
-void fn_3_14CBB4(MGEffect* effect, MGParticle* p) {
+void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
     s32 duration;
     s32 range;
     s32 alpha;
@@ -2371,7 +2371,7 @@ void fn_3_14CBB4(MGEffect* effect, MGParticle* p) {
 }
 
 // .text:0x14CB28 size:0x8C
-void fn_3_14CB28(s8 index) {
+void barrelBatter_releaseBarrelExplosion(s8 index) {
     MGEffect* effect;
     MGParticle* p;
 
@@ -2394,7 +2394,7 @@ void fn_3_14CB28(s8 index) {
 }
 
 // .text:0x14CAB4 size:0x74
-void fn_3_14CAB4(s8 index) {
+void barrelBatter_releaseBarrelExplosion2(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x20);
     MGParticle* p;
 
@@ -2413,7 +2413,7 @@ void fn_3_14CAB4(s8 index) {
 }
 
 // .text:0x14CA98 size:0x1C
-void fn_3_14CA98(MGParticle* p) {
+void barrelBatter_clearExplosionParticle(MGParticle* p) {
     p->_44 = 0;
     p->_45 = 0xFF;
     p->_4A = 0;
@@ -2421,33 +2421,33 @@ void fn_3_14CA98(MGParticle* p) {
 }
 
 // .text:0x14CA00 size:0x98
-void fn_3_14CA00(void) {
+void barrelBatter_stopBarrelExplosions(void) {
     u32 i;
 
     for (i = 0; i < 15; i++) {
-        fn_3_14CAB4(i);
+        barrelBatter_releaseBarrelExplosion2(i);
     }
     pitchingMachinePitching(0x20);
 }
 
 // .text:0x14C904 size:0xFC
-void fn_3_14C904(void) {
+void chainChomp_spawnLaunchFlash(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_CHAINCHOMP_SPRINT) {
-        fn_3_14C830();
+        chainChomp_spawnLaunchFlashEffect();
     }
 }
 
 // .text:0x14C830 size:0xD4
-void fn_3_14C830(void) {
-    MGEffect* effect = allocParticleEffect(fn_3_14C4C8, 0x80, 0, lbl_3_data_26D5C[1], TRUE, 0xA);
+void chainChomp_spawnLaunchFlashEffect(void) {
+    MGEffect* effect = allocParticleEffect(chainChomp_updateLaunchFlash, 0x80, 0, lbl_3_data_26D5C[1], TRUE, 0xA);
 
     if (effect != NULL) {
-        fn_3_14C79C(effect);
+        chainChomp_initLaunchFlash(effect);
     }
 }
 
 // .text:0x14C79C size:0x94
-void fn_3_14C79C(MGEffect* effect) {
+void chainChomp_initLaunchFlash(MGEffect* effect) {
     MGParticle* p;
 
     effect->_10 = *(u32*)&animRelated[0x6C];
@@ -2461,7 +2461,7 @@ void fn_3_14C79C(MGEffect* effect) {
 }
 
 // .text:0x14C4C8 size:0x2D4
-int fn_3_14C4C8(MGEffect* effect) {
+int chainChomp_updateLaunchFlash(MGEffect* effect) {
     MGParticle* p;
     s32 duration;
     s32 remaining;
@@ -2478,7 +2478,7 @@ int fn_3_14C4C8(MGEffect* effect) {
     }
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
-    fn_3_14C3BC(p);
+    chainChomp_placeLaunchFlash(p);
     fn_8003403C(p->_38, p->_3C);
     fn_80033CC8(p, effect->_10);
     duration = lbl_3_data_26D5C[3];
@@ -2507,7 +2507,7 @@ int fn_3_14C4C8(MGEffect* effect) {
 }
 
 // .text:0x14C3BC size:0x10C
-void fn_3_14C3BC(MGParticle* p) {
+void chainChomp_placeLaunchFlash(MGParticle* p) {
     Vec offset;
     Mtx rot;
 
@@ -2520,26 +2520,26 @@ void fn_3_14C3BC(MGParticle* p) {
 }
 
 // .text:0x14C398 size:0x24
-void fn_3_14C398(void) {
+void chainChomp_stopLaunchFlash(void) {
     pitchingMachinePitching(0x21);
 }
 
 // .text:0x14C348 size:0x50
-void fn_3_14C348(Vec* pos, u8 flag) {
+void wallBall_spawnWallHitPuff(Vec* pos, u8 flag) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL && pos != NULL) {
-        fn_3_14BECC(pos, flag);
+        wallBall_spawnWallHitPuffEffect(pos, flag);
     }
 }
 
 // .text:0x14BECC size:0x47C
-void fn_3_14BECC(Vec* pos, u8 flag) {
+void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag) {
     MGEffect* existing = fn_800339F0(0, 0x22);
     MGEffect* fresh;
     u8 scratch[0x80];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, lbl_3_data_26D88[1], 1);
-        fn_3_14BCB0(fresh, pos, flag);
+        wallBall_initWallHitPuff(fresh, pos, flag);
         if (existing->particles != NULL) {
             MGParticle* tail = existing->particles;
 
@@ -2552,15 +2552,15 @@ void fn_3_14BECC(Vec* pos, u8 flag) {
         }
         existing->count += fresh->count;
     } else {
-        fresh = allocParticleEffect(fn_3_14BA40, 0x80, 0, lbl_3_data_26D88[1], TRUE, 0x22);
+        fresh = allocParticleEffect(wallBall_updateWallHitPuff, 0x80, 0, lbl_3_data_26D88[1], TRUE, 0x22);
         if (fresh != NULL) {
-            fn_3_14BCB0(fresh, pos, flag);
+            wallBall_initWallHitPuff(fresh, pos, flag);
         }
     }
 }
 
 // .text:0x14BCB0 size:0x21C
-void fn_3_14BCB0(MGEffect* effect, Vec* pos, u8 flag) {
+void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag) {
     MGParticle* p;
     s32* tbl = lbl_3_data_26D88;
     u32 count = 0;
@@ -2595,7 +2595,7 @@ void fn_3_14BCB0(MGEffect* effect, Vec* pos, u8 flag) {
 }
 
 // .text:0x14BA40 size:0x270
-int fn_3_14BA40(MGEffect* effect) {
+int wallBall_updateWallHitPuff(MGEffect* effect) {
     MGParticle* p;
     MGParticle** link;
     MGParticle* removedTail = NULL;
@@ -2677,7 +2677,7 @@ int fn_3_14BA40(MGEffect* effect) {
 }
 
 // .text:0x14B9F0 size:0x50
-void fn_3_14B9F0(void) {
+void wallBall_stopWallHitPuff(void) {
     MGEffect* effect = fn_800339F0(0, 0x22);
     MGParticle* p;
 
@@ -2692,25 +2692,25 @@ void fn_3_14B9F0(void) {
 }
 
 // .text:0x14B9A0 size:0x50
-void fn_3_14B9A0(s16 frames, Vec* start) {
+void barrelBatter_spawnMachineSparks(s16 frames, Vec* start) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER &&
         start != NULL) {
-        fn_3_14B92C(frames, start);
+        barrelBatter_spawnMachineSparksEffect(frames, start);
     }
 }
 
 // .text:0x14B92C size:0x74
 #pragma dont_inline on
-void fn_3_14B92C(s16 frames, Vec* start) {
-    MGPathEffect* effect = allocParticleEffect(fn_3_14AC40, 0x80, 0, lbl_3_data_26E24[2], TRUE, 0x23);
+void barrelBatter_spawnMachineSparksEffect(s16 frames, Vec* start) {
+    MGPathEffect* effect = allocParticleEffect(barrelBatter_updateMachineSparks, 0x80, 0, lbl_3_data_26E24[2], TRUE, 0x23);
     if (effect != NULL) {
-        fn_3_14B53C(effect, frames, start);
+        barrelBatter_initMachineSparks(effect, frames, start);
     }
 }
 #pragma dont_inline reset
 
 // .text:0x14B53C size:0x3F0
-void fn_3_14B53C(MGPathEffect* effect, s16 frames, Vec* start) {
+void barrelBatter_initMachineSparks(MGPathEffect* effect, s16 frames, Vec* start) {
     MGParticle* p;
     Vec diff;
     f32 seg1;
@@ -2728,7 +2728,7 @@ void fn_3_14B53C(MGPathEffect* effect, s16 frames, Vec* start) {
     PSVECSubtract((Vec*)(lbl_3_data_26E00 + 6), (Vec*)(lbl_3_data_26E00 + 3), &diff);
     seg2 = PSVECMag(&diff);
     effect->span = seg1 / ((seg2 + seg1) / (f32)(u32)frames);
-    fn_3_14B3F4(effect);
+    barrelBatter_updateMachineSparkPos(effect);
     p = effect->particles;
     do {
         p->_4D = lbl_3_data_26E24[0];
@@ -2737,7 +2737,7 @@ void fn_3_14B53C(MGPathEffect* effect, s16 frames, Vec* start) {
         p->_40 = p->_41 = p->_42 = 0xFF;
         p->_4A = lbl_3_data_26E24[1];
         if (p->_48 == 0) {
-            fn_3_14B248(effect, p);
+            barrelBatter_respawnMachineSpark(effect, p);
         }
         p = p->next;
         i++;
@@ -2745,7 +2745,7 @@ void fn_3_14B53C(MGPathEffect* effect, s16 frames, Vec* start) {
 }
 
 // .text:0x14B3F4 size:0x148
-void fn_3_14B3F4(MGPathEffect* effect) {
+void barrelBatter_updateMachineSparkPos(MGPathEffect* effect) {
     f32* from;
     f32* to;
     f32 t;
@@ -2767,7 +2767,7 @@ void fn_3_14B3F4(MGPathEffect* effect) {
 }
 
 // .text:0x14B248 size:0x1AC
-void fn_3_14B248(MGPathEffect* effect, MGParticle* p) {
+void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
     f32 angle;
     f32 radius;
     f32 cosA;
@@ -2788,7 +2788,7 @@ void fn_3_14B248(MGPathEffect* effect, MGParticle* p) {
 }
 
 // .text:0x14AC40 size:0x608
-int fn_3_14AC40(MGPathEffect* effect) {
+int barrelBatter_updateMachineSparks(MGPathEffect* effect) {
     MGParticle* p;
     s32 alphaStep;
     s32 alpha;
@@ -2802,7 +2802,7 @@ int fn_3_14AC40(MGPathEffect* effect) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
     if (lbl_80366158[0x28] == 0) {
-        fn_3_14B3F4(effect);
+        barrelBatter_updateMachineSparkPos(effect);
         effect->remaining--;
     }
     sizeStep = 2.0f * ((f32)(lbl_3_data_26E24[4] - lbl_3_data_26E24[3]) / 100000.0f / (f32)lbl_3_data_26E24[1]);
@@ -2812,7 +2812,7 @@ int fn_3_14AC40(MGPathEffect* effect) {
             if (p->_48 > 0) {
                 p->_48--;
                 if (p->_48 == 0) {
-                    fn_3_14B248(effect, p);
+                    barrelBatter_respawnMachineSpark(effect, p);
                 }
             } else {
                 fn_8003403C(p->_38, p->_3C);
@@ -2837,7 +2837,7 @@ int fn_3_14AC40(MGPathEffect* effect) {
                 p->alphaByte = alpha;
                 p->_4A--;
                 if (p->_4A == 0) {
-                    fn_3_14B248(effect, p);
+                    barrelBatter_respawnMachineSpark(effect, p);
                 }
             }
         }
@@ -2847,7 +2847,7 @@ int fn_3_14AC40(MGPathEffect* effect) {
 }
 
 // .text:0x14AC1C size:0x24
-void fn_3_14AC1C(void) {
+void barrelBatter_stopMachineSparks(void) {
     pitchingMachinePitching(0x23);
 }
 
@@ -2857,7 +2857,7 @@ void barrelBatterRel(Vec* pos) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER &&
         pos != NULL) {
-        effect = allocParticleEffect(fn_3_14A188, 0x80, 0, lbl_3_data_26E40[1], TRUE, 0x24);
+        effect = allocParticleEffect(barrelBatter_updateReleaseRing, 0x80, 0, lbl_3_data_26E40[1], TRUE, 0x24);
         if (effect != NULL) {
             mgBarrelRingInit(effect, pos);
         }
@@ -2865,8 +2865,8 @@ void barrelBatterRel(Vec* pos) {
 }
 
 // .text:0x14A62C size:0x2E0
-void fn_3_14A62C(Vec* pos) {
-    MGEffect* effect = allocParticleEffect(fn_3_14A188, 0x80, 0, lbl_3_data_26E40[1], TRUE, 0x24);
+void barrelBatterRel2(Vec* pos) {
+    MGEffect* effect = allocParticleEffect(barrelBatter_updateReleaseRing, 0x80, 0, lbl_3_data_26E40[1], TRUE, 0x24);
 
     if (effect != NULL) {
         mgBarrelRingInit(effect, pos);
@@ -2874,12 +2874,12 @@ void fn_3_14A62C(Vec* pos) {
 }
 
 // .text:0x14A37C size:0x2B0
-void fn_3_14A37C(MGEffect* effect, Vec* pos) {
+void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos) {
     mgBarrelRingInit(effect, pos);
 }
 
 // .text:0x14A188 size:0x1F4
-int fn_3_14A188(MGEffect* effect) {
+int barrelBatter_updateReleaseRing(MGEffect* effect) {
     MGParticle* p;
     u32 alive = 0;
     s32 alpha;
@@ -2929,12 +2929,12 @@ int fn_3_14A188(MGEffect* effect) {
 }
 
 // .text:0x14A164 size:0x24
-void fn_3_14A164(void) {
+void barrelBatter_stopReleaseRing(void) {
     pitchingMachinePitching(0x24);
 }
 
 // .text:0x14A070 size:0xF4
-void fn_3_14A070(s32* values, s32 count) {
+void minigameWinnerStars_setWinners(s32* values, s32 count) {
     s8* slots = (s8*)&lbl_3_bss_B85C;
     u32 i;
 
@@ -2956,7 +2956,7 @@ void fn_3_14A070(s32* values, s32 count) {
 }
 
 // .text:0x149BA8 size:0x4C8
-void fn_3_149BA8(void) {
+void minigameWinnerStars_spawn(void) {
     s8* slots = (s8*)&lbl_3_bss_B85C;
     u32 i;
     s8 index;
@@ -2970,27 +2970,27 @@ void fn_3_149BA8(void) {
     for (i = 0; i < 4; i++) {
         index = slots[i];
         if (index > -1) {
-            effect = allocParticleEffect(fn_3_14841C, 0x80, 0, lbl_3_data_26E7C[0], TRUE, 0x25);
+            effect = allocParticleEffect(minigameWinnerStars_update, 0x80, 0, lbl_3_data_26E7C[0], TRUE, 0x25);
             if (effect != NULL) {
                 effect->index = index;
-                fn_3_149340(effect);
+                minigameWinnerStars_initEffect(effect);
             }
         }
     }
 }
 
 // .text:0x14975C size:0x44C
-void fn_3_14975C(s8 index) {
-    MGStarEffect* effect = allocParticleEffect(fn_3_14841C, 0x80, 0, lbl_3_data_26E7C[0], TRUE, 0x25);
+void minigameWinnerStars_spawnOne(s8 index) {
+    MGStarEffect* effect = allocParticleEffect(minigameWinnerStars_update, 0x80, 0, lbl_3_data_26E7C[0], TRUE, 0x25);
 
     if (effect != NULL) {
         effect->index = index;
-        fn_3_149340(effect);
+        minigameWinnerStars_initEffect(effect);
     }
 }
 
 // .text:0x149340 size:0x41C
-void fn_3_149340(MGStarEffect* effect) {
+void minigameWinnerStars_initEffect(MGStarEffect* effect) {
     MGParticle* p = effect->particles;
     u32 i = 0;
     s32 n;
@@ -3008,12 +3008,12 @@ void fn_3_149340(MGStarEffect* effect) {
 }
 
 // .text:0x148FD0 size:0x370
-void fn_3_148FD0(s8 index, MGParticle* p) {
+void minigameWinnerStars_resetParticle(s8 index, MGParticle* p) {
     mgStarParticleInit(index, p);
 }
 
 // .text:0x148EF0 size:0xE0
-void fn_3_148EF0(Vec* out, f32 degrees) {
+void minigameWinnerStars_getLaunchVelocity(Vec* out, f32 degrees) {
     f32 angle = 0.017453292f * degrees;
     f32 s = sin(angle);
     f32 c = cos(angle);
@@ -3024,15 +3024,15 @@ void fn_3_148EF0(Vec* out, f32 degrees) {
 }
 
 // .text:0x14841C size:0xAD4
-int fn_3_14841C(MGStarEffect* effect) {
+int minigameWinnerStars_update(MGStarEffect* effect) {
     f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
     MGParticle* p = effect->particles;
 
-    fn_3_147F94();
+    minigameWinnerStars_beginDraw();
     do {
         if (p->_48 <= 0) {
-            fn_3_148254(effect, p);
-            fn_3_1480E0(p);
+            minigameWinnerStars_setupMtx(effect, p);
+            minigameWinnerStars_drawQuad(p);
             PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
             PSVECAdd((Vec*)&p->_1C, (Vec*)&p->_28, (Vec*)&p->_1C);
             if (rand() % 5 == 0) {
@@ -3068,17 +3068,17 @@ int fn_3_14841C(MGStarEffect* effect) {
         }
         p = p->next;
     } while (p != NULL);
-    fn_3_147E20();
+    minigameWinnerStars_endDraw();
     return 0;
 }
 
 // .text:0x1483D4 size:0x48
-BOOL fn_3_1483D4(void) {
+BOOL minigameWinnerStars_rollTurn(void) {
     return rand() % 5 == 0;
 }
 
 // .text:0x148254 size:0x180
-void fn_3_148254(MGStarEffect* effect, MGParticle* p) {
+void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
     f32 halfW = p->_38 * 0.5f;
     f32 halfH = p->_3C * 0.5f;
     f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
@@ -3115,7 +3115,7 @@ void fn_3_148254(MGStarEffect* effect, MGParticle* p) {
 }
 
 // .text:0x1480E0 size:0x174
-void fn_3_1480E0(MGParticle* p) {
+void minigameWinnerStars_drawQuad(MGParticle* p) {
     f32* v = lbl_3_bss_B860;
     int i;
 
@@ -3138,7 +3138,7 @@ void fn_3_1480E0(MGParticle* p) {
 }
 
 // .text:0x147F94 size:0x14C
-void fn_3_147F94(void) {
+void minigameWinnerStars_beginDraw(void) {
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     GXClearVtxDesc();
@@ -3159,7 +3159,7 @@ void fn_3_147F94(void) {
 }
 
 // .text:0x147E20 size:0x174
-void fn_3_147E20(void) {
+void minigameWinnerStars_endDraw(void) {
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
@@ -3183,19 +3183,19 @@ void fn_3_147E20(void) {
 }
 
 // .text:0x147DFC size:0x24
-void fn_3_147DFC(void) {
+void minigameStopBombExplosion(void) {
     pitchingMachinePitching(0x26);
 }
 
 // .text:0x147CFC size:0x100
-void fn_3_147CFC(Vec* pos) {
+void piranhaPanic_spawnBombExplosion(Vec* pos) {
     if (pos != NULL) {
-        fn_3_147C00(pos);
+        piranhaPanic_spawnBombExplosionEffect(pos);
     }
 }
 
 // .text:0x147C00 size:0xFC
-void fn_3_147C00(Vec* pos) {
+void piranhaPanic_spawnBombExplosionEffect(Vec* pos) {
     MGEffect* existing = fn_800339F0(0, 0x26);
     MGEffect* fresh;
     u8 scratch[0x80];
@@ -3205,7 +3205,7 @@ void fn_3_147C00(Vec* pos) {
         if (fresh != NULL) {
             MGParticle* tail;
 
-            fn_3_147778(fresh, pos);
+            piranhaPanic_initBombExplosion(fresh, pos);
             tail = existing->particles;
             while (tail->next != NULL) {
                 tail = tail->next;
@@ -3214,15 +3214,15 @@ void fn_3_147C00(Vec* pos) {
             existing->count += fresh->count;
         }
     } else {
-        fresh = allocParticleEffect(fn_3_14737C, 0x80, 0, lbl_3_data_26E9C[2] + lbl_3_data_26E9C[12], TRUE, 0x26);
+        fresh = allocParticleEffect(piranhaPanic_updateBombExplosion, 0x80, 0, lbl_3_data_26E9C[2] + lbl_3_data_26E9C[12], TRUE, 0x26);
         if (fresh != NULL) {
-            fn_3_147778(fresh, pos);
+            piranhaPanic_initBombExplosion(fresh, pos);
         }
     }
 }
 
 // .text:0x147778 size:0x488
-void fn_3_147778(MGEffect* effect, Vec* pos) {
+void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
     MGParticle* p;
     u32 burstCount = (u8)lbl_3_data_26E9C[2];
     u32 ringCount = (u8)lbl_3_data_26E9C[12];
@@ -3275,7 +3275,7 @@ void fn_3_147778(MGEffect* effect, Vec* pos) {
 }
 
 // .text:0x14737C size:0x3FC
-int fn_3_14737C(MGEffect* effect) {
+int piranhaPanic_updateBombExplosion(MGEffect* effect) {
     MGParticle* p;
     MGParticle** link;
     MGParticle* removedTail = NULL;
@@ -3365,6 +3365,6 @@ int fn_3_14737C(MGEffect* effect) {
 }
 
 // .text:0x147358 size:0x24
-void fn_3_147358(void) {
+void minigameStopBombExplosion2(void) {
     pitchingMachinePitching(0x26);
 }

@@ -2684,7 +2684,7 @@ void minigameEndSwitcher(void) {
             g_d_GameSettings._38 = g_Minigame.playerSlots.rank[g_d_GameSettings._35];
         }
         fn_3_15F998();
-        fn_3_147DFC();
+        minigameStopBombExplosion();
         mm_UnloadModels();
         g_GameLogic.framesOfExitingToMenu = 1;
         break;
@@ -2999,7 +2999,7 @@ void postMinigame(void) {
         g_Minigame.minigameInactiveInd = TRUE;
         g_Minigame.endSequencePhase = 0;
         fn_3_15F998();
-        fn_3_147DFC();
+        minigameStopBombExplosion();
         hugeAnimStruct[0x307A] = 0;
         pauseControl._1D9 = 2;
         break;
@@ -3022,7 +3022,7 @@ void postMinigame(void) {
             g_Minigame.minigameInactiveInd = TRUE;
             pauseControl._1D9 = 2;
             fn_3_15F998();
-            fn_3_147DFC();
+            minigameStopBombExplosion();
             mm_UnloadModels();
             fn_8004CC18();
             g_GameLogic.framesOfExitingToMenu = 1;
@@ -3717,7 +3717,7 @@ void minigames_0x26(void) {
     case TRANSITION_CALCULATION_TYPE_7:
         if (g_Minigame.grandPrixRound >= 6) {
             fn_3_15F998();
-            fn_3_147DFC();
+            minigameStopBombExplosion();
             sound_crowd_EffectsStruct._31 = 0;
             SetGameStatus(GAME_STATUS_0x27);
         } else {
