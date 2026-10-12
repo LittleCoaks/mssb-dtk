@@ -21,7 +21,7 @@ extern s16 lbl_3_data_1C80[];
 extern s16 chemThresholds[4];
 extern int calculateChemistry(int teamBatting, int charIdA, int charIdB);
 extern int fn_3_A6ABC(f32 x, f32 z);
-extern f32 lbl_3_data_218BC[];
+extern f32 ccs_gameplayConsts[];
 extern f32 lbl_3_data_4C44[];
 extern s16 lbl_3_data_4C54[];
 extern s16 lbl_3_data_1C58[][4];
@@ -39,7 +39,7 @@ extern struct {
 } dugoutCoordinates[7];
 extern f32 baseCoordsForRunning[][2];
 extern f32 someRunningAngleArray[][3];
-extern s16 lbl_3_data_21904[];
+extern s16 ccs_timingConsts[];
 extern VecXZ lbl_3_data_4A54[][13];
 extern s16 lbl_3_data_4B90[];
 extern void initializeInMemRunner(int rosterID, int runnerIdx);
@@ -3133,9 +3133,9 @@ void running_CalculateSpeedVariables(int runnerIdx) {
         }
 
         if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-            f32 boost = lbl_3_data_218BC[16] * (f32)g_Minigame.miniGameCurrentPoints[runner->miniGamePlayerNum] + 1.0f;
-            if (boost > lbl_3_data_218BC[17]) {
-                boost = lbl_3_data_218BC[17];
+            f32 boost = ccs_gameplayConsts[16] * (f32)g_Minigame.miniGameCurrentPoints[runner->miniGamePlayerNum] + 1.0f;
+            if (boost > ccs_gameplayConsts[17]) {
+                boost = ccs_gameplayConsts[17];
             }
             if ((s8)g_Minigame.playerIDWithPowerup[0] == runnerIdx) {
                 boost *= lbl_3_data_2191C[1];
@@ -4743,7 +4743,7 @@ void cCSRunningFun(void) {
                     runner->runningToDugoutFrameCounter = 0;
                 }
             } else {
-                if (runner->runningToDugoutFrameCounter < lbl_3_data_21904[1]) {
+                if (runner->runningToDugoutFrameCounter < ccs_timingConsts[1]) {
                     runner->position.x += runner->velocity.x;
                     runner->position.z += runner->velocity.z;
                 } else {
@@ -4793,7 +4793,7 @@ void cCSRunningFun(void) {
             } else {
                 runner->runningToDugoutFrameCounter = 0x7FFF;
             }
-            if (runner->runningToDugoutFrameCounter >= lbl_3_data_21904[2]) {
+            if (runner->runningToDugoutFrameCounter >= ccs_timingConsts[2]) {
                 g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]] = 0;
             }
         } else {
@@ -4932,8 +4932,8 @@ void fn_3_7D9DC(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     f32 magnitude = dolsqrtf2(g_Minigame.ccs.chompVelocity.x * g_Minigame.ccs.chompVelocity.x + g_Minigame.ccs.chompVelocity.z * g_Minigame.ccs.chompVelocity.z);
 
-    runner->velocity.x = lbl_3_data_218BC[7] * (g_Minigame.ccs.chompVelocity.x / magnitude);
-    runner->velocity.z = lbl_3_data_218BC[7] * (g_Minigame.ccs.chompVelocity.z / magnitude);
+    runner->velocity.x = ccs_gameplayConsts[7] * (g_Minigame.ccs.chompVelocity.x / magnitude);
+    runner->velocity.z = ccs_gameplayConsts[7] * (g_Minigame.ccs.chompVelocity.z / magnitude);
     runner->runningToDugoutFrameCounter = 0;
 }
 
@@ -4950,7 +4950,7 @@ void fn_3_7D920(int runnerIdx) {
         runner->runningToDugoutFrameCounter = 0;
         return;
     }
-    if (runner->runningToDugoutFrameCounter < lbl_3_data_21904[1]) {
+    if (runner->runningToDugoutFrameCounter < ccs_timingConsts[1]) {
         runner->position.x += runner->velocity.x;
         runner->position.z += runner->velocity.z;
     } else {
@@ -5005,7 +5005,7 @@ void fn_3_7D79C(int runnerIdx) {
     } else {
         runner->runningToDugoutFrameCounter = 0x7FFF;
     }
-    if (runner->runningToDugoutFrameCounter >= lbl_3_data_21904[2]) {
+    if (runner->runningToDugoutFrameCounter >= ccs_timingConsts[2]) {
         g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[runnerIdx]] = 0;
     }
 }
