@@ -1096,7 +1096,7 @@ void toyFieldCharSelectSwitcher(void) {
         if (g_Minigame.challengeModeInd != 0) {
             css_initValues(1, 1, 1, 1, 1, 0);
             for (i = 0; i < 54; i++) {
-                if ((s8)starMissionCompletionTracker.characters[i]._31 != CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                if ((s8)g_Challenge.characters[i]._31 != CHALLENGE_RECRUITMENT_CD_RECRUITED) {
                     fn_8004FDA0(i);
                 }
             }
@@ -1305,7 +1305,7 @@ void minigameCharSelectUpdate(void) {
                     g_Minigame.battingHandedness[i] = ((CharacterStats*)&Static_Stats_Tables)[g_Minigame.selectSlots[i].charID].stats.FieldingArm * 2 +
                                                       ((CharacterStats*)&Static_Stats_Tables)[g_Minigame.selectSlots[i].charID].stats.BattingStance;
                     g_Minigame.playerSlots.superstarBoostInd[i] = 0;
-                    if (g_d_GameSettings.exhibitionMatchInd == FALSE && starMissionCompletionTracker.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0) {
+                    if (g_d_GameSettings.exhibitionMatchInd == FALSE && g_Challenge.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0) {
                         g_Minigame.playerSlots.superstarBoostInd[i] = 0;
                     }
                     if (i != port) {
@@ -1373,7 +1373,7 @@ void minigameCharSelectUpdate(void) {
                                 ((CharacterStats*)&Static_Stats_Tables)[g_Minigame.selectSlots[i].charID].stats.BattingStance;
                             g_Minigame.playerSlots.superstarBoostInd[i] = 0;
                             if (g_d_GameSettings.exhibitionMatchInd == FALSE &&
-                                starMissionCompletionTracker.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0) {
+                                g_Challenge.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0) {
                                 g_Minigame.playerSlots.superstarBoostInd[i] = 0;
                             }
                         }
@@ -1394,7 +1394,7 @@ void minigameCharSelectUpdate(void) {
                     sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
                 }
                 if (g_Minigame.challengeModeInd != 0) {
-                    if (starMissionCompletionTracker.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0) {
+                    if (g_Challenge.charIsSuperstar[g_Minigame.selectSlots[i].charID] != 0) {
                         g_Minigame.playerSlots.superstarBoostInd[i] = 1;
                     } else {
                         g_Minigame.playerSlots.superstarBoostInd[i] = 0;
@@ -2664,7 +2664,7 @@ void minigameEndSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_9:
-        challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[starMissionCompletionTracker.captain]);
+        challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[g_Challenge.captain]);
         if (lbl_8037169C[0x13] != 0) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_10;
         }
@@ -3190,7 +3190,7 @@ void minigamePause(void) {
     case 9:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
-                challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[starMissionCompletionTracker.captain]);
+                challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[g_Challenge.captain]);
             } else {
                 changeScene(4, 6);
             }

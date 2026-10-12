@@ -659,7 +659,7 @@ void championshipScreen(void) {
         fn_3_8C104(-1);
         vsScreenBegin(2);
         {
-            ChallengeState *tracker = &starMissionCompletionTracker;
+            ChallengeState *tracker = &g_Challenge;
 
             if (inning->goAheadRunOccurrences != 0) {
                 camera_switchScene(lbl_3_data_2368[tracker->captain]);
@@ -841,7 +841,7 @@ BOOL fn_3_2273C(void) {
 BOOL chooseVsScreenSituation(void) {
     GameInitVariables *settings = &g_d_GameSettings;
     VsData *data = &lbl_3_data_1D28;
-    ChallengeState *tracker = &starMissionCompletionTracker;
+    ChallengeState *tracker = &g_Challenge;
     ScoutState *scout = &scoutState;
     ScoutMission *scoutMissions = scoutMissionTable;
     BOOL scoutMission = FALSE;

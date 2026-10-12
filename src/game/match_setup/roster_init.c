@@ -50,7 +50,7 @@ void setRunnerSpeedConstants(int runnerIdx) {
 void initializeInMemRunner(int rosterID, int runnerIdx) {
     CharacterStats* charStats = &inMemRoster[g_GameLogic.teamBatting][rosterID];
     InMemRunnerType* runner = &g_Runners[runnerIdx];
-    ChallengeTrackingStruct* starMissions = starMissionCompletionTracker.characters;
+    ChallengeTrackingStruct* starMissions = g_Challenge.characters;
     int index;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
@@ -102,7 +102,7 @@ void setInMemBatterConstants(int rosterID) {
     int batterID;
 
     CharacterStats* char_stats = &inMemRoster[g_GameLogic.teamBatting][rosterID];
-    ChallengeTrackingStruct* starMissions = starMissionCompletionTracker.characters;
+    ChallengeTrackingStruct* starMissions = g_Challenge.characters;
     g_Batter.easyBatting = 0;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
@@ -187,7 +187,7 @@ static inline u32 getFieldingAbilities(int rosterLoc) {
 void setFielderValues(int rosterID, int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     CharacterStats* charStats = &inMemRoster[g_GameLogic.teamFielding][rosterID];
-    ChallengeTrackingStruct* starMissions = starMissionCompletionTracker.characters;
+    ChallengeTrackingStruct* starMissions = g_Challenge.characters;
     s16 charID;
     int index;
     int lower;
@@ -322,7 +322,7 @@ void setFielderValues(int rosterID, int fielderIndex) {
 // .text:0x0006EBB4 size:0x368 mapped:0x806ADC48
 void setPitcherStatsToInMemPitcher(int rosterIdx) {
     CharacterStats* char_stats = &inMemRoster[g_GameLogic.teamFielding][rosterIdx];
-    ChallengeTrackingStruct* starMissions = starMissionCompletionTracker.characters;
+    ChallengeTrackingStruct* starMissions = g_Challenge.characters;
     int index;
     int idx = rosterIdx;
 

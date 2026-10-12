@@ -67,7 +67,7 @@ void teamSelectScreenMain(void) {
     case 1:
         if (g_d_GameSettings.GameModeSelected == 5 && lbl_8037169C[0x12] == 0) {
             challenge_setTransitionScreenCharacterPortrait(
-                0xA, (s8)lbl_2_data_3CE0[starMissionCompletionTracker.opponentCaptain]);
+                0xA, (s8)lbl_2_data_3CE0[g_Challenge.opponentCaptain]);
         }
         cssLoadingScreenRelated();
         cssResetRosterStruct();

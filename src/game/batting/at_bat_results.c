@@ -566,7 +566,7 @@ BOOL fn_3_9E834(void) {
 
     if (!g_d_GameSettings.exhibitionMatchInd) {
         for (i = 0; i < 54; i++) {
-            if (starMissionCompletionTracker.charIsSuperstar[i] != 0) {
+            if (g_Challenge.charIsSuperstar[i] != 0) {
                 return TRUE;
             }
         }

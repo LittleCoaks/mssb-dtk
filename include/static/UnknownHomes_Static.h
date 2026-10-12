@@ -410,7 +410,7 @@ typedef struct {
     /* 0xCF99 */ E(u8, BOOL) checkStarsMenuCharViewOpen;
     /* 0xCF9A */ u8 numberOfChallengeStarsForPlayer;
     /* 0xCF9B */ u8 _CF9B;
-    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into starMissionCompletionTracker
+    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into g_Challenge
     /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
     /* 0xCF9F */ u8 _CF9F[0xCFA2 - 0xCF9F];
     /* 0xCFA2 */ u8 _CFA2[4];                      // per controller port; selects the team-management menu

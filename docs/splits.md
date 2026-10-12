@@ -260,7 +260,7 @@ Evidence:
   (`0x803CB8F0`) and ends 2 bytes of pad before `__OSVersion`. The unit has no
   `.sdata2`, `.sbss` or `.rodata`.
 - **Gap functions.** `fn_8006C5CC`, `fn_8006C6C4` and `fn_8006C79C` only read
-  `starMissionCompletionTracker` (they count characters whose recruitment byte
+  `g_Challenge` (they count characters whose recruitment byte
   is 1) and sit between two members of the unit, so they belong to it.
 
 Left out on purpose: `fn_8006CEBC`/`fn_8006CF6C` (`0x8006CEBC-0x8006D024`,

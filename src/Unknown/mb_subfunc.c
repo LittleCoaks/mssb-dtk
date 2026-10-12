@@ -344,7 +344,7 @@ static inline void sortHighChemTeammates(int team, CharacterStats* roster) {
 static inline void tryAddRecruit(s8* avail, u8* count, s32 i) {
     int row;
 
-    if ((int)starMissionCompletionTracker.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
+    if ((int)g_Challenge.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
         if (addRemoveCharVariantRelated(0, i, 1)) {
             s16 (*pair)[5] = variantPairs;
 
@@ -384,9 +384,9 @@ void unknownSettingTeamValues(void) {
         tryAddRecruit(avail, &count, i);
     }
     Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_BOWSERJR;
-    if (starMissionCompletionTracker.resumeSavedTeams) {
+    if (g_Challenge.resumeSavedTeams) {
         for (i = 0; i < 12; i++) {
-            if (starMissionCompletionTracker.captainCharID == captainIDOrderedOnCapSS[i]) {
+            if (g_Challenge.captainCharID == captainIDOrderedOnCapSS[i]) {
                 captainIndex = i;
                 break;
             }
@@ -409,16 +409,16 @@ void unknownSettingTeamValues(void) {
         unsure_FillRosterPositions(1);
         characterSelectScreen(1);
         for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
-            starMissionCompletionTracker.savedLineup[slot].charID = inMemRoster[0][slot].stats.CharID;
-            starMissionCompletionTracker.savedLineup[slot].battingOrder = lineUpInfoStruct[0][slot][1];
-            starMissionCompletionTracker.savedLineup[slot].fieldingPosition = lineUpInfoStruct[0][slot][2];
-            starMissionCompletionTracker.savedLineup[slot].handedness = inMemRoster[0][slot].stats.BattingStance + inMemRoster[0][slot].stats.FieldingArm * 2;
+            g_Challenge.savedLineup[slot].charID = inMemRoster[0][slot].stats.CharID;
+            g_Challenge.savedLineup[slot].battingOrder = lineUpInfoStruct[0][slot][1];
+            g_Challenge.savedLineup[slot].fieldingPosition = lineUpInfoStruct[0][slot][2];
+            g_Challenge.savedLineup[slot].handedness = inMemRoster[0][slot].stats.BattingStance + inMemRoster[0][slot].stats.FieldingArm * 2;
         }
     } else {
         for (team = 0; team < TEAMS_PER_GAME; team++) {
             for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                 if (team == 0) {
-                    charID = starMissionCompletionTracker.savedLineup[slot].charID;
+                    charID = g_Challenge.savedLineup[slot].charID;
                 } else {
                     charID = Static_Stats_Tables.challengeRosters[11].charID[slot];
                     if (charID != CHAR_ID_BOWSERJR && (n = count) != 0) {
@@ -444,10 +444,10 @@ void unknownSettingTeamValues(void) {
                 statCol = charID % 9;
                 copyCharacterStats(&inMemRoster[team][slot], &Static_Stats_Tables.characterStats[statRow][statCol]);
                 if (team == 0) {
-                    handedness = starMissionCompletionTracker.savedLineup[slot].handedness;
+                    handedness = g_Challenge.savedLineup[slot].handedness;
                     lineUpInfoStruct[team][slot][0] = slot;
-                    lineUpInfoStruct[team][slot][1] = starMissionCompletionTracker.savedLineup[slot].battingOrder;
-                    lineUpInfoStruct[team][slot][2] = starMissionCompletionTracker.savedLineup[slot].fieldingPosition;
+                    lineUpInfoStruct[team][slot][1] = g_Challenge.savedLineup[slot].battingOrder;
+                    lineUpInfoStruct[team][slot][2] = g_Challenge.savedLineup[slot].fieldingPosition;
                     inMemRoster[team][slot].stats.FieldingArm = handedness / 2U;
                     inMemRoster[team][slot].stats.BattingStance = handedness % 2;
                 }
@@ -718,9 +718,9 @@ void teamLogoDetermination(int team) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (team == 0) {
-            captain = Static_Stats_Tables.captainSelectedID[team] = starMissionCompletionTracker.captainCharID;
+            captain = Static_Stats_Tables.captainSelectedID[team] = g_Challenge.captainCharID;
         } else {
-            captain = Static_Stats_Tables.captainSelectedID[team] = (s8)starMissionCompletionTracker.opponentCaptainCharID;
+            captain = Static_Stats_Tables.captainSelectedID[team] = (s8)g_Challenge.opponentCaptainCharID;
         }
     } else {
         captain = Static_Stats_Tables.captainSelectedID[team];

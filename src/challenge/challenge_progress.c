@@ -893,22 +893,22 @@ void challengeDrawStarsOnMissionMenu(void) {
     int minScoutRow;
     int scoutRow;
 
-    scoutRow = starMissionCompletionTracker.difficulty;
+    scoutRow = g_Challenge.difficulty;
     for (c = 0; c < 54; c++) {
-        if (characterStaticIndexes[c].hasOwnStarMissions == 1 && (int)starMissionCompletionTracker.characters[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+        if (characterStaticIndexes[c].hasOwnStarMissions == 1 && (int)g_Challenge.characters[c]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             for (m = 0; m < 10; m++) {
                 rule = &starMissionDisplayRules[characterStaticIndexes[c].requirementRow][m];
                 mode = rule->mode;
                 minStars = rule->minStars;
                 minScoutRow = rule->minScoutRow;
                 if (mode == 0) {
-                    starMissionCompletionTracker.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
+                    g_Challenge.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
                 }
                 if (challengeStarRelatedInd(c, m)) {
-                    starMissionCompletionTracker.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
+                    g_Challenge.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
                 }
                 if (mode == 1 && countStarMissions(c) >= minStars && scoutRow >= minScoutRow) {
-                    starMissionCompletionTracker.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
+                    g_Challenge.characters[c].inGameMissionTracker[m].shownOnPauseMenu = TRUE;
                 }
             }
         }
@@ -920,8 +920,8 @@ BOOL fn_8006C5CC(void) {
     int count = 0;
 
     for (i = 0; i < 45; i++) {
-        if ((int)starMissionCompletionTracker.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED &&
-            (int)starMissionCompletionTracker.characters[i].challengeCaptain != CHALLENGE_CAPTAIN_BOWSER) {
+        if ((int)g_Challenge.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED &&
+            (int)g_Challenge.characters[i].challengeCaptain != CHALLENGE_CAPTAIN_BOWSER) {
             count++;
         }
     }
@@ -933,7 +933,7 @@ int fn_8006C6C4(void) {
     int count = 0;
 
     for (i = 0; i < 48; i++) {
-        if ((int)starMissionCompletionTracker.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+        if ((int)g_Challenge.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
             count++;
         }
     }
@@ -941,7 +941,7 @@ int fn_8006C6C4(void) {
 }
 
 BOOL challenge_isCharRecruited(int charID) {
-    ChallengeTrackingStruct* t = &starMissionCompletionTracker.characters[charID];
+    ChallengeTrackingStruct* t = &g_Challenge.characters[charID];
 
     return (s8)t->_31 == CHALLENGE_RECRUITMENT_CD_RECRUITED;
 }
@@ -952,7 +952,7 @@ u8 challengeCaptainCharIDs[6] = {
 
 void challenge_leftoverTeammatesJoinBowserJr(void) {
     BOOL captainJoined[6];
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     ChallengeTrackingStruct* t;
     u8 captain = cs->captain;
     int c;
@@ -1009,7 +1009,7 @@ void challenge_checkRecruitment(void) {
     int recruited;
     ChallengeState* cs;
 
-    cs = &starMissionCompletionTracker;
+    cs = &g_Challenge;
     diff = cs->difficulty;
     cap = cs->captain;
     for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
@@ -1035,11 +1035,11 @@ void challenge_checkRecruitment(void) {
 }
 
 f32 intermediateStatBuffForScoutFlags(void) {
-    return challengeIntermediateStarBUffs_CPU[starMissionCompletionTracker.difficulty][starMissionCompletionTracker.stage];
+    return challengeIntermediateStarBUffs_CPU[g_Challenge.difficulty][g_Challenge.stage];
 }
 
 f32 intermediateStatBuffForCompletedMissions(int charID) {
-    ChallengeTrackingStruct* t = &starMissionCompletionTracker.characters[charID];
+    ChallengeTrackingStruct* t = &g_Challenge.characters[charID];
     int count;
     int i;
 
@@ -1057,7 +1057,7 @@ f32 intermediateStatBuffForCompletedMissions(int charID) {
 }
 
 s16 challenge_getStarRank(int charID) {
-    ChallengeTrackingStruct* tracker = &starMissionCompletionTracker.characters[charID];
+    ChallengeTrackingStruct* tracker = &g_Challenge.characters[charID];
 
     return starRankByMissionCount[tracker->variantClassification][countStarMissions(charID)];
 }

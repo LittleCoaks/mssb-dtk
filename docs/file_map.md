@@ -401,7 +401,7 @@ in this REL.
 
 **`dictionary.c`'s naming note.** This screen was initially misread from internal
 evidence alone as a developer settings/parameter editor -- the 11-tab/231-row
-structure and the fact that it directly touches `starMissionCompletionTracker`,
+structure and the fact that it directly touches `g_Challenge`,
 `superstarUnlocked`, and other global progress state all looked consistent with a
 dev tool. That conclusion was wrong. The user built and ran a Gecko code (derived
 from this session's addressing work: `changeScreenVariables(7)` hooked in from the

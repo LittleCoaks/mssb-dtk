@@ -111,7 +111,7 @@ typedef struct _ChallengeState {
     /*0x44F3*/ u8 _44F3[0x4508 - 0x44F3];
 } ChallengeState; // size: 0x4508
 
-extern ChallengeState starMissionCompletionTracker;
+extern ChallengeState g_Challenge;
 
 // Byte offset of a ChallengeState member, for code that walks the block through a byte pointer.
 #define CHALLENGE_STATE_OFFSET(member) ((u32) & ((ChallengeState*)0)->member)
