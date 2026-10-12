@@ -389,3 +389,17 @@ units became part of it (`ProcessActorBonesForShadows`, `fn_800B2B4C`/`54`/`6C`,
 
 `.sbss 0x803CC1E8` (8 bytes) is written by `fn_800B313C` (`act.c`) and read by `fn_800B84AC` (`control.c`);
 which of the two units defines it is not decidable from the binary, so it stays unowned.
+
+### Anim: `animBank.c`, `animPipe.c` and `boneAnim.c` (`0x800B4E9C-0x800B7D3C`)
+
+| unit | `.text` | other sections | evidence |
+|---|---|---|---|
+| `C3/anim/animBank.c` | `0x800B4E9C-0x800B516C` | extab `0x80006A28-0x80006A38` | no data of its own, so SDK layout (`include/C3/anim.h` lists `ANIMGet`, `ANIMGetSequence`, `ANIMGetTrackFromSeq`, `ANIMGetKeyFrameFromTrack` under `animBank.c`). The edges are fixed by neighbours: `actorAnim.c`'s last constant user is `ACTSetAnimation` (ends `0x800B4E9C`), `animPipe.c`'s first is `Squad` (`0x800B516C`) |
+| `C3/anim/animPipe.c` | `0x800B516C-0x800B79D0` | `.rodata 0x800E7D58-0x800E7E78`, `.sdata 0x803CBB48-0x803CBB58`, `.sdata2 0x803CCF80-0x803CCFB8` | the string `"animPipe.c"` (`.rodata 0x800E7D88`) is the `OSPanic` file name of `DoTranslationAnimation` and `DoQuatAnimation`; the `.sdata2` pool `0x803CCF80-0x803CCFB4` is shared by `Squad`, `GetData`, the four `Do*Animation` functions and `ANIMTick`. `ANIMBind` (`0x800B79A0`) is the SDK's `animPipe.c` too and ends the unit |
+| `C3/actor/boneAnim.c` | `0x800B79D0-0x800B7D3C` | `.sdata2 0x803CCFB8-0x803CCFC0` | `ACTSetBoneTrack` pools `0.0f`/`1.0f` at `0x803CCFB8`/`0x803CCFBC`; the anim pool already holds both (`0x803CCF90`, `0x803CCF84`) and the frustum unit after it holds another `1.0f`, so a unit boundary lies on each side of this pair |
+
+`animBank.c` links `Matching` (four `Matching` units merged, all 100%). `animPipe.c` is `NonMatching`
+(seven stubs; `ANIMBind` was `Matching` before) and so is `boneAnim.c` (`ACTSetBoneTrack` stub; the
+stub now has the real 4-parameter prototype from `C3/actor.h`). The order of files matches the SDK
+(`actor.c`, `actorAnim.c`, `animBank.c`, `animPipe.c`, `boneAnim.c`, `control.c`: case-insensitive
+alphabetical, with the frustum unit sitting between `boneAnim` and `control`).

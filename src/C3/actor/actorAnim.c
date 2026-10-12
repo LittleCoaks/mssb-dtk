@@ -1,5 +1,5 @@
 #include "C3/actor/actorAnim.h"
-#include "Unknown/File_0x800b4f9c.h"
+#include "C3/anim/animBank.h"
 #include "Unknown/File_0x800acf14.h"
 #include "C3/anim.h"
 #include "C3/skinning.h"

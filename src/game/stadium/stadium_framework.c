@@ -24,7 +24,7 @@
 #include "Unknown/File_0x8003a538.h"
 #include "Unknown/File_0x800bf038.h"
 #include "Unknown/File_0x800bfe90.h"
-#include "Unknown/File_0x800b508c.h"
+#include "C3/anim/animBank.h"
 #include "Unknown/File_0x800bcd60.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/DisplayObject.h"
