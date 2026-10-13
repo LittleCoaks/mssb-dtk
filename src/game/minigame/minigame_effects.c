@@ -734,8 +734,8 @@ void bobOmbFuseSpark_spawnFollowEffect(s16 id, Vec* pos, Vec* rot) {
             MGParticle* tail;
 
             bobOmbFuseSpark_initFollow(fresh, id, pos, rot);
-            if (existing->particles != NULL) {
-                tail = existing->particles;
+            tail = existing->particles;
+            if (tail != NULL) {
                 while (tail->next != NULL) {
                     tail = tail->next;
                 }
@@ -784,8 +784,7 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
     if (effect->particles == NULL) {
         return 0;
     }
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = (MGFollowParticle*)effect->particles;
+    p = (MGFollowParticle*)(effect->particles = fn_80031F34(effect->particles, effect->count));
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     do {
