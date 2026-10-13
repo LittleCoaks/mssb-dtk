@@ -2388,6 +2388,7 @@ void fn_3_101CC4(void) {
             g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
             g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
             CAM_FILTER_POS();
+            CAM_CLAMP_LOOKAT_Y();
             break;
         }
         case 2:
