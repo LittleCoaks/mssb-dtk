@@ -38,7 +38,7 @@ void f_BuildBoneSkinOrientationMatrix(void);
 
 BOOL maybeBallRelated(Actor** actor, ActorLayout* layout, u16 actorID);
 
-void InitBone(void);
+void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* bones);
 
 Actor* maybeProcessActLayout(ActorLayout* layout);
 

@@ -131,8 +131,67 @@ BOOL maybeBallRelated(Actor** actor, ActorLayout* layout, u16 actorID) {
     return TRUE;
 }
 
-void InitBone(void) {
-    return;
+void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* bones) {
+    sBone* bone;
+    u32* dst;
+    u32* src;
+    s32 k;
+
+    while (node != NULL) {
+        bone = &bones[*index];
+        bone->branch.Children = NULL;
+        DSInsertBranchBelow(&actor->hierarchy, (Ptr)parent, (Ptr)bone);
+        actor->boneArray[*index] = bone;
+
+        bone->boneID = node->boneID;
+        bone->inheritanceFlag = node->inheritanceFlag;
+        bone->drawingPriority = node->drawingPriority;
+        bone->orientationCtrl.type = 0;
+        if (node->orientationCtrl != NULL) {
+            dst = (u32*)&bone->orientationCtrl;
+            src = (u32*)node->orientationCtrl;
+            for (k = 0; k < 9; k++) {
+                dst[k] = src[k];
+            }
+        }
+
+        bone->dispObj = NULL;
+        if (node->geoFileID != 0xFFFF) {
+            DOGet(&bone->dispObj, actor->pal, node->geoFileID, NULL);
+        }
+        bone->unk18 = bone->dispObj;
+        bone->animPipe = NULL;
+        bone->animationCtrl.type = 0;
+        bone->unkA4.type = 0;
+        bone->unk134 = 1;
+        bone->unk136 = 0;
+        bone->unk137 = 0;
+
+        bone->forwardMtx = (MtxPtr)((u8*)actor->forwardMtxArray + *index * 0x30);
+        PSMTXIdentity(bone->forwardMtx);
+        if (actor->skinObject != NULL) {
+            bone->skinMtx = (MtxPtr)((u8*)actor->skinMtxArray + *index * 0x30);
+            PSMTXIdentity(bone->skinMtx);
+            bone->orientationInvMtx = (MtxPtr)((u8*)actor->orientationInvMtxArray + *index * 0x30);
+            PSMTXIdentity(bone->orientationInvMtx);
+            if (actor->skinObject->lightingData != NULL) {
+                bone->skinInvTransposeMtx = (MtxPtr)((u8*)actor->skinInvTransposeMtxArray + *index * 0x30);
+                PSMTXIdentity(bone->skinInvTransposeMtx);
+            } else {
+                bone->skinInvTransposeMtx = NULL;
+            }
+        } else {
+            bone->skinMtx = NULL;
+            bone->orientationInvMtx = NULL;
+            bone->skinInvTransposeMtx = NULL;
+        }
+
+        (*index)++;
+        if (node->branch.Children != NULL) {
+            InitBone(bone, (ActorBone*)node->branch.Children, actor, index, bones);
+        }
+        node = (ActorBone*)node->branch.Next;
+    }
 }
 
 Actor* maybeProcessActLayout(ActorLayout* layout) {
