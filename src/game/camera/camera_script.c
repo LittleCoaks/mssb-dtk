@@ -2402,9 +2402,9 @@ void fn_3_101CC4(void) {
                 CAM_FILTER_V(&v);
                 CAM_SET_VIEW_V();
                 CAM_FILTER_POS();
+                CAM_CLAMP_LOOKAT_Y();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
-                CAM_INIT_POS_FILTER();
                 if (sel < 9 && sel >= 0) {
                     f32 ang = radianAngleReduction(1.5707964f + g_Fielders[sel].desiredMovementDirection);
                     CAM_ROTATE_AROUND(g_Fielders[sel].pos.x, g_Fielders[sel].pos.y, g_Fielders[sel].pos.z, -ang);
@@ -2423,8 +2423,8 @@ void fn_3_101CC4(void) {
                 CAM_FILTER_V(&v);
                 CAM_SET_VIEW_V();
                 CAM_FILTER_POS();
+                CAM_CLAMP_LOOKAT_Y();
             }
-            CAM_CLAMP_LOOKAT_Y();
             break;
         }
     } else {
@@ -2537,6 +2537,7 @@ void fn_3_101CC4(void) {
         if (g_pCamera->_2840.y < 1.0f) {
             g_pCamera->_2840.y = 1.0f;
         }
+        CAM_INIT_POS_FILTER();
         switch (CTX->_09A9) {
         case 0:
             v.x = g_Ball.AtBat_Contact_BallPos.x + (g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x);
