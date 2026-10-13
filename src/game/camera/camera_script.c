@@ -1403,35 +1403,35 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
         (outp)->_50 = ev._80; \
         (outp)->_54 = ev._84
 
-#define CAM_EVAL_VIEW(script, time, a, b, outp) \
-    do { \
-        CamEval ev; \
-        VecXYZ basisZ; \
-        VecXYZ basisY; \
-        CAM_EVAL_VIEW_BODY(script, time, a, b, outp); \
-    } while (0)
+static inline void camEvalView(u8* script, u32 time, s16 a, u8 b, CamView* out) {
+    CamEval ev;
+    VecXYZ basisY;
+    VecXYZ basisZ;
+    CAM_EVAL_VIEW_BODY(script, time, a, b, out);
+}
 
-#define CAM_SCRIPT_SET_VIEW() \
-    do { \
-        CamView view; \
-        u32 time = CTX->_0118; \
-        u8* script = CTX->_0990; \
-        CAM_EVAL_VIEW(script, time, 0, 0, &view); \
-        memcpy(&CTX->_0064, &view.pos, sizeof(VecXYZ)); \
-        CTX->_00A0 = view.fov; \
-        CTX->_00A4 = view._4C; \
-        CTX->_00A8 = view._50; \
-        CTX->_09A7 = view._54; \
-        memcpy(&CTX->_0088, &view.tgt, sizeof(VecXYZ)); \
-        g_pCamera->_2858.x = view.pos.x; \
-        g_pCamera->_2858.y = view.pos.y; \
-        g_pCamera->_2858.z = view.pos.z; \
-        g_pCamera->_2870 = view._4C; \
-        g_pCamera->_2874 = view._50; \
-        g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870)); \
-        g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870)); \
-        g_pCamera->_2878 = 1.0f; \
-    } while (0)
+static inline void camSetView(void) {
+    CamView view;
+    u32 time = CTX->_0118;
+    u8* script = CTX->_0990;
+    camEvalView(script, time, 0, 0, &view);
+    memcpy(&CTX->_0064, &view.pos, sizeof(VecXYZ));
+    CTX->_00A0 = view.fov;
+    CTX->_00A4 = view._4C;
+    CTX->_00A8 = view._50;
+    CTX->_09A7 = view._54;
+    memcpy(&CTX->_0088, &view.tgt, sizeof(VecXYZ));
+    g_pCamera->_2858.x = view.pos.x;
+    g_pCamera->_2858.y = view.pos.y;
+    g_pCamera->_2858.z = view.pos.z;
+    g_pCamera->_2870 = view._4C;
+    g_pCamera->_2874 = view._50;
+    g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870));
+    g_pCamera->_289C = normalizeAngleToRange(radianAngleReduction(g_pCamera->_2870));
+    g_pCamera->_2878 = 1.0f;
+}
+
+#define CAM_SCRIPT_SET_VIEW() camSetView()
 
 #define CAM_SCRIPT_START() \
     do { \
