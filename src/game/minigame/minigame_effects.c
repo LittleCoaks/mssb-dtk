@@ -3046,11 +3046,12 @@ void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
 
 // .text:0x1480E0 size:0x174
 void minigameWinnerStars_drawQuad(MGParticle* p) {
-    f32* v = minigameWinnerStars_quadVerts;
+    f32* v;
     int i;
 
     GXSetCullMode(GX_CULL_BACK);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    v = minigameWinnerStars_quadVerts;
     for (i = 0; i < 4; i++) {
         GXWGFifo.f32 = v[i * 3 + 0];
         GXWGFifo.f32 = v[i * 3 + 1];
