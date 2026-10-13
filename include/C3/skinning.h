@@ -39,7 +39,8 @@ typedef struct sBone {
     /* 0x134 */ u16 unk134; // bits 2-4 mirrored into bit 5 by ACTSetAnimation
     /* 0x136 */ u8 unk136;
     /* 0x137 */ u8 unk137;
-} sBone;
+    /* 0x138 */ u8 unk138[0x140 - 0x138];
+} sBone; // size: 0x140
 
 typedef struct {
     /* 0x00 */ Mtx34 m;

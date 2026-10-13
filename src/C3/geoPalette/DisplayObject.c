@@ -1152,7 +1152,7 @@ void InitDisplayObjWithLayout(struct DODisplayObj* dispObj, DODisplayLayout* lay
     memcpy(&dispObj->unk64, layout->unk2C, sizeof(dispObj->unk64));
 }
 
-void DOGet(struct DODisplayObj** dispObj, DODisplayDataPtr pal, u16 id, char* name) {
+void DOGet(struct DODisplayObj** dispObj, DODisplayDataPtr pal, u16 id) {
     DODisplayLayout* layout;
 
     if (id >= pal->numDescriptors) {

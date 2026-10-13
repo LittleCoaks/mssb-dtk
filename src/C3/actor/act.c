@@ -614,9 +614,6 @@ BOOL maybeBallRelated(Actor** actor, ActorLayout* layout, u16 actorID) {
 
 void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* bones) {
     sBone* bone;
-    u32* dst;
-    u32* src;
-    s32 k;
 
     while (node != NULL) {
         bone = &bones[*index];
@@ -629,16 +626,12 @@ void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* b
         bone->drawingPriority = node->drawingPriority;
         bone->orientationCtrl.type = 0;
         if (node->orientationCtrl != NULL) {
-            dst = (u32*)&bone->orientationCtrl;
-            src = (u32*)node->orientationCtrl;
-            for (k = 0; k < 9; k++) {
-                dst[k] = src[k];
-            }
+            bone->orientationCtrl = *node->orientationCtrl;
         }
 
         bone->dispObj = NULL;
         if (node->geoFileID != 0xFFFF) {
-            DOGet(&bone->dispObj, actor->pal, node->geoFileID, NULL);
+            DOGet(&bone->dispObj, actor->pal, node->geoFileID);
         }
         bone->unk18 = bone->dispObj;
         bone->animPipe = NULL;
@@ -648,15 +641,15 @@ void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* b
         bone->unk136 = 0;
         bone->unk137 = 0;
 
-        bone->forwardMtx = (MtxPtr)((u8*)actor->forwardMtxArray + *index * 0x30);
+        bone->forwardMtx = ((Mtx*)actor->forwardMtxArray)[*index];
         PSMTXIdentity(bone->forwardMtx);
         if (actor->skinObject != NULL) {
-            bone->skinMtx = (MtxPtr)((u8*)actor->skinMtxArray + *index * 0x30);
+            bone->skinMtx = ((Mtx*)actor->skinMtxArray)[*index];
             PSMTXIdentity(bone->skinMtx);
-            bone->orientationInvMtx = (MtxPtr)((u8*)actor->orientationInvMtxArray + *index * 0x30);
+            bone->orientationInvMtx = ((Mtx*)actor->orientationInvMtxArray)[*index];
             PSMTXIdentity(bone->orientationInvMtx);
             if (actor->skinObject->lightingData != NULL) {
-                bone->skinInvTransposeMtx = (MtxPtr)((u8*)actor->skinInvTransposeMtxArray + *index * 0x30);
+                bone->skinInvTransposeMtx = ((Mtx*)actor->skinInvTransposeMtxArray)[*index];
                 PSMTXIdentity(bone->skinInvTransposeMtx);
             } else {
                 bone->skinInvTransposeMtx = NULL;
@@ -737,7 +730,7 @@ Actor* maybeProcessActLayout(ActorLayout* layout) {
     MtxPtr forwardMtxArray;
 
     if (layout->skinFileID != 0xFFFF) {
-        DOGet(&skin, (DODisplayDataPtr)layout->geoPaletteName, layout->skinFileID, NULL);
+        DOGet(&skin, (DODisplayDataPtr)layout->geoPaletteName, layout->skinFileID);
         skinBytes = mtxBytes;
         if (skin->lightingData != NULL) {
             lightingBytes = mtxBytes;
