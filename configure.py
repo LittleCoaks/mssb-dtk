@@ -817,7 +817,7 @@ config.libs = [
             Object(Matching, "C3/actor/actorAnim.c"),
             Object(Matching, "C3/anim/animBank.c"),
             Object(NonMatching, "C3/anim/animPipe.c"),
-            Object(NonMatching, "C3/actor/boneAnim.c"),
+            Object(Matching, "C3/actor/boneAnim.c"),
             Object(NonMatching, "C3/control/frustum.c"),
             Object(NonMatching, "C3/control/control.c", extra_cflags=["-inline deferred"]),
             Object(Matching, "C3/geoPalette/DisplayObject.c", mw_version="GC/2.6"),
