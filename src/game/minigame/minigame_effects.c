@@ -1864,11 +1864,11 @@ void starDash_offsetSparkToBone(MGParticle* p) {
     u32 node;
 
     if (p->kind < 5) {
-        node = (u32)rand() % 23;
+        node = starDash_sparkBoneNodes[(u32)rand() % 23];
         offset.z = 0.0f;
         offset.y = 0.0f;
         offset.x = 0.0f;
-        if (!getAnimationCollisionOffset(p->kind - 1, starDash_sparkBoneNodes[node], &offset)) {
+        if (!getAnimationCollisionOffset(p->kind - 1, node, &offset)) {
             memset(&offset, 0, sizeof(Vec));
             getAnimationCollisionOffset(p->kind - 1, 4, &offset);
         }
