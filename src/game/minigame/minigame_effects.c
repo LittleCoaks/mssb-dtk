@@ -1444,20 +1444,14 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     for (i = 0; i < 2; i++) {
         f32* t;
 
-        GXWGFifo.f32 = p->origin.x + corner[i * 2][0];
-        GXWGFifo.f32 = p->origin.y + corner[i * 2][1];
-        GXWGFifo.f32 = -1.0f;
-        GXWGFifo.u32 = *(u32*)&p->colorR;
+        GXPosition3f32(p->origin.x + corner[i * 2][0], p->origin.y + corner[i * 2][1], -1.0f);
+        GXColor1u32(*(u32*)&p->colorR);
         t = uv[p->_4E + k++];
-        GXWGFifo.f32 = t[0];
-        GXWGFifo.f32 = t[1];
-        GXWGFifo.f32 = p->origin.x + corner[i * 2 + 1][0];
-        GXWGFifo.f32 = p->origin.y + corner[i * 2 + 1][1];
-        GXWGFifo.f32 = -1.0f;
-        GXWGFifo.u32 = *(u32*)&p->colorR;
+        GXTexCoord2f32(t[0], t[1]);
+        GXPosition3f32(p->origin.x + corner[i * 2 + 1][0], p->origin.y + corner[i * 2 + 1][1], -1.0f);
+        GXColor1u32(*(u32*)&p->colorR);
         t = uv[p->_4E + k++];
-        GXWGFifo.f32 = t[0];
-        GXWGFifo.f32 = t[1];
+        GXTexCoord2f32(t[0], t[1]);
     }
     GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
