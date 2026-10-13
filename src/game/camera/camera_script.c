@@ -3618,15 +3618,14 @@ BOOL fn_3_FDB30(void) {
             fn_3_219CC();
             ctx->_0000 += 1;
             continue;
-        case 91:
+        case 91: {
+            CamDrawItem* created = (CamDrawItem*)insertGraphicDrawingFunction(manageDrawingItemState, 4);
             item->_10 = 0;
-            {
-                CamDrawItem* created = (CamDrawItem*)insertGraphicDrawingFunction(manageDrawingItemState, 4);
-                created->_22 = 0;
-                created->_1E = 0;
-            }
+            created->_22 = 0;
+            created->_1E = 0;
             ctx->_0000 += 1;
             continue;
+        }
         case 92:
             if (item->_10 == 1) {
                 ctx->_0000 += 1;
