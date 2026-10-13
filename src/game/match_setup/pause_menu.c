@@ -635,9 +635,9 @@ void fn_3_AEC50(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.captain]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.opponentCaptain]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.opponentCaptain]);
                 }
             } else {
                 changeScene(4, 6);
@@ -850,9 +850,9 @@ void fn_3_AE334(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.captain]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[starMissionCompletionTracker.opponentCaptain]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.opponentCaptain]);
                 }
             } else {
                 changeScene(4, 6);

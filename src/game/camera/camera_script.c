@@ -12,7 +12,7 @@
 #include "Dolphin/mtxext.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/mtx.h"
-#include "Unknown/File_0x800b2c44.h"
+#include "C3/actor/act.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800b0a14.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_cameraScript
@@ -2852,8 +2852,8 @@ BOOL fn_3_FDB30(void) {
     GameInitVariables* gs = &g_d_GameSettings;
     GameControlsStruct* gl = &g_GameLogic;
     u8* anim = animRelated;
-    u8 trackerA = starMissionCompletionTracker.difficulty;
-    u8 trackerB = starMissionCompletionTracker.captain;
+    u8 trackerA = g_Challenge.difficulty;
+    u8 trackerB = g_Challenge.captain;
     int i;
     int found;
     s32* table;

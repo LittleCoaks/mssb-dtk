@@ -11,29 +11,24 @@
 #include "game/sound/m_sound.h"
 #include "Unknown/File_0x800a70dc.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4bc8.h"
-#include "Unknown/File_0x800b4d64.h"
+#include "C3/actor/act.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x8001e460.h"
 #include "Unknown/File_0x80023b90.h"
 #include "Unknown/File_0x80034220.h"
 #include "Unknown/File_0x8003452c.h"
 #include "Unknown/File_0x800348c8.h"
-#include "Unknown/File_0x800bd3a0.h"
-#include "Unknown/File_0x800bd3cc.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 #include "Unknown/File_0x8003a538.h"
-#include "Unknown/File_0x800bf038.h"
-#include "Unknown/File_0x800bfe90.h"
-#include "Unknown/File_0x800b508c.h"
-#include "Unknown/File_0x800bcd60.h"
+#include "Unknown/File_0x800bde8c.h"
+#include "C3/skinning/SKNAsm.h"
+#include "Unknown/File_0x800c0770.h"
+#include "C3/anim/animBank.h"
+#include "C3/geoPalette/geoPalette.h"
 #include "Unknown/File_0x8005268c.h"
-#include "Unknown/DisplayObject.h"
-#include "Unknown/File_0x800bd2b0.h"
-#include "Unknown/File_0x800bd300.h"
+#include "C3/geoPalette/DisplayObject.h"
 #include "Unknown/File_0x800bda94.h"
-#include "Unknown/File_0x800bd190.h"
-#include "Unknown/File_0x800bea04.h"
 #include "game/stadium/sta_c0.h"
 #include "game/stadium/sta_c4.h"
 #include "game/stadium/sta_c1.h"
@@ -488,7 +483,7 @@ void actorSetAnimBank(ACTActor* act, u32 animBankId) {
         setActorAnimFrame(act->actor, act->animFrame);
     }
     if (act->applySpeed) {
-        fn_800B4C04(act->actor, act->animSpeed);
+        ACTSetSpeed(act->actor, act->animSpeed);
     }
     if (act->applyFlags & 1) {
         updateBoneParam(act->actor, act->applyFlags & 1);

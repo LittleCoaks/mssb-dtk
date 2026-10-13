@@ -2,7 +2,7 @@
 #include "menus/yd_step.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
-#include "Unknown/File_0x800bd300.h"
+#include "C3/light/light.h"
 #include "Unknown/File_0x80052968.h"
 #include "dolphin/mtx.h"
 #include "Dolphin/gx.h"

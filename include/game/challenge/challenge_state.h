@@ -64,7 +64,7 @@ typedef struct _ChallengeTrackingStruct {
     /*0x008*/ u8 _8;
     /*0x009*/ starMissionTrackingPair inGameMissionTracker[STAR_MISSIONS_PER_CHARACTER];
     /*0x01D*/ starMissionTrackingPair saveFileMissionTracker[STAR_MISSIONS_PER_CHARACTER];
-    /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) _31;
+    /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) recruitmentStatus;
     /*0x032*/ u8 _32;
     /*0x033*/ u8 _33;
 } ChallengeTrackingStruct; // size: 0x34
@@ -111,7 +111,7 @@ typedef struct _ChallengeState {
     /*0x44F3*/ u8 _44F3[0x4508 - 0x44F3];
 } ChallengeState; // size: 0x4508
 
-extern ChallengeState starMissionCompletionTracker;
+extern ChallengeState g_Challenge;
 
 // Byte offset of a ChallengeState member, for code that walks the block through a byte pointer.
 #define CHALLENGE_STATE_OFFSET(member) ((u32) & ((ChallengeState*)0)->member)

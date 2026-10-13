@@ -100,7 +100,7 @@ void fn_2_54BB0(void) {
     lbl_2_bss_1A8234 = w;
     lbl_2_bss_1A823C = (u8 *)&inningSetting.rel;
     lbl_2_bss_1A8244 = superstarUnlocked;
-    lbl_2_bss_1A8248 = &starMissionCompletionTracker;
+    lbl_2_bss_1A8248 = &g_Challenge;
     lbl_2_bss_1A824C = w;
     item = currentDrawingItem;
 

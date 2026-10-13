@@ -1,9 +1,7 @@
 #include "text/sprite_draw.h"
 #include "text/text_channel.h"
 #include "Dolphin/mtx.h"
-#include "Unknown/File_0x800b1314.h"
-#include "Unknown/File_0x800b1350.h"
-#include "Unknown/File_0x800b2160.h"
+#include "Unknown/sprt.h"
 
 extern f32 lbl_803CBBDC;
 extern f32 lbl_803CBBE0;

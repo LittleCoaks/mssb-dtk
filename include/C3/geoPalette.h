@@ -108,6 +108,7 @@ Mtx *DOGetWorldMatrix(struct DODisplayObj * dispObj);
 void DOHide(struct DODisplayObj * dispObj);
 void DORender(struct DODisplayObj * dispObj, MtxPtr camera, u8 numLights, ...);
 void DOVARender(struct DODisplayObj * dispObj, MtxPtr camera, u8 numLights, va_list *list);
+void DODefaultUserTevMode(int mode, struct DODisplayObj* dispObj, MtxPtr camera, u8* numTexGens, u8* numTevStages);
 void DORenderSkin(struct DODisplayObj *dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray, u8 numLights, ...);
 void DOVARenderSkin(struct DODisplayObj *dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray, u8 numLights, va_list *list);
 void DOSetWorldMatrix(struct DODisplayObj * dispObj, MtxPtr m);
@@ -125,9 +126,7 @@ void DOGet(struct DODisplayObj **dispObj, DODisplayDataPtr pal, u16 id, char *na
 
 // normalTable.c
 extern u8 normalTableQuantizeInfo;
-extern u8 normalTableNumComponents;
-extern u16 normalTableNumNormals;
 
-extern f32 normalTable[252][3];
+extern f32 normalTable[254][3]; // MSSB's table has 254 normals (the SDK's has 252)
 
 #endif // _DOLPHIN_CP_GEOPALETTE_H_

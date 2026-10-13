@@ -2,7 +2,7 @@
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/UnknownHomes_Game.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "Unknown/File_0x8003a538.h"
 
 extern void fn_800BDF70(StadiumModel *model);
@@ -20,13 +20,13 @@ extern void fn_800BDF70(StadiumModel *model);
 #include "game/stadium/stadium_star.h"
 #include "musyx/musyx.h"
 #include "static/UnknownHomes_Static.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/act.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // One entry per piranha-plant slot (11 slots, 10 usable; `usedFlag == 2` ends the list).
 typedef struct _YoshiPlantPlacement {
@@ -454,7 +454,7 @@ E(u8, BOOL) fn_3_E29B4(YoshiPlantObj* plant) {
         }
         plant->actor->animSpeed = animSpeeds[rng(3)];
         plant->actor->applySpeed = 1;
-        fn_800B4C04(plant->actor->actor, plant->actor->animSpeed);
+        ACTSetSpeed(plant->actor->actor, plant->actor->animSpeed);
         return TRUE;
     }
     return FALSE;

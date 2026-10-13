@@ -10,8 +10,7 @@
 #include "Dolphin/rand.h"
 #include "C3/control.h"
 #include "static/UnknownHomes_Static.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
 #include "Unknown/File_0x800bda94.h"
@@ -21,7 +20,8 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
 #include "game/sound/m_sound.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // A display-list colour attribute: `formatBits >> 4` is the GXCompType colour format.
 typedef struct _ToyColorAttr {

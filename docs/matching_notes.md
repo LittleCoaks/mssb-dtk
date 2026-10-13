@@ -3041,7 +3041,7 @@ together. All 27 functions reached 100% and the unit links as `Matching` (`4 fil
   statics, so objdiff cannot tell; the link can. Making `captainIDOrderedOnCapSS`/`captainIDMappings`
   `static` broke the menus/game REL imports, `variantPairs` alone `static` broke `fn_800415A8`.
 - **A struct-typed global beats every cast view of it.** The header declares
-  `starMissionCompletionTracker` as an array; the target's loops (s32 vestigial guard + CSE'd bases)
+  `g_Challenge` as an array; the target's loops (s32 vestigial guard + CSE'd bases)
   only appeared with the symbol declared as the real block struct. Done file-locally via
   `#define name name_asArray` before the includes, `#undef`, then `extern Block name;`.
 - **If every use of a `u8` field is cast `(s8)`, the field is `s8`.** Retyping
@@ -3115,10 +3115,10 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
 
 ## Findings from the Challenge-mode state / star mission data pass
 
-- **`starMissionCompletionTracker` is one 0x4508-byte `ChallengeState`** (`game/challenge/challenge_state.h`),
+- **`g_Challenge` is one 0x4508-byte `ChallengeState`** (`game/challenge/challenge_state.h`),
   not `ChallengeTrackingStruct[54]`. Converting users from `(u8*)tracker + 0x....` to fields was neutral
   everywhere except where a function kept one base pointer across many accesses: those need a local
-  `ChallengeState* cs = &starMissionCompletionTracker;` (decideScoutFlagMission 92.9 -> 98.3 versus a bare
+  `ChallengeState* cs = &g_Challenge;` (decideScoutFlagMission 92.9 -> 98.3 versus a bare
   global per access). Byte-pointer walks over `savedLineup` in text_0323C (stride 6, odd start offsets)
   stay byte pointers; `CHALLENGE_STATE_OFFSET(member)` names the offsets.
 - **Flat byte tables sometimes encode the original indexing.** `characterStaticIndexes[(id) * 6 + 2]` in

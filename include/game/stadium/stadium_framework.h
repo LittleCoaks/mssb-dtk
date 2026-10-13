@@ -6,7 +6,7 @@
 #include "game/ball/collision_primitives.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/gx.h"
-#include "Unknown/DisplayObject.h"
+#include "C3/geoPalette/DisplayObject.h"
 #include "C3/control.h"
 
 typedef struct _StadiumModelNode {

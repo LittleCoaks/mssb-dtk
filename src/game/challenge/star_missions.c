@@ -28,7 +28,7 @@ extern u8 animRelated[0x124];
 
 #define SCOUT_FLAG_MAX(t, difficulty_, captain_) ((t)->scoutFlagPointer->flagsRequired[difficulty_][captain_])
 
-#define MISSION_TRACKER(ci) (&starMissionCompletionTracker.characters[(ci)->trackerIdx])
+#define MISSION_TRACKER(ci) (&g_Challenge.characters[(ci)->trackerIdx])
 #define MISSION_REQS(ci) (starMissionRequirementsTable[(ci)->requirementRow])
 
 #define MISSION_ADVANCE(ct, req, i)                                                                     \
@@ -66,7 +66,7 @@ void practice_postGraphicsUpdate(void) {
 BOOL decideScoutFlagMission(void) {
     int idx = 0;
     GameControlsStruct* logic = &g_GameLogic;
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     InMemBatterType* batter = &g_Batter;
     ScoutState* scout = &scoutState;
     InMemRunnerType* runners = g_Runners;
@@ -233,7 +233,7 @@ chosen:
 // .text:0x001659A0 size:0x384 mapped:0x807A4A34
 BOOL shouldScoutMissionBeEnabled(E(int, SCOUT_MISSION) mission) {
     ScoutState* scout = &scoutState;
-    u8 difficulty = starMissionCompletionTracker.difficulty;
+    u8 difficulty = g_Challenge.difficulty;
     BOOL enabled;
     int roll;
     int chance;
@@ -288,7 +288,7 @@ void clearScoutState(void) {
 void scoutFlag_checkMissionSuccess(void) {
     ScoutState* scout = &scoutState;
     ScoutMission* missions = scoutMissionTable;
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     u8 captain = cs->captain;
     u8 difficulty = cs->difficulty;
     StoredInningInfo* inning = &storedInningInfo;
@@ -613,7 +613,7 @@ void scoutFlag_checkMissionSuccess(void) {
 void awardScoutFlagsSequential(void) {
     s16 ids[PLAYERS_PER_TEAM];
     ScoutMission* missions = scoutMissionTable;
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     u8 captain = cs->captain;
     u8 difficulty = cs->difficulty;
     int k;
@@ -645,7 +645,7 @@ void awardScoutFlagsSequential(void) {
 // .text:0x00164554 size:0x110 mapped:0x807A35E8
 void applyScoutFlagRewards(void) {
     s16 ids[PLAYERS_PER_TEAM];
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     ScoutState* scout = &scoutState;
     u8 captain = cs->captain;
     u8 difficulty = cs->difficulty;
@@ -670,7 +670,7 @@ void assignScoutFlagRewardToTarget(void) {
     s16 ids[PLAYERS_PER_TEAM];
     ScoutState* scout = &scoutState;
     ScoutMission* missions = scoutMissionTable;
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     InMemBatterType* batter = &g_Batter;
     InMemPitcherType* pitcher = &g_Pitcher;
     u8 captain = cs->captain;
@@ -710,7 +710,7 @@ void assignScoutFlagRewardToTarget(void) {
 void assignScoutFlagRewardRandom(void) {
     s16 ids[PLAYERS_PER_TEAM];
     ScoutMission* missions = scoutMissionTable;
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     ScoutState* scout = &scoutState;
     u8 captain = cs->captain;
     u8 difficulty = cs->difficulty;
@@ -749,7 +749,7 @@ void assignScoutFlagRewardRandom(void) {
 // .text:0x00163D34 size:0x160 mapped:0x807A2DC8
 void snapshotScoutFlagProgress(void) {
     s16 ids[PLAYERS_PER_TEAM];
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     ScoutState* scout = &scoutState;
     u8 captain = cs->captain;
     u8 difficulty = cs->difficulty;
@@ -772,7 +772,7 @@ void snapshotScoutFlagProgress(void) {
 // .text:0x00163BD4 size:0x160 mapped:0x807A2C68
 BOOL anyScoutFlagIncomplete(void) {
     s16 ids[PLAYERS_PER_TEAM];
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     u8 captain = cs->captain;
     u8 difficulty = cs->difficulty;
     s8 max;
@@ -798,7 +798,7 @@ BOOL anyScoutFlagIncomplete(void) {
 BOOL isScoutTargetFlagAvailable(void) {
     s16 ids[PLAYERS_PER_TEAM];
     BOOL found;
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     ScoutState* scout = &scoutState;
     InMemBatterType* batter = &g_Batter;
     InMemPitcherType* pitcher = &g_Pitcher;
@@ -849,7 +849,7 @@ BOOL anyScoutPairIncomplete(void) {
 // .text:0x001637EC size:0x15C mapped:0x807A2880
 void recruitWholeTeamAfterMercy(void) {
     s16 ids[PLAYERS_PER_TEAM];
-    ChallengeState* cs = &starMissionCompletionTracker;
+    ChallengeState* cs = &g_Challenge;
     u8 difficulty;
     u8 captain;
     s8 max;
@@ -998,7 +998,7 @@ void starMissionsWholeGame(void) {
         for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
             if (ct->inGameMissionTracker[i].starMissionStatus == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
                 if ((req[i].flags & STAR_MISSION_FLAG_BOWSER_UNLOCK) && Static_Stats_Tables.captainSelectedID[1] != CHAR_ID_BOWSER &&
-                    starMissionCompletionTracker._16C2 != 0x2A) {
+                    g_Challenge._16C2 != 0x2A) {
                     ct->inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
             }
@@ -1007,10 +1007,10 @@ void starMissionsWholeGame(void) {
 
     for (p = 0; p < NUM_CHOOSABLE_CHARACTERS; p++) {
         for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
-            if (starMissionCompletionTracker.characters[p].inGameMissionTracker[i].starMissionStatus <= -1) {
-                starMissionCompletionTracker.characters[p].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+            if (g_Challenge.characters[p].inGameMissionTracker[i].starMissionStatus <= -1) {
+                g_Challenge.characters[p].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
             } else {
-                starMissionCompletionTracker.characters[p].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
+                g_Challenge.characters[p].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
         }
     }
@@ -1301,7 +1301,7 @@ void challenge_postPitchStarMissionTracking(void) {
 
     if (scout->humanTeam == g_GameLogic.teamFielding) {
         CharStaticIndex* pc = &characterStaticIndexes[g_Pitcher.charID];
-        ChallengeTrackingStruct* ct = &starMissionCompletionTracker.characters[pc->trackerIdx];
+        ChallengeTrackingStruct* ct = &g_Challenge.characters[pc->trackerIdx];
         StarMissionRequirement* req = MISSION_REQS(pc);
         for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {
@@ -1350,7 +1350,7 @@ void challenge_postPitchStarMissionTracking(void) {
 
     if (scout->humanTeam == g_GameLogic.teamBatting) {
         CharStaticIndex* bc = &characterStaticIndexes[g_Batter.charID];
-        ChallengeTrackingStruct* ct = &starMissionCompletionTracker.characters[bc->trackerIdx];
+        ChallengeTrackingStruct* ct = &g_Challenge.characters[bc->trackerIdx];
         StarMissionRequirement* req = MISSION_REQS(bc);
         u8 starSwing = g_Ball.currentStarSwing2;
         u8 starChance = g_GameLogic.IsStarChance;
@@ -1386,7 +1386,7 @@ void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int roste
     int i;
 
 #define QUANTITY_SIMPLE(reqType)                                   \
-    ct = &starMissionCompletionTracker.characters[trackerIdx];                \
+    ct = &g_Challenge.characters[trackerIdx];                \
     req = starMissionRequirementsTable[requirementRow];            \
     for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {                                     \
         if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {  \
@@ -1409,7 +1409,7 @@ void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int roste
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_37)
         break;
     case STAR_MISSION_EVENT_BIG_PLAY:
-        ct = &starMissionCompletionTracker.characters[trackerIdx];
+        ct = &g_Challenge.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
         {
             int contact = g_Ball.AtBat_ContactResult;
@@ -1442,7 +1442,7 @@ void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int roste
         break;
     case STAR_MISSION_EVENT_CATCH_ANIM_5: {
         int contact;
-        ct = &starMissionCompletionTracker.characters[trackerIdx];
+        ct = &g_Challenge.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
         contact = g_Ball.AtBat_ContactResult;
         for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
@@ -1462,7 +1462,7 @@ void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int roste
         QUANTITY_SIMPLE(STAR_MISSION_TYPE_UNK_39)
         break;
     case STAR_MISSION_EVENT_CHEMISTRY_THROW:
-        ct = &starMissionCompletionTracker.characters[trackerIdx];
+        ct = &g_Challenge.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
         {
             s16* thrownTo = &g_Fielders[g_Ball.fielderBeingThrownTo].CharID;
@@ -1484,7 +1484,7 @@ void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int roste
         break;
     case STAR_MISSION_EVENT_HANDLED_BALL_NO_THROW: {
         int contact;
-        ct = &starMissionCompletionTracker.characters[trackerIdx];
+        ct = &g_Challenge.characters[trackerIdx];
         req = starMissionRequirementsTable[requirementRow];
         contact = g_Ball.AtBat_ContactResult;
         for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
@@ -1520,7 +1520,7 @@ void starMissionsMinigamesTotalPoints(void) {
     u8 trackerIdx = characterStaticIndexes[charID].trackerIdx;
     u8 requirementRow = characterStaticIndexes[charID].requirementRow;
     StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
-    ChallengeTrackingStruct* ct = &starMissionCompletionTracker.characters[trackerIdx];
+    ChallengeTrackingStruct* ct = &g_Challenge.characters[trackerIdx];
     u8 mode = g_Minigame.GameMode_MiniGame;
     u8 difficulty = g_d_GameSettings.challengeDifficulty;
     int i;
@@ -1636,10 +1636,10 @@ void starMissionsMinigamesTotalPoints(void) {
 
     for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
         for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-            if (starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus <= -1) {
-                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+            if (g_Challenge.characters[i].inGameMissionTracker[j].starMissionStatus <= -1) {
+                g_Challenge.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
             } else {
-                starMissionCompletionTracker.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
+                g_Challenge.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
         }
     }
@@ -1655,7 +1655,7 @@ void starMissionsMinigamesSpecialAction(E(int, STAR_MISSION_MINIGAME_EVENT) miss
 
 #define SPECIAL_LOOP_BEGIN(TYPE)                                                             \
     {                                                                                        \
-        ChallengeTrackingStruct* ct = &starMissionCompletionTracker.characters[trackerIdx];             \
+        ChallengeTrackingStruct* ct = &g_Challenge.characters[trackerIdx];             \
         StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];          \
         for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {                                                           \
             if (ct->inGameMissionTracker[i].starMissionStatus >= 0) {                        \
@@ -1731,6 +1731,6 @@ void starMissionsMinigamesSpecialAction(E(int, STAR_MISSION_MINIGAME_EVENT) miss
 
 missionFound:
     if (found) {
-        starMissionCompletionTracker.characters[trackerIdx].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
+        g_Challenge.characters[trackerIdx].inGameMissionTracker[i].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
     }
 }

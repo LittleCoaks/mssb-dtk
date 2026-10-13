@@ -27,12 +27,12 @@
 #include "Unknown/File_0x80052734.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/act.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // The kinds of block the garden places; `variant` is the kind a block turns
 // into when hit (a mystery block rolls one at load).
@@ -853,7 +853,7 @@ void fn_3_F9E78(int idx, int arg1, void* hit) {
                 act = (ACTActor*)d->model;
                 ACTSetAnimation(act->actor, act->animBank, NULL, act->sequenceNum, 0.0f, act->animTime);
                 setActorAnimFrame(act->actor, act->animFrame);
-                fn_800B4C04(act->actor, act->animSpeed);
+                ACTSetSpeed(act->actor, act->animSpeed);
                 updateBoneParam(act->actor, act->applyFlags & 1);
                 ((GardenBlockObj*)d)->debrisFrame = 0.0f;
                 ((Control*)d)->type = 0;

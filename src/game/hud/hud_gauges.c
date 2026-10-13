@@ -528,10 +528,10 @@ void draw_initStarGuageHud(void) {
     HUD_RECORD(scene, 46)->frame = 30 << 16;
     HUD_RECORD(scene, 47)->frame = 30 << 16;
     if (g_d_GameSettings.exhibitionMatchInd == 0) {
-        if (starMissionCompletionTracker.charIsSuperstar[g_Pitcher.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] == 0) {
+        if (g_Challenge.charIsSuperstar[g_Pitcher.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] == 0) {
             HUD_RECORD(scene, 48)->flags |= UI_FLAG_VISIBLE;
         }
-        if (starMissionCompletionTracker.charIsSuperstar[g_Batter.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0) {
+        if (g_Challenge.charIsSuperstar[g_Batter.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0) {
             HUD_RECORD(scene, 49)->flags |= UI_FLAG_VISIBLE;
         }
     } else {

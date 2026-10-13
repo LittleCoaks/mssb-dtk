@@ -401,7 +401,7 @@ in this REL.
 
 **`dictionary.c`'s naming note.** This screen was initially misread from internal
 evidence alone as a developer settings/parameter editor -- the 11-tab/231-row
-structure and the fact that it directly touches `starMissionCompletionTracker`,
+structure and the fact that it directly touches `g_Challenge`,
 `superstarUnlocked`, and other global progress state all looked consistent with a
 dev tool. That conclusion was wrong. The user built and ran a Gecko code (derived
 from this session's addressing work: `changeScreenVariables(7)` hooked in from the
@@ -597,8 +597,18 @@ fully matched and all five link from source.
 |---|---|---|
 | `src/Dolphin` | 189 | GameCube SDK, organised by library: `os` (24), `MSL_C` (59), `TRK_MINNOW_DOLPHIN` (28), `card` (16), `gx` (15), `dvd` (8), `mtx` (7), `Runtime` (6), `gba` (4), `dsp` (3), plus `ai`/`ar`/`exi`/`si`/`vi`/`pad`/`thp`/`gd`/`db`/`base`. |
 | `src/Musyx` | 26 | MusyX audio engine — synth (`synth*.c`, `seq*.c`), hardware/DSP (`hw_*.c`), effects (`reverb*.c`, `chorus_fx.c`), streaming. |
-| `src/C3/control` | 1 | `control.c` — the CTRL actor/transform layer stadium and minigame code calls into (`CTRLSetScale`, `CTRLSetRotation`, `CTRLSetQuat`). |
-| `src/Unknown` | 275 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
+| `src/C3/texPalette`, `src/C3/structures` | 4 | The SDK `texPalette.c` (`TEXGet`) and `structures` modules (`List.c`: `DSInitList`/`DSInsertListObject`; `dolphinString.c`: `Strcmp`; `Tree.c`: `DSInitTree`/`DSInsertBranchBelow`), main.dol `.text` `0x80091450-0x80091608`; replaces `Unknown/File_0x80091450.c`. |
+| `src/C3/actor` | 2 | `act.c` (the actor: `ACTSort`, layout loading, bone matrices, shadow-pass bone update; main.dol `.text` `0x800B2AC8-0x800B4A44`, `NonMatching`) and `actorAnim.c` (per-bone animation control: `AnimateActorBones`, `ACTSetAnimation`; `0x800B4A44-0x800B4E9C`, `Matching`). Replace `Unknown/File_0x800b2ac8 ... 4908.c`. |
+| `src/C3/anim` | 2 | `animBank.c` (`ANIMGet`, `ANIMGetSequence`, `ANIMGetTrackFromSequence`, `ANIMGetKeyFrameFromTrack`; `Matching`) and `animPipe.c` (the `Do*Animation` interpolators, `ANIMTick`, `ANIMBind`; main.dol `.text` `0x800B516C-0x800B79D0`, still stubs). The binary names the second one: its `OSPanic` strings say `animPipe.c`. |
+| `src/C3/actor/boneAnim.c` | 1 | `ACTSetBoneTrack` (`0x800B79D0-0x800B7D3C`, stub). Listed with `src/C3/actor` above. |
+| `src/C3/geoPalette` | 3 | `DisplayObject.c` (the display-object renderer, `0x800B993C-0x800BCB44`, 21 functions, `Matching`, built with `GC/2.6`), `normalTable.c` (the 254-normal table and its quantize byte, `Matching`) and `geoPalette.c` (`LoadGeoPalette`, the geometry-palette pointer fixups, `0x800BCB44-0x800BD1F0`, `NonMatching`). |
+| `src/C3/skinning`, `src/C3/light` | 4 | `GQRSetup.c` (`__MTGQR5-7`, `GQRSetup7/6/5`, `0x800BD1F0-0x800BD2B0`) and `light.c` (the ambient override plus `LITXForm`, `LITInit*`, `LITAlloc`, `0x800BD2B0-0x800BD478`); both `Matching`, and `SKNControl.c` (`SKNLoadFile`, `SKNInit`, the flush/zero helpers and the two skinning drivers, `0x800BF074-0x800BFE90`) and `SKNAsm.c` (the six vertex kernels, `0x800BFE90-0x800C0770`, stubs; name is a proposal). |
+| `src/C3/control` | 2 | `control.c` — the CTRL actor/transform layer stadium and minigame code calls into (`CTRLSetScale`, `CTRLSetRotation`, `CTRLSetQuat`; main.dol `.text` `0x800B845C-0x800B993C`) and `frustum.c`, the view-frustum setup and culling stubs (`fn_800B806C`, `checkObjectVisibility`; `0x800B7D3C-0x800B845C`, name is a proposal). |
+| `src/challenge` | 1 | `challenge_progress.c` — the Challenge-mode star mission and scout flag tables (`.data 0x80109420-0x8010B610`), star drawing on the mission menu, recruitment, intermediate stat buffs and star rank (main.dol `.text` `0x8006C48C-0x8006CEBC`); replaces `Unknown/File_0x8006c48c/7c4/9d8/be4/ca4.c`. The REL half of Challenge mode is `src/game/challenge`. |
+| `src/Unknown/sprt.c` | 1 | the sprite renderer (`AllocateSprite`, `DrawSprite` and its wrappers `DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode`, plus 11 functions without C; main.dol `.text` `0x800B0D28-0x800B2AC8`, `NonMatching`); named by its own `OSPanic` file string. |
+| `src/Unknown/File_0x800bde8c.c` | 1 | the shadow-map pass (`setVectors`, `DrawShadows`/`GetDrawShadows`/`ShouldDrawShadows`, `loadTlutRelated` and eight functions without C; main.dol `.text` `0x800BDE8C-0x800BF074`, `NonMatching`); address-named because the binary gives no file name. |
+| `src/Unknown/sound.c` | 1 | the game's MusyX wrapper (`initSound`, `soundQuit`, `SndAlloc`, `SndFree`; main.dol `.text` `0x800B07FC-0x800B0A14`, `Matching`, `-inline deferred`); named by its own `OSPanic` file string. |
+| `src/Unknown` | 270 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---
