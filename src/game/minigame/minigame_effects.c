@@ -2564,7 +2564,7 @@ void wallBall_stopWallHitPuff(void) {
 }
 
 // .text:0x14B9A0 size:0x50
-void barrelBatter_spawnMachineSparks(s16 frames, Vec* start) {
+void barrelBatter_spawnMachineSparks(s32 frames, Vec* start) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER &&
         start != NULL) {
         barrelBatter_spawnMachineSparksEffect(frames, start);
@@ -2573,7 +2573,7 @@ void barrelBatter_spawnMachineSparks(s16 frames, Vec* start) {
 
 // .text:0x14B92C size:0x74
 #pragma dont_inline on
-void barrelBatter_spawnMachineSparksEffect(s16 frames, Vec* start) {
+void barrelBatter_spawnMachineSparksEffect(s32 frames, Vec* start) {
     MGPathEffect* effect = allocParticleEffect(barrelBatter_updateMachineSparks, 0x80, 0, barrelBatter_machineSparkParams[2], TRUE, 0x23);
     if (effect != NULL) {
         barrelBatter_initMachineSparks(effect, frames, start);
@@ -2582,22 +2582,20 @@ void barrelBatter_spawnMachineSparksEffect(s16 frames, Vec* start) {
 #pragma dont_inline reset
 
 // .text:0x14B53C size:0x3F0
-void barrelBatter_initMachineSparks(MGPathEffect* effect, s16 frames, Vec* start) {
+void barrelBatter_initMachineSparks(MGPathEffect* effect, s32 frames, Vec* start) {
     MGParticle* p;
     Vec diff;
     f32 seg1;
     f32 seg2;
-    u32 i = 0;
+    s32 i = 0;
 
-    effect->base.x = start->x;
-    effect->base.y = start->y;
-    effect->base.z = start->z;
+    effect->base = *start;
     effect->texture = *(u32*)&animRelated[0x6C];
     effect->total = frames;
     effect->remaining = frames;
-    PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 3), (Vec*)barrelBatter_machineSparkPath, &diff);
+    PSVECSubtract((Vec*)barrelBatter_machineSparkPath, (Vec*)(barrelBatter_machineSparkPath + 3), &diff);
     seg1 = PSVECMag(&diff);
-    PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 6), (Vec*)(barrelBatter_machineSparkPath + 3), &diff);
+    PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 3), (Vec*)(barrelBatter_machineSparkPath + 6), &diff);
     seg2 = PSVECMag(&diff);
     effect->span = seg1 / ((seg2 + seg1) / (f32)(u32)frames);
     barrelBatter_updateMachineSparkPos(effect);
