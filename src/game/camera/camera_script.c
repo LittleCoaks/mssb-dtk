@@ -583,8 +583,11 @@ s32 lbl_3_data_1D960[] = {
 s32 lbl_3_data_1D96C[] = {
     310, 311, 312,
 };
-s32 *lbl_3_data_1D978[] = {
-    (void*)273, (void*)274, lbl_3_data_1D654, lbl_3_data_1D660,
+s32 lbl_3_data_1D978[] = {
+    273, 274,
+};
+s32* lbl_3_data_1D980[] = {
+    lbl_3_data_1D654, lbl_3_data_1D660,
     lbl_3_data_1D66C, lbl_3_data_1D678, lbl_3_data_1D684, lbl_3_data_1D690,
     lbl_3_data_1D69C, lbl_3_data_1D6A8, lbl_3_data_1D6C0, lbl_3_data_1D6D8,
     lbl_3_data_1D6F0, lbl_3_data_1D708, lbl_3_data_1D714, lbl_3_data_1D720,
@@ -601,7 +604,7 @@ s32 *lbl_3_data_1D978[] = {
     lbl_3_data_1D8F4, lbl_3_data_1D900, lbl_3_data_1D908, lbl_3_data_1D910,
     lbl_3_data_1D91C, lbl_3_data_1D92C, lbl_3_data_1D938, lbl_3_data_1D940,
     lbl_3_data_1D948, lbl_3_data_1D950, lbl_3_data_1D958, lbl_3_data_1D960,
-    lbl_3_data_1D96C, (s32*)lbl_3_data_1D978,
+    lbl_3_data_1D96C, lbl_3_data_1D978,
 };
 s32 lbl_3_data_1DA90[] = {
     63, 64, 65,
@@ -1228,10 +1231,8 @@ typedef struct CamGlobal {
 #define CAMF(type, off) (*(type*)((u8*)g_pCamera + (off)))
 #define CAMSCRIPT(i) (*(CamScript*)((u8*)g_pCamera + 0x120 + (i) * 0x9BC))
 #define CAMSCRIPT_G(i) (*(CamScript*)((u8*)&g_Camera + 0x120 + (i) * 0x9BC))
-#define CAMDATA(off) ((u8*)lbl_3_data_1C0A8 + (off))
-#define DATA_L(off) (data + (off))
-#define CAM_LABEL(i) (((s32**)CAMDATA(0x4D64))[i])
-#define CAM_SCRIPT_TABLE(i) (((s32**)CAMDATA(0x18D8))[i])
+#define CAM_LABEL(i) (lbl_3_data_20E0C[i])
+#define CAM_SCRIPT_TABLE(i) (lbl_3_data_1D980[i])
 
 static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f32 a, f32 b, f32 c) {
     VecXYZ toCur;
@@ -2842,7 +2843,6 @@ BOOL fn_3_100018(void) {
 BOOL fn_3_FDB30(void) {
     CamScript* ctx = CTX;
     CamDrawItem* item = (CamDrawItem*)currentDrawingItem;
-    u8* data = (u8*)lbl_3_data_1C0A8;
     GameInitVariables* gs = &g_d_GameSettings;
     GameControlsStruct* gl = &g_GameLogic;
     u8* anim = animRelated;
@@ -3483,7 +3483,7 @@ BOOL fn_3_FDB30(void) {
             continue;
         case 72:
             if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                hugeAnimStruct.objects[*(u8*)(DATA_L(0x238C) + ctx->_0000[1] * 0x1C + 0x14)]->_257) {
+                hugeAnimStruct.objects[lbl_3_data_1E434[ctx->_0000[1]].slot]->_257) {
                 fn_3_24ADC(ctx->_0000[1], 0);
             } else {
                 fn_3_24ADC(ctx->_0000[2], 0);
@@ -3661,7 +3661,7 @@ BOOL fn_3_FDB30(void) {
         case 103:
             fn_3_100038();
             lbl_3_common_bss_1323C->_25A += 1;
-            if ((f32)lbl_3_common_bss_1323C->_25A >= 2.0f * ((f32*)DATA_L(0x32F8))[trackerB]) {
+            if ((f32)lbl_3_common_bss_1323C->_25A >= 2.0f * lbl_3_data_1F3A0[trackerB]) {
                 ctx->_0000 += 1;
                 continue;
             }
