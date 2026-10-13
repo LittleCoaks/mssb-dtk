@@ -130,7 +130,7 @@ extern void SKNAccVecs16Norms16Iu162(Mtx34 m, u16 count, s16 * srcBase, s16 * ds
 extern void SKNAccVecs16Norms16Iu16(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
 
 static inline void SKNLCAccTouchData(u8 buffer, s16 *src, u16 *indices, u8 *weights, u32 count) {
-    u32 size = ((count * 3 * 2 * 2) + 0x1F) >> 5;
+    u32 size = ((count * 3 * 2 * 4) + 0x1F) >> 5;
 
     LCLoadBlocks(SKAccBuffers[buffer].src, src, size);
     size = ((count * 2) + 0x1F) >> 5;
