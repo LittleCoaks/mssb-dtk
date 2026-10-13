@@ -3382,7 +3382,7 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 2;
             continue;
         case 63: {
-            s16 k = CTX->_0946;
+            int k = CTX->_0946;
             if (k < 9 && k >= 0) {
                 CTX->_0938 = lbl_3_data_3B4C[g_Fielders[k].CharID];
             } else if (k < 13 && k >= 0) {
