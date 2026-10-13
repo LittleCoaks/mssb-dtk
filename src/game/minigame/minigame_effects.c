@@ -1419,7 +1419,6 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     f32 halfW = p->sizeX / 2.0f;
     f32 halfH = p->sizeY / 2.0f;
     int i;
-    int k;
 
     corner[0][0] = -halfW;
     corner[0][1] = -halfH;
@@ -1440,18 +1439,10 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     GXSetProjection(proj, GX_PERSPECTIVE);
     fn_80033B58((void*)effect->texture, p->texIndex, 0, 0);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    k = 0;
-    for (i = 0; i < 2; i++) {
-        f32* t;
-
-        GXPosition3f32(p->origin.x + corner[i * 2][0], p->origin.y + corner[i * 2][1], -1.0f);
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(p->origin.x + corner[i][0], p->origin.y + corner[i][1], -1.0f);
         GXColor1u32(*(u32*)&p->colorR);
-        t = uv[p->_4E + k++];
-        GXTexCoord2f32(t[0], t[1]);
-        GXPosition3f32(p->origin.x + corner[i * 2 + 1][0], p->origin.y + corner[i * 2 + 1][1], -1.0f);
-        GXColor1u32(*(u32*)&p->colorR);
-        t = uv[p->_4E + k++];
-        GXTexCoord2f32(t[0], t[1]);
+        GXTexCoord2f32(uv[p->_4E + i][0], uv[p->_4E + i][1]);
     }
     GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
