@@ -2939,7 +2939,7 @@ void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees) {
 
 // .text:0x14841C size:0xAD4
 int minigameWinnerStars_update(MGStarEffect* effect) {
-    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    f32* actor = ((f32**)(hugeAnimStruct + 0x2C50))[effect->index];
     MGParticle* p = effect->particles;
 
     minigameWinnerStars_beginDraw();
@@ -3006,11 +3006,8 @@ void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
     v[9] = -halfW;
     v[10] = halfH;
     PSMTXInverse(fn_80052768_getCamera(0)->view, mtx);
+    mtx[0][1] = mtx[1][0] = mtx[1][2] = mtx[2][1] = 0.0f;
     mtx[1][1] = 1.0f;
-    mtx[0][1] = 0.0f;
-    mtx[1][0] = 0.0f;
-    mtx[1][2] = 0.0f;
-    mtx[2][1] = 0.0f;
     pos.x = p->origin.x;
     pos.y = p->origin.y;
     pos.z = p->origin.z;
