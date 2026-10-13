@@ -1435,37 +1435,11 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
 
 #define CAM_SCRIPT_START() \
     do { \
-    s32 i; \
-    u32* table; \
-    u8* hdr; \
-    u32* p; \
-    s16 k; \
- \
-    table = CAMF(u32*, 0x1B4); \
-    i = 0; \
-    while (*table != 0) { \
-        table++; \
-        i++; \
-    } \
-    CTX->_0120 = i; \
-    memcpy(CTX->_0990, (u8*)CAMF(u32*, 0x1B4) + CAMF(u32*, 0x1B4)[CTX->_0940], 0x8000); \
-    CTX->_0124 = 1; \
-    CTX->_0118 = 0; \
-    CTX->_011C = 0; \
-    CTX->_0928 = 0; \
-    for (i = 0; i < 0x200; i++) { \
-        CTX->_0128[i] = 0; \
-    } \
-    CAM_VIEWS_INIT(); \
-    hdr = CTX->_0990; \
-    p = (u32*)(hdr + 8); \
-    *p += (u32)hdr; \
-    for (k = 0; k < *(s16*)(hdr + 6); k++) { \
-        p[1] += (u32)hdr; \
-        p++; \
-    } \
-    CTX->_011C = *(u16*)(hdr + 4) << 16; \
-    CAM_SCRIPT_SET_VIEW(); \
+        CTX->_0120 = fn_3_10698C(CAMF(u32*, 0x1B4)); \
+        memcpy(CTX->_0990, fn_3_1069B0(CAMF(u32*, 0x1B4), CTX->_0940), 0x8000); \
+        fn_3_1069C0(); \
+        fn_3_105C84(CTX->_0990); \
+        CAM_SCRIPT_SET_VIEW(); \
     } while (0)
 
 // .text:0x00106E50 size:0x60
