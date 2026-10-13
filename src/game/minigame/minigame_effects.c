@@ -2444,16 +2444,18 @@ void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag) {
 
 // .text:0x14BCB0 size:0x21C
 void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag) {
+    s32* tbl;
     MGParticle* p;
-    s32* tbl = wallBall_wallHitPuffParams;
     u32 count = 0;
-    f32 speed;
     f32 angle;
+    f32 speed;
 
     effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     if (flag != 0) {
         tbl = wallBall_wallHitDarkPuffParams;
+    } else {
+        tbl = wallBall_wallHitPuffParams;
     }
     do {
         if (p->life == 0) {
