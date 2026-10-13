@@ -179,31 +179,6 @@ extern void fn_80033B58(void* tex, int sub, int a, int b);
 
 
 
-static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
-    MGParticle* p = effect->particles;
-    f32 speed;
-
-    effect->texture = *(u32*)&animRelated[0x6C];
-    do {
-        p->texIndex = starDash_dustParams[0];
-        p->_4E = 0;
-        p->origin.x = pos->x + (f32)(rand() % 1000 - 500) / 1000.0f;
-        p->origin.y = -(0.75f + pos->y);
-        p->origin.z = pos->z + (f32)(rand() % 1000 - 500) / 1000.0f;
-        p->velX = p->velZ = 0.0f;
-        p->velY = (f32)starDash_dustParams[9] / 100000.0f;
-        speed = p->velY;
-        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed / 2.0f))) - 1000.0f * (speed / 4.0f)) / 1000.0f;
-        p->colorR = p->colorG = p->colorB = 0xFF;
-        p->alphaByte = starDash_dustParams[6];
-        p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
-        p->sizeX = p->sizeY = ((f32)starDash_dustParams[3] / 100000.0f) * p->_1C;
-        p->life = starDash_dustParams[2];
-        p->delay = 0;
-        p = p->next;
-    } while (p != NULL);
-}
-
 // .text:0x157DB8 size:0x70
 // Spawns the trail effect that follows the chomp; it lives for `duration` frames.
 void chainChomp_spawnTrailEffect(s32 duration) {
@@ -1257,7 +1232,7 @@ void chainChomp_placeItemSparkle(MGParticle* p, u8 randomize) {
         scale = mm_GetItemScale(0);
     }
     {
-        Vec axis = { 0.0f, 0.0f, -1.0f };
+        Vec axis = sFwdAxis;
 
         v.x = 0.0f;
         v.y = 0.0f;
@@ -1991,7 +1966,7 @@ void starDash_spawnDustEffect(Vec* pos) {
         if (fresh != NULL) {
             MGParticle* tail;
 
-            mgStarDashDustInit(fresh, pos);
+            starDash_initDustParticles(fresh, pos);
             tail = existing->particles;
             while (tail->next != NULL) {
                 tail = tail->next;
@@ -2002,7 +1977,7 @@ void starDash_spawnDustEffect(Vec* pos) {
     } else {
         fresh = allocParticleEffect(starDash_updateDust, 0x80, 0, starDash_dustParams[1], TRUE, 0x1F);
         if (fresh != NULL) {
-            mgStarDashDustInit(fresh, pos);
+            starDash_initDustParticles(fresh, pos);
         }
     }
 }
