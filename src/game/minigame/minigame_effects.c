@@ -2397,8 +2397,8 @@ void chainChomp_placeLaunchFlash(MGParticle* p) {
     PSVECScale(&chainChomp_launchFlashOffset, 0.75f, &offset);
     PSMTXRotRad(rot, 'Y', shortAngleToRad(g_Minigame.ccs.chompYaw));
     PSMTXMultVec(rot, &offset, &offset);
-    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + (f32)chainChomp_launchFlashParams[5] / 100000.0f * 0.5f;
-    p->origin.y = offset.y - ((f32)chainChomp_launchFlashParams[5] / 100000.0f * 0.5f + g_Minigame.ccs.chompPos.y);
+    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + (f32)chainChomp_launchFlashParams[5] / 100000.0f / 2.0f;
+    p->origin.y = offset.y - ((f32)chainChomp_launchFlashParams[5] / 100000.0f / 2.0f + g_Minigame.ccs.chompPos.y);
     p->origin.z = g_Minigame.ccs.chompPos.z + offset.z;
 }
 
