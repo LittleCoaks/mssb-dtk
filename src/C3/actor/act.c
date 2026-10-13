@@ -122,7 +122,22 @@ void actorBoneRelated(void) {
 }
 
 void f_BuildBoneSkinOrientationMatrix(sBone* root, MtxPtr out) {
-    return;
+    sBone* node;
+    Mtx local;
+    Mtx world;
+
+    for (node = root; node != NULL; node = (sBone*)node->branch.Next) {
+        if (node->inheritanceFlag == 1) {
+            CTRLBuildMatrix(&node->orientationCtrl, local);
+            PSMTXConcat(out, local, world);
+            PSMTXInverse(world, node->orientationInvMtx);
+        } else {
+            CTRLBuildInverseMatrix(&node->orientationCtrl, node->orientationInvMtx);
+        }
+        if (node->branch.Children != NULL) {
+            f_BuildBoneSkinOrientationMatrix((sBone*)node->branch.Children, world);
+        }
+    }
 }
 
 BOOL maybeBallRelated(Actor** actor, ActorLayout* layout, u16 actorID) {
