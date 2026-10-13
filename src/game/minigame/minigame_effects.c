@@ -2014,16 +2014,17 @@ void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
 int starDash_updateDust(MGEffect* effect) {
     MGParticle* p;
     MGParticle** link;
-    MGParticle* removedTail = NULL;
-    u32 alive = 0;
+    MGParticle* removedTail;
+    u32 alive;
     s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
 
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = effect->particles;
+    alive = 0;
+    p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
+    removedTail = NULL;
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
     do {
