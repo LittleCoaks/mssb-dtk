@@ -8,14 +8,6 @@ void Squad(void);
 
 void GetData(void);
 
-void DoTranslationAnimation(void);
-
-void DoScaleAnimation(void);
-
-void DoEulerAnimation(void);
-
-void DoQuatAnimation(void);
-
 struct ANIMPipe;
 struct ANIMAnimTrack;
 struct Control;
