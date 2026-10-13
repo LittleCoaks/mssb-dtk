@@ -143,6 +143,12 @@ static s8 minigameWinnerStars_slots[MG_PLAYER_COUNT];
 static f32 minigameWinnerStars_quadVerts[13];
 static u8 lbl_3_bss_B894[0x124];
 
+/* MSL's fabs is an inline function rather than the bare __fabs intrinsic that stl/math.h maps it to;
+ * the by-value parameter changes float register allocation, so this file uses the function form. */
+static inline f64 mgFabs(f64 x) {
+    return __fabs(x);
+}
+
 static inline s32 mgFxTableRow(MGParticle* p) {
     s32 row = 10;
 
@@ -645,7 +651,7 @@ void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot) {
     offset.z = scale.z + 1.5 * ((rand() % 40 - 20) / 100.0);
     PSMTXMultVec(mtx, &offset, &offset);
     offset.x += base->x;
-    offset.y -= fabs(base->y);
+    offset.y -= mgFabs(base->y);
     offset.z += base->z;
     p->origin.x = offset.x;
     p->origin.y = offset.y;
@@ -2671,11 +2677,11 @@ int barrelBatter_updateMachineSparks(MGPathEffect* effect) {
                 fn_80033CC8(p, effect->texture);
                 alpha = p->alphaByte;
                 if (barrelBatter_machineSparkParams[1] / p->life < 2) {
-                    sizeStep = fabs(sizeStep);
-                    alphaStep = (s32)fabs((f64)alphaStep);
+                    sizeStep = mgFabs(sizeStep);
+                    alphaStep = (s32)mgFabs((f64)alphaStep);
                 } else {
-                    sizeStep = -1.0 * fabs(sizeStep);
-                    alphaStep = (s32)(-1.0 * fabs((f64)alphaStep));
+                    sizeStep = -1.0 * mgFabs(sizeStep);
+                    alphaStep = (s32)(-1.0 * mgFabs((f64)alphaStep));
                 }
                 alpha += alphaStep;
                 if (alpha > 0xFF) {
@@ -2946,8 +2952,8 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
                     angle *= -1.0f;
                 }
                 jitter = 20.0 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
-                if (fabs(angle + jitter) > 20.0) {
-                    angle = 20.0 * (fabs(angle) / angle);
+                if (mgFabs(angle + jitter) > 20.0) {
+                    angle = 20.0 * (mgFabs(angle) / angle);
                 } else {
                     angle += jitter;
                 }
