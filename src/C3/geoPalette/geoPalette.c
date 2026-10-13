@@ -178,12 +178,12 @@ void* AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispOb
     dispObj->shaderFunc = NULL;
     dispObj->shaderData = NULL;
 
-    memcpy(dispObj->unk58, layout->unk20, 4);
-    memcpy(dispObj->unk54, layout->unk1C, 4);
-    memcpy(dispObj->unk60, layout->unk28, 4);
-    memcpy(dispObj->unk5C, layout->unk24, 4);
-    memcpy(dispObj->unk68, layout->unk30, 4);
-    memcpy(dispObj->unk64, layout->unk2C, 4);
+    memcpy(&dispObj->unk58, layout->unk20, 4);
+    memcpy(&dispObj->unk54, layout->unk1C, 4);
+    memcpy(&dispObj->unk60, layout->unk28, 4);
+    memcpy(&dispObj->unk5C, layout->unk24, 4);
+    memcpy(&dispObj->unk68, layout->unk30, 4);
+    memcpy(&dispObj->unk64, layout->unk2C, 4);
 
     return result;
 }

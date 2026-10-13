@@ -78,12 +78,12 @@ struct DODisplayObj {
     /* 0x48 */ DOUserTevModeFunc userTevModeFunc;
     /* 0x4C */ GXTexObj *shaderFunc;
     /* 0x50 */ GXTexObj *shaderData;
-    /* 0x54 */ u8 unk54[4]; // MSSB's display object is 0x6C bytes (see DOGet)
-    /* 0x58 */ u8 unk58[4];
-    /* 0x5C */ u8 unk5C[4];
-    /* 0x60 */ u8 unk60[4];
-    /* 0x64 */ u8 unk64[4];
-    /* 0x68 */ u8 unk68[4];
+    /* 0x54 */ f32 unk54; // MSSB's display object is 0x6C bytes (see DOGet); 0x54..0x68 are box extents
+    /* 0x58 */ f32 unk58;
+    /* 0x5C */ f32 unk5C;
+    /* 0x60 */ f32 unk60;
+    /* 0x64 */ f32 unk64;
+    /* 0x68 */ f32 unk68;
 };
 
 typedef struct {

@@ -1144,12 +1144,12 @@ void InitDisplayObjWithLayout(struct DODisplayObj* dispObj, DODisplayLayout* lay
     dispObj->shaderFunc = NULL;
     dispObj->shaderData = NULL;
     dispObj->pad8 = layout->pad8;
-    memcpy(dispObj->unk58, layout->unk20, sizeof(dispObj->unk58));
-    memcpy(dispObj->unk54, layout->unk1C, sizeof(dispObj->unk54));
-    memcpy(dispObj->unk60, layout->unk28, sizeof(dispObj->unk60));
-    memcpy(dispObj->unk5C, layout->unk24, sizeof(dispObj->unk5C));
-    memcpy(dispObj->unk68, layout->unk30, sizeof(dispObj->unk68));
-    memcpy(dispObj->unk64, layout->unk2C, sizeof(dispObj->unk64));
+    memcpy(&dispObj->unk58, layout->unk20, sizeof(dispObj->unk58));
+    memcpy(&dispObj->unk54, layout->unk1C, sizeof(dispObj->unk54));
+    memcpy(&dispObj->unk60, layout->unk28, sizeof(dispObj->unk60));
+    memcpy(&dispObj->unk5C, layout->unk24, sizeof(dispObj->unk5C));
+    memcpy(&dispObj->unk68, layout->unk30, sizeof(dispObj->unk68));
+    memcpy(&dispObj->unk64, layout->unk2C, sizeof(dispObj->unk64));
 }
 
 void DOGet(struct DODisplayObj** dispObj, DODisplayDataPtr pal, u16 id, char* name) {
