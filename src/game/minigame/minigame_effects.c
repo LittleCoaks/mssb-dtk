@@ -2638,9 +2638,9 @@ void barrelBatter_updateMachineSparkPos(MGPathEffect* effect) {
 
 // .text:0x14B248 size:0x1AC
 void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
+    f32 cosA;
     f32 angle;
     f32 radius;
-    f32 cosA;
     f32 dx;
     f32 dy;
 
