@@ -2828,15 +2828,14 @@ BOOL unkPauseSimulationCheck(void) {
 
 // .text:0x00100038 size:0x44 mapped:0x8073F0CC
 void fn_3_100038(void) {
-    CamScript* ctx = CTX;
-    if (ctx->_0118 > ctx->_011C) {
-        if (ctx->_09B1 == 0) {
-            ctx->_0118 = ctx->_011C;
+    if (CTX->_0118 > CTX->_011C) {
+        if (CTX->_09B1 == 0) {
+            CTX->_0118 = CTX->_011C;
         } else {
-            ctx->_0118 = 0;
+            CTX->_0118 = 0;
         }
     } else {
-        ctx->_0118 += 0x10000;
+        CTX->_0118 += 0x10000;
     }
 }
 
