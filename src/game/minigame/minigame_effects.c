@@ -2333,7 +2333,7 @@ int chainChomp_updateLaunchFlash(MGEffect* effect) {
     f32 sizeStep;
 
     if (lbl_80366158[0x28] != 0) {
-        return 0;
+        return FALSE;
     }
     p = effect->particles;
     if (p->life != 0) {
@@ -2365,9 +2365,9 @@ int chainChomp_updateLaunchFlash(MGEffect* effect) {
         p->colorR = p->colorG = p->colorB = p->alphaByte;
         p->life--;
     } else {
-        return 1;
+        return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 // .text:0x14C3BC size:0x10C
