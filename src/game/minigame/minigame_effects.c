@@ -2766,9 +2766,9 @@ void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos) {
         p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
         p->velY = p->velY / 100000.0f;
         p->velY = p->velY * (f32)(-(rand() % 2 * 2) + 1);
-        i++;
         p->velZ = (f32)(barrelBatter_releaseRingParams[6] - rand() % barrelBatter_releaseRingParams[7]);
         p->velZ = p->velZ / 100000.0f;
+        i++;
         p = p->next;
     } while (p != NULL);
 }
