@@ -139,7 +139,7 @@ s32 piranhaPanic_bombExplosionParams[25] = { 6, 30, 4, 5, 0, 250000, 350000, 0, 
 static MGTrailEffect* minigameTrail_effect;
 static MGTexRecord* minigameTrail_lastTex;
 static u8 lbl_3_bss_B858;
-static u8 minigameWinnerStars_slots;
+static s8 minigameWinnerStars_slots[MG_PLAYER_COUNT];
 static f32 minigameWinnerStars_quadVerts[13];
 static u8 lbl_3_bss_B894[0x124];
 
@@ -2849,13 +2849,12 @@ void barrelBatter_stopReleaseRing(void) {
 
 // .text:0x14A070 size:0xF4
 void minigameWinnerStars_setWinners(s32* values, s32 count) {
-    s8* slots = (s8*)&minigameWinnerStars_slots;
     u32 i;
 
-    slots[0] = -1;
-    slots[1] = -1;
-    slots[2] = -1;
-    slots[3] = -1;
+    minigameWinnerStars_slots[0] = -1;
+    minigameWinnerStars_slots[1] = -1;
+    minigameWinnerStars_slots[2] = -1;
+    minigameWinnerStars_slots[3] = -1;
     if (count > MG_PLAYER_COUNT) {
         return;
     }
@@ -2864,14 +2863,13 @@ void minigameWinnerStars_setWinners(s32* values, s32 count) {
     }
     if (values != NULL) {
         for (i = 0; i < count; i++) {
-            slots[i] = values[i];
+            minigameWinnerStars_slots[i] = values[i];
         }
     }
 }
 
 // .text:0x149BA8 size:0x4C8
 void minigameWinnerStars_spawn(void) {
-    s8* slots = (s8*)&minigameWinnerStars_slots;
     u32 i;
     s8 index;
     MGStarEffect* effect;
@@ -2882,7 +2880,7 @@ void minigameWinnerStars_spawn(void) {
         minigameWinnerStars_params[5] = 750000;
     }
     for (i = 0; i < MG_PLAYER_COUNT; i++) {
-        index = slots[i];
+        index = minigameWinnerStars_slots[i];
         if (index > -1) {
             effect = allocParticleEffect(minigameWinnerStars_update, 0x80, 0, minigameWinnerStars_params[0], TRUE, 0x25);
             if (effect != NULL) {
