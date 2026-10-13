@@ -507,21 +507,10 @@ void minigameTrail_drawQuad(Vec* positions, u32 color, MGTexRecord* tex) {
         minigameTrail_lastTex = tex;
     }
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    for (i = 0; i < 2; i++) {
-        MGQuadVertex* v = &verts[i * 2];
-
-        GXWGFifo.f32 = v[0].pos.x;
-        GXWGFifo.f32 = v[0].pos.y;
-        GXWGFifo.f32 = v[0].pos.z;
-        GXWGFifo.u32 = v[0].color;
-        GXWGFifo.f32 = v[0].s;
-        GXWGFifo.f32 = v[0].t;
-        GXWGFifo.f32 = v[1].pos.x;
-        GXWGFifo.f32 = v[1].pos.y;
-        GXWGFifo.f32 = v[1].pos.z;
-        GXWGFifo.u32 = v[1].color;
-        GXWGFifo.f32 = v[1].s;
-        GXWGFifo.f32 = v[1].t;
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(verts[i].pos.x, verts[i].pos.y, verts[i].pos.z);
+        GXColor1u32(verts[i].color);
+        GXTexCoord2f32(verts[i].s, verts[i].t);
     }
 }
 
