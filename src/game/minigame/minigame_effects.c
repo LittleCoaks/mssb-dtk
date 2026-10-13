@@ -1557,7 +1557,7 @@ void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     p->origin.x = effect->pos.x;
     p->origin.y = -effect->pos.y;
     p->origin.z = effect->pos.z;
-    p->sizeY = p->sizeX = (f32)(wallBall_noteBlockBurstParams[10] + rand() % (wallBall_noteBlockBurstParams[11] - wallBall_noteBlockBurstParams[10])) / 100000.0f;
+    p->sizeX = p->sizeY = (f32)(wallBall_noteBlockBurstParams[10] + rand() % (wallBall_noteBlockBurstParams[11] - wallBall_noteBlockBurstParams[10])) / 100000.0f;
     p->velY = (f32)(wallBall_noteBlockBurstParams[12] + rand() % (wallBall_noteBlockBurstParams[13] - wallBall_noteBlockBurstParams[12])) / 100000.0f;
     angle = 0.017453292f * (f32)((rand() % 36000) / 100.0);
     speed = (f32)(wallBall_noteBlockBurstParams[16] + rand() % (wallBall_noteBlockBurstParams[17] - wallBall_noteBlockBurstParams[16])) / 100000.0f;
