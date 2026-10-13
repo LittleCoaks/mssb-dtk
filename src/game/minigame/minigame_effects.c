@@ -2936,17 +2936,17 @@ void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees) {
 
 // .text:0x14841C size:0xAD4
 int minigameWinnerStars_update(MGStarEffect* effect) {
-    f32* actor = ((f32**)(hugeAnimStruct + 0x2C50))[effect->index];
     MGParticle* p = effect->particles;
+    f32* actor = ((f32**)(hugeAnimStruct + 0x2C50))[effect->index];
 
     minigameWinnerStars_beginDraw();
     do {
         if (p->delay <= 0) {
             minigameWinnerStars_setupMtx(effect, p);
             minigameWinnerStars_drawQuad(p);
-            PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
-            PSVECAdd((Vec*)&p->_1C, (Vec*)&p->_28, (Vec*)&p->_1C);
-            if (minigameWinnerStars_rollTurn()) {
+            PSVECAdd((Vec*)&p->velX, &p->origin, &p->origin);
+            PSVECAdd((Vec*)&p->_28, (Vec*)&p->_1C, (Vec*)&p->_1C);
+            if (minigameWinnerStars_rollTurn() != FALSE) {
                 Vec ref = { 0.0f, 1.0f, 0.0f };
                 Vec dir;
                 f32 angle;
