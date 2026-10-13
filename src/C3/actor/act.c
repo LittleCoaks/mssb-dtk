@@ -588,8 +588,8 @@ int fn_800B3C04(int slot, StadiumModelNode* node, Mtx camera) {
 void fn_800B3F20(StadiumModelNode* node) {
     Actor* actor = (Actor*)node;
     Mtx worldMtx;
-    Vec a;
     Vec b;
+    Vec a;
 
     if (actor->unk80 != actor->unk82) {
         CTRLBuildMatrix(&actor->worldControl, worldMtx);
@@ -598,10 +598,8 @@ void fn_800B3F20(StadiumModelNode* node) {
         }
         actorBoneRelated(actor, actor->boneArray[actor->unk80], worldMtx);
         actorBoneRelated(actor, actor->boneArray[actor->unk82], worldMtx);
-        a.x = a.y = a.z = 0.0f;
-        PSMTXMultVec(((Mtx*)actor->forwardMtxArray)[actor->unk82], &a, &a);
-        b.x = b.y = b.z = 0.0f;
-        PSMTXMultVec(((Mtx*)actor->forwardMtxArray)[actor->unk80], &b, &b);
+        maybeTransformVectorByAnimationMatrix(actor, actor->unk82, &a);
+        maybeTransformVectorByAnimationMatrix(actor, actor->unk80, &b);
         b.x = b.x - (a.x - b.x);
         b.z = b.z - (a.z - b.z);
         CTRLSetTranslation(&actor->worldControl, b.x, b.y, b.z);
