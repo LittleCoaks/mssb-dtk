@@ -37,6 +37,7 @@ typedef struct sBone {
     /* 0xFC */ DSLink drawPriorityLink;
     /* 0x104 */ u8 unk104[0x134 - 0x104];
     /* 0x134 */ u16 unk134; // bits 2-4 mirrored into bit 5 by ACTSetAnimation
+    /* 0x136 */ u8 unk136;
 } sBone;
 
 typedef struct {
