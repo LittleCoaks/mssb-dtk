@@ -2773,8 +2773,8 @@ void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos) {
 // .text:0x14A188 size:0x1F4
 int barrelBatter_updateReleaseRing(MGEffect* effect) {
     MGParticle* p;
-    u32 alive = 0;
     s32 alpha;
+    u32 alive = 0;
     s32 alphaStep;
     s32 remaining;
     f32 sizeStep;
@@ -2810,8 +2810,7 @@ int barrelBatter_updateReleaseRing(MGEffect* effect) {
             p->sizeX += sizeStep;
             p->sizeY = p->sizeX;
             p->velX += p->velY;
-            p->life--;
-            if (p->life != 0) {
+            if (--p->life != 0) {
                 alive++;
             }
         }
