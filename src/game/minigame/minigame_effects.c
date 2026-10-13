@@ -1803,21 +1803,23 @@ int starDash_updateSparks(MGEffect* effect) {
                 fn_80033CC8(p, effect->texture);
                 duration = starDash_sparkParams[7];
                 if (duration / p->life < 2) {
-                    alpha = p->alphaByte + starDash_sparkParams[6] / (duration / 2);
+                    alpha = p->alphaByte;
+                    alpha += starDash_sparkParams[6] / (duration / 2);
                     if (alpha > starDash_sparkParams[6]) {
                         alpha = starDash_sparkParams[6];
                     }
                     p->alphaByte = alpha;
-                    sizeStep = (f32)(starDash_sparkParams[3] - starDash_sparkParams[2]) / 100000.0f / (f32)(duration / 2);
+                    sizeStep = (f32)(starDash_sparkParams[3] - starDash_sparkParams[2]) / 100000.0f / (f32)(starDash_sparkParams[7] / 2);
                     p->sizeX += sizeStep;
                     p->sizeY = p->sizeX;
                 } else {
-                    alpha = p->alphaByte - starDash_sparkParams[6] / (duration / 2);
+                    alpha = p->alphaByte;
+                    alpha -= starDash_sparkParams[6] / (duration / 2);
                     if (alpha < starDash_sparkParams[5]) {
                         alpha = starDash_sparkParams[5];
                     }
                     p->alphaByte = alpha;
-                    sizeStep = (f32)(starDash_sparkParams[4] - starDash_sparkParams[3]) / 100000.0f / (f32)(duration / 2);
+                    sizeStep = (f32)(starDash_sparkParams[4] - starDash_sparkParams[3]) / 100000.0f / (f32)(starDash_sparkParams[7] / 2);
                     p->sizeX += sizeStep;
                     p->sizeY = p->sizeX;
                 }
