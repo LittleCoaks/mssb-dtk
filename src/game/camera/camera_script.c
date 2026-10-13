@@ -1262,34 +1262,6 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
     return prevOut;
 }
 
-#define CAM_FILTER_ANGLES(yaw, pitch) \
-    if (CTX->_09B4 != 0) { \
-        VecXYZ _out; \
-        VecXYZ _po; \
-        VecXYZ _in; \
-        VecXYZ _pi; \
-        f32 _yaw = radianAngleReduction(yaw); \
-        f32 _pitch = radianAngleReduction(pitch); \
-        _po.x = CTX->_00D0.x; \
-        _po.y = CTX->_00D0.y; \
-        _po.z = CTX->_00D0.z; \
-        _in.x = _yaw; \
-        _in.y = _pitch; \
-        _in.z = 0.0f; \
-        _pi.x = CTX->_00C4.x; \
-        _pi.y = CTX->_00C4.y; \
-        _pi.z = CTX->_00C4.z; \
-        _out = camFilterStep(_po, _in, _pi, CTX->_010C, CTX->_0110, CTX->_0114); \
-        CTX->_00C4.x = _yaw; \
-        CTX->_00C4.y = _pitch; \
-        CTX->_00C4.z = 0.0f; \
-        CTX->_00D0.x = _out.x; \
-        CTX->_00D0.y = _out.y; \
-        CTX->_00D0.z = _out.z; \
-        yaw = _out.x; \
-        pitch = _out.y; \
-    }
-
 #define CAM_FILTER_V_BODY(vp) \
     if (CTX->_09B4 != 0) { \
         VecXYZ _out; \
@@ -1406,8 +1378,6 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
     (w0 * ctx->_001C[i].v[c] + w1 * ctx->_001C[i + 1].v[c] + \
      w2 * ctx->_001C[i + 2].v[c] + w3 * ctx->_001C[i + 3].v[c])
 
-#define CAM_VIEWS_INIT() fn_3_FD5A8()
-
 #define CAM_EVAL_VIEW_BODY(script, time, a, b, outp) \
         memset(&ev, 0, sizeof(ev)); \
         ev.m[3][3] = 1.0f; \
@@ -1460,15 +1430,13 @@ static inline void camSetView(void) {
     g_pCamera->_2878 = 1.0f;
 }
 
-#define CAM_SCRIPT_SET_VIEW() camSetView()
-
 #define CAM_SCRIPT_START() \
     do { \
         CTX->_0120 = fn_3_10698C(CAMF(u32*, 0x1B4)); \
         memcpy(CTX->_0990, fn_3_1069B0(CAMF(u32*, 0x1B4), CTX->_0940), 0x8000); \
         fn_3_1069C0(); \
         fn_3_105C84(CTX->_0990); \
-        CAM_SCRIPT_SET_VIEW(); \
+        camSetView(); \
     } while (0)
 
 // .text:0x00106E50 size:0x60
@@ -1526,7 +1494,7 @@ void fn_3_106BA0(void) {
         memcpy(&CAMG->scripts[i]._00B8, &g_pCamera->_284C, sizeof(VecXYZ));
     }
     g_pCamera->_28A9 = 0;
-    CAM_VIEWS_INIT();
+    fn_3_FD5A8();
 }
 
 // .text:0x001069C0 size:0x1E0 mapped:0x80745A54
@@ -1539,7 +1507,7 @@ void fn_3_1069C0(void) {
     for (i = 0; i < 0x200; i++) {
         CTX->_0128[i] = 0;
     }
-    CAM_VIEWS_INIT();
+    fn_3_FD5A8();
 }
 
 // .text:0x001069B0 size:0x10 mapped:0x80745A44
@@ -1607,6 +1575,7 @@ void fn_3_106270(VecXYZ* out) {
                 }
             }
         } else {
+            // Copies from the parameter slot itself rather than *out (original behaviour).
             memcpy(&CTX->_00DC, &out, sizeof(VecXYZ));
         }
         CTX->_094E = g_Fielders[sel].CharID;
@@ -1646,7 +1615,6 @@ void fn_3_106270(VecXYZ* out) {
             }
             CTX->_094E = r->charID;
         }
-        // Copies from the parameter slot itself rather than *out (original behaviour).
         memcpy(&CTX->_00DC, &out, sizeof(VecXYZ));
     } else if (sel == 13) {
         memcpy(out, &g_Ball, sizeof(VecXYZ));
@@ -2309,7 +2277,7 @@ void fn_3_1045A8(void) {
 
 // .text:0x00104338 size:0x270 mapped:0x807433CC
 void fn_3_104338(void) {
-    CAM_SCRIPT_SET_VIEW();
+    camSetView();
 }
 
 // .text:0x001040D8 size:0x260 mapped:0x8074316C
@@ -3732,7 +3700,7 @@ BOOL fn_3_FD9FC(void) {
 // .text:0x000FD670 size:0x38C mapped:0x8073C704
 void fn_3_FD670(void) {
     if (g_GameLogic.framesOfExitingToMenu == 0) {
-        CAM_SCRIPT_SET_VIEW();
+        camSetView();
         fn_3_1000D8();
         CTX->_093C = CTX->_0938;
         CTX->_0948 = CTX->_0946;
