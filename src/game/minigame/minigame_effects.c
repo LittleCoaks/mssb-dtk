@@ -354,7 +354,7 @@ static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
         p->velX = p->velZ = 0.0f;
         p->velY = (f32)starDash_dustParams[9] / 100000.0f;
         speed = p->velY;
-        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
+        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed / 2.0f))) - 1000.0f * (speed / 4.0f)) / 1000.0f;
         p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = starDash_dustParams[6];
         p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
@@ -844,9 +844,9 @@ void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot) {
     offset.y = scale.y;
     offset.z = scale.z + 1.5 * ((rand() % 40 - 20) / 100.0);
     PSMTXMultVec(mtx, &offset, &offset);
-    offset.x = offset.x + base->x;
-    offset.y = offset.y - fabs(base->y);
-    offset.z = offset.z + base->z;
+    offset.x += base->x;
+    offset.y -= fabs(base->y);
+    offset.z += base->z;
     p->origin.x = offset.x;
     p->origin.y = offset.y;
     p->origin.z = offset.z;
@@ -926,7 +926,7 @@ void bobOmbFuseSpark_spawnFollow(s16 id, Vec* pos, Vec* rot) {
 void bobOmbFuseSpark_spawnFollowEffect(s16 id, Vec* pos, Vec* rot) {
     MGEffect* existing = fn_800339F0(0, 0x27);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, bobOmbFuseSpark_params[1], 1);
@@ -2094,7 +2094,7 @@ void starDash_spawnDust(Vec* pos) {
 void starDash_spawnDustEffect(Vec* pos) {
     MGEffect* existing = fn_800339F0(0, 0x1F);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, starDash_dustParams[1], 1);
@@ -2132,7 +2132,7 @@ void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
         p->velX = p->velZ = 0.0f;
         p->velY = (f32)starDash_dustParams[9] / 100000.0f;
         speed = p->velY;
-        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
+        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed / 2.0f))) - 1000.0f * (speed / 4.0f)) / 1000.0f;
         p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = starDash_dustParams[6];
         p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
@@ -2540,7 +2540,7 @@ void wallBall_spawnWallHitPuff(Vec* pos, u8 flag) {
 void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag) {
     MGEffect* existing = fn_800339F0(0, 0x22);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, wallBall_wallHitPuffParams[1], 1);
@@ -3203,7 +3203,7 @@ void piranhaPanic_spawnBombExplosion(Vec* pos) {
 void piranhaPanic_spawnBombExplosionEffect(Vec* pos) {
     MGEffect* existing = fn_800339F0(0, 0x26);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, piranhaPanic_bombExplosionParams[2] + piranhaPanic_bombExplosionParams[12], 1);
