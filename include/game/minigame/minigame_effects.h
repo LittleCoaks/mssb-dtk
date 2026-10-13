@@ -363,7 +363,7 @@ void minigameWinnerStars_setWinners(s32* values, s32 count);
 void minigameWinnerStars_spawn(void);
 void minigameWinnerStars_spawnOne(s8 index);
 void minigameWinnerStars_initEffect(MGStarEffect* effect);
-void minigameWinnerStars_resetParticle(s8 index, MGParticle* p);
+void minigameWinnerStars_resetParticle(MGStarEffect* effect, MGParticle* p);
 void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees);
 int minigameWinnerStars_update(MGStarEffect* effect);
 E(u8, BOOL) minigameWinnerStars_rollTurn(void);

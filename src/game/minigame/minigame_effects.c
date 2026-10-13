@@ -305,41 +305,6 @@ static inline void mgBarrelRingInit(MGEffect* effect, Vec* pos) {
     } while (p != NULL);
 }
 
-static inline void mgStarParticleInit(s8 index, MGParticle* p) {
-    u8* actor = *(u8**)(hugeAnimStruct + 0x2C50 + index * 4);
-    s32 base = minigameWinnerStars_params[6];
-    u8 lo = base;
-    u8 range;
-    s32 span;
-    f32 angle;
-    f32 s;
-    f32 c;
-
-    p->origin.x = 0.0f;
-    p->origin.y = -((f32)minigameWinnerStars_params[5] / 100000.0f + *(f32*)(actor + 0x38));
-    p->origin.z = 0.0f;
-    angle = 0.017453292f * (15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] * 0.5f)));
-    s = sin(angle);
-    c = cos(angle);
-    p->velX = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    p->velY = c * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    p->velZ = 0.0f;
-    p->alpha = p->_20 = p->_1C = 0.0f;
-    span = (s32)(1000.0f * ((f32)minigameWinnerStars_params[2] / 100000.0f));
-    p->_28 = (f32)(rand() % span) / 1000.0f;
-    p->_2C = (f32)(rand() % span) / 1000.0f;
-    p->_30 = (f32)(rand() % span) / 1000.0f;
-    p->_47 = 0xFF;
-    p->alphaByte = 0xFF;
-    range = 0xFF - base;
-    p->colorG = lo + rand() % range;
-    p->colorB = lo + rand() % range;
-    p->_44 = lo + rand() % range;
-    p->_45 = lo + rand() % range;
-    p->_46 = lo + rand() % range;
-    p->kind = 0;
-}
-
 static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
     MGParticle* p = effect->particles;
     f32 speed;
@@ -2991,7 +2956,7 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
         p->life = 0;
         p->sizeX = (f32)minigameWinnerStars_params[3] / 100000.0f;
         p->sizeY = (f32)minigameWinnerStars_params[4] / 100000.0f;
-        mgStarParticleInit(effect->index, p);
+        minigameWinnerStars_resetParticle(effect, p);
         n = minigameWinnerStars_params[0] / 5;
         p->delay = (i % 5 * n + rand() % n) * 2;
         i++;
@@ -3000,8 +2965,31 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
 }
 
 // .text:0x148FD0 size:0x370
-void minigameWinnerStars_resetParticle(s8 index, MGParticle* p) {
-    mgStarParticleInit(index, p);
+void minigameWinnerStars_resetParticle(MGStarEffect* effect, MGParticle* p) {
+    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    u8 lo = minigameWinnerStars_params[6];
+    s32 base = minigameWinnerStars_params[6];
+    u8 range;
+    s32 span;
+
+    p->origin.x = 0.0f;
+    p->origin.y = -((f32)minigameWinnerStars_params[5] / 100000.0f + actor[0x38 / 4]);
+    p->origin.z = 0.0f;
+    minigameWinnerStars_getLaunchVelocity(p, 15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] * 0.5f)));
+    p->_1C = p->_20 = p->alpha = 0.0f;
+    span = (s32)(1000.0f * ((f32)minigameWinnerStars_params[2] / 100000.0f));
+    p->_28 = (f32)(rand() % span) / 1000.0f;
+    p->_2C = (f32)(rand() % span) / 1000.0f;
+    p->_30 = (f32)(rand() % span) / 1000.0f;
+    p->_47 = 0xFF;
+    p->alphaByte = 0xFF;
+    range = 0xFF - base;
+    p->colorG = lo + rand() % range;
+    p->colorB = lo + rand() % range;
+    p->_44 = lo + rand() % range;
+    p->_45 = lo + rand() % range;
+    p->_46 = lo + rand() % range;
+    p->kind = 0;
 }
 
 // .text:0x148EF0 size:0xE0
@@ -3030,12 +3018,11 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
             minigameWinnerStars_drawQuad(p);
             PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
             PSVECAdd((Vec*)&p->_1C, (Vec*)&p->_28, (Vec*)&p->_1C);
-            if (rand() % 5 == 0) {
+            if (minigameWinnerStars_rollTurn()) {
                 Vec ref = { 0.0f, 1.0f, 0.0f };
                 Vec dir;
                 f32 angle;
                 f32 jitter;
-                f32 rad;
 
                 memcpy(&dir, &p->velX, sizeof(Vec));
                 PSVECNormalize(&dir, &dir);
@@ -3049,14 +3036,11 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
                 } else {
                     angle += jitter;
                 }
-                rad = 0.017453292f * angle;
-                p->velX = (f32)sin(rad) * (f32)minigameWinnerStars_params[1] / 100000.0f;
-                p->velY = (f32)cos(rad) * (f32)minigameWinnerStars_params[1] / 100000.0f;
-                p->velZ = 0.0f;
+                minigameWinnerStars_getLaunchVelocity(p, angle);
                 p->kind++;
             }
             if (-p->origin.y - p->sizeY < actor[0x38 / 4]) {
-                mgStarParticleInit(effect->index, p);
+                minigameWinnerStars_resetParticle(effect, p);
             }
         } else {
             p->delay--;
