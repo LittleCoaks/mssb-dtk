@@ -1038,8 +1038,8 @@ void bobOmbFuseSpark_removeFollow(s16 id) {
     if (effect != NULL) {
         p = effect->particles;
         link = &effect->particles;
-        removedHead = NULL;
         removedTail = NULL;
+        removedHead = NULL;
         do {
             if (((MGFollowParticle*)p)->id == id) {
                 *link = p->next;
@@ -3018,14 +3018,17 @@ void minigameWinnerStars_resetParticle(s8 index, MGParticle* p) {
 }
 
 // .text:0x148EF0 size:0xE0
-void minigameWinnerStars_getLaunchVelocity(Vec* out, f32 degrees) {
-    f32 angle = 0.017453292f * degrees;
-    f32 s = sin(angle);
-    f32 c = cos(angle);
+void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees) {
+    f32 s;
+    f32 c;
+    f32 angle;
 
-    out->x = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    out->y = c * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    out->z = 0.0f;
+    angle = 0.017453292f * degrees;
+    s = sin(angle);
+    c = cos(angle);
+    p->velX = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
+    p->velY = c * (f32)minigameWinnerStars_params[1] / 100000.0f;
+    p->velZ = 0.0f;
 }
 
 // .text:0x14841C size:0xAD4
@@ -3078,7 +3081,7 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
 }
 
 // .text:0x1483D4 size:0x48
-BOOL minigameWinnerStars_rollTurn(void) {
+E(u8, BOOL) minigameWinnerStars_rollTurn(void) {
     return rand() % 5 == 0;
 }
 
