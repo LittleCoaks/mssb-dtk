@@ -1550,58 +1550,57 @@ int fn_3_10698C(u32* table) {
 
 // .text:0x00106270 size:0x71C mapped:0x80745304
 void fn_3_106270(VecXYZ* out) {
+    g_Stats_s* stats = &g_Stats;
     s16 sel = CTX->_0946;
     VecXYZ loc;
     if (sel < 9 && sel >= 0) {
-        memcpy(out, &g_Fielders[sel], sizeof(VecXYZ));
-        if (*(s16*)((u8*)&g_Fielders[sel] + 0x178) == -1) {
-            memcpy(&CTX->_00DC, out, sizeof(VecXYZ));
-        } else if (hugeAnimStruct.objects[sel] != NULL) {
-            if (g_Stats.replayInd != 0 && *((u8*)&g_Stats + 0x3C) == 7) {
-                memset(out, 0, sizeof(VecXYZ));
-                getAnimRelatedCoordinates(sel, 4, out);
-            }
-            if (CTX->_0938 == -1) {
-                CTX->_0938 = lbl_3_data_3B4C[g_Fielders[sel].CharID];
-                CTX->_0950 = 0;
-            }
-            memset(&loc, 0, sizeof(VecXYZ));
-            if (getAnimRelatedCoordinates(sel, CTX->_0938, &loc) == 0) {
-                memset(&loc, 0, sizeof(VecXYZ));
-                getAnimRelatedCoordinates(sel, 4, &loc);
-            }
-            if (CTX->_09B7 == 0) {
-                if (CTX->_0938 != CTX->_093C || CTX->_0948 != CTX->_0946 || CTX->_0942 != CTX->_0940 ||
-                    CTX->_094E != g_Fielders[sel].CharID) {
+        memcpy(out, &g_Fielders[sel].pos, sizeof(VecXYZ));
+        if (g_Fielders[sel].rosterLocation != -1) {
+            if (hugeAnimStruct.objects[sel] != NULL) {
+                if (stats->replayInd != 0 && stats->replayReason == 7) {
+                    memset(out, 0, sizeof(VecXYZ));
+                    getAnimRelatedCoordinates(sel, 4, out);
+                }
+                if (CTX->_0938 == -1) {
+                    CTX->_0938 = lbl_3_data_3B4C[g_Fielders[sel].CharID];
                     CTX->_0950 = 0;
                 }
-                if (CTX->_0950 < 1) {
-                    memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
-                    CTX->_0950++;
-                } else {
-                    memcpy(&loc, &CTX->_00E8, sizeof(VecXYZ));
-                    if (CTX->_0950 < 3) {
-                        CTX->_0950++;
-                    }
+                memset(&loc, 0, sizeof(VecXYZ));
+                if (getAnimRelatedCoordinates(sel, CTX->_0938, &loc) == 0) {
+                    memset(&loc, 0, sizeof(VecXYZ));
+                    getAnimRelatedCoordinates(sel, 4, &loc);
                 }
-            } else {
-                memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
+                if (CTX->_09B7 == 0) {
+                    if (CTX->_0938 != CTX->_093C || CTX->_0948 != CTX->_0946 || CTX->_0942 != CTX->_0940 ||
+                        CTX->_094E != g_Fielders[sel].CharID) {
+                        CTX->_0950 = 0;
+                    }
+                    if (CTX->_0950 < 1) {
+                        memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
+                        CTX->_0950++;
+                    } else {
+                        memcpy(&loc, &CTX->_00E8, sizeof(VecXYZ));
+                        if (CTX->_0950 < 3) {
+                            CTX->_0950++;
+                        }
+                    }
+                } else {
+                    memcpy(&CTX->_00E8, &loc, sizeof(VecXYZ));
+                }
+                if (stats->replayInd != 0 && stats->replayReason == 7) {
+                    out->y = -1.0f * out->y + g_Fielders[sel].actionYOffset + lbl_3_data_1DB00[CTX->_094C].y;
+                    out->x = out->x + lbl_3_data_1DB00[CTX->_094C].x;
+                    out->z = out->z + lbl_3_data_1DB00[CTX->_094C].z;
+                } else {
+                    out->y = -1.0f * loc.y + g_Fielders[sel].actionYOffset + lbl_3_data_1DB00[CTX->_094C].y;
+                    out->x = loc.x + lbl_3_data_1DB00[CTX->_094C].x;
+                    out->z = loc.z + lbl_3_data_1DB00[CTX->_094C].z;
+                }
             }
-            if (g_Stats.replayInd != 0 && *((u8*)&g_Stats + 0x3C) == 7) {
-                out->y = -1.0f * out->y + g_Fielders[sel].actionYOffset + lbl_3_data_1DB00[CTX->_094C].y;
-                out->x = out->x + lbl_3_data_1DB00[CTX->_094C].x;
-                out->z = out->z + lbl_3_data_1DB00[CTX->_094C].z;
-            } else {
-                out->y = -1.0f * loc.y + g_Fielders[sel].actionYOffset + lbl_3_data_1DB00[CTX->_094C].y;
-                out->x = loc.x + lbl_3_data_1DB00[CTX->_094C].x;
-                out->z = loc.z + lbl_3_data_1DB00[CTX->_094C].z;
-            }
-        }
-        if (*(s16*)((u8*)&g_Fielders[sel] + 0x178) != -1) {
-            CTX->_094E = g_Fielders[sel].CharID;
         } else {
-            CTX->_094E = g_Fielders[sel].CharID;
+            memcpy(&CTX->_00DC, &out, sizeof(VecXYZ));
         }
+        CTX->_094E = g_Fielders[sel].CharID;
     } else if (sel < 13 && sel >= 0) {
         InMemRunnerType* r = &g_Runners[sel - 9];
         memcpy(out, r, sizeof(VecXYZ));
@@ -1638,7 +1637,8 @@ void fn_3_106270(VecXYZ* out) {
             }
             CTX->_094E = r->charID;
         }
-        memcpy(&CTX->_00DC, out, sizeof(VecXYZ));
+        // Copies from the parameter slot itself rather than *out (original behaviour).
+        memcpy(&CTX->_00DC, &out, sizeof(VecXYZ));
     } else if (sel == 13) {
         memcpy(out, &g_Ball, sizeof(VecXYZ));
         memcpy(&CTX->_00DC, &g_Ball, sizeof(VecXYZ));
