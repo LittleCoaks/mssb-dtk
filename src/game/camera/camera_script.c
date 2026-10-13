@@ -2847,7 +2847,7 @@ BOOL fn_3_FDB30(void) {
     GameControlsStruct* gl = &g_GameLogic;
     u8* anim = animRelated;
     int trackerB = g_Challenge.captain;
-    u8 trackerA = g_Challenge.difficulty;
+    int trackerA = g_Challenge.difficulty;
     int i;
     int found;
     s32* table;
