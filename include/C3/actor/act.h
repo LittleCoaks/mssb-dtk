@@ -42,7 +42,16 @@ void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* b
 
 Actor* maybeProcessActLayout(ActorLayout* layout);
 
-void renderingRelated(void);
+// Callback argument for renderingRelated: draws an actor layout's bone
+// display objects directly, without building an Actor.
+typedef struct {
+    /* 0x00 */ u8 unk00[0x8];
+    /* 0x08 */ Mtx worldMtx;
+    /* 0x38 */ Mtx camera;
+    /* 0x68 */ ActorLayoutFile* layout;
+} UnkLayoutDrawArg;
+
+void renderingRelated(UnkLayoutDrawArg* arg);
 
 void haveActLayoutPointToGeoHeader(void* layout, void* geo);
 void LoadActorLayout(void* layout);

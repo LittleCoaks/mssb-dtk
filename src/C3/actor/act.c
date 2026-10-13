@@ -818,8 +818,67 @@ void fn_800B4724(Actor* actor, int value) {
     actor->skHeader = (sHdr*)value;
 }
 
-void renderingRelated(void) {
-    return;
+void renderingRelated(UnkLayoutDrawArg* arg) {
+    Vec box[8];
+    Mtx m;
+    MtxPtr worldMtx = arg->worldMtx;
+    MtxPtr camera = arg->camera;
+    s32 i;
+    ActorLayoutFile* layout = arg->layout;
+    struct DODisplayObj* dispObj;
+    DODisplayDataPtr pal = (DODisplayDataPtr)layout->header.geoPaletteName;
+
+    for (i = 0; i < layout->header.totalBones; i++) {
+        if (layout->bones[i].geoFileID != 0xFFFF) {
+            dispObj = (struct DODisplayObj*)pal->descriptorArray[layout->bones[i].geoFileID].layout;
+            CTRLBuildMatrix(layout->bones[i].orientationCtrl, dispObj->worldMatrix);
+            PSMTXConcat(worldMtx, dispObj->worldMatrix, dispObj->worldMatrix);
+            PSMTXConcat(camera, dispObj->worldMatrix, m);
+            box[0].x = dispObj->unk58;
+            box[0].y = dispObj->unk60;
+            box[0].z = dispObj->unk64;
+            box[1].x = dispObj->unk54;
+            box[1].y = dispObj->unk60;
+            box[1].z = dispObj->unk64;
+            box[2].x = dispObj->unk54;
+            box[2].y = dispObj->unk60;
+            box[2].z = dispObj->unk68;
+            box[3].x = dispObj->unk58;
+            box[3].y = dispObj->unk60;
+            box[3].z = dispObj->unk68;
+            box[4].x = dispObj->unk58;
+            box[4].y = dispObj->unk5C;
+            box[4].z = dispObj->unk64;
+            box[5].x = dispObj->unk54;
+            box[5].y = dispObj->unk5C;
+            box[5].z = dispObj->unk64;
+            box[6].x = dispObj->unk54;
+            box[6].y = dispObj->unk5C;
+            box[6].z = dispObj->unk68;
+            box[7].x = dispObj->unk58;
+            box[7].y = dispObj->unk5C;
+            box[7].z = dispObj->unk68;
+            if (checkObjectVisibility(0, box, m)) {
+                if (layout->bones[i].pad16 & 1) {
+                    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
+                } else {
+                    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+                }
+                switch (layout->bones[i].pad16 & 6) {
+                case 2:
+                    GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
+                    break;
+                case 4:
+                    GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTCOL, GX_BL_ZERO, GX_LO_CLEAR);
+                    break;
+                default:
+                    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+                    break;
+                }
+                DOVARender(dispObj, camera, 0, NULL);
+            }
+        }
+    }
 }
 
 void haveActLayoutPointToGeoHeader(void* layout, void* geo) {
