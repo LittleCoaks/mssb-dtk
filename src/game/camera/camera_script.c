@@ -1769,11 +1769,11 @@ void fn_3_105C84(u8* hdr) {
 // .text:0x00105C28 size:0x5C mapped:0x80744CBC
 u32 fn_3_105C28(u8* script, u32 time) {
     u32 frame = time >> 16;
+    u16* last;
+    u32 found = 0;
     u32 frac = time & 0xFFFF;
     u16* e = (u16*)(*(u8**)(script + 8));
     u16 n = *e;
-    u16* last;
-    u32 found = 0;
     e += 2;
     do {
         last = e;
@@ -3705,23 +3705,11 @@ void fn_3_FD670(void) {
                     CTX->_09B0 = 0;
                 }
             } else if (CTX->_09AD == 1) {
-                CamScript* ctx = CTX;
-                u16* e = *(u16**)(ctx->_0990 + 8);
-                u16 n = e[0];
-                u32 time = ctx->_0118;
-                u32 frame = time >> 16;
-                e += 2;
-                do {
-                    e += 2;
-                    if (*e > frame) {
-                        break;
-                    }
-                    n--;
-                } while (n != 0);
-                if (time >= ctx->_011C - 1) {
-                    ctx->_09AD = 0;
+                fn_3_105C28(CTX->_0990, CTX->_0118);
+                if (CTX->_0118 >= CTX->_011C - 1) {
+                    CTX->_09AD = 0;
                 } else {
-                    ctx->_0118 += 0x10000;
+                    CTX->_0118 += 0x10000;
                 }
             }
             break;
