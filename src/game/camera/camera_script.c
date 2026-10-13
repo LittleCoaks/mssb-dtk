@@ -3869,9 +3869,9 @@ void fn_3_FCF24(void) {
                 ctx->_0034[total].v[3] = CAM_SPLINE_SUM(3) / 6.0f;
                 ctx->_0034[total].v[4] = CAM_SPLINE_SUM(4) / 6.0f;
             } else {
-                f32 w1 = 2.0f + (3.0f * t3 - 5.0f * t2);
                 f32 w0 = (-1.0f * t3 + 2.0f * t2) - t;
                 f32 w2 = t + (-3.0f * t3 + 4.0f * t2);
+                f32 w1 = 2.0f + (3.0f * t3 - 5.0f * t2);
                 f32 w3 = t3 - t2;
                 ctx->_0034[total].v[0] = CAM_SPLINE_SUM(0) / 2.0f;
                 ctx->_0034[total].v[1] = CAM_SPLINE_SUM(1) / 2.0f;
