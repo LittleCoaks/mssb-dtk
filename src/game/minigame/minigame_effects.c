@@ -3189,7 +3189,7 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
     MGParticle* removedTail = NULL;
     s32 alpha;
     s32 alphaStep;
-    s32 remaining;
+    s32 alphaFrom;
     f32 sizeStep;
     f32 scale;
 
@@ -3227,13 +3227,14 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
                     sizeStep = ((f32)piranhaPanic_bombExplosionParams[5 + mgFxTableRow(p)] / 100000.0f -
                                 (f32)piranhaPanic_bombExplosionParams[4 + mgFxTableRow(p)] / 100000.0f) /
                                (f32)rampLength * scale;
-                    alphaStep = (piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)] - piranhaPanic_bombExplosionParams[7 + mgFxTableRow(p)]) / rampLength;
+                    alphaFrom = piranhaPanic_bombExplosionParams[7 + mgFxTableRow(p)];
+                    alphaStep = (piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)] - alphaFrom) / rampLength;
                 } else {
-                    remaining = duration - rampLength;
                     sizeStep = ((f32)piranhaPanic_bombExplosionParams[6 + mgFxTableRow(p)] / 100000.0f -
                                 (f32)piranhaPanic_bombExplosionParams[5 + mgFxTableRow(p)] / 100000.0f) /
-                               (f32)remaining * scale;
-                    alphaStep = (piranhaPanic_bombExplosionParams[9 + mgFxTableRow(p)] - piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)]) / remaining;
+                               (f32)(duration - rampLength) * scale;
+                    alphaFrom = piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)];
+                    alphaStep = (piranhaPanic_bombExplosionParams[9 + mgFxTableRow(p)] - alphaFrom) / (duration - rampLength);
                 }
                 alpha += alphaStep;
                 if (alpha < 0) {
