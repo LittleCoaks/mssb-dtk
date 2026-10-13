@@ -1,222 +1,208 @@
 #include "C3/control/frustum.h"
 
-static const u8 sFaceCorners[6][4] = {
-    {0, 3, 7, 4}, {0, 1, 2, 3}, {4, 5, 6, 7}, {2, 1, 5, 6}, {0, 4, 5, 1}, {3, 2, 6, 7},
-};
-
-static Frustum sFrustums[4];
-
-static const u8 sEdgeCorners[12][2] = {
+u8 lbl_80111670[12][2] = {
     {0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
     {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7},
 };
 
-// Separating-axis test of one face of a box against a point set.
-// Returns 1 when the face's edge crosses the set, 0 when all points lie
-// on one side of the face plane, and -1 otherwise.
-s32 checkPlaneIntersection(const Vec* face, const Vec* pts) {
-    Vec edge0;
-    Vec edge1;
-    Vec normal;
-    Vec hit;
-    Vec rel;
-    Vec cross;
-    f32 dists[8];
-    u8 sides[8];
-    f32 planeD;
-    f32 t;
-    u32 anyPos;
-    s32 i;
-    s32 k;
+u8 lbl_80111688[6][4] = {
+    {0, 3, 7, 4}, {2, 1, 5, 6}, {0, 1, 2, 3}, {7, 6, 5, 4}, {3, 2, 6, 7}, {0, 4, 5, 1},
+};
 
-    PSVECSubtract(&face[1], &face[0], &edge0);
-    PSVECSubtract(&face[2], &face[1], &edge1);
-    PSVECCrossProduct(&edge0, &edge1, &normal);
-    planeD = PSVECDotProduct(&normal, &face[0]);
+Frustum lbl_803CB1FC[4];
 
-    anyPos = 0;
-    for (i = 0; i < 8; i++) {
-        dists[i] = PSVECDotProduct(&normal, &pts[i]) - planeD;
-        if (dists[i] > 0.0f) {
-            sides[i] = 4;
-            anyPos++;
-        } else {
-            sides[i] = 8;
-        }
-    }
-    if (anyPos == 0) {
-        return 0;
-    }
-
-    for (i = 0; i < 12; i++) {
-        s32 a = sEdgeCorners[i][0];
-        s32 b = sEdgeCorners[i][1];
-
-        if ((sides[a] | sides[b]) != 0xC) {
-            continue;
-        }
-        t = dists[a] / (dists[a] - dists[b]);
-        hit.x = pts[a].x + t * (pts[b].x - pts[a].x);
-        hit.y = pts[a].y + t * (pts[b].y - pts[a].y);
-        hit.z = pts[a].z + t * (pts[b].z - pts[a].z);
-
-        for (k = 0; k < 4; k++) {
-            PSVECSubtract(&face[(k + 1) & 3], &face[k], &edge0);
-            PSVECSubtract(&hit, &face[k], &rel);
-            PSVECCrossProduct(&edge0, &rel, &cross);
-            if (PSVECDotProduct(&cross, &normal) < 0.0f) {
-                break;
-            }
-        }
-        if (k == 4) {
-            return 1;
-        }
-    }
-    return -1;
-}
-
-void fn_800B806C(s32 slot, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
-    Frustum* frustum = &sFrustums[slot];
-    f32 invDist = 1.0f / arg7;
-    f32 nearZ = arg5;
-    f32 farZ = arg6;
-    f32 scale = 2.0f * nearZ * farZ;
-    f32 zRange = farZ - nearZ;
-    f32 l = arg1 * invDist;
-    f32 r = arg2 * invDist;
-    f32 b = arg3 * invDist;
-    f32 t = arg4 * invDist;
-
-    frustum->corners[0].x = l * farZ;
-    frustum->corners[0].y = b * farZ;
-    frustum->corners[0].z = farZ;
-    frustum->corners[1].x = r * farZ;
-    frustum->corners[1].y = b * farZ;
-    frustum->corners[1].z = farZ;
-    frustum->corners[2].x = r * nearZ;
-    frustum->corners[2].y = t * nearZ;
-    frustum->corners[2].z = nearZ;
-    frustum->corners[3].x = l * nearZ;
-    frustum->corners[3].y = t * nearZ;
-    frustum->corners[3].z = nearZ;
-    frustum->corners[4].x = l * farZ;
-    frustum->corners[4].y = t * farZ;
-    frustum->corners[4].z = farZ;
-    frustum->corners[5].x = r * farZ;
-    frustum->corners[5].y = t * farZ;
-    frustum->corners[5].z = farZ;
-    frustum->corners[6].x = r * nearZ;
-    frustum->corners[6].y = b * nearZ;
-    frustum->corners[6].z = nearZ;
-    frustum->corners[7].x = l * nearZ;
-    frustum->corners[7].y = b * nearZ;
-    frustum->corners[7].z = nearZ;
-
-    frustum->proj[0][0] = scale / (r - l);
-    frustum->proj[0][1] = 0.0f;
-    frustum->proj[0][2] = 0.0f;
-    frustum->proj[0][3] = 0.0f;
-    frustum->proj[1][0] = 0.0f;
-    frustum->proj[1][1] = scale / (t - b);
-    frustum->proj[1][2] = 0.0f;
-    frustum->proj[1][3] = 0.0f;
-    frustum->proj[2][0] = 0.0f;
-    frustum->proj[2][1] = 0.0f;
-    frustum->proj[2][2] = (farZ + nearZ) / zRange;
-    frustum->proj[2][3] = -scale / zRange;
-    frustum->proj[3][0] = 0.0f;
-    frustum->proj[3][1] = 0.0f;
-    frustum->proj[3][2] = 0.0f;
-    frustum->proj[3][3] = 1.0f;
-    frustum->nearZ = nearZ;
-    frustum->farZ = farZ;
-}
-
-s32 checkObjectVisibility(s32 slot, void* box, MtxPtr mtx) {
-    Frustum* frustum = &sFrustums[slot];
+s32 checkObjectVisibility(s32 slot, Vec* box, MtxPtr mtx) {
+    Vec face[4];
     Vec worldBox[8];
     Vec clipBox[8];
-    u8 flags[8];
-    u8 andFlags = 0x3F;
-    u8 orFlags = 0;
+    Frustum* frustum;
+    u8* corners;
     s32 i;
-    s32 face;
-    s32 hitA = 0;
-    s32 hitB = 0;
+    s32 hit;
+    s32 hitB;
+    u8* cornersB;
+    s32 j;
+    s32 k;
+    s32 result;
+    u8 andFlags;
+    u8 orFlags;
+    u8 f;
 
     PSMTXMultVecArray(mtx, box, worldBox, 8);
+    frustum = &lbl_803CB1FC[slot];
     PSMTX44MultVecArray(frustum->proj, worldBox, clipBox, 8);
 
-    for (i = 0; i < 8; i++) {
-        u8 f = 0;
-
-        if (clipBox[i].x < -1.0f) {
-            f |= 0x01;
-        }
-        if (clipBox[i].x > 1.0f) {
-            f |= 0x02;
-        }
-        if (clipBox[i].y < -1.0f) {
-            f |= 0x04;
-        }
-        if (clipBox[i].y > 1.0f) {
-            f |= 0x08;
-        }
-        if (worldBox[i].z < frustum->nearZ) {
-            f |= 0x10;
-        }
-        if (worldBox[i].z > frustum->farZ) {
-            f |= 0x20;
-        }
+    andFlags = 0x3F;
+    orFlags = 0;
+    i = 0;
+    do {
+        f = (clipBox[i].x < -1.0f) | ((clipBox[i].x > 1.0f) << 1);
+        f |= (clipBox[i].y < -1.0f) << 2;
+        f |= (clipBox[i].y > 1.0f) << 3;
+        f |= (worldBox[i].z < frustum->nearZ) << 4;
+        f |= (worldBox[i].z > frustum->farZ) << 5;
         if (f == 0) {
             return 1;
         }
-        flags[i] = f;
         andFlags &= f;
         orFlags |= f;
-    }
+    } while (++i < 8);
 
-    if (andFlags == 0x10 || andFlags == 0x20) {
+    if ((andFlags & 0x30U) == 0x10U || (andFlags & 0x30U) == 0x20U) {
         return 0;
     }
-    if ((orFlags & 0x20) == 0) {
-        if ((andFlags & 3) == 1 || (andFlags & 3) == 2) {
+    if (!(orFlags & 0x20)) {
+        if ((andFlags & 3U) == 1U || (andFlags & 3U) == 2U) {
             return 0;
         }
-        if ((andFlags & 0xC) == 4 || (andFlags & 0xC) == 8) {
+        if ((andFlags & 0xCU) == 4U || (andFlags & 0xCU) == 8U) {
             return 0;
         }
     }
 
-    for (face = 0; face < 6; face++) {
-        Vec faceCorners[4];
-        s32 j;
-
-        for (j = 0; j < 4; j++) {
-            faceCorners[j] = frustum->corners[sFaceCorners[face][j]];
-        }
-        if (checkPlaneIntersection(faceCorners, worldBox) > 0) {
+    corners = lbl_80111688[0];
+    hit = 0;
+    for (j = 6; j != 0; j--) {
+        face[0] = frustum->corners[corners[0]];
+        face[1] = frustum->corners[corners[1]];
+        face[2] = frustum->corners[corners[2]];
+        face[3] = frustum->corners[corners[3]];
+        corners += 4;
+        result = checkPlaneIntersection(face, worldBox);
+        if (result > 0) {
             return 1;
         }
-        hitA |= 1;
+        hit |= result;
     }
-    for (face = 0; face < 6; face++) {
-        Vec faceCorners[4];
-        s32 j;
-
-        for (j = 0; j < 4; j++) {
-            faceCorners[j] = worldBox[sFaceCorners[face][j]];
-        }
-        if (checkPlaneIntersection(faceCorners, frustum->corners) > 0) {
-            return 1;
-        }
-        hitB |= 1;
-    }
-    if (hitA == 0) {
+    if (hit == 0) {
         return 2;
     }
+
+    cornersB = lbl_80111688[0];
+    hitB = 0;
+    for (k = 6; k != 0; k--) {
+        face[0] = worldBox[cornersB[0]];
+        face[1] = worldBox[cornersB[1]];
+        face[2] = worldBox[cornersB[2]];
+        face[3] = worldBox[cornersB[3]];
+        cornersB += 4;
+        result = checkPlaneIntersection(face, frustum->corners);
+        if (result > 0) {
+            return 1;
+        }
+        hitB |= result;
+    }
+    result = 0;
     if (hitB == 0) {
-        return 2;
+        result = 2;
     }
-    return 0;
+    return result;
+}
+
+void fn_800B806C(s32 slot, f32 bottom, f32 top, f32 left, f32 right, f32 nearZ, f32 farZ, f32 dist) {
+    f32 invDist = 1.0f / dist;
+    f32 b = bottom * invDist;
+    f32 t = top * invDist;
+    f32 l = left * invDist;
+    f32 r = right * invDist;
+
+    lbl_803CB1FC[slot].nearZ = nearZ;
+    lbl_803CB1FC[slot].farZ = farZ;
+
+    lbl_803CB1FC[slot].proj[0][0] = (2.0f * dist) / (right - left);
+    lbl_803CB1FC[slot].proj[0][1] = 0.0f;
+    lbl_803CB1FC[slot].proj[0][2] = 0.0f;
+    lbl_803CB1FC[slot].proj[0][3] = 0.0f;
+    lbl_803CB1FC[slot].proj[1][0] = 0.0f;
+    lbl_803CB1FC[slot].proj[1][1] = (2.0f * dist) / (top - bottom);
+    lbl_803CB1FC[slot].proj[1][2] = 0.0f;
+    lbl_803CB1FC[slot].proj[1][3] = 0.0f;
+    lbl_803CB1FC[slot].proj[2][0] = 0.0f;
+    lbl_803CB1FC[slot].proj[2][1] = 0.0f;
+    lbl_803CB1FC[slot].proj[2][2] = (farZ + nearZ) / (farZ - nearZ);
+    lbl_803CB1FC[slot].proj[2][3] = -2.0f * (farZ * nearZ) / (farZ - nearZ);
+    lbl_803CB1FC[slot].proj[3][0] = 0.0f;
+    lbl_803CB1FC[slot].proj[3][1] = 0.0f;
+    lbl_803CB1FC[slot].proj[3][2] = 1.0f;
+    lbl_803CB1FC[slot].proj[3][3] = 0.0f;
+
+    lbl_803CB1FC[slot].corners[0].x = lbl_803CB1FC[slot].corners[4].x = l * farZ;
+    lbl_803CB1FC[slot].corners[3].x = lbl_803CB1FC[slot].corners[7].x = l * nearZ;
+    lbl_803CB1FC[slot].corners[1].x = lbl_803CB1FC[slot].corners[5].x = r * farZ;
+    lbl_803CB1FC[slot].corners[2].x = lbl_803CB1FC[slot].corners[6].x = r * nearZ;
+    lbl_803CB1FC[slot].corners[0].y = lbl_803CB1FC[slot].corners[1].y = b * farZ;
+    lbl_803CB1FC[slot].corners[2].y = lbl_803CB1FC[slot].corners[3].y = b * nearZ;
+    lbl_803CB1FC[slot].corners[4].y = lbl_803CB1FC[slot].corners[5].y = t * farZ;
+    lbl_803CB1FC[slot].corners[6].y = lbl_803CB1FC[slot].corners[7].y = t * nearZ;
+    lbl_803CB1FC[slot].corners[0].z = lbl_803CB1FC[slot].corners[1].z = lbl_803CB1FC[slot].corners[4].z = lbl_803CB1FC[slot].corners[5].z = farZ;
+    lbl_803CB1FC[slot].corners[2].z = lbl_803CB1FC[slot].corners[3].z = lbl_803CB1FC[slot].corners[6].z = lbl_803CB1FC[slot].corners[7].z = nearZ;
+}
+
+s32 checkPlaneIntersection(Vec* face, Vec* pts) {
+    u8 sides[8];
+    Vec hit;
+    f32 dists[8];
+    Vec v[4];
+    Vec cross[4];
+    f32 planeD;
+    f32 dist;
+    f32 denom;
+    f32 t;
+    s32 anyNeg;
+    s32 i;
+    s32 k;
+    s32 a;
+    s32 b;
+    u8* edge;
+
+    PSVECSubtract(&face[1], &face[0], &v[0]);
+    PSVECSubtract(&face[2], &face[1], &v[1]);
+    PSVECCrossProduct(&v[0], &v[1], &v[2]);
+    planeD = PSVECDotProduct(&v[2], &face[0]);
+
+    anyNeg = 0;
+    for (i = 0; i < 8; i++) {
+        dist = PSVECDotProduct(&v[2], &pts[i]) - planeD;
+        dists[i] = dist;
+        sides[i] = ((dist < 0.0f) << 3) | ((dist > 0.0f) << 2);
+        anyNeg |= dist < 0.0f;
+    }
+    if (anyNeg == 0) {
+        return 0;
+    }
+
+    edge = lbl_80111670[0];
+    for (i = 0; i < 12; i++) {
+        a = edge[0];
+        b = edge[1];
+        edge += 2;
+        if ((sides[a] | sides[b]) != 0xC) {
+            continue;
+        }
+        denom = dists[a] - dists[b];
+        if (denom) {
+            t = dists[a] / denom;
+            hit.x = t * (pts[b].x - pts[a].x) + pts[a].x;
+            hit.y = t * (pts[b].y - pts[a].y) + pts[a].y;
+            hit.z = t * (pts[b].z - pts[a].z) + pts[a].z;
+
+            PSVECSubtract(&face[0], &hit, &v[0]);
+            PSVECSubtract(&face[1], &hit, &v[1]);
+            PSVECSubtract(&face[2], &hit, &v[2]);
+            PSVECSubtract(&face[3], &hit, &v[3]);
+            PSVECCrossProduct(&v[0], &v[1], &cross[0]);
+            PSVECCrossProduct(&v[1], &v[2], &cross[1]);
+            PSVECCrossProduct(&v[2], &v[3], &cross[2]);
+            PSVECCrossProduct(&v[3], &v[0], &cross[3]);
+
+            for (k = 0; k < 4; k++) {
+                if (PSVECDotProduct(&cross[k], &cross[(k + 1) & 3]) < 0.0f) {
+                    goto next;
+                }
+            }
+            return 1;
+        }
+    next:;
+    }
+    return -1;
 }

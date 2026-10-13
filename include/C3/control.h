@@ -50,5 +50,7 @@ void CTRL_GetQuatUnk(const Control *control, f32 *x, f32 *y, f32 *z, f32 *w);
 void CTRLGetTranslation(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLBuildMatrix(Control *control, Mtx m);
 void CTRLBuildInverseMatrix(Control *control, Mtx m);
+void CTRLBuildMatrix_FlipY(Control *control, Mtx m);
+void CTRLBuildMatrix_FlipX(Control *control, Mtx m);
 
 #endif // _DOLPHIN_CP_CONTROL_H_

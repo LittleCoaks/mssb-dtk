@@ -5,70 +5,78 @@
 #include "C3/geoPalette.h"
 #include "stl/mem.h"
 
-static void rebase(u32* field, u32 addend) {
-    if (*field != 0) {
-        *field += addend;
-    }
-}
-
 #pragma dont_inline on
-void* LoadGeoPalette(void* geoFile) {
-    u8* geo = (u8*)geoFile;
-    u32* table;
-    u16 entryCount;
+void* LoadGeoPalette(DODisplayDataPtr pal) {
+    DODisplayLayout* layout;
+    void* result = NULL;
     u16 i;
     u16 j;
-    u16 k;
-    void* result = NULL;
 
-    if (*(u32*)(geo + 0x4) != 0 && *(u32*)(geo + 0x8) != 0) {
-        *(u32*)(geo + 0x8) += (u32)geo;
+    if (pal->userDataSize != 0 && pal->userData != NULL) {
+        pal->userData = (void*)((u32)pal->userData + (u32)pal);
     }
+    pal->descriptorArray = (DODescriptorPtr)((u32)pal->descriptorArray + (u32)pal);
 
-    *(u32*)(geo + 0x10) += (u32)geo;
-    table = (u32*)(*(u32*)(geo + 0x10));
-    entryCount = *(u16*)(geo + 0xC);
+    for (i = 0; i < pal->numDescriptors; i++) {
+        pal->descriptorArray[i].layout = (DODisplayLayout*)((u32)pal + (u32)pal->descriptorArray[i].layout);
+        pal->descriptorArray[i].name = (char*)((u32)pal + (u32)pal->descriptorArray[i].name);
+        layout = pal->descriptorArray[i].layout;
 
-    for (i = 0; i < entryCount; i++) {
-        u8* obj;
-        u8* sub;
-        u8* elems;
-        u8* tail;
-
-        table[i * 2] += (u32)geo;
-        table[i * 2 + 1] += (u32)geo;
-        obj = (u8*)table[i * 2];
-
-        rebase((u32*)obj, (u32)obj);
-        sub = (u8*)*(u32*)obj;
-        rebase((u32*)sub, (u32)obj);
-        if (sub[7] == 6) {
-            result = (void*)*(u32*)sub;
+        if (layout->positionData != NULL) {
+            layout->positionData = (PositionData*)((u32)layout->positionData + (u32)layout);
+            if (layout->positionData->positionArray != NULL) {
+                layout->positionData->positionArray = (char*)((u32)layout->positionData->positionArray + (u32)layout);
+            }
+            if (layout->positionData->compCount == 6) {
+                result = layout->positionData->positionArray;
+            }
         }
 
-        rebase((u32*)(obj + 0x4), (u32)obj);
-        rebase((u32*)*(u32*)(obj + 0x4), (u32)obj);
-
-        rebase((u32*)(obj + 0x8), (u32)obj);
-        elems = (u8*)*(u32*)(obj + 0x8);
-        for (j = 0; j < obj[0x14]; j++) {
-            rebase((u32*)(elems + j * 0x10), (u32)obj);
-            rebase((u32*)(elems + j * 0x10 + 0x8), (u32)obj);
+        if (layout->colorData != NULL) {
+            layout->colorData = (ColorData*)((u32)layout->colorData + (u32)layout);
+            if (layout->colorData->colorArray != NULL) {
+                layout->colorData->colorArray = (char*)((u32)layout->colorData->colorArray + (u32)layout);
+            }
         }
 
-        rebase((u32*)(obj + 0xC), (u32)obj);
-        rebase((u32*)*(u32*)(obj + 0xC), (u32)obj);
-
-        rebase((u32*)(obj + 0x10), (u32)obj);
-        tail = (u8*)*(u32*)(obj + 0x10);
-        rebase((u32*)tail, (u32)obj);
-        rebase((u32*)(tail + 0x4), (u32)obj);
-        elems = (u8*)*(u32*)(tail + 0x4);
-        for (k = 0; k < *(u16*)(tail + 0x8); k++) {
-            rebase((u32*)(elems + k * 0x10 + 0x8), (u32)obj);
+        if (layout->textureData != NULL) {
+            layout->textureData = (TextureData*)((u32)layout->textureData + (u32)layout);
+            for (j = 0; j < layout->numTextureChannels; j++) {
+                if (layout->textureData[j].textureCoordArray != NULL) {
+                    layout->textureData[j].textureCoordArray = (char*)((u32)layout + (u32)layout->textureData[j].textureCoordArray);
+                }
+                if (layout->textureData[j].texturePaletteName != NULL) {
+                    layout->textureData[j].texturePaletteName = (char*)((u32)layout + (u32)layout->textureData[j].texturePaletteName);
+                }
+            }
         }
 
-        rebase((u32*)(obj + 0x18), (u32)obj);
+        if (layout->lightingData != NULL) {
+            layout->lightingData = (LightingData*)((u32)layout->lightingData + (u32)layout);
+            if (layout->lightingData->normalArray != NULL) {
+                layout->lightingData->normalArray = (char*)((u32)layout->lightingData->normalArray + (u32)layout);
+            }
+        }
+
+        if (layout->displayData != NULL) {
+            layout->displayData = (DisplayData*)((u32)layout->displayData + (u32)layout);
+            if (layout->displayData->primitiveBank != NULL) {
+                layout->displayData->primitiveBank = (char*)((u32)layout->displayData->primitiveBank + (u32)layout);
+            }
+            if (layout->displayData->displayStateList != NULL) {
+                layout->displayData->displayStateList = (DisplayStateList*)((u32)layout->displayData->displayStateList + (u32)layout);
+            }
+            for (j = 0; j < layout->displayData->numStateEntries; j++) {
+                if (layout->displayData->displayStateList[j].primitiveList != NULL) {
+                    layout->displayData->displayStateList[j].primitiveList =
+                        (char*)((u32)layout + (u32)layout->displayData->displayStateList[j].primitiveList);
+                }
+            }
+        }
+
+        if (layout->unk18 != NULL) {
+            layout->unk18 = (void*)((u32)layout->unk18 + (u32)layout);
+        }
     }
     return result;
 }
@@ -81,6 +89,17 @@ void convertGeometryAndSknHeader(void* geo, void* skn) {
         SKNLoadFile(skn, pal);
     }
     *(void**)geo = pal;
+}
+
+void fn_800BCDBC(DODisplayDataPtr pal) {
+    int i;
+
+    for (i = pal->numDescriptors - 1; i >= 0; i--) {
+        if (((struct DODisplayObj*)pal->descriptorArray[i].layout)->textureData != NULL) {
+            fn_800ACFB0(((struct DODisplayObj*)pal->descriptorArray[i].layout)->textureData);
+        }
+    }
+    fn_800ACFB0(pal->descriptorArray[0].layout);
 }
 
 void AdjustGEOPalettePointers(DODisplayDataPtr pal) {
@@ -99,35 +118,32 @@ void AdjustGEOPalettePointers(DODisplayDataPtr pal) {
 }
 
 void* AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispObj) {
-    u32 base = (u32)layout;
     void* result = NULL;
-    u32 i;
-    u32 j;
+    int i;
 
     if (layout->positionData != NULL) {
-        dispObj->positionData = (PositionData*)(base + (u32)layout->positionData);
-        *(u32*)dispObj->positionData += base;
-        if (((u8*)*(u32*)dispObj->positionData)[7] == 6) {
-            result = (void*)*(u32*)dispObj->positionData;
+        dispObj->positionData = (PositionData*)((u32)layout + (u32)layout->positionData);
+        dispObj->positionData->positionArray = (char*)((u32)layout + (u32)dispObj->positionData->positionArray);
+        if (dispObj->positionData->compCount == 6) {
+            result = dispObj->positionData->positionArray;
         }
     } else {
         dispObj->positionData = NULL;
     }
 
     if (layout->colorData != NULL) {
-        dispObj->colorData = (ColorData*)(base + (u32)layout->colorData);
-        *(u32*)dispObj->colorData += base;
+        dispObj->colorData = (ColorData*)((u32)layout + (u32)layout->colorData);
+        dispObj->colorData->colorArray = (char*)((u32)layout + (u32)dispObj->colorData->colorArray);
     } else {
         dispObj->colorData = NULL;
     }
 
     if (layout->textureData != NULL && layout->numTextureChannels != 0) {
-        dispObj->textureData = _OSAllocFromHeap(0x20, layout->numTextureChannels * 0x10);
+        dispObj->textureData = _OSAllocFromHeap(0x20, layout->numTextureChannels * sizeof(TextureData));
         dispObj->numTextureChannels = layout->numTextureChannels;
         for (i = 0; i < layout->numTextureChannels; i++) {
-            memcpy((u8*)dispObj->textureData + i * 0x10,
-                   (u8*)layout->textureData + base + i * 0x10, 0x10);
-            *(u32*)((u8*)dispObj->textureData + i * 0x10) += base;
+            dispObj->textureData[i] = *(TextureData*)((u32)layout + (u32)&layout->textureData[i]);
+            dispObj->textureData[i].textureCoordArray = (char*)((u32)layout + (u32)dispObj->textureData[i].textureCoordArray);
         }
     } else {
         dispObj->textureData = NULL;
@@ -135,21 +151,20 @@ void* AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispOb
     }
 
     if (layout->lightingData != NULL) {
-        dispObj->lightingData = (LightingData*)(base + (u32)layout->lightingData);
-        *(u32*)dispObj->lightingData += base;
+        dispObj->lightingData = (LightingData*)((u32)layout + (u32)layout->lightingData);
+        dispObj->lightingData->normalArray = (char*)((u32)layout + (u32)dispObj->lightingData->normalArray);
     } else {
         dispObj->lightingData = NULL;
     }
 
     if (layout->displayData != NULL) {
-        dispObj->displayData = (DisplayData*)(base + (u32)layout->displayData);
-        *(u32*)dispObj->displayData += base;
-        *(u32*)((u8*)dispObj->displayData + 0x4) += base;
-        for (j = 0; j < *(u16*)((u8*)dispObj->displayData + 0x8); j++) {
-            u32* entry = (u32*)(*(u32*)((u8*)dispObj->displayData + 0x4) + j * 0x10 + 0x8);
-
-            if (*entry != 0) {
-                *entry += base;
+        dispObj->displayData = (DisplayData*)((u32)layout + (u32)layout->displayData);
+        dispObj->displayData->primitiveBank = (char*)((u32)layout + (u32)dispObj->displayData->primitiveBank);
+        dispObj->displayData->displayStateList = (DisplayStateList*)((u32)layout + (u32)dispObj->displayData->displayStateList);
+        for (i = 0; i < dispObj->displayData->numStateEntries; i++) {
+            if (dispObj->displayData->displayStateList[i].primitiveList != NULL) {
+                dispObj->displayData->displayStateList[i].primitiveList =
+                    (char*)((u32)layout + (u32)dispObj->displayData->displayStateList[i].primitiveList);
             }
         }
     } else {
@@ -157,18 +172,18 @@ void* AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispOb
     }
 
     dispObj->pad8 = layout->pad8;
-    dispObj->visibility = 1;
-    dispObj->overrideTevMode = 0;
+    dispObj->visibility = TRUE;
+    dispObj->overrideTevMode = FALSE;
     dispObj->userTevModeFunc = DODefaultUserTevMode;
     dispObj->shaderFunc = NULL;
     dispObj->shaderData = NULL;
 
-    memcpy(dispObj->unk58, layout->unk20, 4);
-    memcpy(dispObj->unk54, layout->unk1C, 4);
-    memcpy(dispObj->unk60, layout->unk28, 4);
-    memcpy(dispObj->unk5C, layout->unk24, 4);
-    memcpy(dispObj->unk68, layout->unk30, 4);
-    memcpy(dispObj->unk64, layout->unk2C, 4);
+    memcpy(&dispObj->unk58, layout->unk20, 4);
+    memcpy(&dispObj->unk54, layout->unk1C, 4);
+    memcpy(&dispObj->unk60, layout->unk28, 4);
+    memcpy(&dispObj->unk5C, layout->unk24, 4);
+    memcpy(&dispObj->unk68, layout->unk30, 4);
+    memcpy(&dispObj->unk64, layout->unk2C, 4);
 
     return result;
 }
