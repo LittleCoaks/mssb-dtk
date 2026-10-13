@@ -1125,10 +1125,10 @@ void chainChomp_initItemSparkleLayer2(MGParticle* p) {
 
 // .text:0x152AB4 size:0x6F0
 void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
-    MGParticle* p;
     MGEffect* effect;
     f32* cornerY;
     f32* cornerX;
+    MGParticle* p;
     u32 count = 0;
     camera_803c639c_s* cam;
     Vec rotated;
@@ -1165,8 +1165,7 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     p->origin.y = view.y;
                     p->origin.z = view.z;
                     p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
-                    world.x = p->sizeX;
-                    world.y = p->sizeX;
+                    world.x = world.y = p->sizeX;
                     world.z = p->_34;
                     PSMTX44MultVec(cam->proj, &world, &view);
                     p->sizeX = view.x * (p->texIndex != 0 ? 1.5 : 1.0);
@@ -1183,10 +1182,10 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                         k = 1.0f / (PSVECMag(&dir) / 2.0f);
                     }
                     PSVECNormalize(&dir, &dir);
-                    dir.x = dir.x * -1.0f;
-                    dir.y = dir.y * -1.0f;
-                    rotated.x = dir.x * (f32)cos(angle) + -dir.y * (f32)sin(angle);
-                    rotated.y = dir.x * (f32)sin(angle) + dir.y * (f32)cos(angle);
+                    dir.x *= -1.0f;
+                    dir.y *= -1.0f;
+                    rotated.x = -dir.y * (f32)sin(angle) + dir.x * (f32)cos(angle);
+                    rotated.y = dir.y * (f32)cos(angle) + dir.x * (f32)sin(angle);
                     rotated.z = 0.0f;
                     PSVECScale(&rotated, ((f32)chainChomp_itemSparkleFlyParams[2] / 100000.0f) * k, &rotated);
                     rotated.z = p->_34;
