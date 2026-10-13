@@ -3101,6 +3101,16 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 2;
             continue;
         }
+        case 76:
+            CTX->_09AA = 0;
+            CTX->_09B5 = 0;
+            if (CTX->_099F == 1) {
+                CTX->_0946 = 10;
+            } else {
+                CTX->_0946 = 11;
+            }
+            ctx->_0000 += 1;
+            continue;
         case 26:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0974 + ctx->_0000[1]) {
@@ -3111,20 +3121,6 @@ BOOL fn_3_FDB30(void) {
         case 27:
             fn_3_100038();
             if (g_Stats.playFrameCounter != CTX->_0976 + ctx->_0000[1]) {
-                break;
-            }
-            ctx->_0000 += 2;
-            continue;
-        case 34:
-            fn_3_100038();
-            if (g_Stats.playFrameCounter != CTX->_097C + ctx->_0000[1]) {
-                break;
-            }
-            ctx->_0000 += 2;
-            continue;
-        case 60:
-            fn_3_100038();
-            if (g_Stats.playFrameCounter != CTX->_0984 + ctx->_0000[1]) {
                 break;
             }
             ctx->_0000 += 2;
@@ -3146,15 +3142,12 @@ BOOL fn_3_FDB30(void) {
                 ctx->_0000 += 2;
             }
             continue;
-        case 45:
-            ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
-            continue;
-        case 71:
-            if (g_Ball.landingSpotZoneAwayFromHome <= 1) {
-                ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
-            } else {
-                ctx->_0000 += 2;
+        case 34:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_097C + ctx->_0000[1]) {
+                break;
             }
+            ctx->_0000 += 2;
             continue;
         case 39:
             CAMF(s16, 0xA72) = 0;
@@ -3177,15 +3170,6 @@ BOOL fn_3_FDB30(void) {
             }
             ctx->_0000 += 3;
             continue;
-        case 72:
-            if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                hugeAnimStruct.objects[*(u8*)(DATA_L(0x238C) + ctx->_0000[1] * 0x1C + 0x14)]->_257) {
-                fn_3_24ADC(ctx->_0000[1], 0);
-            } else {
-                fn_3_24ADC(ctx->_0000[2], 0);
-            }
-            ctx->_0000 += 3;
-            continue;
         case 41:
             fn_3_100038();
             if (lbl_3_common_bss_1323C->_23E - 1 != lbl_3_common_bss_1323C->_23C) {
@@ -3197,22 +3181,6 @@ BOOL fn_3_FDB30(void) {
                 insertGraphicDrawingFunction(fn_3_21DE4, 6);
             }
             ctx->_0000 += 1;
-            continue;
-        case 104:
-            if (CAMF(u16, 0xAAA) == 0) {
-                CAMF(u16, 0xAAA) = 1;
-                CAMF(s16, 0xAAE) = ctx->_0000[1];
-                insertGraphicDrawingFunction(fn_3_21DE4, 6);
-            }
-            ctx->_0000 += 2;
-            continue;
-        case 48:
-            if (CAMF(u16, 0xAA8) == 0) {
-                CAMF(u16, 0xAA8) = 1;
-                CAMF(s16, 0xAAC) = ctx->_0000[1];
-                insertGraphicDrawingFunction(fn_3_21C90, 6);
-            }
-            ctx->_0000 += 2;
             continue;
         case 42:
             fn_3_7BC0C();
@@ -3278,6 +3246,9 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 2;
             continue;
         }
+        case 45:
+            ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
+            continue;
         case 46:
             CTX->_0934 = RandomInt_Sim(0x10000);
             ctx->_0000 += 1;
@@ -3287,6 +3258,22 @@ BOOL fn_3_FDB30(void) {
             CTX->_0118 = 0;
             fn_3_FC938();
             ctx->_0000 += 4;
+            continue;
+        case 48:
+            if (CAMF(u16, 0xAA8) == 0) {
+                CAMF(u16, 0xAA8) = 1;
+                CAMF(s16, 0xAAC) = ctx->_0000[1];
+                insertGraphicDrawingFunction(fn_3_21C90, 6);
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 104:
+            if (CAMF(u16, 0xAAA) == 0) {
+                CAMF(u16, 0xAAA) = 1;
+                CAMF(s16, 0xAAE) = ctx->_0000[1];
+                insertGraphicDrawingFunction(fn_3_21DE4, 6);
+            }
+            ctx->_0000 += 2;
             continue;
         case 49: {
             int first = (g_Batter.batterHand == 1) ? ctx->_0000[1] : ctx->_0000[2];
@@ -3362,6 +3349,13 @@ BOOL fn_3_FDB30(void) {
                 break;
             case 0x3D:
                 CTX->_09A9 = 8;
+                break;
+            }
+            ctx->_0000 += 2;
+            continue;
+        case 60:
+            fn_3_100038();
+            if (g_Stats.playFrameCounter != CTX->_0984 + ctx->_0000[1]) {
                 break;
             }
             ctx->_0000 += 2;
@@ -3460,6 +3454,22 @@ BOOL fn_3_FDB30(void) {
             lbl_3_common_bss_1323C->_27F = 0;
             ctx->_0000 += 2;
             continue;
+        case 71:
+            if (g_Ball.landingSpotZoneAwayFromHome <= 1) {
+                ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
+            } else {
+                ctx->_0000 += 2;
+            }
+            continue;
+        case 72:
+            if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
+                hugeAnimStruct.objects[*(u8*)(DATA_L(0x238C) + ctx->_0000[1] * 0x1C + 0x14)]->_257) {
+                fn_3_24ADC(ctx->_0000[1], 0);
+            } else {
+                fn_3_24ADC(ctx->_0000[2], 0);
+            }
+            ctx->_0000 += 3;
+            continue;
         case 73:
             found = 0;
             for (i = 0; i < 9; i++) {
@@ -3474,7 +3484,6 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 1;
             continue;
         case 74:
-        case 94:
             ctx->_0000 += 1;
             continue;
         case 75:
@@ -3494,25 +3503,26 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 1;
             continue;
         case 81:
-            CTX->_0940 = lbl_3_data_37AC[g_Runners[0].charID];
-            CTX->_0118 = 0;
-            fn_3_FC938();
-            ctx->_0000 += 1;
-            continue;
         case 82:
-            CTX->_0940 = lbl_3_data_3888[g_Runners[0].charID];
-            CTX->_0118 = 0;
-            fn_3_FC938();
-            ctx->_0000 += 1;
-            continue;
         case 83:
-            CTX->_0940 = lbl_3_data_3964[g_Runners[0].charID];
-            CTX->_0118 = 0;
-            fn_3_FC938();
-            ctx->_0000 += 1;
-            continue;
         case 84:
-            CTX->_0940 = lbl_3_data_3A40[g_Runners[0].charID];
+            switch (ctx->_0000[0]) {
+            case 81:
+                CTX->_0940 = lbl_3_data_37AC[g_Runners[0].charID];
+                break;
+            case 82:
+                CTX->_0940 = lbl_3_data_3888[g_Runners[0].charID];
+                break;
+            case 83:
+                CTX->_0940 = lbl_3_data_3964[g_Runners[0].charID];
+                break;
+            case 84:
+                CTX->_0940 = lbl_3_data_3A40[g_Runners[0].charID];
+                break;
+            default:
+                CTX->_0940 = 0;
+                break;
+            }
             CTX->_0118 = 0;
             fn_3_FC938();
             ctx->_0000 += 1;
@@ -3600,6 +3610,9 @@ BOOL fn_3_FDB30(void) {
             break;
         case 93:
             changeScene(1, 6);
+            ctx->_0000 += 1;
+            continue;
+        case 94:
             ctx->_0000 += 1;
             continue;
         case 95:
