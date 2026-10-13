@@ -2855,16 +2855,11 @@ void minigameWinnerStars_setWinners(s32* values, s32 count) {
     minigameWinnerStars_slots[1] = -1;
     minigameWinnerStars_slots[2] = -1;
     minigameWinnerStars_slots[3] = -1;
-    if (count > MG_PLAYER_COUNT) {
+    if (count > MG_PLAYER_COUNT || count == 0 || values == NULL) {
         return;
     }
-    if (count == 0) {
-        return;
-    }
-    if (values != NULL) {
-        for (i = 0; i < count; i++) {
-            minigameWinnerStars_slots[i] = values[i];
-        }
+    for (i = 0; i < count; i++) {
+        minigameWinnerStars_slots[i] = values[i];
     }
 }
 
