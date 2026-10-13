@@ -3,6 +3,7 @@
 
 #include "mssbTypes.h"
 
+void fn_1_C2A4(void);
 void fn_1_A2E4(void);
 void sndTestTopScreen(void);
 void sndTestTrainingSeScreen(void);
@@ -23,7 +24,7 @@ void fn_1_BA64(void);
 void sndTestVoice2Screen(void);
 void fn_1_BDD8(void);
 void fn_1_BEF4(s16 voice);
-s32 fn_1_BF34(s32 fxid);
+s32 fn_1_BF34(s16 fxid);
 void sndTestVoiceScreen(void);
 void fn_1_C188(void);
 

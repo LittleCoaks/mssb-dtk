@@ -3245,9 +3245,36 @@ functions. These lessons are not specific to one file:
 - **Decrement then signed test of a `u8` static needs two statements:**
   `x--; if ((s8)x < 0) x = N;`. `if ((s8)--x < 0)` puts the `extsb` before the `stb`.
 - **Unowned `.text` gaps in the debug REL.** These ranges are in no unit's split:
-  0x1538-0x19AC, 0x4DD8-0x4E98, 0x85A8-0x8CD4, 0x9EA0-0xA2E4, 0xC2A4-0xC5AC,
-  0x17EFC-0x182C0, 0x1D590-0x1D694 and 0x26AF8-0x26B7C. Evidence so far:
+  0x1538-0x19AC, 0x4DD8-0x4E98, 0x85A8-0x8CD4, 0x9EA0-0xA2E4,
+  0x17EFC-0x182C0, 0x1D590-0x1D694 and 0x26AF8-0x26B7C. (0xC2A4-0xC5AC is resolved:
+  `fn_1_C2A4` went to `rep_02A8`, and `rep_0610` now starts at 0xC2DC.) Evidence so far:
   - 0x85A8-0x8CD4 only references `rep_0250`'s `.data` (`skyPanoramaFileDescriptorDebug`).
-  - 0x9EA0-0xA2E4 and 0xC2A4-0xC5AC use `rep_02A8`'s data and functions.
+  - 0x9EA0-0xA2E4 uses `rep_02A8`'s data and functions.
   - A static in a unit that a gap function references blocks that unit's flip until the gap
     joins it.
+
+### Debug REL second passes (rep_0250, rep_02A8 flipped to Matching)
+
+- **A merged dtk `.bss` label costs `.text` too, not just `.bss`.** objdiff infers a
+  relocation for every pooled `off(rN)` access and compares the symbol it lands in. With
+  `lbl_1_bss_2FDF` covering 9 bytes, byte-identical functions scored 97-99%. Splitting
+  symbols.txt at the real variables took both units to 100% in every section. Bytes no code
+  references need no entry.
+- **A small loop repeated in several callers, differing only in its register, is a missed
+  call to an existing helper.** Calling `fn_1_A718()` (which MWCC inlines) fixed the loop
+  counter in `sndTestSeScreen` and `fn_1_A95C`. Likewise, moving an inline
+  `do { a[k + i] = 0; } while (--i);` into a `static inline` helper swapped the
+  counter/pointer registers onto the target's r4/r5 (`rep_0250` `fn_1_9AB0`).
+- **`switch (item->state)` and `switch (currentDrawingItem->state)` both load once, but
+  colour `item` differently** (r28 vs r29). When a cached pointer local is one register off,
+  try the global expression.
+- **A `clrlwi r3,rX,16` the target keeps on a value it loaded with `lhz`/`lhzx` points to an
+  `s16` parameter** on the callee, not `s32`/`u16` (`fn_1_BF34` in `rep_02A8`).
+- **`lbz rX; extsb rX,rX` (same register) means the variable itself is `s8`.**
+  `lbz r0; extsb rY,r0` is a `u8` read through an `(s8)` cast.
+- **Coordinating several agents in one tree:** a symbols.txt/splits.txt/configure.py edit
+  while other agents run `ninja` makes every ninja re-run the dtk split at once. They
+  corrupt `.ninja_deps`, and ninja then re-splits forever: each manifest restart prints
+  `premature end of file; recovering` and truncates away the split's fresh deps record. Fix:
+  stop all ninja/dtk processes, run `ninja -t recompact`, then build once. Avoid it by
+  applying shared-config changes only when no agent is building.

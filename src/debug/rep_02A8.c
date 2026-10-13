@@ -15,7 +15,6 @@ extern void fn_80021518(s32 id, void *block);
 extern s32 fn_80062890(s32 arg0);
 extern void fn_1_9F04(void);
 extern void fn_1_A250(void);
-extern void fn_1_C2A4(void);
 
 unsigned long sndRemoveListener(SND_LISTENER *li);
 unsigned long sndUpdateListener(SND_LISTENER *li, SND_FVECTOR *pos, SND_FVECTOR *dir, SND_FVECTOR *heading,
@@ -315,7 +314,7 @@ static const char *lbl_1_data_1950[7] = {
     "POS_X", "POS_Y", "POS_Z", "DIR_X", "DIR_Y", "DIR_Z", "VOL",
 };
 
-static u32 lbl_1_data_196C[0xC8] = {
+u32 lbl_1_data_196C[0xC8] = {
     0x00000000, 0x0002B060, 0x07742000, 0x0002B060,
     0x00000000, 0x00415EA0, 0x0776D800, 0x00415EA0,
     0x00000000, 0x00103340, 0x07B83800, 0x00103340,
@@ -385,8 +384,8 @@ static u8 gUnused3040[4];
 static f32 gListenerValues[13];
 static f32 gEmitterValues[7];
 static u8 gTrainingState;
-static u8 gEmitterItem;
-static u8 gListenerItem;
+static s8 gEmitterItem;
+static s8 gListenerItem;
 static s16 gListenerSel;
 static u8 gSurroundState;
 static s16 gSeIdxC;
@@ -402,6 +401,12 @@ static u8 gAudioFileIndex;
 static u8 gTopState;
 static u8 gVoiceGroup;
 static u8 gUnused2FD8;
+
+// .text:0x0000C2A4 size:0x38
+void fn_1_C2A4(void) {
+    currentDrawingItem->currentDrawingItem->state = 1;
+    removeCurrentDrawingItem();
+}
 
 // .text:0x0000C188 size:0x11C
 void fn_1_C188(void) {
@@ -450,13 +455,7 @@ void sndTestVoiceScreen(void) {
 
         fn_1_BF34(id);
     } else if (pressed & (INPUT_BUTTON_B | INPUT_BUTTON_START)) {
-        s8 i;
-
-        for (i = (s8)audioFileDescriptors.pushedGroupCount - 1; i > 0; i--) {
-            if (fn_800214D0() == 0) {
-                break;
-            }
-        }
+        fn_1_A718();
         currentDrawingItem->func = sndTestTopScreen;
     } else if (repeat & INPUT_BUTTON_LEFT) {
         if (repeat & INPUT_BUTTON_Y) {
@@ -481,7 +480,7 @@ void sndTestVoiceScreen(void) {
 }
 
 // .text:0x0000BF34 size:0x7C
-s32 fn_1_BF34(s32 fxid) {
+s32 fn_1_BF34(s16 fxid) {
     SND_VOICEID voice = sndFXStartEx(fxid, 0x7F, 0x3F, 0);
 
     OSReport("sndFXReverb was %s.\n", sndFXCtrl(voice, 0x5B, fn_800211F0()) ? "succeed" : "failed");
@@ -541,13 +540,7 @@ void sndTestVoice2Screen(void) {
 
         fn_1_BF34(id);
     } else if (pressed & (INPUT_BUTTON_B | INPUT_BUTTON_START)) {
-        s8 i;
-
-        for (i = (s8)audioFileDescriptors.pushedGroupCount - 1; i > 0; i--) {
-            if (fn_800214D0() == 0) {
-                break;
-            }
-        }
+        fn_1_A718();
         currentDrawingItem->func = sndTestTopScreen;
     } else if (repeat & INPUT_BUTTON_LEFT) {
         if (repeat & INPUT_BUTTON_Y) {
@@ -649,12 +642,12 @@ void sndTestSeScreen(void) {
                 fn_1_BEF4(gSeVoice3);
                 gSeVoice3 = fn_1_BF34(lbl_1_data_1CA2);
             } else if (gSeColumn == 1) {
-                u32 id = lbl_1_data_188C[gSeIdxA];
+                u16 id = lbl_1_data_188C[gSeIdxA];
 
                 fn_1_BEF4(gSeVoice2);
                 gSeVoice2 = fn_1_BF34(id);
             } else if (gSeColumn == 2) {
-                u32 id = lbl_1_data_18EC[gSeIdxB];
+                u16 id = lbl_1_data_18EC[gSeIdxB];
 
                 fn_1_BEF4(gSeVoice1);
                 gSeVoice1 = fn_1_BF34(id);
@@ -662,13 +655,7 @@ void sndTestSeScreen(void) {
                 gSeVoice0 = fn_80062890(gSeIdxC);
             }
         } else if (pressed & (INPUT_BUTTON_B | INPUT_BUTTON_START)) {
-            s8 i;
-
-            for (i = (s8)audioFileDescriptors.pushedGroupCount - 1; i > 0; i--) {
-                if (fn_800214D0() == 0) {
-                    break;
-                }
-            }
+            fn_1_A718();
             fn_800ACFB0(audioFileDescriptors.files[0xA8 / 4]);
             fn_800ACFB0(audioFileDescriptors.files[0x8 / 4]);
             currentDrawingItem->func = sndTestTopScreen;
@@ -685,12 +672,12 @@ void sndTestSeScreen(void) {
             } else if (gSeColumn == 1) {
                 gSeIdxA--;
                 if (gSeIdxA < 0) {
-                    gSeIdxA = 0x2F;
+                    gSeIdxA = (s32)ARRAY_COUNT(lbl_1_data_188C) - 1;
                 }
             } else if (gSeColumn == 2) {
                 gSeIdxB--;
                 if (gSeIdxB < 0) {
-                    gSeIdxB = 0x17;
+                    gSeIdxB = (s32)ARRAY_COUNT(lbl_1_data_18EC) - 1;
                 }
             } else if (gSeColumn == 3) {
                 gSeIdxC--;
@@ -711,12 +698,12 @@ void sndTestSeScreen(void) {
                 }
             } else if (gSeColumn == 1) {
                 gSeIdxA++;
-                if (gSeIdxA > 0x2F) {
+                if (gSeIdxA > (s32)ARRAY_COUNT(lbl_1_data_188C) - 1) {
                     gSeIdxA = 0;
                 }
             } else if (gSeColumn == 2) {
                 gSeIdxB++;
-                if (gSeIdxB > 0x17) {
+                if (gSeIdxB > (s32)ARRAY_COUNT(lbl_1_data_18EC) - 1) {
                     gSeIdxB = 0;
                 }
             } else if (gSeColumn == 3) {
@@ -774,8 +761,6 @@ void fn_1_A95C(void) {
     E(u16, INPUT_BUTTON) pressed = BUTTON_PRESSED_ADDR;
     E(u16, INPUT_BUTTON) held = BUTTON_HELD_ADDR;
     E(u16, INPUT_BUTTON) repeat = BUTTON_REPEAT_ADDR;
-    s32 listenerItem;
-    s32 emitterItem;
     s32 i;
 
     if (pressed & INPUT_BUTTON_A) {
@@ -808,18 +793,12 @@ void fn_1_A95C(void) {
                        lbl_1_common_bss_49970.soundSpeed, SND_LISTENER_DEFAULT, 0x7F, NULL);
         lbl_1_common_bss_49994.active = 1;
     } else if (pressed & (INPUT_BUTTON_B | INPUT_BUTTON_START)) {
-        s8 j;
-
         lbl_1_common_bss_49994.active = 0;
-        for (j = (s8)audioFileDescriptors.pushedGroupCount - 1; j > 0; j--) {
-            if (fn_800214D0() == 0) {
-                break;
-            }
-        }
+        fn_1_A718();
         currentDrawingItem->func = sndTestTopScreen;
     } else if (held & INPUT_BUTTON_Y) {
         if (repeat & INPUT_BUTTON_LEFT) {
-            switch ((s8)gListenerItem) {
+            switch (gListenerItem) {
             case 0: lbl_1_common_bss_49994.pos.x -= 0.1; break;
             case 1: lbl_1_common_bss_49994.pos.y -= 0.1; break;
             case 2: lbl_1_common_bss_49994.pos.z -= 0.1; break;
@@ -835,7 +814,7 @@ void fn_1_A95C(void) {
             case 12: lbl_1_common_bss_49994.volume -= 10.0; break;
             }
         } else if (repeat & INPUT_BUTTON_RIGHT) {
-            switch ((s8)gListenerItem) {
+            switch (gListenerItem) {
             case 0: lbl_1_common_bss_49994.pos.x += 0.1; break;
             case 1: lbl_1_common_bss_49994.pos.y += 0.1; break;
             case 2: lbl_1_common_bss_49994.pos.z += 0.1; break;
@@ -852,18 +831,18 @@ void fn_1_A95C(void) {
             }
         } else if (repeat & INPUT_BUTTON_UP) {
             gListenerItem--;
-            if ((s8)gListenerItem < 0) {
-                gListenerItem = 12;
+            if (gListenerItem < 0) {
+                gListenerItem = (s32)ARRAY_COUNT(gListenerValues) - 1;
             }
         } else if (repeat & INPUT_BUTTON_DOWN) {
             gListenerItem++;
-            if ((s8)gListenerItem == 13) {
+            if (gListenerItem == (s32)ARRAY_COUNT(gListenerValues)) {
                 gListenerItem = 0;
             }
         }
     } else if (held & INPUT_BUTTON_X) {
         if (repeat & INPUT_BUTTON_LEFT) {
-            switch ((s8)gEmitterItem) {
+            switch (gEmitterItem) {
             case 0: lbl_1_common_bss_49994.emitPos.x -= 0.1; break;
             case 1: lbl_1_common_bss_49994.emitPos.y -= 0.1; break;
             case 2: lbl_1_common_bss_49994.emitPos.z -= 0.1; break;
@@ -873,7 +852,7 @@ void fn_1_A95C(void) {
             case 6: lbl_1_common_bss_49994.emitVolume -= 10.0; break;
             }
         } else if (repeat & INPUT_BUTTON_RIGHT) {
-            switch ((s8)gEmitterItem) {
+            switch (gEmitterItem) {
             case 0: lbl_1_common_bss_49994.emitPos.x += 0.1; break;
             case 1: lbl_1_common_bss_49994.emitPos.y += 0.1; break;
             case 2: lbl_1_common_bss_49994.emitPos.z += 0.1; break;
@@ -884,12 +863,12 @@ void fn_1_A95C(void) {
             }
         } else if (repeat & INPUT_BUTTON_UP) {
             gEmitterItem--;
-            if ((s8)gEmitterItem < 0) {
-                gEmitterItem = 6;
+            if (gEmitterItem < 0) {
+                gEmitterItem = (s32)ARRAY_COUNT(gEmitterValues) - 1;
             }
         } else if (repeat & INPUT_BUTTON_DOWN) {
             gEmitterItem++;
-            if ((s8)gEmitterItem == 7) {
+            if (gEmitterItem == (s32)ARRAY_COUNT(gEmitterValues)) {
                 gEmitterItem = 0;
             }
         }
@@ -911,9 +890,8 @@ void fn_1_A95C(void) {
         sndUpdateEmitter((SND_EMITTER *)lbl_1_common_bss_49994.emitter, &lbl_1_common_bss_49994.emitPos, &lbl_1_common_bss_49994.emitDir, 0x80, NULL);
     }
 
-    listenerItem = (s8)gListenerItem;
-    for (i = 0; i < 13; i++) {
-        switch (listenerItem) {
+    for (i = 0; i < (s32)ARRAY_COUNT(gListenerValues); i++) {
+        switch (gListenerItem) {
         case 0: gListenerValues[0] = lbl_1_common_bss_49994.pos.x; break;
         case 1: gListenerValues[1] = lbl_1_common_bss_49994.pos.y; break;
         case 2: gListenerValues[2] = lbl_1_common_bss_49994.pos.z; break;
@@ -930,9 +908,8 @@ void fn_1_A95C(void) {
         }
     }
 
-    emitterItem = (s8)gEmitterItem;
-    for (i = 0; i < 7; i++) {
-        switch (emitterItem) {
+    for (i = 0; i < (s32)ARRAY_COUNT(gEmitterValues); i++) {
+        switch (gEmitterItem) {
         case 0: gEmitterValues[0] = lbl_1_common_bss_49994.emitPos.x; break;
         case 1: gEmitterValues[1] = lbl_1_common_bss_49994.emitPos.y; break;
         case 2: gEmitterValues[2] = lbl_1_common_bss_49994.emitPos.z; break;
@@ -1048,13 +1025,7 @@ void sndTestTrainingSeScreen(void) {
         fn_1_BEF4(lbl_1_data_1CA8);
         lbl_1_data_1CA8 = fn_1_BF34(lbl_1_data_1CA4);
     } else if (pressed & (INPUT_BUTTON_B | INPUT_BUTTON_START)) {
-        s8 i;
-
-        for (i = (s8)audioFileDescriptors.pushedGroupCount - 1; i > 0; i--) {
-            if (fn_800214D0() == 0) {
-                break;
-            }
-        }
+        fn_1_A718();
         fn_800ACFB0(audioFileDescriptors.files[0x10 / 4]);
         currentDrawingItem->func = sndTestTopScreen;
     } else if (repeat & INPUT_BUTTON_LEFT) {

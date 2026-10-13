@@ -116,32 +116,32 @@ u32 DebugTexFiles[44] = {
 E(u8, BOOL) lbl_1_data_FBC = TRUE;
 u16 lbl_1_data_FBE = 3;
 
-static u16 gPadEnd2E;
-static u16 gPadEnd2C;
-static u16 gPadEnd2A;
-static u8 gPadEnd29;
+static u16 lbl_1_bss_2FD6;
+static u16 lbl_1_bss_2FD4;
+static u16 lbl_1_bss_2FD2;
+static u8 lbl_1_bss_2FD1;
 static u8 gPhase;
 DrawingSceneStruct *lbl_1_bss_2FCC;
 static void *gTextBank;
 static s32 gLoadIndex;
-static u16 gPad1A;
+static u16 lbl_1_bss_2FC2;
 static u16 gLoadFrame;
-static u16 gPad16;
-static u16 gPad14;
-static u16 gPad12;
+static u16 lbl_1_bss_2FBE;
+static u16 lbl_1_bss_2FBC;
+static u16 lbl_1_bss_2FBA;
 u8 lbl_1_bss_2FB9;
-static u8 gByte10;
-static u16 gPadE;
-static u16 gPadC;
-static u16 gPadA;
-static u8 gByte9;
-static u8 gByte8;
+static u8 lbl_1_bss_2FB8;
+static u16 lbl_1_bss_2FB6;
+static u16 lbl_1_bss_2FB4;
+static u16 lbl_1_bss_2FB2;
+static u8 lbl_1_bss_2FB1;
+static u8 lbl_1_bss_2FB0;
 static u8 gMode;
-static E(u8, BOOL) gFlag6;
+static E(u8, BOOL) lbl_1_bss_2FAE;
 u16 lbl_1_bss_2FAC;
-static u8 gPad3;
+static u8 lbl_1_bss_2FAB;
 s8 lbl_1_bss_2FAA;
-static u8 gPad1;
+static u8 lbl_1_bss_2FA9;
 u8 lbl_1_bss_2FA8;
 
 static inline void drawThreeDigits(s32 value) {
@@ -155,27 +155,30 @@ static inline void drawThreeDigits(s32 value) {
     fn_8003664C(lbl_1_data_BC8[0].tag, 2, value / 10 + 10, 6);
 }
 
+/* Clears buf[n] down to buf[1]; buf[0] is left untouched. */
+static inline void clearBytes(u8 *buf, s32 n) {
+    do {
+        buf[n] = 0;
+    } while (--n);
+}
+
 // .text:0x00009AB0 size:0x3F0
 void fn_1_9AB0(void) {
     s32 value;
-    s32 i;
     DebugMenuScene *item = (DebugMenuScene *)currentDrawingItem;
 
-    switch (item->state) {
+    switch (currentDrawingItem->state) {
     case 0:
         fn_800111B4(lbl_1_data_EA8);
         gTextBank = lbl_1_data_EA8 + 4;
         *(u16 *)lbl_1_common_bss_47698 = 0;
-        i = 10;
-        do {
-            lbl_1_common_bss_47698[2 + i] = 0;
-        } while (--i);
+        clearBytes(lbl_1_common_bss_47698 + 2, 10);
         lbl_1_common_bss_47698[0xC] = 0;
         item->cursor = 0;
         gLoadIndex = 0;
         lbl_1_bss_2FAA = 0;
         gMode = 0;
-        gByte9 = 1;
+        lbl_1_bss_2FB1 = 1;
         gPhase = 0;
         currentDrawingItem->state = 1;
         break;
@@ -202,9 +205,7 @@ void fn_1_9AB0(void) {
                     }
                     value = lbl_1_data_B84;
                     if (value % 10 == 0) {
-                        removeGraphicsElementFromScene(lbl_1_bss_2FCC);
-                        addGraphicsElementToScene(lbl_1_bss_2FCC, lbl_1_data_BC8);
-                        drawThreeDigits(value);
+                        fn_1_90E4(value);
                     }
                 }
                 gPhase = 2;
@@ -260,8 +261,8 @@ void fn_1_97E4(void) {
 
     switch (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4)) {
     case INPUT_BUTTON_A:
-        gByte8 = 0;
-        gByte9 = 0;
+        lbl_1_bss_2FB0 = 0;
+        lbl_1_bss_2FB1 = 0;
         gPhase = 0;
         gMode++;
         if (gMode == 3) {
@@ -270,7 +271,7 @@ void fn_1_97E4(void) {
         if (lbl_1_bss_2FAA != 11) {
             removeGraphicsElementFromScene(lbl_1_bss_2FCC);
         }
-        gFlag6 = FALSE;
+        lbl_1_bss_2FAE = FALSE;
         break;
     case INPUT_BUTTON_B:
         removeGraphicsElementFromScene(lbl_1_bss_2FCC);
@@ -310,7 +311,7 @@ void fn_1_97E4(void) {
     case INPUT_BUTTON_LEFT:
         switch (item->cursor) {
         case 0:
-            gByte10 = 0;
+            lbl_1_bss_2FB8 = 0;
             lbl_1_bss_2FAA++;
             if (lbl_1_bss_2FAA >= 12) {
                 lbl_1_bss_2FAA = 0;
@@ -328,7 +329,7 @@ void fn_1_97E4(void) {
     case INPUT_BUTTON_RIGHT:
         switch (item->cursor) {
         case 0:
-            gByte10 = 0;
+            lbl_1_bss_2FB8 = 0;
             lbl_1_bss_2FAA--;
             if (lbl_1_bss_2FAA < 0) {
                 lbl_1_bss_2FAA = 11;
@@ -506,9 +507,9 @@ void fn_1_8DBC(void) {
     item->timer++;
     if (gMode == 1 || gMode == 3) {
         if (menuGraphicsStructures[0].unk69[0] == 1) {
-            if (gFlag6 == FALSE) {
+            if (lbl_1_bss_2FAE == FALSE) {
                 removeCurrentDrawingItem();
-                gFlag6 = TRUE;
+                lbl_1_bss_2FAE = TRUE;
                 return;
             }
             fn_1_8CD4();
