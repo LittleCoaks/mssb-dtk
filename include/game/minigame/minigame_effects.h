@@ -326,7 +326,7 @@ void starDash_stopDust(void);
 void barrelBatter_spawnBarrelExplosion(s8 index);
 void barrelBatter_spawnBarrelExplosionEffect(u8 index);
 void barrelBatter_initBarrelExplosion(MGEffect* effect);
-void barrelBatter_setupBarrelExplosion(MGEffect* effect, int barrelIndex);
+void barrelBatter_setupBarrelExplosion(MGEffect* effect, u8 barrelIndex);
 void barrelBatter_placeExplosionFlash(MGParticle* p);
 void barrelBatter_attachExplosionToBone(MGParticle* p);
 int barrelBatter_updateBarrelExplosion(MGEffect* effect);

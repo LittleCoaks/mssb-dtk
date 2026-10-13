@@ -179,132 +179,6 @@ extern void fn_80033B58(void* tex, int sub, int a, int b);
 
 
 
-static inline void mgStarSparkOffset(MGParticle* p) {
-    Vec offset;
-    u32 node;
-
-    if (p->kind < 5) {
-        node = (u32)rand() % 23;
-        offset.z = 0.0f;
-        offset.y = 0.0f;
-        offset.x = 0.0f;
-        if (!getAnimationCollisionOffset(p->kind - 1, starDash_sparkBoneNodes[node], &offset)) {
-            memset(&offset, 0, sizeof(Vec));
-            getAnimationCollisionOffset(p->kind - 1, 4, &offset);
-        }
-    } else {
-        offset.x = g_Minigame.sd.starPos.x;
-        offset.y = -g_Minigame.sd.starPos.y;
-        offset.z = g_Minigame.sd.starPos.z;
-    }
-    p->origin.x += offset.x;
-    p->origin.y += offset.y;
-    p->origin.z += offset.z;
-}
-
-static inline void mgStarSparkPlace(MGParticle* p) {
-    Vec v = { 0.0f, 0.0f, 0.0f };
-
-    if (p->kind == 5) {
-        v.x = v.x + (f32)(rand() % 10000 - 5000) / 10000.0f;
-        v.y = v.y + (f32)(rand() % 10000 - 5000) / 10000.0f;
-        p->origin.x = v.x;
-        p->origin.y = v.y - 0.5f;
-        p->origin.z = v.z;
-    } else {
-        p->origin.z = 0.0f;
-        p->origin.y = 0.0f;
-        p->origin.x = 0.0f;
-    }
-    mgStarSparkOffset(p);
-}
-
-static inline void mgStarSparksSetup(MGEffect* effect, s8 index) {
-    MGParticle* p = effect->particles;
-    u32 i = 0;
-
-    do {
-        if (p->kind == index + 1) {
-            p->life = starDash_sparkParams[7];
-            p->alphaByte = starDash_sparkParams[5];
-            p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
-            p->delay = (s16)((f32)p->life / 18.0f * (f32)i);
-            if (p->delay == 0) {
-                mgStarSparkPlace(p);
-            }
-            p->colorR = p->colorG = p->colorB = 0xFF;
-            i++;
-            p->_34 = 0.0f;
-        }
-        p = p->next;
-    } while (p != NULL);
-}
-
-static inline void mgBarrelSparksSetup(MGEffect* effect, int barrelIndex) {
-    MGParticle* p = effect->particles;
-    s32 i = 0;
-
-    do {
-        if (p->_44 == 0 && p->life == 0) {
-            if (i < 3) {
-                p->_44 = 1;
-                p->_45 = (u8)barrelIndex;
-                p->_46 = 0xFF;
-                p->texIndex = barrelBatter_explosionParams[0];
-                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[4];
-                p->alphaByte = barrelBatter_explosionParams[7];
-                barrelBatter_placeExplosionFlash(p);
-                p->life = barrelBatter_explosionParams[17];
-                p->delay = 0;
-            } else {
-                p->_44 = 2;
-                p->_45 = (u8)barrelIndex;
-                p->_46 = (i - 3) / 5;
-                p->texIndex = barrelBatter_explosionParams[1];
-                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[11];
-                p->alphaByte = barrelBatter_explosionParams[14];
-                p->delay = (i - 3) % 5 * 4 + 1;
-                p->life = barrelBatter_explosionParams[18];
-            }
-            p->colorR = p->colorG = p->colorB = 0xFF;
-            i++;
-        }
-        p = p->next;
-    } while (p != NULL && i < 43);
-}
-
-static inline void mgBarrelRingInit(MGEffect* effect, Vec* pos) {
-    MGParticle* p;
-    u32 i = 0;
-    f32 angle;
-
-    effect->texture = *(u32*)&animRelated[0x6C];
-    p = effect->particles;
-    do {
-        p->texIndex = barrelBatter_releaseRingParams[0];
-        p->_4E = 0;
-        p->life = barrelBatter_releaseRingParams[2];
-        p->delay = 0;
-        p->origin.x = pos->x;
-        p->origin.y = -pos->y;
-        p->origin.z = pos->z;
-        angle = 0.017453292f * (f32)(u32)(360 / barrelBatter_releaseRingParams[1] * i);
-        p->origin.x = p->origin.x + (f32)barrelBatter_releaseRingParams[3] * (f32)cos(angle) / 100000.0f;
-        p->origin.y = p->origin.y + (f32)barrelBatter_releaseRingParams[3] * (f32)sin(angle) / 100000.0f;
-        p->sizeY = p->sizeX = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
-        p->colorR = p->colorG = p->colorB = 0xFF;
-        p->alphaByte = barrelBatter_releaseRingParams[9];
-        p->velX = 0.0f;
-        p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
-        p->velY = p->velY / 100000.0f;
-        p->velY = p->velY * (f32)(1 - rand() % 2 * 2);
-        i++;
-        p->velZ = (f32)(barrelBatter_releaseRingParams[6] - rand() % barrelBatter_releaseRingParams[7]);
-        p->velZ = p->velZ / 100000.0f;
-        p = p->next;
-    } while (p != NULL);
-}
-
 static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
     MGParticle* p = effect->particles;
     f32 speed;
@@ -1859,12 +1733,12 @@ void starDash_startSparks(s8 index) {
 void starDash_spawnSparksEffect(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x1E);
     if (effect != NULL) {
-        mgStarSparksSetup(effect, index);
+        starDash_setupSparks(effect, index);
     } else {
         effect = allocParticleEffect(starDash_updateSparks, 0x80, 0, starDash_sparkParams[1], TRUE, 0x1E);
         if (effect != NULL) {
             starDash_initSparksEffect(effect);
-            mgStarSparksSetup(effect, index);
+            starDash_setupSparks(effect, index);
         }
     }
 }
@@ -1888,7 +1762,24 @@ void starDash_initSparksEffect(MGEffect* effect) {
 
 // .text:0x14F5A4 size:0x32C
 void starDash_setupSparks(MGEffect* effect, s8 index) {
-    mgStarSparksSetup(effect, index);
+    MGParticle* p = effect->particles;
+    u32 i = 0;
+
+    do {
+        if (p->kind == index + 1) {
+            p->life = starDash_sparkParams[7];
+            p->alphaByte = starDash_sparkParams[5];
+            p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
+            p->delay = (s16)((f32)p->life / 18.0f * (f32)i);
+            if (p->delay == 0) {
+                starDash_placeSparkParticle(p);
+            }
+            p->colorR = p->colorG = p->colorB = 0xFF;
+            i++;
+            p->_34 = 0.0f;
+        }
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14F544 size:0x60
@@ -1960,12 +1851,12 @@ int starDash_updateSparks(MGEffect* effect) {
                     p->life = starDash_sparkParams[7];
                     p->alphaByte = starDash_sparkParams[5];
                     p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
-                    mgStarSparkPlace(p);
+                    starDash_placeSparkParticle(p);
                 }
             } else {
                 p->delay--;
                 if (p->delay == 0) {
-                    mgStarSparkPlace(p);
+                    starDash_placeSparkParticle(p);
                 }
             }
         }
@@ -1976,12 +1867,44 @@ int starDash_updateSparks(MGEffect* effect) {
 
 // .text:0x14EAF4 size:0x230
 void starDash_placeSparkParticle(MGParticle* p) {
-    mgStarSparkPlace(p);
+    Vec v = { 0.0f, 0.0f, 0.0f };
+
+    if (p->kind == 5) {
+        v.x = v.x + (f32)(rand() % 10000 - 5000) / 10000.0f;
+        v.y = v.y + (f32)(rand() % 10000 - 5000) / 10000.0f;
+        p->origin.x = v.x;
+        p->origin.y = v.y - 0.5f;
+        p->origin.z = v.z;
+    } else {
+        p->origin.z = 0.0f;
+        p->origin.y = 0.0f;
+        p->origin.x = 0.0f;
+    }
+    starDash_offsetSparkToBone(p);
 }
 
 // .text:0x14E9F0 size:0x104
 void starDash_offsetSparkToBone(MGParticle* p) {
-    mgStarSparkOffset(p);
+    Vec offset;
+    u32 node;
+
+    if (p->kind < 5) {
+        node = (u32)rand() % 23;
+        offset.z = 0.0f;
+        offset.y = 0.0f;
+        offset.x = 0.0f;
+        if (!getAnimationCollisionOffset(p->kind - 1, starDash_sparkBoneNodes[node], &offset)) {
+            memset(&offset, 0, sizeof(Vec));
+            getAnimationCollisionOffset(p->kind - 1, 4, &offset);
+        }
+    } else {
+        offset.x = g_Minigame.sd.starPos.x;
+        offset.y = -g_Minigame.sd.starPos.y;
+        offset.z = g_Minigame.sd.starPos.z;
+    }
+    p->origin.x += offset.x;
+    p->origin.y += offset.y;
+    p->origin.z += offset.z;
 }
 
 // .text:0x14E988 size:0x68
@@ -2188,12 +2111,12 @@ void barrelBatter_spawnBarrelExplosionEffect(u8 index) {
     MGEffect* effect = fn_800339F0(0, 0x20);
 
     if (effect != NULL) {
-        mgBarrelSparksSetup(effect, index);
+        barrelBatter_setupBarrelExplosion(effect, index);
     } else {
         effect = allocParticleEffect(barrelBatter_updateBarrelExplosion, 0xF0, 0, barrelBatter_explosionParams[2], TRUE, 0x20);
         if (effect != NULL) {
             barrelBatter_initBarrelExplosion(effect);
-            mgBarrelSparksSetup(effect, index);
+            barrelBatter_setupBarrelExplosion(effect, index);
         }
     }
 }
@@ -2215,8 +2138,37 @@ void barrelBatter_initBarrelExplosion(MGEffect* effect) {
 }
 
 // .text:0x14D44C size:0x288
-void barrelBatter_setupBarrelExplosion(MGEffect* effect, int barrelIndex) {
-    mgBarrelSparksSetup(effect, barrelIndex);
+void barrelBatter_setupBarrelExplosion(MGEffect* effect, u8 barrelIndex) {
+    MGParticle* p = effect->particles;
+    s32 i = 0;
+
+    do {
+        if (p->_44 == 0 && p->life == 0) {
+            if (i < 3) {
+                p->_44 = 1;
+                p->_45 = (u8)barrelIndex;
+                p->_46 = 0xFF;
+                p->texIndex = barrelBatter_explosionParams[0];
+                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[4];
+                p->alphaByte = barrelBatter_explosionParams[7];
+                barrelBatter_placeExplosionFlash(p);
+                p->life = barrelBatter_explosionParams[17];
+                p->delay = 0;
+            } else {
+                p->_44 = 2;
+                p->_45 = (u8)barrelIndex;
+                p->_46 = (i - 3) / 5;
+                p->texIndex = barrelBatter_explosionParams[1];
+                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[11];
+                p->alphaByte = barrelBatter_explosionParams[14];
+                p->delay = (i - 3) % 5 * 4 + 1;
+                p->life = barrelBatter_explosionParams[18];
+            }
+            p->colorR = p->colorG = p->colorB = 0xFF;
+            i++;
+        }
+        p = p->next;
+    } while (p != NULL && i < 43);
 }
 
 // .text:0x14D318 size:0x134
@@ -2224,7 +2176,7 @@ void barrelBatter_placeExplosionFlash(MGParticle* p) {
     Vec* barrel = (Vec*)&g_Minigame.barrels[p->_45];
 
     p->origin.x = barrel->x;
-    p->origin.y = barrel->y - bB_barrelConsts[3] * 0.5f;
+    p->origin.y = -(barrel->y + bB_barrelConsts[3] / 2.0f);
     p->origin.z = barrel->z;
     p->origin.x = p->origin.x + (rand() % 100 - 50) / 100.0;
     p->origin.y = p->origin.y + (rand() % 100 - 50) / 100.0;
@@ -2816,7 +2768,7 @@ void barrelBatterRel(Vec* pos) {
         pos != NULL) {
         effect = allocParticleEffect(barrelBatter_updateReleaseRing, 0x80, 0, barrelBatter_releaseRingParams[1], TRUE, 0x24);
         if (effect != NULL) {
-            mgBarrelRingInit(effect, pos);
+            barrelBatter_initReleaseRing(effect, pos);
         }
     }
 }
@@ -2826,13 +2778,41 @@ void barrelBatterRel2(Vec* pos) {
     MGEffect* effect = allocParticleEffect(barrelBatter_updateReleaseRing, 0x80, 0, barrelBatter_releaseRingParams[1], TRUE, 0x24);
 
     if (effect != NULL) {
-        mgBarrelRingInit(effect, pos);
+        barrelBatter_initReleaseRing(effect, pos);
     }
 }
 
 // .text:0x14A37C size:0x2B0
 void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos) {
-    mgBarrelRingInit(effect, pos);
+    MGParticle* p;
+    u32 i = 0;
+    f32 angle;
+
+    effect->texture = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    do {
+        p->texIndex = barrelBatter_releaseRingParams[0];
+        p->_4E = 0;
+        p->life = barrelBatter_releaseRingParams[2];
+        p->delay = 0;
+        p->origin.x = pos->x;
+        p->origin.y = -pos->y;
+        p->origin.z = pos->z;
+        angle = 0.017453292f * (f32)(u32)(360 / barrelBatter_releaseRingParams[1] * i);
+        p->origin.x = p->origin.x + (f32)barrelBatter_releaseRingParams[3] * (f32)cos(angle) / 100000.0f;
+        p->origin.y = p->origin.y + (f32)barrelBatter_releaseRingParams[3] * (f32)sin(angle) / 100000.0f;
+        p->sizeY = p->sizeX = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
+        p->colorR = p->colorG = p->colorB = 0xFF;
+        p->alphaByte = barrelBatter_releaseRingParams[9];
+        p->velX = 0.0f;
+        p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
+        p->velY = p->velY / 100000.0f;
+        p->velY = p->velY * (f32)(1 - rand() % 2 * 2);
+        i++;
+        p->velZ = (f32)(barrelBatter_releaseRingParams[6] - rand() % barrelBatter_releaseRingParams[7]);
+        p->velZ = p->velZ / 100000.0f;
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14A188 size:0x1F4
@@ -3223,7 +3203,7 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             p->alphaByte = piranhaPanic_bombExplosionParams[7];
             memcpy(&p->origin, pos, sizeof(Vec));
             if (i != 0) {
-                angle = 0.017453292519943295 * (360.0 / (f64)burstCount) * (f64)(i - 1);
+                angle = 0.017453292f * (360.0 / (f64)burstCount) * (f64)(i - 1);
                 p->origin.x += 1.5f * (f32)cos(angle);
                 p->origin.y += 1.5f * (f32)sin(angle);
                 p->origin.x = p->origin.x + 0.5 * ((f32)rand() / 32767.0f - 1.0);
@@ -3237,10 +3217,10 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             p->sizeX = p->sizeY = (f32)piranhaPanic_bombExplosionParams[14] / 100000.0f;
             p->alphaByte = piranhaPanic_bombExplosionParams[17];
             memcpy(&p->origin, pos, sizeof(Vec));
-            angle = 0.017453292519943295 * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
+            angle = 0.017453292f * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
             p->origin.x += 2.5f * (f32)cos(angle);
             p->origin.y += 2.5f * (f32)sin(angle);
-            p->origin.x = p->origin.x + 0.2 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
+            p->origin.x = p->origin.x + 0.2f * (2.0 * ((f32)rand() / 32767.0f - 0.5));
             p->origin.y = p->origin.y + 0.2f * (-1.0f * ((f32)rand() / 32767.0f));
             p->texIndex = piranhaPanic_bombExplosionParams[10];
             p->delay = 5;
