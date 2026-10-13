@@ -1432,10 +1432,10 @@ static inline void camSetView(void) {
 
 #define CAM_SCRIPT_START() \
     do { \
-        CTX->_0120 = fn_3_10698C(CAMF(u32*, 0x1B4)); \
+        CTX->_0120 = camCountTableEntries(CAMF(u32*, 0x1B4)); \
         memcpy(CTX->_0990, fn_3_1069B0(CAMF(u32*, 0x1B4), CTX->_0940), 0x8000); \
-        fn_3_1069C0(); \
-        fn_3_105C84(CTX->_0990); \
+        camScriptResetState(); \
+        camScriptRelocate(CTX->_0990); \
         camSetView(); \
     } while (0)
 
@@ -1498,7 +1498,7 @@ void fn_3_106BA0(void) {
 }
 
 // .text:0x001069C0 size:0x1E0 mapped:0x80745A54
-void fn_3_1069C0(void) {
+void camScriptResetState(void) {
     s32 i;
     CTX->_0124 = 1;
     CTX->_0118 = 0;
@@ -1516,7 +1516,7 @@ u8* fn_3_1069B0(u32* table, int idx) {
 }
 
 // .text:0x0010698C size:0x24 mapped:0x80745A20
-int fn_3_10698C(u32* table) {
+int camCountTableEntries(u32* table) {
     int n = 0;
     while (*table != 0) {
         table++;
@@ -1750,7 +1750,7 @@ void fn_3_105CDC(void) {
 }
 
 // .text:0x00105C84 size:0x58 mapped:0x80744D18
-void fn_3_105C84(u8* hdr) {
+void camScriptRelocate(u8* hdr) {
     u32* p = (u32*)(hdr + 8);
     u32* q = p;
     s16 k = 0;
@@ -1797,7 +1797,7 @@ void fn_3_105BD8(CamEval* e) {
 }
 
 // .text:0x00105ACC size:0x10C mapped:0x80744B60
-void fn_3_105ACC(f32* quat, Mtx out) {
+void camQuatToMtx(f32* quat, Mtx out) {
     Mtx44 m;
     f32 x = quat[0];
     f32 y = quat[1];
@@ -1835,7 +1835,7 @@ void fn_3_105ACC(f32* quat, Mtx out) {
 }
 
 // .text:0x00105A10 size:0xBC mapped:0x80744AA4
-void fn_3_105A10(Vec* out, Vec* a, Vec* b, f32 t) {
+void camVecLerp(Vec* out, Vec* a, Vec* b, f32 t) {
     Quaternion vc;
     Quaternion va;
     Quaternion vb;
@@ -1988,7 +1988,7 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
             f32* dst = &interp[0];
             i = 0;
             do {
-                fn_3_105A10((Vec*)(dst + 1), (Vec*)(nxt + 4), (Vec*)(cur + 4), alpha);
+                camVecLerp((Vec*)(dst + 1), (Vec*)(nxt + 4), (Vec*)(cur + 4), alpha);
                 i++;
                 nxt += 12;
                 cur += 12;
@@ -2213,7 +2213,7 @@ void fn_3_104A3C(Vec* out, Mtx44 m) {
 }
 
 // .text:0x001048E0 size:0x15C mapped:0x80743974
-void fn_3_1048E0(u8* script, u32 time, s16 a, u8 b, CamView* out) {
+void camEvalViewAtTime(u8* script, u32 time, s16 a, u8 b, CamView* out) {
     CamEval ev;
     VecXYZ basisY;
     VecXYZ basisZ;
@@ -2281,12 +2281,12 @@ void fn_3_104338(void) {
 }
 
 // .text:0x001040D8 size:0x260 mapped:0x8074316C
-void fn_3_1040D8(void) {
+void camFilterPosition(void) {
     CAM_FILTER_POS_BODY();
 }
 
 // .text:0x00103E7C size:0x25C mapped:0x80742F10
-void fn_3_103E7C(f32* angles) {
+void camFilterAngles(f32* angles) {
     if (CTX->_09B4 != 0) {
         VecXYZ out;
         VecXYZ po;
@@ -2316,7 +2316,7 @@ void fn_3_103E7C(f32* angles) {
 }
 
 // .text:0x00103C30 size:0x24C mapped:0x80742CC4
-void fn_3_103C30(VecXYZ* v) {
+void camFilterLookAt(VecXYZ* v) {
     CAM_FILTER_V_BODY(v);
 }
 
@@ -2348,7 +2348,7 @@ void fn_3_101CC4(void) {
             angles[0] = radianAngleReduction(g_pCamera->_2870);
             angles[1] = radianAngleReduction(g_pCamera->_2874);
             CAM_INIT_ANGLE_FILTER(angles[0], angles[1]);
-            fn_3_103E7C(angles);
+            camFilterAngles(angles);
             cp = COSF(angles[1]);
             cy = COSF(angles[0]);
             sp = SINF(angles[1]);
@@ -2360,7 +2360,7 @@ void fn_3_101CC4(void) {
             g_pCamera->_284C.x = g_pCamera->_2858.x + rx;
             g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
             g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
-            fn_3_1040D8();
+            camFilterPosition();
             CAM_CLAMP_LOOKAT_Y();
             break;
         }
@@ -2373,9 +2373,9 @@ void fn_3_101CC4(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
                 CAM_INIT_V_FILTER();
-                fn_3_103C30(&v);
+                camFilterLookAt(&v);
                 CAM_SET_VIEW_V();
-                fn_3_1040D8();
+                camFilterPosition();
                 CAM_CLAMP_LOOKAT_Y();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
@@ -2394,9 +2394,9 @@ void fn_3_101CC4(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
                 CAM_INIT_V_FILTER();
-                fn_3_103C30(&v);
+                camFilterLookAt(&v);
                 CAM_SET_VIEW_V();
-                fn_3_1040D8();
+                camFilterPosition();
                 CAM_CLAMP_LOOKAT_Y();
             }
             break;
@@ -2544,9 +2544,9 @@ void fn_3_101CC4(void) {
         }
         CAM_SET_VIEW_V();
         CAM_INIT_V_FILTER();
-        fn_3_103C30(&v);
+        camFilterLookAt(&v);
         CAM_SET_VIEW_V();
-        fn_3_1040D8();
+        camFilterPosition();
         CAM_CLAMP_LOOKAT_Y();
     }
 }
@@ -2579,7 +2579,7 @@ void fn_3_1000D8(void) {
             }
             angles[0] = radianAngleReduction(g_pCamera->_2870);
             angles[1] = radianAngleReduction(g_pCamera->_2874);
-            fn_3_103E7C(angles);
+            camFilterAngles(angles);
             cp = COSF(angles[1]);
             cy = COSF(angles[0]);
             sp = SINF(angles[1]);
@@ -2591,7 +2591,7 @@ void fn_3_1000D8(void) {
             g_pCamera->_284C.x = g_pCamera->_2858.x + rx;
             g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
             g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
-            fn_3_1040D8();
+            camFilterPosition();
             break;
         }
         case 2:
@@ -2605,9 +2605,9 @@ void fn_3_1000D8(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
 
-                fn_3_103C30(&v);
+                camFilterLookAt(&v);
                 CAM_SET_VIEW_V();
-                fn_3_1040D8();
+                camFilterPosition();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
 
@@ -2626,9 +2626,9 @@ void fn_3_1000D8(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
 
-                fn_3_103C30(&v);
+                camFilterLookAt(&v);
                 CAM_SET_VIEW_V();
-                fn_3_1040D8();
+                camFilterPosition();
             }
             CAM_CLAMP_LOOKAT_Y();
             break;
@@ -2774,9 +2774,9 @@ void fn_3_1000D8(void) {
             break;
         }
         CAM_SET_VIEW_V();
-        fn_3_103C30(&v);
+        camFilterLookAt(&v);
         CAM_SET_VIEW_V();
-        fn_3_1040D8();
+        camFilterPosition();
         CAM_CLAMP_LOOKAT_Y();
     }
 }
