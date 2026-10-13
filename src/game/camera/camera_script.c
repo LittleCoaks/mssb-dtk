@@ -51,6 +51,13 @@ typedef struct CamMarker {
     /* 0x2A */ u8 _2A[2];
 } CamMarker; // size 0x2C
 
+// Source record for an overlay camera marker (0x14 bytes).
+typedef struct CamMarkerSrc {
+    /* 0x00 */ VecXYZ pos;
+    /* 0x0C */ f32 _0C;
+    /* 0x10 */ u8 actorIdx;
+} CamMarkerSrc; // size 0x14
+
 typedef struct CamAux {
     /* 0x000 */ CamMarker markers[9];
     /* 0x18C */ u8 _18C[0x23C - 0x18C];
@@ -830,27 +837,39 @@ AnimSetupEntry lbl_3_data_1E434[113] = {
     { {8.0f, 0.0f, -1.0f}, 0.0f, 108, 0, 8, 0, 1, 3, 1, 0, {0, 0} },
 };
 u32 lbl_3_data_1F090[] = {
-    0, 0x3E4CCCCD, 0x41D00000, 0, 0x6E0000, 3, 0x1000000, 0x40400000, 0x3E4CCCCD, 0x41F00000,
-    0, 0x6C0000, 0x1000103, 0x1000000, 0xC0400000, 0x3E4CCCCD, 0x41F00000, 0, 0x6C0000, 0x2000103,
-    0x1000000, 0x40C00000, 0, 0x41F00000, 0, 0x6C0000, 0x3000103, 0x1000000, 0xC0C00000, 0,
-    0x41F00000, 0, 0x6C0000, 0x4000103, 0x1000000, 0x41100000, 0, 0x41F00000, 0, 0x6C0000,
-    0x5000103, 0x1000000, 0xC1100000, 0, 0x41F00000, 0, 0x6C0000, 0x6000103, 0x1000000, 0x41400000,
-    0, 0x41F00000, 0, 0x6C0000, 0x7000103, 0x1000000, 0xC1400000, 0, 0x41F00000, 0,
-    0x6C0000, 0x8000103, 0x1000000, 0x80000000, 0, 0x42200000, 0x3D75C28F, 0x9000000, 0xC1940000, 0,
-    0x41940000, 0x3D75C28F, 0x9000000, 0x415CCCCD, 0, 0x41BE6666, 0x3D23D70A, 0xA000000, 0xC0A66666, 0,
-    0x4206CCCD, 0x3D23D70A, 0xB000000, 0xC154CCCD, 0, 0x41600000, 0x3D23D70A, 0xC000000, 0x3D75C28F, 0x3D75C28F,
-    0x3DA3D70A, 0x3D75C28F, 0x3D23D70A, 0x3D75C28F, 0x3D4CCCCD, 0x3D23D70A, 0x3D4CCCCD, 0x3D23D70A, 0x3D75C28F, 0x3DB851EC,
-    0x3D23D70A, 0x3D75C28F, 0x3D75C28F, 0x3D23D70A, 0x3D23D70A, 0x3D75C28F, 0x3D4CCCCD, 0x3D75C28F, 0x3D23D70A, 0x3D75C28F,
-    0x3D75C28F, 0x3D75C28F, 0x3D23D70A, 0x3D23D70A, 0x3D23D70A, 0x3D75C28F, 0x3D4CCCCD, 0x3D75C28F, 0x3D75C28F, 0x3D75C28F,
-    0x3D75C28F, 0x3D75C28F, 0x3D75C28F, 0x3D75C28F, 0x3D75C28F, 0x3D75C28F, 0x3D4CCCCD, 0x3D75C28F, 0x3D4CCCCD, 0x3D4CCCCD,
-    0x3D23D70A, 0x3D23D70A, 0x3D23D70A, 0x3D23D70A, 0x3D23D70A, 0x3D23D70A, 0x3D75C28F, 0x3D75C28F, 0x3D75C28F, 0x3D75C28F,
-    0x3D75C28F, 0x3D75C28F, 0, 0, 0, 0, 0x40E00000, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0x42C80000, 0x436E0000, 0x43750000, 0x43070000,
-    0x43530000, 0x43250000,
+    0, 0x3e4ccccd, 0x41d00000, 0, 0x6e0000, 0x3, 0x1000000, 0x40400000, 0x3e4ccccd, 0x41f00000,
+    0, 0x6c0000, 0x1000103, 0x1000000, 0xc0400000, 0x3e4ccccd, 0x41f00000, 0, 0x6c0000, 0x2000103,
+    0x1000000, 0x40c00000, 0, 0x41f00000, 0, 0x6c0000, 0x3000103, 0x1000000, 0xc0c00000, 0,
+    0x41f00000, 0, 0x6c0000, 0x4000103, 0x1000000, 0x41100000, 0, 0x41f00000, 0, 0x6c0000,
+    0x5000103, 0x1000000, 0xc1100000, 0, 0x41f00000, 0, 0x6c0000, 0x6000103, 0x1000000, 0x41400000,
+    0, 0x41f00000, 0, 0x6c0000, 0x7000103, 0x1000000, 0xc1400000, 0, 0x41f00000, 0,
+    0x6c0000, 0x8000103, 0x1000000,
+};
+CamMarkerSrc lbl_3_data_1F18C[5] = {
+    {{-0.0f, 0.0f, 40.0f}, 0.06f, 9},
+    {{-18.5f, 0.0f, 18.5f}, 0.06f, 9},
+    {{13.8f, 0.0f, 23.8f}, 0.04f, 10},
+    {{-5.2f, 0.0f, 33.7f}, 0.04f, 11},
+    {{-13.3f, 0.0f, 14.0f}, 0.04f, 12},
+};
+f32 lbl_3_data_1F1F0[54] = {
+    0.06f, 0.06f, 0.08f, 0.06f, 0.04f, 0.06f, 0.05f, 0.04f, 0.05f, 0.04f,
+    0.06f, 0.09f, 0.04f, 0.06f, 0.06f, 0.04f, 0.04f, 0.06f, 0.05f, 0.06f,
+    0.04f, 0.06f, 0.06f, 0.06f, 0.04f, 0.04f, 0.04f, 0.06f, 0.05f, 0.06f,
+    0.06f, 0.06f, 0.06f, 0.06f, 0.06f, 0.06f, 0.06f, 0.06f, 0.05f, 0.06f,
+    0.05f, 0.05f, 0.04f, 0.04f, 0.04f, 0.04f, 0.04f, 0.04f, 0.06f, 0.06f,
+    0.06f, 0.06f, 0.06f, 0.06f,
+};
+f32 lbl_3_data_1F2C8[54] = {
+    0.0f, 0.0f, 0.0f, 0.0f, 7.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f,
+};
+f32 lbl_3_data_1F3A0[6] = {
+    100.0f, 238.0f, 245.0f, 135.0f, 211.0f, 165.0f,
 };
 s32 lbl_3_data_1F3B8[] = {
     1, 7, 0, 39, 210, 40, 50, 40, 17, 40,
@@ -3194,54 +3213,55 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 2;
             continue;
         case 70: {
-            u8* entry;
-            CamMarker* m;
+            CamMarkerSrc* entry;
+            u8 idx;
             lbl_3_common_bss_1323C->_27F = 1;
-            entry = DATA_L(0x30E4) + ctx->_0000[1] * 0x14;
-            m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
-            m->_28 = 0;
-            m->_29 = 1;
-            m->_14 = *(f32*)(entry + 0xC);
-            memcpy(m, entry, 12);
+            entry = &lbl_3_data_1F18C[ctx->_0000[1]];
+            idx = entry->actorIdx;
+            lbl_3_common_bss_1323C->markers[idx]._28 = 0;
+            lbl_3_common_bss_1323C->markers[idx]._29 = 1;
+            lbl_3_common_bss_1323C->markers[idx]._14 = entry->_0C;
+            memcpy(&lbl_3_common_bss_1323C->markers[idx], &entry->pos, sizeof(VecXYZ));
             ctx->_0000 += 2;
             continue;
         }
         case 99: {
-            u8* entry;
-            CamMarker* m;
+            CamMarkerSrc* entry;
             CamActor* actor;
+            u8 idx;
             lbl_3_common_bss_1323C->_27F = 2;
-            entry = DATA_L(0x30E4) + ctx->_0000[1] * 0x14;
-            actor = hugeAnimStruct.objects[entry[0x10]];
-            m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
-            m->_28 = 0;
-            m->_29 = 1;
-            m->_14 = ((f32*)DATA_L(0x3148))[actor->_252];
-            memcpy(m, entry, 12);
+            entry = &lbl_3_data_1F18C[ctx->_0000[1]];
+            idx = entry->actorIdx;
+            actor = hugeAnimStruct.objects[idx];
+            lbl_3_common_bss_1323C->markers[idx]._28 = 0;
+            lbl_3_common_bss_1323C->markers[idx]._29 = 1;
+            lbl_3_common_bss_1323C->markers[idx]._14 = lbl_3_data_1F1F0[actor->_252];
+            memcpy(&lbl_3_common_bss_1323C->markers[idx], &entry->pos, sizeof(VecXYZ));
             ctx->_0000 += 2;
             continue;
         }
         case 102: {
-            u8* entry;
-            CamMarker* m;
+            CamMarkerSrc* entry;
             CamActor* actor;
+            u8 idx;
             f32 d;
             lbl_3_common_bss_1323C->_27F = 3;
-            entry = DATA_L(0x30E4) + ctx->_0000[1] * 0x14;
-            actor = hugeAnimStruct.objects[entry[0x10]];
+            entry = &lbl_3_data_1F18C[ctx->_0000[1]];
+            idx = entry->actorIdx;
+            actor = hugeAnimStruct.objects[idx];
             if (actor != NULL) {
-                m = &lbl_3_common_bss_1323C->markers[entry[0x10]];
-                m->_28 = 0;
-                m->_29 = 1;
-                memcpy(m, entry, 12);
-                m->_18 = 0.3f + (f32)fabs(PSVECDistance((Vec*)lbl_3_common_bss_1323C, (Vec*)&actor->pos));
+                lbl_3_common_bss_1323C->markers[idx]._28 = 0;
+                lbl_3_common_bss_1323C->markers[idx]._29 = 1;
+                memcpy(&lbl_3_common_bss_1323C->markers[idx], &entry->pos, sizeof(VecXYZ));
+                lbl_3_common_bss_1323C->markers[idx]._18 =
+                    0.3f + (f32)fabs(PSVECDistance((Vec*)&lbl_3_common_bss_1323C->markers[idx], (Vec*)&actor->pos));
                 d = actor->_068 / 2;
                 if (d == 0.0f) {
                     d = 1.0f;
                 }
-                m->_14 = m->_18 / d;
-                m->_20 = d;
-                m->_1C = ((f32*)DATA_L(0x3220))[actor->_252];
+                lbl_3_common_bss_1323C->markers[idx]._14 = lbl_3_common_bss_1323C->markers[idx]._18 / d;
+                lbl_3_common_bss_1323C->markers[idx]._20 = d;
+                lbl_3_common_bss_1323C->markers[idx]._1C = lbl_3_data_1F2C8[actor->_252];
             }
             ctx->_0000 += 2;
             continue;
