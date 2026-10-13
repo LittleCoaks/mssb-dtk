@@ -19,6 +19,8 @@ s32 checkObjectVisibility(s32 slot, Vec* box, MtxPtr mtx) {
     u8* corners;
     s32 i;
     s32 hit;
+    s32 hitB;
+    u8* cornersB;
     s32 j;
     s32 k;
     s32 result;
@@ -76,22 +78,22 @@ s32 checkObjectVisibility(s32 slot, Vec* box, MtxPtr mtx) {
         return 2;
     }
 
-    corners = lbl_80111688[0];
-    hit = 0;
-    for (k = 0; k < 6; k++) {
-        face[0] = worldBox[corners[0]];
-        face[1] = worldBox[corners[1]];
-        face[2] = worldBox[corners[2]];
-        face[3] = worldBox[corners[3]];
-        corners += 4;
+    cornersB = lbl_80111688[0];
+    hitB = 0;
+    for (k = 6; k != 0; k--) {
+        face[0] = worldBox[cornersB[0]];
+        face[1] = worldBox[cornersB[1]];
+        face[2] = worldBox[cornersB[2]];
+        face[3] = worldBox[cornersB[3]];
+        cornersB += 4;
         result = checkPlaneIntersection(face, frustum->corners);
         if (result > 0) {
             return 1;
         }
-        hit |= result;
+        hitB |= result;
     }
     result = 0;
-    if (hit == 0) {
+    if (hitB == 0) {
         result = 2;
     }
     return result;
@@ -99,10 +101,10 @@ s32 checkObjectVisibility(s32 slot, Vec* box, MtxPtr mtx) {
 
 void fn_800B806C(s32 slot, f32 bottom, f32 top, f32 left, f32 right, f32 nearZ, f32 farZ, f32 dist) {
     f32 invDist = 1.0f / dist;
-    f32 l = left * invDist;
-    f32 r = right * invDist;
     f32 b = bottom * invDist;
     f32 t = top * invDist;
+    f32 l = left * invDist;
+    f32 r = right * invDist;
 
     lbl_803CB1FC[slot].nearZ = nearZ;
     lbl_803CB1FC[slot].farZ = farZ;
