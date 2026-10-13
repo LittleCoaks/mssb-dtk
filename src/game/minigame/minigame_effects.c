@@ -3212,21 +3212,21 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
 
 // .text:0x14737C size:0x3FC
 int piranhaPanic_updateBombExplosion(MGEffect* effect) {
-    MGParticle* p;
-    MGParticle** link;
-    MGParticle* removedTail = NULL;
-    u32 alive = 0;
     s32 rampLength;
     s32 duration;
+    MGParticle* p;
+    MGParticle** link;
+    u32 alive;
+    MGParticle* removedTail = NULL;
     s32 alpha;
     s32 alphaStep;
     s32 remaining;
     f32 sizeStep;
     f32 scale;
 
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = effect->particles;
+    p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
+    alive = 0;
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
     do {
         if (p->life != 0) {
