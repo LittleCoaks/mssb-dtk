@@ -3963,8 +3963,8 @@ static inline void camera_setReplayShot(int table) {
 // .text:0x000FC2FC size:0x14C
 void fn_3_FC2FC(Vec *dst, Vec *a, Vec *b, f32 scale, f32 k1, f32 k2, f32 d0, Vec *c) {
     Vec ab;
-    Vec cb;
     Vec scaledCb;
+    Vec cb;
     f32 dist;
     f32 w;
 
