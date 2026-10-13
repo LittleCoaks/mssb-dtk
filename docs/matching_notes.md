@@ -3164,3 +3164,18 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   are an unused static; declaring `static u8 lbl_3_bss_1900;` in the right position fixed `.bss`.
 - **Reusing one local for two values can be the match** (`draw_initStarGuageHud`: `next` holds the
   batting-order slot and then the roster index; a second local re-coloured r7/r8).
+
+## Findings from the game_rel_entry full-match pass
+
+- **Pointer scope and declaration order can need to change together.** In
+  `maybeProcessTeamData`, removing the block-local `lineup` shadow alone tied
+  the baseline, and reordering the other locals while keeping the shadow did
+  not fix the register swap. Using the function-scope pointer with locals in
+  `lineup, i, slot, team, teams` order took the function from 99.433334% to
+  100%. Re-test declaration order after changing a local's scope.
+- **A 100% object diff can hide wrong BSS symbol offsets in REL relocations.**
+  The first Matching link had identical size and section bytes but 26 differing
+  relocation bytes: the three zero-initialized statics were allocated in reverse
+  address order. Check symbol offsets as well as the zero-filled `.bss` score;
+  declaring these statics in descending target address order restores their
+  layout under MWCC.

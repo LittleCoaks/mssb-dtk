@@ -20,21 +20,22 @@ int getAdjustedPitcherStamina(int team, int rosterID, int amount) {
 }
 
 // .text:0x0006D604 size:0x54 mapped:0x806AC698
-BOOL checkFieldingStat(int team, int rosterID, int ability) {
+BOOL checkFieldingStat(int team, int rosterID, E(int, FIELDING_ABILITY) ability) {
     if (g_d_GameSettings.minigamesEnabled) {
         team = 0;
     }
     if ((1 << ability) & inMemRoster[team][rosterID].stats.FieldingStats) {
-        return 1;
+        return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 // .text:0x0006D658 size:0x7C mapped:0x806AC6EC
-int calculateChemistry(int team, int charIdA, int charIdB) {
+int calculateChemistry(int team, E(int, CHAR_ID) charIdA, E(int, CHAR_ID) charIdB) {
+    s8 exhibitionMatch = g_d_GameSettings.exhibitionMatchInd;
     int chem = ((u8*)&((CharacterStats*)Static_Stats_Tables.characterStats)[charIdA].chemistry)[charIdB];
 
-    if (!g_d_GameSettings.exhibitionMatchInd && g_d_GameSettings.humanTeamNumber == team &&
+    if (!exhibitionMatch && g_d_GameSettings.humanTeamNumber == team &&
         g_d_GameSettings.challengeCaptainStarBought[5] != 0) {
         chem += (int)lbl_3_data_5FC4[10];
     }

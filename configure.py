@@ -857,7 +857,7 @@ config.libs = [
     Rel(
         "game",
         [
-            Object(NonMatching, "game/match_setup/game_rel_entry.c"),
+            Object(Matching, "game/match_setup/game_rel_entry.c"),
             Object(Matching, "game/match_setup/loading_state.c"),
             Object(NonMatching, "game/ball/collision_primitives.c"),
             Object(NonMatching, "game/math/spline.c"),
