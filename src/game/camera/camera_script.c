@@ -1229,7 +1229,7 @@ typedef struct CamGlobal {
 
 #define CTX ((CamScript*)unkStructPtr._0000)
 #define CAMF(type, off) (*(type*)((u8*)g_pCamera + (off)))
-#define CAMSCRIPT(i) (*(CamScript*)((u8*)g_pCamera + 0x120 + (i) * 0x9BC))
+#define CAMSCRIPT(i) (((CamGlobal*)g_pCamera)->scripts[i])
 #define CAMSCRIPT_G(i) (*(CamScript*)((u8*)&g_Camera + 0x120 + (i) * 0x9BC))
 #define CAM_LABEL(i) (lbl_3_data_20E0C[i])
 #define CAM_SCRIPT_TABLE(i) (lbl_3_data_1D980[i])
@@ -2903,12 +2903,12 @@ BOOL fn_3_FDB30(void) {
             if (g_Stats.replayInd != 0) {
                 g_Stats.replayPending = 5;
             } else if (lbl_3_common_bss_1323C->_25D == 2) {
-                s16 v = lbl_3_common_bss_1323C->_23E - 0x5C;
+                int v = lbl_3_common_bss_1323C->_23E - 0x5C;
                 if (lbl_3_common_bss_1323C->_23C < v) {
                     lbl_3_common_bss_1323C->_23C = v;
                 }
             } else {
-                s16 v = lbl_3_common_bss_1323C->_23E - 8;
+                int v = lbl_3_common_bss_1323C->_23E - 8;
                 if (lbl_3_common_bss_1323C->_23C < v) {
                     lbl_3_common_bss_1323C->_23C = v;
                 }
