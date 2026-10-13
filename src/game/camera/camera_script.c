@@ -1220,14 +1220,15 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
     VecXYZ dIn;
     f32 dist;
     f32 mag;
+    f32 scale = 0.01f;
 
     PSVECSubtract((Vec*)&prevOut, (Vec*)&cur, (Vec*)&toCur);
     dist = PSVECDistance((Vec*)&prevOut, (Vec*)&cur);
     PSVECSubtract((Vec*)&prevIn, (Vec*)&cur, (Vec*)&dIn);
-    PSVECScale((Vec*)&dIn, 0.01f, (Vec*)&dInScaled);
+    PSVECScale((Vec*)&dIn, scale, (Vec*)&dInScaled);
     mag = a * (c - dist) + b * (PSVECDotProduct((Vec*)&dInScaled, (Vec*)&toCur) / dist);
     PSVECNormalize((Vec*)&toCur, (Vec*)&toCur);
-    PSVECScale((Vec*)&toCur, mag * 0.01f, (Vec*)&toCur);
+    PSVECScale((Vec*)&toCur, mag * scale, (Vec*)&toCur);
     PSVECAdd((Vec*)&prevOut, (Vec*)&toCur, (Vec*)&prevOut);
     return prevOut;
 }
