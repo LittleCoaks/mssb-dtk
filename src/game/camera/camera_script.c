@@ -2841,13 +2841,13 @@ BOOL fn_3_100018(void) {
 
 // .text:0x000FDB30 size:0x24E8 mapped:0x8073CBC4
 BOOL fn_3_FDB30(void) {
-    CamScript* ctx = CTX;
     CamDrawItem* item = (CamDrawItem*)currentDrawingItem;
+    CamScript* ctx = CTX;
     GameInitVariables* gs = &g_d_GameSettings;
     GameControlsStruct* gl = &g_GameLogic;
     u8* anim = animRelated;
+    int trackerB = g_Challenge.captain;
     u8 trackerA = g_Challenge.difficulty;
-    u8 trackerB = g_Challenge.captain;
     int i;
     int found;
     s32* table;
@@ -3525,19 +3525,20 @@ BOOL fn_3_FDB30(void) {
         case 81:
         case 82:
         case 83:
-        case 84:
+        case 84: {
+            InMemRunnerType* batter = &g_Runners[0];
             switch (ctx->_0000[0]) {
             case 81:
-                CTX->_0940 = lbl_3_data_37AC[g_Runners[0].charID];
+                CTX->_0940 = lbl_3_data_37AC[batter->charID];
                 break;
             case 82:
-                CTX->_0940 = lbl_3_data_3888[g_Runners[0].charID];
+                CTX->_0940 = lbl_3_data_3888[batter->charID];
                 break;
             case 83:
-                CTX->_0940 = lbl_3_data_3964[g_Runners[0].charID];
+                CTX->_0940 = lbl_3_data_3964[batter->charID];
                 break;
             case 84:
-                CTX->_0940 = lbl_3_data_3A40[g_Runners[0].charID];
+                CTX->_0940 = lbl_3_data_3A40[batter->charID];
                 break;
             default:
                 CTX->_0940 = 0;
@@ -3547,6 +3548,7 @@ BOOL fn_3_FDB30(void) {
             fn_3_FC938();
             ctx->_0000 += 1;
             continue;
+        }
         case 85:
         case 86:
             found = 0;
