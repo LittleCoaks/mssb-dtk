@@ -123,6 +123,10 @@ extern void GQRSetup6(u32 loadScale, u32 loadType, u32 storeScale, u32 storeType
 extern void SKN1Vecs16Norms16(Mtx34 m, s16 * srcBase, s16 * dstBase, u32 count);
 extern void SKN2Vecs16Norms16(Mtx34 m0, Mtx34 m1, u8 * wtBase, s16 * srcBase, s16 * dstBase, u32 count);
 extern void SKN2Vecs16Norms16NoTouch(Mtx34 m0, Mtx34 m1, u8 * wtBase, s16 * srcBase, s16 * dstBase, u32 count);
+extern void fn_800BFF9C(Mtx34 m, s16 * srcBase, s16 * dstBase, u32 count);
+extern void fn_800C02C8(Mtx34 m0, Mtx34 m1, u8 * wtBase, s16 * srcBase, s16 * dstBase, u32 count);
+extern void SKNAccVecs16Norms16Iu161(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
+extern void SKNAccVecs16Norms16Iu162(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
 extern void SKNAccVecs16Norms16Iu16(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
 
 static inline void SKNLCAccTouchData(u8 buffer, s16 *src, u16 *indices, u8 *weights, u32 count) {

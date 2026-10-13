@@ -826,7 +826,7 @@ config.libs = [
             Object(Matching, "C3/skinning/GQRSetup.c"),
             Object(Matching, "C3/light/light.c"),
             Object(NonMatching, "C3/skinning/SKNControl.c"),
-            Object(NonMatching, "C3/skinning/SKNAsm.c"),
+            Object(Matching, "C3/skinning/SKNAsm.c"),
         ],
     },
     MusyxLib(
