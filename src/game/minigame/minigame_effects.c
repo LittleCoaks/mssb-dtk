@@ -2479,31 +2479,34 @@ void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag) {
 
 // .text:0x14BA40 size:0x270
 int wallBall_updateWallHitPuff(MGEffect* effect) {
+    s32* tbl;
     MGParticle* p;
     MGParticle** link;
-    MGParticle* removedTail = NULL;
-    MGParticle* removedHead = NULL;
-    u32 alive = 0;
-    s32* tbl;
-    s32 duration;
+    MGParticle* removedHead;
+    MGParticle* removedTail;
     s32 rampLength;
+    u32 alive = 0;
+    s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
 
+
     if (lbl_80366158[0x28] != 0) {
         return 0;
     }
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = effect->particles;
+    p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
+    removedTail = NULL;
+    removedHead = NULL;
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     do {
         if (p->life != 0) {
-            tbl = wallBall_wallHitDarkPuffParams;
             if (p->_4F == 0) {
                 tbl = wallBall_wallHitPuffParams;
+            } else {
+                tbl = wallBall_wallHitDarkPuffParams;
             }
             duration = tbl[2];
             rampLength = tbl[3];
