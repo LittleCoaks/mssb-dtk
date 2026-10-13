@@ -2129,12 +2129,9 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         ev2.m[0][0] = 1.0f;
         ev2._40 = 1.0f;
         fn_3_104B3C(script, time, (s16) * (s32*)(track + 8), 0xFF, &ev2);
-        out->_64.x = ev2._58.x;
-        tgt.x = ev2._58.x;
-        out->_64.y = ev2._58.y;
-        tgt.y = ev2._58.y;
-        out->_64.z = ev2._58.z;
-        tgt.z = ev2._58.z;
+        tgt.x = out->_64.x = ev2._58.x;
+        tgt.y = out->_64.y = ev2._58.y;
+        tgt.z = out->_64.z = ev2._58.z;
         if (CTX->_09B5 == 1) {
             PSVECSubtract((Vec*)&ang, (Vec*)&tgt, (Vec*)&ang);
             fn_3_106270(&tgt);
