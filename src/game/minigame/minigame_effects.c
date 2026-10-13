@@ -683,7 +683,8 @@ int bobOmbFuseSpark_updateAtPitch(MGEffect* effect) {
             fn_8003403C(p->sizeX, p->sizeY);
             fn_80033CC8(p, effect->texture);
             if (bobOmbFuseSpark_params[6] / p->life < 2) {
-                alpha = p->alphaByte + bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha += bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha > bobOmbFuseSpark_params[5]) {
                     alpha = bobOmbFuseSpark_params[5];
                 }
@@ -691,7 +692,8 @@ int bobOmbFuseSpark_updateAtPitch(MGEffect* effect) {
                 p->sizeX += ((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2);
                 p->sizeY = p->sizeX;
             } else {
-                alpha = p->alphaByte - bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha -= bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha < bobOmbFuseSpark_params[4]) {
                     alpha = bobOmbFuseSpark_params[4];
                 }
@@ -805,7 +807,8 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
             fn_8003403C(p->sizeX, p->sizeY);
             fn_80033CC8(p, effect->texture);
             if (bobOmbFuseSpark_params[6] / p->life < 2) {
-                alpha = p->alphaByte + bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha += bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha > bobOmbFuseSpark_params[5]) {
                     alpha = bobOmbFuseSpark_params[5];
                 }
@@ -813,7 +816,8 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
                 p->sizeX += 3.0f * (((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2));
                 p->sizeY = p->sizeX;
             } else {
-                alpha = p->alphaByte - bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha -= bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha < bobOmbFuseSpark_params[4]) {
                     alpha = bobOmbFuseSpark_params[4];
                 }
