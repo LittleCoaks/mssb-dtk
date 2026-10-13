@@ -55,7 +55,7 @@ typedef struct {
     /* 0x14 */ u8 numTextureChannels;
     /* 0x15 */ u8 pad8;
     /* 0x16 */ u16 pad16;
-    /* 0x18 */ u8 unk18[4];
+    /* 0x18 */ void *unk18;
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ u8 unk20[4];
     /* 0x24 */ u8 unk24[4];

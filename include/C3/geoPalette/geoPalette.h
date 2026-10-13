@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "C3/geoPalette.h"
 
-void* LoadGeoPalette(void* geoFile);
+void* LoadGeoPalette(DODisplayDataPtr pal);
 
 void convertGeometryAndSknHeader(void* geo, void* skn);
 

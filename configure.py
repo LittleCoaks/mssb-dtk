@@ -822,7 +822,7 @@ config.libs = [
             Object(NonMatching, "C3/control/control.c", extra_cflags=["-inline deferred"]),
             Object(Matching, "C3/geoPalette/DisplayObject.c", mw_version="GC/2.6"),
             Object(Matching, "C3/geoPalette/normalTable.c"),
-            Object(NonMatching, "C3/geoPalette/geoPalette.c"),
+            Object(Matching, "C3/geoPalette/geoPalette.c"),
             Object(Matching, "C3/skinning/GQRSetup.c"),
             Object(Matching, "C3/light/light.c"),
             Object(NonMatching, "C3/skinning/SKNControl.c"),
