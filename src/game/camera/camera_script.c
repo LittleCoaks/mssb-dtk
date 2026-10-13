@@ -1268,11 +1268,11 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
         VecXYZ _cur; \
         VecXYZ _pi; \
         VecXYZ _dead; \
-        memcpy(&_cur, (vp), sizeof(VecXYZ)); \
+        memcpy(&_dead, (vp), sizeof(VecXYZ)); \
         _po.x = CTX->_00D0.x; \
         _po.y = CTX->_00D0.y; \
         _po.z = CTX->_00D0.z; \
-        memcpy(&_dead, (vp), sizeof(VecXYZ)); \
+        memcpy(&_cur, (vp), sizeof(VecXYZ)); \
         _pi.x = CTX->_00C4.x; \
         _pi.y = CTX->_00C4.y; \
         _pi.z = CTX->_00C4.z; \
@@ -1297,12 +1297,12 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
         f32 _cx = g_pCamera->_2840.x; \
         f32 _cy = g_pCamera->_2840.y; \
         f32 _cz = g_pCamera->_2840.z; \
-        _cur.x = _cx; \
-        _cur.y = _cy; \
-        _cur.z = _cz; \
         _po.x = CTX->_00B8.x; \
         _po.y = CTX->_00B8.y; \
         _po.z = CTX->_00B8.z; \
+        _cur.x = _cx; \
+        _cur.y = _cy; \
+        _cur.z = _cz; \
         _pi.x = CTX->_00AC.x; \
         _pi.y = CTX->_00AC.y; \
         _pi.z = CTX->_00AC.z; \
