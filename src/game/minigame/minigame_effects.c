@@ -1613,11 +1613,11 @@ void wallBall_updateNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     duration = wallBall_noteBlockBurstParams[6];
     alpha = p->alphaByte;
     if (duration / p->life < 2) {
-        alphaStep = wallBall_noteBlockBurstParams[5] / (duration / 2);
         sizeStep = (f32)wallBall_noteBlockBurstParams[3] / 100000.0f / (f32)(duration / 2);
+        alphaStep = wallBall_noteBlockBurstParams[5] / (duration / 2);
     } else {
-        alphaStep = -wallBall_noteBlockBurstParams[5] / (duration / 2);
         sizeStep = -((f32)wallBall_noteBlockBurstParams[3] / 100000.0f) / (f32)(duration / 2);
+        alphaStep = -wallBall_noteBlockBurstParams[5] / (duration / 2);
     }
     alpha = alpha + alphaStep;
     if (alpha > 0xFF) {
