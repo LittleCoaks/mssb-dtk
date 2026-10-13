@@ -1,8 +1,46 @@
 #include "C3/anim/animPipe.h"
 #include "C3/charPipeline.h"
 
-void Squad(void) {
-    return;
+static void slerpQuat(const f32* a, const f32* b, f32 t, f32* out) {
+    f32 dot;
+    f32 theta;
+    f32 sinTheta;
+    f32 wa;
+    f32 wb;
+    f32 bSign;
+    s32 i;
+
+    dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+    bSign = 1.0f;
+    if (dot < 0.0f) {
+        dot = -dot;
+        bSign = -1.0f;
+    }
+
+    if (1.0f - dot > 0.000001f) {
+        theta = acos(dot);
+        sinTheta = sin(theta);
+        wa = sin((1.0f - t) * theta) / sinTheta;
+        wb = sin(t * theta) / sinTheta;
+    } else {
+        wa = 1.0f - t;
+        wb = t;
+    }
+
+    for (i = 0; i < 4; i++) {
+        out[i] = wa * a[i] + wb * (bSign * b[i]);
+    }
+}
+
+void Squad(const f32* q0, f32 t, const f32* s0, const f32* s1, const f32* q1, f32* out) {
+    f32 a[4];
+    f32 b[4];
+    f32 h;
+
+    slerpQuat(q0, q1, t, a);
+    slerpQuat(s0, s1, t, b);
+    h = 2.0f * t * (1.0f - t);
+    slerpQuat(a, b, h, out);
 }
 
 void GetData(u8 type, void* src, f32* dst, f32 scale, u8 count) {

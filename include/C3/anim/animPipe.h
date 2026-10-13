@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "C3/anim.h"
 
-void Squad(void);
+void Squad(const f32* q0, f32 t, const f32* s0, const f32* s1, const f32* q1, f32* out);
 
 void GetData(u8 type, void* src, f32* dst, f32 scale, u8 count);
 
