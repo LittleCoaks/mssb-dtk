@@ -1,6 +1,10 @@
 #include "C3/anim/animPipe.h"
 #include "C3/charPipeline.h"
 
+static f32 keyFraction(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame);
+static u32 keyElementSize(u8 type);
+static s32 evaluateKeyVector(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, s32 wrapAngles, f32* out);
+
 static void slerpQuat(const f32* a, const f32* b, f32 t, f32* out) {
     f32 dot;
     f32 theta;
@@ -75,8 +79,23 @@ void GetData(u8 type, void* src, f32* dst, f32 scale, u8 count) {
     }
 }
 
+#pragma dont_inline on
 void DoScaleAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, u8 unk) {
-    return;
+    struct ANIMAnimTrack* track = animPipe->currentTrack;
+    u8 type = track->quantizeInfo >> 4;
+    f32 scale = 1.0f / (f32)(1u << (track->quantizeInfo & 0xF));
+    u32 vecSize = keyElementSize(type) * 4;
+    u32 offset = (track->animType & 2) ? vecSize : 0;
+    f32 vec[3];
+    f32 quat[4];
+
+    if (evaluateKeyVector(animPipe, currentFrame, nextFrame, FALSE, vec)) {
+        CTRLSetScale(animPipe->control, vec[0], vec[1], vec[2]);
+    }
+
+    GetData(type, (u8*)currentFrame->setting + offset, quat, scale, 4);
+    GetData(type, (u8*)nextFrame->setting + offset, quat, scale, 4);
+    CTRL_SetQuatUnk(animPipe->control, quat[0], quat[1], quat[2], quat[3]);
 }
 
 static f32 keyFraction(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame) {
@@ -186,9 +205,44 @@ void DoTranslationAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, K
 }
 
 void DoQuatAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame) {
-    return;
+    struct ANIMAnimTrack* track = animPipe->currentTrack;
+    u8 type = track->quantizeInfo >> 4;
+    f32 scale = 1.0f / (f32)(1u << (track->quantizeInfo & 0xF));
+    u32 vecSize = keyElementSize(type) * 4;
+    u32 offset = (track->animType & 2) ? vecSize : 0;
+    f32 cur[4];
+    f32 next[4];
+    f32 out[4];
+    f32 t;
+
+    GetData(type, (u8*)currentFrame->setting + offset, cur, scale, 4);
+    GetData(type, (u8*)nextFrame->setting + offset, next, scale, 4);
+    t = keyFraction(animPipe, currentFrame, nextFrame);
+
+    switch ((track->interpolationType >> 4) & 7) {
+    case 0:
+        slerpQuat(cur, cur, 0.0f, out);
+        break;
+    case 1:
+        slerpQuat(cur, next, t, out);
+        break;
+    case 2: {
+        f32 tanOut[4];
+        f32 tanIn[4];
+
+        GetData(type, (u8*)currentFrame->interpolation + vecSize + offset, tanOut, scale, 4);
+        GetData(type, (u8*)nextFrame->interpolation + offset, tanIn, scale, 4);
+        Squad(cur, t, tanOut, tanIn, next, out);
+        break;
+    }
+    default:
+        return;
+    }
+
+    CTRLSetQuat(animPipe->control, out[0], out[1], out[2], out[3]);
 }
 
+#pragma dont_inline off
 void ANIMTick(struct ANIMPipe* animPipe, u8 unk) {
     struct ANIMAnimTrack* track;
     KeyFrame* currentFrame;
