@@ -421,11 +421,11 @@ void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
                            &step);
                 PSVECAdd(&trail, &step, &step);
                 if (i >= 4) {
-                    g = (f32)(7 - i) * 0.25f + 1.0f;
+                    g = (f32)(7 - i) / 4.0f + 1.0f;
                 } else {
                     g = 2.0f;
                 }
-                h = sizeScale * (g * 0.5f);
+                h = sizeScale * (g / 2.0f);
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[0].z = step.z;
@@ -443,11 +443,11 @@ void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
                     minigameTrail_drawQuad(quad, -1, (MGTexRecord*)MG_TEX_RECORD(0x68, 0));
                 }
                 if (i >= 4) {
-                    g = (f32)(7 - i) * 0.25f + 1.0f;
+                    g = (f32)(7 - i) / 4.0f + 1.0f;
                 } else {
                     g = 2.0f;
                 }
-                h = sizeScale * (g * 0.5f);
+                h = sizeScale * (g / 2.0f);
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[1].x = step.x - h;
@@ -567,7 +567,7 @@ void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
                 } else {
                     g = 1.0f;
                 }
-                h = g * 0.5f;
+                h = g / 2.0f;
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[0].z = step.z;
@@ -587,7 +587,7 @@ void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
                 } else {
                     g = 1.0f;
                 }
-                h = g * 0.5f;
+                h = g / 2.0f;
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[1].x = step.x - h;
@@ -1180,7 +1180,7 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     if (PSVECMag(&dir) >= 1.0) {
                         k = 1.0f;
                     } else {
-                        k = 1.0f / (PSVECMag(&dir) * 0.5f);
+                        k = 1.0f / (PSVECMag(&dir) / 2.0f);
                     }
                     PSVECNormalize(&dir, &dir);
                     dir.x = dir.x * -1.0f;
@@ -1417,8 +1417,8 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     Mtx44 proj;
     f32 corner[4][3];
     f32 uv[4][2] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-    f32 halfW = p->sizeX * 0.5f;
-    f32 halfH = p->sizeY * 0.5f;
+    f32 halfW = p->sizeX / 2.0f;
+    f32 halfH = p->sizeY / 2.0f;
     int i;
     int k;
 
@@ -3008,8 +3008,8 @@ E(u8, BOOL) minigameWinnerStars_rollTurn(void) {
 
 // .text:0x148254 size:0x180
 void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
-    f32 halfW = p->sizeX * 0.5f;
-    f32 halfH = p->sizeY * 0.5f;
+    f32 halfW = p->sizeX / 2.0f;
+    f32 halfH = p->sizeY / 2.0f;
     f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
     f32* v = minigameWinnerStars_quadVerts;
     Mtx mtx;
