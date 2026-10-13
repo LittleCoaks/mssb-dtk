@@ -2903,7 +2903,7 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
     s32 n;
 
     do {
-        p->life = 0;
+        p->life = i;
         p->sizeX = (f32)minigameWinnerStars_params[3] / 100000.0f;
         p->sizeY = (f32)minigameWinnerStars_params[4] / 100000.0f;
         minigameWinnerStars_resetParticle(effect, p);
@@ -2925,7 +2925,7 @@ void minigameWinnerStars_resetParticle(MGStarEffect* effect, MGParticle* p) {
     p->origin.x = 0.0f;
     p->origin.y = -((f32)minigameWinnerStars_params[5] / 100000.0f + actor[0x38 / 4]);
     p->origin.z = 0.0f;
-    minigameWinnerStars_getLaunchVelocity(p, 15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] * 0.5f)));
+    minigameWinnerStars_getLaunchVelocity(p, 15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] / 2.0f)));
     p->_1C = p->_20 = p->alpha = 0.0f;
     span = (s32)(1000.0f * ((f32)minigameWinnerStars_params[2] / 100000.0f));
     p->_28 = (f32)(rand() % span) / 1000.0f;
