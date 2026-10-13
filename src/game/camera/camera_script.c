@@ -2003,22 +2003,15 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
             u32 i;
             f32 t = (f32)(time - ((u32)*(u16*)key << 16)) / 65536.0f;
             f32 alpha = t / (f32)(*(u16*)next - *(u16*)key);
-            f32 beta = 1.0f - alpha;
             f32* dst = &interp[0];
-            for (i = 0; i < lbl_3_data_20FD0[track[6]]; i++) {
-                VecXYZ va;
-                VecXYZ vb;
-                VecXYZ vc;
-                memcpy(&va, nxt + 4, sizeof(VecXYZ));
-                memcpy(&vb, cur + 4, sizeof(VecXYZ));
-                vc.x = va.x * alpha + vb.x * beta;
-                vc.y = va.y * alpha + vb.y * beta;
-                vc.z = va.z * alpha + vb.z * beta;
-                memcpy(dst + 1, &vc, sizeof(VecXYZ));
+            i = 0;
+            do {
+                fn_3_105A10((Vec*)(dst + 1), (Vec*)(nxt + 4), (Vec*)(cur + 4), alpha);
+                i++;
                 nxt += 12;
                 cur += 12;
                 dst += 3;
-            }
+            } while (i < lbl_3_data_20FD0[track[6]]);
             key = (u8*)interp;
         }
     }
