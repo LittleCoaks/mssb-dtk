@@ -1435,7 +1435,7 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
 
 #define CAM_SCRIPT_START() \
     do { \
-    int i; \
+    s32 i; \
     u32* table; \
     u8* hdr; \
     u32* p; \
