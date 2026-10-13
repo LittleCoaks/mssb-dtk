@@ -1085,11 +1085,13 @@ void chainChomp_spawnItemSparkleEffect(u8 kind, u8 mode, Vec* pos) {
     } else {
         effect = allocParticleEffect(chainChomp_updateItemSparkles, 0x80, 0, chainChomp_itemSparkleParams[0] * 15, TRUE, 0x1C);
         if (effect != NULL) {
-            for (p = effect->particles; p != NULL; p = p->next) {
+            p = effect->particles;
+            do {
                 p->life = 0;
                 p->kind = 0;
                 p->_4F = 0xFF;
-            }
+                p = p->next;
+            } while (p != NULL);
             chainChomp_initItemSparkleParticles(effect, kind, mode, pos);
             memset(lbl_3_bss_B894, 0, 0xF);
         }
@@ -2377,25 +2379,10 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
 
 // .text:0x14CB28 size:0x8C
 void barrelBatter_releaseBarrelExplosion(s8 index) {
-    MGEffect* effect;
-    MGParticle* p;
-
     if (index >= BB_BARREL_COUNT || index < 0) {
         return;
     }
-    effect = fn_800339F0(0, 0x20);
-    if (effect != NULL) {
-        p = effect->particles;
-        do {
-            if (p->_45 == index) {
-                p->_44 = 0;
-                p->_45 = 0xFF;
-                p->life = 0;
-                p->kind = 0;
-            }
-            p = p->next;
-        } while (p != NULL);
-    }
+    barrelBatter_releaseBarrelExplosion2(index);
 }
 
 // .text:0x14CAB4 size:0x74
