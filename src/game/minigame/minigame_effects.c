@@ -3185,8 +3185,8 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
     s32 duration;
     MGParticle* p;
     MGParticle** link;
-    u32 alive;
-    MGParticle* removedTail = NULL;
+    MGParticle* removedTail;
+    u32 alive = 0;
     s32 alpha;
     s32 alphaStep;
     s32 alphaFrom;
@@ -3195,7 +3195,7 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
 
     p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
-    alive = 0;
+    removedTail = NULL;
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
     do {
         if (p->life != 0) {
@@ -3242,8 +3242,7 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
                 } else if (alpha > 0xFF) {
                     alpha = 0xFF;
                 }
-                p->sizeX += sizeStep;
-                p->sizeY = p->sizeX;
+                p->sizeY = p->sizeX += sizeStep;
                 p->alphaByte = alpha;
                 p->origin.y -= (p->kind == 1) ? 0.0f : 0.05f;
                 p->life--;
