@@ -1986,6 +1986,8 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
     Mtx44 m5;
     VecXYZ up;
     VecXYZ dir;
+    Vec* pdir;
+    Vec* pup;
     VecXYZ right;
     VecXYZ ang;
     VecXYZ to;
@@ -2143,6 +2145,8 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         PSVECSubtract((Vec*)&out->_64, (Vec*)&out->_58, (Vec*)&ang);
         out->_7C = (f32)atan2(-ang.x, -ang.z);
         out->_80 = (f32)atan2(-ang.z, -ang.y);
+        pdir = (Vec*)&dir;
+        pup = (Vec*)&up;
         dir.x = m3[1][0];
         dir.y = m3[1][1];
         dir.z = m3[1][2];
@@ -2152,8 +2156,8 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         from.x = m2[3][0];
         from.y = m2[3][1];
         from.z = m2[3][2];
-        PSVECSubtract((Vec*)&to, (Vec*)&from, (Vec*)&dir);
-        PSVECNormalize((Vec*)&dir, (Vec*)&dir);
+        PSVECSubtract((Vec*)&to, (Vec*)&from, pdir);
+        PSVECNormalize(pdir, pdir);
         m3[1][0] = dir.x;
         m3[1][1] = dir.y;
         m3[1][2] = dir.z;
@@ -2169,10 +2173,10 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         right.x = m3[0][0];
         right.y = m3[0][1];
         right.z = m3[0][2];
-        PSVECCrossProduct((Vec*)&dir, (Vec*)&ang, (Vec*)&right);
+        PSVECCrossProduct(pdir, (Vec*)&ang, (Vec*)&right);
         PSVECNormalize((Vec*)&right, (Vec*)&right);
-        PSVECCrossProduct((Vec*)&right, (Vec*)&dir, (Vec*)&up);
-        PSVECNormalize((Vec*)&up, (Vec*)&up);
+        PSVECCrossProduct((Vec*)&right, pdir, pup);
+        PSVECNormalize(pup, pup);
         m3[0][0] = right.x;
         m3[0][1] = right.y;
         m3[0][2] = right.z;
