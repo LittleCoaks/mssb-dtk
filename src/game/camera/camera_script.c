@@ -1603,8 +1603,8 @@ void fn_3_106270(VecXYZ* out) {
         CTX->_094E = g_Fielders[sel].CharID;
     } else if (sel < 13 && sel >= 0) {
         InMemRunnerType* r = &g_Runners[sel - 9];
-        memcpy(out, r, sizeof(VecXYZ));
-        if (*(s16*)((u8*)r + 0xE0) != -1) {
+        memcpy(out, &r->position, sizeof(VecXYZ));
+        if (r->rosterID != -1) {
             if (hugeAnimStruct.objects[sel] != NULL) {
                 if (CTX->_0938 == -1) {
                     CTX->_0938 = lbl_3_data_3B4C[r->charID];
