@@ -5,8 +5,36 @@ void Squad(void) {
     return;
 }
 
-void GetData(void) {
-    return;
+void GetData(u8 type, void* src, f32* dst, f32 scale, u8 count) {
+    u8 i;
+
+    switch (type) {
+    case 0:
+        for (i = 0; i < count; i++) {
+            dst[i] = (f32)((u8*)src)[i] * scale;
+        }
+        break;
+    case 1:
+        for (i = 0; i < count; i++) {
+            dst[i] = (f32)((s8*)src)[i] * scale;
+        }
+        break;
+    case 2:
+        for (i = 0; i < count; i++) {
+            dst[i] = (f32)((u16*)src)[i] * scale;
+        }
+        break;
+    case 3:
+        for (i = 0; i < count; i++) {
+            dst[i] = (f32)((s16*)src)[i] * scale;
+        }
+        break;
+    case 4:
+        for (i = 0; i < count; i++) {
+            dst[i] = ((f32*)src)[i];
+        }
+        break;
+    }
 }
 
 void DoTranslationAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, u8 unk) {

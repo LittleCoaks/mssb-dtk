@@ -6,7 +6,7 @@
 
 void Squad(void);
 
-void GetData(void);
+void GetData(u8 type, void* src, f32* dst, f32 scale, u8 count);
 
 struct ANIMPipe;
 struct ANIMAnimTrack;
