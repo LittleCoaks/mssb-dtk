@@ -937,7 +937,7 @@ void chainChomp_initItemSparkleParticles(MGEffect* effect, u8 kind, u8 mode, Vec
 void chainChomp_initItemSparkleParticle(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
     f32 scale;
 
-    p->delay = index * chainChomp_itemSparkleParams[3] / chainChomp_itemSparkleParams[0] + (index != 0) * chainChomp_itemSparkleLayer1Params[3];
+    p->delay = (index != 0) * chainChomp_itemSparkleLayer1Params[3] + index * chainChomp_itemSparkleParams[3] / chainChomp_itemSparkleParams[0];
     p->texIndex = (mode == 4);
     p->_4E = 0;
     p->_4F = kind;
