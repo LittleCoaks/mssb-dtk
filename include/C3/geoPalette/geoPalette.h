@@ -10,7 +10,7 @@ void convertGeometryAndSknHeader(void* geo, void* skn);
 
 void AdjustGEOPalettePointers(DODisplayDataPtr pal);
 
-void AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispObj);
+void* AdjustGPLDataPointers(DODisplayLayout* layout, struct DODisplayObj* dispObj);
 
 typedef struct {
     /* 0x00 */ u8 unk00[0xC];

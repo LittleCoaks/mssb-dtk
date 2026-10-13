@@ -108,6 +108,7 @@ Mtx *DOGetWorldMatrix(struct DODisplayObj * dispObj);
 void DOHide(struct DODisplayObj * dispObj);
 void DORender(struct DODisplayObj * dispObj, MtxPtr camera, u8 numLights, ...);
 void DOVARender(struct DODisplayObj * dispObj, MtxPtr camera, u8 numLights, va_list *list);
+void DODefaultUserTevMode(int mode, struct DODisplayObj* dispObj, MtxPtr camera, u8* numTexGens, u8* numTevStages);
 void DORenderSkin(struct DODisplayObj *dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray, u8 numLights, ...);
 void DOVARenderSkin(struct DODisplayObj *dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray, u8 numLights, va_list *list);
 void DOSetWorldMatrix(struct DODisplayObj * dispObj, MtxPtr m);
