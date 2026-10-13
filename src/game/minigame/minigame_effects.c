@@ -2402,18 +2402,15 @@ void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag) {
     u8 scratch[0x60];
 
     if (existing != NULL) {
+        MGParticle* tail;
+
         fresh = fn_800337CC(scratch, wallBall_wallHitPuffParams[1], 1);
         wallBall_initWallHitPuff(fresh, pos, flag);
-        if (existing->particles != NULL) {
-            MGParticle* tail = existing->particles;
-
-            while (tail->next != NULL) {
-                tail = tail->next;
-            }
-            tail->next = fresh->particles;
-        } else {
-            existing->particles = fresh->particles;
+        tail = existing->particles;
+        while (tail->next != NULL) {
+            tail = tail->next;
         }
+        tail->next = fresh->particles;
         existing->count += fresh->count;
     } else {
         fresh = allocParticleEffect(wallBall_updateWallHitPuff, 0x80, 0, wallBall_wallHitPuffParams[1], TRUE, 0x22);
