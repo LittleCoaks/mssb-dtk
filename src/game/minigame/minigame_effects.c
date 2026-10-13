@@ -215,10 +215,7 @@ int chainChomp_updateTrailEffect(MGEffect* effect) {
     if (g_Minigame.minigameInactiveInd != 0) {
         return TRUE;
     }
-    if (effect->frame == effect->duration && g_GameLogic.gameStatus != GAME_STATUS_MVP_END_GAME) {
-        return TRUE;
-    }
-    return FALSE;
+    return effect->frame == effect->duration && g_GameLogic.gameStatus != GAME_STATUS_MVP_END_GAME;
 }
 
 // .text:0x15791C size:0x1A8
