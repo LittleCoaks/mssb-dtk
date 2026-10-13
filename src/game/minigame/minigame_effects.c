@@ -1290,7 +1290,7 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
 // .text:0x1534C0 size:0x1E8
 void chainChomp_initItemSparkleLayer1(MGParticle* p) {
     chainChomp_placeItemSparkle(p, FALSE);
-    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleLayer1Params[0];
+    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleLayer1Params[0];
     p->kind = 1;
     p->life = chainChomp_itemSparkleLayer1Params[3];
     p->velX = p->velZ = 0.0f;
@@ -1300,7 +1300,7 @@ void chainChomp_initItemSparkleLayer1(MGParticle* p) {
 // .text:0x1531A4 size:0x31C
 void chainChomp_initItemSparkleLayer2(MGParticle* p) {
     chainChomp_placeItemSparkle(p, TRUE);
-    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleLayer2Params[0];
+    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleLayer2Params[0];
     p->kind = 2;
     p->life = chainChomp_itemSparkleLayer2Params[3];
     p->velX = p->velZ = 0.0f;
@@ -1348,7 +1348,7 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     p->origin.x = view.x;
                     p->origin.y = view.y;
                     p->origin.z = view.z;
-                    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
+                    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
                     world.x = p->sizeX;
                     world.y = p->sizeX;
                     world.z = p->_34;
@@ -1393,7 +1393,7 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
 // .text:0x152794 size:0x320
 void chainChomp_initItemSparkleFly(MGParticle* p) {
     chainChomp_placeItemSparkle(p, TRUE);
-    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleFlyParams[0];
+    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleFlyParams[0];
     p->kind = 3;
     p->life = chainChomp_itemSparkleFlyParams[3];
     p->velX = p->velZ = 0.0f;
@@ -1585,7 +1585,7 @@ void chainChomp_updateItemSparkleFly(MGEffect* effect, MGParticle* p) {
         target.y = chainChomp_itemSparkleScoreCorners[p->_44 * 2 + 1];
         target.z = 0.0f;
         PSVECNormalize(&target, &target);
-        if (PSVECDotProduct(&unit, &target) < 0.0f || 0.0f == dist) {
+        if (PSVECDotProduct(&unit, &target) < 0.0f || !dist) {
             p->life = 0;
         }
         if (p->life == 0 && p->_45 != 0) {
@@ -3189,7 +3189,7 @@ void minigameWinnerStars_endDraw(void) {
 
 // .text:0x147DFC size:0x24
 void minigameStopBombExplosion(void) {
-    pitchingMachinePitching(0x26);
+    pitchingMachinePitching(0x25);
 }
 
 // .text:0x147CFC size:0x100
