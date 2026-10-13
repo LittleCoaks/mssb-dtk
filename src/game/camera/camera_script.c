@@ -2922,7 +2922,7 @@ BOOL fn_3_FDB30(void) {
             fn_3_100038();
             ctx->_0008 = ctx->_0000[1];
             ctx->_0000 += 2;
-            return FALSE;
+            break;
         case 98:
             fn_3_100038();
             ctx->_0008 = ctx->_0000[1];
@@ -3115,7 +3115,7 @@ BOOL fn_3_FDB30(void) {
                 continue;
             }
             if (slot != 3) {
-                return FALSE;
+                break;
             }
             ctx->_0000 += 2;
             continue;
@@ -3146,7 +3146,7 @@ BOOL fn_3_FDB30(void) {
             continue;
         case 28:
             ctx->_0000 += 4;
-            return FALSE;
+            break;
         case 29:
             if (CTX->_099F == 3) {
                 ctx->_0000 = CAM_LABEL(ctx->_0000[1]);
@@ -3184,10 +3184,11 @@ BOOL fn_3_FDB30(void) {
         case 62:
             if (g_Batter.batterHand == 1) {
                 fn_3_24ADC(ctx->_0000[1], 0);
+                ctx->_0000 += 3;
             } else {
                 fn_3_24ADC(ctx->_0000[2], 0);
+                ctx->_0000 += 3;
             }
-            ctx->_0000 += 3;
             continue;
         case 41:
             fn_3_100038();
@@ -3485,10 +3486,11 @@ BOOL fn_3_FDB30(void) {
             if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
                 hugeAnimStruct.objects[lbl_3_data_1E434[ctx->_0000[1]].slot]->_257) {
                 fn_3_24ADC(ctx->_0000[1], 0);
+                ctx->_0000 += 3;
             } else {
                 fn_3_24ADC(ctx->_0000[2], 0);
+                ctx->_0000 += 3;
             }
-            ctx->_0000 += 3;
             continue;
         case 73:
             found = 0;
