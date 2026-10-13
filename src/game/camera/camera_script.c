@@ -1281,7 +1281,7 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
         pitch = _out.y; \
     }
 
-#define CAM_FILTER_V(vp) \
+#define CAM_FILTER_V_BODY(vp) \
     if (CTX->_09B4 != 0) { \
         VecXYZ _out; \
         VecXYZ _po; \
@@ -1308,7 +1308,7 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
         (vp)->z = _out.z; \
     }
 
-#define CAM_FILTER_POS() \
+#define CAM_FILTER_POS_BODY() \
     if (CTX->_09B4 != 0) { \
         VecXYZ _out; \
         VecXYZ _po; \
@@ -2308,7 +2308,7 @@ void fn_3_104338(void) {
 
 // .text:0x001040D8 size:0x260 mapped:0x8074316C
 void fn_3_1040D8(void) {
-    CAM_FILTER_POS();
+    CAM_FILTER_POS_BODY();
 }
 
 // .text:0x00103E7C size:0x25C mapped:0x80742F10
@@ -2343,7 +2343,7 @@ void fn_3_103E7C(f32* angles) {
 
 // .text:0x00103C30 size:0x24C mapped:0x80742CC4
 void fn_3_103C30(VecXYZ* v) {
-    CAM_FILTER_V(v);
+    CAM_FILTER_V_BODY(v);
 }
 
 // .text:0x00101CC4 size:0x1F6C mapped:0x80740D58
@@ -2357,8 +2357,7 @@ void fn_3_101CC4(void) {
         switch (c->_09A7) {
         case 0:
         case 1: {
-            f32 yaw;
-            f32 pitch;
+            f32 angles[2];
             f32 cp;
             f32 cy;
             f32 sp;
@@ -2372,22 +2371,22 @@ void fn_3_101CC4(void) {
                 g_pCamera->_2840.y = 0.1f;
             }
             CAM_INIT_POS_FILTER();
-            yaw = radianAngleReduction(g_pCamera->_2870);
-            pitch = radianAngleReduction(g_pCamera->_2874);
-            CAM_INIT_ANGLE_FILTER(yaw, pitch);
-            CAM_FILTER_ANGLES(yaw, pitch);
-            cp = COSF(pitch);
-            cy = COSF(yaw);
-            sp = SINF(pitch);
-            cp2 = COSF(pitch);
-            sy = SINF(yaw);
+            angles[0] = radianAngleReduction(g_pCamera->_2870);
+            angles[1] = radianAngleReduction(g_pCamera->_2874);
+            CAM_INIT_ANGLE_FILTER(angles[0], angles[1]);
+            fn_3_103E7C(angles);
+            cp = COSF(angles[1]);
+            cy = COSF(angles[0]);
+            sp = SINF(angles[1]);
+            cp2 = COSF(angles[1]);
+            sy = SINF(angles[0]);
             rx = 100.0f * cy * cp;
             ry = 100.0f * sp;
             rz = 100.0f * sy * cp2;
             g_pCamera->_284C.x = g_pCamera->_2858.x + rx;
             g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
             g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
-            CAM_FILTER_POS();
+            fn_3_1040D8();
             CAM_CLAMP_LOOKAT_Y();
             break;
         }
@@ -2400,9 +2399,9 @@ void fn_3_101CC4(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
                 CAM_INIT_V_FILTER();
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
                 CAM_CLAMP_LOOKAT_Y();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
@@ -2421,9 +2420,9 @@ void fn_3_101CC4(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
                 CAM_INIT_V_FILTER();
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
                 CAM_CLAMP_LOOKAT_Y();
             }
             break;
@@ -2571,9 +2570,9 @@ void fn_3_101CC4(void) {
         }
         CAM_SET_VIEW_V();
         CAM_INIT_V_FILTER();
-        CAM_FILTER_V(&v);
+        fn_3_103C30(&v);
         CAM_SET_VIEW_V();
-        CAM_FILTER_POS();
+        fn_3_1040D8();
         CAM_CLAMP_LOOKAT_Y();
     }
 }
@@ -2589,8 +2588,7 @@ void fn_3_1000D8(void) {
         switch (c->_09A7) {
         case 0:
         case 1: {
-            f32 yaw;
-            f32 pitch;
+            f32 angles[2];
             f32 cp;
             f32 cy;
             f32 sp;
@@ -2605,21 +2603,21 @@ void fn_3_1000D8(void) {
             if (g_pCamera->_2840.y < 0.1f) {
                 g_pCamera->_2840.y = 0.1f;
             }
-            yaw = radianAngleReduction(g_pCamera->_2870);
-            pitch = radianAngleReduction(g_pCamera->_2874);
-            CAM_FILTER_ANGLES(yaw, pitch);
-            cp = COSF(pitch);
-            cy = COSF(yaw);
-            sp = SINF(pitch);
-            cp2 = COSF(pitch);
-            sy = SINF(yaw);
+            angles[0] = radianAngleReduction(g_pCamera->_2870);
+            angles[1] = radianAngleReduction(g_pCamera->_2874);
+            fn_3_103E7C(angles);
+            cp = COSF(angles[1]);
+            cy = COSF(angles[0]);
+            sp = SINF(angles[1]);
+            cp2 = COSF(angles[1]);
+            sy = SINF(angles[0]);
             rx = 100.0f * cy * cp;
             ry = 100.0f * sp;
             rz = 100.0f * sy * cp2;
             g_pCamera->_284C.x = g_pCamera->_2858.x + rx;
             g_pCamera->_284C.y = g_pCamera->_2858.y + ry;
             g_pCamera->_284C.z = g_pCamera->_2858.z + rz;
-            CAM_FILTER_POS();
+            fn_3_1040D8();
             break;
         }
         case 2:
@@ -2633,9 +2631,9 @@ void fn_3_1000D8(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
 
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
             } else if (CTX->_09AA == 1) {
                 CAM_COPY_POS();
 
@@ -2654,9 +2652,9 @@ void fn_3_1000D8(void) {
                 fn_3_106270(&v);
                 CAM_SET_VIEW_V();
 
-                CAM_FILTER_V(&v);
+                fn_3_103C30(&v);
                 CAM_SET_VIEW_V();
-                CAM_FILTER_POS();
+                fn_3_1040D8();
             }
             CAM_CLAMP_LOOKAT_Y();
             break;
@@ -2802,9 +2800,9 @@ void fn_3_1000D8(void) {
             break;
         }
         CAM_SET_VIEW_V();
-        CAM_FILTER_V(&v);
+        fn_3_103C30(&v);
         CAM_SET_VIEW_V();
-        CAM_FILTER_POS();
+        fn_3_1040D8();
         CAM_CLAMP_LOOKAT_Y();
     }
 }
