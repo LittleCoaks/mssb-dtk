@@ -405,7 +405,7 @@ void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
         PSVECSubtract(&screen, &trail, &screen);
         dir = screen;
         angle = 0.017453292f * (f32)((f64)(rand() % 15000) / 1000.0);
-        angle *= (f32)(1 - (rand() % 2) * 2);
+        angle *= (f32)(-(rand() % 2 * 2) + 1);
         screen.x = dir.x * (f32)cos(angle) + dir.y * -(f32)sin(angle);
         screen.y = dir.x * (f32)sin(angle) + dir.y * (f32)cos(angle);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
@@ -1564,7 +1564,7 @@ void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     p->velX = speed * (f32)cos(angle);
     p->velZ = speed * (f32)sin(angle);
     p->_1C = 57.29578f * ((f32)(wallBall_noteBlockBurstParams[18] + rand() % (wallBall_noteBlockBurstParams[19] - wallBall_noteBlockBurstParams[18])) / 100000.0f);
-    p->_1C = p->_1C * (f32)(1 - (rand() % 2) * 2);
+    p->_1C = p->_1C * (f32)(-(rand() % 2 * 2) + 1);
     p->colorR = p->colorG = p->colorB = p->alphaByte = 0xFF;
 }
 
@@ -2780,13 +2780,13 @@ void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos) {
         angle = 0.017453292f * (f32)(u32)(360 / barrelBatter_releaseRingParams[1] * i);
         p->origin.x = p->origin.x + (f32)barrelBatter_releaseRingParams[3] * (f32)cos(angle) / 100000.0f;
         p->origin.y = p->origin.y + (f32)barrelBatter_releaseRingParams[3] * (f32)sin(angle) / 100000.0f;
-        p->sizeY = p->sizeX = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
+        p->sizeX = p->sizeY = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
         p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = barrelBatter_releaseRingParams[9];
         p->velX = 0.0f;
         p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
         p->velY = p->velY / 100000.0f;
-        p->velY = p->velY * (f32)(1 - rand() % 2 * 2);
+        p->velY = p->velY * (f32)(-(rand() % 2 * 2) + 1);
         i++;
         p->velZ = (f32)(barrelBatter_releaseRingParams[6] - rand() % barrelBatter_releaseRingParams[7]);
         p->velZ = p->velZ / 100000.0f;
