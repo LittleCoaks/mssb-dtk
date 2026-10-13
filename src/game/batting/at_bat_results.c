@@ -100,7 +100,7 @@ void setBatterOutAtBatResult(void) {
     if (storedInningInfo.abResultTemporary != 0) {
         return;
     }
-    if (g_Strikes.howRunnerReachedBase == 3) {
+    if (g_Strikes.howRunnerReachedBase == REACHED_BASE_FIELDERS_CHOICE_ERROR) {
         storedInningInfo.abResultFinal = 0x10;
         return;
     }
@@ -129,7 +129,7 @@ void atBatBuntResult(void) {
 
     if (g_RunningLogic.nOffensivePlayersAtStartOfPlay == 1 || g_Strikes.storedOuts == 2) {
         if ((g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY &&
-             g_Strikes.howRunnerReachedBase == 0) ||
+             g_Strikes.howRunnerReachedBase == REACHED_BASE_TBD) ||
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
             storedInningInfo.abResultFinal = 0x1D;
             return;
@@ -273,7 +273,7 @@ BOOL noForceOutInd_atBatResultsAfterForcedRunnersAllAdvance(void) {
             }
         } else if (baseEarned == 1) {
             s8 zone = g_Ball.ballZoneWhenCaught;
-            if (zone >= 0 && zone <= 1) {
+            if (zone >= BALL_ZONE_IF_GRASS && zone <= BALL_ZONE_IF_DIRT) {
                 if (runsThisPlay != 0 && !runnerScoredOnlyRun) {
                     storedInningInfo.abResultFinal = 9;
                 } else {
@@ -330,7 +330,7 @@ void setStrikeoutOrWalkAtBatResult(void) {
     if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
         if (g_Batter.missedBuntStatus != 0) {
             storedInningInfo.abResultTemporary = 0x26;
-        } else if (g_Batter.missSwingOrBunt != 0) {
+        } else if (g_Batter.missSwingOrBunt != DID_SWING_TYPE_NONE) {
             storedInningInfo.abResultTemporary = 0x24;
         } else {
             storedInningInfo.abResultTemporary = 0x25;
@@ -355,18 +355,18 @@ void setAtBatResult(void) {
     if (storedInningInfo.abResultFinal == 0) {
         if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 4) {
             storedInningInfo.abResultFinal = 0x28;
-        } else if (g_GameLogic.gameStatus == 1) {
+        } else if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
             setStrikeoutOrWalkAtBatResult();
-        } else if (g_Ball.deadBallReason == 1) {
+        } else if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
             fn_3_9D594();
         } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
             fn_3_9D550();
         } else {
-            if (g_GameLogic.gameStatus == 2) {
+            if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
                 fielder = g_Ball.fielderWBallIndex;
                 if (fielder >= 0) {
                     if (storedInningInfo.fielderWithBallIndex == -1) {
-                        for (i = 0; i < 5; i++) {
+                        for (i = 0; i < (int)ARRAY_COUNT(storedInningInfo.catches); i++) {
                             if (storedInningInfo.catches[i].fielderIndex == -1) {
                                 storedInningInfo.catches[i].fielderIndex = fielder;
                                 storedInningInfo.catches[i].outsDuringPossession = g_Strikes.outs - g_Strikes.storedOuts;
@@ -398,7 +398,7 @@ void setAtBatResult(void) {
                         }
                         fielderTracked = TRUE;
                     } else if (storedInningInfo.fielderWithBallIndex == fielder) {
-                        for (i = 4; i >= 0; i--) {
+                        for (i = (int)ARRAY_COUNT(storedInningInfo.catches) - 1; i >= 0; i--) {
                             if (storedInningInfo.catches[i].fielderIndex == fielder) {
                                 if (g_Ball.timeSinceBallPickedUp <= 60) {
                                     storedInningInfo.catches[i].outsDuringPossession =
@@ -432,14 +432,14 @@ void setAtBatResult(void) {
 void setDefaultPlayTrackingVariables1(void) {
     int i;
 
-    for (i = 4; i > 0; i--) {
+    for (i = (int)ARRAY_COUNT(storedInningInfo._06) - 1; i > 0; i--) {
         storedInningInfo._06[i] = storedInningInfo._06[i - 1];
     }
     storedInningInfo._06[0] = storedInningInfo.abResultFinal;
     storedInningInfo.abResultTemporary = 0;
     storedInningInfo.abResultFinal = 0;
     storedInningInfo.situation = 0;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < (int)ARRAY_COUNT(storedInningInfo.catches); i++) {
         storedInningInfo.catches[i].fielderIndex = -1;
         storedInningInfo.catches[i].outsDuringPossession = -1;
         storedInningInfo.catches[i].baseStandingOn = -1;
@@ -477,7 +477,7 @@ void shuffleU8Array(u8* values, int count, BOOL useGameRandom) {
 // .text:0x0009E078 size:0x2F0 mapped:0x806DD10C
 void shuffleIntArray(int* values, int count, BOOL useGameRandom) {
     int source[20];
-    int taken[20];
+    BOOL taken[20];
     int i;
     int j;
     int k;
@@ -485,7 +485,7 @@ void shuffleIntArray(int* values, int count, BOOL useGameRandom) {
 
     for (i = 0; i < count; i++) {
         source[i] = values[i];
-        taken[i] = 0;
+        taken[i] = FALSE;
     }
     for (k = count - 1; k >= 0; k--) {
         if (useGameRandom) {
@@ -494,10 +494,10 @@ void shuffleIntArray(int* values, int count, BOOL useGameRandom) {
             r = randomIntSim(k + 1);
         }
         for (j = 0; j < count; j++) {
-            if (taken[j] == 0) {
+            if (!taken[j]) {
                 if (r == 0) {
                     values[k] = source[j];
-                    taken[j] = 1;
+                    taken[j] = TRUE;
                     break;
                 }
                 r--;
@@ -550,7 +550,7 @@ int RandomIndexFromWeights(u8* weights, int count) {
 
 // .text:0x0009E7D4 size:0x60 mapped:0x806DD868
 void iterateBatter(int team) {
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == 0xF) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         return;
     }
     if (g_GameLogic.currentBatterPerTeam[team] == 9) {
@@ -565,13 +565,13 @@ BOOL fn_3_9E834(void) {
     int i;
 
     if (!g_d_GameSettings.exhibitionMatchInd) {
-        for (i = 0; i < 54; i++) {
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
             if (g_Challenge.charIsSuperstar[i] != 0) {
                 return TRUE;
             }
         }
     } else {
-        for (i = 0; i < 54; i++) {
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
             if (superstarUnlocked[i] != 0) {
                 return TRUE;
             }

@@ -3179,3 +3179,13 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   address order. Check symbol offsets as well as the zero-filled `.bss` score;
   declaring these statics in descending target address order restores their
   layout under MWCC.
+
+## Findings from the controller_input full-match pass
+
+- **An inline multiplication helper can preserve operand order where a direct
+  expression does not.** `InterpretControllerInputsIntoMagnitude` had one
+  remaining `fmuls` operand swap at 99.97151%. Calling
+  `static inline f32 scaleStickCorrection(f32 value, f32 scale)` whose body
+  returns `value * scale` reproduced the target when invoked with `k` and
+  `0.27208483f`. Compound assignment changed the destination register and
+  regressed its consumers. All three functions and `.rodata` remained 100%.
