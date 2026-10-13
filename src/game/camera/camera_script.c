@@ -58,6 +58,15 @@ typedef struct CamMarkerSrc {
     /* 0x10 */ u8 actorIdx;
 } CamMarkerSrc; // size 0x14
 
+// Header of a loaded camera script file; the offsets are relocated to pointers on load.
+typedef struct CamScriptHdr {
+    /* 0x00 */ u8 _00[4];
+    /* 0x04 */ u16 length;
+    /* 0x06 */ s16 numTracks;
+    /* 0x08 */ u8* keys;
+    /* 0x0C */ u8* tracks[1];
+} CamScriptHdr;
+
 typedef struct CamAux {
     /* 0x000 */ CamMarker markers[9];
     /* 0x18C */ u8 _18C[0x23C - 0x18C];
@@ -1958,7 +1967,7 @@ void fn_3_1054CC(void) {
 
 // .text:0x00104B3C size:0x990 mapped:0x80743BD0
 void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
-    u8* track = *(u8**)(script + 0xC + a * 4);
+    u8* track = *(u8**)(script + a * 4 + 0xC);
     u8* keys = track + 0xC;
     u8* key;
     u8* next;
@@ -1967,17 +1976,20 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
     u32 frac;
     u32 stride;
     u16 count;
+    f32 interp[16];
     Mtx44 m1;
     Mtx44 m2;
     Mtx44 m3;
-    Mtx44 m4;
-    Mtx44 m5;
     Mtx44 m6;
     Mtx44 m7;
-    f32 interp[16];
-    VecXYZ ang;
+    Mtx44 m4;
+    Mtx44 m5;
+    VecXYZ up;
     VecXYZ dir;
     VecXYZ right;
+    VecXYZ ang;
+    VecXYZ to;
+    VecXYZ from;
     VecXYZ tgt;
     CamEval ev2;
     f32 roll;
@@ -2137,13 +2149,13 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         dir.x = m3[1][0];
         dir.y = m3[1][1];
         dir.z = m3[1][2];
-        tgt.x = ev2.m[3][0];
-        tgt.y = ev2.m[3][1];
-        tgt.z = ev2.m[3][2];
-        ang.x = m2[3][0];
-        ang.y = m2[3][1];
-        ang.z = m2[3][2];
-        PSVECSubtract((Vec*)&tgt, (Vec*)&ang, (Vec*)&dir);
+        to.x = ev2.m[3][0];
+        to.y = ev2.m[3][1];
+        to.z = ev2.m[3][2];
+        from.x = m2[3][0];
+        from.y = m2[3][1];
+        from.z = m2[3][2];
+        PSVECSubtract((Vec*)&to, (Vec*)&from, (Vec*)&dir);
         PSVECNormalize((Vec*)&dir, (Vec*)&dir);
         m3[1][0] = dir.x;
         m3[1][1] = dir.y;
@@ -2162,17 +2174,17 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
         right.z = m3[0][2];
         PSVECCrossProduct((Vec*)&dir, (Vec*)&ang, (Vec*)&right);
         PSVECNormalize((Vec*)&right, (Vec*)&right);
-        PSVECCrossProduct((Vec*)&right, (Vec*)&dir, (Vec*)&tgt);
-        PSVECNormalize((Vec*)&tgt, (Vec*)&tgt);
+        PSVECCrossProduct((Vec*)&right, (Vec*)&dir, (Vec*)&up);
+        PSVECNormalize((Vec*)&up, (Vec*)&up);
         m3[0][0] = right.x;
         m3[0][1] = right.y;
         m3[0][2] = right.z;
         m3[1][0] = dir.x;
         m3[1][1] = dir.y;
         m3[1][2] = dir.z;
-        m3[2][0] = tgt.x;
-        m3[2][1] = tgt.y;
-        m3[2][2] = tgt.z;
+        m3[2][0] = up.x;
+        m3[2][1] = up.y;
+        m3[2][2] = up.z;
         roll = k[4];
         if (roll >= 0.0f) {
             while ((f32)fabs(roll) > 3.1415927f) {
