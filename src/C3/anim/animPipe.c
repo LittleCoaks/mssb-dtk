@@ -75,10 +75,6 @@ void GetData(u8 type, void* src, f32* dst, f32 scale, u8 count) {
     }
 }
 
-void DoTranslationAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, u8 unk) {
-    return;
-}
-
 void DoScaleAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, u8 unk) {
     return;
 }
@@ -116,7 +112,7 @@ static u32 keyElementSize(u8 type) {
     }
 }
 
-void DoEulerAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame) {
+static s32 evaluateKeyVector(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, s32 wrapAngles, f32* out) {
     struct ANIMAnimTrack* track = animPipe->currentTrack;
     u8 type = track->quantizeInfo >> 4;
     f32 scale = 1.0f / (f32)(1u << (track->quantizeInfo & 0xF));
@@ -124,7 +120,6 @@ void DoEulerAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFram
     u32 offset = (track->animType & 2) ? vecSize : 0;
     f32 cur[3];
     f32 next[3];
-    f32 out[3];
     f32 t;
     s32 i;
 
@@ -142,9 +137,9 @@ void DoEulerAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFram
         for (i = 0; i < 3; i++) {
             f32 d = cur[i] - next[i];
 
-            if (d > 180.0f) {
+            if (wrapAngles && d > 180.0f) {
                 cur[i] -= 360.0f;
-            } else if (d < -180.0f) {
+            } else if (wrapAngles && d < -180.0f) {
                 next[i] -= 360.0f;
             }
             out[i] = (1.0f - t) * cur[i] + t * next[i];
@@ -171,7 +166,23 @@ void DoEulerAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFram
         return;
     }
 
-    CTRLSetRotation(animPipe->control, out[0], out[1], out[2]);
+    return TRUE;
+}
+
+void DoEulerAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame) {
+    f32 out[3];
+
+    if (evaluateKeyVector(animPipe, currentFrame, nextFrame, TRUE, out)) {
+        CTRLSetRotation(animPipe->control, out[0], out[1], out[2]);
+    }
+}
+
+void DoTranslationAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, u8 unk) {
+    f32 out[3];
+
+    if (evaluateKeyVector(animPipe, currentFrame, nextFrame, FALSE, out)) {
+        CTRLSetTranslation(animPipe->control, out[0], out[1], out[2]);
+    }
 }
 
 void DoQuatAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame) {
