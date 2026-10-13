@@ -1372,9 +1372,9 @@ static inline VecXYZ camFilterStep(VecXYZ prevOut, VecXYZ cur, VecXYZ prevIn, f3
     memcpy(&g_pCamera->_2840, &tmp, sizeof(VecXYZ))
 
 
-#define CAM_SPLINE_COMP(c, scale) \
-    ctx->_0034[total].v[c] = (w1 * ctx->_001C[i + 1].v[c] + w0 * ctx->_001C[i].v[c] + \
-                              w2 * ctx->_001C[i + 2].v[c] + w3 * ctx->_001C[i + 3].v[c]) scale
+#define CAM_SPLINE_SUM(c) \
+    (w0 * ctx->_001C[i].v[c] + w1 * ctx->_001C[i + 1].v[c] + \
+     w2 * ctx->_001C[i + 2].v[c] + w3 * ctx->_001C[i + 3].v[c])
 
 #define CAM_VIEWS_INIT() fn_3_FD5A8()
 
@@ -3855,25 +3855,25 @@ void fn_3_FCF24(void) {
             f32 t2 = t * t;
             f32 t3 = t2 * t;
             if (ctx->_0044 == 0) {
-                f32 w1 = 4.0f + (3.0f * t3 - 6.0f * t2);
-                f32 w0 = 1.0f + ((-1.0f * t3 + 3.0f * t2) - 3.0f * t);
                 f32 w2 = 1.0f + (3.0f * t + (-3.0f * t3 + 3.0f * t2));
+                f32 w0 = 1.0f + ((-1.0f * t3 + 3.0f * t2) - 3.0f * t);
+                f32 w1 = 4.0f + (3.0f * t3 - 6.0f * t2);
                 f32 w3 = t3;
-                CAM_SPLINE_COMP(0, / 6.0f);
-                CAM_SPLINE_COMP(1, / 6.0f);
-                CAM_SPLINE_COMP(2, / 6.0f);
-                CAM_SPLINE_COMP(3, / 6.0f);
-                CAM_SPLINE_COMP(4, / 6.0f);
+                ctx->_0034[total].v[0] = CAM_SPLINE_SUM(0) / 6.0f;
+                ctx->_0034[total].v[1] = CAM_SPLINE_SUM(1) / 6.0f;
+                ctx->_0034[total].v[2] = CAM_SPLINE_SUM(2) / 6.0f;
+                ctx->_0034[total].v[3] = CAM_SPLINE_SUM(3) / 6.0f;
+                ctx->_0034[total].v[4] = CAM_SPLINE_SUM(4) / 6.0f;
             } else {
                 f32 w1 = 2.0f + (3.0f * t3 - 5.0f * t2);
                 f32 w0 = (-1.0f * t3 + 2.0f * t2) - t;
                 f32 w2 = t + (-3.0f * t3 + 4.0f * t2);
                 f32 w3 = t3 - t2;
-                CAM_SPLINE_COMP(0, * 0.5f);
-                CAM_SPLINE_COMP(1, * 0.5f);
-                CAM_SPLINE_COMP(2, * 0.5f);
-                CAM_SPLINE_COMP(3, * 0.5f);
-                CAM_SPLINE_COMP(4, * 0.5f);
+                ctx->_0034[total].v[0] = CAM_SPLINE_SUM(0) / 2.0f;
+                ctx->_0034[total].v[1] = CAM_SPLINE_SUM(1) / 2.0f;
+                ctx->_0034[total].v[2] = CAM_SPLINE_SUM(2) / 2.0f;
+                ctx->_0034[total].v[3] = CAM_SPLINE_SUM(3) / 2.0f;
+                ctx->_0034[total].v[4] = CAM_SPLINE_SUM(4) / 2.0f;
             }
             total++;
         }
