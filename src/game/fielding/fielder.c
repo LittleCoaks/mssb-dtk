@@ -18910,7 +18910,7 @@ void calculateBobble(int fielderIndex) {
 
         if (!g_d_GameSettings.exhibitionMatchInd &&
             g_d_GameSettings.humanTeamNumber == g_GameLogic.teamFielding &&
-            ((s8)g_d_GameSettings.challengeCaptainStarBought[3] != 0 || (s8)g_d_GameSettings._4F != 0)) {
+            ((s8)g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_LUCKY_GLOVE] != 0 || (s8)g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPERSTAR] != 0)) {
             threshold = (int)((f32)threshold * lbl_3_data_5FC4[6]);
         }
 
@@ -18934,7 +18934,7 @@ void calculateBobble(int fielderIndex) {
 
         if (!g_d_GameSettings.exhibitionMatchInd &&
             g_d_GameSettings.humanTeamNumber == g_GameLogic.teamFielding &&
-            ((s8)g_d_GameSettings.challengeCaptainStarBought[3] != 0 || (s8)g_d_GameSettings._4F != 0)) {
+            ((s8)g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_LUCKY_GLOVE] != 0 || (s8)g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPERSTAR] != 0)) {
             threshold = (int)((f32)threshold * lbl_3_data_5FC4[6]);
         }
 

@@ -36,7 +36,7 @@ int calculateChemistry(int team, E(int, CHAR_ID) charIdA, E(int, CHAR_ID) charId
     int chem = ((u8*)&((CharacterStats*)Static_Stats_Tables.characterStats)[charIdA].chemistry)[charIdB];
 
     if (!exhibitionMatch && g_d_GameSettings.humanTeamNumber == team &&
-        g_d_GameSettings.challengeCaptainStarBought[5] != 0) {
+        g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_BUDDY_EMBLEM] != 0) {
         chem += (int)lbl_3_data_5FC4[10];
     }
     if (chem > 100) {
