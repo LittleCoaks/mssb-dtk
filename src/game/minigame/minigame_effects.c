@@ -223,9 +223,8 @@ int chainChomp_updateTrailEffect(MGEffect* effect) {
 
 // .text:0x15791C size:0x1A8
 f32 chainChomp_trailScale(s32 frame) {
-    s32 shifted = frame + 0x30;
-    s32 cycles = shifted / 0x78;
-    s32 phase = shifted % 0x78;
+    s32 cycles = (frame + 0x30) / 0x78;
+    s32 phase = (frame + 0x30) % 0x78;
     f32 c;
     f32 scale;
 
@@ -234,7 +233,8 @@ f32 chainChomp_trailScale(s32 frame) {
     } else {
         c = cos(3.1415927f * ((f32)phase / 48.0f));
     }
-    scale = c * 0.5f + 0.5f;
+    scale = c / 2.0f;
+    scale += 0.5f;
     if (cycles != 0) {
         u8 status = g_GameLogic.gameStatus;
 
