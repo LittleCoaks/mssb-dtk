@@ -121,7 +121,7 @@ void actorBoneRelated(void) {
     return;
 }
 
-void f_BuildBoneSkinOrientationMatrix(void) {
+void f_BuildBoneSkinOrientationMatrix(sBone* root, MtxPtr out) {
     return;
 }
 
@@ -194,8 +194,100 @@ void InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* b
     }
 }
 
+static u32 align32(u32 size) {
+    return (size + 0x1F) & ~0x1F;
+}
+
 Actor* maybeProcessActLayout(ActorLayout* layout) {
-    return NULL;
+    Actor* actor;
+    struct DODisplayObj* skin = NULL;
+    Mtx worldMtx;
+    u16 boneCount = 0;
+    u16 i;
+    u32 mtxBytes = align32(layout->totalBones * 0x30);
+    u32 boneArrayBytes = align32(layout->totalBones * 4);
+    u32 skinBytes = 0;
+    u32 lightingBytes = 0;
+    u32 totalBytes;
+    sBone** boneArray;
+    sBone* bones;
+    sBone* bone;
+    MtxPtr forwardMtxArray;
+
+    if (layout->skinFileID != 0xFFFF) {
+        DOGet(&skin, (DODisplayDataPtr)layout->geoPaletteName, layout->skinFileID, NULL);
+        skinBytes = mtxBytes;
+        if (skin->lightingData != NULL) {
+            lightingBytes = mtxBytes;
+        }
+    }
+
+    totalBytes = boneArrayBytes + mtxBytes + skinBytes + skinBytes + lightingBytes
+               + align32(layout->totalBones * sizeof(sBone)) + sizeof(Actor);
+    actor = (Actor*)_OSAllocFromHeap(0x20, totalBytes);
+
+    boneArray = (sBone**)((u8*)actor + sizeof(Actor));
+    forwardMtxArray = (MtxPtr)((u8*)boneArray + boneArrayBytes);
+
+    actor->layout = layout;
+    actor->boneArray = boneArray;
+    actor->forwardMtxArray = forwardMtxArray;
+    actor->skHeader = NULL;
+    actor->actorID = layout->actorID;
+    actor->totalBones = layout->totalBones;
+    DSInitTree(&actor->hierarchy, NULL, (DSBranchPtr)4);
+    DSInitList(&actor->drawPriorityList, NULL, (DSLinkPtr)0xFC);
+    PSMTXIdentity(actor->worldControl.controlParams.m);
+    actor->pal = (DODisplayDataPtr)layout->geoPaletteName;
+
+    if (layout->skinFileID != 0xFFFF) {
+        actor->skinObject = skin;
+        actor->skinMtxArray = (MtxPtr)((u8*)forwardMtxArray + mtxBytes);
+        actor->orientationInvMtxArray = (MtxPtr)((u8*)actor->skinMtxArray + skinBytes);
+        actor->skinInvTransposeMtxArray = (MtxPtr)((u8*)actor->orientationInvMtxArray + skinBytes);
+        DOSetWorldMatrix(actor->skinObject, worldMtx);
+    } else {
+        actor->skinObject = NULL;
+        actor->skinMtxArray = NULL;
+        actor->orientationInvMtxArray = NULL;
+        actor->skinInvTransposeMtxArray = NULL;
+    }
+
+    bones = (sBone*)((u8*)forwardMtxArray + mtxBytes + skinBytes + skinBytes + lightingBytes);
+    InitBone(NULL, (ActorBone*)layout->hierarchy.Root, actor, &boneCount, bones);
+    if (boneCount != layout->totalBones) {
+        OSPanic("actorlayout", 0x1F0, "bone count mismatch");
+    }
+
+    if (actor->skinObject != NULL) {
+        f_BuildBoneSkinOrientationMatrix((sBone*)actor->hierarchy.Root, worldMtx);
+    }
+
+    actor->unk80 = 0;
+    actor->unk82 = 0;
+    actor->unk84 = 0;
+    *(u32*)&actor->unk86[2] = 0;
+    actor->unk8C = 1.0f;
+    actor->unk90 = 0.0f;
+    actor->unk94 = 0;
+    actor->unk98 = 0;
+    actor->unk99 = 0;
+
+    for (i = 0; i < actor->totalBones; i++) {
+        bone = boneArray[i];
+        if (bone->dispObj != NULL) {
+            DSListPtr list = &actor->drawPriorityList;
+            Ptr cursor = list->Head;
+
+            while (cursor != NULL && ((sBone*)cursor)->drawingPriority <= bone->drawingPriority) {
+                cursor = ((sBone*)cursor)->drawPriorityLink.Next;
+            }
+            DSInsertListObject(list, cursor, (Ptr)bone);
+        }
+    }
+
+    PSMTXIdentity(worldMtx);
+    return actor;
 }
 
 void fn_800B4724(Actor* actor, int value) {

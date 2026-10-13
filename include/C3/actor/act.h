@@ -34,7 +34,7 @@ void maybeTransformVectorByAnimationMatrix(void* actor, u16 boneIndex, Vec* out)
 
 void actorBoneRelated(void);
 
-void f_BuildBoneSkinOrientationMatrix(void);
+void f_BuildBoneSkinOrientationMatrix(sBone* root, MtxPtr out);
 
 BOOL maybeBallRelated(Actor** actor, ActorLayout* layout, u16 actorID);
 
