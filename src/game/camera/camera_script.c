@@ -1865,9 +1865,9 @@ void fn_3_105ACC(f32* quat, Mtx out) {
 
 // .text:0x00105A10 size:0xBC mapped:0x80744AA4
 void fn_3_105A10(Vec* out, Vec* a, Vec* b, f32 t) {
-    VecXYZ va;
-    VecXYZ vb;
-    VecXYZ vc;
+    Quaternion vc;
+    Quaternion va;
+    Quaternion vb;
     memcpy(&va, a, sizeof(VecXYZ));
     memcpy(&vb, b, sizeof(VecXYZ));
     vc.x = va.x * t + vb.x * (1.0f - t);
