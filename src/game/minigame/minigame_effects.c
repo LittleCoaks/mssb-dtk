@@ -530,11 +530,11 @@ void minigameTrail_drawQuad(Vec* positions, u32 color, MGTexRecord* tex) {
 
 // .text:0x156548 size:0x428
 void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
+    Vec quad[4];
     Mtx44 proj;
     Vec screen;
     Vec step;
     Vec trail;
-    Vec quad[4];
     Vec* point;
     f32 inv;
     f32 g;
