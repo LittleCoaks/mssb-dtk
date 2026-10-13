@@ -1159,8 +1159,8 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     rotated.x = 0.0f;
                     PSVECSubtract(&rotated, &cam->eye, &rotated);
                     p->_34 = PSVECMag(&rotated);
-                    view.z = -1.0f;
                     PSMTX44MultVec(cam->proj, &view, &view);
+                    view.z = -1.0f;
                     p->origin.x = view.x;
                     p->origin.y = view.y;
                     p->origin.z = view.z;
