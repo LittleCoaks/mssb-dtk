@@ -2355,36 +2355,37 @@ int chainChomp_updateLaunchFlash(MGEffect* effect) {
         return 0;
     }
     p = effect->particles;
-    if (p->life == 0) {
+    if (p->life != 0) {
+        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
+        chainChomp_placeLaunchFlash(p);
+        fn_8003403C(p->sizeX, p->sizeY);
+        fn_80033CC8(p, effect->texture);
+        duration = chainChomp_launchFlashParams[3];
+        remaining = chainChomp_launchFlashParams[2] - duration;
+        alpha = p->alphaByte;
+        if (remaining < p->life) {
+            sizeStep = (f32)(chainChomp_launchFlashParams[5] - chainChomp_launchFlashParams[4]) / 100000.0f / (f32)duration;
+            alphaStep = (chainChomp_launchFlashParams[8] - chainChomp_launchFlashParams[7]) / duration;
+        } else {
+            sizeStep = (f32)(chainChomp_launchFlashParams[6] - chainChomp_launchFlashParams[5]) / 100000.0f / (f32)remaining;
+            alphaStep = (chainChomp_launchFlashParams[9] - chainChomp_launchFlashParams[8]) / remaining;
+        }
+        alpha += alphaStep;
+        if (alpha < 0) {
+            alpha = 0;
+        }
+        if (alpha > 0xFF) {
+            alpha = 0xFF;
+        }
+        p->sizeX += sizeStep;
+        p->sizeY = p->sizeX;
+        p->alphaByte = alpha;
+        p->colorR = p->colorG = p->colorB = p->alphaByte;
+        p->life--;
+    } else {
         return 1;
     }
-    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
-    chainChomp_placeLaunchFlash(p);
-    fn_8003403C(p->sizeX, p->sizeY);
-    fn_80033CC8(p, effect->texture);
-    duration = chainChomp_launchFlashParams[3];
-    remaining = chainChomp_launchFlashParams[2] - duration;
-    alpha = p->alphaByte;
-    if (remaining < p->life) {
-        sizeStep = (f32)(chainChomp_launchFlashParams[5] - chainChomp_launchFlashParams[4]) / 100000.0f / (f32)duration;
-        alphaStep = (chainChomp_launchFlashParams[8] - chainChomp_launchFlashParams[7]) / duration;
-    } else {
-        sizeStep = (f32)(chainChomp_launchFlashParams[6] - chainChomp_launchFlashParams[5]) / 100000.0f / (f32)remaining;
-        alphaStep = (chainChomp_launchFlashParams[9] - chainChomp_launchFlashParams[8]) / remaining;
-    }
-    alpha += alphaStep;
-    if (alpha < 0) {
-        alpha = 0;
-    }
-    if (alpha > 0xFF) {
-        alpha = 0xFF;
-    }
-    p->sizeX += sizeStep;
-    p->sizeY = p->sizeX;
-    p->alphaByte = alpha;
-    p->colorR = p->colorG = p->colorB = p->alphaByte;
-    p->life--;
     return 0;
 }
 
