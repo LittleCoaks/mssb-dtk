@@ -2444,25 +2444,6 @@ void fn_3_101CC4(void) {
             g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
             break;
         }
-        case 5: {
-            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
-            f32 dx;
-            f32 dz;
-            f32 t;
-            if (dist < 0.0f) {
-                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
-            }
-            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
-            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
-            if (0.0f == dz) {
-                dz = 0.0001f;
-            }
-            t = dist / dz;
-            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
-            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
-            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
-            break;
-        }
         case 6: {
             f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
             f32 dx;
@@ -2482,6 +2463,25 @@ void fn_3_101CC4(void) {
             g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x - dx) + dx * t;
             g_pCamera->_2840.y = (g_Ball.AtBat_Contact_BallPos.y - dy) + dy * t;
             g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z - dz) + dz * t;
+            break;
+        }
+        case 5: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
             break;
         }
         case 7: {
@@ -2676,25 +2676,6 @@ void fn_3_1000D8(void) {
             g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
             break;
         }
-        case 5: {
-            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
-            f32 dx;
-            f32 dz;
-            f32 t;
-            if (dist < 0.0f) {
-                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
-            }
-            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
-            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
-            if (0.0f == dz) {
-                dz = 0.0001f;
-            }
-            t = dist / dz;
-            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
-            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
-            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
-            break;
-        }
         case 6: {
             f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
             f32 dx;
@@ -2714,6 +2695,25 @@ void fn_3_1000D8(void) {
             g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x - dx) + dx * t;
             g_pCamera->_2840.y = (g_Ball.AtBat_Contact_BallPos.y - dy) + dy * t;
             g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z - dz) + dz * t;
+            break;
+        }
+        case 5: {
+            f32 dist = g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            f32 dx;
+            f32 dz;
+            f32 t;
+            if (dist < 0.0f) {
+                dist = -g_Ball.AtBat_Contact_BallPos.z - g_pCamera->_2858.z;
+            }
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.pastCoordinates[0].z;
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.pastCoordinates[0].x;
+            if (0.0f == dz) {
+                dz = 0.0001f;
+            }
+            t = dist / dz;
+            g_pCamera->_2840.x = (g_Ball.AtBat_Contact_BallPos.x + dx) - dx * t;
+            g_pCamera->_2840.y = g_Ball.AtBat_Contact_BallPos.y;
+            g_pCamera->_2840.z = (g_Ball.AtBat_Contact_BallPos.z + dz) - dz * t;
             break;
         }
         case 7: {
