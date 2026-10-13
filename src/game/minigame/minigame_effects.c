@@ -1649,8 +1649,7 @@ void wallBall_updateBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
         p->origin.y = 0.0f;
         p->velY = -p->velY * ((f32)wallBall_noteBlockBurstParams[15] / 100000.0f);
     }
-    p->life--;
-    if (p->life == 0) {
+    if (--p->life == 0) {
         wallBall_placeBounceParticle(effect, p);
     }
 }
