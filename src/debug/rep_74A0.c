@@ -224,7 +224,7 @@ void fn_1_1CBE4(void) {
         currentDrawingItem->state++;
         break;
     case 3:
-        if (*((u8 *)&lbl_803C6CF8 + 0x715) == 1) {
+        if (lbl_803C6CF8.cancel.bytes[1] == 1) {
             scene->state = 1;
         }
         break;
@@ -510,8 +510,8 @@ void fn_1_1B7DC(void) {
 void fn_1_1B6BC(void) {
     Mtx44 proj;
 
-    gCamera.eye.y = -0.8f;
     gCamera.eye.x = 0.0f;
+    gCamera.eye.y = -0.8f;
     gCamera.eye.z = 0.0f;
     gCamera.target.x = 0.0f;
     gCamera.target.y = 0.0f;
@@ -523,18 +523,20 @@ void fn_1_1B6BC(void) {
 
 // .text:0x0001B424 size:0x298
 void fn_1_1B424(void) {
-    Vec dir = {0.0f, 0.0f, 100.0f};
     Vec scaled;
+    Vec dir = {0.0f, 0.0f, 100.0f};
     Mtx rotX;
     Mtx rotY;
     Mtx rot;
+    f32 c;
+    f32 s;
 
     if (!(PAD_CUR & INPUT_TRIGGER_Z)) {
-        gCamera.eye.y += (f32)PAD_U8(0x15) / 1024.0f;
-        gCamera.strafe = (f32)PAD_S8(0x10) / -256.0f;
-        gCamera.forward = (f32)PAD_S8(0x11) / 256.0f;
         gCamera.yaw -= PAD_S8(0x13);
         gCamera.pitch += PAD_S8(0x12);
+        gCamera.strafe = (f32)PAD_S8(0x10) / -256.0f;
+        gCamera.forward = (f32)PAD_S8(0x11) / 256.0f;
+        gCamera.eye.y += (f32)PAD_U8(0x15) / 1024.0f;
         gCamera.eye.y -= (f32)PAD_U8(0x14) / 1024.0f;
     }
     scaled.x = gCamera.yaw;
@@ -543,12 +545,14 @@ void fn_1_1B424(void) {
     PSVECScale(&scaled, 0.0000958738f, &scaled);
     PSMTXRotRad(rotX, 'X', scaled.x);
     PSMTXRotRad(rotY, 'Y', scaled.y);
+    s = rotY[0][2];
+    c = rotY[0][0];
     PSMTXConcat(rotY, rotX, rot);
     PSMTXMultVec(rot, &dir, &gCamera.target);
-    gCamera.eye.x += gCamera.forward * rotY[0][2] - gCamera.strafe * rotY[0][0];
-    gCamera.eye.z += gCamera.forward * rotY[0][0] + gCamera.strafe * rotY[0][2];
-    gCamera.target.y += gCamera.eye.y;
+    gCamera.eye.x += gCamera.forward * s - gCamera.strafe * c;
+    gCamera.eye.z += gCamera.forward * c + gCamera.strafe * s;
     gCamera.target.x += gCamera.eye.x;
+    gCamera.target.y += gCamera.eye.y;
     gCamera.target.z += gCamera.eye.z;
     makeLookAtMatrix(gCamera.view, &gCamera.eye, &gUpVec, &gCamera.target);
 }
@@ -556,13 +560,17 @@ void fn_1_1B424(void) {
 // .text:0x0001B2C8 size:0x15C
 void fn_1_1B2C8(void) {
     DbgSlot *slot = &hugeAnimStruct.slots[DBG_SCENE()->slot];
+    f32 x = slot->pos.x + (f32)PAD_S8(0x10) / 768.0f;
+    f32 z = slot->pos.z + (f32)PAD_S8(0x11) / 768.0f;
+    f32 y = slot->pos.y + (f32)PAD_U8(0x15) / 768.0f - (f32)PAD_U8(0x14) / 768.0f;
 
-    slot->pos.y += (f32)PAD_U8(0x15) / 768.0f;
-    slot->pos.y -= (f32)PAD_U8(0x14) / 768.0f;
-    slot->pos.x += (f32)PAD_S8(0x10) / 768.0f;
-    slot->pos.z += (f32)PAD_S8(0x11) / 768.0f;
-    gRotAccum.x = slot->rot.x = gRotAccum.x - (f32)PAD_S8(0x13) / 512.0f;
-    gRotAccum.y = slot->rot.y = gRotAccum.y - (f32)PAD_S8(0x12) / 512.0f;
+    gRotAccum.y -= (f32)PAD_S8(0x12) / 512.0f;
+    gRotAccum.x -= (f32)PAD_S8(0x13) / 512.0f;
+    slot->pos.x = x;
+    slot->pos.y = y;
+    slot->pos.z = z;
+    slot->rot.x = gRotAccum.x;
+    slot->rot.y = gRotAccum.y;
     slot->rot.z = gRotAccum.z;
 }
 
@@ -570,23 +578,20 @@ void fn_1_1B2C8(void) {
 void fn_1_1B0FC(void) {
     GXColor color0 = {0xFF, 0xFF, 0xFF, 0xFF};
     GXColor color1 = {0x00, 0x00, 0xFF, 0xFF};
-    void **light0 = &hugeAnimStruct.lights[0];
-    void **light1 = &hugeAnimStruct.lights[1];
-    void **light2 = &hugeAnimStruct.lights[2];
 
-    LITAlloc(light0);
-    LITAlloc(light1);
-    LITAlloc(light2);
-    LITInitAttn(*light0, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(*light0, -100.0f, -100.0f, 100.0f);
-    LITInitColor(*light0, color0);
-    LITInitAttn(*light1, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(*light1, 500.0f, -500.0f, 250.0f);
-    LITInitColor(*light1, color1);
-    LITInitAttn(*light2, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(*light2, 0.0f, -500.0f, 250.0f);
-    LITInitColor(*light2, color1);
-    LITInitDir(*light0, 100.0f, 100.0f, -100.0f);
+    LITAlloc(&hugeAnimStruct.lights[0]);
+    LITAlloc(&hugeAnimStruct.lights[1]);
+    LITAlloc(&hugeAnimStruct.lights[2]);
+    LITInitAttn(hugeAnimStruct.lights[0], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(hugeAnimStruct.lights[0], -100.0f, -100.0f, 100.0f);
+    LITInitColor(hugeAnimStruct.lights[0], color0);
+    LITInitAttn(hugeAnimStruct.lights[1], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(hugeAnimStruct.lights[1], 500.0f, -500.0f, 250.0f);
+    LITInitColor(hugeAnimStruct.lights[1], color1);
+    LITInitAttn(hugeAnimStruct.lights[2], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(hugeAnimStruct.lights[2], 0.0f, -500.0f, 250.0f);
+    LITInitColor(hugeAnimStruct.lights[2], color1);
+    LITInitDir(hugeAnimStruct.lights[0], 100.0f, 100.0f, -100.0f);
 }
 
 // .text:0x0001B038 size:0xC4
@@ -1113,11 +1118,12 @@ void fn_1_1857C(ParticleEffect *effect) {
 // .text:0x000182C0 size:0x2BC
 void fn_1_182C0(Particle *p) {
     Control ctrl;
+    Vec quad[4];
     Mtx mtx;
     Mtx44 proj;
-    Vec quad[4];
-    f32 hx = p->sizeX * 0.5f;
-    f32 hy = p->sizeY * 0.5f;
+    int i;
+    f32 hx = p->sizeX / 2.0f;
+    f32 hy = p->sizeY / 2.0f;
 
     ctrl.type = 0;
     quad[1].x = hx;
@@ -1133,7 +1139,7 @@ void fn_1_182C0(Particle *p) {
     quad[1].z = 0.0f;
     quad[0].z = 0.0f;
     CTRLSetRotation(&ctrl, p->rot.x, p->rot.y, p->rot.z);
-    CTRLSetTranslation(&ctrl, 0.5f * p->pos.x * 0.5f * p->pos.z, 0.35f * p->pos.y * 0.5f * p->pos.z, -1.5f);
+    CTRLSetTranslation(&ctrl, 0.5f * p->pos.x / 2.0f * p->pos.z, 0.35f * p->pos.y / 2.0f * p->pos.z, -1.5f);
     CTRLBuildMatrix(&ctrl, mtx);
     GXLoadPosMtxImm(mtx, 0);
     GXSetCurrentMtx(0);
@@ -1141,22 +1147,14 @@ void fn_1_182C0(Particle *p) {
     GXSetProjection(proj, GX_ORTHOGRAPHIC);
     GXSetCullMode(GX_CULL_BACK);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    GXPosition3f32(quad[0].x, quad[0].y, quad[0].z);
-    GXColor1u32(p->col0.word);
-    GXPosition3f32(quad[1].x, quad[1].y, quad[1].z);
-    GXColor1u32(p->col0.word);
-    GXPosition3f32(quad[2].x, quad[2].y, quad[2].z);
-    GXColor1u32(p->col0.word);
-    GXPosition3f32(quad[3].x, quad[3].y, quad[3].z);
-    GXColor1u32(p->col0.word);
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(quad[i].x, quad[i].y, quad[i].z);
+        GXColor1u32(p->col0.word);
+    }
     GXSetCullMode(GX_CULL_FRONT);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    GXPosition3f32(quad[0].x, quad[0].y, quad[0].z);
-    GXColor1u32(p->col1.word);
-    GXPosition3f32(quad[1].x, quad[1].y, quad[1].z);
-    GXColor1u32(p->col1.word);
-    GXPosition3f32(quad[2].x, quad[2].y, quad[2].z);
-    GXColor1u32(p->col1.word);
-    GXPosition3f32(quad[3].x, quad[3].y, quad[3].z);
-    GXColor1u32(p->col1.word);
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(quad[i].x, quad[i].y, quad[i].z);
+        GXColor1u32(p->col1.word);
+    }
 }

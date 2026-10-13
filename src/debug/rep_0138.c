@@ -11,6 +11,7 @@
 #include "C3/control.h"
 #include "stl/math.h"
 #include "Dolphin/OS/OSCache.h"
+#include "game/match_setup/match_loading.h"
 
 typedef struct FogParams1_4E0 {
     GXColor color;
@@ -278,7 +279,7 @@ static CallbackRec lbl_1_data_8B4[2] = {{0, fn_1_7848}, {0, fn_1_7848}};
 static GXCullMode lbl_1_data_8C4 = GX_CULL_BACK;
 static u8 lbl_1_data_8C8 = 1;
 static s32 lbl_1_data_8CC = 7;
-static u32 lbl_1_data_8D0[21][4] = {
+static MatchFileDescriptor lbl_1_data_8D0[21] = {
     {0x0000040B, 0x40168A6C, 0x06CFD000, 0x000C69A8},
     {0x0000040B, 0x401331E0, 0x06DC4000, 0x000B67C4},
     {0x0000040B, 0x4011924C, 0x06E7A800, 0x000A5764},
@@ -354,25 +355,17 @@ void fn_1_8368(void) {
 
 // .text:0x00007FF8 size:0x370
 void fn_1_7FF8(void) {
-    s32 v;
-
     switch (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4)) {
-        case INPUT_BUTTON_UP: {
-            v = lbl_1_common_bss_472B4.fogSel - 1;
-            lbl_1_common_bss_472B4.fogSel = v;
-            if ((s8)v < 0) {
+        case INPUT_BUTTON_UP:
+            if ((s8)--lbl_1_common_bss_472B4.fogSel < 0) {
                 lbl_1_common_bss_472B4.fogSel = 5;
             }
             break;
-        }
-        case INPUT_BUTTON_DOWN: {
-            v = lbl_1_common_bss_472B4.fogSel + 1;
-            lbl_1_common_bss_472B4.fogSel = v;
-            if ((s8)v >= 6) {
+        case INPUT_BUTTON_DOWN:
+            if ((s8)++lbl_1_common_bss_472B4.fogSel >= 6) {
                 lbl_1_common_bss_472B4.fogSel = 0;
             }
             break;
-        }
         case INPUT_BUTTON_LEFT:
             switch ((s8)lbl_1_common_bss_472B4.fogSel) {
                 case 0: {
@@ -399,22 +392,16 @@ void fn_1_7FF8(void) {
                 case 3:
                     lbl_1_bss_4E0->color.b--;
                     break;
-                case 4: {
-                    f32 nz = lbl_1_bss_4E0->nearZ - 1.0f;
-                    lbl_1_bss_4E0->nearZ = nz;
-                    if (nz < 0.0f) {
+                case 4:
+                    if (--lbl_1_bss_4E0->nearZ < 0.0f) {
                         lbl_1_bss_4E0->nearZ = 0.0f;
                     }
                     break;
-                }
-                case 5: {
-                    f32 fz = lbl_1_bss_4E0->farZ - 1.0f;
-                    lbl_1_bss_4E0->farZ = fz;
-                    if (fz < 0.0f) {
+                case 5:
+                    if (--lbl_1_bss_4E0->farZ < 0.0f) {
                         lbl_1_bss_4E0->farZ = 0.0f;
                     }
                     break;
-                }
             }
             break;
         case INPUT_BUTTON_RIGHT:
@@ -443,24 +430,16 @@ void fn_1_7FF8(void) {
                 case 3:
                     lbl_1_bss_4E0->color.b++;
                     break;
-                case 4: {
-                    f32 nz = lbl_1_bss_4E0->nearZ;
-                    nz = 1.0f + nz;
-                    lbl_1_bss_4E0->nearZ = nz;
-                    if (nz > 512.0f) {
+                case 4:
+                    if (++lbl_1_bss_4E0->nearZ > 512.0f) {
                         lbl_1_bss_4E0->nearZ = 512.0f;
                     }
                     break;
-                }
-                case 5: {
-                    f32 fz = lbl_1_bss_4E0->farZ;
-                    fz = 1.0f + fz;
-                    lbl_1_bss_4E0->farZ = fz;
-                    if (fz > 512.0f) {
+                case 5:
+                    if (++lbl_1_bss_4E0->farZ > 512.0f) {
                         lbl_1_bss_4E0->farZ = 512.0f;
                     }
                     break;
-                }
             }
             break;
     }
@@ -511,15 +490,8 @@ void fn_1_7960(void) {
     Vec vec;
     Vec templatePt = {0.0f, 0.0f, 100.0f};
     f32 cosY;
-    f32 sinY;
-    f32 dx;
-    f32 dz;
-    f32 eyeX;
-    f32 eyeZ;
-    f32 targetY;
-    f32 targetX;
-    f32 targetZ;
     f32 inv;
+    f32 sinY;
     s32 i;
 
     lbl_1_common_bss_472B4.yaw -= INPUT1_FIELD(s8, 0x13) * 2;
@@ -546,12 +518,8 @@ void fn_1_7960(void) {
     PSMTXConcat(rotY, rotX, combined);
     PSMTXMultVec(combined, &templatePt, &lbl_1_common_bss_472B4.target);
 
-    dz = lbl_1_common_bss_472B4.strafe * cosY;
-    dx = lbl_1_common_bss_472B4.strafe * sinY;
-    dz = lbl_1_common_bss_472B4.forward * sinY - dz;
-    dx = lbl_1_common_bss_472B4.forward * cosY + dx;
-    lbl_1_common_bss_472B4.eye.x += dz;
-    lbl_1_common_bss_472B4.eye.z += dx;
+    lbl_1_common_bss_472B4.eye.x += lbl_1_common_bss_472B4.forward * sinY - lbl_1_common_bss_472B4.strafe * cosY;
+    lbl_1_common_bss_472B4.eye.z += lbl_1_common_bss_472B4.forward * cosY + lbl_1_common_bss_472B4.strafe * sinY;
     lbl_1_common_bss_472B4.target.x += lbl_1_common_bss_472B4.eye.x;
     lbl_1_common_bss_472B4.target.y += lbl_1_common_bss_472B4.eye.y;
     lbl_1_common_bss_472B4.target.z += lbl_1_common_bss_472B4.eye.z;
@@ -783,31 +751,33 @@ void fn_1_7280(void) {
 
 // .text:0x0000717C size:0x104
 void fn_1_717C(u8 *arg0) {
-    DbgActorSet *set0 = (DbgActorSet *)(arg0 + *(s32 *)(arg0 + 0x0));
-    void *geo0 = arg0 + *(s32 *)(arg0 + 0xc);
-    u8 *tex = arg0 + *(s32 *)(arg0 + 0x14);
-    void *geo1;
-    DbgActorSet *set1;
+    void *geo;
+    u8 *tex;
+    DbgActorSet *set;
+
+    set = (DbgActorSet *)(arg0 + *(s32 *)(arg0 + 0x0));
+    geo = arg0 + *(s32 *)(arg0 + 0xc);
+    tex = arg0 + *(s32 *)(arg0 + 0x14);
 
     fn_1_4DD8(arg0 + *(s32 *)(arg0 + 0x8));
-    AdjustActorPointers(set0);
-    AdjustGEOPalettePointers(geo0);
+    AdjustActorPointers(set);
+    AdjustGEOPalettePointers(geo);
     convertTextureHeader(tex);
     lbl_1_common_bss_472B4.texHeader = tex + 4;
-    UpdateTexturePalettePointers(geo0, tex);
-    haveActLayoutPointToGeoHeader(set0, geo0);
-    lbl_1_common_bss_472B4.actorCount = set0->count;
-    lbl_1_common_bss_472B4.nodes[1].model = set0;
-    lbl_1_common_bss_472B4.nodes[0].model = set0;
+    UpdateTexturePalettePointers(geo, tex);
+    haveActLayoutPointToGeoHeader(set, geo);
+    lbl_1_common_bss_472B4.actorCount = set->count;
+    lbl_1_common_bss_472B4.nodes[1].model = set;
+    lbl_1_common_bss_472B4.nodes[0].model = set;
 
-    set1 = (DbgActorSet *)(arg0 + *(s32 *)(arg0 + 0x4));
-    geo1 = arg0 + *(s32 *)(arg0 + 0x10);
-    AdjustActorPointers(set1);
-    AdjustGEOPalettePointers(geo1);
-    UpdateTexturePalettePointers(geo1, tex);
-    haveActLayoutPointToGeoHeader(set1, geo1);
-    lbl_1_common_bss_472B4.nodes2[1].model = set1;
-    lbl_1_common_bss_472B4.nodes2[0].model = set1;
+    set = (DbgActorSet *)(arg0 + *(s32 *)(arg0 + 0x4));
+    geo = arg0 + *(s32 *)(arg0 + 0x10);
+    AdjustActorPointers(set);
+    AdjustGEOPalettePointers(geo);
+    UpdateTexturePalettePointers(geo, tex);
+    haveActLayoutPointToGeoHeader(set, geo);
+    lbl_1_common_bss_472B4.nodes2[1].model = set;
+    lbl_1_common_bss_472B4.nodes2[0].model = set;
 }
 
 // .text:0x00006E14 size:0x368
@@ -835,22 +805,16 @@ void fn_1_6E14(void) {
 
     if (lbl_1_common_bss_472B4.menuOpen != 0) {
         switch (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4)) {
-            case INPUT_BUTTON_UP: {
-                s8 v = lbl_1_common_bss_472B4.menuSel - 1;
-                lbl_1_common_bss_472B4.menuSel = v;
-                if (v < 0) {
+            case INPUT_BUTTON_UP:
+                if (--lbl_1_common_bss_472B4.menuSel < 0) {
                     lbl_1_common_bss_472B4.menuSel = 7;
                 }
                 break;
-            }
-            case INPUT_BUTTON_DOWN: {
-                s8 v = lbl_1_common_bss_472B4.menuSel + 1;
-                lbl_1_common_bss_472B4.menuSel = v;
-                if (v >= 8) {
+            case INPUT_BUTTON_DOWN:
+                if (++lbl_1_common_bss_472B4.menuSel >= 8) {
                     lbl_1_common_bss_472B4.menuSel = 0;
                 }
                 break;
-            }
             case INPUT_BUTTON_A:
                 switch (lbl_1_common_bss_472B4.menuSel) {
                     case 0:
@@ -902,7 +866,6 @@ void fn_1_6E14(void) {
 // .text:0x00006848 size:0x5CC
 void fn_1_6848(void) {
     StadiumViewScene *item = (StadiumViewScene *)currentDrawingItem;
-    s32 v;
 
     switch (item->state) {
         case 0:
@@ -938,23 +901,17 @@ void fn_1_6848(void) {
         case 1:
             switch (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4)) {
                 case INPUT_BUTTON_UP:
-                    v = lbl_1_common_bss_472B4.stadium - 1;
-                    lbl_1_common_bss_472B4.stadium = v;
-                    if ((s8)v < 0) {
+                    if ((s8)--lbl_1_common_bss_472B4.stadium < 0) {
                         lbl_1_common_bss_472B4.stadium = lbl_1_data_8CC - 1;
                     }
                     break;
                 case INPUT_BUTTON_DOWN:
-                    v = lbl_1_common_bss_472B4.stadium + 1;
-                    lbl_1_common_bss_472B4.stadium = v;
-                    if ((s8)v >= lbl_1_data_8CC) {
+                    if ((s8)++lbl_1_common_bss_472B4.stadium >= lbl_1_data_8CC) {
                         lbl_1_common_bss_472B4.stadium = 0;
                     }
                     break;
                 case INPUT_BUTTON_B:
-                    v = lbl_1_common_bss_472B4.variant + 1;
-                    lbl_1_common_bss_472B4.variant = v;
-                    if ((s8)v > 2) {
+                    if ((s8)++lbl_1_common_bss_472B4.variant > 2) {
                         lbl_1_common_bss_472B4.variant = 0;
                     }
                     break;
@@ -970,7 +927,7 @@ void fn_1_6848(void) {
 
         case 2:
             item->index = (s8)lbl_1_common_bss_472B4.stadium * 3 + (s8)lbl_1_common_bss_472B4.variant;
-            item->model = ARAMTransfer(lbl_1_data_8D0[item->index], 0, 0, 0);
+            item->model = ARAMTransfer(&lbl_1_data_8D0[item->index], 0, 0, 0);
             item->state = 3;
             lbl_1_bss_4E0 = (FogParams1_4E0 *)((u8 *)lbl_1_data_2A8 + (s8)lbl_1_common_bss_472B4.stadium * 0x60 +
                                                (s8)lbl_1_common_bss_472B4.variant * 0xc);
@@ -981,7 +938,7 @@ void fn_1_6848(void) {
                 break;
             }
             fn_1_717C(item->model);
-            DCFlushRangeNoSync(item->model, lbl_1_data_8D0[item->index][1] & 0x0FFFFFFF);
+            DCFlushRangeNoSync(item->model, ((u32 *)&lbl_1_data_8D0[item->index])[1] & 0x0FFFFFFF);
             currentDrawingItem->func = fn_1_6E14;
             break;
     }
@@ -1023,10 +980,10 @@ void fn_1_66C4(void) {
 
 // .text:0x00006578 size:0x14C
 void fn_1_6578(GXTexObj *arg0, void *arg1, s32 arg2, s32 arg3) {
+    s32 minFilter;
     s32 levelW = arg2;
     s32 levelH = arg3;
     s32 offset = 0;
-    s32 minFilter;
     s32 i;
 
     if (lbl_1_data_A20 == 0) {
@@ -1299,13 +1256,13 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 s32 fn_1_5924(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     switch (arg3) {
         case 4:
-            return (arg1 / 8) * 32 + ((arg2 / 8) * arg0 * 8 + (arg2 % 8) * 8 + arg1 % 8);
+            return (arg1 / 8) * 32 + (arg2 / 8) * arg0 * 8 + (arg2 % 8) * 8 + (arg1 % 8);
         case 8:
-            return (arg1 / 8) * 32 + ((arg2 / 4) * arg0 * 4 + (arg2 % 4) * 8 + arg1 % 8);
+            return (arg1 / 8) * 32 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 8 + (arg1 % 8);
         case 0x10:
-            return (arg1 / 4) * 16 + ((arg2 / 4) * arg0 * 4 + (arg2 % 4) * 4 + arg1 % 4);
+            return (arg1 / 4) * 16 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 4 + (arg1 % 4);
         case 0x20: {
-            s32 result = (arg1 / 8) * 16 + ((arg2 / 4) * arg0 * 4 + (arg2 % 4) * 8 + arg1 % 4);
+            s32 result = (arg1 / 8) * 16 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 8 + (arg1 % 4);
             if (arg4 != 0) {
                 result += 0x10;
             }
