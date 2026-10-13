@@ -32,7 +32,7 @@ void callDSInsertListObject(UnkB2B4C* obj, u16 index);
 
 void maybeTransformVectorByAnimationMatrix(void* actor, u16 boneIndex, Vec* out);
 
-void actorBoneRelated(void);
+void actorBoneRelated(Actor* actor, sBone* bone, MtxPtr parentMtx);
 
 void f_BuildBoneSkinOrientationMatrix(sBone* root, MtxPtr out);
 

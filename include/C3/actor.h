@@ -57,10 +57,11 @@ typedef struct {
     /* 0x80 */ u16 unk80;
     /* 0x82 */ u16 unk82;
     /* 0x84 */ u16 unk84;
-    /* 0x86 */ u8 unk86[0x8C - 0x86];
+    /* 0x86 */ u8 unk86[0x88 - 0x86];
+    /* 0x88 */ u16 * unk88; // per-bone parent index, NULL when unused
     /* 0x8C */ f32 unk8C; // advanced by unk90 each tick, capped at 1.0
     /* 0x90 */ f32 unk90;
-    /* 0x94 */ u32 unk94;
+    /* 0x94 */ s32 (*unk94)(sBone * bone, sBone * parentBone, MtxPtr local, f32 weight);
     /* 0x98 */ u8 unk98;
     /* 0x99 */ u8 unk99; // passed to ANIMTick for every bone
     /* 0x9A */ u8 unk9A[0xA0 - 0x9A];

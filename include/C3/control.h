@@ -45,6 +45,7 @@ void CTRLGetScale(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLGetRotation(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLGetQuat(Control *control, f32 *x, f32 *y, f32 *z, f32 *w);
 void CTRL_SetQuatUnk(Control *control, f32 x, f32 y, f32 z, f32 w);
+void fn_800B84AC(Control *control, Control *r3, Control *r4, f32 f1);
 void CTRL_GetQuatUnk(const Control *control, f32 *x, f32 *y, f32 *z, f32 *w);
 void CTRLGetTranslation(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLBuildMatrix(Control *control, Mtx m);

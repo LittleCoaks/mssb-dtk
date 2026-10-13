@@ -117,8 +117,96 @@ void fn_800B2D5C(Actor* actor) {
     }
 }
 
-void actorBoneRelated(void) {
-    return;
+void actorBoneRelated(Actor* actor, sBone* bone, MtxPtr parentMtx) {
+    Mtx local;
+    Mtx tmp;
+    Mtx rot;
+    sBone* parent;
+    sBone* parentBone;
+    f32 weight;
+    u16 index;
+    u8 axis;
+
+    switch (bone->unk134 & 3) {
+    case 0:
+        weight = 1.0f;
+        break;
+    case 1:
+        weight = actor->unk8C;
+        break;
+    case 2:
+        weight = actor->unk8C * actor->unk8C;
+        break;
+    default:
+        weight = 1.0f;
+        break;
+    }
+
+    for (index = 0; index < actor->totalBones; index++) {
+        if (actor->boneArray[index]->boneID == bone->boneID) {
+            break;
+        }
+    }
+
+    parent = (sBone*)bone->branch.Parent;
+    if (parent != NULL) {
+        actorBoneRelated(actor, parent, parentMtx);
+    }
+
+    if (bone->unk134 & 0x20) {
+        if (bone->unk134 & 0x4) {
+            *(f32*)((u8*)bone + 0xC4) = *(f32*)((u8*)bone + 0x80);
+        }
+        if (bone->unk134 & 0x8) {
+            *(f32*)((u8*)bone + 0xC8) = *(f32*)((u8*)bone + 0x84);
+        }
+        if (bone->unk134 & 0x10) {
+            *(f32*)((u8*)bone + 0xCC) = *(f32*)((u8*)bone + 0x88);
+        }
+    }
+
+    if (bone->animationCtrl.type == 0) {
+        CTRLBuildMatrix(&bone->orientationCtrl, local);
+    } else {
+        if (actor->unk88 == NULL) {
+            fn_800B84AC(&bone->animationCtrl, &bone->unkA4, &bone->animationCtrl, weight);
+            CTRLBuildMatrix(&bone->animationCtrl, local);
+        } else {
+            parentBone = actor->boneArray[actor->unk88[index]];
+            if (actor->unk94 == NULL || actor->unk94(bone, parentBone, local, weight) == 0) {
+                parentBone = actor->boneArray[actor->unk88[index]];
+                fn_800B84AC(&parentBone->animationCtrl, &parentBone->unkA4, &parentBone->animationCtrl, weight);
+                if (parent != NULL) {
+                    CTRLBuildMatrix_FlipY(&parentBone->animationCtrl, local);
+                } else {
+                    CTRLBuildMatrix_FlipX(&parentBone->animationCtrl, local);
+                }
+
+                axis = bone->unk137;
+                if (axis == 1) {
+                    PSMTXRotRad(rot, 'X', 3.1415927f);
+                    PSMTXConcat(rot, local, local);
+                } else if (axis == 2) {
+                    PSMTXRotRad(rot, 'Y', 3.1415927f);
+                    PSMTXConcat(rot, local, local);
+                } else if (axis == 3) {
+                    PSMTXRotRad(rot, 'Z', 3.1415927f);
+                    PSMTXConcat(rot, local, local);
+                }
+            }
+        }
+
+        if (bone->animPipe->replaceHierarchyCtrl == 0) {
+            CTRLBuildMatrix(&bone->orientationCtrl, tmp);
+            PSMTXConcat(tmp, local, local);
+        }
+    }
+
+    if (bone->inheritanceFlag == 1 && parent != NULL) {
+        PSMTXConcat(parent->forwardMtx, local, bone->forwardMtx);
+    } else {
+        PSMTXConcat(parentMtx, local, bone->forwardMtx);
+    }
 }
 
 void f_BuildBoneSkinOrientationMatrix(sBone* root, MtxPtr out) {
@@ -281,7 +369,7 @@ Actor* maybeProcessActLayout(ActorLayout* layout) {
     actor->unk80 = 0;
     actor->unk82 = 0;
     actor->unk84 = 0;
-    *(u32*)&actor->unk86[2] = 0;
+    actor->unk88 = NULL;
     actor->unk8C = 1.0f;
     actor->unk90 = 0.0f;
     actor->unk94 = 0;
