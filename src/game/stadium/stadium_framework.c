@@ -300,6 +300,7 @@ static f32 lbl_3_bss_1908;
 static StadiumObject* stadiumObjBackup;
 static u8 lbl_3_bss_1902;
 static u8 lbl_3_bss_1901;
+static u8 lbl_3_bss_1900; /* never referenced, but present in the original .bss layout */
 
 // .text:0x000B9FB8 size:0x198 mapped:0x806F904C
 void loadStadiumLighting(int stadiumType, void* stadiumData) {
