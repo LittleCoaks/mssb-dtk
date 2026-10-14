@@ -272,14 +272,14 @@ void fn_1_3E38(Vec *p, u32 key) {
 
 // .text:0x000025BC size:0x187C
 void fn_1_25BC(DlPrim *p) {
-    DlVertex *v;
-    DlVertex *vi;
-    u32 key;
-    u32 prev;
-    u32 n;
-    u32 cnt;
-    u32 i;
     u32 left;
+    u32 key;
+    DlVertex *v;
+    u32 prev;
+    DlVertex *vi;
+    u32 cnt;
+    u32 n;
+    u32 i;
 
     do {
         n = p->count;
@@ -305,9 +305,10 @@ void fn_1_25BC(DlPrim *p) {
             }
         } else {
             cnt = 0;
-            prev = p->verts[0].key;
+            i = n + 2;
             vi = p->verts;
-            for (i = n + 2; i != 0; vi++, i--) {
+            prev = p->verts[0].key;
+            for (; i != 0; vi++, i--) {
                 cnt++;
                 if (prev != vi->key) {
                     prev = vi->key;

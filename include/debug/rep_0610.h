@@ -51,9 +51,15 @@ typedef struct DbgActorTbl {
     /*0x34*/ DbgActorEnt e[1];
 } DbgActorTbl;
 
+typedef struct DbgAnimTrack {
+    /*0x0*/ u32 f0;
+    /*0x4*/ f32 *keys;
+    /*0x8*/ u16 count;
+} DbgAnimTrack; // size 0xC
+
 typedef struct DbgAnimEntry {
     /*0x00*/ u8 pad0[4];
-    /*0x04*/ u32 (*p4)[3];
+    /*0x04*/ DbgAnimTrack *p4;
 } DbgAnimEntry;
 
 typedef struct DbgActor {

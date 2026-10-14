@@ -31,8 +31,33 @@ typedef struct StadiumViewScene {
 
 #define INPUT1_FIELD(type, off) (*(type *)((u8 *)&AtBat_ButtonInput1 + (off)))
 
+typedef struct DbgVtxArray {
+    /*0x00*/ s16 *data;
+    /*0x04*/ u8 pad04[2];
+    /*0x06*/ u8 format;
+    /*0x07*/ u8 stride;
+} DbgVtxArray;
+
+typedef struct DbgDLEntry {
+    /*0x00*/ u8 cmd;
+    /*0x01*/ u8 pad01[3];
+    /*0x04*/ u32 attrFlags;
+    /*0x08*/ u8 *stream;
+    /*0x0C*/ u32 size;
+} DbgDLEntry;
+
+typedef struct DbgDLHeader {
+    /*0x00*/ u8 pad00[4];
+    /*0x04*/ DbgDLEntry *entries;
+    /*0x08*/ u16 count;
+} DbgDLHeader;
+
 typedef struct DbgGeo {
-    /*0x00*/ u8 pad00[0x18];
+    /*0x00*/ DbgVtxArray *pos;
+    /*0x04*/ u8 pad04[8];
+    /*0x0C*/ DbgVtxArray *nrm;
+    /*0x10*/ DbgDLHeader *dl;
+    /*0x14*/ u8 pad14[4];
     /*0x18*/ Mtx mtx;
     /*0x48*/ u8 pad48[0x54 - 0x48];
     /*0x54*/ f32 minX;
@@ -1258,13 +1283,13 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 s32 fn_1_5924(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     switch (arg3) {
         case 4:
-            return (arg1 / 8) * 32 + (arg2 / 8) * arg0 * 8 + (arg2 % 8) * 8 + (arg1 % 8);
+            return (arg2 % 8) * 8 + (arg1 % 8) + (arg1 / 8) * 32 + (arg2 / 8) * (arg0 * 8);
         case 8:
-            return (arg1 / 8) * 32 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 8 + (arg1 % 8);
+            return (arg2 % 4) * 8 + (arg1 % 8) + (arg1 / 8) * 32 + (arg2 / 4) * (arg0 * 4);
         case 0x10:
-            return (arg1 / 4) * 16 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 4 + (arg1 % 4);
+            return (arg2 % 4) * 4 + (arg1 % 4) + (arg1 / 4) * 16 + (arg2 / 4) * (arg0 * 4);
         case 0x20: {
-            s32 result = (arg1 / 8) * 16 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 8 + (arg1 % 4);
+            s32 result = (arg2 % 4) * 8 + (arg1 % 4) + (arg1 / 8) * 16 + (arg2 / 4) * (arg0 * 4);
             if (arg4 != 0) {
                 result += 0x10;
             }
@@ -1357,19 +1382,18 @@ void fn_1_54E0(void *arg0) {
 // .text:0x00004E98 size:0x648
 #pragma dont_inline on
 void fn_1_4E98(void *arg0, void *arg1) {
-    u8 *obj = (u8 *)arg0;
+    DbgGeo *geo = (DbgGeo *)arg0;
     Mtx concat;
-    s32 attrType[12];
+    s32 attrType[21];
     f32 vx, vy, vz;
+    s32 nrmIdx;
+    s32 posIdx;
+    s32 vcount;
     s32 i;
+    u32 consumed;
+    u8 *stream;
 
-    if (*(s32 *)(obj + 0xc) == 0) {
-        return;
-    }
-    if (*(s32 *)(obj + 0x0) == 0) {
-        return;
-    }
-    if (*(s32 *)(obj + 0x10) == 0) {
+    if (geo->nrm == NULL || geo->pos == NULL || geo->dl == NULL) {
         return;
     }
 
@@ -1385,152 +1409,179 @@ void fn_1_4E98(void *arg0, void *arg1) {
     GXSetNumTevStages(1);
     GXSetNumTexGens(0);
     GXSetTevOp(0, 4);
-    PSMTXConcat((f32(*)[4])arg1, (f32(*)[4])(obj + 0x18), concat);
+    PSMTXConcat((MtxPtr)arg1, geo->mtx, concat);
     GXLoadPosMtxImm(concat, 0);
     GXSetCurrentMtx(0);
 
-    for (i = 0; i < *(u16 *)(*(u8 **)(obj + 0x10) + 8); i++) {
-        u8 *dataArr = *(u8 **)(*(u8 **)(obj + 0x10) + 4);
-        u8 *record = dataArr + i * 0x10;
-        u8 cmd = *record;
+    for (i = 0; i < geo->dl->count; i++) {
+        switch (geo->dl->entries[i].cmd) {
+            case 0:
+            case 1:
+                break;
+            case 2: {
+                u32 flags;
+                s32 j;
+                s32 shift;
 
-        if (cmd == 2) {
-            u32 flags = *(u32 *)(record + 4);
-            s32 j;
-            memset(attrType, 0, sizeof(attrType));
-            for (j = 0; j < 12; j++) {
-                s32 v = (flags >> (2 + j * 2)) & 3;
-                if (v != 0) {
-                    attrType[j] = v;
+                memset(attrType, 0, sizeof(attrType));
+                flags = geo->dl->entries[i].attrFlags;
+                for (j = 9, shift = 2; j < 21; j++, shift += 2) {
+                    s32 v = (flags >> shift) & 3;
+                    if (v != 0) {
+                        attrType[j] = v;
+                    }
                 }
+                break;
             }
         }
 
-        {
-            u8 *stream = *(u8 **)(dataArr + i * 0x10 + 8);
-            if (stream != NULL) {
-                u32 consumed = 0;
-                u32 length = *(u32 *)(dataArr + i * 0x10 + 0xc);
+        stream = geo->dl->entries[i].stream;
+        if (stream != NULL) {
 
-                while (consumed < length) {
-                    u8 sub = *stream;
-                    s32 matched = 1;
+            consumed = 0;
+            while (consumed < geo->dl->entries[i].size) {
+                s32 handled = 0;
 
-                    switch (sub) {
-                        case 0:
-                            stream += 1;
-                            consumed += 1;
-                            break;
-                        case 8:
-                            stream += 6;
-                            consumed += 6;
-                            break;
-                        case 0x10: {
-                            u16 v = *(u16 *)stream;
-                            s32 adv = v * 4 + 5;
-                            stream += adv;
-                            consumed += adv;
-                            break;
-                        }
-                        case 0x20:
-                        case 0x28:
-                        case 0x30:
-                        case 0x38:
-                            stream += 5;
-                            break;
-                        case 0x40:
-                        case 0x48:
-                            stream += 1;
-                            consumed += 1;
-                            break;
-                        case 0x61:
-                            stream += 5;
-                            consumed += 5;
-                            break;
-                        default:
-                            matched = 0;
-                            break;
+                switch (*stream) {
+                    case 0:
+                        handled = 1;
+                        stream += 1;
+                        consumed += 1;
+                        break;
+                    case 0x61:
+                        handled = 1;
+                        stream += 5;
+                        consumed += 5;
+                        break;
+                    case 8:
+                        handled = 1;
+                        stream += 6;
+                        consumed += 6;
+                        break;
+                    case 0x10: {
+                        s32 adv = *(u16 *)stream * 4 + 5;
+                        handled = 1;
+                        stream += adv;
+                        consumed += adv;
+                        break;
                     }
+                    case 0x20:
+                    case 0x28:
+                    case 0x30:
+                    case 0x38:
+                        handled = 1;
+                        stream += 5;
+                        break;
+                    case 0x40:
+                    case 0x48:
+                        handled = 1;
+                        stream += 1;
+                        consumed += 1;
+                        break;
+                    case 0x80:
+                    case 0x90:
+                    case 0x98:
+                    case 0xa0:
+                    case 0xa8:
+                    case 0xb0:
+                    case 0xb8:
+                        break;
+                }
 
-                    if (matched) {
-                        continue;
-                    }
+                if (handled == 0) {
+                    vcount = *(u16 *)(stream + 1);
 
-                    {
-                        u16 vcount = *(u16 *)(stream + 1);
-                        s32 v;
-                        stream += 3;
-                        GXBegin((GXPrimitive)0xa8, (GXVtxFmt)0, (u16)(vcount * 2));
+                    stream += 3;
+                    consumed += 3;
+                    GXBegin(GX_LINES, GX_VTXFMT0, vcount * 2);
 
-                        for (v = 0; v < vcount; v++) {
-                            s32 posIdx = 0, nrmIdx = 0;
-                            s32 k, va;
+                    while (vcount-- != 0) {
+                        s32 k;
+                        s32 attr;
+                        DbgVtxArray *arr;
+                        u8 format;
+                        u8 stride;
+                        f32 scale;
 
-                            for (k = 0, va = 9; k < 12; k++, va++) {
-                                s32 t = attrType[k];
-                                if (t == 0) {
-                                    continue;
+                        for (k = 0, attr = 9; k < 12; k++, attr++) {
+                            s32 t = attrType[attr];
+                            if (t != 0) {
+                                switch (attr) {
+                                    case 9:
+                                        switch (t) {
+                                            case 1:
+                                                break;
+                                            case 2:
+                                                posIdx = stream[0];
+                                                break;
+                                            case 3:
+                                                posIdx = *(u16 *)stream;
+                                                break;
+                                        }
+                                        break;
+                                    case 10:
+                                        switch (t) {
+                                            case 1:
+                                                break;
+                                            case 2:
+                                                nrmIdx = stream[0];
+                                                break;
+                                            case 3:
+                                                nrmIdx = *(u16 *)stream;
+                                                break;
+                                        }
+                                        break;
                                 }
-                                if (va == 9) {
-                                    if (t == 2) {
-                                        posIdx = stream[0];
-                                    } else if (t == 3) {
-                                        posIdx = *(u16 *)stream;
-                                    }
-                                } else if (va == 10) {
-                                    if (t == 2) {
-                                        nrmIdx = stream[0];
-                                    } else if (t == 3) {
-                                        nrmIdx = *(u16 *)stream;
-                                    }
-                                }
-                                if (t == 2) {
-                                    stream += 1;
-                                    consumed += 1;
-                                } else if (t == 3) {
-                                    stream += 2;
-                                    consumed += 2;
+                                switch (t) {
+                                    case 2:
+                                        stream += 1;
+                                        consumed += 1;
+                                        break;
+                                    case 3:
+                                        stream += 2;
+                                        consumed += 2;
+                                        break;
                                 }
                             }
-
-                            {
-                                u8 *ds0 = *(u8 **)(obj + 0x0);
-                                u8 mode0 = ds0[6];
-                                u8 stride0 = ds0[7];
-                                f32 scale0 = (f32)(1 << (mode0 & 0xf));
-                                if (((mode0 >> 4) & 0xf) == 3) {
-                                    s16 *arr = *(s16 **)ds0;
-                                    s16 *p = arr + stride0 * posIdx;
-                                    vx = (f32)(s32)p[0] / scale0;
-                                    vy = (f32)(s32)p[1] / scale0;
-                                    vz = (f32)(s32)p[2] / scale0;
-                                }
-                            }
-
-                            GXWGFifo.f32 = vx;
-                            GXWGFifo.f32 = vy;
-                            GXWGFifo.f32 = vz;
-                            GXWGFifo.u32 = 0xff0000ff;
-
-                            {
-                                u8 *ds1 = *(u8 **)(obj + 0xc);
-                                u8 mode1 = ds1[6];
-                                u8 stride1 = ds1[7];
-                                f32 scale1 = (f32)(1 << (mode1 & 0xf));
-                                if (((mode1 >> 4) & 0xf) == 3) {
-                                    s16 *arr = *(s16 **)ds1;
-                                    s16 *p = arr + stride1 * nrmIdx;
-                                    vx += (f32)(s32)p[0] / scale1;
-                                    vy += (f32)(s32)p[1] / scale1;
-                                    vz += (f32)(s32)p[2] / scale1;
-                                }
-                            }
-
-                            GXWGFifo.f32 = vx;
-                            GXWGFifo.f32 = vy;
-                            GXWGFifo.f32 = vz;
-                            GXWGFifo.u32 = 0xffff;
                         }
+
+                        arr = geo->pos;
+                        format = arr->format;
+                        stride = arr->stride;
+                        scale = 1 << (format & 0xf);
+                        switch ((format >> 4) & 0xf) {
+                            case 3: {
+                                s16 *p = arr->data;
+                                p += stride * posIdx;
+                                vx = p[0] / scale;
+                                vy = p[1] / scale;
+                                vz = p[2] / scale;
+                                break;
+                            }
+                        }
+                        GXWGFifo.f32 = vx;
+                        GXWGFifo.f32 = vy;
+                        GXWGFifo.f32 = vz;
+                        GXWGFifo.u32 = 0xff0000ff;
+
+                        arr = geo->nrm;
+                        format = arr->format;
+                        stride = arr->stride;
+                        scale = 1 << (format & 0xf);
+                        switch ((format >> 4) & 0xf) {
+                            case 3: {
+                                s16 *p = arr->data;
+                                p += stride * nrmIdx;
+                                vx += p[0] / scale;
+                                vy += p[1] / scale;
+                                vz += p[2] / scale;
+                                break;
+                            }
+                        }
+                        GXWGFifo.f32 = vx;
+                        GXWGFifo.f32 = vy;
+                        GXWGFifo.f32 = vz;
+                        GXWGFifo.u32 = 0xffff;
                     }
                 }
             }

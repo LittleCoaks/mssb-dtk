@@ -109,7 +109,8 @@ static u8 lbl_1_bss_6988[1][0x64];
 static DbgSel lbl_1_bss_6940[1];
 static DbgBuf68FC lbl_1_bss_68FC;
 static DbgBuf67E0 lbl_1_bss_67E0;
-static void *lbl_1_bss_67B8[10];
+static void *lbl_1_bss_67CC[5];
+static void *lbl_1_bss_67B8[5];
 static u8 lbl_1_bss_60EC[0x6CC];
 static u32 lbl_1_bss_60E8;
 static u32 lbl_1_bss_60E4;
@@ -141,7 +142,7 @@ static f32 lbl_1_bss_5F64;
 static u8 gap_5F63;
 static u8 lbl_1_bss_5F62;
 static u16 lbl_1_bss_5F60;
-static u32 lbl_1_bss_5F5C;
+static s32 lbl_1_bss_5F5C;
 static s32 lbl_1_bss_5F58;
 static u8 lbl_1_bss_3758[8][0x500];
 static DbgPtc lbl_1_bss_3258[8][5];
@@ -161,7 +162,7 @@ static u8 lbl_1_bss_30B6;
 static s16 lbl_1_bss_30B4;
 static u32 lbl_1_bss_30B0;
 static u8 gap_30AC[4];
-static u32 lbl_1_bss_30A8;
+static s32 lbl_1_bss_30A8;
 static u8 gap_30A7;
 static u8 gap_30A6;
 static u16 lbl_1_bss_30A4;
@@ -190,8 +191,6 @@ static u8 gap_3073;
 static u8 gap_3072;
 static u8 gap_3071;
 static u8 lbl_1_bss_3070;
-#define lbl_1_bss_67CC (lbl_1_bss_67B8[5])
-#define lbl_1_bss_67D0 (&lbl_1_bss_67B8[6])
 
 static u16 lbl_1_data_1DC0[44] = {
     0x0016, 0x0010, 0x0017, 0x0011, 0x0018, 0x0012, 0x0019, 0x0013,
@@ -2149,8 +2148,8 @@ static inline void dbgMoveCamera(void) {
     a->pos.x += sx;
     a->pos.y = a->pos.y + rt - lt;
     a->pos.z += sy;
-    lbl_1_data_AD0C[0] -= cy * 0.001953125f;
-    lbl_1_data_AD0C[1] -= cx * 0.001953125f;
+    lbl_1_data_AD0C[0] -= cy / 512.0f;
+    lbl_1_data_AD0C[1] -= cx / 512.0f;
     a->rotX = lbl_1_data_AD0C[0];
     a->rotY = lbl_1_data_AD0C[1];
     a->rotZ = lbl_1_data_AD0C[2];
@@ -2577,12 +2576,12 @@ void fn_1_165E0(void) {
 // .text:0x00016590 size:0x50
 u32 fn_1_16590(void) {
     DbgSel *s = &lbl_1_bss_6940[lbl_1_bss_5F73];
-    return hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[s->f44]->p4[s->f45][0];
+    return hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[s->f44]->p4[s->f45].f0;
 }
 
 // .text:0x00016558 size:0x38
 u32 fn_1_16558(s32 a, s32 b) {
-    return hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[a]->p4[b][0];
+    return hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[a]->p4[b].f0;
 }
 
 #pragma dont_inline on
@@ -2754,7 +2753,7 @@ void fn_1_15760(void) {
         } else if (b & INPUT_BUTTON_LEFT) {
             switch (lbl_1_bss_307C) {
             case 0: {
-                u8 old = lbl_1_bss_6940[0].f44;
+                s32 old = lbl_1_bss_6940[0].f44;
                 u8 k = old;
                 do {
                     if (k != 0) {
@@ -2812,7 +2811,7 @@ void fn_1_15760(void) {
         } else if (b & INPUT_BUTTON_RIGHT) {
             switch (lbl_1_bss_307C) {
             case 0: {
-                u8 old = lbl_1_bss_6940[0].f44;
+                s32 old = lbl_1_bss_6940[0].f44;
                 u8 k = old;
                 do {
                     k = k + 1;
@@ -3364,20 +3363,20 @@ void fn_1_135C0(void) {
     }
     characterAndBallDisplayRelated((u8 *)&hugeAnimStruct.objs->e[0], 0, 0, layout, anim, (int)geoExtra);
     dbgSetAnim((u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
-    lbl_1_bss_67CC = (void *)hugeAnimStruct.slots[0].p8->f10;
-    if (lbl_1_bss_67CC != NULL && lbl_1_bss_6940[lbl_1_bss_5F73].f46 == 0) {
-        adjustInternalPointers(lbl_1_bss_67CC);
-        ACTActorRelated(lbl_1_bss_67CC, (u8 *)&hugeAnimStruct.objs->e[0]);
+    lbl_1_bss_67CC[0] = (void *)hugeAnimStruct.slots[0].p8->f10;
+    if (lbl_1_bss_67CC[0] != NULL && lbl_1_bss_6940[lbl_1_bss_5F73].f46 == 0) {
+        adjustInternalPointers(lbl_1_bss_67CC[0]);
+        ACTActorRelated(lbl_1_bss_67CC[0], (u8 *)&hugeAnimStruct.objs->e[0]);
         if (DBG_A978[lbl_1_bss_68FC.f40[0]] >= 0) {
             for (k = 0; k < 4; k++) {
-                lbl_1_bss_67D0[k] = ((void **)lbl_1_bss_60A0[0])[8 + k];
-                adjustInternalPointers(lbl_1_bss_67D0[k]);
-                ACTActorRelated(lbl_1_bss_67D0[k], (u8 *)&lbl_1_bss_5F7C->e[k]);
+                lbl_1_bss_67CC[k + 1] = ((void **)lbl_1_bss_60A0[0])[8 + k];
+                adjustInternalPointers(lbl_1_bss_67CC[k + 1]);
+                ACTActorRelated(lbl_1_bss_67CC[k + 1], (u8 *)&lbl_1_bss_5F7C->e[k]);
                 if (k + 1 == 4) {
                     *(u32 *)&lbl_1_bss_60EC[k * 0x5C + 0x5C] = ((u32 *)lbl_1_bss_60A0[0])[15];
                 } else {
                     *(u32 *)&lbl_1_bss_60EC[k * 0x5C + 0x5C] = ((u32 *)lbl_1_bss_60A0[0])[k + 13];
-                    actRelated(lbl_1_bss_67D0[k], &lbl_1_bss_60EC[(k + 1) * 0x5C]);
+                    actRelated(lbl_1_bss_67CC[k + 1], &lbl_1_bss_60EC[(k + 1) * 0x5C]);
                     actorRelated(&lbl_1_bss_60EC[(k + 1) * 0x5C], 0, 0);
                 }
                 lbl_1_bss_67B8[k + 1] = &lbl_1_bss_60EC[(k + 1) * 0x5C + 0xC];
@@ -3386,7 +3385,7 @@ void fn_1_135C0(void) {
         }
         if (lbl_1_bss_3070 != 0) {
             *(u32 *)&lbl_1_bss_60EC[0x5C] = ((u32 *)lbl_1_bss_60A0[0])[12];
-            actRelated(lbl_1_bss_67CC, lbl_1_bss_60EC);
+            actRelated(lbl_1_bss_67CC[0], lbl_1_bss_60EC);
             actorRelated(lbl_1_bss_60EC, 0, 0);
             lbl_1_bss_67B8[0] = &lbl_1_bss_60EC[0xC];
         }
@@ -3610,28 +3609,34 @@ void fn_1_12F18(DbgBlob *s) {
     }
 }
 
+static inline void dbgSetPlaySpeed(DbgActorEnt *obj, f32 speed) {
+    *(f32 *)((u8 *)obj + 0x54) = speed;
+    *((u8 *)obj + 0x5A) = 1;
+    if (lbl_1_bss_67B8[0] != NULL) {
+        ((DbgGaugeLink *)lbl_1_bss_67B8[0])->value = speed;
+    }
+}
+
 // .text:0x000129D0 size:0x548
 void fn_1_129D0(void) {
     DbgActorEnt *obj0;
+    DbgActor *s;
     f32 speed;
     f32 val;
     s32 k;
     s32 idx;
     fn_1_D4BC();
     fn_1_11C98();
+    s = hugeAnimStruct.slots;
     obj0 = &hugeAnimStruct.objs->e[0];
     CTRLSetTranslation((Control *)((u8 *)obj0 + 0x10), 0.0f, 0.0f, 0.0f);
-    CTRLSetRotation((Control *)((u8 *)obj0 + 0x10), 57.295776f * hugeAnimStruct.slots[0].rotX,
-                    57.295776f * hugeAnimStruct.slots[0].rotY, 57.295776f * hugeAnimStruct.slots[0].rotZ);
+    CTRLSetRotation((Control *)((u8 *)obj0 + 0x10), 57.295776f * s->rotX, 57.295776f * s->rotY, 57.295776f * s->rotZ);
     if (lbl_1_bss_5F68 == 0) {
         speed = lbl_1_data_ABA4;
+        dbgSetPlaySpeed(obj0, speed);
     } else {
         speed = lbl_1_bss_5F64;
-    }
-    *(f32 *)((u8 *)obj0 + 0x54) = speed;
-    *((u8 *)obj0 + 0x5A) = 1;
-    if (lbl_1_bss_67B8[0] != NULL) {
-        ((DbgGaugeLink *)lbl_1_bss_67B8[0])->value = speed;
+        dbgSetPlaySpeed(obj0, speed);
     }
     if (speed != 0.0f && fn_1_D660()) {
         val = fn_1_D71C(0);
@@ -3641,7 +3646,7 @@ void fn_1_129D0(void) {
     lbl_1_bss_5F64 = 0.0f;
     if (lbl_1_bss_5F5C == 0) {
         for (k = 0; k < 4; k++) {
-            if (lbl_1_bss_67B8[5 + k] != NULL && lbl_1_bss_67B8[k] != NULL) {
+            if (lbl_1_bss_67CC[k] != NULL && lbl_1_bss_67B8[k] != NULL) {
                 void *mdl;
                 ((DbgGaugeLink *)lbl_1_bss_67B8[k])->value = speed;
                 if (fn_80024DB0(lbl_1_bss_67B8[k]) != 0 && lbl_1_bss_67B8[k] != NULL) {
@@ -3655,11 +3660,11 @@ void fn_1_129D0(void) {
                     mdl = (u8 *)&lbl_1_bss_5F7C->e[(k - 1)];
                 }
                 if (k == 0 || lbl_1_bss_5F69 == 0) {
-                    fn_80024FA4(mdl, lbl_1_bss_67B8[5 + k], lbl_1_bss_67B8[k], -1);
+                    fn_80024FA4(mdl, lbl_1_bss_67CC[k], lbl_1_bss_67B8[k], -1);
                 } else if (k == 2) {
-                    fn_80024FA4(mdl, lbl_1_bss_67B8[5 + k - 1], lbl_1_bss_67B8[k], -1);
+                    fn_80024FA4(mdl, lbl_1_bss_67CC[k - 1], lbl_1_bss_67B8[k], -1);
                 } else {
-                    fn_80024FA4(mdl, lbl_1_bss_67B8[5 + k + 1], lbl_1_bss_67B8[k], -1);
+                    fn_80024FA4(mdl, lbl_1_bss_67CC[k + 1], lbl_1_bss_67B8[k], -1);
                 }
             }
         }
@@ -3758,9 +3763,9 @@ void fn_1_11F08(DbgBuf67E0 *p) {
         p->fF0 -= (s8)in[0x13] * 4;
         p->fF2 += (s8)in[0x12] * 4;
         p->fF4 = (s8)in[0x10] / -256.0f;
-        p->fF8 = (s8)in[0x11] * 0.00390625f;
-        p->f10C += in[0x15] * 0.0009765625f;
-        p->f10C -= in[0x14] * 0.0009765625f;
+        p->fF8 = (s8)in[0x11] / 256.0f;
+        p->f10C += in[0x15] / 1024.0f;
+        p->f10C -= in[0x14] / 1024.0f;
     }
     a.x = (u16)p->fF0;
     a.z = 0.0f;
@@ -3785,18 +3790,18 @@ void fn_1_11F08(DbgBuf67E0 *p) {
 
 // .text:0x00011D00 size:0x208
 void fn_1_11D00(DbgBuf67E0 *p) {
+    Vec a;
     Vec v = {0.0f, 0.0f, 100.0f};
     Mtx m1;
     Mtx m2;
     Mtx m3;
-    Vec a;
     u8 *in = (u8 *)&AtBat_ButtonInput1;
     if (!(BTN_HELD & INPUT_TRIGGER_Z)) {
         p->fF0 -= (s8)in[0x13] * 4;
         p->fF2 += (s8)in[0x12] * 4;
         p->fF8 += (s8)in[0x11] / 256.0f;
-        p->f100 += in[0x15] * 0.0009765625f;
-        p->f100 -= in[0x14] * 0.0009765625f;
+        p->f100 += in[0x15] / 1024.0f;
+        p->f100 -= in[0x14] / 1024.0f;
     }
     a.x = (u16)p->fF0;
     a.z = 0.0f;
@@ -4348,17 +4353,17 @@ void fn_1_10044(void) {
         if (BTN_PRESSED & INPUT_BUTTON_A) {
             Mtx m1;
             Mtx m2;
-            PSMTXRotRad(m1, 'x', 0.01745329238474369 * (360.0 * lbl_1_data_AE10 / 4096.0));
             lbl_1_data_AE14.x = 0.0f;
             lbl_1_data_AE14.y = -1.0f;
             lbl_1_data_AE14.z = 0.0f;
+            PSMTXRotRad(m1, 'x', 0.01745329238474369 * (360.0 * lbl_1_data_AE10 / 4096.0));
             PSMTXRotRad(m2, 'y', 0.01745329238474369 * (360.0 * lbl_1_data_AE12 / 4096.0));
             PSMTXConcat(m2, m1, m1);
             PSMTXMultVec(m1, &lbl_1_data_AE14, &lbl_1_data_AE14);
             fn_800330CC(lbl_1_data_ADF4, lbl_1_data_ADF0, &lbl_1_data_AE04, &lbl_1_data_AE14,
                         lbl_1_data_ADF8, lbl_1_data_ADFC, lbl_1_data_AE00, 0);
         }
-    } else if (BTN_PRESSED & INPUT_BUTTON_B) {
+    } else if (rep & INPUT_BUTTON_B) {
         lbl_1_bss_307C = 0;
         lbl_1_bss_5F71 = 10;
     }
@@ -4906,8 +4911,9 @@ void fn_1_ECF8(s32 idx, s32 kind, s32 flag) {
 void fn_1_EA20(void) {
     switch (lbl_1_bss_30B0) {
     case 0: {
-        DbgActor *a;
-        u32 (*arr)[3];
+        DbgAnimEntry *ent;
+        s32 anim;
+        s32 frame;
         s32 i;
         u8 *obj = (u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73];
         lbl_1_bss_5F68 = 1;
@@ -4916,10 +4922,11 @@ void fn_1_EA20(void) {
         *(u8 *)(obj + 0x59) = 1;
         lbl_1_bss_30B0 = 1;
         lbl_1_bss_5F58 = 0;
-        a = &hugeAnimStruct.slots[lbl_1_bss_5F73];
-        arr = a->tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44]->p4;
-        for (i = 0; i < *(u16 *)((u8 *)arr + lbl_1_bss_6940[lbl_1_bss_5F73].f45 * 12 + 8); i++) {
-            f32 f = ((f32 *)arr[lbl_1_bss_6940[lbl_1_bss_5F73].f45][1])[i * 4];
+        anim = lbl_1_bss_6940[lbl_1_bss_5F73].f44;
+        frame = lbl_1_bss_6940[lbl_1_bss_5F73].f45;
+        ent = hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[anim];
+        for (i = 0; i < ent->p4[frame].count; i++) {
+            f32 f = hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[anim]->p4[frame].keys[i * 4];
             if ((f32)lbl_1_bss_5F58 < f) {
                 lbl_1_bss_5F58 = (s32)f;
             }
@@ -5060,7 +5067,7 @@ void fn_1_E098(void) {
             s32 held = BTN_HELD & INPUT_BUTTON_A;
             if (e->f0 >= 0) {
                 tbl = SLOTA(lbl_1_bss_5F73)->a.tbl[e->f0];
-                p = (u32 *)((u8 *)tbl->p4 + e->f2 * 12);
+                p = (u32 *)&tbl->p4[e->f2];
             } else {
                 tbl = NULL;
                 p = NULL;
@@ -5298,7 +5305,7 @@ void fn_1_D7A4(s32 row) {
     DbgRow *r = (DbgRow *)((u8 *)lbl_1_data_F4D4.tbl + row * 0x50);
     s32 i;
     i = 8;
-    do {
+    while (i-- != 0) {
         DbgRowEnt *s = &r->ent[i];
         DbgSlotEnt *e = &lbl_1_bss_3218[i];
         if ((s8)s->kind != 0) {
@@ -5312,7 +5319,7 @@ void fn_1_D7A4(s32 row) {
             e->f6 = (s8)s->c;
             if (s->d == -2) {
                 if (tb != NULL) {
-                    e->f4 = *(f32 *)tb->p4[b][1];
+                    e->f4 = *tb->p4[b].keys;
                 } else {
                     e->f4 = 0;
                 }
@@ -5324,7 +5331,7 @@ void fn_1_D7A4(s32 row) {
             e->f6 = 0;
             e->f4 = 0;
         }
-    } while (i-- != 0);
+    }
 }
 
 // .text:0x0000D71C size:0x88
@@ -5379,7 +5386,7 @@ void fn_1_D67C(u8 value) {
 
 // .text:0x0000D660 size:0x1C
 BOOL fn_1_D660(void) {
-    return lbl_1_bss_3215 != 0;
+    return lbl_1_bss_3215 ? TRUE : FALSE;
 }
 
 // .text:0x0000D650 size:0x10
@@ -5413,17 +5420,15 @@ void fn_1_D590(s32 a, s32 b, f32 v) {
         }
         {
             s32 lvl = (s8)lbl_1_bss_5F62;
-            if (lvl < 0) {
-                lvl = 0;
-            }
-            fn_8004B208(a, b, lvl);
+            fn_8004B208(a, b, lvl < 0 ? 0 : lvl);
         }
     }
 }
 
 // .text:0x0000D4BC size:0xD4
 void fn_1_D4BC(void) {
-    DbgActor *a = hugeAnimStruct.slots;
+    DbgHuge *h = &hugeAnimStruct;
+    DbgActor *a = h->slots;
     if (a != NULL) {
         VecXYZ p;
         a->flags = (s32)a->flags >> 1;
@@ -5437,7 +5442,7 @@ void fn_1_D4BC(void) {
             a->flags |= 4;
         }
     }
-    hugeAnimStruct.actors[0]->flags |= 1;
+    h->actors[0]->flags |= 1;
 }
 
 // .text:0x0000D300 size:0x1BC

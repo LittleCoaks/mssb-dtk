@@ -94,7 +94,7 @@ static u32 gModelFiles[24][4] = {
 
 static DbgDrawEntry gBackdropDraw[2] = {{0, fn_1_1ADA4}, {0, NULL}};
 static DbgDrawEntry gBoundsDraw[2] = {{0, fn_1_1A774}, {0, NULL}};
-static u32 gFogColor = 0xFFFFFFFF;
+static GXColor gFogColor = {0xFF, 0xFF, 0xFF, 0xFF};
 static Vec gUpVec = {0.0f, 1.0f, 0.0f};
 static Vec gRotAccum = {0.0f, 0.0f, 0.0f};
 static s32 gParticleCfg[6] = {0x32, 0x7D0, 0x124F80, 0x186A0, 0x186A0, 0x3C};
@@ -154,7 +154,6 @@ void fn_1_1D450(void) {
 // .text:0x0001D110 size:0x340
 void fn_1_1D110(void) {
     DbgScene *scene = DBG_SCENE();
-    ActorObjectTable *table;
     ActorObjectEntry *entry;
     DbgSlot *slot;
     int i;
@@ -166,7 +165,7 @@ void fn_1_1D110(void) {
     for (i = 0; i < PARTICLE_SLOT_COUNT; i++) {
         slot = &hugeAnimStruct.slots[i];
         entry = &hugeAnimStruct.table->entries[i];
-        entry->applyControl = (scene->mode16 != 1) & (scene->slot == i);
+        entry->applyControl = (scene->mode16 != 1) & (i == scene->slot);
         CTRLSetTranslation(&entry->control, slot->pos.x, slot->pos.y, slot->pos.z);
         CTRLSetRotation(&entry->control, radToDeg * slot->rot.x, radToDeg * slot->rot.y, radToDeg * slot->rot.z);
         entry->speed = slot->speed;
@@ -178,7 +177,8 @@ void fn_1_1D110(void) {
         fn_1_1A290(hugeAnimStruct.table, gView.mtx);
     }
     for (j = 0; j < PARTICLE_SLOT_COUNT; j++) {
-        hugeAnimStruct.table->entries[j].applyControl = 1;
+        entry = &hugeAnimStruct.table->entries[j];
+        entry->applyControl = 1;
     }
     fn_800BD8C4(hugeAnimStruct.table, gView.mtx);
 }
@@ -351,7 +351,6 @@ void fn_1_1C3CC(void) {
 void fn_1_1B7DC(void) {
     DbgScene *scene = DBG_SCENE();
     GXColor fogOff = {0, 0, 0, 0};
-    GXColor fogOn;
     u16 proc;
 
     if (PAD_NEW & INPUT_BUTTON_B) {
@@ -411,18 +410,9 @@ void fn_1_1B7DC(void) {
         case 4:
             gFlag4 = !gFlag4;
             if (gFlag4) {
-                *(u32 *)&fogOn = gFogColor;
-                SetFog(GX_FOG_EXPONENT, 0.0f, 500.0f, 1.0f, 512.0f, fogOn);
+                SetFog(GX_FOG_EXPONENT, 0.0f, 500.0f, 1.0f, 512.0f, gFogColor);
             } else {
                 SetFog(GX_FOG_NONE, 0.0f, 0.0f, 0.0f, 0.0f, fogOff);
-            }
-            break;
-        case 5:
-            gFlag3 = !gFlag3;
-            if (gFlag3) {
-                fn_1_1957C();
-            } else {
-                minigamesSetSomePointers();
             }
             break;
         case 6:
@@ -446,6 +436,14 @@ void fn_1_1B7DC(void) {
         case 10:
             if (gFlag5 != 0) {
                 gColor0--;
+            }
+            break;
+        case 5:
+            gFlag3 = !gFlag3;
+            if (gFlag3) {
+                fn_1_1957C();
+            } else {
+                minigamesSetSomePointers();
             }
             break;
         }
@@ -478,18 +476,9 @@ void fn_1_1B7DC(void) {
         case 4:
             gFlag4 = !gFlag4;
             if (gFlag4) {
-                *(u32 *)&fogOn = gFogColor;
-                SetFog(GX_FOG_EXPONENT, 0.0f, 500.0f, 1.0f, 512.0f, fogOn);
+                SetFog(GX_FOG_EXPONENT, 0.0f, 500.0f, 1.0f, 512.0f, gFogColor);
             } else {
                 SetFog(GX_FOG_NONE, 0.0f, 0.0f, 0.0f, 0.0f, fogOff);
-            }
-            break;
-        case 5:
-            gFlag3 = !gFlag3;
-            if (gFlag3) {
-                fn_1_1994C();
-            } else {
-                minigamesSetSomePointers();
             }
             break;
         case 6:
@@ -513,6 +502,14 @@ void fn_1_1B7DC(void) {
         case 10:
             if (gFlag5 != 0) {
                 gColor0++;
+            }
+            break;
+        case 5:
+            gFlag3 = !gFlag3;
+            if (gFlag3) {
+                fn_1_1994C();
+            } else {
+                minigamesSetSomePointers();
             }
             break;
         }
@@ -573,15 +570,20 @@ void fn_1_1B424(void) {
 // .text:0x0001B2C8 size:0x15C
 void fn_1_1B2C8(void) {
     DbgSlot *slot = &hugeAnimStruct.slots[DBG_SCENE()->slot];
-    f32 x = slot->pos.x + (f32)PAD_S8(0x10) / 768.0f;
-    f32 z = slot->pos.z + (f32)PAD_S8(0x11) / 768.0f;
-    f32 y = slot->pos.y + (f32)PAD_U8(0x15) / 768.0f - (f32)PAD_U8(0x14) / 768.0f;
+    Vec pos;
 
+    pos.x = slot->pos.x;
+    pos.y = slot->pos.y;
+    pos.z = slot->pos.z;
+    pos.x += (f32)PAD_S8(0x10) / 768.0f;
+    pos.z += (f32)PAD_S8(0x11) / 768.0f;
+    pos.y += (f32)PAD_U8(0x15) / 768.0f;
+    pos.y -= (f32)PAD_U8(0x14) / 768.0f;
     gRotAccum.y -= (f32)PAD_S8(0x12) / 512.0f;
     gRotAccum.x -= (f32)PAD_S8(0x13) / 512.0f;
-    slot->pos.x = x;
-    slot->pos.y = y;
-    slot->pos.z = z;
+    slot->pos.x = pos.x;
+    slot->pos.y = pos.y;
+    slot->pos.z = pos.z;
     slot->rot.x = gRotAccum.x;
     slot->rot.y = gRotAccum.y;
     slot->rot.z = gRotAccum.z;
@@ -829,7 +831,7 @@ void fn_1_1A290(ActorObjectTable *table, Mtx cam) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     for (i = 0; i < table->count; i++) {
         if (table->entries[i].actor != NULL && table->entries[i].applyControl != 0) {
-            fn_1_1A1EC(table->entries + i, cam);
+            fn_1_1A1EC(&table->entries[i], cam);
         }
     }
 }
@@ -839,7 +841,7 @@ void fn_1_1A1EC(ActorObjectEntry *entry, Mtx cam) {
     StadiumModelNode *node = (StadiumModelNode *)entry->actor;
 
     if (entry->callback != NULL) {
-        entry->callback();
+        ((DbgEntryCallback)entry->callback)(entry);
     }
     if (node->dispObj != NULL) {
         fn_800B2D5C(node);
@@ -857,6 +859,7 @@ void fn_1_1A1EC(ActorObjectEntry *entry, Mtx cam) {
 
 // .text:0x00019D60 size:0x48C
 void fn_1_19D60(DbgDispObj *obj, Mtx cam) {
+    GXAttr texAttr;
     GXColor color;
     Mtx m;
     GXVtxDescList desc[GX_VA_MAX_ATTR + 1];
@@ -886,15 +889,19 @@ void fn_1_19D60(DbgDispObj *obj, Mtx cam) {
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, obj->vertices->format >> 4, obj->vertices->format & 0xF);
     if (obj->texData != NULL) {
         for (i = 0; i < obj->numTex; i++) {
-            GXSetArray(GX_VA_TEX0 + i, obj->texData[i].data, obj->texData[i].stride * fn_1_19D1C(obj->texData[i].format));
-            GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0 + i, GX_TEX_ST, obj->texData[i].format >> 4, obj->texData[i].format & 0xF);
+            u8 size = obj->texData[i].stride * fn_1_19D1C(obj->texData[i].format);
+
+            texAttr = GX_VA_TEX0 + i;
+            GXSetArray(texAttr, obj->texData[i].data, size);
+            GXSetVtxAttrFmt(GX_VTXFMT0, texAttr, GX_TEX_ST, obj->texData[i].format >> 4, obj->texData[i].format & 0xF);
             GXSetTexCoordGen2(i, GX_TG_MTX2X4, GX_TG_TEX0 + i, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
         }
     }
     entry = obj->drawList->entries;
-    for (i = 0; i < obj->drawList->count; i++, entry++) {
+    for (j = 0; j < obj->drawList->count; entry++, j++) {
         switch (entry->kind) {
         case 1:
+        case 3:
             break;
         case 2:
             GXClearVtxDesc();
@@ -906,8 +913,8 @@ void fn_1_19D60(DbgDispObj *obj, Mtx cam) {
             }
             {
                 GXAttr attr;
-                u32 shift = 2;
-                for (attr = GX_VA_POS; attr <= GX_VA_TEX7; attr++, shift += 2) {
+                u32 shift;
+                for (attr = GX_VA_POS, shift = 2; attr <= GX_VA_TEX7; attr++, shift += 2) {
                     u32 type = (entry->vtxDescBits >> shift) & 3;
                     if (type != 0) {
                         desc[n].mAttr = attr;
@@ -916,7 +923,7 @@ void fn_1_19D60(DbgDispObj *obj, Mtx cam) {
                     }
                 }
                 {
-                    u32 type = (entry->vtxDescBits >> shift) & 3;
+                    u32 type = (entry->vtxDescBits >> 26) & 3;
                     if (type != 0) {
                         desc[n].mAttr = attr;
                         desc[n].mType = type;

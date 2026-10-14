@@ -317,7 +317,16 @@ static Mtx44 lbl_1_bss_47010;
 static u8 lbl_1_bss_45868[0x17A8];
 static u8 lbl_1_bss_43F68[0x1900];
 static u8 lbl_1_bss_43EE0[0x88];
-static u8 lbl_1_bss_F6E0[0x34800];
+typedef struct {
+    f32 x;
+    f32 z;
+    f32 y;
+} GridPoint; // size: 0xC
+
+#define GRID_COLS 112
+#define GRID_ROWS 160
+
+static GridPoint lbl_1_bss_F6E0[GRID_ROWS][GRID_COLS];
 static f32 lbl_1_bss_76E0[0x2000];
 static f32 lbl_1_bss_74E0[0x80];
 static u8 lbl_1_bss_6FE0[0x500];
@@ -694,9 +703,9 @@ void fn_1_25C68(void) {
 // .text:0x00025064 size:0xC04
 void fn_1_25064(void) {
     DrawingSceneStruct *item = currentDrawingItem;
+    s32 row;
     s32 step1;
     s32 step2;
-    s32 row;
 
     if (AtBat_ButtonInput1._00 & INPUT_TRIGGER_R) {
         step1 = 4;
@@ -706,7 +715,7 @@ void fn_1_25064(void) {
         step2 = 0xa;
     }
 
-    for (row = 0; row <= 0xa; row++) {
+    for (row = 0; row < 11; row++) {
         u16 f;
 
         switch (row) {
@@ -844,13 +853,9 @@ void fn_1_25064(void) {
         } else if (AtBat_ButtonInput1._02 & INPUT_BUTTON_A) {
             fn_1_24A8C();
         } else if (AtBat_ButtonInput1._02 & INPUT_BUTTON_B) {
-            GXColor clearColor;
+            u32 clearColor = 0x11775500;
 
-            clearColor.r = 0x11;
-            clearColor.g = 0x77;
-            clearColor.b = 0x55;
-            clearColor.a = 0;
-            GXSetCopyClear(clearColor, 0xff);
+            GXSetCopyClear(*(GXColor *)&clearColor, 0xFFFFFF);
 
             currentDrawingItem->currentDrawingItem->state = 1;
             removeCurrentDrawingItem();
@@ -1031,7 +1036,7 @@ void fn_1_24A8C(void) {
 }
 
 // .text:0x000248BC size:0x1D0
-void fn_1_248BC(s32 count) {
+inline void fn_1_248BC(s32 count) {
     u8 width;
     GXTexOffset offset;
     s32 i;
@@ -1375,7 +1380,7 @@ void fn_1_23B54(void) {
             }
 
             buf = lbl_1_bss_76E0 + (*((u8 *)item + 0x2c) & 1) * 0x1000;
-            rowPtr = lbl_1_bss_F6E0;
+            rowPtr = (u8 *)lbl_1_bss_F6E0;
             minZ = (-100.0f);
             maxZ = 100.0f;
 
@@ -1421,7 +1426,7 @@ void fn_1_23B54(void) {
                 rowPtr += 0x540;
             }
         } else {
-            u8 *rowPtr = lbl_1_bss_F6E0;
+            u8 *rowPtr = (u8 *)lbl_1_bss_F6E0;
 
             minZ = 0.0f;
             maxZ = 0.0f;
@@ -1482,7 +1487,7 @@ void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 n1, s32 n2) {
     GXLoadPosMtxImm((f32 (*)[4])lbl_1_bss_43EE0, 0);
     GXSetCurrentMtx(0);
 
-    base = lbl_1_bss_F6E0 + n1 * 0xc;
+    base = (u8 *)lbl_1_bss_F6E0 + n1 * 0xc;
     stride2 = n2 * 0x540;
     vtxCount = n2 * 2;
 
@@ -1554,191 +1559,182 @@ void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 n1, s32 n2) {
 }
 
 // .text:0x00023098 size:0x76C
-s32 fn_1_23098(Mtx44 arg0, Mtx arg1, f32 argF0, f32 argF1, s32 arg2, s32 arg3) {
-    Vec originPos;
-    Vec dirVec;
-    f32 planeD;
-    f32 negArgF1 = -argF1;
-    f32 negArgF0;
-    f32 valA = (640.0f * argF0) / 1280.0f * 0.5f;
-    f32 valB = (640.0f * argF1) / 1280.0f * 0.5f;
-    f32 valC = (448.0f * argF0) / 1280.0f * 0.5f;
-    f32 valD = (448.0f * argF1) / 1280.0f * 0.5f;
-    Vec cornersA[4];
-    Vec cornersB[4];
-    f32 tvals[4];
-    Mtx mtxInv;
-    Mtx44 tmpMtx44;
+s32 fn_1_23098(Mtx44 proj, Mtx view, f32 nearZ, f32 farZ, s32 cols, s32 rows) {
+    Mtx44 m;
+    Mtx inv;
+    Vec ray[4];
+    Vec base[4];
+    Vec dir;
+    Vec origin;
+    f32 t[4];
+    f32 d;
+    f32 halfW0;
+    f32 halfW1;
+    f32 halfH0;
+    f32 halfH1;
+    f32 dy;
+    s32 n;
     s32 i;
-    s32 rowCount;
-    Vec edgeVec;
-    s32 col;
-    s32 row;
+    s32 k;
+    s32 last;
 
-    originPos.x = 0.0f;
-    originPos.y = 0.0f;
-    originPos.z = 0.0f;
-    dirVec.x = 0.0f;
-    dirVec.y = (-1.0f);
-    dirVec.z = 0.0f;
+    origin.x = 0.0f;
+    origin.y = 0.0f;
+    origin.z = 0.0f;
+    dir.x = 0.0f;
+    dir.y = -1.0f;
+    dir.z = 0.0f;
 
-    PSMTXMultVec(arg1, &originPos, &originPos);
-    PSMTXMultVec(arg1, &dirVec, &dirVec);
-    PSVECSubtract(&dirVec, &originPos, &dirVec);
-    PSVECNormalize(&dirVec, &dirVec);
-    planeD = PSVECDotProduct(&dirVec, &originPos);
+    PSMTXMultVec(view, &origin, &origin);
+    PSMTXMultVec(view, &dir, &dir);
+    PSVECSubtract(&dir, &origin, &dir);
+    PSVECNormalize(&dir, &dir);
+    d = -PSVECDotProduct(&dir, &origin);
 
-    cornersA[0].x = valA;
-    cornersA[0].y = 0.0f;
-    cornersA[0].z = -argF0;
-    cornersA[1].x = valB;
-    cornersA[1].y = 0.0f;
-    cornersA[1].z = -argF1;
-    cornersA[2].x = valB;
-    cornersA[2].y = valD;
-    cornersA[2].z = -argF1;
-    cornersA[3].x = valB;
-    cornersA[3].y = -valD;
-    cornersA[3].z = -argF1;
+    halfW0 = 640.0f * nearZ / 1280.0f * 0.5f;
+    halfW1 = 640.0f * farZ / 1280.0f * 0.5f;
+    halfH0 = 448.0f * nearZ / 1280.0f * 0.5f;
+    halfH1 = 448.0f * farZ / 1280.0f * 0.5f;
 
-    cornersB[0].x = 0.0f;
-    cornersB[0].y = valC;
-    cornersB[0].z = 0.0f;
-    cornersB[1].x = 0.0f;
-    cornersB[1].y = valD;
-    cornersB[1].z = 0.0f;
-    cornersB[2].x = valA - valB;
-    cornersB[2].y = valD - valC;
-    cornersB[2].z = argF1 - argF0;
-    cornersB[3].x = valA - valB;
-    cornersB[3].y = valD - valC;
-    cornersB[3].z = argF1 - argF0;
+    nearZ = -nearZ;
 
-    negArgF0 = -argF0;
+    base[0].x = halfW0;
+    base[0].y = 0.0f;
+    base[0].z = nearZ;
+    base[1].x = halfW1;
+    base[1].y = 0.0f;
+    base[1].z = -farZ;
+    base[2].x = halfW1;
+    base[2].y = halfH1;
+    base[2].z = -farZ;
+    base[3].x = halfW1;
+    base[3].y = -halfH1;
+    base[3].z = -farZ;
+
+    ray[0].x = 0.0f;
+    ray[0].y = halfH0;
+    ray[0].z = 0.0f;
+    ray[1].x = 0.0f;
+    ray[1].y = halfH1;
+    ray[1].z = 0.0f;
+    ray[2].x = halfW0 - halfW1;
+    ray[2].y = halfH0 - halfH1;
+    ray[2].z = nearZ - base[3].z;
+    ray[3].x = halfW0 - halfW1;
+    ray[3].y = -(halfH0 - halfH1);
+    ray[3].z = nearZ - base[3].z;
 
     for (i = 0; i < 4; i++) {
-        f32 denom = PSVECDotProduct(&dirVec, &cornersB[i]);
-        tvals[i] = denom;
-        if (denom == 0.0f) {
-            cornersB[i].z = 0.0f;
+        t[i] = PSVECDotProduct(&dir, &ray[i]);
+        if (t[i] == 0.0f) {
+            ray[i].z = 0.0f;
         } else {
-            f32 numer = PSVECDotProduct(&dirVec, &cornersA[i]);
-            f32 t = (planeD - numer) / denom;
-            tvals[i] = t;
-            PSVECScale(&cornersB[i], t, &cornersB[i]);
-            PSVECAdd(&cornersA[i], &cornersB[i], &cornersB[i]);
-            if (tvals[i] < 0.0f) {
-                tvals[i] = -tvals[i];
+            t[i] = -(d + PSVECDotProduct(&dir, &base[i])) / t[i];
+            PSVECScale(&ray[i], t[i], &ray[i]);
+            PSVECAdd(&base[i], &ray[i], &ray[i]);
+            if (t[i] < 0.0f) {
+                t[i] = -t[i];
             }
         }
     }
 
-    if (cornersB[2].z <= negArgF0 && cornersB[2].z >= negArgF1 &&
-        cornersB[3].z <= negArgF0 && cornersB[3].z >= negArgF1) {
-        cornersB[0] = cornersB[2];
-        cornersB[1] = cornersB[3];
-    } else {
-        if (!(tvals[0] <= 1.0f && tvals[1] <= 1.0f)) {
-            if (tvals[0] > 1.0f && tvals[1] > 1.0f) {
-                return 0;
+    if (ray[2].z <= nearZ && ray[2].z >= -farZ && ray[3].z <= nearZ && ray[3].z >= -farZ) {
+        memcpy(&ray[0], &ray[2], sizeof(Vec));
+        memcpy(&ray[1], &ray[3], sizeof(Vec));
+    } else if (!(t[0] <= 1.0f && t[1] <= 1.0f)) {
+        if (t[0] <= 1.0f || t[1] <= 1.0f) {
+            if (ray[2].z <= nearZ && ray[2].z >= -farZ) {
+                memcpy(&ray[3], &ray[2], sizeof(Vec));
             }
-            if (!(cornersB[2].z <= negArgF0 && cornersB[2].z >= negArgF1)) {
-                cornersB[3] = cornersB[2];
-            }
-            if (tvals[0] >= 1.0f) {
-                cornersB[0] = cornersB[3];
+            if (t[0] < 1.0f) {
+                memcpy(&ray[1], &ray[3], sizeof(Vec));
             } else {
-                cornersB[1] = cornersB[2];
+                memcpy(&ray[0], &ray[3], sizeof(Vec));
             }
+        } else {
+            return 0;
         }
     }
 
-    PSMTXInverse(arg1, mtxInv);
+    PSMTXInverse(view, inv);
 
-    {
-        Vec tmp;
-        row = arg3 - 1;
-        PSMTXMultVec(mtxInv, &cornersB[1], &tmp);
-        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540) = tmp.x;
-        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + 4) = tmp.z;
+    PSMTXMultVec(inv, &ray[1], &ray[2]);
+    last = rows - 1;
+    lbl_1_bss_F6E0[last][0].x = ray[2].x;
+    lbl_1_bss_F6E0[last][0].z = ray[2].z;
+    ray[2].x = -ray[1].x;
+    ray[2].y = ray[1].y;
+    ray[2].z = ray[1].z;
+    PSMTXMultVec(inv, &ray[2], &ray[2]);
+    lbl_1_bss_F6E0[0][0].x = ray[2].x;
+    lbl_1_bss_F6E0[0][0].z = ray[2].z;
 
-        tmp.x = -cornersB[1].x;
-        tmp.y = cornersB[1].y;
-        tmp.z = 0.0f;
-        PSMTXMultVec(mtxInv, &tmp, &tmp);
-        *(f32 *)(lbl_1_bss_F6E0 + 0) = tmp.x;
-        *(f32 *)(lbl_1_bss_F6E0 + 4) = tmp.z;
+    PSMTXMultVec(inv, &ray[0], &ray[2]);
+    lbl_1_bss_F6E0[last][1].x = ray[2].x;
+    lbl_1_bss_F6E0[last][1].z = ray[2].z;
+    ray[2].x = -ray[0].x;
+    ray[2].y = ray[0].y;
+    ray[2].z = ray[0].z;
+    PSMTXMultVec(inv, &ray[2], &ray[2]);
+    lbl_1_bss_F6E0[0][1].x = ray[2].x;
+    lbl_1_bss_F6E0[0][1].z = ray[2].z;
 
-        PSMTXMultVec(mtxInv, &cornersB[0], &tmp);
-        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + 0xc) = tmp.x;
-        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + 0x10) = tmp.z;
+    PSMTX44Identity(m);
+    memcpy(m, view, sizeof(Mtx));
+    PSMTX44Concat(proj, m, m);
+    C_MTX44Inverse(m, m);
+    PSMTX44MultVec(proj, &ray[0], &ray[0]);
+    PSMTX44MultVec(proj, &ray[1], &ray[1]);
 
-        tmp.x = -cornersB[0].x;
-        tmp.y = cornersB[0].y;
-        tmp.z = 0.0f;
-        PSMTXMultVec(mtxInv, &tmp, &tmp);
-        *(f32 *)(lbl_1_bss_F6E0 + 0xc) = tmp.x;
-        *(f32 *)(lbl_1_bss_F6E0 + 0x10) = tmp.z;
+    dy = ray[0].y - ray[1].y;
+    if (dy < 0.0f) {
+        dy = -dy;
     }
 
-    PSMTX44Identity(tmpMtx44);
-    memcpy(tmpMtx44, arg1, 0x30);
-    PSMTX44Concat(arg0, tmpMtx44, tmpMtx44);
-    C_MTX44Inverse(tmpMtx44, tmpMtx44);
-    PSMTX44MultVec(arg0, &cornersB[0], &cornersB[0]);
-    PSMTX44MultVec(arg0, &cornersB[1], &cornersB[1]);
-
-    {
-        f32 diff = cornersB[0].y - cornersB[1].y;
-        if (diff < 0.0f) {
-            diff = -diff;
-        }
-
-        rowCount = (s32)((f32)arg2 * ((2.0f / (f32)arg2) - diff) * 0.5f);
-        if (rowCount < 2) {
-            rowCount = 2;
-        }
+    n = (f32)cols * (dy + 2.0f / (f32)cols) * 0.5f;
+    if (n < 2) {
+        n = 2;
     }
 
-    PSVECSubtract(&cornersB[0], &cornersB[1], &edgeVec);
+    k = n - 1;
+    lbl_1_bss_F6E0[0][k].x = lbl_1_bss_F6E0[0][1].x;
+    lbl_1_bss_F6E0[0][k].z = lbl_1_bss_F6E0[0][1].z;
+    lbl_1_bss_F6E0[last][k].x = lbl_1_bss_F6E0[last][1].x;
+    lbl_1_bss_F6E0[last][k].z = lbl_1_bss_F6E0[last][1].z;
 
-    for (col = rowCount - 2; col >= 1; col--) {
-        f32 t = (f32)col / (f32)(rowCount - 1);
-        Vec interp;
-        Vec world;
+    PSVECSubtract(&ray[0], &ray[1], &ray[2]);
 
-        PSVECScale(&edgeVec, t, &interp);
-        PSVECAdd(&cornersB[1], &interp, &interp);
-
-        PSMTX44MultVec(tmpMtx44, &interp, &world);
-        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + col * 0xc) = world.x;
-        *(f32 *)(lbl_1_bss_F6E0 + row * 0x540 + col * 0xc + 4) = world.y;
-
-        interp.x = -interp.x;
-        PSMTX44MultVec(tmpMtx44, &interp, &world);
-        *(f32 *)(lbl_1_bss_F6E0 + col * 0xc) = world.x;
-        *(f32 *)(lbl_1_bss_F6E0 + col * 0xc + 4) = world.y;
+    while (--k != 0) {
+        PSVECScale(&ray[2], (f32)k / (f32)(n - 1), &ray[3]);
+        PSVECAdd(&ray[1], &ray[3], &ray[3]);
+        PSMTX44MultVec(m, &ray[3], &origin);
+        lbl_1_bss_F6E0[last][k].x = origin.x;
+        lbl_1_bss_F6E0[last][k].z = origin.z;
+        ray[3].x = -ray[3].x;
+        PSMTX44MultVec(m, &ray[3], &origin);
+        lbl_1_bss_F6E0[0][k].x = origin.x;
+        lbl_1_bss_F6E0[0][k].z = origin.z;
     }
 
-    for (col = 0; col < rowCount; col++) {
-        Vec *cell0 = (Vec *)(lbl_1_bss_F6E0 + col * 0xc);
-        Vec *cellLast = (Vec *)(lbl_1_bss_F6E0 + row * 0x540 + col * 0xc);
-        Vec colEdge;
+    ray[0].y = 0.0f;
+    ray[1].y = 0.0f;
 
-        colEdge.x = cellLast->x - cell0->x;
-        colEdge.y = cellLast->y - cell0->y;
-        colEdge.z = 0.0f;
+    for (i = 0; i < n; i++) {
+        ray[0].x = lbl_1_bss_F6E0[0][i].x;
+        ray[0].z = lbl_1_bss_F6E0[0][i].z;
+        ray[1].x = lbl_1_bss_F6E0[last][i].x - lbl_1_bss_F6E0[0][i].x;
+        ray[1].z = lbl_1_bss_F6E0[last][i].z - lbl_1_bss_F6E0[0][i].z;
 
-        for (i = arg3 - 2; i >= 1; i--) {
-            f32 t = (f32)i / (f32)(arg3 - 1);
-            Vec *cell = (Vec *)(lbl_1_bss_F6E0 + i * 0x540 + col * 0xc);
-
-            cell->x = cell0->x + colEdge.x * t;
-            cell->y = cell0->y + colEdge.y * t;
+        k = rows - 1;
+        while (--k != 0) {
+            PSVECScale(&ray[1], (f32)k / (f32)(rows - 1), &ray[2]);
+            PSVECAdd(&ray[0], &ray[2], &ray[2]);
+            lbl_1_bss_F6E0[k][i].x = ray[2].x;
+            lbl_1_bss_F6E0[k][i].z = ray[2].z;
         }
     }
 
-    return rowCount;
+    return n;
 }
 
 // .text:0x00022F4C size:0x14C
@@ -1763,17 +1759,13 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
 
         for (j = 0; j < m; j++) {
             s32 k = rowBase + j;
-            s32 prevCol = rowBase + (j + mMinus1) % m;
-            s32 nextCol = rowBase + (j + 1) % m;
             f32 val = src[k];
-            f32 sum = src[prevRowBase + j] + src[nextRowBase + j];
+            f32 prev = other[k];
+            f32 sum = src[j + prevRowBase] + src[j + nextRowBase];
 
-            sum += src[prevCol];
-            sum += src[nextCol];
-            sum = coeffNeighbor * sum;
-            sum = coeffCenter * val + sum;
-            sum -= other[k];
-            dst[k] = sum;
+            sum += src[(j + mMinus1) % m + rowBase];
+            sum += src[(j + 1) % m + rowBase];
+            dst[k] = coeffCenter * val + coeffNeighbor * sum - prev;
             dst[k] = dst[k] * lbl_1_data_104C4;
         }
     }

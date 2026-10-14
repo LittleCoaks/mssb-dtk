@@ -147,6 +147,10 @@ typedef struct DbgDispObj {
     /*0x18*/ Mtx mtx;
 } DbgDispObj;
 
+/* ActorObjectEntry.callback is declared void(void) in the shared header, but it
+ * is invoked with the entry itself as the argument (see fn_1_1D0E8). */
+typedef void (*DbgEntryCallback)(ActorObjectEntry *entry);
+
 typedef struct DbgDrawEntry {
     u32 tag;
     void (*func)(void);
