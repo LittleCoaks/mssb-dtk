@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/camera/camera_script.h"
 #include "Unknown/File_0x800a7568.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800acf14.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"

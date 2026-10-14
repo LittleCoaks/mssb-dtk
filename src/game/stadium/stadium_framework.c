@@ -10,7 +10,7 @@
 #include "stl/math.h"
 #include "Dolphin/rand.h"
 #include "game/sound/m_sound.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "C3/actor/act.h"
 #include "C3/actor/actorAnim.h"

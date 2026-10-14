@@ -1,7 +1,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_rep_3E00
 #include "game/data_only/rep_3E00.h"
 #include "header_rep_data.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
 #include "C3/actor/act.h"
 #include "C3/actor/actorAnim.h"

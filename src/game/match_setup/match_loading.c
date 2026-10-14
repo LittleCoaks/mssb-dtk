@@ -7,7 +7,7 @@
 #include "text/text_channel.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80035838.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 
 typedef struct {
     /* 0x000 */ u8 _000[0xC];

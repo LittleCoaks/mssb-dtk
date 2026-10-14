@@ -11,7 +11,7 @@
 #include "game/sound/m_sound.h"
 #include "game/minigame/minigame_hud.h"
 #include "musyx/musyx.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x80025ddc.h"

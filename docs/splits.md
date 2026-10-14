@@ -779,3 +779,28 @@ Evidence:
 The unit is compiled with `-cpp_exceptions on` (what `File_0x800a7c08` used; the
 stub `initRenderMode` is flag-independent). Two `NonMatching` units became one; no
 score changed. Linked DOL units 260 -> 260.
+
+### `Unknown/dvdsys.c` (`0x800A6900-0x800A750C`, core only)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800A6900-0x800A750C` | `File_0x800a6900` (`manageFileReadingProcess`), gaps `fn_800A6C80`, `fn_800A6D10`, `fn_800A6E24`, `fn_800A6F94`, `File_0x800a70dc` (`ARAMTransfer`) |
+| `extab` / `extabindex` | `0x80006618-0x80006648` / `0x80008484-0x800084CC` | the two units' entries plus the gap functions' |
+| `.rodata` | `0x800E7730-0x800E77C8` | unowned (`lbl_800E7730`, 0x98 bytes) |
+
+Evidence:
+
+- **The binary names the unit.** `lbl_800E7730` is one string pool holding
+  `"Decode Error Retry : EntryNo%d %x Err:%d"`, `"dvdsys.c"` and the two Shift-JIS
+  ARAM address messages. Both `manageFileReadingProcess` and `ARAMTransfer`
+  read the pool, so one unit owns it.
+- **Shared `.bss`:** both functions and all four gap functions between them use
+  `lbl_803C6CF8` (0x708 bytes; unowned like the other big `.bss` objects).
+
+Not included (suggestive only): `File_0x800a7544`, `7568`, `75ec` and `7670`
+(`Matching`) also touch `lbl_803C6CF8`, but share no pool with the core, so
+they stay separate units, as does the one-function gap `fn_800A750C`. The merge
+costs no `Matching` unit. Compile flag `-cpp_exceptions on` was taken from the
+former units' extab (both have entries; both were stubs). Linked DOL units
+260 -> 260. The 19 files that include the old headers now include
+`Unknown/dvdsys.h`.

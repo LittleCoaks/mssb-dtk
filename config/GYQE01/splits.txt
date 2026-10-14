@@ -1454,15 +1454,11 @@ Unknown/File_0x800a64e0.c:
 	.text       start:0x800A64E0 end:0x800A6870
 	.bss        start:0x803C6990 end:0x803C6CF8
 
-Unknown/File_0x800a6900.c:
-	extab       start:0x80006618 end:0x80006620
-	extabindex  start:0x80008484 end:0x80008490
-	.text       start:0x800A6900 end:0x800A6C80
-
-Unknown/File_0x800a70dc.c:
-	extab       start:0x80006640 end:0x80006648
-	extabindex  start:0x800084C0 end:0x800084CC
-	.text       start:0x800A70DC end:0x800A750C
+Unknown/dvdsys.c:
+	extab       start:0x80006618 end:0x80006648
+	extabindex  start:0x80008484 end:0x800084CC
+	.text       start:0x800A6900 end:0x800A750C
+	.rodata     start:0x800E7730 end:0x800E77C8
 
 Unknown/File_0x800a7544.c:
 	extab       start:0x80006650 end:0x80006658
