@@ -3,7 +3,7 @@
 
 extern RepSlot lbl_1_common_bss_4BC30[];
 extern RepRef lbl_1_common_bss_4C6F8[];
-extern u8 lbl_1_data_108E0;
+u8 lbl_1_data_108E0[2] = {TRUE, TRUE};
 /* MWCC lays .bss out in reverse declaration order: 47050 must be declared last. */
 u16 lbl_1_bss_47052;
 u16 lbl_1_bss_47050;
@@ -13,8 +13,8 @@ RepSlot *fn_1_26C2C(RepSrc *src, s32 idx) {
     if (src == NULL) {
         return NULL;
     }
-    if (lbl_1_data_108E0 != 0) {
-        lbl_1_data_108E0 = 0;
+    if (lbl_1_data_108E0[0] != FALSE) {
+        lbl_1_data_108E0[0] = FALSE;
     }
     fn_1_26B7C(&lbl_1_common_bss_4BC30[idx]);
     lbl_1_common_bss_4BC30[idx].a = src->a;
