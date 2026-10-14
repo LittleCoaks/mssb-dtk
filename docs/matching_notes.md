@@ -3189,3 +3189,29 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   returns `value * scale` reproduced the target when invoked with `k` and
   `0.27208483f`. Compound assignment changed the destination register and
   regressed its consumers. All three functions and `.rodata` remained 100%.
+
+## Findings from the baserunning_practice full-match pass
+
+- **Extra global-base loads can be caused by a missing branch exit.** In
+  `baseRunningPracticeRelated`, the negative-instruction arm of the live-ball
+  case must exit whether or not the runner scored. The prior `else if`
+  fell through when the runner had not scored, creating an extra predecessor
+  and forcing MWCC to reload `g_Practice`. An `else` with the score check
+  inside it and an unconditional `break` restored the target control flow,
+  removed eight extra bytes, and matched the whole six-function unit.
+
+## Findings from the defence_animation full-match pass
+
+- **Correcting a narrow return prototype and removing its redundant cast
+  can need to happen together.** `angleDifferenceNormalized` already returns
+  `s16` in `game_math.h` and its definition; the local extern incorrectly
+  declared `int`. In `computeAdjustedFielderOrientation`, changing the result
+  local from `s16` to `int`, correcting the extern to `s16`, and dropping the
+  explicit `(s16)` result cast took 98.58491% to 100%. Individual changes
+  did not match: the redundant cast still created a separate temporary.
+- **Separate counters can matter even for a fully unrolled loop.** Sharing
+  `i` between the initial hide loop and the later live animation loop swapped
+  its saved register with the model pointer in `animateDefence`. Giving the
+  hide loop its own block-local `j` matched 100%; pointer scope, declaration
+  order and counter width changes alone had tied. The final structured guard
+  also removed eight `goto` statements without changing codegen.
