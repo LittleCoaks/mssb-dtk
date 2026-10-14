@@ -129,8 +129,8 @@ void baseRunningPracticeRelated(void) {
         g_RunningLogic._13 = 0;
         g_GameLogic.pre_PostMiniGameInd = 0;
         g_GameLogic.minigameLastTurnSuccessInd = 0;
-        ((u8 *)&g_Practice)[0x1EC] = 0;
-        ((u8 *)&g_Practice)[0x1ED] = 0;
+        g_Practice._1EC = 0;
+        g_Practice._1ED = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_LIVE_BALL);
         setDefaultPlayTrackingVariables2();
@@ -145,8 +145,10 @@ void baseRunningPracticeRelated(void) {
                 g_FieldingLogic.playOverCounter = 0;
                 break;
             }
-        } else if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            g_Practice.guidedPracticeCompletionRelated = TRUE;
+        } else {
+            if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                g_Practice.guidedPracticeCompletionRelated = TRUE;
+            }
             break;
         }
         if (g_FieldingLogic.playOverCounter < 0x7FFE) {
@@ -189,8 +191,8 @@ void baseRunningPracticeRelated(void) {
         g_RunningLogic._13 = 0;
         g_GameLogic.pre_PostMiniGameInd = 0;
         g_GameLogic.minigameLastTurnSuccessInd = 0;
-        ((u8 *)&g_Practice)[0x1EC] = 0;
-        ((u8 *)&g_Practice)[0x1ED] = 0;
+        g_Practice._1EC = 0;
+        g_Practice._1ED = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_LIVE_BALL);
         setDefaultPlayTrackingVariables2();
