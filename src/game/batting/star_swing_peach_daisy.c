@@ -87,9 +87,10 @@ void peachDaisyStarPitch_stepPhysics(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BO
     pos->z += vel->z;
 
     if (applySteer) {
-        f32 amount =
-            0.00005f * LinearInterpolateToNewRange((f32)g_Pitcher.calced_curve, 1.0f, 100.0f, pc[1], pc[2]);
-        u16 held = g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]].buttonInput;
+        f32 amount = LinearInterpolateToNewRange((f32)g_Pitcher.calced_curve, 1.0f, 100.0f, pc[1], pc[2]);
+        u16 held;
+        amount = 0.00005f * amount;
+        held = g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]].buttonInput;
 
         if (held & INPUT_BUTTON_LEFT) {
             steer = -1.0f;
