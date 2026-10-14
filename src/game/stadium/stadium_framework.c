@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/stadium/stadium_framework.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_stadiumFramework
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/gx.h"

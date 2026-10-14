@@ -950,7 +950,7 @@ config.libs = [
             Object(NonMatching, "game/practice/pitching_practice.c"),
             Object(Matching, "game/practice/baserunning_practice.c"),
             Object(Matching, "game/ball/foul_detection.c"),
-            Object(NonMatching, "game/stadium/stadium_framework.c"),
+            Object(Matching, "game/stadium/stadium_framework.c"),
             Object(NonMatching, "game/animation/scene_effects.c"),
             Object(NonMatching, "game/batting/charge_effects.c"),
             Object(NonMatching, "game/stadium/sta_c1.c"),
