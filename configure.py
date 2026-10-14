@@ -948,7 +948,7 @@ config.libs = [
             Object(NonMatching, "game/practice/practice_simulation.c"),
             Object(NonMatching, "game/practice/practice_menu.c"),
             Object(NonMatching, "game/practice/pitching_practice.c"),
-            Object(NonMatching, "game/practice/baserunning_practice.c"),
+            Object(Matching, "game/practice/baserunning_practice.c"),
             Object(Matching, "game/ball/foul_detection.c"),
             Object(NonMatching, "game/stadium/stadium_framework.c"),
             Object(NonMatching, "game/animation/scene_effects.c"),
