@@ -3,11 +3,6 @@
 
 #include "mssbTypes.h"
 
-extern const f32 lbl_3_rodata_918;
-extern const f32 lbl_3_rodata_930;
-extern const f32 lbl_3_rodata_934;
-extern const f32 lbl_3_rodata_938;
-extern const f32 lbl_3_rodata_93C;
 extern u8 batterAIConstants[8];
 extern u8 lbl_3_data_1944[3][4][6];
 extern u8 lbl_3_data_198C[4][5][2];
