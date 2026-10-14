@@ -480,23 +480,22 @@ void shuffleIntArray(int* values, int count, BOOL useGameRandom) {
     BOOL taken[20];
     int i;
     int j;
-    int k;
     int r;
 
     for (i = 0; i < count; i++) {
         source[i] = values[i];
         taken[i] = FALSE;
     }
-    for (k = count - 1; k >= 0; k--) {
+    for (i = count - 1; i >= 0; i--) {
         if (useGameRandom) {
-            r = randomIntGameAbs(k + 1);
+            r = randomIntGameAbs(i + 1);
         } else {
-            r = randomIntSim(k + 1);
+            r = randomIntSim(i + 1);
         }
         for (j = 0; j < count; j++) {
             if (!taken[j]) {
                 if (r == 0) {
-                    values[k] = source[j];
+                    values[i] = source[j];
                     taken[j] = TRUE;
                     break;
                 }

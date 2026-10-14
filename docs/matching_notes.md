@@ -3215,3 +3215,14 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   hide loop its own block-local `j` matched 100%; pointer scope, declaration
   order and counter width changes alone had tied. The final structured guard
   also removed eight `goto` statements without changing codegen.
+
+## Findings from the Astra at_bat_results follow-up
+
+- **Counter reuse inside a shared helper can fix only its inlined caller.**
+  Reusing the initialization counter `i` for the descending loop in
+  `shuffleIntArray`, instead of declaring a separate `k`, left its standalone
+  copy and every matched sibling at 100% while improving `shuffleU8Array`
+  from 99.46429% to 99.89286% (unit `.text` 99.92008% to 99.98402%).
+  The remaining six operand differences are in two random-remainder/absolute
+  value sequences. Check both reuse and separation of loop counters; the
+  successful direction here is the opposite of `animateDefence` above.
