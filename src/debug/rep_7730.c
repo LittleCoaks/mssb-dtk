@@ -39,7 +39,7 @@ extern void fn_800A7D4C(s32 arg0, void *arg1);
 extern s32 diskReadRelated(void *arg0, s32 arg1);
 extern void addGraphicsElementToScene(void *arg0);
 extern s32 fn_80035DD4(s32 arg0);
-extern void fn_800385F0(f32 arg0, f32 arg1, f32 arg2, f32 arg3);
+extern void fn_800385F0(void *buf, f32 a, f32 b, f32 c, f32 d);
 extern void fn_1_273D8(void *arg0);
 
 extern u8 lbl_803C6CF8[0x708];
@@ -79,7 +79,7 @@ extern void fn_800BD670(void *arg0, void *arg1);
 extern void fn_1_121D4(void *arg0);
 extern void *_OSAllocFromHeap(s32 arg0, s32 arg1);
 extern void fn_80023F0C(void *arg0, void *arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7);
-extern void fn_1_F2C(s32 arg0);
+extern void fn_1_F2C(GXTevMode mode, s32 texFrac, BOOL hasNormals);
 
 typedef struct {
     u32 files[0x40][4];
@@ -3297,13 +3297,17 @@ void fn_1_1F2D8(void) {
     *(f32 *)((u8 *)currentDrawingItem + 0x20) = 1.0f;
     *(f32 *)((u8 *)currentDrawingItem + 0x24) = 1.0f;
 
-    fn_800385F0(currentDrawingItem->unk_14, *(f32 *)((u8 *)currentDrawingItem + 0x18),
-        *(f32 *)((u8 *)currentDrawingItem + 0x1c), *(f32 *)((u8 *)currentDrawingItem + 0x20));
+    {
+        DrawingSceneStruct *cur;
 
-    *(f32 *)(lbl_1_bss_6BF4 + 0x50) = -*(f32 *)((u8 *)currentDrawingItem + 0x24);
-    *(f32 *)(lbl_1_bss_6BF4 + 0xec) += 2.0f;
-    *(u32 *)((u8 *)currentDrawingItem + 0x2c) &= ~0x2;
-    *(u32 *)((u8 *)currentDrawingItem + 0x2c) |= 0x2;
+        fn_800385F0(lbl_1_bss_6BF4, currentDrawingItem->unk_14, *(f32 *)((u8 *)currentDrawingItem + 0x18),
+            *(f32 *)((u8 *)currentDrawingItem + 0x1c), *(f32 *)((u8 *)currentDrawingItem + 0x20));
+        cur = currentDrawingItem;
+        *(f32 *)(lbl_1_bss_6BF4 + 0x50) = -*(f32 *)((u8 *)cur + 0x24);
+        *(f32 *)(lbl_1_bss_6BF4 + 0xec) += 2.0f;
+        *(u32 *)((u8 *)cur + 0x2c) &= ~0x2;
+        *(u32 *)((u8 *)currentDrawingItem + 0x2c) |= 0x2;
+    }
     currentDrawingItem->state = 0;
 
     lbl_1_bss_6BE4[0] = 0.0f;
@@ -3316,7 +3320,7 @@ void fn_1_1F2D8(void) {
 void fn_1_1F23C(u8 *arg0) {
     DrawingSceneStruct *item = currentDrawingItem;
 
-    fn_800385F0(item->unk_14, *(f32 *)((u8 *)item + 0x18), *(f32 *)((u8 *)item + 0x1c),
+    fn_800385F0(lbl_1_bss_6BF4, item->unk_14, *(f32 *)((u8 *)item + 0x18), *(f32 *)((u8 *)item + 0x1c),
         *(f32 *)((u8 *)item + 0x20));
 
     *(f32 *)(arg0 + 0x50) = -*(f32 *)((u8 *)currentDrawingItem + 0x24);
@@ -3355,21 +3359,23 @@ void fn_1_1F05C(void) {
     fn_1_27330((lbl_1_bss_6D48));
     item = currentDrawingItem;
 
-    if (*(s32 *)((u8 *)item + 0x28) == 0) {
+    switch (*(s32 *)((u8 *)item + 0x28)) {
+    case 0:
         if (*(u32 *)((u8 *)item + 0x2c) & 4) {
             *(u32 *)((u8 *)item + 0x2c) ^= 4;
 
             {
                 f32 vec[3];
 
-                vec[0] = *(f32 *)((lbl_1_bss_6BE4 + 0x4));
-                vec[1] = *(f32 *)((lbl_1_bss_6BE4 + 0x8));
-                vec[2] = *(f32 *)((lbl_1_bss_6BE4 + 0xC));
-                fn_80037B18((lbl_1_bss_6BF4), vec, *(f32 *)((lbl_1_bss_6BE4)));
+                vec[0] = lbl_1_bss_6BE4[1];
+                vec[1] = lbl_1_bss_6BE4[2];
+                vec[2] = lbl_1_bss_6BE4[3];
+                fn_80037B18(lbl_1_bss_6BF4, vec, lbl_1_bss_6BE4[0]);
             }
         }
 
-        fn_80037BAC((lbl_1_bss_6BF4));
+        fn_80037BAC(lbl_1_bss_6BF4);
+        break;
     }
 
     item = currentDrawingItem;
@@ -3413,221 +3419,85 @@ s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3) {
     if (arg0 != ret) {
         s32 m = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)] + 8;
         arg0 = (ret + m) % m;
-        goto tail;
-    }
-
-    if (arg2 & 0x100) {
+    } else if (arg2 & INPUT_BUTTON_A) {
         switch (arg0) {
         case 0:
             break;
-        case 1:
-            fn_800385F0(currentDrawingItem->unk_14, *(f32 *)((u8 *)currentDrawingItem + 0x18), *(f32 *)((u8 *)currentDrawingItem + 0x1c),
-                *(f32 *)((u8 *)currentDrawingItem + 0x20));
-            *(f32 *)(lbl_1_bss_6BF4 + 0xec) += 2.0f;
-            *(f32 *)(lbl_1_bss_6BF4 + 0x50) = -*(f32 *)((u8 *)currentDrawingItem + 0x24);
-            *(u32 *)((u8 *)currentDrawingItem + 0x2c) &= ~0x2;
+        case 1: {
+            DrawingSceneStruct *cur;
+
+            fn_800385F0(lbl_1_bss_6BF4, currentDrawingItem->unk_14, *(f32 *)((u8 *)currentDrawingItem + 0x18),
+                *(f32 *)((u8 *)currentDrawingItem + 0x1c), *(f32 *)((u8 *)currentDrawingItem + 0x20));
+            cur = currentDrawingItem;
+            {
+                f32 z = -*(f32 *)((u8 *)cur + 0x24);
+
+                *(f32 *)(lbl_1_bss_6BF4 + 0xec) += 2.0f;
+                *(f32 *)(lbl_1_bss_6BF4 + 0x50) = z;
+            }
+            *(u32 *)((u8 *)cur + 0x2c) &= ~0x2;
             *(u32 *)((u8 *)currentDrawingItem + 0x2c) |= 0x2;
             break;
+        }
         case 2:
             *(u32 *)((u8 *)currentDrawingItem + 0x2c) ^= 4;
             break;
+        case 3:
+            break;
         }
-        goto tail;
-    }
-
-    if (arg3 & 1) {
+    } else if (arg3 & INPUT_BUTTON_LEFT) {
         switch (arg0) {
         case 0:
             *(s32 *)((u8 *)currentDrawingItem + 0x28) = (*(s32 *)((u8 *)currentDrawingItem + 0x28) + 7) % 8;
             break;
-        case 3: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            delta = -delta;
-            v14 = v14 + delta;
-            if (v14 < 1.0f) {
-                v14 = 1.0f;
-            }
-            if (v14 > 10.0f) {
-                v14 = 10.0f;
-            }
+        case 3:
+            v14 = fn_1_1DD48(arg1, TRUE, v14, 0.0001f, 0.01f, 0.1f, 1.0f, 10.0f);
+            break;
+        case 4:
+            v18 = fn_1_1DD48(arg1, TRUE, v18, 0.0001f, 0.01f, 0.1f, 0.0f, 1.0f);
+            break;
+        case 5:
+            v1c = fn_1_1DD48(arg1, TRUE, v1c, 0.0001f, 0.01f, 0.1f, 1.0f, 10.0f);
+            break;
+        case 7:
+            v24 = fn_1_1DD48(arg1, TRUE, v24, 0.0001f, 0.01f, 0.1f, 0.0f, 10.0f);
             break;
         }
-        case 4: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            delta = -delta;
-            v18 = v18 + delta;
-            if (v18 < 0.0f) {
-                v18 = 0.0f;
-            }
-            if (v18 > 1.0f) {
-                v18 = 1.0f;
-            }
-            break;
-        }
-        case 5: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            delta = -delta;
-            v1c = v1c + delta;
-            if (v1c < 1.0f) {
-                v1c = 1.0f;
-            }
-            if (v1c > 10.0f) {
-                v1c = 10.0f;
-            }
-            break;
-        }
-        case 7: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            delta = -delta;
-            v24 = v24 + delta;
-            if (v24 < 0.0f) {
-                v24 = 0.0f;
-            }
-            if (v24 > 10.0f) {
-                v24 = 10.0f;
-            }
-            break;
-        }
-        }
-    } else if (arg3 & 2) {
+    } else if (arg3 & INPUT_BUTTON_RIGHT) {
         switch (arg0) {
         case 0:
             *(s32 *)((u8 *)currentDrawingItem + 0x28) = (*(s32 *)((u8 *)currentDrawingItem + 0x28) + 1) % 8;
             break;
-        case 3: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            v14 = v14 + delta;
-            if (v14 < 1.0f) {
-                v14 = 1.0f;
-            }
-            if (v14 > 10.0f) {
-                v14 = 10.0f;
-            }
+        case 3:
+            v14 = fn_1_1DD48(arg1, FALSE, v14, 0.0001f, 0.01f, 0.1f, 1.0f, 10.0f);
+            break;
+        case 4:
+            v18 = fn_1_1DD48(arg1, FALSE, v18, 0.0001f, 0.01f, 0.1f, 0.0f, 1.0f);
+            break;
+        case 5:
+            v1c = fn_1_1DD48(arg1, FALSE, v1c, 0.0001f, 0.01f, 0.1f, 1.0f, 10.0f);
+            break;
+        case 6:
+            v20 = fn_1_1DD48(arg1, FALSE, v20, 0.0001f, 0.01f, 0.1f, 0.0f, 10.0f);
+            break;
+        case 7:
+            v24 = fn_1_1DD48(arg1, FALSE, v24, 0.0001f, 0.01f, 0.1f, 0.0f, 10.0f);
             break;
         }
-        case 4: {
-            f32 delta = 0.01f;
+    } else if (arg3 & INPUT_BUTTON_UP) {
+        if (arg0 < 8) {
+            s32 n = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)];
 
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            v18 = v18 + delta;
-            if (v18 < 0.0f) {
-                v18 = 0.0f;
-            }
-            if (v18 > 1.0f) {
-                v18 = 1.0f;
-            }
-            break;
+            arg0 = (n + 7 + arg0) % (n + 8);
         }
-        case 5: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            v1c = v1c + delta;
-            if (v1c < 1.0f) {
-                v1c = 1.0f;
-            }
-            if (v1c > 10.0f) {
-                v1c = 10.0f;
-            }
-            break;
-        }
-        case 6: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            v20 = v20 + delta;
-            if (v20 < 0.0f) {
-                v20 = 0.0f;
-            }
-            if (v20 > 10.0f) {
-                v20 = 10.0f;
-            }
-            break;
-        }
-        case 7: {
-            f32 delta = 0.01f;
-
-            if (arg1 & 0x40) {
-                delta = 0.0001f;
-            } else if (arg1 & 0x20) {
-                delta = 0.1f;
-            }
-
-            v24 = v24 + delta;
-            if (v24 < 0.0f) {
-                v24 = 0.0f;
-            }
-            if (v24 > 10.0f) {
-                v24 = 10.0f;
-            }
-            break;
-        }
-        }
-    } else if (arg3 & 8) {
-        if (*(s32 *)((u8 *)currentDrawingItem + 0x28) < 8) {
-            s32 m = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)] + 8;
-
-            arg0 = (arg0 + m - 1) % m;
-        }
-    } else if (arg3 & 4) {
-        if (*(s32 *)((u8 *)currentDrawingItem + 0x28) < 8) {
+    } else if (arg3 & INPUT_BUTTON_DOWN) {
+        if (arg0 < 8) {
             s32 m = lbl_1_data_10670[*(s32 *)((u8 *)currentDrawingItem + 0x28)] + 8;
 
             arg0 = (arg0 + 1) % m;
         }
     }
 
-tail:
     currentDrawingItem->unk_14 = v14;
     *(f32 *)((u8 *)currentDrawingItem + 0x18) = v18;
     *(f32 *)((u8 *)currentDrawingItem + 0x1c) = v1c;
@@ -3644,16 +3514,17 @@ void fn_1_1E8C0(s32 arg0) {
 }
 
 // .text:0x0001E5D0 size:0x2F0
-void fn_1_1E5D0(void *arg0) {
-    u8 *base = arg0;
-    Vec v1;
+void fn_1_1E5D0(u8 *base) {
     Vec v2;
+    Vec v1;
+    Vec *pv2;
 
-    fn_1_F2C(4);
+    fn_1_F2C(GX_PASSCLR, 0, FALSE);
     GXSetBlendMode(1, 4, 5, 3);
 
     PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)(base + 0xc), &v1);
-    PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)base, &v2);
+    pv2 = &v2;
+    PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)base, pv2);
 
     GXBegin(GX_LINES, 0, 2);
     GX_WRITE_F32(v1.x);
@@ -3671,10 +3542,9 @@ void fn_1_1E5D0(void *arg0) {
     GX_WRITE_U8(0x40);
     GX_WRITE_U8(0xff);
 
-    PSVECScale((Vec *)(base + 0xe8), 1.0f, &v1);
-    PSVECAdd(&v1, (Vec *)(base + 0xf4), &v2);
-
     GXBegin(GX_LINES, 0, 4);
+    PSVECScale((Vec *)(base + 0xe8), 1.0f, &v1);
+    PSVECAdd(&v1, (Vec *)(base + 0xf4), pv2);
     GX_WRITE_F32(v1.x);
     GX_WRITE_F32(v1.y);
     GX_WRITE_F32(v1.z);
@@ -3690,8 +3560,8 @@ void fn_1_1E5D0(void *arg0) {
     GX_WRITE_U8(0);
     GX_WRITE_U8(0xff);
 
-    PSVECScale((Vec *)(base + 0x140), 1.0f, &v1);
-    PSVECAdd(&v1, &v2, &v2);
+    PSVECScale((Vec *)(base + 0x140), 1.0f, pv2);
+    PSVECAdd(&v1, pv2, pv2);
 
     GX_WRITE_F32(v1.x);
     GX_WRITE_F32(v1.y);
@@ -3709,18 +3579,14 @@ void fn_1_1E5D0(void *arg0) {
     GX_WRITE_U8(0xff);
 
     if (*(s32 *)((u8 *)currentDrawingItem + 0x28) == 0) {
-        Vec offset;
-
         PSVECSubtract((Vec *)base, (Vec *)(base + 0xc), &v1);
         PSVECScale(&v1, lbl_1_bss_6BE4[0], &v1);
         PSVECAdd((Vec *)(base + 0xc), &v1, &v1);
         PSMTXMultVec((f32(*)[4])(base + 0x58), &v1, &v1);
-
-        offset.x = lbl_1_bss_6BE4[1];
-        offset.y = lbl_1_bss_6BE4[2];
-        offset.z = lbl_1_bss_6BE4[3];
-
-        PSVECAdd(&v1, &offset, &v2);
+        v2.x = lbl_1_bss_6BE4[1];
+        v2.y = lbl_1_bss_6BE4[2];
+        v2.z = lbl_1_bss_6BE4[3];
+        PSVECAdd(&v1, pv2, pv2);
 
         GXBegin(GX_LINES, 0, 2);
         GX_WRITE_F32(v1.x);
@@ -4118,16 +3984,16 @@ void fn_1_1DD94(void) {
 }
 
 // .text:0x0001DD48 size:0x4C
-f32 fn_1_1DD48(u16 flags, s32 neg, f32 value, f32 opt1, f32 def, f32 opt2, f32 lo, f32 hi) {
+f32 fn_1_1DD48(u16 flags, BOOL neg, f32 value, f32 opt1, f32 def, f32 opt2, f32 lo, f32 hi) {
     f32 offset = def;
 
-    if (flags & 0x40) {
+    if (flags & INPUT_TRIGGER_L) {
         offset = opt1;
-    } else if (flags & 0x20) {
+    } else if (flags & INPUT_TRIGGER_R) {
         offset = opt2;
     }
 
-    if (neg != 0) {
+    if (neg) {
         offset = -offset;
     }
 
@@ -4137,7 +4003,7 @@ f32 fn_1_1DD48(u16 flags, s32 neg, f32 value, f32 opt1, f32 def, f32 opt2, f32 l
     }
 
     if (value > hi) {
-        return hi;
+        value = hi;
     }
 
     return value;
@@ -4281,39 +4147,25 @@ void fn_1_1D694(void *arg0) {
     if (*(base + 0x18) != 0) {
         u8 *tex = *(u8 **)(base + 0x8);
         u8 *buf1 = *(u8 **)(base + 0x10);
-        u8 *buf2;
+        u8 *buf2 = *(u8 **)(base + 0xc);
         s32 cols;
         s32 rows;
-        s32 colOff = 0;
-        s32 rowBase = 0;
         s32 i;
+        s32 j;
 
-        buf2 = *(u8 **)(base + 0xc);
         memset(*(void **)tex, 0, (u32)(*(u16 *)(tex + 0xa)) * (u32)(*(u16 *)(tex + 0x8)));
 
-        cols = (*(u16 *)(tex + 0x8) + 63) / 64;
-        rows = (*(u16 *)(tex + 0xa) + 31) / 32;
+        cols = *(u16 *)(tex + 0x8) / 64;
+        rows = *(u16 *)(tex + 0xa) / 32;
 
         for (i = 0; i < cols; i++) {
-            u8 *rowPtr = buf1 + rowBase;
-            s32 pixOff = 0;
-            s32 j;
-
             for (j = 0; j < rows; j++) {
-                if ((j & drawStadiumRelated) != 0) {
-                    u8 pixel = *rowPtr;
-                    s32 band = pixel / rows;
-                    s32 rem = pixel - band * rows;
+                if (j & drawStadiumRelated) {
+                    u8 pixel = buf1[i * rows + j];
 
-                    fn_80023F0C(buf2, tex, rem * 32, band * 64, 0x20, 0x40, pixOff, colOff);
+                    fn_80023F0C(buf2, tex, (pixel % rows) * 32, (pixel / rows) * 64, 0x20, 0x40, j * 0x20, i * 0x40);
                 }
-
-                pixOff += 0x20;
-                rowPtr += 1;
             }
-
-            colOff += rows;
-            rowBase += 0x40;
         }
 
         DCStoreRange(*(void **)tex, (u32)(*(u16 *)(tex + 0xa)) * (u32)(*(u16 *)(tex + 0x8)));
@@ -4364,4 +4216,3 @@ void fn_1_1D694(void *arg0) {
     }
 }
 
-static u8 lbl_1_data_108E0[8] = {1, 1, 0, 0, 0, 0, 0, 0};

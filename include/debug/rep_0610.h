@@ -39,11 +39,17 @@ typedef struct DbgModel {
     /*0x98*/ u8 f98;
 } DbgModel;
 
-typedef struct DbgActorObj {
-    /*0x00*/ u8 pad0[0x34];
-    /*0x34*/ DbgModel *model;
-    /*0x38*/ u8 pad38[0x90 - 0x38];
-} DbgActorObj; // size 0x90
+typedef struct DbgActorEnt {
+    /*0x00*/ DbgModel *model;
+    /*0x04*/ u8 pad4[0x90 - 0x4];
+} DbgActorEnt; // size 0x90
+
+/* Table returned by ActorObjectInitTable(n): a count header, then n entries from +0x34. */
+typedef struct DbgActorTbl {
+    /*0x00*/ u16 count;
+    /*0x02*/ u8 pad2[0x34 - 0x2];
+    /*0x34*/ DbgActorEnt e[1];
+} DbgActorTbl;
 
 typedef struct DbgAnimEntry {
     /*0x00*/ u8 pad0[4];
@@ -63,7 +69,10 @@ typedef struct DbgActor {
     /*0x048*/ f32 rotZ;
     /*0x04C*/ u8 pad4C[0x62 - 0x4C];
     /*0x062*/ u16 h62;
-    /*0x064*/ u8 pad64[0x254 - 0x64];
+    /*0x064*/ u8 pad64[0x162 - 0x64];
+    /*0x162*/ u16 partIdx[0x78]; // model part index by part id, 0xFFFF = none
+    /*0x252*/ s8 f252;
+    /*0x253*/ u8 pad253;
     /*0x254*/ u8 f254;
     /*0x255*/ u8 f255;
     /*0x256*/ u8 pad256[0x25A - 0x256];
@@ -78,7 +87,7 @@ typedef struct DbgActor {
 
 typedef struct DbgHuge {
     /*0x000*/ u8 pad0[0x60];
-    /*0x060*/ DbgActorObj *objs;
+    /*0x060*/ DbgActorTbl *objs;
     /*0x064*/ u8 pad64[0xAC - 0x64];
     /*0x0AC*/ DbgLight *lights[4];
     /*0x0BC*/ u8 padBC[0xC04 - 0xBC];
@@ -412,10 +421,10 @@ void fn_1_11D00(DbgBuf67E0 *p);
 void fn_1_11F08(DbgBuf67E0 *p);
 void fn_1_121D4(DbgBuf67E0 *p);
 void fn_1_126CC(void);
-void fn_1_12820(DbgActorObj *objs, Mtx cam);
+void fn_1_12820(DbgActorTbl *objs, Mtx cam);
 void fn_1_129D0(void);
 void fn_1_12F18(DbgBlob *s);
-void fn_1_12F8C(DbgActorObj *objs, Mtx cam);
+void fn_1_12F8C(DbgActorTbl *objs, Mtx cam);
 void fn_1_131E4(void);
 void fn_1_1347C(void);
 void fn_1_135C0(void);

@@ -577,19 +577,20 @@ void fn_1_77EC(void *arg0) {
 
 // .text:0x000073B8 size:0x434
 void fn_1_73B8(void *arg0, u8 count, ...) {
-    DbgActorSet *set = ((DbgDrawNode *)arg0)->model;
-    DbgGeoTable *table = set->geoTable;
-    MtxPtr cam1;
-    MtxPtr cam2;
-    u8 *hidden;
-    DbgGeo *geo;
+    DbgGeoTable *table;
+    DbgActorSet *set;
     Mtx concat;
     f32 box[24];
+    DbgGeo *geo;
+    MtxPtr cam1;
     s16 sel;
-    s32 end;
+    MtxPtr cam2;
     s32 i;
+    s32 end;
     u16 key;
 
+    set = ((DbgDrawNode *)arg0)->model;
+    table = set->geoTable;
     if (lbl_1_data_8C8 == 1) {
         memset(lbl_1_bss_2E0, 0, sizeof(lbl_1_bss_2E0));
         lbl_1_data_8C8 = 0;
@@ -608,11 +609,10 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
         end = sel + 1;
     }
 
-    hidden = lbl_1_bss_2E0 + i;
     cam1 = ((DbgDrawNode *)arg0)->local;
     cam2 = ((DbgDrawNode *)arg0)->world;
-    for (; i < end; i++, hidden++) {
-        if (*hidden != 0) {
+    for (; i < end; i++) {
+        if (lbl_1_bss_2E0[i] != 0) {
             continue;
         }
         key = set->entries[i].geoKey;
@@ -669,8 +669,8 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
 
         if (checkObjectVisibility(0, box, concat)) {
             va_list args;
+            lbl_1_common_bss_472B4.visibleCount++;
             va_start(args, count);
-            lbl_1_common_bss_472B4.visibleCount = lbl_1_common_bss_472B4.visibleCount + 1;
             DOVARender(geo, cam2, count, args);
         }
     }
@@ -685,9 +685,8 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
             end = sel + 1;
         }
 
-        hidden = lbl_1_bss_2E0 + i;
-        for (; i < end; i++, hidden++) {
-            if (*hidden != 0) {
+        for (; i < end; i++) {
+            if (lbl_1_bss_2E0[i] != 0) {
                 continue;
             }
             key = set->entries[i].geoKey;
@@ -1008,29 +1007,38 @@ void fn_1_6578(GXTexObj *arg0, void *arg1, s32 arg2, s32 arg3) {
 // .text:0x00006050 size:0x528
 #pragma dont_inline on
 void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
+    s32 rowBase;
     u16 *buf = (u16 *)arg0;
     s32 w = arg1;
     s32 h = arg2;
-    s32 halfH = h / 2;
+    s32 halfH;
     s32 y;
     s32 x;
+    f32 ny2;
+    f32 uAngle;
+    f32 nx;
+    f32 ny;
+    f32 nxUv;
+    f32 nyUv;
+    f32 vAngle;
+    f32 d;
 
     memset(arg0, 0, w * 2 * h);
 
+    halfH = h / 2;
     for (y = 0; y < h; y++) {
-        f32 ny = 2.0f * ((f32)y / (f32)h - 0.5f);
-        f32 nyUv = ny * 0.5f + 0.5f;
-        f32 ny2 = ny * ny;
-        s32 rowBase = (y / 4) * w * 4 + (y % 4) * 4;
+        ny = 2.0f * ((f32)y / (f32)h - 0.5f);
+        nyUv = ny * 0.5f + 0.5f;
+        ny2 = ny * ny;
+        rowBase = (y / 4) * w * 4 + (y % 4 << 2);
 
         for (x = 0; x < w; x++) {
-            f32 nx = 2.0f * ((f32)x / (f32)w - 0.5f);
-            f32 nxUv = nx * 0.5f + 0.5f;
-            f32 d;
             Vec vec;
-            s32 idx;
-            u8 uByte;
-            u8 vByte;
+            Vec xz;
+            Vec cross;
+
+            nx = 2.0f * ((f32)x / (f32)w - 0.5f);
+            nxUv = nx * 0.5f + 0.5f;
 
             if (y == halfH) {
                 d = 1.0f - nx * nx;
@@ -1044,83 +1052,75 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
                 vec.z = 0.0f;
                 PSVECNormalize(&vec, &vec);
             } else {
+                vec.z = -sqrt(d);
                 vec.x = nx;
                 vec.y = ny;
-                vec.z = -(f32)sqrt((f64)d);
             }
 
             if (arg3 != 1.0f) {
-                Vec cross;
-                f32 mag;
                 PSVECCrossProduct(&lbl_1_data_A3C, &vec, &cross);
-                mag = PSVECMag(&cross);
-                if (mag != 0.0f) {
-                    f32 angle;
+                if (PSVECMag(&cross)) {
                     f32 half;
+                    f32 s;
+                    f32 c;
                     Quaternion quat;
                     Mtx mtx;
+
                     PSVECNormalize(&cross, &cross);
-                    angle = (f32)acos((f64)PSVECDotProduct(&lbl_1_data_A3C, &vec));
-                    half = (angle * arg3) * 0.5f;
-                    quat.x = cross.x * (f32)sin((f64)half);
-                    quat.y = cross.y * (f32)sin((f64)half);
-                    quat.z = cross.z * (f32)sin((f64)half);
-                    quat.w = (f32)cos((f64)half);
+                    half = (f32)acos(PSVECDotProduct(&lbl_1_data_A3C, &vec));
+                    half = half * arg3 / 2;
+                    s = sin(half);
+                    c = cos(half);
+                    quat.x = cross.x * s;
+                    quat.y = cross.y * s;
+                    quat.z = cross.z * s;
+                    quat.w = c;
                     PSMTXQuat(mtx, &quat);
                     PSMTXMultVec(mtx, &lbl_1_data_A3C, &vec);
                 }
             }
 
-            {
-                Vec xz;
-                f32 uAngle;
-                f32 vAngle;
+            xz.x = vec.x;
+            xz.y = 0.0f;
+            xz.z = vec.z;
 
-                xz.x = vec.x;
-                xz.y = 0.0f;
-                xz.z = vec.z;
-
-                if (PSVECMag(&xz) == 0.0f) {
-                    uAngle = 0.0f;
-                    vAngle = 0.0f;
+            if (!PSVECMag(&xz)) {
+                vAngle = 0.0f;
+                uAngle = vAngle;
+            } else {
+                PSVECNormalize(&xz, &xz);
+                if (ny == 0.0f) {
+                    uAngle = 0.5f;
                 } else {
-                    PSVECNormalize(&xz, &xz);
-                    if (ny == 0.0f) {
-                        vAngle = 0.5f;
-                    } else {
-                        Vec cross2;
-                        f32 mag2;
-                        uAngle = (f32)acos((f64)PSVECDotProduct(&xz, &vec));
-                        PSVECCrossProduct(&xz, &vec, &cross2);
-                        mag2 = PSVECMag(&cross2);
-                        if (mag2 != 0.0f && cross2.x < 0.0f) {
-                            uAngle = -uAngle;
-                        }
-                        uAngle = uAngle / 3.1415927f + 0.5f;
+                    uAngle = acos(PSVECDotProduct(&xz, &vec));
+                    PSVECCrossProduct(&xz, &vec, &cross);
+                    if (!PSVECMag(&cross)) {
+                        uAngle = 0.0f;
+                    } else if (cross.x < 0.0f) {
+                        uAngle = -uAngle;
                     }
-                    if (nx == 0.0f) {
-                        vAngle = 0.5f;
-                    } else {
-                        Vec cross3;
-                        f32 mag3;
-                        vAngle = (f32)acos((f64)PSVECDotProduct(&lbl_1_data_A3C, &xz));
-                        PSVECCrossProduct(&lbl_1_data_A3C, &xz, &cross3);
-                        mag3 = PSVECMag(&cross3);
-                        if (mag3 != 0.0f && cross3.y > 0.0f) {
-                            vAngle = -vAngle;
-                        }
-                        vAngle = vAngle / 3.1415927f + 0.5f;
-                    }
-                    uAngle -= nyUv;
-                    vAngle -= nxUv;
+                    uAngle /= 3.1415927f;
+                    uAngle += 0.5f;
                 }
-
-                uByte = (u8)(s32)(128.0f * uAngle + 128.0f);
-                vByte = (u8)(s32)(128.0f * vAngle + 128.0f);
+                if (nx == 0.0f) {
+                    vAngle = 0.5f;
+                } else {
+                    vAngle = acos(PSVECDotProduct(&lbl_1_data_A3C, &xz));
+                    PSVECCrossProduct(&lbl_1_data_A3C, &xz, &cross);
+                    if (!PSVECMag(&cross)) {
+                        vAngle = 0.0f;
+                    } else if (cross.y > 0.0f) {
+                        vAngle = -vAngle;
+                    }
+                    vAngle /= 3.1415927f;
+                    vAngle += 0.5f;
+                }
+                vAngle -= nxUv;
+                uAngle -= nyUv;
             }
 
-            idx = rowBase + (x / 4) * 16 + (x % 4);
-            buf[idx] = uByte | (vByte << 8);
+            buf[(x / 4) * 16 + (rowBase + (x % 4))] =
+                ((u8)(s32)(128.0f * vAngle + 128.0f) << 8) | (u8)(s32)(128.0f * uAngle + 128.0f);
         }
     }
 
@@ -1130,32 +1130,42 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 
 // .text:0x00005AC0 size:0x590
 void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
+    s32 halfH;
+    s32 rowBase;
+    s32 yBand;
+    s32 h = arg2;
+    u8 band;
+    s32 y;
     u16 *buf = (u16 *)arg0;
     s32 w = arg1;
-    s32 h = arg2;
-    s32 halfH = h / 2;
-    s32 y;
     s32 x;
+    f32 ny2;
+    f32 uAngle;
+    f32 nx;
+    f32 ny;
+    f32 nxUv;
+    f32 nyUv;
+    f32 vAngle;
+    f32 d;
 
     memset(arg0, 0, w * 2 * h);
 
+    halfH = h / 2;
     for (y = 0; y < h; y++) {
-        f32 ny = 2.0f * ((f32)y / (f32)h - 0.5f);
-        f32 nyUv = ny * 0.5f + 0.5f;
-        f32 ny2 = ny * ny;
-        s32 yBand = (ny > 0.2f) && (ny < 0.8f);
-        s32 rowBase = (y / 4) * w * 4 + (y % 4) * 4;
+        ny = 2.0f * ((f32)y / (f32)h - 0.5f);
+        nyUv = ny * 0.5f + 0.5f;
+        yBand = (ny > 0.2f) & (ny < 0.8f);
+        ny2 = ny * ny;
+        rowBase = (y / 4) * w * 4 + (y % 4 << 2);
 
         for (x = 0; x < w; x++) {
-            f32 nx = 2.0f * ((f32)x / (f32)w - 0.5f);
-            f32 nxUv = nx * 0.5f + 0.5f;
-            s32 xBand = (nx > 0.2f) && (nx < 0.8f);
-            s32 band = xBand && yBand;
-            f32 d;
             Vec vec;
-            s32 idx;
-            u8 uByte;
-            u8 vByte;
+            Vec xz;
+            Vec cross;
+
+            nx = 2.0f * ((f32)x / (f32)w - 0.5f);
+            nxUv = nx * 0.5f + 0.5f;
+            band = (nx < 0.8f) & ((nx > 0.2f) & yBand);
 
             if (y == halfH) {
                 d = 1.0f - nx * nx;
@@ -1169,83 +1179,75 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
                 vec.z = 0.0f;
                 PSVECNormalize(&vec, &vec);
             } else {
+                vec.z = -sqrt(d);
                 vec.x = nx;
                 vec.y = ny;
-                vec.z = -(f32)sqrt((f64)d);
             }
 
             if (band && arg3 != 1.0f) {
-                Vec cross;
-                f32 mag;
                 PSVECCrossProduct(&lbl_1_data_A48, &vec, &cross);
-                mag = PSVECMag(&cross);
-                if (mag != 0.0f) {
-                    f32 angle;
+                if (PSVECMag(&cross)) {
                     f32 half;
+                    f32 s;
+                    f32 c;
                     Quaternion quat;
                     Mtx mtx;
+
                     PSVECNormalize(&cross, &cross);
-                    angle = (f32)acos((f64)PSVECDotProduct(&lbl_1_data_A48, &vec));
-                    half = (angle * arg3) * 0.5f;
-                    quat.x = cross.x * (f32)sin((f64)half);
-                    quat.y = cross.y * (f32)sin((f64)half);
-                    quat.z = cross.z * (f32)sin((f64)half);
-                    quat.w = (f32)cos((f64)half);
+                    half = (f32)acos(PSVECDotProduct(&lbl_1_data_A48, &vec));
+                    half = half * arg3 / 2;
+                    s = sin(half);
+                    c = cos(half);
+                    quat.x = cross.x * s;
+                    quat.y = cross.y * s;
+                    quat.z = cross.z * s;
+                    quat.w = c;
                     PSMTXQuat(mtx, &quat);
                     PSMTXMultVec(mtx, &lbl_1_data_A48, &vec);
                 }
             }
 
-            {
-                Vec xz;
-                f32 uAngle;
-                f32 vAngle;
+            xz.x = vec.x;
+            xz.y = 0.0f;
+            xz.z = vec.z;
 
-                xz.x = vec.x;
-                xz.y = 0.0f;
-                xz.z = vec.z;
-
-                if (PSVECMag(&xz) == 0.0f) {
-                    uAngle = 0.0f;
-                    vAngle = 0.0f;
+            if (!PSVECMag(&xz)) {
+                vAngle = 0.0f;
+                uAngle = vAngle;
+            } else {
+                PSVECNormalize(&xz, &xz);
+                if (ny == 0.0f) {
+                    uAngle = 0.5f;
                 } else {
-                    PSVECNormalize(&xz, &xz);
-                    if (ny == 0.0f) {
-                        vAngle = 0.5f;
-                    } else {
-                        Vec cross2;
-                        f32 mag2;
-                        uAngle = (f32)acos((f64)PSVECDotProduct(&xz, &vec));
-                        PSVECCrossProduct(&xz, &vec, &cross2);
-                        mag2 = PSVECMag(&cross2);
-                        if (mag2 != 0.0f && cross2.x < 0.0f) {
-                            uAngle = -uAngle;
-                        }
-                        uAngle = uAngle / 3.1415927f + 0.5f;
+                    uAngle = acos(PSVECDotProduct(&xz, &vec));
+                    PSVECCrossProduct(&xz, &vec, &cross);
+                    if (!PSVECMag(&cross)) {
+                        uAngle = 0.0f;
+                    } else if (cross.x < 0.0f) {
+                        uAngle = -uAngle;
                     }
-                    if (nx == 0.0f) {
-                        vAngle = 0.5f;
-                    } else {
-                        Vec cross3;
-                        f32 mag3;
-                        vAngle = (f32)acos((f64)PSVECDotProduct(&lbl_1_data_A48, &xz));
-                        PSVECCrossProduct(&lbl_1_data_A48, &xz, &cross3);
-                        mag3 = PSVECMag(&cross3);
-                        if (mag3 != 0.0f && cross3.y > 0.0f) {
-                            vAngle = -vAngle;
-                        }
-                        vAngle = vAngle / 3.1415927f + 0.5f;
-                    }
-                    uAngle -= nyUv;
-                    vAngle -= nxUv;
+                    uAngle /= 3.1415927f;
+                    uAngle += 0.5f;
                 }
-
-                uByte = (u8)(s32)(128.0f * uAngle + 128.0f);
-                vByte = (u8)(s32)(128.0f * vAngle + 128.0f);
+                if (nx == 0.0f) {
+                    vAngle = 0.5f;
+                } else {
+                    vAngle = acos(PSVECDotProduct(&lbl_1_data_A48, &xz));
+                    PSVECCrossProduct(&lbl_1_data_A48, &xz, &cross);
+                    if (!PSVECMag(&cross)) {
+                        vAngle = 0.0f;
+                    } else if (cross.y > 0.0f) {
+                        vAngle = -vAngle;
+                    }
+                    vAngle /= 3.1415927f;
+                    vAngle += 0.5f;
+                }
+                vAngle -= nxUv;
+                uAngle -= nyUv;
             }
 
-            idx = rowBase + (x / 4) * 16 + (x % 4);
-            buf[idx] = uByte | (vByte << 8);
+            buf[(x / 4) * 16 + (rowBase + (x % 4))] =
+                ((u8)(s32)(128.0f * vAngle + 128.0f) << 8) | (u8)(s32)(128.0f * uAngle + 128.0f);
         }
     }
 

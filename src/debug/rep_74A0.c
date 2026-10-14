@@ -34,13 +34,17 @@ extern DbgAnim hugeAnimStruct;
 extern u8 drawStadiumRelated;
 extern void fn_800A7D4C(s32 arg0, void *arg1);
 extern u8 lbl_80366158[0x30];
-extern Vec lbl_80367318[3];
+typedef struct _StadiumLightInput {
+    Vec pos;
+    GXColor color;
+} StadiumLightInput;
+extern StadiumLightInput lbl_80367318[4];
 
 extern int fn_1_17EFC(const void *a, const void *b);
 extern void fn_800BD670(ActorObjectTable *table, Mtx m);
 extern void fn_800B2D5C(void *obj);
 extern void fn_800B2C08(void *actor, int arg1);
-extern void fn_800B2C88(int index, void *out);
+extern void fn_800B2C88(void *model, u16 idx, void *out);
 extern void fn_800B806C(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7);
 extern void LITInitAttn(void *light, f32 a0, f32 a1, f32 a2, f32 k0, f32 k1, f32 k2);
 extern void LITInitPos(void *light, f32 x, f32 y, f32 z);
@@ -123,9 +127,17 @@ void fn_1_1D514(void) {
 }
 
 // .text:0x0001D470 size:0xA4
+static inline void clearBytes(u8 *buf, int n) {
+    int i;
+
+    for (i = 0; i < n; i++) {
+        buf[i] = 0;
+    }
+}
+
 void fn_1_1D470(void) {
     DbgScene *scene = DBG_SCENE();
-    int i;
+    s32 i;
 
     for (i = 0; i < PARTICLE_SLOT_COUNT; i++) {
         gView.visible[i] = 0;
@@ -146,6 +158,7 @@ void fn_1_1D110(void) {
     ActorObjectEntry *entry;
     DbgSlot *slot;
     int i;
+    s32 j;
     f32 radToDeg;
 
     fn_1_1B038();
@@ -164,8 +177,8 @@ void fn_1_1D110(void) {
     } else {
         fn_1_1A290(hugeAnimStruct.table, gView.mtx);
     }
-    for (i = 0; i < PARTICLE_SLOT_COUNT; i++) {
-        hugeAnimStruct.table->entries[i].applyControl = 1;
+    for (j = 0; j < PARTICLE_SLOT_COUNT; j++) {
+        hugeAnimStruct.table->entries[j].applyControl = 1;
     }
     fn_800BD8C4(hugeAnimStruct.table, gView.mtx);
 }
@@ -183,13 +196,7 @@ void fn_1_1D0E8(ActorObjectEntry *entry) {
 void fn_1_1CBE4(void) {
     DbgScene *scene = DBG_SCENE();
     int i;
-    Mtx44 proj;
     u32 *file;
-    void *light0;
-    void *light1;
-    void *light2;
-    GXColor color0;
-    GXColor color1;
 
     switch (scene->state) {
     case 0:
@@ -238,39 +245,39 @@ void fn_1_1CBE4(void) {
 
 // .text:0x0001C8C0 size:0x324
 void fn_1_1C8C0(void) {
-    int i;
-    int k;
-    DbgSlot *slot;
+    u32 i;
+    u32 k;
     u32 *file;
     void *tex;
     void *geo;
     void *layout;
     void *skn;
+    DbgSlot *slot;
+    int anim;
     ActorObjectEntry *entry;
 
     hugeAnimStruct.table = ActorObjectInitTable(PARTICLE_SLOT_COUNT);
     for (i = 0; i < PARTICLE_SLOT_COUNT; i++) {
-        slot = &hugeAnimStruct.slots[i];
-        file = slot->file;
+        file = hugeAnimStruct.slots[i].file;
         if (gIsModel[i]) {
             for (k = 0; k < 5; k++) {
                 if (k == 4) {
-                    slot->anim = (u8 *)file + file[k];
-                    ANIMGet(slot->anim);
+                    hugeAnimStruct.slots[i].anim = (u8 *)file + file[k];
+                    ANIMGet(hugeAnimStruct.slots[i].anim);
                 } else {
-                    slot->file[k] = (u32)file + file[k];
+                    hugeAnimStruct.slots[i].file[k] = (u32)file + file[k];
                 }
             }
         } else {
             file[0] = (u32)file + file[0];
-            slot->file[1] = (u32)file + file[1];
-            slot->file[2] = (u32)file + file[2];
+            hugeAnimStruct.slots[i].file[1] = (u32)file + file[1];
+            hugeAnimStruct.slots[i].file[2] = (u32)file + file[2];
         }
-        tex = (void *)slot->file[0];
-        geo = (void *)slot->file[1];
-        layout = (void *)slot->file[2];
+        tex = (void *)hugeAnimStruct.slots[i].file[0];
+        geo = (void *)hugeAnimStruct.slots[i].file[1];
+        layout = (void *)hugeAnimStruct.slots[i].file[2];
         if (gIsModel[i]) {
-            skn = (void *)slot->file[3];
+            skn = (void *)hugeAnimStruct.slots[i].file[3];
         } else {
             skn = NULL;
         }
@@ -284,27 +291,33 @@ void fn_1_1C8C0(void) {
         gTexTable[i] = tex;
         haveActLayoutPointToGeoHeader(layout, geo);
         UpdateTexturePalettePointers(geo, tex);
-        animateBallRelated(hugeAnimStruct.table, (u16)i, (u16)i, layout, gIsModel[i] ? (int)slot->anim : 0, (int)skn);
-        entry = &hugeAnimStruct.table->entries[i];
-        fn_800BD548(entry, 3, hugeAnimStruct.lights[0], hugeAnimStruct.lights[1], hugeAnimStruct.lights[2],
+        if (gIsModel[i]) {
+            anim = (int)hugeAnimStruct.slots[i].anim;
+        } else {
+            anim = 0;
+        }
+        slot = &hugeAnimStruct.slots[i];
+        animateBallRelated(hugeAnimStruct.table, (u16)i, (u16)i, layout, anim, (int)skn);
+        fn_800BD548(&hugeAnimStruct.table->entries[i], 3, hugeAnimStruct.lights[0], hugeAnimStruct.lights[1], hugeAnimStruct.lights[2],
                     hugeAnimStruct.lights[3]);
-        CTRLSetTranslation(&entry->control, 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation(&entry->control, 0.0f, 0.0f, 0.0f);
+        CTRLSetTranslation(&hugeAnimStruct.table->entries[i].control, 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation(&hugeAnimStruct.table->entries[i].control, 0.0f, 0.0f, 0.0f);
+        entry = &hugeAnimStruct.table->entries[i];
         entry->speed = 0.5f;
         entry->speedPending = 1;
-        *((u8 *)entry->actor + 0x98) |= 4;
+        *((u8 *)hugeAnimStruct.table->entries[i].actor + 0x98) |= 4;
         if (i == 1) {
-            fn_800B2C08(entry->actor, 0);
+            fn_800B2C08(hugeAnimStruct.table->entries[i].actor, 0);
         } else {
-            fn_800B2C08(entry->actor, 1);
+            fn_800B2C08(hugeAnimStruct.table->entries[i].actor, 1);
         }
-        slot->actor = entry->actor;
+        slot->actor = hugeAnimStruct.table->entries[i].actor;
         slot->pos.x = 0.0f;
         slot->pos.y = 0.0f;
         slot->pos.z = 10.0f;
         slot->speed = 0.5f;
         slot->isFirst = (i == 0);
-        entry->callback = (void (*)(void))fn_1_1D0E8;
+        hugeAnimStruct.table->entries[i].callback = (void (*)(void))fn_1_1D0E8;
     }
     currentDrawingItem->func = fn_1_1C3CC;
 }
@@ -597,12 +610,12 @@ void fn_1_1B0FC(void) {
 // .text:0x0001B038 size:0xC4
 void fn_1_1B038(void) {
     GXColor color = {0xFF, 0xFF, 0xFF, 0xFF};
-    Vec *lightPos = lbl_80367318;
+    StadiumLightInput *light = lbl_80367318;
     int i;
 
     for (i = 0; i < 3; i++) {
         LITInitAttn(hugeAnimStruct.lights[i], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-        LITInitPos(hugeAnimStruct.lights[i], lightPos[i].x, lightPos[i].y, lightPos[i].z);
+        LITInitPos(hugeAnimStruct.lights[i], light[i].pos.x, light[i].pos.y, light[i].pos.z);
         LITInitColor(hugeAnimStruct.lights[i], color);
         LITXForm(hugeAnimStruct.lights[i], gView.mtx);
     }
@@ -743,7 +756,7 @@ void fn_1_1A774(void) {
                 b = 128;
                 a = 64;
             }
-            fn_800B2C88((u16)i, m);
+            fn_800B2C88(hugeAnimStruct.table->entries[gSlot].actor, i, m);
             fn_1_1A850(m, gCamera.view, r, g, b, a);
         }
     }
@@ -753,13 +766,14 @@ void fn_1_1A774(void) {
 void fn_1_1A3B4(void) {
     GXColor color = {0xFF, 0xFF, 0xFF, 0xFF};
     DbgTexHeader *header = gTexTable[DBG_SCENE()->slot];
+    DbgTexEntry *entries = (DbgTexEntry *)((u8 *)header + header->index * 0x20 + 4);
+    DbgTexEntry *entry = entries;
     u32 count = header->count;
-    DbgTexEntry *entry = (DbgTexEntry *)((u8 *)header + header->index * 0x20 + 4);
     GXTlutObj tlut;
     GXTexObj texObj;
     u32 i;
 
-    if (entry->clut != NULL) {
+    if (entries->clut != NULL) {
         for (i = 0; i < count; i++) {
             GXInitTlutObj(&tlut, entry->clut, entry->clutFormat, entry->clutCount);
             GXLoadTlut(&tlut, 0);
@@ -809,15 +823,13 @@ void fn_1_1A3B4(void) {
 // .text:0x0001A290 size:0x124
 void fn_1_1A290(ActorObjectTable *table, Mtx cam) {
     u16 i;
-    ActorObjectEntry *entry;
 
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetCullMode(GX_CULL_BACK);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     for (i = 0; i < table->count; i++) {
-        entry = &table->entries[i];
-        if (entry->actor != NULL && entry->applyControl != 0) {
-            fn_1_1A1EC(entry, cam);
+        if (table->entries[i].actor != NULL && table->entries[i].applyControl != 0) {
+            fn_1_1A1EC(table->entries + i, cam);
         }
     }
 }
@@ -924,7 +936,7 @@ void fn_1_19D60(DbgDispObj *obj, Mtx cam) {
 
 // .text:0x00019D1C size:0x44
 int fn_1_19D1C(u8 fmt) {
-    switch (fmt >> 4) {
+    switch ((u8)(fmt >> 4)) {
     case 0:
     case 1:
         return 1;
@@ -958,25 +970,26 @@ void fn_1_1957C(void) {
 
 // .text:0x000191DC size:0x3A0
 void fn_1_191DC(ParticleEffect *effect) {
-    Particle *p;
-    u32 i;
+    Particle *p = effect->head;
+    u32 i = 0;
     s32 lifeSpan;
 
-    i = 0;
-    for (p = effect->head; p != NULL; p = p->next, i++) {
+    do {
         p->index = i;
         p->sizeX = (f32)gParticleCfg[3] / 100000.0f;
         p->sizeY = (f32)gParticleCfg[4] / 100000.0f;
         fn_1_18EE4(p);
         lifeSpan = gParticleCfg[0] / 5;
         p->life = ((i % 5) * lifeSpan + rand() % lifeSpan) * 2;
-    }
+        p = p->next;
+        i++;
+    } while (p != NULL);
 }
 
 // .text:0x00018EE4 size:0x2F8
 void fn_1_18EE4(Particle *p) {
     u8 base = gParticleCfg[5];
-    u8 range;
+    u8 range = 0xFF - gParticleCfg[5];
     f32 spin;
 
     p->pos.x = (f32)(p->index * 2) / (f32)gParticleCfg[0] - 1.0f;
@@ -990,7 +1003,6 @@ void fn_1_18EE4(Particle *p) {
     p->rotVel.z = spin * ((f32)rand() / 32767.0f);
     p->col1.b[3] = 0xFF;
     p->col0.b[3] = 0xFF;
-    range = 0xFF - base;
     p->col0.b[1] = base + rand() % range;
     p->col0.b[2] = base + rand() % range;
     p->col1.b[0] = base + rand() % range;
@@ -1000,24 +1012,27 @@ void fn_1_18EE4(Particle *p) {
 
 // .text:0x00018E04 size:0xE0
 void fn_1_18E04(Particle *p, f32 angle) {
-    f32 rad = 0.017453292f * angle;
-    f32 s = sin(rad);
-    f32 c = cos(rad);
+    f32 s;
+    f32 c;
+    f32 rad;
 
+    rad = 0.017453292f * angle;
+    s = sin(rad);
+    c = cos(rad);
     p->vel.x = s * (f32)gParticleCfg[1] / 100000.0f;
     p->vel.y = c * (f32)gParticleCfg[1] / 100000.0f;
     p->vel.z = 0.0f;
 }
 
 // .text:0x0001857C size:0x888
-void fn_1_1857C(ParticleEffect *effect) {
+int fn_1_1857C(ParticleEffect *effect) {
     Vec up = {0.0f, 1.0f, 0.0f};
     Vec dir;
-    Particle *p;
-    Particle *first;
-    ParticleSortEntry *arr;
-    ParticleSortEntry *entry;
     u32 count;
+    Particle *p;
+    ParticleSortEntry *arr;
+    Particle *first;
+    ParticleSortEntry *entry;
     f32 angle;
     f32 delta;
     camera_803c639c_s *cam;
@@ -1041,7 +1056,7 @@ void fn_1_1857C(ParticleEffect *effect) {
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
     p = effect->head;
     count = effect->flags & 0xFFF;
-    arr = _OSAllocFromHeap(0x20, (effect->flags & 0xFFF) << 3);
+    arr = _OSAllocFromHeap(0x20, count * sizeof(ParticleSortEntry));
     entry = arr;
     while (p != NULL) {
         entry->particle = p;
@@ -1049,7 +1064,7 @@ void fn_1_1857C(ParticleEffect *effect) {
         entry++;
         p = p->next;
     }
-    fn_800246D4(fn_1_17EFC, arr, arr, 8, count);
+    fn_800246D4(fn_1_17EFC, arr, arr, sizeof(ParticleSortEntry), count);
     first = arr[0].particle;
     entry = arr;
     while (--count) {
@@ -1061,9 +1076,7 @@ void fn_1_1857C(ParticleEffect *effect) {
     effect->head = first;
     p = first;
     do {
-        if (p->life > 0) {
-            p->life--;
-        } else {
+        if (p->life <= 0) {
             fn_1_182C0(p);
             PSVECAdd(&p->vel, &p->pos, &p->pos);
             PSVECAdd(&p->rotVel, &p->rot, &p->rot);
@@ -1075,7 +1088,7 @@ void fn_1_1857C(ParticleEffect *effect) {
                 PSVECNormalize(&dir, &dir);
                 angle = 57.29578f * (f32)acos(PSVECDotProduct(&up, &dir));
                 if (dir.x < 0.0f) {
-                    angle = angle * -1.0f;
+                    angle *= -1.0f;
                 }
                 delta = 20.0 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
                 if (fabs(angle + delta) > 20.0) {
@@ -1088,6 +1101,8 @@ void fn_1_1857C(ParticleEffect *effect) {
             if (p->pos.y > 1.0f) {
                 fn_1_18EE4(p);
             }
+        } else {
+            p->life--;
         }
         p = p->next;
     } while (p != NULL);
@@ -1113,6 +1128,7 @@ void fn_1_1857C(ParticleEffect *effect) {
     GXLoadPosMtxImm(cam->view, 0);
     GXSetCurrentMtx(0);
     GXSetProjection(fn_80052768_getCamera(0)->proj, GX_PERSPECTIVE);
+    return 0;
 }
 
 // .text:0x000182C0 size:0x2BC

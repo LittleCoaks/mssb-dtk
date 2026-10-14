@@ -15,7 +15,7 @@
 
 
 extern DbgGfxState lbl_1_common_bss_472B4;
-static f32 lbl_1_data_200[6] = {0.21f, -3.f, 17.26f, 0.21f, 3.f, 17.26f};
+f32 lbl_1_data_200[6] = {0.21f, -3.f, 17.26f, 0.21f, 3.f, 17.26f};
 static Vec lbl_1_data_218 = {0.f, 1.f, 0.f};
 static Vec lbl_1_data_224 = {0.f, 0.f, 0.f};
 static f32 lbl_1_data_230[4] = {0.f, 0.f, 0.f, 0.f};
@@ -294,19 +294,20 @@ void fn_1_25BC(DlPrim *p) {
             }
             v = p->verts;
             for (left = n; left != 0; left--) {
+                DlVertex *start;
                 dlWriteU8(GX_LINESTRIP);
                 dlWriteU16(4);
-                dlVertex(&v[0].pos, 0x12);
-                dlVertex(&v[1].pos, 0x12);
-                dlVertex(&v[2].pos, 0x12);
-                v += 3;
-                dlVertex(&v[-3].pos, 0x12);
+                start = v;
+                dlVertex(&v++->pos, 0x12);
+                dlVertex(&v++->pos, 0x12);
+                dlVertex(&v++->pos, 0x12);
+                dlVertex(&start->pos, 0x12);
             }
         } else {
             cnt = 0;
             prev = p->verts[0].key;
             vi = p->verts;
-            for (i = n + 2; i != 0; i--, vi++) {
+            for (i = n + 2; i != 0; vi++, i--) {
                 cnt++;
                 if (prev != vi->key) {
                     prev = vi->key;
@@ -314,15 +315,17 @@ void fn_1_25BC(DlPrim *p) {
                 }
             }
             v = p->verts;
-            prev = p->verts[0].key;
+            prev = v->key;
             dlWriteU8(GX_TRIANGLESTRIP);
             dlWriteU16(cnt);
-            for (left = n + 2; left != 0; left--, v++) {
+            for (left = n + 2; left != 0; v++, left--) {
                 key = v->key;
                 if (prev != key) {
+                    u8 idx;
                     prev = key;
                     dlVertexKey(&v[-2].pos, key);
-                    dlVertexKey(&v[-1].pos, key);
+                    idx = keyIdx32(key);
+                    dlVertex(&v[-1].pos, idx);
                 }
                 dlVertexKey(&v->pos, key);
             }
@@ -331,8 +334,7 @@ void fn_1_25BC(DlPrim *p) {
             dlWriteU8(GX_LINESTRIP);
             dlWriteU16(cnt);
             for (; cnt != 0; cnt--) {
-                dlVertex(&vi->pos, 0x12);
-                vi++;
+                dlVertex(&vi++->pos, 0x12);
             }
             vi = p->verts;
             cnt = (n + 3) >> 1;
@@ -352,7 +354,7 @@ void fn_1_25BC(DlPrim *p) {
             }
         }
         p = (DlPrim *)v;
-    } while (*(s32 *)p != 0);
+    } while (*(u32 *)p != 0);
 }
 
 // .text:0x00001DBC size:0x800
