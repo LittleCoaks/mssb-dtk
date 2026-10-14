@@ -1474,7 +1474,7 @@ void toyFieldPostMenu(void) {
         if (start) {
             initializeMinigameData();
             fn_3_15F998();
-            minigameStopBombExplosion();
+            minigameWinnerStars_stop();
             if (pauseControl.cursor == 1) {
                 mm_UnloadModels();
             }
@@ -1485,7 +1485,7 @@ void toyFieldPostMenu(void) {
         switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             fn_3_15F998();
-            minigameStopBombExplosion();
+            minigameWinnerStars_stop();
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 10;
             break;

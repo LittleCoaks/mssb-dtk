@@ -139,9 +139,15 @@ s32 piranhaPanic_bombExplosionParams[25] = { 6, 30, 4, 5, 0, 250000, 350000, 0, 
 static MGTrailEffect* minigameTrail_effect;
 static MGTexRecord* minigameTrail_lastTex;
 static u8 lbl_3_bss_B858;
-static u8 minigameWinnerStars_slots;
+static s8 minigameWinnerStars_slots[MG_PLAYER_COUNT];
 static f32 minigameWinnerStars_quadVerts[13];
 static u8 lbl_3_bss_B894[0x124];
+
+/* MSL's fabs is an inline function rather than the bare __fabs intrinsic that stl/math.h maps it to;
+ * the by-value parameter changes float register allocation, so this file uses the function form. */
+static inline f64 mgFabs(f64 x) {
+    return __fabs(x);
+}
 
 static inline s32 mgFxTableRow(MGParticle* p) {
     s32 row = 10;
@@ -179,192 +185,6 @@ extern void fn_80033B58(void* tex, int sub, int a, int b);
 
 
 
-static inline void mgStarSparkOffset(MGParticle* p) {
-    Vec offset;
-    u32 node;
-
-    if (p->kind < 5) {
-        node = (u32)rand() % 23;
-        offset.z = 0.0f;
-        offset.y = 0.0f;
-        offset.x = 0.0f;
-        if (!getAnimationCollisionOffset(p->kind - 1, starDash_sparkBoneNodes[node], &offset)) {
-            memset(&offset, 0, sizeof(Vec));
-            getAnimationCollisionOffset(p->kind - 1, 4, &offset);
-        }
-    } else {
-        offset.x = g_Minigame.sd.starPos.x;
-        offset.y = -g_Minigame.sd.starPos.y;
-        offset.z = g_Minigame.sd.starPos.z;
-    }
-    p->origin.x += offset.x;
-    p->origin.y += offset.y;
-    p->origin.z += offset.z;
-}
-
-static inline void mgStarSparkPlace(MGParticle* p) {
-    Vec v = { 0.0f, 0.0f, 0.0f };
-
-    if (p->kind == 5) {
-        v.x = v.x + (f32)(rand() % 10000 - 5000) / 10000.0f;
-        v.y = v.y + (f32)(rand() % 10000 - 5000) / 10000.0f;
-        p->origin.x = v.x;
-        p->origin.y = v.y - 0.5f;
-        p->origin.z = v.z;
-    } else {
-        p->origin.z = 0.0f;
-        p->origin.y = 0.0f;
-        p->origin.x = 0.0f;
-    }
-    mgStarSparkOffset(p);
-}
-
-static inline void mgStarSparksSetup(MGEffect* effect, s8 index) {
-    MGParticle* p = effect->particles;
-    u32 i = 0;
-
-    do {
-        if (p->kind == index + 1) {
-            p->life = starDash_sparkParams[7];
-            p->alphaByte = starDash_sparkParams[5];
-            p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
-            p->delay = (s16)((f32)p->life / 18.0f * (f32)i);
-            if (p->delay == 0) {
-                mgStarSparkPlace(p);
-            }
-            p->colorR = p->colorG = p->colorB = 0xFF;
-            i++;
-            p->_34 = 0.0f;
-        }
-        p = p->next;
-    } while (p != NULL);
-}
-
-static inline void mgBarrelSparksSetup(MGEffect* effect, int barrelIndex) {
-    MGParticle* p = effect->particles;
-    s32 i = 0;
-
-    do {
-        if (p->_44 == 0 && p->life == 0) {
-            if (i < 3) {
-                p->_44 = 1;
-                p->_45 = (u8)barrelIndex;
-                p->_46 = 0xFF;
-                p->texIndex = barrelBatter_explosionParams[0];
-                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[4];
-                p->alphaByte = barrelBatter_explosionParams[7];
-                barrelBatter_placeExplosionFlash(p);
-                p->life = barrelBatter_explosionParams[17];
-                p->delay = 0;
-            } else {
-                p->_44 = 2;
-                p->_45 = (u8)barrelIndex;
-                p->_46 = (i - 3) / 5;
-                p->texIndex = barrelBatter_explosionParams[1];
-                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[11];
-                p->alphaByte = barrelBatter_explosionParams[14];
-                p->delay = (i - 3) % 5 * 4 + 1;
-                p->life = barrelBatter_explosionParams[18];
-            }
-            p->colorR = p->colorG = p->colorB = 0xFF;
-            i++;
-        }
-        p = p->next;
-    } while (p != NULL && i < 43);
-}
-
-static inline void mgBarrelRingInit(MGEffect* effect, Vec* pos) {
-    MGParticle* p;
-    u32 i = 0;
-    f32 angle;
-
-    effect->texture = *(u32*)&animRelated[0x6C];
-    p = effect->particles;
-    do {
-        p->texIndex = barrelBatter_releaseRingParams[0];
-        p->_4E = 0;
-        p->life = barrelBatter_releaseRingParams[2];
-        p->delay = 0;
-        p->origin.x = pos->x;
-        p->origin.y = -pos->y;
-        p->origin.z = pos->z;
-        angle = 0.017453292f * (f32)(u32)(360 / barrelBatter_releaseRingParams[1] * i);
-        p->origin.x = p->origin.x + (f32)barrelBatter_releaseRingParams[3] * (f32)cos(angle) / 100000.0f;
-        p->origin.y = p->origin.y + (f32)barrelBatter_releaseRingParams[3] * (f32)sin(angle) / 100000.0f;
-        p->sizeY = p->sizeX = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
-        p->colorR = p->colorG = p->colorB = 0xFF;
-        p->alphaByte = barrelBatter_releaseRingParams[9];
-        p->velX = 0.0f;
-        p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
-        p->velY = p->velY / 100000.0f;
-        p->velY = p->velY * (f32)(1 - rand() % 2 * 2);
-        i++;
-        p->velZ = (f32)(barrelBatter_releaseRingParams[6] - rand() % barrelBatter_releaseRingParams[7]);
-        p->velZ = p->velZ / 100000.0f;
-        p = p->next;
-    } while (p != NULL);
-}
-
-static inline void mgStarParticleInit(s8 index, MGParticle* p) {
-    u8* actor = *(u8**)(hugeAnimStruct + 0x2C50 + index * 4);
-    s32 base = minigameWinnerStars_params[6];
-    u8 lo = base;
-    u8 range;
-    s32 span;
-    f32 angle;
-    f32 s;
-    f32 c;
-
-    p->origin.x = 0.0f;
-    p->origin.y = -((f32)minigameWinnerStars_params[5] / 100000.0f + *(f32*)(actor + 0x38));
-    p->origin.z = 0.0f;
-    angle = 0.017453292f * (15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] * 0.5f)));
-    s = sin(angle);
-    c = cos(angle);
-    p->velX = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    p->velY = c * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    p->velZ = 0.0f;
-    p->alpha = p->_20 = p->_1C = 0.0f;
-    span = (s32)(1000.0f * ((f32)minigameWinnerStars_params[2] / 100000.0f));
-    p->_28 = (f32)(rand() % span) / 1000.0f;
-    p->_2C = (f32)(rand() % span) / 1000.0f;
-    p->_30 = (f32)(rand() % span) / 1000.0f;
-    p->_47 = 0xFF;
-    p->alphaByte = 0xFF;
-    range = 0xFF - base;
-    p->colorG = lo + rand() % range;
-    p->colorB = lo + rand() % range;
-    p->_44 = lo + rand() % range;
-    p->_45 = lo + rand() % range;
-    p->_46 = lo + rand() % range;
-    p->kind = 0;
-}
-
-static inline void mgStarDashDustInit(MGEffect* effect, Vec* pos) {
-    MGParticle* p = effect->particles;
-    f32 speed;
-
-    effect->texture = *(u32*)&animRelated[0x6C];
-    do {
-        p->texIndex = starDash_dustParams[0];
-        p->_4E = 0;
-        p->origin.x = pos->x + (f32)(rand() % 1000 - 500) / 1000.0f;
-        p->origin.y = -(0.75f + pos->y);
-        p->origin.z = pos->z + (f32)(rand() % 1000 - 500) / 1000.0f;
-        p->velX = p->velZ = 0.0f;
-        p->velY = (f32)starDash_dustParams[9] / 100000.0f;
-        speed = p->velY;
-        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
-        p->colorR = p->colorG = p->colorB = 0xFF;
-        p->alphaByte = starDash_dustParams[6];
-        p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
-        p->sizeX = p->sizeY = ((f32)starDash_dustParams[3] / 100000.0f) * p->_1C;
-        p->life = starDash_dustParams[2];
-        p->delay = 0;
-        p = p->next;
-    } while (p != NULL);
-}
-
 // .text:0x157DB8 size:0x70
 // Spawns the trail effect that follows the chomp; it lives for `duration` frames.
 void chainChomp_spawnTrailEffect(s32 duration) {
@@ -401,17 +221,13 @@ int chainChomp_updateTrailEffect(MGEffect* effect) {
     if (g_Minigame.minigameInactiveInd != 0) {
         return TRUE;
     }
-    if (effect->frame == effect->duration && g_GameLogic.gameStatus != GAME_STATUS_MVP_END_GAME) {
-        return TRUE;
-    }
-    return FALSE;
+    return effect->frame == effect->duration && g_GameLogic.gameStatus != GAME_STATUS_MVP_END_GAME;
 }
 
 // .text:0x15791C size:0x1A8
 f32 chainChomp_trailScale(s32 frame) {
-    s32 shifted = frame + 0x30;
-    s32 cycles = shifted / 0x78;
-    s32 phase = shifted % 0x78;
+    s32 cycles = (frame + 0x30) / 0x78;
+    s32 phase = (frame + 0x30) % 0x78;
     f32 c;
     f32 scale;
 
@@ -420,7 +236,8 @@ f32 chainChomp_trailScale(s32 frame) {
     } else {
         c = cos(3.1415927f * ((f32)phase / 48.0f));
     }
-    scale = c * 0.5f + 0.5f;
+    scale = c / 2.0f;
+    scale += 0.5f;
     if (cycles != 0) {
         u8 status = g_GameLogic.gameStatus;
 
@@ -591,7 +408,7 @@ void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
         PSVECSubtract(&screen, &trail, &screen);
         dir = screen;
         angle = 0.017453292f * (f32)((f64)(rand() % 15000) / 1000.0);
-        angle *= (f32)(1 - (rand() % 2) * 2);
+        angle *= (f32)(-(rand() % 2 * 2) + 1);
         screen.x = dir.x * (f32)cos(angle) + dir.y * -(f32)sin(angle);
         screen.y = dir.x * (f32)sin(angle) + dir.y * (f32)cos(angle);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
@@ -607,11 +424,11 @@ void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
                            &step);
                 PSVECAdd(&trail, &step, &step);
                 if (i >= 4) {
-                    g = (f32)(7 - i) * 0.25f + 1.0f;
+                    g = (f32)(7 - i) / 4.0f + 1.0f;
                 } else {
                     g = 2.0f;
                 }
-                h = sizeScale * (g * 0.5f);
+                h = sizeScale * (g / 2.0f);
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[0].z = step.z;
@@ -629,11 +446,11 @@ void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z) {
                     minigameTrail_drawQuad(quad, -1, (MGTexRecord*)MG_TEX_RECORD(0x68, 0));
                 }
                 if (i >= 4) {
-                    g = (f32)(7 - i) * 0.25f + 1.0f;
+                    g = (f32)(7 - i) / 4.0f + 1.0f;
                 } else {
                     g = 2.0f;
                 }
-                h = sizeScale * (g * 0.5f);
+                h = sizeScale * (g / 2.0f);
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[1].x = step.x - h;
@@ -696,31 +513,20 @@ void minigameTrail_drawQuad(Vec* positions, u32 color, MGTexRecord* tex) {
         minigameTrail_lastTex = tex;
     }
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    for (i = 0; i < 2; i++) {
-        MGQuadVertex* v = &verts[i * 2];
-
-        GXWGFifo.f32 = v[0].pos.x;
-        GXWGFifo.f32 = v[0].pos.y;
-        GXWGFifo.f32 = v[0].pos.z;
-        GXWGFifo.u32 = v[0].color;
-        GXWGFifo.f32 = v[0].s;
-        GXWGFifo.f32 = v[0].t;
-        GXWGFifo.f32 = v[1].pos.x;
-        GXWGFifo.f32 = v[1].pos.y;
-        GXWGFifo.f32 = v[1].pos.z;
-        GXWGFifo.u32 = v[1].color;
-        GXWGFifo.f32 = v[1].s;
-        GXWGFifo.f32 = v[1].t;
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(verts[i].pos.x, verts[i].pos.y, verts[i].pos.z);
+        GXColor1u32(verts[i].color);
+        GXTexCoord2f32(verts[i].s, verts[i].t);
     }
 }
 
 // .text:0x156548 size:0x428
 void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
+    Vec quad[4];
     Mtx44 proj;
     Vec screen;
     Vec step;
     Vec trail;
-    Vec quad[4];
     Vec* point;
     f32 inv;
     f32 g;
@@ -753,7 +559,7 @@ void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
                 } else {
                     g = 1.0f;
                 }
-                h = g * 0.5f;
+                h = g / 2.0f;
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[0].z = step.z;
@@ -773,7 +579,7 @@ void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z) {
                 } else {
                     g = 1.0f;
                 }
-                h = g * 0.5f;
+                h = g / 2.0f;
                 quad[0].x = step.x - h;
                 quad[0].y = step.y - h;
                 quad[1].x = step.x - h;
@@ -844,9 +650,9 @@ void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot) {
     offset.y = scale.y;
     offset.z = scale.z + 1.5 * ((rand() % 40 - 20) / 100.0);
     PSMTXMultVec(mtx, &offset, &offset);
-    offset.x = offset.x + base->x;
-    offset.y = offset.y - fabs(base->y);
-    offset.z = offset.z + base->z;
+    offset.x += base->x;
+    offset.y -= mgFabs(base->y);
+    offset.z += base->z;
     p->origin.x = offset.x;
     p->origin.y = offset.y;
     p->origin.z = offset.z;
@@ -877,7 +683,8 @@ int bobOmbFuseSpark_updateAtPitch(MGEffect* effect) {
             fn_8003403C(p->sizeX, p->sizeY);
             fn_80033CC8(p, effect->texture);
             if (bobOmbFuseSpark_params[6] / p->life < 2) {
-                alpha = p->alphaByte + bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha += bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha > bobOmbFuseSpark_params[5]) {
                     alpha = bobOmbFuseSpark_params[5];
                 }
@@ -885,7 +692,8 @@ int bobOmbFuseSpark_updateAtPitch(MGEffect* effect) {
                 p->sizeX += ((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2);
                 p->sizeY = p->sizeX;
             } else {
-                alpha = p->alphaByte - bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha -= bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha < bobOmbFuseSpark_params[4]) {
                     alpha = bobOmbFuseSpark_params[4];
                 }
@@ -926,7 +734,7 @@ void bobOmbFuseSpark_spawnFollow(s16 id, Vec* pos, Vec* rot) {
 void bobOmbFuseSpark_spawnFollowEffect(s16 id, Vec* pos, Vec* rot) {
     MGEffect* existing = fn_800339F0(0, 0x27);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, bobOmbFuseSpark_params[1], 1);
@@ -934,8 +742,8 @@ void bobOmbFuseSpark_spawnFollowEffect(s16 id, Vec* pos, Vec* rot) {
             MGParticle* tail;
 
             bobOmbFuseSpark_initFollow(fresh, id, pos, rot);
-            if (existing->particles != NULL) {
-                tail = existing->particles;
+            tail = existing->particles;
+            if (tail != NULL) {
                 while (tail->next != NULL) {
                     tail = tail->next;
                 }
@@ -984,8 +792,7 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
     if (effect->particles == NULL) {
         return 0;
     }
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = (MGFollowParticle*)effect->particles;
+    p = (MGFollowParticle*)(effect->particles = fn_80031F34(effect->particles, effect->count));
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     do {
@@ -1000,7 +807,8 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
             fn_8003403C(p->sizeX, p->sizeY);
             fn_80033CC8(p, effect->texture);
             if (bobOmbFuseSpark_params[6] / p->life < 2) {
-                alpha = p->alphaByte + bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha += bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha > bobOmbFuseSpark_params[5]) {
                     alpha = bobOmbFuseSpark_params[5];
                 }
@@ -1008,7 +816,8 @@ int bobOmbFuseSpark_updateFollow(MGEffect* effect) {
                 p->sizeX += 3.0f * (((f32)bobOmbFuseSpark_params[3] / 100000.0f) / (f32)(bobOmbFuseSpark_params[6] / 2));
                 p->sizeY = p->sizeX;
             } else {
-                alpha = p->alphaByte - bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
+                alpha = p->alphaByte;
+                alpha -= bobOmbFuseSpark_params[5] / (bobOmbFuseSpark_params[6] / 2);
                 if (alpha < bobOmbFuseSpark_params[4]) {
                     alpha = bobOmbFuseSpark_params[4];
                 }
@@ -1038,8 +847,8 @@ void bobOmbFuseSpark_removeFollow(s16 id) {
     if (effect != NULL) {
         p = effect->particles;
         link = &effect->particles;
-        removedHead = NULL;
         removedTail = NULL;
+        removedHead = NULL;
         do {
             if (((MGFollowParticle*)p)->id == id) {
                 *link = p->next;
@@ -1085,11 +894,13 @@ void chainChomp_spawnItemSparkleEffect(u8 kind, u8 mode, Vec* pos) {
     } else {
         effect = allocParticleEffect(chainChomp_updateItemSparkles, 0x80, 0, chainChomp_itemSparkleParams[0] * 15, TRUE, 0x1C);
         if (effect != NULL) {
-            for (p = effect->particles; p != NULL; p = p->next) {
+            p = effect->particles;
+            do {
                 p->life = 0;
                 p->kind = 0;
                 p->_4F = 0xFF;
-            }
+                p = p->next;
+            } while (p != NULL);
             chainChomp_initItemSparkleParticles(effect, kind, mode, pos);
             memset(lbl_3_bss_B894, 0, 0xF);
         }
@@ -1121,7 +932,7 @@ void chainChomp_initItemSparkleParticles(MGEffect* effect, u8 kind, u8 mode, Vec
 void chainChomp_initItemSparkleParticle(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index) {
     f32 scale;
 
-    p->delay = index * chainChomp_itemSparkleParams[3] / chainChomp_itemSparkleParams[0] + (index != 0) * chainChomp_itemSparkleLayer1Params[3];
+    p->delay = (index != 0) * chainChomp_itemSparkleLayer1Params[3] + index * chainChomp_itemSparkleParams[3] / chainChomp_itemSparkleParams[0];
     p->texIndex = (mode == 4);
     p->_4E = 0;
     p->_4F = kind;
@@ -1290,7 +1101,7 @@ void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind) {
 // .text:0x1534C0 size:0x1E8
 void chainChomp_initItemSparkleLayer1(MGParticle* p) {
     chainChomp_placeItemSparkle(p, FALSE);
-    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleLayer1Params[0];
+    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleLayer1Params[0];
     p->kind = 1;
     p->life = chainChomp_itemSparkleLayer1Params[3];
     p->velX = p->velZ = 0.0f;
@@ -1300,7 +1111,7 @@ void chainChomp_initItemSparkleLayer1(MGParticle* p) {
 // .text:0x1531A4 size:0x31C
 void chainChomp_initItemSparkleLayer2(MGParticle* p) {
     chainChomp_placeItemSparkle(p, TRUE);
-    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleLayer2Params[0];
+    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleLayer2Params[0];
     p->kind = 2;
     p->life = chainChomp_itemSparkleLayer2Params[3];
     p->velX = p->velZ = 0.0f;
@@ -1309,10 +1120,10 @@ void chainChomp_initItemSparkleLayer2(MGParticle* p) {
 
 // .text:0x152AB4 size:0x6F0
 void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
-    MGParticle* p;
     MGEffect* effect;
     f32* cornerY;
     f32* cornerX;
+    MGParticle* p;
     u32 count = 0;
     camera_803c639c_s* cam;
     Vec rotated;
@@ -1343,14 +1154,13 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     rotated.x = 0.0f;
                     PSVECSubtract(&rotated, &cam->eye, &rotated);
                     p->_34 = PSVECMag(&rotated);
-                    view.z = -1.0f;
                     PSMTX44MultVec(cam->proj, &view, &view);
+                    view.z = -1.0f;
                     p->origin.x = view.x;
                     p->origin.y = view.y;
                     p->origin.z = view.z;
-                    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
-                    world.x = p->sizeX;
-                    world.y = p->sizeX;
+                    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleFlyParams[0] / 100000.0f;
+                    world.x = world.y = p->sizeX;
                     world.z = p->_34;
                     PSMTX44MultVec(cam->proj, &world, &view);
                     p->sizeX = view.x * (p->texIndex != 0 ? 1.5 : 1.0);
@@ -1364,13 +1174,13 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
                     if (PSVECMag(&dir) >= 1.0) {
                         k = 1.0f;
                     } else {
-                        k = 1.0f / (PSVECMag(&dir) * 0.5f);
+                        k = 1.0f / (PSVECMag(&dir) / 2.0f);
                     }
                     PSVECNormalize(&dir, &dir);
-                    dir.x = dir.x * -1.0f;
-                    dir.y = dir.y * -1.0f;
-                    rotated.x = dir.x * (f32)cos(angle) + -dir.y * (f32)sin(angle);
-                    rotated.y = dir.x * (f32)sin(angle) + dir.y * (f32)cos(angle);
+                    dir.x *= -1.0f;
+                    dir.y *= -1.0f;
+                    rotated.x = -dir.y * (f32)sin(angle) + dir.x * (f32)cos(angle);
+                    rotated.y = dir.y * (f32)cos(angle) + dir.x * (f32)sin(angle);
                     rotated.z = 0.0f;
                     PSVECScale(&rotated, ((f32)chainChomp_itemSparkleFlyParams[2] / 100000.0f) * k, &rotated);
                     rotated.z = p->_34;
@@ -1393,7 +1203,7 @@ void chainChomp_flyItemSparklesToScore(u8 id, u8 flag) {
 // .text:0x152794 size:0x320
 void chainChomp_initItemSparkleFly(MGParticle* p) {
     chainChomp_placeItemSparkle(p, TRUE);
-    p->sizeY = p->sizeX = (f32)chainChomp_itemSparkleFlyParams[0];
+    p->sizeX = p->sizeY = (f32)chainChomp_itemSparkleFlyParams[0];
     p->kind = 3;
     p->life = chainChomp_itemSparkleFlyParams[3];
     p->velX = p->velZ = 0.0f;
@@ -1416,7 +1226,7 @@ void chainChomp_placeItemSparkle(MGParticle* p, u8 randomize) {
         scale = mm_GetItemScale(0);
     }
     {
-        Vec axis = { 0.0f, 0.0f, -1.0f };
+        Vec axis = sFwdAxis;
 
         v.x = 0.0f;
         v.y = 0.0f;
@@ -1585,7 +1395,7 @@ void chainChomp_updateItemSparkleFly(MGEffect* effect, MGParticle* p) {
         target.y = chainChomp_itemSparkleScoreCorners[p->_44 * 2 + 1];
         target.z = 0.0f;
         PSVECNormalize(&target, &target);
-        if (PSVECDotProduct(&unit, &target) < 0.0f || 0.0f == dist) {
+        if (PSVECDotProduct(&unit, &target) < 0.0f || !dist) {
             p->life = 0;
         }
         if (p->life == 0 && p->_45 != 0) {
@@ -1601,10 +1411,9 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     Mtx44 proj;
     f32 corner[4][3];
     f32 uv[4][2] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-    f32 halfW = p->sizeX * 0.5f;
-    f32 halfH = p->sizeY * 0.5f;
+    f32 halfW = p->sizeX / 2.0f;
+    f32 halfH = p->sizeY / 2.0f;
     int i;
-    int k;
 
     corner[0][0] = -halfW;
     corner[0][1] = -halfH;
@@ -1625,24 +1434,10 @@ void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect) {
     GXSetProjection(proj, GX_PERSPECTIVE);
     fn_80033B58((void*)effect->texture, p->texIndex, 0, 0);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
-    k = 0;
-    for (i = 0; i < 2; i++) {
-        f32* t;
-
-        GXWGFifo.f32 = p->origin.x + corner[i * 2][0];
-        GXWGFifo.f32 = p->origin.y + corner[i * 2][1];
-        GXWGFifo.f32 = -1.0f;
-        GXWGFifo.u32 = *(u32*)&p->colorR;
-        t = uv[p->_4E + k++];
-        GXWGFifo.f32 = t[0];
-        GXWGFifo.f32 = t[1];
-        GXWGFifo.f32 = p->origin.x + corner[i * 2 + 1][0];
-        GXWGFifo.f32 = p->origin.y + corner[i * 2 + 1][1];
-        GXWGFifo.f32 = -1.0f;
-        GXWGFifo.u32 = *(u32*)&p->colorR;
-        t = uv[p->_4E + k++];
-        GXWGFifo.f32 = t[0];
-        GXWGFifo.f32 = t[1];
+    for (i = 0; i < 4; i++) {
+        GXPosition3f32(p->origin.x + corner[i][0], p->origin.y + corner[i][1], -1.0f);
+        GXColor1u32(*(u32*)&p->colorR);
+        GXTexCoord2f32(uv[p->_4E + i][0], uv[p->_4E + i][1]);
     }
     GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, GX_PNMTX0);
     GXSetCurrentMtx(GX_PNMTX0);
@@ -1741,14 +1536,14 @@ void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
     p->origin.x = effect->pos.x;
     p->origin.y = -effect->pos.y;
     p->origin.z = effect->pos.z;
-    p->sizeY = p->sizeX = (f32)(wallBall_noteBlockBurstParams[10] + rand() % (wallBall_noteBlockBurstParams[11] - wallBall_noteBlockBurstParams[10])) / 100000.0f;
+    p->sizeX = p->sizeY = (f32)(wallBall_noteBlockBurstParams[10] + rand() % (wallBall_noteBlockBurstParams[11] - wallBall_noteBlockBurstParams[10])) / 100000.0f;
     p->velY = (f32)(wallBall_noteBlockBurstParams[12] + rand() % (wallBall_noteBlockBurstParams[13] - wallBall_noteBlockBurstParams[12])) / 100000.0f;
     angle = 0.017453292f * (f32)((rand() % 36000) / 100.0);
     speed = (f32)(wallBall_noteBlockBurstParams[16] + rand() % (wallBall_noteBlockBurstParams[17] - wallBall_noteBlockBurstParams[16])) / 100000.0f;
     p->velX = speed * (f32)cos(angle);
     p->velZ = speed * (f32)sin(angle);
     p->_1C = 57.29578f * ((f32)(wallBall_noteBlockBurstParams[18] + rand() % (wallBall_noteBlockBurstParams[19] - wallBall_noteBlockBurstParams[18])) / 100000.0f);
-    p->_1C = p->_1C * (f32)(1 - (rand() % 2) * 2);
+    p->_1C = p->_1C * (f32)(-(rand() % 2 * 2) + 1);
     p->colorR = p->colorG = p->colorB = p->alphaByte = 0xFF;
 }
 
@@ -1798,11 +1593,11 @@ void wallBall_updateNoteParticle(MGWeatherEffect* effect, MGParticle* p) {
     duration = wallBall_noteBlockBurstParams[6];
     alpha = p->alphaByte;
     if (duration / p->life < 2) {
-        alphaStep = wallBall_noteBlockBurstParams[5] / (duration / 2);
         sizeStep = (f32)wallBall_noteBlockBurstParams[3] / 100000.0f / (f32)(duration / 2);
+        alphaStep = wallBall_noteBlockBurstParams[5] / (duration / 2);
     } else {
-        alphaStep = -wallBall_noteBlockBurstParams[5] / (duration / 2);
         sizeStep = -((f32)wallBall_noteBlockBurstParams[3] / 100000.0f) / (f32)(duration / 2);
+        alphaStep = -wallBall_noteBlockBurstParams[5] / (duration / 2);
     }
     alpha = alpha + alphaStep;
     if (alpha > 0xFF) {
@@ -1834,8 +1629,7 @@ void wallBall_updateBounceParticle(MGWeatherEffect* effect, MGParticle* p) {
         p->origin.y = 0.0f;
         p->velY = -p->velY * ((f32)wallBall_noteBlockBurstParams[15] / 100000.0f);
     }
-    p->life--;
-    if (p->life == 0) {
+    if (--p->life == 0) {
         wallBall_placeBounceParticle(effect, p);
     }
 }
@@ -1892,12 +1686,12 @@ void starDash_startSparks(s8 index) {
 void starDash_spawnSparksEffect(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x1E);
     if (effect != NULL) {
-        mgStarSparksSetup(effect, index);
+        starDash_setupSparks(effect, index);
     } else {
         effect = allocParticleEffect(starDash_updateSparks, 0x80, 0, starDash_sparkParams[1], TRUE, 0x1E);
         if (effect != NULL) {
             starDash_initSparksEffect(effect);
-            mgStarSparksSetup(effect, index);
+            starDash_setupSparks(effect, index);
         }
     }
 }
@@ -1921,7 +1715,24 @@ void starDash_initSparksEffect(MGEffect* effect) {
 
 // .text:0x14F5A4 size:0x32C
 void starDash_setupSparks(MGEffect* effect, s8 index) {
-    mgStarSparksSetup(effect, index);
+    MGParticle* p = effect->particles;
+    u32 i = 0;
+
+    do {
+        if (p->kind == index + 1) {
+            p->life = starDash_sparkParams[7];
+            p->alphaByte = starDash_sparkParams[5];
+            p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
+            p->delay = (s16)((f32)p->life / 18.0f * (f32)i);
+            if (p->delay == 0) {
+                starDash_placeSparkParticle(p);
+            }
+            p->colorR = p->colorG = p->colorB = 0xFF;
+            i++;
+            p->_34 = 0.0f;
+        }
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14F544 size:0x60
@@ -1970,21 +1781,23 @@ int starDash_updateSparks(MGEffect* effect) {
                 fn_80033CC8(p, effect->texture);
                 duration = starDash_sparkParams[7];
                 if (duration / p->life < 2) {
-                    alpha = p->alphaByte + starDash_sparkParams[6] / (duration / 2);
+                    alpha = p->alphaByte;
+                    alpha += starDash_sparkParams[6] / (duration / 2);
                     if (alpha > starDash_sparkParams[6]) {
                         alpha = starDash_sparkParams[6];
                     }
                     p->alphaByte = alpha;
-                    sizeStep = (f32)(starDash_sparkParams[3] - starDash_sparkParams[2]) / 100000.0f / (f32)(duration / 2);
+                    sizeStep = (f32)(starDash_sparkParams[3] - starDash_sparkParams[2]) / 100000.0f / (f32)(starDash_sparkParams[7] / 2);
                     p->sizeX += sizeStep;
                     p->sizeY = p->sizeX;
                 } else {
-                    alpha = p->alphaByte - starDash_sparkParams[6] / (duration / 2);
+                    alpha = p->alphaByte;
+                    alpha -= starDash_sparkParams[6] / (duration / 2);
                     if (alpha < starDash_sparkParams[5]) {
                         alpha = starDash_sparkParams[5];
                     }
                     p->alphaByte = alpha;
-                    sizeStep = (f32)(starDash_sparkParams[4] - starDash_sparkParams[3]) / 100000.0f / (f32)(duration / 2);
+                    sizeStep = (f32)(starDash_sparkParams[4] - starDash_sparkParams[3]) / 100000.0f / (f32)(starDash_sparkParams[7] / 2);
                     p->sizeX += sizeStep;
                     p->sizeY = p->sizeX;
                 }
@@ -1993,12 +1806,12 @@ int starDash_updateSparks(MGEffect* effect) {
                     p->life = starDash_sparkParams[7];
                     p->alphaByte = starDash_sparkParams[5];
                     p->sizeX = p->sizeY = (f32)starDash_sparkParams[2] / 100000.0f;
-                    mgStarSparkPlace(p);
+                    starDash_placeSparkParticle(p);
                 }
             } else {
                 p->delay--;
                 if (p->delay == 0) {
-                    mgStarSparkPlace(p);
+                    starDash_placeSparkParticle(p);
                 }
             }
         }
@@ -2009,12 +1822,44 @@ int starDash_updateSparks(MGEffect* effect) {
 
 // .text:0x14EAF4 size:0x230
 void starDash_placeSparkParticle(MGParticle* p) {
-    mgStarSparkPlace(p);
+    Vec v = { 0.0f, 0.0f, 0.0f };
+
+    if (p->kind == 5) {
+        v.x = v.x + (f32)(rand() % 10000 - 5000) / 10000.0f;
+        v.y = v.y + (f32)(rand() % 10000 - 5000) / 10000.0f;
+        p->origin.x = v.x;
+        p->origin.y = v.y - 0.5f;
+        p->origin.z = v.z;
+    } else {
+        p->origin.z = 0.0f;
+        p->origin.y = 0.0f;
+        p->origin.x = 0.0f;
+    }
+    starDash_offsetSparkToBone(p);
 }
 
 // .text:0x14E9F0 size:0x104
 void starDash_offsetSparkToBone(MGParticle* p) {
-    mgStarSparkOffset(p);
+    Vec offset;
+    u32 node;
+
+    if (p->kind < 5) {
+        node = starDash_sparkBoneNodes[(u32)rand() % 23];
+        offset.z = 0.0f;
+        offset.y = 0.0f;
+        offset.x = 0.0f;
+        if (!getAnimationCollisionOffset(p->kind - 1, node, &offset)) {
+            memset(&offset, 0, sizeof(Vec));
+            getAnimationCollisionOffset(p->kind - 1, 4, &offset);
+        }
+    } else {
+        offset.x = g_Minigame.sd.starPos.x;
+        offset.y = -g_Minigame.sd.starPos.y;
+        offset.z = g_Minigame.sd.starPos.z;
+    }
+    p->origin.x += offset.x;
+    p->origin.y += offset.y;
+    p->origin.z += offset.z;
 }
 
 // .text:0x14E988 size:0x68
@@ -2094,14 +1939,14 @@ void starDash_spawnDust(Vec* pos) {
 void starDash_spawnDustEffect(Vec* pos) {
     MGEffect* existing = fn_800339F0(0, 0x1F);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, starDash_dustParams[1], 1);
         if (fresh != NULL) {
             MGParticle* tail;
 
-            mgStarDashDustInit(fresh, pos);
+            starDash_initDustParticles(fresh, pos);
             tail = existing->particles;
             while (tail->next != NULL) {
                 tail = tail->next;
@@ -2112,7 +1957,7 @@ void starDash_spawnDustEffect(Vec* pos) {
     } else {
         fresh = allocParticleEffect(starDash_updateDust, 0x80, 0, starDash_dustParams[1], TRUE, 0x1F);
         if (fresh != NULL) {
-            mgStarDashDustInit(fresh, pos);
+            starDash_initDustParticles(fresh, pos);
         }
     }
 }
@@ -2132,7 +1977,7 @@ void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
         p->velX = p->velZ = 0.0f;
         p->velY = (f32)starDash_dustParams[9] / 100000.0f;
         speed = p->velY;
-        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed * 0.5f))) - 1000.0f * (speed * 0.25f)) / 1000.0f;
+        p->velY = p->velY + ((f32)(rand() % (s32)(1000.0f * (speed / 2.0f))) - 1000.0f * (speed / 4.0f)) / 1000.0f;
         p->colorR = p->colorG = p->colorB = 0xFF;
         p->alphaByte = starDash_dustParams[6];
         p->_1C = (f32)(rand() % 1000 + 500) / 1000.0f;
@@ -2147,16 +1992,17 @@ void starDash_initDustParticles(MGEffect* effect, Vec* pos) {
 int starDash_updateDust(MGEffect* effect) {
     MGParticle* p;
     MGParticle** link;
-    MGParticle* removedTail = NULL;
-    u32 alive = 0;
+    MGParticle* removedTail;
+    u32 alive;
     s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
 
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = effect->particles;
+    alive = 0;
+    p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
+    removedTail = NULL;
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
     do {
@@ -2221,12 +2067,12 @@ void barrelBatter_spawnBarrelExplosionEffect(u8 index) {
     MGEffect* effect = fn_800339F0(0, 0x20);
 
     if (effect != NULL) {
-        mgBarrelSparksSetup(effect, index);
+        barrelBatter_setupBarrelExplosion(effect, index);
     } else {
         effect = allocParticleEffect(barrelBatter_updateBarrelExplosion, 0xF0, 0, barrelBatter_explosionParams[2], TRUE, 0x20);
         if (effect != NULL) {
             barrelBatter_initBarrelExplosion(effect);
-            mgBarrelSparksSetup(effect, index);
+            barrelBatter_setupBarrelExplosion(effect, index);
         }
     }
 }
@@ -2248,8 +2094,37 @@ void barrelBatter_initBarrelExplosion(MGEffect* effect) {
 }
 
 // .text:0x14D44C size:0x288
-void barrelBatter_setupBarrelExplosion(MGEffect* effect, int barrelIndex) {
-    mgBarrelSparksSetup(effect, barrelIndex);
+void barrelBatter_setupBarrelExplosion(MGEffect* effect, u8 barrelIndex) {
+    MGParticle* p = effect->particles;
+    s32 i = 0;
+
+    do {
+        if (p->_44 == 0 && p->life == 0) {
+            if (i < 3) {
+                p->_44 = 1;
+                p->_45 = (u8)barrelIndex;
+                p->_46 = 0xFF;
+                p->texIndex = barrelBatter_explosionParams[0];
+                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[4];
+                p->alphaByte = barrelBatter_explosionParams[7];
+                barrelBatter_placeExplosionFlash(p);
+                p->life = barrelBatter_explosionParams[17];
+                p->delay = 0;
+            } else {
+                p->_44 = 2;
+                p->_45 = (u8)barrelIndex;
+                p->_46 = (i - 3) / 5;
+                p->texIndex = barrelBatter_explosionParams[1];
+                p->sizeX = p->sizeY = (f32)barrelBatter_explosionParams[11];
+                p->alphaByte = barrelBatter_explosionParams[14];
+                p->delay = (i - 3) % 5 * 4 + 1;
+                p->life = barrelBatter_explosionParams[18];
+            }
+            p->colorR = p->colorG = p->colorB = 0xFF;
+            i++;
+        }
+        p = p->next;
+    } while (p != NULL && i < 43);
 }
 
 // .text:0x14D318 size:0x134
@@ -2257,7 +2132,7 @@ void barrelBatter_placeExplosionFlash(MGParticle* p) {
     Vec* barrel = (Vec*)&g_Minigame.barrels[p->_45];
 
     p->origin.x = barrel->x;
-    p->origin.y = barrel->y - bB_barrelConsts[3] * 0.5f;
+    p->origin.y = -(barrel->y + bB_barrelConsts[3] / 2.0f);
     p->origin.z = barrel->z;
     p->origin.x = p->origin.x + (rand() % 100 - 50) / 100.0;
     p->origin.y = p->origin.y + (rand() % 100 - 50) / 100.0;
@@ -2312,7 +2187,6 @@ int barrelBatter_updateBarrelExplosion(MGEffect* effect) {
 // .text:0x14CD40 size:0x18C
 void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
     s32 duration;
-    s32 range;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
@@ -2326,9 +2200,8 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
         sizeStep = (f32)barrelBatter_explosionParams[5] / 100000.0f / (f32)duration;
         alphaStep = barrelBatter_explosionParams[8] / duration;
     } else {
-        range = barrelBatter_explosionParams[17] - duration;
-        sizeStep = (f32)(barrelBatter_explosionParams[6] - barrelBatter_explosionParams[5]) / 100000.0f / (f32)range;
-        alphaStep = (barrelBatter_explosionParams[9] - barrelBatter_explosionParams[8]) / range;
+        sizeStep = (f32)(barrelBatter_explosionParams[6] - barrelBatter_explosionParams[5]) / 100000.0f / (f32)(barrelBatter_explosionParams[17] - duration);
+        alphaStep = (barrelBatter_explosionParams[9] - barrelBatter_explosionParams[8]) / (barrelBatter_explosionParams[17] - duration);
     }
     alpha += alphaStep;
     if (alpha > 0xFF) {
@@ -2345,7 +2218,6 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
 // .text:0x14CBB4 size:0x18C
 void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
     s32 duration;
-    s32 range;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
@@ -2359,9 +2231,8 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
         sizeStep = (f32)barrelBatter_explosionParams[12] / 100000.0f / (f32)duration;
         alphaStep = barrelBatter_explosionParams[15] / duration;
     } else {
-        range = barrelBatter_explosionParams[18] - duration;
-        sizeStep = (f32)(barrelBatter_explosionParams[13] - barrelBatter_explosionParams[12]) / 100000.0f / (f32)range;
-        alphaStep = (barrelBatter_explosionParams[16] - barrelBatter_explosionParams[15]) / range;
+        sizeStep = (f32)(barrelBatter_explosionParams[13] - barrelBatter_explosionParams[12]) / 100000.0f / (f32)(barrelBatter_explosionParams[18] - duration);
+        alphaStep = (barrelBatter_explosionParams[16] - barrelBatter_explosionParams[15]) / (barrelBatter_explosionParams[18] - duration);
     }
     alpha += alphaStep;
     if (alpha > 0xFF) {
@@ -2377,29 +2248,14 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
 
 // .text:0x14CB28 size:0x8C
 void barrelBatter_releaseBarrelExplosion(s8 index) {
-    MGEffect* effect;
-    MGParticle* p;
-
     if (index >= BB_BARREL_COUNT || index < 0) {
         return;
     }
-    effect = fn_800339F0(0, 0x20);
-    if (effect != NULL) {
-        p = effect->particles;
-        do {
-            if (p->_45 == index) {
-                p->_44 = 0;
-                p->_45 = 0xFF;
-                p->life = 0;
-                p->kind = 0;
-            }
-            p = p->next;
-        } while (p != NULL);
-    }
+    barrelBatter_clearBarrelExplosion(index);
 }
 
 // .text:0x14CAB4 size:0x74
-void barrelBatter_releaseBarrelExplosion2(s8 index) {
+void barrelBatter_clearBarrelExplosion(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x20);
     MGParticle* p;
 
@@ -2430,7 +2286,7 @@ void barrelBatter_stopBarrelExplosions(void) {
     u32 i;
 
     for (i = 0; i < BB_BARREL_COUNT; i++) {
-        barrelBatter_releaseBarrelExplosion2(i);
+        barrelBatter_clearBarrelExplosion(i);
     }
     pitchingMachinePitching(0x20);
 }
@@ -2475,40 +2331,41 @@ int chainChomp_updateLaunchFlash(MGEffect* effect) {
     f32 sizeStep;
 
     if (lbl_80366158[0x28] != 0) {
-        return 0;
+        return FALSE;
     }
     p = effect->particles;
-    if (p->life == 0) {
-        return 1;
-    }
-    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
-    chainChomp_placeLaunchFlash(p);
-    fn_8003403C(p->sizeX, p->sizeY);
-    fn_80033CC8(p, effect->texture);
-    duration = chainChomp_launchFlashParams[3];
-    remaining = chainChomp_launchFlashParams[2] - duration;
-    alpha = p->alphaByte;
-    if (remaining < p->life) {
-        sizeStep = (f32)(chainChomp_launchFlashParams[5] - chainChomp_launchFlashParams[4]) / 100000.0f / (f32)duration;
-        alphaStep = (chainChomp_launchFlashParams[8] - chainChomp_launchFlashParams[7]) / duration;
+    if (p->life != 0) {
+        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
+        chainChomp_placeLaunchFlash(p);
+        fn_8003403C(p->sizeX, p->sizeY);
+        fn_80033CC8(p, effect->texture);
+        duration = chainChomp_launchFlashParams[3];
+        remaining = chainChomp_launchFlashParams[2] - duration;
+        alpha = p->alphaByte;
+        if (remaining < p->life) {
+            sizeStep = (f32)(chainChomp_launchFlashParams[5] - chainChomp_launchFlashParams[4]) / 100000.0f / (f32)duration;
+            alphaStep = (chainChomp_launchFlashParams[8] - chainChomp_launchFlashParams[7]) / duration;
+        } else {
+            sizeStep = (f32)(chainChomp_launchFlashParams[6] - chainChomp_launchFlashParams[5]) / 100000.0f / (f32)remaining;
+            alphaStep = (chainChomp_launchFlashParams[9] - chainChomp_launchFlashParams[8]) / remaining;
+        }
+        alpha += alphaStep;
+        if (alpha < 0) {
+            alpha = 0;
+        }
+        if (alpha > 0xFF) {
+            alpha = 0xFF;
+        }
+        p->sizeX += sizeStep;
+        p->sizeY = p->sizeX;
+        p->alphaByte = alpha;
+        p->colorR = p->colorG = p->colorB = p->alphaByte;
+        p->life--;
     } else {
-        sizeStep = (f32)(chainChomp_launchFlashParams[6] - chainChomp_launchFlashParams[5]) / 100000.0f / (f32)remaining;
-        alphaStep = (chainChomp_launchFlashParams[9] - chainChomp_launchFlashParams[8]) / remaining;
+        return TRUE;
     }
-    alpha += alphaStep;
-    if (alpha < 0) {
-        alpha = 0;
-    }
-    if (alpha > 0xFF) {
-        alpha = 0xFF;
-    }
-    p->sizeX += sizeStep;
-    p->sizeY = p->sizeX;
-    p->alphaByte = alpha;
-    p->colorR = p->colorG = p->colorB = p->alphaByte;
-    p->life--;
-    return 0;
+    return FALSE;
 }
 
 // .text:0x14C3BC size:0x10C
@@ -2519,8 +2376,8 @@ void chainChomp_placeLaunchFlash(MGParticle* p) {
     PSVECScale(&chainChomp_launchFlashOffset, 0.75f, &offset);
     PSMTXRotRad(rot, 'Y', shortAngleToRad(g_Minigame.ccs.chompYaw));
     PSMTXMultVec(rot, &offset, &offset);
-    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + (f32)chainChomp_launchFlashParams[5] / 100000.0f * 0.5f;
-    p->origin.y = offset.y - ((f32)chainChomp_launchFlashParams[5] / 100000.0f * 0.5f + g_Minigame.ccs.chompPos.y);
+    p->origin.x = g_Minigame.ccs.chompPos.x + offset.x + (f32)chainChomp_launchFlashParams[5] / 100000.0f / 2.0f;
+    p->origin.y = offset.y - ((f32)chainChomp_launchFlashParams[5] / 100000.0f / 2.0f + g_Minigame.ccs.chompPos.y);
     p->origin.z = g_Minigame.ccs.chompPos.z + offset.z;
 }
 
@@ -2540,21 +2397,18 @@ void wallBall_spawnWallHitPuff(Vec* pos, u8 flag) {
 void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag) {
     MGEffect* existing = fn_800339F0(0, 0x22);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
+        MGParticle* tail;
+
         fresh = fn_800337CC(scratch, wallBall_wallHitPuffParams[1], 1);
         wallBall_initWallHitPuff(fresh, pos, flag);
-        if (existing->particles != NULL) {
-            MGParticle* tail = existing->particles;
-
-            while (tail->next != NULL) {
-                tail = tail->next;
-            }
-            tail->next = fresh->particles;
-        } else {
-            existing->particles = fresh->particles;
+        tail = existing->particles;
+        while (tail->next != NULL) {
+            tail = tail->next;
         }
+        tail->next = fresh->particles;
         existing->count += fresh->count;
     } else {
         fresh = allocParticleEffect(wallBall_updateWallHitPuff, 0x80, 0, wallBall_wallHitPuffParams[1], TRUE, 0x22);
@@ -2566,16 +2420,18 @@ void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag) {
 
 // .text:0x14BCB0 size:0x21C
 void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag) {
+    s32* tbl;
     MGParticle* p;
-    s32* tbl = wallBall_wallHitPuffParams;
     u32 count = 0;
-    f32 speed;
     f32 angle;
+    f32 speed;
 
     effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     if (flag != 0) {
         tbl = wallBall_wallHitDarkPuffParams;
+    } else {
+        tbl = wallBall_wallHitPuffParams;
     }
     do {
         if (p->life == 0) {
@@ -2601,31 +2457,34 @@ void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag) {
 
 // .text:0x14BA40 size:0x270
 int wallBall_updateWallHitPuff(MGEffect* effect) {
+    s32* tbl;
     MGParticle* p;
     MGParticle** link;
-    MGParticle* removedTail = NULL;
-    MGParticle* removedHead = NULL;
-    u32 alive = 0;
-    s32* tbl;
-    s32 duration;
+    MGParticle* removedHead;
+    MGParticle* removedTail;
     s32 rampLength;
+    u32 alive = 0;
+    s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
 
+
     if (lbl_80366158[0x28] != 0) {
         return 0;
     }
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = effect->particles;
+    p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
+    removedTail = NULL;
+    removedHead = NULL;
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     do {
         if (p->life != 0) {
-            tbl = wallBall_wallHitDarkPuffParams;
             if (p->_4F == 0) {
                 tbl = wallBall_wallHitPuffParams;
+            } else {
+                tbl = wallBall_wallHitDarkPuffParams;
             }
             duration = tbl[2];
             rampLength = tbl[3];
@@ -2697,7 +2556,7 @@ void wallBall_stopWallHitPuff(void) {
 }
 
 // .text:0x14B9A0 size:0x50
-void barrelBatter_spawnMachineSparks(s16 frames, Vec* start) {
+void barrelBatter_spawnMachineSparks(s32 frames, Vec* start) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES && g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER &&
         start != NULL) {
         barrelBatter_spawnMachineSparksEffect(frames, start);
@@ -2706,7 +2565,7 @@ void barrelBatter_spawnMachineSparks(s16 frames, Vec* start) {
 
 // .text:0x14B92C size:0x74
 #pragma dont_inline on
-void barrelBatter_spawnMachineSparksEffect(s16 frames, Vec* start) {
+void barrelBatter_spawnMachineSparksEffect(s32 frames, Vec* start) {
     MGPathEffect* effect = allocParticleEffect(barrelBatter_updateMachineSparks, 0x80, 0, barrelBatter_machineSparkParams[2], TRUE, 0x23);
     if (effect != NULL) {
         barrelBatter_initMachineSparks(effect, frames, start);
@@ -2715,22 +2574,20 @@ void barrelBatter_spawnMachineSparksEffect(s16 frames, Vec* start) {
 #pragma dont_inline reset
 
 // .text:0x14B53C size:0x3F0
-void barrelBatter_initMachineSparks(MGPathEffect* effect, s16 frames, Vec* start) {
+void barrelBatter_initMachineSparks(MGPathEffect* effect, s32 frames, Vec* start) {
     MGParticle* p;
     Vec diff;
     f32 seg1;
     f32 seg2;
-    u32 i = 0;
+    s32 i = 0;
 
-    effect->base.x = start->x;
-    effect->base.y = start->y;
-    effect->base.z = start->z;
+    effect->base = *start;
     effect->texture = *(u32*)&animRelated[0x6C];
     effect->total = frames;
     effect->remaining = frames;
-    PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 3), (Vec*)barrelBatter_machineSparkPath, &diff);
+    PSVECSubtract((Vec*)barrelBatter_machineSparkPath, (Vec*)(barrelBatter_machineSparkPath + 3), &diff);
     seg1 = PSVECMag(&diff);
-    PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 6), (Vec*)(barrelBatter_machineSparkPath + 3), &diff);
+    PSVECSubtract((Vec*)(barrelBatter_machineSparkPath + 3), (Vec*)(barrelBatter_machineSparkPath + 6), &diff);
     seg2 = PSVECMag(&diff);
     effect->span = seg1 / ((seg2 + seg1) / (f32)(u32)frames);
     barrelBatter_updateMachineSparkPos(effect);
@@ -2773,9 +2630,9 @@ void barrelBatter_updateMachineSparkPos(MGPathEffect* effect) {
 
 // .text:0x14B248 size:0x1AC
 void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
+    f32 cosA;
     f32 angle;
     f32 radius;
-    f32 cosA;
     f32 dx;
     f32 dy;
 
@@ -2824,11 +2681,11 @@ int barrelBatter_updateMachineSparks(MGPathEffect* effect) {
                 fn_80033CC8(p, effect->texture);
                 alpha = p->alphaByte;
                 if (barrelBatter_machineSparkParams[1] / p->life < 2) {
-                    sizeStep = fabs(sizeStep);
-                    alphaStep = (s32)fabs((f64)alphaStep);
+                    sizeStep = mgFabs(sizeStep);
+                    alphaStep = (s32)mgFabs((f64)alphaStep);
                 } else {
-                    sizeStep = -1.0 * fabs(sizeStep);
-                    alphaStep = (s32)(-1.0 * fabs((f64)alphaStep));
+                    sizeStep = -1.0 * mgFabs(sizeStep);
+                    alphaStep = (s32)(-1.0 * mgFabs((f64)alphaStep));
                 }
                 alpha += alphaStep;
                 if (alpha > 0xFF) {
@@ -2864,7 +2721,7 @@ void barrelBatterRel(Vec* pos) {
         pos != NULL) {
         effect = allocParticleEffect(barrelBatter_updateReleaseRing, 0x80, 0, barrelBatter_releaseRingParams[1], TRUE, 0x24);
         if (effect != NULL) {
-            mgBarrelRingInit(effect, pos);
+            barrelBatter_initReleaseRing(effect, pos);
         }
     }
 }
@@ -2874,20 +2731,48 @@ void barrelBatterRel2(Vec* pos) {
     MGEffect* effect = allocParticleEffect(barrelBatter_updateReleaseRing, 0x80, 0, barrelBatter_releaseRingParams[1], TRUE, 0x24);
 
     if (effect != NULL) {
-        mgBarrelRingInit(effect, pos);
+        barrelBatter_initReleaseRing(effect, pos);
     }
 }
 
 // .text:0x14A37C size:0x2B0
 void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos) {
-    mgBarrelRingInit(effect, pos);
+    MGParticle* p;
+    u32 i = 0;
+    f32 angle;
+
+    effect->texture = *(u32*)&animRelated[0x6C];
+    p = effect->particles;
+    do {
+        p->texIndex = barrelBatter_releaseRingParams[0];
+        p->_4E = 0;
+        p->life = barrelBatter_releaseRingParams[2];
+        p->delay = 0;
+        p->origin.x = pos->x;
+        p->origin.y = -pos->y;
+        p->origin.z = pos->z;
+        angle = 0.017453292f * (f32)(u32)(360 / barrelBatter_releaseRingParams[1] * i);
+        p->origin.x = p->origin.x + (f32)barrelBatter_releaseRingParams[3] * (f32)cos(angle) / 100000.0f;
+        p->origin.y = p->origin.y + (f32)barrelBatter_releaseRingParams[3] * (f32)sin(angle) / 100000.0f;
+        p->sizeX = p->sizeY = (f32)barrelBatter_releaseRingParams[5] / 100000.0f;
+        p->colorR = p->colorG = p->colorB = 0xFF;
+        p->alphaByte = barrelBatter_releaseRingParams[9];
+        p->velX = 0.0f;
+        p->velY = (f32)(barrelBatter_releaseRingParams[12] - rand() % barrelBatter_releaseRingParams[13]);
+        p->velY = p->velY / 100000.0f;
+        p->velY = p->velY * (f32)(-(rand() % 2 * 2) + 1);
+        p->velZ = (f32)(barrelBatter_releaseRingParams[6] - rand() % barrelBatter_releaseRingParams[7]);
+        p->velZ = p->velZ / 100000.0f;
+        i++;
+        p = p->next;
+    } while (p != NULL);
 }
 
 // .text:0x14A188 size:0x1F4
 int barrelBatter_updateReleaseRing(MGEffect* effect) {
     MGParticle* p;
-    u32 alive = 0;
     s32 alpha;
+    u32 alive = 0;
     s32 alphaStep;
     s32 remaining;
     f32 sizeStep;
@@ -2923,8 +2808,7 @@ int barrelBatter_updateReleaseRing(MGEffect* effect) {
             p->sizeX += sizeStep;
             p->sizeY = p->sizeX;
             p->velX += p->velY;
-            p->life--;
-            if (p->life != 0) {
+            if (--p->life != 0) {
                 alive++;
             }
         }
@@ -2940,29 +2824,22 @@ void barrelBatter_stopReleaseRing(void) {
 
 // .text:0x14A070 size:0xF4
 void minigameWinnerStars_setWinners(s32* values, s32 count) {
-    s8* slots = (s8*)&minigameWinnerStars_slots;
     u32 i;
 
-    slots[0] = -1;
-    slots[1] = -1;
-    slots[2] = -1;
-    slots[3] = -1;
-    if (count > MG_PLAYER_COUNT) {
+    minigameWinnerStars_slots[0] = -1;
+    minigameWinnerStars_slots[1] = -1;
+    minigameWinnerStars_slots[2] = -1;
+    minigameWinnerStars_slots[3] = -1;
+    if (count > MG_PLAYER_COUNT || count == 0 || values == NULL) {
         return;
     }
-    if (count == 0) {
-        return;
-    }
-    if (values != NULL) {
-        for (i = 0; i < count; i++) {
-            slots[i] = values[i];
-        }
+    for (i = 0; i < count; i++) {
+        minigameWinnerStars_slots[i] = values[i];
     }
 }
 
 // .text:0x149BA8 size:0x4C8
 void minigameWinnerStars_spawn(void) {
-    s8* slots = (s8*)&minigameWinnerStars_slots;
     u32 i;
     s8 index;
     MGStarEffect* effect;
@@ -2973,7 +2850,7 @@ void minigameWinnerStars_spawn(void) {
         minigameWinnerStars_params[5] = 750000;
     }
     for (i = 0; i < MG_PLAYER_COUNT; i++) {
-        index = slots[i];
+        index = minigameWinnerStars_slots[i];
         if (index > -1) {
             effect = allocParticleEffect(minigameWinnerStars_update, 0x80, 0, minigameWinnerStars_params[0], TRUE, 0x25);
             if (effect != NULL) {
@@ -3001,10 +2878,10 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
     s32 n;
 
     do {
-        p->life = 0;
+        p->life = i;
         p->sizeX = (f32)minigameWinnerStars_params[3] / 100000.0f;
         p->sizeY = (f32)minigameWinnerStars_params[4] / 100000.0f;
-        mgStarParticleInit(effect->index, p);
+        minigameWinnerStars_resetParticle(effect, p);
         n = minigameWinnerStars_params[0] / 5;
         p->delay = (i % 5 * n + rand() % n) * 2;
         i++;
@@ -3013,39 +2890,64 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
 }
 
 // .text:0x148FD0 size:0x370
-void minigameWinnerStars_resetParticle(s8 index, MGParticle* p) {
-    mgStarParticleInit(index, p);
+void minigameWinnerStars_resetParticle(MGStarEffect* effect, MGParticle* p) {
+    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    u8 lo = minigameWinnerStars_params[6];
+    s32 base = minigameWinnerStars_params[6];
+    u8 range;
+    s32 span;
+
+    p->origin.x = 0.0f;
+    p->origin.y = -((f32)minigameWinnerStars_params[5] / 100000.0f + actor[0x38 / 4]);
+    p->origin.z = 0.0f;
+    minigameWinnerStars_getLaunchVelocity(p, 15.0f * ((f32)(minigameWinnerStars_params[0] / 2 - p->life) / ((f32)minigameWinnerStars_params[0] / 2.0f)));
+    p->_1C = p->_20 = p->alpha = 0.0f;
+    span = (s32)(1000.0f * ((f32)minigameWinnerStars_params[2] / 100000.0f));
+    p->_28 = (f32)(rand() % span) / 1000.0f;
+    p->_2C = (f32)(rand() % span) / 1000.0f;
+    p->_30 = (f32)(rand() % span) / 1000.0f;
+    p->_47 = 0xFF;
+    p->alphaByte = 0xFF;
+    range = 0xFF - base;
+    p->colorG = lo + rand() % range;
+    p->colorB = lo + rand() % range;
+    p->_44 = lo + rand() % range;
+    p->_45 = lo + rand() % range;
+    p->_46 = lo + rand() % range;
+    p->kind = 0;
 }
 
 // .text:0x148EF0 size:0xE0
-void minigameWinnerStars_getLaunchVelocity(Vec* out, f32 degrees) {
-    f32 angle = 0.017453292f * degrees;
-    f32 s = sin(angle);
-    f32 c = cos(angle);
+void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees) {
+    f32 s;
+    f32 c;
+    f32 angle;
 
-    out->x = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    out->y = c * (f32)minigameWinnerStars_params[1] / 100000.0f;
-    out->z = 0.0f;
+    angle = 0.017453292f * degrees;
+    s = sin(angle);
+    c = cos(angle);
+    p->velX = s * (f32)minigameWinnerStars_params[1] / 100000.0f;
+    p->velY = c * (f32)minigameWinnerStars_params[1] / 100000.0f;
+    p->velZ = 0.0f;
 }
 
 // .text:0x14841C size:0xAD4
 int minigameWinnerStars_update(MGStarEffect* effect) {
-    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
     MGParticle* p = effect->particles;
+    f32* actor = ((f32**)(hugeAnimStruct + 0x2C50))[effect->index];
 
     minigameWinnerStars_beginDraw();
     do {
         if (p->delay <= 0) {
             minigameWinnerStars_setupMtx(effect, p);
             minigameWinnerStars_drawQuad(p);
-            PSVECAdd(&p->origin, (Vec*)&p->velX, &p->origin);
-            PSVECAdd((Vec*)&p->_1C, (Vec*)&p->_28, (Vec*)&p->_1C);
-            if (rand() % 5 == 0) {
+            PSVECAdd((Vec*)&p->velX, &p->origin, &p->origin);
+            PSVECAdd((Vec*)&p->_28, (Vec*)&p->_1C, (Vec*)&p->_1C);
+            if (minigameWinnerStars_rollTurn() != FALSE) {
                 Vec ref = { 0.0f, 1.0f, 0.0f };
                 Vec dir;
                 f32 angle;
                 f32 jitter;
-                f32 rad;
 
                 memcpy(&dir, &p->velX, sizeof(Vec));
                 PSVECNormalize(&dir, &dir);
@@ -3054,19 +2956,16 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
                     angle *= -1.0f;
                 }
                 jitter = 20.0 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
-                if (fabs(angle + jitter) > 20.0) {
-                    angle = 20.0 * (fabs(angle) / angle);
+                if (mgFabs(angle + jitter) > 20.0) {
+                    angle = 20.0 * (mgFabs(angle) / angle);
                 } else {
                     angle += jitter;
                 }
-                rad = 0.017453292f * angle;
-                p->velX = (f32)sin(rad) * (f32)minigameWinnerStars_params[1] / 100000.0f;
-                p->velY = (f32)cos(rad) * (f32)minigameWinnerStars_params[1] / 100000.0f;
-                p->velZ = 0.0f;
+                minigameWinnerStars_getLaunchVelocity(p, angle);
                 p->kind++;
             }
             if (-p->origin.y - p->sizeY < actor[0x38 / 4]) {
-                mgStarParticleInit(effect->index, p);
+                minigameWinnerStars_resetParticle(effect, p);
             }
         } else {
             p->delay--;
@@ -3078,14 +2977,14 @@ int minigameWinnerStars_update(MGStarEffect* effect) {
 }
 
 // .text:0x1483D4 size:0x48
-BOOL minigameWinnerStars_rollTurn(void) {
+E(u8, BOOL) minigameWinnerStars_rollTurn(void) {
     return rand() % 5 == 0;
 }
 
 // .text:0x148254 size:0x180
 void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
-    f32 halfW = p->sizeX * 0.5f;
-    f32 halfH = p->sizeY * 0.5f;
+    f32 halfW = p->sizeX / 2.0f;
+    f32 halfH = p->sizeY / 2.0f;
     f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
     f32* v = minigameWinnerStars_quadVerts;
     Mtx mtx;
@@ -3101,11 +3000,8 @@ void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
     v[9] = -halfW;
     v[10] = halfH;
     PSMTXInverse(fn_80052768_getCamera(0)->view, mtx);
+    mtx[0][1] = mtx[1][0] = mtx[1][2] = mtx[2][1] = 0.0f;
     mtx[1][1] = 1.0f;
-    mtx[0][1] = 0.0f;
-    mtx[1][0] = 0.0f;
-    mtx[1][2] = 0.0f;
-    mtx[2][1] = 0.0f;
     pos.x = p->origin.x;
     pos.y = p->origin.y;
     pos.z = p->origin.z;
@@ -3121,11 +3017,12 @@ void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
 
 // .text:0x1480E0 size:0x174
 void minigameWinnerStars_drawQuad(MGParticle* p) {
-    f32* v = minigameWinnerStars_quadVerts;
+    f32* v;
     int i;
 
     GXSetCullMode(GX_CULL_BACK);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    v = minigameWinnerStars_quadVerts;
     for (i = 0; i < 4; i++) {
         GXWGFifo.f32 = v[i * 3 + 0];
         GXWGFifo.f32 = v[i * 3 + 1];
@@ -3188,8 +3085,8 @@ void minigameWinnerStars_endDraw(void) {
 }
 
 // .text:0x147DFC size:0x24
-void minigameStopBombExplosion(void) {
-    pitchingMachinePitching(0x26);
+void minigameWinnerStars_stop(void) {
+    pitchingMachinePitching(0x25);
 }
 
 // .text:0x147CFC size:0x100
@@ -3203,7 +3100,7 @@ void piranhaPanic_spawnBombExplosion(Vec* pos) {
 void piranhaPanic_spawnBombExplosionEffect(Vec* pos) {
     MGEffect* existing = fn_800339F0(0, 0x26);
     MGEffect* fresh;
-    u8 scratch[0x80];
+    u8 scratch[0x60];
 
     if (existing != NULL) {
         fresh = fn_800337CC(scratch, piranhaPanic_bombExplosionParams[2] + piranhaPanic_bombExplosionParams[12], 1);
@@ -3249,7 +3146,7 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             p->alphaByte = piranhaPanic_bombExplosionParams[7];
             memcpy(&p->origin, pos, sizeof(Vec));
             if (i != 0) {
-                angle = 0.017453292519943295 * (360.0 / (f64)burstCount) * (f64)(i - 1);
+                angle = 0.017453292f * (360.0 / (f64)burstCount) * (f64)(i - 1);
                 p->origin.x += 1.5f * (f32)cos(angle);
                 p->origin.y += 1.5f * (f32)sin(angle);
                 p->origin.x = p->origin.x + 0.5 * ((f32)rand() / 32767.0f - 1.0);
@@ -3263,10 +3160,10 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             p->sizeX = p->sizeY = (f32)piranhaPanic_bombExplosionParams[14] / 100000.0f;
             p->alphaByte = piranhaPanic_bombExplosionParams[17];
             memcpy(&p->origin, pos, sizeof(Vec));
-            angle = 0.017453292519943295 * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
+            angle = 0.017453292f * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
             p->origin.x += 2.5f * (f32)cos(angle);
             p->origin.y += 2.5f * (f32)sin(angle);
-            p->origin.x = p->origin.x + 0.2 * (2.0 * ((f32)rand() / 32767.0f - 0.5));
+            p->origin.x = p->origin.x + 0.2f * (2.0 * ((f32)rand() / 32767.0f - 0.5));
             p->origin.y = p->origin.y + 0.2f * (-1.0f * ((f32)rand() / 32767.0f));
             p->texIndex = piranhaPanic_bombExplosionParams[10];
             p->delay = 5;
@@ -3281,21 +3178,21 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
 
 // .text:0x14737C size:0x3FC
 int piranhaPanic_updateBombExplosion(MGEffect* effect) {
-    MGParticle* p;
-    MGParticle** link;
-    MGParticle* removedTail = NULL;
-    u32 alive = 0;
     s32 rampLength;
     s32 duration;
+    MGParticle* p;
+    MGParticle** link;
+    MGParticle* removedTail;
+    u32 alive = 0;
     s32 alpha;
     s32 alphaStep;
-    s32 remaining;
+    s32 alphaFrom;
     f32 sizeStep;
     f32 scale;
 
-    effect->particles = fn_80031F34(effect->particles, effect->count);
-    p = effect->particles;
+    p = effect->particles = fn_80031F34(effect->particles, effect->count);
     link = &effect->particles;
+    removedTail = NULL;
     GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
     do {
         if (p->life != 0) {
@@ -3327,13 +3224,14 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
                     sizeStep = ((f32)piranhaPanic_bombExplosionParams[5 + mgFxTableRow(p)] / 100000.0f -
                                 (f32)piranhaPanic_bombExplosionParams[4 + mgFxTableRow(p)] / 100000.0f) /
                                (f32)rampLength * scale;
-                    alphaStep = (piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)] - piranhaPanic_bombExplosionParams[7 + mgFxTableRow(p)]) / rampLength;
+                    alphaFrom = piranhaPanic_bombExplosionParams[7 + mgFxTableRow(p)];
+                    alphaStep = (piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)] - alphaFrom) / rampLength;
                 } else {
-                    remaining = duration - rampLength;
                     sizeStep = ((f32)piranhaPanic_bombExplosionParams[6 + mgFxTableRow(p)] / 100000.0f -
                                 (f32)piranhaPanic_bombExplosionParams[5 + mgFxTableRow(p)] / 100000.0f) /
-                               (f32)remaining * scale;
-                    alphaStep = (piranhaPanic_bombExplosionParams[9 + mgFxTableRow(p)] - piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)]) / remaining;
+                               (f32)(duration - rampLength) * scale;
+                    alphaFrom = piranhaPanic_bombExplosionParams[8 + mgFxTableRow(p)];
+                    alphaStep = (piranhaPanic_bombExplosionParams[9 + mgFxTableRow(p)] - alphaFrom) / (duration - rampLength);
                 }
                 alpha += alphaStep;
                 if (alpha < 0) {
@@ -3341,8 +3239,7 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
                 } else if (alpha > 0xFF) {
                     alpha = 0xFF;
                 }
-                p->sizeX += sizeStep;
-                p->sizeY = p->sizeX;
+                p->sizeY = p->sizeX += sizeStep;
                 p->alphaByte = alpha;
                 p->origin.y -= (p->kind == 1) ? 0.0f : 0.05f;
                 p->life--;
@@ -3370,6 +3267,6 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
 }
 
 // .text:0x147358 size:0x24
-void minigameStopBombExplosion2(void) {
+void piranhaPanic_stopBombExplosion(void) {
     pitchingMachinePitching(0x26);
 }
