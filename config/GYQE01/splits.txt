@@ -1515,25 +1515,15 @@ Unknown/mcard.c:
 Unknown/File_0x800acf14.c:
 	.text       start:0x800ACF14 end:0x800AD070
 
-Unknown/File_0x800adf60.c:
-	extab       start:0x80006860 end:0x80006868
-	extabindex  start:0x800087F0 end:0x800087FC
-	.text       start:0x800ADF60 end:0x800AE298
-
-Unknown/File_0x800ae298.c:
-	extab       start:0x80006868 end:0x80006870
-	extabindex  start:0x800087FC end:0x80008808
-	.text       start:0x800AE298 end:0x800AE5B8
-
-Unknown/File_0x800aeb18.c:
-	extab       start:0x80006880 end:0x80006888
-	extabindex  start:0x80008820 end:0x8000882C
-	.text       start:0x800AEB18 end:0x800AED24
-
-Unknown/File_0x800aed34.c:
-	extab       start:0x80006888 end:0x80006890
-	extabindex  start:0x8000882C end:0x80008838
-	.text       start:0x800AED34 end:0x800AF1A8
+Unknown/movie.c:
+	extab       start:0x80006808 end:0x800068E8
+	extabindex  start:0x8000876C end:0x800088BC
+	.text       start:0x800AD070 end:0x800B0724
+	.rodata     start:0x800E7B50 end:0x800E7CB0
+	.data       start:0x801101C0 end:0x801112F0
+	.sdata      start:0x803CBAD8 end:0x803CBB10
+	.sbss       start:0x803CC170 end:0x803CC1B0
+	.sdata2     start:0x803CCEE8 end:0x803CCF08
 
 Unknown/File_0x800b0724.c:
 	extab       start:0x800068E8 end:0x800068F0

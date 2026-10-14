@@ -804,3 +804,43 @@ costs no `Matching` unit. Compile flag `-cpp_exceptions on` was taken from the
 former units' extab (both have entries; both were stubs). Linked DOL units
 260 -> 260. The 19 files that include the old headers now include
 `Unknown/dvdsys.h`.
+
+### `Unknown/movie.c` (`0x800AD070-0x800B0724`)
+
+The widest range the evidence supports; `makeLookAtMatrix` (`File_0x800b0724`,
+`Matching`) starts the next unit and `File_0x800acf14` (`0x800ACF14-0x800AD070`,
+98%) the previous one, so no `Matching` unit is absorbed.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800AD070-0x800B0724` | `File_0x800adf60` (`YUV2RGB`), `File_0x800ae298` (`YUV2RGB_`), `File_0x800aeb18` (`MovStreamThread`), `File_0x800aed34` (`MovDecodeThread`) and 32 unowned functions (`fn_800AD070` ... `fn_800B05E4`) |
+| `extab` / `extabindex` | `0x80006808-0x800068E8` / `0x8000876C-0x800088BC` | entries of the functions that have one (28 of 36) |
+| `.rodata` | `0x800E7B50-0x800E7CB0` | unowned: the two `"YUV->RGB Conv ... Addr"` strings and the 0x118-byte `lbl_800E7B98` |
+| `.data` | `0x801101C0-0x801112F0` | unowned: `lbl_801101C0` (0x100), `lbl_801102C0` (0x1000), `lbl_801112C0`, `lbl_801112E0` |
+| `.sdata` | `0x803CBAD8-0x803CBB10` | unowned: nine small tables (`yuv2rgbConverters`, `lbl_803CBAD8`...`lbl_803CBB00`) |
+| `.sbss` | `0x803CC170-0x803CC1B0` | unowned: the movie state (`lbl_803CC170`...`lbl_803CC1AC`) |
+| `.sdata2` | `0x803CCEE8-0x803CCF08` | unowned: the YUV constants and the `"movie.c"` string |
+
+Evidence:
+
+- **The binary names the unit.** `"movie.c"` (`.sdata2 0x803CCF00`) is read by
+  `fn_800AE8B8`, `MovStreamThread` and `MovDecodeThread`, i.e. by gap and `Unknown` code
+  alike.
+- **One error-string pool.** The two YUV strings at `0x800E7B50`/`0x800E7B74`
+  are shared by `YUV2RGB`, `YUV2RGB_` and `MovStreamThread`; `lbl_800E7B98` is
+  read by `fn_800AE8B8` and `MovDecodeThread`. The three objects end exactly at
+  `sound.c`'s `.rodata` (`0x800E7CB0`) and start where `mcard.c`'s ends (`0x800E7B50`).
+- **`.data` in reverse code order**: `lbl_801112E0` (`fn_800AD070`), `lbl_801112C0`
+  (`fn_800ADD70`), `lbl_801102C0` (`YUV2RGB_`), `lbl_801101C0` (`fn_800AE5B8`),
+  contiguous from `mcard.c`'s last jump table to `sound.c`'s `.data` (`0x801112F0`).
+- **`.sbss 0x803CC170-0x803CC1B0`** is the shared movie state:
+  `lbl_803CC170` is read by `fn_800AD070`, `fn_800AD780`, `fn_800AD830`,
+  `MovDecodeThread`..., `lbl_803CC1AC` by `fn_800ADB04`, `fn_800AF9B4` and the last
+  gap functions up to `fn_800B05E4`. It starts where `mcard.c`'s ends and the
+  draw-list unit (`File_0x800b0a14`, `0x803CC1B0`) takes over.
+- **`.sdata` / `.sdata2` pools** are contiguous between the neighbours:
+  `.sdata` from `graphic.c`'s end (`0x803CBAD8`) to `sound.c` (`0x803CBB10`),
+  `.sdata2` from `mcard.c`'s `"mcard.c"` (`0x803CCEE0`) to `makeLookAtMatrix`'s pool.
+
+Compile flag `-cpp_exceptions on` was taken from the extab entries (the four
+former units were stubs). Linked DOL units 260 -> 260.
