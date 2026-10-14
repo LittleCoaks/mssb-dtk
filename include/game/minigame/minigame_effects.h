@@ -333,7 +333,7 @@ int barrelBatter_updateBarrelExplosion(MGEffect* effect);
 void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p);
 void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p);
 void barrelBatter_releaseBarrelExplosion(s8 index);
-void barrelBatter_releaseBarrelExplosion2(s8 index);
+void barrelBatter_clearBarrelExplosion(s8 index);
 void barrelBatter_clearExplosionParticle(MGParticle* p);
 void barrelBatter_stopBarrelExplosions(void);
 void chainChomp_spawnLaunchFlash(void);
@@ -371,11 +371,11 @@ void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p);
 void minigameWinnerStars_drawQuad(MGParticle* p);
 void minigameWinnerStars_beginDraw(void);
 void minigameWinnerStars_endDraw(void);
-void minigameStopBombExplosion(void);
+void minigameWinnerStars_stop(void);
 void piranhaPanic_spawnBombExplosion(Vec* pos);
 void piranhaPanic_spawnBombExplosionEffect(Vec* pos);
 void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos);
 int piranhaPanic_updateBombExplosion(MGEffect* effect);
-void minigameStopBombExplosion2(void);
+void piranhaPanic_stopBombExplosion(void);
 
 #endif // !__GAME_MINIGAME_MINIGAME_EFFECTS_H_

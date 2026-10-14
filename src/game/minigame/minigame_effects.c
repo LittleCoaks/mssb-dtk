@@ -2251,11 +2251,11 @@ void barrelBatter_releaseBarrelExplosion(s8 index) {
     if (index >= BB_BARREL_COUNT || index < 0) {
         return;
     }
-    barrelBatter_releaseBarrelExplosion2(index);
+    barrelBatter_clearBarrelExplosion(index);
 }
 
 // .text:0x14CAB4 size:0x74
-void barrelBatter_releaseBarrelExplosion2(s8 index) {
+void barrelBatter_clearBarrelExplosion(s8 index) {
     MGEffect* effect = fn_800339F0(0, 0x20);
     MGParticle* p;
 
@@ -2286,7 +2286,7 @@ void barrelBatter_stopBarrelExplosions(void) {
     u32 i;
 
     for (i = 0; i < BB_BARREL_COUNT; i++) {
-        barrelBatter_releaseBarrelExplosion2(i);
+        barrelBatter_clearBarrelExplosion(i);
     }
     pitchingMachinePitching(0x20);
 }
@@ -3085,7 +3085,7 @@ void minigameWinnerStars_endDraw(void) {
 }
 
 // .text:0x147DFC size:0x24
-void minigameStopBombExplosion(void) {
+void minigameWinnerStars_stop(void) {
     pitchingMachinePitching(0x25);
 }
 
@@ -3267,6 +3267,6 @@ int piranhaPanic_updateBombExplosion(MGEffect* effect) {
 }
 
 // .text:0x147358 size:0x24
-void minigameStopBombExplosion2(void) {
+void piranhaPanic_stopBombExplosion(void) {
     pitchingMachinePitching(0x26);
 }
