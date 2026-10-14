@@ -3131,3 +3131,36 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   0x70 vs 0x6E of data), which costs .data 0.012%.
 - **A symbol rename only needs symbols.txt plus source:** the menus/game asm and relocations regenerate
   from `config/GYQE01/symbols.txt` on the next `ninja`.
+
+## Findings from the last-function sweep (2026-10)
+
+- **dtk splits a small byte/halfword table at the index the code reads.** `u8 x[4]` read as
+  `x[0]`/`x[1]` shows up as `lbl_A` (size 1) + `lbl_A+1` (size 3); `s16 x[2]` as two size-2 labels.
+  Declared as separate C arrays, MWCC 4-aligns the second one and the unit's `.data` grows by 4 per
+  pair (objdiff still says 100% per symbol; the sha1 check fails). Merge the labels in `symbols.txt`
+  and declare one array. Fixed `data_428C` (470C, 4710, 4908, 4B40, 5FC0) and `data_8D88`
+  (`scoutMissionProgressRowBases`).
+- **A data-only split that starts 4-aligned may own a pad that belongs to the previous unit.**
+  MWCC always gives `.data` 8-byte alignment, so `data_428C` linked 4 bytes late. Its leading
+  `pad_04_0000428C` was the tail of `match_loading`'s range; moving the split to 0x4290 linked
+  byte-identically. `match_flow_data` (0x5FF4) cannot be fixed that way: its first object starts at
+  0x5FF4, so it needs a merge with the preceding data.
+- **Zero-initialised `gap_*` fillers in a data-only `.c` land in `.bss`.** `u16 gap = 0;` is a
+  `.bss` object to MWCC; delete it (array alignment re-creates the gap) or the REL's `.bss` grows.
+- **`extern const f32 lbl_*_rodata_*` in a REL unit leaves `.rodata` short.** Replace them with the
+  literals, add `#define SQRT2_LINKAGE static`, and put the functions in reverse address order:
+  the pool then comes out in the target order (`roster_init`, `hud_gauges`, `stadium_star`,
+  `sta_c0`). Check every function afterwards: on `batter_ai` it moved `resetBatterAIBoxPosition`
+  (the first function in source) into an `addi`+`lfs 0(r)` load of 0.0f and was backed out.
+- **Flipping a unit that uses the default `getRepHeaderData`** shortens the module `.rodata` by 0x50
+  when another Matching unit already uses that name. Give it a unique `REP_HEADER_DATA_FN`.
+- **A literal-pool operand swap `fmuls f1,f1,f2` vs `f1,f2,f1` can need a constant held in a local.**
+  `controller_input`: `k = ((f32)r / 512.0f) * scale;` with `f32 scale = 0.27208483f;` matched where
+  every inline-literal form (and `k *= c`) kept the wrong order.
+- **`if (cond) { ...; break; }` followed by fallthrough code vs `else { if (x) y; break; }`.** When the
+  target reuses a base register from an earlier check, the shared block must only be reachable through
+  that check (`baseRunningPracticeRelated`).
+- **Unreferenced bytes inside a unit's `.bss` range** (`pad_05_00001900_bss` in `stadium_framework`)
+  are an unused static; declaring `static u8 lbl_3_bss_1900;` in the right position fixed `.bss`.
+- **Reusing one local for two values can be the match** (`draw_initStarGuageHud`: `next` holds the
+  batting-order slot and then the roster index; a second local re-coloured r7/r8).
