@@ -2186,7 +2186,6 @@ int barrelBatter_updateBarrelExplosion(MGEffect* effect) {
 
 // .text:0x14CD40 size:0x18C
 void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
-    s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
@@ -2194,14 +2193,13 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     fn_8003403C(p->sizeX, p->sizeY);
     fn_80033CC8(p, effect->texture);
-    duration = barrelBatter_explosionParams[3];
     alpha = p->alphaByte;
-    if (-p->delay < duration) {
-        sizeStep = (f32)barrelBatter_explosionParams[5] / 100000.0f / (f32)duration;
-        alphaStep = barrelBatter_explosionParams[8] / duration;
+    if (-p->delay < barrelBatter_explosionParams[3]) {
+        sizeStep = (f32)barrelBatter_explosionParams[5] / 100000.0f / (f32)barrelBatter_explosionParams[3];
+        alphaStep = barrelBatter_explosionParams[8] / barrelBatter_explosionParams[3];
     } else {
-        sizeStep = (f32)(barrelBatter_explosionParams[6] - barrelBatter_explosionParams[5]) / 100000.0f / (f32)(barrelBatter_explosionParams[17] - duration);
-        alphaStep = (barrelBatter_explosionParams[9] - barrelBatter_explosionParams[8]) / (barrelBatter_explosionParams[17] - duration);
+        sizeStep = (f32)(barrelBatter_explosionParams[6] - barrelBatter_explosionParams[5]) / 100000.0f / (f32)(barrelBatter_explosionParams[17] - barrelBatter_explosionParams[3]);
+        alphaStep = (barrelBatter_explosionParams[9] - barrelBatter_explosionParams[8]) / (barrelBatter_explosionParams[17] - barrelBatter_explosionParams[3]);
     }
     alpha += alphaStep;
     if (alpha > 0xFF) {
@@ -2217,7 +2215,6 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
 
 // .text:0x14CBB4 size:0x18C
 void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
-    s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
@@ -2225,14 +2222,13 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     fn_8003403C(p->sizeX, p->sizeY);
     fn_80033CC8(p, effect->texture);
-    duration = barrelBatter_explosionParams[10];
     alpha = p->alphaByte;
-    if (-p->delay < duration) {
-        sizeStep = (f32)barrelBatter_explosionParams[12] / 100000.0f / (f32)duration;
-        alphaStep = barrelBatter_explosionParams[15] / duration;
+    if (-p->delay < barrelBatter_explosionParams[10]) {
+        sizeStep = (f32)barrelBatter_explosionParams[12] / 100000.0f / (f32)barrelBatter_explosionParams[10];
+        alphaStep = barrelBatter_explosionParams[15] / barrelBatter_explosionParams[10];
     } else {
-        sizeStep = (f32)(barrelBatter_explosionParams[13] - barrelBatter_explosionParams[12]) / 100000.0f / (f32)(barrelBatter_explosionParams[18] - duration);
-        alphaStep = (barrelBatter_explosionParams[16] - barrelBatter_explosionParams[15]) / (barrelBatter_explosionParams[18] - duration);
+        sizeStep = (f32)(barrelBatter_explosionParams[13] - barrelBatter_explosionParams[12]) / 100000.0f / (f32)(barrelBatter_explosionParams[18] - barrelBatter_explosionParams[10]);
+        alphaStep = (barrelBatter_explosionParams[16] - barrelBatter_explosionParams[15]) / (barrelBatter_explosionParams[18] - barrelBatter_explosionParams[10]);
     }
     alpha += alphaStep;
     if (alpha > 0xFF) {
