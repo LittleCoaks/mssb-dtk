@@ -8,7 +8,7 @@
 #include "Unknown/File_0x80062a94.h"
 #include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 /* Byte view of a 9-wide CharacterStats table; the chemistry row starts at byte 0x3B of each entry. */
 typedef u8 CharacterStatsBytes[9][sizeof(CharacterStats)];

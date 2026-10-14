@@ -2,7 +2,7 @@
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "static/UnknownHomes_Static.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "menus/yd_step.h"
 #include "game/challenge/challenge_state.h"
 #include "Dolphin/vec.h"

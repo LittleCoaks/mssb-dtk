@@ -11,7 +11,7 @@
 #include "game/hud/toyfield_score_update.h"
 #include "game/stats/run_scoring.h"
 #include "game/stats/stat_book.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "musyx/musyx.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x80034cec.h"

@@ -16,7 +16,7 @@
 #include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
 #include "static/UnknownHomes_Static.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/sub.h"
 #include "Unknown/File_0x80025c58.h"
 #include "Unknown/File_0x80025ddc.h"

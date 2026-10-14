@@ -1,6 +1,6 @@
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x80034e20.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 #define ICON_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[((MenuScene*)(scene))->firstHandle + (i)].object)
 

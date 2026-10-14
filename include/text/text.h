@@ -1,7 +1,8 @@
-#ifndef __TEXT_TEXT_CHANNEL_H_
-#define __TEXT_TEXT_CHANNEL_H_
+#ifndef __TEXT_TEXT_H_
+#define __TEXT_TEXT_H_
 
 #include "mssbTypes.h"
+#include "Dolphin/mtx.h"
 
 // A renderable object owned by the graphics system; the text engine
 // stores per-channel state in it and reads its glyph string at +0xC.
@@ -97,4 +98,30 @@ extern GraphicsArrayEntry graphicsRelatedArray[];
 
 s32 text_initializeNewChannel(UnkText988Arg* arg0, s32 indexOffset, u16 arg2, s32 arg3, s32 arg4, s32 useFlag8);
 
-#endif // !__TEXT_TEXT_CHANNEL_H_
+s32 initializeTextParameters(s32 bankIndex, s32 stringIndex, s32 x, s32 y, u8 drawGroup, s32 color, s32 style);
+
+void text_setSubstringIndices(s32 blockIndex, s16 arg1, s16 arg2, s16 arg3, s16 arg4);
+void text_setInsertedValues(s32 blockIndex, u16 arg1, u16 arg2, u16 arg3, u16 arg4);
+void practiceTextRelated(s32 blockIndex, s32 arg1, s32 maxLetters);
+void text_setPtrToWhereCharsAreStored(s32 blockIndex, s32 bankIndex, s32 stringIndex);
+void text_freeAllBlocks(void);
+void text_freeBlock(s32 blockIndex);
+
+s32 calculateTextBlockWidth(s32 blockIndex);
+
+// One vertex of a textured sprite quad: position, RGBA color, and
+// texture coordinates in 1/0x400 texture units.
+typedef struct SpriteVertex {
+    /* 0x00 */ Vec pos;
+    /* 0x0C */ u32 color;
+    /* 0x10 */ u16 s;
+    /* 0x12 */ u16 t;
+} SpriteVertex; // size 0x14
+
+void drawTransformedSprite(s32 x, s32 y, u16 s, u16 t, u16 w, u32 color, s32 style, MtxPtr mtx);
+
+void DrawText(s32 blockIndex);
+
+void somethingSetTexturePointer(void);
+
+#endif // !__TEXT_TEXT_H_

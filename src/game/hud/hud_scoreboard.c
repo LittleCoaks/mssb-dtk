@@ -3,7 +3,7 @@
 #include "game/challenge/scout_state.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "musyx/musyx.h"
 #include "game/camera/camera.h"
 #include "Unknown/File_0x80034cec.h"

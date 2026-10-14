@@ -3,8 +3,7 @@
 #include "game/challenge/challenge_state.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
-#include "text/text_channel.h"
-#include "text/text_block.h"
+#include "text/text.h"
 #include "static/UnknownHomes_Static.h"
 
 extern DrawingSceneStruct *currentDrawingItem;

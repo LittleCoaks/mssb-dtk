@@ -27,7 +27,7 @@
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "C3/control.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "C3/light/light.h"

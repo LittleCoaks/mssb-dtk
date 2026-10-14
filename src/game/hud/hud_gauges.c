@@ -3,7 +3,7 @@
 #include "header_rep_data.h"
 #include "game/hud/hud_scoreboard.h"
 #include "game/UnknownHomes_Game.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"

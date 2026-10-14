@@ -18,7 +18,7 @@
 #include "Dolphin/os.h"
 #include "game/fielding/fielder.h"
 #include "C3/actor/actorAnim.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x80025ddc.h"
 #include "Unknown/particle_effects.h"
 #include "Unknown/File_0x8004c094.h"

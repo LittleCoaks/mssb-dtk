@@ -571,24 +571,20 @@ in the wrong folder. The split config assigns every one of those units to the
 the `game` and `menus` symbol tables, but the file itself is not in any splits file
 or in `configure.py`.
 
-## src/text — the DOL text engine (8 files, 13 fns, 13 named)
+## src/text — the DOL text engine (3 files, 17 fns incl. 5 without C)
 
 The pool of 30 `ScreenText` blocks at `0x80366B18` and everything that fills,
-measures, draws and frees them (main.dol `.text` 0x8000F988-0x80011000).
+measures, draws and frees them (main.dol `.text` 0x8000F150-0x80011000).
 Identified from the Ghidra-named functions, the shared `screenTextArray`
-accesses, and Rio's live-RE documentation of the engine; five units are
-fully matched and all five link from source.
+accesses, and Rio's live-RE documentation of the engine. `text.c` is one
+translation unit (see `docs/splits.md`, "The text engine is one unit"); 9 of its
+17 functions are fully matched, 5 have no C yet.
 
-| file | was | fns (named) | bytes | purpose | conf |
+| file | was | fns | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `text_channel.c` | `File_0x8000f988.c` | 1 (1) | 276 | `text_initializeNewChannel` — claims a block for a graphics object's glyph string; its header defines the engine's core types (`ScreenText`, `ScreenTextPool`, `TextChannel`, `TextBank`). Matched 100%. | high |
-| `text_width.c` | `File_0x8000fa9c.c` | 1 (1) | 696 | `calculateTextBlockWidth` — glyph-string width measurement. | high |
-| `text_block.c` | `File_0x8000fd54.c` | 6 (6) | 432 | Per-block field setters: substring indices (control codes 0x4019-0x401C / 0x4023-0x4026), inserted values (control codes 0x400F-0x4012), bank string pointer, max-letters/typewriter state; free one (`text_freeBlock`) or all 30 (`text_freeAllBlocks`) blocks. Matched 100%. | high |
-| `text_alloc.c` | `File_0x8000ff04.c` | 1 (1) | 416 | `initializeTextParameters` — scans the pool for a free block, claims and initializes it. Matched 100%. | high |
-| `sprite_draw.c` | `File_0x800100a4.c` | 1 (1) | 1012 | `drawTransformedSprite` — textured quad rendering used by the glyph draw pass. | high |
-| `text_draw.c` | `File_0x80010498.c` | 1 (1) | 2708 | `DrawText` — renders one block's glyph string (control codes, palette recolor, typewriter effect). | high |
-| `text_draw_conditional.c` | `File_0x80010f2c.c` | 1 (1) | 116 | `DrawTextOnCondition` — gating wrapper around the draw pass. | high |
-| `text_init.c` | `File_0x80010fa0.c` | 1 (1) | 96 | `initTextRendering`. | high |
+| `text.c` | `File_0x8000f48c.c`, `text_channel.c`, `text_width.c`, `text_block.c`, `text_alloc.c`, `sprite_draw.c`, `text_draw.c` and five unowned functions | 17 | 7644 | `somethingSetTexturePointer`, `text_initializeNewChannel` (claims a block for a graphics object's glyph string; the header defines the engine's core types `ScreenText`, `ScreenTextPool`, `TextChannel`, `TextBank`), `calculateTextBlockWidth`, the per-block setters (`text_setSubstringIndices`, `text_setInsertedValues`, `practiceTextRelated`, `text_setPtrToWhereCharsAreStored`, `text_freeAllBlocks`, `text_freeBlock`), `initializeTextParameters`, `drawTransformedSprite` and `DrawText`. | high |
+| `text_draw_conditional.c` | `File_0x80010f2c.c` | 1 | 116 | `DrawTextOnCondition` — gating wrapper around the draw pass. | high |
+| `text_init.c` | `File_0x80010fa0.c` | 1 | 96 | `initTextRendering`. | high |
 
 ## Outside `src/game`
 
@@ -607,7 +603,7 @@ fully matched and all five link from source.
 | `src/Unknown/sprt.c` | 1 | the sprite renderer (`AllocateSprite`, `DrawSprite` and its wrappers `DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode`, plus 11 functions without C; main.dol `.text` `0x800B0D28-0x800B2AC8`, `NonMatching`); named by its own `OSPanic` file string. |
 | `src/Unknown/File_0x800bde8c.c` | 1 | the shadow-map pass (`setVectors`, `DrawShadows`/`GetDrawShadows`/`ShouldDrawShadows`, `loadTlutRelated` and eight functions without C; main.dol `.text` `0x800BDE8C-0x800BF074`, `NonMatching`); address-named because the binary gives no file name. |
 | `src/Unknown/sound.c` | 1 | the game's MusyX wrapper (`initSound`, `soundQuit`, `SndAlloc`, `SndFree`; main.dol `.text` `0x800B07FC-0x800B0A14`, `Matching`, `-inline deferred`); named by its own `OSPanic` file string. |
-| `src/Unknown` | 250 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
+| `src/Unknown` | 249 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---

@@ -879,3 +879,61 @@ The task description gave the range as ending at `0x80060184`; since
 unit is absorbed; all eight former units were `NonMatching` stubs. The unit
 uses `-cpp_exceptions on` (all 21 functions have extab entries). Linked DOL
 units 260 -> 260.
+
+### The text engine is one unit: `text/text.c` (`0x8000F150-0x80010F2C`)
+
+`File_0x8000f48c`, `text_channel`, `text_width`, `text_block`, `text_alloc`,
+`sprite_draw` and `text_draw` were cut as separate units, each starting at its
+first named function; the five unowned functions in front of them (`fn_8000F150`,
+`fn_8000F3E8`, `fn_8000F4B8`, `fn_8000F534`, `fn_8000F8F4`) have no `.data`
+of their own to go by. The linker evidence says they are one translation unit
+(`text_draw_conditional` and `text_init` are not part of it, see below).
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8000F150-0x80010F2C` | the seven units and the five gap functions |
+| `extab` / `extabindex` | `0x800056D8-0x80005720` / `0x80006DA4-0x80006E10` | the entries of the units plus the gap functions' |
+| `.data` | `0x800EE6A0-0x800EE800` | `text_draw.c` had `0x800EE6D4-0x800EE800`; `jumptable_800EE6A0` (0x34 bytes, `fn_8000F3E8`) was unowned |
+| `.sdata` | `0x803CB760-0x803CB790` | unowned (`lbl_803CB760`, `lbl_803CB780`/`784`/`788`, read by `fn_8000F3E8` and `fn_8000F150` only) |
+| `.sbss` | `0x803CBBE8-0x803CBBF0` | unowned (`lbl_803CBBE8`) |
+| `.sdata2` | `0x803CC490-0x803CC4B8` | unowned (seven literals) |
+
+Evidence:
+
+- **One `.sdata2` pool.** `fn_8000F150` reads `0x803CC490-0x803CC4A0` (`0.0f`,
+  the constants `448.0f`, `640.0f`, `2.0f`, and the int-to-float magic double at
+  `0x803CC4A0`) and `drawTransformedSprite` reads `0x803CC490` (`0.0f`),
+  `0x803CC4A0` (the same double), `0x803CC4A8` (`1.0f`) and `0x803CC4B0` (the
+  unsigned magic double). Each value appears once, so the gap function and the
+  sprite function were compiled in the same unit. The pool ends at
+  `0x803CC4B8`, where the next pool starts with `0.0f` again (`fn_800116DC`), and
+  begins after a pool (`0x803CC458-0x803CC490`, `updateHUDRelatedUI` and its
+  neighbours) that already holds `0.0f` (`0x803CC47C`): a boundary on each side.
+- **Jump tables.** `jumptable_800EE6A0` (`fn_8000F3E8`) is directly followed by
+  `jumptable_800EE6D4` (`DrawText`). The second starts at a 4-aligned, non-8-aligned
+  address, which no unit's first `.data` byte can be, so the old `text_draw.c`
+  `.data` start was impossible: `fn_8000F3E8` and `DrawText` are one unit and
+  so is everything in between.
+- **`.sbss`.** `lbl_803CBBE8` (the texture-header pointer) is written by
+  `somethingSetTexturePointer` and read by `fn_8000F150`.
+
+Left out on purpose: `text_draw_conditional` (`DrawTextOnCondition`) and
+`text_init` (`initTextRendering`) are `Matching`, share no pool with the engine and
+only touch `screenTextArray`; `fn_80011000`/`fn_80011140` next to them likewise.
+
+Cost: `File_0x8000f48c`, `text_channel`, `text_block` and `text_alloc` were
+`Matching`, so linked DOL units 260 -> 256 (the merged unit is `NonMatching`: `calculateTextBlockWidth`
+93.3%, `drawTransformedSprite` 99.4%, `DrawText` 88.2%, five gap functions have no C).
+Every function that had C keeps exactly its old score, including the nine at 100%.
+
+Source notes: sources are in address order (the unit's literal pool is in ascending order).
+The units differed in flags: `text_block.c` was built without `-cpp_exceptions on` and
+the other six with it; the merged unit uses `-cpp_exceptions on`, and the six
+`text_block` functions, which are frameless leaves, still compile to the same bytes (no
+extab entries, 100%). `text_width.c` and `text_draw.c` declared `lbl_800E8F60` with different types
+(`u8[][4]` and `FontMetricsTables`); the merged file uses the struct, and
+`calculateTextBlockWidth` reads `lbl_800E8F60.altWidths[(u16)glyph][style]`, which
+generates the same code. `somethingSetTexturePointer` no longer includes
+`C3/skinning/SKNAsm.h`, which redeclared `LCStoreBlocks` against `OSCache.h` in the merged
+translation unit and was not needed. The seven headers became `include/text/text.h`
+(37 files include it).
