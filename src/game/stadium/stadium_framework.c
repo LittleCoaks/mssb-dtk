@@ -877,16 +877,15 @@ void fn_3_B867C(Mtx view, StadiumDrawOrder* order) {
     StadiumDrawOrder* p;
     StadiumDrawOrder* sorted;
     int remaining;
-    int count;
     StadiumObject* obj;
     int i;
+    int count;
 
     if (stadiumObjectCollision.gameStatusIsLiveBall) {
         count = 0;
         p = order;
-        i = stadiumObjectCollision.objectCount;
-        obj = &stadiumObjectCollision.objects[i - 1];
-        i--;
+        obj = &stadiumObjectCollision.objects[stadiumObjectCollision.objectCount - 1];
+        i = stadiumObjectCollision.objectCount - 1;
         do {
             if (!obj->hasShadow) {
                 p->depth = -512.0f;
