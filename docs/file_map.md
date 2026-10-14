@@ -607,7 +607,7 @@ fully matched and all five link from source.
 | `src/Unknown/sprt.c` | 1 | the sprite renderer (`AllocateSprite`, `DrawSprite` and its wrappers `DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode`, plus 11 functions without C; main.dol `.text` `0x800B0D28-0x800B2AC8`, `NonMatching`); named by its own `OSPanic` file string. |
 | `src/Unknown/File_0x800bde8c.c` | 1 | the shadow-map pass (`setVectors`, `DrawShadows`/`GetDrawShadows`/`ShouldDrawShadows`, `loadTlutRelated` and eight functions without C; main.dol `.text` `0x800BDE8C-0x800BF074`, `NonMatching`); address-named because the binary gives no file name. |
 | `src/Unknown/sound.c` | 1 | the game's MusyX wrapper (`initSound`, `soundQuit`, `SndAlloc`, `SndFree`; main.dol `.text` `0x800B07FC-0x800B0A14`, `Matching`, `-inline deferred`); named by its own `OSPanic` file string. |
-| `src/Unknown` | 262 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
+| `src/Unknown` | 261 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---

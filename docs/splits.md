@@ -751,3 +751,31 @@ functions that do. All six former units were
 `NonMatching`; `setParticleXform` stays 100%, nothing else changed. The 21 files
 that include the old headers now include `Unknown/particle_effects.h`.
 Linked DOL units 260 -> 260 (the merged unit is `NonMatching`, like all of its parts).
+
+### `Unknown/graphic.c` (`0x800A7C08-0x800A84C4`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800A7C08-0x800A84C4` | `File_0x800a7c08` (`someGFXRenderingFn`), gap `fn_800A7D4C`, `fn_800A7D7C`, `fn_800A7DB0`, `fn_800A7E00`, `fn_800A7F10`, `File_0x800a80e8` (`initRenderMode`) |
+| `extab` / `extabindex` | `0x80006698-0x800066C0` / `0x80008544-0x80008580` | the two units' entries plus the gap functions' |
+| `.rodata` | `0x800E77C8-0x800E7800` | unowned (`"graphic.c"` and the `"sNp_InitRenderMode: invalid TV format"` message) |
+| `.sdata` | `0x803CBAD0-0x803CBAD8` | unowned (read by `initRenderMode` only) |
+| `.sdata2` | `0x803CCED0-0x803CCEE0` | unowned |
+
+Evidence:
+
+- **The binary names the unit.** `lbl_800E77C8` is the string `"graphic.c"`,
+  read by `initRenderMode`, directly followed by its panic message.
+- **One `.sdata2` pool** (`0x803CCED0` the int-to-float magic double,
+  `0x803CCED8` `0.0f`, `0x803CCEDC` `1.0f`) is read by `someGFXRenderingFn`,
+  `fn_800A7E00`, `fn_800A7F10` and `initRenderMode`, so the unowned functions
+  between the two units belong to it. The pool ends 8-aligned where `mcard.c`'s
+  `"mcard.c"` string starts (`0x803CCEE0`).
+- **Not included:** `fn_800A7AD8` reads `0x803CCEC8` (its own `0.0f`, a different
+  pool, with `.data 0x8010F460`), so the unit starts at `someGFXRenderingFn`.
+  `fn_800A7BAC` (before) and `fn_800A84C4` (after) read only the shared `.bss`
+  object `0x803C7420` and carry no constants; they were left unowned.
+
+The unit is compiled with `-cpp_exceptions on` (what `File_0x800a7c08` used; the
+stub `initRenderMode` is flag-independent). Two `NonMatching` units became one; no
+score changed. Linked DOL units 260 -> 260.

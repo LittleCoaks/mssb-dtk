@@ -1,4 +1,4 @@
-#include "Unknown/File_0x800a7c08.h"
+#include "Unknown/graphic.h"
 #include "Dolphin/os.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/vi.h"
@@ -57,4 +57,8 @@ void someGFXRenderingFn(void) {
         lbl_803C7420.drawing = FALSE;
         OSSignalSemaphore(&lbl_803C7420.doneSemaphore);
     }
+}
+
+void initRenderMode(void) {
+    return;
 }

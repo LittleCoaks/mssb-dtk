@@ -1489,15 +1489,13 @@ Unknown/File_0x800a76bc.c:
 	extabindex  start:0x80008508 end:0x80008514
 	.text       start:0x800A76BC end:0x800A77A0
 
-Unknown/File_0x800a7c08.c:
-	extab       start:0x80006698 end:0x800066A0
-	extabindex  start:0x80008544 end:0x80008550
-	.text       start:0x800A7C08 end:0x800A7D4C
-
-Unknown/File_0x800a80e8.c:
-	extab       start:0x800066B8 end:0x800066C0
-	extabindex  start:0x80008574 end:0x80008580
-	.text       start:0x800A80E8 end:0x800A84C4
+Unknown/graphic.c:
+	extab       start:0x80006698 end:0x800066C0
+	extabindex  start:0x80008544 end:0x80008580
+	.text       start:0x800A7C08 end:0x800A84C4
+	.rodata     start:0x800E77C8 end:0x800E7800
+	.sdata      start:0x803CBAD0 end:0x803CBAD8
+	.sdata2     start:0x803CCED0 end:0x803CCEE0
 
 Unknown/File_0x800a8cbc.c:
 	extab       start:0x800066F8 end:0x80006700
