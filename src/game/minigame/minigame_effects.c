@@ -2616,7 +2616,7 @@ void barrelBatter_updateMachineSparkPos(MGPathEffect* effect) {
     } else {
         from = barrelBatter_machineSparkPath + 3;
         to = barrelBatter_machineSparkPath + 6;
-        t = ((f32)(effect->total - effect->remaining) - effect->span) / ((f32)effect->total - effect->span);
+        t = (f32)(effect->total - effect->remaining) / ((f32)effect->total - effect->span);
     }
     scale = mm_GetPitchingMachineScale();
     effect->pos.x = scale * (from[0] * (1.0f - t) + to[0] * t) + effect->base.x;
