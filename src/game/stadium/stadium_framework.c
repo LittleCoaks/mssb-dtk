@@ -1124,24 +1124,12 @@ int randomizeAndLoadSoundEffect(int soundId, int arg) {
 }
 
 // .text:0x000B7F70 size:0x58
-s16 rng(int max) {
-    s16 divisor = (s16)max;
-    s32 seed;
-    u32 v;
-    u32 sign;
-    u32 t;
-
-    if (divisor < 0) {
-        divisor = (s16)-divisor;
+s16 rng(s16 max) {
+    if (max < 0) {
+        max *= -1;
     }
-    seed = stadiumObjectCollision.rngConfig;
-    v = (u32)(seed * 5 + 1);
-    sign = v >> 31;
-    t = (v << 17) - sign;
-    t = (t << 15) | (t >> 17);
-    t += sign;
-    stadiumObjectCollision.rngConfig = (s16)t;
-    return (s16)((s16)t % divisor);
+    stadiumObjectCollision.rngConfig = (stadiumObjectCollision.rngConfig * 5 + 1) % 32768;
+    return stadiumObjectCollision.rngConfig % max;
 }
 
 void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
