@@ -380,7 +380,8 @@ void draw_initStarGuageHud(void) {
     if (next > 9) {
         next = 1;
     }
-    HUD_RECORD(scene, 6)->frame = inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0]].stats.CharID << 16;
+    next = g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0];
+    HUD_RECORD(scene, 6)->frame = inMemRoster[g_GameLogic.teamBatting][next].stats.CharID << 16;
 
     load_Icon(scene, 13, 1, 0x2A, lbl_3_data_D22C[inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CharacterClass]);
     load_Icon(scene, 14, 1, 0x2A, lbl_3_data_D22C[inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CharacterClass]);
@@ -398,10 +399,10 @@ void draw_initStarGuageHud(void) {
 
     for (i = 0; i < 5; i++) {
         if (g_GameLogic.TeamStars[g_GameLogic.teamFielding] > i) {
-            HUD_RECORD(scene, i + 0x22)->frame = 3 << 16;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x22 + i].object)->frame = 3 << 16;
         }
         if (g_GameLogic.TeamStars[g_GameLogic.teamBatting] > i) {
-            HUD_RECORD(scene, i + 0x27)->frame = 3 << 16;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x27 + i].object)->frame = 3 << 16;
         }
     }
 
