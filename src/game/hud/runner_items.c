@@ -52,8 +52,8 @@ void fn_3_21BDC(void) {
 // .text:0x00021AA8 size:0x134
 void fn_3_21AA8(void) {
     RunnerDrawingNode *node = (RunnerDrawingNode *)currentDrawingItem;
-    AnimObject *obj = hugeAnimStruct.objects[9];
     InMemRunnerType *runner = &g_Runners[0];
+    AnimObject *obj = hugeAnimStruct.objects[9];
 
     switch (node->_22) {
     case 0:
@@ -92,7 +92,7 @@ void fn_3_219CC(void) {
     int i;
 
     for (i = 0; i < 9; i++) {
-        if (hugeAnimStruct.objects[i]->_257 == g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber]) {
+        if (g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
             g_Fielders[i].rosterLocSkippingCap = 0;
         } else {
             g_Fielders[i].rosterLocSkippingCap = ++count;
