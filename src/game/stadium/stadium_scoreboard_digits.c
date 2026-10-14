@@ -191,7 +191,7 @@ void fn_3_16E1A0(void) {
 
 // .text:0x0016E1EC size:0x110 mapped:0x807AD280
 void animateScoreBoard(void) {
-    if ((hugeAnimStruct[0x3088] == FALSE) | (*(u32*)&lbl_3_bss_D6E4 == 0) | lbl_3_bss_D6EC) {
+    if (lbl_3_bss_D6EC | (hugeAnimStruct[0x3088] == FALSE) | (*(u32*)&lbl_3_bss_D6E4 == 0)) {
         lbl_3_bss_D6E4 = NULL;
         objOrTextureCount = -1;
         lbl_3_bss_D6EC = FALSE;
