@@ -3278,3 +3278,19 @@ functions. These lessons are not specific to one file:
   `premature end of file; recovering` and truncates away the split's fresh deps record. Fix:
   stop all ninja/dtk processes, run `ninja -t recompact`, then build once. Avoid it by
   applying shared-config changes only when no agent is building.
+- **The stack slots of int-to-float temps show the order the compiler created them in,
+  which can differ from the order of the instructions.** In `rep_0010` `fn_1_AF4` the
+  target schedules the `xoris/stw/lfd` conversions x0, z0, xLen, but they sit at sp+0x10,
+  +0x18, +0x08, so xLen's conversion was created first. Reordering the source statements
+  to that order took 95.67% to 98.67%. The remaining float-register permutation was then
+  pure local declaration order. Declaration order showed "no effect" until the statements
+  were right, so re-test it after every structural change.
+- **Iterate privately without touching the build tree.** Take the unit's mwcceppc command
+  line (`ninja -t commands <obj>`), compile a scratch copy of the `.c`, and compare one
+  function's bytes word by word against the target `.o` via the ELF symtab. At about 0.7 s
+  per variant, brute-force sweeps (all 120 orders of five stores, every declaration order)
+  are cheap and never race other agents (`rep_7BF0`, `rep_0010`).
+- **When deleting LATER code changes the entry block's register numbers, the colouring is
+  global.** In `rep_7BF0` `fn_1_29A9C`, deleting the inlined helper or a later call moved
+  the entry registers, but none of 19 source-equivalent rewrites of either part did,
+  including version and flag sweeps. Treat that as a sign to stop.

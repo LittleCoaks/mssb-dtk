@@ -62,7 +62,7 @@ void fn_1_1240(RepQuad *quad) {
     color.a = quad->a;
     GXSetChanMatColor(GX_COLOR0A0, color);
     GXSetNumChans(1);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetNumTevStages(1);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_RASC, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
@@ -145,7 +145,7 @@ void fn_1_F2C(GXTevMode mode, s32 texFrac, BOOL hasNormals) {
     case GX_MODULATE:
     case GX_PASSCLR:
         GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_POS_XYZ, GX_RGBA8, 0);
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
         if (mode == GX_PASSCLR) {
             break;
         }
@@ -160,7 +160,7 @@ void fn_1_F2C(GXTevMode mode, s32 texFrac, BOOL hasNormals) {
     }
     GXSetTevOrder(GX_TEVSTAGE0, (mode == GX_PASSCLR) ? GX_TEXCOORD_NULL : GX_TEXCOORD0,
                   (mode == GX_PASSCLR) ? GX_TEXMAP_NULL : GX_TEXMAP0, (mode == GX_REPLACE) ? GX_COLOR_NULL : GX_COLOR0A0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
     GXSetNumChans(mode != GX_REPLACE);
     GXSetNumTexGens(mode != GX_PASSCLR);
@@ -170,31 +170,30 @@ void fn_1_F2C(GXTevMode mode, s32 texFrac, BOOL hasNormals) {
 
 // .text:0x00000AF4 size:0x438
 void fn_1_AF4(s32 zCells, s32 xCells, f32 scale) {
-    f32 x0;
-    f32 z0;
-    f32 xLen;
-    f32 zLen;
     f32 x;
-    f32 z;
+    f32 z0;
     f32 z1;
+    f32 zLen;
+    f32 x0;
     f32 x1;
+    f32 xLen;
     s32 i;
 
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_POS_XYZ, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
     GXSetNumChans(1);
     GXSetNumTexGens(0);
     GXSetNumTevStages(1);
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
+    xLen = (f32)xCells * scale;
     x0 = -scale * (f32)xCells / 2.0f;
     z0 = -scale * (f32)zCells / 2.0f;
-    xLen = (f32)xCells * scale;
     x = x0;
     GXBegin(GX_LINES, GX_VTXFMT0, (xCells + 1) * 2);
     zLen = (f32)zCells * scale;
@@ -208,12 +207,11 @@ void fn_1_AF4(s32 zCells, s32 xCells, f32 scale) {
     }
     GXBegin(GX_LINES, GX_VTXFMT0, (zCells + 1) * 2);
     x1 = x0 + xLen;
-    z = z0;
     for (i = zCells; i >= 0; i--) {
-        GXPosition3f32(x0, 0.0f, z);
+        GXPosition3f32(x0, 0.0f, z0);
         GXColor1u32(-1);
-        GXPosition3f32(x1, 0.0f, z);
-        z += scale;
+        GXPosition3f32(x1, 0.0f, z0);
+        z0 += scale;
         GXColor1u32(-1);
     }
 }
@@ -227,9 +225,9 @@ void fn_1_5EC(void) {
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_POS_XYZ, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
     GXSetNumChans(1);
     GXSetNumTexGens(0);
