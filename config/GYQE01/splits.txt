@@ -602,45 +602,11 @@ Unknown/File_0x80058394.c:
 	extabindex  start:0x80007F74 end:0x80007F80
 	.text       start:0x80058394 end:0x80058644
 
-Unknown/File_0x80059b38.c:
-	extab       start:0x800062E8 end:0x800062F0
-	extabindex  start:0x80007FBC end:0x80007FC8
-	.text       start:0x80059B38 end:0x8005A350
-
-Unknown/File_0x8005a350.c:
-	extab       start:0x800062F0 end:0x800062F8
-	extabindex  start:0x80007FC8 end:0x80007FD4
-	.text       start:0x8005A350 end:0x8005AF68
-
-Unknown/File_0x8005af68.c:
-	extab       start:0x800062F8 end:0x80006300
-	extabindex  start:0x80007FD4 end:0x80007FE0
-	.text       start:0x8005AF68 end:0x8005B298
-
-Unknown/File_0x8005b298.c:
-	extab       start:0x80006300 end:0x80006308
-	extabindex  start:0x80007FE0 end:0x80007FEC
-	.text       start:0x8005B298 end:0x8005B760
-
-Unknown/File_0x8005bb5c.c:
-	extab       start:0x80006310 end:0x80006318
-	extabindex  start:0x80007FF8 end:0x80008004
-	.text       start:0x8005BB5C end:0x8005BF40
-
-Unknown/File_0x8005bf40.c:
-	extab       start:0x80006318 end:0x80006320
-	extabindex  start:0x80008004 end:0x80008010
-	.text       start:0x8005BF40 end:0x8005C2B0
-
-Unknown/File_0x8005c2b0.c:
-	extab       start:0x80006320 end:0x80006328
-	extabindex  start:0x80008010 end:0x8000801C
-	.text       start:0x8005C2B0 end:0x8005C5C4
-
-Unknown/File_0x80060184.c:
-	extab       start:0x80006378 end:0x80006380
-	extabindex  start:0x80008094 end:0x800080A0
-	.text       start:0x80060184 end:0x80061B9C
+Unknown/team_management_screens.c:
+	extab       start:0x800062D8 end:0x80006380
+	extabindex  start:0x80007FA4 end:0x800080A0
+	.text       start:0x80059458 end:0x80061B9C
+	.data       start:0x80108AA8 end:0x80108B18
 
 Unknown/File_0x80061b9c.c:
 	extab       start:0x80006380 end:0x80006388

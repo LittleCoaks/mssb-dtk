@@ -844,3 +844,38 @@ Evidence:
 
 Compile flag `-cpp_exceptions on` was taken from the extab entries (the four
 former units were stubs). Linked DOL units 260 -> 260.
+
+### `Unknown/team_management_screens.c` (`0x80059458-0x80061B9C`)
+
+The team-management / batting-order / fielding-alignment screens. The name is a
+proposal (from `battingOrderProcessInputs`, `teamManagementGraphics_*` and
+`challengeTeamManagementRelated`); the binary carries no file name.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80059458-0x80061B9C` | `File_0x80059b38` (`starMissionRelated1`), `5a350` (`battingOrderProcessInputs`), `5af68` / `5bf40` (`teamManagementGraphics_fieldingAlignmentScreen` / `Info`), `5b298` / `5c2b0` (`..._battingOrderScreen` / `Info`), `5bb5c` (`challengeTeamManagementRelated`), `60184` (`teamManagementGraphics_steadyState`) and 13 unowned functions (`fn_80059458`, `fn_800596D4`, `fn_8005B760`, `fn_8005C5C4` ... `fn_8005FCA0`) |
+| `extab` / `extabindex` | `0x800062D8-0x80006380` / `0x80007FA4-0x800080A0` | all 21 functions have an entry |
+| `.data` | `0x80108AA8-0x80108B18` | unowned: `jumptable_80108AA8` (0x34) and `jumptable_80108ADC` (0x3C) |
+
+Evidence:
+
+- **Two jump tables, one unit.** `jumptable_80108AA8` (0x34 bytes) is read by the
+  unowned `fn_80059458`; the very next object, `jumptable_80108ADC`, starts at the
+  non-8-aligned `0x80108ADC` and is read by `teamManagementGraphics_steadyState`
+  (`File_0x80060184`). Objects only start 4-aligned inside a unit, never at a
+  unit's first `.data` byte (MWCC 8-aligns every unit's `.data`), so both
+  functions lie in one unit and so does everything between them: the seven
+  `Unknown/` units `59b38`-`5c2b0` and the gap functions around them. The
+  table run ends where `lbl_80108B18` (`playPlayerSelectedSound`, `Matching`
+  `File_0x800628d4`) begins.
+- **Not in the unit:** the `.text` before `fn_80059458` (`fn_80058644`,
+  `fn_80058B20`, `fn_80058E0C`) and `File_0x80057c08` (`Matching`) have no
+  evidence tying them in, and `File_0x80061b9c` (`0x80061B9C`, next) starts the
+  following unit.
+
+The task description gave the range as ending at `0x80060184`; since
+`jumptable_80108ADC` belongs to `File_0x80060184`, that whole function
+(`0x1A18` bytes) is part of the unit and the end is `0x80061B9C`. No `Matching`
+unit is absorbed; all eight former units were `NonMatching` stubs. The unit
+uses `-cpp_exceptions on` (all 21 functions have extab entries). Linked DOL
+units 260 -> 260.
