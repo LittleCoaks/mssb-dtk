@@ -3164,3 +3164,30 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   are an unused static; declaring `static u8 lbl_3_bss_1900;` in the right position fixed `.bss`.
 - **Reusing one local for two values can be the match** (`draw_initStarGuageHud`: `next` holds the
   batting-order slot and then the roster index; a second local re-coloured r7/r8).
+
+## Findings from the second last-function sweep (2026-10)
+
+- **A pointer local to a global can be the match.** `fn_3_219CC` (runner_items) only reached the
+  target's `lwzx rD, rGame, rOff` (with `rOff = team*4 + 0xF4` hoisted) once the loop read
+  `game->Team_CaptainRosterLoc[settings->humanTeamNumber]` through
+  `GameControlsStruct *game = &g_GameLogic;` and `GameInitVariables *settings = &g_d_GameSettings;`
+  (80% -> 100%; `i` had to be declared before `count`). Same lever as the "pointer local" entries
+  above: try it when a global's base address lands in an unexpected register or the target keeps
+  the base and the offset in separate registers.
+- **A unit whose target has no `.rodata` must not include `header_rep_data.h`.** `at_bat_setup`
+  was 100% in objdiff, but the flip failed the sha1 check: the header's weak `repHeaderData` added
+  a 0x50 `.rodata` the original never had. Check `llvm-objdump -h` of both objects before flipping.
+- **`s32` instead of `int` again restored a vestigial guard** (`li r0,0; cmpwi r0,N; bge` before a
+  fully unrolled loop) in `someRosterMemoryManagement`; the rest was a hoisted `fieldingTeam`
+  local that the target reloads inside the guarded block (use the field directly).
+- **Moving an assignment can move a base register.** `fn_3_CABF0` (perfect_pitch_gfx): with the
+  register order otherwise right, the shared `lbl_3_common_bss_35154` base was `r5` in ours and
+  `r10` in the target; assigning `model = (...)(common.trailOwner + 0xC4)` *before* the copy loop
+  instead of after it fixed it (also needed: `s32 i`, then `state, handle, i` declaration order).
+- **The order of `|` operands in a branchless boolean OR is visible.** `animateScoreBoard`:
+  `a | b | c` built `or r0,rB,rC; or. r0,rA,r0` only for the target's order; permuting the three
+  operands (six orders, plus the right-nested forms) found it in one batch.
+- **Pooled statics can also hide inside a dtk `.data` object.** In `pitcher_fire_effect`, one
+  function reaches `lbl_3_data_17DC0` as `addi rX, base, 0x0` / `base+0x48c`, another as its own
+  `lis/addi lbl_3_data_17DC0+0x3C0`: the 0x4A8 object is really several statics. Splitting it
+  reproduced the pool but was not yet a net win (see that unit's checkpoint).
