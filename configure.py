@@ -929,7 +929,7 @@ config.libs = [
             Object(NonMatching, "game/stadium/sta_c1.c"),
             Object(NonMatching, "game/hud/rep_21F8.c"),
             Object(NonMatching, "game/stadium/sta_c0.c"),
-            Object(NonMatching, "game/pitching/perfect_pitch_gfx.c"),
+            Object(Matching, "game/pitching/perfect_pitch_gfx.c"),
             Object(NonMatching, "game/pitching/pitcher_fire_effect.c"),
             Object(Matching, "game/stadium/stadium_star.c"),
             Object(NonMatching, "game/stadium/sta_c2.c"),
