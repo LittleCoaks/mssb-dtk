@@ -282,25 +282,12 @@ Unknown/File_0x80022634.c:
 	extabindex  start:0x80007398 end:0x800073A4
 	.text       start:0x80022634 end:0x800227A0
 
-Unknown/File_0x80022dac.c:
-	extab       start:0x80005B08 end:0x80005B10
-	extabindex  start:0x800073EC end:0x800073F8
-	.text       start:0x80022DAC end:0x80023078
-
-Unknown/File_0x800232e0.c:
-	extab       start:0x80005B18 end:0x80005B20
-	extabindex  start:0x80007404 end:0x80007410
-	.text       start:0x800232E0 end:0x8002360C
-
-Unknown/File_0x8002360c.c:
-	extab       start:0x80005B20 end:0x80005B28
-	extabindex  start:0x80007410 end:0x8000741C
-	.text       start:0x8002360C end:0x800238E0
-
-Unknown/File_0x8002399c.c:
-	extab       start:0x80005B30 end:0x80005B38
-	extabindex  start:0x80007428 end:0x80007434
-	.text       start:0x8002399C end:0x80023AA4
+Unknown/objinit.c:
+	extab       start:0x80005B08 end:0x80005B38
+	extabindex  start:0x800073EC end:0x80007434
+	.text       start:0x80022DAC end:0x80023AA4
+	.rodata     start:0x800E6698 end:0x800E6708
+	.sdata2     start:0x803CC560 end:0x803CC568
 
 Unknown/File_0x80023b04.c:
 	extab       start:0x80005B40 end:0x80005B48

@@ -651,3 +651,50 @@ name of the frustum unit and of the six skinning kernels; whether the draw-list 
 `0x800BD478-0x800BD8C4` belongs to `File_0x800bd8c4.c`; the `.bss` of the sound heap, sprite buffers and
 `drawShadows` (low `.bss`, unowned auto object) would need the whole auto object split before any
 unit can claim it.
+
+## Main DOL: Unknown units merged on linker evidence (2026-10-14)
+
+Same method as the Challenge and charPipeline passes above: the main DOL has no
+`repHeaderData` signature, so a unit boundary can only be proved wrong when two
+`Unknown/` units (or an unowned gap function) share something a single
+translation unit would own: a `.sdata2` literal pool (MWCC pools a literal once
+per unit, so one pool with no repeated values is one unit), a string whose
+`__FILE__`-style name matches, a `.data` run with 4-aligned object starts, or a
+jump table that is not 8-aligned. The unowned gap functions between the units
+are part of the unit by the same argument. Gap functions have no C yet; the
+merged units are `NonMatching` and link from the original asm, so only the
+functions that already had C are scored.
+
+### `Unknown/objinit.c` (`0x80022DAC-0x80023AA4`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80022DAC-0x80023AA4` | `File_0x80022dac` (`f_InitBone`), gap `fn_80023078`, `File_0x800232e0` (`f_InitActorWithLayout`), `File_0x8002360c` (`BuildBoneSkinOrientationMatrix`), gap `fn_800238E0`, `File_0x8002399c` (`characterAndBallDisplayRelated`) |
+| `extab` / `extabindex` | `0x80005B08-0x80005B38` / `0x800073EC-0x80007434` | the four units' entries plus the two gap functions' |
+| `.rodata` | `0x800E6698-0x800E6708` | unowned (`lbl_800E6698`, 0x70 bytes) |
+| `.sdata2` | `0x803CC560-0x803CC568` | unowned (`0.0f`, `1.0f`) |
+
+Evidence:
+
+- **The binary names the unit.** `lbl_800E6698` is a string pool that holds
+  `"objinit.c"` at `+0x3C` between its two panic messages ("Display object id %d
+  is greater than number of objects %d" and "Incorrect number of bones in
+  actor"), and both `f_InitBone` and `f_InitActorWithLayout` read it.
+- **One `.sdata2` pool.** `f_InitBone`, `f_InitActorWithLayout`,
+  `fn_800238E0` and `characterAndBallDisplayRelated` read only
+  `0x803CC560`/`0x803CC564`, with no repeated value. The next unit
+  (`File_0x80023b90`, `0x803CC568`) repeats `0.0f`, so the pool ends here.
+- **Boundaries.** `File_0x80023b04` (`initActorArray`, `Matching`) is not
+  part of it: it has no constants of its own, and the unowned gap function
+  `fn_80023AA4` between them is left alone. `File_0x80023b90` has its own
+  pool and `.rodata`.
+
+`.sbss 0x803CBC58`/`actorSize (0x803CBC5C)` is read by both `fn_800238E0`/
+`characterAndBallDisplayRelated` and `initActorArray` (`Matching`, outside the
+unit), so no `.sbss` is claimed. The `f_InitActorWithLayout` stub is wrapped in
+`#pragma dont_inline`: the old one-function unit saw it as an external call, and
+a visible `return NULL` body would be inlined into
+`characterAndBallDisplayRelated`.
+
+Four `NonMatching` units became one; no function score changed
+(`characterAndBallDisplayRelated` stays 100%). Linked DOL units 260 -> 260.

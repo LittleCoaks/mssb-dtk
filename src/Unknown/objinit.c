@@ -1,9 +1,22 @@
-#include "Unknown/File_0x8002399c.h"
-#include "Unknown/File_0x800232e0.h"
+#include "Unknown/objinit.h"
 #include "Unknown/File_0x80023b04.h"
 #include "string.h"
 
 void fn_800B4724(Actor* actor, int value);
+
+void f_InitBone(void) {
+    return;
+}
+
+#pragma dont_inline on
+Actor* f_InitActorWithLayout(ActorLayout* layout, void* buffer) {
+    return NULL;
+}
+#pragma dont_inline reset
+
+void BuildBoneSkinOrientationMatrix(void) {
+    return;
+}
 
 void characterAndBallDisplayRelated(ActorObjectEntry* entry, u16 buffer, u16 slot, ActorLayout* layout, void* anim,
                                     int arg5) {
