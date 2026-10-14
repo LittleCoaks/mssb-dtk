@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x80034e20.h"
 
@@ -226,13 +227,9 @@ u16 minigameHudCharSelectElement[] = {
     0x46,
 };
 
-u16 gap_04_00009D4A_data = 0x0;
-
 u16 minigameHudCharSelectFrame[] = {
     0xE,
 };
-
-u16 gap_04_00009D4E_data = 0x0;
 
 u8 lbl_3_data_9D50[] = {
     0x0, 0x0, 0x0, 0x0, 0x0, 0x4, 0x1, 0x0,
@@ -1349,11 +1346,7 @@ UIRecordDescriptor scoutMissionProgressDescriptors[] = {
 };
 
 u8 scoutMissionProgressRowBases[] = {
-    0x6,
-};
-
-u8 lbl_3_data_E759[] = {
-    0xC, 0x12, 0x18,
+    0x6, 0xC, 0x12, 0x18,
 };
 
 UIRecordDescriptor lbl_3_data_E75C[] = {

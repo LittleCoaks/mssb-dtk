@@ -2243,14 +2243,7 @@ typedef struct {
 
 extern lbl_3_common_bss_32718_struct g_UnkSound_32718;
 
-typedef struct {
-    /* 0x0 */ u8 moonShotCost;
-    /* 0x1 */ u8 captainStarCost;
-    /* 0x2 */ u8 nonCaptain_CaptainStarCost;
-    /* 0x3 */ u8 regularStarCost;
-} StarPowerCosts;
-
-extern StarPowerCosts starPowerCosts;
+#include "game/match_setup/star_power_costs.h"
 
 typedef struct {
     /* 0x00 */ f32 aIDifficultyMultiplierArray[2];

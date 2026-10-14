@@ -1,5 +1,4 @@
-#include "text/text_channel.h"
-#include "text/text_draw.h"
+#include "text/text.h"
 #include "text/text_draw_conditional.h"
 
 void DrawTextOnCondition(s32 group) {

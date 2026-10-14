@@ -3,7 +3,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_loadingState
 #include "header_rep_data.h"
 #include "Dolphin/os.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8001cbd4.h"

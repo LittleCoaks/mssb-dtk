@@ -26,9 +26,7 @@
 #include "game/fielding/fielder.h"
 #include "game/stadium/sta_c4.h"
 #include "musyx/musyx.h"
-#include "Unknown/File_0x80034220.h"
-#include "Unknown/File_0x8003452c.h"
-#include "Unknown/File_0x800348c8.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x8004abd8.h"
 

@@ -12,7 +12,7 @@
 #include "game/match_setup/match_scene.h"
 #include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"

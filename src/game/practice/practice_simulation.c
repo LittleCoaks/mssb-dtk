@@ -17,7 +17,7 @@
 #include "Unknown/File_0x80014f40.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80062a94.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 extern u8 hugeAnimStruct[];
 extern u8 lbl_80354768[];

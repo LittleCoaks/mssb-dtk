@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/stadium/stadium_framework.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_stadiumFramework
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/gx.h"
@@ -9,15 +10,13 @@
 #include "stl/math.h"
 #include "Dolphin/rand.h"
 #include "game/sound/m_sound.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "C3/actor/act.h"
 #include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x8001e460.h"
 #include "Unknown/File_0x80023b90.h"
-#include "Unknown/File_0x80034220.h"
-#include "Unknown/File_0x8003452c.h"
-#include "Unknown/File_0x800348c8.h"
+#include "Unknown/particle_effects.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
 #include "Unknown/File_0x8003a538.h"
@@ -300,6 +299,7 @@ static f32 lbl_3_bss_1908;
 static StadiumObject* stadiumObjBackup;
 static u8 lbl_3_bss_1902;
 static u8 lbl_3_bss_1901;
+static u8 lbl_3_bss_1900; /* never referenced, but present in the original .bss layout */
 
 // .text:0x000B9FB8 size:0x198 mapped:0x806F904C
 void loadStadiumLighting(int stadiumType, void* stadiumData) {
@@ -877,16 +877,15 @@ void fn_3_B867C(Mtx view, StadiumDrawOrder* order) {
     StadiumDrawOrder* p;
     StadiumDrawOrder* sorted;
     int remaining;
-    int count;
     StadiumObject* obj;
     int i;
+    int count;
 
     if (stadiumObjectCollision.gameStatusIsLiveBall) {
         count = 0;
         p = order;
-        i = stadiumObjectCollision.objectCount;
-        obj = &stadiumObjectCollision.objects[i - 1];
-        i--;
+        obj = &stadiumObjectCollision.objects[stadiumObjectCollision.objectCount - 1];
+        i = stadiumObjectCollision.objectCount - 1;
         do {
             if (!obj->hasShadow) {
                 p->depth = -512.0f;
@@ -1124,24 +1123,12 @@ int randomizeAndLoadSoundEffect(int soundId, int arg) {
 }
 
 // .text:0x000B7F70 size:0x58
-s16 rng(int max) {
-    s16 divisor = (s16)max;
-    s32 seed;
-    u32 v;
-    u32 sign;
-    u32 t;
-
-    if (divisor < 0) {
-        divisor = (s16)-divisor;
+s16 rng(s16 max) {
+    if (max < 0) {
+        max *= -1;
     }
-    seed = stadiumObjectCollision.rngConfig;
-    v = (u32)(seed * 5 + 1);
-    sign = v >> 31;
-    t = (v << 17) - sign;
-    t = (t << 15) | (t >> 17);
-    t += sign;
-    stadiumObjectCollision.rngConfig = (s16)t;
-    return (s16)((s16)t % divisor);
+    stadiumObjectCollision.rngConfig = (stadiumObjectCollision.rngConfig * 5 + 1) % 32768;
+    return stadiumObjectCollision.rngConfig % max;
 }
 
 void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);

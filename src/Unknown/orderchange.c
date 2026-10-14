@@ -6,7 +6,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "musyx/musyx.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "menus/yd_step.h"
 #include "Unknown/File_0x800625a4.h"
 

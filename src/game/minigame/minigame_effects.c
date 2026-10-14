@@ -13,8 +13,7 @@
 #include "game/stadium/stadium_framework.h"
 #include "game/stadium/sta_c2.h"
 #include "game/minigame/minigame_hud.h"
-#include "Unknown/File_0x80033794.h"
-#include "Unknown/File_0x80033f64.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x8001b728.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
@@ -2186,7 +2185,6 @@ int barrelBatter_updateBarrelExplosion(MGEffect* effect) {
 
 // .text:0x14CD40 size:0x18C
 void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
-    s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
@@ -2194,14 +2192,13 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
     fn_8003403C(p->sizeX, p->sizeY);
     fn_80033CC8(p, effect->texture);
-    duration = barrelBatter_explosionParams[3];
     alpha = p->alphaByte;
-    if (-p->delay < duration) {
-        sizeStep = (f32)barrelBatter_explosionParams[5] / 100000.0f / (f32)duration;
-        alphaStep = barrelBatter_explosionParams[8] / duration;
+    if (-p->delay < barrelBatter_explosionParams[3]) {
+        sizeStep = (f32)barrelBatter_explosionParams[5] / 100000.0f / (f32)barrelBatter_explosionParams[3];
+        alphaStep = barrelBatter_explosionParams[8] / barrelBatter_explosionParams[3];
     } else {
-        sizeStep = (f32)(barrelBatter_explosionParams[6] - barrelBatter_explosionParams[5]) / 100000.0f / (f32)(barrelBatter_explosionParams[17] - duration);
-        alphaStep = (barrelBatter_explosionParams[9] - barrelBatter_explosionParams[8]) / (barrelBatter_explosionParams[17] - duration);
+        sizeStep = (f32)(barrelBatter_explosionParams[6] - barrelBatter_explosionParams[5]) / 100000.0f / (f32)(barrelBatter_explosionParams[17] - barrelBatter_explosionParams[3]);
+        alphaStep = (barrelBatter_explosionParams[9] - barrelBatter_explosionParams[8]) / (barrelBatter_explosionParams[17] - barrelBatter_explosionParams[3]);
     }
     alpha += alphaStep;
     if (alpha > 0xFF) {
@@ -2217,7 +2214,6 @@ void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p) {
 
 // .text:0x14CBB4 size:0x18C
 void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
-    s32 duration;
     s32 alpha;
     s32 alphaStep;
     f32 sizeStep;
@@ -2225,14 +2221,13 @@ void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     fn_8003403C(p->sizeX, p->sizeY);
     fn_80033CC8(p, effect->texture);
-    duration = barrelBatter_explosionParams[10];
     alpha = p->alphaByte;
-    if (-p->delay < duration) {
-        sizeStep = (f32)barrelBatter_explosionParams[12] / 100000.0f / (f32)duration;
-        alphaStep = barrelBatter_explosionParams[15] / duration;
+    if (-p->delay < barrelBatter_explosionParams[10]) {
+        sizeStep = (f32)barrelBatter_explosionParams[12] / 100000.0f / (f32)barrelBatter_explosionParams[10];
+        alphaStep = barrelBatter_explosionParams[15] / barrelBatter_explosionParams[10];
     } else {
-        sizeStep = (f32)(barrelBatter_explosionParams[13] - barrelBatter_explosionParams[12]) / 100000.0f / (f32)(barrelBatter_explosionParams[18] - duration);
-        alphaStep = (barrelBatter_explosionParams[16] - barrelBatter_explosionParams[15]) / (barrelBatter_explosionParams[18] - duration);
+        sizeStep = (f32)(barrelBatter_explosionParams[13] - barrelBatter_explosionParams[12]) / 100000.0f / (f32)(barrelBatter_explosionParams[18] - barrelBatter_explosionParams[10]);
+        alphaStep = (barrelBatter_explosionParams[16] - barrelBatter_explosionParams[15]) / (barrelBatter_explosionParams[18] - barrelBatter_explosionParams[10]);
     }
     alpha += alphaStep;
     if (alpha > 0xFF) {
@@ -2620,7 +2615,7 @@ void barrelBatter_updateMachineSparkPos(MGPathEffect* effect) {
     } else {
         from = barrelBatter_machineSparkPath + 3;
         to = barrelBatter_machineSparkPath + 6;
-        t = ((f32)(effect->total - effect->remaining) - effect->span) / ((f32)effect->total - effect->span);
+        t = (f32)(effect->total - effect->remaining) / ((f32)effect->total - effect->span);
     }
     scale = mm_GetPitchingMachineScale();
     effect->pos.x = scale * (from[0] * (1.0f - t) + to[0] * t) + effect->base.x;
@@ -2635,17 +2630,20 @@ void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
     f32 radius;
     f32 dx;
     f32 dy;
+    f32 dz = 0.0f;
+    f32 sinA;
 
     p->sizeX = p->sizeY = (f32)barrelBatter_machineSparkParams[3] / 100000.0f;
     p->alphaByte = barrelBatter_machineSparkParams[5];
     angle = 0.017453292f * (f32)(rand() % 360);
     radius = (f32)((u32)rand() % 200 / 1000.0);
     cosA = cos(angle);
+    sinA = sin(angle);
     dx = radius * cosA;
-    dy = radius * (f32)sin(angle);
+    dy = radius * sinA;
     p->origin.x = effect->pos.x + dx;
     p->origin.y = effect->pos.y + dy;
-    p->origin.z = effect->pos.z + 0.0f;
+    p->origin.z = effect->pos.z + dz;
     p->life = barrelBatter_machineSparkParams[1];
 }
 

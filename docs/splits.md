@@ -135,10 +135,12 @@ merged because `fn_3_C937C`'s codegen depends on the full size),
 0x9FDC-0xA018` -> `pitcher_fire_effect.c`.
 
 Four large shared tables have no code unit between their link-order
-neighbours, so each is a data-only unit (like `match_flow_data.c`), named by
+neighbours, so each is a data-only unit, named by
 address: `data_only/data_1880.c` (AI and versus tables, after `camera.c`),
 `data_428C.c` (field coordinates, hit and fielding constants, after
-`match_loading.c`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
+`match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
+tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
+cannot start a unit, since MWCC 8-aligns every unit's `.data`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
 after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`).
 All are 100%.
 
@@ -649,3 +651,289 @@ name of the frustum unit and of the six skinning kernels; whether the draw-list 
 `0x800BD478-0x800BD8C4` belongs to `File_0x800bd8c4.c`; the `.bss` of the sound heap, sprite buffers and
 `drawShadows` (low `.bss`, unowned auto object) would need the whole auto object split before any
 unit can claim it.
+
+## Main DOL: Unknown units merged on linker evidence (2026-10-14)
+
+Same method as the Challenge and charPipeline passes above: the main DOL has no
+`repHeaderData` signature, so a unit boundary can only be proved wrong when two
+`Unknown/` units (or an unowned gap function) share something a single
+translation unit would own: a `.sdata2` literal pool (MWCC pools a literal once
+per unit, so one pool with no repeated values is one unit), a string whose
+`__FILE__`-style name matches, a `.data` run with 4-aligned object starts, or a
+jump table that is not 8-aligned. The unowned gap functions between the units
+are part of the unit by the same argument. Gap functions have no C yet; the
+merged units are `NonMatching` and link from the original asm, so only the
+functions that already had C are scored.
+
+### `Unknown/objinit.c` (`0x80022DAC-0x80023AA4`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80022DAC-0x80023AA4` | `File_0x80022dac` (`f_InitBone`), gap `fn_80023078`, `File_0x800232e0` (`f_InitActorWithLayout`), `File_0x8002360c` (`BuildBoneSkinOrientationMatrix`), gap `fn_800238E0`, `File_0x8002399c` (`characterAndBallDisplayRelated`) |
+| `extab` / `extabindex` | `0x80005B08-0x80005B38` / `0x800073EC-0x80007434` | the four units' entries plus the two gap functions' |
+| `.rodata` | `0x800E6698-0x800E6708` | unowned (`lbl_800E6698`, 0x70 bytes) |
+| `.sdata2` | `0x803CC560-0x803CC568` | unowned (`0.0f`, `1.0f`) |
+
+Evidence:
+
+- **The binary names the unit.** `lbl_800E6698` is a string pool that holds
+  `"objinit.c"` at `+0x3C` between its two panic messages ("Display object id %d
+  is greater than number of objects %d" and "Incorrect number of bones in
+  actor"), and both `f_InitBone` and `f_InitActorWithLayout` read it.
+- **One `.sdata2` pool.** `f_InitBone`, `f_InitActorWithLayout`,
+  `fn_800238E0` and `characterAndBallDisplayRelated` read only
+  `0x803CC560`/`0x803CC564`, with no repeated value. The next unit
+  (`File_0x80023b90`, `0x803CC568`) repeats `0.0f`, so the pool ends here.
+- **Boundaries.** `File_0x80023b04` (`initActorArray`, `Matching`) is not
+  part of it: it has no constants of its own, and the unowned gap function
+  `fn_80023AA4` between them is left alone. `File_0x80023b90` has its own
+  pool and `.rodata`.
+
+`.sbss 0x803CBC58`/`actorSize (0x803CBC5C)` is read by both `fn_800238E0`/
+`characterAndBallDisplayRelated` and `initActorArray` (`Matching`, outside the
+unit), so no `.sbss` is claimed. The `f_InitActorWithLayout` stub is wrapped in
+`#pragma dont_inline`: the old one-function unit saw it as an external call, and
+a visible `return NULL` body would be inlined into
+`characterAndBallDisplayRelated`.
+
+Four `NonMatching` units became one; no function score changed
+(`characterAndBallDisplayRelated` stays 100%). Linked DOL units 260 -> 260.
+
+### `Unknown/particle_effects.c` (`0x800263FC-0x80034BCC`)
+
+Six `Unknown/` units (`File_0x800263fc`, `33794`, `33f64`, `34220`, `3452c`,
+`348c8`) and 57 unowned functions between them form one unit. The name is a
+proposal: the range holds `allocParticleEffect`, `setParticleXform`,
+`spawnDaisyStarEffect`, `spawnPeachStarEffect`, `setDaisyStarEffectTarget` and
+`setPeachStarEffectTarget`, plus the minigame setup helpers
+(`minigamesSetSomePointers`, `minigamesGXStuff`, `minigamesSetSomePointers2`)
+that sit at its end; the binary carries no file name for it.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800263FC-0x80034BCC` | the six units and the gaps `0x80026998-0x80033794` (51 functions), `0x80033B58-0x80033F64` (`fn_80033B58`, `fn_80033CC8`), `0x8003403C-0x80034220` (`fn_8003403C`, `fn_800340F4`, `fn_80034120`, `fn_8003414C`) |
+| `extab` / `extabindex` | `0x80005BC8-0x80005D98` / `0x8000750C-0x800077C4` | the entries of every function in the range (the small leaf functions have none) |
+| `.rodata` | `0x800E6778-0x800E68A8` | unowned: eleven float vectors and the `"...particle err."` string |
+| `.data` | `0x800F7840-0x800F78E0` | unowned (`lbl_800F7840`, `7860`, `787C`, `78C0`) |
+| `.sdata` | `0x803CB7F8-0x803CB810` | unowned (six 4-byte constants read by `fn_800328E0`, `fn_80030720`, `fn_800317C4`, `fn_8002FDB8`, `fn_8002C56C`, `fn_8002BC84`) |
+| `.sbss` | `0x803CBC70-0x803CBC90` | unowned (`lbl_803CBC70-lbl_803CBC84`) |
+| `.sdata2` | `0x803CC5F0-0x803CC6E8` | unowned (50 literals) |
+
+Evidence:
+
+- **One `.sdata2` pool, no duplicates.** `0x803CC5F0-0x803CC6E8` is read by
+  functions from `maybeTexOrSpriteRelated` to `minigamesSetSomePointers2`
+  and holds each value once (`0.5f` at `0x803CC5F0`, `0.0f` at `0x803CC5F4`,
+  the two magic doubles, ..., `pi`, `1025.0`). The pool before it
+  (`0x803CC5D8-0x803CC5F0`, `fn_80026134`) already holds `0.0f` and `0.5f`, and
+  the one after it (`0x803CC6E8`, `allocateGraphicsSlot`) starts with `0.0f`
+  again, so a boundary lies on each side and none inside.
+- **`.rodata` runs in reverse function order.** `lbl_800E6778` is read by
+  `fn_800332B8`, `lbl_800E6784` by `fn_800328E0`, ... `lbl_800E685C` by
+  `fn_80026E58` and the string at `0x800E688C` by
+  `maybeTexOrSpriteRelated` (first function of the unit) and its later users
+  `fn_8002B014`, `fn_80031034` and `fn_80031F34`; each function's vector was
+  emitted when the function was compiled and the objects are laid out last to
+  first, which only one unit produces. The range ends with the 8-alignment pad
+  after the 0x15-byte string.
+- **`.sbss 0x803CBC70-0x803CBC90`** (`lbl_803CBC74`, `lbl_803CBC80`,
+  `lbl_803CBC84` are read by dozens of functions across the range, including
+  four of the six former units, `lbl_803CBC78`/`7C` by the three minigame helpers).
+- **`.data` and `.sdata`** objects are read by gap functions of this range
+  only (`lbl_800F7860` by `maybeTexOrSpriteRelated` and five gap functions,
+  `lbl_800F787C` by `fn_80032064/284/4EC`, `lbl_800F7840` by
+  `minigamesGXStuff`).
+
+The unit is compiled with `-cpp_exceptions on`: `setParticleXform` (the only
+function with C beyond stubs, 100%) needed it, and a unit has one flag set. 58 of the
+69 functions have an `extabindex` entry, the others are small and sit between
+functions that do. All six former units were
+`NonMatching`; `setParticleXform` stays 100%, nothing else changed. The 21 files
+that include the old headers now include `Unknown/particle_effects.h`.
+Linked DOL units 260 -> 260 (the merged unit is `NonMatching`, like all of its parts).
+
+### `Unknown/graphic.c` (`0x800A7C08-0x800A84C4`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800A7C08-0x800A84C4` | `File_0x800a7c08` (`someGFXRenderingFn`), gap `fn_800A7D4C`, `fn_800A7D7C`, `fn_800A7DB0`, `fn_800A7E00`, `fn_800A7F10`, `File_0x800a80e8` (`initRenderMode`) |
+| `extab` / `extabindex` | `0x80006698-0x800066C0` / `0x80008544-0x80008580` | the two units' entries plus the gap functions' |
+| `.rodata` | `0x800E77C8-0x800E7800` | unowned (`"graphic.c"` and the `"sNp_InitRenderMode: invalid TV format"` message) |
+| `.sdata` | `0x803CBAD0-0x803CBAD8` | unowned (read by `initRenderMode` only) |
+| `.sdata2` | `0x803CCED0-0x803CCEE0` | unowned |
+
+Evidence:
+
+- **The binary names the unit.** `lbl_800E77C8` is the string `"graphic.c"`,
+  read by `initRenderMode`, directly followed by its panic message.
+- **One `.sdata2` pool** (`0x803CCED0` the int-to-float magic double,
+  `0x803CCED8` `0.0f`, `0x803CCEDC` `1.0f`) is read by `someGFXRenderingFn`,
+  `fn_800A7E00`, `fn_800A7F10` and `initRenderMode`, so the unowned functions
+  between the two units belong to it. The pool ends 8-aligned where `mcard.c`'s
+  `"mcard.c"` string starts (`0x803CCEE0`).
+- **Not included:** `fn_800A7AD8` reads `0x803CCEC8` (its own `0.0f`, a different
+  pool, with `.data 0x8010F460`), so the unit starts at `someGFXRenderingFn`.
+  `fn_800A7BAC` (before) and `fn_800A84C4` (after) read only the shared `.bss`
+  object `0x803C7420` and carry no constants; they were left unowned.
+
+The unit is compiled with `-cpp_exceptions on` (what `File_0x800a7c08` used; the
+stub `initRenderMode` is flag-independent). Two `NonMatching` units became one; no
+score changed. Linked DOL units 260 -> 260.
+
+### `Unknown/dvdsys.c` (`0x800A6900-0x800A750C`, core only)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800A6900-0x800A750C` | `File_0x800a6900` (`manageFileReadingProcess`), gaps `fn_800A6C80`, `fn_800A6D10`, `fn_800A6E24`, `fn_800A6F94`, `File_0x800a70dc` (`ARAMTransfer`) |
+| `extab` / `extabindex` | `0x80006618-0x80006648` / `0x80008484-0x800084CC` | the two units' entries plus the gap functions' |
+| `.rodata` | `0x800E7730-0x800E77C8` | unowned (`lbl_800E7730`, 0x98 bytes) |
+
+Evidence:
+
+- **The binary names the unit.** `lbl_800E7730` is one string pool holding
+  `"Decode Error Retry : EntryNo%d %x Err:%d"`, `"dvdsys.c"` and the two Shift-JIS
+  ARAM address messages. Both `manageFileReadingProcess` and `ARAMTransfer`
+  read the pool, so one unit owns it.
+- **Shared `.bss`:** both functions and all four gap functions between them use
+  `lbl_803C6CF8` (0x708 bytes; unowned like the other big `.bss` objects).
+
+Not included (suggestive only): `File_0x800a7544`, `7568`, `75ec` and `7670`
+(`Matching`) also touch `lbl_803C6CF8`, but share no pool with the core, so
+they stay separate units, as does the one-function gap `fn_800A750C`. The merge
+costs no `Matching` unit. Compile flag `-cpp_exceptions on` was taken from the
+former units' extab (both have entries; both were stubs). Linked DOL units
+260 -> 260. The 19 files that include the old headers now include
+`Unknown/dvdsys.h`.
+
+### `Unknown/movie.c` (`0x800AD070-0x800B0724`)
+
+The widest range the evidence supports; `makeLookAtMatrix` (`File_0x800b0724`,
+`Matching`) starts the next unit and `File_0x800acf14` (`0x800ACF14-0x800AD070`,
+98%) the previous one, so no `Matching` unit is absorbed.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800AD070-0x800B0724` | `File_0x800adf60` (`YUV2RGB`), `File_0x800ae298` (`YUV2RGB_`), `File_0x800aeb18` (`MovStreamThread`), `File_0x800aed34` (`MovDecodeThread`) and 32 unowned functions (`fn_800AD070` ... `fn_800B05E4`) |
+| `extab` / `extabindex` | `0x80006808-0x800068E8` / `0x8000876C-0x800088BC` | entries of the functions that have one (28 of 36) |
+| `.rodata` | `0x800E7B50-0x800E7CB0` | unowned: the two `"YUV->RGB Conv ... Addr"` strings and the 0x118-byte `lbl_800E7B98` |
+| `.data` | `0x801101C0-0x801112F0` | unowned: `lbl_801101C0` (0x100), `lbl_801102C0` (0x1000), `lbl_801112C0`, `lbl_801112E0` |
+| `.sdata` | `0x803CBAD8-0x803CBB10` | unowned: nine small tables (`yuv2rgbConverters`, `lbl_803CBAD8`...`lbl_803CBB00`) |
+| `.sbss` | `0x803CC170-0x803CC1B0` | unowned: the movie state (`lbl_803CC170`...`lbl_803CC1AC`) |
+| `.sdata2` | `0x803CCEE8-0x803CCF08` | unowned: the YUV constants and the `"movie.c"` string |
+
+Evidence:
+
+- **The binary names the unit.** `"movie.c"` (`.sdata2 0x803CCF00`) is read by
+  `fn_800AE8B8`, `MovStreamThread` and `MovDecodeThread`, i.e. by gap and `Unknown` code
+  alike.
+- **One error-string pool.** The two YUV strings at `0x800E7B50`/`0x800E7B74`
+  are shared by `YUV2RGB`, `YUV2RGB_` and `MovStreamThread`; `lbl_800E7B98` is
+  read by `fn_800AE8B8` and `MovDecodeThread`. The three objects end exactly at
+  `sound.c`'s `.rodata` (`0x800E7CB0`) and start where `mcard.c`'s ends (`0x800E7B50`).
+- **`.data` in reverse code order**: `lbl_801112E0` (`fn_800AD070`), `lbl_801112C0`
+  (`fn_800ADD70`), `lbl_801102C0` (`YUV2RGB_`), `lbl_801101C0` (`fn_800AE5B8`),
+  contiguous from `mcard.c`'s last jump table to `sound.c`'s `.data` (`0x801112F0`).
+- **`.sbss 0x803CC170-0x803CC1B0`** is the shared movie state:
+  `lbl_803CC170` is read by `fn_800AD070`, `fn_800AD780`, `fn_800AD830`,
+  `MovDecodeThread`..., `lbl_803CC1AC` by `fn_800ADB04`, `fn_800AF9B4` and the last
+  gap functions up to `fn_800B05E4`. It starts where `mcard.c`'s ends and the
+  draw-list unit (`File_0x800b0a14`, `0x803CC1B0`) takes over.
+- **`.sdata` / `.sdata2` pools** are contiguous between the neighbours:
+  `.sdata` from `graphic.c`'s end (`0x803CBAD8`) to `sound.c` (`0x803CBB10`),
+  `.sdata2` from `mcard.c`'s `"mcard.c"` (`0x803CCEE0`) to `makeLookAtMatrix`'s pool.
+
+Compile flag `-cpp_exceptions on` was taken from the extab entries (the four
+former units were stubs). Linked DOL units 260 -> 260.
+
+### `Unknown/team_management_screens.c` (`0x80059458-0x80061B9C`)
+
+The team-management / batting-order / fielding-alignment screens. The name is a
+proposal (from `battingOrderProcessInputs`, `teamManagementGraphics_*` and
+`challengeTeamManagementRelated`); the binary carries no file name.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80059458-0x80061B9C` | `File_0x80059b38` (`starMissionRelated1`), `5a350` (`battingOrderProcessInputs`), `5af68` / `5bf40` (`teamManagementGraphics_fieldingAlignmentScreen` / `Info`), `5b298` / `5c2b0` (`..._battingOrderScreen` / `Info`), `5bb5c` (`challengeTeamManagementRelated`), `60184` (`teamManagementGraphics_steadyState`) and 13 unowned functions (`fn_80059458`, `fn_800596D4`, `fn_8005B760`, `fn_8005C5C4` ... `fn_8005FCA0`) |
+| `extab` / `extabindex` | `0x800062D8-0x80006380` / `0x80007FA4-0x800080A0` | all 21 functions have an entry |
+| `.data` | `0x80108AA8-0x80108B18` | unowned: `jumptable_80108AA8` (0x34) and `jumptable_80108ADC` (0x3C) |
+
+Evidence:
+
+- **Two jump tables, one unit.** `jumptable_80108AA8` (0x34 bytes) is read by the
+  unowned `fn_80059458`; the very next object, `jumptable_80108ADC`, starts at the
+  non-8-aligned `0x80108ADC` and is read by `teamManagementGraphics_steadyState`
+  (`File_0x80060184`). Objects only start 4-aligned inside a unit, never at a
+  unit's first `.data` byte (MWCC 8-aligns every unit's `.data`), so both
+  functions lie in one unit and so does everything between them: the seven
+  `Unknown/` units `59b38`-`5c2b0` and the gap functions around them. The
+  table run ends where `lbl_80108B18` (`playPlayerSelectedSound`, `Matching`
+  `File_0x800628d4`) begins.
+- **Not in the unit:** the `.text` before `fn_80059458` (`fn_80058644`,
+  `fn_80058B20`, `fn_80058E0C`) and `File_0x80057c08` (`Matching`) have no
+  evidence tying them in, and `File_0x80061b9c` (`0x80061B9C`, next) starts the
+  following unit.
+
+The task description gave the range as ending at `0x80060184`; since
+`jumptable_80108ADC` belongs to `File_0x80060184`, that whole function
+(`0x1A18` bytes) is part of the unit and the end is `0x80061B9C`. No `Matching`
+unit is absorbed; all eight former units were `NonMatching` stubs. The unit
+uses `-cpp_exceptions on` (all 21 functions have extab entries). Linked DOL
+units 260 -> 260.
+
+### The text engine is one unit: `text/text.c` (`0x8000F150-0x80010F2C`)
+
+`File_0x8000f48c`, `text_channel`, `text_width`, `text_block`, `text_alloc`,
+`sprite_draw` and `text_draw` were cut as separate units, each starting at its
+first named function; the five unowned functions in front of them (`fn_8000F150`,
+`fn_8000F3E8`, `fn_8000F4B8`, `fn_8000F534`, `fn_8000F8F4`) have no `.data`
+of their own to go by. The linker evidence says they are one translation unit
+(`text_draw_conditional` and `text_init` are not part of it, see below).
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8000F150-0x80010F2C` | the seven units and the five gap functions |
+| `extab` / `extabindex` | `0x800056D8-0x80005720` / `0x80006DA4-0x80006E10` | the entries of the units plus the gap functions' |
+| `.data` | `0x800EE6A0-0x800EE800` | `text_draw.c` had `0x800EE6D4-0x800EE800`; `jumptable_800EE6A0` (0x34 bytes, `fn_8000F3E8`) was unowned |
+| `.sdata` | `0x803CB760-0x803CB790` | unowned (`lbl_803CB760`, `lbl_803CB780`/`784`/`788`, read by `fn_8000F3E8` and `fn_8000F150` only) |
+| `.sbss` | `0x803CBBE8-0x803CBBF0` | unowned (`lbl_803CBBE8`) |
+| `.sdata2` | `0x803CC490-0x803CC4B8` | unowned (seven literals) |
+
+Evidence:
+
+- **One `.sdata2` pool.** `fn_8000F150` reads `0x803CC490-0x803CC4A0` (`0.0f`,
+  the constants `448.0f`, `640.0f`, `2.0f`, and the int-to-float magic double at
+  `0x803CC4A0`) and `drawTransformedSprite` reads `0x803CC490` (`0.0f`),
+  `0x803CC4A0` (the same double), `0x803CC4A8` (`1.0f`) and `0x803CC4B0` (the
+  unsigned magic double). Each value appears once, so the gap function and the
+  sprite function were compiled in the same unit. The pool ends at
+  `0x803CC4B8`, where the next pool starts with `0.0f` again (`fn_800116DC`), and
+  begins after a pool (`0x803CC458-0x803CC490`, `updateHUDRelatedUI` and its
+  neighbours) that already holds `0.0f` (`0x803CC47C`): a boundary on each side.
+- **Jump tables.** `jumptable_800EE6A0` (`fn_8000F3E8`) is directly followed by
+  `jumptable_800EE6D4` (`DrawText`). The second starts at a 4-aligned, non-8-aligned
+  address, which no unit's first `.data` byte can be, so the old `text_draw.c`
+  `.data` start was impossible: `fn_8000F3E8` and `DrawText` are one unit and
+  so is everything in between.
+- **`.sbss`.** `lbl_803CBBE8` (the texture-header pointer) is written by
+  `somethingSetTexturePointer` and read by `fn_8000F150`.
+
+Left out on purpose: `text_draw_conditional` (`DrawTextOnCondition`) and
+`text_init` (`initTextRendering`) are `Matching`, share no pool with the engine and
+only touch `screenTextArray`; `fn_80011000`/`fn_80011140` next to them likewise.
+
+Cost: `File_0x8000f48c`, `text_channel`, `text_block` and `text_alloc` were
+`Matching`, so linked DOL units 260 -> 256 (the merged unit is `NonMatching`: `calculateTextBlockWidth`
+93.3%, `drawTransformedSprite` 99.4%, `DrawText` 88.2%, five gap functions have no C).
+Every function that had C keeps exactly its old score, including the nine at 100%.
+
+Source notes: sources are in address order (the unit's literal pool is in ascending order).
+The units differed in flags: `text_block.c` was built without `-cpp_exceptions on` and
+the other six with it; the merged unit uses `-cpp_exceptions on`, and the six
+`text_block` functions, which are frameless leaves, still compile to the same bytes (no
+extab entries, 100%). `text_width.c` and `text_draw.c` declared `lbl_800E8F60` with different types
+(`u8[][4]` and `FontMetricsTables`); the merged file uses the struct, and
+`calculateTextBlockWidth` reads `lbl_800E8F60.altWidths[(u16)glyph][style]`, which
+generates the same code. `somethingSetTexturePointer` no longer includes
+`C3/skinning/SKNAsm.h`, which redeclared `LCStoreBlocks` against `OSCache.h` in the merged
+translation unit and was not needed. The seven headers became `include/text/text.h`
+(37 files include it).

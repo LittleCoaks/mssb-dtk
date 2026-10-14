@@ -6,7 +6,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x80052694.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x80035ca4.h"
 #include "Unknown/File_0x800acf14.h"
 #include "C3/geoPalette/DisplayObject.h"
@@ -25,7 +25,7 @@
 #include "C3/skinning/SKNAsm.h"
 #include "Unknown/File_0x800c0770.h"
 #include "Unknown/File_0x8003a688.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 struct {
     void* fanObject;

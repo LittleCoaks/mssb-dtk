@@ -52,7 +52,7 @@ f32 computeAdjustedFielderOrientation(int fielderIndex) {
     f32 angle = radianAngleReduction(-fielder->desiredMovementDirection - lbl_3_rodata_1030);
     s16 targetAngle;
     s16 currentAngle;
-    s16 difference;
+    int difference;
 
     if (fielder->wallActionFacingAngleInd != FALSE) {
         return angle;
@@ -60,7 +60,7 @@ f32 computeAdjustedFielderOrientation(int fielderIndex) {
 
     targetAngle = radToShortAngle(angle);
     currentAngle = radToShortAngle(anim->orientation);
-    difference = (s16)angleDifferenceNormalized(currentAngle, targetAngle);
+    difference = angleDifferenceNormalized(currentAngle, targetAngle);
     if (difference > SANG_ANG_180) {
         difference -= SANG_MAX_ANGLE;
     } else if (difference <= -SANG_ANG_180) {

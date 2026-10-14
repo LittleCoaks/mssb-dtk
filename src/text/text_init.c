@@ -1,5 +1,5 @@
 #include "text/text_init.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 // Glyph remap table, filled at init from bank 0's string 7.
 extern u16 glyphRemapTable[];

@@ -145,7 +145,6 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | `game_rel_entry.c` | `rep_0` | 0 (0) | — | REL `_prolog`/`_epilog`; a leftover debug mode/stadium picker (`fn_3_258`, whose data still lists Japanese NPB stadium names) and the roster ARAM load (`maybeProcessTeamData`). | med |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
 | `match_flow.c` | `auto_00_0005985C` | 47 (37) | 24,804 | The match state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, end-of-game and challenge-mode flow. | high |
-| `match_flow_data.c` | `auto_00_0005985C (.data)` | 0 (0) | 0 | Initialised data for `match_flow.c` (challenge coin tables, `CommonUIFiles_matchEnd`, star power costs). Separate unit because the target references each object by symbol. | inferred |
 | `match_loading.c` | `auto_00_0005985C` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
 | `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (14) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
 | `match_transitions.c` | gap `0x6B4C8` | 6 (5) | 2,524 | Transition loaders used by `match_flow`/`versus_screens` (`loadMVPMaybe`, `loadRunnerActors`, `championshipScreenGraphics`) and `animateShadows_nonBall`. | med |
@@ -292,7 +291,7 @@ not a shared gameplay purpose.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `data_1880.c` | — | 0 (0) | — | Shared AI probability tables, `AnimSetupEntry` table, home-run camera scene IDs and `vsSituations`. | inferred |
-| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants. | inferred |
+| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). | inferred |
 | `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
 | `data_8D88.c` | — | 0 (0) | — | Menu, character-select and HUD icon/descriptor tables. | inferred |
 | `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
@@ -572,24 +571,20 @@ in the wrong folder. The split config assigns every one of those units to the
 the `game` and `menus` symbol tables, but the file itself is not in any splits file
 or in `configure.py`.
 
-## src/text — the DOL text engine (8 files, 13 fns, 13 named)
+## src/text — the DOL text engine (3 files, 17 fns incl. 5 without C)
 
 The pool of 30 `ScreenText` blocks at `0x80366B18` and everything that fills,
-measures, draws and frees them (main.dol `.text` 0x8000F988-0x80011000).
+measures, draws and frees them (main.dol `.text` 0x8000F150-0x80011000).
 Identified from the Ghidra-named functions, the shared `screenTextArray`
-accesses, and Rio's live-RE documentation of the engine; five units are
-fully matched and all five link from source.
+accesses, and Rio's live-RE documentation of the engine. `text.c` is one
+translation unit (see `docs/splits.md`, "The text engine is one unit"); 9 of its
+17 functions are fully matched, 5 have no C yet.
 
-| file | was | fns (named) | bytes | purpose | conf |
+| file | was | fns | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `text_channel.c` | `File_0x8000f988.c` | 1 (1) | 276 | `text_initializeNewChannel` — claims a block for a graphics object's glyph string; its header defines the engine's core types (`ScreenText`, `ScreenTextPool`, `TextChannel`, `TextBank`). Matched 100%. | high |
-| `text_width.c` | `File_0x8000fa9c.c` | 1 (1) | 696 | `calculateTextBlockWidth` — glyph-string width measurement. | high |
-| `text_block.c` | `File_0x8000fd54.c` | 6 (6) | 432 | Per-block field setters: substring indices (control codes 0x4019-0x401C / 0x4023-0x4026), inserted values (control codes 0x400F-0x4012), bank string pointer, max-letters/typewriter state; free one (`text_freeBlock`) or all 30 (`text_freeAllBlocks`) blocks. Matched 100%. | high |
-| `text_alloc.c` | `File_0x8000ff04.c` | 1 (1) | 416 | `initializeTextParameters` — scans the pool for a free block, claims and initializes it. Matched 100%. | high |
-| `sprite_draw.c` | `File_0x800100a4.c` | 1 (1) | 1012 | `drawTransformedSprite` — textured quad rendering used by the glyph draw pass. | high |
-| `text_draw.c` | `File_0x80010498.c` | 1 (1) | 2708 | `DrawText` — renders one block's glyph string (control codes, palette recolor, typewriter effect). | high |
-| `text_draw_conditional.c` | `File_0x80010f2c.c` | 1 (1) | 116 | `DrawTextOnCondition` — gating wrapper around the draw pass. | high |
-| `text_init.c` | `File_0x80010fa0.c` | 1 (1) | 96 | `initTextRendering`. | high |
+| `text.c` | `File_0x8000f48c.c`, `text_channel.c`, `text_width.c`, `text_block.c`, `text_alloc.c`, `sprite_draw.c`, `text_draw.c` and five unowned functions | 17 | 7644 | `somethingSetTexturePointer`, `text_initializeNewChannel` (claims a block for a graphics object's glyph string; the header defines the engine's core types `ScreenText`, `ScreenTextPool`, `TextChannel`, `TextBank`), `calculateTextBlockWidth`, the per-block setters (`text_setSubstringIndices`, `text_setInsertedValues`, `practiceTextRelated`, `text_setPtrToWhereCharsAreStored`, `text_freeAllBlocks`, `text_freeBlock`), `initializeTextParameters`, `drawTransformedSprite` and `DrawText`. | high |
+| `text_draw_conditional.c` | `File_0x80010f2c.c` | 1 | 116 | `DrawTextOnCondition` — gating wrapper around the draw pass. | high |
+| `text_init.c` | `File_0x80010fa0.c` | 1 | 96 | `initTextRendering`. | high |
 
 ## Outside `src/game`
 
@@ -608,7 +603,7 @@ fully matched and all five link from source.
 | `src/Unknown/sprt.c` | 1 | the sprite renderer (`AllocateSprite`, `DrawSprite` and its wrappers `DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode`, plus 11 functions without C; main.dol `.text` `0x800B0D28-0x800B2AC8`, `NonMatching`); named by its own `OSPanic` file string. |
 | `src/Unknown/File_0x800bde8c.c` | 1 | the shadow-map pass (`setVectors`, `DrawShadows`/`GetDrawShadows`/`ShouldDrawShadows`, `loadTlutRelated` and eight functions without C; main.dol `.text` `0x800BDE8C-0x800BF074`, `NonMatching`); address-named because the binary gives no file name. |
 | `src/Unknown/sound.c` | 1 | the game's MusyX wrapper (`initSound`, `soundQuit`, `SndAlloc`, `SndFree`; main.dol `.text` `0x800B07FC-0x800B0A14`, `Matching`, `-inline deferred`); named by its own `OSPanic` file string. |
-| `src/Unknown` | 270 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
+| `src/Unknown` | 249 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---

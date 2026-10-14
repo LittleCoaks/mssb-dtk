@@ -1,8 +1,9 @@
+#define SQRT2_LINKAGE static
 #include "game/hud/hud_gauges.h"
 #include "header_rep_data.h"
 #include "game/hud/hud_scoreboard.h"
 #include "game/UnknownHomes_Game.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
@@ -38,11 +39,6 @@ extern u16 lbl_3_data_D22C[];
 extern u16 starGuageIconIDs[];
 extern u8 lbl_3_data_D250[];
 
-extern const f32 lbl_3_rodata_17C0;
-extern const f32 lbl_3_rodata_17C4;
-extern const f32 lbl_3_rodata_17C8;
-extern const f32 lbl_3_rodata_17CC;
-extern const f32 lbl_3_rodata_17D8;
 
 extern void fn_3_972A0(DrawingSceneStruct* node, int slot, int handle, int digit);
 
@@ -95,222 +91,376 @@ typedef struct StarGaugeScene {
     /*0x20*/ u16 unk20;
 } StarGaugeScene;
 
-// .text:0x000993A8 size:0x3C4 mapped:0x806D843C
-void fn_3_993A8(void) {
-    HudGaugeScene* scene = (HudGaugeScene*)currentDrawingItem;
-    UIRecord* rec;
-    int frame = 0;
-
-    if (animRelated[0x96] == 0 && animRelated[0xA7] != 0) {
-        if (g_Batter.chargeStatus != CHARGE_SWING_STAGE_NONE) {
-            if (g_Batter.chargeUp < lbl_3_rodata_17C0) {
-                HUD_RECORD(scene, 2)->elementIndex = 0x49;
-                frame = lbl_3_rodata_17C4 * g_Batter.chargeUp;
-            } else {
-                HUD_RECORD(scene, 2)->elementIndex = 0x48;
-                frame = (int)(lbl_3_rodata_17C8 * g_Batter.chargeDown) + 75;
-            }
-            if (g_Batter.chargeDown >= lbl_3_rodata_17C0) {
-                HUD_RECORD(scene, 3)->frame = 106 << 16;
-                rec = HUD_RECORD(scene, 2);
-                if ((rec->frame >> 16) < 106) {
-                    rec->frame = 106 << 16;
-                } else {
-                    rec->playMode = UI_PLAY_FORWARD;
-                }
-                frame = 106;
-            } else {
-                HUD_RECORD(scene, 3)->frame = frame << 16;
-                HUD_RECORD(scene, 2)->frame = 0;
-                HUD_RECORD(scene, 2)->playMode = UI_PLAY_STOP;
-            }
-        } else {
-            HUD_RECORD(scene, 3)->frame = 0;
-            HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
-            HUD_RECORD(scene, 2)->frame = 0;
+// .text:0x0009C578 size:0x21C mapped:0x806DB60C
+void matchHudDrawingControl(void) {
+    if (g_GameLogic.hudElementLoadingInd != 0 && animRelated[0xA5] == 0) {
+        animRelated[0xA5] = 1;
+        animRelated[0xA6] = 0;
+        animRelated[0xA7] = 0xFF;
+        insertGraphicDrawingFunction(init_BallStrikeOutHud, 2);
+        insertGraphicDrawingFunction(draw_ScoreInningHud, 2);
+        if (animRelated[0xA8] == 0) {
+            insertGraphicDrawingFunction(draw_initStarGuageHud, 2);
         }
-
-        if (g_Batter.chargeStatus != CHARGE_SWING_STAGE_NONE) {
-            HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
-            if (g_Batter.swingInd != 0 && g_Batter.chargeDown >= lbl_3_rodata_17C0) {
-                rec = HUD_RECORD(scene, 5);
-                if ((rec->frame >> 16) < 106) {
-                    rec->frame = 106 << 16;
-                } else {
-                    rec->playMode = UI_PLAY_FORWARD;
-                }
-            } else {
-                HUD_RECORD(scene, 5)->frame = (frame + 10) << 16;
-            }
+        if (g_Batter.chemLinksOnBase != 0) {
+            insertGraphicDrawingFunction(draw_OnBaseChemLinks, 2);
+        }
+    }
+    if (animRelated[0xAC] == 1 && g_GameLogic.FrameCountOfCurrentPitch == 10) {
+        insertGraphicDrawingFunction(HUD_initStarChance, 2);
+        animRelated[0xAC] = 2;
+    }
+    if (animRelated[0xA5] != 0 && animRelated[0xA6] < 0xFF) {
+        if (animRelated[0xA6] < 0xF0) {
+            animRelated[0xA6] += 0x10;
         } else {
-            if ((HUD_RECORD(scene, 5)->frame >> 16) < 10) {
-                HUD_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
-            } else {
-                HUD_RECORD(scene, 5)->frame = 10 << 16;
-                HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
+            animRelated[0xA6] = 0xFF;
+        }
+    }
+    if (animRelated[0xA7] != 0 && animRelated[0xA7] < 0xFF) {
+        if (animRelated[0xA7] <= 0x10) {
+            animRelated[0xA7] = 0;
+            animRelated[0xA5] = 0;
+        } else {
+            animRelated[0xA7] -= 0x10;
+        }
+    } else if (animRelated[0xA5] != 0) {
+        if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_DEFAULT) {
+            if (g_Batter.moonShotInd == 0 || g_Ball.framesSinceHit > 1) {
+                animRelated[0xA7] = 0xF0;
             }
         }
-
-        if (g_Batter.chargeStatus != CHARGE_SWING_STAGE_NONE && g_Batter.swingInd != 0) {
-            if (scene->unk1C == 0) {
-                HUD_RECORD(scene, 6)->flags |= UI_FLAG_VISIBLE;
-                HUD_RECORD(scene, 6)->frame = frame << 16;
-                HUD_RECORD(scene, 7)->frame = 0;
-                HUD_RECORD(scene, 7)->playMode = UI_PLAY_FORWARD;
-                scene->unk1C = 1;
-            }
-        } else {
-            HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
-            scene->unk1C = 0;
+        if (pauseControl._1D5 != 0) {
+            animRelated[0xA7] = 0xF0;
         }
-    } else {
-        removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
-        removeCurrentDrawingItem();
+    }
+    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION) {
+        animRelated[0xA7] = 0;
+        animRelated[0xA5] = 0;
     }
 }
 
-// .text:0x0009976C size:0xAC mapped:0x806D8800
-void fn_3_9976C(void) {
-    DrawingSceneStruct* node = currentDrawingItem;
+// .text:0x0009C28C size:0x2EC mapped:0x806DB320
+void init_BallStrikeOutHud(void) {
+    BallStrikeOutScene* scene = (BallStrikeOutScene*)currentDrawingItem;
+    int i;
 
-    addGraphicsElementToScene(node, lbl_3_data_D378);
-    if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 0;
-    } else {
-        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 1 << 16;
-    }
-    ((HudGaugeScene*)node)->unk1C = 0;
-    currentDrawingItem->func = fn_3_993A8;
-}
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_C22C);
+    scene->unk22 = 0;
 
-// .text:0x00099818 size:0x3C4 mapped:0x806D88AC
-void wallBallAnimationRelated(void) {
-    HudGaugeScene* scene = (HudGaugeScene*)currentDrawingItem;
-    UIRecord* rec;
-    int frame = 0;
-    f32 ratio;
-
-    if (animRelated[0x96] != 0) {
-        goto remove;
-    }
-    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
-        if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_POSTGAME) {
-            goto remove;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        scene->unk22 = 1;
+        for (i = 0; i < 8; i++) {
+            HUD_RECORD(scene, i)->pos.y = -30.0f;
         }
-        if (g_Minigame.pauseInd != 0 && (pauseControl.state == 7 || pauseControl.state == 0xd)) {
-            goto remove;
-        }
-    } else if (animRelated[0xA7] == 0) {
-        goto remove;
-    }
-
-    if (g_Pitcher.ChargePitchType != 0) {
-        ratio = (f32)g_Pitcher.unknownFrameCounter / (f32)(g_Pitcher.pitchWindUpCountDown - lbl_3_data_5F3C[2]);
-        if (ratio >= 1.0f) {
-            ratio = 1.0f;
-        }
-        HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
-        frame = lbl_3_rodata_17CC * ratio;
-        if (g_Pitcher.ChargePitchType == 3) {
-            HUD_RECORD(scene, 3)->frame = 106 << 16;
-            rec = HUD_RECORD(scene, 2);
-            if ((int)(rec->frame >> 16) < 106) {
-                rec->frame = 106 << 16;
-            } else {
-                rec->playMode = UI_PLAY_FORWARD;
-            }
-            frame = 106;
-        } else if (g_Pitcher.overChargeInd != 0) {
-            frame = lbl_3_rodata_17CC * g_Pitcher.pitchChargeUp;
-            HUD_RECORD(scene, 3)->frame = frame << 16;
-        } else {
-            HUD_RECORD(scene, 3)->frame = frame << 16;
-        }
-    } else {
-        HUD_RECORD(scene, 3)->frame = 0;
-        HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
-        HUD_RECORD(scene, 2)->frame = 0;
-    }
-
-    if (g_Pitcher.ChargePitchType != 0) {
-        HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
-        if (g_Pitcher.ChargePitchType == 3) {
-            HUD_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
-        } else {
-            HUD_RECORD(scene, 5)->frame = (frame + 10) << 16;
-        }
-    } else {
-        if ((HUD_RECORD(scene, 5)->frame >> 16) < 10) {
-            HUD_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
-        } else {
-            HUD_RECORD(scene, 5)->frame = 10 << 16;
-            HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
+    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+        if (g_Practice.practiceLevel != 7 && g_Practice.practiceLevel != 6) {
+            scene->unk22 = 1;
         }
     }
 
-    if (g_Pitcher.ChargePitchType >= 2) {
-        if (scene->unk1C == 0) {
-            HUD_RECORD(scene, 6)->flags |= UI_FLAG_VISIBLE;
-            HUD_RECORD(scene, 6)->frame = frame << 16;
-            HUD_RECORD(scene, 7)->frame = 0;
-            HUD_RECORD(scene, 7)->playMode = UI_PLAY_FORWARD;
-            scene->unk1C = 1;
+    if (scene->unk22 != 0) {
+        for (i = 1; i < 6; i++) {
+            HUD_RECORD(scene, i)->elementIndex = 0x104;
         }
-    } else {
+        HUD_RECORD(scene, 0)->elementIndex = 0x103;
         HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
-        scene->unk1C = 0;
+        HUD_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
     }
-    return;
 
-remove:
-    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
-    removeCurrentDrawingItem();
+    scene->shownOuts = 9;
+    scene->shownBalls = 9;
+    scene->shownStrikes = 9;
+
+    for (i = 1; i < 8; i++) {
+        HUD_RECORD(scene, i)->frame = (i - 1) << 16;
+    }
+
+    maybe_updateBallStrikeOutUI((DrawingSceneStruct*)scene);
+    scene->frameCount = 0;
+    currentDrawingItem->func = update_BallStrikeOutHud;
 }
 
-// .text:0x00099BDC size:0xAC mapped:0x806D8C70
-void fn_3_99BDC(void) {
-    DrawingSceneStruct* node = currentDrawingItem;
+// .text:0x0009C014 size:0x278 mapped:0x806DB0A8
+void update_BallStrikeOutHud(void) {
+    BallStrikeOutScene* scene = (BallStrikeOutScene*)currentDrawingItem;
+    int i;
 
-    addGraphicsElementToScene(node, lbl_3_data_D258);
-    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
-        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 3 << 16;
-    } else {
-        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 2 << 16;
-    }
-    ((HudGaugeScene*)node)->unk1C = 0;
-    currentDrawingItem->func = wallBallAnimationRelated;
-}
-
-// .text:0x00099C88 size:0x74 mapped:0x806D8D1C
-void fn_3_99C88(void) {
-    HudGaugeScene* scene = (HudGaugeScene*)currentDrawingItem;
-
-    if (animRelated[0x96] == 0 && animRelated[0xA7] != 0) {
-        HUD_RECORD(scene, 0)->rgba = (HUD_RECORD(scene, 0)->rgba & ~0xFF) | animRelated[0xA7];
-    } else {
+    if (animRelated[0x96] != 0 || animRelated[0xA7] == 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
+        return;
+    }
+
+    scene->frameCount++;
+    maybe_updateBallStrikeOutUI((DrawingSceneStruct*)scene);
+
+    if (animRelated[0xA7] < 0xFF) {
+        for (i = 0; i < 8; i++) {
+            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA7];
+        }
+    } else {
+        for (i = 1; i < 8; i++) {
+            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA6];
+        }
     }
 }
 
-// .text:0x00099CFC size:0x114 mapped:0x806D8D90
-void draw_OnBaseChemLinks(void) {
-    DrawingSceneStruct* node = currentDrawingItem;
+// .text:0x0009BEE0 size:0x134 mapped:0x806DAF74
+void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node) {
+    int outs;
+    int i;
+    int state;
 
-    addGraphicsElementToScene(node, lbl_3_data_D4F8);
-    if (!(g_Batter.runnersOnBase & 1)) {
-        HUD_RECORD((HudGaugeScene*)node, 3)->flags &= ~UI_FLAG_VISIBLE;
+    outs = g_Strikes.outs;
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        outs = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;
     }
-    if (!(g_Batter.runnersOnBase & 2)) {
-        HUD_RECORD((HudGaugeScene*)node, 2)->flags &= ~UI_FLAG_VISIBLE;
+
+    for (i = 0; i < 7; i++) {
+        state = 3;
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && i >= 5) {
+            break;
+        }
+        if (i < 2) {
+            if (((BallStrikeOutScene*)node)->shownStrikes == g_Strikes.strikes) {
+                continue;
+            }
+            if (g_Strikes.strikes >= i + 1) {
+                state = 0;
+            }
+        } else if (i < 5) {
+            if (((BallStrikeOutScene*)node)->shownBalls == g_Strikes.balls) {
+                continue;
+            }
+            if (g_Strikes.balls >= i - 1) {
+                state = 1;
+            }
+        } else {
+            if (((BallStrikeOutScene*)node)->shownOuts == outs) {
+                continue;
+            }
+            if (outs >= i - 4) {
+                state = 2;
+            }
+        }
+        setIndicatorSlotState(node, i + 1, i + 1, 0x107, state);
     }
-    if (!(g_Batter.runnersOnBase & 4)) {
-        HUD_RECORD((HudGaugeScene*)node, 1)->flags &= ~UI_FLAG_VISIBLE;
+
+    ((BallStrikeOutScene*)node)->shownStrikes = g_Strikes.strikes;
+    ((BallStrikeOutScene*)node)->shownBalls = g_Strikes.balls;
+    ((BallStrikeOutScene*)node)->shownOuts = outs;
+}
+
+// .text:0x0009B7F4 size:0x6EC mapped:0x806DA888
+void draw_ScoreInningHud(void) {
+    ScoreHudScene* scene = (ScoreHudScene*)currentDrawingItem;
+
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_C34C);
+    HUD_RECORD(scene, 5)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[0].captain][1];
+    HUD_RECORD(scene, 6)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[1].captain][1];
+    HUD_RECORD(scene, 5)->frame = g_GameLogic.logo[0].variationID << 16;
+    HUD_RECORD(scene, 6)->frame = g_GameLogic.logo[1].variationID << 16;
+
+    if (g_Scores.halfInning != 0) {
+        HUD_RECORD(scene, 1)->elementIndex = 0x11B;
+        HUD_RECORD(scene, 2)->elementIndex = 0x119;
+        HUD_RECORD(scene, 3)->elementIndex = 0x116;
     }
-    if (g_Pitcher.nPitchesThisAB == 0 && g_Pitcher.nPickoffAttempts == 0) {
-        playSoundEffect(0x1ab);
+
+    setIndicatorSlotState((DrawingSceneStruct*)scene, 3, 1, 0x110, lbl_3_data_F4D0[g_Scores.Inning - 1]);
+    setIndicatorSlotState((DrawingSceneStruct*)scene, 3, 3, 0x110, lbl_3_data_F4D0[g_Scores.Inning - 1]);
+
+    if (g_Scores.Inning >= 10) {
+        HUD_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 8)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 9)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 9)->frame = 0;
+        HUD_RECORD(scene, 8)->frame = 1 << 16;
+        setIndicatorSlotState((DrawingSceneStruct*)scene, 9, 1, 0x112, g_Scores.Inning / 10);
+        setIndicatorSlotState((DrawingSceneStruct*)scene, 8, 2, 0x112, g_Scores.Inning % 10);
+        setIndicatorSlotState((DrawingSceneStruct*)scene, 9, 4, 0x112, g_Scores.Inning / 10);
+        setIndicatorSlotState((DrawingSceneStruct*)scene, 8, 5, 0x112, g_Scores.Inning % 10);
+    } else {
+        HUD_RECORD(scene, 7)->frame = 2 << 16;
+        setIndicatorSlotState((DrawingSceneStruct*)scene, 7, 3, 0x112, g_Scores.Inning);
+        setIndicatorSlotState((DrawingSceneStruct*)scene, 7, 6, 0x112, g_Scores.Inning);
     }
-    currentDrawingItem->func = fn_3_99C88;
+
+    if (g_Scores.scores[0].total >= 10) {
+        HUD_RECORD(scene, 10)->flags &= ~UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 11)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 12)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 12)->frame = 2 << 16;
+        HUD_RECORD(scene, 11)->frame = 3 << 16;
+    } else {
+        HUD_RECORD(scene, 10)->frame = 0;
+    }
+
+    if (g_Scores.scores[1].total >= 10) {
+        HUD_RECORD(scene, 13)->flags &= ~UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 14)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 15)->flags |= UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 15)->frame = 4 << 16;
+        HUD_RECORD(scene, 14)->frame = 5 << 16;
+    } else {
+        HUD_RECORD(scene, 13)->frame = 1 << 16;
+    }
+
+    fn_3_9B108((DrawingSceneStruct*)scene);
+
+    scene->shownScores[0] = g_Scores.scores[0].total;
+    scene->shownScores[1] = g_Scores.scores[1].total;
+    scene->frameCount = 0;
+    currentDrawingItem->func = fn_3_9B320;
+}
+
+// .text:0x0009B320 size:0x4D4 mapped:0x806DA3B4
+void fn_3_9B320(void) {
+    ScoreHudScene* scene = (ScoreHudScene*)currentDrawingItem;
+    s32 i;
+
+    scene->frameCount++;
+    if (animRelated[0x96] != 0 || animRelated[0xA7] == 0) {
+        removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+        removeCurrentDrawingItem();
+        return;
+    }
+
+    if (scene->shownScores[0] != g_Scores.scores[0].total || scene->shownScores[1] != g_Scores.scores[1].total) {
+        fn_3_9B108((DrawingSceneStruct*)scene);
+    }
+
+    if (animRelated[0xA7] < 0xFF) {
+        for (i = 0; i < 16; i++) {
+            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA7];
+        }
+    } else {
+        for (i = 4; i <= 15; i++) {
+            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA6];
+        }
+    }
+}
+
+// .text:0x0009B108 size:0x218 mapped:0x806DA19C
+void fn_3_9B108(DrawingSceneStruct* node) {
+    if (g_Scores.scores[0].total >= 10) {
+        fn_3_972A0(node, 11, 4, g_Scores.scores[0].total % 10);
+        fn_3_972A0(node, 12, 3, g_Scores.scores[0].total / 10);
+        fn_3_972A0(node, 11, 10, g_Scores.scores[0].total % 10);
+        fn_3_972A0(node, 12, 9, g_Scores.scores[0].total / 10);
+    } else {
+        fn_3_972A0(node, 10, 1, g_Scores.scores[0].total);
+        fn_3_972A0(node, 10, 7, g_Scores.scores[0].total);
+    }
+
+    if (g_Scores.scores[1].total >= 10) {
+        fn_3_972A0(node, 14, 6, g_Scores.scores[1].total % 10);
+        fn_3_972A0(node, 15, 5, g_Scores.scores[1].total / 10);
+        fn_3_972A0(node, 14, 12, g_Scores.scores[1].total % 10);
+        fn_3_972A0(node, 15, 11, g_Scores.scores[1].total / 10);
+    } else {
+        fn_3_972A0(node, 13, 2, g_Scores.scores[1].total);
+        fn_3_972A0(node, 13, 8, g_Scores.scores[1].total);
+    }
+}
+
+// .text:0x0009A8A4 size:0x864 mapped:0x806D9938
+void draw_initStarGuageHud(void) {
+    StarGaugeScene* scene = (StarGaugeScene*)currentDrawingItem;
+    int next;
+    s32 i;
+
+    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_C56C[g_Batter.batterHand]);
+    HUD_RECORD(scene, 9)->frame = inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CharID << 16;
+    HUD_RECORD(scene, 10)->frame = inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CharID << 16;
+
+    next = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] + 1;
+    if (next > 9) {
+        next = 1;
+    }
+    next = g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0];
+    HUD_RECORD(scene, 6)->frame = inMemRoster[g_GameLogic.teamBatting][next].stats.CharID << 16;
+
+    load_Icon(scene, 13, 1, 0x2A, lbl_3_data_D22C[inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CharacterClass]);
+    load_Icon(scene, 14, 1, 0x2A, lbl_3_data_D22C[inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CharacterClass]);
+
+    if (g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] != 0) {
+        HUD_RECORD(scene, 15)->frame = (g_GameLogic.teams[g_GameLogic.teamFielding] + 4) << 16;
+    } else {
+        HUD_RECORD(scene, 15)->frame = g_GameLogic.teams[g_GameLogic.teamFielding] << 16;
+    }
+    if (g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] != 0) {
+        HUD_RECORD(scene, 16)->frame = (g_GameLogic.teams[g_GameLogic.teamBatting] + 4) << 16;
+    } else {
+        HUD_RECORD(scene, 16)->frame = g_GameLogic.teams[g_GameLogic.teamBatting] << 16;
+    }
+
+    for (i = 0; i < 5; i++) {
+        if (g_GameLogic.TeamStars[g_GameLogic.teamFielding] > i) {
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x22 + i].object)->frame = 3 << 16;
+        }
+        if (g_GameLogic.TeamStars[g_GameLogic.teamBatting] > i) {
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x27 + i].object)->frame = 3 << 16;
+        }
+    }
+
+    if (inningSetting.starSkillsSetting == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
+        load_Icon(scene, 3, 1, 0x22, starGuageIconIDs[0]);
+        load_Icon(scene, 4, 1, 0x22, starGuageIconIDs[0]);
+        HUD_RECORD(scene, 3)->rgba = (HUD_RECORD(scene, 3)->rgba & 0xFF) | 0xBEBEBE00;
+        HUD_RECORD(scene, 4)->rgba = (HUD_RECORD(scene, 4)->rgba & 0xFF) | 0xBEBEBE00;
+        for (i = 0x18; i <= 0x2B; i++) {
+            HUD_RECORD(scene, i)->flags &= ~UI_FLAG_VISIBLE;
+        }
+    } else {
+        load_Icon(scene, 3, 1, 0x22, starGuageIconIDs[inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CaptainStarHitPitch]);
+        load_Icon(scene, 4, 1, 0x22, starGuageIconIDs[inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CaptainStarHitPitch]);
+    }
+
+    if (g_GameLogic.IsStarChance != 0) {
+        HUD_RECORD(scene, 21)->flags &= ~UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 17)->flags &= ~UI_FLAG_VISIBLE;
+    } else {
+        HUD_RECORD(scene, 22)->flags &= ~UI_FLAG_VISIBLE;
+        if (g_Batter.chemLinksOnBase == 0) {
+            HUD_RECORD(scene, 17)->flags &= ~UI_FLAG_VISIBLE;
+        }
+        if (animRelated[0xAE] == 0 || animRelated[0xAF] != g_Pitcher.rosterID) {
+            HUD_RECORD(scene, 21)->flags &= ~UI_FLAG_VISIBLE;
+        }
+    }
+
+    HUD_RECORD(scene, 46)->frame = 30 << 16;
+    HUD_RECORD(scene, 47)->frame = 30 << 16;
+    if (g_d_GameSettings.exhibitionMatchInd == 0) {
+        if (g_Challenge.charIsSuperstar[g_Pitcher.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] == 0) {
+            HUD_RECORD(scene, 48)->flags |= UI_FLAG_VISIBLE;
+        }
+        if (g_Challenge.charIsSuperstar[g_Batter.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0) {
+            HUD_RECORD(scene, 49)->flags |= UI_FLAG_VISIBLE;
+        }
+    } else {
+        if (Static_Stats_Tables.charIsStarred[g_GameLogic.teamFielding][g_Pitcher.rosterID] != 0) {
+            HUD_RECORD(scene, 48)->flags |= UI_FLAG_VISIBLE;
+        }
+        if (Static_Stats_Tables.charIsStarred[g_GameLogic.teamBatting][g_Batter.rosterID] != 0) {
+            HUD_RECORD(scene, 49)->flags |= UI_FLAG_VISIBLE;
+        }
+    }
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel != 7) {
+        HUD_RECORD(scene, 20)->flags &= ~UI_FLAG_VISIBLE;
+        HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
+    }
+
+    scene->frameCount = 0;
+    scene->shownTeamStars[0] = g_GameLogic.TeamStars[0];
+    scene->shownTeamStars[1] = g_GameLogic.TeamStars[1];
+    scene->unk20 = 0;
+    animRelated[0xA8] = 1;
+    currentDrawingItem->func = draw_ongoingStarGuageHud;
 }
 
 // .text:0x00099E10 size:0xA94 mapped:0x806D8EA4
@@ -460,374 +610,221 @@ remove:
     animRelated[0xA8] = 0;
 }
 
-// .text:0x0009A8A4 size:0x864 mapped:0x806D9938
-void draw_initStarGuageHud(void) {
-    StarGaugeScene* scene = (StarGaugeScene*)currentDrawingItem;
-    int next;
-    s32 i;
+// .text:0x00099CFC size:0x114 mapped:0x806D8D90
+void draw_OnBaseChemLinks(void) {
+    DrawingSceneStruct* node = currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_C56C[g_Batter.batterHand]);
-    HUD_RECORD(scene, 9)->frame = inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CharID << 16;
-    HUD_RECORD(scene, 10)->frame = inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CharID << 16;
-
-    next = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] + 1;
-    if (next > 9) {
-        next = 1;
+    addGraphicsElementToScene(node, lbl_3_data_D4F8);
+    if (!(g_Batter.runnersOnBase & 1)) {
+        HUD_RECORD((HudGaugeScene*)node, 3)->flags &= ~UI_FLAG_VISIBLE;
     }
-    HUD_RECORD(scene, 6)->frame = inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0]].stats.CharID << 16;
-
-    load_Icon(scene, 13, 1, 0x2A, lbl_3_data_D22C[inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CharacterClass]);
-    load_Icon(scene, 14, 1, 0x2A, lbl_3_data_D22C[inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CharacterClass]);
-
-    if (g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] != 0) {
-        HUD_RECORD(scene, 15)->frame = (g_GameLogic.teams[g_GameLogic.teamFielding] + 4) << 16;
-    } else {
-        HUD_RECORD(scene, 15)->frame = g_GameLogic.teams[g_GameLogic.teamFielding] << 16;
+    if (!(g_Batter.runnersOnBase & 2)) {
+        HUD_RECORD((HudGaugeScene*)node, 2)->flags &= ~UI_FLAG_VISIBLE;
     }
-    if (g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] != 0) {
-        HUD_RECORD(scene, 16)->frame = (g_GameLogic.teams[g_GameLogic.teamBatting] + 4) << 16;
-    } else {
-        HUD_RECORD(scene, 16)->frame = g_GameLogic.teams[g_GameLogic.teamBatting] << 16;
+    if (!(g_Batter.runnersOnBase & 4)) {
+        HUD_RECORD((HudGaugeScene*)node, 1)->flags &= ~UI_FLAG_VISIBLE;
     }
-
-    for (i = 0; i < 5; i++) {
-        if (g_GameLogic.TeamStars[g_GameLogic.teamFielding] > i) {
-            HUD_RECORD(scene, i + 0x22)->frame = 3 << 16;
-        }
-        if (g_GameLogic.TeamStars[g_GameLogic.teamBatting] > i) {
-            HUD_RECORD(scene, i + 0x27)->frame = 3 << 16;
-        }
+    if (g_Pitcher.nPitchesThisAB == 0 && g_Pitcher.nPickoffAttempts == 0) {
+        playSoundEffect(0x1ab);
     }
-
-    if (inningSetting.starSkillsSetting == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
-        load_Icon(scene, 3, 1, 0x22, starGuageIconIDs[0]);
-        load_Icon(scene, 4, 1, 0x22, starGuageIconIDs[0]);
-        HUD_RECORD(scene, 3)->rgba = (HUD_RECORD(scene, 3)->rgba & 0xFF) | 0xBEBEBE00;
-        HUD_RECORD(scene, 4)->rgba = (HUD_RECORD(scene, 4)->rgba & 0xFF) | 0xBEBEBE00;
-        for (i = 0x18; i <= 0x2B; i++) {
-            HUD_RECORD(scene, i)->flags &= ~UI_FLAG_VISIBLE;
-        }
-    } else {
-        load_Icon(scene, 3, 1, 0x22, starGuageIconIDs[inMemRoster[g_GameLogic.teamFielding][g_Pitcher.rosterID].stats.CaptainStarHitPitch]);
-        load_Icon(scene, 4, 1, 0x22, starGuageIconIDs[inMemRoster[g_GameLogic.teamBatting][g_Batter.rosterID].stats.CaptainStarHitPitch]);
-    }
-
-    if (g_GameLogic.IsStarChance != 0) {
-        HUD_RECORD(scene, 21)->flags &= ~UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 17)->flags &= ~UI_FLAG_VISIBLE;
-    } else {
-        HUD_RECORD(scene, 22)->flags &= ~UI_FLAG_VISIBLE;
-        if (g_Batter.chemLinksOnBase == 0) {
-            HUD_RECORD(scene, 17)->flags &= ~UI_FLAG_VISIBLE;
-        }
-        if (animRelated[0xAE] == 0 || animRelated[0xAF] != g_Pitcher.rosterID) {
-            HUD_RECORD(scene, 21)->flags &= ~UI_FLAG_VISIBLE;
-        }
-    }
-
-    HUD_RECORD(scene, 46)->frame = 30 << 16;
-    HUD_RECORD(scene, 47)->frame = 30 << 16;
-    if (g_d_GameSettings.exhibitionMatchInd == 0) {
-        if (g_Challenge.charIsSuperstar[g_Pitcher.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] == 0) {
-            HUD_RECORD(scene, 48)->flags |= UI_FLAG_VISIBLE;
-        }
-        if (g_Challenge.charIsSuperstar[g_Batter.charID] != 0 && g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0) {
-            HUD_RECORD(scene, 49)->flags |= UI_FLAG_VISIBLE;
-        }
-    } else {
-        if (Static_Stats_Tables.charIsStarred[g_GameLogic.teamFielding][g_Pitcher.rosterID] != 0) {
-            HUD_RECORD(scene, 48)->flags |= UI_FLAG_VISIBLE;
-        }
-        if (Static_Stats_Tables.charIsStarred[g_GameLogic.teamBatting][g_Batter.rosterID] != 0) {
-            HUD_RECORD(scene, 49)->flags |= UI_FLAG_VISIBLE;
-        }
-    }
-
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel != 7) {
-        HUD_RECORD(scene, 20)->flags &= ~UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 5)->flags &= ~UI_FLAG_VISIBLE;
-    }
-
-    scene->frameCount = 0;
-    scene->shownTeamStars[0] = g_GameLogic.TeamStars[0];
-    scene->shownTeamStars[1] = g_GameLogic.TeamStars[1];
-    scene->unk20 = 0;
-    animRelated[0xA8] = 1;
-    currentDrawingItem->func = draw_ongoingStarGuageHud;
+    currentDrawingItem->func = fn_3_99C88;
 }
 
-// .text:0x0009B108 size:0x218 mapped:0x806DA19C
-void fn_3_9B108(DrawingSceneStruct* node) {
-    if (g_Scores.scores[0].total >= 10) {
-        fn_3_972A0(node, 11, 4, g_Scores.scores[0].total % 10);
-        fn_3_972A0(node, 12, 3, g_Scores.scores[0].total / 10);
-        fn_3_972A0(node, 11, 10, g_Scores.scores[0].total % 10);
-        fn_3_972A0(node, 12, 9, g_Scores.scores[0].total / 10);
+// .text:0x00099C88 size:0x74 mapped:0x806D8D1C
+void fn_3_99C88(void) {
+    HudGaugeScene* scene = (HudGaugeScene*)currentDrawingItem;
+
+    if (animRelated[0x96] == 0 && animRelated[0xA7] != 0) {
+        HUD_RECORD(scene, 0)->rgba = (HUD_RECORD(scene, 0)->rgba & ~0xFF) | animRelated[0xA7];
     } else {
-        fn_3_972A0(node, 10, 1, g_Scores.scores[0].total);
-        fn_3_972A0(node, 10, 7, g_Scores.scores[0].total);
-    }
-
-    if (g_Scores.scores[1].total >= 10) {
-        fn_3_972A0(node, 14, 6, g_Scores.scores[1].total % 10);
-        fn_3_972A0(node, 15, 5, g_Scores.scores[1].total / 10);
-        fn_3_972A0(node, 14, 12, g_Scores.scores[1].total % 10);
-        fn_3_972A0(node, 15, 11, g_Scores.scores[1].total / 10);
-    } else {
-        fn_3_972A0(node, 13, 2, g_Scores.scores[1].total);
-        fn_3_972A0(node, 13, 8, g_Scores.scores[1].total);
-    }
-}
-
-// .text:0x0009B320 size:0x4D4 mapped:0x806DA3B4
-void fn_3_9B320(void) {
-    ScoreHudScene* scene = (ScoreHudScene*)currentDrawingItem;
-    s32 i;
-
-    scene->frameCount++;
-    if (animRelated[0x96] != 0 || animRelated[0xA7] == 0) {
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
-        return;
-    }
-
-    if (scene->shownScores[0] != g_Scores.scores[0].total || scene->shownScores[1] != g_Scores.scores[1].total) {
-        fn_3_9B108((DrawingSceneStruct*)scene);
-    }
-
-    if (animRelated[0xA7] < 0xFF) {
-        for (i = 0; i < 16; i++) {
-            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA7];
-        }
-    } else {
-        for (i = 4; i <= 15; i++) {
-            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA6];
-        }
     }
 }
 
-// .text:0x0009B7F4 size:0x6EC mapped:0x806DA888
-void draw_ScoreInningHud(void) {
-    ScoreHudScene* scene = (ScoreHudScene*)currentDrawingItem;
+// .text:0x00099BDC size:0xAC mapped:0x806D8C70
+void fn_3_99BDC(void) {
+    DrawingSceneStruct* node = currentDrawingItem;
 
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_C34C);
-    HUD_RECORD(scene, 5)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[0].captain][1];
-    HUD_RECORD(scene, 6)->elementIndex = lbl_3_data_F430[g_GameLogic.logo[1].captain][1];
-    HUD_RECORD(scene, 5)->frame = g_GameLogic.logo[0].variationID << 16;
-    HUD_RECORD(scene, 6)->frame = g_GameLogic.logo[1].variationID << 16;
-
-    if (g_Scores.halfInning != 0) {
-        HUD_RECORD(scene, 1)->elementIndex = 0x11B;
-        HUD_RECORD(scene, 2)->elementIndex = 0x119;
-        HUD_RECORD(scene, 3)->elementIndex = 0x116;
-    }
-
-    setIndicatorSlotState((DrawingSceneStruct*)scene, 3, 1, 0x110, lbl_3_data_F4D0[g_Scores.Inning - 1]);
-    setIndicatorSlotState((DrawingSceneStruct*)scene, 3, 3, 0x110, lbl_3_data_F4D0[g_Scores.Inning - 1]);
-
-    if (g_Scores.Inning >= 10) {
-        HUD_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 8)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 9)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 9)->frame = 0;
-        HUD_RECORD(scene, 8)->frame = 1 << 16;
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 9, 1, 0x112, g_Scores.Inning / 10);
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 8, 2, 0x112, g_Scores.Inning % 10);
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 9, 4, 0x112, g_Scores.Inning / 10);
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 8, 5, 0x112, g_Scores.Inning % 10);
+    addGraphicsElementToScene(node, lbl_3_data_D258);
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
+        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 3 << 16;
     } else {
-        HUD_RECORD(scene, 7)->frame = 2 << 16;
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 7, 3, 0x112, g_Scores.Inning);
-        setIndicatorSlotState((DrawingSceneStruct*)scene, 7, 6, 0x112, g_Scores.Inning);
+        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 2 << 16;
     }
-
-    if (g_Scores.scores[0].total >= 10) {
-        HUD_RECORD(scene, 10)->flags &= ~UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 11)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 12)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 12)->frame = 2 << 16;
-        HUD_RECORD(scene, 11)->frame = 3 << 16;
-    } else {
-        HUD_RECORD(scene, 10)->frame = 0;
-    }
-
-    if (g_Scores.scores[1].total >= 10) {
-        HUD_RECORD(scene, 13)->flags &= ~UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 14)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 15)->flags |= UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 15)->frame = 4 << 16;
-        HUD_RECORD(scene, 14)->frame = 5 << 16;
-    } else {
-        HUD_RECORD(scene, 13)->frame = 1 << 16;
-    }
-
-    fn_3_9B108((DrawingSceneStruct*)scene);
-
-    scene->shownScores[0] = g_Scores.scores[0].total;
-    scene->shownScores[1] = g_Scores.scores[1].total;
-    scene->frameCount = 0;
-    currentDrawingItem->func = fn_3_9B320;
+    ((HudGaugeScene*)node)->unk1C = 0;
+    currentDrawingItem->func = wallBallAnimationRelated;
 }
 
-// .text:0x0009BEE0 size:0x134 mapped:0x806DAF74
-void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node) {
-    int outs;
-    int i;
-    int state;
+// .text:0x00099818 size:0x3C4 mapped:0x806D88AC
+void wallBallAnimationRelated(void) {
+    HudGaugeScene* scene = (HudGaugeScene*)currentDrawingItem;
+    UIRecord* rec;
+    int frame = 0;
+    f32 ratio;
 
-    outs = g_Strikes.outs;
-
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        outs = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;
+    if (animRelated[0x96] != 0) {
+        goto remove;
+    }
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_POSTGAME) {
+            goto remove;
+        }
+        if (g_Minigame.pauseInd != 0 && (pauseControl.state == 7 || pauseControl.state == 0xd)) {
+            goto remove;
+        }
+    } else if (animRelated[0xA7] == 0) {
+        goto remove;
     }
 
-    for (i = 0; i < 7; i++) {
-        state = 3;
-        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && i >= 5) {
-            break;
+    if (g_Pitcher.ChargePitchType != 0) {
+        ratio = (f32)g_Pitcher.unknownFrameCounter / (f32)(g_Pitcher.pitchWindUpCountDown - lbl_3_data_5F3C[2]);
+        if (ratio >= 1.0f) {
+            ratio = 1.0f;
         }
-        if (i < 2) {
-            if (((BallStrikeOutScene*)node)->shownStrikes == g_Strikes.strikes) {
-                continue;
+        HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
+        frame = 106.0f * ratio;
+        if (g_Pitcher.ChargePitchType == 3) {
+            HUD_RECORD(scene, 3)->frame = 106 << 16;
+            rec = HUD_RECORD(scene, 2);
+            if ((int)(rec->frame >> 16) < 106) {
+                rec->frame = 106 << 16;
+            } else {
+                rec->playMode = UI_PLAY_FORWARD;
             }
-            if (g_Strikes.strikes >= i + 1) {
-                state = 0;
-            }
-        } else if (i < 5) {
-            if (((BallStrikeOutScene*)node)->shownBalls == g_Strikes.balls) {
-                continue;
-            }
-            if (g_Strikes.balls >= i - 1) {
-                state = 1;
-            }
+            frame = 106;
+        } else if (g_Pitcher.overChargeInd != 0) {
+            frame = 106.0f * g_Pitcher.pitchChargeUp;
+            HUD_RECORD(scene, 3)->frame = frame << 16;
         } else {
-            if (((BallStrikeOutScene*)node)->shownOuts == outs) {
-                continue;
-            }
-            if (outs >= i - 4) {
-                state = 2;
-            }
-        }
-        setIndicatorSlotState(node, i + 1, i + 1, 0x107, state);
-    }
-
-    ((BallStrikeOutScene*)node)->shownStrikes = g_Strikes.strikes;
-    ((BallStrikeOutScene*)node)->shownBalls = g_Strikes.balls;
-    ((BallStrikeOutScene*)node)->shownOuts = outs;
-}
-
-// .text:0x0009C014 size:0x278 mapped:0x806DB0A8
-void update_BallStrikeOutHud(void) {
-    BallStrikeOutScene* scene = (BallStrikeOutScene*)currentDrawingItem;
-    int i;
-
-    if (animRelated[0x96] != 0 || animRelated[0xA7] == 0) {
-        removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
-        removeCurrentDrawingItem();
-        return;
-    }
-
-    scene->frameCount++;
-    maybe_updateBallStrikeOutUI((DrawingSceneStruct*)scene);
-
-    if (animRelated[0xA7] < 0xFF) {
-        for (i = 0; i < 8; i++) {
-            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA7];
+            HUD_RECORD(scene, 3)->frame = frame << 16;
         }
     } else {
-        for (i = 1; i < 8; i++) {
-            HUD_RECORD(scene, i)->rgba = (HUD_RECORD(scene, i)->rgba & ~0xFF) | animRelated[0xA6];
-        }
+        HUD_RECORD(scene, 3)->frame = 0;
+        HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
+        HUD_RECORD(scene, 2)->frame = 0;
     }
-}
 
-// .text:0x0009C28C size:0x2EC mapped:0x806DB320
-void init_BallStrikeOutHud(void) {
-    BallStrikeOutScene* scene = (BallStrikeOutScene*)currentDrawingItem;
-    int i;
-
-    addGraphicsElementToScene((DrawingSceneStruct*)scene, lbl_3_data_C22C);
-    scene->unk22 = 0;
-
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        scene->unk22 = 1;
-        for (i = 0; i < 8; i++) {
-            HUD_RECORD(scene, i)->pos.y = lbl_3_rodata_17D8;
+    if (g_Pitcher.ChargePitchType != 0) {
+        HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
+        if (g_Pitcher.ChargePitchType == 3) {
+            HUD_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
+        } else {
+            HUD_RECORD(scene, 5)->frame = (frame + 10) << 16;
         }
-    } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        if (g_Practice.practiceLevel != 7 && g_Practice.practiceLevel != 6) {
-            scene->unk22 = 1;
+    } else {
+        if ((HUD_RECORD(scene, 5)->frame >> 16) < 10) {
+            HUD_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
+        } else {
+            HUD_RECORD(scene, 5)->frame = 10 << 16;
+            HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
         }
     }
 
-    if (scene->unk22 != 0) {
-        for (i = 1; i < 6; i++) {
-            HUD_RECORD(scene, i)->elementIndex = 0x104;
+    if (g_Pitcher.ChargePitchType >= 2) {
+        if (scene->unk1C == 0) {
+            HUD_RECORD(scene, 6)->flags |= UI_FLAG_VISIBLE;
+            HUD_RECORD(scene, 6)->frame = frame << 16;
+            HUD_RECORD(scene, 7)->frame = 0;
+            HUD_RECORD(scene, 7)->playMode = UI_PLAY_FORWARD;
+            scene->unk1C = 1;
         }
-        HUD_RECORD(scene, 0)->elementIndex = 0x103;
+    } else {
         HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
-        HUD_RECORD(scene, 7)->flags &= ~UI_FLAG_VISIBLE;
+        scene->unk1C = 0;
     }
+    return;
 
-    scene->shownOuts = 9;
-    scene->shownBalls = 9;
-    scene->shownStrikes = 9;
-
-    for (i = 1; i < 8; i++) {
-        HUD_RECORD(scene, i)->frame = (i - 1) << 16;
-    }
-
-    maybe_updateBallStrikeOutUI((DrawingSceneStruct*)scene);
-    scene->frameCount = 0;
-    currentDrawingItem->func = update_BallStrikeOutHud;
+remove:
+    removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+    removeCurrentDrawingItem();
 }
 
-// .text:0x0009C578 size:0x21C mapped:0x806DB60C
-void matchHudDrawingControl(void) {
-    if (g_GameLogic.hudElementLoadingInd != 0 && animRelated[0xA5] == 0) {
-        animRelated[0xA5] = 1;
-        animRelated[0xA6] = 0;
-        animRelated[0xA7] = 0xFF;
-        insertGraphicDrawingFunction(init_BallStrikeOutHud, 2);
-        insertGraphicDrawingFunction(draw_ScoreInningHud, 2);
-        if (animRelated[0xA8] == 0) {
-            insertGraphicDrawingFunction(draw_initStarGuageHud, 2);
-        }
-        if (g_Batter.chemLinksOnBase != 0) {
-            insertGraphicDrawingFunction(draw_OnBaseChemLinks, 2);
-        }
+// .text:0x0009976C size:0xAC mapped:0x806D8800
+void fn_3_9976C(void) {
+    DrawingSceneStruct* node = currentDrawingItem;
+
+    addGraphicsElementToScene(node, lbl_3_data_D378);
+    if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
+        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 0;
+    } else {
+        HUD_RECORD((HudGaugeScene*)node, 0)->frame = 1 << 16;
     }
-    if (animRelated[0xAC] == 1 && g_GameLogic.FrameCountOfCurrentPitch == 10) {
-        insertGraphicDrawingFunction(HUD_initStarChance, 2);
-        animRelated[0xAC] = 2;
-    }
-    if (animRelated[0xA5] != 0 && animRelated[0xA6] < 0xFF) {
-        if (animRelated[0xA6] < 0xF0) {
-            animRelated[0xA6] += 0x10;
+    ((HudGaugeScene*)node)->unk1C = 0;
+    currentDrawingItem->func = fn_3_993A8;
+}
+
+// .text:0x000993A8 size:0x3C4 mapped:0x806D843C
+void fn_3_993A8(void) {
+    HudGaugeScene* scene = (HudGaugeScene*)currentDrawingItem;
+    UIRecord* rec;
+    int frame = 0;
+
+    if (animRelated[0x96] == 0 && animRelated[0xA7] != 0) {
+        if (g_Batter.chargeStatus != CHARGE_SWING_STAGE_NONE) {
+            if (g_Batter.chargeUp < 1.0f) {
+                HUD_RECORD(scene, 2)->elementIndex = 0x49;
+                frame = 75.0f * g_Batter.chargeUp;
+            } else {
+                HUD_RECORD(scene, 2)->elementIndex = 0x48;
+                frame = (int)(31.0f * g_Batter.chargeDown) + 75;
+            }
+            if (g_Batter.chargeDown >= 1.0f) {
+                HUD_RECORD(scene, 3)->frame = 106 << 16;
+                rec = HUD_RECORD(scene, 2);
+                if ((rec->frame >> 16) < 106) {
+                    rec->frame = 106 << 16;
+                } else {
+                    rec->playMode = UI_PLAY_FORWARD;
+                }
+                frame = 106;
+            } else {
+                HUD_RECORD(scene, 3)->frame = frame << 16;
+                HUD_RECORD(scene, 2)->frame = 0;
+                HUD_RECORD(scene, 2)->playMode = UI_PLAY_STOP;
+            }
         } else {
-            animRelated[0xA6] = 0xFF;
+            HUD_RECORD(scene, 3)->frame = 0;
+            HUD_RECORD(scene, 3)->playMode = UI_PLAY_STOP;
+            HUD_RECORD(scene, 2)->frame = 0;
         }
-    }
-    if (animRelated[0xA7] != 0 && animRelated[0xA7] < 0xFF) {
-        if (animRelated[0xA7] <= 0x10) {
-            animRelated[0xA7] = 0;
-            animRelated[0xA5] = 0;
+
+        if (g_Batter.chargeStatus != CHARGE_SWING_STAGE_NONE) {
+            HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
+            if (g_Batter.swingInd != 0 && g_Batter.chargeDown >= 1.0f) {
+                rec = HUD_RECORD(scene, 5);
+                if ((rec->frame >> 16) < 106) {
+                    rec->frame = 106 << 16;
+                } else {
+                    rec->playMode = UI_PLAY_FORWARD;
+                }
+            } else {
+                HUD_RECORD(scene, 5)->frame = (frame + 10) << 16;
+            }
         } else {
-            animRelated[0xA7] -= 0x10;
-        }
-    } else if (animRelated[0xA5] != 0) {
-        if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_DEFAULT) {
-            if (g_Batter.moonShotInd == 0 || g_Ball.framesSinceHit > 1) {
-                animRelated[0xA7] = 0xF0;
+            if ((HUD_RECORD(scene, 5)->frame >> 16) < 10) {
+                HUD_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
+            } else {
+                HUD_RECORD(scene, 5)->frame = 10 << 16;
+                HUD_RECORD(scene, 5)->playMode = UI_PLAY_STOP;
             }
         }
-        if (pauseControl._1D5 != 0) {
-            animRelated[0xA7] = 0xF0;
+
+        if (g_Batter.chargeStatus != CHARGE_SWING_STAGE_NONE && g_Batter.swingInd != 0) {
+            if (scene->unk1C == 0) {
+                HUD_RECORD(scene, 6)->flags |= UI_FLAG_VISIBLE;
+                HUD_RECORD(scene, 6)->frame = frame << 16;
+                HUD_RECORD(scene, 7)->frame = 0;
+                HUD_RECORD(scene, 7)->playMode = UI_PLAY_FORWARD;
+                scene->unk1C = 1;
+            }
+        } else {
+            HUD_RECORD(scene, 6)->flags &= ~UI_FLAG_VISIBLE;
+            scene->unk1C = 0;
         }
-    }
-    if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION) {
-        animRelated[0xA7] = 0;
-        animRelated[0xA5] = 0;
+    } else {
+        removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
+        removeCurrentDrawingItem();
     }
 }
 

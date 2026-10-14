@@ -111,13 +111,13 @@ void InterpretControllerInputsIntoMagnitude(int port) {
         if (magnitude != 0) {
             int r;
             f32 k;
+            f32 scale = 0.27208483f;
             angle = radToShortAngle(atan2(x, z));
             r = angle % 1024;
             if (r > 512) {
                 r = 1024 - r;
             }
-            k = (f32)r / 512.0f;
-            k = k * 0.27208483f;
+            k = ((f32)r / 512.0f) * scale;
             z += z * k;
             x += x * k;
             g_Controls[port].right_left = z;
