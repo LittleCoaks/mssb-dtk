@@ -317,33 +317,15 @@ Unknown/File_0x80025c58.c:
 Unknown/File_0x80025ddc.c:
 	.text       start:0x80025DDC end:0x80026134
 
-Unknown/File_0x800263fc.c:
-	extab       start:0x80005BC8 end:0x80005BD0
-	extabindex  start:0x8000750C end:0x80007518
-	.text       start:0x800263FC end:0x80026998
-
-Unknown/File_0x80033794.c:
-	.text       start:0x80033794 end:0x80033B58
-
-Unknown/File_0x80033f64.c:
-	extab       start:0x80005D58 end:0x80005D60
-	extabindex  start:0x80007764 end:0x80007770
-	.text       start:0x80033F64 end:0x8003403C
-
-Unknown/File_0x80034220.c:
-	extab       start:0x80005D80 end:0x80005D88
-	extabindex  start:0x800077A0 end:0x800077AC
-	.text       start:0x80034220 end:0x8003452C
-
-Unknown/File_0x8003452c.c:
-	extab       start:0x80005D88 end:0x80005D90
-	extabindex  start:0x800077AC end:0x800077B8
-	.text       start:0x8003452C end:0x800348C8
-
-Unknown/File_0x800348c8.c:
-	extab       start:0x80005D90 end:0x80005D98
-	extabindex  start:0x800077B8 end:0x800077C4
-	.text       start:0x800348C8 end:0x80034BCC
+Unknown/particle_effects.c:
+	extab       start:0x80005BC8 end:0x80005D98
+	extabindex  start:0x8000750C end:0x800077C4
+	.text       start:0x800263FC end:0x80034BCC
+	.rodata     start:0x800E6778 end:0x800E68A8
+	.data       start:0x800F7840 end:0x800F78E0
+	.sdata      start:0x803CB7F8 end:0x803CB810
+	.sbss       start:0x803CBC70 end:0x803CBC90
+	.sdata2     start:0x803CC5F0 end:0x803CC6E8
 
 Unknown/File_0x80034cec.c:
 	.text       start:0x80034CEC end:0x80034E20

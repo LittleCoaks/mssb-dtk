@@ -20,7 +20,7 @@
 #include "C3/actor/actorAnim.h"
 #include "text/text_channel.h"
 #include "Unknown/File_0x80025ddc.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x8004c094.h"
 #include "Unknown/File_0x80034cec.h"
 #include "game/stadium/stadium_star.h"

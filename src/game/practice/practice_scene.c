@@ -20,7 +20,7 @@
 #include "text/text_channel.h"
 #include "Unknown/File_0x80014d4c.h"
 #include "Unknown/File_0x80021410.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x8004cc18.h"

@@ -20,7 +20,7 @@
 #include "Unknown/sub.h"
 #include "Unknown/File_0x80025c58.h"
 #include "Unknown/File_0x80025ddc.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80039aa8.h"

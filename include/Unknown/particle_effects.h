@@ -1,7 +1,9 @@
-#ifndef __UNKNOWN_FILE_0X80033794_H_
-#define __UNKNOWN_FILE_0X80033794_H_
+#ifndef __UNKNOWN_PARTICLE_EFFECTS_H_
+#define __UNKNOWN_PARTICLE_EFFECTS_H_
 
 #include "mssbTypes.h"
+
+void maybeTexOrSpriteRelated(void);
 
 void fn_80033794(void* particles);
 void* fn_800337CC(void* buf, int count, int arg2);
@@ -11,4 +13,10 @@ void fn_80033964(void* effect);
 void* fn_800339F0(int arg0, u8 arg1);
 void* allocParticleEffect(void* func, int arg1, int arg2, int arg3, int arg4, u8 arg5);
 
-#endif // !__UNKNOWN_FILE_0X80033794_H_
+void setParticleXform(f32 scaleX, f32 scaleY, f32 rot);
+
+void minigamesSetSomePointers(void);
+void minigamesGXStuff(void);
+void minigamesSetSomePointers2(void);
+
+#endif // !__UNKNOWN_PARTICLE_EFFECTS_H_

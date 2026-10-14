@@ -698,3 +698,56 @@ a visible `return NULL` body would be inlined into
 
 Four `NonMatching` units became one; no function score changed
 (`characterAndBallDisplayRelated` stays 100%). Linked DOL units 260 -> 260.
+
+### `Unknown/particle_effects.c` (`0x800263FC-0x80034BCC`)
+
+Six `Unknown/` units (`File_0x800263fc`, `33794`, `33f64`, `34220`, `3452c`,
+`348c8`) and 57 unowned functions between them form one unit. The name is a
+proposal: the range holds `allocParticleEffect`, `setParticleXform`,
+`spawnDaisyStarEffect`, `spawnPeachStarEffect`, `setDaisyStarEffectTarget` and
+`setPeachStarEffectTarget`, plus the minigame setup helpers
+(`minigamesSetSomePointers`, `minigamesGXStuff`, `minigamesSetSomePointers2`)
+that sit at its end; the binary carries no file name for it.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x800263FC-0x80034BCC` | the six units and the gaps `0x80026998-0x80033794` (51 functions), `0x80033B58-0x80033F64` (`fn_80033B58`, `fn_80033CC8`), `0x8003403C-0x80034220` (`fn_8003403C`, `fn_800340F4`, `fn_80034120`, `fn_8003414C`) |
+| `extab` / `extabindex` | `0x80005BC8-0x80005D98` / `0x8000750C-0x800077C4` | the entries of every function in the range (the small leaf functions have none) |
+| `.rodata` | `0x800E6778-0x800E68A8` | unowned: eleven float vectors and the `"...particle err."` string |
+| `.data` | `0x800F7840-0x800F78E0` | unowned (`lbl_800F7840`, `7860`, `787C`, `78C0`) |
+| `.sdata` | `0x803CB7F8-0x803CB810` | unowned (six 4-byte constants read by `fn_800328E0`, `fn_80030720`, `fn_800317C4`, `fn_8002FDB8`, `fn_8002C56C`, `fn_8002BC84`) |
+| `.sbss` | `0x803CBC70-0x803CBC90` | unowned (`lbl_803CBC70-lbl_803CBC84`) |
+| `.sdata2` | `0x803CC5F0-0x803CC6E8` | unowned (50 literals) |
+
+Evidence:
+
+- **One `.sdata2` pool, no duplicates.** `0x803CC5F0-0x803CC6E8` is read by
+  functions from `maybeTexOrSpriteRelated` to `minigamesSetSomePointers2`
+  and holds each value once (`0.5f` at `0x803CC5F0`, `0.0f` at `0x803CC5F4`,
+  the two magic doubles, ..., `pi`, `1025.0`). The pool before it
+  (`0x803CC5D8-0x803CC5F0`, `fn_80026134`) already holds `0.0f` and `0.5f`, and
+  the one after it (`0x803CC6E8`, `allocateGraphicsSlot`) starts with `0.0f`
+  again, so a boundary lies on each side and none inside.
+- **`.rodata` runs in reverse function order.** `lbl_800E6778` is read by
+  `fn_800332B8`, `lbl_800E6784` by `fn_800328E0`, ... `lbl_800E685C` by
+  `fn_80026E58` and the string at `0x800E688C` by
+  `maybeTexOrSpriteRelated` (first function of the unit) and its later users
+  `fn_8002B014`, `fn_80031034` and `fn_80031F34`; each function's vector was
+  emitted when the function was compiled and the objects are laid out last to
+  first, which only one unit produces. The range ends with the 8-alignment pad
+  after the 0x15-byte string.
+- **`.sbss 0x803CBC70-0x803CBC90`** (`lbl_803CBC74`, `lbl_803CBC80`,
+  `lbl_803CBC84` are read by dozens of functions across the range, including
+  four of the six former units, `lbl_803CBC78`/`7C` by the three minigame helpers).
+- **`.data` and `.sdata`** objects are read by gap functions of this range
+  only (`lbl_800F7860` by `maybeTexOrSpriteRelated` and five gap functions,
+  `lbl_800F787C` by `fn_80032064/284/4EC`, `lbl_800F7840` by
+  `minigamesGXStuff`).
+
+The unit is compiled with `-cpp_exceptions on`: `setParticleXform` (the only
+function with C beyond stubs, 100%) needed it, and a unit has one flag set. 58 of the
+69 functions have an `extabindex` entry, the others are small and sit between
+functions that do. All six former units were
+`NonMatching`; `setParticleXform` stays 100%, nothing else changed. The 21 files
+that include the old headers now include `Unknown/particle_effects.h`.
+Linked DOL units 260 -> 260 (the merged unit is `NonMatching`, like all of its parts).
