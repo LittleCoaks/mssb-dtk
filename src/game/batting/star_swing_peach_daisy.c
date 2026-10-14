@@ -70,8 +70,8 @@ void peachDaisyStarPitch_stepPhysics(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BO
     if (pos->z <= g_Pitcher.pitchZ_whenAirResistanceStarts) {
         f32 z = vel->z - vel->z * g_Pitcher.airResistance_veloAdj;
         if (z < -0.05f) {
-            vel->x = vel->x - vel->x * g_Pitcher.airResistance_veloAdj;
-            vel->y = vel->y - vel->y * g_Pitcher.airResistance_veloAdj;
+            vel->x -= vel->x * g_Pitcher.airResistance_veloAdj;
+            vel->y -= vel->y * g_Pitcher.airResistance_veloAdj;
             vel->z = z;
         }
     }
@@ -199,8 +199,8 @@ void peachDaisyStarEffect_setup(int side) {
                 i++;
             }
 
-            starSwingTargets[side].frameCount =
-                (int)((lo + range * (f32)rand() / RAND_EBISAWA_MAX) * (f32)(g_Ball.hangtimeOfHit - i) + (f32)i);
+            lo += range * (f32)rand() / RAND_EBISAWA_MAX;
+            starSwingTargets[side].frameCount = (int)(lo * (f32)(g_Ball.hangtimeOfHit - i) + (f32)i);
 
             memcpy(&vA, &g_Ball.AtBat_Contact_BallPos, sizeof(VecXYZ));
             memcpy(&vB, &g_Ball.physicsSubstruct.futureCoordsAndDist[starSwingTargets[side].frameCount].pos,
