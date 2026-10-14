@@ -1,9 +1,5 @@
 #include "mssbTypes.h"
 
-static u32 pad_04_0000428C_data[1] = {
-    0x00000000,
-};
-
 f32 dugoutCoordinates[7][2][2] = {
     {
         { -24.0f, -7.5f },
@@ -214,20 +210,12 @@ u8 fielderLockout[20] = {
     50, 50, 0, 0,
 };
 
-u8 lbl_3_data_470C[1] = {
-    10,
+u8 lbl_3_data_470C[4] = {
+    10, 30, 0, 0,
 };
 
-u8 lbl_3_data_470D[3] = {
-    30, 0, 0,
-};
-
-u8 lbl_3_data_4710[1] = {
-    4,
-};
-
-u8 lbl_3_data_4711[3] = {
-    25, 0, 0,
+u8 lbl_3_data_4710[4] = {
+    4, 25, 0, 0,
 };
 
 u8 BobbleArray[2][4][6] = {
@@ -333,12 +321,8 @@ u8 throwWindUpFrames[8] = {
     6, 12, 10, 0, 0, 7, 0, 0,
 };
 
-u8 lbl_3_data_4908[1] = {
-    20,
-};
-
-u8 lbl_3_data_4909[3] = {
-    20, 0, 0,
+u8 lbl_3_data_4908[4] = {
+    20, 20, 0, 0,
 };
 
 f32 slidingCatchMultipliers[6] = {
@@ -390,12 +374,8 @@ f32 lbl_3_data_4B28[6] = {
     18.7999992f, 19.3999996f, 23.0f, 22.0f, 25.1000004f, 22.5f,
 };
 
-s16 lbl_3_data_4B40[1] = {
-    60,
-};
-
-s16 lbl_3_data_4B42[1] = {
-    120,
+s16 lbl_3_data_4B40[2] = {
+    60, 120,
 };
 
 f32 lbl_3_data_4B44[1] = {
@@ -1849,12 +1829,8 @@ f32 pitchSpeedScaler[12] = {
     0.0f, 0.0f, 0.99000001f, 0.99000001f,
 };
 
-s16 lbl_3_data_5FC0[1] = {
-    0,
-};
-
-s16 lbl_3_data_5FC2[1] = {
-    50,
+s16 lbl_3_data_5FC0[2] = {
+    0, 50,
 };
 
 f32 lbl_3_data_5FC4[12] = {
