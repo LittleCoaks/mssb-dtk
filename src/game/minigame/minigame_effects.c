@@ -2631,17 +2631,20 @@ void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p) {
     f32 radius;
     f32 dx;
     f32 dy;
+    f32 dz = 0.0f;
+    f32 sinA;
 
     p->sizeX = p->sizeY = (f32)barrelBatter_machineSparkParams[3] / 100000.0f;
     p->alphaByte = barrelBatter_machineSparkParams[5];
     angle = 0.017453292f * (f32)(rand() % 360);
     radius = (f32)((u32)rand() % 200 / 1000.0);
     cosA = cos(angle);
+    sinA = sin(angle);
     dx = radius * cosA;
-    dy = radius * (f32)sin(angle);
+    dy = radius * sinA;
     p->origin.x = effect->pos.x + dx;
     p->origin.y = effect->pos.y + dy;
-    p->origin.z = effect->pos.z + 0.0f;
+    p->origin.z = effect->pos.z + dz;
     p->life = barrelBatter_machineSparkParams[1];
 }
 
