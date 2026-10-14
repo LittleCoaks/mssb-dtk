@@ -44,6 +44,13 @@
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
 
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. The functions that use
+ * fabsInline match with the function form; the others need the intrinsic. */
+static inline f64 fabsInline(f64 x) {
+    return __fabs(x);
+}
+
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -1381,9 +1388,9 @@ void fn_3_F2FFC(DKJungleBarrel* barrel, f32 x, f32 z) {
     f32 diff;
 
     diff = x - barrel->rotY;
-    sign = diff / fabs(diff);
+    sign = diff / fabsInline(diff);
     if (sign == 0) {
-        sign = -(barrel->rotY / fabs(barrel->rotY));
+        sign = -(barrel->rotY / fabsInline(barrel->rotY));
     }
     dir.x = x - barrel->rotY;
     dir.y = 0.0f;
@@ -1501,8 +1508,8 @@ void fn_3_F2724(DKJungleBarrel* barrel, DKJungleKlaptrap* klaptrap) {
     cosB = (f32)cos(-(0.017453292f * barrel->_B4));
     alongX = v.x * cosA + v.z * sinA;
     alongZ = v.x * -sinB + v.z * cosB;
-    absZ = fabs(alongZ);
-    absX = fabs(alongX);
+    absZ = fabsInline(alongZ);
+    absX = fabsInline(alongX);
     if (absX <= 3.0 && absZ <= 1.75) {
         klaptrap->state = 5;
         dkPlayHazardSfx(0xb);
@@ -1542,7 +1549,7 @@ s8 dkBarrel_collisionWithFielder(DKJungleBarrel* barrel) {
         } else {
             range = 4.6666665f;
         }
-        if (!(range < fabs(offset.y - barrel->pos.y)) && fielder != NULL && fielder->knockoutStatus == 0) {
+        if (!(range < fabsInline(offset.y - barrel->pos.y)) && fielder != NULL && fielder->knockoutStatus == 0) {
             PSVECSubtract((Vec*)&fielder->pos, &barrel->pos, &dir);
             cosA = (f32)cos(-(0.017453292f * barrel->_B4));
             sinA = (f32)sin(-(0.017453292f * barrel->_B4));
@@ -1550,8 +1557,8 @@ s8 dkBarrel_collisionWithFielder(DKJungleBarrel* barrel) {
             cosB = (f32)cos(-(0.017453292f * barrel->_B4));
             alongX = dir.x * cosA + dir.z * sinA;
             alongZ = dir.x * -sinB + dir.z * cosB;
-            absZ = fabs(alongZ);
-            absX = fabs(alongX);
+            absZ = fabsInline(alongZ);
+            absX = fabsInline(alongX);
             if (absX <= 3.0 && absZ <= 1.75) {
                 stadiumID = g_d_GameSettings.StadiumID;
                 vol = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD ? lbl_3_data_84B8[8]

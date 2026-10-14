@@ -18,6 +18,13 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_cameraScript
 #include "header_rep_data.h"
 
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. */
+#undef fabs
+static inline f64 fabs(f64 x) {
+    return __fabs(x);
+}
+
 // A tracked object in the 0x2C50 object table of hugeAnimStruct.
 typedef struct CamActor {
     /* 0x000 */ u8 _000[0x34];

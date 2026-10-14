@@ -20,6 +20,13 @@
 #include "Dolphin/mtxext.h"
 #include "Unknown/File_0x800a7568.h"
 
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. */
+#undef fabs
+static inline f64 fabs(f64 x) {
+    return __fabs(x);
+}
+
 typedef struct _SunLayer {
     /*0x00*/ VecXYZ pos;
     /*0x0C*/ s16 texture;
