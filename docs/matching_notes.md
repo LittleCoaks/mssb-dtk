@@ -3144,7 +3144,7 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   MWCC always gives `.data` 8-byte alignment, so `data_428C` linked 4 bytes late. Its leading
   `pad_04_0000428C` was the tail of `match_loading`'s range; moving the split to 0x4290 linked
   byte-identically. `match_flow_data` (0x5FF4) cannot be fixed that way: its first object starts at
-  0x5FF4, so it needs a merge with the preceding data.
+  0x5FF4, so it was merged into `data_428C` (which now ends at 0x6510).
 - **Zero-initialised `gap_*` fillers in a data-only `.c` land in `.bss`.** `u16 gap = 0;` is a
   `.bss` object to MWCC; delete it (array alignment re-creates the gap) or the REL's `.bss` grows.
 - **`extern const f32 lbl_*_rodata_*` in a REL unit leaves `.rodata` short.** Replace them with the

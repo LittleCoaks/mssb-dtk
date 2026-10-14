@@ -135,10 +135,12 @@ merged because `fn_3_C937C`'s codegen depends on the full size),
 0x9FDC-0xA018` -> `pitcher_fire_effect.c`.
 
 Four large shared tables have no code unit between their link-order
-neighbours, so each is a data-only unit (like `match_flow_data.c`), named by
+neighbours, so each is a data-only unit, named by
 address: `data_only/data_1880.c` (AI and versus tables, after `camera.c`),
 `data_428C.c` (field coordinates, hit and fielding constants, after
-`match_loading.c`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
+`match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
+tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
+cannot start a unit, since MWCC 8-aligns every unit's `.data`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
 after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`).
 All are 100%.
 

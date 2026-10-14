@@ -145,7 +145,6 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | `game_rel_entry.c` | `rep_0` | 0 (0) | — | REL `_prolog`/`_epilog`; a leftover debug mode/stadium picker (`fn_3_258`, whose data still lists Japanese NPB stadium names) and the roster ARAM load (`maybeProcessTeamData`). | med |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
 | `match_flow.c` | `auto_00_0005985C` | 47 (37) | 24,804 | The match state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, end-of-game and challenge-mode flow. | high |
-| `match_flow_data.c` | `auto_00_0005985C (.data)` | 0 (0) | 0 | Initialised data for `match_flow.c` (challenge coin tables, `CommonUIFiles_matchEnd`, star power costs). Separate unit because the target references each object by symbol. | inferred |
 | `match_loading.c` | `auto_00_0005985C` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
 | `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (14) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
 | `match_transitions.c` | gap `0x6B4C8` | 6 (5) | 2,524 | Transition loaders used by `match_flow`/`versus_screens` (`loadMVPMaybe`, `loadRunnerActors`, `championshipScreenGraphics`) and `animateShadows_nonBall`. | med |
@@ -292,7 +291,7 @@ not a shared gameplay purpose.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `data_1880.c` | — | 0 (0) | — | Shared AI probability tables, `AnimSetupEntry` table, home-run camera scene IDs and `vsSituations`. | inferred |
-| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants. | inferred |
+| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). | inferred |
 | `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
 | `data_8D88.c` | — | 0 (0) | — | Menu, character-select and HUD icon/descriptor tables. | inferred |
 | `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
