@@ -18,15 +18,15 @@ void betweenABSetPitcherBatter(void) {
 
 // .text:0x0001E178 size:0x1B0 mapped:0x8065D20C
 void someRosterMemoryManagement(void) {
-    int i;
-    int team;
-    int fieldingTeam;
+    s32 i;
+    s32 team;
 
     resetLastPitchData();
-    fieldingTeam = g_GameLogic.homeTeamBattingInd_fieldingTeam;
     for (i = 0; i < 10; i++) {
-        pauseControl.battingOrderCopy[fieldingTeam][i * 2] = g_GameLogic.battingOrderAndPositionMapping[fieldingTeam][i][0];
-        pauseControl.battingOrderCopy[fieldingTeam][i * 2 + 1] = g_GameLogic.battingOrderAndPositionMapping[fieldingTeam][i][1];
+        pauseControl.battingOrderCopy[g_GameLogic.homeTeamBattingInd_fieldingTeam][i * 2] =
+            g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
+        pauseControl.battingOrderCopy[g_GameLogic.homeTeamBattingInd_fieldingTeam][i * 2 + 1] =
+            g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][1];
     }
     for (team = 0; team < 2; team++) {
         for (i = 0; i < 9; i++) {
