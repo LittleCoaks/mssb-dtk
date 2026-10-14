@@ -918,7 +918,7 @@ config.libs = [
             Object(Matching, "game/match_setup/transition_init.c"),
             Object(NonMatching, "game/animation/offence_animation.c"),
             Object(Matching, "game/match_setup/scene_skip.c"),
-            Object(NonMatching, "game/match_setup/controller_input.c"),
+            Object(Matching, "game/match_setup/controller_input.c"),
             Object(NonMatching, "game/stats/stat_lookups.c"),
             Object(NonMatching, "game/match_setup/roster_init.c"),
             Object(NonMatching, "game/pitching/pitcher.c"),
