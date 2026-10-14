@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/batting/star_swing_peach_daisy.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_starSwingPeachDaisy
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/rand.h"
