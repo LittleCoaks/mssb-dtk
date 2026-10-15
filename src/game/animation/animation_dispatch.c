@@ -2496,6 +2496,7 @@ BOOL minigameFielderAnimCheck(int fielderIdx) {
 void foulAnimationRelatedMaybe(int fielderIdx, AnimObject* obj) {
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
     InMemFielder* fielder = &g_Fielders[fielderIdx];
+    int idx = fielderIdx;
     s16 animId = obj->animId;
     f32 scale, nz, nx, dist, dz, dx;
 
@@ -2523,13 +2524,13 @@ void foulAnimationRelatedMaybe(int fielderIdx, AnimObject* obj) {
         if (isCoordinateUncatchableTerrain(nx + fielder->pos.x, nz + fielder->pos.z)) {
             updateFielderState(fielderIdx, 0);
             if (g_d_GameSettings.minigamesEnabled) {
-                if (fielderIdx == 0) {
-                    fielderIdx = MINIGAME_SELECTED_SLOT();
+                if (idx == 0) {
+                    idx = MINIGAME_SELECTED_SLOT();
                 } else {
-                    fielderIdx = MINIGAME_SLOT_OF(fielderIdx);
+                    idx = MINIGAME_SLOT_OF(idx);
                 }
             }
-            fn_8001B5EC(fielderIdx, 0);
+            fn_8001B5EC(idx, 0);
             fielder->pos.x = fielder->posXLastFrame;
             fielder->pos.z = fielder->posZLastFrame;
             fielder->_01FB = 0;
