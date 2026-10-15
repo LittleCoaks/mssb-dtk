@@ -329,6 +329,15 @@ typedef struct {
 static GridPoint lbl_1_bss_F6E0[GRID_ROWS][GRID_COLS];
 static f32 lbl_1_bss_76E0[0x2000];
 static f32 lbl_1_bss_74E0[0x80];
+typedef struct ChainNode {
+    /* 0x00 */ f32 _00;
+    /* 0x04 */ u8 _04[0x8];
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec prevPos;
+    /* 0x24 */ u8 _24[0x18];
+    /* 0x3C */ u32 _3C;
+} ChainNode; // size: 0x40
+
 static u8 lbl_1_bss_6FE0[0x500];
 static u8 lbl_1_bss_6FB8[0x28];
 static f32 lbl_1_bss_6FB4;
@@ -525,17 +534,15 @@ void fn_1_25F98(void) {
                 } else if (f & 1) {
                     *((u8 *)item + 0x24) -= 1;
                 }
-                fn_8000CEF0(textureContainerSlots[GFX_OBJ(item)[0x66]].layout, *((u8 *)item + 0x21), 0,
-                    *((u8 *)item + 0x24), &info);
             }
+            fn_8000CEF0(textureContainerSlots[GFX_OBJ(item)[0x66]].layout, *((u8 *)item + 0x21), 0,
+                *((u8 *)item + 0x24), &info);
             break;
         }
         case 3: {
             if (row == *((u8 *)item + 0x22)) {
                 u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                void *structA;
-                void *structB;
-                void *structC;
+                u8 *p;
 
                 if (f & 2) {
                     info.textureIndex += 1;
@@ -543,10 +550,10 @@ void fn_1_25F98(void) {
                     info.textureIndex -= 1;
                 }
 
-                structA = textureContainerSlots[GFX_OBJ(item)[0x66]].layout;
-                structB = *(void **)((u8 *)structA + 8);
-                structC = *(void **)((u8 *)structB + *((u8 *)item + 0x21) * 4 + 8);
-                *(u16 *)(*(u8 **)((u8 *)structC + 0xc) + 0xa) = info.textureIndex;
+                p = textureContainerSlots[GFX_OBJ(item)[0x66]].layout;
+                p = *(u8 **)(p + 8);
+                p = *(u8 **)(p + *((u8 *)item + 0x21) * 4 + 8);
+                *(u16 *)(*(u8 **)(p + 0xc) + 0xa) = info.textureIndex;
             }
             break;
         }
@@ -952,122 +959,112 @@ void fn_1_25064(void) {
 }
 
 // .text:0x00024C4C size:0x418
-void fn_1_24C4C(u8 *arg0, s32 count, Vec *arg2, f32 argF1, f32 argF2, f32 argF3, f32 argF4) {
+void fn_1_24C4C(u8 *arg0, s32 count, Vec *force, f32 stiffness, f32 damping, f32 restLength, f32 drag) {
     DrawingSceneStruct *item = currentDrawingItem;
-    f32 windDrag = (-1.0f) * argF4;
-    f32 zero = 0.0f;
+    f32 windDrag = (-1.0f) * drag;
     f32 once = 1.0f;
+    f32 zero = 0.0f;
     u8 *p;
+    u8 *pNext;
     s32 i;
+    s32 j;
+    Vec local20;
+    Vec local14;
+    Vec local8;
 
-    p = arg0 + count * 0x3c;
-    for (i = count; i != 0; i--) {
+    i = count;
+    while (i-- != 0) {
+        p = arg0 + i * 0x3c;
+
         if (*(u32 *)(p + 0x38) != 0) {
-            *(f32 *)(p + 0x34) = zero;
-            *(f32 *)(p + 0x30) = zero;
-            *(f32 *)(p + 0x2c) = zero;
+            *(f32 *)(p + 0x34) = 0.0f;
+            *(f32 *)(p + 0x30) = 0.0f;
+            *(f32 *)(p + 0x2c) = 0.0f;
         } else {
-            f32 c78CC = (-9.80665f);
-            *(f32 *)(p + 0x34) = zero;
-            *(f32 *)(p + 0x2c) = zero;
-            *(f32 *)(p + 0x30) = c78CC * *(f32 *)(p + 0x0);
+            *(f32 *)(p + 0x34) = 0.0f;
+            *(f32 *)(p + 0x2c) = 0.0f;
+            *(f32 *)(p + 0x30) = (-9.80665f) * *(f32 *)(p + 0x0);
         }
 
         {
             f32 mag = PSVECMag((Vec *)(p + 0x20));
-            if (mag != zero) {
-                Vec local;
-                f32 scale;
 
-                PSVECScale((Vec *)(p + 0x20), windDrag, &local);
-                PSVECNormalize(&local, &local);
-                scale = ((f32)*(u16 *)((u8 *)item + 0x20) / 10000.0f) * (mag * mag);
-                PSVECScale(&local, scale, &local);
-                PSVECAdd((Vec *)(p + 0x2c), &local, (Vec *)(p + 0x2c));
+            if (mag != zero) {
+                PSVECScale((Vec *)(p + 0x20), windDrag, &local20);
+                PSVECNormalize(&local20, &local20);
+                PSVECScale(&local20, ((f32)*(u16 *)((u8 *)item + 0x20) / 10000.0f) * (mag * mag), &local20);
+                PSVECAdd((Vec *)(p + 0x2c), &local20, (Vec *)(p + 0x2c));
             }
         }
 
         if (once != zero) {
-            PSVECAdd((Vec *)(p + 0x2c), arg2, (Vec *)(p + 0x2c));
-            once = zero;
-        }
-
-        p -= 0x3c;
-    }
-
-    {
-        u8 *pCur = arg0 + count * 0x3c;
-        for (i = count; i != 0; i--) {
-            u8 *pNext = arg0 + (i - 1) * 0x3c;
-            Vec local20;
-            Vec local14;
-            Vec local8;
-            f32 mag20;
-            f32 dot;
-            f32 spring;
-
-            PSVECSubtract((Vec *)(pCur + 0x8), (Vec *)(pNext + 0x8), &local20);
-            PSVECSubtract((Vec *)(pCur + 0x20), (Vec *)(pNext + 0x20), &local14);
-            PSVECScale(&local14, argF4, &local14);
-            mag20 = PSVECMag(&local20);
-            dot = PSVECDotProduct(&local14, &local20);
-            PSVECNormalize(&local20, &local8);
-            spring = -(argF2 * (dot / mag20) + argF1 * (mag20 - argF3));
-            PSVECScale(&local8, spring, &local8);
-
-            if (*(u32 *)(pCur + 0x38) == 0) {
-                PSVECAdd(&local8, (Vec *)(pCur + 0x2c), (Vec *)(pCur + 0x2c));
-            }
-
-            PSVECScale(&local8, (-1.0f), &local8);
-
-            if (*(u32 *)(pNext + 0x38) == 0) {
-                PSVECAdd(&local8, (Vec *)(pNext + 0x2c), (Vec *)(pNext + 0x2c));
-            }
-
-            pCur -= 0x3c;
+            PSVECAdd((Vec *)(p + 0x2c), force, (Vec *)(p + 0x2c));
+            once = 0.0f;
         }
     }
 
-    {
-        u8 *p3 = arg0 + count * 0x3c;
-        for (i = count; i != 0; i--) {
-            if (*(u32 *)(p3 + 0x38) == 0) {
-                f32 threshold = *(f32 *)(p3 + 0xc);
-                f32 limit = (f32)*(u16 *)((u8 *)item + 0x28) / 1000.0f;
+    j = count;
+    while (--j != 0) {
+        f32 mag20;
+        f32 dampForce;
+        f32 springForce;
 
-                if (threshold <= limit) {
-                    f32 mag = PSVECMag((Vec *)(p3 + 0x20));
-                    if (mag != zero) {
-                        f32 f24 = (f32)*(u16 *)((u8 *)item + 0x1e) / 64.0f * *(f32 *)(p3 + 0x30);
-                        Vec local;
-                        f32 mag2;
+        p = arg0 + j * 0x3c;
+        pNext = arg0 + (j - 1) * 0x3c;
 
-                        if (f24 < zero) {
-                            f24 = -f24;
-                        }
+        PSVECSubtract((Vec *)(p + 0x8), (Vec *)(pNext + 0x8), &local20);
+        PSVECSubtract((Vec *)(p + 0x20), (Vec *)(pNext + 0x20), &local14);
+        PSVECScale(&local14, drag, &local14);
+        mag20 = PSVECMag(&local20);
+        dampForce = damping * (PSVECDotProduct(&local14, &local20) / mag20);
+        PSVECNormalize(&local20, &local8);
+        springForce = stiffness * (mag20 - restLength);
+        PSVECScale(&local8, -(springForce + dampForce), &local8);
 
-                        memcpy(&local, p3 + 0x2c, 0xc);
-                        local.y = zero;
+        if (*(u32 *)(p + 0x38) == 0) {
+            PSVECAdd((Vec *)(p + 0x2c), &local8, (Vec *)(p + 0x2c));
+        }
 
-                        mag2 = PSVECMag(&local);
-                        if (mag2 != zero) {
-                            PSVECNormalize(&local, &local);
-                            if (f24 <= mag2) {
-                                PSVECScale(&local, -mag2, &local);
-                            } else {
-                                PSVECScale(&local, -f24, &local);
-                            }
-                            PSVECAdd(&local, (Vec *)(p3 + 0x2c), (Vec *)(p3 + 0x2c));
-                        }
+        PSVECScale(&local8, (-1.0f), &local8);
+
+        if (*(u32 *)(pNext + 0x38) == 0) {
+            PSVECAdd((Vec *)(pNext + 0x2c), &local8, (Vec *)(pNext + 0x2c));
+        }
+    }
+
+    i = count;
+    while (i-- != 0) {
+        p = arg0 + i * 0x3c;
+
+        if (*(u32 *)(p + 0x38) == 0 && *(f32 *)(p + 0xc) <= (f32)*(u16 *)((u8 *)item + 0x28) / 1000.0f) {
+            f32 mag = PSVECMag((Vec *)(p + 0x20));
+
+            if (mag != 0.0f) {
+                f32 friction = (f32)*(u16 *)((u8 *)item + 0x1e) / 64.0f * *(f32 *)(p + 0x30);
+                f32 mag2;
+
+                if (friction < 0.0f) {
+                    friction = -friction;
+                }
+
+                memcpy(&local20, p + 0x2c, sizeof(Vec));
+                local20.y = 0.0f;
+
+                mag2 = PSVECMag(&local20);
+                if (mag2) {
+                    PSVECNormalize(&local20, &local20);
+                    if (friction > mag2) {
+                        PSVECScale(&local20, -mag2, &local20);
+                    } else {
+                        PSVECScale(&local20, -friction, &local20);
                     }
+                    PSVECAdd(&local20, (Vec *)(p + 0x2c), (Vec *)(p + 0x2c));
                 }
             }
-
-            p3 -= 0x3c;
         }
     }
 }
+
 
 // .text:0x00024A8C size:0x1C0
 void fn_1_24A8C(void) {
@@ -1256,6 +1253,8 @@ void fn_1_23B54(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     u16 flags;
     s32 row;
+    s32 gr;
+    s32 gc;
     f32 minZ;
     f32 maxZ;
 
@@ -1296,7 +1295,7 @@ void fn_1_23B54(void) {
         case 2:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 2) {
+                if (flags & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
                     *((u8 *)item + 0x2a) = !*((u8 *)item + 0x2a);
                 }
             }
@@ -1332,7 +1331,7 @@ void fn_1_23B54(void) {
         case 5:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 2) {
+                if (flags & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
                     *((u8 *)item + 0x2b) = !*((u8 *)item + 0x2b);
                 }
             }
@@ -1384,10 +1383,11 @@ void fn_1_23B54(void) {
         currentDrawingItem->func = fn_1_24778;
     } else if (flags & 0x100) {
         s32 i;
+        s32 idx;
 
         for (i = 0; i < 0x10; i++) {
-            s32 idx = (rand() % 0x20) * 0x80 + rand() % 0x80;
-
+            idx = (rand() % 0x20) * 0x80;
+            idx += rand() % 0x80;
             lbl_1_bss_76E0[idx] += *(f32 *)((u8 *)item + 0x1c);
         }
     }
@@ -1395,122 +1395,75 @@ void fn_1_23B54(void) {
     fn_1_121D4(lbl_1_bss_43EE0);
 
     if (*((u8 *)item + 0x2a) == 0) {
-        s32 rowCount;
-        u8 arg2 = *((u8 *)item + 0x27);
-        u8 arg3 = *((u8 *)item + 0x28);
-
-        rowCount = fn_1_23098(lbl_1_bss_47010, *(Mtx *)lbl_1_bss_43EE0,
-            *(f32 *)((u8 *)item + 0x18), *(f32 *)((u8 *)item + 0x14), arg2, arg3);
-        *((u8 *)item + 0x29) = (u8)rowCount;
+        *((u8 *)item + 0x29) = fn_1_23098(lbl_1_bss_47010, *(Mtx *)lbl_1_bss_43EE0,
+            *((u8 *)item + 0x27), *((u8 *)item + 0x28), *(f32 *)((u8 *)item + 0x18), *(f32 *)((u8 *)item + 0x14));
 
         if (*((u8 *)item + 0x2b) != 0) {
             u8 pingFlag = *((u8 *)item + 0x2c);
             f32 *src;
             f32 *dst;
-            f64 wSq;
-            f32 coeffNeighbor;
-            f32 coeffCenter;
-            f32 damp;
-            s32 r, c;
-            s32 gr, gc;
-            f32 *buf;
-            u8 *rowPtr;
 
             *((u8 *)item + 0x2c) = pingFlag + 1;
             src = lbl_1_bss_76E0 + (pingFlag & 1) * 0x1000;
             dst = lbl_1_bss_76E0 + (1 - (pingFlag & 1)) * 0x1000;
 
-            wSq = (0.016666666666666666 * lbl_1_data_104C0) / lbl_1_data_104BC;
-            wSq = wSq * wSq;
-            coeffNeighbor = (f32)wSq;
-            coeffCenter = (f32)(2.0 - 4.0 * wSq);
-            damp = lbl_1_data_104C4;
+            fn_1_22F4C(0x20, 0x80, dst, src, dst);
 
-            for (r = 0; r < 0x20; r++) {
-                s32 prevRow = (r + 0x1f) % 0x20;
-                s32 nextRow = (r + 1) % 0x20;
-                s32 rowBase = r * 0x80;
-                s32 prevRowBase = prevRow * 0x80;
-                s32 nextRowBase = nextRow * 0x80;
-
-                for (c = 0; c < 0x80; c++) {
-                    s32 k = rowBase + c;
-                    s32 prevCol = rowBase + (c + 0x7f) % 0x80;
-                    s32 nextCol = rowBase + (c + 1) % 0x80;
-                    f32 sum = src[prevRowBase + c] + src[nextRowBase + c];
-
-                    sum += src[prevCol];
-                    sum += src[nextCol];
-                    sum = coeffNeighbor * sum;
-                    sum = coeffCenter * src[k] + sum;
-                    sum -= dst[k];
-                    dst[k] = sum;
-                    dst[k] = dst[k] * damp;
-                }
-            }
-
-            buf = lbl_1_bss_76E0 + (*((u8 *)item + 0x2c) & 1) * 0x1000;
-            rowPtr = (u8 *)lbl_1_bss_F6E0;
-            minZ = (-100.0f);
-            maxZ = 100.0f;
+            maxZ = (-100.0f);
+            minZ = 100.0f;
 
             for (gr = 0; gr < *((u8 *)item + 0x28); gr++) {
-                u8 *cell = rowPtr;
-
                 for (gc = 0; gc < *((u8 *)item + 0x29); gc++) {
-                    f32 wx = *(f32 *)(cell + 0);
-                    f32 wy = *(f32 *)(cell + 4);
-                    f32 fracX;
-                    f32 fracY;
-                    s32 xi;
-                    s32 yi;
-                    f32 sample;
+                    GridPoint *p = &lbl_1_bss_F6E0[gr][gc];
+                    f32 x = p->x;
+                    f32 z = p->z;
+                    s32 n;
+                    f32 u;
+                    f32 v;
 
-                    if (wx >= 0.0f) {
-                        fracX = wx - (f32)(((s32)wx) & ~1);
+                    if (x < 0.0f) {
+                        n = (s32)-x;
                     } else {
-                        fracX = wx + (f32)((((s32)(-wx)) & ~1) + 2);
+                        n = (s32)x;
                     }
-                    if (wy >= 0.0f) {
-                        fracY = wy - (f32)(((s32)wy) & ~1);
+                    n = n / 2 * 2;
+                    if (x < 0.0f) {
+                        u = x + (f32)(n + 2);
                     } else {
-                        fracY = wy + (f32)((((s32)(-wy)) & ~1) + 2);
+                        u = x - (f32)n;
                     }
+                    u = 64.0f * u;
 
-                    xi = (s32)(64.0f * fracX);
-                    yi = (s32)(16.0f * fracY);
-
-                    sample = buf[yi * 0x80 + xi];
-                    *(f32 *)(cell + 8) = sample;
-
-                    if (sample < minZ) {
-                        minZ = sample;
+                    if (z < 0.0f) {
+                        n = (s32)-z;
+                    } else {
+                        n = (s32)z;
                     }
-                    if (sample > maxZ) {
-                        maxZ = sample;
+                    n = n / 2 * 2;
+                    if (z < 0.0f) {
+                        v = z + (f32)(n + 2);
+                    } else {
+                        v = z - (f32)n;
                     }
+                    v = 16.0f * v;
 
-                    cell += 0xc;
+                    p->y = dst[(s32)u + (s32)v * 0x80];
+
+                    if (p->y < minZ) {
+                        minZ = p->y;
+                    } else if (p->y > maxZ) {
+                        maxZ = p->y;
+                    }
                 }
-
-                rowPtr += 0x540;
             }
         } else {
-            u8 *rowPtr = (u8 *)lbl_1_bss_F6E0;
-
             minZ = 0.0f;
-            maxZ = 0.0f;
+            maxZ = minZ;
 
-            for (row = 0; row < *((u8 *)item + 0x28); row++) {
-                u8 *cell = rowPtr;
-                s32 col;
-
-                for (col = 0; col < *((u8 *)item + 0x29); col++) {
-                    *(f32 *)(cell + 8) = 0.0f;
-                    cell += 0xc;
+            for (gr = 0; gr < *((u8 *)item + 0x28); gr++) {
+                for (gc = 0; gc < *((u8 *)item + 0x29); gc++) {
+                    lbl_1_bss_F6E0[gr][gc].y = minZ;
                 }
-
-                rowPtr += 0x540;
             }
         }
     }
@@ -1537,9 +1490,7 @@ void fn_1_23AD8(Mtx44 m, f32 *arg1, f32 *arg2) {
 
 // .text:0x00023804 size:0x2D4
 void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 n1, s32 n2) {
-    u8 *base;
-    s32 stride2;
-    s32 vtxCount;
+    s32 j;
     s32 i;
 
     GXSetProjection(lbl_1_bss_47010, 0);
@@ -1557,32 +1508,28 @@ void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 n1, s32 n2) {
     GXLoadPosMtxImm((f32 (*)[4])lbl_1_bss_43EE0, 0);
     GXSetCurrentMtx(0);
 
-    base = (u8 *)lbl_1_bss_F6E0 + n1 * 0xc;
-    stride2 = n2 * 0x540;
-    vtxCount = n2 * 2;
+    i = n1;
+    while (--i != 0) {
+        j = n2;
+        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, n2 * 2);
 
-    for (i = n1; i != 0; i--) {
-        u8 *rowPtr = base + stride2;
-        s32 parity = i & 1;
-        s32 j;
+        while (j-- != 0) {
+            GridPoint *p = &lbl_1_bss_F6E0[0][i] + j * GRID_COLS;
 
-        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, (u16)vtxCount);
+            GX_WRITE_F32(p[0].x);
+            GX_WRITE_F32(p[0].y);
+            GX_WRITE_F32(p[0].z);
+            GX_WRITE_U32((i & 1) ? 0xffffffff : 0xffff);
 
-        for (j = n2; j != -1; j--) {
-            GX_WRITE_F32(*(f32 *)(rowPtr + 0x0));
-            GX_WRITE_F32(*(f32 *)(rowPtr + 0x8));
-            GX_WRITE_F32(*(f32 *)(rowPtr + 0x4));
-            GX_WRITE_U32(parity == 0 ? -1 : 0xffff);
-
-            GX_WRITE_F32(*(f32 *)(rowPtr - 0xc));
-            GX_WRITE_F32(*(f32 *)(rowPtr - 0x4));
-            GX_WRITE_F32(*(f32 *)(rowPtr - 0x8));
-            GX_WRITE_U32(parity == 0 ? -1 : 0xffff);
-
-            rowPtr -= 0x540;
+            GX_WRITE_F32(p[-1].x);
+            GX_WRITE_F32(p[-1].y);
+            GX_WRITE_F32(p[-1].z);
+            if (i & 1) {
+                GX_WRITE_U32(0xffff);
+            } else {
+                GX_WRITE_U32(0xffffffff);
+            }
         }
-
-        base -= 0xc;
     }
 
     GXBegin(GX_LINESTRIP, 0, 8);
@@ -1629,7 +1576,7 @@ void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 n1, s32 n2) {
 }
 
 // .text:0x00023098 size:0x76C
-s32 fn_1_23098(Mtx44 proj, Mtx view, f32 nearZ, f32 farZ, s32 cols, s32 rows) {
+s32 fn_1_23098(Mtx44 proj, Mtx view, s32 cols, s32 rows, f32 nearZ, f32 farZ) {
     Mtx44 m;
     Mtx inv;
     Vec ray[4];
@@ -1814,6 +1761,8 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
     f32 coeffCenter;
     s32 mMinus1;
     s32 i;
+    s32 rowBase;
+    s32 k;
 
     wSq = (0.016666666666666666 * lbl_1_data_104C0) / lbl_1_data_104BC;
     wSq = wSq * wSq;
@@ -1821,26 +1770,24 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
     coeffCenter = (f32)(2.0 - 4.0 * wSq);
     mMinus1 = m - 1;
 
+    rowBase = 0;
     for (i = 0; i < n; i++) {
-        s32 prevRowBase = m * ((i + n - 1) % n);
+        s32 prevRowBase = m * ((i + (n - 1)) % n);
         s32 nextRowBase = m * ((i + 1) % n);
-        s32 rowBase = i * m;
         s32 j;
 
+        k = rowBase;
         for (j = 0; j < m; j++) {
-            s32 k = rowBase + j;
             f32 val = src[k];
             f32 prev = other[k];
-            f32 sum = src[j + prevRowBase] + src[j + nextRowBase];
 
-            sum += src[(j + mMinus1) % m + rowBase];
-            sum += src[(j + 1) % m + rowBase];
-            dst[k] = coeffCenter * val + coeffNeighbor * sum - prev;
-            dst[k] = dst[k] * lbl_1_data_104C4;
+            dst[k] = coeffCenter * val + coeffNeighbor * (src[(j + 1) % m + rowBase] + (src[(j + mMinus1) % m + rowBase] + (src[j + prevRowBase] + src[j + nextRowBase]))) - prev;
+            dst[k] *= lbl_1_data_104C4;
+            k++;
         }
+        rowBase += m;
     }
 }
-
 
 // .text:0x00022DF4 size:0x158
 void fn_1_22DF4(DrawingSceneStruct *arg0) {
@@ -2078,6 +2025,74 @@ void fn_1_225B8(void) {
     }
 }
 
+static inline void updateChainLinks(void *arg0, s32 arg1, Mtx arg2) {
+    u8 *rec;
+    s32 j;
+
+    j = 20;
+    while (j-- != 0) {
+        u8 *table1;
+        Mtx m;
+        Vec diff;
+        Vec v;
+        Quaternion q1;
+        Quaternion q2;
+
+        rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
+        table1 = (u8 *)arg0 + j * 0x40;
+
+        *(u8 *)(rec + 0x6c) = arg1 > j;
+
+        if (j < arg1) {
+            PSVECSubtract((Vec *)((u8 *)arg0 + (j + 1) * 0x40 + 0xc), (Vec *)(table1 + 0xc), &diff);
+            PSVECScale(&diff, 0.5f, &v);
+            PSVECAdd((Vec *)(table1 + 0xc), &v, &v);
+            CTRLSetTranslation((Control *)(rec + 0x10), v.x, -v.y, v.z);
+
+            if (PSVECMag(&diff)) {
+                f32 angle1;
+
+                PSVECNormalize(&diff, &diff);
+                diff.y = -diff.y;
+
+                angle1 = (f32)((3.141592502593994 * (2.5 + (f64)(j & 1))) / 6.0);
+
+                v.x = 1.0f;
+                v.y = 0.0f;
+                v.z = 0.0f;
+
+                C_QUATRotAxisRad(&q1, &v, angle1);
+
+                {
+                    f32 dot = PSVECDotProduct(&diff, &v);
+                    f32 angle2 = (f32)acos(dot);
+                    f32 mag2;
+
+                    PSVECCrossProduct(&v, &diff, &v);
+                    mag2 = PSVECMag(&v);
+
+                    if (mag2) {
+                        C_QUATRotAxisRad(&q2, &v, angle2);
+                        PSQUATMultiply(&q2, &q1, &q1);
+                    }
+                }
+
+                CTRLSetQuat((Control *)(rec + 0x10), q1.x, q1.y, q1.z, q1.w);
+            }
+
+            CTRLSetScale((Control *)(rec + 0x10), lbl_1_data_104D0[0], lbl_1_data_104D0[1], lbl_1_data_104D0[2]);
+            fn_800BDA24(rec);
+        }
+
+        PSMTXTrans(m, 0.0f, 0.0f, 0.0f);
+        PSMTXConcat(arg2, m, m);
+
+        *((u8 *)(*(void **)rec) + 0x98) |= 3;
+    }
+
+    fn_800BD670(lbl_1_bss_6BE0, arg2);
+}
+
 // .text:0x00021CE8 size:0x8D0
 void fn_1_21CE8(void) {
     DrawingSceneStruct *item = currentDrawingItem;
@@ -2092,7 +2107,7 @@ void fn_1_21CE8(void) {
 
     if (*((u8 *)item + 0x23) != 0) {
         f32 windMul;
-        u8 *e;
+        ChainNode *node;
         f32 dB0;
         f32 dB1;
         f32 dB3;
@@ -2104,18 +2119,18 @@ void fn_1_21CE8(void) {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
-        e = (lbl_1_bss_6FE0) + *((u8 *)item + 0x21) * 0x40;
         dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
         dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
-        *(f32 *)(e - 0x34) = dB0 * windMul + *(f32 *)(e - 0x34);
         dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
-        e = (lbl_1_bss_6FE0) + *((u8 *)item + 0x21) * 0x40;
-        *(f32 *)(e - 0x30) = dB3 * windMul + *(f32 *)(e - 0x30);
-        e = (lbl_1_bss_6FE0) + *((u8 *)item + 0x21) * 0x40;
-        *(f32 *)(e - 0x2c) = dB1 * windMul + *(f32 *)(e - 0x2c);
+        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
+        node[-1].pos.x += dB0 * windMul;
+        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
+        node[-1].pos.y += dB3 * windMul;
+        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
+        node[-1].pos.z += dB1 * windMul;
 
-        entryPrev = (lbl_1_bss_6FE0) + (*((u8 *)item + 0x21) - 1) * 0x40;
-        memcpy(entryPrev + 0x18, entryPrev + 0xc, 0xc);
+        memcpy(&((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].prevPos,
+            &((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].pos, sizeof(Vec));
 
         windVec[0] = 0.0f;
         windVec[1] = 0.0f;
@@ -2150,143 +2165,12 @@ void fn_1_21CE8(void) {
     GXLoadPosMtxImm((f32 (*)[4])lbl_1_bss_43EE0, 0);
     GXSetCurrentMtx(0);
 
-    GXBegin(GX_LINES, GX_VTXFMT0, 0x2c);
+    fn_1_21040();
 
-    for (i = 0; i < 11; i++) {
-        s32 n = (i - 5) * 10;
-        u32 color = (i == 5) ? (u32)-1 : 0xff0000ffu;
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32((-50.0f));
-        GX_WRITE_U32(color);
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32(50.0f);
-        GX_WRITE_U32(color);
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32((-50.0f));
-        GX_WRITE_U32(color);
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32(50.0f);
-        GX_WRITE_U32(color);
-    }
-
-    if (*((u8 *)item + 0x22) != 0) {
-        u8 count = *((u8 *)item + 0x21);
-        u8 *ptr = (lbl_1_bss_6FE0) + count * 0x40;
-
-        GXBegin(GX_LINESTRIP, 0, (u16)((count - 1) * 2));
-
-        for (; count != 0; count--) {
-            GX_WRITE_F32(*(f32 *)(ptr + 0xc));
-            GX_WRITE_F32(0.0f);
-            GX_WRITE_F32(*(f32 *)(ptr + 0x14));
-            GX_WRITE_U32(0x80);
-            GX_WRITE_F32(*(f32 *)(ptr - 0x34));
-            GX_WRITE_F32(0.0f);
-            GX_WRITE_F32(*(f32 *)(ptr - 0x2c));
-            GX_WRITE_U32(0x80);
-            ptr -= 0x40;
-        }
-    }
-
-    if (*((u8 *)item + 0x24) != 0) {
-        u8 count = *((u8 *)item + 0x21);
-        u8 *ptr = (lbl_1_bss_6FE0) + count * 0x40;
-
-        GXBegin(GX_LINESTRIP, 0, (u16)((count - 1) * 2));
-
-        for (; count != 0; count--) {
-            u32 color = lbl_1_data_104DC[count % 6];
-
-            GX_WRITE_F32(*(f32 *)(ptr + 0xc));
-            GX_WRITE_F32(-*(f32 *)(ptr + 0x10));
-            GX_WRITE_F32(*(f32 *)(ptr + 0x14));
-            GX_WRITE_U32(color);
-            GX_WRITE_F32(*(f32 *)(ptr - 0x34));
-            GX_WRITE_F32(-*(f32 *)(ptr - 0x30));
-            GX_WRITE_F32(*(f32 *)(ptr - 0x2c));
-            GX_WRITE_U32(color);
-            ptr -= 0x40;
-        }
-    }
+    fn_1_21298(item);
 
     if (lbl_1_bss_6BE0 != NULL) {
-        s32 lastIdx = *((u8 *)item + 0x21) - 1;
-        s32 j;
-
-        for (j = 19; j >= 0; j--) {
-            u8 *table1 = (lbl_1_bss_6FE0) + j * 0x40;
-            u8 *rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
-            u8 lt = lastIdx > j;
-
-            *(u8 *)(rec + 0x6c) = lt;
-
-            if (j < lastIdx) {
-                Vec diff;
-                Vec scaled;
-
-                PSVECSubtract((Vec *)(table1 + 0xc), (Vec *)((lbl_1_bss_6FE0) + (j + 1) * 0x40 + 0xc), &diff);
-                PSVECScale(&diff, 0.5f, &scaled);
-                PSVECAdd((Vec *)(table1 + 0xc), &scaled, &scaled);
-                CTRLSetTranslation((Control *)(rec + 0x10), scaled.x, -scaled.y, scaled.z);
-
-                if (PSVECMag(&diff) != 0.0f) {
-                    Quaternion q1;
-                    Vec axis;
-                    f32 angle1;
-
-                    PSVECNormalize(&diff, &diff);
-                    diff.y = -diff.y;
-
-                    angle1 = (f32)((3.141592502593994 * (2.5 + (f64)(j & 1))) / 6.0);
-
-                    axis.x = 1.0f;
-                    axis.y = 0.0f;
-                    axis.z = 0.0f;
-
-                    C_QUATRotAxisRad(&q1, &axis, angle1);
-
-                    {
-                        f32 dot = PSVECDotProduct(&diff, &axis);
-                        f32 angle2 = (f32)acos(dot);
-                        f32 mag2;
-
-                        PSVECCrossProduct(&diff, &axis, &axis);
-                        mag2 = PSVECMag(&axis);
-
-                        if (mag2 != 0.0f) {
-                            Quaternion q2;
-
-                            C_QUATRotAxisRad(&q2, &axis, angle2);
-                            PSQUATMultiply(&q2, &q1, &q1);
-                        }
-                    }
-
-                    CTRLSetQuat((Control *)(rec + 0x10), q1.x, q1.y, q1.z, q1.w);
-                }
-
-                CTRLSetScale((Control *)(rec + 0x10), lbl_1_data_104D0[0], lbl_1_data_104D0[1], lbl_1_data_104D0[2]);
-                fn_800BDA24(rec);
-            }
-
-            {
-                Mtx m;
-
-                PSMTXTrans(m, 0.0f, 0.0f, 0.0f);
-                PSMTXConcat(*(Mtx *)lbl_1_bss_43EE0, m, *(Mtx *)lbl_1_bss_43EE0);
-            }
-
-            *((u8 *)(*(void **)rec) + 0x98) |= 3;
-        }
-
-        fn_800BD670(lbl_1_bss_6BE0, *(Mtx *)lbl_1_bss_43EE0);
+        updateChainLinks(lbl_1_bss_6FE0, *((u8 *)item + 0x21) - 1, (f32 (*)[4])lbl_1_bss_43EE0);
     }
 }
 
@@ -2309,7 +2193,7 @@ void fn_1_21408(void) {
 
     if (*((u8 *)item + 0x23) != 0) {
         f32 windMul;
-        u8 *e;
+        ChainNode *node;
         f32 dB0;
         f32 dB1;
         f32 dB3;
@@ -2321,18 +2205,18 @@ void fn_1_21408(void) {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
-        e = (lbl_1_bss_6FE0) + *((u8 *)item + 0x21) * 0x40;
         dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
         dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
-        *(f32 *)(e - 0x34) = dB0 * windMul + *(f32 *)(e - 0x34);
         dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
-        e = (lbl_1_bss_6FE0) + *((u8 *)item + 0x21) * 0x40;
-        *(f32 *)(e - 0x30) = dB3 * windMul + *(f32 *)(e - 0x30);
-        e = (lbl_1_bss_6FE0) + *((u8 *)item + 0x21) * 0x40;
-        *(f32 *)(e - 0x2c) = dB1 * windMul + *(f32 *)(e - 0x2c);
+        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
+        node[-1].pos.x += dB0 * windMul;
+        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
+        node[-1].pos.y += dB3 * windMul;
+        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
+        node[-1].pos.z += dB1 * windMul;
 
-        entryPrev = (lbl_1_bss_6FE0) + (*((u8 *)item + 0x21) - 1) * 0x40;
-        memcpy(entryPrev + 0x18, entryPrev + 0xc, 0xc);
+        memcpy(&((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].prevPos,
+            &((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].pos, sizeof(Vec));
 
         windVec[0] = 0.0f;
         windVec[1] = 0.0f;
@@ -2367,143 +2251,12 @@ void fn_1_21408(void) {
     GXLoadPosMtxImm((f32 (*)[4])lbl_1_bss_43EE0, 0);
     GXSetCurrentMtx(0);
 
-    GXBegin(GX_LINES, GX_VTXFMT0, 0x2c);
+    fn_1_21040();
 
-    for (i = 0; i < 11; i++) {
-        s32 n = (i - 5) * 10;
-        u32 color = (i == 5) ? (u32)-1 : 0xff0000ffu;
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32((-50.0f));
-        GX_WRITE_U32(color);
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32(50.0f);
-        GX_WRITE_U32(color);
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32((-50.0f));
-        GX_WRITE_U32(color);
-
-        GX_WRITE_F32((f32)n);
-        GX_WRITE_F32(0.0f);
-        GX_WRITE_F32(50.0f);
-        GX_WRITE_U32(color);
-    }
-
-    if (*((u8 *)item + 0x22) != 0) {
-        u8 count = *((u8 *)item + 0x21);
-        u8 *ptr = (lbl_1_bss_6FE0) + count * 0x40;
-
-        GXBegin(GX_LINESTRIP, 0, (u16)((count - 1) * 2));
-
-        for (; count != 0; count--) {
-            GX_WRITE_F32(*(f32 *)(ptr + 0xc));
-            GX_WRITE_F32(0.0f);
-            GX_WRITE_F32(*(f32 *)(ptr + 0x14));
-            GX_WRITE_U32(0x80);
-            GX_WRITE_F32(*(f32 *)(ptr - 0x34));
-            GX_WRITE_F32(0.0f);
-            GX_WRITE_F32(*(f32 *)(ptr - 0x2c));
-            GX_WRITE_U32(0x80);
-            ptr -= 0x40;
-        }
-    }
-
-    if (*((u8 *)item + 0x24) != 0) {
-        u8 count = *((u8 *)item + 0x21);
-        u8 *ptr = (lbl_1_bss_6FE0) + count * 0x40;
-
-        GXBegin(GX_LINESTRIP, 0, (u16)((count - 1) * 2));
-
-        for (; count != 0; count--) {
-            u32 color = lbl_1_data_104DC[count % 6];
-
-            GX_WRITE_F32(*(f32 *)(ptr + 0xc));
-            GX_WRITE_F32(-*(f32 *)(ptr + 0x10));
-            GX_WRITE_F32(*(f32 *)(ptr + 0x14));
-            GX_WRITE_U32(color);
-            GX_WRITE_F32(*(f32 *)(ptr - 0x34));
-            GX_WRITE_F32(-*(f32 *)(ptr - 0x30));
-            GX_WRITE_F32(*(f32 *)(ptr - 0x2c));
-            GX_WRITE_U32(color);
-            ptr -= 0x40;
-        }
-    }
+    fn_1_21298(item);
 
     if (lbl_1_bss_6BE0 != NULL) {
-        s32 lastIdx = *((u8 *)item + 0x21) - 1;
-        s32 j;
-
-        for (j = 19; j >= 0; j--) {
-            u8 *table1 = (lbl_1_bss_6FE0) + j * 0x40;
-            u8 *rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
-            u8 lt = lastIdx > j;
-
-            *(u8 *)(rec + 0x6c) = lt;
-
-            if (j < lastIdx) {
-                Vec diff;
-                Vec scaled;
-
-                PSVECSubtract((Vec *)(table1 + 0xc), (Vec *)((lbl_1_bss_6FE0) + (j + 1) * 0x40 + 0xc), &diff);
-                PSVECScale(&diff, 0.5f, &scaled);
-                PSVECAdd((Vec *)(table1 + 0xc), &scaled, &scaled);
-                CTRLSetTranslation((Control *)(rec + 0x10), scaled.x, -scaled.y, scaled.z);
-
-                if (PSVECMag(&diff) != 0.0f) {
-                    Quaternion q1;
-                    Vec axis;
-                    f32 angle1;
-
-                    PSVECNormalize(&diff, &diff);
-                    diff.y = -diff.y;
-
-                    angle1 = (f32)((3.141592502593994 * (2.5 + (f64)(j & 1))) / 6.0);
-
-                    axis.x = 1.0f;
-                    axis.y = 0.0f;
-                    axis.z = 0.0f;
-
-                    C_QUATRotAxisRad(&q1, &axis, angle1);
-
-                    {
-                        f32 dot = PSVECDotProduct(&diff, &axis);
-                        f32 angle2 = (f32)acos(dot);
-                        f32 mag2;
-
-                        PSVECCrossProduct(&diff, &axis, &axis);
-                        mag2 = PSVECMag(&axis);
-
-                        if (mag2 != 0.0f) {
-                            Quaternion q2;
-
-                            C_QUATRotAxisRad(&q2, &axis, angle2);
-                            PSQUATMultiply(&q2, &q1, &q1);
-                        }
-                    }
-
-                    CTRLSetQuat((Control *)(rec + 0x10), q1.x, q1.y, q1.z, q1.w);
-                }
-
-                CTRLSetScale((Control *)(rec + 0x10), lbl_1_data_104D0[0], lbl_1_data_104D0[1], lbl_1_data_104D0[2]);
-                fn_800BDA24(rec);
-            }
-
-            {
-                Mtx m;
-
-                PSMTXTrans(m, 0.0f, 0.0f, 0.0f);
-                PSMTXConcat(*(Mtx *)lbl_1_bss_43EE0, m, *(Mtx *)lbl_1_bss_43EE0);
-            }
-
-            *((u8 *)(*(void **)rec) + 0x98) |= 3;
-        }
-
-        fn_800BD670(lbl_1_bss_6BE0, *(Mtx *)lbl_1_bss_43EE0);
+        updateChainLinks(lbl_1_bss_6FE0, *((u8 *)item + 0x21) - 1, (f32 (*)[4])lbl_1_bss_43EE0);
     }
 }
 
@@ -2584,7 +2337,9 @@ void fn_1_21180(DrawingSceneStruct *arg0) {
     fn_80038CD0(idx, lbl_1_bss_6FB8, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)arg0 + 0x18));
 
     {
-        u8 *entry = (lbl_1_bss_6FE0) + (*((u8 *)arg0 + 0x21) - 1) * 0x40;
+        u8 *entry = lbl_1_bss_6FE0;
+
+        entry += (*((u8 *)arg0 + 0x21) - 1) * 0x40;
 
         lbl_1_bss_6FA8.x = *(f32 *)(entry + 0xc);
         lbl_1_bss_6FA8.y = *(f32 *)(entry + 0x10);
@@ -2727,17 +2482,20 @@ void fn_1_20BD8(void) {
 
 // .text:0x00020950 size:0x288
 void fn_1_20950(void *arg0, s32 arg1, Mtx arg2) {
+    u8 *rec;
     s32 j;
 
     j = 20;
     while (j-- != 0) {
-        u8 *rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
-        u8 *table1 = (u8 *)arg0 + j * 0x40;
+        u8 *table1;
         Mtx m;
         Vec diff;
         Vec v;
         Quaternion q1;
         Quaternion q2;
+
+        rec = (u8 *)lbl_1_bss_6BE0 + j * 0x90 + 0x34;
+        table1 = (u8 *)arg0 + j * 0x40;
 
         *(u8 *)(rec + 0x6c) = arg1 > j;
 
@@ -3185,7 +2943,6 @@ void fn_1_1F618(void *arg0) {
 
     while (outerCount-- != 0) {
         u32 entries[1];
-        f32 z;
         s32 i;
 
         entries[0] = outerCount % 4;
@@ -3219,21 +2976,19 @@ void fn_1_1F618(void *arg0) {
 
         GXBegin(GX_QUADS, 0, 4);
 
-        z = 0.5f - 0.0001f * (f32)outerCount;
-
-        GXPosition3f32(0.0f, 0.0f, z);
+        GXPosition3f32(0.0f, 0.0f, 0.5f - 0.0001f * (f32)outerCount);
         GXColor1u32(0xFFFFFF80);
         GXTexCoord2u16(0, 0);
 
-        GXPosition3f32(0.0f, 448.0f, z);
+        GXPosition3f32(0.0f, 448.0f, 0.5f - 0.0001f * (f32)outerCount);
         GXColor1u32(0xFFFFFF80);
         GXTexCoord2u16(0, 0x100);
 
-        GXPosition3f32(640.0f, 448.0f, z);
+        GXPosition3f32(640.0f, 448.0f, 0.5f - 0.0001f * (f32)outerCount);
         GXColor1u32(0xFFFFFF80);
         GXTexCoord2u16(0x100, 0x100);
 
-        GXPosition3f32(640.0f, 0.0f, z);
+        GXPosition3f32(640.0f, 0.0f, 0.5f - 0.0001f * (f32)outerCount);
         GXColor1u32(0xFFFFFF80);
         GXTexCoord2u16(0x100, 0);
     }
@@ -3565,13 +3320,12 @@ void fn_1_1E5D0(u8 *base) {
     Vec *pv2;
 
     fn_1_F2C(GX_PASSCLR, 0, FALSE);
-    GXSetBlendMode(1, 4, 5, 3);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
 
     PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)(base + 0xc), &v1);
-    pv2 = &v2;
-    PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)base, pv2);
+    PSMTXMultVec((f32(*)[4])(base + 0x58), (Vec *)base, pv2 = &v2);
 
-    GXBegin(GX_LINES, 0, 2);
+    GXBegin(GX_LINES, GX_VTXFMT0, 2);
     GX_WRITE_F32(v1.x);
     GX_WRITE_F32(v1.y);
     GX_WRITE_F32(v1.z);
@@ -3587,7 +3341,7 @@ void fn_1_1E5D0(u8 *base) {
     GX_WRITE_U8(0x40);
     GX_WRITE_U8(0xff);
 
-    GXBegin(GX_LINES, 0, 4);
+    GXBegin(GX_LINES, GX_VTXFMT0, 4);
     PSVECScale((Vec *)(base + 0xe8), 1.0f, &v1);
     PSVECAdd(&v1, (Vec *)(base + 0xf4), pv2);
     GX_WRITE_F32(v1.x);
@@ -3633,7 +3387,7 @@ void fn_1_1E5D0(u8 *base) {
         v2.z = lbl_1_bss_6BE4[3];
         PSVECAdd(&v1, pv2, pv2);
 
-        GXBegin(GX_LINES, 0, 2);
+        GXBegin(GX_LINES, GX_VTXFMT0, 2);
         GX_WRITE_F32(v1.x);
         GX_WRITE_F32(v1.y);
         GX_WRITE_F32(v1.z);

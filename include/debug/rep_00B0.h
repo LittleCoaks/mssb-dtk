@@ -47,6 +47,7 @@ typedef struct PickState {
     /*0x74*/ u16 hit;
 } PickState;
 
+void fn_1_196C(void);
 void fn_1_19AC(void);
 void fn_1_1BF8(f32 *boxes, s32 idx);
 void fn_1_1DBC(s32 a, s32 b, s32 c, s32 d, s32 e);

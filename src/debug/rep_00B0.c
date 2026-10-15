@@ -44,6 +44,16 @@ static GXColor lbl_1_data_240[21] = {
 };
 static GXColor lbl_1_data_294 = {0x00, 0x00, 0x00, 0x00};
 
+typedef struct DrawCallbackRec {
+    s32 reserved;
+    void (*fn)(void);
+} DrawCallbackRec;
+
+extern u8 drawStadiumRelated;
+extern void fn_800A7D4C(s32 arg0, void *arg1);
+
+DrawCallbackRec lbl_1_data_298[2] = {{0, fn_1_19AC}, {0, fn_1_19AC}};
+
 #define FBITS(f) (*(u32 *)&(f))
 #define FLOAT_SIGN_MASK 0x80000000
 #define DL_BUFFER_SIZE 0x80000
@@ -462,4 +472,9 @@ void fn_1_19AC(void) {
         }
     }
     GXCallDisplayList(lbl_1_common_bss_472B4.dlBuf, size);
+}
+
+// .text:0x0000196C size:0x40
+void fn_1_196C(void) {
+    fn_800A7D4C(0, &lbl_1_data_298[drawStadiumRelated]);
 }

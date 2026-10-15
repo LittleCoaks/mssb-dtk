@@ -103,6 +103,11 @@ typedef struct DbgDrawNode {
     /*0x68*/ DbgActorSet *model;
 } DbgDrawNode;
 
+typedef struct DbgOffsetTable {
+    /*0x00*/ u16 count;
+    /*0x04*/ u32 offsets[1];
+} DbgOffsetTable;
+
 typedef struct DbgViewState {
     /*0x000*/ Mtx view;
     /*0x030*/ u16 yaw;
@@ -120,7 +125,7 @@ typedef struct DbgViewState {
     /*0x220*/ u8 pad220[4];
     /*0x224*/ void *list;
     /*0x228*/ s16 count;
-    /*0x22A*/ u16 actorCount;
+    /*0x22A*/ s16 actorCount;
     /*0x22C*/ s16 visibleCount;
     /*0x22E*/ s16 selected;
     /*0x230*/ s8 stadium;
@@ -155,7 +160,6 @@ extern void fn_80048C14(s32 arg0);
 extern DbgViewState lbl_1_common_bss_472B4;
 extern u8 drawStadiumRelated;
 extern void fn_800A7D4C(s32 arg0, void *arg1);
-extern void fn_1_4DD8(void *arg0);
 extern void AdjustActorPointers(void *arg0);
 extern void AdjustGEOPalettePointers(void *arg0);
 extern void convertTextureHeader(void *arg0);
@@ -182,7 +186,6 @@ extern void *ARAMTransfer(void *file, s32 arg1, s32 arg2, s32 arg3);
 extern void DCFlushRangeNoSync(void *addr, u32 numBytes);
 extern u8 lbl_803C6CF8[0x708];
 extern f32 lbl_1_data_200[6];
-extern void fn_1_85A8(void);
 
 static u8 lbl_1_bss_520[0x2A88] ATTRIBUTE_ALIGN(32);
 static GXTexObj lbl_1_bss_4E4;
@@ -339,6 +342,23 @@ static u8 lbl_1_data_A6D = 1;
 static f32 lbl_1_data_A70 = 1.0f;
 static f32 lbl_1_data_A74[2][3] = {{0.5f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}};
 
+
+// .text:0x000085A8 size:0x7C
+void fn_1_85A8(void) {
+    u16 buttons = INPUT1_FIELD(u16, 4);
+
+    if (buttons & INPUT_BUTTON_LEFT) {
+        lbl_1_common_bss_472B4.selected--;
+        if (lbl_1_common_bss_472B4.selected < -1) {
+            lbl_1_common_bss_472B4.selected = lbl_1_common_bss_472B4.actorCount - 1;
+        }
+    } else if (buttons & INPUT_BUTTON_RIGHT) {
+        lbl_1_common_bss_472B4.selected++;
+        if (lbl_1_common_bss_472B4.selected >= lbl_1_common_bss_472B4.actorCount) {
+            lbl_1_common_bss_472B4.selected = -1;
+        }
+    }
+}
 
 // .text:0x00008368 size:0x240
 void fn_1_8368(void) {
@@ -600,10 +620,10 @@ void fn_1_77EC(void *arg0) {
 
 // .text:0x000073B8 size:0x434
 void fn_1_73B8(void *arg0, u8 count, ...) {
-    DbgGeoTable *table;
-    DbgActorSet *set;
     Mtx concat;
     f32 box[24];
+    DbgGeoTable *table;
+    DbgActorSet *set;
     DbgGeo *geo;
     MtxPtr cam1;
     s16 sel;
@@ -1153,27 +1173,28 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
     s32 w = arg1;
     s32 h = arg2;
     s32 yBand;
+    s32 halfH;
     u8 band;
     s32 y;
     s32 x;
-    f32 ny2;
     f32 uAngle;
+    f32 vAngle;
     f32 nx;
     f32 ny;
     f32 nxUv;
     f32 nyUv;
-    f32 vAngle;
     f32 d;
 
     memset(arg0, 0, w * 2 * h);
+    halfH = h / 2;
 
     for (y = 0; y < h; y++) {
+        x = 0;
         ny = 2.0f * ((f32)y / (f32)h - 0.5f);
         nyUv = ny / 2 + 0.5f;
         yBand = (ny > 0.2f) & (ny < 0.8f);
-        ny2 = ny * ny;
 
-        for (x = 0; x < w; x++) {
+        for (; x < w; x++) {
             Vec vec;
             Vec xz;
             Vec cross;
@@ -1182,10 +1203,10 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
             nxUv = nx / 2 + 0.5f;
             band = (nx < 0.8f) & ((nx > 0.2f) & yBand);
 
-            if (y == h / 2) {
+            if (y == halfH) {
                 d = 1.0f - nx * nx;
             } else {
-                d = (1.0f - nx * nx) - ny2;
+                d = (1.0f - nx * nx) - ny * ny;
             }
 
             if (d < 0.0f) {
@@ -1202,20 +1223,18 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
             if (band && arg3 != 1.0f) {
                 PSVECCrossProduct(&lbl_1_data_A48, &vec, &cross);
                 if (PSVECMag(&cross)) {
-                    f32 half;
-                    f32 s;
                     f32 c;
                     Quaternion quat;
                     Mtx mtx;
 
                     PSVECNormalize(&cross, &cross);
-                    half = (f32)acos(PSVECDotProduct(&lbl_1_data_A48, &vec));
-                    half = half * arg3 / 2;
-                    s = sin(half);
-                    c = cos(half);
-                    quat.x = cross.x * s;
-                    quat.y = cross.y * s;
-                    quat.z = cross.z * s;
+                    uAngle = (f32)acos(PSVECDotProduct(&lbl_1_data_A48, &vec));
+                    uAngle = uAngle * arg3 / 2;
+                    vAngle = sin(uAngle);
+                    c = cos(uAngle);
+                    quat.x = cross.x * vAngle;
+                    quat.y = cross.y * vAngle;
+                    quat.z = cross.z * vAngle;
                     quat.w = c;
                     PSMTXQuat(mtx, &quat);
                     PSMTXMultVec(mtx, &lbl_1_data_A48, &vec);
@@ -1576,6 +1595,22 @@ void fn_1_4E98(void *arg0, void *arg1) {
                 }
             }
         }
+    }
+}
+#pragma dont_inline reset
+
+// .text:0x00004DD8 size:0xC0
+#pragma dont_inline on
+void fn_1_4DD8(void *arg0) {
+    DbgOffsetTable *table = arg0;
+    u32 *p;
+    s32 i;
+
+    lbl_1_common_bss_472B4.count = table->count;
+    lbl_1_common_bss_472B4.list = table->offsets;
+    p = table->offsets;
+    for (i = (s16)table->count; i >= 0; i--) {
+        *p++ += (u32)table;
     }
 }
 #pragma dont_inline reset

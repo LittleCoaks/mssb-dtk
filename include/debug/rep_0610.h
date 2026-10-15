@@ -382,7 +382,7 @@ typedef struct DbgSlotAbs {
 
 #define SLOTA(i) ((DbgSlotAbs *)((u8 *)&hugeAnimStruct + (i) * 0x27C))
 
-s32 fn_1_C2DC(DbgTreeNode *n, char *buf, s32 pos, s32 w, s32 ret, s32 *p28, s32 *p29, s32 *p30);
+s32 fn_1_C2DC(DbgTreeNode *n, char *buf, s32 pos, s32 w, s32 ret, s32 *rows, s32 *skip, s32 *left);
 void fn_1_C5A8(void);
 void fn_1_C5AC(void);
 void fn_1_C9E0(DbgBlob *blob);

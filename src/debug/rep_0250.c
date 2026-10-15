@@ -4,6 +4,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "Unknown/File_0x80035ca4.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "text/text_channel.h"
@@ -39,6 +40,20 @@ extern u16 fn_80036824(u8 arg0, s32 arg1, s32 arg2);
 
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_1_common_bss_47698[0x22D8];
+
+typedef struct DebugMenuState {
+    /*0x00*/ s32 screen;
+    /*0x04*/ s32 menuCursor;
+    /*0x08*/ s32 pageCursor;
+    /*0x0C*/ u8 phase;
+    /*0x0D*/ u8 pageDirty;
+    /*0x0E*/ u8 pageShown;
+    /*0x0F*/ u8 page;
+    /*0x10*/ u8 prevPage;
+    /*0x11*/ u8 pad11[0x13];
+} DebugMenuState;
+
+extern DebugMenuState lbl_1_common_bss_47674;
 
 #define SCENE_REC(scene, k) \
     ((UIRecord *)graphicsRelatedArray[((MenuScene *)(scene))->firstHandle + (k)].object)
@@ -535,4 +550,192 @@ void fn_1_8CD4(void) {
     if (lbl_1_bss_2FAC > 3) {
         lbl_1_bss_2FAC = 0;
     }
+}
+
+// .text:0x00008C9C size:0x38
+void fn_1_8C9C(void) {
+    *(u16 *)lbl_1_common_bss_47698 = 0;
+    clearBytes(lbl_1_common_bss_47698 + 2, 10);
+    lbl_1_common_bss_47698[0xC] = 0;
+}
+
+// .text:0x00008B90 size:0x10C
+void fn_1_8B90(void) {
+    DebugMenuScene *item;
+    u16 buttons;
+
+    switch (lbl_1_common_bss_47674.screen) {
+    case 0:
+        lbl_1_common_bss_47674.screen++;
+        break;
+    case 1:
+        item = (DebugMenuScene *)currentDrawingItem;
+        buttons = AtBat_ButtonInput1._02;
+        if (buttons & INPUT_BUTTON_UP) {
+            if (--lbl_1_common_bss_47674.menuCursor < 0) {
+                lbl_1_common_bss_47674.menuCursor = 1;
+            }
+        } else if (buttons & INPUT_BUTTON_DOWN) {
+            if (++lbl_1_common_bss_47674.menuCursor == 2) {
+                lbl_1_common_bss_47674.menuCursor = 0;
+            }
+        } else if (buttons & INPUT_BUTTON_A) {
+            if (lbl_1_common_bss_47674.menuCursor == 0) {
+                item->func = fn_1_9AB0;
+            } else {
+                item->func = fn_1_88D0;
+            }
+        } else if (buttons & INPUT_BUTTON_B) {
+            lbl_1_common_bss_47674.screen = 0;
+            unregisterObjectByID(6);
+            item->parent->state = 1;
+        }
+        break;
+    }
+}
+
+// .text:0x00008B8C size:0x4
+void fn_1_8B8C(void) {
+    return;
+}
+
+// .text:0x00008A90 size:0xFC
+void fn_1_8A90(void) {
+    DebugMenuScene *item = (DebugMenuScene *)currentDrawingItem;
+    u16 buttons = AtBat_ButtonInput1._02;
+
+    if (buttons & INPUT_BUTTON_UP) {
+        if (--lbl_1_common_bss_47674.menuCursor < 0) {
+            lbl_1_common_bss_47674.menuCursor = 1;
+        }
+    } else if (buttons & INPUT_BUTTON_DOWN) {
+        if (++lbl_1_common_bss_47674.menuCursor == 2) {
+            lbl_1_common_bss_47674.menuCursor = 0;
+        }
+    } else if (buttons & INPUT_BUTTON_A) {
+        if (lbl_1_common_bss_47674.menuCursor == 0) {
+            item->func = fn_1_9AB0;
+        } else {
+            item->func = fn_1_88D0;
+        }
+    } else if (buttons & INPUT_BUTTON_B) {
+        lbl_1_common_bss_47674.screen = 0;
+        unregisterObjectByID(6);
+        item->parent->state = 1;
+    }
+}
+
+// .text:0x000088D0 size:0x1C0
+void fn_1_88D0(void) {
+    u16 buttons;
+
+    switch (lbl_1_common_bss_47674.phase) {
+    case 0:
+        if (diskReadRelated(skyPanoramaFileDescriptorDebug, 6)) {
+            lbl_1_common_bss_47674.pageDirty = 0;
+            lbl_1_common_bss_47674.prevPage = 3;
+            lbl_1_common_bss_47674.phase++;
+        }
+        break;
+    case 1:
+        buttons = AtBat_ButtonInput1._02;
+        if (buttons & INPUT_BUTTON_UP) {
+            if (--lbl_1_common_bss_47674.pageCursor < 0) {
+                lbl_1_common_bss_47674.pageCursor = 2;
+            }
+        } else if (buttons & INPUT_BUTTON_DOWN) {
+            if (++lbl_1_common_bss_47674.pageCursor == 3) {
+                lbl_1_common_bss_47674.pageCursor = 0;
+            }
+        } else if (buttons & INPUT_BUTTON_A) {
+            if (lbl_1_common_bss_47674.pageShown == 0) {
+                lbl_1_common_bss_47674.pageDirty = 1;
+                lbl_1_common_bss_47674.pageShown = 1;
+            } else {
+                lbl_1_common_bss_47674.pageDirty = 2;
+            }
+            fn_1_86E4();
+        } else if (buttons & INPUT_BUTTON_B) {
+            lbl_1_common_bss_47674.phase = 0;
+            currentDrawingItem->func = fn_1_8B90;
+        }
+        break;
+    }
+}
+
+// .text:0x000088CC size:0x4
+void fn_1_88CC(void) {
+    return;
+}
+
+// .text:0x00008770 size:0x15C
+void fn_1_8770(void) {
+    u16 buttons = AtBat_ButtonInput1._02;
+
+    if (buttons & INPUT_BUTTON_UP) {
+        if (--lbl_1_common_bss_47674.pageCursor < 0) {
+            lbl_1_common_bss_47674.pageCursor = 2;
+        }
+    } else if (buttons & INPUT_BUTTON_DOWN) {
+        if (++lbl_1_common_bss_47674.pageCursor == 3) {
+            lbl_1_common_bss_47674.pageCursor = 0;
+        }
+    } else if (buttons & INPUT_BUTTON_A) {
+        if (lbl_1_common_bss_47674.pageShown == 0) {
+            lbl_1_common_bss_47674.pageDirty = 1;
+            lbl_1_common_bss_47674.pageShown = 1;
+        } else {
+            lbl_1_common_bss_47674.pageDirty = 2;
+        }
+        fn_1_86E4();
+    } else if (buttons & INPUT_BUTTON_B) {
+        lbl_1_common_bss_47674.phase = 0;
+        currentDrawingItem->func = fn_1_8B90;
+    }
+}
+
+// .text:0x000086E4 size:0x8C
+void fn_1_86E4(void) {
+    if (lbl_1_common_bss_47674.pageDirty == 0) {
+        return;
+    }
+    switch (lbl_1_common_bss_47674.pageCursor) {
+    case 0:
+        if (lbl_1_common_bss_47674.page == lbl_1_common_bss_47674.prevPage) {
+            return;
+        }
+        lbl_1_common_bss_47674.prevPage = lbl_1_common_bss_47674.page;
+        lbl_1_common_bss_47674.page = 0;
+        break;
+    case 1:
+        lbl_1_common_bss_47674.prevPage = lbl_1_common_bss_47674.page;
+        lbl_1_common_bss_47674.page = 1;
+        break;
+    case 2:
+        lbl_1_common_bss_47674.prevPage = lbl_1_common_bss_47674.page;
+        lbl_1_common_bss_47674.page = 2;
+        break;
+    }
+    lbl_1_common_bss_47674.pageDirty = 0;
+}
+
+// .text:0x000086BC size:0x28
+void fn_1_86BC(void) {
+    ((DebugMenuScene *)currentDrawingItem)->timer = 0;
+    currentDrawingItem->func = fn_1_8624;
+}
+
+// .text:0x00008624 size:0x98
+void fn_1_8624(void) {
+    DebugMenuScene *item = (DebugMenuScene *)currentDrawingItem;
+
+    if (AtBat_ButtonInput1._02 & INPUT_BUTTON_A) {
+        SCENE_REC(item, 0)->frame = 0;
+        item->timer = 0;
+    }
+    if (lbl_1_common_bss_47674.page != 0 || lbl_1_common_bss_47674.phase == 0) {
+        removeGraphicsElementFromScene((DrawingSceneStruct *)item);
+        removeCurrentDrawingItem();
+    }
+    item->timer++;
 }

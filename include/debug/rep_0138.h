@@ -4,6 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/gx.h"
 
+void fn_1_4DD8(void *arg0);
 void fn_1_4E98(void *arg0, void *arg1);
 void fn_1_54E0(void *arg0);
 void fn_1_5540(void);
@@ -28,5 +29,6 @@ void fn_1_7E04(f32 arg0);
 void fn_1_7EF8(void);
 void fn_1_7FF8(void);
 void fn_1_8368(void);
+void fn_1_85A8(void);
 
 #endif // !__UNUSED_REL_REP_0138_H_

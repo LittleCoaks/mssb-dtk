@@ -6,6 +6,8 @@
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x800acf14.h"
+#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/os.h"
 
@@ -13,8 +15,8 @@ extern u8 fn_800211F0(void);
 extern s32 fn_800214D0(void);
 extern void fn_80021518(s32 id, void *block);
 extern s32 fn_80062890(s32 arg0);
-extern void fn_1_9F04(void);
-extern void fn_1_A250(void);
+extern void fn_80021954(void **file);
+extern void fn_80021980(void *file);
 
 unsigned long sndRemoveListener(SND_LISTENER *li);
 unsigned long sndUpdateListener(SND_LISTENER *li, SND_FVECTOR *pos, SND_FVECTOR *dir, SND_FVECTOR *heading,
@@ -29,10 +31,13 @@ unsigned long sndAddEmitter(SND_EMITTER *em, SND_FVECTOR *pos, SND_FVECTOR *dir,
                             unsigned char minVol, SND_ROOM *room);
 
 typedef struct AudioLoaderTask {
-    /*0x00*/ u8 pad00[0x14];
-    /*0x14*/ s32 (*pushCallback)(void);
+    /*0x00*/ u8 pad00[0x0C];
+    /*0x0C*/ DrawingSceneStruct *parent;
+    /*0x10*/ u8 pad10[4];
+    /*0x14*/ s32 (*pushCallback)();
     /*0x18*/ u8 state;
     /*0x19*/ u8 fileIndex;
+    /*0x1A*/ u8 callbackState;
 } AudioLoaderTask;
 
 typedef struct SndTestState {
@@ -1082,4 +1087,171 @@ void fn_1_A2E4(void) {
         currentDrawingItem->func = fn_1_A250;
         break;
     }
+}
+
+// .text:0x0000A250 size:0x94
+void fn_1_A250(void) {
+    s32 i;
+
+    for (i = 0; i < 11; i++) {
+        ((s32 *)lbl_1_common_bss_49A78)[i + 9] = -1;
+    }
+    ((s32 *)lbl_1_common_bss_49A78)[3] = -1;
+    currentDrawingItem->func = sndTestTopScreen;
+}
+
+// .text:0x0000A210 size:0x40
+char *fn_1_A210(char *path) {
+    char c;
+    char *name = path;
+
+    if (path == NULL) {
+        return NULL;
+    }
+    while ((c = *path++) != 0) {
+        if (c == '/') {
+            name = path;
+        }
+    }
+    return name;
+}
+
+// .text:0x0000A1F4 size:0x1C
+void fn_1_A1F4(ScrollList *list, ScrollListEntry *items, s32 total, s32 visible) {
+    list->items = items;
+    list->total = total;
+    list->visible = visible;
+    list->top = 0;
+    list->cursor = 0;
+}
+
+static inline s32 textLength(const char *s) {
+    s32 n = 0;
+
+    if (s != NULL) {
+        while (*s++ != '\0') {
+            n++;
+        }
+    }
+    return n;
+}
+
+// .text:0x0000A184 size:0x70
+void fn_1_A184(ScrollList *list) {
+    s32 visible;
+    s32 total;
+    s32 top;
+    s32 page;
+    ScrollListEntry *entry;
+    s32 i;
+
+    top = list->top;
+    visible = list->visible;
+    total = list->total;
+
+    if (top + visible < total) {
+        page = visible;
+    } else if (total < visible) {
+        page = total;
+    } else {
+        page = total - top;
+    }
+    entry = &list->items[top];
+    for (i = 0; i < page; i++, entry++) {
+        textLength(entry->text);
+    }
+}
+
+// .text:0x0000A024 size:0x160
+void fn_1_A024(ScrollList *list, ScrollDir dir) {
+    s32 top = list->top;
+    s32 visible = list->visible;
+    s32 total = list->total;
+    s32 cursor = list->cursor;
+    s32 row = cursor - top;
+    s32 page;
+
+    if (top + visible < total) {
+        page = visible;
+    } else if (total < visible) {
+        page = total;
+    } else {
+        page = total - top;
+    }
+
+    switch (dir) {
+    case SCROLL_UP:
+        if (row != 0) {
+            list->cursor--;
+        } else if (top != 0) {
+            list->top--;
+            list->cursor--;
+        }
+        break;
+    case SCROLL_DOWN:
+        if (row + 1 == page) {
+            if (cursor + 1 < total) {
+                list->top++;
+                list->cursor++;
+            }
+        } else {
+            list->cursor++;
+        }
+        break;
+    case SCROLL_PAGE_UP:
+        if (top < visible) {
+            list->top = 0;
+            list->cursor = 0;
+        } else {
+            list->top -= visible;
+            list->cursor -= list->visible;
+        }
+        break;
+    case SCROLL_PAGE_DOWN:
+        if (cursor + page >= total) {
+            list->top = total - page;
+            list->cursor = list->total - 1;
+        } else {
+            list->top += visible;
+            list->cursor += list->visible;
+        }
+        break;
+    }
+}
+
+// .text:0x00009F04 size:0x120
+void fn_1_9F04(void) {
+    AudioLoaderTask *task = (AudioLoaderTask *)currentDrawingItem;
+
+    switch (task->state) {
+    case 0:
+        (audioFileDescriptors.files + task->fileIndex)[1] =
+            ARAMTransfer(&lbl_1_data_196C[task->fileIndex * 4], 0, 1, 0);
+        task->state = 1;
+        break;
+    case 1:
+        if (lbl_803C6CF8.cancel.bytes[1] != 1) {
+            break;
+        }
+        fn_80021980((audioFileDescriptors.files + task->fileIndex)[1]);
+        task->state = 2;
+        task->callbackState = 0;
+    case 2:
+        if (task->pushCallback(&task->callbackState) == 0) {
+            fn_80021954(&(audioFileDescriptors.files + task->fileIndex)[1]);
+            task->parent->state = 1;
+            removeCurrentDrawingItem();
+        }
+        break;
+    }
+}
+
+// .text:0x00009EA0 size:0x64
+void fn_1_9EA0(s32 fileIndex, s32 (*pushCallback)()) {
+    AudioLoaderTask *task = (AudioLoaderTask *)insertGraphicDrawingFunction(fn_1_9F04, 1);
+
+    task->state = 0;
+    task->fileIndex = fileIndex;
+    task->pushCallback = pushCallback;
+    currentDrawingItem->state = 0;
 }
