@@ -562,7 +562,7 @@ void matchAnimations(void) {
     if (status == GAME_STATUS_PAUSED || (u8)(status - 3) <= 2 ||
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_MENU ||
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN ||
-        (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.tutorialState == 0)) {
+        (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.tutorialState == TUTORIAL_STATE_0)) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE &&
             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_MENU && g_Practice.practiceType_1 == 6) {
             minigameIdleAnimations();
