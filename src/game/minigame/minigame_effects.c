@@ -135,12 +135,12 @@ s32 minigameWinnerStars_params[8] = { 100, 5000, 1200000, 15000, 15000, 0, 60, 3
 
 s32 piranhaPanic_bombExplosionParams[25] = { 6, 30, 4, 5, 0, 250000, 350000, 0, 255, 0, 5, 20, 7, 2, 0, 250000, 350000, 0, 120, 0, 0, 4259909, 5046345, 4128768, 0 };
 
-static MGTrailEffect* minigameTrail_effect;
-static MGTexRecord* minigameTrail_lastTex;
-static u8 lbl_3_bss_B858;
-static s8 minigameWinnerStars_slots[MG_PLAYER_COUNT];
-static f32 minigameWinnerStars_quadVerts[13];
 static u8 lbl_3_bss_B894[0x124];
+static f32 minigameWinnerStars_quadVerts[13];
+static s8 minigameWinnerStars_slots[MG_PLAYER_COUNT];
+static u8 lbl_3_bss_B858;
+static MGTexRecord* minigameTrail_lastTex;
+static MGTrailEffect* minigameTrail_effect;
 
 /* MSL's fabs is an inline function rather than the bare __fabs intrinsic that stl/math.h maps it to;
  * the by-value parameter changes float register allocation, so this file uses the function form. */
