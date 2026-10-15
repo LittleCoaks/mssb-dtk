@@ -157,7 +157,7 @@ extern u8 runnerConstants[][5];
 extern AnimSlot g_UnkAnimation_31EAC[9];
 extern AnimThrowState g_UnkThrowing_31ACC[4];
 extern u8 bodyCheckFrameRelatedConstants[][4];
-extern u8 lbl_3_data_7D24[];
+extern u8 lbl_3_data_7D24[][5];
 extern u8 lbl_3_data_7F0C[];
 extern f32 lbl_3_data_476C[];
 extern s16 barrelCollisionHitboxes[54];
@@ -2264,14 +2264,14 @@ BOOL animationsForFielding(int fielderIdx) {
 BOOL fielderThrowingAnimations(int fielderIdx) {
     int idx = fielderIdx;
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
-    InMemFielder* fielder = &g_Fielders[fielderIdx];
     AnimThrowState* throwState = g_UnkThrowing_31ACC;
+    InMemFielder* fielder = &g_Fielders[fielderIdx];
     g_FieldingLogic_s* fielding = &g_FieldingLogic;
     int anim = 0x1D;
     BOOL isWild = FALSE;
-    AnimObject* obj;
     s16 cur;
     s16 timer;
+    AnimObject* obj;
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (idx == 0) {
@@ -2301,7 +2301,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
             updateFielderState(fielderIdx, 0);
             return FALSE;
         }
-        if (timer >= (lbl_3_data_7D24 + obj->_252 * 5)[obj->animId - 0x1D]) {
+        if (timer >= ((u8*)lbl_3_data_7D24[obj->_252])[obj->animId - 0x1D]) {
             fielding->throwWindupAnimationDoneInd = 1;
         }
         return TRUE;
@@ -2310,67 +2310,66 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
     if (fielder->throwWindUpFrames != 0) {
         return FALSE;
     }
-    if (throwState->type == 0) {
-        return FALSE;
-    }
-
-    switch (throwState->type) {
-        case 2:
-            anim = 0x1E;
-            break;
-        case 3:
-            anim = 0x1F;
-            break;
-        case 4:
-            anim = 0x1D;
-            break;
-        case 5:
-            anim = 0x1D;
-            break;
-        case 6:
-            anim = 0x1D;
-            break;
-        case 7:
-            anim = 0x1D;
-            isWild = TRUE;
-            break;
-    }
-
-    if (isWild) {
-        int adj;
-        s16 diff;
-
-        cur = (s16)radToShortAngle(fielder->desiredMovementDirection);
-        diff = angleDifferenceNormalized(
-            cur, (s16)calculateAngleFromCoordinates(throwState->pos.x - fielder->pos.x, throwState->pos.z - fielder->pos.z));
-        adj = -diff;
-        if (diff < -0x600 || diff > 0x600) {
-            if (diff < -0x600) {
-                adj = -0x800 - diff;
-            } else {
-                adj = 0x800 - diff;
-            }
-        } else if (diff > 0x200) {
-            adj = 0x400 - diff;
-        } else if (diff < -0x200) {
-            adj = -0x400 - diff;
+    if (throwState->type != 0) {
+        switch (throwState->type) {
+            case 2:
+                anim = 0x1E;
+                break;
+            case 3:
+                anim = 0x1F;
+                break;
+            case 4:
+                anim = 0x1D;
+                break;
+            case 5:
+                anim = 0x1D;
+                break;
+            case 6:
+                anim = 0x1D;
+                break;
+            case 7:
+                anim = 0x1D;
+                isWild = TRUE;
+                break;
         }
-        fielder->desiredMovementDirection = shortAngleToRad_Capped(cur + adj);
-    }
 
-    AnimateCharacter(idx, anim, 0, 1, 1, 0, slot->_40, -1);
-    throwState->anim = anim;
-    slot->_43 = 1;
-    if (isWild) {
-        slot->_43 = 2;
+        if (isWild) {
+            int adj;
+            s16 diff;
+
+            cur = (s16)radToShortAngle(fielder->desiredMovementDirection);
+            diff = angleDifferenceNormalized(
+                cur, (s16)calculateAngleFromCoordinates(throwState->pos.x - fielder->pos.x, throwState->pos.z - fielder->pos.z));
+            adj = -diff;
+            if (diff < -0x600 || diff > 0x600) {
+                if (diff < -0x600) {
+                    adj = -0x800 - diff;
+                } else {
+                    adj = 0x800 - diff;
+                }
+            } else if (diff > 0x200) {
+                adj = 0x400 - diff;
+            } else if (diff < -0x200) {
+                adj = -0x400 - diff;
+            }
+            fielder->desiredMovementDirection = shortAngleToRad_Capped(cur + adj);
+        }
+
+        AnimateCharacter(idx, anim, 0, 1, 1, 0, slot->_40, -1);
+        throwState->anim = anim;
+        slot->_43 = 1;
+        if (isWild) {
+            slot->_43 = 2;
+        }
+        slot->_4C = 0;
+        slot->_4F = 0;
+        slot->_47 = 0;
+        slot->_46 = 0;
+        slot->_50 = 0;
+        updateFielderState(fielderIdx, 1);
+        return TRUE;
     }
-    slot->_4C = 0;
-    slot->_4F = 0;
-    slot->_47 = 0;
-    slot->_46 = 0;
-    slot->_50 = 0;
-    updateFielderState(fielderIdx, 1);
-    return TRUE;
+    return FALSE;
 }
 
 // .text:0x00061148 size:0xE0 mapped:0x806A01DC
