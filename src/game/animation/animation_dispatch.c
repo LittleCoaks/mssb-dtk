@@ -2472,19 +2472,19 @@ BOOL fielderBodyCheckAnimation(int fielderIdx) {
 
 // .text:0x00060D80 size:0x110 mapped:0x8069FE14
 BOOL minigameFielderAnimCheck(int fielderIdx) {
-    int idx = MINIGAME_SLOT_OF(fielderIdx);
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
-    s16 flag = g_Minigame.pP_swingFrames[idx];
+    int idx = MINIGAME_SLOT_OF(fielderIdx);
     AnimObject* obj = hugeAnimStruct.objects[idx];
     s16 animId = obj->animId;
+    s16 swingFrames = g_Minigame.pP_swingFrames[idx];
 
-    if (flag < 0) {
+    if (swingFrames < 0) {
         if (animId == 0x1D || animId == 0x1F) {
             AnimateCharacter(idx, 0, 1, 3, 0, 0, slot->_40, -1);
         }
         return FALSE;
     }
-    if (flag == 0) {
+    if (swingFrames == 0) {
         if ((int)g_Minigame.pP_throwDirection[idx] == 3) {
             AnimateCharacter(idx, 0x1F, 0, 3, 0, 0, slot->_40, -1);
         } else {
