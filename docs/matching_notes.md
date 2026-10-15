@@ -3215,3 +3215,33 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   in another function means two file statics, declared in reverse (`.bss` reverse-order rule).
   objdiff marks those pooled loads with an `R_PPC_NONE` reloc in the target and diff-cli scores them
   as mismatches until the layout is right; the report does not.
+
+## Findings from the m_sound / practice_simulation data-layout pass (2026-10)
+
+- **A dtk label covering several scalars can stop MWCC pooling the `.bss` base.** In `m_sound`,
+  `handleGameSound` reaches the voice ids at 0x1778/0x177C and the flag byte at 0x1760 through one
+  base register in the target. With dtk's `lbl_3_bss_1774` declared as `s32[3]` ours addressed it by
+  its own symbol each time; splitting it into three `s32` statics (and 0x1760/0x176C into their
+  real scalars) gave the target's pooling (91.5 -> 98.6; `fn_3_8C4F0` 83.3 -> 99.2). A function
+  touching only two scalars (`fn_3_8C2DC`: 0x1764, 0x176C) is not pooled in the target either.
+- **MWCC 4-aligns a `.bss` array even when its elements are `s16`/`u8`.** A dtk label at a
+  2-mod-4 offset declared as an array (`camera_script` `s16 lbl_3_bss_B67A[15]`, `scene_effects`
+  `u8 lbl_3_bss_9CFE[0x22]`) lands 2 bytes late and grows the section. objdiff still scores
+  `.bss` 100%. If only the first element is accessed, split it into the 2-byte scalar plus the
+  4-aligned tail; a 2-byte-aligned struct wrapper is 4-aligned too.
+- **Unreferenced `.bss` gaps need both a static and a `symbols.txt` name.** In `chain_chomp_sprint`
+  declaring the unused statics fixed the layout, but `.bss` stayed at 90% until dtk's
+  `gap_05_0000B79C_bss` was replaced by a named `scope:local` symbol that our object could pair with.
+- **A target that keeps every store in source order and copies with strict `lbz`/`stb` pairs
+  means volatile accesses.** `practiceLoadingRelatedMaybe` (72.0 -> 91.3) only stopped hoisting the
+  16 loads once the source *and* destination were volatile, the per-row
+  `addis rX,rY,1; addi rY,rY,4` appeared only with a per-row `volatile u8* src` pointer, and the
+  leading `hugeAnimStruct` store stayed first only once it was volatile too. `#pragma scheduling off`
+  and `optimization_level` did not reproduce it.
+- **A `case` that duplicates a whole function body is an inline of that function.** The
+  `loadPracticeScreen` default case is `practiceLoadingRelatedMaybe`'s body. A plain call stays a
+  `bl` under `#pragma dont_inline on`. A `static inline` helper used by both matched the inline
+  (90.7 -> 96.3).
+- **`s32` (long) counters stay unfolded where `int` folds** in straight-line code too, not only in
+  loop guards: `fn_3_166448` (rep_3E00) keeps its `li r29,0 ... cmpwi r29,0` only with
+  `s32 inactive` assigned before the calls.
