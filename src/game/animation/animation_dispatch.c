@@ -4,11 +4,17 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/ball/foul_detection.h"
-#include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
 #include "game/stats/stat_lookups.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_animationDispatch
 #include "header_rep_data.h"
+
+// Declared here instead of through game_math.h: callers in this file re-extend
+// each s16 result, which is what an int-returning declaration produces.
+extern int calculateAngleFromCoordinates(f32 x, f32 y);
+extern int angleDifferenceNormalized(s16 a, s16 b);
+extern int radToShortAngle(f32 v);
+extern f32 shortAngleToRad_Capped(s16);
 
 // One animation-driven object (character model) in hugeAnimStruct's object pool.
 struct AnimObject {
@@ -1806,10 +1812,10 @@ void handleRunnerActionsAndTagging(void) {
 // .text:0x00061B64 size:0xDA0 mapped:0x806A0BF8
 void fielderAnimations_setAnimation(int fielderIdx) {
     int idx = fielderIdx;
-    AnimObject** objects;
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
-    InMemFielder* fielder = &g_Fielders[fielderIdx];
+    AnimThrowState* throwState = &g_UnkThrowing_31ACC[0];
     AnimObject* obj;
+    InMemFielder* fielder = &g_Fielders[fielderIdx];
     s16 animId;
     int anim;
 
@@ -1817,12 +1823,11 @@ void fielderAnimations_setAnimation(int fielderIdx) {
         if (idx == 0) {
             idx = MINIGAME_SELECTED_SLOT();
         } else {
-            idx = ((s8*)&g_Minigame)[0x18CC + fielder->_020D];
+            idx = g_Minigame.playerSlots.characterIndex[fielder->_020D];
         }
     }
 
-    objects = hugeAnimStruct.objects;
-    obj = objects[idx];
+    obj = hugeAnimStruct.objects[idx];
     if (obj == NULL) {
         return;
     }
@@ -1852,12 +1857,11 @@ void fielderAnimations_setAnimation(int fielderIdx) {
             }
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && g_Minigame.starDashStunType[fielder->_020D] == 2) {
-            if (animId == 0x24 || animId == 0x25) {
-                goto done;
+            if (animId != 0x24 && animId != 0x25) {
+                playCharacterSound(fielder->CharID, 10);
+                AnimateCharacter(idx, 0x24, 0, 1, 0, 0, 0, -1);
+                QueueCharacterAnimation(idx, 0x25, 0, 0, 0, 0, 0);
             }
-            playCharacterSound(fielder->CharID, 10);
-            AnimateCharacter(idx, 0x24, 0, 1, 0, 0, 0, -1);
-            QueueCharacterAnimation(idx, 0x25, 0, 0, 0, 0, 0);
             goto done;
         }
         if (fielder->knockoutStatus != 0) {
@@ -1899,7 +1903,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
             slot->_43 = 0;
             goto done;
         }
-        if (g_UnkThrowing_31ACC[0].fielder == fielderIdx) {
+        if (throwState->fielder == fielderIdx) {
             if (fielderThrowingAnimations(fielderIdx)) {
                 goto done;
             }
@@ -1980,16 +1984,17 @@ void fielderAnimations_setAnimation(int fielderIdx) {
             AnimateCharacter(idx, 0x26, 0, 1, 0, 0, slot->_40, -1);
         } else if (fielder->clamberStatus == 2) {
             if (fielder->wjRelated != 0) {
-                anim = 0x2A;
+                int wjAnim = 0x2A;
+
                 if (fielder->wjRelated == 3) {
-                    anim = 0x2B;
+                    wjAnim = 0x2B;
                 } else if (fielder->wjRelated == 4) {
-                    anim = 0x2C;
+                    wjAnim = 0x2C;
                 }
                 if ((u16)(animId - 0x2A) <= 1 || animId == 0x2C) {
-                    AnimateCharacter(idx, anim, 1, 2, 1, 0, slot->_40, -1);
+                    AnimateCharacter(idx, wjAnim, 1, 2, 1, 0, slot->_40, -1);
                 } else {
-                    AnimateCharacter(idx, anim, 1, 1, 1, 0, slot->_40, -1);
+                    AnimateCharacter(idx, wjAnim, 1, 1, 1, 0, slot->_40, -1);
                 }
             } else if (animId == 0x2A) {
                 AnimateCharacter(idx, 0x28, 1, 2, 1, 0, slot->_40, -1);
@@ -2055,8 +2060,10 @@ void fielderAnimations_setAnimation(int fielderIdx) {
         } else if (animId == 0xF) {
             AnimateCharacter(idx, anim, 1, 2, 1, 0, slot->_40, -1);
         } else if (fielderIdx == 1 && g_Ball.framesSinceHit < 0x78) {
-            if (g_Ball.framesSinceHit == 0x1E) {
-                AnimateCharacter(idx, 0x3E, 0, 1, 1, 0, slot->_40, -1);
+            if (g_Ball.framesSinceHit >= 0x1E) {
+                if (g_Ball.framesSinceHit == 0x1E) {
+                    AnimateCharacter(idx, 0x3E, 0, 1, 1, 0, slot->_40, -1);
+                }
             }
         } else if (animId == 0x3E) {
             AnimateCharacter(idx, anim, 1, 2, 1, 0, slot->_40, -1);
@@ -2333,7 +2340,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
 
     if (isWild) {
         int adj;
-        int diff;
+        s16 diff;
 
         cur = (s16)radToShortAngle(fielder->desiredMovementDirection);
         diff = angleDifferenceNormalized(
