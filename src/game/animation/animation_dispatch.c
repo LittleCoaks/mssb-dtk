@@ -337,7 +337,7 @@ void setDefaultPlayTrackingVariables3(void) {
 
 // .text:0x000668BC size:0x874 mapped:0x806A5950
 void unsure_updateAnimations(void) {
-    int i;
+    s32 i;
     int j;
     int idx;
     AnimSlot* slot;
@@ -366,7 +366,7 @@ void unsure_updateAnimations(void) {
         obj = hugeAnimStruct.objects[i];
         if (obj != NULL && obj->_25D != 0) {
             f32 one = 1.0f;
-            u32 id = (obj != NULL) ? obj->_16A : 0xFFFF;
+            int id = (obj != NULL) ? obj->_16A : 0xFFFF;
 
             if (id != 0xFFFF) {
                 fn_800B4A44(*fn_800111D8(obj), (u16)id);
@@ -382,9 +382,9 @@ void unsure_updateAnimations(void) {
         }
     }
 
-    slot = g_UnkAnimation_31EAC;
-    fielder = g_Fielders;
-    for (i = 0; i < 9; i++, slot++, fielder++) {
+    for (i = 0; i < 9; i++) {
+        fielder = &g_Fielders[i];
+        slot = &g_UnkAnimation_31EAC[i];
         VEC_COPY(&slot->prevPos, &slot->pos);
         fielder->_020A = 0;
         idx = i;
@@ -398,7 +398,7 @@ void unsure_updateAnimations(void) {
             if (j >= 4) {
                 continue;
             }
-            idx = ((s8*)&g_Minigame)[0x18CC + j];
+            idx = g_Minigame.playerSlots.characterIndex[j];
             obj = hugeAnimStruct.objects[j];
         }
 
