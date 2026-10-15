@@ -1491,7 +1491,7 @@ void runnerAnimation_general(int runnerIdx) {
             }
             if (runner->runningDirectionCode == 1 && runner->framesToNextBase < 10 &&
                 g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT && flag) {
-                AnimateCharacter(idx, 0x2E, 0, 1, 0, (lbl_3_data_7870[runner->charID][2] - 10), 0, -1);
+                AnimateCharacter(idx, 0x2E, 0, 1, 0, lbl_3_data_7870[runner->charID][2] - 10, 0, -1);
             } else if (animId == 0x31) {
                 AnimateCharacter(idx, 0x2D, 1, 2, 0, 0, 0, -1);
             } else {
@@ -1528,13 +1528,13 @@ void runnerAnimation_general(int runnerIdx) {
             if (runner->actionStage == 1) {
                 if (runner->actionFrames_countUp == 1) {
                     if (runner->actionCode == 2) {
-                        AnimateCharacter(idx, 0x33, 0, 1, 1, (runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
+                        AnimateCharacter(idx, 0x33, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
                     } else if (runner->actionCode == 3) {
-                        AnimateCharacter(idx, 0x33, 0, 1, 1, (runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
+                        AnimateCharacter(idx, 0x33, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
                     } else if (runner->actionInForwardDirectionInd != 0 && runner->nextBase != 0) {
-                        AnimateCharacter(idx, 0x32, 0, 1, 1, (runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
+                        AnimateCharacter(idx, 0x32, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
                     } else {
-                        AnimateCharacter(idx, 0x34, 0, 1, 1, (runnerConstants[runner->charID][4] - runner->actionFrames_countDown), 0, -1);
+                        AnimateCharacter(idx, 0x34, 0, 1, 1, runnerConstants[runner->charID][4] - runner->actionFrames_countDown, 0, -1);
                     }
                     if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
                         playSoundEffect(0x171);
@@ -1567,7 +1567,7 @@ void runnerAnimation_general(int runnerIdx) {
             }
             break;
         case 15:
-            AnimateCharacter(idx, 0x35, 0, 1, 0, (lbl_3_data_7870[runner->charID][1] - runner->leadOffTotalFrameCountDown), 0, -1);
+            AnimateCharacter(idx, 0x35, 0, 1, 0, lbl_3_data_7870[runner->charID][1] - runner->leadOffTotalFrameCountDown, 0, -1);
             break;
         case 16:
             AnimateCharacter(idx, 0x39, 1, 1, 1, 0, 0, 0);
@@ -2176,7 +2176,7 @@ BOOL animationsForFielding(int fielderIdx) {
                     anim = 0x1B;
                 }
             } else if (state == 4) {
-                AnimateCharacter(idx, 0x26, 0, 1, 0, (lbl_3_data_7F0C[0] - fielder->wallJumpFramesTillTopOfWallContact),
+                AnimateCharacter(idx, 0x26, 0, 1, 0, lbl_3_data_7F0C[0] - fielder->wallJumpFramesTillTopOfWallContact,
                                  slot->_40, -1);
                 slot->_46 = 0x26;
                 slot->_4F = 1;
