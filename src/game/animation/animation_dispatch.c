@@ -1386,14 +1386,14 @@ void runnerAnimations(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
-        RunnerAnimSlot* slot = &lbl_3_common_bss_321A0[i];
         InMemRunnerType* runner = &g_Runners[i];
+        RunnerAnimSlot* slot = &lbl_3_common_bss_321A0[i];
 
         slot->prevState = slot->state;
         if (g_d_GameSettings.minigamesEnabled && (s8)g_Minigame.runnerPlayerIndexU8[i] < 0) {
             continue;
         }
-        if (runner->runnerOnFieldOrOutOrScored == 0) {
+        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
             slot->state = 0;
         } else {
             slot->state = 3;
