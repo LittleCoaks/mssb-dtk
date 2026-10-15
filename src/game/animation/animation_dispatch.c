@@ -162,6 +162,8 @@ extern u8 lbl_3_data_7F0C[];
 extern f32 lbl_3_data_476C[];
 extern s16 barrelCollisionHitboxes[54];
 
+// Narrower than File_0x8001b918.h: every call here truncates the frame offset to
+// a halfword and the handedness flag to a byte, as these declarations do.
 extern void AnimateCharacter(int charId, int animId, int a2, int a3, int a4, s16 a5, u8 a6, int a7);
 extern void QueueCharacterAnimation(int charId, int animId, int a2, int a3, int a4, u8 a5, int a6);
 extern void fn_8001B4D8(int idx);
