@@ -3784,9 +3784,9 @@ void running_updatePosition(int runnerIdx) {
 
         xF = addScaled(runner->currentBaseCoordinates.x, runner->nextBaseCoordinates.x - runner->currentBaseCoordinates.x,
                        runner->percentTowardsNextBase);
-        yF = addScaled(runner->currentBaseCoordinates.y, runner->nextBaseCoordinates.y - runner->currentBaseCoordinates.y,
-                       runner->percentTowardsNextBase);
         zF = addScaled(runner->currentBaseCoordinates.z, runner->nextBaseCoordinates.z - runner->currentBaseCoordinates.z,
+                       runner->percentTowardsNextBase);
+        yF = addScaled(runner->currentBaseCoordinates.y, runner->nextBaseCoordinates.y - runner->currentBaseCoordinates.y,
                        runner->percentTowardsNextBase);
 
         fn_3_7FED4(&vec, runner->fractionalBasesRan, runner->percentTowardsNextBase);
