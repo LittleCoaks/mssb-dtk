@@ -2544,7 +2544,8 @@ typedef struct {
     /*0x13*/ u8 _13;
     /*0x14*/ u8 someSituationTrackerFrames;
     /*0x15*/ u8 runnersInScoringPosition;
-    artificial_padding(0x15, 0x20, u8);
+    artificial_padding(0x15, 0x1F, u8);
+    /*0x1F*/ s8 _1f;
 } g_RunningLogic_s; // size: 0x20
 
 extern g_RunningLogic_s g_RunningLogic;

@@ -530,7 +530,7 @@ void setDefaultInMemRunner(void) {
     g_RunningLogic._00 = 0;
     g_RunningLogic._10 = 0;
     g_RunningLogic.someSituationTrackerFrames = 0x14;
-    g_RunningLogic.__0x20padding[9] = 0xFF;
+    g_RunningLogic._1f = -1;
     g_Runners[0].position.x = g_Batter.batterPos.x;
     g_Runners[0].position.z = g_Batter.batterPos.z;
     for (i = 0; i < 4; i++) {
@@ -575,9 +575,7 @@ void setDefaultInMemRunner(void) {
         }
         dx = g_Ball.AtBat_Contact_BallPos.x - runner->position.x;
         dz = g_Ball.AtBat_Contact_BallPos.z - runner->position.z;
-        dx = dx * dx;
-        dz = dz * dz;
-        runner->distanceFromBall = dolsqrtf2(dx + dz);
+        runner->distanceFromBall = dolsqrtf2(dx * dx + dz * dz);
         runner->groundVelocity[0] = zero;
         runner->groundVelocity[1] = zero;
         runner->groundVelocity[2] = zero;
@@ -633,7 +631,7 @@ void setDefaultInMemRunner(void) {
     }
     g_AiLogic._77 = 0;
     g_RunningLogic.nOffensivePlayersAtStartOfPlay = g_RunningLogic._10;
-    g_AiLogic._44 = lbl_3_data_1C58[g_GameLogic.homeTeamBattingInd_fieldingTeam][1];
+    g_AiLogic._44 = lbl_3_data_1C58[g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam]][1];
     g_RunningLogic.runnersInScoringPosition = 0;
     if (g_RunningLogic._02 & 0x1000) {
         g_RunningLogic.runnersInScoringPosition = 1;
@@ -644,10 +642,10 @@ void setDefaultInMemRunner(void) {
     for (i = 1; i < 4; i++) {
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
             g_Runners[i].forcedToAdvanceInd = 0;
-        } else if (g_Runners[i - 1].forcedToAdvanceInd == 0) {
-            g_Runners[i].forcedToAdvanceInd = 0;
-        } else {
+        } else if (g_Runners[i - 1].forcedToAdvanceInd != 0) {
             g_Runners[i].forcedToAdvanceInd = 1;
+        } else {
+            g_Runners[i].forcedToAdvanceInd = 0;
         }
     }
     g_Runners[0].forcedToAdvanceInd = 1;
@@ -660,9 +658,9 @@ void setDefaultInMemRunner(void) {
     g_Runners[0].position.x = g_Batter.batterPos.x;
     g_Runners[0].position.y = 0.0f;
     g_Runners[0].position.z = g_Batter.batterPos.z;
-    g_Runners[0].positionStored.x = g_Batter.batterPos.x;
-    g_Runners[0].positionStored.y = 0.0f;
-    g_Runners[0].positionStored.z = g_Batter.batterPos.z;
+    g_Runners[0].positionStored.x = g_Runners[0].position.x;
+    g_Runners[0].positionStored.y = g_Runners[0].position.y;
+    g_Runners[0].positionStored.z = g_Runners[0].position.z;
     g_Runners[1].positionStored.x = g_Runners[1].position.x;
     g_Runners[1].positionStored.y = g_Runners[1].position.y;
     g_Runners[1].positionStored.z = g_Runners[1].position.z;
