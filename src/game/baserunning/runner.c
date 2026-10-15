@@ -2394,7 +2394,6 @@ int runnerAISubfunction4(int runnerIdx, int someFrames) {
 
 // .text:0x000846C8 size:0x408 mapped:0x806C375C
 int runnerAI_2(int runnerIdx) {
-    u8 ballZone = g_Ball.ballZoneAwayFromHome;
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int nextBase = runner->nextBase;
     int currBase = runner->currentBase;
@@ -2406,10 +2405,10 @@ int runnerAI_2(int runnerIdx) {
     int framesToNext;
     int framesToPrev;
 
-    if (ballZone <= 2 && runner->baseStandingOn >= 0) {
+    if (g_Ball.ballZoneAwayFromHome <= 2 && runner->baseStandingOn >= 0) {
         return 0;
     }
-    if (ballZone >= 3 && runner->percentTowardsNextBase >= 3.2f && runner->runningDirectionCode == 1 &&
+    if (g_Ball.ballZoneAwayFromHome >= 3 && runner->percentTowardsNextBase >= 3.2f && runner->runningDirectionCode == 1 &&
         runner->baseRoundingState == 2) {
         runner->unused_someBaseNum = 0;
         return 1;
@@ -2418,7 +2417,7 @@ int runnerAI_2(int runnerIdx) {
     if (direction == 1 && runner->percentTowardsNextBase > 0.8f && runner->baseStandingOn < 0) {
         return -2;
     }
-    if (direction == 3 && runner->percentTowardsNextBase < 0.2f && ballZone <= 2) {
+    if (direction == 3 && runner->percentTowardsNextBase < 0.2f && g_Ball.ballZoneAwayFromHome <= 2) {
         return -2;
     }
     if (g_FieldingLogic.fielderAssignedLocationIndex[nextBase] == g_Ball.fielderWBallIndex) {
@@ -2427,7 +2426,7 @@ int runnerAI_2(int runnerIdx) {
     if (g_FieldingLogic.fielderAssignedLocationIndex[currBase] == g_Ball.fielderWBallIndex) {
         return 1;
     }
-    if (g_FieldingLogic.somethingForTryingTagOutTargetBase != -1 && ballZone <= 2) {
+    if (g_FieldingLogic.somethingForTryingTagOutTargetBase != -1 && g_Ball.ballZoneAwayFromHome <= 2) {
         result = fn_3_85A70(runnerIdx);
         if (result != -2) {
             return result;
@@ -2467,12 +2466,11 @@ int runnerAI_2(int runnerIdx) {
         }
         return 1;
     }
-    ballZone = g_Ball.ballZoneAwayFromHome;
-    if (ballZone >= 3 && runnerIdx >= 1 && runner->currentBase == runner->startingBase_baseAchieved &&
+    if (g_Ball.ballZoneAwayFromHome >= 3 && runnerIdx >= 1 && runner->currentBase == runner->startingBase_baseAchieved &&
         g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT && nextFrames > framesToNext - 20) {
         return 1;
     }
-    if (runner->currentBase == 3 && ballZone >= 3 && g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT) {
+    if (runner->currentBase == 3 && g_Ball.ballZoneAwayFromHome >= 3 && g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT) {
         if (nextFrames > framesToNext - 20) {
             return 1;
         }
