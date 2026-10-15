@@ -19,7 +19,7 @@ extern f32 shortAngleToRad_Capped(s16);
 // One animation-driven object (character model) in hugeAnimStruct's object pool.
 struct AnimObject {
     /*0x00*/ u8 _00[0x30];
-    /*0x30*/ s32 _30;
+    /*0x30*/ u32 _30;
     /*0x34*/ f32 x;
     /*0x38*/ u8 _38[0x3C - 0x38];
     /*0x3C*/ f32 z;
@@ -264,20 +264,20 @@ void resetAndRunAnimations(int arg) {
     g_UnkThrowing_31ACC[2].type = 0;
     g_UnkThrowing_31ACC[3].type = 0;
 
-    slot = g_UnkAnimation_31EAC;
-    for (i = 0; i < 9; i++, slot++) {
+    for (i = 0; i < 9; i++) {
+        slot = &g_UnkAnimation_31EAC[i];
         slotIdx = i;
         if (g_d_GameSettings.minigamesEnabled) {
-            for (k = 0; k < 4; k++) {
-                if ((s8)g_Minigame.minigameFielderIndex[k] == i) {
+            for (slotIdx = 0; slotIdx < 4; slotIdx++) {
+                if ((s8)g_Minigame.minigameFielderIndex[slotIdx] == i) {
                     break;
                 }
             }
-            slotIdx = k;
             if (slotIdx >= 4) {
                 continue;
             }
         }
+        obj = hugeAnimStruct.objects[slotIdx];
         slot->_38 = 0;
         slot->_3A = 0;
         slot->_42 = 0;
@@ -290,8 +290,7 @@ void resetAndRunAnimations(int arg) {
         slot->_50 = 0;
         slot->state = 0;
         slot->speed = 0.0f;
-        obj = hugeAnimStruct.objects[slotIdx];
-        if (obj != NULL && obj->_30 == 0) {
+        if (obj != NULL && (obj == NULL || obj->_30 == 0)) {
             updateFielderState(i, 0);
         }
     }
