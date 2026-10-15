@@ -221,7 +221,7 @@ void running_MainFunction(void) {
     } else {
         running_checkForOuts();
         running_ForceOutStateRelated();
-        fn_3_889FC();
+        running_updateEligibleToScore();
         setRunnerAngle();
     }
     running_UpdateTrackingValues_BasesEarned();
@@ -294,7 +294,7 @@ void fn_3_8A618(void) {
 }
 
 // .text:0x0008A5A4 size:0x74 mapped:0x806C9638
-void fn_3_8A5A4(void) {
+void resetRunnerLeadoffDefaults(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -796,7 +796,7 @@ void maybeUpdateRunnerNoRun(void) {
     } else {
         running_checkForOuts();
         running_ForceOutStateRelated();
-        fn_3_889FC();
+        running_updateEligibleToScore();
         setRunnerAngle();
     }
     running_UpdateTrackingValues_BasesEarned();
@@ -840,7 +840,7 @@ void running_ForceOutStateRelated(void) {
 #pragma dont_inline reset
 
 // .text:0x000889FC size:0x11C mapped:0x806C7A90
-void fn_3_889FC(void) {
+void running_updateEligibleToScore(void) {
     int contactResult = g_Ball.AtBat_ContactResult;
     int i;
 
@@ -1253,7 +1253,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
             }
         }
 
-        fn_3_871BC();
+        running_updateStamina();
 
         g_Runners[0].tagType = 0;
         g_Runners[1].tagType = 0;
@@ -1323,7 +1323,7 @@ void updateRunnerValues(void) {
 }
 
 // .text:0x000871BC size:0x110 mapped:0x806C6250
-void fn_3_871BC(void) {
+void running_updateStamina(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -1881,7 +1881,7 @@ void running_AIStartSteals(void) {
                     return;
                 }
                 if (g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
-                    fn_3_85C44(i, 1);
+                    runnerAI_requestRunningDirection(i, 1);
                 }
             }
         } else if (g_AiLogic.batterAIStealIndicator != 0) {
@@ -1896,17 +1896,17 @@ void running_AIStartSteals(void) {
                         }
                         runner->leadOffStatus = 0;
                     }
-                    fn_3_85C44(i, 1);
+                    runnerAI_requestRunningDirection(i, 1);
                 }
             }
         } else if (g_AiLogic._74 == 2 && g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
-            fn_3_85C44(3, 1);
+            runnerAI_requestRunningDirection(3, 1);
         }
     }
 }
 
 // .text:0x00085C44 size:0x6C mapped:0x806C4CD8
-void fn_3_85C44(int runnerIdx, int actionCode) {
+void runnerAI_requestRunningDirection(int runnerIdx, int actionCode) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
 
     if (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || actionCode == 1) {
@@ -3679,7 +3679,7 @@ void running_updatePosition(int runnerIdx) {
                     runner->position.x = vec.x;
                     runner->position.z = vec.y;
                 } else if (runner->overRun1BStage == 3) {
-                    fn_3_7FFD0(&dest, 1, 2, runner->slidingAdjustment_backwards);
+                    lerpBetweenBases(&dest, 1, 2, runner->slidingAdjustment_backwards);
                     vec.x = (dest.x - runner->position.x) / (f32)runner->overrunBaseFrames_countDown;
                     vec.y = (dest.y - runner->position.y) / (f32)runner->overrunBaseFrames_countDown;
                     vec.z = (dest.z - runner->position.z) / (f32)runner->overrunBaseFrames_countDown;
@@ -3698,11 +3698,11 @@ void running_updatePosition(int runnerIdx) {
                     if (runner->baseOfFailedBodyCheck >= 0) {
                         s8 base = runner->baseOfFailedBodyCheck;
 
-                        fn_3_7FFD0(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
+                        lerpBetweenBases(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
                     } else {
                         int base = runner->baseStandingOn;
 
-                        fn_3_7FFD0(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
+                        lerpBetweenBases(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
                     }
                     vec.x = (dest.x - runner->position.x) / (f32)runner->actionFrames_countDown;
                     vec.y = (dest.y - runner->position.y) / (f32)runner->actionFrames_countDown;
@@ -3877,7 +3877,7 @@ void running_updatePosition(int runnerIdx) {
 }
 
 // .text:0x0007FFD0 size:0x58 mapped:0x806BF064
-void fn_3_7FFD0(VecXYZ* out, int fromBase, int toBase, f32 t) {
+void lerpBetweenBases(VecXYZ* out, int fromBase, int toBase, f32 t) {
     f32 dx = baseCoordsForRunning[toBase][0] - baseCoordsForRunning[fromBase][0];
     f32 dz = baseCoordsForRunning[toBase][1] - baseCoordsForRunning[fromBase][1];
 
@@ -4799,7 +4799,7 @@ void cCSRunningFun(void) {
     } else {
         running_checkForOuts();
         running_ForceOutStateRelated();
-        fn_3_889FC();
+        running_updateEligibleToScore();
         setRunnerAngle();
     }
     running_UpdateTrackingValues_BasesEarned();
