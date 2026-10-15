@@ -1654,16 +1654,15 @@ void shiftFielderAnimCounter(int fielderIdx) {
 void updateFielderAnimHints(int fielderIdx) {
     InMemFielder* fielder = &g_Fielders[fielderIdx];
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
-    u8 kind = fielder->animationRelated;
 
     slot->_41 = 0;
-    if (kind == 2) {
+    if (fielder->animationRelated == 2) {
         slot->_41 = 1;
-    } else if (kind == 3) {
+    } else if (fielder->animationRelated == 3) {
         slot->_41 = 2;
     }
 
-    if (fielder->closingInOnCatchingFlyBall != 0 && g_Ball.AtBat_ContactResult == 0 &&
+    if (fielder->closingInOnCatchingFlyBall != 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
         fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < fielder->hitbox[0] &&
         g_Ball.framesUntilBallHitsGround < 0x78 && g_Ball.maxYOfHit > 5.0f && g_FieldingLogic._0144 != 0) {
         slot->_45 = 1;
