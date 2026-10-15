@@ -3336,3 +3336,47 @@ functions. These lessons are not specific to one file:
   `rep_0010` (which has no rodata of its own there) is one TU with it. Likewise a data object
   whose only user sits just before a unit's .text belongs to that unit when the data sits
   after the unit's other data (`fn_1_196C` and `lbl_1_data_298` -> `rep_00B0`).
+
+## Findings from the debug REL gap merges and second passes (rep_0010, rep_0138, rep_0250, rep_02A8; 2026-10)
+
+- **Wrap-around of a small struct field is a pre-increment inside the condition:**
+  `if ((s8)++state.field >= N)` / `if (--state.field < 0)`. The `v = field + 1; field = v;
+  if ((s8)v >= N)` draft has the right instructions but swaps two scratch registers. Floats too:
+  `if (++p->nearZ > 512.0f)` gives the target's `fadds f1, field, one` order (`rep_0138`
+  `fn_1_6848`, `fn_1_6E14`, `fn_1_7FF8`).
+- **Callee-saved registers, int and float, follow declaration order (first declared = highest
+  register) unless compiler temps intervene.** Hoisted loop invariants (`xoris w,0x8000`,
+  `lis 0x4330`) and CSE'd global addresses take registers of their own and break the rule. A
+  matched sibling with the same locals is the best source for the order (`rep_0138`
+  `fn_1_5AC0` read its order off `fn_1_6050` and went to 100). Variable reuse decides coalescing:
+  reuse a local where the target shares a register, and drop explicit locals for products MWCC
+  hoists itself (`ny * ny`).
+- **An inlined callee's registers depend on the variable reuse of its source.** `rep_0138`
+  `fn_1_717C` matched standalone with separate locals per half, but its inlined copy in
+  `fn_1_6848` only matched once one `set`/`geo` pair was reused for both halves.
+- **Switch shapes in the debug REL:** `cmpwi 2; beq; bge; b` came from
+  `case 0: case 1: break; case 2: {...}`; a two-value switch testing 2 before 3 needed an empty
+  `case 1:`; a "7 cases plus a range" dispatch needs the range spelled out (`case 2:` ...
+  `case 18:`) to get the 0/1/range decision tree; `default:` scored 96 (`rep_0010` `fn_1_1E0`).
+  A case that falls into the next one but whose guard branches to the end is
+  `if (cond != X) break;`, not `if (cond == X) {...}` (`rep_02A8`).
+- **`a * 4 + b * 4` is factored to `(a + b) << 2`.** Two separate shifts in the target mean one
+  term was written as a shift: `(y / 4) * w * 4 + (y % 4 << 2)` (`rep_0138` `fn_1_5924`).
+- **Shared stack offsets for three cross products = one reused `Vec` local**, and one
+  `sin(half)`/`cos(half)` pair computed up front; drafts that repeat `sin(half)` emit three calls.
+- **MWCC fully unrolls a 5-iteration `for` over a `u32` pointer table** into the target's
+  "`addi r3,r31,8` + mixed r31/r3 displacements" shape; five hand-written `if`s do not
+  (`rep_0010` `fn_1_20`/`fn_1_E8`, 97.4 -> 100).
+- **A cached pointer local for a repeated global-array access can hoist a `lis/addi` the target
+  lacks;** write the cast expression at each use instead (`rep_02A8`).
+- **An unused-result string walk with one extra `mr` is a missed inline:** write it as a
+  discarded call to a strlen-style `static inline` helper. Then the remaining register order was
+  one specific local declaration order out of 720 (`rep_02A8` `fn_1_A184`, 91.96 -> 100).
+- **A unit whose first .rodata object is not the `header_rep_data.h` table needs that first
+  object to be a weak local static as well** (a `static const` array inside an `inline` helper
+  with a unit-unique name). A plain `static const` makes the first object non-weak, and every
+  float-pool function in the unit switches to base-register addressing (`rep_0010`
+  `lbl_1_rodata_0`; `fn_1_5EC` fell to 69% without it).
+- **A function that is only called from one place can still need `#pragma dont_inline`** when the
+  target keeps it out of line: `rep_0138` `fn_1_4DD8` was auto-inlined into `fn_1_717C`
+  (717C 100 -> 11.5) until wrapped.
