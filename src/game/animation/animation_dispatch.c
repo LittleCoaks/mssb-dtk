@@ -2406,10 +2406,10 @@ BOOL fielderThrowWindupDone(int fielderIdx) {
 BOOL fielderBodyCheckAnimation(int fielderIdx) {
     int idx = fielderIdx;
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
-    InMemFielder* fielder = &g_Fielders[fielderIdx];
-    AnimObject* obj;
     u8 state;
+    AnimObject* obj;
     s16 animId;
+    InMemFielder* fielder = &g_Fielders[fielderIdx];
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (idx == 0) {
@@ -2454,12 +2454,12 @@ BOOL fielderBodyCheckAnimation(int fielderIdx) {
             if (bodyCheckFrameRelatedConstants[k][1] - g_FieldingLogic.bodyCheckStageCountdown >= 0) {
                 AnimateCharacter(idx, 0x23, 0, 1, 1, bodyCheckFrameRelatedConstants[k][0], slot->_40, -1);
                 slot->_44 = 1;
-                updateFielderState(fielderIdx, 0);
-                return TRUE;
+                goto started;
             }
         } else {
             AnimateCharacter(idx, 0x21, 0, 1, 0, bodyCheckFrameRelatedConstants[(s8)obj->_252][0], slot->_40, -1);
             slot->_44 = 1;
+        started:
             updateFielderState(fielderIdx, 0);
             return TRUE;
         }
