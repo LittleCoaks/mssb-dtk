@@ -2317,7 +2317,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
             updateFielderState(fielderIdx, 0);
             return FALSE;
         }
-        if (timer >= ((u8*)lbl_3_data_7D24[obj->_252])[obj->animId - 0x1D]) {
+        if (timer >= lbl_3_data_7D24[obj->_252][(u32)(obj->animId - 0x1D)]) {
             fielding->throwWindupAnimationDoneInd = 1;
         }
         return TRUE;
