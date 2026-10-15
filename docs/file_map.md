@@ -152,7 +152,7 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | `roster_init.c` | `rep_1188` | 7 (7) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
 | `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
 | `transition_init.c` | `rep_1038` | 7 (5) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
-| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
+| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. Owns `.data 0x1D28-0x3C40` (`AnimSetupEntry` table, home-run camera scene IDs, `vsSituations`, matchup table). | high |
 
 ## replay/ — 2 files, 13 fns (10 named)
 
@@ -290,7 +290,7 @@ not a shared gameplay purpose.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `data_1880.c` | — | 0 (0) | — | Shared AI probability tables, `AnimSetupEntry` table, home-run camera scene IDs and `vsSituations`. | inferred |
+| `data_1880.c` | — | 0 (0) | — | Pitcher and batter AI probability tables and constants (`0x1880-0x1D28`). The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | inferred |
 | `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). | inferred |
 | `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
 | `data_8D88.c` | — | 0 (0) | — | Menu, character-select and HUD icon/descriptor tables. | inferred |

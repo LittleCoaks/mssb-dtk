@@ -136,7 +136,7 @@ merged because `fn_3_C937C`'s codegen depends on the full size),
 
 Four large shared tables have no code unit between their link-order
 neighbours, so each is a data-only unit, named by
-address: `data_only/data_1880.c` (AI and versus tables, after `camera.c`),
+address: `data_only/data_1880.c` (pitcher/batter AI tables, after `camera.c`),
 `data_428C.c` (field coordinates, hit and fielding constants, after
 `match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
 tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
@@ -147,6 +147,33 @@ All are 100%.
 Left unowned on purpose: common `.bss` from `0xD714` (shared globals used by
 almost every unit), the 4-byte alignment gaps, `0x228`
 `FrameCountOfEntireGame` (no clear owner), `0x6804-0x6820` and `0x27EAC`.
+
+### Data-only units that were really a code unit's `.data` (2026-10-15)
+
+A pooled `.data` base cannot span translation units: MWCC addresses a TU's own
+`.data` objects off one `lis/addi` of the TU's first object plus an offset,
+and a reference from another TU goes through the object's own symbol. So every
+offset a function reaches off one base belongs to the unit that owns the
+function.
+
+- `data_1880.c` -> `versus_screens.c` (`.data 0x1D28-0x3C40`).
+  `chooseVsScreenSituation` reaches `+0x228`, `+0x670`, `+0xEB0` and
+  `postReplayBatterCelebration` `+0x3AC`, `+0x488`, `+0x564` off one
+  `lbl_3_data_1D28` base, so `0x1D28` up to `versus_screens`'s old start
+  `0x3A40` is its `.data`. The 0x37AC/0x3888/0x3964 tables are 0xDC `s32[55]`
+  like 0x3A40. `animation_init.c` and `camera_script.c` reach
+  `lbl_3_data_1D28`, `lbl_3_data_1F40`, `vsSituations` and 0x37AC-0x3964 by
+  symbol, so those stay global. `0x1880-0x1D28` stays in `data_1880.c`: it is
+  referenced only by symbol (no pooled base), from `pitcher_ai.c`
+  (`0x1880-0x1934`), `batter_ai.c` and `ai_defaults.c` (`0x193C-0x1D10`). The
+  pitcher tables come before the batter tables although `batter_ai.c` links
+  first, so they are not in their code units' own `.data`.
+  Blobs split at the pooled offsets: `homerun_cameraSceneIDs` (0x370) into four
+  `s32[55]` (`0x1FF8`, `0x20D4`, `0x21B0`, `0x228C`); `vsSituations` (0x1414)
+  into `VsSituation[33]` (0x840) and `u8 lbl_3_data_2BD8[55][55]`;
+  `lbl_3_data_1F40` (0x34) into `u8 *[4]` and `s8 lbl_3_data_1F50[33]`.
+  Objects are defined in address order (`.data` keeps declaration order) and
+  our object's offsets equal the target's.
 
 ### Reorganisation after full `.text` ownership (2026-10-08)
 
