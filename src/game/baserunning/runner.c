@@ -1158,8 +1158,8 @@ void running_UpdateTrackingValues_BasesEarned(void) {
     g_RunningLogic._00 = 0;
     g_RunningLogic._04 = 0;
     g_RunningLogic._10 = 0;
-    runner = g_Runners;
-    for (i = 0; i < 4; i++, runner++) {
+    for (i = 0; i < 4; i++) {
+        runner = &g_Runners[i];
         if (runner->percentTowardsNextBase > 0.2f) {
             runner->relatedToRunnerPos = 0;
         }
