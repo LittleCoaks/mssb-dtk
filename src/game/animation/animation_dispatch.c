@@ -162,7 +162,7 @@ extern u8 lbl_3_data_7F0C[];
 extern f32 lbl_3_data_476C[];
 extern s16 barrelCollisionHitboxes[54];
 
-extern void AnimateCharacter(int charId, int animId, int a2, int a3, int a4, int a5, u8 a6, int a7);
+extern void AnimateCharacter(int charId, int animId, int a2, int a3, int a4, s16 a5, u8 a6, int a7);
 extern void QueueCharacterAnimation(int charId, int animId, int a2, int a3, int a4, u8 a5, int a6);
 extern void fn_8001B4D8(int idx);
 extern void fn_8001B5EC(int idx, int arg);
@@ -194,22 +194,28 @@ extern ScreenState* lbl_3_common_bss_1323C;
 #define MINIGAME_SELECTED_SLOT() (((s8*)&g_Minigame)[0x18CC + (s8)g_Minigame.minigamePlayerSelectedOrder])
 #define MINIGAME_SLOT_OF(i) (((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[(i)])
 
-u8 lbl_3_data_65F0[0x70] = {
+static u8 lbl_3_data_65F0[0x10] = {
     0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
     0x04, 0x14, 0x05, 0x05, 0x05, 0x0F, 0x0F, 0x00,
-    0x08, 0x00, 0x00, 0x00, 0x14, 0x14, 0x14, 0x3C,
+};
+static u8 lbl_3_data_6600 ATTRIBUTE_ALIGN(4) = 0x08;
+static u8 lbl_3_data_6604[0x2C] = {
+    0x14, 0x14, 0x14, 0x3C,
     0x3C, 0x3C, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
     0x28, 0x28, 0x28, 0x50, 0x14, 0x14, 0x14, 0x14,
     0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
     0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x00,
     0x05, 0x05, 0x05, 0x0F, 0x05, 0x05, 0x05, 0x00,
-    0x0A, 0x1E, 0x00, 0x00, 0x00, 0x30, 0x00, 0x32,
-    0x00, 0x32, 0x00, 0x50, 0x00, 0x50, 0x00, 0x19,
-    0x00, 0x25, 0x00, 0x25, 0x00, 0x13, 0x00, 0x12,
-    0x00, 0x11, 0x00, 0x19, 0x00, 0x18, 0x00, 0x17,
-    0x00, 0x16, 0x00, 0x15, 0x00, 0x14, 0x00, 0x00,
-    0x14, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00, 0x14,
 };
+static u8 lbl_3_data_6630[2] = { 0x0A, 0x1E };
+static s16 lbl_3_data_6634[8] = { 0x30, 0x32, 0x32, 0x50, 0x50, 0x19, 0x25, 0x25 };
+static s16 lbl_3_data_6644[3][3] = {
+    { 0x13, 0x12, 0x11 },
+    { 0x19, 0x18, 0x17 },
+    { 0x16, 0x15, 0x14 },
+};
+static u8 lbl_3_data_6658 ATTRIBUTE_ALIGN(4) = 0x14;
+static s16 lbl_3_data_665C[2] = { 0x05, 0x14 };
 
 u16 lbl_3_data_6660[0xAE] = {
     0x0016, 0x0010, 0x0017, 0x0011, 0x0018, 0x0012, 0x0019, 0x0013,
@@ -1485,7 +1491,7 @@ void runnerAnimation_general(int runnerIdx) {
             }
             if (runner->runningDirectionCode == 1 && runner->framesToNextBase < 10 &&
                 g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT && flag) {
-                AnimateCharacter(idx, 0x2E, 0, 1, 0, (s16)(lbl_3_data_7870[runner->charID][2] - 10), 0, -1);
+                AnimateCharacter(idx, 0x2E, 0, 1, 0, (lbl_3_data_7870[runner->charID][2] - 10), 0, -1);
             } else if (animId == 0x31) {
                 AnimateCharacter(idx, 0x2D, 1, 2, 0, 0, 0, -1);
             } else {
@@ -1522,13 +1528,13 @@ void runnerAnimation_general(int runnerIdx) {
             if (runner->actionStage == 1) {
                 if (runner->actionFrames_countUp == 1) {
                     if (runner->actionCode == 2) {
-                        AnimateCharacter(idx, 0x33, 0, 1, 1, (s16)(runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
+                        AnimateCharacter(idx, 0x33, 0, 1, 1, (runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
                     } else if (runner->actionCode == 3) {
-                        AnimateCharacter(idx, 0x33, 0, 1, 1, (s16)(runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
+                        AnimateCharacter(idx, 0x33, 0, 1, 1, (runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
                     } else if (runner->actionInForwardDirectionInd != 0 && runner->nextBase != 0) {
-                        AnimateCharacter(idx, 0x32, 0, 1, 1, (s16)(runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
+                        AnimateCharacter(idx, 0x32, 0, 1, 1, (runnerConstants[runner->charID][2] - runner->actionFrames_countDown), 1, -1);
                     } else {
-                        AnimateCharacter(idx, 0x34, 0, 1, 1, (s16)(runnerConstants[runner->charID][4] - runner->actionFrames_countDown), 0, -1);
+                        AnimateCharacter(idx, 0x34, 0, 1, 1, (runnerConstants[runner->charID][4] - runner->actionFrames_countDown), 0, -1);
                     }
                     if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
                         playSoundEffect(0x171);
@@ -1561,7 +1567,7 @@ void runnerAnimation_general(int runnerIdx) {
             }
             break;
         case 15:
-            AnimateCharacter(idx, 0x35, 0, 1, 0, (s16)(lbl_3_data_7870[runner->charID][1] - runner->leadOffTotalFrameCountDown), 0, -1);
+            AnimateCharacter(idx, 0x35, 0, 1, 0, (lbl_3_data_7870[runner->charID][1] - runner->leadOffTotalFrameCountDown), 0, -1);
             break;
         case 16:
             AnimateCharacter(idx, 0x39, 1, 1, 1, 0, 0, 0);
@@ -2090,19 +2096,17 @@ done:
 
 // .text:0x00061544 size:0x620 mapped:0x806A05D8
 BOOL animationsForFielding(int fielderIdx) {
-    GameInitVariables* settings = &g_d_GameSettings;
+    int anim = -1;
     int idx = fielderIdx;
-    AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
     InMemFielder* fielder = &g_Fielders[fielderIdx];
-    u8* tbl = lbl_3_data_65F0;
     AnimObject* obj;
     int frames = 0;
-    int anim = -1;
+    AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
     u8 state;
     int cd;
     int lim;
 
-    if (settings->minigamesEnabled) {
+    if (g_d_GameSettings.minigamesEnabled) {
         if (idx == 0) {
             idx = MINIGAME_SELECTED_SLOT();
         } else {
@@ -2130,16 +2134,16 @@ BOOL animationsForFielding(int fielderIdx) {
             state = slot->_4C;
             if (state == 1 || state == 2) {
                 cd = slot->countdown;
-                lim = *(s16*)(tbl + 0x6C);
+                lim = lbl_3_data_665C[0];
                 if (cd <= lim) {
                     u8 side = fielder->catchCentreRightLeftOfBody;
                     if (side == 0) {
-                        anim = ((s16*)(tbl + 0x54))[slot->_4E];
+                        anim = lbl_3_data_6644[0][slot->_4E];
                     } else if ((side == 1 && fielder->throwingHandedness == 0) ||
                                (side == 2 && fielder->throwingHandedness != 0)) {
-                        anim = ((s16*)(tbl + 0x54 + 6))[slot->_4E];
+                        anim = lbl_3_data_6644[1][slot->_4E];
                     } else {
-                        anim = ((s16*)(tbl + 0x54 + 0xC))[slot->_4E];
+                        anim = lbl_3_data_6644[2][slot->_4E];
                     }
                     frames = lim - cd;
                 }
@@ -2166,13 +2170,13 @@ BOOL animationsForFielding(int fielderIdx) {
                 return TRUE;
             } else if (state == 3) {
                 cd = slot->countdown;
-                lim = ((s16*)(tbl + 0x6C))[1];
+                lim = lbl_3_data_665C[1];
                 if (cd <= lim) {
                     frames = lim - cd;
                     anim = 0x1B;
                 }
             } else if (state == 4) {
-                AnimateCharacter(idx, 0x26, 0, 1, 0, (s16)(lbl_3_data_7F0C[0] - fielder->wallJumpFramesTillTopOfWallContact),
+                AnimateCharacter(idx, 0x26, 0, 1, 0, (lbl_3_data_7F0C[0] - fielder->wallJumpFramesTillTopOfWallContact),
                                  slot->_40, -1);
                 slot->_46 = 0x26;
                 slot->_4F = 1;
@@ -2180,81 +2184,83 @@ BOOL animationsForFielding(int fielderIdx) {
             } else if (state == 5) {
                 cd = slot->countdown;
                 anim = 0x29;
-                frames = tbl[0x10] - cd;
+                frames = lbl_3_data_6600 - cd;
             }
 
-            if (anim < 0 || frames < 0) {
-                return FALSE;
-            }
-            AnimateCharacter(idx, anim, 0, 1, 0, (s16)frames, slot->_40, -1);
-            slot->_46 = anim;
-            slot->_4F = 1;
-            slot->_50 = tbl[0x68];
-            return TRUE;
-        }
-
-    if (fielder->onFire == 0) {
-        if (fielder->_0200 != 0) {
-            obj->_26F = 1;
-            if (settings->minigamesEnabled) {
-                fn_8004AE18(fielder->_020D);
-            } else {
-                fn_8004AE18(fielderIdx);
-            }
-        }
-        if (slot->_50 != 0) {
-            slot->_50--;
-        }
-        slot->countdown--;
-        if (slot->_46 == 0x26) {
-            if (fielder->wallJumpFramesTillTopOfWallContact == 1) {
-                AnimateCharacter(idx, 0x28, 0, 1, 0, 0, slot->_40, 0);
-            }
-            if (fielder->wallJumpStatus != 4) {
+            if (anim >= 0 && frames >= 0) {
+                AnimateCharacter(idx, anim, 0, 1, 0, frames, slot->_40, -1);
+                slot->_46 = anim;
+                slot->_4F = 1;
+                slot->_50 = lbl_3_data_6658;
                 return TRUE;
             }
-        } else {
-            if (slot->countdown == 1) {
-                u8 bobble = fielder->bobble;
-                if ((bobble != 1 || fielder->catchAnimation != 1) && slot->_4C != 7 && slot->_4C != 8 &&
-                    obj->animId != 0x29) {
-                    if (bobble == 3 && slot->_4C != 3) {
-                        AnimateCharacter(idx, 0x1C, 0, 1, 1, 0, slot->_40, 10);
-                        updateFielderState(fielderIdx, 1);
-                    } else {
+        }
+    } else {
+        if (fielder->onFire == 0) {
+            if (fielder->_0200 != 0) {
+                obj->_26F = 1;
+                if (g_d_GameSettings.minigamesEnabled) {
+                    fn_8004AE18(fielder->_020D);
+                } else {
+                    fn_8004AE18(fielderIdx);
+                }
+            }
+            if (slot->_50 != 0) {
+                slot->_50--;
+            }
+            slot->countdown--;
+            if (slot->_46 == 0x26) {
+                if (fielder->wallJumpFramesTillTopOfWallContact == 1) {
+                    AnimateCharacter(idx, 0x28, 0, 1, 0, 0, slot->_40, 0);
+                }
+                if (fielder->wallJumpStatus != 4) {
+                    return TRUE;
+                }
+            } else {
+                if (slot->countdown == 1) {
+                    u8 bobble = fielder->bobble;
+                    if ((bobble != 1 || fielder->catchAnimation != 1) && slot->_4C != 7 && slot->_4C != 8 &&
+                        obj->animId != 0x29) {
+                        if (bobble == 3 && slot->_4C != 3) {
+                            AnimateCharacter(idx, 0x1C, 0, 1, 1, 0, slot->_40, 10);
+                            updateFielderState(fielderIdx, 1);
+                        } else {
+                            updateFielderState(fielderIdx, 1);
+                        }
+                    }
+                }
+                if (obj->animId == 0x1B) {
+                    s16 t = g_Ball.timeSinceBallPickedUp;
+                    if (t >= lbl_3_data_6630[0] && t <= lbl_3_data_6630[1] &&
+                        !checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH) &&
+                        !checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_TONGUE_CATCH) &&
+                        !checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_SUCTION) &&
+                        (g_FieldingLogic.locationThrownTo >= 0 || g_FieldingLogic.humanSelectedPlaceToThrow >= 0) &&
+                        slot->_42 != 0) {
+                        AnimateCharacter(idx, 0x1A, 0, 1, 1, 0, slot->_40, -1);
                         updateFielderState(fielderIdx, 1);
                     }
                 }
-            }
-            if (obj->animId == 0x1B) {
-                s16 t = g_Ball.timeSinceBallPickedUp;
-                if (t >= tbl[0x40] && t <= tbl[0x41] && !checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, 7) &&
-                    !checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, 8) &&
-                    !checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, 9) &&
-                    (g_FieldingLogic.locationThrownTo >= 0 || g_FieldingLogic.humanSelectedPlaceToThrow >= 0) &&
-                    slot->_42 != 0) {
-                    AnimateCharacter(idx, 0x1A, 0, 1, 1, 0, slot->_40, -1);
-                    updateFielderState(fielderIdx, 1);
+                if (slot->_4C == 7 || slot->_4C == 8) {
+                    if (fielder->runningCatchCountDown == 0 && fielder->catchAnimation == 0 && fielder->hitKnockbackCountdown == 0) {
+                        AnimateCharacter(idx, 0, 0, 1, 1, 0, slot->_40, -1);
+                    } else {
+                        return TRUE;
+                    }
+                } else if (obj->framesLeft > 1) {
+                    goto playing;
                 }
-            }
-            if (slot->_4C == 7 || slot->_4C == 8) {
-                if (fielder->runningCatchCountDown == 0 && fielder->catchAnimation == 0 && fielder->hitKnockbackCountdown == 0) {
-                    AnimateCharacter(idx, 0, 0, 1, 1, 0, slot->_40, -1);
-                } else {
-                    return TRUE;
-                }
-            } else if (obj->framesLeft > 1) {
-                return TRUE;
             }
         }
-    }
-    slot->_4C = 0;
-    slot->_4F = 0;
-    slot->_47 = 0;
-    slot->_46 = 0;
-    slot->_50 = 0;
-    updateFielderState(fielderIdx, 0);
-    return FALSE;
+        slot->_4C = 0;
+        slot->_4F = 0;
+        slot->_47 = 0;
+        slot->_46 = 0;
+        slot->_50 = 0;
+        updateFielderState(fielderIdx, 0);
+        return FALSE;
+    playing:
+        return TRUE;
     }
     return FALSE;
 }
