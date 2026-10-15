@@ -3724,6 +3724,8 @@ void running_updatePosition(int runnerIdx) {
             if (runner->runningToDugoutInd == 3) {
                 if (runner->runningToDugoutStage == 0) {
                     f32 len;
+                    f32 sqx;
+                    f32 sqz;
 
                     runner->nextBaseCoordinates.x =
                         dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.homeTeamBattingInd_fieldingTeam].x;
@@ -3734,9 +3736,9 @@ void running_updatePosition(int runnerIdx) {
                     len = dolsqrtf2(dx * dx + dz * dz);
                     dx = runner->velocity.x;
                     dz = runner->velocity.z;
-                    dx = dx * dx;
-                    dz = dz * dz;
-                    len = dolsqrtf2(dx + dz);
+                    sqx = dx * dx;
+                    sqz = dz * dz;
+                    len = dolsqrtf2(sqx + sqz);
                     if (len <= 0.0f) {
                         runner->velocity.x = 1.0f;
                         runner->velocity.z = -1.0f;
