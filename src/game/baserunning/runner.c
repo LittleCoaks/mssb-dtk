@@ -3964,7 +3964,7 @@ void fn_3_7FD90(int runnerIdx) {
 // .text:0x0007FA78 size:0x318 mapped:0x806BEB0C
 int running_DirectionOverrides(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
-    int prevent;
+    s16 prevent;
 
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
         if (g_Minigame.turnOverStatus != 0) {
@@ -3977,8 +3977,9 @@ int running_DirectionOverrides(int runnerIdx) {
     }
     if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
         u8 stealCode;
+        s16 frames = g_Ball.framesSinceHit;
 
-        if (g_Ball.framesSinceHit <= 0) {
+        if (frames <= 0) {
             return 0;
         }
         stealCode = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
@@ -4004,7 +4005,7 @@ int running_DirectionOverrides(int runnerIdx) {
         if (g_Ball.deadBallReason == 1) {
             return 1;
         }
-        if (g_Ball.framesSinceHit == 5) {
+        if (frames == 5) {
             return 1;
         }
     }
