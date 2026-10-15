@@ -1,4 +1,5 @@
 #define SQRT2_LINKAGE static
+#define REP_HEADER_DATA_FN getRepHeaderData_rep_21F8
 #include "game/hud/rep_21F8.h"
 #include "game/animation/scene_effects.h"
 #include "Dolphin/mtx.h"
@@ -115,6 +116,10 @@ static u8 lbl_3_bss_9F34;
 static HudState21F8 lbl_3_bss_9F20;
 #define HUD_PHASE(state) (((u8*)(state))[0x14])
 
+void fn_3_C9734(void) {
+    lbl_3_bss_9F34 = 2;
+}
+
 f32 fn_3_C9590(HudNode21F8* node, int frame, Mtx out, f32 t) {
     Mtx tmp;
     f32 v;
@@ -192,8 +197,4 @@ BOOL fn_3_C937C(void) {
     }
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     return HUD_PHASE(state) == 2;
-}
-
-void fn_3_C9734(void) {
-    lbl_3_bss_9F34 = 2;
 }
