@@ -4436,7 +4436,7 @@ void running_LiveBall_Human(void) {
     int i;
     int extra;
     BOOL stopInput;
-    BOOL foundOne;
+    int numFound;
     u16 input;
     InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
 
@@ -4549,15 +4549,15 @@ void running_LiveBall_Human(void) {
         if (desiredBase < 0) {
             return;
         }
-        foundOne = FALSE;
+        numFound = 0;
         for (i = 3; i >= 0; i--) {
             runner = &g_Runners[i];
             if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && runner->nextBase == desiredBase) {
-                if (foundOne) {
-                    if ((s8)runner->_151 > 0) {
-                        runner->_151++;
-                    } else {
+                if (numFound) {
+                    if ((s8)runner->_151 <= 0) {
                         runner->_151 = 1;
+                    } else {
+                        runner->_151++;
                     }
                     runner->someCountdown_unused = lbl_3_data_4C54[5];
                     if ((s8)runner->_151 <= lbl_3_data_4C54[6]) {
@@ -4571,10 +4571,10 @@ void running_LiveBall_Human(void) {
                         }
                         return;
                     }
-                    if (foundOne) {
+                    if (numFound) {
                         return;
                     }
-                    foundOne = TRUE;
+                    numFound++;
                 } else if (runner->runningDirectionCode == 3) {
                     if (runner->nextDirectionBeingProcessed == 2 || runner->nextDirectionBeingProcessed == 1) {
                         if (g_Runners[i].rosterID >= 0) {
