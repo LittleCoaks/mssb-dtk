@@ -2252,16 +2252,19 @@ int runnerAISubfunction3(int runnerIdx, int arg1) {
         frames = estimatedThrowFramesBetweenTwoPoints(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                       g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z,
                                                       base_MoundCoordinates[nextBase].x, base_MoundCoordinates[nextBase].z);
-        frames = g_Ball.framesUntilBallHitsGround + frames;
-        frames += 30;
-        if (runner->overRun1BStage != 0) {
-            return -2;
+        frames += g_Ball.framesUntilBallHitsGround + 30;
+        {
+            int toNext = runner->framesToNextBase;
+
+            if (runner->overRun1BStage != 0) {
+                return -2;
+            }
+            result = -2;
+            if (frames > toNext) {
+                result = 1;
+            }
+            return result;
         }
-        result = -2;
-        if (frames > runner->framesToNextBase) {
-            result = 1;
-        }
-        return result;
     }
 }
 
