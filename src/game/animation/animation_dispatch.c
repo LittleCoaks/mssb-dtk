@@ -2584,20 +2584,17 @@ void updateFielderState(int fielderIdx, int reset) {
 
 // .text:0x00060768 size:0x9C mapped:0x8069F7FC
 void resetAnimTracks(void) {
-    AnimTrackBlock* block;
+    int i;
 
-#define RESET_TRACK(n)                 \
-    block = hugeAnimStruct.trackBlock; \
-    block->tracks[n]._00 = 0;          \
-    block->tracks[n]._0A = 0;          \
-    block->tracks[n]._58 = 0.0f;       \
-    block->tracks[n]._54 = 1;          \
-    block->tracks[n]._55 = 0;          \
-    block->tracks[n]._56 = 0;          \
-    block->tracks[n]._5C = 0.0f
-    RESET_TRACK(0);
-    RESET_TRACK(1);
-    RESET_TRACK(2);
-    RESET_TRACK(3);
-#undef RESET_TRACK
+    for (i = 0; i < 4; i++) {
+        AnimTrack* track = &hugeAnimStruct.trackBlock->tracks[i];
+
+        track->_00 = 0;
+        track->_0A = 0;
+        track->_58 = 0.0f;
+        track->_54 = 1;
+        track->_55 = 0;
+        track->_56 = 0;
+        track->_5C = 0.0f;
+    }
 }
