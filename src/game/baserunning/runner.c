@@ -352,44 +352,20 @@ void resetInMemRunners(void) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE || g_d_GameSettings.bJMatchInd != 1 ||
             g_Runners[i].rosterID < 0) {
             g_Runners[i].rosterID = -1;
-            g_Runners[i].battingHand = 0;
+            g_Runners[i].battingHand = BATTING_HAND_RIGHT;
             g_Runners[i].runnerDidntReachOnError = 0;
             g_Runners[i].pitcherWhoLetRunnerOnBase = -1;
         }
     }
     g_RunningLogic.runnersInScoringPosition = 0;
-    for (i = 0; i < 4; i++) {
-        g_Runners[i].position.x = baseCoordsForRunning[i][0];
-        g_Runners[i].position.z = baseCoordsForRunning[i][1];
-        g_Runners[i].velocity.x = 0.0f;
-        g_Runners[i].velocity.y = 0.0f;
-        g_Runners[i].velocity.z = 0.0f;
-        g_Runners[i].startingBase_baseAchieved = i;
-        g_Runners[i].currentBase = i;
-        g_Runners[i].nextBase = (i + 1) & 3;
-        g_Runners[i].baseStandingOn = i;
-        g_Runners[i].baseRunningTowards = 0xFF;
-        g_Runners[i].leadOffStatus = 0;
-    }
+    initBaseRunnersAfterFoulBall();
 }
 
 // .text:0x0008A1D8 size:0x178 mapped:0x806C926C
 void initializeARunner(void) {
     int i;
 
-    for (i = 0; i < 4; i++) {
-        g_Runners[i].position.x = baseCoordsForRunning[i][0];
-        g_Runners[i].position.z = baseCoordsForRunning[i][1];
-        g_Runners[i].velocity.x = 0.0f;
-        g_Runners[i].velocity.y = 0.0f;
-        g_Runners[i].velocity.z = 0.0f;
-        g_Runners[i].startingBase_baseAchieved = i;
-        g_Runners[i].currentBase = i;
-        g_Runners[i].nextBase = (i + 1) & 3;
-        g_Runners[i].baseStandingOn = i;
-        g_Runners[i].baseRunningTowards = 0xFF;
-        g_Runners[i].leadOffStatus = 0;
-    }
+    initBaseRunnersAfterFoulBall();
     if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BATTING) {
         for (i = 1; i < 4; i++) {
             if (g_Runners[i].rosterID >= 0) {
