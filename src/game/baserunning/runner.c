@@ -3700,8 +3700,8 @@ void running_updatePosition(int runnerIdx) {
             }
             if (runner->actionCode != 0 && runner->actionStage == 2) {
                 if (runner->timeStandingOnBase >= 6) {
-                    if ((s8)runner->baseOfFailedBodyCheck >= 0) {
-                        int base = (s8)runner->baseOfFailedBodyCheck;
+                    if (runner->baseOfFailedBodyCheck >= 0) {
+                        s8 base = runner->baseOfFailedBodyCheck;
 
                         fn_3_7FFD0(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
                     } else {
