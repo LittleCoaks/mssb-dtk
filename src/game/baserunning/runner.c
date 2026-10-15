@@ -386,20 +386,16 @@ void transferInMemRunnerValuesToNextRunnerIndex(void) {
         g_Runners[3].runnerOnFieldOrOutOrScored = RUNNER_STATUS_NONE;
         g_Runners[3].rosterID = -1;
     }
-    order[0] = -1;
-    g_RunningLogic.runnerTransferIndex[0] = -1;
-    order[1] = -1;
-    g_RunningLogic.runnerTransferIndex[1] = -1;
-    order[2] = -1;
-    g_RunningLogic.runnerTransferIndex[2] = -1;
-    order[3] = -1;
-    g_RunningLogic.runnerTransferIndex[3] = -1;
+    for (i = 0; i < 4; i++) {
+        order[i] = -1;
+        g_RunningLogic.runnerTransferIndex[i] = -1;
+    }
     if (g_Pitcher.strikeOutOrWalk == 2 && g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
         for (i = 3; i >= 1; i--) {
             InMemRunnerType* runner = &g_Runners[i];
             if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
                     runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_WALK_WHILE_STEALING) {
-                if (runner->currentBase == i && runner->forcedToAdvanceInd != 0) {
+                if (i == runner->currentBase && runner->forcedToAdvanceInd != 0) {
                     order[i + 1] = i;
                 } else {
                     order[runner->currentBase] = i;
@@ -422,7 +418,7 @@ void transferInMemRunnerValuesToNextRunnerIndex(void) {
             order[3] = 3;
             fn_3_89914(3, 3);
             order[2] = 2;
-            g_RunningLogic.runnerTransferIndex[2] = 2;
+            fn_3_89914(2, 2);
         } else if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
             order[2] = 1;
             fn_3_89914(1, 2);
@@ -437,8 +433,8 @@ void transferInMemRunnerValuesToNextRunnerIndex(void) {
         order[1] = 0;
         fn_3_89914(0, 1);
     } else if (g_Ball.deadBallReason == 3) {
-        fn_3_89914(1, 3);
         order[3] = 1;
+        fn_3_89914(1, 3);
         order[2] = 0;
         fn_3_89914(0, 2);
         order[1] = -1;
