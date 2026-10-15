@@ -295,26 +295,17 @@ void fn_3_8A618(void) {
 
 // .text:0x0008A5A4 size:0x74 mapped:0x806C9638
 void fn_3_8A5A4(void) {
-    g_Runners[0].rosterID = -1;
-    g_Runners[0]._121 = 10;
-    g_Runners[0].delayBeforeStartingToRun = 30;
-    g_Runners[0].leadoffDistancePercent = 0.1f;
-    g_Runners[0].someCollisionCheck = 0;
-    g_Runners[1].rosterID = -1;
-    g_Runners[1]._121 = 10;
-    g_Runners[1].delayBeforeStartingToRun = 30;
-    g_Runners[1].leadoffDistancePercent = 0.1f;
-    g_Runners[1].someCollisionCheck = 0;
-    g_Runners[2].rosterID = -1;
-    g_Runners[2]._121 = 10;
-    g_Runners[2].delayBeforeStartingToRun = 30;
-    g_Runners[2].leadoffDistancePercent = 0.1f;
-    g_Runners[2].someCollisionCheck = 0;
-    g_Runners[3].rosterID = -1;
-    g_Runners[3]._121 = 10;
-    g_Runners[3].delayBeforeStartingToRun = 30;
-    g_Runners[3].leadoffDistancePercent = 0.1f;
-    g_Runners[3].someCollisionCheck = 0;
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        InMemRunnerType* runner = &g_Runners[i];
+
+        runner->rosterID = -1;
+        runner->_121 = 10;
+        runner->delayBeforeStartingToRun = 30;
+        runner->leadoffDistancePercent = 0.1f;
+        runner->someCollisionCheck = 0;
+    }
 }
 
 // .text:0x0008A4E4 size:0xC0 mapped:0x806C9578
