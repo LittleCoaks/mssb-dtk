@@ -6,7 +6,9 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/GX/GXTexture.h"
 
+void fn_1_1D590(void *src, u8 *tex, u8 *map, s32 w, s32 h);
 void fn_1_1D694(void *arg0);
+void fn_1_26AF8(void);
 void fn_1_1D944(void);
 void fn_1_1DA54(void);
 void fn_1_1DCE4(void);

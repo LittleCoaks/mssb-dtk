@@ -43,7 +43,7 @@
 #define BTN_PRESSED (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 2))
 #define BTN_REPEAT (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4))
 
-extern u8 lbl_80366158[0x30];
+extern MemoryStack lbl_80366158;
 
 extern u32 lbl_80108B90[];
 extern u8 drawStadiumRelated;
@@ -132,7 +132,7 @@ static f32 lbl_1_bss_5F74;
 static u8 lbl_1_bss_5F73;
 static u8 lbl_1_bss_5F72;
 static u8 lbl_1_bss_5F71;
-static u8 lbl_1_bss_5F70;
+static s8 lbl_1_bss_5F70;
 static u32 lbl_1_bss_5F6C;
 static u8 gap_5F6B;
 static u8 gap_5F6A;
@@ -140,7 +140,7 @@ static u8 lbl_1_bss_5F69;
 static u8 lbl_1_bss_5F68;
 static f32 lbl_1_bss_5F64;
 static u8 gap_5F63;
-static u8 lbl_1_bss_5F62;
+static s8 lbl_1_bss_5F62;
 static u16 lbl_1_bss_5F60;
 static s32 lbl_1_bss_5F5C;
 static s32 lbl_1_bss_5F58;
@@ -152,7 +152,7 @@ static u8 lbl_1_bss_3216;
 static u8 lbl_1_bss_3215;
 static u8 lbl_1_bss_3214;
 static DbgBuf30C0 lbl_1_bss_30C0;
-static u32 lbl_1_bss_30BC;
+static BOOL lbl_1_bss_30BC;
 static u8 gap_30BB;
 static u8 gap_30BA;
 static u8 gap_30B9;
@@ -176,7 +176,7 @@ static u8 gap_3091;
 static u8 lbl_1_bss_3090;
 static u32 lbl_1_bss_308C;
 static s32 lbl_1_bss_3088;
-static u32 lbl_1_bss_3084;
+static BOOL lbl_1_bss_3084;
 static u8 gap_3083;
 static u8 gap_3082;
 static u8 lbl_1_bss_3081;
@@ -2094,7 +2094,7 @@ static DbgRowTbl lbl_1_data_F4D4;
 
 // .text:0x00017D90 size:0x16C
 void fn_1_17D90(void) {
-    fn_800AD038(*(void **)(lbl_80366158 + 8));
+    fn_800AD038(lbl_80366158.hi);
     currentDrawingItem->state = 0;
     currentDrawingItem->func = fn_1_17B5C;
     fn_1_D7A4(0);
@@ -2126,14 +2126,14 @@ void fn_1_17B5C(void) {
     fn_80052D70();
 }
 
-static inline void dbgSetAnim(u8 *obj, void *anim, u16 frame) {
-    *(void **)(obj + 4) = anim;
-    *(u16 *)(obj + 0xE) = frame;
-    *(f32 *)(obj + 0x5C) = 0.0f;
-    *(u8 *)(obj + 0x58) = 1;
-    *(u8 *)(obj + 0x59) = anim != NULL;
-    *(u8 *)(obj + 0x5A) = anim != NULL;
-    *(f32 *)(obj + 0x60) = 0.0f;
+static inline void dbgSetAnim(DbgActorEnt *obj, void *anim, u16 frame) {
+    obj->anim = anim;
+    obj->seqNum = frame;
+    obj->frame = 0.0f;
+    obj->animPending = TRUE;
+    obj->framePending = anim != NULL;
+    obj->speedPending = anim != NULL;
+    obj->blendTime = 0.0f;
 }
 
 static inline void dbgMoveCamera(void) {
@@ -2252,7 +2252,7 @@ void fn_1_16978(void) {
         break;
     case 4:
         hugeAnimStruct.slots[lbl_1_bss_5F73].p8 = ARAMTransfer(
-            &lbl_1_data_2398[lbl_1_bss_3074 + lbl_1_bss_68FC.f40[lbl_1_bss_5F73] * 0x13 + lbl_1_bss_6940[lbl_1_bss_5F73].f46], 0, 0, 0);
+            &lbl_1_data_2398[lbl_1_bss_3074 + (lbl_1_bss_68FC.f40[lbl_1_bss_5F73] * 0x13 + lbl_1_bss_6940[lbl_1_bss_5F73].f46)], 0, 0, 0);
         currentDrawingItem->state++;
         break;
     case 5:
@@ -2375,17 +2375,20 @@ void fn_1_16978(void) {
         }
         break;
     case 20:
-        if (lbl_1_bss_3070 != 0 && hugeAnimStruct.slots[lbl_1_bss_5F73].p8->f10 != 0) {
+        if (lbl_1_bss_3070 == 0 || hugeAnimStruct.slots[lbl_1_bss_5F73].p8->f10 == 0) {
+            currentDrawingItem->state = 0x16;
+        } else {
             hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[7] = (void *)&lbl_1_bss_6988[lbl_1_bss_5F73];
-            if (lbl_1_bss_68FC.f40[lbl_1_bss_5F73] == 0) {
+            switch (lbl_1_bss_68FC.f40[lbl_1_bss_5F73]) {
+            case 0:
                 *(void **)hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[7] = ARAMTransfer(HandPoseEventSetFiles_debug, 0, 0, 0);
                 currentDrawingItem->state++;
-            } else {
+                break;
+            default:
                 lbl_1_bss_3070 = 0;
                 currentDrawingItem->state = 0x16;
+                break;
             }
-        } else {
-            currentDrawingItem->state = 0x16;
         }
         break;
     case 21:
@@ -2484,13 +2487,13 @@ void fn_1_16978(void) {
 // .text:0x000168C8 size:0xB0
 void fn_1_168C8(void) {
     DbgScene *s = (DbgScene *)currentDrawingItem;
-    if (lbl_1_bss_3084 == 0) {
-        lbl_1_bss_3084 = 1;
+    if (!lbl_1_bss_3084) {
+        lbl_1_bss_3084 = TRUE;
         s->tick = OSGetTick();
         fn_1_135C0();
         s->tick = OSGetTick() - s->tick;
     } else {
-        lbl_1_bss_3084 = 0;
+        lbl_1_bss_3084 = FALSE;
         s->state = 0;
         if (hugeAnimStruct.slots[0].p8->f10 != 0) {
             currentDrawingItem->func = fn_1_1770C;
@@ -2502,7 +2505,7 @@ void fn_1_168C8(void) {
 
 // .text:0x000165E0 size:0x2E8
 void fn_1_165E0(void) {
-    DbgLight *light = hugeAnimStruct.lights[(s8)lbl_1_bss_5F70];
+    DbgLight *light = hugeAnimStruct.lights[lbl_1_bss_5F70];
     s16 step = 0;
     u16 b = BTN_REPEAT;
     if (b & INPUT_BUTTON_LEFT) {
@@ -2528,9 +2531,9 @@ void fn_1_165E0(void) {
     switch (lbl_1_bss_307C) {
     case 0:
         lbl_1_bss_5F70 += step;
-        if ((s8)lbl_1_bss_5F70 < 0) {
+        if (lbl_1_bss_5F70 < 0) {
             lbl_1_bss_5F70 = 2;
-        } else if ((s8)lbl_1_bss_5F70 >= 3) {
+        } else if (lbl_1_bss_5F70 >= 3) {
             lbl_1_bss_5F70 = 0;
         }
         break;
@@ -2575,8 +2578,7 @@ void fn_1_165E0(void) {
 
 // .text:0x00016590 size:0x50
 u32 fn_1_16590(void) {
-    DbgSel *s = &lbl_1_bss_6940[lbl_1_bss_5F73];
-    return hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[s->f44]->p4[s->f45].f0;
+    return fn_1_16558(lbl_1_bss_6940[lbl_1_bss_5F73].f44, lbl_1_bss_6940[lbl_1_bss_5F73].f45);
 }
 
 // .text:0x00016558 size:0x38
@@ -2593,9 +2595,9 @@ void fn_1_1644C(void) {
     lbl_1_bss_5F69 ^= 1;
     if (act != NULL) {
         if (lbl_1_bss_5F69 == 0) {
-            *(void **)((u8 *)&hugeAnimStruct.objs->e[idx] + 0x68) = NULL;
+            hugeAnimStruct.objs->e[idx].unk68 = 0;
         } else {
-            *(void **)((u8 *)&hugeAnimStruct.objs->e[idx] + 0x68) = (u8 *)act + 0x72;
+            hugeAnimStruct.objs->e[idx].unk68 = (u32)((u8 *)act + 0x72);
         }
         fn_1_ECF8(lbl_1_bss_5F73, lbl_1_bss_6940[lbl_1_bss_5F73].f44, lbl_1_bss_5F69);
         for (i = 0; i < 4; i++) {
@@ -2628,8 +2630,8 @@ void fn_1_1620C(void) {
         hugeAnimStruct.slots[i].rotX = 0.0f;
         hugeAnimStruct.slots[i].rotY = 0.0f;
         hugeAnimStruct.slots[i].rotZ = 0.0f;
-        CTRLSetTranslation((Control *)((u8 *)&hugeAnimStruct.objs->e[i] + 0x10), 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation((Control *)((u8 *)&hugeAnimStruct.objs->e[i] + 0x10), 0.0f, 0.0f, 0.0f);
+        CTRLSetTranslation(&hugeAnimStruct.objs->e[i].control, 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation(&hugeAnimStruct.objs->e[i].control, 0.0f, 0.0f, 0.0f);
         i++;
     } while (i < 1);
     fn_1_1347C();
@@ -2647,7 +2649,8 @@ void fn_1_160F8(s32 dir) {
     if (BTN_HELD & INPUT_BUTTON_X) {
         step *= 10.0f;
     }
-    lbl_1_bss_5F74 += step * dir;
+    step *= dir;
+    lbl_1_bss_5F74 += step;
     if (lbl_1_bss_5F74 > 1.0f) {
         lbl_1_bss_5F74 = 0.0f;
     }
@@ -2691,7 +2694,7 @@ void fn_1_15CE0(void) {
             *(u8 *)&lbl_1_data_1F1A ^= 1;
             break;
         case 4:
-            if ((s8)lbl_1_bss_5F62 >= 0) {
+            if (lbl_1_bss_5F62 >= 0) {
                 lbl_1_bss_5F62--;
             }
             break;
@@ -2716,7 +2719,7 @@ void fn_1_15CE0(void) {
             *(u8 *)&lbl_1_data_1F1A ^= 1;
             break;
         case 4:
-            if ((s8)lbl_1_bss_5F62 < 1) {
+            if (lbl_1_bss_5F62 < 1) {
                 lbl_1_bss_5F62++;
             }
             break;
@@ -2727,8 +2730,10 @@ void fn_1_15CE0(void) {
             break;
         }
     } else if (b & INPUT_BUTTON_A) {
-        if (lbl_1_bss_307C == 1) {
+        switch (lbl_1_bss_307C) {
+        case 1:
             fn_1_1620C();
+            break;
         }
     } else if (b & INPUT_BUTTON_B) {
         lbl_1_bss_307C = 0;
@@ -2797,8 +2802,8 @@ void fn_1_15760(void) {
             case 6:
                 lbl_1_bss_5F68 ^= 1;
                 if (lbl_1_bss_5F68 != 0) {
-                    *(f32 *)((u8 *)&hugeAnimStruct.objs->e[0] + 0x5C) = 0.0f;
-                    *((u8 *)&hugeAnimStruct.objs->e[0] + 0x59) = 1;
+                    hugeAnimStruct.objs->e[0].frame = 0.0f;
+                    hugeAnimStruct.objs->e[0].framePending = 1;
                 }
                 break;
             case 5:
@@ -2850,8 +2855,8 @@ void fn_1_15760(void) {
             case 6:
                 lbl_1_bss_5F68 ^= 1;
                 if (lbl_1_bss_5F68 != 0) {
-                    *(f32 *)((u8 *)&hugeAnimStruct.objs->e[0] + 0x5C) = 0.0f;
-                    *((u8 *)&hugeAnimStruct.objs->e[0] + 0x59) = 1;
+                    hugeAnimStruct.objs->e[0].frame = 0.0f;
+                    hugeAnimStruct.objs->e[0].framePending = 1;
                     for (i = 0; i < 5; i++) {
                         if (lbl_1_bss_67B8[i] != NULL) {
                             fn_1_26B7C(lbl_1_bss_67B8[i]);
@@ -2899,11 +2904,11 @@ void fn_1_15760(void) {
 
 // .text:0x0001540C size:0x354
 void fn_1_1540C(void) {
-    s32 base = lbl_1_bss_5F6C;
-    s32 span = 0x14;
     s32 top;
+    s32 span = 0x14;
+    s32 base = lbl_1_bss_5F6C;
     u8 buf[0x28];
-    u16 b = 0;
+    u16 b;
     if (lbl_1_bss_3088 > base) {
         lbl_1_bss_3088 = base;
     } else if (lbl_1_bss_3088 < base - 0x13) {
@@ -3029,10 +3034,10 @@ void fn_1_151F8(void) {
 void fn_1_15170(void) {
     u16 b = BTN_REPEAT;
     if (b & INPUT_BUTTON_B) {
-        fn_800AD038(*(void **)(lbl_80366158 + 8));
+        fn_800AD038(lbl_80366158.hi);
         currentDrawingItem->state = 0;
         currentDrawingItem->func = fn_1_176EC;
-        lbl_1_bss_30B8 = 1;
+        lbl_1_bss_30B8 = TRUE;
     } else if (b & INPUT_BUTTON_A) {
         lbl_1_bss_5F71 = 1;
     }
@@ -3172,23 +3177,23 @@ void fn_1_1496C(void) {
     } else if (BTN_PRESSED & INPUT_BUTTON_B) {
         memset(&hugeAnimStruct, 0, 0x3154);
         lbl_1_bss_3070 = 0;
-        fn_800AD038(*(void **)(lbl_80366158 + 8));
+        fn_800AD038(lbl_80366158.hi);
         currentDrawingItem->currentDrawingItem->state = 1;
     }
 }
 
 // .text:0x00014928 size:0x44
 void fn_1_14928(void) {
-    fn_800AD038(*(void **)(lbl_80366158 + 8));
+    fn_800AD038(lbl_80366158.hi);
     currentDrawingItem->currentDrawingItem->state = 1;
 }
 
 // .text:0x000148CC size:0x5C
 void fn_1_148CC(void) {
-    fn_800AD038(*(void **)(lbl_80366158 + 8));
+    fn_800AD038(lbl_80366158.hi);
     currentDrawingItem->state = 0;
     currentDrawingItem->func = fn_1_176EC;
-    lbl_1_bss_30B8 = 1;
+    lbl_1_bss_30B8 = TRUE;
 }
 
 // .text:0x00014888 size:0x44
@@ -3341,8 +3346,8 @@ void fn_1_135C0(void) {
             }
             for (i = 0; i < lbl_1_bss_5F7C->count; i++) {
                 ((u8 *)&lbl_1_bss_5F7C->e[i])[0x6C] = 1;
-                CTRLSetTranslation((Control *)((u8 *)&lbl_1_bss_5F7C->e[i] + 0x10), (f32)i, 0.0f, 0.0f);
-                CTRLSetRotation((Control *)((u8 *)&lbl_1_bss_5F7C->e[i] + 0x10), 0.0f, 0.0f, 0.0f);
+                CTRLSetTranslation(&lbl_1_bss_5F7C->e[i].control, (f32)i, 0.0f, 0.0f);
+                CTRLSetRotation(&lbl_1_bss_5F7C->e[i].control, 0.0f, 0.0f, 0.0f);
             }
         }
     }
@@ -3362,7 +3367,7 @@ void fn_1_135C0(void) {
         lbl_1_bss_6940[lbl_1_bss_5F73].f45 = 0;
     }
     characterAndBallDisplayRelated((u8 *)&hugeAnimStruct.objs->e[0], 0, 0, layout, anim, (int)geoExtra);
-    dbgSetAnim((u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
+    dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
     lbl_1_bss_67CC[0] = (void *)hugeAnimStruct.slots[0].p8->f10;
     if (lbl_1_bss_67CC[0] != NULL && lbl_1_bss_6940[lbl_1_bss_5F73].f46 == 0) {
         adjustInternalPointers(lbl_1_bss_67CC[0]);
@@ -3406,10 +3411,10 @@ void fn_1_135C0(void) {
     fn_800BD548((u8 *)&hugeAnimStruct.objs->e[0], 3, hugeAnimStruct.lights[0], hugeAnimStruct.lights[1], hugeAnimStruct.lights[2], hugeAnimStruct.lights[3]);
     hugeAnimStruct.slots[0].pos.x = hugeAnimStruct.slots[0].pos.y = hugeAnimStruct.slots[0].pos.z = 0.0f;
     hugeAnimStruct.slots[0].rotX = hugeAnimStruct.slots[0].rotY = hugeAnimStruct.slots[0].rotZ = 0.0f;
-    CTRLSetTranslation((Control *)((u8 *)&hugeAnimStruct.objs->e[0] + 0x10), 0.0f, 0.0f, 0.0f);
-    CTRLSetRotation((Control *)((u8 *)&hugeAnimStruct.objs->e[0] + 0x10), 0.0f, 0.0f, 0.0f);
+    CTRLSetTranslation(&hugeAnimStruct.objs->e[0].control, 0.0f, 0.0f, 0.0f);
+    CTRLSetRotation(&hugeAnimStruct.objs->e[0].control, 0.0f, 0.0f, 0.0f);
     *(f32 *)((u8 *)&hugeAnimStruct.objs->e[0] + 0x54) = 0.5f;
-    *((u8 *)&hugeAnimStruct.objs->e[0] + 0x5A) = 1;
+    hugeAnimStruct.objs->e[0].speedPending = 1;
     {
         s32 id = s0->partIdx[3];
         entry0 = (u8 *)&hugeAnimStruct.objs->e[0];
@@ -3505,8 +3510,8 @@ void fn_1_135C0(void) {
 // .text:0x0001347C size:0x144
 void fn_1_1347C(void) {
     Mtx44 m;
-    lbl_1_bss_67E0.f10C = -0.8f;
     lbl_1_bss_67E0.f108 = 0.0f;
+    lbl_1_bss_67E0.f10C = -0.8f;
     lbl_1_bss_67E0.f110 = 0.0f;
     lbl_1_bss_67E0.fFC = 0.0f;
     lbl_1_bss_67E0.f100 = 0.0f;
@@ -3552,26 +3557,25 @@ void fn_1_12F8C(DbgActorTbl *objs, Mtx cam) {
     u16 i;
     for (i = 0; i < objs->count; i++) {
         DbgActorEnt *o = &objs->e[i];
-        u8 *e = (u8 *)o;
         if (o->model != NULL) {
             DbgModel *model;
             Mtx t;
             s32 r;
-            if (e[0x58] != 0) {
-                ACTSetAnimation((Actor *)o->model, *(ANIMBank **)(e + 4), NULL, *(u16 *)(e + 0xE), 0.0f, *(f32 *)(e + 0x60));
+            if (o->animPending != 0) {
+                ACTSetAnimation((Actor *)o->model, o->anim, NULL, o->seqNum, 0.0f, o->blendTime);
             }
-            if (e[0x59] != 0) {
-                setActorAnimFrame(*(void **)e, *(f32 *)(e + 0x5C));
+            if (o->framePending != 0) {
+                setActorAnimFrame(o->model, o->frame);
             }
-            if (e[0x5A] != 0) {
-                fn_800B4C04(*(void **)e, *(f32 *)(e + 0x54));
+            if (o->speedPending != 0) {
+                fn_800B4C04(o->model, o->speed);
             }
-            if (e[0x5B] & 2) {
-                updateBoneParam(*(void **)e, e[0x5B] & 1);
+            if (o->boneParam & 2) {
+                updateBoneParam(o->model, o->boneParam & 1);
             }
-            Set_FUN_800b2b6c(*(void **)e, *(s32 *)(e + 0x68));
-            if (*((u8 *)o + 0x6C) != 0) {
-                fn_800BDA24(e);
+            Set_FUN_800b2b6c((void *)o->model, o->unk68);
+            if (o->applyControl != 0) {
+                fn_800BDA24(o);
                 if (lbl_1_bss_3081 != 0) {
                     Vec v;
                     v.x = lbl_1_bss_67E0.f108 - hugeAnimStruct.slots[i].pos.x;
@@ -3582,15 +3586,15 @@ void fn_1_12F8C(DbgActorTbl *objs, Mtx cam) {
                 }
                 if (lbl_1_bss_308C != 0) {
                     lbl_1_bss_308C = 0;
-                    for (i = 0; i < ((DbgModel *)*(void **)e)->count; i++) {
-                        DbgPart *p = ((DbgModel *)*(void **)e)->parts[i];
+                    for (i = 0; i < o->model->count; i++) {
+                        DbgPart *p = o->model->parts[i];
                         OSReport("#%3d %f %f %f\n", p->h0, p->f64, p->f68, p->f6C);
                     }
                 }
             }
             PSMTXTrans(t, hugeAnimStruct.slots[i].pos.x, hugeAnimStruct.slots[i].pos.y, hugeAnimStruct.slots[i].pos.z);
             PSMTXConcat(cam, t, t);
-            model = *(DbgModel **)e;
+            model = o->model;
             r = fn_800B3C04(0, (void *)model, t);
             model->f98 = (model->f98 & 0xFC) | r;
             *((u8 *)o + 0x8C) = 0;
@@ -3610,8 +3614,8 @@ void fn_1_12F18(DbgBlob *s) {
 }
 
 static inline void dbgSetPlaySpeed(DbgActorEnt *obj, f32 speed) {
-    *(f32 *)((u8 *)obj + 0x54) = speed;
-    *((u8 *)obj + 0x5A) = 1;
+    obj->speed = speed;
+    obj->speedPending = TRUE;
     if (lbl_1_bss_67B8[0] != NULL) {
         ((DbgGaugeLink *)lbl_1_bss_67B8[0])->value = speed;
     }
@@ -3629,8 +3633,8 @@ void fn_1_129D0(void) {
     fn_1_11C98();
     s = hugeAnimStruct.slots;
     obj0 = &hugeAnimStruct.objs->e[0];
-    CTRLSetTranslation((Control *)((u8 *)obj0 + 0x10), 0.0f, 0.0f, 0.0f);
-    CTRLSetRotation((Control *)((u8 *)obj0 + 0x10), 57.295776f * s->rotX, 57.295776f * s->rotY, 57.295776f * s->rotZ);
+    CTRLSetTranslation(&obj0->control, 0.0f, 0.0f, 0.0f);
+    CTRLSetRotation(&obj0->control, 57.295776f * s->rotX, 57.295776f * s->rotY, 57.295776f * s->rotZ);
     if (lbl_1_bss_5F68 == 0) {
         speed = lbl_1_data_ABA4;
         dbgSetPlaySpeed(obj0, speed);
@@ -3677,9 +3681,9 @@ void fn_1_129D0(void) {
     if (DBG_A978[lbl_1_bss_68FC.f40[0]] >= 0) {
         fn_800BD8C4(lbl_1_bss_5F7C, lbl_1_bss_68FC.mtx10);
     }
-    *((u8 *)&hugeAnimStruct.objs->e[0] + 0x6C) = 1;
+    hugeAnimStruct.objs->e[0].applyControl = 1;
     fn_1_12F8C(hugeAnimStruct.objs, lbl_1_bss_68FC.mtx10);
-    *((u8 *)&hugeAnimStruct.objs->e[0] + 0x6C) = (lbl_1_bss_3080 == 0) & (lbl_1_bss_5F73 == 0);
+    hugeAnimStruct.objs->e[0].applyControl = (lbl_1_bss_3080 == 0) & (lbl_1_bss_5F73 == 0);
     if (hugeAnimStruct.f3083 != 0) {
         fn_80038EC4(&hugeAnimStruct.slots[hugeAnimStruct.f3084], (u8 *)&hugeAnimStruct.objs->e[hugeAnimStruct.f3084], 0);
     }
@@ -3695,7 +3699,7 @@ void fn_1_12820(DbgActorTbl *objs, Mtx cam) {
     u16 i;
     C_MTXFrustum(proj, -0.000175f, 0.000175f, 0.00025f, -0.00025f, 0.001f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    GXSetZMode(1, GX_LEQUAL, 1);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetCullMode(GX_CULL_BACK);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_OR);
     GXSetAlphaCompare(GX_GREATER, 0, GX_AOP_AND, GX_ALWAYS, 0);
@@ -3704,7 +3708,7 @@ void fn_1_12820(DbgActorTbl *objs, Mtx cam) {
         DbgActor *a = &hugeAnimStruct.slots[i];
         if (o->model != NULL) {
             o->model->f98 = 0xFF;
-            if (*((u8 *)o + 0x6C) != 0) {
+            if (o->applyControl != 0) {
                 u8 level = a->f277;
                 if (lastLevel != level) {
                     lastLevel = level;
@@ -3827,16 +3831,16 @@ void fn_1_11C98(void) {
 
 // .text:0x00011714 size:0x584
 void fn_1_11714(DbgBlob *blob) {
-    Mtx44 proj;
     Mtx44 proj2;
     f32 scr[8][2];
+    Mtx44 proj;
     s32 n;
     s32 f;
     C_MTXFrustum(proj, -0.000175f, 0.000175f, 0.00025f, -0.00025f, 0.001f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    GXLoadPosMtxImm(blob->mtx8, 0);
-    GXSetCurrentMtx(0);
-    GXSetColorUpdate(1);
+    GXLoadPosMtxImm(blob->mtx8, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    GXSetColorUpdate(GX_TRUE);
     C_MTXFrustum(proj2, -0.000175f, 0.000175f, 0.00025f, -0.00025f, 0.001f, 512.0f);
     fn_800245EC((camera_803c639c_s *)proj2, lbl_1_bss_68FC.mtx10, (Vec *)lbl_1_data_AD30, &scr[0][0], 8, 1);
     SetDisplayStateTexture(returnTexture(), 0, 0);
@@ -3847,7 +3851,7 @@ void fn_1_11714(DbgBlob *blob) {
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetZMode(1, GX_LEQUAL, 1);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetNumTevStages(1);
     GXSetNumChans(1);
     GXSetNumTexGens(1);
@@ -3915,10 +3919,10 @@ void fn_1_1125C(DbgBlob *blob) {
     GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
     C_MTXFrustum(proj, -0.000175f, 0.000175f, 0.00025f, -0.00025f, 0.001f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    GXLoadPosMtxImm(blob->mtx8, 0);
-    GXSetCurrentMtx(0);
-    GXSetColorUpdate(1);
-    if ((s8)lbl_1_bss_5F62 < 0) {
+    GXLoadPosMtxImm(blob->mtx8, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    GXSetColorUpdate(GX_TRUE);
+    if (lbl_1_bss_5F62 < 0) {
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
         GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
@@ -3945,14 +3949,14 @@ void fn_1_1125C(DbgBlob *blob) {
             GXColor4u8(0, 255, 0, 200);
         }
     } else {
-        SetDisplayStateTexture((void *)((u8 *)lbl_1_bss_60E4 + (s8)lbl_1_bss_5F62 * 32 + 4), 0, 0);
+        SetDisplayStateTexture((void *)((u8 *)lbl_1_bss_60E4 + lbl_1_bss_5F62 * 32 + 4), 0, 0);
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
         GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
         GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_S16, 0);
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U16, 0);
         GXSetNumTevStages(1);
         GXSetNumChans(1);
         GXSetNumTexGens(1);
@@ -3984,8 +3988,8 @@ void fn_1_10E2C(Mtx m, Mtx cam, u32 c0, u32 c1, u32 c2) {
     Mtx cat;
     GXGetCullMode(&cull);
     PSMTXConcat(cam, m, cat);
-    GXLoadPosMtxImm(cat, 0);
-    GXSetCurrentMtx(0);
+    GXLoadPosMtxImm(cat, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
@@ -4000,7 +4004,7 @@ void fn_1_10E2C(Mtx m, Mtx cam, u32 c0, u32 c1, u32 c2) {
     GXSetChanCtrl(GX_ALPHA0, FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
     GXSetCullMode(GX_CULL_NONE);
-    GXSetZMode(1, GX_ALWAYS, 1);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     GXSetLineWidth(7, GX_TO_ZERO);
     GXBegin(GX_LINES, GX_VTXFMT0, 22);
     GXPosition3f32(-0.01f, 0.0f, 0.0f);
@@ -4050,17 +4054,16 @@ void fn_1_10E2C(Mtx m, Mtx cam, u32 c0, u32 c1, u32 c2) {
 
     GXSetLineWidth(6, GX_TO_ZERO);
     GXSetCullMode(cull);
-    GXSetZMode(1, GX_LEQUAL, 1);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
 }
 
 // .text:0x00010CEC size:0x140
 void fn_1_10CEC(DbgBlob *blob) {
     if (*(u8 *)lbl_1_data_ABA8 == 0) {
-        Mtx m;
         Mtx buf;
+        Mtx m;
         s32 i;
-        DbgActor *a = &hugeAnimStruct.slots[lbl_1_bss_5F73];
-        PSMTXTrans(m, a->pos.x, a->pos.y, a->pos.z);
+        PSMTXTrans(m, hugeAnimStruct.slots[lbl_1_bss_5F73].pos.x, hugeAnimStruct.slots[lbl_1_bss_5F73].pos.y, hugeAnimStruct.slots[lbl_1_bss_5F73].pos.z);
         PSMTXConcat(blob->mtx8, m, m);
         for (i = 0; i < hugeAnimStruct.objs->e[lbl_1_bss_5F73].model->count; i++) {
             u32 c0, c1, c2;
@@ -4090,8 +4093,8 @@ void fn_1_10CEC(DbgBlob *blob) {
 void fn_1_10ACC(Mtx m, Vec *p, s32 unused, GXColor *c, f32 size) {
     GXCullMode cull;
     GXGetCullMode(&cull);
-    GXLoadPosMtxImm(m, 0);
-    GXSetCurrentMtx(0);
+    GXLoadPosMtxImm(m, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
@@ -4106,7 +4109,7 @@ void fn_1_10ACC(Mtx m, Vec *p, s32 unused, GXColor *c, f32 size) {
     GXSetChanCtrl(GX_ALPHA0, FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_COPY);
     GXSetCullMode(GX_CULL_NONE);
-    GXSetZMode(1, GX_ALWAYS, 1);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     GXSetLineWidth(10, GX_TO_ZERO);
     GXBegin(GX_LINES, GX_VTXFMT0, 2);
     GXPosition3f32(p->x, p->y, p->z);
@@ -4115,7 +4118,7 @@ void fn_1_10ACC(Mtx m, Vec *p, s32 unused, GXColor *c, f32 size) {
     GXColor4u8(c->r, c->g, c->b, c->a);
     GXSetLineWidth(6, GX_TO_ZERO);
     GXSetCullMode(cull);
-    GXSetZMode(1, GX_LEQUAL, 1);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
 }
 
 // .text:0x00010AA4 size:0x28
@@ -4154,7 +4157,7 @@ void fn_1_107B8(void) {
         break;
     }
     hugeAnimStruct.slots[lbl_1_bss_5F73].h62 = lbl_1_data_A938[kind] + lbl_1_bss_6940[lbl_1_bss_5F73].f45;
-    dbgSetAnim((u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[(u8)kind], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
+    dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[(u8)kind], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
     fn_1_ECF8(lbl_1_bss_5F73, lbl_1_bss_6940[lbl_1_bss_5F73].f44, lbl_1_bss_5F69);
     lbl_1_bss_5F5C = 0;
     dbgBindActor(&hugeAnimStruct.slots[lbl_1_bss_5F73]);
@@ -4260,7 +4263,7 @@ void fn_1_10458(void) {
             }
         } else if (!(b & INPUT_BUTTON_LEFT) && !(b & INPUT_BUTTON_RIGHT)) {
             if (b & INPUT_BUTTON_A) {
-                lbl_1_bss_5F71 = lbl_1_bss_307C + lbl_1_bss_5F71 + 1;
+                lbl_1_bss_5F71 += lbl_1_bss_307C + 1;
                 lbl_1_bss_307C = 0;
             } else if (b & INPUT_BUTTON_B) {
                 lbl_1_bss_307C = 0;
@@ -4538,9 +4541,9 @@ void fn_1_F798(s32 *vals, u8 *map, s32 n) {
             vals[6] -= s;
             if (vals[6] < 1) {
                 vals[6] = 1;
-            }
-            if (vals[7] > vals[6]) {
-                vals[7] = vals[6];
+                if (vals[7] > vals[6]) {
+                    vals[7] = vals[6];
+                }
             }
             break;
         case 7:
@@ -4646,8 +4649,8 @@ void fn_1_F798(s32 *vals, u8 *map, s32 n) {
 
 // .text:0x0000F6E4 size:0xB4
 void fn_1_F6E4(void) {
-    Vec v = {0.0f, 0.0f, 10.0f};
     s32 *p = lbl_1_data_F0BC;
+    Vec v = {0.0f, 0.0f, 10.0f};
     fn_1_F798(p, lbl_1_data_F0A8, 12);
     if (BTN_REPEAT & INPUT_BUTTON_A) {
         p[0] = lbl_1_bss_3098;
@@ -4696,6 +4699,7 @@ static DbgRowTbl lbl_1_data_F4D4 = {0, 0, (DbgRow *)lbl_1_data_F2F4};
 void fn_1_F50C(void) {
     DbgSceneP *s = (DbgSceneP *)currentDrawingItem;
     DbgActor *a = &hugeAnimStruct.slots[lbl_1_bss_5F73];
+    Vec p;
     if (a != NULL) {
         a->pos.x = s->pos.x;
         a->pos.y = s->pos.y;
@@ -4705,7 +4709,6 @@ void fn_1_F50C(void) {
     if (s->b3E != 0) {
         s->b3E = 0;
         if (s->b3F != 0) {
-            Vec p;
             getAnimRelatedCoordinates(0, 0x1E, (VecXYZ *)&p);
             p.y = 0.0f;
             fn_8002F258(&p, s->w38, lbl_1_data_F174[0]);
@@ -4717,7 +4720,6 @@ void fn_1_F50C(void) {
         }
     } else {
         if (s->b3F != 0) {
-            Vec p;
             getAnimRelatedCoordinates(0, 0x1E, (VecXYZ *)&p);
             p.y = 0.0f;
             fn_8002F1AC(&p, s->w38);
@@ -4729,8 +4731,9 @@ void fn_1_F50C(void) {
         }
     }
     PSVECAdd(&s->vel, &s->acc, &s->vel);
-    PSVECAdd(&s->pos, &s->vel, &s->pos);
-    if (--s->h3C == 0) {
+    PSVECAdd(&s->vel, &s->pos, &s->pos);
+    s->h3C--;
+    if (s->h3C == 0) {
         removeCurrentDrawingItem();
     }
 }
@@ -4744,7 +4747,7 @@ void fn_1_F37C(void) {
         lbl_1_data_F10C[0] = v;
         lbl_1_data_F174[0][0] = v;
         lbl_1_data_F174[0][1] = 5;
-        d = (DbgSceneP *)insertGraphicDrawingFunction(fn_1_F50C, currentDrawingItem->priority + 1);
+        d = (DbgSceneP *)insertGraphicDrawingFunction(fn_1_F50C, (u16)(currentDrawingItem->priority + 1));
         d->pos.x = 0.0f;
         d->pos.y = 0.0f;
         d->pos.z = 10.0f;
@@ -4858,8 +4861,7 @@ static f32 lbl_1_data_F570 = 1.0f;
 static u32 lbl_1_data_F574 = 0x80;
 static f32 lbl_1_data_F578 = 16777216.0f;
 static f32 lbl_1_data_F57C = 16777215.0f;
-static u32 lbl_1_data_F580 = 0xFFFF00C0;
-static u32 lbl_1_data_F584 = 0xFFFF0000;
+static u32 lbl_1_data_F580[2] = {0xFFFF00C0, 0xFFFF0000};
 
 // .text:0x0000ECF8 size:0x348
 void fn_1_ECF8(s32 idx, s32 kind, s32 flag) {
@@ -4915,11 +4917,11 @@ void fn_1_EA20(void) {
         s32 anim;
         s32 frame;
         s32 i;
-        u8 *obj = (u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73];
+        DbgActorEnt *obj = &hugeAnimStruct.objs->e[lbl_1_bss_5F73];
         lbl_1_bss_5F68 = 1;
         lbl_1_bss_5F64 = 0.0f;
-        *(f32 *)(obj + 0x5C) = 0.0f;
-        *(u8 *)(obj + 0x59) = 1;
+        obj->frame = 0.0f;
+        obj->framePending = TRUE;
         lbl_1_bss_30B0 = 1;
         lbl_1_bss_5F58 = 0;
         anim = lbl_1_bss_6940[lbl_1_bss_5F73].f44;
@@ -4964,9 +4966,9 @@ void fn_1_EA20(void) {
             lbl_1_bss_30B0 = 0;
             hugeAnimStruct.f3083 = 0;
         } else if (BTN_PRESSED & INPUT_BUTTON_A) {
-            u8 *obj = (u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73];
-            *(f32 *)(obj + 0x5C) = 0.0f;
-            *(u8 *)(obj + 0x59) = 1;
+            DbgActorEnt *obj = &hugeAnimStruct.objs->e[lbl_1_bss_5F73];
+            obj->frame = 0.0f;
+            obj->framePending = TRUE;
             fn_80039A4C();
             hugeAnimStruct.f3084 = lbl_1_bss_5F73;
             lbl_1_bss_30B0 = 2;
@@ -5041,7 +5043,7 @@ void fn_1_E098(void) {
                     s->b15 = 0;
                     lbl_1_bss_6940[lbl_1_bss_5F73].f44 = lbl_1_bss_3218[(s8)s->b15].f0;
                     lbl_1_bss_6940[lbl_1_bss_5F73].f45 = lbl_1_bss_3218[(s8)s->b15].f2;
-                    dbgSetAnim((u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73], SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
+                    dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
                     k = 5;
                     do {
                         DbgPtc *p = &lbl_1_bss_3258[(s8)s->b15][k];
@@ -5209,7 +5211,7 @@ void fn_1_DE1C(void) {
         } else {
             while ((s8)s->b15-- != 0) {
                 if (lbl_1_bss_3218[(s8)s->b15].f0 >= 0) {
-                    DbgSceneB *d = (DbgSceneB *)insertGraphicDrawingFunction(fn_1_DF14, currentDrawingItem->priority + 1);
+                    DbgSceneB *d = (DbgSceneB *)insertGraphicDrawingFunction(fn_1_DF14, (u16)(currentDrawingItem->priority + 1));
                     d->state = 0;
                     d->b14 = s->b15;
                     s->state = 0;
@@ -5257,7 +5259,7 @@ void fn_1_D9B8(void) {
         } while (lbl_1_bss_3218[(s8)s->b15].f0 < 0);
         lbl_1_bss_6940[lbl_1_bss_5F73].f44 = lbl_1_bss_3218[(s8)s->b15].f0;
         lbl_1_bss_6940[lbl_1_bss_5F73].f45 = lbl_1_bss_3218[(s8)s->b15].f2;
-        dbgSetAnim((u8 *)&hugeAnimStruct.objs->e[lbl_1_bss_5F73], SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
+        dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
         k = 5;
         f2 = *(f32 *)lbl_1_bss_67B8[0];
         while (k-- != 0) {
@@ -5336,9 +5338,9 @@ void fn_1_D7A4(s32 row) {
 
 // .text:0x0000D71C size:0x88
 f32 fn_1_D71C(s32 idx) {
+    s32 i;
     DbgModel *m = hugeAnimStruct.objs->e[idx].model;
     u16 n = m->count;
-    s32 i;
     for (i = 0; i < n; i++) {
         DbgPartData *d = m->parts[i]->data;
         if (d != NULL && d->flag != 0) {
@@ -5359,7 +5361,7 @@ const char *fn_1_D6E4(void) {
     case 2:
         return lbl_1_data_F4DC[(u8)i];
     default:
-        return 0;
+        return NULL;
     }
 }
 
@@ -5418,10 +5420,7 @@ void fn_1_D590(s32 a, s32 b, f32 v) {
                 return;
             }
         }
-        {
-            s32 lvl = (s8)lbl_1_bss_5F62;
-            fn_8004B208(a, b, lvl < 0 ? 0 : lvl);
-        }
+        fn_8004B208(a, b, lbl_1_bss_5F62 < 0 ? 0 : lbl_1_bss_5F62);
     }
 }
 
@@ -5501,7 +5500,7 @@ void fn_1_CDC8(void) {
     void *ptrsA[2];
     s32 i;
     if (lbl_1_bss_30B8 != 0) {
-        lbl_1_bss_30B8 = 0;
+        lbl_1_bss_30B8 = FALSE;
         removeCurrentDrawingItem();
         return;
     }
@@ -5601,10 +5600,10 @@ void fn_1_CCC8(void) {
 
 // .text:0x0000CC24 size:0xA4
 void fn_1_CC24(void) {
-    if (lbl_1_bss_30BC == 0) {
+    if (!lbl_1_bss_30BC) {
         DbgScene *d;
-        lbl_1_bss_30BC = 1;
-        d = (DbgScene *)insertGraphicDrawingFunction(fn_1_CCC8, currentDrawingItem->priority + 1);
+        lbl_1_bss_30BC = TRUE;
+        d = (DbgScene *)insertGraphicDrawingFunction(fn_1_CCC8, (u16)(currentDrawingItem->priority + 1));
         if (lbl_1_bss_5F69 != 0) {
             d->data = lbl_1_bss_67B8[1];
             d->count = lbl_1_data_F56C;
@@ -5618,7 +5617,7 @@ void fn_1_CC24(void) {
 // .text:0x0000CB9C size:0x88
 void fn_1_CB9C(BOOL flag) {
     if (flag) {
-        lbl_1_bss_30BC = 0;
+        lbl_1_bss_30BC = FALSE;
     } else {
         PSMTXCopy(lbl_1_bss_30C0.mtx58, lbl_1_data_F4F8[drawStadiumRelated].mtx);
         fn_800A7D4C(8, &lbl_1_data_F4F8[drawStadiumRelated]);
@@ -5631,10 +5630,10 @@ void fn_1_C9E0(DbgBlob *blob) {
     Vec v;
     fn_1_F2C(4, 0, 0);
     PSMTXConcat(lbl_1_bss_68FC.mtx10, blob->mtx8, m);
-    GXLoadPosMtxImm(m, 0);
-    GXSetCurrentMtx(0);
+    GXLoadPosMtxImm(m, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GXSetZMode(1, GX_ALWAYS, 1);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     GXBegin(GX_LINES, GX_VTXFMT0, 6);
     GXPosition3f32(lbl_1_bss_30C0.f0[3], lbl_1_bss_30C0.f0[4], lbl_1_bss_30C0.f0[5]);
     GXColor1u32(0xFF0000FF);
@@ -5656,14 +5655,14 @@ void fn_1_C9E0(DbgBlob *blob) {
 void fn_1_C5AC(void) {
     Mtx44 proj;
     Mtx ident = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
-        C_MTXOrtho(proj, 0.0f, 448.0f, 0.0f, 640.0f, 0.0f, lbl_1_data_F578);
+    C_MTXOrtho(proj, 0.0f, 448.0f, 0.0f, 640.0f, 0.0f, lbl_1_data_F578);
     GXSetProjection(proj, GX_ORTHOGRAPHIC);
-    GXLoadPosMtxImm(ident, 0);
-    GXSetCurrentMtx(0);
+    GXLoadPosMtxImm(ident, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
     fn_1_F2C(4, 0, 0);
-    GXSetColorUpdate(0);
-    GXSetAlphaUpdate(0);
-    GXSetZMode(1, GX_ALWAYS, 1);
+    GXSetColorUpdate(GX_FALSE);
+    GXSetAlphaUpdate(GX_FALSE);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition3f32(0.0f, 0.0f, -lbl_1_data_F57C);
     GXColor1u32(lbl_1_data_F574);
@@ -5673,19 +5672,19 @@ void fn_1_C5AC(void) {
     GXColor1u32(lbl_1_data_F574);
     GXPosition3f32(0.0f, 448.0f, -lbl_1_data_F57C);
     GXColor1u32(lbl_1_data_F574);
-    GXSetColorUpdate(1);
-    GXSetAlphaUpdate(1);
-    GXSetZMode(1, GX_LEQUAL, 1);
+    GXSetColorUpdate(GX_TRUE);
+    GXSetAlphaUpdate(GX_TRUE);
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition3f32(330.0f, 0.0f, -1.0f);
-    GXColor1u32(lbl_1_data_F580);
+    GXColor1u32(lbl_1_data_F580[0]);
     GXPosition3f32(310.0f, 0.0f, -1.0f);
-    GXColor1u32(lbl_1_data_F580);
+    GXColor1u32(lbl_1_data_F580[0]);
     GXPosition3f32(220.0f, 336.0f, -1.0f);
-    GXColor1u32(lbl_1_data_F584);
+    GXColor1u32(lbl_1_data_F580[1]);
     GXPosition3f32(420.0f, 336.0f, -1.0f);
-    GXColor1u32(lbl_1_data_F584);
+    GXColor1u32(lbl_1_data_F580[1]);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition3f32(0.0f, 0.0f, -2.0f);
@@ -5696,9 +5695,9 @@ void fn_1_C5AC(void) {
     GXColor1u32(lbl_1_data_F574);
     GXPosition3f32(0.0f, 448.0f, -2.0f);
     GXColor1u32(lbl_1_data_F574);
-    GXSetColorUpdate(0);
-    GXSetAlphaUpdate(0);
-    GXSetZMode(1, GX_ALWAYS, 1);
+    GXSetColorUpdate(GX_FALSE);
+    GXSetAlphaUpdate(GX_FALSE);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     GXPosition3f32(0.0f, 0.0f, -lbl_1_data_F57C);
     GXColor1u32(lbl_1_data_F574);
@@ -5708,8 +5707,8 @@ void fn_1_C5AC(void) {
     GXColor1u32(lbl_1_data_F574);
     GXPosition3f32(0.0f, 448.0f, -lbl_1_data_F57C);
     GXColor1u32(lbl_1_data_F574);
-    GXSetColorUpdate(1);
-    GXSetAlphaUpdate(1);
+    GXSetColorUpdate(GX_TRUE);
+    GXSetAlphaUpdate(GX_TRUE);
 }
 
 // .text:0x0000C5A8

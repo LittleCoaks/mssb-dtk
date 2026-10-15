@@ -40,7 +40,7 @@ typedef struct _StadiumLightInput {
 } StadiumLightInput;
 extern StadiumLightInput lbl_80367318[4];
 
-extern int fn_1_17EFC(const void *a, const void *b);
+
 extern void fn_800BD670(ActorObjectTable *table, Mtx m);
 extern void fn_800B2D5C(void *obj);
 extern void fn_800B2C08(void *actor, int arg1);
@@ -127,14 +127,6 @@ void fn_1_1D514(void) {
 }
 
 // .text:0x0001D470 size:0xA4
-static inline void clearBytes(u8 *buf, int n) {
-    int i;
-
-    for (i = 0; i < n; i++) {
-        buf[i] = 0;
-    }
-}
-
 void fn_1_1D470(void) {
     DbgScene *scene = DBG_SCENE();
     s32 i;
@@ -825,13 +817,15 @@ void fn_1_1A3B4(void) {
 // .text:0x0001A290 size:0x124
 void fn_1_1A290(ActorObjectTable *table, Mtx cam) {
     u16 i;
+    ActorObjectEntry *entry;
 
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetCullMode(GX_CULL_BACK);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     for (i = 0; i < table->count; i++) {
+        entry = &table->entries[i];
         if (table->entries[i].actor != NULL && table->entries[i].applyControl != 0) {
-            fn_1_1A1EC(&table->entries[i], cam);
+            fn_1_1A1EC(entry, cam);
         }
     }
 }
@@ -1035,53 +1029,13 @@ void fn_1_18E04(Particle *p, f32 angle) {
 int fn_1_1857C(ParticleEffect *effect) {
     Vec up = {0.0f, 1.0f, 0.0f};
     Vec dir;
-    u32 count;
     Particle *p;
-    ParticleSortEntry *arr;
-    Particle *first;
-    ParticleSortEntry *entry;
     f32 angle;
     f32 delta;
-    camera_803c639c_s *cam;
 
-    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(0);
-    GXSetNumTevStages(1);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_RASC);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    p = effect->head;
-    count = effect->flags & 0xFFF;
-    arr = _OSAllocFromHeap(0x20, count * sizeof(ParticleSortEntry));
-    entry = arr;
-    while (p != NULL) {
-        entry->particle = p;
-        entry->depth = p->pos.z;
-        entry++;
-        p = p->next;
-    }
-    fn_800246D4(fn_1_17EFC, arr, arr, sizeof(ParticleSortEntry), count);
-    first = arr[0].particle;
-    entry = arr;
-    while (--count) {
-        entry->particle->next = (entry + 1)->particle;
-        entry++;
-    }
-    entry->particle->next = NULL;
-    fn_800ACFB0(arr);
-    effect->head = first;
-    p = first;
+    fn_1_18174();
+    p = sortParticlesByDepth(effect->head, effect->flags & 0xFFF);
+    effect->head = p;
     do {
         if (p->life <= 0) {
             fn_1_182C0(p);
@@ -1089,7 +1043,7 @@ int fn_1_1857C(ParticleEffect *effect) {
             PSVECAdd(&p->rotVel, &p->rot, &p->rot);
             if (fabs(p->pos.x) > 1.0) {
                 p->pos.x = fabs(p->pos.x) / p->pos.x;
-                p->vel.x = p->vel.x * -1.0f;
+                p->vel.x *= -1.0f;
             } else if (rand() % 5 == 0) {
                 memcpy(&dir, &p->vel, sizeof(Vec));
                 PSVECNormalize(&dir, &dir);
@@ -1113,28 +1067,7 @@ int fn_1_1857C(ParticleEffect *effect) {
         }
         p = p->next;
     } while (p != NULL);
-    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    cam = fn_80052768_getCamera(0);
-    GXLoadPosMtxImm(cam->view, 0);
-    GXSetCurrentMtx(0);
-    GXSetProjection(fn_80052768_getCamera(0)->proj, GX_PERSPECTIVE);
+    fn_1_17FF0();
     return 0;
 }
 
@@ -1180,4 +1113,91 @@ void fn_1_182C0(Particle *p) {
         GXPosition3f32(quad[i].x, quad[i].y, quad[i].z);
         GXColor1u32(p->col1.word);
     }
+}
+
+// .text:0x00018174 size:0x14C
+void fn_1_18174(void) {
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(0);
+    GXSetNumTevStages(1);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_RASC);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+}
+
+// .text:0x00017FF0 size:0x184
+void fn_1_17FF0(void) {
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, 0);
+    GXSetCurrentMtx(0);
+    GXSetProjection(fn_80052768_getCamera(0)->proj, GX_PERSPECTIVE);
+}
+
+// .text:0x00017F28 size:0xC8
+Particle *sortParticlesByDepth(Particle *head, u32 count) {
+    ParticleSortEntry *arr;
+    ParticleSortEntry *entry;
+    Particle *p;
+
+    arr = _OSAllocFromHeap(0x20, count * sizeof(ParticleSortEntry));
+    entry = arr;
+    p = head;
+    while (p != NULL) {
+        entry->particle = p;
+        entry->depth = p->pos.z;
+        entry++;
+        p = p->next;
+    }
+    fn_800246D4(compareParticleDepth, arr, arr, sizeof(ParticleSortEntry), count);
+    head = arr[0].particle;
+    entry = arr;
+    while (--count) {
+        entry->particle->next = (entry + 1)->particle;
+        entry++;
+    }
+    entry->particle->next = NULL;
+    fn_800ACFB0(arr);
+    return head;
+}
+
+// .text:0x00017EFC size:0x2C
+int compareParticleDepth(const void *a, const void *b) {
+    const ParticleSortEntry *ea = a;
+    const ParticleSortEntry *eb = b;
+
+    if (ea->depth < eb->depth) {
+        return 1;
+    }
+    if (ea->depth > eb->depth) {
+        return -1;
+    }
+    return 0;
 }

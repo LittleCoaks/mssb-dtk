@@ -4,6 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/GX/GXTypes.h"
+#include "C3/control.h"
 
 typedef struct DbgActorExt DbgActorExt;
 typedef struct DbgLight DbgLight;
@@ -39,9 +40,24 @@ typedef struct DbgModel {
     /*0x98*/ u8 f98;
 } DbgModel;
 
+/* Same layout as ActorObjectEntry (Unknown/File_0x800bdd74.h), with the actor typed as the model view used here. */
 typedef struct DbgActorEnt {
     /*0x00*/ DbgModel *model;
-    /*0x04*/ u8 pad4[0x90 - 0x4];
+    /*0x04*/ void *anim;
+    /*0x08*/ u8 pad8[6];
+    /*0x0E*/ u16 seqNum;
+    /*0x10*/ Control control;
+    /*0x54*/ f32 speed;
+    /*0x58*/ u8 animPending;
+    /*0x59*/ u8 framePending;
+    /*0x5A*/ u8 speedPending;
+    /*0x5B*/ u8 boneParam;
+    /*0x5C*/ f32 frame;
+    /*0x60*/ f32 blendTime;
+    /*0x64*/ u8 pad64[4];
+    /*0x68*/ u32 unk68;
+    /*0x6C*/ u8 applyControl;
+    /*0x6D*/ u8 pad6D[0x90 - 0x6D];
 } DbgActorEnt; // size 0x90
 
 /* Table returned by ActorObjectInitTable(n): a count header, then n entries from +0x34. */
@@ -275,7 +291,7 @@ typedef struct DbgSceneP {
     /*0x20*/ Vec vel;
     /*0x2C*/ Vec acc;
     /*0x38*/ s32 w38;
-    /*0x3C*/ s16 h3C;
+    /*0x3C*/ u16 h3C;
     /*0x3E*/ u8 b3E;
     /*0x3F*/ u8 b3F;
 } DbgSceneP;

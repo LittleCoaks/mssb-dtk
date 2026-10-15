@@ -158,6 +158,10 @@ typedef struct DbgDrawEntry {
 
 int fn_1_19D1C(u8 fmt);
 void fn_1_182C0(Particle *p);
+int compareParticleDepth(const void *a, const void *b);
+Particle *sortParticlesByDepth(Particle *head, u32 count);
+void fn_1_17FF0(void);
+void fn_1_18174(void);
 int fn_1_1857C(ParticleEffect *effect);
 void fn_1_18E04(Particle *p, f32 angle);
 void fn_1_18EE4(Particle *p);

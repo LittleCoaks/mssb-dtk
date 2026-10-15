@@ -131,11 +131,14 @@ void fn_1_4A24(PickState *st, DlPrim *prim) {
         if (type == 0) {
             do {
                 f32 hitT;
+                BOOL in;
                 PSMTXMultVec(st->mtx, &v[0].pos, &t[0]);
                 PSMTXMultVec(st->mtx, &v[1].pos, &t[1]);
                 PSMTXMultVec(st->mtx, &v[2].pos, &t[2]);
-                if ((t[2].x * t[0].y - t[0].x * t[2].y >= 0.0f) & (t[1].x * t[2].y - t[2].x * t[1].y >= 0.0f) &
-                    (t[0].x * t[1].y - t[1].x * t[0].y >= 0.0f)) {
+                in = t[0].x * t[1].y - t[1].x * t[0].y >= 0.0f;
+                in &= t[1].x * t[2].y - t[2].x * t[1].y >= 0.0f;
+                in &= t[2].x * t[0].y - t[0].x * t[2].y >= 0.0f;
+                if (in) {
                     PSVECSubtract(&t[1], &t[0], &e[0]);
                     PSVECSubtract(&t[2], &t[1], &e[1]);
                     PSVECCrossProduct(&e[0], &e[1], &e[2]);
@@ -154,11 +157,11 @@ void fn_1_4A24(PickState *st, DlPrim *prim) {
             PSMTXMultVec(st->mtx, &v[1].pos, &t[1]);
             v += 2;
             do {
-                BOOL inside;
+                u32 inside;
                 PSMTXMultVec(st->mtx, &v->pos, &t[2]);
                 e[0].z = t[2].x * t[0].y - t[0].x * t[2].y;
-                e[0].y = t[1].x * t[2].y - t[2].x * t[1].y;
                 e[0].x = t[0].x * t[1].y - t[1].x * t[0].y;
+                e[0].y = t[1].x * t[2].y - t[2].x * t[1].y;
                 if (flip != 0) {
                     inside = (e[0].z <= 0.0f) & (e[0].x <= 0.0f) & (e[0].y <= 0.0f);
                 } else {

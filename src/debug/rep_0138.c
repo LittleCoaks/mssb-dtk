@@ -123,8 +123,8 @@ typedef struct DbgViewState {
     /*0x22A*/ u16 actorCount;
     /*0x22C*/ s16 visibleCount;
     /*0x22E*/ s16 selected;
-    /*0x230*/ u8 stadium;
-    /*0x231*/ u8 variant;
+    /*0x230*/ s8 stadium;
+    /*0x231*/ s8 variant;
     /*0x232*/ u8 menuOpen;
     /*0x233*/ s8 menuSel;
     /*0x234*/ u8 flag234;
@@ -133,7 +133,7 @@ typedef struct DbgViewState {
     /*0x238*/ s8 flag238;
     /*0x239*/ s8 showBoxes;
     /*0x23A*/ u16 angle;
-    /*0x23C*/ u8 fogSel;
+    /*0x23C*/ s8 fogSel;
     /*0x23D*/ u8 pad23D[0x3C0 - 0x23D];
 } DbgViewState;
 
@@ -382,17 +382,17 @@ void fn_1_8368(void) {
 void fn_1_7FF8(void) {
     switch (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4)) {
         case INPUT_BUTTON_UP:
-            if ((s8)--lbl_1_common_bss_472B4.fogSel < 0) {
+            if (--lbl_1_common_bss_472B4.fogSel < 0) {
                 lbl_1_common_bss_472B4.fogSel = 5;
             }
             break;
         case INPUT_BUTTON_DOWN:
-            if ((s8)++lbl_1_common_bss_472B4.fogSel >= 6) {
+            if (++lbl_1_common_bss_472B4.fogSel >= 6) {
                 lbl_1_common_bss_472B4.fogSel = 0;
             }
             break;
         case INPUT_BUTTON_LEFT:
-            switch ((s8)lbl_1_common_bss_472B4.fogSel) {
+            switch (lbl_1_common_bss_472B4.fogSel) {
                 case 0: {
                     u8 v = --lbl_1_bss_4E0->color.a;
                     switch (v) {
@@ -430,7 +430,7 @@ void fn_1_7FF8(void) {
             }
             break;
         case INPUT_BUTTON_RIGHT:
-            switch ((s8)lbl_1_common_bss_472B4.fogSel) {
+            switch (lbl_1_common_bss_472B4.fogSel) {
                 case 0: {
                     u8 v = ++lbl_1_bss_4E0->color.a;
                     switch (v) {
@@ -517,7 +517,6 @@ void fn_1_7960(void) {
     f32 cosY;
     f32 inv;
     f32 sinY;
-    s32 i;
 
     lbl_1_common_bss_472B4.yaw -= INPUT1_FIELD(s8, 0x13) * 2;
     lbl_1_common_bss_472B4.pitch += INPUT1_FIELD(s8, 0x12) * 2;
@@ -551,14 +550,13 @@ void fn_1_7960(void) {
     makeLookAtMatrix(lbl_1_common_bss_472B4.view, &lbl_1_common_bss_472B4.eye, (Vec *)lbl_1_data_87C,
                      &lbl_1_common_bss_472B4.target);
 
-    inv = 1.0f / lbl_1_common_bss_472B4.zoom;
+    inv = lbl_1_common_bss_472B4.zoom;
+    inv = 1.0f / inv;
     C_MTXFrustum(frustum, -0.175f * inv, 0.175f * inv, 0.25f * inv, -0.25f * inv, 1.0f, 512.0f);
     GXSetProjection(frustum, GX_PERSPECTIVE);
     fn_800B806C(0, -240.0f * inv, 240.0f * inv, -320.0f * inv, 320.0f * inv, -512.0f, -1.0f, 1280.0f);
 
-    for (i = 0; i < 3; i++) {
-        LITXForm(lbl_1_data_848[i], &lbl_1_common_bss_472B4);
-    }
+    fn_1_54E0(&lbl_1_common_bss_472B4);
     fn_80011640(&lbl_1_common_bss_472B4, &lbl_1_common_bss_472B4);
 
     if (lbl_1_bss_C0) {
@@ -925,17 +923,17 @@ void fn_1_6848(void) {
         case 1:
             switch (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4)) {
                 case INPUT_BUTTON_UP:
-                    if ((s8)--lbl_1_common_bss_472B4.stadium < 0) {
+                    if (--lbl_1_common_bss_472B4.stadium < 0) {
                         lbl_1_common_bss_472B4.stadium = lbl_1_data_8CC - 1;
                     }
                     break;
                 case INPUT_BUTTON_DOWN:
-                    if ((s8)++lbl_1_common_bss_472B4.stadium >= lbl_1_data_8CC) {
+                    if (++lbl_1_common_bss_472B4.stadium >= lbl_1_data_8CC) {
                         lbl_1_common_bss_472B4.stadium = 0;
                     }
                     break;
                 case INPUT_BUTTON_B:
-                    if ((s8)++lbl_1_common_bss_472B4.variant > 2) {
+                    if (++lbl_1_common_bss_472B4.variant > 2) {
                         lbl_1_common_bss_472B4.variant = 0;
                     }
                     break;
@@ -950,11 +948,11 @@ void fn_1_6848(void) {
             break;
 
         case 2:
-            item->index = (s8)lbl_1_common_bss_472B4.stadium * 3 + (s8)lbl_1_common_bss_472B4.variant;
+            item->index = lbl_1_common_bss_472B4.stadium * 3 + lbl_1_common_bss_472B4.variant;
             item->model = ARAMTransfer(&lbl_1_data_8D0[item->index], 0, 0, 0);
             item->state = 3;
-            lbl_1_bss_4E0 = (FogParams1_4E0 *)((u8 *)lbl_1_data_2A8 + (s8)lbl_1_common_bss_472B4.stadium * 0x60 +
-                                               (s8)lbl_1_common_bss_472B4.variant * 0xc);
+            lbl_1_bss_4E0 = (FogParams1_4E0 *)((u8 *)lbl_1_data_2A8 + lbl_1_common_bss_472B4.stadium * 0x60 +
+                                               lbl_1_common_bss_472B4.variant * 0xc);
             break;
 
         case 3:
@@ -972,8 +970,8 @@ void fn_1_6848(void) {
 void fn_1_66C4(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     DbgViewState *state;
-    s8 stadium;
-    s8 variant;
+    s32 stadium;
+    s32 variant;
 
     fn_800AD038(*(void **)(lbl_80366158 + 0x8));
     item->state = 0;
@@ -1032,11 +1030,9 @@ void fn_1_6578(GXTexObj *arg0, void *arg1, s32 arg2, s32 arg3) {
 // .text:0x00006050 size:0x528
 #pragma dont_inline on
 void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
-    s32 rowBase;
     u16 *buf = (u16 *)arg0;
     s32 w = arg1;
     s32 h = arg2;
-    s32 halfH;
     s32 y;
     s32 x;
     f32 ny2;
@@ -1050,12 +1046,10 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 
     memset(arg0, 0, w * 2 * h);
 
-    halfH = h / 2;
     for (y = 0; y < h; y++) {
         ny = 2.0f * ((f32)y / (f32)h - 0.5f);
-        nyUv = ny * 0.5f + 0.5f;
+        nyUv = ny / 2 + 0.5f;
         ny2 = ny * ny;
-        rowBase = (y / 4) * w * 4 + (y % 4 << 2);
 
         for (x = 0; x < w; x++) {
             Vec vec;
@@ -1063,9 +1057,9 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
             Vec cross;
 
             nx = 2.0f * ((f32)x / (f32)w - 0.5f);
-            nxUv = nx * 0.5f + 0.5f;
+            nxUv = nx / 2 + 0.5f;
 
-            if (y == halfH) {
+            if (y == h / 2) {
                 d = 1.0f - nx * nx;
             } else {
                 d = (1.0f - nx * nx) - ny2;
@@ -1144,7 +1138,7 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
                 uAngle -= nyUv;
             }
 
-            buf[(x / 4) * 16 + (rowBase + (x % 4))] =
+            buf[fn_1_5924(w, x, y, 0x10, 0)] =
                 ((u8)(s32)(128.0f * vAngle + 128.0f) << 8) | (u8)(s32)(128.0f * uAngle + 128.0f);
         }
     }
@@ -1155,14 +1149,12 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 
 // .text:0x00005AC0 size:0x590
 void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
-    s32 halfH;
-    s32 rowBase;
-    s32 yBand;
-    s32 h = arg2;
-    u8 band;
-    s32 y;
     u16 *buf = (u16 *)arg0;
     s32 w = arg1;
+    s32 h = arg2;
+    s32 yBand;
+    u8 band;
+    s32 y;
     s32 x;
     f32 ny2;
     f32 uAngle;
@@ -1175,13 +1167,11 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 
     memset(arg0, 0, w * 2 * h);
 
-    halfH = h / 2;
     for (y = 0; y < h; y++) {
         ny = 2.0f * ((f32)y / (f32)h - 0.5f);
-        nyUv = ny * 0.5f + 0.5f;
+        nyUv = ny / 2 + 0.5f;
         yBand = (ny > 0.2f) & (ny < 0.8f);
         ny2 = ny * ny;
-        rowBase = (y / 4) * w * 4 + (y % 4 << 2);
 
         for (x = 0; x < w; x++) {
             Vec vec;
@@ -1189,10 +1179,10 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
             Vec cross;
 
             nx = 2.0f * ((f32)x / (f32)w - 0.5f);
-            nxUv = nx * 0.5f + 0.5f;
+            nxUv = nx / 2 + 0.5f;
             band = (nx < 0.8f) & ((nx > 0.2f) & yBand);
 
-            if (y == halfH) {
+            if (y == h / 2) {
                 d = 1.0f - nx * nx;
             } else {
                 d = (1.0f - nx * nx) - ny2;
@@ -1271,7 +1261,7 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
                 uAngle -= nyUv;
             }
 
-            buf[(x / 4) * 16 + (rowBase + (x % 4))] =
+            buf[fn_1_5924(w, x, y, 0x10, 0)] =
                 ((u8)(s32)(128.0f * vAngle + 128.0f) << 8) | (u8)(s32)(128.0f * uAngle + 128.0f);
         }
     }
@@ -1287,9 +1277,9 @@ s32 fn_1_5924(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
         case 8:
             return (arg2 % 4) * 8 + (arg1 % 8) + (arg1 / 8) * 32 + (arg2 / 4) * (arg0 * 4);
         case 0x10:
-            return (arg2 % 4) * 4 + (arg1 % 4) + (arg1 / 4) * 16 + (arg2 / 4) * (arg0 * 4);
+            return (arg1 / 4) * 16 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 4 + arg1 % 4;
         case 0x20: {
-            s32 result = (arg2 % 4) * 8 + (arg1 % 4) + (arg1 / 8) * 16 + (arg2 / 4) * (arg0 * 4);
+            s32 result = (arg1 / 8) * 16 + arg1 % 4 + (arg2 / 4) * (arg0 * 4) + (arg2 % 4) * 8;
             if (arg4 != 0) {
                 result += 0x10;
             }
