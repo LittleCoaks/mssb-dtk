@@ -31,7 +31,6 @@ struct {
     void* fanObject;
     u8 _04[20];
 } lbl_3_bss_18;
-void (*lbl_3_data_A10[2])(Mtx view, int flag, u32 pass) = { 0, 0 };
 extern u8 drawStadiumRelated;
 extern u8 hugeAnimStruct[];
 extern void* fn_80009028(void);
@@ -234,6 +233,8 @@ u32 lbl_3_data_93C[53] = {
     (u32)fn_3_5BCC,
     0x00000003,
 };
+
+void (*lbl_3_data_A10[2])(Mtx view, int flag, u32 pass) = { 0, 0 };
 
 #define STADIUM_ATLAS_SKIP_FLAG 0x4000
 #define STADIUM_ATLAS_PAGED_FLAG 0x8000
