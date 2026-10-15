@@ -3194,11 +3194,11 @@ void running_CalculateSpeedVariables(int runnerIdx) {
         if (runner->runningDirectionCode == 1) {
             runner->baseRunningTowards = runner->nextBase;
         } else if (runner->runningDirectionCode == 3) {
-            if (runner->baseStandingOn < 0 || runner->startingBase_baseAchieved != runner->baseStandingOn ||
-                runner->tagUpInd != TAG_UP_TYPE_TAGGED) {
-                runner->baseRunningTowards = runner->currentBase;
-            } else {
+            if (runner->baseStandingOn >= 0 && runner->startingBase_baseAchieved == runner->baseStandingOn &&
+                runner->tagUpInd == TAG_UP_TYPE_TAGGED) {
                 runner->baseRunningTowards = (runner->currentBase + 3) & 3;
+            } else {
+                runner->baseRunningTowards = runner->currentBase;
             }
         }
 
