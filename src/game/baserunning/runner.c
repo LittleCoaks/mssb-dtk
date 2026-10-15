@@ -4665,11 +4665,10 @@ void running_LiveBall_Human(void) {
 // .text:0x0007DD6C size:0x550 mapped:0x806BCE00
 void cCSRunningFun(void) {
     int i;
-    InMemRunnerType* runner;
 
     running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars();
-    runner = g_Runners;
-    for (i = 0; i < 4; i++, runner++) {
+    for (i = 0; i < 4; i++) {
+        InMemRunnerType* runner = &g_Runners[i];
         u8* stage;
 
         if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
