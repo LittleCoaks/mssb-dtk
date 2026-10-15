@@ -3191,3 +3191,27 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   function reaches `lbl_3_data_17DC0` as `addi rX, base, 0x0` / `base+0x48c`, another as its own
   `lis/addi lbl_3_data_17DC0+0x3C0`: the 0x4A8 object is really several statics. Splitting it
   reproduced the pool but was not yet a net win (see that unit's checkpoint).
+
+## Findings from the data-layout pass (pitcher_fire_effect, rep_21F8; 2026-10)
+
+- **The pooled-statics split above is now a net win in both files.** `pitcher_fire_effect`:
+  `lbl_3_data_17DC0` -> slots/headers/2 Vecs/zero word (animatePitchersHandOnFire 86.85 -> 99.88,
+  fn_3_CB538 95.88 -> 96.16). `rep_21F8`: `lbl_3_data_17898` -> key table, node, HudObj[5], word,
+  active byte, f32[5] (fn_3_C937C 97.38 -> 100, unit flipped to Matching). In both cases the split
+  alone was not enough; the follow-up source fixes were what turned it into a gain.
+- **An `add rX, base, idx; stw 0(rX)` where you would expect `stwx` means the address stays live,
+  usually as a call argument.** In fn_3_CB538 the header address was left in r5 for the next
+  `bl fn_8002F5F4`, which takes it as a third parameter that the old prototype was missing. Check
+  whether the register holding the address is still live at the next call before reaching for
+  source-shape tricks.
+- **Volatile-register numbering follows IR order, and it limits the scheduler.** Loading a value
+  shared by several stores into a local *first* (`tex = burstTexture;` before computing the slot
+  and header addresses) reproduced the target's r5/r6/r7 assignment and its late `lis`.
+- **`while (tbl[++i * 2] != END)` gives the target's two induction variables** (a pointer IV for
+  the body loads, an offset IV + `lhzx` for the condition). The `i++; } while (tbl[i * 2] ...)`
+  form merges them into one `lhzu`.
+- **Statics in a `.data` split are pooled in BOTH directions:** a `.bss` byte read through a
+  neighbour's base register (`lbz 0x14(r31)` off `lbl_3_bss_9F20`) and stored through its own symbol
+  in another function means two file statics, declared in reverse (`.bss` reverse-order rule).
+  objdiff marks those pooled loads with an `R_PPC_NONE` reloc in the target and diff-cli scores them
+  as mismatches until the layout is right; the report does not.
