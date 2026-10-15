@@ -1201,8 +1201,9 @@ BOOL fn_3_2273C(int);
 BOOL fn_3_2281C(int);
 void fn_3_BA150(void);
 extern void** fn_800111D8(void*);
+static s16 lbl_3_bss_B67C[14];
+static s16 lbl_3_bss_B67A;
 static s16 pad_05_0000B678_bss;
-static s16 lbl_3_bss_B67A[15];
 void fn_3_BBBC4(void);
 void fn_3_7BC0C(void);
 void fn_3_7BBF8(void);
@@ -1663,7 +1664,7 @@ BOOL fn_3_10617C(int idx, int bone, Vec* out) {
 void fn_3_1060D8(void) {
     VecXYZ* pts = CTX->_0098;
     s32 i;
-    lbl_3_bss_B67A[0] = 0;
+    lbl_3_bss_B67A = 0;
     for (i = 0; i < CAM_POINT_CAPACITY; i++) {
         pts[i].x = pts[i].y = pts[i].z = CAM_POINT_UNUSED;
     }
@@ -1672,29 +1673,29 @@ void fn_3_1060D8(void) {
 // .text:0x00106014 size:0xC4 mapped:0x807450A8
 void fn_3_106014(f32 x, f32 y, f32 z) {
     VecXYZ* pts = CTX->_0098;
-    if (lbl_3_bss_B67A[0] == 0) {
-        pts[lbl_3_bss_B67A[0]].x = x;
-        pts[lbl_3_bss_B67A[0]].y = y;
-        pts[lbl_3_bss_B67A[0]].z = z;
-        lbl_3_bss_B67A[0]++;
+    if (lbl_3_bss_B67A == 0) {
+        pts[lbl_3_bss_B67A].x = x;
+        pts[lbl_3_bss_B67A].y = y;
+        pts[lbl_3_bss_B67A].z = z;
+        lbl_3_bss_B67A++;
         return;
     }
-    if (x == pts[lbl_3_bss_B67A[0] - 1].x) {
+    if (x == pts[lbl_3_bss_B67A - 1].x) {
         return;
     }
-    if (y == pts[lbl_3_bss_B67A[0] - 1].y) {
+    if (y == pts[lbl_3_bss_B67A - 1].y) {
         return;
     }
-    if (z == pts[lbl_3_bss_B67A[0] - 1].z) {
+    if (z == pts[lbl_3_bss_B67A - 1].z) {
         return;
     }
-    pts[lbl_3_bss_B67A[0]].x = x;
-    pts[lbl_3_bss_B67A[0]].y = y;
-    pts[lbl_3_bss_B67A[0]].z = z;
-    if (lbl_3_bss_B67A[0] >= CAM_POINT_CAPACITY) {
+    pts[lbl_3_bss_B67A].x = x;
+    pts[lbl_3_bss_B67A].y = y;
+    pts[lbl_3_bss_B67A].z = z;
+    if (lbl_3_bss_B67A >= CAM_POINT_CAPACITY) {
         return;
     }
-    lbl_3_bss_B67A[0]++;
+    lbl_3_bss_B67A++;
 }
 
 #pragma dont_inline on
