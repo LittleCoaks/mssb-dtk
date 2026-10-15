@@ -2681,8 +2681,10 @@ void running_LiveBall_AI(void) {
                 if ((g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED) &&
                     g_FieldingLogic.infieldFlyIndicator != 0) {
                     dirs[i] = -1;
-                } else if (g_Ball.howFoulTheBallWillBe < 2 ||
-                           (g_Ball.numFieldersWhoHandledBallDuringPlay != 0 && g_Ball.bobbleLocation_1fair_2foul == 1)) {
+                } else if (g_Ball.howFoulTheBallWillBe >= 2 &&
+                           (g_Ball.numFieldersWhoHandledBallDuringPlay == 0 || g_Ball.bobbleLocation_1fair_2foul != 1)) {
+                    dirs[i] = -1;
+                } else {
                     if (g_Strikes.storedOuts == 2 && g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 0 &&
                         runner->currentBase == runner->startingBase_baseAchieved) {
                         dirs[i] = 1;
@@ -2778,8 +2780,6 @@ void running_LiveBall_AI(void) {
                             }
                         }
                     }
-                } else {
-                    dirs[i] = -1;
                 }
             }
         }
