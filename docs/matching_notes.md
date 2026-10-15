@@ -3294,3 +3294,45 @@ functions. These lessons are not specific to one file:
   global.** In `rep_7BF0` `fn_1_29A9C`, deleting the inlined helper or a later call moved
   the entry registers, but none of 19 source-equivalent rewrites of either part did,
   including version and flag sweeps. Treat that as a sign to stop.
+
+## Findings from the debug REL second passes (rep_0610, rep_74A0, rep_0138, rep_0010 TU boundary; 2026-10)
+
+- **A float multiply by a power-of-two reciprocal (`x * 0.0009765625f`) puts the constant FIRST
+  in the fmul/fmadds; a division (`x / 1024.0f`) puts the converted value first.** MWCC
+  strength-reduces the division to the same reciprocal multiply, so the operand order is the
+  only tell. `rep_0610` `fn_1_11D00`/`fn_1_11F08` (+2..4 points each, plus the caller
+  `fn_1_121D4` that inlines them). The same swap fixed the inlined copies in `rep_7730`
+  `fn_1_25064` (`/ 64.0f` vs `* 0.015625f`).
+- **A redundant cast of an already-typed pointer (`((T *)p)->e[i].f`) changes how MWCC
+  associates the address.** It folds the member offset into the index
+  (`addi r0, i*sz, off; lwzx base, r0`) instead of `add; lwz off(r)`. Use it only where the
+  target shows that form; applied everywhere it costs elsewhere (`rep_0610` `fn_1_ECF8` +6,
+  `fn_1_CDC8` +5).
+- **A loop the target enters with `b test` before the body is a `while`/`for`, not a
+  do-while,** even when the do-while body is otherwise identical
+  (`rep_0610` `fn_1_D7A4` +12, `fn_1_D9B8` +1.5).
+- **An unreferenced initialiser in .rodata between two functions' literals is an unused local
+  aggregate** (`GXColor c = {...};`): MWCC emits the initialiser at parse time and
+  dead-strips the copy.
+- **Parse-time .rodata (local aggregate initialisers, and the strings of .data tables) is laid
+  out in source order,** so .data tables that own strings must be defined between the right
+  functions, not all at the top of the file (`rep_0610` .rodata 99.76 -> 100).
+- **Hand-written copies of blocks that the target got by inlining a helper cause callee-saved
+  register swaps in the caller.** `rep_74A0` `fn_1_1857C` only lost its p/arr swap once its
+  GX setup and depth sort were real functions (`fn_1_18174`, `fn_1_17FF0`,
+  `sortParticlesByDepth`) called from it and inlined by `-inline auto`. Unowned functions with
+  no callers next to a unit are good candidates for such helpers.
+- **A source shape can fail only because a callee's prototype is wrong.** `rep_74A0`
+  `fn_1_1A290` (the "entry pointer first, checks still through the array" loop) scored
+  98.41 until the callback type was fixed to take the entry, then 100.
+- **dtk's gap-sized .bss/.data labels cost points even in instruction-identical functions.**
+  objdiff resolves `lbz r0, 0x8(r31)` off a pool base to `lbl_1_bss_3070+8` on the target side
+  and to our `lbl_1_bss_3078` on ours. Splitting the labels at the real object boundaries
+  took `rep_0610` .bss from 52.5% to 100% and turned several functions into 100s with no
+  source change.
+- **Jump tables give TU boundaries that rodata doesn't.** MWCC emits a TU's jump tables at the
+  end of its .data, in function order. The debug REL's .data block at 0x0 ends with the
+  tables for `fn_1_1E0` and `fn_1_16A0`, which showed that the code on both sides of
+  `rep_0010` (which has no rodata of its own there) is one TU with it. Likewise a data object
+  whose only user sits just before a unit's .text belongs to that unit when the data sits
+  after the unit's other data (`fn_1_196C` and `lbl_1_data_298` -> `rep_00B0`).
