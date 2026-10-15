@@ -4,7 +4,7 @@
 #include "C3/anim.h"
 #include "C3/skinning.h"
 
-f32 fn_800B4A44(void* obj, u16 bone) {
+f32 getActorBoneAnimTime(void* obj, u16 bone) {
     Actor* actor = obj;
 
     struct ANIMPipe* pipe = actor->boneArray[bone]->animPipe;

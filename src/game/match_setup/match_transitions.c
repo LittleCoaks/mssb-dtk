@@ -12,7 +12,7 @@ extern void fn_8001196C(void);
 extern void fn_80011A60(void);
 extern void fn_80011BE4(int arg0);
 extern void fn_800BDE8C(int arg0);
-extern void* fn_800111D8(void* obj);
+extern void* getAnimObjectActor(void* obj);
 extern int fn_80016344(int a, int b, int c, int d);
 extern int fn_8001500C(int a, int b);
 
@@ -164,7 +164,7 @@ void animateShadows_nonBall(void) {
         if (obj == NULL) {
             continue;
         }
-        state = fn_800111D8(obj);
+        state = getAnimObjectActor(obj);
         if (*(void**)state == NULL) {
             continue;
         }
@@ -191,7 +191,7 @@ void animateShadows_nonBall(void) {
             shadowOn = 0;
         }
 
-        state = fn_800111D8(obj);
+        state = getAnimObjectActor(obj);
         if (shadowOn != 0) {
             ((u8*)*(void**)state)[0x98] |= 4;
         } else {

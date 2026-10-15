@@ -1200,7 +1200,7 @@ void fn_3_24ADC(int, int);
 BOOL fn_3_2273C(int);
 BOOL fn_3_2281C(int);
 void fn_3_BA150(void);
-extern void** fn_800111D8(void*);
+extern void** getAnimObjectActor(void*);
 static s16 lbl_3_bss_B67C[14];
 static s16 lbl_3_bss_B67A;
 static s16 pad_05_0000B678_bss;
@@ -1650,7 +1650,7 @@ BOOL fn_3_10617C(int idx, int bone, Vec* out) {
         out->z = 0.0f;
         return FALSE;
     }
-    maybeTransformVectorByAnimationMatrix(*fn_800111D8(actor), boneIdx, &tmp);
+    maybeTransformVectorByAnimationMatrix(*getAnimObjectActor(actor), boneIdx, &tmp);
     out->x = tmp.x;
     out->y = tmp.y;
     out->z = tmp.z;

@@ -1292,7 +1292,7 @@ extern void DrawSprite_TexObj(void* vtx, void* texObj, s32 arg2);
 extern SceneUiHandle graphicsRelatedArray[];
 extern void load_Icon(void* scene, int handle, u32 part, u32 element, int frame);
 extern void fn_8003656C(void* scene, int handle, u32 part, u32 element, int frame);
-extern SceneAnimModel* fn_800111D8(SceneActor* actor);
+extern SceneAnimModel* getAnimObjectActor(SceneActor* actor);
 extern void spline3D_resample(Vec* out, Vec* points, int count, int outCount);
 
 void fn_3_C0810(void);
@@ -1352,7 +1352,7 @@ int fn_3_C0134(void) {
     if (i >= 13) {
         return 1;
     }
-    model = fn_800111D8(actor);
+    model = getAnimObjectActor(actor);
     state = lbl_3_bss_995C;
     switch (state) {
     case 0:
@@ -1915,7 +1915,7 @@ static inline SceneAnimModel* findActorModel(int charId) {
     for (i = 0; i < 9; i++) {
         actor = hugeAnimStruct.actors[i];
         if (actor != NULL && actor->charId == charId) {
-            model = fn_800111D8(actor);
+            model = getAnimObjectActor(actor);
             break;
         }
     }
