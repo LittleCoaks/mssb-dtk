@@ -4430,15 +4430,15 @@ void fn_3_7EA68(void) {
 
 // .text:0x0007E2BC size:0x7AC mapped:0x806BD350
 void running_LiveBall_Human(void) {
-    InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
     InMemRunnerType* runner;
     InMemRunnerType* scan;
-    u16 input;
     int desiredBase;
     int i;
     int extra;
     BOOL stopInput;
     BOOL foundOne;
+    u16 input;
+    InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.loadingGuidedPractice != 0) {
         return;
