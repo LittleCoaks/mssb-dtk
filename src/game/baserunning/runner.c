@@ -3828,9 +3828,10 @@ void running_updatePosition(int runnerIdx) {
             if (runner->roundingStrengthPercent > 1.0f) {
                 runner->roundingStrengthPercent = 1.0f;
             }
-            runner->position.x = addScaled(xF, vec.x - xF, runner->roundingStrengthPercent);
-            runner->position.y = addScaled(yF, vec.y - yF, runner->roundingStrengthPercent);
-            runner->position.z = addScaled(zF, vec.z - zF, runner->roundingStrengthPercent);
+            s = runner->roundingStrengthPercent;
+            runner->position.x = addScaled(xF, vec.x - xF, s);
+            runner->position.y = addScaled(yF, vec.y - yF, s);
+            runner->position.z = addScaled(zF, vec.z - zF, s);
             runner->offsetPositionForRoundingInd = 1;
             runner->_110 = 0;
         } else {
