@@ -209,10 +209,10 @@ void running_MainFunction(void) {
         {
             f32 dx = g_Ball.AtBat_Contact_BallPos.x - runner->position.x;
             f32 dz = g_Ball.AtBat_Contact_BallPos.z - runner->position.z;
+            f32 sqx = dx * dx;
+            f32 sqz = dz * dz;
 
-            dx = dx * dx;
-            dz = dz * dz;
-            runner->distanceFromBall = dolsqrtf2(dx + dz);
+            runner->distanceFromBall = dolsqrtf2(sqx + sqz);
         }
     }
     running_CalcVeloAndIfBatterShouldStayStill();
