@@ -1584,7 +1584,7 @@ void fielderAnimations(void) {
     AnimSlot* slot;
 
     g_UnkThrowing_31ACC[0].fielder = g_Ball.fielderWBallIndex;
-    if (g_Ball.fielderWBallIndex >= 0 && g_Fielders[g_Ball.fielderWBallIndex].isJump != 0) {
+    if (g_UnkThrowing_31ACC[0].fielder >= 0 && g_Fielders[g_UnkThrowing_31ACC[0].fielder].isJump != 0) {
         g_UnkThrowing_31ACC[0].fielder = -1;
     }
 
