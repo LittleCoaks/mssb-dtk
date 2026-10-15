@@ -65,8 +65,8 @@ static inline void runner_beginRunToDugout(InMemRunnerType* runner) {
         dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.homeTeamBattingInd_fieldingTeam].x;
     runner->nextBaseCoordinates.z =
         dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.homeTeamBattingInd_fieldingTeam].z;
-    dz = runner->nextBaseCoordinates.z - runner->position.z;
     dx = runner->nextBaseCoordinates.x - runner->position.x;
+    dz = runner->nextBaseCoordinates.z - runner->position.z;
     dist = dolsqrtf2(dx * dx + dz * dz);
     runner->velocity.x = dx / dist * lbl_3_data_4B50;
     runner->velocity.z = dz / dist * lbl_3_data_4B50;
