@@ -841,20 +841,16 @@ void running_ForceOutStateRelated(void) {
 
 // .text:0x000889FC size:0x11C mapped:0x806C7A90
 void fn_3_889FC(void) {
-    int i;
     int contactResult = g_Ball.AtBat_ContactResult;
-    u8 landingZone = g_Ball.landingSpotZoneAwayFromHome;
-    u8 ballZone = g_Ball.ballZoneAwayFromHome;
-    u8 infieldFly = g_FieldingLogic.infieldFlyIndicator;
-    u8 ballState = g_Ball.ballState;
+    int i;
+
     for (i = 0; i < 4; i++) {
-        InMemRunnerType* runner = &g_Runners[i];
-        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-            if ((contactResult == BALL_RESULT_TYPE_CAUGHT || infieldFly == 2) && landingZone <= 1) {
-                runner->isEligibleToScore = 0;
-            } else if (ballZone <= 1 && ballState != BALL_STATE_HIT && (u16)contactResult > BALL_RESULT_TYPE_LANDED &&
-                       runner->currentBase != 0 && runner->currentBase < 3) {
-                runner->isEligibleToScore = 0;
+        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+            if ((contactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) && g_Ball.landingSpotZoneAwayFromHome <= 1) {
+                g_Runners[i].isEligibleToScore = 0;
+            } else if (g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.ballState != BALL_STATE_HIT && (u16)contactResult > BALL_RESULT_TYPE_LANDED &&
+                       g_Runners[i].currentBase != 0 && g_Runners[i].currentBase < 3) {
+                g_Runners[i].isEligibleToScore = 0;
             }
         }
     }
