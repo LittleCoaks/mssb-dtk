@@ -2914,6 +2914,8 @@ void running_updateDistAndFramesToClosestBases(int runnerIdx) {
         f32 distToNext;
         f32 dx;
         f32 dz;
+        f32 sqx;
+        f32 sqz;
 
         runner->currentBaseCoordinates.y = 0.0f;
         runner->nextBaseCoordinates.y = 0.0f;
@@ -2933,14 +2935,14 @@ void running_updateDistAndFramesToClosestBases(int runnerIdx) {
         runner->nextBaseCoordinates.z = baseCoordsForRunning[baseAhead][1];
         dx = runner->currentBaseCoordinates.x - runner->position.x;
         dz = runner->currentBaseCoordinates.z - runner->position.z;
-        dx = dx * dx;
-        dz = dz * dz;
-        distToPrev = dolsqrtf2(dx + dz);
+        sqx = dx * dx;
+        sqz = dz * dz;
+        distToPrev = dolsqrtf2(sqx + sqz);
         dx = runner->nextBaseCoordinates.x - runner->position.x;
         dz = runner->nextBaseCoordinates.z - runner->position.z;
-        dx = dx * dx;
-        dz = dz * dz;
-        distToNext = dolsqrtf2(dx + dz);
+        sqx = dx * dx;
+        sqz = dz * dz;
+        distToNext = dolsqrtf2(sqx + sqz);
         runner->calculatedLengthOfCurrentBaseline = distToPrev + distToNext;
         runner->fractionOfCalculatedBaselineRan = distToPrev / (distToPrev + distToNext);
         runner->distToCurrentBase = distToPrev;
