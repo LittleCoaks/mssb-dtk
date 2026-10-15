@@ -168,8 +168,8 @@ extern void fn_8001B4D8(int idx);
 extern void fn_8001B5EC(int idx, int arg);
 extern void fn_8004AE18(int index);
 extern void fn_8001C528(int arg);
-extern int* fn_800111D8(AnimObject* obj);
-extern void fn_800B4A44(int a, int id);
+extern void** fn_800111D8(AnimObject* obj);
+extern f32 fn_800B4A44(void* actor, u16 bone);
 extern s16 fn_8001B35C(int idx, int arg);
 extern PlayTracking lbl_3_common_bss_32220;
 typedef struct PitchAnimState {
@@ -373,14 +373,14 @@ void unsure_updateAnimations(void) {
 
     for (i = 0; i < 13; i++) {
         obj = hugeAnimStruct.objects[i];
-        if (obj != NULL && obj->_25D != 0) {
-            f32 one = 1.0f;
-            int id = (obj != NULL) ? obj->_16A : 0xFFFF;
+        if (hugeAnimStruct.objects[i] != NULL && hugeAnimStruct.objects[i]->_25D != 0) {
+            f32 time = 1.0f;
+            int bone = (hugeAnimStruct.objects[i] != NULL) ? hugeAnimStruct.objects[i]->_16A : 0xFFFF;
 
-            if (id != 0xFFFF) {
-                fn_800B4A44(*fn_800111D8(obj), (u16)id);
+            if (bone != 0xFFFF) {
+                time = fn_800B4A44(*fn_800111D8(obj), bone);
             }
-            obj->framesLeft = (s16)(one / obj->_4C);
+            obj->framesLeft = time / obj->_4C;
         }
     }
 
