@@ -846,10 +846,12 @@ void fn_3_889FC(void) {
 
     for (i = 0; i < 4; i++) {
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-            if ((contactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) && g_Ball.landingSpotZoneAwayFromHome <= 1) {
+            if ((contactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) &&
+                g_Ball.landingSpotZoneAwayFromHome <= 1) {
                 g_Runners[i].isEligibleToScore = 0;
-            } else if (g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.ballState != BALL_STATE_HIT && (u16)contactResult > BALL_RESULT_TYPE_LANDED &&
-                       g_Runners[i].currentBase != 0 && g_Runners[i].currentBase < 3) {
+            } else if (g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.ballState != BALL_STATE_HIT &&
+                       (u16)contactResult > BALL_RESULT_TYPE_LANDED && g_Runners[i].currentBase != 0 &&
+                       g_Runners[i].currentBase < 3) {
                 g_Runners[i].isEligibleToScore = 0;
             }
         }
