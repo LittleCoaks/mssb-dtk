@@ -1326,34 +1326,29 @@ void updateRunnerValues(void) {
 
 // .text:0x000871BC size:0x110 mapped:0x806C6250
 void fn_3_871BC(void) {
-    InMemRunnerType* runner = g_Runners;
     int i;
-    int runDrain = lbl_3_data_4C54[10];
-    int turnDrain = lbl_3_data_4C54[11];
-    int maxStamina = lbl_3_data_4C54[9];
-    f32 staminaCoeff = lbl_3_data_4C44[1];
-    f32 accelCoeff = lbl_3_data_4C44[2];
-    f32 turnAccelCoeff = lbl_3_data_4C44[3];
-    for (i = 0; i < 4; i++, runner++) {
-        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+
+    for (i = 0; i < 4; i++) {
+        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
             int drain = 0;
             f32 ratio;
-            if (runner->groundVelocity[0] >= 0.1f) {
-                drain = runDrain;
+
+            if (g_Runners[i].groundVelocity[0] >= 0.1f) {
+                drain = lbl_3_data_4C54[10];
             }
-            if (runner->turnaroundCode != 0) {
-                drain += turnDrain;
+            if (g_Runners[i].turnaroundCode != 0) {
+                drain += lbl_3_data_4C54[11];
             }
             if (drain != 0) {
-                runner->stamina -= drain;
-                if (runner->stamina < 0) {
-                    runner->stamina = 0;
+                g_Runners[i].stamina -= drain;
+                if (g_Runners[i].stamina < 0) {
+                    g_Runners[i].stamina = 0;
                 }
             }
-            ratio = 1.0f - (f32)runner->stamina / (f32)maxStamina;
-            runner->staminaMult = 1.0f - staminaCoeff * ratio;
-            runner->accelerationStaminaEffect = 1.0f - accelCoeff * ratio;
-            runner->accelerationStaminaEffectWhileChangingDirection = 1.0f - turnAccelCoeff * ratio;
+            ratio = 1.0f - (f32)g_Runners[i].stamina / (f32)lbl_3_data_4C54[9];
+            g_Runners[i].staminaMult = 1.0f - lbl_3_data_4C44[1] * ratio;
+            g_Runners[i].accelerationStaminaEffect = 1.0f - lbl_3_data_4C44[2] * ratio;
+            g_Runners[i].accelerationStaminaEffectWhileChangingDirection = 1.0f - lbl_3_data_4C44[3] * ratio;
         }
     }
 }
