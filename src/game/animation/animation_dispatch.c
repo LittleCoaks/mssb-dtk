@@ -162,8 +162,8 @@ extern u8 lbl_3_data_7F0C[];
 extern f32 lbl_3_data_476C[];
 extern s16 barrelCollisionHitboxes[54];
 
-extern void AnimateCharacter(int charId, int animId, int a2, int a3, int a4, int a5, int a6, int a7);
-extern void QueueCharacterAnimation(int charId, int animId, int a2, int a3, int a4, int a5, int a6);
+extern void AnimateCharacter(int charId, int animId, int a2, int a3, int a4, int a5, u8 a6, int a7);
+extern void QueueCharacterAnimation(int charId, int animId, int a2, int a3, int a4, u8 a5, int a6);
 extern void fn_8001B4D8(int idx);
 extern void fn_8001B5EC(int idx, int arg);
 extern void fn_8004AE18(int index);
@@ -537,7 +537,7 @@ void unsure_updateAnimations(void) {
 
 // .text:0x000664FC size:0x3C0 mapped:0x806A5590
 void matchAnimations(void) {
-    int i;
+    s32 i;
     u8 status;
 
     for (i = 0; i < 9; i++) {
@@ -588,7 +588,7 @@ void matchAnimations(void) {
 
 // .text:0x00066140 size:0x3BC mapped:0x806A51D4
 void minigameAnimations(void) {
-    int i;
+    s32 i;
     u8 status;
 
     for (i = 0; i < 9; i++) {
@@ -643,10 +643,10 @@ void minigameAnimations(void) {
 
 // .text:0x00065FE0 size:0x160 mapped:0x806A5074
 void minigameIdleAnimations(void) {
-    int i;
-    int idx;
-    u8 flag;
+    BOOL flag;
     AnimObject* obj;
+    int idx;
+    int i;
 
     for (i = 0; i < 4; i++) {
         idx = i;
@@ -657,14 +657,12 @@ void minigameIdleAnimations(void) {
             obj = hugeAnimStruct.objects[9];
         }
         if (obj != NULL) {
-            s8 v = ((s8*)&g_Minigame)[0x19EC + i * 9];
-
-            if (v == 0 || v == 2) {
+            if (g_Minigame.selectSlots[i].loadedHandedness == 0 || g_Minigame.selectSlots[i].loadedHandedness == 2) {
                 flag = 1;
             }
-            if (((s8*)&g_Minigame)[0x19EA + i * 9] < 0) {
+            if (g_Minigame.selectSlots[i].loadedCharID < 0) {
                 AnimateCharacter(idx, 0x69, 1, 1, 1, 0, flag, 0);
-            } else if (((s8*)&g_Minigame)[0x19E9 + i * 9] != 0) {
+            } else if (g_Minigame.selectSlots[i].confirmedInd != 0) {
                 if (obj->animId == 0x69) {
                     AnimateCharacter(idx, 0x6A, 0, 1, 1, 0, flag, 0);
                     QueueCharacterAnimation(idx, 0x6B, 1, 1, 0, flag, -1);
@@ -685,7 +683,7 @@ void minigameEndOfGameAnimations(void) {
     int trigger = 0;
     u8 status = g_GameLogic.gameStatus;
     int idx;
-    u8 flag;
+    BOOL flag;
     int sound;
 
     if (status == GAME_STATUS_MVP_END_GAME) {
@@ -857,7 +855,7 @@ void minigameEndOfGameAnimations(void) {
 // .text:0x00064BDC size:0xC08 mapped:0x806A3C70
 void pitcherAnimation(void) {
     int idx = 0;
-    int flag = 0;
+    u8 flag = 0;
     int stage;
     AnimObject* obj;
     VecSrcDst probe;
