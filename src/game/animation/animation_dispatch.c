@@ -365,8 +365,10 @@ void unsure_updateAnimations(void) {
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
-        if ((g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= GAME_STATUS_MINIGAME_READY) ||
-            g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
+        if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= GAME_STATUS_MINIGAME_READY) {
+            return;
+        }
+        if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE) {
             return;
         }
     }
