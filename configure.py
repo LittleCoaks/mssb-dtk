@@ -902,7 +902,6 @@ config.libs = [
             Object(Matching, "game/replay/replay_state.c"),
             Object(NonMatching, "game/baserunning/runner.c"),
             Object(NonMatching, "game/sound/m_sound.c"),
-            Object(Matching, "game/data_only/data_8D88.c"),
             Object(NonMatching, "game/match_setup/character_loading.c"),
             Object(Matching, "game/hud/outs_indicator.c"),
             Object(Matching, "game/hud/toyfield_score_update.c"),

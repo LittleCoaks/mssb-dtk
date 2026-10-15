@@ -135,13 +135,15 @@ merged because `fn_3_C937C`'s codegen depends on the full size),
 0x9FDC-0xA018` -> `pitcher_fire_effect.c`.
 
 Four large shared tables have no code unit between their link-order
-neighbours, so each is a data-only unit, named by
+neighbours, so each became a data-only unit (two were later found to be code
+units' `.data`; see the 2026-10-15 entry below), named by
 address: `data_only/data_1880.c` (pitcher/batter AI tables, after `camera.c`),
 `data_428C.c` (field coordinates, hit and fielding constants, after
 `match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
 tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
 cannot start a unit, since MWCC 8-aligns every unit's `.data`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
-after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`).
+after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`; now
+part of `hud_scoreboard.c`).
 All are 100%.
 
 Left unowned on purpose: common `.bss` from `0xD714` (shared globals used by
@@ -174,6 +176,20 @@ function.
   `lbl_3_data_1F40` (0x34) into `u8 *[4]` and `s8 lbl_3_data_1F50[33]`.
   Objects are defined in address order (`.data` keeps declaration order) and
   our object's offsets equal the target's.
+- `data_8D88.c` -> `hud_scoreboard.c` (`.data 0x8D88-0xF4A4`; `data_8D88.c`
+  removed). `handleInGameEventsAndSoundEffects` reaches `+0x30C8`-`+0x31A4`
+  and `manageScoreboardGraphic` `+0x60D4`-`+0x66A8` off one `lbl_3_data_8D88`
+  base. The units between (`character_loading`, `outs_indicator`,
+  `toyfield_score_update`) have no `.data`. The minigame, practice and HUD
+  tables in the range stay global: `minigame_hud.c`, `practice_scene.c`,
+  `toy_field_hud.c`, `match_scene.c`, `hud_gauges.c`, `outs_indicator.c` and
+  `stat_book.c` reach them by symbol. Blobs split at the pooled offsets:
+  `lbl_3_data_BE50` (0x11C) into `HudEventTiming[25]` (0xC8),
+  `u16 lbl_3_data_BF18[10]` and `UIRecordDescriptor lbl_3_data_BF2C[2]`;
+  `lbl_3_data_EC1C` (0x5E4) into `UIRecordDescriptor[18]`,
+  `UIRecordDescriptor lbl_3_data_EE5C[29]` and `u16 lbl_3_data_F1FC[2]`;
+  `lbl_3_data_F200` (0x24) into `u8[12]` and `u8 lbl_3_data_F20C[24]`. The
+  `HudEventData` overlay is gone.
 
 ### Reorganisation after full `.text` ownership (2026-10-08)
 

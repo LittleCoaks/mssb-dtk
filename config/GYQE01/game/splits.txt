@@ -196,9 +196,6 @@ game/sound/m_sound.c:
 	.data       start:0x00008148 end:0x00008D88
 	.bss        start:0x00001760 end:0x000017F8
 
-game/data_only/data_8D88.c:
-	.data       start:0x00008D88 end:0x0000F448
-
 game/match_setup/character_loading.c:
 	.text       start:0x00090754 end:0x000910F4
 
@@ -213,7 +210,7 @@ game/hud/toyfield_score_update.c:
 game/hud/hud_scoreboard.c:
 	.text       start:0x00091520 end:0x00097144
 	.rodata     start:0x000016B8 end:0x00001720
-	.data       start:0x0000F448 end:0x0000F4A4
+	.data       start:0x00008D88 end:0x0000F4A4
 
 game/match_setup/match_scene.c:
 	.text       start:0x00097144 end:0x000993A8
