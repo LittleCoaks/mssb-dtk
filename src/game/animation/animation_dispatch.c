@@ -191,6 +191,7 @@ typedef struct ScreenState {
 
 extern ScreenState* lbl_3_common_bss_1323C;
 
+#define MINIGAME_SELECTED_ORDER (*(s8*)&g_Minigame.minigamePlayerSelectedOrder)
 #define MINIGAME_SELECTED_SLOT() (((s8*)&g_Minigame)[0x18CC + (s8)g_Minigame.minigamePlayerSelectedOrder])
 #define MINIGAME_SLOT_OF(i) (((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[(i)])
 
@@ -861,9 +862,9 @@ void minigameEndOfGameAnimations(void) {
 // .text:0x00064BDC size:0xC08 mapped:0x806A3C70
 void pitcherAnimation(void) {
     int idx = 0;
-    u8 flag = 0;
     int stage;
     AnimObject* obj;
+    u8 flag = 0;
     VecSrcDst probe;
     CollisionStruct hit;
     u8 status;
@@ -873,10 +874,10 @@ void pitcherAnimation(void) {
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
-        if ((s8)g_Minigame.minigamePlayerSelectedOrder < 0) {
+        if (MINIGAME_SELECTED_ORDER < 0) {
             return;
         }
-        idx = MINIGAME_SELECTED_SLOT();
+        idx = g_Minigame.playerSlots.characterIndex[MINIGAME_SELECTED_ORDER];
     }
 
     obj = hugeAnimStruct.objects[idx];
@@ -916,7 +917,7 @@ void pitcherAnimation(void) {
         if (g_Minigame.wallBallRotatePitchersInd != 0) {
             return;
         }
-        idx = (s8)g_Minigame.minigamePlayerSelectedOrder;
+        idx = MINIGAME_SELECTED_ORDER;
     }
 
     if (us80893314[0] != 0) {
@@ -973,7 +974,7 @@ void pitcherAnimation(void) {
         if ((u8)(g_d_GameSettings.GameModeSelected - 6) <= 1) {
             return;
         }
-        us80893310.timer = (us80893310.timer < 0x7FFE) ? us80893310.timer + 1 : 0x7FFF;
+        us80893310.timer = (us80893310.timer < 0x7FFE) ? (s16)(us80893310.timer + 1) : 0x7FFF;
         if (us80893310.timer > 0x244 && g_Ball.StaticRandomInt1 % 0x78 == 0) {
             us80893310.timer = 0;
             AnimateCharacter(idx, 0x47, 0, 2, 1, 0, flag, -1);
@@ -1059,9 +1060,12 @@ void pitcherAnimation(void) {
     } else if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_HIT) {
         u8 outcome = g_Pitcher.strikeOutOrWalk;
 
-        if ((outcome == 1 && us80893310.state != 4) || ((outcome == 2 || outcome == 3) && us80893310.state != 5)) {
+        if ((outcome == AT_BAT_END_STRIKEOUT && us80893310.state != 4) ||
+            ((outcome == AT_BAT_END_WALK || outcome == AT_BAT_END_HIT_BY_PITCH) && us80893310.state != 5)) {
             if (obj->framesLeft == 0 || obj->animId == 0x49 || obj->animId == 0x4A) {
-                if (outcome == 1) {
+                f32 z, x;
+
+                if (outcome == AT_BAT_END_STRIKEOUT) {
                     if (characterStaticIndexes[obj->_252].requirementRow == 0xB) {
                         AnimateCharacter(idx, 0x44, 0, 1, 1, 0, flag, 0);
                     } else {
@@ -1072,16 +1076,16 @@ void pitcherAnimation(void) {
                     AnimateCharacter(idx, 0x45, 0, 1, 1, 0, flag, -1);
                     us80893310.state = 5;
                 }
-                g_Pitcher.pitcher.x = g_UnkAnimation_31EAC[0].target.x;
-                g_Pitcher.pitcher.z = g_UnkAnimation_31EAC[0].target.z;
+                x = g_UnkAnimation_31EAC[0].target.x;
+                z = g_UnkAnimation_31EAC[0].target.z;
+                g_Pitcher.pitcher.x = x;
+                g_Pitcher.pitcher.z = z;
                 if (g_d_GameSettings.minigamesEnabled) {
-                    InMemFielder* f = &g_Fielders[(s8)g_Minigame.minigameFielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder]];
-
-                    f->pos.x = g_UnkAnimation_31EAC[0].target.x;
-                    f->pos.z = g_UnkAnimation_31EAC[0].target.z;
+                    g_Fielders[(s8)g_Minigame.minigameFielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder]].pos.x = x;
+                    g_Fielders[(s8)g_Minigame.minigameFielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder]].pos.z = z;
                 } else {
-                    g_Fielders[0].pos.x = g_UnkAnimation_31EAC[0].target.x;
-                    g_Fielders[0].pos.z = g_UnkAnimation_31EAC[0].target.z;
+                    g_Fielders[0].pos.x = x;
+                    g_Fielders[0].pos.z = z;
                 }
                 probe.src.x = g_Fielders[0].pos.x;
                 probe.src.y = -1.0f;
@@ -1091,7 +1095,7 @@ void pitcherAnimation(void) {
                 probe.dst.z = g_Fielders[0].pos.z;
                 checkCollision(&probe, &hit, 0, FALSE);
                 g_Fielders[0].actionYOffset = -hit.position.y;
-                g_Fielders[0].storedPosY = -hit.position.y;
+                g_Fielders[0].storedPosY = g_Fielders[0].actionYOffset;
             }
         }
     }
@@ -1262,7 +1266,7 @@ void batterAnimations(void) {
 
         if (g_Batter.buntStatus != BUNT_STATUS_NONE) {
             lbl_3_common_bss_32220._0B = 0;
-            if (g_Pitcher.strikeOutOrWalk != 2) {
+            if (g_Pitcher.strikeOutOrWalk != AT_BAT_END_WALK) {
                 if (g_Batter.missedBuntStatus == 1) {
                     AnimateCharacter(idx, 0x5C, 0, 1, 1, 0, hand, -1);
                     QueueCharacterAnimation(idx, 0x4B, 1, 1, 0, hand, 0xA);
@@ -1350,7 +1354,7 @@ tail:
                 trigger = TRUE;
             }
 
-            if (g_Pitcher.strikeOutOrWalk == 2) {
+            if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK) {
                 if (runnerForced) {
                     if (g_Ball.framesSinceHit > 0) {
                         AnimateCharacter(idx, 0x66, 0, 1, 1, 0, hand, -1);
