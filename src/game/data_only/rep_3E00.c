@@ -17,9 +17,7 @@ typedef struct {
     void* actorEntries;
     u8 _2D98[4];
     u32* packedFile;
-    void* layout;
-    void* geometry;
-    void* texture;
+    void* files[3]; /* actor layout, geometry, texture */
     u8 _2DAC[0x3078 - 0x2DAC];
     u16 actorCount;
 } Rep3E00AnimView;
@@ -72,22 +70,25 @@ int fn_3_1665E4(void) {
 #pragma dont_inline on
 // .text:0x00166448 size:0x19C mapped:0x807A54DC
 void fn_3_166448(void) {
+    Rep3E00Effect* effect = &animRelated;
     u32* packed = hugeAnimStruct.packedFile;
-    u32* offsets = packed + 3;
+    u32* offsets;
     void* layout;
     void* geometry;
     void* texture;
-    int inactive;
-    int active;
+    s32 i;
+    s32 inactive;
+    s32 active;
 
-    hugeAnimStruct.layout = (u8*)packed + packed[0];
-    hugeAnimStruct.geometry = (u8*)packed + packed[1];
-    hugeAnimStruct.texture = (u8*)packed + packed[2];
-    animRelated.animation = (u8*)packed + offsets[0];
-    animRelated.animationData = (u8*)packed + offsets[1];
-    layout = hugeAnimStruct.layout;
-    geometry = hugeAnimStruct.geometry;
-    texture = hugeAnimStruct.texture;
+    for (i = 0; i < 3; i++) {
+        hugeAnimStruct.files[i] = (u8*)packed + packed[i];
+    }
+    offsets = packed + i;
+    effect->animation = (u8*)packed + offsets[0];
+    effect->animationData = (u8*)packed + offsets[1];
+    layout = hugeAnimStruct.files[0];
+    geometry = hugeAnimStruct.files[1];
+    texture = hugeAnimStruct.files[2];
 
     LoadActorLayout(layout);
     convertGeometryAndSknHeader(geometry, 0);
@@ -95,13 +96,13 @@ void fn_3_166448(void) {
     convertTextureHeader(texture);
     UpdateTexturePalettePointers(geometry, texture);
 
-    adjustInternalPointers(animRelated.animation);
-    actRelated(animRelated.animation, &animRelated.animationData);
-    actorRelated(&animRelated.animationData, 0, 0);
     inactive = 0;
     active = 1;
+    adjustInternalPointers(effect->animation);
+    actRelated(effect->animation, &effect->animationData);
+    actorRelated(&effect->animationData, 0, 0);
     if (inactive == 0) {
-        animRelated.active = active;
+        effect->active = active;
     }
 
     hugeAnimStruct.actorCount = 1;
