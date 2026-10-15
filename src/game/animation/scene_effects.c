@@ -161,7 +161,8 @@ typedef struct _SceneNode {
 
 
 // MWCC lays .bss statics out in reverse declaration order.
-static u8 lbl_3_bss_9CFE[0x22];
+static u8 lbl_3_bss_9D00[0x20];
+static s16 lbl_3_bss_9CFE;
 static s16 lbl_3_bss_9CFC;
 static VecXYZ lbl_3_bss_9CE4[2];
 static VecXYZ lbl_3_bss_9B34[2][18];

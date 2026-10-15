@@ -77,15 +77,19 @@ typedef struct SeqPlayEntry {
 } SeqPlayEntry;
 
 
-// Loudness tracking state used by fn_3_8C2DC / fn_3_8C4F0. fn_3_8C4F0 reaches
-// its flag byte (+1) and averaged hi/lo bytes (+0x10/+0x11) through one base
-// pointer into lbl_3_bss_1760.
-static u8 lbl_3_bss_1760[4];
-static f32 lbl_3_bss_1764;
-static struct SoundReplayQueue* lbl_3_bss_1768;
-static f32 lbl_3_bss_176C[2];
-static s32 lbl_3_bss_1774[0xC / sizeof(s32)];
+// MWCC lays out this TU's .bss statics in reverse declaration order, so these
+// are declared from the highest address down.
 static s32 lbl_3_bss_1780[0x78 / sizeof(s32)];
+static s32 lbl_3_bss_177C;
+static s32 lbl_3_bss_1778;
+static s32 lbl_3_bss_1774;
+static u8 lbl_3_bss_1771;
+static u8 lbl_3_bss_1770;
+static f32 lbl_3_bss_176C;
+static struct SoundReplayQueue* lbl_3_bss_1768;
+static f32 lbl_3_bss_1764;
+static u8 lbl_3_bss_1761;
+static u8 lbl_3_bss_1760;
 
 // A DrawingSceneStruct whose scratch region (0x14..0x40) is used by this
 // file's callback as a 14-entry circular queue of 3-byte replay records.
@@ -655,10 +659,10 @@ BOOL fn_3_8C2DC(u32 arg1, u32 arg2) {
     if (sound_crowd_EffectsStruct._2F == 0) {
         sound_crowd_EffectsStruct._2F = 1;
         lbl_3_bss_1764 = hi;
-        lbl_3_bss_176C[0] = (f32)(u8)arg2 / (f32)arg1;
+        lbl_3_bss_176C = (f32)(u8)arg2 / (f32)arg1;
     }
 
-    lbl_3_bss_1764 += lbl_3_bss_176C[0];
+    lbl_3_bss_1764 += lbl_3_bss_176C;
     level = (int)lbl_3_bss_1764;
     fn_800A8878(level, level);
 
@@ -675,9 +679,7 @@ BOOL fn_3_8C4F0(u32 arg1, u32 arg2) {
     u16 packed;
     u8 hi;
     u8 lo;
-    u8 avgHi;
-    s16 diff;
-    u8* state = lbl_3_bss_1760;
+    int diff;
 
     packed = fn_800A8864();
     hi = (u8)(packed >> 8);
@@ -685,22 +687,21 @@ BOOL fn_3_8C4F0(u32 arg1, u32 arg2) {
 
     sound_crowd_EffectsStruct._2F = 0;
 
-    if (state[1] == 0) {
-        state[1] = 1;
-        state[0x11] = (u8)(hi / arg1);
-        state[0x10] = (u8)(lo / arg1);
+    if (lbl_3_bss_1761 == 0) {
+        lbl_3_bss_1761 = 1;
+        lbl_3_bss_1771 = (u8)(hi / arg1);
+        lbl_3_bss_1770 = (u8)(lo / arg1);
     }
 
-    avgHi = state[0x11];
-    diff = (s16)(hi - avgHi);
+    diff = hi - lbl_3_bss_1771;
 
-    if (diff <= (s16)(u8)arg2 || arg1 == 1) {
-        state[1] = 0;
+    if ((s16)diff <= (s16)(u8)arg2 || arg1 == 1) {
+        lbl_3_bss_1761 = 0;
         fn_800A8878(arg2, arg2);
         return FALSE;
     }
 
-    fn_800A8878((u8)diff, (u8)(lo - state[0x10]));
+    fn_800A8878((u8)diff, (u8)(lo - lbl_3_bss_1770));
     return TRUE;
 }
 
@@ -830,7 +831,7 @@ void handleGameSound(void) {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Ball.pitchHangtimeCounter == 1 &&
             g_Pitcher.starPitchInd != 0) {
             playSoundEffect(0x19E);
-            lbl_3_bss_1774[2] = playSoundEffect(0x18F);
+            lbl_3_bss_177C = playSoundEffect(0x18F);
         }
 
         if (g_GameLogic.PauseSimulationFrameCount == 1 && g_Pitcher.starPitchType != 0) {
@@ -838,27 +839,27 @@ void handleGameSound(void) {
             switch (g_Pitcher.starPitchType) {
             case 1:
             case 2:
-                lbl_3_bss_1774[2] = playSoundEffect(0x18F);
+                lbl_3_bss_177C = playSoundEffect(0x18F);
                 break;
             case 3:
             case 4:
-                lbl_3_bss_1774[2] = playSoundEffect(0x18C);
+                lbl_3_bss_177C = playSoundEffect(0x18C);
                 break;
             case 5:
             case 6:
-                lbl_3_bss_1774[2] = playSoundEffect(0x18D);
+                lbl_3_bss_177C = playSoundEffect(0x18D);
                 break;
             case 7:
             case 8:
-                lbl_3_bss_1774[2] = playSoundEffect(0x190);
+                lbl_3_bss_177C = playSoundEffect(0x190);
                 break;
             case 9:
             case 10:
-                lbl_3_bss_1774[2] = playSoundEffect(0x18E);
+                lbl_3_bss_177C = playSoundEffect(0x18E);
                 break;
             case 11:
             case 12:
-                lbl_3_bss_1774[2] = playSoundEffect(0x19A);
+                lbl_3_bss_177C = playSoundEffect(0x19A);
                 break;
             }
         }
@@ -879,35 +880,35 @@ void handleGameSound(void) {
     if (hugeAnimStruct[0x307D] == 0) {
         if (sound_crowd_EffectsStruct._2B != 0 && g_Ball.framesSinceHit == 2) {
             sound_crowd_EffectsStruct._2B = 0;
-            sndFXKeyOff(lbl_3_bss_1774[2]);
+            sndFXKeyOff(lbl_3_bss_177C);
             if (g_Batter.isBunting != 0) {
                 playSoundEffect(0x153);
             } else if (g_Batter.captainStarSwingActivated != 0) {
                 switch (g_Batter.captainStarSwingActivated) {
                 case 1:
                 case 2:
-                    lbl_3_bss_1774[1] = playSoundEffect(0x194);
+                    lbl_3_bss_1778 = playSoundEffect(0x194);
                     break;
                 case 3:
                 case 4:
-                    lbl_3_bss_1774[1] = playSoundEffect(0x191);
+                    lbl_3_bss_1778 = playSoundEffect(0x191);
                     break;
                 case 5:
                 case 6:
-                    lbl_3_bss_1774[1] = playSoundEffect(0x192);
+                    lbl_3_bss_1778 = playSoundEffect(0x192);
                     break;
                 case 7:
                 case 8:
-                    lbl_3_bss_1774[1] = playSoundEffect(0x195);
+                    lbl_3_bss_1778 = playSoundEffect(0x195);
                     break;
                 case 9:
                 case 10:
-                    lbl_3_bss_1774[1] = playSoundEffect(0x193);
+                    lbl_3_bss_1778 = playSoundEffect(0x193);
                     break;
                 case 11:
                 case 12:
-                    lbl_3_bss_1774[1] = playSoundEffect(0x199);
-                    lbl_3_bss_1760[0] = 0;
+                    lbl_3_bss_1778 = playSoundEffect(0x199);
+                    lbl_3_bss_1760 = 0;
                     break;
                 }
                 playSoundEffect(0x184);
@@ -937,26 +938,26 @@ void handleGameSound(void) {
         }
     }
 
-    if (g_Batter.captainStarSwingActivated == 0xB && lbl_3_bss_1760[0] == 0 &&
+    if (g_Batter.captainStarSwingActivated == 0xB && lbl_3_bss_1760 == 0 &&
         g_Ball.physicsSubstruct.velocity.y <= -1.43 && g_Ball.physicsSubstruct.velocity.y >= -1.45) {
-        sndFXKeyOff(lbl_3_bss_1774[2]);
-        lbl_3_bss_1774[1] = playSoundEffect(0x19B);
-        lbl_3_bss_1760[0] = 1;
+        sndFXKeyOff(lbl_3_bss_177C);
+        lbl_3_bss_1778 = playSoundEffect(0x19B);
+        lbl_3_bss_1760 = 1;
     }
 
     if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL &&
-        lbl_3_bss_1774[2] != 0) {
-        sndFXKeyOff(lbl_3_bss_1774[2]);
+        lbl_3_bss_177C != 0) {
+        sndFXKeyOff(lbl_3_bss_177C);
     }
-    if (g_Ball.AtBat_Contact_BallPos.z < -3.0f && lbl_3_bss_1774[2] != 0) {
-        sndFXKeyOff(lbl_3_bss_1774[2]);
+    if (g_Ball.AtBat_Contact_BallPos.z < -3.0f && lbl_3_bss_177C != 0) {
+        sndFXKeyOff(lbl_3_bss_177C);
     }
     if (g_Pitcher.strikeOutOrWalk == 3) {
-        sndFXKeyOff(lbl_3_bss_1774[2]);
+        sndFXKeyOff(lbl_3_bss_177C);
     }
-    if (lbl_3_bss_1774[1] != 0) {
+    if (lbl_3_bss_1778 != 0) {
         if (g_Ball.currentStarSwing == 0 || g_Ball.deadBallReason != 0) {
-            sndFXKeyOff(lbl_3_bss_1774[1]);
+            sndFXKeyOff(lbl_3_bss_1778);
         }
     }
 }
@@ -2010,7 +2011,7 @@ BOOL fn_3_9056C(int index) {
     }
 
     sound_crowd_EffectsStruct._08 =
-        sndSeqPlayEx(entry->sgid, entry->sid, ((void**)lbl_3_bss_1774[0])[index], NULL, 0);
+        sndSeqPlayEx(entry->sgid, entry->sid, ((void**)lbl_3_bss_1774)[index], NULL, 0);
     audioFileDescriptors.musicVolume = lbl_3_data_830C[index * 2];
     sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._08, SND_SEQVOL_CONTINUE);
     return TRUE;
@@ -2019,7 +2020,7 @@ BOOL fn_3_9056C(int index) {
 // .text:0x00090674 size:0x88 mapped:0x806CF708
 void fn_3_90674(int index) {
     SeqPlayEntry* entry = &((SeqPlayEntry*)lbl_3_data_88E0)[index];
-    void** arrTable = (void**)lbl_3_bss_1774[0];
+    void** arrTable = (void**)lbl_3_bss_1774;
 
     sound_crowd_EffectsStruct._04 = sndSeqPlayEx(entry->sgid, entry->sid, arrTable[index], NULL, 0);
     sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
@@ -2039,7 +2040,7 @@ void fn_3_906FC(void) {
         p++;
     }
 
-    lbl_3_bss_1774[0] = base;
+    lbl_3_bss_1774 = base;
 }
 
 // .text:0x0008B094 size:0x1C4
