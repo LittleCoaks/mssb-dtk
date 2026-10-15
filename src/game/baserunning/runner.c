@@ -3652,6 +3652,7 @@ void fn_3_810C4(int runnerIdx, int base) {
 void running_updatePosition(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     VecXYZ vec;
+    VecXYZ dest;
     f32 xF;
     f32 yF;
     f32 zF;
@@ -3661,8 +3662,6 @@ void running_updatePosition(int runnerIdx) {
     f32 dx;
     f32 dy;
     f32 dz;
-    f32 tx;
-    f32 tz;
 
     do {
         if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
@@ -3685,13 +3684,10 @@ void running_updatePosition(int runnerIdx) {
                     runner->position.x = vec.x;
                     runner->position.z = vec.y;
                 } else if (runner->overRun1BStage == 3) {
-                    tx = addScaled(baseCoordsForRunning[1][0], baseCoordsForRunning[2][0] - baseCoordsForRunning[1][0],
-                                   runner->slidingAdjustment_backwards);
-                    tz = addScaled(baseCoordsForRunning[1][1], baseCoordsForRunning[2][1] - baseCoordsForRunning[1][1],
-                                   runner->slidingAdjustment_backwards);
-                    vec.x = (tx - runner->position.x) / (f32)runner->overrunBaseFrames_countDown;
-                    vec.y = (0.0f - runner->position.y) / (f32)runner->overrunBaseFrames_countDown;
-                    vec.z = (tz - runner->position.z) / (f32)runner->overrunBaseFrames_countDown;
+                    fn_3_7FFD0(&dest, 1, 2, runner->slidingAdjustment_backwards);
+                    vec.x = (dest.x - runner->position.x) / (f32)runner->overrunBaseFrames_countDown;
+                    vec.y = (dest.y - runner->position.y) / (f32)runner->overrunBaseFrames_countDown;
+                    vec.z = (dest.z - runner->position.z) / (f32)runner->overrunBaseFrames_countDown;
                     runner->position.x += vec.x;
                     runner->position.y += vec.y;
                     runner->position.z += vec.z;
@@ -3707,26 +3703,15 @@ void running_updatePosition(int runnerIdx) {
                     if ((s8)runner->baseOfFailedBodyCheck >= 0) {
                         int base = (s8)runner->baseOfFailedBodyCheck;
 
-                        tx = addScaled(baseCoordsForRunning[base][0],
-                                       baseCoordsForRunning[(base + 1) & 3][0] - baseCoordsForRunning[base][0],
-                                       runner->slidingAdjustment_backwards);
-                        tz = addScaled(baseCoordsForRunning[base][1],
-                                       baseCoordsForRunning[(base + 1) & 3][1] - baseCoordsForRunning[base][1],
-                                       runner->slidingAdjustment_backwards);
+                        fn_3_7FFD0(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
                     } else {
                         int base = runner->baseStandingOn;
 
-                        tx = addScaled(baseCoordsForRunning[base][0],
-                                       baseCoordsForRunning[(base + 1) & 3][0] - baseCoordsForRunning[base][0],
-                                       runner->slidingAdjustment_backwards);
-                        tz = addScaled(baseCoordsForRunning[base][1],
-                                       baseCoordsForRunning[(base + 1) & 3][1] - baseCoordsForRunning[base][1],
-                                       runner->slidingAdjustment_backwards);
+                        fn_3_7FFD0(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
                     }
-                    dy = 0.0f - runner->position.y;
-                    vec.x = (tx - runner->position.x) / (f32)runner->actionFrames_countDown;
-                    vec.y = dy / (f32)runner->actionFrames_countDown;
-                    vec.z = (tz - runner->position.z) / (f32)runner->actionFrames_countDown;
+                    vec.x = (dest.x - runner->position.x) / (f32)runner->actionFrames_countDown;
+                    vec.y = (dest.y - runner->position.y) / (f32)runner->actionFrames_countDown;
+                    vec.z = (dest.z - runner->position.z) / (f32)runner->actionFrames_countDown;
                     runner->position.x += vec.x;
                     runner->position.y += vec.y;
                     runner->position.z += vec.z;
@@ -3750,8 +3735,9 @@ void running_updatePosition(int runnerIdx) {
                         dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.homeTeamBattingInd_fieldingTeam].x;
                     runner->nextBaseCoordinates.z =
                         dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.homeTeamBattingInd_fieldingTeam].z;
-                    dolsqrtf2((runner->nextBaseCoordinates.z - runner->position.z) * (runner->nextBaseCoordinates.z - runner->position.z) +
-                              (runner->nextBaseCoordinates.x - runner->position.x) * (runner->nextBaseCoordinates.x - runner->position.x));
+                    dz = runner->nextBaseCoordinates.z - runner->position.z;
+                    dx = runner->nextBaseCoordinates.x - runner->position.x;
+                    len = dolsqrtf2(dx * dx + dz * dz);
                     dx = runner->velocity.x;
                     dz = runner->velocity.z;
                     dx = dx * dx;
