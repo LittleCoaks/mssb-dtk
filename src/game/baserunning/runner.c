@@ -4455,7 +4455,7 @@ void running_LiveBall_Human(void) {
         stopInput = FALSE;
         runner = g_Runners;
         scan = runner;
-        for (i = 0; i < 4; i++, scan++) {
+        for (i = 0; i < 4; scan++, i++) {
             if (scan->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
                 if (scan->runningDirectionCode == 3) {
                     if (scan->nextDirectionBeingProcessed != 2 && scan->nextDirectionBeingProcessed != 1 &&
