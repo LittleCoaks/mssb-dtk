@@ -45,8 +45,6 @@ u32 lbl_3_data_118[0x2E] = {
     0x00000000, 0x00000000,
 };
 
-static u32 lbl_3_bss_0;
-static void* lbl_3_bss_4[3];
 static struct {
     u8 state;
     u8 step;
@@ -54,6 +52,8 @@ static struct {
     u8 mode;
     u8 _04[4];
 } lbl_3_bss_10;
+static void* lbl_3_bss_4[3];
+static u32 lbl_3_bss_0;
 
 void _prolog(void) {
     insertGraphicDrawingFunction(transferSomeValuesOnMatchLoad, 1);
