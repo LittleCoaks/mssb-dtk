@@ -2495,9 +2495,9 @@ int runnerAI_2(int runnerIdx) {
 
 // .text:0x000842E4 size:0x3E4 mapped:0x806C3378
 int runnerAILiveBall(int runnerIdx) {
+    u8 nextBase;
     InMemRunnerType* runner = &g_Runners[runnerIdx];
-    int nextBase;
-    int currBase;
+    u8 currBase;
     int throwFrames;
     int thrownTo;
     u8 direction;
@@ -2526,7 +2526,7 @@ int runnerAILiveBall(int runnerIdx) {
     }
     thrownTo = g_FieldingLogic.locationThrownTo;
     if (runner->baseStandingOn == thrownTo) {
-        return -(currBase == thrownTo);
+        return -(thrownTo == currBase);
     }
     if (direction == 1 && thrownTo == nextBase) {
         if (runner->percentTowardsNextBase >= 0.4f) {
