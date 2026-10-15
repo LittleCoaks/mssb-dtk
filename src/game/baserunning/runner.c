@@ -2961,22 +2961,21 @@ void updateRunnerFramesToClosestBases(int runnerIdx, s16* framesToPreviousBase, 
     f32 remaining = runner->percentTowardsNextBase_slideAdj;
 
     if (remaining > 0.0f) {
-        f32 maxVelocity = runner->velocityPercent_stamAdj;
         f32 velocity;
 
-        if (runner->percentRanPerFrame_slideAdj < maxVelocity) {
+        if (runner->percentRanPerFrame_slideAdj < runner->velocityPercent_stamAdj) {
             velocity = runner->percentRanPerFrame_slideAdj;
             do {
                 velocity += runner->accelerationPercent_stamAdj;
                 frames++;
-                if (velocity > maxVelocity) {
-                    remaining -= maxVelocity;
+                if (velocity > runner->velocityPercent_stamAdj) {
+                    remaining -= runner->velocityPercent_stamAdj;
                     break;
                 }
                 remaining -= velocity;
             } while (!(remaining < 0.0f));
         }
-        frames = (int)(remaining / maxVelocity) + frames;
+        frames = (int)(remaining / runner->velocityPercent_stamAdj) + frames;
         frames++;
     }
     *framesToNextBase = frames;
@@ -2984,21 +2983,20 @@ void updateRunnerFramesToClosestBases(int runnerIdx, s16* framesToPreviousBase, 
     frames = 0;
     remaining = runner->percentFromCurrentBase_slideAdj;
     if (remaining > 0.0f) {
-        f32 maxVelocity = runner->velocityPercent_stamAdj;
         f32 velocity = runner->percentRanPerFrame_slideAdj;
 
-        if (velocity > -maxVelocity) {
+        if (velocity > -runner->velocityPercent_stamAdj) {
             do {
                 velocity -= runner->accelerationPercent_stamAdj;
                 frames++;
-                if (velocity < -maxVelocity) {
-                    remaining -= maxVelocity;
+                if (velocity < -runner->velocityPercent_stamAdj) {
+                    remaining -= runner->velocityPercent_stamAdj;
                     break;
                 }
                 remaining -= velocity;
             } while (!(remaining < 0.0f));
         }
-        frames = (int)(remaining / maxVelocity) + frames;
+        frames = (int)(remaining / runner->velocityPercent_stamAdj) + frames;
         frames++;
     }
     *framesToPreviousBase = frames;
