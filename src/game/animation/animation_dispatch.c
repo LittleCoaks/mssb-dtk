@@ -1677,11 +1677,9 @@ void latchCatchAnimation(int fielderIdx) {
     AnimObject* obj = hugeAnimStruct.objects[fielderIdx];
 
     if (slot->_4C == 0) {
-        u8 kind = fielder->catchAnimation;
-
-        slot->_4C = kind;
+        slot->_4C = fielder->catchAnimation;
         slot->countdown = fielder->catchAnimationFramesCountDown;
-        if (kind == 1 || kind == 2) {
+        if (fielder->catchAnimation == 1 || fielder->catchAnimation == 2) {
             slot->_4E = fielder->catchVerticalZone;
         }
         if (slot->_4C != 0) {
