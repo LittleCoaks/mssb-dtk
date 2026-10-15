@@ -2696,10 +2696,11 @@ void running_LiveBall_AI(void) {
                                 runner->unused_someBaseNum = -1;
                                 continue;
                             } else {
-                                InMemRunnerType* other = &g_Runners[3];
                                 int j;
 
-                                for (j = i; j < 3; j++, other--) {
+                                for (j = 3; j > i; j--) {
+                                    InMemRunnerType* other = &g_Runners[j];
+
                                     if (other->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && other->tagUpInd == TAG_UP_TYPE_TAGGED) {
                                         dirs[i] = -1;
                                         runner->unused_someBaseNum = -1;
