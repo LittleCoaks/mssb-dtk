@@ -154,8 +154,8 @@ void running_MainFunction(void) {
             }
         }
     }
-    runner = g_Runners;
-    for (i = 0; i < 4; i++, runner++) {
+    for (i = 0; i < 4; i++) {
+        runner = &g_Runners[i];
         if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
             continue;
         }
