@@ -1699,14 +1699,14 @@ void latchCatchAnimation(int fielderIdx) {
 
 // .text:0x00062B50 size:0x158 mapped:0x806A1BE4
 void setThrowAnimationType(void) {
-    s16 holder = g_Ball.fielderWBallIndex;
     int target;
+    s16 holder = g_Ball.fielderWBallIndex;
 
     if (holder < 0) {
         g_UnkThrowing_31ACC[0].type = 0;
         return;
     }
-    target = g_FieldingLogic.locationThrownTo;
+    target = (s16)g_FieldingLogic.locationThrownTo;
     if (target < 0) {
         g_UnkThrowing_31ACC[0].type = 0;
         return;
@@ -1718,8 +1718,8 @@ void setThrowAnimationType(void) {
     g_FieldingLogic.throwWindupAnimationDoneInd = 0;
     VEC_COPY(&g_UnkThrowing_31ACC[0].pos, &g_Ball.throwDestination);
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 1 && holder == 0 && (target == 1 || target == 2 || target == 3) &&
-        g_Pitcher.pickOffLoc != 4 && g_Pitcher.pickOffLoc != -1) {
+    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_PICKOFF && holder == 0 &&
+        !(target != 1 && target != 2 && target != 3) && g_Pitcher.pickOffLoc != 4 && g_Pitcher.pickOffLoc != -1) {
         g_UnkThrowing_31ACC[0].type = 7;
         return;
     }
