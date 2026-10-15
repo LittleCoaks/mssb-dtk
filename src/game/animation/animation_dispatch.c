@@ -1099,9 +1099,9 @@ void pitcherAnimation(void) {
 
 // .text:0x00063AF8 size:0x10E4 mapped:0x806A2B8C
 void batterAnimations(void) {
+    AnimObject* obj;
     int idx = 9;
     u8 hand = g_Batter.batterHand ^ 1;
-    AnimObject* obj;
     BOOL runnerForced;
     BOOL trigger;
     u8 status;
@@ -1111,10 +1111,10 @@ void batterAnimations(void) {
         return;
     }
     if (g_d_GameSettings.minigamesEnabled) {
-        if ((s8)g_Minigame.rosterID < 0) {
+        if (g_Minigame.rosterID < 0) {
             return;
         }
-        idx = ((s8*)&g_Minigame)[0x18CC + (s8)g_Minigame.rosterID];
+        idx = g_Minigame.playerSlots.characterIndex[g_Minigame.rosterID];
     }
 
     obj = hugeAnimStruct.objects[idx];
@@ -1133,7 +1133,7 @@ void batterAnimations(void) {
 
     if (lbl_3_common_bss_32220._08 == 0) {
         status = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
-        if (status == 1 || status == 2 || status == 3) {
+        if (!(status != 1 && status != 2 && status != 3)) {
             if (g_Strikes.outs < 3) {
                 AnimateCharacter(idx, 0x65, 1, 1, 1, 0, hand, 0xA);
             }
@@ -1141,12 +1141,10 @@ void batterAnimations(void) {
         }
 
         if (us80893314[0] == 0) {
-            u8 reason = g_Runners[0].batterStayInBattersBoxReason;
-
-            if (reason == 0) {
+            if (g_Runners[0].batterStayInBattersBoxReason == 0) {
                 goto done;
             }
-            if (reason >= 2) {
+            if (g_Runners[0].batterStayInBattersBoxReason >= 2) {
                 if (lbl_3_common_bss_32220._09 != 0) {
                     goto done;
                 }
@@ -1174,13 +1172,13 @@ void batterAnimations(void) {
         if (us80893314[0] != 0) {
             trigger = FALSE;
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
-                if (g_d_GameSettings.GameModeSelected == 6) {
+                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
                     if (g_Minigame._19A5 != 0) {
                         g_Minigame._19A5 = 0;
                         trigger = TRUE;
                     }
                 } else if (g_Pitcher.nPitchesThisAB == 0 && g_Pitcher.nPickoffAttempts == 0 &&
-                           ((u8*)&g_GameLogic)[0x12A] == 1) {
+                           g_GameLogic.playBatterWalkupAnimation == 1) {
                     trigger = TRUE;
                 }
             }
@@ -1209,8 +1207,8 @@ void batterAnimations(void) {
             if (g_Batter.swingInd != 0 || g_Batter.buntStatus != BUNT_STATUS_NONE) {
                 lbl_3_common_bss_32220._00 = 0;
             }
-            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE && g_d_GameSettings.GameModeSelected != 7) {
-                lbl_3_common_bss_32220._00 = (lbl_3_common_bss_32220._00 < 0x7FFE) ? lbl_3_common_bss_32220._00 + 1 : 0x7FFF;
+            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+                lbl_3_common_bss_32220._00 = (lbl_3_common_bss_32220._00 < 0x7FFE) ? (s16)(lbl_3_common_bss_32220._00 + 1) : 0x7FFF;
                 if (lbl_3_common_bss_32220._00 > 0x258 && g_Batter.chargeStatus == CHARGE_SWING_STAGE_NONE &&
                     g_Ball.StaticRandomInt1 % 0x78 == 0) {
                     lbl_3_common_bss_32220._00 = 0;
