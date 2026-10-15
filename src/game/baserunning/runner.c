@@ -4624,8 +4624,7 @@ void running_LiveBall_Human(void) {
     if (desiredBase < 0) {
         return;
     }
-    extra = 0;
-    for (i = 0; i < 4; i++) {
+    for (extra = i = 0; i < 4; i++) {
         runner = &g_Runners[i];
         if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && runner->currentBase == desiredBase) {
             if (runner->runningDirectionCode == 1) {
