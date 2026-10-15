@@ -3576,7 +3576,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                         runner->offsetPositionForRoundingInd = 0;
                     }
                 } else if (runner->runningDirectionCode == 3) {
-                    if (0.5f < runner->percentTowardsNextBase) {
+                    if (runner->percentTowardsNextBase > 0.5f) {
                         runner->roundingInitiaializedInd = 0;
                         runner->offsetPositionForRoundingInd = 0;
                     }
