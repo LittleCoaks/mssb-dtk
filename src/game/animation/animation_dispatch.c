@@ -252,6 +252,22 @@ void fn_3_674E0(void) {
 }
 
 // .text:0x0006714C size:0x394 mapped:0x806A61E0
+static inline void resetRunnerAnimSlots(void) {
+    int i;
+    RunnerAnimSlot* slot;
+
+    for (i = 0; i < 4; i++) {
+        if (!g_d_GameSettings.minigamesEnabled || (i == 0 && g_Minigame.rosterID >= 0) ||
+            g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
+            slot = &lbl_3_common_bss_321A0[i];
+            slot->_10 = -1;
+            slot->_18 = 0;
+            slot->_19 = 0;
+            slot->_16 = 0;
+        }
+    }
+}
+
 void resetAndRunAnimations(int arg) {
     int i;
     int k;
@@ -303,15 +319,7 @@ void resetAndRunAnimations(int arg) {
     }
 
     if (hugeAnimStruct._307D == 0) {
-        for (k = 0; k < 4; k++) {
-            if (!g_d_GameSettings.minigamesEnabled || (k == 0 && (s8)g_Minigame.rosterID >= 0) ||
-                (s8)g_Minigame.runnerPlayerIndexU8[k] >= 0) {
-                lbl_3_common_bss_321A0[k]._10 = -1;
-                lbl_3_common_bss_321A0[k]._18 = 0;
-                lbl_3_common_bss_321A0[k]._19 = 0;
-                lbl_3_common_bss_321A0[k]._16 = 0;
-            }
-        }
+        resetRunnerAnimSlots();
     }
 
     setDefaultPlayTrackingVariables3();
