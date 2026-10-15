@@ -4678,8 +4678,8 @@ void cCSRunningFun(void) {
         if (runner->runningDirectionCode == 0) {
             runner->runningDirectionCode = 2;
         }
-        stage = &g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]];
         runner->turningAroundInd = 0;
+        stage = &g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]];
         if (*stage == 4) {
             continue;
         }
