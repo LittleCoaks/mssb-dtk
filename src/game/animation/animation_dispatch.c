@@ -717,6 +717,7 @@ void minigameEndOfGameAnimations(void) {
         } else if (status == GAME_STATUS_0x27 && g_Minigame.grandPrixFinalHumanCount == 1) {
             s8 player = g_Minigame.soloPlayerSlot;
             BOOL found = FALSE;
+            int k;
 
             for (k = 0; k < 4; k++) {
                 if (g_Minigame.grandPrixRanks[k][0] == player && g_Minigame.grandPrixRanks[k][1] == 0) {
@@ -736,6 +737,7 @@ void minigameEndOfGameAnimations(void) {
             u8 difficulty = g_Minigame.soloMinigameDifficulty;
             u8 a = g_Minigame.newRecordInd;
             u8 b = g_Minigame.winLossResult;
+            int k;
 
             for (k = 0; k < 4; k++) {
                 if (g_Minigame.playerSlots.characterIndex[k] >= 0) {
@@ -754,6 +756,7 @@ void minigameEndOfGameAnimations(void) {
             }
         } else {
             u8 x = g_Minigame.challenge_minigame_haven_tWonYetIndicator;
+            int k;
 
             for (k = 0; k < 4; k++) {
                 if (g_Minigame.playerSlots.characterIndex[k] >= 0) {
