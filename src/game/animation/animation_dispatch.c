@@ -659,11 +659,11 @@ void minigameAnimations(void) {
 void minigameIdleAnimations(void) {
     BOOL flag;
     AnimObject* obj;
-    int idx;
     int i;
 
     for (i = 0; i < 4; i++) {
-        idx = i;
+        int idx = i;
+
         flag = 0;
         obj = hugeAnimStruct.objects[i];
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
