@@ -17,15 +17,6 @@ typedef struct _FireEmitterHeader {
     /*0x04*/ u32 _04[(0x44 - 0x4) / 4];
 } FireEmitterHeader;
 
-// Four sets of three emitter slots, three emitter headers, then the hand tracking vectors.
-typedef struct _FireEmitterData {
-    /*0x000*/ FireEmitterSlot slots[12];
-    /*0x3C0*/ FireEmitterHeader headers[3];
-    /*0x48C*/ Vec handPos;
-    /*0x498*/ Vec handOffset;
-    /*0x4A4*/ u32 _4A4;
-} FireEmitterData;
-
 // The 0x58-byte emitter config passed to fn_8002955C; the first word is its texture.
 typedef struct _FireEmitterConfig {
     /*0x00*/ u32 texture;
@@ -58,135 +49,136 @@ extern struct {
     u8 _28;
 } lbl_80366158;
 
-static FireEmitterData lbl_3_data_17DC0 = {
+// Four sets of three emitter slots.
+static FireEmitterSlot lbl_3_data_17DC0[12] = {
     {
+        0x0, 0x15,
         {
-            0x0, 0x15,
-            {
-                0x5, 0x445C0, 0x0, 0x0, 0x4, 0x2,
-                0x1D4C0, 0x15F90, 0x0, 0x80, 0xF4240, 0xF4240,
-                0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF92A0, 0x1,
-            },
-        },
-        {
-            0x0, 0x7,
-            {
-                0xA, 0x130B0, 0xEA60, 0xC350, 0xC, 0x6,
-                0x1A9C8, 0x18A88, 0x0, 0x28, 0x44AA20, 0x90F560,
-                0xFFF0BDC0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x4,
-            {
-                0x3, 0x15F90, 0x186A0, 0x2710, 0x14, 0xA,
-                0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
-                0xF4240, 0xFFF0BDC0, 0x3C3C3C00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x15,
-            {
-                0x5, 0x445C0, 0x0, 0x0, 0x4, 0x2,
-                0x1D4C0, 0x15F90, 0x0, 0x80, 0x7A120, 0xF4240,
-                0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF92A0, 0x1,
-            },
-        },
-        {
-            0x0, 0x7,
-            {
-                0xA, 0x130B0, 0xEA60, 0xC350, 0xC, 0x6,
-                0x1A9C8, 0x18A88, 0x0, 0x28, 0x44AA20, 0x90F560,
-                0xFFF0BDC0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x4,
-            {
-                0x3, 0x15F90, 0x186A0, 0x2710, 0x14, 0xA,
-                0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
-                0xF4240, 0xFFF0BDC0, 0x3C3C3C00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x15,
-            {
-                0x5, 0x55730, 0x0, 0x0, 0x4, 0x2,
-                0x1D4C0, 0x15F90, 0x0, 0x3C, 0x7A120, 0xF4240,
-                0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF3CB0, 0x1,
-            },
-        },
-        {
-            0x0, 0x7,
-            {
-                0xA, 0x11170, 0x13880, 0xC350, 0x14, 0xA,
-                0x1A9C8, 0x1ADB0, 0x0, 0x28, 0x44AA20, 0x895440,
-                0xFFBB55E0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x4,
-            {
-                0x5, 0x15F90, 0x186A0, 0x2710, 0x14, 0xA,
-                0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
-                0x44AA20, 0xFFBB55E0, 0x3C3C3C00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x15,
-            {
-                0x3, 0x222E0, 0x0, 0x0, 0x10, 0x2,
-                0x1D4C0, 0x15F90, 0x0, 0x80, 0xF4240, 0xF4240,
-                0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF92A0, 0x1,
-            },
-        },
-        {
-            0x0, 0x7,
-            {
-                0xA, 0x9858, 0x7530, 0xC350, 0xC, 0x6,
-                0x1A9C8, 0x18A88, 0x0, 0x28, 0x44AA20, 0x90F560,
-                0xFFF0BDC0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
-            },
-        },
-        {
-            0x0, 0x4,
-            {
-                0x3, 0xAFC8, 0xC350, 0x2710, 0x14, 0xA,
-                0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
-                0xF4240, 0xFFF0BDC0, 0x3C3C3C00, 0x0, 0x0, 0x0,
-            },
+            0x5, 0x445C0, 0x0, 0x0, 0x4, 0x2,
+            0x1D4C0, 0x15F90, 0x0, 0x80, 0xF4240, 0xF4240,
+            0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF92A0, 0x1,
         },
     },
     {
+        0x0, 0x7,
         {
-            0x0,
-            {
-                0x14, 0x8, 0x7, 0x3D090, 0xC350, 0x86470,
-                0x0, 0x0, 0xC, 0xD, 0xE, 0xF,
-                0x10, 0x11, 0x12, 0x13,
-            },
-        },
-        {
-            0x0,
-            {
-                0x14, 0x8, 0x7, 0x3D090, 0xC350, 0x86470,
-                0x0, 0x0, 0xC, 0xD, 0xE, 0xF,
-                0x10, 0x11, 0x12, 0x13,
-            },
-        },
-        {
-            0x0,
-            {
-                0x14, 0x8, 0x7, 0x493E0, 0x186A0, 0x86470,
-                0x0, 0x0, 0xC, 0xD, 0xE, 0xF,
-                0x10, 0x11, 0x12, 0x13,
-            },
+            0xA, 0x130B0, 0xEA60, 0xC350, 0xC, 0x6,
+            0x1A9C8, 0x18A88, 0x0, 0x28, 0x44AA20, 0x90F560,
+            0xFFF0BDC0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
         },
     },
-    { 0.0f, 0.0f, 1.0f },
-    { 0.0f, 0.0f, -0.2f },
-    { 0 },
+    {
+        0x0, 0x4,
+        {
+            0x3, 0x15F90, 0x186A0, 0x2710, 0x14, 0xA,
+            0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
+            0xF4240, 0xFFF0BDC0, 0x3C3C3C00, 0x0, 0x0, 0x0,
+        },
+    },
+    {
+        0x0, 0x15,
+        {
+            0x5, 0x445C0, 0x0, 0x0, 0x4, 0x2,
+            0x1D4C0, 0x15F90, 0x0, 0x80, 0x7A120, 0xF4240,
+            0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF92A0, 0x1,
+        },
+    },
+    {
+        0x0, 0x7,
+        {
+            0xA, 0x130B0, 0xEA60, 0xC350, 0xC, 0x6,
+            0x1A9C8, 0x18A88, 0x0, 0x28, 0x44AA20, 0x90F560,
+            0xFFF0BDC0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
+        },
+    },
+    {
+        0x0, 0x4,
+        {
+            0x3, 0x15F90, 0x186A0, 0x2710, 0x14, 0xA,
+            0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
+            0xF4240, 0xFFF0BDC0, 0x3C3C3C00, 0x0, 0x0, 0x0,
+        },
+    },
+    {
+        0x0, 0x15,
+        {
+            0x5, 0x55730, 0x0, 0x0, 0x4, 0x2,
+            0x1D4C0, 0x15F90, 0x0, 0x3C, 0x7A120, 0xF4240,
+            0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF3CB0, 0x1,
+        },
+    },
+    {
+        0x0, 0x7,
+        {
+            0xA, 0x11170, 0x13880, 0xC350, 0x14, 0xA,
+            0x1A9C8, 0x1ADB0, 0x0, 0x28, 0x44AA20, 0x895440,
+            0xFFBB55E0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
+        },
+    },
+    {
+        0x0, 0x4,
+        {
+            0x5, 0x15F90, 0x186A0, 0x2710, 0x14, 0xA,
+            0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
+            0x44AA20, 0xFFBB55E0, 0x3C3C3C00, 0x0, 0x0, 0x0,
+        },
+    },
+    {
+        0x0, 0x15,
+        {
+            0x3, 0x222E0, 0x0, 0x0, 0x10, 0x2,
+            0x1D4C0, 0x15F90, 0x0, 0x80, 0xF4240, 0xF4240,
+            0xFFF85EE0, 0x7A120, 0xFFFFFF00, 0x0, 0xFFFF92A0, 0x1,
+        },
+    },
+    {
+        0x0, 0x7,
+        {
+            0xA, 0x9858, 0x7530, 0xC350, 0xC, 0x6,
+            0x1A9C8, 0x18A88, 0x0, 0x28, 0x44AA20, 0x90F560,
+            0xFFF0BDC0, 0x44AA20, 0xFFFFFF00, 0x0, 0x0, 0x0,
+        },
+    },
+    {
+        0x0, 0x4,
+        {
+            0x3, 0xAFC8, 0xC350, 0x2710, 0x14, 0xA,
+            0x19258, 0x19E0F, 0x0, 0x3C, 0x989680, 0x112A880,
+            0xF4240, 0xFFF0BDC0, 0x3C3C3C00, 0x0, 0x0, 0x0,
+        },
+    },
 };
+// One emitter header per slot set; passed to fn_8002F5F4.
+static FireEmitterHeader lbl_3_data_18180[3] = {
+    {
+        0x0,
+        {
+            0x14, 0x8, 0x7, 0x3D090, 0xC350, 0x86470,
+            0x0, 0x0, 0xC, 0xD, 0xE, 0xF,
+            0x10, 0x11, 0x12, 0x13,
+        },
+    },
+    {
+        0x0,
+        {
+            0x14, 0x8, 0x7, 0x3D090, 0xC350, 0x86470,
+            0x0, 0x0, 0xC, 0xD, 0xE, 0xF,
+            0x10, 0x11, 0x12, 0x13,
+        },
+    },
+    {
+        0x0,
+        {
+            0x14, 0x8, 0x7, 0x493E0, 0x186A0, 0x86470,
+            0x0, 0x0, 0xC, 0xD, 0xE, 0xF,
+            0x10, 0x11, 0x12, 0x13,
+        },
+    },
+};
+// Hand tracking vectors.
+static Vec lbl_3_data_1824C = { 0.0f, 0.0f, 1.0f };
+static Vec lbl_3_data_18258 = { 0.0f, 0.0f, -0.2f };
+static u32 lbl_3_data_18264[1] = { 0 };
 static FireEmitterConfig lbl_3_data_18268 = {
     0x0,
     {
@@ -206,7 +198,7 @@ static FireEmitterConfig lbl_3_data_18268 = {
 extern u16 lbl_3_data_6660[];
 static u32 lbl_3_bss_9FDC[0xF];
 
-extern void fn_8002F5F4(Vec* start, Vec* dir);
+extern void fn_8002F5F4(Vec* start, Vec* dir, FireEmitterHeader* header);
 extern void fn_80030D88(Vec* start, Vec* dir, FireEmitterSlot* slot, int arg);
 extern void fn_80030470(Vec* start, Vec* dir, Vec* end, FireEmitterSlot* slot, int arg);
 extern void fn_8002955C(Vec* pos, int arg, void* emitter);
@@ -237,12 +229,14 @@ void fn_3_CB6B4(void* arg) {
 void fn_3_CB538(int mode) {
     Vec dir;
     Vec end;
+    Vec* start;
+    int i;
+    FireEmitterHeader* hdr;
     int set;
     FireEmitterSlot* slot;
     FireEmitterSlot* it;
-    Vec* start;
     Vec* last;
-    int i;
+    u32 tex;
 
     if (g_GameLogic.bOD_framesInLiveBallScene >= 0) {
         set = 2;
@@ -253,11 +247,13 @@ void fn_3_CB538(int mode) {
     start = &lbl_3_common_bss_35154.trailStart;
     PSVECSubtract(last, start, &dir);
     if (PSVECMag(&dir)) {
-        slot = &lbl_3_data_17DC0.slots[set * 3];
-        slot[2].texture = lbl_3_common_bss_35154.burstTexture;
-        slot[1].texture = lbl_3_common_bss_35154.burstTexture;
-        lbl_3_data_17DC0.headers[set].texture = lbl_3_common_bss_35154.burstTexture;
-        slot[0].texture = lbl_3_common_bss_35154.burstTexture;
+        tex = lbl_3_common_bss_35154.burstTexture;
+        hdr = &lbl_3_data_18180[set];
+        slot = &lbl_3_data_17DC0[set * 3];
+        slot[2].texture = tex;
+        slot[1].texture = tex;
+        hdr->texture = tex;
+        slot[0].texture = tex;
         if (mode == 2) {
             slot[0].effectId = 0x1B;
             slot[1].effectId = 0x1C;
@@ -265,7 +261,7 @@ void fn_3_CB538(int mode) {
             slot[0].effectId = 0x15;
             slot[1].effectId = 7;
         }
-        fn_8002F5F4(start, &dir);
+        fn_8002F5F4(start, &dir, hdr);
         if (lbl_80366158._28 == 0) {
             it = &slot[1];
             i = 1;
@@ -283,21 +279,20 @@ void fn_3_CB538(int mode) {
 
 // .text:0x000CB3AC size:0x18C mapped:0x8070A440
 void animatePitchersHandOnFire(void) {
-    FireEmitterData* data = &lbl_3_data_17DC0;
     FireAnimActor* actor = hugeAnimStruct.actors[0];
-    FireEmitterSlot* slots;
     FireEmitterSlot* slot0;
-    FireEmitterSlot* slot1;
     FireEmitterSlot* slot2;
+    FireEmitterSlot* slot1;
+    FireEmitterSlot* slots;
     Vec pos;
     int i;
     u16 anim;
 
-    if (PSVECMag(&data->handPos) && actor != NULL) {
-        slots = data->slots;
+    if (PSVECMag(&lbl_3_data_1824C) && actor != NULL) {
+        slots = lbl_3_data_17DC0;
+        slot2 = &slots[11];
         slot0 = &slots[9];
         slot1 = &slots[10];
-        slot2 = &slots[11];
         slot2->texture = lbl_3_common_bss_35154.burstTexture;
         slot1->texture = lbl_3_common_bss_35154.burstTexture;
         slot0->texture = lbl_3_common_bss_35154.burstTexture;
@@ -315,15 +310,14 @@ void animatePitchersHandOnFire(void) {
                     anim = lbl_3_data_6660[i * 2];
                     break;
                 }
-                i++;
-            } while (lbl_3_data_6660[i * 2] != 0xFFFF);
+            } while (lbl_3_data_6660[++i * 2] != 0xFFFF);
         }
         getAnimRelatedCoordinates(0, anim, (VecXYZ*)&pos);
-        PSVECAdd(&pos, &data->handOffset, &pos);
+        PSVECAdd(&pos, &lbl_3_data_18258, &pos);
         if (lbl_80366158._28 == 0) {
-            fn_80030D88(&pos, &data->handPos, slot1, 5);
-            fn_80030D88(&pos, &data->handPos, slot2, 5);
-            fn_80030470(&pos, &data->handPos, &data->handPos, slot0, 5);
+            fn_80030D88(&pos, &lbl_3_data_1824C, slot1, 5);
+            fn_80030D88(&pos, &lbl_3_data_1824C, slot2, 5);
+            fn_80030470(&pos, &lbl_3_data_1824C, &lbl_3_data_1824C, slot0, 5);
         }
     }
 }
