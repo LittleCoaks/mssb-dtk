@@ -1688,10 +1688,8 @@ void matchEndGameScreenFunction(void) {
         break;
     case 4:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0xB4) {
-            u8 flag = g_GameLogic._13D;
-
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
-            if (flag != 0) {
+            if (g_GameLogic._13D != 0) {
                 if (!g_d_GameSettings.exhibitionMatchInd) {
                     g_GameLogic._125 = 7;
                 } else {
@@ -1707,11 +1705,11 @@ void matchEndGameScreenFunction(void) {
             fn_8004CC4C(7, 0, 0, 0, 0x8B);
             mvp = StatsScreenScores.mvpRosterLoc[0];
             if (mvp >= 0) {
-                fn_8004CA48(((CharacterStats*)inMemRoster)[mvp].stats.CharID, 0, 0, 0);
+                fn_8004CA48(inMemRoster[0][mvp].stats.CharID, 0, 0, 0);
             } else {
                 mvp = StatsScreenScores.mvpRosterLoc[1];
                 if (mvp >= 0) {
-                    fn_8004CA48(((CharacterStats*)inMemRoster)[mvp].stats.CharID, 0, 0, 0);
+                    fn_8004CA48(inMemRoster[0][mvp].stats.CharID, 0, 0, 0);
                 }
             }
         }
@@ -1736,8 +1734,8 @@ void matchEndGameScreenFunction(void) {
         break;
     case 8:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
-            pauseControl._12 = 0;
             pauseControl._1D8 ^= 1;
+            pauseControl._12 = 0;
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             g_GameLogic._125 = 7;
         }
