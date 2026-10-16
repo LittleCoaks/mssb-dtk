@@ -320,33 +320,9 @@ void practice_subMenu_stateHandling(void) {
             updatePracticeTransitionState(PRACTICE_STATE_2);
         }
         break;
-    case PRACTICE_STATE_2: {
-        InputStruct* input = &g_Controls[g_Practice.homeAway];
-        int count = practice_subMenu_length[g_Practice.practiceType_2][0];
-
-        if (input->newButtonInput & INPUT_BUTTON_A) {
-            g_Practice.practiceLevel = practice_subMenu_length[g_Practice.practiceType_2][g_Practice.subMenuCursor + 1];
-            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, SND_STUDIO_DEFAULT);
-            updatePracticeTransitionState(PRACTICE_STATE_3);
-        } else if (input->newButtonInput & INPUT_BUTTON_B) {
-            updatePracticeTransitionState(PRACTICE_STATE_5);
-            sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
-        } else if (input->_08 & INPUT_BUTTON_UP) {
-            if (g_Practice.subMenuCursor != 0) {
-                g_Practice.subMenuCursor--;
-            } else {
-                g_Practice.subMenuCursor = count - 1;
-            }
-            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
-        } else if (input->_08 & INPUT_BUTTON_DOWN) {
-            g_Practice.subMenuCursor++;
-            if (g_Practice.subMenuCursor >= count) {
-                g_Practice.subMenuCursor = 0;
-            }
-            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
-        }
+    case PRACTICE_STATE_2:
+        unref();
         break;
-    }
     case PRACTICE_STATE_3:
         g_Practice.framesSincePracticeMenuDefaultTransition = 0;
         updatePracticeTransitionState(PRACTICE_STATE_4);
