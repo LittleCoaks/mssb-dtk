@@ -3402,3 +3402,42 @@ by a score change in at least one function.
 ### Diagnostics
 - objdiff does not score the `jumptable_*` vs `@NNN` or `lbl_*_bss_*` vs `...bss.0` relocation-name
   differences that a plain text diff shows; check `diff_kind` in the JSON before chasing them.
+
+### Duplicate-body sweep across the game REL (2026-10)
+A pass over every game unit, looking for hand-written copies of functions that MWCC inlined.
+- **Search the source as well as the asm.** Comparing instruction sequences flagged many false
+  positives: sibling functions with near-identical code (camera views, minigameWinnerStars_*,
+  fn_3_E4760/fn_3_E48D0). Checking whether a function's first few statements appear inside
+  another function in the same `.c` found the real copies faster.
+- **"Called elsewhere" does not mean "not inlined here".** A function that other units reach
+  with `bl` can still be inlined inside its own unit: practice_loadCharacterData in
+  loadPracticeScreen, warioPalaceSomething in loadWarioPalace, fn_3_1CBCC in cameraControl.
+  The no-`bl`-anywhere test finds only some of the candidates.
+- **A `#pragma dont_inline` on a callee can be what keeps a copy in place.** Once the pragma
+  around practice_loadCharacterData was removed, the call inlined and loadPracticeScreen went from
+  96.29 to 97.30. A dont_inline region that contains a never-called function is worth checking
+  (fn_3_B3C64 was another).
+- **Hand copies can carry real bugs.** pitching_practice's transition case passed
+  `GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY` where the callee fn_3_B61C0 passes
+  `GAME_STATUS_AT_BAT`. Calling the real function fixed it, and the whole unit reached 100% and
+  was flipped to Matching.
+- **Inlined helpers nest.** pitchingPractice_BaseballControl's switch was fn_3_B60F0 /
+  fn_3_B5F7C / fn_3_B61C0, which in turn inline fn_3_B60F0 and fn_3_B5E7C.
+  runnerStealing_TransitionToLiveViewIndicator inlined fn_3_73850, and the three spelled-out
+  runner checks were an unrolled `for (i = 1; i < 4; i++)` loop (88.4 -> 100).
+- **`blt` straight to an else-arm laid out after the then-arm** came from an early-return
+  guard: `if (a >= 0) { if (!b) { x = 0; return; } } else { ...; return; }` followed by
+  the shared tail (fn_3_B6C9C, 82 -> 100).
+- **The inlined copy shows the callee's parameter type.** fn_3_EE67C's inlined copy of
+  fn_3_EE0BC uses `srawi 4; clrlwi 24`, which is `(u8)(x >> 4)` on a `u8` argument. Changing the
+  callee to `int fn_3_EE0BC(u8)` let the call match the hand copy. With a `u32` parameter the
+  call scored lower.
+- **Too big to auto-inline: shrink the callee through another never-called function.**
+  fn_3_C4CF4 stayed a `bl` (fn_3_C56E8 dropped to 31.7%) until its GX setup became a call to
+  fn_3_C4B80, which the target also inlines.
+- **Not every copy should go.** Calling the real function scored lower for
+  bobOmbDerby unusedBattingSomething (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
+  starDash_stopAllSparks (93.1 -> 67.5, the `extsb` of the inlined `s8` argument sinks below the
+  call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
+  barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
+  inlined helper bodies, while ours rebuilds it in each. That pattern is still unexplained.
