@@ -110,7 +110,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `hud_gauges.c` | `rep_1770` | 15 (9) | 13,292 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links, and `matchHudDrawingControl`, which registers those draws. | high |
-| `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. | high |
+| `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. Owns `.data 0x8D88-0xF4A4`, the HUD, minigame and practice UI descriptor tables formerly in `data_only/data_8D88.c`. | high |
 | `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_Strikes.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
 | `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
 | `runner_items.c` | `rep_9B0` | 4 (0) | 708 | Small helpers used by the versus screens and replay (a `VsFadeItem` callback, an `AnimScreenState` setter, fielder roster-slot setup). No HUD drawing; the name is provisional. | inferred |
@@ -152,7 +152,7 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | `roster_init.c` | `rep_1188` | 7 (7) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
 | `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
 | `transition_init.c` | `rep_1038` | 7 (5) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
-| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
+| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. Owns `.data 0x1D28-0x3C40` (`AnimSetupEntry` table, home-run camera scene IDs, `vsSituations`, matchup table). | high |
 
 ## replay/ — 2 files, 13 fns (10 named)
 
@@ -253,10 +253,10 @@ guided instructions and pause handling, and the scene/HUD code.
 | `practice_simulation.c` | `rep_1BC8` (first half) + unassigned `.text` | 12 (11) | 3,684 | Practice per-frame simulation dispatcher, practice screen load, roster/character loading, state-transition helpers. Owns `rep_1BC8`'s `.rodata` and the jump table at `.data 0x10A08` (plus the 4-byte linker pad). | med |
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
-## data_only/ — 11 files, 11 fns (0 named)
+## data_only/ — 10 files, 11 fns (0 named)
 
 These kept their original names, so there is nothing to look up. The
-exceptions are `data_1880.c`, `data_428C.c`, `data_69C0.c` and `data_8D88.c`,
+exceptions are `data_1880.c`, `data_428C.c` and `data_69C0.c`,
 data-only units added for shared `.data` tables with no code owner and named
 by address (see [Unowned game REL `.data`](splits.md#unowned-game-rel-data-2026-10-08)).
 
@@ -290,10 +290,9 @@ not a shared gameplay purpose.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `data_1880.c` | — | 0 (0) | — | Shared AI probability tables, `AnimSetupEntry` table, home-run camera scene IDs and `vsSituations`. | inferred |
+| `data_1880.c` | — | 0 (0) | — | Pitcher and batter AI probability tables and constants (`0x1880-0x1D28`). The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | inferred |
 | `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). | inferred |
 | `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
-| `data_8D88.c` | — | 0 (0) | — | Menu, character-select and HUD icon/descriptor tables. | inferred |
 | `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
 | `rep_3CE0.c` | *(unchanged)* | 7 (0) | 3,332 | Fade plus four actor markers sized by character; called from `scene_effects.c` and `minigame_fielder_anim.c`. | inferred |
 | `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |

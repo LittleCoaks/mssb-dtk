@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "C3/actor.h"
 
-f32 fn_800B4A44(void* actor, u16 bone);
+f32 getActorBoneAnimTime(void* actor, u16 bone);
 f32 scanBoneAttachmentData(void *ptr);
 void updateBoneParam(void* actor, int flag);
 void AnimateActorBones(void* actor);

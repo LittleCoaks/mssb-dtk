@@ -34,7 +34,7 @@ struct AnimObject {
     /*0x6C*/ u8 _6C[0x70 - 0x6C];
     /*0x70*/ s16 _70;
     /*0x72*/ u8 _72[0x16A - 0x72];
-    /*0x16A*/ u16 _16A;
+    /*0x16A*/ u16 boneIndex;
     /*0x16C*/ u8 _16C[0x252 - 0x16C];
     /*0x252*/ s8 _252;
     /*0x253*/ u8 _253[0x25D - 0x253];
@@ -157,7 +157,7 @@ extern u8 runnerConstants[][5];
 extern AnimSlot g_UnkAnimation_31EAC[9];
 extern AnimThrowState g_UnkThrowing_31ACC[4];
 extern u8 bodyCheckFrameRelatedConstants[][4];
-extern u8 lbl_3_data_7D24[][5];
+extern u8 throwWindupReleaseFrames[][5];
 extern u8 lbl_3_data_7F0C[];
 extern f32 lbl_3_data_476C[];
 extern s16 barrelCollisionHitboxes[54];
@@ -170,8 +170,8 @@ extern void fn_8001B4D8(int idx);
 extern void fn_8001B5EC(int idx, int arg);
 extern void fn_8004AE18(int index);
 extern void fn_8001C528(int arg);
-extern void** fn_800111D8(AnimObject* obj);
-extern f32 fn_800B4A44(void* actor, u16 bone);
+extern void** getAnimObjectActor(AnimObject* obj);
+extern f32 getActorBoneAnimTime(void* actor, u16 bone);
 extern s16 fn_8001B35C(int idx, int arg);
 extern PlayTracking lbl_3_common_bss_32220;
 typedef struct PitchAnimState {
@@ -379,10 +379,10 @@ void unsure_updateAnimations(void) {
         obj = hugeAnimStruct.objects[i];
         if (hugeAnimStruct.objects[i] != NULL && hugeAnimStruct.objects[i]->_25D != 0) {
             f32 time = 1.0f;
-            int bone = (hugeAnimStruct.objects[i] != NULL) ? hugeAnimStruct.objects[i]->_16A : 0xFFFF;
+            int bone = (hugeAnimStruct.objects[i] != NULL) ? hugeAnimStruct.objects[i]->boneIndex : 0xFFFF;
 
             if (bone != 0xFFFF) {
-                time = fn_800B4A44(*fn_800111D8(obj), bone);
+                time = getActorBoneAnimTime(*getAnimObjectActor(obj), bone);
             }
             obj->framesLeft = time / obj->_4C;
         }
@@ -2321,7 +2321,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
             updateFielderState(fielderIdx, 0);
             return FALSE;
         }
-        if (timer >= lbl_3_data_7D24[obj->_252][(u32)(obj->animId - 0x1D)]) {
+        if (timer >= throwWindupReleaseFrames[obj->_252][(u32)(obj->animId - 0x1D)]) {
             fielding->throwWindupAnimationDoneInd = 1;
         }
         return TRUE;

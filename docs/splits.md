@@ -135,18 +135,61 @@ merged because `fn_3_C937C`'s codegen depends on the full size),
 0x9FDC-0xA018` -> `pitcher_fire_effect.c`.
 
 Four large shared tables have no code unit between their link-order
-neighbours, so each is a data-only unit, named by
-address: `data_only/data_1880.c` (AI and versus tables, after `camera.c`),
+neighbours, so each became a data-only unit (two were later found to be code
+units' `.data`; see the 2026-10-15 entry below), named by
+address: `data_only/data_1880.c` (pitcher/batter AI tables, after `camera.c`),
 `data_428C.c` (field coordinates, hit and fielding constants, after
 `match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
 tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
 cannot start a unit, since MWCC 8-aligns every unit's `.data`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
-after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`).
+after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`; now
+part of `hud_scoreboard.c`).
 All are 100%.
 
 Left unowned on purpose: common `.bss` from `0xD714` (shared globals used by
 almost every unit), the 4-byte alignment gaps, `0x228`
 `FrameCountOfEntireGame` (no clear owner), `0x6804-0x6820` and `0x27EAC`.
+
+### Data-only units that were really a code unit's `.data` (2026-10-15)
+
+A pooled `.data` base cannot span translation units: MWCC addresses a TU's own
+`.data` objects off one `lis/addi` of the TU's first object plus an offset,
+and a reference from another TU goes through the object's own symbol. So every
+offset a function reaches off one base belongs to the unit that owns the
+function.
+
+- `data_1880.c` -> `versus_screens.c` (`.data 0x1D28-0x3C40`).
+  `chooseVsScreenSituation` reaches `+0x228`, `+0x670`, `+0xEB0` and
+  `postReplayBatterCelebration` `+0x3AC`, `+0x488`, `+0x564` off one
+  `lbl_3_data_1D28` base, so `0x1D28` up to `versus_screens`'s old start
+  `0x3A40` is its `.data`. The 0x37AC/0x3888/0x3964 tables are 0xDC `s32[55]`
+  like 0x3A40. `animation_init.c` and `camera_script.c` reach
+  `lbl_3_data_1D28`, `lbl_3_data_1F40`, `vsSituations` and 0x37AC-0x3964 by
+  symbol, so those stay global. `0x1880-0x1D28` stays in `data_1880.c`: it is
+  referenced only by symbol (no pooled base), from `pitcher_ai.c`
+  (`0x1880-0x1934`), `batter_ai.c` and `ai_defaults.c` (`0x193C-0x1D10`). The
+  pitcher tables come before the batter tables although `batter_ai.c` links
+  first, so they are not in their code units' own `.data`.
+  Blobs split at the pooled offsets: `homerun_cameraSceneIDs` (0x370) into four
+  `s32[55]` (`0x1FF8`, `0x20D4`, `0x21B0`, `0x228C`); `vsSituations` (0x1414)
+  into `VsSituation[33]` (0x840) and `u8 lbl_3_data_2BD8[55][55]`;
+  `lbl_3_data_1F40` (0x34) into `u8 *[4]` and `s8 lbl_3_data_1F50[33]`.
+  Objects are defined in address order (`.data` keeps declaration order) and
+  our object's offsets equal the target's.
+- `data_8D88.c` -> `hud_scoreboard.c` (`.data 0x8D88-0xF4A4`; `data_8D88.c`
+  removed). `handleInGameEventsAndSoundEffects` reaches `+0x30C8`-`+0x31A4`
+  and `manageScoreboardGraphic` `+0x60D4`-`+0x66A8` off one `lbl_3_data_8D88`
+  base. The units between (`character_loading`, `outs_indicator`,
+  `toyfield_score_update`) have no `.data`. The minigame, practice and HUD
+  tables in the range stay global: `minigame_hud.c`, `practice_scene.c`,
+  `toy_field_hud.c`, `match_scene.c`, `hud_gauges.c`, `outs_indicator.c` and
+  `stat_book.c` reach them by symbol. Blobs split at the pooled offsets:
+  `lbl_3_data_BE50` (0x11C) into `HudEventTiming[25]` (0xC8),
+  `u16 lbl_3_data_BF18[10]` and `UIRecordDescriptor lbl_3_data_BF2C[2]`;
+  `lbl_3_data_EC1C` (0x5E4) into `UIRecordDescriptor[18]`,
+  `UIRecordDescriptor lbl_3_data_EE5C[29]` and `u16 lbl_3_data_F1FC[2]`;
+  `lbl_3_data_F200` (0x24) into `u8[12]` and `u8 lbl_3_data_F20C[24]`. The
+  `HudEventData` overlay is gone.
 
 ### Reorganisation after full `.text` ownership (2026-10-08)
 
@@ -372,7 +415,7 @@ Twelve `Unknown/File_0x800b2ac8 ... 4908` units plus six unowned gaps become two
 | unit | `.text` | other sections | boundary evidence |
 |---|---|---|---|
 | `C3/actor/act.c` | `0x800B2AC8-0x800B4A44` | `.rodata 0x800E7D28-0x800E7D58`, `.data 0x80111640-0x80111670`, `.sdata2 0x803CCF58-0x803CCF78`, extab `0x80006990-0x80006A28` | the `"act.c"` string (`0x803CCF70`) is the `OSPanic` file name of `maybeProcessActLayout` ("Incorrect number of bones in actor", `.rodata 0x800E7D34`); the `.rodata` run `0x800E7D28-0x800E7D58` starts where the sprite unit's `"SPRITE BUFFER OVERFLOW"` ends and ends 8-aligned; `.data 0x80111640` (a 0x30 matrix) is read by `fn_800B313C` and `fn_800B3F20` only |
-| `C3/actor/actorAnim.c` | `0x800B4A44-0x800B4E9C` | `.sdata2 0x803CCF78-0x803CCF80` | its pool is `0.0f` (`0x803CCF78`) and `1.0f` (`0x803CCF7C`); `act.c` already pooled both at `0x803CCF58`/`0x803CCF5C`, and MWCC pools a literal once per unit, so the two pools belong to different units. First user of the second pool is `fn_800B4A44` (bone time), which starts the per-bone animation functions (`AnimateActorBones`, `setActorAnimFrame`, `ACTSetAnimation`) |
+| `C3/actor/actorAnim.c` | `0x800B4A44-0x800B4E9C` | `.sdata2 0x803CCF78-0x803CCF80` | its pool is `0.0f` (`0x803CCF78`) and `1.0f` (`0x803CCF7C`); `act.c` already pooled both at `0x803CCF58`/`0x803CCF5C`, and MWCC pools a literal once per unit, so the two pools belong to different units. First user of the second pool is `getActorBoneAnimTime` (bone time), which starts the per-bone animation functions (`AnimateActorBones`, `setActorAnimFrame`, `ACTSetAnimation`) |
 
 The boundary between `act.c` and `actorAnim.c` can sit anywhere in `0x800B4724-0x800B4A44`
 (`renderingRelated`, `haveActLayoutPointToGeoHeader`, `LoadActorLayout`, `AdjustActorPointers` have no

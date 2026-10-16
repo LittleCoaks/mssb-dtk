@@ -3245,3 +3245,105 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
 - **`s32` (long) counters stay unfolded where `int` folds** in straight-line code too, not only in
   loop guards: `fn_3_166448` (rep_3E00) keeps its `li r29,0 ... cmpwi r29,0` only with
   `s32 inactive` assigned before the calls.
+
+## General codegen patterns (2026-10, collected from second passes)
+
+Findings from second passes on files that are not fully matched yet (camera_script, the C3
+charPipeline units, minigame_effects, animation_dispatch, runner, versus_screens/hud_scoreboard).
+They are written down here so they do not depend on those files reaching 100%. Each was confirmed
+by a score change in at least one function.
+
+### Control flow and switches
+- **The address order of a switch's jump-table targets is the source order of the case blocks.**
+  Read dtk's `jumptable_*` entries in address order and lay out the cases the same way
+  (camera_script `fn_3_1000D8`/`fn_3_101CC4`: case 6 before case 5). The table also shows cases
+  the draft is missing (camera_script `fn_3_FDB30` lacked opcode 76 and fell into default).
+- **A pair of `beq` on the same compare means an inlined `x == NULL || ...` check.**
+- **A shared exit block may need a `goto`.** When the target branches into the tail of an `else`
+  arm (`updateFielderState; return TRUE`), a `goto` into it can be the only form that matches.
+  Measure the structured forms first and log them (animation_dispatch
+  `fielderBodyCheckAnimation`, `animationsForFielding`).
+- **`return FALSE` vs `break` to a shared exit:** where the target has one exit block, use
+  `break` plus a single trailing return.
+
+### Inlining
+- **Many "macros" and hand-written blocks are small functions MWCC inlined.** If a block repeats
+  in several functions, or the stack layout differs only around it, write it as the real function
+  (or a `static inline`) and call it. This fixed the camera filter "macros" and script-start block
+  (camera_script), the `static inline mg*` helpers whose bodies belonged to named functions
+  (minigame_effects, which also fixed the literal-pool order), `ACTSort`/
+  `maybeTransformVectorByAnimationMatrix` (C3 act.c), and the base-reset loop in runner's
+  `initializeARunner`/`resetInMemRunners` (an inlined `initBaseRunnersAfterFoulBall`).
+- **Shrinking a function can make MWCC start inlining it into its caller**, which can wreck the
+  caller's score (runner `updateRunnerFramesToClosestBases`). Always re-check callers after
+  shortening a function.
+- **A `#pragma dont_inline` stub can be needed while a callee is still a stub:** otherwise its
+  `return NULL` is inlined into a matched caller (objinit `f_InitActorWithLayout`).
+
+### Types and prototypes
+- **If the target re-extends (`extsb`/`extsh`/`clrlwi`) a call argument or return value, the
+  prototype is narrower or wider than ours.** Declare file-local prototypes that match:
+  animation_dispatch matched with `s16` frame / `u8` handedness arguments to
+  `AnimateCharacter`/`QueueCharacterAnimation`, and `int`-returning angle helpers
+  (`calculateAngleFromCoordinates`, `angleDifferenceNormalized`, `radToShortAngle`). Leave a
+  comment saying why it differs from the shared header.
+- **When the target re-extends a value at every use, re-read the field instead of caching it in
+  a local** (same idea as the `*(s8*)&field` read macro in pitcher.c).
+- **Local types should match the field width** (`s16` for `s16` fields, `u8` for bytes; runner
+  `running_DirectionOverrides`).
+- **`(u32)` on an array index flips the operand order of the final `add`.**
+- **Unsigned constants (`0x10U`) give `cmplwi` on u8 flags.**
+
+### Floating point
+- **`fabs` from `stl/math.h` is a macro for the `__fabs` intrinsic, but MSL declares `fabs` as an
+  inline function, and the two allocate float registers differently.** Where a function calls
+  `fabs`, try the function form:
+  `#undef fabs` + `static inline f64 fabs(f64 x) { return __fabs(x); }` file-wide, or a
+  differently named helper for only some functions. It matched the whole bobOmbFuseSpark family
+  (minigame_effects) and lifted camera_script, scene_effects and five sta_c5 DK barrel functions.
+  Two sta_c5 functions match better with the intrinsic, so the header itself is left unchanged.
+- **`x / 2.0f` compiles to a multiply with the constant second; `x * 0.5f` puts it first.** A
+  constant held in a local (`f32 scale = 0.01f;`) also keeps it second.
+- **`if (x)` gives `fcmpu x, 0`; `x == 0.0f` gives `fcmpu 0, x`.**
+- **In `a*b + c*d`, MWCC fuses the first product** unless the left side is much more complex.
+  Separate locals for the products (`sqx = dx*dx; sqz = dz*dz;`) are distinct from `dx = dx*dx`
+  and fixed two runner functions.
+- **MWCC keeps a value in f1 across a call when f1 is that call's float return.**
+- **A draft that ignores a float return is a real bug, not a codegen detail.** animation_dispatch
+  `unsure_updateAnimations` divided `1.0f` instead of the bone time returned by
+  `getActorBoneAnimTime`.
+
+### Registers, locals and loops
+- **The first-declared local tends to get the highest free callee-saved register.** Reordering
+  declarations alone matched C3 `fn_800B4278`. Script declaration-order sweeps are cheap, but when
+  120+ orders change nothing the difference is not declaration order: stop sweeping.
+- **A walking pointer whose base the target keeps** (`addi rB, g_Runners; mr rP, rB`, base reused
+  later) means the source indexes per iteration: `runner = &g_Runners[i]`.
+- **Hoisted constant locals can be wrong.** Read table constants where they are used, not into
+  locals at the top (runner `running_updateStamina`).
+- **A chained assignment stops constant folding:** `for (extra = i = 0; ...)` keeps a never-true
+  `extra >= 2` test the target retains; a plain `extra = 0` is folded away.
+- **`do {} while (++i < n)` avoids the ctr loop** where the target does not use one.
+- **A loop-scoped `int idx = i;`** can be needed for two inlined copies to match
+  (animation_dispatch `minigameIdleAnimations`).
+
+### Data and expressions in effect code (minigame_effects)
+- `-(rand() % 2 * 2) + 1` for a random sign.
+- Two statements (`alpha = p->alphaByte; alpha += step;`) instead of one expression.
+- Read a fade's start value into its own local first.
+- Write `(n - duration)` inline instead of keeping a `range` local.
+- `GXPosition3f32` / `GXColor1u32` / `GXTexCoord2f32` in a plain 4-vertex loop for quads.
+
+### Unit ownership of data
+- **A base register cannot be shared across translation units.** If code reaches deep into a
+  data-only unit through one pooled base (versus_screens `+0xEB0` off `lbl_3_data_1D28`,
+  hud_scoreboard `+0x66A8` off `lbl_3_data_8D88`), that data is the code unit's own `.data`. The
+  data-only unit only existed because the units between them have no `.data`. Data reached only by
+  symbol from several units can stay in a data-only unit (data_1880's AI tables).
+
+### Diagnostics (do not commit)
+- `#pragma opt_propagation off` around a caller shows whether constant/copy propagation is the
+  difference (runner `running_AIStartSteals` 61 -> 89.5 with it). It also changes everything else,
+  so treat it as evidence, not a fix.
+- `objdiff-cli diff` and the report score pooled `.bss` accesses differently (the target carries
+  `R_PPC_NONE` relocs). Use the report for regression checks.

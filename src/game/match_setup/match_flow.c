@@ -272,7 +272,7 @@ void initializeGame(void) {
     initializeInMemBatter();
     initBallAndGameStateOnLoad();
     initializeFielderConstants();
-    fn_3_8A5A4();
+    resetRunnerLeadoffDefaults();
     initializeAIConstants();
     initializeStats();
     initializeInningTrackers();
