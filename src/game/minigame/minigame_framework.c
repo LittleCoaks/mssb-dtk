@@ -1699,10 +1699,9 @@ tail:
     if (g_d_GameSettings.exhibitionMatchInd != FALSE) {
         if (g_Minigame.charSelectState == 1 || (u8)(g_Minigame.charSelectState - 2) <= 2 || g_Minigame.charSelectState == 5) {
             if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 30) {
-                sel[0] = -1;
-                sel[1] = -1;
-                sel[2] = -1;
-                sel[3] = -1;
+                for (i = 0; i < 4; i++) {
+                    sel[i] = -1;
+                }
                 for (i = 0; i < 4; i++) {
                     sel[i] = -1;
                     if (g_Minigame.selectSlotState[i] != 0 && (g_Controls[i].newButtonInput & INPUT_BUTTON_A)) {
