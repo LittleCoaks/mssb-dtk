@@ -1270,8 +1270,7 @@ void minigameCharSelectUpdate(void) {
         if (changed) {
             cssLoadingRelated_1(0, sel[0], sel[1], sel[2], sel[3], 0);
         }
-        ready = 0;
-        for (i = 0; i < 4; i++) {
+        for (i = 0, ready = 0; i < 4; i++) {
             if (g_Minigame.selectSlotState[i] == 0) {
                 SATURATING_INCREMENT_U16(g_Minigame.charChangeFrames[i]);
                 if (sel[i] == -3) {
