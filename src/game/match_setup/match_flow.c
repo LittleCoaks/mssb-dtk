@@ -2053,12 +2053,7 @@ graphics:
 
 // .text:0x0005AE9C size:0x228 mapped:0x80699F30
 void transferSomeValuesOnMatchLoad(void) {
-    int teamNameHome;
-    int teamNameAway;
-
     changeScene(4, 0);
-    teamNameHome = Static_Stats_Tables.teamName[g_d_GameSettings.home_AwaySetting];
-    teamNameAway = Static_Stats_Tables.teamName[g_d_GameSettings.home_AwaySetting ^ 1];
     g_GameLogic.framesOfExitingToMenu = 0;
     g_UnkSimulation_31AC0._04 = 0;
     g_UnkSimulation_31AC0._09 = 0;
@@ -2079,12 +2074,12 @@ void transferSomeValuesOnMatchLoad(void) {
     *(s16*)&hugeAnimStruct[0x2D5C] = -1;
     g_GameLogic.teams[0] = g_d_GameSettings.PlayerPorts[0];
     g_GameLogic.teams[1] = g_d_GameSettings.PlayerPorts[1] % 4;
-    g_GameLogic.logo[0].ID = teamNameHome;
-    g_GameLogic.logo[1].ID = teamNameAway;
-    g_GameLogic.logo[0].variationID = teamNameHome % 4;
-    g_GameLogic.logo[1].variationID = teamNameAway % 4;
-    g_GameLogic.logo[0].captain = teamNameHome / 4;
-    g_GameLogic.logo[1].captain = teamNameAway / 4;
+    g_GameLogic.logo[0].ID = Static_Stats_Tables.teamName[g_d_GameSettings.home_AwaySetting];
+    g_GameLogic.logo[1].ID = Static_Stats_Tables.teamName[g_d_GameSettings.home_AwaySetting ^ 1];
+    g_GameLogic.logo[0].variationID = g_GameLogic.logo[0].ID % 4;
+    g_GameLogic.logo[1].variationID = g_GameLogic.logo[1].ID % 4;
+    g_GameLogic.logo[0].captain = g_GameLogic.logo[0].ID / 4;
+    g_GameLogic.logo[1].captain = g_GameLogic.logo[1].ID / 4;
     g_Scores.mercyThreshold = inningSetting.runsNeededForMercy;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD ||
         g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
