@@ -1580,8 +1580,8 @@ void uncalledRunnerUpdateRelated(void) {
         if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
             g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY ||
             g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DEAD_BALL) {
-            g_Runners[i].runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DURING_PLAY;
             g_Scores._9C++;
+            g_Runners[i].runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DURING_PLAY;
         }
     }
 }
@@ -1941,10 +1941,7 @@ void fn_3_5B41C(void) {
     }
     if (g_d_GameSettings.bJMatchInd == 0) {
         g_d_GameSettings.challengeMinigame_baseCoinsEarned += challenge_baseCoinsAwarded[result];
-        diff = g_Scores.scores[g_GameLogic.homeTeamInd].total - g_Scores.scores[g_GameLogic.homeTeamInd ^ 1].total;
-        if (diff < 0) {
-            diff = -diff;
-        }
+        diff = __abs(g_Scores.scores[g_GameLogic.homeTeamInd].total - g_Scores.scores[g_GameLogic.homeTeamInd ^ 1].total);
         if (result == 0) {
             g_d_GameSettings.challengeMinigame_baseCoinsEarned += diff * challenge_baseCoinsAwarded[3] / 100;
         } else if (result == 2) {
@@ -2019,8 +2016,8 @@ int fn_3_5B220(int arg0) {
 
 // .text:0x0005B0C4 size:0x15C mapped:0x8069A158
 void gameSimulationFunction(void) {
-    lbl_80366158[0x28] = 0;
     g_d_GameSettings.FrameCountWhileNotAtMainMenu++;
+    lbl_80366158[0x28] = 0;
     lbl_80366158[0x28] = 0;
     unkPauseSimulationCheck();
     if (g_UnkSimulation_31AC0._05 != 0) {
@@ -2325,8 +2322,8 @@ void exitToMenuControl(void) {
         resetGameStadiumStateOnExit();
         fn_3_902FC();
         transitionToReplay();
-        g_d_GameSettings._55 = 1;
         g_GameLogic.framesOfExitingToMenu++;
+        g_d_GameSettings._55 = 1;
         break;
     case 2:
         g_GameLogic.framesOfExitingToMenu++;
