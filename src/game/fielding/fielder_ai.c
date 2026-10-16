@@ -377,9 +377,9 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
     f32 receiverY;
     f32 targetDist;
     f32 angle;
-    f32 lastAngle;
-    f32 bestAngle;
     f32 angleDelta;
+    f32 bestAngle;
+    f32 lastAngle;
     f32 groundY;
     f32 groundSpeed;
     f32 ySpeed;
@@ -396,6 +396,7 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
     int frames;
     f32 sqx;
     f32 sqz;
+    InMemFielder* receiver;
 
     speed = *throwSpeed;
     pastReceiver = -9999.9f;
@@ -420,8 +421,8 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
             playSoundEffect(0x1a8);
         }
     }
-    receiverY = g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[g_FieldingLogic.locationThrownTo]].hitbox[3] -
-                0.2f;
+    receiver = &g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[g_FieldingLogic.locationThrownTo]];
+    receiverY = receiver->hitbox[3] - 0.2f;
     if (0.2f < 0.5f * receiverY) {
         destY = 0.5f * receiverY;
     }
@@ -470,8 +471,8 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
         }
         break;
     case 8:
-        angle = 0.6f;
         speed = 0.25f;
+        angle = 0.6f;
         bestAngle = angle;
         break;
     case 9:
@@ -496,15 +497,17 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
     do {
         groundSpeed = speed * (f32)cos(angle);
         ySpeed = speed * (f32)sin(angle);
-        gravity = g_Ball.physicsSubstruct.gravity;
         yPos = g_Ball.AtBat_Contact_BallPos.y;
         actualDist = 0.0f;
+        gravity = g_Ball.physicsSubstruct.gravity;
         frames = 0;
         while (frames < 900) {
             frames++;
             groundSpeed *= airFactor;
             actualDist += groundSpeed;
-            ySpeed = (ySpeed - gravity + reduceGravity) * airFactor;
+            ySpeed -= gravity;
+            ySpeed += reduceGravity;
+            ySpeed *= airFactor;
             yPos += ySpeed;
             if (actualDist > targetDist) {
                 if (yPos < destY) {
@@ -545,9 +548,9 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
                     angle += angleDelta;
                     angleDelta *= 0.95f;
                 } else if (prevYType == 4) {
-                    angleDelta *= 0.95f;
                     bestAngle = angle;
                     angle = 0.5f * (lastAngle + angle);
+                    angleDelta *= 0.95f;
                 } else {
                     if (!(yPos > pastReceiver)) {
                         break;
