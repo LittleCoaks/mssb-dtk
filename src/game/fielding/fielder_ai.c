@@ -2043,13 +2043,7 @@ int howManyFramesTheRunnerIsOutOfReach(int runnerIndex, BOOL forwards, int* thro
     InMemRunnerType* runner = &g_Runners[runnerIndex];
     InMemFielder* fielder = &g_Fielders[g_Ball.fielderWBallIndex];
     int framesToBase;
-    int coverFrames;
     int totalFrames;
-    f32 speed;
-    f32 dx;
-    f32 dz;
-    f32 dist;
-    f32 divisor;
     f32 ballDist;
     f32 baseX;
     f32 baseZ;
@@ -2058,7 +2052,7 @@ int howManyFramesTheRunnerIsOutOfReach(int runnerIndex, BOOL forwards, int* thro
     int runFrames;
     int coveringFielder;
 
-    if (forwards == 0) {
+    if (!forwards) {
         framesToBase = runner->framesToPreviousBase;
         base = runner->currentBase;
     } else {
@@ -2067,31 +2061,8 @@ int howManyFramesTheRunnerIsOutOfReach(int runnerIndex, BOOL forwards, int* thro
     }
     baseX = base_MoundCoordinates[base].x;
     baseZ = base_MoundCoordinates[base].z;
-    dx = baseX - fielder->pos.x;
-    dz = baseZ - fielder->pos.z;
     coveringFielder = g_FieldingLogic.fielderAssignedLocationIndex[base];
-    speed = fielder->modifiedThrowingArm / 200.0f;
-    dx = dx * dx;
-    dz = dz * dz;
-    dist = dolsqrtf2(dx + dz);
-    divisor = speed;
-    if (0.0f == divisor) {
-        divisor = 1.0f;
-    }
-    if (dist > 60.0f) {
-        frames = 1.15f * dist / divisor;
-    } else if (dist > 30.0f) {
-        frames = dist / divisor;
-    } else {
-        frames = 0.8f * dist / divisor;
-    }
-    if (dist > 80.0f) {
-        frames *= 1.3f;
-        frames += 0x1e;
-    } else if (dist > 70.0f) {
-        frames *= 1.15f;
-        frames += 0x1e;
-    }
+    frames = fn_3_A6ABC(baseX, baseZ);
     ballDist = g_Ball.ballDistanceFromBase[base];
     totalFrames = fielder->throwWindupEstimate + frames;
     if (ballDist > 60.0f && ballDist < 70.0f && (base == 0 || base == 3)) {
@@ -2103,13 +2074,12 @@ int howManyFramesTheRunnerIsOutOfReach(int runnerIndex, BOOL forwards, int* thro
         *runStrat = base;
         return runFrames - framesToBase;
     }
-    coverFrames = g_Fielders[coveringFielder].numFramesToGetToAutoLocation;
-    if (runFrames < coverFrames + 5) {
+    if (runFrames < g_Fielders[coveringFielder].numFramesToGetToAutoLocation + 5) {
         *throwStrat = -1;
         *runStrat = base;
         return runFrames - framesToBase;
     }
-    if (totalFrames < coverFrames) {
+    if (totalFrames < g_Fielders[coveringFielder].numFramesToGetToAutoLocation) {
         *throwStrat = base + 10;
         *runStrat = -1;
         return g_Fielders[coveringFielder].numFramesToGetToAutoLocation - framesToBase;
