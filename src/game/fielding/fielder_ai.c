@@ -2900,38 +2900,11 @@ void fn_3_A3B30(void) {
 // .text:0x000A384C size:0x2E4 mapped:0x806E28E0
 void fn_3_A384C(void) {
     InMemFielder* fielder;
-    f32 dx;
-    f32 dz;
-    f32 dist;
-    f32 speed;
     int frames;
-    f32 sqx;
 
     if ((hexBaserunnerTracker & 0x11) != 0 && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 4) {
         fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-        speed = fielder->modifiedThrowingArm / 200.0f;
-        dx = base_MoundCoordinates[2].x - fielder->pos.x;
-        dz = base_MoundCoordinates[2].z - fielder->pos.z;
-        sqx = dx * dx;
-        dz = dz * dz;
-        dist = dolsqrtf2(dz + sqx);
-        if (0.0f == speed) {
-            speed = 1.0f;
-        }
-        if (dist > 60.0f) {
-            frames = 1.15f * dist / speed;
-        } else if (dist > 30.0f) {
-            frames = dist / speed;
-        } else {
-            frames = 0.8f * dist / speed;
-        }
-        if (dist > 80.0f) {
-            frames *= 1.3f;
-            frames += 0x1e;
-        } else if (dist > 70.0f) {
-            frames *= 1.15f;
-            frames += 0x1e;
-        }
+        frames = throwFramesToPoint(fielder, base_MoundCoordinates[2].x, base_MoundCoordinates[2].z);
         if (frames + 0x32 < g_Runners[0].framesToNextBase) {
             enoughTimeToGetLeadRunnerAt2B = 1;
         }
