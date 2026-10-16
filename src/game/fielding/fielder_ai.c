@@ -571,8 +571,10 @@ void setCutoffThrowTargetLocation(f32* targetX, f32* targetZ) {
         stepX = stepX / len;
         stepZ = stepZ / len;
         jog = 0.9f * cutoff->joggingSpeed;
-        *targetX = stepX * jog * (frames - 10) + cutoff->pos.x;
-        *targetZ = stepZ * jog * (frames - 10) + cutoff->pos.z;
+        stepX *= jog;
+        stepZ *= jog;
+        *targetX = stepX * (frames - 10) + cutoff->pos.x;
+        *targetZ = stepZ * (frames - 10) + cutoff->pos.z;
     }
     g_Ball.fielderBeingThrownTo = g_FieldingLogic.cutoffFielderIndex;
 }
