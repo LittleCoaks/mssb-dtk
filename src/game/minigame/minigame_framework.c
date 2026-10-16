@@ -2322,7 +2322,7 @@ void minigameStartSwitcher(void) {
         challenge_setTransitionScreenCharacterPortrait(7, 0);
         g_Minigame.minigameInactiveInd = 0;
         g_Minigame._19A7 = lbl_3_data_21270[g_Minigame.GameMode_MiniGame];
-        g_Minigame.grandPrixFinalInd = 0;
+        g_Minigame.grandPrixFinalInd = FALSE;
         hugeAnimStruct[0x307E] = 1;
         hugeAnimStruct[0x2D8E] = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
@@ -3739,8 +3739,8 @@ void minigames_0x26(void) {
 void minigames_0x27(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
-        g_Minigame.grandPrixFinalInd = 1;
         g_Minigame.grandPrixFinalHumanCount = g_Minigame.humanPlayerCount;
+        g_Minigame.grandPrixFinalInd = TRUE;
         animRelated[0xB8] = 0;
         if (g_Minigame.humanPlayerCount == 1) {
             minigameGrandPrixCheckWin();
@@ -3784,7 +3784,7 @@ void minigames_0x27(void) {
 
 void minigameGrandPrixCheckWin(void) {
     if (g_Minigame.playerSlots.rank[g_Minigame.soloPlayerSlot] == 1) {
-        g_Minigame.grandPrixWonInd = 1;
+        g_Minigame.grandPrixWonInd = TRUE;
     }
 }
 
