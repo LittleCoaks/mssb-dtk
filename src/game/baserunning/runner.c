@@ -22,7 +22,7 @@ extern s16 lbl_3_data_4B40[];
 extern s16 lbl_3_data_1C80[];
 extern s16 chemThresholds[4];
 extern int calculateChemistry(int teamBatting, int charIdA, int charIdB);
-extern int fn_3_A6ABC(f32 x, f32 z);
+extern int estimatedThrowFramesFromBallHolder(f32 x, f32 z);
 extern f32 ccs_gameplayConsts[];
 extern f32 lbl_3_data_4C44[];
 extern s16 lbl_3_data_4C54[];
@@ -2437,8 +2437,8 @@ int runnerAI_2(int runnerIdx) {
             return result;
         }
     }
-    nextFrames = fn_3_A6ABC(base_MoundCoordinates[nextBase].x, base_MoundCoordinates[nextBase].z);
-    prevFrames = fn_3_A6ABC(base_MoundCoordinates[currBase].x, base_MoundCoordinates[currBase].z);
+    nextFrames = estimatedThrowFramesFromBallHolder(base_MoundCoordinates[nextBase].x, base_MoundCoordinates[nextBase].z);
+    prevFrames = estimatedThrowFramesFromBallHolder(base_MoundCoordinates[currBase].x, base_MoundCoordinates[currBase].z);
     if ((int)g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.awayTeamBattingInd_battingTeam] >= 3) {
         nextFrames -= 30;
     } else {

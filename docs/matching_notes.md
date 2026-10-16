@@ -1205,7 +1205,7 @@ First seen: `game/game/fielding/fielder_ai` (2026-09).
 After switching to literals, MWCC emitted `fmuls f0, fConst, fX` (and loaded the constant before
 the int->double bias) for `frames = (int)(frames * 1.3f) + 0x1e;` and `speed = speed * 1.3f;`,
 where the target has `fmuls f0, fX, fConst`. Compound assignment reproduces the target exactly:
-`frames *= 1.3f; frames += 0x1e;` (maybeUnused_SetThrowSpeedType2 93.78% -> 100%; 28 sites, none
+`frames *= 1.3f; frames += 0x1e;` (setThrowSpeedType2 93.78% -> 100%; 28 sites, none
 regressed) and `speed *= 1.3f;` in initializeThrowAngle_Speed_Length. `(int)(1.3f * frames)` and
 explicit casts compile identically to the original and do not help.
 
@@ -3352,18 +3352,18 @@ by a score change in at least one function.
 - **A function with no `bl` to it anywhere in the target is inlined somewhere.** List them with a
   grep over `build/GYQE01/*/asm` (no `bl name`, no `.4byte name`), then find the caller whose
   body contains the callee's code and call the real function instead of a hand-expanded copy.
-  fielder_ai had 28 such functions; calling them fixed fn_3_A89D4 (maybeUnused_SetThrowSpeedType2),
+  fielder_ai had 28 such functions; calling them fixed fn_3_A89D4 (setThrowSpeedType2),
   fieldingAIPlayStrategy (fn_3_A53DC), autoMovement10_HasBall (fielderChasingAI, fn_3_A6D48, which
-  also removed a `goto`), fielderAIChaseRunner/fielderAIMakePlay (fn_3_A4158) and let two
+  also removed a `goto`), fielderAIChaseRunner/fielderAIMakePlay (chaseRunnerWithBall) and let two
   hand-written `static inline` duplicates (fn_3_A2FD8/fn_3_A295C) be deleted.
 - **If the plain call stays a `bl`, the callee is over MWCC's auto-inline size limit.** Making the
   callee smaller with its own inline helpers brought it under the limit: fn_3_AAC84 inlined into
   makeThrowVariables once its throw-frame code went through a `static inline` helper, and
-  maybeUnused_SetThrowSpeedType2 inlined into fn_3_A89D4 the same way. An explicit `inline` on the
+  setThrowSpeedType2 inlined into fn_3_A89D4 the same way. An explicit `inline` on the
   callee also inlines it, but then MWCC no longer emits the out-of-line copy; a non-inline wrapper
   around a `static inline` body emits it with different code.
 - **Shared arithmetic is often a real function that gets inlined.** The fielder_ai throw-time
-  estimate is `fn_3_A6ABC(x, z)`; calling it (after the covering fielder is read) matched
+  estimate is `estimatedThrowFramesFromBallHolder(x, z)`; calling it (after the covering fielder is read) matched
   howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase 97.8 -> 99.97. Where it is placed
   matters: before the covering-fielder read it scored 93.
 - **Walking table pointers in a loop stop an inlined callee from sharing the loop's induction

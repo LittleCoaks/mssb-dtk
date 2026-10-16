@@ -617,7 +617,7 @@ void fn_3_AAC84(f32* outX, f32* outZ) {
 }
 
 // .text:0x000AABF8 size:0x8C mapped:0x806E9C8C
-BOOL fn_3_AABF8(void) {
+BOOL isPitcherCutoffPossible(void) {
     int fielderIdx = g_FieldingLogic.fielderAssignedLocationIndex[4];
 
     if (fielderIdx == -1) {
@@ -1221,11 +1221,11 @@ void fn_3_A89D4(void) {
         }
         return;
     }
-    maybeUnused_SetThrowSpeedType2(dist);
+    setThrowSpeedType2(dist);
 }
 
 // .text:0x000A85C8 size:0x40C mapped:0x806E765C
-void maybeUnused_SetThrowSpeedType2(f32 dist) {
+void setThrowSpeedType2(f32 dist) {
     int i;
     int runnersOnField;
     int outBase;
@@ -1893,7 +1893,7 @@ void fn_3_A6D48(void) {
 }
 
 // .text:0x000A6ABC size:0x28C mapped:0x806E5B50
-int fn_3_A6ABC(f32 x, f32 z) {
+int estimatedThrowFramesFromBallHolder(f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[g_Ball.fielderWBallIndex];
     f32 speed;
     f32 divisor;
@@ -1992,7 +1992,7 @@ int howManyFramesTheRunnerIsOutOfReach(int runnerIndex, BOOL forwards, int* thro
     baseX = base_MoundCoordinates[base].x;
     baseZ = base_MoundCoordinates[base].z;
     coveringFielder = g_FieldingLogic.fielderAssignedLocationIndex[base];
-    frames = fn_3_A6ABC(baseX, baseZ);
+    frames = estimatedThrowFramesFromBallHolder(baseX, baseZ);
     ballDist = g_Ball.ballDistanceFromBase[base];
     totalFrames = fielder->throwWindupEstimate + frames;
     if (ballDist > 60.0f && ballDist < 70.0f && (base == 0 || base == 3)) {
@@ -2227,7 +2227,7 @@ void runnerTimeToCoverBase(int runnerIndex) {
     baseX = base_MoundCoordinates[base].x;
     baseZ = base_MoundCoordinates[base].z;
     coveringFielder = g_FieldingLogic.fielderAssignedLocationIndex[base];
-    frames = fn_3_A6ABC(baseX, baseZ);
+    frames = estimatedThrowFramesFromBallHolder(baseX, baseZ);
     totalFrames = fielder->throwWindupEstimate + frames;
     totalFrames = totalFrames + lbl_3_data_1C40;
     ballDist = g_Ball.ballDistanceFromBase[base];
@@ -2284,7 +2284,7 @@ void throwTimeToBase(int baseCounter) {
     baseX = base_MoundCoordinates[base].x;
     baseZ = base_MoundCoordinates[base].z;
     coveringFielder = g_FieldingLogic.fielderAssignedLocationIndex[base];
-    frames = fn_3_A6ABC(baseX, baseZ);
+    frames = estimatedThrowFramesFromBallHolder(baseX, baseZ);
     totalFrames = frames + 0x14;
     totalFrames = totalFrames + fielder->throwWindupEstimate;
     totalFrames = totalFrames + lbl_3_data_1C40;
@@ -2420,7 +2420,7 @@ int fielderAIMakePlay(int targetRunner) {
             }
         }
         if (g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
-            fn_3_A4158(targetRunner);
+            chaseRunnerWithBall(targetRunner);
         }
     } else {
         g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
@@ -2538,7 +2538,7 @@ void fn_3_A41E8(int base) {
 }
 
 // .text:0x000A4158 size:0x90 mapped:0x806E31EC
-void fn_3_A4158(int runnerIndex) {
+void chaseRunnerWithBall(int runnerIndex) {
     InMemRunnerType* runner = &g_Runners[runnerIndex];
 
     if (runner->runningDirectionCode == 2) {
@@ -2610,7 +2610,7 @@ void fielderAIChaseRunner(void) {
     if (g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
         s16 base;
 
-        fn_3_A4158(g_FieldingLogic.runnerChasingAfter);
+        chaseRunnerWithBall(g_FieldingLogic.runnerChasingAfter);
         base = g_Runners[g_FieldingLogic.runnerChasingAfter].baseStandingOn;
         if (base >= 0) {
             if (fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f) {
