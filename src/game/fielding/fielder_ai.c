@@ -108,6 +108,18 @@ static inline int throwFramesToPoint(InMemFielder* thrower, f32 x, f32 z) {
     return throwFramesForDistance(dist, speed);
 }
 
+static inline void setThrowStrategy(int runner, int throwStrat, int frames, int framesToBase) {
+    throwStratToMakePlay[runner] = throwStrat;
+    runningStratToMakePlay[runner] = -1;
+    framesRunnerIsOutOfReach[runner] = frames - framesToBase;
+}
+
+static inline void setRunStrategy(int runner, int runStrat, int frames, int framesToBase) {
+    runningStratToMakePlay[runner] = runStrat;
+    throwStratToMakePlay[runner] = -1;
+    framesRunnerIsOutOfReach[runner] = frames - framesToBase;
+}
+
 static inline int fielderChemistry(int a, int b) {
     return calculateChemistry(g_GameLogic.teamFielding, g_Fielders[a].CharID, g_Fielders[b].CharID);
 }
@@ -2224,21 +2236,13 @@ void runnerTimeToCoverBase(int runnerIndex) {
         g_Fielders[coveringFielder].lockedOutInd != 0 ||
         ((coverFrames = g_Fielders[coveringFielder].numFramesToGetToAutoLocation) < 0 &&
          g_FieldingLogic.baseCoveredInd[base] == 0)) {
-        runningStratToMakePlay[runnerIndex] = base;
-        throwStratToMakePlay[runnerIndex] = -1;
-        framesRunnerIsOutOfReach[runnerIndex] = runFrames - framesToBase;
+        setRunStrategy(runnerIndex, base, runFrames, framesToBase);
     } else if (runFrames < coverFrames + 5) {
-        runningStratToMakePlay[runnerIndex] = base;
-        throwStratToMakePlay[runnerIndex] = -1;
-        framesRunnerIsOutOfReach[runnerIndex] = runFrames - framesToBase;
+        setRunStrategy(runnerIndex, base, runFrames, framesToBase);
     } else if (totalFrames + 5 < coverFrames) {
-        throwStratToMakePlay[runnerIndex] = base + 10;
-        runningStratToMakePlay[runnerIndex] = -1;
-        framesRunnerIsOutOfReach[runnerIndex] = coverFrames - framesToBase;
+        setThrowStrategy(runnerIndex, base + 10, coverFrames, framesToBase);
     } else {
-        throwStratToMakePlay[runnerIndex] = base;
-        runningStratToMakePlay[runnerIndex] = -1;
-        framesRunnerIsOutOfReach[runnerIndex] = totalFrames - framesToBase;
+        setThrowStrategy(runnerIndex, base, totalFrames, framesToBase);
     }
 }
 
@@ -2255,10 +2259,7 @@ void fn_3_A53DC(int runnerIdx) {
         frames = throwFramesToPoint(fielder, base_MoundCoordinates[0].x, base_MoundCoordinates[0].z);
         frames = fielder->throwWindupEstimate + frames;
         frames = frames + lbl_3_data_1C40;
-        frames = frames - runner->framesToNextBase;
-        throwStratToMakePlay[runnerIdx] = 0;
-        runningStratToMakePlay[runnerIdx] = -1;
-        framesRunnerIsOutOfReach[runnerIdx] = frames;
+        setThrowStrategy(runnerIdx, 0, frames, runner->framesToNextBase);
     }
 }
 
@@ -2296,22 +2297,14 @@ void throwTimeToBase(int baseCounter) {
         ((coverFrames = g_Fielders[coveringFielder].numFramesToGetToAutoLocation) < 0 &&
          g_FieldingLogic.baseCoveredInd[base] == 0) ||
         g_Ball.framesSinceHit < 0x46) {
-        runningStratToMakePlay[baseCounter] = base;
-        throwStratToMakePlay[baseCounter] = -1;
-        framesRunnerIsOutOfReach[baseCounter] = runFrames - framesToBase;
+        setRunStrategy(baseCounter, base, runFrames, framesToBase);
     } else if (runFrames < coverFrames + 5) {
-        runningStratToMakePlay[baseCounter] = base;
-        throwStratToMakePlay[baseCounter] = -1;
-        framesRunnerIsOutOfReach[baseCounter] = runFrames - framesToBase;
+        setRunStrategy(baseCounter, base, runFrames, framesToBase);
     } else if (totalFrames < coverFrames ||
                (coverFrames < 0 && g_Fielders[coveringFielder].lockoutDuration <= g_Ball.framesSinceHit)) {
-        throwStratToMakePlay[baseCounter] = base + 10;
-        runningStratToMakePlay[baseCounter] = -1;
-        framesRunnerIsOutOfReach[baseCounter] = coverFrames - framesToBase;
+        setThrowStrategy(baseCounter, base + 10, coverFrames, framesToBase);
     } else {
-        throwStratToMakePlay[baseCounter] = base;
-        runningStratToMakePlay[baseCounter] = -1;
-        framesRunnerIsOutOfReach[baseCounter] = totalFrames - framesToBase;
+        setThrowStrategy(baseCounter, base, totalFrames, framesToBase);
     }
 }
 
