@@ -3396,3 +3396,20 @@ functions. These lessons are not specific to one file:
   gets its own address register,** and every offset-0 access and struct copy of that element then
   goes through it; pointer casts on call arguments have no effect at all (`rep_00B0` `fn_1_4A24`,
   diagnostic only).
+- **When the target has a function both standalone and inlined, write the real function and call
+  it;** MWCC inlines it into the callers by itself. A `static inline` copy plus a wrapper for the
+  standalone symbol changes the standalone function's registers (`rep_0610` `fn_1_D300`,
+  `fn_1_126CC`; earlier `rep_7730` `fn_1_21180`).
+- **A float literal loaded as `addi rX, lit@l; lfs 0(rX)` instead of `lfs lit@l(rX)` came in
+  through an inline function's parameter** (`rep_0610` `fn_1_EA20` -> `dbgSetFrame`).
+- **A one-trip loop (`for (i = 0; i < 1; i++)`) explains constant `[0]` indexing combined with
+  induction pointers set up before the "loop"** (`rep_0610` `fn_1_17B5C`: per-player code with one
+  player).
+- **`(T *)((u8 *)p + off)` is CSE'd across calls; `&p->bytes[off]` is not** (`rep_0610`
+  `fn_1_121D4`).
+- **Splitting `v = (f32)x / 64.0f;` into `v = (f32)x; v /= 64.0f;` moves the constant load after
+  the int-to-float conversion** (`rep_7730` `fn_1_24A8C`, 92.7 -> 100).
+- **Drafts can be wrong in ways that still score 90%+.** `rep_0610` `fn_1_DF14` processed one
+  element too many (a do-while where the target's `while (k-- != 0)` skips k = 5), and `fn_1_12F8C`
+  wrote four flags to the wrong struct. Check loop bounds and store targets before treating a
+  90-95% function as a register problem.

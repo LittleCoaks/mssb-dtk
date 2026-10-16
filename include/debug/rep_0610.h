@@ -240,7 +240,7 @@ typedef struct DbgBuf30C0 {
 typedef struct DbgBuf68FC {
     /*0x00*/ u8 pad0[0x10];
     /*0x10*/ Mtx mtx10;
-    /*0x40*/ u8 f40[4];
+    /*0x40*/ E(u8, CHAR_ID) f40[4]; // character per player slot
 } DbgBuf68FC; // size 0x44
 
 typedef struct DbgBuf67E0 {
