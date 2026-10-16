@@ -473,7 +473,7 @@ void fn_1_25F98(void) {
         case 0:
             if (row == *((u8 *)item + 0x22)) {
                 u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 2) {
+                if (f & INPUT_BUTTON_RIGHT) {
                     removeGraphicsElementFromScene(*(void **)((u8 *)item + 0x14));
                     *((u8 *)item + 0x21) += 1;
                     if (*((u8 *)item + 0x21) == *(u16 *)((u8 *)item + 0x18)) {
@@ -482,7 +482,7 @@ void fn_1_25F98(void) {
                     *((u8 *)item + 0x24) = 0;
                     *(u16 *)((u8 *)lbl_1_data_10344 + 2) = *((u8 *)item + 0x21);
                     addGraphicsElementToScene(*(DrawingSceneStruct **)((u8 *)item + 0x14), (UIRecordDescriptor *)lbl_1_data_10344);
-                } else if (f & 1) {
+                } else if (f & INPUT_BUTTON_LEFT) {
                     removeGraphicsElementFromScene(*(void **)((u8 *)item + 0x14));
                     if (*((u8 *)item + 0x21) == 0) {
                         *((u8 *)item + 0x21) = (u8)*(u16 *)((u8 *)item + 0x18);
@@ -514,11 +514,11 @@ void fn_1_25F98(void) {
                 }
                 {
                     u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                    if (f & 2) {
+                    if (f & INPUT_BUTTON_RIGHT) {
                         if (*((u8 *)item + 0x23)) {
                             GFX_OBJ(item)[0x68] = 1;
                         }
-                    } else if (f & 1) {
+                    } else if (f & INPUT_BUTTON_LEFT) {
                         if (*((u8 *)item + 0x23)) {
                             GFX_OBJ(item)[0x68] = 4;
                         }
@@ -529,9 +529,9 @@ void fn_1_25F98(void) {
         case 2: {
             if (row == *((u8 *)item + 0x22)) {
                 u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 2) {
+                if (f & INPUT_BUTTON_RIGHT) {
                     *((u8 *)item + 0x24) += 1;
-                } else if (f & 1) {
+                } else if (f & INPUT_BUTTON_LEFT) {
                     *((u8 *)item + 0x24) -= 1;
                 }
             }
@@ -544,9 +544,9 @@ void fn_1_25F98(void) {
                 u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 u8 *p;
 
-                if (f & 2) {
+                if (f & INPUT_BUTTON_RIGHT) {
                     info.textureIndex += 1;
-                } else if (f & 1) {
+                } else if (f & INPUT_BUTTON_LEFT) {
                     info.textureIndex -= 1;
                 }
 
@@ -560,13 +560,13 @@ void fn_1_25F98(void) {
         case 4:
             if (row == *((u8 *)item + 0x22)) {
                 u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 0x800) {
+                if (f & INPUT_BUTTON_Y) {
                     *(s16 *)((u8 *)item + 0x1a) = 0;
-                } else if (f & 0x400) {
+                } else if (f & INPUT_BUTTON_X) {
                     *(s16 *)((u8 *)item + 0x1a) = 0x140;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(s16 *)((u8 *)item + 0x1a) += 8;
-                } else if (f & 1) {
+                } else if (f & INPUT_BUTTON_LEFT) {
                     *(s16 *)((u8 *)item + 0x1a) -= 8;
                 }
                 *(f32 *)((u8 *)lbl_1_data_10344 + 4) = (f32)*(s16 *)((u8 *)item + 0x1a);
@@ -576,13 +576,13 @@ void fn_1_25F98(void) {
         case 5:
             if (row == *((u8 *)item + 0x22)) {
                 u16 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 0x800) {
+                if (f & INPUT_BUTTON_Y) {
                     *(s16 *)((u8 *)item + 0x1c) = 0;
-                } else if (f & 0x400) {
+                } else if (f & INPUT_BUTTON_X) {
                     *(s16 *)((u8 *)item + 0x1c) = 0xe0;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(s16 *)((u8 *)item + 0x1c) += 8;
-                } else if (f & 1) {
+                } else if (f & INPUT_BUTTON_LEFT) {
                     *(s16 *)((u8 *)item + 0x1c) -= 8;
                 }
                 *(f32 *)((u8 *)lbl_1_data_10344 + 8) = (f32)*(s16 *)((u8 *)item + 0x1c);
@@ -828,10 +828,10 @@ void fn_1_25064(void) {
         case 0:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *((u8 *)item + 0x2b) -= 1;
                     updateChainParams();
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *((u8 *)item + 0x2b) += 1;
                     updateChainParams();
                 }
@@ -840,9 +840,9 @@ void fn_1_25064(void) {
         case 1:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *((u8 *)item + 0x2a) -= 1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *((u8 *)item + 0x2a) += 1;
                 }
                 if (*((u8 *)item + 0x2a) == 0) {
@@ -853,9 +853,9 @@ void fn_1_25064(void) {
         case 2:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x18) -= step1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x18) += step1;
                 }
             }
@@ -863,9 +863,9 @@ void fn_1_25064(void) {
         case 3:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x1c) -= step1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x1c) += step1;
                 }
             }
@@ -873,9 +873,9 @@ void fn_1_25064(void) {
         case 4:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x1a) -= step2;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x1a) += step2;
                 }
             }
@@ -883,9 +883,9 @@ void fn_1_25064(void) {
         case 5:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x24) -= step1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x24) += step1;
                 }
             }
@@ -893,9 +893,9 @@ void fn_1_25064(void) {
         case 6:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x22) -= 1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x22) += 1;
                 }
             }
@@ -903,9 +903,9 @@ void fn_1_25064(void) {
         case 7:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x20) -= step2;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x20) += step2;
                 }
             }
@@ -913,9 +913,9 @@ void fn_1_25064(void) {
         case 8:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x26) -= step2;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x26) += step2;
                 }
             }
@@ -923,9 +923,9 @@ void fn_1_25064(void) {
         case 9:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x1e) -= step1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x1e) += step1;
                 }
             }
@@ -933,9 +933,9 @@ void fn_1_25064(void) {
         case 10:
             if (row == *((u8 *)item + 0x2c)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(u16 *)((u8 *)item + 0x28) -= step2;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(u16 *)((u8 *)item + 0x28) += step2;
                 }
             }
@@ -1127,7 +1127,8 @@ void fn_1_24A8C(void) {
         *(u32 *)(lbl_1_bss_45868 + 0x20) = 1;
     }
 
-    value24 = (f32)*(u16 *)((u8 *)item + 0x24) * (1.0f / 64.0f);
+    value24 = (f32)*(u16 *)((u8 *)item + 0x24);
+    value24 /= 64.0f;
     fn_80038CD0(*((u8 *)item + 0x2b), lbl_1_bss_45868, lbl_1_bss_43F68, 10.0f, value24);
 }
 
@@ -1291,12 +1292,12 @@ void fn_1_23B54(void) {
         case 0:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 1) {
+                if (flags & INPUT_BUTTON_LEFT) {
                     if (*((u8 *)item + 0x27) == 2) {
                         *((u8 *)item + 0x27) = 0x70;
                     }
                     *((u8 *)item + 0x27) -= 1;
-                } else if (flags & 2) {
+                } else if (flags & INPUT_BUTTON_RIGHT) {
                     if (*((u8 *)item + 0x27) == 0x70) {
                         *((u8 *)item + 0x27) = 2;
                     }
@@ -1307,12 +1308,12 @@ void fn_1_23B54(void) {
         case 1:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 1) {
+                if (flags & INPUT_BUTTON_LEFT) {
                     if (*((u8 *)item + 0x28) == 2) {
                         *((u8 *)item + 0x28) = 0xa0;
                     }
                     *((u8 *)item + 0x28) -= 1;
-                } else if (flags & 2) {
+                } else if (flags & INPUT_BUTTON_RIGHT) {
                     if (*((u8 *)item + 0x28) == 0xa0) {
                         *((u8 *)item + 0x28) = 2;
                     }
@@ -1331,11 +1332,11 @@ void fn_1_23B54(void) {
         case 3:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 1) {
+                if (flags & INPUT_BUTTON_LEFT) {
                     if (*(f32 *)((u8 *)item + 0x14) > 1.0f) {
                         *(f32 *)((u8 *)item + 0x14) -= 1.0f;
                     }
-                } else if (flags & 2) {
+                } else if (flags & INPUT_BUTTON_RIGHT) {
                     if (*(f32 *)((u8 *)item + 0x14) < 512.0f) {
                         *(f32 *)((u8 *)item + 0x14) += 1.0f;
                     }
@@ -1345,11 +1346,11 @@ void fn_1_23B54(void) {
         case 4:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 1) {
+                if (flags & INPUT_BUTTON_LEFT) {
                     if (*(f32 *)((u8 *)item + 0x18) > 1.0f) {
                         *(f32 *)((u8 *)item + 0x18) -= 1.0f;
                     }
-                } else if (flags & 2) {
+                } else if (flags & INPUT_BUTTON_RIGHT) {
                     if (*(f32 *)((u8 *)item + 0x18) < 512.0f) {
                         *(f32 *)((u8 *)item + 0x18) += 1.0f;
                     }
@@ -1367,11 +1368,11 @@ void fn_1_23B54(void) {
         case 6:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 1) {
+                if (flags & INPUT_BUTTON_LEFT) {
                     if (*(f32 *)((u8 *)item + 0x1c) > 0.0f) {
                         *(f32 *)((u8 *)item + 0x1c) -= 0.001f;
                     }
-                } else if (flags & 2) {
+                } else if (flags & INPUT_BUTTON_RIGHT) {
                     if (*(f32 *)((u8 *)item + 0x1c) < 1.0f) {
                         *(f32 *)((u8 *)item + 0x1c) += 0.001f;
                     }
@@ -1381,11 +1382,11 @@ void fn_1_23B54(void) {
         case 7:
             if (row == *((u8 *)item + 0x26)) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (flags & 1) {
+                if (flags & INPUT_BUTTON_LEFT) {
                     if (*(f32 *)((u8 *)item + 0x20) > 0.0f) {
                         *(f32 *)((u8 *)item + 0x20) -= 0.001f;
                     }
-                } else if (flags & 2) {
+                } else if (flags & INPUT_BUTTON_RIGHT) {
                     if (*(f32 *)((u8 *)item + 0x20) < 1.0f) {
                         *(f32 *)((u8 *)item + 0x20) += 0.001f;
                     }
@@ -1397,19 +1398,19 @@ void fn_1_23B54(void) {
 
     flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
 
-    if (flags & 8) {
+    if (flags & INPUT_BUTTON_UP) {
         if (*((u8 *)item + 0x26) == 0) {
             *((u8 *)item + 0x26) = 8;
         }
         *((u8 *)item + 0x26) -= 1;
-    } else if (flags & 4) {
+    } else if (flags & INPUT_BUTTON_DOWN) {
         *((u8 *)item + 0x26) += 1;
         if (*((u8 *)item + 0x26) == 8) {
             *((u8 *)item + 0x26) = 0;
         }
     } else if (AtBat_ButtonInput1._02 & INPUT_BUTTON_B) {
         currentDrawingItem->func = fn_1_24778;
-    } else if (flags & 0x100) {
+    } else if (flags & INPUT_BUTTON_A) {
         s32 idx;
         s32 i;
 
@@ -1808,9 +1809,11 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
             s32 t = k++;
             f32 val = src[t];
             f32 prev = other[t];
+            s32 right = (j + 1) % m;
+            s32 left = (j + mMinus1) % m;
 
             dst[t] = coeffCenter * val
-                + coeffNeighbor * (src[(j + 1) % m + rowBase] + (src[(j + mMinus1) % m + rowBase]
+                + coeffNeighbor * (src[right + rowBase] + (src[left + rowBase]
                     + (src[j + m * ((i + n - 1) % n)] + src[j + m * ((i + 1) % n)])))
                 - prev;
             dst[t] *= lbl_1_data_104C4;
@@ -1861,9 +1864,9 @@ u8 fn_1_22874(void) {
         case 0:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *((u8 *)item + 0x20) -= 1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *((u8 *)item + 0x20) += 1;
                 }
                 if (*((u8 *)item + 0x20) == 0) {
@@ -1875,9 +1878,9 @@ u8 fn_1_22874(void) {
             old21 = *((u8 *)item + 0x21);
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *((u8 *)item + 0x21) = old21 - 1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *((u8 *)item + 0x21) = old21 + 1;
                 }
                 if (*((u8 *)item + 0x21) < 2) {
@@ -1888,9 +1891,9 @@ u8 fn_1_22874(void) {
         case 2:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x0) -= delta0;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x0) += delta0;
                 }
             }
@@ -1898,9 +1901,9 @@ u8 fn_1_22874(void) {
         case 3:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)((u8 *)item + 0x18) -= delta1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)((u8 *)item + 0x18) += delta1;
                 }
             }
@@ -1908,9 +1911,9 @@ u8 fn_1_22874(void) {
         case 4:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x8) -= delta1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x8) += delta1;
                 }
             }
@@ -1918,9 +1921,9 @@ u8 fn_1_22874(void) {
         case 5:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0xc) -= delta1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0xc) += delta1;
                 }
             }
@@ -1928,9 +1931,9 @@ u8 fn_1_22874(void) {
         case 6:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x10) -= delta1;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x10) += delta1;
                 }
             }
@@ -1938,9 +1941,9 @@ u8 fn_1_22874(void) {
         case 7:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x14) -= delta2;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)(lbl_1_bss_6FB8 + 0x14) += delta2;
                 }
             }
@@ -1948,9 +1951,9 @@ u8 fn_1_22874(void) {
         case 8:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     *(f32 *)((u8 *)item + 0x1c) -= (f32)discriminant;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     *(f32 *)((u8 *)item + 0x1c) += (f32)discriminant;
                 }
             }
@@ -1958,7 +1961,7 @@ u8 fn_1_22874(void) {
         case 9:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 3) {
+                if (f & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
                     *((u8 *)item + 0x22) = !*((u8 *)item + 0x22);
                 }
             }
@@ -1966,7 +1969,7 @@ u8 fn_1_22874(void) {
         case 10:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 3) {
+                if (f & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
                     *((u8 *)item + 0x23) = !*((u8 *)item + 0x23);
                 }
             }
@@ -1974,9 +1977,9 @@ u8 fn_1_22874(void) {
         case 11:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     lbl_1_data_104D0[0] -= 0.125;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     lbl_1_data_104D0[0] += 0.125;
                 }
             }
@@ -1984,9 +1987,9 @@ u8 fn_1_22874(void) {
         case 12:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     lbl_1_data_104D0[1] -= 0.125;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     lbl_1_data_104D0[1] += 0.125;
                 }
             }
@@ -1994,9 +1997,9 @@ u8 fn_1_22874(void) {
         case 13:
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
-                if (f & 1) {
+                if (f & INPUT_BUTTON_LEFT) {
                     lbl_1_data_104D0[2] -= 0.125;
-                } else if (f & 2) {
+                } else if (f & INPUT_BUTTON_RIGHT) {
                     lbl_1_data_104D0[2] += 0.125;
                 }
             }
@@ -2006,12 +2009,12 @@ u8 fn_1_22874(void) {
 
     f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
 
-    if (f & 8) {
+    if (f & INPUT_BUTTON_UP) {
         if (*((u8 *)item + 0x25) == 0) {
             *((u8 *)item + 0x25) = 14;
         }
         *((u8 *)item + 0x25) -= 1;
-    } else if (f & 4) {
+    } else if (f & INPUT_BUTTON_DOWN) {
         *((u8 *)item + 0x25) += 1;
         if (*((u8 *)item + 0x25) == 14) {
             *((u8 *)item + 0x25) = 0;
