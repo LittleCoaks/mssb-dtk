@@ -981,7 +981,7 @@ void minigameSelectSwitcher(void) {
         SetGameStatus(GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT);
         break;
     case TRANSITION_CALCULATION_TYPE_5:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[lbl_80366158[0x27]].newButtonInput)) {
+        switch (exitMenu_main(g_Controls[lbl_80366158[0x27]].newButtonInput)) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             g_GameLogic._125++;
@@ -1145,7 +1145,7 @@ void toyFieldCharSelectSwitcher(void) {
     case TRANSITION_CALCULATION_TYPE_3:
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
             if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 20) {
-                switch (((int (*)(u16))exitMenu_main)(g_Controls[lbl_80366158[0x27]].newButtonInput)) {
+                switch (exitMenu_main(g_Controls[lbl_80366158[0x27]].newButtonInput)) {
                 case 1:
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_4;
                     g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -2991,7 +2991,7 @@ void postMinigame(void) {
         pauseControl._1D9 = 2;
         break;
     case 8:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
+        switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 9;
@@ -3165,7 +3165,7 @@ void minigamePause(void) {
         SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
         break;
     case 8:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
+        switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 9;

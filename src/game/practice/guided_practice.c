@@ -652,7 +652,7 @@ void practiceLogicRelatedPause(void) {
         }
         break;
     case 12: {
-        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput);
+        int menuResult = exitMenu_main(g_Controls[pauseControl.port].newButtonInput);
         switch (menuResult) {
         case 1:
             if (g_Practice.progressNeedsSave != 0) {
@@ -876,7 +876,7 @@ void practicePauseRelated(void) {
         g_Practice.framesSincePracticeMenuDefaultTransition = 0;
         break;
     case 12: {
-        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput);
+        int menuResult = exitMenu_main(g_Controls[pauseControl.port].newButtonInput);
         switch (menuResult) {
         case 1:
             pauseControl.state = 0xD;

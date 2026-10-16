@@ -66,7 +66,7 @@ extern void matchTransitionFunction2(void);
 extern int loadRunnerActors(void);
 extern void challenge_setTransitionScreenCharacterPortrait(int, int);
 extern MatchEndFile CommonUIFiles_matchEnd[];
-extern int exitMenu(void);
+extern int exitMenu(u16 buttons);
 extern void set803c5f77(void);
 extern void fn_8004CC4C(int, int, int, int, int);
 extern void fn_8004CA48(int, int, int, int);
@@ -1964,14 +1964,14 @@ void fn_3_5B408(void) {
 }
 
 // .text:0x0005B380 size:0x88 mapped:0x8069A414
-int exitMenu_main(void) {
+int exitMenu_main(u16 buttons) {
     if (g_GameLogic.frame_exitMenuShowing < 0x7FFE) {
         g_GameLogic.frame_exitMenuShowing++;
     } else {
         g_GameLogic.frame_exitMenuShowing = 0x7FFF;
     }
     if (g_GameLogic.frame_exitMenuShowing > 0x14) {
-        int result = exitMenu();
+        int result = exitMenu(buttons);
         if (result == 1) {
             return 1;
         } else if (result == 2) {
@@ -2362,13 +2362,11 @@ void SetGameStatus(int status) {
 
 // .text:0x0005A6A0 size:0x34 mapped:0x80699734
 void configureTeamsForGame_Unused(int arg0, int arg1, int arg2, int arg3) {
-    int t = arg1 ^ arg0;
-
     g_GameLogic.homeTeamBattingInd_fieldingTeam = arg0;
     g_GameLogic.awayTeamBattingInd_battingTeam = arg0 ^ 1;
     g_GameLogic.homeTeamInd = arg1;
-    g_GameLogic.teamBatting = t;
-    g_GameLogic.teamFielding = t ^ 1;
+    g_GameLogic.teamBatting = g_GameLogic.homeTeamInd ^ g_GameLogic.homeTeamBattingInd_fieldingTeam;
+    g_GameLogic.teamFielding = g_GameLogic.teamBatting ^ 1;
     g_GameLogic._1C[0] = arg2;
     g_GameLogic._1C[1] = arg3;
 }
