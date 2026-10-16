@@ -1257,9 +1257,9 @@ void minigameCharSelectUpdate(void) {
     int port;
     int maxLevel;
     InputStruct* pad;
-    int i;
-    int j;
-    int k;
+    s32 i;
+    s32 j;
+    s32 k;
     int ready;
     BOOL changed;
     int remaining;
