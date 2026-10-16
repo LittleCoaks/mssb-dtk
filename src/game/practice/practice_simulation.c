@@ -103,7 +103,7 @@ void practiceSimulation(void) {
         freeFieldingPracticeControl();
         break;
     case SECONDARY_GAME_MODE_RETURN_TO_MENU:
-        g_GameLogic.framesOfExitingToMenu = TRUE;
+        fn_3_B3C64();
         break;
     }
 
@@ -370,11 +370,9 @@ void setTutorialState(int state) {
 }
 #pragma dont_inline reset
 
-#pragma dont_inline on
 void fn_3_B3C64(void) {
     g_GameLogic.framesOfExitingToMenu = TRUE;
 }
-#pragma dont_inline reset
 
 void practiceSetupRunnerStatus(void) {
     int i;
