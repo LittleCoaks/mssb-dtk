@@ -1419,8 +1419,8 @@ void minigameCharSelectUpdate(void) {
     } else if (g_Minigame.charSelectState == 1) {
         if (pad->newButtonInput & INPUT_BUTTON_A) {
             if ((s8)g_Minigame.extraOpponentCursor != 0) {
-                g_Minigame.charSelectState = 2;
                 g_Minigame.targetParticipantCount = g_Minigame.extraOpponentCursor + g_Minigame.joinedPlayerCount;
+                g_Minigame.charSelectState = 2;
             } else {
                 g_Minigame.charSelectState = 7;
             }
