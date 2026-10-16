@@ -1518,8 +1518,8 @@ void minigameCharSelectUpdate(void) {
                                 g_Minigame.selectSlots[i].loadedHandedness == g_Minigame.selectSlots[i].wantedHandedness && g_Minigame.selectSlots[i].charReadyInd != 0 &&
                                 g_Minigame.selectSlots[i].charReadyPrevInd != 0) {
                                 g_Minigame.charSelectState = 4;
-                                g_Minigame.selectSlots[i].confirmedInd = TRUE;
                                 g_Minigame.charSelectOpponentSlot = i;
+                                g_Minigame.selectSlots[i].confirmedInd = TRUE;
                                 g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
                                 addOrRemoveCharacterToTeam(i, g_Minigame.selectSlots[i].charID, TRUE);
                                 playPlayerSelectedSound(g_Minigame.selectSlots[i].charID);
