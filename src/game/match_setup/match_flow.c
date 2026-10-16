@@ -44,7 +44,7 @@
 extern u32 FrameCountOfEntireGame[5];
 extern u8 lbl_80366158[0x30];
 extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
-extern u8 highLevelSimulationFlag[2];
+extern u8 highLevelSimulationFlag[4];
 extern u8 hugeAnimStruct[0x3154];
 extern u8 animRelated[0x124];
 extern void* lbl_3_common_bss_1323C[];
@@ -337,13 +337,13 @@ void exhibitionGameTransitionCalculations(void) {
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
         g_GameLogic._125 = 1;
         changeScene(0xD, 6);
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
-        hugeAnimStruct[0x2D7C] = 0;
         animRelated[0x9A] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[2] = 0;
         highLevelSimulationFlag[3] = 0;
+        hugeAnimStruct[0x2D77] = 0;
+        hugeAnimStruct[0x2D7B] = 0;
+        hugeAnimStruct[0x2D7C] = 0;
         break;
     case 1:
         if (fn_3_59BCC(g_GameLogic.FrameCountOfCurrentAtBat_Copy) != 0) {
