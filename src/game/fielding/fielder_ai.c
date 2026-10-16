@@ -706,33 +706,36 @@ BOOL fn_3_AABF8(void) {
 void fn_3_AAA3C(int fielderIdx) {
     InMemFielder* fielder = &g_Fielders[fielderIdx];
 
-    if (g_FieldingLogic.xcc_Stored_0 >= 0 && g_FieldingLogic.locationThrownTo >= 0 &&
-        g_FieldingLogic.locationThrownTo <= 3 &&
-        (!(fielder->distanceToBases[g_FieldingLogic.locationThrownTo] > 10.0f) ||
-         g_FieldingLogic.fielderAssignedLocationIndex[6] >= 0)) {
-        if (g_FieldingLogic.locationThrownTo == g_FieldingLogic.xcc_Stored_0 &&
-            g_FieldingLogic.runnerChasingAfter_stored >= 0 && g_FieldingLogic.runnerChasingAfter_stored <= 3 &&
-            (g_FieldingLogic.fielderAssignedLocationIndex[6] ==
-                 g_Runners[g_FieldingLogic.runnerChasingAfter_stored].nextBase ||
-             g_FieldingLogic.fielderAssignedLocationIndex[6] ==
-                 g_Runners[g_FieldingLogic.runnerChasingAfter_stored].currentBase)) {
-            g_FieldingLogic.setThrowSpeedTypeTo9Ind = 1;
-        }
-        if (g_FieldingLogic.xcc_Stored_0 == 9 && g_FieldingLogic.runnerChasingAfter_stored >= 0 &&
-            g_FieldingLogic.runnerChasingAfter_stored <= 3 &&
-            g_Runners[g_FieldingLogic.runnerChasingAfter_stored].runnerOnFieldOrOutOrScored ==
-                RUNNER_STATUS_ON_FIELD &&
-            g_FieldingLogic.locationThrownTo ==
-                g_Runners[g_FieldingLogic.runnerChasingAfter_stored].baseRunningTowards) {
-            g_FieldingLogic.setThrowSpeedTypeTo9Ind = 1;
-        }
-        if (g_FieldingLogic.setThrowSpeedTypeTo9Ind != 0 && g_FieldingLogic.locationThrownTo >= 0 &&
-            g_FieldingLogic.locationThrownTo <= 3) {
-            f32 dx = base_MoundCoordinates[g_FieldingLogic.locationThrownTo].x - fielder->pos.x;
-            f32 dz = base_MoundCoordinates[g_FieldingLogic.locationThrownTo].z - fielder->pos.z;
-            if (calculateDiffInAngles(game_atan2(dx, dz), fielder->desiredMovementDirection) > 0x40) {
-                g_FieldingLogic.setThrowSpeedTypeTo9Ind = 0;
-            }
+    if (g_FieldingLogic.xcc_Stored_0 < 0 || g_FieldingLogic.locationThrownTo < 0 ||
+        g_FieldingLogic.locationThrownTo > 3) {
+        return;
+    }
+    if (fielder->distanceToBases[g_FieldingLogic.locationThrownTo] > 10.0f &&
+        g_FieldingLogic.fielderAssignedLocationIndex[6] < 0) {
+        return;
+    }
+    if (g_FieldingLogic.locationThrownTo == g_FieldingLogic.xcc_Stored_0 &&
+        g_FieldingLogic.runnerChasingAfter_stored >= 0 && g_FieldingLogic.runnerChasingAfter_stored <= 3 &&
+        (g_FieldingLogic.fielderAssignedLocationIndex[6] ==
+             g_Runners[g_FieldingLogic.runnerChasingAfter_stored].nextBase ||
+         g_FieldingLogic.fielderAssignedLocationIndex[6] ==
+             g_Runners[g_FieldingLogic.runnerChasingAfter_stored].currentBase)) {
+        g_FieldingLogic.setThrowSpeedTypeTo9Ind = 1;
+    }
+    if (g_FieldingLogic.xcc_Stored_0 == 9 && g_FieldingLogic.runnerChasingAfter_stored >= 0 &&
+        g_FieldingLogic.runnerChasingAfter_stored <= 3 &&
+        g_Runners[g_FieldingLogic.runnerChasingAfter_stored].runnerOnFieldOrOutOrScored ==
+            RUNNER_STATUS_ON_FIELD &&
+        g_FieldingLogic.locationThrownTo ==
+            g_Runners[g_FieldingLogic.runnerChasingAfter_stored].baseRunningTowards) {
+        g_FieldingLogic.setThrowSpeedTypeTo9Ind = 1;
+    }
+    if (g_FieldingLogic.setThrowSpeedTypeTo9Ind != 0 && g_FieldingLogic.locationThrownTo >= 0 &&
+        g_FieldingLogic.locationThrownTo <= 3) {
+        f32 dx = base_MoundCoordinates[g_FieldingLogic.locationThrownTo].x - fielder->pos.x;
+        f32 dz = base_MoundCoordinates[g_FieldingLogic.locationThrownTo].z - fielder->pos.z;
+        if (calculateDiffInAngles(game_atan2(dx, dz), fielder->desiredMovementDirection) > 0x40) {
+            g_FieldingLogic.setThrowSpeedTypeTo9Ind = 0;
         }
     }
 }
