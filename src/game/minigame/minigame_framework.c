@@ -2596,8 +2596,8 @@ void minigameEndSwitcher(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_5:
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
-            fn_8004CC4C(9, 0, ((u8*)&g_d_GameSettings)[g_Minigame.GameMode_MiniGame + 0x13] - 1, 0,
-                        ((u8*)&g_d_GameSettings)[g_Minigame.GameMode_MiniGame + 0x13] + 0x8C);
+            fn_8004CC4C(9, 0, (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame] - 1, 0,
+                        (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame] + 0x8C);
             insertGraphicDrawingFunction(fn_8004D0F0, 2);
             g_GameLogic.scoreBook_logoFadeDirectionLeft_Right = 0;
             callSfx(0x301);
