@@ -551,22 +551,11 @@ void matchTransitionPrepareNextAB(void) {
 void newPitch(void) {
     int diff;
 
-    setDefaultInMemBall();
-    setDefaultInMemPitcher();
-    setDefaultInMemBatter();
-    setDefaultInMemRunner();
-    setDefaultInMemFielder();
-    setDefaultAIValues();
-    Set_803cb848(1);
-    setPitcherStatsToInMemPitcher(g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][0][0]);
+    practiceNewBatter();
     g_Scores._9C = 0;
     g_Scores._9E = g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1];
     g_Scores._A2 = g_Scores._A0;
     diff = g_Scores.scores[0].total - g_Scores.scores[1].total;
-    g_FieldingLogic.playOverCounter = 0;
-    g_GameLogic.homeRunWordAnimationCompletedInd = 0;
-    g_UnkSimulation_31AC0._05 = 0;
-    g_UnkSimulation_31AC0._06 = 4;
     g_GameLogic._12F = 0;
     g_GameLogic.unused_always0 = 0;
     g_GameLogic.CountdownUntilFade = 999;
