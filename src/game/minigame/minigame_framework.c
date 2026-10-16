@@ -1772,20 +1772,16 @@ void minigameCharLoadQueueUpdate(void) {
         count = 0;
         for (i = 0; i < n; i++) {
             order[i].idx = -1;
-            if (g_Minigame.charLoadSlot != i) {
-                s8 c = g_Minigame.selectSlots[i].charID;
-
-                if (c != -1) {
-                    if (c == g_Minigame.selectSlots[i].loadedCharID && g_Minigame.selectSlots[i].loadedHandedness == g_Minigame.battingHandedness[i]) {
-                        continue;
-                    }
-                    g_Minigame.selectSlots[i].charReadyInd = FALSE;
-                    if (g_Minigame.charChangeFrames[i] >= 20 || g_Minigame.charSelectState == 4) {
-                        order[count].idx = i;
-                        order[count].val = g_Minigame.charChangeFrames[i];
-                        count++;
-                        g_Minigame.selectSlots[i].wantedHandedness = g_Minigame.battingHandedness[i];
-                    }
+            if (g_Minigame.charLoadSlot != i && g_Minigame.selectSlots[i].charID != CHAR_ID_NONE) {
+                if (g_Minigame.selectSlots[i].charID == g_Minigame.selectSlots[i].loadedCharID && g_Minigame.selectSlots[i].loadedHandedness == g_Minigame.battingHandedness[i]) {
+                    continue;
+                }
+                g_Minigame.selectSlots[i].charReadyInd = FALSE;
+                if (g_Minigame.charChangeFrames[i] >= 20 || g_Minigame.charSelectState == 4) {
+                    order[count].idx = i;
+                    order[count].val = g_Minigame.charChangeFrames[i];
+                    count++;
+                    g_Minigame.selectSlots[i].wantedHandedness = g_Minigame.battingHandedness[i];
                 }
             }
         }
