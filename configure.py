@@ -919,7 +919,7 @@ config.libs = [
             Object(Matching, "game/practice/player_control_transition.c"),
             Object(NonMatching, "game/practice/practice_simulation.c"),
             Object(NonMatching, "game/practice/practice_menu.c"),
-            Object(NonMatching, "game/practice/pitching_practice.c"),
+            Object(Matching, "game/practice/pitching_practice.c"),
             Object(Matching, "game/practice/baserunning_practice.c"),
             Object(Matching, "game/ball/foul_detection.c"),
             Object(Matching, "game/stadium/stadium_framework.c"),
