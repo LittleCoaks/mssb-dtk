@@ -825,67 +825,18 @@ void autoMovement10_HasBall(int fielderIndex) {
                 fielder->fielderMadeThrow = 0;
                 return;
             }
-            hexBaserunnerTracker = 0;
-            {
-                InMemRunnerType* runner;
-
-                originalBaseOfRunnerInThisBaseline[0] = -1;
-                originalBaseOfRunnerInThisBaseline[1] = -1;
-                originalBaseOfRunnerInThisBaseline[2] = -1;
-                originalBaseOfRunnerInThisBaseline[3] = -1;
-                runner = &g_Runners[3];
-                for (i = 3; i >= 0; runner--, i--) {
-                    if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                        hexBaserunnerTracker |= 1 << ((int)runner->fractionalBasesRan << 2);
-                        if (originalBaseOfRunnerInThisBaseline[runner->currentBase] < 0 ||
-                            g_Runners[originalBaseOfRunnerInThisBaseline[runner->currentBase]].baseStandingOn >= 0) {
-                            originalBaseOfRunnerInThisBaseline[runner->currentBase] = i;
-                        }
-                    }
-                }
-            }
+            fn_3_A6D48();
             if (g_FieldingLogic.locationThrownTo < 0) {
                 if (fielder->autoFielderInd != 0) {
                     fielderAIDecideWhatRunnerToTarget(fielderIndex);
                 } else if (g_FieldingLogic.bodyCheckResult == 0) {
                     fielderHasBall();
                     if (g_FieldingLogic.somethingForTryingTagOutTargetBase >= 0) {
-                        if (g_FieldingLogic.somethingForTryingTagOutTargetBase >= 0 &&
-                            g_FieldingLogic.somethingForTryingTagOutTargetBase <= 3 &&
-                            fielder->baseCurrentlyOn == g_FieldingLogic.somethingForTryingTagOutTargetBase) {
-                            g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
-                        } else {
-                            if (g_FieldingLogic.someBase == -1) {
-                                if (g_FieldingLogic.runnerChasingAfter >= 0 &&
-                                    g_Runners[g_FieldingLogic.runnerChasingAfter].runnerOnFieldOrOutOrScored !=
-                                        RUNNER_STATUS_ON_FIELD) {
-                                    g_FieldingLogic.runnerChasingAfter = -1;
-                                    g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
-                                    goto afterChase;
-                                }
-                                g_FieldingLogic.someBase = g_FieldingLogic.somethingForTryingTagOutTargetBase;
-                                setRunnerChasingAfter(fielderIndex);
-                            }
-                            if (g_FieldingLogic.somethingForTryingTagOutTargetBase >= 0 &&
-                                g_FieldingLogic.somethingForTryingTagOutTargetBase <= 3) {
-                                if (g_FieldingLogic.runnerChasingAfter == -1) {
-                                    setFielderAutoCoords(
-                                        g_Ball.fielderWBallIndex,
-                                        base_MoundCoordinates[g_FieldingLogic.somethingForTryingTagOutTargetBase].x,
-                                        base_MoundCoordinates[g_FieldingLogic.somethingForTryingTagOutTargetBase].z);
-                                } else {
-                                    setFielderAutoCoords(g_Ball.fielderWBallIndex,
-                                                         g_Runners[g_FieldingLogic.runnerChasingAfter].position.x,
-                                                         g_Runners[g_FieldingLogic.runnerChasingAfter].position.z);
-                                }
-                            }
-                            fielderAIChaseRunner();
-                        }
+                        fielderChasingAI(fielderIndex);
                     } else {
                         g_FieldingLogic.someBase = -1;
                     }
                 }
-            afterChase:
                 {
                     f32 vx = fielder->velocityX;
                     f32 vz = fielder->velocityZ;
@@ -935,15 +886,12 @@ void autoMovement10_HasBall(int fielderIndex) {
                         pitcherCutoffPossible = 1;
                     }
                     if (pitcherCutoffPossible) {
-                        f32 moundZ = base_MoundCoordinates[4].z;
-                        f32 moundX = base_MoundCoordinates[4].x;
-
-                        g_Ball.throwDestination.x = moundX;
-                        fielder->throwTarget.x = moundX;
+                        g_Ball.throwDestination.x = base_MoundCoordinates[4].x;
+                        fielder->throwTarget.x = g_Ball.throwDestination.x;
                         fielder->throwTarget.y = 0.0f;
                         g_Ball.throwDestination.y = 0.0f;
-                        g_Ball.throwDestination.z = moundZ;
-                        fielder->throwTarget.z = moundZ;
+                        g_Ball.throwDestination.z = base_MoundCoordinates[4].z;
+                        fielder->throwTarget.z = g_Ball.throwDestination.z;
                     } else {
                         g_FieldingLogic.locationThrownTo = -1;
                     }
