@@ -1786,7 +1786,6 @@ void tagOutValues(int fielderIndex) {
     f32 dz;
     f32 dist;
     f32 runDir;
-    f32 baseDist;
 
     g_FieldingLogic.tagAnimationType = 0;
     g_FieldingLogic.runnerBeingTargettedForOut = -1;
@@ -1795,18 +1794,15 @@ void tagOutValues(int fielderIndex) {
         if (fielder->baseCurrentlyOn >= 0) {
             base = fielder->baseCurrentlyOn;
         }
-        if (fielder->distanceToBases[0] <= 0.8f) {
-            base = 0;
-        } else if (fielder->distanceToBases[1] <= 0.8f) {
-            base = 1;
-        } else if (fielder->distanceToBases[2] <= 0.8f) {
-            base = 2;
-        } else if (fielder->distanceToBases[3] <= 0.8f) {
-            base = 3;
+        for (i = 0; i < 4; i++) {
+            if (fielder->distanceToBases[i] <= 0.8f) {
+                base = i;
+                break;
+            }
         }
         if (base >= 0) {
-            runner = &g_Runners[3];
             for (i = 3; i >= 0; i--) {
+                runner = &g_Runners[i];
                 if ((g_Pitcher.strikeOutOrWalk != 2 || runner->furthestBaseForcedToGoToOnWalk <= runner->currentBase) &&
                     runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
                     if (base == runner->baseStandingOn_Stored && runner->baseStandingOn < 0 &&
@@ -1857,12 +1853,11 @@ void tagOutValues(int fielderIndex) {
                         }
                     }
                 }
-                runner--;
             }
         }
         if (g_Ball.timeSinceBallPickedUp > 15) {
-            runner = &g_Runners[3];
             for (i = 3; i >= 0; i--) {
+                runner = &g_Runners[i];
                 if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
                     (fielder->locationResponsibleForCovering < 0 || runner->forceOutCd != FORCE_OUT_TYPE_FORCED_TO_ADVANCE ||
                      runner->nextBase != base)) {
@@ -1871,7 +1866,12 @@ void tagOutValues(int fielderIndex) {
                     dz = fielder->pos.z - runner->position.z;
                     if (calculateDiffInAngles(game_atan2(dx, dz), runDir) < 0x100 && runner->baseStandingOn < 0) {
                         if (runner->baseStandingOn < 0 || runner->tagUpInd == TAG_UP_TYPE_TAGGED) {
-                            if (runner->distanceFromBall - fielder->currentVelocity < 1.8f) {
+                            f32 vel = fielder->currentVelocity;
+
+                            if (vel + fielder->runningAccelerationFactor > fielder->joggingSpeed) {
+                                vel = fielder->currentVelocity;
+                            }
+                            if (runner->distanceFromBall - vel < 1.8f) {
                                 g_FieldingLogic.tagAnimationType = 2;
                                 g_FieldingLogic.runnerBeingTargettedForOut = i;
                                 g_FieldingLogic.tagResult_1out_2safe = 1;
@@ -1908,9 +1908,8 @@ void tagOutValues(int fielderIndex) {
                             } else {
                                 if (g_FieldingLogic.somethingForTryingTagOutTargetBase < 0 ||
                                     g_FieldingLogic.somethingForTryingTagOutTargetBase > 3 ||
-                                    ((baseDist = fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase],
-                                      baseDist >= 1.5f) &&
-                                     (!(baseDist < 5.0f) ||
+                                    (!(fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 1.5f) &&
+                                     (!(fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 5.0f) ||
                                       (runner->forceOutCd == FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE &&
                                        runner->tagUpInd != TAG_UP_TYPE_TAGGED)))) {
                                     if (dist < 1.8f) {
@@ -1933,7 +1932,6 @@ void tagOutValues(int fielderIndex) {
                         }
                     }
                 }
-                runner--;
             }
         }
         if (g_FieldingLogic.tagAnimationType == 2 && 0.0f == fielder->currentVelocity) {
