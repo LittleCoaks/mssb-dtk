@@ -2989,51 +2989,12 @@ int fn_3_BA7F4(SceneEffect* effect) {
     Vec dir;
     SceneParticle* p;
     SceneParticle* head;
-    SceneSortEntry* sorted;
-    SceneSortEntry* e;
-    int count;
     f32 angle;
     f32 delta;
-    f32 rad;
-    f32 s;
-    f32 c;
 
-    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(0);
-    GXSetNumTevStages(1);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_RASC);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    fn_3_BA3EC();
 
-    head = effect->head;
-    count = effect->count;
-    sorted = _OSAllocFromHeap(0x20, count * 8);
-    e = sorted;
-    for (; head != NULL; head = head->next) {
-        e->p = head;
-        e->depth = head->size;
-        e++;
-    }
-    fn_800246D4(fn_3_BA174, sorted, sorted, 8, count);
-    head = sorted[0].p;
-    e = sorted;
-    while (--count != 0) {
-        e->p->next = e[1].p;
-        e++;
-    }
-    e->p->next = NULL;
-    fn_800ACFB0(sorted);
+    head = fn_3_BA1A0(effect->head, effect->count);
     effect->head = head;
 
     p = head;
@@ -3058,12 +3019,7 @@ int fn_3_BA7F4(SceneEffect* effect) {
                 } else {
                     angle = angle + delta;
                 }
-                rad = 0.017453292f * angle;
-                s = SINF(rad);
-                c = COSF(rad);
-                p->velX = s * (f32)lbl_3_data_170D8[1] / 100000.0f;
-                p->velY = c * (f32)lbl_3_data_170D8[1] / 100000.0f;
-                p->velZ = 0.0f;
+                fn_3_BB07C(p, angle);
             }
             if (p->y > 1.0f) {
                 fn_3_BB15C(p);
@@ -3074,27 +3030,7 @@ int fn_3_BA7F4(SceneEffect* effect) {
         p = p->next;
     } while (p != NULL);
 
-    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, 0);
-    GXSetCurrentMtx(0);
-    GXSetProjection(fn_80052768_getCamera(0)->proj, GX_PERSPECTIVE);
+    fn_3_BA268();
     return 0;
 }
 
