@@ -648,18 +648,6 @@ u32 CommonUIFiles_minigame[62][4] = {
     { 0x0, 0x28240, 0x1AD09000, 0x28240 },
 };
 
-static inline void minigamesRosterSetup(void) {
-    switch (g_GameLogic._125) {
-    case TRANSITION_CALCULATION_TYPE_0:
-        minigames_setupChallengeRoster();
-        animRelated[0xD8] = 0;
-        g_GameLogic._125++;
-        break;
-    }
-    minigames_fillRoster();
-    SetGameStatus(GAME_STATUS_MINIGAME_READY);
-}
-
 void minigameSimulation(void) {
     int i;
 
@@ -716,7 +704,7 @@ void minigameSimulation(void) {
         minigames_0x27();
         break;
     case GAME_STATUS_0x25:
-        minigamesRosterSetup();
+        minigames_0x25();
         break;
     default:
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
@@ -813,7 +801,15 @@ void minigames_0x1B(void) {
 }
 
 void minigames_0x25(void) {
-    minigamesRosterSetup();
+    switch (g_GameLogic._125) {
+    case TRANSITION_CALCULATION_TYPE_0:
+        minigames_setupChallengeRoster();
+        animRelated[0xD8] = 0;
+        g_GameLogic._125++;
+        break;
+    }
+    minigames_fillRoster();
+    SetGameStatus(GAME_STATUS_MINIGAME_READY);
 }
 
 void minigames_setupChallengeRoster(void) {
@@ -2456,36 +2452,6 @@ static inline void awardMinigameCoins(void) {
     starMissionsMinigamesTotalPoints();
 }
 
-static inline void buildResultEntry(MinigameResultEntry* out) {
-    memset(out, 0, sizeof(MinigameResultEntry));
-    if (g_Minigame.humanPlayerCount == 1) {
-        out->charID = inMemRoster[0][g_Minigame.playerSlots.characterIndex[g_Minigame.soloPlayerSlot]].stats.CharID;
-        if (g_Minigame.grandPrixInd != 0) {
-            MiniGrandPrixScoreInput input;
-
-            minigameFillGrandPrixScoreInput(&input);
-            out->score = (s16)fn_8006C13C(&input);
-            out->count = 0;
-        } else {
-            out->score = g_Minigame.miniGameCurrentPoints[g_Minigame.soloPlayerSlot];
-            if (out->score > lbl_80109410[g_Minigame.GameMode_MiniGame]) {
-                out->score = lbl_80109410[g_Minigame.GameMode_MiniGame];
-            }
-            switch (g_Minigame.GameMode_MiniGame) {
-            case MINI_GAME_ID_BOBOMB_DERBY:
-                out->count = g_Minigame.bOD_HitPowerOfEachChar[g_Minigame.soloPlayerSlot];
-                if (out->count > 999) {
-                    out->count = 999;
-                }
-                break;
-            default:
-                out->count = 0;
-                break;
-            }
-        }
-    }
-}
-
 void minigameEndSwitcher(void) {
     MinigameResultEntry entry;
     BOOL eligible;
@@ -2518,7 +2484,7 @@ void minigameEndSwitcher(void) {
                 }
             }
             if (eligible) {
-                buildResultEntry(&entry);
+                minigameBuildResultEntry(&entry);
                 rank = minigameGetScoreRank(&entry);
                 if (rank >= 5) {
                     g_Minigame.newRecordRank = 0;
@@ -2716,7 +2682,33 @@ void minigameEndHook(void) {
 }
 
 void minigameBuildResultEntry(MinigameResultEntry* out) {
-    buildResultEntry(out);
+    memset(out, 0, sizeof(MinigameResultEntry));
+    if (g_Minigame.humanPlayerCount == 1) {
+        out->charID = inMemRoster[0][g_Minigame.playerSlots.characterIndex[g_Minigame.soloPlayerSlot]].stats.CharID;
+        if (g_Minigame.grandPrixInd != 0) {
+            MiniGrandPrixScoreInput input;
+
+            minigameFillGrandPrixScoreInput(&input);
+            out->score = (s16)fn_8006C13C(&input);
+            out->count = 0;
+        } else {
+            out->score = g_Minigame.miniGameCurrentPoints[g_Minigame.soloPlayerSlot];
+            if (out->score > lbl_80109410[g_Minigame.GameMode_MiniGame]) {
+                out->score = lbl_80109410[g_Minigame.GameMode_MiniGame];
+            }
+            switch (g_Minigame.GameMode_MiniGame) {
+            case MINI_GAME_ID_BOBOMB_DERBY:
+                out->count = g_Minigame.bOD_HitPowerOfEachChar[g_Minigame.soloPlayerSlot];
+                if (out->count > 999) {
+                    out->count = 999;
+                }
+                break;
+            default:
+                out->count = 0;
+                break;
+            }
+        }
+    }
 }
 
 MinigameResultEntry* minigameGetScoreTable(void) {
@@ -2769,7 +2761,7 @@ void minigameUpdateHighScores(void) {
         g_Minigame.playerSlots.rank[g_Minigame.soloPlayerSlot] != 1) {
         return;
     }
-    buildResultEntry(&entry);
+    minigameBuildResultEntry(&entry);
     rank = minigameGetScoreRank(&entry);
     g_Minigame.newRecordRow = rank;
     if (rank < 5) {
