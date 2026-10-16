@@ -2797,15 +2797,12 @@ void mm_SetPowerupFrame(int idx) {
 
 // .text:0x00116B74 size:0x8A8 mapped:0x80755C08
 void mm_ResetModels(void) {
-    int i;
-    int j;
-
     switch (g_Minigame.GameMode_MiniGame) {
     case MINI_GAME_ID_BOBOMB_DERBY:
         mm_ResetPitchingMachine();
         break;
     case MINI_GAME_ID_WALLBALL:
-        pmDisableWallBallEffects();
+        mm_HideWallBallEffects();
         break;
     case MINI_GAME_ID_BARREL_BATTER:
         mm_ResetPitchingMachine();
@@ -2818,42 +2815,16 @@ void mm_ResetModels(void) {
     case MINI_GAME_ID_STAR_DASH:
         mm_UpdateStarDashCoins();
         mm_UpdateStar();
-        for (i = 0; i < 40; i++) {
-            PMEffect* fx = &FX(i);
-
-            fx->visible = FALSE;
-            fx->update = NULL;
-        }
+        mm_ClearFirst40Effects();
         mm_UpdateThwomps();
         mm_UpdateStarDashPowerup();
         break;
     case MINI_GAME_ID_PIRANHA_PANIC:
         mm_UpdatePiranhaBalls();
         mm_ResetPiranhas();
-        for (i = 0; i < 40; i++) {
-            PMEffect* fx = &FX(i);
-
-            fx->visible = FALSE;
-            fx->update = NULL;
-        }
-        for (j = 0; j < 7; j++) {
-            PMEffect* fx = &FX(0xE9 + j);
-
-            fx->visible = FALSE;
-            if (j >= 4) {
-                fx->visible = TRUE;
-                fx->pos.x = pP_spawnerPositions[j - 4][0].x;
-                fx->pos.y = -pP_spawnerPositions[j - 4][0].y;
-                fx->pos.z = pP_spawnerPositions[j - 4][0].z;
-                applyNonUniformScaleToObject(lbl_3_data_226C4[0], lbl_3_data_226C4[1],
-                                             lbl_3_data_226C4[0], 0xE9 + j);
-                fx->update = mm_SetPipeFrame;
-            }
-        }
-        FX(0xF0).visible = FALSE;
-        FX(0xF1).visible = FALSE;
-        FX(0xF2).visible = FALSE;
-        FX(0xF3).visible = FALSE;
+        mm_ClearFirst40Effects();
+        mm_PlaceExtraPipes();
+        mm_HidePlayerMarkers();
         break;
     }
 }
