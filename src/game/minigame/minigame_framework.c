@@ -1676,8 +1676,8 @@ void minigameCharSelectUpdate(void) {
                 g_Minigame.selectSlots[port].confirmedInd = FALSE;
                 addOrRemoveCharacterToTeam(port, g_Minigame.selectSlots[port].charID, FALSE);
                 g_Minigame.charSelectState = 0;
-                sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
                 g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
             } else if (pad->_08 & INPUT_BUTTON_LEFT) {
                 if ((s8)g_Minigame.selectedDifficulty > 0) {
                     g_Minigame.selectedDifficulty--;
@@ -1705,7 +1705,7 @@ tail:
                 sel[3] = -1;
                 for (i = 0; i < 4; i++) {
                     sel[i] = -1;
-                    if (g_Minigame.selectSlotState[i] == 0 && (g_Controls[i].newButtonInput & INPUT_BUTTON_A)) {
+                    if (g_Minigame.selectSlotState[i] != 0 && (g_Controls[i].newButtonInput & INPUT_BUTTON_A)) {
                         if (g_Minigame.selectSlots[i].charID >= 0) {
                             if (g_Minigame.selectSlots[i].confirmedInd == 1) {
                                 addOrRemoveCharacterToTeam(i, g_Minigame.selectSlots[i].charID, FALSE);
