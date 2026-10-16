@@ -94,7 +94,7 @@ extern s32 cssCursorOnBottomControl_maybe(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4
 extern void css_initValues(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5);
 extern void fn_8004FDA0(int);
 extern void fn_80011B64(int);
-extern int fn_80016710(s8 charID, int arg1);
+extern int fn_80016710(int charID, int arg1);
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 FrameCountOfEntireGame[];
@@ -1838,12 +1838,12 @@ void minigameCharLoadQueueUpdate(void) {
         g_Minigame.charLoadQueue[1] = -1;
         g_Minigame.charLoadQueue[2] = -1;
         g_Minigame.charLoadQueue[3] = -1;
-        offset = 0;
+        offset = k = 0;
         if (g_Minigame.charLoadSlot >= 0) {
             g_Minigame.charLoadQueue[0] = g_Minigame.charLoadSlot;
             offset = 1;
         }
-        for (k = 0; k < count; k++) {
+        for (; k < count; k++) {
             g_Minigame.charLoadQueue[offset + k] = order[k].idx;
         }
         if (g_Minigame.charLoadQueue[0] >= 0) {
