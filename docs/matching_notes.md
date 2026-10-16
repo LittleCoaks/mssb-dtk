@@ -3479,3 +3479,37 @@ Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
 - Not solved: the qsort comparators (`cmpw; beq; subf; blr; subf; blr`) keep MWCC's
   conditional-return peephole (`subf` hoisted + `bnelr`) in every source form tried, including
   ternary, result variable, index locals and `#pragma peephole off`.
+
+### Findings from the match_flow second pass (2026-10)
+Unit `game/game/match_setup/match_flow`, 25 -> 44 of 47 functions at 100% (.text 98.14 -> 99.57).
+- **A counter increment written before a constant store.** When the target emits
+  `stb rK,const; ...; addi rX,rX,1; sth rX` and ours has the increment's temp in r0 and the
+  constant in a numbered register (or the reverse), swap the two statements: write `n++` first.
+  MWCC still schedules the constant store first, but the register numbering follows source order
+  (uncalledRunnerUpdateRelated 95 -> 100, gameSimulationFunction, exitToMenuControl).
+- **`if (x < 0) x = -x;` vs `__abs(x)`.** Both give `srawi; xor; subf`, but the MWCC intrinsic
+  puts the result in a fresh register (fn_3_5B41C 99.59 -> 100, newPitch 95.1 -> 99.0).
+- **An extern array declared too small changes store scheduling.** `highLevelSimulationFlag` was
+  `u8[2]` while code stores `[2]` and `[3]`; with the real size `[4]`, the natural store order matched
+  and two other functions moved too (exhibitionGameTransitionCalculations, inningChange). Check the
+  declared bound against every constant index before permuting statements.
+- **`a == b` operand order is visible** in the `subf` of the CLZ idiom: `winnerCd == humanTeamNumber`
+  and `humanTeamNumber == winnerCd` differ, and two functions sharing the test needed different orders.
+- **Check every file-local `extern f(void)` against the headers.** The disk loaders take the load
+  index (target keeps the loaded value in r3 for the call), exitMenu_main takes the buttons and
+  forwards them, and the header prototype `(u8 scene, s8 charID)` with a `u8` table produced the
+  target's `lbzx r0; extsb r4,r0`.
+- **A walk-off test of `score < base + count`** is strength-reduced into its own induction register;
+  a hand-kept `runs++` total allocates differently (handleDeadBall 98.98 -> 100).
+- **A function inside a `#pragma dont_inline` block can still be the body the target inlined.**
+  configureTeamsForGame_Unused has no `bl` anywhere; moving it out of the region and calling it from
+  gameInitRelated fixed that caller (90.5 -> 100 with an unrolled 2-trip clear loop). Its body then
+  had to fold the constant argument (`teamBatting = arg1 ^ arg0`, not a re-read of both fields).
+- **`inMemRoster[0][i]` and `((CharacterStats*)inMemRoster)[i]` flip the final `add` operands.**
+- **Register liveness exposes draft bugs.** A `li r5,0` scheduled before a `bge` whose fall-through
+  also reaches the join means the assignment is unconditional (checkIfPlayOver); a value loaded once
+  and decremented in each flag block means a running variable, not a recomputation
+  (startChallengeModeMatch).
+- Not solved: newPitch (one constant takes r3 instead of r8 after the inlined practiceNewBatter),
+  processScoreChanges (every temp one register higher; the target's unrolled u64 sum needs r28) and
+  startChallengeModeMatch (the target re-materialises `g_Runners` in each runner block).
