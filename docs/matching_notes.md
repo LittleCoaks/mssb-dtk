@@ -3441,3 +3441,41 @@ A pass over every game unit, looking for hand-written copies of functions that M
   call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
   barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
   inlined helper bodies, while ours rebuilds it in each. That pattern is still unexplained.
+
+### Findings from the minigame_framework second pass (2026-10)
+Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
+- **A chained zero init picks MWCC's other unroll form for a variable-trip copy loop.** With
+  `offset = 0; ... for (k = 0; k < count; k++) q[offset + k] = order[k].idx;` MWCC unrolls with
+  the `cmpwi n,8; subi r,n,8` form and recomputes from `k` in the remainder. The target's
+  `srwi. r0,n,3; mtctr; ... andi. r,n,7` form with both pointers carried into the remainder came
+  from `offset = k = 0; ... for (; k < count; k++)` (minigameCharLoadQueueUpdate 87.5 -> 96.9).
+  `for (idx = j = 0; ...)` did the same kind of thing in minigames_setupChallengeRoster (93.8 -> 97.0).
+  Down-counting loops also give the `srwi.` form, but without the strength-reduced indexing.
+- **No `i >= N` test after an unrolled search loop: `goto` out of the loop.** When the target's
+  unrolled scan falls through to `li r3,0; blr` and the found-handler sits after it,
+  `for (...) if (c) goto found; return FALSE; found: ...` matched (checkForPauses 96.8 -> 100).
+  Measured first: `break` + `if (i >= 4) return FALSE` 96.8, `if (i < 4) {...}` 96.2, handler
+  inside the loop 49.9 (the loop stops being unrolled).
+- **MWCC does not move stores across calls, so read the store/call order straight off the
+  target.** Four `state = N; sndFXStartEx(...)` pairs in minigameCharSelectUpdate had been drafted
+  as call-then-store (97.2 -> 99.4 after reordering them with s32 counters).
+- **`(c ? 2 : 1)` and `(c) + 1` compile differently** as a multiplier (minigames_0x26 99.03 -> 100).
+- **`s32` vs `int` counters can need to change together.** minigameCharSelectUpdate: `s32 i, j, k`
+  98.17; any one of them alone scored lower than all-int. A blanket int->s32 over the whole file
+  regressed four 100% functions, so measure per function.
+- **One counter for consecutive loops in a small callee** (`i` reused instead of a separate `j`)
+  fixed the register swap in every inlined copy of minigameFillGrandPrixScoreInput.
+- **S1 `static inline` copies of real functions can often go.** With `-inline deferred`, calling
+  minigames_fillRoster, minigameBuildResultEntry and minigames_0x25 from earlier-defined callers
+  still auto-inlined them, and the standalone minigames_fillRoster went from 98.3 to 100 once it was
+  no longer a wrapper around the inline. minigameAwardCoins (420 bytes) stays a `bl`, so its
+  inline copy is still needed.
+- **Re-run declaration-order sweeps after structural fixes.** The same 9-local sweep that gave
+  +0.2 before the loop fix gave +1.2 after it (minigameCharLoadQueueUpdate, then two store-order
+  tweaks reached 100).
+- **Inverted test found by a one-instruction diff:** the char-select late-join scan read
+  `selectSlotState[i] == 0` where the target has `beq skip` (`!= 0`). A lone `beq`/`bne` swap at
+  the same label is worth checking as a draft bug, not just a branch-layout difference.
+- Not solved: the qsort comparators (`cmpw; beq; subf; blr; subf; blr`) keep MWCC's
+  conditional-return peephole (`subf` hoisted + `bnelr`) in every source form tried, including
+  ternary, result variable, index locals and `#pragma peephole off`.
