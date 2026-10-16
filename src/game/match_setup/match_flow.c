@@ -504,10 +504,10 @@ void matchTransitionPrepareNextAB(void) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 7) {
             if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
                 fn_3_90AB0(g_Practice.someCharID2);
-                sound_crowd_EffectsStruct._2C = 0;
                 g_Practice.someCharID2 =
                     inMemRoster[g_GameLogic.teamBatting][g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1]
                         .stats.CharID;
+                sound_crowd_EffectsStruct._2C = 0;
             }
             if (fn_3_90C14(g_Practice.someCharID2) == 0) {
                 break;
@@ -1309,17 +1309,15 @@ void endOfGameCheck(int arg0) {
             g_GameLogic.EventTriggers_EndOfGame = 1;
             g_GameLogic.winType = WIN_TYPE_3;
         } else {
-            int diff;
-
             if (g_Scores.halfInning == 0) {
                 return;
             }
             if (g_Scores.mercyThreshold == 0) {
                 return;
             }
-            diff = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total -
-                   g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
-            if (diff < g_Scores.mercyThreshold) {
+            if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total -
+                    g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total <
+                g_Scores.mercyThreshold) {
                 return;
             }
             g_Scores.winnerCd = 1;
