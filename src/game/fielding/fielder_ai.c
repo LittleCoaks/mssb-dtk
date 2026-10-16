@@ -2479,8 +2479,7 @@ int fielderAIMakePlay(int targetRunner) {
         return 0;
     }
     if (targetRunner == 0 && runner->currentBase == 0 && fielder->animatingActionInd == 0) {
-        BOOL chase = fn_3_A36BC();
-        if (chase) {
+        if (fn_3_A36BC()) {
             g_FieldingLogic.runnerChasingAfter = targetRunner;
             g_FieldingLogic.somethingForTryingTagOutTargetBase = 9;
             g_FieldingLogic.locationThrownTo = -1;
@@ -2511,14 +2510,7 @@ int fielderAIMakePlay(int targetRunner) {
             }
         }
         if (g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
-            if (runner->runningDirectionCode == 2) {
-                setFielderAutoCoords(g_Ball.fielderWBallIndex, runner->position.x, runner->position.z);
-            } else {
-                f32 vx = runner->velocity.x * runner->distanceFromBall;
-                f32 vz = runner->velocity.y * runner->distanceFromBall;
-                setFielderAutoCoords(g_Ball.fielderWBallIndex, 2.0f * vx + runner->position.x,
-                                     2.0f * vz + runner->position.z);
-            }
+            fn_3_A4158(targetRunner);
         }
     } else {
         g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
