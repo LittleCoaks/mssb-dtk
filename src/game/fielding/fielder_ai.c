@@ -1193,12 +1193,9 @@ void knockBallLoose(int fielderIndex, int knockOutCause) {
 // .text:0x000A89D4 size:0x980 mapped:0x806E7A68
 void fn_3_A89D4(void) {
     InMemFielder* fielder;
-    int outFrames;
-    int outBase;
     u32 zone;
     int contact;
     int i;
-    int runnersOnField;
     f32 dist;
     f32 dx;
     f32 dz;
@@ -1294,62 +1291,15 @@ void fn_3_A89D4(void) {
         }
         return;
     }
-    runnersOnField = 0;
-    for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-            runnersOnField++;
-        }
-    }
-    if (runnerTagUpOrBatterTo1B(&outBase, &outFrames) == 0) {
-        if (dist < 15.0f) {
-            g_FieldingLogic.throwSpeedType = 7;
-        } else if (dist < 20.0f && g_FieldingLogic.throwSpeedType < 5) {
-            g_FieldingLogic.throwSpeedType = 5;
-        }
-    } else {
-        f32 speed;
-        f32 dx;
-        f32 dz;
-        f32 sqx;
-        f32 sqz;
-        f32 dist2;
-        int frames;
-        int diff;
-
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-        speed = fielder->modifiedThrowingArm / 200.0f;
-        dx = g_Ball.throwDestination.x - fielder->pos.x;
-        dz = g_Ball.throwDestination.z - fielder->pos.z;
-        sqx = dx * dx;
-        sqz = dz * dz;
-        dist2 = dolsqrtf2(sqx + sqz);
-        frames = throwFramesForDistance(dist2, speed);
-        diff = frames + 0x14 - outFrames;
-        if ((g_Strikes.outs >= 2 || runnersOnField == 1) && diff < -0x1e && g_Ball.numberOfThrowsDuringPlay <= 1) {
-            g_FieldingLogic.throwSpeedType = 4;
-            if (dist > 30.0f) {
-                g_FieldingLogic.throwSpeedType = 3;
-            } else if (dist < 13.0f) {
-                g_FieldingLogic.throwSpeedType = 6;
-            }
-            g_FieldingLogic.someThrowSpeedIncreaseInd = 1;
-        }
-    }
+    maybeUnused_SetThrowSpeedType2(dist);
 }
 
 // .text:0x000A85C8 size:0x40C mapped:0x806E765C
 void maybeUnused_SetThrowSpeedType2(f32 dist) {
-    InMemFielder* fielder;
     int i;
     int runnersOnField;
     int outBase;
     int outFrames;
-    f32 speed;
-    f32 dx;
-    f32 dz;
-    f32 sqx;
-    f32 sqz;
-    f32 throwDist;
     int diff;
     int frames;
 
@@ -1366,30 +1316,8 @@ void maybeUnused_SetThrowSpeedType2(f32 dist) {
             g_FieldingLogic.throwSpeedType = 5;
         }
     } else {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-        speed = fielder->modifiedThrowingArm / 200.0f;
-        dx = g_Ball.throwDestination.x - fielder->pos.x;
-        dz = g_Ball.throwDestination.z - fielder->pos.z;
-        sqx = dx * dx;
-        sqz = dz * dz;
-        throwDist = dolsqrtf2(sqx + sqz);
-        if (0.0f == speed) {
-            speed = 1.0f;
-        }
-        if (throwDist > 60.0f) {
-            frames = 1.15f * throwDist / speed;
-        } else if (throwDist > 30.0f) {
-            frames = throwDist / speed;
-        } else {
-            frames = 0.8f * throwDist / speed;
-        }
-        if (throwDist > 80.0f) {
-            frames *= 1.3f;
-            frames += 0x1e;
-        } else if (throwDist > 70.0f) {
-            frames *= 1.15f;
-            frames += 0x1e;
-        }
+        frames = throwFramesToPoint(&g_Fielders[g_Ball.fielderWBallIndex], g_Ball.throwDestination.x,
+                                    g_Ball.throwDestination.z);
         diff = frames + 0x14 - outFrames;
         if ((g_Strikes.outs >= 2 || runnersOnField == 1) && diff < -0x1e && g_Ball.numberOfThrowsDuringPlay <= 1) {
             g_FieldingLogic.throwSpeedType = 4;
