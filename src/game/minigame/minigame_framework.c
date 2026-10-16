@@ -1718,7 +1718,7 @@ void minigameCharSelectUpdate(void) {
                     sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
                 }
             }
-            g_Minigame.targetParticipantCount = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + (s8)g_Minigame.selectedDifficulty];
+            g_Minigame.targetParticipantCount = (minigameParticipantCounts + g_Minigame.GameMode_MiniGame * 5)[(s8)g_Minigame.selectedDifficulty];
         }
     } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 90) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
