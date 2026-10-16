@@ -37,10 +37,7 @@ typedef struct RepQuad {
     /* 0x08 */ u8 *texBase;
     /* 0x0C */ u32 texIndex;
     /* 0x10 */ u32 mode;
-    /* 0x14 */ u8 r;
-    /* 0x15 */ u8 g;
-    /* 0x16 */ u8 b;
-    /* 0x17 */ u8 a;
+    /* 0x14 */ GXColor color;
 } RepQuad;
 
 typedef struct RepScene {
@@ -81,12 +78,6 @@ typedef struct RepPackedFile {
     };
 } RepPackedFile;
 
-typedef struct RepQuadInit {
-    /* 0x00 */ RepQuad quads[2];
-    /* 0x30 */ u32 mode;
-    /* 0x34 */ u32 color;
-} RepQuadInit;
-
 #define REP_MENU_COUNT 10
 #define INPUT1_FIELD(type, off) (*(type *)((u8 *)&AtBat_ButtonInput1 + (off)))
 
@@ -121,11 +112,12 @@ MatchFileDescriptor StadiumPropFiles_debug[7] = {
     {0x0000040B, 0x400397CC, 0x07719800, 0x00023FF4},
 };
 
-RepQuadInit lbl_1_data_70 = {
-    {{0, fn_1_1240, 0, 0, 0, 0}, {0, fn_1_1240, 0, 0, 0, 0}},
-    2,
-    0xFFFFFFFF,
+static RepQuad lbl_1_data_70[2] = {
+    {0, fn_1_1240, NULL, 0, 0, {0}},
+    {0, fn_1_1240, NULL, 0, 0, {0}},
 };
+static u32 lbl_1_data_A0 = 2;
+static GXColor lbl_1_data_A4 = {0xFF, 0xFF, 0xFF, 0xFF};
 
 GXColor lbl_1_data_A8 = {0x11, 0x77, 0x55, 0x00};
 
@@ -147,8 +139,9 @@ MatchFileDescriptor lbl_1_data_AC[15] = {
     {0x00000000, 0x00040000, 0x0A8C0000, 0x00040000},
 };
 
-static u32 lbl_1_bss_0;
+/* MWCC lays .bss out in reverse declaration order: lbl_1_bss_0 must be declared last. */
 static u8 lbl_1_bss_4[0x5C];
+static u32 lbl_1_bss_0;
 
 static inline void loadPackedFile(RepPackedFile *file) {
     s32 i;
@@ -264,15 +257,12 @@ void fn_1_15CC(void) {
 // .text:0x00001538 size:0x94
 void fn_1_1538(void) {
     RepFileScene *scene = (RepFileScene *)currentDrawingItem;
-    RepQuadInit *init = (RepQuadInit *)&StadiumPropFiles_debug[7];
-    RepQuad *quad;
 
-    fn_800A7D4C(0, &init->quads[drawStadiumRelated]);
-    quad = &init->quads[drawStadiumRelated];
-    quad->texBase = scene->u.tex;
-    quad->texIndex = lbl_1_bss_0;
-    quad->mode = init->mode;
-    *(u32 *)&quad->r = init->color;
+    fn_800A7D4C(0, &lbl_1_data_70[drawStadiumRelated]);
+    lbl_1_data_70[drawStadiumRelated].texBase = scene->u.tex;
+    lbl_1_data_70[drawStadiumRelated].texIndex = lbl_1_bss_0;
+    lbl_1_data_70[drawStadiumRelated].mode = lbl_1_data_A0;
+    lbl_1_data_70[drawStadiumRelated].color = lbl_1_data_A4;
 }
 
 // .text:0x00001240 size:0x2F8
@@ -288,10 +278,10 @@ void fn_1_1240(RepQuad *quad) {
     GXSetCurrentMtx(0);
     GXSetProjection(proj, GX_ORTHOGRAPHIC);
     gOz_GXSetTexture(GX_MODULATE, 0, FALSE);
-    color.r = quad->r;
-    color.g = quad->g;
-    color.b = quad->b;
-    color.a = quad->a;
+    color.r = quad->color.r;
+    color.g = quad->color.g;
+    color.b = quad->color.b;
+    color.a = quad->color.a;
     GXSetChanMatColor(GX_COLOR0A0, color);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);

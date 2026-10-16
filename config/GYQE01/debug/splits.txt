@@ -9,7 +9,7 @@ Sections:
 debug/rep_0010.c:
 	.text       start:0x00000000 end:0x0000196C
 	.rodata     start:0x00000000 end:0x000000B0
-	.data       start:0x00000000 end:0x00000200
+	.data       start:0x00000000 end:0x000001F0
 	.bss        start:0x00000000 end:0x00000060
 
 debug/rep_00B0.c:

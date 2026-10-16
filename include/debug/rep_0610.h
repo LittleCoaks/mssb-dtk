@@ -211,6 +211,11 @@ typedef struct DbgDrawRow {
     /*0x08*/ Mtx mtx;
 } DbgDrawRow; // size 0x38
 
+typedef struct DbgCallRow {
+    /*0x0*/ s32 id;
+    /*0x4*/ void (*fn)(void);
+} DbgCallRow; // size 0x8
+
 typedef struct DbgSel {
     /*0x00*/ u8 pad0[0x44];
     /*0x44*/ u8 f44;

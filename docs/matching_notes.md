@@ -3380,3 +3380,19 @@ functions. These lessons are not specific to one file:
 - **A function that is only called from one place can still need `#pragma dont_inline`** when the
   target keeps it out of line: `rep_0138` `fn_1_4DD8` was auto-inlined into `fn_1_717C`
   (717C 100 -> 11.5) until wrapped.
+- **Pooled static addressing needs about three distinct static objects in the function.** With one
+  or two, MWCC addresses each through its own `@ha/@l`, even when they are static. So a target
+  that keeps the section base in a register and reaches several objects as `base + off` had at
+  least that many separate statics: split dtk's symbols at those offsets rather than merging them
+  (`rep_0010` `fn_1_1538`: three statics `lbl_1_data_70[2]`, `_A0`, `_A4` took it from 62 to
+  instruction-identical; one struct or two statics did not pool).
+- **Flipping a widened unit: objdiff 100% is not enough, run the sha check.** Two layout faults
+  scored 100% in objdiff and still failed the REL: a `.data` split that ran over the padding up to
+  the next unit (end it where the last object or jump table ends), and two `.bss` statics declared
+  in the wrong order (MWCC lays `.bss` out in reverse declaration order, and objdiff matches by name,
+  so only the relocation addends in the linked REL changed). Diff the REL's relocation table when
+  the section sizes agree but the sha does not (`rep_0010`).
+- **A local array element accessed through a cast to another pointer type (`((f32 *)&v[k])[n]`)
+  gets its own address register,** and every offset-0 access and struct copy of that element then
+  goes through it; pointer casts on call arguments have no effect at all (`rep_00B0` `fn_1_4A24`,
+  diagnostic only).
