@@ -3347,3 +3347,58 @@ by a score change in at least one function.
   so treat it as evidence, not a fix.
 - `objdiff-cli diff` and the report score pooled `.bss` accesses differently (the target carries
   `R_PPC_NONE` relocs). Use the report for regression checks.
+
+### Uncalled functions and auto-inlining (fielder_ai second pass)
+- **A function with no `bl` to it anywhere in the target is inlined somewhere.** List them with a
+  grep over `build/GYQE01/*/asm` (no `bl name`, no `.4byte name`), then find the caller whose
+  body contains the callee's code and call the real function instead of a hand-expanded copy.
+  fielder_ai had 28 such functions; calling them fixed fn_3_A89D4 (maybeUnused_SetThrowSpeedType2),
+  fieldingAIPlayStrategy (fn_3_A53DC), autoMovement10_HasBall (fielderChasingAI, fn_3_A6D48, which
+  also removed a `goto`), fielderAIChaseRunner/fielderAIMakePlay (fn_3_A4158) and let two
+  hand-written `static inline` duplicates (fn_3_A2FD8/fn_3_A295C) be deleted.
+- **If the plain call stays a `bl`, the callee is over MWCC's auto-inline size limit.** Making the
+  callee smaller with its own inline helpers brought it under the limit: fn_3_AAC84 inlined into
+  makeThrowVariables once its throw-frame code went through a `static inline` helper, and
+  maybeUnused_SetThrowSpeedType2 inlined into fn_3_A89D4 the same way. An explicit `inline` on the
+  callee also inlines it, but then MWCC no longer emits the out-of-line copy; a non-inline wrapper
+  around a `static inline` body emits it with different code.
+- **Shared arithmetic is often a real function that gets inlined.** The fielder_ai throw-time
+  estimate is `fn_3_A6ABC(x, z)`; calling it (after the covering fielder is read) matched
+  howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase 97.8 -> 99.97. Where it is placed
+  matters: before the covering-fielder read it scored 93.
+- **Walking table pointers in a loop stop an inlined callee from sharing the loop's induction
+  variables.** Rewriting fieldingAIPlayStrategy's loops as `table[i]` / `g_Runners[i]` took it from
+  93 to 99.2 once fn_3_A53DC was inlined.
+- **A small store helper can be the source of an evaluation order.** fn_3_A53DC's tail
+  (`throw[i] = 0; run[i] = -1; out[i] = frames - framesToBase;`) only matched through an inline
+  `setThrowStrategy(i, strat, frames, framesToBase)` that subtracts inside, with framesToBase read
+  into its own local first. The target computes the difference after the constant stores'
+  values.
+
+### Locals and re-reads (fielder_ai)
+- **Copying an `s16` local into an `int` local can cost a `mr`.** setRunnerChasingAfter was 4 bytes
+  long until `base = fromBase` became `base = g_FieldingLogic.fielderAssignedLocationIndex[6]`
+  (re-read the field). Re-reading `g_Fielders[c].numFramesToGetToAutoLocation` at each use instead
+  of keeping it in a local fixed howManyFrames... and lifted throwTimeToBase/runnerTimeToCoverBase.
+- **`cmpwi rX, 4; bge` then `extsh. r0, rX; blt` on an `lha` value** is an `int` local tested as
+  `x >= 4 || (s16)x < 0` (runnerTagUpOrBatterTo1B; makeThrowVariables uses the same idiom).
+- **A lone `fcmpo` whose result is never branched on** is a conditional assignment to a dead
+  variable: `f32 vel = cur; if (vel + accel > jog) vel = cur;` reproduced it in tagOutValues.
+- **A `lead = frames - 10` local can change integer allocation.** Writing `(frames - 10)` at each
+  use matched fn_3_AAC84's integer registers.
+- **A pointer local for a one-off `g_Fielders[a[b]].field` read** fixed the last registers in
+  initializeThrowAngle_Speed_Length.
+
+### Control flow (fielder_ai)
+- **`ble body; b exit` right after a range test** is an early-return guard:
+  `if (a < 0 || b < 0 || b > 3) return;` (fn_3_AAA3C).
+- **A dead `b epilogue` after `b join`** comes from `if (c) { x; } else { return; }` where the
+  `return` arm's branch was threaded away (fielderAIDecideWhatRunnerToTarget).
+- **A comma expression inside a condition gives `mfcr`/`srwi.`;** read the value twice instead and
+  let CSE merge the loads. `!(x < c)` gives a single `blt`; `x >= c` gives `cror` + `bne`.
+- **`for (i = 0; i < 4; i++) if (d[i] <= k) { base = i; break; }`** shows up unrolled with a
+  walking pointer (`addi r3, rB, 4; lfs f1, off(r3)`), not as an if/else-if chain (tagOutValues).
+
+### Diagnostics
+- objdiff does not score the `jumptable_*` vs `@NNN` or `lbl_*_bss_*` vs `...bss.0` relocation-name
+  differences that a plain text diff shows; check `diff_kind` in the JSON before chasing them.
