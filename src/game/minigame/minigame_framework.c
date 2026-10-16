@@ -1941,9 +1941,6 @@ void minigames_pickOpponentsAndLoadStats(void) {
     int pool[12];
     int used[4];
     s32 i;
-    int j;
-    int k;
-    int cursor;
     int count;
     int idx;
 
