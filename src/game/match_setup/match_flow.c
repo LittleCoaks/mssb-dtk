@@ -884,10 +884,11 @@ void checkIfPlayOver(void) {
             g_GameLogic.playOver = 0;
             showReplay = 0;
         } else if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE &&
-                   g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 4 && g_Pitcher.strikeOutOrWalk == 0 &&
-                   g_Strikes.outs < g_Strikes.storedOuts) {
+                   g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 4 && g_Pitcher.strikeOutOrWalk == 0) {
             showReplay = 0;
-            g_GameLogic.playOver = 0;
+            if (g_Strikes.outs < g_Strikes.storedOuts) {
+                g_GameLogic.playOver = 0;
+            }
         }
         if (g_Stats.replayPending != 0) {
             showReplay = 1;
