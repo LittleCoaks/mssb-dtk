@@ -2489,45 +2489,21 @@ void runnerTimeToCoverBase(int runnerIndex) {
 
 // .text:0x000A53DC size:0x328 mapped:0x806E4470
 void fn_3_A53DC(int runnerIdx) {
-    InMemFielder* fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-    InMemRunnerType* runner = &g_Runners[runnerIdx];
-    f32 speed;
-    f32 dx;
-    f32 dz;
-    f32 dist;
-    f32 sqx;
+    InMemFielder* fielder;
+    InMemRunnerType* runner;
     int frames;
 
+    runner = &g_Runners[runnerIdx];
+    fielder = &g_Fielders[g_Ball.fielderWBallIndex];
     if (runnerIdx == 3 && runner->baseStandingOn == 3 && g_RunningLogic._00 == 0x1000 &&
         g_Ball.ballZoneAwayFromHome >= 4 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
-        speed = fielder->modifiedThrowingArm / 200.0f;
-        dx = base_MoundCoordinates[0].x - fielder->pos.x;
-        dz = base_MoundCoordinates[0].z - fielder->pos.z;
-        sqx = dx * dx;
-        dz = dz * dz;
-        dist = dolsqrtf2(dz + sqx);
-        if (0.0f == speed) {
-            speed = 1.0f;
-        }
-        if (dist > 60.0f) {
-            frames = 1.15f * dist / speed;
-        } else if (dist > 30.0f) {
-            frames = dist / speed;
-        } else {
-            frames = 0.8f * dist / speed;
-        }
-        if (dist > 80.0f) {
-            frames *= 1.3f;
-            frames += 0x1e;
-        } else if (dist > 70.0f) {
-            frames *= 1.15f;
-            frames += 0x1e;
-        }
+        frames = throwFramesToPoint(fielder, base_MoundCoordinates[0].x, base_MoundCoordinates[0].z);
         frames = fielder->throwWindupEstimate + frames;
         frames = frames + lbl_3_data_1C40;
+        frames = frames - runner->framesToNextBase;
         throwStratToMakePlay[runnerIdx] = 0;
         runningStratToMakePlay[runnerIdx] = -1;
-        framesRunnerIsOutOfReach[runnerIdx] = frames - runner->framesToNextBase;
+        framesRunnerIsOutOfReach[runnerIdx] = frames;
     }
 }
 
@@ -2596,127 +2572,66 @@ void throwTimeToBase(int baseCounter) {
 
 // .text:0x000A4A10 size:0x540 mapped:0x806E3AA4
 void fieldingAIPlayStrategy(void) {
-    s32* frames_p;
-    s32* running_p;
-    s32* throw_p;
-    u8* indBall_p;
-    InMemRunnerType* runner;
-    InMemRunnerType* runnerPre;
-    s32* throwPre;
-    s32* framesPre;
     int i;
-    InMemFielder* fielder;
     s32* desperation;
     u8 steal;
-    f32 speed;
-    f32 dx;
-    f32 dz;
-    f32 dist;
     int frames;
-    f32 sqx;
 
-    runnerPre = g_Runners;
-    framesPre = framesRunnerIsOutOfReach;
-    throwPre = throwStratToMakePlay;
-    runner = runnerPre;
-    frames_p = framesPre;
-    running_p = runningStratToMakePlay;
-    throw_p = throwPre;
-    indBall_p = indBallNearBaselineWhereRunnerIs;
     for (i = 0; i < 4; i++) {
-        *frames_p = 0;
-        *running_p = -1;
-        *throw_p = -1;
-        *indBall_p = 0;
-        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-            if (runner->tagUpInd == TAG_UP_TYPE_TAGGED) {
+        framesRunnerIsOutOfReach[i] = 0;
+        runningStratToMakePlay[i] = -1;
+        throwStratToMakePlay[i] = -1;
+        indBallNearBaselineWhereRunnerIs[i] = 0;
+        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+            if (g_Runners[i].tagUpInd == TAG_UP_TYPE_TAGGED) {
                 throwTimeToBase(i);
-            } else if (runner->baseStandingOn != -1 && runner->forceOutCd <= FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE) {
-                fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-                if (i == 3 && runner->baseStandingOn == 3 && g_RunningLogic._00 == 0x1000 &&
-                    g_Ball.ballZoneAwayFromHome >= 4 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
-                    speed = fielder->modifiedThrowingArm / 200.0f;
-                    dx = base_MoundCoordinates[0].x - fielder->pos.x;
-                    dz = base_MoundCoordinates[0].z - fielder->pos.z;
-                    sqx = dx * dx;
-                    dz = dz * dz;
-                    dist = dolsqrtf2(dz + sqx);
-                    if (0.0f == speed) {
-                        speed = 1.0f;
-                    }
-                    if (dist > 60.0f) {
-                        frames = 1.15f * dist / speed;
-                    } else if (dist > 30.0f) {
-                        frames = dist / speed;
-                    } else {
-                        frames = 0.8f * dist / speed;
-                    }
-                    if (dist > 80.0f) {
-                        frames *= 1.3f;
-                        frames += 0x1e;
-                    } else if (dist > 70.0f) {
-                        frames *= 1.15f;
-                        frames += 0x1e;
-                    }
-                    frames = fielder->throwWindupEstimate + frames + lbl_3_data_1C40;
-                    *throw_p = 0;
-                    *running_p = -1;
-                    *frames_p = frames - runner->framesToNextBase;
-                }
-            } else if (runner->overrunBaseStage == 0) {
-                if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
+            } else if (g_Runners[i].baseStandingOn != -1 &&
+                       g_Runners[i].forceOutCd <= FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE) {
+                fn_3_A53DC(i);
+            } else if (g_Runners[i].overrunBaseStage == 0) {
+                if (g_Runners[i].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
                     runnerTimeToCoverBase(i);
                 } else {
                     fieldingAIThrowOrChase(i);
                 }
             }
         }
-        frames_p++;
-        running_p++;
-        throw_p++;
-        indBall_p++;
-        runner++;
     }
     steal = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
-    desperation = fielderDesperationLevel;
     for (i = 0; i < 4; i++) {
-        *desperation = 9;
-        if (runnerPre->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
-            (runnerPre->baseStandingOn == -1 || runnerPre->tagUpInd == TAG_UP_TYPE_TAGGED ||
-             runnerPre->forceOutCd > FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE || *throwPre == 0)) {
-            frames = *framesPre;
+        fielderDesperationLevel[i] = 9;
+        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+            (g_Runners[i].baseStandingOn == -1 || g_Runners[i].tagUpInd == TAG_UP_TYPE_TAGGED ||
+             g_Runners[i].forceOutCd > FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE || throwStratToMakePlay[i] == 0)) {
+            frames = framesRunnerIsOutOfReach[i];
             if (frames >= 0x5a) {
-                *desperation = 8;
+                fielderDesperationLevel[i] = 8;
             } else if (frames >= 0x1e) {
-                *desperation = 7;
+                fielderDesperationLevel[i] = 7;
             } else if (frames >= 0xf) {
-                *desperation = 6;
+                fielderDesperationLevel[i] = 6;
             } else if (frames >= 8) {
-                *desperation = 5;
+                fielderDesperationLevel[i] = 5;
             } else if (frames >= -8) {
-                *desperation = 4;
+                fielderDesperationLevel[i] = 4;
             } else if (frames >= -0xf) {
-                *desperation = 3;
+                fielderDesperationLevel[i] = 3;
             } else if (frames >= -0x1e) {
-                *desperation = 2;
+                fielderDesperationLevel[i] = 2;
             } else if (frames >= -0x2d) {
-                *desperation = 1;
+                fielderDesperationLevel[i] = 1;
             } else {
-                *desperation = 0;
+                fielderDesperationLevel[i] = 0;
             }
             if (steal == 2) {
-                *desperation = *desperation - 2;
-                if (*desperation < 2) {
-                    *desperation = 0;
+                fielderDesperationLevel[i] = fielderDesperationLevel[i] - 2;
+                if (fielderDesperationLevel[i] < 2) {
+                    fielderDesperationLevel[i] = 0;
                 } else {
-                    *desperation = *desperation - 2;
+                    fielderDesperationLevel[i] = fielderDesperationLevel[i] - 2;
                 }
             }
         }
-        desperation++;
-        runnerPre++;
-        throwPre++;
-        framesPre++;
     }
 }
 
