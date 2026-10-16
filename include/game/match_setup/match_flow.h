@@ -28,7 +28,7 @@ void transferSomeValuesOnMatchLoad(void);
 void gameSimulationFunction(void);
 int fn_3_5B220(int arg0);
 void fn_3_5B368(void);
-int exitMenu_main(void);
+int exitMenu_main(u16 buttons);
 void fn_3_5B408(void);
 void fn_3_5B41C(void);
 void startChallengeModeMatch(void);

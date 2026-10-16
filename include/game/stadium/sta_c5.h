@@ -368,7 +368,7 @@ void fn_800BDA24(void* arg);
 void fn_800A7D4C(s32 arg0, void* arg1);
 
 void fn_3_EDFAC(void);
-int fn_3_EE0BC(u32 flags);
+int fn_3_EE0BC(u8 flags);
 void fn_3_EE100(DKJungleDispObj* obj, Mtx view);
 void fn_3_EE388(void);
 void fn_3_EE67C(DKJungleDispObj* obj, Mtx view);

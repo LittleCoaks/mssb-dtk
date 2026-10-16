@@ -103,7 +103,7 @@ void practiceSimulation(void) {
         freeFieldingPracticeControl();
         break;
     case SECONDARY_GAME_MODE_RETURN_TO_MENU:
-        g_GameLogic.framesOfExitingToMenu = TRUE;
+        fn_3_B3C64();
         break;
     }
 
@@ -157,23 +157,7 @@ void loadPracticeScreen(void) {
 
     switch (g_GameLogic._125) {
     case 0:
-        g_GameLogic.battingOrderAndPositionMapping[0][0][0] = constantList[0];
-        g_GameLogic.battingOrderAndPositionMapping[1][0][0] = constantList[0];
-        for (team = 0; team < TEAMS_PER_GAME; team++) {
-            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
-                g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = constantList[9 + slot];
-                g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = constantList[9 + slot];
-                lineUpInfoStruct[team][slot][0] = slot;
-                lineUpInfoStruct[team][slot][1] = slot;
-                lineUpInfoStruct[team][slot][2] = slot;
-            }
-        }
-        for (team = 0; team < TEAMS_PER_GAME; team++) {
-            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
-                int character = g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0];
-                memcpy(&inMemRoster[team][slot], &CHAR_STATS(character), sizeof(CharacterStats));
-            }
-        }
+        practice_loadCharacterData();
         g_Practice.homeAway = lbl_80366158[0x27];
         g_Practice.homeAwayByte = lbl_80366158[0x27];
         g_GameLogic.homeTeamInd = 0;
@@ -229,7 +213,6 @@ void loadPracticeScreen(void) {
 }
 #pragma dont_inline reset
 
-#pragma dont_inline on
 void practice_loadCharacterData(void) {
     int slot, team;
 
@@ -251,7 +234,6 @@ void practice_loadCharacterData(void) {
         }
     }
 }
-#pragma dont_inline reset
 
 #pragma dont_inline on
 void practice_loadCharacter(int team, int slot, int character, int flags) {
@@ -388,11 +370,9 @@ void setTutorialState(int state) {
 }
 #pragma dont_inline reset
 
-#pragma dont_inline on
 void fn_3_B3C64(void) {
     g_GameLogic.framesOfExitingToMenu = TRUE;
 }
-#pragma dont_inline reset
 
 void practiceSetupRunnerStatus(void) {
     int i;

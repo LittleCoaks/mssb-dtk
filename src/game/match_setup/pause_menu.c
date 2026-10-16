@@ -620,7 +620,7 @@ void fn_3_AEC50(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -835,7 +835,7 @@ void fn_3_AE334(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;

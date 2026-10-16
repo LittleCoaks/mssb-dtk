@@ -1359,7 +1359,7 @@ void toyFieldPause(void) {
         minigamePauseHelpUpdate();
         break;
     case 9:
-        switch (exitMenu_main()) {
+        switch (((int (*)(void))exitMenu_main)()) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 10;
@@ -1482,7 +1482,7 @@ void toyFieldPostMenu(void) {
         break;
     }
     case 9:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
+        switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
             fn_3_15F998();
             minigameWinnerStars_stop();

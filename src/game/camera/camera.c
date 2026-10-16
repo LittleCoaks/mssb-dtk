@@ -230,25 +230,7 @@ void cameraControl(void) {
     g_pCamera = &g_Camera;
     status = g_GameLogic.gameStatus;
     if (status == GAME_STATUS_DEFAULT || status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
-        g_GameLogic.sceneID = SCENE_ID_AT_BAT;
-        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0) {
-            g_pCamera->_28A7 = lbl_3_data_A38[1];
-        } else {
-            g_pCamera->_28A7 = lbl_3_data_A38[0];
-        }
-        g_pCamera->_118 = 0;
-        g_pCamera->_11C = 0;
-        g_pCamera->_030.x = 0.0f;
-        g_pCamera->_030.y = 0.0f;
-        g_pCamera->_030.z = 0.0f;
-        g_pCamera->_0C0 = 0.0f;
-        g_pCamera->_0D0 = 1.0f;
-        g_pCamera->_0E2 = 0;
-        g_pCamera->_0E0 = -1;
-        g_pCamera->_0D4 = 0.0f;
-        g_pCamera->_0D8 = 0.0f;
-        g_pCamera->_0DC = 0.0f;
-        g_pCamera->_0E3 = 0;
+        fn_3_1CBCC();
     }
 
 rescan:
@@ -292,13 +274,7 @@ rescan:
                     g_Camera._2818 = 0;
                 }
             } else {
-                g_pCamera->_2840.x = 0.0f;
-                g_pCamera->_2840.y = 0.0f;
-                g_pCamera->_2840.z = 0.0f;
-                g_pCamera->_284C.x = 0.0f;
-                g_pCamera->_284C.y = 0.0f;
-                g_pCamera->_284C.z = 1.0f;
-                g_pCamera->_2878 = 1.0f;
+                fn_3_17804();
             }
         }
 
