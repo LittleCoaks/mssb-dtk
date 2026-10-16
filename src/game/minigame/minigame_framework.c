@@ -3618,7 +3618,6 @@ void minigameFillGrandPrixScoreInput(MiniGrandPrixScoreInput* input) {
     fn_8006C398(input);
     if (g_Minigame.grandPrixInd != 0 && g_Minigame.soloPlayerSlot >= 0 && g_Minigame.soloPlayerSlot < 4) {
         u32 i;
-        u32 j;
         u8 order[4][2];
 
         i = 0;
@@ -3632,13 +3631,13 @@ void minigameFillGrandPrixScoreInput(MiniGrandPrixScoreInput* input) {
             i++;
         } while (i < 6);
         minigame_rankPlayers(order, 1);
-        j = 0;
+        i = 0;
         do {
-            if (g_Minigame.soloPlayerSlot == order[j][0]) {
-                input->placeRank = order[j][1];
+            if (g_Minigame.soloPlayerSlot == order[i][0]) {
+                input->placeRank = order[i][1];
             }
-            j++;
-        } while (j < g_Minigame.miniGameNumberOfParticipants);
+            i++;
+        } while (i < g_Minigame.miniGameNumberOfParticipants);
         input->extra = g_Minigame.grandPrixTotals[g_Minigame.soloPlayerSlot];
         input->charID = inMemRoster[0][g_Minigame.playerSlots.characterIndex[g_Minigame.soloPlayerSlot]].stats.CharID;
     }
