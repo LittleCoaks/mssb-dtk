@@ -1755,14 +1755,14 @@ void minigameCharLoadQueueUpdate(void) {
         int val;
     } order[4];
     int slot;
-    int count;
-    int n;
-    int i;
-    int j;
-    int k;
-    int offset;
     int sel;
+    int j;
     int fontCharID;
+    int k;
+    int i;
+    int n;
+    int count;
+    int offset;
 
     n = 4;
     for (;;) {
