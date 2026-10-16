@@ -1923,6 +1923,36 @@ void minigames_loadCharStats(int slot, int charID) {
     }
 }
 
+static inline void minigamesAssignOpponents(int* pool, int* used) {
+    int cursor;
+    s32 i;
+    int j;
+    int k;
+
+    cursor = 0;
+    for (i = 0; i < 4; i++) {
+        if (g_Minigame.selectSlotState[i] != 0 && g_Minigame.selectSlots[i].confirmedInd == 0) {
+            for (j = cursor; j < 6; j++) {
+                for (k = 0; k < 4; k++) {
+                    if (pool[j] == used[k] && pool[j] >= 0) {
+                        break;
+                    }
+                }
+                if (k >= 4) {
+                    break;
+                }
+                cursor++;
+            }
+            g_Minigame.selectSlots[i].charID = pool[j];
+            g_Minigame.charChangeFrames[i] = 20;
+            g_Minigame.battingHandedness[i] =
+                ((CharacterStats*)&Static_Stats_Tables)[pool[j]].stats.FieldingArm * 2 +
+                ((CharacterStats*)&Static_Stats_Tables)[pool[j]].stats.BattingStance;
+            cursor++;
+        }
+    }
+}
+
 void minigames_pickOpponentsAndLoadStats(void) {
     int pool[12];
     int used[4];
@@ -2007,28 +2037,7 @@ void minigames_pickOpponentsAndLoadStats(void) {
         shuffleIntArray(pool, count, FALSE);
     }
 
-    cursor = 0;
-    for (i = 0; i < 4; i++) {
-        if (g_Minigame.selectSlotState[i] != 0 && g_Minigame.selectSlots[i].confirmedInd == 0) {
-            for (j = cursor; j < 6; j++) {
-                for (k = 0; k < 4; k++) {
-                    if (pool[j] == used[k] && pool[j] >= 0) {
-                        break;
-                    }
-                }
-                if (k >= 4) {
-                    break;
-                }
-                cursor++;
-            }
-            g_Minigame.selectSlots[i].charID = pool[j];
-            g_Minigame.charChangeFrames[i] = 20;
-            g_Minigame.battingHandedness[i] =
-                ((CharacterStats*)&Static_Stats_Tables)[pool[j]].stats.FieldingArm * 2 +
-                ((CharacterStats*)&Static_Stats_Tables)[pool[j]].stats.BattingStance;
-            cursor++;
-        }
-    }
+    minigamesAssignOpponents(pool, used);
 }
 
 void minigameReadySwitcher(void) {
