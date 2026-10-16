@@ -1404,7 +1404,7 @@ void minigameCharSelectUpdate(void) {
                 g_Minigame.targetParticipantCount = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4];
             } else if (g_Minigame.joinedPlayerCount >= minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4]) {
                 g_Minigame.charSelectState = 1;
-                if (g_Minigame.joinedPlayerCount >= minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4]) {
+                if (minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4] <= g_Minigame.joinedPlayerCount) {
                     g_Minigame.minExtraOpponents = 0;
                 } else {
                     g_Minigame.minExtraOpponents = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + 4] - g_Minigame.joinedPlayerCount;
