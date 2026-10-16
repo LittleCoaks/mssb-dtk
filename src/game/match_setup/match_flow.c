@@ -573,10 +573,7 @@ void newPitch(void) {
     if (diff > 0x7FFF) {
         diff = 0x7FFF;
     }
-    if (diff < 0) {
-        diff = -diff;
-    }
-    g_Scores._A6 = diff;
+    g_Scores._A6 = __abs(diff);
     g_Strikes.storedOuts = g_Strikes.outs;
     g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
     g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
