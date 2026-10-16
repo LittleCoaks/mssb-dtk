@@ -2973,7 +2973,7 @@ void postMinigame(void) {
                 break;
             case 2:
                 g_Minigame.nextGameStatus = GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT;
-                g_Minigame.charReselectInd = 1;
+                g_Minigame.charReselectInd = TRUE;
                 SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
                 break;
             case 3:
@@ -2983,7 +2983,7 @@ void postMinigame(void) {
             case 5:
                 g_Minigame.retryInd = TRUE;
                 g_Minigame.soloMinigameDifficulty++;
-                g_Minigame.nextDifficultyInd = 1;
+                g_Minigame.nextDifficultyInd = TRUE;
                 SetGameStatus(GAME_STATUS_MINIGAME_READY);
                 break;
             }
@@ -2991,7 +2991,7 @@ void postMinigame(void) {
         mm_UnloadModels();
         if (g_Minigame.nextDifficultyInd != 0) {
             minigames_pickOpponentsAndLoadStats();
-            g_Minigame.miniGameNumberOfParticipants = minigameParticipantCounts[g_Minigame.GameMode_MiniGame * 5 + g_Minigame.soloMinigameDifficulty];
+            g_Minigame.miniGameNumberOfParticipants = (minigameParticipantCounts + g_Minigame.GameMode_MiniGame * 5)[g_Minigame.soloMinigameDifficulty];
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.aiControlledInd[i] != 0) {
                     if (g_Minigame.miniGameNumberOfParticipants == 1) {
