@@ -1348,9 +1348,9 @@ void setRunnerChasingAfter(int fielderIndex) {
     toBase = g_FieldingLogic.somethingForTryingTagOutTargetBase;
     diff = toBase - fromBase;
     if (diff == 1 || diff == -3) {
-        base = fromBase;
+        base = g_FieldingLogic.fielderAssignedLocationIndex[6];
     } else if (diff == -1 || diff == 3) {
-        base = toBase;
+        base = g_FieldingLogic.somethingForTryingTagOutTargetBase;
     }
     if (base >= 0) {
         if (toBase > fromBase || (toBase == 0 && fromBase == 3)) {
