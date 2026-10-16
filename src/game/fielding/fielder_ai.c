@@ -2237,7 +2237,7 @@ void runnerTimeToCoverBase(int runnerIndex) {
         ((coverFrames = g_Fielders[coveringFielder].numFramesToGetToAutoLocation) < 0 &&
          g_FieldingLogic.baseCoveredInd[base] == 0)) {
         setRunStrategy(runnerIndex, base, runFrames, framesToBase);
-    } else if (runFrames < coverFrames + 5) {
+    } else if (runFrames < g_Fielders[coveringFielder].numFramesToGetToAutoLocation + 5) {
         setRunStrategy(runnerIndex, base, runFrames, framesToBase);
     } else if (totalFrames + 5 < coverFrames) {
         setThrowStrategy(runnerIndex, base + 10, coverFrames, framesToBase);
@@ -2300,7 +2300,7 @@ void throwTimeToBase(int baseCounter) {
          g_FieldingLogic.baseCoveredInd[base] == 0) ||
         g_Ball.framesSinceHit < 0x46) {
         setRunStrategy(baseCounter, base, runFrames, framesToBase);
-    } else if (runFrames < coverFrames + 5) {
+    } else if (runFrames < g_Fielders[coveringFielder].numFramesToGetToAutoLocation + 5) {
         setRunStrategy(baseCounter, base, runFrames, framesToBase);
     } else if (totalFrames < coverFrames ||
                (coverFrames < 0 && g_Fielders[coveringFielder].lockoutDuration <= g_Ball.framesSinceHit)) {
