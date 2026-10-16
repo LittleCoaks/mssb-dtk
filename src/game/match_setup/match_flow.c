@@ -2160,8 +2160,8 @@ void simulate1FrameOfTheGame(void) {
 
 // .text:0x0005A87C size:0x424 mapped:0x80699910
 void gameInitRelated(void) {
-    u32 mode;
     int home;
+    u32 mode;
     int i;
 
     lbl_80366158[0x28] = 0;
@@ -2202,36 +2202,27 @@ void gameInitRelated(void) {
         g_Scores.maxNumberOfExtraInnings = 5;
         g_Scores.inningLimit = 5;
     }
+    for (i = 0; i < TEAMS_PER_GAME; i++) {
+        g_GameLogic.teamIsCPU[i] = 0;
+        g_GameLogic._140[i] = 0;
+        g_GameLogic.batterHandedness[i] = 0;
+        g_GameLogic.teamAIInd[i] = 0;
+        g_GameLogic.autoFielding[i] = 0;
+        g_GameLogic.battingAIInd[i] = 0;
+    }
     home = g_d_GameSettings.home_AwaySetting;
-    g_GameLogic.teamIsCPU[0] = 0;
-    g_GameLogic._140[0] = 0;
-    g_GameLogic.batterHandedness[0] = 0;
-    g_GameLogic.teamAIInd[0] = 0;
-    g_GameLogic.autoFielding[0] = 0;
-    g_GameLogic.battingAIInd[0] = 0;
-    g_GameLogic.teamIsCPU[1] = 0;
-    g_GameLogic._140[1] = 0;
-    g_GameLogic.batterHandedness[1] = 0;
-    g_GameLogic.teamAIInd[1] = 0;
-    g_GameLogic.autoFielding[1] = 0;
-    g_GameLogic.battingAIInd[1] = 0;
     g_GameLogic.AIDifficulty0Special3Weak[0] = inningSetting.aiDifficulty;
     g_GameLogic.AIDifficulty0Special3Weak[1] = inningSetting.aiDifficulty;
-    g_GameLogic.homeTeamBattingInd_fieldingTeam = 0;
-    g_GameLogic.awayTeamBattingInd_battingTeam = 1;
-    g_GameLogic.homeTeamInd = home;
-    g_GameLogic.teamBatting = home;
-    g_GameLogic.teamFielding = home ^ 1;
-    g_GameLogic._1C[0] = g_d_GameSettings.maybeHomeAway[home];
-    g_GameLogic._1C[1] = g_d_GameSettings.maybeHomeAway[home ^ 1];
+    configureTeamsForGame_Unused(0, home, g_d_GameSettings.maybeHomeAway[g_d_GameSettings.home_AwaySetting],
+                                 g_d_GameSettings.maybeHomeAway[g_d_GameSettings.home_AwaySetting ^ 1]);
     if (mode == GAME_TYPE_PRACTICE) {
         g_GameLogic.AIDifficulty0Special3Weak[home] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd ^ 1] = 1;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         g_GameLogic.teamIsCPU[1] = 1;
         g_GameLogic._140[home ^ 1] = 1;
-        scoutState.humanTeam = 0;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd ^ 1] = 1;
+        scoutState.humanTeam = 0;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
@@ -2239,8 +2230,8 @@ void gameInitRelated(void) {
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_3) {
         g_GameLogic.teamIsCPU[0] = 1;
         g_GameLogic._140[home] = 1;
-        scoutState.humanTeam = 1;
         g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd] = 1;
+        scoutState.humanTeam = 1;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd] = 1;
@@ -2262,7 +2253,7 @@ void gameInitRelated(void) {
         g_GameLogic.AIDifficulty0Special3Weak[0] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[1] = 1;
     }
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < TEAMS_PER_GAME; i++) {
         if (g_GameLogic.teamIsCPU[i] == 0) {
             if (inningSetting.controlOptions[g_GameLogic.teams[i]]._0 != 0) {
                 g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd ^ i] = 1;
@@ -2341,16 +2332,20 @@ void SetGameStatus(int status) {
     g_GameLogic._125 = 0;
 }
 
+#pragma dont_inline reset
+
 // .text:0x0005A6A0 size:0x34 mapped:0x80699734
 void configureTeamsForGame_Unused(int arg0, int arg1, int arg2, int arg3) {
     g_GameLogic.homeTeamBattingInd_fieldingTeam = arg0;
     g_GameLogic.awayTeamBattingInd_battingTeam = arg0 ^ 1;
     g_GameLogic.homeTeamInd = arg1;
-    g_GameLogic.teamBatting = g_GameLogic.homeTeamInd ^ g_GameLogic.homeTeamBattingInd_fieldingTeam;
+    g_GameLogic.teamBatting = arg1 ^ arg0;
     g_GameLogic.teamFielding = g_GameLogic.teamBatting ^ 1;
     g_GameLogic._1C[0] = arg2;
     g_GameLogic._1C[1] = arg3;
 }
+
+#pragma dont_inline on
 
 // .text:0x0005A684 size:0x1C mapped:0x80699718
 void resetCount(void) {
