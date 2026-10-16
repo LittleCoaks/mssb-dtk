@@ -1438,63 +1438,61 @@ void fn_3_5CD24(void) {
 void processScoreChanges(int arg0) {
     int runnersOut = 0;
     u64 total = 0;
-    int i;
+    s32 i;
     int diff;
 
-    if ((g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH) &&
-        g_Scores._9C > 0) {
-        goto score;
-    }
-    if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
-        return;
-    }
-    if (g_Scores._9C <= 0) {
-        return;
-    }
-    if (g_Strikes.outs >= 3 && arg0 != 1) {
-        return;
-    }
-    if (g_Stats.replayInd != 0 && g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
-        return;
-    }
-    if (g_Scores.Inning >= g_Scores.inningLimit && g_Scores.halfInning != 0 &&
-        g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
-        int homeTotal = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
-        int awayTotal = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total + 1;
+    if (!((g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH) &&
+          g_Scores._9C > 0)) {
+        if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+            return;
+        }
+        if (g_Scores._9C <= 0) {
+            return;
+        }
+        if (g_Strikes.outs >= 3 && arg0 != 1) {
+            return;
+        }
+        if (g_Stats.replayInd != 0 && g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
+            return;
+        }
+        if (g_Scores.Inning >= g_Scores.inningLimit && g_Scores.halfInning != 0 &&
+            g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
+            int homeTotal = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
+            int awayTotal = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total + 1;
 
-        if (homeTotal + g_Scores._9C > awayTotal) {
-            g_Scores._9C = awayTotal - homeTotal;
+            if (homeTotal + g_Scores._9C > awayTotal) {
+                g_Scores._9C = awayTotal - homeTotal;
+            }
+            if (g_Scores._9C < 0) {
+                g_Scores._9C = 0;
+            }
         }
-        if (g_Scores._9C < 0) {
-            g_Scores._9C = 0;
-        }
-    }
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) {
-        if (g_Ball.ballInitialHitDoneInd == 0) {
-            return;
-        }
-        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
-            return;
-        }
-    }
-    for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[i].forceOutCd == 1) {
-            runnersOut++;
-        }
-    }
-    if (g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
-        if (g_Strikes.outs >= 3) {
-            if (g_Strikes.forcedOutToEndInningInd == 1) {
+        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) {
+            if (g_Ball.ballInitialHitDoneInd == 0) {
                 return;
             }
-            if (g_Strikes.storedOuts == 2 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
+            if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
                 return;
             }
-        } else if (g_Strikes.outs + runnersOut >= 3) {
-            return;
+        }
+        for (i = 0; i < 4; i++) {
+            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[i].forceOutCd == 1) {
+                runnersOut++;
+            }
+        }
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
+            if (g_Strikes.outs >= 3) {
+                if (g_Strikes.forcedOutToEndInningInd == 1) {
+                    return;
+                }
+                if (g_Strikes.storedOuts == 2 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
+                    return;
+                }
+            } else if (g_Strikes.outs + runnersOut >= 3) {
+                return;
+            }
         }
     }
-score:
     if (g_Ball.deadBallReason != DEAD_BALL_REASON_GROUND_RULE_DOUBLE) {
         for (i = 0; i < 4; i++) {
             if (g_Runners[i].isEligibleToScore != 0 && g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
