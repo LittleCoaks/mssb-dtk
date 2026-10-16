@@ -874,8 +874,7 @@ void minigames_setupChallengeRoster(void) {
     for (k = 0; k < 6; k++) {
         arr[k] = minigameChallengeOpponentPools[g_Minigame.GameMode_MiniGame * 7 + 1 + k];
     }
-    idx = 0;
-    for (j = 0; j < minigameChallengeOpponentCounts[g_Minigame.GameMode_MiniGame]; j++) {
+    for (idx = j = 0; j < minigameChallengeOpponentCounts[g_Minigame.GameMode_MiniGame]; j++) {
         for (;;) {
             if (g_Minigame.selectSlotState[idx] == 1) {
                 break;
