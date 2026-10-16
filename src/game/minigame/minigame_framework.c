@@ -648,31 +648,6 @@ u32 CommonUIFiles_minigame[62][4] = {
     { 0x0, 0x28240, 0x1AD09000, 0x28240 },
 };
 
-static inline void minigamesFillRoster(void) {
-    int i;
-
-    for (i = 0; i < 4; i++) {
-        g_Minigame.playerSlots.characterIndex[i] = -1;
-        g_Minigame.playerSlots.aiControlledInd[i] = FALSE;
-        g_Minigame.playerSlots.charID[i] = CHAR_ID_NONE;
-    }
-    g_Minigame.miniGameNumberOfParticipants = 0;
-    g_Minigame.humanPlayerCount = 0;
-    minigames_pickOpponentsAndLoadStats();
-    for (i = 0; i < 4; i++) {
-        if (g_Minigame.selectSlotState[i] >= 0) {
-            g_Minigame.playerSlots.characterIndex[g_Minigame.miniGameNumberOfParticipants] = i;
-            g_Minigame.playerSlots.aiControlledInd[g_Minigame.miniGameNumberOfParticipants] = g_Minigame.selectSlotState[i];
-            if (g_Minigame.playerSlots.aiControlledInd[g_Minigame.miniGameNumberOfParticipants] == FALSE) {
-                g_Minigame.humanPlayerCount++;
-            }
-            minigames_loadCharStats(i, g_Minigame.selectSlots[i].charID);
-            g_Minigame.playerSlots.charID[g_Minigame.miniGameNumberOfParticipants] = inMemRoster[0][i].stats.CharID;
-            g_Minigame.miniGameNumberOfParticipants++;
-        }
-    }
-}
-
 static inline void minigamesRosterSetup(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
@@ -681,7 +656,7 @@ static inline void minigamesRosterSetup(void) {
         g_GameLogic._125++;
         break;
     }
-    minigamesFillRoster();
+    minigames_fillRoster();
     SetGameStatus(GAME_STATUS_MINIGAME_READY);
 }
 
@@ -1230,7 +1205,7 @@ void toyFieldCharSelectSwitcher(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_7:
         resetAnimTracks();
-        minigamesFillRoster();
+        minigames_fillRoster();
         hugeAnimStruct[0x307A] = 0;
         g_Minigame.helpMenuResult = 0;
         if (g_Minigame.grandPrixInd != 0) {
@@ -1899,7 +1874,28 @@ void minigameCharSelectReset(void) {
 }
 
 void minigames_fillRoster(void) {
-    minigamesFillRoster();
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        g_Minigame.playerSlots.characterIndex[i] = -1;
+        g_Minigame.playerSlots.aiControlledInd[i] = FALSE;
+        g_Minigame.playerSlots.charID[i] = CHAR_ID_NONE;
+    }
+    g_Minigame.miniGameNumberOfParticipants = 0;
+    g_Minigame.humanPlayerCount = 0;
+    minigames_pickOpponentsAndLoadStats();
+    for (i = 0; i < 4; i++) {
+        if (g_Minigame.selectSlotState[i] >= 0) {
+            g_Minigame.playerSlots.characterIndex[g_Minigame.miniGameNumberOfParticipants] = i;
+            g_Minigame.playerSlots.aiControlledInd[g_Minigame.miniGameNumberOfParticipants] = g_Minigame.selectSlotState[i];
+            if (g_Minigame.playerSlots.aiControlledInd[g_Minigame.miniGameNumberOfParticipants] == FALSE) {
+                g_Minigame.humanPlayerCount++;
+            }
+            minigames_loadCharStats(i, g_Minigame.selectSlots[i].charID);
+            g_Minigame.playerSlots.charID[g_Minigame.miniGameNumberOfParticipants] = inMemRoster[0][i].stats.CharID;
+            g_Minigame.miniGameNumberOfParticipants++;
+        }
+    }
 }
 
 void minigames_loadCharStats(int slot, int charID) {
