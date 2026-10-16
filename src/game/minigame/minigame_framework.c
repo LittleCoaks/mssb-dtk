@@ -3659,7 +3659,7 @@ void minigames_0x26(void) {
         minigame_rankPlayers(order, 0);
         i = 0;
         do {
-            g_Minigame.grandPrixTotals[order[i][0]] += minigameGrandPrixRankPoints[order[i][1]] * ((g_Minigame.grandPrixRound >= 6) + 1);
+            g_Minigame.grandPrixTotals[order[i][0]] += minigameGrandPrixRankPoints[order[i][1]] * (g_Minigame.grandPrixRound >= 6 ? 2 : 1);
             i++;
         } while (i < g_Minigame.miniGameNumberOfParticipants);
         minigame_rankPlayers(g_Minigame.grandPrixRanks, 1);
