@@ -38,6 +38,7 @@
 #include "Unknown/File_0x80062a50.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "Unknown/File_0x800203e0.h"
 #include "game/match_setup/pause_menu.h"
 
 extern u32 FrameCountOfEntireGame[5];
@@ -55,7 +56,7 @@ extern void initializeSomethingDuringTransition(void);
 extern int fn_3_59BCC(int arg0);
 extern ChallengeSituation lbl_3_data_5FF4[2][4][2];
 extern s16 lbl_3_data_6074[4];
-extern s8 challengeTransitionPortraitIDs[];
+extern u8 challengeTransitionPortraitIDs[];
 extern u8 lbl_8037169C[];
 extern int fn_3_FD9FC(void);
 extern void fn_3_FBD70(void);
@@ -64,7 +65,6 @@ extern int championshipScreenGraphics(void);
 extern void recruitWholeTeamAfterMercy(void);
 extern void matchTransitionFunction2(void);
 extern int loadRunnerActors(void);
-extern void challenge_setTransitionScreenCharacterPortrait(int, int);
 extern MatchEndFile CommonUIFiles_matchEnd[];
 extern int exitMenu(u16 buttons);
 extern void set803c5f77(void);
@@ -676,7 +676,7 @@ void endBatterTransition(void) {
         iterateBatter(g_GameLogic.homeTeamBattingInd_fieldingTeam);
     } else if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         if (!g_d_GameSettings.exhibitionMatchInd) {
-            if (g_GameLogic.homeTeamInd ^ (g_d_GameSettings.humanTeamNumber == g_Scores.winnerCd)) {
+            if (g_GameLogic.homeTeamInd ^ (g_Scores.winnerCd == g_d_GameSettings.humanTeamNumber)) {
                 challenge_checkRecruitment();
             }
         }
@@ -1099,9 +1099,9 @@ void settingGameStatus(void) {
     matchTransitionFunction2();
     if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         if (!g_d_GameSettings.exhibitionMatchInd) {
-            if (g_GameLogic.homeTeamInd ^ (g_d_GameSettings.humanTeamNumber == g_Scores.winnerCd)) {
+            if (g_GameLogic.homeTeamInd ^ (g_Scores.winnerCd == g_d_GameSettings.humanTeamNumber)) {
                 if (g_d_GameSettings.bJMatchInd != 1 ||
-                    (g_GameLogic.homeTeamInd ^ (g_d_GameSettings.humanTeamNumber != g_Scores.winnerCd)) == 0) {
+                    (g_GameLogic.homeTeamInd ^ (g_Scores.winnerCd != g_d_GameSettings.humanTeamNumber)) == 0) {
                     challenge_checkRecruitment();
                 }
             }
