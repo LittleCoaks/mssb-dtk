@@ -310,7 +310,6 @@ void loadWarioPalace(void** files) {
     u32 shadowBit;
     Mtx m;
     Vec v;
-    PalaceHazeEmitter* emitter;
 
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     n = 0;
@@ -846,12 +845,7 @@ void loadWarioPalace(void** files) {
 
     stadiumObjectCollision.vertexDataArray = NULL;
     fn_3_D6514();
-    for (i = 0; i < 4; i++) {
-        emitter = allocParticleEffect((void*)fn_3_CDFA4, 0x80, 0, 0x15, 1, 0);
-        if (emitter != NULL) {
-            palaceHazeTextureMaybe(emitter, i);
-        }
-    }
+    warioPalaceSomething();
     fn_3_B97C8(fn_3_CD958);
 }
 
@@ -3423,7 +3417,6 @@ void maybeChainChompSprintCTRLRelated(void) {
     StadiumObject* obj;
     u32 i;
     u32 count;
-    PalaceHazeEmitter* emitter;
 
     count = stadiumObjectCollision.objectCount;
     obj = stadiumObjectCollision.objects;
@@ -3434,12 +3427,7 @@ void maybeChainChompSprintCTRLRelated(void) {
         }
     }
     fn_3_CC1D4();
-    for (i = 0; i < 4; i++) {
-        emitter = allocParticleEffect((void*)fn_3_CDFA4, 0x80, 0, 0x15, 1, 0);
-        if (emitter != NULL) {
-            palaceHazeTextureMaybe(emitter, i);
-        }
-    }
+    warioPalaceSomething();
 }
 
 // .text:0x000CC5C4 size:0x258 mapped:0x8070B658
