@@ -1402,11 +1402,11 @@ void maybeUnused_SetThrowSpeedType2(f32 dist) {
 
 // .text:0x000A8478 size:0x150 mapped:0x806E750C
 BOOL runnerTagUpOrBatterTo1B(int* outBase, int* outFrames) {
-    s16 throwLoc = g_FieldingLogic.locationThrownTo;
+    int throwLoc = g_FieldingLogic.locationThrownTo;
     int prevBase;
 
-    if (throwLoc >= 4 || throwLoc < 0) {
-        return 0;
+    if (throwLoc >= 4 || (s16)throwLoc < 0) {
+        return FALSE;
     }
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT &&
         g_Runners[throwLoc].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
@@ -1423,7 +1423,7 @@ BOOL runnerTagUpOrBatterTo1B(int* outBase, int* outFrames) {
             *outBase = prevBase;
             goto prevBaseFrames;
         }
-        return 0;
+        return FALSE;
     }
     {
         InMemRunnerType* runner = &g_Runners[throwLoc];
@@ -1442,11 +1442,11 @@ BOOL runnerTagUpOrBatterTo1B(int* outBase, int* outFrames) {
         } else {
             *outFrames = runner->framesToPreviousBase + runner->framesToPreviousBase + runner->framesToNextBase;
         }
-        return 1;
+        return TRUE;
     }
 prevBaseFrames:
     *outFrames = g_Runners[prevBase].framesToNextBase;
-    return 1;
+    return TRUE;
 }
 
 // .text:0x000A8338 size:0x140 mapped:0x806E73CC
