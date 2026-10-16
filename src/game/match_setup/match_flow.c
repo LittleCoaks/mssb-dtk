@@ -392,7 +392,7 @@ void exhibitionGameTransitionCalculations(void) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO ||
                 g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
                 g_GameLogic._125 = 9;
-            } else if (checkForButtonPressToSkip(1, 0x1300)) {
+            } else if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 9;
             }
         }
@@ -1171,7 +1171,7 @@ void inningChange(void) {
         }
     } else if (g_GameLogic._125 == 6) {
         if (g_GameLogic.FrameCountOfCurrentPitch >= 0x78) {
-            if (checkForButtonPressToSkip(1, 0x1300)) {
+            if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 7;
             }
         }
@@ -1367,7 +1367,7 @@ void endOfMatch(void) {
             break;
         }
         if (g_GameLogic.FrameCountOfCurrentPitch >= 0x28) {
-            if (checkForButtonPressToSkip(1, 0x1300)) {
+            if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 2;
             }
         }
