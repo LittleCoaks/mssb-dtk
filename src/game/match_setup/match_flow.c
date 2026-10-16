@@ -39,6 +39,9 @@
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800203e0.h"
+#include "Unknown/File_0x80014d4c.h"
+#include "Unknown/File_0x80014e50.h"
+#include "Unknown/File_0x80014f40.h"
 #include "game/match_setup/pause_menu.h"
 
 extern u32 FrameCountOfEntireGame[5];
@@ -81,9 +84,6 @@ extern void possiblyTransitionBlackScreen(void);
 extern void initializeAIConstants(void);
 extern void initializeAnimations(void);
 extern void fn_3_AF5A4(void);
-extern int loadBatterModelFromDisk(void);
-extern int loadSomethingFromDiskAtBeginningOfAB1(void);
-extern int loadSomethingFromDiskAtBeginningOfAB2(void);
 extern u8 lbl_3_data_60F0;
 extern void fn_3_90AB0(int);
 extern int fn_3_90C14(int);
@@ -120,7 +120,7 @@ extern void graphicsFunction_minigames(void);
 
 // .text:0x0006011C size:0x64C mapped:0x8069F1B0
 void baseballMatchSimulation(void) {
-    s16 v;
+    s16 loadIndex;
 
     g_GameLogic.hudElementLoadingInd = 0;
     g_GameLogic.hudLoadingRelated = 0;
@@ -197,21 +197,21 @@ void baseballMatchSimulation(void) {
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_DEMO || g_UnkSimulation_31AC0._08 == 0) {
             if (pauseControl._1D5 == 0) {
-                v = *(s16*)&animRelated[0x9E];
-                if (v >= 0) {
-                    if (loadBatterModelFromDisk() != 0) {
+                loadIndex = *(s16*)&animRelated[0x9E];
+                if (loadIndex >= 0) {
+                    if (loadBatterModelFromDisk(loadIndex)) {
                         *(s16*)&animRelated[0x9E] = -1;
                     }
                 } else {
-                    v = *(s16*)&animRelated[0xA0];
-                    if (v >= 0) {
-                        if (loadSomethingFromDiskAtBeginningOfAB1() != 0) {
+                    loadIndex = *(s16*)&animRelated[0xA0];
+                    if (loadIndex >= 0) {
+                        if (loadSomethingFromDiskAtBeginningOfAB1(loadIndex)) {
                             *(s16*)&animRelated[0xA0] = -1;
                         }
                     } else {
-                        v = *(s16*)&animRelated[0xA2];
-                        if (v >= 0) {
-                            if (loadSomethingFromDiskAtBeginningOfAB2() != 0) {
+                        loadIndex = *(s16*)&animRelated[0xA2];
+                        if (loadIndex >= 0) {
+                            if (loadSomethingFromDiskAtBeginningOfAB2(loadIndex)) {
                                 *(s16*)&animRelated[0xA2] = -1;
                             }
                         }
@@ -1148,10 +1148,10 @@ void inningChange(void) {
         changeScene(1, 6);
         switchHalfInning();
         inningImportanceAI();
-        hugeAnimStruct[0x3087] = 0;
         animRelated[0x9B] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[3] = 0;
+        hugeAnimStruct[0x3087] = 0;
         g_GameLogic._125 = 1;
     } else if (g_GameLogic._125 == 1) {
         if (championshipScreenGraphics() != 0) {
