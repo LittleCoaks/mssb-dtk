@@ -65,9 +65,9 @@ static s32 lbl_3_bss_17F8[1];
 static inline f32 distanceXZ(f32 x1, f32 z1, f32 x2, f32 z2) {
     f32 dx = x1 - x2;
     f32 dz = z1 - z2;
-    dx = dx * dx;
-    dz = dz * dz;
-    return dolsqrtf2(dx + dz);
+    f32 sqx = dx * dx;
+    f32 sqz = dz * dz;
+    return dolsqrtf2(sqx + sqz);
 }
 
 static inline BOOL fn_3_A295C_inline(void) {
@@ -179,30 +179,13 @@ static inline int throwFramesToPoint(InMemFielder* thrower, f32 x, f32 z) {
     f32 speed = thrower->modifiedThrowingArm / 200.0f;
     f32 dx = x - thrower->pos.x;
     f32 dz = z - thrower->pos.z;
+    f32 sqx;
+    f32 sqz;
     f32 dist;
-    int frames;
-
-    dx = dx * dx;
-    dz = dz * dz;
-    dist = dolsqrtf2(dx + dz);
-    if (0.0f == speed) {
-        speed = 1.0f;
-    }
-    if (dist > 60.0f) {
-        frames = 1.15f * dist / speed;
-    } else if (dist > 30.0f) {
-        frames = dist / speed;
-    } else {
-        frames = 0.8f * dist / speed;
-    }
-    if (dist > 80.0f) {
-        frames *= 1.3f;
-        frames += 0x1e;
-    } else if (dist > 70.0f) {
-        frames *= 1.15f;
-        frames += 0x1e;
-    }
-    return frames;
+    sqx = dx * dx;
+    sqz = dz * dz;
+    dist = dolsqrtf2(sqx + sqz);
+    return throwFramesForDistance(dist, speed);
 }
 
 // .text:0x000ABDD0 size:0xC28 mapped:0x806EAE64
@@ -219,10 +202,7 @@ void makeThrowVariables(int fielderIndex) {
     int chem;
     int prob;
     int rng;
-    int at4;
     int i;
-    f32 dx;
-    f32 dz;
     f32 groundSpeed;
     f32 ballX;
     f32 ballY;
@@ -282,49 +262,8 @@ void makeThrowVariables(int fielderIndex) {
         }
     } else if (loc == 6 && g_FieldingLogic.cutoffFielderIndex >= 0 && g_FieldingLogic.cutoffFielderIndex != fielderIndex) {
         setCutoffThrowTargetLocation(&targetX, &targetZ);
-    } else if ((at4 = g_FieldingLogic.fielderAssignedLocationIndex[4]) < 0) {
-        targetX = base_MoundCoordinates[4].x;
-        targetZ = base_MoundCoordinates[4].z;
-        g_Ball.ballIsLooseInd_unused = 1;
-        g_Ball.fielderBeingThrownTo = -1;
     } else {
-        InMemFielder* thrower = &g_Fielders[g_Ball.fielderWBallIndex];
-        f32 speed;
-        f32 dist;
-        int frames;
-
-        speed = thrower->modifiedThrowingArm / 200.0f;
-        dx = g_Fielders[at4].pos.x - thrower->pos.x;
-        dz = g_Fielders[at4].pos.z - thrower->pos.z;
-        dx = dx * dx;
-        dz = dz * dz;
-        dist = dolsqrtf2(dx + dz);
-        if (0.0f == speed) {
-            speed = 1.0f;
-        }
-        if (dist > 60.0f) {
-            frames = 1.15f * dist / speed;
-        } else if (dist > 30.0f) {
-            frames = dist / speed;
-        } else {
-            frames = 0.8f * dist / speed;
-        }
-        if (dist > 80.0f) {
-            frames *= 1.3f;
-            frames += 0x1e;
-        } else if (dist > 70.0f) {
-            frames *= 1.15f;
-            frames += 0x1e;
-        }
-        frames -= 10;
-        if (g_Fielders[at4].numFramesToGetToAutoLocation < frames) {
-            targetX = g_Fielders[at4].IntendedLocation.x;
-            targetZ = g_Fielders[at4].IntendedLocation.z;
-        } else {
-            targetX = frames * g_Fielders[at4].velocityX + g_Fielders[at4].pos.x;
-            targetZ = frames * g_Fielders[at4].velocityZ + g_Fielders[at4].pos.z;
-        }
-        g_Ball.fielderBeingThrownTo = at4;
+        fn_3_AAC84(&targetX, &targetZ);
     }
     g_Ball.throwTarget.x = targetX;
     g_Ball.throwTarget.z = targetZ;
@@ -369,15 +308,9 @@ void makeThrowVariables(int fielderIndex) {
     } else {
         g_Ball.numThrowsDuringPlay = 0xff;
     }
-    dx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
-    dz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
     fielder->currentVelocity = 0.0f;
     fielder->const_60 = 60;
-    g_Ball.ballZoneFromHomeAtStartOfThrow = g_Ball.ballZoneAwayFromHome;
-    dx = dx * dx;
-    dz = dz * dz;
     fielder->standingStillInd = 1;
-    g_FieldingLogic.locThrownTo2 = g_FieldingLogic.locationThrownTo;
     g_Ball.framesSinceThrowStarted = 0;
     g_Ball.ballState = BALL_STATE_THROWN;
     g_Ball.fielderWBallIndex = -1;
@@ -388,18 +321,21 @@ void makeThrowVariables(int fielderIndex) {
     g_Ball.throwingFielder = fielderIndex;
     g_Ball.matchFramesAndBallAngle.framesSinceLastThrow = g_Ball.timeSinceBallPickedUp;
     g_Ball.timeSinceBallPickedUp = -1;
+    g_Ball.ballZoneFromHomeAtStartOfThrow = g_Ball.ballZoneAwayFromHome;
+    g_Ball.throwStartingLocation.x = g_Ball.AtBat_Contact_BallPos.x;
+    g_Ball.throwStartingLocation.z = g_Ball.AtBat_Contact_BallPos.z;
     g_Ball.ballIsRollingIndicator = 0;
     g_FieldingLogic.unused_always0 = 0;
     g_FieldingLogic._011d = 0;
     fielder->_01E4 = 0;
     g_Pitcher.pickOffLoc = -1;
+    g_FieldingLogic.locThrownTo2 = g_FieldingLogic.locationThrownTo;
     g_FieldingLogic.tagAnimationCountdown = 0;
+    g_FieldingLogic.baseFielderIsOn = -1;
     g_FieldingLogic.someCountDown = 0;
     g_FieldingLogic.humanSelectedPlaceToThrow = -1;
-    g_FieldingLogic.baseFielderIsOn = -1;
-    g_Ball.throwStartingLocation.x = g_Ball.AtBat_Contact_BallPos.x;
-    g_Ball.throwStartingLocation.z = g_Ball.AtBat_Contact_BallPos.z;
-    g_Ball.throwDistance = dolsqrtf2(dx + dz);
+    g_Ball.throwDistance = distanceXZ(g_Ball.throwTarget.x, g_Ball.throwTarget.z, g_Ball.AtBat_Contact_BallPos.x,
+                                      g_Ball.AtBat_Contact_BallPos.z);
     if (g_FieldingLogic.cutoffFielderIndex == fielderIndex) {
         g_FieldingLogic.cutoffFielderIndex = -1;
     }
@@ -678,6 +614,7 @@ void fn_3_AB554(void) {
 
 // .text:0x000AAFF0 size:0x564 mapped:0x806EA084
 void setCutoffThrowTargetLocation(f32* targetX, f32* targetZ) {
+    f32 lenSq;
     InMemFielder* thrower;
     InMemFielder* cutoff;
     f32 len;
@@ -695,11 +632,12 @@ void setCutoffThrowTargetLocation(f32* targetX, f32* targetZ) {
     } else {
         stepZ = cutoff->IntendedLocation.z - cutoff->pos.z;
         stepX = cutoff->IntendedLocation.x - cutoff->pos.x;
-        len = dolsqrtf2(stepX * stepX + stepZ * stepZ);
+        lenSq = stepX * stepX + stepZ * stepZ;
+        len = dolsqrtf2(lenSq);
         if (0.0f == len) {
             len = 1.0f;
         } else {
-            len = dolsqrtf2(stepX * stepX + stepZ * stepZ);
+            len = dolsqrtf2(lenSq);
         }
         if (len <= 0.1f) {
             len = 0.1f;
@@ -733,29 +671,7 @@ void fn_3_AAC84(f32* outX, f32* outZ) {
         return;
     }
     thrower = &g_Fielders[g_Ball.fielderWBallIndex];
-    speed = thrower->modifiedThrowingArm / 200.0f;
-    dx = g_Fielders[receiverIdx].pos.x - thrower->pos.x;
-    dz = g_Fielders[receiverIdx].pos.z - thrower->pos.z;
-    sqx = dx * dx;
-    dz = dz * dz;
-    dist = dolsqrtf2(dz + sqx);
-    if (0.0f == speed) {
-        speed = 1.0f;
-    }
-    if (dist > 60.0f) {
-        frames = 1.15f * dist / speed;
-    } else if (dist > 30.0f) {
-        frames = dist / speed;
-    } else {
-        frames = 0.8f * dist / speed;
-    }
-    if (dist > 80.0f) {
-        frames *= 1.3f;
-        frames += 0x1e;
-    } else if (dist > 70.0f) {
-        frames *= 1.15f;
-        frames += 0x1e;
-    }
+    frames = throwFramesToPoint(thrower, g_Fielders[receiverIdx].pos.x, g_Fielders[receiverIdx].pos.z);
     lead = frames - 10;
     if (g_Fielders[receiverIdx].numFramesToGetToAutoLocation < lead) {
         *outX = g_Fielders[receiverIdx].IntendedLocation.x;
