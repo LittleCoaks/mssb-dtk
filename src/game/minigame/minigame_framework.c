@@ -1926,7 +1926,7 @@ void minigames_loadCharStats(int slot, int charID) {
 void minigames_pickOpponentsAndLoadStats(void) {
     int pool[12];
     int used[4];
-    int i;
+    s32 i;
     int j;
     int k;
     int cursor;
