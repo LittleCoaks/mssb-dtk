@@ -2837,8 +2837,7 @@ void fielderAIChaseRunner(void) {
     }
     g_FieldingLogic._011d = 0;
     if (g_FieldingLogic.somethingForTryingTagOutTargetBase >= 0 && g_FieldingLogic.somethingForTryingTagOutTargetBase <= 3) {
-        s16* assignedLocs = g_FieldingLogic.fielderAssignedLocationIndex;
-        s16 assigned = assignedLocs[g_FieldingLogic.somethingForTryingTagOutTargetBase];
+        int assigned = g_FieldingLogic.fielderAssignedLocationIndex[g_FieldingLogic.somethingForTryingTagOutTargetBase];
 
         if (assigned != fielderIdx) {
             if (fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f) {
@@ -2850,7 +2849,7 @@ void fielderAIChaseRunner(void) {
                 }
                 fielder->locationResponsibleForCovering = g_FieldingLogic.somethingForTryingTagOutTargetBase;
                 fielder->isResponsibleForCoveringALocation = 1;
-                assignedLocs[fielder->locationResponsibleForCovering] = fielderIdx;
+                g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] = fielderIdx;
             }
         }
         if (fielder->locationResponsibleForCovering >= 0) {
@@ -2877,17 +2876,9 @@ void fielderAIChaseRunner(void) {
         }
     }
     if (g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
-        InMemRunnerType* runner = &g_Runners[g_FieldingLogic.runnerChasingAfter];
         s16 base;
 
-        if (runner->runningDirectionCode == 2) {
-            setFielderAutoCoords(g_Ball.fielderWBallIndex, runner->position.x, runner->position.z);
-        } else {
-            f32 vx = runner->velocity.x * runner->distanceFromBall;
-            f32 vz = runner->velocity.y * runner->distanceFromBall;
-            setFielderAutoCoords(g_Ball.fielderWBallIndex, 2.0f * vx + runner->position.x,
-                                 2.0f * vz + runner->position.z);
-        }
+        fn_3_A4158(g_FieldingLogic.runnerChasingAfter);
         base = g_Runners[g_FieldingLogic.runnerChasingAfter].baseStandingOn;
         if (base >= 0) {
             if (fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f) {
