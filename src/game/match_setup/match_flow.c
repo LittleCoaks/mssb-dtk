@@ -805,7 +805,7 @@ void checkIfPlayOver(void) {
                g_Ball.ballState != 0) {
         endFrame = 0x78;
     } else if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
-        if (g_Ball.deadBallReason == 3 || g_Ball.deadBallReason == DEAD_BALL_REASON_BALL_DEAD) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_GROUND_RULE_DOUBLE || g_Ball.deadBallReason == DEAD_BALL_REASON_BALL_DEAD) {
             endFrame = 0x78;
         } else {
             endFrame = 0x3C;
@@ -1032,7 +1032,6 @@ void playOverTransitionStuff(void) {
 void handleDeadBall(void) {
     int count = 0;
     int i;
-    int runs;
 
     if (g_Ball.deadBallRBIsAddedInd != 0) {
         return;
@@ -1051,24 +1050,22 @@ void handleDeadBall(void) {
             g_Runners[2].scoredOnGRD = 0;
             count = 1;
         }
+        g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] = g_Scores._9E;
         g_Ball.deadBallRBIsAddedInd = 1;
         storedInningInfo.rbisWaitingToBeAddedToScore = count;
-        g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] = g_Scores._9E;
         g_Scores._9C = count;
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_LANDED;
         }
     } else if (g_Ball.deadBallReason == DEAD_BALL_REASON_BALL_DEAD) {
-        runs = g_Scores.scores[1].total;
         for (i = 3; i >= 0; i--) {
             if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
                 (i >= 2 || g_Runners[i].baseReachedAtTimeOfThrow >= 2)) {
                 g_Runners[i].scoredOnGRD = 1;
-                runs++;
                 count++;
             }
             if (g_Scores.Inning >= g_Scores.inningLimit && g_Scores.halfInning != 0 &&
-                g_Scores.scores[0].total < runs) {
+                g_Scores.scores[0].total < g_Scores.scores[1].total + count) {
                 break;
             }
         }
