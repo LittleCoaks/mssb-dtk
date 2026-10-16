@@ -1004,7 +1004,7 @@ void minigameSelectSwitcher(void) {
             if (g_Minigame.challengeModeInd != 0) {
                 g_Minigame.selectedDifficulty = 0;
             } else {
-                g_Minigame.selectedDifficulty = ((u8*)&g_d_GameSettings)[0x13 + mode];
+                g_Minigame.selectedDifficulty = (&g_d_GameSettings._13)[mode];
             }
         }
         SetGameStatus(GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT);
@@ -1269,7 +1269,7 @@ void minigameCharSelectUpdate(void) {
 
     port = lbl_80366158[0x27];
     pad = &g_Controls[port];
-    maxLevel = ((u8*)&g_d_GameSettings)[0x13 + g_Minigame.GameMode_MiniGame];
+    maxLevel = (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame];
     if (g_Minigame.challengeModeInd != 0) {
         maxLevel = 2;
     }
@@ -2901,7 +2901,7 @@ void postMinigame(void) {
     SATURATING_INCREMENT(pauseControl._12);
     switch (pauseControl.state) {
     case 0:
-        if (g_Minigame.multiPlayerInd != 0 || ((u8*)&g_d_GameSettings)[0x13 + g_Minigame.GameMode_MiniGame] == 0) {
+        if (g_Minigame.multiPlayerInd != 0 || (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame] == 0) {
             pauseControl._1D0 = 12;
         } else if (g_Minigame.difficultyUnlockedInd != 0) {
             pauseControl._1D0 = 11;
