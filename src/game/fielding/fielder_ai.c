@@ -2251,6 +2251,7 @@ void fn_3_A53DC(int runnerIdx) {
     InMemFielder* fielder;
     InMemRunnerType* runner;
     int frames;
+    int framesToBase;
 
     runner = &g_Runners[runnerIdx];
     fielder = &g_Fielders[g_Ball.fielderWBallIndex];
@@ -2259,7 +2260,8 @@ void fn_3_A53DC(int runnerIdx) {
         frames = throwFramesToPoint(fielder, base_MoundCoordinates[0].x, base_MoundCoordinates[0].z);
         frames = fielder->throwWindupEstimate + frames;
         frames = frames + lbl_3_data_1C40;
-        setThrowStrategy(runnerIdx, 0, frames, runner->framesToNextBase);
+        framesToBase = runner->framesToNextBase;
+        setThrowStrategy(runnerIdx, 0, frames, framesToBase);
     }
 }
 
