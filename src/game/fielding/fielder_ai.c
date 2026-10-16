@@ -581,13 +581,7 @@ void setCutoffThrowTargetLocation(f32* targetX, f32* targetZ) {
 void fn_3_AAC84(f32* outX, f32* outZ) {
     int receiverIdx = g_FieldingLogic.fielderAssignedLocationIndex[4];
     InMemFielder* thrower;
-    f32 dx;
-    f32 dz;
-    f32 dist;
-    f32 speed;
     int frames;
-    int lead;
-    f32 sqx;
 
     if (receiverIdx < 0) {
         *outX = base_MoundCoordinates[4].x;
@@ -598,13 +592,12 @@ void fn_3_AAC84(f32* outX, f32* outZ) {
     }
     thrower = &g_Fielders[g_Ball.fielderWBallIndex];
     frames = throwFramesToPoint(thrower, g_Fielders[receiverIdx].pos.x, g_Fielders[receiverIdx].pos.z);
-    lead = frames - 10;
-    if (g_Fielders[receiverIdx].numFramesToGetToAutoLocation < lead) {
+    if (g_Fielders[receiverIdx].numFramesToGetToAutoLocation < frames - 10) {
         *outX = g_Fielders[receiverIdx].IntendedLocation.x;
         *outZ = g_Fielders[receiverIdx].IntendedLocation.z;
     } else {
-        *outX = lead * g_Fielders[receiverIdx].velocityX + g_Fielders[receiverIdx].pos.x;
-        *outZ = lead * g_Fielders[receiverIdx].velocityZ + g_Fielders[receiverIdx].pos.z;
+        *outX = (frames - 10) * g_Fielders[receiverIdx].velocityX + g_Fielders[receiverIdx].pos.x;
+        *outZ = (frames - 10) * g_Fielders[receiverIdx].velocityZ + g_Fielders[receiverIdx].pos.z;
     }
     g_Ball.fielderBeingThrownTo = receiverIdx;
 }
