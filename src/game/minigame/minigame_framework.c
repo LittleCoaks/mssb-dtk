@@ -1769,8 +1769,7 @@ void minigameCharLoadQueueUpdate(void) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             n = 1;
         }
-        count = 0;
-        for (i = 0; i < n; i++) {
+        for (i = 0, count = 0; i < n; i++) {
             order[i].idx = -1;
             if (g_Minigame.charLoadSlot != i && g_Minigame.selectSlots[i].charID != CHAR_ID_NONE) {
                 if (g_Minigame.selectSlots[i].charID == g_Minigame.selectSlots[i].loadedCharID && g_Minigame.selectSlots[i].loadedHandedness == g_Minigame.battingHandedness[i]) {
@@ -1816,8 +1815,8 @@ void minigameCharLoadQueueUpdate(void) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
                 sel = 9;
             }
-            if (g_Minigame.charLoadStartedInd == 0) {
-                g_Minigame.charLoadStartedInd = 1;
+            if (g_Minigame.charLoadStartedInd == FALSE) {
+                g_Minigame.charLoadStartedInd = TRUE;
                 fn_80011B64(sel);
             }
             if (g_Minigame.selectSlots[slot].pendingCharID >= 0) {
@@ -1828,12 +1827,12 @@ void minigameCharLoadQueueUpdate(void) {
             if (fontCharID != 0) {
                 g_Minigame.selectSlots[slot].loadedCharID = g_Minigame.selectSlots[slot].pendingCharID;
                 g_Minigame.selectSlots[slot].pendingCharID = CHAR_ID_NONE;
-                hugeAnimStruct[0x2D77] = 0;
                 g_Minigame.selectSlots[slot].loadedHandedness = g_Minigame.selectSlots[slot].wantedHandedness;
+                hugeAnimStruct[0x2D77] = 0;
                 g_Minigame.charLoadSlot = -1;
                 g_Minigame.charLoadQueue[0] = -1;
-                g_Minigame.charLoadPending[slot] = 0;
-                g_Minigame.charLoadStartedInd = 0;
+                g_Minigame.charLoadPending[slot] = FALSE;
+                g_Minigame.charLoadStartedInd = FALSE;
                 fn_3_E1370(3);
                 continue;
             }
