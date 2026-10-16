@@ -3397,11 +3397,7 @@ int running_overrunBaseControl(int runnerIdx) {
         runner->overrunBaseFrames_countDown--;
         if (runner->overrunBaseFrames_countDown < 0) {
             runner->overrunBaseStage = 0;
-            runner->runningDirectionCode = 2;
-            runner->nextDirectionBeingProcessed = 2;
-            runner->groundVelocity[0] = 0.0f;
-            runner->percentRanPerFrame_slideAdj = 0.0f;
-            runner->roundingStrengthPercent = 0.0f;
+            fn_3_81AB8(runnerIdx);
             fn_3_810C4(runnerIdx, runner->currentBase);
         } else {
             runner->percentRanPerFrame_slideAdj = runner->overrun1B_someDistConst_proportionPerFrame;
