@@ -1872,8 +1872,9 @@ void startChallengeModeMatch(void) {
             g_Runners[1].rosterID = -1;
             g_Runners[2].rosterID = -1;
             g_Runners[3].rosterID = -1;
+            i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
             if (flags & 1) {
-                i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1;
+                i--;
                 if (i < 1) {
                     i = 9;
                 }
@@ -1881,7 +1882,7 @@ void startChallengeModeMatch(void) {
                     g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
             }
             if (flags & 0x10) {
-                i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1;
+                i--;
                 if (i < 1) {
                     i = 9;
                 }
@@ -1889,7 +1890,7 @@ void startChallengeModeMatch(void) {
                     g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
             }
             if (flags & 0x100) {
-                i = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1;
+                i--;
                 if (i < 1) {
                     i = 9;
                 }
@@ -1909,8 +1910,8 @@ void startChallengeModeMatch(void) {
         }
         g_Scores.mercyThreshold = challengeInnings[g_d_GameSettings.challengeDifficulty].mercyThreshold;
     }
-    for (i = 0; i < 54; i++) {
-        for (j = 0; j < 10; j++) {
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
             if (g_Challenge.characters[i].inGameMissionTracker[j].starMissionStatus != STAR_MISSION_TRACKING_COMPLETED_SAVED) {
                 g_Challenge.characters[i].inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
             }
