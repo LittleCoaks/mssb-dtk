@@ -188,6 +188,10 @@ static inline int throwFramesToPoint(InMemFielder* thrower, f32 x, f32 z) {
     return throwFramesForDistance(dist, speed);
 }
 
+static inline int fielderChemistry(int a, int b) {
+    return calculateChemistry(g_GameLogic.teamFielding, g_Fielders[a].CharID, g_Fielders[b].CharID);
+}
+
 // .text:0x000ABDD0 size:0xC28 mapped:0x806EAE64
 void makeThrowVariables(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -221,11 +225,10 @@ void makeThrowVariables(int fielderIndex) {
     g_Ball.offsetWhilePickedUpHistory[0].y = 0.0f;
     g_Ball.offsetWhilePickedUpHistory[0].z = 0.0f;
     if ((s16)loc >= 0 && loc <= 3) {
-        g_Ball.fielderBeingThrownTo = g_FieldingLogic.fielderAssignedLocationIndex[loc];
         targetX = base_MoundCoordinates[loc].x;
         targetZ = base_MoundCoordinates[loc].z;
-        chem = calculateChemistry(g_GameLogic.teamFielding, g_Fielders[fielderIndex].CharID,
-                                  g_Fielders[g_Ball.fielderBeingThrownTo].CharID);
+        g_Ball.fielderBeingThrownTo = g_FieldingLogic.fielderAssignedLocationIndex[loc];
+        chem = fielderChemistry(fielderIndex, g_Ball.fielderBeingThrownTo);
         if (chem >= chemThresholds[0] &&
             g_FieldingLogic.locationThrownTo == g_Fielders[g_Ball.fielderBeingThrownTo].baseCurrentlyOn) {
             g_FieldingLogic.IsChemistryThrow = 1;
