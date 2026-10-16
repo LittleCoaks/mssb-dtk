@@ -3103,15 +3103,14 @@ BOOL checkForPauses(void) {
         return FALSE;
     }
     for (i = 0; i < 4; i++) {
-        if (g_Minigame.playerSlots.characterIndex[i] >= 0 && g_Minigame.playerSlots.aiControlledInd[i] == 0 &&
+        if (g_Minigame.playerSlots.characterIndex[i] >= 0 && g_Minigame.playerSlots.aiControlledInd[i] == FALSE &&
             (g_Controls[g_Minigame.playerSlots.characterIndex[i]].newButtonInput & INPUT_BUTTON_START)) {
-            break;
+            goto found;
         }
     }
-    if (i >= 4) {
-        return FALSE;
-    }
-    g_Minigame.pauseInd = 1;
+    return FALSE;
+found:
+    g_Minigame.pauseInd = TRUE;
     pauseControl.port = g_Minigame.playerSlots.characterIndex[i];
     pauseControl._00A = 0;
     if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
