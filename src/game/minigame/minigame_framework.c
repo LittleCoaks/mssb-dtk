@@ -143,7 +143,13 @@ extern void minigames_0x28(void);
 extern void minigames_setupChallengeRoster(void);
 extern void minigames_pickOpponentsAndLoadStats(void);
 
-extern MinigameResultEntry lbl_803616CC[][5];
+typedef struct {
+    MinigameResultEntry scores[8][5];
+    MiniGrandPrixScoreInput grandPrixBest[32];
+    s8 grandPrixBestPlace[32];
+    u8 _420[0x34];
+} MinigameRecords;
+extern MinigameRecords lbl_803616CC;
 extern s16 lbl_80109410[];
 extern void fn_8006C398(MiniGrandPrixScoreInput* input);
 extern int fn_8006C13C(MiniGrandPrixScoreInput* input);
@@ -2711,12 +2717,12 @@ void minigameBuildResultEntry(MinigameResultEntry* out) {
 
 MinigameResultEntry* minigameGetScoreTable(void) {
     if (g_Minigame.grandPrixInd != 0) {
-        return &lbl_803616CC[7][0];
+        return &lbl_803616CC.scores[7][0];
     }
     if (g_Minigame.GameMode_MiniGame != 0) {
-        return &lbl_803616CC[g_Minigame.GameMode_MiniGame - 1][5];
+        return &lbl_803616CC.scores[g_Minigame.GameMode_MiniGame - 1][5];
     }
-    return &lbl_803616CC[0][0];
+    return &lbl_803616CC.scores[0][0];
 }
 
 int minigameGetScoreRank(MinigameResultEntry* entry) {
@@ -2748,7 +2754,6 @@ void minigameUpdateHighScores(void) {
     u32 rank;
     u32 i;
     int category;
-    s8* bestPlace;
 
     g_Minigame.newRecordRow = 5;
     if (g_Minigame.humanPlayerCount != 1) {
@@ -2774,18 +2779,17 @@ void minigameUpdateHighScores(void) {
     if (g_Minigame.grandPrixInd != 0) {
         minigameFillGrandPrixScoreInput(&input);
         category = characterStaticIndexes[input.charID].requirementRow;
-        best = (MiniGrandPrixScoreInput*)((u8*)lbl_803616CC + 0x140) + category;
+        best = &lbl_803616CC.grandPrixBest[category];
         if ((s16)fn_8006C13C(&input) > (s16)fn_8006C13C(best)) {
             minigameFillGrandPrixScoreInput(best);
-            g_Minigame.grandPrixNewBestInd[0] = 1;
+            g_Minigame.grandPrixNewBestInd[0] = TRUE;
         } else if ((s16)fn_8006C13C(&input) == (s16)fn_8006C13C(best) && input.placeRank < best->placeRank) {
             minigameFillGrandPrixScoreInput(best);
-            g_Minigame.grandPrixNewBestInd[0] = 1;
+            g_Minigame.grandPrixNewBestInd[0] = TRUE;
         }
-        bestPlace = (s8*)lbl_803616CC + 0x400 + category;
-        if (3 - *bestPlace > input.placeRank) {
-            *bestPlace = 3 - input.placeRank;
-            g_Minigame.grandPrixNewBestInd[0] = 1;
+        if (3 - lbl_803616CC.grandPrixBestPlace[category] > input.placeRank) {
+            lbl_803616CC.grandPrixBestPlace[category] = 3 - input.placeRank;
+            g_Minigame.grandPrixNewBestInd[0] = TRUE;
         }
     }
 }
