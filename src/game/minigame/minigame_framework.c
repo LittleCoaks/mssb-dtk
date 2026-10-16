@@ -2446,8 +2446,8 @@ void minigameEndSwitcher(void) {
     MinigameResultEntry entry;
     BOOL eligible;
     int rank;
-    int i;
     u8* count;
+    int i;
 
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
