@@ -70,87 +70,7 @@ static inline f32 distanceXZ(f32 x1, f32 z1, f32 x2, f32 z2) {
     return dolsqrtf2(sqx + sqz);
 }
 
-static inline BOOL fn_3_A295C_inline(void) {
-    InMemRunnerType* runner = &g_Runners[originalBaseOfRunnerInThisBaseline[2]];
-    f32 pct = runner->percentTowardsNextBase;
-    BOOL inRange;
 
-    if (pct > 0.2f && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] < 3 &&
-        g_Ball.ballZoneAwayFromHome <= 1 && pct <= 0.25f &&
-        !(pct >= 0.25f && runner->runningDirectionCode == 1) && (hexBaserunnerTracker & 1) != 0 &&
-        g_Ball.ballAngleFromHome > 0x1C0 && g_Ball.ballAngleFromHome < 0x300 && pct <= 0.3f &&
-        fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[0]] <= 3 &&
-        fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[0]) != 0) {
-        return 1;
-    }
-    if (g_Ball.ballAngleFromHome >= 0x380 && g_Ball.ballAngleFromHome < 0x640 && g_Ball.ballZoneAwayFromHome <= 1 &&
-        g_Ball.AtBat_Contact_BallPos.z > 35.0f + g_Ball.AtBat_Contact_BallPos.x) {
-        inRange = 1;
-    } else {
-        inRange = 0;
-    }
-    if (inRange && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 4 &&
-        g_Strikes.outs == g_Strikes.storedOuts) {
-        if (runner->percentTowardsNextBase > 0.2f &&
-            fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) {
-            return 1;
-        }
-        if ((hexMovementsInEachBaseline1for2back4stop & 0x10) != 0 &&
-            runner->percentTowardsNextBase > 0.15f &&
-            fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-static inline BOOL fn_3_A2FD8_inline(void) {
-    BOOL inRange;
-    f32 x = g_Ball.AtBat_Contact_BallPos.x;
-    f32 z = g_Ball.AtBat_Contact_BallPos.z;
-
-    if (z < x + 40.0f && z < 40.0f - x) {
-        inRange = 1;
-    } else {
-        inRange = 0;
-    }
-    if (inRange) {
-        if (urgencyLevel >= 1) {
-            if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 4 &&
-                fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-                return 1;
-            }
-        } else if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 3 &&
-                   fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-            return 1;
-        }
-    }
-    if (urgencyLevel <= 1 && g_Ball.ballDistanceFromBase[3] < 5.0f &&
-        fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 2 &&
-        fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) {
-        return 1;
-    }
-    if (g_Ball.ballDistanceFromBase[0] <= g_Ball.ballDistanceFromBase[2]) {
-        if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 4 &&
-            fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-            return 1;
-        }
-        if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 4 &&
-            fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0) {
-            return 1;
-        }
-    } else {
-        if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 4 &&
-            fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0) {
-            return 1;
-        }
-        if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 4 &&
-            fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
 
 static inline int throwFramesForDistance(f32 dist, f32 speed) {
     int frames;
@@ -2936,16 +2856,7 @@ BOOL fn_3_A31E8(void) {
 
 // .text:0x000A2FD8 size:0x210 mapped:0x806E206C
 BOOL fn_3_A2FD8(void) {
-    BOOL inRange;
-    f32 x = g_Ball.AtBat_Contact_BallPos.x;
-    f32 z = g_Ball.AtBat_Contact_BallPos.z;
-
-    if (z < x + 40.0f && z < 40.0f - x) {
-        inRange = 1;
-    } else {
-        inRange = 0;
-    }
-    if (inRange) {
+    if (fn_3_A372C()) {
         if (urgencyLevel >= 1) {
             if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 4 &&
                 fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
@@ -3081,12 +2992,7 @@ BOOL fn_3_A295C(void) {
         fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[0]) != 0) {
         return 1;
     }
-    if (g_Ball.ballAngleFromHome >= 0x380 && g_Ball.ballAngleFromHome < 0x640 && g_Ball.ballZoneAwayFromHome <= 1 &&
-        g_Ball.AtBat_Contact_BallPos.z > 35.0f + g_Ball.AtBat_Contact_BallPos.x) {
-        inRange = 1;
-    } else {
-        inRange = 0;
-    }
+    inRange = fn_3_A3768();
     if (inRange && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 4 &&
         g_Strikes.outs == g_Strikes.storedOuts) {
         if (runner->percentTowardsNextBase > 0.2f &&
@@ -3441,10 +3347,11 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
 
     if (g_FieldingLogic.throwWaitingInd != 0) {
         if (g_RunningLogic._10 == 0) {
-            if (g_Ball.ballZoneAwayFromHome < 2) {
+            if (g_Ball.ballZoneAwayFromHome >= 2) {
+                g_FieldingLogic.locationThrownTo = 6;
+            } else {
                 return;
             }
-            g_FieldingLogic.locationThrownTo = 6;
         }
     } else {
         f32 rangeF = (f32)(lbl_3_data_4710[1] - lbl_3_data_4710[0]);
@@ -3565,7 +3472,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
                  fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0)) {
                 break;
             }
-            if (hexBaserunnerTracker == 0x1111 && fn_3_A2FD8_inline()) {
+            if (hexBaserunnerTracker == 0x1111 && fn_3_A2FD8()) {
                 break;
             }
             if (hexBaserunnerTracker == 0x1011 && fn_3_A2DDC()) {
@@ -3577,7 +3484,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
             if ((hexBaserunnerTracker == 0x1001 || hexBaserunnerTracker == 0x1101) && fn_3_A2B6C()) {
                 break;
             }
-            if (hexBaserunnerTracker == 0x101 && fn_3_A295C_inline()) {
+            if (hexBaserunnerTracker == 0x101 && fn_3_A295C()) {
                 break;
             }
             if ((hexBaserunnerTracker & 1) != 0 && g_Ball.ballZoneAwayFromHome <= 1) {
