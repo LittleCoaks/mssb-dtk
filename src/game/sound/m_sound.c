@@ -566,8 +566,10 @@ void fn_3_8BDF4(void) {
 
 // .text:0x0008BE8C size:0x1F0 mapped:0x806CAF20
 void initializeSoundEmitters(void) {
-    SND_FVECTOR pos = lbl_3_rodata_1558;
-    int i = 0;
+    SND_FVECTOR pos;
+    s32 i = 0;
+
+    pos = lbl_3_rodata_1558;
 
     for (; i < 100; i++) {
         sndEmitter.emitterType[i] = 0xFF;
@@ -2047,9 +2049,11 @@ void fn_3_906FC(void) {
 void fn_3_8B094(void) {
     SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
     SoundReplayEventRecord* rec;
+    u8* bytes;
     u8 nextTail;
-    u8 vol;
-    s8 streamId;
+    u8 streamId;
+    s8 vol;
+    int cmdIdx;
     s8 cmd;
 
     if (queue->head == queue->tail) {
@@ -2059,24 +2063,26 @@ void fn_3_8B094(void) {
         return;
     }
     nextTail = (queue->tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
+    bytes = (u8*)queue;
+    cmdIdx = queue->tail * 3 + 0x17;
     rec = &queue->entries[queue->tail];
-    cmd = (s8)rec->arg2;
-    streamId = (s8)rec->arg1;
+    cmd = bytes[cmdIdx];
+    vol = rec->arg3;
+    streamId = rec->arg1;
     switch (cmd) {
     case 0:
-        vol = rec->arg3;
-        fn_800A8878(vol, vol);
-        if (jukeboxWork[streamId] == fn_800A88C0()) {
-            rec->arg2 = 2;
+        fn_800A8878((u8)vol, (u8)vol);
+        if (jukeboxWork[(s8)streamId] == fn_800A88C0()) {
+            bytes[cmdIdx] = 2;
         } else {
             fn_800A8AB8(0);
-            rec->arg2++;
+            bytes[cmdIdx]++;
         }
         return;
     case 1:
         fn_800A8AB0(2);
-        LoadFile((char**)&streamDescriptors[streamId], (LoadFileNode*)jukeboxWork[streamId], 0, 0, 1);
-        rec->arg2++;
+        LoadFile((char**)&streamDescriptors[(s8)streamId], (LoadFileNode*)jukeboxWork[(s8)streamId], 0, 0, 1);
+        bytes[cmdIdx]++;
         /* fall through */
     case 2:
         if (fn_800A8518(1)) {
