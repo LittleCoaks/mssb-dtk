@@ -463,19 +463,23 @@ void draw_initStarGuageHud(void) {
     currentDrawingItem->func = draw_ongoingStarGuageHud;
 }
 
+static inline BOOL uiRecordUnk69Is2(UIRecord* rec) {
+    return rec->unk69[0] == 2 ? TRUE : FALSE;
+}
+
 // .text:0x00099E10 size:0xA94 mapped:0x806D8EA4
 void draw_ongoingStarGuageHud(void) {
     StarGaugeScene* scene = (StarGaugeScene*)currentDrawingItem;
     int gainTeam = -1;
     int loseTeam = -1;
     int newStars = -1;
-    int team;
-    int j;
-    int slot;
-    int stars;
-    int frame;
-    int bannerFrame;
     s32 i;
+    int bannerFrame;
+    int frame;
+    int stars;
+    int slot;
+    int j;
+    int team;
 
     scene->frameCount++;
     if (animRelated[0x96] != 0 || g_GameLogic.hudLoadingRelated != 0 ||
@@ -570,7 +574,7 @@ void draw_ongoingStarGuageHud(void) {
         } else {
             HUD_RECORD(scene, 45)->anchorSub = 2;
         }
-    } else if (HUD_RECORD(scene, 44)->unk69[0] == 2) {
+    } else if (uiRecordUnk69Is2(HUD_RECORD(scene, 44))) {
         HUD_RECORD(scene, 44)->flags |= UI_FLAG_VISIBLE;
         HUD_RECORD(scene, 44)->playMode = UI_PLAY_STOP;
         HUD_RECORD(scene, 44)->frame = 0;
