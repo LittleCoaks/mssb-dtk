@@ -2052,12 +2052,13 @@ fail:
 // .text:0x0008B094 size:0x1C4
 void fn_3_8B094(void) {
     SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
-    u8* bytes = (u8*)queue;
+    u8* bytes = (u8*)currentDrawingItem;
     u8 tail;
     u8 nextTail;
     s8 vol;
     u8 streamId;
     s8 cmd;
+    int cmdIdx;
 
     if (queue->head == queue->tail) {
         return;
@@ -2066,24 +2067,24 @@ void fn_3_8B094(void) {
         return;
     }
     tail = queue->tail;
-    nextTail = (queue->tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    cmd = bytes[tail * 3 + 0x17];
+    nextTail = (tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
+    cmd = bytes[cmdIdx = tail * 3 + 0x17];
     vol = queue->entries[tail].arg3;
     streamId = queue->entries[tail].arg1;
     switch (cmd) {
     case 0:
         fn_800A8878(vol, vol);
         if (jukeboxWork[(s8)streamId] == fn_800A88C0()) {
-            bytes[tail * 3 + 0x17] = 2;
+            bytes[cmdIdx] = 2;
         } else {
             fn_800A8AB8(0);
-            bytes[tail * 3 + 0x17]++;
+            bytes[cmdIdx]++;
         }
         return;
     case 1:
         fn_800A8AB0(2);
         LoadFile((char**)&streamDescriptors[(s8)streamId], (LoadFileNode*)jukeboxWork[(s8)streamId], 0, 0, 1);
-        bytes[tail * 3 + 0x17]++;
+        bytes[cmdIdx]++;
         /* fall through */
     case 2:
         if (fn_800A8518(1)) {
