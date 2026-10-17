@@ -862,6 +862,20 @@ void fn_3_8F1C8(void) {
     lbl_3_bss_1768 = (SoundReplayQueue*)insertGraphicDrawingFunction(fn_3_8B094, 0);
 }
 
+static inline void fadeOutMusic(long frames) {
+    if (frames < 0) {
+        frames = 3000;
+    }
+
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
+        sndSeqVolume(0, frames, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
+    }
+
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
+        sndSeqVolume(0, frames, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
+    }
+}
+
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
 
 void soundControl(void) {
@@ -1422,12 +1436,12 @@ pick:
     return;
 
 stopMusic:
-    playOverSounds(-1);
+    fadeOutMusic(-1);
     sound_crowd_EffectsStruct._20 = -1;
     return;
 
 fadeOutShort:
-    playOverSounds(0xC);
+    fadeOutMusic(0xC);
     sound_crowd_EffectsStruct._20 = -1;
 }
 
@@ -1691,9 +1705,9 @@ void makeSoundOfBallBouncing(void) {
 
 // .text:0x0008C4F0 size:0xD8 mapped:0x806CB584
 BOOL fn_3_8C4F0(u32 arg1, u8 arg2) {
-    u16 packed;
-    u8 hi;
-    u8 lo;
+    u32 packed;
+    u32 hi;
+    u32 lo;
     int diff;
 
     packed = fn_800A8864();
