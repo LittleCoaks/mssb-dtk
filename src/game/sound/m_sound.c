@@ -78,8 +78,8 @@ typedef struct SeqPlayEntry {
 // MWCC lays out this TU's .bss statics in reverse declaration order, so these
 // are declared from the highest address down.
 static s32 lbl_3_bss_1780[0x78 / sizeof(s32)];
-static s32 lbl_3_bss_177C;
-static s32 lbl_3_bss_1778;
+static SND_VOICEID lbl_3_bss_177C;
+static SND_VOICEID lbl_3_bss_1778;
 static s32 lbl_3_bss_1774;
 static u8 lbl_3_bss_1771;
 static u8 lbl_3_bss_1770;
@@ -2047,12 +2047,11 @@ fail:
 // .text:0x0008B094 size:0x1C4
 void fn_3_8B094(void) {
     SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
-    SoundReplayEventRecord* rec;
-    u8* bytes;
+    u8* bytes = (u8*)queue;
+    u8 tail;
     u8 nextTail;
-    u8 streamId;
     s8 vol;
-    int cmdIdx;
+    u8 streamId;
     s8 cmd;
 
     if (queue->head == queue->tail) {
@@ -2061,27 +2060,25 @@ void fn_3_8B094(void) {
     if (fn_800A88C8() == 3) {
         return;
     }
+    tail = queue->tail;
     nextTail = (queue->tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    bytes = (u8*)queue;
-    cmdIdx = queue->tail * 3 + 0x17;
-    rec = &queue->entries[queue->tail];
-    cmd = bytes[cmdIdx];
-    vol = rec->arg3;
-    streamId = rec->arg1;
+    cmd = bytes[tail * 3 + 0x17];
+    vol = queue->entries[tail].arg3;
+    streamId = queue->entries[tail].arg1;
     switch (cmd) {
     case 0:
-        fn_800A8878((u8)vol, (u8)vol);
+        fn_800A8878(vol, vol);
         if (jukeboxWork[(s8)streamId] == fn_800A88C0()) {
-            bytes[cmdIdx] = 2;
+            bytes[tail * 3 + 0x17] = 2;
         } else {
             fn_800A8AB8(0);
-            bytes[cmdIdx]++;
+            bytes[tail * 3 + 0x17]++;
         }
         return;
     case 1:
         fn_800A8AB0(2);
         LoadFile((char**)&streamDescriptors[(s8)streamId], (LoadFileNode*)jukeboxWork[(s8)streamId], 0, 0, 1);
-        bytes[cmdIdx]++;
+        bytes[tail * 3 + 0x17]++;
         /* fall through */
     case 2:
         if (fn_800A8518(1)) {
