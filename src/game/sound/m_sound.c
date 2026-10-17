@@ -565,7 +565,7 @@ void initializeSounds(void) {
     sound_crowd_EffectsStruct._28 = 0;
     sound_crowd_EffectsStruct._04 = -1;
     sound_crowd_EffectsStruct._08 = -1;
-    sound_crowd_EffectsStruct._2F = 0;
+    sound_crowd_EffectsStruct._2F = FALSE;
     sound_crowd_EffectsStruct._33 = 0;
 }
 
@@ -1718,7 +1718,7 @@ BOOL fn_3_8C4F0(u32 arg1, u8 arg2) {
     hi = (u8)(packed >> 8);
     lo = (u8)packed;
 
-    sound_crowd_EffectsStruct._2F = 0;
+    sound_crowd_EffectsStruct._2F = FALSE;
 
     if (lbl_3_bss_1761 == 0) {
         lbl_3_bss_1761 = 1;
@@ -1760,9 +1760,9 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
         lbl_3_bss_1764 = hi;
     }
 
-    if (sound_crowd_EffectsStruct._2F == 0) {
-        sound_crowd_EffectsStruct._2F = 1;
+    if (!sound_crowd_EffectsStruct._2F) {
         lbl_3_bss_176C = (f32)arg2 / (f32)arg1;
+        sound_crowd_EffectsStruct._2F = TRUE;
         lbl_3_bss_1764 = hi;
     }
 
@@ -1770,7 +1770,7 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
     fn_800A8878(lbl_3_bss_1764, lbl_3_bss_1764);
 
     if (lbl_3_bss_1764 >= (f32)arg2) {
-        sound_crowd_EffectsStruct._2F = 0;
+        sound_crowd_EffectsStruct._2F = FALSE;
         return FALSE;
     }
     return TRUE;
