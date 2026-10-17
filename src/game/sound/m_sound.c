@@ -17,15 +17,18 @@
 
 extern void fn_3_8B094(void);
 
+#define SOUND_EMITTER_COUNT 100
+#define SOUND_EMITTER_TYPE_NONE 0xFF
+
 // Composite listener/emitter object used by the stadium 3D sound code:
 // a listener, an array of emitters, an active-flag byte per emitter, and
 // two regions whose contents are unknown.
 typedef struct SoundEmitterState {
-    SND_LISTENER listener;         // 0x0000, size 0x90
-    SND_EMITTER emitters[100];     // 0x0090, stride 0x50
-    u8 emitterType[100];           // 0x1FD0, index into lbl_3_data_8974
-    E(u8, BOOL) emitterActive[100]; // 0x2034
-    u8 unk_2098[0xA0];             // 0x2098, unproven
+    SND_LISTENER listener;                          // 0x0000, size 0x90
+    SND_EMITTER emitters[SOUND_EMITTER_COUNT];      // 0x0090, stride 0x50
+    u8 emitterType[SOUND_EMITTER_COUNT];            // 0x1FD0, index into lbl_3_data_8974
+    E(u8, BOOL) emitterActive[SOUND_EMITTER_COUNT]; // 0x2034
+    u8 unk_2098[0xA0];                              // 0x2098, unproven
 } SoundEmitterState; // size 0x2138
 
 extern SoundEmitterState sndEmitter;
@@ -1756,7 +1759,7 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
 
 // .text:0x0008C104 size:0x1D8 mapped:0x806CB198
 void fn_3_8C104(int arg0) {
-    u8 tag;
+    int tag;
     int value = 0;
 
     if (audioFileDescriptors.enableMusic == 0) {
@@ -1787,7 +1790,7 @@ void fn_3_8C104(int arg0) {
         value = lbl_800E88A4[value + 0x10];
     } else {
         tag = g_d_GameSettings.StadiumID;
-        value = lbl_800E88A4[g_d_GameSettings.StadiumID * 2 + value];
+        value = lbl_800E88A4[(tag << 1) + value];
     }
 
     if (arg0 >= 0) {
@@ -1811,8 +1814,8 @@ void initializeSoundEmitters(void) {
     SND_FVECTOR pos = {0.0f, 0.0f, 0.0f};
     s32 i = 0;
 
-    for (; i < 100; i++) {
-        sndEmitter.emitterType[i] = 0xFF;
+    for (; i < SOUND_EMITTER_COUNT; i++) {
+        sndEmitter.emitterType[i] = SOUND_EMITTER_TYPE_NONE;
         sndEmitter.emitterActive[i] = FALSE;
         sndEmitter.unk_2098[i] = 0;
     }
@@ -1835,7 +1838,7 @@ int initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
     StadiumEmitterDef* def;
     int i;
 
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < SOUND_EMITTER_COUNT; i++) {
         if (!sndEmitter.emitterActive[i] || !sndCheckEmitter(&sndEmitter.emitters[i])) {
             sndEmitter.emitterType[i] = arg;
             sndEmitter.emitterActive[i] = TRUE;
@@ -1858,7 +1861,7 @@ int initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
             return i;
         }
     }
-    if (i == 100) {
+    if (i == SOUND_EMITTER_COUNT) {
         OSPanic("m_sound.c", 0xE4C, "No Empty Emitter");
     }
     return -1;
@@ -1870,7 +1873,7 @@ void updateOrRemoveEmitter(int emitterID, Vec* pos, Vec* vel) {
     SND_FVECTOR localPos;
     int type;
 
-    if (emitterID >= 0 && emitterID < 100) {
+    if (emitterID >= 0 && emitterID < SOUND_EMITTER_COUNT) {
         if (sndEmitter.emitterActive[emitterID]) {
             em = &sndEmitter.emitters[emitterID];
             if (!sndCheckEmitter(em)) {
@@ -1925,7 +1928,7 @@ void updateAndRemoveStadiumEmitter(int emitterID) {
     SND_FVECTOR pos;
     SND_FVECTOR dir;
 
-    if (emitterID >= 0 && emitterID < 100 && sndEmitter.emitterActive[emitterID]) {
+    if (emitterID >= 0 && emitterID < SOUND_EMITTER_COUNT && sndEmitter.emitterActive[emitterID]) {
         em = &sndEmitter.emitters[emitterID];
         if (sndCheckEmitter(em)) {
             pos = emitterPosX;
@@ -1940,7 +1943,7 @@ void updateAndRemoveStadiumEmitter(int emitterID) {
 void fn_3_8B804(void) {
     int i;
 
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < SOUND_EMITTER_COUNT; i++) {
         if (sndEmitter.emitterActive[i]) {
             if (sndCheckEmitter(&sndEmitter.emitters[i])) {
                 sndRemoveEmitter(&sndEmitter.emitters[i]);
@@ -2031,8 +2034,7 @@ BOOL addToCircularBuffer(u8 arg1, u8 arg2, u8 arg3) {
     }
 
     head = lbl_3_bss_1768->head;
-    next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    if (next == lbl_3_bss_1768->tail) {
+    if (lbl_3_bss_1768->tail == (next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) {
 fail:
         return FALSE;
     }
