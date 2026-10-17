@@ -90,6 +90,10 @@ typedef struct PracticeScene {
 #define PRACTICE_RECORD_PLUS(scene, i, k) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (k)].object)
 #define PRACTICE_RECORD_AT(scene, base, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
 
+static inline BOOL hudRecordFinished(UIRecord* rec) {
+    return rec->unk69[0] == 2 ? TRUE : FALSE;
+}
+
 void animatePracticeScene(void) {
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_RETURN_TO_MENU || g_GameLogic.framesOfExitingToMenu != 0) {
         return;
@@ -661,7 +665,7 @@ void practiceInstruction_update(void) {
             PRACTICE_RECORD(scene, 8)->flags |= UI_FLAG_VISIBLE;
             PRACTICE_RECORD(scene, 4)->playMode = UI_PLAY_FORWARD;
             PRACTICE_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
-            if (PRACTICE_RECORD(scene, 4)->unk69[0] == 2) {
+            if (hudRecordFinished(PRACTICE_RECORD(scene, 4))) {
                 PRACTICE_RECORD(scene, 10)->rgba = (PRACTICE_RECORD(scene, 10)->rgba & ~0xFF) | 0xFF;
             } else {
                 PRACTICE_RECORD(scene, 10)->rgba &= ~0xFF;
