@@ -1,3 +1,4 @@
+#define REP_HEADER_DATA_FN getRepHeaderData_rep7BF0
 #include "debug/rep_7BF0.h"
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
@@ -16,7 +17,7 @@
 
 extern void fn_800AD038(void *arg0);
 extern void fn_800A97D0(s32 arg0, s32 arg1);
-extern void fn_80037768(void *cam, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6);
+extern void fn_80037768(void *cam, s32 mode, f32 length, f32 center, f32 radius, f32 mass, s32 simNum);
 extern void fn_80037054(void *arg0, void *arg1);
 extern void fn_800383BC(void *arg0);
 extern void fn_1_273D8(void *arg0);
@@ -249,8 +250,8 @@ void fn_1_29414(void *arg0) {
 
 // .text:0x0002935C size:0xB8
 void fn_1_2935C(void *cam) {
-    fn_80037768(cam, 2, gDebugMenu.val34, (f32)gDebugMenu.val00 / 100000.0f, (f32)gDebugMenu.val04 / 100000.0f,
-                (f32)gDebugMenu.val08 / 100000.0f, (f32)gDebugMenu.val0C / 100000.0f);
+    fn_80037768(cam, 2, (f32)gDebugMenu.val00 / 100000.0f, (f32)gDebugMenu.val04 / 100000.0f,
+                (f32)gDebugMenu.val08 / 100000.0f, (f32)gDebugMenu.val0C / 100000.0f, gDebugMenu.val34);
 }
 
 // .text:0x0002905C size:0x300
@@ -262,7 +263,7 @@ void fn_1_2905C(void) {
         f32 v8 = (f32)gDebugMenu.val08 / 100000.0f;
         f32 vC = (f32)gDebugMenu.val0C / 100000.0f;
 
-        fn_80037768(gCamObj, 2, gDebugMenu.val34, v0, v4, v8, vC);
+        fn_80037768(gCamObj, 2, v0, v4, v8, vC, gDebugMenu.val34);
 
         ((Vec *)(gCamObj + 0xE8))->x = 0.0f;
         ((Vec *)(gCamObj + 0xE8))->y = (f32)gDebugMenu.val14 / 100000.0f;

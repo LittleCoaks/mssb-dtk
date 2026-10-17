@@ -312,9 +312,17 @@ static DrawListNode lbl_1_data_107E4[2] = {
     {0, fn_1_1D694}
 };
 
+typedef struct ChainNode {
+    /* 0x00 */ f32 _00;
+    /* 0x04 */ u8 _04[0x8];
+    /* 0x0C */ Vec pos;
+    /* 0x18 */ Vec prevPos;
+    /* 0x24 */ u8 _24[0x18];
+    /* 0x3C */ u32 _3C;
+} ChainNode; // size: 0x40
 static Mtx44 lbl_1_bss_47010;
 static u8 lbl_1_bss_45868[0x17A8];
-static u8 lbl_1_bss_43F68[0x1900];
+static ChainNode lbl_1_bss_43F68[100];
 static Mtx lbl_1_bss_43F38;
 static u8 lbl_1_bss_43EE0[0x58];
 typedef struct {
@@ -329,16 +337,8 @@ typedef struct {
 static GridPoint lbl_1_bss_F6E0[GRID_ROWS][GRID_COLS];
 static f32 lbl_1_bss_76E0[0x2000];
 static f32 lbl_1_bss_74E0[0x80];
-typedef struct ChainNode {
-    /* 0x00 */ f32 _00;
-    /* 0x04 */ u8 _04[0x8];
-    /* 0x0C */ Vec pos;
-    /* 0x18 */ Vec prevPos;
-    /* 0x24 */ u8 _24[0x18];
-    /* 0x3C */ u32 _3C;
-} ChainNode; // size: 0x40
 
-static u8 lbl_1_bss_6FE0[0x500];
+static ChainNode lbl_1_bss_6FE0[20];
 static u8 lbl_1_bss_6FB8[0x28];
 static f32 lbl_1_bss_6FB4;
 static Vec lbl_1_bss_6FA8;
@@ -768,7 +768,7 @@ static inline void drawMarkers(s32 count) {
 
     i = count;
     while (i-- != 0) {
-        u8 *p = lbl_1_bss_43F68 + i * 0x40;
+        u8 *p = (u8 *)lbl_1_bss_43F68 + i * 0x40;
 
         GX_WRITE_F32(*(f32 *)(p + 0xc));
         GX_WRITE_F32(*(f32 *)(p + 0x10));
@@ -781,7 +781,7 @@ static inline void drawMarkers(s32 count) {
 
     i = count;
     while (i-- != 0) {
-        u8 *p = lbl_1_bss_43F68 + i * 0x40;
+        u8 *p = (u8 *)lbl_1_bss_43F68 + i * 0x40;
         u32 *color = &((u32 *)lbl_1_data_10384)[i];
 
         GX_WRITE_F32(*(f32 *)(p + 0xc));
@@ -1145,7 +1145,7 @@ void fn_1_248BC(s32 count) {
 
     i = count;
     while (i-- != 0) {
-        u8 *p = lbl_1_bss_43F68 + i * 0x40;
+        u8 *p = (u8 *)lbl_1_bss_43F68 + i * 0x40;
 
         GX_WRITE_F32(*(f32 *)(p + 0xc));
         GX_WRITE_F32(*(f32 *)(p + 0x10));
@@ -1158,7 +1158,7 @@ void fn_1_248BC(s32 count) {
 
     i = count;
     while (i-- != 0) {
-        u8 *p = lbl_1_bss_43F68 + i * 0x40;
+        u8 *p = (u8 *)lbl_1_bss_43F68 + i * 0x40;
         u32 *color = &((u32 *)lbl_1_data_10384)[i];
 
         GX_WRITE_F32(*(f32 *)(p + 0xc));
@@ -1186,15 +1186,16 @@ void fn_1_248BC(s32 count) {
 // .text:0x000247A0 size:0x11C
 void fn_1_247A0(void) {
     DrawingSceneStruct *item = currentDrawingItem;
-    s32 idx = *((u8 *)item + 0x2b);
-    f32 tableVal = *(f32 *)(lbl_1_bss_43F68 + (idx * 0x40 - 0x40));
     f32 buf[3];
 
-    buf[0] = (f32)*(u16 *)((u8 *)item + 0x22) * ((f32)*((s8 *)&AtBat_ButtonInput1 + 0x10) * tableVal);
-    buf[1] = (f32)*(u16 *)((u8 *)item + 0x22) * ((f32)*((s8 *)&AtBat_ButtonInput1 + 0x13) * tableVal);
-    buf[2] = (f32)*(u16 *)((u8 *)item + 0x22) * ((f32)*((s8 *)&AtBat_ButtonInput1 + 0x11) * tableVal);
+    buf[0] = (f32)*(u16 *)((u8 *)item + 0x22) *
+             ((f32)*((s8 *)&AtBat_ButtonInput1 + 0x10) * lbl_1_bss_43F68[*((u8 *)item + 0x2b) - 1]._00);
+    buf[1] = (f32)*(u16 *)((u8 *)item + 0x22) *
+             ((f32)*((s8 *)&AtBat_ButtonInput1 + 0x13) * lbl_1_bss_43F68[*((u8 *)item + 0x2b) - 1]._00);
+    buf[2] = (f32)*(u16 *)((u8 *)item + 0x22) *
+             ((f32)*((s8 *)&AtBat_ButtonInput1 + 0x11) * lbl_1_bss_43F68[*((u8 *)item + 0x2b) - 1]._00);
 
-    fn_80038B48(lbl_1_bss_45868, lbl_1_bss_43F68, idx, buf);
+    fn_80038B48(lbl_1_bss_45868, lbl_1_bss_43F68, *((u8 *)item + 0x2b), buf);
 }
 
 // .text:0x00024778 size:0x28
@@ -1640,32 +1641,33 @@ s32 fn_1_23098(Mtx44 proj, Mtx view, s32 cols, s32 rows, f32 nearZ, f32 farZ) {
     PSVECNormalize(&dir, &dir);
     d = -PSVECDotProduct(&dir, &origin);
 
+    base[0].y = 0.0f;
+    base[1].y = 0.0f;
+    ray[0].x = 0.0f;
+    ray[0].z = 0.0f;
+    ray[1].x = 0.0f;
+    ray[1].z = 0.0f;
+
     halfW0 = 640.0f * nearZ / 1280.0f / 2.0f;
-    halfW1 = 640.0f * farZ / 1280.0f / 2.0f;
     halfH0 = 448.0f * nearZ / 1280.0f / 2.0f;
+    halfW1 = 640.0f * farZ / 1280.0f / 2.0f;
     halfH1 = 448.0f * farZ / 1280.0f / 2.0f;
 
     nearZ = -nearZ;
 
     base[0].x = halfW0;
-    base[0].y = 0.0f;
     base[0].z = nearZ;
     base[1].x = halfW1;
-    base[1].y = 0.0f;
     base[1].z = -farZ;
     base[2].x = halfW1;
     base[2].y = halfH1;
     base[2].z = -farZ;
     base[3].x = halfW1;
     base[3].y = -halfH1;
-    base[3].z = -farZ;
+    base[3].z = base[1].z;
 
-    ray[0].x = 0.0f;
     ray[0].y = halfH0;
-    ray[0].z = 0.0f;
-    ray[1].x = 0.0f;
     ray[1].y = halfH1;
-    ray[1].z = 0.0f;
     ray[2].x = halfW0 - halfW1;
     ray[2].y = halfH0 - halfH1;
     ray[2].z = nearZ - base[3].z;
@@ -2146,7 +2148,7 @@ void fn_1_21CE8(void) {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
-        chain = (ChainNode *)lbl_1_bss_6FE0;
+        chain = lbl_1_bss_6FE0;
         stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
         substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
         stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
@@ -2160,15 +2162,14 @@ void fn_1_21CE8(void) {
         windVec[1] = 0.0f;
         windVec[2] = 0.0f;
     } else {
-        f32 mass = ((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1]._00;
-        s8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
-        s8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
-        s8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        u8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
+        u8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
+        u8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
         f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
 
-        windVec[0] = windDrag * ((f32)stickX * mass);
-        windVec[1] = windDrag * ((f32)substickY * mass);
-        windVec[2] = windDrag * ((f32)stickY * mass);
+        windVec[0] = windDrag * ((f32)(s8)stickX * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
+        windVec[1] = windDrag * ((f32)(s8)substickY * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
+        windVec[2] = windDrag * ((f32)(s8)stickY * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
     }
 
     fn_80038B48((lbl_1_bss_6FB8), (lbl_1_bss_6FE0), *((u8 *)item + 0x21), windVec);
@@ -2225,7 +2226,7 @@ void fn_1_21408(void) {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
-        chain = (ChainNode *)lbl_1_bss_6FE0;
+        chain = lbl_1_bss_6FE0;
         stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
         substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
         stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
@@ -2239,15 +2240,14 @@ void fn_1_21408(void) {
         windVec[1] = 0.0f;
         windVec[2] = 0.0f;
     } else {
-        f32 mass = ((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1]._00;
-        s8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
-        s8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
-        s8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        u8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
+        u8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
+        u8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
         f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
 
-        windVec[0] = windDrag * ((f32)stickX * mass);
-        windVec[1] = windDrag * ((f32)substickY * mass);
-        windVec[2] = windDrag * ((f32)stickY * mass);
+        windVec[0] = windDrag * ((f32)(s8)stickX * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
+        windVec[1] = windDrag * ((f32)(s8)substickY * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
+        windVec[2] = windDrag * ((f32)(s8)stickY * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
     }
 
     fn_80038B48((lbl_1_bss_6FB8), (lbl_1_bss_6FE0), *((u8 *)item + 0x21), windVec);
@@ -2286,7 +2286,7 @@ void fn_1_21298(DrawingSceneStruct *arg0) {
 
         i = *((u8 *)arg0 + 0x21);
         while (--i != 0) {
-            entry = lbl_1_bss_6FE0 + i * 0x40;
+            entry = (u8 *)lbl_1_bss_6FE0 + i * 0x40;
 
             GX_WRITE_F32(*(f32 *)(entry + 0xc));
             GX_WRITE_F32(0.0f);
@@ -2307,7 +2307,7 @@ void fn_1_21298(DrawingSceneStruct *arg0) {
         while (--i != 0) {
             u32 color;
 
-            entry = lbl_1_bss_6FE0 + i * 0x40;
+            entry = (u8 *)lbl_1_bss_6FE0 + i * 0x40;
 
             GX_WRITE_F32(*(f32 *)(entry + 0xc));
             GX_WRITE_F32(-*(f32 *)(entry + 0x10));
@@ -2353,7 +2353,7 @@ void fn_1_21180(DrawingSceneStruct *arg0) {
     fn_80038CD0(idx, lbl_1_bss_6FB8, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)arg0 + 0x18));
 
     {
-        u8 *entry = lbl_1_bss_6FE0;
+        u8 *entry = (u8 *)lbl_1_bss_6FE0;
 
         entry += (*((u8 *)arg0 + 0x21) - 1) * 0x40;
 

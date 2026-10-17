@@ -48,8 +48,8 @@ extern MemoryStack lbl_80366158;
 
 extern u32 lbl_80108B90[];
 extern u8 drawStadiumRelated;
-extern void fn_800324EC(u16 id, s32 a, s32 b);
-extern void fn_8002955C(Vec *pos, s32 arg);
+extern void fn_800324EC(u16 id, s32 a, s32 b, void *params);
+extern void fn_8002955C(Vec *pos, s32 arg, void *emitter);
 extern void fn_80031CA4(Vec *pos, void *params);
 extern void fn_80030D88(Vec *start, Vec *dir, void *slot, s32 arg);
 extern void fn_80037AA0(void *buf, s32 a, void (*cb)(BOOL), u16 count, void *data);
@@ -4741,7 +4741,7 @@ void fn_1_F2F8(void) {
     u16 b = BTN_REPEAT;
     if (b & INPUT_BUTTON_A) {
         lbl_80108B90[0] = lbl_1_bss_3098;
-        fn_800324EC(lbl_1_data_F17C[0], 0, -1);
+        fn_800324EC(lbl_1_data_F17C[0], 0, -1, lbl_80108B90);
     } else if (b & INPUT_BUTTON_B) {
         lbl_80108B90[0] = 0;
         lbl_1_bss_307C = 0;
@@ -4801,7 +4801,7 @@ void fn_1_F040(void) {
     u16 b = BTN_REPEAT;
     if (b & INPUT_BUTTON_A) {
         lbl_1_data_F2A0[0] = lbl_1_bss_3098;
-        fn_8002955C(&v, 0);
+        fn_8002955C(&v, 0, lbl_1_data_F2A0);
     } else if (b & INPUT_BUTTON_B) {
         lbl_1_bss_307C = 0;
         lbl_1_bss_5F71 = 10;

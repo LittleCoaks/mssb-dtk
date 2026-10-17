@@ -1289,17 +1289,22 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 }
 
 // .text:0x00005924 size:0x19C
-s32 fn_1_5924(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    switch (arg3) {
+s32 fn_1_5924(s32 w, s32 x, s32 y, s32 bpp, s32 flag) {
+    switch (bpp) {
         case 4:
-            return (arg2 % 8) * 8 + (arg1 % 8) + (arg1 / 8) * 32 + (arg2 / 8) * (arg0 * 8);
+            w = (y / 8) * w;
+            return (x / 8) * 32 + w * 8 + (y % 8) * 8 + x % 8;
         case 8:
-            return (arg2 % 4) * 8 + (arg1 % 8) + (arg1 / 8) * 32 + (arg2 / 4) * (arg0 * 4);
+            w = (y / 4) * w;
+            return (x / 8) * 32 + w * 4 + (y % 4) * 8 + x % 8;
         case 0x10:
-            return (arg1 / 4) * 16 + (arg2 / 4) * arg0 * 4 + (arg2 % 4) * 4 + arg1 % 4;
+            w = (y / 4) * w;
+            return (x / 4) * 16 + w * 4 + (y % 4) * 4 + x % 4;
         case 0x20: {
-            s32 result = (arg1 / 8) * 16 + arg1 % 4 + (arg2 / 4) * (arg0 * 4) + (arg2 % 4) * 8;
-            if (arg4 != 0) {
+            s32 result;
+            w = (y / 4) * w;
+            result = (x / 8) * 16 + w * 4 + (y % 4) * 8 + x % 4;
+            if (flag != 0) {
                 result += 0x10;
             }
             return result;

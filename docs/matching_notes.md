@@ -3436,8 +3436,21 @@ functions. These lessons are not specific to one file:
 - **Repeated `arr[n - 1].field op= ...` updates: hold the base in a pointer local** assigned in the
   same block, after any preceding branchy code, when the target keeps one base register
   (`add rT, base, n<<6; lfs disp(rT)`) and ours turns later updates into `subi; lfsx`. Int-to-float
-  conversions whose loads the target hoists above a run of float stores want int locals converted at
-  the use (`s32 x = *(s8 *)p; ... (f32)x`), not float locals (`rep_7730` `fn_1_21408`).
+  conversions whose loads the target hoists above a run of float stores want integer locals converted
+  at the use, not float locals (`rep_7730` `fn_1_21408`). For signed bytes, `lbz rA; extsb rB, rA`
+  with rA != rB is a `u8` local converted as `(f32)(s8)x`; `s8` locals give `extsb rA, rA`, and
+  `s32 x = *(s8 *)p` scored lower (98.47 vs 98.99).
+- **`subi rB, &sym, C; lfsx f, rB, idx<<n` (the constant applied to the base register, not to the
+  displacement or the index) is `arr[x - 1]` written more than once on a typed array.** MWCC turns
+  `arr[x - k]` into `(arr - k*size) + x*size`; when `arr - k*size` occurs twice or more it is CSE'd
+  into its own register, with one occurrence it becomes `lfs -C(add)`. Casting a byte buffer
+  (`((T *)buf)[x - 1]`) blocks it, and so do locals for the index or the loaded value: declare the
+  static as `T arr[N]` and write `arr[item->n - 1].f` at each use (`rep_7730` `fn_1_247A0` 75.7 -> 100,
+  its inline copy in `fn_1_25064` -> 100). Worth checking anywhere a static is still a `u8[]` buffer.
+- **A float store of an `frsp`'d register (`frsp f4, f30; stfs f4, off`) is a field-to-field copy of
+  an already-stored float** (`base[3].z = base[1].z;`): MWCC forwards the earlier store and rounds the
+  forwarded value (`rep_7730` `fn_1_23098`). On its own it scored lower; the callee-saved FP numbering
+  only matched once the constant-zero stores also came first in the source.
 - **Constants held in callee-saved FPRs across the first call are hoisted out of a one-trip loop.**
   `0.0f` (addi form) in f31 and `57.29f` in f30, loaded before `CTRLSetTranslation` and reused by a
   later `speed != 0.0f`, came from `for (k = 0; k < 1; k++) {...}`, the per-player loop with one
@@ -3486,3 +3499,18 @@ functions. These lessons are not specific to one file:
 - **Check the effective address of every store mismatch.** objdiff showed `rep_0610` `fn_1_135C0`'s
   wrong store target (`&60EC[0x5C]` instead of `60EC + 0`) only as an argument mismatch, because the
   displacement was off a different base register (0x307C off the .bss base vs 0x5C off the pointer).
+- **A store whose address sits in the next free argument register and stays live into the following
+  `bl` is a missing trailing argument.** `rep_0610` `fn_1_F2F8` (83 -> 100) and `fn_1_F040` (96 -> 100)
+  write a texture into word 0 of a parameter table and then call `fn_800324EC` / `fn_8002955C`; the
+  table is the callee's last argument (prologues `mr r31, r6` / `mr r6, r5`). Earlier passes had ground
+  on it as "argument registers allocated before the store address". Read the callee's prologue before
+  grinding register order.
+- **The interleaving of a callee's int and float parameters is invisible in its own registers but not
+  in an inlining caller.** Ints and floats get argument registers independently, so
+  `f(void *, s32, s32 n, f32 a, ...)` and `f(void *, s32, f32 a, ..., s32 n)` compile the callee
+  identically. But MWCC generates the argument expressions in source order, which sets the
+  virtual-register numbering and so the colouring once the call is inlined into a busier caller.
+  `rep_7BF0` `fn_1_29A9C` (inlines `fn_1_2935C`, which calls `fn_80037768`) went 92.01 -> 100 only by
+  moving `simNum` after the floats, after 19+ caller-side hypotheses had failed. 34 of the 35
+  interleavings match, so the exact original order is not recoverable from the bytes. When an inlined
+  call has the right instructions but permuted volatile registers, sweep the parameter interleaving.

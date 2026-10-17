@@ -10,7 +10,7 @@ void fn_1_54E0(void *arg0);
 void fn_1_5540(void);
 void fn_1_5544(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void fn_1_5698(void);
-s32 fn_1_5924(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+s32 fn_1_5924(s32 w, s32 x, s32 y, s32 bpp, s32 flag);
 void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3);
 void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3);
 void fn_1_6578(GXTexObj *arg0, void *arg1, s32 arg2, s32 arg3);
