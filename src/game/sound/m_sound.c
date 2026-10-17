@@ -487,11 +487,11 @@ SND_VOICEID playSoundEffect(int soundNumber) {
 // .text:0x00090220 size:0x74 mapped:0x806CF2B4
 SND_VOICEID playCharacterSound(int charID, int soundCode) {
     SND_VOICEID vid;
-    u8* reverbTable = charSoundFxVol + soundCode;
-    int fid = soundCode + characterSoundArray[charID];
-    u8 reverb = reverbTable[CHAR_SOUND_REVERB_OFFSET];
+    u16 fid = soundCode + characterSoundArray[charID];
+    u32 vol = charSoundFxVol[soundCode];
+    u8 reverb = charSoundFxVol[CHAR_SOUND_REVERB_OFFSET + soundCode];
 
-    vid = sndFXStartEx(fid, charSoundFxVol[soundCode], 0x3f, 0);
+    vid = sndFXStartEx(fid, vol, 0x3f, 0);
     sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
     return vid;
 }
@@ -499,10 +499,11 @@ SND_VOICEID playCharacterSound(int charID, int soundCode) {
 // .text:0x00090150 size:0xD0 mapped:0x806CF1E4
 SND_VOICEID fn_3_90150(int charID, int soundCode) {
     SND_VOICEID vid;
-    u8* reverbTable = charSoundFxVol + soundCode;
-    int fid = soundCode + characterSoundArray[charID];
-    int vol = (f32)(int)charSoundFxVol[soundCode] * lbl_3_data_8830;
-    int reverb = (f32)(int)reverbTable[CHAR_SOUND_REVERB_OFFSET] * lbl_3_data_8830;
+    u16 fid = soundCode + characterSoundArray[charID];
+    int volBase = charSoundFxVol[soundCode];
+    int reverbBase = charSoundFxVol[CHAR_SOUND_REVERB_OFFSET + soundCode];
+    int vol = volBase * lbl_3_data_8830;
+    int reverb = reverbBase * lbl_3_data_8830;
 
     vid = sndFXStartEx(fid, vol, 0x3f, 0);
     sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
@@ -1396,7 +1397,7 @@ pick:
     if (trackId != -1) {
         if (trackId != 0x15 && track != 0x16 && track != 0x17) {
             fn_3_9056C(trackId);
-            if ((track == 4 || track == 0) == FALSE) {
+            if ((track == 4 || track == 0) ? FALSE : TRUE) {
                 addToCircularBuffer(4, 0, 0);
             }
             return;
@@ -1709,7 +1710,7 @@ BOOL fn_3_8C4F0(u32 arg1, u8 arg2) {
 
     diff = hi - lbl_3_bss_1771;
 
-    if ((s16)diff <= (s16)(u8)arg2 || arg1 == 1) {
+    if ((s16)diff <= (s16)arg2 || arg1 == 1) {
         lbl_3_bss_1761 = 0;
         fn_800A8878(arg2, arg2);
         return FALSE;
@@ -1725,15 +1726,15 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
     f32 hi;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0x12];
+        arg2 = lbl_800E88A4[arg2 + 0x12];
     } else if (sound_crowd_EffectsStruct._20 == 0x16) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0xC];
+        arg2 = lbl_800E88A4[arg2 + 0xC];
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0xE];
+        arg2 = lbl_800E88A4[arg2 + 0xE];
     } else if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0x10];
+        arg2 = lbl_800E88A4[arg2 + 0x10];
     } else {
-        arg2 = lbl_800E88A4[g_d_GameSettings.StadiumID * 2 + (u8)arg2];
+        arg2 = lbl_800E88A4[(g_d_GameSettings.StadiumID << 1) + arg2];
     }
 
     hi = (f32)((packed >> 8) & 0xFF);
@@ -1744,13 +1745,13 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
     if (sound_crowd_EffectsStruct._2F == 0) {
         sound_crowd_EffectsStruct._2F = 1;
         lbl_3_bss_1764 = hi;
-        lbl_3_bss_176C = (f32)(u8)arg2 / (f32)arg1;
+        lbl_3_bss_176C = (f32)arg2 / (f32)arg1;
     }
 
     lbl_3_bss_1764 += lbl_3_bss_176C;
     fn_800A8878(lbl_3_bss_1764, lbl_3_bss_1764);
 
-    if (lbl_3_bss_1764 >= (f32)(u8)arg2) {
+    if (lbl_3_bss_1764 >= (f32)arg2) {
         sound_crowd_EffectsStruct._2F = 0;
         return FALSE;
     }
@@ -1873,26 +1874,26 @@ void updateOrRemoveEmitter(int emitterID, Vec* pos, Vec* vel) {
     SND_FVECTOR localPos;
     int type;
 
-    if (emitterID >= 0 && emitterID < SOUND_EMITTER_COUNT) {
-        if (sndEmitter.emitterActive[emitterID]) {
-            em = &sndEmitter.emitters[emitterID];
-            if (!sndCheckEmitter(em)) {
-                sndEmitter.emitterActive[emitterID] = FALSE;
-            } else {
-                type = sndEmitter.emitterType[emitterID];
-                if (pos == NULL) {
-                    localPos.x = (f32)lbl_3_data_8974[type].pos[0] / 100000.0f;
-                    localPos.y = (f32)lbl_3_data_8974[type].pos[1] / 100000.0f;
-                    localPos.z = (f32)lbl_3_data_8974[type].pos[2] / 100000.0f;
-                    pos = (Vec*)&localPos;
-                }
-                if (vel == NULL) {
-                    vel = (Vec*)&lbl_3_data_8D7C;
-                }
-                sndUpdateEmitter(em, (SND_FVECTOR*)pos, (SND_FVECTOR*)vel,
-                                 (u8)lbl_3_data_8974[type].maxVol, NULL);
-            }
+    if (emitterID < 0 || emitterID >= SOUND_EMITTER_COUNT || !sndEmitter.emitterActive[emitterID]) {
+        return;
+    }
+
+    em = &sndEmitter.emitters[emitterID];
+    if (!sndCheckEmitter(em)) {
+        sndEmitter.emitterActive[emitterID] = FALSE;
+    } else {
+        type = sndEmitter.emitterType[emitterID];
+        if (pos == NULL) {
+            localPos.x = (f32)lbl_3_data_8974[type].pos[0] / 100000.0f;
+            localPos.y = (f32)lbl_3_data_8974[type].pos[1] / 100000.0f;
+            localPos.z = (f32)lbl_3_data_8974[type].pos[2] / 100000.0f;
+            pos = (Vec*)&localPos;
         }
+        if (vel == NULL) {
+            vel = (Vec*)&lbl_3_data_8D7C;
+        }
+        sndUpdateEmitter(em, (SND_FVECTOR*)pos, (SND_FVECTOR*)vel,
+                         (u8)lbl_3_data_8974[type].maxVol, NULL);
     }
 }
 
@@ -1928,14 +1929,16 @@ void updateAndRemoveStadiumEmitter(int emitterID) {
     SND_FVECTOR pos;
     SND_FVECTOR dir;
 
-    if (emitterID >= 0 && emitterID < SOUND_EMITTER_COUNT && sndEmitter.emitterActive[emitterID]) {
-        em = &sndEmitter.emitters[emitterID];
-        if (sndCheckEmitter(em)) {
-            pos = emitterPosX;
-            dir = emitterDirX;
-            sndUpdateEmitter(em, &pos, &dir, 0, NULL);
-            sndRemoveEmitter(em);
-        }
+    if (emitterID < 0 || emitterID >= SOUND_EMITTER_COUNT || !sndEmitter.emitterActive[emitterID]) {
+        return;
+    }
+
+    em = &sndEmitter.emitters[emitterID];
+    if (sndCheckEmitter(em)) {
+        pos = emitterPosX;
+        dir = emitterDirX;
+        sndUpdateEmitter(em, &pos, &dir, 0, NULL);
+        sndRemoveEmitter(em);
     }
 }
 
