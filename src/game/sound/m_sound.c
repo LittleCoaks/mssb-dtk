@@ -53,7 +53,7 @@ extern void fn_800A8AB8(u32 mode);
 extern BOOL fn_800A8518(u32 mode);
 extern void fn_800A8B78(void);
 extern u16 fn_800A8864(void);
-extern void fn_800A8878(u32 arg1, u32 arg2);
+extern void fn_800A8878(u8 arg1, u8 arg2);
 
 
 // Per-sound volume/reverb mix table, indexed by soundNumber - SOUND_EFFECT_MIX_FIRST_ID.
@@ -412,10 +412,10 @@ void fn_3_90674(int index) {
 BOOL fn_3_9056C(int index) {
     SeqPlayEntry* entry;
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        entry = (SeqPlayEntry*)lbl_3_data_8954 + index;
-    } else {
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
         entry = (SeqPlayEntry*)lbl_3_data_88E0 + index;
+    } else {
+        entry = (SeqPlayEntry*)lbl_3_data_8954 + index;
     }
 
     if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
@@ -495,11 +495,10 @@ SND_VOICEID playSoundEffect(int soundNumber) {
 SND_VOICEID playCharacterSound(int charID, int soundCode) {
     SND_VOICEID vid;
     u8* reverbTable = charSoundFxVol + soundCode;
-    u8 vol = charSoundFxVol[soundCode];
     int fid = soundCode + characterSoundArray[charID];
     u8 reverb = reverbTable[CHAR_SOUND_REVERB_OFFSET];
 
-    vid = sndFXStartEx(fid, vol, 0x3f, 0);
+    vid = sndFXStartEx(fid, charSoundFxVol[soundCode], 0x3f, 0);
     sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
     return vid;
 }
@@ -508,11 +507,9 @@ SND_VOICEID playCharacterSound(int charID, int soundCode) {
 SND_VOICEID fn_3_90150(int charID, int soundCode) {
     SND_VOICEID vid;
     u8* reverbTable = charSoundFxVol + soundCode;
-    f32 volF = (f32)charSoundFxVol[soundCode];
-    f32 reverbF = (f32)reverbTable[CHAR_SOUND_REVERB_OFFSET];
     int fid = soundCode + characterSoundArray[charID];
-    int vol = volF * lbl_3_data_8830;
-    int reverb = reverbF * lbl_3_data_8830;
+    int vol = (f32)(int)charSoundFxVol[soundCode] * lbl_3_data_8830;
+    int reverb = (f32)(int)reverbTable[CHAR_SOUND_REVERB_OFFSET] * lbl_3_data_8830;
 
     vid = sndFXStartEx(fid, vol, 0x3f, 0);
     sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
@@ -859,8 +856,8 @@ void fn_3_8F1C8(void) {
 void soundControl(void) {
     int track = -1;
     BOOL hold = FALSE;
-    u8 paused;
-    BOOL result;
+    BOOL paused;
+    u8 result;
     s16 trackId;
     u8 status;
     u8 secondaryMode;
@@ -868,13 +865,18 @@ void soundControl(void) {
     u8 minigamesEnabled;
     s8 roster;
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+    switch (g_d_GameSettings.GameModeSelected) {
+    case GAME_TYPE_PRACTICE:
         if (g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == 0) {
             stadiumMusic(g_d_GameSettings.StadiumID);
         }
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE &&
-               g_GameLogic.FrameCountOfCurrentPitch == 1) {
-        stadiumMusic(g_d_GameSettings.StadiumID);
+        break;
+    default:
+        if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE &&
+            g_GameLogic.FrameCountOfCurrentPitch == 1) {
+            stadiumMusic(g_d_GameSettings.StadiumID);
+        }
+        break;
     }
 
     if (g_GameLogic.framesOfExitingToMenu != 0) {
@@ -1081,7 +1083,7 @@ void soundControl(void) {
             track = 6;
             goto pick;
         }
-        sndSeqVolume(lbl_3_data_8284[134], 0xF, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
+        sndSeqVolume(lbl_3_data_830C[track * 2], 0xF, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
             if ((s8)g_Minigame.starDashStarHolder >= 0) {
                 hold = TRUE;
@@ -1203,7 +1205,10 @@ common:
     if (status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY || status == GAME_STATUS_DEFAULT) {
         return;
     }
-    if (hugeAnimStruct[0x2D46] != 0 || hugeAnimStruct[0x2D52] != 0) {
+    if (hugeAnimStruct[0x2D46] != 0) {
+        return;
+    }
+    if (hugeAnimStruct[0x2D52] != 0) {
         return;
     }
 
@@ -1339,18 +1344,10 @@ common:
     } else if (g_Strikes.storedOuts == 0) {
         track = 0x15;
     } else if (storedInningInfo.consecutiveHits == 0) {
-        playOverSounds(-1);
-        sound_crowd_EffectsStruct._20 = -1;
-        return;
+        goto stopMusic;
     } else {
         track = 0x15;
     }
-    goto pick;
-
-fadeOutShort:
-    playOverSounds(0xC);
-    sound_crowd_EffectsStruct._20 = -1;
-    return;
 
 pick:
     if (sound_crowd_EffectsStruct._22 == track) {
@@ -1386,16 +1383,14 @@ pick:
     sound_crowd_EffectsStruct._28 = 0;
     sound_crowd_EffectsStruct._20 = track;
 
-    if (trackId == -1) {
-        if (hold) {
-            addToCircularBuffer(3, 0, 0);
-        } else {
-            addToCircularBuffer(4, 0, 0);
+    if (trackId != -1) {
+        if (trackId != 0x15 && track != 0x16 && track != 0x17) {
+            fn_3_9056C(trackId);
+            if ((track == 4 || track == 0) == FALSE) {
+                addToCircularBuffer(4, 0, 0);
+            }
+            return;
         }
-        return;
-    }
-
-    if (trackId == 0x15 || track == 0x16 || track == 0x17) {
         if ((u16)(trackId - 0x15) <= 1 || trackId == 0x17) {
             if (trackId == sound_crowd_EffectsStruct._22) {
                 return;
@@ -1408,10 +1403,21 @@ pick:
         return;
     }
 
-    fn_3_9056C(trackId);
-    if (track != 4 && track != 0) {
+    if (hold) {
+        addToCircularBuffer(3, 0, 0);
+    } else {
         addToCircularBuffer(4, 0, 0);
     }
+    return;
+
+stopMusic:
+    playOverSounds(-1);
+    sound_crowd_EffectsStruct._20 = -1;
+    return;
+
+fadeOutShort:
+    playOverSounds(0xC);
+    sound_crowd_EffectsStruct._20 = -1;
 }
 
 // .text:0x0008D9C0 size:0xC0 mapped:0x806CCA54
@@ -1673,7 +1679,7 @@ void makeSoundOfBallBouncing(void) {
 }
 
 // .text:0x0008C4F0 size:0xD8 mapped:0x806CB584
-BOOL fn_3_8C4F0(u32 arg1, u32 arg2) {
+BOOL fn_3_8C4F0(u32 arg1, u8 arg2) {
     u16 packed;
     u8 hi;
     u8 lo;
@@ -1704,7 +1710,7 @@ BOOL fn_3_8C4F0(u32 arg1, u32 arg2) {
 }
 
 // .text:0x0008C2DC size:0x214 mapped:0x806CB370
-BOOL fn_3_8C2DC(u32 arg1, u32 arg2) {
+BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
     u16 packed = fn_800A8864();
     f32 hi;
 
@@ -1732,7 +1738,7 @@ BOOL fn_3_8C2DC(u32 arg1, u32 arg2) {
     }
 
     lbl_3_bss_1764 += lbl_3_bss_176C;
-    fn_800A8878((int)lbl_3_bss_1764, (int)lbl_3_bss_1764);
+    fn_800A8878(lbl_3_bss_1764, lbl_3_bss_1764);
 
     if (lbl_3_bss_1764 >= (f32)(u8)arg2) {
         sound_crowd_EffectsStruct._2F = 0;
@@ -1912,15 +1918,13 @@ void updateAndRemoveStadiumEmitter(int emitterID) {
     SND_FVECTOR pos;
     SND_FVECTOR dir;
 
-    if (emitterID >= 0 && emitterID < 100) {
-        if (sndEmitter.emitterActive[emitterID]) {
-            em = &sndEmitter.emitters[emitterID];
-            if (sndCheckEmitter(em)) {
-                pos = emitterPosX;
-                dir = emitterDirX;
-                sndUpdateEmitter(em, &pos, &dir, 0, NULL);
-                sndRemoveEmitter(em);
-            }
+    if (emitterID >= 0 && emitterID < 100 && sndEmitter.emitterActive[emitterID]) {
+        em = &sndEmitter.emitters[emitterID];
+        if (sndCheckEmitter(em)) {
+            pos = emitterPosX;
+            dir = emitterDirX;
+            sndUpdateEmitter(em, &pos, &dir, 0, NULL);
+            sndRemoveEmitter(em);
         }
     }
 }
