@@ -67,25 +67,25 @@ int fn_3_1665E4(void) {
     return FALSE;
 }
 
+static void setEffectAnim(Rep3E00Effect* effect, u32* packed, u32* offsets) {
+    effect->animation = (u8*)packed + offsets[0];
+    effect->animationData = (u8*)packed + offsets[1];
+}
+
 #pragma dont_inline on
 // .text:0x00166448 size:0x19C mapped:0x807A54DC
 void fn_3_166448(void) {
     Rep3E00Effect* effect = &animRelated;
     u32* packed = hugeAnimStruct.packedFile;
-    u32* offsets;
     void* layout;
     void* geometry;
     void* texture;
-    s32 i;
-    s32 inactive;
-    s32 active;
+    s32 i, j;
 
     for (i = 0; i < 3; i++) {
         hugeAnimStruct.files[i] = (u8*)packed + packed[i];
     }
-    offsets = packed + i;
-    effect->animation = (u8*)packed + offsets[0];
-    effect->animationData = (u8*)packed + offsets[1];
+    setEffectAnim(effect, packed, packed + i++);
     layout = hugeAnimStruct.files[0];
     geometry = hugeAnimStruct.files[1];
     texture = hugeAnimStruct.files[2];
@@ -96,13 +96,13 @@ void fn_3_166448(void) {
     convertTextureHeader(texture);
     UpdateTexturePalettePointers(geometry, texture);
 
-    inactive = 0;
-    active = 1;
-    adjustInternalPointers(effect->animation);
-    actRelated(effect->animation, &effect->animationData);
-    actorRelated(&effect->animationData, 0, 0);
-    if (inactive == 0) {
-        effect->active = active;
+    for (j = 0; j < 1; j++) {
+        adjustInternalPointers(effect->animation);
+        actRelated(effect->animation, &effect->animationData);
+        actorRelated(&effect->animationData, 0, 0);
+        if (j == 0) {
+            effect->active = 1;
+        }
     }
 
     hugeAnimStruct.actorCount = 1;
