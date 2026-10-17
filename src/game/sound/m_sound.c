@@ -636,7 +636,8 @@ void adjustBallSoundEffectBasedOnHeight(void) {
     if (height > baseSoundPitchFactor[3]) {
         clamped = baseSoundPitchFactor[3];
     }
-    ratio = (f32)(clamped - baseSoundPitchFactor[2]) / (f32)(baseSoundPitchFactor[3] - baseSoundPitchFactor[2]);
+    clamped -= baseSoundPitchFactor[2];
+    ratio = (f32)clamped / (f32)(baseSoundPitchFactor[3] - baseSoundPitchFactor[2]);
     pitch = baseSoundPitchFactor[0] + (int)(ratio * (f32)(baseSoundPitchFactor[1] - baseSoundPitchFactor[0]));
     sndFXCtrl14(sound_crowd_EffectsStruct._18, SND_MIDICTRL_PITCHBEND, (u16)pitch);
     return;
