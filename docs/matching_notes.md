@@ -3360,8 +3360,10 @@ functions. These lessons are not specific to one file:
   `case 18:`) to get the 0/1/range decision tree; `default:` scored 96 (`rep_0010` `fn_1_1E0`).
   A case that falls into the next one but whose guard branches to the end is
   `if (cond != X) break;`, not `if (cond == X) {...}` (`rep_02A8`).
-- **`a * 4 + b * 4` is factored to `(a + b) << 2`.** Two separate shifts in the target mean one
-  term was written as a shift: `(y / 4) * w * 4 + (y % 4 << 2)` (`rep_0138` `fn_1_5924`).
+- **`a * 4 + b * 4` in one expression is factored to `(a + b) << 2`.** Two separate shifts in the
+  target mean the terms were not one plain sum: either one was written as a shift
+  (`(y / 4) * w * 4 + (y % 4 << 2)`), or, as `rep_0138` `fn_1_5924` turned out to be, a term was
+  computed in its own statement first (see the division-order note below).
 - **Shared stack offsets for three cross products = one reused `Vec` local**, and one
   `sin(half)`/`cos(half)` pair computed up front; drafts that repeat `sin(half)` emit three calls.
 - **MWCC fully unrolls a 5-iteration `for` over a `u32` pointer table** into the target's
@@ -3451,6 +3453,17 @@ functions. These lessons are not specific to one file:
   an already-stored float** (`base[3].z = base[1].z;`): MWCC forwards the earlier store and rounds the
   forwarded value (`rep_7730` `fn_1_23098`). On its own it scored lower; the callee-saved FP numbering
   only matched once the constant-zero stores also came first in the source.
+- **Two signed divisions in the wrong order are not a scheduling problem.** Each `srawi`/`addze` pair
+  uses XER[CA], so they stay in codegen order, and MWCC's reassociation of one `+` chain always emits a
+  multiply-by-constant term (`(x / 8) * 32`) before a multiply-by-variable term (`(y / 8) * w`), whatever
+  the source order. Compute the variable-multiply term in its own statement first. A fresh local is
+  substituted back, so reassign the parameter (`w = (y / 8) * w;`). Reusing the other parameters for
+  their derived values too (`x %= 8;`) put more temps on the target's registers; a fresh local in
+  place of either cost 4-33 points (`rep_0138` `fn_1_5924` 72 -> 97.8, after 480+ single-expression
+  term orders that could never have matched).
+- **Score a function's inlined copies with it when choosing its source form.** Most forms of
+  `rep_0138` `fn_1_5924` that scored 98+ standalone cost its inlined copies in `fn_1_6050`/`fn_1_5AC0`
+  0.2 each; filtering the sweep on "callers stay 100" found the form to keep.
 - **Constants held in callee-saved FPRs across the first call are hoisted out of a one-trip loop.**
   `0.0f` (addi form) in f31 and `57.29f` in f30, loaded before `CTRLSetTranslation` and reused by a
   later `speed != 0.0f`, came from `for (k = 0; k < 1; k++) {...}`, the per-player loop with one

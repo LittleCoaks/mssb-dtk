@@ -1290,20 +1290,35 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 
 // .text:0x00005924 size:0x19C
 s32 fn_1_5924(s32 w, s32 x, s32 y, s32 bpp, s32 flag) {
+    s32 row;
+    s32 col;
+
     switch (bpp) {
         case 4:
             w = (y / 8) * w;
-            return (x / 8) * 32 + w * 8 + (y % 8) * 8 + x % 8;
+            row = y % 8;
+            col = x / 8;
+            x %= 8;
+            return col * 32 + w * 8 + row * 8 + x;
         case 8:
             w = (y / 4) * w;
-            return (x / 8) * 32 + w * 4 + (y % 4) * 8 + x % 8;
+            row = y % 4;
+            col = x / 8;
+            x %= 8;
+            return col * 32 + w * 4 + row * 8 + x;
         case 0x10:
             w = (y / 4) * w;
-            return (x / 4) * 16 + w * 4 + (y % 4) * 4 + x % 4;
+            row = y % 4;
+            col = x / 4;
+            x %= 4;
+            return col * 16 + w * 4 + row * 4 + x;
         case 0x20: {
             s32 result;
             w = (y / 4) * w;
-            result = (x / 8) * 16 + w * 4 + (y % 4) * 8 + x % 4;
+            row = y % 4;
+            col = x / 8;
+            x %= 4;
+            result = col * 16 + w * 4 + row * 8 + x;
             if (flag != 0) {
                 result += 0x10;
             }
