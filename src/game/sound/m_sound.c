@@ -516,10 +516,12 @@ SND_VOICEID playCharacterSound(int charID, int soundCode) {
 SND_VOICEID fn_3_90150(int charID, int soundCode) {
     SND_VOICEID vid;
     u16 fid = soundCode + characterSoundArray[charID];
-    int volBase = charSoundFxVol[soundCode];
-    int reverbBase = charSoundFxVol[CHAR_SOUND_REVERB_OFFSET + soundCode];
-    int vol = volBase * lbl_3_data_8830;
-    int reverb = reverbBase * lbl_3_data_8830;
+    int vol;
+    int reverb;
+    vol = charSoundFxVol[soundCode];
+    vol *= lbl_3_data_8830;
+    reverb = charSoundFxVol[CHAR_SOUND_REVERB_OFFSET + soundCode];
+    reverb *= lbl_3_data_8830;
 
     vid = sndFXStartEx(fid, vol, 0x3f, 0);
     sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
