@@ -2105,7 +2105,8 @@ void fn_3_8B094(void) {
     tail = queue->tail;
     nextTail = (tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
     cmd = bytes[cmdIdx = tail * 3 + 0x17];
-    vol = (s8)queue->entries[tail].arg3;
+    vol = queue->entries[tail].arg3;
+    vol = (s8)vol;
     streamId = queue->entries[tail].arg1;
     switch (cmd) {
     case 0:
