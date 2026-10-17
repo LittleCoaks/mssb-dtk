@@ -463,7 +463,7 @@ void draw_initStarGuageHud(void) {
     currentDrawingItem->func = draw_ongoingStarGuageHud;
 }
 
-static inline BOOL uiRecordUnk69Is2(UIRecord* rec) {
+static inline BOOL hudRecordFinished(UIRecord* rec) {
     return rec->unk69[0] == 2 ? TRUE : FALSE;
 }
 
@@ -574,7 +574,7 @@ void draw_ongoingStarGuageHud(void) {
         } else {
             HUD_RECORD(scene, 45)->anchorSub = 2;
         }
-    } else if (uiRecordUnk69Is2(HUD_RECORD(scene, 44))) {
+    } else if (hudRecordFinished(HUD_RECORD(scene, 44))) {
         HUD_RECORD(scene, 44)->flags |= UI_FLAG_VISIBLE;
         HUD_RECORD(scene, 44)->playMode = UI_PLAY_STOP;
         HUD_RECORD(scene, 44)->frame = 0;

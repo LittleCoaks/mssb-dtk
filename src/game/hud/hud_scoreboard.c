@@ -1620,6 +1620,10 @@ typedef struct HudDigitScene {
 #define REC(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 #define REC_AT(scene, i, off) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (off)].object)
 
+static inline BOOL hudRecordFinished(UIRecord* rec) {
+    return rec->unk69[0] == 2 ? TRUE : FALSE;
+}
+
 // .text:0x00096CA4 size:0x4A0 mapped:0x806D5D38
 void handleInGameEventsAndSoundEffects(void) {
     int stadiumID;
@@ -3111,12 +3115,12 @@ void ballLandingMarker_update(void) {
             scene->unk18 = 0;
             g_UnkSound_32718._08 = 0;
         } else {
-            if (scene->unk1C != 0 && REC(scene, 0)->unk69[0] == 2) {
+            if (scene->unk1C != 0 && hudRecordFinished(REC(scene, 0))) {
                 REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
                 scene->unk1C = 0;
             }
             if (scene->unk1E != 0) {
-                if (REC(scene, 1)->unk69[0] == 2) {
+                if (hudRecordFinished(REC(scene, 1))) {
                     REC(scene, 1)->flags &= ~UI_FLAG_VISIBLE;
                     scene->unk1E = 0;
                 }
@@ -3126,7 +3130,7 @@ void ballLandingMarker_update(void) {
                     playSoundEffect(0x1AC);
                     REC(scene, 2)->playMode = UI_PLAY_FORWARD;
                 }
-                if (REC(scene, 2)->unk69[0] == 2) {
+                if (hudRecordFinished(REC(scene, 2))) {
                     REC(scene, 2)->flags &= ~UI_FLAG_VISIBLE;
                     scene->unk20 = 0;
                 }
