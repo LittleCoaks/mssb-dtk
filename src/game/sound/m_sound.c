@@ -1425,9 +1425,9 @@ pick:
         return;
     }
 
-    trackId = track;
     sound_crowd_EffectsStruct._28 = 0;
     sound_crowd_EffectsStruct._20 = track;
+    trackId = track;
 
     if (trackId != -1) {
         if (trackId != 0x15 && track != 0x16 && track != 0x17) {
