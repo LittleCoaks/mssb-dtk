@@ -3549,3 +3549,38 @@ patterns. No unit reached 100%, but five functions moved and two non-target func
   wallBallInitializeValues (the coin loop's unfolded start guard). Exhaustive declaration-order
   sweeps (shuffleIntArray 720 orders, animateOffence 24, maybeProcessTeamData 120) found nothing,
   so these are not declaration order either.
+
+### Findings from the m_sound second pass (2026-10)
+Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 -> 99.996).
+- **A function that is never called, but whose inlined copies all share the same register swap, may be a
+  macro at the call sites.** addToCircularBuffer has no `bl` anywhere; every inlined copy had its queue pointer
+  and head index in swapped registers, and no `static inline` form (void/BOOL, nested ifs, early returns,
+  block-scoped locals, param types) changed that. A hand expansion with the arguments substituted textually
+  did, so the callers now use `ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)` (transitionToReplay and fn_3_8C104 to 100,
+  soundControl +0.14). The inliner's parameter copies are what move the colouring.
+- **A `long` parameter keeps an inlined constant unfolded; a macro folds it.** soundControl's inlined
+  playOverSounds keeps `li rN,-1; cmpwi rN,0`, which only `void playOverSounds(long frames)` reproduces, while
+  fn_3_90434 has the folded form. The resolution was a FADE_OUT_MUSIC(frames) macro: playOverSounds' body and
+  fn_3_90434/fn_3_903B8 (constant frames) all use it.
+- **`x = x * s;` / `x *= s;` vs `x = load * s;` changes the int-to-float stack temp order.** fn_3_90150 had the
+  vol/reverb temps mirrored (68%) in every single-expression form. Separate load + compound statements gave
+  the right slots (99.6). The last register matched with `static inline int f(int level) { level = level * s;
+  return level; }` on both values. The same helper written as `return level * s;` scored 56.
+- **Adjacent statement order is still the strongest lever.** soundControl's last 0.19% was
+  `_28 = 0; _20 = track; trackId = track;` (the trackId copy last, out of 6 orders). fn_3_8C2DC matched with
+  the float division before the flag store. adjustBallSoundEffectBasedOnHeight matched with
+  `clamped -= min; ratio = (f32)clamped / (f32)(max - min);` instead of one expression.
+- **One local reused for two different fields can be the original.** soundControl's practice block stores
+  g_GameLogic.secondaryGameMode into the same u8 `status` local used for gameStatus elsewhere (99.20 -> 99.27).
+  Reading g_Stats.replayInd once into a local that a later test reuses fixed which value got r0 (-> 99.64).
+- **Split an index that is overwritten by the value it indexes.** fn_3_8C104 used one `int value` as the 0/1
+  table index and then as the looked-up volume. The target passes the volume to a `(u8, u8)` callee without
+  truncation and tests it with `clrlwi.`, so it is a separate `u8 value` (98.52 -> 99.66).
+- **Where the sign extension sits matters.** fn_3_8B094: `vol = rec.arg3; vol = (s8)vol;` as two statements and
+  `switch ((s8)bytes[...])` with no `cmd` local each kept the target's in-place `extsb` (98.85 -> 99.82).
+- **`lwz rD, sym@l(rB)` vs `addi; lwz rD, 0(rA)` for a member at offset 0 is a register-allocation side effect.**
+  No source shape moved it; it followed once the surrounding locals coloured like the target.
+- Carried over from the first pass: `if (a || b || !c) return;` gives `bne next; b exit` for the last operand;
+  `x = cond ? TRUE : FALSE` tested later gives `neg; srwi.` (`cond ? FALSE : TRUE` gives `cntlzw; srwi.`);
+  and with `-inline deferred` the pooled `.rodata` follows reverse source order, so write the functions in
+  descending address order before judging `.rodata`.
