@@ -183,7 +183,7 @@ typedef struct PitchAnimState {
 extern PitchAnimState us80893310;
 extern s16 lbl_3_data_5EDC[];
 extern u8 us80893314[6];
-extern u8 highLevelSimulationFlag[2];
+extern u8 highLevelSimulationFlag[4];
 extern void versusScreen_seemsToDoNothing(void);
 
 typedef struct ScreenState {
