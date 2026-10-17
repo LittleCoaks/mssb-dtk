@@ -3468,3 +3468,21 @@ functions. These lessons are not specific to one file:
 - **Declaration-order sweeps usually fall into a few score groups;** a pairwise "declared before" test
   across the groups finds the deciding rule quickly (`rep_0610` `fn_1_135C0`: `anim` before
   `geoExtra`).
+- **One function-scope counter shared by two loops seeds the second loop's offset as a copy**
+  (`mr r6, r9`); two block-scoped counters give a fresh `li r6, 0` (`rep_0610` `fn_1_CDC8` -> 100).
+- **Moving block-scope locals to function scope, and where they go in the list, changes callee-saved
+  numbering.** Hoisting the loop-body pointers of `rep_0610` `fn_1_12820` to right after `u16 i`
+  closed it (99.77 -> 100). Sweep each block local over the possible positions, and re-sweep the whole
+  declaration order after any local is added or removed (`fn_1_135C0` +0.9 once `DbgHuge *h` existed).
+- **`T *h; ... h = &global;` assigned before first use keeps `&global` in a callee-saved register;**
+  `T *h = &global;` at the declaration did not (`rep_0610` `fn_1_135C0`, the target's extra `stmw`
+  register; +1.1).
+- **A constant index into a global array (`g.actors[0]`) is CSE'd into a callee-saved address** that
+  later inlined uses share. Indexing with the one-trip-loop variable (`actors[j]`, `j == 0`) or
+  addressing through a byte-offset cast (`(T *)((u8 *)h + 0xC04)` for `&h->slots[0]`) keeps it opaque,
+  as the target has it (`rep_0610` `fn_1_135C0` 98.3 -> 99.8, `fn_1_D4BC` inlined into `fn_1_129D0`).
+- **`if (f && ...)` and `if (f != 0.0f && ...)` swap the `fcmpu` operands** (the target's
+  `fcmpu speed, zero` came from the truthiness form).
+- **Check the effective address of every store mismatch.** objdiff showed `rep_0610` `fn_1_135C0`'s
+  wrong store target (`&60EC[0x5C]` instead of `60EC + 0`) only as an argument mismatch, because the
+  displacement was off a different base register (0x307C off the .bss base vs 0x5C off the pointer).

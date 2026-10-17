@@ -3262,22 +3262,26 @@ void fn_1_14710(DbgPairObj *o) {
 
 // .text:0x000135C0 size:0x1150
 void fn_1_135C0(void) {
-    DbgActor *s0;
-    s32 i;
     s32 j;
+    DbgHuge *h;
+    s32 i;
     void *tex;
-    void *layout;
-    void *geo;
     void *anim;
-    void *geoExtra;
+    void *geo;
+    void *layout;
     u8 *entry0;
+    void *geoExtra;
+    DbgActor *s0;
+    u16 n;
+    s32 id;
     initActorArray(13);
     hugeAnimStruct.objs = ActorObjectInitTable(1);
     lbl_1_bss_5F80 = ActorObjectInitTable(1);
     lbl_1_bss_5F7C = ActorObjectInitTable(5);
     j = 0;
     memset(lbl_1_bss_5F88, 0, 0x118);
-    s0 = &hugeAnimStruct.slots[0];
+    h = &hugeAnimStruct;
+    s0 = &h->slots[0];
     s0->f252 = lbl_1_bss_68FC.f40[0];
     if (j < 1) {
         {
@@ -3370,7 +3374,7 @@ void fn_1_135C0(void) {
             fn_1_D300(s0);
         }
         if (lbl_1_bss_3070 != 0) {
-            *(u32 *)&lbl_1_bss_60EC[0x5C] = ((u32 *)lbl_1_bss_60A0[0])[12];
+            *(u32 *)lbl_1_bss_60EC = ((u32 *)lbl_1_bss_60A0[0])[12];
             actRelated(lbl_1_bss_67CC[0], lbl_1_bss_60EC);
             actorRelated(lbl_1_bss_60EC, 0, 0);
             lbl_1_bss_67B8[0] = &lbl_1_bss_60EC[0xC];
@@ -3380,8 +3384,8 @@ void fn_1_135C0(void) {
     }
     {
         DbgModel *mdl = hugeAnimStruct.objs->e[0].model;
-        u16 n = mdl->count;
-        memset(s0->partIdx, 0xFF, sizeof(s0->partIdx));
+        n = mdl->count;
+        memset(h->slots[0].partIdx, 0xFF, sizeof(h->slots[0].partIdx));
         for (i = 0; i < n; i++) {
             u16 id = hugeAnimStruct.objs->e[0].model->parts[i]->h0;
             if (id != 0xFFFF) {
@@ -3396,7 +3400,7 @@ void fn_1_135C0(void) {
     CTRLSetRotation(&hugeAnimStruct.objs->e[0].control, 0.0f, 0.0f, 0.0f);
     dbgSetSpeed(&hugeAnimStruct.objs->e[0], 0.5f);
     {
-        s32 id = s0->partIdx[3];
+        id = s0->partIdx[3];
         entry0 = (u8 *)&hugeAnimStruct.objs->e[0];
         if (id != 0xFFFF) {
             fn_800B2BA8(*(void **)entry0, id, 0, 0);
@@ -3423,7 +3427,7 @@ void fn_1_135C0(void) {
         }
     }
     fn_800B2C08((void *)hugeAnimStruct.objs->e[0].model, 4);
-    initShortsHandleCompressedDiskReads(hugeAnimStruct.actors[0]);
+    initShortsHandleCompressedDiskReads(hugeAnimStruct.actors[j]);
     s0->p4 = (void *)hugeAnimStruct.objs->e[0].model;
     s0->pos.x = 0.0f;
     s0->pos.y = 0.0f;
@@ -3623,7 +3627,7 @@ void fn_1_129D0(void) {
             speed = lbl_1_bss_5F64;
             dbgSetPlaySpeed(obj0, speed);
         }
-        if (speed != 0.0f && fn_1_D660()) {
+        if (speed && fn_1_D660()) {
             val = fn_1_D71C(0);
             idx = lbl_1_data_A938[lbl_1_bss_6940[lbl_1_bss_5F73].f44] + lbl_1_bss_6940[lbl_1_bss_5F73].f45;
             fn_1_D590((s32)hugeAnimStruct.slots, idx, val);
@@ -3678,6 +3682,8 @@ void fn_1_12820(DbgActorTbl *objs, Mtx cam) {
     Mtx44 proj;
     GXColor col = {0x64, 0x72, 0x6C, 0xFF};
     u16 i;
+    DbgActor *a;
+    DbgActorEnt *o;
     u8 lastLevel = 0xFF;
     C_MTXFrustum(proj, -0.000175f, 0.000175f, 0.00025f, -0.00025f, 0.001f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
@@ -3686,8 +3692,8 @@ void fn_1_12820(DbgActorTbl *objs, Mtx cam) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_OR);
     GXSetAlphaCompare(GX_GREATER, 0, GX_AOP_AND, GX_ALWAYS, 0);
     for (i = 0; i < objs->count; i++) {
-        DbgActor *a = &hugeAnimStruct.slots[i];
-        DbgActorEnt *o = &objs->e[i];
+        a = &hugeAnimStruct.slots[i];
+        o = &objs->e[i];
         if (o->model != NULL) {
             o->model->f98 = 0xFF;
             if (objs->e[i].applyControl != 0) {
@@ -5374,7 +5380,7 @@ void fn_1_D590(s32 a, s32 b, f32 v) {
 // .text:0x0000D4BC size:0xD4
 void fn_1_D4BC(void) {
     DbgHuge *h = &hugeAnimStruct;
-    DbgActor *a = h->slots;
+    DbgActor *a = (DbgActor *)((u8 *)h + 0xC04); // == h->slots; the member form schedules fn_1_129D0's inlined copy differently
     if (a != NULL) {
         VecXYZ p;
         a->flags = (s32)a->flags >> 1;
@@ -5468,6 +5474,7 @@ void fn_1_CDC8(void) {
     s32 kind;
     s32 i;
     s32 flag;
+    s32 j;
     u16 ids[2];
     void *ptrsB[2];
     void *ptrsA[2];
@@ -5521,7 +5528,6 @@ void fn_1_CDC8(void) {
         if (ptrsA[i] != NULL) {
             if (getHandTrackFlags(ptrsA[i]) & 0x20000000) {
                 DbgModel *m = *(DbgModel **)ptrsB[i];
-                s32 j;
                 for (j = 0; j < m->count; j++) {
                     if (m->parts[j]->f14 != 0) {
                         fn_800B2BA8(((DbgActorTbl *)hugeAnimStruct.objs)->e[lbl_1_bss_5F73].model, ids[i], m, j);
@@ -5536,7 +5542,6 @@ void fn_1_CDC8(void) {
     } while ((flag != 0 || lbl_1_bss_68FC.f40[lbl_1_bss_5F73] == CHAR_ID_PETEY) && i < 2);
     if (i == 1) {
         DbgModel *m;
-        s32 j;
         if (lbl_1_bss_5F69 != 0) {
             ptrsB[0] = (u8 *)&lbl_1_bss_5F7C->e[2];
         } else {
