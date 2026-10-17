@@ -2096,7 +2096,6 @@ void fn_3_8B094(void) {
     u8 streamId;
     u8 nextTail;
     int vol;
-    s8 cmd;
     int cmdIdx;
 
     if (queue->head == queue->tail) {
@@ -2107,11 +2106,10 @@ void fn_3_8B094(void) {
     }
     tail = queue->tail;
     nextTail = (tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    cmd = bytes[cmdIdx = tail * 3 + 0x17];
     vol = queue->entries[tail].arg3;
     vol = (s8)vol;
     streamId = queue->entries[tail].arg1;
-    switch (cmd) {
+    switch ((s8)bytes[cmdIdx = tail * 3 + 0x17]) {
     case 0:
         fn_800A8878(vol, vol);
         if (jukeboxWork[(s8)streamId] == fn_800A88C0()) {
