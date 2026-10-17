@@ -110,6 +110,17 @@ typedef struct SoundReplayQueue {
 #define SOUND_REPLAY_QUEUE_CAPACITY \
     ((int)(sizeof(((SoundReplayQueue*)0)->entries) / sizeof(SoundReplayEventRecord)))
 
+// Fades both music sequence slots to silence over `frames` and stops them.
+#define FADE_OUT_MUSIC(frames)                                                          \
+    do {                                                                                \
+        if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {                            \
+            sndSeqVolume(0, (frames), sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);  \
+        }                                                                               \
+        if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {                            \
+            sndSeqVolume(0, (frames), sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);  \
+        }                                                                               \
+    } while (0)
+
 // The queue push that every caller expands in place; the out-of-line
 // addToCircularBuffer below has the same body but is never called.
 #define ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)                                                      \
@@ -447,7 +458,7 @@ void fn_3_90434(void) {
     jukeboxCmd(3);
     fn_800A88C0();
     fn_800A8B78();
-    playOverSounds(0);
+    FADE_OUT_MUSIC(0);
 
     slot = (u32*)&sound_crowd_EffectsStruct;
     for (i = 0; i < 3; i++) {
@@ -462,28 +473,16 @@ void fn_3_90434(void) {
 
 // .text:0x000903B8 size:0x7C mapped:0x806CF44C
 void fn_3_903B8(void) {
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
-        sndSeqVolume(0, 0xa0, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
-        sndSeqVolume(0, 0xa0, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
-    }
+    FADE_OUT_MUSIC(0xa0);
 }
 
 // .text:0x00090328 size:0x90 mapped:0x806CF3BC
-void playOverSounds(int param) {
-    if (param < 0) {
-        param = 3000;
+void playOverSounds(long frames) {
+    if (frames < 0) {
+        frames = 3000;
     }
 
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
-        sndSeqVolume(0, param, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
-        sndSeqVolume(0, param, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
-    }
+    FADE_OUT_MUSIC(frames);
 }
 
 // .text:0x000902FC size:0x2C mapped:0x806CF390
@@ -880,20 +879,6 @@ void fn_3_8F1C8(void) {
     sound_crowd_EffectsStruct._29 = 0;
     sound_crowd_EffectsStruct._2A = 0;
     lbl_3_bss_1768 = (SoundReplayQueue*)insertGraphicDrawingFunction(fn_3_8B094, 0);
-}
-
-static inline void fadeOutMusic(long frames) {
-    if (frames < 0) {
-        frames = 3000;
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
-        sndSeqVolume(0, frames, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
-        sndSeqVolume(0, frames, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
-    }
 }
 
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
@@ -1457,12 +1442,12 @@ pick:
     return;
 
 stopMusic:
-    fadeOutMusic(-1);
+    playOverSounds(-1);
     sound_crowd_EffectsStruct._20 = -1;
     return;
 
 fadeOutShort:
-    fadeOutMusic(0xC);
+    playOverSounds(0xC);
     sound_crowd_EffectsStruct._20 = -1;
 }
 

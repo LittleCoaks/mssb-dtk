@@ -36,7 +36,7 @@ u32 fn_3_90150(int charID, int soundCode);
 u32 playCharacterSound(int charID, int soundCode);
 u32 playSoundEffect(int soundNumber);
 void fn_3_902FC(void);
-void playOverSounds(int param);
+void playOverSounds(long frames);
 void fn_3_903B8(void);
 void fn_3_90434(void);
 BOOL fn_3_9056C(int index);
