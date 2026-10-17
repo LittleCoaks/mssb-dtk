@@ -885,10 +885,10 @@ void soundControl(void) {
     u8 result;
     s16 trackId;
     u8 status;
-    u8 secondaryMode;
+    u8 replay;
     u8 pauseState;
-    u8 minigamesEnabled;
     s8 roster;
+    u8 minigamesEnabled;
 
     switch (g_d_GameSettings.GameModeSelected) {
     case GAME_TYPE_PRACTICE:
@@ -933,10 +933,10 @@ void soundControl(void) {
     sound_crowd_EffectsStruct._22 = sound_crowd_EffectsStruct._20;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        secondaryMode = g_GameLogic.secondaryGameMode;
-        if (secondaryMode == SECONDARY_GAME_MODE_PRACTICE_MENU ||
-            secondaryMode == SECONDARY_GAME_MODE_RETURN_TO_MENU ||
-            secondaryMode == SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN) {
+        status = g_GameLogic.secondaryGameMode;
+        if (status == SECONDARY_GAME_MODE_PRACTICE_MENU ||
+            status == SECONDARY_GAME_MODE_RETURN_TO_MENU ||
+            status == SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN) {
             track = -1;
             goto pick;
         }
@@ -965,7 +965,7 @@ void soundControl(void) {
             return;
         }
         track = 0x15;
-        if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && secondaryMode != SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && status != SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
             track = 0;
             goto common;
         }
@@ -1209,7 +1209,8 @@ common:
         }
     }
 
-    if (g_Stats.replayInd != 0) {
+    replay = g_Stats.replayInd;
+    if (replay != 0) {
         track = 0x16;
         if (g_Stats.replayPending == 4) {
             track = -1;
@@ -1258,7 +1259,7 @@ common:
                 goto pick;
             }
         }
-        if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && g_Stats.replayInd == 0) {
+        if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && replay == 0) {
             if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
                 if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xB;
