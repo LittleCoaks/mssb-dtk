@@ -2089,9 +2089,9 @@ void fn_3_8B094(void) {
     SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
     u8* bytes = (u8*)currentDrawingItem;
     u8 tail;
-    u8 nextTail;
-    s8 vol;
     u8 streamId;
+    u8 nextTail;
+    int vol;
     s8 cmd;
     int cmdIdx;
 
@@ -2104,7 +2104,7 @@ void fn_3_8B094(void) {
     tail = queue->tail;
     nextTail = (tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
     cmd = bytes[cmdIdx = tail * 3 + 0x17];
-    vol = queue->entries[tail].arg3;
+    vol = (s8)queue->entries[tail].arg3;
     streamId = queue->entries[tail].arg1;
     switch (cmd) {
     case 0:
