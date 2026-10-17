@@ -110,6 +110,22 @@ typedef struct SoundReplayQueue {
 #define SOUND_REPLAY_QUEUE_CAPACITY \
     ((int)(sizeof(((SoundReplayQueue*)0)->entries) / sizeof(SoundReplayEventRecord)))
 
+// The queue push that every caller expands in place; the out-of-line
+// addToCircularBuffer below has the same body but is never called.
+#define ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)                                                      \
+    do {                                                                                      \
+        if (lbl_3_bss_1768 != NULL) {                                                         \
+            u8 head_ = lbl_3_bss_1768->head;                                                  \
+            u8 next_;                                                                         \
+            if (lbl_3_bss_1768->tail != (next_ = (head_ + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) { \
+                lbl_3_bss_1768->head = next_;                                                 \
+                lbl_3_bss_1768->entries[head_].arg1 = (a2);                                   \
+                lbl_3_bss_1768->entries[head_].arg2 = (a1);                                   \
+                lbl_3_bss_1768->entries[head_].arg3 = (a3);                                   \
+            }                                                                                 \
+        }                                                                                     \
+    } while (0)
+
 
 typedef struct StadiumEmitterDef {
     s32 pos[3];
@@ -1324,7 +1340,7 @@ common:
     if (sound_crowd_EffectsStruct._2A == 1 && sound_crowd_EffectsStruct._24 != 0) {
         sound_crowd_EffectsStruct._24--;
         if (sound_crowd_EffectsStruct._24 == 0) {
-            addToCircularBuffer(3, 0, 0);
+            ADD_TO_CIRCULAR_BUFFER(3, 0, 0);
         } else {
             fn_3_8C4F0(sound_crowd_EffectsStruct._24, 0);
         }
@@ -1413,7 +1429,7 @@ pick:
         if (trackId != 0x15 && track != 0x16 && track != 0x17) {
             fn_3_9056C(trackId);
             if ((track == 4 || track == 0) ? FALSE : TRUE) {
-                addToCircularBuffer(4, 0, 0);
+                ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
             }
             return;
         }
@@ -1424,15 +1440,15 @@ pick:
             fn_3_8C104(-1);
             return;
         }
-        addToCircularBuffer(4, 0, 0);
+        ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
         fn_3_90674(sound_crowd_EffectsStruct._20);
         return;
     }
 
     if (hold) {
-        addToCircularBuffer(3, 0, 0);
+        ADD_TO_CIRCULAR_BUFFER(3, 0, 0);
     } else {
-        addToCircularBuffer(4, 0, 0);
+        ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
     }
     return;
 
@@ -1779,53 +1795,54 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
 // .text:0x0008C104 size:0x1D8 mapped:0x806CB198
 void fn_3_8C104(int arg0) {
     int tag;
-    int value = 0;
+    int idx = 0;
+    u8 value;
 
     if (audioFileDescriptors.enableMusic == 0) {
         return;
     }
 
     if (arg0 == -2) {
-        value = 1;
+        idx = 1;
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         tag = 9;
-        value = lbl_800E88A4[value + 0x12];
+        value = lbl_800E88A4[idx + 0x12];
     } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
         tag = 7;
-        value = lbl_800E88A4[value + 0xE];
+        value = lbl_800E88A4[idx + 0xE];
     } else if (sound_crowd_EffectsStruct._20 == 0x16) {
         tag = 6;
-        value = lbl_800E88A4[value + 0xC];
+        value = lbl_800E88A4[idx + 0xC];
     } else if (sound_crowd_EffectsStruct._20 == 0x17) {
         tag = 0xE;
-        value = lbl_800E88A4[value + 0x1C];
+        value = lbl_800E88A4[idx + 0x1C];
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
         tag = 7;
-        value = lbl_800E88A4[value + 0xE];
+        value = lbl_800E88A4[idx + 0xE];
     } else if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
         tag = 8;
-        value = lbl_800E88A4[value + 0x10];
+        value = lbl_800E88A4[idx + 0x10];
     } else {
         tag = g_d_GameSettings.StadiumID;
-        value = lbl_800E88A4[(tag << 1) + value];
+        value = lbl_800E88A4[(tag << 1) + idx];
     }
 
     if (arg0 >= 0) {
-        value = (u8)arg0;
+        value = arg0;
     }
 
-    addToCircularBuffer(0, tag, value);
+    ADD_TO_CIRCULAR_BUFFER(0, tag, value);
 
-    if ((u8)value == 0) {
+    if (value == 0) {
         fn_800A8878(value, value);
     }
 }
 
 // .text:0x0008C07C size:0x88 mapped:0x806CB110
 void transitionToReplay(void) {
-    addToCircularBuffer(4, 0, 0);
+    ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
 }
 
 // .text:0x0008BE8C size:0x1F0 mapped:0x806CAF20
