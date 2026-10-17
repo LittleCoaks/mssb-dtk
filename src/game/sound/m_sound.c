@@ -1625,7 +1625,10 @@ void handleGameSound(void) {
         }
     }
 
-    if (g_Batter.captainStarSwingActivated == CAPTAIN_STAR_TYPE_PEACH && lbl_3_bss_1760 == 0 &&
+    // The captain star type is tested twice against the same value.
+    if ((g_Batter.captainStarSwingActivated == CAPTAIN_STAR_TYPE_PEACH ||
+         g_Batter.captainStarSwingActivated == CAPTAIN_STAR_TYPE_PEACH) &&
+        lbl_3_bss_1760 == 0 &&
         g_Ball.physicsSubstruct.velocity.y <= -0.09 && g_Ball.physicsSubstruct.velocity.y >= -0.1) {
         sndFXKeyOff(lbl_3_bss_177C);
         lbl_3_bss_1778 = playSoundEffect(0x19B);
