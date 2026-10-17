@@ -3513,3 +3513,39 @@ Unit `game/game/match_setup/match_flow`, 25 -> 44 of 47 functions at 100% (.text
 - Not solved: newPitch (one constant takes r3 instead of r8 after the inlined practiceNewBatter),
   processScoreChanges (every temp one register higher; the target's unrolled u64 sum needs r28) and
   startChallengeModeMatch (the target re-materialises `g_Runners` in each runner block).
+
+### Near-miss pattern sweep findings (2026-10)
+A bounded retry of twelve game units that were one function short of 100%, using the match_flow
+patterns. No unit reached 100%, but five functions moved and two non-target functions matched.
+- **Paid off: the value-form `==` predicate.** `subfic; cntlzw; srwi.; beq` on `rec->unk69[0] == 2`
+  is a `static inline BOOL f(UIRecord* rec) { return rec->unk69[0] == 2 ? TRUE : FALSE; }`
+  (an if/return TRUE/return FALSE body is identical). It lifted draw_ongoingStarGuageHud
+  98.45 -> 99.03 and matched ballLandingMarker_update (hud_scoreboard, all three tests needed) and
+  practiceInstruction_update (practice_scene, only the second test). The units now share the
+  name `hudRecordFinished`. Sweeping each `unk69[0] == 2` site one at a time found them in minutes;
+  minigame_hud, toy_field_hud and minigame_models had no further sites that moved.
+- **Paid off: unfolded constants mean inlined or multi-def code.** `li rN,K; mulli/slwi` on a value
+  that is constant in the source, or `li rA,0; mr rB,rA` for a loop start, means the value reached
+  the loop optimiser as a variable, not a literal.
+  - rep_3E00 fn_3_166448 (82.9 -> 93.6): `offsets = packed + i++` after the unrolled files loop
+    (a post-increment use keeps `i = 3` as `li r0,3; slwi`), and the effect start block as a 1-trip
+    `for (j = 0; j < 1; j++) { ...; if (j == 0) effect->active = 1; }`, which keeps `j = 0` and the
+    constant 1 in callee-saved registers across the calls like the target.
+  - sta_c0 loadMarioStadium (97.12 -> 97.74): `slot = 0; call(slot); slot++; ...; slot++;` instead of
+    `slot = 2` gives the target's `li r25,2; mulli r24,r25,0x90`; the light loop and each crowd fill
+    as no-argument `static inline` helpers give the `li; mr` loop starts. The same light-loop helper
+    on the other six stadium loaders moved each by under 0.25 either way, so it is not a general
+    fix there.
+- **Loop increment order follows source order.** Moving `slot++` from the for-increment to the end of
+  the body (and `cfg++` next to `count++`) fixed the order of the `addi`s at the loop bottom.
+- **Did not apply here:** `__abs` (shuffleU8Array's randomIntGameAbs got worse with it), extern sizes
+  (all checked against symbols.txt and already right), and local prototypes (none wrong). The
+  `highLevelSimulationFlag[4]` fix in pitcher.c and animation_dispatch.c changed nothing (both index
+  only [0] or [1]).
+- **Still stuck, all pure register swaps with the instructions already right:** calculateChemistry
+  (lbz/mulli scheduling), spline3D_evaluate (count vs an array base), maybeProcessTeamData,
+  animateOffence, setFielderValues (target keeps `&g_GameLogic` in r30 for one access),
+  shuffleU8Array (the inlined shuffleIntArray's k), minigameUpdateResultsScene, and
+  wallBallInitializeValues (the coin loop's unfolded start guard). Exhaustive declaration-order
+  sweeps (shuffleIntArray 720 orders, animateOffence 24, maybeProcessTeamData 120) found nothing,
+  so these are not declaration order either.
