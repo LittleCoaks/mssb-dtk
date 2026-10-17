@@ -368,16 +368,6 @@ static inline void playStadiumHazardSound(int sfx, int slot) {
                   : stadiumHazardSoundFxRelated[stadiumID * 0x1E + slot + 1]);
 }
 
-static inline BOOL stadiumHasCrowdSounds(int stadiumID) {
-    BOOL result = FALSE;
-
-    if (stadiumID == STADIUM_ID_BOWSERS_CASTLE || stadiumID == STADIUM_ID_WARIO_PALACE ||
-        stadiumID == STADIUM_ID_YOHSI_PARK || stadiumID == STADIUM_ID_DK_JUNGLE) {
-        result = TRUE;
-    }
-    return result;
-}
-
 // The reverb bytes for a character's sound codes live 0x180 bytes after
 // charSoundFxVol in .data, in an otherwise unnamed foreign table.
 #define CHAR_SOUND_REVERB_OFFSET 0x180
@@ -540,7 +530,20 @@ SND_VOICEID callSfx(int soundId) {
 // .text:0x0008FF5C size:0x108 mapped:0x806CEFF0
 SND_VOICEID animateThrownBall(int soundNumber, f32 x, f32 y, f32 z) {
     SND_VOICEID vid;
-    int pan = getPanFromWorldPos(x, y, z);
+    int screenX;
+    int screenY;
+    int pan = 0x3f;
+
+    if (audioFileDescriptors.soundMode == 1) {
+        fn_3_1650C(&screenX, &screenY, TRUE, x, -y, z);
+        if (screenX < 0) {
+            pan = 0;
+        } else if (screenX > 640) {
+            pan = 0x7f;
+        } else {
+            pan = 127.0f * ((f32)screenX / 640.0f);
+        }
+    }
 
     vid = sndFXStartEx(soundNumber, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].volume, pan, 0);
     sndFXCtrl(vid, SND_MIDICTRL_REVERB, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].reverb);
@@ -650,13 +653,17 @@ void soundFxRelated(void) {
     u32* slot;
     s16 result;
 
-    crowdStadium = stadiumHasCrowdSounds(g_d_GameSettings.StadiumID);
+    crowdStadium = (g_d_GameSettings.StadiumID == STADIUM_ID_BOWSERS_CASTLE ||
+                    g_d_GameSettings.StadiumID == STADIUM_ID_WARIO_PALACE ||
+                    g_d_GameSettings.StadiumID == STADIUM_ID_YOHSI_PARK ||
+                    g_d_GameSettings.StadiumID == STADIUM_ID_DK_JUNGLE)
+                       ? TRUE
+                       : FALSE;
 
     if (crowdStadium) {
         if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
-            lastState = sound_crowd_EffectsStruct._26;
             for (i = 1; i < 4; i++) {
-                if (lastState <= 1 &&
+                if (sound_crowd_EffectsStruct._26 <= 1 &&
                     g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
                     stopVoices = TRUE;
                     goto checkStop;
