@@ -602,7 +602,7 @@ void adjustBallSoundEffectBasedOnHeight(void) {
     if (g_Ball.AtBat_Contact_BallPos.y < 6.0f && g_Ball.physicsSubstruct.velocity.y < 0.0f) {
         goto stop;
     }
-    if (g_Ball.collisionRelated != 0 || g_Ball.ballCughtByPlantInd != 0 || g_Ball.deadBallReason != 0) {
+    if (g_Ball.collisionRelated != 0 || g_Ball.ballCughtByPlantInd != 0 || g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
         goto stop;
     }
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
@@ -776,7 +776,7 @@ void soundFxRelated(void) {
         }
     }
 
-    if (g_Ball.deadBallReason == 1 && sound_crowd_EffectsStruct._26 < 9) {
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && sound_crowd_EffectsStruct._26 < 9) {
         sound_crowd_EffectsStruct._26 = 9;
         if (sound_crowd_EffectsStruct._14 == -1) {
             sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
@@ -784,7 +784,7 @@ void soundFxRelated(void) {
     }
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && sound_crowd_EffectsStruct._26 < 9) {
-        if (g_Ball.deadBallReason == 2) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_FOUL_BALL) {
             if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames == 30) {
                 sound_crowd_EffectsStruct._26 = 9;
                 stopVoices = TRUE;
@@ -951,7 +951,7 @@ void soundControl(void) {
             return;
         }
         track = 0x15;
-        if (g_Ball.deadBallReason == 1 && secondaryMode != SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && secondaryMode != SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
             track = 0;
             goto common;
         }
@@ -1246,7 +1246,7 @@ common:
         }
         if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && g_Stats.replayInd == 0) {
             if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
-                if (g_Ball.deadBallReason != 1) {
+                if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xB;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
                         sound_crowd_EffectsStruct._33 = 2;
@@ -1254,7 +1254,7 @@ common:
                     goto pick;
                 }
             } else if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
-                if (g_Ball.deadBallReason != 1) {
+                if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xA;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
                         sound_crowd_EffectsStruct._33 = 2;
@@ -1288,7 +1288,7 @@ common:
         track = 8;
         goto pick;
     }
-    if (lbl_3_common_bss_134C4[0x25C] != 0 && g_Ball.deadBallReason != 1 &&
+    if (lbl_3_common_bss_134C4[0x25C] != 0 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN &&
         *(s32*)((u8*)unkStructPtr._0000 + 0x92C) != 0) {
         track = 4;
         goto pick;
@@ -1297,7 +1297,7 @@ common:
         return;
     }
 
-    if (g_Ball.deadBallReason == 1) {
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             track = 0;
         } else {
@@ -1334,7 +1334,7 @@ common:
         sound_crowd_EffectsStruct._24--;
     }
 
-    if (g_Ball.deadBallReason == 1 && g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
         goto pick;
     }
     status = g_GameLogic.gameStatus;
@@ -1556,30 +1556,30 @@ void handleGameSound(void) {
             sndFXKeyOff(lbl_3_bss_177C);
             if (g_Batter.isBunting != 0) {
                 playSoundEffect(0x153);
-            } else if (g_Batter.captainStarSwingActivated != 0) {
+            } else if (g_Batter.captainStarSwingActivated != CAPTAIN_STAR_TYPE_NONE) {
                 switch (g_Batter.captainStarSwingActivated) {
-                case 1:
-                case 2:
+                case CAPTAIN_STAR_TYPE_MARIO:
+                case CAPTAIN_STAR_TYPE_LUIGI:
                     lbl_3_bss_1778 = playSoundEffect(0x194);
                     break;
-                case 3:
-                case 4:
+                case CAPTAIN_STAR_TYPE_WARIO:
+                case CAPTAIN_STAR_TYPE_WALUIGI:
                     lbl_3_bss_1778 = playSoundEffect(0x191);
                     break;
-                case 5:
-                case 6:
+                case CAPTAIN_STAR_TYPE_DK:
+                case CAPTAIN_STAR_TYPE_DIDDY:
                     lbl_3_bss_1778 = playSoundEffect(0x192);
                     break;
-                case 7:
-                case 8:
+                case CAPTAIN_STAR_TYPE_BOWSER:
+                case CAPTAIN_STAR_TYPE_BOWSERJR:
                     lbl_3_bss_1778 = playSoundEffect(0x195);
                     break;
-                case 9:
-                case 10:
+                case CAPTAIN_STAR_TYPE_YOSHI:
+                case CAPTAIN_STAR_TYPE_BIRDO:
                     lbl_3_bss_1778 = playSoundEffect(0x193);
                     break;
-                case 11:
-                case 12:
+                case CAPTAIN_STAR_TYPE_PEACH:
+                case CAPTAIN_STAR_TYPE_DAISY:
                     lbl_3_bss_1778 = playSoundEffect(0x199);
                     lbl_3_bss_1760 = 0;
                     break;
@@ -1587,17 +1587,17 @@ void handleGameSound(void) {
                 playSoundEffect(0x184);
                 playSoundEffect(0x185);
                 playCharacterSound(g_Batter.charID, 0);
-            } else if (g_Batter.charID == 2) {
+            } else if (g_Batter.charID == CHAR_ID_DK) {
                 playSoundEffect(0x1AF);
-            } else if (g_Batter.charID == 0x26) {
+            } else if (g_Batter.charID == CHAR_ID_PETEY) {
                 playSoundEffect(0x1B0);
             } else if (g_Batter.displayContactSprite != 0) {
                 playSoundEffect(0x184);
                 playSoundEffect(0x185);
-            } else if (g_Batter.contactType == 2) {
+            } else if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
                 playSoundEffect(0x184);
                 playCharacterSound(g_Batter.charID, 0);
-            } else if (g_Batter.contactType >= 1 && g_Batter.contactType <= 3) {
+            } else if (g_Batter.contactType >= HIT_CONTACT_TYPE_RIGHT_NICE && g_Batter.contactType <= HIT_CONTACT_TYPE_LEFT_NICE) {
                 playCharacterSound(g_Batter.charID, 0);
                 playSoundEffect(0x184);
             } else {
@@ -1611,7 +1611,7 @@ void handleGameSound(void) {
         }
     }
 
-    if (g_Batter.captainStarSwingActivated == 0xB && lbl_3_bss_1760 == 0 &&
+    if (g_Batter.captainStarSwingActivated == CAPTAIN_STAR_TYPE_PEACH && lbl_3_bss_1760 == 0 &&
         g_Ball.physicsSubstruct.velocity.y <= -0.09 && g_Ball.physicsSubstruct.velocity.y >= -0.1) {
         sndFXKeyOff(lbl_3_bss_177C);
         lbl_3_bss_1778 = playSoundEffect(0x19B);
@@ -1629,7 +1629,7 @@ void handleGameSound(void) {
         sndFXKeyOff(lbl_3_bss_177C);
     }
     if (lbl_3_bss_1778 != 0) {
-        if (g_Ball.currentStarSwing == 0 || g_Ball.deadBallReason != 0) {
+        if (g_Ball.currentStarSwing == 0 || g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
             sndFXKeyOff(lbl_3_bss_1778);
         }
     }
@@ -1744,8 +1744,8 @@ BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
 
     if (sound_crowd_EffectsStruct._2F == 0) {
         sound_crowd_EffectsStruct._2F = 1;
-        lbl_3_bss_1764 = hi;
         lbl_3_bss_176C = (f32)arg2 / (f32)arg1;
+        lbl_3_bss_1764 = hi;
     }
 
     lbl_3_bss_1764 += lbl_3_bss_176C;
