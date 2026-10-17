@@ -1839,25 +1839,20 @@ void fn_1_22DF4(DrawingSceneStruct *arg0) {
 }
 
 // .text:0x00022874 size:0x580
-u8 fn_1_22874(void) {
+BOOL fn_1_22874(DrawingSceneStruct *arg0) {
     DrawingSceneStruct *item = currentDrawingItem;
-    s32 discriminant;
-    f32 delta0, delta1, delta2;
+    s32 step;
     s32 row;
     u8 old21;
     u16 f;
 
     if (AtBat_ButtonInput1._00 & INPUT_TRIGGER_R) {
-        discriminant = 0x64;
+        step = 100;
     } else if (*((u8 *)&AtBat_ButtonInput1 + 0x15) >= 0x50) {
-        discriminant = 1;
+        step = 1;
     } else {
-        discriminant = 0xa;
+        step = 10;
     }
-
-    delta0 = 0.001f * (f32)discriminant;
-    delta1 = 0.01f * (f32)discriminant;
-    delta2 = 0.0001f * (f32)discriminant;
 
     for (row = 0; row < 14; row++) {
         switch (row) {
@@ -1892,9 +1887,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x0) -= delta0;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x0) -= 0.001f * (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x0) += delta0;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x0) += 0.001f * (f32)step;
                 }
             }
             break;
@@ -1902,9 +1897,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)((u8 *)item + 0x18) -= delta1;
+                    *(f32 *)((u8 *)item + 0x18) -= 0.01f * (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)((u8 *)item + 0x18) += delta1;
+                    *(f32 *)((u8 *)item + 0x18) += 0.01f * (f32)step;
                 }
             }
             break;
@@ -1912,9 +1907,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x8) -= delta1;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x8) -= 0.01f * (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x8) += delta1;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x8) += 0.01f * (f32)step;
                 }
             }
             break;
@@ -1922,9 +1917,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0xc) -= delta1;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0xc) -= 0.01f * (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0xc) += delta1;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0xc) += 0.01f * (f32)step;
                 }
             }
             break;
@@ -1932,9 +1927,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x10) -= delta1;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x10) -= 0.01f * (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x10) += delta1;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x10) += 0.01f * (f32)step;
                 }
             }
             break;
@@ -1942,9 +1937,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x14) -= delta2;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x14) -= 0.0001f * (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)(lbl_1_bss_6FB8 + 0x14) += delta2;
+                    *(f32 *)(lbl_1_bss_6FB8 + 0x14) += 0.0001f * (f32)step;
                 }
             }
             break;
@@ -1952,9 +1947,9 @@ u8 fn_1_22874(void) {
             if (row == *((u8 *)item + 0x25)) {
                 f = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (f & INPUT_BUTTON_LEFT) {
-                    *(f32 *)((u8 *)item + 0x1c) -= (f32)discriminant;
+                    *(f32 *)((u8 *)item + 0x1c) -= (f32)step;
                 } else if (f & INPUT_BUTTON_RIGHT) {
-                    *(f32 *)((u8 *)item + 0x1c) += (f32)discriminant;
+                    *(f32 *)((u8 *)item + 0x1c) += (f32)step;
                 }
             }
             break;
@@ -2130,9 +2125,10 @@ static inline void updateChainLinks(void *arg0, s32 arg1, Mtx arg2) {
 void fn_1_21CE8(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     f32 windVec[3];
+    ChainNode *chain;
     s32 i;
 
-    if (fn_1_22874() != 0 || (AtBat_ButtonInput1._02 & INPUT_BUTTON_A)) {
+    if (fn_1_22874(item) != 0 || (AtBat_ButtonInput1._02 & INPUT_BUTTON_A)) {
         fn_1_21180(item);
     } else if (AtBat_ButtonInput1._02 & INPUT_BUTTON_B) {
         currentDrawingItem->func = fn_1_21408;
@@ -2140,11 +2136,9 @@ void fn_1_21CE8(void) {
 
     if (*((u8 *)item + 0x23) != 0) {
         f32 windMul;
-        ChainNode *node;
-        f32 dB0;
-        f32 dB1;
-        f32 dB3;
-        u8 *entryPrev;
+        s8 stickX;
+        s8 substickY;
+        s8 stickY;
 
         if (*((u8 *)&AtBat_ButtonInput1 + 0x75) >= 0x50) {
             windMul = 0.0001f * *(f32 *)((u8 *)item + 0x1c);
@@ -2152,33 +2146,29 @@ void fn_1_21CE8(void) {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
-        dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
-        dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
-        dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
-        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
-        node[-1].pos.x += dB0 * windMul;
-        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
-        node[-1].pos.y += dB3 * windMul;
-        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
-        node[-1].pos.z += dB1 * windMul;
+        chain = (ChainNode *)lbl_1_bss_6FE0;
+        stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
+        substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
+        stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        chain[*((u8 *)item + 0x21) - 1].pos.x += (f32)stickX * windMul;
+        chain[*((u8 *)item + 0x21) - 1].pos.y += (f32)substickY * windMul;
+        chain[*((u8 *)item + 0x21) - 1].pos.z += (f32)stickY * windMul;
 
-        memcpy(&((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].prevPos,
-            &((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].pos, sizeof(Vec));
+        memcpy(&chain[*((u8 *)item + 0x21) - 1].prevPos, &chain[*((u8 *)item + 0x21) - 1].pos, sizeof(Vec));
 
         windVec[0] = 0.0f;
         windVec[1] = 0.0f;
         windVec[2] = 0.0f;
     } else {
-        u8 *entryPrev = (lbl_1_bss_6FE0) + (*((u8 *)item + 0x21) - 1) * 0x40;
-        f32 entryField0 = *(f32 *)entryPrev;
-        f32 dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
-        f32 dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
-        f32 dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
+        f32 mass = ((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1]._00;
+        s8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
+        s8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
+        s8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
         f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
 
-        windVec[0] = windDrag * (dB0 * entryField0);
-        windVec[1] = windDrag * (dB3 * entryField0);
-        windVec[2] = windDrag * (dB1 * entryField0);
+        windVec[0] = windDrag * ((f32)stickX * mass);
+        windVec[1] = windDrag * ((f32)substickY * mass);
+        windVec[2] = windDrag * ((f32)stickY * mass);
     }
 
     fn_80038B48((lbl_1_bss_6FB8), (lbl_1_bss_6FE0), *((u8 *)item + 0x21), windVec);
@@ -2202,15 +2192,14 @@ void fn_1_21CE8(void) {
 
     fn_1_21298(item);
 
-    if (lbl_1_bss_6BE0 != NULL) {
-        updateChainLinks(lbl_1_bss_6FE0, *((u8 *)item + 0x21) - 1, (f32 (*)[4])lbl_1_bss_43EE0);
-    }
+    updateChainLinks(lbl_1_bss_6FE0, *((u8 *)item + 0x21) - 1, (f32 (*)[4])lbl_1_bss_43EE0);
 }
 
 // .text:0x00021408 size:0x8E0
 void fn_1_21408(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     f32 windVec[3];
+    ChainNode *chain;
     s32 i;
 
     if (AtBat_ButtonInput1._02 & INPUT_BUTTON_START) {
@@ -2226,11 +2215,9 @@ void fn_1_21408(void) {
 
     if (*((u8 *)item + 0x23) != 0) {
         f32 windMul;
-        ChainNode *node;
-        f32 dB0;
-        f32 dB1;
-        f32 dB3;
-        u8 *entryPrev;
+        s8 stickX;
+        s8 substickY;
+        s8 stickY;
 
         if (*((u8 *)&AtBat_ButtonInput1 + 0x75) >= 0x50) {
             windMul = 0.0001f * *(f32 *)((u8 *)item + 0x1c);
@@ -2238,33 +2225,29 @@ void fn_1_21408(void) {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
-        dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
-        dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
-        dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
-        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
-        node[-1].pos.x += dB0 * windMul;
-        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
-        node[-1].pos.y += dB3 * windMul;
-        node = (ChainNode *)lbl_1_bss_6FE0 + *((u8 *)item + 0x21);
-        node[-1].pos.z += dB1 * windMul;
+        chain = (ChainNode *)lbl_1_bss_6FE0;
+        stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
+        substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
+        stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        chain[*((u8 *)item + 0x21) - 1].pos.x += (f32)stickX * windMul;
+        chain[*((u8 *)item + 0x21) - 1].pos.y += (f32)substickY * windMul;
+        chain[*((u8 *)item + 0x21) - 1].pos.z += (f32)stickY * windMul;
 
-        memcpy(&((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].prevPos,
-            &((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1].pos, sizeof(Vec));
+        memcpy(&chain[*((u8 *)item + 0x21) - 1].prevPos, &chain[*((u8 *)item + 0x21) - 1].pos, sizeof(Vec));
 
         windVec[0] = 0.0f;
         windVec[1] = 0.0f;
         windVec[2] = 0.0f;
     } else {
-        u8 *entryPrev = (lbl_1_bss_6FE0) + (*((u8 *)item + 0x21) - 1) * 0x40;
-        f32 entryField0 = *(f32 *)entryPrev;
-        f32 dB0 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x70);
-        f32 dB1 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x71);
-        f32 dB3 = (f32)*((s8 *)&AtBat_ButtonInput1 + 0x73);
+        f32 mass = ((ChainNode *)lbl_1_bss_6FE0)[*((u8 *)item + 0x21) - 1]._00;
+        s8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
+        s8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
+        s8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
         f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
 
-        windVec[0] = windDrag * (dB0 * entryField0);
-        windVec[1] = windDrag * (dB3 * entryField0);
-        windVec[2] = windDrag * (dB1 * entryField0);
+        windVec[0] = windDrag * ((f32)stickX * mass);
+        windVec[1] = windDrag * ((f32)substickY * mass);
+        windVec[2] = windDrag * ((f32)stickY * mass);
     }
 
     fn_80038B48((lbl_1_bss_6FB8), (lbl_1_bss_6FE0), *((u8 *)item + 0x21), windVec);

@@ -3396,10 +3396,13 @@ functions. These lessons are not specific to one file:
   gets its own address register,** and every offset-0 access and struct copy of that element then
   goes through it; pointer casts on call arguments have no effect at all (`rep_00B0` `fn_1_4A24`,
   diagnostic only).
-- **When the target has a function both standalone and inlined, write the real function and call
-  it;** MWCC inlines it into the callers by itself. A `static inline` copy plus a wrapper for the
-  standalone symbol changes the standalone function's registers (`rep_0610` `fn_1_D300`,
-  `fn_1_126CC`; earlier `rep_7730` `fn_1_21180`).
+- **When the target has a function both standalone and inlined, first write the real function and
+  call it;** MWCC inlines it into the callers by itself. A `static inline` copy plus a wrapper for the
+  standalone symbol changes the standalone function's registers (`rep_0610` `fn_1_D300`; earlier
+  `rep_7730` `fn_1_21180`). **If no declaration order matches both copies** (each order fixes one),
+  switch to the `static inline` helper with the real function as a one-line wrapper: the helper's
+  numbering then applies to both (`rep_0610` `fn_1_126CC` 33 -> 100 and its inlining caller
+  `fn_1_179CC` 50 -> 100, helper declared with `f32 z, y, x`).
 - **A float literal loaded as `addi rX, lit@l; lfs 0(rX)` instead of `lfs lit@l(rX)` came in
   through an inline function's parameter** (`rep_0610` `fn_1_EA20` -> `dbgSetFrame`).
 - **A one-trip loop (`for (i = 0; i < 1; i++)`) explains constant `[0]` indexing combined with
@@ -3413,3 +3416,55 @@ functions. These lessons are not specific to one file:
   element too many (a do-while where the target's `while (k-- != 0)` skips k = 5), and `fn_1_12F8C`
   wrote four flags to the wrong struct. Check loop bounds and store targets before treating a
   90-95% function as a register problem.
+- **A REL unit can have been built against a narrower prototype than the DOL.**
+  `insertGraphicDrawingFunction`'s priority is `u32` in its definition and for the DOL callers:
+  with `u16` the definition drops from 100 to 96.5, `sta_c4` `fn_3_F9E78` loses 1.5, and the Matching
+  `File_0x800486e0` fails the sha check. But `rep_0610` `fn_1_D13C` only matches when the int argument is
+  narrowed by an implicit conversion through a `u16` prototype (`addi; clrlwi r4, r0, 16` scheduled
+  after the other argument setup). An explicit `(u16)` cast or a `u16`-parameter `static inline`
+  schedules the `clrlwi` elsewhere. MWCC rejects a conflicting redeclaration, so the header declares the
+  `u16` form under `#ifdef DRAWING_PRIORITY_U16` and only that unit defines the macro. Test a prototype
+  change with a project-wide report diff (header and definition changed together) before applying it.
+- **Loop-invariant products as locals before a loop and the same expression inline at each use
+  are hoisted to the same place, but colour the conversion temps differently.** If a function
+  computes `k * (f32)x` constants up front and the int-to-float temps land in the wrong registers,
+  delete the locals and write the expression at every use (`rep_7730` `fn_1_22874` -> 100).
+- **Read a callee's prototype off its caller.** `mr r3, rX; bl f` before a callee that never reads
+  r3 means it takes an unused parameter; `cmpwi r3, 0` after the call (not `clrlwi. r0, r3, 24`)
+  means it returns int, not u8. Fix the prototype even when the callee already matches
+  (`rep_7730` `fn_1_21CE8` calling `fn_1_22874`).
+- **Repeated `arr[n - 1].field op= ...` updates: hold the base in a pointer local** assigned in the
+  same block, after any preceding branchy code, when the target keeps one base register
+  (`add rT, base, n<<6; lfs disp(rT)`) and ours turns later updates into `subi; lfsx`. Int-to-float
+  conversions whose loads the target hoists above a run of float stores want int locals converted at
+  the use (`s32 x = *(s8 *)p; ... (f32)x`), not float locals (`rep_7730` `fn_1_21408`).
+- **Constants held in callee-saved FPRs across the first call are hoisted out of a one-trip loop.**
+  `0.0f` (addi form) in f31 and `57.29f` in f30, loaded before `CTRLSetTranslation` and reused by a
+  later `speed != 0.0f`, came from `for (k = 0; k < 1; k++) {...}`, the per-player loop with one
+  player (`rep_0610` `fn_1_129D0` 92.5 -> 97.3; same family as `fn_1_17B5C`).
+- **A loop counter the target copies from a register (`mr r6, r3`), plus a stored zero that reuses
+  the register that held an earlier 0, means the loop variable is a register-promoted global:**
+  `lbl_1_bss_5F73 = 0; do { a[lbl_1_bss_5F73]...; lbl_1_bss_5F73++; } while (lbl_1_bss_5F73 < 1);`,
+  not a local copied into the global afterwards (`rep_0610` `fn_1_1496C` 96.8 -> 97.8).
+- **`const` on an inline helper's parameters is not neutral.**
+  `static inline void dbgVertex(const f32 x, const f32 y, const f32 z, const u32 c)` around
+  `GXPosition3f32` / `GXColor1u32` took `rep_0610` `fn_1_10E2C` to 100, while the same helper with
+  plain parameters was byte-identical to open-coded calls. The SDK's own GX inlines mostly take
+  `const` parameters.
+- **"All pos loads before any store, one store per component" is locals loaded first and then
+  updated** (`x = a->pos.x; y = ...; z = ...; x += ...; y += ...; y -= ...;` then the stores), a
+  different shape from `x = a->pos.x + ...`. The int-to-float conversion stack slots ascend in source
+  order, which reads the original statement order off the target (`rep_0610` `fn_1_126CC`).
+- **`int` and `s32` (`signed long`) are not interchangeable for MWCC:** `rep_0610` `fn_1_16978`'s
+  counter scores 99.80 as `s32` and 99.61 as `int`.
+- **Tooling: `objdiff-cli diff -1 <target.o> -2 <candidate.o> -o - --format json` scores an object
+  compiled anywhere,** so variants can be compiled in parallel into scratch files without touching the
+  build tree (about 0.25 s per variant for a 70 KB TU with 16 workers). Rank candidates by objdiff's own
+  score; difflib and word-diff metrics mis-rank them.
+- **Two same-typed counters whose registers come out wrong may be one variable.** `rep_0610`
+  `fn_1_CDC8`'s switch result `k` was really `i` reused: about +10 points, but only together with the
+  right statement order (found by a full 2 x 5040 objdiff sweep); alone it scored lower. The same sweep
+  also exposed a real bug (`ids[0]`/`ids[1]` swapped). 89.2 -> 99.1.
+- **Declaration-order sweeps usually fall into a few score groups;** a pairwise "declared before" test
+  across the groups finds the deciding rule quickly (`rep_0610` `fn_1_135C0`: `anim` before
+  `geoExtra`).

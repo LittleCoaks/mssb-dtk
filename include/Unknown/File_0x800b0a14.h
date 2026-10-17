@@ -35,7 +35,14 @@ extern u16 DrawingStructArray_Count2;
 extern volatile u16 DrawingStructArray_SearchIndex;
 
 void removeCurrentDrawingItem(void);
+#ifndef DRAWING_PRIORITY_U16
 DrawingSceneStruct *insertGraphicDrawingFunction(void (*func)(void), u32 priority);
+#else
+/* debug.rel rep_0610 was built against a u16 priority: an int argument is narrowed
+ * by the implicit conversion (clrlwi scheduled after the other argument setup).
+ * The definition and the DOL callers take u32 (u16 regresses both). */
+DrawingSceneStruct *insertGraphicDrawingFunction(void (*func)(void), u16 priority);
+#endif
 void resetAllDrawingStructs_tonop(void);
 void resetAllDrawingStructs(void);
 void setDrawingListHeadFunctions(void (*func)(void));

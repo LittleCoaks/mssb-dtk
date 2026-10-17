@@ -56,7 +56,7 @@ void fn_1_21408(void);
 void fn_1_21CE8(void);
 void fn_1_225B8(void);
 void fn_1_22644(void);
-u8 fn_1_22874(void);
+BOOL fn_1_22874(DrawingSceneStruct *arg0);
 void fn_1_22DF4(DrawingSceneStruct *arg0);
 void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other);
 s32 fn_1_23098(Mtx44 proj, Mtx view, s32 cols, s32 rows, f32 nearZ, f32 farZ);
