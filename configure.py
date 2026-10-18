@@ -951,7 +951,7 @@ config.libs = [
             Object(NonMatching, "game/practice/practice_scene.c"),
             Object(NonMatching, "game/practice/free_fielding_practice.c"),
             Object(Matching, "game/batting/star_swing_peach_daisy.c"),
-            Object(Matching, "game/data_only/rep_3B70.c"),
+            Object(Matching, "game/batting/star_effect_glow.c"),
             Object(NonMatching, "game/stats/stat_book.c"),
             Object(Matching, "game/batting/star_swing_bowser.c"),
             Object(Matching, "game/ball/ball_contact_burst.c"),

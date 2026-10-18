@@ -57,6 +57,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `batter.c` | `game_batter` | 19 (19) | 16,184 | Batter at-bat: swing/bunt decisions, contact and hit-type calculation, launch angle and power, star swings. Nearly fully named. | high |
 | `batter_ai.c` | `rep_8C8` + `auto_00_00020A60` | 18 (16) | 10,052 | Swing timing, stick input, ball tracking, RNG; the pre-at-bat bunt roll (`batterAIRollBuntIntent`) and pre-at-bat batter/last-pitch resets. | high |
 | `charge_effects.c` | `rep_1F58` | 13 (2) | 4,368 | Charge animation graphics. | med |
+| `star_effect_glow.c` | `data_only/rep_3B70` | 2 (2) | 964 | An additive glow quad at the captain star-effect position (shared effects block `+0x440`, set by `scene_effects.c` for star swings and star pitches): `starEffectGlow_queue` builds it, smaller before contact and larger once the ball is hit, and `starEffectGlow_draw` is its draw callback. Nothing calls `starEffectGlow_queue`, so it looks like leftover code; which captain it served is unknown (it links between `star_swing_peach_daisy.c` and `stat_book.c`). | inferred |
 | `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
 | `star_swing_bowser.c` | `rep_3C28` | 1 (0) | 212 | Bowser / Bowser Jr. branch of the captain star-swing effect dispatch in `scene_effects.c`: an emitter along the ball path. | med |
 | `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (5) | 2,708 | Peach/Daisy star-swing special case. | med |
@@ -297,7 +298,6 @@ not a shared gameplay purpose.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `data_1880.c` and `data_69C0.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
-| `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
 | `rep_3CE0.c` | *(unchanged)* | 7 (0) | 3,332 | Fade plus four actor markers sized by character; called from `scene_effects.c` and `minigame_fielder_anim.c`. | inferred |
 | `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |
 

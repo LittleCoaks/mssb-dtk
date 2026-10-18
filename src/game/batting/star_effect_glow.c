@@ -1,6 +1,6 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep3B70
-#include "game/data_only/rep_3B70.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_starEffectGlow
+#include "game/batting/star_effect_glow.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x80052734.h"
@@ -8,12 +8,21 @@
 #include "Dolphin/mtx.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/GX/GXFifo.h"
+#include "Unknown/File_0x80034e20.h"
 
-typedef struct Rep3B70Entry Rep3B70Entry;
+// An additive-blended glow quad drawn at the captain star-effect position
+// (the shared effects block's +0x440, which scene_effects' fn_3_BD6AC and
+// animationRelated set for both star swings and star pitches). It is smaller
+// before contact and larger once the ball is hit or a live-ball scene runs.
+// Nothing in the REL calls starEffectGlow_queue, so this looks like leftover
+// code; which captain's effect it belonged to is not known (it links between
+// star_swing_peach_daisy.c and stat_book.c). Names are inferred.
 
-struct Rep3B70Entry {
+typedef struct StarGlowEntry StarGlowEntry;
+
+struct StarGlowEntry {
     u32 _00;
-    void (*draw)(Rep3B70Entry* entry);
+    void (*draw)(StarGlowEntry* entry);
     Mtx transform;
     u8 projection[0x1C];
     Vec corners[4];
@@ -23,31 +32,38 @@ struct Rep3B70Entry {
 typedef struct {
     s32 size;
     u32 alpha;
-} Rep3B70Size;
+} StarGlowSize;
 
-void fn_3_15C230(Rep3B70Entry* entry);
+void starEffectGlow_draw(StarGlowEntry* entry);
 extern u8 drawStadiumRelated;
-extern u8 lbl_3_common_bss_35154[];
+
+// The part of the shared effects block (lbl_3_common_bss_35154) this unit reads.
+extern struct {
+    /*0x000*/ u8 _000[4];
+    /*0x004*/ TextureHeader* textures;
+    /*0x008*/ u8 _008[0x440 - 0x8];
+    /*0x440*/ VecXYZ starEffectPos;
+} lbl_3_common_bss_35154;
 extern void fn_800340F4(Mtx);
 extern void fn_800A7D4C(s32, void*);
 
 // This unit's .data (0x271A8-0x273DC, symbols lbl_3_data_271A8/273CC/273D4).
 // MWCC pools file-static data and addresses each object as base+offset from a
 // single register, which is what the code expects; extern declarations do not
-// reproduce that. The .data range must be split into this unit before it can
-// be linked as Matching.
+// reproduce that, so these stay statics defined in this order.
 static u8 sActiveCount[4] = {0};
-static Rep3B70Entry sEntries[2][2] = {
-    {{0, fn_3_15C230}, {0, fn_3_15C230}},
-    {{0, fn_3_15C230}, {0, fn_3_15C230}},
+static StarGlowEntry sEntries[2][2] = {
+    {{0, starEffectGlow_draw}, {0, starEffectGlow_draw}},
+    {{0, starEffectGlow_draw}, {0, starEffectGlow_draw}},
 };
-static Rep3B70Size sSizeA = {100000, 0x80};
-static Rep3B70Size sSizeB = {190000, 0x80};
+// Half-size of the quad (x 100000) and its alpha: before contact, then once hit.
+static StarGlowSize sSizeBeforeHit = {100000, 0x80};
+static StarGlowSize sSizeAfterHit = {190000, 0x80};
 
 // .text:0x0015C3F8 size:0x1FC mapped:0x8079B48C
-void fn_3_15C3F8(void) {
+void starEffectGlow_queue(void) {
     Mtx matrix;
-    Rep3B70Entry* entry;
+    StarGlowEntry* entry;
     f32 scale;
     int effectIndex;
     int i;
@@ -58,9 +74,9 @@ void fn_3_15C3F8(void) {
     entry = &sEntries[count][slot];
     entry->counter = activeCount;
     fn_80024390(returnFloatFromModeIndex(0)->proj, (f32*)entry->projection, GX_PERSPECTIVE);
-    PSMTXTrans(entry->transform, *(f32*)(lbl_3_common_bss_35154 + 0x440),
-               *(f32*)(lbl_3_common_bss_35154 + 0x444),
-               *(f32*)(lbl_3_common_bss_35154 + 0x448));
+    PSMTXTrans(entry->transform, lbl_3_common_bss_35154.starEffectPos.x,
+               lbl_3_common_bss_35154.starEffectPos.y,
+               lbl_3_common_bss_35154.starEffectPos.z);
     PSMTXConcat(returnFloatFromModeIndex(0)->view, entry->transform, entry->transform);
 
     if (g_GameLogic.bOD_framesInLiveBallScene >= 0) {
@@ -69,9 +85,9 @@ void fn_3_15C3F8(void) {
         effectIndex = g_Ball.framesSinceHit > 0;
     }
     if (effectIndex == 2) {
-        scale = (f32)sSizeB.size / 100000.0f / 2.0f;
+        scale = (f32)sSizeAfterHit.size / 100000.0f / 2.0f;
     } else {
-        scale = (f32)sSizeA.size / 100000.0f / 2.0f;
+        scale = (f32)sSizeBeforeHit.size / 100000.0f / 2.0f;
     }
     fn_800340F4(matrix);
     entry->corners[3].x = -scale;
@@ -93,14 +109,14 @@ void fn_3_15C3F8(void) {
 }
 
 // .text:0x0015C230 size:0x1C8 mapped:0x8079B304
-void fn_3_15C230(Rep3B70Entry* entry) {
+void starEffectGlow_draw(StarGlowEntry* entry) {
     int effectIndex;
     u32 color;
 
     gOz_GXSetTexture(GX_MODULATE, 0, FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);
     GXSetZMode(TRUE, GX_LEQUAL, FALSE);
-    SetDisplayStateTexture((TextureBody*)(*(u8**)(lbl_3_common_bss_35154 + 4) + 0x2E4), 0, 0);
+    SetDisplayStateTexture((TextureBody*)&lbl_3_common_bss_35154.textures->records[23], 0, 0);
     GXSetProjectionv((f32*)entry->projection);
     GXLoadPosMtxImm(entry->transform, 0);
     GXSetCurrentMtx(0);
@@ -112,9 +128,9 @@ void fn_3_15C230(Rep3B70Entry* entry) {
         effectIndex = g_Ball.framesSinceHit > 0;
     }
     if (effectIndex == 2) {
-        color = sSizeB.alpha | 0xFFFFFF00;
+        color = sSizeAfterHit.alpha | 0xFFFFFF00;
     } else {
-        color = sSizeA.alpha | 0xFFFFFF00;
+        color = sSizeBeforeHit.alpha | 0xFFFFFF00;
     }
 
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
