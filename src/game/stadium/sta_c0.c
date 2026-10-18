@@ -109,6 +109,72 @@ static int emitterID;
 static u32 scrollDelay;
 static u32 lbl_3_bss_9F38;
 
+static inline void applyMarioStadiumLights(void) {
+    int i;
+
+    for (i = 0; i < stadiumObjectCollision.propCount; i++) {
+        fn_800BD548(MARIO_ANIM_TABLE + i * 0x90 + 0x34, 4, stadiumObjectCollision.lights[0],
+                    stadiumObjectCollision.lights[1], stadiumObjectCollision.lights[2],
+                    stadiumObjectCollision.lights[3]);
+    }
+}
+
+static inline void initMarioCrowd(void) {
+    MarioCrowdSeat* seat;
+    int i;
+    int k;
+
+    stadiumObjectCollision.crowd->layout = lbl_3_data_10F7C;
+    seat = lbl_3_data_11048;
+    stadiumObjectCollision.crowd->sequence = lbl_3_data_10F88;
+    stadiumObjectCollision.crowd->frames = (u8*)g_UNK_StadiumDetails._00 + 0x60;
+    stadiumObjectCollision.crowd->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x40;
+    stadiumObjectCollision.crowd->fanCount = 0x20;
+    stadiumObjectCollision.crowd->framesPerLoop = 6;
+    stadiumObjectCollision.crowd->phaseRange = 5;
+    for (i = 0, k = 0; i < 0x20; i++, k += 3, seat++) {
+        stadiumObjectCollision.crowd->fans[k] = seat->type;
+        if (seat->frame < 6) {
+            stadiumObjectCollision.crowd->fans[k + 1] = seat->frame;
+        } else {
+            stadiumObjectCollision.crowd->fans[k + 1] = rand() % 6;
+        }
+        if (seat->phase < 5) {
+            stadiumObjectCollision.crowd->fans[k + 2] = seat->phase;
+        } else {
+            stadiumObjectCollision.crowd->fans[k + 2] = rand() % stadiumObjectCollision.crowd->phaseRange;
+        }
+    }
+}
+
+static inline void initMarioCrowdAlt(void) {
+    MarioCrowdSeat* seat;
+    int i;
+    int k;
+
+    stadiumObjectCollision.crowdAlt->layout = lbl_3_data_10F84;
+    seat = lbl_3_data_11108;
+    stadiumObjectCollision.crowdAlt->sequence = lbl_3_data_11008;
+    stadiumObjectCollision.crowdAlt->frames = (u8*)g_UNK_StadiumDetails._00 + 0xA0;
+    stadiumObjectCollision.crowdAlt->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x80;
+    stadiumObjectCollision.crowdAlt->fanCount = 0x10;
+    stadiumObjectCollision.crowdAlt->framesPerLoop = 2;
+    stadiumObjectCollision.crowdAlt->phaseRange = 8;
+    for (i = 0, k = 0; i < 0x10; i++, k += 3, seat++) {
+        stadiumObjectCollision.crowdAlt->fans[k] = seat->type;
+        if (seat->frame < 2) {
+            stadiumObjectCollision.crowdAlt->fans[k + 1] = seat->frame;
+        } else {
+            stadiumObjectCollision.crowdAlt->fans[k + 1] = rand() % 6;
+        }
+        if (seat->phase < 8) {
+            stadiumObjectCollision.crowdAlt->fans[k + 2] = seat->phase;
+        } else {
+            stadiumObjectCollision.crowdAlt->fans[k + 2] = rand() % stadiumObjectCollision.crowdAlt->phaseRange;
+        }
+    }
+}
+
 // .text:0x000C9DB4 size:0xE00 mapped:0x80708E48
 void loadMarioStadium(void** files) {
     int phase;
@@ -120,7 +186,6 @@ void loadMarioStadium(void** files) {
     int i;
     u32 size;
     u8 done = FALSE;
-    MarioCrowdSeat* seat;
     MarioTreePlacement* cfg;
     MarioStadiumObj* m;
     int k;
@@ -146,16 +211,18 @@ void loadMarioStadium(void** files) {
     }
     stadiumObjectCollision.propCount = treeCount + 3;
     MARIO_ANIM_TABLE = ActorObjectInitTable(treeCount + 3);
-    animateBallRelated(MARIO_ANIM_TABLE, 0, 0, files[ids[1]], 0, 0);
+    slot = 0;
+    animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[1]], 0, 0);
+    slot++;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        animateBallRelated(MARIO_ANIM_TABLE, 1, 1, files[ids[4]], (int)files[ids[4] + 2], 0);
-        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + 0xC4), (u32)files[ids[4] + 2]);
+        animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[4]], (int)files[ids[4] + 2], 0);
+        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[4] + 2]);
     } else {
-        animateBallRelated(MARIO_ANIM_TABLE, 1, 1, files[ids[2]], (int)files[ids[2] + 2], 0);
-        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + 0xC4), (u32)files[ids[2] + 2]);
+        animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[2]], (int)files[ids[2] + 2], 0);
+        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[2] + 2]);
     }
-    slot = 2;
-    for (t = 0; t < treeCount; t++, slot++) {
+    slot++;
+    for (t = 0; t < treeCount; t++) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
             animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[5]], (int)files[ids[5] + 2], 0);
             actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[5] + 2]);
@@ -163,13 +230,10 @@ void loadMarioStadium(void** files) {
             animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[3]], (int)files[ids[3] + 2], 0);
             actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[3] + 2]);
         }
+        slot++;
     }
     animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[6]], 0, 0);
-    for (i = 0; i < stadiumObjectCollision.propCount; i++) {
-        fn_800BD548(MARIO_ANIM_TABLE + i * 0x90 + 0x34, 4, stadiumObjectCollision.lights[0],
-                    stadiumObjectCollision.lights[1], stadiumObjectCollision.lights[2],
-                    stadiumObjectCollision.lights[3]);
-    }
+    applyMarioStadiumLights();
     if (files[ids[7]] != NULL) {
         adjustInternalPointers(files[ids[7]]);
         ACTActorRelated(files[ids[7]], MARIO_ANIM_TABLE + 0x34);
@@ -251,7 +315,7 @@ void loadMarioStadium(void** files) {
     count = 2;
     phase = 0;
     cfg = marioStadiumTrees;
-    for (i = 0; i < MARIO_TREE_COUNT; i++, cfg++) {
+    for (i = 0; i < MARIO_TREE_COUNT; i++) {
         if (cfg->usedFlag == MARIO_TREE_END) {
             done = TRUE;
         }
@@ -281,6 +345,7 @@ void loadMarioStadium(void** files) {
         o->fadeByDepth = 0;
         o->alpha = 0xFF;
         count++;
+        cfg++;
         phase += 100;
         o->effect = NULL;
         o->preDraw = NULL;
@@ -318,48 +383,8 @@ void loadMarioStadium(void** files) {
     }
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
-        stadiumObjectCollision.crowd->layout = lbl_3_data_10F7C;
-        seat = lbl_3_data_11048;
-        stadiumObjectCollision.crowd->sequence = lbl_3_data_10F88;
-        stadiumObjectCollision.crowd->frames = (u8*)g_UNK_StadiumDetails._00 + 0x60;
-        stadiumObjectCollision.crowd->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x40;
-        stadiumObjectCollision.crowd->fanCount = 0x20;
-        stadiumObjectCollision.crowd->framesPerLoop = 6;
-        stadiumObjectCollision.crowd->phaseRange = 5;
-        for (i = 0, k = 0; i < 0x20; i++, k += 3, seat++) {
-            stadiumObjectCollision.crowd->fans[k] = seat->type;
-            if (seat->frame < 6) {
-                stadiumObjectCollision.crowd->fans[k + 1] = seat->frame;
-            } else {
-                stadiumObjectCollision.crowd->fans[k + 1] = rand() % 6;
-            }
-            if (seat->phase < 5) {
-                stadiumObjectCollision.crowd->fans[k + 2] = seat->phase;
-            } else {
-                stadiumObjectCollision.crowd->fans[k + 2] = rand() % stadiumObjectCollision.crowd->phaseRange;
-            }
-        }
-        stadiumObjectCollision.crowdAlt->layout = lbl_3_data_10F84;
-        seat = lbl_3_data_11108;
-        stadiumObjectCollision.crowdAlt->sequence = lbl_3_data_11008;
-        stadiumObjectCollision.crowdAlt->frames = (u8*)g_UNK_StadiumDetails._00 + 0xA0;
-        stadiumObjectCollision.crowdAlt->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x80;
-        stadiumObjectCollision.crowdAlt->fanCount = 0x10;
-        stadiumObjectCollision.crowdAlt->framesPerLoop = 2;
-        stadiumObjectCollision.crowdAlt->phaseRange = 8;
-        for (i = 0, k = 0; i < 0x10; i++, k += 3, seat++) {
-            stadiumObjectCollision.crowdAlt->fans[k] = seat->type;
-            if (seat->frame < 2) {
-                stadiumObjectCollision.crowdAlt->fans[k + 1] = seat->frame;
-            } else {
-                stadiumObjectCollision.crowdAlt->fans[k + 1] = rand() % 6;
-            }
-            if (seat->phase < 8) {
-                stadiumObjectCollision.crowdAlt->fans[k + 2] = seat->phase;
-            } else {
-                stadiumObjectCollision.crowdAlt->fans[k + 2] = rand() % stadiumObjectCollision.crowdAlt->phaseRange;
-            }
-        }
+        initMarioCrowd();
+        initMarioCrowdAlt();
         fn_3_35E4((int)fanAnimationRelated);
         wave = stadiumObjectCollision.crowdWave;
         wave->frames = g_UNK_StadiumDetails._00;

@@ -15,17 +15,20 @@
 #include "Unknown/File_0x800a8cbc.h"
 #include "game/match_setup/pause_menu.h"
 
-extern void fn_3_8B094(void);
+extern void processSoundReplayQueue(void);
+
+#define SOUND_EMITTER_COUNT 100
+#define SOUND_EMITTER_TYPE_NONE 0xFF
 
 // Composite listener/emitter object used by the stadium 3D sound code:
 // a listener, an array of emitters, an active-flag byte per emitter, and
 // two regions whose contents are unknown.
 typedef struct SoundEmitterState {
-    SND_LISTENER listener;         // 0x0000, size 0x90
-    SND_EMITTER emitters[100];     // 0x0090, stride 0x50
-    u8 emitterType[100];           // 0x1FD0, index into lbl_3_data_8974
-    E(u8, BOOL) emitterActive[100]; // 0x2034
-    u8 unk_2098[0xA0];             // 0x2098, unproven
+    SND_LISTENER listener;                          // 0x0000, size 0x90
+    SND_EMITTER emitters[SOUND_EMITTER_COUNT];      // 0x0090, stride 0x50
+    u8 emitterType[SOUND_EMITTER_COUNT];            // 0x1FD0, index into lbl_3_data_8974
+    E(u8, BOOL) emitterActive[SOUND_EMITTER_COUNT]; // 0x2034
+    u8 unk_2098[0xA0];                              // 0x2098, unproven
 } SoundEmitterState; // size 0x2138
 
 extern SoundEmitterState sndEmitter;
@@ -53,10 +56,8 @@ extern void fn_800A8AB8(u32 mode);
 extern BOOL fn_800A8518(u32 mode);
 extern void fn_800A8B78(void);
 extern u16 fn_800A8864(void);
-extern void fn_800A8878(u32 arg1, u32 arg2);
+extern void fn_800A8878(u8 arg1, u8 arg2);
 
-extern const f32 lbl_3_rodata_157C;
-extern const f32 lbl_3_rodata_1580;
 
 // Per-sound volume/reverb mix table, indexed by soundNumber - SOUND_EFFECT_MIX_FIRST_ID.
 typedef struct SoundEffectMix {
@@ -80,13 +81,13 @@ typedef struct SeqPlayEntry {
 // MWCC lays out this TU's .bss statics in reverse declaration order, so these
 // are declared from the highest address down.
 static s32 lbl_3_bss_1780[0x78 / sizeof(s32)];
-static s32 lbl_3_bss_177C;
-static s32 lbl_3_bss_1778;
+static SND_VOICEID lbl_3_bss_177C;
+static SND_VOICEID lbl_3_bss_1778;
 static s32 lbl_3_bss_1774;
 static u8 lbl_3_bss_1771;
 static u8 lbl_3_bss_1770;
 static f32 lbl_3_bss_176C;
-static struct SoundReplayQueue* lbl_3_bss_1768;
+static struct SoundReplayQueue* soundReplayQueue;
 static f32 lbl_3_bss_1764;
 static u8 lbl_3_bss_1761;
 static u8 lbl_3_bss_1760;
@@ -108,6 +109,33 @@ typedef struct SoundReplayQueue {
 
 #define SOUND_REPLAY_QUEUE_CAPACITY \
     ((int)(sizeof(((SoundReplayQueue*)0)->entries) / sizeof(SoundReplayEventRecord)))
+
+// Fades both music sequence slots to silence over `frames` and stops them.
+#define FADE_OUT_MUSIC(frames)                                                          \
+    do {                                                                                \
+        if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {                            \
+            sndSeqVolume(0, (frames), sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);  \
+        }                                                                               \
+        if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {                            \
+            sndSeqVolume(0, (frames), sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);  \
+        }                                                                               \
+    } while (0)
+
+// The queue push that every caller expands in place; the out-of-line
+// addToCircularBuffer below has the same body but is never called.
+#define ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)                                                      \
+    do {                                                                                      \
+        if (soundReplayQueue != NULL) {                                                         \
+            u8 head_ = soundReplayQueue->head;                                                  \
+            u8 next_;                                                                         \
+            if (soundReplayQueue->tail != (next_ = (head_ + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) { \
+                soundReplayQueue->head = next_;                                                 \
+                soundReplayQueue->entries[head_].arg1 = (a2);                                   \
+                soundReplayQueue->entries[head_].arg2 = (a1);                                   \
+                soundReplayQueue->entries[head_].arg3 = (a3);                                   \
+            }                                                                                 \
+        }                                                                                     \
+    } while (0)
 
 
 typedef struct StadiumEmitterDef {
@@ -335,375 +363,9 @@ SND_FVECTOR lbl_3_data_8D70 = {0.0f, -1.0f, 0.0f};
 
 SND_FVECTOR lbl_3_data_8D7C = {0.0f, 0.0f, 0.0f};
 
-// .text:0x0008B258 size:0x8C mapped:0x806CA2EC
-BOOL addToCircularBuffer(u8 arg1, u8 arg2, u8 arg3) {
-    u8 head;
-    u8 next;
-
-    if (lbl_3_bss_1768 == NULL) {
-        goto fail;
-    }
-
-    head = lbl_3_bss_1768->head;
-    next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    if (next == lbl_3_bss_1768->tail) {
-fail:
-        return FALSE;
-    }
-
-    lbl_3_bss_1768->head = next;
-    lbl_3_bss_1768->entries[head].arg1 = arg2;
-    lbl_3_bss_1768->entries[head].arg2 = arg1;
-    lbl_3_bss_1768->entries[head].arg3 = arg3;
-    return TRUE;
-}
-
-// .text:0x0008B2E4 size:0x34 mapped:0x806CA378
-void fn_3_8B2E4(void) {
-    lbl_3_bss_1768 = (SoundReplayQueue*)insertGraphicDrawingFunction(fn_3_8B094, 0);
-}
-
-// .text:0x0008B318 size:0x400
-void stadiumMusic(int stadiumID) {
-    int i;
-
-    if (stadiumID == -1) {
-        for (i = 0; i < 12; i++) {
-            charSoundFxVol[0x180 + i] = lbl_3_data_8278[i];
-        }
-        return;
-    }
-    if (stadiumID == STADIUM_ID_TOY_FIELD) {
-        for (i = 0; i < 7; i++) {
-            lbl_3_data_84B8[i * 2 + 1] = lbl_3_data_8270[i];
-        }
-        for (i = 0; i < 12; i++) {
-            charSoundFxVol[0x180 + i] = lbl_3_data_8278[i];
-        }
-        for (i = 0; i < 102; i++) {
-            lbl_3_data_8338[i].reverb = lbl_3_data_8284[i];
-        }
-        return;
-    }
-    for (i = 0; i < 7; i++) {
-        lbl_3_data_84B8[i * 2 + 1] = 0;
-    }
-    for (i = 0; i < 12; i++) {
-        charSoundFxVol[0x180 + i] = 0;
-    }
-    for (i = 0; i < 102; i++) {
-        lbl_3_data_8338[i].reverb = 0;
-    }
-}
-
-// .text:0x0008B718 size:0xC4 mapped:0x806CA7AC
-void fn_3_8B718(Vec* pos, Vec* dir, Vec* lookDir) {
-    camera_803c639c_s* cam = returnFloatFromModeIndex(0);
-
-    if (pos != NULL) {
-        pos->x = cam->eye.x;
-        pos->y = cam->eye.y;
-        pos->z = cam->eye.z;
-    }
-
-    if (dir != NULL) {
-        dir->x = lbl_3_rodata_157C;
-        dir->y = lbl_3_rodata_157C;
-        dir->z = lbl_3_rodata_157C;
-    }
-
-    if (lookDir != NULL) {
-        f32 mag;
-
-        PSVECSubtract(&cam->target, &cam->eye, lookDir);
-        mag = PSVECMag(lookDir);
-        if (mag != lbl_3_rodata_157C) {
-            PSVECNormalize(lookDir, lookDir);
-        }
-    }
-}
-
-// .text:0x0008B7DC size:0x28 mapped:0x806CA870
-void fn_3_8B7DC(void) {
-    sndRemoveListener(&sndEmitter.listener);
-}
-
-// .text:0x0008B804 size:0x8C mapped:0x806CA898
-void fn_3_8B804(void) {
-    int i;
-
-    for (i = 0; i < 100; i++) {
-        if (sndEmitter.emitterActive[i]) {
-            if (sndCheckEmitter(&sndEmitter.emitters[i])) {
-                sndRemoveEmitter(&sndEmitter.emitters[i]);
-            }
-            sndEmitter.emitterActive[i] = FALSE;
-        }
-    }
-}
-
-
-extern const f32 lbl_3_rodata_1584;
 unsigned long sndAddEmitter(SND_EMITTER* em, SND_FVECTOR* pos, SND_FVECTOR* dir, f32 maxDis,
                             f32 comp, unsigned long flags, unsigned short fxid, unsigned char maxVol,
                             unsigned char minVol, SND_ROOM* room);
-extern const SND_FVECTOR lbl_3_rodata_1558;
-extern SND_FVECTOR emitterPosX;
-extern SND_FVECTOR emitterDirX;
-
-// .text:0x0008B890 size:0xD4 mapped:0x806CA924
-void updateAndRemoveStadiumEmitter(int emitterID) {
-    SND_EMITTER* em;
-    SND_FVECTOR pos;
-    SND_FVECTOR dir;
-
-    if (emitterID >= 0 && emitterID < 100) {
-        if (sndEmitter.emitterActive[emitterID]) {
-            em = &sndEmitter.emitters[emitterID];
-            if (sndCheckEmitter(em)) {
-                pos = emitterPosX;
-                dir = emitterDirX;
-                sndUpdateEmitter(em, &pos, &dir, 0, NULL);
-                sndRemoveEmitter(em);
-            }
-        }
-    }
-}
-
-// .text:0x0008B964 size:0x58 mapped:0x806CA9F8
-void fn_3_8B964(SND_FVECTOR* pos, SND_FVECTOR* dir, SND_FVECTOR* heading) {
-    if (sndEmitter.listener.room != NULL) {
-        sndUpdateListener(&sndEmitter.listener, pos, dir, heading, &lbl_3_data_8D70, 0x7f, NULL);
-    }
-}
-
-// .text:0x0008B9BC size:0xA4 mapped:0x806CAA50
-void fn_3_8B9BC(SND_FVECTOR* pos) {
-    SND_FVECTOR heading;
-    SND_FVECTOR dir;
-
-    heading.x = lbl_3_rodata_157C;
-    heading.y = lbl_3_rodata_157C;
-    heading.z = lbl_3_rodata_1580;
-    dir.x = lbl_3_rodata_157C;
-    dir.y = lbl_3_rodata_157C;
-    dir.z = lbl_3_rodata_157C;
-
-    sndRemoveListener(&sndEmitter.listener);
-    sndAddListener(&sndEmitter.listener, pos, &dir, &heading, &lbl_3_data_8D70, lbl_3_data_88AC[0],
-                   lbl_3_data_88AC[0], lbl_3_data_88AC[0], SND_LISTENER_DOPPLERFX, 0x7f, NULL);
-}
-
-// .text:0x0008BA60 size:0x164 mapped:0x806CAAF4
-void updateOrRemoveEmitter(int emitterID, Vec* pos, Vec* vel) {
-    SND_EMITTER* em;
-    SND_FVECTOR localPos;
-    int type;
-
-    if (emitterID >= 0 && emitterID < 100) {
-        if (sndEmitter.emitterActive[emitterID]) {
-            em = &sndEmitter.emitters[emitterID];
-            if (!sndCheckEmitter(em)) {
-                sndEmitter.emitterActive[emitterID] = FALSE;
-            } else {
-                type = sndEmitter.emitterType[emitterID];
-                if (pos == NULL) {
-                    localPos.x = (f32)lbl_3_data_8974[type].pos[0] / 100000.0f;
-                    localPos.y = (f32)lbl_3_data_8974[type].pos[1] / 100000.0f;
-                    localPos.z = (f32)lbl_3_data_8974[type].pos[2] / 100000.0f;
-                    pos = (Vec*)&localPos;
-                }
-                if (vel == NULL) {
-                    vel = (Vec*)&lbl_3_data_8D7C;
-                }
-                sndUpdateEmitter(em, (SND_FVECTOR*)pos, (SND_FVECTOR*)vel,
-                                 (u8)lbl_3_data_8974[type].maxVol, NULL);
-            }
-        }
-    }
-}
-
-// .text:0x0008BBC4 size:0x230 mapped:0x806CAC58
-int initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
-    SND_FVECTOR localPos;
-    StadiumEmitterDef* def;
-    int i;
-
-    for (i = 0; i < 100; i++) {
-        if (!sndEmitter.emitterActive[i] || !sndCheckEmitter(&sndEmitter.emitters[i])) {
-            sndEmitter.emitterType[i] = arg;
-            sndEmitter.emitterActive[i] = TRUE;
-            sndEmitter.unk_2098[i] = 0;
-            if (pos == NULL) {
-                localPos.x = (f32)lbl_3_data_8974[arg].pos[0] / 100000.0f;
-                localPos.y = (f32)lbl_3_data_8974[arg].pos[1] / 100000.0f;
-                localPos.z = (f32)lbl_3_data_8974[arg].pos[2] / 100000.0f;
-                pos = (Vec*)&localPos;
-            }
-            if (vel == NULL) {
-                vel = (Vec*)&lbl_3_data_8D7C;
-            }
-            def = &lbl_3_data_8974[arg];
-            sndAddEmitter(&sndEmitter.emitters[i], (SND_FVECTOR*)pos, (SND_FVECTOR*)vel,
-                          (f32)def->maxDis / 100000.0f, (f32)def->comp / 100000.0f,
-                          def->flags[0] | def->flags[1] | def->flags[2] | def->flags[3] | def->flags[4] |
-                              def->flags[5] | def->flags[6],
-                          (u16)soundId, (u8)def->maxVol, (u8)def->minVol, NULL);
-            return i;
-        }
-    }
-    if (i == 100) {
-        OSPanic("m_sound.c", 0xE4C, "No Empty Emitter");
-    }
-    return -1;
-}
-
-// .text:0x0008BDF4 size:0x98 mapped:0x806CAE88
-void fn_3_8BDF4(void) {
-    fn_3_8B804();
-    fn_3_8B7DC();
-}
-
-// .text:0x0008BE8C size:0x1F0 mapped:0x806CAF20
-void initializeSoundEmitters(void) {
-    SND_FVECTOR pos = lbl_3_rodata_1558;
-    int i = 0;
-
-    for (; i < 100; i++) {
-        sndEmitter.emitterType[i] = 0xFF;
-        sndEmitter.emitterActive[i] = FALSE;
-        sndEmitter.unk_2098[i] = 0;
-    }
-    sndEmitter.unk_2098[0x64] = 0xFF;
-    sndEmitter.unk_2098[0x65] = 0;
-
-    fn_3_8B9BC(&pos);
-    fn_3_8B804();
-}
-
-// .text:0x0008C07C size:0x88 mapped:0x806CB110
-void transitionToReplay(void) {
-    addToCircularBuffer(4, 0, 0);
-}
-
-// .text:0x0008C104 size:0x1D8 mapped:0x806CB198
-void fn_3_8C104(int arg0) {
-    u8 tag;
-    int value = 0;
-
-    if (audioFileDescriptors.enableMusic == 0) {
-        return;
-    }
-
-    if (arg0 == -2) {
-        value = 1;
-    }
-
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        tag = 9;
-        value = lbl_800E88A4[value + 0x12];
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
-        tag = 7;
-        value = lbl_800E88A4[value + 0xE];
-    } else if (sound_crowd_EffectsStruct._20 == 0x16) {
-        tag = 6;
-        value = lbl_800E88A4[value + 0xC];
-    } else if (sound_crowd_EffectsStruct._20 == 0x17) {
-        tag = 0xE;
-        value = lbl_800E88A4[value + 0x1C];
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-        tag = 7;
-        value = lbl_800E88A4[value + 0xE];
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
-        tag = 8;
-        value = lbl_800E88A4[value + 0x10];
-    } else {
-        tag = g_d_GameSettings.StadiumID;
-        value = lbl_800E88A4[g_d_GameSettings.StadiumID * 2 + value];
-    }
-
-    if (arg0 >= 0) {
-        value = (u8)arg0;
-    }
-
-    addToCircularBuffer(0, tag, value);
-
-    if (value == 0) {
-        fn_800A8878(value, value);
-    }
-}
-
-// .text:0x0008C2DC size:0x214 mapped:0x806CB370
-BOOL fn_3_8C2DC(u32 arg1, u32 arg2) {
-    u16 packed = fn_800A8864();
-    f32 hi;
-    int level;
-
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0x12];
-    } else if (sound_crowd_EffectsStruct._20 == 0x16) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0xC];
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0xE];
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
-        arg2 = lbl_800E88A4[(u8)arg2 + 0x10];
-    } else {
-        arg2 = lbl_800E88A4[g_d_GameSettings.StadiumID * 2 + (u8)arg2];
-    }
-
-    hi = (f32)((packed >> 8) & 0xFF);
-    if (hi > lbl_3_bss_1764) {
-        lbl_3_bss_1764 = hi;
-    }
-
-    if (sound_crowd_EffectsStruct._2F == 0) {
-        sound_crowd_EffectsStruct._2F = 1;
-        lbl_3_bss_1764 = hi;
-        lbl_3_bss_176C = (f32)(u8)arg2 / (f32)arg1;
-    }
-
-    lbl_3_bss_1764 += lbl_3_bss_176C;
-    level = (int)lbl_3_bss_1764;
-    fn_800A8878(level, level);
-
-    if (lbl_3_bss_1764 >= (f32)(u8)arg2) {
-        sound_crowd_EffectsStruct._2F = 0;
-        return FALSE;
-    }
-    return TRUE;
-}
-
-
-// .text:0x0008C4F0 size:0xD8 mapped:0x806CB584
-BOOL fn_3_8C4F0(u32 arg1, u32 arg2) {
-    u16 packed;
-    u8 hi;
-    u8 lo;
-    int diff;
-
-    packed = fn_800A8864();
-    hi = (u8)(packed >> 8);
-    lo = (u8)packed;
-
-    sound_crowd_EffectsStruct._2F = 0;
-
-    if (lbl_3_bss_1761 == 0) {
-        lbl_3_bss_1761 = 1;
-        lbl_3_bss_1771 = (u8)(hi / arg1);
-        lbl_3_bss_1770 = (u8)(lo / arg1);
-    }
-
-    diff = hi - lbl_3_bss_1771;
-
-    if ((s16)diff <= (s16)(u8)arg2 || arg1 == 1) {
-        lbl_3_bss_1761 = 0;
-        fn_800A8878(arg2, arg2);
-        return FALSE;
-    }
-
-    fn_800A8878((u8)diff, (u8)(lo - lbl_3_bss_1770));
-    return TRUE;
-}
 
 static inline int getPanFromWorldPos(f32 x, f32 y, f32 z) {
     int screenX;
@@ -736,262 +398,487 @@ static inline void playStadiumHazardSound(int sfx, int slot) {
                   : stadiumHazardSoundFxRelated[stadiumID * 0x1E + slot + 1]);
 }
 
-// .text:0x0008C5C8 size:0x7AC mapped:0x806CB65C
-void makeSoundOfBallBouncing(void) {
-    int code = g_Ball.collisionCode & 0x7F;
+// The reverb bytes for a character's sound codes live 0x180 bytes after
+// charSoundFxVol in .data, in an otherwise unnamed foreign table.
+#define CHAR_SOUND_REVERB_OFFSET 0x180
 
-    if (!(g_Ball.ballVelocity < 0.2f) && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            playStadiumHazardSound(0x18, 0x30);
-            return;
-        }
+// .text:0x000906FC size:0x58 mapped:0x806CF790
+void fn_3_906FC(void) {
+    s32* p;
+    s32 base;
+    s32 i;
 
-        if (g_d_GameSettings.StadiumID == STADIUM_ID_BOWSERS_CASTLE) {
-            if (code == 8) {
-                animateThrownBall(0x1A2, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-            } else {
-                animateThrownBall(0x1A1, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-            }
-            return;
-        }
-        if (g_d_GameSettings.StadiumID == STADIUM_ID_YOHSI_PARK) {
-            if (code == 1) {
-                animateThrownBall(0x1A4, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-                return;
-            }
-        } else if (g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN) {
-            if (code == 6) {
-                animateThrownBall(0x1A1, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-                return;
-            } else if (code == 10) {
-                animateThrownBall(0x1A2, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-                return;
-            } else if (code == 9) {
-                animateThrownBall(0x1A0, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-                return;
-            }
-        } else if (g_d_GameSettings.StadiumID == STADIUM_ID_DK_JUNGLE) {
-            if (code == 10) {
-                animateThrownBall(0x1A2, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                                  g_Ball.AtBat_Contact_BallPos.z);
-                return;
-            }
-        }
+    base = sound_crowd_EffectsStruct._00;
+    p = (s32*)base;
 
-        animateThrownBall(0x17E, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
-                          g_Ball.AtBat_Contact_BallPos.z);
+    for (i = 0; i < (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE ? 1 : 0x14); i++) {
+        *p += base;
+        p++;
+    }
+
+    lbl_3_bss_1774 = base;
+}
+
+// .text:0x00090674 size:0x88 mapped:0x806CF708
+void fn_3_90674(int index) {
+    SeqPlayEntry* entry = &((SeqPlayEntry*)lbl_3_data_88E0)[index];
+    void** arrTable = (void**)lbl_3_bss_1774;
+
+    sound_crowd_EffectsStruct._04 = sndSeqPlayEx(entry->sgid, entry->sid, arrTable[index], NULL, 0);
+    sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
+}
+
+// .text:0x0009056C size:0x108
+BOOL fn_3_9056C(int index) {
+    SeqPlayEntry* entry;
+
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
+        entry = (SeqPlayEntry*)lbl_3_data_88E0 + index;
+    } else {
+        entry = (SeqPlayEntry*)lbl_3_data_8954 + index;
+    }
+
+    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
+        sndSeqVolume(0, 0, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
+        return FALSE;
+    }
+
+    sound_crowd_EffectsStruct._08 =
+        sndSeqPlayEx(entry->sgid, entry->sid, ((void**)lbl_3_bss_1774)[index], NULL, 0);
+    audioFileDescriptors.musicVolume = lbl_3_data_830C[index * 2];
+    sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._08, SND_SEQVOL_CONTINUE);
+    return TRUE;
+}
+
+// .text:0x00090434 size:0x138
+void fn_3_90434(void) {
+    int i;
+    u32* slot;
+
+    jukeboxCmd(3);
+    fn_800A88C0();
+    fn_800A8B78();
+    FADE_OUT_MUSIC(0);
+
+    slot = (u32*)&sound_crowd_EffectsStruct;
+    for (i = 0; i < 3; i++) {
+        if (slot[i + 3] != -1) {
+            sndFXKeyOff(slot[i + 3]);
+            slot[i + 3] = -1;
+        }
+    }
+
+    fn_3_8BDF4();
+}
+
+// .text:0x000903B8 size:0x7C mapped:0x806CF44C
+void fn_3_903B8(void) {
+    FADE_OUT_MUSIC(0xa0);
+}
+
+// .text:0x00090328 size:0x90 mapped:0x806CF3BC
+void playOverSounds(long frames) {
+    if (frames < 0) {
+        frames = 3000;
+    }
+
+    FADE_OUT_MUSIC(frames);
+}
+
+// .text:0x000902FC size:0x2C mapped:0x806CF390
+void fn_3_902FC(void) {
+    sndVolume(0, 10, 0xff);
+}
+
+// .text:0x00090294 size:0x68 mapped:0x806CF328
+SND_VOICEID playSoundEffect(int soundNumber) {
+    SND_VOICEID vid;
+
+    vid = sndFXStartEx(soundNumber, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].volume, 0x3f, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].reverb);
+    return vid;
+}
+
+// .text:0x00090220 size:0x74 mapped:0x806CF2B4
+SND_VOICEID playCharacterSound(int charID, int soundCode) {
+    SND_VOICEID vid;
+    u16 fid = soundCode + characterSoundArray[charID];
+    u32 vol = charSoundFxVol[soundCode];
+    u8 reverb = charSoundFxVol[CHAR_SOUND_REVERB_OFFSET + soundCode];
+
+    vid = sndFXStartEx(fid, vol, 0x3f, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
+    return vid;
+}
+
+static inline int applyCharSoundScale(int level) {
+    level = level * lbl_3_data_8830;
+    return level;
+}
+
+// .text:0x00090150 size:0xD0 mapped:0x806CF1E4
+SND_VOICEID playCharacterSoundScaled(int charID, int soundCode) {
+    SND_VOICEID vid;
+    u16 fid = soundCode + characterSoundArray[charID];
+    int vol = applyCharSoundScale(charSoundFxVol[soundCode]);
+    int reverb = applyCharSoundScale(charSoundFxVol[CHAR_SOUND_REVERB_OFFSET + soundCode]);
+
+    vid = sndFXStartEx(fid, vol, 0x3f, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
+    return vid;
+}
+
+// .text:0x00090064 size:0xEC mapped:0x806CF0F8
+SND_VOICEID callSfx(int soundId) {
+    int i;
+
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+        OSPanic("m_sound.c", 0x402, "no mini game");
+    }
+
+    for (i = 0; i < 57; i++) {
+        if (soundId == lbl_3_data_81FC[i]) {
+            break;
+        }
+    }
+
+    if (i == 57) {
+        OSPanic("m_sound.c", 0x40D, "no entry mini_se_no");
+    }
+
+    return sndFXStartEx((u16)soundId, lbl_3_data_84F4[i], 0x3f, 0);
+}
+
+// .text:0x0008FF5C size:0x108 mapped:0x806CEFF0
+SND_VOICEID animateThrownBall(int soundNumber, f32 x, f32 y, f32 z) {
+    SND_VOICEID vid;
+    int screenX;
+    int screenY;
+    int pan = 0x3f;
+
+    if (audioFileDescriptors.soundMode == 1) {
+        fn_3_1650C(&screenX, &screenY, TRUE, x, -y, z);
+        if (screenX < 0) {
+            pan = 0;
+        } else if (screenX > 640) {
+            pan = 0x7f;
+        } else {
+            pan = 127.0f * ((f32)screenX / 640.0f);
+        }
+    }
+
+    vid = sndFXStartEx(soundNumber, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].volume, pan, 0);
+    sndFXCtrl(vid, SND_MIDICTRL_REVERB, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].reverb);
+    return vid;
+}
+
+// .text:0x0008FF18 size:0x44 mapped:0x806CEFAC
+void initializeSounds(void) {
+    sound_crowd_EffectsStruct._0C = -1;
+    lbl_3_bss_1780[0] = -1;
+    sound_crowd_EffectsStruct._10 = -1;
+    sound_crowd_EffectsStruct._14 = -1;
+    sound_crowd_EffectsStruct._18 = -1;
+    sound_crowd_EffectsStruct._1C = -1;
+    sound_crowd_EffectsStruct._28 = 0;
+    sound_crowd_EffectsStruct._04 = -1;
+    sound_crowd_EffectsStruct._08 = -1;
+    sound_crowd_EffectsStruct._2F = FALSE;
+    sound_crowd_EffectsStruct._33 = 0;
+}
+
+// .text:0x0008FC80 size:0x298 mapped:0x806CED14
+void adjustBallSoundEffectBasedOnHeight(void) {
+    SND_VOICEID vid;
+    int height;
+    int clamped;
+    int pitch;
+    f32 ratio;
+    u8 mode = g_GameLogic.secondaryGameMode;
+
+    if (mode != SECONDARY_GAME_MODE_NONE && (u8)(mode - SECONDARY_GAME_MODE_PRACTICE_PITCHING) > 4 &&
+        mode != SECONDARY_GAME_MODE_FREE_FIELDING) {
+        goto stop;
+    }
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+        if (g_Practice.pauseMenuActive != 0) {
+            goto stop;
+        }
+        if (g_Practice.tutorialState == TUTORIAL_STATE_0) {
+            goto stop;
+        }
+    }
+    if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
+        goto stop;
+    }
+    if (!(g_Ball.AtBat_Contact_BallPos.y > 3.0f)) {
+        goto stop;
+    }
+    if (!(g_Ball.maxYOfHit > 8.0f)) {
+        goto stop;
+    }
+    if (g_Ball.AtBat_Contact_BallPos.y < 6.0f && g_Ball.physicsSubstruct.velocity.y < 0.0f) {
+        goto stop;
+    }
+    if (g_Ball.collisionRelated != 0 || g_Ball.ballCughtByPlantInd != 0 || g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
+        goto stop;
+    }
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
+        (u16)(g_Ball.AtBat_ContactResult - BALL_RESULT_TYPE_FIELDED) <= 1) {
+        goto stop;
+    }
+
+    if (sound_crowd_EffectsStruct._18 == -1) {
+        vid = playSoundEffect(0x17F);
+        sound_crowd_EffectsStruct._18 = vid;
+        sndFXCtrl(vid, SND_MIDICTRL_VOLUME, (u8)baseSoundPitchFactor[4]);
+    }
+    height = (int)g_Ball.AtBat_Contact_BallPos.y;
+    clamped = height;
+    if (height > baseSoundPitchFactor[3]) {
+        clamped = baseSoundPitchFactor[3];
+    }
+    clamped -= baseSoundPitchFactor[2];
+    ratio = (f32)clamped / (f32)(baseSoundPitchFactor[3] - baseSoundPitchFactor[2]);
+    pitch = baseSoundPitchFactor[0] + (int)(ratio * (f32)(baseSoundPitchFactor[1] - baseSoundPitchFactor[0]));
+    sndFXCtrl14(sound_crowd_EffectsStruct._18, SND_MIDICTRL_PITCHBEND, (u16)pitch);
+    return;
+
+stop:
+    if (sound_crowd_EffectsStruct._18 != -1) {
+        sndFXKeyOff(sound_crowd_EffectsStruct._18);
+        sound_crowd_EffectsStruct._18 = -1;
     }
 }
 
-// .text:0x0008CD74 size:0xC4C mapped:0x806CBE08
-#pragma dont_inline on
-void handleGameSound(void) {
-    u8 status = g_GameLogic.gameStatus;
-    u8* actorPool;
-    u8* actor;
-    s8 actorIndex;
+// .text:0x0008FC0C size:0x74 mapped:0x806CECA0
+void newAtBatPlaySound(void) {
+    sound_crowd_EffectsStruct._26 = 0;
 
-    if (status == GAME_STATUS_PAUSED || g_Minigame.pauseInd != 0) {
+    if (sound_crowd_EffectsStruct._10 != -1) {
+        sndFXKeyOff(sound_crowd_EffectsStruct._10);
+        sound_crowd_EffectsStruct._10 = -1;
+    }
+
+    if (sound_crowd_EffectsStruct._14 != -1) {
+        sndFXKeyOff(sound_crowd_EffectsStruct._14);
+        sound_crowd_EffectsStruct._14 = -1;
+    }
+}
+
+// .text:0x0008F21C size:0x9F0 mapped:0x806CE2B0
+void soundFxRelated(void) {
+    BOOL stopVoices = FALSE;
+    BOOL crowdStadium;
+    BOOL playHit;
+    u8 lastState;
+    int i;
+    u32* slot;
+    s16 result;
+
+    crowdStadium = (g_d_GameSettings.StadiumID == STADIUM_ID_BOWSERS_CASTLE ||
+                    g_d_GameSettings.StadiumID == STADIUM_ID_WARIO_PALACE ||
+                    g_d_GameSettings.StadiumID == STADIUM_ID_YOHSI_PARK ||
+                    g_d_GameSettings.StadiumID == STADIUM_ID_DK_JUNGLE)
+                       ? TRUE
+                       : FALSE;
+
+    if (crowdStadium) {
+        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+            for (i = 1; i < 4; i++) {
+                if (sound_crowd_EffectsStruct._26 <= 1 &&
+                    g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+                    stopVoices = TRUE;
+                    goto checkStop;
+                }
+            }
+        }
+
+        if (g_Ball.framesSinceHit <= 0) {
+            return;
+        }
+
+        if ((g_Ball.ballInitialHitDoneInd != 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
+             g_Ball.ballZoneAwayFromHome >= 3 && sound_crowd_EffectsStruct._26 < 2) ||
+            (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+             g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
+             (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
+              g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
+             g_Strikes.outs == g_Strikes.storedOuts)) {
+            sound_crowd_EffectsStruct._26 = 2;
+            if (sound_crowd_EffectsStruct._14 == -1) {
+                sound_crowd_EffectsStruct._14 = sndFXStartEx(0x156, 0, 0x3f, 0);
+                if (g_Stats.replayInd == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+                    playSoundEffect(0x196);
+                }
+            }
+        }
         return;
     }
 
-    if (status == GAME_STATUS_AT_BAT) {
-        if (g_Pitcher.windupCountdownUntilBallReleased == 0 && g_Ball.pitchHangtimeCounter == 0) {
-            if (sound_crowd_EffectsStruct._34 == 0) {
-                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 4) {
-                    playSoundEffect(0x1AE);
-                } else if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BOBOMB_DERBY &&
-                           g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BARREL_BATTER) {
-                    if (g_GameLogic.PauseSimulationFrameCount == 5) {
-                        playCharacterSound(g_Pitcher.charID, 6);
-                    } else if (g_Pitcher.ChargePitchType == 3) {
-                        playSoundEffect(0x188);
-                        playCharacterSound(g_Pitcher.charID, 6);
-                    } else if (g_Pitcher.ChargePitchType != 0) {
-                        if (g_Pitcher.starPitchType == 0) {
-                            playCharacterSound(g_Pitcher.charID, 5);
-                        }
-                        playSoundEffect(0x187);
-                    } else if (g_Pitcher.TypeOfPitch == 2) {
-                        playSoundEffect(0x17D);
-                    } else {
-                        playSoundEffect(0x186);
+    if (g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION) {
+        stopVoices = TRUE;
+        goto checkStop;
+    }
+
+    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
+        if (g_Ball.pitchHangtimeCounter == 10) {
+            for (i = 1; i < 4; i++) {
+                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+                    g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+                    if (sound_crowd_EffectsStruct._10 == -1) {
+                        sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
                     }
+                    goto checkStop;
                 }
             }
-            sound_crowd_EffectsStruct._34 = 1;
         }
-
-        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Ball.pitchHangtimeCounter == 1 &&
-            g_Pitcher.starPitchInd != 0) {
-            playSoundEffect(0x19E);
-            lbl_3_bss_177C = playSoundEffect(0x18F);
-        }
-
-        if (g_GameLogic.PauseSimulationFrameCount == 1 && g_Pitcher.starPitchType != 0) {
-            playSoundEffect(0x19E);
-            switch (g_Pitcher.starPitchType) {
-            case 1:
-            case 2:
-                lbl_3_bss_177C = playSoundEffect(0x18F);
-                break;
-            case 3:
-            case 4:
-                lbl_3_bss_177C = playSoundEffect(0x18C);
-                break;
-            case 5:
-            case 6:
-                lbl_3_bss_177C = playSoundEffect(0x18D);
-                break;
-            case 7:
-            case 8:
-                lbl_3_bss_177C = playSoundEffect(0x190);
-                break;
-            case 9:
-            case 10:
-                lbl_3_bss_177C = playSoundEffect(0x18E);
-                break;
-            case 11:
-            case 12:
-                lbl_3_bss_177C = playSoundEffect(0x19A);
-                break;
-            }
-        }
-
-        if (g_Ball.pitchHangtimeCounter > 0 && g_Pitcher.framesUntilUnhittable < 30 &&
-            hugeAnimStruct[0x307D] == 0) {
-            actor = *(u8**)(hugeAnimStruct + 0x2C74);
-            if (g_d_GameSettings.minigamesEnabled) {
-                actorIndex = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
-                actor = hugeAnimStruct + 0xC04 + actorIndex * 0x27C;
-            }
-            if (actor != NULL && *(s16*)(actor + 0x62) == 0x60 && *(s16*)(actor + 0x6A) == 5) {
-                playCharacterSound(g_Batter.charID, 3);
-            }
-        }
+        goto checkStop;
     }
 
-    if (hugeAnimStruct[0x307D] == 0) {
-        if (sound_crowd_EffectsStruct._2B != 0 && g_Ball.framesSinceHit == 2) {
-            sound_crowd_EffectsStruct._2B = 0;
-            sndFXKeyOff(lbl_3_bss_177C);
-            if (g_Batter.isBunting != 0) {
-                playSoundEffect(0x153);
-            } else if (g_Batter.captainStarSwingActivated != 0) {
-                switch (g_Batter.captainStarSwingActivated) {
-                case 1:
-                case 2:
-                    lbl_3_bss_1778 = playSoundEffect(0x194);
-                    break;
-                case 3:
-                case 4:
-                    lbl_3_bss_1778 = playSoundEffect(0x191);
-                    break;
-                case 5:
-                case 6:
-                    lbl_3_bss_1778 = playSoundEffect(0x192);
-                    break;
-                case 7:
-                case 8:
-                    lbl_3_bss_1778 = playSoundEffect(0x195);
-                    break;
-                case 9:
-                case 10:
-                    lbl_3_bss_1778 = playSoundEffect(0x193);
-                    break;
-                case 11:
-                case 12:
-                    lbl_3_bss_1778 = playSoundEffect(0x199);
-                    lbl_3_bss_1760 = 0;
-                    break;
+    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        for (i = 1; i < 4; i++) {
+            lastState = sound_crowd_EffectsStruct._26;
+            if (lastState == 0 &&
+                ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+                  g_Runners[i].baseStandingOn > i) ||
+                 g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY)) {
+                sound_crowd_EffectsStruct._26 = 1;
+                if (sound_crowd_EffectsStruct._10 == -1) {
+                    sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
                 }
-                playSoundEffect(0x184);
-                playSoundEffect(0x185);
-                playCharacterSound(g_Batter.charID, 0);
-            } else if (g_Batter.charID == 2) {
-                playSoundEffect(0x1AF);
-            } else if (g_Batter.charID == 0x26) {
-                playSoundEffect(0x1B0);
-            } else if (g_Batter.displayContactSprite != 0) {
-                playSoundEffect(0x184);
-                playSoundEffect(0x185);
-            } else if (g_Batter.contactType == 2) {
-                playSoundEffect(0x184);
-                playCharacterSound(g_Batter.charID, 0);
-            } else if (g_Batter.contactType >= 1 && g_Batter.contactType <= 3) {
-                playCharacterSound(g_Batter.charID, 0);
-                playSoundEffect(0x184);
-            } else {
-                playSoundEffect(0x183);
+            } else if (lastState <= 1 &&
+                       g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+                sound_crowd_EffectsStruct._26 = 2;
+                playSoundEffect(0x158);
+                stopVoices = TRUE;
+                goto checkStop;
             }
         }
+        goto checkStop;
+    }
 
-        if (g_Batter.chargeStatus == 1 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
-            g_Batter.chargeFrames < g_Batter.frameChargeDownBegins && g_Batter.chargeFrames == 1) {
-            sound_crowd_EffectsStruct._1C = playCharacterSound(g_Batter.charID, 2);
+    if (g_Ball.framesSinceHit <= 0) {
+        goto checkStop;
+    }
+
+    if (g_Ball.framesSinceHit > 20 && sound_crowd_EffectsStruct._26 == 0) {
+        sound_crowd_EffectsStruct._26 = 1;
+        if (g_Batter.isBunting != 0) {
+            if (g_RunningLogic._02 == 1 || (g_RunningLogic._02 & 0x1000)) {
+                if (sound_crowd_EffectsStruct._10 == -1) {
+                    sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
+                }
+            }
+        } else if (g_Ball.Hit_HorizontalPower > 0x96 &&
+                   (g_Ball.Hit_VerticalAngle > 0xF80 || g_Ball.Hit_VerticalAngle < 0x200) &&
+                   g_Ball.Hit_HorizontalAngle > 0x80 && g_Ball.Hit_HorizontalAngle < 0x780) {
+            if (sound_crowd_EffectsStruct._10 == -1) {
+                sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
+            }
         }
     }
 
-    if (g_Batter.captainStarSwingActivated == 0xB && lbl_3_bss_1760 == 0 &&
-        g_Ball.physicsSubstruct.velocity.y <= -1.43 && g_Ball.physicsSubstruct.velocity.y >= -1.45) {
-        sndFXKeyOff(lbl_3_bss_177C);
-        lbl_3_bss_1778 = playSoundEffect(0x19B);
-        lbl_3_bss_1760 = 1;
+    if ((g_Ball.ballInitialHitDoneInd != 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
+         g_Ball.ballZoneAwayFromHome >= 3 && sound_crowd_EffectsStruct._26 < 2) ||
+        (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+         g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
+         (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
+          g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
+         g_Strikes.outs == g_Strikes.storedOuts)) {
+        sound_crowd_EffectsStruct._26 = 2;
+        if (sound_crowd_EffectsStruct._14 == -1) {
+            sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
+            if (g_Stats.replayInd == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+                playSoundEffect(0x196);
+            }
+        }
     }
 
-    if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL &&
-        lbl_3_bss_177C != 0) {
-        sndFXKeyOff(lbl_3_bss_177C);
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && sound_crowd_EffectsStruct._26 < 9) {
+        sound_crowd_EffectsStruct._26 = 9;
+        if (sound_crowd_EffectsStruct._14 == -1) {
+            sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
+        }
     }
-    if (g_Ball.AtBat_Contact_BallPos.z < -3.0f && lbl_3_bss_177C != 0) {
-        sndFXKeyOff(lbl_3_bss_177C);
+
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && sound_crowd_EffectsStruct._26 < 9) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_FOUL_BALL) {
+            if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames == 30) {
+                sound_crowd_EffectsStruct._26 = 9;
+                stopVoices = TRUE;
+                if (foul_isBallWithin3mFair(g_Ball.deadballLastLoc.x, g_Ball.deadballLastLoc.z)) {
+                    playSoundEffect(0x158);
+                }
+            }
+        } else if (g_Ball.framesSinceBallHitGroundOrWasCaught == 30) {
+            sound_crowd_EffectsStruct._26 = 9;
+            stopVoices = TRUE;
+            if (foul_isBallWithin3mFair(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z)) {
+                if (g_Ball.ballZoneAwayFromHome == 4 ||
+                    (g_Ball.Hit_HorizontalPower > 0x96 &&
+                     (g_Ball.Hit_VerticalAngle > 0xFC0 || g_Ball.Hit_VerticalAngle < 0x200))) {
+                    playSoundEffect(0x157);
+                }
+            }
+        }
     }
-    if (g_Pitcher.strikeOutOrWalk == 3) {
-        sndFXKeyOff(lbl_3_bss_177C);
+
+    if (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY &&
+        g_Runners[0].framesSinceOut == 20 && g_Scores._C2 == 0 &&
+        !(g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+          g_Runners[3].fractionalBasesRan > 3.5f)) {
+        playHit = FALSE;
+        result = storedInningInfo.abResultTemporary;
+        if (result == 0x15 || result == 0x18 || result == 0x16) {
+            playHit = TRUE;
+        }
+        if (result == 0x12) {
+            if (g_Ball.ballZoneAwayFromHome <= 1 || foul_checkIfFoul(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
+                playHit = TRUE;
+            }
+        }
+        if (storedInningInfo.abResultTemporary == 0x13) {
+            if (g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.Hit_HorizontalPower > 0xB4) {
+                playHit = TRUE;
+            }
+        }
+        if (playHit) {
+            stopVoices = TRUE;
+            playSoundEffect(0x157);
+        }
     }
-    if (lbl_3_bss_1778 != 0) {
-        if (g_Ball.currentStarSwing == 0 || g_Ball.deadBallReason != 0) {
-            sndFXKeyOff(lbl_3_bss_1778);
+
+checkStop:
+    if (stopVoices) {
+        if (sound_crowd_EffectsStruct._10 != -1) {
+            sndFXKeyOff(sound_crowd_EffectsStruct._10);
+            sound_crowd_EffectsStruct._10 = -1;
+        }
+        if (sound_crowd_EffectsStruct._14 != -1) {
+            sndFXKeyOff(sound_crowd_EffectsStruct._14);
+            sound_crowd_EffectsStruct._14 = -1;
+        }
+    }
+
+    if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
+        slot = (u32*)&sound_crowd_EffectsStruct;
+        for (i = 0; i < 3; i++) {
+            if (slot[i + 3] != -1) {
+                sndFXKeyOff(slot[i + 3]);
+                slot[i + 3] = -1;
+            }
         }
     }
 }
-#pragma dont_inline reset
 
-// .text:0x0008D9C0 size:0xC0 mapped:0x806CCA54
-void fn_3_8D9C0(void) {
-    camera_803c639c_s* cam;
-    Vec pos;
-    Vec dir;
-    Vec lookDir;
-    f32 mag;
-
-    handleGameSound();
-    cam = returnFloatFromModeIndex(0);
-
-    pos.x = cam->eye.x;
-    pos.y = cam->eye.y;
-    pos.z = cam->eye.z;
-
-    dir.x = lbl_3_rodata_157C;
-    dir.y = lbl_3_rodata_157C;
-    dir.z = lbl_3_rodata_157C;
-
-    PSVECSubtract(&cam->target, &cam->eye, &lookDir);
-    mag = PSVECMag(&lookDir);
-    if (mag != lbl_3_rodata_157C) {
-        PSVECNormalize(&lookDir, &lookDir);
-    }
-
-    if (sndEmitter.listener.room != NULL) {
-        sndUpdateListener(&sndEmitter.listener, (SND_FVECTOR*)&pos, (SND_FVECTOR*)&dir,
-                           (SND_FVECTOR*)&lookDir, &lbl_3_data_8D70, 0x7f, NULL);
-    }
+// .text:0x0008F1C8 size:0x54 mapped:0x806CE25C
+void fn_3_8F1C8(void) {
+    sound_crowd_EffectsStruct._20 = -1;
+    sound_crowd_EffectsStruct._22 = -1;
+    sound_crowd_EffectsStruct._29 = 0;
+    sound_crowd_EffectsStruct._2A = 0;
+    soundReplayQueue = (SoundReplayQueue*)insertGraphicDrawingFunction(processSoundReplayQueue, 0);
 }
 
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
@@ -999,22 +886,27 @@ void fn_3_8D9C0(void) {
 void soundControl(void) {
     int track = -1;
     BOOL hold = FALSE;
-    u8 paused;
-    BOOL result;
+    BOOL paused;
+    u8 result;
     s16 trackId;
     u8 status;
-    u8 secondaryMode;
+    u8 replay;
     u8 pauseState;
-    u8 minigamesEnabled;
     s8 roster;
+    u8 minigamesEnabled;
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+    switch (g_d_GameSettings.GameModeSelected) {
+    case GAME_TYPE_PRACTICE:
         if (g_Practice.tutorialState == TUTORIAL_STATE_0 && g_Practice.practiceState == 0) {
             stadiumMusic(g_d_GameSettings.StadiumID);
         }
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE &&
-               g_GameLogic.FrameCountOfCurrentPitch == 1) {
-        stadiumMusic(g_d_GameSettings.StadiumID);
+        break;
+    default:
+        if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE &&
+            g_GameLogic.FrameCountOfCurrentPitch == 1) {
+            stadiumMusic(g_d_GameSettings.StadiumID);
+        }
+        break;
     }
 
     if (g_GameLogic.framesOfExitingToMenu != 0) {
@@ -1046,10 +938,10 @@ void soundControl(void) {
     sound_crowd_EffectsStruct._22 = sound_crowd_EffectsStruct._20;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        secondaryMode = g_GameLogic.secondaryGameMode;
-        if (secondaryMode == SECONDARY_GAME_MODE_PRACTICE_MENU ||
-            secondaryMode == SECONDARY_GAME_MODE_RETURN_TO_MENU ||
-            secondaryMode == SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN) {
+        status = g_GameLogic.secondaryGameMode;
+        if (status == SECONDARY_GAME_MODE_PRACTICE_MENU ||
+            status == SECONDARY_GAME_MODE_RETURN_TO_MENU ||
+            status == SECONDARY_GAME_MODE_LOAD_PRACTICE_SCREEN) {
             track = -1;
             goto pick;
         }
@@ -1078,7 +970,7 @@ void soundControl(void) {
             return;
         }
         track = 0x15;
-        if (g_Ball.deadBallReason == 1 && secondaryMode != SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && status != SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
             track = 0;
             goto common;
         }
@@ -1221,7 +1113,7 @@ void soundControl(void) {
             track = 6;
             goto pick;
         }
-        sndSeqVolume(lbl_3_data_8284[134], 0xF, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
+        sndSeqVolume(lbl_3_data_830C[track * 2], 0xF, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
             if ((s8)g_Minigame.starDashStarHolder >= 0) {
                 hold = TRUE;
@@ -1322,7 +1214,8 @@ common:
         }
     }
 
-    if (g_Stats.replayInd != 0) {
+    replay = g_Stats.replayInd;
+    if (replay != 0) {
         track = 0x16;
         if (g_Stats.replayPending == 4) {
             track = -1;
@@ -1343,7 +1236,10 @@ common:
     if (status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY || status == GAME_STATUS_DEFAULT) {
         return;
     }
-    if (hugeAnimStruct[0x2D46] != 0 || hugeAnimStruct[0x2D52] != 0) {
+    if (hugeAnimStruct[0x2D46] != 0) {
+        return;
+    }
+    if (hugeAnimStruct[0x2D52] != 0) {
         return;
     }
 
@@ -1368,9 +1264,9 @@ common:
                 goto pick;
             }
         }
-        if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && g_Stats.replayInd == 0) {
+        if ((status == GAME_STATUS_AT_BAT || status == GAME_STATUS_LIVE_BALL) && replay == 0) {
             if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
-                if (g_Ball.deadBallReason != 1) {
+                if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xB;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
                         sound_crowd_EffectsStruct._33 = 2;
@@ -1378,7 +1274,7 @@ common:
                     goto pick;
                 }
             } else if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
-                if (g_Ball.deadBallReason != 1) {
+                if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xA;
                     if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
                         sound_crowd_EffectsStruct._33 = 2;
@@ -1412,7 +1308,7 @@ common:
         track = 8;
         goto pick;
     }
-    if (lbl_3_common_bss_134C4[0x25C] != 0 && g_Ball.deadBallReason != 1 &&
+    if (lbl_3_common_bss_134C4[0x25C] != 0 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN &&
         *(s32*)((u8*)unkStructPtr._0000 + 0x92C) != 0) {
         track = 4;
         goto pick;
@@ -1421,7 +1317,7 @@ common:
         return;
     }
 
-    if (g_Ball.deadBallReason == 1) {
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             track = 0;
         } else {
@@ -1433,7 +1329,7 @@ common:
     if (sound_crowd_EffectsStruct._2A == 1 && sound_crowd_EffectsStruct._24 != 0) {
         sound_crowd_EffectsStruct._24--;
         if (sound_crowd_EffectsStruct._24 == 0) {
-            addToCircularBuffer(3, 0, 0);
+            ADD_TO_CIRCULAR_BUFFER(3, 0, 0);
         } else {
             fn_3_8C4F0(sound_crowd_EffectsStruct._24, 0);
         }
@@ -1458,7 +1354,7 @@ common:
         sound_crowd_EffectsStruct._24--;
     }
 
-    if (g_Ball.deadBallReason == 1 && g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+    if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN && g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
         goto pick;
     }
     status = g_GameLogic.gameStatus;
@@ -1479,18 +1375,10 @@ common:
     } else if (g_Strikes.storedOuts == 0) {
         track = 0x15;
     } else if (storedInningInfo.consecutiveHits == 0) {
-        playOverSounds(-1);
-        sound_crowd_EffectsStruct._20 = -1;
-        return;
+        goto stopMusic;
     } else {
         track = 0x15;
     }
-    goto pick;
-
-fadeOutShort:
-    playOverSounds(0xC);
-    sound_crowd_EffectsStruct._20 = -1;
-    return;
 
 pick:
     if (sound_crowd_EffectsStruct._22 == track) {
@@ -1522,20 +1410,18 @@ pick:
         return;
     }
 
-    trackId = track;
     sound_crowd_EffectsStruct._28 = 0;
     sound_crowd_EffectsStruct._20 = track;
+    trackId = track;
 
-    if (trackId == -1) {
-        if (hold) {
-            addToCircularBuffer(3, 0, 0);
-        } else {
-            addToCircularBuffer(4, 0, 0);
+    if (trackId != -1) {
+        if (trackId != 0x15 && track != 0x16 && track != 0x17) {
+            fn_3_9056C(trackId);
+            if ((track == 4 || track == 0) ? FALSE : TRUE) {
+                ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
+            }
+            return;
         }
-        return;
-    }
-
-    if (trackId == 0x15 || track == 0x16 || track == 0x17) {
         if ((u16)(trackId - 0x15) <= 1 || trackId == 0x17) {
             if (trackId == sound_crowd_EffectsStruct._22) {
                 return;
@@ -1543,514 +1429,659 @@ pick:
             fn_3_8C104(-1);
             return;
         }
-        addToCircularBuffer(4, 0, 0);
+        ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
         fn_3_90674(sound_crowd_EffectsStruct._20);
         return;
     }
 
-    fn_3_9056C(trackId);
-    if (track != 4 && track != 0) {
-        addToCircularBuffer(4, 0, 0);
+    if (hold) {
+        ADD_TO_CIRCULAR_BUFFER(3, 0, 0);
+    } else {
+        ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
     }
-}
+    return;
 
-// .text:0x0008F1C8 size:0x54 mapped:0x806CE25C
-void fn_3_8F1C8(void) {
+stopMusic:
+    playOverSounds(-1);
     sound_crowd_EffectsStruct._20 = -1;
-    sound_crowd_EffectsStruct._22 = -1;
-    sound_crowd_EffectsStruct._29 = 0;
-    sound_crowd_EffectsStruct._2A = 0;
-    lbl_3_bss_1768 = (SoundReplayQueue*)insertGraphicDrawingFunction(fn_3_8B094, 0);
+    return;
+
+fadeOutShort:
+    playOverSounds(0xC);
+    sound_crowd_EffectsStruct._20 = -1;
 }
 
-static inline BOOL stadiumHasCrowdSounds(int stadiumID) {
-    BOOL result = FALSE;
+// .text:0x0008D9C0 size:0xC0 mapped:0x806CCA54
+void fn_3_8D9C0(void) {
+    camera_803c639c_s* cam;
+    Vec pos;
+    Vec dir;
+    Vec lookDir;
+    f32 mag;
 
-    if (stadiumID == STADIUM_ID_BOWSERS_CASTLE || stadiumID == STADIUM_ID_WARIO_PALACE ||
-        stadiumID == STADIUM_ID_YOHSI_PARK || stadiumID == STADIUM_ID_DK_JUNGLE) {
-        result = TRUE;
+    handleGameSound();
+    cam = returnFloatFromModeIndex(0);
+
+    pos.x = cam->eye.x;
+    pos.y = cam->eye.y;
+    pos.z = cam->eye.z;
+
+    dir.x = 0.0f;
+    dir.y = 0.0f;
+    dir.z = 0.0f;
+
+    PSVECSubtract(&cam->target, &cam->eye, &lookDir);
+    mag = PSVECMag(&lookDir);
+    if (mag) {
+        PSVECNormalize(&lookDir, &lookDir);
     }
-    return result;
+
+    if (sndEmitter.listener.room != NULL) {
+        sndUpdateListener(&sndEmitter.listener, (SND_FVECTOR*)&pos, (SND_FVECTOR*)&dir,
+                           (SND_FVECTOR*)&lookDir, &lbl_3_data_8D70, 0x7f, NULL);
+    }
 }
 
-// .text:0x0008F21C size:0x9F0 mapped:0x806CE2B0
-void soundFxRelated(void) {
-    BOOL stopVoices = FALSE;
-    BOOL crowdStadium;
-    BOOL playHit;
-    u8 lastState;
-    int i;
-    u32* slot;
-    s16 result;
+// .text:0x0008CD74 size:0xC4C mapped:0x806CBE08
+#pragma dont_inline on
+void handleGameSound(void) {
+    u8 status = g_GameLogic.gameStatus;
+    u8* actorPool;
+    u8* actor;
+    s8 actorIndex;
 
-    crowdStadium = stadiumHasCrowdSounds(g_d_GameSettings.StadiumID);
-
-    if (crowdStadium) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
-            lastState = sound_crowd_EffectsStruct._26;
-            for (i = 1; i < 4; i++) {
-                if (lastState <= 1 &&
-                    g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
-                    stopVoices = TRUE;
-                    goto checkStop;
-                }
-            }
-        }
-
-        if (g_Ball.framesSinceHit <= 0) {
-            return;
-        }
-
-        if ((g_Ball.ballInitialHitDoneInd != 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-             g_Ball.ballZoneAwayFromHome >= 3 && sound_crowd_EffectsStruct._26 < 2) ||
-            (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
-             g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
-             (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
-              g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
-             g_Strikes.outs == g_Strikes.storedOuts)) {
-            sound_crowd_EffectsStruct._26 = 2;
-            if (sound_crowd_EffectsStruct._14 == -1) {
-                sound_crowd_EffectsStruct._14 = sndFXStartEx(0x156, 0, 0x3f, 0);
-                if (g_Stats.replayInd == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-                    playSoundEffect(0x196);
-                }
-            }
-        }
+    if (status == GAME_STATUS_PAUSED || g_Minigame.pauseInd != 0) {
         return;
     }
 
-    if (g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION) {
-        stopVoices = TRUE;
-        goto checkStop;
-    }
-
-    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
-        if (g_Ball.pitchHangtimeCounter == 10) {
-            for (i = 1; i < 4; i++) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
-                    g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
-                    if (sound_crowd_EffectsStruct._10 == -1) {
-                        sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
+    if (status == GAME_STATUS_AT_BAT) {
+        if (g_Pitcher.windupCountdownUntilBallReleased == 0 && g_Ball.pitchHangtimeCounter == 0) {
+            if (sound_crowd_EffectsStruct._34 == 0) {
+                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 4) {
+                    playSoundEffect(0x1AE);
+                } else if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BOBOMB_DERBY &&
+                           g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BARREL_BATTER) {
+                    if (g_GameLogic.PauseSimulationFrameCount == 5) {
+                        playCharacterSound(g_Pitcher.charID, 6);
+                    } else if (g_Pitcher.ChargePitchType == 3) {
+                        playSoundEffect(0x188);
+                        playCharacterSound(g_Pitcher.charID, 6);
+                    } else if (g_Pitcher.ChargePitchType != 0) {
+                        if (g_Pitcher.starPitchType == 0) {
+                            playCharacterSound(g_Pitcher.charID, 5);
+                        }
+                        playSoundEffect(0x187);
+                    } else if (g_Pitcher.TypeOfPitch == 2) {
+                        playSoundEffect(0x17D);
+                    } else {
+                        playSoundEffect(0x186);
                     }
-                    goto checkStop;
                 }
             }
+            sound_crowd_EffectsStruct._34 = 1;
         }
-        goto checkStop;
+
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY && g_Ball.pitchHangtimeCounter == 1 &&
+            g_Pitcher.starPitchInd != 0) {
+            playSoundEffect(0x19E);
+            lbl_3_bss_177C = playSoundEffect(0x18F);
+        }
+
+        if (g_GameLogic.PauseSimulationFrameCount == 1 && g_Pitcher.starPitchType != 0) {
+            playSoundEffect(0x19E);
+            switch (g_Pitcher.starPitchType) {
+            case 1:
+            case 2:
+                lbl_3_bss_177C = playSoundEffect(0x18F);
+                break;
+            case 3:
+            case 4:
+                lbl_3_bss_177C = playSoundEffect(0x18C);
+                break;
+            case 5:
+            case 6:
+                lbl_3_bss_177C = playSoundEffect(0x18D);
+                break;
+            case 7:
+            case 8:
+                lbl_3_bss_177C = playSoundEffect(0x190);
+                break;
+            case 9:
+            case 10:
+                lbl_3_bss_177C = playSoundEffect(0x18E);
+                break;
+            case 11:
+            case 12:
+                lbl_3_bss_177C = playSoundEffect(0x19A);
+                break;
+            }
+        }
+
+        if (g_Ball.pitchHangtimeCounter > 0 && g_Pitcher.framesUntilUnhittable < 30 &&
+            hugeAnimStruct[0x307D] == 0) {
+            actor = *(u8**)(hugeAnimStruct + 0x2C74);
+            if (g_d_GameSettings.minigamesEnabled) {
+                actorIndex = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
+                actor = hugeAnimStruct + 0xC04 + actorIndex * 0x27C;
+            }
+            if (actor != NULL && *(s16*)(actor + 0x62) == 0x60 && *(s16*)(actor + 0x6A) == 5) {
+                playCharacterSound(g_Batter.charID, 3);
+            }
+        }
     }
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
-        for (i = 1; i < 4; i++) {
-            lastState = sound_crowd_EffectsStruct._26;
-            if (lastState == 0 &&
-                ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
-                  g_Runners[i].baseStandingOn > i) ||
-                 g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY)) {
-                sound_crowd_EffectsStruct._26 = 1;
-                if (sound_crowd_EffectsStruct._10 == -1) {
-                    sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
+    if (hugeAnimStruct[0x307D] == 0) {
+        if (sound_crowd_EffectsStruct._2B != 0 && g_Ball.framesSinceHit == 2) {
+            sound_crowd_EffectsStruct._2B = 0;
+            sndFXKeyOff(lbl_3_bss_177C);
+            if (g_Batter.isBunting != 0) {
+                playSoundEffect(0x153);
+            } else if (g_Batter.captainStarSwingActivated != CAPTAIN_STAR_TYPE_NONE) {
+                switch (g_Batter.captainStarSwingActivated) {
+                case CAPTAIN_STAR_TYPE_MARIO:
+                case CAPTAIN_STAR_TYPE_LUIGI:
+                    lbl_3_bss_1778 = playSoundEffect(0x194);
+                    break;
+                case CAPTAIN_STAR_TYPE_WARIO:
+                case CAPTAIN_STAR_TYPE_WALUIGI:
+                    lbl_3_bss_1778 = playSoundEffect(0x191);
+                    break;
+                case CAPTAIN_STAR_TYPE_DK:
+                case CAPTAIN_STAR_TYPE_DIDDY:
+                    lbl_3_bss_1778 = playSoundEffect(0x192);
+                    break;
+                case CAPTAIN_STAR_TYPE_BOWSER:
+                case CAPTAIN_STAR_TYPE_BOWSERJR:
+                    lbl_3_bss_1778 = playSoundEffect(0x195);
+                    break;
+                case CAPTAIN_STAR_TYPE_YOSHI:
+                case CAPTAIN_STAR_TYPE_BIRDO:
+                    lbl_3_bss_1778 = playSoundEffect(0x193);
+                    break;
+                case CAPTAIN_STAR_TYPE_PEACH:
+                case CAPTAIN_STAR_TYPE_DAISY:
+                    lbl_3_bss_1778 = playSoundEffect(0x199);
+                    lbl_3_bss_1760 = 0;
+                    break;
                 }
-            } else if (lastState <= 1 &&
-                       g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
-                sound_crowd_EffectsStruct._26 = 2;
-                playSoundEffect(0x158);
-                stopVoices = TRUE;
-                goto checkStop;
+                playSoundEffect(0x184);
+                playSoundEffect(0x185);
+                playCharacterSound(g_Batter.charID, 0);
+            } else if (g_Batter.charID == CHAR_ID_DK) {
+                playSoundEffect(0x1AF);
+            } else if (g_Batter.charID == CHAR_ID_PETEY) {
+                playSoundEffect(0x1B0);
+            } else if (g_Batter.displayContactSprite != 0) {
+                playSoundEffect(0x184);
+                playSoundEffect(0x185);
+            } else if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
+                playSoundEffect(0x184);
+                playCharacterSound(g_Batter.charID, 0);
+            } else if (g_Batter.contactType >= HIT_CONTACT_TYPE_RIGHT_NICE && g_Batter.contactType <= HIT_CONTACT_TYPE_LEFT_NICE) {
+                playCharacterSound(g_Batter.charID, 0);
+                playSoundEffect(0x184);
+            } else {
+                playSoundEffect(0x183);
             }
         }
-        goto checkStop;
-    }
 
-    if (g_Ball.framesSinceHit <= 0) {
-        goto checkStop;
-    }
-
-    if (g_Ball.framesSinceHit > 20 && sound_crowd_EffectsStruct._26 == 0) {
-        sound_crowd_EffectsStruct._26 = 1;
-        if (g_Batter.isBunting != 0) {
-            if (g_RunningLogic._02 == 1 || (g_RunningLogic._02 & 0x1000)) {
-                if (sound_crowd_EffectsStruct._10 == -1) {
-                    sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
-                }
-            }
-        } else if (g_Ball.Hit_HorizontalPower > 0x96 &&
-                   (g_Ball.Hit_VerticalAngle > 0xF80 || g_Ball.Hit_VerticalAngle < 0x200) &&
-                   g_Ball.Hit_HorizontalAngle > 0x80 && g_Ball.Hit_HorizontalAngle < 0x780) {
-            if (sound_crowd_EffectsStruct._10 == -1) {
-                sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
-            }
+        if (g_Batter.chargeStatus == 1 && g_GameLogic.gameStatus == GAME_STATUS_AT_BAT &&
+            g_Batter.chargeFrames < g_Batter.frameChargeDownBegins && g_Batter.chargeFrames == 1) {
+            sound_crowd_EffectsStruct._1C = playCharacterSound(g_Batter.charID, 2);
         }
     }
 
-    if ((g_Ball.ballInitialHitDoneInd != 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-         g_Ball.ballZoneAwayFromHome >= 3 && sound_crowd_EffectsStruct._26 < 2) ||
-        (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
-         g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
-         (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
-          g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
-         g_Strikes.outs == g_Strikes.storedOuts)) {
-        sound_crowd_EffectsStruct._26 = 2;
-        if (sound_crowd_EffectsStruct._14 == -1) {
-            sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
-            if (g_Stats.replayInd == 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-                playSoundEffect(0x196);
-            }
-        }
+    // The captain star type is tested twice against the same value.
+    if ((g_Batter.captainStarSwingActivated == CAPTAIN_STAR_TYPE_PEACH ||
+         g_Batter.captainStarSwingActivated == CAPTAIN_STAR_TYPE_PEACH) &&
+        lbl_3_bss_1760 == 0 &&
+        g_Ball.physicsSubstruct.velocity.y <= -0.09 && g_Ball.physicsSubstruct.velocity.y >= -0.1) {
+        sndFXKeyOff(lbl_3_bss_177C);
+        lbl_3_bss_1778 = playSoundEffect(0x19B);
+        lbl_3_bss_1760 = 1;
     }
 
-    if (g_Ball.deadBallReason == 1 && sound_crowd_EffectsStruct._26 < 9) {
-        sound_crowd_EffectsStruct._26 = 9;
-        if (sound_crowd_EffectsStruct._14 == -1) {
-            sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
+    if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL &&
+        lbl_3_bss_177C != 0) {
+        sndFXKeyOff(lbl_3_bss_177C);
+    }
+    if (g_Ball.AtBat_Contact_BallPos.z < -3.0f && lbl_3_bss_177C != 0) {
+        sndFXKeyOff(lbl_3_bss_177C);
+    }
+    if (g_Pitcher.strikeOutOrWalk == 3) {
+        sndFXKeyOff(lbl_3_bss_177C);
+    }
+    if (lbl_3_bss_1778 != 0) {
+        if (g_Ball.currentStarSwing == 0 || g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
+            sndFXKeyOff(lbl_3_bss_1778);
         }
     }
+}
+#pragma dont_inline reset
 
-    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && sound_crowd_EffectsStruct._26 < 9) {
-        if (g_Ball.deadBallReason == 2) {
-            if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames == 30) {
-                sound_crowd_EffectsStruct._26 = 9;
-                stopVoices = TRUE;
-                if (foul_isBallWithin3mFair(g_Ball.deadballLastLoc.x, g_Ball.deadballLastLoc.z)) {
-                    playSoundEffect(0x158);
-                }
-            }
-        } else if (g_Ball.framesSinceBallHitGroundOrWasCaught == 30) {
-            sound_crowd_EffectsStruct._26 = 9;
-            stopVoices = TRUE;
-            if (foul_isBallWithin3mFair(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z)) {
-                if (g_Ball.ballZoneAwayFromHome == 4 ||
-                    (g_Ball.Hit_HorizontalPower > 0x96 &&
-                     (g_Ball.Hit_VerticalAngle > 0xFC0 || g_Ball.Hit_VerticalAngle < 0x200))) {
-                    playSoundEffect(0x157);
-                }
-            }
-        }
-    }
+// .text:0x0008C5C8 size:0x7AC mapped:0x806CB65C
+void makeSoundOfBallBouncing(void) {
+    int code = g_Ball.collisionCode & 0x7F;
 
-    if (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY &&
-        g_Runners[0].framesSinceOut == 20 && g_Scores._C2 == 0 &&
-        !(g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
-          g_Runners[3].fractionalBasesRan > 3.5f)) {
-        playHit = FALSE;
-        result = storedInningInfo.abResultTemporary;
-        if (result == 0x15 || result == 0x18 || result == 0x16) {
-            playHit = TRUE;
+    if (!(g_Ball.ballVelocity < 0.2f) && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            playStadiumHazardSound(0x18, 0x30);
+            return;
         }
-        if (result == 0x12) {
-            if (g_Ball.ballZoneAwayFromHome <= 1 || foul_checkIfFoul(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-                playHit = TRUE;
+
+        if (g_d_GameSettings.StadiumID == STADIUM_ID_BOWSERS_CASTLE) {
+            if (code == 8) {
+                animateThrownBall(0x1A2, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
+            } else {
+                animateThrownBall(0x1A1, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
             }
+            return;
         }
-        if (storedInningInfo.abResultTemporary == 0x13) {
-            if (g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.Hit_HorizontalPower > 0xB4) {
-                playHit = TRUE;
+        if (g_d_GameSettings.StadiumID == STADIUM_ID_YOHSI_PARK) {
+            if (code == 1) {
+                animateThrownBall(0x1A4, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
+                return;
+            }
+        } else if (g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN) {
+            if (code == 6) {
+                animateThrownBall(0x1A1, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
+                return;
+            } else if (code == 10) {
+                animateThrownBall(0x1A2, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
+                return;
+            } else if (code == 9) {
+                animateThrownBall(0x1A0, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
+                return;
+            }
+        } else if (g_d_GameSettings.StadiumID == STADIUM_ID_DK_JUNGLE) {
+            if (code == 10) {
+                animateThrownBall(0x1A2, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                                  g_Ball.AtBat_Contact_BallPos.z);
+                return;
             }
         }
-        if (playHit) {
-            stopVoices = TRUE;
-            playSoundEffect(0x157);
-        }
-    }
 
-checkStop:
-    if (stopVoices) {
-        if (sound_crowd_EffectsStruct._10 != -1) {
-            sndFXKeyOff(sound_crowd_EffectsStruct._10);
-            sound_crowd_EffectsStruct._10 = -1;
-        }
-        if (sound_crowd_EffectsStruct._14 != -1) {
-            sndFXKeyOff(sound_crowd_EffectsStruct._14);
-            sound_crowd_EffectsStruct._14 = -1;
-        }
-    }
-
-    if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
-        slot = (u32*)&sound_crowd_EffectsStruct;
-        for (i = 0; i < 3; i++) {
-            if (slot[i + 3] != -1) {
-                sndFXKeyOff(slot[i + 3]);
-                slot[i + 3] = -1;
-            }
-        }
+        animateThrownBall(0x17E, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.y,
+                          g_Ball.AtBat_Contact_BallPos.z);
     }
 }
 
-// .text:0x0008FC0C size:0x74 mapped:0x806CECA0
-void newAtBatPlaySound(void) {
-    sound_crowd_EffectsStruct._26 = 0;
+// .text:0x0008C4F0 size:0xD8 mapped:0x806CB584
+BOOL fn_3_8C4F0(u32 arg1, u8 arg2) {
+    u32 packed;
+    u32 hi;
+    u32 lo;
+    int diff;
 
-    if (sound_crowd_EffectsStruct._10 != -1) {
-        sndFXKeyOff(sound_crowd_EffectsStruct._10);
-        sound_crowd_EffectsStruct._10 = -1;
+    packed = fn_800A8864();
+    hi = (u8)(packed >> 8);
+    lo = (u8)packed;
+
+    sound_crowd_EffectsStruct._2F = FALSE;
+
+    if (lbl_3_bss_1761 == 0) {
+        lbl_3_bss_1761 = 1;
+        lbl_3_bss_1771 = (u8)(hi / arg1);
+        lbl_3_bss_1770 = (u8)(lo / arg1);
     }
 
-    if (sound_crowd_EffectsStruct._14 != -1) {
-        sndFXKeyOff(sound_crowd_EffectsStruct._14);
-        sound_crowd_EffectsStruct._14 = -1;
-    }
-}
+    diff = hi - lbl_3_bss_1771;
 
-// .text:0x0008FC80 size:0x298 mapped:0x806CED14
-void adjustBallSoundEffectBasedOnHeight(void) {
-    SND_VOICEID vid;
-    int height;
-    int clamped;
-    int pitch;
-    f32 ratio;
-    u8 mode = g_GameLogic.secondaryGameMode;
-
-    if (mode != SECONDARY_GAME_MODE_NONE && (u8)(mode - SECONDARY_GAME_MODE_PRACTICE_PITCHING) > 4 &&
-        mode != SECONDARY_GAME_MODE_FREE_FIELDING) {
-        goto stop;
-    }
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        if (g_Practice.pauseMenuActive != 0) {
-            goto stop;
-        }
-        if (g_Practice.tutorialState == TUTORIAL_STATE_0) {
-            goto stop;
-        }
-    }
-    if (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
-        goto stop;
-    }
-    if (!(g_Ball.AtBat_Contact_BallPos.y > 3.0f)) {
-        goto stop;
-    }
-    if (!(g_Ball.maxYOfHit > 8.0f)) {
-        goto stop;
-    }
-    if (g_Ball.AtBat_Contact_BallPos.y < 6.0f && g_Ball.physicsSubstruct.velocity.y < 0.0f) {
-        goto stop;
-    }
-    if (g_Ball.collisionRelated != 0 || g_Ball.ballCughtByPlantInd != 0 || g_Ball.deadBallReason != 0) {
-        goto stop;
-    }
-    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
-        (u16)(g_Ball.AtBat_ContactResult - BALL_RESULT_TYPE_FIELDED) <= 1) {
-        goto stop;
-    }
-
-    if (sound_crowd_EffectsStruct._18 == -1) {
-        vid = playSoundEffect(0x17F);
-        sound_crowd_EffectsStruct._18 = vid;
-        sndFXCtrl(vid, SND_MIDICTRL_VOLUME, (u8)baseSoundPitchFactor[4]);
-    }
-    height = (int)g_Ball.AtBat_Contact_BallPos.y;
-    clamped = height;
-    if (height > baseSoundPitchFactor[3]) {
-        clamped = baseSoundPitchFactor[3];
-    }
-    ratio = (f32)(clamped - baseSoundPitchFactor[2]) / (f32)(baseSoundPitchFactor[3] - baseSoundPitchFactor[2]);
-    pitch = baseSoundPitchFactor[0] + (int)(ratio * (f32)(baseSoundPitchFactor[1] - baseSoundPitchFactor[0]));
-    sndFXCtrl14(sound_crowd_EffectsStruct._18, SND_MIDICTRL_PITCHBEND, (u16)pitch);
-    return;
-
-stop:
-    if (sound_crowd_EffectsStruct._18 != -1) {
-        sndFXKeyOff(sound_crowd_EffectsStruct._18);
-        sound_crowd_EffectsStruct._18 = -1;
-    }
-}
-
-// .text:0x0008FF18 size:0x44 mapped:0x806CEFAC
-void initializeSounds(void) {
-    sound_crowd_EffectsStruct._0C = -1;
-    lbl_3_bss_1780[0] = -1;
-    sound_crowd_EffectsStruct._10 = -1;
-    sound_crowd_EffectsStruct._14 = -1;
-    sound_crowd_EffectsStruct._18 = -1;
-    sound_crowd_EffectsStruct._1C = -1;
-    sound_crowd_EffectsStruct._28 = 0;
-    sound_crowd_EffectsStruct._04 = -1;
-    sound_crowd_EffectsStruct._08 = -1;
-    sound_crowd_EffectsStruct._2F = 0;
-    sound_crowd_EffectsStruct._33 = 0;
-}
-
-// .text:0x0008FF5C size:0x108 mapped:0x806CEFF0
-SND_VOICEID animateThrownBall(int soundNumber, f32 x, f32 y, f32 z) {
-    SND_VOICEID vid;
-    int pan = getPanFromWorldPos(x, y, z);
-
-    vid = sndFXStartEx(soundNumber, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].volume, pan, 0);
-    sndFXCtrl(vid, SND_MIDICTRL_REVERB, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].reverb);
-    return vid;
-}
-
-// .text:0x00090064 size:0xEC mapped:0x806CF0F8
-SND_VOICEID callSfx(int soundId) {
-    int i;
-
-    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-        OSPanic("m_sound.c", 0x402, "no mini game");
-    }
-
-    for (i = 0; i < 57; i++) {
-        if (soundId == lbl_3_data_81FC[i]) {
-            break;
-        }
-    }
-
-    if (i == 57) {
-        OSPanic("m_sound.c", 0x40D, "no entry mini_se_no");
-    }
-
-    return sndFXStartEx((u16)soundId, lbl_3_data_84F4[i], 0x3f, 0);
-}
-
-// The reverb bytes for a character's sound codes live 0x180 bytes after
-// charSoundFxVol in .data, in an otherwise unnamed foreign table.
-#define CHAR_SOUND_REVERB_OFFSET 0x180
-
-// A scale factor embedded in the same unnamed foreign table as
-// charSoundFxVol, 0x300 bytes past its start.
-
-// .text:0x00090150 size:0xD0 mapped:0x806CF1E4
-SND_VOICEID fn_3_90150(int charID, int soundCode) {
-    SND_VOICEID vid;
-    u8* reverbTable = charSoundFxVol + soundCode;
-    f32 volF = (f32)charSoundFxVol[soundCode];
-    f32 reverbF = (f32)reverbTable[CHAR_SOUND_REVERB_OFFSET];
-    int fid = soundCode + characterSoundArray[charID];
-    int vol = volF * lbl_3_data_8830;
-    int reverb = reverbF * lbl_3_data_8830;
-
-    vid = sndFXStartEx(fid, vol, 0x3f, 0);
-    sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
-    return vid;
-}
-
-// .text:0x00090220 size:0x74 mapped:0x806CF2B4
-SND_VOICEID playCharacterSound(int charID, int soundCode) {
-    SND_VOICEID vid;
-    u8* reverbTable = charSoundFxVol + soundCode;
-    u8 vol = charSoundFxVol[soundCode];
-    int fid = soundCode + characterSoundArray[charID];
-    u8 reverb = reverbTable[CHAR_SOUND_REVERB_OFFSET];
-
-    vid = sndFXStartEx(fid, vol, 0x3f, 0);
-    sndFXCtrl(vid, SND_MIDICTRL_REVERB, reverb);
-    return vid;
-}
-
-// .text:0x00090294 size:0x68 mapped:0x806CF328
-SND_VOICEID playSoundEffect(int soundNumber) {
-    SND_VOICEID vid;
-
-    vid = sndFXStartEx(soundNumber, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].volume, 0x3f, 0);
-    sndFXCtrl(vid, SND_MIDICTRL_REVERB, lbl_3_data_8338[soundNumber - SOUND_EFFECT_MIX_FIRST_ID].reverb);
-    return vid;
-}
-
-// .text:0x000902FC size:0x2C mapped:0x806CF390
-void fn_3_902FC(void) {
-    sndVolume(0, 10, 0xff);
-}
-
-// .text:0x00090328 size:0x90 mapped:0x806CF3BC
-void playOverSounds(int param) {
-    if (param < 0) {
-        param = 3000;
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
-        sndSeqVolume(0, param, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
-        sndSeqVolume(0, param, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
-    }
-}
-
-// .text:0x000903B8 size:0x7C mapped:0x806CF44C
-void fn_3_903B8(void) {
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._04)) {
-        sndSeqVolume(0, 0xa0, sound_crowd_EffectsStruct._04, SND_SEQVOL_STOP);
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
-        sndSeqVolume(0, 0xa0, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
-    }
-}
-
-// .text:0x00090434 size:0x138
-void fn_3_90434(void) {
-    int i;
-    u32* slot;
-
-    jukeboxCmd(3);
-    fn_800A88C0();
-    fn_800A8B78();
-    playOverSounds(0);
-
-    slot = (u32*)&sound_crowd_EffectsStruct;
-    for (i = 0; i < 3; i++) {
-        if (slot[i + 3] != -1) {
-            sndFXKeyOff(slot[i + 3]);
-            slot[i + 3] = -1;
-        }
-    }
-
-    fn_3_8BDF4();
-}
-
-// .text:0x0009056C size:0x108
-BOOL fn_3_9056C(int index) {
-    SeqPlayEntry* entry;
-
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        entry = (SeqPlayEntry*)lbl_3_data_8954 + index;
-    } else {
-        entry = (SeqPlayEntry*)lbl_3_data_88E0 + index;
-    }
-
-    if (sndSeqGetValid(sound_crowd_EffectsStruct._08)) {
-        sndSeqVolume(0, 0, sound_crowd_EffectsStruct._08, SND_SEQVOL_STOP);
+    if ((s16)diff <= (s16)arg2 || arg1 == 1) {
+        lbl_3_bss_1761 = 0;
+        fn_800A8878(arg2, arg2);
         return FALSE;
     }
 
-    sound_crowd_EffectsStruct._08 =
-        sndSeqPlayEx(entry->sgid, entry->sid, ((void**)lbl_3_bss_1774)[index], NULL, 0);
-    audioFileDescriptors.musicVolume = lbl_3_data_830C[index * 2];
-    sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._08, SND_SEQVOL_CONTINUE);
+    fn_800A8878((u8)diff, (u8)(lo - lbl_3_bss_1770));
     return TRUE;
 }
 
-// .text:0x00090674 size:0x88 mapped:0x806CF708
-void fn_3_90674(int index) {
-    SeqPlayEntry* entry = &((SeqPlayEntry*)lbl_3_data_88E0)[index];
-    void** arrTable = (void**)lbl_3_bss_1774;
+// .text:0x0008C2DC size:0x214 mapped:0x806CB370
+BOOL fn_3_8C2DC(u32 arg1, u8 arg2) {
+    u16 packed = fn_800A8864();
+    f32 hi;
 
-    sound_crowd_EffectsStruct._04 = sndSeqPlayEx(entry->sgid, entry->sid, arrTable[index], NULL, 0);
-    sndSeqVolume(lbl_3_data_830C[index * 2], 0, sound_crowd_EffectsStruct._04, SND_SEQVOL_CONTINUE);
-}
-
-// .text:0x000906FC size:0x58 mapped:0x806CF790
-void fn_3_906FC(void) {
-    s32* p;
-    s32 base;
-    s32 i;
-
-    base = sound_crowd_EffectsStruct._00;
-    p = (s32*)base;
-
-    for (i = 0; i < (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE ? 1 : 0x14); i++) {
-        *p += base;
-        p++;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        arg2 = lbl_800E88A4[arg2 + 0x12];
+    } else if (sound_crowd_EffectsStruct._20 == 0x16) {
+        arg2 = lbl_800E88A4[arg2 + 0xC];
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
+        arg2 = lbl_800E88A4[arg2 + 0xE];
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
+        arg2 = lbl_800E88A4[arg2 + 0x10];
+    } else {
+        arg2 = lbl_800E88A4[(g_d_GameSettings.StadiumID << 1) + arg2];
     }
 
-    lbl_3_bss_1774 = base;
+    hi = (f32)((packed >> 8) & 0xFF);
+    if (hi > lbl_3_bss_1764) {
+        lbl_3_bss_1764 = hi;
+    }
+
+    if (!sound_crowd_EffectsStruct._2F) {
+        lbl_3_bss_176C = (f32)arg2 / (f32)arg1;
+        sound_crowd_EffectsStruct._2F = TRUE;
+        lbl_3_bss_1764 = hi;
+    }
+
+    lbl_3_bss_1764 += lbl_3_bss_176C;
+    fn_800A8878(lbl_3_bss_1764, lbl_3_bss_1764);
+
+    if (lbl_3_bss_1764 >= (f32)arg2) {
+        sound_crowd_EffectsStruct._2F = FALSE;
+        return FALSE;
+    }
+    return TRUE;
+}
+
+// .text:0x0008C104 size:0x1D8 mapped:0x806CB198
+void fn_3_8C104(int arg0) {
+    int tag;
+    int idx = 0;
+    u8 value;
+
+    if (audioFileDescriptors.enableMusic == 0) {
+        return;
+    }
+
+    if (arg0 == -2) {
+        idx = 1;
+    }
+
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+        tag = 9;
+        value = lbl_800E88A4[idx + 0x12];
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
+        tag = 7;
+        value = lbl_800E88A4[idx + 0xE];
+    } else if (sound_crowd_EffectsStruct._20 == 0x16) {
+        tag = 6;
+        value = lbl_800E88A4[idx + 0xC];
+    } else if (sound_crowd_EffectsStruct._20 == 0x17) {
+        tag = 0xE;
+        value = lbl_800E88A4[idx + 0x1C];
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
+        tag = 7;
+        value = lbl_800E88A4[idx + 0xE];
+    } else if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
+        tag = 8;
+        value = lbl_800E88A4[idx + 0x10];
+    } else {
+        tag = g_d_GameSettings.StadiumID;
+        value = lbl_800E88A4[(tag << 1) + idx];
+    }
+
+    if (arg0 >= 0) {
+        value = arg0;
+    }
+
+    ADD_TO_CIRCULAR_BUFFER(0, tag, value);
+
+    if (value == 0) {
+        fn_800A8878(value, value);
+    }
+}
+
+// .text:0x0008C07C size:0x88 mapped:0x806CB110
+void transitionToReplay(void) {
+    ADD_TO_CIRCULAR_BUFFER(4, 0, 0);
+}
+
+// .text:0x0008BE8C size:0x1F0 mapped:0x806CAF20
+void initializeSoundEmitters(void) {
+    SND_FVECTOR pos = {0.0f, 0.0f, 0.0f};
+    s32 i = 0;
+
+    for (; i < SOUND_EMITTER_COUNT; i++) {
+        sndEmitter.emitterType[i] = SOUND_EMITTER_TYPE_NONE;
+        sndEmitter.emitterActive[i] = FALSE;
+        sndEmitter.unk_2098[i] = 0;
+    }
+    sndEmitter.unk_2098[0x64] = 0xFF;
+    sndEmitter.unk_2098[0x65] = 0;
+
+    fn_3_8B9BC(&pos);
+    fn_3_8B804();
+}
+
+// .text:0x0008BDF4 size:0x98 mapped:0x806CAE88
+void fn_3_8BDF4(void) {
+    fn_3_8B804();
+    fn_3_8B7DC();
+}
+
+// .text:0x0008BBC4 size:0x230 mapped:0x806CAC58
+int initializeStadiumObjectEmitter(int soundId, Vec* pos, Vec* vel, int arg) {
+    SND_FVECTOR localPos;
+    StadiumEmitterDef* def;
+    int i;
+
+    for (i = 0; i < SOUND_EMITTER_COUNT; i++) {
+        if (!sndEmitter.emitterActive[i] || !sndCheckEmitter(&sndEmitter.emitters[i])) {
+            sndEmitter.emitterType[i] = arg;
+            sndEmitter.emitterActive[i] = TRUE;
+            sndEmitter.unk_2098[i] = 0;
+            if (pos == NULL) {
+                localPos.x = (f32)lbl_3_data_8974[arg].pos[0] / 100000.0f;
+                localPos.y = (f32)lbl_3_data_8974[arg].pos[1] / 100000.0f;
+                localPos.z = (f32)lbl_3_data_8974[arg].pos[2] / 100000.0f;
+                pos = (Vec*)&localPos;
+            }
+            if (vel == NULL) {
+                vel = (Vec*)&lbl_3_data_8D7C;
+            }
+            def = &lbl_3_data_8974[arg];
+            sndAddEmitter(&sndEmitter.emitters[i], (SND_FVECTOR*)pos, (SND_FVECTOR*)vel,
+                          (f32)def->maxDis / 100000.0f, (f32)def->comp / 100000.0f,
+                          def->flags[0] | def->flags[1] | def->flags[2] | def->flags[3] | def->flags[4] |
+                              def->flags[5] | def->flags[6],
+                          (u16)soundId, (u8)def->maxVol, (u8)def->minVol, NULL);
+            return i;
+        }
+    }
+    if (i == SOUND_EMITTER_COUNT) {
+        OSPanic("m_sound.c", 0xE4C, "No Empty Emitter");
+    }
+    return -1;
+}
+
+// .text:0x0008BA60 size:0x164 mapped:0x806CAAF4
+void updateOrRemoveEmitter(int emitterID, Vec* pos, Vec* vel) {
+    SND_EMITTER* em;
+    SND_FVECTOR localPos;
+    int type;
+
+    if (emitterID < 0 || emitterID >= SOUND_EMITTER_COUNT || !sndEmitter.emitterActive[emitterID]) {
+        return;
+    }
+
+    em = &sndEmitter.emitters[emitterID];
+    if (!sndCheckEmitter(em)) {
+        sndEmitter.emitterActive[emitterID] = FALSE;
+    } else {
+        type = sndEmitter.emitterType[emitterID];
+        if (pos == NULL) {
+            localPos.x = (f32)lbl_3_data_8974[type].pos[0] / 100000.0f;
+            localPos.y = (f32)lbl_3_data_8974[type].pos[1] / 100000.0f;
+            localPos.z = (f32)lbl_3_data_8974[type].pos[2] / 100000.0f;
+            pos = (Vec*)&localPos;
+        }
+        if (vel == NULL) {
+            vel = (Vec*)&lbl_3_data_8D7C;
+        }
+        sndUpdateEmitter(em, (SND_FVECTOR*)pos, (SND_FVECTOR*)vel,
+                         (u8)lbl_3_data_8974[type].maxVol, NULL);
+    }
+}
+
+// .text:0x0008B9BC size:0xA4 mapped:0x806CAA50
+void fn_3_8B9BC(SND_FVECTOR* pos) {
+    SND_FVECTOR heading;
+    SND_FVECTOR dir;
+
+    heading.x = 0.0f;
+    heading.y = 0.0f;
+    heading.z = -1.0f;
+    dir.x = 0.0f;
+    dir.y = 0.0f;
+    dir.z = 0.0f;
+
+    sndRemoveListener(&sndEmitter.listener);
+    sndAddListener(&sndEmitter.listener, pos, &dir, &heading, &lbl_3_data_8D70, lbl_3_data_88AC[0],
+                   lbl_3_data_88AC[0], lbl_3_data_88AC[0], SND_LISTENER_DOPPLERFX, 0x7f, NULL);
+}
+
+// .text:0x0008B964 size:0x58 mapped:0x806CA9F8
+void fn_3_8B964(SND_FVECTOR* pos, SND_FVECTOR* dir, SND_FVECTOR* heading) {
+    if (sndEmitter.listener.room != NULL) {
+        sndUpdateListener(&sndEmitter.listener, pos, dir, heading, &lbl_3_data_8D70, 0x7f, NULL);
+    }
+}
+
+// .text:0x0008B890 size:0xD4 mapped:0x806CA924
+void updateAndRemoveStadiumEmitter(int emitterID) {
+    static const SND_FVECTOR emitterPosX = {0.0f, 0.0f, 0.0f};
+    static const SND_FVECTOR emitterDirX = {0.0f, 0.0f, 1.0f};
+    SND_EMITTER* em;
+    SND_FVECTOR pos;
+    SND_FVECTOR dir;
+
+    if (emitterID < 0 || emitterID >= SOUND_EMITTER_COUNT || !sndEmitter.emitterActive[emitterID]) {
+        return;
+    }
+
+    em = &sndEmitter.emitters[emitterID];
+    if (sndCheckEmitter(em)) {
+        pos = emitterPosX;
+        dir = emitterDirX;
+        sndUpdateEmitter(em, &pos, &dir, 0, NULL);
+        sndRemoveEmitter(em);
+    }
+}
+
+// .text:0x0008B804 size:0x8C mapped:0x806CA898
+void fn_3_8B804(void) {
+    int i;
+
+    for (i = 0; i < SOUND_EMITTER_COUNT; i++) {
+        if (sndEmitter.emitterActive[i]) {
+            if (sndCheckEmitter(&sndEmitter.emitters[i])) {
+                sndRemoveEmitter(&sndEmitter.emitters[i]);
+            }
+            sndEmitter.emitterActive[i] = FALSE;
+        }
+    }
+}
+
+// .text:0x0008B7DC size:0x28 mapped:0x806CA870
+void fn_3_8B7DC(void) {
+    sndRemoveListener(&sndEmitter.listener);
+}
+
+// .text:0x0008B718 size:0xC4 mapped:0x806CA7AC
+void fn_3_8B718(Vec* pos, Vec* dir, Vec* lookDir) {
+    camera_803c639c_s* cam = returnFloatFromModeIndex(0);
+
+    if (pos != NULL) {
+        pos->x = cam->eye.x;
+        pos->y = cam->eye.y;
+        pos->z = cam->eye.z;
+    }
+
+    if (dir != NULL) {
+        dir->x = 0.0f;
+        dir->y = 0.0f;
+        dir->z = 0.0f;
+    }
+
+    if (lookDir != NULL) {
+        f32 mag;
+
+        PSVECSubtract(&cam->target, &cam->eye, lookDir);
+        mag = PSVECMag(lookDir);
+        if (mag) {
+            PSVECNormalize(lookDir, lookDir);
+        }
+    }
+}
+
+// .text:0x0008B318 size:0x400
+void stadiumMusic(int stadiumID) {
+    s32 i;
+    u32 k;
+
+    if (stadiumID == -1) {
+        for (i = 0; i < 12; i++) {
+            charSoundFxVol[0x180 + i] = lbl_3_data_8278[i];
+        }
+        return;
+    }
+    if (stadiumID == STADIUM_ID_TOY_FIELD) {
+        for (i = 0; i < 7; i++) {
+            lbl_3_data_84B8[i * 2 + 1] = lbl_3_data_8270[i];
+        }
+        for (i = 0; i < 12; i++) {
+            charSoundFxVol[0x180 + i] = lbl_3_data_8278[i];
+        }
+        for (k = 0; k < 102; k++) {
+            lbl_3_data_8338[k].reverb = lbl_3_data_8284[k];
+        }
+        return;
+    }
+    for (i = 0; i < 7; i++) {
+        lbl_3_data_84B8[i * 2 + 1] = 0;
+    }
+    for (i = 0; i < 12; i++) {
+        charSoundFxVol[0x180 + i] = 0;
+    }
+    for (k = 0; k < 102; k++) {
+        lbl_3_data_8338[k].reverb = 0;
+    }
+}
+
+// .text:0x0008B2E4 size:0x34 mapped:0x806CA378
+void fn_3_8B2E4(void) {
+    soundReplayQueue = (SoundReplayQueue*)insertGraphicDrawingFunction(processSoundReplayQueue, 0);
+}
+
+// .text:0x0008B258 size:0x8C mapped:0x806CA2EC
+BOOL addToCircularBuffer(u8 arg1, u8 arg2, u8 arg3) {
+    u8 head;
+    u8 next;
+
+    if (soundReplayQueue == NULL) {
+        goto fail;
+    }
+
+    head = soundReplayQueue->head;
+    if (soundReplayQueue->tail == (next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) {
+fail:
+        return FALSE;
+    }
+
+    soundReplayQueue->head = next;
+    soundReplayQueue->entries[head].arg1 = arg2;
+    soundReplayQueue->entries[head].arg2 = arg1;
+    soundReplayQueue->entries[head].arg3 = arg3;
+    return TRUE;
 }
 
 // .text:0x0008B094 size:0x1C4
-void fn_3_8B094(void) {
+void processSoundReplayQueue(void) {
     SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
-    SoundReplayEventRecord* rec;
+    u8* bytes = (u8*)currentDrawingItem;
+    u8 tail;
+    u8 streamId;
     u8 nextTail;
-    u8 vol;
-    s8 streamId;
-    s8 cmd;
+    int vol;
+    int cmdIdx;
 
     if (queue->head == queue->tail) {
         return;
@@ -2058,25 +2089,25 @@ void fn_3_8B094(void) {
     if (fn_800A88C8() == 3) {
         return;
     }
-    nextTail = (queue->tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
-    rec = &queue->entries[queue->tail];
-    cmd = (s8)rec->arg2;
-    streamId = (s8)rec->arg1;
-    switch (cmd) {
+    tail = queue->tail;
+    nextTail = (tail + 1) % SOUND_REPLAY_QUEUE_CAPACITY;
+    vol = queue->entries[tail].arg3;
+    vol = (s8)vol;
+    streamId = queue->entries[tail].arg1;
+    switch ((s8)bytes[cmdIdx = tail * 3 + 0x17]) {
     case 0:
-        vol = rec->arg3;
         fn_800A8878(vol, vol);
-        if (jukeboxWork[streamId] == fn_800A88C0()) {
-            rec->arg2 = 2;
+        if (jukeboxWork[(s8)streamId] == fn_800A88C0()) {
+            bytes[cmdIdx] = 2;
         } else {
             fn_800A8AB8(0);
-            rec->arg2++;
+            bytes[cmdIdx]++;
         }
         return;
     case 1:
         fn_800A8AB0(2);
-        LoadFile((char**)&streamDescriptors[streamId], (LoadFileNode*)jukeboxWork[streamId], 0, 0, 1);
-        rec->arg2++;
+        LoadFile((char**)&streamDescriptors[(s8)streamId], (LoadFileNode*)jukeboxWork[(s8)streamId], 0, 0, 1);
+        bytes[cmdIdx]++;
         /* fall through */
     case 2:
         if (fn_800A8518(1)) {

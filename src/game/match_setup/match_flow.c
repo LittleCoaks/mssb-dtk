@@ -99,7 +99,7 @@ extern void resetScoutChanceTier(void);
 extern int loadFielderActors(int charID);
 extern void unkPauseSimulationCheck(void);
 extern BOOL checkForButtonPressToSkip(int a, int b);
-extern void playOverSounds(int param);
+extern void playOverSounds(long frames);
 extern void challenge_leftoverTeammatesJoinBowserJr(void);
 extern void cleanupCharacters(void);
 extern void fn_3_90434(void);

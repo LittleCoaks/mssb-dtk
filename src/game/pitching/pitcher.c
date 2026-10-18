@@ -66,7 +66,7 @@ extern f32 bOD_bB_maxMovement[4];
 extern f32 strikeZone[6];
 extern f32 pitchSpeedScaler[12];
 extern u8 animRelated[0x124];
-extern u8 highLevelSimulationFlag[2];
+extern u8 highLevelSimulationFlag[4];
 extern void transitionToLiveBallWithoutContact(int arg);
 extern s16 lbl_3_data_8080[];
 extern s16 lbl_3_common_bss_32220[8];
