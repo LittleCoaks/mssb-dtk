@@ -212,8 +212,8 @@ typedef struct _InMemRunnerType {
     /*0x0EA*/ s16 framesToNextBase;
     /*0x0EC*/ s16 framesToPreviousBase; // maybe
     /*0x0EE*/ E(s16, FORCE_OUT_TYPE) forceOutCd;
-    /*0x0F0*/ E(s16, PREVENT_PASSING_TYPE) restrictedMovementCodes;
-    /*0x0F2*/ E(s16, PREVENT_PASSING_TYPE) restrictedMovementCodes_stored;
+    /*0x0F0*/ E(s16, RUNNER_RESTRICTION) movementRestrictions;
+    /*0x0F2*/ E(s16, RUNNER_RESTRICTION) movementRestrictions_stored;
     /*0x0F4*/ s16 framesSinceOut;
     /*0x0F6*/ s16 stamina;
     /*0x0F8*/ s16 baseNumberEarned_NotIncludingFieldersChoice;

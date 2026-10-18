@@ -238,13 +238,13 @@ typedef enum _TAG_UP_TYPE {
     /* 0x3 */ TAG_UP_TYPE_3,           // only ever compared against, never set
 } TAG_UP_TYPE;
 
-typedef enum _PREVENT_PASSING_TYPE {
-    /* 0x0 */PREVENT_PASSING_TYPE_NONE = 0,
-    /* 0x1 */PREVENT_PASSING_TYPE_PREVENT_FORWARD = 1,
-    /* 0x2 */PREVENT_PASSING_TYPE_PREVENT_BACKWARD = 2,
-    /* 0x4 */PREVENT_PASSING_TYPE_PREVENT_CROSSINGPLATE = 4,
-    /* 0x8 */PREVENT_PASSING_TYPE_TAG_UP = 8, // unsure
-} PREVENT_PASSING_TYPE;
+typedef enum _RUNNER_RESTRICTION {
+    /* 0x0 */RUNNER_RESTRICTION_NONE = 0,
+    /* 0x1 */RUNNER_RESTRICTION_NO_FORWARD = 1,
+    /* 0x2 */RUNNER_RESTRICTION_NO_BACKWARD = 2,
+    /* 0x4 */RUNNER_RESTRICTION_NO_CROSSING_PLATE = 4,
+    /* 0x8 */RUNNER_RESTRICTION_RESUME_TAG_UP = 8, // held while returning to tag up; send back once free
+} RUNNER_RESTRICTION;
 
 typedef enum _BALL_RESULT_TYPE {
     /*  -1 */ BALL_RESULT_TYPE_FOUL = -1,

@@ -547,7 +547,7 @@ void setDefaultInMemRunner(void) {
         runner->currentBase = i;
         runner->nextBase = (i + 1) & 3;
         runner->tagUpStatus = TAG_UP_TYPE_NONE;
-        runner->restrictedMovementCodes = PREVENT_PASSING_TYPE_NONE;
+        runner->movementRestrictions = RUNNER_RESTRICTION_NONE;
         runner->relatedToRunnerPos = 0;
         runner->outType = 0;
         runner->forceOutCd = FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE;
@@ -1460,14 +1460,14 @@ void running_setRestrictedMovements(void) {
     int runnerNum;
     int i;
 
-    g_Runners[0].restrictedMovementCodes_stored = g_Runners[0].restrictedMovementCodes;
-    g_Runners[0].restrictedMovementCodes = PREVENT_PASSING_TYPE_NONE;
-    g_Runners[1].restrictedMovementCodes_stored = g_Runners[1].restrictedMovementCodes;
-    g_Runners[1].restrictedMovementCodes = PREVENT_PASSING_TYPE_NONE;
-    g_Runners[2].restrictedMovementCodes_stored = g_Runners[2].restrictedMovementCodes;
-    g_Runners[2].restrictedMovementCodes = PREVENT_PASSING_TYPE_NONE;
-    g_Runners[3].restrictedMovementCodes_stored = g_Runners[3].restrictedMovementCodes;
-    g_Runners[3].restrictedMovementCodes = PREVENT_PASSING_TYPE_NONE;
+    g_Runners[0].movementRestrictions_stored = g_Runners[0].movementRestrictions;
+    g_Runners[0].movementRestrictions = RUNNER_RESTRICTION_NONE;
+    g_Runners[1].movementRestrictions_stored = g_Runners[1].movementRestrictions;
+    g_Runners[1].movementRestrictions = RUNNER_RESTRICTION_NONE;
+    g_Runners[2].movementRestrictions_stored = g_Runners[2].movementRestrictions;
+    g_Runners[2].movementRestrictions = RUNNER_RESTRICTION_NONE;
+    g_Runners[3].movementRestrictions_stored = g_Runners[3].movementRestrictions;
+    g_Runners[3].movementRestrictions = RUNNER_RESTRICTION_NONE;
 
     if (g_Strikes.outs >= 3) {
         return;
@@ -1496,22 +1496,22 @@ void running_setRestrictedMovements(void) {
                     }
                 }
                 if (g_Batter.predictedHitOutcome != PREDICTED_HIT_OUTCOME_FOUL && g_Runners[0].runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY) {
-                    runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                    runner->movementRestrictions |= RUNNER_RESTRICTION_NO_BACKWARD;
                     if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS && runner->tagUpStatus != TAG_UP_TYPE_NONE) {
-                        runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_TAG_UP;
+                        runner->movementRestrictions |= RUNNER_RESTRICTION_RESUME_TAG_UP;
                     }
                 }
             } else if (runnerNum == 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
                        g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
                        g_Runners[1].fractionalBasesRan < 2.0f && g_Runners[1].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
-                runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_FORWARD;
+                runner->movementRestrictions |= RUNNER_RESTRICTION_NO_FORWARD;
             } else if (precedingFrac < 0.0f) {
                 if (runner->fractionalBasesRan >= 3.75f && g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING &&
                     g_Strikes.storedOuts < 2) {
                     if (runner->tagUpStatus != TAG_UP_TYPE_NONE) {
-                        runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_CROSSINGPLATE;
+                        runner->movementRestrictions |= RUNNER_RESTRICTION_NO_CROSSING_PLATE;
                     } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
-                        runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_CROSSINGPLATE;
+                        runner->movementRestrictions |= RUNNER_RESTRICTION_NO_CROSSING_PLATE;
                     }
                 }
             } else {
@@ -1530,35 +1530,35 @@ void running_setRestrictedMovements(void) {
                     gap -= 0.15f;
                 }
                 if (gap < 0.3f) {
-                    runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_FORWARD;
-                    preceding->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                    runner->movementRestrictions |= RUNNER_RESTRICTION_NO_FORWARD;
+                    preceding->movementRestrictions |= RUNNER_RESTRICTION_NO_BACKWARD;
                     if (preceding->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS && preceding->tagUpStatus != TAG_UP_TYPE_NONE &&
                         (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT)) {
-                        preceding->restrictedMovementCodes |= PREVENT_PASSING_TYPE_TAG_UP;
+                        preceding->movementRestrictions |= RUNNER_RESTRICTION_RESUME_TAG_UP;
                     }
                     if (preceding->percentTowardsNextBase < 0.5f && preceding->baseStandingOn == -1 &&
                         runner->percentTowardsNextBase > 0.5f && runner->baseStandingOn == -1) {
                         if (preceding->distToCurrentBase <= runner->distToNextBase) {
                             if (preceding->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS && runner->baseStandingOn == -1) {
-                                preceding->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                                preceding->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_BACKWARD;
                             } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && preceding->baseStandingOn == -1) {
-                                runner->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_FORWARD;
+                                runner->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_FORWARD;
                             } else if (runner->baseStandingOn == -1) {
-                                preceding->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                                preceding->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_BACKWARD;
                             } else if (preceding->baseStandingOn == -1) {
-                                runner->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_FORWARD;
+                                runner->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_FORWARD;
                             }
                         } else {
                             if (preceding->tagUpStatus != TAG_UP_TYPE_NONE && runner->baseStandingOn == -1) {
-                                preceding->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                                preceding->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_BACKWARD;
                             } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && preceding->baseStandingOn == -1) {
-                                runner->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_FORWARD;
+                                runner->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_FORWARD;
                             } else if (preceding->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS && runner->baseStandingOn == -1) {
-                                preceding->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                                preceding->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_BACKWARD;
                             } else if (preceding->baseStandingOn == -1) {
-                                runner->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_FORWARD;
+                                runner->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_FORWARD;
                             } else if (runner->baseStandingOn == -1) {
-                                preceding->restrictedMovementCodes &= 0xFF & ~PREVENT_PASSING_TYPE_PREVENT_BACKWARD;
+                                preceding->movementRestrictions &= 0xFF & ~RUNNER_RESTRICTION_NO_BACKWARD;
                             }
                         }
                     }
@@ -1586,7 +1586,7 @@ void running_setRestrictedMovements(void) {
                 }
             }
             if (count >= 2) {
-                runner->restrictedMovementCodes |= PREVENT_PASSING_TYPE_PREVENT_FORWARD;
+                runner->movementRestrictions |= RUNNER_RESTRICTION_NO_FORWARD;
             }
         }
     }
@@ -4012,36 +4012,36 @@ int running_DirectionOverrides(int runnerIdx) {
             return RUNNER_MOVEMENT_FORWARDS;
         }
     }
-    prevent = runner->restrictedMovementCodes;
-    if (prevent & PREVENT_PASSING_TYPE_PREVENT_CROSSINGPLATE) {
+    prevent = runner->movementRestrictions;
+    if (prevent & RUNNER_RESTRICTION_NO_CROSSING_PLATE) {
         if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
             return RUNNER_MOVEMENT_STOPPED;
         }
         if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode == RUNNER_MOVEMENT_STOPPED) {
             return RUNNER_MOVEMENT_STOPPED;
         }
-    } else if (prevent & PREVENT_PASSING_TYPE_PREVENT_FORWARD) {
+    } else if (prevent & RUNNER_RESTRICTION_NO_FORWARD) {
         if ((runner->baseRoundingState != 1 || runner->overRun1BStage == 0) && runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
             return RUNNER_MOVEMENT_STOPPED;
         }
         if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS) {
             return RUNNER_MOVEMENT_STOPPED;
         }
-    } else if (prevent & PREVENT_PASSING_TYPE_PREVENT_BACKWARD) {
+    } else if (prevent & RUNNER_RESTRICTION_NO_BACKWARD) {
         if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
             return RUNNER_MOVEMENT_STOPPED;
         }
         if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS) {
             return RUNNER_MOVEMENT_STOPPED;
         }
-    } else if (runner->restrictedMovementCodes_stored & PREVENT_PASSING_TYPE_PREVENT_CROSSINGPLATE) {
-        if ((prevent & PREVENT_PASSING_TYPE_PREVENT_FORWARD) == 0 && g_Ball.framesSinceHit > 0 &&
+    } else if (runner->movementRestrictions_stored & RUNNER_RESTRICTION_NO_CROSSING_PLATE) {
+        if ((prevent & RUNNER_RESTRICTION_NO_FORWARD) == 0 && g_Ball.framesSinceHit > 0 &&
             (runner->runningDirectionCode == RUNNER_MOVEMENT_STOPPED || runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) &&
             runner->tagUpStatus == TAG_UP_TYPE_NONE) {
             return RUNNER_MOVEMENT_FORWARDS;
         }
-    } else if (runner->restrictedMovementCodes_stored & PREVENT_PASSING_TYPE_TAG_UP) {
-        if ((prevent & PREVENT_PASSING_TYPE_PREVENT_BACKWARD) == 0 &&
+    } else if (runner->movementRestrictions_stored & RUNNER_RESTRICTION_RESUME_TAG_UP) {
+        if ((prevent & RUNNER_RESTRICTION_NO_BACKWARD) == 0 &&
             (runner->runningDirectionCode == RUNNER_MOVEMENT_STOPPED || runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED)) {
             return RUNNER_MOVEMENT_BACKWARDS;
         }

@@ -2049,7 +2049,7 @@ void fieldingAIThrowOrChase(int runnerIndex) {
             closer = -1;
         }
         if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
-            if (runner->restrictedMovementCodes & 1) {
+            if (runner->movementRestrictions & RUNNER_RESTRICTION_NO_FORWARD) {
                 runningStratToMakePlay[runnerIndex] = 9;
                 throwStratToMakePlay[runnerIndex] = -1;
                 framesRunnerIsOutOfReach[runnerIndex] = 0;
@@ -2084,7 +2084,7 @@ void fieldingAIThrowOrChase(int runnerIndex) {
                 }
             }
         } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
-            if (runner->restrictedMovementCodes & 2) {
+            if (runner->movementRestrictions & RUNNER_RESTRICTION_NO_BACKWARD) {
                 runningStratToMakePlay[runnerIndex] = 9;
                 throwStratToMakePlay[runnerIndex] = -1;
                 framesRunnerIsOutOfReach[runnerIndex] = 0;
