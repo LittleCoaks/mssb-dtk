@@ -8,6 +8,8 @@
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
 #include "game/match_setup/pause_menu.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/match_setup/roster_init.h"

@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/practice/guided_practice.h"
 #include "game/UnknownHomes_Game.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_end.h"
 #include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x800204cc.h"

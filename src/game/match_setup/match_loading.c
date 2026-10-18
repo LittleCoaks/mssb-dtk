@@ -1,7 +1,9 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_loading.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_matchLoading
+#include "header_rep_data.h"
 #include "game/match_setup/loading_state.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "text/text.h"

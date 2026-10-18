@@ -16,7 +16,7 @@
 #include "stl/stdlib.h"
 #include "stl/math.h"
 #include "static/UnknownHomes_Static.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_loading.h"
 #include "game/match_setup/roster_init.h"
 #include "game/match_setup/scene_skip.h"
