@@ -1479,6 +1479,8 @@ void running_setRestrictedMovements(void) {
             if (runnerNum == 1 && g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT && g_FieldingLogic.infieldFlyIndicator == 0 &&
                 g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE && runner->fractionalBasesRan <= 1.2f &&
                 g_Ball.framesSinceHit >= 1) {
+                // Mechanic where runner at 1B can't go back to 1B to avoid conflicts with the batter-runner.
+                // For balls in the air, it has an exception for when the ball is about to land (< 2 seconds away) and the ball is landing near 1B (within 10 units)
                 if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.framesUntilBallHitsGround < 120) {
                     f32 dx = base_MoundCoordinates[1].x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
                     f32 dz = base_MoundCoordinates[1].z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
