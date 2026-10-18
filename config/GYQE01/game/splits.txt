@@ -473,7 +473,7 @@ game/ball/ball_contact_burst.c:
 	.rodata     start:0x00003C80 end:0x00003CE0
 	.data       start:0x00027D58 end:0x00027EAC
 
-game/data_only/rep_3CE0.c:
+game/minigame/minigame_winner_spotlight.c:
 	.text       start:0x0015F874 end:0x00160578
 	.rodata     start:0x00003CE0 end:0x00003D50
 	.data       start:0x00027EC0 end:0x000281F0

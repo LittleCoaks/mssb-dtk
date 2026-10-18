@@ -234,6 +234,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `minigame_effects.c` | *(unchanged)* | 125 (5) | 68,304 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
 | `minigame_fielder_anim.c` | `rep_2940` | 9 (8) | 5,624 | Minigame fielder animations, Toy Field coin models, character-select and results fielder placement. | med |
 | `minigame_framework.c` | `rep_31A0` | ? | ? | Shared minigame state machine: mode dispatch on `GAME_STATUS`, character select, stadium load, grand-prix ordering, rankings and coin awards, and the per-minigame constant tables in its `.data`. | high |
+| `minigame_winner_spotlight.c` | `data_only/rep_3CE0` | 7 (7) | 3,332 | Minigame results spotlight: the screen dims, then up to four light beams (sized per character) with ground discs come down on the winners. `minigame_fielder_anim.c` starts it (`minigameWinnerSpotlight_start`, `_show` next to `minigameWinnerStars_spawn`), `scene_effects.c` queues the draw each frame while it is active (`_queue` -> `_draw`), and `minigame_framework.c` / `toy_field.c` stop it next to `minigameWinnerStars_stop`. `_clearDepth` resets the depth buffer with a full-screen quad. | med |
 | `minigame_hud.c` | `hud/rep_3448` | 62 (2) | 61,228 | The minigame HUD (`minigameGraphics`, `minigameStateLogic`): score panels, timers, intro/result banners and per-minigame icons; 337 `g_Minigame` references. Moved from `hud/` because it sits inside the minigame block. | high |
 | `minigame_models.c` | `rep_3310`, then `pitching_machine.c` | 55 (55) | 27,500 | The minigame model layer (`mm_` prefix): loads, updates and unloads every minigame's models (piranhas, Thwomps, fire bars, barrels, blocks, coins, the pitching machine), the shared archive, and the result-code HUD. Only 4 of its functions are pitching-machine specific. | med |
 | `piranha_panic.c` | `rep_37A8` | 36 (36) | 22,292 | Piranha Panic. | med |
@@ -298,7 +299,6 @@ not a shared gameplay purpose.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `data_1880.c` and `data_69C0.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
-| `rep_3CE0.c` | *(unchanged)* | 7 (0) | 3,332 | Fade plus four actor markers sized by character; called from `scene_effects.c` and `minigame_fielder_anim.c`. | inferred |
 | `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |
 
 ## src/menus — the menu REL
