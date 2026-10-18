@@ -2591,6 +2591,10 @@ void fn_1_165E0(void) {
     }
 }
 
+static inline DbgAnimTrack *dbgGetTrack(s32 anim, s32 track) {
+    return &hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[anim]->p4[track];
+}
+
 // .text:0x00016590 size:0x50
 u32 fn_1_16590(void) {
     return fn_1_16558(lbl_1_bss_6940[lbl_1_bss_5F73].f44, lbl_1_bss_6940[lbl_1_bss_5F73].f45);
@@ -2598,7 +2602,7 @@ u32 fn_1_16590(void) {
 
 // .text:0x00016558 size:0x38
 u32 fn_1_16558(s32 a, s32 b) {
-    return hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[a]->p4[b].f0;
+    return dbgGetTrack(a, b)->f0;
 }
 
 // .text:0x00001644C
@@ -4873,7 +4877,6 @@ void fn_1_ECF8(s32 idx, s32 kind, s32 flag) {
 void fn_1_EA20(void) {
     switch (lbl_1_bss_30B0) {
     case 0: {
-        DbgAnimEntry *ent;
         s32 anim;
         s32 frame;
         s32 i;
@@ -4884,9 +4887,8 @@ void fn_1_EA20(void) {
         lbl_1_bss_5F58 = 0;
         anim = lbl_1_bss_6940[lbl_1_bss_5F73].f44;
         frame = lbl_1_bss_6940[lbl_1_bss_5F73].f45;
-        ent = hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[anim];
-        for (i = 0; i < ent->p4[frame].count; i++) {
-            f32 f = hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[anim]->p4[frame].keys[i * 4];
+        for (i = 0; i < dbgGetTrack(anim, frame)->count; i++) {
+            f32 f = dbgGetTrack(anim, frame)->keys[i * 4];
             if ((f32)lbl_1_bss_5F58 < f) {
                 lbl_1_bss_5F58 = (s32)f;
             }
@@ -5012,9 +5014,9 @@ void fn_1_E098(void) {
             }
             break;
         default: {
-            s32 m;
             u16 rep;
             s32 held;
+            s32 m;
             DbgAnimEntry *tbl;
             u32 *p;
             if (lbl_1_bss_3218[i].f0 >= 0) {

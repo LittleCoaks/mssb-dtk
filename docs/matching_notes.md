@@ -3452,6 +3452,16 @@ functions. These lessons are not specific to one file:
   (`((T *)buf)[x - 1]`) blocks it, and so do locals for the index or the loaded value: declare the
   static as `T arr[N]` and write `arr[item->n - 1].f` at each use (`rep_7730` `fn_1_247A0` 75.7 -> 100,
   its inline copy in `fn_1_25064` -> 100). Worth checking anywhere a static is still a `u8[]` buffer.
+- **`add rD, rBase, rOff` gives rD the base's register whenever the base dies at the add,** for every
+  pointer form (`p = &arr[n - 1]`, `p = base; p += off`, byte arithmetic, helpers). When the target has
+  a fresh rD there, use an index local plus the typed subscript at each use (`s32 last = n - 1;
+  x = arr[last].pos.x; ... arr[last]._3C = ...;`) and let MWCC merge the address itself. `int` scores the
+  same as `s32`; `u32`/`u8` indices and a struct copy score lower (`rep_7730` `fn_1_21180` -> 100, and its
+  inlined copies in `fn_1_22DF4` / `fn_1_22644` with it).
+- **When only the float scheduling of a run of independent statements is left, search statement order
+  as a whole:** random moves checked against the data dependencies and scored on the whole unit found
+  gains that permutation sweeps of sub-groups missed (`rep_7730` `fn_1_23098` 34 -> 24 mismatched
+  instructions).
 - **A float store of an `frsp`'d register (`frsp f4, f30; stfs f4, off`) is a field-to-field copy of
   an already-stored float** (`base[3].z = base[1].z;`): MWCC forwards the earlier store and rounds the
   forwarded value (`rep_7730` `fn_1_23098`). On its own it scored lower; the callee-saved FP numbering
@@ -3470,12 +3480,48 @@ functions. These lessons are not specific to one file:
   (a real vestigial entry guard branches past the loop). `rep_74A0` `fn_1_1C8C0` 96.1 -> 98.8,
   then 100 after a declaration-order hill-climb; two earlier passes had read it as a vestigial guard.
 - **A vestigial loop guard that tests the induction register itself** (`li r5, 0; cmpwi r5, 0x18; bge`,
-  with r5 then used as the offset) instead of `li r0, 0; cmpwi r0, ...` came from reusing the previous
-  loop's `int i` with a long-typed bound (`i < 24L`, or `(s32)N` for a `#define`); a fresh counter or
-  either change alone gave the r0 form (`rep_74A0` `fn_1_1D110`).
+  with r5 then used as the offset) instead of `li r0, 0; cmpwi r0, N` plus a separate `li rX, 0` means
+  the same variable was already a loop variable EARLIER in the function. A loop on another variable, a
+  later loop, or a loop that folds away doesn't count (a micro TU shows the rule), and the guard itself
+  is only kept when the compare mixes types (`s32 i` vs an `int` literal, or `int i` vs `24L`).
+  So this guard shape is evidence of an earlier loop on `i`: `rep_0610` `fn_1_135C0`'s five hand-written
+  pointer fix-ups were really `for (i = 0; i < 5; i++)` (-> 100), `fn_1_16978` case 26 is a one-trip
+  `for (i = 0; i < 1; i++) fn_1_D7A4(i);`, and `rep_74A0` `fn_1_1D110` reuses the previous loop's
+  `int i` against `(s32)PARTICLE_SLOT_COUNT`.
+- **An instruction-identical function whose frame is 0x10 too big has a local array that is too
+  large.** MWCC rounds the end of the local area up to 8 bytes and the frame up to 16, so a 4-byte
+  overshoot can cost 0x10. Sweep the array size down (`rep_0610` `fn_1_1540C` `u8 buf[0x28]` ->
+  `char buf[32]`, 99.97 -> 100; several sessions had read it as a dead spill slot).
+- **A register permutation in a loop whose bound and body index the same nested table can be a getter
+  inline used at both sites:** `static inline DbgAnimTrack *dbgGetTrack(anim, track)` took `rep_0610`
+  `fn_1_EA20` from 99.20 to 100, where a cached pointer local for the bound left the permutation. The unit
+  already had an out-of-line getter of the same shape (`fn_1_16558`), which was the hint.
+- **An lr reload after the callee-saved restores** (`lwz r31...; lwz r0, 0x24(r1)`), where the usual
+  epilogue reloads lr first, means the original's epilogue was its own basic block (something branched
+  to the exit). In a micro TU an early `return` restores the lr-first order (`rep_0610` `fn_1_D300`; the
+  construct in the original is still unknown).
 - **Switch on the global expression, not on a local copy of it:** `switch (currentDrawingItem->state)`
   where `scene == currentDrawingItem` fixed a three-register rotation (`rep_74A0` `fn_1_1CBE4` -> 100;
   same as `rep_0250` / `rep_02A8`).
+- **Int-to-float conversion temps (the 0x43300000 double slots) reuse stack slots last-in-first-out
+  across sibling control regions, never within one straight-line run.** Nested control flow between two
+  conversions (if inside if, `&&`/`||`, a switch, a loop, or an inlined function call) lets the later one
+  reuse the earlier slot, so a rotated set of temp slots is a control-flow clue, not a declaration-order
+  one (`rep_74A0` `fn_1_1857C`, found with a micro TU).
+- **`fabs` is an inline function in MSL, and `include/stl/math.h` now defines it that way** (it was a
+  macro for `__fabs`). Both give the same instructions but different stack-temp and FPR allocation.
+  `rep_74A0` `fn_1_1857C` and `star_dash` needed the inline form (1857C also needed `sinf_kludge` /
+  `cosf_kludge` for the sin/cos of an f32). The header change took five `minigame_effects` functions to
+  100. `sta_c5` `fn_3_EE388` / `fn_3_EE96C` and `camera_script` `fn_3_FDB30` dipped slightly; writing
+  `__fabs` at their own call sites did not restore them, so the dip comes from elsewhere in their units.
+- **A parameter reassigned in a loop may need to be a local copy** (`DlPrim *p = prim;`): in a micro TU a
+  plain parameter always got the lowest callee-saved register, even when reassigned, where the target
+  gave it the highest (`rep_00B0` `fn_1_25BC`, together with a declaration-order search).
+- **Random-restart hill climbs over declaration order reach the exhaustive 8! optimum much faster,** so
+  they are the cheaper way to test each structural variant together with declaration order (`rep_00B0`).
+- **A cast that routes offset-0 reads through the address register always schedules that `addi` early**
+  (above the parameter copies). If the target has those reads but a late `addi`, the cast wasn't in the
+  original (`rep_00B0` `fn_1_4A24`).
 - **Score a function's inlined copies with it when choosing its source form.** Most forms of
   `rep_0138` `fn_1_5924` that scored 98+ standalone cost its inlined copies in `fn_1_6050`/`fn_1_5AC0`
   0.2 each; filtering the sweep on "callers stay 100" found the form to keep.

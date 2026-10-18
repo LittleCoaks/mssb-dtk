@@ -1642,35 +1642,31 @@ s32 fn_1_23098(Mtx44 proj, Mtx view, s32 cols, s32 rows, f32 nearZ, f32 farZ) {
     d = -PSVECDotProduct(&dir, &origin);
 
     base[0].y = 0.0f;
-    base[1].y = 0.0f;
     ray[0].x = 0.0f;
-    ray[0].z = 0.0f;
-    ray[1].x = 0.0f;
-    ray[1].z = 0.0f;
-
+    base[1].z = -farZ;
     halfW0 = 640.0f * nearZ / 1280.0f / 2.0f;
+    base[1].y = 0.0f;
     halfH0 = 448.0f * nearZ / 1280.0f / 2.0f;
     halfW1 = 640.0f * farZ / 1280.0f / 2.0f;
     halfH1 = 448.0f * farZ / 1280.0f / 2.0f;
-
     nearZ = -nearZ;
-
-    base[0].x = halfW0;
-    base[0].z = nearZ;
-    base[1].x = halfW1;
-    base[1].z = -farZ;
-    base[2].x = halfW1;
-    base[2].y = halfH1;
+    ray[1].x = 0.0f;
     base[2].z = -farZ;
-    base[3].x = halfW1;
-    base[3].y = -halfH1;
-    base[3].z = base[1].z;
-
-    ray[0].y = halfH0;
+    base[1].x = halfW1;
+    base[0].x = halfW0;
+    ray[0].z = 0.0f;
     ray[1].y = halfH1;
-    ray[2].x = halfW0 - halfW1;
     ray[2].y = halfH0 - halfH1;
+    base[0].z = nearZ;
+    base[3].z = base[1].z;
+    ray[2].x = halfW0 - halfW1;
     ray[2].z = nearZ - base[3].z;
+    ray[0].y = halfH0;
+    ray[1].z = 0.0f;
+    base[3].x = halfW1;
+    base[2].y = halfH1;
+    base[3].y = -halfH1;
+    base[2].x = halfW1;
     ray[3].x = halfW0 - halfW1;
     ray[3].y = -(halfH0 - halfH1);
     ray[3].z = nearZ - base[3].z;

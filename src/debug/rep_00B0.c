@@ -284,14 +284,15 @@ void fn_1_3E38(Vec *p, u32 key) {
 }
 
 // .text:0x000025BC size:0x187C
-void fn_1_25BC(DlPrim *p) {
+void fn_1_25BC(DlPrim *prim) {
+    u32 left;
     u32 i;
     u32 cnt;
+    DlVertex *v;
+    u32 key;
     DlVertex *vi;
     u32 prev;
-    DlVertex *v;
-    u32 left;
-    u32 key;
+    DlPrim *p = prim;
     u32 n;
 
     do {

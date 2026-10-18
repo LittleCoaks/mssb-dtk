@@ -30,13 +30,6 @@
 #include "stl/math.h"
 #include "stl/mem.h"
 
-// MSL defines fabs as an inline function; stl/math.h has it as a macro, which
-// inlines differently (stack temporaries and FPR allocation in fn_1_1857C).
-#undef fabs
-inline f64 fabs(f64 x) {
-    return __fabs(x);
-}
-
 extern DbgAnim hugeAnimStruct;
 extern u8 drawStadiumRelated;
 extern void fn_800A7D4C(s32 arg0, void *arg1);
@@ -317,7 +310,7 @@ void fn_1_1C8C0(void) {
         slot->pos.z = 10.0f;
         slot->speed = 0.5f;
         slot->isFirst = (i == 0);
-        hugeAnimStruct.table->entries[i].callback = (void (*)(void))fn_1_1D0E8;
+        hugeAnimStruct.table->entries[i].callback = fn_1_1D0E8;
     }
     currentDrawingItem->func = fn_1_1C3CC;
 }
@@ -843,7 +836,7 @@ void fn_1_1A1EC(ActorObjectEntry *entry, Mtx cam) {
     StadiumModelNode *node = (StadiumModelNode *)entry->actor;
 
     if (entry->callback != NULL) {
-        ((DbgEntryCallback)entry->callback)(entry);
+        entry->callback(entry);
     }
     if (node->dispObj != NULL) {
         fn_800B2D5C(node);

@@ -74,7 +74,7 @@ void sknRelated(void* model, Mtx m) {
     Actor* actor = entry->actor;
 
     if (entry->callback != NULL) {
-        entry->callback();
+        entry->callback(entry);
     }
     switch (entry->drawArgCount) {
     case 0:

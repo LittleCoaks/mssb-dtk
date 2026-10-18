@@ -36,13 +36,6 @@
 #include "musyx/musyx.h"
 #undef g_Minigame
 
-/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
- * __fabs intrinsic, which allocates registers differently. */
-#undef fabs
-static inline f64 fabs(f64 x) {
-    return __fabs(x);
-}
-
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
 
