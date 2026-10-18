@@ -3497,7 +3497,21 @@ functions. These lessons are not specific to one file:
   different shape from `x = a->pos.x + ...`. The int-to-float conversion stack slots ascend in source
   order, which reads the original statement order off the target (`rep_0610` `fn_1_126CC`).
 - **`int` and `s32` (`signed long`) are not interchangeable for MWCC:** `rep_0610` `fn_1_16978`'s
-  counter scores 99.80 as `s32` and 99.61 as `int`.
+  counter scores 99.80 as `s32` and 99.61 as `int`. The other way round, `rep_0138` `fn_1_5544`, which
+  mostly forwards its parameters to GX calls taking `int`/enum, only matched with `int` parameters: as
+  `s32` the two pool-base `lis` temps were coloured differently. For such forwarding functions, try `int`
+  parameters first.
+- **An extra unreachable `b end` after a `cmpwi N; beq; bge end; b end` switch tree is an empty case
+  above the highest handled one** (`case N + 1: break;`). `rep_0138` `fn_1_4E98`:
+  `case 0: case 1: break; case 2: {...} case 3: break;` -> 100, after ~30 variants of the 0/1 bodies.
+- **Shrink a register puzzle to a micro TU.** Cut the unit down to the one function (no other functions,
+  no unused statics) to confirm the effect is local, then rebuild it in a tiny TU with hand-written
+  prototypes and swap pieces (headers, typedefs, prototypes) back in until the output flips. For
+  `fn_1_5544` the flip was `#include "types.h"`, which led to the `int` parameters.
+- **`#pragma scheduling off` shows MWCC's pre-scheduling order**, but it also changes register
+  allocation: MWCC schedules before it allocates registers. Single-use locals and single-use parameter
+  reassignments are forward-substituted, so source statement order often doesn't reach codegen order
+  (`rep_0138` `fn_1_5924`).
 - **Tooling: `objdiff-cli diff -1 <target.o> -2 <candidate.o> -o - --format json` scores an object
   compiled anywhere,** so variants can be compiled in parallel into scratch files without touching the
   build tree (about 0.25 s per variant for a 70 KB TU with 16 workers). Rank candidates by objdiff's own

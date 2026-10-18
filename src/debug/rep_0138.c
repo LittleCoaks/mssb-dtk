@@ -1369,7 +1369,7 @@ void fn_1_5698(void) {
 }
 
 // .text:0x00005544 size:0x154
-void fn_1_5544(s32 stage, s32 indStage, s32 indMtx, s32 coord, s32 map) {
+void fn_1_5544(int stage, int indStage, int indMtx, int coord, int map) {
     u8 mode;
 
     GXLoadTexObj(&lbl_1_bss_4E4, map);
@@ -1381,11 +1381,11 @@ void fn_1_5544(s32 stage, s32 indStage, s32 indMtx, s32 coord, s32 map) {
         if (mode & 4) {
             coord--;
         }
-        GXSetTevOrder(stage, coord, map, 0xff);
-        GXSetTevColorIn(stage, 0xf, 0xf, 0xf, 8);
-        GXSetTevColorOp(stage, 0, 0, 0, 1, 0);
-        GXSetTevAlphaIn(stage, 7, 7, 7, 4);
-        GXSetTevAlphaOp(stage, 0, 0, 0, 1, 0);
+        GXSetTevOrder(stage, coord, map, GX_COLOR_NULL);
+        GXSetTevColorIn(stage, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_TEXC);
+        GXSetTevColorOp(stage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        GXSetTevAlphaIn(stage, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+        GXSetTevAlphaOp(stage, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     } else {
         GXSetNumIndStages(1);
         GXSetIndTexMtx(indMtx, lbl_1_data_A74, (s8)lbl_1_data_A70);
@@ -1426,21 +1426,21 @@ void fn_1_4E98(void *arg0, void *arg1) {
         return;
     }
 
-    GXSetZMode(1, 7, 0);
-    GXSetBlendMode(1, 4, 5, 0);
-    GXSetCullMode(0);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXSetCullMode(GX_CULL_NONE);
     GXClearVtxDesc();
-    GXSetVtxDesc(9, 1);
-    GXSetVtxDesc(0xb, 1);
-    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
-    GXSetVtxAttrFmt(0, 0xb, 1, 5, 0);
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
     GXSetNumChans(1);
     GXSetNumTevStages(1);
     GXSetNumTexGens(0);
-    GXSetTevOp(0, 4);
+    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
     PSMTXConcat((MtxPtr)arg1, geo->mtx, concat);
-    GXLoadPosMtxImm(concat, 0);
-    GXSetCurrentMtx(0);
+    GXLoadPosMtxImm(concat, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
 
     for (i = 0; i < geo->dl->count; i++) {
         switch (geo->dl->entries[i].cmd) {
@@ -1454,7 +1454,7 @@ void fn_1_4E98(void *arg0, void *arg1) {
 
                 memset(attrType, 0, sizeof(attrType));
                 flags = geo->dl->entries[i].attrFlags;
-                for (j = 9, shift = 2; j < 21; j++, shift += 2) {
+                for (j = GX_VA_POS, shift = 2; j < 21; j++, shift += 2) {
                     s32 v = (flags >> shift) & 3;
                     if (v != 0) {
                         attrType[j] = v;
@@ -1462,6 +1462,8 @@ void fn_1_4E98(void *arg0, void *arg1) {
                 }
                 break;
             }
+            case 3:
+                break;
         }
 
         stream = geo->dl->entries[i].stream;
@@ -1472,48 +1474,48 @@ void fn_1_4E98(void *arg0, void *arg1) {
                 s32 handled = 0;
 
                 switch (*stream) {
-                    case 0:
+                    case GX_CMD_NOP:
                         handled = 1;
                         stream += 1;
                         consumed += 1;
                         break;
-                    case 0x61:
+                    case GX_CMD_LOAD_BP_REG:
                         handled = 1;
                         stream += 5;
                         consumed += 5;
                         break;
-                    case 8:
+                    case GX_CMD_LOAD_CP_REG:
                         handled = 1;
                         stream += 6;
                         consumed += 6;
                         break;
-                    case 0x10: {
+                    case GX_CMD_LOAD_XF_REG: {
                         s32 adv = *(u16 *)stream * 4 + 5;
                         handled = 1;
                         stream += adv;
                         consumed += adv;
                         break;
                     }
-                    case 0x20:
-                    case 0x28:
-                    case 0x30:
-                    case 0x38:
+                    case GX_CMD_LOAD_INDX_A:
+                    case GX_CMD_LOAD_INDX_B:
+                    case GX_CMD_LOAD_INDX_C:
+                    case GX_CMD_LOAD_INDX_D:
                         handled = 1;
                         stream += 5;
                         break;
-                    case 0x40:
-                    case 0x48:
+                    case GX_CMD_CALL_DL:
+                    case GX_CMD_INVL_VC:
                         handled = 1;
                         stream += 1;
                         consumed += 1;
                         break;
-                    case 0x80:
-                    case 0x90:
-                    case 0x98:
-                    case 0xa0:
-                    case 0xa8:
-                    case 0xb0:
-                    case 0xb8:
+                    case GX_CMD_DRAW_QUADS:
+                    case GX_CMD_DRAW_TRIANGLES:
+                    case GX_CMD_DRAW_TRIANGLE_STRIP:
+                    case GX_CMD_DRAW_TRIANGLE_FAN:
+                    case GX_CMD_DRAW_LINES:
+                    case GX_CMD_DRAW_LINE_STRIP:
+                    case GX_CMD_DRAW_POINTS:
                         break;
                 }
 
@@ -1532,41 +1534,41 @@ void fn_1_4E98(void *arg0, void *arg1) {
                         u8 stride;
                         f32 scale;
 
-                        for (k = 0, attr = 9; k < 12; k++, attr++) {
+                        for (k = 0, attr = GX_VA_POS; k < 12; k++, attr++) {
                             s32 t = attrType[attr];
                             if (t != 0) {
                                 switch (attr) {
-                                    case 9:
+                                    case GX_VA_POS:
                                         switch (t) {
-                                            case 1:
+                                            case GX_DIRECT:
                                                 break;
-                                            case 2:
+                                            case GX_INDEX8:
                                                 posIdx = stream[0];
                                                 break;
-                                            case 3:
+                                            case GX_INDEX16:
                                                 posIdx = *(u16 *)stream;
                                                 break;
                                         }
                                         break;
-                                    case 10:
+                                    case GX_VA_NRM:
                                         switch (t) {
-                                            case 1:
+                                            case GX_DIRECT:
                                                 break;
-                                            case 2:
+                                            case GX_INDEX8:
                                                 nrmIdx = stream[0];
                                                 break;
-                                            case 3:
+                                            case GX_INDEX16:
                                                 nrmIdx = *(u16 *)stream;
                                                 break;
                                         }
                                         break;
                                 }
                                 switch (t) {
-                                    case 2:
+                                    case GX_INDEX8:
                                         stream += 1;
                                         consumed += 1;
                                         break;
-                                    case 3:
+                                    case GX_INDEX16:
                                         stream += 2;
                                         consumed += 2;
                                         break;
@@ -1579,7 +1581,7 @@ void fn_1_4E98(void *arg0, void *arg1) {
                         stride = arr->stride;
                         scale = 1 << (format & 0xf);
                         switch ((format >> 4) & 0xf) {
-                            case 3: {
+                            case GX_S16: {
                                 s16 *p = arr->data;
                                 p += stride * posIdx;
                                 vx = p[0] / scale;
@@ -1598,7 +1600,7 @@ void fn_1_4E98(void *arg0, void *arg1) {
                         stride = arr->stride;
                         scale = 1 << (format & 0xf);
                         switch ((format >> 4) & 0xf) {
-                            case 3: {
+                            case GX_S16: {
                                 s16 *p = arr->data;
                                 p += stride * nrmIdx;
                                 vx += p[0] / scale;

@@ -30,6 +30,13 @@
 #include "stl/math.h"
 #include "stl/mem.h"
 
+// MSL defines fabs as an inline function; stl/math.h has it as a macro, which
+// inlines differently (stack temporaries and FPR allocation in fn_1_1857C).
+#undef fabs
+inline f64 fabs(f64 x) {
+    return __fabs(x);
+}
+
 extern DbgAnim hugeAnimStruct;
 extern u8 drawStadiumRelated;
 extern void fn_800A7D4C(s32 arg0, void *arg1);
@@ -1019,8 +1026,8 @@ void fn_1_18E04(Particle *p, f32 angle) {
     f32 rad;
 
     rad = 0.017453292f * angle;
-    s = sin(rad);
-    c = cos(rad);
+    s = sinf_kludge(rad);
+    c = cosf_kludge(rad);
     p->vel.x = s * (f32)gParticleCfg[1] / 100000.0f;
     p->vel.y = c * (f32)gParticleCfg[1] / 100000.0f;
     p->vel.z = 0.0f;

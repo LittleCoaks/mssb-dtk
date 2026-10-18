@@ -2435,7 +2435,9 @@ void fn_1_16978(void) {
         break;
     case 26: {
         u32 base = (u32)hugeAnimStruct.f2C84;
-        fn_1_D7A4(0);
+        for (i = 0; i < 1; i++) {
+            fn_1_D7A4(i);
+        }
         for (i = 0; i < 0x50; i++) {
             ((u32 *)hugeAnimStruct.f2C84)[i] = base + ((u32 *)base)[i];
         }
@@ -2924,7 +2926,7 @@ void fn_1_1540C(void) {
     s32 top;
     s32 span = 0x14;
     s32 base = lbl_1_bss_5F6C;
-    u8 buf[0x28];
+    char buf[32];
     u16 b;
     if (lbl_1_bss_3088 > base) {
         lbl_1_bss_3088 = base;
@@ -2932,7 +2934,7 @@ void fn_1_1540C(void) {
         lbl_1_bss_3088 = base - 0x13;
     }
     top = lbl_1_bss_3088;
-    fn_1_C2DC((DbgTreeNode *)hugeAnimStruct.objs->e[lbl_1_bss_5F73].model->parts[0], (char *)buf, 0, 0x13, 4, &base, &top, &span);
+    fn_1_C2DC((DbgTreeNode *)hugeAnimStruct.objs->e[lbl_1_bss_5F73].model->parts[0], buf, 0, 0x13, 4, &base, &top, &span);
     b = BTN_REPEAT;
     if (b & INPUT_BUTTON_UP) {
         if (--lbl_1_bss_307C < 0) {
@@ -3286,20 +3288,10 @@ void fn_1_135C0(void) {
     if (j < 1) {
         {
             u32 *p = (u32 *)hugeAnimStruct.slots[j].p8;
-            if (p[0] != 0) {
-                ((u32 *)hugeAnimStruct.slots[j].p8)[0] = (u32)p + p[0];
-            }
-            if (p[1] != 0) {
-                ((u32 *)hugeAnimStruct.slots[j].p8)[1] = (u32)p + p[1];
-            }
-            if (p[2] != 0) {
-                ((u32 *)hugeAnimStruct.slots[j].p8)[2] = (u32)p + p[2];
-            }
-            if (p[3] != 0) {
-                ((u32 *)hugeAnimStruct.slots[j].p8)[3] = (u32)p + p[3];
-            }
-            if (p[4] != 0) {
-                ((u32 *)hugeAnimStruct.slots[j].p8)[4] = (u32)p + p[4];
+            for (i = 0; i < 5; i++) {
+                if (p[i] != 0) {
+                    ((u32 *)hugeAnimStruct.slots[j].p8)[i] = (u32)p + p[i];
+                }
             }
         }
         if (lbl_1_data_A978[lbl_1_bss_68FC.f40[0]] >= 0) {
@@ -3330,7 +3322,7 @@ void fn_1_135C0(void) {
                 animateBallRelated(lbl_1_bss_5F7C, (u16)i / 2, (u16)i / 2, l2, 0, 0);
             }
             for (i = 0; i < lbl_1_bss_5F7C->count; i++) {
-                ((u8 *)&lbl_1_bss_5F7C->e[i])[0x6C] = 1;
+                lbl_1_bss_5F7C->e[i].applyControl = TRUE;
                 CTRLSetTranslation(&lbl_1_bss_5F7C->e[i].control, (f32)i, 0.0f, 0.0f);
                 CTRLSetRotation(&lbl_1_bss_5F7C->e[i].control, 0.0f, 0.0f, 0.0f);
             }

@@ -2353,14 +2353,12 @@ void fn_1_21180(DrawingSceneStruct *arg0) {
     fn_80038CD0(idx, lbl_1_bss_6FB8, (lbl_1_bss_6FE0), 0.2f, *(f32 *)((u8 *)arg0 + 0x18));
 
     {
-        u8 *entry = (u8 *)lbl_1_bss_6FE0;
+        s32 last = *((u8 *)arg0 + 0x21) - 1;
 
-        entry += (*((u8 *)arg0 + 0x21) - 1) * 0x40;
-
-        lbl_1_bss_6FA8.x = *(f32 *)(entry + 0xc);
-        lbl_1_bss_6FA8.y = *(f32 *)(entry + 0x10);
-        lbl_1_bss_6FA8.z = *(f32 *)(entry + 0x14);
-        *(u32 *)(entry + 0x3c) = *((u8 *)arg0 + 0x23);
+        lbl_1_bss_6FA8.x = lbl_1_bss_6FE0[last].pos.x;
+        lbl_1_bss_6FA8.y = lbl_1_bss_6FE0[last].pos.y;
+        lbl_1_bss_6FA8.z = lbl_1_bss_6FE0[last].pos.z;
+        lbl_1_bss_6FE0[last]._3C = *((u8 *)arg0 + 0x23);
     }
 }
 
