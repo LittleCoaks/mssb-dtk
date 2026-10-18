@@ -96,7 +96,7 @@ void running_MainFunction(void) {
     int i;
 
     running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars();
-    running_updateRestrictedMovements();
+    running_updateMovementRestrictions();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
         if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
             running_AIStartSteals();
@@ -1453,7 +1453,7 @@ void fn_3_86DFC(void) {
 }
 
 // .text:0x0008679C size:0x660 mapped:0x806C5830
-void running_updateRestrictedMovements(void) {
+void running_updateMovementRestrictions(void) {
     int precedingRunnerNum = -1;
     f32 precedingFrac = -1.0f;
     InMemRunnerType* runner;

@@ -49,7 +49,7 @@ void running_AIStartSteals(void);
 void runnerAISetRunningDirection(int runnerIdx, int actionCode);
 int fn_3_8604C(int* outFielder);
 int runnerAISubfunction(void);
-void running_updateRestrictedMovements(void);
+void running_updateMovementRestrictions(void);
 void fn_3_86DFC(void);
 void running_beginSteal_CheckForPerfect(void);
 void fn_3_870AC(void);
