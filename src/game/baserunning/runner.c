@@ -96,7 +96,7 @@ void running_MainFunction(void) {
     int i;
 
     running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars();
-    running_setRestrictedMovements();
+    running_updateRestrictedMovements();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
         if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
             running_AIStartSteals();
@@ -1453,7 +1453,7 @@ void fn_3_86DFC(void) {
 }
 
 // .text:0x0008679C size:0x660 mapped:0x806C5830
-void running_setRestrictedMovements(void) {
+void running_updateRestrictedMovements(void) {
     int precedingRunnerNum = -1;
     f32 precedingFrac = -1.0f;
     InMemRunnerType* runner;
@@ -1479,7 +1479,7 @@ void running_setRestrictedMovements(void) {
             if (runnerNum == 1 && g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT && g_FieldingLogic.infieldFlyIndicator == 0 &&
                 g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE && runner->fractionalBasesRan <= 1.2f &&
                 g_Ball.framesSinceHit >= 1) {
-                // Mechanic where runner at 1B can't go back to 1B to avoid conflicts with the batter-runner.
+                // Mechanic where runner-1 can't go back to 1B to avoid conflicts with the batter-runner.
                 // For balls in the air, it has an exception for when the ball is about to land (< 2 seconds away) and the ball is landing near 1B (within 10 units)
                 if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.framesUntilBallHitsGround < 120) {
                     f32 dx = base_MoundCoordinates[1].x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
@@ -1504,10 +1504,12 @@ void running_setRestrictedMovements(void) {
             } else if (runnerNum == 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
                        g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
                        g_Runners[1].fractionalBasesRan < 2.0f && g_Runners[1].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
+                // Prevent batter-runner from advancing to 2B if runner-1 is running backwards to 1B.
                 runner->movementRestrictions |= RUNNER_RESTRICTION_NO_FORWARD;
             } else if (precedingFrac < 0.0f) {
                 if (runner->fractionalBasesRan >= 3.75f && g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING &&
                     g_Strikes.storedOuts < 2) {
+                    // Prevent furthest runner from crossing home if < 2 outs and a fly out is possible.
                     if (runner->tagUpStatus != TAG_UP_TYPE_NONE) {
                         runner->movementRestrictions |= RUNNER_RESTRICTION_NO_CROSSING_PLATE;
                     } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
@@ -1515,6 +1517,11 @@ void running_setRestrictedMovements(void) {
                     }
                 }
             } else {
+                // Prevent runners from colliding with each other.
+                // Sets a gap threshold of 0.3 bases, which is adjusted in certain situations.
+                // Initially restricts lead runner from going backwards and trail runner from going forwards.
+                // If the lead runner needs to tag-up, it sets them to automatically resume running backwards once the runners are no longer too close.
+                // When runners are on opposite sides of a base, it grants exceptions to the restrictions to one of the runners. 
                 InMemRunnerType* preceding = &g_Runners[precedingRunnerNum];
                 f32 gap = precedingFrac - runner->fractionalBasesRan;
 
@@ -1570,6 +1577,7 @@ void running_setRestrictedMovements(void) {
         }
     }
 
+    // Restricts runners from advancing to a base if there are already 2 runners in the next baseline. 
     runner = &g_Runners[0];
     for (i = 0; i <= 1; i++, runner++) {
         int j;
