@@ -1330,7 +1330,7 @@ void gameplay_Camera(void) {
         if (g_Ball.currentStarSwing != 0) {
             star = 1;
         }
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             g_GameLogic.sceneID = SCENE_ID_LIVE_BALL;
         } else {
             frames = g_Ball.framesSinceHit;
@@ -2019,7 +2019,7 @@ void fn_3_153F0(int arg) {
 
 // .text:0x0001537C size:0x74 mapped:0x80654410
 void fn_3_1537C(int arg) {
-    if (g_Batter.hitTrajectory != HIT_TRAJECTORY_0) {
+    if (g_Batter.predictedHitOutcome != PREDICTED_HIT_OUTCOME_NONE) {
         g_pCamera->_A7C++;
     }
     if (g_pCamera->_A7C > 40){        

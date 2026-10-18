@@ -678,7 +678,7 @@ void ccs_countRunnerMoveFrames(void) {
     for (i = 0; i < 4; i++) {
         if (g_Minigame.playerSlots.playerRunnerIndex[i] >= 0) {
             InMemRunnerType* runner = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[i]];
-            if (runner->runningDirectionCode == 1 || runner->runningDirectionCode == 3) {
+            if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS || runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 g_Minigame.ccs.runFrames[i]++;
             }
         }
@@ -796,9 +796,9 @@ void ccs_spawnItem(int item) {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
                     InMemRunnerType* runner = &g_Runners[i];
-                    if (runner->runningDirectionCode == 1) {
+                    if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                         runnersOnSeg[runner->nextBase & 3]++;
-                    } else if (runner->runningDirectionCode == 3) {
+                    } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                         runnersOnSeg[runner->currentBase]++;
                     } else if (runner->percentTowardsNextBase < 0.5f) {
                         runnersOnSeg[runner->currentBase]++;
@@ -1220,11 +1220,11 @@ f32 ccs_basePathDistance(u8 forward, f32 from, f32 to) {
 // .text:0x0013DC48 size:0x198 mapped:0x8077CCDC
 void ccsAI_getRunnerDists(s8 runnerIdx, f32 target, f32* forward, f32* backward) {
     *forward = ccs_basePathDistance(1, g_Runners[runnerIdx].fractionalBasesRan, target);
-    if (g_Runners[runnerIdx].runningDirectionCode == 3) {
+    if (g_Runners[runnerIdx].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
         *forward += 0.15f;
     }
     *backward = ccs_basePathDistance(0, g_Runners[runnerIdx].fractionalBasesRan, target);
-    if (g_Runners[runnerIdx].runningDirectionCode == 1) {
+    if (g_Runners[runnerIdx].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
         *backward += 0.15f;
     }
 }
@@ -1383,7 +1383,7 @@ void ccsAI_update(void) {
                     ai->state = 1;
                 } else if (forward > backward) {
                     ai->state = 4;
-                } else if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+                } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                     ai->state = RandomInt_Game(2) ? 1 : 4;
                 }
                 ai->targetKind = 4;
@@ -1417,12 +1417,12 @@ void ccsAI_update(void) {
                     }
                 } while (++k < count);
             }
-            if (ai->targetKind == 0 && (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2)) {
+            if (ai->targetKind == 0 && (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED)) {
                 ai->state = RandomInt_Game(2) ? 1 : 4;
             }
             break;
         case 1:
-            if (g_Runners[i].runningDirectionCode == 1 || g_Runners[i].nextDirectionBeingProcessed == 1) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS) {
                 ai->state = 0;
             } else {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
@@ -1437,7 +1437,7 @@ void ccsAI_update(void) {
             ai->state = 0;
             break;
         case 4:
-            if (g_Runners[i].runningDirectionCode == 3 || g_Runners[i].nextDirectionBeingProcessed == 3) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS) {
                 ai->state = 0;
             } else {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
@@ -1452,15 +1452,15 @@ void ccsAI_update(void) {
             ai->state = 0;
             break;
         case 7:
-            if (g_Runners[i].runningDirectionCode == 1) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
-            } else if (g_Runners[i].runningDirectionCode == 3) {
+            } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
             }
             ai->state = 8;
             break;
         case 8:
-            if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                 ai->state = 9;
             } else {
                 ai->state = 7;
@@ -1483,7 +1483,7 @@ void ccsAI_update(void) {
             }
             break;
         case 10:
-            if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                 ai->state = 13;
                 break;
             }
@@ -1495,16 +1495,16 @@ void ccsAI_update(void) {
             ai->state = 11;
         case 11:
             if (ai->dodgeDelay-- <= 0) {
-                if (g_Runners[i].runningDirectionCode == 1) {
+                if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                     g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
-                } else if (g_Runners[i].runningDirectionCode == 3) {
+                } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                     g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
                 }
                 ai->state = 12;
             }
             break;
         case 12:
-            if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                 ai->state = 13;
             } else {
                 ai->dodgeDelay = 1;

@@ -392,7 +392,7 @@ void steal_pickoff_incrementSteal_runsStats(void) {
         if ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
              g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) &&
             i != g_Runners[i].currentBase) {
-            if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 3 && g_Runners[i].furthestBaseForcedToGoToOnWalk == 0) {
+            if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Runners[i].furthestBaseForcedToGoToOnWalk == 0) {
                 continue;
             }
             if (g_Runners[i].forceOutCd <= 0) {

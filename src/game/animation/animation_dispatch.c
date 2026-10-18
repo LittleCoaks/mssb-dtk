@@ -921,7 +921,7 @@ void pitcherAnimation(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 4) {
         return;
     }
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         us80893310.state = 0;
         return;
     }
@@ -1148,8 +1148,8 @@ void batterAnimations(void) {
     }
 
     if (lbl_3_common_bss_32220._08 == 0) {
-        status = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
-        if (!(status != 1 && status != 2 && status != 3)) {
+        status = g_FieldingLogic.liveBallReason;
+        if (!(status != PICKOFF_STEAL_CODE_PICKOFF && status != PICKOFF_STEAL_CODE_STEAL && status != PICKOFF_STEAL_CODE_UNUSED_3)) {
             if (g_Strikes.outs < 3) {
                 AnimateCharacter(idx, 0x65, 1, 1, 1, 0, hand, 0xA);
             }
@@ -1164,19 +1164,19 @@ void batterAnimations(void) {
                 if (lbl_3_common_bss_32220._09 != 0) {
                     goto done;
                 }
-                if (g_Batter.hitTrajectory == HIT_TRAJECTORY_2) {
+                if (g_Batter.predictedHitOutcome == PREDICTED_HIT_OUTCOME_FAIR) {
                     lbl_3_common_bss_32220._09 = 1;
-                } else if (g_Batter.hitTrajectory == HIT_TRAJECTORY_5) {
+                } else if (g_Batter.predictedHitOutcome == PREDICTED_HIT_OUTCOME_FAIR_BUNT) {
                     if (g_Ball.framesSinceHit >= 5) {
                         lbl_3_common_bss_32220._09 = 1;
                     }
-                } else if (g_Batter.hitTrajectory == HIT_TRAJECTORY_6) {
+                } else if (g_Batter.predictedHitOutcome == PREDICTED_HIT_OUTCOME_FOUL_BUNT) {
                     AnimateCharacter(idx, 0x64, 0, 2, 1, 0, hand, -1);
                     lbl_3_common_bss_32220._09 = 1;
-                } else if (g_Batter.hitTrajectory == HIT_TRAJECTORY_3) {
+                } else if (g_Batter.predictedHitOutcome == PREDICTED_HIT_OUTCOME_FOUL) {
                     AnimateCharacter(idx, 0x63, 0, 2, 1, 0, hand, -1);
                     lbl_3_common_bss_32220._09 = 1;
-                } else if (g_Batter.hitTrajectory == HIT_TRAJECTORY_4) {
+                } else if (g_Batter.predictedHitOutcome == PREDICTED_HIT_OUTCOME_HOME_RUN) {
                     AnimateCharacter(idx, 0x51, 0, 2, 1, 8, hand, 0);
                     QueueCharacterAnimation(idx, 0x52, 1, 1, 0, hand, -1);
                     lbl_3_common_bss_32220._09 = 1;
@@ -1464,7 +1464,7 @@ void runnerAnimation_detailed(int runnerIdx) {
         slot->state = 0x10;
     } else if (runner->turnaroundCode != 0) {
         slot->state = 5;
-    } else if (runner->runningDirectionCode == 1 || runner->runningDirectionCode == 3) {
+    } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS || runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
         if (runner->turningAroundInd != 0 && runner->framesSinceLastDirectionChange < lbl_3_data_7870[runner->charID][0]) {
             slot->state = 7;
         } else {
@@ -1504,7 +1504,7 @@ void runnerAnimation_general(int runnerIdx) {
             if (cls == 0xE || cls == 0x14 || cls == 0x1A || cls == 0x1E) {
                 flag = TRUE;
             }
-            if (runner->runningDirectionCode == 1 && runner->framesToNextBase < 10 &&
+            if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && runner->framesToNextBase < 10 &&
                 g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT && flag) {
                 AnimateCharacter(idx, 0x2E, 0, 1, 0, lbl_3_data_7870[runner->charID][2] - 10, 0, -1);
             } else if (animId == 0x31) {
@@ -1526,14 +1526,14 @@ void runnerAnimation_general(int runnerIdx) {
             AnimateCharacter(idx, 0x39, 1, 1, 1, 0, 0, -1);
             break;
         case 5:
-            if (runner->runningDirectionCode == 3) {
+            if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 AnimateCharacter(idx, 0x30, 0, 1, 0, 0x14, 1, -1);
             } else {
                 AnimateCharacter(idx, 0x30, 0, 1, 0, 0x14, 0, -1);
             }
             break;
         case 7:
-            if (runner->runnerDirectionCode_stored == 3) {
+            if (runner->runnerDirectionCode_stored == RUNNER_MOVEMENT_BACKWARDS) {
                 AnimateCharacter(idx, 0x31, 0, 1, 0, 0, 1, 0);
             } else {
                 AnimateCharacter(idx, 0x31, 0, 1, 0, 0, 0, 0);
@@ -1736,7 +1736,7 @@ void setThrowAnimationType(void) {
     g_FieldingLogic.throwWindupAnimationDoneInd = 0;
     VEC_COPY(&g_UnkThrowing_31ACC[0].pos, &g_Ball.throwDestination);
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_PICKOFF && holder == 0 &&
+    if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF && holder == 0 &&
         !(target != 1 && target != 2 && target != 3) && g_Pitcher.pickOffLoc != 4 && g_Pitcher.pickOffLoc != -1) {
         g_UnkThrowing_31ACC[0].type = 7;
         return;

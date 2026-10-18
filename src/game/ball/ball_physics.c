@@ -74,7 +74,7 @@ void ballPhysica(void) {
             g_Ball.matchFramesAndBallAngle.ballOverWallFrames = 0x7FFF;
         }
     }
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         if (g_Ball.framesSincePickOff < 0x7FFE) {
             g_Ball.framesSincePickOff++;
         } else {
@@ -486,9 +486,9 @@ void setLiveBallVariablesAfterContact(void) {
     }
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
-        g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
         if (g_Batter.buntStatus != BUNT_STATUS_NONE) {
-            g_Batter.hitTrajectory = HIT_TRAJECTORY_6;
+            g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL_BUNT;
         }
         if (g_Ball.bODQualifyingHitInd != 0) {
             for (i = 0; i < 360; i += 5) {
@@ -497,7 +497,7 @@ void setLiveBallVariablesAfterContact(void) {
                                                               g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z);
 
                     if (angle > 0x240 && angle < 0x5C0) {
-                        g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                     }
                     break;
                 }
@@ -505,9 +505,9 @@ void setLiveBallVariablesAfterContact(void) {
         }
     } else {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
-            g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+            g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
             if (g_Batter.buntStatus != BUNT_STATUS_NONE) {
-                g_Batter.hitTrajectory = HIT_TRAJECTORY_6;
+                g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL_BUNT;
             }
         }
         estimateAndSetFutureCoords(0);
@@ -1317,9 +1317,9 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
 
     setHitClassification3();
 
-    g_Batter.hitTrajectory = HIT_TRAJECTORY_2;
+    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FAIR;
     if (g_Ball.maybeBuntInd != 0) {
-        g_Batter.hitTrajectory = HIT_TRAJECTORY_5;
+        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FAIR_BUNT;
     }
 
     horizDelta = 0x400 - g_Ball.Hit_HorizontalAngle;
@@ -1334,15 +1334,15 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
                 if (145.0f - angleOffset < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
                     g_Ball.homeRunClassification = 1;
                 }
-                g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                 g_RunningLogic._13 = 1;
                 if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
                     if (g_Ball.Hit_HorizontalAngle < 0x480) {
-                        g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                     }
                 } else {
                     if (g_Ball.Hit_HorizontalAngle >= 0x380) {
-                        g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                     }
                 }
             }
@@ -1366,22 +1366,22 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
              g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z < -g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - 5.0f)) {
             if (g_Ball.maybeBuntInd != 0) {
                 if (g_Ball.Hit_HorizontalAngle < 0x1A0 || g_Ball.Hit_HorizontalAngle >= 0x660) {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_6;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL_BUNT;
                 }
             } else if (landingAngle < 0x1A0 || landingAngle > 0xD80) {
                 if (g_Ball.maxYOfHit > 15.0f && landingAngle > 0xD80 && landingAngle < 0xF80) {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 } else {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 }
             } else if (landingAngle > 0x660 && landingAngle < 0xA80) {
                 if (g_Ball.maxYOfHit > 15.0f && landingAngle > 0x880) {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 } else {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 }
             } else if (landingAngle >= 0xA80 && landingAngle <= 0xD80) {
-                g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
             }
         }
     }
@@ -2095,7 +2095,7 @@ void fn_3_9FA4(void) {
 // .text:0x00009E84 size:0x120 mapped:0x80648F18
 void relatedToGroundRuleDouble(void) {
     if (g_Ball.deadBallReason == 0) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Ball.deadBallReason != 4) {
                 g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
@@ -2378,7 +2378,7 @@ void handleBallHitDeadBallOutcome(void) {
             }
             g_Ball.homeRunInd = 1;
         } else if (g_Ball.deadBallReason == 0) {
-            if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+            if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                 if (g_Ball.deadBallReason != 4) {
                     g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
@@ -2456,7 +2456,7 @@ void handleBallBounceAndRoll(f32* verticalVelocity, int bounceFrameCount, u8* ba
 
 static inline void deadBallGroundRuleDouble(void) {
     if (g_Ball.deadBallReason == 0) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Ball.deadBallReason != 4) {
                 g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
@@ -3108,7 +3108,7 @@ void checkForBallDead(void) {
                     }
                 } else if ((g_Ball.maybeCollisionRelated & 0x7F) == BALL_COLLISION_TYPE_STRUCTURE) {
                     if (g_Ball.deadBallReason == 0) {
-                        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+                        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                             if (g_Ball.deadBallReason != 4) {
                                 g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;

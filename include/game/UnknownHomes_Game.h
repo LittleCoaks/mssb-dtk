@@ -132,7 +132,7 @@ typedef struct _InMemBatterType {
     /*0x91*/ u8 contactMadeInd;
     /*0x92*/ E(u8, HIT_CONTACT_TYPE) contactType;
     /*0x93*/ u8 hitByPitch;
-    /*0x94*/ E(u8, HIT_TRAJECTORY) hitTrajectory;
+    /*0x94*/ E(u8, PREDICTED_HIT_OUTCOME) predictedHitOutcome;
     /*0x95*/ u8 _95; // always0_cutHitPowerInHalf
     /*0x96*/ u8 _96;
     /*0x97*/ u8 displayContactSprite; // displays nice/perfect on screen
@@ -247,7 +247,7 @@ typedef struct _InMemRunnerType {
     /*0x125*/ u8 currentBase;
     /*0x126*/ u8 nextBase;
     /*0x127*/ u8 baseRunningTowards;
-    /*0x128*/ E(u8, TAG_UP_TYPE) tagUpInd;
+    /*0x128*/ E(u8, TAG_UP_TYPE) tagUpStatus;
     /*0x129*/ u8 batterStayInBattersBoxReason;
     /*0x12A*/ u8 unused_AIRelated;
     /*0x12B*/ u8 relatedToRunnerPos;
@@ -260,10 +260,10 @@ typedef struct _InMemRunnerType {
     /*0x132*/ u8 isEligibleToScore; // maybe
     /*0x133*/ u8 leadOffStatus;
     /*0x134*/ u8 unused_const_1;
-    /*0x135*/ u8 runningDirectionDesired;
-    /*0x136*/ u8 nextDirectionBeingProcessed;
-    /*0x137*/ u8 runningDirectionCode;
-    /*0x138*/ u8 runnerDirectionCode_stored;
+    /*0x135*/ E(u8, RUNNER_MOVEMENT_TYPE) runningDirectionDesired;
+    /*0x136*/ E(u8, RUNNER_MOVEMENT_TYPE) nextDirectionBeingProcessed;
+    /*0x137*/ E(u8, RUNNER_MOVEMENT_TYPE) runningDirectionCode;
+    /*0x138*/ E(u8, RUNNER_MOVEMENT_TYPE) runnerDirectionCode_stored;
     /*0x139*/ u8 offsetFromNormalRunningPathInd; // maybe
     /*0x13A*/ u8 actionCode;
     /*0x13B*/ u8 actionInForwardDirectionInd;
@@ -2604,7 +2604,7 @@ typedef struct {
     /*0x0101*/ u8 baseCoveredInd[4];
     /*0x0105*/ u8 playerAtMoundCutoffLocation;
     /*0x0106*/ u8 throwSpeedType;
-    /*0x0107*/ u8 liveBallBcOfPickoffOrStealCd;
+    /*0x0107*/ E(u8, PICKOFF_STEAL_CODE) liveBallReason;
     /*0x0108*/ u8 infieldFlyIndicator;
     /*0x0109*/ u8 birdoFarThrowInd_forAnimation;
     /*0x010a*/ u8 throwWindupAnimationDoneInd;
@@ -2678,11 +2678,13 @@ typedef struct {
 
 extern g_FieldingLogic_s g_FieldingLogic;
 
-// g_FieldingLogic.liveBallBcOfPickoffOrStealCd
+// g_FieldingLogic.liveBallReason
 typedef enum _PICKOFF_STEAL_CODE {
     /* 0x0 */ PICKOFF_STEAL_CODE_NONE,
     /* 0x1 */ PICKOFF_STEAL_CODE_PICKOFF,
     /* 0x2 */ PICKOFF_STEAL_CODE_STEAL,
+    /* 0x3 */ PICKOFF_STEAL_CODE_UNUSED_3, // never set; reads suggest wild pitch / passed ball
+    /* 0x4 */ PICKOFF_STEAL_CODE_UNUSED_4, // never set; reads suggest dropped third strike
 } PICKOFF_STEAL_CODE;
 
 // g_FieldingLogic.x127_pickoff_0: what became of the runner a pickoff/steal throw targeted.
@@ -3154,8 +3156,14 @@ extern InMemFielder g_Fielders[9];
 /* Enum constants the mods use that the decomp had no counterpart for.
    Values from ProjectRio-ASM docs/enum_map.md, which pairs enum to enum by
    member-name and value agreement before matching constants. */
+// InMemRunnerType running direction fields (runningDirectionCode etc.)
 typedef enum _RUNNER_MOVEMENT_TYPE {
-    /* 1 */ RUNNER_MOVEMENT_FORWARDS = 1,
+    /* 0 */ RUNNER_MOVEMENT_NONE,
+    /* 1 */ RUNNER_MOVEMENT_FORWARDS,
+    /* 2 */ RUNNER_MOVEMENT_STOPPED,
+    /* 3 */ RUNNER_MOVEMENT_BACKWARDS,
+    /* 4 */ RUNNER_MOVEMENT_OVERRUN_FIRST, // running through 1st
+    /* 5 */ RUNNER_MOVEMENT_OVERRUN_BASE,  // overrunning 2nd/3rd
 } RUNNER_MOVEMENT_TYPE;
 
 typedef enum _DASH_STATE {

@@ -67,7 +67,7 @@ void categorizeBallTrajectory(void) {
     }
     if (g_Runners[BATTER_RUNNER_INDEX].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
         g_Ball.timeSinceBallPickedUp < 60 && g_Ball.framesSinceThrowStarted < 1 &&
-        g_Runners[BATTER_RUNNER_INDEX].tagUpInd == TAG_UP_TYPE_NONE &&
+        g_Runners[BATTER_RUNNER_INDEX].tagUpStatus == TAG_UP_TYPE_NONE &&
         g_Runners[BATTER_RUNNER_INDEX].fractionalBasesRan >= lbl_3_rodata_1830) {
         storedInningInfo.situation = 14;
     }
@@ -78,8 +78,8 @@ void categorizeBallTrajectory(void) {
         storedInningInfo.abResultFinal = 0x11;
     }
     if (storedInningInfo.situation == 14 &&
-        (g_Runners[BATTER_RUNNER_INDEX].runningDirectionCode == 2 ||
-         g_Runners[BATTER_RUNNER_INDEX].runningDirectionCode == 3)) {
+        (g_Runners[BATTER_RUNNER_INDEX].runningDirectionCode == RUNNER_MOVEMENT_STOPPED ||
+         g_Runners[BATTER_RUNNER_INDEX].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS)) {
         storedInningInfo.situation = 0;
     }
 }

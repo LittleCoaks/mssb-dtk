@@ -302,7 +302,7 @@ void scoutFlag_checkMissionSuccess(void) {
     case SCOUT_MISSION_NONE:
         break;
     case SCOUT_MISSION_RETIRE_FLAGGED_BATTER:
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Strikes.outs >= 3) {
                 scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
             } else if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
@@ -323,7 +323,7 @@ void scoutFlag_checkMissionSuccess(void) {
         }
         break;
     case SCOUT_MISSION_REACH_BASE_VS_FLAGGED_PITCHER:
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Strikes.outs >= 3) {
                 scout->scoutFlag = 0;
             } else if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
@@ -359,7 +359,7 @@ void scoutFlag_checkMissionSuccess(void) {
             scout->scoutFlag = 0;
         } else if (g_Strikes.outs >= 3 ||
                    (g_Strikes.outs == 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT &&
-                    g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE)) {
+                    g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE)) {
             scout->scoutFlag = 0;
         } else {
             scout->scoutFlag = 1;
@@ -389,7 +389,7 @@ void scoutFlag_checkMissionSuccess(void) {
             (g_RunningLogic._02 == 0x1111 && (g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH))) {
             scout->scoutFlag = 0;
         } else if ((g_Strikes.outs >= 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT &&
-                    g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) ||
+                    g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) ||
                    g_Strikes.outs >= 3) {
             scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
             scout->scoutFlag = 0;
@@ -403,7 +403,7 @@ void scoutFlag_checkMissionSuccess(void) {
         if (g_Strikes.outs >= g_Strikes.storedOuts + 2) {
             scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
             scout->scoutFlag = 0;
-        } else if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+        } else if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             scout->scoutFlag = 1;
             scout->scoutResult = SCOUT_RESULT_PENDING;
         } else {
@@ -414,7 +414,7 @@ void scoutFlag_checkMissionSuccess(void) {
         if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
             scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
             scout->scoutFlag = 0;
-        } else if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+        } else if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Strikes.outs >= 3) {
                 scout->scoutFlag = 0;
             } else {
@@ -427,7 +427,7 @@ void scoutFlag_checkMissionSuccess(void) {
         int threw;
         if (inning->nBattersThisInning2 == 3) {
             if ((g_Strikes.outs >= 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT &&
-                 g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) ||
+                 g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) ||
                 g_Strikes.outs >= 3) {
                 scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
                 scout->scoutFlag = 0;
@@ -451,7 +451,7 @@ void scoutFlag_checkMissionSuccess(void) {
                 }
             }
         }
-        if (inning->nBattersThisInning2 == 3 && g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) {
+        if (inning->nBattersThisInning2 == 3 && g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) {
             scout->scoutFlag = 0;
         } else if (g_Scores._A0 < g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total) {
             scout->scoutFlag = 0;
@@ -467,7 +467,7 @@ void scoutFlag_checkMissionSuccess(void) {
         if (inning->playResultCode == PLAY_RESULT_CODE_SAC_FLY_SCORED) {
             scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
             scout->scoutFlag = 0;
-        } else if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+        } else if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Strikes.outs >= 3) {
                 scout->scoutFlag = 0;
             } else if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
@@ -491,7 +491,7 @@ void scoutFlag_checkMissionSuccess(void) {
         if (flag) {
             scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
             scout->scoutFlag = 0;
-        } else if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+        } else if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Strikes.outs >= 3) {
                 scout->scoutFlag = 0;
             } else if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
@@ -507,7 +507,7 @@ void scoutFlag_checkMissionSuccess(void) {
         }
         break;
     case SCOUT_MISSION_STEAL_SECOND_BASE: {
-        u8 fl = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
+        u8 fl = g_FieldingLogic.liveBallReason;
         u8 runnerStatus = 0;
         if (fl == PICKOFF_STEAL_CODE_PICKOFF || fl == PICKOFF_STEAL_CODE_STEAL) {
             runnerStatus = runners[1].runnerOnFieldOrOutOrScored;

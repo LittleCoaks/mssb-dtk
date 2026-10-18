@@ -684,7 +684,7 @@ void soundFxRelated(void) {
                        : FALSE;
 
     if (crowdStadium) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             for (i = 1; i < 4; i++) {
                 if (sound_crowd_EffectsStruct._26 <= 1 &&
                     g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
@@ -736,7 +736,7 @@ void soundFxRelated(void) {
         goto checkStop;
     }
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         for (i = 1; i < 4; i++) {
             lastState = sound_crowd_EffectsStruct._26;
             if (lastState == 0 &&
@@ -1268,7 +1268,7 @@ common:
             if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
                 if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xB;
-                    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+                    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                         sound_crowd_EffectsStruct._33 = 2;
                     }
                     goto pick;
@@ -1276,7 +1276,7 @@ common:
             } else if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
                 if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xA;
-                    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+                    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                         sound_crowd_EffectsStruct._33 = 2;
                     }
                     goto pick;

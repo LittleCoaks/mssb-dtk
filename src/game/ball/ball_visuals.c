@@ -369,13 +369,13 @@ void ballAnimations(void) {
     if ((g_GameLogic.gameStatus == GAME_STATUS_AT_BAT && g_Ball.pitchHangtimeCounter >= 0) ||
         (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && show != 0)) {
         if ((g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_NO_CONTACT ||
-             g_Pitcher.currentStateFrameCounter < 1 || g_FieldingLogic.liveBallBcOfPickoffOrStealCd) &&
+             g_Pitcher.currentStateFrameCounter < 1 || g_FieldingLogic.liveBallReason) &&
             (g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_NO_CONTACT ||
-             g_FieldingLogic.liveBallBcOfPickoffOrStealCd ||
+             g_FieldingLogic.liveBallReason ||
              g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) &&
             ((g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_HIT &&
               g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_POST_HIT) ||
-             g_Pitcher.currentStateFrameCounter < 1 || g_FieldingLogic.liveBallBcOfPickoffOrStealCd) &&
+             g_Pitcher.currentStateFrameCounter < 1 || g_FieldingLogic.liveBallReason) &&
             g_Ball.collisionRelated < 2 && !g_Batter.hitByPitch && !g_Pitcher.peachDaisyStarAnimationOn &&
             !g_Batter.invisibleBallForPeachStarHit &&
             (g_d_GameSettings.StadiumID != STADIUM_ID_YOHSI_PARK || !g_Ball.pauseBallMovementWhenInPlant) &&
@@ -512,7 +512,7 @@ void ballAnimationSubFun2(void) {
     if (g_GameLogic.sceneID != SCENE_ID_LIVE_BALL) {
         return;
     }
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd) {
+    if (g_FieldingLogic.liveBallReason) {
         return;
     }
     if (g_Ball.AtBat_ContactResult != 0) {

@@ -17,7 +17,7 @@ void setInitialTotalBasesOnHit(void) {
     int base = -1;
     s32 i;
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         storedInningInfo.batterResultBase = 0;
         return;
     }
@@ -283,7 +283,7 @@ void postPitchStatUpdating(int arg) {
         pitcherStats->maxPitchSpeed = g_Pitcher.pitchSpeed;
     }
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_NONE) {
+    if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) {
         if (g_Pitcher.starPitchType != 0 || g_Pitcher.nonCaptainStarPitchTriggeredType != 0) {
             getAdjustedPitcherStamina(g_GameLogic.teamFielding, g_Pitcher.rosterID, lbl_3_data_5EDC[1]);
             if (PitcherStats_P1_P2[g_GameLogic.teamFielding]

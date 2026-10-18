@@ -353,7 +353,7 @@ void setAtBatResult(void) {
         return;
     }
     if (storedInningInfo.abResultFinal == 0) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 4) {
+        if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_4) {
             storedInningInfo.abResultFinal = 0x28;
         } else if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
             setStrikeoutOrWalkAtBatResult();

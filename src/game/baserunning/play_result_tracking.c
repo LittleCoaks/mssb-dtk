@@ -39,13 +39,13 @@ void postPlayTrackStats(void) {
         return;
     }
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE &&
-        g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 4) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE &&
+        g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_4) {
         steal_pickoff_incrementSteal_runsStats();
         battingTeam = g_GameLogic.homeTeamBattingInd_fieldingTeam;
         battingSlot = g_GameLogic.teamBatting;
         inning = g_Scores.Inning;
-        pickoffSteal = g_FieldingLogic.liveBallBcOfPickoffOrStealCd;
+        pickoffSteal = g_FieldingLogic.liveBallReason;
         StatsScreenScores.scores[battingSlot].byInning[inning - 1] = g_Scores.scores[battingTeam].byInning[inning - 1];
         StatsScreenScores.scores[battingSlot].total = g_Scores.scores[battingTeam].total;
         StatsScreenScores.hits[battingSlot].byInning[inning - 1] = g_Scores.hits[battingTeam].byInning[inning - 1];
@@ -258,7 +258,7 @@ void postPlayTrackStats(void) {
         storedInningInfo.consecutiveHits2 = 0;
         storedInningInfo.consecutiveHits = 0;
     }
-    if (result != AT_BAT_RESULT_DOUBLE_PLAY && g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 4) {
+    if (result != AT_BAT_RESULT_DOUBLE_PLAY && g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_4) {
         rbis = storedInningInfo.rbisWaitingToBeAddedToScore;
     }
     storedInningInfo.fielderWithBallIndexStored = g_Ball.fielderWithBallIndexStored2;
@@ -359,14 +359,14 @@ void pickoff_infieldThrow_related(int throwingFielder) {
     int frames;
 
     if (g_FieldingLogic.runnerTargetedOnThrowDuringSteal == -1) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_PICKOFF) {
+        if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF) {
             if (g_Runners[g_FieldingLogic.locationThrownTo].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
                 g_FieldingLogic.x127_pickoff_0 = PICKOFF_TARGET_STATUS_NONE;
                 return;
             }
             g_FieldingLogic.runnerTargetedOnThrowDuringSteal = g_FieldingLogic.locationThrownTo;
         }
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_STEAL) {
+        if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_STEAL) {
             runner = (g_FieldingLogic.locationThrownTo + 3) & 3;
             if (g_Runners[runner].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
                 g_FieldingLogic.x127_pickoff_0 = PICKOFF_TARGET_STATUS_NONE;
@@ -375,7 +375,7 @@ void pickoff_infieldThrow_related(int throwingFielder) {
             g_FieldingLogic.runnerTargetedOnThrowDuringSteal = runner;
         }
     }
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         return;
     }
     if (g_Ball.numberOfThrowsDuringPlay > 1) {
@@ -429,7 +429,7 @@ void monitorForErrors(void) {
     u8 error;
     s16 contact;
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_NONE) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         if (g_FieldingLogic.x127_pickoff_0 != PICKOFF_TARGET_STATUS_ONGOING) {
             return;
         }
@@ -437,7 +437,7 @@ void monitorForErrors(void) {
             g_FieldingLogic.x127_pickoff_0 = PICKOFF_TARGET_STATUS_NONE;
             return;
         }
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == PICKOFF_STEAL_CODE_PICKOFF &&
+        if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF &&
             g_FieldingLogic.runnerTargetedOnThrowDuringSteal >= 0) {
             target = g_FieldingLogic.runnerTargetedOnThrowDuringSteal;
             if (target <= 3) {
@@ -456,7 +456,7 @@ void monitorForErrors(void) {
                 }
             }
         }
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != PICKOFF_STEAL_CODE_STEAL) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_STEAL) {
             return;
         }
         if (g_FieldingLogic.runnerTargetedOnThrowDuringSteal < 0) {
