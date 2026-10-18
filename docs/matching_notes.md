@@ -3397,7 +3397,10 @@ functions. These lessons are not specific to one file:
 - **A local array element accessed through a cast to another pointer type (`((f32 *)&v[k])[n]`)
   gets its own address register,** and every offset-0 access and struct copy of that element then
   goes through it; pointer casts on call arguments have no effect at all (`rep_00B0` `fn_1_4A24`,
-  diagnostic only).
+  diagnostic only). A same-type explicit cast (`((Vec *)&e[2])->x` on a `Vec e[3]`) does the same.
+- **With eight or fewer locals, sweep every declaration order instead of hill-climbing.** 8! = 40320
+  variants is cheap with a scratch compile; `rep_00B0` `fn_1_25BC`'s earlier hill-climbs had stopped at a
+  local optimum below the best order (99.55 -> 99.59).
 - **When the target has a function both standalone and inlined, first write the real function and
   call it;** MWCC inlines it into the callers by itself. A `static inline` copy plus a wrapper for the
   standalone symbol changes the standalone function's registers (`rep_0610` `fn_1_D300`; earlier
@@ -3461,6 +3464,18 @@ functions. These lessons are not specific to one file:
   their derived values too (`x %= 8;`) put more temps on the target's registers; a fresh local in
   place of either cost 4-33 points (`rep_0138` `fn_1_5924` 72 -> 97.8, after 480+ single-expression
   term orders that could never have matched).
+- **A "missing loop guard" can be an `if` inside the loop body.** When the target's
+  `cmplwi i, N; bge` sits at the loop head, the back edge jumps to it, and the branch goes to the middle
+  of the body rather than past the loop, it is `if (i < N) { ... }` around part of the body
+  (a real vestigial entry guard branches past the loop). `rep_74A0` `fn_1_1C8C0` 96.1 -> 98.8,
+  then 100 after a declaration-order hill-climb; two earlier passes had read it as a vestigial guard.
+- **A vestigial loop guard that tests the induction register itself** (`li r5, 0; cmpwi r5, 0x18; bge`,
+  with r5 then used as the offset) instead of `li r0, 0; cmpwi r0, ...` came from reusing the previous
+  loop's `int i` with a long-typed bound (`i < 24L`, or `(s32)N` for a `#define`); a fresh counter or
+  either change alone gave the r0 form (`rep_74A0` `fn_1_1D110`).
+- **Switch on the global expression, not on a local copy of it:** `switch (currentDrawingItem->state)`
+  where `scene == currentDrawingItem` fixed a three-register rotation (`rep_74A0` `fn_1_1CBE4` -> 100;
+  same as `rep_0250` / `rep_02A8`).
 - **Score a function's inlined copies with it when choosing its source form.** Most forms of
   `rep_0138` `fn_1_5924` that scored 98+ standalone cost its inlined copies in `fn_1_6050`/`fn_1_5AC0`
   0.2 each; filtering the sweep on "callers stay 100" found the form to keep.

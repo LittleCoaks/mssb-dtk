@@ -285,14 +285,14 @@ void fn_1_3E38(Vec *p, u32 key) {
 
 // .text:0x000025BC size:0x187C
 void fn_1_25BC(DlPrim *p) {
+    u32 i;
+    u32 cnt;
+    DlVertex *vi;
+    u32 prev;
+    DlVertex *v;
     u32 left;
     u32 key;
-    DlVertex *v;
-    u32 prev;
-    DlVertex *vi;
-    u32 cnt;
     u32 n;
-    u32 i;
 
     do {
         n = p->count;
@@ -343,8 +343,8 @@ void fn_1_25BC(DlPrim *p) {
                 }
                 dlVertexKey(&v->pos, key);
             }
-            vi = p->verts;
             cnt = n + 2;
+            vi = p->verts;
             dlWriteU8(GX_LINESTRIP);
             dlWriteU16(cnt);
             for (; cnt != 0; cnt--) {

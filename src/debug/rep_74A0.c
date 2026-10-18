@@ -101,7 +101,7 @@ static s32 gParticleCfg[6] = {0x32, 0x7D0, 0x124F80, 0x186A0, 0x186A0, 0x3C};
 
 static DbgCamera gCamera;
 static DbgTexHeader *gTexTable[52];
-static u8 gIsModel[24];
+static E(u8, BOOL) gIsModel[PARTICLE_SLOT_COUNT];
 static DbgView gView;
 static u8 gColor3;
 static u8 gColor2;
@@ -149,7 +149,6 @@ void fn_1_1D110(void) {
     ActorObjectEntry *entry;
     DbgSlot *slot;
     int i;
-    s32 j;
     f32 radToDeg;
 
     fn_1_1B038();
@@ -161,16 +160,16 @@ void fn_1_1D110(void) {
         CTRLSetTranslation(&entry->control, slot->pos.x, slot->pos.y, slot->pos.z);
         CTRLSetRotation(&entry->control, radToDeg * slot->rot.x, radToDeg * slot->rot.y, radToDeg * slot->rot.z);
         entry->speed = slot->speed;
-        entry->speedPending = 1;
+        entry->speedPending = TRUE;
     }
     if (gFlag5 == 0) {
         fn_800BD670(hugeAnimStruct.table, gView.mtx);
     } else {
         fn_1_1A290(hugeAnimStruct.table, gView.mtx);
     }
-    for (j = 0; j < PARTICLE_SLOT_COUNT; j++) {
-        entry = &hugeAnimStruct.table->entries[j];
-        entry->applyControl = 1;
+    for (i = 0; i < (s32)PARTICLE_SLOT_COUNT; i++) { // long bound: the guard tests i itself (cmpwi r5)
+        entry = &hugeAnimStruct.table->entries[i];
+        entry->applyControl = TRUE;
     }
     fn_800BD8C4(hugeAnimStruct.table, gView.mtx);
 }
@@ -190,10 +189,10 @@ void fn_1_1CBE4(void) {
     int i;
     u32 *file;
 
-    switch (scene->state) {
+    switch (currentDrawingItem->state) {
     case 0:
         for (i = 0; i < PARTICLE_SLOT_COUNT; i++) {
-            gIsModel[i] = 0;
+            gIsModel[i] = FALSE;
         }
         scene->slot = 0;
         scene->mode16 = 0;
@@ -217,7 +216,7 @@ void fn_1_1CBE4(void) {
             || (char *)file[0] == "test/obj/skin/test02/model11.dat" || (char *)file[0] == "test/obj/skin/test03/model11.dat"
             || (char *)file[0] == "test/obj/skin/test04/model11.dat" || (char *)file[0] == "test/obj/skin/test05/model11.dat"
             || (char *)file[0] == "test/obj/skin/test06/model11.dat" || (char *)file[0] == "test/obj/skin/test07/model11.dat") {
-            gIsModel[scene->slot] = 1;
+            gIsModel[scene->slot] = TRUE;
         }
         hugeAnimStruct.slots[scene->slot].file = ARAMTransfer(gModelFiles[scene->slot], 0, 0, 0);
         currentDrawingItem->state++;
@@ -237,52 +236,54 @@ void fn_1_1CBE4(void) {
 
 // .text:0x0001C8C0 size:0x324
 void fn_1_1C8C0(void) {
-    u32 i;
-    u32 k;
     u32 *file;
-    void *tex;
     void *geo;
+    void *tex;
     void *layout;
     void *skn;
-    DbgSlot *slot;
+    u32 i;
+    u32 k;
     int anim;
+    DbgSlot *slot;
     ActorObjectEntry *entry;
 
     hugeAnimStruct.table = ActorObjectInitTable(PARTICLE_SLOT_COUNT);
     for (i = 0; i < PARTICLE_SLOT_COUNT; i++) {
-        file = hugeAnimStruct.slots[i].file;
-        if (gIsModel[i]) {
-            for (k = 0; k < 5; k++) {
-                if (k == 4) {
-                    hugeAnimStruct.slots[i].anim = (u8 *)file + file[k];
-                    ANIMGet(hugeAnimStruct.slots[i].anim);
-                } else {
-                    hugeAnimStruct.slots[i].file[k] = (u32)file + file[k];
+        if (i < PARTICLE_SLOT_COUNT) {
+            file = hugeAnimStruct.slots[i].file;
+            if (gIsModel[i]) {
+                for (k = 0; k < 5; k++) {
+                    if (k == 4) {
+                        hugeAnimStruct.slots[i].anim = (u8 *)file + file[k];
+                        ANIMGet(hugeAnimStruct.slots[i].anim);
+                    } else {
+                        hugeAnimStruct.slots[i].file[k] = (u32)file + file[k];
+                    }
                 }
+            } else {
+                file[0] = (u32)file + file[0];
+                hugeAnimStruct.slots[i].file[1] = (u32)file + file[1];
+                hugeAnimStruct.slots[i].file[2] = (u32)file + file[2];
             }
-        } else {
-            file[0] = (u32)file + file[0];
-            hugeAnimStruct.slots[i].file[1] = (u32)file + file[1];
-            hugeAnimStruct.slots[i].file[2] = (u32)file + file[2];
+            tex = (void *)hugeAnimStruct.slots[i].file[0];
+            geo = (void *)hugeAnimStruct.slots[i].file[1];
+            layout = (void *)hugeAnimStruct.slots[i].file[2];
+            if (gIsModel[i]) {
+                skn = (void *)hugeAnimStruct.slots[i].file[3];
+            } else {
+                skn = NULL;
+            }
+            convertTextureHeader(tex);
+            LoadActorLayout(layout);
+            if (gIsModel[i]) {
+                convertGeometryAndSknHeader(geo, skn);
+            } else {
+                AdjustGEOPalettePointers(geo);
+            }
+            gTexTable[i] = tex;
+            haveActLayoutPointToGeoHeader(layout, geo);
+            UpdateTexturePalettePointers(geo, tex);
         }
-        tex = (void *)hugeAnimStruct.slots[i].file[0];
-        geo = (void *)hugeAnimStruct.slots[i].file[1];
-        layout = (void *)hugeAnimStruct.slots[i].file[2];
-        if (gIsModel[i]) {
-            skn = (void *)hugeAnimStruct.slots[i].file[3];
-        } else {
-            skn = NULL;
-        }
-        convertTextureHeader(tex);
-        LoadActorLayout(layout);
-        if (gIsModel[i]) {
-            convertGeometryAndSknHeader(geo, skn);
-        } else {
-            AdjustGEOPalettePointers(geo);
-        }
-        gTexTable[i] = tex;
-        haveActLayoutPointToGeoHeader(layout, geo);
-        UpdateTexturePalettePointers(geo, tex);
         if (gIsModel[i]) {
             anim = (int)hugeAnimStruct.slots[i].anim;
         } else {
@@ -296,8 +297,8 @@ void fn_1_1C8C0(void) {
         CTRLSetRotation(&hugeAnimStruct.table->entries[i].control, 0.0f, 0.0f, 0.0f);
         entry = &hugeAnimStruct.table->entries[i];
         entry->speed = 0.5f;
-        entry->speedPending = 1;
-        *((u8 *)hugeAnimStruct.table->entries[i].actor + 0x98) |= 4;
+        entry->speedPending = TRUE;
+        hugeAnimStruct.table->entries[i].actor->unk98 |= 4;
         if (i == 1) {
             fn_800B2C08(hugeAnimStruct.table->entries[i].actor, 0);
         } else {
