@@ -3,6 +3,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_freeFieldingPractice
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_flow.h"
 #include "game/pitching/pitcher.h"
 #include "game/baserunning/runner.h"

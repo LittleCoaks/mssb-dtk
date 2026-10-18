@@ -110,8 +110,8 @@ extern s16 minigameResultsFrames[2];
 extern void applyUniformScaleToObject(f32 scale, int model);
 extern void minigameWinnerStars_setWinners(s32 *values, int count);
 extern void minigameWinnerStars_spawn(void);
-extern void fn_3_15FA58(int count, s32 *values);
-extern void fn_3_15F9AC(void);
+extern void minigameWinnerSpotlight_start(int count, s32 *values);
+extern void minigameWinnerSpotlight_show(void);
 extern void animateShadows_nonBall(void);
 extern void toyfield_drawHud(void);
 extern void minigameGraphics(void);
@@ -610,7 +610,7 @@ void minigameUpdateResultsScene(void) {
                     values[3] = values[1];
                     count = 4;
                 }
-                fn_3_15FA58(count, values);
+                minigameWinnerSpotlight_start(count, values);
             }
         }
     }
@@ -634,7 +634,7 @@ void minigameUpdateResultsScene(void) {
             }
             if (ok) {
                 if (g_d_GameSettings.minigamesEnabled != 0) {
-                    fn_3_15F9AC();
+                    minigameWinnerSpotlight_show();
                 }
                 minigameWinnerStars_spawn();
             }

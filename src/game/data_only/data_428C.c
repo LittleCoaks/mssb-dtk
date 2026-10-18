@@ -1,5 +1,5 @@
 #include "mssbTypes.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_end.h"
 #include "game/match_setup/star_power_costs.h"
 
 f32 dugoutCoordinates[7][2][2] = {

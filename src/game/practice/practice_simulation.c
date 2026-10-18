@@ -21,7 +21,6 @@
 
 extern u8 hugeAnimStruct[];
 extern u8 lbl_80354768[];
-#define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
 extern u8 lbl_803C6CF8[];
 extern u8 PracticeScreenFiles[];
 extern u8 lbl_80366158[];
@@ -104,7 +103,7 @@ void practiceSimulation(void) {
         freeFieldingPracticeControl();
         break;
     case SECONDARY_GAME_MODE_RETURN_TO_MENU:
-        g_GameLogic.framesOfExitingToMenu = TRUE;
+        fn_3_B3C64();
         break;
     }
 
@@ -119,33 +118,46 @@ void practiceSimulation(void) {
     }
 }
 
+static inline void practiceResetForMenu(void) {
+    volatile PracticeStruct* practice = &g_Practice;
+    int row;
+    int col;
+    insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
+    insertGraphicDrawingFunction(drawStadium, 4);
+    *(volatile u8*)&ANIM_BYTE(0x307E) = FALSE;
+    practice->practiceType = PRACTICE_TYPE_PITCHING;
+    practice->baserunningActiveRunners[0] = FALSE;
+    practice->baserunningActiveRunners[1] = FALSE;
+    practice->baserunningActiveRunners[2] = FALSE;
+    practice->_1A6 = FALSE;
+    practice->_1A8 = FALSE;
+    practice->_1A9 = FALSE;
+    practice->pauseMenuActive = FALSE;
+    practice->aIEnabled = FALSE;
+    practice->practiceBatterHandedness = FALSE;
+    practice->freePracticeInd_writeOnly = FALSE;
+    practice->freeFieldingInd_writeOnly = FALSE;
+    practice->instructionNumber = -1;
+    practice->transitioningIndicator = FALSE;
+    practice->loadingGuidedPractice = FALSE;
+    practice->guidedMessageSceneStarted = FALSE;
+    for (row = 0; row < 4; row++) {
+        volatile u8* src = &lbl_80354768[row * 4];
+        for (col = 0; col < 4; col++) {
+            practice->levelCompleted[row][col] = src[0xCF4E + col];
+        }
+    }
+}
+
 #pragma dont_inline on
 // .text:0x000B43E8 size:0x444
 void loadPracticeScreen(void) {
     int team;
     int slot;
-    int row;
-    int col;
 
     switch (g_GameLogic._125) {
     case 0:
-        g_GameLogic.battingOrderAndPositionMapping[0][0][0] = constantList[0];
-        g_GameLogic.battingOrderAndPositionMapping[1][0][0] = constantList[0];
-        for (team = 0; team < TEAMS_PER_GAME; team++) {
-            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
-                g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = constantList[9 + slot];
-                g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = constantList[9 + slot];
-                lineUpInfoStruct[team][slot][0] = slot;
-                lineUpInfoStruct[team][slot][1] = slot;
-                lineUpInfoStruct[team][slot][2] = slot;
-            }
-        }
-        for (team = 0; team < TEAMS_PER_GAME; team++) {
-            for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
-                int character = g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0];
-                memcpy(&inMemRoster[team][slot], &CHAR_STATS(character), sizeof(CharacterStats));
-            }
-        }
+        practice_loadCharacterData();
         g_Practice.homeAway = lbl_80366158[0x27];
         g_Practice.homeAwayByte = lbl_80366158[0x27];
         g_GameLogic.homeTeamInd = 0;
@@ -195,36 +207,12 @@ void loadPracticeScreen(void) {
         g_Practice.framesInCurrTransitionState = 0;
         g_Practice.practiceState = PRACTICE_STATE_0;
         practiceMenu_setScreen(0);
-        insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
-        insertGraphicDrawingFunction(drawStadium, 4);
-        ANIM_BYTE(0x307E) = FALSE;
-        g_Practice.practiceType = PRACTICE_TYPE_PITCHING;
-        g_Practice.baserunningActiveRunners[0] = FALSE;
-        g_Practice.baserunningActiveRunners[1] = FALSE;
-        g_Practice.baserunningActiveRunners[2] = FALSE;
-        g_Practice._1A6 = FALSE;
-        g_Practice._1A8 = FALSE;
-        g_Practice._1A9 = FALSE;
-        g_Practice.pauseMenuActive = FALSE;
-        g_Practice.aIEnabled = FALSE;
-        g_Practice.practiceBatterHandedness = FALSE;
-        g_Practice.freePracticeInd_writeOnly = FALSE;
-        g_Practice.freeFieldingInd_writeOnly = FALSE;
-        g_Practice.instructionNumber = -1;
-        g_Practice.transitioningIndicator = FALSE;
-        g_Practice.loadingGuidedPractice = FALSE;
-        g_Practice.guidedMessageSceneStarted = FALSE;
-        for (row = 0; row < 4; row++) {
-            for (col = 0; col < 4; col++) {
-                g_Practice.levelCompleted[row][col] = PRACTICE_PROGRESS_FLAGS[row][col];
-            }
-        }
+        practiceResetForMenu();
         break;
     }
 }
 #pragma dont_inline reset
 
-#pragma dont_inline on
 void practice_loadCharacterData(void) {
     int slot, team;
 
@@ -246,7 +234,6 @@ void practice_loadCharacterData(void) {
         }
     }
 }
-#pragma dont_inline reset
 
 #pragma dont_inline on
 void practice_loadCharacter(int team, int slot, int character, int flags) {
@@ -278,32 +265,7 @@ void practice_loadCharacter(int team, int slot, int character, int flags) {
 #pragma dont_inline reset
 
 void practiceLoadingRelatedMaybe(void) {
-    int row;
-    int col;
-    insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
-    insertGraphicDrawingFunction(drawStadium, 4);
-    ANIM_BYTE(0x307E) = FALSE;
-    g_Practice.practiceType = PRACTICE_TYPE_PITCHING;
-    g_Practice.baserunningActiveRunners[0] = FALSE;
-    g_Practice.baserunningActiveRunners[1] = FALSE;
-    g_Practice.baserunningActiveRunners[2] = FALSE;
-    g_Practice._1A6 = FALSE;
-    g_Practice._1A8 = FALSE;
-    g_Practice._1A9 = FALSE;
-    g_Practice.pauseMenuActive = FALSE;
-    g_Practice.aIEnabled = FALSE;
-    g_Practice.practiceBatterHandedness = FALSE;
-    g_Practice.freePracticeInd_writeOnly = FALSE;
-    g_Practice.freeFieldingInd_writeOnly = FALSE;
-    g_Practice.instructionNumber = -1;
-    g_Practice.transitioningIndicator = FALSE;
-    g_Practice.loadingGuidedPractice = FALSE;
-    g_Practice.guidedMessageSceneStarted = FALSE;
-    for (row = 0; row < 4; row++) {
-        for (col = 0; col < 4; col++) {
-            g_Practice.levelCompleted[row][col] = PRACTICE_PROGRESS_FLAGS[row][col];
-        }
-    }
+    practiceResetForMenu();
 }
 
 BOOL practice_relatedToSettingCharacters(void) {
@@ -408,11 +370,9 @@ void setTutorialState(int state) {
 }
 #pragma dont_inline reset
 
-#pragma dont_inline on
 void fn_3_B3C64(void) {
     g_GameLogic.framesOfExitingToMenu = TRUE;
 }
-#pragma dont_inline reset
 
 void practiceSetupRunnerStatus(void) {
     int i;

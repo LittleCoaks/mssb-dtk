@@ -6,6 +6,7 @@
 #include "game/practice/guided_practice.h"
 #include "game/practice/practice_menu.h"
 #include "game/baserunning/runner.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/transition_init.h"
 #include "game/animation/animation_dispatch.h"

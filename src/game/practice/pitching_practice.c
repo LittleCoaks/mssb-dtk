@@ -5,6 +5,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "game/practice/guided_practice.h"
 #include "game/practice/practice_menu.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/transition_init.h"
 #include "game/animation/animation_dispatch.h"
@@ -35,28 +36,7 @@ void fn_3_B6F6C(void) {
     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
     g_GameLogic.pre_PostMiniGameInd = TRUE;
     g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-    practiceNewBatter();
-    g_Strikes.storedOuts = g_Strikes.outs;
-    g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-    g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-    g_Strikes.howRunnerReachedBase = 0;
-    g_Ball.totalFramesAtPlay = 0;
-    g_FieldingLogic.playOverInd = 0;
-    g_FieldingLogic.framesSincePlayEnded = 0;
-    g_FieldingLogic.unused_always0__ = 0;
-    g_FieldingLogic.hasProcessedFoulBall = 0;
-    g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
-    g_FieldingLogic.always0__ = 0;
-    g_RunningLogic._13 = 0;
-    g_GameLogic.pre_PostMiniGameInd = 0;
-    g_GameLogic.minigameLastTurnSuccessInd = 0;
-    g_Practice._1EC = 0;
-    g_Practice._1ED = 0;
-    changeScene(1, 6);
-    SetGameStatus(GAME_STATUS_LIVE_BALL);
-    setDefaultPlayTrackingVariables2();
+    fn_3_B6E98();
     resetAndRunAnimations(0);
 }
 
@@ -94,53 +74,31 @@ void fn_3_B6D80(void) {
         }
     }
     running_MainFunction();
-    if (g_Practice.instructionNumber < 0) {
-        if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            g_Practice.guidedPracticeCompletionRelated = TRUE;
-        }
-    } else if (g_Practice.allowPlayToEndIndicator == FALSE) {
-        g_FieldingLogic.playOverCounter = 0;
-    } else {
-        if (g_FieldingLogic.playOverCounter < 0x7ffe) {
-            g_FieldingLogic.playOverCounter++;
-        } else {
-            g_FieldingLogic.playOverCounter = 0x7fff;
-        }
-        if (g_FieldingLogic.playOverCounter >= 0x3c) {
-            g_Practice.allowPlayToEndIndicator = FALSE;
-            g_GameLogic.pre_PostMiniGameInd = TRUE;
-            g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-            trackLastPitchInfo();
-            SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-        } else if (g_FieldingLogic.playOverCounter == 0x36) {
-            changeScene(3, 6);
-        }
-    }
+    fn_3_B6C9C();
 }
 
 // .text:0x000B6C9C size:0xE4
 void fn_3_B6C9C(void) {
-    if (g_Practice.instructionNumber < 0) {
+    if (g_Practice.instructionNumber >= 0) {
+        if (g_Practice.allowPlayToEndIndicator == FALSE) {
+            g_FieldingLogic.playOverCounter = 0;
+            return;
+        }
+    } else {
         if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
             g_Practice.guidedPracticeCompletionRelated = TRUE;
         }
-    } else if (g_Practice.allowPlayToEndIndicator == FALSE) {
-        g_FieldingLogic.playOverCounter = 0;
+        return;
+    }
+    if (g_FieldingLogic.playOverCounter < 0x7ffe) {
+        g_FieldingLogic.playOverCounter++;
     } else {
-        if (g_FieldingLogic.playOverCounter < 0x7ffe) {
-            g_FieldingLogic.playOverCounter++;
-        } else {
-            g_FieldingLogic.playOverCounter = 0x7fff;
-        }
-        if (g_FieldingLogic.playOverCounter >= 0x3c) {
-            g_Practice.allowPlayToEndIndicator = FALSE;
-            g_GameLogic.pre_PostMiniGameInd = TRUE;
-            g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-            trackLastPitchInfo();
-            SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-        } else if (g_FieldingLogic.playOverCounter == 0x36) {
-            changeScene(3, 6);
-        }
+        g_FieldingLogic.playOverCounter = 0x7fff;
+    }
+    if (g_FieldingLogic.playOverCounter >= 0x3c) {
+        fn_3_B6C50();
+    } else if (g_FieldingLogic.playOverCounter == 0x36) {
+        changeScene(3, 6);
     }
 }
 
@@ -156,19 +114,19 @@ void fn_3_B6C50(void) {
 // .text:0x000B6BA4 size:0xAC
 void pitchingPracticeControl(void) {
     switch (g_Practice.tutorialState) {
-    case TUTORIAL_STATE_2:
-        if (setUpPlayerTryingSkill() == 0) {
-            pitchingPractice_BaseballControl();
-        } else {
-            practiceStartGuidedMessage(g_Practice.practiceLevel, 0);
-            SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-        }
-        break;
     case TUTORIAL_STATE_0:
         pitchingPracticeRelated();
         break;
     case TUTORIAL_STATE_1:
         pitchingPractice_BaseballControl();
+        break;
+    case TUTORIAL_STATE_2:
+        if (setUpPlayerTryingSkill() == 0) {
+            pitchingPractice_BaseballControl();
+        } else {
+            practiceStartGuidedMessage(g_Practice.practiceLevel, FALSE);
+            SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
+        }
         break;
     case TUTORIAL_STATE_3:
         pitchingPractice_BaseballControl();
@@ -259,27 +217,8 @@ void pitchingPractice_BaseballControl(void) {
         if (g_Practice.tutorialState == TUTORIAL_STATE_2) {
             return;
         }
-    } else {
-        BOOL completionMenuOpened = FALSE;
-
-        if (g_Practice.pauseMenuLoading == 0 && g_Practice.guidedPracticeCompletionRelated != 0 &&
-            g_Pitcher.miniGameRelated != 0 && g_UnkSound_32718._07 == 0) {
-            g_Practice.frames_sincePracticeCompleted++;
-            if (g_Practice.frames_sincePracticeCompleted > 0x5a) {
-                if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
-                    g_Practice.progressNeedsSave = TRUE;
-                    g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = TRUE;
-                    PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = TRUE;
-                }
-                g_Practice.completionMenuActive = TRUE;
-                practiceResetPauseMenuState();
-                practiceStartGuidedMessage(g_Practice.practiceLevel, TRUE);
-                completionMenuOpened = TRUE;
-            }
-        }
-        if (completionMenuOpened) {
-            return;
-        }
+    } else if (practiceRelUnuse()) {
+        return;
     }
     if (g_Ball.totalFramesAtPlay < 0x7ffe) {
         g_Ball.totalFramesAtPlay++;
@@ -293,122 +232,13 @@ void pitchingPractice_BaseballControl(void) {
     }
     switch (g_GameLogic.gameStatus) {
     case GAME_STATUS_DEFAULT:
-        practiceNewBatter();
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
-        g_Ball.totalFramesAtPlay = 0;
-        g_FieldingLogic.playOverInd = 0;
-        g_FieldingLogic.framesSincePlayEnded = 0;
-        g_FieldingLogic.unused_always0__ = 0;
-        g_FieldingLogic.hasProcessedFoulBall = 0;
-        g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
-        g_FieldingLogic.always0__ = 0;
-        g_RunningLogic._13 = 0;
-        g_GameLogic.pre_PostMiniGameInd = 0;
-        g_GameLogic.minigameLastTurnSuccessInd = 0;
-        g_Practice.guidedPracticeCompletionRelated2 = 0;
-        changeScene(1, 6);
-        SetGameStatus(GAME_STATUS_AT_BAT);
-        setDefaultPlayTrackingVariables2();
+        fn_3_B60F0();
         break;
     case GAME_STATUS_AT_BAT:
-        if (g_Practice.instructionNumber < 0) {
-            if (practice_checkForPause() != FALSE) {
-                break;
-            }
-        }
-        atBat_Pitcher();
-        if (g_Practice.pitchingPracticeBatterEnabled != 0) {
-            atBat_batter();
-            running_MainFunction();
-        }
-        atBat_Fielders();
-        if (g_Practice.instructionNumber >= 0) {
-            break;
-        }
-        if (g_Practice.guidedPracticeCompletionRelated2 != 0) {
-            break;
-        }
-        if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
-            break;
-        }
-        if (g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_NO_CONTACT) {
-            break;
-        }
-        switch (g_Practice.practiceLevel) {
-        case 0:
-            g_Practice.guidedPracticeCounter++;
-            break;
-        case 1:
-            if (g_Pitcher.ChargePitchType >= 2) {
-                g_Practice.guidedPracticeCounter++;
-            }
-            break;
-        case 2:
-            if (g_Pitcher.TypeOfPitch == 2) {
-                g_Practice.guidedPracticeCounter++;
-            }
-            break;
-        case 3:
-            if (g_Pitcher.starPitchType != CAPTAIN_STAR_TYPE_NONE) {
-                g_Practice.guidedPracticeCounter++;
-            }
-            break;
-        }
-        if (g_Practice.guidedPracticeCounter >=
-            guidedPracticeThresholds[g_Practice.practiceType_2][g_Practice.practiceLevel]) {
-            g_Practice.guidedPracticeCompletionRelated = TRUE;
-        }
-        g_Practice.guidedPracticeCompletionRelated2 = TRUE;
+        fn_3_B5F7C();
         break;
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
-        resetBallValuesBetweenBatters();
-        resetPitcherValuesBetweenBatters(0);
-        setBatterContactConstants();
-        resetInMemRunners();
-        initializeARunner();
-        initializeMiniGameCharacters();
-        setDefaultInMemFielder();
-        betweenABSetPitcherBatter();
-        initializeSomethingDuringTransition();
-        initializeSomethingDuringTransition2();
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
-        g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
-        if (g_GameLogic.pre_PostMiniGameInd != 0) {
-            g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-            g_GameLogic.hudElementLoadingInd = TRUE;
-        } else {
-            g_GameLogic.minigameLastTurnSuccessInd = FALSE;
-        }
-        g_GameLogic.pre_PostMiniGameInd = FALSE;
-        g_GameLogic.minigameLastTurnSuccessInd = FALSE;
-        practiceNewBatter();
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
-        g_Ball.totalFramesAtPlay = 0;
-        g_FieldingLogic.playOverInd = 0;
-        g_FieldingLogic.framesSincePlayEnded = 0;
-        g_FieldingLogic.unused_always0__ = 0;
-        g_FieldingLogic.hasProcessedFoulBall = 0;
-        g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
-        g_FieldingLogic.always0__ = 0;
-        g_RunningLogic._13 = 0;
-        g_GameLogic.pre_PostMiniGameInd = 0;
-        g_GameLogic.minigameLastTurnSuccessInd = 0;
-        g_Practice.guidedPracticeCompletionRelated2 = 0;
-        changeScene(1, 6);
-        SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
-        setDefaultPlayTrackingVariables2();
-        resetAndRunAnimations(0);
+        fn_3_B61C0();
         break;
     }
     g_Strikes.strikes = 0;
@@ -468,27 +298,7 @@ void fn_3_B61C0(void) {
     }
     g_GameLogic.pre_PostMiniGameInd = FALSE;
     g_GameLogic.minigameLastTurnSuccessInd = FALSE;
-    practiceNewBatter();
-    g_Strikes.storedOuts = g_Strikes.outs;
-    g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-    g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-    g_Strikes.howRunnerReachedBase = 0;
-    g_Ball.totalFramesAtPlay = 0;
-    g_FieldingLogic.playOverInd = 0;
-    g_FieldingLogic.framesSincePlayEnded = 0;
-    g_FieldingLogic.unused_always0__ = 0;
-    g_FieldingLogic.hasProcessedFoulBall = 0;
-    g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
-    g_FieldingLogic.always0__ = 0;
-    g_RunningLogic._13 = 0;
-    g_GameLogic.pre_PostMiniGameInd = 0;
-    g_GameLogic.minigameLastTurnSuccessInd = 0;
-    g_Practice.guidedPracticeCompletionRelated2 = 0;
-    changeScene(1, 6);
-    SetGameStatus(GAME_STATUS_AT_BAT);
-    setDefaultPlayTrackingVariables2();
+    fn_3_B60F0();
     resetAndRunAnimations(0);
 }
 
@@ -536,37 +346,7 @@ void fn_3_B5F7C(void) {
     if (g_Practice.guidedPracticeCompletionRelated2 != 0) {
         return;
     }
-    if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
-        return;
-    }
-    if (g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_NO_CONTACT) {
-        return;
-    }
-    switch (g_Practice.practiceLevel) {
-    case 0:
-        g_Practice.guidedPracticeCounter++;
-        break;
-    case 1:
-        if (g_Pitcher.ChargePitchType >= 2) {
-            g_Practice.guidedPracticeCounter++;
-        }
-        break;
-    case 2:
-        if (g_Pitcher.TypeOfPitch == 2) {
-            g_Practice.guidedPracticeCounter++;
-        }
-        break;
-    case 3:
-        if (g_Pitcher.starPitchType != CAPTAIN_STAR_TYPE_NONE) {
-            g_Practice.guidedPracticeCounter++;
-        }
-        break;
-    }
-    if (g_Practice.guidedPracticeCounter >=
-        guidedPracticeThresholds[g_Practice.practiceType_2][g_Practice.practiceLevel]) {
-        g_Practice.guidedPracticeCompletionRelated = TRUE;
-    }
-    g_Practice.guidedPracticeCompletionRelated2 = TRUE;
+    fn_3_B5E7C();
 }
 
 // .text:0x000B5E7C size:0x100

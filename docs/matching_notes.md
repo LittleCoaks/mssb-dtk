@@ -1205,7 +1205,7 @@ First seen: `game/game/fielding/fielder_ai` (2026-09).
 After switching to literals, MWCC emitted `fmuls f0, fConst, fX` (and loaded the constant before
 the int->double bias) for `frames = (int)(frames * 1.3f) + 0x1e;` and `speed = speed * 1.3f;`,
 where the target has `fmuls f0, fX, fConst`. Compound assignment reproduces the target exactly:
-`frames *= 1.3f; frames += 0x1e;` (maybeUnused_SetThrowSpeedType2 93.78% -> 100%; 28 sites, none
+`frames *= 1.3f; frames += 0x1e;` (setThrowSpeedType2 93.78% -> 100%; 28 sites, none
 regressed) and `speed *= 1.3f;` in initializeThrowAngle_Speed_Length. `(int)(1.3f * frames)` and
 explicit casts compile identically to the original and do not help.
 
@@ -3226,3 +3226,423 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   The remaining six operand differences are in two random-remainder/absolute
   value sequences. Check both reuse and separation of loop counters; the
   successful direction here is the opposite of `animateDefence` above.
+
+## Findings from the second last-function sweep (2026-10)
+
+- **A pointer local to a global can be the match.** `fn_3_219CC` (runner_items) only reached the
+  target's `lwzx rD, rGame, rOff` (with `rOff = team*4 + 0xF4` hoisted) once the loop read
+  `game->Team_CaptainRosterLoc[settings->humanTeamNumber]` through
+  `GameControlsStruct *game = &g_GameLogic;` and `GameInitVariables *settings = &g_d_GameSettings;`
+  (80% -> 100%; `i` had to be declared before `count`). Same lever as the "pointer local" entries
+  above: try it when a global's base address lands in an unexpected register or the target keeps
+  the base and the offset in separate registers.
+- **A unit whose target has no `.rodata` must not include `header_rep_data.h`.** `at_bat_setup`
+  was 100% in objdiff, but the flip failed the sha1 check: the header's weak `repHeaderData` added
+  a 0x50 `.rodata` the original never had. Check `llvm-objdump -h` of both objects before flipping.
+- **`s32` instead of `int` again restored a vestigial guard** (`li r0,0; cmpwi r0,N; bge` before a
+  fully unrolled loop) in `someRosterMemoryManagement`; the rest was a hoisted `fieldingTeam`
+  local that the target reloads inside the guarded block (use the field directly).
+- **Moving an assignment can move a base register.** `fn_3_CABF0` (perfect_pitch_gfx): with the
+  register order otherwise right, the shared `lbl_3_common_bss_35154` base was `r5` in ours and
+  `r10` in the target; assigning `model = (...)(common.trailOwner + 0xC4)` *before* the copy loop
+  instead of after it fixed it (also needed: `s32 i`, then `state, handle, i` declaration order).
+- **The order of `|` operands in a branchless boolean OR is visible.** `animateScoreBoard`:
+  `a | b | c` built `or r0,rB,rC; or. r0,rA,r0` only for the target's order; permuting the three
+  operands (six orders, plus the right-nested forms) found it in one batch.
+- **Pooled statics can also hide inside a dtk `.data` object.** In `pitcher_fire_effect`, one
+  function reaches `lbl_3_data_17DC0` as `addi rX, base, 0x0` / `base+0x48c`, another as its own
+  `lis/addi lbl_3_data_17DC0+0x3C0`: the 0x4A8 object is really several statics. Splitting it
+  reproduced the pool but was not yet a net win (see that unit's checkpoint).
+
+## Findings from the data-layout pass (pitcher_fire_effect, rep_21F8; 2026-10)
+
+- **The pooled-statics split above is now a net win in both files.** `pitcher_fire_effect`:
+  `lbl_3_data_17DC0` -> slots/headers/2 Vecs/zero word (animatePitchersHandOnFire 86.85 -> 99.88,
+  fn_3_CB538 95.88 -> 96.16). `rep_21F8`: `lbl_3_data_17898` -> key table, node, HudObj[5], word,
+  active byte, f32[5] (fn_3_C937C 97.38 -> 100, unit flipped to Matching). In both cases the split
+  alone was not enough; the follow-up source fixes were what turned it into a gain.
+- **An `add rX, base, idx; stw 0(rX)` where you would expect `stwx` means the address stays live,
+  usually as a call argument.** In fn_3_CB538 the header address was left in r5 for the next
+  `bl fn_8002F5F4`, which takes it as a third parameter that the old prototype was missing. Check
+  whether the register holding the address is still live at the next call before reaching for
+  source-shape tricks.
+- **Volatile-register numbering follows IR order, and it limits the scheduler.** Loading a value
+  shared by several stores into a local *first* (`tex = burstTexture;` before computing the slot
+  and header addresses) reproduced the target's r5/r6/r7 assignment and its late `lis`.
+- **`while (tbl[++i * 2] != END)` gives the target's two induction variables** (a pointer IV for
+  the body loads, an offset IV + `lhzx` for the condition). The `i++; } while (tbl[i * 2] ...)`
+  form merges them into one `lhzu`.
+- **Statics in a `.data` split are pooled in BOTH directions:** a `.bss` byte read through a
+  neighbour's base register (`lbz 0x14(r31)` off `lbl_3_bss_9F20`) and stored through its own symbol
+  in another function means two file statics, declared in reverse (`.bss` reverse-order rule).
+  objdiff marks those pooled loads with an `R_PPC_NONE` reloc in the target and diff-cli scores them
+  as mismatches until the layout is right; the report does not.
+
+## Findings from the m_sound / practice_simulation data-layout pass (2026-10)
+
+- **A dtk label covering several scalars can stop MWCC pooling the `.bss` base.** In `m_sound`,
+  `handleGameSound` reaches the voice ids at 0x1778/0x177C and the flag byte at 0x1760 through one
+  base register in the target. With dtk's `lbl_3_bss_1774` declared as `s32[3]` ours addressed it by
+  its own symbol each time; splitting it into three `s32` statics (and 0x1760/0x176C into their
+  real scalars) gave the target's pooling (91.5 -> 98.6; `fn_3_8C4F0` 83.3 -> 99.2). A function
+  touching only two scalars (`fn_3_8C2DC`: 0x1764, 0x176C) is not pooled in the target either.
+- **MWCC 4-aligns a `.bss` array even when its elements are `s16`/`u8`.** A dtk label at a
+  2-mod-4 offset declared as an array (`camera_script` `s16 lbl_3_bss_B67A[15]`, `scene_effects`
+  `u8 lbl_3_bss_9CFE[0x22]`) lands 2 bytes late and grows the section. objdiff still scores
+  `.bss` 100%. If only the first element is accessed, split it into the 2-byte scalar plus the
+  4-aligned tail; a 2-byte-aligned struct wrapper is 4-aligned too.
+- **Unreferenced `.bss` gaps need both a static and a `symbols.txt` name.** In `chain_chomp_sprint`
+  declaring the unused statics fixed the layout, but `.bss` stayed at 90% until dtk's
+  `gap_05_0000B79C_bss` was replaced by a named `scope:local` symbol that our object could pair with.
+- **A target that keeps every store in source order and copies with strict `lbz`/`stb` pairs
+  means volatile accesses.** `practiceLoadingRelatedMaybe` (72.0 -> 91.3) only stopped hoisting the
+  16 loads once the source *and* destination were volatile, the per-row
+  `addis rX,rY,1; addi rY,rY,4` appeared only with a per-row `volatile u8* src` pointer, and the
+  leading `hugeAnimStruct` store stayed first only once it was volatile too. `#pragma scheduling off`
+  and `optimization_level` did not reproduce it.
+- **A `case` that duplicates a whole function body is an inline of that function.** The
+  `loadPracticeScreen` default case is `practiceLoadingRelatedMaybe`'s body. A plain call stays a
+  `bl` under `#pragma dont_inline on`. A `static inline` helper used by both matched the inline
+  (90.7 -> 96.3).
+- **`s32` (long) counters stay unfolded where `int` folds** in straight-line code too, not only in
+  loop guards: `fn_3_166448` (rep_3E00) keeps its `li r29,0 ... cmpwi r29,0` only with
+  `s32 inactive` assigned before the calls.
+
+## General codegen patterns (2026-10, collected from second passes)
+
+Findings from second passes on files that are not fully matched yet (camera_script, the C3
+charPipeline units, minigame_effects, animation_dispatch, runner, versus_screens/hud_scoreboard).
+They are written down here so they do not depend on those files reaching 100%. Each was confirmed
+by a score change in at least one function.
+
+### Control flow and switches
+- **The address order of a switch's jump-table targets is the source order of the case blocks.**
+  Read dtk's `jumptable_*` entries in address order and lay out the cases the same way
+  (camera_script `fn_3_1000D8`/`fn_3_101CC4`: case 6 before case 5). The table also shows cases
+  the draft is missing (camera_script `fn_3_FDB30` lacked opcode 76 and fell into default).
+- **A pair of `beq` on the same compare means an inlined `x == NULL || ...` check.**
+- **A shared exit block may need a `goto`.** When the target branches into the tail of an `else`
+  arm (`updateFielderState; return TRUE`), a `goto` into it can be the only form that matches.
+  Measure the structured forms first and log them (animation_dispatch
+  `fielderBodyCheckAnimation`, `animationsForFielding`).
+- **`return FALSE` vs `break` to a shared exit:** where the target has one exit block, use
+  `break` plus a single trailing return.
+
+### Inlining
+- **Many "macros" and hand-written blocks are small functions MWCC inlined.** If a block repeats
+  in several functions, or the stack layout differs only around it, write it as the real function
+  (or a `static inline`) and call it. This fixed the camera filter "macros" and script-start block
+  (camera_script), the `static inline mg*` helpers whose bodies belonged to named functions
+  (minigame_effects, which also fixed the literal-pool order), `ACTSort`/
+  `maybeTransformVectorByAnimationMatrix` (C3 act.c), and the base-reset loop in runner's
+  `initializeARunner`/`resetInMemRunners` (an inlined `initBaseRunnersAfterFoulBall`).
+- **Shrinking a function can make MWCC start inlining it into its caller**, which can wreck the
+  caller's score (runner `updateRunnerFramesToClosestBases`). Always re-check callers after
+  shortening a function.
+- **A `#pragma dont_inline` stub can be needed while a callee is still a stub:** otherwise its
+  `return NULL` is inlined into a matched caller (objinit `f_InitActorWithLayout`).
+
+### Types and prototypes
+- **If the target re-extends (`extsb`/`extsh`/`clrlwi`) a call argument or return value, the
+  prototype is narrower or wider than ours.** Declare file-local prototypes that match:
+  animation_dispatch matched with `s16` frame / `u8` handedness arguments to
+  `AnimateCharacter`/`QueueCharacterAnimation`, and `int`-returning angle helpers
+  (`calculateAngleFromCoordinates`, `angleDifferenceNormalized`, `radToShortAngle`). Leave a
+  comment saying why it differs from the shared header.
+- **When the target re-extends a value at every use, re-read the field instead of caching it in
+  a local** (same idea as the `*(s8*)&field` read macro in pitcher.c).
+- **Local types should match the field width** (`s16` for `s16` fields, `u8` for bytes; runner
+  `running_DirectionOverrides`).
+- **`(u32)` on an array index flips the operand order of the final `add`.**
+- **Unsigned constants (`0x10U`) give `cmplwi` on u8 flags.**
+
+### Floating point
+- **`fabs` from `stl/math.h` is a macro for the `__fabs` intrinsic, but MSL declares `fabs` as an
+  inline function, and the two allocate float registers differently.** Where a function calls
+  `fabs`, try the function form:
+  `#undef fabs` + `static inline f64 fabs(f64 x) { return __fabs(x); }` file-wide, or a
+  differently named helper for only some functions. It matched the whole bobOmbFuseSpark family
+  (minigame_effects) and lifted camera_script, scene_effects and five sta_c5 DK barrel functions.
+  Two sta_c5 functions match better with the intrinsic, so the header itself is left unchanged.
+- **`x / 2.0f` compiles to a multiply with the constant second; `x * 0.5f` puts it first.** A
+  constant held in a local (`f32 scale = 0.01f;`) also keeps it second.
+- **`if (x)` gives `fcmpu x, 0`; `x == 0.0f` gives `fcmpu 0, x`.**
+- **In `a*b + c*d`, MWCC fuses the first product** unless the left side is much more complex.
+  Separate locals for the products (`sqx = dx*dx; sqz = dz*dz;`) are distinct from `dx = dx*dx`
+  and fixed two runner functions.
+- **MWCC keeps a value in f1 across a call when f1 is that call's float return.**
+- **A draft that ignores a float return is a real bug, not a codegen detail.** animation_dispatch
+  `unsure_updateAnimations` divided `1.0f` instead of the bone time returned by
+  `getActorBoneAnimTime`.
+
+### Registers, locals and loops
+- **The first-declared local tends to get the highest free callee-saved register.** Reordering
+  declarations alone matched C3 `fn_800B4278`. Script declaration-order sweeps are cheap, but when
+  120+ orders change nothing the difference is not declaration order: stop sweeping.
+- **A walking pointer whose base the target keeps** (`addi rB, g_Runners; mr rP, rB`, base reused
+  later) means the source indexes per iteration: `runner = &g_Runners[i]`.
+- **Hoisted constant locals can be wrong.** Read table constants where they are used, not into
+  locals at the top (runner `running_updateStamina`).
+- **A chained assignment stops constant folding:** `for (extra = i = 0; ...)` keeps a never-true
+  `extra >= 2` test the target retains; a plain `extra = 0` is folded away.
+- **`do {} while (++i < n)` avoids the ctr loop** where the target does not use one.
+- **A loop-scoped `int idx = i;`** can be needed for two inlined copies to match
+  (animation_dispatch `minigameIdleAnimations`).
+
+### Data and expressions in effect code (minigame_effects)
+- `-(rand() % 2 * 2) + 1` for a random sign.
+- Two statements (`alpha = p->alphaByte; alpha += step;`) instead of one expression.
+- Read a fade's start value into its own local first.
+- Write `(n - duration)` inline instead of keeping a `range` local.
+- `GXPosition3f32` / `GXColor1u32` / `GXTexCoord2f32` in a plain 4-vertex loop for quads.
+
+### Unit ownership of data
+- **A base register cannot be shared across translation units.** If code reaches deep into a
+  data-only unit through one pooled base (versus_screens `+0xEB0` off `lbl_3_data_1D28`,
+  hud_scoreboard `+0x66A8` off `lbl_3_data_8D88`), that data is the code unit's own `.data`. The
+  data-only unit only existed because the units between them have no `.data`. Data reached only by
+  symbol from several units can stay in a data-only unit (data_1880's AI tables).
+
+### Diagnostics (do not commit)
+- `#pragma opt_propagation off` around a caller shows whether constant/copy propagation is the
+  difference (runner `running_AIStartSteals` 61 -> 89.5 with it). It also changes everything else,
+  so treat it as evidence, not a fix.
+- `objdiff-cli diff` and the report score pooled `.bss` accesses differently (the target carries
+  `R_PPC_NONE` relocs). Use the report for regression checks.
+
+### Uncalled functions and auto-inlining (fielder_ai second pass)
+- **A function with no `bl` to it anywhere in the target is inlined somewhere.** List them with a
+  grep over `build/GYQE01/*/asm` (no `bl name`, no `.4byte name`), then find the caller whose
+  body contains the callee's code and call the real function instead of a hand-expanded copy.
+  fielder_ai had 28 such functions; calling them fixed fn_3_A89D4 (setThrowSpeedType2),
+  fieldingAIPlayStrategy (fn_3_A53DC), autoMovement10_HasBall (fielderChasingAI, fn_3_A6D48, which
+  also removed a `goto`), fielderAIChaseRunner/fielderAIMakePlay (chaseRunnerWithBall) and let two
+  hand-written `static inline` duplicates (fn_3_A2FD8/fn_3_A295C) be deleted.
+- **If the plain call stays a `bl`, the callee is over MWCC's auto-inline size limit.** Making the
+  callee smaller with its own inline helpers brought it under the limit: fn_3_AAC84 inlined into
+  makeThrowVariables once its throw-frame code went through a `static inline` helper, and
+  setThrowSpeedType2 inlined into fn_3_A89D4 the same way. An explicit `inline` on the
+  callee also inlines it, but then MWCC no longer emits the out-of-line copy; a non-inline wrapper
+  around a `static inline` body emits it with different code.
+- **Shared arithmetic is often a real function that gets inlined.** The fielder_ai throw-time
+  estimate is `estimatedThrowFramesFromBallHolder(x, z)`; calling it (after the covering fielder is read) matched
+  howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase 97.8 -> 99.97. Where it is placed
+  matters: before the covering-fielder read it scored 93.
+- **Walking table pointers in a loop stop an inlined callee from sharing the loop's induction
+  variables.** Rewriting fieldingAIPlayStrategy's loops as `table[i]` / `g_Runners[i]` took it from
+  93 to 99.2 once fn_3_A53DC was inlined.
+- **A small store helper can be the source of an evaluation order.** fn_3_A53DC's tail
+  (`throw[i] = 0; run[i] = -1; out[i] = frames - framesToBase;`) only matched through an inline
+  `setThrowStrategy(i, strat, frames, framesToBase)` that subtracts inside, with framesToBase read
+  into its own local first. The target computes the difference after the constant stores'
+  values.
+
+### Locals and re-reads (fielder_ai)
+- **Copying an `s16` local into an `int` local can cost a `mr`.** setRunnerChasingAfter was 4 bytes
+  long until `base = fromBase` became `base = g_FieldingLogic.fielderAssignedLocationIndex[6]`
+  (re-read the field). Re-reading `g_Fielders[c].numFramesToGetToAutoLocation` at each use instead
+  of keeping it in a local matched howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase/runnerTimeToCoverBase.
+- **`cmpwi rX, 4; bge` then `extsh. r0, rX; blt` on an `lha` value** is an `int` local tested as
+  `x >= 4 || (s16)x < 0` (runnerTagUpOrBatterTo1B; makeThrowVariables uses the same idiom).
+- **A lone `fcmpo` whose result is never branched on** is a conditional assignment to a dead
+  variable: `f32 vel = cur; if (vel + accel > jog) vel = cur;` reproduced it in tagOutValues.
+- **A `lead = frames - 10` local can change integer allocation.** Writing `(frames - 10)` at each
+  use matched fn_3_AAC84's integer registers.
+- **A pointer local for a one-off `g_Fielders[a[b]].field` read** fixed the last registers in
+  initializeThrowAngle_Speed_Length.
+
+### Control flow (fielder_ai)
+- **`ble body; b exit` right after a range test** is an early-return guard:
+  `if (a < 0 || b < 0 || b > 3) return;` (fn_3_AAA3C).
+- **A dead `b epilogue` after `b join`** comes from `if (c) { x; } else { return; }` where the
+  `return` arm's branch was threaded away (fielderAIDecideWhatRunnerToTarget).
+- **A comma expression inside a condition gives `mfcr`/`srwi.`;** read the value twice instead and
+  let CSE merge the loads. `!(x < c)` gives a single `blt`; `x >= c` gives `cror` + `bne`.
+- **`for (i = 0; i < 4; i++) if (d[i] <= k) { base = i; break; }`** shows up unrolled with a
+  walking pointer (`addi r3, rB, 4; lfs f1, off(r3)`), not as an if/else-if chain (tagOutValues).
+
+### Diagnostics
+- objdiff does not score the `jumptable_*` vs `@NNN` or `lbl_*_bss_*` vs `...bss.0` relocation-name
+  differences that a plain text diff shows; check `diff_kind` in the JSON before chasing them.
+
+### Duplicate-body sweep across the game REL (2026-10)
+A pass over every game unit, looking for hand-written copies of functions that MWCC inlined.
+- **Search the source as well as the asm.** Comparing instruction sequences flagged many false
+  positives: sibling functions with near-identical code (camera views, minigameWinnerStars_*,
+  fn_3_E4760/fn_3_E48D0). Checking whether a function's first few statements appear inside
+  another function in the same `.c` found the real copies faster.
+- **"Called elsewhere" does not mean "not inlined here".** A function that other units reach
+  with `bl` can still be inlined inside its own unit: practice_loadCharacterData in
+  loadPracticeScreen, warioPalaceSomething in loadWarioPalace, fn_3_1CBCC in cameraControl.
+  The no-`bl`-anywhere test finds only some of the candidates.
+- **A `#pragma dont_inline` on a callee can be what keeps a copy in place.** Once the pragma
+  around practice_loadCharacterData was removed, the call inlined and loadPracticeScreen went from
+  96.29 to 97.30. A dont_inline region that contains a never-called function is worth checking
+  (fn_3_B3C64 was another).
+- **Hand copies can carry real bugs.** pitching_practice's transition case passed
+  `GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY` where the callee fn_3_B61C0 passes
+  `GAME_STATUS_AT_BAT`. Calling the real function fixed it, and the whole unit reached 100% and
+  was flipped to Matching.
+- **Inlined helpers nest.** pitchingPractice_BaseballControl's switch was fn_3_B60F0 /
+  fn_3_B5F7C / fn_3_B61C0, which in turn inline fn_3_B60F0 and fn_3_B5E7C.
+  runnerStealing_TransitionToLiveViewIndicator inlined fn_3_73850, and the three spelled-out
+  runner checks were an unrolled `for (i = 1; i < 4; i++)` loop (88.4 -> 100).
+- **`blt` straight to an else-arm laid out after the then-arm** came from an early-return
+  guard: `if (a >= 0) { if (!b) { x = 0; return; } } else { ...; return; }` followed by
+  the shared tail (fn_3_B6C9C, 82 -> 100).
+- **The inlined copy shows the callee's parameter type.** fn_3_EE67C's inlined copy of
+  fn_3_EE0BC uses `srawi 4; clrlwi 24`, which is `(u8)(x >> 4)` on a `u8` argument. Changing the
+  callee to `int fn_3_EE0BC(u8)` let the call match the hand copy. With a `u32` parameter the
+  call scored lower.
+- **Too big to auto-inline: shrink the callee through another never-called function.**
+  fn_3_C4CF4 stayed a `bl` (fn_3_C56E8 dropped to 31.7%) until its GX setup became a call to
+  fn_3_C4B80, which the target also inlines.
+- **Not every copy should go.** Calling the real function scored lower for
+  bobOmbDerby unusedBattingSomething (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
+  starDash_stopAllSparks (93.1 -> 67.5, the `extsb` of the inlined `s8` argument sinks below the
+  call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
+  barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
+  inlined helper bodies, while ours rebuilds it in each. That pattern is still unexplained.
+
+### Findings from the minigame_framework second pass (2026-10)
+Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
+- **A chained zero init picks MWCC's other unroll form for a variable-trip copy loop.** With
+  `offset = 0; ... for (k = 0; k < count; k++) q[offset + k] = order[k].idx;` MWCC unrolls with
+  the `cmpwi n,8; subi r,n,8` form and recomputes from `k` in the remainder. The target's
+  `srwi. r0,n,3; mtctr; ... andi. r,n,7` form with both pointers carried into the remainder came
+  from `offset = k = 0; ... for (; k < count; k++)` (minigameCharLoadQueueUpdate 87.5 -> 96.9).
+  `for (idx = j = 0; ...)` did the same kind of thing in minigames_setupChallengeRoster (93.8 -> 97.0).
+  Down-counting loops also give the `srwi.` form, but without the strength-reduced indexing.
+- **No `i >= N` test after an unrolled search loop: `goto` out of the loop.** When the target's
+  unrolled scan falls through to `li r3,0; blr` and the found-handler sits after it,
+  `for (...) if (c) goto found; return FALSE; found: ...` matched (checkForPauses 96.8 -> 100).
+  Measured first: `break` + `if (i >= 4) return FALSE` 96.8, `if (i < 4) {...}` 96.2, handler
+  inside the loop 49.9 (the loop stops being unrolled).
+- **MWCC does not move stores across calls, so read the store/call order straight off the
+  target.** Four `state = N; sndFXStartEx(...)` pairs in minigameCharSelectUpdate had been drafted
+  as call-then-store (97.2 -> 99.4 after reordering them with s32 counters).
+- **`(c ? 2 : 1)` and `(c) + 1` compile differently** as a multiplier (minigames_0x26 99.03 -> 100).
+- **`s32` vs `int` counters can need to change together.** minigameCharSelectUpdate: `s32 i, j, k`
+  98.17; any one of them alone scored lower than all-int. A blanket int->s32 over the whole file
+  regressed four 100% functions, so measure per function.
+- **One counter for consecutive loops in a small callee** (`i` reused instead of a separate `j`)
+  fixed the register swap in every inlined copy of minigameFillGrandPrixScoreInput.
+- **S1 `static inline` copies of real functions can often go.** With `-inline deferred`, calling
+  minigames_fillRoster, minigameBuildResultEntry and minigames_0x25 from earlier-defined callers
+  still auto-inlined them, and the standalone minigames_fillRoster went from 98.3 to 100 once it was
+  no longer a wrapper around the inline. minigameAwardCoins (420 bytes) stays a `bl`, so its
+  inline copy is still needed.
+- **Re-run declaration-order sweeps after structural fixes.** The same 9-local sweep that gave
+  +0.2 before the loop fix gave +1.2 after it (minigameCharLoadQueueUpdate, then two store-order
+  tweaks reached 100).
+- **Inverted test found by a one-instruction diff:** the char-select late-join scan read
+  `selectSlotState[i] == 0` where the target has `beq skip` (`!= 0`). A lone `beq`/`bne` swap at
+  the same label is worth checking as a draft bug, not just a branch-layout difference.
+- Not solved: the qsort comparators (`cmpw; beq; subf; blr; subf; blr`) keep MWCC's
+  conditional-return peephole (`subf` hoisted + `bnelr`) in every source form tried, including
+  ternary, result variable, index locals and `#pragma peephole off`.
+
+### Findings from the match_flow second pass (2026-10)
+Unit `game/game/match_setup/match_flow`, 25 -> 44 of 47 functions at 100% (.text 98.14 -> 99.57).
+- **A counter increment written before a constant store.** When the target emits
+  `stb rK,const; ...; addi rX,rX,1; sth rX` and ours has the increment's temp in r0 and the
+  constant in a numbered register (or the reverse), swap the two statements: write `n++` first.
+  MWCC still schedules the constant store first, but the register numbering follows source order
+  (uncalledRunnerUpdateRelated 95 -> 100, gameSimulationFunction, exitToMenuControl).
+- **`if (x < 0) x = -x;` vs `__abs(x)`.** Both give `srawi; xor; subf`, but the MWCC intrinsic
+  puts the result in a fresh register (fn_3_5B41C 99.59 -> 100, newPitch 95.1 -> 99.0).
+- **An extern array declared too small changes store scheduling.** `highLevelSimulationFlag` was
+  `u8[2]` while code stores `[2]` and `[3]`; with the real size `[4]`, the natural store order matched
+  and two other functions moved too (exhibitionGameTransitionCalculations, inningChange). Check the
+  declared bound against every constant index before permuting statements.
+- **`a == b` operand order is visible** in the `subf` of the CLZ idiom: `winnerCd == humanTeamNumber`
+  and `humanTeamNumber == winnerCd` differ, and two functions sharing the test needed different orders.
+- **Check every file-local `extern f(void)` against the headers.** The disk loaders take the load
+  index (target keeps the loaded value in r3 for the call), exitMenu_main takes the buttons and
+  forwards them, and the header prototype `(u8 scene, s8 charID)` with a `u8` table produced the
+  target's `lbzx r0; extsb r4,r0`.
+- **A walk-off test of `score < base + count`** is strength-reduced into its own induction register;
+  a hand-kept `runs++` total allocates differently (handleDeadBall 98.98 -> 100).
+- **A function inside a `#pragma dont_inline` block can still be the body the target inlined.**
+  configureTeamsForGame_Unused has no `bl` anywhere; moving it out of the region and calling it from
+  gameInitRelated fixed that caller (90.5 -> 100 with an unrolled 2-trip clear loop). Its body then
+  had to fold the constant argument (`teamBatting = arg1 ^ arg0`, not a re-read of both fields).
+- **`inMemRoster[0][i]` and `((CharacterStats*)inMemRoster)[i]` flip the final `add` operands.**
+- **Register liveness exposes draft bugs.** A `li r5,0` scheduled before a `bge` whose fall-through
+  also reaches the join means the assignment is unconditional (checkIfPlayOver); a value loaded once
+  and decremented in each flag block means a running variable, not a recomputation
+  (startChallengeModeMatch).
+- Not solved: newPitch (one constant takes r3 instead of r8 after the inlined practiceNewBatter),
+  processScoreChanges (every temp one register higher; the target's unrolled u64 sum needs r28) and
+  startChallengeModeMatch (the target re-materialises `g_Runners` in each runner block).
+
+### Near-miss pattern sweep findings (2026-10)
+A bounded retry of twelve game units that were one function short of 100%, using the match_flow
+patterns. No unit reached 100%, but five functions moved and two non-target functions matched.
+- **Paid off: the value-form `==` predicate.** `subfic; cntlzw; srwi.; beq` on `rec->unk69[0] == 2`
+  is a `static inline BOOL f(UIRecord* rec) { return rec->unk69[0] == 2 ? TRUE : FALSE; }`
+  (an if/return TRUE/return FALSE body is identical). It lifted draw_ongoingStarGuageHud
+  98.45 -> 99.03 and matched ballLandingMarker_update (hud_scoreboard, all three tests needed) and
+  practiceInstruction_update (practice_scene, only the second test). The units now share the
+  name `hudRecordFinished`. Sweeping each `unk69[0] == 2` site one at a time found them in minutes;
+  minigame_hud, toy_field_hud and minigame_models had no further sites that moved.
+- **Paid off: unfolded constants mean inlined or multi-def code.** `li rN,K; mulli/slwi` on a value
+  that is constant in the source, or `li rA,0; mr rB,rA` for a loop start, means the value reached
+  the loop optimiser as a variable, not a literal.
+  - rep_3E00 fn_3_166448 (82.9 -> 93.6): `offsets = packed + i++` after the unrolled files loop
+    (a post-increment use keeps `i = 3` as `li r0,3; slwi`), and the effect start block as a 1-trip
+    `for (j = 0; j < 1; j++) { ...; if (j == 0) effect->active = 1; }`, which keeps `j = 0` and the
+    constant 1 in callee-saved registers across the calls like the target.
+  - sta_c0 loadMarioStadium (97.12 -> 97.74): `slot = 0; call(slot); slot++; ...; slot++;` instead of
+    `slot = 2` gives the target's `li r25,2; mulli r24,r25,0x90`; the light loop and each crowd fill
+    as no-argument `static inline` helpers give the `li; mr` loop starts. The same light-loop helper
+    on the other six stadium loaders moved each by under 0.25 either way, so it is not a general
+    fix there.
+- **Loop increment order follows source order.** Moving `slot++` from the for-increment to the end of
+  the body (and `cfg++` next to `count++`) fixed the order of the `addi`s at the loop bottom.
+- **Did not apply here:** `__abs` (shuffleU8Array's randomIntGameAbs got worse with it), extern sizes
+  (all checked against symbols.txt and already right), and local prototypes (none wrong). The
+  `highLevelSimulationFlag[4]` fix in pitcher.c and animation_dispatch.c changed nothing (both index
+  only [0] or [1]).
+- **Still stuck, all pure register swaps with the instructions already right:** calculateChemistry
+  (lbz/mulli scheduling), spline3D_evaluate (count vs an array base), maybeProcessTeamData,
+  animateOffence, setFielderValues (target keeps `&g_GameLogic` in r30 for one access),
+  shuffleU8Array (the inlined shuffleIntArray's k), minigameUpdateResultsScene, and
+  wallBallInitializeValues (the coin loop's unfolded start guard). Exhaustive declaration-order
+  sweeps (shuffleIntArray 720 orders, animateOffence 24, maybeProcessTeamData 120) found nothing,
+  so these are not declaration order either.
+
+### Findings from the m_sound second pass (2026-10)
+Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 -> 99.996).
+- **A function that is never called, but whose inlined copies all share the same register swap, may be a
+  macro at the call sites.** addToCircularBuffer has no `bl` anywhere; every inlined copy had its queue pointer
+  and head index in swapped registers, and no `static inline` form (void/BOOL, nested ifs, early returns,
+  block-scoped locals, param types) changed that. A hand expansion with the arguments substituted textually
+  did, so the callers now use `ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)` (transitionToReplay and fn_3_8C104 to 100,
+  soundControl +0.14). The inliner's parameter copies are what move the colouring.
+- **A `long` parameter keeps an inlined constant unfolded; a macro folds it.** soundControl's inlined
+  playOverSounds keeps `li rN,-1; cmpwi rN,0`, which only `void playOverSounds(long frames)` reproduces, while
+  fn_3_90434 has the folded form. The resolution was a FADE_OUT_MUSIC(frames) macro: playOverSounds' body and
+  fn_3_90434/fn_3_903B8 (constant frames) all use it.
+- **`x = x * s;` / `x *= s;` vs `x = load * s;` changes the int-to-float stack temp order.** playCharacterSoundScaled had the
+  vol/reverb temps mirrored (68%) in every single-expression form. Separate load + compound statements gave
+  the right slots (99.6). The last register matched with `static inline int f(int level) { level = level * s;
+  return level; }` on both values. The same helper written as `return level * s;` scored 56.
+- **Adjacent statement order is still the strongest lever.** soundControl's last 0.19% was
+  `_28 = 0; _20 = track; trackId = track;` (the trackId copy last, out of 6 orders). fn_3_8C2DC matched with
+  the float division before the flag store. adjustBallSoundEffectBasedOnHeight matched with
+  `clamped -= min; ratio = (f32)clamped / (f32)(max - min);` instead of one expression.
+- **One local reused for two different fields can be the original.** soundControl's practice block stores
+  g_GameLogic.secondaryGameMode into the same u8 `status` local used for gameStatus elsewhere (99.20 -> 99.27).
+  Reading g_Stats.replayInd once into a local that a later test reuses fixed which value got r0 (-> 99.64).
+- **Split an index that is overwritten by the value it indexes.** fn_3_8C104 used one `int value` as the 0/1
+  table index and then as the looked-up volume. The target passes the volume to a `(u8, u8)` callee without
+  truncation and tests it with `clrlwi.`, so it is a separate `u8 value` (98.52 -> 99.66).
+- **Where the sign extension sits matters.** processSoundReplayQueue: `vol = rec.arg3; vol = (s8)vol;` as two statements and
+  `switch ((s8)bytes[...])` with no `cmd` local each kept the target's in-place `extsb` (98.85 -> 99.82).
+- **`lwz rD, sym@l(rB)` vs `addi; lwz rD, 0(rA)` for a member at offset 0 is a register-allocation side effect.**
+  No source shape moved it; it followed once the surrounding locals coloured like the target.
+- Carried over from the first pass: `if (a || b || !c) return;` gives `bne next; b exit` for the last operand;
+  `x = cond ? TRUE : FALSE` tested later gives `neg; srwi.` (`cond ? FALSE : TRUE` gives `cntlzw; srwi.`);
+  and with `-inline deferred` the pooled `.rodata` follows reverse source order, so write the functions in
+  descending address order before judging `.rodata`.

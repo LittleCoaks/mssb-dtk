@@ -66,7 +66,7 @@ extern f32 bOD_bB_maxMovement[4];
 extern f32 strikeZone[6];
 extern f32 pitchSpeedScaler[12];
 extern u8 animRelated[0x124];
-extern u8 highLevelSimulationFlag[2];
+extern u8 highLevelSimulationFlag[4];
 extern void transitionToLiveBallWithoutContact(int arg);
 extern s16 lbl_3_data_8080[];
 extern s16 lbl_3_common_bss_32220[8];
@@ -1876,7 +1876,6 @@ BOOL fn_3_6F6CC(void) {
 // .text:0x0006F4E8 size:0x1E4 mapped:0x806AE57C
 BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
     int i;
-    int j;
     BOOL forcedAdvance = FALSE;
 
     if (g_Strikes.outs >= 3) {
@@ -1889,22 +1888,12 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
         if (g_RunningLogic.nOffensivePlayersAtStartOfPlay == 4) {
             return FALSE;
         }
-        if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            if (g_Runners[1].furthestBaseForcedToGoToOnWalk == 1) {
-                forcedAdvance = TRUE;
-            }
-        }
-        if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            if (g_Runners[2].furthestBaseForcedToGoToOnWalk == 1) {
-                forcedAdvance = TRUE;
-            }
-        }
-        if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            if (g_Runners[3].furthestBaseForcedToGoToOnWalk == 1) {
-                forcedAdvance = TRUE;
+        for (i = 1; i < 4; i++) {
+            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
+                g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                if (g_Runners[i].furthestBaseForcedToGoToOnWalk == 1) {
+                    forcedAdvance = TRUE;
+                }
             }
         }
         if (!forcedAdvance) {
@@ -1916,13 +1905,7 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
             g_Pitcher.pickOffLoc = 5;
             transitionToLiveBallWithoutContact(1);
             if (g_Pitcher.strikeOutOrWalk == 1) {
-                g_Strikes.outs++;
-                for (j = 0; j < 3; j++) {
-                    if (g_Strikes.runnerIndexForEachOutThisPitch[j] == -1) {
-                        g_Strikes.runnerIndexForEachOutThisPitch[j] = 0;
-                        break;
-                    }
-                }
+                fn_3_73850();
             }
             return TRUE;
         }

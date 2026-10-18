@@ -1251,8 +1251,6 @@ void loadPeachGarden(void** files) {
 void fn_3_FB3D8(void* view) {
     Vec delta;
     Vec step;
-    GXTlutObj tlut;
-    GXTexObj tex;
     f32 ringUV[42];
     f32* uv;
     Vec* grid;
@@ -1260,7 +1258,6 @@ void fn_3_FB3D8(void* view) {
     Vec* out;
     Vec* spoke;
     Vec* center;
-    GardenTexInfo* info;
     u8* strip;
     f32 minX;
     f32 maxX;
@@ -1321,19 +1318,7 @@ void fn_3_FB3D8(void* view) {
         uv[i + 1] += rangeY * (rand() % 256) * 0.00390625f - 0.0025f;
     }
 
-    info = returnTexture();
-    if (info->tlut != NULL) {
-        GXInitTexObjCI(&tex, info->data, info->width, info->height, info->format, info->wrapS, info->wrapT,
-                       info->minLOD != info->maxLOD, 0);
-        GXInitTlutObj(&tlut, info->tlut, info->tlutFormat, info->tlutEntries);
-        GXLoadTlut(&tlut, 0);
-    } else {
-        GXInitTexObj(&tex, info->data, info->width, info->height, info->format, info->wrapS, info->wrapT,
-                     info->minLOD != info->maxLOD);
-    }
-    GXInitTexObjLOD(&tex, info->minFilter, info->magFilter, info->minLOD, info->maxLOD, info->lodBias, GX_DISABLE,
-                    GX_DISABLE, GX_ANISO_1);
-    GXLoadTexObj(&tex, GX_TEXMAP0);
+    fn_3_FBBA0(returnTexture());
     GXSetZMode(GX_ENABLE, GX_LEQUAL, GX_DISABLE);
     GXSetCullMode(GX_CULL_NONE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_OR);

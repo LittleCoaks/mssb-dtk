@@ -5,7 +5,8 @@
 #include "game/animation/scene_effects.h"
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/pitching/pitcher.h"
 #include "game/character_stats.h"
 #include "game/camera/camera.h"
@@ -620,7 +621,7 @@ void fn_3_AEC50(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -835,7 +836,7 @@ void fn_3_AE334(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;

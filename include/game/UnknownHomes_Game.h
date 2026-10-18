@@ -2224,7 +2224,7 @@ extern struct {
     /* 0x2c */ u8 _2C;
     /* 0x2d */ u8 _2D;
     /* 0x2e */ u8 _2E;
-    /* 0x2f */ u8 _2F;
+    /* 0x2f */ E(u8, BOOL) _2F;
     /* 0x30 */ u8 _30;
     /* 0x31 */ u8 _31;
     /* 0x32 */ u8 _32;
@@ -2544,7 +2544,8 @@ typedef struct {
     /*0x13*/ u8 _13;
     /*0x14*/ u8 someSituationTrackerFrames;
     /*0x15*/ u8 runnersInScoringPosition;
-    artificial_padding(0x15, 0x20, u8);
+    artificial_padding(0x15, 0x1F, u8);
+    /*0x1F*/ s8 _1f;
 } g_RunningLogic_s; // size: 0x20
 
 extern g_RunningLogic_s g_RunningLogic;

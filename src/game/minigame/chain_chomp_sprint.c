@@ -7,7 +7,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_loading.h"
 #include "game/match_setup/roster_init.h"
 #include "game/baserunning/runner.h"
@@ -79,9 +79,12 @@ extern s8 lbl_3_data_21980[];
 
 s32 lbl_3_data_265F0 = -1;
 
+/* lbl_3_bss_B79C and lbl_3_bss_B790 are never referenced, but present in the original .bss layout */
+static u8 lbl_3_bss_B79C[0x24];
 static s32 ccs_cameraShakeFrames;
 static f32 ccs_cameraShakeMagnitude;
 static u8 lbl_3_bss_B791;
+static u8 lbl_3_bss_B790;
 
 static inline f32 ccsBasePathGap(f32 a, f32 b) {
     f32 d = a - b;

@@ -31,7 +31,6 @@ struct {
     void* fanObject;
     u8 _04[20];
 } lbl_3_bss_18;
-void (*lbl_3_data_A10[2])(Mtx view, int flag, u32 pass) = { 0, 0 };
 extern u8 drawStadiumRelated;
 extern u8 hugeAnimStruct[];
 extern void* fn_80009028(void);
@@ -234,6 +233,8 @@ u32 lbl_3_data_93C[53] = {
     (u32)fn_3_5BCC,
     0x00000003,
 };
+
+void (*lbl_3_data_A10[2])(Mtx view, int flag, u32 pass) = { 0, 0 };
 
 #define STADIUM_ATLAS_SKIP_FLAG 0x4000
 #define STADIUM_ATLAS_PAGED_FLAG 0x8000
@@ -559,24 +560,13 @@ void drawStadiumObjects(void) {
 
 // .text:0x00005518 size:0x164 mapped:0x806445AC
 void fn_3_5518(void) {
-    Mtx44 projection;
-    Mtx identity;
     s16 offsets[7] = {0x49, 0x95, 0x1DB, 0x121, 0x1B2, 0xFB, 0};
     u8 stadiumID = g_d_GameSettings.StadiumID;
     u8* textureTable = (u8*)g_UNK_StadiumDetails._00;
     int textureOffset = offsets[stadiumID] << 5;
     void* texture;
 
-    GXSetZMode(TRUE, GX_ALWAYS, TRUE);
-    GXSetScissor(0, 0, 640, 448);
-    C_MTXOrtho(projection, 0.0f, 480.0f,
-               0.0f, 640.0f,
-               0.5f, 1.5f);
-    GXSetProjection(projection, GX_ORTHOGRAPHIC);
-    GXSetCullMode(GX_CULL_NONE);
-    PSMTXIdentity(identity);
-    GXLoadPosMtxImm(identity, 0);
-    GXSetCurrentMtx(0);
+    fn_3_4984();
     GXSetTexCopySrc(0, 0, 512, 480);
     GXSetTexCopyDst(512, 480, 0x20, FALSE);
     inningScoreDisplayRelated(g_d_GameSettings.StadiumID);

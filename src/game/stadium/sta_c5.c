@@ -2596,22 +2596,7 @@ void fn_3_EE67C(DKJungleDispObj* obj, Mtx view) {
     PSMTXConcat(view, obj->mtx, model);
     GXLoadPosMtxImm(model, 0);
     GXSetCurrentMtx(0);
-    switch ((u8)(obj->vertices->format >> 4)) {
-    case 0:
-    case 1:
-        compSize = 1;
-        break;
-    case 2:
-    case 3:
-        compSize = 2;
-        break;
-    case 4:
-        compSize = 4;
-        break;
-    default:
-        compSize = 0;
-        break;
-    }
+    compSize = fn_3_EE0BC(obj->vertices->format);
     GXSetArray(GX_VA_POS, obj->vertices->data, obj->vertices->stride * compSize);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, obj->vertices->format >> 4, obj->vertices->format & 0xF);
     GXSetNumTexGens(1);
@@ -2778,8 +2763,8 @@ void fn_3_EE100(DKJungleDispObj* obj, Mtx view) {
 }
 
 // .text:0x000EE0BC size:0x44 mapped:0x8072D150
-int fn_3_EE0BC(u32 flags) {
-    switch ((flags >> 4) & 0xF) {
+int fn_3_EE0BC(u8 flags) {
+    switch ((u8)(flags >> 4)) {
     case 0:
     case 1:
         return 1;

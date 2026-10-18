@@ -72,16 +72,16 @@ typedef struct _SceneFx {
     /*0x41C*/ VecXYZ contactPos;
     /*0x428*/ VecXYZ ballScreenPos;
     /*0x434*/ VecXYZ hitScreenPos;
-    /*0x440*/ VecXYZ _440;
-    /*0x44C*/ VecXYZ _44C;
+    /*0x440*/ VecXYZ starEffectPos;
+    /*0x44C*/ VecXYZ starEffectPrevPos;
     /*0x458*/ u8 _458[0xC];
     /*0x464*/ s16 _464;
     /*0x466*/ u8 _466;
     /*0x467*/ s8 starHitLevel;
     /*0x468*/ u8 _468[0x8];
-    /*0x470*/ u8 _470;
+    /*0x470*/ u8 winnerSpotlightActive;
     /*0x471*/ u8 _471[0x1];
-    /*0x472*/ u8 _472[5];
+    /*0x472*/ u8 winnerSpotlightSlots[5]; // [0] = count, [1..4] = actor slots
     /*0x477*/ u8 _477[0x2];
     /*0x479*/ u8 paused;
     /*0x47A*/ u8 _47A[0x6];
@@ -161,7 +161,8 @@ typedef struct _SceneNode {
 
 
 // MWCC lays .bss statics out in reverse declaration order.
-static u8 lbl_3_bss_9CFE[0x22];
+static u8 lbl_3_bss_9D00[0x20];
+static s16 lbl_3_bss_9CFE;
 static s16 lbl_3_bss_9CFC;
 static VecXYZ lbl_3_bss_9CE4[2];
 static VecXYZ lbl_3_bss_9B34[2][18];
@@ -1274,7 +1275,7 @@ extern void ACTActorRelated(void* file, void* actor);
 extern void actRelated(void* file, void* effect);
 extern void actorRelated(void* effect, int a, int b);
 extern void fn_800245EC(camera_803c639c_s* cam, Mtx view, Vec* pos, f32* out, int a, int b);
-extern void fn_3_15FB84(int a, ...);
+extern void minigameWinnerSpotlight_queue(int a, ...);
 extern void fn_3_169150(void);
 extern BOOL marioHandOnFire_endFireAnimation(BOOL clear);
 extern void animatePitchersHandOnFire(void);
@@ -1291,7 +1292,7 @@ extern void DrawSprite_TexObj(void* vtx, void* texObj, s32 arg2);
 extern SceneUiHandle graphicsRelatedArray[];
 extern void load_Icon(void* scene, int handle, u32 part, u32 element, int frame);
 extern void fn_8003656C(void* scene, int handle, u32 part, u32 element, int frame);
-extern SceneAnimModel* fn_800111D8(SceneActor* actor);
+extern SceneAnimModel* getAnimObjectActor(SceneActor* actor);
 extern void spline3D_resample(Vec* out, Vec* points, int count, int outCount);
 
 void fn_3_C0810(void);
@@ -1351,7 +1352,7 @@ int fn_3_C0134(void) {
     if (i >= 13) {
         return 1;
     }
-    model = fn_800111D8(actor);
+    model = getAnimObjectActor(actor);
     state = lbl_3_bss_995C;
     switch (state) {
     case 0:
@@ -1914,7 +1915,7 @@ static inline SceneAnimModel* findActorModel(int charId) {
     for (i = 0; i < 9; i++) {
         actor = hugeAnimStruct.actors[i];
         if (actor != NULL && actor->charId == charId) {
-            model = fn_800111D8(actor);
+            model = getAnimObjectActor(actor);
             break;
         }
     }
@@ -2336,9 +2337,9 @@ void fn_3_BD6AC(BOOL isBatter, f32 x, f32 y, f32 z) {
     u8 type;
 
     fx->_466 = TRUE;
-    fx->_440.x = x;
-    fx->_440.y = y;
-    fx->_440.z = z;
+    fx->starEffectPos.x = x;
+    fx->starEffectPos.y = y;
+    fx->starEffectPos.z = z;
     fx->_464 = 0;
     if (isBatter) {
         type = g_Ball.currentStarSwing;
@@ -2364,10 +2365,10 @@ void animationRelated(f32 x, f32 y, f32 z, BOOL isBatter) {
     u8 type;
 
     if (lbl_80366158._28 == 0) {
-        memcpy(&lbl_3_common_bss_35154._44C, &lbl_3_common_bss_35154._440, sizeof(VecXYZ));
-        lbl_3_common_bss_35154._440.x = x;
-        lbl_3_common_bss_35154._440.y = y;
-        lbl_3_common_bss_35154._440.z = z;
+        memcpy(&lbl_3_common_bss_35154.starEffectPrevPos, &lbl_3_common_bss_35154.starEffectPos, sizeof(VecXYZ));
+        lbl_3_common_bss_35154.starEffectPos.x = x;
+        lbl_3_common_bss_35154.starEffectPos.y = y;
+        lbl_3_common_bss_35154.starEffectPos.z = z;
     }
     if (lbl_3_common_bss_35154._466 != 0) {
         if (isBatter) {
@@ -2885,8 +2886,8 @@ void spriteAnimations(void) {
             actor->_279 |= (flags == 2) << 1;
         }
     }
-    if (lbl_3_common_bss_35154._470 != 0) {
-        fn_3_15FB84(lbl_3_common_bss_35154._472[0], lbl_3_common_bss_35154._472[1], lbl_3_common_bss_35154._472[2], lbl_3_common_bss_35154._472[3], lbl_3_common_bss_35154._472[4]);
+    if (lbl_3_common_bss_35154.winnerSpotlightActive != 0) {
+        minigameWinnerSpotlight_queue(lbl_3_common_bss_35154.winnerSpotlightSlots[0], lbl_3_common_bss_35154.winnerSpotlightSlots[1], lbl_3_common_bss_35154.winnerSpotlightSlots[2], lbl_3_common_bss_35154.winnerSpotlightSlots[3], lbl_3_common_bss_35154.winnerSpotlightSlots[4]);
     }
     fn_3_169150();
     fn_8006C43C((void*)fn_3_168CD8);
@@ -2988,51 +2989,12 @@ int fn_3_BA7F4(SceneEffect* effect) {
     Vec dir;
     SceneParticle* p;
     SceneParticle* head;
-    SceneSortEntry* sorted;
-    SceneSortEntry* e;
-    int count;
     f32 angle;
     f32 delta;
-    f32 rad;
-    f32 s;
-    f32 c;
 
-    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(0);
-    GXSetNumTevStages(1);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_RASC);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    fn_3_BA3EC();
 
-    head = effect->head;
-    count = effect->count;
-    sorted = _OSAllocFromHeap(0x20, count * 8);
-    e = sorted;
-    for (; head != NULL; head = head->next) {
-        e->p = head;
-        e->depth = head->size;
-        e++;
-    }
-    fn_800246D4(fn_3_BA174, sorted, sorted, 8, count);
-    head = sorted[0].p;
-    e = sorted;
-    while (--count != 0) {
-        e->p->next = e[1].p;
-        e++;
-    }
-    e->p->next = NULL;
-    fn_800ACFB0(sorted);
+    head = fn_3_BA1A0(effect->head, effect->count);
     effect->head = head;
 
     p = head;
@@ -3057,12 +3019,7 @@ int fn_3_BA7F4(SceneEffect* effect) {
                 } else {
                     angle = angle + delta;
                 }
-                rad = 0.017453292f * angle;
-                s = SINF(rad);
-                c = COSF(rad);
-                p->velX = s * (f32)lbl_3_data_170D8[1] / 100000.0f;
-                p->velY = c * (f32)lbl_3_data_170D8[1] / 100000.0f;
-                p->velZ = 0.0f;
+                fn_3_BB07C(p, angle);
             }
             if (p->y > 1.0f) {
                 fn_3_BB15C(p);
@@ -3073,27 +3030,7 @@ int fn_3_BA7F4(SceneEffect* effect) {
         p = p->next;
     } while (p != NULL);
 
-    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXLoadPosMtxImm(fn_80052768_getCamera(0)->view, 0);
-    GXSetCurrentMtx(0);
-    GXSetProjection(fn_80052768_getCamera(0)->proj, GX_PERSPECTIVE);
+    fn_3_BA268();
     return 0;
 }
 
