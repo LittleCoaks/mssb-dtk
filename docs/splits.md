@@ -76,6 +76,7 @@ Done so far with this method:
 | `rep_1BC8` | `0xB3B70-0xB5E7C` | two TUs: `practice/practice_simulation.c` (`0xB3B70-0xB49D4`, `.rodata`, `.data 0x10A08-0x10A30`) and `practice/practice_menu.c` (`0xB49D4-0xB5E7C`, `.data 0x10A30-0x10A90`). The `.data` shows it: tables are 0x24 | 4-byte pad | 0x1C, 0x20, 0x24, and the pad is exactly the linker's 8-byte alignment of a one-table unit (cf. `ball_physics`, `loading_state`). Compiling the two halves separately gives `.data` 0x24 and 0x60 and 100% `.data` in both. The boundary between the two jump-table functions is `practiceSimulation` (last of the first) / `practiceRelatedMenu` (first table of the second); `fn_3_B49D4`, the char-select cursor helper called only by `practiceRelatedMenu`, was put with the menu. |
 | `rep_1C18` | `0xB5E7C-0xB707C` | `practice/pitching_practice.c` (owns the jump table at `.data 0x10A90`; boundary after `practiceMenu`, where the pitching-practice state references begin) |
 | `rep_3A98` | `0x15AD94-0x15B79C` | `practice/free_fielding_practice.c`, split off the tail of `practice_scene.c` (owns the three jump tables at `.data 0x26F00-0x26F78`) |
+| `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` | `0x59918-0x60768` | `match_setup/match_loading.c`, `match_main.c`, `match_end.c`, `match_flow.c`: the old `match_flow.c` was three TUs (see [the 2026-10-18 section](#the-match-units-between-fielderc-and-animation_dispatchc-2026-10-18)) |
 
 By rule 2, gap `0x20A60-0x20CEC` was folded into `batting/batter_ai.c`,
 since it shares batter_ai's pooled constants at `.rodata` 0x930-0x93C.
@@ -248,25 +249,90 @@ and every unit with `.rodata` has exactly one. So `fielder.c` (214 KB),
 original TU, and the theme-based splits proposed for them were not made: the pause UI half of `match_scene.c`
 (`0x978DC-0x993A8`), the home-run celebrations in `versus_screens.c`
 (`0x23890-0x24598`), scout flags out of `star_missions.c` (from `0x163948`).
-Thirteen code units have no table and no `.rodata` at all, and use no float
+Eleven code units have no table and no `.rodata` at all, and use no float
 constants, so the test cannot place them: `at_bat_results`, `at_bat_setup`,
-`character_loading`, `match_flow`, `match_loading`, `match_transitions`,
+`character_loading`, `match_transitions`,
 `scene_skip`, `pitcher_stamina`, `replay_state`, `result_stats`,
 `run_scoring`, `stat_lookups`, `stat_tracking`. Each is either a TU that never
 included the shared header or the tail of its link-order predecessor; all
 were cut from unowned gaps.
+(`match_loading` and
+`match_flow` were on this list until 2026-10-18, when they took the last four
+header-only tables; see below.)
 `kinoko_startPulseGlow` is declared `(s8 charID, u8 alt)` in `star_dash.c` but defined
 `(void* model, u8 alt)` in `kinoko.c`; the first argument is really a player ID.
-
-Still open, as of 2026-10-08:
-
-| header-only unit(s) | `.text` window | contents |
-|---|---|---|
-| `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` | `0x5985C` gap (2 fns) plus, by position, part of `fielding/fielder.c` | 4 TUs sit between fielder.c's rodata and match_loading's, so `fielder.c`'s 214 KB `.text` range probably spans several original TUs |
 
 Where several header-only units share one window, split the window at
 function boundaries so that each TU's functions stay contiguous; the call
 graph and function names usually show where the themes change.
+
+Nothing is open any more: the last four header-only units were paired on
+2026-10-18 (next section).
+
+### The match units between `fielder.c` and `animation_dispatch.c` (2026-10-18)
+
+The 2026-10-08 table guessed that `rep_CC8`, `rep_D18`, `rep_D68` and `rep_DB8`
+(`.rodata 0xCC8-0xE08`) held part of `fielder.c`, so that its 214 KB `.text` would be
+several TUs. It is not:
+
+- **`fielder.c` is one TU, up to `0x59918`.** Its `.rodata 0xAC8-0xCC8` holds one table
+  (at `0xAC8`) and a float pool that runs right up to `0xCC4`. The last pool user is
+  `initFielders` (`0x596F8`); `initializeFielderConstants` reads `0xCC4`. The two
+  functions after it belong to fielder by other evidence: `ifCurrentFielderIsTakingOverBaseCovering`
+  (`0x5985C`) reads `autoMovementFunctions`, the first object of fielder's `.data`
+  and used by no other unit, and `fielderMainFunction` (`0x598D0`) uses no constants
+  and only calls fielder functions. (It does not read fielder's `.rodata`.) So no
+  other TU's code is in fielder's range.
+- **The four tables belong to the code after it:** `match_loading.c` (`0x59918`) and
+  the old `match_flow.c` (`0x5A684-0x60768`), which had no `.rodata`, include the
+  header like almost every unit, and come next in link order (`.data`: fielder
+  `0x3C40`, match_loading `0x3D60`, `data_428C` `0x4290`, match_flow `0x6510`,
+  animation_dispatch `0x65F0`).
+- **`match_flow.c` was three TUs.** *(a)* In the whole game REL, no leaf function of 40
+  instructions or less is called with `bl` from its own unit (MWCC's
+  `-inline deferred` inlines them), except `resetCount` (7 instructions) and
+  `SetGameStatus` (10) in `match_flow`, which needed `#pragma dont_inline` scaffolding.
+  (The only other case is fielder's one-instruction `updateFielderValuesSubFunction3_empty`.)
+  Their callers (`matchEndGameScreenFunction`, `inningChange`, `switchHalfInning`,
+  `initNewInning`, `exhibitionGameTransitionCalculations`, ...) are therefore in another TU.
+  *(b)* Inlined copies tie functions together: `configureTeamsForGame_Unused` (`0x5A6A0`)
+  is inlined into `gameInitRelated` (`0x5A87C`), so the first TU runs at least to `0x5ACA0`.
+  `fn_3_5B220` and `fn_3_5B41C` are inlined into `matchEndGameScreenFunction`
+  (`0x5BD40`), so its TU starts at `0x5B220` or earlier. `fn_3_5C418` is inlined into
+  `baseballMatchSimulation`, and so are `settingGameStatus`, `fn_3_5D9F8`,
+  `freePracticeSomething` and `fn_3_5FE88`, so `0x5C418-0x60768` is one TU. *(c)* That
+  makes four TUs with four tables. `data_428C.c` gets none, like the other two
+  shared-table blobs `data_1880.c` and `data_69C0.c`: every table in their stretches
+  of `.rodata` belongs to a code unit. *(d)* The `.data` is consistent. A unit's
+  data objects always come before its jump tables (true in all 19 game units that have
+  both), so `data_428C` (`0x4290`) cannot be `match_loading`'s. The new
+  `match_end`/`match_flow` boundary `0x6540` is 8-aligned. `jumptable_3_data_6510` is one
+  12-entry table (`cmplwi r6, 0xb`), so its size was fixed to 0x30 (dtk had cut it into
+  `0xC` plus a `gap_04_0000651C_data`, which scored `.data` 40% once it was in its own unit).
+
+| unit | `.text` | `.rodata` | `.data` | evidence / confidence |
+|---|---|---|---|---|
+| `match_setup/match_loading.c` (+`rep_CC8`) | `0x59918-0x5A684` | `0xCC8-0xD18` | `0x3D60-0x4290` | next TU after fielder in every section; high |
+| `data_only/data_428C.c` (unchanged) | — | — | `0x4290-0x6510` | no table (see (c)); medium |
+| `match_setup/match_main.c` (+`rep_D18`) | `0x5A684-0x5B220` | `0xD18-0xD68` | — | (a), (b): high that it is its own TU; the end could be anywhere in `0x5ACA0-0x5B220` (call chain `gameSimulationFunction` -> `simulate1FrameOfTheGame` -> `exitToMenuControl` and `fn_3_5AE0C` -> `gameInitRelated` keeps the whole top level together); medium |
+| `match_setup/match_end.c` (+`rep_D68`) | `0x5B220-0x5C418` | `0xD68-0xDB8` | `0x6510-0x6540` | (a), (b) fix it as separate from `match_main`; its separation from `match_flow` rests on the table count (c) and the theme change; medium |
+| `match_setup/match_flow.c` (+`rep_DB8`) | `0x5C418-0x60768` | `0xDB8-0xE08` | `0x6540-0x65EC` | (b); high |
+
+`match_main.c` is 100% and `Matching`; the `dont_inline` pragmas are gone (nothing in
+it calls `SetGameStatus` or `resetCount`). Every moved function kept its score.
+
+Left open:
+
+- **The alternative count.** If `data_428C` did carry a table, `match_end` and
+  `match_flow` would be one TU (nothing inlines across `0x5C418`, and neither half calls
+  a small function of the other). The table rule (c) is the only argument against that.
+- **Who owns `data_428C`.** It may be `match_main`'s `.data`: that unit has none, and in
+  link order its `.data` would sit exactly at `0x4290`. Or the match-end tail may be
+  `match_end`'s own data: `CommonUIFiles_matchEnd` (`0x6130`, 8-aligned) is used only by
+  `matchEndGameScreenFunction`, much as `match_loading` owns `CommonUIFiles_inGame`, and
+  `lbl_3_data_5FF4`/`6074` only by `startChallengeModeMatch`. But all of these are globals
+  read by symbol (no pooled base), the rest of the tail (`starPowerCosts`, `0x60F8`, `0x610C`)
+  is read by other units, and `0x5FF4` cannot start a unit. So `data_428C` stays one data-only unit.
 
 ## Main DOL: the Challenge translation unit (2026-10-12)
 

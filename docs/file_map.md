@@ -129,11 +129,13 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 39 (19) | 22,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 16 files, 139 fns (92 named)
+## match_setup/ — 18 files, 139 fns (92 named)
 
 The glue that stands a match up and tears it down — loading and transition state,
 controller input, the versus/championship/home-run screens and pause entry — plus the
-match state machine (`match_flow.c`). Replay, stat bookkeeping and challenge-mode units
+match top level, end-of-game screen and state machine (`match_main.c`, `match_end.c`,
+`match_flow.c`; one original unit each, see
+[the 2026-10-18 re-split](splits.md#the-match-units-between-fielderc-and-animation_dispatchc-2026-10-18)). Replay, stat bookkeeping and challenge-mode units
 moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 
 | file | was | fns (named) | bytes | purpose | conf |
@@ -144,8 +146,10 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | `controller_input.c` | `rep_10E8` | 3 (3) | 2,012 | Controller input reading and magnitude interpretation; `resetInputTrackers`. | high |
 | `game_rel_entry.c` | `rep_0` | 0 (0) | — | REL `_prolog`/`_epilog`; a leftover debug mode/stadium picker (`fn_3_258`, whose data still lists Japanese NPB stadium names) and the roster ARAM load (`maybeProcessTeamData`). | med |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
-| `match_flow.c` | `auto_00_0005985C` | 47 (37) | 24,804 | The match state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, end-of-game and challenge-mode flow. | high |
-| `match_loading.c` | `auto_00_0005985C` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
+| `match_end.c` | `match_flow.c` `0x5B220-0x5C418` + `rep_D68` | 8 (4) | 4,600 | End-of-game screen (`matchEndGameScreenFunction`, `endOfGame_menuControl`), the shared exit-menu helpers used by the pause, practice and minigame menus (`exitMenu_main`, `fn_3_5B220`/`5B368`/`5B408`), challenge coin award (`fn_3_5B41C`) and `startChallengeModeMatch`. Owns the 12-entry jump table at `.data 0x6510`. | med |
+| `match_flow.c` | `auto_00_0005985C` (`0x5C418-0x60768`) + `rep_DB8` | 30 (26) | 17,232 | The in-play state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, `endOfMatch`, `initializeGame`. | high |
+| `match_loading.c` | `auto_00_0005985C` + `rep_CC8` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
+| `match_main.c` | `match_flow.c` `0x5A684-0x5B220` + `rep_D18` | 9 (8) | 2,972 | Match top level: `gameSimulationFunction` -> `simulate1FrameOfTheGame` -> `exitToMenuControl`, `gameInitRelated`, `transferSomeValuesOnMatchLoad`, and the tiny `SetGameStatus`/`resetCount`/`configureTeamsForGame_Unused` used across the REL. `Matching`. | med |
 | `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (14) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
 | `match_transitions.c` | gap `0x6B4C8` | 6 (5) | 2,524 | Transition loaders used by `match_flow`/`versus_screens` (`loadMVPMaybe`, `loadRunnerActors`, `championshipScreenGraphics`) and `animateShadows_nonBall`. | med |
 | `pause_menu.c` | `rep_1A80` | ? | ? | Pause entry and teardown: `match_checkForPause`, `transitionToPauseScreen`, `loadPauseMenu`. | high |
@@ -253,29 +257,29 @@ guided instructions and pause handling, and the scene/HUD code.
 | `practice_simulation.c` | `rep_1BC8` (first half) + unassigned `.text` | 12 (11) | 3,684 | Practice per-frame simulation dispatcher, practice screen load, roster/character loading, state-transition helpers. Owns `rep_1BC8`'s `.rodata` and the jump table at `.data 0x10A08` (plus the 4-byte linker pad). | med |
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
-## data_only/ — 10 files, 11 fns (0 named)
+## data_only/ — 6 files, 11 fns (0 named)
 
 These kept their original names, so there is nothing to look up. The
 exceptions are `data_1880.c`, `data_428C.c` and `data_69C0.c`,
 data-only units added for shared `.data` tables with no code owner and named
 by address (see [Unowned game REL `.data`](splits.md#unowned-game-rel-data-2026-10-08)).
 
-As of 2026-10-08, `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
-**no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
-(`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
-axis-direction table) that a shared header emits into all 92 units. Each of
-these is an original TU whose code is still an un-split `.text` gap at the
-same position: see [Game REL: pairing header-only units with un-split
+The 80 bytes at the head of almost every unit's `.rodata` are `repHeaderData`, a
+20-float table (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a
+trig-quadrant / axis-direction table) that a shared header emits into all 92 units
+that include it. A unit that owned only that table was an original TU whose code was
+still an un-split `.text` gap: see [Game REL: pairing header-only units with un-split
 `.text` gaps](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
-`rep_3BD8`, `rep_1720` and `rep_1668` were paired this way and moved out of
-this folder (`stat_book.c`, `match_scene.c`, `toyfield_score_update.c`).
-The latest main also pairs `rep_1A80`, `rep_1AD0`, `rep_1B20`, and `rep_31A0`
-with `pause_menu.c`, `practice_modes.c`, `guided_practice.c`, and
-`minigame_framework.c`. `rep_3A48` is now `practice_scene.c`, `rep_3A98`
+Every such unit has now been paired and moved out of this folder; the last four
+(`rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8`) became the tables of `match_loading.c`,
+`match_main.c`, `match_end.c` and `match_flow.c` on 2026-10-18. Earlier pairings:
+`rep_3BD8` `stat_book.c`, `rep_1720` `match_scene.c`, `rep_1668`
+`toyfield_score_update.c`, `rep_1A80` `pause_menu.c`, `rep_1AD0`
+`batting_fielding_practice.c`, `rep_1B20` `guided_practice.c`, `rep_31A0`
+`minigame_framework.c`, `rep_3A48` `practice_scene.c`, `rep_3A98`
 `free_fielding_practice.c`, `rep_1BC8` `practice_menu.c`, `rep_1C18`
 `pitching_practice.c`, `rep_1C68` `baserunning_practice.c`, `rep_9B0`
-`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`. `practice_modes.c`
-is now `batting_fielding_practice.c`.
+`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`.
 
 Plus `rep_3B70`, `rep_3CE0` and `rep_3E00`, which hold a few reconstructed
 functions each but whose purpose is not yet clear enough for a name or a
@@ -291,15 +295,11 @@ not a shared gameplay purpose.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `data_1880.c` | — | 0 (0) | — | Pitcher and batter AI probability tables and constants (`0x1880-0x1D28`). The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | inferred |
-| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). | inferred |
+| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `data_1880.c` and `data_69C0.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
 | `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
 | `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
 | `rep_3CE0.c` | *(unchanged)* | 7 (0) | 3,332 | Fade plus four actor markers sized by character; called from `scene_effects.c` and `minigame_fielder_anim.c`. | inferred |
 | `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |
-| `rep_CC8.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
-| `rep_D18.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
-| `rep_D68.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
-| `rep_DB8.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
 
 ## src/menus — the menu REL
 
