@@ -865,7 +865,7 @@ config.libs = [
             Object(NonMatching, "game/ball/ball_physics.c"),
             Object(NonMatching, "game/batting/batter.c"),
             Object(NonMatching, "game/camera/camera.c"),
-            Object(Matching, "game/data_only/data_1880.c"),
+            Object(Matching, "game/match_setup/ai_tables.c"),
             Object(Matching, "game/pitching/pitcher_stamina.c"),
             Object(Matching, "game/match_setup/ai_defaults.c"),
             Object(Matching, "game/match_setup/at_bat_setup.c"),

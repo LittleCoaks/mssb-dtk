@@ -1,3 +1,10 @@
+// AI probability tables and constants (.data 0x1880-0x1D28): pitcher AI first
+// (invertAILevels .. lbl_3_data_1934), then batter AI, aiDashProbabilities
+// (ai_defaults), fielder AI, runner and batter-steal tables. Every user
+// (batter_ai, pitcher_ai, fielder, fielder_ai, runner, ai_defaults) reaches
+// these by symbol, with no pooled base, and the pitcher tables precede the
+// batter tables although batter_ai links first, so this is a standalone
+// data-only TU rather than any code unit's own .data.
 #include "game/UnknownHomes_Game.h"
 
 u8 invertAILevels[8] = {3, 2, 1, 0, 0, 0, 0, 0};

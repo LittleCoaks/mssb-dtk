@@ -48,7 +48,7 @@ game/camera/camera.c:
 	.data       start:0x00000A38 end:0x00001880
 	.bss        start:0x00000040 end:0x00000098
 
-game/data_only/data_1880.c:
+game/match_setup/ai_tables.c:
 	.data       start:0x00001880 end:0x00001D28
 
 game/pitching/pitcher_stamina.c:

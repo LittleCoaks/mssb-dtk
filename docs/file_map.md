@@ -141,6 +141,7 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `ai_defaults.c` | `rep_868` | 1 (1) | 668 | `setDefaultAIValues`. | high |
+| `ai_tables.c` | `data_only/data_1880.c` | 0 (0) | — | Data-only TU: the AI probability tables and constants (`.data 0x1880-0x1D28`): pitcher AI (`invertAILevels`, `chargePitchProb`, `perfectPitchProb`, `changeUpProb`, `pickOffProb`, ...), then batter AI, `aiDashProbabilities`, fielder-AI, runner and batter-steal tables. Users (`batter_ai`, `pitcher_ai`, `fielder`, `fielder_ai`, `runner`, `ai_defaults`) all reach it by symbol; the pitcher tables come before the batter tables although `batter_ai.c` links first, so it is not any code unit's own `.data`. The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | med |
 | `at_bat_setup.c` | `auto_00_0001E154` | 3 (3) | 664 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`. | med |
 | `character_loading.c` | gap `0x90754` | 17 (1) | 2,464 | Match-load step functions for character models and animation files, called from `match_loading.c`. | med |
 | `controller_input.c` | `rep_10E8` | 3 (3) | 2,012 | Controller input reading and magnitude interpretation; `resetInputTrackers`. | high |
@@ -294,7 +295,6 @@ not a shared gameplay purpose.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `data_1880.c` | — | 0 (0) | — | Pitcher and batter AI probability tables and constants (`0x1880-0x1D28`). The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | inferred |
 | `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `data_1880.c` and `data_69C0.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
 | `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
 | `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
