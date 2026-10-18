@@ -259,6 +259,7 @@ guided instructions and pause handling, and the scene/HUD code.
 | `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
 | `practice_menu.c` | `rep_1BC8` (second half) + unassigned `.text` | 9 (8) | 5,288 | Practice main/sub menu state handling, character-select menu and its cursor update, menu screen switching. Owns the three jump tables at `.data 0x10A30-0x10A90`. | med |
 | `practice_simulation.c` | `rep_1BC8` (first half) + unassigned `.text` | 12 (11) | 3,684 | Practice per-frame simulation dispatcher, practice screen load, roster/character loading, state-transition helpers. Owns `rep_1BC8`'s `.rodata` and the jump table at `.data 0x10A08` (plus the 4-byte linker pad). | med |
+| `practice_model_load.c` | `data_only/rep_3E00` | 2 (2) | 616 | Practice-mode model load: `practiceModel_loadStep` (polled by the practice loading flow `fn_3_59C2C` in `match_loading.c`, which `match_main.c` installs only for `GAME_TYPE_PRACTICE`) ARAM-loads one packed file (actor layout, geometry, texture, animation) and `practiceModel_setup` unpacks it into a one-actor `hugeAnimStruct` model table. Which model it is has not been identified. | inferred |
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
 ## data_only/ — 6 files, 11 fns (0 named)
@@ -299,7 +300,6 @@ not a shared gameplay purpose.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `data_1880.c` and `data_69C0.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
-| `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |
 
 ## src/menus — the menu REL
 

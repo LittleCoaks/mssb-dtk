@@ -59,7 +59,7 @@ extern void practice_loadCharacterData(void);
 extern void fn_8001A3FC(int);
 extern void fn_80019A60(void);
 extern void fn_8001A25C(void);
-extern int fn_3_1665E4(void);
+extern int practiceModel_loadStep(void);
 extern void loadSomeDataFile(void);
 extern void someAllocFunction(void);
 extern int maybeLoadHUDObjectFromMemory(void);
@@ -452,7 +452,7 @@ void fn_3_59C2C(void) {
         }
         break;
     case 14:
-        if (fn_3_1665E4()) {
+        if (practiceModel_loadStep()) {
             g_UnkSimulation_31AC0.step++;
         }
         break;

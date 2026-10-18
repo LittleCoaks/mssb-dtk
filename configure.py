@@ -958,7 +958,7 @@ config.libs = [
             Object(NonMatching, "game/minigame/minigame_winner_spotlight.c"),
             Object(Matching, "game/batting/star_swing_wario_waluigi.c"),
             Object(NonMatching, "game/challenge/star_missions.c"),
-            Object(NonMatching, "game/data_only/rep_3E00.c"),
+            Object(NonMatching, "game/practice/practice_model_load.c"),
             Object(NonMatching, "game/animation/star_sparks.c"),
             Object(Matching, "game/animation/actor_transform.c"),
             Object(NonMatching, "game/minigame/kinoko.c"),

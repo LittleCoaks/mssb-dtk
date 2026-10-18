@@ -1,5 +1,5 @@
-#define REP_HEADER_DATA_FN getRepHeaderData_rep_3E00
-#include "game/data_only/rep_3E00.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_practiceModelLoad
+#include "game/practice/practice_model_load.h"
 #include "header_rep_data.h"
 #include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
@@ -9,6 +9,14 @@
 #include "Unknown/File_0x80025ddc.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "Dolphin/stl.h"
+#include "game/match_setup/match_loading.h"
+
+// Practice-mode model load. The practice loading flow in match_loading.c
+// (fn_3_59C2C, installed by match_main only for GAME_TYPE_PRACTICE) polls
+// practiceModel_loadStep until it returns TRUE: it ARAM-loads one packed file
+// (actor layout, geometry, texture and an animation), and practiceModel_setup
+// unpacks it into a one-actor hugeAnimStruct model table. Which model this is
+// has not been identified; the names are inferred from the caller.
 
 typedef struct {
     u8 _00[0x68];
@@ -20,7 +28,7 @@ typedef struct {
     void* files[3]; /* actor layout, geometry, texture */
     u8 _2DAC[0x3078 - 0x2DAC];
     u16 actorCount;
-} Rep3E00AnimView;
+} PracticeModelAnimView;
 
 typedef struct {
     void* animation;
@@ -31,25 +39,27 @@ typedef struct {
     u16 active;
     u8 _20[0xD8 - 0x20];
     u8 loadStep;
-} Rep3E00Effect;
+} PracticeModelEffect;
 
-extern Rep3E00AnimView hugeAnimStruct;
-extern Rep3E00Effect animRelated;
+extern PracticeModelAnimView hugeAnimStruct;
+extern PracticeModelEffect animRelated;
 extern void convertGeometryAndSknHeader(void*, void*);
 extern void convertTextureHeader(void*);
 extern void UpdateTexturePalettePointers(void*, void*);
 extern void* _OSAllocFromHeap(s32, s32);
 extern void mm_LoadModelAsset(s32, s32, s32, s32, s32);
 static const f32 lbl_3_rodata_3E50 = 0.5f;
-static u32 lbl_3_data_284E8[8] = {
-    0x00000000, 0x00003C98, 0x08F21000, 0x00003C98, 0x0000040B, 0x4000EBBC, 0x08F25000, 0x00009570,
+// ARAM file descriptors; only [1] (the packed model file) is loaded.
+static MatchFileDescriptor practiceModelFiles[2] = {
+    { 0x00000000, 0x00003C98, 0x08F21000, 0x00003C98 },
+    { 0x0000040B, 0x4000EBBC, 0x08F25000, 0x00009570 },
 };
 
 // .text:0x001665E4 size:0xCC
-int fn_3_1665E4(void) {
+int practiceModel_loadStep(void) {
     switch (animRelated.loadStep) {
     case 0:
-        hugeAnimStruct.packedFile = ARAMTransfer(&lbl_3_data_284E8[4], 0, 0, 0);
+        hugeAnimStruct.packedFile = ARAMTransfer(&practiceModelFiles[1], 0, 0, 0);
         animRelated.loadStep++;
         break;
     case 1:
@@ -58,7 +68,7 @@ int fn_3_1665E4(void) {
         }
         break;
     case 2:
-        fn_3_166448();
+        practiceModel_setup();
         animRelated.loadStep++;
         break;
     default:
@@ -67,15 +77,15 @@ int fn_3_1665E4(void) {
     return FALSE;
 }
 
-static void setEffectAnim(Rep3E00Effect* effect, u32* packed, u32* offsets) {
+static void setEffectAnim(PracticeModelEffect* effect, u32* packed, u32* offsets) {
     effect->animation = (u8*)packed + offsets[0];
     effect->animationData = (u8*)packed + offsets[1];
 }
 
 #pragma dont_inline on
 // .text:0x00166448 size:0x19C mapped:0x807A54DC
-void fn_3_166448(void) {
-    Rep3E00Effect* effect = &animRelated;
+void practiceModel_setup(void) {
+    PracticeModelEffect* effect = &animRelated;
     u32* packed = hugeAnimStruct.packedFile;
     void* layout;
     void* geometry;
