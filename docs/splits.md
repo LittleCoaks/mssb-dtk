@@ -109,7 +109,7 @@ Later on 2026-10-08:
 - Gap `0x167CC4-0x168414` (`fieldingRelatedAnimations` and helpers) joined
   `animation/magikoopa_star_anim.c` for the same data-contiguity reason
   (`.data 0x28508-0x285A8`). `fn_3_1665E4` (`0x1665E4-0x1666B0`) joined
-  `data_only/rep_3E00.c` with `.data 0x284E8-0x28508`.
+  `data_only/rep_3E00.c` (now `practice/practice_model_load.c`) with `.data 0x284E8-0x28508`.
 - Small gaps folded into the unit before them: `0xFF4C` -> `ball_physics.c`,
   `0x8B094` -> `m_sound.c`, `0xBA150` -> `scene_effects.c`; `0x6F4E8` into
   `pitcher.c` as its start.
@@ -129,7 +129,7 @@ Data sections link in splits.txt order, so an unowned `.data` block belongs to
 a unit that sits between its neighbours in link order. Blocks used by exactly
 one unit went to that unit: `0x118-0x1D0` -> `rep_0.c`, `0x273DC-0x27C98` ->
 `stat_book.c`, `0x281F0-0x28418` -> `rep_3D50.c`, `0x17898-0x17B98` ->
-`rep_21F8.c` (one 0x300-byte `lbl_3_data_17898`; the seven sub-symbols were
+`rep_21F8.c` (now `animation/keyframed_sprite_effect.c`; one 0x300-byte `lbl_3_data_17898`; the seven sub-symbols were
 merged because `fn_3_C937C`'s codegen depends on the full size),
 `0x2A448-0x2A4A8` -> `rep_4138.c`, `0x10AB0-0x111A8` (per-stadium tables) ->
 `stadium_framework.c`, `0xF4A4-0xF4E0` -> `hud_gauges.c`, and `.bss
@@ -138,12 +138,13 @@ merged because `fn_3_C937C`'s codegen depends on the full size),
 Four large shared tables have no code unit between their link-order
 neighbours, so each became a data-only unit (two were later found to be code
 units' `.data`; see the 2026-10-15 entry below), named by
-address: `data_only/data_1880.c` (pitcher/batter AI tables, after `camera.c`),
+address: `data_only/data_1880.c` (pitcher/batter AI tables, after `camera.c`; now
+`match_setup/ai_tables.c`),
 `data_428C.c` (field coordinates, hit and fielding constants, after
 `match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
 tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
 cannot start a unit, since MWCC 8-aligns every unit's `.data`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
-after `ball_visuals.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`; now
+after `ball_visuals.c`; now `match_setup/character_constants.c`), `data_8D88.c` (HUD layouts, after `m_sound.c`; now
 part of `hud_scoreboard.c`).
 All are 100%.
 
@@ -166,7 +167,8 @@ function.
   `0x3A40` is its `.data`. The 0x37AC/0x3888/0x3964 tables are 0xDC `s32[55]`
   like 0x3A40. `animation_init.c` and `camera_script.c` reach
   `lbl_3_data_1D28`, `lbl_3_data_1F40`, `vsSituations` and 0x37AC-0x3964 by
-  symbol, so those stay global. `0x1880-0x1D28` stays in `data_1880.c`: it is
+  symbol, so those stay global. `0x1880-0x1D28` stays in `data_1880.c` (now
+  `match_setup/ai_tables.c`): it is
   referenced only by symbol (no pooled base), from `pitcher_ai.c`
   (`0x1880-0x1934`), `batter_ai.c` and `ai_defaults.c` (`0x193C-0x1D10`). The
   pitcher tables come before the batter tables although `batter_ai.c` links
@@ -239,6 +241,12 @@ Units renamed or re-foldered (link order unchanged):
 | `match_setup/replay_inputs.c`, `replay_state.c` | `replay/` |
 | `match_setup/stat_tracking.c`, `stat_book.c`, `result_stats.c`, `stat_lookups.c`, `run_scoring.c` | `stats/` |
 | `match_setup/star_missions.c` | `challenge/star_missions.c` |
+| `data_only/data_1880.c` | `match_setup/ai_tables.c` (2026-10-18) |
+| `data_only/data_69C0.c` | `match_setup/character_constants.c` (2026-10-18) |
+| `data_only/rep_3B70.c` | `batting/star_effect_glow.c` (2026-10-18) |
+| `data_only/rep_3CE0.c` | `minigame/minigame_winner_spotlight.c` (2026-10-18) |
+| `data_only/rep_3E00.c` | `practice/practice_model_load.c` (2026-10-18) |
+| `hud/rep_21F8.c` | `animation/keyframed_sprite_effect.c` (2026-10-18) |
 
 Kept on purpose: `kinoko.c`, `m_sound.c` and `sta_c0/2/4/5/6.c` are original
 filenames (their `OSPanic` `__FILE__` strings are in the binary).
@@ -302,7 +310,7 @@ several TUs. It is not:
   `baseballMatchSimulation`, and so are `settingGameStatus`, `fn_3_5D9F8`,
   `freePracticeSomething` and `fn_3_5FE88`, so `0x5C418-0x60768` is one TU. *(c)* That
   makes four TUs with four tables. `data_428C.c` gets none, like the other two
-  shared-table blobs `data_1880.c` and `data_69C0.c`: every table in their stretches
+  shared-table blobs `ai_tables.c` and `character_constants.c` (then `data_1880.c` and `data_69C0.c`): every table in their stretches
   of `.rodata` belongs to a code unit. *(d)* The `.data` is consistent. A unit's
   data objects always come before its jump tables (true in all 19 game units that have
   both), so `data_428C` (`0x4290`) cannot be `match_loading`'s. The new

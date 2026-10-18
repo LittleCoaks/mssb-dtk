@@ -27,9 +27,12 @@ Every row is tagged:
 | **med** | a minority named, but consistent and corroborated by the call graph |
 | **inferred** | no names at all; placement read off the call graph or section layout |
 
-Files at `high`/`med` confidence were given real names. **`inferred` files keep
-their original `rep_*` names** — the evidence supports a folder but not a name,
-and inventing one would bury a guess in something that reads like a fact.
+Files at `high`/`med` confidence were given real names. **`inferred` files
+either keep their original `rep_*` names or get a deliberately generic,
+descriptive one** (e.g. `star_effect_glow.c`, `practice_model_load.c`) that says
+what the code does without claiming specifics the evidence does not support;
+the `inferred` tag marks them, so a guess is never buried in something that
+reads like a fact.
 
 The **was** column carries each file's original split-tool name, so anything
 that still refers to a file as `rep_720` -- Ghidra, older commits, notes --
@@ -49,7 +52,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `collision_primitives.c` | `rep_D0` | 4 (4) | 2,960 | Bounding boxes, triangles, stadium hazards. | high |
 | `foul_detection.c` | `rep_1CB8` | 7 (7) | 1,348 | Foul determination and terrain/fielder catchability tests. | high |
 
-## batting/ — 8 files, 82 fns (57 named)
+## batting/ — 9 files, 84 fns (59 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -94,7 +97,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `camera.c` | `rep_720` | 76 (13) | 36,024 | All in-match camera work: live-ball tracking, replay cameras, fielder-action zoom, pause-menu angles, Bob-omb Derby camera. | high |
 | `camera_script.c` | `rep_3090` + gap `0xFBD58` (camera scene switching) | 56 (6) | 45,400 | Camera-script interpreter: per-scene camera scripts run as bytecode (`CamScript`/`CTX` state; some opcodes call `animation_init` setups and `scene_effects`), scene switching (`camera_switchScene`, `camera_replay`), filter steps, and the script heap and data-file load (`someAllocFunction`, `loadSomeDataFile`). Formerly misread as transform math. | med |
 
-## animation/ — 7 files, 128 fns (54 named)
+## animation/ — 8 files, 131 fns (57 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -107,7 +110,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `scene_effects.c` | `rep_1E08` | 57 (13) | 26,372 | Sprites, dust clouds, sun, fireworks, contact-word sprites, pause-state visuals. | med |
 | `star_sparks.c` | `rep_3E58` | 16 (3) | 7,524 | Star-spark particle effects over a shared template: `fieldingSpawnSpark`/`fieldingRelatedAnimations` (used by fielders and runners), star-swing transforms (`applyStarRelatedTransformations`), and the Magikoopa catch animation. | med |
 
-## hud/ — 6 files, 68 fns (33 named)
+## hud/ — 5 files, 66 fns (33 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -130,7 +133,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 39 (19) | 22,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 18 files, 139 fns (92 named)
+## match_setup/ — 19 files, 139 fns (92 named)
 
 The glue that stands a match up and tears it down — loading and transition state,
 controller input, the versus/championship/home-run screens and pause entry — plus the
@@ -223,7 +226,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `stadium_scoreboard_digits.c` | `rep_4138` | 9 (2) | 2,964 | In-stadium scoreboard digits: world-space quads for score, inning and ball/strike/out (`animateScoreBoard`); only Mario Stadium (`sta_c0`) calls it. | med |
 | `stadium_star.c` | `rep_23E8` | 3 (2) | 368 | The stadium star: `stadiumStarAwarded` (called by every hazard stadium — Wario Palace, Peach Garden, DK Jungle, Bowser Castle, Yoshi Park) spawns the star at the hit position, plays the star sound and gives the batting team a star (max 5); `stadiumStarAnimation` drifts and spins it for 80 frames. No filename string in the binary, so the name is descriptive. | high |
 
-## minigame/ — 14 files, 569 fns (303 named)
+## minigame/ — 15 files, 576 fns (310 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -243,7 +246,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `toy_field_hud.c` | `rep_2BF8` | 26 (7) | 20,112 | Toy Field off-screen character indicator. | high |
 | `wall_ball.c` | `rep_3290` | 29 (29) | 13,060 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
 
-## practice/ — 9 files, 103 fns (89 named)
+## practice/ — 10 files, 105 fns (91 named)
 
 Every practice function is now in a practice unit: menus, the three
 practice modes (batting/fielding, pitching, baserunning, free fielding),
@@ -262,12 +265,13 @@ guided instructions and pause handling, and the scene/HUD code.
 | `practice_model_load.c` | `data_only/rep_3E00` | 2 (2) | 616 | Practice-mode model load: `practiceModel_loadStep` (polled by the practice loading flow `fn_3_59C2C` in `match_loading.c`, which `match_main.c` installs only for `GAME_TYPE_PRACTICE`) ARAM-loads one packed file (actor layout, geometry, texture, animation) and `practiceModel_setup` unpacks it into a one-actor `hugeAnimStruct` model table. Which model it is has not been identified. | inferred |
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
-## data_only/ — 6 files, 11 fns (0 named)
+## data_only/ — 1 file, 0 fns
 
-These kept their original names, so there is nothing to look up. The
-exceptions are `data_1880.c`, `data_428C.c` and `data_69C0.c`,
-data-only units added for shared `.data` tables with no code owner and named
-by address (see [Unowned game REL `.data`](splits.md#unowned-game-rel-data-2026-10-08)).
+Only `data_428C.c` is left: a data-only unit added for shared `.data` tables
+with no code owner and named by address (see [Unowned game REL
+`.data`](splits.md#unowned-game-rel-data-2026-10-08)). Its two siblings were
+named on 2026-10-18: `data_1880.c` is now `match_setup/ai_tables.c` and
+`data_69C0.c` is `match_setup/character_constants.c` (both still data-only TUs).
 
 The 80 bytes at the head of almost every unit's `.rodata` are `repHeaderData`, a
 20-float table (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a
@@ -286,11 +290,13 @@ Every such unit has now been paired and moved out of this folder; the last four
 `pitching_practice.c`, `rep_1C68` `baserunning_practice.c`, `rep_9B0`
 `hud/runner_items.c` and `rep_A78` `animation/animation_init.c`.
 
-Plus `rep_3B70`, `rep_3CE0` and `rep_3E00`, which hold a few reconstructed
-functions each but whose purpose is not yet clear enough for a name or a
-subsystem folder. `rep_3C28`, `rep_3C80` and `rep_3D50` were identified and
-moved out on 2026-10-08 (`batting/star_swing_bowser.c`,
-`ball/ball_contact_burst.c`, `batting/star_swing_wario_waluigi.c`).
+The code units that used to sit here have all been named and moved out:
+`rep_3C28`, `rep_3C80` and `rep_3D50` on 2026-10-08
+(`batting/star_swing_bowser.c`, `ball/ball_contact_burst.c`,
+`batting/star_swing_wario_waluigi.c`), and on 2026-10-18 `rep_3B70` ->
+`batting/star_effect_glow.c`, `rep_3CE0` -> `minigame/minigame_winner_spotlight.c`
+and `rep_3E00` -> `practice/practice_model_load.c` (with `hud/rep_21F8` ->
+`animation/keyframed_sprite_effect.c` in the same pass).
 
 A header table alone does not prove that all of a unit's functions were inlined
 or dropped. The unassigned code and section ownership still need to be checked
@@ -299,7 +305,7 @@ not a shared gameplay purpose.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `data_1880.c` and `data_69C0.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
+| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `match_setup/ai_tables.c` and `match_setup/character_constants.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
 
 ## src/menus — the menu REL
 
