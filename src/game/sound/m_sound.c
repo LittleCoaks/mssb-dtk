@@ -15,7 +15,7 @@
 #include "Unknown/File_0x800a8cbc.h"
 #include "game/match_setup/pause_menu.h"
 
-extern void fn_3_8B094(void);
+extern void processSoundReplayQueue(void);
 
 #define SOUND_EMITTER_COUNT 100
 #define SOUND_EMITTER_TYPE_NONE 0xFF
@@ -87,7 +87,7 @@ static s32 lbl_3_bss_1774;
 static u8 lbl_3_bss_1771;
 static u8 lbl_3_bss_1770;
 static f32 lbl_3_bss_176C;
-static struct SoundReplayQueue* lbl_3_bss_1768;
+static struct SoundReplayQueue* soundReplayQueue;
 static f32 lbl_3_bss_1764;
 static u8 lbl_3_bss_1761;
 static u8 lbl_3_bss_1760;
@@ -125,14 +125,14 @@ typedef struct SoundReplayQueue {
 // addToCircularBuffer below has the same body but is never called.
 #define ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)                                                      \
     do {                                                                                      \
-        if (lbl_3_bss_1768 != NULL) {                                                         \
-            u8 head_ = lbl_3_bss_1768->head;                                                  \
+        if (soundReplayQueue != NULL) {                                                         \
+            u8 head_ = soundReplayQueue->head;                                                  \
             u8 next_;                                                                         \
-            if (lbl_3_bss_1768->tail != (next_ = (head_ + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) { \
-                lbl_3_bss_1768->head = next_;                                                 \
-                lbl_3_bss_1768->entries[head_].arg1 = (a2);                                   \
-                lbl_3_bss_1768->entries[head_].arg2 = (a1);                                   \
-                lbl_3_bss_1768->entries[head_].arg3 = (a3);                                   \
+            if (soundReplayQueue->tail != (next_ = (head_ + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) { \
+                soundReplayQueue->head = next_;                                                 \
+                soundReplayQueue->entries[head_].arg1 = (a2);                                   \
+                soundReplayQueue->entries[head_].arg2 = (a1);                                   \
+                soundReplayQueue->entries[head_].arg3 = (a3);                                   \
             }                                                                                 \
         }                                                                                     \
     } while (0)
@@ -517,7 +517,7 @@ static inline int applyCharSoundScale(int level) {
 }
 
 // .text:0x00090150 size:0xD0 mapped:0x806CF1E4
-SND_VOICEID fn_3_90150(int charID, int soundCode) {
+SND_VOICEID playCharacterSoundScaled(int charID, int soundCode) {
     SND_VOICEID vid;
     u16 fid = soundCode + characterSoundArray[charID];
     int vol = applyCharSoundScale(charSoundFxVol[soundCode]);
@@ -878,7 +878,7 @@ void fn_3_8F1C8(void) {
     sound_crowd_EffectsStruct._22 = -1;
     sound_crowd_EffectsStruct._29 = 0;
     sound_crowd_EffectsStruct._2A = 0;
-    lbl_3_bss_1768 = (SoundReplayQueue*)insertGraphicDrawingFunction(fn_3_8B094, 0);
+    soundReplayQueue = (SoundReplayQueue*)insertGraphicDrawingFunction(processSoundReplayQueue, 0);
 }
 
 // .text:0x0008DA80 size:0x1748 mapped:0x806CCB14
@@ -2048,7 +2048,7 @@ void stadiumMusic(int stadiumID) {
 
 // .text:0x0008B2E4 size:0x34 mapped:0x806CA378
 void fn_3_8B2E4(void) {
-    lbl_3_bss_1768 = (SoundReplayQueue*)insertGraphicDrawingFunction(fn_3_8B094, 0);
+    soundReplayQueue = (SoundReplayQueue*)insertGraphicDrawingFunction(processSoundReplayQueue, 0);
 }
 
 // .text:0x0008B258 size:0x8C mapped:0x806CA2EC
@@ -2056,25 +2056,25 @@ BOOL addToCircularBuffer(u8 arg1, u8 arg2, u8 arg3) {
     u8 head;
     u8 next;
 
-    if (lbl_3_bss_1768 == NULL) {
+    if (soundReplayQueue == NULL) {
         goto fail;
     }
 
-    head = lbl_3_bss_1768->head;
-    if (lbl_3_bss_1768->tail == (next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) {
+    head = soundReplayQueue->head;
+    if (soundReplayQueue->tail == (next = (head + 1) % SOUND_REPLAY_QUEUE_CAPACITY)) {
 fail:
         return FALSE;
     }
 
-    lbl_3_bss_1768->head = next;
-    lbl_3_bss_1768->entries[head].arg1 = arg2;
-    lbl_3_bss_1768->entries[head].arg2 = arg1;
-    lbl_3_bss_1768->entries[head].arg3 = arg3;
+    soundReplayQueue->head = next;
+    soundReplayQueue->entries[head].arg1 = arg2;
+    soundReplayQueue->entries[head].arg2 = arg1;
+    soundReplayQueue->entries[head].arg3 = arg3;
     return TRUE;
 }
 
 // .text:0x0008B094 size:0x1C4
-void fn_3_8B094(void) {
+void processSoundReplayQueue(void) {
     SoundReplayQueue* queue = (SoundReplayQueue*)currentDrawingItem;
     u8* bytes = (u8*)currentDrawingItem;
     u8 tail;

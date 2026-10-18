@@ -3562,7 +3562,7 @@ Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 ->
   playOverSounds keeps `li rN,-1; cmpwi rN,0`, which only `void playOverSounds(long frames)` reproduces, while
   fn_3_90434 has the folded form. The resolution was a FADE_OUT_MUSIC(frames) macro: playOverSounds' body and
   fn_3_90434/fn_3_903B8 (constant frames) all use it.
-- **`x = x * s;` / `x *= s;` vs `x = load * s;` changes the int-to-float stack temp order.** fn_3_90150 had the
+- **`x = x * s;` / `x *= s;` vs `x = load * s;` changes the int-to-float stack temp order.** playCharacterSoundScaled had the
   vol/reverb temps mirrored (68%) in every single-expression form. Separate load + compound statements gave
   the right slots (99.6). The last register matched with `static inline int f(int level) { level = level * s;
   return level; }` on both values. The same helper written as `return level * s;` scored 56.
@@ -3576,7 +3576,7 @@ Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 ->
 - **Split an index that is overwritten by the value it indexes.** fn_3_8C104 used one `int value` as the 0/1
   table index and then as the looked-up volume. The target passes the volume to a `(u8, u8)` callee without
   truncation and tests it with `clrlwi.`, so it is a separate `u8 value` (98.52 -> 99.66).
-- **Where the sign extension sits matters.** fn_3_8B094: `vol = rec.arg3; vol = (s8)vol;` as two statements and
+- **Where the sign extension sits matters.** processSoundReplayQueue: `vol = rec.arg3; vol = (s8)vol;` as two statements and
   `switch ((s8)bytes[...])` with no `cmd` local each kept the target's in-place `extsb` (98.85 -> 99.82).
 - **`lwz rD, sym@l(rB)` vs `addi; lwz rD, 0(rA)` for a member at offset 0 is a register-allocation side effect.**
   No source shape moved it; it followed once the surrounding locals coloured like the target.

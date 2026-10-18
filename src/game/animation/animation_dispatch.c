@@ -856,7 +856,7 @@ void minigameEndOfGameAnimations(void) {
                 AnimateCharacter(idx, 0x70, 0, 1, 1, 0, flag, -1);
                 QueueCharacterAnimation(idx, 0x71, 1, 1, 0, flag, -1);
                 if (g_Minigame.miniGameNumberOfParticipants > 1) {
-                    fn_3_90150(sound, 9);
+                    playCharacterSoundScaled(sound, 9);
                 } else {
                     playCharacterSound(sound, 9);
                 }

@@ -32,7 +32,7 @@ void adjustBallSoundEffectBasedOnHeight(void);
 void initializeSounds(void);
 u32 animateThrownBall(int soundNumber, f32 x, f32 y, f32 z);
 u32 callSfx(int soundId);
-u32 fn_3_90150(int charID, int soundCode);
+u32 playCharacterSoundScaled(int charID, int soundCode);
 u32 playCharacterSound(int charID, int soundCode);
 u32 playSoundEffect(int soundNumber);
 void fn_3_902FC(void);
