@@ -196,12 +196,12 @@ void baseRunningPracticeRelated(void) {
     switch (g_GameLogic.gameStatus) {
     case GAME_STATUS_DEFAULT:
         practiceNewBatter();
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = REACHED_BASE_TBD;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = REACHED_BASE_TBD;
         g_Ball.totalFramesAtPlay = 0;
         g_FieldingLogic.playOverInd = FALSE;
         g_FieldingLogic.framesSincePlayEnded = 0;
@@ -252,18 +252,18 @@ void baseRunningPracticeRelated(void) {
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
         initBaseRunnersAfterFoulBall();
         initializeSomethingDuringTransition2();
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         g_GameLogic.pre_PostMiniGameInd = TRUE;
         g_GameLogic.minigameLastTurnSuccessInd = TRUE;
         practiceNewBatter();
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = REACHED_BASE_TBD;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = REACHED_BASE_TBD;
         g_Ball.totalFramesAtPlay = 0;
         g_FieldingLogic.playOverInd = FALSE;
         g_FieldingLogic.framesSincePlayEnded = 0;
@@ -282,9 +282,9 @@ void baseRunningPracticeRelated(void) {
         resetAndRunAnimations(0);
         break;
     }
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
-    g_Strikes.outs = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
 }
 
 BOOL practiceRelatedUnused_maybe(void) {

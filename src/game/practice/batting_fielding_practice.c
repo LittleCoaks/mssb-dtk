@@ -207,12 +207,12 @@ void fieldingPracticeInitialization(void) {
         g_Pitcher.curveBallSpeed = 0x7D;
         g_Pitcher.fastBallSpeed = 0x91;
         g_Pitcher.cursedBallStat = 0x64;
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = 0;
         g_Ball.totalFramesAtPlay = 0;
         g_FieldingLogic.playOverInd = 0;
         g_FieldingLogic.framesSincePlayEnded = 0;
@@ -226,7 +226,7 @@ void fieldingPracticeInitialization(void) {
         g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
         g_Practice.fieldingSprintMaxed = FALSE;
-        g_Strikes.outs = 0;
+        g_BallsStrikesOuts.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_AT_BAT);
@@ -266,8 +266,8 @@ void fieldingPracticeInitialization(void) {
         betweenABSetPitcherBatter();
         initializeSomethingDuringTransition();
         initializeSomethingDuringTransition2();
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
         g_GameLogic._125 = 1;
         g_GameLogic.pre_PostMiniGameInd = 1;
         g_GameLogic.minigameLastTurnSuccessInd = 1;
@@ -276,12 +276,12 @@ void fieldingPracticeInitialization(void) {
         g_Pitcher.curveBallSpeed = 0x7D;
         g_Pitcher.fastBallSpeed = 0x91;
         g_Pitcher.cursedBallStat = 0x64;
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = 0;
         g_Ball.totalFramesAtPlay = 0;
         g_FieldingLogic.playOverInd = 0;
         g_FieldingLogic.framesSincePlayEnded = 0;
@@ -295,7 +295,7 @@ void fieldingPracticeInitialization(void) {
         g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
         g_Practice.fieldingSprintMaxed = FALSE;
-        g_Strikes.outs = 0;
+        g_BallsStrikesOuts.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
         SetGameStatus(GAME_STATUS_AT_BAT);
@@ -306,9 +306,9 @@ void fieldingPracticeInitialization(void) {
         break;
     }
 
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
-    g_Strikes.outs = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
 }
 
 BOOL fieldingPracticeUpdateCompletion(void) {
@@ -345,8 +345,8 @@ void fieldingPracticePrepareNextPlay(void) {
     betweenABSetPitcherBatter();
     initializeSomethingDuringTransition();
     initializeSomethingDuringTransition2();
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
     g_GameLogic._125 = 1;
     g_GameLogic.pre_PostMiniGameInd = 1;
     g_GameLogic.minigameLastTurnSuccessInd = 1;
@@ -355,12 +355,12 @@ void fieldingPracticePrepareNextPlay(void) {
         g_Pitcher.curveBallSpeed = 0x7D;
         g_Pitcher.fastBallSpeed = 0x91;
         g_Pitcher.cursedBallStat = 0x64;
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = 0;
         g_Ball.totalFramesAtPlay = 0;
         g_FieldingLogic.playOverInd = 0;
         g_FieldingLogic.framesSincePlayEnded = 0;
@@ -374,7 +374,7 @@ void fieldingPracticePrepareNextPlay(void) {
         g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
         g_Practice.fieldingSprintMaxed = FALSE;
-        g_Strikes.outs = 0;
+        g_BallsStrikesOuts.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
     SetGameStatus(GAME_STATUS_AT_BAT);
@@ -388,12 +388,12 @@ void fieldingPracticeBeginPlay(void) {
         g_Pitcher.curveBallSpeed = 0x7D;
         g_Pitcher.fastBallSpeed = 0x91;
         g_Pitcher.cursedBallStat = 0x64;
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = 0;
         g_Ball.totalFramesAtPlay = 0;
         g_FieldingLogic.playOverInd = 0;
         g_FieldingLogic.framesSincePlayEnded = 0;
@@ -407,7 +407,7 @@ void fieldingPracticeBeginPlay(void) {
         g_Practice.hitVariablesSetIndicator = FALSE;
         g_Practice.fieldingPlayStatus = 0;
         g_Practice.fieldingSprintMaxed = FALSE;
-        g_Strikes.outs = 0;
+        g_BallsStrikesOuts.outs = 0;
         g_Practice.frames_sincePlayStart = 0;
     changeScene(SCENE_ID_AT_BAT, 6);
     SetGameStatus(GAME_STATUS_AT_BAT);
@@ -463,7 +463,7 @@ void practice_fieldingRelated(void) {
                     }
                 }
             } else if (g_Practice.practiceLevel == 1) {
-                if (g_Strikes.outs != 0 || g_Practice.fieldingPlayStatus == 1) {
+                if (g_BallsStrikesOuts.outs != 0 || g_Practice.fieldingPlayStatus == 1) {
                     threshold = fieldingPractice_frameThresholds[2];
                     if (g_Practice.fieldingPlayStatus == 0) {
                         g_Practice.fieldingPlayStatus = 1;
@@ -797,8 +797,8 @@ void battingPracticeSomething(void) {
         betweenABSetPitcherBatter();
         initializeSomethingDuringTransition();
         initializeSomethingDuringTransition2();
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
         g_GameLogic._125 = 1;
         g_GameLogic.pre_PostMiniGameInd = 1;
         g_GameLogic.minigameLastTurnSuccessInd = 1;
@@ -809,9 +809,9 @@ void battingPracticeSomething(void) {
         break;
     }
 
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
-    g_Strikes.outs = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
 }
 
 BOOL battingPracticeUpdateCompletion(void) {
@@ -848,8 +848,8 @@ void battingPracticePrepareNextPlay(void) {
     betweenABSetPitcherBatter();
     initializeSomethingDuringTransition();
     initializeSomethingDuringTransition2();
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
     g_GameLogic._125 = 1;
     g_GameLogic.pre_PostMiniGameInd = 1;
     g_GameLogic.minigameLastTurnSuccessInd = 1;
@@ -862,12 +862,12 @@ void battingPracticeRelated(void) {
     if (g_Practice.practiceLevel == 4) {
         g_Pitcher.windupCountdownUntilBallReleased = practiceFrameConsts[1];
     }
-    g_Strikes.storedOuts = g_Strikes.outs;
-    g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-    g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-    g_Strikes.howRunnerReachedBase = 0;
+    g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+    g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+    g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+    g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+    g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+    g_BallsStrikesOuts.howRunnerReachedBase = 0;
     g_Ball.totalFramesAtPlay = 0;
     g_FieldingLogic.playOverInd = 0;
     g_FieldingLogic.framesSincePlayEnded = 0;

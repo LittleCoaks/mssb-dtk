@@ -1249,7 +1249,7 @@ void setThrowSpeedType2(f32 dist) {
         frames = throwFramesToPoint(&g_Fielders[g_Ball.fielderWBallIndex], g_Ball.throwDestination.x,
                                     g_Ball.throwDestination.z);
         diff = frames + 0x14 - outFrames;
-        if ((g_Strikes.outs >= 2 || runnersOnField == 1) && diff < -0x1e && g_Ball.numberOfThrowsDuringPlay <= 1) {
+        if ((g_BallsStrikesOuts.outs >= 2 || runnersOnField == 1) && diff < -0x1e && g_Ball.numberOfThrowsDuringPlay <= 1) {
             g_FieldingLogic.throwSpeedType = 4;
             if (dist > 30.0f) {
                 g_FieldingLogic.throwSpeedType = 3;
@@ -1507,7 +1507,7 @@ void fielderHasBall(void) {
     if (g_FieldingLogic.always0_012b != 0) {
         return;
     }
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         return;
     }
     g_FieldingLogic.smashThrowInd = 0;
@@ -1650,7 +1650,7 @@ void tagOutValues(int fielderIndex) {
 
     g_FieldingLogic.tagAnimationType = 0;
     g_FieldingLogic.runnerBeingTargettedForOut = -1;
-    if (g_Strikes.outs < 3 && g_Ball.ballState == BALL_STATE_HELD && g_Ball.fielderWBallIndex >= 0 &&
+    if (g_BallsStrikesOuts.outs < 3 && g_Ball.ballState == BALL_STATE_HELD && g_Ball.fielderWBallIndex >= 0 &&
         g_FieldingLogic.tagAnimationCountdown == 0) {
         if (fielder->baseCurrentlyOn >= 0) {
             base = fielder->baseCurrentlyOn;
@@ -2935,7 +2935,7 @@ BOOL fn_3_A2C9C(void) {
     if (enoughTimeToGetLeadRunnerAt2B != 0 && fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0) {
         return 1;
     }
-    if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 4 && g_Strikes.outs == g_Strikes.storedOuts) {
+    if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 4 && g_BallsStrikesOuts.outs == g_BallsStrikesOuts.storedOuts) {
         if (g_Ball.ballDistanceFromBase[1] < 2.5f &&
             fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 2 &&
             fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[0]) != 0) {
@@ -2984,7 +2984,7 @@ BOOL fn_3_A295C(void) {
     }
     inRange = fn_3_A3768();
     if (inRange && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 4 &&
-        g_Strikes.outs == g_Strikes.storedOuts) {
+        g_BallsStrikesOuts.outs == g_BallsStrikesOuts.storedOuts) {
         if (runner->percentTowardsNextBase > 0.2f &&
             fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) {
             return 1;
@@ -3360,7 +3360,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
         if (g_FieldingLogic.bodyCheckResult != 0) {
             return;
         }
-        if (g_Strikes.outs >= 3 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
+        if (g_BallsStrikesOuts.outs >= 3 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
             g_FieldingLogic.locationThrownTo = -1;
             g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
             return;
@@ -3403,7 +3403,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
         }
     } else {
         do {
-            if (g_Strikes.outs == 2) {
+            if (g_BallsStrikesOuts.outs == 2) {
                 if (g_Runners[1].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE && fielderDesperationLevel[1] <= 2) {
                     if (fielder->AILevel3Weak0Powerful <= 1 && fielderDesperationLevel[1] <= 0) {
                         highSkillLowDesperation = 1;
@@ -3523,7 +3523,7 @@ checkOverrideReasons:
             g_FieldingLogic.somethingForTryingTagOutTargetBase = throwLoc;
         }
     }
-    if (g_RunningLogic.nOffensivePlayersAtStartOfPlay > 1 && g_Strikes.storedOuts <= 1 &&
+    if (g_RunningLogic.nOffensivePlayersAtStartOfPlay > 1 && g_BallsStrikesOuts.storedOuts <= 1 &&
         (hexBaserunnerTracker & 1) != 0 && g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.ballZoneWhenCaught <= 1 &&
         g_FieldingLogic.locationThrownTo == 1 && fielderDesperationLevel[0] <= 2) {
         if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&

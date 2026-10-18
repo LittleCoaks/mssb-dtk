@@ -1150,7 +1150,7 @@ void batterAnimations(void) {
     if (lbl_3_common_bss_32220._08 == 0) {
         status = g_FieldingLogic.liveBallReason;
         if (!(status != PICKOFF_STEAL_CODE_PICKOFF && status != PICKOFF_STEAL_CODE_STEAL && status != PICKOFF_STEAL_CODE_UNUSED_3)) {
-            if (g_Strikes.outs < 3) {
+            if (g_BallsStrikesOuts.outs < 3) {
                 AnimateCharacter(idx, 0x65, 1, 1, 1, 0, hand, 0xA);
             }
             goto done;
@@ -1361,7 +1361,7 @@ tail:
             trigger = FALSE;
             if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_HIT) {
                 trigger = TRUE;
-            } else if (g_Strikes.GameControls_StrikeBallBitVector >= 0x20 && g_Batter.missSwingOrBunt == DID_SWING_TYPE_SWING &&
+            } else if (g_BallsStrikesOuts.GameControls_StrikeBallBitVector >= 0x20 && g_Batter.missSwingOrBunt == DID_SWING_TYPE_SWING &&
                        (obj->animId == 0x4D || obj->animId == 0x53) && obj->framesLeft == 1 && g_Batter.contactMadeInd == 0) {
                 trigger = TRUE;
             }
@@ -1381,7 +1381,7 @@ tail:
                     AnimateCharacter(idx, 0x5F, 0, 1, 1, 0, hand, -1);
                     lbl_3_common_bss_32220._08 = 1;
                 } else if (obj->animId == 0x4D || obj->animId == 0x53) {
-                    if (runnerForced && g_Strikes.storedOuts < 2) {
+                    if (runnerForced && g_BallsStrikesOuts.storedOuts < 2) {
                         AnimateCharacter(idx, 0x5E, 0, 2, 1, 0, hand, -1);
                         QueueCharacterAnimation(idx, 0x66, 1, 1, 0, hand, -1);
                     } else if (obj->animId == 0x53) {
@@ -1933,7 +1933,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
                 goto done;
             }
             if (slot->speed > 0.02f) {
-                if (g_Strikes.outs >= 3 && fielder->fielderVeloAdjustmentCode == 0xD) {
+                if (g_BallsStrikesOuts.outs >= 3 && fielder->fielderVeloAdjustmentCode == 0xD) {
                     AnimateCharacter(idx, 7, 1, 1, 0, 0, slot->_40, -1);
                     goto done;
                 }

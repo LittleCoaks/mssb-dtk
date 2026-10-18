@@ -194,9 +194,9 @@ void initBallAndGameStateOnLoad(void) {
     g_Ball.Hit_HorizontalAngle = 0x272;
     g_FieldingLogic.locationThrownTo = -1;
     g_FieldingLogic.humanSelectedPlaceToThrow = -1;
-    g_Strikes.outs = 0;
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         g_Ball.groundYForBounces = lbl_3_data_45F4[1];
     } else {
@@ -642,7 +642,7 @@ void calculateImplicationsOfTheHitTrajectory(void) {
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_FieldingLogic.infieldFlyIndicator == 0 &&
         g_Ball.currentStarSwing2 == 0 && g_Ball.maybeBuntInd == 0 && g_Ball.hangtimeOfHit >= 0x78 &&
-        g_Ball.maxYOfHit > 10.0f && g_Strikes.storedOuts < 2 && g_Ball.howFoulTheBallWillBe < 3 &&
+        g_Ball.maxYOfHit > 10.0f && g_BallsStrikesOuts.storedOuts < 2 && g_Ball.howFoulTheBallWillBe < 3 &&
         g_Ball.framesSinceHit == 0x3C && g_Ball.numFieldersWhoHandledBallDuringPlay == 0) {
         f32 dx = base_MoundCoordinates[4].x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
         f32 dz = base_MoundCoordinates[4].z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
@@ -1471,14 +1471,14 @@ void fn_3_BC54(void) {
     runnerWasOut = 0;
     if (g_FieldingLogic.hasProcessedFoulBall != 1) {
         g_FieldingLogic.hasProcessedFoulBall = 1;
-        g_Strikes.strikes++;
-        if (g_Strikes.strikes >= 3) {
+        g_BallsStrikesOuts.strikes++;
+        if (g_BallsStrikesOuts.strikes >= 3) {
             if (g_Ball.maybeBuntInd != 0) {
                 g_Ball.maybebuntOn2Strikes = 1;
                 runnerOut(0);
                 runnerWasOut = 1;
             } else {
-                g_Strikes.strikes = 2;
+                g_BallsStrikesOuts.strikes = 2;
             }
         }
         if (runnerWasOut == 0) {
@@ -2029,14 +2029,14 @@ void foulBall(void) {
     runnerWasOut = 0;
     if (g_FieldingLogic.hasProcessedFoulBall != 1) {
         g_FieldingLogic.hasProcessedFoulBall = 1;
-        g_Strikes.strikes++;
-        if (g_Strikes.strikes >= 3) {
+        g_BallsStrikesOuts.strikes++;
+        if (g_BallsStrikesOuts.strikes >= 3) {
             if (g_Ball.maybeBuntInd != 0) {
                 g_Ball.maybebuntOn2Strikes = 1;
                 runnerOut(0);
                 runnerWasOut = 1;
             } else {
-                g_Strikes.strikes = 2;
+                g_BallsStrikesOuts.strikes = 2;
             }
         }
         if (runnerWasOut == 0) {
@@ -2059,14 +2059,14 @@ void fn_3_A020(void) {
         runnerWasOut = 0;
         if (g_FieldingLogic.hasProcessedFoulBall != 1) {
             g_FieldingLogic.hasProcessedFoulBall = 1;
-            g_Strikes.strikes++;
-            if (g_Strikes.strikes >= 3) {
+            g_BallsStrikesOuts.strikes++;
+            if (g_BallsStrikesOuts.strikes >= 3) {
                 if (g_Ball.maybeBuntInd != 0) {
                     g_Ball.maybebuntOn2Strikes = 1;
                     runnerOut(0);
                     runnerWasOut = 1;
                 } else {
-                    g_Strikes.strikes = 2;
+                    g_BallsStrikesOuts.strikes = 2;
                 }
             }
             if (runnerWasOut == 0) {
@@ -3015,14 +3015,14 @@ void checkForBallDead(void) {
                     runnerWasOut = FALSE;
                     if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                         g_FieldingLogic.hasProcessedFoulBall = 1;
-                        g_Strikes.strikes++;
-                        if (g_Strikes.strikes >= 3) {
+                        g_BallsStrikesOuts.strikes++;
+                        if (g_BallsStrikesOuts.strikes >= 3) {
                             if (g_Ball.maybeBuntInd != 0) {
                                 g_Ball.maybebuntOn2Strikes = 1;
                                 runnerOut(0);
                                 runnerWasOut = TRUE;
                             } else {
-                                g_Strikes.strikes = 2;
+                                g_BallsStrikesOuts.strikes = 2;
                             }
                         }
                         if (runnerWasOut == 0) {
@@ -3046,14 +3046,14 @@ void checkForBallDead(void) {
                             runnerWasOut = FALSE;
                             if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                                 g_FieldingLogic.hasProcessedFoulBall = 1;
-                                g_Strikes.strikes++;
-                                if (g_Strikes.strikes >= 3) {
+                                g_BallsStrikesOuts.strikes++;
+                                if (g_BallsStrikesOuts.strikes >= 3) {
                                     if (g_Ball.maybeBuntInd != 0) {
                                         g_Ball.maybebuntOn2Strikes = 1;
                                         runnerOut(0);
                                         runnerWasOut = TRUE;
                                     } else {
-                                        g_Strikes.strikes = 2;
+                                        g_BallsStrikesOuts.strikes = 2;
                                     }
                                 }
                                 if (runnerWasOut == 0) {
@@ -3091,14 +3091,14 @@ void checkForBallDead(void) {
                         runnerWasOut = FALSE;
                         if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                             g_FieldingLogic.hasProcessedFoulBall = 1;
-                            g_Strikes.strikes++;
-                            if (g_Strikes.strikes >= 3) {
+                            g_BallsStrikesOuts.strikes++;
+                            if (g_BallsStrikesOuts.strikes >= 3) {
                                 if (g_Ball.maybeBuntInd != 0) {
                                     g_Ball.maybebuntOn2Strikes = 1;
                                     runnerOut(0);
                                     runnerWasOut = TRUE;
                                 } else {
-                                    g_Strikes.strikes = 2;
+                                    g_BallsStrikesOuts.strikes = 2;
                                 }
                             }
                             if (runnerWasOut == 0) {
@@ -3165,14 +3165,14 @@ void checkForBallDead(void) {
             runnerWasOut = FALSE;
             if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                 g_FieldingLogic.hasProcessedFoulBall = 1;
-                g_Strikes.strikes++;
-                if (g_Strikes.strikes >= 3) {
+                g_BallsStrikesOuts.strikes++;
+                if (g_BallsStrikesOuts.strikes >= 3) {
                     if (g_Ball.maybeBuntInd != 0) {
                         g_Ball.maybebuntOn2Strikes = 1;
                         runnerOut(0);
                         runnerWasOut = TRUE;
                     } else {
-                        g_Strikes.strikes = 2;
+                        g_BallsStrikesOuts.strikes = 2;
                     }
                 }
                 if (runnerWasOut == 0) {

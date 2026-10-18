@@ -548,7 +548,7 @@ void matchCamera_setPastAndCurrentTarget(void) {
         VEC_COPY(&g_pCamera->_0B4, &g_Ball.AtBat_Contact_BallPos);
     }
     
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         if (g_GameLogic.bOD_framesInLiveBallScene <= 10) {
             VEC_COPY(&g_pCamera->_0B4, &g_Ball.AtBat_Contact_BallPos);
         } else {
@@ -556,7 +556,7 @@ void matchCamera_setPastAndCurrentTarget(void) {
         }
     }
 
-    if ((g_pCamera->_0E2 != 0 || g_Strikes.outs >= 3) && g_GameLogic.bOD_framesInLiveBallScene >= 10) {
+    if ((g_pCamera->_0E2 != 0 || g_BallsStrikesOuts.outs >= 3) && g_GameLogic.bOD_framesInLiveBallScene >= 10) {
         for (i = 9; i > 0; i--) {
             VEC_COPY(&g_pCamera->_03C[i], &g_pCamera->_03C[i - 1]);
         }
@@ -2150,7 +2150,7 @@ void fn_3_14EE8(void) {
 // .text:0x00014EC0 size:0x28 mapped:0x80653F54
 void fn_3_14EC0(void) {
     if (g_pCamera->_A50 == -1) {
-        g_pCamera->_A50 = g_Strikes.storedOuts;
+        g_pCamera->_A50 = g_BallsStrikesOuts.storedOuts;
     }
 }
 

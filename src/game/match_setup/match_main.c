@@ -414,8 +414,8 @@ void configureTeamsForGame_Unused(int arg0, int arg1, int arg2, int arg3) {
 
 // .text:0x0005A684 size:0x1C mapped:0x80699718
 void resetCount(void) {
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
-    g_Strikes.outs = 0;
-    g_Strikes.forcedOutToEndInningInd = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.forcedOutToEndInningInd = 0;
 }

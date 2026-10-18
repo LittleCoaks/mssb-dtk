@@ -2471,9 +2471,9 @@ typedef struct {
     /* 0x1E */ s16 _1E;
     /* 0x20 */ u8 GameControls_StrikeBallBitVector;
     /* 0x21 */ u8 stateRelated;
-} inMemStrikes; // size: 0x24
+} inMemBallsStrikesOuts; // size: 0x24
 
-extern inMemStrikes g_Strikes;
+extern inMemBallsStrikesOuts g_BallsStrikesOuts;
 
 typedef struct {
     /* 0x0000 */ VecXZ landingSpotLocation;
@@ -2713,7 +2713,7 @@ typedef enum _FIELDING_ERROR_TYPE {
     /* 0x3 */ FIELDING_ERROR_TYPE_FAILED_RUNDOWN,
 } FIELDING_ERROR_TYPE;
 
-// g_Strikes.howRunnerReachedBase
+// g_BallsStrikesOuts.howRunnerReachedBase
 typedef enum _REACHED_BASE {
     /* 0x0 */ REACHED_BASE_TBD,
     /* 0x2 */ REACHED_BASE_ON_ERROR = 2,

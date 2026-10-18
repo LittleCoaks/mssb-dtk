@@ -1609,7 +1609,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
 
     fielder->animationRelated = 1;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         fielder->animationRelated = 4;
     } else if (g_RunningLogic._10 == 0 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
         fielder->animationRelated = 0;
@@ -1716,7 +1716,7 @@ void fielder_endOfInning_deadball_updateCounters(void) {
         fielderAISomething();
     }
 
-    if (g_Strikes.outs >= 3 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
+    if (g_BallsStrikesOuts.outs >= 3 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
         fielder = g_Fielders;
         for (i = 0; i < 9; i++, fielder++) {
             if (fielder->autoMovementFunctionIndex == 17) {
@@ -2188,7 +2188,7 @@ void updateFielderDirectionFacing(int fielderIndex) {
         return;
 
 cascade:
-        if (g_Strikes.outs >= 3 && fielder->currentVelocity != 0.0f &&
+        if (g_BallsStrikesOuts.outs >= 3 && fielder->currentVelocity != 0.0f &&
             g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
             f32 x = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].x;
             f32 z = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].z;
@@ -5354,7 +5354,7 @@ void updateSomeAutoMovementAssignments(void) {
     int i;
     InMemFielder* fielder;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         return;
     }
     if (g_RunningLogic._10 == 0) {
@@ -6744,7 +6744,7 @@ void autoMovement5(int fielderIndex) {
         if (g_FieldingLogic.locationThrownTo == 6) {
             checkIfCutoffIsntAtThrowDestination(fielderIndex);
             checkForBufferedThrow();
-        } else if (g_Strikes.outs < 3) {
+        } else if (g_BallsStrikesOuts.outs < 3) {
             targetBase = fn_3_47628();
 
             if (targetBase != -1) {
@@ -8571,7 +8571,7 @@ void aITeamFieldingFirstFrameAfterHit(void) {
     catchStrategyMask = 0;
     if (g_Scores.inningLimit <= g_Scores.Inning && g_Scores.halfInning != 0 &&
         g_Scores.scores[0].total == g_Scores.scores[1].total &&
-        g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 && g_Strikes.storedOuts <= 1 &&
+        g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 && g_BallsStrikesOuts.storedOuts <= 1 &&
         (g_RunningLogic._02 & 0x1000) != 0 &&
         foul_checkIfFoul(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z) &&
         !foul_isBallWithin3mFair(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z) &&

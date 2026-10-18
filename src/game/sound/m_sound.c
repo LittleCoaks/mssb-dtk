@@ -704,7 +704,7 @@ void soundFxRelated(void) {
              g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
              (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
               g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
-             g_Strikes.outs == g_Strikes.storedOuts)) {
+             g_BallsStrikesOuts.outs == g_BallsStrikesOuts.storedOuts)) {
             sound_crowd_EffectsStruct._26 = 2;
             if (sound_crowd_EffectsStruct._14 == -1) {
                 sound_crowd_EffectsStruct._14 = sndFXStartEx(0x156, 0, 0x3f, 0);
@@ -785,7 +785,7 @@ void soundFxRelated(void) {
          g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
          (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
           g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
-         g_Strikes.outs == g_Strikes.storedOuts)) {
+         g_BallsStrikesOuts.outs == g_BallsStrikesOuts.storedOuts)) {
         sound_crowd_EffectsStruct._26 = 2;
         if (sound_crowd_EffectsStruct._14 == -1) {
             sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
@@ -1185,7 +1185,7 @@ notMinigame:
     if (status == GAME_STATUS_TRANSITION) {
         track = -1;
         hold = TRUE;
-        if (g_Strikes.outs == 3) {
+        if (g_BallsStrikesOuts.outs == 3) {
             goto pick;
         }
         if (g_Stats.replayPending != 0) {
@@ -1372,7 +1372,7 @@ common:
     }
     if (sound_crowd_EffectsStruct._33 != 0) {
         track = 0x15;
-    } else if (g_Strikes.storedOuts == 0) {
+    } else if (g_BallsStrikesOuts.storedOuts == 0) {
         track = 0x15;
     } else if (storedInningInfo.consecutiveHits == 0) {
         goto stopMusic;

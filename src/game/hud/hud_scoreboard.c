@@ -1994,7 +1994,7 @@ void drawDiamondMiniMap_ongoing(void) {
             int idx = i + 1;
             int base;
 
-            if (!(runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Strikes.outs < 3)) {
+            if (!(runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_BallsStrikesOuts.outs < 3)) {
                 REC(scene, idx)->flags &= ~UI_FLAG_VISIBLE;
             } else {
                 if (i == 0) {

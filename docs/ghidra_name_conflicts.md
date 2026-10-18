@@ -237,7 +237,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x80892730` | data | `g_RunningLogic` | `globalBaserunning` |
 | `0x80892750` | data | `g_FieldingLogic` | `globalFielding` |
 | `0x808928a0` | data | `g_Scores` | `GameState` |
-| `0x80892968` | data | `g_Strikes` | `BallsStrikesOutsStruct` |
+| `0x80892968` | data | `g_BallsStrikesOuts` | `BallsStrikesOutsStruct` |
 | `0x8089298c` | data | `g_GameLogic` | `gameControls` |
 | `0x80892ae4` | data | `g_AiLogic` | `AIStruct` |
 | `0x80892ba0` | data | `g_UnkSimulation_31AC0` | `unkSimulationRelatedStruct` |

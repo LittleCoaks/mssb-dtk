@@ -100,7 +100,7 @@ void setBatterOutAtBatResult(void) {
     if (storedInningInfo.abResultTemporary != 0) {
         return;
     }
-    if (g_Strikes.howRunnerReachedBase == REACHED_BASE_FIELDERS_CHOICE_ERROR) {
+    if (g_BallsStrikesOuts.howRunnerReachedBase == REACHED_BASE_FIELDERS_CHOICE_ERROR) {
         storedInningInfo.abResultFinal = 0x10;
         return;
     }
@@ -127,9 +127,9 @@ void atBatBuntResult(void) {
     BOOL runnerAdvanced;
     int i;
 
-    if (g_RunningLogic.nOffensivePlayersAtStartOfPlay == 1 || g_Strikes.storedOuts == 2) {
+    if (g_RunningLogic.nOffensivePlayersAtStartOfPlay == 1 || g_BallsStrikesOuts.storedOuts == 2) {
         if ((g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY &&
-             g_Strikes.howRunnerReachedBase == REACHED_BASE_TBD) ||
+             g_BallsStrikesOuts.howRunnerReachedBase == REACHED_BASE_TBD) ||
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
             storedInningInfo.abResultFinal = 0x1D;
             return;
@@ -211,8 +211,8 @@ void atBatResultsForOuts(void) {
         }
     }
 
-    if (g_Strikes.storedOuts + 3 == g_Strikes.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) {
-        if (g_Strikes.outs == 3 || g_RunningLogic._10 == 0) {
+    if (g_BallsStrikesOuts.storedOuts + 3 == g_BallsStrikesOuts.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) {
+        if (g_BallsStrikesOuts.outs == 3 || g_RunningLogic._10 == 0) {
             storedInningInfo.abResultFinal = 0x17;
             if (storedInningInfo.catches[2].outsDuringPossession == 3 ||
                 storedInningInfo.catches[3].outsDuringPossession == 3) {
@@ -222,7 +222,7 @@ void atBatResultsForOuts(void) {
         }
     }
 
-    if (g_Strikes.storedOuts + 2 == g_Strikes.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) {
+    if (g_BallsStrikesOuts.storedOuts + 2 == g_BallsStrikesOuts.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) {
         storedInningInfo.abResultTemporary = 0x19;
         if (storedInningInfo.catches[2].fielderIndex == 2 && storedInningInfo.catches[0].outsDuringPossession == 0 &&
             storedInningInfo.catches[1].outsDuringPossession == 1) {
@@ -234,7 +234,7 @@ void atBatResultsForOuts(void) {
         }
     }
 
-    if (g_Strikes.storedOuts + 1 == g_Strikes.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED &&
+    if (g_BallsStrikesOuts.storedOuts + 1 == g_BallsStrikesOuts.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED &&
         storedInningInfo.catches[2].fielderIndex == 2 && storedInningInfo.catches[0].outsDuringPossession == 0) {
         s8 base = storedInningInfo.catches[1].baseStandingOn;
         if (g_Runners[(base + 3) & 3].forcedToAdvanceInd != 0 && base >= 0 && base != 1 &&
@@ -251,7 +251,7 @@ BOOL noForceOutInd_atBatResultsAfterForcedRunnersAllAdvance(void) {
     int runsThisPlay;
     BOOL runnerScoredOnlyRun = FALSE;
 
-    if (g_Strikes.howRunnerReachedBase == 1) {
+    if (g_BallsStrikesOuts.howRunnerReachedBase == 1) {
         runsThisPlay = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total - g_Scores._A0;
         if (runsThisPlay == 1 && g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
             runnerScoredOnlyRun = TRUE;
@@ -300,7 +300,7 @@ BOOL noForceOutInd_atBatResultsAfterForcedRunnersAllAdvance(void) {
 
 // .text:0x0009D550 size:0x44 mapped:0x806DC5E4
 void fn_3_9D550(void) {
-    if (g_Ball.maybeBuntInd != 0 && g_Strikes.strikes >= 3) {
+    if (g_Ball.maybeBuntInd != 0 && g_BallsStrikesOuts.strikes >= 3) {
         storedInningInfo.abResultFinal = 0x27;
     } else {
         storedInningInfo.abResultFinal = 0x2C;
@@ -369,7 +369,7 @@ void setAtBatResult(void) {
                         for (i = 0; i < (int)ARRAY_COUNT(storedInningInfo.catches); i++) {
                             if (storedInningInfo.catches[i].fielderIndex == -1) {
                                 storedInningInfo.catches[i].fielderIndex = fielder;
-                                storedInningInfo.catches[i].outsDuringPossession = g_Strikes.outs - g_Strikes.storedOuts;
+                                storedInningInfo.catches[i].outsDuringPossession = g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts;
                                 coverage = g_Fielders[fielder].locationResponsibleForCovering;
                                 if (coverage >= 0 && coverage <= 3) {
                                     switch (coverage) {
@@ -402,7 +402,7 @@ void setAtBatResult(void) {
                             if (storedInningInfo.catches[i].fielderIndex == fielder) {
                                 if (g_Ball.timeSinceBallPickedUp <= 60) {
                                     storedInningInfo.catches[i].outsDuringPossession =
-                                        g_Strikes.outs - g_Strikes.storedOuts;
+                                        g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts;
                                 }
                                 break;
                             }

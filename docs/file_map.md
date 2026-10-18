@@ -116,7 +116,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `hud_gauges.c` | `rep_1770` | 15 (9) | 13,292 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links, and `matchHudDrawingControl`, which registers those draws. | high |
 | `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. Owns `.data 0x8D88-0xF4A4`, the HUD, minigame and practice UI descriptor tables formerly in `data_only/data_8D88.c`. | high |
-| `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_Strikes.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
+| `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_BallsStrikesOuts.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
 | `runner_items.c` | `rep_9B0` | 4 (0) | 708 | Small helpers used by the versus screens and replay (a `VsFadeItem` callback, an `AnimScreenState` setter, fielder roster-slot setup). No HUD drawing; the name is provisional. | inferred |
 | `toyfield_score_update.c` | `rep_1668` + `auto_00_0009143C` | 1 (1) | 228 | `hud_ScoreUpdate_ToyFieldOffScreenPlayers`: queues the off-screen-player and RBI score-update drawing functions. Matching. | high |
 

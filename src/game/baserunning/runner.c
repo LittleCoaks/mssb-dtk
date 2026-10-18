@@ -376,7 +376,7 @@ void transferInMemRunnerValuesToNextRunnerIndex(void) {
     int order[4];
     int i;
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Strikes.outs >= 3) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_BallsStrikesOuts.outs >= 3) {
         g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_NONE;
         g_Runners[0].rosterID = -1;
         g_Runners[1].runnerOnFieldOrOutOrScored = RUNNER_STATUS_NONE;
@@ -711,7 +711,7 @@ void fn_3_89028(void) {
             runnerAISetRunningDirection(i, 1);
         }
     }
-    if (g_Strikes.balls >= 4) {
+    if (g_BallsStrikesOuts.balls >= 4) {
         g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_WALK_WHILE_STEALING;
     } else if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_4) {
         g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_ON_FIELD;
@@ -733,7 +733,7 @@ void maybeHandleBaserunners(void) {
             g_Runners[i].unused_AIRelated = 1;
         } else {
             g_Runners[i].unused_AIRelated = 0;
-            if (g_Strikes.storedOuts < 2) {
+            if (g_BallsStrikesOuts.storedOuts < 2) {
                 g_Runners[i].tagUpStatus = TAG_UP_TYPE_PENDING;
             } else {
                 g_Runners[i].tagUpStatus = TAG_UP_TYPE_NONE;
@@ -747,16 +747,16 @@ void runnerOut(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int i;
 
-    if (g_Strikes.outs < 3 && !g_GameLogic.EventTriggers_EndOfGame &&
+    if (g_BallsStrikesOuts.outs < 3 && !g_GameLogic.EventTriggers_EndOfGame &&
         runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
         if (g_GameLogic.freeFieldingPracticeInd == 0) {
-            g_Strikes.outs++;
+            g_BallsStrikesOuts.outs++;
         } else if ((g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING && g_Practice.practiceLevel == 1) ||
                    g_Practice.practiceLevel == 7 || g_Practice.practiceLevel == 6) {
-            g_Strikes.outs++;
+            g_BallsStrikesOuts.outs++;
         }
 
-        if (g_Ball.maybeBuntInd != 0 && g_Strikes.strikes >= 3) {
+        if (g_Ball.maybeBuntInd != 0 && g_BallsStrikesOuts.strikes >= 3) {
             QueueTextToDisplay(0x16, 0);
         } else if (runner->fractionalBasesRan >= 3.8f && g_Ball.baseBallAndFielderAreOn == 0) {
             QueueTextToDisplay(1, 1);
@@ -765,15 +765,15 @@ void runnerOut(int runnerIdx) {
         }
 
         for (i = 0; i < 3; i++) {
-            if (g_Strikes.runnerIndexForEachOutThisPitch[i] == -1) {
-                g_Strikes.runnerIndexForEachOutThisPitch[i] = runnerIdx;
+            if (g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] == -1) {
+                g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] = runnerIdx;
                 break;
             }
         }
 
-        if (g_Strikes.outs == 3) {
+        if (g_BallsStrikesOuts.outs == 3) {
             if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
-                g_Strikes.forcedOutToEndInningInd = 1;
+                g_BallsStrikesOuts.forcedOutToEndInningInd = 1;
             } else {
                 processScoreChanges(1);
             }
@@ -863,7 +863,7 @@ void running_checkForOuts(void) {
     InMemRunnerType* runner;
     int i;
 
-    if (g_Strikes.outs < 3) {
+    if (g_BallsStrikesOuts.outs < 3) {
         s16 contact = g_Ball.AtBat_ContactResult;
 
         if (contact == BALL_RESULT_TYPE_LANDED || contact == BALL_RESULT_TYPE_FOUL || contact == BALL_RESULT_TYPE_FIELDED) {
@@ -1025,7 +1025,7 @@ void setRunnerAngle(void) {
                 } else if (i == 0 &&
                            (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF ||
                             g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_STEAL) &&
-                           g_Strikes.outs < 3) {
+                           g_BallsStrikesOuts.outs < 3) {
                     angle = 3.1415927f;
                 } else if (runner->actionCode != 0) {
                     if (runner->actionStage == 2 && runner->actionFrames_countDown <= 1) {
@@ -1121,7 +1121,7 @@ void running_CalcVeloAndIfBatterShouldStayStill(void) {
             batter->batterStayInBattersBoxReason = 1;
         } else if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF || g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_STEAL ||
                    g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3) {
-            if (g_Strikes.outs < 3) {
+            if (g_BallsStrikesOuts.outs < 3) {
                 batter->batterStayInBattersBoxReason = 1;
             }
         } else if (batter->outType == 0 || batter->runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY) {
@@ -1294,7 +1294,7 @@ void updateRunnerValues(void) {
             runner->percentTowardsNextBase_stored = runner->percentTowardsNextBase;
             runner->runningDirectionDesired = RUNNER_MOVEMENT_NONE;
             runner->newButtonThisFrame_forMashPurposes = 0;
-            if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_Strikes.storedOuts < 2 &&
+            if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_BallsStrikesOuts.storedOuts < 2 &&
                 runner->tagUpStatus == TAG_UP_TYPE_PENDING) {
                 runner->tagUpStatus = TAG_UP_TYPE_MUST_RETURN;
                 if (runner->baseStandingOn == runner->startingBase_baseAchieved) {
@@ -1469,7 +1469,7 @@ void running_updateRestrictedMovements(void) {
     g_Runners[3].movementRestrictions_stored = g_Runners[3].movementRestrictions;
     g_Runners[3].movementRestrictions = RUNNER_RESTRICTION_NONE;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         return;
     }
 
@@ -1508,7 +1508,7 @@ void running_updateRestrictedMovements(void) {
                 runner->movementRestrictions |= RUNNER_RESTRICTION_NO_FORWARD;
             } else if (precedingFrac < 0.0f) {
                 if (runner->fractionalBasesRan >= 3.75f && g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING &&
-                    g_Strikes.storedOuts < 2) {
+                    g_BallsStrikesOuts.storedOuts < 2) {
                     // Prevent furthest runner from crossing home if < 2 outs and a fly out is possible.
                     if (runner->tagUpStatus != TAG_UP_TYPE_NONE) {
                         runner->movementRestrictions |= RUNNER_RESTRICTION_NO_CROSSING_PLATE;
@@ -1884,7 +1884,7 @@ void running_AIStartSteals(void) {
     int i;
 
     if (g_Ball.pitchHangtimeCounter <= 30 && g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_WINDUP) {
-        if (g_Strikes.outs == 2 && g_Strikes.GameControls_StrikeBallBitVector == 0x23) {
+        if (g_BallsStrikesOuts.outs == 2 && g_BallsStrikesOuts.GameControls_StrikeBallBitVector == 0x23) {
             runner = &g_Runners[1];
             for (i = 1; i <= 3; i++, runner++) {
                 if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
@@ -2123,7 +2123,7 @@ int runnerAISubfunction3(int runnerIdx, int arg1) {
         return result;
     }
 
-    if (g_Strikes.outs == 2) {
+    if (g_BallsStrikesOuts.outs == 2) {
         return 1;
     }
 
@@ -2489,7 +2489,7 @@ int runnerAI_2(int runnerIdx) {
         if (nextFrames > framesToNext - 20) {
             return 1;
         }
-        if (nextFrames > framesToNext - 30 && g_Strikes.outs >= 2) {
+        if (nextFrames > framesToNext - 30 && g_BallsStrikesOuts.outs >= 2) {
             return 1;
         }
     }
@@ -2581,7 +2581,7 @@ int runnerAILiveBall(int runnerIdx) {
         threshold += 30;
         if (nextBase == 0) {
             threshold += 15;
-            if (g_Strikes.outs >= 2) {
+            if (g_BallsStrikesOuts.outs >= 2) {
                 threshold += 10;
             }
         }
@@ -2670,7 +2670,7 @@ void running_LiveBall_AI(void) {
             runner = &g_Runners[i];
             dirs[i] = -2;
             if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD || runner->unused_const_1 == 0 ||
-                g_Strikes.outs >= 3 || g_FieldingLogic.playOverInd != 0) {
+                g_BallsStrikesOuts.outs >= 3 || g_FieldingLogic.playOverInd != 0) {
                 continue;
             }
             if (i == 0 && g_Ball.framesSinceHit < runner->delayBeforeStartingToRun) {
@@ -2689,7 +2689,7 @@ void running_LiveBall_AI(void) {
                            (g_Ball.numFieldersWhoHandledBallDuringPlay == 0 || g_Ball.bobbleLocation_1fair_2foul != 1)) {
                     dirs[i] = -1;
                 } else {
-                    if (g_Strikes.storedOuts == 2 && g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE &&
+                    if (g_BallsStrikesOuts.storedOuts == 2 && g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE &&
                         runner->currentBase == runner->startingBase_baseAchieved) {
                         dirs[i] = 1;
                     } else {
@@ -3559,7 +3559,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                             g_FieldingLogic.tagAnimationType = 1;
                             g_FieldingLogic.runnerBeingTargettedForOut = runnerIdx;
                         }
-                    } else if (g_Strikes.outs < 3 && (runner->tagUpStatus != TAG_UP_TYPE_MUST_RETURN ||
+                    } else if (g_BallsStrikesOuts.outs < 3 && (runner->tagUpStatus != TAG_UP_TYPE_MUST_RETURN ||
                                                       g_Ball.baseBallAndFielderAreOn == runner->startingBase_baseAchieved)) {
                         QueueTextToDisplay(2, 0);
                     }
@@ -3596,11 +3596,11 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                 runner->overrunning1BIndicator = 0;
             }
             if (runner->baseStandingOn == 0) {
-                if (g_Strikes.outs < 3 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES &&
+                if (g_BallsStrikesOuts.outs < 3 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES &&
                     (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
                      g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED ||
                      (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && runner->tagUpStatus == TAG_UP_TYPE_NONE) ||
-                     (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Strikes.storedOuts == 2) ||
+                     (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_BallsStrikesOuts.storedOuts == 2) ||
                      g_Practice.practiceType_2 == PRACTICE_TYPE_BASERUNNING)) {
                     runner->runningDirectionCode = RUNNER_MOVEMENT_NONE;
                     runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DURING_PLAY;
@@ -4383,7 +4383,7 @@ void running_sendOutRunnerToDugout(int runnerIdx) {
         runner->runningToDugoutStage = 0;
         runner->overRun1BStage = 0;
     } else {
-        if (g_Strikes.outs < 3) {
+        if (g_BallsStrikesOuts.outs < 3) {
             return;
         }
         if (runner->actionCode != 0) {

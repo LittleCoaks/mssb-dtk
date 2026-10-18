@@ -73,7 +73,7 @@ void categorizeBallTrajectory(void) {
     }
     if (g_Runners[BATTER_RUNNER_INDEX].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY &&
         storedInningInfo.situation == 14 && g_Ball.framesSinceBallHitGroundOrWasCaught <= 240 &&
-        g_Strikes.storedOuts < 2) {
+        g_BallsStrikesOuts.storedOuts < 2) {
         storedInningInfo.situation = 13;
         storedInningInfo.abResultFinal = 0x11;
     }

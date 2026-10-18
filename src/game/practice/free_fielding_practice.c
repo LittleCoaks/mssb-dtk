@@ -223,7 +223,7 @@ void unused_matchSimulationRelated(void) {
         break;
     }
     if (g_Practice.practiceLevel != 7 && g_Practice.practiceLevel != 6) {
-        g_Strikes.outs = 0;
+        g_BallsStrikesOuts.outs = 0;
     }
 }
 
@@ -258,8 +258,8 @@ void practiceRelated(void) {
     if (g_GameLogic.TeamStars[1] == 0) {
         g_GameLogic.TeamStars[1] = 5;
     }
-    if (g_Strikes.outs >= 3) {
-        g_Strikes.outs = 0;
+    if (g_BallsStrikesOuts.outs >= 3) {
+        g_BallsStrikesOuts.outs = 0;
     }
     g_Practice.guidedPracticeCompletionRelated = 0;
 }
@@ -270,8 +270,8 @@ void freeFieldingPracticeTransition(void) {
     g_GameLogic.writeOnly_always0 = 0;
     g_GameLogic.writeOnly_always0_2 = 0;
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
-        if (g_Strikes.outs >= 3) {
-            g_Strikes.outs = 0;
+        if (g_BallsStrikesOuts.outs >= 3) {
+            g_BallsStrikesOuts.outs = 0;
         }
     }
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);

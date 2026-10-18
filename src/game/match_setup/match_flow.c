@@ -103,7 +103,7 @@ void baseballMatchSimulation(void) {
     } else {
         g_Ball.totalFramesAtPlay = 0x7FFF;
     }
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         g_FieldingLogic.framesSince3rdOutWasMade++;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO && g_GameLogic.gameStatus != GAME_STATUS_GAME_START_MOVIE) {
@@ -406,10 +406,10 @@ void initNewInning(void) {
     intializeRunnersDuringTransition();
     betweenABSetPitcherBatter();
     initializeSomethingDuringTransition2();
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
-    g_Strikes._1E = -1;
-    g_Strikes.stateRelated = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
+    g_BallsStrikesOuts._1E = -1;
+    g_BallsStrikesOuts.stateRelated = 0;
     g_GameLogic.frameCountdownAtBeginningOfAtBatLockout = 0x5A;
     g_GameLogic._13D = 0;
 }
@@ -447,10 +447,10 @@ void matchTransitionPrepareNextAB(void) {
         intializeRunnersDuringTransition();
         initializeSomethingDuringTransition();
         initializeSomethingDuringTransition2();
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
-        g_Strikes._1E = -1;
-        g_Strikes.stateRelated = 0;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
+        g_BallsStrikesOuts._1E = -1;
+        g_BallsStrikesOuts.stateRelated = 0;
         g_GameLogic.pre_PostMiniGameInd = 1;
         g_GameLogic.minigameLastTurnSuccessInd = 1;
         g_GameLogic.frameCountdownAtBeginningOfAtBatLockout = 0x5A;
@@ -548,12 +548,12 @@ void newPitch(void) {
         diff = 0x7FFF;
     }
     g_Scores._A6 = __abs(diff);
-    g_Strikes.storedOuts = g_Strikes.outs;
-    g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-    g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-    g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + g_Strikes.strikes * 16;
-    g_Strikes.howRunnerReachedBase = 0;
+    g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+    g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+    g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+    g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+    g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + g_BallsStrikesOuts.strikes * 16;
+    g_BallsStrikesOuts.howRunnerReachedBase = 0;
     g_Ball.totalFramesAtPlay = 0;
     g_FieldingLogic.playOverInd = 0;
     g_FieldingLogic.framesSincePlayEnded = 0;
@@ -617,7 +617,7 @@ void atBatScreen(void) {
     running_MainFunction();
     processScoreChanges(0);
     if (g_GameLogic.freeFieldingPracticeInd == 0) {
-        if (g_Strikes.outs >= 3 || (g_Strikes.storedOuts == 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT)) {
+        if (g_BallsStrikesOuts.outs >= 3 || (g_BallsStrikesOuts.storedOuts == 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT)) {
             if (g_GameLogic.EventTriggers_EndOfGame == 0) {
                 endOfGameCheck(0);
                 if (g_GameLogic.EventTriggers_EndOfGame != 0) {
@@ -651,9 +651,9 @@ void endBatterTransition(void) {
                 challenge_checkRecruitment();
             }
         }
-    } else if (g_Strikes.outs >= 3) {
+    } else if (g_BallsStrikesOuts.outs >= 3) {
         if (g_FieldingLogic.liveBallReason < PICKOFF_STEAL_CODE_PICKOFF ||
-            g_FieldingLogic.liveBallReason > PICKOFF_STEAL_CODE_UNUSED_3 || g_Strikes.balls >= 4) {
+            g_FieldingLogic.liveBallReason > PICKOFF_STEAL_CODE_UNUSED_3 || g_BallsStrikesOuts.balls >= 4) {
             iterateBatter(g_GameLogic.homeTeamBattingInd_fieldingTeam);
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
@@ -685,7 +685,7 @@ void freePracticeSomething(void) {
     checkIfPlayOver();
     if (g_GameLogic.freeFieldingPracticeInd == 0) {
         midPlay_trackStats();
-        if (g_Strikes.outs >= 3) {
+        if (g_BallsStrikesOuts.outs >= 3) {
             endOfGameCheck(0);
         }
     }
@@ -712,7 +712,7 @@ void checkIfPlayOver(void) {
         return;
     }
     if (g_FieldingLogic.canEndPlayOnLooseBallInd != 0 && animRelated[0xB1] == 0) {
-        if (g_Strikes.outs < 3 && g_RunningLogic._00 != 0) {
+        if (g_BallsStrikesOuts.outs < 3 && g_RunningLogic._00 != 0) {
             g_FieldingLogic.playOverCounter = 0;
         }
         g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
@@ -770,7 +770,7 @@ void checkIfPlayOver(void) {
         if (g_Scores.Inning >= g_Scores.inningLimit && g_Scores.halfInning != 0) {
             QueueTextToDisplay(0xD, 0);
         }
-    } else if (g_Strikes.outs >= 3) {
+    } else if (g_BallsStrikesOuts.outs >= 3) {
         endFrame = 0x78;
     } else if (count == 0 && g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN && g_Ball.ballInitialHitDoneInd != 0 &&
                g_Ball.ballState != 0) {
@@ -857,7 +857,7 @@ void checkIfPlayOver(void) {
         } else if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE &&
                    g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_4 && g_Pitcher.strikeOutOrWalk == 0) {
             showReplay = 0;
-            if (g_Strikes.outs < g_Strikes.storedOuts) {
+            if (g_BallsStrikesOuts.outs < g_BallsStrikesOuts.storedOuts) {
                 g_GameLogic.playOver = 0;
             }
         }
@@ -874,7 +874,7 @@ void checkIfPlayOver(void) {
             if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_FOUL || g_Ball.maybebuntOn2Strikes != 0) {
                 int team;
 
-                if (g_Strikes.outs > g_Strikes.storedOuts) {
+                if (g_BallsStrikesOuts.outs > g_BallsStrikesOuts.storedOuts) {
                     g_GameLogic.IsStarChance = 2;
                     team = g_GameLogic.teamFielding;
                 } else {
@@ -898,7 +898,7 @@ void checkIfPlayOver(void) {
             if (scoutState.scoutFlag == 0) {
                 if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) {
                     animRelated[0xB4] = 1;
-                } else if (g_Strikes.outs >= 3 || scoutState.scoutResult != SCOUT_RESULT_PENDING) {
+                } else if (g_BallsStrikesOuts.outs >= 3 || scoutState.scoutResult != SCOUT_RESULT_PENDING) {
                     animRelated[0xB4] = 1;
                 } else {
                     scoutState.scoutCountdown = 8;
@@ -936,7 +936,7 @@ void playOverTransitionStuff(void) {
     g_GameLogic.playBatterWalkupAnimation = 0;
     postPitchStatUpdating(1);
     trackLastPitchInfo();
-    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE && g_Strikes.outs < 3 &&
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE && g_BallsStrikesOuts.outs < 3 &&
         g_GameLogic.EventTriggers_EndOfGame == 0) {
         didTransition = handleABEndEvent();
     }
@@ -948,10 +948,10 @@ void playOverTransitionStuff(void) {
     if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         SetGameStatus(GAME_STATUS_TRANSITION);
         didTransition = 1;
-    } else if (g_Strikes.outs >= 3) {
+    } else if (g_BallsStrikesOuts.outs >= 3) {
         SetGameStatus(GAME_STATUS_TRANSITION);
         if (g_FieldingLogic.liveBallReason >= PICKOFF_STEAL_CODE_PICKOFF &&
-            g_FieldingLogic.liveBallReason <= PICKOFF_STEAL_CODE_UNUSED_3 && g_Strikes.balls < 4 && g_Strikes.strikes < 3) {
+            g_FieldingLogic.liveBallReason <= PICKOFF_STEAL_CODE_UNUSED_3 && g_BallsStrikesOuts.balls < 4 && g_BallsStrikesOuts.strikes < 3) {
             if (g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 1) {
                 storedInningInfo._44[g_GameLogic.homeTeamBattingInd_fieldingTeam]--;
             }
@@ -1087,7 +1087,7 @@ void settingGameStatus(void) {
         g_GameLogic.framesOfExitingToMenu = 1;
     } else if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         fn_3_5D9F8();
-    } else if (g_Strikes.outs >= 3) {
+    } else if (g_BallsStrikesOuts.outs >= 3) {
         fn_3_5D9F8();
     } else {
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
@@ -1423,7 +1423,7 @@ void processScoreChanges(int arg0) {
         if (g_Scores._9C <= 0) {
             return;
         }
-        if (g_Strikes.outs >= 3 && arg0 != 1) {
+        if (g_BallsStrikesOuts.outs >= 3 && arg0 != 1) {
             return;
         }
         if (g_Stats.replayInd != 0 && g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
@@ -1455,14 +1455,14 @@ void processScoreChanges(int arg0) {
             }
         }
         if (g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
-            if (g_Strikes.outs >= 3) {
-                if (g_Strikes.forcedOutToEndInningInd == 1) {
+            if (g_BallsStrikesOuts.outs >= 3) {
+                if (g_BallsStrikesOuts.forcedOutToEndInningInd == 1) {
                     return;
                 }
-                if (g_Strikes.storedOuts == 2 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
+                if (g_BallsStrikesOuts.storedOuts == 2 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
                     return;
                 }
-            } else if (g_Strikes.outs + runnersOut >= 3) {
+            } else if (g_BallsStrikesOuts.outs + runnersOut >= 3) {
                 return;
             }
         }
@@ -1530,7 +1530,7 @@ void transitionToLiveBallWithoutContact(int arg0) {
     g_Pitcher.peachDaisyStarAnimationOn = 0;
     stealSetFielders();
     stealCancelLeadoffs();
-    if (g_Strikes.balls >= 4) {
+    if (g_BallsStrikesOuts.balls >= 4) {
         g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_WALK_WHILE_STEALING;
     } else {
         g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DEAD_BALL;
