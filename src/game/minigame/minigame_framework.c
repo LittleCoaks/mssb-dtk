@@ -9,7 +9,8 @@
 #include "game/character_stats.h"
 #include "game/math/game_math.h"
 #include "game/match_setup/pause_menu.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/challenge/star_missions.h"
 #include "game/match_setup/match_scene.h"
@@ -29,7 +30,7 @@
 #include "game/animation/animation_dispatch.h"
 #include "game/animation/scene_effects.h"
 #include "game/batting/star_hit_sprites.h"
-#include "game/data_only/rep_3CE0.h"
+#include "game/minigame/minigame_winner_spotlight.h"
 #include "musyx/musyx.h"
 #include "Dolphin/os.h"
 #include "Dolphin/stl.h"
@@ -2646,7 +2647,7 @@ void minigameEndSwitcher(void) {
         } else {
             g_d_GameSettings._38 = g_Minigame.playerSlots.rank[g_d_GameSettings._35];
         }
-        fn_3_15F998();
+        minigameWinnerSpotlight_stop();
         minigameWinnerStars_stop();
         mm_UnloadModels();
         g_GameLogic.framesOfExitingToMenu = 1;
@@ -2985,7 +2986,7 @@ void postMinigame(void) {
         }
         g_Minigame.minigameInactiveInd = TRUE;
         g_Minigame.endSequencePhase = 0;
-        fn_3_15F998();
+        minigameWinnerSpotlight_stop();
         minigameWinnerStars_stop();
         hugeAnimStruct[0x307A] = 0;
         pauseControl._1D9 = 2;
@@ -3008,7 +3009,7 @@ void postMinigame(void) {
         if (lbl_8037169C[0x13] != 0) {
             g_Minigame.minigameInactiveInd = TRUE;
             pauseControl._1D9 = 2;
-            fn_3_15F998();
+            minigameWinnerSpotlight_stop();
             minigameWinnerStars_stop();
             mm_UnloadModels();
             fn_8004CC18();
@@ -3701,7 +3702,7 @@ void minigames_0x26(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_7:
         if (g_Minigame.grandPrixRound >= 6) {
-            fn_3_15F998();
+            minigameWinnerSpotlight_stop();
             minigameWinnerStars_stop();
             sound_crowd_EffectsStruct._31 = 0;
             SetGameStatus(GAME_STATUS_0x27);

@@ -72,16 +72,16 @@ typedef struct _SceneFx {
     /*0x41C*/ VecXYZ contactPos;
     /*0x428*/ VecXYZ ballScreenPos;
     /*0x434*/ VecXYZ hitScreenPos;
-    /*0x440*/ VecXYZ _440;
-    /*0x44C*/ VecXYZ _44C;
+    /*0x440*/ VecXYZ starEffectPos;
+    /*0x44C*/ VecXYZ starEffectPrevPos;
     /*0x458*/ u8 _458[0xC];
     /*0x464*/ s16 _464;
     /*0x466*/ u8 _466;
     /*0x467*/ s8 starHitLevel;
     /*0x468*/ u8 _468[0x8];
-    /*0x470*/ u8 _470;
+    /*0x470*/ u8 winnerSpotlightActive;
     /*0x471*/ u8 _471[0x1];
-    /*0x472*/ u8 _472[5];
+    /*0x472*/ u8 winnerSpotlightSlots[5]; // [0] = count, [1..4] = actor slots
     /*0x477*/ u8 _477[0x2];
     /*0x479*/ u8 paused;
     /*0x47A*/ u8 _47A[0x6];
@@ -1275,7 +1275,7 @@ extern void ACTActorRelated(void* file, void* actor);
 extern void actRelated(void* file, void* effect);
 extern void actorRelated(void* effect, int a, int b);
 extern void fn_800245EC(camera_803c639c_s* cam, Mtx view, Vec* pos, f32* out, int a, int b);
-extern void fn_3_15FB84(int a, ...);
+extern void minigameWinnerSpotlight_queue(int a, ...);
 extern void fn_3_169150(void);
 extern BOOL marioHandOnFire_endFireAnimation(BOOL clear);
 extern void animatePitchersHandOnFire(void);
@@ -2337,9 +2337,9 @@ void fn_3_BD6AC(BOOL isBatter, f32 x, f32 y, f32 z) {
     u8 type;
 
     fx->_466 = TRUE;
-    fx->_440.x = x;
-    fx->_440.y = y;
-    fx->_440.z = z;
+    fx->starEffectPos.x = x;
+    fx->starEffectPos.y = y;
+    fx->starEffectPos.z = z;
     fx->_464 = 0;
     if (isBatter) {
         type = g_Ball.currentStarSwing;
@@ -2365,10 +2365,10 @@ void animationRelated(f32 x, f32 y, f32 z, BOOL isBatter) {
     u8 type;
 
     if (lbl_80366158._28 == 0) {
-        memcpy(&lbl_3_common_bss_35154._44C, &lbl_3_common_bss_35154._440, sizeof(VecXYZ));
-        lbl_3_common_bss_35154._440.x = x;
-        lbl_3_common_bss_35154._440.y = y;
-        lbl_3_common_bss_35154._440.z = z;
+        memcpy(&lbl_3_common_bss_35154.starEffectPrevPos, &lbl_3_common_bss_35154.starEffectPos, sizeof(VecXYZ));
+        lbl_3_common_bss_35154.starEffectPos.x = x;
+        lbl_3_common_bss_35154.starEffectPos.y = y;
+        lbl_3_common_bss_35154.starEffectPos.z = z;
     }
     if (lbl_3_common_bss_35154._466 != 0) {
         if (isBatter) {
@@ -2886,8 +2886,8 @@ void spriteAnimations(void) {
             actor->_279 |= (flags == 2) << 1;
         }
     }
-    if (lbl_3_common_bss_35154._470 != 0) {
-        fn_3_15FB84(lbl_3_common_bss_35154._472[0], lbl_3_common_bss_35154._472[1], lbl_3_common_bss_35154._472[2], lbl_3_common_bss_35154._472[3], lbl_3_common_bss_35154._472[4]);
+    if (lbl_3_common_bss_35154.winnerSpotlightActive != 0) {
+        minigameWinnerSpotlight_queue(lbl_3_common_bss_35154.winnerSpotlightSlots[0], lbl_3_common_bss_35154.winnerSpotlightSlots[1], lbl_3_common_bss_35154.winnerSpotlightSlots[2], lbl_3_common_bss_35154.winnerSpotlightSlots[3], lbl_3_common_bss_35154.winnerSpotlightSlots[4]);
     }
     fn_3_169150();
     fn_8006C43C((void*)fn_3_168CD8);

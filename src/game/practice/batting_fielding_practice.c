@@ -1,6 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/practice/batting_fielding_practice.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/roster_init.h"
 #include "game/ball/ball_physics.h"

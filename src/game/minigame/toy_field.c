@@ -8,6 +8,8 @@
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
 #include "game/match_setup/pause_menu.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/match_setup/roster_init.h"
@@ -54,7 +56,7 @@ extern struct {
 
 extern void QueueTextToDisplay(int code, int arg1);
 extern void ballPhysica(void);
-extern void fn_3_15F998(void);
+extern void minigameWinnerSpotlight_stop(void);
 extern void minigameCharLoadQueueUpdate(void);
 extern void toyFieldStadiumLoad(void);
 extern void toyFieldCharSelectSwitcher(void);
@@ -1473,7 +1475,7 @@ void toyFieldPostMenu(void) {
         }
         if (start) {
             initializeMinigameData();
-            fn_3_15F998();
+            minigameWinnerSpotlight_stop();
             minigameWinnerStars_stop();
             if (pauseControl.cursor == 1) {
                 mm_UnloadModels();
@@ -1484,7 +1486,7 @@ void toyFieldPostMenu(void) {
     case 9:
         switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
-            fn_3_15F998();
+            minigameWinnerSpotlight_stop();
             minigameWinnerStars_stop();
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 10;

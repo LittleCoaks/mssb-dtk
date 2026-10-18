@@ -1,5 +1,5 @@
-#define REP_HEADER_DATA_FN getRepHeaderData_rep3CE0
-#include "game/data_only/rep_3CE0.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_minigameWinnerSpotlight
+#include "game/minigame/minigame_winner_spotlight.h"
 #include "mssbTypes.h"
 #include "header_rep_data.h"
 #include "Dolphin/vec.h"
@@ -15,54 +15,63 @@
 #include <stdarg.h>
 #include <string.h>
 
-typedef struct {
-    Vec position;
-    Vec secondPosition;
-    f32 halfWidth;
-    f32 radius;
-    u32 color;
-    u32 other;
-    s32 enabled;
-} Rep3CE0Marker;
+// The minigame results spotlight: the screen dims to dimAlpha over fadeFrames,
+// then up to four light beams come down on the winners' actors (sized by
+// character) with a ground disc at their feet. minigame_fielder_anim starts it
+// (minigameWinnerSpotlight_start, then _show next to minigameWinnerStars_spawn),
+// scene_effects queues the draw each frame while it is active, and the
+// minigame framework and Toy Field stop it next to minigameWinnerStars_stop.
 
-typedef struct Rep3CE0Overlay {
+// One light beam: a quad from a narrow top edge above the winner down to a
+// wider edge at their feet, plus a textured ground disc there.
+typedef struct {
+    Vec top;
+    Vec base;
+    f32 topHalfWidth;
+    f32 baseRadius;
+    u32 topColor;
+    u32 baseColor;
+    s32 enabled;
+} SpotlightBeam;
+
+typedef struct SpotlightOverlay {
     u32 _00;
     void (*draw)(void*);
-    Rep3CE0Marker markers[4];
-    void* texture;
-    u32 backgroundColor;
-    s32 markerCount;
-} Rep3CE0Overlay;
+    SpotlightBeam beams[4];
+    void* groundTexture;
+    u32 dimColor;
+    s32 beamCount;
+} SpotlightOverlay;
 
 typedef struct {
     s32 x;
     s32 y;
-    u32 color;
-    u32 other;
-} Rep3CE0Coord;
+    u32 topColor;
+    u32 baseColor;
+} SpotlightBeamOffset;
 
 typedef struct {
-    s32 fadeTarget;
+    s32 dimAlpha;
     s32 fadeFrames;
-    Rep3CE0Coord coords[6];
-    s32 yOffset;
-} Rep3CE0Settings;
+    SpotlightBeamOffset coords[6]; // [0] one beam, [1..2] two beams, [3..5] three or more
+    s32 beamHeight;
+} SpotlightSettings;
 
 extern u8 lbl_3_common_bss_35154[];
 
 typedef struct {
     u8 _000[0x468];
-    u32 backgroundColor;
+    u32 dimColor;
     u8 _46C[4];
-    u8 _470;
-    u8 showMarkers;
-    u8 valueCount;
-    u8 values[6];
-    u8 _479;
+    u8 active;
+    u8 showBeams;
+    u8 slotCount;
+    u8 slots[6];
+    u8 paused;
     u8 _47A[6];
-} Rep3CE0State;
+} SpotlightState;
 
-#define sState (*(Rep3CE0State*)lbl_3_common_bss_35154)
+#define sState (*(SpotlightState*)lbl_3_common_bss_35154)
 extern u8 hugeAnimStruct[];
 extern u8 drawStadiumRelated;
 extern void fn_800A7D4C(s32, void*);
@@ -70,16 +79,17 @@ extern void fn_800A7D4C(s32, void*);
 // This unit's .data (0x27EC0-0x281F0). MWCC pools file-static data and
 // addresses each object as base+offset from a single register, so these must
 // stay statics defined in this order.
-static s32 sMarkerSizes[3][2] = {
+static s32 sBeamSizes[3][2] = {
     {15000, 90000},
     {20000, 129999},
     {30000, 180000},
 };
-static u8 sMarkerSizeClass[0x38] = {
+// Beam size class (row of sBeamSizes) per CHAR_ID.
+static u8 sBeamSizeClass[0x38] = {
     1, 1, 2, 1, 1, 1, 1, 0, 0, 2, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 2, 2, 2, 0, 0, 0, 1,
     0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
 };
-static Rep3CE0Settings sSettings = {
+static SpotlightSettings sSettings = {
     0x40,
     0x10,
     {
@@ -92,9 +102,9 @@ static Rep3CE0Settings sSettings = {
     },
     900000,
 };
-static Rep3CE0Overlay sOverlays[2] = {
-    {0, fn_3_15FF28},
-    {0, fn_3_15FF28},
+static SpotlightOverlay sOverlays[2] = {
+    {0, minigameWinnerSpotlight_draw},
+    {0, minigameWinnerSpotlight_draw},
 };
 static Mtx44 sScreenProjection = {
     {0.003125f, 0.0f, 0.0f, -1.0f},
@@ -130,8 +140,8 @@ static const f32 lbl_3_rodata_3D48 = 640.0f;
 static const f32 lbl_3_rodata_3D4C = 448.0f;
 
 // .text:0x0015FF28 size:0x650 mapped:0x8079EFBC
-void fn_3_15FF28(void* arg) {
-    Rep3CE0Overlay* overlay = (Rep3CE0Overlay*)arg;
+void minigameWinnerSpotlight_draw(void* arg) {
+    SpotlightOverlay* overlay = (SpotlightOverlay*)arg;
     Mtx identity;
     Vec transformed;
     Vec direction;
@@ -143,45 +153,45 @@ void fn_3_15FF28(void* arg) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     PSMTXIdentity(identity);
     GXSetZCompLoc(FALSE);
-    fn_3_15F874(FALSE);
+    minigameWinnerSpotlight_clearDepth(FALSE);
 
     mode = returnsCurrentMode();
     camera = returnFloatFromModeIndex(mode);
     setScissorAndProjection(mode);
     gOz_GXSetTexture(GX_MODULATE, 0, FALSE);
 
-    if (sState.valueCount != 0 && sState.showMarkers) {
+    if (sState.slotCount != 0 && sState.showBeams) {
         GXSetZMode(TRUE, GX_ALWAYS, TRUE);
         GXLoadPosMtxImm(identity, GX_PNMTX0);
         SetDisplayStateTexture(NULL, 0, 0);
-        for (i = 0; i < overlay->markerCount; i++) {
-            if (overlay->markers[i].enabled) {
-                PSMTXMultVec(camera->view, &overlay->markers[i].position, &transformed);
+        for (i = 0; i < overlay->beamCount; i++) {
+            if (overlay->beams[i].enabled) {
+                PSMTXMultVec(camera->view, &overlay->beams[i].top, &transformed);
                 GXBegin(GX_QUADS, GX_VTXFMT0, 4);
                 {
                     f32 x = transformed.x;
-                    GX_FIFO_F32 = x - overlay->markers[i].halfWidth;
+                    GX_FIFO_F32 = x - overlay->beams[i].topHalfWidth;
                     GX_FIFO_F32 = transformed.y;
                     GX_FIFO_F32 = transformed.z;
-                    GX_FIFO_U32 = overlay->markers[i].color;
+                    GX_FIFO_U32 = overlay->beams[i].topColor;
                     GX_FIFO_U16 = 0;
                     GX_FIFO_U16 = 0;
-                    GX_FIFO_F32 = x + overlay->markers[i].halfWidth;
+                    GX_FIFO_F32 = x + overlay->beams[i].topHalfWidth;
                     GX_FIFO_F32 = transformed.y;
                     GX_FIFO_F32 = transformed.z;
-                    GX_FIFO_U32 = overlay->markers[i].color;
+                    GX_FIFO_U32 = overlay->beams[i].topColor;
                     GX_FIFO_U16 = 1;
                     GX_FIFO_U16 = 0;
                 }
-                PSMTXMultVec(camera->view, &overlay->markers[i].secondPosition, &transformed);
+                PSMTXMultVec(camera->view, &overlay->beams[i].base, &transformed);
                 direction.x = transformed.x;
                 direction.y = lbl_3_rodata_3D40;
                 direction.z = transformed.z;
                 if (PSVECMag(&direction)) {
                     PSVECNormalize(&direction, &direction);
-                    PSVECScale(&direction, overlay->markers[i].radius, &direction);
+                    PSVECScale(&direction, overlay->beams[i].baseRadius, &direction);
                 } else {
-                    direction.x = overlay->markers[i].radius;
+                    direction.x = overlay->beams[i].baseRadius;
                     direction.z = lbl_3_rodata_3D40;
                 }
                 {
@@ -190,13 +200,13 @@ void fn_3_15FF28(void* arg) {
                     GX_FIFO_F32 = x - direction.z;
                     GX_FIFO_F32 = transformed.y;
                     GX_FIFO_F32 = transformed.z + (dx = direction.x);
-                    GX_FIFO_U32 = overlay->markers[i].other;
+                    GX_FIFO_U32 = overlay->beams[i].baseColor;
                     GX_FIFO_U16 = 1;
                     GX_FIFO_U16 = 1;
                     GX_FIFO_F32 = x + direction.z;
                     GX_FIFO_F32 = transformed.y;
                     GX_FIFO_F32 = transformed.z - dx;
-                    GX_FIFO_U32 = overlay->markers[i].other;
+                    GX_FIFO_U32 = overlay->beams[i].baseColor;
                     GX_FIFO_U16 = 0;
                     GX_FIFO_U16 = 1;
                 }
@@ -204,55 +214,55 @@ void fn_3_15FF28(void* arg) {
         }
         GXSetZMode(TRUE, GX_LEQUAL, TRUE);
         GXLoadPosMtxImm(camera->view, GX_PNMTX0);
-        SetDisplayStateTexture((TextureBody*)overlay->texture, 0, 0);
-        for (i = 0; i < overlay->markerCount; i++) {
-            if ((&overlay->markers[i])->enabled) {
+        SetDisplayStateTexture((TextureBody*)overlay->groundTexture, 0, 0);
+        for (i = 0; i < overlay->beamCount; i++) {
+            if ((&overlay->beams[i])->enabled) {
                 GXBegin(GX_QUADS, GX_VTXFMT0, 4);
                 {
-                    f32 y = (&overlay->markers[i])->secondPosition.y;
-                    f32 radius = (&overlay->markers[i])->radius;
-                    f32 x = (&overlay->markers[i])->secondPosition.x - radius;
-                    f32 z = (&overlay->markers[i])->secondPosition.z - radius;
+                    f32 y = (&overlay->beams[i])->base.y;
+                    f32 baseRadius = (&overlay->beams[i])->baseRadius;
+                    f32 x = (&overlay->beams[i])->base.x - baseRadius;
+                    f32 z = (&overlay->beams[i])->base.z - baseRadius;
                     GX_FIFO_F32 = x;
                     GX_FIFO_F32 = y;
                     GX_FIFO_F32 = z;
-                    GX_FIFO_U32 = (&overlay->markers[i])->other;
+                    GX_FIFO_U32 = (&overlay->beams[i])->baseColor;
                     GX_FIFO_U16 = 0;
                     GX_FIFO_U16 = 0;
                 }
                 {
-                    f32 y = (&overlay->markers[i])->secondPosition.y;
-                    f32 radius = (&overlay->markers[i])->radius;
-                    f32 x = (&overlay->markers[i])->secondPosition.x + radius;
-                    f32 z = (&overlay->markers[i])->secondPosition.z - radius;
+                    f32 y = (&overlay->beams[i])->base.y;
+                    f32 baseRadius = (&overlay->beams[i])->baseRadius;
+                    f32 x = (&overlay->beams[i])->base.x + baseRadius;
+                    f32 z = (&overlay->beams[i])->base.z - baseRadius;
                     GX_FIFO_F32 = x;
                     GX_FIFO_F32 = y;
                     GX_FIFO_F32 = z;
-                    GX_FIFO_U32 = (&overlay->markers[i])->other;
+                    GX_FIFO_U32 = (&overlay->beams[i])->baseColor;
                     GX_FIFO_U16 = 1;
                     GX_FIFO_U16 = 0;
                 }
                 {
-                    f32 y = (&overlay->markers[i])->secondPosition.y;
-                    f32 radius = (&overlay->markers[i])->radius;
-                    f32 x = (&overlay->markers[i])->secondPosition.x + radius;
-                    f32 z = (&overlay->markers[i])->secondPosition.z + radius;
+                    f32 y = (&overlay->beams[i])->base.y;
+                    f32 baseRadius = (&overlay->beams[i])->baseRadius;
+                    f32 x = (&overlay->beams[i])->base.x + baseRadius;
+                    f32 z = (&overlay->beams[i])->base.z + baseRadius;
                     GX_FIFO_F32 = x;
                     GX_FIFO_F32 = y;
                     GX_FIFO_F32 = z;
-                    GX_FIFO_U32 = (&overlay->markers[i])->other;
+                    GX_FIFO_U32 = (&overlay->beams[i])->baseColor;
                     GX_FIFO_U16 = 1;
                     GX_FIFO_U16 = 1;
                 }
                 {
-                    f32 y = (&overlay->markers[i])->secondPosition.y;
-                    f32 radius = (&overlay->markers[i])->radius;
-                    f32 x = (&overlay->markers[i])->secondPosition.x - radius;
-                    f32 z = (&overlay->markers[i])->secondPosition.z + radius;
+                    f32 y = (&overlay->beams[i])->base.y;
+                    f32 baseRadius = (&overlay->beams[i])->baseRadius;
+                    f32 x = (&overlay->beams[i])->base.x - baseRadius;
+                    f32 z = (&overlay->beams[i])->base.z + baseRadius;
                     GX_FIFO_F32 = x;
                     GX_FIFO_F32 = y;
                     GX_FIFO_F32 = z;
-                    GX_FIFO_U32 = (&overlay->markers[i])->other;
+                    GX_FIFO_U32 = (&overlay->beams[i])->baseColor;
                     GX_FIFO_U16 = 0;
                     GX_FIFO_U16 = 1;
                 }
@@ -266,28 +276,28 @@ void fn_3_15FF28(void* arg) {
     GX_FIFO_F32 = lbl_3_rodata_3D40;
     GX_FIFO_F32 = lbl_3_rodata_3D40;
     GX_FIFO_F32 = lbl_3_rodata_3D44;
-    GX_FIFO_U32 = overlay->backgroundColor;
+    GX_FIFO_U32 = overlay->dimColor;
     GX_FIFO_U16 = 0;
     GX_FIFO_U16 = 0;
     GX_FIFO_F32 = lbl_3_rodata_3D48;
     GX_FIFO_F32 = lbl_3_rodata_3D40;
     GX_FIFO_F32 = lbl_3_rodata_3D44;
-    GX_FIFO_U32 = overlay->backgroundColor;
+    GX_FIFO_U32 = overlay->dimColor;
     GX_FIFO_U16 = 1;
     GX_FIFO_U16 = 0;
     GX_FIFO_F32 = lbl_3_rodata_3D48;
     GX_FIFO_F32 = lbl_3_rodata_3D4C;
     GX_FIFO_F32 = lbl_3_rodata_3D44;
-    GX_FIFO_U32 = overlay->backgroundColor;
+    GX_FIFO_U32 = overlay->dimColor;
     GX_FIFO_U16 = 1;
     GX_FIFO_U16 = 1;
     GX_FIFO_F32 = lbl_3_rodata_3D40;
     GX_FIFO_F32 = lbl_3_rodata_3D4C;
     GX_FIFO_F32 = lbl_3_rodata_3D44;
-    GX_FIFO_U32 = overlay->backgroundColor;
+    GX_FIFO_U32 = overlay->dimColor;
     GX_FIFO_U16 = 0;
     GX_FIFO_U16 = 1;
-    fn_3_15F874(FALSE);
+    minigameWinnerSpotlight_clearDepth(FALSE);
 }
 
 typedef struct {
@@ -295,34 +305,34 @@ typedef struct {
     Vec position;
     u8 _040[0x252 - 0x40];
     s8 charID;
-} Rep3CE0Actor;
+} SpotlightActor;
 
 typedef struct {
     u8 _0000[0x2C50];
-    Rep3CE0Actor* actors[4];
-} Rep3CE0AnimView;
+    SpotlightActor* actors[4];
+} SpotlightAnimView;
 
-static inline Rep3CE0Overlay* getOverlay(void) {
+static inline SpotlightOverlay* getOverlay(void) {
     return &sOverlays[drawStadiumRelated];
 }
 
 // .text:0x0015FB84 size:0x3A4 mapped:0x8079EC18
-void fn_3_15FB84(int count, ...) {
+void minigameWinnerSpotlight_queue(int count, ...) {
     va_list args;
     int counts[4];
     int i;
-    Rep3CE0Overlay* overlay;
-    Rep3CE0Settings* settings;
-    f32 yOffset;
+    SpotlightOverlay* overlay;
+    SpotlightSettings* settings;
+    f32 beamHeight;
     u8* slot;
 
     overlay = getOverlay();
     settings = &sSettings;
-    yOffset = -((f32)settings->yOffset / lbl_3_rodata_3D30);
+    beamHeight = -((f32)settings->beamHeight / lbl_3_rodata_3D30);
     slot = lbl_3_common_bss_35154;
-    overlay->markerCount = count;
-    overlay->texture = *(u8**)(slot + 4) + 0x344;
-    overlay->backgroundColor = *(u32*)(slot + 0x468);
+    overlay->beamCount = count;
+    overlay->groundTexture = *(u8**)(slot + 4) + 0x344; // textures->records[26]
+    overlay->dimColor = *(u32*)(slot + 0x468);
     memset(counts, 0, sizeof(counts));
     va_start(args, count);
     for (i = 0; i < count; i++) {
@@ -331,88 +341,88 @@ void fn_3_15FB84(int count, ...) {
     va_end(args);
 
     {
-        Rep3CE0Coord* firstCoords = &sSettings.coords[0];
-        Rep3CE0Coord* secondCoords = &sSettings.coords[1];
-        Rep3CE0Coord* fourthCoords = &sSettings.coords[3];
+        SpotlightBeamOffset* oneBeamOffsets = &sSettings.coords[0];
+        SpotlightBeamOffset* twoBeamOffsets = &sSettings.coords[1];
+        SpotlightBeamOffset* threeBeamOffsets = &sSettings.coords[3];
         int used = 0;
-        Rep3CE0Marker* marker = getOverlay()->markers;
+        SpotlightBeam* beam = getOverlay()->beams;
         for (i = 0; i < 4; i++) {
-            Rep3CE0Actor* actor = ((Rep3CE0AnimView*)hugeAnimStruct)->actors[i];
+            SpotlightActor* actor = ((SpotlightAnimView*)hugeAnimStruct)->actors[i];
             if (actor != 0) {
-                Rep3CE0Coord* coords;
+                SpotlightBeamOffset* coords;
                 switch (counts[i]) {
                 case 0: break;
-                case 1: coords = firstCoords; break;
-                case 2: coords = secondCoords; break;
+                case 1: coords = oneBeamOffsets; break;
+                case 2: coords = twoBeamOffsets; break;
                 case 3:
-                default: coords = fourthCoords; break;
+                default: coords = threeBeamOffsets; break;
                 }
                 while (counts[i]--) {
                     f32 xOffset = coords->x / lbl_3_rodata_3D30;
-                    u32 other = coords->other;
-                    s32 localYOffset = coords->y;
-                    u32 color = coords->color;
+                    u32 baseColor = coords->baseColor;
+                    s32 beamYOffset = coords->y;
+                    u32 topColor = coords->topColor;
                     coords++;
-                    marker->enabled = TRUE;
-                    marker->position.x = xOffset + actor->position.x;
-                    marker->position.y = yOffset + (actor->position.y + (f32)localYOffset / lbl_3_rodata_3D30);
-                    marker->position.z = actor->position.z;
-                    marker->secondPosition.x = actor->position.x;
-                    marker->secondPosition.y = actor->position.y;
-                    marker->secondPosition.z = actor->position.z;
-                    marker->halfWidth = (f32)sMarkerSizes[sMarkerSizeClass[actor->charID]][0] / lbl_3_rodata_3D30;
-                    marker->radius = (f32)sMarkerSizes[sMarkerSizeClass[actor->charID]][1] / lbl_3_rodata_3D30;
-                    marker->color = color;
-                    marker->other = other;
-                    marker++;
+                    beam->enabled = TRUE;
+                    beam->top.x = xOffset + actor->position.x;
+                    beam->top.y = beamHeight + (actor->position.y + (f32)beamYOffset / lbl_3_rodata_3D30);
+                    beam->top.z = actor->position.z;
+                    beam->base.x = actor->position.x;
+                    beam->base.y = actor->position.y;
+                    beam->base.z = actor->position.z;
+                    beam->topHalfWidth = (f32)sBeamSizes[sBeamSizeClass[actor->charID]][0] / lbl_3_rodata_3D30;
+                    beam->baseRadius = (f32)sBeamSizes[sBeamSizeClass[actor->charID]][1] / lbl_3_rodata_3D30;
+                    beam->topColor = topColor;
+                    beam->baseColor = baseColor;
+                    beam++;
                     used++;
                 }
             }
         }
-        for (; used < 4; used++, marker++) marker->enabled = FALSE;
+        for (; used < 4; used++, beam++) beam->enabled = FALSE;
     }
     fn_800A7D4C(11, getOverlay());
 }
 
 // .text:0x0015FA58 size:0x12C mapped:0x8079EAEC
-void fn_3_15FA58(int count, s32* values) {
-    DrawingSceneStruct* item = insertGraphicDrawingFunction(fn_3_15F9C0, currentDrawingItem->priority);
+void minigameWinnerSpotlight_start(int count, s32* slots) {
+    DrawingSceneStruct* item = insertGraphicDrawingFunction(minigameWinnerSpotlight_fadeIn, currentDrawingItem->priority);
 
-    sState._470 = TRUE;
-    sState.showMarkers = FALSE;
-    sState.backgroundColor = 0;
-    sState.valueCount = 0;
+    sState.active = TRUE;
+    sState.showBeams = FALSE;
+    sState.dimColor = 0;
+    sState.slotCount = 0;
     while (count-- != 0) {
-        sState.values[sState.valueCount++] = *values++;
+        sState.slots[sState.slotCount++] = *slots++;
     }
     item->state = sSettings.fadeFrames;
 }
 
 // .text:0x0015F9C0 size:0x98 mapped:0x8079EA54
-void fn_3_15F9C0(void) {
-    if (g_d_GameSettings._55 != 0 || sState._479 != 0) {
+void minigameWinnerSpotlight_fadeIn(void) {
+    if (g_d_GameSettings._55 != 0 || sState.paused != 0) {
         removeCurrentDrawingItem();
         return;
     }
     currentDrawingItem->state--;
-    sState.backgroundColor = sSettings.fadeTarget * (sSettings.fadeFrames - currentDrawingItem->state) / sSettings.fadeFrames;
+    sState.dimColor = sSettings.dimAlpha * (sSettings.fadeFrames - currentDrawingItem->state) / sSettings.fadeFrames;
     if (currentDrawingItem->state == 0) {
         removeCurrentDrawingItem();
     }
 }
 
 // .text:0x0015F9AC size:0x14 mapped:0x8079EA40
-void fn_3_15F9AC(void) {
-    sState.showMarkers = TRUE;
+void minigameWinnerSpotlight_show(void) {
+    sState.showBeams = TRUE;
 }
 
 // .text:0x0015F998 size:0x14 mapped:0x8079EA2C
-void fn_3_15F998(void) {
-    sState._470 = FALSE;
+void minigameWinnerSpotlight_stop(void) {
+    sState.active = FALSE;
 }
 
 // .text:0x0015F874 size:0x124 mapped:0x8079E908
-void fn_3_15F874(BOOL nearPlane) {
+void minigameWinnerSpotlight_clearDepth(BOOL nearPlane) {
     Mtx model;
 
     GXSetProjection(sScreenProjection, GX_ORTHOGRAPHIC);

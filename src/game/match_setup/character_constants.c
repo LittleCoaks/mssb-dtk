@@ -1,3 +1,11 @@
+// Per-character / per-actor constant tables (.data 0x69C0-0x8088), mostly
+// indexed by CHAR_ID: BatterHitbox, ChargePowerConstants, hitByPitchHitboxes,
+// runnerConstants, FielderHitboxConsts, throwWindupReleaseFrames,
+// bodyCheckFrameRelatedConstants, barrelCollisionHitboxes, plus a few small
+// per-position flags and a minigame UIRecordDescriptor table. The users
+// (batter, batter_ai, pitcher, runner, fielder, fielder_ai, roster_init,
+// animation_dispatch, defence/offence_animation, versus_screens and the
+// minigame units) all reach them by symbol, so this is a data-only TU.
 #include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x80034e20.h"
 

@@ -26,7 +26,7 @@ gameplay category. If a mod is about actual gameplay, it starts here.
 | `match_setup/` | Not gameplay itself — roster construction, load/transition state, controller input, versus/championship screens. |
 | `stadium/` | Per-stadium hazard/gimmick logic (one file per stadium) plus the shared stadium framework. |
 | `minigame/` | Per-minigame logic (Star Dash, Chain Chomp Sprint, Bob-omb Derby, etc.) plus shared minigame effects. |
-| `data_only/` | Units with no real code, just a shared trig-table constant. Nothing to look at here. |
+| `data_only/` | Only `data_428C.c` is left: a code-less unit of shared `.data` tables (field, hit and fielding constants, challenge tables) with no code owner. |
 
 `UnknownHomes_Game.h` is the catch-all for match-REL globals whose **type** is
 known but whose owning file isn't — often the first place to check for game

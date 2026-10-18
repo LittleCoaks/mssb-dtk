@@ -1,35 +1,44 @@
 #define SQRT2_LINKAGE static
-#define REP_HEADER_DATA_FN getRepHeaderData_rep_21F8
-#include "game/hud/rep_21F8.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_keyframedSpriteEffect
+#include "game/animation/keyframed_sprite_effect.h"
 #include "game/animation/scene_effects.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/gx.h"
 #include "header_rep_data.h"
 
-typedef struct _HudKey HudKey21F8;
+// A 16-frame keyframed sprite effect drawn through scene_effects' sprite-
+// animation player (fn_3_BF8F8) with a custom node evaluator (scale X/Y,
+// translate X, rotate Y/Z, alpha), using the shared effects texture container
+// and an additive-style blend (SRCALPHA/DSTALPHA). Nothing in the REL calls
+// keyframedSpriteEffect_draw or _stop, and nothing writes its state's index or
+// origin, so it looks like leftover code. Its object table also claims 0x11/
+// 0x12 nodes while only one node is defined. What it showed is unknown; the
+// names are inferred.
+
+typedef struct _HudKey SpriteFxKey;
 typedef struct _HudNode {
     f32 x, y, w, h;
     u16 texture, subTexture;
-    HudKey21F8* ch[8];
+    SpriteFxKey* ch[8];
     u8 count[8];
     u8 index[8];
-} HudNode21F8;
+} SpriteFxNode;
 
-typedef struct HudObj21F8 {
-    HudNode21F8* nodes;
+typedef struct SpriteFxObj {
+    SpriteFxNode* nodes;
     void** textures;
     s32 count;
     u8 _0C[4];
     f32 frame;
     f32 time;
-} HudObj21F8;
+} SpriteFxObj;
 
-typedef struct HudState21F8 {
+typedef struct SpriteFxState {
     u8 index;
     u8 _01[3];
     Vec origin;
     f32 time;
-} HudState21F8;
+} SpriteFxState;
 
 // Animation keys for the node channels below (0xC bytes each).
 static u32 lbl_3_data_17898[0x228 / 4] = {
@@ -80,23 +89,23 @@ static u32 lbl_3_data_17898[0x228 / 4] = {
     0x3F800000, 0x3F800000, 0x10000001,
     0x00000000, 0x00000000, 0x00100000,
 };
-static HudNode21F8 lbl_3_data_17AC0 = {
+static SpriteFxNode lbl_3_data_17AC0 = {
     -1.0f, -0.5f, 1.0f, 1.0f,
     0, 0,
     {
-        (HudKey21F8*)&lbl_3_data_17898[0],
-        (HudKey21F8*)&lbl_3_data_17898[6],
-        (HudKey21F8*)&lbl_3_data_17898[30],
+        (SpriteFxKey*)&lbl_3_data_17898[0],
+        (SpriteFxKey*)&lbl_3_data_17898[6],
+        (SpriteFxKey*)&lbl_3_data_17898[30],
         NULL,
         NULL,
-        (HudKey21F8*)&lbl_3_data_17898[90],
-        (HudKey21F8*)&lbl_3_data_17898[42],
-        (HudKey21F8*)&lbl_3_data_17898[111],
+        (SpriteFxKey*)&lbl_3_data_17898[90],
+        (SpriteFxKey*)&lbl_3_data_17898[42],
+        (SpriteFxKey*)&lbl_3_data_17898[111],
     },
     { 2, 3, 2, 0, 0, 1, 1, 3 },
     { 0 },
 };
-static HudObj21F8 lbl_3_data_17B04[5] = {
+static SpriteFxObj lbl_3_data_17B04[5] = {
     { &lbl_3_data_17AC0, NULL, 0x11, { 0, 0, 0, 1 }, 16.0f, 0.0f },
     { &lbl_3_data_17AC0, NULL, 0x11, { 0, 0, 0, 1 }, 16.0f, 0.0f },
     { &lbl_3_data_17AC0, NULL, 0x12, { 0, 0, 0, 1 }, 16.0f, 0.0f },
@@ -113,14 +122,14 @@ extern void fn_80034120(Mtx out);
 
 // MWCC lays .bss out in reverse declaration order, so the phase byte (0x9F34) is declared first.
 static u8 lbl_3_bss_9F34;
-static HudState21F8 lbl_3_bss_9F20;
+static SpriteFxState lbl_3_bss_9F20;
 #define HUD_PHASE(state) (((u8*)(state))[0x14])
 
-void fn_3_C9734(void) {
+void keyframedSpriteEffect_stop(void) {
     lbl_3_bss_9F34 = 2;
 }
 
-f32 fn_3_C9590(HudNode21F8* node, int frame, Mtx out, f32 t) {
+f32 keyframedSpriteEffect_evalNode(SpriteFxNode* node, int frame, Mtx out, f32 t) {
     Mtx tmp;
     f32 v;
 
@@ -154,9 +163,9 @@ f32 fn_3_C9590(HudNode21F8* node, int frame, Mtx out, f32 t) {
     return fn_3_BFDA4((HudKey*)node->ch[7], node->count[7], frame, node->index[7], &node->index[7], t);
 }
 
-BOOL fn_3_C937C(void) {
+BOOL keyframedSpriteEffect_draw(void) {
     Mtx scale;
-    HudState21F8* state = &lbl_3_bss_9F20;
+    SpriteFxState* state = &lbl_3_bss_9F20;
     Mtx local = {
         { 1.0f, 0.0f, 0.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f, 0.0f },
@@ -191,7 +200,7 @@ BOOL fn_3_C937C(void) {
         GXSetZMode(GX_TRUE, GX_ALWAYS, GX_TRUE);
     }
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_DSTALPHA, GX_LO_CLEAR);
-    fn_3_BF8F8((HudObj*)&lbl_3_data_17B04[state->index], view, &state->origin, (HudEvalFn)fn_3_C9590);
+    fn_3_BF8F8((HudObj*)&lbl_3_data_17B04[state->index], view, &state->origin, (HudEvalFn)keyframedSpriteEffect_evalNode);
     if (lbl_3_data_17B80 != 0) {
         GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     }
