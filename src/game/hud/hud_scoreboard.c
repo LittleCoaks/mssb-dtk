@@ -2052,7 +2052,7 @@ void drawDiamondMiniMap_ongoing(void) {
         REC(scene, 13)->flags &= ~UI_FLAG_VISIBLE;
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE &&
             g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0 &&
-            g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
+            g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
             REC(scene, 13)->flags |= UI_FLAG_VISIBLE;
         }
     }

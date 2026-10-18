@@ -1117,11 +1117,11 @@ typedef struct _GameControlsStruct {
     /*0x13C*/ u8 scoutFlag_VsScreenInd;
     /*0x13D*/ u8 _13D;
     /*0x13E*/ u8 teamIsCPU[2];
-    /*0x140*/ u8 _140[2];
+    /*0x140*/ u8 pitcherAIInd[2];
     /*0x142*/ u8 teamAIInd[2];
     /*0x144*/ u8 autoFielding[2];
-    /*0x146*/ u8 batterHandedness[2];
-    /*0x148*/ u8 battingAIInd[2]; // unsure
+    /*0x146*/ u8 batterAIInd[2];
+    /*0x148*/ u8 autoRunningInd[2];
     /*0x14A*/ u8 TeamStars[2];
     /*0x14C*/ u8 IsStarChance;
     /*0x14D*/ u8 stadiumStarObtained;

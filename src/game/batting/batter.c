@@ -281,7 +281,7 @@ void setDefaultInMemBatter(void) {
     } else if (g_d_GameSettings.minigamesEnabled) {
         g_Batter.aiControlledInd = g_Minigame.minigameControlStruct[0].battingHandedness[g_Minigame.rosterID];
     } else {
-        g_Batter.aiControlledInd = g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam];
+        g_Batter.aiControlledInd = g_GameLogic.batterAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam];
     }
     if (g_Batter.aiControlledInd != 0) {
         g_Batter.easyBatting = false;

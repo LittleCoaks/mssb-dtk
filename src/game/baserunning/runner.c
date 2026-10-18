@@ -98,7 +98,7 @@ void running_MainFunction(void) {
     running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars();
     running_updateMovementRestrictions();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
-        if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
+        if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
             running_AIStartSteals();
         } else {
             InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
@@ -138,7 +138,7 @@ void running_MainFunction(void) {
             int i;
             InMemRunnerType* runner;
 
-            if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
+            if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
                 running_LiveBall_Human();
             } else {
                 running_LiveBall_AI();
@@ -230,7 +230,7 @@ void running_MainFunction(void) {
 
 // .text:0x0008A7B4 size:0x1A4 mapped:0x806C9848
 void fn_3_8A7B4(void) {
-    if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
+    if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
         running_AIStartSteals();
     } else {
         InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
@@ -275,7 +275,7 @@ void fn_3_8A618(void) {
         InMemRunnerType* runner;
         u8 pickoffOrStealCd;
 
-        if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
+        if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
             running_LiveBall_Human();
         } else {
             running_LiveBall_AI();
@@ -1739,7 +1739,7 @@ int runnerAISubfunction(void) {
     }
 
     diff = bestTime - bestFrame;
-    if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
+    if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
         diff += lbl_3_data_1C80[g_GameLogic.runnerAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam]];
     }
 
@@ -2801,7 +2801,7 @@ void running_LiveBall_AI(void) {
             }
         }
 
-        if (g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
+        if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
             if (g_GameLogic.teamIsCPU[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
                 InputStruct* input = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
                 if (input->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_X | INPUT_BUTTON_Y)) {

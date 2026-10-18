@@ -145,17 +145,17 @@ void freeFieldingPracticeLoadCharacters(void) {
 
 void fieldingPractice_resetMem(void) {
     g_GameLogic.teamIsCPU[0] = 0;
-    g_GameLogic._140[0] = 0;
+    g_GameLogic.pitcherAIInd[0] = 0;
     g_GameLogic.teamAIInd[0] = 0;
     g_GameLogic.autoFielding[0] = 0;
-    g_GameLogic.batterHandedness[0] = 0;
-    g_GameLogic.battingAIInd[0] = 0;
+    g_GameLogic.batterAIInd[0] = 0;
+    g_GameLogic.autoRunningInd[0] = 0;
     g_GameLogic.teamIsCPU[1] = 0;
-    g_GameLogic._140[1] = 0;
+    g_GameLogic.pitcherAIInd[1] = 0;
     g_GameLogic.teamAIInd[1] = 0;
     g_GameLogic.autoFielding[1] = 0;
-    g_GameLogic.batterHandedness[1] = 0;
-    g_GameLogic.battingAIInd[1] = 0;
+    g_GameLogic.batterAIInd[1] = 0;
+    g_GameLogic.autoRunningInd[1] = 0;
     g_Practice.aIEnabled = 0;
     g_Practice.practiceBatterHandedness = 0;
     g_Practice.freePracticeInd_writeOnly = 0;
@@ -164,7 +164,7 @@ void fieldingPractice_resetMem(void) {
         g_Practice.aIEnabled = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] = 1;
         g_Practice.freePracticeInd_writeOnly = 1;
-        g_GameLogic._140[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
+        g_GameLogic.pitcherAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
         g_Practice.rosterID = 1;
         g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
         g_GameLogic.autoFielding[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
@@ -172,8 +172,8 @@ void fieldingPractice_resetMem(void) {
         g_Practice.practiceBatterHandedness = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] = 1;
         g_Practice.freeFieldingInd_writeOnly = 1;
-        g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
-        g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
+        g_GameLogic.batterAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
+        g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
     }
     g_Practice.frames_sincePracticeCompleted = 0;
     resetCount();

@@ -329,7 +329,7 @@ void setDefaultInMemPitcher(void) {
         g_Pitcher.AIInd =
             g_Minigame.minigameControlStruct[0].battingHandedness[MINIGAME_SELECTED_ORDER];
     } else {
-        g_Pitcher.AIInd = g_GameLogic.teamIsCPU[g_GameLogic.awayTeamBattingInd_battingTeam + 2];
+        g_Pitcher.AIInd = g_GameLogic.pitcherAIInd[g_GameLogic.awayTeamBattingInd_battingTeam];
     }
     sound_crowd_EffectsStruct._34 = 0;
 }

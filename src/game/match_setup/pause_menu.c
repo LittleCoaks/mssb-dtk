@@ -58,9 +58,9 @@ static void pauseMenu_applyTeamControlOptions(void) {
     for (i = 0; i < 2; i++) {
         if (g_GameLogic.teamIsCPU[i] == FALSE) {
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning != FALSE) {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
             } else {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = FALSE;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = FALSE;
             }
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding != FALSE) {
                 g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ i] = TRUE;

@@ -275,11 +275,11 @@ void gameInitRelated(void) {
     }
     for (i = 0; i < TEAMS_PER_GAME; i++) {
         g_GameLogic.teamIsCPU[i] = 0;
-        g_GameLogic._140[i] = 0;
-        g_GameLogic.batterHandedness[i] = 0;
+        g_GameLogic.pitcherAIInd[i] = 0;
+        g_GameLogic.batterAIInd[i] = 0;
         g_GameLogic.teamAIInd[i] = 0;
         g_GameLogic.autoFielding[i] = 0;
-        g_GameLogic.battingAIInd[i] = 0;
+        g_GameLogic.autoRunningInd[i] = 0;
     }
     home = g_d_GameSettings.home_AwaySetting;
     g_GameLogic.AIDifficulty0Special3Weak[0] = inningSetting.aiDifficulty;
@@ -291,35 +291,35 @@ void gameInitRelated(void) {
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd ^ 1] = 1;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         g_GameLogic.teamIsCPU[1] = 1;
-        g_GameLogic._140[home ^ 1] = 1;
-        g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd ^ 1] = 1;
+        g_GameLogic.pitcherAIInd[home ^ 1] = 1;
+        g_GameLogic.batterAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         scoutState.humanTeam = 0;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd ^ 1] = 1;
-        g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ 1] = 1;
+        g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd] = 1;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_3) {
         g_GameLogic.teamIsCPU[0] = 1;
-        g_GameLogic._140[home] = 1;
-        g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd] = 1;
+        g_GameLogic.pitcherAIInd[home] = 1;
+        g_GameLogic.batterAIInd[g_GameLogic.homeTeamInd] = 1;
         scoutState.humanTeam = 1;
         g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd] = 1;
-        g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd] = 1;
+        g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd ^ 1] = 1;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
         g_GameLogic.teamIsCPU[1] = 1;
         g_GameLogic.teamIsCPU[0] = 1;
-        g_GameLogic._140[1] = 1;
-        g_GameLogic._140[0] = 1;
-        g_GameLogic.batterHandedness[1] = 1;
-        g_GameLogic.batterHandedness[0] = 1;
+        g_GameLogic.pitcherAIInd[1] = 1;
+        g_GameLogic.pitcherAIInd[0] = 1;
+        g_GameLogic.batterAIInd[1] = 1;
+        g_GameLogic.batterAIInd[0] = 1;
         g_GameLogic.teamAIInd[1] = 1;
         g_GameLogic.teamAIInd[0] = 1;
         g_GameLogic.autoFielding[1] = 1;
         g_GameLogic.autoFielding[0] = 1;
-        g_GameLogic.battingAIInd[1] = 1;
-        g_GameLogic.battingAIInd[0] = 1;
+        g_GameLogic.autoRunningInd[1] = 1;
+        g_GameLogic.autoRunningInd[0] = 1;
     } else {
         g_GameLogic.AIDifficulty0Special3Weak[0] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[1] = 1;
@@ -327,13 +327,13 @@ void gameInitRelated(void) {
     for (i = 0; i < TEAMS_PER_GAME; i++) {
         if (g_GameLogic.teamIsCPU[i] == 0) {
             if (inningSetting.controlOptions[g_GameLogic.teams[i]]._0 != 0) {
-                g_GameLogic.batterHandedness[g_GameLogic.homeTeamInd ^ i] = 1;
+                g_GameLogic.batterAIInd[g_GameLogic.homeTeamInd ^ i] = 1;
             }
             if (inningSetting.controlOptions[g_GameLogic.teams[i]]._1 != 0) {
-                g_GameLogic._140[g_GameLogic.homeTeamInd ^ i] = 1;
+                g_GameLogic.pitcherAIInd[g_GameLogic.homeTeamInd ^ i] = 1;
             }
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning != 0) {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = 1;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = 1;
             }
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding != 0) {
                 g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ i] = 1;

@@ -1113,16 +1113,16 @@ void practiceRelatedInit(void) {
     g_Practice.inputs[1].right_left = 0;
     g_Practice.inputs[1].up_down = 0;
     g_Practice.inputs[1].rightTriggerDistance = 0;
-    g_GameLogic._140[1] = 0;
-    g_GameLogic._140[0] = 0;
-    g_GameLogic.batterHandedness[1] = 0;
-    g_GameLogic.batterHandedness[0] = 0;
+    g_GameLogic.pitcherAIInd[1] = 0;
+    g_GameLogic.pitcherAIInd[0] = 0;
+    g_GameLogic.batterAIInd[1] = 0;
+    g_GameLogic.batterAIInd[0] = 0;
     g_GameLogic.teamAIInd[1] = 0;
     g_GameLogic.teamAIInd[0] = 0;
     g_GameLogic.autoFielding[1] = 0;
     g_GameLogic.autoFielding[0] = 0;
-    g_GameLogic.battingAIInd[1] = 0;
-    g_GameLogic.battingAIInd[0] = 0;
+    g_GameLogic.autoRunningInd[1] = 0;
+    g_GameLogic.autoRunningInd[0] = 0;
     g_Practice.inputs[1].leftTriggerDistance = 0;
 }
 
