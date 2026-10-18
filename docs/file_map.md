@@ -103,6 +103,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `animation_init.c` | `rep_A78` | 7 (1) | 2,044 | `initializeAnimations` plus the helpers that apply animation setup-table entries; the camera-script VM calls them. | med |
 | `defence_animation.c` | `rep_FE0` | 4 (3) | 1,544 | `animateDefence` (writes `hugeAnimStruct` objects 0–8 for the fielders), `computeAdjustedFielderOrientation`, `resetAnimationFlags`. | high |
 | `offence_animation.c` | `rep_1090` | 6 (4) | 1,092 | `animateOffence`: writes `hugeAnimStruct` objects 9–12 from `g_Runners`; called next to `animateDefence` in the per-frame chain. | high |
+| `keyframed_sprite_effect.c` | `hud/rep_21F8` | 3 (3) | 952 | A 16-frame keyframed sprite effect drawn through `scene_effects.c`'s sprite-animation player (`fn_3_BF8F8`) with its own node evaluator (scale, X translate, Y/Z rotation, alpha), the shared effects textures and a SRCALPHA/DSTALPHA blend. Nothing calls `keyframedSpriteEffect_draw`/`_stop` or writes its state, so it looks like leftover code; not a HUD element, hence `animation/`. What it showed is unknown. | inferred |
 | `scene_effects.c` | `rep_1E08` | 57 (13) | 26,372 | Sprites, dust clouds, sun, fireworks, contact-word sprites, pause-state visuals. | med |
 | `star_sparks.c` | `rep_3E58` | 16 (3) | 7,524 | Star-spark particle effects over a shared template: `fieldingSpawnSpark`/`fieldingRelatedAnimations` (used by fielders and runners), star-swing transforms (`applyStarRelatedTransformations`), and the Magikoopa catch animation. | med |
 
@@ -113,7 +114,6 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `hud_gauges.c` | `rep_1770` | 15 (9) | 13,292 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links, and `matchHudDrawingControl`, which registers those draws. | high |
 | `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. Owns `.data 0x8D88-0xF4A4`, the HUD, minigame and practice UI descriptor tables formerly in `data_only/data_8D88.c`. | high |
 | `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_Strikes.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
-| `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
 | `runner_items.c` | `rep_9B0` | 4 (0) | 708 | Small helpers used by the versus screens and replay (a `VsFadeItem` callback, an `AnimScreenState` setter, fielder roster-slot setup). No HUD drawing; the name is provisional. | inferred |
 | `toyfield_score_update.c` | `rep_1668` + `auto_00_0009143C` | 1 (1) | 228 | `hud_ScoreUpdate_ToyFieldOffScreenPlayers`: queues the off-screen-player and RBI score-update drawing functions. Matching. | high |
 

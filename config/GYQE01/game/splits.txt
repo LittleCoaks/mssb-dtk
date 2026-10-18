@@ -305,7 +305,7 @@ game/stadium/sta_c1.c:
 	.data       start:0x00017508 end:0x00017898
 	.bss        start:0x00009D80 end:0x00009F20
 
-game/hud/rep_21F8.c:
+game/animation/keyframed_sprite_effect.c:
 	.text       start:0x000C937C end:0x000C9744
 	.rodata     start:0x000021F8 end:0x00002288
 	.data       start:0x00017898 end:0x00017B98

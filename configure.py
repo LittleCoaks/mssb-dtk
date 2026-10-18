@@ -924,7 +924,7 @@ config.libs = [
             Object(NonMatching, "game/animation/scene_effects.c"),
             Object(NonMatching, "game/batting/charge_effects.c"),
             Object(NonMatching, "game/stadium/sta_c1.c"),
-            Object(Matching, "game/hud/rep_21F8.c"),
+            Object(Matching, "game/animation/keyframed_sprite_effect.c"),
             Object(NonMatching, "game/stadium/sta_c0.c"),
             Object(Matching, "game/pitching/perfect_pitch_gfx.c"),
             Object(NonMatching, "game/pitching/pitcher_fire_effect.c"),
