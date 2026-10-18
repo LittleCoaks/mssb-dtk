@@ -882,7 +882,7 @@ config.libs = [
             Object(NonMatching, "game/match_setup/match_flow.c"),
             Object(NonMatching, "game/animation/animation_dispatch.c"),
             Object(NonMatching, "game/ball/ball_visuals.c"),
-            Object(Matching, "game/data_only/data_69C0.c"),
+            Object(Matching, "game/match_setup/character_constants.c"),
             Object(Matching, "game/batting/star_hit_sprites.c"),
             Object(NonMatching, "game/animation/defence_animation.c"),
             Object(NonMatching, "game/match_setup/match_transitions.c"),

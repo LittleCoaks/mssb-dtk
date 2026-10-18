@@ -122,7 +122,7 @@ game/ball/ball_visuals.c:
 	.data       start:0x00006820 end:0x000069C0
 	.bss        start:0x00000200 end:0x00001728
 
-game/data_only/data_69C0.c:
+game/match_setup/character_constants.c:
 	.data       start:0x000069C0 end:0x00008088
 
 game/batting/star_hit_sprites.c:
