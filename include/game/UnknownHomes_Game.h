@@ -287,8 +287,8 @@ typedef struct _InMemRunnerType {
     /*0x14D*/ u8 furthestBaseForcedToGoToOnWalk; // steal related
     /*0x14E*/ u8 stealingStatus;
     /*0x14F*/ u8 framesSinceStealInput;
-    /*0x150*/ u8 someCountdown_unused;
-    /*0x151*/ u8 _151;
+    /*0x150*/ u8 advanceTwoRunnersInSameBaselineTimer;
+    /*0x151*/ u8 advanceTwoRunnersInSameBaselineCount;
     /*0x152*/ u8 miniGamePlayerNum;
     /*0x153*/ u8 scoredOnGRD; // maybe
 } InMemRunnerType;            // size: 0x154
@@ -2535,7 +2535,7 @@ typedef struct {
 typedef struct {
     /*0x00*/ s16 _00;
     /*0x02*/ s16 _02;
-    /*0x04*/ s16 _04;
+    /*0x04*/ s16 runnersByCurrentBaseMask; // bit (currentBase * 4) set per runner on the field
     /*0x06*/ s16 runnerTransferIndex[4];
     artificial_padding(0x06, 0x10, s16[4]);
     /*0x10*/ u8 _10;
@@ -2661,8 +2661,8 @@ typedef struct {
     /*0x013d*/ u8 smashThrowInd;
     /*0x013e*/ u8 IsChemistryThrow;
     /*0x013f*/ u8 bodyCheckResult2;
-    /*0x0140*/ u8 laser_1;
-    /*0x0141*/ u8 laser_2;
+    /*0x0140*/ u8 laserThrowInFlight;
+    /*0x0141*/ u8 lastThrowWasLaser;
     /*0x0142*/ u8 _0142;
     /*0x0143*/ u8 unused_always0_;
     /*0x0144*/ u8 _0144;

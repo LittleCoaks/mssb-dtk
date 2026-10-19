@@ -781,9 +781,9 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.bodyCheckStageCountdown = 0;
         g_FieldingLogic.throwWaitingInd = 0;
         g_FieldingLogic.IsChemistryThrow = 0;
-        g_FieldingLogic.laser_1 = 0;
+        g_FieldingLogic.laserThrowInFlight = 0;
         g_FieldingLogic._0142 = 0;
-        g_FieldingLogic.laser_2 = 0;
+        g_FieldingLogic.lastThrowWasLaser = 0;
         g_FieldingLogic.unused_always0_ = 0;
         g_FieldingLogic.bigPlayFielderIndex = -1;
         g_FieldingLogic.smashThrow_framesDirectionHeld = 0;
@@ -2239,7 +2239,7 @@ cascade:
 // .text:0x00054900 size:0x258 mapped:0x80693994
 void fn_3_54900(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int runnerMask = g_RunningLogic._04;
+    int runnerMask = g_RunningLogic.runnersByCurrentBaseMask;
     f32 targetX;
     f32 targetZ;
 
@@ -4090,7 +4090,7 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
                     g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z,
                     base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
-                if ((&g_RunningLogic._04)[5] - 20 > fielder->framesToGetToBallLandingSpot + throwFrames + 20) {
+                if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] - 20 > fielder->framesToGetToBallLandingSpot + throwFrames + 20) {
                     g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
                 }
             }
@@ -4242,7 +4242,7 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
         int throwFrames = estimatedThrowFramesBetweenTwoPoints(
             lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
-        if ((&g_RunningLogic._04)[5] + 30 > fielder->framesToGetToBallLandingSpot + throwFrames + 60) {
+        if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > fielder->framesToGetToBallLandingSpot + throwFrames + 60) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
     }
@@ -4382,7 +4382,7 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
         int throwFrames = estimatedThrowFramesBetweenTwoPoints(
             lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
-        if ((&g_RunningLogic._04)[5] + 30 > fielder->framesToGetToBallLandingSpot + throwFrames + 60) {
+        if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > fielder->framesToGetToBallLandingSpot + throwFrames + 60) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
     }
@@ -16637,7 +16637,7 @@ void checkForCatchBallAction(int fielderIndex) {
         return;
     }
     fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 7);
-    playSoundEffect(0x1a8);
+    playSoundEffect(SFX_FIELDING_ABILITY);
 }
 
 // .text:0x0002C2F0 size:0x3A8 mapped:0x8066B384
@@ -17824,19 +17824,19 @@ foundFrame:
 
         if (slidingCatchLevel != 0) {
             fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 3);
-            playSoundEffect(0x1a8);
+            playSoundEffect(SFX_FIELDING_ABILITY);
         } else if (hasTongueCatch) {
             fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
-            playSoundEffect(0x1a8);
+            playSoundEffect(SFX_FIELDING_ABILITY);
         } else if (hasSuction) {
             fielder->suctionCatchInd = 1;
             fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
-            playSoundEffect(0x1a8);
+            playSoundEffect(SFX_FIELDING_ABILITY);
         }
 
         if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
             magicalCatchSound = TRUE;
-            playSoundEffect(0x1a8);
+            playSoundEffect(SFX_FIELDING_ABILITY);
         }
 
         if (diveFrame < g_Ball.framesUntilBallHitsGround && !g_Ball.framesOnGroundUntilPickedUp &&
@@ -18814,7 +18814,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     g_FieldingLogic.secondaryFielder = -1;
     g_FieldingLogic.tertiaryFielder = -1;
     g_FieldingLogic.ballWontBeControlledByFielderAnytimeSoonInd = 0;
-    g_FieldingLogic.laser_1 = 0;
+    g_FieldingLogic.laserThrowInFlight = 0;
     g_FieldingLogic._0142 = 0;
     g_FieldingLogic.birdoFarThrowInd_forAnimation = 0;
     g_Batter.invisibleBallForPeachStarHit = 0;
@@ -18883,7 +18883,7 @@ void calculateBobble(int fielderIndex) {
     if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
                            FIELDING_ABILITY_SUPER_CATCH)) {
         fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 10);
-        playSoundEffect(0x1a8);
+        playSoundEffect(SFX_FIELDING_ABILITY);
         return;
     }
 

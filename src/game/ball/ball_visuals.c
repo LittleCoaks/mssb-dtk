@@ -825,7 +825,7 @@ void displayBallTrail(void) {
                 displayChem_antiChemGraphics(g_Ball.fielderBeingThrownTo, TRUE);
                 displayChem_antiChemGraphics(g_Ball.throwingFielder, TRUE);
                 setupBallTrailEffect(9, 90);
-            } else if (g_FieldingLogic.laser_1) {
+            } else if (g_FieldingLogic.laserThrowInFlight) {
                 setupBallTrailEffect(2, 90);
             } else if (g_FieldingLogic.smashThrowInd || g_FieldingLogic.throwSpeedType == 1) {
                 setupBallTrailEffect(1, 90);

@@ -95,7 +95,7 @@ void running_MainFunction(void) {
     InMemRunnerType* runner;
     int i;
 
-    running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars();
+    running_beginFrame();
     running_updateMovementRestrictions();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
         if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
@@ -611,8 +611,8 @@ void setDefaultInMemRunner(void) {
         runner->turnaroundCode = 0;
         runner->turningAroundInd = 0;
         runner->framesSinceLastMash = 0;
-        runner->someCountdown_unused = 0;
-        runner->_151 = 0;
+        runner->advanceTwoRunnersInSameBaselineTimer = 0;
+        runner->advanceTwoRunnersInSameBaselineCount = 0;
         runner->scoredOnGRD = 0;
         if (runner->rosterID >= 0) {
             runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
@@ -906,7 +906,7 @@ void running_checkForOuts(void) {
                         }
                     }
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                        if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
+                        if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.lastThrowWasLaser != 0) {
                             starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
@@ -918,7 +918,7 @@ void running_checkForOuts(void) {
                     runner->outType = 4;
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                        if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
+                        if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.lastThrowWasLaser != 0) {
                             starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
@@ -934,7 +934,7 @@ void running_checkForOuts(void) {
                         g_Ball.fielderWhoGotLastOut = g_Ball.fielderWithBallIndexStored2;
                     }
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                        if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
+                        if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.lastThrowWasLaser != 0) {
                             starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
                     }
@@ -948,7 +948,7 @@ void running_checkForOuts(void) {
                 runnerOut(g_Ball.baseBallAndFielderAreOn);
                 g_Runners[g_Ball.baseBallAndFielderAreOn].outType = 4;
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                    if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.laser_2 != 0) {
+                    if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.lastThrowWasLaser != 0) {
                         starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                     }
                 }
@@ -983,7 +983,7 @@ void unused_forceOutSomething(void) {
                     g_Ball.fielderWhoGotLastOut = g_Ball.fielderWBallIndex;
                 } else {
                     g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
-                    if (g_FieldingLogic.laser_2 != 0 && !g_d_GameSettings.exhibitionMatchInd) {
+                    if (g_FieldingLogic.lastThrowWasLaser != 0 && !g_d_GameSettings.exhibitionMatchInd) {
                         if (scoutState.humanTeam == g_GameLogic.teamFielding) {
                             starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                         }
@@ -1154,7 +1154,7 @@ void running_UpdateTrackingValues_BasesEarned(void) {
     int i;
 
     g_RunningLogic._00 = 0;
-    g_RunningLogic._04 = 0;
+    g_RunningLogic.runnersByCurrentBaseMask = 0;
     g_RunningLogic._10 = 0;
     for (i = 0; i < 4; i++) {
         runner = &g_Runners[i];
@@ -1165,7 +1165,7 @@ void running_UpdateTrackingValues_BasesEarned(void) {
             g_RunningLogic._00 |= 1 << (i * 4);
             g_RunningLogic._10++;
             if (runner->currentBase <= 3) {
-                g_RunningLogic._04 |= 1 << (runner->currentBase * 4);
+                g_RunningLogic.runnersByCurrentBaseMask |= 1 << (runner->currentBase * 4);
             }
         }
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
@@ -1216,8 +1216,8 @@ void running_UpdateTrackingValues_BasesEarned(void) {
 }
 
 // .text:0x00087424 size:0x3F8 mapped:0x806C64B8
-void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
-    updateRunnerValues();
+void running_beginFrame(void) {
+    running_beginFrame_storeRunnerState();
     if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT &&
         g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
         if (g_Ball.baseBallAndFielderAreOn >= 0 && g_Ball.AtBat_ContactResult >= 0 &&
@@ -1234,7 +1234,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
                         g_Ball.fielderWhoGotLastOut = g_Ball.fielderWBallIndex;
                     } else {
                         g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
-                        if (g_FieldingLogic.laser_2 != 0 && !g_d_GameSettings.exhibitionMatchInd) {
+                        if (g_FieldingLogic.lastThrowWasLaser != 0 && !g_d_GameSettings.exhibitionMatchInd) {
                             if (scoutState.humanTeam == g_GameLogic.teamFielding) {
                                 starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
                             }
@@ -1278,7 +1278,7 @@ void running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars(void) {
 }
 
 // .text:0x000872CC size:0x158 mapped:0x806C6360
-void updateRunnerValues(void) {
+void running_beginFrame_storeRunnerState(void) {
     int i;
     for (i = 0; i < 4; i++) {
         InMemRunnerType* runner = &g_Runners[i];
@@ -1301,10 +1301,10 @@ void updateRunnerValues(void) {
                     runner->tagUpStatus = TAG_UP_TYPE_NONE;
                 }
             }
-            if (runner->someCountdown_unused != 0) {
-                runner->someCountdown_unused--;
-                if (runner->someCountdown_unused == 0) {
-                    runner->_151 = 0;
+            if (runner->advanceTwoRunnersInSameBaselineTimer != 0) {
+                runner->advanceTwoRunnersInSameBaselineTimer--;
+                if (runner->advanceTwoRunnersInSameBaselineTimer == 0) {
+                    runner->advanceTwoRunnersInSameBaselineCount = 0;
                 }
             }
             if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
@@ -4558,13 +4558,13 @@ void running_LiveBall_Human(void) {
             runner = &g_Runners[i];
             if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && runner->nextBase == desiredBase) {
                 if (numFound) {
-                    if ((s8)runner->_151 <= 0) {
-                        runner->_151 = 1;
+                    if ((s8)runner->advanceTwoRunnersInSameBaselineCount <= 0) {
+                        runner->advanceTwoRunnersInSameBaselineCount = 1;
                     } else {
-                        runner->_151++;
+                        runner->advanceTwoRunnersInSameBaselineCount++;
                     }
-                    runner->someCountdown_unused = lbl_3_data_4C54[5];
-                    if ((s8)runner->_151 <= lbl_3_data_4C54[6]) {
+                    runner->advanceTwoRunnersInSameBaselineTimer = lbl_3_data_4C54[5];
+                    if ((s8)runner->advanceTwoRunnersInSameBaselineCount <= lbl_3_data_4C54[6]) {
                         return;
                     }
                 }
@@ -4669,7 +4669,7 @@ void running_LiveBall_Human(void) {
 void cCSRunningFun(void) {
     int i;
 
-    running_CheckForForceOuts_UpdateStamina_UpdateTagOutVars();
+    running_beginFrame();
     for (i = 0; i < 4; i++) {
         InMemRunnerType* runner = &g_Runners[i];
         u8* stage;

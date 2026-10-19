@@ -337,20 +337,20 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
     airFactor = 1.0f - (f32)g_Ball.airResistance / 10000.0f;
     prevYType = 0;
     destY = 0.2f;
-    g_FieldingLogic.laser_2 = 0;
+    g_FieldingLogic.lastThrowWasLaser = 0;
     laserAbility = checkFieldingStat(g_GameLogic.teamFielding, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation,
                                      FIELDING_ABILITY_LASER);
     if (laserAbility != 0) {
         if (g_FieldingLogic.locationThrownTo == 0) {
-            if (g_RunningLogic._04 & 0x1000) {
-                g_FieldingLogic.laser_1 = 1;
-                g_FieldingLogic.laser_2 = 1;
-                playSoundEffect(0x1a8);
+            if (g_RunningLogic.runnersByCurrentBaseMask & 0x1000) {
+                g_FieldingLogic.laserThrowInFlight = 1;
+                g_FieldingLogic.lastThrowWasLaser = 1;
+                playSoundEffect(SFX_FIELDING_ABILITY);
             }
-        } else if (g_FieldingLogic.locationThrownTo == 0 && (g_RunningLogic._04 & 0x1100)) {
-            g_FieldingLogic.laser_1 = 1;
-            g_FieldingLogic.laser_2 = 1;
-            playSoundEffect(0x1a8);
+        } else if (g_FieldingLogic.locationThrownTo == 0 && (g_RunningLogic.runnersByCurrentBaseMask & 0x1100)) {
+            g_FieldingLogic.laserThrowInFlight = 1;
+            g_FieldingLogic.lastThrowWasLaser = 1;
+            playSoundEffect(SFX_FIELDING_ABILITY);
         }
     }
     receiver = &g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[g_FieldingLogic.locationThrownTo]];
@@ -420,7 +420,7 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
             speed *= lbl_3_data_4760[1];
         }
     }
-    if (g_FieldingLogic.laser_1 != 0) {
+    if (g_FieldingLogic.laserThrowInFlight != 0) {
         speed *= lbl_3_data_4760[2];
     }
     loopCounter = 0;
@@ -457,10 +457,10 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
             }
         }
         if (frames < framesForFielderToGetToLoc && slowdowns < 5 && yType != 1) {
-            g_FieldingLogic.laser_1 = 0;
+            g_FieldingLogic.laserThrowInFlight = 0;
             slowdowns++;
             speed *= 0.9f;
-            g_FieldingLogic.laser_2 = 0;
+            g_FieldingLogic.lastThrowWasLaser = 0;
             angle += angleDelta;
         } else {
             if (yType == 1) {
@@ -529,7 +529,7 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
     *throwSpeed = speed;
     g_Ball.framesUntilThrowReachesDest = frames;
     g_Ball.throwTimeEstimatesCompleteInd = 0;
-    if (g_FieldingLogic.laser_1 != 0) {
+    if (g_FieldingLogic.laserThrowInFlight != 0) {
         fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[g_Ball.fielderWBallIndex], 4);
     }
 }
@@ -911,7 +911,7 @@ void setFielder215(int fielderIndex) {
         fielder->throwWindUpFrames = throwWindUpFrames[quickThrow * 3];
     }
     if (quickThrow != 0 && g_FieldingLogic.locationThrownTo >= 0) {
-        playSoundEffect(0x1A8);
+        playSoundEffect(SFX_FIELDING_ABILITY);
     }
 }
 
