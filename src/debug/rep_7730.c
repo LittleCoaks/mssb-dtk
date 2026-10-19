@@ -2,6 +2,7 @@
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
 #include "debug/rep_7730.h"
+#include "Unknown/File_0x800a7568.h"
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "static/UnknownHomes_Static.h"
@@ -43,7 +44,6 @@ extern s32 fn_80035DD4(s32 arg0);
 extern void fn_800385F0(void *buf, f32 a, f32 b, f32 c, f32 d);
 extern void fn_1_273D8(void *arg0);
 
-extern u8 lbl_803C6CF8[0x708];
 extern u8 lbl_80366158[0x30];
 extern u8 drawStadiumRelated;
 extern void removeGraphicsElementFromScene(void *arg0);
@@ -2403,14 +2403,14 @@ void fn_1_20F8C(void) {
 
     switch (currentDrawingItem->state) {
     case 0:
-        if ((s8)lbl_803C6CF8[0x715] != 1) {
+        if (lbl_803C6CF8.cancel.bytes[1] != 1) {
             break;
         }
         *(void **)((u8 *)item + 0x14) = ARAMTransfer(chainModelFileDescriptorDebug, 0, 0, 0);
         currentDrawingItem->state += 1;
         break;
     case 1:
-        if ((s8)lbl_803C6CF8[0x715] != 1) {
+        if (lbl_803C6CF8.cancel.bytes[1] != 1) {
             break;
         }
         item->state = 1;
@@ -2733,7 +2733,7 @@ void fn_1_2004C(void) {
         u8 *hdr;
         u32 i;
 
-        if ((s8)lbl_803C6CF8[0x715] != 1) {
+        if (lbl_803C6CF8.cancel.bytes[1] != 1) {
             break;
         }
 
@@ -2946,6 +2946,44 @@ void fn_1_1F900(void *arg0) {
     }
 }
 
+// fn_1_20640's body, except entries[i] is re-read for the 0x80000000 test: the copy
+// inlined into fn_1_1F618 differs from the standalone function in that one load.
+static inline void setupTevStages(void *arg0, u32 *entries) {
+    s32 i;
+
+    GXSetNumTevStages(*((u8 *)arg0 + 0x22));
+    GXSetNumTexGens(*((u8 *)arg0 + 0x22));
+
+    for (i = 0; i < *((u8 *)arg0 + 0x22); i++) {
+        u32 entry;
+
+        GXSetTexCoordGen2(i, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
+
+        if (i != 0) {
+            GXSetTevColorIn(i, GX_CC_CPREV, GX_CC_TEXC, GX_CC_RASA, GX_CC_ZERO);
+            GXSetTevColorOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(i, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
+            GXSetTevAlphaOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        } else {
+            GXSetTevColorIn(i, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_TEXC);
+            GXSetTevColorOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+            GXSetTevAlphaIn(i, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
+            GXSetTevAlphaOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        }
+
+        entry = entries[i];
+        {
+            u32 tlutIdx = entry & 0x7fffffff;
+
+            GXLoadTexObj(&lbl_1_bss_6EA4[entry], i);
+
+            if (entries[i] & 0x80000000) {
+                GXLoadTlut(&lbl_1_bss_6E44[tlutIdx], i);
+            }
+        }
+    }
+}
+
 // .text:0x0001F618 size:0x2E8
 void fn_1_1F618(void *arg0) {
     u8 *item = arg0;
@@ -2953,36 +2991,10 @@ void fn_1_1F618(void *arg0) {
 
     while (outerCount-- != 0) {
         u32 entries[1];
-        s32 i;
 
         entries[0] = outerCount % 4;
 
-        GXSetNumTevStages(*(item + 0x22));
-        GXSetNumTexGens(*(item + 0x22));
-
-        for (i = 0; i < *(item + 0x22); i++) {
-            u32 idx;
-
-            GXSetTexCoordGen2(i, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
-
-            if (i != 0) {
-                GXSetTevColorIn(i, GX_CC_CPREV, GX_CC_TEXC, GX_CC_RASA, GX_CC_ZERO);
-                GXSetTevColorOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(i, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_APREV);
-                GXSetTevAlphaOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            } else {
-                GXSetTevColorIn(i, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_TEXC);
-                GXSetTevColorOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-                GXSetTevAlphaIn(i, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_RASA);
-                GXSetTevAlphaOp(i, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-            }
-
-            idx = entries[i] & 0x7fffffff;
-            GXLoadTexObj(&lbl_1_bss_6EA4[idx], i);
-            if ((entries[i] & 0x80000000) != 0) {
-                GXLoadTlut(&lbl_1_bss_6E44[idx], i);
-            }
-        }
+        setupTevStages(item, entries);
 
         GXBegin(GX_QUADS, GX_VTXFMT0, 4);
 
@@ -3627,7 +3639,7 @@ void fn_1_1DCE4(void) {
 void fn_1_1DA54(void) {
     DrawingSceneStruct *item = currentDrawingItem;
 
-    if ((s8)lbl_803C6CF8[0x715] != 1) {
+    if (lbl_803C6CF8.cancel.bytes[1] != 1) {
         return;
     }
 

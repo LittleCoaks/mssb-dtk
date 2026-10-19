@@ -825,7 +825,7 @@ void fn_1_1A290(ActorObjectTable *table, Mtx cam) {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     for (i = 0; i < table->count; i++) {
         entry = &table->entries[i];
-        if (table->entries[i].actor != NULL && table->entries[i].applyControl != 0) {
+        if (entry->actor != NULL && table->entries[i].applyControl != 0) {
             fn_1_1A1EC(entry, cam);
         }
     }

@@ -131,7 +131,7 @@ void fn_1_4A24(PickState *st, DlPrim *prim) {
     u8 type;
     DlVertex *v = (DlVertex *)prim;
 
-    for (;;) {
+    while (TRUE) {
         cnt = ((DlPrim *)v)->count;
         if (cnt == 0) {
             break;
@@ -169,13 +169,13 @@ void fn_1_4A24(PickState *st, DlPrim *prim) {
             do {
                 u32 inside;
                 PSMTXMultVec(st->mtx, &v->pos, &t[2]);
-                e[0].z = t[2].x * t[0].y - t[0].x * t[2].y;
                 e[0].x = t[0].x * t[1].y - t[1].x * t[0].y;
                 e[0].y = t[1].x * t[2].y - t[2].x * t[1].y;
+                e[0].z = t[2].x * t[0].y - t[0].x * t[2].y;
                 if (flip != 0) {
-                    inside = (e[0].z <= 0.0f) & (e[0].x <= 0.0f) & (e[0].y <= 0.0f);
+                    inside = (e[0].x <= 0.0f) & (e[0].y <= 0.0f) & (e[0].z <= 0.0f);
                 } else {
-                    inside = (e[0].z >= 0.0f) & (e[0].x >= 0.0f) & (e[0].y >= 0.0f);
+                    inside = (e[0].x >= 0.0f) & (e[0].y >= 0.0f) & (e[0].z >= 0.0f);
                 }
                 if (inside) {
                     f32 hitT;
@@ -285,29 +285,29 @@ void fn_1_3E38(Vec *p, u32 key) {
 
 // .text:0x000025BC size:0x187C
 void fn_1_25BC(DlPrim *prim) {
-    u32 left;
-    u32 i;
-    u32 cnt;
     DlVertex *v;
     u32 key;
-    DlVertex *vi;
-    u32 prev;
+    u32 i;
+    u32 cnt;
+    u32 left;
     DlPrim *p = prim;
     u32 n;
+    DlVertex *vi;
+    u32 prev;
 
     do {
         n = p->count;
         if (p->type == 0) {
             v = p->verts;
-            cnt = n * 3;
+            i = n * 3;
             dlWriteU8(GX_TRIANGLES);
-            dlWriteU16(cnt);
-            for (; cnt != 0; cnt--) {
+            dlWriteU16(i);
+            for (; i != 0; i--) {
                 dlVertexOf(v);
                 v++;
             }
             v = p->verts;
-            for (left = n; left != 0; left--) {
+            for (i = n; i != 0; i--) {
                 DlVertex *start;
                 dlWriteU8(GX_LINESTRIP);
                 dlWriteU16(4);

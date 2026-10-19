@@ -11,6 +11,7 @@
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800bd300.h"
+#include "Unknown/File_0x8001fc4c.h"
 #include "Unknown/File_0x800b2b74.h"
 #include "Unknown/DisplayObject.h"
 #include "Unknown/sub.h"
@@ -91,7 +92,6 @@ extern void ACTActorRelated(void *file, void *actor);
 extern void actRelated(void *file, void *effect);
 extern void actorRelated(void *effect, int a, int b);
 extern void initActorArray(int count);
-extern void initShortsHandleCompressedDiskReads(void *owner);
 extern void characterAndBallDisplayRelated(void *entry, u16 buffer, u16 slot, void *layout, void *anim, int arg5);
 extern void fn_800BD548(void *actor, int mode, ...);
 extern void fn_800B2C08(void *a, int b);
@@ -3224,45 +3224,61 @@ void fn_1_14888(DbgLightHolder *h) {
 }
 
 // .text:0x00014710 size:0x178
+static inline void dbgSwapPair(DbgPairObj *o, u16 first, u16 second) {
+    u16 b;
+    u16 a;
+
+    a = o->b[first];
+    b = o->b[second];
+    if (a != SHORT_TABLE_END && b != SHORT_TABLE_END) {
+        o->a[a] = b;
+        o->a[b] = a;
+    }
+}
+
+static inline void dbgSwapPairs(DbgPairObj *o, u16 (*pairs)[2]) {
+    for (; (*pairs)[0] != SHORT_TABLE_END; pairs++) {
+        dbgSwapPair(o, (*pairs)[0], (*pairs)[1]);
+    }
+}
+
+static inline void dbgSwapPairsNonEmpty(DbgPairObj *o, u16 (*pairs)[2]) {
+    s32 i;
+    u16(*p)[2];
+
+    p = pairs;
+    i = 0;
+    do {
+        dbgSwapPair(o, (*p)[0], (*p)[1]);
+        p++;
+    } while (pairs[++i][0] != SHORT_TABLE_END);
+}
+
 void fn_1_14710(DbgPairObj *o) {
     s32 i;
-    u16 *p;
-    u16 *tbl;
-    for (i = 0; i < 0x78; i++) {
+    u16(*pairs)[2];
+
+    for (i = 0; i < SHORT_TABLE_COUNT; i++) {
         o->a[i] = i;
     }
-    p = lbl_1_data_1DC0;
-    do {
-        u16 x = o->b[p[0]];
-        u16 y = o->b[p[1]];
-        if (x != 0xFFFF && y != 0xFFFF) {
-            o->a[x] = y;
-            o->a[y] = x;
-        }
-        p += 2;
-    } while (p[0] != 0xFFFF);
+
+    dbgSwapPairsNonEmpty(o, (u16 (*)[2])lbl_1_data_1DC0);
+
     switch (lbl_1_bss_68FC.f40[lbl_1_bss_5F73]) {
     case CHAR_ID_SHYGUY_RED:
     case CHAR_ID_SHYGUY_BLUE:
     case CHAR_ID_SHYGUY_YELLOW:
     case CHAR_ID_SHYGUY_GREEN:
     case CHAR_ID_SHYGUY_BLACK:
-        tbl = lbl_1_data_1E18;
+        pairs = (u16 (*)[2])lbl_1_data_1E18;
         break;
     default:
-        tbl = NULL;
+        pairs = NULL;
         break;
     }
-    if (tbl == NULL) {
-        return;
-    }
-    for (p = tbl; p[0] != 0xFFFF; p += 2) {
-        u16 x = o->b[p[0]];
-        u16 y = o->b[p[1]];
-        if (x != 0xFFFF && y != 0xFFFF) {
-            o->a[x] = y;
-            o->a[y] = x;
-        }
+
+    if (pairs != NULL) {
+        dbgSwapPairs(o, pairs);
     }
 }
 
@@ -3423,7 +3439,7 @@ void fn_1_135C0(void) {
         }
     }
     fn_800B2C08((void *)hugeAnimStruct.objs->e[0].model, 4);
-    initShortsHandleCompressedDiskReads(hugeAnimStruct.actors[j]);
+    initShortsHandleCompressedDiskReads((ShortsTableOwner *)hugeAnimStruct.actors[j]);
     s0->p4 = (void *)hugeAnimStruct.objs->e[0].model;
     s0->pos.x = 0.0f;
     s0->pos.y = 0.0f;
@@ -4995,7 +5011,7 @@ void fn_1_E098(void) {
                 if (BTN_PRESSED & INPUT_BUTTON_A) {
                     DbgSceneB *s = (DbgSceneB *)currentDrawingItem;
                     s32 k;
-                    s->func = fn_1_DE1C;
+                    currentDrawingItem->func = fn_1_DE1C;
                     s->b15 = 0;
                     lbl_1_bss_6940[lbl_1_bss_5F73].f44 = lbl_1_bss_3218[(s8)s->b15].f0;
                     lbl_1_bss_6940[lbl_1_bss_5F73].f45 = lbl_1_bss_3218[(s8)s->b15].f2;

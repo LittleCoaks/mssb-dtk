@@ -3497,9 +3497,11 @@ functions. These lessons are not specific to one file:
   `fn_1_EA20` from 99.20 to 100, where a cached pointer local for the bound left the permutation. The unit
   already had an out-of-line getter of the same shape (`fn_1_16558`), which was the hint.
 - **An lr reload after the callee-saved restores** (`lwz r31...; lwz r0, 0x24(r1)`), where the usual
-  epilogue reloads lr first, means the original's epilogue was its own basic block (something branched
-  to the exit). In a micro TU an early `return` restores the lr-first order (`rep_0610` `fn_1_D300`; the
-  construct in the original is still unknown).
+  epilogue reloads lr first, means the original's epilogue was its own basic block. One cause is a
+  missing return value: `rep_0610` `fn_1_D300` really returns the `DbgActor *` already in r3 for its
+  last store (`(act = actors[i])->model = ...; return act;`), which gives the lr-first epilogue with no
+  extra code (99.73 -> 100). Its callers all inline it and ignore the result. `return src` /
+  `return NULL` instead add an `mr`/`li`.
 - **Switch on the global expression, not on a local copy of it:** `switch (currentDrawingItem->state)`
   where `scene == currentDrawingItem` fixed a three-register rotation (`rep_74A0` `fn_1_1CBE4` -> 100;
   same as `rep_0250` / `rep_02A8`).
@@ -3554,6 +3556,46 @@ functions. These lessons are not specific to one file:
   no unused statics) to confirm the effect is local, then rebuild it in a tiny TU with hand-written
   prototypes and swap pieces (headers, typedefs, prototypes) back in until the output flips. For
   `fn_1_5544` the flip was `#include "types.h"`, which led to the `int` parameters.
+  **A debug-REL micro TU must include `header_rep_data.h`'s weak inline local static** (or an equivalent
+  first `.rodata` object). Without it MWCC addresses the literals off one pooled section base, which
+  frees a GPR and changes the colouring: `rep_74A0`'s first micro TU "reproduced the target" only because
+  of that, and sent a whole pass after the wrong code. Check that the micro TU reproduces OUR real output
+  (0 words different) before trusting what it says about the target.
+- **Before grinding a stuck debug-REL function, scan the other modules' target asm for its twin.** Debug
+  routines are often copies of game-REL (or DOL) ones, and a matched twin's source is direct evidence of
+  the original shape. `rep_00B0` `fn_1_4A24` (99.46 -> 100) is `game/ball/collision_primitives`
+  `checkTriangleCollisions`, found by scanning every target `.s` for its distinctive signature (a hoisted
+  `addi rN, r1, X` used both as a call argument and as `0x0(rN)`, with `X+4(r1)` also read directly). Port
+  the twin's source, then revert one feature at a time to find what mattered.
+  The twin can be in the same unit: a scan ranking functions by shared 8-instruction mnemonic runs showed
+  `rep_7730` `fn_1_1F618`'s TEV-stage loop is `fn_1_20640`'s body (calling it: 98.47 -> 99.29, all
+  registers right). The inlined copy still re-read `entries[i]` where the standalone keeps it in a
+  register, so 1F618 needed its own inline copy with the re-read (-> 100). A re-read of a local array
+  element is a tell that an inlined copy and its standalone function differ in the source.
+  A DOL twin closed `rep_0610` `fn_1_14710` (94.20 -> 100, after ~50 shapes over five sessions): it is
+  `initShortsHandleCompressedDiskReads` (`File_0x8001fc4c.c`). Porting its three static inlines (a pair
+  swap; a for loop; a do-while with a separate index for the test and pointer for the body,
+  `while (pairs[++i][0] != END)`) explained the "two induction variables".
+- **Store through the global, not a local copy of it:** `currentDrawingItem->func = f;` instead of
+  `s->func = f;` with `s == currentDrawingItem` fixed a register rotation across the whole block
+  (`rep_0610` `fn_1_E098` case 10, 99.62 -> 99.94), the same family as switching on the global.
+- **`while (TRUE)` and `for (;;)` compile differently.** In `fn_1_4A24` the outer loop keyword alone took
+  it from 99.46 to 99.90, after a pass had concluded from micro TUs that the pattern was unreachable from
+  source. Try the loop keyword before declaring an address-register pattern unreachable.
+- **The order MWCC hands out callee-saved registers (highest first), from micro TUs (`rep_0138`
+  `fn_1_73B8`):** a hoisted global address (`&state`); then variables assigned from an inline
+  function's result, parameter or local; then compiler loop temps (hidden pointers, entry pointers);
+  then function-scope locals in declaration order; then block-scope locals; then parameters. Extra uses
+  of a variable do not move it, but one more short-lived temp live across a parameter's range pushed that
+  parameter to the top, so interference can override the order. `x = inlineFn(...)` lifts x above the
+  loop temps but not above a hoisted global address.
+- **MWCC never inlines a variadic function** (it emits `bl`), and `va_start` needs the enclosing
+  function itself to take an ellipsis, so a loop containing `va_start` cannot move into an inline helper.
+- **Then screen single changes in parallel on the exact reproducer.** For `rep_74A0` `fn_1_1D110`
+  (99.86, one register inside an inlined callee) the screen found that `fn_1_1A290`'s guard needed one
+  test through the `entry` local and one through the array: `if (entry->actor != NULL &&
+  table->entries[i].applyControl != 0)`. Same instructions in the standalone function, but the inlined
+  copy's colouring changed -> 100.
 - **`#pragma scheduling off` shows MWCC's pre-scheduling order**, but it also changes register
   allocation: MWCC schedules before it allocates registers. Single-use locals and single-use parameter
   reassignments are forward-substituted, so source statement order often doesn't reach codegen order
