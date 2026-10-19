@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/gx.h"
 
-void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
+void fn_3_3904(s16 x, s16 y, int textIndex, const GXColor* foreground,
                   const GXColor* background, u8 alternate);
 void fn_3_3BE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
                   s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight);
