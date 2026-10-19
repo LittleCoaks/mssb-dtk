@@ -1890,7 +1890,7 @@ void drawDiamondMiniMap_init(void) {
 
 // .text:0x000959BC size:0xCE0 mapped:0x806D4A50
 static inline void setMiniMapAlpha(MiniMapScene* scene, int alpha) {
-    int i;
+    s32 i;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         for (i = 1; i < 6; i++) {
@@ -2021,12 +2021,14 @@ void drawDiamondMiniMap_ongoing(void) {
                     f32 mapX = lbl_3_data_C1CC[2] * runner->position.x;
                     f32 mapY = lbl_3_data_C1CC[3] * -runner->position.z;
 
-                    REC(scene, idx)->pos.x = mapX + lbl_3_data_C1CC[0];
-                    REC(scene, idx)->pos.y = mapY + lbl_3_data_C1CC[1];
+                    mapX += lbl_3_data_C1CC[0];
+                    mapY += lbl_3_data_C1CC[1];
+                    REC(scene, idx)->pos.x = mapX;
+                    REC(scene, idx)->pos.y = mapY;
                 }
                 base = runner->currentBase;
                 if (base >= 1 && base <= 3) {
-                    REC_AT(scene, 8, base)->flags |= UI_FLAG_VISIBLE;
+                    REC_AT(scene, base, 8)->flags |= UI_FLAG_VISIBLE;
                 }
             }
         }
