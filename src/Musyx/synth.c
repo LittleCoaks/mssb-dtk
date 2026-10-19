@@ -953,11 +953,15 @@ u8 synthFXGetMaxVoices(u16 fid) {
   return 0;
 }
 
-u32 synthFXStart(u16 fid, u8, u8 vol, u8 pan, u8 studio, u32 itd) {
+u32 synthFXStart(u16 fid, u8 key, u8 vol, u8 pan, u8 studio, u32 itd) {
   FX_TAB* fx;
   u32 v;
   v = 0xFFFFFFFF;
   if ((fx = dataGetFX(fid)) != NULL) {
+    if (key == 0xFF) {
+      key = fx->key;
+    }
+
     if (vol == 0xFF) {
       vol = fx->volume;
     }
@@ -968,9 +972,9 @@ u32 synthFXStart(u16 fid, u8, u8 vol, u8 pan, u8 studio, u32 itd) {
 
     v = synthStartSound(fx->macro, fx->priority, fx->maxVoices,
 #if MUSY_VERSION >= MUSY_VERSION_CHECK(2, 0, 1)
-                        0, // TODO
+                        fid | 0x80000000,
 #endif
-                        fx->key | 0x80, vol, pan, 0xFF, 0xFF, 0, 0, 0xFF, fx->vGroup, 0, studio,
+                        key | 0x80, vol, pan, 0xFF, 0xFF, 0, 0, 0xFF, fx->vGroup, 0, studio,
                         itd);
   }
 

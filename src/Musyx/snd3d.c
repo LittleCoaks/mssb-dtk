@@ -611,8 +611,6 @@ static void EmitterShutdown(SND_EMITTER *em)
 bool32 sndUpdateEmitter(SND_EMITTER *em, SND_FVECTOR *pos, SND_FVECTOR *dir, u8 maxVol,
                       SND_ROOM *room)
 {
-    u32 id; // r29
-
     if (sndActive)
     {
         hwDisableIrq();
@@ -623,28 +621,6 @@ bool32 sndUpdateEmitter(SND_EMITTER *em, SND_FVECTOR *pos, SND_FVECTOR *dir, u8 
         if (em->minVol > em->maxVol)
         {
             em->minVol = em->maxVol;
-        }
-
-        if (em->room != room)
-        {
-            if (em->vid != -1)
-            {
-                if (room->studio != 0xFF)
-                {
-                    if ((id = vidGetInternalId(em->vid)) != -1)
-                    {
-                        hwChangeStudio(id & 0xFF, room->studio);
-                    }
-                }
-                else
-                {
-                    synthSendKeyOff(em->vid);
-                    em->flags |= 0x80000;
-                    em->vid = -1;
-                }
-            }
-
-            em->room = room;
         }
         hwEnableIrq();
         return TRUE;
@@ -950,20 +926,6 @@ unsigned long sndUpdateListener(SND_LISTENER *li, SND_FVECTOR *pos, SND_FVECTOR 
         MakeListenerMatrix(li);
         li->vol = vol / 127.f;
 
-        if (room != li->room)
-        {
-            if (li->room != NULL)
-            {
-                RemoveListenerFromRoom(li->room);
-            }
-
-            li->room = room;
-            if (room != NULL)
-            {
-                AddListener2Room(li->room);
-            }
-        }
-
         hwEnableIrq();
         return TRUE;
     }
@@ -999,10 +961,6 @@ unsigned long sndAddListenerEx(SND_LISTENER *li, SND_FVECTOR *pos, SND_FVECTOR *
         li->flags = flags;
         li->vol = vol / 127.f;
         li->room = room;
-        if (room != NULL)
-        {
-            AddListener2Room(room);
-        }
         hwEnableIrq();
         return TRUE;
     }
@@ -1025,11 +983,6 @@ unsigned long sndRemoveListener(SND_LISTENER *li)
     {
 
         hwDisableIrq();
-
-        if (li->room != NULL)
-        {
-            RemoveListenerFromRoom(li->room);
-        }
 
         if (li->next != NULL)
         {

@@ -22,6 +22,7 @@ static u32 dbgActiveVoicesMax = 0;
 #endif
 
 extern u8 salAuxFrame;
+extern u8 salFrame;
 
 DSPstudioinfo dspStudio[8];
 
@@ -364,9 +365,393 @@ static void SortVoices(DSPvoice** voices, long l, long r) {
   SortVoices(voices, last + 1, r);
 }
 
+u32 salSynthSendMessage(DSPvoice* dsp_vptr, u32 mesg);
+u32 adsrSetup(ADSR_VARS* adsr);
+u32 adsrHandle(ADSR_VARS* adsr, u16* adsr_start, u16* adsr_delta);
+void adsrStartRelease(ADSR_VARS* adsr, u32 time);
+extern u32 lbl_803CC35C;
+
+#define VOICE_U8(v, off) (*(u8*)((u8*)(v) + (off)))
+#define VOICE_U32(v, off) (*(u32*)((u8*)(v) + (off)))
+
+static void sal_cmdSwitchBlock(void) {
+  u32 size;
+
+  dspCmdPtr[0] = 0x0D;
+  dspCmdPtr[1] = (u16)((u32)dspCmdMaxPtr >> 16);
+  dspCmdPtr[2] = (u16)(u32)dspCmdMaxPtr;
+  size = (((u32)dspCmdPtr + 8) - (u32)dspCmdCurBase + 3) & 0xFFF8;
+  if (dspCmdLastLoad != NULL) {
+    dspCmdLastLoad[3] = size;
+    DCStoreRangeNoSync(dspCmdLastBase, dspCmdLastSize);
+  } else {
+    dspCmdFirstSize = size;
+  }
+
+  dspCmdLastLoad = dspCmdPtr;
+  dspCmdLastBase = dspCmdCurBase;
+  dspCmdLastSize = size;
+  dspCmdPtr = dspCmdMaxPtr;
+  dspCmdCurBase = dspCmdMaxPtr;
+  dspCmdMaxPtr = (u16*)((u8*)dspCmdMaxPtr + 0x180);
+}
+
+static void sal_cmdReserve(u32 bytes) {
+  if ((u32)dspCmdPtr + bytes > (u32)dspCmdMaxPtr - 8) {
+    sal_cmdSwitchBlock();
+  }
+}
+
+static void sal_cmdPut16(u32 v) {
+  *dspCmdPtr = (u16)v;
+  dspCmdPtr += 1;
+}
+
+static void sal_cmdPutAddr(u32 addr) {
+  sal_cmdPut16(addr >> 16);
+  sal_cmdPut16(addr & 0xFFFF);
+}
+
+static void sal_cmdEndMarker(void) {
+  sal_cmdReserve(2);
+  sal_cmdPut16(3);
+}
+
+static void sal_cmdFinishBlock(void) {
+  u32 size;
+
+  size = ((u32)dspCmdPtr - (u32)dspCmdCurBase + 3) & 0xFFF8;
+  if (dspCmdLastLoad != NULL) {
+    dspCmdLastLoad[3] = size;
+    DCStoreRangeNoSync(dspCmdLastBase, dspCmdLastSize);
+  } else {
+    dspCmdFirstSize = size;
+  }
+  DCStoreRangeNoSync(dspCmdCurBase, (u32)dspCmdPtr - (u32)dspCmdCurBase);
+}
+
+static void sal_cmdSetupVolume(_PB* pb, DSPvoice* dsp_vptr) {
+  if (dsp_vptr->changed[0] & 0x1) {
+    sal_setup_dspvol(&pb->mix.vDeltaL, &dsp_vptr->lastVolL, dsp_vptr->volL);
+    sal_setup_dspvol(&pb->mix.vDeltaR, &dsp_vptr->lastVolR, dsp_vptr->volR);
+    sal_setup_dspvol(&pb->mix.vDeltaS, &dsp_vptr->lastVolS, dsp_vptr->volS);
+    if (pb->mix.vDeltaL != 0 || pb->mix.vDeltaR != 0) {
+      pb->mixerCtrl |= 0x3;
+    } else {
+      pb->mixerCtrl &= ~0x3;
+    }
+  }
+}
+
+static void sal_cmdDepopStudio(DSPstudioinfo* sp) {
+  _SPB* spb = sp->spb;
+
+  DoDepopFade((long*)((u8*)spb + 0x00), (s16*)((u8*)spb + 0x04), &sp->hostDPopSum.l);
+  DoDepopFade((long*)((u8*)spb + 0x06), (s16*)((u8*)spb + 0x0A), &sp->hostDPopSum.r);
+  DoDepopFade((long*)((u8*)spb + 0x0C), (s16*)((u8*)spb + 0x10), &sp->hostDPopSum.s);
+  DoDepopFade((long*)((u8*)spb + 0x12), (s16*)((u8*)spb + 0x16), &sp->hostDPopSum.lA);
+  DoDepopFade((long*)((u8*)spb + 0x18), (s16*)((u8*)spb + 0x1C), &sp->hostDPopSum.rA);
+  DoDepopFade((long*)((u8*)spb + 0x1E), (s16*)((u8*)spb + 0x22), &sp->hostDPopSum.sA);
+  DoDepopFade((long*)((u8*)spb + 0x24), (s16*)((u8*)spb + 0x28), &sp->hostDPopSum.lB);
+  DoDepopFade((long*)((u8*)spb + 0x2A), (s16*)((u8*)spb + 0x2E), &sp->hostDPopSum.rB);
+  DoDepopFade((long*)((u8*)spb + 0x30), (s16*)((u8*)spb + 0x34), &sp->hostDPopSum.sB);
+  DCFlushRangeNoSync(spb, 0x36);
+}
+
+static u32 sal_cmdSampleFormat(DSPvoice* voice, _PB* pb) {
+  u8* si;
+  u8 fmt;
+  u32 len;
+  u32 start;
+  u32 addr;
+  u32 i;
+
+  fmt = VOICE_U8(voice, 0x90);
+  si = *(u8**)((u8*)voice + 0x7C);
+  len = VOICE_U32(voice, 0x78);
+  start = VOICE_U32(voice, 0x80);
+
+  if (fmt == 0 || fmt == 4 || fmt == 5) {
+    addr = len * 2;
+    addr += 2;
+    pb->addr.format = 0;
+    pb->adpcm.gain = 0;
+    pb->adpcm.yn1 = 0;
+    pb->adpcm.yn2 = 0;
+    pb->adpcm.pred_scale = si[2];
+    for (i = 0; i < 16; ++i) {
+      ((s16*)pb->adpcm.a)[i] = *(s16*)(si + 8 + i * 2);
+    }
+    if (fmt == 4 || fmt == 5) {
+      pb->loopType = 1;
+    } else {
+      pb->adpcmLoop.loop_yn2 = *(s16*)(si + 4);
+      pb->adpcmLoop.loop_yn1 = *(s16*)(si + 6);
+      pb->adpcmLoop.loop_pred_scale = si[3];
+      pb->loopType = 0;
+    }
+    VOICE_U32(voice, 0xDC) = 0;
+  } else if (fmt == 1) {
+    addr = len * 2;
+    addr += 2;
+    pb->addr.format = 0;
+    pb->adpcm.gain = 0;
+    pb->adpcm.yn2 = *(s16*)(si + 0x28);
+    pb->adpcm.yn1 = *(s16*)(si + 0x2A);
+    pb->adpcm.pred_scale = si[0x2C];
+    for (i = 0; i < 16; ++i) {
+      ((s16*)pb->adpcm.a)[i] = *(s16*)(si + 8 + i * 2);
+    }
+    pb->adpcmLoop.loop_yn2 = *(s16*)(si + 4);
+    pb->adpcmLoop.loop_yn1 = *(s16*)(si + 6);
+    pb->adpcmLoop.loop_pred_scale = si[3];
+    pb->loopType = 0;
+    VOICE_U32(voice, 0xDC) = 0;
+  } else if (fmt == 3) {
+    addr = start + len;
+    pb->addr.format = 0x19;
+    pb->adpcm.gain = 0x100;
+    for (i = 0; i < 16; ++i) {
+      ((s16*)pb->adpcm.a)[i] = 0;
+    }
+    pb->loopType = 0;
+    VOICE_U32(voice, 0xDC) = start;
+  } else if (fmt == 2 || fmt == 6) {
+    addr = start + (len >> 1);
+    pb->addr.format = 0x0A;
+    pb->adpcm.gain = 0x800;
+    for (i = 0; i < 16; ++i) {
+      ((s16*)pb->adpcm.a)[i] = 0;
+    }
+    pb->loopType = (fmt == 6) ? 1 : 0;
+    VOICE_U32(voice, 0xDC) = start;
+  } else {
+    return 0;
+  }
+
+  VOICE_U32(voice, 0xE0) = 0;
+  return addr;
+}
+
 void salBuildCommandList(signed short* dest, unsigned long nsDelay) {
-  static const u16 pbOffsets[9] = {10, 12, 24, 13, 16, 26, 18, 20, 22};
   static DSPvoice * voices[64];
+  u32 cycles;
+  u32 busClock;
+  u32 count;
+  u32 k;
+  u32 slot;
+  u32 addr;
+  u8 st;
+  u8 i;
+  DSPstudioinfo* sp;
+  DSPstudioinfo* src;
+  DSPvoice* voice;
+  DSPvoice* next;
+  _PB* pb;
+  u16* upd;
+  u32 adsrDone;
+
+  dspCmdLastLoad = NULL;
+  dspCmdPtr = dspCmdList;
+  dspCmdCurBase = dspCmdList;
+  dspCmdMaxPtr = (u16*)((u8*)dspCmdList + 0x180);
+
+  busClock = *(u32*)0x800000F8;
+  if (nsDelay < 200) {
+    cycles = 0x28BE;
+  } else {
+    cycles = (nsDelay - 200) * (busClock / 400 / 5000) + 0x28BE;
+  }
+  if (dspHRTFOn != FALSE) {
+    cycles += 0x10000 - 0x5038;
+  }
+  if (lbl_803CC35C != 0) {
+    cycles += 0xBB8;
+  }
+
+  for (st = 0; st < salMaxStudioNum; ++st) {
+    sp = &dspStudio[st];
+    if (sp->state != 1) {
+      continue;
+    }
+
+    voice = sp->voiceRoot;
+    while (voice != NULL) {
+      next = voice->next;
+      if (voice->postBreak != 0 || (voice->changed[0] & 0x20) != 0) {
+        HandleDepopVoice(sp, voice);
+        if (voice->virtualSampleID != 0xFFFFFFFF) {
+          salSynthSendMessage(voice, 3);
+        }
+        if (voice->state != 1 || voice->startupBreak != 0) {
+          salDeactivateVoice(voice);
+          voice->startupBreak = 0;
+        }
+      }
+      voice = next;
+    }
+
+    voice = sp->alienVoiceRoot;
+    while (voice != NULL) {
+      HandleDepopVoice(sp, voice);
+      voice = voice->nextAlien;
+    }
+    sp->alienVoiceRoot = NULL;
+
+    sal_cmdReserve(6);
+    sal_cmdPut16(0);
+    sal_cmdPutAddr((u32)sp->spb);
+
+    for (i = 0; i < sp->numInputs; ++i) {
+      src = &dspStudio[sp->in[i].studio];
+      sal_cmdReserve(12);
+      sal_cmdPut16(1);
+      sal_cmdPutAddr((u32)src->main[(salFrame ^ 1) & 1]);
+      sal_cmdPut16(sp->in[i].vol);
+      sal_cmdPut16(sp->in[i].volA);
+      sal_cmdPut16(sp->in[i].volB);
+    }
+
+    count = 0;
+    voice = sp->voiceRoot;
+    while (voice != NULL) {
+      voices[count++] = voice;
+      voice = voice->next;
+    }
+    SortVoices(voices, 0, count - 1);
+
+    for (k = count; k > 0; --k) {
+      voice = voices[k - 1];
+      if (voice->state == 0) {
+        continue;
+      }
+
+      pb = voice->pb;
+      if (voice->state == 1) {
+        voice->virtualSampleID = 0xFFFFFFFF;
+        pb->ve.currentDelta = 0x8000;
+        if (adsrSetup(&voice->adsr) != 0) {
+          salSynthSendMessage(voice, 0);
+          salDeactivateVoice(voice);
+          continue;
+        }
+        if (VOICE_U8(voice, 0x90) >= 5 && VOICE_U8(voice, 0x90) < 7) {
+          VOICE_U32(voice, 0x98) = 0;
+          voice->virtualSampleID = salSynthSendMessage(voice, 2);
+          if (VOICE_U32(voice, 0x98) == 0) {
+            salSynthSendMessage(voice, 1);
+            salDeactivateVoice(voice);
+            continue;
+          }
+        }
+      }
+
+      pb->src.currentAddressFrac = 0;
+      pb->src.last_samples[0] = 0;
+      pb->src.last_samples[1] = 0;
+      pb->src.last_samples[2] = 0;
+      pb->src.last_samples[3] = 0;
+
+      if ((voice->flags & 1) != 0) {
+        memset(voice->itdBuffer, 0, 0x40);
+        DCFlushRange(voice->itdBuffer, 0x40);
+        pb->itd.targetShiftL = voice->itdShiftL;
+        pb->itd.targetShiftR = voice->itdShiftR;
+        pb->itd.flag = 1;
+      } else {
+        pb->itd.flag = 0;
+      }
+
+      addr = sal_cmdSampleFormat(voice, pb);
+      pb->addr.currentAddressHi = (u16)(addr >> 16);
+      pb->addr.currentAddressLo = (u16)addr;
+      voice->currentAddr = addr;
+
+      sal_cmdSetupVolume(pb, voice);
+
+      upd = (u16*)voice->patchData;
+      adsrDone = 0;
+      for (slot = 0; slot < 5; ++slot) {
+        if ((voice->changed[slot] & 0x40) != 0) {
+          adsrRelease(&voice->adsr);
+        }
+        if ((voice->changed[slot] & 0x8) != 0) {
+          pb->src.ratioHi = (u16)(voice->pitch[slot] >> 16);
+          pb->src.ratioLo = (u16)voice->pitch[slot];
+          VOICE_U32(voice, 0xE4) = voice->pitch[slot];
+        }
+        adsrDone = adsrHandle(&voice->adsr, &pb->ve.currentVolume, &pb->ve.currentDelta);
+        for (i = 0; i < 5; ++i) {
+          pb->update.updNum[i] = 0;
+        }
+        if (slot != 0) {
+          upd[0] = 7;
+          upd[1] = 1;
+          upd += 2;
+          pb->update.updNum[slot] += 1;
+        }
+        sal_update_hostplayinfo(voice);
+      }
+
+      if (adsrDone != 0) {
+        salSynthSendMessage(voice, 0);
+        salDeactivateVoice(voice);
+      }
+
+      DCStoreRangeNoSync(voice->patchData, (u32)upd - (u32)voice->patchData);
+    }
+  }
+
+  for (st = 0; st < salMaxStudioNum; ++st) {
+    sp = &dspStudio[st];
+    if (sp->state != 1) {
+      continue;
+    }
+    if (sp->auxAHandler != NULL) {
+      sal_cmdReserve(6);
+      sal_cmdPut16(4);
+      sal_cmdPutAddr((u32)sp->auxA[salAuxFrame % 3]);
+    }
+    if (sp->type == 0 && sp->auxBHandler != NULL) {
+      sal_cmdReserve(6);
+      sal_cmdPut16(5);
+      sal_cmdPutAddr((u32)sp->auxB[salAuxFrame % 3]);
+    }
+    sal_cmdReserve(6);
+    sal_cmdPut16(6);
+    sal_cmdPutAddr((u32)sp->main[salAuxFrame & 1]);
+    sal_cmdDepopStudio(sp);
+  }
+
+  sal_cmdReserve(10);
+  sal_cmdPut16(0x11);
+  sal_cmdPutAddr((u32)dspSurround);
+  sal_cmdPut16(0);
+
+  for (st = 0; st < salMaxStudioNum; ++st) {
+    sp = &dspStudio[st];
+    if (sp->state == 1 && sp->isMaster != 0) {
+      sal_cmdReserve(6);
+      sal_cmdPut16(9);
+      sal_cmdPutAddr((u32)sp->main[salFrame & 1]);
+    }
+  }
+
+  if (lbl_803CC35C != 0) {
+    sal_cmdReserve(10);
+    sal_cmdPut16(0x12);
+    sal_cmdPut16(0x8000);
+    sal_cmdPut16(0x000A);
+    sal_cmdPutAddr(0x801133E0);
+  }
+
+  sal_cmdReserve(10);
+  sal_cmdPut16(0x0F);
+  sal_cmdPutAddr((u32)dspSurround);
+  sal_cmdPutAddr((u32)dest);
+
+  sal_cmdEndMarker();
+  sal_cmdFinishBlock();
 }
 
 u32 salSynthSendMessage(DSPvoice* dsp_vptr, u32 mesg) {

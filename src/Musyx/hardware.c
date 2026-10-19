@@ -2,6 +2,17 @@
 #include "musyx/musyx_priv.h"
 
 extern void DCStoreRange(void* addr, u32 nBytes);
+extern f32 sndCos(f32 x);
+extern f32 sndSqrt(f32 v);
+extern u32 lbl_803CC35C;
+extern f32 lbl_803CD270;
+extern f32 lbl_803CD274;
+extern f32 lbl_803CD278;
+
+// SRC filter state inside DSPvoice; these bytes are not named in the struct (they overlap FILLER/FILLER2).
+#define VOICE_FILTER_ON(p) (*(u8*)((u8*)(p) + 0xd4))
+#define VOICE_FILTER_COEF_A(p) (*(u16*)((u8*)(p) + 0xd6))
+#define VOICE_FILTER_COEF_B(p) (*(u16*)((u8*)(p) + 0xd8))
 
 static volatile const u16 itdOffTab[128] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  4,  4,  4,  4,
@@ -271,6 +282,8 @@ u8 hwGetSampleType(u32 voice) { return dspVoice[voice].smp_info.compType; }
 
 u16 hwGetSampleID(u32 voice) { return dspVoice[voice].smp_id; }
 
+u32 hwGetSampleExtraData(u32 voice) { return (u32)dspVoice[voice].smp_info.extraData; }
+
 void hwSetStreamLoopPS(u32 voice, u8 ps) { dspVoice[voice].streamLoopPS = ps; }
 
 void hwStart(u32 v, u8 studio)
@@ -302,7 +315,7 @@ void hwSetPitch(unsigned long v, unsigned short speed)
 
 void hwSetSRCType(u32 v, u8 salSRCType)
 {
-  static u16 dspSRCType[3] = {0, 1, 2};
+  static u16 dspSRCType[4] = {0, 1, 2, 0};
   struct DSPvoice *dsp_vptr = &dspVoice[v];
   dsp_vptr->srcTypeSelect = dspSRCType[salSRCType];
   dsp_vptr->changed[0] |= 0x100;
@@ -310,10 +323,65 @@ void hwSetSRCType(u32 v, u8 salSRCType)
 
 void hwSetPolyPhaseFilter(unsigned long v, unsigned char salCoefSel)
 {
-  static u16 dspCoefSel[3] = {0, 1, 2};
+  static u16 dspCoefSel[4] = {0, 1, 2, 0};
   struct DSPvoice *dsp_vptr = &dspVoice[v];
   dsp_vptr->srcCoefSelect = dspCoefSel[salCoefSel];
   dsp_vptr->changed[0] |= 0x80;
+}
+
+void hwLowPassFrqToCoef(u32 frq, unsigned short* _a0, unsigned short* _b1)
+{
+  f32 c = lbl_803CD270 - sndCos(lbl_803CD274 * (f32)frq / lbl_803CD278);
+  f32 t;
+  if (c > 1.f)
+  {
+    t = sndSqrt(c * c - 1.f) - c;
+  }
+  else
+  {
+    t = -1.f;
+  }
+
+  if (t > 1.f)
+  {
+    t = 1.f;
+  }
+  else if (t < -1.f)
+  {
+    t = -1.f;
+  }
+
+  *_a0 = (s32)(32768.f * (1.f + t));
+  *_b1 = (s32)(-32768.f * t);
+}
+
+void hwSetFilter(u32 v, unsigned char mode, unsigned short coefA, unsigned short coefB)
+{
+  DSPvoice* dsp_vptr = &dspVoice[v];
+  if (VOICE_FILTER_ON(dsp_vptr) == 0)
+  {
+    if (mode != 1)
+    {
+      return;
+    }
+
+    VOICE_FILTER_ON(dsp_vptr) = 1;
+    VOICE_FILTER_COEF_A(dsp_vptr) = coefA;
+    VOICE_FILTER_COEF_B(dsp_vptr) = coefB;
+    dsp_vptr->changed[0] |= 0xc00;
+    return;
+  }
+
+  if (mode == 1)
+  {
+    VOICE_FILTER_COEF_A(dsp_vptr) = coefA;
+    VOICE_FILTER_COEF_B(dsp_vptr) = coefB;
+    dsp_vptr->changed[0] |= 0x800;
+    return;
+  }
+
+  VOICE_FILTER_ON(dsp_vptr) = 0;
+  dsp_vptr->changed[0] |= 0x400;
 }
 
 static void SetupITD(DSPvoice *dsp_vptr, u8 pan)
@@ -518,12 +586,12 @@ static u32 convert_length(u32 len, u8 type)
   return len;
 }
 
-void hwSaveSample(void *header, void *data)
+void hwSaveSample(void *header, void *data, void *aramWrite)
 {
   u32 len = ((u32 *)*((u32 *)header))[1] & 0xFFFFFF;
   u8 type = ((u32 *)*((u32 *)header))[1] >> 0x18;
   len = convert_length(len, type);
-  *((u32 *)data) = (u32)aramStoreData((void *)*((u32 *)data), len);
+  *((u32 *)data) = (u32)aramStoreData((void *)*((u32 *)data), len, aramWrite);
 }
 
 void hwSetSaveSampleCallback(ARAMUploadCallback callback, unsigned long chunckSize) { aramSetUploadCallback(callback, chunckSize); }
@@ -565,6 +633,7 @@ void hwDisableHRTF() { dspHRTFOn = FALSE; }
 
 void hwEnableCompressor(void)
 {
+  lbl_803CC35C = 1;
 }
 
 u32 hwGetVirtualSampleID(u32 v)

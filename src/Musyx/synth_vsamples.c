@@ -1,8 +1,6 @@
 
 #include "musyx/musyx_priv.h"
 
-static VS vs;
-
 void vsInit() {
   u32 i;
   vs.numBuffers = 0;
@@ -14,67 +12,62 @@ void vsInit() {
   vs.callback = NULL;
 }
 
-u16 vsNewInstanceID() {
-  u8 i;       // r31
-  u16 instID; // r29
-  do {
-    instID = vs.nextInstID++;
-    i = 0;
-    for (; i < vs.numBuffers; ++i) {
-      if (vs.streamBuffer[i].state != 0 && vs.streamBuffer[i].info.instID == instID) {
-        break;
-      }
-    }
-  } while (i != vs.numBuffers);
-
-  return instID;
-}
-
-u8 vsAllocateBuffer() {
-  u8 i;
-
-  for (i = 0; i < vs.numBuffers; ++i) {
-    if (vs.streamBuffer[i].state != 0) {
-      continue;
-    }
-    vs.streamBuffer[i].state = 1;
-    vs.streamBuffer[i].last = 0;
-    return i;
-  }
-
-  return 0xFF;
-}
-
-void vsFreeBuffer(u8 bufferIndex) {
+static inline void vsFreeBuffer(u8 bufferIndex) {
   vs.streamBuffer[bufferIndex].state = 0;
   vs.voices[vs.streamBuffer[bufferIndex].voice] = 0xFF;
 }
 
 u32 vsSampleStartNotify(u32 voice) {
-  u8 sb;    // r29
-  u8 i;     // r28
-  u32 addr; // r27
+  u8 i;
+  u8 sb;
+  u16 instID;
+  u32 addr;
 
   for (i = 0; i < vs.numBuffers; ++i) {
-    if (vs.streamBuffer[i].state != 0 && vs.streamBuffer[i].voice == voice) {
+    if (vs.streamBuffer[i].state != 0 && vs.streamBuffer[i].voice == (u8)voice) {
       vsFreeBuffer(i);
     }
   }
 
-  sb = vs.voices[voice] = vsAllocateBuffer();
+  sb = 0xFF;
+  for (i = 0; i < vs.numBuffers; ++i) {
+    if (vs.streamBuffer[i].state == 0) {
+      vs.streamBuffer[i].state = 1;
+      vs.streamBuffer[i].last = 0;
+      sb = i;
+      break;
+    }
+  }
+
+  vs.voices[(u8)voice] = sb;
   if (sb != 0xFF) {
-    addr = aramGetStreamBufferAddress(vs.voices[voice], 0);
+    addr = aramGetStreamBufferAddress(vs.voices[(u8)voice], 0);
     hwSetVirtualSampleLoopBuffer(voice, (void*)addr, vs.bufferLength);
     vs.streamBuffer[sb].info.smpID = hwGetSampleID(voice);
-    vs.streamBuffer[sb].info.instID = vsNewInstanceID();
+    do {
+      instID = vs.nextInstID++;
+      for (i = 0; i < vs.numBuffers; ++i) {
+        if (vs.streamBuffer[i].state != 0 && vs.streamBuffer[i].info.instID == instID) {
+          break;
+        }
+      }
+    } while (i != vs.numBuffers);
+    vs.streamBuffer[sb].info.instID = instID;
+    vs.streamBuffer[sb].info.data.start.publicID = vidGetPublicId(voice);
+    if (vs.streamBuffer[sb].info.data.start.publicID != 0xFFFFFFFF) {
+      vs.streamBuffer[sb].info.data.start.seqInstances =
+          seqGetInstancesForVoice(vs.streamBuffer[sb].info.data.start.publicID);
+    } else {
+      vs.streamBuffer[sb].info.data.start.seqInstances = -1;
+    }
+    vs.streamBuffer[sb].info.data.start.extraData = hwGetSampleExtraData(voice);
     vs.streamBuffer[sb].smpType = hwGetSampleType(voice);
-    vs.streamBuffer[sb].voice = voice;
-    if (vs.callback != NULL) {
-      vs.callback(0, &vs.streamBuffer[sb].info);
-
-      return (vs.streamBuffer[sb].info.instID << 8) | voice;
+    vs.streamBuffer[sb].voice = (u8)voice;
+    if (vs.callback != NULL && vs.callback(0, &vs.streamBuffer[sb].info) == 0) {
+      return (vs.streamBuffer[sb].info.instID << 8) | (u8)voice;
     }
     hwSetVirtualSampleLoopBuffer(voice, 0, 0);
+    vsFreeBuffer(sb);
   } else {
     hwSetVirtualSampleLoopBuffer(voice, 0, 0);
   }
@@ -101,8 +94,8 @@ void vsSampleEndNotify(unsigned long pubID) {
 }
 
 void vsUpdateBuffer(struct VS_BUFFER* sb, unsigned long cpos) {
-  u32 len; // r29
-  u32 off; // r27
+  u32 len;
+  u32 off;
 
   if (sb->last == cpos) {
     return;
@@ -111,6 +104,16 @@ void vsUpdateBuffer(struct VS_BUFFER* sb, unsigned long cpos) {
     switch (sb->smpType) {
     case 5:
       sb->info.data.update.off1 = (sb->last / 14) * 8;
+      sb->info.data.update.len1 = cpos - sb->last;
+      sb->info.data.update.off2 = 0;
+      sb->info.data.update.len2 = 0;
+      if ((len = vs.callback(1, &sb->info)) != 0) {
+        off = sb->last + len;
+        sb->last = off % vs.bufferLength;
+      }
+      break;
+    case 6:
+      sb->info.data.update.off1 = sb->last * 2;
       sb->info.data.update.len1 = cpos - sb->last;
       sb->info.data.update.off2 = 0;
       sb->info.data.update.len2 = 0;
@@ -134,6 +137,16 @@ void vsUpdateBuffer(struct VS_BUFFER* sb, unsigned long cpos) {
         sb->last = off % vs.bufferLength;
       }
       break;
+    case 6:
+      sb->info.data.update.off1 = sb->last * 2;
+      sb->info.data.update.len1 = vs.bufferLength - sb->last;
+      sb->info.data.update.off2 = 0;
+      sb->info.data.update.len2 = 0;
+      if ((len = vs.callback(1, &sb->info)) != 0) {
+        off = sb->last + len;
+        sb->last = off % vs.bufferLength;
+      }
+      break;
     default:
       break;
     }
@@ -149,6 +162,16 @@ void vsUpdateBuffer(struct VS_BUFFER* sb, unsigned long cpos) {
         sb->last = off % vs.bufferLength;
       }
       break;
+    case 6:
+      sb->info.data.update.off1 = sb->last * 2;
+      sb->info.data.update.len1 = vs.bufferLength - sb->last;
+      sb->info.data.update.off2 = 0;
+      sb->info.data.update.len2 = cpos;
+      if ((len = vs.callback(1, &sb->info)) != 0) {
+        off = sb->last + len;
+        sb->last = off % vs.bufferLength;
+      }
+      break;
     default:
       break;
     }
@@ -156,11 +179,11 @@ void vsUpdateBuffer(struct VS_BUFFER* sb, unsigned long cpos) {
 }
 
 void vsSampleUpdates() {
-  u32 i;           // r29
-  u32 cpos;        // r27
-  u32 realCPos;    // r28
-  VS_BUFFER* sb;   // r31
-  u32 nextSamples; // r26
+  u32 i;
+  u32 cpos;
+  u32 realCPos;
+  VS_BUFFER* sb;
+  u32 nextSamples;
 
   if (vs.callback == NULL) {
     return;
@@ -218,8 +241,8 @@ void vsSampleUpdates() {
 
 unsigned long sndVirtualSampleAllocateBuffers(unsigned char numInstances,
                                               unsigned long numSamples) {
-  long i;            // r31
-  unsigned long len; // r28
+  long i;
+  unsigned long len;
 
   hwDisableIrq();
   vs.numBuffers = numInstances;
@@ -249,7 +272,7 @@ unsigned long sndVirtualSampleAllocateBuffers(unsigned char numInstances,
 }
 
 s32 sndVirtualSampleFreeBuffers() {
-  u8 i; // r31
+  u8 i;
 
   for (i = 0; i < vs.numBuffers; ++i) {
     aramFreeStreamBuffer(vs.streamBuffer[i].hwId);
@@ -310,9 +333,9 @@ void sndVirtualSampleARAMUpdate(unsigned short instID, void* base, unsigned long
 }
 
 void sndVirtualSampleEndPlayback(unsigned short instID) {
-  u8 i;              // r30
-  VS_BUFFER* stream; // r31
-  u32 cpos;          // r28
+  u8 i;
+  VS_BUFFER* stream;
+  u32 cpos;
 
   hwDisableIrq();
 
