@@ -2309,9 +2309,9 @@ int runnerAI_2(int runnerIdx) {
 
 // .text:0x000842E4 size:0x3E4 mapped:0x806C3378
 int runnerAILiveBall(int runnerIdx) {
-    u8 nextBase;
+    int nextBase;
     InMemRunnerType* runner = &g_Runners[runnerIdx];
-    u8 currBase;
+    int currBase;
     int throwFrames;
     int thrownTo;
     u8 direction;
@@ -2402,9 +2402,7 @@ int runnerAILiveBall(int runnerIdx) {
                 g_Fielders[g_FieldingLogic.cutoffFielderIndex].IntendedLocation.x,
                 g_Fielders[g_FieldingLogic.cutoffFielderIndex].IntendedLocation.z, base_MoundCoordinates[currBase].x,
                 base_MoundCoordinates[currBase].z);
-            threshold = throwFrames + cutoffFrames;
-            threshold += 20;
-            return -2 + (runner->framesToPreviousBase < threshold);
+            return -2 + (runner->framesToPreviousBase < throwFrames + 20 + cutoffFrames);
         }
         return -1;
     }
