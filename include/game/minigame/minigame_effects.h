@@ -239,8 +239,7 @@ typedef struct _MGFxHead {
     /*0x000*/ f32 trailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
     /*0x0F8*/ MGFxHeader headerA;
-    /*0x13C*/ s16 effectIds[4][2];
-} MGFxHead; // size: 0x14C
+} MGFxHead; // size: 0x13C
 
 /* Object at minigameFxTail: the last slot, the slot pointer table and the offset/colour tables. */
 typedef struct _MGFxTail {

@@ -167,7 +167,7 @@ BOOL decideScoutFlagMission(void) {
                 }
             }
         }
-    } else if (!(logic->teamBatting == g_d_GameSettings.humanTeamNumber)) {
+    } else if ((logic->teamBatting == g_d_GameSettings.humanTeamNumber) ^ 1) {
         if (g_RunningLogic._10 >= 3 && g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] == 0) {
             if (shouldScoutMissionBeEnabled(SCOUT_MISSION_HOLD_SCORELESS_INNING)) {
                 scout->scoutMissionID = SCOUT_MISSION_HOLD_SCORELESS_INNING;
@@ -1022,7 +1022,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
     int i;
     int k;
     int f;
-    int outsBefore;
+    int outsNeeded;
     int outs;
 
     if (scout->humanTeam == g_GameLogic.teamFielding) {
@@ -1070,7 +1070,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
             }
         }
 
-        outsBefore = g_BallsStrikesOuts.storedOuts;
+        outsNeeded = g_BallsStrikesOuts.storedOuts + 2;
         outs = g_BallsStrikesOuts.outs;
         for (f = 0; f < PLAYERS_PER_TEAM; f++) {
             CharStaticIndex* fc = &characterStaticIndexes[g_Fielders[f].CharID];
@@ -1080,7 +1080,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                 StarMissionRequirement* mreq = &req[i];
 
                 if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && mreq->type == STAR_MISSION_TYPE_DOUBLE_PLAY_WITH &&
-                    outsBefore + 2 <= outs) {
+                    outsNeeded <= outs) {
                     int flags = 0;
                     int m;
                     for (m = 0; m < 5; m++) {
@@ -1513,41 +1513,62 @@ void starMissionsQuantityBased(E(int, STAR_MISSION_EVENT) missionType, int roste
 #undef QUANTITY_SIMPLE
 }
 
+static inline void checkBeatTargetCharacter(StarMissionRequirement* req, s8* status, int slot) {
+    int matches = 0;
+    int ahead = 0;
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        if (g_Minigame.playerSlots.characterIndex[i] >= 0 && i != slot) {
+            if (characterStaticIndexes[g_Minigame.playerSlots.charID[i]].requirementRow == req->target) {
+                matches++;
+                if (g_Minigame.playerSlots.rank[slot] < g_Minigame.playerSlots.rank[i]) {
+                    ahead++;
+                }
+            }
+        }
+    }
+    if (matches != 0 && ahead == matches && g_Minigame.playerSlots.rank[slot] == 1) {
+        *status = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
+    }
+}
+
 // .text:0x00161078 size:0x510
 void starMissionsMinigamesTotalPoints(void) {
-    u8 slot = g_d_GameSettings._35;
+    int slot = g_d_GameSettings._35;
     u8 charID = g_Minigame.playerSlots.charID[slot];
     u8 trackerIdx = characterStaticIndexes[charID].trackerIdx;
     u8 requirementRow = characterStaticIndexes[charID].requirementRow;
+    u8 mode = g_Minigame.GameMode_MiniGame;
     StarMissionRequirement* req = starMissionRequirementsTable[requirementRow];
     ChallengeTrackingStruct* ct = &g_Challenge.characters[trackerIdx];
-    u8 mode = g_Minigame.GameMode_MiniGame;
     u8 difficulty = g_d_GameSettings.challengeDifficulty;
     int i;
     int j;
     int k;
 
     for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
+        StarMissionRequirement* r = &req[j];
         s8 status = ct->inGameMissionTracker[j].starMissionStatus;
 
         if (status == STAR_MISSION_TRACKING_COMPLETED_SAVED) {
             continue;
         }
         if (status == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
-            if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
+            if (r->flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
                 if (difficulty < 1) {
                     ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
-            } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
+            } else if (r->flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
                 if (difficulty < 2) {
                     ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
-            } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
+            } else if (r->flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
                 if (difficulty < 3) {
                     ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
             }
-            if (req[j].flags & STAR_MISSION_FLAG_REQUIRES_WIN) {
+            if (r->flags & STAR_MISSION_FLAG_REQUIRES_WIN) {
                 if (g_Minigame.playerSlots.rank[slot] != 1) {
                     ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                 }
@@ -1555,20 +1576,20 @@ void starMissionsMinigamesTotalPoints(void) {
             continue;
         }
 
-        if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
+        if (r->flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
             if (difficulty < 1) {
                 continue;
             }
-        } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
+        } else if (r->flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
             if (difficulty < 2) {
                 continue;
             }
-        } else if (req[j].flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
+        } else if (r->flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
             if (difficulty < 3) {
                 continue;
             }
         }
-        if ((req[j].flags & STAR_MISSION_FLAG_REQUIRES_WIN) && g_Minigame.playerSlots.rank[slot] != 1) {
+        if ((r->flags & STAR_MISSION_FLAG_REQUIRES_WIN) && g_Minigame.playerSlots.rank[slot] != 1) {
             continue;
         }
         {
@@ -1576,7 +1597,7 @@ void starMissionsMinigamesTotalPoints(void) {
             BOOL modeMatches = FALSE;
 
             for (k = 0; k < 7; k++) {
-                if (req[j].flags & STAR_MISSION_FLAG_MINI_GAME(k)) {
+                if (r->flags & STAR_MISSION_FLAG_MINI_GAME(k)) {
                     anyModeFlag = TRUE;
                     if (mode == k) {
                         modeMatches = TRUE;
@@ -1588,14 +1609,14 @@ void starMissionsMinigamesTotalPoints(void) {
             }
         }
 
-        switch (req[j].type) {
+        switch (r->type) {
         case STAR_MISSION_TYPE_MINIGAME_RANK:
-            if (g_Minigame.playerSlots.rank[slot] <= req[j].target) {
+            if (g_Minigame.playerSlots.rank[slot] <= r->target) {
                 ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
             }
             break;
         case STAR_MISSION_TYPE_MINIGAME_POINTS: {
-            int target = req[j].target;
+            int target = r->target;
 
             if (mode == MINI_GAME_ID_BOBOMB_DERBY || mode == MINI_GAME_ID_BARREL_BATTER) {
                 target *= 100;
@@ -1607,27 +1628,11 @@ void starMissionsMinigamesTotalPoints(void) {
             }
             break;
         }
-        case STAR_MISSION_TYPE_MINIGAME_BEAT_CHARACTER: {
-            int matches = 0;
-            int ahead = 0;
-
-            for (i = 0; i < 4; i++) {
-                if (g_Minigame.playerSlots.characterIndex[i] >= 0 && i != slot) {
-                    if (characterStaticIndexes[g_Minigame.playerSlots.charID[i]].requirementRow == req[j].target) {
-                        matches++;
-                        if (g_Minigame.playerSlots.rank[slot] < g_Minigame.playerSlots.rank[i]) {
-                            ahead++;
-                        }
-                    }
-                }
-            }
-            if (matches != 0 && ahead == matches && g_Minigame.playerSlots.rank[slot] == 1) {
-                ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
-            }
+        case STAR_MISSION_TYPE_MINIGAME_BEAT_CHARACTER:
+            checkBeatTargetCharacter(r, &ct->inGameMissionTracker[j].starMissionStatus, slot);
             break;
-        }
         case STAR_MISSION_TYPE_UNK_54:
-            if (mode == MINI_GAME_ID_PIRANHA_PANIC && g_Minigame._1CB1[slot] <= req[j].target) {
+            if (mode == MINI_GAME_ID_PIRANHA_PANIC && g_Minigame._1CB1[slot] <= r->target) {
                 ct->inGameMissionTracker[j].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY;
             }
             break;

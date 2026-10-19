@@ -1618,6 +1618,7 @@ typedef struct HudDigitScene {
 #define TARGET(scene, t) ((scene)->counts[2 + (t)])
 
 #define REC(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
+#define REC_PREV(scene, i) ((UIRecord*)(&graphicsRelatedArray[(scene)->firstHandle + (i)])[-1].object)
 #define REC_AT(scene, i, off) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (off)].object)
 
 static inline BOOL hudRecordFinished(UIRecord* rec) {
@@ -1890,7 +1891,7 @@ void drawDiamondMiniMap_init(void) {
 
 // .text:0x000959BC size:0xCE0 mapped:0x806D4A50
 static inline void setMiniMapAlpha(MiniMapScene* scene, int alpha) {
-    int i;
+    s32 i;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         for (i = 1; i < 6; i++) {
@@ -2021,12 +2022,14 @@ void drawDiamondMiniMap_ongoing(void) {
                     f32 mapX = lbl_3_data_C1CC[2] * runner->position.x;
                     f32 mapY = lbl_3_data_C1CC[3] * -runner->position.z;
 
-                    REC(scene, idx)->pos.x = mapX + lbl_3_data_C1CC[0];
-                    REC(scene, idx)->pos.y = mapY + lbl_3_data_C1CC[1];
+                    mapX += lbl_3_data_C1CC[0];
+                    mapY += lbl_3_data_C1CC[1];
+                    REC(scene, idx)->pos.x = mapX;
+                    REC(scene, idx)->pos.y = mapY;
                 }
                 base = runner->currentBase;
                 if (base >= 1 && base <= 3) {
-                    REC_AT(scene, 8, base)->flags |= UI_FLAG_VISIBLE;
+                    REC_PREV(scene, base + 9)->flags |= UI_FLAG_VISIBLE;
                 }
             }
         }
@@ -2294,7 +2297,6 @@ void scoutMissionBanner_update(void) {
 // .text:0x00094BC4 size:0x2A4 mapped:0x806D3C58
 void scoutMissionProgress_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
-    ScoutEntry* entry;
     int i;
     int k;
     int shown;
@@ -2308,24 +2310,23 @@ void scoutMissionProgress_init(void) {
     }
     addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionProgressDescriptors);
     shown = 0;
-    entry = scoutState.entries;
-    for (i = 0; i < 9; i++, entry++) {
-        if (entry->active != 0) {
+    for (i = 0; i < 9; i++) {
+        if (scoutState.entries[i].active != 0) {
             int base = scoutMissionProgressRowBases[shown];
 
-            REC(scene, base)->frame = entry->trackerIdx << 16;
+            REC(scene, base)->frame = scoutState.entries[i].trackerIdx << 16;
             for (k = 0; k < 5; k++) {
-                int slot = base + (k + 1);
+                int slot = base + k + 1;
 
-                if (k >= entry->max) {
+                if (k >= scoutState.entries[i].max) {
                     REC(scene, slot)->flags &= ~UI_FLAG_VISIBLE;
                 } else {
                     REC(scene, slot)->flags |= UI_FLAG_VISIBLE;
                     REC(scene, slot)->playMode = UI_PLAY_STOP;
                     REC(scene, slot)->frame = 0;
-                    if (k < (s8)entry->achieved) {
+                    if (k < (s8)scoutState.entries[i].achieved) {
                         REC(scene, slot)->frame = 1 << 16;
-                    } else if (k < (s8)entry->achieved + entry->amount) {
+                    } else if (k < scoutState.entries[i].amount + (s8)scoutState.entries[i].achieved) {
                         if (scene->unk1C == 2) {
                             REC(scene, slot)->frame = 40 << 16;
                         } else {
@@ -2759,20 +2760,20 @@ void scoreTicker_update(HudDigitScene* scene) {
 static inline void showInningColumn(HudScene* scene, int col, int inning) {
     int runs;
 
-    REC(scene, col - 1 + 6)->flags |= UI_FLAG_VISIBLE;
+    REC_PREV(scene, col + 6)->flags |= UI_FLAG_VISIBLE;
     runs = g_Scores.scores[0].byInning[inning - 1];
     if (runs >= 99) {
         runs = 99;
     }
     if (runs < 10) {
-        REC(scene, col - 1 + 6)->elementIndex = lbl_3_data_F1FC[0];
+        REC_PREV(scene, col + 6)->elementIndex = lbl_3_data_F1FC[0];
         load_Icon(scene, col + 5, 1, 0xC4, runs);
     } else {
         load_Icon(scene, col + 5, 2, 0xC4, runs % 10);
         load_Icon(scene, col + 5, 1, 0xC4, runs / 10);
     }
     if (inning < animRelated[0xCF] || (inning == animRelated[0xCF] && animRelated[0xD0] != 0)) {
-        REC(scene, col - 1 + 0x11)->flags |= UI_FLAG_VISIBLE;
+        REC_PREV(scene, col + 0x11)->flags |= UI_FLAG_VISIBLE;
         runs = g_Scores.scores[1].byInning[inning - 1];
         if (runs >= 99) {
             runs = 99;
@@ -2782,7 +2783,7 @@ static inline void showInningColumn(HudScene* scene, int col, int inning) {
                 load_Icon(scene, col + 0x10, 2, 0xC4, 0xB);
                 load_Icon(scene, col + 0x10, 1, 0xC4, runs);
             } else {
-                REC(scene, col - 1 + 0x11)->elementIndex = lbl_3_data_F1FC[0];
+                REC_PREV(scene, col + 0x11)->elementIndex = lbl_3_data_F1FC[0];
                 load_Icon(scene, col + 0x10, 1, 0xC4, runs);
             }
         } else {
@@ -2790,8 +2791,8 @@ static inline void showInningColumn(HudScene* scene, int col, int inning) {
             load_Icon(scene, col + 0x10, 1, 0xC4, runs / 10);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-        REC(scene, col - 1 + 0x11)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, col - 1 + 0x11)->elementIndex = lbl_3_data_F1FC[0];
+        REC_PREV(scene, col + 0x11)->flags |= UI_FLAG_VISIBLE;
+        REC_PREV(scene, col + 0x11)->elementIndex = lbl_3_data_F1FC[0];
         load_Icon(scene, col + 0x10, 1, 0xC4, 10);
     }
 }

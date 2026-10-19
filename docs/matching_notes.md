@@ -3667,3 +3667,90 @@ Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 ->
   `x = cond ? TRUE : FALSE` tested later gives `neg; srwi.` (`cond ? FALSE : TRUE` gives `cntlzw; srwi.`);
   and with `-inline deferred` the pooled `.rodata` follows reverse source order, so write the functions in
   descending address order before judging `.rodata`.
+
+## Logic pass findings (53 structural functions)
+
+Chunk 1 (ball_fielder_collision, collision_primitives, play_result_tracking, runner, charge_effects,
+camera, camera_script; 2026-10).
+
+- **A cast at the use site picks indexed addressing; a typed pointer picks add + displacement.**
+  `((T*)voidPtr)->arr[i]` and `((T*)bytePtr)->arr[i]` compile to `slwi; addi rT, rI, off; lwzx/stwx`,
+  while the same access through a pointer whose *declared* type is `T*` (a struct field or a parameter)
+  compiles to `slwi; add rT, base, rI; lwz off(rT)`. When the target shows the add form, type the
+  pointer at its declaration instead of casting it. In camera_script this meant
+  `unkStructPtr._0000` as `struct CamScript*` (it had been a two-field stub cast by a `CTX` macro)
+  and `fn_3_1054D0(CamScriptHdr* script, ...)`: 92.4% -> 99.8%, and it took `camera_replay` to 100%
+  as a side effect. It is the converse of the "raw byte-offset indexing" entry above.
+- **Two arrays at the same stack offset means a union (or deliberate buffer reuse).** In `fn_3_19FA4`
+  the target writes the angle samples to the slot the spline control points occupied, through the
+  callee-saved register that held `&points`. Because the stores go through that pointer, the bound is
+  re-read every iteration and the loop is not unrolled. Separate arrays (even in disjoint block scopes)
+  got their own slots and an unrolled loop; `union { Vec points[5]; f32 anglePoints[4]; }` reproduced
+  both (74% -> 96%). Check the target's frame size and array offsets before chasing loop shapes.
+- **Interpolation order is behaviour, not shape.** `a + (t / n) * (b - a)` and `t * (b - a) / n + a`
+  round differently. The target's instruction order (`fmuls`, then `fdivs`, then `fadds x, a`) shows
+  which one was written, so read it off the asm. The operand order of the final `fadds` also follows
+  the written order (`x + a` vs `a + x`).
+- **Fused vs unfused float updates.** `p.x += (c - p.x) * k;` fuses to `fmadds`. Where the target
+  has `fmuls` + `fadds`, and computes both deltas before either store, write the deltas into locals
+  first (`dx = ...; dz = ...; p.x += dx; p.z += dz;`). The rounding differs, so this is a correctness
+  fix as well as a match fix (gameplay_Camera).
+- **A shared view-update inline can hide a per-branch difference.** `fn_3_19FA4`'s draft folded the
+  `_0010` frame counter increment into an inline called by two branches; the target only advances it
+  on the spline branch. When an inline is used by several callers, check that every statement in it
+  appears at every call site in the target.
+- **`lbzu` + a reload in a saturating `if (x < 0xFE) x++; else x = 0xFF;` means the field was
+  written out directly, not through a `u8* stat` pointer local** (postPlayTrackStats 90.4% -> 95.5%).
+  The same function's reload-after-store history shift was an unrolled `for (i = 4; i > 0; i--)`.
+- **A `u8` field converted through `xoris 0x8000` was written `(int)field`**: it uses the signed
+  bias constant and shares it with a neighbouring int conversion. Our implicit promotion took the
+  unsigned path and added a second pool constant (fn_3_16C548, .rodata 95% -> 100%).
+- **`cmplwi` on a loop countdown or flag means `u32`, not `int`/`BOOL`** (checkStatiumHazardCollisions).
+- **`ble` straight to the exit, where ours has `cror; beq`, is `!(x > t)`**, which also sends NaN down
+  the return path as the target does (processBallFielderCollision).
+- **Unsolved: a branchy select evaluated after all the other call arguments.** applyChargeAnimationEffect's
+  target computes every argument, then `li 0x18; beq; li 0x17` right before the `bl`. Every ternary
+  is branchless, and the if/local/inline forms are branchy but evaluated first (6 forms logged in its
+  checkpoint).
+
+Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transitions; 2026-10).
+
+- **`addi rI, rI, N; slwi; add; lwz -8(rX)` is "the record before `first + i + N`".** The target
+  never folds the `- 1` into the index. `REC(scene, col - 1 + 6)` folds to `+5` with `lwzx`.
+  `(&graphicsRelatedArray[first + col + 6])[-1].object` (a `REC_PREV` macro in hud_scoreboard)
+  reproduces the add-then-negative-displacement form. That fixed every inning-column record in
+  manageScoreboardGraphic (96.5% -> 99.2%, size exact) and the base markers in
+  drawDiamondMiniMap_ongoing. Scratch tests of the same expressions fold differently, so measure
+  this in the real unit.
+- **A condition MWCC should fold but the target computes as a value is `(a == b) ^ 1`.** In
+  decideScoutFlagMission an always-true `else if (!(a == b))` is folded away by every logical form
+  (`!`, `== FALSE`, `!= FALSE`, an inline returning `a != b`). Only the explicit xor kept the target's
+  `subf; cntlzw; srwi; xori; cmpwi` (98.3% -> 99.4%).
+- **Separate induction registers per field mean the source indexed `array[i].field`.** In
+  scoutMissionProgress_init the target keeps `&entries[i].max`, `.achieved` and `.amount` in their
+  own registers and saves four GPRs. A walking `entry++` pointer collapsed them into one base
+  (88.3% -> 99.8% with direct `scoutState.entries[i]` indexing). Also, `base + k + 1` and
+  `base + (k + 1)` associate differently.
+- **A field reloaded at a fixed displacement inside an unrolled inner loop means a per-iteration
+  pointer.** In starMissionsMinigamesTotalPoints, `StarMissionRequirement* r = &req[j];` gave the
+  target's `lha 4(r3)` in every unrolled `k` iteration; `req[j].flags` was strength-reduced to a
+  separate pointer instead (90.9% -> 98.2%, together with an inlined beat-character helper detected
+  from the `li; mr; mr` zero pair).
+- **A loop-invariant sum the target computes before the loop was written as its own variable**
+  (`outsNeeded = storedOuts + 2`; MWCC did not hoist `outsBefore + 2` out of the fielder loop).
+- **Inline-or-pasted is a per-site choice, but a sweep can mislead.** fn_3_FDB30's four captain
+  lookups all show the inline `li; mr` zero pair. Making them inlines removes the last structural
+  difference, yet scores 99.71 against 99.74 for the pasted loops, purely on register colouring.
+  The shape-correct version was kept.
+- `s32 i` restored the fixed-trip guard (`li 1; cmpwi 14; bge`) again, in an inline helper
+  (setMiniMapAlpha).
+- **Not solved: a `(table + 9)` base hoisted for `table[id].field[k]` reads, plus an `extsb` before a
+  byte store** (scoutFlag_checkMissionSuccess, 4 forms logged). The target routes the s8 value through
+  an int, and an `int` local reproduces the `extsb` at one of the two sites.
+
+- **Pooled static data, third data point (`piranhaPanic_emitFielderHitFire`, 73% -> 100%).** The target
+  reached three tables as `addi rX, base, 0x254/0x23C/0x13C` off one `minigameFxData` base. Two
+  alternatives were measured and both lose: direct access to separate *global* objects (75.7%; MWCC
+  emits a separate `lis/addi` per global, it does not pool them) and one merged global struct (73.4%;
+  member offsets fold into the load displacement). Only splitting the block into file-`static` objects
+  at the boundaries the target's addressing shows (symbols `scope:local`) reproduces it.

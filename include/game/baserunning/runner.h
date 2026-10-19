@@ -44,7 +44,7 @@ int runnerAISubfunction3(int runnerIdx, int arg1);
 void fn_3_85744(int runnerIdx);
 int runnerAISubfunction2(int runnerIdx, int arg1, int* arg2);
 int fn_3_85A70(int runnerIdx);
-void runnerAI_requestRunningDirection(int runnerIdx, int actionCode);
+void runnerAI_requestRunningDirection(int runnerIdx, long actionCode);
 void running_AIStartSteals(void);
 void runnerAISetRunningDirection(int runnerIdx, int actionCode);
 int fn_3_8604C(int* outFielder);
