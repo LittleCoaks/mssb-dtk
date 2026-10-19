@@ -3747,3 +3747,10 @@ Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transiti
 - **Not solved: a `(table + 9)` base hoisted for `table[id].field[k]` reads, plus an `extsb` before a
   byte store** (scoutFlag_checkMissionSuccess, 4 forms logged). The target routes the s8 value through
   an int, and an `int` local reproduces the `extsb` at one of the two sites.
+
+- **Pooled static data, third data point (`piranhaPanic_emitFielderHitFire`, 73% -> 100%).** The target
+  reached three tables as `addi rX, base, 0x254/0x23C/0x13C` off one `minigameFxData` base. Two
+  alternatives were measured and both lose: direct access to separate *global* objects (75.7%; MWCC
+  emits a separate `lis/addi` per global, it does not pool them) and one merged global struct (73.4%;
+  member offsets fold into the load displacement). Only splitting the block into file-`static` objects
+  at the boundaries the target's addressing shows (symbols `scope:local`) reproduces it.

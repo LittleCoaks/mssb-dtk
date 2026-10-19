@@ -63,7 +63,10 @@ extern void fn_800B1468(Vec* quad, int arg, void* texture);
 
 
 
-MGFxHead minigameFxData = {
+/* The effect tuning block (.data 0x266A8..0x26B9C) is several file-static objects: the code
+ * reaches them off one pooled base (minigameFxData) plus addi offsets, which only MWCC's static
+ * data pooling produces. */
+static MGFxHead minigameFxData = {
     { 0.45f, -0.4f },
     {
         { 0, 21, { 2, 240000, 0, 0, 4, 2, 120000, 90000, 0, 155, 500000, 1000000, -500000, 500000, -256, 0, -28000, 1 } },
@@ -71,21 +74,25 @@ MGFxHead minigameFxData = {
         { 0, 18, { 0, 90000, 120000, 10000, 20, 10, 103000, 105999, 0, 60, 10000000, 18000000, 1000000, -1000000, 1010580480, 0, 0, 0 } },
     },
     { 0, { 20, 8, 0, 250000, 50000, 550000, 0, 0, 12, 13, 14, 15, 16, 17, 18, 19 } },
-    { { 11, 10 }, { 15, 14 }, { 17, 16 }, { 13, 12 } },
 };
 
-MGFxSlot minigameFxSlotB0 = { 0, 10, { 3, 100000, 30000, 10000, 12, 8, 110000, 50000, 0, 60, 4500000, 20000000, 0, 2000000, -256, 0, 75000, 0 } };
+static s16 minigameFxEffectIds[4][2] = { { 11, 10 }, { 15, 14 }, { 17, 16 }, { 13, 12 } };
 
-MGFxSlot minigameFxSlotB1 = { 0, 10, { 5, 18000, 20000, 60000, 12, 6, 109000, 101000, 0, 60, 4500000, 9400000, -1000000, 4500000, -256, 0, 75000, 0 } };
+static MGFxSlot minigameFxSlotB0 = { 0, 10, { 3, 100000, 30000, 10000, 12, 8, 110000, 50000, 0, 60, 4500000, 20000000, 0, 2000000, -256, 0, 75000, 0 } };
 
-MGFxTail minigameFxTail = {
-    { 0, 18, { 1, 60000, 10000, 50000, 30, 8, 104000, 106000, 0, 90, 12800000, 10000000, 1000000, 6000000, 1010580480, 0, 75000, 0 } },
-    { &minigameFxSlotB0, &minigameFxSlotB1, &minigameFxTail.slot },
-    { 0 },
-    { { 0 } },
-    { 0xFF0000FF, 65535, 0xFFFF00FF, 0x00FF00FF },
-    { -0.4f, 6.0f },
-};
+static MGFxSlot minigameFxSlotB1 = { 0, 10, { 5, 18000, 20000, 60000, 12, 6, 109000, 101000, 0, 60, 4500000, 9400000, -1000000, 4500000, -256, 0, 75000, 0 } };
+
+static MGFxSlot minigameFxTail = { 0, 18, { 1, 60000, 10000, 50000, 30, 8, 104000, 106000, 0, 90, 12800000, 10000000, 1000000, 6000000, 1010580480, 0, 75000, 0 } };
+
+static MGFxSlot* minigameFxSlotPtrs[3] = { &minigameFxSlotB0, &minigameFxSlotB1, &minigameFxTail };
+
+static u8 minigameFxPad[0xC] = { 0 };
+
+static s32 minigameFxOffsets[54][3] = { { 0 } };
+
+static u32 minigameFxColors[4] = { 0xFF0000FF, 65535, 0xFFFF00FF, 0x00FF00FF };
+
+static f32 minigameFxTailFloats[2] = { -0.4f, 6.0f };
 
 u16 minigameQuadTexCoords[4][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 } };
 
@@ -333,16 +340,16 @@ void minigameTrail_finish(void) {
 
 // .text:0x1573AC size:0x1C4
 void piranhaPanic_emitFielderHitFire(MGFxActor* actor) {
-    MGFxData* data = (MGFxData*)&minigameFxData;
     Vec offset;
     Vec dir;
     Mtx mtx;
     Control ctrl;
     s32 effectId;
+    u32 texture;
 
-    offset.x = data->offsets[actor->offsetIndex][0] / 100000.0f;
-    offset.y = data->offsets[actor->offsetIndex][1] / 100000.0f;
-    offset.z = data->offsets[actor->offsetIndex][2] / 100000.0f;
+    offset.x = minigameFxOffsets[actor->offsetIndex][0] / 100000.0f;
+    offset.y = minigameFxOffsets[actor->offsetIndex][1] / 100000.0f;
+    offset.z = minigameFxOffsets[actor->offsetIndex][2] / 100000.0f;
     getAnimationCollisionOffset(actor->animIndex, 4, &offset);
     ctrl.type = 0;
     CTRLSetRotation(&ctrl, actor->rot.x, actor->rot.y, actor->rot.z);
@@ -351,15 +358,16 @@ void piranhaPanic_emitFielderHitFire(MGFxActor* actor) {
     dir.y = 0.0f;
     dir.z = 1.0f;
     PSMTXMultVec(mtx, &dir, &dir);
-    data->slotPtrs[2]->texture = *(u32*)&animRelated[0x6C];
-    data->slotPtrs[1]->texture = *(u32*)&animRelated[0x6C];
-    data->slotPtrs[0]->texture = *(u32*)&animRelated[0x6C];
-    effectId = data->effectIds[actor->slotIndex][1];
-    data->slotPtrs[1]->effectId = effectId;
-    data->slotPtrs[0]->effectId = effectId;
-    fn_80030D88(&offset, &dir, data->slotPtrs[0], 0x29);
-    fn_80030D88(&offset, &dir, data->slotPtrs[1], 0x29);
-    fn_80030D88(&offset, &dir, data->slotPtrs[2], 0x29);
+    texture = *(u32*)&animRelated[0x6C];
+    minigameFxSlotPtrs[2]->texture = texture;
+    minigameFxSlotPtrs[1]->texture = texture;
+    minigameFxSlotPtrs[0]->texture = texture;
+    effectId = minigameFxEffectIds[actor->slotIndex][1];
+    minigameFxSlotPtrs[1]->effectId = effectId;
+    minigameFxSlotPtrs[0]->effectId = effectId;
+    fn_80030D88(&offset, &dir, minigameFxSlotPtrs[0], 0x29);
+    fn_80030D88(&offset, &dir, minigameFxSlotPtrs[1], 0x29);
+    fn_80030D88(&offset, &dir, minigameFxSlotPtrs[2], 0x29);
 }
 
 // .text:0x15730C size:0xA0
