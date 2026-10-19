@@ -47,7 +47,7 @@ BOOL championshipScreenGraphics(void) {
 
 // .text:0x0006BA64 size:0x308
 BOOL loadRunnerActors(void) {
-    int mode;
+    E(u8, GAME_TYPE) mode;
     int next;
     int cur;
 
@@ -59,7 +59,7 @@ BOOL loadRunnerActors(void) {
 
     do {
         int runner = 3 - hugeAnimStruct[0x2D7A];
-        if (g_Runners[runner].rosterID >= 0) {
+        if ((s16)g_Runners[runner].rosterID >= 0) {
             if (fn_8001500C(g_GameLogic.teamBatting, runner + 9) == 0) {
                 return FALSE;
             }
@@ -69,25 +69,25 @@ BOOL loadRunnerActors(void) {
 
     mode = g_d_GameSettings.GameModeSelected;
 
-    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && g_GameLogic.secondaryGameMode == 0x10)) {
+    if (mode == GAME_TYPE_EXHIBITION_GAME || mode == GAME_TYPE_DEMO || mode == GAME_TYPE_CHALLENGE || (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_FIELDING)) {
         *(s16*)&animRelated[0x9E] = g_Runners[0].charID;
-    } else if (mode == 2 && g_GameLogic.secondaryGameMode == 0xF) {
+    } else if (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         *(s16*)&animRelated[0x9E] = constantList[g_Practice.rosterID];
     }
 
-    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && g_GameLogic.secondaryGameMode == 0x10)) {
+    if (mode == GAME_TYPE_EXHIBITION_GAME || mode == GAME_TYPE_DEMO || mode == GAME_TYPE_CHALLENGE || (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_FIELDING)) {
         cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         next = cur + 1;
         if (next > 9) {
             next = 1;
         }
         *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0]] + 0x24);
-    } else if (mode == 2 && g_GameLogic.secondaryGameMode == 0xF) {
+    } else if (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][cur][0]] + 0x24);
     }
 
-    if (mode == 0 || mode == 5 || mode == 4) {
+    if (mode == GAME_TYPE_EXHIBITION_GAME || mode == GAME_TYPE_CHALLENGE || mode == GAME_TYPE_DEMO) {
         cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         next = cur + 1;
         if (next > 9) {
