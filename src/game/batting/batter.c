@@ -73,15 +73,17 @@ extern struct {
 #define FRAME_COUNT_BUNT_LATE_RETREAT (FRAME_COUNT_BEGIN_RETREATING + 12)
 
 // fabricated
-inline f32 inv_lerp(f32 value, f32 low, f32 high)
+inline f32 inv_lerp(f32 low, f32 high, f32 value)
 {
-    return (value - low) / (high - low);
+    value = (value - low) / (high - low);
+    return value;
 }
 
 // fabricated
-inline f32 flipped_inv_lerp(f32 value, f32 low, f32 high)
+inline f32 flipped_inv_lerp(f32 low, f32 high, f32 value)
 {
-    return 1.0f - inv_lerp(value, low, high);
+    value -= low;
+    return 1.0f - value / (high - low);
 }
 
 // UNUSED .text:0x000108F8 size:0x188 mapped:0x8064f98c
@@ -1145,7 +1147,8 @@ void calculateContactAndHitType(void) {
     }
     g_Batter.contactQualityAbsolute = contactQualityAbsolute;
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
-        g_Batter.rightNiceThreshold[i] = arr[0][i] + (contactSize / 100.f) * (arr[1][i] - arr[0][i]);
+        f32 range = arr[1][i] - arr[0][i];
+        g_Batter.rightNiceThreshold[i] = arr[0][i] + range * (contactSize / 100.f);
     }
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
         if (g_Batter.rightNiceThreshold[i] > g_Batter.contactQualityAbsolute) {
@@ -1159,16 +1162,16 @@ void calculateContactAndHitType(void) {
             g_Batter.contactQuality = g_Batter.contactQualityAbsolute / g_Batter.rightNiceThreshold[0];
         } break;
         case HIT_CONTACT_TYPE_RIGHT_NICE: {
-            g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[0],
-                                               g_Batter.rightNiceThreshold[1]);
+            g_Batter.contactQuality = inv_lerp(g_Batter.rightNiceThreshold[0], g_Batter.rightNiceThreshold[1],
+                                               g_Batter.contactQualityAbsolute);
         } break;
         case HIT_CONTACT_TYPE_PERFECT: {
             if (g_Batter.contactQualityAbsolute < 100.0f) {
-                g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
-                                                   g_Batter.rightNiceThreshold[2]);
+                g_Batter.contactQuality = inv_lerp(g_Batter.rightNiceThreshold[1], g_Batter.rightNiceThreshold[2],
+                                                   g_Batter.contactQualityAbsolute);
             } else {
-                g_Batter.contactQuality = flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
-                                                    g_Batter.rightNiceThreshold[2]);
+                g_Batter.contactQuality = flipped_inv_lerp(g_Batter.rightNiceThreshold[1], g_Batter.rightNiceThreshold[2],
+                                                    g_Batter.contactQualityAbsolute);
             }
             if (ContactPerfectThresholds[g_Batter.hitGeneralType][0] <= g_Batter.contactQualityAbsolute &&
                 ContactPerfectThresholds[g_Batter.hitGeneralType][1] >= g_Batter.contactQualityAbsolute) {
@@ -1176,13 +1179,13 @@ void calculateContactAndHitType(void) {
             }
         } break;
         case HIT_CONTACT_TYPE_LEFT_NICE: {
-            g_Batter.contactQuality = flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[2],
-                                                g_Batter.rightNiceThreshold[3]);
+            g_Batter.contactQuality = flipped_inv_lerp(g_Batter.rightNiceThreshold[2], g_Batter.rightNiceThreshold[3],
+                                                g_Batter.contactQualityAbsolute);
         } break;
         default: { // HIT_CONTACT_TYPE_LEFT_SOUR
             // I think the inv_lerp here is correct based on the loading order for 200.0f
             g_Batter.contactQuality =
-                flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[3], 200.0f);
+                flipped_inv_lerp(g_Batter.rightNiceThreshold[3], 200.0f, g_Batter.contactQualityAbsolute);
         } break;
     }
 
