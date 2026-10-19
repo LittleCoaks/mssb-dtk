@@ -3667,3 +3667,48 @@ Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 ->
   `x = cond ? TRUE : FALSE` tested later gives `neg; srwi.` (`cond ? FALSE : TRUE` gives `cntlzw; srwi.`);
   and with `-inline deferred` the pooled `.rodata` follows reverse source order, so write the functions in
   descending address order before judging `.rodata`.
+
+## Logic pass findings (53 structural functions)
+
+Chunk 1 (ball_fielder_collision, collision_primitives, play_result_tracking, runner, charge_effects,
+camera, camera_script; 2026-10).
+
+- **A cast at the use site picks indexed addressing; a typed pointer picks add + displacement.**
+  `((T*)voidPtr)->arr[i]` and `((T*)bytePtr)->arr[i]` compile to `slwi; addi rT, rI, off; lwzx/stwx`,
+  while the same access through a pointer whose *declared* type is `T*` (a struct field or a parameter)
+  compiles to `slwi; add rT, base, rI; lwz off(rT)`. When the target shows the add form, type the
+  pointer at its declaration instead of casting it. In camera_script this meant
+  `unkStructPtr._0000` as `struct CamScript*` (it had been a two-field stub cast by a `CTX` macro)
+  and `fn_3_1054D0(CamScriptHdr* script, ...)`: 92.4% -> 99.8%, and it took `camera_replay` to 100%
+  as a side effect. It is the converse of the "raw byte-offset indexing" entry above.
+- **Two arrays at the same stack offset means a union (or deliberate buffer reuse).** In `fn_3_19FA4`
+  the target writes the angle samples to the slot the spline control points occupied, through the
+  callee-saved register that held `&points`. Because the stores go through that pointer, the bound is
+  re-read every iteration and the loop is not unrolled. Separate arrays (even in disjoint block scopes)
+  got their own slots and an unrolled loop; `union { Vec points[5]; f32 anglePoints[4]; }` reproduced
+  both (74% -> 96%). Check the target's frame size and array offsets before chasing loop shapes.
+- **Interpolation order is behaviour, not shape.** `a + (t / n) * (b - a)` and `t * (b - a) / n + a`
+  round differently. The target's instruction order (`fmuls`, then `fdivs`, then `fadds x, a`) shows
+  which one was written, so read it off the asm. The operand order of the final `fadds` also follows
+  the written order (`x + a` vs `a + x`).
+- **Fused vs unfused float updates.** `p.x += (c - p.x) * k;` fuses to `fmadds`. Where the target
+  has `fmuls` + `fadds`, and computes both deltas before either store, write the deltas into locals
+  first (`dx = ...; dz = ...; p.x += dx; p.z += dz;`). The rounding differs, so this is a correctness
+  fix as well as a match fix (gameplay_Camera).
+- **A shared view-update inline can hide a per-branch difference.** `fn_3_19FA4`'s draft folded the
+  `_0010` frame counter increment into an inline called by two branches; the target only advances it
+  on the spline branch. When an inline is used by several callers, check that every statement in it
+  appears at every call site in the target.
+- **`lbzu` + a reload in a saturating `if (x < 0xFE) x++; else x = 0xFF;` means the field was
+  written out directly, not through a `u8* stat` pointer local** (postPlayTrackStats 90.4% -> 95.5%).
+  The same function's reload-after-store history shift was an unrolled `for (i = 4; i > 0; i--)`.
+- **A `u8` field converted through `xoris 0x8000` was written `(int)field`**: it uses the signed
+  bias constant and shares it with a neighbouring int conversion. Our implicit promotion took the
+  unsigned path and added a second pool constant (fn_3_16C548, .rodata 95% -> 100%).
+- **`cmplwi` on a loop countdown or flag means `u32`, not `int`/`BOOL`** (checkStatiumHazardCollisions).
+- **`ble` straight to the exit, where ours has `cror; beq`, is `!(x > t)`**, which also sends NaN down
+  the return path as the target does (processBallFielderCollision).
+- **Unsolved: a branchy select evaluated after all the other call arguments.** applyChargeAnimationEffect's
+  target computes every argument, then `li 0x18; beq; li 0x17` right before the `bl`. Every ternary
+  is branchless, and the if/local/inline forms are branchy but evaluated first (6 forms logged in its
+  checkpoint).
