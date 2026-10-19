@@ -1312,14 +1312,17 @@ void cameraRelated(void) {
 // .text:0x00017DA0 size:0x76C mapped:0x80656E34
 void gameplay_Camera(void) {
     f32 d;
-    f32 comps[2];
+    f32 dx;
+    f32 dz;
+    f32 cz;
+    f32 cx;
     u8 status = g_GameLogic.gameStatus;
     int star;
     s16 frames;
     u8 threshold;
 
-    if (status == GAME_STATUS_AT_BAT || status == GAME_STATUS_DEFAULT ||
-        status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
+    if (!(status != GAME_STATUS_AT_BAT && status != GAME_STATUS_DEFAULT &&
+          status != GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY)) {
         g_GameLogic.sceneID = SCENE_ID_AT_BAT;
         if (g_Stats.replayInd != 0 && (g_Stats.replayReason == 0xC || g_Stats.replayReason == 1) &&
             g_Stats._003E != 0) {
@@ -1386,12 +1389,14 @@ void gameplay_Camera(void) {
             if (g_pCamera->_2840.y > 2.f) {
                 g_pCamera->_2840.y *= 0.995f;
             }
-            getComponentsFromSAng(g_Ball.Hit_HorizontalAngle, &comps[0], &comps[1]);
+            getComponentsFromSAng(g_Ball.Hit_HorizontalAngle, &cx, &cz);
             d = dolsqrtf2(SQ(g_pCamera->_2840.x) + SQ(g_pCamera->_2840.z));
-            comps[0] *= -d;
-            comps[1] *= -d;
-            g_pCamera->_2840.x += (comps[0] - g_pCamera->_2840.x) * 0.005f;
-            g_pCamera->_2840.z += (comps[1] - g_pCamera->_2840.z) * 0.005f;
+            cx *= -d;
+            cz *= -d;
+            dx = (cx - g_pCamera->_2840.x) * 0.005f;
+            dz = (cz - g_pCamera->_2840.z) * 0.005f;
+            g_pCamera->_2840.x += dx;
+            g_pCamera->_2840.z += dz;
         } else {
             camera_matchLiveBall_regular_replay();
         }
