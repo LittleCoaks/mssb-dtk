@@ -18,7 +18,7 @@
 #include "Dolphin/GX/GXPixel.h"
 #include "stl/mem.h"
 #include "Dolphin/rand.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 #define GFX_OBJ(item) \
     ((u8 *)graphicsRelatedArray[*(u16 *)(*(u8 **)((u8 *)(item) + 0x14) + 0x14)].object)

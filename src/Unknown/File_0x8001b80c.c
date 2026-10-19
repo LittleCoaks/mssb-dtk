@@ -1,5 +1,5 @@
 #include "Unknown/File_0x8001b80c.h"
-#include "Unknown/File_0x800b2c44.h"
+#include "C3/actor/act.h"
 #include "Unknown/File_0x800bdd74.h"
 
 #define NO_BONE 0xFFFF

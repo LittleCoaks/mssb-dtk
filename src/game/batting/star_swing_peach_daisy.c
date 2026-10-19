@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/batting/star_swing_peach_daisy.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_starSwingPeachDaisy
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/rand.h"
@@ -70,8 +71,8 @@ void peachDaisyStarPitch_stepPhysics(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BO
     if (pos->z <= g_Pitcher.pitchZ_whenAirResistanceStarts) {
         f32 z = vel->z - vel->z * g_Pitcher.airResistance_veloAdj;
         if (z < -0.05f) {
-            vel->x = vel->x - vel->x * g_Pitcher.airResistance_veloAdj;
-            vel->y = vel->y - vel->y * g_Pitcher.airResistance_veloAdj;
+            vel->x -= vel->x * g_Pitcher.airResistance_veloAdj;
+            vel->y -= vel->y * g_Pitcher.airResistance_veloAdj;
             vel->z = z;
         }
     }
@@ -87,9 +88,10 @@ void peachDaisyStarPitch_stepPhysics(VecXYZ* pos, VecXYZ* vel, VecXYZ* accel, BO
     pos->z += vel->z;
 
     if (applySteer) {
-        f32 amount =
-            0.00005f * LinearInterpolateToNewRange((f32)g_Pitcher.calced_curve, 1.0f, 100.0f, pc[1], pc[2]);
-        u16 held = g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]].buttonInput;
+        f32 amount = LinearInterpolateToNewRange((f32)g_Pitcher.calced_curve, 1.0f, 100.0f, pc[1], pc[2]);
+        u16 held;
+        amount = 0.00005f * amount;
+        held = g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]].buttonInput;
 
         if (held & INPUT_BUTTON_LEFT) {
             steer = -1.0f;
@@ -198,8 +200,8 @@ void peachDaisyStarEffect_setup(int side) {
                 i++;
             }
 
-            starSwingTargets[side].frameCount =
-                (int)((lo + range * (f32)rand() / RAND_EBISAWA_MAX) * (f32)(g_Ball.hangtimeOfHit - i) + (f32)i);
+            lo += range * (f32)rand() / RAND_EBISAWA_MAX;
+            starSwingTargets[side].frameCount = (int)(lo * (f32)(g_Ball.hangtimeOfHit - i) + (f32)i);
 
             memcpy(&vA, &g_Ball.AtBat_Contact_BallPos, sizeof(VecXYZ));
             memcpy(&vB, &g_Ball.physicsSubstruct.futureCoordsAndDist[starSwingTargets[side].frameCount].pos,

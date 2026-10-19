@@ -163,15 +163,16 @@ typedef enum _BUNT_STATUS {
     /* 0x7 */ BUNT_STATUS_7,
 } BUNT_STATUS;
 
-typedef enum _HIT_TRAJECTORY {
-    /* 0x0 */ HIT_TRAJECTORY_0, // no hit
-    /* 0x1 */ HIT_TRAJECTORY_1,
-    /* 0x2 */ HIT_TRAJECTORY_2, // grounder
-    /* 0x3 */ HIT_TRAJECTORY_3, // line drive
-    /* 0x4 */ HIT_TRAJECTORY_4, // fly ball?/bOD_notVeryFoul
-    /* 0x5 */ HIT_TRAJECTORY_5, // bunt
-    /* 0x6 */ HIT_TRAJECTORY_6, // fair bund? bOD bunt / bB bunt
-} HIT_TRAJECTORY;
+// g_Batter.predictedHitOutcome: set at contact from the ball's projected landing spot.
+typedef enum _PREDICTED_HIT_OUTCOME {
+    /* 0x0 */ PREDICTED_HIT_OUTCOME_NONE,
+    /* 0x1 */ PREDICTED_HIT_OUTCOME_1, // never set from C
+    /* 0x2 */ PREDICTED_HIT_OUTCOME_FAIR,
+    /* 0x3 */ PREDICTED_HIT_OUTCOME_FOUL, // also a non-qualifying hit in Bob-omb Derby / Barrel Batter
+    /* 0x4 */ PREDICTED_HIT_OUTCOME_HOME_RUN, // also a qualifying Bob-omb Derby hit
+    /* 0x5 */ PREDICTED_HIT_OUTCOME_FAIR_BUNT,
+    /* 0x6 */ PREDICTED_HIT_OUTCOME_FOUL_BUNT,
+} PREDICTED_HIT_OUTCOME;
 
 typedef enum _DID_SWING_TYPE {
     /* 0x0 */ DID_SWING_TYPE_NONE,
@@ -230,15 +231,20 @@ typedef enum _RUNNER_STATUS {
     /* 0x5 */ RUNNER_STATUS_WALK_WHILE_STEALING,
 } RUNNER_STATUS;
 
-typedef enum _TAG_UP_TYPE { TAG_UP_TYPE_NONE, TAG_UP_TYPE_IN_AIR, TAG_UP_TYPE_TAGGED } TAG_UP_TYPE;
+typedef enum _TAG_UP_TYPE {
+    /* 0x0 */ TAG_UP_TYPE_NONE,
+    /* 0x1 */ TAG_UP_TYPE_PENDING,     // fly ball in the air with < 2 outs
+    /* 0x2 */ TAG_UP_TYPE_MUST_RETURN, // caught while off base; must retouch it
+    /* 0x3 */ TAG_UP_TYPE_3,           // only ever compared against, never set
+} TAG_UP_TYPE;
 
-typedef enum _PREVENT_PASSING_TYPE {
-    /* 0x0 */PREVENT_PASSING_TYPE_NONE = 0,
-    /* 0x1 */PREVENT_PASSING_TYPE_PREVENT_FORWARD = 1,
-    /* 0x2 */PREVENT_PASSING_TYPE_PREVENT_BACKWARD = 2,
-    /* 0x4 */PREVENT_PASSING_TYPE_PREVENT_CROSSINGPLATE = 4,
-    /* 0x8 */PREVENT_PASSING_TYPE_TAG_UP = 8, // unsure
-} PREVENT_PASSING_TYPE;
+typedef enum _RUNNER_RESTRICTION {
+    /* 0x0 */RUNNER_RESTRICTION_NONE = 0,
+    /* 0x1 */RUNNER_RESTRICTION_NO_FORWARD = 1,
+    /* 0x2 */RUNNER_RESTRICTION_NO_BACKWARD = 2,
+    /* 0x4 */RUNNER_RESTRICTION_NO_CROSSING_PLATE = 4,
+    /* 0x8 */RUNNER_RESTRICTION_RESUME_TAG_UP = 8, // held while returning to tag up; send back once free
+} RUNNER_RESTRICTION;
 
 typedef enum _BALL_RESULT_TYPE {
     /*  -1 */ BALL_RESULT_TYPE_FOUL = -1,

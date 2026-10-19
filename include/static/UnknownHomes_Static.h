@@ -5,6 +5,7 @@
 #include "Dolphin/pad.h"
 #include "Dolphin/mtx.h"
 #include "game/character_stats.h"   // CharacterStats
+#include "game/challenge/challenge_items.h"
 
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
@@ -43,9 +44,7 @@ typedef struct _GameInitVariables {
     /*0x39*/ u8 bJMatchInd;
     /*0x3A*/ u8 _3A;
     /*0x3B*/ u8 someChallengeModeFlag;
-    /*0x3C*/ s8 challengeCaptainStarBought[18];
-    /*0x4E*/ u8 _4E;
-    /*0x4F*/ s8 _4F;
+    /*0x3C*/ E(s8, BOOL) challengeShopItemActive[CHALLENGE_SHOP_ITEM_COUNT];
     /*0x50*/ u8 PlayerPorts[2];
     /*0x52*/ u8 _52;
     /*0x53*/ u8 _53;
@@ -410,7 +409,7 @@ typedef struct {
     /* 0xCF99 */ E(u8, BOOL) checkStarsMenuCharViewOpen;
     /* 0xCF9A */ u8 numberOfChallengeStarsForPlayer;
     /* 0xCF9B */ u8 _CF9B;
-    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into starMissionCompletionTracker
+    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into g_Challenge
     /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
     /* 0xCF9F */ u8 _CF9F[0xCFA2 - 0xCF9F];
     /* 0xCFA2 */ u8 _CFA2[4];                      // per controller port; selects the team-management menu

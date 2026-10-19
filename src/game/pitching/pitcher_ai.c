@@ -1,4 +1,5 @@
 #include "game/pitching/pitcher_ai.h"
+#include "game/challenge/scout_state.h"
 #include "game/pitching/pitcher.h"
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
@@ -20,15 +21,6 @@ extern u8 pickOffProb[4][4];
 extern s16 lbl_3_data_1934[4];
 extern u8 invertAILevels[8];
 
-extern struct {
-    u8 _00[0x42];
-    s16 scoutCountdown;
-    u8 _44[2];
-    u8 scoutMissionID;
-    u8 _47;
-    u8 scoutFlag;
-    u8 _49[5];
-} lbl_3_common_bss_37400;
 
 // .text:0x000219A0 size:0x2C mapped:0x80660A34
 void resetPitcherPreAB(void) {
@@ -63,7 +55,7 @@ void pitcherAINewBatter(void) {
     } else {
         g_AiLogic.AIFrameToBeginPitch = RandomInt_Game_Range(lbl_3_data_1934[0], lbl_3_data_1934[1]);
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Pitcher.nPitchesThisAB == 0) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Pitcher.nPitchesThisAB == 0) {
         g_AiLogic.AIFrameToBeginPitch = lbl_3_data_1934[1] + 60;
     }
     if (g_AiLogic.pitcherAIPitchDownTheMiddleInd == 0) {
@@ -113,9 +105,9 @@ void pitcherAISelectPitch(void) {
         /* Compares the addresses of the two ScoreStruct entries, not their totals. */
         if (g_Scores.Inning >= g_Scores.inningLimit &&
             &g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam] > &g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam] &&
-            g_Strikes.outs >= 2) {
+            g_BallsStrikesOuts.outs >= 2) {
             starSituation = TRUE;
-        } else if (g_Scores.Inning >= g_Scores.maxNumberOfExtraInnings && g_Scores.halfInning != 0 && g_Strikes.outs >= 2) {
+        } else if (g_Scores.Inning >= g_Scores.maxNumberOfExtraInnings && g_Scores.halfInning != 0 && g_BallsStrikesOuts.outs >= 2) {
             starSituation = TRUE;
         } else if (g_RunningLogic._02 == 0x101 || g_RunningLogic._02 == 0x1101 || g_RunningLogic._02 == 0x1111) {
             starSituation = TRUE;
@@ -124,8 +116,8 @@ void pitcherAISelectPitch(void) {
             prob = lbl_3_data_18C4[g_GameLogic.TeamStars[g_GameLogic.teamFielding] - 1][g_AiLogic.aIDifficultyInverse0Weak];
             if (g_AiLogic.nStarPitchesThrownThisAB != 0) {
                 prob += lbl_3_data_18D8[0];
-            } else if (g_Strikes.strikes != 0) {
-                prob += g_Strikes.strikes * lbl_3_data_18D8[1];
+            } else if (g_BallsStrikesOuts.strikes != 0) {
+                prob += g_BallsStrikesOuts.strikes * lbl_3_data_18D8[1];
             }
             if (RandomInt_Game(100) < prob) {
                 g_AiLogic.aIPitchType = 2;
@@ -145,7 +137,7 @@ void pitcherAISelectPitch(void) {
             g_AiLogic.aIPitchType = 3;
             g_Pitcher.TypeOfPitch = 2;
         } else {
-            prob = perfectPitchProb[g_Strikes.strikes][g_AiLogic.aIDifficultyInverse0Weak];
+            prob = perfectPitchProb[g_BallsStrikesOuts.strikes][g_AiLogic.aIDifficultyInverse0Weak];
             if (RandomInt_Game(100) < prob) {
                 g_AiLogic.aIPerfectCharge = 1;
             }

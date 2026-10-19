@@ -7,11 +7,7 @@
 #include "game/math/game_math.h"
 #include "game/match_setup/pause_menu.h"
 
-#define BATTING_ORDER_COPY_PAIRS 10
-#define LINEUP_TEAMS 2
-#define LINEUP_PLAYERS 9
-
-extern s8 lineUpInfoStruct[LINEUP_TEAMS][LINEUP_PLAYERS][4];
+extern s8 lineUpInfoStruct[2][9][4];
 
 // .text:0x0001E328 size:0xC4 mapped:0x8065D3BC
 void initializeAIConstants(void) {
@@ -37,12 +33,14 @@ void someRosterMemoryManagement(void) {
     s32 team;
 
     resetLastPitchData();
-    for (i = 0; i < BATTING_ORDER_COPY_PAIRS; i++) {
-        pauseControl.battingOrderCopy[g_GameLogic.homeTeamBattingInd_fieldingTeam][i * 2] = g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
-        pauseControl.battingOrderCopy[g_GameLogic.homeTeamBattingInd_fieldingTeam][i * 2 + 1] = g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][1];
+    for (i = 0; i < 10; i++) {
+        pauseControl.battingOrderCopy[g_GameLogic.homeTeamBattingInd_fieldingTeam][i * 2] =
+            g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
+        pauseControl.battingOrderCopy[g_GameLogic.homeTeamBattingInd_fieldingTeam][i * 2 + 1] =
+            g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][1];
     }
-    for (team = 0; team < LINEUP_TEAMS; team++) {
-        for (i = 0; i < LINEUP_PLAYERS; i++) {
+    for (team = 0; team < 2; team++) {
+        for (i = 0; i < 9; i++) {
             pauseControl.lineupCopy[team][i] = lineUpInfoStruct[team][i][3];
         }
     }

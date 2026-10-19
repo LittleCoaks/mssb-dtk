@@ -5,7 +5,8 @@
 #include "game/animation/scene_effects.h"
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/pitching/pitcher.h"
 #include "game/character_stats.h"
 #include "game/camera/camera.h"
@@ -57,9 +58,9 @@ static void pauseMenu_applyTeamControlOptions(void) {
     for (i = 0; i < 2; i++) {
         if (g_GameLogic.teamIsCPU[i] == FALSE) {
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning != FALSE) {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
             } else {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = FALSE;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = FALSE;
             }
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding != FALSE) {
                 g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
@@ -620,7 +621,7 @@ void fn_3_AEC50(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -635,9 +636,9 @@ void fn_3_AEC50(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441C]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441E]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.opponentCaptain]);
                 }
             } else {
                 changeScene(4, 6);
@@ -835,7 +836,7 @@ void fn_3_AE334(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -850,9 +851,9 @@ void fn_3_AE334(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441C]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441E]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.opponentCaptain]);
                 }
             } else {
                 changeScene(4, 6);

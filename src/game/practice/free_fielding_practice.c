@@ -3,6 +3,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_freeFieldingPractice
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_flow.h"
 #include "game/pitching/pitcher.h"
 #include "game/baserunning/runner.h"
@@ -144,17 +145,17 @@ void freeFieldingPracticeLoadCharacters(void) {
 
 void fieldingPractice_resetMem(void) {
     g_GameLogic.teamIsCPU[0] = 0;
-    g_GameLogic._140[0] = 0;
+    g_GameLogic.pitcherAIInd[0] = 0;
     g_GameLogic.teamAIInd[0] = 0;
     g_GameLogic.autoFielding[0] = 0;
-    g_GameLogic.batterHandedness[0] = 0;
-    g_GameLogic.battingAIInd[0] = 0;
+    g_GameLogic.batterAIInd[0] = 0;
+    g_GameLogic.autoRunningInd[0] = 0;
     g_GameLogic.teamIsCPU[1] = 0;
-    g_GameLogic._140[1] = 0;
+    g_GameLogic.pitcherAIInd[1] = 0;
     g_GameLogic.teamAIInd[1] = 0;
     g_GameLogic.autoFielding[1] = 0;
-    g_GameLogic.batterHandedness[1] = 0;
-    g_GameLogic.battingAIInd[1] = 0;
+    g_GameLogic.batterAIInd[1] = 0;
+    g_GameLogic.autoRunningInd[1] = 0;
     g_Practice.aIEnabled = 0;
     g_Practice.practiceBatterHandedness = 0;
     g_Practice.freePracticeInd_writeOnly = 0;
@@ -163,7 +164,7 @@ void fieldingPractice_resetMem(void) {
         g_Practice.aIEnabled = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamFielding] = 1;
         g_Practice.freePracticeInd_writeOnly = 1;
-        g_GameLogic._140[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
+        g_GameLogic.pitcherAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
         g_Practice.rosterID = 1;
         g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
         g_GameLogic.autoFielding[g_GameLogic.awayTeamBattingInd_battingTeam] = 1;
@@ -171,8 +172,8 @@ void fieldingPractice_resetMem(void) {
         g_Practice.practiceBatterHandedness = 1;
         g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] = 1;
         g_Practice.freeFieldingInd_writeOnly = 1;
-        g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
-        g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
+        g_GameLogic.batterAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
+        g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 1;
     }
     g_Practice.frames_sincePracticeCompleted = 0;
     resetCount();
@@ -222,7 +223,7 @@ void unused_matchSimulationRelated(void) {
         break;
     }
     if (g_Practice.practiceLevel != 7 && g_Practice.practiceLevel != 6) {
-        g_Strikes.outs = 0;
+        g_BallsStrikesOuts.outs = 0;
     }
 }
 
@@ -257,8 +258,8 @@ void practiceRelated(void) {
     if (g_GameLogic.TeamStars[1] == 0) {
         g_GameLogic.TeamStars[1] = 5;
     }
-    if (g_Strikes.outs >= 3) {
-        g_Strikes.outs = 0;
+    if (g_BallsStrikesOuts.outs >= 3) {
+        g_BallsStrikesOuts.outs = 0;
     }
     g_Practice.guidedPracticeCompletionRelated = 0;
 }
@@ -269,8 +270,8 @@ void freeFieldingPracticeTransition(void) {
     g_GameLogic.writeOnly_always0 = 0;
     g_GameLogic.writeOnly_always0_2 = 0;
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
-        if (g_Strikes.outs >= 3) {
-            g_Strikes.outs = 0;
+        if (g_BallsStrikesOuts.outs >= 3) {
+            g_BallsStrikesOuts.outs = 0;
         }
     }
     SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);

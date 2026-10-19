@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "Unknown/sub.h"
+#include "game/challenge/star_mission_data.h"
 #include "Unknown/File_0x800acf14.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/UnknownHomes_Game.h"
@@ -7,22 +8,7 @@
 #include "Dolphin/mtxext.h"
 #include "string.h"
 
-typedef struct CharStaticIndex {
-    /*0x0*/ u8 _0;
-    /*0x1*/ u8 trackerIdx;
-    /*0x2*/ u8 requirementRow;
-    /*0x3*/ u8 _3[3];
-} CharStaticIndex; // size: 0x6
 
-typedef struct StarMissionRequirement {
-    /*0x0*/ s16 type;
-    /*0x2*/ s16 target;
-    /*0x4*/ s16 flags;
-    /*0x6*/ s16 _6[2];
-} StarMissionRequirement; // size: 0xA
-
-extern CharStaticIndex characterStaticIndexes[54];
-extern StarMissionRequirement starMissionRequirementsTable[32][10];
 extern u8 unlockableCharacter_noDupeNoGapCharID[8];
 
 OSThread* GXGetCurrentGXThread(void);
@@ -216,33 +202,33 @@ int fn_800247E4(int x, int y, int width, int bytesPerPixel) {
 
 BOOL challengeStarRelatedInd(int charID, int mission) {
     u8 row = characterStaticIndexes[charID].requirementRow;
-    s8 status = starMissionCompletionTracker[charID].inGameMissionTracker[mission].starMissionStatus;
+    s8 status = g_Challenge.characters[charID].inGameMissionTracker[mission].starMissionStatus;
     s16 flags;
 
-    if (status == (s8)STAR_MISSION_TRACKING_COMPLETED_SAVED) {
+    if (status == STAR_MISSION_TRACKING_COMPLETED_SAVED) {
         return TRUE;
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE &&
-        status == (s8)STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
+        status == STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY) {
         flags = starMissionRequirementsTable[row][mission].flags;
-        if (flags & 1) {
+        if (flags & STAR_MISSION_FLAG_REQUIRES_WIN) {
             return FALSE;
         }
-        if (flags & 2) {
+        if (flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_1) {
             if (g_d_GameSettings.challengeDifficulty < 1) {
                 return FALSE;
             }
-        } else if (flags & 4) {
+        } else if (flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_2) {
             if (g_d_GameSettings.challengeDifficulty < 2) {
                 return FALSE;
             }
-        } else if (flags & 8) {
+        } else if (flags & STAR_MISSION_FLAG_MIN_DIFFICULTY_3) {
             if (g_d_GameSettings.challengeDifficulty < 3) {
                 return FALSE;
             }
         }
-        if (flags & 0x800) {
-            if (((s8*)starMissionCompletionTracker)[0x44EF] == 0 && ((s8*)starMissionCompletionTracker)[0x44F0] == 0 &&
+        if (flags & STAR_MISSION_FLAG_BOWSER_UNLOCK) {
+            if (g_Challenge._44EF == 0 && g_Challenge._44F0 == 0 &&
                 Static_Stats_Tables.captainSelectedID[1] != CHAR_ID_BOWSER) {
                 return FALSE;
             }

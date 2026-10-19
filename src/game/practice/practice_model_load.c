@@ -1,0 +1,126 @@
+#define REP_HEADER_DATA_FN getRepHeaderData_practiceModelLoad
+#include "game/practice/practice_model_load.h"
+#include "header_rep_data.h"
+#include "Unknown/dvdsys.h"
+#include "Unknown/File_0x800a7568.h"
+#include "C3/actor/act.h"
+#include "C3/actor/actorAnim.h"
+#include "Unknown/File_0x80025c58.h"
+#include "Unknown/File_0x80025ddc.h"
+#include "Unknown/File_0x800bdd74.h"
+#include "Dolphin/stl.h"
+#include "game/match_setup/match_loading.h"
+
+// Practice-mode model load. The practice loading flow in match_loading.c
+// (fn_3_59C2C, installed by match_main only for GAME_TYPE_PRACTICE) polls
+// practiceModel_loadStep until it returns TRUE: it ARAM-loads one packed file
+// (actor layout, geometry, texture and an animation), and practiceModel_setup
+// unpacks it into a one-actor hugeAnimStruct model table. Which model this is
+// has not been identified; the names are inferred from the caller.
+
+typedef struct {
+    u8 _00[0x68];
+    void* actorTable;
+    u8 _6C[0x2D94 - 0x6C];
+    void* actorEntries;
+    u8 _2D98[4];
+    u32* packedFile;
+    void* files[3]; /* actor layout, geometry, texture */
+    u8 _2DAC[0x3078 - 0x2DAC];
+    u16 actorCount;
+} PracticeModelAnimView;
+
+typedef struct {
+    void* animation;
+    void* animationData;
+    u8 _08[0xC];
+    f32 speed;
+    u8 _18[6];
+    u16 active;
+    u8 _20[0xD8 - 0x20];
+    u8 loadStep;
+} PracticeModelEffect;
+
+extern PracticeModelAnimView hugeAnimStruct;
+extern PracticeModelEffect animRelated;
+extern void convertGeometryAndSknHeader(void*, void*);
+extern void convertTextureHeader(void*);
+extern void UpdateTexturePalettePointers(void*, void*);
+extern void* _OSAllocFromHeap(s32, s32);
+extern void mm_LoadModelAsset(s32, s32, s32, s32, s32);
+static const f32 lbl_3_rodata_3E50 = 0.5f;
+// ARAM file descriptors; only [1] (the packed model file) is loaded.
+static MatchFileDescriptor practiceModelFiles[2] = {
+    { 0x00000000, 0x00003C98, 0x08F21000, 0x00003C98 },
+    { 0x0000040B, 0x4000EBBC, 0x08F25000, 0x00009570 },
+};
+
+// .text:0x001665E4 size:0xCC
+int practiceModel_loadStep(void) {
+    switch (animRelated.loadStep) {
+    case 0:
+        hugeAnimStruct.packedFile = ARAMTransfer(&practiceModelFiles[1], 0, 0, 0);
+        animRelated.loadStep++;
+        break;
+    case 1:
+        if (lbl_803C6CF8.cancel.bytes[1] == TRUE) {
+            animRelated.loadStep++;
+        }
+        break;
+    case 2:
+        practiceModel_setup();
+        animRelated.loadStep++;
+        break;
+    default:
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static void setEffectAnim(PracticeModelEffect* effect, u32* packed, u32* offsets) {
+    effect->animation = (u8*)packed + offsets[0];
+    effect->animationData = (u8*)packed + offsets[1];
+}
+
+#pragma dont_inline on
+// .text:0x00166448 size:0x19C mapped:0x807A54DC
+void practiceModel_setup(void) {
+    PracticeModelEffect* effect = &animRelated;
+    u32* packed = hugeAnimStruct.packedFile;
+    void* layout;
+    void* geometry;
+    void* texture;
+    s32 i, j;
+
+    for (i = 0; i < 3; i++) {
+        hugeAnimStruct.files[i] = (u8*)packed + packed[i];
+    }
+    setEffectAnim(effect, packed, packed + i++);
+    layout = hugeAnimStruct.files[0];
+    geometry = hugeAnimStruct.files[1];
+    texture = hugeAnimStruct.files[2];
+
+    LoadActorLayout(layout);
+    convertGeometryAndSknHeader(geometry, 0);
+    haveActLayoutPointToGeoHeader(layout, geometry);
+    convertTextureHeader(texture);
+    UpdateTexturePalettePointers(geometry, texture);
+
+    for (j = 0; j < 1; j++) {
+        adjustInternalPointers(effect->animation);
+        actRelated(effect->animation, &effect->animationData);
+        actorRelated(&effect->animationData, 0, 0);
+        if (j == 0) {
+            effect->active = 1;
+        }
+    }
+
+    hugeAnimStruct.actorCount = 1;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    memset(hugeAnimStruct.actorEntries, 0, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTable = ActorObjectInitTable(hugeAnimStruct.actorCount);
+    mm_LoadModelAsset(0, 0, 1, 0, 0);
+    animRelated.speed = lbl_3_rodata_3E50;
+    ACTActorRelated(animRelated.animation, (u8*)hugeAnimStruct.actorTable + 0x34);
+}
+#pragma dont_inline reset

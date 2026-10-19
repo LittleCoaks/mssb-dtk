@@ -1,11 +1,15 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_toyField
 #include "game/minigame/toy_field.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
 #include "game/match_setup/pause_menu.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/match_setup/match_flow.h"
 #include "game/match_setup/scene_skip.h"
 #include "game/match_setup/roster_init.h"
@@ -52,7 +56,7 @@ extern struct {
 
 extern void QueueTextToDisplay(int code, int arg1);
 extern void ballPhysica(void);
-extern void fn_3_15F998(void);
+extern void minigameWinnerSpotlight_stop(void);
 extern void minigameCharLoadQueueUpdate(void);
 extern void toyFieldStadiumLoad(void);
 extern void toyFieldCharSelectSwitcher(void);
@@ -71,11 +75,6 @@ extern u8 animRelated[0x124];
 extern void minigamePauseHelpUpdate(void);
 extern void minigame_rankPlayers(u8 (*order)[2], int mode);
 extern void fn_3_AFD80(int arg0);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
-extern struct {
-    u8 _00[0x40];
-    s16 humanTeam;
-} lbl_3_common_bss_37400;
 extern void fn_3_FBD58(void);
 extern void fn_3_FBD70(void);
 
@@ -554,7 +553,7 @@ void toyFieldApplyGameSettings(void) {
     }
     g_Minigame.challengeModeInd = 1;
     g_Minigame.selectSlotState[g_d_GameSettings._35] = g_d_GameSettings._35;
-    lbl_3_common_bss_37400.humanTeam = g_d_GameSettings._35;
+    scoutState.humanTeam = g_d_GameSettings._35;
     g_Minigame.GameMode_MiniGame = g_d_GameSettings._33;
     g_Minigame.nextGameStatus = 30;
     SetGameStatus(GAME_STATUS_0x1B);
@@ -659,8 +658,8 @@ void toyFieldTransitionToMinigameStart(void) {
     int pickedCount;
     g_Scores.Inning++;
     g_Scores._pad_AC = evaluateInningCondition(g_Scores.Inning);
-    g_Strikes.outs = 0;
-    g_Strikes.storedOuts = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.storedOuts = 0;
     animRelated[0xD5] = 1;
     g_Minigame.turnNumberWithinRound = 0;
     g_Minigame.toyField_maxOuts = 3;
@@ -725,8 +724,8 @@ void toyFieldTransitionPrepareNextPlay(void) {
         us80893314[1] = 1;
         g_GameLogic.pre_PostMiniGameInd = TRUE;
         g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
         highLevelSimulationFlag[2] = 0;
         g_GameLogic._125++;
         break;
@@ -857,9 +856,9 @@ void initializeToyFieldSomething(void) {
     g_Runners[0].position.z = g_Batter.batterPos.z;
     g_Runners[0].runningAngle = PI;
     g_GameLogic.CountdownUntilFade = 10000;
-    g_Strikes.storedOuts = g_Strikes.outs;
-    g_Strikes.outs = 0;
-    g_Strikes.storedOuts = 0;
+    g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.storedOuts = 0;
     g_Ball.totalFramesAtPlay = 0;
     pauseControl._1D5 = 0;
     g_Scores._C5 = 0;
@@ -933,8 +932,8 @@ void toyFieldEndTurn(void) {
             g_Minigame._19A6 = 3;
         }
     }
-    g_Strikes.outs = 0;
-    g_Strikes.storedOuts = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.storedOuts = 0;
     g_Minigame._19A5 = 1;
     if (g_Minigame.rosterID != (s8)g_Minigame.toyField_turnPlayer || g_Minigame.playerSlots.rank[g_Minigame.rosterID] == 1) {
         if (g_Minigame.toyField_turnNumber >= g_Minigame.toyField_selectedTurns) {
@@ -1362,7 +1361,7 @@ void toyFieldPause(void) {
         minigamePauseHelpUpdate();
         break;
     case 9:
-        switch (exitMenu_main()) {
+        switch (((int (*)(void))exitMenu_main)()) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 10;
@@ -1476,8 +1475,8 @@ void toyFieldPostMenu(void) {
         }
         if (start) {
             initializeMinigameData();
-            fn_3_15F998();
-            fn_3_147DFC();
+            minigameWinnerSpotlight_stop();
+            minigameWinnerStars_stop();
             if (pauseControl.cursor == 1) {
                 mm_UnloadModels();
             }
@@ -1485,10 +1484,10 @@ void toyFieldPostMenu(void) {
         break;
     }
     case 9:
-        switch (((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput)) {
+        switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
-            fn_3_15F998();
-            fn_3_147DFC();
+            minigameWinnerSpotlight_stop();
+            minigameWinnerStars_stop();
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
             pauseControl.state = 10;
             break;
@@ -2002,8 +2001,8 @@ void toyFieldRelated(void) {
 
     mode = RandomIndexFromWeights(lbl_3_data_189F0[g_Minigame.miniGameNumberOfParticipants - 2][stage][rank], 8);
     g_Minigame.toyField_slotEvent = mode;
-    if (g_d_GameSettings.exhibitionMatchInd == FALSE && g_Minigame.rosterID == lbl_3_common_bss_37400.humanTeam) {
-        starMissionsMinigamesSpecialAction(7, mode, 0);
+    if (g_d_GameSettings.exhibitionMatchInd == FALSE && g_Minigame.rosterID == scoutState.humanTeam) {
+        starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_TOY_FIELD, mode, 0);
     }
 
     if (g_Minigame.toyField_slotEvent == 7) {
@@ -2175,7 +2174,7 @@ void toyFieldApplyPanelEvent(void) {
     }
     g_Minigame.turnOverStatus = 1;
     if (g_Minigame.toyField_slotEvent == 7 || g_Minigame.toyField_slotEvent == 8) {
-        g_Strikes.outs++;
+        g_BallsStrikesOuts.outs++;
         QueueTextToDisplay(1, 0);
         if (g_Minigame.rosterID == (s8)g_Minigame.toyField_turnPlayer) {
             g_Minigame.toyField_turnPlayer = g_Minigame.minigamePlayerSelectedOrder;

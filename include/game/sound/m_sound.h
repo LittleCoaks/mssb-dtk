@@ -19,8 +19,8 @@ void fn_3_8BDF4(void);
 void initializeSoundEmitters(void);
 void transitionToReplay(void);
 void fn_3_8C104(int arg0);
-BOOL fn_3_8C2DC(u32 arg1, u32 arg2);
-BOOL fn_3_8C4F0(u32 arg1, u32 arg2);
+BOOL fn_3_8C2DC(u32 arg1, u8 arg2);
+BOOL fn_3_8C4F0(u32 arg1, u8 arg2);
 void makeSoundOfBallBouncing(void);
 void handleGameSound(void);
 void fn_3_8D9C0(void);
@@ -32,11 +32,15 @@ void adjustBallSoundEffectBasedOnHeight(void);
 void initializeSounds(void);
 u32 animateThrownBall(int soundNumber, f32 x, f32 y, f32 z);
 u32 callSfx(int soundId);
-u32 fn_3_90150(int charID, int soundCode);
+u32 playCharacterSoundScaled(int charID, int soundCode);
 u32 playCharacterSound(int charID, int soundCode);
 u32 playSoundEffect(int soundNumber);
+
+// Played when any fielding ability activates (laser, quick throw, sliding,
+// tongue, suction, magical and super catches).
+#define SFX_FIELDING_ABILITY 0x1A8
 void fn_3_902FC(void);
-void playOverSounds(int param);
+void playOverSounds(long frames);
 void fn_3_903B8(void);
 void fn_3_90434(void);
 BOOL fn_3_9056C(int index);

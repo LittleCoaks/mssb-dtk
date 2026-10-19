@@ -31,20 +31,20 @@ typedef struct _MGParticle {
     /*0x2C*/ f32 _2C;
     /*0x30*/ f32 _30;
     /*0x34*/ f32 _34;
-    /*0x38*/ f32 _38;
-    /*0x3C*/ f32 _3C;
-    /*0x40*/ u8 _40;
-    /*0x41*/ u8 _41;
-    /*0x42*/ u8 _42;
+    /*0x38*/ f32 sizeX;
+    /*0x3C*/ f32 sizeY;
+    /*0x40*/ u8 colorR;
+    /*0x41*/ u8 colorG;
+    /*0x42*/ u8 colorB;
     /*0x43*/ u8 alphaByte;
     /*0x44*/ u8 _44;
     /*0x45*/ u8 _45;
     /*0x46*/ u8 _46;
     /*0x47*/ u8 _47;
-    /*0x48*/ s16 _48;
-    /*0x4A*/ s16 _4A;
-    /*0x4C*/ u8 _4C;
-    /*0x4D*/ u8 _4D;
+    /*0x48*/ s16 delay;
+    /*0x4A*/ s16 life;
+    /*0x4C*/ u8 kind;
+    /*0x4D*/ u8 texIndex;
     /*0x4E*/ u8 _4E;
     /*0x4F*/ u8 _4F;
     /*0x50*/ u8 _50;
@@ -54,7 +54,7 @@ typedef struct _MGParticle {
 typedef struct _MGEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u16 _14 : 4;
     /*0x14*/ u16 count : 12;
     /*0x16*/ u8 _16[2];
@@ -70,17 +70,17 @@ typedef struct _MGFollowParticle {
     /*0x14*/ Vec* rot;
     /*0x18*/ s16 id;
     /*0x1A*/ u8 _1A[0x38 - 0x1A];
-    /*0x38*/ f32 _38;
-    /*0x3C*/ f32 _3C;
-    /*0x40*/ u8 _40;
-    /*0x41*/ u8 _41;
-    /*0x42*/ u8 _42;
+    /*0x38*/ f32 sizeX;
+    /*0x3C*/ f32 sizeY;
+    /*0x40*/ u8 colorR;
+    /*0x41*/ u8 colorG;
+    /*0x42*/ u8 colorB;
     /*0x43*/ u8 alphaByte;
     /*0x44*/ u8 _44[0x48 - 0x44];
-    /*0x48*/ s16 _48;
-    /*0x4A*/ s16 _4A;
-    /*0x4C*/ u8 _4C;
-    /*0x4D*/ u8 _4D;
+    /*0x48*/ s16 delay;
+    /*0x4A*/ s16 life;
+    /*0x4C*/ u8 kind;
+    /*0x4D*/ u8 texIndex;
     /*0x4E*/ u8 _4E;
 } MGFollowParticle;
 
@@ -104,7 +104,7 @@ typedef struct _MGWeatherCtx {
 typedef struct _MGWeatherEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u8 _14[0x18 - 0x14];
     /*0x18*/ MGWeatherCtx* ctx;
     /*0x1C*/ Vec pos;
@@ -114,7 +114,7 @@ typedef struct _MGWeatherEffect {
 typedef struct _MGPathEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u8 _14[0x18 - 0x14];
     /*0x18*/ Vec base;
     /*0x24*/ Vec pos;
@@ -127,7 +127,7 @@ typedef struct _MGPathEffect {
 typedef struct _MGStarEffect {
     /*0x00*/ u8 _00[0xC];
     /*0x0C*/ MGParticle* particles;
-    /*0x10*/ u32 _10;
+    /*0x10*/ u32 texture;
     /*0x14*/ u16 _14 : 4;
     /*0x14*/ u16 count : 12;
     /*0x16*/ u8 _16[2];
@@ -147,7 +147,7 @@ typedef struct _MGTrailEffect {
     /*0x18*/ u8 done;
 } MGTrailEffect;
 
-/* Actor-like object whose collision-offset effect is drawn by fn_3_1573AC. */
+/* Actor-like object whose collision-offset effect is drawn by piranhaPanic_emitFielderHitFire. */
 typedef struct _MGFxActor {
     /*0x00*/ u8 _00[0x40];
     /*0x40*/ Vec rot;
@@ -158,7 +158,7 @@ typedef struct _MGFxActor {
     /*0x255*/ s8 animIndex;
 } MGFxActor;
 
-/* First part of the minigame effect tuning data (.data object lbl_3_data_266A8, 0x266A8..0x26B9C). */
+/* First part of the minigame effect tuning data (.data object minigameFxData, 0x266A8..0x26B9C). */
 typedef struct _MGFxBase {
     /*0x000*/ f32 chompTrailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
@@ -172,7 +172,7 @@ typedef struct _MGFxBase {
     /*0x4EC*/ f32 tail[2];
 } MGFxBase; // size: 0x4F4
 
-/* View of lbl_3_data_266A8 extended over the small tables that follow it (.data 0x266A8..0x26F00); used where the code addresses those tables relative to lbl_3_data_266A8. */
+/* View of minigameFxData extended over the small tables that follow it (.data 0x266A8..0x26F00); used where the code addresses those tables relative to minigameFxData. */
 typedef struct _MGFxData {
     /*0x000*/ f32 chompTrailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
@@ -234,15 +234,14 @@ typedef struct _MGQuadVertex {
     /*0x12*/ u16 t;
 } MGQuadVertex; // size: 0x14
 
-/* First part of the minigame effect tuning data (.data object lbl_3_data_266A8). */
+/* First part of the minigame effect tuning data (.data object minigameFxData). */
 typedef struct _MGFxHead {
     /*0x000*/ f32 trailScale[2];
     /*0x008*/ MGFxSlot slotsA[3];
     /*0x0F8*/ MGFxHeader headerA;
-    /*0x13C*/ s16 effectIds[4][2];
-} MGFxHead; // size: 0x14C
+} MGFxHead; // size: 0x13C
 
-/* Object at lbl_3_data_26894: the last slot, the slot pointer table and the offset/colour tables. */
+/* Object at minigameFxTail: the last slot, the slot pointer table and the offset/colour tables. */
 typedef struct _MGFxTail {
     /*0x000*/ MGFxSlot slot;
     /*0x050*/ MGFxSlot* slotPtrs[3];
@@ -253,129 +252,129 @@ typedef struct _MGFxTail {
 } MGFxTail; // size: 0x308
 
 void chainChomp_spawnTrailEffect(s32 duration);
-int fn_3_157AC4(MGEffect* effect);
-f32 fn_3_15791C(s32 frame);
-void fn_3_1578F8(void);
-void fn_3_15767C(void);
-Vec* fn_3_1575F0(u32 index);
-void fn_3_157588(int count);
-void fn_3_157570(void);
-void fn_3_1573AC(MGFxActor* actor);
-void fn_3_15730C(u32 index, f32 x, f32 y, f32 z);
-void fn_3_156D04(u32 index, f32 x, f32 y, f32 z);
-void fn_3_156970(Vec* positions, u32 color, MGTexRecord* tex);
-void fn_3_156548(u32 index, f32 x, f32 y, f32 z);
+int chainChomp_updateTrailEffect(MGEffect* effect);
+f32 chainChomp_trailScale(s32 frame);
+void chainChomp_stopTrailEffect(void);
+void piranhaPanic_updateSpitTrailEffect(void);
+Vec* minigameTrail_getPoint(u32 index);
+void minigameTrail_alloc(int count);
+void minigameTrail_finish(void);
+void piranhaPanic_emitFielderHitFire(MGFxActor* actor);
+void minigameTrail_setPoint(u32 index, f32 x, f32 y, f32 z);
+void piranhaPanic_drawSpitTrail(u32 index, f32 x, f32 y, f32 z);
+void minigameTrail_drawQuad(Vec* positions, u32 color, MGTexRecord* tex);
+void starDash_drawFireBarTrail(u32 index, f32 x, f32 y, f32 z);
 void bODPitchAnimation(void);
-void fn_3_155F08(void);
-void fn_3_155C28(MGEffect* effect);
-void fn_3_1559E4(MGParticle* p, Vec* base, Vec* rot);
-int fn_3_1552AC(MGEffect* effect);
+void bobOmbFuseSpark_spawnAtPitch(void);
+void bobOmbFuseSpark_initAtPitch(MGEffect* effect);
+void bobOmbFuseSpark_placeParticle(MGParticle* p, Vec* base, Vec* rot);
+int bobOmbFuseSpark_updateAtPitch(MGEffect* effect);
 void bobOmbDerbyPitching(void);
-void fn_3_155264(void);
-void fn_3_15521C(s16 id, Vec* pos, Vec* rot);
-void fn_3_154C7C(s16 id, Vec* pos, Vec* rot);
-void fn_3_1549F0(MGEffect* effect, s16 id, Vec* pos, Vec* rot);
-int fn_3_1542F4(MGEffect* effect);
-void fn_3_154238(s16 id);
-void fn_3_154214(void);
-void fn_3_1541C4(u8 kind, u8 mode, Vec* pos);
-void fn_3_1540E4(u8 kind, u8 mode, Vec* pos);
-void fn_3_153F8C(MGEffect* effect, u8 kind, u8 mode, Vec* pos);
-void fn_3_153E8C(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index);
-void fn_3_1536A8(MGParticle* p, u8 kind);
-void fn_3_1534C0(MGParticle* p);
-void fn_3_1531A4(MGParticle* p);
-void fn_3_152AB4(u8 id, u8 flag);
-void fn_3_152794(MGParticle* p);
-void fn_3_1524E8(MGParticle* p, u8 randomize);
-int fn_3_151F2C(MGEffect* effect);
-void fn_3_151D6C(MGEffect* effect, MGParticle* p);
-void fn_3_151BAC(MGEffect* effect, MGParticle* p);
-void fn_3_1519F8(MGEffect* effect, MGParticle* p);
-void fn_3_1517D0(MGParticle* p, MGEffect* effect);
-void fn_3_151798(void);
-void fn_3_151760(void);
-void fn_3_151710(MGWeatherCtx* ctx, Vec* pos);
-void fn_3_151694(MGWeatherCtx* ctx, Vec* pos);
-void fn_3_151204(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec* pos);
-void fn_3_151068(MGWeatherEffect* effect, MGParticle* p);
-void fn_3_150D84(MGWeatherEffect* effect, MGParticle* p);
-int fn_3_150940(MGWeatherEffect* effect);
-void fn_3_1504EC(MGWeatherEffect* effect, MGParticle* p);
-void fn_3_150120(MGWeatherEffect* effect, MGParticle* p);
+void bobOmbDerbyPitching2(void);
+void bobOmbFuseSpark_spawnFollow(s16 id, Vec* pos, Vec* rot);
+void bobOmbFuseSpark_spawnFollowEffect(s16 id, Vec* pos, Vec* rot);
+void bobOmbFuseSpark_initFollow(MGEffect* effect, s16 id, Vec* pos, Vec* rot);
+int bobOmbFuseSpark_updateFollow(MGEffect* effect);
+void bobOmbFuseSpark_removeFollow(s16 id);
+void bobOmbFuseSpark_stopFollow(void);
+void chainChomp_spawnItemSparkle(u8 kind, u8 mode, Vec* pos);
+void chainChomp_spawnItemSparkleEffect(u8 kind, u8 mode, Vec* pos);
+void chainChomp_initItemSparkleParticles(MGEffect* effect, u8 kind, u8 mode, Vec* pos);
+void chainChomp_initItemSparkleParticle(MGParticle* p, Vec* pos, u8 kind, u8 mode, u8 index);
+void chainChomp_placeItemSparkleLayer(MGParticle* p, u8 kind);
+void chainChomp_initItemSparkleLayer1(MGParticle* p);
+void chainChomp_initItemSparkleLayer2(MGParticle* p);
+void chainChomp_flyItemSparklesToScore(u8 id, u8 flag);
+void chainChomp_initItemSparkleFly(MGParticle* p);
+void chainChomp_placeItemSparkle(MGParticle* p, u8 randomize);
+int chainChomp_updateItemSparkles(MGEffect* effect);
+void chainChomp_updateItemSparkleLayer1(MGEffect* effect, MGParticle* p);
+void chainChomp_updateItemSparkleLayer2(MGEffect* effect, MGParticle* p);
+void chainChomp_updateItemSparkleFly(MGEffect* effect, MGParticle* p);
+void chainChomp_drawItemSparkleOnHud(MGParticle* p, MGEffect* effect);
+void chainChomp_stopItemSparkles(void);
+void chainChomp_stopItemSparkles2(void);
+void wallBall_spawnNoteBlockBurst(MGWeatherCtx* ctx, Vec* pos);
+void wallBall_spawnNoteBlockBurstEffect(MGWeatherCtx* ctx, Vec* pos);
+void wallBall_initNoteBlockBurst(MGWeatherEffect* effect, MGWeatherCtx* ctx, Vec* pos);
+void wallBall_placeNoteParticle(MGWeatherEffect* effect, MGParticle* p);
+void wallBall_placeBounceParticle(MGWeatherEffect* effect, MGParticle* p);
+int wallBall_updateNoteBlockBurst(MGWeatherEffect* effect);
+void wallBall_updateNoteParticle(MGWeatherEffect* effect, MGParticle* p);
+void wallBall_updateBounceParticle(MGWeatherEffect* effect, MGParticle* p);
 void wallBall_updateSomePointers(void);
-void fn_3_150070(void);
-void fn_3_150010(s8 index);
-void fn_3_14F930(s8 index);
-void fn_3_14F8D0(MGEffect* effect);
-void fn_3_14F5A4(MGEffect* effect, s8 index);
-void fn_3_14F544(MGParticle* p);
-void fn_3_14F3CC(MGParticle* p);
-int fn_3_14ED24(MGEffect* effect);
-void fn_3_14EAF4(MGParticle* p);
-void fn_3_14E9F0(MGParticle* p);
-void fn_3_14E988(s8 index);
-void fn_3_14E920(s8 index);
-void fn_3_14E894(void);
-void fn_3_14E810(void);
-void fn_3_14E7C0(MGEffect* arg);
-void fn_3_14E234(Vec* pos);
-void fn_3_14DF6C(MGEffect* effect, Vec* pos);
-int fn_3_14DD04(MGEffect* effect);
-void fn_3_14DCE0(void);
-void fn_3_14DC80(s8 index);
-void fn_3_14D710(u8 index);
-void fn_3_14D6D4(MGEffect* effect);
-void fn_3_14D44C(MGEffect* effect, int barrelIndex);
-void fn_3_14D318(MGParticle* p);
-void fn_3_14D2C0(MGParticle* p);
-int fn_3_14CECC(MGEffect* effect);
-void fn_3_14CD40(MGEffect* effect, MGParticle* p);
-void fn_3_14CBB4(MGEffect* effect, MGParticle* p);
-void fn_3_14CB28(s8 index);
-void fn_3_14CAB4(s8 index);
-void fn_3_14CA98(MGParticle* p);
-void fn_3_14CA00(void);
-void fn_3_14C904(void);
-void fn_3_14C830(void);
-void fn_3_14C79C(MGEffect* effect);
-int fn_3_14C4C8(MGEffect* effect);
-void fn_3_14C3BC(MGParticle* p);
-void fn_3_14C398(void);
-void fn_3_14C348(Vec* pos, u8 flag);
-void fn_3_14BECC(Vec* pos, u8 flag);
-void fn_3_14BCB0(MGEffect* effect, Vec* pos, u8 flag);
-int fn_3_14BA40(MGEffect* effect);
-void fn_3_14B9F0(void);
-void fn_3_14B9A0(s16 frames, Vec* start);
-void fn_3_14B92C(s16 frames, Vec* start);
-void fn_3_14B53C(MGPathEffect* effect, s16 frames, Vec* start);
-void fn_3_14B3F4(MGPathEffect* effect);
-void fn_3_14B248(MGPathEffect* effect, MGParticle* p);
-int fn_3_14AC40(MGPathEffect* effect);
-void fn_3_14AC1C(void);
+void wallBall_updateSomePointers2(void);
+void starDash_startSparks(s8 index);
+void starDash_spawnSparksEffect(s8 index);
+void starDash_initSparksEffect(MGEffect* effect);
+void starDash_setupSparks(MGEffect* effect, s8 index);
+void starDash_resetSparkParticle(MGParticle* p);
+void starDash_randomizeSparkOrigin(MGParticle* p);
+int starDash_updateSparks(MGEffect* effect);
+void starDash_placeSparkParticle(MGParticle* p);
+void starDash_offsetSparkToBone(MGParticle* p);
+void starDash_stopSparks(s8 index);
+void starDash_stopSparks2(s8 index);
+void starDash_stopAllSparks(void);
+void starDash_stopAllSparks2(void);
+void starDash_spawnDust(Vec* pos);
+void starDash_spawnDustEffect(Vec* pos);
+void starDash_initDustParticles(MGEffect* effect, Vec* pos);
+int starDash_updateDust(MGEffect* effect);
+void starDash_stopDust(void);
+void barrelBatter_spawnBarrelExplosion(s8 index);
+void barrelBatter_spawnBarrelExplosionEffect(u8 index);
+void barrelBatter_initBarrelExplosion(MGEffect* effect);
+void barrelBatter_setupBarrelExplosion(MGEffect* effect, u8 barrelIndex);
+void barrelBatter_placeExplosionFlash(MGParticle* p);
+void barrelBatter_attachExplosionToBone(MGParticle* p);
+int barrelBatter_updateBarrelExplosion(MGEffect* effect);
+void barrelBatter_updateExplosionFlash(MGEffect* effect, MGParticle* p);
+void barrelBatter_updateExplosionEmber(MGEffect* effect, MGParticle* p);
+void barrelBatter_releaseBarrelExplosion(s8 index);
+void barrelBatter_clearBarrelExplosion(s8 index);
+void barrelBatter_clearExplosionParticle(MGParticle* p);
+void barrelBatter_stopBarrelExplosions(void);
+void chainChomp_spawnLaunchFlash(void);
+void chainChomp_spawnLaunchFlashEffect(void);
+void chainChomp_initLaunchFlash(MGEffect* effect);
+int chainChomp_updateLaunchFlash(MGEffect* effect);
+void chainChomp_placeLaunchFlash(MGParticle* p);
+void chainChomp_stopLaunchFlash(void);
+void wallBall_spawnWallHitPuff(Vec* pos, u8 flag);
+void wallBall_spawnWallHitPuffEffect(Vec* pos, u8 flag);
+void wallBall_initWallHitPuff(MGEffect* effect, Vec* pos, u8 flag);
+int wallBall_updateWallHitPuff(MGEffect* effect);
+void wallBall_stopWallHitPuff(void);
+void barrelBatter_spawnMachineSparks(s32 frames, Vec* start);
+void barrelBatter_spawnMachineSparksEffect(s32 frames, Vec* start);
+void barrelBatter_initMachineSparks(MGPathEffect* effect, s32 frames, Vec* start);
+void barrelBatter_updateMachineSparkPos(MGPathEffect* effect);
+void barrelBatter_respawnMachineSpark(MGPathEffect* effect, MGParticle* p);
+int barrelBatter_updateMachineSparks(MGPathEffect* effect);
+void barrelBatter_stopMachineSparks(void);
 void barrelBatterRel(Vec* pos);
-void fn_3_14A62C(Vec* pos);
-void fn_3_14A37C(MGEffect* effect, Vec* pos);
-int fn_3_14A188(MGEffect* effect);
-void fn_3_14A164(void);
-void fn_3_14A070(s32* values, s32 count);
-void fn_3_149BA8(void);
-void fn_3_14975C(s8 index);
-void fn_3_149340(MGStarEffect* effect);
-void fn_3_148FD0(s8 index, MGParticle* p);
-void fn_3_148EF0(Vec* out, f32 degrees);
-int fn_3_14841C(MGStarEffect* effect);
-BOOL fn_3_1483D4(void);
-void fn_3_148254(MGStarEffect* effect, MGParticle* p);
-void fn_3_1480E0(MGParticle* p);
-void fn_3_147F94(void);
-void fn_3_147E20(void);
-void fn_3_147DFC(void);
-void fn_3_147CFC(Vec* pos);
-void fn_3_147C00(Vec* pos);
-void fn_3_147778(MGEffect* effect, Vec* pos);
-int fn_3_14737C(MGEffect* effect);
-void fn_3_147358(void);
+void barrelBatterRel2(Vec* pos);
+void barrelBatter_initReleaseRing(MGEffect* effect, Vec* pos);
+int barrelBatter_updateReleaseRing(MGEffect* effect);
+void barrelBatter_stopReleaseRing(void);
+void minigameWinnerStars_setWinners(s32* values, s32 count);
+void minigameWinnerStars_spawn(void);
+void minigameWinnerStars_spawnOne(s8 index);
+void minigameWinnerStars_initEffect(MGStarEffect* effect);
+void minigameWinnerStars_resetParticle(MGStarEffect* effect, MGParticle* p);
+void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees);
+int minigameWinnerStars_update(MGStarEffect* effect);
+E(u8, BOOL) minigameWinnerStars_rollTurn(void);
+void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p);
+void minigameWinnerStars_drawQuad(MGParticle* p);
+void minigameWinnerStars_beginDraw(void);
+void minigameWinnerStars_endDraw(void);
+void minigameWinnerStars_stop(void);
+void piranhaPanic_spawnBombExplosion(Vec* pos);
+void piranhaPanic_spawnBombExplosionEffect(Vec* pos);
+void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos);
+int piranhaPanic_updateBombExplosion(MGEffect* effect);
+void piranhaPanic_stopBombExplosion(void);
 
 #endif // !__GAME_MINIGAME_MINIGAME_EFFECTS_H_

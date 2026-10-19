@@ -16,7 +16,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
 
 typedef void (*ChargeTevCallback)(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords);
@@ -434,7 +434,7 @@ void fn_3_C095C(ChargeGlowEntry* entry) {
     }
     ((u8*)model->root)[0x99] = 1;
     setActorAnimFrame(model->root, entry->frame);
-    fn_800B4C04(model->root, 1.0f);
+    ACTSetSpeed((Actor*)model->root, 1.0f);
     fn_800BDA24(model);
     model->root->drawFlags = 0xFF;
     sknRelated(model, mtx);

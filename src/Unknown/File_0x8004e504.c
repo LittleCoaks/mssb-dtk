@@ -1,4 +1,5 @@
 #include "Unknown/File_0x8004e504.h"
+#include "game/challenge/star_mission_data.h"
 #include "Unknown/File_0x8004e5b4.h"
 #include "static/UnknownHomes_Static.h"
 
@@ -17,7 +18,7 @@ void storeCursorLocOrCharIDs(BOOL isCharID, int port0, int port1, int port2, int
             if (!isCharID) {
                 charSelectStruct.cursorPos[i] = values[i];
             } else {
-                charID = characterStaticIndexes[values[i] * 6 + 1];
+                charID = characterStaticIndexes[values[i]].trackerIdx;
                 for (slot = 0; slot < CHAR_SELECT_GRID_SLOTS; slot++) {
                     if (charID == mapCaptainCursorPositionToCharID[slot]) {
                         charSelectStruct.cursorPos[i] = slot;

@@ -37,7 +37,10 @@ typedef struct sBone {
     /* 0xFC */ DSLink drawPriorityLink;
     /* 0x104 */ u8 unk104[0x134 - 0x104];
     /* 0x134 */ u16 unk134; // bits 2-4 mirrored into bit 5 by ACTSetAnimation
-} sBone;
+    /* 0x136 */ u8 unk136;
+    /* 0x137 */ u8 unk137;
+    /* 0x138 */ u8 unk138[0x140 - 0x138];
+} sBone; // size: 0x140
 
 typedef struct {
     /* 0x00 */ Mtx34 m;
@@ -104,7 +107,7 @@ void GQRSetup7(u32 loadScale, u32 loadType, u32 storeScale, u32 storeType);
 extern sAccBuffers SKAccBuffers[2];
 extern void * SKBuffers[4];
 
-void SKNIt(sBone **bones, sHdr *hdr);
+void SKNIt(sBone **bones, sHdr *hdr, void *vtx);
 void SKNInit(void);
 void SKNBzero32B(void * base, u32 size);
 void SKNLCBzero(void * base, u32 size);
@@ -121,10 +124,14 @@ extern void GQRSetup6(u32 loadScale, u32 loadType, u32 storeScale, u32 storeType
 extern void SKN1Vecs16Norms16(Mtx34 m, s16 * srcBase, s16 * dstBase, u32 count);
 extern void SKN2Vecs16Norms16(Mtx34 m0, Mtx34 m1, u8 * wtBase, s16 * srcBase, s16 * dstBase, u32 count);
 extern void SKN2Vecs16Norms16NoTouch(Mtx34 m0, Mtx34 m1, u8 * wtBase, s16 * srcBase, s16 * dstBase, u32 count);
+extern void fn_800BFF9C(Mtx34 m, s16 * srcBase, s16 * dstBase, u32 count);
+extern void fn_800C02C8(Mtx34 m0, Mtx34 m1, u8 * wtBase, s16 * srcBase, s16 * dstBase, u32 count);
+extern void SKNAccVecs16Norms16Iu161(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
+extern void SKNAccVecs16Norms16Iu162(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
 extern void SKNAccVecs16Norms16Iu16(Mtx34 m, u16 count, s16 * srcBase, s16 * dstBase, u16 * indices, u8 * weights);
 
 static inline void SKNLCAccTouchData(u8 buffer, s16 *src, u16 *indices, u8 *weights, u32 count) {
-    u32 size = ((count * 3 * 2 * 2) + 0x1F) >> 5;
+    u32 size = ((count * 3 * 2 * 4) + 0x1F) >> 5;
 
     LCLoadBlocks(SKAccBuffers[buffer].src, src, size);
     size = ((count * 2) + 0x1F) >> 5;

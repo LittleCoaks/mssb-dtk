@@ -6,6 +6,7 @@
 #include "menus/text_01254.h"
 #include "menus/main_menu.h"
 #include "menus/yd_step.h"
+#include "game/challenge/challenge_state.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x800625a4.h"
 
@@ -14,7 +15,6 @@ extern u8 menuNumber[0x28];
 extern u8 lineUpInfoStruct[0x48];
 extern u8 inMemRoster[0xB40];
 extern u8 lbl_8037169C[0x1C];
-extern u8 starMissionCompletionTracker[0x4508];
 extern u8* menuControlVariables;
 extern u8 lbl_2_data_3CE0[0x8];
 extern u8 lbl_2_bss_F468[0xC4C];
@@ -67,7 +67,7 @@ void teamSelectScreenMain(void) {
     case 1:
         if (g_d_GameSettings.GameModeSelected == 5 && lbl_8037169C[0x12] == 0) {
             challenge_setTransitionScreenCharacterPortrait(
-                0xA, (s8)lbl_2_data_3CE0[starMissionCompletionTracker[0x441E]]);
+                0xA, (s8)lbl_2_data_3CE0[g_Challenge.opponentCaptain]);
         }
         cssLoadingScreenRelated();
         cssResetRosterStruct();

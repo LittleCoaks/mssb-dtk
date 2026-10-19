@@ -3,7 +3,7 @@
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x800576f0.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "game/UnknownHomes_Game.h"
 
 extern UIRecordDescriptor lbl_80108048[];

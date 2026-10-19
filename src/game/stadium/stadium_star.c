@@ -1,4 +1,6 @@
+#define SQRT2_LINKAGE static
 #include "game/stadium/stadium_star.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_stadiumStar
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/animation/scene_effects.h"
@@ -29,25 +31,6 @@ typedef struct _StadiumStarState {
 
 extern StadiumStarState lbl_3_common_bss_35154;
 
-// .text:0x000CB738 size:0x9C mapped:0x8070A7CC
-void stadiumStarAnimation(void) {
-    StadiumStarState* star = &lbl_3_common_bss_35154;
-
-    if (g_d_GameSettings._55 != 0 || star->_479 != 0 || star->starFrames-- == 0) {
-        star->starActive = FALSE;
-        removeCurrentDrawingItem();
-    } else {
-        fn_3_BD8D8();
-        star->starPos.y += -0.03125f;
-        star->starRot.y += 0.15707964f;
-    }
-}
-
-// .text:0x000CB7D4 size:0x14 mapped:0x8070A868
-void fn_3_CB7D4(void) {
-    lbl_3_common_bss_35154.starFrames = 0;
-}
-
 // .text:0x000CB7E8 size:0xC0 mapped:0x8070A87C
 void stadiumStarAwarded(f32 x, f32 y, f32 z) {
     lbl_3_common_bss_35154.starPos.x = x;
@@ -65,4 +48,23 @@ void stadiumStarAwarded(f32 x, f32 y, f32 z) {
         g_GameLogic.TeamStars[g_GameLogic.teamBatting]++;
     }
     g_GameLogic.stadiumStarObtained = TRUE;
+}
+
+// .text:0x000CB7D4 size:0x14 mapped:0x8070A868
+void fn_3_CB7D4(void) {
+    lbl_3_common_bss_35154.starFrames = 0;
+}
+
+// .text:0x000CB738 size:0x9C mapped:0x8070A7CC
+void stadiumStarAnimation(void) {
+    StadiumStarState* star = &lbl_3_common_bss_35154;
+
+    if (g_d_GameSettings._55 != 0 || star->_479 != 0 || star->starFrames-- == 0) {
+        star->starActive = FALSE;
+        removeCurrentDrawingItem();
+    } else {
+        fn_3_BD8D8();
+        star->starPos.y += -0.03125f;
+        star->starRot.y += 0.15707964f;
+    }
 }

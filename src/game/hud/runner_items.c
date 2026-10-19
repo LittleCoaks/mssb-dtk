@@ -52,8 +52,8 @@ void fn_3_21BDC(void) {
 // .text:0x00021AA8 size:0x134
 void fn_3_21AA8(void) {
     RunnerDrawingNode *node = (RunnerDrawingNode *)currentDrawingItem;
-    AnimObject *obj = hugeAnimStruct.objects[9];
     InMemRunnerType *runner = &g_Runners[0];
+    AnimObject *obj = hugeAnimStruct.objects[9];
 
     switch (node->_22) {
     case 0:
@@ -88,14 +88,18 @@ void fn_3_21AA8(void) {
 
 // .text:0x000219CC size:0xDC
 void fn_3_219CC(void) {
-    int count = 0;
     int i;
+    int count = 0;
+    GameInitVariables *settings = &g_d_GameSettings;
+    GameControlsStruct *game = &g_GameLogic;
+    InMemFielder *fielder;
 
-    for (i = 0; i < 9; i++) {
-        if (hugeAnimStruct.objects[i]->_257 == g_GameLogic.Team_CaptainRosterLoc[g_d_GameSettings.humanTeamNumber]) {
-            g_Fielders[i].rosterLocSkippingCap = 0;
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        fielder = &g_Fielders[i];
+        if (game->Team_CaptainRosterLoc[settings->humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
+            fielder->rosterLocSkippingCap = 0;
         } else {
-            g_Fielders[i].rosterLocSkippingCap = ++count;
+            fielder->rosterLocSkippingCap = ++count;
         }
     }
 }

@@ -46,6 +46,24 @@ typedef struct CamView {
 
 // Camera script interpreter state, one per camera view at g_Camera + 0x120 (0x9BC bytes each).
 // BEGIN CamScript
+// Header of a loaded camera script file; the offsets are relocated to pointers on load.
+typedef struct CamScriptHdr {
+    /* 0x00 */ u8 _00[4];
+    /* 0x04 */ u16 length;
+    /* 0x06 */ s16 numTracks;
+    /* 0x08 */ u8* keys;
+    /* 0x0C */ u8* tracks[1];
+} CamScriptHdr;
+
+typedef struct CamScriptKey {
+    /* 0x00 */ f32 _00;
+    /* 0x04 */ f32 pos[3];
+    /* 0x10 */ f32 _10;
+    /* 0x14 */ f32 _14;
+    /* 0x18 */ f32 _18;
+    /* 0x1C */ u32 frame;
+} CamScriptKey;
+
 typedef struct CamScript {
     /* 0x0000 */ s32* _0000;
     /* 0x0004 */ s32* _0004;
@@ -75,7 +93,7 @@ typedef struct CamScript {
     /* 0x0088 */ VecXYZ _0088;
     u8 _pad0094[0x4];
     /* 0x0098 */ VecXYZ* _0098;
-    /* 0x009C */ f32* _009C;
+    /* 0x009C */ CamScriptKey* _009C;
     /* 0x00A0 */ f32 _00A0;
     /* 0x00A4 */ f32 _00A4;
     /* 0x00A8 */ f32 _00A8;
@@ -180,34 +198,34 @@ void fn_3_100038(void);
 BOOL unkPauseSimulationCheck(void);
 void fn_3_1000D8(void);
 void fn_3_101CC4(void);
-void fn_3_103C30(VecXYZ* v);
-void fn_3_103E7C(f32* angles);
-void fn_3_1040D8(void);
+void camFilterLookAt(VecXYZ* v);
+void camFilterAngles(f32* angles);
+void camFilterPosition(void);
 void fn_3_104338(void);
 void fn_3_1045A8(void);
 void fn_3_104740(void);
-void fn_3_1048E0(u8* script, u32 time, s16 a, u8 b, CamView* out);
+void camEvalViewAtTime(u8* script, u32 time, s16 a, u8 b, CamView* out);
 void fn_3_104A3C(Vec* out, Mtx44 m);
 void fn_3_104A88(Vec* out, Mtx44 m);
 void fn_3_104AD4(Vec* out, Mtx44 m);
 void fn_3_104B20(Vec* out, CamView* view);
 void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out);
 void fn_3_1054CC(void);
-void fn_3_1054D0(u8* script, u32 time, s16 trackIdx);
-void fn_3_105A10(Vec* out, Vec* a, Vec* b, f32 t);
-void fn_3_105ACC(f32* quat, Mtx out);
+void fn_3_1054D0(CamScriptHdr* script, u32 time, s16 trackIdx);
+void camVecLerp(Vec* out, Vec* a, Vec* b, f32 t);
+void camQuatToMtx(f32* quat, Mtx out);
 void fn_3_105BD8(CamEval* e);
 u32 fn_3_105C28(u8* script, u32 time);
-void fn_3_105C84(u8* hdr);
+void camScriptRelocate(u8* hdr);
 void fn_3_105CDC(void);
 void fn_3_105E00(s16 x, s16 y, s16 w, s16 h);
 void fn_3_106014(f32 x, f32 y, f32 z);
 void fn_3_1060D8(void);
 BOOL fn_3_10617C(int idx, int bone, Vec* out);
 void fn_3_106270(VecXYZ* v);
-int fn_3_10698C(u32* table);
+int camCountTableEntries(u32* table);
 u8* fn_3_1069B0(u32* table, int idx);
-void fn_3_1069C0(void);
+void camScriptResetState(void);
 void fn_3_FBD58(void);
 void fn_3_FBD70(void);
 void camera_switchScene(int scene);

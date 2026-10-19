@@ -1,18 +1,18 @@
 #include "menus/rep_0788.h"
 #include "header_rep_data.h"
+#include "game/challenge/challenge_state.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
-#include "text/text_channel.h"
-#include "text/text_block.h"
+#include "text/text.h"
 #include "static/UnknownHomes_Static.h"
 
 extern DrawingSceneStruct *currentDrawingItem;
 extern s16 lbl_2_data_3D30[][4];
 extern u8 *lbl_2_bss_1A824C;
-extern u8 *lbl_2_bss_1A8248;
+extern ChallengeState *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3714[];
 extern u8 lbl_800E869C[0x20];
-extern s32 fn_8006C79C(u8 arg0);
+extern s32 challenge_isCharRecruited(u8 arg0);
 
 void fn_2_54354(void *arg0, int count);
 void fn_2_54234(void *arg0, int count);
@@ -139,13 +139,13 @@ BOOL fn_2_200E4(void) {
     if (level > 3) {
         level = 3;
     }
-    if (lbl_2_data_2E44[lbl_2_bss_1A8248[0x4415]][level] >= rand() % 100 &&
-        lbl_2_bss_1A8248[0x441C] != 5) {
-        if (lbl_2_bss_1A8248[0x4422] == 0) {
+    if (lbl_2_data_2E44[lbl_2_bss_1A8248->difficulty][level] >= rand() % 100 &&
+        lbl_2_bss_1A8248->captain != 5) {
+        if (lbl_2_bss_1A8248->stage == 0) {
             return FALSE;
         }
-        if (lbl_2_bss_1A8248[0x442B] < 3) {
-            lbl_2_bss_1A8248[0x442B]++;
+        if (((u8 *)lbl_2_bss_1A8248)[0x442B] < 3) {
+            ((u8 *)lbl_2_bss_1A8248)[0x442B]++;
         }
         return TRUE;
     }
@@ -809,7 +809,7 @@ void fn_2_26F80(void *arg0, void *arg1) {
     case 4:
         break;
     case 2: {
-        u8 v = lbl_2_bss_1A8248[0x441c];
+        u8 v = lbl_2_bss_1A8248->captain;
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         *(u32 *)((u8 *)obj + 0x5C) = (u32)v << 16;
         obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -1837,7 +1837,7 @@ void fn_2_2C860(void *arg0, void *arg1) {
         break;
     case 2: {
         s16 v = *(s16 *)((u8 *)arg1 + 0xA);
-        s8 flag = lbl_2_bss_1A8248[v + 0x43c2];
+        s8 flag = lbl_2_bss_1A8248->_43C2[v];
         TextGraphicsObject *obj;
         if (flag == 1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -2055,7 +2055,7 @@ void fn_2_2DCA8(void *arg0, void *arg1) {
     case 2: {
         TextGraphicsObject *obj;
         load_Icon(arg0, *(s16 *)((u8 *)arg1 + 0xE), 1, 0x43, *(s16 *)((u8 *)arg1 + 0x10));
-        if (fn_8006C79C(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
+        if (challenge_isCharRecruited(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
             *(u32 *)((u8 *)obj + 0x5C) = 0;
         } else {

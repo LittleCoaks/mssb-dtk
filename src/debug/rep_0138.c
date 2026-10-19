@@ -1,7 +1,7 @@
 #include "debug/rep_0138.h"
 #include "header_rep_data.h"
 #include "Dolphin/gx.h"
-#include "Unknown/File_0x800bd300.h"
+#include "C3/light/light.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/stl.h"
@@ -104,7 +104,6 @@ extern f32 lbl_1_rodata_1D0;
 extern f32 lbl_1_rodata_1D4;
 extern Vec lbl_1_data_A48;
 extern void setLITLightPtr(s32 arg0);
-extern void LITAlloc(void *slot);
 extern void LITInitAttn(void *light, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6);
 extern void LITInitPos(void *light, f32 arg1, f32 arg2, f32 arg3);
 extern void LITInitDir(void *light, f32 arg1, f32 arg2, f32 arg3);
@@ -754,9 +753,9 @@ void fn_1_6848(void) {
             GXInitTexObjLOD((GXTexObj *)(bssC0 + 0x424), minFilter, 1, lbl_1_rodata_1A8, (f32)data2A8[0x778], *(f32 *)(data2A8 + 0x78c), 0, 0, 0);
             fn_800B996C(fn_1_5544);
 
-            LITAlloc(data2A8 + 0x5a0);
-            LITAlloc(data2A8 + 0x5a4);
-            LITAlloc(data2A8 + 0x5a8);
+            LITAlloc((void**)(data2A8 + 0x5a0));
+            LITAlloc((void**)(data2A8 + 0x5a4));
+            LITAlloc((void**)(data2A8 + 0x5a8));
 
             c[0] = lbl_1_rodata_194[0];
             c[1] = lbl_1_rodata_194[1];

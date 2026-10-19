@@ -44,7 +44,7 @@ void CopyMoreStructs(int arg) {
         structCopying();
     }
     memcpy(&g_GameLogic, STATS_AT(0x44), sizeof(g_GameLogic));
-    memcpy(&g_Strikes, STATS_AT(0x19C), sizeof(g_Strikes));
+    memcpy(&g_BallsStrikesOuts, STATS_AT(0x19C), sizeof(g_BallsStrikesOuts));
     memcpy(&g_Scores, STATS_AT(0x1C0), sizeof(g_Scores));
     memcpy(&g_Ball, STATS_AT(0x288), sizeof(g_Ball));
     memcpy(&g_Pitcher, STATS_AT(0x1E80), sizeof(g_Pitcher));
@@ -79,7 +79,7 @@ void CopyMoreStructs(int arg) {
 // .text:0x0007C7AC size:0x22C mapped:0x806BB840
 void structCopying(void) {
     memcpy(COPY_AT(0), &g_GameLogic, sizeof(g_GameLogic));
-    memcpy(COPY_AT(0x158), &g_Strikes, sizeof(g_Strikes));
+    memcpy(COPY_AT(0x158), &g_BallsStrikesOuts, sizeof(g_BallsStrikesOuts));
     memcpy(COPY_AT(0x17C), &g_Scores, sizeof(g_Scores));
     memcpy(COPY_AT(0x244), &g_Ball, sizeof(g_Ball));
     memcpy(COPY_AT(0x1E3C), &g_Pitcher, sizeof(g_Pitcher));
@@ -139,7 +139,7 @@ void replaceGameStructs_postReplay(int arg) {
     stats->replayInd = 0;
     stats->replayPending = 0;
     memcpy(&g_GameLogic, COPY_AT(0), sizeof(g_GameLogic));
-    memcpy(&g_Strikes, COPY_AT(0x158), sizeof(g_Strikes));
+    memcpy(&g_BallsStrikesOuts, COPY_AT(0x158), sizeof(g_BallsStrikesOuts));
     memcpy(&g_Scores, COPY_AT(0x17C), sizeof(g_Scores));
     memcpy(&g_Ball, COPY_AT(0x244), sizeof(g_Ball));
     memcpy(&g_Pitcher, COPY_AT(0x1E3C), sizeof(g_Pitcher));
@@ -199,7 +199,7 @@ void determineIfReplayShouldPlay(void) {
     s32 reason = 0;
     int arg = 0;
     InMemBallType* ball = &g_Ball;
-    inMemStrikes* strikes = &g_Strikes;
+    inMemBallsStrikesOuts* strikes = &g_BallsStrikesOuts;
     int result;
     int count;
     int count2;

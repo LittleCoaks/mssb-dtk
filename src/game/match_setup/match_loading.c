@@ -1,13 +1,15 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_loading.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_matchLoading
+#include "header_rep_data.h"
 #include "game/match_setup/loading_state.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80035838.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 
 typedef struct {
     /* 0x000 */ u8 _000[0xC];
@@ -57,7 +59,7 @@ extern void practice_loadCharacterData(void);
 extern void fn_8001A3FC(int);
 extern void fn_80019A60(void);
 extern void fn_8001A25C(void);
-extern int fn_3_1665E4(void);
+extern int practiceModel_loadStep(void);
 extern void loadSomeDataFile(void);
 extern void someAllocFunction(void);
 extern int maybeLoadHUDObjectFromMemory(void);
@@ -450,7 +452,7 @@ void fn_3_59C2C(void) {
         }
         break;
     case 14:
-        if (fn_3_1665E4()) {
+        if (practiceModel_loadStep()) {
             g_UnkSimulation_31AC0.step++;
         }
         break;

@@ -27,9 +27,12 @@ Every row is tagged:
 | **med** | a minority named, but consistent and corroborated by the call graph |
 | **inferred** | no names at all; placement read off the call graph or section layout |
 
-Files at `high`/`med` confidence were given real names. **`inferred` files keep
-their original `rep_*` names** — the evidence supports a folder but not a name,
-and inventing one would bury a guess in something that reads like a fact.
+Files at `high`/`med` confidence were given real names. **`inferred` files
+either keep their original `rep_*` names or get a deliberately generic,
+descriptive one** (e.g. `star_effect_glow.c`, `practice_model_load.c`) that says
+what the code does without claiming specifics the evidence does not support;
+the `inferred` tag marks them, so a guess is never buried in something that
+reads like a fact.
 
 The **was** column carries each file's original split-tool name, so anything
 that still refers to a file as `rep_720` -- Ghidra, older commits, notes --
@@ -49,7 +52,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `collision_primitives.c` | `rep_D0` | 4 (4) | 2,960 | Bounding boxes, triangles, stadium hazards. | high |
 | `foul_detection.c` | `rep_1CB8` | 7 (7) | 1,348 | Foul determination and terrain/fielder catchability tests. | high |
 
-## batting/ — 8 files, 82 fns (57 named)
+## batting/ — 9 files, 84 fns (59 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -57,6 +60,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `batter.c` | `game_batter` | 19 (19) | 16,184 | Batter at-bat: swing/bunt decisions, contact and hit-type calculation, launch angle and power, star swings. Nearly fully named. | high |
 | `batter_ai.c` | `rep_8C8` + `auto_00_00020A60` | 18 (16) | 10,052 | Swing timing, stick input, ball tracking, RNG; the pre-at-bat bunt roll (`batterAIRollBuntIntent`) and pre-at-bat batter/last-pitch resets. | high |
 | `charge_effects.c` | `rep_1F58` | 13 (2) | 4,368 | Charge animation graphics. | med |
+| `star_effect_glow.c` | `data_only/rep_3B70` | 2 (2) | 964 | An additive glow quad at the captain star-effect position (shared effects block `+0x440`, set by `scene_effects.c` for star swings and star pitches): `starEffectGlow_queue` builds it, smaller before contact and larger once the ball is hit, and `starEffectGlow_draw` is its draw callback. Nothing calls `starEffectGlow_queue`, so it looks like leftover code; which captain it served is unknown (it links between `star_swing_peach_daisy.c` and `stat_book.c`). | inferred |
 | `star_hit_sprites.c` | `rep_F80` | 9 (2) | 3,100 | Star-hit and charge sprites. | med |
 | `star_swing_bowser.c` | `rep_3C28` | 1 (0) | 212 | Bowser / Bowser Jr. branch of the captain star-swing effect dispatch in `scene_effects.c`: an emitter along the ball path. | med |
 | `star_swing_peach_daisy.c` | `rep_3AE8` | 5 (5) | 2,708 | Peach/Daisy star-swing special case. | med |
@@ -93,7 +97,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `camera.c` | `rep_720` | 76 (13) | 36,024 | All in-match camera work: live-ball tracking, replay cameras, fielder-action zoom, pause-menu angles, Bob-omb Derby camera. | high |
 | `camera_script.c` | `rep_3090` + gap `0xFBD58` (camera scene switching) | 56 (6) | 45,400 | Camera-script interpreter: per-scene camera scripts run as bytecode (`CamScript`/`CTX` state; some opcodes call `animation_init` setups and `scene_effects`), scene switching (`camera_switchScene`, `camera_replay`), filter steps, and the script heap and data-file load (`someAllocFunction`, `loadSomeDataFile`). Formerly misread as transform math. | med |
 
-## animation/ — 7 files, 128 fns (54 named)
+## animation/ — 8 files, 131 fns (57 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -102,17 +106,17 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | `animation_init.c` | `rep_A78` | 7 (1) | 2,044 | `initializeAnimations` plus the helpers that apply animation setup-table entries; the camera-script VM calls them. | med |
 | `defence_animation.c` | `rep_FE0` | 4 (3) | 1,544 | `animateDefence` (writes `hugeAnimStruct` objects 0–8 for the fielders), `computeAdjustedFielderOrientation`, `resetAnimationFlags`. | high |
 | `offence_animation.c` | `rep_1090` | 6 (4) | 1,092 | `animateOffence`: writes `hugeAnimStruct` objects 9–12 from `g_Runners`; called next to `animateDefence` in the per-frame chain. | high |
+| `keyframed_sprite_effect.c` | `hud/rep_21F8` | 3 (3) | 952 | A 16-frame keyframed sprite effect drawn through `scene_effects.c`'s sprite-animation player (`fn_3_BF8F8`) with its own node evaluator (scale, X translate, Y/Z rotation, alpha), the shared effects textures and a SRCALPHA/DSTALPHA blend. Nothing calls `keyframedSpriteEffect_draw`/`_stop` or writes its state, so it looks like leftover code; not a HUD element, hence `animation/`. What it showed is unknown. | inferred |
 | `scene_effects.c` | `rep_1E08` | 57 (13) | 26,372 | Sprites, dust clouds, sun, fireworks, contact-word sprites, pause-state visuals. | med |
 | `star_sparks.c` | `rep_3E58` | 16 (3) | 7,524 | Star-spark particle effects over a shared template: `fieldingSpawnSpark`/`fieldingRelatedAnimations` (used by fielders and runners), star-swing transforms (`applyStarRelatedTransformations`), and the Magikoopa catch animation. | med |
 
-## hud/ — 6 files, 68 fns (33 named)
+## hud/ — 5 files, 66 fns (33 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `hud_gauges.c` | `rep_1770` | 15 (9) | 13,292 | Star gauge, score/inning HUD, ball-strike-out counter, on-base chemistry links, and `matchHudDrawingControl`, which registers those draws. | high |
-| `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. | high |
-| `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_Strikes.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
-| `rep_21F8.c` | *(unchanged)* | 2 (0) | 952 | Small matrix + blend/Z-mode render helper. | inferred |
+| `hud_scoreboard.c` | `rep_16B8` | 43 (23) | 23,588 | Scoreboard, RBI score updates, star-chance HUD, diamond minimap, end-of-game animation. Owns `.data 0x8D88-0xF4A4`, the HUD, minigame and practice UI descriptor tables formerly in `data_only/data_8D88.c`. | high |
+| `outs_indicator.c` | `rep_1610` + 2 fns from `character_loading.c` | 3 (0) | 840 | Outs indicator: creates the two out lamps and updates them each frame from `g_BallsStrikesOuts.outs` (Toy Field: outs remaining) via `setIndicatorSlotState`. | med |
 | `runner_items.c` | `rep_9B0` | 4 (0) | 708 | Small helpers used by the versus screens and replay (a `VsFadeItem` callback, an `AnimScreenState` setter, fielder roster-slot setup). No HUD drawing; the name is provisional. | inferred |
 | `toyfield_score_update.c` | `rep_1668` + `auto_00_0009143C` | 1 (1) | 228 | `hud_ScoreUpdate_ToyFieldOffScreenPlayers`: queues the off-screen-player and RBI score-update drawing functions. Matching. | high |
 
@@ -129,31 +133,36 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 |---|---|---|---|---|---|
 | `m_sound.c` | *(unchanged)* | 39 (19) | 22,208 | Stadium emitters, ball-bounce SFX, height-based adjustment, at-bat cues, replay transition. | high |
 
-## match_setup/ — 16 files, 139 fns (92 named)
+## match_setup/ — 19 files, 139 fns (92 named)
 
 The glue that stands a match up and tears it down — loading and transition state,
 controller input, the versus/championship/home-run screens and pause entry — plus the
-match state machine (`match_flow.c`). Replay, stat bookkeeping and challenge-mode units
+match top level, end-of-game screen and state machine (`match_main.c`, `match_end.c`,
+`match_flow.c`; one original unit each, see
+[the 2026-10-18 re-split](splits.md#the-match-units-between-fielderc-and-animation_dispatchc-2026-10-18)). Replay, stat bookkeeping and challenge-mode units
 moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `ai_defaults.c` | `rep_868` | 1 (1) | 668 | `setDefaultAIValues`. | high |
+| `ai_tables.c` | `data_only/data_1880.c` | 0 (0) | — | Data-only TU: the AI probability tables and constants (`.data 0x1880-0x1D28`): pitcher AI (`invertAILevels`, `chargePitchProb`, `perfectPitchProb`, `changeUpProb`, `pickOffProb`, ...), then batter AI, `aiDashProbabilities`, fielder-AI, runner and batter-steal tables. Users (`batter_ai`, `pitcher_ai`, `fielder`, `fielder_ai`, `runner`, `ai_defaults`) all reach it by symbol; the pitcher tables come before the batter tables although `batter_ai.c` links first, so it is not any code unit's own `.data`. The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | med |
 | `at_bat_setup.c` | `auto_00_0001E154` | 3 (3) | 664 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`. | med |
+| `character_constants.c` | `data_only/data_69C0.c` | 0 (0) | — | Data-only TU of per-character / per-actor constants (`.data 0x69C0-0x8088`), mostly 54-row tables indexed by character: `BatterHitbox`, `ChargePowerConstants`, `hitByPitchHitboxes`, `runnerConstants`, `FielderHitboxConsts`, `throwWindupReleaseFrames`, `bodyCheckFrameRelatedConstants`, `barrelCollisionHitboxes`; also a few per-fielder-position flag bytes and a minigame `UIRecordDescriptor` table. Users across batting, pitching, baserunning, fielding, animation, `roster_init` and the minigames all reach it by symbol. | med |
 | `character_loading.c` | gap `0x90754` | 17 (1) | 2,464 | Match-load step functions for character models and animation files, called from `match_loading.c`. | med |
 | `controller_input.c` | `rep_10E8` | 3 (3) | 2,012 | Controller input reading and magnitude interpretation; `resetInputTrackers`. | high |
 | `game_rel_entry.c` | `rep_0` | 0 (0) | — | REL `_prolog`/`_epilog`; a leftover debug mode/stadium picker (`fn_3_258`, whose data still lists Japanese NPB stadium names) and the roster ARAM load (`maybeProcessTeamData`). | med |
 | `loading_state.c` | `rep_60` | 1 (1) | 632 | `manageLoadingState`. | high |
-| `match_flow.c` | `auto_00_0005985C` | 47 (37) | 24,804 | The match state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, end-of-game and challenge-mode flow. | high |
-| `match_flow_data.c` | `auto_00_0005985C (.data)` | 0 (0) | 0 | Initialised data for `match_flow.c` (challenge coin tables, `CommonUIFiles_matchEnd`, star power costs). Separate unit because the target references each object by symbol. | inferred |
-| `match_loading.c` | `auto_00_0005985C` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
+| `match_end.c` | `match_flow.c` `0x5B220-0x5C418` + `rep_D68` | 8 (4) | 4,600 | End-of-game screen (`matchEndGameScreenFunction`, `endOfGame_menuControl`), the shared exit-menu helpers used by the pause, practice and minigame menus (`exitMenu_main`, `fn_3_5B220`/`5B368`/`5B408`), challenge coin award (`fn_3_5B41C`) and `startChallengeModeMatch`. Owns the 12-entry jump table at `.data 0x6510`. | med |
+| `match_flow.c` | `auto_00_0005985C` (`0x5C418-0x60768`) + `rep_DB8` | 30 (26) | 17,232 | The in-play state machine: `baseballMatchSimulation`, `newPitch`, `checkIfPlayOver`, `handleDeadBall`, `processScoreChanges`, `inningChange`, `switchHalfInning`, `endOfMatch`, `initializeGame`. | high |
+| `match_loading.c` | `auto_00_0005985C` + `rep_CC8` | 9 (3) | 3,436 | Step-wise in-game / match-end file and ARAM loaders keyed on game mode; `QueueTextToDisplay` event queue; Toy Field character files. | med |
+| `match_main.c` | `match_flow.c` `0x5A684-0x5B220` + `rep_D18` | 9 (8) | 2,972 | Match top level: `gameSimulationFunction` -> `simulate1FrameOfTheGame` -> `exitToMenuControl`, `gameInitRelated`, `transferSomeValuesOnMatchLoad`, and the tiny `SetGameStatus`/`resetCount`/`configureTeamsForGame_Unused` used across the REL. `Matching`. | med |
 | `match_scene.c` | `rep_1720` + `auto_00_00097144` | 15 (14) | 8,804 | In-match scene orchestration: `manageEventStates` (event/text queue), `animateMatchScene` (per-frame HUD, pause, MVP and scoreboard dispatch), `initAnimStruct`, HUD teardown, and the pause menu (controls screen, option list, sub-panel, page indicator, team management). Code-only gap adopted by the header-only `rep_1720` TU. | high |
 | `match_transitions.c` | gap `0x6B4C8` | 6 (5) | 2,524 | Transition loaders used by `match_flow`/`versus_screens` (`loadMVPMaybe`, `loadRunnerActors`, `championshipScreenGraphics`) and `animateShadows_nonBall`. | med |
 | `pause_menu.c` | `rep_1A80` | ? | ? | Pause entry and teardown: `match_checkForPause`, `transitionToPauseScreen`, `loadPauseMenu`. | high |
 | `roster_init.c` | `rep_1188` | 7 (7) | 7,700 | Roster setup — stats into the in-memory batter/pitcher/fielder structs. | high |
 | `scene_skip.c` | `auto_00_0006C854` | 3 (3) | 1,332 | `checkForButtonPressToSkip` (first player to press a skip button, human/CPU and minigame-slot aware), its inlined per-player test `isSkipButtonPressedForPlayer`, and `setCharacterAnimations`. No .rodata of its own, so it may originally belong to a neighbouring TU. | med |
 | `transition_init.c` | `rep_1038` | 7 (5) | 1,388 | Transition initialisation, inning-end reset, non-minigame graphics. | med |
-| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. | high |
+| `versus_screens.c` | `rep_A00` | 20 (9) | 11,608 | Versus screen, championship screen, home-run trot, post-replay celebrations. Owns `.data 0x1D28-0x3C40` (`AnimSetupEntry` table, home-run camera scene IDs, `vsSituations`, matchup table). | high |
 
 ## replay/ — 2 files, 13 fns (10 named)
 
@@ -217,7 +226,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `stadium_scoreboard_digits.c` | `rep_4138` | 9 (2) | 2,964 | In-stadium scoreboard digits: world-space quads for score, inning and ball/strike/out (`animateScoreBoard`); only Mario Stadium (`sta_c0`) calls it. | med |
 | `stadium_star.c` | `rep_23E8` | 3 (2) | 368 | The stadium star: `stadiumStarAwarded` (called by every hazard stadium — Wario Palace, Peach Garden, DK Jungle, Bowser Castle, Yoshi Park) spawns the star at the hit position, plays the star sound and gives the batting team a star (max 5); `stadiumStarAnimation` drifts and spins it for 80 frames. No filename string in the binary, so the name is descriptive. | high |
 
-## minigame/ — 14 files, 569 fns (303 named)
+## minigame/ — 15 files, 576 fns (310 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
@@ -228,6 +237,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `minigame_effects.c` | *(unchanged)* | 125 (5) | 68,304 | Shared effects and pitching-machine animation: 187 `rand`, `allocParticleEffect`, `GXSetBlendMode`/`ZMode`, `sin`/`cos`, 17 calls to `pitchingMachinePitching`. Named functions span Barrel Batter, Wall Ball and Bob-omb Derby, so this is common effect code rather than one minigame. | inferred |
 | `minigame_fielder_anim.c` | `rep_2940` | 9 (8) | 5,624 | Minigame fielder animations, Toy Field coin models, character-select and results fielder placement. | med |
 | `minigame_framework.c` | `rep_31A0` | ? | ? | Shared minigame state machine: mode dispatch on `GAME_STATUS`, character select, stadium load, grand-prix ordering, rankings and coin awards, and the per-minigame constant tables in its `.data`. | high |
+| `minigame_winner_spotlight.c` | `data_only/rep_3CE0` | 7 (7) | 3,332 | Minigame results spotlight: the screen dims, then up to four light beams (sized per character) with ground discs come down on the winners. `minigame_fielder_anim.c` starts it (`minigameWinnerSpotlight_start`, `_show` next to `minigameWinnerStars_spawn`), `scene_effects.c` queues the draw each frame while it is active (`_queue` -> `_draw`), and `minigame_framework.c` / `toy_field.c` stop it next to `minigameWinnerStars_stop`. `_clearDepth` resets the depth buffer with a full-screen quad. | med |
 | `minigame_hud.c` | `hud/rep_3448` | 62 (2) | 61,228 | The minigame HUD (`minigameGraphics`, `minigameStateLogic`): score panels, timers, intro/result banners and per-minigame icons; 337 `g_Minigame` references. Moved from `hud/` because it sits inside the minigame block. | high |
 | `minigame_models.c` | `rep_3310`, then `pitching_machine.c` | 55 (55) | 27,500 | The minigame model layer (`mm_` prefix): loads, updates and unloads every minigame's models (piranhas, Thwomps, fire bars, barrels, blocks, coins, the pitching machine), the shared archive, and the result-code HUD. Only 4 of its functions are pitching-machine specific. | med |
 | `piranha_panic.c` | `rep_37A8` | 36 (36) | 22,292 | Piranha Panic. | med |
@@ -236,7 +246,7 @@ Toy 6), which leaves exactly 1 and 3 for these two. They were previously
 | `toy_field_hud.c` | `rep_2BF8` | 26 (7) | 20,112 | Toy Field off-screen character indicator. | high |
 | `wall_ball.c` | `rep_3290` | 29 (29) | 13,060 | Wall breaking/replacement, AI pitching, pitcher rotation. | high |
 
-## practice/ — 8 files, 103 fns (89 named)
+## practice/ — 10 files, 105 fns (91 named)
 
 Every practice function is now in a practice unit: menus, the three
 practice modes (batting/fielding, pitching, baserunning, free fielding),
@@ -250,38 +260,43 @@ guided instructions and pause handling, and the scene/HUD code.
 | `guided_practice.c` | `rep_1B20` + unassigned `.text` | 15 (15) | 7,580 | Guided instructions, practice pause/menu controls, input reset and CPU input playback. | high |
 | `pitching_practice.c` | `rep_1C18` + unassigned `.text` | 14 (4) | 4,608 | Pitching practice ball control and state machine. | med |
 | `player_control_transition.c` | `rep_1B70` | 1 (1) | 292 | `transitionToPlayerControl`. | high |
-| `practice_menu.c` | `rep_1BC8` + unassigned `.text` | 11 (10) | 6,804 | Practice state reset, character loading, practice screen load, main/sub menu state handling. | med |
+| `practice_menu.c` | `rep_1BC8` (second half) + unassigned `.text` | 9 (8) | 5,288 | Practice main/sub menu state handling, character-select menu and its cursor update, menu screen switching. Owns the three jump tables at `.data 0x10A30-0x10A90`. | med |
+| `practice_simulation.c` | `rep_1BC8` (first half) + unassigned `.text` | 12 (11) | 3,684 | Practice per-frame simulation dispatcher, practice screen load, roster/character loading, state-transition helpers. Owns `rep_1BC8`'s `.rodata` and the jump table at `.data 0x10A08` (plus the 4-byte linker pad). | med |
+| `practice_model_load.c` | `data_only/rep_3E00` | 2 (2) | 616 | Practice-mode model load: `practiceModel_loadStep` (polled by the practice loading flow `fn_3_59C2C` in `match_loading.c`, which `match_main.c` installs only for `GAME_TYPE_PRACTICE`) ARAM-loads one packed file (actor layout, geometry, texture, animation) and `practiceModel_setup` unpacks it into a one-actor `hugeAnimStruct` model table. Which model it is has not been identified. | inferred |
 | `practice_scene.c` | `rep_3A48` + unassigned `.text` | 20 (20) | 12,140 | Practice instructions, goal HUD, menus' scene updates and HUD drawing. | high |
 
-## data_only/ — 11 files, 11 fns (0 named)
+## data_only/ — 1 file, 0 fns
 
-These kept their original names, so there is nothing to look up. The
-exceptions are `data_1880.c`, `data_428C.c`, `data_69C0.c` and `data_8D88.c`,
-data-only units added for shared `.data` tables with no code owner and named
-by address (see [Unowned game REL `.data`](splits.md#unowned-game-rel-data-2026-10-08)).
+Only `data_428C.c` is left: a data-only unit added for shared `.data` tables
+with no code owner and named by address (see [Unowned game REL
+`.data`](splits.md#unowned-game-rel-data-2026-10-08)). Its two siblings were
+named on 2026-10-18: `data_1880.c` is now `match_setup/ai_tables.c` and
+`data_69C0.c` is `match_setup/character_constants.c` (both still data-only TUs).
 
-As of 2026-10-08, `rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8` — all `text=0, rodata=80, data=0, bss=0`,
-**no code split yet**. The 80 bytes are `repHeaderData`, a 20-float table
-(`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a trig-quadrant /
-axis-direction table) that a shared header emits into all 92 units. Each of
-these is an original TU whose code is still an un-split `.text` gap at the
-same position: see [Game REL: pairing header-only units with un-split
+The 80 bytes at the head of almost every unit's `.rodata` are `repHeaderData`, a
+20-float table (`1.0, π/2, 1.0, -1.0, 3π/2, π, -1.0, 0.0, -1.0, 1.0`, twice — a
+trig-quadrant / axis-direction table) that a shared header emits into all 92 units
+that include it. A unit that owned only that table was an original TU whose code was
+still an un-split `.text` gap: see [Game REL: pairing header-only units with un-split
 `.text` gaps](splits.md#game-rel-pairing-header-only-units-with-un-split-text-gaps).
-`rep_3BD8`, `rep_1720` and `rep_1668` were paired this way and moved out of
-this folder (`stat_book.c`, `match_scene.c`, `toyfield_score_update.c`).
-The latest main also pairs `rep_1A80`, `rep_1AD0`, `rep_1B20`, and `rep_31A0`
-with `pause_menu.c`, `practice_modes.c`, `guided_practice.c`, and
-`minigame_framework.c`. `rep_3A48` is now `practice_scene.c`, `rep_3A98`
+Every such unit has now been paired and moved out of this folder; the last four
+(`rep_CC8`, `rep_D18`, `rep_D68`, `rep_DB8`) became the tables of `match_loading.c`,
+`match_main.c`, `match_end.c` and `match_flow.c` on 2026-10-18. Earlier pairings:
+`rep_3BD8` `stat_book.c`, `rep_1720` `match_scene.c`, `rep_1668`
+`toyfield_score_update.c`, `rep_1A80` `pause_menu.c`, `rep_1AD0`
+`batting_fielding_practice.c`, `rep_1B20` `guided_practice.c`, `rep_31A0`
+`minigame_framework.c`, `rep_3A48` `practice_scene.c`, `rep_3A98`
 `free_fielding_practice.c`, `rep_1BC8` `practice_menu.c`, `rep_1C18`
 `pitching_practice.c`, `rep_1C68` `baserunning_practice.c`, `rep_9B0`
-`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`. `practice_modes.c`
-is now `batting_fielding_practice.c`.
+`hud/runner_items.c` and `rep_A78` `animation/animation_init.c`.
 
-Plus `rep_3B70`, `rep_3CE0` and `rep_3E00`, which hold a few reconstructed
-functions each but whose purpose is not yet clear enough for a name or a
-subsystem folder. `rep_3C28`, `rep_3C80` and `rep_3D50` were identified and
-moved out on 2026-10-08 (`batting/star_swing_bowser.c`,
-`ball/ball_contact_burst.c`, `batting/star_swing_wario_waluigi.c`).
+The code units that used to sit here have all been named and moved out:
+`rep_3C28`, `rep_3C80` and `rep_3D50` on 2026-10-08
+(`batting/star_swing_bowser.c`, `ball/ball_contact_burst.c`,
+`batting/star_swing_wario_waluigi.c`), and on 2026-10-18 `rep_3B70` ->
+`batting/star_effect_glow.c`, `rep_3CE0` -> `minigame/minigame_winner_spotlight.c`
+and `rep_3E00` -> `practice/practice_model_load.c` (with `hud/rep_21F8` ->
+`animation/keyframed_sprite_effect.c` in the same pass).
 
 A header table alone does not prove that all of a unit's functions were inlined
 or dropped. The unassigned code and section ownership still need to be checked
@@ -290,17 +305,7 @@ not a shared gameplay purpose.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `data_1880.c` | — | 0 (0) | — | Shared AI probability tables, `AnimSetupEntry` table, home-run camera scene IDs and `vsSituations`. | inferred |
-| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants. | inferred |
-| `data_69C0.c` | — | 0 (0) | — | Batter/fielder hitboxes, charge-power and runner constants, barrel collision boxes. | inferred |
-| `data_8D88.c` | — | 0 (0) | — | Menu, character-select and HUD icon/descriptor tables. | inferred |
-| `rep_3B70.c` | *(unchanged)* | 2 (0) | 964 | Ball-position quad sized by `framesSinceHit`; next to `star_swing_peach_daisy.c` in link order and probably a star-swing sprite. | inferred |
-| `rep_3CE0.c` | *(unchanged)* | 7 (0) | 3,332 | Fade plus four actor markers sized by character; called from `scene_effects.c` and `minigame_fielder_anim.c`. | inferred |
-| `rep_3E00.c` | *(unchanged)* | 2 (0) | 616 | An ARAM packed-file load state machine (`fn_3_1665E4`), called from `match_loading.c`. | inferred |
-| `rep_CC8.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
-| `rep_D18.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
-| `rep_D68.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
-| `rep_DB8.c` | *(unchanged)* | 0 (0) | — | Header-only (`repHeaderData`). | inferred |
+| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `match_setup/ai_tables.c` and `match_setup/character_constants.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
 
 ## src/menus — the menu REL
 
@@ -400,7 +405,7 @@ in this REL.
 
 **`dictionary.c`'s naming note.** This screen was initially misread from internal
 evidence alone as a developer settings/parameter editor -- the 11-tab/231-row
-structure and the fact that it directly touches `starMissionCompletionTracker`,
+structure and the fact that it directly touches `g_Challenge`,
 `superstarUnlocked`, and other global progress state all looked consistent with a
 dev tool. That conclusion was wrong. The user built and ran a Gecko code (derived
 from this session's addressing work: `changeScreenVariables(7)` hooked in from the
@@ -571,24 +576,20 @@ in the wrong folder. The split config assigns every one of those units to the
 the `game` and `menus` symbol tables, but the file itself is not in any splits file
 or in `configure.py`.
 
-## src/text — the DOL text engine (8 files, 13 fns, 13 named)
+## src/text — the DOL text engine (3 files, 17 fns incl. 5 without C)
 
 The pool of 30 `ScreenText` blocks at `0x80366B18` and everything that fills,
-measures, draws and frees them (main.dol `.text` 0x8000F988-0x80011000).
+measures, draws and frees them (main.dol `.text` 0x8000F150-0x80011000).
 Identified from the Ghidra-named functions, the shared `screenTextArray`
-accesses, and Rio's live-RE documentation of the engine; five units are
-fully matched and all five link from source.
+accesses, and Rio's live-RE documentation of the engine. `text.c` is one
+translation unit (see `docs/splits.md`, "The text engine is one unit"); 9 of its
+17 functions are fully matched, 5 have no C yet.
 
-| file | was | fns (named) | bytes | purpose | conf |
+| file | was | fns | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `text_channel.c` | `File_0x8000f988.c` | 1 (1) | 276 | `text_initializeNewChannel` — claims a block for a graphics object's glyph string; its header defines the engine's core types (`ScreenText`, `ScreenTextPool`, `TextChannel`, `TextBank`). Matched 100%. | high |
-| `text_width.c` | `File_0x8000fa9c.c` | 1 (1) | 696 | `calculateTextBlockWidth` — glyph-string width measurement. | high |
-| `text_block.c` | `File_0x8000fd54.c` | 6 (6) | 432 | Per-block field setters: substring indices (control codes 0x4019-0x401C / 0x4023-0x4026), inserted values (control codes 0x400F-0x4012), bank string pointer, max-letters/typewriter state; free one (`text_freeBlock`) or all 30 (`text_freeAllBlocks`) blocks. Matched 100%. | high |
-| `text_alloc.c` | `File_0x8000ff04.c` | 1 (1) | 416 | `initializeTextParameters` — scans the pool for a free block, claims and initializes it. Matched 100%. | high |
-| `sprite_draw.c` | `File_0x800100a4.c` | 1 (1) | 1012 | `drawTransformedSprite` — textured quad rendering used by the glyph draw pass. | high |
-| `text_draw.c` | `File_0x80010498.c` | 1 (1) | 2708 | `DrawText` — renders one block's glyph string (control codes, palette recolor, typewriter effect). | high |
-| `text_draw_conditional.c` | `File_0x80010f2c.c` | 1 (1) | 116 | `DrawTextOnCondition` — gating wrapper around the draw pass. | high |
-| `text_init.c` | `File_0x80010fa0.c` | 1 (1) | 96 | `initTextRendering`. | high |
+| `text.c` | `File_0x8000f48c.c`, `text_channel.c`, `text_width.c`, `text_block.c`, `text_alloc.c`, `sprite_draw.c`, `text_draw.c` and five unowned functions | 17 | 7644 | `somethingSetTexturePointer`, `text_initializeNewChannel` (claims a block for a graphics object's glyph string; the header defines the engine's core types `ScreenText`, `ScreenTextPool`, `TextChannel`, `TextBank`), `calculateTextBlockWidth`, the per-block setters (`text_setSubstringIndices`, `text_setInsertedValues`, `practiceTextRelated`, `text_setPtrToWhereCharsAreStored`, `text_freeAllBlocks`, `text_freeBlock`), `initializeTextParameters`, `drawTransformedSprite` and `DrawText`. | high |
+| `text_draw_conditional.c` | `File_0x80010f2c.c` | 1 | 116 | `DrawTextOnCondition` — gating wrapper around the draw pass. | high |
+| `text_init.c` | `File_0x80010fa0.c` | 1 | 96 | `initTextRendering`. | high |
 
 ## Outside `src/game`
 
@@ -596,8 +597,18 @@ fully matched and all five link from source.
 |---|---|---|
 | `src/Dolphin` | 189 | GameCube SDK, organised by library: `os` (24), `MSL_C` (59), `TRK_MINNOW_DOLPHIN` (28), `card` (16), `gx` (15), `dvd` (8), `mtx` (7), `Runtime` (6), `gba` (4), `dsp` (3), plus `ai`/`ar`/`exi`/`si`/`vi`/`pad`/`thp`/`gd`/`db`/`base`. |
 | `src/Musyx` | 26 | MusyX audio engine — synth (`synth*.c`, `seq*.c`), hardware/DSP (`hw_*.c`), effects (`reverb*.c`, `chorus_fx.c`), streaming. |
-| `src/C3/control` | 1 | `control.c` — the CTRL actor/transform layer stadium and minigame code calls into (`CTRLSetScale`, `CTRLSetRotation`, `CTRLSetQuat`). |
-| `src/Unknown` | 275 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
+| `src/C3/texPalette`, `src/C3/structures` | 4 | The SDK `texPalette.c` (`TEXGet`) and `structures` modules (`List.c`: `DSInitList`/`DSInsertListObject`; `dolphinString.c`: `Strcmp`; `Tree.c`: `DSInitTree`/`DSInsertBranchBelow`), main.dol `.text` `0x80091450-0x80091608`; replaces `Unknown/File_0x80091450.c`. |
+| `src/C3/actor` | 2 | `act.c` (the actor: `ACTSort`, layout loading, bone matrices, shadow-pass bone update; main.dol `.text` `0x800B2AC8-0x800B4A44`, `NonMatching`) and `actorAnim.c` (per-bone animation control: `AnimateActorBones`, `ACTSetAnimation`; `0x800B4A44-0x800B4E9C`, `Matching`). Replace `Unknown/File_0x800b2ac8 ... 4908.c`. |
+| `src/C3/anim` | 2 | `animBank.c` (`ANIMGet`, `ANIMGetSequence`, `ANIMGetTrackFromSequence`, `ANIMGetKeyFrameFromTrack`; `Matching`) and `animPipe.c` (the `Do*Animation` interpolators, `ANIMTick`, `ANIMBind`; main.dol `.text` `0x800B516C-0x800B79D0`, still stubs). The binary names the second one: its `OSPanic` strings say `animPipe.c`. |
+| `src/C3/actor/boneAnim.c` | 1 | `ACTSetBoneTrack` (`0x800B79D0-0x800B7D3C`, stub). Listed with `src/C3/actor` above. |
+| `src/C3/geoPalette` | 3 | `DisplayObject.c` (the display-object renderer, `0x800B993C-0x800BCB44`, 21 functions, `Matching`, built with `GC/2.6`), `normalTable.c` (the 254-normal table and its quantize byte, `Matching`) and `geoPalette.c` (`LoadGeoPalette`, the geometry-palette pointer fixups, `0x800BCB44-0x800BD1F0`, `NonMatching`). |
+| `src/C3/skinning`, `src/C3/light` | 4 | `GQRSetup.c` (`__MTGQR5-7`, `GQRSetup7/6/5`, `0x800BD1F0-0x800BD2B0`) and `light.c` (the ambient override plus `LITXForm`, `LITInit*`, `LITAlloc`, `0x800BD2B0-0x800BD478`); both `Matching`, and `SKNControl.c` (`SKNLoadFile`, `SKNInit`, the flush/zero helpers and the two skinning drivers, `0x800BF074-0x800BFE90`) and `SKNAsm.c` (the six vertex kernels, `0x800BFE90-0x800C0770`, stubs; name is a proposal). |
+| `src/C3/control` | 2 | `control.c` — the CTRL actor/transform layer stadium and minigame code calls into (`CTRLSetScale`, `CTRLSetRotation`, `CTRLSetQuat`; main.dol `.text` `0x800B845C-0x800B993C`) and `frustum.c`, the view-frustum setup and culling stubs (`fn_800B806C`, `checkObjectVisibility`; `0x800B7D3C-0x800B845C`, name is a proposal). |
+| `src/challenge` | 1 | `challenge_progress.c` — the Challenge-mode star mission and scout flag tables (`.data 0x80109420-0x8010B610`), star drawing on the mission menu, recruitment, intermediate stat buffs and star rank (main.dol `.text` `0x8006C48C-0x8006CEBC`); replaces `Unknown/File_0x8006c48c/7c4/9d8/be4/ca4.c`. The REL half of Challenge mode is `src/game/challenge`. |
+| `src/Unknown/sprt.c` | 1 | the sprite renderer (`AllocateSprite`, `DrawSprite` and its wrappers `DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode`, plus 11 functions without C; main.dol `.text` `0x800B0D28-0x800B2AC8`, `NonMatching`); named by its own `OSPanic` file string. |
+| `src/Unknown/File_0x800bde8c.c` | 1 | the shadow-map pass (`setVectors`, `DrawShadows`/`GetDrawShadows`/`ShouldDrawShadows`, `loadTlutRelated` and eight functions without C; main.dol `.text` `0x800BDE8C-0x800BF074`, `NonMatching`); address-named because the binary gives no file name. |
+| `src/Unknown/sound.c` | 1 | the game's MusyX wrapper (`initSound`, `soundQuit`, `SndAlloc`, `SndFree`; main.dol `.text` `0x800B07FC-0x800B0A14`, `Matching`, `-inline deferred`); named by its own `OSPanic` file string. |
+| `src/Unknown` | 249 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---

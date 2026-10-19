@@ -1,8 +1,3 @@
-/* The shared header declares starMissionCompletionTracker as a ChallengeTrackingStruct[54]; this file
- * needs it as the whole ChallengeTrackerBlock (below). Rename the header declaration out of the way
- * here and redeclare the symbol with the struct type after the block is defined: a cast view of the
- * array does not compile the same (MWCC treats accesses through it as pointer accesses). */
-#define starMissionCompletionTracker starMissionCompletionTracker_asArray
 #include "Unknown/mb_subfunc.h"
 #include "Unknown/orderchange.h"
 #include "game/UnknownHomes_Game.h"
@@ -11,40 +6,13 @@
 #include "Dolphin/stl.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x80062a94.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 /* Byte view of a 9-wide CharacterStats table; the chemistry row starts at byte 0x3B of each entry. */
 typedef u8 CharacterStatsBytes[9][sizeof(CharacterStats)];
 #define CHEMISTRY_OFFSET 0x3B
-
-/* Saved Challenge-mode lineup slot. */
-typedef struct {
-    /* 0x0 */ s16 charID;
-    /* 0x2 */ u8 battingOrder;
-    /* 0x3 */ u8 fieldingPosition;
-    /* 0x4 */ u8 handedness; // FieldingArm * 2 + BattingStance
-    /* 0x5 */ u8 _5;
-} SavedChallengeSlot; // size: 0x6
-
-/* The whole 0x4508-byte starMissionCompletionTracker block. */
-typedef struct {
-    /* 0x0000 */ ChallengeTrackingStruct characters[54];
-    /* 0x0AF8 */ u8 _0AF8[0x40B8 - 0xAF8];
-    /* 0x40B8 */ SavedChallengeSlot savedLineup[9];
-    /* 0x40EE */ u8 _40EE[0x441D - 0x40EE];
-    /* 0x441D */ u8 captain;
-    /* 0x441E */ u8 _441E;
-    /* 0x441F */ s8 opponentCaptain;
-    /* 0x4420 */ u8 _4420[0x4445 - 0x4420];
-    /* 0x4445 */ u8 resumeSavedTeams;
-    /* 0x4446 */ u8 _4446[0x4508 - 0x4446];
-} ChallengeTrackerBlock; // size: 0x4508
-
-#undef starMissionCompletionTracker
-extern ChallengeTrackerBlock starMissionCompletionTracker;
-#define CHALLENGE_TRACKER starMissionCompletionTracker
 
 extern u8 superstarUnlocked[0x130];
 extern u8 lineUpInfoStruct[2][9][4];
@@ -376,7 +344,7 @@ static inline void sortHighChemTeammates(int team, CharacterStats* roster) {
 static inline void tryAddRecruit(s8* avail, u8* count, s32 i) {
     int row;
 
-    if ((int)CHALLENGE_TRACKER.characters[i]._31 == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
+    if ((int)g_Challenge.characters[i].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM) {
         if (addRemoveCharVariantRelated(0, i, 1)) {
             s16 (*pair)[5] = variantPairs;
 
@@ -416,9 +384,9 @@ void unknownSettingTeamValues(void) {
         tryAddRecruit(avail, &count, i);
     }
     Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_BOWSERJR;
-    if (CHALLENGE_TRACKER.resumeSavedTeams) {
+    if (g_Challenge.resumeSavedTeams) {
         for (i = 0; i < 12; i++) {
-            if (CHALLENGE_TRACKER.captain == captainIDOrderedOnCapSS[i]) {
+            if (g_Challenge.captainCharID == captainIDOrderedOnCapSS[i]) {
                 captainIndex = i;
                 break;
             }
@@ -441,16 +409,16 @@ void unknownSettingTeamValues(void) {
         unsure_FillRosterPositions(1);
         characterSelectScreen(1);
         for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
-            CHALLENGE_TRACKER.savedLineup[slot].charID = inMemRoster[0][slot].stats.CharID;
-            CHALLENGE_TRACKER.savedLineup[slot].battingOrder = lineUpInfoStruct[0][slot][1];
-            CHALLENGE_TRACKER.savedLineup[slot].fieldingPosition = lineUpInfoStruct[0][slot][2];
-            CHALLENGE_TRACKER.savedLineup[slot].handedness = inMemRoster[0][slot].stats.BattingStance + inMemRoster[0][slot].stats.FieldingArm * 2;
+            g_Challenge.savedLineup[slot].charID = inMemRoster[0][slot].stats.CharID;
+            g_Challenge.savedLineup[slot].battingOrder = lineUpInfoStruct[0][slot][1];
+            g_Challenge.savedLineup[slot].fieldingPosition = lineUpInfoStruct[0][slot][2];
+            g_Challenge.savedLineup[slot].handedness = inMemRoster[0][slot].stats.BattingStance + inMemRoster[0][slot].stats.FieldingArm * 2;
         }
     } else {
         for (team = 0; team < TEAMS_PER_GAME; team++) {
             for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                 if (team == 0) {
-                    charID = CHALLENGE_TRACKER.savedLineup[slot].charID;
+                    charID = g_Challenge.savedLineup[slot].charID;
                 } else {
                     charID = Static_Stats_Tables.challengeRosters[11].charID[slot];
                     if (charID != CHAR_ID_BOWSERJR && (n = count) != 0) {
@@ -476,10 +444,10 @@ void unknownSettingTeamValues(void) {
                 statCol = charID % 9;
                 copyCharacterStats(&inMemRoster[team][slot], &Static_Stats_Tables.characterStats[statRow][statCol]);
                 if (team == 0) {
-                    handedness = CHALLENGE_TRACKER.savedLineup[slot].handedness;
+                    handedness = g_Challenge.savedLineup[slot].handedness;
                     lineUpInfoStruct[team][slot][0] = slot;
-                    lineUpInfoStruct[team][slot][1] = CHALLENGE_TRACKER.savedLineup[slot].battingOrder;
-                    lineUpInfoStruct[team][slot][2] = CHALLENGE_TRACKER.savedLineup[slot].fieldingPosition;
+                    lineUpInfoStruct[team][slot][1] = g_Challenge.savedLineup[slot].battingOrder;
+                    lineUpInfoStruct[team][slot][2] = g_Challenge.savedLineup[slot].fieldingPosition;
                     inMemRoster[team][slot].stats.FieldingArm = handedness / 2U;
                     inMemRoster[team][slot].stats.BattingStance = handedness % 2;
                 }
@@ -750,9 +718,9 @@ void teamLogoDetermination(int team) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (team == 0) {
-            captain = Static_Stats_Tables.captainSelectedID[team] = ((u8*)&starMissionCompletionTracker)[0x441D];
+            captain = Static_Stats_Tables.captainSelectedID[team] = g_Challenge.captainCharID;
         } else {
-            captain = Static_Stats_Tables.captainSelectedID[team] = ((s8*)&starMissionCompletionTracker)[0x441F];
+            captain = Static_Stats_Tables.captainSelectedID[team] = (s8)g_Challenge.opponentCaptainCharID;
         }
     } else {
         captain = Static_Stats_Tables.captainSelectedID[team];

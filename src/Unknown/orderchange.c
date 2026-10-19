@@ -6,7 +6,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "musyx/musyx.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "menus/yd_step.h"
 #include "Unknown/File_0x800625a4.h"
 
@@ -260,7 +260,7 @@ void challengeStarMenu(void) {
     input.currentHeldInput = aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].currentHeldInput;
     input.newInput = aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].newInput;
     input.processedInput = aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].processedInput;
-    if (starMissionCompletionTracker[aiPosSwapInputs.playerIndexNoVariants].variantClassification ==
+    if (g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].variantClassification ==
         CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT) {
         isVariant = TRUE;
     }
@@ -403,7 +403,7 @@ void starMenuCursor(void) {
                                ? aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].processedInput
                                : Static_Stats_Tables.controllerInputs[0].processedInput;
 
-    variant = starMissionCompletionTracker[aiPosSwapInputs.playerIndexNoVariants].variantClassification;
+    variant = g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].variantClassification;
     size = starMenuSizes[variant];
     if (variant == CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT) {
         isVariant = TRUE;

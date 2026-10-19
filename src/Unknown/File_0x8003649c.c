@@ -1,7 +1,7 @@
 #include "Unknown/File_0x8003649c.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800363d8.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 void fn_8000CC4C(void* layout, void* part, void* data, u32 size, u32 count);
 

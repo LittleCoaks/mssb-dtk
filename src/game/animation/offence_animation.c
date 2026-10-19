@@ -34,7 +34,6 @@ extern OffenceAnimView hugeAnimStruct;
 extern u8 animRelated[0x124];
 extern u8 lbl_3_data_6EF0[8];
 extern u8* lbl_3_common_bss_1323C;
-static const f32 lbl_3_rodata_10E0[2] = { 0.0f, 0.0f };
 extern void resetAnimationRelatedPointers(void);
 extern void AnimBlr(void);
 extern void minigameUpdateResultsScene(void);
@@ -129,9 +128,9 @@ void animateOffence(void) {
             runnerObj->position.x = runner->position.x;
             runnerObj->position.y = runner->position.y;
             runnerObj->position.z = runner->position.z;
-            runnerObj->zeroA = lbl_3_rodata_10E0[0];
+            runnerObj->zeroA = 0.0f;
             runnerObj->orientation = runner->runningAngle;
-            runnerObj->zeroB = lbl_3_rodata_10E0[0];
+            runnerObj->zeroB = 0.0f;
         }
         if (g_Stats.replayInd != FALSE) {
             runnerObj->displayState = lbl_3_common_bss_1323C[i + 0x261];
@@ -154,8 +153,8 @@ void fn_3_6C4CC(void) {
 void resetAnimationFlags2(void) {
     int i;
 
-    for (i = 9; i < 13; i++) {
-        OffenceAnimObject* obj = hugeAnimStruct.objects[i];
+    for (i = 0; i < 4; i++) {
+        OffenceAnimObject* obj = hugeAnimStruct.objects[i + 9];
         if (obj != NULL) {
             obj->displayState = FALSE;
         }

@@ -18,40 +18,40 @@ void transitionToPlayerControl(void) {
     g_Practice.tutorialState = TUTORIAL_STATE_3;
     g_Practice.framesSincePracticeMenuDefaultTransition = 0;
     g_GameLogic.teamIsCPU[0] = 0;
-    g_GameLogic._140[0] = 0;
-    g_GameLogic.batterHandedness[0] = 0;
+    g_GameLogic.pitcherAIInd[0] = 0;
+    g_GameLogic.batterAIInd[0] = 0;
     g_GameLogic.teamAIInd[0] = 0;
     g_GameLogic.autoFielding[0] = 0;
-    g_GameLogic.battingAIInd[0] = 0;
+    g_GameLogic.autoRunningInd[0] = 0;
     g_GameLogic.teamIsCPU[1] = 0;
-    g_GameLogic._140[1] = 0;
-    g_GameLogic.batterHandedness[1] = 0;
+    g_GameLogic.pitcherAIInd[1] = 0;
+    g_GameLogic.batterAIInd[1] = 0;
     g_GameLogic.teamAIInd[1] = 0;
     g_GameLogic.autoFielding[1] = 0;
-    g_GameLogic.battingAIInd[1] = 0;
+    g_GameLogic.autoRunningInd[1] = 0;
     switch (g_Practice.practiceType_2) {
     case PRACTICE_TYPE_BATTING:
         g_Practice.aIEnabled = 1;
-        g_GameLogic._140[1] = 1;
-        g_GameLogic._140[0] = 1;
+        g_GameLogic.pitcherAIInd[1] = 1;
+        g_GameLogic.pitcherAIInd[0] = 1;
         break;
     case PRACTICE_TYPE_FIELDING:
         g_Practice.aIEnabled = 1;
         g_Practice.practiceBatterHandedness = 1;
-        g_GameLogic._140[1] = 1;
-        g_GameLogic._140[0] = 1;
-        g_GameLogic.batterHandedness[1] = 1;
-        g_GameLogic.batterHandedness[0] = 1;
-        g_GameLogic.battingAIInd[1] = 1;
-        g_GameLogic.battingAIInd[0] = 1;
+        g_GameLogic.pitcherAIInd[1] = 1;
+        g_GameLogic.pitcherAIInd[0] = 1;
+        g_GameLogic.batterAIInd[1] = 1;
+        g_GameLogic.batterAIInd[0] = 1;
+        g_GameLogic.autoRunningInd[1] = 1;
+        g_GameLogic.autoRunningInd[0] = 1;
         break;
     case PRACTICE_TYPE_FREEPLAY:
         if (g_Practice.practiceLevel == 4) {
             g_Practice.aIEnabled = 1;
             g_Practice.practiceBatterHandedness = 0;
             g_Practice.aIEnabled = 1;
-            g_GameLogic._140[1] = 1;
-            g_GameLogic._140[0] = 1;
+            g_GameLogic.pitcherAIInd[1] = 1;
+            g_GameLogic.pitcherAIInd[0] = 1;
         } else if (g_Practice.practiceLevel == 5) {
             g_Practice.aIEnabled = 0;
             g_Practice.practiceBatterHandedness = 1;

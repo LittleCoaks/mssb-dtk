@@ -17,12 +17,11 @@
 #include "C3/control.h"
 #include "Dolphin/os.h"
 #include "game/fielding/fielder.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "text/text_channel.h"
+#include "C3/actor/actorAnim.h"
+#include "text/text.h"
 #include "Unknown/File_0x80025ddc.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x8004c094.h"
-#include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x80034cec.h"
 #include "game/stadium/stadium_star.h"
 #include "static/UnknownHomes_Static.h"
@@ -40,9 +39,16 @@
 #include "Unknown/File_0x80064430.h"
 #include "Unknown/File_0x800527c4.h"
 #include "Unknown/File_0x8001b728.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x80033f64.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/actor/act.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
+
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. The functions that use
+ * fabsInline match with the function form; the others need the intrinsic. */
+static inline f64 fabsInline(f64 x) {
+    return __fabs(x);
+}
 
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 hugeAnimStruct[0x3154];
@@ -1381,9 +1387,9 @@ void fn_3_F2FFC(DKJungleBarrel* barrel, f32 x, f32 z) {
     f32 diff;
 
     diff = x - barrel->rotY;
-    sign = diff / fabs(diff);
+    sign = diff / fabsInline(diff);
     if (sign == 0) {
-        sign = -(barrel->rotY / fabs(barrel->rotY));
+        sign = -(barrel->rotY / fabsInline(barrel->rotY));
     }
     dir.x = x - barrel->rotY;
     dir.y = 0.0f;
@@ -1501,8 +1507,8 @@ void fn_3_F2724(DKJungleBarrel* barrel, DKJungleKlaptrap* klaptrap) {
     cosB = (f32)cos(-(0.017453292f * barrel->_B4));
     alongX = v.x * cosA + v.z * sinA;
     alongZ = v.x * -sinB + v.z * cosB;
-    absZ = fabs(alongZ);
-    absX = fabs(alongX);
+    absZ = fabsInline(alongZ);
+    absX = fabsInline(alongX);
     if (absX <= 3.0 && absZ <= 1.75) {
         klaptrap->state = 5;
         dkPlayHazardSfx(0xb);
@@ -1542,7 +1548,7 @@ s8 dkBarrel_collisionWithFielder(DKJungleBarrel* barrel) {
         } else {
             range = 4.6666665f;
         }
-        if (!(range < fabs(offset.y - barrel->pos.y)) && fielder != NULL && fielder->knockoutStatus == 0) {
+        if (!(range < fabsInline(offset.y - barrel->pos.y)) && fielder != NULL && fielder->knockoutStatus == 0) {
             PSVECSubtract((Vec*)&fielder->pos, &barrel->pos, &dir);
             cosA = (f32)cos(-(0.017453292f * barrel->_B4));
             sinA = (f32)sin(-(0.017453292f * barrel->_B4));
@@ -1550,8 +1556,8 @@ s8 dkBarrel_collisionWithFielder(DKJungleBarrel* barrel) {
             cosB = (f32)cos(-(0.017453292f * barrel->_B4));
             alongX = dir.x * cosA + dir.z * sinA;
             alongZ = dir.x * -sinB + dir.z * cosB;
-            absZ = fabs(alongZ);
-            absX = fabs(alongX);
+            absZ = fabsInline(alongZ);
+            absX = fabsInline(alongX);
             if (absX <= 3.0 && absZ <= 1.75) {
                 stadiumID = g_d_GameSettings.StadiumID;
                 vol = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD ? lbl_3_data_84B8[8]
@@ -2590,22 +2596,7 @@ void fn_3_EE67C(DKJungleDispObj* obj, Mtx view) {
     PSMTXConcat(view, obj->mtx, model);
     GXLoadPosMtxImm(model, 0);
     GXSetCurrentMtx(0);
-    switch ((u8)(obj->vertices->format >> 4)) {
-    case 0:
-    case 1:
-        compSize = 1;
-        break;
-    case 2:
-    case 3:
-        compSize = 2;
-        break;
-    case 4:
-        compSize = 4;
-        break;
-    default:
-        compSize = 0;
-        break;
-    }
+    compSize = fn_3_EE0BC(obj->vertices->format);
     GXSetArray(GX_VA_POS, obj->vertices->data, obj->vertices->stride * compSize);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, obj->vertices->format >> 4, obj->vertices->format & 0xF);
     GXSetNumTexGens(1);
@@ -2772,8 +2763,8 @@ void fn_3_EE100(DKJungleDispObj* obj, Mtx view) {
 }
 
 // .text:0x000EE0BC size:0x44 mapped:0x8072D150
-int fn_3_EE0BC(u32 flags) {
-    switch ((flags >> 4) & 0xF) {
+int fn_3_EE0BC(u8 flags) {
+    switch ((u8)(flags >> 4)) {
     case 0:
     case 1:
         return 1;

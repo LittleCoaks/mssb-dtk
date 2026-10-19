@@ -4,6 +4,8 @@
  * constant-pool entry 16 bytes past the offsets the linked module has. */
 #define SQRT2_LINKAGE static
 #include "game/pitching/pitcher.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/replay/replay_inputs.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/baserunning/runner.h"
@@ -51,7 +53,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern s16 lbl_3_data_5F7C[];
 extern u8 bulletBallConstants[];
 extern u8 hitByPitchHitboxes[];
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4474[4];
 extern u32 AI_getPort(u8 idx);
 extern int aIPickoff(void);
@@ -65,18 +66,9 @@ extern f32 bOD_bB_maxMovement[4];
 extern f32 strikeZone[6];
 extern f32 pitchSpeedScaler[12];
 extern u8 animRelated[0x124];
-extern u8 highLevelSimulationFlag[2];
+extern u8 highLevelSimulationFlag[4];
 extern void transitionToLiveBallWithoutContact(int arg);
 extern s16 lbl_3_data_8080[];
-extern struct {
-    u8 _00[0x42];
-    s16 scoutCountdown;
-    u8 _44[2];
-    u8 scoutMissionID;
-    u8 _47;
-    u8 scoutFlag;
-    u8 _49[5];
-} lbl_3_common_bss_37400;
 extern s16 lbl_3_common_bss_32220[8];
 extern int runnerStealing_TransitionToLiveViewIndicator(void);
 extern void SetGameStatus(int status);
@@ -337,7 +329,7 @@ void setDefaultInMemPitcher(void) {
         g_Pitcher.AIInd =
             g_Minigame.minigameControlStruct[0].battingHandedness[MINIGAME_SELECTED_ORDER];
     } else {
-        g_Pitcher.AIInd = g_GameLogic.teamIsCPU[g_GameLogic.awayTeamBattingInd_battingTeam + 2];
+        g_Pitcher.AIInd = g_GameLogic.pitcherAIInd[g_GameLogic.awayTeamBattingInd_battingTeam];
     }
     sound_crowd_EffectsStruct._34 = 0;
 }
@@ -788,9 +780,9 @@ void endAtBatNonHit(void) {
         }
     }
     if (g_Pitcher.framesSinceAtBatEnded == 1) {
-        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Stats.replayInd == 0) {
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0) {
             scoutFlag_checkMissionSuccess();
-            lbl_3_common_bss_37400.scoutCountdown = 0xB4;
+            scoutState.scoutCountdown = 0xB4;
         }
         if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic._10 == 4) {
             if (g_Scores.halfInning != 0) {
@@ -808,10 +800,10 @@ void endAtBatNonHit(void) {
             g_Pitcher.walkedInRunInd = 1;
         }
     }
-    if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400.scoutMissionID != 0 && g_Stats.replayInd == 0 &&
-        lbl_3_common_bss_37400.scoutFlag == 0) {
-        lbl_3_common_bss_37400.scoutCountdown = lbl_3_common_bss_37400.scoutCountdown - 1;
-        if (lbl_3_common_bss_37400.scoutCountdown == 0x78) {
+    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.scoutMissionID != SCOUT_MISSION_NONE && g_Stats.replayInd == 0 &&
+        scoutState.scoutFlag == 0) {
+        scoutState.scoutCountdown = scoutState.scoutCountdown - 1;
+        if (scoutState.scoutCountdown == 0x78) {
             animRelated[0xB4] = 1;
         }
         transitionFrames = 0x78;
@@ -858,10 +850,10 @@ void endAtBatNonHit(void) {
 // .text:0x00073850 size:0x58 mapped:0x806B28E4
 void fn_3_73850(void) {
     int i;
-    g_Strikes.outs++;
+    g_BallsStrikesOuts.outs++;
     for (i = 0; i < 3; i++) {
-        if (g_Strikes.runnerIndexForEachOutThisPitch[i] == -1) {
-            g_Strikes.runnerIndexForEachOutThisPitch[i] = 0;
+        if (g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] == -1) {
+            g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] = 0;
             return;
         }
     }
@@ -912,8 +904,8 @@ void resetCounter(void) {
 void resetBatterCount(void) {
     int i;
     for (i = 0; i < 3; i++) {
-        if (g_Strikes.runnerIndexForEachOutThisPitch[i] == -1) {
-            g_Strikes.runnerIndexForEachOutThisPitch[i] = 0;
+        if (g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] == -1) {
+            g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] = 0;
             return;
         }
     }
@@ -1630,18 +1622,18 @@ void pitchCall(void) {
     }
     g_Pitcher.miniGameRelated = 1;
     if (g_Pitcher.strikeInd) {
-        g_Strikes.strikes++;
-        if (g_Strikes.strikes >= 3) {
+        g_BallsStrikesOuts.strikes++;
+        if (g_BallsStrikesOuts.strikes >= 3) {
             g_Pitcher.strikeOutOrWalk = 1;
             g_Pitcher.framesSinceAtBatEnded = 0;
             g_Pitcher.pitcherActionState = PITCHER_ACTION_STATE_HIT;
             g_Pitcher.currentStateFrameCounter = 0;
             QueueTextToDisplay(0x10, 0);
             if (g_GameLogic.IsStarChance == 1) {
-                if ((g_Scores.Inning < g_Scores.inningLimit || g_Scores.halfInning == 0 || g_Strikes.outs < 2 ||
+                if ((g_Scores.Inning < g_Scores.inningLimit || g_Scores.halfInning == 0 || g_BallsStrikesOuts.outs < 2 ||
                      g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total <=
                          g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total) &&
-                    (g_Scores.Inning < g_Scores.maxNumberOfExtraInnings || g_Scores.halfInning == 0 || g_Strikes.outs < 2) &&
+                    (g_Scores.Inning < g_Scores.maxNumberOfExtraInnings || g_Scores.halfInning == 0 || g_BallsStrikesOuts.outs < 2) &&
                     g_GameLogic.TeamStars[g_GameLogic.teamFielding] < 5) {
                     g_GameLogic.TeamStars[g_GameLogic.teamFielding]++;
                     if (g_Stats.replayInd == 0) {
@@ -1657,8 +1649,8 @@ void pitchCall(void) {
             QueueTextToDisplay(8, 0);
         }
     } else {
-        g_Strikes.balls++;
-        if (g_Strikes.balls >= 4) {
+        g_BallsStrikesOuts.balls++;
+        if (g_BallsStrikesOuts.balls >= 4) {
             g_Pitcher.strikeOutOrWalk = 2;
             g_Pitcher.framesSinceAtBatEnded = 0;
             g_Pitcher.pitcherActionState = PITCHER_ACTION_STATE_HIT;
@@ -1704,7 +1696,7 @@ void fn_3_70280(void) {
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
         dx = -dx;
     }
-    idx = characterStaticIndexes[g_Batter.charID * 6 + 2] * 3;
+    idx = characterStaticIndexes[g_Batter.charID].requirementRow * 3;
     if (dz <= hitByPitchHitboxes[idx] && (f32)dz >= 0.0f && dx <= hitByPitchHitboxes[idx + 1] &&
         dx >= -hitByPitchHitboxes[idx + 2]) {
         hit = 1;
@@ -1884,35 +1876,24 @@ BOOL fn_3_6F6CC(void) {
 // .text:0x0006F4E8 size:0x1E4 mapped:0x806AE57C
 BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
     int i;
-    int j;
     BOOL forcedAdvance = FALSE;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         return FALSE;
     }
-    if (g_Strikes.outs >= 2 && g_Pitcher.strikeOutOrWalk == 1) {
+    if (g_BallsStrikesOuts.outs >= 2 && g_Pitcher.strikeOutOrWalk == 1) {
         return FALSE;
     }
     if (g_Pitcher.strikeOutOrWalk == 2) {
         if (g_RunningLogic.nOffensivePlayersAtStartOfPlay == 4) {
             return FALSE;
         }
-        if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            if (g_Runners[1].furthestBaseForcedToGoToOnWalk == 1) {
-                forcedAdvance = TRUE;
-            }
-        }
-        if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            if (g_Runners[2].furthestBaseForcedToGoToOnWalk == 1) {
-                forcedAdvance = TRUE;
-            }
-        }
-        if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
-            if (g_Runners[3].furthestBaseForcedToGoToOnWalk == 1) {
-                forcedAdvance = TRUE;
+        for (i = 1; i < 4; i++) {
+            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
+                g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                if (g_Runners[i].furthestBaseForcedToGoToOnWalk == 1) {
+                    forcedAdvance = TRUE;
+                }
             }
         }
         if (!forcedAdvance) {
@@ -1924,13 +1905,7 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
             g_Pitcher.pickOffLoc = 5;
             transitionToLiveBallWithoutContact(1);
             if (g_Pitcher.strikeOutOrWalk == 1) {
-                g_Strikes.outs++;
-                for (j = 0; j < 3; j++) {
-                    if (g_Strikes.runnerIndexForEachOutThisPitch[j] == -1) {
-                        g_Strikes.runnerIndexForEachOutThisPitch[j] = 0;
-                        break;
-                    }
-                }
+                fn_3_73850();
             }
             return TRUE;
         }

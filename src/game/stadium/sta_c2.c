@@ -17,12 +17,11 @@
 #include "C3/control.h"
 #include "Dolphin/os.h"
 #include "game/fielding/fielder.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "text/text_channel.h"
+#include "C3/actor/actorAnim.h"
+#include "text/text.h"
 #include "Unknown/File_0x80025ddc.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x8004c094.h"
-#include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x80034cec.h"
 #include "game/stadium/stadium_star.h"
 #include "static/UnknownHomes_Static.h"
@@ -35,7 +34,8 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 typedef struct _PalaceMaterialFlags {
     /*0x00*/ u8 _00[0x74];
@@ -310,7 +310,6 @@ void loadWarioPalace(void** files) {
     u32 shadowBit;
     Mtx m;
     Vec v;
-    PalaceHazeEmitter* emitter;
 
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     n = 0;
@@ -846,12 +845,7 @@ void loadWarioPalace(void** files) {
 
     stadiumObjectCollision.vertexDataArray = NULL;
     fn_3_D6514();
-    for (i = 0; i < 4; i++) {
-        emitter = allocParticleEffect((void*)fn_3_CDFA4, 0x80, 0, 0x15, 1, 0);
-        if (emitter != NULL) {
-            palaceHazeTextureMaybe(emitter, i);
-        }
-    }
+    warioPalaceSomething();
     fn_3_B97C8(fn_3_CD958);
 }
 
@@ -3423,7 +3417,6 @@ void maybeChainChompSprintCTRLRelated(void) {
     StadiumObject* obj;
     u32 i;
     u32 count;
-    PalaceHazeEmitter* emitter;
 
     count = stadiumObjectCollision.objectCount;
     obj = stadiumObjectCollision.objects;
@@ -3434,12 +3427,7 @@ void maybeChainChompSprintCTRLRelated(void) {
         }
     }
     fn_3_CC1D4();
-    for (i = 0; i < 4; i++) {
-        emitter = allocParticleEffect((void*)fn_3_CDFA4, 0x80, 0, 0x15, 1, 0);
-        if (emitter != NULL) {
-            palaceHazeTextureMaybe(emitter, i);
-        }
-    }
+    warioPalaceSomething();
 }
 
 // .text:0x000CC5C4 size:0x258 mapped:0x8070B658

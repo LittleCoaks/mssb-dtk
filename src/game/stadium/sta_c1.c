@@ -17,14 +17,13 @@
 #include "C3/control.h"
 #include "Dolphin/os.h"
 #include "game/fielding/fielder.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "text/text_channel.h"
+#include "C3/actor/actorAnim.h"
+#include "text/text.h"
 #include "Unknown/File_0x80025ddc.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x8004c094.h"
-#include "Unknown/File_0x800b4bc8.h"
 #include "Unknown/File_0x80034cec.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "Unknown/File_0x8001b728.h"
 #include "game/stadium/stadium_star.h"
 #include "static/UnknownHomes_Static.h"
@@ -38,10 +37,10 @@
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80023b90.h"
-#include "Unknown/File_0x800beb3c.h"
 #include "game/stadium/sta_c2.h"
 #include "Unknown/sub.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 typedef struct _CastleMaterialFlags {
     /*0x00*/ u8 _00[4];
@@ -760,9 +759,6 @@ void fn_3_C24A0(void) {
 
 // .text:0x000C2644 size:0x330 mapped:0x807016D8
 void fn_3_C2644(void) {
-    int i;
-    s32 range;
-
     if (!g_d_GameSettings.minigamesEnabled || g_GameLogic.gameStatus < GAME_STATUS_0x1B ||
         g_GameLogic.gameStatus > 0x29) {
         if (g_GameLogic.gameStatus == GAME_STATUS_CHAMPIONSHIP) {
@@ -785,30 +781,7 @@ void fn_3_C2644(void) {
             }
             item = insertGraphicDrawingFunction(fn_3_C24A0, 5);
             item->state = 0x10;
-            if (lbl_3_bss_9D90 == 0) {
-                lbl_3_bss_9D90 = (u32)insertGraphicDrawingFunction(fn_3_C2244, 5);
-            }
-            if (currentDrawingItem->state != 0x136) {
-                randomizeAndLoadSoundEffect(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID] + 6, 8);
-            }
-            ((CastleSparkScene*)lbl_3_bss_9D90)->_2A = 0xFF;
-            ((CastleSparkScene*)lbl_3_bss_9D90)->_29 = 2;
-
-            i = rand() % 3;
-            ((CastleSparkScene*)lbl_3_bss_9D90)->pos.x = (f32)lbl_3_data_17880[i].x;
-            ((CastleSparkScene*)lbl_3_bss_9D90)->pos.y = (f32)lbl_3_data_17880[i].y;
-            ((CastleSparkScene*)lbl_3_bss_9D90)->pos.z = (f32)lbl_3_data_17880[i].z;
-
-            ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread = 10 - (rand() % 20);
-
-            i = 2;
-            while (i-- != 0) {
-                range = ((0x1FFF - (rand() * 0x3FFF) / 0x7FFF) >> (1 - i)) + 0x1FFF;
-                ((CastleSparkScene*)lbl_3_bss_9D90)->spread[i] = (s16)((rand() * range) / 0x7FFF);
-                ((CastleSparkScene*)lbl_3_bss_9D90)->spreadA[i] =
-                    ((CastleSparkScene*)lbl_3_bss_9D90)->baseSpread + 2 - (rand() % 2);
-                ((CastleSparkScene*)lbl_3_bss_9D90)->spreadB[i] = (rand() % 2) + 1;
-            }
+            fn_3_C19C8();
         }
     }
 }
@@ -1422,32 +1395,10 @@ void fn_3_C4B80(void) {
 // .text:0x000C4CF4 size:0x20C mapped:0x80703D88
 void fn_3_C4CF4(CastleFlameEmitter* emitter, u8 group) {
     CastleFlameParticle* p = emitter->particles;
-    camera_803c639c_s* cam;
 
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    cam = returnFloatFromModeIndex(returnsCurrentMode());
-    GXSetProjection(cam->proj, GX_PERSPECTIVE);
-    cam = returnFloatFromModeIndex(returnsCurrentMode());
-    GXLoadPosMtxImm(cam->view, GX_PNMTX0);
-    GXSetCurrentMtx(GX_PNMTX0);
+    fn_3_C4B80();
     while (p != NULL) {
         if (p->_48 <= 0 && p->_4A > 0 && group == p->_50) {
             fn_8003403C(p->_38, p->_3C);
@@ -1623,83 +1574,18 @@ void fn_3_C56E8(StadiumObject* obj) {
         }
     }
 
-    p = handle->particles;
-    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_RASC, GX_CC_TEXC, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_RASA, GX_CA_TEXA, GX_CA_ZERO);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
-    cam = returnFloatFromModeIndex(returnsCurrentMode());
-    GXSetProjection(cam->proj, GX_PERSPECTIVE);
-    cam = returnFloatFromModeIndex(returnsCurrentMode());
-    GXLoadPosMtxImm(cam->view, GX_PNMTX0);
-    GXSetCurrentMtx(GX_PNMTX0);
-    for (; p != NULL; p = p->next) {
-        if (p->_48 <= 0 && p->_4A > 0 && p->_50 == 0) {
-            fn_8003403C(p->_38, p->_3C);
-            fn_80033CC8(p, handle->_10);
-        }
-    }
+    fn_3_C4CF4((CastleFlameEmitter*)handle, 0);
 }
 
 // .text:0x000C597C size:0x364 mapped:0x80704A10
 void fn_3_C597C(s32 objIndex) {
     StadiumObject* obj = &stadiumObjectCollision.objects[objIndex];
     CastleFireballEmitter* handle;
-    CastleFlameParticle* p;
-    f32 x;
-    f32 y;
-    f32 z;
-    u32 i;
-    f32 ang1;
-    f32 ang2;
-    f32 mag;
 
     pitchingMachinePitching(((CastleHazardObj*)obj)->_A8 + 0x2A);
     handle = allocParticleEffect(fn_3_C4724, 0x80, 0, 0x18, TRUE, ((CastleHazardObj*)obj)->_A8 + 0x34);
     if (handle != NULL) {
-        p = handle->particles;
-        x = ((CastleFireballTarget*)obj)->anchorPos.x;
-        y = ((CastleFireballTarget*)obj)->anchorPos.y;
-        z = ((CastleFireballTarget*)obj)->anchorPos.z;
-        i = 0;
-
-        for (; p != NULL; p = p->next) {
-            p->origin.x = x;
-            p->origin.y = y;
-            p->origin.z = z;
-            ang1 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
-            ang2 = 3.1415927f * (f32)(rand() % 360) / 180.0f;
-            mag = 0.5f - (f32)(rand() % 3) / 10.0f;
-            p->velX = mag * cos(ang1) * cos(ang2);
-            p->_14 = -mag * sin(ang1);
-            p->velZ = mag * sin(ang1) * cos(ang2);
-            p->_3C = 4.4f;
-            p->_38 = 4.4f;
-            p->_48 = i / 6;
-            i++;
-            p->_4D = 0x1B;
-            p->_4E = 0;
-            p->alphaByte = 0xFF;
-            p->_42 = 0xFF;
-            p->_41 = 0xFF;
-            p->_40 = 0xFF;
-            p->_4A = 1;
-        }
+        fn_3_C444C(handle, obj);
         handle->_10 = lbl_3_bss_9F0C[0];
         handle->_24 = 0x1E;
     }

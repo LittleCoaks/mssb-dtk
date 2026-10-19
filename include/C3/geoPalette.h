@@ -55,7 +55,7 @@ typedef struct {
     /* 0x14 */ u8 numTextureChannels;
     /* 0x15 */ u8 pad8;
     /* 0x16 */ u16 pad16;
-    /* 0x18 */ u8 unk18[4];
+    /* 0x18 */ void *unk18;
     /* 0x1C */ u8 unk1C[4];
     /* 0x20 */ u8 unk20[4];
     /* 0x24 */ u8 unk24[4];
@@ -78,12 +78,12 @@ struct DODisplayObj {
     /* 0x48 */ DOUserTevModeFunc userTevModeFunc;
     /* 0x4C */ GXTexObj *shaderFunc;
     /* 0x50 */ GXTexObj *shaderData;
-    /* 0x54 */ u8 unk54[4]; // MSSB's display object is 0x6C bytes (see DOGet)
-    /* 0x58 */ u8 unk58[4];
-    /* 0x5C */ u8 unk5C[4];
-    /* 0x60 */ u8 unk60[4];
-    /* 0x64 */ u8 unk64[4];
-    /* 0x68 */ u8 unk68[4];
+    /* 0x54 */ f32 unk54; // MSSB's display object is 0x6C bytes (see DOGet); 0x54..0x68 are box extents
+    /* 0x58 */ f32 unk58;
+    /* 0x5C */ f32 unk5C;
+    /* 0x60 */ f32 unk60;
+    /* 0x64 */ f32 unk64;
+    /* 0x68 */ f32 unk68;
 };
 
 typedef struct {
@@ -108,6 +108,7 @@ Mtx *DOGetWorldMatrix(struct DODisplayObj * dispObj);
 void DOHide(struct DODisplayObj * dispObj);
 void DORender(struct DODisplayObj * dispObj, MtxPtr camera, u8 numLights, ...);
 void DOVARender(struct DODisplayObj * dispObj, MtxPtr camera, u8 numLights, va_list *list);
+void DODefaultUserTevMode(int mode, struct DODisplayObj* dispObj, MtxPtr camera, u8* numTexGens, u8* numTevStages);
 void DORenderSkin(struct DODisplayObj *dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray, u8 numLights, ...);
 void DOVARenderSkin(struct DODisplayObj *dispObj, MtxPtr camera, MtxPtr mtxArray, MtxPtr invTransposeMtxArray, u8 numLights, va_list *list);
 void DOSetWorldMatrix(struct DODisplayObj * dispObj, MtxPtr m);
@@ -121,13 +122,11 @@ struct sHdr *GEOGetPalette(DODisplayDataPtr *pal, char *name);
 void GEOReleasePalette(DODisplayDataPtr *pal);
 u32 GEOGetUserDataSize(DODisplayDataPtr pal);
 char *GEOGetUserData(DODisplayDataPtr pal);
-void DOGet(struct DODisplayObj **dispObj, DODisplayDataPtr pal, u16 id, char *name);
+void DOGet(struct DODisplayObj **dispObj, DODisplayDataPtr pal, u16 id);
 
 // normalTable.c
 extern u8 normalTableQuantizeInfo;
-extern u8 normalTableNumComponents;
-extern u16 normalTableNumNormals;
 
-extern f32 normalTable[252][3];
+extern f32 normalTable[254][3]; // MSSB's table has 254 normals (the SDK's has 252)
 
 #endif // _DOLPHIN_CP_GEOPALETTE_H_
