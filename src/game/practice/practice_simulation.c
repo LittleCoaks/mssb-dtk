@@ -20,7 +20,11 @@
 #include "text/text.h"
 
 extern u8 hugeAnimStruct[];
-extern u8 lbl_80354768[];
+typedef struct PracticeProgressView {
+    /* 0x0000 */ u8 _00[0xCF4E];
+    /* 0xCF4E */ u8 levelCompleted[4][4];
+} PracticeProgressView;
+extern PracticeProgressView lbl_80354768;
 extern u8 lbl_803C6CF8[];
 extern u8 PracticeScreenFiles[];
 extern u8 lbl_80366158[];
@@ -142,7 +146,7 @@ static inline void practiceResetForMenu(void) {
     practice->loadingGuidedPractice = FALSE;
     practice->guidedMessageSceneStarted = FALSE;
     for (row = 0; row < 4; row++) {
-        volatile u8* src = &lbl_80354768[row * 4];
+        volatile u8* src = &lbl_80354768._00[row * 4];
         for (col = 0; col < 4; col++) {
             practice->levelCompleted[row][col] = src[0xCF4E + col];
         }
@@ -238,34 +242,61 @@ void practice_loadCharacterData(void) {
 #pragma dont_inline on
 void practice_loadCharacter(int team, int slot, int character, int flags) {
     if (team == 0 && slot == 0) {
-        g_GameLogic.battingOrderAndPositionMapping[team][0][0] = slot;
+        *(int*)((u8*)&g_GameLogic + team * 0x50 + 0x3C) = slot;
     }
     lineUpInfoStruct[team][slot][0] = slot;
     lineUpInfoStruct[team][slot][1] = slot;
     lineUpInfoStruct[team][slot][2] = slot;
-    g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][0] = slot;
-    g_GameLogic.battingOrderAndPositionMapping[team][slot + 1][1] = slot;
+    *(int*)((u8*)&g_GameLogic + team * 0x50 + slot * 8 + 0x44) = slot;
+    *(int*)((u8*)&g_GameLogic + team * 0x50 + slot * 8 + 0x48) = slot;
     if (slot >= 0 && slot <= 8) {
         fn_80011BE4(slot);
     }
-    memcpy(&inMemRoster[team][slot], &CHAR_STATS(character), sizeof(CharacterStats));
+    team *= 0x5A0;
+    slot *= 0xA0;
+    memcpy((u8*)inMemRoster + team + slot, (u8*)&Static_Stats_Tables + character * 0xA0, 0xA0);
     if (flags >= 0) {
         if (flags == 0 || flags == 1) {
-            inMemRoster[team][slot].stats.FieldingArm = 0;
+            *((u8*)inMemRoster + team + slot + 0x26) = 0;
         } else {
-            inMemRoster[team][slot].stats.FieldingArm = 1;
+            *((u8*)inMemRoster + team + slot + 0x26) = 1;
         }
         if (flags == 0 || flags == 2) {
-            inMemRoster[team][slot].stats.BattingStance = 0;
+            *((u8*)inMemRoster + team + slot + 0x27) = 0;
         } else {
-            inMemRoster[team][slot].stats.BattingStance = 1;
+            *((u8*)inMemRoster + team + slot + 0x27) = 1;
         }
     }
 }
 #pragma dont_inline reset
 
 void practiceLoadingRelatedMaybe(void) {
-    practiceResetForMenu();
+    int row;
+    int col;
+    insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
+    insertGraphicDrawingFunction(drawStadium, 4);
+    ANIM_BYTE(0x307E) = FALSE;
+    g_Practice.practiceType = PRACTICE_TYPE_PITCHING;
+    g_Practice.baserunningActiveRunners[0] = FALSE;
+    g_Practice.baserunningActiveRunners[1] = FALSE;
+    g_Practice.baserunningActiveRunners[2] = FALSE;
+    g_Practice._1A6 = FALSE;
+    g_Practice._1A8 = FALSE;
+    g_Practice._1A9 = FALSE;
+    g_Practice.pauseMenuActive = FALSE;
+    g_Practice.aIEnabled = FALSE;
+    g_Practice.practiceBatterHandedness = FALSE;
+    g_Practice.freePracticeInd_writeOnly = FALSE;
+    g_Practice.freeFieldingInd_writeOnly = FALSE;
+    g_Practice.instructionNumber = -1;
+    g_Practice.transitioningIndicator = FALSE;
+    g_Practice.loadingGuidedPractice = FALSE;
+    g_Practice.guidedMessageSceneStarted = FALSE;
+    for (row = 0; row < (int)ARRAY_COUNT(g_Practice.levelCompleted); row++) {
+        for (col = 0; col < (int)ARRAY_COUNT(g_Practice.levelCompleted[0]); col++) {
+            g_Practice.levelCompleted[row][col] = lbl_80354768.levelCompleted[row][col];
+        }
+    }
 }
 
 BOOL practice_relatedToSettingCharacters(void) {

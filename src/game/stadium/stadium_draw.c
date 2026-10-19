@@ -47,14 +47,11 @@ extern u32 GXGetTexObjHeight(GXTexObj* texture);
 typedef struct {
     u32 words[28];
 } StadiumRenderEntry;
-static inline void copyExtraStadiumEntries(StadiumRenderEntry* source, u8* first,
-                                               u8* second, int count) {
-    int index;
-    for (index = 0; -index > count; index++) {
-        *(StadiumRenderEntry*)(first + index * 0xE0) = *source;
-        *(StadiumRenderEntry*)(second + index * 0xE0) = *source;
-    }
-}
+#define STADIUM_EXTRA_VIEW_COUNT 0
+#define STADIUM_CONTROL_ENTRY_STRIDE 0x1C
+#define STADIUM_RENDER_PAIR_STRIDE 0xE0
+#define STADIUM_STYLE_RECORD_WORDS 24
+#define STADIUM_STYLE_STADIUM_COUNT 7
 typedef struct {
     u8 _00[8];
     u32 a;
@@ -273,16 +270,18 @@ void fn_3_64DC(void) {
     ARAMTransfer(StadiumFiles_game[stadium * 3 + variant], 0, 0, 0);
 }
 
-s16 fn_3_6424(void* base, void*** tableOut) {
-    s16 count;
+s16 rebaseStadiumPointerTable(void* base, void*** tableOut) {
+    s16 count = *(u16*)base;
+    void** table = (void**)((u8*)base + 4);
     void** cursor;
-    int i;
-    count = *(u16*)base;
-    cursor = *tableOut = (void**)((u8*)base + 4);
-    for (i = count; i >= 0; i--) {
+    int remaining;
+    cursor = *tableOut = table;
+
+    for (remaining = count; remaining >= 0; remaining--) {
         *cursor = (u8*)((u32)*cursor + (u32)base);
         cursor++;
     }
+
     return count;
 }
 
@@ -291,12 +290,12 @@ void updateStadiumFileHeaders(void* file) {
     u8* actor = bytes + *(u32*)(bytes + 0);
     u8* geometry = bytes + *(u32*)(bytes + 0xC);
     u8* texture = bytes + *(u32*)(bytes + 0x14);
-    u8* pointerBlock;
-    u8* pointerList;
+    u8* pointerBlock = bytes + *(u32*)(bytes + 8);
     s16 pointerCount;
-    int i;
+    s32 index;
 
-    pointerCount = fn_3_6424(bytes + *(u32*)(bytes + 8), (void***)&g_UNK_StadiumDetails.pCollisionBoxes);
+    pointerCount = rebaseStadiumPointerTable(pointerBlock,
+        (void***)&g_UNK_StadiumDetails.pCollisionBoxes);
     g_UNK_StadiumDetails.numCollisionBoxes = pointerCount;
     AdjustActorPointers(actor);
     AdjustGEOPalettePointers((DODisplayDataPtr)geometry);
@@ -313,8 +312,10 @@ void updateStadiumFileHeaders(void* file) {
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x158) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x2A8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x318) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8),
-                                ((u8*)&g_UNK_StadiumDetails) + 0x548, ((u8*)&g_UNK_StadiumDetails) + 0x5B8, 0);
+    for (index = 0; index < STADIUM_EXTRA_VIEW_COUNT; index++) {
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x548 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x5B8 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0xE8);
+    }
 
     actor = bytes + *(u32*)(bytes + 4);
     geometry = bytes + *(u32*)(bytes + 0x10);
@@ -328,15 +329,17 @@ void updateStadiumFileHeaders(void* file) {
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x78) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x1C8) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
     *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x238) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
-    copyExtraStadiumEntries((StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8),
-                                ((u8*)&g_UNK_StadiumDetails) + 0x388, ((u8*)&g_UNK_StadiumDetails) + 0x3F8, 0);
+    for (index = 0; index < STADIUM_EXTRA_VIEW_COUNT; index++) {
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x388 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+        *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 0x3F8 + index * STADIUM_RENDER_PAIR_STRIDE) = *(StadiumRenderEntry*)(((u8*)&g_UNK_StadiumDetails) + 8);
+    }
 
     {
         typedef struct StadiumStyleRecord {
-            u32 words[24];
+            u32 words[STADIUM_STYLE_RECORD_WORDS];
         } StadiumStyleRecord;
         u32* selected = lbl_3_data_23C +
-            (g_d_GameSettings.miniGameStadiumIndicator * 7 + g_d_GameSettings.StadiumID) * 24;
+            (g_d_GameSettings.miniGameStadiumIndicator * STADIUM_STYLE_STADIUM_COUNT + g_d_GameSettings.StadiumID) * STADIUM_STYLE_RECORD_WORDS;
         *(StadiumStyleRecord*)(((u8*)&g_UNK_StadiumDetails) + 0x714) = *(StadiumStyleRecord*)selected;
     }
     *(void**)(((u8*)&g_UNK_StadiumDetails) + 0) = texture + 4;
@@ -349,7 +352,9 @@ void updateStadiumFileHeaders(void* file) {
     setSunLocation(g_d_GameSettings.StadiumID, g_d_GameSettings.miniGameStadiumIndicator);
 
     if (*(u32*)(bytes + 0x2C) != 0) {
-        pointerCount = fn_3_6424(bytes + *(u32*)(bytes + 0x2C), (void***)&g_UNK_StadiumDetails.pCollisionBoxes_778);
+        pointerBlock = bytes + *(u32*)(bytes + 0x2C);
+        pointerCount = rebaseStadiumPointerTable(pointerBlock,
+            (void***)&g_UNK_StadiumDetails.pCollisionBoxes_778);
         g_UNK_StadiumDetails.numCollisionBoxes_77C = pointerCount;
     } else {
         g_UNK_StadiumDetails.numCollisionBoxes_77C = 0;
@@ -378,15 +383,14 @@ void fn_3_5C68(void* context) {
     SetFog(GX_FOG_NONE, 0.0f, 0.0f,
            0.0f, 0.0f, fogBlack);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    pass = 2;
-    while (pass-- != 0) {
+    for (pass = (int)ARRAY_COUNT(pair->slots); pass-- != 0;) {
         StadiumAnimatedTexture* animation = pair->slots[pass];
         int index;
         int stateOffset;
         int updated;
         if (animation != 0) {
           updated = 0;
-          for (index = 0, stateOffset = 0; index < animation->tileCount; index++, stateOffset += 3) {
+          for (index = 0, stateOffset = 0; index < animation->tileCount; stateOffset += 3, index++) {
             u8 previous = animation->animationState[stateOffset + 2]--;
             if (previous == 0) {
                 int destinationX = (index % 8) * 32;
@@ -927,11 +931,12 @@ void fn_3_3BE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
 }
 
 // .text:0x00003904 size:0x2E4 mapped:0x80642998
-void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
+void fn_3_3904(s16 x, s16 y, int textIndex, const GXColor* foreground,
                   const GXColor* background, u8 alternate) {
+    s16 column, row, cellWidth, cellHeight;
     u16* text = screenTextArray.textBanks[0]->strings[textIndex];
     GXTexObj texture;
-    int lineStart = x;
+    s16 initialX = x;
     int value;
     for (;;) {
         value = *text++;
@@ -939,15 +944,15 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
             switch (value & 0x3FFF) {
             case 0:
                 return;
-            case 1:
-                x = lineStart;
-                y += 22;
-                break;
             case 2:
                 x += 11;
                 break;
             case 3:
                 x += 22;
+                break;
+            case 1:
+                x = initialX;
+                y += 22;
                 break;
             default:
                 break;
@@ -955,7 +960,6 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
             continue;
         }
         {
-            s16 column, row, cellWidth, cellHeight;
             f32 drawWidth;
             f32 drawHeight;
             if (value & STADIUM_ATLAS_PAGED_FLAG) {
@@ -982,7 +986,7 @@ void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
                          (s16)((f32)(s16)y + drawHeight),
                          column, row, cellWidth, cellHeight,
                          *foreground, *background, alternate & 1);
-            x = (s16)((f32)(s16)x + drawWidth);
+            x += drawWidth;
         }
     }
 }
@@ -1007,23 +1011,27 @@ void fn_3_3818(void) {
 
 void CTRLBuildMatrixRelated(void* object) {
     u8* base = (u8*)object;
-    u8* list = *(u8**)(base + 0x68);
-    u8* entry = list;
-    u8* table = *(u8**)(list + 0x10);
+    u8* entry;
+    MtxPtr modelMatrix = (MtxPtr)(base + 8);
+    MtxPtr viewMatrix = (MtxPtr)(base + 0x38);
     int index;
-    for (index = 0; index < *(u16*)(list + 6); index++, entry += 0x1C) {
+    u8* list = *(u8**)(base + 0x68);
+    u8* child;
+    u8* table = *(u8**)(list + 0x10);
+
+    entry = list;
+    for (index = 0; index < *(u16*)(list + 6); entry += STADIUM_CONTROL_ENTRY_STRIDE, index++) {
         u16 objectIndex = *(u16*)(entry + 0x34);
-        u8* child;
-        if (objectIndex == 0xFFFF) {
+        if (objectIndex == U16_MAX) {
             continue;
         }
         child = *(u8**)(*(u8**)(table + 0x10) + objectIndex * 8);
         CTRLBuildMatrix((Control*)*(void**)(entry + 0x20), (MtxPtr)(child + 0x18));
-        PSMTXConcat((MtxPtr)(base + 8), (MtxPtr)(child + 0x18), (MtxPtr)(child + 0x18));
+        PSMTXConcat(modelMatrix, (MtxPtr)(child + 0x18), (MtxPtr)(child + 0x18));
         {
             Mtx temporary;
             f32 corners[8][3];
-            PSMTXConcat((MtxPtr)(base + 0x38), (MtxPtr)(child + 0x18), temporary);
+            PSMTXConcat(viewMatrix, (MtxPtr)(child + 0x18), temporary);
             corners[0][0] = *(f32*)(child + 0x58); corners[0][1] = *(f32*)(child + 0x60); corners[0][2] = *(f32*)(child + 0x64);
             corners[1][0] = *(f32*)(child + 0x54); corners[1][1] = *(f32*)(child + 0x60); corners[1][2] = *(f32*)(child + 0x64);
             corners[2][0] = *(f32*)(child + 0x54); corners[2][1] = *(f32*)(child + 0x60); corners[2][2] = *(f32*)(child + 0x68);
@@ -1052,7 +1060,7 @@ void CTRLBuildMatrixRelated(void* object) {
             GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
             break;
         }
-        DOVARender((struct DODisplayObj*)child, (MtxPtr)(base + 0x38), 0, 0);
+        DOVARender((struct DODisplayObj*)child, viewMatrix, 0, 0);
     }
 }
 

@@ -815,7 +815,7 @@ config.libs = [
             Object(NonMatching, "Musyx/synthmacros.c"),
             Object(NonMatching, "Musyx/synthvoice.c"),
             Object(Matching, "Musyx/synth_ac.c"),
-            Object(NonMatching, "Musyx/synth_adsr.c"),
+            Object(Matching, "Musyx/synth_adsr.c"),
             Object(NonMatching, "Musyx/synth_vsamples.c"),
             Object(NonMatching, "Musyx/s_data.c"),
             Object(NonMatching, "Musyx/hw_dspctrl.c"),

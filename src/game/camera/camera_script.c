@@ -1629,19 +1629,18 @@ void fn_3_106270(VecXYZ* out) {
 // .text:0x0010617C size:0xF4 mapped:0x80745210
 BOOL fn_3_10617C(int idx, int bone, Vec* out) {
     CamActor* actor = hugeAnimStruct.objects[idx];
-    s32 boneIdx;
     Vec tmp;
     if (actor == NULL) {
         return FALSE;
     }
-    boneIdx = actor->_162[bone];
-    if (boneIdx == 0xFFFF) {
+    bone = actor->_162[bone];
+    if (bone == U16_MAX) {
         out->x = 0.0f;
         out->y = 0.0f;
         out->z = 0.0f;
         return FALSE;
     }
-    maybeTransformVectorByAnimationMatrix(*getAnimObjectActor(actor), boneIdx, &tmp);
+    maybeTransformVectorByAnimationMatrix(*getAnimObjectActor(actor), bone, &tmp);
     out->x = tmp.x;
     out->y = tmp.y;
     out->z = tmp.z;
@@ -1797,28 +1796,45 @@ void fn_3_105BD8(CamEval* e) {
 
 // .text:0x00105ACC size:0x10C mapped:0x80744B60
 void camQuatToMtx(f32* quat, Mtx out) {
-    Mtx44 m;
-    f32 x = quat[0];
-    f32 y = quat[1];
-    f32 z = quat[2];
-    f32 w = quat[3];
-    f32 x2 = x + x;
-    f32 y2 = y + y;
-    f32 z2 = z + z;
-    f32 xx = x * x2;
-    f32 yy = y * y2;
-    f32 zz = z * z2;
-    f32 xy = x * y2;
-    f32 xz = x * z2;
-    f32 wz = w * z2;
-    f32 wy = w * y2;
-    f32 yz = y * z2;
-    f32 wx = w * x2;
-    m[0][0] = 1.0f - (yy + zz);
-    m[1][0] = xy - wz;
-    m[2][0] = xz + wy;
+    /* This legacy conversion writes a fourth row beyond its 3x4 scratch matrix. */
+    f32 x2;
+    f32 z2;
+    Mtx m;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 y2;
+    f32 xx;
+    f32 yy;
+    f32 zz;
+    f32 w;
+    f32 xy;
+    f32 xz;
+    f32 wz;
+    f32 wy;
+    f32 yz;
+    f32 wx;
+    x = quat[0];
+    y = quat[1];
+    z = quat[2];
+    x2 = x + x;
+    y2 = y + y;
+    z2 = z + z;
+    xx = x * x2;
+    yy = y * y2;
+    zz = z * z2;
+    w = quat[3];
+    xy = x * y2;
+    xz = x * z2;
+    wz = w * z2;
+    wy = w * y2;
+    yz = y * z2;
+    wx = w * x2;
     m[3][0] = 0.0f;
+    m[1][0] = xy - wz;
     m[0][1] = xy + wz;
+    m[0][0] = 1.0f - (yy + zz);
+    m[2][0] = xz + wy;
     m[1][1] = 1.0f - (xx + zz);
     m[2][1] = yz - wx;
     m[3][1] = 0.0f;

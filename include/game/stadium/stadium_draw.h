@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/gx.h"
 
-void fn_3_3904(int x, int y, int textIndex, const GXColor* foreground,
+void fn_3_3904(s16 x, s16 y, int textIndex, const GXColor* foreground,
                   const GXColor* background, u8 alternate);
 void fn_3_3BE8(void* textureRecord, s16 left, s16 top, s16 right, s16 bottom,
                   s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight);
@@ -29,7 +29,7 @@ void CTRLBuildMatrixRelated(void* object);
 void fn_3_35F0(void);
 void fn_3_3818(void);
 void fn_3_5E60(void);
-s16 fn_3_6424(void* base, void*** tableOut);
+s16 rebaseStadiumPointerTable(void* base, void*** tableOut);
 void fn_3_64DC(void);
 void updateStadiumFileHeaders(void* file);
 
