@@ -103,21 +103,21 @@ void processBallFielderCollision(u8 source) {
         }
         if (fielder->currentVelocity < 0.1f) {
             return;
+        } else {
+            memcpy(&pos, &fielder->pos, sizeof(Vec));
+            pos.y = threshold;
         }
-        memcpy(&pos, &fielder->pos, sizeof(Vec));
-        pos.y = threshold;
     } else {
         speed = PSVECMag((Vec*)&g_Ball.physicsSubstruct.velocity);
-        if (g_Ball.AtBat_Contact_BallPos.y <= threshold) {
-            if ((g_Ball.maybeCollisionRelated & 0x7F) == BALL_COLLISION_TYPE_ROUGH_TERRAIN &&
-                g_Ball.pastCoordinates[0].y <= threshold) {
-                return;
-            }
-            if (speed >= 0.05) {
-                memcpy(&pos, &g_Ball.AtBat_Contact_BallPos, sizeof(Vec));
-            } else {
-                return;
-            }
+        if (!(g_Ball.AtBat_Contact_BallPos.y <= threshold)) {
+            return;
+        }
+        if ((g_Ball.maybeCollisionRelated & 0x7F) == BALL_COLLISION_TYPE_ROUGH_TERRAIN &&
+            !(g_Ball.pastCoordinates[0].y > threshold)) {
+            return;
+        }
+        if (speed >= 0.05) {
+            memcpy(&pos, &g_Ball.AtBat_Contact_BallPos, sizeof(Vec));
         } else {
             return;
         }
