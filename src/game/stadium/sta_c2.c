@@ -1180,7 +1180,7 @@ void fn_3_D5494(Mtx view) {
                 } else if (depth > 10.0f + pos.z) {
                     entry->depth = 0.25f;
                 } else {
-                    entry->depth = 1.0 - 0.75f * ((depth - nearZ) * 0.125f);
+                    entry->depth = 1.0 - 0.75f * ((depth - nearZ) / 8.0f);
                 }
             }
         }
