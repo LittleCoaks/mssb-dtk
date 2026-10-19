@@ -3754,3 +3754,8 @@ Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transiti
   emits a separate `lis/addi` per global, it does not pool them) and one merged global struct (73.4%;
   member offsets fold into the load displacement). Only splitting the block into file-`static` objects
   at the boundaries the target's addressing shows (symbols `scope:local`) reproduces it.
+
+- **A unit whose splits.txt lists `extab`/`extabindex` needs `extra_cflags=["-cpp_exceptions on"]` on its
+  `Object(...)`** (DOL `unk` lib; the C3 lib already has it in its group cflags). Without it the object
+  emits no exception tables, so `extab` scores 0% and the unit cannot be flipped to Matching even at
+  100% `.text`. Adding it changed no `.text` in any of 51 units (2026-10 first-pass follow-ups).
