@@ -5392,8 +5392,9 @@ void fn_1_D4BC(void) {
 }
 
 // .text:0x0000D300 size:0x1BC
-void fn_1_D300(DbgActor *src) {
+DbgActor *fn_1_D300(DbgActor *src) {
     s32 a, b;
+    DbgActor *act;
     switch (lbl_1_bss_6940[lbl_1_bss_5F73].f44) {
     case 0:
     case 1:
@@ -5421,7 +5422,8 @@ void fn_1_D300(DbgActor *src) {
     hugeAnimStruct.actors[lbl_1_bss_5F73]->ext->bCE = src->f25B;
     hugeAnimStruct.actors[(u8)lbl_1_bss_5F73]->ext->bCF = lbl_1_bss_5F73;
     hugeAnimStruct.actors[(u8)lbl_1_bss_5F73]->ext->bD0 = lbl_1_bss_5F73;
-    hugeAnimStruct.actors[lbl_1_bss_5F73]->model = hugeAnimStruct.objs->e[lbl_1_bss_5F73].model;
+    (act = hugeAnimStruct.actors[lbl_1_bss_5F73])->model = hugeAnimStruct.objs->e[lbl_1_bss_5F73].model;
+    return act;
 }
 
 // .text:0x0000D2F0 size:0x10

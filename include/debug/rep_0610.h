@@ -397,7 +397,7 @@ void fn_1_CCC8(void);
 void fn_1_CDC8(void);
 void fn_1_D13C(void);
 void fn_1_D2F0(void);
-void fn_1_D300(DbgActor *src);
+DbgActor *fn_1_D300(DbgActor *src);
 void fn_1_D4BC(void);
 void fn_1_D590(s32 a, s32 b, f32 v);
 u8 fn_1_D638(void);
