@@ -80,10 +80,17 @@ inline f32 inv_lerp(f32 low, f32 high, f32 value)
 }
 
 // fabricated
-inline f32 flipped_inv_lerp(f32 low, f32 high, f32 value)
+inline f32 inv_lerp2(f32 low, f32 high, f32 value)
 {
     value -= low;
-    return 1.0f - value / (high - low);
+    return value / (high - low);
+}
+
+// fabricated
+inline f32 flipped_inv_lerp(f32 low, f32 high, f32 value)
+{
+    value = 1.0f - inv_lerp2(low, high, value);
+    return value;
 }
 
 // UNUSED .text:0x000108F8 size:0x188 mapped:0x8064f98c
