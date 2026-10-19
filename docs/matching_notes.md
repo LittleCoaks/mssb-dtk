@@ -1037,7 +1037,7 @@ Three distinct shapes, all measured in one file:
   `g_Runners[2].b`) -> plain array access. MWCC then shares ONE base register and
   emits large displacements (`n*0x154 + fieldOffset`). Declaring a pointer local
   per runner makes it reload `lis`/`addi` each time: 92.43% with pointer locals,
-  **100%** with plain array access on `unused_forceOutSomething`.
+  **100%** with plain array access on `running_beginFrame_checkForceOut`.
 - **Repeated access to ONE element at a VARIABLE index** -> explicit pointer local
   `InMemRunnerType* runner = &g_Runners[i];` (the existing entries).
 - **A loop over elements where the target bumps a base by the struct stride
@@ -1101,17 +1101,38 @@ First seen: `game/game/baserunning/runner`, `running_MainFunction` and
 between an auto-inlined static and its standalone `*_unused` copy" above — same
 underlying situation, different remedy.
 
-A dispatcher hub whose target inlines several smaller in-file functions cannot be
-matched by CALLING them: MWCC declines to inline a function that is also a real
-standalone symbol, so the call survives and every register assignment shifts.
-Measured on `running_MainFunction`: calling `fn_3_8A7B4()`/`fn_3_8A618()` gave
-**75.3%**, copying their bodies in gave **94.2%**. A `static inline` clone is the
-cleaner form of the same fix where the body is small enough to share.
+**Superseded (2026-10-18): calling the helpers does work, built inside-out.** The
+earlier finding here was that a dispatcher hub could not be matched by calling
+its inlined helpers, because "MWCC declines to inline a function that is also a
+real standalone symbol" (`running_MainFunction`: calls 75.3%, copied bodies
+94.2%). That was the `-inline auto` size budget, not the standalone symbol. MWCC
+measures a callee *after* its own inlining, so a helper whose body is still a
+pasted copy of its sub-helpers is too big and stays a `bl`, while the same helper
+written as calls to those sub-helpers inlines. Fix order is innermost first:
+
+- `running_liveBall` calls `running_liveBall_clearStealing`. That alone took
+  `running_liveBall` 97.94% -> 100% (its pasted loop cached `liveBallReason` in
+  a local; the target re-reads the field).
+- `running_updateRunner` calls `running_updateRunner_chooseDirection` and
+  `running_updateRunner_roundBaseOrDugout`; `running_atBatSteals` calls
+  `running_atBatSteals_humanInput`.
+- Only then does `running_MainFunction` match at 100% as
+  `running_beginFrame(); ...; running_atBatSteals();` / `running_liveBall();` /
+  `running_updateRunner(i);` / `running_endFrame();`. Calling
+  `running_atBatSteals()` while its body was still pasted gave 79% with a real
+  `bl running_atBatSteals`; marking it `inline` matched the caller but dropped
+  the standalone copy (0%), so the keyword is not the fix.
+
+To find these: list functions nothing in the module references (no `bl`, no
+`@ha/@l`, no data pointer), then look for their bodies in same-file callers. In
+runner.c every such orphan was an inlined helper. Not every one can be called:
+in `cCSRunningFun` the Chain Chomp stage helpers (`fn_3_7D79C`, `fn_3_7D920`)
+either stayed a `bl` or inlined to a worse 97.15%, so keep those pasted.
 
 OPEN QUESTION from the same file, recorded so it is not re-derived: the reverse
 also happens. MWCC inlined two fully-implemented small callees
 (`running_chainChompSprintRelated`, `running_ForceOutStateRelated`) into
-`maybeUpdateRunnerNoRun` where the target keeps real `bl` calls, forcing that
+`running_endFrame` where the target keeps real `bl` calls, forcing that
 caller to 0.0% and 1040 bytes against the target's 356. A `#pragma dont_inline
 on`/`reset` bracket around the two callees restores the calls and the match. That
 pragma is currently in `src/game/baserunning/runner.c` and is almost certainly NOT

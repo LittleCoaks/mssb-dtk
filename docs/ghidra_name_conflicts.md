@@ -180,7 +180,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x806c5f8c` | function | `running_beginSteal_CheckForPerfect` | `running_beginSteal,CheckForPerfect` |
 | `0x806c64b8` | function | `running_beginFrame` | `running_CheckForForceOuts,UpdateStamina,UpdateTagOutVars` |
 | `0x806c68b0` | function | `running_UpdateTrackingValues_BasesEarned` | `running_UpdateTrackingValues,BasesEarned` |
-| `0x806c72bc` | function | `unused_forceOutSomething` | `unused?forceOutSomething` |
+| `0x806c72bc` | function | `running_beginFrame_checkForceOut` | `unused?forceOutSomething` |
 | `0x806d04d0` | function | `hud_ScoreUpdate_ToyFieldOffScreenPlayers` | `hud_ScoreUpdate/ToyFieldOffScreenPlayers` |
 | `0x806d59a8` | function | `toyfield_hud_turns_diamondMap` | `toyfield_hud_turns&diamondMap` |
 | `0x806dc408` | function | `noForceOutInd_atBatResultsAfterForcedRunnersAllAdvance` | `noForceOutInd,atBatResultsAfterForcedRunnersAllAdvance` |

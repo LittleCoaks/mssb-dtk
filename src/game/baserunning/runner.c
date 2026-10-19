@@ -98,114 +98,16 @@ void running_MainFunction(void) {
     running_beginFrame();
     running_updateMovementRestrictions();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT) {
-        if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
-            running_AIStartSteals();
-        } else {
-            InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
-
-            if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH ||
-                g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_WINDUP ||
-                g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
-                if (ACTIVE_TUTORIAL()) {
-                    inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
-                }
-                if (inputs->newButtonInput & INPUT_BUTTON_Y) {
-                    if (inputs->controlStickAngle < 0) {
-                        for (i = 1; i <= 3; i++) {
-                            if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE && g_Runners[i].stealingStatus == 0) {
-                                g_Runners[i].stealingStatus = 1;
-                            }
-                        }
-                    } else {
-                        if (inputs->controlStickAngle >= 0x1C0 && inputs->controlStickAngle <= 0x640) {
-                            g_Runners[1].stealingStatus = 1;
-                        }
-                        if (inputs->controlStickAngle >= 0x5C0 && inputs->controlStickAngle <= 0xA40) {
-                            g_Runners[2].stealingStatus = 1;
-                        }
-                        if (inputs->controlStickAngle >= 0x9C0 && inputs->controlStickAngle <= 0xE40) {
-                            g_Runners[3].stealingStatus = 1;
-                        }
-                    }
-                }
-            }
-        }
-        running_beginSteal_CheckForPerfect();
+        running_atBatSteals();
     } else if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
-        if ((g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL || g_GameLogic.FrameCountOfCurrentPitch >= g_RunningLogic.someSituationTrackerFrames ||
-             g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING || g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) &&
-            g_FieldingLogic.playOverInd == 0) {
-            int i;
-            InMemRunnerType* runner;
-
-            if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
-                running_LiveBall_Human();
-            } else {
-                running_LiveBall_AI();
-            }
-            runner = g_Runners;
-            for (i = 0; i < 4; i++, runner++) {
-                if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
-                    if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF && runner->stealingStatus != 0 && runner->rosterID >= 0) {
-                        runner->runningDirectionDesired = RUNNER_MOVEMENT_FORWARDS;
-                    }
-                    runner->stealingStatus = 0;
-                }
-            }
-        }
+        running_liveBall();
     }
     for (i = 0; i < 4; i++) {
         runner = &g_Runners[i];
         if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
             continue;
         }
-        running_updateDistAndFramesToClosestBases(i);
-            if (runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) {
-                if (runner->actionCode == RUNNER_ACTION_NONE) {
-                    if ((runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
-                         (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) &&
-                        runner->runningDirectionDesired != RUNNER_MOVEMENT_NONE) {
-                        if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                            if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                                runner->nextDirectionBeingProcessed = runner->runningDirectionDesired;
-                            }
-                        } else {
-                            if ((i != 0 || runner->nextBase != 1) && runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                                runner->nextDirectionBeingProcessed = runner->runningDirectionDesired;
-                            }
-                            if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS && runner->tagUpStatus != TAG_UP_TYPE_3 &&
-                                runner->baseStandingOn >= 0) {
-                                runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_NONE;
-                            }
-                        }
-                    }
-                    {
-                        int dir = running_DirectionOverrides(i);
-                        if (dir != RUNNER_MOVEMENT_NONE) {
-                            runner->nextDirectionBeingProcessed = dir;
-                        }
-                    }
-                }
-            }
-            if (runner->runningToDugoutInd != 0) {
-                runner->baseRoundingState = 0;
-                runner->actionCode = RUNNER_ACTION_NONE;
-            } else {
-                running_roundBaseDecision(i);
-                running_triggerSlideOrBodyCheck(i);
-                if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                    if (i == 0 && runner->nextBase == 1) {
-                        running_overrun1stIndicator();
-                    } else if (runner->baseRoundingState == 1) {
-                        runner->baseRoundingState = 0;
-                    }
-                    running_sendOutRunnerToDugout(i);
-                }
-            }
-            running_CalculateSpeedVariables(i);
-            running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(i);
-            running_updatePosition(i);
-            running_updateDistAndFramesToClosestBases(i);
+        running_updateRunner(i);
         {
             f32 dx = g_Ball.AtBat_Contact_BallPos.x - runner->position.x;
             f32 dz = g_Ball.AtBat_Contact_BallPos.z - runner->position.z;
@@ -215,81 +117,31 @@ void running_MainFunction(void) {
             runner->distanceFromBall = dolsqrtf2(sqx + sqz);
         }
     }
-    running_CalcVeloAndIfBatterShouldStayStill();
-    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-        running_chainChompSprintRelated();
-    } else {
-        running_checkForOuts();
-        running_ForceOutStateRelated();
-        running_updateEligibleToScore();
-        setRunnerAngle();
-    }
-    running_UpdateTrackingValues_BasesEarned();
+    running_endFrame();
 }
 
 
 // .text:0x0008A7B4 size:0x1A4 mapped:0x806C9848
-void fn_3_8A7B4(void) {
+void running_atBatSteals(void) {
     if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
         running_AIStartSteals();
     } else {
-        InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
-
-        if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH ||
-            g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_WINDUP ||
-            g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_IN_AIR) {
-            if (ACTIVE_TUTORIAL()) {
-                inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
-            }
-            if (inputs->newButtonInput & INPUT_BUTTON_Y) {
-                if (inputs->controlStickAngle < 0) {
-                    int i;
-                    for (i = 1; i <= 3; i++) {
-                        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE && g_Runners[i].stealingStatus == 0) {
-                            g_Runners[i].stealingStatus = 1;
-                        }
-                    }
-                } else {
-                    if (inputs->controlStickAngle >= 0x1C0 && inputs->controlStickAngle <= 0x640) {
-                        g_Runners[1].stealingStatus = 1;
-                    }
-                    if (inputs->controlStickAngle >= 0x5C0 && inputs->controlStickAngle <= 0xA40) {
-                        g_Runners[2].stealingStatus = 1;
-                    }
-                    if (inputs->controlStickAngle >= 0x9C0 && inputs->controlStickAngle <= 0xE40) {
-                        g_Runners[3].stealingStatus = 1;
-                    }
-                }
-            }
-        }
+        running_atBatSteals_humanInput();
     }
     running_beginSteal_CheckForPerfect();
 }
 
 // .text:0x0008A618 size:0x19C mapped:0x806C96AC
-void fn_3_8A618(void) {
+void running_liveBall(void) {
     if ((g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL || g_GameLogic.FrameCountOfCurrentPitch >= g_RunningLogic.someSituationTrackerFrames ||
          g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING || g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) &&
         g_FieldingLogic.playOverInd == 0) {
-        int i;
-        InMemRunnerType* runner;
-        u8 pickoffOrStealCd;
-
         if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
             running_LiveBall_Human();
         } else {
             running_LiveBall_AI();
         }
-        pickoffOrStealCd = g_FieldingLogic.liveBallReason;
-        runner = g_Runners;
-        for (i = 0; i < 4; i++, runner++) {
-            if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
-                if (pickoffOrStealCd == PICKOFF_STEAL_CODE_PICKOFF && runner->stealingStatus != 0 && runner->rosterID >= 0) {
-                    runner->runningDirectionDesired = RUNNER_MOVEMENT_FORWARDS;
-                }
-                runner->stealingStatus = 0;
-            }
-        }
+        running_liveBall_clearStealing();
     }
 }
 
@@ -789,7 +641,7 @@ void runnerOut(int runnerIdx) {
 }
 
 // .text:0x00088C24 size:0x164 mapped:0x806C7CB8
-void maybeUpdateRunnerNoRun(void) {
+void running_endFrame(void) {
     running_CalcVeloAndIfBatterShouldStayStill();
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
         running_chainChompSprintRelated();
@@ -968,7 +820,7 @@ void running_checkForOuts(void) {
 }
 
 // .text:0x00088228 size:0x1E0 mapped:0x806C72BC
-void unused_forceOutSomething(void) {
+void running_beginFrame_checkForceOut(void) {
     if (g_Ball.baseBallAndFielderAreOn >= 0 && g_Ball.AtBat_ContactResult >= 0 &&
         g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT &&
         g_Fielders[g_Ball.fielderWBallIndex].always0_forcePlayRelated == 0) {
@@ -1220,39 +1072,7 @@ void running_beginFrame(void) {
     running_beginFrame_storeRunnerState();
     if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT &&
         g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
-        if (g_Ball.baseBallAndFielderAreOn >= 0 && g_Ball.AtBat_ContactResult >= 0 &&
-            g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT &&
-            g_Fielders[g_Ball.fielderWBallIndex].always0_forcePlayRelated == 0) {
-            int index = (g_Ball.baseBallAndFielderAreOn + 3) & 3;
-
-            if (g_Runners[index].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
-                runnerOut(index);
-                g_Runners[index].forceOutCd = FORCE_OUT_TYPE_OUT_ON_FORCE;
-                g_Runners[index].outType = 2;
-                if (g_Ball.fielderWhoGotLastOut < 0) {
-                    if (g_Ball.throwingFielder < 0) {
-                        g_Ball.fielderWhoGotLastOut = g_Ball.fielderWBallIndex;
-                    } else {
-                        g_Ball.fielderWhoGotLastOut = g_Ball.throwingFielder;
-                        if (g_FieldingLogic.lastThrowWasLaser != 0 && !g_d_GameSettings.exhibitionMatchInd) {
-                            if (scoutState.humanTeam == g_GameLogic.teamFielding) {
-                                starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
-                            }
-                        }
-                        if ((s8)g_FieldingLogic.fielderActionBeingProcessed_prev > 0 &&
-                            g_FieldingLogic.bigPlayPotential != 0) {
-                            g_UnkSound_32718._08 = 4;
-                            g_FieldingLogic.bigPlayFielderIndex = g_Ball.fielderWithBallIndexStored2;
-                            if (!g_d_GameSettings.exhibitionMatchInd &&
-                                scoutState.humanTeam == g_GameLogic.teamFielding) {
-                                starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, g_Fielders[g_Ball.fielderWithBallIndexStored2].rosterLocation);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
+        running_beginFrame_checkForceOut();
         running_updateStamina();
         running_beginFrame_updateTaggedStates();
     }
@@ -1417,7 +1237,7 @@ void running_beginSteal_CheckForPerfect(void) {
 }
 
 // .text:0x00086DFC size:0xFC mapped:0x806C5E90
-void fn_3_86DFC(void) {
+void running_liveBall_clearStealing(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -2783,37 +2603,13 @@ void running_LiveBall_AI(void) {
         }
 
         if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
-            if (g_GameLogic.teamIsCPU[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
-                InputStruct* input = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
-                if (input->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_X | INPUT_BUTTON_Y)) {
-                    g_Runners[0].newButtonThisFrame_forMashPurposes = 1;
-                    g_Runners[1].newButtonThisFrame_forMashPurposes = 1;
-                    g_Runners[2].newButtonThisFrame_forMashPurposes = 1;
-                    g_Runners[3].newButtonThisFrame_forMashPurposes = 1;
-                }
-            } else if (g_AiLogic._44 > 0) {
-                u32 difficulty = g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam];
-                if (g_Ball.framesSinceHit >= lbl_3_data_1C58[difficulty][0]) {
-                    if (g_AiLogic._77 != 0) {
-                        g_AiLogic._77--;
-                    } else {
-                        if (RandomInt_Game(100) < lbl_3_data_1C58[g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam]][3]) {
-                            g_Runners[0].newButtonThisFrame_forMashPurposes = 1;
-                            g_Runners[1].newButtonThisFrame_forMashPurposes = 1;
-                            g_Runners[2].newButtonThisFrame_forMashPurposes = 1;
-                            g_Runners[3].newButtonThisFrame_forMashPurposes = 1;
-                            g_AiLogic._44--;
-                        }
-                        g_AiLogic._77 = lbl_3_data_1C58[g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam]][2];
-                    }
-                }
-            }
+            running_LiveBall_AI_mashInput();
         }
     }
 }
 
 // .text:0x000835B0 size:0x164 mapped:0x806C2644
-void fn_3_835B0(void) {
+void running_LiveBall_AI_mashInput(void) {
     if (g_GameLogic.teamIsCPU[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
         InputStruct* input = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
         if (input->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_X | INPUT_BUTTON_Y)) {
@@ -2842,53 +2638,10 @@ void fn_3_835B0(void) {
 }
 
 // .text:0x000833EC size:0x1C4 mapped:0x806C2480
-void fn_3_833EC(int runnerIdx) {
-    InMemRunnerType* runner;
-
+void running_updateRunner(int runnerIdx) {
     running_updateDistAndFramesToClosestBases(runnerIdx);
-    runner = &g_Runners[runnerIdx];
-    if (runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) {
-        if (runner->actionCode == RUNNER_ACTION_NONE) {
-            if ((runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
-                 (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) &&
-                runner->runningDirectionDesired != RUNNER_MOVEMENT_NONE) {
-                if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                    if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                        runner->nextDirectionBeingProcessed = runner->runningDirectionDesired;
-                    }
-                } else {
-                    if ((runnerIdx != 0 || runner->nextBase != 1) && runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                        runner->nextDirectionBeingProcessed = runner->runningDirectionDesired;
-                    }
-                    if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS && runner->tagUpStatus != TAG_UP_TYPE_3 &&
-                        runner->baseStandingOn >= 0) {
-                        runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_NONE;
-                    }
-                }
-            }
-            {
-                int dir = running_DirectionOverrides(runnerIdx);
-                if (dir != RUNNER_MOVEMENT_NONE) {
-                    runner->nextDirectionBeingProcessed = dir;
-                }
-            }
-        }
-    }
-    if (runner->runningToDugoutInd != 0) {
-        runner->baseRoundingState = 0;
-        runner->actionCode = RUNNER_ACTION_NONE;
-    } else {
-        running_roundBaseDecision(runnerIdx);
-        running_triggerSlideOrBodyCheck(runnerIdx);
-        if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-            if (runnerIdx == 0 && runner->nextBase == 1) {
-                running_overrun1stIndicator();
-            } else if (runner->baseRoundingState == 1) {
-                runner->baseRoundingState = 0;
-            }
-            running_sendOutRunnerToDugout(runnerIdx);
-        }
-    }
+    running_updateRunner_chooseDirection(runnerIdx);
+    running_updateRunner_roundBaseOrDugout(runnerIdx);
     running_CalculateSpeedVariables(runnerIdx);
     running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(runnerIdx);
     running_updatePosition(runnerIdx);
@@ -3920,7 +3673,7 @@ void fn_3_7FEA8(int runnerIdx, int direction) {
 }
 
 // .text:0x0007FD90 size:0x118 mapped:0x806BEE24
-void fn_3_7FD90(int runnerIdx) {
+void running_updateRunner_chooseDirection(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int override;
 
@@ -4042,7 +3795,7 @@ int running_DirectionOverrides(int runnerIdx) {
 }
 
 // .text:0x0007F9C4 size:0xB4 mapped:0x806BEA58
-void fn_3_7F9C4(int runnerIdx) {
+void running_updateRunner_roundBaseOrDugout(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
 
     if (runner->runningToDugoutInd != 0) {
@@ -4381,7 +4134,7 @@ void running_sendOutRunnerToDugout(int runnerIdx) {
 }
 
 // .text:0x0007EA68 size:0x16C mapped:0x806BDAFC
-void fn_3_7EA68(void) {
+void running_atBatSteals_humanInput(void) {
     InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
 
     if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_PRE_PITCH ||
@@ -4728,72 +4481,15 @@ void cCSRunningFun(void) {
                 g_Minigame.ccs.runnerChompHitState[(s8)g_Minigame.runnerPlayerIndexU8[i]] = 0;
             }
         } else {
-            if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame.turnOverStatus == 0) {
-                runnerChangeDirectionHumanInput(i);
-            }
-            running_updateDistAndFramesToClosestBases(i);
-                if (runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) {
-                    if (runner->actionCode == RUNNER_ACTION_NONE) {
-                        if ((runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
-                             (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) &&
-                            runner->runningDirectionDesired != RUNNER_MOVEMENT_NONE) {
-                            if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                                if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                                    runner->nextDirectionBeingProcessed = runner->runningDirectionDesired;
-                                }
-                            } else {
-                                if ((i != 0 || runner->nextBase != 1) && runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                                    runner->nextDirectionBeingProcessed = runner->runningDirectionDesired;
-                                }
-                                if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS && runner->tagUpStatus != TAG_UP_TYPE_3 &&
-                                    runner->baseStandingOn >= 0) {
-                                    runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_NONE;
-                                }
-                            }
-                        }
-                        {
-                            int dir = running_DirectionOverrides(i);
-                            if (dir != RUNNER_MOVEMENT_NONE) {
-                                runner->nextDirectionBeingProcessed = dir;
-                            }
-                        }
-                    }
-                }
-                if (runner->runningToDugoutInd != 0) {
-                    runner->baseRoundingState = 0;
-                    runner->actionCode = RUNNER_ACTION_NONE;
-                } else {
-                    running_roundBaseDecision(i);
-                    running_triggerSlideOrBodyCheck(i);
-                    if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-                        if (i == 0 && runner->nextBase == 1) {
-                            running_overrun1stIndicator();
-                        } else if (runner->baseRoundingState == 1) {
-                            runner->baseRoundingState = 0;
-                        }
-                        running_sendOutRunnerToDugout(i);
-                    }
-                }
-                running_CalculateSpeedVariables(i);
-                running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(i);
-                running_updatePosition(i);
-                running_updateDistAndFramesToClosestBases(i);
+            running_humanDirectionInputIfLive(i);
+            running_updateRunner(i);
         }
     }
-    running_CalcVeloAndIfBatterShouldStayStill();
-    if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
-        running_chainChompSprintRelated();
-    } else {
-        running_checkForOuts();
-        running_ForceOutStateRelated();
-        running_updateEligibleToScore();
-        setRunnerAngle();
-    }
-    running_UpdateTrackingValues_BasesEarned();
+    running_endFrame();
 }
 
 // .text:0x0007DD24 size:0x48 mapped:0x806BCDB8
-void fn_3_7DD24(int runnerIdx) {
+void running_humanDirectionInputIfLive(int runnerIdx) {
     if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Minigame.turnOverStatus == 0) {
         runnerChangeDirectionHumanInput(runnerIdx);
     }
