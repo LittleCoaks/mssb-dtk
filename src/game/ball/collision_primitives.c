@@ -58,13 +58,13 @@ BALL_COLLISION_TYPE checkStatiumHazardCollisions(VecSrcDst* inVec, CollisionStru
     Mtx lookAt;
     Vec boxMin, boxMax;
     u8 flags[256];
-    u8* flag;
     int count = stadiumObjectCollision.boundingBoxCount;
-    int i, j;
+    u32 i, j;
+    u32 allOutside;
+    u8* flag;
     void* hazardData;
     TriangleGroup* group;
     f32 length;
-    BOOL allOutside;
 
     memset(flags, 1, count);
     allOutside = TRUE;
