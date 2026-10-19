@@ -1022,7 +1022,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
     int i;
     int k;
     int f;
-    int outsBefore;
+    int outsNeeded;
     int outs;
 
     if (scout->humanTeam == g_GameLogic.teamFielding) {
@@ -1070,7 +1070,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
             }
         }
 
-        outsBefore = g_BallsStrikesOuts.storedOuts;
+        outsNeeded = g_BallsStrikesOuts.storedOuts + 2;
         outs = g_BallsStrikesOuts.outs;
         for (f = 0; f < PLAYERS_PER_TEAM; f++) {
             CharStaticIndex* fc = &characterStaticIndexes[g_Fielders[f].CharID];
@@ -1080,7 +1080,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                 StarMissionRequirement* mreq = &req[i];
 
                 if (ct->inGameMissionTracker[i].starMissionStatus >= 0 && mreq->type == STAR_MISSION_TYPE_DOUBLE_PLAY_WITH &&
-                    outsBefore + 2 <= outs) {
+                    outsNeeded <= outs) {
                     int flags = 0;
                     int m;
                     for (m = 0; m < 5; m++) {
