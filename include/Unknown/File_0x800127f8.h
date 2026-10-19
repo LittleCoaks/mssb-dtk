@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void LoadModel(void);
+BOOL LoadModel(void* obj);
 
 #endif // !__UNKNOWN_FILE_0X800127F8_H_

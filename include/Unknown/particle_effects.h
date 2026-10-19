@@ -3,7 +3,7 @@
 
 #include "mssbTypes.h"
 
-void maybeTexOrSpriteRelated(void);
+BOOL maybeTexOrSpriteRelated(u8* group);
 
 void fn_80033794(void* particles);
 void* fn_800337CC(void* buf, int count, int arg2);

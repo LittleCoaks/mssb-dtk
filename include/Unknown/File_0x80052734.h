@@ -6,7 +6,7 @@
 
 camera_803c639c_s* returnFloatFromModeIndex(int mode);
 camera_803c639c_s* fn_80052768_getCamera(int mode);
-void setScissorMode(void);
-void returnScissorMode(void);
+void setScissorMode(int mode);
+int returnScissorMode(void);
 
 #endif // !__UNKNOWN_FILE_0X80052734_H_

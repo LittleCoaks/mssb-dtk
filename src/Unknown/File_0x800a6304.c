@@ -19,8 +19,6 @@ static lbl_803C6780_struct data;
 
 void fn_800A6304(void)
 {
-    int iVar1;
-
     if (data.count2 != 0)
     {
         data.tempValue += data.values2[data.count2]._04;

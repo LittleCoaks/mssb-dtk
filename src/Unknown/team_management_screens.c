@@ -26,7 +26,6 @@ extern void fn_80058E0C(MenuScene* scene, u8 port);
 extern void fn_80058B20(MenuScene* scene, u8 port);
 extern void fn_80058644(MenuScene* scene);
 extern void zMenuLoadGraphics(MenuScene* scene);
-extern void fn_8000F8F4(MenuScene* scene);
 extern BOOL fn_80042D68(MenuScene* scene, int handle, int frame);
 extern void removeGraphicsElementFromScene(DrawingSceneStruct* node);
 

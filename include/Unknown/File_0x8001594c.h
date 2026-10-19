@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void practice_loadAllGraphics(void);
+BOOL practice_loadAllGraphics(int team);
 
 #endif // !__UNKNOWN_FILE_0X8001594C_H_

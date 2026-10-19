@@ -51,11 +51,11 @@ void SetReadParameters(AssetLoadInstructions *instructions, void *pCompressedDat
 
 /*================================================================================*/
 
-extern u8 myStack[2][0x1000];
+extern u8 lbl_802E9F80[2][0x1000];
 
 void StartThreadForReadingFromDisk()
 {
-    OSCreateThread(&gDataDecompressorValues.t, ReadDataFromDisk, NULL, myStack[1], sizeof(myStack[1]), 0x1f, 1);
+    OSCreateThread(&gDataDecompressorValues.t, ReadDataFromDisk, NULL, lbl_802E9F80[1], sizeof(lbl_802E9F80[1]), 0x1f, 1);
     OSResumeThread(&gDataDecompressorValues.t);
 }
 
@@ -89,7 +89,7 @@ void DecompressDiskData(void)
     u32 i;
     u8 *tP;
     DataVars *v = &gDataDecompressorValues;
-    u32 UNUSED_VALUE = 0;
+
 
     while (TRUE)
     {
@@ -123,10 +123,12 @@ void DecompressDiskData(void)
             // assume repetition is always > 0
             // while repetition != 0, copy the byte that was `lookback` bytes ago
             // ERROR: should load pointer instead or mr-ing previous load
-            tP = v->DataWriteTop;
             // ERROR: should be mtctr, but not unroll
             asm {
                 mtctr repetition
+            };
+            tP = v->DataWriteTop;
+            asm {
                 loop:
             };
             *tP++ = tP[-lookBack];

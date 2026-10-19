@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void gameSettingsLeftRightPressed(void);
+void gameSettingsLeftRightPressed(int direction, u8 idx);
 
 #endif // !__UNKNOWN_FILE_0X80049D8C_H_

@@ -1,17 +1,33 @@
 #include "Unknown/File_0x80052734.h"
+#include "Unknown/File_0x80052694.h"
 
 camera_803c639c_s* returnFloatFromModeIndex(int mode) {
-    return 0;
+    if (mode < 0) {
+        mode = 0;
+    } else if (mode >= 2) {
+        mode = 1;
+    }
+    return &cameras[mode] + 2;
 }
 
 camera_803c639c_s* fn_80052768_getCamera(int mode) {
-    return 0;
+    if (mode < 0) {
+        mode = 0;
+    } else if (mode >= 2) {
+        mode = 1;
+    }
+    return &cameras[mode];
 }
 
-void setScissorMode(void) {
-    return;
+void setScissorMode(int mode) {
+    if (mode < 1) {
+        mode = 1;
+    } else if (mode > 2) {
+        mode = 2;
+    }
+    scissorMode = mode;
 }
 
-void returnScissorMode(void) {
-    return;
+int returnScissorMode(void) {
+    return scissorMode;
 }

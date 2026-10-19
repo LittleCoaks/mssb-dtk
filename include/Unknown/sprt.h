@@ -4,7 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/GX/GXEnum.h"
 
-void AllocateSprite(void);
+s32 AllocateSprite(s32 slot, s32 size);
 
 void DrawNullSprite(void* vtx, s32 count);
 

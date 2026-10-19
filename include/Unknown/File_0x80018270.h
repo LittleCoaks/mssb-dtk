@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void animationInitializationRunnerRelated(void);
+void animationInitializationRunnerRelated(int mode);
 
 #endif // !__UNKNOWN_FILE_0X80018270_H_

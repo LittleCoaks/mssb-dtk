@@ -41,6 +41,15 @@ void fn_800BF048(void (*func)(void));
 void fn_800BF058(void (*func)(StadiumModel* model, Mtx m));
 ShadowState* ShouldDrawShadows(void);
 
+void fn_800BDE8C(int arg0);
+void fn_800BDEA0(void);
+void fn_800BDF70(StadiumModel* model);
+void fn_800BDFE0(u8* list);
+void fn_800BE09C(u32 arg0, ShadowCamera* cam);
+void fn_800BE158(ShadowCamera* camera, ShadowCamera* other);
+void fn_800BE498(Mtx m, f32 a, f32 b, f32 c, f32 d, f32 e);
+void fn_800BEC30(u8 count);
+
 void setVectors(Vec v);
 
 void fn_800BEB3C(void);
