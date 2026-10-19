@@ -1237,7 +1237,7 @@ typedef struct CamGlobal {
 
 #define CTX (unkStructPtr._0000)
 #define CAMF(type, off) (*(type*)((u8*)g_pCamera + (off)))
-#define CAMSCRIPT(i) (((CamGlobal*)g_pCamera)->scripts[i])
+#define CAMSCRIPT(i) ((*(CamGlobal**)&g_pCamera)->scripts[i])
 #define CAMSCRIPT_G(i) (*(CamScript*)((u8*)&g_Camera + 0x120 + (i) * 0x9BC))
 #define CAM_LABEL(i) (lbl_3_data_20E0C[i])
 #define CAM_SCRIPT_TABLE(i) (lbl_3_data_1D980[i])
@@ -2812,6 +2812,30 @@ BOOL fn_3_100018(void) {
     return CTX->_09B6 == 1;
 }
 
+static inline int findCaptainActorSlot(GameControlsStruct* gl, GameInitVariables* gs) {
+    int i;
+    int found = 0;
+
+    for (i = 0; i < 9; i++) {
+        if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
+            found = i;
+        }
+    }
+    return found;
+}
+
+static inline int findCaptainCharId(GameControlsStruct* gl, GameInitVariables* gs) {
+    int i;
+    int found = 0;
+
+    for (i = 0; i < 9; i++) {
+        if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
+            found = hugeAnimStruct.objects[i]->_252;
+        }
+    }
+    return found;
+}
+
 // .text:0x000FDB30 size:0x24E8 mapped:0x8073CBC4
 BOOL fn_3_FDB30(void) {
     CamDrawItem* item = (CamDrawItem*)currentDrawingItem;
@@ -3466,13 +3490,7 @@ BOOL fn_3_FDB30(void) {
             }
             continue;
         case 73:
-            found = 0;
-            for (i = 0; i < 9; i++) {
-                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                    hugeAnimStruct.objects[i]->_257) {
-                    found = i;
-                }
-            }
+            found = findCaptainActorSlot(gl, gs);
             CTX->_09AA = 0;
             CTX->_09B5 = 0;
             CTX->_0946 = found;
@@ -3526,13 +3544,7 @@ BOOL fn_3_FDB30(void) {
         }
         case 85:
         case 86:
-            found = 0;
-            for (i = 0; i < 9; i++) {
-                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                    hugeAnimStruct.objects[i]->_257) {
-                    found = hugeAnimStruct.objects[i]->_252;
-                }
-            }
+            found = findCaptainCharId(gl, gs);
             switch (found) {
             case 0:
                 idx = 0;
@@ -3566,24 +3578,12 @@ BOOL fn_3_FDB30(void) {
             ctx->_0000 += 1;
             continue;
         case 88:
-            found = 0;
-            for (i = 0; i < 9; i++) {
-                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                    hugeAnimStruct.objects[i]->_257) {
-                    found = i;
-                }
-            }
+            found = findCaptainActorSlot(gl, gs);
             fn_80011358(found, trackerA);
             ctx->_0000 += 1;
             continue;
         case 89:
-            found = 0;
-            for (i = 0; i < 9; i++) {
-                if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                    hugeAnimStruct.objects[i]->_257) {
-                    found = i;
-                }
-            }
+            found = findCaptainActorSlot(gl, gs);
             fn_80011358(found, 4);
             ctx->_0000 += 1;
             continue;
