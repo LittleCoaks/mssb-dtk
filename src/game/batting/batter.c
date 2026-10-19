@@ -58,7 +58,7 @@ extern f32 horizTrajPowerMultipliers[3][5];
 extern u8 ChargePowerConstants[NUM_CHOOSABLE_CHARACTERS][2];
 extern s16 lbl_3_data_5CD4[4];
 extern s16 buntVerticalAngles[5][2][2][2];
-int lbl_3_bss_34 = 0;
+static int lbl_3_bss_34 = 0;
 extern struct {
     u8 _00[0x28];
     u8 _28;
@@ -497,12 +497,12 @@ void batterInBoxMovement(void) {
     }
      
     if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_HIT) {
-        g_Batter.batterIsBeingCentredInd = 0;
+        g_Batter.batterIsBeingCentredInd = FALSE;
         return;
     }
 
     if (g_Batter.swingInd && g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
-        g_Batter.batterIsBeingCentredInd = 0;
+        g_Batter.batterIsBeingCentredInd = FALSE;
         return;
     }
 
@@ -516,10 +516,10 @@ void batterInBoxMovement(void) {
     }
 
     if (g_Batter.framesSinceStartOfSwing > 0) {
-        g_Batter.batterIsBeingCentredInd = 0;
+        g_Batter.batterIsBeingCentredInd = FALSE;
         moveSpeedMult = 0.0f;
     } else if (inputs->buttonInput & INPUT_TRIGGER_L) {
-        g_Batter.batterIsBeingCentredInd = 1;
+        g_Batter.batterIsBeingCentredInd = TRUE;
     }
 
     left_right = inputs->right_left;
@@ -531,7 +531,7 @@ void batterInBoxMovement(void) {
         } else if (g_Batter.batPosition2.x > newSpeed) {
             g_Batter.batPosition2.x -= newSpeed;
         } else {
-            g_Batter.batterIsBeingCentredInd = 0;
+            g_Batter.batterIsBeingCentredInd = FALSE;
             g_Batter.batPosition2.x = 0.0f;
         }
     } else {
@@ -1301,10 +1301,10 @@ void calculateBallHorizontalAngleHit(void) {
     horizAngle += 0x400;
 
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        if (horizAngle <= 0x800) {
-            horizAngle = 0x800 - horizAngle;
+        if (horizAngle <= SANG_ANG_180) {
+            horizAngle = SANG_ANG_180 - horizAngle;
         } else {
-            horizAngle = 0x1800 - horizAngle;
+            horizAngle = (SANG_ANG_360 + SANG_ANG_180) - horizAngle;
         }
     }
 
@@ -1487,14 +1487,14 @@ skipRandomLaunchAngles:
                g_Practice.practiceType_2 != PRACTICE_TYPE_FIELDING) {
         g_Ball.Hit_VerticalAngle = launchAngle;
     }
-    if (g_Ball.Hit_VerticalAngle > 0x400) {
-        g_Ball.Hit_VerticalAngle = 0x800 - g_Ball.Hit_VerticalAngle;
-        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + 0x800);
-    } else if (g_Ball.Hit_VerticalAngle < -0x400) {
-        g_Ball.Hit_VerticalAngle = 0x1000 + g_Ball.Hit_VerticalAngle;
-        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + 0x800);
+    if (g_Ball.Hit_VerticalAngle > SANG_ANG_90) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_180 - g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + SANG_ANG_180);
+    } else if (g_Ball.Hit_VerticalAngle < -SANG_ANG_90) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_360 + g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + SANG_ANG_180);
     } else if (g_Ball.Hit_VerticalAngle < 0) {
-        g_Ball.Hit_VerticalAngle = 0x1000 + g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_VerticalAngle = SANG_ANG_360 + g_Ball.Hit_VerticalAngle;
     }
 }
 
@@ -1645,13 +1645,12 @@ void calculateHorizontalPower(void) {
 
 // UNUSED .text:0x00010A80 size:0x280 mapped:0x8064fb14
 void calculateBuntHorizontalAngle(void) {
+    InputStruct* inputs;
     BOOL pullInd = FALSE;
-    int horizAngle;
-    int upperBunt;
-    int lowerBunt;
+    int horizAngle, ang0Low, ang0High, ang1Low, ang1High, lowerBunt, upperBunt, size;
     u8 contact;
-    
-    InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
+
+    inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
     if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
@@ -1662,14 +1661,14 @@ void calculateBuntHorizontalAngle(void) {
     }
 
     contact = g_Batter.contactType;
+    ang0Low = buntHorizontalAngles0OnRight[contact][0][0];
+    ang0High = buntHorizontalAngles0OnRight[contact][0][1];
+    ang1Low = buntHorizontalAngles0OnRight[contact][1][0];
+    ang1High = buntHorizontalAngles0OnRight[contact][1][1];
+    size = g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP];
 
-    upperBunt = buntHorizontalAngles0OnRight[contact][0][1] + (((buntHorizontalAngles0OnRight[contact][1][1] - buntHorizontalAngles0OnRight[contact][0][1]) *
-                                                   g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP]) /
-                                                  100);
-
-    lowerBunt = buntHorizontalAngles0OnRight[contact][0][0] + (((buntHorizontalAngles0OnRight[contact][1][0] - buntHorizontalAngles0OnRight[contact][0][0]) *
-                                                   g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP]) /
-                                                  100);
+    upperBunt = ang0High + (((ang1High - ang0High) * size) / 100);
+    lowerBunt = ang0Low + (((ang1Low - ang0Low) * size) / 100);
 
     horizAngle = lowerBunt + (g_Ball.StaticRandomInt1 % (upperBunt - lowerBunt));
 
@@ -1691,10 +1690,10 @@ void calculateBuntHorizontalAngle(void) {
 
     if ((g_Batter.batterHand == BATTING_HAND_RIGHT && pullInd) ||
         (g_Batter.batterHand != BATTING_HAND_RIGHT && !pullInd)) {
-        if (horizAngle <= 0x800) {
-            horizAngle = 0x800 - horizAngle;
+        if (horizAngle <= SANG_ANG_180) {
+            horizAngle = SANG_ANG_180 - horizAngle;
         } else {
-            horizAngle = 0x1800 - horizAngle;
+            horizAngle = (SANG_ANG_360 + SANG_ANG_180) - horizAngle;
         }
     }
 
@@ -1824,7 +1823,7 @@ void calculateBallVelocityAcceleration(void) {
         }
 
         if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-            hit_hor = 0x800 - hit_hor;
+            hit_hor = SANG_ANG_180 - hit_hor;
         }
 
         if (hit_hor < 0x460) {
