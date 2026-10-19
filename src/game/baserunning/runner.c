@@ -1254,26 +1254,7 @@ void running_beginFrame(void) {
         }
 
         running_updateStamina();
-
-        g_Runners[0].taggedState = RUNNER_TAGGED_NONE;
-        g_Runners[1].taggedState = RUNNER_TAGGED_NONE;
-        g_Runners[2].taggedState = RUNNER_TAGGED_NONE;
-        g_Runners[3].taggedState = RUNNER_TAGGED_NONE;
-        if (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING || g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) {
-            s16 targetIdx = g_FieldingLogic.runnerBeingTargettedForOut;
-            if (targetIdx >= 0) {
-                InMemRunnerType* target = &g_Runners[targetIdx];
-                if (target->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                    target->taggedState = RUNNER_TAGGED_RUNNING;
-                }
-                if (g_FieldingLogic.framesRunnerIsOutBy < 5 && target->actionCode != RUNNER_ACTION_NONE) {
-                    target->taggedState = RUNNER_TAGGED_IN_ACTION;
-                }
-                if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
-                    starMissionsQuantityBased(STAR_MISSION_EVENT_TAG, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
-                }
-            }
-        }
+        running_beginFrame_updateTaggedStates();
     }
 }
 
