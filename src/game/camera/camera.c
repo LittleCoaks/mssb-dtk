@@ -792,10 +792,7 @@ void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, u16 arg5, 
     }
 }
 
-inline void fn_3_19FA4_updateView(int r31) {
-    lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
-    lbl_3_data_A40_s* second = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013 + 1]];
-    g_pCamera->_2878 = first->_0C + ((f32)g_pCamera->_000E / (f32)r31) * (second->_0C - first->_0C);
+inline void fn_3_19FA4_updateView(void) {
     {
         f32 pitch = radianAngleReduction(g_pCamera->_2874);
         f32 horizontal = COSF(pitch) * 20.f;
@@ -811,17 +808,12 @@ inline void fn_3_19FA4_updateView(int r31) {
     }
     g_pCamera->_289C = radToShortAngle(g_pCamera->_2870);
     g_pCamera->_289E = normalizeAngleToRange(g_pCamera->_2874);
-    if (g_pCamera->_0010 < S16_MAX - 1) {
-        g_pCamera->_0010++;
-    } else {
-        g_pCamera->_0010 = S16_MAX;
-    }
 }
 
 // .text:0x00019FA4 size:0xEA0 mapped:0x80659038
 void fn_3_19FA4(void) {
     int r31;
-    int i;
+    s32 i;
     if (g_pCamera->_000E < S16_MAX - 1) {
         g_pCamera->_000E++;
     } else {
@@ -867,22 +859,23 @@ void fn_3_19FA4(void) {
         }
     } else if (g_pCamera->_0015 != 0) {
         int totalFrames;
-        int angles[4];
-        f32 anglePoints[4];
-        Vec points[5];
-        VecXZ splinePoints[4];
+        union {
+            Vec points[5];
+            f32 anglePoints[4];
+        } buf;
+        VecXZ splinePoints[5];
         VecXZ result;
         f32 t;
         for (i = 0; i < g_pCamera->_0012; i++) {
             lbl_3_data_A40_s* view = &cameraData_homePlateViews[g_pCamera->_0004[i]];
-            VEC_COPY(&points[i], &view->_00);
+            VEC_COPY(&buf.points[i], &view->_00);
         }
         totalFrames = 0;
         for (i = 0; i < g_pCamera->_0012 - 1; i++) {
             totalFrames += g_pCamera->_000A[i];
         }
         t = (f32)g_pCamera->_0010 / (f32)totalFrames;
-        spline3D_evaluate((Vec*)&g_pCamera->_2858, points, g_pCamera->_0012, t);
+        spline3D_evaluate((Vec*)&g_pCamera->_2858, buf.points, g_pCamera->_0012, t);
 
         splinePoints[0].z = 0.0f;
         totalFrames = 0;
@@ -890,46 +883,53 @@ void fn_3_19FA4(void) {
             totalFrames += g_pCamera->_000A[i - 1];
             splinePoints[i].z = (f32)totalFrames;
         }
-        for (i = 0; i < g_pCamera->_0012; i++) {
-            angles[i] = cameraData_homePlateViews[g_pCamera->_0004[i]]._10[0];
-        }
-        totalFrames = angles[0];
-        anglePoints[0] = (f32)totalFrames;
-        for (i = 1; i < g_pCamera->_0012; i++) {
-            int delta = angles[i] - angles[i - 1];
-            if (delta > 0x800) totalFrames -= 0x1000 - delta;
-            else if (delta < -0x800) totalFrames += 0x1000 + delta;
-            else totalFrames += delta;
-            anglePoints[i] = (f32)totalFrames;
-        }
-        for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = anglePoints[i];
+        fn_3_19B3C(0, buf.anglePoints);
+        for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = buf.anglePoints[i];
         running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
         g_pCamera->_2870 = shortAngleF32ToRad(result.x);
 
-        for (i = 0; i < g_pCamera->_0012; i++) {
-            angles[i] = cameraData_homePlateViews[g_pCamera->_0004[i]]._10[1];
-        }
-        for (i = 0; i < g_pCamera->_0012; i++) anglePoints[i] = (f32)angles[i];
-        for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = anglePoints[i];
+        fn_3_19B3C(1, buf.anglePoints);
+        for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = buf.anglePoints[i];
         running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
         g_pCamera->_2874 = shortAngleF32ToRad(result.x);
-        fn_3_19FA4_updateView(r31);
+        {
+            lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
+            lbl_3_data_A40_s* second = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013 + 1]];
+            g_pCamera->_2878 = (f32)g_pCamera->_000E * (second->_0C - first->_0C) / (f32)r31 + first->_0C;
+        }
+        fn_3_19FA4_updateView();
+        if (g_pCamera->_0010 < S16_MAX - 1) {
+            g_pCamera->_0010++;
+        } else {
+            g_pCamera->_0010 = S16_MAX;
+        }
     } else {
         lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
         lbl_3_data_A40_s* second = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013 + 1]];
-        g_pCamera->_2858.x = first->_00.x + ((f32)g_pCamera->_000E / (f32)r31) * (second->_00.x - first->_00.x);
-        g_pCamera->_2858.y = first->_00.y + ((f32)g_pCamera->_000E / (f32)r31) * (second->_00.y - first->_00.y);
-        g_pCamera->_2858.z = first->_00.z + ((f32)g_pCamera->_000E / (f32)r31) * (second->_00.z - first->_00.z);
+        g_pCamera->_2858.x = (f32)g_pCamera->_000E * (second->_00.x - first->_00.x) / (f32)r31 + first->_00.x;
+        g_pCamera->_2858.y = (f32)g_pCamera->_000E * (second->_00.y - first->_00.y) / (f32)r31 + first->_00.y;
+        g_pCamera->_2858.z = (f32)g_pCamera->_000E * (second->_00.z - first->_00.z) / (f32)r31 + first->_00.z;
         for (i = 0; i < 2; i++) {
             f32 a = shortAngleToRad_Capped(first->_10[i]);
             f32 b = shortAngleToRad_Capped(second->_10[i]);
             f32 delta = b - a;
-            if (delta > 3.1415927f) delta -= 6.2831855f;
-            if (delta < -3.1415927f) delta += 6.2831855f;
-            if (i == 0) g_pCamera->_2870 = radianAngleReduction(a + ((f32)g_pCamera->_000E / (f32)r31) * delta);
-            else g_pCamera->_2874 = radianAngleReduction(a + ((f32)g_pCamera->_000E / (f32)r31) * delta);
+            if (delta > 3.1415927f) {
+                delta = -(6.2831855f - delta);
+            }
+            if (delta < -3.1415927f) {
+                delta = 6.2831855f + delta;
+            }
+            delta = delta * (f32)g_pCamera->_000E / (f32)r31;
+            if (i == 0) {
+                g_pCamera->_2870 = delta + a;
+                g_pCamera->_2870 = radianAngleReduction(g_pCamera->_2870);
+            } else {
+                g_pCamera->_2874 = delta + a;
+                g_pCamera->_2874 = radianAngleReduction(g_pCamera->_2874);
+            }
         }
-        fn_3_19FA4_updateView(r31);
+        g_pCamera->_2878 = (f32)g_pCamera->_000E * (second->_0C - first->_0C) / (f32)r31 + first->_0C;
+        fn_3_19FA4_updateView();
     }
 }
 
@@ -992,7 +992,7 @@ void fn_3_19CB0(s16 arg) {
 
 // .text:0x00019B3C size:0x174 mapped:0x80658BD0
 void fn_3_19B3C(int arg, f32* arg2) {
-    int sp8[4];
+    int sp8[3];
     int i;
     
     for (i = 0; i < g_pCamera->_0012; i++) {
