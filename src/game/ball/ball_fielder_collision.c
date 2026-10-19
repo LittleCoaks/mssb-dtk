@@ -251,12 +251,14 @@ void fn_3_16C878(Vec* pos, DustEmitter* emitter, int count) {
 
 // .text:0x0016C548 size:0x330 mapped:0x807AB5DC
 BOOL fn_3_16C548(DustEmitter* emitter) {
-    int alive = 0;
     DustParticle* p;
     DustParticle** link;
-    DustParticle* deadTail;
     DustParticle* deadHead;
+    DustParticle* deadTail;
+    int alive;
     int alpha;
+
+    alive = 0;
 
     p = emitter->particles = fn_80031F34(emitter->particles, emitter->count);
     link = &emitter->particles;
@@ -269,7 +271,7 @@ BOOL fn_3_16C548(DustEmitter* emitter) {
             setParticleXform(p->scaleX, p->scaleY, p->rot);
             fn_80033CC8(p, (int)emitter->texture);
             if (p->lifetime < lbl_3_data_2A408.fadeFrames) {
-                alpha = p->alpha - 255.0f / lbl_3_data_2A408.fadeFrames;
+                alpha = (int)p->alpha - 255.0f / lbl_3_data_2A408.fadeFrames;
                 if (alpha < 0) {
                     alpha = 0;
                 }
@@ -309,10 +311,12 @@ BOOL fn_3_16C548(DustEmitter* emitter) {
         p = *link;
     } while (p != NULL);
     if (deadHead != NULL) {
-        for (p = deadHead; p != NULL; p = p->next) {
+        p = deadHead;
+        do {
             p->_4C = 0;
             p->rotDir = 0;
-        }
+            p = p->next;
+        } while (p != NULL);
         fn_80033794(deadHead);
     }
     return alive == 0;
