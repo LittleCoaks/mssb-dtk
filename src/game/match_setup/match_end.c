@@ -298,8 +298,8 @@ void startChallengeModeMatch(void) {
             idx = rand() % 2;
             g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] =
                 lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].currentBatter;
-            g_Strikes.storedOuts = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].outs;
-            g_Strikes.outs = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].outs;
+            g_BallsStrikesOuts.storedOuts = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].outs;
+            g_BallsStrikesOuts.outs = lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].outs;
             g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total =
                 lbl_3_data_5FF4[g_d_GameSettings.home_AwaySetting][g_d_GameSettings.challengeDifficulty][idx].score;
             if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total < 0) {

@@ -1994,7 +1994,7 @@ void drawDiamondMiniMap_ongoing(void) {
             int idx = i + 1;
             int base;
 
-            if (!(runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Strikes.outs < 3)) {
+            if (!(runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_BallsStrikesOuts.outs < 3)) {
                 REC(scene, idx)->flags &= ~UI_FLAG_VISIBLE;
             } else {
                 if (i == 0) {
@@ -2052,7 +2052,7 @@ void drawDiamondMiniMap_ongoing(void) {
         REC(scene, 13)->flags &= ~UI_FLAG_VISIBLE;
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE &&
             g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0 &&
-            g_GameLogic.battingAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
+            g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] != 0) {
             REC(scene, 13)->flags |= UI_FLAG_VISIBLE;
         }
     }

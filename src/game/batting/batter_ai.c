@@ -9,7 +9,7 @@
 void batterAIRollBuntIntent(void) {
     g_AiLogic.batterAIBuntPossibility = 0;
     g_AiLogic.batterAIBuntInd = FALSE;
-    if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_Strikes.outs <= 1 &&
+    if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_BallsStrikesOuts.outs <= 1 &&
         (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111)) {
         if (RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
             g_AiLogic.batterAIBuntInd = TRUE;
@@ -49,7 +49,7 @@ void fn_3_1E4B8(void) {
         return;
     }
     chance *= batterAIBatterClassMultOnStealing[g_Batter.characterClass];
-    if (g_Strikes.balls == 3) {
+    if (g_BallsStrikesOuts.balls == 3) {
         chance *= batterAIBatterClassMultOnStealing[4];
     }
     if (g_Runners[runner].speed >= 50) {
@@ -209,7 +209,7 @@ void batterAIFrameToSwingAndStickInput(void) {
                 }
             }
         }
-    } else if (g_Strikes.outs <= 1 && (g_RunningLogic._02 & 0x1000) && g_AiLogic.aIBatterDifficulty >= 1) {
+    } else if (g_BallsStrikesOuts.outs <= 1 && (g_RunningLogic._02 & 0x1000) && g_AiLogic.aIBatterDifficulty >= 1) {
         if (g_Batter.characterClass == CHARACTER_CLASS_POWER) {
             g_AiLogic.batterAIUpDownInput = RandomIndexFromWeights(lbl_3_data_1BF0[0][g_AiLogic.aIBatterDifficulty], 3);
         } else {
@@ -605,7 +605,7 @@ void batterAIRNGValueSetting(void) {
                     g_AiLogic.batterAIABStrat = 0;
                     if (g_GameLogic.TeamStars[g_GameLogic.teamBatting] != 0) {
                         urgency = -1;
-                        if (g_Scores.Inning >= g_Scores.inningLimit && g_Strikes.outs == 2 && g_Scores._A6 != 0) {
+                        if (g_Scores.Inning >= g_Scores.inningLimit && g_BallsStrikesOuts.outs == 2 && g_Scores._A6 != 0) {
                             urgency = 0;
                         } else if ((g_RunningLogic._00 & 0x1000) || g_RunningLogic._10 >= 3) {
                             urgency = 1;
@@ -625,9 +625,9 @@ void batterAIRNGValueSetting(void) {
                         pitchCat = 0;
                     } else if (g_Pitcher.nPitchesThisAB >= 6) {
                         pitchCat = 4;
-                    } else if (g_Strikes.strikes == 0) {
+                    } else if (g_BallsStrikesOuts.strikes == 0) {
                         pitchCat = 1;
-                    } else if (g_Strikes.strikes == 1) {
+                    } else if (g_BallsStrikesOuts.strikes == 1) {
                         pitchCat = 2;
                     } else {
                         pitchCat = 3;
@@ -659,7 +659,7 @@ void batterAIRNGValueSetting(void) {
             if (g_AiLogic.batterAIBuntPossibility != 0) {
                 g_AiLogic.batterAIBuntPossibility = 0;
                 g_AiLogic.batterAIBuntInd = 0;
-                if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_Strikes.outs <= 1 &&
+                if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_BallsStrikesOuts.outs <= 1 &&
                     (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111) &&
                     RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
                     g_AiLogic.batterAIBuntInd = 1;
@@ -691,7 +691,7 @@ void batterAIRNGValueSetting(void) {
                     break;
                 }
                 chance *= batterAIBatterClassMultOnStealing[g_Batter.characterClass];
-                if (g_Strikes.balls == 3) {
+                if (g_BallsStrikesOuts.balls == 3) {
                     chance *= batterAIBatterClassMultOnStealing[4];
                 }
                 if (g_Runners[runner].speed >= 50) {

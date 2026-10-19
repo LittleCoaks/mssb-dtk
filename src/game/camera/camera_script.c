@@ -2193,13 +2193,14 @@ void fn_3_104B3C(u8* script, u32 time, s16 a, u8 b, CamEval* out) {
 }
 
 // .text:0x00104B20 size:0x1C mapped:0x80743BB4
-void fn_3_104B20(Vec* out, CamView* view) {
-    f32 x = view->axes[2].x;
-    f32 y = view->axes[2].y;
-    f32 z = view->axes[2].z;
+static inline void camCopyAxis(Vec* out, f32 x, f32 y, f32 z) {
     out->x = x;
     out->y = y;
     out->z = z;
+}
+
+void fn_3_104B20(Vec* out, CamView* view) {
+    camCopyAxis(out, view->axes[2].x, view->axes[2].y, view->axes[2].z);
 }
 
 // .text:0x00104AD4 size:0x4C mapped:0x80743B68
@@ -3675,7 +3676,8 @@ void manageDrawingItemState(void) {
     case 1: {
         u16 i = item->_1E;
         CamActor* obj = hugeAnimStruct.objects[i];
-        if (g_Fielders[i].rosterLocSkippingCap == 0) {
+        InMemFielder* fielder = &g_Fielders[i];
+        if (fielder->rosterLocSkippingCap == 0) {
             if (i < 9) {
                 item->_1E = i + 1;
                 item->_22 = 0;
@@ -3793,8 +3795,7 @@ void fn_3_FD4DC(void) {
 }
 
 // .text:0x000FD408 size:0xD4 mapped:0x8073C49C
-void fn_3_FD408(u32 idx, VecXYZ* outPos, f32* outExtra) {
-    CamScript* ctx = CTX;
+static inline void camSampleAt(CamScript* ctx, u32 idx, VecXYZ* outPos, f32* outExtra) {
     if (ctx->_003C > idx) {
         memcpy(outPos, &ctx->_0034[idx], sizeof(VecXYZ));
         outExtra[0] = ctx->_0034[idx].v[3];
@@ -3804,6 +3805,10 @@ void fn_3_FD408(u32 idx, VecXYZ* outPos, f32* outExtra) {
         outExtra[0] = ctx->_0034[ctx->_003C - 1].v[3];
         outExtra[1] = ctx->_0034[ctx->_003C - 1].v[4];
     }
+}
+
+void fn_3_FD408(u32 idx, VecXYZ* outPos, f32* outExtra) {
+    camSampleAt(CTX, idx, outPos, outExtra);
 }
 
 // .text:0x000FCF24 size:0x4E4 mapped:0x8073BFB8
@@ -3888,7 +3893,8 @@ void fn_3_FCEAC(void) {
 // .text:0x000FCE38 size:0x74 mapped:0x8073BECC
 int fn_3_FCE38(int idx, f32 t) {
     CamScript* ctx = CTX;
-    while (idx < ctx->_003C && t > ctx->_0034[idx].v[15]) {
+    int count = ctx->_003C;
+    while (idx < count && t > ctx->_0034[idx].v[15]) {
         idx++;
     }
     while (idx > 0 && t <= ctx->_0034[idx - 1].v[15]) {

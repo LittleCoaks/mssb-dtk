@@ -1,6 +1,7 @@
 #include "game/match_setup/game_rel_entry.h"
 #include "Dolphin/stl.h"
 #include "game/UnknownHomes_Game.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_gameRelEntry
 #include "header_rep_data.h"
 #include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
@@ -48,7 +49,7 @@ u32 lbl_3_data_118[0x2E] = {
 static struct {
     u8 state;
     u8 step;
-    u8 cursor;
+    E(u8, P2_CPU_CODE) cursor;
     u8 mode;
     u8 _04[4];
 } lbl_3_bss_10;
@@ -58,8 +59,8 @@ static u32 lbl_3_bss_0;
 void _prolog(void) {
     insertGraphicDrawingFunction(transferSomeValuesOnMatchLoad, 1);
     fn_3_C0824();
-    fn_80036C88(lbl_3_data_118, (u8*)lbl_3_data_118 + 0x5C);
-    fn_800B0D28((u8*)lbl_3_data_118 + 0x5C);
+    fn_80036C88(lbl_3_data_118, &lbl_3_data_118[ARRAY_COUNT(lbl_3_data_118) / 2]);
+    fn_800B0D28(&lbl_3_data_118[ARRAY_COUNT(lbl_3_data_118) / 2]);
     fn_8004B270();
 }
 
@@ -71,7 +72,7 @@ void _epilog(void) {
 
 void fn_3_258(void) {
     if (lbl_3_bss_10.mode == 0) {
-        u16 buttons = ((u16*)&AtBat_ButtonInput1)[2];
+        E(u16, INPUT_BUTTON) buttons = ((u16*)&AtBat_ButtonInput1)[2];
 
         if ((buttons & INPUT_BUTTON_UP) && lbl_3_bss_10.step != 0) {
             lbl_3_bss_10.step--;
@@ -85,12 +86,12 @@ void fn_3_258(void) {
         return;
     }
     if (lbl_3_bss_10.mode == 1 && lbl_3_bss_10.step == 0) {
-        u16 buttons = ((u16*)&AtBat_ButtonInput1)[2];
+        E(u16, INPUT_BUTTON) buttons = ((u16*)&AtBat_ButtonInput1)[2];
 
-        if ((buttons & INPUT_BUTTON_UP) && lbl_3_bss_10.cursor != 0) {
+        if ((buttons & INPUT_BUTTON_UP) && lbl_3_bss_10.cursor != P2_CPU_CODE_1_PLAYER_GAME) {
             lbl_3_bss_10.cursor--;
         }
-        if ((buttons & INPUT_BUTTON_DOWN) && lbl_3_bss_10.cursor < 3) {
+        if ((buttons & INPUT_BUTTON_DOWN) && lbl_3_bss_10.cursor < P2_CPU_CODE_UNKNOWN_3) {
             lbl_3_bss_10.cursor++;
         }
         if (buttons & INPUT_BUTTON_A) {
@@ -110,9 +111,9 @@ void fn_3_258(void) {
         return;
     }
     if (lbl_3_bss_10.mode == 3) {
-        u16 buttons = ((u16*)&AtBat_ButtonInput1)[2];
+        E(u16, INPUT_BUTTON) buttons = ((u16*)&AtBat_ButtonInput1)[2];
 
-        if ((buttons & INPUT_BUTTON_LEFT) && g_d_GameSettings.StadiumID != 0) {
+        if ((buttons & INPUT_BUTTON_LEFT) && g_d_GameSettings.StadiumID != STADIUM_ID_MARIO_STADIUM) {
             g_d_GameSettings.StadiumID--;
         }
         if ((buttons & INPUT_BUTTON_RIGHT) && g_d_GameSettings.StadiumID < 10) {
@@ -134,11 +135,11 @@ void fn_3_258(void) {
 }
 
 void maybeProcessTeamData(void) {
-    int team;
+    u8* lineup;
     int i;
     int slot;
+    int team;
     int teams[TEAMS_PER_GAME];
-    u8* lineup;
 
     teams[0] = g_d_GameSettings.maybeHomeAway[0];
     teams[1] = g_d_GameSettings.maybeHomeAway[1];
@@ -160,12 +161,12 @@ void maybeProcessTeamData(void) {
         break;
     case 3:
         for (team = 0; team < TEAMS_PER_GAME; team++) {
-            u8* lineup = (u8*)lbl_3_bss_4[0] + teams[team] * 0x48 + 0x4380;
+            lineup = (u8*)lbl_3_bss_4[0] + teams[team] * 0x48 + 0x4380;
             for (i = 0; i < PLAYERS_PER_TEAM; i++) {
                 lineUpInfoStruct[team][i][0] = i;
                 lineUpInfoStruct[team][i][1] = 0xA;
                 lineUpInfoStruct[team][i][2] = 0xA;
-                lineUpInfoStruct[team][i][3] = 0;
+                lineUpInfoStruct[team][i][3] = FALSE;
                 for (slot = 0; slot < PLAYERS_PER_TEAM; slot++) {
                     if (lineup[slot] == i) {
                         break;
@@ -174,7 +175,7 @@ void maybeProcessTeamData(void) {
                 if (slot < PLAYERS_PER_TEAM) {
                     lineUpInfoStruct[team][i][1] = slot;
                     lineUpInfoStruct[team][i][2] = lineup[slot + PLAYERS_PER_TEAM];
-                    lineUpInfoStruct[team][i][3] = 1;
+                    lineUpInfoStruct[team][i][3] = TRUE;
                 }
             }
         }

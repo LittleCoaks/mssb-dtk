@@ -59,106 +59,106 @@ void initRosterForMatch(void) {
 
     if (!g_d_GameSettings.exhibitionMatchInd) {
         for (i = 0; i < 9; i++) {
-            if (g_d_GameSettings.challengeCaptainStarBought[0] != 0 || g_d_GameSettings._4F != 0) {
+            if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_NICE_BAT] != 0 || g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPERSTAR] != 0) {
                 HUMAN_ROSTER_STATS(i).SlapContactSize *= lbl_3_data_5FC4[0];
                 HUMAN_ROSTER_STATS(i).ChargeContactSize *= lbl_3_data_5FC4[0];
             }
-            if (g_d_GameSettings.challengeCaptainStarBought[1] != 0 || g_d_GameSettings._4F != 0) {
+            if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_POWER_BAT] != 0 || g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPERSTAR] != 0) {
                 HUMAN_ROSTER_STATS(i).SlapHitPower *= lbl_3_data_5FC4[2];
                 HUMAN_ROSTER_STATS(i).ChargeHitPower *= lbl_3_data_5FC4[2];
             }
-            if (g_d_GameSettings.challengeCaptainStarBought[2] != 0 ||
-                g_d_GameSettings.challengeCaptainStarBought[2] != 0) {
+            if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPER_BALL] != 0 ||
+                g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPER_BALL] != 0) {
                 HUMAN_ROSTER_STATS(i).CurveBallSpeed += (u8)lbl_3_data_5FC4[4];
                 HUMAN_ROSTER_STATS(i).FastBallSpeed += (u8)lbl_3_data_5FC4[4];
                 HUMAN_ROSTER_STATS(i).Curve *= lbl_3_data_5FC4[5];
             }
-            if (g_d_GameSettings.challengeCaptainStarBought[3] != 0 || g_d_GameSettings._4F != 0) {
+            if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_LUCKY_GLOVE] != 0 || g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPERSTAR] != 0) {
                 HUMAN_ROSTER_STATS(i).ThrowingArm *= lbl_3_data_5FC4[7];
             }
-            if (g_d_GameSettings.challengeCaptainStarBought[4] != 0 || g_d_GameSettings._4F != 0) {
+            if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_DASH_SPIKES] != 0 || g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_SUPERSTAR] != 0) {
                 HUMAN_ROSTER_STATS(i).Speed *= lbl_3_data_5FC4[8];
             }
 
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_MARIO) {
-                if (g_d_GameSettings.challengeCaptainStarBought[6] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_RED_FIREBALL] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_MARIO;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_LUIGI) {
-                if (g_d_GameSettings.challengeCaptainStarBought[7] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_GREEN_FIREBALL] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_LUIGI;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_DK) {
-                if (g_d_GameSettings.challengeCaptainStarBought[14] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_KING_BANANA] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DK;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_DIDDY) {
-                if (g_d_GameSettings.challengeCaptainStarBought[15] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_CHIMP_BANANA] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DIDDY;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_PEACH) {
-                if (g_d_GameSettings.challengeCaptainStarBought[8] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_LOVELY_HEART] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_PEACH;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_DAISY) {
-                if (g_d_GameSettings.challengeCaptainStarBought[9] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_PRETTY_FLOWERS] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_DAISY;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_YOSHI) {
-                if (g_d_GameSettings.challengeCaptainStarBought[12] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_EGG] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_YOSHI;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_BIRDO) {
-                if (g_d_GameSettings.challengeCaptainStarBought[13] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_PINK_EGG] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BIRDO;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_WARIO) {
-                if (g_d_GameSettings.challengeCaptainStarBought[10] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_GNARLY_GARLIC] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_WARIO;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_WALUIGI) {
-                if (g_d_GameSettings.challengeCaptainStarBought[11] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_WHISKERED_EGGPLANT] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_WALUIGI;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_BOWSER) {
-                if (g_d_GameSettings.challengeCaptainStarBought[16] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_BULLET_BILL] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BOWSER;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;
                 }
             }
             if (HUMAN_ROSTER_STATS(i).CharID == CHAR_ID_BOWSERJR) {
-                if (g_d_GameSettings.challengeCaptainStarBought[17] != 0) {
+                if (g_d_GameSettings.challengeShopItemActive[CHALLENGE_SHOP_ITEM_JR_MASK] != 0) {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_BOWSERJR;
                 } else {
                     HUMAN_ROSTER_STATS(i).CaptainStarHitPitch = CAPTAIN_STAR_TYPE_NONE;

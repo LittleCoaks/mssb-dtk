@@ -5,6 +5,7 @@
 #include "Dolphin/pad.h"
 #include "Dolphin/mtx.h"
 #include "game/character_stats.h"   // CharacterStats
+#include "game/challenge/challenge_items.h"
 
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
@@ -43,9 +44,7 @@ typedef struct _GameInitVariables {
     /*0x39*/ u8 bJMatchInd;
     /*0x3A*/ u8 _3A;
     /*0x3B*/ u8 someChallengeModeFlag;
-    /*0x3C*/ s8 challengeCaptainStarBought[18];
-    /*0x4E*/ u8 _4E;
-    /*0x4F*/ s8 _4F;
+    /*0x3C*/ E(s8, BOOL) challengeShopItemActive[CHALLENGE_SHOP_ITEM_COUNT];
     /*0x50*/ u8 PlayerPorts[2];
     /*0x52*/ u8 _52;
     /*0x53*/ u8 _53;

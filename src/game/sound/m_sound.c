@@ -684,7 +684,7 @@ void soundFxRelated(void) {
                        : FALSE;
 
     if (crowdStadium) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             for (i = 1; i < 4; i++) {
                 if (sound_crowd_EffectsStruct._26 <= 1 &&
                     g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
@@ -704,7 +704,7 @@ void soundFxRelated(void) {
              g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
              (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
               g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
-             g_Strikes.outs == g_Strikes.storedOuts)) {
+             g_BallsStrikesOuts.outs == g_BallsStrikesOuts.storedOuts)) {
             sound_crowd_EffectsStruct._26 = 2;
             if (sound_crowd_EffectsStruct._14 == -1) {
                 sound_crowd_EffectsStruct._14 = sndFXStartEx(0x156, 0, 0x3f, 0);
@@ -736,7 +736,7 @@ void soundFxRelated(void) {
         goto checkStop;
     }
 
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         for (i = 1; i < 4; i++) {
             lastState = sound_crowd_EffectsStruct._26;
             if (lastState == 0 &&
@@ -785,7 +785,7 @@ void soundFxRelated(void) {
          g_Runners[0].currentBase != 0 && g_Runners[0].forceOutCd == 0 &&
          (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED ||
           g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) &&
-         g_Strikes.outs == g_Strikes.storedOuts)) {
+         g_BallsStrikesOuts.outs == g_BallsStrikesOuts.storedOuts)) {
         sound_crowd_EffectsStruct._26 = 2;
         if (sound_crowd_EffectsStruct._14 == -1) {
             sound_crowd_EffectsStruct._14 = playSoundEffect(0x156);
@@ -1185,7 +1185,7 @@ notMinigame:
     if (status == GAME_STATUS_TRANSITION) {
         track = -1;
         hold = TRUE;
-        if (g_Strikes.outs == 3) {
+        if (g_BallsStrikesOuts.outs == 3) {
             goto pick;
         }
         if (g_Stats.replayPending != 0) {
@@ -1268,7 +1268,7 @@ common:
             if (scoutState.scoutResult == SCOUT_RESULT_FAILED) {
                 if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xB;
-                    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+                    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                         sound_crowd_EffectsStruct._33 = 2;
                     }
                     goto pick;
@@ -1276,7 +1276,7 @@ common:
             } else if (scoutState.scoutResult == SCOUT_RESULT_SUCCEEDED) {
                 if (g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
                     track = 0xA;
-                    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+                    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                         sound_crowd_EffectsStruct._33 = 2;
                     }
                     goto pick;
@@ -1372,7 +1372,7 @@ common:
     }
     if (sound_crowd_EffectsStruct._33 != 0) {
         track = 0x15;
-    } else if (g_Strikes.storedOuts == 0) {
+    } else if (g_BallsStrikesOuts.storedOuts == 0) {
         track = 0x15;
     } else if (storedInningInfo.consecutiveHits == 0) {
         goto stopMusic;

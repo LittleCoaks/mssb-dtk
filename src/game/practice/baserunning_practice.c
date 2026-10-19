@@ -45,7 +45,7 @@ void baseRunningPracticeControl(void) {
             practiceSetupRunnerStatus();
             animRelated[0x9A] = 0;
             highLevelSimulationFlag[2] = 0;
-            g_Practice.characterLoadStarted = 0;
+            g_Practice.characterLoadStarted = FALSE;
             updatePracticeTransitionState(PRACTICE_STATE_1);
             break;
         case PRACTICE_STATE_1:
@@ -107,13 +107,13 @@ void practiceRel(void) {
         g_GameLogic.currentBatterPerTeam[0] = 1;
         g_GameLogic.currentBatterPerTeam[1] = 1;
         hugeAnimStruct[0x307D] = 0;
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < ARRAY_COUNT(g_Practice.baserunningActiveRunners); i++) {
             g_Practice.baserunningActiveRunners[i] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + i];
         }
         practiceSetupRunnerStatus();
         animRelated[0x9A] = 0;
         highLevelSimulationFlag[2] = 0;
-        g_Practice.characterLoadStarted = 0;
+        g_Practice.characterLoadStarted = FALSE;
         updatePracticeTransitionState(PRACTICE_STATE_1);
         break;
     case PRACTICE_STATE_1:
@@ -171,8 +171,8 @@ void baseRunningPracticeRelated(void) {
             if (g_Practice.frames_sincePracticeCompleted > 150) {
                 if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
                     g_Practice.progressNeedsSave = TRUE;
-                    g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
-                    PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
+                    g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = TRUE;
+                    PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = TRUE;
                 }
                 g_Practice.completionMenuActive = TRUE;
                 practiceResetPauseMenuState();
@@ -196,22 +196,22 @@ void baseRunningPracticeRelated(void) {
     switch (g_GameLogic.gameStatus) {
     case GAME_STATUS_DEFAULT:
         practiceNewBatter();
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = REACHED_BASE_TBD;
         g_Ball.totalFramesAtPlay = 0;
-        g_FieldingLogic.playOverInd = 0;
+        g_FieldingLogic.playOverInd = FALSE;
         g_FieldingLogic.framesSincePlayEnded = 0;
         g_FieldingLogic.unused_always0__ = 0;
-        g_FieldingLogic.hasProcessedFoulBall = 0;
-        g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
+        g_FieldingLogic.hasProcessedFoulBall = FALSE;
+        g_FieldingLogic.canEndPlayOnLooseBallInd = FALSE;
         g_FieldingLogic.always0__ = 0;
         g_RunningLogic._13 = 0;
-        g_GameLogic.pre_PostMiniGameInd = 0;
-        g_GameLogic.minigameLastTurnSuccessInd = 0;
+        g_GameLogic.pre_PostMiniGameInd = FALSE;
+        g_GameLogic.minigameLastTurnSuccessInd = FALSE;
         g_Practice._1EC = 0;
         g_Practice._1ED = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
@@ -246,34 +246,34 @@ void baseRunningPracticeRelated(void) {
             trackLastPitchInfo();
             SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);
         } else if (g_FieldingLogic.playOverCounter == 54) {
-            changeScene(3, 6);
+            changeScene(SCENE_ID_REPLAY_AT_BAT, 6);
         }
         break;
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
         initBaseRunnersAfterFoulBall();
         initializeSomethingDuringTransition2();
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
-        g_GameLogic._125 = 1;
-        g_GameLogic.pre_PostMiniGameInd = 1;
-        g_GameLogic.minigameLastTurnSuccessInd = 1;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
+        g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
+        g_GameLogic.pre_PostMiniGameInd = TRUE;
+        g_GameLogic.minigameLastTurnSuccessInd = TRUE;
         practiceNewBatter();
-        g_Strikes.storedOuts = g_Strikes.outs;
-        g_Strikes.runnerIndexForEachOutThisPitch[0] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[1] = -1;
-        g_Strikes.runnerIndexForEachOutThisPitch[2] = -1;
-        g_Strikes.GameControls_StrikeBallBitVector = g_Strikes.balls + (g_Strikes.strikes << 4);
-        g_Strikes.howRunnerReachedBase = 0;
+        g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[0] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[1] = -1;
+        g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[2] = -1;
+        g_BallsStrikesOuts.GameControls_StrikeBallBitVector = g_BallsStrikesOuts.balls + (g_BallsStrikesOuts.strikes << 4);
+        g_BallsStrikesOuts.howRunnerReachedBase = REACHED_BASE_TBD;
         g_Ball.totalFramesAtPlay = 0;
-        g_FieldingLogic.playOverInd = 0;
+        g_FieldingLogic.playOverInd = FALSE;
         g_FieldingLogic.framesSincePlayEnded = 0;
         g_FieldingLogic.unused_always0__ = 0;
-        g_FieldingLogic.hasProcessedFoulBall = 0;
-        g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
+        g_FieldingLogic.hasProcessedFoulBall = FALSE;
+        g_FieldingLogic.canEndPlayOnLooseBallInd = FALSE;
         g_FieldingLogic.always0__ = 0;
         g_RunningLogic._13 = 0;
-        g_GameLogic.pre_PostMiniGameInd = 0;
-        g_GameLogic.minigameLastTurnSuccessInd = 0;
+        g_GameLogic.pre_PostMiniGameInd = FALSE;
+        g_GameLogic.minigameLastTurnSuccessInd = FALSE;
         g_Practice._1EC = 0;
         g_Practice._1ED = 0;
         changeScene(SCENE_ID_AT_BAT, 6);
@@ -282,9 +282,9 @@ void baseRunningPracticeRelated(void) {
         resetAndRunAnimations(0);
         break;
     }
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
-    g_Strikes.outs = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
 }
 
 BOOL practiceRelatedUnused_maybe(void) {
@@ -301,8 +301,8 @@ BOOL practiceRelatedUnused_maybe(void) {
     if (g_Practice.frames_sincePracticeCompleted > 150) {
         if (g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] == 0) {
             g_Practice.progressNeedsSave = TRUE;
-            g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
-            PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = 1;
+            g_Practice.levelCompleted[g_Practice.practiceType_2][g_Practice.practiceLevel] = TRUE;
+            PRACTICE_PROGRESS_FLAGS[g_Practice.practiceType_2][g_Practice.practiceLevel] = TRUE;
         }
         g_Practice.completionMenuActive = TRUE;
         practiceResetPauseMenuState();

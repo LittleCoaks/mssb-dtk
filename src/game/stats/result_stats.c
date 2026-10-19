@@ -392,7 +392,7 @@ void steal_pickoff_incrementSteal_runsStats(void) {
         if ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
              g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) &&
             i != g_Runners[i].currentBase) {
-            if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 3 && g_Runners[i].furthestBaseForcedToGoToOnWalk == 0) {
+            if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Runners[i].furthestBaseForcedToGoToOnWalk == 0) {
                 continue;
             }
             if (g_Runners[i].forceOutCd <= 0) {
@@ -577,15 +577,15 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
 
     g_Scores._B1[g_GameLogic.awayTeamBattingInd_battingTeam] = pitcherSlot;
     SAT_INC_U16(pitcher->battersFaced);
-    if (pitcher->outsAsPitcher < 0xFF - g_Strikes.outs - g_Strikes.storedOuts) {
-        pitcher->outsAsPitcher += g_Strikes.outs - g_Strikes.storedOuts;
+    if (pitcher->outsAsPitcher < 0xFF - g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts) {
+        pitcher->outsAsPitcher += g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts;
     } else {
         pitcher->outsAsPitcher = 0xFF;
     }
     if (g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total >
         g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total) {
         pitchingInfo_A_H[g_GameLogic.awayTeamBattingInd_battingTeam][pitcherSlot][0] +=
-            g_Strikes.outs - g_Strikes.storedOuts;
+            g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts;
     }
     if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN) {
         SAT_INC_U16(pitcher->hitsAllowed);
@@ -597,8 +597,8 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
         SAT_INC_U8(pitcher->strikeouts);
     }
     if (result == AT_BAT_RESULT_WALK) {
-        if (g_Strikes._1E >= 0) {
-            SAT_INC_U16(PitcherStats_P1_P2[g_GameLogic.teamFielding][g_Strikes._1E].walks);
+        if (g_BallsStrikesOuts._1E >= 0) {
+            SAT_INC_U16(PitcherStats_P1_P2[g_GameLogic.teamFielding][g_BallsStrikesOuts._1E].walks);
         } else {
             SAT_INC_U16(pitcher->walks);
         }

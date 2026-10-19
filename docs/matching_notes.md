@@ -1037,7 +1037,7 @@ Three distinct shapes, all measured in one file:
   `g_Runners[2].b`) -> plain array access. MWCC then shares ONE base register and
   emits large displacements (`n*0x154 + fieldOffset`). Declaring a pointer local
   per runner makes it reload `lis`/`addi` each time: 92.43% with pointer locals,
-  **100%** with plain array access on `unused_forceOutSomething`.
+  **100%** with plain array access on `running_beginFrame_checkForceOut`.
 - **Repeated access to ONE element at a VARIABLE index** -> explicit pointer local
   `InMemRunnerType* runner = &g_Runners[i];` (the existing entries).
 - **A loop over elements where the target bumps a base by the struct stride
@@ -1101,17 +1101,38 @@ First seen: `game/game/baserunning/runner`, `running_MainFunction` and
 between an auto-inlined static and its standalone `*_unused` copy" above — same
 underlying situation, different remedy.
 
-A dispatcher hub whose target inlines several smaller in-file functions cannot be
-matched by CALLING them: MWCC declines to inline a function that is also a real
-standalone symbol, so the call survives and every register assignment shifts.
-Measured on `running_MainFunction`: calling `fn_3_8A7B4()`/`fn_3_8A618()` gave
-**75.3%**, copying their bodies in gave **94.2%**. A `static inline` clone is the
-cleaner form of the same fix where the body is small enough to share.
+**Superseded (2026-10-18): calling the helpers does work, built inside-out.** The
+earlier finding here was that a dispatcher hub could not be matched by calling
+its inlined helpers, because "MWCC declines to inline a function that is also a
+real standalone symbol" (`running_MainFunction`: calls 75.3%, copied bodies
+94.2%). That was the `-inline auto` size budget, not the standalone symbol. MWCC
+measures a callee *after* its own inlining, so a helper whose body is still a
+pasted copy of its sub-helpers is too big and stays a `bl`, while the same helper
+written as calls to those sub-helpers inlines. Fix order is innermost first:
+
+- `running_liveBall` calls `running_liveBall_clearStealing`. That alone took
+  `running_liveBall` 97.94% -> 100% (its pasted loop cached `liveBallReason` in
+  a local; the target re-reads the field).
+- `running_updateRunner` calls `running_updateRunner_chooseDirection` and
+  `running_updateRunner_roundBaseOrDugout`; `running_atBatSteals` calls
+  `running_atBatSteals_humanInput`.
+- Only then does `running_MainFunction` match at 100% as
+  `running_beginFrame(); ...; running_atBatSteals();` / `running_liveBall();` /
+  `running_updateRunner(i);` / `running_endFrame();`. Calling
+  `running_atBatSteals()` while its body was still pasted gave 79% with a real
+  `bl running_atBatSteals`; marking it `inline` matched the caller but dropped
+  the standalone copy (0%), so the keyword is not the fix.
+
+To find these: list functions nothing in the module references (no `bl`, no
+`@ha/@l`, no data pointer), then look for their bodies in same-file callers. In
+runner.c every such orphan was an inlined helper. Not every one can be called:
+in `cCSRunningFun` the Chain Chomp stage helpers (`fn_3_7D79C`, `fn_3_7D920`)
+either stayed a `bl` or inlined to a worse 97.15%, so keep those pasted.
 
 OPEN QUESTION from the same file, recorded so it is not re-derived: the reverse
 also happens. MWCC inlined two fully-implemented small callees
 (`running_chainChompSprintRelated`, `running_ForceOutStateRelated`) into
-`maybeUpdateRunnerNoRun` where the target keeps real `bl` calls, forcing that
+`running_endFrame` where the target keeps real `bl` calls, forcing that
 caller to 0.0% and 1040 bytes against the target's 356. A `#pragma dont_inline
 on`/`reset` bracket around the two callees restores the calls and the match. That
 pragma is currently in `src/game/baserunning/runner.c` and is almost certainly NOT
@@ -3164,6 +3185,68 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   are an unused static; declaring `static u8 lbl_3_bss_1900;` in the right position fixed `.bss`.
 - **Reusing one local for two values can be the match** (`draw_initStarGuageHud`: `next` holds the
   batting-order slot and then the roster index; a second local re-coloured r7/r8).
+
+## Findings from the game_rel_entry full-match pass
+
+- **Pointer scope and declaration order can need to change together.** In
+  `maybeProcessTeamData`, removing the block-local `lineup` shadow alone tied
+  the baseline, and reordering the other locals while keeping the shadow did
+  not fix the register swap. Using the function-scope pointer with locals in
+  `lineup, i, slot, team, teams` order took the function from 99.433334% to
+  100%. Re-test declaration order after changing a local's scope.
+- **A 100% object diff can hide wrong BSS symbol offsets in REL relocations.**
+  The first Matching link had identical size and section bytes but 26 differing
+  relocation bytes: the three zero-initialized statics were allocated in reverse
+  address order. Check symbol offsets as well as the zero-filled `.bss` score;
+  declaring these statics in descending target address order restores their
+  layout under MWCC.
+
+## Findings from the controller_input full-match pass
+
+- **An inline multiplication helper can preserve operand order where a direct
+  expression does not.** `InterpretControllerInputsIntoMagnitude` had one
+  remaining `fmuls` operand swap at 99.97151%. Calling
+  `static inline f32 scaleStickCorrection(f32 value, f32 scale)` whose body
+  returns `value * scale` reproduced the target when invoked with `k` and
+  `0.27208483f`. Compound assignment changed the destination register and
+  regressed its consumers. All three functions and `.rodata` remained 100%.
+
+## Findings from the baserunning_practice full-match pass
+
+- **Extra global-base loads can be caused by a missing branch exit.** In
+  `baseRunningPracticeRelated`, the negative-instruction arm of the live-ball
+  case must exit whether or not the runner scored. The prior `else if`
+  fell through when the runner had not scored, creating an extra predecessor
+  and forcing MWCC to reload `g_Practice`. An `else` with the score check
+  inside it and an unconditional `break` restored the target control flow,
+  removed eight extra bytes, and matched the whole six-function unit.
+
+## Findings from the defence_animation full-match pass
+
+- **Correcting a narrow return prototype and removing its redundant cast
+  can need to happen together.** `angleDifferenceNormalized` already returns
+  `s16` in `game_math.h` and its definition; the local extern incorrectly
+  declared `int`. In `computeAdjustedFielderOrientation`, changing the result
+  local from `s16` to `int`, correcting the extern to `s16`, and dropping the
+  explicit `(s16)` result cast took 98.58491% to 100%. Individual changes
+  did not match: the redundant cast still created a separate temporary.
+- **Separate counters can matter even for a fully unrolled loop.** Sharing
+  `i` between the initial hide loop and the later live animation loop swapped
+  its saved register with the model pointer in `animateDefence`. Giving the
+  hide loop its own block-local `j` matched 100%; pointer scope, declaration
+  order and counter width changes alone had tied. The final structured guard
+  also removed eight `goto` statements without changing codegen.
+
+## Findings from the Astra at_bat_results follow-up
+
+- **Counter reuse inside a shared helper can fix only its inlined caller.**
+  Reusing the initialization counter `i` for the descending loop in
+  `shuffleIntArray`, instead of declaring a separate `k`, left its standalone
+  copy and every matched sibling at 100% while improving `shuffleU8Array`
+  from 99.46429% to 99.89286% (unit `.text` 99.92008% to 99.98402%).
+  The remaining six operand differences are in two random-remainder/absolute
+  value sequences. Check both reuse and separation of loop counters; the
+  successful direction here is the opposite of `animateDefence` above.
 
 ## Findings from the second last-function sweep (2026-10)
 

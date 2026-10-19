@@ -658,8 +658,8 @@ void toyFieldTransitionToMinigameStart(void) {
     int pickedCount;
     g_Scores.Inning++;
     g_Scores._pad_AC = evaluateInningCondition(g_Scores.Inning);
-    g_Strikes.outs = 0;
-    g_Strikes.storedOuts = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.storedOuts = 0;
     animRelated[0xD5] = 1;
     g_Minigame.turnNumberWithinRound = 0;
     g_Minigame.toyField_maxOuts = 3;
@@ -724,8 +724,8 @@ void toyFieldTransitionPrepareNextPlay(void) {
         us80893314[1] = 1;
         g_GameLogic.pre_PostMiniGameInd = TRUE;
         g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-        g_Strikes.strikes = 0;
-        g_Strikes.balls = 0;
+        g_BallsStrikesOuts.strikes = 0;
+        g_BallsStrikesOuts.balls = 0;
         highLevelSimulationFlag[2] = 0;
         g_GameLogic._125++;
         break;
@@ -856,9 +856,9 @@ void initializeToyFieldSomething(void) {
     g_Runners[0].position.z = g_Batter.batterPos.z;
     g_Runners[0].runningAngle = PI;
     g_GameLogic.CountdownUntilFade = 10000;
-    g_Strikes.storedOuts = g_Strikes.outs;
-    g_Strikes.outs = 0;
-    g_Strikes.storedOuts = 0;
+    g_BallsStrikesOuts.storedOuts = g_BallsStrikesOuts.outs;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.storedOuts = 0;
     g_Ball.totalFramesAtPlay = 0;
     pauseControl._1D5 = 0;
     g_Scores._C5 = 0;
@@ -932,8 +932,8 @@ void toyFieldEndTurn(void) {
             g_Minigame._19A6 = 3;
         }
     }
-    g_Strikes.outs = 0;
-    g_Strikes.storedOuts = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.storedOuts = 0;
     g_Minigame._19A5 = 1;
     if (g_Minigame.rosterID != (s8)g_Minigame.toyField_turnPlayer || g_Minigame.playerSlots.rank[g_Minigame.rosterID] == 1) {
         if (g_Minigame.toyField_turnNumber >= g_Minigame.toyField_selectedTurns) {
@@ -2174,7 +2174,7 @@ void toyFieldApplyPanelEvent(void) {
     }
     g_Minigame.turnOverStatus = 1;
     if (g_Minigame.toyField_slotEvent == 7 || g_Minigame.toyField_slotEvent == 8) {
-        g_Strikes.outs++;
+        g_BallsStrikesOuts.outs++;
         QueueTextToDisplay(1, 0);
         if (g_Minigame.rosterID == (s8)g_Minigame.toyField_turnPlayer) {
             g_Minigame.toyField_turnPlayer = g_Minigame.minigamePlayerSelectedOrder;

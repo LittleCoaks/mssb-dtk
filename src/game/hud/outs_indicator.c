@@ -38,7 +38,7 @@ void fn_3_912B4(void) {
     OUT_RECORD(scene, 1)->frame = 0;
     OUT_RECORD(scene, 2)->frame = 1 << 16;
 
-    outs = g_Strikes.outs;
+    outs = g_BallsStrikesOuts.outs;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         outs = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;
     }
@@ -76,7 +76,7 @@ void fn_3_911A8(void) {
         s32 i;
 
         *(u16 *)((u8 *)cur + 0x18) += 1;
-        total = g_Strikes.outs;
+        total = g_BallsStrikesOuts.outs;
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
             total = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;
         }
@@ -97,7 +97,7 @@ void fn_3_911A8(void) {
 // .text:0x000910F4 size:0xB4
 void fn_3_910F4(DrawingSceneStruct *node) {
     s32 i;
-    s32 total = g_Strikes.outs;
+    s32 total = g_BallsStrikesOuts.outs;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         total = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;

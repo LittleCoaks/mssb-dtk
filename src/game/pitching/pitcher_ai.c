@@ -105,9 +105,9 @@ void pitcherAISelectPitch(void) {
         /* Compares the addresses of the two ScoreStruct entries, not their totals. */
         if (g_Scores.Inning >= g_Scores.inningLimit &&
             &g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam] > &g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam] &&
-            g_Strikes.outs >= 2) {
+            g_BallsStrikesOuts.outs >= 2) {
             starSituation = TRUE;
-        } else if (g_Scores.Inning >= g_Scores.maxNumberOfExtraInnings && g_Scores.halfInning != 0 && g_Strikes.outs >= 2) {
+        } else if (g_Scores.Inning >= g_Scores.maxNumberOfExtraInnings && g_Scores.halfInning != 0 && g_BallsStrikesOuts.outs >= 2) {
             starSituation = TRUE;
         } else if (g_RunningLogic._02 == 0x101 || g_RunningLogic._02 == 0x1101 || g_RunningLogic._02 == 0x1111) {
             starSituation = TRUE;
@@ -116,8 +116,8 @@ void pitcherAISelectPitch(void) {
             prob = lbl_3_data_18C4[g_GameLogic.TeamStars[g_GameLogic.teamFielding] - 1][g_AiLogic.aIDifficultyInverse0Weak];
             if (g_AiLogic.nStarPitchesThrownThisAB != 0) {
                 prob += lbl_3_data_18D8[0];
-            } else if (g_Strikes.strikes != 0) {
-                prob += g_Strikes.strikes * lbl_3_data_18D8[1];
+            } else if (g_BallsStrikesOuts.strikes != 0) {
+                prob += g_BallsStrikesOuts.strikes * lbl_3_data_18D8[1];
             }
             if (RandomInt_Game(100) < prob) {
                 g_AiLogic.aIPitchType = 2;
@@ -137,7 +137,7 @@ void pitcherAISelectPitch(void) {
             g_AiLogic.aIPitchType = 3;
             g_Pitcher.TypeOfPitch = 2;
         } else {
-            prob = perfectPitchProb[g_Strikes.strikes][g_AiLogic.aIDifficultyInverse0Weak];
+            prob = perfectPitchProb[g_BallsStrikesOuts.strikes][g_AiLogic.aIDifficultyInverse0Weak];
             if (RandomInt_Game(100) < prob) {
                 g_AiLogic.aIPerfectCharge = 1;
             }

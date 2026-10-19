@@ -239,7 +239,7 @@ void setDefaultInMemBatter(void) {
     g_Batter.missedBuntStatus = 0;
     g_Batter.contactMadeInd = 0;
     g_Batter.hitByPitch = 0;
-    g_Batter.hitTrajectory = HIT_TRAJECTORY_0;
+    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_NONE;
     g_Batter.displayContactSprite = 0;
     g_Batter._98 = 0;
     g_Batter.missSwingOrBunt = DID_SWING_TYPE_NONE;
@@ -281,7 +281,7 @@ void setDefaultInMemBatter(void) {
     } else if (g_d_GameSettings.minigamesEnabled) {
         g_Batter.aiControlledInd = g_Minigame.minigameControlStruct[0].battingHandedness[g_Minigame.rosterID];
     } else {
-        g_Batter.aiControlledInd = g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam];
+        g_Batter.aiControlledInd = g_GameLogic.batterAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam];
     }
     if (g_Batter.aiControlledInd != 0) {
         g_Batter.easyBatting = false;

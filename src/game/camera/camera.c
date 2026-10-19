@@ -548,7 +548,7 @@ void matchCamera_setPastAndCurrentTarget(void) {
         VEC_COPY(&g_pCamera->_0B4, &g_Ball.AtBat_Contact_BallPos);
     }
     
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         if (g_GameLogic.bOD_framesInLiveBallScene <= 10) {
             VEC_COPY(&g_pCamera->_0B4, &g_Ball.AtBat_Contact_BallPos);
         } else {
@@ -556,7 +556,7 @@ void matchCamera_setPastAndCurrentTarget(void) {
         }
     }
 
-    if ((g_pCamera->_0E2 != 0 || g_Strikes.outs >= 3) && g_GameLogic.bOD_framesInLiveBallScene >= 10) {
+    if ((g_pCamera->_0E2 != 0 || g_BallsStrikesOuts.outs >= 3) && g_GameLogic.bOD_framesInLiveBallScene >= 10) {
         for (i = 9; i > 0; i--) {
             VEC_COPY(&g_pCamera->_03C[i], &g_pCamera->_03C[i - 1]);
         }
@@ -1330,7 +1330,7 @@ void gameplay_Camera(void) {
         if (g_Ball.currentStarSwing != 0) {
             star = 1;
         }
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             g_GameLogic.sceneID = SCENE_ID_LIVE_BALL;
         } else {
             frames = g_Ball.framesSinceHit;
@@ -2019,7 +2019,7 @@ void fn_3_153F0(int arg) {
 
 // .text:0x0001537C size:0x74 mapped:0x80654410
 void fn_3_1537C(int arg) {
-    if (g_Batter.hitTrajectory != HIT_TRAJECTORY_0) {
+    if (g_Batter.predictedHitOutcome != PREDICTED_HIT_OUTCOME_NONE) {
         g_pCamera->_A7C++;
     }
     if (g_pCamera->_A7C > 40){        
@@ -2150,7 +2150,7 @@ void fn_3_14EE8(void) {
 // .text:0x00014EC0 size:0x28 mapped:0x80653F54
 void fn_3_14EC0(void) {
     if (g_pCamera->_A50 == -1) {
-        g_pCamera->_A50 = g_Strikes.storedOuts;
+        g_pCamera->_A50 = g_BallsStrikesOuts.storedOuts;
     }
 }
 

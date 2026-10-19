@@ -212,7 +212,7 @@ void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node) {
     int i;
     int state;
 
-    outs = g_Strikes.outs;
+    outs = g_BallsStrikesOuts.outs;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         outs = g_Minigame.toyField_maxOuts - g_Minigame.toyField_outsRemaining;
@@ -224,17 +224,17 @@ void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node) {
             break;
         }
         if (i < 2) {
-            if (((BallStrikeOutScene*)node)->shownStrikes == g_Strikes.strikes) {
+            if (((BallStrikeOutScene*)node)->shownStrikes == g_BallsStrikesOuts.strikes) {
                 continue;
             }
-            if (g_Strikes.strikes >= i + 1) {
+            if (g_BallsStrikesOuts.strikes >= i + 1) {
                 state = 0;
             }
         } else if (i < 5) {
-            if (((BallStrikeOutScene*)node)->shownBalls == g_Strikes.balls) {
+            if (((BallStrikeOutScene*)node)->shownBalls == g_BallsStrikesOuts.balls) {
                 continue;
             }
-            if (g_Strikes.balls >= i - 1) {
+            if (g_BallsStrikesOuts.balls >= i - 1) {
                 state = 1;
             }
         } else {
@@ -248,8 +248,8 @@ void maybe_updateBallStrikeOutUI(DrawingSceneStruct* node) {
         setIndicatorSlotState(node, i + 1, i + 1, 0x107, state);
     }
 
-    ((BallStrikeOutScene*)node)->shownStrikes = g_Strikes.strikes;
-    ((BallStrikeOutScene*)node)->shownBalls = g_Strikes.balls;
+    ((BallStrikeOutScene*)node)->shownStrikes = g_BallsStrikesOuts.strikes;
+    ((BallStrikeOutScene*)node)->shownBalls = g_BallsStrikesOuts.balls;
     ((BallStrikeOutScene*)node)->shownOuts = outs;
 }
 

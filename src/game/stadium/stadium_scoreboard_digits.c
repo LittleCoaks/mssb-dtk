@@ -162,9 +162,9 @@ void fn_3_16E1A0(void) {
     lbl_3_bss_D6F0[0] = g_Scores.scores[1].total;
     lbl_3_bss_D6F0[1] = g_Scores.scores[0].total;
     lbl_3_bss_D6F0[2] = g_Scores.Inning;
-    lbl_3_bss_D6F0[3] = g_Strikes.strikes;
-    lbl_3_bss_D6F0[4] = g_Strikes.balls;
-    lbl_3_bss_D6F0[5] = g_Strikes.outs;
+    lbl_3_bss_D6F0[3] = g_BallsStrikesOuts.strikes;
+    lbl_3_bss_D6F0[4] = g_BallsStrikesOuts.balls;
+    lbl_3_bss_D6F0[5] = g_BallsStrikesOuts.outs;
 }
 
 // .text:0x0016E1EC size:0x110 mapped:0x807AD280

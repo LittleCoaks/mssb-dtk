@@ -35,6 +35,10 @@ u32 callSfx(int soundId);
 u32 playCharacterSoundScaled(int charID, int soundCode);
 u32 playCharacterSound(int charID, int soundCode);
 u32 playSoundEffect(int soundNumber);
+
+// Played when any fielding ability activates (laser, quick throw, sliding,
+// tongue, suction, magical and super catches).
+#define SFX_FIELDING_ABILITY 0x1A8
 void fn_3_902FC(void);
 void playOverSounds(long frames);
 void fn_3_903B8(void);

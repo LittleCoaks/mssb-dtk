@@ -329,7 +329,7 @@ void setDefaultInMemPitcher(void) {
         g_Pitcher.AIInd =
             g_Minigame.minigameControlStruct[0].battingHandedness[MINIGAME_SELECTED_ORDER];
     } else {
-        g_Pitcher.AIInd = g_GameLogic.teamIsCPU[g_GameLogic.awayTeamBattingInd_battingTeam + 2];
+        g_Pitcher.AIInd = g_GameLogic.pitcherAIInd[g_GameLogic.awayTeamBattingInd_battingTeam];
     }
     sound_crowd_EffectsStruct._34 = 0;
 }
@@ -850,10 +850,10 @@ void endAtBatNonHit(void) {
 // .text:0x00073850 size:0x58 mapped:0x806B28E4
 void fn_3_73850(void) {
     int i;
-    g_Strikes.outs++;
+    g_BallsStrikesOuts.outs++;
     for (i = 0; i < 3; i++) {
-        if (g_Strikes.runnerIndexForEachOutThisPitch[i] == -1) {
-            g_Strikes.runnerIndexForEachOutThisPitch[i] = 0;
+        if (g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] == -1) {
+            g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] = 0;
             return;
         }
     }
@@ -904,8 +904,8 @@ void resetCounter(void) {
 void resetBatterCount(void) {
     int i;
     for (i = 0; i < 3; i++) {
-        if (g_Strikes.runnerIndexForEachOutThisPitch[i] == -1) {
-            g_Strikes.runnerIndexForEachOutThisPitch[i] = 0;
+        if (g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] == -1) {
+            g_BallsStrikesOuts.runnerIndexForEachOutThisPitch[i] = 0;
             return;
         }
     }
@@ -1622,18 +1622,18 @@ void pitchCall(void) {
     }
     g_Pitcher.miniGameRelated = 1;
     if (g_Pitcher.strikeInd) {
-        g_Strikes.strikes++;
-        if (g_Strikes.strikes >= 3) {
+        g_BallsStrikesOuts.strikes++;
+        if (g_BallsStrikesOuts.strikes >= 3) {
             g_Pitcher.strikeOutOrWalk = 1;
             g_Pitcher.framesSinceAtBatEnded = 0;
             g_Pitcher.pitcherActionState = PITCHER_ACTION_STATE_HIT;
             g_Pitcher.currentStateFrameCounter = 0;
             QueueTextToDisplay(0x10, 0);
             if (g_GameLogic.IsStarChance == 1) {
-                if ((g_Scores.Inning < g_Scores.inningLimit || g_Scores.halfInning == 0 || g_Strikes.outs < 2 ||
+                if ((g_Scores.Inning < g_Scores.inningLimit || g_Scores.halfInning == 0 || g_BallsStrikesOuts.outs < 2 ||
                      g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total <=
                          g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total) &&
-                    (g_Scores.Inning < g_Scores.maxNumberOfExtraInnings || g_Scores.halfInning == 0 || g_Strikes.outs < 2) &&
+                    (g_Scores.Inning < g_Scores.maxNumberOfExtraInnings || g_Scores.halfInning == 0 || g_BallsStrikesOuts.outs < 2) &&
                     g_GameLogic.TeamStars[g_GameLogic.teamFielding] < 5) {
                     g_GameLogic.TeamStars[g_GameLogic.teamFielding]++;
                     if (g_Stats.replayInd == 0) {
@@ -1649,8 +1649,8 @@ void pitchCall(void) {
             QueueTextToDisplay(8, 0);
         }
     } else {
-        g_Strikes.balls++;
-        if (g_Strikes.balls >= 4) {
+        g_BallsStrikesOuts.balls++;
+        if (g_BallsStrikesOuts.balls >= 4) {
             g_Pitcher.strikeOutOrWalk = 2;
             g_Pitcher.framesSinceAtBatEnded = 0;
             g_Pitcher.pitcherActionState = PITCHER_ACTION_STATE_HIT;
@@ -1878,10 +1878,10 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
     int i;
     BOOL forcedAdvance = FALSE;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         return FALSE;
     }
-    if (g_Strikes.outs >= 2 && g_Pitcher.strikeOutOrWalk == 1) {
+    if (g_BallsStrikesOuts.outs >= 2 && g_Pitcher.strikeOutOrWalk == 1) {
         return FALSE;
     }
     if (g_Pitcher.strikeOutOrWalk == 2) {

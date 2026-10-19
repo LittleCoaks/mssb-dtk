@@ -1096,7 +1096,7 @@ BOOL chooseVsScreenSituation(void) {
             }
         }
 
-        if (s->outs != -1 && g_Strikes.outs != s->outs) {
+        if (s->outs != -1 && g_BallsStrikesOuts.outs != s->outs) {
             ok = FALSE;
         }
 

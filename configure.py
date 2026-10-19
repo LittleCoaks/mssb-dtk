@@ -857,7 +857,7 @@ config.libs = [
     Rel(
         "game",
         [
-            Object(NonMatching, "game/match_setup/game_rel_entry.c"),
+            Object(Matching, "game/match_setup/game_rel_entry.c"),
             Object(Matching, "game/match_setup/loading_state.c"),
             Object(NonMatching, "game/ball/collision_primitives.c"),
             Object(NonMatching, "game/math/spline.c"),
@@ -884,7 +884,7 @@ config.libs = [
             Object(NonMatching, "game/ball/ball_visuals.c"),
             Object(Matching, "game/match_setup/character_constants.c"),
             Object(Matching, "game/batting/star_hit_sprites.c"),
-            Object(NonMatching, "game/animation/defence_animation.c"),
+            Object(Matching, "game/animation/defence_animation.c"),
             Object(NonMatching, "game/match_setup/match_transitions.c"),
             Object(Matching, "game/match_setup/transition_init.c"),
             Object(NonMatching, "game/animation/offence_animation.c"),

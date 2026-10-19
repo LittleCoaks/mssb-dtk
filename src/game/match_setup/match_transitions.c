@@ -102,7 +102,7 @@ BOOL loadRunnerActors(void) {
 void matchTransitionFunction2(void) {
     int i;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         for (i = 0; i < 4; i++) {
             if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF && i == 0)) {
                 fn_80011BE4(i + 9);
