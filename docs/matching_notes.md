@@ -3712,3 +3712,38 @@ camera, camera_script; 2026-10).
   target computes every argument, then `li 0x18; beq; li 0x17` right before the `bl`. Every ternary
   is branchless, and the if/local/inline forms are branchy but evaluated first (6 forms logged in its
   checkpoint).
+
+Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transitions; 2026-10).
+
+- **`addi rI, rI, N; slwi; add; lwz -8(rX)` is "the record before `first + i + N`".** The target
+  never folds the `- 1` into the index. `REC(scene, col - 1 + 6)` folds to `+5` with `lwzx`.
+  `(&graphicsRelatedArray[first + col + 6])[-1].object` (a `REC_PREV` macro in hud_scoreboard)
+  reproduces the add-then-negative-displacement form. That fixed every inning-column record in
+  manageScoreboardGraphic (96.5% -> 99.2%, size exact) and the base markers in
+  drawDiamondMiniMap_ongoing. Scratch tests of the same expressions fold differently, so measure
+  this in the real unit.
+- **A condition MWCC should fold but the target computes as a value is `(a == b) ^ 1`.** In
+  decideScoutFlagMission an always-true `else if (!(a == b))` is folded away by every logical form
+  (`!`, `== FALSE`, `!= FALSE`, an inline returning `a != b`). Only the explicit xor kept the target's
+  `subf; cntlzw; srwi; xori; cmpwi` (98.3% -> 99.4%).
+- **Separate induction registers per field mean the source indexed `array[i].field`.** In
+  scoutMissionProgress_init the target keeps `&entries[i].max`, `.achieved` and `.amount` in their
+  own registers and saves four GPRs. A walking `entry++` pointer collapsed them into one base
+  (88.3% -> 99.8% with direct `scoutState.entries[i]` indexing). Also, `base + k + 1` and
+  `base + (k + 1)` associate differently.
+- **A field reloaded at a fixed displacement inside an unrolled inner loop means a per-iteration
+  pointer.** In starMissionsMinigamesTotalPoints, `StarMissionRequirement* r = &req[j];` gave the
+  target's `lha 4(r3)` in every unrolled `k` iteration; `req[j].flags` was strength-reduced to a
+  separate pointer instead (90.9% -> 98.2%, together with an inlined beat-character helper detected
+  from the `li; mr; mr` zero pair).
+- **A loop-invariant sum the target computes before the loop was written as its own variable**
+  (`outsNeeded = storedOuts + 2`; MWCC did not hoist `outsBefore + 2` out of the fielder loop).
+- **Inline-or-pasted is a per-site choice, but a sweep can mislead.** fn_3_FDB30's four captain
+  lookups all show the inline `li; mr` zero pair. Making them inlines removes the last structural
+  difference, yet scores 99.71 against 99.74 for the pasted loops, purely on register colouring.
+  The shape-correct version was kept.
+- `s32 i` restored the fixed-trip guard (`li 1; cmpwi 14; bge`) again, in an inline helper
+  (setMiniMapAlpha).
+- **Not solved: a `(table + 9)` base hoisted for `table[id].field[k]` reads, plus an `extsb` before a
+  byte store** (scoutFlag_checkMissionSuccess, 4 forms logged). The target routes the s8 value through
+  an int, and an `int` local reproduces the `extsb` at one of the two sites.
