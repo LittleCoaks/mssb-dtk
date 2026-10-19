@@ -262,10 +262,9 @@ void chainChomp_stopTrailEffect(void) {
 
 // .text:0x15767C size:0x27C
 void piranhaPanic_updateSpitTrailEffect(void) {
-    MGFxData* data = (MGFxData*)&minigameFxData;
-    MGFxSlot* slot0 = &data->slotsA[0];
-    MGFxSlot* slot1 = &data->slotsA[1];
-    MGFxSlot* slot2 = &data->slotsA[2];
+    MGFxSlot* slot0 = &minigameFxData.slotsA[0];
+    MGFxSlot* slot1 = &minigameFxData.slotsA[1];
+    MGFxSlot* slot2 = &minigameFxData.slotsA[2];
     Vec target;
     Vec dir;
     Vec toTarget;
@@ -289,11 +288,11 @@ void piranhaPanic_updateSpitTrailEffect(void) {
                     slot2->texture = *(u32*)&animRelated[0x6C];
                     slot1->texture = *(u32*)&animRelated[0x6C];
                     slot0->texture = *(u32*)&animRelated[0x6C];
-                    data->headerA.texture = *(u32*)&lbl_3_common_bss_35154[4];
+                    minigameFxData.headerA.texture = *(u32*)&lbl_3_common_bss_35154[4];
                     if (kind <= 3 && kind >= 0) {
-                        slot0->effectId = data->effectIds[kind][0];
-                        slot1->effectId = data->effectIds[kind][1];
-                        fn_8002F5F4(&target, &dir, &data->headerA);
+                        slot0->effectId = minigameFxEffectIds[kind][0];
+                        slot1->effectId = minigameFxEffectIds[kind][1];
+                        fn_8002F5F4(&target, &dir, &minigameFxData.headerA);
                         if (lbl_80366158[0x28] == 0) {
                             fn_80030D88(&target, &dir, slot1, 0x29);
                             fn_80030D88(&target, &dir, slot2, 0x29);
