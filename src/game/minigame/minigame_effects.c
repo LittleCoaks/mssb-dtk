@@ -3123,16 +3123,17 @@ void piranhaPanic_spawnBombExplosionEffect(Vec* pos) {
 
 // .text:0x147778 size:0x488
 void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
+    u32 i = 0;
     MGParticle* p;
     u32 burstCount = (u8)piranhaPanic_bombExplosionParams[2];
     u32 ringCount = (u8)piranhaPanic_bombExplosionParams[12];
-    u32 i = 0;
-    s32 delay = 0;
+    s32 delay;
     f64 angle;
 
     if (pos->y > 0.0f) {
-        pos->y = pos->y * -1.0f;
+        pos->y *= -1.0f;
     }
+    delay = 0;
     effect->texture = *(u32*)&animRelated[0x6C];
     p = effect->particles;
     do {
@@ -3145,8 +3146,8 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             memcpy(&p->origin, pos, sizeof(Vec));
             if (i != 0) {
                 angle = 0.017453292f * (360.0 / (f64)burstCount) * (f64)(i - 1);
-                p->origin.x += 1.5f * (f32)cos(angle);
-                p->origin.y += 1.5f * (f32)sin(angle);
+                p->origin.x += 1.5f * (f32)cos((f32)angle);
+                p->origin.y += 1.5f * (f32)sin((f32)angle);
                 p->origin.x = p->origin.x + 0.5 * ((f32)rand() / 32767.0f - 1.0);
                 p->origin.y = p->origin.y + 0.5 * ((f32)rand() / 32767.0f - 1.0);
             }
@@ -3159,8 +3160,8 @@ void piranhaPanic_initBombExplosion(MGEffect* effect, Vec* pos) {
             p->alphaByte = piranhaPanic_bombExplosionParams[17];
             memcpy(&p->origin, pos, sizeof(Vec));
             angle = 0.017453292f * (360.0 / (f64)ringCount) * (f64)(u8)(i - burstCount);
-            p->origin.x += 2.5f * (f32)cos(angle);
-            p->origin.y += 2.5f * (f32)sin(angle);
+            p->origin.x += 2.5f * (f32)cos((f32)angle);
+            p->origin.y += 2.5f * (f32)sin((f32)angle);
             p->origin.x = p->origin.x + 0.2f * (2.0 * ((f32)rand() / 32767.0f - 0.5));
             p->origin.y = p->origin.y + 0.2f * (-1.0f * ((f32)rand() / 32767.0f));
             p->texIndex = piranhaPanic_bombExplosionParams[10];
