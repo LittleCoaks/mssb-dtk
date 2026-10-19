@@ -315,6 +315,14 @@ once its evidence clears the same bar used for `src/game` above, and moves into 
 category folder only once that category has more than one member -- `yd_step.c`
 below is named but unfoldered because the module has exactly one scene dispatcher.
 
+On 2026-10-19 every remaining unclaimed `.text` gap except `0x0-0x110`
+(`_prolog`/`_epilog`) and `0x13BA4-0x14574` (between the two
+`captain_select/` units) was cut into 35 `text_XXXXX.c` stub units, named by
+`.text` offset like `text_0323C.c`. These are address-window cuts of roughly
+8-10 KB at function boundaries, not recovered TU boundaries: a single gap may
+belong to the neighbouring `rep_XXXX` unit or to one of the rodata-only
+`repHeaderData` slots next to it, so expect merges and renames later.
+
 Of the 42 units, **26 are pure `.rodata`** (no `.text` at all -- each one is a
 single 0x50-byte `repHeaderData` table slot with no code to decompile) and
 **16 hold actual code**. The 26 rodata-only units are filler: `rep_0010,
