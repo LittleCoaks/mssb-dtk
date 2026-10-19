@@ -138,29 +138,35 @@ void matchTransitionFunction2(void) {
 
 // .text:0x0006B674 size:0x1FC
 void animateShadows_nonBall(void) {
-    int i;
-    int shadowOn;
-    int miniGameMode;
     u8* obj;
+    int i;
+    BOOL shadowOn;
     u8* state;
+    u8* actor;
 
-    if (g_d_GameSettings.minigamesEnabled != 0 && g_Minigame.GameMode_MiniGame != 0) {
-        miniGameMode = g_Minigame.GameMode_MiniGame;
-        if (miniGameMode == 1 || miniGameMode == 3) {
-            fn_800BDE8C(2);
-        } else if (miniGameMode >= 2 && miniGameMode <= 6) {
-            fn_800BDE8C(1);
-        }
-    } else {
-        if (g_GameLogic.sceneID == 1) {
+    if (g_d_GameSettings.minigamesEnabled == 0 || g_Minigame.GameMode_MiniGame == MINI_GAME_ID_NONE) {
+        if (g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
             fn_800BDE8C(2);
         } else {
             fn_800BDE8C(1);
         }
+    } else {
+        switch (g_Minigame.GameMode_MiniGame) {
+        case MINI_GAME_ID_BOBOMB_DERBY:
+        case MINI_GAME_ID_BARREL_BATTER:
+            fn_800BDE8C(2);
+            break;
+        case MINI_GAME_ID_WALLBALL:
+        case MINI_GAME_ID_CHAINCHOMP_SPRINT:
+        case MINI_GAME_ID_PIRANHA_PANIC:
+        case MINI_GAME_ID_STAR_DASH:
+            fn_800BDE8C(1);
+            break;
+        }
     }
 
     for (i = 0; i < 13; i++) {
-        obj = ((u8**)&hugeAnimStruct[0x2C50])[i];
+        obj = ((u8**)hugeAnimStruct)[0x2C50 / 4 + i];
         if (obj == NULL) {
             continue;
         }
@@ -169,33 +175,33 @@ void animateShadows_nonBall(void) {
             continue;
         }
 
-        shadowOn = 1;
+        shadowOn = TRUE;
         if (g_d_GameSettings.minigamesEnabled != 0) {
-            if (g_GameLogic.gameStatus == 0x1C || g_GameLogic.gameStatus == 0x1D ||
-                g_GameLogic.gameStatus == 0x1E || g_GameLogic.gameStatus == 0x1F) {
-                if (g_GameLogic.gameStatus == 0x1F) {
-                    shadowOn = 0;
+            if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT || g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_LOAD ||
+                g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT || g_GameLogic.gameStatus == GAME_STATUS_0x1F) {
+                if (g_GameLogic.gameStatus == GAME_STATUS_0x1F) {
+                    shadowOn = FALSE;
                 }
             }
-            if (g_d_GameSettings.GameModeSelected == 6 && g_GameLogic.sceneID == 1 &&
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.sceneID == SCENE_ID_AT_BAT &&
                 ((s8)((u8*)&g_Minigame)[0x18F8 + i]) >= 1) {
-                shadowOn = 0;
+                shadowOn = FALSE;
             }
         } else {
-            if (g_GameLogic.secondaryGameMode != 0xE && g_Stats.replayInd == 0 && i != 0 && i != 9 &&
-                g_GameLogic.sceneID == 1) {
-                shadowOn = 0;
+            if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING && g_Stats.replayInd == 0 && i != 0 && i != 9 &&
+                g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
+                shadowOn = FALSE;
             }
         }
         if (obj[0x25D] == 2) {
-            shadowOn = 0;
+            shadowOn = FALSE;
         }
 
-        state = getAnimObjectActor(obj);
-        if (shadowOn != 0) {
-            ((u8*)*(void**)state)[0x98] |= 4;
+        actor = *(u8**)getAnimObjectActor(obj);
+        if (shadowOn) {
+            actor[0x98] |= 4;
         } else {
-            ((u8*)*(void**)state)[0x98] &= 0xFB;
+            actor[0x98] &= 0xFB;
         }
     }
 }
