@@ -3,6 +3,9 @@
 #include "Unknown/File_0x800c0770.h"
 #include "Unknown/sprt.h"
 #include "static/UnknownHomes_Static.h"
+#include "Unknown/File_0x800363d8.h"
+#include "Unknown/File_0x80034e20.h"
+#include "Unknown/sub.h"
 
 // Per-glyph font metrics for the text engine, addressed as one object:
 // widths and vertical offsets for the normal and alternate (fixed-grid)
@@ -15,6 +18,20 @@ typedef struct FontMetricsTables {
     /* 0x980 */ u32 colors[10];
 } FontMetricsTables;
 
+// Per-element frame data filled by fn_8000CEF0 (see LayoutFrameInfo).
+typedef struct TextLayoutFrame {
+    /* 0x00 */ u8 unk0[0x6];
+    /* 0x06 */ u16 textureIndex;
+    /* 0x08 */ u8 unk8[0x4];
+    /* 0x0C */ s16 styleCode;
+    /* 0x0E */ u8 unkE[0x6];
+    /* 0x14 */ s16 x;
+    /* 0x16 */ s16 y;
+    /* 0x18 */ u8 unk18[0x4];
+    /* 0x1C */ u32 scale;
+    /* 0x20 */ u8 unk20[0x34];
+} TextLayoutFrame;
+
 extern FontMetricsTables lbl_800E8F60;
 extern u16 glyphRemapTable[];
 
@@ -23,9 +40,209 @@ extern void fn_80062890(s32);
 extern u8 lbl_800E9920[0x3620];
 extern void* lbl_803CBBE8;
 
+extern u8 drawStadiumRelated;
+extern u8 lbl_800E9908[0x18];
+extern u8 lbl_803CB760[8];
+extern f32 lbl_803CC490; // 0.0f
+extern f32 lbl_803CC494;
+extern f32 lbl_803CC498;
+extern f32 lbl_803CC49C;
+extern u32 lbl_803CB784;
+extern u32 lbl_803CB788;
+extern u8 lbl_803CB780[4];
+extern void fn_800A7D4C(s32 arg0, void* arg1);
+
+void fn_8000F150(s32* arg0) {
+    u8* base = (u8*)&lbl_800E8F60;
+    GXColor clearColor;
+    Mtx44 ortho;
+    Mtx trans;
+    s32* entry;
+    f32 x;
+    f32 y;
+
+    clearColor = *(GXColor*)&lbl_803CB784;
+    GXSetCopyClear(clearColor, lbl_803CB788);
+    C_MTXOrtho(ortho, lbl_803CC490, lbl_803CC494, lbl_803CC490, lbl_803CC498, lbl_803CC490, lbl_803CC49C);
+
+    entry = (s32*)(base + 0x56B0) + arg0[2] * 3;
+    x = (u32)(0x280 - 9 * entry[1]) >> 1;
+    y = (u32)(0x1C0 - 0x12 * entry[2]) >> 1;
+    PSMTXTrans(trans, x, y, lbl_803CC490);
+    GXSetProjection(ortho, GX_ORTHOGRAPHIC);
+    GXLoadPosMtxImm(trans, GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_INDEX8);
+    GXSetVtxDesc(GX_VA_CLR0, GX_INDEX8);
+    GXSetVtxDesc(GX_VA_TEX0, GX_INDEX8);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_S16, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U16, 10);
+    GXSetTexCoordScaleManually(GX_TEXCOORD0, GX_TRUE, 0x400, 0x400);
+    GXSetCullMode(GX_CULL_NONE);
+    GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2X4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
+    GXSetNumChans(1);
+    GXSetNumTexGens(1);
+    GXSetNumTevStages(1);
+    GXSetTevOp(GX_TEVSTAGE0, GX_MODULATE);
+    SetDisplayStateTexture((TextureBody*)((u8*)lbl_803CBBE8 + (*(u16*)((u8*)lbl_803CBBE8 + 0x20) << 5) + 4), 0, 0);
+    GXSetArray(GX_VA_POS, base + 0x3A20, 6);
+    GXSetArray(GX_VA_CLR0, lbl_803CB780, 4);
+    GXSetArray(GX_VA_TEX0, base + 0x3E60, 4);
+    GXCallDisplayList(*(void**)(base + 0x5680 + arg0[2] * 4), *(u32*)(base + 0x56B0 + arg0[2] * 0xC));
+    GXSetTexCoordScaleManually(GX_TEXCOORD0, GX_FALSE, 0x400, 0x400);
+}
+
+void fn_8000F3E8(s32 arg0) {
+    u8* entry = lbl_800E9908 + drawStadiumRelated * 0xC;
+
+    switch (arg0 + 1) {
+    case 0:
+        *(s32*)(entry + 8) = lbl_803CB760[4];
+        break;
+    case 5:
+        *(s32*)(entry + 8) = lbl_803CB760[1];
+        break;
+    case 6:
+        *(s32*)(entry + 8) = lbl_803CB760[0];
+        break;
+    case 7:
+        *(s32*)(entry + 8) = lbl_803CB760[2];
+        break;
+    case 12:
+        *(s32*)(entry + 8) = lbl_803CB760[3];
+        break;
+    }
+    fn_800A7D4C(0, entry);
+}
+
 void somethingSetTexturePointer(void) {
     lbl_803CBBE8 = lbl_800E9920;
     convertTextureHeader(lbl_800E9920);
+}
+
+void fn_8000F4B8(int a, int b, int c, int d) {
+    screenTextArray.skipFlags = 0;
+    if (a >= 0) {
+        screenTextArray.skipFlags = 1 << a;
+    }
+    if (b >= 0) {
+        screenTextArray.skipFlags |= 1 << b;
+    }
+    if (c >= 0) {
+        screenTextArray.skipFlags |= 1 << c;
+    }
+    if (d >= 0) {
+        screenTextArray.skipFlags |= 1 << d;
+    }
+}
+
+void fn_8000F534(TextGraphicsObject* graphics, s32 useFlag) {
+    TextLayoutFrame frame;
+    u8 frame8[0x50];
+    TextChannel* channel;
+    s32 i;
+    s32 kind;
+    s32 kind2;
+    s32 small = 0;
+    s16 y;
+    s16 x;
+    u32 color;
+    TextureContainerSlot* slot;
+    u16 element;
+
+    for (i = 0; i < 30; i++) {
+        if (graphics == screenTextArray.channels[i].graphics) {
+            break;
+        }
+    }
+    if (i >= 30) {
+        return;
+    }
+
+    channel = &screenTextArray.channels[i];
+    if (useFlag == 0) {
+        screenTextArray.blocks[channel->blockIndex].state = 1;
+        return;
+    }
+
+    screenTextArray.blocks[channel->blockIndex].state = 2;
+    slot = &textureContainerSlots[graphics->unk58[0xE]];
+    element = *(u16*)&graphics->unk58[0xC];
+    fn_8000CEF0(slot->layout, element, 0, channel->unk6, (LayoutFrameInfo*)&frame);
+    x = frame.x;
+    y = frame.y;
+
+    if (graphics->flags & 8) {
+        color = byteWiseMultiply(frame.scale, *(u32*)&graphics->unk58[0]);
+    } else {
+        color = multBottomBits_asFloat(frame.scale, *(u32*)&graphics->unk58[0]);
+    }
+
+    kind = (frame.styleCode * 0x100) / 0x400;
+    screenTextArray.blocks[channel->blockIndex].color = color;
+    if (kind == 0x10) {
+        screenTextArray.blocks[channel->blockIndex].style = 2;
+        small = 1;
+    } else if (kind == 0x12) {
+        screenTextArray.blocks[channel->blockIndex].style = 1;
+    } else if (kind == 0x16) {
+        screenTextArray.blocks[channel->blockIndex].style = 0;
+    } else {
+        fn_8000CEF0(slot->layout, frame.textureIndex, 0, 0,
+                    (LayoutFrameInfo*)frame8);
+        kind2 = (*(s16*)&frame8[0xC] * 0x100) / 0x400;
+        if (kind2 < 0x11) {
+            screenTextArray.blocks[channel->blockIndex].style = 2;
+            small = 1;
+        } else if (kind2 < 0x14) {
+            screenTextArray.blocks[channel->blockIndex].style = 1;
+        } else {
+            screenTextArray.blocks[channel->blockIndex].style = 0;
+        }
+    }
+
+    if (small) {
+        screenTextArray.blocks[channel->blockIndex].x = x;
+        screenTextArray.blocks[channel->blockIndex].y = y;
+    } else {
+        screenTextArray.blocks[channel->blockIndex].x = x;
+        screenTextArray.blocks[channel->blockIndex].y = y;
+    }
+
+    if (fn_8000CEF0(slot->layout, element, 1, channel->unk6, (LayoutFrameInfo*)&frame) != 0) {
+        screenTextArray.blocks[channel->blockIndex].unkC =
+            multBottomBits_asFloat(frame.scale, *(u32*)&graphics->unk58[0]);
+        screenTextArray.blocks[channel->blockIndex].unk14 = frame.x - screenTextArray.blocks[channel->blockIndex].x;
+        screenTextArray.blocks[channel->blockIndex].unk16 = frame.y - screenTextArray.blocks[channel->blockIndex].y;
+    } else {
+        screenTextArray.blocks[channel->blockIndex].unkC = 0;
+    }
+}
+
+void fn_8000F8F4(void* scene) {
+    s32 first;
+    s32 i;
+    s32 j;
+    TextGraphicsObject* graphics;
+
+    first = ((UnkText988Arg*)scene)->unk14;
+    for (i = 0; i < ((UnkText988Arg*)scene)->unk16; i++) {
+        graphics = graphicsRelatedArray[first + i].object;
+        if (graphics != NULL && (graphics->flags & 4)) {
+            for (j = 0; j < 30; j++) {
+                if (graphics == screenTextArray.channels[j].graphics) {
+                    screenTextArray.channels[j].graphics = NULL;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 s32 text_initializeNewChannel(UnkText988Arg* arg0, s32 indexOffset, u16 arg2, s32 arg3, s32 arg4, s32 useFlag8) {

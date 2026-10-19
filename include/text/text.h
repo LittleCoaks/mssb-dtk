@@ -91,6 +91,7 @@ typedef struct ScreenTextPool {
 typedef struct UnkText988Arg {
     /* 0x00 */ u8 unk0[0x14];
     /* 0x14 */ u16 unk14;
+    /* 0x16 */ u16 unk16;
 } UnkText988Arg;
 
 extern ScreenTextPool screenTextArray;
@@ -123,5 +124,9 @@ void drawTransformedSprite(s32 x, s32 y, u16 s, u16 t, u16 w, u32 color, s32 sty
 void DrawText(s32 blockIndex);
 
 void somethingSetTexturePointer(void);
+
+void fn_8000F3E8(s32 arg0);
+void fn_8000F4B8(int a, int b, int c, int d);
+void fn_8000F8F4(void* scene);
 
 #endif // !__TEXT_TEXT_H_

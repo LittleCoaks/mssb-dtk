@@ -32,7 +32,6 @@ void fn_2_4E878(void *arg0, void *arg1);
 void fn_2_53F88(void *arg0);
 void fn_2_54120(void);
 void fn_2_53DF8(void *arg0);
-void fn_8000F8F4(void *arg0);
 void fn_2_4E858(void *arg0);
 
 // .text:0x0001D440 size:0x2ACC mapped:0x8065C4D4

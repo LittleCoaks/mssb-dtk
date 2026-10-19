@@ -1,8 +1,8 @@
 #include "C3/charPipeline.h"
 #include "stl/math.h"
 
-static f32 cosf(f32 v) { return cos(v); }
-static f32 sinf(f32 v) { return sin(v); }
+static inline f32 cosf(f32 v) { return cos(v); }
+static inline f32 sinf(f32 v) { return sin(v); }
 
 void CTRLSetScale(Control *control, f32 x, f32 y, f32 z) {
     control->type |= CTRL_SCALE;
@@ -155,9 +155,9 @@ void CTRLBuildMatrix(Control *control, Mtx m) {
     PSMTXCopy(e, m);
 }
 
-static Mtx flipY = {{1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}};
+static Mtx flipYMatrix = {{1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}};
 
-static Mtx flipX = {{-1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}};
+Mtx flipY = {{-1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}};
 
 void CTRLBuildMatrix_FlipY(Control *control, Mtx m) {
     f32 nRad;
@@ -243,8 +243,8 @@ void CTRLBuildMatrix_FlipY(Control *control, Mtx m) {
     PSMTXConcat(c,e,e);
     PSMTXConcat(a,e,e);
 
-    PSMTXConcat(e, flipY, e);
-    PSMTXConcat(flipY, e, e);
+    PSMTXConcat(e, flipYMatrix, e);
+    PSMTXConcat(flipYMatrix, e, e);
 
     PSMTXCopy(e, m);
 }
@@ -352,19 +352,19 @@ void CTRLBuildMatrix_Flip(Control *control, Mtx m, u32 r5) {
         return;
     }
 
-    PSMTX44Identity(f);
+    PSMTXIdentity(f);
 
     if (r5 & 1)
     {
-        f[0][0] = -1.0;
+        f[0][0] = -1.0f;
     }
     if (r5 & 2)
     {
-        f[1][1] = -1.0;
+        f[1][1] = -1.0f;
     }
     if (r5 & 4)
     {
-        f[2][2] = -1.0;
+        f[2][2] = -1.0f;
     }
 
     PSMTXIdentity(m);
@@ -461,7 +461,7 @@ void CTRLBuildInverseMatrix(Control *control, Mtx m) {
         q.y = -control->controlParams.srt.r.y;
         q.z = -control->controlParams.srt.r.z;
         q.w = -control->controlParams.srt.r.w;
-        MTXQuat(m, &q);
+        PSMTXQuat(m, &q);
     } else if (control->type & CTRL_ROT_EULER) {
         if (0.0f != control->controlParams.srt.r.z) {
             nRad = 0.0174532925f * -control->controlParams.srt.r.x;
@@ -539,16 +539,75 @@ void CTRLBuildInverseMatrix(Control *control, Mtx m) {
     }
 }
 
-void fn_800B84AC(Control *control, Control *r3, Control *r4, float f1)
-{
-    Quaternion q1 = r3->controlParams.q;
-    if (f1 >= 0.0)
-    {
-        control->controlParams.q = q1;
+extern s32 lbl_803CC1E8;
+
+void fn_800B84AC(Control *control, Control *a, Control *b, f32 t) {
+    Quaternion tmp;
+    Quaternion *aRot = &a->controlParams.srt.r;
+    Quaternion *bRot = &b->controlParams.srt.r;
+    Quaternion *outRot = &control->controlParams.srt.r;
+    f32 oneMinusT;
+    f32 diff;
+    f32 *pa;
+    f32 *pb;
+    f32 *po;
+    s32 i;
+
+    oneMinusT = 1.0f - t;
+    if (t >= 1.0f || a == NULL || a->type != b->type) {
+        if (b->type & CTRL_SCALE) {
+            *control = *b;
+        } else {
+            *control = *b;
+        }
+        return;
     }
 
-    PSQUATDotProduct(0,0);
-    C_QUATSlerp(0, 0, 0, 0);
+    control->type = b->type;
+    if (a->type & CTRL_ROT_QUAT) {
+        if (PSQUATDotProduct(aRot, bRot) >= 0.0f) {
+            C_QUATSlerp(aRot, bRot, outRot, t);
+        } else {
+            PSQUATScale(aRot, -1.0f, &tmp);
+            C_QUATSlerp(&tmp, bRot, outRot, t);
+        }
+    } else if (a->type & CTRL_ROT_EULER) {
+        pa = &aRot->x;
+        pb = &bRot->x;
+        po = &outRot->x;
+        for (i = 0; i < 3; i++) {
+            diff = pa[i] - pb[i];
+            if (diff > 180.0f) {
+                pa[i] -= 360.0f;
+            } else if (diff < -180.0f) {
+                pb[i] -= 360.0f;
+            }
+            po[i] = pb[i] * t + pa[i] * oneMinusT;
+        }
+    } else {
+        *outRot = *bRot;
+    }
+
+    if (lbl_803CC1E8 != 0 && (a->type & CTRL_SCALE)) {
+        control->controlParams.srt.s.x = b->controlParams.srt.s.x * t + a->controlParams.srt.s.x * oneMinusT;
+        control->controlParams.srt.s.y = b->controlParams.srt.s.y * t + a->controlParams.srt.s.y * oneMinusT;
+        control->controlParams.srt.s.z = b->controlParams.srt.s.z * t + a->controlParams.srt.s.z * oneMinusT;
+        control->controlParams.q.x = b->controlParams.q.x * t + a->controlParams.q.x * oneMinusT;
+        control->controlParams.q.y = b->controlParams.q.y * t + a->controlParams.q.y * oneMinusT;
+        control->controlParams.q.z = b->controlParams.q.z * t + a->controlParams.q.z * oneMinusT;
+        control->controlParams.q.w = b->controlParams.q.w * t + a->controlParams.q.w * oneMinusT;
+    } else {
+        control->controlParams.srt.s = b->controlParams.srt.s;
+        control->controlParams.q = b->controlParams.q;
+    }
+
+    if (a->type & CTRL_TRANS) {
+        control->controlParams.srt.t.x = b->controlParams.srt.t.x * t + a->controlParams.srt.t.x * oneMinusT;
+        control->controlParams.srt.t.y = b->controlParams.srt.t.y * t + a->controlParams.srt.t.y * oneMinusT;
+        control->controlParams.srt.t.z = b->controlParams.srt.t.z * t + a->controlParams.srt.t.z * oneMinusT;
+    } else {
+        control->controlParams.srt.t = b->controlParams.srt.t;
+    }
 }
 
 void CTRL_SetQuatUnk(Control *control, float x, float y, float z, float w)

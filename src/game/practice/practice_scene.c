@@ -52,7 +52,6 @@ extern u8 charSelect_handednessIconFrames[];
 extern u8 lbl_3_data_9D50[][5];
 extern s16 practiceFrameConsts;
 
-extern void fn_8000F8F4(void* scene);
 extern void fn_80011BE4(int arg0);
 extern void fn_8004D0F0(void);
 extern void fn_80050F78(int arg0);

@@ -12,7 +12,7 @@ void challenge_checkRecruitment(void);
 f32 intermediateStatBuffForScoutFlags(void);
 f32 intermediateStatBuffForCompletedMissions(int charID);
 s16 challenge_getStarRank(int charID);
-void determineIfMissionDescriptionIsShown(void);
-void fn_8006CDC0(void);
+int determineIfMissionDescriptionIsShown(int charID);
+int fn_8006CDC0(int charID);
 
 #endif // !__CHALLENGE_CHALLENGE_PROGRESS_H_

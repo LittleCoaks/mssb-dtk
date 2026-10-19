@@ -175,7 +175,6 @@ extern u8 superstarUnlocked[0x130];
 
 extern u16 minigameHudSelectInfoPracticeFrames[][2];
 extern u16 minigameHudSelectInfoGameFrames[][2];
-extern void fn_8000F8F4(void* node);
 extern UIRecordDescriptor minigameHudExtraOpponentRecords[];
 extern UIRecordDescriptor minigameHudCharSelectRecords[];
 extern u16 minigameHudCharSelectChallengeElements[];

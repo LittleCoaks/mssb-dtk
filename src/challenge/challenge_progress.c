@@ -1062,10 +1062,39 @@ s16 challenge_getStarRank(int charID) {
     return starRankByMissionCount[tracker->variantClassification][countStarMissions(charID)];
 }
 
-void determineIfMissionDescriptionIsShown(void) {
-    return;
+int determineIfMissionDescriptionIsShown(int charID) {
+    ChallengeTrackingStruct* t = &g_Challenge.characters[charID];
+    int count;
+    int i;
+
+    if (characterStaticIndexes[charID].hasOwnStarMissions == 0) {
+        count = 0;
+    } else {
+        count = 0;
+        for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
+            if (t->inGameMissionTracker[i].starMissionStatus < 0) {
+                count++;
+            }
+        }
+    }
+    return starRankByMissionCount[t->variantClassification][count];
 }
 
-void fn_8006CDC0(void) {
-    return;
+int fn_8006CDC0(int charID) {
+    ChallengeState* cs = &g_Challenge;
+    ChallengeTrackingStruct* t;
+    int count;
+    int i;
+
+    if (characterStaticIndexes[charID].hasOwnStarMissions == 0) {
+        return 0;
+    }
+    t = &cs->characters[charID];
+    count = 0;
+    for (i = 0; i < STAR_MISSIONS_PER_CHARACTER; i++) {
+        if (t->inGameMissionTracker[i].starMissionStatus < 0) {
+            count++;
+        }
+    }
+    return count;
 }
