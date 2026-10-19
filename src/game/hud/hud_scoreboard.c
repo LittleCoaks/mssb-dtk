@@ -2294,7 +2294,6 @@ void scoutMissionBanner_update(void) {
 // .text:0x00094BC4 size:0x2A4 mapped:0x806D3C58
 void scoutMissionProgress_init(void) {
     HudScene* scene = (HudScene*)currentDrawingItem;
-    ScoutEntry* entry;
     int i;
     int k;
     int shown;
@@ -2308,24 +2307,23 @@ void scoutMissionProgress_init(void) {
     }
     addGraphicsElementToScene((DrawingSceneStruct*)scene, scoutMissionProgressDescriptors);
     shown = 0;
-    entry = scoutState.entries;
-    for (i = 0; i < 9; i++, entry++) {
-        if (entry->active != 0) {
+    for (i = 0; i < 9; i++) {
+        if (scoutState.entries[i].active != 0) {
             int base = scoutMissionProgressRowBases[shown];
 
-            REC(scene, base)->frame = entry->trackerIdx << 16;
+            REC(scene, base)->frame = scoutState.entries[i].trackerIdx << 16;
             for (k = 0; k < 5; k++) {
-                int slot = base + (k + 1);
+                int slot = base + k + 1;
 
-                if (k >= entry->max) {
+                if (k >= scoutState.entries[i].max) {
                     REC(scene, slot)->flags &= ~UI_FLAG_VISIBLE;
                 } else {
                     REC(scene, slot)->flags |= UI_FLAG_VISIBLE;
                     REC(scene, slot)->playMode = UI_PLAY_STOP;
                     REC(scene, slot)->frame = 0;
-                    if (k < (s8)entry->achieved) {
+                    if (k < (s8)scoutState.entries[i].achieved) {
                         REC(scene, slot)->frame = 1 << 16;
-                    } else if (k < (s8)entry->achieved + entry->amount) {
+                    } else if (k < scoutState.entries[i].amount + (s8)scoutState.entries[i].achieved) {
                         if (scene->unk1C == 2) {
                             REC(scene, slot)->frame = 40 << 16;
                         } else {
