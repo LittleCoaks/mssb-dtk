@@ -11,14 +11,17 @@ extern VecXZ base_MoundCoordinates[5];
 // Per team, per roster slot: outs recorded while the pitcher's team led.
 extern u8 pitchingInfo_A_H[2][9][5];
 
+#define FIELDER_STATS(f) BatterStats_P1_P2[g_GameLogic.teamFielding][g_Fielders[f].rosterLocation]
+#define FIELDING_ORDER(i) g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam][i]
+#define FIELDING_POSITIONS(i) BatterStats_P1_P2[team][FIELDING_ORDER(i)[0]].currentPosition
+
 // .text:0x00077914 size:0xC60 mapped:0x806B69A8
 void postPlayTrackStats(void) {
-    StatisticsPitcher* pitcherStats;
-    u8* stat;
-    s16 result = AT_BAT_RESULT_NONE;
-    int fielder = -1;
     int rbis = 0;
+    int fielder = -1;
     int pitcher;
+    StatisticsPitcher* pitcherStats;
+    s16 result = AT_BAT_RESULT_NONE;
     int battingTeam;
     int battingSlot;
     int inning;
@@ -26,7 +29,6 @@ void postPlayTrackStats(void) {
     u8 end;
     s8 base;
     int team;
-    int (*slot)[2];
     int i;
     int k;
 
@@ -56,12 +58,10 @@ void postPlayTrackStats(void) {
 
         if (pickoffSteal == PICKOFF_STEAL_CODE_STEAL) {
             if (g_FieldingLogic.runnerTargetedOnThrowDuringSteal != 0) {
-                stat = &BatterStats_P1_P2[g_GameLogic.teamFielding][g_Fielders[1].rosterLocation]
-                            .fielder_playsInvolvedIn;
-                if (*stat < 0xFE) {
-                    (*stat)++;
+                if (FIELDER_STATS(1).fielder_playsInvolvedIn < 0xFE) {
+                    FIELDER_STATS(1).fielder_playsInvolvedIn++;
                 } else {
-                    *stat = 0xFF;
+                    FIELDER_STATS(1).fielder_playsInvolvedIn = 0xFF;
                 }
             }
             if (g_FieldingLogic.x127_pickoff_0 == PICKOFF_TARGET_STATUS_STEALING_RUNNER_ADVANCED) {
@@ -70,23 +70,19 @@ void postPlayTrackStats(void) {
                 } else {
                     g_Scores.stealSuccesses[g_GameLogic.awayTeamBattingInd_battingTeam] = 0xFF;
                 }
-                stat = &BatterStats_P1_P2[g_GameLogic.teamFielding][g_Fielders[1].rosterLocation]
-                            .runnersAdvancedAgainst;
-                if (*stat < 0xFE) {
-                    (*stat)++;
+                if (FIELDER_STATS(1).runnersAdvancedAgainst < 0xFE) {
+                    FIELDER_STATS(1).runnersAdvancedAgainst++;
                 } else {
-                    *stat = 0xFF;
+                    FIELDER_STATS(1).runnersAdvancedAgainst = 0xFF;
                 }
             }
         }
         if (pickoffSteal == PICKOFF_STEAL_CODE_PICKOFF) {
             if (g_FieldingLogic.runnerTargetedOnThrowDuringSteal != 0) {
-                stat = &BatterStats_P1_P2[g_GameLogic.teamFielding][g_Fielders[0].rosterLocation]
-                            .fielder_playsInvolvedIn;
-                if (*stat < 0xFE) {
-                    (*stat)++;
+                if (FIELDER_STATS(0).fielder_playsInvolvedIn < 0xFE) {
+                    FIELDER_STATS(0).fielder_playsInvolvedIn++;
                 } else {
-                    *stat = 0xFF;
+                    FIELDER_STATS(0).fielder_playsInvolvedIn = 0xFF;
                 }
             }
             if (g_FieldingLogic.x127_pickoff_0 == PICKOFF_TARGET_STATUS_STEALING_RUNNER_ADVANCED) {
@@ -95,12 +91,10 @@ void postPlayTrackStats(void) {
                 } else {
                     g_Scores.stealSuccesses[g_GameLogic.awayTeamBattingInd_battingTeam] = 0xFF;
                 }
-                stat = &BatterStats_P1_P2[g_GameLogic.teamFielding][g_Fielders[0].rosterLocation]
-                            .runnersAdvancedAgainst;
-                if (*stat < 0xFE) {
-                    (*stat)++;
+                if (FIELDER_STATS(0).runnersAdvancedAgainst < 0xFE) {
+                    FIELDER_STATS(0).runnersAdvancedAgainst++;
                 } else {
-                    *stat = 0xFF;
+                    FIELDER_STATS(0).runnersAdvancedAgainst = 0xFF;
                 }
             }
         }
@@ -125,11 +119,10 @@ void postPlayTrackStats(void) {
     end = g_Pitcher.strikeOutOrWalk;
     if (end == AT_BAT_END_STRIKEOUT || storedInningInfo.playResultCode == PLAY_RESULT_CODE_FOUL_BUNT_TWO_STRIKES) {
         result = AT_BAT_RESULT_STRIKEOUT;
-        stat = &storedInningInfo.consecutiveStrikeouts[g_GameLogic.awayTeamBattingInd_battingTeam];
-        if (*stat < 0xFE) {
-            (*stat)++;
+        if (storedInningInfo.consecutiveStrikeouts[g_GameLogic.awayTeamBattingInd_battingTeam] < 0xFE) {
+            storedInningInfo.consecutiveStrikeouts[g_GameLogic.awayTeamBattingInd_battingTeam]++;
         } else {
-            *stat = 0xFF;
+            storedInningInfo.consecutiveStrikeouts[g_GameLogic.awayTeamBattingInd_battingTeam] = 0xFF;
         }
     } else {
         storedInningInfo.consecutiveStrikeouts[g_GameLogic.awayTeamBattingInd_battingTeam] = 0;
@@ -203,7 +196,8 @@ void postPlayTrackStats(void) {
                 } else if (g_FieldingLogic.processErrorCode == FIELDING_ERROR_CONFIRMED) {
                     fielder = g_FieldingLogic.lastThrowingFielder;
                     result = AT_BAT_RESULT_ERROR;
-                } else if (storedInningInfo.runnersTargetedWhileBatterForceable == RUNNERS_TARGETED_NOT_THROWN_TO_BASE &&
+                } else if (storedInningInfo.runnersTargetedWhileBatterForceable ==
+                               RUNNERS_TARGETED_NOT_THROWN_TO_BASE &&
                            g_Runners[0].forceOutCd != FORCE_OUT_TYPE_OUT_ON_FORCE) {
                     fielder = g_FieldingLogic.lastThrowingFielder;
                     result = AT_BAT_RESULT_ERROR;
@@ -228,7 +222,8 @@ void postPlayTrackStats(void) {
                     }
                 } else if (storedInningInfo.nRunnersForcedOut >= 2) {
                     result = AT_BAT_RESULT_DOUBLE_PLAY;
-                } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) {
+                } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT ||
+                           g_FieldingLogic.infieldFlyIndicator == 2) {
                     if (g_Ball.fairBallInd == 1) {
                         result = AT_BAT_RESULT_CAUGHT_INFIELD_FLY;
                     } else if (g_Ball.Hit_VerticalAngle > 160) {
@@ -261,14 +256,13 @@ void postPlayTrackStats(void) {
     if (result != AT_BAT_RESULT_DOUBLE_PLAY && g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_4) {
         rbis = storedInningInfo.rbisWaitingToBeAddedToScore;
     }
-    storedInningInfo.fielderWithBallIndexStored = g_Ball.fielderWithBallIndexStored2;
     storedInningInfo.batterIDStored = g_Batter.rosterID;
+    storedInningInfo.fielderWithBallIndexStored = g_Ball.fielderWithBallIndexStored2;
     storedInningInfo.rbisWaitingToBeAddedToScoreStored = rbis;
     storedInningInfo.storedOuts = g_BallsStrikesOuts.storedOuts;
-    storedInningInfo.atBatResultHistory[4] = storedInningInfo.atBatResultHistory[3];
-    storedInningInfo.atBatResultHistory[3] = storedInningInfo.atBatResultHistory[2];
-    storedInningInfo.atBatResultHistory[2] = storedInningInfo.atBatResultHistory[1];
-    storedInningInfo.atBatResultHistory[1] = storedInningInfo.atBatResultHistory[0];
+    for (i = 4; i > 0; i--) {
+        storedInningInfo.atBatResultHistory[i] = storedInningInfo.atBatResultHistory[i - 1];
+    }
     storedInningInfo.atBatResultHistory[0] = result;
     if (result == AT_BAT_RESULT_STRIKEOUT || (u16)(result - AT_BAT_RESULT_OUT) <= 2 ||
         result == AT_BAT_RESULT_DOUBLE_PLAY || result == AT_BAT_RESULT_CAUGHT_INFIELD_FLY) {
@@ -293,10 +287,9 @@ void postPlayTrackStats(void) {
 
 updatePositions:
     team = g_GameLogic.teamFielding;
-    slot = g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.awayTeamBattingInd_battingTeam];
     for (i = 0; i <= 9; i++) {
         for (k = 0; k < 8; k++) {
-            if (BatterStats_P1_P2[team][slot[i][0]].currentPosition[k] != 0) {
+            if (FIELDING_POSITIONS(i)[k] != 0) {
                 break;
             }
         }
@@ -304,46 +297,43 @@ updatePositions:
             continue;
         }
         if (i == 0) {
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[0] = 1;
+            FIELDING_POSITIONS(i)[0] = 1;
             continue;
         }
-        switch (slot[i][1]) {
-        case 0:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[0] = 1;
-            break;
-        case 1:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[1] = 1;
-            break;
-        case 2:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[2] = 1;
-            break;
-        case 3:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[3] = 1;
-            break;
-        case 4:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[4] = 1;
-            break;
-        case 5:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[5] = 1;
-            break;
-        case 6:
-        case 7:
-        case 8:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[6] = 1;
-            break;
-        case 9:
-            BatterStats_P1_P2[team][slot[i][0]].currentPosition[7] = 1;
-            break;
+        switch (FIELDING_ORDER(i)[1]) {
+            case 0:
+                FIELDING_POSITIONS(i)[0] = 1;
+                break;
+            case 1:
+                FIELDING_POSITIONS(i)[1] = 1;
+                break;
+            case 2:
+                FIELDING_POSITIONS(i)[2] = 1;
+                break;
+            case 3:
+                FIELDING_POSITIONS(i)[3] = 1;
+                break;
+            case 4:
+                FIELDING_POSITIONS(i)[4] = 1;
+                break;
+            case 5:
+                FIELDING_POSITIONS(i)[5] = 1;
+                break;
+            case 6:
+            case 7:
+            case 8:
+                FIELDING_POSITIONS(i)[6] = 1;
+                break;
+            case 9:
+                FIELDING_POSITIONS(i)[7] = 1;
+                break;
         }
     }
-    if ((s8)g_FieldingLogic.bigPlayFielderIndex >= 0) {
-        stat = &BatterStats_P1_P2[g_GameLogic.teamFielding]
-                                               [g_Fielders[(s8)g_FieldingLogic.bigPlayFielderIndex].rosterLocation]
-                    .BigPlays;
-        if (*stat < 0xFE) {
-            (*stat)++;
+    if (g_FieldingLogic.bigPlayFielderIndex >= 0) {
+        if (FIELDER_STATS(g_FieldingLogic.bigPlayFielderIndex).BigPlays < 0xFE) {
+            FIELDER_STATS(g_FieldingLogic.bigPlayFielderIndex).BigPlays++;
         } else {
-            *stat = 0xFF;
+            FIELDER_STATS(g_FieldingLogic.bigPlayFielderIndex).BigPlays = 0xFF;
         }
     }
     if (!g_d_GameSettings.exhibitionMatchInd) {

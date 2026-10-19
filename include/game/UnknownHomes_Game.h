@@ -2649,7 +2649,7 @@ typedef struct {
     /*0x0131*/ u8 _0131;
     /*0x0132*/ u8 errorTypeCd; // FIELDING_ERROR_TYPE
     /*0x0133*/ u8 bigPlayPotential;
-    /*0x0134*/ u8 bigPlayFielderIndex;
+    /*0x0134*/ s8 bigPlayFielderIndex;
     /*0x0135*/ u8 tagOutFirstFrameInd;
     /*0x0136*/ u8 _0136;
     /*0x0137*/ u8 always0_0137;
