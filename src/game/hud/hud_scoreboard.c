@@ -1618,6 +1618,7 @@ typedef struct HudDigitScene {
 #define TARGET(scene, t) ((scene)->counts[2 + (t)])
 
 #define REC(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
+#define REC_PREV(scene, i) ((UIRecord*)(&graphicsRelatedArray[(scene)->firstHandle + (i)])[-1].object)
 #define REC_AT(scene, i, off) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (off)].object)
 
 static inline BOOL hudRecordFinished(UIRecord* rec) {
@@ -2028,7 +2029,7 @@ void drawDiamondMiniMap_ongoing(void) {
                 }
                 base = runner->currentBase;
                 if (base >= 1 && base <= 3) {
-                    REC_AT(scene, base, 8)->flags |= UI_FLAG_VISIBLE;
+                    REC_PREV(scene, base + 9)->flags |= UI_FLAG_VISIBLE;
                 }
             }
         }
@@ -2759,20 +2760,20 @@ void scoreTicker_update(HudDigitScene* scene) {
 static inline void showInningColumn(HudScene* scene, int col, int inning) {
     int runs;
 
-    REC(scene, col - 1 + 6)->flags |= UI_FLAG_VISIBLE;
+    REC_PREV(scene, col + 6)->flags |= UI_FLAG_VISIBLE;
     runs = g_Scores.scores[0].byInning[inning - 1];
     if (runs >= 99) {
         runs = 99;
     }
     if (runs < 10) {
-        REC(scene, col - 1 + 6)->elementIndex = lbl_3_data_F1FC[0];
+        REC_PREV(scene, col + 6)->elementIndex = lbl_3_data_F1FC[0];
         load_Icon(scene, col + 5, 1, 0xC4, runs);
     } else {
         load_Icon(scene, col + 5, 2, 0xC4, runs % 10);
         load_Icon(scene, col + 5, 1, 0xC4, runs / 10);
     }
     if (inning < animRelated[0xCF] || (inning == animRelated[0xCF] && animRelated[0xD0] != 0)) {
-        REC(scene, col - 1 + 0x11)->flags |= UI_FLAG_VISIBLE;
+        REC_PREV(scene, col + 0x11)->flags |= UI_FLAG_VISIBLE;
         runs = g_Scores.scores[1].byInning[inning - 1];
         if (runs >= 99) {
             runs = 99;
@@ -2782,7 +2783,7 @@ static inline void showInningColumn(HudScene* scene, int col, int inning) {
                 load_Icon(scene, col + 0x10, 2, 0xC4, 0xB);
                 load_Icon(scene, col + 0x10, 1, 0xC4, runs);
             } else {
-                REC(scene, col - 1 + 0x11)->elementIndex = lbl_3_data_F1FC[0];
+                REC_PREV(scene, col + 0x11)->elementIndex = lbl_3_data_F1FC[0];
                 load_Icon(scene, col + 0x10, 1, 0xC4, runs);
             }
         } else {
@@ -2790,8 +2791,8 @@ static inline void showInningColumn(HudScene* scene, int col, int inning) {
             load_Icon(scene, col + 0x10, 1, 0xC4, runs / 10);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-        REC(scene, col - 1 + 0x11)->flags |= UI_FLAG_VISIBLE;
-        REC(scene, col - 1 + 0x11)->elementIndex = lbl_3_data_F1FC[0];
+        REC_PREV(scene, col + 0x11)->flags |= UI_FLAG_VISIBLE;
+        REC_PREV(scene, col + 0x11)->elementIndex = lbl_3_data_F1FC[0];
         load_Icon(scene, col + 0x10, 1, 0xC4, 10);
     }
 }
