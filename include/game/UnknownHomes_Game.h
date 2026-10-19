@@ -255,7 +255,7 @@ typedef struct _InMemRunnerType {
     /*0x12D*/ u8 forcedToAdvanceInd; // maybe
     /*0x12E*/ s8 unused_someBaseNum;
     /*0x12F*/ s8 baseOfFailedBodyCheck; // maybe
-    /*0x130*/ u8 tagType;               // 1=Running 2=Sliding
+    /*0x130*/ E(u8, RUNNER_TAGGED_STATE) taggedState;
     /*0x131*/ u8 runnerDidntReachOnError;
     /*0x132*/ u8 isEligibleToScore; // maybe
     /*0x133*/ u8 leadOffStatus;
@@ -265,7 +265,7 @@ typedef struct _InMemRunnerType {
     /*0x137*/ E(u8, RUNNER_MOVEMENT_TYPE) runningDirectionCode;
     /*0x138*/ E(u8, RUNNER_MOVEMENT_TYPE) runnerDirectionCode_stored;
     /*0x139*/ u8 offsetFromNormalRunningPathInd; // maybe
-    /*0x13A*/ u8 actionCode;
+    /*0x13A*/ E(u8, RUNNER_ACTION) actionCode;
     /*0x13B*/ u8 actionInForwardDirectionInd;
     /*0x13C*/ u8 actionStage;
     /*0x13D*/ u8 forceOutType_unsed;
@@ -2614,7 +2614,7 @@ typedef struct {
     /*0x010e*/ u8 playOverInd;
     /*0x010f*/ u8 unused_always0__;
     /*0x0110*/ u8 hasProcessedFoulBall;
-    /*0x0111*/ u8 tagAnimationType;
+    /*0x0111*/ E(u8, FIELDER_TAG_TYPE) fielderTagType;
     /*0x0112*/ u8 tagResult_1out_2safe;
     /*0x0113*/ u8 processErrorCode;
     /*0x0114*/ u8 fielderActionBeingProcessed;
@@ -2686,6 +2686,18 @@ typedef enum _PICKOFF_STEAL_CODE {
     /* 0x3 */ PICKOFF_STEAL_CODE_UNUSED_3, // never set; reads suggest wild pitch / passed ball
     /* 0x4 */ PICKOFF_STEAL_CODE_UNUSED_4, // never set; reads suggest dropped third strike
 } PICKOFF_STEAL_CODE;
+
+// g_FieldingLogic.fielderTagType: the kind of tag the fielder with the ball is making.
+typedef enum _FIELDER_TAG_TYPE {
+    /* 0 */ FIELDER_TAG_NONE,
+    /* 1 */ FIELDER_TAG_BASE_ON_SLIDE, // on the bag as the runner slides/body checks in
+    /* 2 */ FIELDER_TAG_RUNNING,       // runner in the basepath; fielder keeps chasing
+    /* 3 */ FIELDER_TAG_UNUSED_3,      // never set; chase code treats it like RUNNING
+    /* 4 */ FIELDER_TAG_UNUSED_4,      // never set; chase code eases in to reach the runner as the out timer ends
+    /* 5 */ FIELDER_TAG_STANDING,
+    /* 6 */ FIELDER_TAG_BODY_CHECK_FAILED,
+    /* 7 */ FIELDER_TAG_BODY_CHECK_WON,
+} FIELDER_TAG_TYPE;
 
 // g_FieldingLogic.x127_pickoff_0: what became of the runner a pickoff/steal throw targeted.
 typedef enum _PICKOFF_TARGET_STATUS {
@@ -3165,6 +3177,21 @@ typedef enum _RUNNER_MOVEMENT_TYPE {
     /* 4 */ RUNNER_MOVEMENT_OVERRUN_FIRST, // running through 1st
     /* 5 */ RUNNER_MOVEMENT_OVERRUN_BASE,  // overrunning 2nd/3rd
 } RUNNER_MOVEMENT_TYPE;
+
+// InMemRunnerType.actionCode
+typedef enum _RUNNER_ACTION {
+    /* 0 */ RUNNER_ACTION_NONE,
+    /* 1 */ RUNNER_ACTION_SLIDE,
+    /* 2 */ RUNNER_ACTION_BODY_CHECK_WON,
+    /* 3 */ RUNNER_ACTION_BODY_CHECK_FAILED,
+} RUNNER_ACTION;
+
+// InMemRunnerType.taggedState: how this runner is being tagged this frame.
+typedef enum _RUNNER_TAGGED_STATE {
+    /* 0 */ RUNNER_TAGGED_NONE,
+    /* 1 */ RUNNER_TAGGED_RUNNING,
+    /* 2 */ RUNNER_TAGGED_IN_ACTION, // < 5 out-timer frames left while mid-slide/body check
+} RUNNER_TAGGED_STATE;
 
 typedef enum _DASH_STATE {
     /* 2 */ DASH_STATE_SPRINTING = 2,

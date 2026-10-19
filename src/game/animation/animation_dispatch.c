@@ -1440,7 +1440,7 @@ void runnerAnimation_detailed(int runnerIdx) {
     }
     if (runner->batterStayInBattersBoxReason != 0) {
         slot->state = 1;
-    } else if (runner->actionCode != 0) {
+    } else if (runner->actionCode != RUNNER_ACTION_NONE) {
         slot->state = 8;
     } else if (runner->overRun1BStage >= 2) {
         if (runner->overRun1BStage == 2) {
@@ -1542,9 +1542,9 @@ void runnerAnimation_general(int runnerIdx) {
         case 8:
             if (runner->actionStage == 1) {
                 if (runner->actionFrames_countUp == 1) {
-                    if (runner->actionCode == 2) {
+                    if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_WON) {
                         AnimateCharacter(idx, 0x33, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
-                    } else if (runner->actionCode == 3) {
+                    } else if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_FAILED) {
                         AnimateCharacter(idx, 0x33, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
                     } else if (runner->actionInForwardDirectionInd != 0 && runner->nextBase != 0) {
                         AnimateCharacter(idx, 0x32, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
@@ -1785,7 +1785,7 @@ void handleRunnerActionsAndTagging(void) {
     }
 
     fielderIdx = g_Ball.fielderWBallIndex;
-    if (fielderIdx < 0 || g_FieldingLogic.tagAnimationType == 0) {
+    if (fielderIdx < 0 || g_FieldingLogic.fielderTagType == FIELDER_TAG_NONE) {
         return;
     }
 
@@ -1796,7 +1796,7 @@ void handleRunnerActionsAndTagging(void) {
     }
     g_UnkThrowing_31ACC[0]._10 = g_FieldingLogic.tagOutFirstFrameInd;
 
-    if (g_FieldingLogic.tagAnimationType == 1) {
+    if (g_FieldingLogic.fielderTagType == FIELDER_TAG_BASE_ON_SLIDE) {
         state = 1;
         if (g_FieldingLogic.runnerBeingTargettedForOut >= 0) {
             angle = (s16)calculateAngleFromCoordinates(g_FieldingLogic.tagDirection.x - fielder->pos.x,
@@ -1809,9 +1809,9 @@ void handleRunnerActionsAndTagging(void) {
             }
         }
         slot->state = state;
-    } else if (g_FieldingLogic.tagAnimationType == 2) {
+    } else if (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING) {
         slot->state = 4;
-    } else if (g_FieldingLogic.tagAnimationType == 5) {
+    } else if (g_FieldingLogic.fielderTagType == FIELDER_TAG_STANDING) {
         state = 5;
         if (g_FieldingLogic.runnerBeingTargettedForOut >= 0) {
             InMemRunnerType* runner = &g_Runners[g_FieldingLogic.runnerBeingTargettedForOut];

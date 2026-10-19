@@ -52,7 +52,7 @@ int runnerAISubfunction(void);
 void running_updateMovementRestrictions(void);
 void fn_3_86DFC(void);
 void running_beginSteal_CheckForPerfect(void);
-void fn_3_870AC(void);
+void running_beginFrame_updateTaggedStates(void);
 void running_updateStamina(void);
 void running_beginFrame_storeRunnerState(void);
 void running_beginFrame(void);

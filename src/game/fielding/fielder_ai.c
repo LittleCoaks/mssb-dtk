@@ -683,7 +683,7 @@ void autoMovement10_HasBall(int fielderIndex) {
         if (g_Ball.fielderWBallIndex == fielderIndex) {
             knockBallLoose(fielderIndex, 2);
             g_FieldingLogic.knockoutFinished = 1;
-            g_FieldingLogic.tagAnimationType = 0;
+            g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
             return;
         }
         fielderOnFirePosAndVelo(fielderIndex);
@@ -726,7 +726,7 @@ void autoMovement10_HasBall(int fielderIndex) {
             tagOutRelated = TRUE;
             g_FieldingLogic.someHumanThrowFrameCounter = 0;
         } else {
-            if (g_FieldingLogic.tagAnimationType != 0) {
+            if (g_FieldingLogic.fielderTagType != FIELDER_TAG_NONE) {
                 tagRelated(fielderIndex);
                 return;
             }
@@ -866,7 +866,7 @@ void autoMovement10_HasBall(int fielderIndex) {
                 g_FieldingLogic.throwWindupAnimationDoneInd = 0;
                 fielder->fielderMadeThrow = 1;
                 fielder->framesSinceThrowWasMade = 0;
-                g_FieldingLogic.tagAnimationType = 0;
+                g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
                 g_FieldingLogic.tagResult_1out_2safe = 0;
             }
         }
@@ -1009,7 +1009,7 @@ void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex) {
             status == 3) {
             knockBallLoose(fielderIndex, 0);
             g_FieldingLogic.knockoutFinished = 1;
-            g_FieldingLogic.tagAnimationType = 0;
+            g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
         }
         if (fielder->bodyCheckStatus == 3) {
             getComponentsFromSAng(fielder->knockOutAngle, &compX, &compZ);
@@ -1147,7 +1147,7 @@ void fn_3_A89D4(void) {
         g_FieldingLogic.throwSpeedType = 9;
         return;
     }
-    if (g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE && g_Runners[1].actionCode != 0 &&
+    if (g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE && g_Runners[1].actionCode != RUNNER_ACTION_NONE &&
         g_Runners[1].fractionalBasesRan >= 1.8f && g_Runners[1].fractionalBasesRan <= 2.0f &&
         g_FieldingLogic.locationThrownTo == 1 && g_Ball.baseBallAndFielderAreOn == 2) {
         g_FieldingLogic.throwSpeedType = 10;
@@ -1648,7 +1648,7 @@ void tagOutValues(int fielderIndex) {
     f32 dist;
     f32 runDir;
 
-    g_FieldingLogic.tagAnimationType = 0;
+    g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
     g_FieldingLogic.runnerBeingTargettedForOut = -1;
     if (g_BallsStrikesOuts.outs < 3 && g_Ball.ballState == BALL_STATE_HELD && g_Ball.fielderWBallIndex >= 0 &&
         g_FieldingLogic.tagAnimationCountdown == 0) {
@@ -1668,7 +1668,7 @@ void tagOutValues(int fielderIndex) {
                     runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
                     if (base == runner->baseStandingOn_Stored && runner->baseStandingOn < 0 &&
                         g_Ball.timeSinceBallPickedUp > 15 && runner->position.x < 20.0f) {
-                        g_FieldingLogic.tagAnimationType = 5;
+                        g_FieldingLogic.fielderTagType = FIELDER_TAG_STANDING;
                         g_FieldingLogic.runnerBeingTargettedForOut = i;
                         g_FieldingLogic.tagResult_1out_2safe = 1;
                         g_FieldingLogic.framesRunnerIsOutBy = 1;
@@ -1683,9 +1683,9 @@ void tagOutValues(int fielderIndex) {
                         if (runner->forceOutType_unsed != 0) {
                             break;
                         }
-                        if (runner->actionCode != 0) {
+                        if (runner->actionCode != RUNNER_ACTION_NONE) {
                             if (runner->actionFrames_countDown < 6) {
-                                g_FieldingLogic.tagAnimationType = 1;
+                                g_FieldingLogic.fielderTagType = FIELDER_TAG_BASE_ON_SLIDE;
                                 g_FieldingLogic.runnerBeingTargettedForOut = i;
                                 g_FieldingLogic.tagResult_1out_2safe = 1;
                                 g_FieldingLogic.tagAnimationCountdown = 15;
@@ -1700,9 +1700,9 @@ void tagOutValues(int fielderIndex) {
                             if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN && runner->distanceFromBall < 1.8f &&
                                 g_Ball.timeSinceBallPickedUp > 15) {
                                 if (runner->baseStandingOn == base && i != runner->baseStandingOn) {
-                                    g_FieldingLogic.tagAnimationType = 5;
+                                    g_FieldingLogic.fielderTagType = FIELDER_TAG_STANDING;
                                 } else {
-                                    g_FieldingLogic.tagAnimationType = 2;
+                                    g_FieldingLogic.fielderTagType = FIELDER_TAG_RUNNING;
                                 }
                                 g_FieldingLogic.runnerBeingTargettedForOut = i;
                                 g_FieldingLogic.tagResult_1out_2safe = 1;
@@ -1733,7 +1733,7 @@ void tagOutValues(int fielderIndex) {
                                 vel = fielder->currentVelocity;
                             }
                             if (runner->distanceFromBall - vel < 1.8f) {
-                                g_FieldingLogic.tagAnimationType = 2;
+                                g_FieldingLogic.fielderTagType = FIELDER_TAG_RUNNING;
                                 g_FieldingLogic.runnerBeingTargettedForOut = i;
                                 g_FieldingLogic.tagResult_1out_2safe = 1;
                                 g_FieldingLogic.framesRunnerIsOutBy = 1;
@@ -1779,7 +1779,7 @@ void tagOutValues(int fielderIndex) {
                                 }
                             }
                             if (result != 0) {
-                                g_FieldingLogic.tagAnimationType = 2;
+                                g_FieldingLogic.fielderTagType = FIELDER_TAG_RUNNING;
                                 g_FieldingLogic.runnerBeingTargettedForOut = i;
                                 g_FieldingLogic.tagResult_1out_2safe = 1;
                                 g_FieldingLogic.framesRunnerIsOutBy = 1;
@@ -1795,13 +1795,13 @@ void tagOutValues(int fielderIndex) {
                 }
             }
         }
-        if (g_FieldingLogic.tagAnimationType == 2 && 0.0f == fielder->currentVelocity) {
-            g_FieldingLogic.tagAnimationType = 5;
+        if (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING && 0.0f == fielder->currentVelocity) {
+            g_FieldingLogic.fielderTagType = FIELDER_TAG_STANDING;
         }
     }
     return;
 tagFound:
-    if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].actionCode != 0) {
+    if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].actionCode != RUNNER_ACTION_NONE) {
         if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
             g_FieldingLogic.tagDirection.x =
                 base_MoundCoordinates[g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].currentBase].x;
@@ -1839,29 +1839,29 @@ void tagRelated(int fielderIndex) {
     if (g_FieldingLogic.framesRunnerIsOutBy <= 0) {
         g_FieldingLogic.tagResult_1out_2safe = 2;
     }
-    if (g_FieldingLogic.tagAnimationType == 2 && g_FieldingLogic.tagResult_1out_2safe == 1) {
+    if (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING && g_FieldingLogic.tagResult_1out_2safe == 1) {
         setFielderAutoCoords(fielderIndex, g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].position.x,
                              g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].position.z);
         if (g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
             g_FieldingLogic.runnerChasingAfter = g_FieldingLogic.runnerBeingTargettedForOut;
         }
         fielderAIChaseRunner();
-    } else if (g_FieldingLogic.tagAnimationType == 1) {
+    } else if (g_FieldingLogic.fielderTagType == FIELDER_TAG_BASE_ON_SLIDE) {
         if (g_FieldingLogic.runnerBeingTargettedForOut >= 0) {
             if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].runnerOnFieldOrOutOrScored ==
                 RUNNER_STATUS_ON_FIELD) {
                 if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].baseStandingOn >= 0) {
-                    g_FieldingLogic.tagAnimationType = 0;
-                } else if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].actionCode == 0 &&
+                    g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
+                } else if (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].actionCode == RUNNER_ACTION_NONE &&
                            (g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS ||
                             g_Runners[g_FieldingLogic.runnerBeingTargettedForOut].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS)) {
-                    g_FieldingLogic.tagAnimationType = 0;
+                    g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
                 }
             } else {
-                g_FieldingLogic.tagAnimationType = 0;
+                g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
             }
         } else {
-            g_FieldingLogic.tagAnimationType = 0;
+            g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
         }
         if (g_FieldingLogic.runnerChasingAfter >= 0) {
             g_FieldingLogic.runnerChasingAfter = -1;
@@ -2041,7 +2041,7 @@ void fieldingAIThrowOrChase(int runnerIndex) {
     runnerDistCurr = runner->distToCurrentBase;
     distFromBall = (int)runner->distanceFromBall;
 
-    if (ballDistNext + ballDistCurr < 32.0f && runner->actionCode == 0) {
+    if (ballDistNext + ballDistCurr < 32.0f && runner->actionCode == RUNNER_ACTION_NONE) {
         indBallNearBaselineWhereRunnerIs[runnerIndex] = 1;
         if (ballDistNext < runnerDistNext) {
             closer = 1;
@@ -2057,7 +2057,7 @@ void fieldingAIThrowOrChase(int runnerIndex) {
                 if (g_Ball.baseBallAndFielderAreOn == baseNext &&
                     ((runnerDistNext < 7.0f && runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS &&
                       runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_NONE) ||
-                     runner->actionCode != 0)) {
+                     runner->actionCode != RUNNER_ACTION_NONE)) {
                     framesRunnerIsOutOfReach[runnerIndex] = -50;
                     runningStratToMakePlay[runnerIndex] = baseNext;
                     throwStratToMakePlay[runnerIndex] = -1;

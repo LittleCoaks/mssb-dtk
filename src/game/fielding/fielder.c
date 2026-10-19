@@ -742,7 +742,7 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.liveBallReason = PICKOFF_STEAL_CODE_NONE;
         g_FieldingLogic.infieldFlyIndicator = 0;
         g_FieldingLogic.throwWindupAnimationDoneInd = 0;
-        g_FieldingLogic.tagAnimationType = 0;
+        g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
         g_FieldingLogic._010d = 0;
         g_FieldingLogic.processErrorCode = 0;
         g_FieldingLogic.fielderActionBeingProcessed = 0;
@@ -1874,28 +1874,28 @@ void handleBodyCheck2(int fielderIndex) {
         if (runner->baseStandingOn >= 0) {
             continue;
         }
-        if (runner->actionCode == 0) {
+        if (runner->actionCode == RUNNER_ACTION_NONE) {
             continue;
         }
 
-        if (runner->actionCode == 2) {
+        if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_WON) {
             fielder->bodyCheckResult = 2;
             fielder->bodyCheckStatus = 0;
             g_FieldingLogic.bodyCheckResult = 2;
             g_FieldingLogic.framesRunnerIsOutBy = 6;
-            g_FieldingLogic.tagAnimationType = 7;
+            g_FieldingLogic.fielderTagType = FIELDER_TAG_BODY_CHECK_WON;
             g_FieldingLogic.bodyCheckResult2 = 2;
             fielder->bodyCheckRunnerNumber = i;
 
             if (!g_GameLogic.teamIsCPU[g_GameLogic.teamFielding]) {
                 setCharacterAnimations(g_GameLogic.teamFielding, 2);
             }
-        } else if (runner->actionCode == 3) {
+        } else if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_FAILED) {
             fielder->bodyCheckResult = 1;
             fielder->bodyCheckStatus = 0;
             g_FieldingLogic.bodyCheckResult = 1;
             g_FieldingLogic.framesRunnerIsOutBy = runner->actionFrames_countDown;
-            g_FieldingLogic.tagAnimationType = 6;
+            g_FieldingLogic.fielderTagType = FIELDER_TAG_BODY_CHECK_FAILED;
             g_FieldingLogic.bodyCheckResult2 = 1;
             fielder->bodyCheckRunnerNumber = i;
         } else {
@@ -2985,8 +2985,8 @@ void setFielderVelocity(int fielderIndex) {
             }
 
             if (fielderIndex == g_Ball.fielderWBallIndex && g_FieldingLogic.runnerChasingAfter >= 0 &&
-                (g_FieldingLogic.tagAnimationType == 2 || g_FieldingLogic.tagAnimationType == 3 ||
-                 g_FieldingLogic.tagAnimationType == 4) &&
+                (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING || g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_3 ||
+                 g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) &&
                 g_FieldingLogic.tagResult_1out_2safe == 1) {
                 InMemRunnerType* runner;
 
@@ -2997,7 +2997,7 @@ void setFielderVelocity(int fielderIndex) {
                 dz = runner->position.z - fielder->pos.z;
                 dist = fielderSqrt(dx * dx + dz * dz);
 
-                if (g_FieldingLogic.tagAnimationType == 4) {
+                if (g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) {
                     f32 velo = (dist - 1.2f) * 0.5f;
                     if (g_FieldingLogic.framesRunnerIsOutBy > 0) {
                         velo /= (f32)g_FieldingLogic.framesRunnerIsOutBy;
@@ -9695,7 +9695,7 @@ void autoMovement17_runningOffField(int fielderIndex) {
     f32 outZ;
 
     if (fielder->onFire != 0) {
-        g_FieldingLogic.tagAnimationType = 0;
+        g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
         return;
     }
 
@@ -19315,7 +19315,7 @@ int processFielderKnockout(int fielderIndex, sAng knockOutAngle) {
     if (g_Ball.fielderWBallIndex == fielderIndex) {
         knockBallLoose(fielderIndex, 1);
         g_FieldingLogic.knockoutFinished = 1;
-        g_FieldingLogic.tagAnimationType = 0;
+        g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
     }
 
     if (fielder->catchAnimation != 0) {

@@ -161,7 +161,7 @@ void running_MainFunction(void) {
         }
         running_updateDistAndFramesToClosestBases(i);
             if (runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) {
-                if (runner->actionCode == 0) {
+                if (runner->actionCode == RUNNER_ACTION_NONE) {
                     if ((runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
                          (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) &&
                         runner->runningDirectionDesired != RUNNER_MOVEMENT_NONE) {
@@ -189,7 +189,7 @@ void running_MainFunction(void) {
             }
             if (runner->runningToDugoutInd != 0) {
                 runner->baseRoundingState = 0;
-                runner->actionCode = 0;
+                runner->actionCode = RUNNER_ACTION_NONE;
             } else {
                 running_roundBaseDecision(i);
                 running_triggerSlideOrBodyCheck(i);
@@ -596,7 +596,7 @@ void setDefaultInMemRunner(void) {
         runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_NONE;
         runner->runningDirectionCode = RUNNER_MOVEMENT_NONE;
         runner->offsetFromNormalRunningPathInd = 0;
-        runner->actionCode = 0;
+        runner->actionCode = RUNNER_ACTION_NONE;
         runner->actionStage = 0;
         runner->forceOutType_unsed = 0;
         runner->baseRoundingState = 0;
@@ -885,14 +885,14 @@ void running_checkForOuts(void) {
                 }
             }
 
-            if (g_FieldingLogic.bodyCheckResult != 0 && g_FieldingLogic.tagAnimationType == 1 && runner->tagUpStatus != TAG_UP_TYPE_MUST_RETURN) {
+            if (g_FieldingLogic.bodyCheckResult != 0 && g_FieldingLogic.fielderTagType == FIELDER_TAG_BASE_ON_SLIDE && runner->tagUpStatus != TAG_UP_TYPE_MUST_RETURN) {
                 if (runner->baseOfFailedBodyCheck >= 0) {
                     s16 fielder;
 
                     runnerOut(g_FieldingLogic.runnerBeingTargettedForOut);
                     runner->outType = 3;
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
-                    g_FieldingLogic.tagAnimationType = 0;
+                    g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
                     if (g_Ball.fielderWhoGotLastOut < 0) {
                         fielder = g_Ball.fielderWithBallIndexStored2;
                         g_Ball.fielderWhoGotLastOut = fielder;
@@ -911,7 +911,7 @@ void running_checkForOuts(void) {
                         }
                     }
                 }
-            } else if (g_FieldingLogic.tagAnimationType >= 2 && g_FieldingLogic.tagAnimationType <= 5 &&
+            } else if (g_FieldingLogic.fielderTagType >= FIELDER_TAG_RUNNING && g_FieldingLogic.fielderTagType <= FIELDER_TAG_STANDING &&
                        g_FieldingLogic.tagResult_1out_2safe == 2) {
                 if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
                     runnerOut(g_FieldingLogic.runnerBeingTargettedForOut);
@@ -939,7 +939,7 @@ void running_checkForOuts(void) {
                         }
                     }
                 }
-                g_FieldingLogic.tagAnimationType = 0;
+                g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
                 g_FieldingLogic.tagResult_1out_2safe = 0;
                 g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
             }
@@ -1027,7 +1027,7 @@ void setRunnerAngle(void) {
                             g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_STEAL) &&
                            g_BallsStrikesOuts.outs < 3) {
                     angle = 3.1415927f;
-                } else if (runner->actionCode != 0) {
+                } else if (runner->actionCode != RUNNER_ACTION_NONE) {
                     if (runner->actionStage == 2 && runner->actionFrames_countDown <= 1) {
                         angle = someRunningAngleArray[runner->baseStandingOn][0];
                     }
@@ -1255,19 +1255,19 @@ void running_beginFrame(void) {
 
         running_updateStamina();
 
-        g_Runners[0].tagType = 0;
-        g_Runners[1].tagType = 0;
-        g_Runners[2].tagType = 0;
-        g_Runners[3].tagType = 0;
-        if (g_FieldingLogic.tagAnimationType == 2 || g_FieldingLogic.tagAnimationType == 4) {
+        g_Runners[0].taggedState = RUNNER_TAGGED_NONE;
+        g_Runners[1].taggedState = RUNNER_TAGGED_NONE;
+        g_Runners[2].taggedState = RUNNER_TAGGED_NONE;
+        g_Runners[3].taggedState = RUNNER_TAGGED_NONE;
+        if (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING || g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) {
             s16 targetIdx = g_FieldingLogic.runnerBeingTargettedForOut;
             if (targetIdx >= 0) {
                 InMemRunnerType* target = &g_Runners[targetIdx];
                 if (target->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                    target->tagType = 1;
+                    target->taggedState = RUNNER_TAGGED_RUNNING;
                 }
-                if (g_FieldingLogic.framesRunnerIsOutBy < 5 && target->actionCode != 0) {
-                    target->tagType = 2;
+                if (g_FieldingLogic.framesRunnerIsOutBy < 5 && target->actionCode != RUNNER_ACTION_NONE) {
+                    target->taggedState = RUNNER_TAGGED_IN_ACTION;
                 }
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                     starMissionsQuantityBased(STAR_MISSION_EVENT_TAG, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
@@ -1352,20 +1352,20 @@ void running_updateStamina(void) {
 }
 
 // .text:0x000870AC size:0x110 mapped:0x806C6140
-void fn_3_870AC(void) {
-    g_Runners[0].tagType = 0;
-    g_Runners[1].tagType = 0;
-    g_Runners[2].tagType = 0;
-    g_Runners[3].tagType = 0;
-    if (g_FieldingLogic.tagAnimationType == 2 || g_FieldingLogic.tagAnimationType == 4) {
+void running_beginFrame_updateTaggedStates(void) {
+    g_Runners[0].taggedState = RUNNER_TAGGED_NONE;
+    g_Runners[1].taggedState = RUNNER_TAGGED_NONE;
+    g_Runners[2].taggedState = RUNNER_TAGGED_NONE;
+    g_Runners[3].taggedState = RUNNER_TAGGED_NONE;
+    if (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING || g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) {
         s16 targetIdx = g_FieldingLogic.runnerBeingTargettedForOut;
         if (targetIdx >= 0) {
             InMemRunnerType* runner = &g_Runners[targetIdx];
             if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
-                runner->tagType = 1;
+                runner->taggedState = RUNNER_TAGGED_RUNNING;
             }
-            if (g_FieldingLogic.framesRunnerIsOutBy < 5 && runner->actionCode != 0) {
-                runner->tagType = 2;
+            if (g_FieldingLogic.framesRunnerIsOutBy < 5 && runner->actionCode != RUNNER_ACTION_NONE) {
+                runner->taggedState = RUNNER_TAGGED_IN_ACTION;
             }
             if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                 starMissionsQuantityBased(STAR_MISSION_EVENT_TAG, g_Fielders[g_Ball.fielderWBallIndex].rosterLocation);
@@ -1825,7 +1825,7 @@ void runnerAISetRunningDirection(int runnerIdx, int actionCode) {
     if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN && actionCode != -1) {
         return;
     }
-    if (runner->actionCode != 0 && runner->actionStage != 0) {
+    if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage != 0) {
         if (runner->actionInForwardDirectionInd == 1) {
             runner->baseRunningTowards = runner->nextBase;
         } else {
@@ -2727,7 +2727,7 @@ void running_LiveBall_AI(void) {
                                     runner->unused_someBaseNum = -1;
                                 } else if (runner->unused_someBaseNum == runner->currentBase) {
                                     runner->unused_someBaseNum = -1;
-                                } else if (runner->actionCode != 0) {
+                                } else if (runner->actionCode != RUNNER_ACTION_NONE) {
                                     runner->unused_someBaseNum = -1;
                                 } else {
                                     dirs[i] = 1;
@@ -2867,7 +2867,7 @@ void fn_3_833EC(int runnerIdx) {
     running_updateDistAndFramesToClosestBases(runnerIdx);
     runner = &g_Runners[runnerIdx];
     if (runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) {
-        if (runner->actionCode == 0) {
+        if (runner->actionCode == RUNNER_ACTION_NONE) {
             if ((runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
                  (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) &&
                 runner->runningDirectionDesired != RUNNER_MOVEMENT_NONE) {
@@ -2895,7 +2895,7 @@ void fn_3_833EC(int runnerIdx) {
     }
     if (runner->runningToDugoutInd != 0) {
         runner->baseRoundingState = 0;
-        runner->actionCode = 0;
+        runner->actionCode = RUNNER_ACTION_NONE;
     } else {
         running_roundBaseDecision(runnerIdx);
         running_triggerSlideOrBodyCheck(runnerIdx);
@@ -3034,7 +3034,7 @@ void running_CalculateSpeedVariables(int runnerIdx) {
             return;
         }
     }
-    if (runner->actionCode != 0) {
+    if (runner->actionCode != RUNNER_ACTION_NONE) {
         running_ActionControlAndVelocity(runnerIdx);
     } else {
         f32 veloCap;
@@ -3277,7 +3277,7 @@ void running_ActionControlAndVelocity(int runnerIdx) {
         runner->groundVelocity[0] = 0.0f;
         runner->percentRanPerFrame_slideAdj = 0.0f;
         if (runner->actionFrames_countDown <= 0) {
-            runner->actionCode = 0;
+            runner->actionCode = RUNNER_ACTION_NONE;
             runner->actionStage = 0;
             if (runner->baseStandingOn >= 0) {
                 runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
@@ -3487,7 +3487,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                 } else if (runner->baseRoundingState == 1) {
                     runner->fractionalBasesRan = (f32)fracBasesRun;
                     runner->percentTowardsNextBase = 0.0f;
-                } else if (runner->actionCode != 0) {
+                } else if (runner->actionCode != RUNNER_ACTION_NONE) {
                     runner->fractionalBasesRan = (f32)fracBasesRun;
                     runner->percentTowardsNextBase = 0.0f;
                     if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
@@ -3513,7 +3513,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                     runner->percentTowardsNextBase += 1.0f;
                 }
             } else if (runner->percentTowardsNextBase <= runner->slidingAdjustment_backwards) {
-                if (runner->actionCode != 0) {
+                if (runner->actionCode != RUNNER_ACTION_NONE) {
                     runner->fractionalBasesRan = (f32)(int)runner->fractionalBasesRan + runner->slidingAdjustment_backwards;
                     runner->percentTowardsNextBase = runner->slidingAdjustment_backwards;
                 } else {
@@ -3556,7 +3556,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                              (runner->forcedToAdvanceInd == 0 || runner->currentBase != runner->startingBase_baseAchieved))) {
                             runner->baseOfFailedBodyCheck = runner->baseStandingOn;
                             runner->baseStandingOn = -1;
-                            g_FieldingLogic.tagAnimationType = 1;
+                            g_FieldingLogic.fielderTagType = FIELDER_TAG_BASE_ON_SLIDE;
                             g_FieldingLogic.runnerBeingTargettedForOut = runnerIdx;
                         }
                     } else if (g_BallsStrikesOuts.outs < 3 && (runner->tagUpStatus != TAG_UP_TYPE_MUST_RETURN ||
@@ -3569,9 +3569,9 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                         QueueTextToDisplay(2, 0);
                     } else if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
                         QueueTextToDisplay(2, 0);
-                    } else if (runner->baseOfFailedBodyCheck < 0 && runner->tagType != 2 &&
+                    } else if (runner->baseOfFailedBodyCheck < 0 && runner->taggedState != RUNNER_TAGGED_IN_ACTION &&
                                runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY &&
-                               (g_FieldingLogic.tagAnimationType == 2 || g_FieldingLogic.tagAnimationType == 4)) {
+                               (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING || g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4)) {
                         QueueTextToDisplay(2, 0);
                     }
                 }
@@ -3611,19 +3611,19 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                     } else {
                         g_Scores._9C++;
                     }
-                    if (runner->actionCode != 0) {
+                    if (runner->actionCode != RUNNER_ACTION_NONE) {
                         runner->runningToDugoutInd = 2;
                     } else {
                         runner->runningToDugoutInd = 3;
                     }
                     runner->runningToDugoutStage = 0;
                 }
-                if (runner->actionCode != 0 && runner->slideHomeFrames_CountDown == 0 &&
+                if (runner->actionCode != RUNNER_ACTION_NONE && runner->slideHomeFrames_CountDown == 0 &&
                     g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
                     runner->slideHomeFrames_CountDown = lbl_3_data_4C54[0];
                 }
             } else if (runner->fractionalBasesRan >= 4.0f && g_GameLogic.EventTriggers_EndOfGame != 0 &&
-                       runner->actionCode != 0) {
+                       runner->actionCode != RUNNER_ACTION_NONE) {
                 runner->runningToDugoutInd = 2;
             }
         }
@@ -3699,7 +3699,7 @@ void running_updatePosition(int runnerIdx) {
                 runner->slideHomeFrames_CountDown--;
                 break;
             }
-            if (runner->actionCode != 0 && runner->actionStage == 2) {
+            if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage == 2) {
                 if (runner->timeStandingOnBase >= 6) {
                     if (runner->baseOfFailedBodyCheck >= 0) {
                         s8 base = runner->baseOfFailedBodyCheck;
@@ -3943,7 +3943,7 @@ void fn_3_7FD90(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int override;
 
-    if ((runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) && runner->actionCode == 0) {
+    if ((runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) && runner->actionCode == RUNNER_ACTION_NONE) {
         if (runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
             (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) {
             u8 desired = runner->runningDirectionDesired;
@@ -4066,7 +4066,7 @@ void fn_3_7F9C4(int runnerIdx) {
 
     if (runner->runningToDugoutInd != 0) {
         runner->baseRoundingState = 0;
-        runner->actionCode = 0;
+        runner->actionCode = RUNNER_ACTION_NONE;
         return;
     }
     running_roundBaseDecision(runnerIdx);
@@ -4105,7 +4105,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
           (direction == RUNNER_MOVEMENT_BACKWARDS && runner->percentRanPerFrame_slideAdj < 0.0f))) {
         return 0;
     }
-    if (runner->actionCode != 0) {
+    if (runner->actionCode != RUNNER_ACTION_NONE) {
         return 1;
     }
     if (runner->baseRoundingState == 2) {
@@ -4144,7 +4144,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
     if (framesToBase < runnerConstants[runner->charID][0] || framesToBase > runnerConstants[runner->charID][1]) {
         return 0;
     }
-    runner->actionCode = 1;
+    runner->actionCode = RUNNER_ACTION_SLIDE;
     runner->actionFrames_countUp = 0;
     runner->actionFrames_countDown = framesToBase;
     runner->actionStage = 1;
@@ -4169,12 +4169,12 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
             g_Fielders[fielderIdx].bodyCheckBase = baseGoingTo;
             probability = bodyCheckProbabiliities[weight][fielderWeight];
             if (RandomInt_Game(100) < probability) {
-                runner->actionCode = 2;
+                runner->actionCode = RUNNER_ACTION_BODY_CHECK_WON;
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamBatting) {
                     starMissionsQuantityBased(STAR_MISSION_EVENT_BODY_CHECK, runner->rosterID);
                 }
             } else {
-                runner->actionCode = 3;
+                runner->actionCode = RUNNER_ACTION_BODY_CHECK_FAILED;
                 if (g_GameLogic.teamIsCPU[g_GameLogic.teamBatting] == 0) {
                     setCharacterAnimations(g_GameLogic.teamBatting, 2);
                 }
@@ -4207,7 +4207,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
 BOOL running_overrun1stIndicator(void) {
     InMemRunnerType* runner = &g_Runners[0];
 
-    if (runner->actionCode == 0 && runner->overrun1st_doneChecking == 0) {
+    if (runner->actionCode == RUNNER_ACTION_NONE && runner->overrun1st_doneChecking == 0) {
         if (runner->overRun1BStage != 0) {
             return 1;
         }
@@ -4260,7 +4260,7 @@ int running_roundBaseDecision(int runnerIdx) {
     if (g_Ball.framesSinceHit <= 0 && g_Practice.practiceType_2 != PRACTICE_TYPE_BASERUNNING) {
         return 0;
     }
-    if (runner->actionCode != 0) {
+    if (runner->actionCode != RUNNER_ACTION_NONE) {
         return 0;
     }
     if (runner->baseRoundingState == 1) {
@@ -4357,9 +4357,9 @@ void running_sendOutRunnerToDugout(int runnerIdx) {
         if (runner->runningToDugoutInd != 0) {
             return;
         }
-        if (runner->actionCode != 0) {
+        if (runner->actionCode != RUNNER_ACTION_NONE) {
             if (runner->actionStage == 3) {
-                runner->actionCode = 0;
+                runner->actionCode = RUNNER_ACTION_NONE;
                 runner->actionStage = 0;
             } else {
                 return;
@@ -4386,9 +4386,9 @@ void running_sendOutRunnerToDugout(int runnerIdx) {
         if (g_BallsStrikesOuts.outs < 3) {
             return;
         }
-        if (runner->actionCode != 0) {
+        if (runner->actionCode != RUNNER_ACTION_NONE) {
             if (runner->actionStage == 3) {
-                runner->actionCode = 0;
+                runner->actionCode = RUNNER_ACTION_NONE;
                 runner->actionStage = 0;
             } else {
                 return;
@@ -4752,7 +4752,7 @@ void cCSRunningFun(void) {
             }
             running_updateDistAndFramesToClosestBases(i);
                 if (runner->runningToDugoutInd == 0 || runner->runningToDugoutStage == 0) {
-                    if (runner->actionCode == 0) {
+                    if (runner->actionCode == RUNNER_ACTION_NONE) {
                         if ((runner->framesSinceLastDirectionChange >= lbl_3_data_4C54[3] ||
                              (runner->runningDirectionCode != RUNNER_MOVEMENT_FORWARDS && runner->runningDirectionCode != RUNNER_MOVEMENT_BACKWARDS)) &&
                             runner->runningDirectionDesired != RUNNER_MOVEMENT_NONE) {
@@ -4780,7 +4780,7 @@ void cCSRunningFun(void) {
                 }
                 if (runner->runningToDugoutInd != 0) {
                     runner->baseRoundingState = 0;
-                    runner->actionCode = 0;
+                    runner->actionCode = RUNNER_ACTION_NONE;
                 } else {
                     running_roundBaseDecision(i);
                     running_triggerSlideOrBodyCheck(i);
