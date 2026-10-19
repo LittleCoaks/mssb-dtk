@@ -2862,14 +2862,7 @@ typedef struct _StoredInningInfo {
 extern StoredInningInfo storedInningInfo;
 
 typedef struct {
-    u8 pad[0xa0];
-    /* 0x00A0 */ f32 _00A0;
-    artificial_padding(0xa0, 0x9ac, f32);
-    /* 0x09AC */ u8 _09AC;
-} lbl_3_common_bss_DE94_s2;
-
-typedef struct {
-    /* 0x0000 */ lbl_3_common_bss_DE94_s2* _0000;
+    /* 0x0000 */ struct CamScript* _0000;
     /* 0x0004 */ u8 _0004[0x2AF4 - 0x4];   // not yet labelled
 } lbl_3_common_bss_DE94_s; // size: 0x2AF4
 

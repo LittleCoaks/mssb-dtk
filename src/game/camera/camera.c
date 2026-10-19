@@ -241,7 +241,7 @@ rescan:
 
     while (g_pCamera->_28A8 != 0) {
         g_pCamera->_28A8 -= (g_pCamera->_28A8 != 0);
-        unkStructPtr._0000 = (lbl_3_common_bss_DE94_s2*)((u8*)g_pCamera + 0x120 + g_pCamera->_28A8 * 0x9BC);
+        unkStructPtr._0000 = (CamScript*)((u8*)g_pCamera + 0x120 + g_pCamera->_28A8 * 0x9BC);
 
         if (*((u8*)unkStructPtr._0000 + 0x9AB) != 0) {
             fn_3_FD670();

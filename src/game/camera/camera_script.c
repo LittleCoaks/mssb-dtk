@@ -65,15 +65,6 @@ typedef struct CamMarkerSrc {
     /* 0x10 */ u8 actorIdx;
 } CamMarkerSrc; // size 0x14
 
-// Header of a loaded camera script file; the offsets are relocated to pointers on load.
-typedef struct CamScriptHdr {
-    /* 0x00 */ u8 _00[4];
-    /* 0x04 */ u16 length;
-    /* 0x06 */ s16 numTracks;
-    /* 0x08 */ u8* keys;
-    /* 0x0C */ u8* tracks[1];
-} CamScriptHdr;
-
 typedef struct CamAux {
     /* 0x000 */ CamMarker markers[9];
     /* 0x18C */ u8 _18C[0x23C - 0x18C];
@@ -1244,7 +1235,7 @@ typedef struct CamGlobal {
 // Value of an unused overlay point (x, y and z).
 #define CAM_POINT_UNUSED (-1000.0f)
 
-#define CTX ((CamScript*)unkStructPtr._0000)
+#define CTX (unkStructPtr._0000)
 #define CAMF(type, off) (*(type*)((u8*)g_pCamera + (off)))
 #define CAMSCRIPT(i) (((CamGlobal*)g_pCamera)->scripts[i])
 #define CAMSCRIPT_G(i) (*(CamScript*)((u8*)&g_Camera + 0x120 + (i) * 0x9BC))
@@ -1856,14 +1847,14 @@ void camVecLerp(Vec* out, Vec* a, Vec* b, f32 t) {
 }
 
 // .text:0x001054D0 size:0x540 mapped:0x80744564
-void fn_3_1054D0(u8* script, u32 time, s16 trackIdx) {
-    u8* track = *(u8**)(script + 0xC + trackIdx * 4);
-    u8* keys = track + 0xC;
+void fn_3_1054D0(CamScriptHdr* script, u32 time, s16 trackIdx) {
+    u8* track = script->tracks[trackIdx];
     u32 stride = lbl_3_data_20FC4[track[6]];
     u16 count = *(u16*)(track + 4);
+    u8* keys = track + 0xC;
+    u32 frame = time >> 16;
     u8* key = keys + (count - 1) * stride;
     u8* next;
-    u32 frame = time >> 16;
     u32 frac = time & 0xFFFF;
     u8 added = 0;
     f32* k;
@@ -1893,41 +1884,41 @@ void fn_3_1054D0(u8* script, u32 time, s16 trackIdx) {
         switch (track[6]) {
         case 0:
             if (CTX->_0124 == 1) {
-                memcpy((u8*)CTX->_009C + 4, key + 4, 12);
-                CTX->_009C[2] = CTX->_009C[2] * -1.0;
-                CTX->_009C[4] = -1.0f * k[5] + 1.5707964f;
-                CTX->_009C[5] = k[4] - 1.5707964f;
+                memcpy(CTX->_009C[0].pos, key + 4, 12);
+                CTX->_009C[0].pos[1] *= -1.0;
+                CTX->_009C[0]._10 = -1.0f * k[5] + 1.5707964f;
+                CTX->_009C[0]._14 = k[4] - 1.5707964f;
                 CTX->_0128[0] = CTX->_0128[CTX->_0124];
             }
-            memcpy(&CTX->_009C[CTX->_0124 * 8 + 1], key + 4, 12);
-            CTX->_009C[CTX->_0124 * 8 + 2] = CTX->_009C[CTX->_0124 * 8 + 2] * -1.0;
-            CTX->_009C[CTX->_0124 * 8 + 4] = -1.0f * k[5] + 1.5707964f;
-            CTX->_009C[CTX->_0124 * 8 + 5] = k[4] - 1.5707964f;
-            *(u32*)&CTX->_009C[CTX->_0124 * 8 + 7] = frame;
+            memcpy(CTX->_009C[CTX->_0124].pos, key + 4, 12);
+            CTX->_009C[CTX->_0124].pos[1] *= -1.0;
+            CTX->_009C[CTX->_0124]._10 = -1.0f * k[5] + 1.5707964f;
+            CTX->_009C[CTX->_0124]._14 = k[4] - 1.5707964f;
+            CTX->_009C[CTX->_0124].frame = frame;
             break;
         case 1:
             if (CTX->_0124 == 1) {
-                memcpy((u8*)CTX->_009C + 4, key + 4, 12);
-                CTX->_009C[2] = CTX->_009C[2] * -1.0;
-                CTX->_009C[4] = -1.0f * k[5] + 1.5707964f;
-                CTX->_009C[5] = k[4] - 1.5707964f;
+                memcpy(CTX->_009C[0].pos, key + 4, 12);
+                CTX->_009C[0].pos[1] *= -1.0;
+                CTX->_009C[0]._10 = -1.0f * k[5] + 1.5707964f;
+                CTX->_009C[0]._14 = k[4] - 1.5707964f;
                 CTX->_0128[0] = CTX->_0128[CTX->_0124];
             }
-            memcpy(&CTX->_009C[CTX->_0124 * 8 + 1], key + 4, 12);
-            CTX->_009C[CTX->_0124 * 8 + 2] = CTX->_009C[CTX->_0124 * 8 + 2] * -1.0;
-            CTX->_009C[CTX->_0124 * 8 + 4] = -1.0f * k[5] + 1.5707964f;
-            CTX->_009C[CTX->_0124 * 8 + 5] = k[4] - 1.5707964f;
-            *(u32*)&CTX->_009C[CTX->_0124 * 8 + 7] = frame;
+            memcpy(CTX->_009C[CTX->_0124].pos, key + 4, 12);
+            CTX->_009C[CTX->_0124].pos[1] *= -1.0;
+            CTX->_009C[CTX->_0124]._10 = -1.0f * k[5] + 1.5707964f;
+            CTX->_009C[CTX->_0124]._14 = k[4] - 1.5707964f;
+            CTX->_009C[CTX->_0124].frame = frame;
             break;
         case 2:
             if (CTX->_0124 == 1) {
-                memcpy((u8*)CTX->_009C + 4, key + 4, 12);
-                CTX->_009C[2] = CTX->_009C[2] * -1.0;
+                memcpy(CTX->_009C[0].pos, key + 4, 12);
+                CTX->_009C[0].pos[1] *= -1.0;
                 CTX->_0128[0] = CTX->_0128[CTX->_0124];
             }
-            memcpy(&CTX->_009C[CTX->_0124 * 8 + 1], key + 4, 12);
-            CTX->_009C[CTX->_0124 * 8 + 2] = CTX->_009C[CTX->_0124 * 8 + 2] * -1.0;
-            *(u32*)&CTX->_009C[CTX->_0124 * 8 + 7] = frame;
+            memcpy(CTX->_009C[CTX->_0124].pos, key + 4, 12);
+            CTX->_009C[CTX->_0124].pos[1] *= -1.0;
+            CTX->_009C[CTX->_0124].frame = frame;
             break;
         }
         if (CTX->_0124 < 0x200) {
@@ -3820,11 +3811,11 @@ void fn_3_FCF24(void) {
     CamScript* ctx = CTX;
     for (i = 0; i < ctx->_0020 - 3; i++) {
         for (k = 0; k < 4; k++) {
-            ctx->_001C[i + k].v[0] = CTX->_009C[(i + k) * 8 + 1];
-            ctx->_001C[i + k].v[1] = CTX->_009C[(i + k) * 8 + 2];
-            ctx->_001C[i + k].v[2] = CTX->_009C[(i + k) * 8 + 3];
-            ctx->_001C[i + k].v[3] = CTX->_009C[(i + k) * 8 + 4];
-            ctx->_001C[i + k].v[4] = CTX->_009C[(i + k) * 8 + 5];
+            ctx->_001C[i + k].v[0] = CTX->_009C[i + k].pos[0];
+            ctx->_001C[i + k].v[1] = CTX->_009C[i + k].pos[1];
+            ctx->_001C[i + k].v[2] = CTX->_009C[i + k].pos[2];
+            ctx->_001C[i + k].v[3] = CTX->_009C[i + k]._10;
+            ctx->_001C[i + k].v[4] = CTX->_009C[i + k]._14;
         }
         ctx->_0038 = CTX->_0128[i];
         {
@@ -3913,13 +3904,13 @@ void fn_3_FC938(void) {
 void fn_3_FC448(void) {
     int i;
     for (i = 0; i < 2; i++) {
-        unkStructPtr._0000 = (void*)&CAMSCRIPT_G(i);
+        unkStructPtr._0000 = &CAMSCRIPT_G(i);
         CAM_SCRIPT_START();
         fn_3_101CC4();
     }
 }
 
-#define CAM ((CamScript *)unkStructPtr._0000)
+#define CAM (unkStructPtr._0000)
 
 
 static inline void camera_setScene(s32 scene) {
