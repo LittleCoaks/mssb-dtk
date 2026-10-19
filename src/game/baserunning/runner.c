@@ -1681,14 +1681,12 @@ void runnerAISetRunningDirection(int runnerIdx, int actionCode) {
 
 // .text:0x00085CB0 size:0x244 mapped:0x806C4D44
 void running_AIStartSteals(void) {
-    InMemRunnerType* runner;
     int i;
 
     if (g_Ball.pitchHangtimeCounter <= 30 && g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_WINDUP) {
         if (g_BallsStrikesOuts.outs == 2 && g_BallsStrikesOuts.GameControls_StrikeBallBitVector == 0x23) {
-            runner = &g_Runners[1];
-            for (i = 1; i <= 3; i++, runner++) {
-                if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
+            for (i = 1; i <= 3; i++) {
+                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
                     return;
                 }
                 if (g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
@@ -1696,16 +1694,15 @@ void running_AIStartSteals(void) {
                 }
             }
         } else if (g_AiLogic.batterAIStealIndicator != 0) {
-            runner = &g_Runners[1];
-            for (i = 1; i <= 2; i++, runner++) {
+            for (i = 1; i <= 2; i++) {
                 if (g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
-                    if (runner->stealingStatus == 0) {
+                    if (g_Runners[i].stealingStatus == 0) {
                         if (g_AiLogic.batterAIStealingStartFrame < lbl_3_data_4B90[2]) {
-                            runner->stealingStatus = 3;
+                            g_Runners[i].stealingStatus = 3;
                         } else {
-                            runner->stealingStatus = 2;
+                            g_Runners[i].stealingStatus = 2;
                         }
-                        runner->leadOffStatus = 0;
+                        g_Runners[i].leadOffStatus = 0;
                     }
                     runnerAI_requestRunningDirection(i, 1);
                 }
@@ -1717,7 +1714,7 @@ void running_AIStartSteals(void) {
 }
 
 // .text:0x00085C44 size:0x6C mapped:0x806C4CD8
-void runnerAI_requestRunningDirection(int runnerIdx, int actionCode) {
+void runnerAI_requestRunningDirection(int runnerIdx, long actionCode) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
 
     if (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || actionCode == 1) {
