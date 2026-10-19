@@ -167,7 +167,7 @@ BOOL decideScoutFlagMission(void) {
                 }
             }
         }
-    } else if (!(logic->teamBatting == g_d_GameSettings.humanTeamNumber)) {
+    } else if ((logic->teamBatting == g_d_GameSettings.humanTeamNumber) ^ 1) {
         if (g_RunningLogic._10 >= 3 && g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] == 0) {
             if (shouldScoutMissionBeEnabled(SCOUT_MISSION_HOLD_SCORELESS_INNING)) {
                 scout->scoutMissionID = SCOUT_MISSION_HOLD_SCORELESS_INNING;
