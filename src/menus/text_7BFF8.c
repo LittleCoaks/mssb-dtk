@@ -8,21 +8,8 @@ typedef struct {
     u8 unk0D[4];
 } CssStepFlags;
 extern CssStepFlags gameSetUpStep;
-
-// .text:0x0007BFF8 size:0x1864 mapped:0x806BB08C
-void cssAction_case9(void) {
-    return;
-}
-
-// .text:0x0007D85C size:0x25C mapped:0x806BC8F0
-void fn_2_7D85C(void) {
-    return;
-}
-
-// .text:0x0007DAB8 size:0x6DC mapped:0x806BCB4C
-void fn_2_7DAB8(void) {
-    return;
-}
+extern u8 lbl_2_bss_F468[0xC4C];
+void updateCharacterSelectProcessCode(int port, u8 process);
 
 // .text:0x0007E194 size:0x1EC mapped:0x806BD228
 void fn_2_7E194(MenuScene* scene, s32 slot) {
@@ -57,4 +44,66 @@ void fn_2_7E194(MenuScene* scene, s32 slot) {
             gameSetUpStep.unk0D[slot] = 2;
         }
     }
+}
+
+// .text:0x0007DAB8 size:0x6DC mapped:0x806BCB4C
+void fn_2_7DAB8(void) {
+    return;
+}
+
+// .text:0x0007D85C size:0x25C mapped:0x806BC8F0
+void fn_2_7D85C(MenuScene* scene, s32 slot) {
+    s32 attempts;
+    s32 successes;
+    s32 idxA;
+    s32 idxB;
+    s32 valA;
+    s32 valB;
+    s32 ch;
+    s32 i;
+    s32* pair;
+
+    pair = (s32*)lbl_2_bss_F468;
+    if (gameSetUpStep.unk0D[slot] == 1) {
+        valB = pair[slot + 2];
+        valA = pair[slot];
+        attempts = 0;
+        successes = 0;
+        for (i = 0; i < 9; i++) {
+            if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == valA) {
+                idxA = i;
+            }
+            if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == valB) {
+                idxB = i;
+            }
+        }
+        if (valB != 9 && valB != 10 && valB < 9) {
+            ch = cursorPositions.roster.rosterCharID[slot][idxB];
+            if (ch != -1 && ch != 0x36 && valB != (s8)lbl_2_bss_F468[0x61 + slot] && valB != valA) {
+                attempts = 1;
+                successes = maybeCheckAndResetGrapicsElement(scene, valB + slot * 9 + 0x34, 0x14) != 0;
+            }
+        }
+        if (valA != 9 && valA != 10 && valA < 9) {
+            ch = cursorPositions.roster.rosterCharID[slot][idxA];
+            if (ch != -1 && ch != 0x36 && valA != (s8)lbl_2_bss_F468[0x61 + slot]) {
+                attempts++;
+                successes += maybeCheckAndResetGrapicsElement(scene, valA + slot * 9 + 0x34, 0x14) != 0;
+            }
+        }
+        if (successes == attempts) {
+            pair[slot + 2] = valA;
+            makeCursorMovable(slot);
+            gameSetUpStep.unk0D[slot] = 2;
+            if (lbl_2_bss_F468[0x63 + slot] != 0) {
+                lbl_2_bss_F468[0x63 + slot] = 0;
+                updateCharacterSelectProcessCode(slot, 0x1A);
+            }
+        }
+    }
+}
+
+// .text:0x0007BFF8 size:0x1864 mapped:0x806BB08C
+void cssAction_case9(void) {
+    return;
 }

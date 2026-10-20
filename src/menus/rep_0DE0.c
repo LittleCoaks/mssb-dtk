@@ -20,13 +20,16 @@
 
 void fn_800A7D4C(u32 a, void *b);
 
+static inline void initLightColor(void *light, GXColor color) {
+    LITInitColor(light, &color);
+}
+
 // .text:0x00087654 size:0x1D8 mapped:0x806C66E8
 void fn_2_87654(s32 unused, s32 start, s32 count, s32 a, s32 b) {
-    Rep0DELayout *layout = &lbl_2_data_2E608;
     s32 i;
 
     for (i = start; i < start + count; i++) {
-        s16 *cell = layout->cells[lbl_2_bss_33FBF5][i];
+        s16 *cell = lbl_2_data_2E608.cells[lbl_2_bss_33FBF5][i];
         s32 cell0 = cell[0];
         s32 cell1 = cell[1];
         s32 cell2 = cell[2];
@@ -41,11 +44,11 @@ void fn_2_87654(s32 unused, s32 start, s32 count, s32 a, s32 b) {
             s32 k;
             s32 j;
 
-            for (k = 0; k < layout->unk2D0[cell0]; k++) {
+            for (k = 0; k < lbl_2_data_2E608.unk2D0[cell0]; k++) {
                 TextureData *tex = lbl_2_bss_340140->unk68->entries[i].actor->boneArray[k]->dispObj->textureData;
-                s16 *src = layout->unk2E8[cell1];
+                s16 *src = lbl_2_data_2E608.unk2E8[cell1];
 
-                for (j = 0; j < layout->unk2DC[cell0]; j++) {
+                for (j = 0; j < lbl_2_data_2E608.unk2DC[cell0]; j++) {
                     *(s16 *)((u8 *)tex->texturePalette + 0x20 + j * 0x20) = k + src[j];
                 }
             }
@@ -63,16 +66,14 @@ void fn_2_87350(void) {
     fn_2_87654(0, 0, lbl_2_bss_340140->unk3078, 0, 0);
 
     for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        Rep0DERec28 *rec = &lbl_2_bss_340140->unk2D94[i];
-
-        rec->pos.x = 0.0f;
-        rec->pos.y = 0.0f;
-        rec->pos.z = 0.0f;
-        rec->unk10 = 0.0f;
-        rec->unk14 = 0.0f;
-        rec->unk18 = 0.0f;
-        rec->unk26 = 0;
-        rec->unk0 = NULL;
+        lbl_2_bss_340140->unk2D94[i].pos.x = 0.0f;
+        lbl_2_bss_340140->unk2D94[i].pos.y = 0.0f;
+        lbl_2_bss_340140->unk2D94[i].pos.z = 0.0f;
+        lbl_2_bss_340140->unk2D94[i].unk10 = 0.0f;
+        lbl_2_bss_340140->unk2D94[i].unk14 = 0.0f;
+        lbl_2_bss_340140->unk2D94[i].unk18 = 0.0f;
+        lbl_2_bss_340140->unk2D94[i].unk26 = 0;
+        lbl_2_bss_340140->unk2D94[i].unk0 = NULL;
         lbl_2_bss_340140->unk68->entries[i].applyControl = 0;
     }
 }
@@ -154,10 +155,6 @@ void fn_2_86DCC(void) {
 }
 
 // .text:0x00086A80 size:0x34C mapped:0x806C5B14
-static inline void initLightColor(void *light, GXColor color) {
-    LITInitColor(light, &color);
-}
-
 void fn_2_86A80(void) {
     GXColor white = { 0xFF, 0xFF, 0xFF, 0xFF };
     GXColor blue = { 0x00, 0x00, 0xFF, 0xFF };
@@ -277,14 +274,13 @@ void fn_2_86470(void) {
                                pos.z - (i / 6) * 0.542f);
         }
 
-        CTRLSetRotation(&lbl_2_bss_340140->unk68->entries[i].control, 57.295776f * lbl_2_data_2E9DC[0],
-                        57.295776f * lbl_2_data_2E9DC[1], 57.295776f * lbl_2_data_2E9DC[2]);
+        CTRLSetRotation(&lbl_2_bss_340140->unk68->entries[i].control, RAD2DEG * lbl_2_data_2E9DC[0],
+                        RAD2DEG * lbl_2_data_2E9DC[1], RAD2DEG * lbl_2_data_2E9DC[2]);
         lbl_2_bss_340140->unk68->entries[i].applyControl = lbl_2_bss_33FBF0[i];
     }
 }
 
 // .text:0x00085D6C size:0x704 mapped:0x806C4E00
-#pragma dont_inline on
 void fn_2_85D6C(Rep0DEMtxBlock *self) {
     switch (lbl_2_bss_B2A5) {
     case 0:
@@ -299,7 +295,6 @@ void fn_2_85D6C(Rep0DEMtxBlock *self) {
     }
     fn_80011640(self, self);
 }
-#pragma dont_inline reset
 
 // .text:0x00085AC0 size:0x2AC mapped:0x806C4B54
 void fn_2_85AC0(Rep0DEMtxBlock *self) {

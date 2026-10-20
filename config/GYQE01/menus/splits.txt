@@ -262,13 +262,14 @@ menus/text_82CF0.c:
 menus/rep_0DE0.c:
 	.text       start:0x0008563C end:0x0008782C
 	.rodata     start:0x00000DE0 end:0x00000F10
+	.data       start:0x0002E608 end:0x0002E9F8
 
 menus/rep_0F10.c:
 	.rodata     start:0x00000F10 end:0x00000F60
 
 menus/text_8782C.c:
 	.text       start:0x0008782C end:0x0008ACE0
-	.data       start:0x0002F96C end:0x0002F98C
+	.data       start:0x0002E9F8 end:0x0002F98C
 
 menus/rep_0F60.c:
 	.text       start:0x0008ACE0 end:0x0008ED4C

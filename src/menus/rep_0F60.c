@@ -347,7 +347,7 @@ void fn_2_8E478(void) {
         item[0x28] = 1;
         break;
     case 1:
-        *(void **)((u8 *)lbl_2_bss_340140 + 0x2D9C) = ARAMTransfer(challengeMapModelsFileDescriptor, 0, 0, 0);
+        lbl_2_bss_340140->unk2D9C = ARAMTransfer(challengeMapModelsFileDescriptor, 0, 0, 0);
         *(s16 *)(item + 0x14) += 1;
         item[0x28] = 2;
         break;
@@ -389,7 +389,7 @@ void fn_2_8DFB0(void) {
         break;
     case 1:
         *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746) = 0;
-        *(void **)((u8 *)lbl_2_bss_340140 + 0x2D9C) = ARAMTransfer(cupModelsFileDescriptorChallengeMap, 0, 0, 0);
+        lbl_2_bss_340140->unk2D9C = ARAMTransfer(cupModelsFileDescriptorChallengeMap, 0, 0, 0);
         *(s16 *)(item + 0x14) += 1;
         item[0x28] = 2;
         break;
@@ -785,7 +785,7 @@ void fn_2_8D024(void) {
 }
 
 // .text:0x0008CD58 size:0x2CC mapped:0x806CBDEC
-void fn_2_8CD58(int slot, int a, u8 b, u8 c, s16 d, u8 e, u8 f) {
+void fn_2_8CD58(int slot, int a, u8 b, int c, s16 d, int e, u8 f) {
     Rep0F60Obj *obj = lbl_2_bss_340140->objects[slot];
     u32 tableA;
     u32 tableB;
@@ -899,7 +899,7 @@ void fn_2_8C910(void) {
     u8 *base;
 
     lbl_2_bss_340140->unk3078 = 0;
-    base = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2D9C);
+    base = lbl_2_bss_340140->unk2D9C;
     for (i = 0; i < 0x39; i++) {
         *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA0 + i * 4) = base + *(u32 *)(base + i * 4);
     }
@@ -916,15 +916,15 @@ void fn_2_8C910(void) {
         ANIMGet(*(void **)((u8 *)lbl_2_bss_3401BC + 0x34 + i * 4));
     }
     for (i = 0; i < 0x13; i++) {
-        u8 *a = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA0 + i * 0xC);
-        u8 *b = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA4 + i * 0xC);
-        u8 *c = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA8 + i * 0xC);
+        void *layout = lbl_2_bss_340140->slots[i].layout;
+        void *geometry = lbl_2_bss_340140->slots[i].geometry;
+        void *texture = lbl_2_bss_340140->slots[i].texture;
 
-        LoadActorLayout(a);
-        convertGeometryAndSknHeader(b, 0);
-        haveActLayoutPointToGeoHeader(a, b);
-        convertTextureHeader(c);
-        UpdateTexturePalettePointers(b, c);
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geometry, 0);
+        haveActLayoutPointToGeoHeader(layout, geometry);
+        convertTextureHeader(texture);
+        UpdateTexturePalettePointers(geometry, texture);
     }
 }
 
@@ -1004,7 +1004,7 @@ void fn_2_8B2C0(void) {
     u8 *base;
 
     lbl_2_bss_340140->unk3078 = 0;
-    base = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2D9C);
+    base = lbl_2_bss_340140->unk2D9C;
     lbl_2_bss_340140->slots[0].layout = base + ((u32 *)base)[0];
     lbl_2_bss_340140->slots[0].geometry = base + ((u32 *)base)[1];
     lbl_2_bss_340140->slots[0].texture = base + ((u32 *)base)[2];
@@ -1018,15 +1018,15 @@ void fn_2_8B2C0(void) {
     lbl_2_bss_340140->slots[3].geometry = base + ((u32 *)base)[10];
     lbl_2_bss_340140->slots[3].texture = base + ((u32 *)base)[11];
     for (i = 0; i < 4; i++) {
-        u8 *a = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA0 + i * 0xC);
-        u8 *b = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA4 + i * 0xC);
-        u8 *c = *(u8 **)((u8 *)lbl_2_bss_340140 + 0x2DA8 + i * 0xC);
+        void *layout = lbl_2_bss_340140->slots[i].layout;
+        void *geometry = lbl_2_bss_340140->slots[i].geometry;
+        void *texture = lbl_2_bss_340140->slots[i].texture;
 
-        LoadActorLayout(a);
-        convertGeometryAndSknHeader(b, 0);
-        haveActLayoutPointToGeoHeader(a, b);
-        convertTextureHeader(c);
-        UpdateTexturePalettePointers(b, c);
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geometry, 0);
+        haveActLayoutPointToGeoHeader(layout, geometry);
+        convertTextureHeader(texture);
+        UpdateTexturePalettePointers(geometry, texture);
     }
 }
 
