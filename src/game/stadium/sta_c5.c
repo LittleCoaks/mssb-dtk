@@ -70,7 +70,10 @@ static u8 objectIndex;
 static u8 lbl_3_bss_B21A;
 static u8 lbl_3_bss_B219;
 static u8 lbl_3_bss_B218;
-static DKJungleAnimBanks lbl_3_bss_B154;
+static DKJungleActEffect lbl_3_bss_B1BC;
+static DKJungleActEffect lbl_3_bss_B160;
+static u8 lbl_3_bss_B15C;
+static u32 lbl_3_bss_B154[2];
 static DKJungleIndTexState lbl_3_bss_B118;
 static u8 lbl_3_bss_AF18[0x200];
 static Vec lbl_3_bss_AF0C;
@@ -99,13 +102,16 @@ DKJungleZoneCorner lbl_3_data_1B824[3][4] = {
      {30.415000915527344f, 33.53799819946289f}},
 };
 
-DKJungleBarrelLauncher barrelLauncherDataStruct[12] = {
+DKJungleBarrelLauncher barrelLauncherDataStruct[6] = {
     {{32.5359992980957f, 4.0f, 100.625f}, -45.0f, 1, {1, 1, 0}},
     {{-32.5359992980957f, 4.0f, 100.625f}, 45.0f, 1, {1, 1, 0}},
     {{0.0f, 0.0f, 0.0f}, 0.0f, 6, {0, 0xFF, 0}},
     {{0.0f, 0.0f, 0.0f}, 0.0f, 0, {0, 0, 0}},
     {{0.0f, 0.0f, 0.0f}, 0.0f, 0, {0, 0, 0}},
     {{0.0f, 0.0f, 0.0f}, 0.0f, 0, {0, 0, 0}},
+};
+
+static DKJungleBarrelLauncher lbl_3_data_1B8FC[6] = {
     {{32.5359992980957f, 10.0f, 100.625f}, -45.0f, 0, {1, 1, 0}},
     {{-32.5359992980957f, 10.0f, 100.625f}, 45.0f, 0, {1, 1, 0}},
     {{0.0f, 0.0f, 0.0f}, 0.0f, 6, {0, 0xFF, 0}},
@@ -186,7 +192,7 @@ void loadDKJungle(void** files) {
     u32* ids;
     u8 done = FALSE;
     u32 barrelCount;
-    u32 klapCount;
+    int klapCount;
     u8 propCount;
     u8 idx;
     u8 barrelAnim;
@@ -206,7 +212,7 @@ void loadDKJungle(void** files) {
     notMinigames = g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES;
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     stadiumObjectCollision.updateFunc = fn_3_EDFAC;
-    lbl_3_bss_B154.flag = 1;
+    lbl_3_bss_B15C = 1;
     if (notMinigames) {
         fn_3_B97C8(fn_3_F6FCC);
     }
@@ -216,7 +222,7 @@ void loadDKJungle(void** files) {
     processStadiumFileObjects(lbl_3_data_1BA34, 0x12, (u8*)files, ids);
     lbl_3_bss_B560[0] = (u32)files[0];
 
-    barrelCfg = &barrelLauncherDataStruct[6];
+    barrelCfg = lbl_3_data_1B8FC;
     for (barrelCount = 0; barrelCount < 5; barrelCount++) {
         if (barrelCfg[barrelCount].usedFlag == 6) {
             break;
@@ -265,8 +271,8 @@ void loadDKJungle(void** files) {
     lbl_3_bss_B55C = *animTable + sparkAnim * 0x90 + 0x34;
     lastAnim = ringAnim + 3;
     animateBallRelated(*animTable, lastAnim, lastAnim, files[ids[8]], 0, 0);
-    lbl_3_bss_B154.animBank[0] = (u32)files[ids[16]];
-    lbl_3_bss_B154.animBank[1] = (u32)files[ids[17]];
+    lbl_3_bss_B154[0] = (u32)files[ids[16]];
+    lbl_3_bss_B154[1] = (u32)files[ids[17]];
     for (i = 0; i < propCount; i++) {
         fn_800BD548(*animTable + i * 0x90 + 0x34, 4, stadiumObjectCollision.lights[0],
                     stadiumObjectCollision.lights[1], stadiumObjectCollision.lights[2],
@@ -274,15 +280,15 @@ void loadDKJungle(void** files) {
     }
     adjustInternalPointers(files[ids[14]]);
     ACTActorRelated(files[ids[14]], *animTable + hazeAnim * 0x90 + 0x34);
-    lbl_3_bss_B154.effectSlot1.file = (u32)files[ids[15]];
-    actRelated(files[ids[14]], &lbl_3_bss_B154.effectSlot1);
-    actorRelated(&lbl_3_bss_B154.effectSlot1, 0, 0);
-    lbl_3_bss_B154.effectSlot1._10 = 0.3f;
+    lbl_3_bss_B1BC.file = (u32)files[ids[15]];
+    actRelated(files[ids[14]], &lbl_3_bss_B1BC);
+    actorRelated(&lbl_3_bss_B1BC, 0, 0);
+    lbl_3_bss_B1BC._10 = 0.3f;
     adjustInternalPointers(files[ids[12]]);
     ACTActorRelated(files[ids[12]], *animTable + ringAnim * 0x90 + 0x34);
-    lbl_3_bss_B154.effectSlot0.file = (u32)files[ids[13]];
-    actRelated(files[ids[12]], &lbl_3_bss_B154.effectSlot0);
-    actorRelated(&lbl_3_bss_B154.effectSlot0, 0, 0);
+    lbl_3_bss_B160.file = (u32)files[ids[13]];
+    actRelated(files[ids[12]], &lbl_3_bss_B160);
+    actorRelated(&lbl_3_bss_B160, 0, 0);
 
     stadiumObjectCollision.objectCount = 0x19;
     o = _OSAllocFromHeap(0x20, 0x16A8);
@@ -293,9 +299,9 @@ void loadDKJungle(void** files) {
     memset(o, 0, 0x16A8);
     o = stadiumObjectCollision.objects;
     b = (DKJungleBarrel*)o;
+    n = 0;
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
         launcherCfg = barrelLauncherDataStruct;
-        n = 0;
         objIndex = 0;
         usedAnims = 0;
         i = 0;
@@ -454,7 +460,7 @@ void loadDKJungle(void** files) {
     CTRLSetRotation((Control*)o, 0.0f, 0.0f, 0.0f);
     o->fadeByDepth = 1;
     o->alpha = 0xFF;
-    o->effect = (StadiumObjectEffect*)&lbl_3_bss_B154.effectSlot0;
+    o->effect = (StadiumObjectEffect*)&lbl_3_bss_B160;
     o->preDraw = NULL;
     o->animActive = 0;
     o->animIndex = -1;
@@ -477,7 +483,7 @@ void loadDKJungle(void** files) {
     CTRLSetRotation((Control*)&o[1], 0.0f, 0.0f, 0.0f);
     o[1].fadeByDepth = 1;
     o[1].alpha = 0xFF;
-    o[1].effect = (StadiumObjectEffect*)&lbl_3_bss_B154.effectSlot1;
+    o[1].effect = (StadiumObjectEffect*)&lbl_3_bss_B1BC;
     o[1].preDraw = (void (*)(StadiumObject*))fn_3_EEFA4;
     o[1].postDraw = NULL;
     o[1].animActive = 0;
@@ -1826,7 +1832,7 @@ void maybeGharialCTRLRel(DKJungleKlaptrap* obj) {
     CTRLSetTranslation((Control*)obj, obj->pos.x, -obj->pos.y, obj->pos.z);
     CTRLSetRotation((Control*)obj, 0.0f, obj->rotY, 0.0f);
     CTRLSetScale((Control*)obj, 1.0f, 1.0f, 1.0f);
-    actorSetAnimBank((ACTActor*)obj->actor, lbl_3_bss_B154.animBank[0]);
+    actorSetAnimBank((ACTActor*)obj->actor, lbl_3_bss_B154[0]);
     obj->actor->applyAnimation = 1;
     obj->_C0 = 0;
 }
@@ -1916,7 +1922,7 @@ void dkKlaptrapRoamUpdate(DKJungleKlaptrap* obj) {
             if (!isPosOutsideKlaptrapZone(*(Vec*)&fielder->pos, obj->kind) && fielder->jumpY <= 0.0f) {
                 obj->_C1 = i;
                 obj->state = 2;
-                actorSetAnimBank((ACTActor*)obj->actor, lbl_3_bss_B154.animBank[1]);
+                actorSetAnimBank((ACTActor*)obj->actor, lbl_3_bss_B154[1]);
                 return;
             }
         }
@@ -2354,7 +2360,7 @@ void jungleStadiumObjectRelated(DKJungleKlaptrap* obj) {
 
 // .text:0x000EF3D4 size:0x34 mapped:0x8072E468
 void fn_3_EF3D4(StadiumObject* obj, u8 idx) {
-    actorSetAnimBank((ACTActor*)obj->model, lbl_3_bss_B154.animBank[idx]);
+    actorSetAnimBank((ACTActor*)obj->model, lbl_3_bss_B154[idx]);
 }
 
 // .text:0x000EF21C size:0x1B8 mapped:0x8072E2B0

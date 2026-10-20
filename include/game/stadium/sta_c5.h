@@ -197,7 +197,7 @@ typedef struct _DKJungleKlaptrapTuning {
     /*0x22C*/ f32 dustOffset[2][2];
 } DKJungleKlaptrapTuning;
 
-// Trailing dust/sound tuning table after barrelLauncherDataStruct; only reached
+// Dust/sound tuning table after the two barrel launcher tables; only reached
 // through the DKJungleKlaptrapTuning overlay above.
 typedef struct _DKJungleDustTuning {
     /*0x00*/ s32 dustInterval[3];
@@ -274,14 +274,6 @@ typedef struct _DKJungleActEffect {
     /*0x14*/ u8 _14[0x48];
 } DKJungleActEffect; // size: 0x5C
 
-typedef struct _DKJungleAnimBanks {
-    /*0x00*/ u32 animBank[2];
-    /*0x08*/ u8 flag;
-    /*0x09*/ u8 _09[3];
-    /*0x0C*/ DKJungleActEffect effectSlot0;
-    /*0x68*/ DKJungleActEffect effectSlot1;
-} DKJungleAnimBanks; // size: 0xC4
-
 // View over the .bss block starting at lbl_3_bss_AEE0 (the original object spans several split symbols).
 typedef struct _DKJungleBss {
     /*0x000*/ u8 _00;
@@ -328,7 +320,7 @@ extern DKJungleDrawFuncTable lbl_3_data_1BA5C;
 extern u8 lbl_803C5090[0x20];
 extern DKJungleKlaptrapData jungleKlaptrapData[6];
 extern DKJungleZoneCorner lbl_3_data_1B824[3][4];
-extern DKJungleBarrelLauncher barrelLauncherDataStruct[12];
+extern DKJungleBarrelLauncher barrelLauncherDataStruct[6];
 extern u8 drawStadiumRelated;
 void fn_8003A144(void);
 void fn_800BDA24(void* arg);
