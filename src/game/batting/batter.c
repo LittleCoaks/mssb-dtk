@@ -1108,7 +1108,7 @@ void calculateContactAndHitType(void) {
     // arr[0][x] is low threshold, arr[1][x] is high threshold
     f32 arr[2][4];
 
-    f32 xPosFromPerfect;
+    f32 diff;
     f32 contactQualityAbsolute;
     int i, j;
     
@@ -1133,17 +1133,17 @@ void calculateContactAndHitType(void) {
         }
     }
 
-    xPosFromPerfect = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
+    diff = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
     
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        xPosFromPerfect = -xPosFromPerfect;
+        diff = -diff;
     }
-    if (xPosFromPerfect < 0.0f) {
+    if (diff < 0.0f) {
         contactQualityAbsolute =
-            -((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
+            -((diff / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
     } else {
         contactQualityAbsolute =
-            ((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
+            ((diff / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
     }
     
     if (contactQualityAbsolute < 0.0f) {
@@ -1154,8 +1154,8 @@ void calculateContactAndHitType(void) {
     }
     g_Batter.contactQualityAbsolute = contactQualityAbsolute;
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
-        f32 range = arr[1][i] - arr[0][i];
-        g_Batter.rightNiceThreshold[i] = arr[0][i] + range * (contactSize / 100.f);
+        diff = arr[1][i] - arr[0][i];
+        g_Batter.rightNiceThreshold[i] = arr[0][i] + (contactSize / 100.f) * diff;
     }
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
         if (g_Batter.rightNiceThreshold[i] > g_Batter.contactQualityAbsolute) {
@@ -1190,7 +1190,6 @@ void calculateContactAndHitType(void) {
                                                 g_Batter.contactQualityAbsolute);
         } break;
         default: { // HIT_CONTACT_TYPE_LEFT_SOUR
-            // I think the inv_lerp here is correct based on the loading order for 200.0f
             g_Batter.contactQuality =
                 flipped_inv_lerp(g_Batter.rightNiceThreshold[3], 200.0f, g_Batter.contactQualityAbsolute);
         } break;
@@ -1205,35 +1204,35 @@ void calculateContactAndHitType(void) {
     }
 
     if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP || g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
-        int r5 = HIT_TYPE_SLAP_SOUR;
+        int contactHitType = HIT_TYPE_SLAP_SOUR;
         if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
-            r5 = HIT_TYPE_SLAP_PERFECT;
+            contactHitType = HIT_TYPE_SLAP_PERFECT;
         } else if (g_Batter.contactType == HIT_CONTACT_TYPE_RIGHT_NICE ||
                    g_Batter.contactType == HIT_CONTACT_TYPE_LEFT_NICE) {
-            r5 = HIT_TYPE_SLAP_NICE;
+            contactHitType = HIT_TYPE_SLAP_NICE;
         }
 
-        if (g_Pitcher.starPitchType != 0) {
+        if (g_Pitcher.starPitchType != CAPTAIN_STAR_TYPE_NONE) {
             g_Batter.hitType = 0x12;
         }
         
         if (g_Pitcher.ChargePitchType == 3) {
-            if (g_Batter.hitGeneralType == HIT_TYPE_SLAP_SOUR) {
-                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH;
+            if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
+                g_Batter.hitType = contactHitType + HIT_TYPE_PERFECT_PITCH;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_PERFECT_PITCH_CHARGE;
             }
         } else if (g_Pitcher.TypeOfPitch == 0) {
             if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
-                g_Batter.hitType = r5 + HIT_TYPE_SLAP;
+                g_Batter.hitType = contactHitType + HIT_TYPE_SLAP;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHARGE;
             }
         } else {
             if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
-                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHANGE_UP;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHANGE_UP_CHARGE;
             }
         }
     }
