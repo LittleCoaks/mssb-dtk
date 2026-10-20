@@ -3884,3 +3884,37 @@ Chunk 5 (sta_c4, sta_c5, sta_c6, stadium_draw; 2026-10).
 - **Behaviour bugs found by diffing immediates and branch-only paths:** loadDKJungle read `n`
   uninitialised in minigame mode (the target zeroes it on entry). fn_3_4F90 reset the GX line
   width to 18 instead of 6 after the outline.
+
+Chunk 6 (stadium_draw, stat_book, stat_tracking; 2026-10). updateStadiumFileHeaders was already
+100% in the baseline. compileStatsForBook and initializeStats stayed stuck.
+- **`lis 1; subi` for a 0xFFFF store means the element type is `u16`.** An `s16` store folds the
+  constant to `li -1`. In initializeStats a `u16*` store reproduced the target's 18-store unroll,
+  but it scored lower on register allocation, so it was not kept (logged in the checkpoint).
+
+### Logic pass summary (all 53 functions)
+
+- **Matched: 7.** fn_3_16C548, running_AIStartSteals, animateShadows_nonBall,
+  piranhaPanic_emitFielderHitFire, practiceMenu_charSelect_update, fn_3_F8E20, fn_3_42CC.
+  One more (updateStadiumFileHeaders) was already 100% when reached.
+- **Improved: 30.** Typical gains were 1-10 points. The largest: running_AIStartSteals 60.92 -> 100,
+  piranhaPanic_emitFielderHitFire 72.58 -> 100, fn_3_19FA4 72.88 -> 96.49,
+  scoutMissionProgress_init 88.34 -> 99.79, drawStadiumObjects 88.17 -> 96.80,
+  fn_3_EE388 89.37 -> 97.80.
+- **Stuck: 15.** Each has its forms logged in its unit checkpoint. Almost all are pure register
+  allocation, CSE or scheduling with identical logic: a base kept live across calls, values re-read
+  per iteration with no CSE, a materialised compare, folded post-loop increments, `fnmsubs` operand
+  order, and zero registers shared between a vestigial loop guard and a value.
+- **Behaviour bugs fixed: 3.** fn_3_19FA4 advanced the spline frame counter on the linear path and
+  used the wrong lerp association. loadDKJungle read the pool index `n` uninitialised in minigame
+  mode. fn_3_4F90 reset the GX line width to 18 instead of 6 after drawing the outline.
+  **Minor numerical differences fixed: 3.** processBallFielderCollision (an inverted compare that
+  only differs for NaN), gameplay_Camera (fused multiply-add where the target rounds between the
+  multiply and the add), piranhaPanic_initBombExplosion (cos/sin argument not rounded to float).
+- **Patterns that paid off most:**
+  1. Splitting pooled statics into their real objects. Read the `addi base, off` vs folded-offset
+     shape; it was the single biggest lever, across sta_c1, sta_c2, sta_c5, stadium_draw and
+     minigame_effects.
+  2. Integer widths and signedness read off `clrlwi`/`extsh`/`cmplwi`/`lis;subi`.
+  3. `switch` vs `if` range-check shapes.
+  4. Inline-helper shapes: `? TRUE : FALSE` and shared vs separate zeros.
+  5. Diffing immediates and branch-only paths, which is where every real behaviour bug showed up.
