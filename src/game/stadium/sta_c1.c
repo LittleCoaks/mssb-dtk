@@ -2224,7 +2224,7 @@ void fn_3_C82B4(void) {
 
 // .text:0x000C8650 size:0xD2C mapped:0x807076E4
 void loadBowserCastle(void** files) {
-    u8** animTable = (u8**)(hugeAnimStruct + 0x6C);
+    u8** animTable;
     CastleSlotPlacement* thwompCfg;
     CastleFireSpawner* fireCfg;
     CastleSlotPlacement* padCfg;
@@ -2255,6 +2255,7 @@ void loadBowserCastle(void** files) {
     }
     animCount = fireCount + 5;
     stadiumObjectCollision.propCount = animCount;
+    animTable = (u8**)(hugeAnimStruct + 0x6C);
     *animTable = ActorObjectInitTable(animCount);
     animateBallRelated(*animTable, 0, 0, files[ids[1]], 0, 0);
     animateBallRelated(*animTable, 1, 1, files[ids[2]], 0, 0);
