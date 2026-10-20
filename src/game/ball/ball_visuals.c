@@ -1149,7 +1149,6 @@ void setupBallTrailEffect(int type, u16 duration) {
     lbl_3_bss_204 = lbl_3_data_6880[type].texture;
     fn_80023EEC(&lbl_3_bss_1630, lbl_3_bss_1360, lbl_3_data_6880[type].length);
 
-    i = 1;
     lbl_3_bss_11E0[0] = GX_TRIANGLESTRIP;
     start = dl = lbl_3_bss_11E0;
     dl[1] = 0;
@@ -1157,7 +1156,7 @@ void setupBallTrailEffect(int type, u16 duration) {
     dl[3] = 0;
     dl[4] = 0;
     dl[5] = 2;
-    dl[6] = 1;
+    dl[6] = i = 1;
     dl[7] = 0;
     dl[8] = 3;
     dl += 9;
