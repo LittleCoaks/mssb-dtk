@@ -85,7 +85,7 @@ Boundary fixes from the 2026-10-08 gap review (every function's local
 `.rodata`/`.data`/`.bss` references were checked against its unit; only
 `fn_3_C1930` disagreed):
 
-- `0x1104A8-0x110634` (`minigameClearAIControlled`, `unusedBattingSomething`)
+- `0x1104A8-0x110634` (`minigameClearAIControlled`, `bOD_UpdateBatterAIInputs`)
   moved from `minigame_framework.c` to the start of `bobomb_derby.c`.
   bobomb_derby already inlines both bodies, and every minigame TU opens with
   its own clear-AI routine (cf. `wallBallClearAIControlled`).

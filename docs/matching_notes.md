@@ -3568,7 +3568,7 @@ A pass over every game unit, looking for hand-written copies of functions that M
   fn_3_C4CF4 stayed a `bl` (fn_3_C56E8 dropped to 31.7%) until its GX setup became a call to
   fn_3_C4B80, which the target also inlines.
 - **Not every copy should go.** Calling the real function scored lower for
-  bobOmbDerby unusedBattingSomething (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
+  bobOmbDerby bOD_UpdateBatterAIInputs (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
   starDash_stopAllSparks (93.1 -> 67.5, the `extsb` of the inlined `s8` argument sinks below the
   call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
   barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
@@ -3967,11 +3967,11 @@ units reached 100%.
   `#define BOD_LAUNCH_FIREWORKS(pos, n) maybeFireworks(pos, &getCamera(0)->eye, n, 1)` it
   matched. A `do { } while (0)` macro with a local scored lower than the inline.
 - **A struct pointer local for only SOME accesses decides which base register CSE reuses.** In
-  unusedBattingSomething the target uses the first loop's `&g_Minigame` for the switch's AI fields
+  bOD_UpdateBatterAIInputs the target uses the first loop's `&g_Minigame` for the switch's AI fields
   and a separate base for `rosterID`. `MiniGameStruct* mg = &g_Minigame;` used only for those
   three fields matched (96.07 -> 100). Using `mg` for more accesses scored 83-89.
 - **Calling the real function fixed a hand copy here, unlike the earlier sweep.** With the `mg`
-  fix in place, bOD_AtBat matched by calling unusedBattingSomething and minigameClearAIControlled
+  fix in place, bOD_AtBat matched by calling bOD_UpdateBatterAIInputs and minigameClearAIControlled
   (both auto-inline) instead of the `bOD_AI`/`bOD_clearAIControlled` copies. The duplicate-body
   sweep had measured the call form lower (96.2 -> 93.5) before the `mg` fix. Re-measure a "copy
   beats call" result after other fixes.

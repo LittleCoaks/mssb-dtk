@@ -468,7 +468,7 @@ void bOD_AtBat(void) {
         }
 
         atBat_Pitcher();
-        unusedBattingSomething();
+        bOD_UpdateBatterAIInputs();
         atBat_batter();
 
         minigameClearAIControlled();
@@ -920,7 +920,7 @@ void bOD_BatterAI(void) {
 }
 
 // .text:0x001104D4 size:0x160
-void unusedBattingSomething(void) {
+void bOD_UpdateBatterAIInputs(void) {
     MiniGameStruct* mg = &g_Minigame;
     s8 i;
 
