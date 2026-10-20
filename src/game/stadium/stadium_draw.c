@@ -941,9 +941,8 @@ void fn_3_3904(s16 x, s16 y, int textIndex, const GXColor* foreground,
             f32 drawHeight;
             if (value & STADIUM_ATLAS_PAGED_FLAG) {
                 u16 cell = (value & 0x7FFF) % STADIUM_ATLAS_CELLS_PER_PAGE;
-                column = cell % STADIUM_ATLAS_COLUMNS;
+                column = (cell % STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
                 row = (cell / STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
-                column *= STADIUM_ATLAS_CELL_SIZE;
                 cellWidth = 22;
                 cellHeight = 22;
                 drawWidth = 16.0f;
