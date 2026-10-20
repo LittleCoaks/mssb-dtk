@@ -24,7 +24,7 @@ extern int menuCursors[0x16];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 superstarUnlocked[0x130];
 extern u8 cursorToStadIDMapping[0x288];
-extern u8 lbl_803CBBC2[0xA];
+extern u8 lbl_803CBBC4[8];
 extern u8 cardCheck[0x5C];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 lbl_2_bss_758[0x388];
@@ -318,7 +318,7 @@ void selectStadiumScreen(void) {
 
     case 5:
         if (gameSetUpStep[0x55] == 0) {
-            cb = &lbl_803CBBC2[2];
+            cb = lbl_803CBBC4;
             cb[0] = 0;
             cb[2] = 0;
             cb[3] = 0;
@@ -336,7 +336,7 @@ void selectStadiumScreen(void) {
 
     case 6:
         if (gameSetUpStep[0x55] == 0) {
-            cb = &lbl_803CBBC2[2];
+            cb = lbl_803CBBC4;
             cursor = &menuCursors[0x11];
             cb[1] = *cursor;
             fn_2_15A90(cursor, 0, lbl_2_bss_F468[0x57]);
@@ -370,7 +370,7 @@ void selectStadiumScreen(void) {
         break;
 
     case 7:
-        cb = &lbl_803CBBC2[2];
+        cb = lbl_803CBBC4;
         if (cb[5] != 0) {
             cb[5] = 0;
             lbl_2_bss_100B4 = 1;
@@ -379,7 +379,7 @@ void selectStadiumScreen(void) {
         break;
 
     case 8:
-        cb = &lbl_803CBBC2[2];
+        cb = lbl_803CBBC4;
         if (cb[5] != 0) {
             *(u16*)(menuControlVariables + 4) = 0xB;
         }
@@ -440,7 +440,7 @@ void selectStadiumScreen(void) {
             ss[0] = 0;
             changeScreenVariables(0xB);
         } else {
-            cb = &lbl_803CBBC2[2];
+            cb = lbl_803CBBC4;
             cb[4] = 1;
 
             if (cardCheck[0x47] == 0) {
@@ -468,7 +468,7 @@ void selectStadiumScreen(void) {
             lbl_2_bss_F468[0x58] = 0;
             changeScreenVariables(0xD);
         } else {
-            cb = &lbl_803CBBC2[2];
+            cb = lbl_803CBBC4;
 
             if (cb[3] != 1) {
                 cb[4] = 1;

@@ -3,20 +3,38 @@
 
 #include "mssbTypes.h"
 
-void fn_2_35EC0(void);
-void fn_2_36074(void);
-void fn_2_36204(void);
-void fn_2_363C8(void);
-void fn_2_36590(void);
-void fn_2_36750(void);
-void fn_2_3697C(void);
-void fn_2_36B30(void);
-void fn_2_36D04(void);
-void fn_2_36F44(void);
-void fn_2_370F8(void);
-void fn_2_372AC(void);
-void fn_2_3735C(void);
-void fn_2_37430(void);
+// Scene node used by the handle state machines: records are
+// graphicsRelatedArray[firstHandle + rec->handle].object.
+typedef struct TextScene {
+    /* 0x00 */ u8 unk0[0x14];
+    /* 0x14 */ u16 firstHandle;
+} TextScene;
+
+// Per-record state machine block passed as the second argument.
+typedef struct TextHandleRec {
+    /* 0x00 */ u8 unk0[4];
+    /* 0x04 */ s16 state;
+    /* 0x06 */ u8 unk6[4];
+    /* 0x0A */ s16 unkA;       // index into a per-slot s16 table in the work area
+    /* 0x0C */ u8 unkC[2];
+    /* 0x0E */ s16 handle;     // added to scene->firstHandle
+    /* 0x10 */ s16 unk10;      // index into lbl_2_data_C8F8 / C904
+} TextHandleRec;
+
+void fn_2_35EC0(TextScene *scene, TextHandleRec *rec);
+void fn_2_36074(TextScene *scene, TextHandleRec *rec);
+void fn_2_36204(TextScene *scene, TextHandleRec *rec);
+void fn_2_363C8(TextScene *scene, TextHandleRec *rec);
+void fn_2_36590(TextScene *scene, TextHandleRec *rec);
+void fn_2_36750(TextScene *scene, TextHandleRec *rec);
+void fn_2_3697C(TextScene *scene, TextHandleRec *rec);
+void fn_2_36B30(TextScene *scene, TextHandleRec *rec);
+void fn_2_36D04(TextScene *scene, TextHandleRec *rec);
+void fn_2_36F44(TextScene *scene, TextHandleRec *rec);
+void fn_2_370F8(TextScene *scene, TextHandleRec *rec);
+void fn_2_372AC(TextScene *scene, TextHandleRec *rec);
+void fn_2_3735C(TextScene *scene, TextHandleRec *rec);
+void fn_2_37430(TextScene *scene, TextHandleRec *rec);
 void fn_2_3745C(void);
 void fn_2_37460(void);
 void fn_2_37630(void);

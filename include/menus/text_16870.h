@@ -4,9 +4,9 @@
 #include "mssbTypes.h"
 
 void fn_2_16870(void);
-void fn_2_16A34(void);
-void set807518de(void);
-void fn_2_16A5C(void);
-void fn_2_16A74(void);
+u8 fn_2_16A34(s32 idx);
+void set807518de(s32 idx, u8 value);
+u8 fn_2_16A5C(s32 idx);
+void fn_2_16A74(s32 idx, s32 flag);
 
 #endif // !__MENUS_TEXT_16870_H_

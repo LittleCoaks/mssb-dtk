@@ -1,86 +1,365 @@
 #include "menus/text_42BE8.h"
+#include "game/challenge/challenge_state.h"
+#include "game/challenge/star_mission_data.h"
+#include "challenge/challenge_progress.h"
 
-// .text:0x00042BE8 size:0x2C8 mapped:0x80681C7C
+extern ChallengeState *lbl_2_bss_1A8248;
+extern u8 *lbl_2_bss_1A824C;
+
+// Number of saved lineup slots whose charID equals the argument.
+static s32 savedLineupCountOf(s32 charID) {
+    s32 count = 0;
+    s32 k;
+    for (k = 0; k < 9; k++) {
+        if (lbl_2_bss_1A8248->savedLineup[k].charID == charID) {
+            count++;
+        }
+    }
+    return count;
+}
+
 void fn_2_42BE8(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 mode = rule->mode;
+                    s32 type = req->type;
+                    s32 minStars = rule->minStars;
+                    s32 minScoutRow = rule->minScoutRow;
+                    if (mode != -1 && pair->shownOnPauseMenu == 0) {
+                        switch (mode) {
+                            case 1:
+                                if (fn_8006CDC0(i) >= minStars && lbl_2_bss_1A8248->difficulty >= minScoutRow) {
+                                    pair->shownOnPauseMenu = 1;
+                                }
+                                break;
+                            case 22:
+                                if (challenge_isCharRecruited(minStars) == 1 &&
+                                    lbl_2_bss_1A8248->difficulty >= minScoutRow) {
+                                    pair->shownOnPauseMenu = 1;
+                                }
+                                break;
+                            case 24:
+                                if (*((u8 *)lbl_2_bss_1A8248 + 0x4426) != 0 && lbl_2_bss_1A8248->captain == minStars &&
+                                    lbl_2_bss_1A8248->difficulty >= minScoutRow) {
+                                    pair->shownOnPauseMenu = 1;
+                                }
+                                break;
+                            case 25:
+                                if ((*((u8 *)lbl_2_bss_1A8248 + 0x4426) & (1 << minScoutRow)) != 0 &&
+                                    lbl_2_bss_1A8248->captain == minStars &&
+                                    lbl_2_bss_1A8248->difficulty >= rule->_8) {
+                                    pair->shownOnPauseMenu = 1;
+                                }
+                                break;
+                            case 26:
+                                if (savedLineupCountOf(minStars) != 0 &&
+                                    lbl_2_bss_1A8248->opponentCaptain == minScoutRow &&
+                                    lbl_2_bss_1A8248->difficulty >= rule->_8) {
+                                    pair->shownOnPauseMenu = 1;
+                                }
+                                break;
+                        }
+                    }
+                    if (type != -1 && pair->starMissionStatus < 0) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .text:0x00042EB0 size:0x118 mapped:0x80681F44
 void fn_2_42EB0(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 mode = rule->mode;
+                    s32 type = req->type;
+                    s32 minStars = rule->minStars;
+                    s32 minScoutRow = rule->minScoutRow;
+                    if (mode != -1 && pair->shownOnPauseMenu == 0 && mode == 0x12 &&
+                        lbl_2_bss_1A8248->difficulty >= minStars &&
+                        *((u8 *)lbl_2_bss_1A8248 + 0x442A) == 1) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                    if (type != -1 && pair->starMissionStatus < 0) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .text:0x00042FC8 size:0x12C mapped:0x8068205C
 void fn_2_42FC8(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 mode = rule->mode;
+                    s32 type = req->type;
+                    s32 minStars = rule->minStars;
+                    s32 minScoutRow = rule->minScoutRow;
+                    if (mode != -1 && pair->shownOnPauseMenu == 0 && mode == 1 &&
+                        fn_8006CDC0(i) >= minStars && lbl_2_bss_1A8248->difficulty >= minScoutRow) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                    if (type != -1 && pair->starMissionStatus < 0) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .text:0x000430F4 size:0x1F8 mapped:0x80682188
 void fn_2_430F4(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 mode = rule->mode;
+                    s32 type = req->type;
+                    s32 minStars = rule->minStars;
+                    s32 minScoutRow = rule->minScoutRow;
+                    if (mode != -1 && pair->shownOnPauseMenu == 0) {
+                        if (mode == 0x15) {
+                            if (savedLineupCountOf(minStars) != 0 &&
+                                lbl_2_bss_1A8248->difficulty >= minScoutRow) {
+                                pair->shownOnPauseMenu = 1;
+                            }
+                        } else if (mode == 2) {
+                            if (lbl_2_bss_1A8248->difficulty >= minStars) {
+                                pair->shownOnPauseMenu = 1;
+                            }
+                        }
+                    }
+                    if (type != -1 && pair->starMissionStatus < 0) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .text:0x000432EC size:0x118 mapped:0x80682380
 void fn_2_432EC(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 mode = rule->mode;
+                    s32 type = req->type;
+                    s32 minStars = rule->minStars;
+                    s32 minScoutRow = rule->minScoutRow;
+                    if (type != -1 && pair->starMissionStatus < 0) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                    if (mode == 1 && fn_8006CDC0(i) >= minStars &&
+                        lbl_2_bss_1A8248->difficulty >= minScoutRow) {
+                        pair->shownOnPauseMenu = 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .text:0x00043404 size:0x188 mapped:0x80682498
 void fn_2_43404(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 type = req->type;
+                    s32 target = req->target;
+                    s32 minDifficulty = req->_6[0];
+                    s32 minPoints = req->_6[1];
+                    if (type != -1 && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED &&
+                        type == 0x46 && lbl_2_bss_1A8248->captain == target &&
+                        *(s16 *)((u8 *)lbl_2_bss_1A8248 + 0x43BC) >= minPoints * 100 &&
+                        lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                        pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                    }
+                }
+            }
+        }
+    }
 }
 
-// .text:0x0004358C size:0x444 mapped:0x80682620
+void fn_2_43E8C(void) {
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 type = req->type;
+                    s32 minDifficulty = req->_6[0];
+                    if (type != -1 && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED &&
+                        type == 0x3B && lbl_2_bss_1A824C[0x1978F4] == 1 &&
+                        lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                        pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                    }
+                }
+            }
+        }
+    }
+    lbl_2_bss_1A824C[0x1978F4] = 0;
+}
+
+void fn_2_44014(void) {
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 type = req->type;
+                    s32 target = req->target;
+                    s32 minDifficulty = req->_6[0];
+                    if (type != -1 && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED &&
+                        type == 0x3A && lbl_2_bss_1A8248->_43C2[target] == 1 &&
+                        lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                        pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void fn_2_44184(void) {
+    s32 count = 0;
+    s32 k;
+    for (k = 0; k < 9; k++) {
+        if (lbl_2_bss_1A8248->savedLineup[k].charID == 0xC) {
+            count++;
+        }
+    }
+    if (count == 0) {
+        *((u8 *)lbl_2_bss_1A8248 + 0x44F7) = 1;
+    }
+}
+
+BOOL fn_2_44238(int charID) {
+    return savedLineupCountOf(charID) != 0;
+}
+
+BOOL fn_2_442E8(void) {
+    s32 count = 0;
+    s32 k;
+    for (k = 0; k < 9; k++) {
+        s16 id = lbl_2_bss_1A8248->savedLineup[k].charID;
+        if (id == 0 || id == 1) {
+            count++;
+        }
+    }
+    return count == 2;
+}
+
+BOOL fn_2_44368(void) {
+    s32 count = 0;
+    s32 k;
+    for (k = 0; k < 9; k++) {
+        s16 id = lbl_2_bss_1A8248->savedLineup[k].charID;
+        if (id == 0xD || (id >= 0x1D && id <= 0x1F) || id == 0x20) {
+            count++;
+        }
+    }
+    return count >= 5;
+}
+
+int fn_2_44E2C(int charIdx) {
+    CharStaticIndex *cs = &characterStaticIndexes[charIdx];
+    s32 count = 0;
+    s32 j;
+    if (cs->hasOwnStarMissions != 1) {
+        return 0;
+    }
+    for (j = 0; j < 10; j++) {
+        if (starMissionRequirementsTable[cs->requirementRow][j].type != -1) {
+            count++;
+        }
+    }
+    cs->requirementRow = cs->requirementRow;
+    return count;
+}
+
+// Insertion sort of entries[1..54] by key; entries[0] is scratch and serves as the sentinel.
+void fn_2_44414(SortEntry *entries) {
+    s32 i;
+    for (i = 1; i <= 54; i++) {
+        SortEntry tmp = entries[i];
+        s32 j = i - 1;
+        entries[0] = tmp;
+        while (tmp.key < entries[j].key) {
+            entries[j + 1] = entries[j];
+            j--;
+        }
+        entries[j + 1] = tmp;
+    }
+}
+
 void fn_2_4358C(void) {
     return;
 }
 
-// .text:0x000439D0 size:0x4BC mapped:0x80682A64
 void fn_2_439D0(void) {
     return;
 }
 
-// .text:0x00043E8C size:0x188 mapped:0x80682F20
-void fn_2_43E8C(void) {
-    return;
-}
-
-// .text:0x00044014 size:0x170 mapped:0x806830A8
-void fn_2_44014(void) {
-    return;
-}
-
-// .text:0x00044184 size:0xB4 mapped:0x80683218
-void fn_2_44184(void) {
-    return;
-}
-
-// .text:0x00044238 size:0xB0 mapped:0x806832CC
-void fn_2_44238(void) {
-    return;
-}
-
-// .text:0x000442E8 size:0x80 mapped:0x8068337C
-void fn_2_442E8(void) {
-    return;
-}
-
-// .text:0x00044368 size:0xAC mapped:0x806833FC
-void fn_2_44368(void) {
-    return;
-}
-
-// .text:0x00044414 size:0xF0 mapped:0x806834A8
-void fn_2_44414(void) {
-    return;
-}
-
-// .text:0x00044504 size:0x928 mapped:0x80683598
 void fn_2_44504(void) {
-    return;
-}
-
-// .text:0x00044E2C size:0xE8 mapped:0x80683EC0
-void fn_2_44E2C(void) {
     return;
 }

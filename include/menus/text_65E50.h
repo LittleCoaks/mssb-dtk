@@ -2,6 +2,7 @@
 #define __MENUS_TEXT_65E50_H_
 
 #include "mssbTypes.h"
+#include "menus/text_35EC0.h"
 
 void fn_2_65E50(void);
 void fn_2_66038(void);
@@ -21,9 +22,9 @@ void fn_2_67780(void);
 void fn_2_67B94(void);
 void fn_2_67D48(void);
 void fn_2_67FEC(void);
-void fn_2_681A0(void);
-void fn_2_68234(void);
-void fn_2_68260(void);
+void fn_2_681A0(TextScene *scene, TextHandleRec *rec);
+void fn_2_68234(TextScene *scene, TextHandleRec *rec);
+void fn_2_68260(u8 *obj);
 void fn_2_68308(void);
 
 #endif // !__MENUS_TEXT_65E50_H_

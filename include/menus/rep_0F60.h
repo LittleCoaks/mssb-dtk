@@ -15,7 +15,7 @@ void fn_2_8C910(void);
 BOOL fn_2_8CC88(int slot);
 void fn_2_8CCAC(int idx, u8 val);
 void fn_2_8CCCC(int slot, int a, u8 b, u8 mode, u8 c, s16 e, u8 f, int g);
-void fn_2_8CD58(void);
+void fn_2_8CD58(int slot, int a, u8 b, u8 c, s16 d, u8 e, u8 f);
 void fn_2_8D024(void);
 void fn_2_8D24C(void *obj);
 void fn_2_8D270(u8 idx);

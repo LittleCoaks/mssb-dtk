@@ -10,6 +10,16 @@
 #include "C3/actor/actorAnim.h"
 #include "C3/actor/act.h"
 #include "Dolphin/gx.h"
+#include "Unknown/File_0x800c0770.h"
+#include "C3/geoPalette/geoPalette.h"
+#include "C3/control.h"
+#include "Unknown/objinit.h"
+#include "Unknown/File_0x8001fc4c.h"
+#include "Unknown/File_0x8001d180.h"
+#include "Unknown/File_0x80025ddc.h"
+#include "Unknown/File_0x800bd478.h"
+#include "Unknown/File_0x80025c58.h"
+#include "C3/anim.h"
 #include "Unknown/File_0x800bda94.h"
 
 extern u8 hugeAnimStruct[0x3154];
@@ -31,6 +41,22 @@ u32 fn_80023AA4(void);
 void initActorArray(int count);
 void actorRelated(void *effect, int arg1, int arg2);
 extern void *lbl_2_data_2780;
+extern void *lbl_2_data_277C;
+extern f32 lbl_2_rodata_5B8;
+extern u8 lbl_2_bss_1010C[0x58];
+void fn_2_16460(void);
+void fn_2_166CC(void);
+void captainSelect_setupCameraProjection(void);
+extern f32 lbl_2_rodata_5D0;
+extern f32 lbl_2_data_20F8[];
+extern u8 lbl_2_data_278C[8];
+void fn_800B2C08(u8 *sub, u16 value);
+void fn_800B2BA8(u8 *obj, u16 index, s32 a, s32 b);
+void fn_80014990(s32 idx, u8 *a, u8 *b);
+void fn_800638B4(u8 *entry, u8 *actor);
+void fn_8004B7B4(u8 *entry, u8 *actor);
+void fn_800126EC(u8 *dst, u8 *src, u8 *table);
+extern void *lbl_2_bss_1228;
 void *ARAMTransfer(void *file, s32 arg1, s32 arg2, s32 arg3);
 void fn_2_14BB8(int port, int state);
 extern void *lbl_2_bss_122C;
@@ -155,12 +181,229 @@ void fn_2_16F0C(u8 slot) {
 
 // .text:0x00016F78 size:0x6D0 mapped:0x8065600C
 void fn_2_16F78(u8 idx) {
-    return;
+    u8 *slot = hugeAnimStruct + idx * 0x27C;
+    u8 *entry = slot + 0xC04;
+    u32 *buf;
+    u8 *objs;
+    u8 *ent;
+    u8 *act;
+    u8 *sub;
+    u8 *actor;
+    u8 *texture;
+    u8 *layout;
+    u8 *geo;
+    u8 *skn;
+    u8 *anim;
+    u8 *obj;
+    u8 *dst;
+    u8 **table;
+    f32 *tri;
+    s32 i;
+    s32 count;
+    s32 handA;
+    s32 handB;
+    s8 handKind;
+    u16 value;
+
+    slot[0xE59] = idx;
+    buf = *(u32 **)(entry + 0x8);
+    for (i = 0; i < 15; i++) {
+        if (buf[i] == 0) {
+            break;
+        }
+        buf[i] += (u32)buf;
+    }
+
+    texture = (u8 *)buf[0];
+    layout = (u8 *)buf[1];
+    geo = (u8 *)buf[2];
+    skn = (u8 *)buf[3];
+    convertTextureHeader(texture);
+    LoadActorLayout(layout);
+    convertGeometryAndSknHeader(geo, skn);
+    haveActLayoutPointToGeoHeader(layout, geo);
+    UpdateTexturePalettePointers((UnkTexPalGeo *)geo, texture);
+
+    anim = (u8 *)buf[4];
+    *(u8 **)(entry + 0x24) = anim;
+    ANIMGet((ANIMBank *)anim);
+    actor = getAnimObjectActor(entry);
+    characterAndBallDisplayRelated((ActorObjectEntry *)actor, idx, idx, (ActorLayout *)layout, anim, (s32)skn);
+
+    objs = *(u8 **)(hugeAnimStruct + 0x60);
+    ent = objs + idx * 0x90;
+    act = ent + 0x34;
+    *(u8 **)(act + 4) = anim;
+    *(s16 *)(act + 0xE) = 0;
+    *(f32 *)(act + 0x5C) = lbl_2_rodata_5B8;
+    act[0x58] = TRUE;
+    act[0x59] = anim != NULL;
+    act[0x5A] = anim != NULL;
+    *(f32 *)(act + 0x60) = lbl_2_rodata_5B8;
+
+    sub = *(u8 **)act;
+    count = *(u16 *)(sub + 0x6);
+    memset(entry + 0x162, 0xFF, 0x64);
+    for (i = 0; i < count; i++) {
+        u8 *record = ((u8 **)*(u8 **)(sub + 0x18))[i];
+        u16 v = *(u16 *)record;
+        if (v != 0xFFFF) {
+            *(s16 *)(entry + 0x162 + v * 2) = i;
+        }
+    }
+
+    fn_800BD548(act, 4, *(u32 *)(hugeAnimStruct + 0xAC), *(u32 *)(hugeAnimStruct + 0xB0),
+                *(u32 *)(hugeAnimStruct + 0xB4), *(u32 *)(hugeAnimStruct + 0xB8));
+    *(f32 *)(entry + 0x48) = lbl_2_rodata_5B8;
+    *(f32 *)(entry + 0x44) = lbl_2_rodata_5B8;
+    *(f32 *)(entry + 0x40) = lbl_2_rodata_5B8;
+    CTRLSetTranslation((Control *)(ent + 0x44), lbl_2_rodata_5B8, lbl_2_rodata_5B8, lbl_2_rodata_5B8);
+    CTRLSetRotation((Control *)(ent + 0x44), lbl_2_rodata_5B8, lbl_2_rodata_5B8, lbl_2_rodata_5B8);
+    *(f32 *)(act + 0x54) = lbl_2_rodata_5D0;
+    act[0x5A] = TRUE;
+
+    obj = *(u8 **)(hugeAnimStruct + 0x2C50 + idx * 4);
+    value = (obj != NULL) ? *(u16 *)(obj + 0x16A) : 0xFFFF;
+    fn_800B2C08(sub, value);
+    initShortsHandleCompressedDiskReads((ShortsTableOwner *)obj);
+
+    tri = lbl_2_data_20F8 + idx * 3;
+    *(f32 *)(entry + 0x34) = tri[0];
+    *(f32 *)(entry + 0x38) = tri[1];
+    *(f32 *)(entry + 0x3C) = tri[2];
+    *(f32 *)(entry + 0x4C) = lbl_2_rodata_5D0;
+    *(void **)(ent + 0x3C) = (void *)fn_2_190B8;
+    entry[0x25D] = 0;
+    *(u8 **)entry = *(u8 **)actor;
+
+    callDSInsertListObject((UnkB2B4C *)*(u8 **)actor, *(u16 *)(entry + 0x188));
+    callDSInsertListObject((UnkB2B4C *)*(u8 **)actor, *(u16 *)(entry + 0x194));
+
+    value = *(u16 *)(entry + 0x168);
+    if (value != 0xFFFF) {
+        fn_800B2B54((UnkB2B4C *)*(u8 **)entry, value, 0xD);
+    }
+    value = *(u16 *)(entry + 0x168);
+    if (value != 0xFFFF) {
+        fn_800B2BA8(*(u8 **)actor, value, 0, 0);
+        table = *(u8 ***)(*(u8 **)actor + 0x18);
+        table[value][0x136] = TRUE;
+    }
+    value = *(u16 *)(entry + 0x166);
+    if (value != 0xFFFF) {
+        fn_800B2BA8(*(u8 **)actor, value, 0, 0);
+        table = *(u8 ***)(*(u8 **)actor + 0x18);
+        table[value][0x136] = TRUE;
+    }
+    value = *(u16 *)(entry + 0x164);
+    if (value != 0xFFFF) {
+        fn_800B2BA8(*(u8 **)actor, value, 0, 0);
+        table = *(u8 ***)(*(u8 **)actor + 0x18);
+        table[value][0x136] = TRUE;
+    }
+    value = *(u16 *)(entry + 0x1AA);
+    if (value != 0xFFFF) {
+        fn_800B2BA8(*(u8 **)actor, value, 0, 0);
+    }
+    value = *(u16 *)(entry + 0x1BE);
+    if (value != 0xFFFF) {
+        fn_800B2BA8(*(u8 **)actor, value, 0, 0);
+        table = *(u8 ***)(*(u8 **)actor + 0x18);
+        table[value][0x136] = TRUE;
+    }
+
+    if (buf[5] != 0) {
+        dst = hugeAnimStruct + (s8)entry[0x255] * 0xD4 + 0x140;
+        *(u8 **)(entry + 0x30) = hugeAnimStruct + idx * 0xD4 + 0x140;
+        *(u32 *)dst = (u32)buf;
+        fn_800126EC(dst, texture, lbl_2_data_278C);
+        *(u32 *)(dst + 0x64) = (u32)buf;
+        fn_800126EC(dst + 0x64, texture, lbl_2_data_278C + 4);
+    }
+
+    handKind = (s8)entry[0x252];
+    if (handKind == 0x12) {
+        handA = 4;
+        handB = 5;
+    } else if (handKind == 0x26) {
+        handA = 2;
+        handB = 3;
+    } else if (handKind == 0x28 || handKind == 0x29) {
+        handA = 6;
+        handB = 7;
+    } else {
+        handA = 1;
+        handB = 0;
+    }
+    setHandModelAttached(idx, handA, TRUE);
+    setHandModelAttached(idx, handB, TRUE);
+
+    {
+        u8 *ptrA = (u8 *)buf[13];
+        if (ptrA != NULL) {
+            u8 *ptrB = (u8 *)buf[14];
+            if (ptrB != NULL) {
+                adjustInternalPointers(ptrA);
+                fn_80014990(idx, ptrA, ptrB);
+                ACTActorRelated(ptrA, actor);
+            }
+        }
+    }
+
+    dst = *(u8 **)(entry + 0x30);
+    dst[0xCC] = TRUE;
+    *(f32 *)(dst + 0x78) = lbl_2_rodata_5D0;
+    *(f32 *)(dst + 0x14) = lbl_2_rodata_5D0;
+
+    if (handKind == 0x13) {
+        entry[0x25C] = TRUE;
+        fn_8004B7B4(entry, actor);
+    } else if (handKind == 2) {
+        fn_800638B4(entry, actor);
+    }
+
+    fn_2_16A98(idx, 0, TRUE, 0, 0, 0, 0);
 }
 
 // .text:0x00017648 size:0x470 mapped:0x806566DC
 void fn_2_17648(void) {
-    return;
+    u32 maxSize = 0;
+    s32 k;
+    s32 i;
+    s32 count;
+    u32 stride;
+    u8 *buffer;
+    s16 firstIndex = *(s16 *)((u8 *)&Static_Stats_Tables + 0x24);
+
+    for (k = 0; k < 6; k++) {
+        u32 size = *(u32 *)((u8 *)lbl_2_data_277C + (firstIndex + k) * 0x10 + 4) & 0x0FFFFFFF;
+        if (maxSize < size) {
+            maxSize = size;
+        }
+    }
+
+    stride = (maxSize + 0x1F) & ~0x1F;
+    count = lbl_2_bss_100B8[0x2D];
+    buffer = _OSAllocFromHeap(32, stride * count * 2);
+    lbl_2_bss_1228 = buffer;
+
+    for (i = 0; i < count; i++) {
+        u8 *slot = hugeAnimStruct + i * 0xD4;
+        *(u8 **)(slot + 0x140) = buffer + stride * (i * 2);
+        *(u8 **)(slot + 0x1A4) = buffer + stride * (i * 2 + 1);
+    }
+
+    for (i = 0; i < count; i++) {
+        u8 *slot = hugeAnimStruct + i * 0xD4;
+        slot[0x1A0] = i * 2;
+        slot[0x204] = i * 2 + 1;
+        *(u32 *)(slot + 0x208) = 0;
+        slot[0x20C] = 0;
+        slot[0x20D] = 0xFF;
+        slot[0x20F] = -1;
+        slot[0x210] = -1;
+        slot[0x211] = -1;
+    }
 }
 
 // .text:0x00017AB8 size:0x1D0 mapped:0x80656B4C
@@ -412,7 +655,123 @@ void fn_2_18748(void) {
 
 // .text:0x000188EC size:0x6D0 mapped:0x80657980
 void fn_2_188EC(void) {
-    return;
+    u8 *d = (u8 *)currentDrawingItem;
+    u8 *bss = lbl_2_bss_100B8;
+    s32 count;
+    s32 i;
+
+    hugeAnimStruct[0x307A] = 0;
+    hugeAnimStruct[0x307C] = 0;
+
+    if (d[0x1C] == 0) {
+        u32 maxSize = 0;
+        u32 stride;
+        u8 *buffer;
+        s32 charId;
+
+        fn_2_166CC();
+        captainSelect_setupCameraProjection();
+        for (charId = 0; charId < 0x35; charId++) {
+            s16 index = *(s16 *)((u8 *)&Static_Stats_Tables + charId * 0xA0 + 0x24);
+            u32 size = *(u32 *)(lbl_2_data_241C + index * 0x10 + 4) & 0x0FFFFFFF;
+            if (maxSize < size) {
+                maxSize = size;
+            }
+        }
+
+        stride = (maxSize + 0x1F) & ~0x1F;
+        count = bss[0x2D];
+        buffer = _OSAllocFromHeap(32, stride * count);
+        *(u8 **)(hugeAnimStruct + 0x2C8C) = buffer;
+        for (i = 0; i < count; i++) {
+            *(u8 **)(hugeAnimStruct + i * 0x27C + 0xC0C) = buffer + i * stride;
+        }
+
+        fn_80014204(count);
+        *(u32 *)(hugeAnimStruct + 0x13C) = fn_80023AA4();
+        initActorArray(4);
+
+        for (i = 0; i < count; i++) {
+            *(u8 **)(hugeAnimStruct + 0x2C50 + i * 4) = hugeAnimStruct + i * 0x27C + 0xC04;
+        }
+        for (i = 3; i > 0; i--) {
+            bss[0x42 + i] = 0;
+        }
+
+        if (menuControlVariables->previousScreen == 5 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+            bss[0x46] = TRUE;
+            bss[0x47] = FALSE;
+        } else {
+            bss[0x46] = TRUE;
+            bss[0x47] = TRUE;
+        }
+        d[0x1C]++;
+    } else if (d[0x1C] == 1) {
+        u8 *newItem = (u8 *)insertGraphicDrawingFunction(fn_2_18748, 0);
+        newItem[0x1D] = 0;
+        newItem[0x1F] = 0;
+        newItem[0x1E] = 0;
+        d[0x1C]++;
+    } else if (d[0x1C] == 2) {
+        BOOL allSet = lbl_2_bss_100B4[0] != 0;
+
+        count = bss[0x2D];
+        for (i = 0; allSet && i < count; i++) {
+            if (bss[0x40 + i] == 0) {
+                allSet = FALSE;
+            }
+        }
+        if (allSet) {
+            for (i = 0; i < count; i++) {
+                *(u8 **)(hugeAnimStruct + 0x2C50 + i * 4) = NULL;
+            }
+            removeCurrentDrawingItem();
+            return;
+        }
+
+        if (bss[0x19] == 0) {
+            return;
+        }
+        for (i = 0; i < count; i++) {
+            if (bss[0x14 + i] != 0) {
+                BOOL pushed = TRUE;
+                s32 newHead = ((s8)bss[0] + 1) % 10;
+
+                if (newHead == (s8)bss[1]) {
+                    pushed = FALSE;
+                } else {
+                    if (lbl_2_bss_1224 == NULL) {
+                        lbl_2_bss_1224 = insertGraphicDrawingFunction(fn_2_18398, 0xFFFF);
+                        if (lbl_2_bss_1224 == NULL) {
+                            pushed = FALSE;
+                        } else {
+                            ((u8 *)lbl_2_bss_1224)[0x1C] = 0;
+                            ((u8 *)lbl_2_bss_1224)[0x1D] = 0;
+                        }
+                    }
+                    if (pushed) {
+                        bss[(s8)bss[0] + 2] = i;
+                        bss[0] = newHead;
+                        bss[0x42 + i] = TRUE;
+                    }
+                }
+                if (pushed) {
+                    bss[0x14 + i] = 0;
+                }
+            }
+        }
+
+        hugeAnimStruct[0x307A] = 5;
+        hugeAnimStruct[0x307C] = 1;
+        fn_2_16460();
+        PSMTXCopy((void *)lbl_2_bss_1010C, (void *)((u8 *)fn_80052768_getCamera(0) + 0x40));
+        for (i = 0; i < bss[0x2D]; i++) {
+            u8 *obj = *(u8 **)(hugeAnimStruct + 0x2C50 + i * 4);
+            if (obj != NULL && *(s16 *)(obj + 0x62) == 0x6B) {
+                bss[0x40 + i] = TRUE;
+            }
+        }
+    }
 }
 
 // .text:0x00018FBC size:0xFC mapped:0x80658050
