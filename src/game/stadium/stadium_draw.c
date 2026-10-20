@@ -39,7 +39,6 @@ static const GXColor fogBlack = {0, 0, 0, 0};
 extern void fn_80023F0C(void* source, void* destination, s32 sourceX, s32 sourceY,
                        s32 width, s32 height, s32 destinationX, s32 destinationY);
 extern int checkObjectVisibility(int mode, void* box, MtxPtr matrix);
-extern u8 FrameCountOfEntireGame[];
 extern u8 lbl_3_common_bss_35154[];
 extern void fn_8003A2C0(void);
 extern void fn_8003AE5C(u8 mode);
@@ -53,11 +52,13 @@ typedef struct {
 #define STADIUM_STYLE_RECORD_WORDS 24
 #define STADIUM_STYLE_STADIUM_COUNT 7
 typedef struct {
-    u8 _00[8];
+    u32 tag;
+    u32 func;
     u32 a;
     u32 b;
 } StadiumLightSlot;
-u32 lbl_3_data_23C[364] = {
+u32 FrameCountOfEntireGame[5] = {0};
+u32 lbl_3_data_23C[360] = {
     /* 0x000 */ 0xAABED200, 0x42A00000, 0x43E10000, 0xAABED200,
     /* 0x010 */ 0x42A00000, 0x43E10000, 0xAABED200, 0x42A00000,
     /* 0x020 */ 0x43E10000, 0x42200000, 0x3F800000, 0x3F800000,
@@ -148,8 +149,9 @@ u32 lbl_3_data_23C[364] = {
     /* 0x570 */ 0x0070010A, 0x42A00000, 0x3F800000, 0x3F800000,
     /* 0x580 */ 0x004001C0, 0x42A00000, 0x3F800000, 0x3F800000,
     /* 0x590 */ 0x004001C0, 0x37F403C5, 0x00000000, 0x08800000,
-    /* 0x5A0 */ 0x00000002, (u32)fn_3_3818, 0x00000002, (u32)fn_3_3818,
 };
+
+static u32 lbl_3_data_7DC[4] = {0x00000002, (u32)fn_3_3818, 0x00000002, (u32)fn_3_3818};
 
 u8 StadiumFiles_game[21][16] = {
     { 0x00, 0x00, 0x04, 0x0B, 0x40, 0x16, 0x8A, 0x6C, 0x06, 0xCF, 0xD0, 0x00, 0x00, 0x0C, 0x69, 0xA8 },
@@ -175,60 +177,35 @@ u8 StadiumFiles_game[21][16] = {
     { 0x00, 0x00, 0x04, 0x0B, 0x40, 0x0D, 0x04, 0xE0, 0x07, 0x5F, 0xD0, 0x00, 0x00, 0x08, 0x73, 0x90 },
 };
 
-u32 lbl_3_data_93C[53] = {
-    0x00000002,
-    (u32)fn_3_5C68,
-    0x00000000,
-    0x00000000,
-    0x00000002,
-    (u32)fn_3_5C68,
-    0x00000000,
-    0x00000000,
-    0xFFFFFF0A,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BF0,
-    0x00000000,
-    (u32)fn_3_5BF0,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000000,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000000,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000001,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000001,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000002,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000002,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000003,
-    0x00000002,
-    (u32)fn_3_5BCC,
-    0x00000003,
+StadiumLightSlot lbl_3_data_93C[2] = {
+    {0x00000002, (u32)fn_3_5C68, 0x00000000, 0x00000000},
+    {0x00000002, (u32)fn_3_5C68, 0x00000000, 0x00000000},
+};
+
+u32 lbl_3_data_95C = 0xFFFFFF0A;
+
+static u32 lbl_3_data_960[20] = {
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000002, (u32)fn_3_5BF0,
+    0x00000000, (u32)fn_3_5BF0,
+};
+
+static u32 lbl_3_data_9B0[24] = {
+    0x00000002, (u32)fn_3_5BCC, 0x00000000,
+    0x00000002, (u32)fn_3_5BCC, 0x00000000,
+    0x00000002, (u32)fn_3_5BCC, 0x00000001,
+    0x00000002, (u32)fn_3_5BCC, 0x00000001,
+    0x00000002, (u32)fn_3_5BCC, 0x00000002,
+    0x00000002, (u32)fn_3_5BCC, 0x00000002,
+    0x00000002, (u32)fn_3_5BCC, 0x00000003,
+    0x00000002, (u32)fn_3_5BCC, 0x00000003,
 };
 
 void (*lbl_3_data_A10[2])(Mtx view, int flag, u32 pass) = { 0, 0 };
@@ -454,20 +431,21 @@ void drawStadium(void) {
 
 // .text:0x0000567C size:0x530 mapped:0x80644710
 void drawStadiumObjects(void) {
-    u8* frameData = FrameCountOfEntireGame;
     u8* sunData;
-    u8* tableA = frameData + 0x738;
-    u8* tableB = frameData + 0x788;
     int cameraCount;
     int slot;
     int notFirst;
     f32 rotation;
     int mode = ((u8*)&g_GameLogic)[0x120];
 
-    if (mode < 3 && mode >= 1) {
+    switch (mode) {
+    case 1:
+    case 2:
         sunData = ((u8*)&g_UNK_StadiumDetails) + 0x738 + (mode - 1) * 0x10;
-    } else {
+        break;
+    default:
         sunData = ((u8*)&g_UNK_StadiumDetails) + 0x758;
+        break;
     }
     if (hugeAnimStruct[0x307E] == 0) {
         return;
@@ -481,8 +459,7 @@ void drawStadiumObjects(void) {
     rotation = *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) + *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x768);
     *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
     if (rotation >= 6.2831855f) {
-        rotation -= 6.2831855f;
-        *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation;
+        *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710) = rotation - 6.2831855f;
     }
     cameraCount = ((int (*)(void))returnScissorMode)();
     if (cameraCount >= 2) {
@@ -490,7 +467,7 @@ void drawStadiumObjects(void) {
         *(u32*)(object + 0x6C) = 1;
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(1) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
-        fn_800A7D4C(0, tableA + 0x10 + drawStadiumRelated * 8);
+        fn_800A7D4C(0, (u8*)lbl_3_data_960 + 0x10 + drawStadiumRelated * 8);
         object = ((u8*)&g_UNK_StadiumDetails) + 0x1C8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 1;
         PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
@@ -498,7 +475,7 @@ void drawStadiumObjects(void) {
         if (((u8*)&g_GameLogic)[0x121] != 3) {
             fn_800A7D4C(0, object);
         }
-        fn_800A7D4C(0, tableB + 0x18 + drawStadiumRelated * 0xC);
+        fn_800A7D4C(0, (u8*)lbl_3_data_9B0 + 0x18 + drawStadiumRelated * 0xC);
     }
     if (((int (*)(void))returnScissorMode)() > 2) {
         for (slot = 0; slot < 0; slot++) {
@@ -506,7 +483,7 @@ void drawStadiumObjects(void) {
             *(u32*)(object + 0x6C) = slot + 2;
             PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(slot + 2) + 0x40), (MtxPtr)(object + 0x38));
             fn_800A7D4C(0, object);
-            fn_800A7D4C(0, tableA + (slot + 2) * 0x10 + drawStadiumRelated * 8);
+            fn_800A7D4C(0, (u8*)lbl_3_data_960 + (slot + 2) * 0x10 + drawStadiumRelated * 8);
             object = ((u8*)&g_UNK_StadiumDetails) + slot * 0xE0 + 0x388 + drawStadiumRelated * 0x70;
             *(u32*)(object + 0x6C) = slot + 2;
             PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
@@ -514,7 +491,7 @@ void drawStadiumObjects(void) {
             if (((u8*)&g_GameLogic)[0x121] != 3) {
                 fn_800A7D4C(0, object);
             }
-            fn_800A7D4C(0, tableB + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
+            fn_800A7D4C(0, (u8*)lbl_3_data_9B0 + (slot + 2) * 0x18 + drawStadiumRelated * 0xC);
         }
     }
     {
@@ -522,29 +499,29 @@ void drawStadiumObjects(void) {
         *(u32*)(object + 0x6C) = 0;
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
-        fn_800A7D4C(0, tableA + drawStadiumRelated * 8);
-        fn_800A7D4C(0, frameData + 0x5B4 + drawStadiumRelated * 8);
+        fn_800A7D4C(0, (u8*)lbl_3_data_960 + drawStadiumRelated * 8);
+        fn_800A7D4C(0, (u8*)lbl_3_data_7DC + drawStadiumRelated * 8);
         object = ((u8*)&g_UNK_StadiumDetails) + 8 + drawStadiumRelated * 0x70;
         *(u32*)(object + 0x6C) = 0;
         PSMTXRotRad((MtxPtr)(object + 8), 'Y', *(f32*)(((u8*)&g_UNK_StadiumDetails) + 0x710));
         PSMTXCopy((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40), (MtxPtr)(object + 0x38));
         fn_800A7D4C(0, object);
-        fn_800A7D4C(0, tableB + drawStadiumRelated * 0xC);
+        fn_800A7D4C(0, (u8*)lbl_3_data_9B0 + drawStadiumRelated * 0xC);
     }
     switch (g_d_GameSettings.StadiumID) {
     case STADIUM_ID_PEACH_GARDEN:
     case STADIUM_ID_MARIO_STADIUM:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
-            (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).a = *(u32*)((u8*)&stadiumObjectCollision + 8);
-            (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).b = *(u32*)((u8*)&stadiumObjectCollision + 0xC);
+            lbl_3_data_93C[drawStadiumRelated].a = *(u32*)((u8*)&stadiumObjectCollision + 8);
+            lbl_3_data_93C[drawStadiumRelated].b = *(u32*)((u8*)&stadiumObjectCollision + 0xC);
             break;
         }
     default:
-        (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).a = 0;
-        (((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]).b = 0;
+        lbl_3_data_93C[drawStadiumRelated].a = 0;
+        lbl_3_data_93C[drawStadiumRelated].b = 0;
         break;
     }
-    fn_800A7D4C(0, &(((StadiumLightSlot*)(frameData + 0x714))[drawStadiumRelated]));
+    fn_800A7D4C(0, &lbl_3_data_93C[drawStadiumRelated]);
     if (*(u8*)((u8*)&lbl_3_common_bss_35154 + 0x3E0) != 0) {
         drawSun();
     }
@@ -610,18 +587,24 @@ void fn_3_53E0(const u16* encoded, s16* column, s16* row, s16* width, s16* heigh
 void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
                   GXColor foreground, GXColor background, u8 outline) {
     u16** digits = screenTextArray.textBanks[0]->strings;
-    int count;
+    s16 count;
     s16 width;
     s16 cursor;
     int drawn;
+    s16 remaining;
     if (value > 99) {
         value = 99;
     }
     count = value >= 10 ? 2 : 1;
-    if (outline != 0 && value != 0) {
-        count++;
+    if (outline != 0) {
+        if (value != 0) {
+            count++;
+        } else {
+            count = 1;
+        }
     }
-    width = digitSlots < count ? digitSlots * 16 / count : 16;
+    width = count > digitSlots ? digitSlots * 16 / count : 16;
+    remaining = value;
     cursor = x + digitSlots * 16 - width;
     if (outline != 0) {
         volatile f32* fifo = (volatile f32*)0xCC008000;
@@ -641,12 +624,12 @@ void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
         *fifo = cursor + width; *fifo = y; *fifo = -0.5f;
         *fifo = cursor + width; *fifo = y + 18; *fifo = -0.5f;
         *fifo = cursor; *fifo = y + 18; *fifo = -0.5f;
-        GXSetLineWidth(18, 0);
+        GXSetLineWidth(6, 0);
         cursor -= width;
         count--;
     }
     for (drawn = 0; drawn < count; drawn++) {
-        u16 glyph = *digits[value % 10];
+        u16 glyph = *digits[remaining % 10];
         if ((glyph & STADIUM_ATLAS_SKIP_FLAG) == 0) {
             s16 column, row, cellWidth, cellHeight, page;
             fn_3_53E0(&glyph, &column, &row, &cellWidth, &cellHeight, &page);
@@ -655,7 +638,7 @@ void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
                          foreground, background, 0);
         }
         cursor -= width;
-        value /= 10;
+        remaining /= 10;
     }
 }
 
@@ -770,76 +753,84 @@ void fn_3_4984(void) {
 void fn_3_42CC(GXTexObj* texture, s16 left, s16 top, s16 right, s16 bottom,
                   s16 textureX, s16 textureY, s16 textureWidth, s16 textureHeight,
                   GXColor foreground, GXColor background, u8 alternate) {
-    volatile f32* fifo = (volatile f32*)0xCC008000;
+    volatile f32* fifo = (volatile f32*)GXFIFO_ADDR;
     f32 x0 = left;
     f32 y0 = top;
     f32 x1 = right;
     f32 y1 = bottom;
+    // The SDK returns these as u16; the repo's GX prototypes declare u32.
     u32 texWidth = GXGetTexObjWidth(texture);
     u32 texHeight = GXGetTexObjHeight(texture);
-    f32 u0 = (f32)textureX / texWidth;
-    f32 v0 = (f32)textureY / texHeight;
-    f32 u1 = (f32)(textureX + textureWidth) / texWidth;
-    f32 v1 = (f32)(textureY + textureHeight) / texHeight;
+    f32 u0 = (f32)textureX / (u16)texWidth;
+    f32 v0 = (f32)textureY / (u16)texHeight;
+    f32 u1 = (f32)(textureX + textureWidth) / (u16)texWidth;
+    f32 v1 = (f32)(textureY + textureHeight) / (u16)texHeight;
 
-    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
-    GXSetTevColor(1, foreground);
-    GXSetTevColor(2, background);
+    GXSetChanCtrl(GX_COLOR0A0, GX_DISABLE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
+    GXSetTevColor(GX_TEVREG0, foreground);
+    GXSetTevColor(GX_TEVREG1, background);
     GXClearVtxDesc();
-    GXSetVtxDesc(9, 1);
-    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
-    GXSetChanCtrl(4, 0, 1, 1, 0, 0, 2);
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetChanCtrl(GX_COLOR0A0, GX_DISABLE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
     GXSetNumChans(1);
     GXSetNumTexGens(0);
     GXSetNumTevStages(1);
-    if (alternate & 1) {
-        GXSetTevColorIn(0, 15, 12, 2, 4);
+    if (!(alternate & 1)) {
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0, GX_CC_C1);
     } else {
-        GXSetTevColorIn(0, 15, 15, 2, 4);
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ONE, GX_CC_C0, GX_CC_C1);
     }
-    GXSetTevAlphaIn(0, 7, 7, 7, 1);
-    GXSetTevColorOp(0, 0, 0, 0, 0, 0);
-    GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
-    GXSetTevOrder(0, 0xFF, 0xFF, 4);
-    GXSetBlendMode(1, 4, 5, 7);
-    GXBegin(GX_QUADS, 0, 4);
-    *fifo = x0 - 1.0f; *fifo = y0 - 1.0f; *fifo = -0.5f;
-    *fifo = x1 + 1.0f; *fifo = y0 - 1.0f; *fifo = -0.5f;
-    *fifo = x1 + 1.0f; *fifo = y1 + 1.0f; *fifo = -0.5f;
-    *fifo = x0 - 1.0f; *fifo = y1 + 1.0f; *fifo = -0.5f;
+    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_OR);
+    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
+    {
+        f32 outerTop = y0 - 1.0f;
+        f32 outerLeft = x0 - 1.0f;
+        f32 outerRight = x1 + 1.0f;
+        f32 outerBottom = y1 + 1.0f;
+
+        *fifo = outerLeft; *fifo = outerTop; *fifo = -0.5f;
+        *fifo = outerRight; *fifo = outerTop; *fifo = -0.5f;
+        *fifo = outerRight; *fifo = outerBottom; *fifo = -0.5f;
+        *fifo = outerLeft; *fifo = outerBottom; *fifo = -0.5f;
+    }
 
     GXClearVtxDesc();
-    GXSetVtxDesc(9, 1);
-    GXSetVtxDesc(13, 1);
-    GXSetVtxAttrFmt(0, 9, 1, 4, 0);
-    GXSetVtxAttrFmt(0, 13, 1, 4, 0);
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
     GXSetNumChans(0);
     GXSetNumTexGens(1);
     GXSetNumTevStages(2);
-    if (alternate & 1) {
-        GXSetTevColorIn(0, 15, 8, 9, 12);
-        GXSetTevAlphaIn(0, 7, 7, 7, 1);
-        GXSetTevColorOp(0, 1, 0, 0, 0, 0);
-        GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
-        GXSetTevColorIn(1, 15, 0, 2, 4);
-        GXSetTevAlphaIn(1, 7, 7, 7, 1);
-        GXSetTevColorOp(1, 0, 0, 0, 0, 0);
-        GXSetTevAlphaOp(1, 0, 0, 0, 0, 0);
+    if (!(alternate & 1)) {
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ZERO);
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevColorIn(GX_TEVSTAGE1, GX_CC_ZERO, GX_CC_CPREV, GX_CC_C0, GX_CC_C1);
+        GXSetTevAlphaIn(GX_TEVSTAGE1, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+        GXSetTevColorOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevAlphaOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
     } else {
-        GXSetTevColorIn(0, 15, 8, 9, 15);
-        GXSetTevAlphaIn(0, 7, 7, 7, 1);
-        GXSetTevColorOp(0, 0, 0, 0, 0, 0);
-        GXSetTevAlphaOp(0, 0, 0, 0, 0, 0);
-        GXSetTevColorIn(1, 15, 0, 2, 4);
-        GXSetTevAlphaIn(1, 7, 7, 7, 1);
-        GXSetTevColorOp(1, 0, 0, 0, 0, 0);
-        GXSetTevAlphaOp(1, 0, 0, 0, 0, 0);
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_TEXA, GX_CC_ONE);
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevColorIn(GX_TEVSTAGE1, GX_CC_ZERO, GX_CC_CPREV, GX_CC_C0, GX_CC_C1);
+        GXSetTevAlphaIn(GX_TEVSTAGE1, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+        GXSetTevColorOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevAlphaOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
     }
-    GXLoadTexObj(texture, 0);
-    GXSetTevOrder(0, 0, 0, 4);
-    GXSetTevOrder(1, 0xFF, 0xFF, 4);
-    GXSetBlendMode(1, 4, 5, 7);
-    GXBegin(GX_QUADS, 0, 4);
+    GXLoadTexObj(texture, GX_TEXMAP0);
+    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
+    GXSetTevOrder(GX_TEVSTAGE1, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_OR);
+    GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     *fifo = x0; *fifo = y0; *fifo = -0.5f; *fifo = u0; *fifo = v0;
     *fifo = x1; *fifo = y0; *fifo = -0.5f; *fifo = u1; *fifo = v0;
     *fifo = x1; *fifo = y1; *fifo = -0.5f; *fifo = u1; *fifo = v1;
@@ -964,9 +955,8 @@ void fn_3_3904(s16 x, s16 y, int textIndex, const GXColor* foreground,
             f32 drawHeight;
             if (value & STADIUM_ATLAS_PAGED_FLAG) {
                 u16 cell = (value & 0x7FFF) % STADIUM_ATLAS_CELLS_PER_PAGE;
-                column = cell % STADIUM_ATLAS_COLUMNS;
+                column = (cell % STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
                 row = (cell / STADIUM_ATLAS_COLUMNS) * STADIUM_ATLAS_CELL_SIZE;
-                column *= STADIUM_ATLAS_CELL_SIZE;
                 cellWidth = 22;
                 cellHeight = 22;
                 drawWidth = 16.0f;

@@ -963,7 +963,7 @@ void fn_3_E4EF4(void) {
 
 // .text:0x000E4FC4 size:0x8B8 mapped:0x80724058
 void loadYoshiPark(void** files) {
-    u8** animTable = (u8**)(hugeAnimStruct + 0x6C);
+    u8** animTable;
     YoshiPlantPlacement* cfg;
     StadiumObject* o;
     ACTActor* act;
@@ -975,7 +975,7 @@ void loadYoshiPark(void** files) {
     u8 count = 0;
     u32 shadowBit;
     int i;
-    int k;
+    s32 k;
     s32 n;
 
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
@@ -991,6 +991,7 @@ void loadYoshiPark(void** files) {
     }
     plantCount = i;
     animCount = plantCount + 1;
+    animTable = (u8**)(hugeAnimStruct + 0x6C);
     *animTable = ActorObjectInitTable(animCount);
     stadiumObjectCollision.propCount = animCount;
     idx = 0;

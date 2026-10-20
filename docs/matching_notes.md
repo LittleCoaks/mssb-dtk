@@ -3809,6 +3809,116 @@ Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transiti
   emits no exception tables, so `extab` scores 0% and the unit cannot be flipped to Matching even at
   100% `.text`. Adding it changed no `.text` in any of 51 units (2026-10 first-pass follow-ups).
 
+Chunk 3 (match_transitions, versus_screens, chain_chomp_sprint, minigame_effects, minigame_framework, minigame_hud; 2026-10).
+
+- **`frsp f1, fN` just before `bl cos`/`bl sin` on a double angle means `cos((f32)angle)`.** The
+  argument is rounded to float and then promoted back. An `f32 angle` local moves the `frsp` to the
+  store instead. This is a real rounding difference (piranhaPanic_initBombExplosion).
+- **`lha; extsh.` for a `>= 0` test on an s16 field is the `(s16)` cast** written at the test
+  (loadRunnerActors). A plain field compare, an s16 local, or `(int)` all give `cmpwi`.
+- **`cmplwi` on a game-mode local means `u8`** (loadRunnerActors 95.3% -> 99.4%). It also brings
+  back the `clrlwi` after the range fold's `subi`.
+- **Unsolved, recorded so nobody re-derives it.** (1) A target that keeps a constant table base in a
+  callee-saved register across a `rand()` call, re-materialised at each statement
+  (wallBall_placeBounceParticle and its inlined copy). (2) A value-materialised `x == 0` test
+  (`cntlzw; srwi.; beq`) that every logical form folds away (minigameHudBodPitchRoulette; compare
+  chunk 2's `^ 1` trick, which only covers `!=`). (3) The target re-reading struct fields between two
+  identical counts with no store in between (fn_3_22ABC / chooseVsScreenSituation).
+
+Chunk 4 (mm_ParseCommonArchive, star_dash, practice_model_load, practice_scene, sta_c1, sta_c2, sta_c3; 2026-10).
+
+- **Pooled statics, two more cases (sta_c1, sta_c2).** A `static` struct or a `u32[]` blob that the
+  target addresses at several unrelated displacements off one pooled base is really several static
+  objects. Splitting it into separate `static` objects with matching `symbols.txt` entries
+  (`scope:local`) helped loadBowserCastle (90.79% -> 92.49%), loadWarioPalace (+0.84) and
+  palaceMinigameObjectLoading (+1.12). `.bss` statics are laid out in **reverse** declaration
+  order and `.data` statics in forward order, so declare them to match. In sta_c2 the split alone
+  regressed one caller; indexing the new arrays directly in its loops, instead of through a
+  pointer into the old blob, recovered it.
+- **A materialised `cntlzw; srwi.; beq` test reproduced by an inline returning `cond ? TRUE : FALSE`**
+  (fn_3_C3C2C 96.95% -> 98.67%). This did not work for minigameHudBodPitchRoulette (chunk 3), so try
+  it but do not rely on it.
+- **`addi; slwi; lwzx` record access is a byte-offset macro.** Writing
+  `*(T**)((u8*)base + ((first + i) << 3))` reproduces it where `base[first + i].ptr` gives
+  `add` plus a displacement (practiceMenu_charSelect_update -> 100%).
+- **`cmplwi` on a call result means the callee returns an unsigned type** (sD_AIPathBlocked: `u32`, not `BOOL`).
+- **Telling an inline from pasted code by its zero.** If one `li 0` is shared via `mr` between the loop
+  index and the stored value, it is an inline helper. If the index and the value each get their own
+  `li`, the loop was written out at the call site (sD_UpdateAI's AI input clear).
+- **Assign a derived table pointer where it is first used, not in its declaration initialiser.**
+  `u8** animTable = (u8**)(hugeAnimStruct + 0x6C);` at the top of the function moves the `addi`
+  early and keeps it live. Assigning it just before the store matches the target
+  (loadBowserCastle, loadYoshiPark).
+- **`s32` vs `int` loop counters are not interchangeable** (`s32` is `long`). loadYoshiPark gained 1.8
+  points from `int k` -> `s32 k` alone, so sweep both when a counter's register allocation is off.
+- **Unsolved.** (1) mm_ParseCommonArchive: the target folds the post-loop `offsets[i++]` increments
+  into constant displacements, and 5 forms did not reproduce it. (2) practiceModel_setup: the target
+  re-loads `files[]` after storing it (no store-to-load forwarding); 17 hypotheses are logged in its
+  checkpoint. (3) fn_3_D4780: the `fnmsubs` operand order for the amplitude term was not reproduced.
+
+Chunk 5 (sta_c4, sta_c5, sta_c6, stadium_draw; 2026-10).
+
+- **How to read pooled-object addressing in a diff.** When MWCC addresses a static object off the
+  unit's pool base, a field at offset 0 folds into the base displacement (`lfs f0, 0x25c(r30)`), and
+  every other field goes through `addi rX, base, objOffset` plus the field displacement
+  (`lfs f0, 0x4(rX)`). Ours folding all of them (`0x260(r30)`) means our struct spans several real
+  objects. Split it at the `addi` offsets. This gave the largest wins in this chunk: sta_c5's
+  launch/water statics (cutscene 95.65% -> 98.89%, fn_3_EE388 89.37% -> 97.80%), the
+  barrel table and anim banks (loadDKJungle +1.7), and stadium_draw's tables (drawStadiumObjects
+  88.17% -> 96.80%). Splitting only part of a block can make things worse: a view-struct access
+  to the rest stops the new object from being pooled, so it is addressed by name. Split everything
+  the function touches.
+- **The pool base's symbol tells you where the unit's `.data` starts.** In stadium_draw the target's
+  base was `FrameCountOfEntireGame` (.data 0x228), 0x14 bytes before the split's `.data` start.
+  That object belongs to the unit. Moving the splits.txt start to 0x228 and defining it there
+  (a `{0}` aggregate goes to `.data`) was what made the table splits work. The auto gap unit
+  `auto_04_00000228_data` disappears, so `regchk` reports it MISSING. That is expected; total
+  matched data went up by exactly its 20 bytes.
+- **`cmpwi 3; bge D; cmpwi 1; bge B; b D` is a `switch` with `case 1: case 2:`**, not an `if` range
+  check (an `if (x < 3 && x >= 1)` gives `bge; blt`).
+- **`clrlwi 16` on a `GXGetTexObjWidth/Height` result applied late, at the division, means the
+  original used the SDK's `u16` return type.** This repo's prototypes say `u32`. `(u16)` casts at the
+  uses took fn_3_42CC from 96.69% to 100%; `u16` locals truncate too early and score lower.
+- **`?: TRUE/FALSE` inline, second hit:** sta_c4's fn_3_F8E20 (98.28% -> 100%) uses the same
+  `scale == 2` finished-animation test as sta_c1's fn_3_C3C2C.
+- **Behaviour bugs found by diffing immediates and branch-only paths:** loadDKJungle read `n`
+  uninitialised in minigame mode (the target zeroes it on entry). fn_3_4F90 reset the GX line
+  width to 18 instead of 6 after the outline.
+
+Chunk 6 (stadium_draw, stat_book, stat_tracking; 2026-10). updateStadiumFileHeaders was already
+100% in the baseline. compileStatsForBook and initializeStats stayed stuck.
+- **`lis 1; subi` for a 0xFFFF store means the element type is `u16`.** An `s16` store folds the
+  constant to `li -1`. In initializeStats a `u16*` store reproduced the target's 18-store unroll,
+  but it scored lower on register allocation, so it was not kept (logged in the checkpoint).
+
+### Logic pass summary (all 53 functions)
+
+- **Matched: 7.** fn_3_16C548, running_AIStartSteals, animateShadows_nonBall,
+  piranhaPanic_emitFielderHitFire, practiceMenu_charSelect_update, fn_3_F8E20, fn_3_42CC.
+  One more (updateStadiumFileHeaders) was already 100% when reached.
+- **Improved: 30.** Typical gains were 1-10 points. The largest: running_AIStartSteals 60.92 -> 100,
+  piranhaPanic_emitFielderHitFire 72.58 -> 100, fn_3_19FA4 72.88 -> 96.49,
+  scoutMissionProgress_init 88.34 -> 99.79, drawStadiumObjects 88.17 -> 96.80,
+  fn_3_EE388 89.37 -> 97.80.
+- **Stuck: 15.** Each has its forms logged in its unit checkpoint. Almost all are pure register
+  allocation, CSE or scheduling with identical logic: a base kept live across calls, values re-read
+  per iteration with no CSE, a materialised compare, folded post-loop increments, `fnmsubs` operand
+  order, and zero registers shared between a vestigial loop guard and a value.
+- **Behaviour bugs fixed: 3.** fn_3_19FA4 advanced the spline frame counter on the linear path and
+  used the wrong lerp association. loadDKJungle read the pool index `n` uninitialised in minigame
+  mode. fn_3_4F90 reset the GX line width to 18 instead of 6 after drawing the outline.
+  **Minor numerical differences fixed: 3.** processBallFielderCollision (an inverted compare that
+  only differs for NaN), gameplay_Camera (fused multiply-add where the target rounds between the
+  multiply and the add), piranhaPanic_initBombExplosion (cos/sin argument not rounded to float).
+- **Patterns that paid off most:**
+  1. Splitting pooled statics into their real objects. Read the `addi base, off` vs folded-offset
+     shape; it was the single biggest lever, across sta_c1, sta_c2, sta_c5, stadium_draw and
+     minigame_effects.
+  2. Integer widths and signedness read off `clrlwi`/`extsh`/`cmplwi`/`lis;subi`.
+  3. `switch` vs `if` range-check shapes.
+  4. Inline-helper shapes: `? TRUE : FALSE` and shared vs separate zeros.
+  5. Diffing immediates and branch-only paths, which is where every real behaviour bug showed up.
+
 ## Last resort: `#pragma opt_dead_assignments off` around one function (batter.c `calculateContactAndHitType`)
 **When a whole basic block has identical registers but the load order and `fmadds` operand order are wrong, re-sweep function-scoped pragmas.** In batter.c the unrolled threshold loop loaded `arr[0][i]` before `arr[1][i]` and emitted `fmadds d, frac` under every source spelling (about 30k permuter candidates across sessions 14-16). Wrapping the function in `#pragma push` / `#pragma opt_dead_assignments off` / `#pragma pop` made the loop exact. It also let the plain `inv_lerp` helpers match without the parameter-assignment tricks used earlier. Setting the pragma for the whole file regresses 7 other functions, so it has to stay function-scoped.
 
