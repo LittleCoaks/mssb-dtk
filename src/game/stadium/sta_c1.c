@@ -438,22 +438,20 @@ static CastleFireSpawner BowserStadFireSpawners[11] = {
     { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0 },
 };
 
-static CastlePadTable lbl_3_data_17704 = {
-    {
-        { -12.891f, -5.93f, 87.961f, 348.0f, 4, 1, 1, 6 },
-        { 12.891f, -5.93f, 87.961f, 12.0f, 4, 1, 1, 6 },
-        { -23.0f, -0.02f, 72.0f, 0.0f, 5, 1, 2, 6 },
-        { -22.0f, -0.02f, 45.0f, 0.0f, 5, 1, 2, 6 },
-        { -50.0f, -0.02f, 38.0f, 0.0f, 5, 1, 2, 6 },
-        { 23.0f, -0.02f, 72.0f, 0.0f, 5, 1, 3, 6 },
-        { 22.0f, -0.02f, 45.0f, 0.0f, 5, 1, 3, 6 },
-        { 50.0f, -0.02f, 38.0f, 0.0f, 5, 1, 3, 6 },
-        { 0.0f, 0.0f, 0.0f, 0.0f, 7, 0, 0xFF, 7 },
-        { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
-        { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
-    },
-    { 1, 2, 2, 2, 2, 2, 2, 6, 6, 6, 8, 9, 8, 9, 0, 0 },
+static CastleSlotPlacement lbl_3_data_17704[11] = {
+    { -12.891f, -5.93f, 87.961f, 348.0f, 4, 1, 1, 6 },
+    { 12.891f, -5.93f, 87.961f, 12.0f, 4, 1, 1, 6 },
+    { -23.0f, -0.02f, 72.0f, 0.0f, 5, 1, 2, 6 },
+    { -22.0f, -0.02f, 45.0f, 0.0f, 5, 1, 2, 6 },
+    { -50.0f, -0.02f, 38.0f, 0.0f, 5, 1, 2, 6 },
+    { 23.0f, -0.02f, 72.0f, 0.0f, 5, 1, 3, 6 },
+    { 22.0f, -0.02f, 45.0f, 0.0f, 5, 1, 3, 6 },
+    { 50.0f, -0.02f, 38.0f, 0.0f, 5, 1, 3, 6 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 7, 0, 0xFF, 7 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0 },
 };
+static u8 lbl_3_data_177E0[16] = { 1, 2, 2, 2, 2, 2, 2, 6, 6, 6, 8, 9, 8, 9, 0, 0 };
 
 static u16 lbl_3_data_177F0 = 4;
 static u32 lbl_3_data_177F4 = 2;
@@ -488,7 +486,8 @@ typedef struct _CastleSparkScene {
 } CastleSparkScene;
 
 static u32 lbl_3_bss_9F0C[5];
-static CastleGfxSceneHolder lbl_3_bss_9E50;
+static CastleActEffect lbl_3_bss_9E54[2];
+static CastleGfxScene* lbl_3_bss_9E50;
 static u8 lbl_3_bss_9E48[8];
 static Vec lbl_3_bss_9DE8[8];
 static u8 lbl_3_bss_9DE7;
@@ -1086,9 +1085,9 @@ void fn_3_C3C2C(void) {
             s16 sx;
 
             fn_800528C0(lbl_3_bss_9DE8[i].x, lbl_3_bss_9DE8[i].y, lbl_3_bss_9DE8[i].z, &sx, &sy);
-            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
-            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
-            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.z = 0.0f;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + i].object)->pos.x = (f32)sx;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + i].object)->pos.y = (f32)sy;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + i].object)->pos.z = 0.0f;
             ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->frameIndex = 0;
             ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags |= 2;
             lbl_3_bss_9E48[i] = 2;
@@ -1099,9 +1098,9 @@ void fn_3_C3C2C(void) {
             s16 sx;
 
             fn_800528C0(lbl_3_bss_9DE8[i].x, lbl_3_bss_9DE8[i].y, lbl_3_bss_9DE8[i].z, &sx, &sy);
-            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
-            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
-            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.z = 0.0f;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + i].object)->pos.x = (f32)sx;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + i].object)->pos.y = (f32)sy;
+            ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + i].object)->pos.z = 0.0f;
             if (castleGfxFinished((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)) {
                 ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags &= ~2;
                 lbl_3_bss_9E48[i] = 0;
@@ -1112,7 +1111,7 @@ void fn_3_C3C2C(void) {
     }
     if (lbl_3_bss_9DE7 != 0) {
         removeCurrentDrawingItem();
-        removeGraphicsElementFromScene((DrawingSceneStruct*)lbl_3_bss_9E50.scene);
+        removeGraphicsElementFromScene((DrawingSceneStruct*)lbl_3_bss_9E50);
         lbl_3_bss_9DE7 = 0;
     }
 }
@@ -1123,9 +1122,9 @@ void fn_3_C3E94(Vec* p, int idx) {
     s16 sy;
 
     fn_800528C0(p->x, p->y, p->z, &sx, &sy);
-    ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + idx].object)->pos.x = sx;
-    ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + idx].object)->pos.y = sy;
-    ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + idx].object)->pos.z = 0.0f;
+    ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + idx].object)->pos.x = sx;
+    ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + idx].object)->pos.y = sy;
+    ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50->firstHandle + idx].object)->pos.z = 0.0f;
 }
 
 // .text:0x000C3F70 size:0xF8 mapped:0x80703004
@@ -1237,7 +1236,7 @@ void stadiumObjCollision_Castle(s32* idx, s32* count) {
         off = (u16)(stadiumObjectCollision.vertexOffsets[*idx - 1] + stadiumObjectCollision.hazardData[*idx - 1]);
         stadiumObjectCollision.vertexOffsets[*idx] = off;
         initBoundingBoxLimits();
-        cfg = lbl_3_data_17704.entries;
+        cfg = lbl_3_data_17704;
         for (j = 0; j < 10; cfg++, j++) {
             if (i == cfg->group && cfg->usedFlag != 7) {
                 k = j + lbl_3_bss_9DE0;
@@ -2195,7 +2194,7 @@ void fn_3_C82B4(void) {
             off = (u16)(stadiumObjectCollision.vertexOffsets[idx - 1] + stadiumObjectCollision.hazardData[idx - 1]);
             stadiumObjectCollision.vertexOffsets[idx] = off;
             initBoundingBoxLimits();
-            cfg = lbl_3_data_17704.entries;
+            cfg = lbl_3_data_17704;
             for (j = 0; j < 10; cfg++, j++) {
                 if (i == cfg->group && cfg->usedFlag != 7) {
                     k = j + lbl_3_bss_9DE0;
@@ -2245,7 +2244,7 @@ void loadBowserCastle(void** files) {
     stadiumObjectCollision.preUpdateFunc = updateGameStatusFlag;
     ids = _OSAllocFromHeap(4, 0x40);
     stadiumObjectCollision._34 = ids;
-    processStadiumFileObjects(lbl_3_data_17704.objectTypes, 0x10, (u8*)files, ids);
+    processStadiumFileObjects(lbl_3_data_177E0, 0x10, (u8*)files, ids);
     lbl_3_bss_9F0C[0] = (u32)files[0];
 
     for (fireCount = 0; fireCount < 10; fireCount++) {
@@ -2277,17 +2276,17 @@ void loadBowserCastle(void** files) {
     for (i = 0; i < fireCount; i++) {
         ACTActorRelated(files[ids[10]], *animTable + (i + 3) * 0x90 + 0x34);
     }
-    lbl_3_bss_9E50.effects[1].file = (u32)files[ids[11]];
-    actRelated(files[ids[10]], &lbl_3_bss_9E50.effects[1]);
-    actorRelated(&lbl_3_bss_9E50.effects[1], 0, 0);
+    lbl_3_bss_9E54[1].file = (u32)files[ids[11]];
+    actRelated(files[ids[10]], &lbl_3_bss_9E54[1]);
+    actorRelated(&lbl_3_bss_9E54[1], 0, 0);
     adjustInternalPointers(files[ids[12]]);
     ACTActorRelated(files[ids[12]], *animTable + 0xC4);
-    lbl_3_bss_9E50.effects[0].file = (u32)files[ids[13]];
-    actRelated(files[ids[12]], &lbl_3_bss_9E50.effects[0]);
-    actorRelated(&lbl_3_bss_9E50.effects[0], 0, 0);
+    lbl_3_bss_9E54[0].file = (u32)files[ids[13]];
+    actRelated(files[ids[12]], &lbl_3_bss_9E54[0]);
+    actorRelated(&lbl_3_bss_9E54[0], 0, 0);
     fn_80035750(files[ids[15]], files[ids[14]], 5);
-    lbl_3_bss_9E50.scene = (CastleGfxScene*)insertGraphicDrawingFunction(fn_3_C3C2C, 2);
-    addGraphicsElementToScene((DrawingSceneStruct*)lbl_3_bss_9E50.scene, lbl_3_data_10C1C);
+    lbl_3_bss_9E50 = (CastleGfxScene*)insertGraphicDrawingFunction(fn_3_C3C2C, 2);
+    addGraphicsElementToScene((DrawingSceneStruct*)lbl_3_bss_9E50, lbl_3_data_10C1C);
 
     stadiumObjectCollision.objectCount = 0x20;
     stadiumObjectCollision.objects = _OSAllocFromHeap(0x20, 0x1D00);
@@ -2335,7 +2334,7 @@ void loadBowserCastle(void** files) {
     CTRLSetRotation((Control*)o, 0.0f, 0.0f, 0.0f);
     o->fadeByDepth = 0;
     o->alpha = 0xFF;
-    o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E50.effects[0];
+    o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E54[0];
     o->preDraw = NULL;
     o->animActive = 0;
     o->animIndex = -1;
@@ -2441,7 +2440,7 @@ void loadBowserCastle(void** files) {
             fireCfg++;
             o->fadeByDepth = 1;
             o->alpha = 0xFF;
-            o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E50.effects[1];
+            o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E54[1];
             o->preDraw = fn_3_C56E8;
             o->postDraw = fn_3_C54D0;
             o->animActive = 1;
@@ -2457,7 +2456,7 @@ void loadBowserCastle(void** files) {
 
         done = FALSE;
         j = 0;
-        padCfg = lbl_3_data_17704.entries;
+        padCfg = lbl_3_data_17704;
         lbl_3_bss_9DE1 = 0;
         lbl_3_bss_9DE0 = n;
         do {
@@ -2466,7 +2465,7 @@ void loadBowserCastle(void** files) {
             }
             if (done) {
                 for (k = j; k < 11; k++) {
-                    lbl_3_data_17704.entries[k].usedFlag = 7;
+                    lbl_3_data_17704[k].usedFlag = 7;
                 }
                 break;
             }
