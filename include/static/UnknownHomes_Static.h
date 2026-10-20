@@ -262,11 +262,16 @@ extern StatsTableEntryB lbl_803532A8[2][100];
 extern StatisticsPitcher PitcherStats_P1_P2[2][9]; // 0x803535C8
 extern StatisticsBatter BatterStats_P1_P2[2][9];   // 0x803537E4
 
+typedef struct {
+    /* 0x00 */ u16 total;
+    /* 0x02 */ u16 byInning[18];
+} StatsScreenScore; // size: 0x26
+
 // Copies of g_Scores kept for the stats screens (0x80353A90).
 typedef struct {
     /* 0x00 */ u8 _00[8];
-    /* 0x08 */ ScoreStruct scores[2];
-    /* 0x54 */ ScoreStruct hits[2];
+    /* 0x08 */ StatsScreenScore scores[2];
+    /* 0x54 */ StatsScreenScore hits[2];
     /* 0xA0 */ s8 _A0[0xBE - 0xA0];
     /* 0xBE */ struct {
         s8 pitcher;

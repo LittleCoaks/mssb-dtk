@@ -329,7 +329,7 @@ void endOfGameStats_MVP(void) {
         SAT_INC_U8(PitcherStats_P1_P2[StatsScreenScores.winnerSlot][StatsScreenScores.winningPitcher]._13[0]);
         if (g_Scores._BB[g_Scores.winnerCd] == 1) {
             SAT_INC_U8(PitcherStats_P1_P2[StatsScreenScores.winnerSlot][StatsScreenScores.winningPitcher]._13[4]);
-            if (*(u16*)&StatsScreenScores.scores[StatsScreenScores.winnerSlot ^ 1].total == 0) {
+            if (StatsScreenScores.scores[StatsScreenScores.winnerSlot ^ 1].total == 0) {
                 SAT_INC_U8(PitcherStats_P1_P2[StatsScreenScores.winnerSlot][StatsScreenScores.winningPitcher]._13[5]);
                 tracker = storedInningInfo.noHitterTracker[g_Scores.winnerCd];
                 if (tracker == 1) {
