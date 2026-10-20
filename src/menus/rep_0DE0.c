@@ -3,6 +3,8 @@
 #include "header_rep_data.h"
 #include "C3/light/light.h"
 #include "C3/control.h"
+#include "Dolphin/OS/OSCache.h"
+#include "C3/charPipeline.h"
 #include "C3/control/frustum.h"
 #include "Dolphin/GX/GXTransform.h"
 #include "Unknown/File_0x800acf14.h"
@@ -11,6 +13,7 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800b0724.h"
+#include "Unknown/File_0x80052968.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
@@ -19,105 +22,48 @@ void fn_800A7D4C(u32 a, void *b);
 
 // .text:0x00087654 size:0x1D8 mapped:0x806C66E8
 void fn_2_87654(s32 unused, s32 start, s32 count, s32 a, s32 b) {
+    Rep0DELayout *layout = &lbl_2_data_2E608;
     s32 i;
-    s32 cellOff = start * 6;
-    s32 elemOff = start * 0x90;
-    s32 end = start + count;
-    u8 *base = (u8 *)lbl_2_data_2E608;
 
-    for (i = start; i < end; i++) {
-        s16 *cell = (s16 *)(base + lbl_2_bss_33FBF5 * 0xB4 + cellOff);
-        s16 cell0 = cell[0];
-        s16 cell1 = cell[1];
-        s16 cell2 = cell[2];
-        Control *ctrl = (Control *)((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x44);
+    for (i = start; i < start + count; i++) {
+        s16 *cell = layout->cells[lbl_2_bss_33FBF5][i];
+        s32 cell0 = cell[0];
+        s32 cell1 = cell[1];
+        s32 cell2 = cell[2];
 
-        animateBallRelated(lbl_2_bss_340140->unk68, (u16)i, (u16)i,
-                           *(void **)((u8 *)lbl_2_bss_340140 + 0x2DA0 + cell0 * 12), a, b);
-        fn_800BD548((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x34, 4, lbl_2_bss_340140->unkAC[0],
-                    lbl_2_bss_340140->unkAC[1], lbl_2_bss_340140->unkAC[2], lbl_2_bss_340140->unkAC[3]);
-        CTRLSetTranslation(ctrl, 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation(ctrl, -90.0f, 0.0f, 0.0f);
+        animateBallRelated(lbl_2_bss_340140->unk68, i, i, lbl_2_bss_340140->unk2DA0[cell0].unk0, a, b);
+        fn_800BD548(&lbl_2_bss_340140->unk68->entries[i], 4, lbl_2_bss_340140->unkAC[0], lbl_2_bss_340140->unkAC[1],
+                    lbl_2_bss_340140->unkAC[2], lbl_2_bss_340140->unkAC[3]);
+        CTRLSetTranslation(&lbl_2_bss_340140->unk68->entries[i].control, 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation(&lbl_2_bss_340140->unk68->entries[i].control, -90.0f, 0.0f, 0.0f);
 
         if (cell2 != 0) {
-            s32 count1 = *(s16 *)(base + 0x2D0 + cell0 * 2);
-            s32 count2 = *(s16 *)(base + 0x2DC + cell0 * 2);
-            s16 *src = (s16 *)(base + 0x2E8 + cell1 * 16);
             s32 k;
             s32 j;
 
-            for (k = 0; k < count1; k++) {
-                u8 *model = *(u8 **)((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x34);
-                u8 *p18 = *(u8 **)(model + 0x18);
-                u8 *entry = *(u8 **)(p18 + k * 4);
-                u8 *p14 = *(u8 **)(entry + 0x14);
-                u8 *arr = *(u8 **)(p14 + 8);
-                u8 *out = *(u8 **)(arr + 0xC);
+            for (k = 0; k < layout->unk2D0[cell0]; k++) {
+                TextureData *tex = lbl_2_bss_340140->unk68->entries[i].actor->boneArray[k]->dispObj->textureData;
+                s16 *src = layout->unk2E8[cell1];
 
-                for (j = 0; j < count2; j++) {
-                    *(s16 *)(out + 0x20 * j + 0x20) = (s16)(k + src[j]);
+                for (j = 0; j < layout->unk2DC[cell0]; j++) {
+                    *(s16 *)((u8 *)tex->texturePalette + 0x20 + j * 0x20) = k + src[j];
                 }
             }
         }
-        cellOff += 6;
-        elemOff += 0x90;
     }
 }
 
 // .text:0x00087350 size:0x304 mapped:0x806C63E4
 void fn_2_87350(void) {
     s32 i;
-    s32 cellOff = 0;
-    s32 elemOff = 0;
-    s32 recOff = 0;
-    u8 *base = (u8 *)lbl_2_data_2E608;
 
-    lbl_2_bss_340140->unk3078 = (s8)base[0x338 + lbl_2_bss_33FBF5];
-    lbl_2_bss_340140->unk2D94 = _OSAllocFromHeap(0x20, lbl_2_bss_340140->unk3078 * 0x28);
+    lbl_2_bss_340140->unk3078 = lbl_2_data_2E608.unk338[lbl_2_bss_33FBF5];
+    lbl_2_bss_340140->unk2D94 = _OSAllocFromHeap(0x20, lbl_2_bss_340140->unk3078 * sizeof(Rep0DERec28));
     lbl_2_bss_340140->unk68 = ActorObjectInitTable(lbl_2_bss_340140->unk3078);
+    fn_2_87654(0, 0, lbl_2_bss_340140->unk3078, 0, 0);
 
     for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        s16 *cell = (s16 *)(base + lbl_2_bss_33FBF5 * 0xB4 + cellOff);
-        s16 cell0 = cell[0];
-        s16 cell1 = cell[1];
-        s16 cell2 = cell[2];
-        Control *ctrl = (Control *)((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x44);
-
-        animateBallRelated(lbl_2_bss_340140->unk68, (u16)i, (u16)i,
-                           *(void **)((u8 *)lbl_2_bss_340140 + 0x2DA0 + cell0 * 12), 0, 0);
-        fn_800BD548((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x34, 4, lbl_2_bss_340140->unkAC[0],
-                    lbl_2_bss_340140->unkAC[1], lbl_2_bss_340140->unkAC[2], lbl_2_bss_340140->unkAC[3]);
-        CTRLSetTranslation(ctrl, 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation(ctrl, -90.0f, 0.0f, 0.0f);
-
-        if (cell2 != 0) {
-            s32 count1 = *(s16 *)(base + 0x2D0 + cell0 * 2);
-            s32 count2 = *(s16 *)(base + 0x2DC + cell0 * 2);
-            s16 *src = (s16 *)(base + 0x2E8 + cell1 * 16);
-            s32 k;
-            s32 j;
-
-            for (k = 0; k < count1; k++) {
-                u8 *model = *(u8 **)((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x34);
-                u8 *p18 = *(u8 **)(model + 0x18);
-                u8 *entry = *(u8 **)(p18 + k * 4);
-                u8 *p14 = *(u8 **)(entry + 0x14);
-                u8 *arr = *(u8 **)(p14 + 8);
-                u8 *out = *(u8 **)(arr + 0xC);
-
-                for (j = 0; j < count2; j++) {
-                    *(s16 *)(out + 0x20 * j + 0x20) = (s16)(k + src[j]);
-                }
-            }
-        }
-        cellOff += 6;
-        elemOff += 0x90;
-    }
-
-    elemOff = 0;
-    for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        Rep0DERec28 *rec = (Rep0DERec28 *)((u8 *)lbl_2_bss_340140->unk2D94 + recOff);
-        u8 *elem = (u8 *)lbl_2_bss_340140->unk68 + elemOff;
+        Rep0DERec28 *rec = &lbl_2_bss_340140->unk2D94[i];
 
         rec->pos.x = 0.0f;
         rec->pos.y = 0.0f;
@@ -127,60 +73,16 @@ void fn_2_87350(void) {
         rec->unk18 = 0.0f;
         rec->unk26 = 0;
         rec->unk0 = NULL;
-        elem[0xA0] = 0;
-        recOff += 0x28;
-        elemOff += 0x90;
+        lbl_2_bss_340140->unk68->entries[i].applyControl = 0;
     }
 }
 
 // .text:0x00087118 size:0x238 mapped:0x806C61AC
 void fn_2_87118(void) {
-    s32 i;
-    s32 cellOff = 0;
-    s32 elemOff = 0;
-    u8 *base = (u8 *)lbl_2_data_2E608;
-
-    lbl_2_bss_340140->unk3078 = (s8)base[0x338 + lbl_2_bss_33FBF5];
-    lbl_2_bss_340140->unk2D94 = _OSAllocFromHeap(0x20, lbl_2_bss_340140->unk3078 * 0x28);
+    lbl_2_bss_340140->unk3078 = lbl_2_data_2E608.unk338[lbl_2_bss_33FBF5];
+    lbl_2_bss_340140->unk2D94 = _OSAllocFromHeap(0x20, lbl_2_bss_340140->unk3078 * sizeof(Rep0DERec28));
     lbl_2_bss_340140->unk68 = ActorObjectInitTable(lbl_2_bss_340140->unk3078);
-
-    for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        s16 *cell = (s16 *)(base + lbl_2_bss_33FBF5 * 0xB4 + cellOff);
-        s16 cell0 = cell[0];
-        s16 cell1 = cell[1];
-        s16 cell2 = cell[2];
-        Control *ctrl = (Control *)((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x44);
-
-        animateBallRelated(lbl_2_bss_340140->unk68, (u16)i, (u16)i,
-                           *(void **)((u8 *)lbl_2_bss_340140 + 0x2DA0 + cell0 * 12), 0, 0);
-        fn_800BD548((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x34, 4, lbl_2_bss_340140->unkAC[0],
-                    lbl_2_bss_340140->unkAC[1], lbl_2_bss_340140->unkAC[2], lbl_2_bss_340140->unkAC[3]);
-        CTRLSetTranslation(ctrl, 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation(ctrl, -90.0f, 0.0f, 0.0f);
-
-        if (cell2 != 0) {
-            s32 count1 = *(s16 *)(base + 0x2D0 + cell0 * 2);
-            s32 count2 = *(s16 *)(base + 0x2DC + cell0 * 2);
-            s16 *src = (s16 *)(base + 0x2E8 + cell1 * 16);
-            s32 k;
-            s32 j;
-
-            for (k = 0; k < count1; k++) {
-                u8 *model = *(u8 **)((u8 *)lbl_2_bss_340140->unk68 + elemOff + 0x34);
-                u8 *p18 = *(u8 **)(model + 0x18);
-                u8 *entry = *(u8 **)(p18 + k * 4);
-                u8 *p14 = *(u8 **)(entry + 0x14);
-                u8 *arr = *(u8 **)(p14 + 8);
-                u8 *out = *(u8 **)(arr + 0xC);
-
-                for (j = 0; j < count2; j++) {
-                    *(s16 *)(out + 0x20 * j + 0x20) = (s16)(k + src[j]);
-                }
-            }
-        }
-        cellOff += 6;
-        elemOff += 0x90;
-    }
+    fn_2_87654(0, 0, lbl_2_bss_340140->unk3078, 0, 0);
 }
 
 // .text:0x00087114 size:0x4 mapped:0x806C61A8
@@ -216,43 +118,37 @@ void fn_2_86FEC(void) {
 
 // .text:0x00086F40 size:0xAC mapped:0x806C5FD4
 void fn_2_86F40(void) {
+    ActorObjectEntry *entry;
     s32 i;
-    s32 elemOff = 0;
-    s32 recOff = 0;
 
-    for (i = 0; i < *(u16 *)hugeAnimStruct.unk68; i++) {
-        u8 *elem = (u8 *)hugeAnimStruct.unk68 + elemOff;
-        void *model = elem + 0x34;
-
-        if (*(void **)model != NULL && elem[0xA0] != 0) {
-            Rep0DERec28 *rec = (Rep0DERec28 *)((u8 *)hugeAnimStruct.unk2D94 + recOff);
-
-            if (rec->unk0 != NULL) {
-                rec->unk0(i);
+    for (i = 0; i < hugeAnimStruct.unk68->count; i++) {
+        entry = &hugeAnimStruct.unk68->entries[i];
+        if (hugeAnimStruct.unk68->entries[i].actor != NULL && hugeAnimStruct.unk68->entries[i].applyControl) {
+            if (hugeAnimStruct.unk2D94[i].unk0 != NULL) {
+                hugeAnimStruct.unk2D94[i].unk0(i);
             }
-            sknRelated(model, fn_80052768_getCamera(0)->view);
+            sknRelated(entry, fn_80052768_getCamera(0)->view);
         }
-        elemOff += 0x90;
-        recOff += 0x28;
     }
 }
 
 // .text:0x00086DCC size:0x174 mapped:0x806C5E60
 void fn_2_86DCC(void) {
     Mtx44 proj;
+
+    lbl_2_bss_B2A5 = 0;
+    lbl_2_bss_B2A4 = 0;
     lbl_2_bss_1A81D4.unk48.x = lbl_2_data_2E944[lbl_2_bss_33FBF5][0];
     lbl_2_bss_1A81D4.unk48.y = lbl_2_data_2E944[lbl_2_bss_33FBF5][1];
     lbl_2_bss_1A81D4.unk48.z = lbl_2_data_2E944[lbl_2_bss_33FBF5][2];
     lbl_2_bss_1A81D4.unk3C.x = lbl_2_data_2E944[lbl_2_bss_33FBF5][3];
     lbl_2_bss_1A81D4.unk3C.y = lbl_2_data_2E944[lbl_2_bss_33FBF5][4];
     lbl_2_bss_1A81D4.unk3C.z = lbl_2_data_2E944[lbl_2_bss_33FBF5][5];
-    lbl_2_bss_B2A5 = 0;
-    lbl_2_bss_B2A4 = 0;
     C_MTXFrustum(proj, -0.175f, 0.175f, 0.25f, -0.25f, 1.0f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
     fn_800B806C(0, -240.0f, 240.0f, -320.0f, 320.0f, -512.0f, -1.0f, 1280.0f);
-    lbl_2_bss_1A81D4.unk38 = 0.0f;
     lbl_2_bss_1A81D4.unk54 = 0;
+    lbl_2_bss_1A81D4.unk38 = 0.0f;
     lbl_2_bss_1A81D4.unk30 = 0xC19F;
     lbl_2_bss_1A81D4.unk32 = 0;
 }
@@ -401,6 +297,7 @@ void fn_2_85D6C(Rep0DEMtxBlock *self) {
         fn_2_858A4(self);
         break;
     }
+    fn_80011640(self, self);
 }
 #pragma dont_inline reset
 

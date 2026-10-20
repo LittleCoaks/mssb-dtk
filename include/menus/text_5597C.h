@@ -18,8 +18,8 @@ void fn_2_56C34(TextScene *scene, TextHandleRec *rec);
 void fn_2_56E8C(TextScene *scene, TextHandleRec *rec);
 void fn_2_570E4(TextScene *scene, TextHandleRec *rec);
 void fn_2_57294(TextScene *scene, TextHandleRec *rec);
-void fn_2_5754C(void);
-void fn_2_57724(void);
-void fn_2_5786C(void);
+void fn_2_5754C(TextScene *scene, TextHandleRec *rec);
+void fn_2_57724(TextScene *scene, TextHandleRec *rec);
+void fn_2_5786C(TextScene *scene, TextHandleRec *rec);
 
 #endif // !__MENUS_TEXT_5597C_H_

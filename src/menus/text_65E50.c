@@ -225,8 +225,78 @@ static void stepRecFlag2State(TextScene *scene, TextHandleRec *rec) {
 
 }
 
-// .text:0x00065E50 size:0x1E8 mapped:0x806A4EE4
-void fn_2_65E50(TextScene *scene, TextHandleRec *rec) {
+// .text:0x00068308 size:0x24 mapped:0x806A739C
+void fn_2_68308(void) {
+    lbl_2_bss_1A8248[0x17AB] = 0;
+    *(s16 *)(lbl_2_bss_1A8248 + 0x177C) = 0;
+    lbl_2_bss_1A8248[0x442F] = 0;
+}
+
+// .text:0x00068260 size:0xA8 mapped:0x806A72F4
+void fn_2_68260(u8 *obj) {
+    s16 *row;
+    s32 dx;
+    s32 dy;
+    u8 idx;
+    u8 *huge;
+    s16 v;
+
+    idx = lbl_2_bss_1A8248[0x441C];
+    row = &lbl_2_data_2E80[idx * 3];
+    dx = row[0] * 2 - row[2] * 2;
+    dy = row[0] * 2 - row[1] * 2;
+
+    if (*(s32 *)(obj + 0x80) == 0) {
+        huge = hugeAnimStruct + 0xC04;
+        if (huge != NULL) {
+            v = *(s16 *)(huge + 0x68);
+            if (v == dx || v == dy) {
+                if (idx == 5) {
+                    fn_80062890(1);
+                } else {
+                    fn_80062890(0);
+                }
+            }
+        }
+    }
+}
+
+// .text:0x00068234 size:0x2C mapped:0x806A72C8
+void fn_2_68234(TextScene *scene, TextHandleRec *rec) {
+    clearRecFlag2(scene, rec);
+}
+
+// .text:0x000681A0 size:0x94 mapped:0x806A7234
+void fn_2_681A0(TextScene *scene, TextHandleRec *rec) {
+    s16 result = fn_2_53BC8(rec);
+
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        rec->state = 0x26;
+        break;
+    case 1:
+    case 3:
+    case 5:
+        break;
+    case 2:
+        rec->state = 0x25;
+        break;
+    case 0x25:
+        break;
+    }
+
+}
+
+// .text:0x00067FEC size:0x1B4 mapped:0x806A7080
+void fn_2_67FEC(TextScene *scene, TextHandleRec *rec) {
+    stepRecObjectState(scene, rec);
+}
+
+// .text:0x00067D48 size:0x2A4 mapped:0x806A6DDC
+void fn_2_67D48(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
     TextGraphicsObject *obj;
 
@@ -239,268 +309,35 @@ void fn_2_65E50(TextScene *scene, TextHandleRec *rec) {
         rec->state = 0x26;
         break;
     case 2:
-        load_Icon(scene, rec->handle, 1, 0x43, rec->unk10);
+        setRecFlag2(scene, rec);
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if (lbl_80354768[0xCF18 + lbl_800E869C[rec->unk10]] == 1) {
-            *(u32 *)((u8 *)obj + 0x5C) = 0;
-        } else {
-            *(u32 *)((u8 *)obj + 0x5C) = 0x10000;
-        }
-        setRecFlag2(scene, rec);
-        rec->state = 0x25;
-        break;
-    case 5:
-        startRecTimer(rec);
-        break;
-    case 6:
-        tickRecTimer(scene, rec);
-        break;
-    case 0x25:
-        break;
-    }
-
-}
-
-// .text:0x00066038 size:0x150 mapped:0x806A50CC
-void fn_2_66038(TextScene *scene, TextHandleRec *rec) {
-    stepRecFlag2State(scene, rec);
-}
-
-// .text:0x00066188 size:0x1B4 mapped:0x806A521C
-void fn_2_66188(TextScene *scene, TextHandleRec *rec) {
-    stepRecObjectState(scene, rec);
-}
-
-// .text:0x0006633C size:0x284 mapped:0x806A53D0
-void fn_2_6633C(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
-
-    if (result != -1) {
-        rec->state = result;
-    }
-    switch (rec->state) {
-    case 0:
-        clearRecFlag2(scene, rec);
-        rec->state = 0x26;
-        break;
-    case 2:
-        syncRecFlag2(scene, rec);
-        rec->state = 0x25;
-        break;
-    case 5:
-        startRecTimer(rec);
-        break;
-    case 0x25:
-        syncRecFlag2(scene, rec);
-        break;
-    case 6:
-        tickRecTimer(scene, rec);
-        break;
-    }
-}
-
-// .text:0x000665C0 size:0x19C mapped:0x806A5654
-void fn_2_665C0(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
-
-    if (result != -1) {
-        rec->state = result;
-    }
-    switch (rec->state) {
-    case 0:
-        clearRecFlag2(scene, rec);
-        rec->state = 0x26;
-        break;
-    case 2:
-        if (lbl_2_bss_1A8240[rec->unk10 + 0x400] == 3) {
-            clearRecFlag2(scene, rec);
-        } else {
-            setRecFlag2(scene, rec);
-        }
-        rec->state = 0x25;
-        break;
-    case 5:
-        startRecTimer(rec);
-        break;
-    case 6:
-        tickRecTimer(scene, rec);
-        break;
-    case 0x25:
-        break;
-    }
-
-}
-
-// .text:0x0006675C size:0x128 mapped:0x806A57F0
-void fn_2_6675C(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
-    s16 *timer;
-    s16 prev;
-
-    if (result != -1) {
-        rec->state = result;
-    }
-    switch (rec->state) {
-    case 0:
-        clearRecFlag2(scene, rec);
-        rec->state = 0x26;
-        break;
-    case 2:
-        rec->state = 0x25;
-        break;
-    case 5:
-        *(s16 *)((u8 *)rec + 0x6) = 0x28;
-        rec->state = 6;
-        break;
-    case 6:
-        timer = (s16 *)((u8 *)rec + 0x6);
-        prev = *timer;
-        *timer = prev - 1;
-        if (prev <= 0) {
-            clearRecFlag2(scene, rec);
-        }
-        break;
-    case 0x25:
-        break;
-    }
-
-}
-
-// .text:0x00066884 size:0x268 mapped:0x806A5918
-void fn_2_66884(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
-    s8 kind;
-
-    if (result != -1) {
-        rec->state = result;
-    }
-    switch (rec->state) {
-    case 0:
-        clearRecFlag2(scene, rec);
-        rec->state = 0x26;
-        break;
-    case 2:
-        kind = lbl_2_bss_1A8240[rec->unk10 + 0x400];
-        switch (kind) {
-        case 0:
-            clearRecFlag2(scene, rec);
-            break;
-        case 1:
-            setRecFlag2(scene, rec);
-            setRecObjectField5C(scene, rec, 0x20000);
-            break;
-        case 2:
-            setRecFlag2(scene, rec);
-            setRecObjectField5C(scene, rec, 0x10000);
-            break;
-        case 3:
-            setRecFlag2(scene, rec);
-            setRecObjectField5C(scene, rec, 0);
-            break;
-        }
-        rec->state = 0x25;
-        break;
-    case 5:
-        startRecTimer(rec);
-        break;
-    case 6:
-        tickRecTimer(scene, rec);
-        break;
-    case 0x25:
-        break;
-    }
-
-}
-
-// .text:0x00066AEC size:0x1D8 mapped:0x806A5B80
-void fn_2_66AEC(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
-    GraphicsArrayEntry *entry;
-
-    if (result != -1) {
-        rec->state = result;
-    }
-    switch (rec->state) {
-    case 0:
-        clearRecFlag2(scene, rec);
-        rec->state = 0x26;
-        break;
-    case 2:
-        load_Icon(scene, rec->handle, 1, 0x43, rec->unk10);
-        entry = &graphicsRelatedArray[scene->firstHandle + rec->handle];
-        if (lbl_2_bss_1A8240[rec->unk10 * 0x16 + 0x153] > 0) {
-            *(u32 *)((u8 *)entry->object + 0x5C) = 0;
-        } else {
-            *(u32 *)((u8 *)entry->object + 0x5C) = 0x10000;
-        }
-        setRecFlag2(scene, rec);
-        rec->state = 0x25;
-        break;
-    case 5:
-        startRecTimer(rec);
-        break;
-    case 6:
-        tickRecTimer(scene, rec);
-        break;
-    case 0x25:
-        break;
-    }
-
-}
-
-// .text:0x00066CC4 size:0x150 mapped:0x806A5D58
-void fn_2_66CC4(TextScene *scene, TextHandleRec *rec) {
-    stepRecFlag2State(scene, rec);
-}
-
-// .text:0x00066E14 size:0x1B4 mapped:0x806A5EA8
-void fn_2_66E14(TextScene *scene, TextHandleRec *rec) {
-    stepRecObjectState(scene, rec);
-}
-
-// .text:0x00066FC8 size:0x214 mapped:0x806A605C
-void fn_2_66FC8(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
-    TextGraphicsObject *obj;
-
-    if (result != -1) {
-        rec->state = result;
-    }
-    switch (rec->state) {
-    case 0:
-        clearRecFlag2(scene, rec);
-        rec->state = 0x26;
-        break;
-    case 2:
-        load_Icon(scene, rec->handle, 2, 0x3A, rec->unkA);
-        obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        setRecFlag2(scene, rec);
         *(u32 *)((u8 *)obj + 0x5C) = 0;
         rec->state = 0x25;
         break;
-    case 1:
-    case 5:
-        break;
     case 0x25:
         syncRecLevel(scene, rec);
-        load_Icon(scene, rec->handle, 2, 0x3A, rec->unkA);
+        break;
+    case 5:
+        setRecObject68(scene, rec, 4);
+        rec->state = 6;
+        break;
+    case 6:
+        obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
+        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
+            setRecObject68(scene, rec, 0);
+            rec->state = 7;
+        }
+        break;
+    case 7:
+        clearRecFlag2(scene, rec);
         break;
     }
+    load_Icon(scene, rec->handle, 2, 0x3A, rec->unkA);
 }
 
-// .text:0x000671DC size:0x1B4 mapped:0x806A6270
-void fn_2_671DC(TextScene *scene, TextHandleRec *rec) {
+// .text:0x00067B94 size:0x1B4 mapped:0x806A6C28
+void fn_2_67B94(TextScene *scene, TextHandleRec *rec) {
     stepRecObjectState(scene, rec);
-}
-
-// .text:0x00067390 size:0x1F8 mapped:0x806A6424
-void fn_2_67390(TextScene *scene, TextHandleRec *rec) {
-    stepRecWorkState(scene, rec);
-}
-
-// .text:0x00067588 size:0x1F8 mapped:0x806A661C
-void fn_2_67588(TextScene *scene, TextHandleRec *rec) {
-    stepRecWorkState(scene, rec);
 }
 
 // .text:0x00067780 size:0x414 mapped:0x806A6814
@@ -575,13 +412,23 @@ void fn_2_67780(TextScene *scene, TextHandleRec *rec) {
 
 }
 
-// .text:0x00067B94 size:0x1B4 mapped:0x806A6C28
-void fn_2_67B94(TextScene *scene, TextHandleRec *rec) {
+// .text:0x00067588 size:0x1F8 mapped:0x806A661C
+void fn_2_67588(TextScene *scene, TextHandleRec *rec) {
+    stepRecWorkState(scene, rec);
+}
+
+// .text:0x00067390 size:0x1F8 mapped:0x806A6424
+void fn_2_67390(TextScene *scene, TextHandleRec *rec) {
+    stepRecWorkState(scene, rec);
+}
+
+// .text:0x000671DC size:0x1B4 mapped:0x806A6270
+void fn_2_671DC(TextScene *scene, TextHandleRec *rec) {
     stepRecObjectState(scene, rec);
 }
 
-// .text:0x00067D48 size:0x2A4 mapped:0x806A6DDC
-void fn_2_67D48(TextScene *scene, TextHandleRec *rec) {
+// .text:0x00066FC8 size:0x214 mapped:0x806A605C
+void fn_2_66FC8(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
     TextGraphicsObject *obj;
 
@@ -594,39 +441,151 @@ void fn_2_67D48(TextScene *scene, TextHandleRec *rec) {
         rec->state = 0x26;
         break;
     case 2:
-        setRecFlag2(scene, rec);
+        load_Icon(scene, rec->handle, 2, 0x3A, rec->unkA);
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
+        setRecFlag2(scene, rec);
         *(u32 *)((u8 *)obj + 0x5C) = 0;
         rec->state = 0x25;
         break;
+    case 1:
+    case 5:
+        break;
     case 0x25:
         syncRecLevel(scene, rec);
-        break;
-    case 5:
-        setRecObject68(scene, rec, 4);
-        rec->state = 6;
-        break;
-    case 6:
-        obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
-            rec->state = 7;
-        }
-        break;
-    case 7:
-        clearRecFlag2(scene, rec);
+        load_Icon(scene, rec->handle, 2, 0x3A, rec->unkA);
         break;
     }
-    load_Icon(scene, rec->handle, 2, 0x3A, rec->unkA);
 }
 
-// .text:0x00067FEC size:0x1B4 mapped:0x806A7080
-void fn_2_67FEC(TextScene *scene, TextHandleRec *rec) {
+// .text:0x00066E14 size:0x1B4 mapped:0x806A5EA8
+void fn_2_66E14(TextScene *scene, TextHandleRec *rec) {
     stepRecObjectState(scene, rec);
 }
 
-// .text:0x000681A0 size:0x94 mapped:0x806A7234
-void fn_2_681A0(TextScene *scene, TextHandleRec *rec) {
+// .text:0x00066CC4 size:0x150 mapped:0x806A5D58
+void fn_2_66CC4(TextScene *scene, TextHandleRec *rec) {
+    stepRecFlag2State(scene, rec);
+}
+
+// .text:0x00066AEC size:0x1D8 mapped:0x806A5B80
+void fn_2_66AEC(TextScene *scene, TextHandleRec *rec) {
+    s16 result = fn_2_53BC8(rec);
+    GraphicsArrayEntry *entry;
+
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        clearRecFlag2(scene, rec);
+        rec->state = 0x26;
+        break;
+    case 2:
+        load_Icon(scene, rec->handle, 1, 0x43, rec->unk10);
+        entry = &graphicsRelatedArray[scene->firstHandle + rec->handle];
+        if (lbl_2_bss_1A8240[rec->unk10 * 0x16 + 0x153] > 0) {
+            *(u32 *)((u8 *)entry->object + 0x5C) = 0;
+        } else {
+            *(u32 *)((u8 *)entry->object + 0x5C) = 0x10000;
+        }
+        setRecFlag2(scene, rec);
+        rec->state = 0x25;
+        break;
+    case 5:
+        startRecTimer(rec);
+        break;
+    case 6:
+        tickRecTimer(scene, rec);
+        break;
+    case 0x25:
+        break;
+    }
+
+}
+
+// .text:0x00066884 size:0x268 mapped:0x806A5918
+void fn_2_66884(TextScene *scene, TextHandleRec *rec) {
+    s16 result = fn_2_53BC8(rec);
+    s8 kind;
+
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        clearRecFlag2(scene, rec);
+        rec->state = 0x26;
+        break;
+    case 2:
+        kind = lbl_2_bss_1A8240[rec->unk10 + 0x400];
+        switch (kind) {
+        case 0:
+            clearRecFlag2(scene, rec);
+            break;
+        case 1:
+            setRecFlag2(scene, rec);
+            setRecObjectField5C(scene, rec, 0x20000);
+            break;
+        case 2:
+            setRecFlag2(scene, rec);
+            setRecObjectField5C(scene, rec, 0x10000);
+            break;
+        case 3:
+            setRecFlag2(scene, rec);
+            setRecObjectField5C(scene, rec, 0);
+            break;
+        }
+        rec->state = 0x25;
+        break;
+    case 5:
+        startRecTimer(rec);
+        break;
+    case 6:
+        tickRecTimer(scene, rec);
+        break;
+    case 0x25:
+        break;
+    }
+
+}
+
+// .text:0x0006675C size:0x128 mapped:0x806A57F0
+void fn_2_6675C(TextScene *scene, TextHandleRec *rec) {
+    s16 result = fn_2_53BC8(rec);
+    s16 *timer;
+    s16 prev;
+
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        clearRecFlag2(scene, rec);
+        rec->state = 0x26;
+        break;
+    case 2:
+        rec->state = 0x25;
+        break;
+    case 5:
+        *(s16 *)((u8 *)rec + 0x6) = 0x28;
+        rec->state = 6;
+        break;
+    case 6:
+        timer = (s16 *)((u8 *)rec + 0x6);
+        prev = *timer;
+        *timer = prev - 1;
+        if (prev <= 0) {
+            clearRecFlag2(scene, rec);
+        }
+        break;
+    case 0x25:
+        break;
+    }
+
+}
+
+// .text:0x000665C0 size:0x19C mapped:0x806A5654
+void fn_2_665C0(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
 
     if (result != -1) {
@@ -634,14 +593,22 @@ void fn_2_681A0(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
+        clearRecFlag2(scene, rec);
         rec->state = 0x26;
         break;
-    case 1:
-    case 3:
-    case 5:
-        break;
     case 2:
+        if (lbl_2_bss_1A8240[rec->unk10 + 0x400] == 3) {
+            clearRecFlag2(scene, rec);
+        } else {
+            setRecFlag2(scene, rec);
+        }
         rec->state = 0x25;
+        break;
+    case 5:
+        startRecTimer(rec);
+        break;
+    case 6:
+        tickRecTimer(scene, rec);
         break;
     case 0x25:
         break;
@@ -649,43 +616,76 @@ void fn_2_681A0(TextScene *scene, TextHandleRec *rec) {
 
 }
 
-// .text:0x00068234 size:0x2C mapped:0x806A72C8
-void fn_2_68234(TextScene *scene, TextHandleRec *rec) {
-    clearRecFlag2(scene, rec);
-}
+// .text:0x0006633C size:0x284 mapped:0x806A53D0
+void fn_2_6633C(TextScene *scene, TextHandleRec *rec) {
+    s16 result = fn_2_53BC8(rec);
 
-// .text:0x00068260 size:0xA8 mapped:0x806A72F4
-void fn_2_68260(u8 *obj) {
-    s16 *row;
-    s32 dx;
-    s32 dy;
-    u8 idx;
-    u8 *huge;
-    s16 v;
-
-    idx = lbl_2_bss_1A8248[0x441C];
-    row = &lbl_2_data_2E80[idx * 3];
-    dx = row[0] * 2 - row[2] * 2;
-    dy = row[0] * 2 - row[1] * 2;
-
-    if (*(s32 *)(obj + 0x80) == 0) {
-        huge = hugeAnimStruct + 0xC04;
-        if (huge != NULL) {
-            v = *(s16 *)(huge + 0x68);
-            if (v == dx || v == dy) {
-                if (idx == 5) {
-                    fn_80062890(1);
-                } else {
-                    fn_80062890(0);
-                }
-            }
-        }
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        clearRecFlag2(scene, rec);
+        rec->state = 0x26;
+        break;
+    case 2:
+        syncRecFlag2(scene, rec);
+        rec->state = 0x25;
+        break;
+    case 5:
+        startRecTimer(rec);
+        break;
+    case 0x25:
+        syncRecFlag2(scene, rec);
+        break;
+    case 6:
+        tickRecTimer(scene, rec);
+        break;
     }
 }
 
-// .text:0x00068308 size:0x24 mapped:0x806A739C
-void fn_2_68308(void) {
-    lbl_2_bss_1A8248[0x17AB] = 0;
-    *(s16 *)(lbl_2_bss_1A8248 + 0x177C) = 0;
-    lbl_2_bss_1A8248[0x442F] = 0;
+// .text:0x00066188 size:0x1B4 mapped:0x806A521C
+void fn_2_66188(TextScene *scene, TextHandleRec *rec) {
+    stepRecObjectState(scene, rec);
+}
+
+// .text:0x00066038 size:0x150 mapped:0x806A50CC
+void fn_2_66038(TextScene *scene, TextHandleRec *rec) {
+    stepRecFlag2State(scene, rec);
+}
+
+// .text:0x00065E50 size:0x1E8 mapped:0x806A4EE4
+void fn_2_65E50(TextScene *scene, TextHandleRec *rec) {
+    s16 result = fn_2_53BC8(rec);
+    TextGraphicsObject *obj;
+
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        clearRecFlag2(scene, rec);
+        rec->state = 0x26;
+        break;
+    case 2:
+        load_Icon(scene, rec->handle, 1, 0x43, rec->unk10);
+        obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
+        if (lbl_80354768[0xCF18 + lbl_800E869C[rec->unk10]] == 1) {
+            *(u32 *)((u8 *)obj + 0x5C) = 0;
+        } else {
+            *(u32 *)((u8 *)obj + 0x5C) = 0x10000;
+        }
+        setRecFlag2(scene, rec);
+        rec->state = 0x25;
+        break;
+    case 5:
+        startRecTimer(rec);
+        break;
+    case 6:
+        tickRecTimer(scene, rec);
+        break;
+    case 0x25:
+        break;
+    }
+
 }

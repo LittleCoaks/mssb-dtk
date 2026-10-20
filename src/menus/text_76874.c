@@ -1,5 +1,7 @@
 #include "menus/text_76874.h"
 
+extern u8 gameSetUpStep[0x64];
+
 // .text:0x00076874 size:0x57C mapped:0x806B5908
 void fn_2_76874(void) {
     return;
@@ -16,8 +18,12 @@ void removeAllPlayersFromTeam(void) {
 }
 
 // .text:0x00078034 size:0x28 mapped:0x806B70C8
-void fn_2_78034(void) {
-    return;
+void fn_2_78034(int unused, int channel) {
+    u8 *flag = gameSetUpStep + channel + 0xD;
+
+    if (*flag == 0) {
+        *flag = 1;
+    }
 }
 
 // .text:0x0007805C size:0x310 mapped:0x806B70F0

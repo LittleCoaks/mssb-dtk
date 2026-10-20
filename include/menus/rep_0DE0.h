@@ -17,13 +17,20 @@ typedef struct {
 } Rep0DERec28; // size 0x28
 
 typedef struct {
+    /* 0x00 */ void *unk0;
+    /* 0x04 */ u8 _pad0[0xC - 0x4];
+} Rep0DEAnimSlot; // size 0xC
+
+typedef struct {
     /* 0x0000 */ u8 _pad0[0x68];
     /* 0x0068 */ ActorObjectTable *unk68;
     /* 0x006C */ u8 _pad1[0xAC - 0x6C];
     /* 0x00AC */ void *unkAC[4];
     /* 0x00BC */ u8 _pad2[0x2D94 - 0xBC];
     /* 0x2D94 */ Rep0DERec28 *unk2D94;
-    /* 0x2D98 */ u8 _pad3[0x3078 - 0x2D98];
+    /* 0x2D98 */ u8 _pad3[0x2DA0 - 0x2D98];
+    /* 0x2DA0 */ Rep0DEAnimSlot unk2DA0[60];
+    /* 0x3070 */ u8 _pad4[0x3078 - 0x3070];
     /* 0x3078 */ u16 unk3078;
     /* 0x307A */ u8 unk307A;
 } Rep0DEState;
@@ -39,6 +46,14 @@ typedef struct {
     /* 0x54 */ s32 unk54;
 } Rep0DEMtxBlock; // size 0x5C
 
+typedef struct {
+    /* 0x000 */ s16 cells[4][30][3];
+    /* 0x2D0 */ s16 unk2D0[6];
+    /* 0x2DC */ s16 unk2DC[6];
+    /* 0x2E8 */ s16 unk2E8[5][8];
+    /* 0x338 */ s8 unk338[4];
+} Rep0DELayout; // size 0x33C
+
 extern Rep0DEState *lbl_2_bss_340140;
 extern Rep0DEMtxBlock lbl_2_bss_1A81D4;
 extern Rep0DEState hugeAnimStruct;
@@ -48,7 +63,7 @@ extern Vec lbl_2_data_2E9D0;
 extern f32 lbl_2_bss_B29C;
 extern f32 lbl_2_data_2E9C4[];
 extern f32 lbl_2_data_2E944[][6];
-extern u8 lbl_2_data_2E608[];
+extern Rep0DELayout lbl_2_data_2E608;
 extern Vec lbl_2_data_2E9E8;
 extern f32 lbl_2_data_2E9DC[];
 extern f32 lbl_2_bss_B2A0;

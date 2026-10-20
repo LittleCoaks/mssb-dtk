@@ -2,7 +2,9 @@
 #include "header_rep_data.h"
 
 typedef struct Rep0F60Obj {
-    u8 _00[0x10];
+    u8 _00[0x8];
+    void *_08;
+    u8 _0C[0x10 - 0xC];
     void *_10;
     u8 _14[0x2C - 0x14];
     void *_2C;
@@ -20,7 +22,12 @@ typedef struct Rep0F60Obj {
     s16 _6E;
     u8 _70[0x16A - 0x70];
     u16 _16A;
-    u8 _16C[0x25D - 0x16C];
+    u8 _16C[0x252 - 0x16C];
+    u8 _252;
+    u8 _253;
+    u8 _254;
+    u8 _255;
+    u8 _256[0x25D - 0x256];
     u8 _25D;
     u8 _25E;
     u8 _25F;
@@ -40,6 +47,7 @@ typedef struct Rep0F60Obj {
     u8 _26D;
     u8 _26E;
     u8 _26F;
+    u8 _270[0x27C - 0x270];
 } Rep0F60Obj;
 
 typedef struct Rep0F60Slot {
@@ -51,7 +59,8 @@ typedef struct Rep0F60Slot {
 typedef struct Rep0F60Huge {
     u8 _0000[0x68];
     u8 *unk68;
-    u8 _006C[0x2C50 - 0x6C];
+    u8 _006C[0xC04 - 0x6C];
+    Rep0F60Obj records[13];
     Rep0F60Obj *objects[13];
     u8 _2C84[0x2C88 - 0x2C84];
     u8 *unk2C88;
@@ -171,8 +180,8 @@ void CTRLSetRotation(void *control, f32 x, f32 y, f32 z);
 
 // .text:0x0008EA80 size:0x2CC mapped:0x806CDB14
 void fn_2_8EA80(void) {
-    u8 *item = (u8 *)currentDrawingItem;
     s32 i;
+    u8 *item = (u8 *)currentDrawingItem;
 
     switch ((s8)item[0x28]) {
     case 0:
@@ -187,8 +196,7 @@ void fn_2_8EA80(void) {
         item[0x28] = 1;
         break;
     case 1:
-        *(void **)((u8 *)lbl_2_bss_340140 + *(s16 *)(item + 0x14) * 0x27C + 0xC0C) =
-            ARAMTransfer(&ChallengeMapCharacterFiles[*((u8 *)lbl_2_bss_1A8248 + 0x441C)], 0, 0, 0);
+        lbl_2_bss_340140->records[*(s16 *)(item + 0x14)]._08 = ARAMTransfer(&ChallengeMapCharacterFiles[*((u8 *)lbl_2_bss_1A8248 + 0x441C)], 0, 0, 0);
         *(s16 *)(item + 0x14) += 1;
         item[0x28] = 2;
         break;
@@ -198,8 +206,7 @@ void fn_2_8EA80(void) {
         }
         break;
     case 3:
-        *(void **)((u8 *)lbl_2_bss_340140 + *(s16 *)(item + 0x14) * 0x27C + 0xC0C) =
-            ARAMTransfer(&ChallengeMapCharacterFiles[*(s16 *)(item + 0x14) + 5], 0, 0, 0);
+        lbl_2_bss_340140->records[*(s16 *)(item + 0x14)]._08 = ARAMTransfer(&ChallengeMapCharacterFiles[*(s16 *)(item + 0x14) + 5], 0, 0, 0);
         *(s16 *)(item + 0x14) += 1;
         item[0x28] = 4;
         break;
@@ -214,13 +221,10 @@ void fn_2_8EA80(void) {
         break;
     case 5:
         for (i = 0; i < *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746); i++) {
-            u8 *obj;
-
-            lbl_2_bss_340140->objects[i] = (Rep0F60Obj *)((u8 *)&hugeAnimStruct + 0xC04 + i * 0x27C);
-            obj = (u8 *)lbl_2_bss_340140->objects[i];
-            obj[0x255] = i;
-            obj[0x254] = i;
-            obj[0x252] = lbl_2_data_3CD0[i];
+            lbl_2_bss_340140->objects[i] = &hugeAnimStruct.records[i];
+            lbl_2_bss_340140->objects[i]->_255 = i;
+            lbl_2_bss_340140->objects[i]->_254 = i;
+            lbl_2_bss_340140->objects[i]->_252 = lbl_2_data_3CD0[i];
             fn_2_8D270((u8)i);
         }
         item[0x28] = 6;
@@ -244,8 +248,8 @@ void fn_2_8EA80(void) {
 
 // .text:0x0008E8A4 size:0x1DC mapped:0x806CD938
 void fn_2_8E8A4(void) {
-    u8 *item = (u8 *)currentDrawingItem;
     s32 i;
+    u8 *item = (u8 *)currentDrawingItem;
 
     switch ((s8)item[0x28]) {
     case 0:
@@ -259,8 +263,7 @@ void fn_2_8E8A4(void) {
         item[0x28] = 1;
         break;
     case 1:
-        *(void **)((u8 *)lbl_2_bss_340140 + *(s16 *)(item + 0x14) * 0x27C + 0xC0C) =
-            ARAMTransfer(&ChallengeMapCharacterFiles[*(s16 *)(item + 0x16)], 0, 0, 0);
+        lbl_2_bss_340140->records[*(s16 *)(item + 0x14)]._08 = ARAMTransfer(&ChallengeMapCharacterFiles[*(s16 *)(item + 0x16)], 0, 0, 0);
         *(s16 *)(item + 0x14) += 1;
         item[0x28] = 2;
         break;
@@ -271,13 +274,10 @@ void fn_2_8E8A4(void) {
         break;
     case 5:
         for (i = 0; i < *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746); i++) {
-            u8 *obj;
-
-            lbl_2_bss_340140->objects[i] = (Rep0F60Obj *)((u8 *)&hugeAnimStruct + 0xC04 + i * 0x27C);
-            obj = (u8 *)lbl_2_bss_340140->objects[i];
-            obj[0x255] = i;
-            obj[0x254] = i;
-            obj[0x252] = 0x1C;
+            lbl_2_bss_340140->objects[i] = &hugeAnimStruct.records[i];
+            lbl_2_bss_340140->objects[i]->_255 = i;
+            lbl_2_bss_340140->objects[i]->_254 = i;
+            lbl_2_bss_340140->objects[i]->_252 = 0x1C;
             fn_2_8D270((u8)i);
         }
         item[0x28] = 6;
@@ -293,8 +293,8 @@ void fn_2_8E8A4(void) {
 
 // .text:0x0008E6A4 size:0x200 mapped:0x806CD738
 void fn_2_8E6A4(void) {
-    u8 *item = (u8 *)currentDrawingItem;
     s32 i;
+    u8 *item = (u8 *)currentDrawingItem;
 
     switch ((s8)item[0x28]) {
     case 0:
@@ -308,8 +308,7 @@ void fn_2_8E6A4(void) {
         item[0x28] = 1;
         break;
     case 1:
-        *(void **)((u8 *)lbl_2_bss_340140 + *(s16 *)(item + 0x14) * 0x27C + 0xC0C) =
-            ARAMTransfer(lbl_2_data_2FA60 + lbl_2_data_2FDC0[*(s16 *)(item + 0x16)] * 0x10, 0, 0, 0);
+        lbl_2_bss_340140->records[*(s16 *)(item + 0x14)]._08 = ARAMTransfer(lbl_2_data_2FA60 + lbl_2_data_2FDC0[*(s16 *)(item + 0x16)] * 0x10, 0, 0, 0);
         *(s16 *)(item + 0x14) += 1;
         item[0x28] = 2;
         break;
@@ -320,13 +319,10 @@ void fn_2_8E6A4(void) {
         break;
     case 5:
         for (i = 0; i < *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746); i++) {
-            u8 *obj;
-
-            lbl_2_bss_340140->objects[i] = (Rep0F60Obj *)((u8 *)&hugeAnimStruct + 0xC04 + i * 0x27C);
-            obj = (u8 *)lbl_2_bss_340140->objects[i];
-            obj[0x255] = i;
-            obj[0x254] = i;
-            obj[0x252] = lbl_800E869C[*(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197706)];
+            lbl_2_bss_340140->objects[i] = &hugeAnimStruct.records[i];
+            lbl_2_bss_340140->objects[i]->_255 = i;
+            lbl_2_bss_340140->objects[i]->_254 = i;
+            lbl_2_bss_340140->objects[i]->_252 = lbl_800E869C[*(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197706)];
             fn_2_8D270((u8)i);
         }
         item[0x28] = 6;
@@ -505,25 +501,21 @@ void fn_2_8DB14(void) {
 // .text:0x0008D9DC size:0x138 mapped:0x806CCA70
 void fn_2_8D9DC(s32 mode) {
     s32 i;
-    s32 count = *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746);
 
-    for (i = 0; i < count; i++) {
-        u8 *obj;
-
-        lbl_2_bss_340140->objects[i] = (Rep0F60Obj *)((u8 *)&hugeAnimStruct + 0xC04 + i * 0x27C);
-        obj = (u8 *)lbl_2_bss_340140->objects[i];
-        obj[0x255] = i;
-        obj[0x254] = i;
+    for (i = 0; i < *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746); i++) {
+        lbl_2_bss_340140->objects[i] = &hugeAnimStruct.records[i];
+        lbl_2_bss_340140->objects[i]->_255 = i;
+        lbl_2_bss_340140->objects[i]->_254 = i;
         switch (mode) {
         case 0:
-            obj[0x252] = lbl_2_data_3CD0[i];
-            break;
-        case 1:
-            obj[0x252] = lbl_800E869C[*(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197706)];
-            fn_2_8D270((u8)i);
+            lbl_2_bss_340140->objects[i]->_252 = lbl_2_data_3CD0[i];
             break;
         case 2:
-            obj[0x252] = 0x1C;
+            lbl_2_bss_340140->objects[i]->_252 = 0x1C;
+            break;
+        case 1:
+            lbl_2_bss_340140->objects[i]->_252 = lbl_800E869C[*(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197706)];
+            fn_2_8D270((u8)i);
             break;
         }
     }
@@ -738,9 +730,9 @@ void fn_2_8D24C(void *obj) {
 
 // .text:0x0008D024 size:0x228 mapped:0x806CC0B8
 void fn_2_8D024(void) {
+    Rep0F60Obj *obj;
     s32 i;
     s32 boneIdx;
-    Rep0F60Obj *obj;
     f32 time;
 
     for (i = 0; i < *(s16 *)((u8 *)lbl_2_bss_1A824C + 0x197746); i++) {
@@ -751,45 +743,43 @@ void fn_2_8D024(void) {
         if (obj->_6A < 0x258 && lbl_80366158[0x28] == 0 && highLevelSimulationFlag == 0 && obj->_26F == 0) {
             obj->_6A++;
         }
+        time = 1.0f;
         if (hugeAnimStruct.objects[i] != NULL) {
             boneIdx = hugeAnimStruct.objects[i]->_16A;
         } else {
             boneIdx = 0xFFFF;
         }
-        time = 1.0f;
         if (boneIdx != 0xFFFF) {
             time = getActorBoneAnimTime(*(void **)getAnimObjectActor(obj), boneIdx);
         }
         obj->_68 = time / obj->_4C;
 
         if (obj->_25E == 1 || (obj->_25E == 2 && obj->_68 == 0 && obj->_6A > 1) || obj->_62 == -1) {
-            if (obj->_64 < 0) {
-                obj->_25E = 0;
-                continue;
+            if (obj->_64 >= 0) {
+                fn_2_8CD58(i, obj->_64, obj->_260, obj->_263, obj->_6C, obj->_266, obj->_26A);
+                obj->_60 = obj->_62;
+                obj->_62 = obj->_64;
+                obj->_64 = -1;
+                obj->_25F = obj->_260;
+                obj->_262 = obj->_263;
+                obj->_265 = obj->_266;
+                obj->_269 = obj->_26A;
+                obj->_26C = obj->_26D;
+                obj->_6A = 0;
+                if (obj->_66 >= 0) {
+                    obj->_64 = obj->_66;
+                    obj->_6C = obj->_6E;
+                    obj->_260 = obj->_261;
+                    obj->_263 = obj->_264;
+                    obj->_25E = 2;
+                    obj->_266 = obj->_267;
+                    obj->_26A = obj->_26B;
+                    obj->_26D = obj->_26E;
+                    obj->_66 = -1;
+                    continue;
+                }
             }
-            fn_2_8CD58(i, obj->_64, obj->_260, obj->_263, obj->_6C, obj->_266, obj->_26A);
-            obj->_60 = obj->_62;
-            obj->_62 = obj->_64;
-            obj->_64 = -1;
-            obj->_25F = obj->_260;
-            obj->_262 = obj->_263;
-            obj->_265 = obj->_266;
-            obj->_269 = obj->_26A;
-            obj->_26C = obj->_26D;
-            obj->_6A = 0;
-            if (obj->_66 < 0) {
-                obj->_25E = 0;
-                continue;
-            }
-            obj->_64 = obj->_66;
-            obj->_25E = 2;
-            obj->_6C = obj->_6E;
-            obj->_260 = obj->_261;
-            obj->_263 = obj->_264;
-            obj->_266 = obj->_267;
-            obj->_26A = obj->_26B;
-            obj->_26D = obj->_26E;
-            obj->_66 = -1;
+            obj->_25E = 0;
         }
     }
 }
@@ -802,6 +792,7 @@ void fn_2_8CD58(int slot, int a, u8 b, u8 c, s16 d, u8 e, u8 f) {
     u8 *actor;
     f32 scale = 0.0f;
     u16 bone;
+    void *anim;
 
     if (slot == 4) {
         tableA = 1;
@@ -835,19 +826,24 @@ void fn_2_8CD58(int slot, int a, u8 b, u8 c, s16 d, u8 e, u8 f) {
         actorRelated((u8 *)obj->_30 + 0x68, tableA, tableB);
         actorRelated((u8 *)obj->_30 + 4, tableA, tableB);
     }
-    if (obj->_10 != NULL) {
-        if (a >= *(u16 *)((u8 *)obj->_10 + 0xA) || a < 0) {
+    anim = obj->_10;
+    if (anim != NULL) {
+        if (a >= *(u16 *)((u8 *)anim + 0xA) || a < 0) {
             return;
         }
-        *(void **)(actor + 4) = obj->_10;
+        *(void **)(actor + 4) = anim;
         *(s16 *)(actor + 0x0E) = a;
         actor[0x58] = 1;
-        actor[0x59] = obj->_10 != NULL;
-        actor[0x5A] = obj->_10 != NULL;
+        actor[0x59] = anim != NULL;
+        actor[0x5A] = anim != NULL;
         *(f32 *)(actor + 0x5C) = 0.0f;
         *(f32 *)(actor + 0x60) = scale;
     }
-    actor[0x5B] = (b != 0) ? 3 : 2;
+    if (b != 0) {
+        actor[0x5B] = 3;
+    } else {
+        actor[0x5B] = 2;
+    }
     *(f32 *)(actor + 0x5C) = d * obj->_4C;
     actor[0x59] = 1;
     fn_8001B5EC(slot, c);

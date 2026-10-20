@@ -12,6 +12,26 @@ void fn_2_18398(void);
 void fn_2_16460(void);
 u8 *fn_80052768_getCamera(s32 mode);
 
+// .text:0x00016A74 size:0x24 mapped:0x80655B08
+void fn_2_16A74(s32 idx, s32 flag) {
+    hugeAnimStruct[idx * 0x27C + 0xE61] = (flag != 0);
+}
+
+// .text:0x00016A5C size:0x18 mapped:0x80655AF0
+u8 fn_2_16A5C(s32 idx) {
+    return hugeAnimStruct[idx * 0x27C + 0xE61];
+}
+
+// .text:0x00016A48 size:0x14 mapped:0x80655ADC
+void set807518de(s32 idx, u8 value) {
+    lbl_2_bss_100B8[idx + 0x46] = value;
+}
+
+// .text:0x00016A34 size:0x14 mapped:0x80655AC8
+u8 fn_2_16A34(s32 idx) {
+    return lbl_2_bss_100B8[idx + 0x46];
+}
+
 // .text:0x00016870 size:0x1C4 mapped:0x80655904
 void fn_2_16870(void) {
     s32 i;
@@ -59,24 +79,4 @@ void fn_2_16870(void) {
             base[0x40 + j] = TRUE;
         }
     }
-}
-
-// .text:0x00016A34 size:0x14 mapped:0x80655AC8
-u8 fn_2_16A34(s32 idx) {
-    return lbl_2_bss_100B8[idx + 0x46];
-}
-
-// .text:0x00016A48 size:0x14 mapped:0x80655ADC
-void set807518de(s32 idx, u8 value) {
-    lbl_2_bss_100B8[idx + 0x46] = value;
-}
-
-// .text:0x00016A5C size:0x18 mapped:0x80655AF0
-u8 fn_2_16A5C(s32 idx) {
-    return hugeAnimStruct[idx * 0x27C + 0xE61];
-}
-
-// .text:0x00016A74 size:0x24 mapped:0x80655B08
-void fn_2_16A74(s32 idx, s32 flag) {
-    hugeAnimStruct[idx * 0x27C + 0xE61] = (flag != 0);
 }
