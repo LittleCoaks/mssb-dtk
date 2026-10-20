@@ -3824,3 +3824,34 @@ Chunk 3 (match_transitions, versus_screens, chain_chomp_sprint, minigame_effects
   (`cntlzw; srwi.; beq`) that every logical form folds away (minigameHudBodPitchRoulette; compare
   chunk 2's `^ 1` trick, which only covers `!=`). (3) The target re-reading struct fields between two
   identical counts with no store in between (fn_3_22ABC / chooseVsScreenSituation).
+
+Chunk 4 (mm_ParseCommonArchive, star_dash, practice_model_load, practice_scene, sta_c1, sta_c2, sta_c3; 2026-10).
+
+- **Pooled statics, two more cases (sta_c1, sta_c2).** A `static` struct or a `u32[]` blob that the
+  target addresses at several unrelated displacements off one pooled base is really several static
+  objects. Splitting it into separate `static` objects with matching `symbols.txt` entries
+  (`scope:local`) helped loadBowserCastle (90.79% -> 92.49%), loadWarioPalace (+0.84) and
+  palaceMinigameObjectLoading (+1.12). `.bss` statics are laid out in **reverse** declaration
+  order and `.data` statics in forward order, so declare them to match. In sta_c2 the split alone
+  regressed one caller; indexing the new arrays directly in its loops, instead of through a
+  pointer into the old blob, recovered it.
+- **A materialised `cntlzw; srwi.; beq` test reproduced by an inline returning `cond ? TRUE : FALSE`**
+  (fn_3_C3C2C 96.95% -> 98.67%). This did not work for minigameHudBodPitchRoulette (chunk 3), so try
+  it but do not rely on it.
+- **`addi; slwi; lwzx` record access is a byte-offset macro.** Writing
+  `*(T**)((u8*)base + ((first + i) << 3))` reproduces it where `base[first + i].ptr` gives
+  `add` plus a displacement (practiceMenu_charSelect_update -> 100%).
+- **`cmplwi` on a call result means the callee returns an unsigned type** (sD_AIPathBlocked: `u32`, not `BOOL`).
+- **Telling an inline from pasted code by its zero.** If one `li 0` is shared via `mr` between the loop
+  index and the stored value, it is an inline helper. If the index and the value each get their own
+  `li`, the loop was written out at the call site (sD_UpdateAI's AI input clear).
+- **Assign a derived table pointer where it is first used, not in its declaration initialiser.**
+  `u8** animTable = (u8**)(hugeAnimStruct + 0x6C);` at the top of the function moves the `addi`
+  early and keeps it live. Assigning it just before the store matches the target
+  (loadBowserCastle, loadYoshiPark).
+- **`s32` vs `int` loop counters are not interchangeable** (`s32` is `long`). loadYoshiPark gained 1.8
+  points from `int k` -> `s32 k` alone, so sweep both when a counter's register allocation is off.
+- **Unsolved.** (1) mm_ParseCommonArchive: the target folds the post-loop `offsets[i++]` increments
+  into constant displacements, and 5 forms did not reproduce it. (2) practiceModel_setup: the target
+  re-loads `files[]` after storing it (no store-to-load forwarding); 17 hypotheses are logged in its
+  checkpoint. (3) fn_3_D4780: the `fnmsubs` operand order for the amplitude term was not reproduced.
