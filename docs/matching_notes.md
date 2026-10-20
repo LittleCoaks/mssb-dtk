@@ -3929,3 +3929,24 @@ The parallel mini harness that found this is described in the batter checkpoint 
 - **Re-sweep once the other clusters are fixed.** Session 7 swept pragmas while the function was at 97.88%, so a pragma that fixed one cluster but disturbed another scored as a loss. Grid pragma x source shape together.
 - **Probe pragma legality by grepping the compiler output for `illegal`.** Grepping for `pragma` also matches the echoed source line, so every pragma looks legal. MWCC 2.6 accepts `opt_dead_assignments`, `opt_lifetimes`, `opt_loop_invariants`, `opt_strength_reduction`, `opt_propagation`, `opt_common_subs`, `opt_unroll_loops`, `ppc_unroll_instructions_limit N`, `ppc_unroll_factor_limit N` and `scheduling 601/603/604/750`, among others.
 - **Inline helpers that assign to their own parameters change argument load order.** A parameter that is used once is substituted into the expression; one that is used twice or assigned to is kept as a temp and its load is hoisted. This got the function from 97.88% to 99.77% before the pragma was found.
+
+#### Follow-up leads (after the 53-function pass)
+
+1. **(u16) texture-size casts:** did not apply beyond fn_3_42CC. It is the only stadium_draw
+   function that calls `GXGetTexObjWidth/Height`. fn_3_3BE8 and fn_3_3EE8 read sizes from the
+   texture record (`lhz`).
+2. **`FrameCountOfEntireGame` is a struct, not a scalar.** It is the 0x14-byte first .data object
+   of stadium_draw: frame count, a per-frame counter, two ball random-int copies, and the
+   loading-done flag at +0x10. Seven files declared it four different ways. It is now one
+   `GameFrameCounters` type in `stadium_draw.h`; every unit compiles identically. When
+   one symbol is declared differently in several files, look at all the users' offsets before
+   picking a type.
+3. **A copy struct can have a different element type from its source.** `StatsScreenScores` keeps
+   `u16` copies of `g_Scores`' `s16` scores. Retyping the shared `ScoreStruct` regressed about 50
+   functions. A separate `u16` type used only by the copy improved initializeStats
+   (92.65 -> 93.83), postPlayTrackStats (98.41 -> 98.77) and endOfGameStats_MVP
+   (99.88 -> 100). initializeStats needed the total and the 18 innings cleared separately: under
+   `u16` the single 19-entry loop scored 84.
+4. **Pool-base register numbering (sta_c5):** unsolved. A scratch file reproduces our assignment
+   (data base r31, bss base r30). Definition order, first use, globals vs statics, reference
+   counts and compiler versions 2.0-2.7 do not change it.
