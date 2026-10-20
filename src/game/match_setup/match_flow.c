@@ -47,8 +47,8 @@
 #include "game/match_setup/pause_menu.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_matchFlow
 #include "header_rep_data.h"
+#include "game/stadium/stadium_draw.h"
 
-extern u32 FrameCountOfEntireGame[5];
 extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
 extern u8 highLevelSimulationFlag[4];
 extern u8 hugeAnimStruct[0x3154];
@@ -1083,7 +1083,7 @@ void settingGameStatus(void) {
     g_Scores._pad_BF[2] = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total - g_Scores._A0;
     g_Pitcher._15D = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO &&
-        (FrameCountOfEntireGame[0] >= 0x2A30 || g_UnkSimulation_31AC0._08 != 0)) {
+        (FrameCountOfEntireGame.frameCount >= 0x2A30 || g_UnkSimulation_31AC0._08 != 0)) {
         g_GameLogic.framesOfExitingToMenu = 1;
     } else if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         fn_3_5D9F8();
