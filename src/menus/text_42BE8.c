@@ -5,6 +5,9 @@
 
 extern ChallengeState *lbl_2_bss_1A8248;
 extern u8 *lbl_2_bss_1A824C;
+extern u8 *lbl_2_bss_1A823C;
+extern u8 g_d_GameSettings[];
+extern u8 challengeCaptainCharIDs[];
 
 // Number of saved lineup slots whose charID equals the argument.
 static s32 savedLineupCountOf(s32 charID) {
@@ -284,7 +287,7 @@ void fn_2_44184(void) {
     s32 count = 0;
     s32 k;
     for (k = 0; k < 9; k++) {
-        if (lbl_2_bss_1A8248->savedLineup[k].charID == 0xC) {
+        if (lbl_2_bss_1A8248->savedLineup[k].charID == CHAR_ID_KOOPA_GREEN) {
             count++;
         }
     }
@@ -353,13 +356,245 @@ void fn_2_44414(SortEntry *entries) {
 }
 
 void fn_2_4358C(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 type = req->type;
+                    s32 target = req->target;
+                    s32 minDifficulty = req->_6[0];
+                    if (type != -1 && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED) {
+                        s32 mode = *(s16 *)(lbl_2_bss_1A823C + 0x30);
+                        if (mode == 3) {
+                            if (type == 0x49) {
+                                if (lbl_2_bss_1A824C[0x197843] == 0 &&
+                                    lbl_2_bss_1A8248->opponentCaptain == target &&
+                                    lbl_2_bss_1A8248->difficulty >= minDifficulty &&
+                                    savedLineupCountOf(i) > 0) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                            } else if (type == 0x42) {
+                                s32 count = 0;
+                                s32 k;
+                                for (k = 0; k < 9; k++) {
+                                    if (lbl_2_bss_1A8248->savedLineup[k].charID == 0xC &&
+                                        lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                        count++;
+                                    }
+                                }
+                                if (count == 0) {
+                                    *((u8 *)lbl_2_bss_1A8248 + 0x44F7) = 1;
+                                }
+                            }
+                        } else if (mode == 5) {
+                            if (type == 0x41 && g_d_GameSettings[0x36] == i &&
+                                lbl_2_bss_1A824C[0x197843] == 0 &&
+                                lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                u8 bit = (u8)(1 << *((u8 *)lbl_2_bss_1A8248 + 0x4420));
+                                if ((tr->_8 & bit) == 0) {
+                                    tr->_8 |= bit;
+                                }
+                                if (tr->_8 == 0x1F) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                            }
+                        } else if (mode == 4) {
+                            if (type == 0x48 && lbl_2_bss_1A824C[0x197843] == 0 &&
+                                lbl_2_bss_1A8248->difficulty >= minDifficulty &&
+                                challenge_isCharRecruited(0x13) == 0 &&
+                                savedLineupCountOf(i) > 0) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                        }
+                        if (type == 0x47 && challenge_hasRecruitedEnoughNonBowserCharacters() == 1 &&
+                            lbl_2_bss_1A8248->difficulty >= minDifficulty && lbl_2_bss_1A8248->captain == target) {
+                            pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    lbl_2_bss_1A824C[0x1978F4] = 0;
 }
 
 void fn_2_439D0(void) {
-    return;
+    s32 i;
+    s32 j;
+    for (i = 0; i < 54; i++) {
+        CharStaticIndex *cs = &characterStaticIndexes[i];
+        if (cs->hasOwnStarMissions == 1) {
+            ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
+            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                for (j = 0; j < 10; j++) {
+                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
+                    s32 type = req->type;
+                    s32 target = req->target;
+                    s32 flags = req->flags;
+                    s32 minDifficulty = req->_6[0];
+                    if (type != -1 && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED) {
+                        switch (type) {
+                            case 60:
+                                if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 61:
+                                if (lbl_2_bss_1A8248->captain == flags &&
+                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 62:
+                                if (fn_2_44368() && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 63:
+                                if (lbl_2_bss_1A8248->captain == target &&
+                                    *((u8 *)lbl_2_bss_1A8248 + 0x44F6) == 0 &&
+                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 64:
+                                if (fn_2_442E8() && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 66:
+                                if (*((u8 *)lbl_2_bss_1A8248 + 0x44F7) == 0) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 67:
+                            case 68:
+                                if (savedLineupCountOf(i) != 0 &&
+                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                            case 69:
+                                if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
+#define STAR_SCRATCH_SENTINEL 0x2710
+
+// Raw u16 / u32 views into the scratch area behind lbl_2_bss_1A824C. Offsets are the full byte offsets.
+#define SCRATCH_S16(off) (*(s16 *)(lbl_2_bss_1A824C + (off)))
+#define SCRATCH_S32(off) (*(s32 *)(lbl_2_bss_1A824C + (off)))
+
 void fn_2_44504(void) {
-    return;
+    s32 i;
+    s32 j;
+    s32 k = 0;
+    s32 m;
+    s32 n;
+
+    // Phase 1: list A (u16 @ 0x1977A2, 54 entries) = sentinel.
+    for (i = 0; i < 54; i++) {
+        SCRATCH_S16(0x1977A2 + 2 * i) = STAR_SCRATCH_SENTINEL;
+    }
+    // Phase 2: 10 u16 slots @ 0x19780E = -1.
+    for (i = 0; i < 10; i++) {
+        SCRATCH_S16(0x19780E + 2 * i) = -1;
+    }
+    // Phase 3: recruited characters (except the captain's character) go into list A.
+    n = challenge_countRecruitedCharacters();
+    for (i = 0; i < 18; i++) {
+        if (lbl_2_bss_1A8248->characters[i].recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED &&
+            i != challengeCaptainCharIDs[lbl_2_bss_1A8248->captain]) {
+            SCRATCH_S16(0x1977A2 + 2 * k) = i;
+            k++;
+        }
+    }
+    // Phase 4: saved lineup characters with variantClassification 4 are appended to list A.
+    for (j = 0; j < 9; j++) {
+        if (n + j < 0x20) {
+            s16 charID = lbl_2_bss_1A8248->savedLineup[j].charID;
+            if (lbl_2_bss_1A8248->characters[charID].variantClassification == 4) {
+                SCRATCH_S16(0x1977A2 + 2 * k) = charID;
+                k++;
+            }
+        }
+    }
+    // Phase 5: list A entries whose scout flags have _2 == 4 move to the 0x197818 list.
+    m = 0;
+    for (i = 0; i < k; i++) {
+        s16 v = SCRATCH_S16(0x1977A2 + 2 * i);
+        if (v != STAR_SCRATCH_SENTINEL && lbl_2_bss_1A8248->characters[v].scoutFlagPointer->_2 == 4) {
+            SCRATCH_S16(0x197818 + 2 * (k + m)) = v;
+            m++;
+            SCRATCH_S16(0x1977A2 + 2 * i) = STAR_SCRATCH_SENTINEL;
+        }
+    }
+    // Phase 6: when at least 10 characters are recruited, entries with _3 == 1 move to the 0x19780E list.
+    if (n >= 10) {
+        m = 0;
+        for (i = 0; i < k; i++) {
+            s16 v = SCRATCH_S16(0x1977A2 + 2 * i);
+            if (v != STAR_SCRATCH_SENTINEL && lbl_2_bss_1A8248->characters[v].scoutFlagPointer->_3 == 1) {
+                SCRATCH_S16(0x19780E + 2 * m) = v;
+                m++;
+                SCRATCH_S16(0x1977A2 + 2 * i) = STAR_SCRATCH_SENTINEL;
+            }
+        }
+    }
+    // Phase 7: sort entries, 8 bytes each, at 0x197450: all 55 slots = sentinel pairs.
+    for (i = 0; i < 55; i++) {
+        SCRATCH_S32(0x197450 + 8 * i) = STAR_SCRATCH_SENTINEL;
+        SCRATCH_S32(0x197454 + 8 * i) = STAR_SCRATCH_SENTINEL;
+    }
+    // Phase 8: pair (scout _2, charID) for each list A entry, written from slot 1 on.
+    m = 0;
+    for (i = 0; i <= k; i++) {
+        s16 v = SCRATCH_S16(0x1977A2 + 2 * i);
+        if (v == STAR_SCRATCH_SENTINEL) {
+            SCRATCH_S32(0x197458 + 8 * m) = STAR_SCRATCH_SENTINEL;
+            SCRATCH_S32(0x19745C + 8 * m) = STAR_SCRATCH_SENTINEL;
+        } else {
+            SCRATCH_S32(0x197458 + 8 * m) = lbl_2_bss_1A8248->characters[v].scoutFlagPointer->_2;
+            SCRATCH_S32(0x19745C + 8 * m) = v;
+        }
+        m++;
+    }
+    // Phase 9: insertion sort of the pairs at 0x197450 (slot 0 is scratch) by first word.
+    fn_2_44414((SortEntry *)(lbl_2_bss_1A824C + 0x197450));
+    // Phase 10: list A = -1.
+    for (i = 0; i < 54; i++) {
+        SCRATCH_S16(0x1977A2 + 2 * i) = -1;
+    }
+    // Phase 11: second words of the sorted pairs (non-sentinel) go back into list A.
+    k = 0;
+    for (i = 0; i < 36; i++) {
+        s32 v = SCRATCH_S32(0x19745C + 8 * i);
+        if (v != STAR_SCRATCH_SENTINEL) {
+            SCRATCH_S16(0x1977A2 + 2 * k) = v;
+            k++;
+        }
+    }
+    // Phase 12: bubble any 0x26 in the 0x197818 list one step forward, five times.
+    for (i = 0; i < 5; i++) {
+        if (SCRATCH_S16(0x197818 + 2 * i) == 0x26) {
+            s16 tmp = SCRATCH_S16(0x19781C);
+            SCRATCH_S16(0x19781C) = 0x26;
+            SCRATCH_S16(0x197818 + 2 * i) = tmp;
+        }
+    }
 }

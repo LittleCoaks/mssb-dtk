@@ -3,6 +3,7 @@
 
 #include "mssbTypes.h"
 #include "Dolphin/mtx.h"
+#include "Unknown/File_0x800bdd74.h"
 
 typedef struct {
     /* 0x00 */ void (*unk0)(s32);
@@ -17,7 +18,7 @@ typedef struct {
 
 typedef struct {
     /* 0x0000 */ u8 _pad0[0x68];
-    /* 0x0068 */ void *unk68;
+    /* 0x0068 */ ActorObjectTable *unk68;
     /* 0x006C */ u8 _pad1[0xAC - 0x6C];
     /* 0x00AC */ void *unkAC[4];
     /* 0x00BC */ u8 _pad2[0x2D94 - 0xBC];
@@ -29,8 +30,8 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ Mtx mtx;
-    /* 0x30 */ s16 unk30;
-    /* 0x32 */ s16 unk32;
+    /* 0x30 */ u16 unk30;
+    /* 0x32 */ u16 unk32;
     /* 0x34 */ f32 unk34;
     /* 0x38 */ f32 unk38;
     /* 0x3C */ Vec unk3C;
@@ -46,7 +47,7 @@ extern u8 lbl_2_data_2E9B4[];
 extern Vec lbl_2_data_2E9D0;
 extern f32 lbl_2_bss_B29C;
 extern f32 lbl_2_data_2E9C4[];
-extern f32 lbl_2_data_2E944[];
+extern f32 lbl_2_data_2E944[][6];
 extern u8 lbl_2_data_2E608[];
 extern Vec lbl_2_data_2E9E8;
 extern f32 lbl_2_data_2E9DC[];

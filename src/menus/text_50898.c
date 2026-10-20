@@ -981,8 +981,6 @@ void fn_2_52690(void) {
         *(s32 *)(menuCursors + 0x50) = 0;
         lbl_2_bss_9E08 = 1;
     } else if (st == 1) {
-        if (menuControlVariables != NULL) {
-        }
         if (*(u16 *)(menuControlVariables + 6) == 5 || *(u16 *)(menuControlVariables + 6) == 0x10) {
             insertGraphicDrawingFunction(fn_80053FE8, 0);
             insertGraphicDrawingFunction(fn_2_82DE8, 0x3000);

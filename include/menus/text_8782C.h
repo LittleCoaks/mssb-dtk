@@ -5,13 +5,13 @@
 #include "Unknown/File_0x800b0a14.h"
 
 void fn_2_8782C(void);
-void fn_2_87998(void);
-void fn_2_87FB0(void);
-void fn_2_88250(void);
-void fn_2_883C8(void);
-void fn_2_887F8(void);
-void fn_2_88D90(void);
-void fn_2_89038(void);
+void fn_2_87998(DrawingSceneStruct *node);
+void fn_2_87FB0(DrawingSceneStruct *node);
+void fn_2_88250(DrawingSceneStruct *node);
+void fn_2_883C8(DrawingSceneStruct *node);
+void fn_2_887F8(DrawingSceneStruct *node);
+void fn_2_88D90(DrawingSceneStruct *node);
+void fn_2_89038(DrawingSceneStruct *node);
 s32 fn_2_895F8(u8 useLocal);
 void fn_2_8975C(void);
 void fn_2_89F70(void);
