@@ -57,7 +57,7 @@ typedef struct {
     u32 a;
     u32 b;
 } StadiumLightSlot;
-u32 FrameCountOfEntireGame[5] = {0};
+GameFrameCounters FrameCountOfEntireGame = {0};
 u32 lbl_3_data_23C[360] = {
     /* 0x000 */ 0xAABED200, 0x42A00000, 0x43E10000, 0xAABED200,
     /* 0x010 */ 0x42A00000, 0x43E10000, 0xAABED200, 0x42A00000,

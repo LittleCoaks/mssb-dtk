@@ -98,7 +98,6 @@ extern void fn_80011B64(int);
 extern int fn_80016710(int charID, int arg1);
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_800EFBA4[0x10];
-extern u8 FrameCountOfEntireGame[];
 extern u8 mapping_minigame_Stadium[8];
 extern u8 minigameChallengeOpponentCounts[8];
 extern u8 minigameChallengeOpponentPools[44];
@@ -872,7 +871,7 @@ void minigames_setupChallengeRoster(void) {
 
 static inline void minigameStadiumSetup(void) {
     g_Minigame.loadedStadiumID = -1;
-    FrameCountOfEntireGame[0x10] = 0;
+    FrameCountOfEntireGame.loadingDone = FALSE;
     g_d_GameSettings.StadiumID = mapping_minigame_Stadium[g_Minigame.GameMode_MiniGame];
     g_d_GameSettings.miniGameStadiumIndicator = FALSE;
     if (g_d_GameSettings.StadiumID == STADIUM_ID_MARIO_STADIUM || g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN
@@ -893,7 +892,7 @@ void minigames_startStadiumLoad(void) {
 
 BOOL minigames_isStadiumLoading(void) {
     if (g_Minigame.loadedStadiumID == -1) {
-        if (FrameCountOfEntireGame[0x10] != 0) {
+        if (FrameCountOfEntireGame.loadingDone != 0) {
             g_Minigame.loadedStadiumID = mapping_minigame_Stadium[g_Minigame.GameMode_MiniGame];
             return FALSE;
         }

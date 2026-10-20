@@ -28,7 +28,6 @@ extern struct {
 
 extern MatchFileDescriptor StadiumFiles[];
 extern u8 lbl_3_common_bss_35154[0x480];
-extern u8 FrameCountOfEntireGame[0x14];
 extern void fn_800229CC(void);
 
 void manageLoadingState(void) {
@@ -107,7 +106,7 @@ void manageLoadingState(void) {
         break;
     default:
         node->currentDrawingItem->state = 1;
-        FrameCountOfEntireGame[0x10] = 1;
+        FrameCountOfEntireGame.loadingDone = TRUE;
         removeCurrentDrawingItem();
         break;
     }
@@ -147,7 +146,7 @@ void manageStadiumLoading(void) {
         break;
     default:
         node->currentDrawingItem->state = 1;
-        FrameCountOfEntireGame[0x10] = 1;
+        FrameCountOfEntireGame.loadingDone = TRUE;
         removeCurrentDrawingItem();
         break;
     }
