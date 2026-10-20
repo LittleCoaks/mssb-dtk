@@ -3808,3 +3808,19 @@ Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transiti
   `Object(...)`** (DOL `unk` lib; the C3 lib already has it in its group cflags). Without it the object
   emits no exception tables, so `extab` scores 0% and the unit cannot be flipped to Matching even at
   100% `.text`. Adding it changed no `.text` in any of 51 units (2026-10 first-pass follow-ups).
+
+Chunk 3 (match_transitions, versus_screens, chain_chomp_sprint, minigame_effects, minigame_framework, minigame_hud; 2026-10).
+
+- **`frsp f1, fN` just before `bl cos`/`bl sin` on a double angle means `cos((f32)angle)`.** The
+  argument is rounded to float and then promoted back. An `f32 angle` local moves the `frsp` to the
+  store instead. This is a real rounding difference (piranhaPanic_initBombExplosion).
+- **`lha; extsh.` for a `>= 0` test on an s16 field is the `(s16)` cast** written at the test
+  (loadRunnerActors). A plain field compare, an s16 local, or `(int)` all give `cmpwi`.
+- **`cmplwi` on a game-mode local means `u8`** (loadRunnerActors 95.3% -> 99.4%). It also brings
+  back the `clrlwi` after the range fold's `subi`.
+- **Unsolved, recorded so nobody re-derives it.** (1) A target that keeps a constant table base in a
+  callee-saved register across a `rand()` call, re-materialised at each statement
+  (wallBall_placeBounceParticle and its inlined copy). (2) A value-materialised `x == 0` test
+  (`cntlzw; srwi.; beq`) that every logical form folds away (minigameHudBodPitchRoulette; compare
+  chunk 2's `^ 1` trick, which only covers `!=`). (3) The target re-reading struct fields between two
+  identical counts with no store in between (fn_3_22ABC / chooseVsScreenSituation).
