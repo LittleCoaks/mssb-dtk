@@ -590,6 +590,10 @@ void fn_3_F8D00(void) {
     }
 }
 
+static inline BOOL gardenGfxFinished(GardenGfxObject* obj) {
+    return obj->scale == 2 ? TRUE : FALSE;
+}
+
 // .text:0x000F8E20 size:0x268 mapped:0x80737EB4
 void fn_3_F8E20(void) {
     E(u8, HIT_FX_STATE)* state = hitFxState;
@@ -620,7 +624,7 @@ void fn_3_F8E20(void) {
             ((GardenGfxObject*)graphicsRelatedArray[hitFxScene->firstHandle + i].object)->pos.x = sx;
             ((GardenGfxObject*)graphicsRelatedArray[hitFxScene->firstHandle + i].object)->pos.y = sy;
             ((GardenGfxObject*)graphicsRelatedArray[hitFxScene->firstHandle + i].object)->pos.z = 0.0f;
-            if (((GardenGfxObject*)graphicsRelatedArray[item->firstHandle + i].object)->scale == 2) {
+            if (gardenGfxFinished((GardenGfxObject*)graphicsRelatedArray[item->firstHandle + i].object)) {
                 ((GardenGfxObject*)graphicsRelatedArray[item->firstHandle + i].object)->flags &= ~2;
                 *state = HIT_FX_IDLE;
             }
