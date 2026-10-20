@@ -486,7 +486,8 @@ typedef struct _CastleSparkScene {
 } CastleSparkScene;
 
 static u32 lbl_3_bss_9F0C[5];
-static CastleActEffect lbl_3_bss_9E54[2];
+static CastleActEffect lbl_3_bss_9EB0;
+static CastleActEffect lbl_3_bss_9E54;
 static CastleGfxScene* lbl_3_bss_9E50;
 static u8 lbl_3_bss_9E48[8];
 static Vec lbl_3_bss_9DE8[8];
@@ -2276,14 +2277,14 @@ void loadBowserCastle(void** files) {
     for (i = 0; i < fireCount; i++) {
         ACTActorRelated(files[ids[10]], *animTable + (i + 3) * 0x90 + 0x34);
     }
-    lbl_3_bss_9E54[1].file = (u32)files[ids[11]];
-    actRelated(files[ids[10]], &lbl_3_bss_9E54[1]);
-    actorRelated(&lbl_3_bss_9E54[1], 0, 0);
+    lbl_3_bss_9EB0.file = (u32)files[ids[11]];
+    actRelated(files[ids[10]], &lbl_3_bss_9EB0);
+    actorRelated(&lbl_3_bss_9EB0, 0, 0);
     adjustInternalPointers(files[ids[12]]);
     ACTActorRelated(files[ids[12]], *animTable + 0xC4);
-    lbl_3_bss_9E54[0].file = (u32)files[ids[13]];
-    actRelated(files[ids[12]], &lbl_3_bss_9E54[0]);
-    actorRelated(&lbl_3_bss_9E54[0], 0, 0);
+    lbl_3_bss_9E54.file = (u32)files[ids[13]];
+    actRelated(files[ids[12]], &lbl_3_bss_9E54);
+    actorRelated(&lbl_3_bss_9E54, 0, 0);
     fn_80035750(files[ids[15]], files[ids[14]], 5);
     lbl_3_bss_9E50 = (CastleGfxScene*)insertGraphicDrawingFunction(fn_3_C3C2C, 2);
     addGraphicsElementToScene((DrawingSceneStruct*)lbl_3_bss_9E50, lbl_3_data_10C1C);
@@ -2334,7 +2335,7 @@ void loadBowserCastle(void** files) {
     CTRLSetRotation((Control*)o, 0.0f, 0.0f, 0.0f);
     o->fadeByDepth = 0;
     o->alpha = 0xFF;
-    o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E54[0];
+    o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E54;
     o->preDraw = NULL;
     o->animActive = 0;
     o->animIndex = -1;
@@ -2440,7 +2441,7 @@ void loadBowserCastle(void** files) {
             fireCfg++;
             o->fadeByDepth = 1;
             o->alpha = 0xFF;
-            o->effect = (StadiumObjectEffect*)&lbl_3_bss_9E54[1];
+            o->effect = (StadiumObjectEffect*)&lbl_3_bss_9EB0;
             o->preDraw = fn_3_C56E8;
             o->postDraw = fn_3_C54D0;
             o->animActive = 1;
