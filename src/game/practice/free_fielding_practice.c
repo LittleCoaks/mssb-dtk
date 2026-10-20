@@ -91,6 +91,7 @@ void freeFieldingPracticeSwitcher(void) {
 }
 
 void freeFieldingPracticeLoadCharacters(void) {
+    MinigameSelectSlot* slots;
     int i;
     int j;
 
@@ -106,12 +107,12 @@ void freeFieldingPracticeLoadCharacters(void) {
     } while (i < 9);
 
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
-        MinigameSelectSlot* slots = g_Minigame.selectSlots;
+        slots = g_Minigame.selectSlots;
 
         if (slots[g_Practice.homeAway].charID == CHAR_ID_LUIGI) {
-            practice_loadCharacter(0, 0, 0, -1);
+            practice_loadCharacter(0, 0, CHAR_ID_MARIO, -1);
         } else {
-            practice_loadCharacter(0, 0, 1, -1);
+            practice_loadCharacter(0, 0, CHAR_ID_LUIGI, -1);
         }
         practice_loadCharacter(1, 0, slots[g_Practice.homeAway].charID, g_Minigame.battingHandedness[g_Practice.homeAway]);
     } else {
@@ -121,7 +122,7 @@ void freeFieldingPracticeLoadCharacters(void) {
         found = FALSE;
         for (j = 1; j < 9; j++) {
             if (g_Minigame.selectSlots[g_Practice.homeAway].charID == inMemRoster[0][j].stats.CharID) {
-                practice_loadCharacter(0, j, 0x2E, -1);
+                practice_loadCharacter(0, j, CHAR_ID_SHYGUY_GREEN, -1);
                 found = TRUE;
                 break;
             }
@@ -130,11 +131,11 @@ void freeFieldingPracticeLoadCharacters(void) {
             for (j = 0; j < 9; j++) {
                 if (inMemRoster[1][j].stats.CharID == g_Minigame.selectSlots[g_Practice.homeAway].charID) {
                     if (j == 0 || j == 1 || j == 8) {
-                        practice_loadCharacter(1, j, 3, -1);
+                        practice_loadCharacter(1, j, CHAR_ID_DIDDY, -1);
                     } else if (j == 2 || j == 3 || j == 4) {
-                        practice_loadCharacter(1, j, 0x13, -1);
+                        practice_loadCharacter(1, j, CHAR_ID_BOWSERJR, -1);
                     } else {
-                        practice_loadCharacter(1, j, 0x11, -1);
+                        practice_loadCharacter(1, j, CHAR_ID_BIRDO, -1);
                     }
                     break;
                 }
@@ -234,10 +235,9 @@ void practiceRelated(void) {
     int j;
 
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
-        slots[3] = 4;
-        slots[2] = 3;
-        slots[1] = 2;
-        slots[0] = 1;
+        for (i = 0; i < 4; i++) {
+            slots[i] = i + 1;
+        }
         for (i = 0; i < 4; i++) {
             for (j = 1; j < 4; j++) {
                 if (g_Runners[j].rosterID == slots[i]) {
