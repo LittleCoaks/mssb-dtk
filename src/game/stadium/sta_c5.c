@@ -73,8 +73,13 @@ static u8 lbl_3_bss_B218;
 static DKJungleAnimBanks lbl_3_bss_B154;
 static DKJungleIndTexState lbl_3_bss_B118;
 static u8 lbl_3_bss_AF18[0x200];
-static DKJungleWaterTarget lbl_3_bss_AF04;
-static DKJungleEmitterState lbl_3_bss_AEE8;
+static Vec lbl_3_bss_AF0C;
+static f32 lbl_3_bss_AF08;
+static f32 lbl_3_bss_AF04;
+static f32 lbl_3_bss_AF00;
+static u8 lbl_3_bss_AEF0[0x10];
+static f32 lbl_3_bss_AEEC;
+static u8 lbl_3_bss_AEE8[4];
 static DKJungleFrameState lbl_3_bss_AEE0;
 
 int barrelRollSfxEmitterId = -1;
@@ -145,13 +150,13 @@ DKJungleDrawFuncTable lbl_3_data_1BA5C = {
         {0, fn_3_EEE3C},
         {0, fn_3_EEE3C},
     },
-    {1, 1, 1, 0},
 };
 
-DKJungleWaterVectors lbl_3_data_1BA70 = {
-    {0.0f, 0.0f, 0.0f},
-    {0.0f, 0.0f, 0.0f},
-};
+u8 lbl_3_data_1BA6C = 1;
+static u8 lbl_3_data_1BA6D = 1;
+static u8 lbl_3_data_1BA6E = 1;
+static Vec lbl_3_data_1BA70 = {0.0f, 0.0f, 0.0f};
+static Vec lbl_3_data_1BA7C = {0.0f, 0.0f, 0.0f};
 
 static inline void dkPlayHazardSfx(int sfx) {
     int stadiumID;
@@ -205,7 +210,7 @@ void loadDKJungle(void** files) {
     if (notMinigames) {
         fn_3_B97C8(fn_3_F6FCC);
     }
-    lbl_3_bss_AEE8._00[0] = 0;
+    lbl_3_bss_AEE8[0] = 0;
     ids = _OSAllocFromHeap(4, 0x48);
     stadiumObjectCollision._34 = ids;
     processStadiumFileObjects(lbl_3_data_1BA34, 0x12, (u8*)files, ids);
@@ -541,7 +546,7 @@ void loadDKJungle(void** files) {
 
 // .text:0x000F6FCC size:0x10 mapped:0x80736060
 void fn_3_F6FCC(void) {
-    lbl_3_bss_AEE8._00[0] = 1;
+    lbl_3_bss_AEE8[0] = 1;
 }
 
 // .text:0x000F6C60 size:0x36C mapped:0x80735CF4
@@ -1174,7 +1179,7 @@ void dkJungleBarrelCannonCutsceneUpdate(StadiumObject* o) {
     Vec forward = {0.0f, 0.0f, -1.0f};
     f32 angle;
 
-    v.x = lbl_3_bss_AEE8.launchX - cannon->pos.x;
+    v.x = lbl_3_bss_AEEC - cannon->pos.x;
     v.y = 0.0f;
     v.z = lbl_3_data_1BA48 - cannon->pos.z;
     PSVECNormalize(&v, &v);
@@ -1193,7 +1198,7 @@ void dkJungleBarrelCannonCutsceneUpdate(StadiumObject* o) {
         switch (cannon->mode) {
         case 0:
             if (lbl_3_bss_AEE0._01 == 0) {
-                dkBarrelLaunch(cannon->barrel, lbl_3_bss_AEE8.launchX, lbl_3_data_1BA48);
+                dkBarrelLaunch(cannon->barrel, lbl_3_bss_AEEC, lbl_3_data_1BA48);
                 fn_3_F4C4C(cannon);
                 cannon->barrel->_C1 = 1;
                 cannon->mode = 3;
@@ -2649,57 +2654,55 @@ void fn_3_EE67C(DKJungleDispObj* obj, Mtx view) {
 
 // .text:0x000EE388 size:0x2F4 mapped:0x8072D41C
 void fn_3_EE388(void) {
-    DKJungleWaterState* water = (DKJungleWaterState*)&barrelRollSfxEmitterId;
-    DKJungleBss* bss = (DKJungleBss*)&lbl_3_bss_AEE0;
     f32 angle;
     f32 step;
     f32 targetMag;
     f32 phase;
 
-    if (water->needsRespawn != 0) {
+    if (lbl_3_data_1BA6D != 0) {
         rand();
         angle = 6.2831855f * ((f32)rand() / 32767.0f);
-        bss->target.x = 0.01f * (f32)cos(angle);
-        bss->target.y = 0.01f * (f32)sin(angle);
-        bss->target.z = 0.0f;
-        PSVECSubtract(&bss->target, &water->pos, &water->vel);
-        if (PSVECMag(&water->vel) != 0.0f) {
-            PSVECNormalize(&water->vel, &water->vel);
+        lbl_3_bss_AF0C.x = 0.01f * (f32)cos(angle);
+        lbl_3_bss_AF0C.y = 0.01f * (f32)sin(angle);
+        lbl_3_bss_AF0C.z = 0.0f;
+        PSVECSubtract(&lbl_3_bss_AF0C, &lbl_3_data_1BA70, &lbl_3_data_1BA7C);
+        if (PSVECMag(&lbl_3_data_1BA7C) != 0.0f) {
+            PSVECNormalize(&lbl_3_data_1BA7C, &lbl_3_data_1BA7C);
         }
-        PSVECScale(&water->vel, 0.0005f, &water->vel);
-        water->needsRespawn = 0;
+        PSVECScale(&lbl_3_data_1BA7C, 0.0005f, &lbl_3_data_1BA7C);
+        lbl_3_data_1BA6D = 0;
     }
-    PSVECAdd(&water->pos, &water->vel, &water->pos);
-    targetMag = PSVECMag(&bss->target);
-    if (PSVECMag(&water->pos) > targetMag) {
-        f32 vx = water->vel.x * -1.0f;
-        f32 vy = water->vel.y * -1.0f;
-        water->vel.x = vx;
-        water->vel.y = vy;
-        PSVECScale(&bss->target, 2.0f, &bss->target);
-    } else if (PSVECDotProduct(&water->pos, &bss->target) <= 0.0f) {
-        water->pos.y = 0.0f;
-        water->pos.x = 0.0f;
-        water->needsRespawn = 1;
+    PSVECAdd(&lbl_3_data_1BA70, &lbl_3_data_1BA7C, &lbl_3_data_1BA70);
+    targetMag = PSVECMag(&lbl_3_bss_AF0C);
+    if (PSVECMag(&lbl_3_data_1BA70) > targetMag) {
+        f32 vx = lbl_3_data_1BA7C.x * -1.0f;
+        f32 vy = lbl_3_data_1BA7C.y * -1.0f;
+        lbl_3_data_1BA7C.x = vx;
+        lbl_3_data_1BA7C.y = vy;
+        PSVECScale(&lbl_3_bss_AF0C, 2.0f, &lbl_3_bss_AF0C);
+    } else if (PSVECDotProduct(&lbl_3_data_1BA70, &lbl_3_bss_AF0C) <= 0.0f) {
+        lbl_3_data_1BA70.y = 0.0f;
+        lbl_3_data_1BA70.x = 0.0f;
+        lbl_3_data_1BA6D = 1;
     }
-    if (water->needsReroll != 0) {
+    if (lbl_3_data_1BA6E != 0) {
         step = 0.0005 * (2.0 * ((f64)((f32)rand() / 32767.0f) - 0.5));
-        water->needsReroll = 0;
-        bss->_28 = step;
-        bss->_24 = 0.0f;
-        bss->_20 = 2.5e-05 * (fabs(step) / step);
+        lbl_3_data_1BA6E = 0;
+        lbl_3_bss_AF08 = step;
+        lbl_3_bss_AF04 = 0.0f;
+        lbl_3_bss_AF00 = 2.5e-05 * (fabs(step) / step);
     }
     {
         f64 absPhase;
         f64 absStep28;
-        phase = bss->_24 + bss->_20;
+        phase = lbl_3_bss_AF04 + lbl_3_bss_AF00;
         absPhase = fabs(phase);
-        absStep28 = fabs(bss->_28);
-        bss->_24 = phase;
+        absStep28 = fabs(lbl_3_bss_AF08);
+        lbl_3_bss_AF04 = phase;
         if (absPhase >= absStep28) {
-            bss->_20 = bss->_20 * -1.0f;
-        } else if ((int)(absPhase / phase) != (int)(absStep28 / bss->_28)) {
-            water->needsReroll = 1;
+            lbl_3_bss_AF00 = lbl_3_bss_AF00 * -1.0f;
+        } else if ((int)(absPhase / phase) != (int)(absStep28 / lbl_3_bss_AF08)) {
+            lbl_3_data_1BA6E = 1;
         }
     }
 }
@@ -2720,11 +2723,11 @@ void fn_3_EE100(DKJungleDispObj* obj, Mtx view) {
     white.a = 0xFF;
     GXSetChanMatColor(GX_COLOR0A0, white);
     GXSetNumChans(1);
-    scale = lbl_3_bss_AF04._00;
+    scale = lbl_3_bss_AF04;
     PSMTXCopy(obj->mtx, model);
     PSMTXCopy(view, camMtx);
-    camMtx[0][3] += lbl_3_data_1BA70.pos.x;
-    camMtx[1][3] += lbl_3_data_1BA70.pos.y;
+    camMtx[0][3] += lbl_3_data_1BA70.x;
+    camMtx[1][3] += lbl_3_data_1BA70.y;
     scale = 1.0f + scale;
     camMtx[0][0] *= scale;
     camMtx[0][1] *= scale;

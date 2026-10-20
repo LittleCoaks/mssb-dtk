@@ -215,16 +215,9 @@ typedef struct _DKJungleDrawFuncEntry {
     /*0x04*/ void (*func)(void);
 } DKJungleDrawFuncEntry; // size: 0x8
 
-// The trailing 4 bytes double as the DKJungleWaterState needsRespawn/needsReroll bytes.
 typedef struct _DKJungleDrawFuncTable {
     /*0x00*/ DKJungleDrawFuncEntry entries[2];
-    /*0x10*/ u8 _10[4];
-} DKJungleDrawFuncTable; // size: 0x14
-
-typedef struct _DKJungleWaterVectors {
-    /*0x00*/ Vec pos;
-    /*0x0C*/ Vec vel;
-} DKJungleWaterVectors; // size: 0x18
+} DKJungleDrawFuncTable; // size: 0x10
 
 typedef struct _DKJungleVertexData {
     /*0x00*/ void* data;
@@ -260,15 +253,6 @@ typedef struct _DKJungleDispObj {
     /*0x18*/ Mtx mtx;
 } DKJungleDispObj;
 
-typedef struct _DKJungleEmitterState {
-    /*0x00*/ u8 _00[4];
-    /*0x04*/ f32 launchX;
-    /*0x08*/ u8 _08[4];
-    /*0x0C*/ u32 _0C;
-    /*0x10*/ int emitters[2];
-    /*0x18*/ f32 _18;
-} DKJungleEmitterState; // size: 0x1C
-
 typedef struct _DKJungleFrameState {
     /*0x00*/ u8 _00;
     /*0x01*/ u8 _01;
@@ -276,12 +260,6 @@ typedef struct _DKJungleFrameState {
     /*0x03*/ u8 _03;
     /*0x04*/ u32 frame;
 } DKJungleFrameState; // size: 0x8
-
-typedef struct _DKJungleWaterTarget {
-    /*0x00*/ f32 _00;
-    /*0x04*/ f32 _04;
-    /*0x08*/ Vec target;
-} DKJungleWaterTarget; // size: 0x14
 
 typedef struct _DKJungleIndTexState {
     /*0x00*/ u8* texBuf;
@@ -345,18 +323,7 @@ typedef struct _DKJungleBss {
     /*0x680*/ u32 _680;
 } DKJungleBss;
 
-// View over the .data block at barrelRollSfxEmitterId.
-typedef struct _DKJungleWaterState {
-    /*0x000*/ u8 _00[0x24D];
-    /*0x24D*/ u8 needsRespawn;
-    /*0x24E*/ u8 needsReroll;
-    /*0x24F*/ u8 _24F;
-    /*0x250*/ Vec pos;
-    /*0x25C*/ Vec vel;
-} DKJungleWaterState;
-
 extern int barrelRollSfxEmitterId;
-extern DKJungleWaterVectors lbl_3_data_1BA70;
 extern DKJungleDrawFuncTable lbl_3_data_1BA5C;
 extern u8 lbl_803C5090[0x20];
 extern DKJungleKlaptrapData jungleKlaptrapData[6];
