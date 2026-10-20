@@ -863,7 +863,7 @@ config.libs = [
             Object(NonMatching, "game/math/spline.c"),
             Object(NonMatching, "game/stadium/stadium_draw.c"),
             Object(NonMatching, "game/ball/ball_physics.c"),
-            Object(NonMatching, "game/batting/batter.c"),
+            Object(Matching, "game/batting/batter.c"),
             Object(NonMatching, "game/camera/camera.c"),
             Object(Matching, "game/match_setup/ai_tables.c"),
             Object(Matching, "game/pitching/pitcher_stamina.c"),

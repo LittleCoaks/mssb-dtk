@@ -10,6 +10,7 @@
  * addressing depends on, so codegen is unaffected. */
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_batter
 #include "header_rep_data.h"
 
 #include "static/UnknownHomes_static.h"
@@ -58,7 +59,10 @@ extern f32 horizTrajPowerMultipliers[3][5];
 extern u8 ChargePowerConstants[NUM_CHOOSABLE_CHARACTERS][2];
 extern s16 lbl_3_data_5CD4[4];
 extern s16 buntVerticalAngles[5][2][2][2];
-static int lbl_3_bss_34 = 0;
+/* MWCC emits .bss statics in reverse declaration order: 0x30, 0x34, 0x38. */
+static u8 lbl_3_bss_38[8]; /* never referenced, but present in the original .bss layout */
+static int lbl_3_bss_34;
+static int lbl_3_bss_30;   /* never referenced, but present in the original .bss layout */
 extern struct {
     u8 _00[0x28];
     u8 _28;
