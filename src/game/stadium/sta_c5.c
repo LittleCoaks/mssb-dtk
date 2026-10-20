@@ -702,19 +702,15 @@ void updateDKJungleObjBoundingBoxes(s32* idx) {
                 maxZ = q->z;
             }
         }
-        {
-            DKJungleZoneCorner* q = &c[3];
-
-            if (minX > q->x) {
-                minX = q->x;
-            } else if (maxX < q->x) {
-                maxX = q->x;
-            }
-            if (minZ > q->z) {
-                minZ = q->z;
-            } else if (maxZ < q->z) {
-                maxZ = q->z;
-            }
+        if (minX > c[3].x) {
+            minX = c[3].x;
+        } else if (maxX < c[3].x) {
+            maxX = c[3].x;
+        }
+        if (minZ > c[3].z) {
+            minZ = c[3].z;
+        } else if (maxZ < c[3].z) {
+            maxZ = c[3].z;
         }
         mesh = (StadiumMeshData*)stadiumObjectCollision.objects[objectIndex].triangles;
         CTRLSetTranslation(&ctrl.ctrl, minX, 0.0f, maxZ);
