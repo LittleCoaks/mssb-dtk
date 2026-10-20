@@ -3855,3 +3855,32 @@ Chunk 4 (mm_ParseCommonArchive, star_dash, practice_model_load, practice_scene, 
   into constant displacements, and 5 forms did not reproduce it. (2) practiceModel_setup: the target
   re-loads `files[]` after storing it (no store-to-load forwarding); 17 hypotheses are logged in its
   checkpoint. (3) fn_3_D4780: the `fnmsubs` operand order for the amplitude term was not reproduced.
+
+Chunk 5 (sta_c4, sta_c5, sta_c6, stadium_draw; 2026-10).
+
+- **How to read pooled-object addressing in a diff.** When MWCC addresses a static object off the
+  unit's pool base, a field at offset 0 folds into the base displacement (`lfs f0, 0x25c(r30)`), and
+  every other field goes through `addi rX, base, objOffset` plus the field displacement
+  (`lfs f0, 0x4(rX)`). Ours folding all of them (`0x260(r30)`) means our struct spans several real
+  objects. Split it at the `addi` offsets. This gave the largest wins in this chunk: sta_c5's
+  launch/water statics (cutscene 95.65% -> 98.89%, fn_3_EE388 89.37% -> 97.80%), the
+  barrel table and anim banks (loadDKJungle +1.7), and stadium_draw's tables (drawStadiumObjects
+  88.17% -> 96.80%). Splitting only part of a block can make things worse: a view-struct access
+  to the rest stops the new object from being pooled, so it is addressed by name. Split everything
+  the function touches.
+- **The pool base's symbol tells you where the unit's `.data` starts.** In stadium_draw the target's
+  base was `FrameCountOfEntireGame` (.data 0x228), 0x14 bytes before the split's `.data` start.
+  That object belongs to the unit. Moving the splits.txt start to 0x228 and defining it there
+  (a `{0}` aggregate goes to `.data`) was what made the table splits work. The auto gap unit
+  `auto_04_00000228_data` disappears, so `regchk` reports it MISSING. That is expected; total
+  matched data went up by exactly its 20 bytes.
+- **`cmpwi 3; bge D; cmpwi 1; bge B; b D` is a `switch` with `case 1: case 2:`**, not an `if` range
+  check (an `if (x < 3 && x >= 1)` gives `bge; blt`).
+- **`clrlwi 16` on a `GXGetTexObjWidth/Height` result applied late, at the division, means the
+  original used the SDK's `u16` return type.** This repo's prototypes say `u32`. `(u16)` casts at the
+  uses took fn_3_42CC from 96.69% to 100%; `u16` locals truncate too early and score lower.
+- **`?: TRUE/FALSE` inline, second hit:** sta_c4's fn_3_F8E20 (98.28% -> 100%) uses the same
+  `scale == 2` finished-animation test as sta_c1's fn_3_C3C2C.
+- **Behaviour bugs found by diffing immediates and branch-only paths:** loadDKJungle read `n`
+  uninitialised in minigame mode (the target zeroes it on entry). fn_3_4F90 reset the GX line
+  width to 18 instead of 6 after the outline.
