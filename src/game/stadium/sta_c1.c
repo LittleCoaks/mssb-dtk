@@ -1069,6 +1069,10 @@ void thwomp_screenShake(camera_803c639c_s* cam) {
 }
 
 // .text:0x000C3C2C size:0x268 mapped:0x80702CC0
+static inline BOOL castleGfxFinished(CastleGfxObject* obj) {
+    return obj->scale == 2 ? TRUE : FALSE;
+}
+
 void fn_3_C3C2C(void) {
     DrawingSceneStruct* item = currentDrawingItem;
     int i;
@@ -1098,7 +1102,7 @@ void fn_3_C3C2C(void) {
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.x = (f32)sx;
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.y = (f32)sy;
             ((CastleGfxObject*)graphicsRelatedArray[lbl_3_bss_9E50.scene->firstHandle + i].object)->pos.z = 0.0f;
-            if (((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->scale == 2) {
+            if (castleGfxFinished((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)) {
                 ((CastleGfxObject*)graphicsRelatedArray[((CastleGfxScene*)item)->firstHandle + i].object)->flags &= ~2;
                 lbl_3_bss_9E48[i] = 0;
             }
