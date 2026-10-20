@@ -3568,7 +3568,7 @@ A pass over every game unit, looking for hand-written copies of functions that M
   fn_3_C4CF4 stayed a `bl` (fn_3_C56E8 dropped to 31.7%) until its GX setup became a call to
   fn_3_C4B80, which the target also inlines.
 - **Not every copy should go.** Calling the real function scored lower for
-  bobOmbDerby unusedBattingSomething (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
+  bobOmbDerby bOD_UpdateBatterAIInputs (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
   starDash_stopAllSparks (93.1 -> 67.5, the `extsb` of the inlined `s8` argument sinks below the
   call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
   barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
@@ -3950,3 +3950,48 @@ The parallel mini harness that found this is described in the batter checkpoint 
 4. **Pool-base register numbering (sta_c5):** unsolved. A scratch file reproduces our assignment
    (data base r31, bss base r30). Definition order, first use, globals vs statics, reference
    counts and compiler versions 2.0-2.7 do not change it.
+
+### Four-file pass findings (2026-10)
+game_math, bobomb_derby, free_fielding_practice, ball_visuals. 12 functions matched, none of the
+units reached 100%.
+- **Check `SQRT2_LINKAGE` first in any unit that calls `dolsqrtf2`.** game_math was missing the
+  define, so `_half`/`_three` sat at the head of `.rodata`. That one line took `.rodata`
+  95.56 -> 100 and matched 14 float functions.
+- **`if (x < 0) x = -x;` is not `x = ABS(x)`, and neither is `__abs(x)`.** All three give
+  `srawi; xor; subf`. The ternary macro and `__abs` put the result in a new register, and the
+  if-form reuses x's register. RandomInt_Sim and RandomInt_Game matched with the if-form;
+  `__abs` scored 59.
+- **A plain expression macro can beat a `static inline` for a call wrapper.**
+  `bOD_launchFireworks(pos, n)` (getCamera, then maybeFireworks) as a static inline left the
+  count and `&g_Pitcher` in swapped callee-saved registers. As
+  `#define BOD_LAUNCH_FIREWORKS(pos, n) maybeFireworks(pos, &getCamera(0)->eye, n, 1)` it
+  matched. A `do { } while (0)` macro with a local scored lower than the inline.
+- **A struct pointer local for only SOME accesses decides which base register CSE reuses.** In
+  bOD_UpdateBatterAIInputs the target uses the first loop's `&g_Minigame` for the switch's AI fields
+  and a separate base for `rosterID`. `MiniGameStruct* mg = &g_Minigame;` used only for those
+  three fields matched (96.07 -> 100). Using `mg` for more accesses scored 83-89.
+- **Calling the real function fixed a hand copy here, unlike the earlier sweep.** With the `mg`
+  fix in place, bOD_AtBat matched by calling bOD_UpdateBatterAIInputs and minigameClearAIControlled
+  (both auto-inline) instead of the `bOD_AI`/`bOD_clearAIControlled` copies. The duplicate-body
+  sweep had measured the call form lower (96.2 -> 93.5) before the `mg` fix. Re-measure a "copy
+  beats call" result after other fixes.
+- **A constant-initialised array that the target stores in ascending order, with the bound
+  shared with `mtctr`, is a loop.** `for (i = 0; i < 4; i++) slots[i] = i + 1;` (unrolled by
+  MWCC) matched practiceRelated. Four explicit stores scored 96.3 in either order.
+- **Declaring a block-scoped pointer at function scope moves it to another callee-saved
+  register.** freeFieldingPracticeLoadCharacters matched with `MinigameSelectSlot* slots`
+  declared first at function scope and assigned inside the branch.
+- **`a = b = const` shares the constant's register with the loop counter.** In
+  setupBallTrailEffect the target stores the display-list byte from the same `li r5,1` that
+  starts `i`. `dl[6] = i = 1;` reproduced it. `i = 1; ... dl[6] = i;` did not, because MWCC
+  propagates the constant back in.
+- **A store of `-1` from a register shared with `s8` stores means the field is `s8`.**
+  bobomb_derby's `minigamePlayerSelectedOrder` is `u8` in the header, but every user casts it to
+  `s8` and the target stores it from the shared `li -1`. Retyping it gave the right sharing but
+  moved every volatile register (98.18 -> 95.60), so it was reverted. Logged in the checkpoint.
+- **Still stuck:** pure colour swaps with the instructions already right. These are
+  bOD_PrepareNextBatter (a `TRUE` constant and the `&g_Minigame` temp numbered the other way
+  round), freeFieldingPracticeSwitcher (a `team * 0x50` schedule), rotate2DByAngle (f4/f5 between
+  the sin result and the inlined sqrt argument), RandomInt_Game_Range/RandomF32_Sim_Range
+  (inlined RNG argument copy) and fn_3_67EF0 (parameter copies r15-r21 vs r23-r29). Each
+  function's checkpoint lists what was tried.

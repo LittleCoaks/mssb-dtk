@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "game/math/game_math.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -26,7 +27,9 @@ static inline int randomIntGameInline(int max) {
     }
 
     ret = g_Ball.StaticRandomInt1 % absmax;
-    ret = ABS(ret);
+    if (ret < 0) {
+        ret = -ret;
+    }
     if (max < 0) {
         return -ret;
     } else {
@@ -36,7 +39,7 @@ static inline int randomIntGameInline(int max) {
 
 static inline int randomIntSimInline(int max) {
     int absMax;
-    int ret, r2;
+    int ret;
     absMax = ABS(max);
 
     if (absMax <= 1) {
@@ -46,12 +49,14 @@ static inline int randomIntSimInline(int max) {
                                 (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
                                 ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / absMax);
     ret = g_UnkSimulation_31AC0._00 % (u32)absMax;
-    r2 = ABS(ret);
+    if (ret < 0) {
+        ret = -ret;
+    }
 
     if (max < 0) {
-        return -r2;
+        return -ret;
     } else {
-        return r2;
+        return ret;
     }
 }
 
@@ -270,18 +275,7 @@ f32 fn_3_9FAA4(f32 x, f32 y) {
 
 // .text:0x0009F9C8 size:0xDC mapped:0x806DEA5C
 void getComponentsFromSAng(s16 ang, f32* x, f32* y) {
-    f32 v;
-    if (ang < 0) {
-        ang += SANG_ANG_360;
-    }
-    if (ang >= SANG_ANG_360) {
-        ang -= SANG_ANG_360;
-    }
-    v = (ang * 2) * PI / (f32)SANG_ANG_360;
-    if (v > PI) {
-        v = -(TAU - v);
-    }
-    getComponentsFromRad(v, x, y);
+    getComponentsFromRad(shortAngleToRad_Capped(ang), x, y);
 }
 
 // .text:0x0009F964 size:0x64 mapped:0x806DE9F8
@@ -331,10 +325,6 @@ bool calculateLineIntersection(VecXZ* out, VecXZ* a, VecXZ* b) {
 
 // .text:0x0009EFD0 size:0x5E8 mapped:0x806DE064
 f32 calculateBallInterceptDistance(VecXYZ* l_start, VecXYZ* l_end, VecXYZ* point, VecXYZ* outClosest) {
-    // r6 = r31
-    // r5 = r30
-    // r4 = r29
-    // r3 = r28
     VecXYZ ab;
     VecXYZ bp;
     VecXYZ proj;
@@ -417,7 +407,9 @@ int RandomInt_Game(int max) {
     }
 
     ret = g_Ball.StaticRandomInt1 % max;
-    ret = ABS(ret);
+    if (ret < 0) {
+        ret = -ret;
+    }
     if (orig < 0) {
         return -ret;
     } else {
@@ -427,7 +419,7 @@ int RandomInt_Game(int max) {
 
 // .text:0x0009EE24 size:0x94 mapped:0x806DDEB8
 int RandomInt_Sim(int max) {
-    int ret, r2;
+    int ret;
     int orig = max;
     if (max < 0) {
         max = -max;
@@ -440,12 +432,14 @@ int RandomInt_Sim(int max) {
                                 (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1) - g_Ball.StaticRandomInt1 +
                                 ((u8)g_Ball.StaticRandomInt2) + (g_UnkSimulation_31AC0._00 / max);
     ret = g_UnkSimulation_31AC0._00 % (u32)max;
-    r2 = ABS(ret);
+    if (ret < 0) {
+        ret = -ret;
+    }
 
     if (orig < 0) {
-        return -r2;
+        return -ret;
     } else {
-        return r2;
+        return ret;
     }
 }
 
