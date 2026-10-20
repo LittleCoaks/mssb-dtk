@@ -587,18 +587,24 @@ void fn_3_53E0(const u16* encoded, s16* column, s16* row, s16* width, s16* heigh
 void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
                   GXColor foreground, GXColor background, u8 outline) {
     u16** digits = screenTextArray.textBanks[0]->strings;
-    int count;
+    s16 count;
     s16 width;
     s16 cursor;
     int drawn;
+    s16 remaining;
     if (value > 99) {
         value = 99;
     }
     count = value >= 10 ? 2 : 1;
-    if (outline != 0 && value != 0) {
-        count++;
+    if (outline != 0) {
+        if (value != 0) {
+            count++;
+        } else {
+            count = 1;
+        }
     }
-    width = digitSlots < count ? digitSlots * 16 / count : 16;
+    width = count > digitSlots ? digitSlots * 16 / count : 16;
+    remaining = value;
     cursor = x + digitSlots * 16 - width;
     if (outline != 0) {
         volatile f32* fifo = (volatile f32*)0xCC008000;
@@ -618,12 +624,12 @@ void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
         *fifo = cursor + width; *fifo = y; *fifo = -0.5f;
         *fifo = cursor + width; *fifo = y + 18; *fifo = -0.5f;
         *fifo = cursor; *fifo = y + 18; *fifo = -0.5f;
-        GXSetLineWidth(18, 0);
+        GXSetLineWidth(6, 0);
         cursor -= width;
         count--;
     }
     for (drawn = 0; drawn < count; drawn++) {
-        u16 glyph = *digits[value % 10];
+        u16 glyph = *digits[remaining % 10];
         if ((glyph & STADIUM_ATLAS_SKIP_FLAG) == 0) {
             s16 column, row, cellWidth, cellHeight, page;
             fn_3_53E0(&glyph, &column, &row, &cellWidth, &cellHeight, &page);
@@ -632,7 +638,7 @@ void fn_3_4F90(GXTexObj* texture, s16 x, s16 y, s16 value, u8 digitSlots,
                          foreground, background, 0);
         }
         cursor -= width;
-        value /= 10;
+        remaining /= 10;
     }
 }
 
