@@ -2145,6 +2145,11 @@ typedef struct _MiniGameStruct {
             /*0x1DD1*/ u8 bB_aiSwingChosenInd;
             /*0x1DD2*/ s8 bB_aiPrefersFewestBarrelsInd;
         };
+        struct {
+            /*0x1DCC*/ s16 bOD_aiChargeStartFrame; // AI starts holding A once the windup countdown reaches this
+            /*0x1DCE*/ s16 bOD_aiReleaseLeadFrames; // AI releases A this many frames before the pitch becomes unhittable
+            /*0x1DD0*/ E(u8, BOOL) bOD_aiDecidedInd; // bOD_BatterAI already ran for this pitch
+        };
         ChainChompSprintAI ccsAI[4];
     };
     /*0x1DEC*/ f32 _1DEC;
