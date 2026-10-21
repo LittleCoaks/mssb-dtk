@@ -19,7 +19,7 @@ extern u8* menuControlVariables;
 extern E(s8, CHAR_ID) lbl_2_data_3CE0[0x8];
 extern u8 lbl_2_bss_F468[0xC4C];
 extern u8 lbl_2_bss_100B4;
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCD8[0x8];
 extern int menuCursors[0x16];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 superstarUnlocked[0x130];
@@ -139,7 +139,7 @@ void stadiumSelectControls(u8 idx) {
 
     flag = 0;
 
-    if (lbl_803CBCD0[8] != 0) {
+    if (lbl_803CBCD8[0] != 0) {
         cur = menuCursors[0x11];
 
         do {
@@ -151,7 +151,7 @@ void stadiumSelectControls(u8 idx) {
         } while (cur == r);
 
         menuCursors[0x11] = r;
-        lbl_803CBCD0[9] = lbl_803CBCD0[9] - 1;
+        lbl_803CBCD8[1] = lbl_803CBCD8[1] - 1;
         updateCharacterSelectProcessCode(0, 0x28);
         return;
     }
@@ -203,8 +203,8 @@ void stadiumSelectControls(u8 idx) {
         }
     } else if (input1 & 0x20) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            lbl_803CBCD0[8] = 1;
-            lbl_803CBCD0[9] = 6;
+            lbl_803CBCD8[0] = 1;
+            lbl_803CBCD8[1] = 6;
         }
     } else if (input1 & 0x100) {
         if (menuCursors[0x11] < 6) {
@@ -221,7 +221,7 @@ void stadiumSelectControls(u8 idx) {
             }
         }
     } else if (input1 & 0x200) {
-        if (lbl_803CBCD0[8] == 0 && gameSetUpStep[0x5D] == 0) {
+        if (lbl_803CBCD8[0] == 0 && gameSetUpStep[0x5D] == 0) {
             bPressOnStadSelectScreen();
             cursorSndFx(0x200);
             *(u16*)(menuControlVariables + 6) = 0xC;
@@ -302,7 +302,7 @@ void selectStadiumScreen(void) {
         break;
 
     case 3:
-        ss = &lbl_803CBCD0[8];
+        ss = lbl_803CBCD8;
         if (ss[4] == 0 && gameSetUpStep[0x5D] == 0) {
             gameSetUpStep[0] = 3;
             *(u16*)(menuControlVariables + 4) = 0xB;
@@ -401,7 +401,7 @@ void selectStadiumScreen(void) {
 
         case 3:
             loadDemoMatch(0xC, 1, 1);
-            ss = &lbl_803CBCD0[8];
+            ss = lbl_803CBCD8;
             ss[4] = 1;
             unregisterObjectByID(0xF);
             unregisterObjectByID(0x12);
@@ -428,7 +428,7 @@ void selectStadiumScreen(void) {
 
     case 11:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            ss = &lbl_803CBCD0[8];
+            ss = lbl_803CBCD8;
 
             if (ss[4] != 0) {
                 break;
@@ -463,7 +463,7 @@ void selectStadiumScreen(void) {
                 changeScreenVariables(4);
             }
         } else if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            ss = &lbl_803CBCD0[8];
+            ss = lbl_803CBCD8;
             ss[4] = 0;
             lbl_2_bss_F468[0x58] = 0;
             changeScreenVariables(0xD);

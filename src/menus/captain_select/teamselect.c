@@ -46,7 +46,7 @@ void fn_8004EEF4(s32 port0, s32 port1, s32 port2, s32 port3, s32 active);
 void add_or_RemoveCharToATeam(s32 port, s32 characterID, s32 add);
 extern u8 menuNumber[0x28];
 extern u8 cardCheck[0x5C];
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCD8[0x8];
 extern u8 lbl_803CBD24[0xC];
 extern u8 hugeAnimStruct[0x3154];
 void fn_2_738C8(void);
@@ -118,7 +118,7 @@ void captainSelectScreen_manager(void) {
                 break;
             }
             lbl_2_bss_100B4 = TRUE;
-            lbl_803CBCD0[0xD] = 1;
+            lbl_803CBCD8[5] = 1;
             Static_Stats_Tables._48AF[2] = 1;
             changeScene(3, 6);
         }
@@ -242,7 +242,7 @@ void captainSelectScreen_manager(void) {
                 menuNumber[0x26] = 1;
             }
             Static_Stats_Tables._48AF[2] = 1;
-            lbl_803CBCD0[0xD] = 1;
+            lbl_803CBCD8[5] = 1;
             fn_800AD038(Static_Stats_Tables._46E8[0]);
             changeScreenVariables(12);
         } else {

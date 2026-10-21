@@ -75,7 +75,7 @@ typedef struct {
 extern gameSetUpStruct_t gameSetUpStep;
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_803CBBC2[0xA];
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCD8[0x8];
 extern u8 lbl_2_bss_F468[0xC4C];
 extern u8 lbl_2_bss_100B4;
 
@@ -686,7 +686,7 @@ void captainSelect_BPress(int idx) {
             updateCharacterSelectProcessCode(0, 2);
             updateCharacterSelectProcessCode(1, 2);
         }
-        lbl_803CBCD0[0xA] = 0x14;
+        lbl_803CBCD8[2] = 0x14;
     }
 
     lbl_2_bss_F468[0x46] = 0;

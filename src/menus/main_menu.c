@@ -21,7 +21,7 @@ extern u8 lineUpInfoStruct[0x48];
 extern s16 lbl_2_data_E64[18];
 extern s16 lbl_2_data_E88[18];
 extern u8 lbl_2_bss_20[0x380];
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCE0[0x8];
 extern u8 cardCheck[0x5C];
 extern u8 audioFileDescriptors[0x39C];
 extern u8 lbl_2_data_180[0x4A4];
@@ -539,7 +539,7 @@ void mainMenuRelated(void) {
         break;
 
     case 6:
-        lbl_803CBCD0[0x10] = 0;
+        lbl_803CBCE0[0] = 0;
         ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
         fn_80062A74();
         fn_80035B50(0xF);
@@ -554,7 +554,7 @@ void mainMenuRelated(void) {
     case 7:
         ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
         changeScreenVariables(1);
-        lbl_803CBCD0[0x10] = 0;
+        lbl_803CBCE0[0] = 0;
         ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
         break;
 
@@ -725,7 +725,7 @@ void mainMenuScreen(void) {
 
     case 9:
         if (((u8 *)&Static_Stats_Tables)[0x48B4] != 0) {
-            if (lbl_803CBCD0[0x10] == 0) {
+            if (lbl_803CBCE0[0] == 0) {
                 startMemoryCardCheck();
             }
             lbl_2_bss_20[0]++;
@@ -735,10 +735,10 @@ void mainMenuScreen(void) {
         break;
 
     case 10:
-        if (lbl_803CBCD0[0x10] == 0) {
+        if (lbl_803CBCE0[0] == 0) {
             k = *(s16 *)(currentDrawingItem + 0x10);
             if (k == 1 || k == 0xB) {
-                lbl_803CBCD0[0x10] = 1;
+                lbl_803CBCE0[0] = 1;
                 superstarUnlocked[0xDE] = 1;
                 superstarUnlocked[0xDF] = 1;
                 superstarUnlocked[0xE0] = 1;
