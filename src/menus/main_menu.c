@@ -725,28 +725,20 @@ void fn_2_1BAC(void) {
 // .text:0x00001A88 size:0x124 mapped:0x80640B1C
 void fn_2_1A88(void) {
     s8 *ports = (s8 *)&AtBat_ButtonInput1;
-    u8 *tbl = (u8 *)&Static_Stats_Tables;
+    int i;
     int n;
 
     Static_Stats_Tables.playerNumberByPort[0] = 0;
     n = 1;
 
-    if (ports[0x28] != -1) {
-        Static_Stats_Tables.playerNumberByPort[1] = 1;
-        n = 2;
-    }
-    if (ports[0x48] != -1) {
-        Static_Stats_Tables.playerNumberByPort[n] = 2;
-        n++;
-    }
-    if (ports[0x68] != -1) {
-        Static_Stats_Tables.playerNumberByPort[n] = 3;
-        n++;
+    for (i = 1; i < 4; i++) {
+        if (ports[i * 0x20 + 8] != -1) {
+            Static_Stats_Tables.playerNumberByPort[n++] = i;
+        }
     }
 
     while (n < 4) {
-        ((s8 *)tbl)[n + 0x46F8] = -1;
-        n++;
+        Static_Stats_Tables.playerNumberByPort[n++] = -1;
     }
 }
 
