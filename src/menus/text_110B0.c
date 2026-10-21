@@ -577,17 +577,15 @@ void fn_2_1216C(void) {
     memset(buf, 2, 4);
 
     if (g_d_GameSettings.p2_CPU_match_code == 0) {
-        s8 p = (s8)Static_Stats_Tables.playerNumberByPort[0];
-
-        buf[p] = 1;
-        if ((s8)Static_Stats_Tables.playerNumberByPort[0] == 0) {
+        buf[Static_Stats_Tables.playerNumberByPort[0]] = 1;
+        if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
             buf[1] = 2;
         } else {
             buf[0] = 2;
         }
     } else {
-        buf[(s8)Static_Stats_Tables.playerNumberByPort[1]] = 1;
-        buf[(s8)Static_Stats_Tables.playerNumberByPort[0]] = 1;
+        buf[Static_Stats_Tables.playerNumberByPort[1]] = 1;
+        buf[Static_Stats_Tables.playerNumberByPort[0]] = 1;
     }
 
     fn_8004EEF4(buf[0], buf[1], buf[2], buf[3], 1);
