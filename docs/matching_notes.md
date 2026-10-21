@@ -4046,3 +4046,51 @@ neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,mai
 - **Still stuck (colouring only):** stadiumSelectControls 93.66 (the target keeps the spin flag
   in r0 for the whole function), loadDemoMatch 97.14, fn_2_2D1C 96.63, mainMenuScreen 99.72 and
   teamSelectScreenMain 99.83 (jump table at `0xFDC` in the css TU's data, plus one register).
+
+## captain_select pass findings
+
+Second pass on `src/menus/captain_select/captain_select.c` (.text 96.23 -> 98.77, .data now owned
+and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are still short. Checkpoint:
+`build/.match_grind/menus_menus_captain_select_captain_select.md`.
+
+- **A pooled `base + 0x418` into another symbol means the unit owns that `.data`.** fn_2_16460 read
+  three camera vectors as `lbl_2_data_19E8 + 0x418/0x424/0x430` (first field folded, the others
+  through `addi`), i.e. three `static Vec`s pooled off the unit's first `.data` object. Giving the unit
+  `.data 0x19E8-0x1E24` in splits.txt, defining the data in C and splitting the gap-sized
+  `lbl_2_data_19E8`/`lbl_2_data_1DD4` matched it. Objects the target references by name
+  (`lbl_2_data_1DD4`, `lbl_2_data_20EC`) are globals; only statics are pooled.
+- **The debug-menu text table is 0x2C4 bytes and opens every TU's `.data` in this block** ("BAT FIRST",
+  "BAT LAST", ..., "COM4>", a colour table and three small index tables). captain_select defines it as
+  `DebugMenuText` with string initialisers; the copy at 0x1E28 starts the next TU. It most likely comes
+  from a shared header, so it can move into one once a second unit owns its copy.
+- **Value numbering distinguishes `int` from `u32`/`s32` even for the same bits.** In BPress the target
+  keeps `c` (the slot) in a callee-saved register for indexing, but re-derives `clrlwi r3, rIdx, 24`
+  from the parameter at each call that takes the slot. `int c = (u8)idx` made MWCC reuse `c` there.
+  Declaring the callee's parameter `u32` (fn_2_16A74) or writing the argument as `idx & 0xFF`
+  stops the reuse (94.0 -> 96.4). `u32 c`/`s32 c` themselves turned the slot loads into `lbzu` walks.
+- **`slwi` on a slot index means a 32-bit variable known to be zero-extended; `clrlslwi` means a
+  `u8` variable.** `u8 slot`/`u8 c` locals re-extend at every word index. `int slot = ...` (handleInputs),
+  `u32 c = (u8)idx` (APress, which also needs `cmplwi`) or a `(u8)` cast at the use site
+  (`menuCursors[4 + (u8)gameSetUpStep.portCaptainSlot[port]]`, screenInputs) reproduce the target.
+- **Arguments in `r4`/`r5` that the source never sets are a missing parameter.** APress's target
+  loaded `charID` into `r4` and `li r5, 1` before `bl fn_8004D4F0`; the DOL body compares `r4`
+  against `challengeCaptainCharIDArray` and branches on `r5`. It is the challenge-mode team
+  add/remove `(team, charID, add)`, not a one-argument call (behaviour fix).
+- **`stopShowingCaptainProfile` takes the port's captain slot.** captainSelectScreenInputs passed
+  the port; the target passes the `portCaptainSlot[port]` load it already CSE'd (behaviour fix).
+- **Dropping single-use temporaries fixed most of APress** (94.5 -> 99.7): the two
+  `mapCaptainCursorPositionToCharID[...]` reads written into the stores directly, and the challenge
+  lookup written `(&table[sup * 6])[cursor]` to get the target's add order.
+- **`u8 a = port;` for the two animation calls, with the index written `(u8)port`** matched
+  fn_2_14BB8 (the cast CSEs with `a` and gives the target's `mr` copies). A `static inline` with a `u8`
+  parameter changed nothing.
+- **An `f32` temp updated in place reproduces `fadd` -> `frsp` reusing one register:**
+  `f32 t = 320.0f + v; t -= 0.1; return t - 320.0f;` (fn_2_14574).
+- **Including `UnknownHomes_Game.h` in a menu unit needs `#define SQRT2_LINKAGE static` first**, or
+  the `dolsqrtf2` statics shift `.rodata` (100 -> 95.8).
+- **The wait loop in checkForNewPlayer is an inlined `loadNewCaptainModelOnCapSelectScreen`.**
+  `while (!loadNewCaptain...(menuCursors[5], prev, 1, 1)) prev = menuCursors[5];` replaces a
+  goto-into-do-while at the same score.
+- **Still stuck:** checkForNewPlayer 94.35 (the target issues two global byte stores before an
+  unrelated `menuCursors` load that ours hoists above them; 11 forms logged), BPress 96.38,
+  handleInputs 99.48 (`bne next; beq L` for a `goto`), APress 99.74 (a two-register colour swap).
