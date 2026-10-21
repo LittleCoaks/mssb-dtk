@@ -89,7 +89,7 @@ void challengeCaptainRelated(void);
 
 void fn_2_14220(controllerInputStruct *input);
 
-void fn_8004D4F0(int captainIdx);
+void fn_8004D4F0(int team, int charID, BOOL add);
 
 
 void fn_80052D70(void);
@@ -549,7 +549,7 @@ void fn_2_15A90(int *value, u8 port, int max) {
 void captainSelect_APress(int idx) {
     int charID;
     int val;
-    u8 c;
+    u32 c;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (lbl_2_bss_100B8[0x1C] != 0 || lbl_2_bss_100B8[0x42] != 0) {
@@ -560,7 +560,7 @@ void captainSelect_APress(int idx) {
         lbl_2_bss_100B8[0x10] = 1;
         Static_Stats_Tables.captainSelectedID[0] = charID;
         lbl_2_bss_100B8[0x12] = 1;
-        fn_8004D4F0(Static_Stats_Tables.playerNumberByPort[0]);
+        fn_8004D4F0(Static_Stats_Tables.playerNumberByPort[0], charID, TRUE);
         AnimateCharacter(0, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(0, 0x6B, 1, 1, 0, 0, -1);
         lbl_2_bss_100B8[0x40] = 0;
@@ -568,7 +568,7 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    c = idx;
+    c = (u8)idx;
 
     if (lbl_2_bss_100B8[0x1C + c] != 0 || lbl_2_bss_100B8[0x42 + c] != 0) {
         return;
@@ -911,13 +911,7 @@ void checkForNewPlayer(void) {
 
     newPlayerPort = -1;
 
-    if (lbl_2_bss_100B8[0x19] == 0) {
-        return;
-    }
-    if (lbl_2_bss_100B8[0x1a] != 0) {
-        return;
-    }
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+    if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1a] != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         return;
     }
     if (gameSetUpStep.unk0E == 1) {
@@ -967,9 +961,9 @@ void checkForNewPlayer(void) {
     charSelectStruct[0x74 + Static_Stats_Tables.playerNumberByPort[1]] = 0;
     updateCharacterSelectProcessCode(1, 1);
 
-    charSelectStruct[0x80] = -1;
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
     aiPosSwapInputs.unkCF5D[1] = 0;
+    charSelectStruct[0x80] = -1;
     if (menuCursors[4] == 0) {
         menuCursors[5] = 1;
     } else {
@@ -998,22 +992,9 @@ void checkForNewPlayer(void) {
     }
 
     prevID = -1;
-    goto checkForNewPlayer_loopTest;
-    do {
+    while (!loadNewCaptainModelOnCapSelectScreen(menuCursors[5], prevID, 1, 1)) {
         prevID = menuCursors[5];
-checkForNewPlayer_loopTest:
-        if (prevID != menuCursors[5]) {
-            lbl_2_bss_100B8[0x1D] = 1;
-        } else if (lbl_2_bss_100B8[0x1D] != 0) {
-            int t = lbl_2_bss_100B8[0x1D] + 1;
-            lbl_2_bss_100B8[0x1D] = t;
-            if ((u8)t >= 0xF) {
-                lbl_2_bss_100B8[0x15] = 1;
-                lbl_2_bss_100B8[0x1D] = 0;
-                set807518de(1, 1);
-            }
-        }
-    } while (lbl_2_bss_100B8[0x1D] != 0);
+    }
 
     Static_Stats_Tables.unk4704 = 0;
     if (lbl_2_bss_F468[0x46] != 0) {
