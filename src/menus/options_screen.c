@@ -2,6 +2,7 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_menus_options_screen
 #include "header_rep_data.h"
+#include "menus/debug_menu_text.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/UnknownHomes_Game.h"
 #include "musyx/musyx.h"
@@ -43,6 +44,25 @@ enum {
     OPTIONS_ITEM_MUSIC = 0,
     OPTIONS_ITEM_SOUND_MODE = 1,
     OPTIONS_ITEM_RUMBLE = 2,
+};
+
+DebugMenuText lbl_2_data_2798 = {
+    { "BAT FIRST", "BAT LAST" },
+    "FL",
+    "PC",
+    { "RR", "RL", "LR", "LL" },
+    { "OFF", "ON" },
+    { "SELECT DEBUG MENU", "HIDE CHARA SET", "STAR PLAYER SET", "KOOPA STA FLAG SET", "CHALLE LEVEL FREE SET" },
+    { "1P >", "COM1>", "2P >", "COM2>", "3P >", "COM3>", "4P >", "COM4>" },
+    { 0x0000FF0F, 0x0000880F, 0x00000FFF, 0x0000088F, 0x0000F0FF, 0x0000808F, 0x0000F00F, 0x0000800F },
+    { 0, 4, 10, 6, 2, 9, 1, 5, 11, 17, 3, 19 },
+    { 0, 2, 6, 8, 4, 10, 1, 3, 7, 5, 9, 11 },
+    { 0, 0, 6, 2, 8, 4, 10, 5, 11, 3, 9, 1, 7, 0, 0, 0 },
+};
+
+/* Unreferenced debug labels for the three options and their values. */
+char lbl_2_data_2A5C[8][0x20] = {
+    "MUSIC", "SOUND", "VIBRATION", "MONAURAL", "STEREO", "SURROUND", "ON", "OFF",
 };
 
 extern OptionsState lbl_2_bss_1033C;

@@ -69,11 +69,12 @@ menus/captain_select/captain_select.c:
 menus/captain_select/captain_model_load.c:
 	.text       start:0x00016A98 end:0x000194BC
 	.rodata     start:0x00000568 end:0x000005F0
+	.data       start:0x00001E28 end:0x00002798
 
 menus/options_screen.c:
 	.text       start:0x000194BC end:0x00019F2C
 	.rodata     start:0x000005F0 end:0x00000640
-	.data       start:0x00002B5C end:0x00002B78
+	.data       start:0x00002798 end:0x00002B78
 
 menus/settings_reset.c:
 	.text       start:0x00019F2C end:0x0001A1B4
