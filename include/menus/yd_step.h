@@ -19,7 +19,6 @@ void fn_2_119C(void);
 void changeScreenVariables(u16 screen);
 
 /* stadium-select cursor -> STADIUM_ID (menus .data 0x130C) */
-extern u8 cursorToStadIDMapping[0x288];
 void currentScreenFunctionChooser(void);
 void removedStep(void);
 

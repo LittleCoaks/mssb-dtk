@@ -41,9 +41,6 @@ menus/rep_0318.c:
 menus/rep_0398.c:
 	.rodata     start:0x00000398 end:0x000003E8
 
-menus/rep_03E8.c:
-	.rodata     start:0x000003E8 end:0x00000438
-
 menus/text_01254.c:
 	.text       start:0x00001254 end:0x00001578
 
@@ -52,11 +49,12 @@ menus/main_menu.c:
 	.data       start:0x00000624 end:0x0000071C
 
 menus/text_0323C.c:
-	.text       start:0x0000323C end:0x000110B0
+	.text       start:0x0000323C end:0x000112F4
 
-menus/text_110B0.c:
-	.text       start:0x000110B0 end:0x00012238
-	.data       start:0x00001594 end:0x000015C8
+menus/stadium_select.c:
+	.text       start:0x000112F4 end:0x00012238
+	.rodata     start:0x000003E8 end:0x00000438
+	.data       start:0x00001000 end:0x000015C8
 
 menus/captain_select/teamselect.c:
 	.text       start:0x00012238 end:0x00013BA4
