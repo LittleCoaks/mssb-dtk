@@ -364,7 +364,7 @@ void exhibitionGameTransitionCalculations(void) {
     case 8:
         if (g_GameLogic.FrameCountOfCurrentPitch >= 0xF0) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO ||
-                g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
+                g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_CPU_VS_CPU) {
                 g_GameLogic._125 = 9;
             } else if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 9;

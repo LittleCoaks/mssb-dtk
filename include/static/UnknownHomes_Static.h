@@ -8,10 +8,10 @@
 #include "game/challenge/challenge_items.h"
 
 typedef enum _P2_CPU_CODE {
-    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
-    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,
-    /* 2 */ P2_CPU_CODE_UNKNOWN_2,
-    /* 3 */ P2_CPU_CODE_UNKNOWN_3,
+    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,   // team 1 (P2 side) is the CPU
+    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,   // both sides human
+    /* 2 */ P2_CPU_CODE_CPU_VS_CPU,      // both teams AI; transitions auto-advance like the demo
+    /* 3 */ P2_CPU_CODE_CPU_VS_1_PLAYER, // team 0 (P1 side) is the CPU, the human plays team 1
 } P2_CPU_CODE;
 
 typedef struct _GameInitVariables {
