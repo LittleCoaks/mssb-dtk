@@ -1,4 +1,4 @@
-#include "menus/rep_0568.h"
+#include "menus/captain_select/captain_model_load.h"
 #include "menus/captain_select/captain_select.h"
 #include "menus/yd_step.h"
 #include "header_rep_data.h"

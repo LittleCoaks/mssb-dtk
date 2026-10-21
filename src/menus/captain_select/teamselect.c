@@ -3,7 +3,7 @@
 #include "game/challenge/challenge_state.h"
 #include "Unknown/mb_subfunc.h"
 #include "Dolphin/os.h"
-#include "menus/rep_0568.h"
+#include "menus/captain_select/captain_model_load.h"
 #include "Unknown/File_0x800625a4.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x80021410.h"
