@@ -36,6 +36,7 @@
 
 #define CAP_MODEL_COUNT 13
 #define CAP_PORT_COUNT 4
+#define BONE_SLOT_NONE 0xFFFF
 
 typedef struct {
     /* 0x00 */ u32 _00;
@@ -91,7 +92,7 @@ typedef struct {
     /* 0x06A */ u8 _06A[0x162 - 0x6A];
     /* 0x162 */ u16 boneSlots[0x32];
     /* 0x1C6 */ u8 _1C6[0x252 - 0x1C6];
-    /* 0x252 */ s8 charID;
+    /* 0x252 */ E(s8, CHAR_ID) charID;
     /* 0x253 */ u8 _253;
     /* 0x254 */ u8 _254;
     /* 0x255 */ s8 entryIdx;
@@ -135,7 +136,7 @@ typedef struct {
     /* 0x10 */ s16 _10;
     /* 0x12 */ u8 _12[2];
     /* 0x14 */ CapSlot *slot;
-    /* 0x18 */ u8 charIDs[CAP_PORT_COUNT];
+    /* 0x18 */ E(u8, CHAR_ID) charIDs[CAP_PORT_COUNT];
     /* 0x1C */ u8 stage;
     /* 0x1D */ u8 step;
     /* 0x1E */ u8 index;
@@ -173,7 +174,7 @@ typedef struct {
 extern CapGameSetUp gameSetUpStep;
 
 void *getAnimObjectActor(void *obj);
-void fn_800B2C08(void *actor, s32 arg1);
+void fn_800B2C08(void *actor, u16 arg1);
 void fn_800B2BA8(void *actor, u16 boneIdx, s32 arg2, s32 arg3);
 void fn_800126EC(void *buf, void *tex, s32 *arg);
 void fn_80014990(s32 idx, void *file0, void *file1);
@@ -468,6 +469,8 @@ BOOL fn_2_18650(int port) {
 // .text:0x00018398 size:0x2B8 mapped:0x8065742C
 void fn_2_18398(void) {
     CapLoadTask *task = TASK;
+    u8 mode;
+    u8 gameMode;
 
     switch (task->step) {
     case 0: {
@@ -490,8 +493,10 @@ void fn_2_18398(void) {
         STATE[0x27 + task->index] = task->index;
         task->step = 1;
         task->_10 = 0;
-        if (Static_Stats_Tables._4744[0x11] == 0) {
-            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+        mode = Static_Stats_Tables._4744[0x11];
+        gameMode = g_d_GameSettings.GameModeSelected;
+        if (mode == 0) {
+            if (gameMode == GAME_TYPE_CHALLENGE) {
                 task->charIDs[task->index] = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[4 + (u8)task->index]];
             } else {
                 task->charIDs[task->index] = mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)task->index]];
@@ -499,15 +504,17 @@ void fn_2_18398(void) {
             if (task->index == 2) {
                 task->index = 0;
             }
-        } else if (Static_Stats_Tables._4744[0x11] == 1) {
-            switch ((s8)task->index) {
+        } else if (mode == 1) {
+            int idx = task->index;
+
+            switch (idx) {
             case 0:
             case 1:
-                task->charIDs[task->index] = inMemRoster[task->index][menuCursors[12 + task->index] - (task->index * 11 + 2)].stats.CharID;
+                task->charIDs[idx] = inMemRoster[idx][menuCursors[12 + idx] - (idx * 11 + 2)].stats.CharID;
                 break;
             case 2:
             case 3:
-                task->charIDs[task->index] = menuCursors[6 + task->index];
+                task->charIDs[idx] = menuCursors[6 + idx];
                 break;
             }
         }
@@ -548,12 +555,12 @@ void fn_2_18148(CapLoadTask *task) {
         task->loadStep++;
         break;
     case 2:
-        if (lbl_803C6CF8.cancel.bytes[1] == 1) {
+        if (lbl_803C6CF8.cancel.bytes[1] == TRUE) {
             u8 cpuCode;
 
             fn_2_16F78(task->index);
             cpuCode = g_d_GameSettings.p2_CPU_match_code;
-            if (cpuCode == 0 && gameSetUpStep.portCaptainSlot[0] == 0 && task->index == 1) {
+            if (cpuCode == P2_CPU_CODE_1_PLAYER_GAME && gameSetUpStep.portCaptainSlot[0] == 0 && task->index == 1) {
                 hugeAnimStruct.slots[task->index]._25D = 0;
             } else {
                 hugeAnimStruct.slots[task->index]._25D = task->_20 != 0;
@@ -565,9 +572,9 @@ void fn_2_18148(CapLoadTask *task) {
                 fn_2_14BB8(task->index, task->index != 0);
             }
             task->loadStep = 0;
-            ((u8 *)&lbl_2_bss_100B4)[1] = 0;
             STATE[0x32] = 1;
             STATE[0x18] = 1;
+            ((u8 *)&lbl_2_bss_100B4)[1] = 0;
             STATE[0x42 + task->index] = 0;
         }
         break;
@@ -583,7 +590,7 @@ void fn_2_17ED8(void) {
     for (t = 0; t < 12; t++) {
         for (j = 0; j < 9; j++) {
             u32 sz;
-            if (t * 9 + j == 0x35) {
+            if (t * 9 + j == CHAR_ID_MAX) {
                 goto done;
             }
             sz = lbl_2_data_241C[Static_Stats_Tables.characterStats[t][j].stats.CharID].sizeFlags & 0x0FFFFFFF;
@@ -612,7 +619,7 @@ void fn_2_17C88(void) {
     for (t = 0; t < 12; t++) {
         for (j = 0; j < 9; j++) {
             u32 sz;
-            if (t * 9 + j == 0x35) {
+            if (t * 9 + j == CHAR_ID_MAX) {
                 goto done;
             }
             sz = lbl_2_data_241C[Static_Stats_Tables.characterStats[t][j].stats.CharID].sizeFlags & 0x0FFFFFFF;
@@ -650,7 +657,7 @@ void fn_2_17648(void) {
 
     for (t = 0; t < 12; t++) {
         for (j = 0; j < 9; j++) {
-            if (t * 9 + j == 0x35 || j != 0) {
+            if (t * 9 + j == CHAR_ID_MAX || j != 0) {
                 goto done;
             }
             for (k = 0; k < 6; k++) {
@@ -682,7 +689,10 @@ done:
 }
 
 static inline BOOL isSpecialHandChar(s8 id) {
-    return id == 0x12 || id == 0x26 || id == 0x28 || id == 0x29;
+    if (id == CHAR_ID_MONTY || id == CHAR_ID_PETEY || id == CHAR_ID_GOOMBA || id == CHAR_ID_PARAGOOMBA) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 // .text:0x00016F78 size:0x6D0 mapped:0x8065600C
@@ -696,11 +706,17 @@ void fn_2_16F78(u8 idx) {
     void *geo;
     void *skn;
     void *anim;
+    void *bank;
+    void *file13;
+    void *file14;
+    VecXYZ *pos;
+    CapEntry *capEntry;
     int k;
     int handL;
     int handR;
     int bones;
-    u16 id;
+    int id;
+    u16 boneID;
     u8 port;
 
     slot->entryIdx = idx;
@@ -720,25 +736,25 @@ void fn_2_16F78(u8 idx) {
     convertGeometryAndSknHeader(geo, skn);
     haveActLayoutPointToGeoHeader(layout, geo);
     UpdateTexturePalettePointers(geo, tex);
-    anim = (void *)slot->files[4];
-    slot->_10[5] = anim;
+    anim = slot->_10[5] = (void *)slot->files[4];
     ANIMGet(slot->_10[5]);
     entry = getAnimObjectActor(slot);
     characterAndBallDisplayRelated(entry, idx, idx, layout, anim, (int)skn);
 
     e = &hugeAnimStruct.objTable->entries[idx];
-    e->anim = slot->_10[5];
+    bank = slot->_10[5];
+    e->anim = bank;
     e->seqNum = 0;
     e->frame = 0.0f;
     e->animPending = 1;
-    e->framePending = e->speedPending = slot->_10[5] != NULL;
+    e->speedPending = e->framePending = bank != NULL;
     e->blendTime = 0.0f;
-    memset(slot->boneSlots, 0xFF, sizeof(slot->boneSlots));
     bones = hugeAnimStruct.objTable->entries[idx].actor->totalBones;
+    memset(slot->boneSlots, 0xFF, sizeof(slot->boneSlots));
     for (k = 0; k < bones; k++) {
-        id = hugeAnimStruct.objTable->entries[idx].actor->boneArray[k]->boneID;
-        if (id != 0xFFFF) {
-            slot->boneSlots[id] = k;
+        boneID = hugeAnimStruct.objTable->entries[idx].actor->boneArray[k]->boneID;
+        if (boneID != BONE_SLOT_NONE) {
+            slot->boneSlots[boneID] = k;
         }
     }
     fn_800BD548(&hugeAnimStruct.objTable->entries[idx], 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
@@ -750,47 +766,50 @@ void fn_2_16F78(u8 idx) {
     e->speed = 0.5f;
     e->speedPending = 1;
     fn_800B2C08(hugeAnimStruct.objTable->entries[idx].actor,
-                hugeAnimStruct.objects[idx] != NULL ? hugeAnimStruct.objects[idx]->boneSlots[4] : 0xFFFF);
+                hugeAnimStruct.objects[idx] != NULL ? hugeAnimStruct.objects[idx]->boneSlots[4] : BONE_SLOT_NONE);
     initShortsHandleCompressedDiskReads((ShortsTableOwner *)hugeAnimStruct.objects[idx]);
-    slot->_34 = lbl_2_data_20F8[idx][0];
-    slot->_38 = lbl_2_data_20F8[idx][1];
-    slot->_3C = lbl_2_data_20F8[idx][2];
+    pos = (VecXYZ *)lbl_2_data_20F8[idx];
+    slot->_34 = pos->x;
+    slot->_38 = pos->y;
+    slot->_3C = pos->z;
     slot->_4C = 0.5f;
     slot->_25D = 0;
-    hugeAnimStruct.objTable->entries[idx].callback = (void (*)(void))fn_2_190B8;
+    *(void (**)(void))((u8 *)hugeAnimStruct.objTable + (idx * 0x90 + 0x3C)) = (void (*)(void))fn_2_190B8;
     slot->actor = entry->actor;
     callDSInsertListObject((UnkB2B4C *)entry->actor, slot->boneSlots[19]);
     callDSInsertListObject((UnkB2B4C *)entry->actor, slot->boneSlots[25]);
 
-    if (slot->boneSlots[3] != 0xFFFF) {
-        fn_800B2B54(slot->actor, slot->boneSlots[3], 13);
+    id = slot->boneSlots[3];
+    if (id != BONE_SLOT_NONE) {
+        fn_800B2B54(slot->actor, id, 13);
     }
     id = slot->boneSlots[3];
-    if (id != 0xFFFF) {
+    if (id != BONE_SLOT_NONE) {
         fn_800B2BA8(entry->actor, id, 0, 0);
-        *((u8 *)entry->actor->boneArray[id] + 0x136) = 1;
+        *((u8 *)entry->actor->boneArray[(u16)id] + 0x136) = 1;
     }
     id = slot->boneSlots[2];
-    if (id != 0xFFFF) {
+    if (id != BONE_SLOT_NONE) {
         fn_800B2BA8(entry->actor, id, 0, 0);
-        *((u8 *)entry->actor->boneArray[id] + 0x136) = 1;
+        *((u8 *)entry->actor->boneArray[(u16)id] + 0x136) = 1;
     }
     id = slot->boneSlots[1];
-    if (id != 0xFFFF) {
+    if (id != BONE_SLOT_NONE) {
         fn_800B2BA8(entry->actor, id, 0, 0);
-        *((u8 *)entry->actor->boneArray[id] + 0x136) = 1;
+        *((u8 *)entry->actor->boneArray[(u16)id] + 0x136) = 1;
     }
-    if (slot->boneSlots[36] != 0xFFFF) {
-        fn_800B2BA8(entry->actor, slot->boneSlots[36], 0, 0);
+    id = slot->boneSlots[36];
+    if (id != BONE_SLOT_NONE) {
+        fn_800B2BA8(entry->actor, id, 0, 0);
     }
     id = slot->boneSlots[46];
-    if (id != 0xFFFF) {
+    if (id != BONE_SLOT_NONE) {
         fn_800B2BA8(entry->actor, id, 0, 0);
-        *((u8 *)entry->actor->boneArray[id] + 0x136) = 1;
+        *((u8 *)entry->actor->boneArray[(u16)id] + 0x136) = 1;
     }
 
+    capEntry = &hugeAnimStruct.entries[slot->entryIdx];
     if (slot->files[5] != 0) {
-        CapEntry *capEntry = &hugeAnimStruct.entries[slot->entryIdx];
         slot->entry = &hugeAnimStruct.entries[idx];
         capEntry->bufs[0].buffer = slot->files;
         fn_800126EC(capEntry, tex, &lbl_2_data_278C[0]);
@@ -800,16 +819,16 @@ void fn_2_16F78(u8 idx) {
 
     if (isSpecialHandChar(slot->charID)) {
         switch (slot->charID) {
-        case 0x12:
+        case CHAR_ID_MONTY:
             handL = 4;
             handR = 5;
             break;
-        case 0x26:
+        case CHAR_ID_PETEY:
             handL = 2;
             handR = 3;
             break;
-        case 0x28:
-        case 0x29:
+        case CHAR_ID_GOOMBA:
+        case CHAR_ID_PARAGOOMBA:
             handL = 6;
             handR = 7;
             break;
@@ -821,19 +840,23 @@ void fn_2_16F78(u8 idx) {
     port = idx;
     setHandModelAttached(port, handL, TRUE);
     setHandModelAttached(port, handR, TRUE);
-    if (slot->files[13] != 0 && slot->files[14] != 0) {
-        adjustInternalPointers((void *)slot->files[13]);
-        fn_80014990(port, (void *)slot->files[13], (void *)slot->files[14]);
-        ACTActorRelated((void *)slot->files[13], entry);
+    file13 = (void *)slot->files[13];
+    if (file13 != NULL) {
+        file14 = (void *)slot->files[14];
+        if (file14 != NULL) {
+            adjustInternalPointers(file13);
+            fn_80014990(port, file13, file14);
+            ACTActorRelated(file13, entry);
+        }
     }
     slot->entry->_CC = 1;
-    slot->entry->bufs[0].scale = 0.5f;
     slot->entry->bufs[1].scale = 0.5f;
+    slot->entry->bufs[0].scale = 0.5f;
     switch (slot->charID) {
-    case 2:
+    case CHAR_ID_DK:
         fn_800638B4(slot, entry);
         break;
-    case 0x13:
+    case CHAR_ID_BOWSERJR:
         slot->_25C = 1;
         fn_8004B7B4(slot, entry);
         break;
@@ -844,14 +867,13 @@ void fn_2_16F78(u8 idx) {
 // .text:0x00016F0C size:0x6C mapped:0x80655FA0
 void fn_2_16F0C(u8 idx) {
     CapSlot *slot = &hugeAnimStruct.slots[idx];
-    s8 *p = &hugeAnimStruct.entries[idx]._D0;
     u8 a = hugeAnimStruct.slots[idx].charID;
     u8 b = hugeAnimStruct.slots[idx]._254;
 
-    if (*p == -1) {
+    if (hugeAnimStruct.entries[idx]._D0 == -1) {
         hugeAnimStruct.entries[idx]._CF = a;
-        hugeAnimStruct.entries[idx]._D1 = *p;
-        *p = b;
+        hugeAnimStruct.entries[idx]._D1 = hugeAnimStruct.entries[idx]._D0;
+        hugeAnimStruct.entries[idx]._D0 = b;
         hugeAnimStruct.entries[idx]._CD = slot->_265;
     }
     slot->entry = &hugeAnimStruct.entries[idx];
@@ -918,10 +940,10 @@ void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, 
         }
         if (obj->_26C == 0) {
             fn_800B2B54(obj->actor,
-                        hugeAnimStruct.objects[idx] != NULL ? hugeAnimStruct.objects[idx]->boneSlots[4] : 0xFFFF, 13);
+                        hugeAnimStruct.objects[idx] != NULL ? hugeAnimStruct.objects[idx]->boneSlots[4] : BONE_SLOT_NONE, 13);
         } else {
             fn_800B2B54(obj->actor,
-                        hugeAnimStruct.objects[idx] != NULL ? hugeAnimStruct.objects[idx]->boneSlots[4] : 0xFFFF, 1);
+                        hugeAnimStruct.objects[idx] != NULL ? hugeAnimStruct.objects[idx]->boneSlots[4] : BONE_SLOT_NONE, 1);
         }
         if (anim < 3) {
             boneKind = 5;
