@@ -321,6 +321,11 @@ void fn_2_16F78(u8 idx);
 void fn_2_16DA8(void);
 void fn_2_16CE0(void);
 void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, u8 speedDiv);
+void fn_2_16A74(int idx, int flag);
+u8 fn_2_16A5C(int idx);
+void set807518de(int port, int value);
+u8 fn_2_16A34(int port);
+void fn_2_16870(void);
 
 #define STATE lbl_2_bss_100B8
 #define SSTATE ((s8 *)lbl_2_bss_100B8)
@@ -502,18 +507,7 @@ void fn_2_188EC(void) {
         }
     notDone:
         if (STATE[0x19] != 0) {
-            for (i = 0; i < STATE[0x2D]; i++) {
-                if (STATE[0x14 + i] != 0) {
-                    if (fn_2_18650(i)) {
-                        STATE[0x14 + i] = 0;
-                    }
-                }
-            }
-            hugeAnimStruct._307A = 5;
-            hugeAnimStruct._307C = 1;
-            fn_2_16460();
-            PSMTXCopy((f32(*)[4])lbl_2_bss_1010C, fn_80052768_getCamera(0)->view);
-            fn_2_16CE0();
+            fn_2_16870();
         }
         break;
     }
@@ -1100,4 +1094,42 @@ void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, 
         e->framePending = 1;
         obj->_268 = val;
     }
+}
+
+// .text:0x00016A74 size:0x24 mapped:0x80655B08
+void fn_2_16A74(int idx, int flag) {
+    hugeAnimStruct.slots[idx]._25D = flag != 0;
+}
+
+// .text:0x00016A5C size:0x18 mapped:0x80655AF0
+u8 fn_2_16A5C(int idx) {
+    return hugeAnimStruct.slots[idx]._25D;
+}
+
+// .text:0x00016A48 size:0x14 mapped:0x80655ADC
+void set807518de(int port, int value) {
+    STATE[0x46 + port] = value;
+}
+
+// .text:0x00016A34 size:0x14 mapped:0x80655AC8
+u8 fn_2_16A34(int port) {
+    return STATE[0x46 + port];
+}
+
+// .text:0x00016870 size:0x1C4 mapped:0x80655904
+void fn_2_16870(void) {
+    int i;
+
+    for (i = 0; i < STATE[0x2D]; i++) {
+        if (STATE[0x14 + i] != 0) {
+            if (fn_2_18650(i)) {
+                STATE[0x14 + i] = 0;
+            }
+        }
+    }
+    hugeAnimStruct._307A = 5;
+    hugeAnimStruct._307C = 1;
+    fn_2_16460();
+    PSMTXCopy((f32(*)[4])lbl_2_bss_1010C, fn_80052768_getCamera(0)->view);
+    fn_2_16CE0();
 }
