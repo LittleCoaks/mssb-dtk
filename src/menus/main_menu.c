@@ -60,300 +60,293 @@ void characterSelectScreen(u8 team);
 void setCaptainLocInRoster(void);
 void selectRandomStadium(void);
 
-// .text:0x00001578 size:0x288 mapped:0x8064060C
-void fn_2_1578(void) {
-    u16 input[3];
+// .text:0x00003204 size:0x38 mapped:0x80642298
+void fn_2_3204(void) {
+    loadDemoMatch(((u8 *)&aiPosSwapInputs)[0xCF5F], 1, 1);
+}
 
-    memset(input, 0, 6);
-    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
-    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
+// .text:0x00002FC0 size:0x244 mapped:0x80642054
+void loadDemoMatch(u8 mode, int a, int b) {
+    int v;
+    u8 want;
+    int j;
+    int i;
+    u8 *flags;
 
-    if (gameSetUpStep[0x55] != 0) {
-        return;
-    }
-
-    if (input[1] & 0x100) {
-        switch (menuCursors[0]) {
-        case 0:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-            ((u8 *)&g_d_GameSettings)[0x7] = 0;
-            break;
-        case 1:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-            ((u8 *)&g_d_GameSettings)[0x7] = 5;
-            break;
-        case 3:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-            ((u8 *)&g_d_GameSettings)[0x7] = 7;
-            changeScene(4, 6);
-            break;
-        case 2:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-            ((u8 *)&g_d_GameSettings)[0x7] = 6;
-            changeScene(4, 6);
-            break;
-        case 4:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-            ((u8 *)&g_d_GameSettings)[0x7] = 2;
-            ((u8 *)&g_d_GameSettings)[0x9] = 0;
-            ((u8 *)&g_d_GameSettings)[0xA] = 2;
-            changeScene(4, 6);
-            break;
-        case 6:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
-            break;
-        case 5:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
+    switch (mode) {
+    case 9:
+        fn_800684A4();
+        if (b == 0) {
             break;
         }
+        /* fallthrough */
+    case 0xA:
+        flags = &((u8 *)&Static_Stats_Tables)[0x4757];
+        memset(flags, 0, 0x36);
+        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E0]] = 1;
+        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E4]] = 1;
 
-        *(u16 *)(menuControlVariables + 4) = 5;
-        updateCharacterSelectProcessCode(0, 0x58);
-        lbl_80366158[0x27] = 0;
-        sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        return;
-    }
+        for (i = 0; i < 6; i++) {
+            v = (((u8 *)&g_d_GameSettings)[0x1A + i] == 0);
+            want = unlockableCharacter_noDupeNoGapCharID[i];
 
-    if (input[1] & 0x200) {
-        lbl_80366158[0x29] = 2;
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
-        *(u16 *)(menuControlVariables + 4) = 6;
-        sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
-        return;
-    }
-
-    if ((input[2] & 0x8) || (input[2] & 0x4)) {
-        menuCursors[1] = menuCursors[0];
-
-        if (input[2] & 0x8) {
-            if (--menuCursors[0] < 0) {
-                menuCursors[0] = 6;
+            for (j = 0; j < 54; j++) {
+                if (want == characterStaticIndexes[j].requirementRow) {
+                    ((u8 *)&Static_Stats_Tables)[j + 0x4757] = v;
+                }
             }
-        } else if (input[2] & 0x4) {
-            if (++menuCursors[0] == 7) {
-                menuCursors[0] = 0;
+
+            unlockableCharacter_noDupeNoGapCharID[i] = want;
+        }
+
+        DraftRandomTeamDemo(0);
+        DraftRandomTeamDemo(1);
+        copyInfoToInMemRoster();
+        teamLogoDetermination(0);
+        teamLogoDetermination(1);
+        unsure_FillRosterPositions(0);
+        unsure_FillRosterPositions(1);
+        characterSelectScreen(0);
+        characterSelectScreen(1);
+        setCaptainLocInRoster();
+
+        if (b == 0) {
+            break;
+        }
+        /* fallthrough */
+    case 0xC:
+        selectRandomStadium();
+        if (a != 0) {
+            fn_800649BC();
+        }
+        break;
+    case 0xB:
+        break;
+    }
+}
+
+// .text:0x00002D1C size:0x2A4 mapped:0x80641DB0
+void fn_2_2D1C(void) {
+    int t;
+    int i;
+    int slot;
+    s16 v;
+    int *slotp;
+    s16 *ep;
+    u8 *cp;
+    u8 *lp;
+
+    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E0] = 10;
+    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E4] = 2;
+
+    for (t = 0; t < 2; t++) {
+        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
+        ep = &lbl_2_data_E64[t * 9];
+        cp = &((u8 *)&cursorPositions)[t * 9];
+
+        for (i = 0; i < 9; i++) {
+            slot = *slotp;
+            v = ep[i];
+            cp[i + 2] = v;
+            cp[i + 0x26] =
+                ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+        }
+    }
+
+    lp = lineUpInfoStruct;
+
+    for (t = 0; t < 2; t++) {
+        for (i = 0; i < 9; i++) {
+            lp[i * 4 + 0] = lp[i * 4 + 1] = lp[i * 4 + 2] = i;
+        }
+        lp += 0x24;
+    }
+}
+
+// .text:0x00002BB8 size:0x164 mapped:0x80641C4C
+void fn_2_2BB8(void) {
+    int t;
+    int i;
+    int slot;
+    s16 v;
+    s16 *ep;
+    u8 *cp;
+    u8 *lp;
+    int *slotp;
+
+    for (t = 0; t < 2; t++) {
+        ep = lbl_2_data_E88;
+        cp = &((u8 *)&cursorPositions)[t * 9];
+        lp = &lineUpInfoStruct[t * 0x24];
+        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
+
+        for (i = 0; i < 9; i++) {
+            slot = *slotp;
+
+            if (slot == 0) {
+                v = ep[0];
+                cp[2] = v;
+                cp[0x26] =
+                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+            } else {
+                v = ep[9];
+                cp[2] = v;
+                cp[0x26] =
+                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
             }
+
+            lp[0] = lp[1] = lp[2] = i;
+
+            ep++;
+            cp++;
+            lp += 4;
         }
 
-        updateCharacterSelectProcessCode(0, 0x56);
-        sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        fn_800670A0(t);
     }
 }
 
-// .text:0x00001800 size:0x288 mapped:0x80640894
-void fn_2_1800(void) {
-    u16 input[3];
+// .text:0x000027E0 size:0x3D8 mapped:0x80641874
+void mainMenuScreen(void) {
+    u8 state;
+    s16 k;
+    u8 *tbl = lbl_2_data_180;
 
-    memset(input, 0, 6);
-    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
-    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
+    state = lbl_2_bss_20[0];
 
-    if (gameSetUpStep[0x55] != 0) {
-        return;
-    }
-
-    if (input[1] & 0x100) {
-        switch (menuCursors[0]) {
-        case 0:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-            ((u8 *)&g_d_GameSettings)[0x7] = 0;
-            break;
-        case 1:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-            ((u8 *)&g_d_GameSettings)[0x7] = 5;
-            break;
-        case 3:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-            ((u8 *)&g_d_GameSettings)[0x7] = 7;
-            changeScene(4, 6);
-            break;
-        case 2:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-            ((u8 *)&g_d_GameSettings)[0x7] = 6;
-            changeScene(4, 6);
-            break;
-        case 4:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-            ((u8 *)&g_d_GameSettings)[0x7] = 2;
-            ((u8 *)&g_d_GameSettings)[0x9] = 0;
-            ((u8 *)&g_d_GameSettings)[0xA] = 2;
-            changeScene(4, 6);
-            break;
-        case 6:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
-            break;
-        case 5:
-            Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
-            break;
-        }
-
-        *(u16 *)(menuControlVariables + 4) = 5;
-        updateCharacterSelectProcessCode(0, 0x58);
-        lbl_80366158[0x27] = 0;
-        sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        return;
-    }
-
-    if (input[1] & 0x200) {
-        lbl_80366158[0x29] = 2;
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
-        *(u16 *)(menuControlVariables + 4) = 6;
-        sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
-        return;
-    }
-
-    if ((input[2] & 0x8) || (input[2] & 0x4)) {
-        menuCursors[1] = menuCursors[0];
-
-        if (input[2] & 0x8) {
-            if (--menuCursors[0] < 0) {
-                menuCursors[0] = 6;
-            }
-        } else if (input[2] & 0x4) {
-            if (++menuCursors[0] == 7) {
-                menuCursors[0] = 0;
-            }
-        }
-
-        updateCharacterSelectProcessCode(0, 0x56);
-        sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
-    }
-}
-
-// .text:0x00001A88 size:0x124 mapped:0x80640B1C
-void fn_2_1A88(void) {
-    s8 *ports = (s8 *)&AtBat_ButtonInput1;
-    u8 *tbl = (u8 *)&Static_Stats_Tables;
-    int n;
-
-    Static_Stats_Tables.playerNumberByPort[0] = 0;
-    n = 1;
-
-    if (ports[0x28] != -1) {
-        Static_Stats_Tables.playerNumberByPort[1] = 1;
-        n = 2;
-    }
-    if (ports[0x48] != -1) {
-        Static_Stats_Tables.playerNumberByPort[n] = 2;
-        n++;
-    }
-    if (ports[0x68] != -1) {
-        Static_Stats_Tables.playerNumberByPort[n] = 3;
-        n++;
-    }
-
-    while (n < 4) {
-        ((s8 *)tbl)[n + 0x46F8] = -1;
-        n++;
-    }
-}
-
-// .text:0x00001BAC size:0x88 mapped:0x80640C40
-void fn_2_1BAC(void) {
-    memset(&gameSetUpStep[1], 0, 0x54);
-    gameSetUpStep[0x56] = 0;
-    gameSetUpStep[0x55] = 0;
-    memset(&g_MatchInfo, 0, 0x3A);
-    memset(Static_Stats_Tables.charIsStarred, 0, sizeof(Static_Stats_Tables.charIsStarred));
-    memset(menuNumber, 0, 0x28);
-}
-
-// .text:0x00001C34 size:0xF4 mapped:0x80640CC8
-void cursorSndFx(u16 button) {
-    switch (button) {
-    case 0x100:
-        sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        break;
-    case 0x200:
-        sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
-        break;
-    case 0x1:
-    case 0x2:
-    case 0x4:
-    case 0x8:
-        sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
-        break;
-    case 0x20:
-    case 0x40:
-        break;
-    case 0x400:
-    case 0x800:
-        break;
-    }
-}
-
-// .text:0x00001D28 size:0x2C mapped:0x80640DBC
-void fn_2_1D28(void) {
-    ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
-    ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
-    ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
-    ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
-    ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
-}
-
-// .text:0x00001D54 size:0x70 mapped:0x80640DE8
-void fn_2_1D54(int *cursor, u8 port, int count) {
-    u8 *base = (u8 *)&Static_Stats_Tables + 0x4730;
-    u16 input = *(u16 *)(base + port * 6);
-
-    if (input & 0x8) {
-        *cursor = *cursor - 1;
-        if (*cursor < 0) {
-            *cursor = count - 1;
-        }
-    } else if (input & 0x4) {
-        *cursor = *cursor + 1;
-        if (*cursor == count) {
-            *cursor = 0;
-        }
-    }
-}
-
-// .text:0x00001DC4 size:0x4 mapped:0x80640E58
-void fn_2_1DC4(void) {
-    return;
-}
-
-// .text:0x00001DC8 size:0x168 mapped:0x80640E5C
-void fn_2_1DC8(void) {
-    switch (menuCursors[0]) {
+    switch (state) {
     case 0:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-        ((u8 *)&g_d_GameSettings)[0x7] = 0;
+        settingValuesTo0();
+
+        switch (*(u16 *)(menuControlVariables + 6)) {
+        case 8:
+            lbl_2_bss_20[0] = 3;
+            return;
+        case 6:
+        case 9:
+        case 12:
+            lbl_2_bss_20[0] = 0xC;
+            return;
+        case 15:
+            if (((u8 *)&Static_Stats_Tables)[0x4756] == 0) {
+                lbl_2_bss_20[0] = 0xC;
+                return;
+            }
+            break;
+        }
+
+        initializeUnknown();
+        ((u8 *)&Static_Stats_Tables)[0x4700] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+        ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
+        ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4701] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4702] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4703] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4704] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4705] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4706] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4707] = 0;
+        ((u8 *)&Static_Stats_Tables)[0x4700] = 1;
+
+        if (*(u16 *)(menuControlVariables + 6) != 1) {
+            fn_80062764(currentDrawingItem);
+        }
+
+        lbl_2_bss_20[0]++;
         break;
+
     case 1:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-        ((u8 *)&g_d_GameSettings)[0x7] = 5;
-        break;
-    case 3:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-        ((u8 *)&g_d_GameSettings)[0x7] = 7;
-        changeScene(4, 6);
-        break;
+        lbl_2_bss_20[0] = state + 1;
+        /* fallthrough */
     case 2:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-        ((u8 *)&g_d_GameSettings)[0x7] = 6;
-        changeScene(4, 6);
+        if (fn_80022B68() != 0) {
+            lbl_2_bss_20[0]++;
+        }
         break;
+
+    case 3:
+        fn_2_12988();
+        lbl_2_bss_20[0]++;
+        break;
+
     case 4:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-        ((u8 *)&g_d_GameSettings)[0x7] = 2;
-        ((u8 *)&g_d_GameSettings)[0x9] = 0;
-        ((u8 *)&g_d_GameSettings)[0xA] = 2;
-        changeScene(4, 6);
+        if (fn_800697B0() == 0) {
+            lbl_2_bss_20[0]++;
+        }
         break;
-    case 6:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
-        break;
+
     case 5:
-        Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
+        if (diskReadRelated(&tbl[0x2C4], 6) != 0) {
+            lbl_2_bss_20[0]++;
+        }
+        break;
+
+    case 6:
+        if (diskReadRelated(&tbl[0x2D4], 9) != 0) {
+            lbl_2_bss_20[0]++;
+        }
+        break;
+
+    case 7:
+        if (diskReadRelated(&tbl[0x2E4], 0x12) != 0) {
+            lbl_2_bss_20[0]++;
+        }
+        break;
+
+    case 8:
+        if (diskReadRelated(&tbl[0x2F4], 0xF) != 0) {
+            if (*(u16 *)(menuControlVariables + 6) == 1) {
+                lbl_2_bss_20[0] = 0xB;
+            } else {
+                lbl_2_bss_20[0]++;
+            }
+        }
+        break;
+
+    case 9:
+        if (((u8 *)&Static_Stats_Tables)[0x48B4] != 0) {
+            if (lbl_803CBCE0[0] == 0) {
+                startMemoryCardCheck();
+            }
+            lbl_2_bss_20[0]++;
+        } else {
+            lbl_2_bss_20[0] = 0xB;
+        }
+        break;
+
+    case 10:
+        if (lbl_803CBCE0[0] == 0) {
+            k = *(s16 *)(currentDrawingItem + 0x10);
+            if (k == 1 || k == 0xB) {
+                lbl_803CBCE0[0] = 1;
+                superstarUnlocked[0xDE] = 1;
+                superstarUnlocked[0xDF] = 1;
+                superstarUnlocked[0xE0] = 1;
+                superstarUnlocked[0xE1] = 1;
+                superstarUnlocked[0xE2] = 1;
+                superstarUnlocked[0xE3] = 1;
+                lbl_2_bss_20[0]++;
+            }
+        } else {
+            lbl_2_bss_20[0] = state + 1;
+        }
+        break;
+
+    case 11:
+        if (*(u16 *)(menuControlVariables + 6) != 6 && menuMusic[4] == 0) {
+            insertGraphicDrawingFunction(startMenuMusic, 0x1000);
+        }
+        *(u16 *)(menuControlVariables + 4) = 0;
+        lbl_2_bss_20[0]++;
+        break;
+
+    case 12:
+        mainMenuRelated();
         break;
     }
-
-    *(u16 *)(menuControlVariables + 4) = 5;
-    updateCharacterSelectProcessCode(0, 0x58);
 }
 
 // .text:0x00001F30 size:0x8B0 mapped:0x80640FC4
@@ -623,291 +616,298 @@ void mainMenuRelated(void) {
     }
 }
 
-// .text:0x000027E0 size:0x3D8 mapped:0x80641874
-void mainMenuScreen(void) {
-    u8 state;
-    s16 k;
-    u8 *tbl = lbl_2_data_180;
-
-    state = lbl_2_bss_20[0];
-
-    switch (state) {
+// .text:0x00001DC8 size:0x168 mapped:0x80640E5C
+void fn_2_1DC8(void) {
+    switch (menuCursors[0]) {
     case 0:
-        settingValuesTo0();
-
-        switch (*(u16 *)(menuControlVariables + 6)) {
-        case 8:
-            lbl_2_bss_20[0] = 3;
-            return;
-        case 6:
-        case 9:
-        case 12:
-            lbl_2_bss_20[0] = 0xC;
-            return;
-        case 15:
-            if (((u8 *)&Static_Stats_Tables)[0x4756] == 0) {
-                lbl_2_bss_20[0] = 0xC;
-                return;
-            }
-            break;
-        }
-
-        initializeUnknown();
-        ((u8 *)&Static_Stats_Tables)[0x4700] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
-        ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
-        ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4701] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4702] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4703] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4704] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4705] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4706] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4707] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4700] = 1;
-
-        if (*(u16 *)(menuControlVariables + 6) != 1) {
-            fn_80062764(currentDrawingItem);
-        }
-
-        lbl_2_bss_20[0]++;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+        ((u8 *)&g_d_GameSettings)[0x7] = 0;
         break;
-
     case 1:
-        lbl_2_bss_20[0] = state + 1;
-        /* fallthrough */
-    case 2:
-        if (fn_80022B68() != 0) {
-            lbl_2_bss_20[0]++;
-        }
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+        ((u8 *)&g_d_GameSettings)[0x7] = 5;
         break;
-
     case 3:
-        fn_2_12988();
-        lbl_2_bss_20[0]++;
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+        ((u8 *)&g_d_GameSettings)[0x7] = 7;
+        changeScene(4, 6);
         break;
-
+    case 2:
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+        ((u8 *)&g_d_GameSettings)[0x7] = 6;
+        changeScene(4, 6);
+        break;
     case 4:
-        if (fn_800697B0() == 0) {
-            lbl_2_bss_20[0]++;
-        }
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+        ((u8 *)&g_d_GameSettings)[0x7] = 2;
+        ((u8 *)&g_d_GameSettings)[0x9] = 0;
+        ((u8 *)&g_d_GameSettings)[0xA] = 2;
+        changeScene(4, 6);
         break;
-
-    case 5:
-        if (diskReadRelated(&tbl[0x2C4], 6) != 0) {
-            lbl_2_bss_20[0]++;
-        }
-        break;
-
     case 6:
-        if (diskReadRelated(&tbl[0x2D4], 9) != 0) {
-            lbl_2_bss_20[0]++;
-        }
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
         break;
-
-    case 7:
-        if (diskReadRelated(&tbl[0x2E4], 0x12) != 0) {
-            lbl_2_bss_20[0]++;
-        }
+    case 5:
+        Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
         break;
+    }
 
-    case 8:
-        if (diskReadRelated(&tbl[0x2F4], 0xF) != 0) {
-            if (*(u16 *)(menuControlVariables + 6) == 1) {
-                lbl_2_bss_20[0] = 0xB;
-            } else {
-                lbl_2_bss_20[0]++;
-            }
+    *(u16 *)(menuControlVariables + 4) = 5;
+    updateCharacterSelectProcessCode(0, 0x58);
+}
+
+// .text:0x00001DC4 size:0x4 mapped:0x80640E58
+void fn_2_1DC4(void) {
+    return;
+}
+
+// .text:0x00001D54 size:0x70 mapped:0x80640DE8
+void fn_2_1D54(int *cursor, u8 port, int count) {
+    u8 *base = (u8 *)&Static_Stats_Tables + 0x4730;
+    u16 input = *(u16 *)(base + port * 6);
+
+    if (input & 0x8) {
+        *cursor = *cursor - 1;
+        if (*cursor < 0) {
+            *cursor = count - 1;
         }
-        break;
-
-    case 9:
-        if (((u8 *)&Static_Stats_Tables)[0x48B4] != 0) {
-            if (lbl_803CBCE0[0] == 0) {
-                startMemoryCardCheck();
-            }
-            lbl_2_bss_20[0]++;
-        } else {
-            lbl_2_bss_20[0] = 0xB;
+    } else if (input & 0x4) {
+        *cursor = *cursor + 1;
+        if (*cursor == count) {
+            *cursor = 0;
         }
-        break;
+    }
+}
 
-    case 10:
-        if (lbl_803CBCE0[0] == 0) {
-            k = *(s16 *)(currentDrawingItem + 0x10);
-            if (k == 1 || k == 0xB) {
-                lbl_803CBCE0[0] = 1;
-                superstarUnlocked[0xDE] = 1;
-                superstarUnlocked[0xDF] = 1;
-                superstarUnlocked[0xE0] = 1;
-                superstarUnlocked[0xE1] = 1;
-                superstarUnlocked[0xE2] = 1;
-                superstarUnlocked[0xE3] = 1;
-                lbl_2_bss_20[0]++;
-            }
-        } else {
-            lbl_2_bss_20[0] = state + 1;
-        }
-        break;
+// .text:0x00001D28 size:0x2C mapped:0x80640DBC
+void fn_2_1D28(void) {
+    ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+    ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
+    ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
+    ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
+    ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
+}
 
-    case 11:
-        if (*(u16 *)(menuControlVariables + 6) != 6 && menuMusic[4] == 0) {
-            insertGraphicDrawingFunction(startMenuMusic, 0x1000);
-        }
-        *(u16 *)(menuControlVariables + 4) = 0;
-        lbl_2_bss_20[0]++;
+// .text:0x00001C34 size:0xF4 mapped:0x80640CC8
+void cursorSndFx(u16 button) {
+    switch (button) {
+    case 0x100:
+        sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         break;
-
-    case 12:
-        mainMenuRelated();
+    case 0x200:
+        sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
+        break;
+    case 0x1:
+    case 0x2:
+    case 0x4:
+    case 0x8:
+        sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        break;
+    case 0x20:
+    case 0x40:
+        break;
+    case 0x400:
+    case 0x800:
         break;
     }
 }
 
-// .text:0x00002BB8 size:0x164 mapped:0x80641C4C
-void fn_2_2BB8(void) {
-    int t;
-    int i;
-    int slot;
-    s16 v;
-    s16 *ep;
-    u8 *cp;
-    u8 *lp;
-    int *slotp;
+// .text:0x00001BAC size:0x88 mapped:0x80640C40
+void fn_2_1BAC(void) {
+    memset(&gameSetUpStep[1], 0, 0x54);
+    gameSetUpStep[0x56] = 0;
+    gameSetUpStep[0x55] = 0;
+    memset(&g_MatchInfo, 0, 0x3A);
+    memset(Static_Stats_Tables.charIsStarred, 0, sizeof(Static_Stats_Tables.charIsStarred));
+    memset(menuNumber, 0, 0x28);
+}
 
-    for (t = 0; t < 2; t++) {
-        ep = lbl_2_data_E88;
-        cp = &((u8 *)&cursorPositions)[t * 9];
-        lp = &lineUpInfoStruct[t * 0x24];
-        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
+// .text:0x00001A88 size:0x124 mapped:0x80640B1C
+void fn_2_1A88(void) {
+    s8 *ports = (s8 *)&AtBat_ButtonInput1;
+    u8 *tbl = (u8 *)&Static_Stats_Tables;
+    int n;
 
-        for (i = 0; i < 9; i++) {
-            slot = *slotp;
+    Static_Stats_Tables.playerNumberByPort[0] = 0;
+    n = 1;
 
-            if (slot == 0) {
-                v = ep[0];
-                cp[2] = v;
-                cp[0x26] =
-                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
-            } else {
-                v = ep[9];
-                cp[2] = v;
-                cp[0x26] =
-                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
-            }
+    if (ports[0x28] != -1) {
+        Static_Stats_Tables.playerNumberByPort[1] = 1;
+        n = 2;
+    }
+    if (ports[0x48] != -1) {
+        Static_Stats_Tables.playerNumberByPort[n] = 2;
+        n++;
+    }
+    if (ports[0x68] != -1) {
+        Static_Stats_Tables.playerNumberByPort[n] = 3;
+        n++;
+    }
 
-            lp[0] = lp[1] = lp[2] = i;
-
-            ep++;
-            cp++;
-            lp += 4;
-        }
-
-        fn_800670A0(t);
+    while (n < 4) {
+        ((s8 *)tbl)[n + 0x46F8] = -1;
+        n++;
     }
 }
 
-// .text:0x00002D1C size:0x2A4 mapped:0x80641DB0
-void fn_2_2D1C(void) {
-    int t;
-    int i;
-    int slot;
-    s16 v;
-    int *slotp;
-    s16 *ep;
-    u8 *cp;
-    u8 *lp;
+// .text:0x00001800 size:0x288 mapped:0x80640894
+void fn_2_1800(void) {
+    u16 input[3];
 
-    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E0] = 10;
-    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E4] = 2;
+    memset(input, 0, 6);
+    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
+    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
 
-    for (t = 0; t < 2; t++) {
-        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
-        ep = &lbl_2_data_E64[t * 9];
-        cp = &((u8 *)&cursorPositions)[t * 9];
-
-        for (i = 0; i < 9; i++) {
-            slot = *slotp;
-            v = ep[i];
-            cp[i + 2] = v;
-            cp[i + 0x26] =
-                ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
-        }
+    if (gameSetUpStep[0x55] != 0) {
+        return;
     }
 
-    lp = lineUpInfoStruct;
-
-    for (t = 0; t < 2; t++) {
-        for (i = 0; i < 9; i++) {
-            lp[i * 4 + 0] = lp[i * 4 + 1] = lp[i * 4 + 2] = i;
-        }
-        lp += 0x24;
-    }
-}
-
-// .text:0x00002FC0 size:0x244 mapped:0x80642054
-void loadDemoMatch(u8 mode, int a, int b) {
-    int v;
-    u8 want;
-    int j;
-    int i;
-    u8 *flags;
-
-    switch (mode) {
-    case 9:
-        fn_800684A4();
-        if (b == 0) {
+    if (input[1] & 0x100) {
+        switch (menuCursors[0]) {
+        case 0:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+            ((u8 *)&g_d_GameSettings)[0x7] = 0;
+            break;
+        case 1:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+            ((u8 *)&g_d_GameSettings)[0x7] = 5;
+            break;
+        case 3:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+            ((u8 *)&g_d_GameSettings)[0x7] = 7;
+            changeScene(4, 6);
+            break;
+        case 2:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+            ((u8 *)&g_d_GameSettings)[0x7] = 6;
+            changeScene(4, 6);
+            break;
+        case 4:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+            ((u8 *)&g_d_GameSettings)[0x7] = 2;
+            ((u8 *)&g_d_GameSettings)[0x9] = 0;
+            ((u8 *)&g_d_GameSettings)[0xA] = 2;
+            changeScene(4, 6);
+            break;
+        case 6:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
+            break;
+        case 5:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
             break;
         }
-        /* fallthrough */
-    case 0xA:
-        flags = &((u8 *)&Static_Stats_Tables)[0x4757];
-        memset(flags, 0, 0x36);
-        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E0]] = 1;
-        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E4]] = 1;
 
-        for (i = 0; i < 6; i++) {
-            v = (((u8 *)&g_d_GameSettings)[0x1A + i] == 0);
-            want = unlockableCharacter_noDupeNoGapCharID[i];
+        *(u16 *)(menuControlVariables + 4) = 5;
+        updateCharacterSelectProcessCode(0, 0x58);
+        lbl_80366158[0x27] = 0;
+        sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        return;
+    }
 
-            for (j = 0; j < 54; j++) {
-                if (want == characterStaticIndexes[j].requirementRow) {
-                    ((u8 *)&Static_Stats_Tables)[j + 0x4757] = v;
-                }
+    if (input[1] & 0x200) {
+        lbl_80366158[0x29] = 2;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+        *(u16 *)(menuControlVariables + 4) = 6;
+        sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
+        return;
+    }
+
+    if ((input[2] & 0x8) || (input[2] & 0x4)) {
+        menuCursors[1] = menuCursors[0];
+
+        if (input[2] & 0x8) {
+            if (--menuCursors[0] < 0) {
+                menuCursors[0] = 6;
             }
-
-            unlockableCharacter_noDupeNoGapCharID[i] = want;
+        } else if (input[2] & 0x4) {
+            if (++menuCursors[0] == 7) {
+                menuCursors[0] = 0;
+            }
         }
 
-        DraftRandomTeamDemo(0);
-        DraftRandomTeamDemo(1);
-        copyInfoToInMemRoster();
-        teamLogoDetermination(0);
-        teamLogoDetermination(1);
-        unsure_FillRosterPositions(0);
-        unsure_FillRosterPositions(1);
-        characterSelectScreen(0);
-        characterSelectScreen(1);
-        setCaptainLocInRoster();
-
-        if (b == 0) {
-            break;
-        }
-        /* fallthrough */
-    case 0xC:
-        selectRandomStadium();
-        if (a != 0) {
-            fn_800649BC();
-        }
-        break;
-    case 0xB:
-        break;
+        updateCharacterSelectProcessCode(0, 0x56);
+        sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     }
 }
 
-// .text:0x00003204 size:0x38 mapped:0x80642298
-void fn_2_3204(void) {
-    loadDemoMatch(((u8 *)&aiPosSwapInputs)[0xCF5F], 1, 1);
+// .text:0x00001578 size:0x288 mapped:0x8064060C
+void fn_2_1578(void) {
+    u16 input[3];
+
+    memset(input, 0, 6);
+    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
+    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
+
+    if (gameSetUpStep[0x55] != 0) {
+        return;
+    }
+
+    if (input[1] & 0x100) {
+        switch (menuCursors[0]) {
+        case 0:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
+            ((u8 *)&g_d_GameSettings)[0x7] = 0;
+            break;
+        case 1:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
+            ((u8 *)&g_d_GameSettings)[0x7] = 5;
+            break;
+        case 3:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
+            ((u8 *)&g_d_GameSettings)[0x7] = 7;
+            changeScene(4, 6);
+            break;
+        case 2:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
+            ((u8 *)&g_d_GameSettings)[0x7] = 6;
+            changeScene(4, 6);
+            break;
+        case 4:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
+            ((u8 *)&g_d_GameSettings)[0x7] = 2;
+            ((u8 *)&g_d_GameSettings)[0x9] = 0;
+            ((u8 *)&g_d_GameSettings)[0xA] = 2;
+            changeScene(4, 6);
+            break;
+        case 6:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 6;
+            break;
+        case 5:
+            Static_Stats_Tables.mainMenuOptionSelectedIndex = 5;
+            break;
+        }
+
+        *(u16 *)(menuControlVariables + 4) = 5;
+        updateCharacterSelectProcessCode(0, 0x58);
+        lbl_80366158[0x27] = 0;
+        sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        return;
+    }
+
+    if (input[1] & 0x200) {
+        lbl_80366158[0x29] = 2;
+        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+        *(u16 *)(menuControlVariables + 4) = 6;
+        sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
+        return;
+    }
+
+    if ((input[2] & 0x8) || (input[2] & 0x4)) {
+        menuCursors[1] = menuCursors[0];
+
+        if (input[2] & 0x8) {
+            if (--menuCursors[0] < 0) {
+                menuCursors[0] = 6;
+            }
+        } else if (input[2] & 0x4) {
+            if (++menuCursors[0] == 7) {
+                menuCursors[0] = 0;
+            }
+        }
+
+        updateCharacterSelectProcessCode(0, 0x56);
+        sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+    }
 }
