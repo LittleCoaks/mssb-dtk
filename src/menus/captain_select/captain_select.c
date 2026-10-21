@@ -286,7 +286,7 @@ void onlySetPort1ToActiveOnInitialCapSSLoad(void) {
 // .text:0x00015E80 size:0x59C mapped:0x80654F14
 void captainSelect_handleInputs(int port) {
     int cIdx4 = Static_Stats_Tables.playerNumberByPort[(u8)port] + 4;
-    u8 slot = gameSetUpStep.portCaptainSlot[(u8)port];
+    int slot = gameSetUpStep.portCaptainSlot[(u8)port];
     u8 p = (u8)port;
     controllerInputStruct input;
 
@@ -366,7 +366,7 @@ commonTail:
     }
 
     if (menuControlVariables->previousScreen == 0xA &&
-        Static_Stats_Tables.captainSelectedID[p] != -1 &&
+        Static_Stats_Tables.captainSelectedID[(u8)port] != -1 &&
         g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         int i;
         add_or_RemoveCharToATeam(0, mapCaptainCursorPositionToCharID[menuCursors[4]], 1);
@@ -398,8 +398,8 @@ commonTail:
         cursorPositions.cursor[p] = cur[4];
     }
     {
-        int origVal = menuCursors[cIdx4];
         int prevVal, curVal, mappedID;
+        int origVal = menuCursors[cIdx4];
         do {
             prevVal = menuCursors[cIdx4];
             captainSelect_handleCursor(slot, &input);
