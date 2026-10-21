@@ -3,7 +3,7 @@
 #include "game/challenge/challenge_state.h"
 #include "Unknown/mb_subfunc.h"
 #include "Dolphin/os.h"
-#include "menus/rep_0568.h"
+#include "menus/captain_select/captain_model_load.h"
 #include "Unknown/File_0x800625a4.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x80021410.h"
@@ -38,7 +38,7 @@ typedef struct {
 extern CaptainGameSetUp gameSetUpStep;
 void fn_8004D990(s32 port, s32 team, s32 challengeCaptain);
 void fn_8004D460(s32 team, s32 selection);
-extern u8 lbl_803CBBC2[10];
+extern u8 lbl_803CBBC4[8];
 void relatedToTeamSelection4(void);
 void fn_2_73758(void);
 void set807518de(u8 port, s32 active);
@@ -46,7 +46,7 @@ void fn_8004EEF4(s32 port0, s32 port1, s32 port2, s32 port3, s32 active);
 void add_or_RemoveCharToATeam(s32 port, s32 characterID, s32 add);
 extern u8 menuNumber[0x28];
 extern u8 cardCheck[0x5C];
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCD8[0x8];
 extern u8 lbl_803CBD24[0xC];
 extern u8 hugeAnimStruct[0x3154];
 void fn_2_738C8(void);
@@ -118,7 +118,7 @@ void captainSelectScreen_manager(void) {
                 break;
             }
             lbl_2_bss_100B4 = TRUE;
-            lbl_803CBCD0[0xD] = 1;
+            lbl_803CBCD8[5] = 1;
             Static_Stats_Tables._48AF[2] = 1;
             changeScene(3, 6);
         }
@@ -242,7 +242,7 @@ void captainSelectScreen_manager(void) {
                 menuNumber[0x26] = 1;
             }
             Static_Stats_Tables._48AF[2] = 1;
-            lbl_803CBCD0[0xD] = 1;
+            lbl_803CBCD8[5] = 1;
             fn_800AD038(Static_Stats_Tables._46E8[0]);
             changeScreenVariables(12);
         } else {
@@ -455,7 +455,7 @@ void captainSelectDefaultProcess(void) {
             relatedToTeamSelection4();
             insertGraphicDrawingFunction(fn_2_73758, 0x3000);
             updateCharacterSelectProcessCode(0, 1);
-            lbl_803CBBC2[2] = 1;
+            lbl_803CBBC4[0] = 1;
         }
         gameSetUpStep.portCaptainSlot[0] = 0;
         gameSetUpStep.portCaptainSlot[1] = 1;

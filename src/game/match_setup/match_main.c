@@ -298,7 +298,7 @@ void gameInitRelated(void) {
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ 1] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd] = 1;
-    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_3) {
+    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_CPU_VS_1_PLAYER) {
         g_GameLogic.teamIsCPU[0] = 1;
         g_GameLogic.pitcherAIInd[home] = 1;
         g_GameLogic.batterAIInd[g_GameLogic.homeTeamInd] = 1;
@@ -307,7 +307,7 @@ void gameInitRelated(void) {
         g_GameLogic.autoFielding[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd] = 1;
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamInd ^ 1] = 1;
-    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
+    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_CPU_VS_CPU) {
         g_GameLogic.teamIsCPU[1] = 1;
         g_GameLogic.teamIsCPU[0] = 1;
         g_GameLogic.pitcherAIInd[1] = 1;

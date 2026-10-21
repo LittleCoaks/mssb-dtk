@@ -3995,3 +3995,102 @@ units reached 100%.
   the sin result and the inlined sqrt argument), RandomInt_Game_Range/RandomF32_Sim_Range
   (inlined RNG argument copy) and fn_3_67EF0 (parameter copies r15-r21 vs r23-r29). Each
   function's checkpoint lists what was tried.
+
+## Menus pass findings (text_110B0, main_menu)
+
+Second pass on `src/menus/text_110B0.c` (.text 95.12 -> 98.77, 2 -> 5 of 7 functions at 100%)
+and `src/menus/main_menu.c` (.text 91.42 -> 99.43, .data 100; 7 -> 12 of 15). Neither unit is at 100%, so
+neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,main_menu}.md`.
+
+- **`sym+0x8@ha` in the target means dtk merged several small `.sbss` objects into one symbol.**
+  Every menu-REL reference to `lbl_803CBCD0` (0x18) was `+0x8` or `+0x10`, and the DOL reads
+  `lbl_803CBCD0` itself through `@sda21`, so it is three 8-byte objects. `lbl_803CBBC2` (0xA) was
+  the same: a DOL byte scalar plus an 8-byte object at `+0x2`. Splitting them in
+  `config/GYQE01/symbols.txt` and indexing the new symbols from 0 was worth +1 to +2.5 points per
+  function. teamselect.c and captain_select.c stayed at 100%.
+- **A REL unit with a `switch` cannot reach 100% until it owns its jump tables' `.data`.** Every
+  switch function scored about 99.8 with only the `jumptable_2_data_*` relocation wrong. Give the
+  unit a `.data` range in `config/GYQE01/menus/splits.txt` that covers just its tables, as
+  teamselect.c does at `0x19B4`. main_menu has `0x624-0x71C` and text_110B0 has `0x1594-0x15C8`.
+  Two more steps are needed. Put the functions in reverse address order (`-inline deferred` emits
+  them reversed), so the tables come out in the target's order. End the range at the last table
+  (`0x71C`), not at the next 8-aligned object, or the 4 pad bytes cost the section. dtk's
+  alignment warning for the range is expected.
+- **The `.data` layout shows where the TU boundaries are.** In this block, each original TU's data
+  starts with a copy of a debug-menu string table ("BAT FIRST", "BAT LAST", "SELECT DEBUG MENU",
+  ...) and has its jump tables at the end. Two results follow. teamSelectScreenMain's table
+  (`0xFDC`) closes the css TU's run (`0xEAC-0xFDC`), so that function belongs with text_0323C. The
+  stadium functions from `0x112F4` start a new TU (`0x1000-0x15C7`). main_menu addresses
+  `lbl_2_data_180 + 0x2C4..` (MenuCommonTexFiles) from one pooled base, so both are this TU's
+  statics.
+- **Writing `(s8)` on a field that is already `s8` merges two sign extensions.** The target
+  extended one load twice (`extsb` for an index, `extsb.` for the compare). With the redundant
+  casts, MWCC CSE'd them into one. Dropping the casts matched fn_2_1216C.
+- **A raw `((u8 *)&Global)[off] = x` store blocks CSE of other globals. A struct-field store does
+  not.** In stadiumSelectControls the target reuses `GameModeSelected` and the spin flag across a
+  `playerNumberByPort[idx]` store. That reuse only appeared once the store went through the field.
+- **Re-read a global to defeat CSE when the target re-tests a bit.** fn_2_1578 copies the inputs
+  to a local, then tests `processedInput & UP` twice. The target computes the `rlwinm.` again
+  for the inner test. Reading `Static_Stats_Tables.controllerInputs[0].processedInput` in the
+  inner test matched it, and the load is still forwarded from the first read.
+- **The callee's size decides between call and copy, as before.** A plain call to fn_2_1A88
+  (0x124) inlined into mainMenuRelated. A call to fn_2_1578 (0x288) stayed a `bl`, so its body is
+  copied there.
+- **Two independent global byte stores: the `lis` order is the written order, even when the
+  stores are swapped.** Writing `Static[0x48B4] = 0;` before `lbl_803CBCE0[0] = 0;` matched
+  mainMenuRelated's two copies, although the target stores lbl_803CBCE0 first.
+- **Hand-unrolled draft code was often MWCC's own unrolling.** fn_2_1A88 (41 -> 100) was two
+  loops, `for (i = 1; i < 4; i++) if (port i present) ports[n++] = i;` and
+  `while (n < 4) ports[n++] = -1;`. fn_2_11EA8 and fn_2_2BB8 matched once written as plain
+  `[t][i]` indexing of `CharacterStats` / `cursorPositions.roster`, with no walking pointers.
+- **Still stuck (colouring only):** stadiumSelectControls 93.66 (the target keeps the spin flag
+  in r0 for the whole function), loadDemoMatch 97.14, fn_2_2D1C 96.63, mainMenuScreen 99.72 and
+  teamSelectScreenMain 99.83 (jump table at `0xFDC` in the css TU's data, plus one register).
+
+## captain_select pass findings
+
+Second pass on `src/menus/captain_select/captain_select.c` (.text 96.23 -> 98.77, .data now owned
+and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are still short. Checkpoint:
+`build/.match_grind/menus_menus_captain_select_captain_select.md`.
+
+- **A pooled `base + 0x418` into another symbol means the unit owns that `.data`.** fn_2_16460 read
+  three camera vectors as `lbl_2_data_19E8 + 0x418/0x424/0x430` (first field folded, the others
+  through `addi`), i.e. three `static Vec`s pooled off the unit's first `.data` object. Giving the unit
+  `.data 0x19E8-0x1E24` in splits.txt, defining the data in C and splitting the gap-sized
+  `lbl_2_data_19E8`/`lbl_2_data_1DD4` matched it. Objects the target references by name
+  (`lbl_2_data_1DD4`, `lbl_2_data_20EC`) are globals; only statics are pooled.
+- **The debug-menu text table is 0x2C4 bytes and opens every TU's `.data` in this block** ("BAT FIRST",
+  "BAT LAST", ..., "COM4>", a colour table and three small index tables). captain_select defines it as
+  `DebugMenuText` with string initialisers; the copy at 0x1E28 starts the next TU. It most likely comes
+  from a shared header, so it can move into one once a second unit owns its copy.
+- **Value numbering distinguishes `int` from `u32`/`s32` even for the same bits.** In BPress the target
+  keeps `c` (the slot) in a callee-saved register for indexing, but re-derives `clrlwi r3, rIdx, 24`
+  from the parameter at each call that takes the slot. `int c = (u8)idx` made MWCC reuse `c` there.
+  Declaring the callee's parameter `u32` (fn_2_16A74) or writing the argument as `idx & 0xFF`
+  stops the reuse (94.0 -> 96.4). `u32 c`/`s32 c` themselves turned the slot loads into `lbzu` walks.
+- **`slwi` on a slot index means a 32-bit variable known to be zero-extended; `clrlslwi` means a
+  `u8` variable.** `u8 slot`/`u8 c` locals re-extend at every word index. `int slot = ...` (handleInputs),
+  `u32 c = (u8)idx` (APress, which also needs `cmplwi`) or a `(u8)` cast at the use site
+  (`menuCursors[4 + (u8)gameSetUpStep.portCaptainSlot[port]]`, screenInputs) reproduce the target.
+- **Arguments in `r4`/`r5` that the source never sets are a missing parameter.** APress's target
+  loaded `charID` into `r4` and `li r5, 1` before `bl fn_8004D4F0`; the DOL body compares `r4`
+  against `challengeCaptainCharIDArray` and branches on `r5`. It is the challenge-mode team
+  add/remove `(team, charID, add)`, not a one-argument call (behaviour fix).
+- **`stopShowingCaptainProfile` takes the port's captain slot.** captainSelectScreenInputs passed
+  the port; the target passes the `portCaptainSlot[port]` load it already CSE'd (behaviour fix).
+- **Dropping single-use temporaries fixed most of APress** (94.5 -> 99.7): the two
+  `mapCaptainCursorPositionToCharID[...]` reads written into the stores directly, and the challenge
+  lookup written `(&table[sup * 6])[cursor]` to get the target's add order.
+- **`u8 a = port;` for the two animation calls, with the index written `(u8)port`** matched
+  fn_2_14BB8 (the cast CSEs with `a` and gives the target's `mr` copies). A `static inline` with a `u8`
+  parameter changed nothing.
+- **An `f32` temp updated in place reproduces `fadd` -> `frsp` reusing one register:**
+  `f32 t = 320.0f + v; t -= 0.1; return t - 320.0f;` (fn_2_14574).
+- **Including `UnknownHomes_Game.h` in a menu unit needs `#define SQRT2_LINKAGE static` first**, or
+  the `dolsqrtf2` statics shift `.rodata` (100 -> 95.8).
+- **The wait loop in checkForNewPlayer is an inlined `loadNewCaptainModelOnCapSelectScreen`.**
+  `while (!loadNewCaptain...(menuCursors[5], prev, 1, 1)) prev = menuCursors[5];` replaces a
+  goto-into-do-while at the same score.
+- **Still stuck:** checkForNewPlayer 94.35 (the target issues two global byte stores before an
+  unrelated `menuCursors` load that ours hoists above them; 11 forms logged), BPress 96.38,
+  handleInputs 99.48 (`bne next; beq L` for a `goto`), APress 99.74 (a two-register colour swap).
