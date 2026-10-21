@@ -324,39 +324,14 @@ void mainMenuScreen(void) {
 
 // .text:0x00001F30 size:0x8B0 mapped:0x80640FC4
 void mainMenuRelated(void) {
-    s8 *ports;
-    u8 *tbl;
-    int n;
     u8 *p1;
     u8 *p2;
-    u16 input[3];
+    controllerInputStruct input;
 
     switch (*(u16 *)(menuControlVariables + 4)) {
     case 0:
         if (*(u16 *)(menuControlVariables + 6) < 5) {
-            ports = (s8 *)&AtBat_ButtonInput1;
-            tbl = (u8 *)&Static_Stats_Tables;
-
-            Static_Stats_Tables.playerNumberByPort[0] = 0;
-            n = 1;
-
-            if (ports[0x28] != -1) {
-                Static_Stats_Tables.playerNumberByPort[1] = 1;
-                n = 2;
-            }
-            if (ports[0x48] != -1) {
-                Static_Stats_Tables.playerNumberByPort[n] = 2;
-                n++;
-            }
-            if (ports[0x68] != -1) {
-                Static_Stats_Tables.playerNumberByPort[n] = 3;
-                n++;
-            }
-
-            while (n < 4) {
-                ((s8 *)tbl)[n + 0x46F8] = -1;
-                n++;
-            }
+            fn_2_1A88();
         }
 
         p1 = &gameSetUpStep[1];
@@ -384,16 +359,16 @@ void mainMenuRelated(void) {
         break;
 
     case 2:
-        memset(input, 0, 6);
-        input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-        input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
-        input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
+        memset(&input, 0, sizeof(input));
+        input.currentHeldInput = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+        input.newInput = Static_Stats_Tables.controllerInputs[0].newInput;
+        input.processedInput = Static_Stats_Tables.controllerInputs[0].processedInput;
 
         if (gameSetUpStep[0x55] != 0) {
             break;
         }
 
-        if (input[1] & INPUT_BUTTON_A) {
+        if (input.newInput & INPUT_BUTTON_A) {
             switch (menuCursors[0]) {
             case 0:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
@@ -435,7 +410,7 @@ void mainMenuRelated(void) {
             break;
         }
 
-        if (input[1] & INPUT_BUTTON_B) {
+        if (input.newInput & INPUT_BUTTON_B) {
             lbl_80366158[0x29] = 2;
             Static_Stats_Tables.sceneAlive = 0;
             *(u16 *)(menuControlVariables + 4) = 6;
@@ -443,14 +418,14 @@ void mainMenuRelated(void) {
             break;
         }
 
-        if ((input[2] & INPUT_BUTTON_UP) || (input[2] & INPUT_BUTTON_DOWN)) {
+        if ((input.processedInput & INPUT_BUTTON_UP) || (input.processedInput & INPUT_BUTTON_DOWN)) {
             menuCursors[1] = menuCursors[0];
 
-            if (input[2] & INPUT_BUTTON_UP) {
+            if (Static_Stats_Tables.controllerInputs[0].processedInput & INPUT_BUTTON_UP) {
                 if (--menuCursors[0] < 0) {
                     menuCursors[0] = 6;
                 }
-            } else if (input[2] & INPUT_BUTTON_DOWN) {
+            } else if (Static_Stats_Tables.controllerInputs[0].processedInput & INPUT_BUTTON_DOWN) {
                 if (++menuCursors[0] == 7) {
                     menuCursors[0] = 0;
                 }
@@ -505,8 +480,8 @@ void mainMenuRelated(void) {
         break;
 
     case 6:
-        lbl_803CBCE0[0] = 0;
         ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
+        lbl_803CBCE0[0] = 0;
         fn_80062A74();
         fn_80035B50(0xF);
         fn_80035B50(0x12);
@@ -520,8 +495,8 @@ void mainMenuRelated(void) {
     case 7:
         Static_Stats_Tables.sceneAlive = 0;
         changeScreenVariables(1);
-        lbl_803CBCE0[0] = 0;
         ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
+        lbl_803CBCE0[0] = 0;
         break;
 
     case 3:
