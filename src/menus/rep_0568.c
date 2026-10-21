@@ -194,7 +194,7 @@ void fn_2_190B8(ActorObjectEntry *entry);
 void fn_2_18398(void);
 void fn_2_18748(void);
 void fn_2_188EC(void);
-BOOL fn_2_18650(u8 port);
+BOOL fn_2_18650(int port);
 void fn_2_18148(CapLoadTask *task);
 void fn_2_17ED8(void);
 void fn_2_16F78(u8 idx);
@@ -203,12 +203,8 @@ void fn_2_16CE0(void);
 void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, u8 speedDiv);
 
 #define STATE lbl_2_bss_100B8
+#define SSTATE ((s8 *)lbl_2_bss_100B8)
 #define TASK ((CapLoadTask *)currentDrawingItem)
-
-const f32 lbl_2_rodata_568[20] = {
-    1.0f, 1.5707964f, 1.0f, -1.0f, 4.712389f, 3.1415927f, -1.0f, 0.0f, -1.0f, 1.0f,
-    1.0f, 1.5707964f, 1.0f, -1.0f, 4.712389f, 3.1415927f, -1.0f, 0.0f, -1.0f, 1.0f,
-};
 
 // .text:0x0001937C size:0x140 mapped:0x80658410
 void fn_2_1937C(ActorObjectTable *table, Mtx cam) {
@@ -235,12 +231,13 @@ void fn_2_1937C(ActorObjectTable *table, Mtx cam) {
 
 // .text:0x00019224 size:0x158 mapped:0x806582B8
 void fn_2_19224(ActorObjectTable *table) {
-    u16 i;
+    int i;
 
-    for (i = 0; i < table->count; i++) {
-        CapSlot *obj = hugeAnimStruct.objects[i];
+    for (i = 0; (u16)i < table->count; i++) {
+        CapSlot *obj = hugeAnimStruct.objects[(u16)i];
         if (obj != NULL && obj->_25D != 0) {
-            ActorObjectEntry *e = &table->entries[i];
+            ActorObjectEntry *e = &table->entries[(u16)i];
+            u8 bp;
             if (e->actor != NULL) {
                 if (e->animPending != 0) {
                     ACTSetAnimation(e->actor, e->anim, NULL, e->seqNum, 0.0f, e->blendTime);
@@ -251,8 +248,9 @@ void fn_2_19224(ActorObjectTable *table) {
                 if (e->speedPending != 0) {
                     ACTSetSpeed(e->actor, e->speed);
                 }
-                if (e->boneParam & 2) {
-                    updateBoneParam(e->actor, e->boneParam & 1);
+                bp = e->boneParam;
+                if (bp & 2) {
+                    updateBoneParam(e->actor, (u8)(bp & 1));
                 }
                 Set_FUN_800b2b6c((UnkB2B4C *)e->actor, e->unk68);
                 if (e->applyControl != 0) {
@@ -270,11 +268,14 @@ void fn_2_19224(ActorObjectTable *table) {
 
 // .text:0x000190DC size:0x148 mapped:0x80658170
 void fn_2_190DC(ActorObjectTable *table) {
-    u16 i;
+    int i;
+    u16 idx;
 
-    for (i = 0; i < table->count; i++) {
-        if (hugeAnimStruct.actorEntries + i * 0x28 != NULL) {
-            ActorObjectEntry *e = &table->entries[i];
+    for (i = 0; (u16)i < table->count; i++) {
+        idx = i;
+        if (hugeAnimStruct.actorEntries + idx * 0x28 != NULL) {
+            ActorObjectEntry *e = &table->entries[idx];
+            u8 bp;
             if (e->actor != NULL) {
                 if (e->animPending != 0) {
                     ACTSetAnimation(e->actor, e->anim, NULL, e->seqNum, 0.0f, e->blendTime);
@@ -285,8 +286,9 @@ void fn_2_190DC(ActorObjectTable *table) {
                 if (e->speedPending != 0) {
                     ACTSetSpeed(e->actor, e->speed);
                 }
-                if (e->boneParam & 2) {
-                    updateBoneParam(e->actor, e->boneParam & 1);
+                bp = e->boneParam;
+                if (bp & 2) {
+                    updateBoneParam(e->actor, (u8)(bp & 1));
                 }
                 Set_FUN_800b2b6c((UnkB2B4C *)e->actor, e->unk68);
                 if (e->applyControl != 0) {
@@ -316,7 +318,7 @@ void captainSelectLoadScreen(void) {
     STATE[0x1B] = 1;
     if (Static_Stats_Tables._4700[1] == 0) {
         for (i = 0; i < STATE[0x2D]; i++) {
-            STATE[0x27 + i] = -1;
+            SSTATE[0x27 + i] = -1;
         }
         ((CapLoadTask *)task)->stage = 0;
     } else {
@@ -327,29 +329,28 @@ void captainSelectLoadScreen(void) {
     }
     STATE[0] = 0;
     STATE[1] = 0;
-    if (STATE[0] < 10) {
-        STATE[2] = -1;
-        STATE[3] = -1;
-        STATE[4] = -1;
-        STATE[5] = -1;
-        STATE[6] = -1;
-        STATE[7] = -1;
-        STATE[8] = -1;
-        STATE[9] = -1;
-        STATE[10] = -1;
-        STATE[11] = -1;
+    if (SSTATE[0] < 10) {
+        SSTATE[2] = -1;
+        SSTATE[3] = -1;
+        SSTATE[4] = -1;
+        SSTATE[5] = -1;
+        SSTATE[6] = -1;
+        SSTATE[7] = -1;
+        SSTATE[8] = -1;
+        SSTATE[9] = -1;
+        SSTATE[10] = -1;
+        SSTATE[11] = -1;
     }
 }
 
 // .text:0x000188EC size:0x6D0 mapped:0x80657980
 void fn_2_188EC(void) {
     CapLoadTask *task;
-    CapAnimView *view = &hugeAnimStruct;
     int i;
 
     task = TASK;
-    view->_307A = 0;
-    view->_307C = 0;
+    hugeAnimStruct._307A = 0;
+    hugeAnimStruct._307C = 0;
     switch (task->stage) {
     case 0:
         fn_2_166CC();
@@ -374,7 +375,7 @@ void fn_2_188EC(void) {
                 }
             }
             for (i = 0; i < STATE[0x2D]; i++) {
-                view->objects[i] = NULL;
+                hugeAnimStruct.objects[i] = NULL;
             }
             removeCurrentDrawingItem();
             break;
@@ -388,8 +389,8 @@ void fn_2_188EC(void) {
                     }
                 }
             }
-            view->_307A = 5;
-            view->_307C = 1;
+            hugeAnimStruct._307A = 5;
+            hugeAnimStruct._307C = 1;
             fn_2_16460();
             PSMTXCopy((f32(*)[4])lbl_2_bss_1010C, fn_80052768_getCamera(0)->view);
             fn_2_16CE0();
@@ -444,24 +445,24 @@ void fn_2_18748(void) {
 }
 
 // .text:0x00018650 size:0xF8 mapped:0x806576E4
-BOOL fn_2_18650(u8 port) {
+BOOL fn_2_18650(int port) {
     int head = ((s8)STATE[0] + 1) % 10;
 
-    if (head == (s8)STATE[1]) {
-        return FALSE;
-    }
-    if (lbl_2_bss_1224 == NULL) {
-        if ((lbl_2_bss_1224 = (CapLoadTask *)insertGraphicDrawingFunction(fn_2_18398, 0xFFFF)) != NULL) {
-            lbl_2_bss_1224->stage = 0;
-            lbl_2_bss_1224->step = 0;
-        } else {
-            return FALSE;
+    if (head != (s8)STATE[1]) {
+        if (lbl_2_bss_1224 == NULL) {
+            if ((lbl_2_bss_1224 = (CapLoadTask *)insertGraphicDrawingFunction(fn_2_18398, 0xFFFF)) != NULL) {
+                lbl_2_bss_1224->stage = 0;
+                lbl_2_bss_1224->step = 0;
+            } else {
+                return FALSE;
+            }
         }
+        STATE[2 + (s8)STATE[0]] = port;
+        STATE[0] = head;
+        STATE[0x42 + port] = 1;
+        return TRUE;
     }
-    STATE[2 + (s8)STATE[0]] = port;
-    STATE[0] = head;
-    STATE[0x42 + port] = 1;
-    return TRUE;
+    return FALSE;
 }
 
 // .text:0x00018398 size:0x2B8 mapped:0x8065742C
@@ -470,7 +471,8 @@ void fn_2_18398(void) {
 
     switch (task->step) {
     case 0: {
-        u8 port = STATE[2 + (s8)STATE[1]];
+        s8 *queue = &SSTATE[2];
+        u8 port = queue[(s8)STATE[1]];
         if ((s8)port == -1) {
             STATE[0x18] = 0;
             STATE[0x1B] = 1;
@@ -481,7 +483,7 @@ void fn_2_18398(void) {
             break;
         }
         task->index = port;
-        STATE[2 + (s8)STATE[1]] = -1;
+        queue[(s8)STATE[1]] = -1;
         STATE[0x1A] = 1;
         STATE[0x1B] = 0;
         STATE[1] = ((s8)STATE[1] + 1) % 10;
@@ -574,9 +576,9 @@ void fn_2_18148(CapLoadTask *task) {
 
 // .text:0x00017ED8 size:0x270 mapped:0x80656F6C
 void fn_2_17ED8(void) {
+    int t, j, i;
     u32 maxSize = 0;
     u32 size;
-    int t, j, i;
 
     for (t = 0; t < 12; t++) {
         for (j = 0; j < 9; j++) {
@@ -603,9 +605,9 @@ done:
 
 // .text:0x00017C88 size:0x250 mapped:0x80656D1C
 void fn_2_17C88(void) {
+    int t, j, i;
     u32 maxSize = 0;
     u32 size;
-    int t, j, i;
 
     for (t = 0; t < 12; t++) {
         for (j = 0; j < 9; j++) {
@@ -629,7 +631,7 @@ done:
 
 // .text:0x00017AB8 size:0x1D0 mapped:0x80656B4C
 void fn_2_17AB8(void) {
-    u32 size = ((lbl_2_data_2780[0]->sizeFlags & 0x0FFFFFFF) + 31) & ~31;
+    int size = ((lbl_2_data_2780[0]->sizeFlags & 0x0FFFFFFF) + 31) & ~31;
     int i;
 
     lbl_2_bss_122C = _OSAllocFromHeap(32, size * STATE[0x2D]);
@@ -642,9 +644,9 @@ void fn_2_17AB8(void) {
 
 // .text:0x00017648 size:0x470 mapped:0x806566DC
 void fn_2_17648(void) {
+    int t, j, k, i;
     u32 maxSize = 0;
     u32 size;
-    int t, j, k, i;
 
     for (t = 0; t < 12; t++) {
         for (j = 0; j < 9; j++) {
@@ -842,15 +844,15 @@ void fn_2_16F78(u8 idx) {
 // .text:0x00016F0C size:0x6C mapped:0x80655FA0
 void fn_2_16F0C(u8 idx) {
     CapSlot *slot = &hugeAnimStruct.slots[idx];
-    CapEntry *e = &hugeAnimStruct.entries[idx];
-    u8 a = slot->charID;
-    u8 b = slot->_254;
+    s8 *p = &hugeAnimStruct.entries[idx]._D0;
+    u8 a = hugeAnimStruct.slots[idx].charID;
+    u8 b = hugeAnimStruct.slots[idx]._254;
 
-    if (e->_D0 == -1) {
-        e->_CF = a;
-        e->_D1 = e->_D0;
-        e->_D0 = b;
-        e->_CD = slot->_265;
+    if (*p == -1) {
+        hugeAnimStruct.entries[idx]._CF = a;
+        hugeAnimStruct.entries[idx]._D1 = *p;
+        *p = b;
+        hugeAnimStruct.entries[idx]._CD = slot->_265;
     }
     slot->entry = &hugeAnimStruct.entries[idx];
 }
@@ -858,14 +860,18 @@ void fn_2_16F0C(u8 idx) {
 // .text:0x00016DA8 size:0x164 mapped:0x80655E3C
 void fn_2_16DA8(void) {
     int i;
+    u8 *p;
 
     hugeAnimStruct.actorCount = 0;
     for (i = 0; i < STATE[0x2D]; i++) {
         hugeAnimStruct.objects[i] = &hugeAnimStruct.slots[i];
     }
-    for (i = 3; i >= 0; i--) {
-        STATE[0x42 + i] = 0;
-    }
+    i = 3;
+    p = STATE + 3;
+    do {
+        p[0x42] = 0;
+        p--;
+    } while (i-- != 0);
     if (menuControlVariables->previousScreen == 5 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         STATE[0x46] = 1;
         STATE[0x47] = 0;
