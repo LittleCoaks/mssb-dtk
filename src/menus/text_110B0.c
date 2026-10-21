@@ -136,6 +136,7 @@ void stadiumSelectControls(u8 idx) {
     u16 input0;
     u16 input1;
     int v;
+    int i;
 
     flag = 0;
 
@@ -161,15 +162,14 @@ void stadiumSelectControls(u8 idx) {
     }
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-        p = ((u8 *)&Static_Stats_Tables)[idx + 0x46F8];
+        p = Static_Stats_Tables.playerNumberByPort[idx];
 
-        if (g_d_GameSettings.PlayerPorts[0] == p) {
-            flag = 1;
+        for (i = 0; i < 2; i++) {
+            if (g_d_GameSettings.PlayerPorts[i] == p) {
+                flag = 1;
+            }
         }
-        if (g_d_GameSettings.PlayerPorts[1] == p) {
-            flag = 1;
-        }
-        ((u8 *)&Static_Stats_Tables)[idx + 0x46F8] = p;
+        Static_Stats_Tables.playerNumberByPort[idx] = p;
 
         if (flag == 0) {
             return;
@@ -178,10 +178,10 @@ void stadiumSelectControls(u8 idx) {
         return;
     }
 
-    input0 = *(u16*)&((u8 *)&Static_Stats_Tables)[idx * 6 + 0x4730];
-    input1 = *(u16*)&((u8 *)&Static_Stats_Tables)[idx * 6 + 0x472E];
+    input0 = Static_Stats_Tables.controllerInputs[idx].processedInput;
+    input1 = Static_Stats_Tables.controllerInputs[idx].newInput;
 
-    if (input0 & 1) {
+    if (input0 & INPUT_BUTTON_LEFT) {
         if (gameSetUpStep[0x5D] != 0x24) {
             v = menuCursors[0x11] - 1;
             if (v < 0) {
@@ -191,7 +191,7 @@ void stadiumSelectControls(u8 idx) {
             updateCharacterSelectProcessCode(0, 0x28);
             cursorSndFx(1);
         }
-    } else if (input0 & 2) {
+    } else if (input0 & INPUT_BUTTON_RIGHT) {
         if (gameSetUpStep[0x5D] != 0x24) {
             v = menuCursors[0x11] + 1;
             if (v == 6) {
@@ -201,12 +201,12 @@ void stadiumSelectControls(u8 idx) {
             updateCharacterSelectProcessCode(0, 0x28);
             cursorSndFx(2);
         }
-    } else if (input1 & 0x20) {
+    } else if (input1 & INPUT_TRIGGER_R) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             lbl_803CBCD8[0] = 1;
             lbl_803CBCD8[1] = 6;
         }
-    } else if (input1 & 0x100) {
+    } else if (input1 & INPUT_BUTTON_A) {
         if (menuCursors[0x11] < 6) {
             if (superstarUnlocked[0xF5] == 0 &&
                 cursorToStadIDMapping[menuCursors[0x11]] == 1) {
@@ -220,7 +220,7 @@ void stadiumSelectControls(u8 idx) {
                 *(u16*)(menuControlVariables + 4) = 4;
             }
         }
-    } else if (input1 & 0x200) {
+    } else if (input1 & INPUT_BUTTON_B) {
         if (lbl_803CBCD8[0] == 0 && gameSetUpStep[0x5D] == 0) {
             bPressOnStadSelectScreen();
             cursorSndFx(0x200);
