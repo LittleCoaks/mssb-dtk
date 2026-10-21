@@ -809,10 +809,10 @@ void captainSelect_handleCursor(u8 port, controllerInputStruct *input) {
 void fn_2_14BB8(int port, int state) {
     switch (state) {
     case 0: {
-        u8 c = port;
-        AnimateCharacter((u8)port, 0x6A, 0, 1, 1, 0, 0, -1);
-        QueueCharacterAnimation((u8)port, 0x6B, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[0x40 + c] = 0;
+        u8 a = port;
+        AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
+        QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
+        lbl_2_bss_100B8[0x40 + (u8)port] = 0;
         break;
     }
     case 1:
