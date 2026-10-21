@@ -3,11 +3,12 @@
 
 #include "mssbTypes.h"
 
-/* Debug-menu text and tables. An identical copy opens the .data of several
- * menus translation units (captain_select 0x19E8, challenge_file_select
- * 0x2B78, and 0x1E28 which belongs to the unit before the options screen), so
- * it most likely comes from a shared header. Only the strings are understood;
- * the trailing tables are kept as raw values. */
+/* Debug-menu text and tables. An identical copy opens the .data of every
+ * menus translation unit in this block (main_menu 0x180, text_0323C 0x720,
+ * stadium_select 0x1000, teamselect 0x15C8, captain_select 0x19E8,
+ * captain_model_load 0x1E28, options_screen 0x2798, challenge_file_select
+ * 0x2B78), so it most likely comes from a shared header. Only the strings are
+ * understood; the trailing tables are kept as raw values. */
 typedef struct {
     /* 0x000 */ char batOrder[2][0x20];
     /* 0x040 */ char fl[0x20];
