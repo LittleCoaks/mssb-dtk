@@ -3999,7 +3999,7 @@ units reached 100%.
 ## Menus pass findings (text_110B0, main_menu)
 
 Second pass on `src/menus/text_110B0.c` (.text 95.12 -> 98.77, 2 -> 5 of 7 functions at 100%)
-and `src/menus/main_menu.c` (.text 91.42 -> 99.39, 7 -> 12 of 15). Neither unit is at 100%, so
+and `src/menus/main_menu.c` (.text 91.42 -> 99.43, .data 100; 7 -> 12 of 15). Neither unit is at 100%, so
 neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,main_menu}.md`.
 
 - **`sym+0x8@ha` in the target means dtk merged several small `.sbss` objects into one symbol.**
