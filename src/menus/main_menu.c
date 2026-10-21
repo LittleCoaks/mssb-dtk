@@ -1,6 +1,7 @@
 #include "menus/main_menu.h"
 #include "game/challenge/star_mission_data.h"
 #include "static/UnknownHomes_Static.h"
+#include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
@@ -87,7 +88,7 @@ void loadDemoMatch(u8 mode, int a, int b) {
         flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E4]] = 1;
 
         for (i = 0; i < 6; i++) {
-            v = (((u8 *)&g_d_GameSettings)[0x1A + i] == 0);
+            v = (g_d_GameSettings.characterUnlocked[i] == 0);
             want = unlockableCharacter_noDupeNoGapCharID[i];
 
             for (j = 0; j < 54; j++) {
@@ -213,11 +214,11 @@ void mainMenuScreen(void) {
 
         initializeUnknown();
         ((u8 *)&Static_Stats_Tables)[0x4700] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+        Static_Stats_Tables.sceneAlive = 0xFF;
         ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
         ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
         ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
-        ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
+        Static_Stats_Tables.unk48B3 = 0;
         ((u8 *)&Static_Stats_Tables)[0x4701] = 0;
         ((u8 *)&Static_Stats_Tables)[0x4702] = 0;
         ((u8 *)&Static_Stats_Tables)[0x4703] = 0;
@@ -373,10 +374,10 @@ void mainMenuRelated(void) {
         memset(p2, 0, 2);
         menuCursors[0] = p2[0];
         menuCursors[1] = ((u8 *)&Static_Stats_Tables)[0x4713];
-        ((u8 *)&g_d_GameSettings)[0x10] = 0;
+        g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
         gameSetUpStep[0] = 0;
         memset(p1, 0, 6);
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+        Static_Stats_Tables.sceneAlive = 0xFF;
         fn_2_74D8C();
         updateCharacterSelectProcessCode(0, 0x54);
         *(u16 *)(menuControlVariables + 4) = *(u16 *)(menuControlVariables + 4) + 1;
@@ -396,31 +397,31 @@ void mainMenuRelated(void) {
             break;
         }
 
-        if (input[1] & 0x100) {
+        if (input[1] & INPUT_BUTTON_A) {
             switch (menuCursors[0]) {
             case 0:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-                ((u8 *)&g_d_GameSettings)[0x7] = 0;
+                g_d_GameSettings.GameModeSelected = GAME_TYPE_EXHIBITION_GAME;
                 break;
             case 1:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-                ((u8 *)&g_d_GameSettings)[0x7] = 5;
+                g_d_GameSettings.GameModeSelected = GAME_TYPE_CHALLENGE;
                 break;
             case 3:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-                ((u8 *)&g_d_GameSettings)[0x7] = 7;
+                g_d_GameSettings.GameModeSelected = GAME_TYPE_MINIGAMES;
                 changeScene(4, 6);
                 break;
             case 2:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-                ((u8 *)&g_d_GameSettings)[0x7] = 6;
+                g_d_GameSettings.GameModeSelected = GAME_TYPE_TOY_FIELD;
                 changeScene(4, 6);
                 break;
             case 4:
                 Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-                ((u8 *)&g_d_GameSettings)[0x7] = 2;
-                ((u8 *)&g_d_GameSettings)[0x9] = 0;
-                ((u8 *)&g_d_GameSettings)[0xA] = 2;
+                g_d_GameSettings.GameModeSelected = GAME_TYPE_PRACTICE;
+                g_d_GameSettings.StadiumID = STADIUM_ID_MARIO_STADIUM;
+                g_d_GameSettings.miniGameStadiumIndicator = 2;
                 changeScene(4, 6);
                 break;
             case 6:
@@ -438,22 +439,22 @@ void mainMenuRelated(void) {
             break;
         }
 
-        if (input[1] & 0x200) {
+        if (input[1] & INPUT_BUTTON_B) {
             lbl_80366158[0x29] = 2;
-            ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+            Static_Stats_Tables.sceneAlive = 0;
             *(u16 *)(menuControlVariables + 4) = 6;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             break;
         }
 
-        if ((input[2] & 0x8) || (input[2] & 0x4)) {
+        if ((input[2] & INPUT_BUTTON_UP) || (input[2] & INPUT_BUTTON_DOWN)) {
             menuCursors[1] = menuCursors[0];
 
-            if (input[2] & 0x8) {
+            if (input[2] & INPUT_BUTTON_UP) {
                 if (--menuCursors[0] < 0) {
                     menuCursors[0] = 6;
                 }
-            } else if (input[2] & 0x4) {
+            } else if (input[2] & INPUT_BUTTON_DOWN) {
                 if (++menuCursors[0] == 7) {
                     menuCursors[0] = 0;
                 }
@@ -504,7 +505,7 @@ void mainMenuRelated(void) {
             break;
         }
 
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+        Static_Stats_Tables.sceneAlive = 0;
         break;
 
     case 6:
@@ -521,22 +522,22 @@ void mainMenuRelated(void) {
         break;
 
     case 7:
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+        Static_Stats_Tables.sceneAlive = 0;
         changeScreenVariables(1);
         lbl_803CBCE0[0] = 0;
         ((u8 *)&Static_Stats_Tables)[0x48B4] = 0;
         break;
 
     case 3:
-        ((u8 *)&Static_Stats_Tables)[0x4728] = ((u8 *)&g_d_GameSettings)[0x7];
-        ((u8 *)&Static_Stats_Tables)[0x4729] = ((u8 *)&g_d_GameSettings)[0x10];
-        ((u8 *)&g_d_GameSettings)[0x8] = 1;
+        Static_Stats_Tables.mode = g_d_GameSettings.GameModeSelected;
+        Static_Stats_Tables.player2Ind = g_d_GameSettings.p2_CPU_match_code;
+        g_d_GameSettings.exhibitionMatchInd = TRUE;
 
-        if (((u8 *)&g_d_GameSettings)[0x7] == 0) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_EXHIBITION_GAME) {
             changeScreenVariables(9);
-        } else if (((u8 *)&g_d_GameSettings)[0x7] == 5) {
+        } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             if (cardCheck[0x47] != 0) {
-                ((u8 *)&g_d_GameSettings)[0x10] = 0;
+                g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
                 changeScreenVariables(0xC);
             } else {
                 changeScreenVariables(0xF);
@@ -597,27 +598,27 @@ void fn_2_1DC8(void) {
     switch (menuCursors[0]) {
     case 0:
         Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-        ((u8 *)&g_d_GameSettings)[0x7] = 0;
+        g_d_GameSettings.GameModeSelected = GAME_TYPE_EXHIBITION_GAME;
         break;
     case 1:
         Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-        ((u8 *)&g_d_GameSettings)[0x7] = 5;
+        g_d_GameSettings.GameModeSelected = GAME_TYPE_CHALLENGE;
         break;
     case 3:
         Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-        ((u8 *)&g_d_GameSettings)[0x7] = 7;
+        g_d_GameSettings.GameModeSelected = GAME_TYPE_MINIGAMES;
         changeScene(4, 6);
         break;
     case 2:
         Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-        ((u8 *)&g_d_GameSettings)[0x7] = 6;
+        g_d_GameSettings.GameModeSelected = GAME_TYPE_TOY_FIELD;
         changeScene(4, 6);
         break;
     case 4:
         Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-        ((u8 *)&g_d_GameSettings)[0x7] = 2;
-        ((u8 *)&g_d_GameSettings)[0x9] = 0;
-        ((u8 *)&g_d_GameSettings)[0xA] = 2;
+        g_d_GameSettings.GameModeSelected = GAME_TYPE_PRACTICE;
+        g_d_GameSettings.StadiumID = STADIUM_ID_MARIO_STADIUM;
+        g_d_GameSettings.miniGameStadiumIndicator = 2;
         changeScene(4, 6);
         break;
     case 6:
@@ -639,15 +640,14 @@ void fn_2_1DC4(void) {
 
 // .text:0x00001D54 size:0x70 mapped:0x80640DE8
 void fn_2_1D54(int *cursor, u8 port, int count) {
-    u8 *base = (u8 *)&Static_Stats_Tables + 0x4730;
-    u16 input = *(u16 *)(base + port * 6);
+    u16 input = Static_Stats_Tables.controllerInputs[port].processedInput;
 
-    if (input & 0x8) {
+    if (input & INPUT_BUTTON_UP) {
         *cursor = *cursor - 1;
         if (*cursor < 0) {
             *cursor = count - 1;
         }
-    } else if (input & 0x4) {
+    } else if (input & INPUT_BUTTON_DOWN) {
         *cursor = *cursor + 1;
         if (*cursor == count) {
             *cursor = 0;
@@ -657,33 +657,33 @@ void fn_2_1D54(int *cursor, u8 port, int count) {
 
 // .text:0x00001D28 size:0x2C mapped:0x80640DBC
 void fn_2_1D28(void) {
-    ((u8 *)&Static_Stats_Tables)[0x472A] = 0xFF;
+    Static_Stats_Tables.sceneAlive = 0xFF;
     ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
     ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
     ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
-    ((u8 *)&Static_Stats_Tables)[0x48B3] = 0;
+    Static_Stats_Tables.unk48B3 = 0;
 }
 
 // .text:0x00001C34 size:0xF4 mapped:0x80640CC8
 void cursorSndFx(u16 button) {
     switch (button) {
-    case 0x100:
+    case INPUT_BUTTON_A:
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         break;
-    case 0x200:
+    case INPUT_BUTTON_B:
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         break;
-    case 0x1:
-    case 0x2:
-    case 0x4:
-    case 0x8:
+    case INPUT_BUTTON_LEFT:
+    case INPUT_BUTTON_RIGHT:
+    case INPUT_BUTTON_DOWN:
+    case INPUT_BUTTON_UP:
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         break;
-    case 0x20:
-    case 0x40:
+    case INPUT_TRIGGER_R:
+    case INPUT_TRIGGER_L:
         break;
-    case 0x400:
-    case 0x800:
+    case INPUT_BUTTON_X:
+    case INPUT_BUTTON_Y:
         break;
     }
 }
@@ -720,42 +720,42 @@ void fn_2_1A88(void) {
 
 // .text:0x00001800 size:0x288 mapped:0x80640894
 void fn_2_1800(void) {
-    u16 input[3];
+    controllerInputStruct input;
 
-    memset(input, 0, 6);
-    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
-    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
+    memset(&input, 0, sizeof(input));
+    input.currentHeldInput = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+    input.newInput = Static_Stats_Tables.controllerInputs[0].newInput;
+    input.processedInput = Static_Stats_Tables.controllerInputs[0].processedInput;
 
     if (gameSetUpStep[0x55] != 0) {
         return;
     }
 
-    if (input[1] & 0x100) {
+    if (input.newInput & INPUT_BUTTON_A) {
         switch (menuCursors[0]) {
         case 0:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-            ((u8 *)&g_d_GameSettings)[0x7] = 0;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_EXHIBITION_GAME;
             break;
         case 1:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-            ((u8 *)&g_d_GameSettings)[0x7] = 5;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_CHALLENGE;
             break;
         case 3:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-            ((u8 *)&g_d_GameSettings)[0x7] = 7;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_MINIGAMES;
             changeScene(4, 6);
             break;
         case 2:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-            ((u8 *)&g_d_GameSettings)[0x7] = 6;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_TOY_FIELD;
             changeScene(4, 6);
             break;
         case 4:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-            ((u8 *)&g_d_GameSettings)[0x7] = 2;
-            ((u8 *)&g_d_GameSettings)[0x9] = 0;
-            ((u8 *)&g_d_GameSettings)[0xA] = 2;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_PRACTICE;
+            g_d_GameSettings.StadiumID = STADIUM_ID_MARIO_STADIUM;
+            g_d_GameSettings.miniGameStadiumIndicator = 2;
             changeScene(4, 6);
             break;
         case 6:
@@ -773,22 +773,22 @@ void fn_2_1800(void) {
         return;
     }
 
-    if (input[1] & 0x200) {
+    if (input.newInput & INPUT_BUTTON_B) {
         lbl_80366158[0x29] = 2;
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+        Static_Stats_Tables.sceneAlive = 0;
         *(u16 *)(menuControlVariables + 4) = 6;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         return;
     }
 
-    if ((input[2] & 0x8) || (input[2] & 0x4)) {
+    if ((input.processedInput & INPUT_BUTTON_UP) || (input.processedInput & INPUT_BUTTON_DOWN)) {
         menuCursors[1] = menuCursors[0];
 
-        if (input[2] & 0x8) {
+        if (Static_Stats_Tables.controllerInputs[0].processedInput & INPUT_BUTTON_UP) {
             if (--menuCursors[0] < 0) {
                 menuCursors[0] = 6;
             }
-        } else if (input[2] & 0x4) {
+        } else if (Static_Stats_Tables.controllerInputs[0].processedInput & INPUT_BUTTON_DOWN) {
             if (++menuCursors[0] == 7) {
                 menuCursors[0] = 0;
             }
@@ -801,42 +801,42 @@ void fn_2_1800(void) {
 
 // .text:0x00001578 size:0x288 mapped:0x8064060C
 void fn_2_1578(void) {
-    u16 input[3];
+    controllerInputStruct input;
 
-    memset(input, 0, 6);
-    input[0] = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-    input[1] = Static_Stats_Tables.controllerInputs[0].newInput;
-    input[2] = Static_Stats_Tables.controllerInputs[0].processedInput;
+    memset(&input, 0, sizeof(input));
+    input.currentHeldInput = Static_Stats_Tables.controllerInputs[0].currentHeldInput;
+    input.newInput = Static_Stats_Tables.controllerInputs[0].newInput;
+    input.processedInput = Static_Stats_Tables.controllerInputs[0].processedInput;
 
     if (gameSetUpStep[0x55] != 0) {
         return;
     }
 
-    if (input[1] & 0x100) {
+    if (input.newInput & INPUT_BUTTON_A) {
         switch (menuCursors[0]) {
         case 0:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 0;
-            ((u8 *)&g_d_GameSettings)[0x7] = 0;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_EXHIBITION_GAME;
             break;
         case 1:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 1;
-            ((u8 *)&g_d_GameSettings)[0x7] = 5;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_CHALLENGE;
             break;
         case 3:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 3;
-            ((u8 *)&g_d_GameSettings)[0x7] = 7;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_MINIGAMES;
             changeScene(4, 6);
             break;
         case 2:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 2;
-            ((u8 *)&g_d_GameSettings)[0x7] = 6;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_TOY_FIELD;
             changeScene(4, 6);
             break;
         case 4:
             Static_Stats_Tables.mainMenuOptionSelectedIndex = 4;
-            ((u8 *)&g_d_GameSettings)[0x7] = 2;
-            ((u8 *)&g_d_GameSettings)[0x9] = 0;
-            ((u8 *)&g_d_GameSettings)[0xA] = 2;
+            g_d_GameSettings.GameModeSelected = GAME_TYPE_PRACTICE;
+            g_d_GameSettings.StadiumID = STADIUM_ID_MARIO_STADIUM;
+            g_d_GameSettings.miniGameStadiumIndicator = 2;
             changeScene(4, 6);
             break;
         case 6:
@@ -854,22 +854,22 @@ void fn_2_1578(void) {
         return;
     }
 
-    if (input[1] & 0x200) {
+    if (input.newInput & INPUT_BUTTON_B) {
         lbl_80366158[0x29] = 2;
-        ((u8 *)&Static_Stats_Tables)[0x472A] = 0;
+        Static_Stats_Tables.sceneAlive = 0;
         *(u16 *)(menuControlVariables + 4) = 6;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         return;
     }
 
-    if ((input[2] & 0x8) || (input[2] & 0x4)) {
+    if ((input.processedInput & INPUT_BUTTON_UP) || (input.processedInput & INPUT_BUTTON_DOWN)) {
         menuCursors[1] = menuCursors[0];
 
-        if (input[2] & 0x8) {
+        if (Static_Stats_Tables.controllerInputs[0].processedInput & INPUT_BUTTON_UP) {
             if (--menuCursors[0] < 0) {
                 menuCursors[0] = 6;
             }
-        } else if (input[2] & 0x4) {
+        } else if (Static_Stats_Tables.controllerInputs[0].processedInput & INPUT_BUTTON_DOWN) {
             if (++menuCursors[0] == 7) {
                 menuCursors[0] = 0;
             }

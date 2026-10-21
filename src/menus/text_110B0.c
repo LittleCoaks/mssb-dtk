@@ -189,7 +189,7 @@ void stadiumSelectControls(u8 idx) {
             }
             menuCursors[0x11] = v;
             updateCharacterSelectProcessCode(0, 0x28);
-            cursorSndFx(1);
+            cursorSndFx(INPUT_BUTTON_LEFT);
         }
     } else if (input0 & INPUT_BUTTON_RIGHT) {
         if (gameSetUpStep[0x5D] != 0x24) {
@@ -199,7 +199,7 @@ void stadiumSelectControls(u8 idx) {
             }
             menuCursors[0x11] = v;
             updateCharacterSelectProcessCode(0, 0x28);
-            cursorSndFx(2);
+            cursorSndFx(INPUT_BUTTON_RIGHT);
         }
     } else if (input1 & INPUT_TRIGGER_R) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
@@ -215,7 +215,7 @@ void stadiumSelectControls(u8 idx) {
                 g_d_GameSettings.StadiumID = cursorToStadIDMapping[menuCursors[0x11]];
                 lbl_2_bss_F468[0x58] = 1;
                 fn_2_328();
-                cursorSndFx(0x100);
+                cursorSndFx(INPUT_BUTTON_A);
                 updateCharacterSelectProcessCode(0, 0x25);
                 *(u16*)(menuControlVariables + 4) = 4;
             }
@@ -223,7 +223,7 @@ void stadiumSelectControls(u8 idx) {
     } else if (input1 & INPUT_BUTTON_B) {
         if (lbl_803CBCD8[0] == 0 && gameSetUpStep[0x5D] == 0) {
             bPressOnStadSelectScreen();
-            cursorSndFx(0x200);
+            cursorSndFx(INPUT_BUTTON_B);
             *(u16*)(menuControlVariables + 6) = 0xC;
             updateCharacterSelectProcessCode(0, 0x24);
             *(u16*)(menuControlVariables + 4) = 3;
@@ -356,12 +356,12 @@ void selectStadiumScreen(void) {
                     } else {
                         lbl_803CBBC4[0] = 0x60;
                         Static_Stats_Tables.sceneAlive = 1;
-                        cursorSndFx(0x100);
+                        cursorSndFx(INPUT_BUTTON_A);
                         *(u16*)(menuControlVariables + 4) = 7;
                     }
                 }
             } else if (Static_Stats_Tables.controllerInputs[0].newInput & INPUT_BUTTON_B) {
-                cursorSndFx(0x200);
+                cursorSndFx(INPUT_BUTTON_B);
                 lbl_803CBBC4[0] = 0x60;
                 Static_Stats_Tables.sceneAlive = 1;
                 *(u16*)(menuControlVariables + 4) = 8;
