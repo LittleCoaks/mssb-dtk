@@ -1054,3 +1054,64 @@ generates the same code. `somethingSetTexturePointer` no longer includes
 `C3/skinning/SKNAsm.h`, which redeclared `LCStoreBlocks` against `OSCache.h` in the merged
 translation unit and was not needed. The seven headers became `include/text/text.h`
 (37 files include it).
+
+## The options / settings gap in the menus REL (2026-10-21)
+
+`.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
+`captain_select/captain_model_load.c` (`.rodata 0x568-0x5F0`) and `rep_0730.c` (`.rodata 0x730-`).
+Between them are four header-only units, `rep_05F0`, `rep_0640`, `rep_0690` and `rep_06E0` (one 0x50
+`repHeaderData` table each, no `.text`), so by the method above the gap holds up to four TUs. The gap
+references no `.rodata` of its own (no float constants), so the test cannot place a boundary by
+constants; the boundaries come from the call graph, the `.data` ownership and the inlining pattern.
+
+Result: **three code units and one code-less table**, paired in order.
+
+| header-only unit | `.text` | `.data` | became |
+|---|---|---|---|
+| `rep_05F0` | `0x194BC-0x19F2C` | `0x2B5C-0x2B78` (jump table) | `options_screen.c` |
+| `rep_0640` | `0x19F2C-0x1A1B4` | none | `settings_reset.c` |
+| `rep_0690` | `0x1A1B4-0x1A4C8` | `0x2B78-0x2E40` | `challenge_file_select.c` |
+| `rep_06E0` | none | none | stays a header-only unit (the code-less TU) |
+
+Evidence, in the order it carries weight:
+
+- **`0x194BC-0x19F2C` is one TU.** `fn_2_197AC` and `optionsScreen` contain, expanded inline, the bodies of
+  `fn_2_194E8`, `fn_2_19520`, `fn_2_19554` and `fn_2_19778`; none of those four, nor `fn_2_194BC` or the empty
+  `fn_2_195D8`, is called or referenced by name anywhere in the REL. They are the out-of-line copies of inlined
+  helpers (the "inlined and also kept standalone" case in `matching_notes.md`), and a helper can only be inlined
+  where its definition is visible, so the callers and the helpers are one TU. The unit's only `.data` is the
+  jump table of `optionsScreen`'s switch (`jumptable_2_data_2B5C`, targets `optionsScreen+0x38..0x1E0`), which is
+  the last object before the next debug-menu table.
+- **`settingValuesTo0` and `challengeFileSelect` are different TUs from the options screen.** The 0x2C4-byte
+  debug-menu text table at `.data 0x2B78` follows the jump table directly, and `challengeFileSelect` reads
+  `lbl_2_data_2E3C`, the first object after that table (a zero `GXColor`, the `GXSetCopyClear` colour). So the
+  options jump table ends one TU's `.data` and `challengeFileSelect` starts the next one's. `.data 0x2E40` onward
+  is read by units far later in the REL (`0x4C9E0`, `0x6826C`), so the new unit takes `0x2B78-0x2E40` only; the
+  rest stays unowned.
+- **`settingValuesTo0` is a TU of its own (weak).** It is the only function in the gap that is called from other
+  units (`main_menu.c`, `teamselect.c`, `text_0323C.c`, always as a plain `bl`), uses no `.data` and shares no
+  inlined helper with either neighbour. Merging it into `challenge_file_select.c` would leave two code-less tables
+  instead of one; there is no evidence either way beyond that count.
+- **`challengeFileSelect`, `fn_2_1A2AC`, `fn_2_1A420`** share `changeScene(3, 6)`, `lbl_8037169C`,
+  `lbl_2_bss_1A82xx` (the challenge screen's working blocks) and the file-select state; kept together.
+
+What is not settled, and what would settle it:
+
+- **The options screen may belong to `captain_model_load.c`'s TU instead (about as likely as the split above).**
+  `.data 0x1E28-0x2B5C` (the debug-menu table at `0x1E28`, `lbl_2_data_20EC`, `lbl_2_data_20F8`,
+  `lbl_2_data_277C`..`lbl_2_data_2794`) is read only by `captain_model_load.c`, and the jump table at `0x2B5C` sits
+  directly after it at a 4-aligned address. The same shape exists at `text_110B0.c`: its code reads
+  `cursorToStadIDMapping` (`0x130C`) and its jump table `jumptable_2_data_1594` follows it directly, i.e. a TU's
+  `.data` is its statics followed by its jump tables. Read that way, the options jump table closes
+  `captain_model_load.c`'s `.data`, the options code is the tail of that TU (`.text` `0x16A98-0x19F2C`), `rep_05F0`
+  is code-less, and `settings_reset.c`/`challenge_file_select.c` pair with `rep_0640`/`rep_0690` exactly as now.
+  The competing reading is a jump-table-only TU that starts at the 4-aligned `0x2B5C` (as `text_110B0` and
+  `teamselect` are recorded in `splits.txt`). Nothing in the code decides it. This pass left `captain_model_load.c`
+  alone (outside the files it may edit), so the options code has its own unit; moving `0x194BC-0x19F2C` and the
+  `.data 0x2B5C-0x2B78` range into `captain_model_load.c` is the only change needed if the other reading is right.
+- **Where the code-less table sits.** Any of the four tables could be the code-less one; `rep_06E0` was left only
+  because it is last. A TU that holds no function emits no `.text`, so only a data reference (none here) or a
+  rodata reference can place it.
+- **Name evidence is thin.** `optionsScreen` and `challengeFileSelect` are the only named functions; the options
+  behaviour (music, sound mode, rumble) was read from the code. The file names are therefore `med` or `low` in
+  `file_map.md`.

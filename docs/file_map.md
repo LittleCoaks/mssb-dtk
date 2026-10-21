@@ -315,13 +315,13 @@ once its evidence clears the same bar used for `src/game` above, and moves into 
 category folder only once that category has more than one member -- `yd_step.c`
 below is named but unfoldered because the module has exactly one scene dispatcher.
 
-Of the 42 units, **26 are pure `.rodata`** (no `.text` at all -- each one is a
+Of the 42 units, **23 are pure `.rodata`** (no `.text` at all -- each one is a
 single 0x50-byte `repHeaderData` table slot with no code to decompile) and
-**16 hold actual code**. The 26 rodata-only units are filler: `rep_0010,
+**19 hold actual code**. The 23 rodata-only units are filler: `rep_0010,
 rep_0060, rep_00B0, rep_0100, rep_0150, rep_0278, rep_02C8, rep_0318,
-rep_0398, rep_03E8, rep_05F0, rep_0640, rep_0690, rep_06E0, rep_07F0,
+rep_0398, rep_03E8, rep_06E0, rep_07F0,
 rep_0898, rep_09B8, rep_0A08, rep_0C50, rep_0CA0, rep_0CF0, rep_0D40,
-rep_0D90, rep_0F10, rep_0FD8, rep_11C0`. All 16 code units are already
+rep_0D90, rep_0F10, rep_0FD8, rep_11C0`. All 19 code units are already
 100% matched or already have a file below except these 9, still fully
 `fn_2_*`/unnamed and ranked here by current fuzzy-match % (2026-08 objdiff
 report) as a decompilation priority list for this module:
@@ -440,6 +440,19 @@ the relationship), but it is still one piece of a three-way address-window cut
 fully-named TU, so it stays unfoldered at top level like `yd_step.c` rather than
 getting a `menus/main_menu/` folder of its own.
 
+### Options / challenge file-select units (2026-10-21)
+
+Split from the un-split `.text` gap `0x194BC-0x1A4C8` (`auto_00_000194BC_text`) by pairing it with the
+header-only units `rep_05F0`, `rep_0640` and `rep_0690` (see `splits.md`, "The options / settings gap
+(2026-10-21)"). `rep_06E0` stays header-only. These three are top-level files for now: none of them has a
+category sibling in this REL.
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `options_screen.c` | `rep_05F0` + `0x194BC-0x19F2C` | 9 (1) | 2,672 | The options (sound) screen: `optionsScreen` is the screen's state machine (jump table at `.data 0x2B5C`), `fn_2_197AC` reads the controller and edits music on/off, sound mode (mono/stereo/surround) and rumble in the `lbl_2_bss_1033C` working copy, `fn_2_195DC` applies the edited item, and `fn_2_194E8`/`19520`/`19554`/`19778`/`194BC`/`195D8` are the out-of-line copies of helpers `197AC`/`optionsScreen` inline. | med |
+| `settings_reset.c` | `rep_0640` + `0x19F2C-0x1A1B4` | 1 (1) | 648 | `settingValuesTo0`: zeroes the `hugeAnimStruct` actor tables (called by `main_menu`, `teamselect` and `text_0323C` when a screen is torn down). The name is the existing symbol; it is the only function of the unit. | low |
+| `challenge_file_select.c` | `rep_0690` + `0x1A1B4-0x1A4C8` | 3 (1) | 788 | `challengeFileSelect` (screen steps, `changeScene(3, 6)` then `changeScreenVariables`), `fn_2_1A2AC` (the file-select drawing task: waits for the scene change, then A) and `fn_2_1A420` (challenge-state predicate). Owns `.data 0x2B78-0x2E40` (the shared debug-menu text table and a zero `GXColor`). | med |
+
 ### captain_select/ — 3 files, 47 fns (14 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
@@ -490,7 +503,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c`/`dictionary.c` at top level, `captain_select/` (3 files) |
+| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c`/`dictionary.c`/`options_screen.c`/`settings_reset.c`/`challenge_file_select.c` at top level, `captain_select/` (3 files) |
 | `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
 ### The menu REL and debug.rel
