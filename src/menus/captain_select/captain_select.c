@@ -1,5 +1,6 @@
 #include "menus/captain_select/captain_select.h"
 #include "menus/yd_step.h"
+#include "menus/debug_menu_text.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
 #define SQRT2_LINKAGE static
@@ -103,22 +104,6 @@ void fn_800B806C(int arg0, float arg1, float arg2, float arg3, float arg4, float
 
 const s32 lbl_2_rodata_500 = -1;
 
-/* Debug-menu text and tables. An identical copy opens the .data of the next
- * translation unit too (0x1E28), so it most likely comes from a shared header.
- * Only the strings are understood; the trailing tables are kept as raw values. */
-typedef struct {
-    /* 0x000 */ char batOrder[2][0x20];
-    /* 0x040 */ char fl[0x20];
-    /* 0x060 */ char pc[0x20];
-    /* 0x080 */ char hands[4][4];
-    /* 0x090 */ char offOn[2][0x20];
-    /* 0x0D0 */ char menuItems[5][0x20];
-    /* 0x170 */ char portLabels[8][0x20];
-    /* 0x270 */ u32 colors[8];
-    /* 0x290 */ u16 unk290[12];
-    /* 0x2A8 */ u8 unk2A8[12];
-    /* 0x2B4 */ u8 unk2B4[16];
-} DebugMenuText; // size: 0x2C4
 
 DebugMenuText lbl_2_data_19E8 = {
     { "BAT FIRST", "BAT LAST" },

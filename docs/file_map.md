@@ -315,13 +315,13 @@ once its evidence clears the same bar used for `src/game` above, and moves into 
 category folder only once that category has more than one member -- `yd_step.c`
 below is named but unfoldered because the module has exactly one scene dispatcher.
 
-Of the 42 units, **26 are pure `.rodata`** (no `.text` at all -- each one is a
+Of the 42 units, **23 are pure `.rodata`** (no `.text` at all -- each one is a
 single 0x50-byte `repHeaderData` table slot with no code to decompile) and
-**16 hold actual code**. The 26 rodata-only units are filler: `rep_0010,
+**19 hold actual code**. The 23 rodata-only units are filler: `rep_0010,
 rep_0060, rep_00B0, rep_0100, rep_0150, rep_0278, rep_02C8, rep_0318,
-rep_0398, rep_03E8, rep_05F0, rep_0640, rep_0690, rep_06E0, rep_07F0,
+rep_0398, rep_06E0, rep_07F0,
 rep_0898, rep_09B8, rep_0A08, rep_0C50, rep_0CA0, rep_0CF0, rep_0D40,
-rep_0D90, rep_0F10, rep_0FD8, rep_11C0`. All 16 code units are already
+rep_0D90, rep_0F10, rep_0FD8, rep_11C0`. All 19 code units are already
 100% matched or already have a file below except these 9, still fully
 `fn_2_*`/unnamed and ranked here by current fuzzy-match % (2026-08 objdiff
 report) as a decompilation priority list for this module:
@@ -360,8 +360,8 @@ other two are still address-window cuts, unconfirmed as real TUs:
 |---|---|---|---|---|
 | `text_01254.c` | `0x1254`-`0x1578` | 11 (0) | 660 | generic utility grab-bag: saturating-add helpers, a wide-string compare, an insertion sort, an LCG. No data references, no theme, no callers/callees outside the unit. |
 | `main_menu.c` | `0x1578`-`0x323C` | 15 (4) | 7,508 | `cursorSndFx`, `mainMenuRelated`, `mainMenuScreen`, `loadDemoMatch` -- a two-level main-menu state machine (`mainMenuScreen` drives states 0-12 and delegates to `mainMenuRelated`, states 0-10) |
-| `text_0323C.c` | `0x323C`-`0x110B0` | 66 (21) | 56,948 | the character-select engine: every `css*`/`characterSelect*`/`randChar*` symbol |
-| `text_110B0.c` | `0x110B0`-`0x12238` | 7 (4) | 4,488 | `teamSelectScreenMain`, `stadiumSelectControls`, `selectStadiumScreen` |
+| `text_0323C.c` | `0x323C`-`0x112F4` | 67 (22) | 57,528 | the character-select engine: every `css*`/`characterSelect*`/`randChar*` symbol, and (since 2026-10-21) `teamSelectScreenMain`, the screen's top-level state machine |
+| `stadium_select.c` | `0x112F4`-`0x12238` | 6 (2) | 3,908 | the stadium-select screen: `selectStadiumScreen`, `stadiumSelectControls`, plus the roster copy `fn_2_11EA8` and the match-setup helpers after it. Was `text_110B0.c` without `teamSelectScreenMain` (2026-10-21) |
 
 `text_01254.c` / `main_menu.c` split at `0x1578` (2026-09), once four grind
 sessions confirmed the boundary directly: everything below it has zero data
@@ -371,20 +371,25 @@ real, evidence-backed split rather than a guess, unlike the original
 address-window cuts -- see `main_menu.c`'s own entry below for the naming
 rationale.
 
-One thing a future split-fixer should know: the five rodata-only units
-between `yd_step.c` (rodata `0x200`) and `captain_select/teamselect.c`
-(rodata `0x438`) -- `rep_0278`, `rep_02C8`, `rep_0318`, `rep_0398`,
-`rep_03E8` -- are almost certainly the `repHeaderData` slots of the TUs
-that make up this block, in order, so the block is probably five original
-TUs (now six, counting the `text_01254`/`main_menu` split), not three; the
-`text_0323C.c`/`text_110B0.c` cuts above are still coarser than the truth.
+**2026-10-21 re-split** (see `splits.md`, "The character-select / stadium boundary"): `text_110B0.c`
+was two TUs. `teamSelectScreenMain` closes the character-select TU (its jump table is the last of
+that TU's `.data` run, `0xEAC-0xFDC`, and its case 1 is an inlined copy of the uncalled css function
+`fn_2_86EC`), so it moved to the end of `text_0323C.c`. The stadium functions from `0x112F4` are
+`stadium_select.c`, which owns `.data 0x1000-0x15C8` and the table that was `rep_03E8`
+(`.rodata 0x3E8-0x438`); its `.data` and `.rodata` are 100%.
 
-`text_110B0.c` sits immediately before `captain_select/teamselect.c`
-(`rep_0438`, renamed 2026-09 -- see below), whose own `OSPanic` calls name
-the source file `"teamselect.c"`. `teamSelectScreenMain`, at the start of
-`text_110B0.c`, may belong to that same original TU; that guess was not
-baked into the split and is cheap to act on once matched code gives
-evidence.
+Of the five rodata-only units between `yd_step.c` (rodata `0x200`) and `teamselect.c` (`0x438`),
+`rep_03E8` is now `stadium_select.c`'s. `rep_0318` (a table plus ten short strings at
+`0x368-0x38C`) is the character-select TU's: those strings are pointed to by `lbl_2_data_E14`,
+inside that TU's `.data 0x720-0x1000`. It stays a separate unit only because `text_0323C.c` does
+not define its `.data` yet. `rep_0278`/`rep_02C8` are presumably `text_01254.c` and `main_menu.c`'s,
+and `rep_0398` is either code-less or the table of a second TU inside `0x323C-0x112F4` that has no
+debug-menu table; nothing here decides which.
+
+`text_0323C.c` is still one unit for 56 KB. Its `.data` shows a single TU from `0x720` to `0x1000`
+(one debug-menu table, then the jump tables of `fn_2_3624`, `fn_2_57F0` and
+`teamSelectScreenMain`), but a TU that includes neither the debug-menu header nor a `switch`
+would leave no trace there.
 
 ### top level — 3 files, 23 fns (7 named)
 
@@ -440,13 +445,28 @@ the relationship), but it is still one piece of a three-way address-window cut
 fully-named TU, so it stays unfoldered at top level like `yd_step.c` rather than
 getting a `menus/main_menu/` folder of its own.
 
+### Options / challenge file-select units (2026-10-21)
+
+Split from the un-split `.text` gap `0x194BC-0x1A4C8` (`auto_00_000194BC_text`) by pairing it with the
+header-only units `rep_05F0`, `rep_0640` and `rep_0690` (see `splits.md`, "The options / settings gap
+(2026-10-21)"). `rep_06E0` stays header-only. A later pass the same day confirmed `options_screen.c` as
+its own TU: its `.data` starts at `0x2798` with its own copy of the debug-menu table and the options
+labels. These three are top-level files for now: none of them has a
+category sibling in this REL.
+
+| file | was | fns (named) | bytes | purpose | conf |
+|---|---|---|---|---|---|
+| `options_screen.c` | `rep_05F0` + `0x194BC-0x19F2C` | 9 (1) | 2,672 | The options (sound) screen: `optionsScreen` is the screen's state machine (`.data 0x2798-0x2B78`: debug-menu table, the unreferenced labels "MUSIC" ... "OFF", then the jump table at `0x2B5C`), `fn_2_197AC` reads the controller and edits music on/off, sound mode (mono/stereo/surround) and rumble in the `lbl_2_bss_1033C` working copy, `fn_2_195DC` applies the edited item, and `fn_2_194E8`/`19520`/`19554`/`19778`/`194BC`/`195D8` are the out-of-line copies of helpers `197AC`/`optionsScreen` inline. | med |
+| `settings_reset.c` | `rep_0640` + `0x19F2C-0x1A1B4` | 1 (1) | 648 | `settingValuesTo0`: zeroes the `hugeAnimStruct` actor tables (called by `main_menu`, `teamselect` and `text_0323C` when a screen is torn down). The name is the existing symbol; it is the only function of the unit. | low |
+| `challenge_file_select.c` | `rep_0690` + `0x1A1B4-0x1A4C8` | 3 (1) | 788 | `challengeFileSelect` (screen steps, `changeScene(3, 6)` then `changeScreenVariables`), `fn_2_1A2AC` (the file-select drawing task: waits for the scene change, then A) and `fn_2_1A420` (challenge-state predicate). Owns `.data 0x2B78-0x2E40` (the shared debug-menu text table and a zero `GXColor`). | med |
+
 ### captain_select/ — 3 files, 47 fns (14 named)
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `captain_select.c` | `rep_04B0` | 17 (10) | 8,956 | Captain Select screen: per-port cursor movement, A/B press handling, new-player/controller detection, swapping the displayed captain model as the cursor moves, and initial port activation on first load of the screen. | high |
-| `teamselect.c` | `rep_0438` | 10 (3) | 6,508 | Captain-select support functions still all stubs: `challengeCaptainRelated`, `captainSelectDefaultProcess`, `captainSelectScreen_manager` (the menu REL's screen-table slot 9 main loop), plus 7 unnamed helpers. | high (filename) |
-| `captain_model_load.c` | `rep_0568` | 20 (1) | 10,788 | Loads the captain models for the Captain Select screen: `captainSelectLoadScreen` starts the load-screen drawing task (`fn_2_188EC`), which allocates the model buffers, queues one load task per port (`fn_2_18650`/`fn_2_18398`/`fn_2_18748`: ARAM transfer, `fn_2_16F78` unpacks the model files and sets up the actor, hand models and bone flags), then per-frame helpers apply the pending animation state and draw the 3D previews (`fn_2_190DC`, `fn_2_19224`, `fn_2_1937C`). | med |
+| `teamselect.c` | `rep_0438` | 10 (3) | 6,508 | Owns `.data 0x15C8-0x19E4` (debug-menu table, a 0x28-byte table and 16 stadium file descriptors that `stadium_select.c` also has, then the jump table). Captain-select support functions: `challengeCaptainRelated`, `captainSelectDefaultProcess`, `captainSelectScreen_manager` (the menu REL's screen-table slot 9 main loop), plus 7 unnamed helpers. | high (filename) |
+| `captain_model_load.c` | `rep_0568` + `0x16870-0x16A98` | 25 (2) | 11,340 | `.text 0x16870-0x194BC`, `.data 0x1E28-0x2798`. Loads the captain models for the Captain Select screen: `captainSelectLoadScreen` starts the load-screen drawing task (`fn_2_188EC`), which allocates the model buffers, queues one load task per port (`fn_2_18650`/`fn_2_18398`/`fn_2_18748`: ARAM transfer, `fn_2_16F78` unpacks the model files and sets up the actor, hand models and bone flags), then per-frame helpers apply the pending animation state and draw the 3D previews (`fn_2_190DC`, `fn_2_19224`, `fn_2_1937C`). | med |
 
 `captainSelect*` is a distinct symbol family from the much larger
 `characterSelect*`/`css*` one — `cssReturnToCapSelect_maybe` returns *to* captain
@@ -470,7 +490,11 @@ but the call graph agrees -- teamselect.c calls it, it calls
 `captain_select.c`'s `fn_2_14BB8`/`fn_2_166CC`/`captainSelect_setupCameraProjection`/
 `fn_2_16460`, it shares the `lbl_2_bss_100B8` per-port state block with
 `captain_select.c`, and its text and rodata sit directly after that unit
-(`.text` 0x16870 -> 0x16A98 and `.rodata` 0x568 start). One further unit holds a
+(`.rodata` 0x568 start). Since 2026-10-21 it also holds the former gap `0x16870-0x16A98`: `fn_2_16870` is
+the standalone copy of a block `fn_2_188EC` inlines, and it inlines `fn_2_18650` and `fn_2_16CE0` itself.
+The other un-split `.text` gap in this folder, `0x13BA4-0x14574` (the captain-select debug menu:
+`fn_2_14220`, called from `captain_select.c`, and the uncalled item handlers it inlines), belongs to
+`teamselect.c` or `captain_select.c`; nothing yet decides which. One further unit holds a
 `captainSelect*` symbol and would belong in this folder once its own evidence
 supports a name: whichever unit holds `captainSelectUnloadCSSLoadRelated` at
 `.text:0x000800B0`.
@@ -490,7 +514,7 @@ completely disjoint, with nothing shared or common between them.
 |---|---|---|---|---|
 | `main` | the DOL | 480 named + ~600 `auto_*` | `src/Dolphin`, `src/Musyx`, `src/C3`, `src/Unknown` | SDK libraries decompiled; every DOL unit holding a hand-named function now has a source file (see below) |
 | `game` | match REL | 92 | `src/game/**` | all 92 units have a file, sorted into the 14 folders documented above |
-| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c`/`dictionary.c` at top level, `captain_select/` (3 files) |
+| `menus` | menu REL | 46 | `src/menus/**` | 46 units, 631 functions; 207 carry real names from Ghidra. 1 unit fully matched (`yd_step.c`, 7/7 functions); named files so far: `yd_step.c`/`main_menu.c`/`dictionary.c`/`stadium_select.c`/`options_screen.c`/`settings_reset.c`/`challenge_file_select.c` at top level, `captain_select/` (3 files) |
 | `debug` | the game's unused developer debug menu | 13 | `src/debug/**` | stubs for all 13 units, 307 functions |
 
 ### The menu REL and debug.rel
