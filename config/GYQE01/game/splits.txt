@@ -29,7 +29,7 @@ game/math/spline.c:
 game/stadium/stadium_draw.c:
 	.text       start:0x000035D4 end:0x00006530
 	.rodata     start:0x000001C0 end:0x00000540
-	.data       start:0x0000023C end:0x00000A18
+	.data       start:0x00000228 end:0x00000A18
 	.bss        start:0x00000018 end:0x00000030
 
 game/ball/ball_physics.c:

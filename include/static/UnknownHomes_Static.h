@@ -8,10 +8,10 @@
 #include "game/challenge/challenge_items.h"
 
 typedef enum _P2_CPU_CODE {
-    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
-    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,
-    /* 2 */ P2_CPU_CODE_UNKNOWN_2,
-    /* 3 */ P2_CPU_CODE_UNKNOWN_3,
+    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,   // team 1 (P2 side) is the CPU
+    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,   // both sides human
+    /* 2 */ P2_CPU_CODE_CPU_VS_CPU,      // both teams AI; transitions auto-advance like the demo
+    /* 3 */ P2_CPU_CODE_CPU_VS_1_PLAYER, // team 0 (P1 side) is the CPU, the human plays team 1
 } P2_CPU_CODE;
 
 typedef struct _GameInitVariables {
@@ -262,11 +262,16 @@ extern StatsTableEntryB lbl_803532A8[2][100];
 extern StatisticsPitcher PitcherStats_P1_P2[2][9]; // 0x803535C8
 extern StatisticsBatter BatterStats_P1_P2[2][9];   // 0x803537E4
 
+typedef struct {
+    /* 0x00 */ u16 total;
+    /* 0x02 */ u16 byInning[18];
+} StatsScreenScore; // size: 0x26
+
 // Copies of g_Scores kept for the stats screens (0x80353A90).
 typedef struct {
     /* 0x00 */ u8 _00[8];
-    /* 0x08 */ ScoreStruct scores[2];
-    /* 0x54 */ ScoreStruct hits[2];
+    /* 0x08 */ StatsScreenScore scores[2];
+    /* 0x54 */ StatsScreenScore hits[2];
     /* 0xA0 */ s8 _A0[0xBE - 0xA0];
     /* 0xBE */ struct {
         s8 pitcher;

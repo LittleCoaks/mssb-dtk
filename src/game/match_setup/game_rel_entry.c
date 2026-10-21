@@ -91,7 +91,7 @@ void fn_3_258(void) {
         if ((buttons & INPUT_BUTTON_UP) && lbl_3_bss_10.cursor != P2_CPU_CODE_1_PLAYER_GAME) {
             lbl_3_bss_10.cursor--;
         }
-        if ((buttons & INPUT_BUTTON_DOWN) && lbl_3_bss_10.cursor < P2_CPU_CODE_UNKNOWN_3) {
+        if ((buttons & INPUT_BUTTON_DOWN) && lbl_3_bss_10.cursor < P2_CPU_CODE_CPU_VS_1_PLAYER) {
             lbl_3_bss_10.cursor++;
         }
         if (buttons & INPUT_BUTTON_A) {

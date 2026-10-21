@@ -2212,7 +2212,7 @@ u32 sD_SegmentHitsCircle(f32 cx, f32 cz, f32 radius, f32 ax, f32 az, f32 bx, f32
 }
 
 // .text:0x00134C80 size:0xCC mapped:0x80773D14
-BOOL sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z) {
+u32 sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z) {
     if (g_Minigame.starDashFireBarPhase != 0 && player != (s8)g_Minigame.starDashStarHolder) {
         if (b == ((a + 1) & 3) || b == ((a + 2) & 3)) {
             return TRUE;
@@ -2416,7 +2416,10 @@ void sD_UpdateAI(void) {
     s8 k;
 
     list = _OSAllocFromHeap(4, 1000);
-    sD_ClearAIInputFlags();
+    i = 0;
+    do {
+        g_Minigame.aiDrivenInputInd[i] = 0;
+    } while (++i < 4);
     st->rotSin = sin(-shortAngleF32ToRad(SD.fireBarAngle[0]));
     st->rotCos = cos(-shortAngleF32ToRad(SD.fireBarAngle[0]));
     if (SD.starActive != 0) {

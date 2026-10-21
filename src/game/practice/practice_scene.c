@@ -87,6 +87,7 @@ typedef struct PracticeScene {
 
 #define PRACTICE_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 #define PRACTICE_RECORD_PLUS(scene, i, k) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (k)].object)
+#define PRACTICE_RECORD_RAW(scene, i) (*(UIRecord**)((u8*)graphicsRelatedArray + (((scene)->firstHandle + (i)) << 3)))
 #define PRACTICE_RECORD_AT(scene, base, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
 
 static inline BOOL hudRecordFinished(UIRecord* rec) {
@@ -567,7 +568,7 @@ void practiceMenu_charSelect_update(void) {
     }
 
     if (g_Minigame.selectSlotState[0] >= 0) {
-        if (g_Minigame.selectSlots[0].charID != (PRACTICE_RECORD(scene, 0xD)->frame >> 16)) {
+        if (g_Minigame.selectSlots[0].charID != (PRACTICE_RECORD_RAW(scene, 0xD)->frame >> 16)) {
             for (i = 0; i < 2; i++) {
                 PRACTICE_RECORD_AT(scene, 8, i)->frame = 0;
             }
@@ -576,20 +577,22 @@ void practiceMenu_charSelect_update(void) {
             PRACTICE_RECORD_AT(scene, 8, i)->flags |= UI_FLAG_VISIBLE;
             PRACTICE_RECORD_AT(scene, 8, i)->playMode = UI_PLAY_FORWARD;
         }
-        PRACTICE_RECORD(scene, 0xD)->frame = g_Minigame.selectSlots[0].charID << 16;
-        PRACTICE_RECORD(scene, 0xB)->flags |= UI_FLAG_VISIBLE;
-        PRACTICE_RECORD(scene, 0xB)->playMode = UI_PLAY_FORWARD;
-        PRACTICE_RECORD(scene, 0xC)->frame =
-            lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[0].charID].variantGroup]
-                           [characterStaticIndexes[g_Minigame.selectSlots[0].charID].variantIndex] << 16;
+        PRACTICE_RECORD_RAW(scene, 0xD)->frame = g_Minigame.selectSlots[0].charID << 16;
+        PRACTICE_RECORD_RAW(scene, 0xB)->flags |= UI_FLAG_VISIBLE;
+        PRACTICE_RECORD_RAW(scene, 0xB)->playMode = UI_PLAY_FORWARD;
+        {
+            CharStaticIndex* ci = &characterStaticIndexes[g_Minigame.selectSlots[0].charID];
+
+            PRACTICE_RECORD_RAW(scene, 0xC)->frame = lbl_3_data_9D50[ci->variantGroup][ci->variantIndex] << 16;
+        }
     } else {
         for (i = 0; i < 2; i++) {
             PRACTICE_RECORD_AT(scene, 8, i)->frame = 0;
             PRACTICE_RECORD_AT(scene, 8, i)->flags &= ~UI_FLAG_VISIBLE;
         }
-        PRACTICE_RECORD(scene, 0xD)->frame = 0x36 << 16;
-        PRACTICE_RECORD(scene, 0xB)->frame = 0;
-        PRACTICE_RECORD(scene, 0xB)->flags &= ~UI_FLAG_VISIBLE;
+        PRACTICE_RECORD_RAW(scene, 0xD)->frame = NUM_CHOOSABLE_CHARACTERS << 16;
+        PRACTICE_RECORD_RAW(scene, 0xB)->frame = 0;
+        PRACTICE_RECORD_RAW(scene, 0xB)->flags &= ~UI_FLAG_VISIBLE;
     }
     return;
 

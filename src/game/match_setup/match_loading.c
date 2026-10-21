@@ -10,6 +10,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80035838.h"
 #include "Unknown/dvdsys.h"
+#include "game/stadium/stadium_draw.h"
 
 typedef struct {
     /* 0x000 */ u8 _000[0xC];
@@ -37,7 +38,6 @@ extern u8 animRelated[0x124];
 extern u8 lbl_8037169C[0x1C];
 extern s8 lbl_803C6CF8[0x708];
 extern u8 lbl_3_common_bss_35154[0x480];
-extern u8 FrameCountOfEntireGame[0x14];
 extern u8 audioFileDescriptors[0x39C];
 extern MatchFileDescriptor CharacterFiles[];
 
@@ -206,12 +206,12 @@ void fn_3_5A28C(void) {
         }
         break;
     case 8:
-        FrameCountOfEntireGame[0x10] = 0;
+        FrameCountOfEntireGame.loadingDone = FALSE;
         insertGraphicDrawingFunction(manageLoadingState, 0);
         g_UnkSimulation_31AC0.step++;
         break;
     case 9:
-        if (FrameCountOfEntireGame[0x10] != 0) {
+        if (FrameCountOfEntireGame.loadingDone != 0) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -397,12 +397,12 @@ void fn_3_59C2C(void) {
         }
         break;
     case 4:
-        FrameCountOfEntireGame[0x10] = 0;
+        FrameCountOfEntireGame.loadingDone = FALSE;
         insertGraphicDrawingFunction(manageLoadingState, 0);
         g_UnkSimulation_31AC0.step++;
         break;
     case 5:
-        if (FrameCountOfEntireGame[0x10] == 1) {
+        if (FrameCountOfEntireGame.loadingDone == TRUE) {
             g_UnkSimulation_31AC0.step++;
         }
         break;

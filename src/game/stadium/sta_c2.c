@@ -94,6 +94,13 @@ extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
 
+typedef struct _PalaceActEffect {
+    /*0x00*/ u32 file;
+    /*0x04*/ u8 _04[0x28];
+    /*0x2C*/ u32 srcFile;
+    /*0x30*/ u8 _30[0x2C];
+} PalaceActEffect; // size: 0x5C
+
 static u32 lbl_3_bss_ADD0[12];
 static StadiumLink lbl_3_bss_ABD0[8];
 static StadiumLink lbl_3_bss_A9D0[8];
@@ -103,7 +110,9 @@ static PalaceGfxScene* lbl_3_bss_A8A4;
 static u8 lbl_3_bss_A898[12];
 static f32 lbl_3_bss_A820[30];
 static u8 lbl_3_bss_A81C;
-static u32 lbl_3_bss_A034[506];
+static PalaceActEffect lbl_3_bss_A764[2];
+static PalaceActEffect lbl_3_bss_A3CC[10];
+static PalaceActEffect lbl_3_bss_A034[10];
 static f32 lbl_3_bss_A030;
 static u8 lbl_3_bss_A02D;
 static u8 lbl_3_bss_A02C;
@@ -145,12 +154,6 @@ typedef struct _PalaceSlotPlacement {
     /*0x10*/ f32 _10[3];
 } PalaceSlotPlacement; // size: 0x1C
 
-typedef struct _PalaceActEffect {
-    /*0x00*/ u32 file;
-    /*0x04*/ u8 _04[0x28];
-    /*0x2C*/ u32 srcFile;
-    /*0x30*/ u8 _30[0x2C];
-} PalaceActEffect; // size: 0x5C
 
 typedef struct _PalaceSandPlacement {
     /*0x00*/ Vec pos;
@@ -419,16 +422,15 @@ void loadWarioPalace(void** files) {
         for (i = 0; i < chompCount; i++) {
             ACTActorRelated(files[ids[i + 15]], *animTable + i * 0x90 + 0x34);
         }
-        effects = (PalaceActEffect*)&lbl_3_bss_A034[460];
         for (i = 0; i < chompCount; i++) {
             if (i == 0) {
-                effects[0].file = (u32)files[ids[17]];
-                actRelated(files[ids[15]], &effects[0]);
+                lbl_3_bss_A764[0].file = (u32)files[ids[17]];
+                actRelated(files[ids[15]], &lbl_3_bss_A764[0]);
             } else {
-                memcpy(&effects[i], &effects[i - 1], sizeof(PalaceActEffect));
-                effects[i].srcFile = (u32)files[ids[i + 15]];
+                memcpy(&lbl_3_bss_A764[i], &lbl_3_bss_A764[i - 1], sizeof(PalaceActEffect));
+                lbl_3_bss_A764[i].srcFile = (u32)files[ids[i + 15]];
             }
-            actorRelated(&effects[i], 0, 1);
+            actorRelated(&lbl_3_bss_A764[i], 0, 1);
         }
     }
     if (files[ids[18]] != NULL && files[ids[19]] != NULL) {
@@ -436,16 +438,15 @@ void loadWarioPalace(void** files) {
         for (i = 0; i < sunCount; i++) {
             ACTActorRelated(files[ids[i + 18]], *animTable + (sunBase + i) * 0x90 + 0x34);
         }
-        effects = (PalaceActEffect*)&lbl_3_bss_A034[230];
         for (i = 0; i < sunCount; i++) {
             if (i == 0) {
-                effects[0].file = (u32)files[ids[19]];
-                actRelated(files[ids[18]], &effects[0]);
+                lbl_3_bss_A3CC[0].file = (u32)files[ids[19]];
+                actRelated(files[ids[18]], &lbl_3_bss_A3CC[0]);
             } else {
-                memcpy(&effects[i], &effects[i - 1], sizeof(PalaceActEffect));
-                effects[i].srcFile = (u32)files[ids[i + 18]];
+                memcpy(&lbl_3_bss_A3CC[i], &lbl_3_bss_A3CC[i - 1], sizeof(PalaceActEffect));
+                lbl_3_bss_A3CC[i].srcFile = (u32)files[ids[i + 18]];
             }
-            actorRelated(&effects[i], 0, 0);
+            actorRelated(&lbl_3_bss_A3CC[i], 0, 0);
         }
     }
     if (files[ids[20]] != NULL && files[ids[21]] != NULL && files[ids[22]] != NULL && files[ids[23]] != NULL) {
@@ -455,16 +456,15 @@ void loadWarioPalace(void** files) {
         for (i = 0; i < starCount; i++) {
             ACTActorRelated(files[ids[i + 20]], *animTable + (starBase + i) * 0x90 + 0x34);
         }
-        effects = (PalaceActEffect*)&lbl_3_bss_A034[0];
         for (i = 0; i < starCount; i++) {
             if (i == 0) {
-                effects[0].file = (u32)files[ids[23]];
-                actRelated(files[ids[20]], &effects[0]);
+                lbl_3_bss_A034[0].file = (u32)files[ids[23]];
+                actRelated(files[ids[20]], &lbl_3_bss_A034[0]);
             } else {
-                memcpy(&effects[i], &effects[i - 1], sizeof(PalaceActEffect));
-                effects[i].srcFile = (u32)files[ids[i + 20]];
+                memcpy(&lbl_3_bss_A034[i], &lbl_3_bss_A034[i - 1], sizeof(PalaceActEffect));
+                lbl_3_bss_A034[i].srcFile = (u32)files[ids[i + 20]];
             }
-            actorRelated(&effects[i], 0, 0);
+            actorRelated(&lbl_3_bss_A034[i], 0, 0);
         }
     }
     fn_80035750(files[ids[25]], files[ids[24]], 5);
@@ -508,7 +508,7 @@ void loadWarioPalace(void** files) {
         o->_9C = i;
         o->alpha = 0xFF;
         o->preDraw = fn_3_D1AC4;
-        o->effect = (StadiumObjectEffect*)&((PalaceActEffect*)&lbl_3_bss_A034[460])[i];
+        o->effect = (StadiumObjectEffect*)&lbl_3_bss_A764[i];
         o->animActive = 0;
         o->animIndex = -1;
         o->drawPass = 1;
@@ -800,7 +800,7 @@ void loadWarioPalace(void** files) {
         lbl_3_bss_A023++;
     } while (j < 10);
 
-    effects = (PalaceActEffect*)&lbl_3_bss_A034[230];
+    effects = lbl_3_bss_A3CC;
     sunDone = FALSE;
     j = 0;
     do {
@@ -2783,7 +2783,7 @@ void starHitAnimation(int idx) {
             pos = ballPos;
             fn_3_CF278(obj, &pos);
         }
-        obj->actor = (PalaceStarActor*)((u8*)lbl_3_bss_A034 + obj->index * 0x5C);
+        obj->actor = (PalaceStarActor*)&lbl_3_bss_A034[obj->index];
         actorRelated(obj->actor, 0, 0);
         obj->actor->_1A = 1;
         obj->actor->_58 = -1;
@@ -3260,9 +3260,9 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
     if (files[ids[15]] != NULL && files[ids[17]] != NULL) {
         adjustInternalPointers(files[ids[15]]);
         ACTActorRelated(files[ids[15]], *animTable + 0x34);
-        lbl_3_bss_A034[460] = (u32)files[ids[17]];
-        actRelated(files[ids[15]], &lbl_3_bss_A034[460]);
-        actorRelated(&lbl_3_bss_A034[460], 0, 1);
+        lbl_3_bss_A764[0].file = (u32)files[ids[17]];
+        actRelated(files[ids[15]], &lbl_3_bss_A764[0]);
+        actorRelated(&lbl_3_bss_A764[0], 0, 1);
     }
     fn_80035750(files[ids[25]], files[ids[24]], 5);
     lbl_3_bss_A8A4 = (PalaceGfxScene*)insertGraphicDrawingFunction(fn_3_CE954, 2);
@@ -3285,7 +3285,7 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
     obj->_9C = 0;
     obj->alpha = 0xFF;
     obj->preDraw = fn_3_CBA9C;
-    obj->effect = (StadiumObjectEffect*)&lbl_3_bss_A034[460];
+    obj->effect = (StadiumObjectEffect*)&lbl_3_bss_A764[0];
     obj->animActive = 0;
     obj->animIndex = -1;
     obj->drawPass = 1;

@@ -743,9 +743,11 @@ void initializeStats(void) {
     }
 
     for (team = 0; team < 2; team++) {
-        for (j = 0; j < 19; j++) {
-            (&StatsScreenScores.scores[team].total)[j] = 0xFFFF;
-            (&StatsScreenScores.hits[team].total)[j] = 0;
+        StatsScreenScores.scores[team].total = 0xFFFF;
+        StatsScreenScores.hits[team].total = 0;
+        for (j = 0; j < 18; j++) {
+            StatsScreenScores.scores[team].byInning[j] = 0xFFFF;
+            StatsScreenScores.hits[team].byInning[j] = 0;
         }
         StatsScreenScores.stealsAgainst[team] = 0;
         StatsScreenScores.mvpRosterLoc[team] = -1;

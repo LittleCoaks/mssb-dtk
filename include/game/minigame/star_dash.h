@@ -116,7 +116,7 @@ BOOL sD_IsAheadAroundCenter(int a, int b);
 s16 sD_AITurnToward(s16 a, s16 b, u32 c);
 void sD_AIPickTargetPlayer(u32 target, f32* outX, f32* outZ, u32* outQuadrant);
 int sD_AIRouteAroundCenter(u32 player, f32* targetX, f32* targetZ, u32 depth);
-BOOL sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z);
+u32 sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z);
 u32 sD_SegmentHitsCircle(f32 cx, f32 cz, f32 radius, f32 ax, f32 az, f32 bx, f32 bz);
 SDCoinEntry* sD_AIRankCoins(u32 player, u32 quadrant, u32 count, SDCoinEntry* entries);
 BOOL sD_IsNearThwomp(u32 item, f32 x, f32 z);

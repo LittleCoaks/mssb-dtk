@@ -47,8 +47,8 @@
 #include "game/match_setup/pause_menu.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_matchFlow
 #include "header_rep_data.h"
+#include "game/stadium/stadium_draw.h"
 
-extern u32 FrameCountOfEntireGame[5];
 extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
 extern u8 highLevelSimulationFlag[4];
 extern u8 hugeAnimStruct[0x3154];
@@ -364,7 +364,7 @@ void exhibitionGameTransitionCalculations(void) {
     case 8:
         if (g_GameLogic.FrameCountOfCurrentPitch >= 0xF0) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO ||
-                g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_2) {
+                g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_CPU_VS_CPU) {
                 g_GameLogic._125 = 9;
             } else if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 9;
@@ -1083,7 +1083,7 @@ void settingGameStatus(void) {
     g_Scores._pad_BF[2] = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total - g_Scores._A0;
     g_Pitcher._15D = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO &&
-        (FrameCountOfEntireGame[0] >= 0x2A30 || g_UnkSimulation_31AC0._08 != 0)) {
+        (FrameCountOfEntireGame.frameCount >= 0x2A30 || g_UnkSimulation_31AC0._08 != 0)) {
         g_GameLogic.framesOfExitingToMenu = 1;
     } else if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         fn_3_5D9F8();

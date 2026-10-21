@@ -79,11 +79,13 @@ s32 fn_80050F78(s32 arg0);
 void fn_80021AC0(s32 arg0, s32 arg1);
 void settingValuesTo0(void);
 void fn_80062A74(void);
+void fn_2_72630(void);
 void maybeLoadsGameSoundFiles(void);
 void unregisterObjectByID(s32 id);
 void fn_800AD038(s32 arg0);
 
 // .text:0x0000323C size:0x180 mapped:0x806422D0
+#pragma dont_inline on
 void cssTransitionToNewScreen_maybe(void) {
     switch (lbl_2_bss_3A0[0]) {
     case 0:
@@ -121,6 +123,7 @@ void cssTransitionToNewScreen_maybe(void) {
         break;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x000033BC size:0xD0 mapped:0x80642450
 s32 fn_2_33BC(void) {
@@ -1271,6 +1274,7 @@ void fn_2_6138(void) {
 }
 
 // .text:0x000061A0 size:0x2E4 mapped:0x80645234
+#pragma dont_inline on
 void cssChangeScreens(void) {
     s32 i;
 
@@ -1366,8 +1370,10 @@ join:
 tail:
     ;
 }
+#pragma dont_inline reset
 
 // .text:0x00006484 size:0x184 mapped:0x80645518
+#pragma dont_inline on
 void cssSelectCPUDifficulty(void) {
     switch (lbl_2_bss_F468[0x33]) {
     case 0:
@@ -1406,8 +1412,10 @@ void cssSelectCPUDifficulty(void) {
         break;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00006608 size:0x17C mapped:0x8064569C
+#pragma dont_inline on
 void characterSelectScreenControlable(void) {
     s32 i;
 
@@ -1449,6 +1457,7 @@ void characterSelectScreenControlable(void) {
         }
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00006784 size:0x100 mapped:0x80645818
 void fn_2_6784(void) {
@@ -1563,6 +1572,7 @@ void fn_2_6AF4(void) {
 }
 
 // .text:0x00006D3C size:0x7C8 mapped:0x80645DD0
+#pragma dont_inline on
 void cssUnloadScreen(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (((u8 *)&g_MatchInfo)[0x11] == 0) {
@@ -1767,6 +1777,7 @@ TAIL:
 END:
     return;
 }
+#pragma dont_inline reset
 
 // .text:0x00007504 size:0x840 mapped:0x80646598
 void cssResetRosterStruct(void) {
@@ -5356,3 +5367,58 @@ TAIL:
 }
 #pragma dont_inline reset
 
+// .text:0x000110B0 size:0x244 mapped:0x80650144
+void teamSelectScreenMain(void) {
+    switch (menuControlVariables->currentState) {
+    case 0:
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE || menuControlVariables->previousScreen != 9) {
+            menuControlVariables->currentState = 5;
+        } else {
+            ((u8 *)&aiPosSwapInputs)[0xCFA1] = 0;
+            menuControlVariables->currentState = 1;
+        }
+        break;
+    case 1:
+        fn_2_86EC();
+        break;
+    case 2:
+        if ((g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE ? lbl_8037169C._12[0] : 1) != 0) {
+            characterSelectScreenControlable();
+        }
+        break;
+    case 3:
+        if (*(s8 *)&lbl_2_bss_F468[0x36] < 0 && gameSetUpStep[0x5D] == 0 &&
+            gameSetUpStep[0x5E] == 0) {
+            fn_2_72630();
+            lbl_2_bss_F468[0x33] = 0;
+            menuControlVariables->currentState = 4;
+        } else {
+            lbl_2_bss_F468[0x36]--;
+        }
+        break;
+    case 4:
+        cssSelectCPUDifficulty();
+        break;
+    case 5:
+        cssUnloadScreen();
+        break;
+    case 6:
+        cssTransitionToNewScreen_maybe();
+        break;
+    case 7:
+        if (*(s8 *)&lbl_2_bss_F468[0x36] < 0) {
+            updateCharacterSelectProcessCode(0, 0x13);
+            updateCharacterSelectProcessCode(1, 0x13);
+            lbl_2_bss_F468[0x4F] = 0;
+            lbl_2_bss_F468[0x2E] = 0;
+            lbl_2_bss_100B4 = 1;
+            menuControlVariables->currentState = 8;
+        } else {
+            lbl_2_bss_F468[0x36]--;
+        }
+        break;
+    case 8:
+        cssChangeScreens();
+        break;
+    }
+}

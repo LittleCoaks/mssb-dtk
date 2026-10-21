@@ -21,7 +21,7 @@ extern u8 lineUpInfoStruct[0x48];
 extern s16 lbl_2_data_E64[18];
 extern s16 lbl_2_data_E88[18];
 extern u8 lbl_2_bss_20[0x380];
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCD0[8];
 extern u8 cardCheck[0x5C];
 extern u8 audioFileDescriptors[0x39C];
 extern u8 lbl_2_data_180[0x4A4];

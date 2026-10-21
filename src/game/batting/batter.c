@@ -10,6 +10,7 @@
  * addressing depends on, so codegen is unaffected. */
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_batter
 #include "header_rep_data.h"
 
 #include "static/UnknownHomes_static.h"
@@ -58,7 +59,10 @@ extern f32 horizTrajPowerMultipliers[3][5];
 extern u8 ChargePowerConstants[NUM_CHOOSABLE_CHARACTERS][2];
 extern s16 lbl_3_data_5CD4[4];
 extern s16 buntVerticalAngles[5][2][2][2];
-static int lbl_3_bss_34 = 0;
+/* MWCC emits .bss statics in reverse declaration order: 0x30, 0x34, 0x38. */
+static u8 lbl_3_bss_38[8]; /* never referenced, but present in the original .bss layout */
+static int lbl_3_bss_34;
+static int lbl_3_bss_30;   /* never referenced, but present in the original .bss layout */
 extern struct {
     u8 _00[0x28];
     u8 _28;
@@ -73,15 +77,24 @@ extern struct {
 #define FRAME_COUNT_BUNT_LATE_RETREAT (FRAME_COUNT_BEGIN_RETREATING + 12)
 
 // fabricated
-inline f32 inv_lerp(f32 value, f32 low, f32 high)
+inline f32 inv_lerp(f32 low, f32 high, f32 value)
 {
-    return (value - low) / (high - low);
+    value = (value - low) / (high - low);
+    return value;
 }
 
 // fabricated
-inline f32 flipped_inv_lerp(f32 value, f32 low, f32 high)
+inline f32 inv_lerp2(f32 low, f32 high, f32 value)
 {
-    return 1.0f - inv_lerp(value, low, high);
+    value -= low;
+    return value / (high - low);
+}
+
+// fabricated
+inline f32 flipped_inv_lerp(f32 low, f32 high, f32 value)
+{
+    value = 1.0f - inv_lerp2(low, high, value);
+    return value;
 }
 
 // UNUSED .text:0x000108F8 size:0x188 mapped:0x8064f98c
@@ -1099,7 +1112,7 @@ void calculateContactAndHitType(void) {
     // arr[0][x] is low threshold, arr[1][x] is high threshold
     f32 arr[2][4];
 
-    f32 xPosFromPerfect;
+    f32 diff;
     f32 contactQualityAbsolute;
     int i, j;
     
@@ -1124,17 +1137,17 @@ void calculateContactAndHitType(void) {
         }
     }
 
-    xPosFromPerfect = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
+    diff = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
     
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        xPosFromPerfect = -xPosFromPerfect;
+        diff = -diff;
     }
-    if (xPosFromPerfect < 0.0f) {
+    if (diff < 0.0f) {
         contactQualityAbsolute =
-            -((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
+            -((diff / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
     } else {
         contactQualityAbsolute =
-            ((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
+            ((diff / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
     }
     
     if (contactQualityAbsolute < 0.0f) {
@@ -1145,7 +1158,8 @@ void calculateContactAndHitType(void) {
     }
     g_Batter.contactQualityAbsolute = contactQualityAbsolute;
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
-        g_Batter.rightNiceThreshold[i] = arr[0][i] + (contactSize / 100.f) * (arr[1][i] - arr[0][i]);
+        diff = arr[1][i] - arr[0][i];
+        g_Batter.rightNiceThreshold[i] = arr[0][i] + (contactSize / 100.f) * diff;
     }
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
         if (g_Batter.rightNiceThreshold[i] > g_Batter.contactQualityAbsolute) {
@@ -1159,16 +1173,16 @@ void calculateContactAndHitType(void) {
             g_Batter.contactQuality = g_Batter.contactQualityAbsolute / g_Batter.rightNiceThreshold[0];
         } break;
         case HIT_CONTACT_TYPE_RIGHT_NICE: {
-            g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[0],
-                                               g_Batter.rightNiceThreshold[1]);
+            g_Batter.contactQuality = inv_lerp(g_Batter.rightNiceThreshold[0], g_Batter.rightNiceThreshold[1],
+                                               g_Batter.contactQualityAbsolute);
         } break;
         case HIT_CONTACT_TYPE_PERFECT: {
             if (g_Batter.contactQualityAbsolute < 100.0f) {
-                g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
-                                                   g_Batter.rightNiceThreshold[2]);
+                g_Batter.contactQuality = inv_lerp(g_Batter.rightNiceThreshold[1], g_Batter.rightNiceThreshold[2],
+                                                   g_Batter.contactQualityAbsolute);
             } else {
-                g_Batter.contactQuality = flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
-                                                    g_Batter.rightNiceThreshold[2]);
+                g_Batter.contactQuality = flipped_inv_lerp(g_Batter.rightNiceThreshold[1], g_Batter.rightNiceThreshold[2],
+                                                    g_Batter.contactQualityAbsolute);
             }
             if (ContactPerfectThresholds[g_Batter.hitGeneralType][0] <= g_Batter.contactQualityAbsolute &&
                 ContactPerfectThresholds[g_Batter.hitGeneralType][1] >= g_Batter.contactQualityAbsolute) {
@@ -1176,13 +1190,12 @@ void calculateContactAndHitType(void) {
             }
         } break;
         case HIT_CONTACT_TYPE_LEFT_NICE: {
-            g_Batter.contactQuality = flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[2],
-                                                g_Batter.rightNiceThreshold[3]);
+            g_Batter.contactQuality = flipped_inv_lerp(g_Batter.rightNiceThreshold[2], g_Batter.rightNiceThreshold[3],
+                                                g_Batter.contactQualityAbsolute);
         } break;
         default: { // HIT_CONTACT_TYPE_LEFT_SOUR
-            // I think the inv_lerp here is correct based on the loading order for 200.0f
             g_Batter.contactQuality =
-                flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[3], 200.0f);
+                flipped_inv_lerp(g_Batter.rightNiceThreshold[3], 200.0f, g_Batter.contactQualityAbsolute);
         } break;
     }
 
@@ -1195,35 +1208,35 @@ void calculateContactAndHitType(void) {
     }
 
     if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP || g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
-        int r5 = HIT_TYPE_SLAP_SOUR;
+        int contactHitType = HIT_TYPE_SLAP_SOUR;
         if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
-            r5 = HIT_TYPE_SLAP_PERFECT;
+            contactHitType = HIT_TYPE_SLAP_PERFECT;
         } else if (g_Batter.contactType == HIT_CONTACT_TYPE_RIGHT_NICE ||
                    g_Batter.contactType == HIT_CONTACT_TYPE_LEFT_NICE) {
-            r5 = HIT_TYPE_SLAP_NICE;
+            contactHitType = HIT_TYPE_SLAP_NICE;
         }
 
-        if (g_Pitcher.starPitchType != 0) {
+        if (g_Pitcher.starPitchType != CAPTAIN_STAR_TYPE_NONE) {
             g_Batter.hitType = 0x12;
         }
         
         if (g_Pitcher.ChargePitchType == 3) {
-            if (g_Batter.hitGeneralType == HIT_TYPE_SLAP_SOUR) {
-                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH;
+            if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
+                g_Batter.hitType = contactHitType + HIT_TYPE_PERFECT_PITCH;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_PERFECT_PITCH_CHARGE;
             }
         } else if (g_Pitcher.TypeOfPitch == 0) {
             if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
-                g_Batter.hitType = r5 + HIT_TYPE_SLAP;
+                g_Batter.hitType = contactHitType + HIT_TYPE_SLAP;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHARGE;
             }
         } else {
             if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
-                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHANGE_UP;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHANGE_UP_CHARGE;
             }
         }
     }

@@ -16,6 +16,7 @@
 #include "game/ball/foul_detection.h"
 #include "game/sound/m_sound.h"
 #include "game/stadium/stadium_framework.h"
+#include "game/stadium/stadium_draw.h"
 
 extern void QueueTextToDisplay(int code, int arg1);
 extern void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
@@ -38,7 +39,6 @@ static const f32 reallyLargeConst = 100000000.0f;
 extern f32 lbl_3_data_45F4[2];
 extern f32 lbl_3_data_45FC;
 extern u8 lbl_3_data_4600;
-extern u32 FrameCountOfEntireGame;
 extern VecXZ fieldingStartingCoords_regular[9];
 extern VecXZ base_MoundCoordinates[5];
 extern f32 lbl_3_data_5CDC[11];
@@ -114,11 +114,11 @@ void ballPhysica(void) {
 void fn_3_10030(void) {
     s32 mixed;
 
-    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16 +
-            (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 16 +
+            (FrameCountOfEntireGame.frameCount >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
-    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8 +
-            (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 8 +
+            (FrameCountOfEntireGame.frameCount >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
 
@@ -126,13 +126,13 @@ void fn_3_10030(void) {
 void fn_3_FF98(void) {
     s32 mixed;
 
-    mixed = g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1 * (FrameCountOfEntireGame % 10 + 1) +
-            (g_Ball.StaticRandomInt2 << 4) + (FrameCountOfEntireGame >> 1) +
+    mixed = g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1 * (FrameCountOfEntireGame.frameCount % 10 + 1) +
+            (g_Ball.StaticRandomInt2 << 4) + (FrameCountOfEntireGame.frameCount >> 1) +
             g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
     g_Ball.StaticRandomInt1_prePitch = g_Ball.StaticRandomInt1;
-    mixed = g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1) * (FrameCountOfEntireGame % 10 + 1) +
-            (g_Ball.StaticRandomInt1 << 3) + (FrameCountOfEntireGame >> 1) +
+    mixed = g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1) * (FrameCountOfEntireGame.frameCount % 10 + 1) +
+            (g_Ball.StaticRandomInt1 << 3) + (FrameCountOfEntireGame.frameCount >> 1) +
             (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
@@ -203,11 +203,11 @@ void initBallAndGameStateOnLoad(void) {
         g_Ball.groundYForBounces = lbl_3_data_45F4[0];
     }
 
-    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16
-            + (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 16
+            + (FrameCountOfEntireGame.frameCount >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
-    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8
-            + (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 8
+            + (FrameCountOfEntireGame.frameCount >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
 
@@ -255,7 +255,7 @@ void resetInMemBall(void) {
         g_Ball.pastCoordinates[i].y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
-    frames = FrameCountOfEntireGame;
+    frames = FrameCountOfEntireGame.frameCount;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
@@ -293,7 +293,7 @@ void resetBallValuesBetweenBatters(void) {
         g_Ball.pastCoordinates[i].y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
-    frames = FrameCountOfEntireGame;
+    frames = FrameCountOfEntireGame.frameCount;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
@@ -332,7 +332,7 @@ void setDefaultInMemBall(void) {
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
 
-    frames = FrameCountOfEntireGame;
+    frames = FrameCountOfEntireGame.frameCount;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;

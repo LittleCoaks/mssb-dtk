@@ -85,7 +85,7 @@ Boundary fixes from the 2026-10-08 gap review (every function's local
 `.rodata`/`.data`/`.bss` references were checked against its unit; only
 `fn_3_C1930` disagreed):
 
-- `0x1104A8-0x110634` (`minigameClearAIControlled`, `unusedBattingSomething`)
+- `0x1104A8-0x110634` (`minigameClearAIControlled`, `bOD_UpdateBatterAIInputs`)
   moved from `minigame_framework.c` to the start of `bobomb_derby.c`.
   bobomb_derby already inlines both bodies, and every minigame TU opens with
   its own clear-AI routine (cf. `wallBallClearAIControlled`).
@@ -1054,3 +1054,136 @@ generates the same code. `somethingSetTexturePointer` no longer includes
 `C3/skinning/SKNAsm.h`, which redeclared `LCStoreBlocks` against `OSCache.h` in the merged
 translation unit and was not needed. The seven headers became `include/text/text.h`
 (37 files include it).
+
+## The options / settings gap in the menus REL (2026-10-21)
+
+`.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
+`captain_select/captain_model_load.c` (`.rodata 0x568-0x5F0`) and `rep_0730.c` (`.rodata 0x730-`).
+Between them are four header-only units, `rep_05F0`, `rep_0640`, `rep_0690` and `rep_06E0` (one 0x50
+`repHeaderData` table each, no `.text`), so by the method above the gap holds up to four TUs. The gap
+references no `.rodata` of its own (no float constants), so the test cannot place a boundary by
+constants; the boundaries come from the call graph, the `.data` ownership and the inlining pattern.
+
+Result: **three code units and one code-less table**, paired in order.
+
+| header-only unit | `.text` | `.data` | became |
+|---|---|---|---|
+| `rep_05F0` | `0x194BC-0x19F2C` | `0x2798-0x2B78` (debug-menu table, labels, jump table) | `options_screen.c` |
+| `rep_0640` | `0x19F2C-0x1A1B4` | none | `settings_reset.c` |
+| `rep_0690` | `0x1A1B4-0x1A4C8` | `0x2B78-0x2E40` | `challenge_file_select.c` |
+| `rep_06E0` | none | none | stays a header-only unit (the code-less TU) |
+
+Evidence, in the order it carries weight:
+
+- **`0x194BC-0x19F2C` is one TU.** `fn_2_197AC` and `optionsScreen` contain, expanded inline, the bodies of
+  `fn_2_194E8`, `fn_2_19520`, `fn_2_19554` and `fn_2_19778`; none of those four, nor `fn_2_194BC` or the empty
+  `fn_2_195D8`, is called or referenced by name anywhere in the REL. They are the out-of-line copies of inlined
+  helpers (the "inlined and also kept standalone" case in `matching_notes.md`), and a helper can only be inlined
+  where its definition is visible, so the callers and the helpers are one TU. The unit's only `.data` is the
+  jump table of `optionsScreen`'s switch (`jumptable_2_data_2B5C`, targets `optionsScreen+0x38..0x1E0`), which is
+  the last object before the next debug-menu table.
+- **`settingValuesTo0` and `challengeFileSelect` are different TUs from the options screen.** The 0x2C4-byte
+  debug-menu text table at `.data 0x2B78` follows the jump table directly, and `challengeFileSelect` reads
+  `lbl_2_data_2E3C`, the first object after that table (a zero `GXColor`, the `GXSetCopyClear` colour). So the
+  options jump table ends one TU's `.data` and `challengeFileSelect` starts the next one's. `.data 0x2E40` onward
+  is read by units far later in the REL (`0x4C9E0`, `0x6826C`), so the new unit takes `0x2B78-0x2E40` only; the
+  rest stays unowned.
+- **`settingValuesTo0` is a TU of its own (weak).** It is the only function in the gap that is called from other
+  units (`main_menu.c`, `teamselect.c`, `text_0323C.c`, always as a plain `bl`), uses no `.data` and shares no
+  inlined helper with either neighbour. Merging it into `challenge_file_select.c` would leave two code-less tables
+  instead of one; there is no evidence either way beyond that count.
+- **`challengeFileSelect`, `fn_2_1A2AC`, `fn_2_1A420`** share `changeScene(3, 6)`, `lbl_8037169C`,
+  `lbl_2_bss_1A82xx` (the challenge screen's working blocks) and the file-select state; kept together.
+
+### Settled later the same day: the options screen is its own TU
+
+The first pass left open whether `0x194BC-0x19F2C` was the tail of `captain_model_load.c`. It is not:
+
+- **dtk had merged three objects into `lbl_2_data_2794` (0x3C8).** Its first 4 bytes (`00 01 02 00`) are
+  the table `fn_2_16A98` indexes. At `0x2798`, which is 8-aligned, a byte-identical copy of the 0x2C4-byte
+  debug-menu table begins (the same bytes as the copy at `0x1E28`). Then come 0x100 bytes of
+  options labels, `char[8][0x20]` = "MUSIC", "SOUND", "VIBRATION", "MONAURAL", "STEREO", "SURROUND", "ON",
+  "OFF": exactly the options screen's three items and their values. The jump table at `0x2B5C` follows.
+- **A debug-menu table always opens a TU's `.data` in this block.** That holds at `0x180` (main_menu), `0x720`
+  (character select), `0x1000` (stadium select), `0x15C8` (teamselect), `0x19E8` (captain_select), `0x1E28`
+  (captain_model_load), `0x2798` (options) and `0x2B78` (challenge file select). Every one of these addresses is
+  8-aligned, and MWCC gives every object's `.data` 8-byte alignment (checked on our objects). Where the end of
+  the previous TU is not 8-aligned, there is a pad (`0x1E24`, `0x19E4`). Code never reads the table's
+  own contents. Its address appears only as the pooled base for the statics after it (`main_menu` at
+  `lbl_2_data_180 + 0x2C4..`, `captain_select` at `lbl_2_data_19E8 + 0x418..`). So it is most likely a static from a
+  header that each of these TUs includes, emitted whether or not it is used.
+- So `.data 0x2798-0x2B78` is one TU: table, its own option labels, then its jump table. Its code is the options
+  screen, and `captain_model_load.c`'s `.data` ends at `0x2798`. That settles the question with high confidence.
+  The jump-table placement alone (4-aligned `0x2B5C`, directly after another unit's statics) was misleading:
+  the "statics" before it were the options TU's own.
+- The other three kinds of evidence asked for agree, but none of them would decide it alone. *Inlining:* nothing
+  is inlined across `0x194BC`. The options code inlines only its own helpers (`fn_2_194E8`/`19520`/`19554`/`19778`).
+  captain_model_load's uncalled `fn_2_16CE0`/`fn_2_18650`/`fn_2_16870` are inlined into its own functions, and its uncalled
+  `fn_2_19224`/`fn_2_1937C` read its float pool, while the options code uses no `.rodata` at all. *Pooled bases:* neither side reads the other's `.data` or `.bss` (`lbl_2_bss_1033C` against
+  `lbl_2_bss_100B8`/`1224`/`1228`/`122C`), and neither uses pooled offsets into the other. *Call graph:* no call
+  crosses the boundary in either direction.
+- **Changes:** `options_screen.c` `.data` became `0x2798-0x2B78`, and it defines the table and the labels (`lbl_2_data_2798`,
+  `lbl_2_data_2A5C`). `captain_model_load.c` got `.data 0x1E28-0x2798`, defined in C. `lbl_2_data_20F8` (0x324) was
+  also two objects: the two team model positions (`f32[2][3]`), then an unreferenced 0x30C-byte table of u16/u8
+  indices and f32 scales (`lbl_2_data_2110`, kept as raw words). Both `.data` sections are 100%.
+
+**Which table is code-less, and `settings_reset.c`.** Options keeps `rep_05F0`: it is the first TU after
+captain_model_load (`0x568`-`0x5F0`, which closes with that unit's float pool), and the options TU is now confirmed.
+Two code units remain, `settingValuesTo0` (`0x19F2C`) and the challenge file select (`0x1A1B4`), and three tables
+(`0x640`, `0x690`, `0x6E0`). None of the three code units uses a `.rodata` constant, and a code-less TU leaves
+nothing in `.text` or `.data`. So which table is the code-less one cannot be read from the binary.
+`rep_06E0` stays header-only by convention (it is last), at low confidence. `settings_reset.c` stays its own TU
+(weak, unchanged). It has no `.data`, inlines nothing and is inlined nowhere, and it is called with `bl` from
+`challengeFileSelect`. In this REL, single-call functions of `0x19C` bytes and more stay out of line even
+within one TU (`fn_2_195DC` and `fn_2_197AC` in `optionsScreen`), so that call does not show it is in another
+TU. Folding it into `options_screen.c` or `challenge_file_select.c` would be equally consistent. In that case two
+of the three tables would be code-less.
+
+## The character-select / stadium boundary, and teamselect / captain_model_load (2026-10-21)
+
+**`text_110B0.c` was two TUs.**
+
+- `teamSelectScreenMain` (`0x110B0-0x112F4`) belongs to the character-select TU (`text_0323C.c`). The evidence is
+  high. *(a)* Its jump table `0xFDC` is the last of that TU's `.data` run. That run is the debug-menu table at
+  `0x720`, `MenuCommonTexFiles_text0323C`, `lbl_2_data_E14`/`E64`/`E88`, then the jump tables of `fn_2_3624`
+  (`EAC`-`F20`), `fn_2_57F0` (`F44`-`FB8`) and `teamSelectScreenMain` (`FDC`), ending at `0x1000`. A new TU's
+  debug-menu table starts at `0x1000`. *(b)* Its case 1 is instruction for instruction the body of `fn_2_86EC`, a css function
+  that nothing calls. That function is the standalone copy of an inlined helper, so the two are in one TU. Written as
+  a plain `fn_2_86EC()` call, MWCC inlines it and the function is 100%. *(c)* It shares the global `.bss`
+  (`lbl_2_bss_F468`, `100B4`) with the css code. In our build, its five single-call callees
+  (`cssTransitionToNewScreen_maybe`, `cssChangeScreens`, `cssSelectCPUDifficulty`,
+  `characterSelectScreenControlable`, `cssUnloadScreen`) get inlined unless they carry `#pragma dont_inline`. The
+  target keeps them out of line, as it does with other single-call css functions of that size (`fn_2_87A8`, 0x194,
+  is `bl`'d from css code), so the pragma is scaffolding rather than evidence against the TU.
+- **`stadium_select.c`** (`0x112F4-0x12238`) takes `.data 0x1000-0x15C8`: debug-menu table, a 0x28-byte table and a
+  0x20-byte object, `cursorToStadIDMapping` (6 bytes), 16 stadium file descriptors, twelve stadium/scene names, and the
+  jump table of `selectStadiumScreen`. It also takes `.rodata 0x3E8-0x438`, the former `rep_03E8`: it is the last
+  table before teamselect's `0x438`, and the stadium code uses no constants, so only order places it (medium).
+  `.data` and `.rodata` are 100%. `.text` is 98.66% (`stadiumSelectControls` 93.9, register colouring, see the
+  checkpoint), so the unit is not flipped. It reads only global `.bss`.
+- **The other tables in this stretch.** `rep_0318` belongs to the css TU (high). Its 0x30 bytes after the table are
+  ten short strings, and the only pointers to them are in `lbl_2_data_E14`, inside the css TU's `.data`. That fits:
+  the menu REL builds with `-str readonly`, so string literals go to `.rodata`. It is not yet merged into
+  `text_0323C.c`, which would need that unit's whole `.data 0x720-0x1000` defined: `lbl_2_data_720` is read
+  through a pooled base, so its layout would have to be reproduced exactly. `rep_0398` is unexplained. It is either
+  code-less or the table of a second TU inside `0x323C-0x112F4` that has neither a debug-menu table nor a `switch`.
+
+**`teamselect.c` owns `.data 0x15C8-0x19E4`** (high): the debug-menu table at the 8-aligned `0x15C8`, a 0x28-byte
+table, the same 16 stadium file descriptors, then its jump table `0x19B4`, followed by the pad to captain_select's `0x19E8`.
+It had only the jump table and scored 0%. It is now 95.44%; the rest is that table's targets in the unmatched
+`captainSelectScreen_manager`.
+
+**`.text 0x16870-0x16A98` is the head of `captain_model_load.c`** (high). `fn_2_16870` is uncalled. It is the
+out-of-line copy of the block that `fn_2_188EC` runs `if (STATE[0x19])`, and it contains inlined copies of `fn_2_18650`
+and `fn_2_16CE0`, both captain_model_load functions. Calling it from `fn_2_188EC` reproduces the target's inlining
+(99.44 -> 99.68). The four leaf accessors after it (`fn_2_16A34`, `set807518de`, `fn_2_16A5C`, `fn_2_16A74`, 5-9
+instructions) are `bl`'d from `captain_select.c`, `teamselect.c` and `text_0323C.c`. By the leaf rule
+(`-inline deferred` inlines such leaves within their own TU), that keeps them out of `captain_select`'s TU, so they
+stay with `fn_2_16870`. All five are drafted: four at 100%, `fn_2_16870` at 99.51%.
+
+**Left open.** `.text 0x13BA4-0x14574` is still unowned. It holds the captain-select debug menu: `fn_2_14220`, a
+five-state dispatcher called only from `captain_select.c`, `fn_2_13D70`, and four uncalled item handlers that it
+inlines (two toggle `superstarUnlocked` flags). They plausibly implement the items the debug table names ("STAR PLAYER
+SET", "KOOPA STA FLAG SET", ...). No `.rodata` table is free for it (teamselect's `0x438-0x4B0` and captain_select's
+`0x4B0-0x568` each hold one table and their own constants), so it is the tail of `teamselect.c` or the head of
+`captain_select.c`. No inlining, data or leaf-call evidence picks between the two.

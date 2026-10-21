@@ -45,9 +45,6 @@ menus/rep_0318.c:
 menus/rep_0398.c:
 	.rodata     start:0x00000398 end:0x000003E8
 
-menus/rep_03E8.c:
-	.rodata     start:0x000003E8 end:0x00000438
-
 menus/text_01254.c:
 	.text       start:0x00001254 end:0x00001578
 
@@ -56,44 +53,44 @@ menus/main_menu.c:
 	.data       start:0x00000624 end:0x0000071C
 
 menus/text_0323C.c:
-	.text       start:0x0000323C end:0x000110B0
-	.data       start:0x00000EAC end:0x00000FDC
+	.text       start:0x0000323C end:0x000112F4
 
-menus/text_110B0.c:
-	.text       start:0x000110B0 end:0x00012238
-	.data       start:0x00000FDC end:0x000015C8
+menus/stadium_select.c:
+	.text       start:0x000112F4 end:0x00012238
+	.rodata     start:0x000003E8 end:0x00000438
+	.data       start:0x00001000 end:0x000015C8
 
 menus/captain_select/teamselect.c:
 	.text       start:0x00012238 end:0x00013BA4
 	.rodata     start:0x00000438 end:0x000004B0
-	.data       start:0x000019B4 end:0x000019E4
+	.data       start:0x000015C8 end:0x000019E4
 
 menus/captain_select/captain_select.c:
 	.text       start:0x00014574 end:0x00016870
 	.rodata     start:0x000004B0 end:0x00000568
+	.data       start:0x000019E8 end:0x00001E24
 
-menus/text_16870.c:
-	.text       start:0x00016870 end:0x00016A98
-
-menus/rep_0568.c:
-	.text       start:0x00016A98 end:0x000194BC
+menus/captain_select/captain_model_load.c:
+	.text       start:0x00016870 end:0x000194BC
 	.rodata     start:0x00000568 end:0x000005F0
+	.data       start:0x00001E28 end:0x00002798
 
-menus/rep_05F0.c:
+menus/options_screen.c:
+	.text       start:0x000194BC end:0x00019F2C
 	.rodata     start:0x000005F0 end:0x00000640
+	.data       start:0x00002798 end:0x00002B78
 
-menus/rep_0640.c:
+menus/settings_reset.c:
+	.text       start:0x00019F2C end:0x0001A1B4
 	.rodata     start:0x00000640 end:0x00000690
 
-menus/rep_0690.c:
+menus/challenge_file_select.c:
+	.text       start:0x0001A1B4 end:0x0001A4C8
 	.rodata     start:0x00000690 end:0x000006E0
+	.data       start:0x00002B78 end:0x00002E40
 
 menus/rep_06E0.c:
 	.rodata     start:0x000006E0 end:0x00000730
-
-menus/text_194BC.c:
-	.text       start:0x000194BC end:0x0001A4C8
-	.data       start:0x00002B5C end:0x00002B78
 
 menus/rep_0730.c:
 	.text       start:0x0001A4C8 end:0x0001B1BC

@@ -29,7 +29,7 @@ extern u8 lbl_2_data_2AF08[];
 extern u8 mapCaptainCursorPositionToCharID[0x350];
 extern u8 cursorPositions[];
 extern u8 lbl_2_data_2AF4C[];
-extern u8 lbl_803CBCD0[];
+extern u8 lbl_803CBCD8[8];
 extern int mainMenuCursorShown;
 extern u8 *menuControlVariables;
 extern void fn_80053FE8(void);
@@ -341,7 +341,7 @@ void fn_2_73758(void) {
     for (i = 0; i < 8; i++) {
         *(u32 *)(gfxRecord(scene->firstHandle + 4 + i) + 0x5C) = ((s8)cursorPositions[3 + i]) << 16;
     }
-    lbl_803CBCD0[0x8 + 5] = 0;
+    lbl_803CBCD8[5] = 0;
     currentDrawingItem->func = fn_2_7308C;
 }
 
@@ -365,8 +365,8 @@ void fn_2_7308C(void) {
         break;
     }
 
-    if (lbl_803CBCD0[0x8 + 5] != 0) {
-        lbl_803CBCD0[0x8 + 5] = 0;
+    if (lbl_803CBCD8[5] != 0) {
+        lbl_803CBCD8[5] = 0;
         removeGraphicsElementFromScene(node);
         removeCurrentDrawingItem();
     }

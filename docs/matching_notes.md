@@ -3568,7 +3568,7 @@ A pass over every game unit, looking for hand-written copies of functions that M
   fn_3_C4CF4 stayed a `bl` (fn_3_C56E8 dropped to 31.7%) until its GX setup became a call to
   fn_3_C4B80, which the target also inlines.
 - **Not every copy should go.** Calling the real function scored lower for
-  bobOmbDerby unusedBattingSomething (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
+  bobOmbDerby bOD_UpdateBatterAIInputs (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
   starDash_stopAllSparks (93.1 -> 67.5, the `extsb` of the inlined `s8` argument sinks below the
   call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
   barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
@@ -3809,6 +3809,292 @@ Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transiti
   emits no exception tables, so `extab` scores 0% and the unit cannot be flipped to Matching even at
   100% `.text`. Adding it changed no `.text` in any of 51 units (2026-10 first-pass follow-ups).
 
+Chunk 3 (match_transitions, versus_screens, chain_chomp_sprint, minigame_effects, minigame_framework, minigame_hud; 2026-10).
+
+- **`frsp f1, fN` just before `bl cos`/`bl sin` on a double angle means `cos((f32)angle)`.** The
+  argument is rounded to float and then promoted back. An `f32 angle` local moves the `frsp` to the
+  store instead. This is a real rounding difference (piranhaPanic_initBombExplosion).
+- **`lha; extsh.` for a `>= 0` test on an s16 field is the `(s16)` cast** written at the test
+  (loadRunnerActors). A plain field compare, an s16 local, or `(int)` all give `cmpwi`.
+- **`cmplwi` on a game-mode local means `u8`** (loadRunnerActors 95.3% -> 99.4%). It also brings
+  back the `clrlwi` after the range fold's `subi`.
+- **Unsolved, recorded so nobody re-derives it.** (1) A target that keeps a constant table base in a
+  callee-saved register across a `rand()` call, re-materialised at each statement
+  (wallBall_placeBounceParticle and its inlined copy). (2) A value-materialised `x == 0` test
+  (`cntlzw; srwi.; beq`) that every logical form folds away (minigameHudBodPitchRoulette; compare
+  chunk 2's `^ 1` trick, which only covers `!=`). (3) The target re-reading struct fields between two
+  identical counts with no store in between (fn_3_22ABC / chooseVsScreenSituation).
+
+Chunk 4 (mm_ParseCommonArchive, star_dash, practice_model_load, practice_scene, sta_c1, sta_c2, sta_c3; 2026-10).
+
+- **Pooled statics, two more cases (sta_c1, sta_c2).** A `static` struct or a `u32[]` blob that the
+  target addresses at several unrelated displacements off one pooled base is really several static
+  objects. Splitting it into separate `static` objects with matching `symbols.txt` entries
+  (`scope:local`) helped loadBowserCastle (90.79% -> 92.49%), loadWarioPalace (+0.84) and
+  palaceMinigameObjectLoading (+1.12). `.bss` statics are laid out in **reverse** declaration
+  order and `.data` statics in forward order, so declare them to match. In sta_c2 the split alone
+  regressed one caller; indexing the new arrays directly in its loops, instead of through a
+  pointer into the old blob, recovered it.
+- **A materialised `cntlzw; srwi.; beq` test reproduced by an inline returning `cond ? TRUE : FALSE`**
+  (fn_3_C3C2C 96.95% -> 98.67%). This did not work for minigameHudBodPitchRoulette (chunk 3), so try
+  it but do not rely on it.
+- **`addi; slwi; lwzx` record access is a byte-offset macro.** Writing
+  `*(T**)((u8*)base + ((first + i) << 3))` reproduces it where `base[first + i].ptr` gives
+  `add` plus a displacement (practiceMenu_charSelect_update -> 100%).
+- **`cmplwi` on a call result means the callee returns an unsigned type** (sD_AIPathBlocked: `u32`, not `BOOL`).
+- **Telling an inline from pasted code by its zero.** If one `li 0` is shared via `mr` between the loop
+  index and the stored value, it is an inline helper. If the index and the value each get their own
+  `li`, the loop was written out at the call site (sD_UpdateAI's AI input clear).
+- **Assign a derived table pointer where it is first used, not in its declaration initialiser.**
+  `u8** animTable = (u8**)(hugeAnimStruct + 0x6C);` at the top of the function moves the `addi`
+  early and keeps it live. Assigning it just before the store matches the target
+  (loadBowserCastle, loadYoshiPark).
+- **`s32` vs `int` loop counters are not interchangeable** (`s32` is `long`). loadYoshiPark gained 1.8
+  points from `int k` -> `s32 k` alone, so sweep both when a counter's register allocation is off.
+- **Unsolved.** (1) mm_ParseCommonArchive: the target folds the post-loop `offsets[i++]` increments
+  into constant displacements, and 5 forms did not reproduce it. (2) practiceModel_setup: the target
+  re-loads `files[]` after storing it (no store-to-load forwarding); 17 hypotheses are logged in its
+  checkpoint. (3) fn_3_D4780: the `fnmsubs` operand order for the amplitude term was not reproduced.
+
+Chunk 5 (sta_c4, sta_c5, sta_c6, stadium_draw; 2026-10).
+
+- **How to read pooled-object addressing in a diff.** When MWCC addresses a static object off the
+  unit's pool base, a field at offset 0 folds into the base displacement (`lfs f0, 0x25c(r30)`), and
+  every other field goes through `addi rX, base, objOffset` plus the field displacement
+  (`lfs f0, 0x4(rX)`). Ours folding all of them (`0x260(r30)`) means our struct spans several real
+  objects. Split it at the `addi` offsets. This gave the largest wins in this chunk: sta_c5's
+  launch/water statics (cutscene 95.65% -> 98.89%, fn_3_EE388 89.37% -> 97.80%), the
+  barrel table and anim banks (loadDKJungle +1.7), and stadium_draw's tables (drawStadiumObjects
+  88.17% -> 96.80%). Splitting only part of a block can make things worse: a view-struct access
+  to the rest stops the new object from being pooled, so it is addressed by name. Split everything
+  the function touches.
+- **The pool base's symbol tells you where the unit's `.data` starts.** In stadium_draw the target's
+  base was `FrameCountOfEntireGame` (.data 0x228), 0x14 bytes before the split's `.data` start.
+  That object belongs to the unit. Moving the splits.txt start to 0x228 and defining it there
+  (a `{0}` aggregate goes to `.data`) was what made the table splits work. The auto gap unit
+  `auto_04_00000228_data` disappears, so `regchk` reports it MISSING. That is expected; total
+  matched data went up by exactly its 20 bytes.
+- **`cmpwi 3; bge D; cmpwi 1; bge B; b D` is a `switch` with `case 1: case 2:`**, not an `if` range
+  check (an `if (x < 3 && x >= 1)` gives `bge; blt`).
+- **`clrlwi 16` on a `GXGetTexObjWidth/Height` result applied late, at the division, means the
+  original used the SDK's `u16` return type.** This repo's prototypes say `u32`. `(u16)` casts at the
+  uses took fn_3_42CC from 96.69% to 100%; `u16` locals truncate too early and score lower.
+- **`?: TRUE/FALSE` inline, second hit:** sta_c4's fn_3_F8E20 (98.28% -> 100%) uses the same
+  `scale == 2` finished-animation test as sta_c1's fn_3_C3C2C.
+- **Behaviour bugs found by diffing immediates and branch-only paths:** loadDKJungle read `n`
+  uninitialised in minigame mode (the target zeroes it on entry). fn_3_4F90 reset the GX line
+  width to 18 instead of 6 after the outline.
+
+Chunk 6 (stadium_draw, stat_book, stat_tracking; 2026-10). updateStadiumFileHeaders was already
+100% in the baseline. compileStatsForBook and initializeStats stayed stuck.
+- **`lis 1; subi` for a 0xFFFF store means the element type is `u16`.** An `s16` store folds the
+  constant to `li -1`. In initializeStats a `u16*` store reproduced the target's 18-store unroll,
+  but it scored lower on register allocation, so it was not kept (logged in the checkpoint).
+
+### Logic pass summary (all 53 functions)
+
+- **Matched: 7.** fn_3_16C548, running_AIStartSteals, animateShadows_nonBall,
+  piranhaPanic_emitFielderHitFire, practiceMenu_charSelect_update, fn_3_F8E20, fn_3_42CC.
+  One more (updateStadiumFileHeaders) was already 100% when reached.
+- **Improved: 30.** Typical gains were 1-10 points. The largest: running_AIStartSteals 60.92 -> 100,
+  piranhaPanic_emitFielderHitFire 72.58 -> 100, fn_3_19FA4 72.88 -> 96.49,
+  scoutMissionProgress_init 88.34 -> 99.79, drawStadiumObjects 88.17 -> 96.80,
+  fn_3_EE388 89.37 -> 97.80.
+- **Stuck: 15.** Each has its forms logged in its unit checkpoint. Almost all are pure register
+  allocation, CSE or scheduling with identical logic: a base kept live across calls, values re-read
+  per iteration with no CSE, a materialised compare, folded post-loop increments, `fnmsubs` operand
+  order, and zero registers shared between a vestigial loop guard and a value.
+- **Behaviour bugs fixed: 3.** fn_3_19FA4 advanced the spline frame counter on the linear path and
+  used the wrong lerp association. loadDKJungle read the pool index `n` uninitialised in minigame
+  mode. fn_3_4F90 reset the GX line width to 18 instead of 6 after drawing the outline.
+  **Minor numerical differences fixed: 3.** processBallFielderCollision (an inverted compare that
+  only differs for NaN), gameplay_Camera (fused multiply-add where the target rounds between the
+  multiply and the add), piranhaPanic_initBombExplosion (cos/sin argument not rounded to float).
+- **Patterns that paid off most:**
+  1. Splitting pooled statics into their real objects. Read the `addi base, off` vs folded-offset
+     shape; it was the single biggest lever, across sta_c1, sta_c2, sta_c5, stadium_draw and
+     minigame_effects.
+  2. Integer widths and signedness read off `clrlwi`/`extsh`/`cmplwi`/`lis;subi`.
+  3. `switch` vs `if` range-check shapes.
+  4. Inline-helper shapes: `? TRUE : FALSE` and shared vs separate zeros.
+  5. Diffing immediates and branch-only paths, which is where every real behaviour bug showed up.
+
+## Last resort: `#pragma opt_dead_assignments off` around one function (batter.c `calculateContactAndHitType`)
+**When a whole basic block has identical registers but the load order and `fmadds` operand order are wrong, re-sweep function-scoped pragmas.** In batter.c the unrolled threshold loop loaded `arr[0][i]` before `arr[1][i]` and emitted `fmadds d, frac` under every source spelling (about 30k permuter candidates across sessions 14-16). Wrapping the function in `#pragma push` / `#pragma opt_dead_assignments off` / `#pragma pop` made the loop exact. It also let the plain `inv_lerp` helpers match without the parameter-assignment tricks used earlier. Setting the pragma for the whole file regresses 7 other functions, so it has to stay function-scoped.
+
+**Resolved without the pragma (session 18): reuse an existing local.** The real shape was variable reuse. Writing the loop's difference into a local the function already assigns elsewhere matches with no pragma: `xPosFromPerfect`, renamed `diff`, so `diff = arr[1][i] - arr[0][i]; thr[i] = arr[0][i] + (contactSize / 100.f) * diff;`. A fresh block-local `f32 range` does not match. A variable with more than one definition is not forward-substituted, so `hi - lo` stays its own assignment and `hi` is loaded first. That is what turning off dead-assignment elimination was imitating. **Before reaching for an optimiser pragma, try storing an intermediate in an already-used local of the same type.** batter.c ships pragma-free.
+The parallel mini harness that found this is described in the batter checkpoint (session 18). It compiles one function in a standalone translation unit and diffs its instructions against the target asm, which makes about 25k candidates per hour cheap.
+
+**This is a last-resort strategy, not a model of the original source.** No other game file uses an optimiser pragma, and there is no plausible reason a developer would turn off dead-assignment elimination for one function. Treat a match that depends on it as a fakematch: say so in the source comment, keep the checkpoint open, and only reach for it after source-shape levers (inlining, temps, types, prototypes, statement order) have been exhausted. When a real source shape is found that matches without the pragma, remove the pragma.
+- **Re-sweep once the other clusters are fixed.** Session 7 swept pragmas while the function was at 97.88%, so a pragma that fixed one cluster but disturbed another scored as a loss. Grid pragma x source shape together.
+- **Probe pragma legality by grepping the compiler output for `illegal`.** Grepping for `pragma` also matches the echoed source line, so every pragma looks legal. MWCC 2.6 accepts `opt_dead_assignments`, `opt_lifetimes`, `opt_loop_invariants`, `opt_strength_reduction`, `opt_propagation`, `opt_common_subs`, `opt_unroll_loops`, `ppc_unroll_instructions_limit N`, `ppc_unroll_factor_limit N` and `scheduling 601/603/604/750`, among others.
+- **Inline helpers that assign to their own parameters change argument load order.** A parameter that is used once is substituted into the expression; one that is used twice or assigned to is kept as a temp and its load is hoisted. This got the function from 97.88% to 99.77% before the pragma was found.
+
+#### Follow-up leads (after the 53-function pass)
+
+1. **(u16) texture-size casts:** did not apply beyond fn_3_42CC. It is the only stadium_draw
+   function that calls `GXGetTexObjWidth/Height`. fn_3_3BE8 and fn_3_3EE8 read sizes from the
+   texture record (`lhz`).
+2. **`FrameCountOfEntireGame` is a struct, not a scalar.** It is the 0x14-byte first .data object
+   of stadium_draw: frame count, a per-frame counter, two ball random-int copies, and the
+   loading-done flag at +0x10. Seven files declared it four different ways. It is now one
+   `GameFrameCounters` type in `stadium_draw.h`; every unit compiles identically. When
+   one symbol is declared differently in several files, look at all the users' offsets before
+   picking a type.
+3. **A copy struct can have a different element type from its source.** `StatsScreenScores` keeps
+   `u16` copies of `g_Scores`' `s16` scores. Retyping the shared `ScoreStruct` regressed about 50
+   functions. A separate `u16` type used only by the copy improved initializeStats
+   (92.65 -> 93.83), postPlayTrackStats (98.41 -> 98.77) and endOfGameStats_MVP
+   (99.88 -> 100). initializeStats needed the total and the 18 innings cleared separately: under
+   `u16` the single 19-entry loop scored 84.
+4. **Pool-base register numbering (sta_c5):** unsolved. A scratch file reproduces our assignment
+   (data base r31, bss base r30). Definition order, first use, globals vs statics, reference
+   counts and compiler versions 2.0-2.7 do not change it.
+
+### Four-file pass findings (2026-10)
+game_math, bobomb_derby, free_fielding_practice, ball_visuals. 12 functions matched, none of the
+units reached 100%.
+- **Check `SQRT2_LINKAGE` first in any unit that calls `dolsqrtf2`.** game_math was missing the
+  define, so `_half`/`_three` sat at the head of `.rodata`. That one line took `.rodata`
+  95.56 -> 100 and matched 14 float functions.
+- **`if (x < 0) x = -x;` is not `x = ABS(x)`, and neither is `__abs(x)`.** All three give
+  `srawi; xor; subf`. The ternary macro and `__abs` put the result in a new register, and the
+  if-form reuses x's register. RandomInt_Sim and RandomInt_Game matched with the if-form;
+  `__abs` scored 59.
+- **A plain expression macro can beat a `static inline` for a call wrapper.**
+  `bOD_launchFireworks(pos, n)` (getCamera, then maybeFireworks) as a static inline left the
+  count and `&g_Pitcher` in swapped callee-saved registers. As
+  `#define BOD_LAUNCH_FIREWORKS(pos, n) maybeFireworks(pos, &getCamera(0)->eye, n, 1)` it
+  matched. A `do { } while (0)` macro with a local scored lower than the inline.
+- **A struct pointer local for only SOME accesses decides which base register CSE reuses.** In
+  bOD_UpdateBatterAIInputs the target uses the first loop's `&g_Minigame` for the switch's AI fields
+  and a separate base for `rosterID`. `MiniGameStruct* mg = &g_Minigame;` used only for those
+  three fields matched (96.07 -> 100). Using `mg` for more accesses scored 83-89.
+- **Calling the real function fixed a hand copy here, unlike the earlier sweep.** With the `mg`
+  fix in place, bOD_AtBat matched by calling bOD_UpdateBatterAIInputs and minigameClearAIControlled
+  (both auto-inline) instead of the `bOD_AI`/`bOD_clearAIControlled` copies. The duplicate-body
+  sweep had measured the call form lower (96.2 -> 93.5) before the `mg` fix. Re-measure a "copy
+  beats call" result after other fixes.
+- **A constant-initialised array that the target stores in ascending order, with the bound
+  shared with `mtctr`, is a loop.** `for (i = 0; i < 4; i++) slots[i] = i + 1;` (unrolled by
+  MWCC) matched practiceRelated. Four explicit stores scored 96.3 in either order.
+- **Declaring a block-scoped pointer at function scope moves it to another callee-saved
+  register.** freeFieldingPracticeLoadCharacters matched with `MinigameSelectSlot* slots`
+  declared first at function scope and assigned inside the branch.
+- **`a = b = const` shares the constant's register with the loop counter.** In
+  setupBallTrailEffect the target stores the display-list byte from the same `li r5,1` that
+  starts `i`. `dl[6] = i = 1;` reproduced it. `i = 1; ... dl[6] = i;` did not, because MWCC
+  propagates the constant back in.
+- **A store of `-1` from a register shared with `s8` stores means the field is `s8`.**
+  bobomb_derby's `minigamePlayerSelectedOrder` is `u8` in the header, but every user casts it to
+  `s8` and the target stores it from the shared `li -1`. Retyping it gave the right sharing but
+  moved every volatile register (98.18 -> 95.60), so it was reverted. Logged in the checkpoint.
+- **Still stuck:** pure colour swaps with the instructions already right. These are
+  bOD_PrepareNextBatter (a `TRUE` constant and the `&g_Minigame` temp numbered the other way
+  round), freeFieldingPracticeSwitcher (a `team * 0x50` schedule), rotate2DByAngle (f4/f5 between
+  the sin result and the inlined sqrt argument), RandomInt_Game_Range/RandomF32_Sim_Range
+  (inlined RNG argument copy) and fn_3_67EF0 (parameter copies r15-r21 vs r23-r29). Each
+  function's checkpoint lists what was tried.
+
+## Menus pass findings (text_110B0, main_menu)
+
+Second pass on `src/menus/text_110B0.c` (.text 95.12 -> 98.77, 2 -> 5 of 7 functions at 100%)
+and `src/menus/main_menu.c` (.text 91.42 -> 99.43, .data 100; 7 -> 12 of 15). Neither unit is at 100%, so
+neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,main_menu}.md`.
+
+- **`sym+0x8@ha` in the target means dtk merged several small `.sbss` objects into one symbol.**
+  Every menu-REL reference to `lbl_803CBCD0` (0x18) was `+0x8` or `+0x10`, and the DOL reads
+  `lbl_803CBCD0` itself through `@sda21`, so it is three 8-byte objects. `lbl_803CBBC2` (0xA) was
+  the same: a DOL byte scalar plus an 8-byte object at `+0x2`. Splitting them in
+  `config/GYQE01/symbols.txt` and indexing the new symbols from 0 was worth +1 to +2.5 points per
+  function. teamselect.c and captain_select.c stayed at 100%.
+- **A REL unit with a `switch` cannot reach 100% until it owns its jump tables' `.data`.** Every
+  switch function scored about 99.8 with only the `jumptable_2_data_*` relocation wrong. Give the
+  unit a `.data` range in `config/GYQE01/menus/splits.txt` that covers just its tables, as
+  teamselect.c does at `0x19B4`. main_menu has `0x624-0x71C` and text_110B0 has `0x1594-0x15C8`.
+  Two more steps are needed. Put the functions in reverse address order (`-inline deferred` emits
+  them reversed), so the tables come out in the target's order. End the range at the last table
+  (`0x71C`), not at the next 8-aligned object, or the 4 pad bytes cost the section. dtk's
+  alignment warning for the range is expected.
+- **The `.data` layout shows where the TU boundaries are.** In this block, each original TU's data
+  starts with a copy of a debug-menu string table ("BAT FIRST", "BAT LAST", "SELECT DEBUG MENU",
+  ...) and has its jump tables at the end. Two results follow. teamSelectScreenMain's table
+  (`0xFDC`) closes the css TU's run (`0xEAC-0xFDC`), so that function belongs with text_0323C. The
+  stadium functions from `0x112F4` start a new TU (`0x1000-0x15C7`). main_menu addresses
+  `lbl_2_data_180 + 0x2C4..` (MenuCommonTexFiles) from one pooled base, so both are this TU's
+  statics.
+- **Writing `(s8)` on a field that is already `s8` merges two sign extensions.** The target
+  extended one load twice (`extsb` for an index, `extsb.` for the compare). With the redundant
+  casts, MWCC CSE'd them into one. Dropping the casts matched fn_2_1216C.
+- **A raw `((u8 *)&Global)[off] = x` store blocks CSE of other globals. A struct-field store does
+  not.** In stadiumSelectControls the target reuses `GameModeSelected` and the spin flag across a
+  `playerNumberByPort[idx]` store. That reuse only appeared once the store went through the field.
+- **Re-read a global to defeat CSE when the target re-tests a bit.** fn_2_1578 copies the inputs
+  to a local, then tests `processedInput & UP` twice. The target computes the `rlwinm.` again
+  for the inner test. Reading `Static_Stats_Tables.controllerInputs[0].processedInput` in the
+  inner test matched it, and the load is still forwarded from the first read.
+- **The callee's size decides between call and copy, as before.** A plain call to fn_2_1A88
+  (0x124) inlined into mainMenuRelated. A call to fn_2_1578 (0x288) stayed a `bl`, so its body is
+  copied there.
+- **Two independent global byte stores: the `lis` order is the written order, even when the
+  stores are swapped.** Writing `Static[0x48B4] = 0;` before `lbl_803CBCE0[0] = 0;` matched
+  mainMenuRelated's two copies, although the target stores lbl_803CBCE0 first.
+- **Hand-unrolled draft code was often MWCC's own unrolling.** fn_2_1A88 (41 -> 100) was two
+  loops, `for (i = 1; i < 4; i++) if (port i present) ports[n++] = i;` and
+  `while (n < 4) ports[n++] = -1;`. fn_2_11EA8 and fn_2_2BB8 matched once written as plain
+  `[t][i]` indexing of `CharacterStats` / `cursorPositions.roster`, with no walking pointers.
+- **Still stuck (colouring only):** stadiumSelectControls 93.66 (the target keeps the spin flag
+  in r0 for the whole function), loadDemoMatch 97.14, fn_2_2D1C 96.63, mainMenuScreen 99.72 and
+  teamSelectScreenMain 99.83 (jump table at `0xFDC` in the css TU's data, plus one register).
+
+## captain_select pass findings
+
+Second pass on `src/menus/captain_select/captain_select.c` (.text 96.23 -> 98.77, .data now owned
+and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are still short. Checkpoint:
+`build/.match_grind/menus_menus_captain_select_captain_select.md`.
+
+- **A pooled `base + 0x418` into another symbol means the unit owns that `.data`.** fn_2_16460 read
+  three camera vectors as `lbl_2_data_19E8 + 0x418/0x424/0x430` (first field folded, the others
+  through `addi`), i.e. three `static Vec`s pooled off the unit's first `.data` object. Giving the unit
+  `.data 0x19E8-0x1E24` in splits.txt, defining the data in C and splitting the gap-sized
+  `lbl_2_data_19E8`/`lbl_2_data_1DD4` matched it. Objects the target references by name
+  (`lbl_2_data_1DD4`, `lbl_2_data_20EC`) are globals; only statics are pooled.
+- **The debug-menu text table is 0x2C4 bytes and opens every TU's `.data` in this block** ("BAT FIRST",
+  "BAT LAST", ..., "COM4>", a colour table and three small index tables). captain_select defines it as
+  `DebugMenuText` with string initialisers; the copy at 0x1E28 starts the next TU. It most likely comes
+  from a shared header, so it can move into one once a second unit owns its copy.
+- **Value numbering distinguishes `int` from `u32`/`s32` even for the same bits.** In BPress the target
+  keeps `c` (the slot) in a callee-saved register for indexing, but re-derives `clrlwi r3, rIdx, 24`
+  from the parameter at each call that takes the slot. `int c = (u8)idx` made MWCC reuse `c` there.
+  Declaring the callee's parameter `u32` (fn_2_16A74) or writing the argument as `idx & 0xFF`
+  stops the reuse (94.0 -> 96.4). `u32 c`/`s32 c` themselves turned the slot loads into `lbzu` walks.
+- **`slwi` on a slot index means a 32-bit variable known to be zero-extended; `clrlslwi` means a
+  `u8` variable.** `u8 slot`/`u8 c` locals re-extend at every word index. `int slot = ...` (handleInputs),
+  `u32 c = (u8)idx` (APress, which also needs `cmplwi`) or a `(u8)` cast at the use site
+  (`menuCursors[4 + (u8)gameSetUpStep.portCaptainSlot[port]]`, screenInputs) reproduce the target.
+- **Arguments in `r4`/`r5` that the source never sets are a missing parameter.** APress's target
+  loaded `charID` into `r4` and `li r5, 1` before `bl fn_8004D4F0`; the DOL body compares `r4`
+  against `challengeCaptainCharIDArray` and branches on `r5`. It is the challenge-mode team
+  add/remove `(team, charID, add)`, not a one-argument call (behaviour fix).
+- **`stopShowingCaptainProfile` takes the port's captain slot.** captainSelectScreenInputs passed
+  the port; the target passes the `portCaptainSlot[port]` load it already CSE'd (behaviour fix).
+- **Dropping single-use temporaries fixed most of APress** (94.5 -> 99.7): the two
+  `mapCaptainCursorPositionToCharID[...]` reads written into the stores directly, and the challenge
+  lookup written `(&table[sup * 6])[cursor]` to get the target's add order.
+- **`u8 a = port;` for the two animation calls, with the index written `(u8)port`** matched
+  fn_2_14BB8 (the cast CSEs with `a` and gives the target's `mr` copies). A `static inline` with a `u8`
+  parameter changed nothing.
+- **An `f32` temp updated in place reproduces `fadd` -> `frsp` reusing one register:**
+  `f32 t = 320.0f + v; t -= 0.1; return t - 320.0f;` (fn_2_14574).
+- **Including `UnknownHomes_Game.h` in a menu unit needs `#define SQRT2_LINKAGE static` first**, or
+  the `dolsqrtf2` statics shift `.rodata` (100 -> 95.8).
+- **The wait loop in checkForNewPlayer is an inlined `loadNewCaptainModelOnCapSelectScreen`.**
+  `while (!loadNewCaptain...(menuCursors[5], prev, 1, 1)) prev = menuCursors[5];` replaces a
+  goto-into-do-while at the same score.
+- **Still stuck:** checkForNewPlayer 94.35 (the target issues two global byte stores before an
+  unrelated `menuCursors` load that ours hoists above them; 11 forms logged), BPress 96.38,
+  handleInputs 99.48 (`bne next; beq L` for a `goto`), APress 99.74 (a two-register colour swap).
+
 
 ### Menus character-selection first pass, text_7E380 (2026-10-20)
 
@@ -3992,3 +4278,29 @@ passed. text_76874 now implements all four remaining stubs and reaches
 text_7BFF8 now implements both remaining stubs and reaches 81.652150% .text.
 text_7E380 improves slightly to 98.257774%, retaining five exact functions.
 Per-unit checkpoints preserve experiments and unresolved field/prototype leads.
+
+### Origin merge and best-match audit (2026-10-21)
+
+Merged origin/main ca17037 with the local menus work and recovered Sol drafts.
+Kept origin's canonical captain-model/options/reset/challenge/stadium units and
+its newer game matches. Removed the overlapping text_16870/text_194BC/rep_0568
+units after preserving their stronger implementations in the canonical files.
+The local settingValuesTo0 loop/store groups retain 97.65432% in settings_reset,
+using origin's typed SettingsResetView rather than raw offsets.
+
+Updated the newer menu units to origin's split lbl_803CBCD8 flag object. This
+matched fn_2_83744; its readability pass uses UIRecord.frame/playMode and the
+existing UI_PLAY_FORWARD constant, and fresh whole-unit diff remains exact.
+A value-form step predicate in stadiumRandomRelated avoids a scheduling regression
+from the symbol split (58.22059% local -> 58.605392% merged).
+
+Saved independent pre-merge local, pure-origin and merged object-score snapshots.
+All 14,872 named-symbol comparisons meet or exceed their respective side's
+baseline, with no unresolved names or loss of exact non-text sections. The sole
+name mapping is origin's unusedBattingSomething -> bOD_UpdateBatterAIInputs.
+Audit summary and score snapshots are build/_origin_merge_* (ignored).
+
+Full ninja build passed, including all four output hash checks. Project exact
+functions: local 4142, pure origin 3897, merged 4182 of 6479 (41.72% code bytes).
+Pre-existing untracked docs/menus_second_pass.md and text_50898_reference.d are
+preserved and excluded from the commits. No emulator test was performed.
