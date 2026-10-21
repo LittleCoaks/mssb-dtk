@@ -16,7 +16,7 @@ extern u8 menuNumber[0x28];
 extern u8 lineUpInfoStruct[0x48];
 extern u8 lbl_8037169C[0x1C];
 extern u8* menuControlVariables;
-extern u8 lbl_2_data_3CE0[0x8];
+extern E(s8, CHAR_ID) lbl_2_data_3CE0[0x8];
 extern u8 lbl_2_bss_F468[0xC4C];
 extern u8 lbl_2_bss_100B4;
 extern u8 lbl_803CBCD0[0x18];
@@ -57,7 +57,7 @@ void cssChangeScreens(void);
 void teamSelectScreenMain(void) {
     switch (*(u16*)(menuControlVariables + 4)) {
     case 0:
-        if (g_d_GameSettings.GameModeSelected == 5 || *(u16*)(menuControlVariables + 6) != 9) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE || *(u16*)(menuControlVariables + 6) != 9) {
             *(u16*)(menuControlVariables + 4) = 5;
         } else {
             ((u8 *)&aiPosSwapInputs)[0xCFA1] = 0;
@@ -65,9 +65,9 @@ void teamSelectScreenMain(void) {
         }
         break;
     case 1:
-        if (g_d_GameSettings.GameModeSelected == 5 && lbl_8037169C[0x12] == 0) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && lbl_8037169C[0x12] == 0) {
             challenge_setTransitionScreenCharacterPortrait(
-                0xA, (s8)lbl_2_data_3CE0[g_Challenge.opponentCaptain]);
+                0xA, lbl_2_data_3CE0[g_Challenge.opponentCaptain]);
         }
         cssLoadingScreenRelated();
         cssResetRosterStruct();
@@ -75,18 +75,18 @@ void teamSelectScreenMain(void) {
         *(u16*)(menuControlVariables + 4) = 2;
         break;
     case 2:
-        if ((g_d_GameSettings.GameModeSelected == 5 ? lbl_8037169C[0x12] : 1) != 0) {
+        if ((g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE ? lbl_8037169C[0x12] : 1) != 0) {
             characterSelectScreenControlable();
         }
         break;
     case 3:
-        if ((s8)lbl_2_bss_F468[0x36] < 0 && gameSetUpStep[0x5D] == 0 &&
+        if (*(s8 *)&lbl_2_bss_F468[0x36] < 0 && gameSetUpStep[0x5D] == 0 &&
             gameSetUpStep[0x5E] == 0) {
             fn_2_72630();
             lbl_2_bss_F468[0x33] = 0;
             *(u16*)(menuControlVariables + 4) = 4;
         } else {
-            lbl_2_bss_F468[0x36] = lbl_2_bss_F468[0x36] - 1;
+            lbl_2_bss_F468[0x36]--;
         }
         break;
     case 4:
@@ -99,7 +99,7 @@ void teamSelectScreenMain(void) {
         cssTransitionToNewScreen_maybe();
         break;
     case 7:
-        if ((s8)lbl_2_bss_F468[0x36] < 0) {
+        if (*(s8 *)&lbl_2_bss_F468[0x36] < 0) {
             updateCharacterSelectProcessCode(0, 0x13);
             updateCharacterSelectProcessCode(1, 0x13);
             lbl_2_bss_F468[0x4F] = 0;
@@ -107,7 +107,7 @@ void teamSelectScreenMain(void) {
             lbl_2_bss_100B4 = 1;
             *(u16*)(menuControlVariables + 4) = 8;
         } else {
-            lbl_2_bss_F468[0x36] = lbl_2_bss_F468[0x36] - 1;
+            lbl_2_bss_F468[0x36]--;
         }
         break;
     case 8:
@@ -160,7 +160,7 @@ void stadiumSelectControls(u8 idx) {
         return;
     }
 
-    if (g_d_GameSettings.GameModeSelected != 5) {
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
         p = ((u8 *)&Static_Stats_Tables)[idx + 0x46F8];
 
         if (g_d_GameSettings.PlayerPorts[0] == p) {
@@ -202,7 +202,7 @@ void stadiumSelectControls(u8 idx) {
             cursorSndFx(2);
         }
     } else if (input1 & 0x20) {
-        if (g_d_GameSettings.GameModeSelected != 5) {
+        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             lbl_803CBCD0[8] = 1;
             lbl_803CBCD0[9] = 6;
         }
@@ -247,7 +247,7 @@ void selectStadiumScreen(void) {
         if (*(u16*)(menuControlVariables + 6) == 0xD) {
             updateCharacterSelectProcessCode(0, 0x26);
             *(u16*)(menuControlVariables + 4) = 1;
-        } else if (g_d_GameSettings.GameModeSelected == 5) {
+        } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             changeScene(1, 6);
             fn_2_836A4();
             lbl_2_bss_F468[0x57] = 0;
@@ -427,7 +427,7 @@ void selectStadiumScreen(void) {
         break;
 
     case 11:
-        if (g_d_GameSettings.GameModeSelected != 5) {
+        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             ss = &lbl_803CBCD0[8];
 
             if (ss[4] != 0) {
@@ -462,7 +462,7 @@ void selectStadiumScreen(void) {
                 changeScene(0xF, 6);
                 changeScreenVariables(4);
             }
-        } else if (g_d_GameSettings.GameModeSelected != 5) {
+        } else if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             ss = &lbl_803CBCD0[8];
             ss[4] = 0;
             lbl_2_bss_F468[0x58] = 0;
@@ -558,7 +558,7 @@ void fn_2_120D0(void) {
     memset(&gameSetUpStep[1], 0, 6);
     menuNumber[0x26] = 1;
     fn_800AD038(*(void **)&((u8 *)&Static_Stats_Tables)[0x46E8]);
-    g_d_GameSettings.p2_CPU_match_code = 0;
+    g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
 }
 
 // .text:0x0001216C size:0xCC mapped:0x80651200
@@ -567,7 +567,7 @@ void fn_2_1216C(void) {
 
     memset(buf, 2, 4);
 
-    if (g_d_GameSettings.p2_CPU_match_code == 0) {
+    if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         buf[Static_Stats_Tables.playerNumberByPort[0]] = 1;
         if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
             buf[1] = 2;
