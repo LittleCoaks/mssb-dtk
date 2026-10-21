@@ -12,6 +12,8 @@
 #include "Unknown/File_0x80062578.h"
 #include "Unknown/File_0x8004cc18.h"
 #include "header_rep_data.h"
+#include "menus/debug_menu_text.h"
+#include "game/match_setup/match_loading.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800628d4.h"
@@ -49,6 +51,46 @@ extern u8 cardCheck[0x5C];
 extern u8 lbl_803CBCD8[0x8];
 extern u8 lbl_803CBD24[0xC];
 extern u8 hugeAnimStruct[0x3154];
+DebugMenuText lbl_2_data_15C8 = {
+    { "BAT FIRST", "BAT LAST" },
+    "FL",
+    "PC",
+    { "RR", "RL", "LR", "LL" },
+    { "OFF", "ON" },
+    { "SELECT DEBUG MENU", "HIDE CHARA SET", "STAR PLAYER SET", "KOOPA STA FLAG SET", "CHALLE LEVEL FREE SET" },
+    { "1P >", "COM1>", "2P >", "COM2>", "3P >", "COM3>", "4P >", "COM4>" },
+    { 0x0000FF0F, 0x0000880F, 0x00000FFF, 0x0000088F, 0x0000F0FF, 0x0000808F, 0x0000F00F, 0x0000800F },
+    { 0, 4, 10, 6, 2, 9, 1, 5, 11, 17, 3, 19 },
+    { 0, 2, 6, 8, 4, 10, 1, 3, 7, 5, 9, 11 },
+    { 0, 0, 6, 2, 8, 4, 10, 5, 11, 3, 9, 1, 7, 0, 0, 0 },
+};
+
+/* Unreferenced; the same 0x28 bytes follow the debug table in stadium_select.c. */
+u8 lbl_2_data_188C[0x28] = {
+    2, 5, 4, 3, 8, 3, 4, 5, 2, 6, 0, 1, 8, 6, 7, 1, 2, 0, 7, 4,
+    4, 3, 1, 2, 5, 1, 2, 4, 6, 8, 7, 6, 8, 5, 3, 3, 5, 7, 4, 6,
+};
+
+/* Unreferenced stadium file descriptors; an identical copy is in stadium_select.c. */
+MatchFileDescriptor lbl_2_data_18B4[16] = {
+    { 0x0000040B, 0x4037CF5C, 0x18B3A800, 0x00208AF0 },
+    { 0x0000040B, 0x400ADFFC, 0x18AEE800, 0x0004BAB0 },
+    { 0x0000040B, 0x400193E8, 0x191B8800, 0x000089D8 },
+    { 0x0000040B, 0x4010E5A0, 0x0E97A800, 0x0009BCAC },
+    { 0x0000040B, 0x40016980, 0x0EA16800, 0x0000D6C4 },
+    { 0x0000040B, 0x40016980, 0x0EA24000, 0x0000C944 },
+    { 0x0000040B, 0x40016980, 0x0EA31000, 0x0000E700 },
+    { 0x0000040B, 0x40016980, 0x0EA3F800, 0x0000D64C },
+    { 0x0000040B, 0x40016980, 0x0EA4D000, 0x0000C900 },
+    { 0x0000040B, 0x40016980, 0x0EA5A000, 0x0000CFFC },
+    { 0x0000040B, 0x40016980, 0x0EA67000, 0x0000D720 },
+    { 0x0000040B, 0x40016980, 0x0EA74800, 0x0000D6CC },
+    { 0x0000040B, 0x40016980, 0x0EA82000, 0x0000D21C },
+    { 0x0000040B, 0x40016980, 0x0EA8F800, 0x0000D0BC },
+    { 0x0000040B, 0x40016980, 0x0EA9D000, 0x0000B544 },
+    { 0x0000040B, 0x40016980, 0x0EAA8800, 0x0000C4F8 },
+};
+
 void fn_2_738C8(void);
 void fn_2_11EA8(void);
 BOOL challengeTransitionRelated(s32 direction);

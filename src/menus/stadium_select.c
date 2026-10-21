@@ -60,16 +60,19 @@ DebugMenuText lbl_2_data_1000 = {
     { 0, 0, 6, 2, 8, 4, 10, 5, 11, 3, 9, 1, 7, 0, 0, 0 },
 };
 
-/* Unreferenced; six rows of seven values in 1..8 followed by zero padding. */
-u8 lbl_2_data_12C4[0x48] = {
-    2, 5, 4, 3, 8, 3, 4, 5, 2, 6, 0, 1, 8, 6, 7, 1, 2, 0, 7, 4, 4,
-    3, 1, 2, 5, 1, 2, 4, 6, 8, 7, 6, 8, 5, 3, 3, 5, 7, 4, 6, 0, 3,
+/* Unreferenced; the same 0x28 bytes follow the debug table in teamselect.c. */
+u8 lbl_2_data_12C4[0x28] = {
+    2, 5, 4, 3, 8, 3, 4, 5, 2, 6, 0, 1, 8, 6, 7, 1, 2, 0, 7, 4,
+    4, 3, 1, 2, 5, 1, 2, 4, 6, 8, 7, 6, 8, 5, 3, 3, 5, 7, 4, 6,
 };
+
+/* Unreferenced. */
+u8 lbl_2_data_12EC[0x20] = { 0, 3 };
 
 /* Stadium-select cursor slot -> STADIUM_ID. */
 u8 cursorToStadIDMapping[6] = { 0, 4, 2, 3, 5, 1 };
 
-/* Unreferenced file descriptors (disc offset, size) for the stadium screens. */
+/* Unreferenced stadium file descriptors; an identical copy is in teamselect.c. */
 MatchFileDescriptor lbl_2_data_1314[16] = {
     { 0x0000040B, 0x4037CF5C, 0x18B3A800, 0x00208AF0 },
     { 0x0000040B, 0x400ADFFC, 0x18AEE800, 0x0004BAB0 },
