@@ -547,16 +547,16 @@ void fn_2_15A90(int *value, u8 port, int max) {
 
 // .text:0x0001560C size:0x484 mapped:0x806546A0
 void captainSelect_APress(int idx) {
+    u32 c;
     int charID;
     int val;
-    u32 c;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (lbl_2_bss_100B8[0x1C] != 0 || lbl_2_bss_100B8[0x42] != 0) {
             return;
         }
 
-        charID = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[4]];
+        charID = (&challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6])[menuCursors[4]];
         lbl_2_bss_100B8[0x10] = 1;
         Static_Stats_Tables.captainSelectedID[0] = charID;
         lbl_2_bss_100B8[0x12] = 1;
@@ -574,11 +574,8 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-        void *model = hugeAnimStruct._2C50[c];
-        if (*((u8 *)model + 0x25D) == 0 && c != 0) {
-            return;
-        }
+    if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && *((u8 *)hugeAnimStruct._2C50[c] + 0x25D) == 0 && c != 0) {
+        return;
     }
 
     {
@@ -591,8 +588,7 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    charID = mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]];
-    Static_Stats_Tables.captainSelectedID[c] = charID;
+    Static_Stats_Tables.captainSelectedID[c] = mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]];
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && (u8)idx != 0) {
         if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
@@ -604,10 +600,9 @@ void captainSelect_APress(int idx) {
         add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], 1);
     }
 
-    charID = mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]];
     lbl_2_bss_100B8[0x10 + c] = 1;
     lbl_2_bss_100B8[0x12 + c] = 1;
-    Static_Stats_Tables.charOnCharacterGridSelected[charID] = 1;
+    Static_Stats_Tables.charOnCharacterGridSelected[mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]]] = 1;
 
     if ((u8)idx != 0) {
         return;
@@ -624,8 +619,8 @@ void captainSelect_APress(int idx) {
 
         updateCharacterSelectProcessCode(1, 6);
 
-        captainIdx = (Static_Stats_Tables.playerNumberByPort[0] == 0);
         gameSetUpStep.portCaptainSlot[c] = 1;
+        captainIdx = (Static_Stats_Tables.playerNumberByPort[0] == 0);
         charSelectStruct[0x74 + captainIdx] = 1;
 
         if (menuCursors[4] == 0) {
