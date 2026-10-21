@@ -1,4 +1,5 @@
 #include "menus/text_110B0.h"
+#include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "musyx/musyx.h"
@@ -13,7 +14,6 @@
 extern u8 gameSetUpStep[0x64];
 extern u8 menuNumber[0x28];
 extern u8 lineUpInfoStruct[0x48];
-extern u8 inMemRoster[0xB40];
 extern u8 lbl_8037169C[0x1C];
 extern u8* menuControlVariables;
 extern u8 lbl_2_data_3CE0[0x8];
@@ -481,76 +481,67 @@ void selectStadiumScreen(void) {
 
 // .text:0x00011EA8 size:0x228 mapped:0x80650F3C
 void fn_2_11EA8(void) {
-    u8* cp;
-    u8* dst;
-    u8* lp;
-    u8* src;
+    CharacterStats* dst;
+    CharacterStats* src;
     int i;
-    s8 v;
+    s8 id;
 
-    lp = lineUpInfoStruct;
-    cp = (u8 *)&cursorPositions;
-    dst = inMemRoster;
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        id = cursorPositions.roster.rosterCharID[0][i];
+        src = &Static_Stats_Tables.characterStats[id / 9][id % 9];
+        dst = &inMemRoster[0][i];
 
-    for (i = 0; i < 9; i++) {
-        v = cp[2];
-        src = (u8 *)&Static_Stats_Tables + (v / 9) * 0x5A0 + (v % 9) * 0xA0;
+        memcpy(&dst->stats, &src->stats, 0x1E);
 
-        memcpy(dst, src, 0x1E);
+        dst->stats.CharID = src->stats.CharID;
+        dst->stats.FieldingArm = src->stats.FieldingArm;
+        dst->stats.BattingStance = src->stats.BattingStance;
 
-        *(s16*)(dst + 0x24) = *(s16*)(src + 0x24);
-        dst[0x26] = src[0x26];
-        dst[0x27] = src[0x27];
+        memcpy(&dst->stats.SlapContactSize, &src->stats.SlapContactSize, 2);
+        memcpy(&dst->stats.SlapHitPower, &src->stats.SlapHitPower, 2);
 
-        memcpy(dst + 0x28, src + 0x28, 2);
-        memcpy(dst + 0x2A, src + 0x2A, 2);
+        dst->stats.BuntingContactSize = src->stats.BuntingContactSize;
+        dst->stats.HitTrajectoryPushPull = src->stats.HitTrajectoryPushPull;
+        dst->stats.HitTrajectoryHighLow = src->stats.HitTrajectoryHighLow;
+        dst->stats.Speed = src->stats.Speed;
+        dst->stats.ThrowingArm = src->stats.ThrowingArm;
+        dst->stats.CharacterClass = src->stats.CharacterClass;
+        dst->stats.Weight = src->stats.Weight;
+        dst->stats.Captain = src->stats.Captain;
+        dst->stats.CaptainStarHitPitch = src->stats.CaptainStarHitPitch;
 
-        dst[0x2C] = src[0x2C];
-        dst[0x2D] = src[0x2D];
-        dst[0x2E] = src[0x2E];
-        dst[0x2F] = src[0x2F];
-        dst[0x30] = src[0x30];
-        dst[0x31] = src[0x31];
-        dst[0x32] = src[0x32];
-        dst[0x33] = src[0x33];
-        dst[0x34] = src[0x34];
+        memcpy(&dst->stats.NonCaptainStarSwing, &src->stats.NonCaptainStarSwing, 2);
 
-        memcpy(dst + 0x35, src + 0x35, 2);
+        dst->stats.FieldingStats = src->stats.FieldingStats;
 
-        *(u32*)(dst + 0x20) = *(u32*)(src + 0x20);
+        memcpy(&dst->stats.BattingStatBar, &src->stats.BattingStatBar, 4);
+        memcpy(&dst->chemistry, &src->chemistry, sizeof(ChemistryTable));
 
-        memcpy(dst + 0x37, src + 0x37, 4);
-        memcpy(dst + 0x3B, src + 0x3B, 0x36);
+        dst->BytesAfterChemistry[0] = src->BytesAfterChemistry[0];
 
-        dst[0x71] = src[0x71];
+        dst->UnusedShorts[0] = src->UnusedShorts[0];
+        dst->UnusedShorts[1] = src->UnusedShorts[1];
+        dst->UnusedShorts[2] = src->UnusedShorts[2];
+        dst->UnusedShorts[3] = src->UnusedShorts[3];
+        dst->UnusedShorts[4] = src->UnusedShorts[4];
+        dst->UnusedShorts[5] = src->UnusedShorts[5];
+        dst->UnusedShorts[6] = src->UnusedShorts[6];
+        dst->UnusedShorts[7] = src->UnusedShorts[7];
+        dst->UnusedShorts[8] = src->UnusedShorts[8];
+        dst->UnusedShorts[9] = src->UnusedShorts[9];
+        dst->UnusedShorts[10] = src->UnusedShorts[10];
+        dst->UnusedShorts[11] = src->UnusedShorts[11];
+        dst->UnusedShorts[12] = src->UnusedShorts[12];
+        dst->UnusedShorts[13] = src->UnusedShorts[13];
+        dst->UnusedShorts[14] = src->UnusedShorts[14];
+        dst->UnusedShorts[15] = src->UnusedShorts[15];
+        dst->UnusedShorts[16] = src->UnusedShorts[16];
+        dst->UnusedShorts[17] = src->UnusedShorts[17];
+        dst->UnusedShorts[18] = src->UnusedShorts[18];
+        dst->UnusedShorts[19] = src->UnusedShorts[19];
+        dst->UnusedShorts[20] = src->UnusedShorts[20];
 
-        *(u16*)(dst + 0x74) = *(u16*)(src + 0x74);
-        *(u16*)(dst + 0x76) = *(u16*)(src + 0x76);
-        *(u16*)(dst + 0x78) = *(u16*)(src + 0x78);
-        *(u16*)(dst + 0x7A) = *(u16*)(src + 0x7A);
-        *(u16*)(dst + 0x7C) = *(u16*)(src + 0x7C);
-        *(u16*)(dst + 0x7E) = *(u16*)(src + 0x7E);
-        *(u16*)(dst + 0x80) = *(u16*)(src + 0x80);
-        *(u16*)(dst + 0x82) = *(u16*)(src + 0x82);
-        *(u16*)(dst + 0x84) = *(u16*)(src + 0x84);
-        *(u16*)(dst + 0x86) = *(u16*)(src + 0x86);
-        *(u16*)(dst + 0x88) = *(u16*)(src + 0x88);
-        *(u16*)(dst + 0x8A) = *(u16*)(src + 0x8A);
-        *(u16*)(dst + 0x8C) = *(u16*)(src + 0x8C);
-        *(u16*)(dst + 0x8E) = *(u16*)(src + 0x8E);
-        *(u16*)(dst + 0x90) = *(u16*)(src + 0x90);
-        *(u16*)(dst + 0x92) = *(u16*)(src + 0x92);
-        *(u16*)(dst + 0x94) = *(u16*)(src + 0x94);
-        *(u16*)(dst + 0x96) = *(u16*)(src + 0x96);
-        *(u16*)(dst + 0x98) = *(u16*)(src + 0x98);
-        *(u16*)(dst + 0x9A) = *(u16*)(src + 0x9A);
-        *(u16*)(dst + 0x9C) = *(u16*)(src + 0x9C);
-
-        lp[0] = lp[1] = lp[2] = i;
-
-        cp++;
-        lp += 4;
-        dst += 0xA0;
+        lineUpInfoStruct[i * 4 + 0] = lineUpInfoStruct[i * 4 + 1] = lineUpInfoStruct[i * 4 + 2] = i;
     }
 }
 
