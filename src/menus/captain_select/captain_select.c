@@ -74,7 +74,7 @@ typedef struct {
 
 extern gameSetUpStruct_t gameSetUpStep;
 extern u8 lbl_800EFBA4[0x10];
-extern u8 lbl_803CBBC2[0xA];
+extern u8 lbl_803CBBC4[8];
 extern u8 lbl_803CBCD8[0x8];
 extern u8 lbl_2_bss_F468[0xC4C];
 extern u8 lbl_2_bss_100B4;
@@ -218,7 +218,7 @@ void captainSelect_handleInputs(int port) {
         goto commonTail;
     }
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && lbl_803CBBC2[5] == 1) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && lbl_803CBBC4[3] == 1) {
         input.processedInput = 0;
         input.newInput = 0;
         input.currentHeldInput = 0;
@@ -347,7 +347,7 @@ commonTail:
         if (input.processedInput & 0x3) {
             challengeCaptainRelated();
             updateCharacterSelectProcessCode(0, 3);
-            lbl_803CBBC2[2] = 3;
+            lbl_803CBBC4[0] = 3;
         }
         return;
     }
@@ -406,7 +406,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
                 }
                 menuCursors[4] = val;
                 challengeCaptainRelated();
-                lbl_803CBBC2[2] = 3;
+                lbl_803CBBC4[0] = 3;
             }
             aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] = 0;
         }
@@ -677,7 +677,7 @@ void captainSelect_BPress(int idx) {
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        lbl_803CBBC2[2] = 2;
+        lbl_803CBBC4[0] = 2;
     } else {
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
             updateCharacterSelectProcessCode(0, 2);

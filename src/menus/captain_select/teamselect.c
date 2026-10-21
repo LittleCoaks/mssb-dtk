@@ -38,7 +38,7 @@ typedef struct {
 extern CaptainGameSetUp gameSetUpStep;
 void fn_8004D990(s32 port, s32 team, s32 challengeCaptain);
 void fn_8004D460(s32 team, s32 selection);
-extern u8 lbl_803CBBC2[10];
+extern u8 lbl_803CBBC4[8];
 void relatedToTeamSelection4(void);
 void fn_2_73758(void);
 void set807518de(u8 port, s32 active);
@@ -455,7 +455,7 @@ void captainSelectDefaultProcess(void) {
             relatedToTeamSelection4();
             insertGraphicDrawingFunction(fn_2_73758, 0x3000);
             updateCharacterSelectProcessCode(0, 1);
-            lbl_803CBBC2[2] = 1;
+            lbl_803CBBC4[0] = 1;
         }
         gameSetUpStep.portCaptainSlot[0] = 0;
         gameSetUpStep.portCaptainSlot[1] = 1;
