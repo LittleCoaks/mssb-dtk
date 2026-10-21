@@ -18,8 +18,8 @@ extern int menuCursors[0x16];
 extern u8 *menuControlVariables;
 extern u8 lbl_80366158[0x30];
 extern u8 lineUpInfoStruct[0x48];
-extern s16 lbl_2_data_E64[18];
-extern s16 lbl_2_data_E88[18];
+extern E(s16, CHAR_ID) lbl_2_data_E64[2][9];
+extern E(s16, CHAR_ID) lbl_2_data_E88[18];
 extern u8 lbl_2_bss_20[0x380];
 extern u8 lbl_803CBCE0[0x8];
 extern u8 cardCheck[0x5C];
@@ -127,39 +127,28 @@ void loadDemoMatch(u8 mode, int a, int b) {
 
 // .text:0x00002D1C size:0x2A4 mapped:0x80641DB0
 void fn_2_2D1C(void) {
-    int t;
-    int i;
-    int slot;
-    s16 v;
-    int *slotp;
-    s16 *ep;
-    u8 *cp;
-    u8 *lp;
+    s32 t;
+    s32 i;
+    E(s16, CHAR_ID) id;
 
-    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E0] = 10;
-    *(int *)&((u8 *)&Static_Stats_Tables)[0x46E4] = 2;
+    Static_Stats_Tables.captainSelectedID[0] = CHAR_ID_WARIO;
+    Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_DK;
 
     for (t = 0; t < 2; t++) {
-        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
-        ep = &lbl_2_data_E64[t * 9];
-        cp = &((u8 *)&cursorPositions)[t * 9];
-
         for (i = 0; i < 9; i++) {
-            slot = *slotp;
-            v = ep[i];
-            cp[i + 2] = v;
-            cp[i + 0x26] =
-                ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+            id = lbl_2_data_E64[t][i];
+            cursorPositions.roster.rosterCharID[t][i] = id;
+            cursorPositions.roster.chemWCaptain[t][i] =
+                ((u8 *)&Static_Stats_Tables)[Static_Stats_Tables.captainSelectedID[t] +
+                                             (id / 9) * 0x5A0 + (id % 9) * 0xA0 + 0x3B];
         }
     }
 
-    lp = lineUpInfoStruct;
-
     for (t = 0; t < 2; t++) {
         for (i = 0; i < 9; i++) {
-            lp[i * 4 + 0] = lp[i * 4 + 1] = lp[i * 4 + 2] = i;
+            lineUpInfoStruct[t * 0x24 + i * 4 + 0] = lineUpInfoStruct[t * 0x24 + i * 4 + 1] =
+                lineUpInfoStruct[t * 0x24 + i * 4 + 2] = i;
         }
-        lp += 0x24;
     }
 }
 
@@ -167,39 +156,26 @@ void fn_2_2D1C(void) {
 void fn_2_2BB8(void) {
     int t;
     int i;
-    int slot;
-    s16 v;
-    s16 *ep;
-    u8 *cp;
-    u8 *lp;
-    int *slotp;
+    E(s16, CHAR_ID) id;
 
     for (t = 0; t < 2; t++) {
-        ep = lbl_2_data_E88;
-        cp = &((u8 *)&cursorPositions)[t * 9];
-        lp = &lineUpInfoStruct[t * 0x24];
-        slotp = (int *)&((u8 *)&Static_Stats_Tables)[0x46E0 + t * 4];
-
         for (i = 0; i < 9; i++) {
-            slot = *slotp;
-
-            if (slot == 0) {
-                v = ep[0];
-                cp[2] = v;
-                cp[0x26] =
-                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+            if (Static_Stats_Tables.captainSelectedID[t] == CHAR_ID_MARIO) {
+                id = lbl_2_data_E88[i];
+                cursorPositions.roster.rosterCharID[t][i] = id;
+                cursorPositions.roster.chemWCaptain[t][i] =
+                    ((u8 *)&Static_Stats_Tables.characterStats[id / 9][id % 9].chemistry)
+                        [Static_Stats_Tables.captainSelectedID[t]];
             } else {
-                v = ep[9];
-                cp[2] = v;
-                cp[0x26] =
-                    ((u8 *)&Static_Stats_Tables)[slot + (v / 9) * 0x5A0 + (v % 9) * 0xA0 + 0x3B];
+                id = lbl_2_data_E88[i + 9];
+                cursorPositions.roster.rosterCharID[t][i] = id;
+                cursorPositions.roster.chemWCaptain[t][i] =
+                    ((u8 *)&Static_Stats_Tables.characterStats[id / 9][id % 9].chemistry)
+                        [Static_Stats_Tables.captainSelectedID[t]];
             }
 
-            lp[0] = lp[1] = lp[2] = i;
-
-            ep++;
-            cp++;
-            lp += 4;
+            lineUpInfoStruct[t * 0x24 + i * 4 + 0] = lineUpInfoStruct[t * 0x24 + i * 4 + 1] =
+                lineUpInfoStruct[t * 0x24 + i * 4 + 2] = i;
         }
 
         fn_800670A0(t);
