@@ -185,7 +185,7 @@ void fn_2_2BB8(void) {
 
 // .text:0x000027E0 size:0x3D8 mapped:0x80641874
 void mainMenuScreen(void) {
-    u8 state;
+    u16 state;
     s16 k;
     u8 *tbl = lbl_2_data_180;
 
@@ -214,11 +214,7 @@ void mainMenuScreen(void) {
 
         initializeUnknown();
         ((u8 *)&Static_Stats_Tables)[0x4700] = 0;
-        Static_Stats_Tables.sceneAlive = 0xFF;
-        ((u8 *)&Static_Stats_Tables)[0x4756] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4754] = 0;
-        ((u8 *)&Static_Stats_Tables)[0x4755] = 3;
-        Static_Stats_Tables.unk48B3 = 0;
+        fn_2_1D28();
         ((u8 *)&Static_Stats_Tables)[0x4701] = 0;
         ((u8 *)&Static_Stats_Tables)[0x4702] = 0;
         ((u8 *)&Static_Stats_Tables)[0x4703] = 0;
