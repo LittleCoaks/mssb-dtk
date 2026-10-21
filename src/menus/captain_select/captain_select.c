@@ -84,7 +84,7 @@ extern u8 lbl_2_bss_100B4;
 
 extern menuControlStruct *menuControlVariables;
 
-void fn_2_16A74(int idx, int flag);
+void fn_2_16A74(u32 idx, int flag);
 void cursorSndFx(int arg0);
 
 void challengeCaptainRelated(void);
@@ -682,7 +682,7 @@ void captainSelect_BPress(int idx) {
             Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
             updateCharacterSelectProcessCode(0, 4);
 
-            other = (u8)idx ^ 1;
+            other = (idx & 0xFF) ^ 1;
             AnimateCharacter(other, 0x69, 1, 1, 1, 0, 0, -1);
             lbl_2_bss_100B8[0x40 + (u8)other] = 1;
         } else {
@@ -712,9 +712,9 @@ void captainSelect_BPress(int idx) {
             gameSetUpStep.portCaptainSlot[c] = 0;
 
             if (lbl_2_bss_100B8[0x10] != 0) {
-                updateCharacterSelectProcessCode((u8)idx, 5);
+                updateCharacterSelectProcessCode(idx & 0xFF, 5);
             } else {
-                updateCharacterSelectProcessCode((u8)idx, 4);
+                updateCharacterSelectProcessCode(idx & 0xFF, 4);
             }
         }
         goto exit;
