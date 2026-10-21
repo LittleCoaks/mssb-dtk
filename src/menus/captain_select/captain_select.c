@@ -2,6 +2,8 @@
 #include "menus/yd_step.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
+#define SQRT2_LINKAGE static
+#include "game/UnknownHomes_Game.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x80052968.h"
 #include "dolphin/mtx.h"
@@ -947,47 +949,51 @@ checkForNewPlayer_loopTest:
 }
 
 static f32 stepValueDown(f32 v) {
-    return (f32)((f64)(320.0f + v) - 0.1) - 320.0f;
+    f32 t = 320.0f + v;
+    t -= 0.1;
+    return t - 320.0f;
 }
 
 static f32 stepValueUp(f32 v) {
-    return (f32)((f64)(320.0f + v) + 0.1) - 320.0f;
+    f32 t = 320.0f + v;
+    t += 0.1;
+    return t - 320.0f;
 }
 
 // .text:0x00014574 size:0x21C mapped:0x80653608
 void fn_2_14574(controllerInputStruct *input) {
-    if (input->processedInput & 8) {
-        if (input->currentHeldInput & 0x200) {
+    if (input->processedInput & INPUT_BUTTON_UP) {
+        if (input->currentHeldInput & INPUT_BUTTON_B) {
             lbl_2_bss_1010C.unk48 += 0.1f;
-        } else if (input->currentHeldInput & 0x100) {
+        } else if (input->currentHeldInput & INPUT_BUTTON_A) {
             lbl_2_bss_1010C.unk4C += 1.0f;
-        } else if (input->currentHeldInput & 0x400) {
+        } else if (input->currentHeldInput & INPUT_BUTTON_X) {
             lbl_2_bss_1010C.unk50 += 0.1f;
         }
         return;
     }
-    if (input->processedInput & 4) {
-        if (input->currentHeldInput & 0x200) {
+    if (input->processedInput & INPUT_BUTTON_DOWN) {
+        if (input->currentHeldInput & INPUT_BUTTON_B) {
             lbl_2_bss_1010C.unk48 -= 0.1f;
-        } else if (input->currentHeldInput & 0x100) {
+        } else if (input->currentHeldInput & INPUT_BUTTON_A) {
             lbl_2_bss_1010C.unk4C -= 0.1f;
-        } else if (input->currentHeldInput & 0x400) {
+        } else if (input->currentHeldInput & INPUT_BUTTON_X) {
             lbl_2_bss_1010C.unk50 -= 0.1f;
         }
         return;
     }
-    if (input->processedInput & 1) {
-        if (input->currentHeldInput & 0x200) {
+    if (input->processedInput & INPUT_BUTTON_LEFT) {
+        if (input->currentHeldInput & INPUT_BUTTON_B) {
             lbl_2_data_20F8[0] = stepValueDown(lbl_2_data_20F8[0]);
-        } else if (input->currentHeldInput & 0x100) {
+        } else if (input->currentHeldInput & INPUT_BUTTON_A) {
             lbl_2_data_20F8[1] = stepValueDown(lbl_2_data_20F8[1]);
         }
         return;
     }
-    if (input->processedInput & 2) {
-        if (input->currentHeldInput & 0x200) {
+    if (input->processedInput & INPUT_BUTTON_RIGHT) {
+        if (input->currentHeldInput & INPUT_BUTTON_B) {
             lbl_2_data_20F8[0] = stepValueUp(lbl_2_data_20F8[0]);
-        } else if (input->currentHeldInput & 0x100) {
+        } else if (input->currentHeldInput & INPUT_BUTTON_A) {
             lbl_2_data_20F8[1] = stepValueUp(lbl_2_data_20F8[1]);
         }
     }
