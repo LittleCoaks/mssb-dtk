@@ -3808,3 +3808,187 @@ Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transiti
   `Object(...)`** (DOL `unk` lib; the C3 lib already has it in its group cflags). Without it the object
   emits no exception tables, so `extab` scores 0% and the unit cannot be flipped to Matching even at
   100% `.text`. Adding it changed no `.text` in any of 51 units (2026-10 first-pass follow-ups).
+
+
+### Menus character-selection first pass, text_7E380 (2026-10-20)
+
+Resumed from e4f81aee without changing other units. All fourteen functions in
+`src/menus/text_7E380.c` are now drafted; ten return-only stubs were replaced.
+The typed shared stats/settings/challenge structures cover the existing offsets,
+and `include/menus/text_7E380.h` now declares the recovered scene/channel arguments.
+Only this source includes that header. Keep the unit NonMatching.
+
+Fresh objdiff `.text`: **9.086067% -> 86.574776%**. Exact target functions:
+**0/14 -> 0/14**. No scored data sections and no function regressions.
+
+| Function | Before | After |
+|---|---:|---:|
+| cssUnready | 0.32051% | 83.40385% |
+| fn_2_7E860 | 88.55073% | 88.55073% |
+| cssReady | 0.31056% | 77.21429% |
+| fn_2_7EE7C | 78.72881% | 78.72881% |
+| fn_2_7EF68 | 87.10000% | 87.10000% |
+| cssRemoveCharacter2 | 0.61350% | 79.74847% |
+| cssRemoveCharacter1 | 0.35971% | 77.53237% |
+| fn_2_7F714 | 0.94340% | 83.00944% |
+| cssSelectCharacter | 0.69444% | 78.70834% |
+| fn_2_7FAFC | 0.27397% | 98.02740% |
+| captainSelectUnloadCSSLoadRelated | 0.69930% | 97.09790% |
+| fn_2_802EC | 0.75188% | 98.75940% |
+| fn_2_80500 | 94.81818% | 94.81818% |
+| fn_2_805DC | 0.67568% | 97.93919% |
+
+Next serial pass: start with `fn_2_802EC`, `fn_2_7FAFC`, `fn_2_805DC`, and
+`captainSelectUnloadCSSLoadRelated` (97–99%). Their zero-step test commonly emits
+a direct compare where the target materializes the predicate with CLZ; an inline
+BOOL predicate and an explicit u8 boolean cast did not help. The existing detailed
+checkpoint is `build/.match_grind/menus_menus_text_7E380.md`.
+
+The inlined first-match roster-slot search is also called with its result ignored
+in `fn_2_7F714`; MWCC preserves the target's otherwise dead comparisons. Avoid
+removing that call as redundant without checking the original assembly. Record-index
+association is per site: left-associating `firstHandle + selected + channel * 9`
+improves `cssSelectCharacter`, but changing the same association across all the
+callbacks regresses several. Remaining raw step/process fields and selection
+positions 9/10 have no established enum; do not invent names without evidence.
+
+Validation: fresh rebuild before every retained diff; all fourteen functions
+compared with the session baseline; full `ninja` build and `git diff --check`
+passed. No emulator testing, commit or push. Pre-existing untracked
+`docs/menus_second_pass.md` and `text_50898_reference.d` were untouched.
+
+
+### Menus text_7E380 second matching pass (2026-10-20)
+
+Continued the same uncommitted first-pass source. `.text` rose from **86.574776%
+to 89.795490%**, with exact functions **0/14 -> 4/14** and no per-function
+regressions. No scored data sections. All functions remain implemented and the
+unit stays NonMatching.
+
+| Function | Before second pass | After |
+|---|---:|---:|
+| cssUnready | 83.40385% | 84.10256% |
+| fn_2_7E860 | 88.55073% | 100.00000% |
+| cssReady | 77.21429% | 78.29503% |
+| fn_2_7EE7C | 78.72881% | 100.00000% |
+| fn_2_7EF68 | 87.10000% | 99.40000% |
+| cssRemoveCharacter2 | 79.74847% | 86.69939% |
+| cssRemoveCharacter1 | 77.53237% | 78.98921% |
+| fn_2_7F714 | 83.00944% | 93.05660% |
+| cssSelectCharacter | 78.70834% | 81.52084% |
+| fn_2_7FAFC | 98.02740% | 98.80822% |
+| captainSelectUnloadCSSLoadRelated | 97.09790% | 99.16084% |
+| fn_2_802EC | 98.75940% | 100.00000% |
+| fn_2_80500 | 94.81818% | 100.00000% |
+| fn_2_805DC | 97.93919% | 99.93243% |
+
+The four exact functions (`fn_2_802EC`, `fn_2_80500`, `fn_2_7E860`, and
+`fn_2_7EE7C`) passed the mandatory readability review and fresh re-diff.
+
+Useful matching findings:
+
+- **A cached field pointer can erase the value-form inline predicate.** The
+  `isStepClear` / `isStepActive` inlines return an explicit `condition ? TRUE : FALSE`.
+  Accessing `gameSetUpStep[channel + 0xD]` directly at every caller use retains
+  the target CLZ sequence; caching `u8 *step` and reading `*step` lets MWCC collapse
+  it to a direct compare. This matched three functions. Merely changing the
+  predicate's parameter or return width did not solve the cached-pointer case.
+- **Keep the final index increment as a statement when the target uses an indexed
+  load.** `handle = scene->firstHandle + position; handle += channel * 9;
+  handle += 0x22; graphicsRelatedArray[handle]` matched `fn_2_7EE7C` and raised
+  `fn_2_7EF68` to 99.4%. Writing the last increment as `[handle + 0x22]` folded
+  it into `lwz 0x110`, despite identical arithmetic. A generic record helper
+  did not prevent that fold.
+- **Copied zero loop initializers suggest an inline.** A shared
+  `resetChemistryStars` helper with explicit handle increments raised
+  `fn_2_7F714` from 83.01% to 93.06% and `cssRemoveCharacter2` from 79.75%
+  to 86.70%. Passing the star count from the caller helped one but regressed
+  the other, so the count remains read inside the helper.
+
+Best continuation targets are `fn_2_805DC` (99.93%, one register choice),
+`fn_2_7EF68` (99.4%, intermediate handle register), and
+`captainSelectUnloadCSSLoadRelated` (99.16%, commuted add operands). Detailed
+tried/reverted variants and current source backups are recorded in
+`build/.match_grind/menus_menus_text_7E380.md`.
+
+Final verification: full `ninja` build, fresh all-fourteen-function comparison,
+and `git diff --check` passed; no emulator testing. Baseline and final audit files
+are `build/_menus_sol7E380_second_baseline.json` and
+`build/_menus_sol7E380_second_final.json`, with full build output in
+`build/_menus_sol7E380_second_full_build.log`. No commit, push, pull, configuration,
+or symbol changes; pre-existing untracked files remain untouched.
+
+### Menus text_7E380 parallel Sol pass (2026-10-20)
+
+Three Sol researchers worked on isolated scratch translation units for near
+matches, ready/unready, and selection/removal. The manager integrated the verified
+changes serially and rebuilt the real object after each integration.
+
+`.text` **89.795490% -> 98.249250%**, exact functions **4/14 -> 5/14**.
+All fourteen functions are at or above the starting score; no scored data
+sections. Unit stays NonMatching.
+
+| Function | Before | After |
+|---|---:|---:|
+| cssUnready | 84.10256% | 99.29487% |
+| fn_2_7E860 | 100.00000% | 100.00000% |
+| cssReady | 78.29503% | 99.62733% |
+| fn_2_7EE7C | 100.00000% | 100.00000% |
+| fn_2_7EF68 | 99.40000% | 99.40000% |
+| cssRemoveCharacter2 | 86.69939% | 94.00613% |
+| cssRemoveCharacter1 | 78.98921% | 93.71942% |
+| fn_2_7F714 | 93.05660% | 97.20755% |
+| cssSelectCharacter | 81.52084% | 97.70834% |
+| fn_2_7FAFC | 98.80822% | 99.26028% |
+| captainSelectUnloadCSSLoadRelated | 99.16084% | 99.16084% |
+| fn_2_802EC | 100.00000% | 100.00000% |
+| fn_2_80500 | 100.00000% | 100.00000% |
+| fn_2_805DC | 99.93243% | 100.00000% |
+
+- **Counter type can determine unrolling.** In cssReady, `int i` with
+  `(s32)PLAYERS_PER_TEAM` as the natural for-loop bound reproduces the target's
+  threefold unrolling and initial runtime guard. `s32` is long here; an s32
+  induction variable stays rolled, and a plain-int bound loses the guard.
+- **Delay narrow casts to the uses that need them.** Widening the CPU captain
+  position until UI use sites lets a natural loop emit the exact nine-slot
+  lookup. Explicit signed-byte access to the named challenge opponent field
+  removes an extra copy in the captain icon transition.
+- **Recover inline boundaries around roster handles and completion checks.**
+  Staged firstHandle/position/team/offset additions avoid unwanted address
+  folding. Small record, handle, and animation wrappers improved selection and
+  removal. A chemistry-count helper plus a local-count wrapper preserves the
+  differing caller live ranges without duplicating the loop.
+- **A proven 0/1 local may need a narrow width.** fn_2_805DC becomes exact with
+  u8 for its first completion result; the target already limits it to one bit,
+  so no truncation is added. Readability review and a fresh diff passed.
+- **Do not infer a parameter width solely from missing caller masking.** An
+  s32 extern for teamSelectionSetChemStars improved some scores, but existing
+  callee/header use u8 and the target callee entry cannot distinguish the two.
+  The compatible u8 declaration remains. Any correction needs coordinated
+  callee/header/caller evidence and dependent verification.
+
+All existing exact functions remain exact; only fourteen target functions are
+emitted. Existing roster-size constant cleanup was re-diffed with identical
+scores. Full ninja build and git diff --check passed; no emulator test, header,
+configuration or symbol changes, commit, push, or pull. Pre-existing untracked
+files remain untouched.
+
+Baseline/final evidence: `build/_menus_parallel7E380_baseline.json` and
+`build/_menus_parallel7E380_final.json`; full build log:
+`build/_menus_parallel7E380_full_build.log`. Complete per-worker hypothesis logs,
+remaining differences and status table are in
+`build/.match_grind/menus_menus_text_7E380.md`.
+
+Next leads: cssRemoveCharacter1/2 for the largest residual gaps, or cssReady,
+fn_2_7EF68, and cssUnready for near matches. Preserve the now-correct loop
+structure and avoid replaying logged type/index/inline variants.
+
+### Recovered Sol work before origin merge (2026-10-21)
+
+Recovered and rebuilt the interrupted workers' saved source/header candidates.
+All previously measured functions retain or improve their scores; full ninja
+passed. text_76874 now implements all four remaining stubs and reaches
+86.070885% .text, with fn_2_78034 exact after its readability review and re-diff.
+text_7BFF8 now implements both remaining stubs and reaches 81.652150% .text.
+text_7E380 improves slightly to 98.257774%, retaining five exact functions.
+Per-unit checkpoints preserve experiments and unresolved field/prototype leads.
