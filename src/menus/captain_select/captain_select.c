@@ -12,6 +12,8 @@
 #include "Unknown/File_0x800625a4.h"
 #include "menus/text_0323C.h"
 
+#define DPAD_MASK (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT | INPUT_BUTTON_DOWN | INPUT_BUTTON_UP)
+
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 captainIDOrderedOnCapSS[12];
 extern int menuCursors[0x16];
@@ -20,7 +22,7 @@ void AnimateCharacter(u8 charId, int animId, int a2, int a3, int a4, int a5, int
 void QueueCharacterAnimation(u8 charId, int animId, int a2, int a3, int a4, int a5, int a6);
 int stadiumRandomizer(int min, int max);
 void set807518de(u8 port, int arg1);
-void add_or_RemoveCharToATeam(int arg0, int arg1, int arg2);
+void add_or_RemoveCharToATeam(int team, int charID, BOOL add);
 
 void fn_2_1A88(void);
 void *fn_8001CB10(void *arg0, int arg1);
@@ -101,59 +103,42 @@ void fn_800B806C(int arg0, float arg1, float arg2, float arg3, float arg4, float
 
 const s32 lbl_2_rodata_500 = -1;
 
-u32 lbl_2_data_19E8[0x2C4 / 4] = {
-    0x42415420, 0x46495253, 0x54000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x42415420, 0x4C415354, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x464C0000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x50430000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x52520000, 0x524C0000, 0x4C520000, 0x4C4C0000,
-    0x4F464600, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x4F4E0000, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x53454C45, 0x43542044, 0x45425547, 0x204D454E,
-    0x55000000, 0x00000000, 0x00000000, 0x00000000,
-    0x48494445, 0x20434841, 0x52412053, 0x45540000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x53544152, 0x20504C41, 0x59455220, 0x53455400,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x4B4F4F50, 0x41205354, 0x4120464C, 0x41472053,
-    0x45540000, 0x00000000, 0x00000000, 0x00000000,
-    0x4348414C, 0x4C45204C, 0x4556454C, 0x20465245,
-    0x45205345, 0x54000000, 0x00000000, 0x00000000,
-    0x3150203E, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x434F4D31, 0x3E000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x3250203E, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x434F4D32, 0x3E000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x3350203E, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x434F4D33, 0x3E000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x3450203E, 0x00000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x434F4D34, 0x3E000000, 0x00000000, 0x00000000,
-    0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0x0000FF0F, 0x0000880F, 0x00000FFF, 0x0000088F,
-    0x0000F0FF, 0x0000808F, 0x0000F00F, 0x0000800F,
-    0x00000004, 0x000A0006, 0x00020009, 0x00010005,
-    0x000B0011, 0x00030013, 0x00020608, 0x040A0103,
-    0x0705090B, 0x00000602, 0x08040A05, 0x0B030901,
-    0x07000000
+/* Debug-menu text and tables. An identical copy opens the .data of the next
+ * translation unit too (0x1E28), so it most likely comes from a shared header.
+ * Only the strings are understood; the trailing tables are kept as raw values. */
+typedef struct {
+    /* 0x000 */ char batOrder[2][0x20];
+    /* 0x040 */ char fl[0x20];
+    /* 0x060 */ char pc[0x20];
+    /* 0x080 */ char hands[4][4];
+    /* 0x090 */ char offOn[2][0x20];
+    /* 0x0D0 */ char menuItems[5][0x20];
+    /* 0x170 */ char portLabels[8][0x20];
+    /* 0x270 */ u32 colors[8];
+    /* 0x290 */ u16 unk290[12];
+    /* 0x2A8 */ u8 unk2A8[12];
+    /* 0x2B4 */ u8 unk2B4[16];
+} DebugMenuText; // size: 0x2C4
+
+DebugMenuText lbl_2_data_19E8 = {
+    { "BAT FIRST", "BAT LAST" },
+    "FL",
+    "PC",
+    { "RR", "RL", "LR", "LL" },
+    { "OFF", "ON" },
+    { "SELECT DEBUG MENU", "HIDE CHARA SET", "STAR PLAYER SET", "KOOPA STA FLAG SET", "CHALLE LEVEL FREE SET" },
+    { "1P >", "COM1>", "2P >", "COM2>", "3P >", "COM3>", "4P >", "COM4>" },
+    { 0x0000FF0F, 0x0000880F, 0x00000FFF, 0x0000088F, 0x0000F0FF, 0x0000808F, 0x0000F00F, 0x0000800F },
+    { 0, 4, 10, 6, 2, 9, 1, 5, 11, 17, 3, 19 },
+    { 0, 2, 6, 8, 4, 10, 1, 3, 7, 5, 9, 11 },
+    { 0, 0, 6, 2, 8, 4, 10, 5, 11, 3, 9, 1, 7, 0, 0, 0 },
 };
 
 u8 lbl_2_data_1CAC[0x28] = {
-    0x02, 0x05, 0x04, 0x03, 0x08, 0x03, 0x04, 0x05, 0x02, 0x06, 0x00, 0x01,
-    0x08, 0x06, 0x07, 0x01, 0x02, 0x00, 0x07, 0x04, 0x04, 0x03, 0x01, 0x02,
-    0x05, 0x01, 0x02, 0x04, 0x06, 0x08, 0x07, 0x06, 0x08, 0x05, 0x03, 0x03,
-    0x05, 0x07, 0x04, 0x06
+    2, 5, 4, 3, 8, 3, 4, 5, 2, 6,
+    0, 1, 8, 6, 7, 1, 2, 0, 7, 4,
+    4, 3, 1, 2, 5, 1, 2, 4, 6, 8,
+    7, 6, 8, 5, 3, 3, 5, 7, 4, 6,
 };
 
 u32 MenuCommonTexFiles_captainSelect[0x100 / 4] = {
@@ -307,15 +292,15 @@ void captainSelect_handleInputs(int port) {
     }
 
     if (lbl_2_bss_100B8[0x10 + slot] != 0) {
-        input.currentHeldInput = Static_Stats_Tables.controllerInputs[p].currentHeldInput & 0x200;
-        input.newInput = Static_Stats_Tables.controllerInputs[p].newInput & 0x200;
-        input.processedInput = Static_Stats_Tables.controllerInputs[p].processedInput & 0x200;
+        input.currentHeldInput = Static_Stats_Tables.controllerInputs[p].currentHeldInput & INPUT_BUTTON_B;
+        input.newInput = Static_Stats_Tables.controllerInputs[p].newInput & INPUT_BUTTON_B;
+        input.processedInput = Static_Stats_Tables.controllerInputs[p].processedInput & INPUT_BUTTON_B;
         goto callScreenInputs;
     }
 
     if (lbl_2_bss_F468[0x45 + slot] != 0) {
         u16 newI = Static_Stats_Tables.controllerInputs[p].newInput;
-        if (newI & 0x2) {
+        if (newI & INPUT_BUTTON_RIGHT) {
             if (lbl_2_bss_F468[0x47 + slot] == 0) {
                 lbl_2_bss_F468[0x47 + slot] = 1;
                 lbl_2_bss_F468[0x49 + slot] = 0;
@@ -324,7 +309,7 @@ void captainSelect_handleInputs(int port) {
             input.currentHeldInput = 0;
             input.newInput = 0;
             input.processedInput = 0;
-        } else if (newI & 0x1) {
+        } else if (newI & INPUT_BUTTON_LEFT) {
             if (lbl_2_bss_F468[0x47 + slot] == 1) {
                 lbl_2_bss_F468[0x47 + slot] = 0;
                 lbl_2_bss_F468[0x49 + slot] = 0;
@@ -334,7 +319,7 @@ void captainSelect_handleInputs(int port) {
             input.newInput = 0;
             input.processedInput = 0;
         } else {
-            if (newI != 0 && !(newI & 8) && !(newI & 4)) {
+            if (newI != 0 && !(newI & INPUT_BUTTON_UP) && !(newI & INPUT_BUTTON_DOWN)) {
                 lbl_2_bss_F468[0x45 + slot] = 0;
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             }
@@ -366,10 +351,10 @@ commonTail:
     }
 
     if (menuControlVariables->previousScreen == 0xA &&
-        Static_Stats_Tables.captainSelectedID[(u8)port] != -1 &&
+        Static_Stats_Tables.captainSelectedID[(u8)port] != CHAR_ID_NONE &&
         g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
         int i;
-        add_or_RemoveCharToATeam(0, mapCaptainCursorPositionToCharID[menuCursors[4]], 1);
+        add_or_RemoveCharToATeam(0, mapCaptainCursorPositionToCharID[menuCursors[4]], TRUE);
         for (i = 0; i < 2; i++) {
             s8 cIdx = Static_Stats_Tables.playerNumberByPort[i];
             switch (cIdx) {
@@ -418,24 +403,24 @@ commonTail:
         }
     }
 
-    if ((input.processedInput & 0xF) == 0 || (input.processedInput & 0x20) != 0) {
+    if ((input.processedInput & DPAD_MASK) == 0 || (input.processedInput & INPUT_TRIGGER_R) != 0) {
     callScreenInputs:
         captainSelectScreenInputs((u8)port, input.currentHeldInput, input.newInput, input.processedInput);
         return;
     }
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        if (input.processedInput & 0x3) {
+        if (input.processedInput & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
             challengeCaptainRelated();
             updateCharacterSelectProcessCode(0, 3);
             lbl_803CBBC4[0] = 3;
         }
         return;
     }
-    if (input.newInput & 0x1000) {
+    if (input.newInput & INPUT_BUTTON_START) {
         return;
     }
-    if (input.processedInput & 0xF) {
+    if (input.processedInput & DPAD_MASK) {
         updateCharacterSelectProcessCode(slot, 3);
     }
 }
@@ -532,12 +517,12 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
 // .text:0x00015A90 size:0x6C mapped:0x80654B24
 void fn_2_15A90(int *value, u8 port, int max) {
     u16 input = Static_Stats_Tables.controllerInputs[port].processedInput;
-    if (input & 1) {
+    if (input & INPUT_BUTTON_LEFT) {
         (*value)--;
         if (*value < 0) {
             *value = max;
         }
-    } else if (input & 2) {
+    } else if (input & INPUT_BUTTON_RIGHT) {
         (*value)++;
         if (*value > max) {
             *value = 0;
@@ -592,17 +577,17 @@ void captainSelect_APress(int idx) {
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && (u8)idx != 0) {
         if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
-            add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[c], 1);
+            add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[c], TRUE);
         } else {
-            add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[c], 1);
+            add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[c], TRUE);
         }
     } else {
-        add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], 1);
+        add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], TRUE);
     }
 
     lbl_2_bss_100B8[0x10 + c] = 1;
     lbl_2_bss_100B8[0x12 + c] = 1;
-    Static_Stats_Tables.charOnCharacterGridSelected[mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]]] = 1;
+    Static_Stats_Tables.charOnCharacterGridSelected[mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]]] = TRUE;
 
     if ((u8)idx != 0) {
         return;
@@ -673,8 +658,8 @@ void captainSelect_BPress(int idx) {
     if (lbl_2_bss_100B8[0x10 + c] != 0) {
         lbl_2_bss_100B8[0x10 + c] = 0;
         lbl_2_bss_100B8[0x12 + c] = 0;
-        Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[c]] = 0;
-        add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.captainSelectedID[c], 0);
+        Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[c]] = FALSE;
+        add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.captainSelectedID[c], FALSE);
         goto exit;
     }
 
@@ -688,13 +673,13 @@ void captainSelect_BPress(int idx) {
 
             fn_2_16A74((u8)idx, 0);
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[0]]] = -1;
-            Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = 0;
+            Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = FALSE;
             lbl_2_bss_100B8[0x10] = 0;
             lbl_2_bss_100B8[0x12] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
-            add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], 0);
-            Static_Stats_Tables.captainSelectedID[0] = -1;
-            Static_Stats_Tables.captainSelectedID[1] = -1;
+            add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], FALSE);
+            Static_Stats_Tables.captainSelectedID[0] = CHAR_ID_NONE;
+            Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
             updateCharacterSelectProcessCode(0, 4);
 
             other = (u8)idx ^ 1;
@@ -716,10 +701,10 @@ void captainSelect_BPress(int idx) {
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[c]]] = -1;
 
             if (menuControlVariables->previousScreen == 0xa && v10 == 0) {
-                Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = 0;
-                add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], 0);
-                Static_Stats_Tables.captainSelectedID[0] = -1;
-                Static_Stats_Tables.captainSelectedID[1] = -1;
+                Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = FALSE;
+                add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], FALSE);
+                Static_Stats_Tables.captainSelectedID[0] = CHAR_ID_NONE;
+                Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
             }
 
             lbl_2_bss_100B8[0x10 + c] = 0;
@@ -773,7 +758,7 @@ exit:
         AnimateCharacter((u8)idx, 0x69, 1, 1, 1, 0, 0, -1);
         lbl_2_bss_100B8[0x40 + c] = 1;
     }
-    cursorSndFx(0x200);
+    cursorSndFx(INPUT_BUTTON_B);
 }
 
 // .text:0x00015104 size:0xB8 mapped:0x80654198
@@ -935,9 +920,9 @@ void checkForNewPlayer(void) {
     if (lbl_2_bss_100B8[0x11] != 0) {
         lbl_2_bss_100B8[0x11] = 0;
         lbl_2_bss_100B8[0x13] = 0;
-        add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[1], 0);
-        Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[1]] = 0;
-        Static_Stats_Tables.captainSelectedID[1] = -1;
+        add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[1], FALSE);
+        Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[1]] = FALSE;
+        Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
     }
 
     Static_Stats_Tables.portsActiveInMatch[newPlayerPort] = 0;
