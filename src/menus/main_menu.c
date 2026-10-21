@@ -82,18 +82,18 @@ void loadDemoMatch(u8 mode, int a, int b) {
         }
         /* fallthrough */
     case 0xA:
-        flags = &((u8 *)&Static_Stats_Tables)[0x4757];
-        memset(flags, 0, 0x36);
-        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E0]] = 1;
-        flags[*(int *)&((u8 *)&Static_Stats_Tables)[0x46E4]] = 1;
+        flags = Static_Stats_Tables.charOnCharacterGridSelected;
+        memset(flags, 0, sizeof(Static_Stats_Tables.charOnCharacterGridSelected));
+        flags[Static_Stats_Tables.captainSelectedID[0]] = TRUE;
+        flags[Static_Stats_Tables.captainSelectedID[1]] = TRUE;
 
         for (i = 0; i < 6; i++) {
             v = (g_d_GameSettings.characterUnlocked[i] == 0);
             want = unlockableCharacter_noDupeNoGapCharID[i];
 
-            for (j = 0; j < 54; j++) {
+            for (j = 0; j < NUM_CHOOSABLE_CHARACTERS; j++) {
                 if (want == characterStaticIndexes[j].requirementRow) {
-                    ((u8 *)&Static_Stats_Tables)[j + 0x4757] = v;
+                    Static_Stats_Tables.charOnCharacterGridSelected[j] = v;
                 }
             }
 
