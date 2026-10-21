@@ -668,7 +668,7 @@ void captainSelect_APress(int idx) {
 
 // .text:0x000151BC size:0x450 mapped:0x80654250
 void captainSelect_BPress(int idx) {
-    u8 c = idx;
+    int c = (u8)idx;
 
     if (lbl_2_bss_100B8[0x10 + c] != 0) {
         lbl_2_bss_100B8[0x10 + c] = 0;
@@ -678,7 +678,7 @@ void captainSelect_BPress(int idx) {
         goto exit;
     }
 
-    if (c != 0) {
+    if ((u8)idx != 0) {
         if (aiPosSwapInputs.unkCF5D[c] != 0) {
             aiPosSwapInputs.unkCF5D[c] = 0;
         }
