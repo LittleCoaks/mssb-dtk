@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "menus/text_7E380.h"
 #include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x80034e20.h"

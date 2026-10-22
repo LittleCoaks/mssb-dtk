@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "menus/text_76874.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80062674.h"
@@ -34,10 +35,6 @@ static inline s32 firstRosterSlot(s32 port, s32 position) {
     return i;
 }
 
-static UIRecord *sceneRecord(MenuScene *scene, s32 index) {
-    return (UIRecord *)graphicsRelatedArray[scene->firstHandle + index].object;
-}
-
 static inline UIRecord *channelSceneRecord(MenuScene *scene, s32 port, s32 index) {
     s32 handle = scene->firstHandle;
     handle += port;
@@ -50,21 +47,6 @@ static inline UIRecord *rosterSceneRecord(MenuScene *scene, s32 port, s32 positi
     handle += port * PLAYERS_PER_TEAM;
     handle += index;
     return (UIRecord *)graphicsRelatedArray[handle].object;
-}
-
-static inline s32 statsPanelCharacter(u8 port) {
-    s32 slot;
-    if (menuControlVariables->currentScreen == 9) {
-        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            return mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
-        }
-        return challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[port + 4]];
-    }
-    if (lbl_2_bss_F468[port + 0x41] == 0) {
-        slot = firstRosterSlot(port, ((s32 *)lbl_2_bss_F468)[port]);
-        return cursorPositions.roster.rosterCharID[port][slot];
-    }
-    return menuCursors[port + 8];
 }
 
 static inline s8 captainRosterPosition(s32 port) {
@@ -88,65 +70,61 @@ void cssAction_0x1b(MenuScene *scene, int port) {
     s32 count;
     s32 expected;
     E(s8, CHAR_ID) rosterChar;
-    BOOL first;
+    u8 first;
     BOOL second;
-    u8 *flag;
-    BOOL flagClear;
 
-    cursor = (s8)lbl_2_bss_F468[port + 0x61];
+    cursor = lbl_2_bss_F468[port + 0x61];
     word = (s8)*(s32 *)&lbl_2_bss_F468[port * 4];
-    if (cursor != CHAR_ID_NONE) {
-        for (k = 0; k < 9; k++) {
-            if ((s8)cursorPositions.roster.positionSwapMapping[port][k] == cursor) {
+    if ((s8)cursor != CHAR_ID_NONE) {
+        for (k = 0; k < PLAYERS_PER_TEAM; k++) {
+            if ((s8)cursorPositions.roster.positionSwapMapping[port][k] == (s8)cursor) {
                 slot = k;
             }
         }
     }
 
-    flag = gameSetUpStep + port;
 
-    flagClear = flag[0xD] == 0;
-    if (flagClear) {
-        sceneRecord(scene, port + 0xA)->frame = 0xF0000;
-        sceneRecord(scene, port + 0xA)->playMode = UI_PLAY_BACKWARD;
-        sceneRecord(scene, port + 0x1E)->playMode = UI_PLAY_BACKWARD;
-        sceneRecord(scene, port + 0x93)->elementIndex = 9;
-        sceneRecord(scene, port + 0x89)->frame = 0;
-        sceneRecord(scene, port + 0x89)->playMode = UI_PLAY_FORWARD;
-        sceneRecord(scene, port + 0x8D)->frame = 0x140000;
-        sceneRecord(scene, port + 0x8D)->playMode = UI_PLAY_BACKWARD;
-        sceneRecord(scene, port + 0x6A)->playMode = UI_PLAY_FORWARD;
+    if (stepIsClear(gameSetUpStep[port + 0xD])) {
+        channelSceneRecord(scene, port, 0xA)->frame = 0xF0000;
+        channelSceneRecord(scene, port, 0xA)->playMode = UI_PLAY_BACKWARD;
+        channelSceneRecord(scene, port, 0x1E)->playMode = UI_PLAY_BACKWARD;
+        channelSceneRecord(scene, port, 0x93)->elementIndex = 9;
+        channelSceneRecord(scene, port, 0x89)->frame = 0;
+        channelSceneRecord(scene, port, 0x89)->playMode = UI_PLAY_FORWARD;
+        channelSceneRecord(scene, port, 0x8D)->frame = 0x140000;
+        channelSceneRecord(scene, port, 0x8D)->playMode = UI_PLAY_BACKWARD;
+        channelSceneRecord(scene, port, 0x6A)->playMode = UI_PLAY_FORWARD;
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            sceneRecord(scene, port + 0x8F)->elementIndex = 7;
+            channelSceneRecord(scene, port, 0x8F)->elementIndex = 7;
         }
-        if (cursor != CHAR_ID_NONE && cursor != word) {
-            sceneRecord(scene, cursor + port * 9 + 0x46)->playMode = UI_PLAY_BACKWARD;
-            rosterChar = cursorPositions.roster.rosterCharID[port][slot];
+        if ((s8)cursor != CHAR_ID_NONE && (s8)cursor != word) {
+            rosterSceneRecord(scene, port, (s8)cursor, 0x46)->playMode = UI_PLAY_BACKWARD;
+            rosterChar = cursorPositions.roster.rosterCharID[port][(s8)slot];
             if (rosterChar != CHAR_ID_NONE && rosterChar != NUM_CHOOSABLE_CHARACTERS) {
-                sceneRecord(scene, cursor + port * 9 + 0x34)->frame = 0xA0000;
-                sceneRecord(scene, cursor + port * 9 + 0x34)->playMode = UI_PLAY_FORWARD;
+                rosterSceneRecord(scene, port, (s8)cursor, 0x34)->frame = 0xA0000;
+                rosterSceneRecord(scene, port, (s8)cursor, 0x34)->playMode = UI_PLAY_FORWARD;
             }
         }
         makeCursorUnmovable(port);
-        flag[0xD] = 1;
+        gameSetUpStep[port + 0xD] = 1;
     }
 
-    if (flag[0xD] == 1) {
+    if (gameSetUpStep[port + 0xD] == 1) {
         expected = 2;
         first = maybeCheckAndResetGrapicsElement(scene, port + 0x89, 5) != 0;
         second = maybeCheckAndResetGrapicsElement(scene, port + 0x6A, 0xA) != 0;
         count = first + second;
-        if (cursor != CHAR_ID_NONE && lbl_2_bss_F468[0x56] == 0 && cursor != word) {
-            rosterChar = cursorPositions.roster.rosterCharID[port][slot];
+        if ((s8)cursor != CHAR_ID_NONE && lbl_2_bss_F468[0x56] == 0 && (s8)cursor != word) {
+            rosterChar = cursorPositions.roster.rosterCharID[port][(s8)slot];
             if (rosterChar != CHAR_ID_NONE && rosterChar != NUM_CHOOSABLE_CHARACTERS) {
                 expected = 3;
-                count += maybeCheckAndResetGrapicsElement(scene, cursor + port * 9 + 0x34, 0x14) != 0;
+                count += maybeCheckAndResetGrapicsElement(scene, (s8)cursor + port * PLAYERS_PER_TEAM + 0x34, 0x14) != 0;
             }
         }
         if (count == expected) {
             lbl_2_bss_F468[port + 0x61] = 0xFF;
             makeCursorMovable(port);
-            flag[0xD] = 2;
+            gameSetUpStep[port + 0xD] = 2;
             if (lbl_2_bss_F468[port + 0x65] != 0) {
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                     updateCharacterSelectProcessCode(0, 0x13);
@@ -203,7 +181,7 @@ void cssAction_0x1c(MenuScene *scene, int port) {
             character = cursorPositions.roster.rosterCharID[port][slot];
             if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS && (s8)cursor != CHAR_ID_NONE) {
                 expected = 1;
-                ready = maybeCheckAndResetGrapicsElement(scene, (s8)cursor + port * 9 + 0x34, 10) != 0;
+                ready = maybeCheckAndResetGrapicsElement(scene, (s8)cursor + port * PLAYERS_PER_TEAM + 0x34, 10) != 0;
             }
             if (ready == expected) {
                 lbl_2_bss_F468[port + 0x5F] = 1;
@@ -258,7 +236,7 @@ void cssAction_0x1c(MenuScene *scene, int port) {
             character = cursorPositions.roster.rosterCharID[port][slot];
             if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS && (s8)cursor != CHAR_ID_NONE && (s8)cursor != selected) {
                 expected = 1;
-                ready = maybeCheckAndResetGrapicsElement(scene, (s8)cursor + port * 9 + 0x34, 20) != 0;
+                ready = maybeCheckAndResetGrapicsElement(scene, (s8)cursor + port * PLAYERS_PER_TEAM + 0x34, 20) != 0;
             }
             if (ready == expected) {
                 lbl_2_bss_F468[port + 0x5F] = 0;
@@ -279,25 +257,25 @@ void cssAction_0x1d(MenuScene *scene, int port) {
     s32 done;
     E(s8, CHAR_ID) rosterChar;
 
-    cursor = (s8)lbl_2_bss_F468[port + 0x61];
-    for (k = 0; k < 9; k++) {
-        if ((s8)cursorPositions.roster.positionSwapMapping[port][k] == cursor) {
+    cursor = lbl_2_bss_F468[port + 0x61];
+    for (k = 0; k < PLAYERS_PER_TEAM; k++) {
+        if ((s8)cursorPositions.roster.positionSwapMapping[port][k] == (s8)cursor) {
             slot = k;
         }
     }
 
     if (stepIsClear(gameSetUpStep[port + 0xD])) {
-        if (cursor != *(s32 *)&lbl_2_bss_F468[port * 4]) {
-            sceneRecord(scene, cursor + port * 9 + 0x46)->playMode = UI_PLAY_BACKWARD;
-            rosterChar = cursorPositions.roster.rosterCharID[port][slot];
+        if ((s8)cursor != *(s32 *)&lbl_2_bss_F468[port * 4]) {
+            rosterSceneRecord(scene, port, (s8)cursor, 0x46)->playMode = UI_PLAY_BACKWARD;
+            rosterChar = cursorPositions.roster.rosterCharID[port][(s8)slot];
             if (rosterChar != CHAR_ID_NONE && rosterChar != NUM_CHOOSABLE_CHARACTERS) {
-                sceneRecord(scene, cursor + port * 9 + 0x34)->playMode = UI_PLAY_FORWARD;
+                rosterSceneRecord(scene, port, (s8)cursor, 0x34)->playMode = UI_PLAY_FORWARD;
             }
         }
         if (lbl_2_bss_F468[port + 0x37] != 0) {
-            sceneRecord(scene, port + 0x93)->elementIndex = 9;
-            sceneRecord(scene, port + 0x93)->frame = 0xA0000;
-            sceneRecord(scene, port + 0x93)->playMode = UI_PLAY_STOP;
+            channelSceneRecord(scene, port, 0x93)->elementIndex = 9;
+            channelSceneRecord(scene, port, 0x93)->frame = 0xA0000;
+            channelSceneRecord(scene, port, 0x93)->playMode = UI_PLAY_STOP;
         }
         makeCursorUnmovable(port);
         gameSetUpStep[port + 0xD] = 1;
@@ -306,11 +284,11 @@ void cssAction_0x1d(MenuScene *scene, int port) {
     if (gameSetUpStep[port + 0xD] == 1) {
         wasChecked = 0;
         done = 0;
-        if (cursor != *(s32 *)&lbl_2_bss_F468[port * 4]) {
-            rosterChar = cursorPositions.roster.rosterCharID[port][slot];
+        if ((s8)cursor != *(s32 *)&lbl_2_bss_F468[port * 4]) {
+            rosterChar = cursorPositions.roster.rosterCharID[port][(s8)slot];
             if (rosterChar != CHAR_ID_NONE && rosterChar != NUM_CHOOSABLE_CHARACTERS) {
                 wasChecked = 1;
-                done = maybeCheckAndResetGrapicsElement(scene, cursor + port * 9 + 0x34, 0x14) != 0;
+                done = maybeCheckAndResetGrapicsElement(scene, (s8)cursor + port * PLAYERS_PER_TEAM + 0x34, 0x14) != 0;
             }
         }
         if (done == wasChecked) {
@@ -399,7 +377,7 @@ void removeAllPlayersFromTeam(MenuScene *scene, int controller) {
     }
     if (lbl_2_bss_F468[port + 0x54] != 0) {
         captainPosition = captainRosterPosition(port);
-        ready = maybeCheckAndResetGrapicsElement(scene, captainPosition + port * 9 + 0x34, 20) != 0;
+        ready = maybeCheckAndResetGrapicsElement(scene, captainPosition + port * PLAYERS_PER_TEAM + 0x34, 20) != 0;
         if (ready == 1) {
             lbl_2_bss_F468[port + 0x54] = 0;
             lbl_2_bss_F468[port + 0x52] = 0;
@@ -447,15 +425,26 @@ void fn_2_76DF0(MenuScene *scene, u8 port) {
     u32 abilities;
     u8 pushPull;
     u8 highLow;
-    u8 stance;
+    E(u8, BATTING_HAND) stance;
     StatTable *stats;
 
     if (lbl_2_bss_F468[port + 0x49] == 0) {
-        character = statsPanelCharacter(port);
-        if (menuControlVariables->currentScreen != 9) {
-            if (lbl_2_bss_F468[port + 0x41] != 0 && character == CHAR_ID_NONE) {
-                lbl_2_bss_F468[port + 0x49] = 0;
-                return;
+        if (menuControlVariables->currentScreen == 9) {
+            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
+                character = mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
+            } else {
+                character = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[port + 4]];
+            }
+        } else {
+            if (lbl_2_bss_F468[port + 0x41] == 0) {
+                s32 slot = firstRosterSlot(port, ((s32 *)lbl_2_bss_F468)[port]);
+                character = cursorPositions.roster.rosterCharID[(s32)port][slot];
+            } else {
+                character = menuCursors[port + 8];
+                if (character == CHAR_ID_NONE) {
+                    lbl_2_bss_F468[port + 0x49] = 0;
+                    return;
+                }
             }
             lbl_2_bss_F468[port + 0x4D] = character;
         }
@@ -489,7 +478,7 @@ void fn_2_76DF0(MenuScene *scene, u8 port) {
             channelSceneRecord(scene, port, 0xBE)->playMode = UI_PLAY_STOP;
             break;
         case 1:
-            if (stance == 0) {
+            if (stance == BATTING_HAND_RIGHT) {
                 channelSceneRecord(scene, port, 0xBA)->playMode = UI_PLAY_STOP;
                 channelSceneRecord(scene, port, 0xBC)->playMode = UI_PLAY_FORWARD;
                 channelSceneRecord(scene, port, 0xBE)->playMode = UI_PLAY_STOP;
@@ -500,7 +489,7 @@ void fn_2_76DF0(MenuScene *scene, u8 port) {
             }
             break;
         case 2:
-            if (stance == 0) {
+            if (stance == BATTING_HAND_RIGHT) {
                 channelSceneRecord(scene, port, 0xBA)->playMode = UI_PLAY_STOP;
                 channelSceneRecord(scene, port, 0xBC)->playMode = UI_PLAY_STOP;
                 channelSceneRecord(scene, port, 0xBE)->playMode = UI_PLAY_FORWARD;
@@ -554,35 +543,50 @@ void fn_2_76874(MenuScene *scene, u8 port) {
     u8 swingIcon;
     u8 pitchIcon;
     s32 starIndex;
-    StatTable *stats;
+    s8 group;
+    s8 member;
 
     if (lbl_2_bss_F468[port + 0x49] == 0) {
         channelSceneRecord(scene, port, 0xE0)->flags &= ~UI_FLAG_VISIBLE;
         channelSceneRecord(scene, port, 0xE0)->playMode = UI_PLAY_STOP;
         channelSceneRecord(scene, port, 0xB6)->playMode = UI_PLAY_BACKWARD;
         channelSceneRecord(scene, port, 0xC6)->playMode = UI_PLAY_BACKWARD;
-        character = statsPanelCharacter(port);
-        if (menuControlVariables->currentScreen != 9 && lbl_2_bss_F468[port + 0x41] != 0 && character == CHAR_ID_NONE) {
-            lbl_2_bss_F468[port + 0x49] = 0;
-            return;
+        if (menuControlVariables->currentScreen == 9) {
+            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
+                character = mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
+            } else {
+                character = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[port + 4]];
+            }
+        } else {
+            if (lbl_2_bss_F468[port + 0x41] == 0) {
+                s32 slot = firstRosterSlot(port, ((s32 *)lbl_2_bss_F468)[port]);
+                character = cursorPositions.roster.rosterCharID[(s32)port][slot];
+            } else {
+                character = menuCursors[port + 8];
+                if (character == CHAR_ID_NONE) {
+                    lbl_2_bss_F468[port + 0x49] = 0;
+                    return;
+                }
+            }
         }
         lbl_2_bss_F468[port + 0x4D] = character;
-        stats = &Static_Stats_Tables.characterStats[(s8)(character / 9)][(s8)(character % 9)].stats;
-        star = stats->CaptainStarHitPitch;
+        group = character / 9;
+        member = character % 9;
+        star = Static_Stats_Tables.characterStats[group][member].stats.CaptainStarHitPitch;
         if (star == 0) {
-            swing = stats->NonCaptainStarSwing + 11;
-            pitch = stats->NonCaptainStarPitch + 11;
+            swing = Static_Stats_Tables.characterStats[group][member].stats.NonCaptainStarSwing + 11;
+            pitch = Static_Stats_Tables.characterStats[group][member].stats.NonCaptainStarPitch + 11;
         } else if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             swing = star - 1;
             pitch = swing;
         } else {
-            starIndex = (s8)translateStarPitchHitIndex(star - 1);
-            if (starIndex != -1 && ((s8 *)&g_Challenge)[0x15F1 + starIndex] == 0 && menuControlVariables->currentScreen == 9) {
-                swing = stats->NonCaptainStarSwing + 11;
-                pitch = stats->NonCaptainStarPitch + 11;
-            } else if (starIndex != -1 && g_Challenge._43C2[starIndex] == 0 && menuControlVariables->currentScreen == 10) {
-                swing = stats->NonCaptainStarSwing + 11;
-                pitch = stats->NonCaptainStarPitch + 11;
+            starIndex = translateStarPitchHitIndex(star - 1);
+            if ((s8)starIndex != -1 && ((s8 *)&g_Challenge)[0x15F1 + (s8)starIndex] == 0 && menuControlVariables->currentScreen == 9) {
+                swing = Static_Stats_Tables.characterStats[group][member].stats.NonCaptainStarSwing + 11;
+                pitch = Static_Stats_Tables.characterStats[group][member].stats.NonCaptainStarPitch + 11;
+            } else if ((s8)starIndex != -1 && g_Challenge._43C2[(s8)starIndex] == 0 && menuControlVariables->currentScreen == 10) {
+                swing = Static_Stats_Tables.characterStats[group][member].stats.NonCaptainStarSwing + 11;
+                pitch = Static_Stats_Tables.characterStats[group][member].stats.NonCaptainStarPitch + 11;
             } else {
                 swing = star - 1;
                 pitch = star - 1;

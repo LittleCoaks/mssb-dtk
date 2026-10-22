@@ -4304,3 +4304,37 @@ Full ninja build passed, including all four output hash checks. Project exact
 functions: local 4142, pure origin 3897, merged 4182 of 6479 (41.72% code bytes).
 Pre-existing untracked docs/menus_second_pass.md and text_50898_reference.d are
 preserved and excluded from the commits. No emulator test was performed.
+
+### Post-merge Sol checkpoint: character-selection callbacks (2026-10-21)
+
+Three isolated Sol passes were integrated serially. All 28 function baselines
+across these units were checked, with no regressions; fn_2_79634 is newly exact
+and passed readability review plus a fresh diff. All four remaining text_78F78
+stubs are implemented.
+
+| Unit | Before .text | After .text | Exact functions |
+|---|---:|---:|---:|
+| text_76874 | 86.07089% | 90.16981% | 1 -> 1 |
+| text_78F78 | 36.93814% | 95.11759% | 0 -> 1 |
+| text_7BFF8 | 81.65215% | 90.10027% | 0 -> 0 |
+
+- Staged record/handle additions and value-form state predicates reproduce the
+  original inline boundaries; delayed signed casts avoid premature narrowing.
+  Natural int induction variables with signed-long roster bounds recover
+  compiler unrolling without manually grouping source iterations.
+- fn_2_7D85C now checks the current-selection animation at frame 10 rather than
+  20 (target0x7DA38), and reloads the selection before saving it after callbacks
+  (0x7DA60/0x7DA68). The optional threshold4 before the additional completion
+  call in fn_2_7E194 was audited at0x7E33C. Logic corrections are retained even
+  where the numerical match score ties.
+- cssAction_case9 uses native int for its slot argument; its header agrees and
+  has no other source include dependents. This preserves the target's native
+  integer value numbering; representation and width remain 32-bit signed.
+- SQRT2_LINKAGE is static in these units and text_7E380, removing unrelated
+  header-generated constant blocks. All target scores are unchanged by this
+  cleanup; text_7E380 retains98.257774% and its five exact functions.
+
+Evidence: build/_postmerge_wave1_<unit>_{baseline,final}.json and per-unit
+checkpoints. Full build, all four output hashes, and whitespace checks pass.
+No emulator playtest was performed. Ongoing private research for text_4D960,
+rep_0AB0 and rep_08E8 is checkpointed separately and is excluded until verified.
