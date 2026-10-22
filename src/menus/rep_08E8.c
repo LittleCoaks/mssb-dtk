@@ -1,4 +1,9 @@
+#define SQRT2_LINKAGE static
 #include "menus/rep_08E8.h"
+#include "text/text.h"
+#include "Dolphin/pad.h"
+#include "Dolphin/OS/OSUtil.h"
+#include "game/math/game_math.h"
 #include "header_rep_data.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/GX/GXTransform.h"
@@ -24,7 +29,6 @@ extern u32 *lbl_2_data_13374;
 extern u8 g_d_GameSettings[];
 extern s32 lbl_2_data_38B8;
 extern u8 *lbl_2_bss_340140;
-extern u8 screenTextArray[];
 extern u8 StatsScreenScores[];
 extern u8 AtBat_ButtonInput1[];
 extern u8 lbl_800EFBA4[];
@@ -37,6 +41,7 @@ extern u8 lbl_2_data_132EC[];
 extern u8 lbl_2_data_132F8[];
 extern f32 lbl_2_bss_55B8;
 extern f32 lbl_2_bss_55BC;
+extern f32 lbl_2_rodata_948;
 extern f32 lbl_2_rodata_94C;
 extern f32 lbl_2_rodata_9A0;
 extern f32 lbl_2_rodata_9A4;
@@ -68,7 +73,7 @@ s32 fn_80062890(s32 arg);
 extern u8 lbl_2_bss_55C0;
 extern u8 *currentDrawingItem;
 extern u32 memoryUsedOrStorage[];
-s32 fn_80016710(s32 arg);
+s32 fn_80016710(s32 character, s32 item);
 void fn_2_93C64(void);
 void removeCurrentDrawingItem(void);
 extern u8 BatterStats_P1_P2[];
@@ -95,6 +100,12 @@ void fn_800BDA24(void *obj);
 void *returnFloatFromModeIndex(s32 mode);
 s32 returnScissorMode(void);
 s32 fn_800B3C04(s32 arg, void *root, Mtx m);
+
+static inline u32 allocationEntrySize(s32 offset) {
+    u8 *entry = lbl_2_data_12EC0;
+    entry += offset;
+    return *(u32 *)(entry + 4) & 0x0FFFFFFF;
+}
 
 static inline void addStatCounter(s32 delta) {
     *(s16 *)(lbl_2_bss_1A8248 + 0x43BE) = *(s16 *)(lbl_2_bss_1A8248 + 0x43BC);
@@ -252,61 +263,90 @@ void fn_2_4AB1C(void) {
     challenge_leftoverTeammatesJoinBowserJr();
 }
 
-static inline void setTimingPair(u8 *b, s16 v766, s16 v768, s16 v76A, s16 v76C) {
-    *(s16 *)(b + 0x7766) = v766;
-    *(s16 *)(b + 0x7768) = v768;
-    *(s16 *)(b + 0x776A) = v76A;
-    *(s16 *)(b + 0x776C) = v76C;
-}
+#define TIMING_FIELD(offset) (*(s16 *)(lbl_2_bss_1A824C + 0x190000 + (offset)))
 
 // .text:0x0004A6E8 size:0x434 mapped:0x8068977C
 void fn_2_4A6E8(void) {
-    u8 *b;
-    s32 mode;
-    s32 kind;
-    s32 arg;
+    s32 kind = *(s16 *)(lbl_2_bss_1A823C + 0x30);
 
-    kind = *(s16 *)(lbl_2_bss_1A823C + 0x30);
-    b = lbl_2_bss_1A824C + 0x190000;
-    mode = (s8)b[0x7843];
     if (kind == 3) {
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x776E), *(s16 *)(b + 0x7772), 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x7770), *(s16 *)(b + 0x7774), 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x776E);
+            TIMING_FIELD(0x7768) = TIMING_FIELD(0x7772);
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7770);
+            TIMING_FIELD(0x7768) = TIMING_FIELD(0x7774);
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         }
     } else if (kind == 5) {
-        arg = (mode == 0) ? 14 : 15;
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x777C), *(s16 *)(b + 0x777E), 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x7782), 10000, 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x777C);
+            TIMING_FIELD(0x7768) = TIMING_FIELD(0x777E);
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(14);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7782);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         }
-        *(s32 *)(b + 0x76A8) = fn_80062890(arg);
     } else if (kind == 4) {
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x7778), 10000, 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x777A), 10000, 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7778);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x777A);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         }
     } else {
-        arg = (mode == 0) ? 14 : 15;
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x7792), 10000, 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x7794), 10000, 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7792);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(14);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7794);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         }
-        *(s32 *)(b + 0x76A8) = fn_80062890(arg);
     }
 }
+
+#undef TIMING_FIELD
 
 // .text:0x0004A340 size:0x3A8 mapped:0x806893D4
 void fn_2_4A340(void) {
@@ -434,9 +474,9 @@ void fn_2_4A340(void) {
 s16 fn_2_4A310(s16 a, s16 b) {
     s32 d = a - b;
     s32 sign = d >> 31;
-    s16 diff = (d ^ sign) - sign;
-    if (diff > 0x800) {
-        diff = 0x1000 - diff;
+    s16 diff = (sign ^ d) - sign;
+    if (diff > SANG_ANG_180) {
+        diff = SANG_ANG_360 - diff;
     }
     return diff;
 }
@@ -452,16 +492,16 @@ s32 fn_2_4A2C4(f32 angle) {
 
 // .text:0x0004A234 size:0x90 mapped:0x806892C8
 s16 fn_2_4A234(f32 x, f32 y) {
-    s32 angle;
+    s16 angle;
     if (x == 0.0f) {
         if (y >= 0.0f) {
-            return 0x400;
+            return SANG_ANG_90;
         }
-        return 0xC00;
+        return SANG_ANG_270;
     }
     angle = (s32)(2048.0f * (f32)atan2(y, x) / 3.1415927f);
     if (angle < 0) {
-        angle += 0x1000;
+        angle += SANG_ANG_360;
     }
     return angle;
 }
@@ -477,14 +517,14 @@ f32 fn_2_4A1E8(f32 x, f32 y) {
 // .text:0x0004A18C size:0x5C mapped:0x80689220
 f32 fn_2_4A18C(f32 angle) {
     if (angle >= 3.1415927f) {
-        do {
+        while (angle >= 3.1415927f) {
             angle -= 6.2831855f;
-        } while (angle >= 3.1415927f);
+        }
     }
     if (angle < -3.1415927f) {
-        do {
-            angle += 6.2831855f;
-        } while (angle < -3.1415927f);
+        while (angle < -3.1415927f) {
+            angle = 6.2831855f + angle;
+        }
     }
     return angle;
 }
@@ -492,45 +532,49 @@ f32 fn_2_4A18C(f32 angle) {
 // .text:0x0004A150 size:0x3C mapped:0x806891E4
 s16 fn_2_4A150(s16 angle) {
     if (angle < 0) {
-        do {
-            angle += 0x1000;
-        } while (angle < 0);
+        while (angle < 0) {
+            angle += SANG_ANG_360;
+        }
     }
-    while (angle >= 0x1000) {
-        angle -= 0x1000;
+    if (angle >= SANG_ANG_360) {
+        while (angle >= SANG_ANG_360) {
+            angle -= SANG_ANG_360;
+        }
     }
     return angle;
 }
 
 // .text:0x0004A0C4 size:0x8C mapped:0x80689158
-#pragma dont_inline on
 s32 fn_2_4A0C4(u16 *a, u16 *b) {
-    u16 ca = *a;
-    u16 cb;
-    s32 diff;
-    if ((ca & 0xC000) == 0xC000) {
-        return -1;
-    }
-    cb = *b;
-    if ((cb & 0xC000) == 0xC000) {
-        return 1;
-    }
-    if (ca == 0x4000 && cb == 0x4000) {
+    for (;;) {
+        u16 ca = *a;
+        u16 cb;
+        s32 diff;
+        if ((ca & 0xC000) == 0xC000) {
+            return -1;
+        }
+        cb = *b;
+        if ((cb & 0xC000) == 0xC000) {
+            return 1;
+        }
+        if (ca != 0x4000 || cb != 0x4000) {
+            if (ca == 0x4000) {
+                return -1;
+            }
+            if (cb == 0x4000) {
+                return 1;
+            }
+            diff = ca - cb;
+            if (diff != 0) {
+                return diff;
+            }
+            a++;
+            b++;
+            continue;
+        }
         return 0;
     }
-    if (ca == 0x4000) {
-        return -1;
-    }
-    if (cb == 0x4000) {
-        return 1;
-    }
-    diff = ca - cb;
-    if (diff == 0) {
-        return fn_2_4A0C4(a + 1, b + 1);
-    }
-    return diff;
 }
-#pragma dont_inline reset
 
 // .text:0x0004A094 size:0x30 mapped:0x80689128
 u16 *fn_2_4A094(u16 *dst, u16 *src) {
@@ -622,18 +666,168 @@ void fn_2_49DB8(s32 p1, s32 p2, s32 p3, s32 p4, s32 p5, s32 p6, s32 p7, s32 p8, 
     }
 }
 
+typedef struct NumberGlyphBuffer {
+    u8 _00[0xA];
+    u16 space;
+    u16 minus;
+    u16 separator;
+    u16 glyphs[16];
+} NumberGlyphBuffer;
+
+u32 strlen(const char *str);
+
+static inline u16 *insertNumberGlyph(u16 *str, int capacity, u16 glyph, int position) {
+    u16 *end = str;
+    int length;
+    int i;
+
+    while (*end != 0x4000) end++;
+    length = end - str;
+    if (length < position || glyph == 0x4000 || length + 2 > capacity) return NULL;
+    for (i = length; i >= position; i--) str[i + 1] = str[i];
+    str[position] = glyph;
+    return str;
+}
+
 // .text:0x0004917C size:0xC3C mapped:0x80688210
-void fn_2_4917C(void *a, s32 b, s32 c, s32 d, s32 e) {
-    return;
+u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
+    char digits[12];
+    NumberGlyphBuffer *buffer = (NumberGlyphBuffer *)&lbl_2_bss_55B8;
+    u16 *dst;
+    u16 *glyphs = buffer->glyphs;
+    u8 *bank;
+    char *start;
+    s32 working;
+    int i;
+    int digit;
+    s32 count = 0;
+    s32 specialFont;
+    s32 fullWidth;
+
+    if (flags & 0x20) {
+        flags |= 4;
+        width = 3;
+    } else if (flags & 0x40) {
+        flags |= 4;
+        width = 4;
+    } else if (flags & 0x80) {
+        flags |= 4;
+        width = 2;
+    }
+    if (flags & 8) {
+        if (value == 0) {
+            for (i = 0; i < 7; i++) digits[i] = ' ';
+            digits[7] = '0';
+            digits[8] = 0;
+        } else {
+            digits[8] = 0;
+            i = 7;
+            working = value;
+            while (working != 0) {
+                digit = working % 16;
+                if (digit < 10) digits[i] = digit + '0';
+                else digits[i] = digit + 0x57;
+                working /= 16;
+                i--;
+            }
+            for (; i >= 0; i--) digits[i] = ' ';
+        }
+    } else {
+        if (value == 0) {
+            for (i = 0; i < 9; i++) digits[i] = ' ';
+            digits[9] = '0';
+            digits[10] = 0;
+        } else {
+            i = value < -999999999 ? 11 : 10;
+            digits[i] = 0;
+            i--;
+            working = value;
+            if (value < 0) working = -value;
+            while (working != 0) {
+                digits[i] = working % 10 + '0';
+                working /= 10;
+                i--;
+            }
+            if (value < 0) {
+                if (flags & 0xE0) digits[i] = ' ';
+                else digits[i] = '-';
+                i--;
+            }
+            for (; i >= 0; i--) digits[i] = ' ';
+        }
+    }
+    if (!(flags & 6)) width = 0;
+    start = digits + strlen(digits) - width;
+    while (start != digits && start[-1] != ' ') start--;
+
+    if ((flags & 4) && (flags & 1)) {
+        buffer->separator = **(u16 **)(lbl_2_bss_1A824C + 0x19544C);
+    } else if ((flags & 4) && (flags & 0x10)) {
+        buffer->separator = **(u16 **)(lbl_2_bss_1A824C + 0x195464);
+    } else if (flags & 4) {
+        buffer->separator = **(u16 **)(lbl_2_bss_1A824C + 0x195460);
+    } else if (flags & 1) {
+        buffer->separator = 0x4003;
+    } else {
+        buffer->separator = 0x4002;
+    }
+    buffer->space = (flags & 1) + 0x4002;
+    specialFont = flags & 0x10;
+    fullWidth = flags & 1;
+    bank = lbl_2_bss_1A824C + 0x190000;
+    dst = glyphs;
+    while (*start != 0) {
+        if (*start == ' ') {
+            *dst = buffer->separator;
+        } else if (*start == '-') {
+            if (specialFont) *dst = **(u16 **)(bank + 0x545C);
+            else if (fullWidth) *dst = **(u16 **)(bank + 0x5458);
+            else *dst = **(u16 **)(bank + 0x545C);
+        } else if (*start >= '0' && *start <= '9') {
+            if (specialFont) *dst = (*(u16 **)(bank + 0x5464))[*start - '0'];
+            else if (fullWidth) *dst = (*(u16 **)(bank + 0x544C))[*start - '0'];
+            else *dst = (*(u16 **)(bank + 0x5460))[*start - '0'];
+        } else {
+            if (specialFont) *dst = (*(u16 **)(bank + 0x5464))[*start - 0x55];
+            else if (fullWidth) *dst = (*(u16 **)(bank + 0x5444))[*start - 'a'];
+            else *dst = (*(u16 **)(bank + 0x5450))[*start - 'a'];
+        }
+        dst++;
+        count++;
+        start++;
+    }
+    glyphs[count] = 0x4000;
+    if (specialFont) buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195464))[10];
+    else if (fullWidth) buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195460))[10];
+    else buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195460))[10];
+    if (specialFont) buffer->minus = **(u16 **)(lbl_2_bss_1A824C + 0x19545C);
+    else if (fullWidth) buffer->minus = **(u16 **)(lbl_2_bss_1A824C + 0x195458);
+    else buffer->minus = **(u16 **)(lbl_2_bss_1A824C + 0x19545C);
+
+    if (flags & 0x20) {
+        insertNumberGlyph(glyphs, 16, buffer->separator, count - 2);
+        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 4);
+    } else if (flags & 0x40) {
+        insertNumberGlyph(glyphs, 16, buffer->separator, count - 3);
+        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 5);
+    } else if (flags & 0x80) {
+        insertNumberGlyph(glyphs, 16, buffer->separator, count - 1);
+        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 3);
+    }
+    if (output != NULL) {
+        dst = output;
+        while (*glyphs != 0x4000) *dst++ = *glyphs++;
+        *dst = *glyphs;
+    }
+    return buffer->glyphs;
 }
 
 // .text:0x0004906C size:0x110 mapped:0x80688100
 void fn_2_4906C(void) {
     s32 i;
-    u8 *bank;
-    for (i = 0; i < 20; i++) {
-        bank = *(u8 **)(screenTextArray + 0x798 + lbl_2_bss_1A824C[0x1972B8] * 4);
-        *(u32 *)(lbl_2_bss_1A824C + 0x19542C + i * 4) = *(u32 *)(bank + 4 + i * 4);
+    for (i = 0; i < 15; i++) {
+        TextBank *bank = screenTextArray.textBanks[lbl_2_bss_1A824C[0x1972B8]];
+        ((u16 **)(lbl_2_bss_1A824C + 0x19542C))[i] = bank->strings[i];
     }
 }
 
@@ -683,12 +877,12 @@ void fn_2_48D54(void) {
 void fn_2_48D08(void) {
     u32 idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
     f32 *p = (f32 *)(hugeAnimStruct + idx * 0x27C + 0xC04);
-    p[13] = 0.0f;
-    p[14] = 0.0f;
-    p[15] = 0.0f;
-    p[16] = 0.0f;
-    p[17] = 0.0f;
-    p[18] = 0.0f;
+    p[13] = lbl_2_rodata_94C;
+    p[14] = lbl_2_rodata_94C;
+    p[15] = lbl_2_rodata_94C;
+    p[16] = lbl_2_rodata_94C;
+    p[17] = lbl_2_rodata_94C;
+    p[18] = lbl_2_rodata_94C;
 }
 
 // .text:0x00048BE0 size:0x128 mapped:0x80687C74
@@ -809,7 +1003,137 @@ void fn_2_487A0(void) {
 
 // .text:0x000481F4 size:0x5AC mapped:0x80687288
 void fn_2_481F4(void) {
-    return;
+    u32 maxSize = 0;
+    u32 aligned;
+    u8 *pool;
+    u8 *next;
+    s32 off = 0;
+    s32 i;
+    s32 j;
+    u32 color0;
+    u32 color1;
+    u32 color2;
+    u32 color3;
+    u8 *entry;
+    u32 idx;
+    u8 *cdi = currentDrawingItem;
+    s32 character = lbl_2_bss_1A8248[0x441D];
+
+    switch (lbl_2_bss_55C0) {
+    case 0:
+        *(u32 *)(lbl_2_bss_1A824C + 0x195424) = memoryUsedOrStorage[1];
+        *(u32 *)(lbl_2_bss_1A824C + 0x195428) = memoryUsedOrStorage[2];
+
+        color0 = lbl_2_rodata_940;
+        color1 = lbl_2_rodata_93C;
+        color2 = lbl_2_rodata_938;
+        color3 = lbl_2_rodata_938;
+        LITAlloc((void **)(hugeAnimStruct + 0xAC));
+        LITAlloc((void **)(hugeAnimStruct + 0xB0));
+        LITAlloc((void **)(hugeAnimStruct + 0xB4));
+        LITAlloc((void **)(hugeAnimStruct + 0xB8));
+
+        LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitPos(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_974, lbl_2_rodata_978, lbl_2_rodata_97C);
+        LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitColor(*(void **)(hugeAnimStruct + 0xAC), (GXColor *)&color0);
+        LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_980, lbl_2_rodata_978, lbl_2_rodata_97C);
+
+        LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitPos(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_980, lbl_2_rodata_984, lbl_2_rodata_988);
+        LITInitDir(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitColor(*(void **)(hugeAnimStruct + 0xB0), (GXColor *)&color1);
+
+        LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitPos(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
+        LITInitDir(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitColor(*(void **)(hugeAnimStruct + 0xB4), (GXColor *)&color2);
+
+        LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitPos(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
+        LITInitDir(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
+        LITInitColor(*(void **)(hugeAnimStruct + 0xB8), (GXColor *)&color3);
+
+        fn_2_93C64();
+        for (i = 0; i < 9; i++) {
+            for (j = 0; j < 6; j++) {
+                u32 size = allocationEntrySize(off);
+                if (maxSize < size) {
+                    maxSize = size;
+                }
+                off += 0x130;
+            }
+        }
+        aligned = OSRoundUp32B(maxSize);
+        pool = _OSAllocFromHeap(0x20, aligned * 4);
+        next = pool + aligned;
+        *(u8 **)(hugeAnimStruct + 0xE88) = next;
+        next += aligned;
+        *(u8 **)(hugeAnimStruct + 0x1104) = next;
+        next += aligned;
+        *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
+        *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
+        *(u8 **)(hugeAnimStruct + 0x1380) = next;
+
+        fn_2_47540();
+        initActorArray(0xD);
+        fn_80014204(4);
+        *(s32 *)(hugeAnimStruct + 0x13C) = fn_80023AA4();
+
+        hugeAnimStruct[0xE59] = 0;
+        *(u32 *)(hugeAnimStruct + 0x2C50) = 0;
+        hugeAnimStruct[0x2D6A] = 0xFF;
+        hugeAnimStruct[0xE5B] = 0xFF;
+        hugeAnimStruct[0x10D5] = 1;
+        *(u32 *)(hugeAnimStruct + 0x2C54) = 0;
+        hugeAnimStruct[0x2D6B] = 0xFF;
+        hugeAnimStruct[0x10D7] = 0xFF;
+        hugeAnimStruct[0x1351] = 2;
+        *(u32 *)(hugeAnimStruct + 0x2C58) = 0;
+        hugeAnimStruct[0x2D6C] = 0xFF;
+        hugeAnimStruct[0x1353] = 0xFF;
+        hugeAnimStruct[0x15CD] = 3;
+        *(u32 *)(hugeAnimStruct + 0x2C5C) = 0;
+        hugeAnimStruct[0x2D6D] = 0xFF;
+        hugeAnimStruct[0x15CF] = 0xFF;
+        hugeAnimStruct[0x2D7F] = 0xFF;
+        hugeAnimStruct[0x2D80] = 0xFF;
+        hugeAnimStruct[0x2D81] = 0xFF;
+        hugeAnimStruct[0x2D82] = 0xFF;
+        hugeAnimStruct[0x2D83] = 0xFF;
+        hugeAnimStruct[0x2D84] = 0xFF;
+        hugeAnimStruct[0x2D85] = 0xFF;
+        hugeAnimStruct[0x2D86] = 0xFF;
+        hugeAnimStruct[0x2D87] = 0xFF;
+        hugeAnimStruct[0x2D77] = 0;
+        hugeAnimStruct[0x2D89] = 0xFF;
+        hugeAnimStruct[0x2D8A] = 0xFF;
+        hugeAnimStruct[0x2D8B] = 0xFF;
+        hugeAnimStruct[0x2D8C] = 0xFF;
+        hugeAnimStruct[0x2D77] = 0;
+        hugeAnimStruct[0x2D7B] = 0;
+        hugeAnimStruct[0x2D7C] = 0;
+        lbl_2_bss_55C0 = 1;
+        break;
+    case 1:
+        if (fn_80016710(character, *(s16 *)(cdi + 0x16)) == 0) {
+            return;
+        }
+        *(s32 *)(lbl_2_bss_1A824C + 0x19769C) = *(s16 *)(cdi + 0x16);
+        lbl_2_bss_55C0 = 0;
+        idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
+        entry = hugeAnimStruct + idx * 0x27C + 0xC04;
+        *(f32 *)(entry + 0x34) = lbl_2_rodata_94C;
+        *(f32 *)(entry + 0x38) = lbl_2_rodata_94C;
+        *(f32 *)(entry + 0x3C) = lbl_2_rodata_94C;
+        *(f32 *)(entry + 0x40) = lbl_2_rodata_94C;
+        *(f32 *)(entry + 0x44) = lbl_2_rodata_94C;
+        *(f32 *)(entry + 0x48) = lbl_2_rodata_94C;
+        hugeAnimStruct[0x2D77] = 0;
+        *(s16 *)(*(u8 **)(currentDrawingItem + 0xC) + 0x10) = 1;
+        removeCurrentDrawingItem();
+        return;
+    }
 }
 
 // .text:0x000481B8 size:0x3C mapped:0x8068724C
@@ -964,25 +1288,24 @@ void fn_2_478F4(void) {
     u32 maxSize = 0;
     u32 aligned;
     u8 *pool;
-    s32 off = 0;
+    u8 *next;
     s32 i;
-    s32 j;
-    for (i = 0; i < 9; i++) {
-        for (j = 0; j < 5; j++) {
-            u32 size = *(u32 *)(lbl_2_data_12EC0 + off + 4) & 0x0FFFFFFF;
-            if (maxSize < size) {
-                maxSize = size;
-            }
-            off += 0x130;
+    for (i = 0; i < 54; i++) {
+        u32 size = allocationEntrySize(i * 0x130);
+        if (maxSize < size) {
+            maxSize = size;
         }
     }
-    aligned = (maxSize + 0x1F) & ~0x1F;
+    aligned = OSRoundUp32B(maxSize);
     pool = _OSAllocFromHeap(0x20, aligned * 4);
-    *(u8 **)(hugeAnimStruct + 0xE88) = pool + aligned;
-    *(u8 **)(hugeAnimStruct + 0x1104) = pool + aligned * 2;
+    next = pool + aligned;
+    *(u8 **)(hugeAnimStruct + 0xE88) = next;
+    next += aligned;
+    *(u8 **)(hugeAnimStruct + 0x1104) = next;
+    next += aligned;
     *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
     *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-    *(u8 **)(hugeAnimStruct + 0x1380) = pool + aligned * 3;
+    *(u8 **)(hugeAnimStruct + 0x1380) = next;
 
     fn_2_47540();
     initActorArray(0xD);
@@ -1028,25 +1351,24 @@ void fn_2_477C0(void) {
     u32 maxSize = 0;
     u32 aligned;
     u8 *pool;
-    s32 off = 0;
+    u8 *next;
     s32 i;
-    s32 j;
-    for (i = 0; i < 9; i++) {
-        for (j = 0; j < 5; j++) {
-            u32 size = *(u32 *)(lbl_2_data_12EC0 + off + 4) & 0x0FFFFFFF;
-            if (maxSize < size) {
-                maxSize = size;
-            }
-            off += 0x130;
+    for (i = 0; i < 54; i++) {
+        u32 size = allocationEntrySize(i * 0x130);
+        if (maxSize < size) {
+            maxSize = size;
         }
     }
-    aligned = (maxSize + 0x1F) & ~0x1F;
+    aligned = OSRoundUp32B(maxSize);
     pool = _OSAllocFromHeap(0x20, aligned * 4);
-    *(u8 **)(hugeAnimStruct + 0xE88) = pool + aligned;
-    *(u8 **)(hugeAnimStruct + 0x1104) = pool + aligned * 2;
+    next = pool + aligned;
+    *(u8 **)(hugeAnimStruct + 0xE88) = next;
+    next += aligned;
+    *(u8 **)(hugeAnimStruct + 0x1104) = next;
+    next += aligned;
     *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
     *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-    *(u8 **)(hugeAnimStruct + 0x1380) = pool + aligned * 3;
+    *(u8 **)(hugeAnimStruct + 0x1380) = next;
 }
 
 // .text:0x0004777C size:0x44 mapped:0x80686810
@@ -1054,8 +1376,8 @@ void fn_2_4777C(void) {
     void *obj = *(void **)(hugeAnimStruct + 0x2C8C);
     if (obj != NULL) {
         fn_800ACFB0(obj);
+        *(void **)(hugeAnimStruct + 0x2C8C) = NULL;
     }
-    *(void **)(hugeAnimStruct + 0x2C8C) = NULL;
 }
 
 // .text:0x00047540 size:0x23C mapped:0x806865D4
@@ -1159,8 +1481,8 @@ void fn_2_474FC(void) {
     void *obj = *(void **)(hugeAnimStruct + 0x2C88);
     if (obj != NULL) {
         fn_800ACFB0(obj);
+        *(void **)(hugeAnimStruct + 0x2C88) = NULL;
     }
-    *(void **)(hugeAnimStruct + 0x2C88) = NULL;
 }
 
 // .text:0x000474F8 size:0x4 mapped:0x8068658C
@@ -1169,69 +1491,66 @@ void fn_2_474F8(void) {
 }
 
 // .text:0x000472C4 size:0x234 mapped:0x80686358
-void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, u16 flags) {
-    s32 x;
-    s32 rem;
-    s16 alt;
-    s16 diff;
-    s16 cur;
-    s16 mm;
-    u16 kind;
-    s32 snd = 0;
+static inline BOOL invalidTimerPeriod(s16 period, s16 step) {
+    s32 differenceBits = period ^ step;
+    return (period == 0) | (((differenceBits >> 1) - (differenceBits & period)) < 0);
+}
 
-    if (step == 0) {
-        return;
-    }
-    x = period ^ step;
-    if (period == 0 || (x >> 1) - (x & period) < 0) {
-        period = step;
-    }
-    rem = step - (step / period) * period;
-    alt = period;
-    if (rem != 0) {
-        alt = rem;
-    }
-    diff = (flags & 4) ? step - alt : step - period;
-    kind = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, s16 flags) {
+    s32 remainder;
+    s16 lastPeriod;
+    s16 limit;
+    s16 current;
+    s16 amount;
+    u16 input;
 
-    if (kind == 0x20 || kind == 0x4) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            if (cur == diff) {
-                if (!(flags & 2)) {
-                    *value = diff;
-                    return;
-                }
+    if (step == 0) return;
+    if (invalidTimerPeriod(period, step)) period = step;
+    remainder = step % period;
+    lastPeriod = period;
+    if (remainder != 0) lastPeriod = remainder;
+    limit = step - period;
+    if (flags & 4) limit = step - lastPeriod;
+    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    switch (input) {
+    case PAD_TRIGGER_R:
+    case PAD_BUTTON_DOWN:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = period - current % period;
+        if (current == limit) {
+            if (flags & 2) {
                 *value = 0;
-                snd = 1;
             } else {
-                cur = cur + (period - cur % period);
-                *value = cur;
-                if (cur > diff) {
-                    *value = diff;
-                }
-                snd = 1;
+                *value = limit;
+                break;
             }
+        } else {
+            current += amount;
+            *value = current;
+            if (current > limit) *value = limit;
         }
-    } else if (kind == 0x40 || kind == 0x8) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            mm = cur % period;
-            if (mm == 0) {
-                mm = period;
-            }
-            if (cur > 0) {
-                *value = cur - mm;
-                snd = 1;
-            } else if (flags & 2) {
-                *value = diff;
-                snd = 1;
-            }
-        }
-    }
-    if (snd) {
         *timer = 0;
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        break;
+    case PAD_TRIGGER_L:
+    case PAD_BUTTON_UP:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = current % period;
+        if (amount == 0) amount = period;
+        if (current <= 0) {
+            if (flags & 2) {
+                *value = limit;
+                *timer = 0;
+                sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+            }
+        } else {
+            *value = *value - amount;
+            *timer = 0;
+            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        }
+        break;
     }
 }
 
@@ -1241,154 +1560,132 @@ static inline void playCountdownSfx(s32 fid, s32 volIdx) {
 
 // .text:0x00046D94 size:0x530 mapped:0x80685E28
 void fn_2_46D94(s16 *timer, s16 *value, s16 step, s16 period, u16 flags) {
-    s32 x;
-    s32 rem;
-    s16 alt;
-    s16 diff;
-    s16 cur;
-    s16 mm;
+    s32 remainder;
+    s16 lastPeriod;
+    s16 limit;
+    s16 current;
+    s16 amount;
     s16 t;
     s16 v;
-    u16 kind;
+    u16 input;
 
-    if (step == 0) {
-        return;
-    }
-    x = period ^ step;
-    if (period == 0 || (x >> 1) - (x & period) < 0) {
-        period = step;
-    }
-    rem = step - (step / period) * period;
-    alt = period;
-    if (rem != 0) {
-        alt = rem;
-    }
-    diff = (flags & 4) ? step - alt : step - period;
-    kind = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
-
-    if (kind == 0x20) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            if (cur != diff) {
-                cur = cur + (period - cur % period);
-                *value = cur;
-                if (cur > diff) {
-                    *value = diff;
-                }
-            } else {
-                if (!(flags & 2)) {
-                    *value = diff;
-                    return;
-                }
-                *value = 0;
-            }
-            *timer = 0;
-            if (!(flags & 0x10)) {
-                playCountdownSfx(0x1B8, 1);
-            }
-        }
-    } else if (kind == 0x40) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            mm = cur % period;
-            if (mm == 0) {
-                mm = period;
-            }
-            if (cur > 0) {
-                *value = cur - mm;
-                *timer = 0;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B8, 1);
-                }
-            } else if (flags & 2) {
-                *value = diff;
-                *timer = 0;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B8, 1);
-                }
-            }
-        }
-    } else if (kind == 0x8) {
+    if (step == 0) return;
+    if (invalidTimerPeriod(period, step)) period = step;
+    remainder = step % period;
+    lastPeriod = period;
+    if (remainder != 0) lastPeriod = remainder;
+    limit = step - period;
+    if (flags & 4) limit = step - lastPeriod;
+    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    switch (input) {
+    case PAD_BUTTON_UP:
         if (value != NULL) {
             *timer = *timer - 1;
-            if (*timer >= 0) {
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
+            if (*timer < 0) {
+                if (*value != 0) {
+                    *value = *value - 1;
+                    if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+                } else if (flags & 1) {
+                    if (flags & 4) *timer = lastPeriod - 1;
+                    else *timer = period - 1;
+                    *value = limit;
+                    if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+                    break;
                 }
-                return;
+                *timer = *timer + 1;
+            } else {
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             }
-            if (*value != 0) {
-                *value = *value - 1;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
-                }
-            } else if (flags & 1) {
-                *timer = (flags & 4) ? alt - 1 : period - 1;
-                *value = diff;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
-                }
-                return;
-            }
-            *timer = *timer + 1;
         } else {
             *timer = *timer - 1;
-            if (*timer >= 0) {
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
-                }
-                return;
-            }
-            if (flags & 1) {
-                *timer = step - 1;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
+            if (*timer < 0) {
+                if (flags & 1) {
+                    *timer = step - 1;
+                    if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+                } else {
+                    *timer = *timer + 1;
                 }
             } else {
-                *timer = *timer + 1;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             }
         }
-    } else if (kind == 0x4) {
+        break;
+    case PAD_BUTTON_DOWN:
         if (value != NULL) {
             t = *timer;
             v = *value;
-            if (t + v < step - 1) {
-                if (t < period - 1) {
-                    *timer = t + 1;
-                } else if (v < diff) {
+            if (t + v >= step - 1) {
+                if (v < limit) {
+                    *value = v + 1;
+                    *timer = *timer - 1;
+                } else if (flags & 1) {
+                    *timer = 0;
+                    *value = 0;
+                } else {
+                    break;
+                }
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+            } else if (t >= period - 1) {
+                if (v < limit) {
                     *value = v + 1;
                 } else if (flags & 1) {
                     *timer = 0;
                     *value = 0;
                 } else {
-                    return;
+                    break;
                 }
-            } else if (v < diff) {
-                *value = v + 1;
-                *timer = *timer - 1;
-            } else if (flags & 1) {
-                *timer = 0;
-                *value = 0;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             } else {
-                return;
-            }
-            if (!(flags & 0x10)) {
-                playCountdownSfx(0x1B7, 0);
+                *timer = t + 1;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             }
         } else {
             *timer = *timer + 1;
             if (*timer >= step) {
-                if (flags & 1) {
-                    *timer = 0;
-                } else {
+                if (flags & 1) *timer = 0;
+                else {
                     *timer = *timer - 1;
-                    return;
+                    break;
                 }
             }
-            if (!(flags & 0x10)) {
-                playCountdownSfx(0x1B7, 0);
-            }
+            if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
         }
+        break;
+    case PAD_TRIGGER_R:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = period - current % period;
+        if (current == limit) {
+            if (flags & 2) *value = 0;
+            else {
+                *value = limit;
+                break;
+            }
+        } else {
+            current += amount;
+            *value = current;
+            if (current > limit) *value = limit;
+        }
+        *timer = 0;
+        if (!(flags & 0x10)) playCountdownSfx(0x1B8, 1);
+        break;
+    case PAD_TRIGGER_L:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = current % period;
+        if (amount == 0) amount = period;
+        if (current <= 0) {
+            if (flags & 2) {
+                *value = limit;
+                *timer = 0;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B8, 1);
+            }
+        } else {
+            *value = *value - amount;
+            *timer = 0;
+            if (!(flags & 0x10)) playCountdownSfx(0x1B8, 1);
+        }
+        break;
     }
 }
 
@@ -1411,7 +1708,7 @@ void fn_2_46C88(void *self) {
     Vec v;
     fn_2_68690(0);
     fn_2_68DAC(self, &v);
-    PSVECScale(&v, 2.0f, &v);
+    PSVECScale(&v, lbl_2_rodata_948, &v);
     *lbl_2_data_13374 = lbl_803CBD0C;
     fn_80031CA4(&v, lbl_2_data_13374);
 }

@@ -4304,3 +4304,120 @@ Full ninja build passed, including all four output hash checks. Project exact
 functions: local 4142, pure origin 3897, merged 4182 of 6479 (41.72% code bytes).
 Pre-existing untracked docs/menus_second_pass.md and text_50898_reference.d are
 preserved and excluded from the commits. No emulator test was performed.
+
+### Post-merge Sol checkpoint: character-selection callbacks (2026-10-21)
+
+Three isolated Sol passes were integrated serially. All 28 function baselines
+across these units were checked, with no regressions; fn_2_79634 is newly exact
+and passed readability review plus a fresh diff. All four remaining text_78F78
+stubs are implemented.
+
+| Unit | Before .text | After .text | Exact functions |
+|---|---:|---:|---:|
+| text_76874 | 86.07089% | 90.16981% | 1 -> 1 |
+| text_78F78 | 36.93814% | 95.11759% | 0 -> 1 |
+| text_7BFF8 | 81.65215% | 90.10027% | 0 -> 0 |
+
+- Staged record/handle additions and value-form state predicates reproduce the
+  original inline boundaries; delayed signed casts avoid premature narrowing.
+  Natural int induction variables with signed-long roster bounds recover
+  compiler unrolling without manually grouping source iterations.
+- fn_2_7D85C now checks the current-selection animation at frame 10 rather than
+  20 (target0x7DA38), and reloads the selection before saving it after callbacks
+  (0x7DA60/0x7DA68). The optional threshold4 before the additional completion
+  call in fn_2_7E194 was audited at0x7E33C. Logic corrections are retained even
+  where the numerical match score ties.
+- cssAction_case9 uses native int for its slot argument; its header agrees and
+  has no other source include dependents. This preserves the target's native
+  integer value numbering; representation and width remain 32-bit signed.
+- SQRT2_LINKAGE is static in these units and text_7E380, removing unrelated
+  header-generated constant blocks. All target scores are unchanged by this
+  cleanup; text_7E380 retains98.257774% and its five exact functions.
+
+Evidence: build/_postmerge_wave1_<unit>_{baseline,final}.json and per-unit
+checkpoints. Full build, all four output hashes, and whitespace checks pass.
+No emulator playtest was performed. Ongoing private research for text_4D960,
+rep_0AB0 and rep_08E8 is checkpointed separately and is excluded until verified.
+
+### Continued checkpoint recovery (2026-10-21)
+
+After pushing82b13e1, recovered additional interrupted Sol work. rep_08E8 now
+implements both large stubs: .text50.361355% ->71.630510%, with .rodata unchanged
+at79.069770%. fn_2_49DB8 and fn_2_49E5C become exact after the numeric formatter
+has its real body; both passed readability review and fresh re-diff. Every one
+of45 baseline functions is preserved.
+
+text_4D960 was already fully drafted despite its stale checkpoint. Its glyph
+append/copy helper boundary improves .text93.090004% ->94.542360%, keeping21
+exact functions and all data scores. The corrected formatter pointer return in
+rep_08E8.h was checked in this dependent unit before and after; all22 function
+scores are identical. Baseline/final evidence: build/_postmerge_wave2_*.
+
+rep_0AB0 is also fully drafted: fn_2_5A224 reaches95.17308% and fn_2_5B7DC
+93.78467%, with all existing functions preserved. The latter's19-state table was
+decoded from REL relocations and checked against each target branch. Its record
+copy/conversion/permutation block agrees with fn_2_5853C in the neighboring unit.
+Reversing target function definitions while lifting inline helpers before callers
+improves the unit to82.55906% .text and100% .rodata; data remains nonmatching.
+recordsScreen still has a large residual gap and is the next logical target.
+
+### Records initialization and helper checkpoint (2026-10-21)
+
+Completed recordsScreen's seven record copies and five header copies, restoring
+its missing stadium initialization and canonical fn_2_904A8 call. The seventh
+row uses its own destination offset; header copies preserve the untouched
+middle halfwords. Reloading the global menu pointer after callbacks also agrees
+with the target. recordsScreen improves41.68455% ->88.770386% against the fully
+drafted wave2 baseline; rep_0AB0 reaches86.80810% .text with100% .rodata.
+
+Seven more rep_08E8 helpers now match exactly, after readability review and fresh
+whole-unit comparisons. The string comparator uses a structured loop; angle
+helpers use existing SANG constants; free helpers clear handles within their
+nonnull guards. Further angle-loop/narrowing corrections improve the remaining
+near matches. Combined with recovered formatter work, rep_08E8 reaches72.140114%
+.text (19/45 exact), compared with50.361355% before this checkpoint. Its .rodata
+remains79.069770%. text_4D960 retains94.542360% and21/22 exact.
+
+All79 baseline function scores across these three units are preserved. Full
+build, all four output hashes, and whitespace checks pass. Project build report:
+4191/6479 matching functions,41.75% code. Evidence: build/_postmerge_wave2_* and
+build/_postmerge_wave3_*; detailed private trials and readability snapshots are
+in per-unit checkpoints. No emulator playtest was performed.
+
+### Timer, allocation and records-callback audit (2026-10-21)
+
+A further isolated Sol pass raises rep_08E8 .text72.140114% ->81.563160%,
+keeping .rodata79.069770%. fn_2_4A6E8 is newly exact after readability review
+and fresh comparison. Timer routines fn_2_46D94 and fn_2_472C4 improve to90.39156%
+and88.24823%, preserving the original input dispatch, wrap, range, truncation,
+and sound paths. fn_2_4906C now copies15 bank pointers as the target does; the
+previous draft copied20. Existing ScreenTextPool/TextBank types replace raw views.
+The signed16 flags prototype for fn_2_472C4 follows the target's sign extension;
+its text_4D960 include dependent was rebuilt and all22 scores remain identical.
+
+Manager's records-callback audit raises rep_0AB0 .text86.808100% ->88.983154%.
+fn_2_5979C now reaches99.329445% and fn_2_59CF8 reaches79.305140%. Both run their
+conditional update after cancellation as the target does; the editor preserves
+its distinct cancellation flags and shoulder/A combinations fall through to
+later input tests correctly. fn_2_5AE54 restores the common per-frame update and
+cleanup outside initialization, reaching92.980770%.
+
+All57 function baselines in the edited units and22 dependent function baselines
+are preserved. Full build, four output hashes and whitespace checks pass;
+project report4192/6479 matching functions,41.78% code. Detailed evidence is in
+build/_postmerge_wave4_* and per-unit checkpoints. No emulator test was performed.
+
+### Allocation traversal checkpoint (2026-10-21)
+
+Corrected fn_2_477C0 and fn_2_478F4 to scan all54 allocation descriptors; both
+drafts had scanned45. Independent target and compiled-source audits confirm six
+masked size loads and six0x130-byte steps per trip, over nine trips. Staging the
+size reader and allocation cursor also improves the existing fn_2_481F4 scan.
+rep_08E8 .text81.563160% ->83.559100%; .rodata79.069770%, all45 function floors
+and all20 exact functions are preserved. Existing OSRoundUp32B replaces raw
+alignment expressions, with canonical include-path capitalization checked.
+
+Full build, all four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave5_rep_08E8_{baseline,final}.json and the private wave5
+semantic_audit.json. No emulator test was performed. The next isolated Sol pass
+is drafting the missing challenge dispatcher in text_4B1AC.

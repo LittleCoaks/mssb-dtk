@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "menus/text_7BFF8.h"
 #include "Unknown/File_0x80062674.h"
 #include "Unknown/orderchange.h"
@@ -22,7 +23,13 @@ extern u8 lbl_2_data_2B3A4[];
 extern menuControlStruct *menuControlVariables;
 
 #define SCENE_RECORD(scene, index) ((UIRecord *)graphicsRelatedArray[(scene)->firstHandle + (index)].object)
-#define TEAM_RECORD(scene, position, slot, base) SCENE_RECORD(scene, (position) + (slot) * 9 + (base))
+
+static inline UIRecord *teamRosterRecord(MenuScene *scene, int position, s32 slot, int base) {
+    s32 handle = scene->firstHandle + position;
+    handle += slot * 9;
+    handle += base;
+    return (UIRecord *)graphicsRelatedArray[handle].object;
+}
 
 static inline BOOL isStepActive(u8 step) {
     return step == 1 ? TRUE : FALSE;
@@ -61,20 +68,31 @@ static inline void setRosterCharacterGraphics(MenuScene *scene, int slot, int po
     u8 mappedPosition;
 
     if (character != CHAR_ID_NONE) {
-        TEAM_RECORD(scene, position, slot, 0x34)->flags |= UI_FLAG_VISIBLE;
+        teamRosterRecord(scene, position, slot, 0x34)->flags |= UI_FLAG_VISIBLE;
         if (position == ((s32 *)lbl_2_bss_F468)[slot]) {
-            TEAM_RECORD(scene, position, slot, 0x34)->frame = 10 << 16;
-            TEAM_RECORD(scene, position, slot, 0x34)->playMode = UI_PLAY_STOP;
+            teamRosterRecord(scene, position, slot, 0x34)->frame = 10 << 16;
+            teamRosterRecord(scene, position, slot, 0x34)->playMode = UI_PLAY_STOP;
         } else {
-            TEAM_RECORD(scene, position, slot, 0x34)->frame = 20 << 16;
-            TEAM_RECORD(scene, position, slot, 0x34)->playMode = UI_PLAY_STOP;
+            teamRosterRecord(scene, position, slot, 0x34)->frame = 20 << 16;
+            teamRosterRecord(scene, position, slot, 0x34)->playMode = UI_PLAY_STOP;
         }
         mappedPosition = cursorPositions.roster.positionSwapMapping[slot][position];
-        TEAM_RECORD(scene, mappedPosition, slot, 0x58)->frame = cursorPositions.roster.rosterCharID[slot][position] << 16;
-        TEAM_RECORD(scene, mappedPosition, slot, 0x58)->playMode = UI_PLAY_STOP;
+        teamRosterRecord(scene, mappedPosition, slot, 0x58)->frame = cursorPositions.roster.rosterCharID[slot][position] << 16;
+        teamRosterRecord(scene, mappedPosition, slot, 0x58)->playMode = UI_PLAY_STOP;
     } else {
-        TEAM_RECORD(scene, position, slot, 0x34)->flags &= ~UI_FLAG_VISIBLE;
+        teamRosterRecord(scene, position, slot, 0x34)->flags &= ~UI_FLAG_VISIBLE;
     }
+}
+
+static inline s8 captainRosterPosition(int team, int captain) {
+    s8 position;
+    s8 *cursor = (s8 *)&cursorPositions;
+    int i;
+
+    for (i = 0; i < 9; i++, cursor++) {
+        if (cursor[team * 9 + 2] == captain) position = cursor[team * 9 + 0x14];
+    }
+    return position;
 }
 
 // .text:0x0007E194 size:0x1EC mapped:0x806BD228
@@ -82,28 +100,16 @@ void fn_2_7E194(MenuScene* scene, s32 slot) {
     s32 count;
     s32 threshold;
     s8 swapIdx;
-    s32 captainID;
-    s8* cursor;
 
     if (isStepActive(gameSetUpStep.unk0D[slot])) {
         count = maybeCheckAndResetGrapicsElement(scene, slot + 0x1C, 10) != 0;
         count += maybeCheckAndResetGrapicsElement(scene, slot + 0x6A, 10) != 0;
-        threshold = 3;
         count += maybeCheckAndResetGrapicsElement(scene, slot + 0x89, 5) != 0;
+        threshold = 3;
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && slot == 0) {
-            cursor = (s8*)&cursorPositions;
-            captainID = Static_Stats_Tables.captainSelectedID[1];
-            if (cursor[0xB] == captainID) swapIdx = cursor[0x1D];
-            if (cursor[0xC] == captainID) swapIdx = cursor[0x1E];
-            if (cursor[0xD] == captainID) swapIdx = cursor[0x1F];
-            if (cursor[0xE] == captainID) swapIdx = cursor[0x20];
-            if (cursor[0xF] == captainID) swapIdx = cursor[0x21];
-            if (cursor[0x10] == captainID) swapIdx = cursor[0x22];
-            if (cursor[0x11] == captainID) swapIdx = cursor[0x23];
-            if (cursor[0x12] == captainID) swapIdx = cursor[0x24];
-            if (cursor[0x13] == captainID) swapIdx = cursor[0x25];
-            count += maybeCheckAndResetGrapicsElement(scene, swapIdx + 0x3D, 0x14) != 0;
+            swapIdx = captainRosterPosition(1, Static_Stats_Tables.captainSelectedID[1]);
             threshold = 4;
+            count += maybeCheckAndResetGrapicsElement(scene, swapIdx + 0x3D, 0x14) != 0;
         }
         if (count == threshold) {
             makeCursorMovable(slot);
@@ -132,27 +138,27 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
         }
         if (previous != 9 && previous != 10 && previous < 9) {
             if (previous != (s8)lbl_2_bss_F468[slot + 0x61]) {
-                TEAM_RECORD(scene, previous, slot, 0x46)->frame = 15 << 16;
-                TEAM_RECORD(scene, previous, slot, 0x46)->playMode = UI_PLAY_BACKWARD;
+                teamRosterRecord(scene, previous, slot, 0x46)->frame = 15 << 16;
+                teamRosterRecord(scene, previous, slot, 0x46)->playMode = UI_PLAY_BACKWARD;
                 character = cursorPositions.roster.rosterCharID[slot][previousSlot];
                 if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS) {
-                    TEAM_RECORD(scene, previous, slot, 0x34)->frame = 10 << 16;
-                    TEAM_RECORD(scene, previous, slot, 0x34)->playMode = UI_PLAY_FORWARD;
+                    teamRosterRecord(scene, previous, slot, 0x34)->frame = 10 << 16;
+                    teamRosterRecord(scene, previous, slot, 0x34)->playMode = UI_PLAY_FORWARD;
                 }
             }
-            TEAM_RECORD(scene, previous, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
+            teamRosterRecord(scene, previous, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
         }
         if (current != 9 && current != 10 && current < 9 && current != (s8)lbl_2_bss_F468[slot + 0x61]) {
-            TEAM_RECORD(scene, current, slot, 0x46)->frame = 0;
-            TEAM_RECORD(scene, current, slot, 0x46)->playMode = UI_PLAY_FORWARD;
+            teamRosterRecord(scene, current, slot, 0x46)->frame = 0;
+            teamRosterRecord(scene, current, slot, 0x46)->playMode = UI_PLAY_FORWARD;
             character = cursorPositions.roster.rosterCharID[slot][currentSlot];
             if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS) {
-                TEAM_RECORD(scene, current, slot, 0x34)->frame = 20 << 16;
-                TEAM_RECORD(scene, current, slot, 0x34)->playMode = UI_PLAY_BACKWARD;
+                teamRosterRecord(scene, current, slot, 0x34)->frame = 20 << 16;
+                teamRosterRecord(scene, current, slot, 0x34)->playMode = UI_PLAY_BACKWARD;
             }
             if (lbl_2_bss_F468[slot + 0x41] == 0) {
-                TEAM_RECORD(scene, current, slot, 0x22)->flags |= UI_FLAG_VISIBLE;
-                TEAM_RECORD(scene, current, slot, 0x22)->playMode = UI_PLAY_FORWARD;
+                teamRosterRecord(scene, current, slot, 0x22)->flags |= UI_FLAG_VISIBLE;
+                teamRosterRecord(scene, current, slot, 0x22)->playMode = UI_PLAY_FORWARD;
             }
         }
         gfx_cssCharStatBars_and_sthgElse(scene, slot);
@@ -179,16 +185,16 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
                 lbl_2_bss_F468[slot + 0x61] = saved;
                 character = cursorPositions.roster.rosterCharID[slot][savedSlot];
                 if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS) {
-                    TEAM_RECORD(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x34)->frame = 10 << 16;
-                    TEAM_RECORD(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x34)->playMode = UI_PLAY_STOP;
+                    teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x34)->frame = 10 << 16;
+                    teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x34)->playMode = UI_PLAY_STOP;
                 }
-                TEAM_RECORD(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x46)->frame = 15 << 16;
-                TEAM_RECORD(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x46)->playMode = UI_PLAY_STOP;
+                teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x46)->frame = 15 << 16;
+                teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x46)->playMode = UI_PLAY_STOP;
                 if (current == (s8)lbl_2_bss_F468[slot + 0x61]) {
-                    TEAM_RECORD(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x22)->flags |= UI_FLAG_VISIBLE;
+                    teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + 0x61], slot, 0x22)->flags |= UI_FLAG_VISIBLE;
                 }
             } else {
-                TEAM_RECORD(scene, saved, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
+                teamRosterRecord(scene, saved, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
             }
         }
         makeCursorUnmovable(slot);
@@ -233,11 +239,11 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
             ch = cursorPositions.roster.rosterCharID[slot][idxA];
             if (ch != -1 && ch != 0x36 && valA != (s8)lbl_2_bss_F468[0x61 + slot]) {
                 attempts++;
-                successes += maybeCheckAndResetGrapicsElement(scene, valA + slot * 9 + 0x34, 0x14) != 0;
+                successes += maybeCheckAndResetGrapicsElement(scene, valA + slot * 9 + 0x34, 10) != 0;
             }
         }
         if (successes == attempts) {
-            pair[slot + 2] = valA;
+            pair[slot + 2] = pair[slot];
             makeCursorMovable(slot);
             gameSetUpStep.unk0D[slot] = 2;
             if (lbl_2_bss_F468[0x63 + slot] != 0) {
@@ -249,7 +255,7 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
 }
 
 // .text:0x0007BFF8 size:0x1864 mapped:0x806BB08C
-void cssAction_case9(MenuScene *scene, s32 slot) {
+void cssAction_case9(MenuScene *scene, int slot) {
     int i;
     int captain;
     u8 captainPosition;
@@ -282,7 +288,7 @@ void cssAction_case9(MenuScene *scene, s32 slot) {
         SCENE_RECORD(scene, slot + 0x97)->flags &= ~UI_FLAG_VISIBLE;
         SCENE_RECORD(scene, slot + 0xB0)->flags &= ~UI_FLAG_VISIBLE;
         for (i = 0; i < 9; i++) {
-            TEAM_RECORD(scene, i, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
+            teamRosterRecord(scene, i, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
         }
         SCENE_RECORD(scene, slot)->elementIndex = 0x48;
         SCENE_RECORD(scene, slot + 2)->elementIndex = 0x48;
@@ -345,10 +351,10 @@ void cssAction_case9(MenuScene *scene, s32 slot) {
                 if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && lbl_2_bss_F468[slot + 0x37] == 0 && slot == 1) {
                     if (i == captainPosition) {
                         cpuPlayer = Static_Stats_Tables.playerNumberByPort[0] == 0;
-                        TEAM_RECORD(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
-                        TEAM_RECORD(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
+                        teamRosterRecord(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
+                        teamRosterRecord(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
                     } else {
-                        TEAM_RECORD(scene, i, slot, 0x46)->flags &= ~UI_FLAG_VISIBLE;
+                        teamRosterRecord(scene, i, slot, 0x46)->flags &= ~UI_FLAG_VISIBLE;
                     }
                 } else {
                     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
@@ -356,13 +362,13 @@ void cssAction_case9(MenuScene *scene, s32 slot) {
                         else cpuPlayer = FALSE;
                     }
                     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && slot != 0) {
-                        TEAM_RECORD(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
+                        teamRosterRecord(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
                     } else {
-                        TEAM_RECORD(scene, i, slot, 0x46)->elementIndex = Static_Stats_Tables.playerNumberByPort[slot] + 0x11;
+                        teamRosterRecord(scene, i, slot, 0x46)->elementIndex = Static_Stats_Tables.playerNumberByPort[slot] + 0x11;
                     }
-                    TEAM_RECORD(scene, i, slot, 0x46)->frame = 0;
-                    TEAM_RECORD(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
-                    TEAM_RECORD(scene, i, slot, 0x46)->playMode = UI_PLAY_STOP;
+                    teamRosterRecord(scene, i, slot, 0x46)->frame = 0;
+                    teamRosterRecord(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
+                    teamRosterRecord(scene, i, slot, 0x46)->playMode = UI_PLAY_STOP;
                 }
                 setRosterCharacterGraphics(scene, slot, i);
             }
@@ -388,17 +394,17 @@ void cssAction_case9(MenuScene *scene, s32 slot) {
             }
             for (i = 0; i < 9; i++) {
                 if (slot != 0) {
-                    TEAM_RECORD(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
+                    teamRosterRecord(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
                 } else {
-                    TEAM_RECORD(scene, i, slot, 0x46)->elementIndex = Static_Stats_Tables.playerNumberByPort[slot] + 0x11;
+                    teamRosterRecord(scene, i, slot, 0x46)->elementIndex = Static_Stats_Tables.playerNumberByPort[slot] + 0x11;
                 }
-                TEAM_RECORD(scene, i, slot, 0x46)->frame = 0;
+                teamRosterRecord(scene, i, slot, 0x46)->frame = 0;
                 if (i == ((s32 *)lbl_2_bss_F468)[slot]) {
-                    TEAM_RECORD(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
-                    TEAM_RECORD(scene, i, slot, 0x46)->playMode = UI_PLAY_FORWARD;
+                    teamRosterRecord(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
+                    teamRosterRecord(scene, i, slot, 0x46)->playMode = UI_PLAY_FORWARD;
                 } else {
-                    TEAM_RECORD(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
-                    TEAM_RECORD(scene, i, slot, 0x46)->playMode = UI_PLAY_STOP;
+                    teamRosterRecord(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
+                    teamRosterRecord(scene, i, slot, 0x46)->playMode = UI_PLAY_STOP;
                 }
                 setRosterCharacterGraphics(scene, slot, i);
             }
