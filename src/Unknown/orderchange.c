@@ -35,7 +35,7 @@ extern struct {
     /* 0xCF4E */ u8 _CF4E[0xCF52 - 0xCF4E];
     /* 0xCF52 */ E(u8, ROSTER_VIEW) rosterView[2];
     /* 0xCF54 */ u8 _CF54[0xCF74 - 0xCF54];
-    /* 0xCF74 */ u8 unkCF74;
+    /* 0xCF74 */ E(u8, STAR_MENU_DRAW_STEP) starMenuDrawStep;
     /* 0xCF75 */ s8 starMenuCursorPos;
     /* 0xCF76 */ s8 starMenuPrevCursorPos;
     /* 0xCF77 */ u8 _CF77[0xCF92 - 0xCF77];
@@ -393,13 +393,13 @@ void starMenuCursor(void) {
     s8 variant;
 
     memset(&input, 0, sizeof(input));
-    input.currentHeldInput = g_d_GameSettings._06 == 2
+    input.currentHeldInput = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME
                                  ? aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].currentHeldInput
                                  : Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-    input.newInput = g_d_GameSettings._06 == 2
+    input.newInput = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME
                          ? aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].newInput
                          : Static_Stats_Tables.controllerInputs[0].newInput;
-    input.processedInput = g_d_GameSettings._06 == 2
+    input.processedInput = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME
                                ? aiPosSwapInputs.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].processedInput
                                : Static_Stats_Tables.controllerInputs[0].processedInput;
 
@@ -417,7 +417,7 @@ void starMenuCursor(void) {
                 aiPosSwapInputs.starMenuCursorPos += size;
             }
             if (aiPosSwapInputs.starMenuPrevCursorPos != aiPosSwapInputs.starMenuCursorPos) {
-                aiPosSwapInputs.unkCF74 = 2;
+                aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_CURSOR_MOVED;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
             }
         }
@@ -429,7 +429,7 @@ void starMenuCursor(void) {
                 aiPosSwapInputs.starMenuCursorPos = aiPosSwapInputs.starMenuCursorPos - size;
             }
             if (aiPosSwapInputs.starMenuPrevCursorPos != aiPosSwapInputs.starMenuCursorPos) {
-                aiPosSwapInputs.unkCF74 = 2;
+                aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_CURSOR_MOVED;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
             }
         }
@@ -451,7 +451,7 @@ void starMenuCursor(void) {
             }
         }
         if (aiPosSwapInputs.starMenuPrevCursorPos != aiPosSwapInputs.starMenuCursorPos) {
-            aiPosSwapInputs.unkCF74 = 2;
+            aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_CURSOR_MOVED;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
         }
     } else if (input.processedInput & INPUT_BUTTON_RIGHT) {
@@ -472,11 +472,11 @@ void starMenuCursor(void) {
             }
         }
         if (aiPosSwapInputs.starMenuPrevCursorPos != aiPosSwapInputs.starMenuCursorPos) {
-            aiPosSwapInputs.unkCF74 = 2;
+            aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_CURSOR_MOVED;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
         }
     } else if ((input.newInput & INPUT_BUTTON_A) || (input.newInput & INPUT_BUTTON_B)) {
-        aiPosSwapInputs.unkCF74 = 3;
+        aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_CLOSE;
         if (input.newInput & INPUT_BUTTON_A) {
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, SND_STUDIO_DEFAULT);
         } else {
@@ -490,10 +490,10 @@ void swapPosMenu_left_rightPress(u8 right, u8 team) {
     if (aiPosSwapInputs.teamManagement_cursorPos[team] == 0) {
         return;
     }
-    if (g_d_GameSettings._06 == 2 && aiPosSwapInputs.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+    if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME && aiPosSwapInputs.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
         return;
     }
-    if (aiPosSwapInputs.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT && g_d_GameSettings._06 != 2) {
+    if (aiPosSwapInputs.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT && g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         return;
     }
 
@@ -532,11 +532,11 @@ void swapPosMenu_left_rightPress(u8 right, u8 team) {
                 break;
             }
             if (aiPosSwapInputs.teamManagement_prevCursorPos[team] != aiPosSwapInputs.teamManagement_cursorPos[team]) {
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
             }
         }
     } else if (aiPosSwapInputs.teamManagement_cursorPos[team] == 0) {
-        if (g_d_GameSettings._06 != 2) {
+        if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
             aiPosSwapInputs.onFieldingAlignmentScreen2[team]++;
             if (aiPosSwapInputs.rosterView[team] > ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                 aiPosSwapInputs.rosterView[team] = ROSTER_VIEW_DEFENSIVE_ALIGNMENT;
@@ -549,7 +549,7 @@ void swapPosMenu_left_rightPress(u8 right, u8 team) {
                 aiPosSwapInputs.rosterView[team] = ROSTER_VIEW_DEFENSIVE_ALIGNMENT;
                 break;
             }
-            updateCharacterSelectProcessCode(team, 0x3C);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CHANGE_ROSTER_VIEW);
         } else {
             sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, SND_STUDIO_DEFAULT);
             return;
@@ -587,7 +587,7 @@ void swapPosMenu_left_rightPress(u8 right, u8 team) {
             break;
         }
         if (aiPosSwapInputs.teamManagement_prevCursorPos[team] != aiPosSwapInputs.teamManagement_cursorPos[team]) {
-            updateCharacterSelectProcessCode(team, 0x3B);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
         }
     }
 
@@ -605,20 +605,20 @@ void swapPosMenu_up_downPress(u8 down, u8 team) {
             aiPosSwapInputs.teamManagement_cursorPos[team]--;
             if (aiPosSwapInputs.charSelectedToBeSwapped[team] != 0 && aiPosSwapInputs.teamManagement_cursorPos[team] < 1) {
                 aiPosSwapInputs.teamManagement_cursorPos[team] = PLAYERS_PER_TEAM;
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
                 return;
             }
             if (aiPosSwapInputs.teamManagement_prevCursorPos[team] == 0) {
                 aiPosSwapInputs.teamManagement_cursorPos[team] = PLAYERS_PER_TEAM;
-                updateCharacterSelectProcessCode(team, 0x3D);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_ENTER_ROSTER);
             } else if (aiPosSwapInputs.teamManagement_cursorPos[team] == 0) {
-                updateCharacterSelectProcessCode(team, 0x3E);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
             } else {
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
             }
         } else if (aiPosSwapInputs.teamManagement_prevCursorPos[team] == 0) {
             aiPosSwapInputs.teamManagement_cursorPos[team] = lineupOrderChangeRelated(team, FIELDING_POSITION_CATCHER);
-            updateCharacterSelectProcessCode(team, 0x3D);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_ENTER_ROSTER);
         } else {
             switch (lineUpInfoStruct[team][aiPosSwapInputs.teamManagement_cursorPos[team] - 1][2]) {
             case FIELDING_POSITION_PITCHER:
@@ -642,34 +642,34 @@ void swapPosMenu_up_downPress(u8 down, u8 team) {
             case FIELDING_POSITION_LEFT_FIELD:
                 if (aiPosSwapInputs.charSelectedToBeSwapped[team] != 0) {
                     aiPosSwapInputs.teamManagement_cursorPos[team] = lineupOrderChangeRelated(team, FIELDING_POSITION_THIRD_BASE);
-                    updateCharacterSelectProcessCode(team, 0x3B);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
                 } else {
                     aiPosSwapInputs.teamManagement_cursorPos[team] = 0;
-                    updateCharacterSelectProcessCode(team, 0x3E);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
                 }
                 break;
             case FIELDING_POSITION_RIGHT_FIELD:
                 if (aiPosSwapInputs.charSelectedToBeSwapped[team] != 0) {
                     aiPosSwapInputs.teamManagement_cursorPos[team] = lineupOrderChangeRelated(team, FIELDING_POSITION_FIRST_BASE);
-                    updateCharacterSelectProcessCode(team, 0x3B);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
                 } else {
                     aiPosSwapInputs.teamManagement_cursorPos[team] = 0;
-                    updateCharacterSelectProcessCode(team, 0x3E);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
                 }
                 break;
             case FIELDING_POSITION_CENTER_FIELD:
                 if (aiPosSwapInputs.charSelectedToBeSwapped[team] != 0) {
                     aiPosSwapInputs.teamManagement_cursorPos[team] = lineupOrderChangeRelated(team, FIELDING_POSITION_CATCHER);
-                    updateCharacterSelectProcessCode(team, 0x3B);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
                 } else {
                     aiPosSwapInputs.teamManagement_cursorPos[team] = 0;
-                    updateCharacterSelectProcessCode(team, 0x3E);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
                 }
                 break;
             }
             if (aiPosSwapInputs.teamManagement_cursorPos[team] != 0 &&
                 aiPosSwapInputs.teamManagement_prevCursorPos[team] != aiPosSwapInputs.teamManagement_cursorPos[team]) {
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
             }
         }
     } else if (aiPosSwapInputs.rosterView[team] == ROSTER_VIEW_BATTING_ORDER) {
@@ -677,20 +677,20 @@ void swapPosMenu_up_downPress(u8 down, u8 team) {
         if (aiPosSwapInputs.charSelectedToBeSwapped[team] != 0 &&
             aiPosSwapInputs.teamManagement_cursorPos[team] == PLAYERS_PER_TEAM + 1) {
             aiPosSwapInputs.teamManagement_cursorPos[team] = 1;
-            updateCharacterSelectProcessCode(team, 0x3B);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
             return;
         }
         if (aiPosSwapInputs.teamManagement_cursorPos[team] == PLAYERS_PER_TEAM + 1) {
             aiPosSwapInputs.teamManagement_cursorPos[team] = 0;
-            updateCharacterSelectProcessCode(team, 0x3E);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
         } else if (aiPosSwapInputs.teamManagement_prevCursorPos[team] == 0) {
-            updateCharacterSelectProcessCode(team, 0x3D);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_ENTER_ROSTER);
         } else {
-            updateCharacterSelectProcessCode(team, 0x3B);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
         }
     } else if (aiPosSwapInputs.teamManagement_prevCursorPos[team] == 0) {
         aiPosSwapInputs.teamManagement_cursorPos[team] = lineupOrderChangeRelated(team, FIELDING_POSITION_CENTER_FIELD);
-        updateCharacterSelectProcessCode(team, 0x3D);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_ENTER_ROSTER);
     } else {
         switch (lineUpInfoStruct[team][aiPosSwapInputs.teamManagement_cursorPos[team] - 1][2]) {
         case FIELDING_POSITION_PITCHER:
@@ -720,16 +720,16 @@ void swapPosMenu_up_downPress(u8 down, u8 team) {
         case FIELDING_POSITION_CATCHER:
             if (aiPosSwapInputs.charSelectedToBeSwapped[team] != 0) {
                 aiPosSwapInputs.teamManagement_cursorPos[team] = lineupOrderChangeRelated(team, FIELDING_POSITION_CENTER_FIELD);
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
             } else {
                 aiPosSwapInputs.teamManagement_cursorPos[team] = 0;
-                updateCharacterSelectProcessCode(team, 0x3E);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
             }
             break;
         }
         if (aiPosSwapInputs.teamManagement_cursorPos[team] != 0 &&
             aiPosSwapInputs.teamManagement_prevCursorPos[team] != aiPosSwapInputs.teamManagement_cursorPos[team]) {
-            updateCharacterSelectProcessCode(team, 0x3B);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
         }
     }
 }

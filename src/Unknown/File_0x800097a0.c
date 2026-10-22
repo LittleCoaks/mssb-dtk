@@ -78,7 +78,7 @@ void handleLoadingProcess(void) {
 
     switch (node->loaderState) {
     case 0:
-        g_d_GameSettings._06 = 0;
+        g_d_GameSettings.highLevelMenuScene = HIGH_LEVEL_MENU_SCENE_NONE;
         fn_800AD054((int)lbl_80366158.unk00, (int)lbl_80366158.unk04);
         soundOrMusicRelated();
         lbl_803C6CF8.entryNum = s32DataId;
@@ -165,7 +165,7 @@ void handleLoadingProcess(void) {
         fn_80009144();
         /* fall through */
     case 8:
-        g_d_GameSettings._06 = 1;
+        g_d_GameSettings.highLevelMenuScene = HIGH_LEVEL_MENU_SCENE_MENUS;
         fn_800AD038((void*)lbl_80366158.unk00);
         lbl_803C6CF8.entryNum = s32ProgId;
         node->module = (OSModuleHeader*)ARAMTransfer(relFileTable, 0, 0, 0);
@@ -203,7 +203,7 @@ void handleLoadingProcess(void) {
         node->loaderState = 11;
         break;
     case 11:
-        g_d_GameSettings._06 = 2;
+        g_d_GameSettings.highLevelMenuScene = HIGH_LEVEL_MENU_SCENE_IN_GAME;
         fn_800AD038((void*)lbl_80366158.unk00);
         lbl_803C6CF8.entryNum = s32ProgId;
         node->module = (OSModuleHeader*)ARAMTransfer(relFileTable + 0x10, 0, 0, 0);

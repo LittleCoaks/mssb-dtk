@@ -17,7 +17,7 @@ extern struct {
     /* 0xCF3C */ u8 _CF3C[0xCF45 - 0xCF3C];
     /* 0xCF45 */ u8 removeSceneRequested;
     /* 0xCF46 */ u8 _CF46[0xCFA2 - 0xCF46];
-    /* 0xCFA2 */ u8 teamMenuType[4];
+    /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];
 } aiPosSwapInputs;
 
 extern u8 lineUpInfoStruct[];
@@ -42,7 +42,7 @@ void teamManagementGraphics_initialLoad(void) {
     aiPosSwapInputs.removeSceneRequested = 0;
     playerWho = aiPosSwapInputs.playerWhoPaused;
 
-    if (g_d_GameSettings._06 != 2) {
+    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         addGraphicsElementToScene(scene, lbl_801000A8);
         RECORD(16)->frame = Static_Stats_Tables.playerNumberByPort[0] << 16;
 
@@ -141,7 +141,7 @@ void teamManagementGraphics_initialLoad(void) {
         RECORD(8)->frame = 0xA0000;
         RECORD(8)->playMode = 0;
 
-        if (aiPosSwapInputs.teamMenuType[playerWho] == 1) {
+        if (aiPosSwapInputs.teamMenuType[playerWho] == TEAM_MENU_TYPE_BATTER_SWAP) {
             RECORD(80)->elementIndex = 0x28;
             RECORD(1)->elementIndex = 0x47;
             RECORD(1)->frame = 0x140000;

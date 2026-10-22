@@ -18,8 +18,8 @@ extern menuControlStruct* menuControlVariables;
 void initTeamManagementScreen(void) {
     Static_Stats_Tables.unk4720[0] = 0;
     Static_Stats_Tables.unk4720[1] = 0;
-    aiPosSwapInputs.rosterView[0] = g_d_GameSettings._06 == 2;
-    aiPosSwapInputs.rosterView[1] = g_d_GameSettings._06 == 2;
+    aiPosSwapInputs.rosterView[0] = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME;
+    aiPosSwapInputs.rosterView[1] = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME;
 
     aiPosSwapInputs.charSelectedToBeSwappedCharID[1] = 0xFF;
     aiPosSwapInputs.charSelectedToBeSwappedCharID[0] = 0xFF;
@@ -51,7 +51,7 @@ void initTeamManagementScreen(void) {
     gameSetUpStep.portCaptainSlot[0] = 0;
     gameSetUpStep.portCaptainSlot[1] = 1;
 
-    if (g_d_GameSettings._06 != 2) {
+    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE && menuControlVariables->previousScreen == 0xA) {
             characterSelectScreen(0);
             characterSelectScreen(1);
@@ -63,13 +63,13 @@ void initTeamManagementScreen(void) {
             }
         }
 
-        aiPosSwapInputs.teamMenuType[1] = 0;
-        aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused] = 0;
+        aiPosSwapInputs.teamMenuType[1] = TEAM_MENU_TYPE_FIELDER_SWAP;
+        aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused] = TEAM_MENU_TYPE_FIELDER_SWAP;
         g_MatchInfo.unk36 = 1;
         g_MatchInfo.unk37 = g_MatchInfo.unk38;
         g_MatchInfo.unk38 = 1;
     } else {
-        if (aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused] == 0) {
+        if (aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused] == TEAM_MENU_TYPE_FIELDER_SWAP) {
             aiPosSwapInputs.rosterView[1] = 1;
             aiPosSwapInputs.rosterView[0] = 1;
         } else {
@@ -80,7 +80,7 @@ void initTeamManagementScreen(void) {
 
     SetMenuNumber();
 
-    if (!(g_d_GameSettings._06 == 2 || menuControlVariables->previousScreen == 0xA ||
+    if (!(g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME || menuControlVariables->previousScreen == 0xA ||
           g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE)) {
         aiPosSwapInputs.onePlayerEditingTeam = 1;
         aiPosSwapInputs.teamConfirmed[0] = 1;
@@ -90,20 +90,20 @@ void initTeamManagementScreen(void) {
     } else {
         u8 cfa2 = aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused];
 
-        if (cfa2 == 2 || cfa2 == 3) {
-            if (cfa2 == 2) {
-                aiPosSwapInputs.scoutFlagMenuState = 1;
+        if (cfa2 == TEAM_MENU_TYPE_SCOUT_FLAGS || cfa2 == TEAM_MENU_TYPE_STAR_MISSIONS) {
+            if (cfa2 == TEAM_MENU_TYPE_SCOUT_FLAGS) {
+                aiPosSwapInputs.scoutFlagMenuState = SCOUT_FLAG_MENU_STATE_OPEN;
                 aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_SCOUT_FLAGS_MENU;
             } else {
                 aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_LOAD;
                 aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_CHALLENGE_STARS_MENU;
             }
         } else {
-            updateCharacterSelectProcessCode(0, 0x38);
-            if (g_d_GameSettings._06 == 2) {
-                updateCharacterSelectProcessCode(1, 0x38);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_LOAD);
+            if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+                updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_LOAD);
             } else {
-                updateCharacterSelectProcessCode(1, 0x38);
+                updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_LOAD);
             }
             aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_LOAD;
         }

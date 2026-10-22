@@ -1027,12 +1027,12 @@ void positionSwap(void) {
     switch (pauseControl.state) {
     case 0:
         port = pauseControl.port;
-        aiPosSwapInputs.teamMenuType[port] = (pauseControl._1D1 != 4);
+        aiPosSwapInputs.teamMenuType[port] = (pauseControl._1D1 != 4); // TEAM_MENU_TYPE_FIELDER_SWAP for option 4, else _BATTER_SWAP
         pauseControl._12 = 0;
         if (pauseControl._1D1 == 0xE || pauseControl._1D1 == 7) {
-            aiPosSwapInputs.teamMenuType[port] = 2;
+            aiPosSwapInputs.teamMenuType[port] = TEAM_MENU_TYPE_SCOUT_FLAGS;
         } else if (pauseControl._1D1 == 0xF || pauseControl._1D1 == 8) {
-            aiPosSwapInputs.teamMenuType[port] = 3;
+            aiPosSwapInputs.teamMenuType[port] = TEAM_MENU_TYPE_STAR_MISSIONS;
         }
         pauseControl.state = 2;
         break;

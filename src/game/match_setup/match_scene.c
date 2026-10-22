@@ -111,16 +111,16 @@ void pauseMenu_openTeamManagement(void) {
         insertGraphicDrawingFunction(fn_80053FE8, 2);
         memset(menuNumber, 0, 0x28);
         switch (aiPosSwapInputs.teamMenuType[pauseControl.port]) {
-        case 0:
+        case TEAM_MENU_TYPE_FIELDER_SWAP:
             SET_MENU(g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE ? 0x1C : 8);
             break;
-        case 1:
+        case TEAM_MENU_TYPE_BATTER_SWAP:
             SET_MENU(0xA);
             break;
-        case 2:
+        case TEAM_MENU_TYPE_SCOUT_FLAGS:
             SET_MENU(0x1E);
             break;
-        case 3:
+        case TEAM_MENU_TYPE_STAR_MISSIONS:
             SET_MENU(0x1F);
             break;
         }

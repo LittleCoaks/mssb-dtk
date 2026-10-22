@@ -126,7 +126,7 @@ void possiblyTransferDataBetweenDifferentRels(void) {
         }
     }
 
-    if (g_d_GameSettings._06 == 2) {
+    if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         gs[0x36] = 1;
         gs[0x69] = 0;
         gs[0x65] = 0;

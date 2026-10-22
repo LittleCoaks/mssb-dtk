@@ -170,7 +170,7 @@ void captainSelectScreen_manager(void) {
         if (((u8*)&lbl_2_bss_100B4)[1] != 0) {
             break;
         }
-        if (aiPosSwapInputs.unkCF5F != 0) {
+        if (aiPosSwapInputs.loadMatchRelInd != 0) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                 transition = challengeTransitionRelated(0);
             } else {
@@ -194,7 +194,7 @@ void captainSelectScreen_manager(void) {
         if (gameSetUpStep.unk55[0] != 0 || gameSetUpStep.unk55[1] != 0) {
             break;
         }
-        if (aiPosSwapInputs.unkCF5F != 0) {
+        if (aiPosSwapInputs.loadMatchRelInd != 0) {
             settingValuesTo0();
             Static_Stats_Tables._48AD = 1;
             gameSetUpStep._00 = 0;
@@ -209,7 +209,7 @@ void captainSelectScreen_manager(void) {
             Static_Stats_Tables._48AF[0] = 1;
             Static_Stats_Tables._48AF[2] = 1;
             menuNumber[0x26] = 1;
-            aiPosSwapInputs.unkCF5F = 0;
+            aiPosSwapInputs.loadMatchRelInd = 0;
             changeScreenVariables(4);
         } else {
             Static_Stats_Tables._48AD = 1;
@@ -335,7 +335,7 @@ void captainSelectScreen_manager(void) {
         case 4:
             lbl_803CBD24[4] = 0;
             menuControlVariables->currentState = 2;
-            aiPosSwapInputs.unkCF5F = 0;
+            aiPosSwapInputs.loadMatchRelInd = 0;
             break;
         }
         break;

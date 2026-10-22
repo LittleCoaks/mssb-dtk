@@ -35,7 +35,7 @@ extern struct {
     /* 0xCF61 */ u8 zMenuOpen[2];
     /* 0xCF63 */ u8 zMenuPageLoaded[2];
     /* 0xCF65 */ u8 zMenuActive[2];
-    /* 0xCF67 */ u8 zMenuPage[2];
+    /* 0xCF67 */ E(u8, Z_MENU_PAGE) zMenuPage[2];
     /* 0xCF69 */ u8 _CF69[0xCF6B - 0xCF69];
     /* 0xCF6B */ u8 unkCF6B;
     /* 0xCF6C */ u8 _CF6C[0xCF70 - 0xCF6C];
@@ -43,7 +43,7 @@ extern struct {
     /* 0xCF71 */ u8 starMenuOpen;
     /* 0xCF72 */ u8 starMenuActive;
     /* 0xCF73 */ u8 starMenuStepStarted;
-    /* 0xCF74 */ u8 starMenuDrawStep;
+    /* 0xCF74 */ E(u8, STAR_MENU_DRAW_STEP) starMenuDrawStep;
     /* 0xCF75 */ u8 starMenuCursorPos;
     /* 0xCF76 */ u8 starMenuPrevCursorPos;
     /* 0xCF77 */ u8 _CF77;
@@ -51,7 +51,7 @@ extern struct {
     /* 0xCF7A */ u8 _CF7A[0xCF9E - 0xCF7A];
     /* 0xCF9E */ u8 inProgress_superStarAPlayer[2];
     /* 0xCFA0 */ u8 _CFA0[2];
-    /* 0xCFA2 */ u8 teamMenuType[4];
+    /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];
 } aiPosSwapInputs;
 
 extern struct {
@@ -77,7 +77,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         return;
     }
 
-    if (g_d_GameSettings._06 == 2) {
+    if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         team = playerIndex;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
         if (playerIndex > 1) {
@@ -126,7 +126,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (aiPosSwapInputs.teamManagement_cursorPos[team] != 0) {
             aiPosSwapInputs.zMenuOpen[team] = 1;
             aiPosSwapInputs.zMenuActive[team] = 1;
-            aiPosSwapInputs.zMenuPage[team] = 0;
+            aiPosSwapInputs.zMenuPage[team] = Z_MENU_PAGE_MAIN;
             sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, 0);
         }
         return;
@@ -164,10 +164,10 @@ void teamManagement_takeInputs(s32 playerIndex) {
 
     if (input.processedInput & PAD_BUTTON_LEFT) {
         if (aiPosSwapInputs.zMenuOpen[team] != 0) {
-            if (aiPosSwapInputs.zMenuPage[team] != 1) {
+            if (aiPosSwapInputs.zMenuPage[team] != Z_MENU_PAGE_STAR_MOVES) {
                 return;
             }
-            aiPosSwapInputs.zMenuPage[team] = 0;
+            aiPosSwapInputs.zMenuPage[team] = Z_MENU_PAGE_MAIN;
             aiPosSwapInputs.zMenuPageLoaded[team] = 0;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             return;
@@ -184,10 +184,10 @@ void teamManagement_takeInputs(s32 playerIndex) {
 
     if (input.processedInput & PAD_BUTTON_RIGHT) {
         if (aiPosSwapInputs.zMenuOpen[team] != 0) {
-            if (aiPosSwapInputs.zMenuPage[team] != 0) {
+            if (aiPosSwapInputs.zMenuPage[team] != Z_MENU_PAGE_MAIN) {
                 return;
             }
-            aiPosSwapInputs.zMenuPage[team] = 1;
+            aiPosSwapInputs.zMenuPage[team] = Z_MENU_PAGE_STAR_MOVES;
             aiPosSwapInputs.zMenuPageLoaded[team] = 0;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             return;
@@ -208,13 +208,13 @@ void teamManagement_takeInputs(s32 playerIndex) {
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             return;
         }
-        if (aiPosSwapInputs.teamMenuType[team] == 1) {
+        if (aiPosSwapInputs.teamMenuType[team] == TEAM_MENU_TYPE_BATTER_SWAP) {
             return;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && aiPosSwapInputs.unkCF70 != 0) {
             return;
         }
-        if (g_d_GameSettings._06 == 2) {
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
             return;
         }
         if (aiPosSwapInputs.rosterView[team] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
@@ -226,7 +226,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
             aiPosSwapInputs.onFieldingAlignmentScreen2[team] = 1;
         }
         aiPosSwapInputs.rosterView[team] = ROSTER_VIEW_DEFENSIVE_ALIGNMENT;
-        updateCharacterSelectProcessCode(team, 0x3C);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CHANGE_ROSTER_VIEW);
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         return;
     }
@@ -237,13 +237,13 @@ void teamManagement_takeInputs(s32 playerIndex) {
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             return;
         }
-        if (aiPosSwapInputs.teamMenuType[team] == 1) {
+        if (aiPosSwapInputs.teamMenuType[team] == TEAM_MENU_TYPE_BATTER_SWAP) {
             return;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && aiPosSwapInputs.unkCF70 != 0) {
             return;
         }
-        if (g_d_GameSettings._06 == 2) {
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
             return;
         }
         if (aiPosSwapInputs.rosterView[team] == ROSTER_VIEW_BATTING_ORDER) {
@@ -255,7 +255,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
             aiPosSwapInputs.onFieldingAlignmentScreen2[team] = 0;
         }
         aiPosSwapInputs.rosterView[team] = ROSTER_VIEW_BATTING_ORDER;
-        updateCharacterSelectProcessCode(team, 0x3C);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CHANGE_ROSTER_VIEW);
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         return;
     }
@@ -269,13 +269,13 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (aiPosSwapInputs.teamManagement_cursorPos[team] == 0) {
             return;
         }
-        if (aiPosSwapInputs.teamMenuType[team] == 1) {
+        if (aiPosSwapInputs.teamMenuType[team] == TEAM_MENU_TYPE_BATTER_SWAP) {
             return;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && aiPosSwapInputs.unkCF70 != 0) {
             return;
         }
-        if (g_d_GameSettings._06 == 2) {
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
             return;
         }
         if (aiPosSwapInputs.teamConfirmed[team] != 0) {
@@ -294,7 +294,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (aiPosSwapInputs.teamManagement_cursorPos[team] == 0) {
             return;
         }
-        if (g_d_GameSettings._06 == 2) {
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
             return;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
@@ -306,7 +306,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
             aiPosSwapInputs.starMenuActive = 1;
             aiPosSwapInputs.starMenuPrevCursorPos = 0;
             aiPosSwapInputs.starMenuCursorPos = 0;
-            aiPosSwapInputs.starMenuDrawStep = 1;
+            aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_OPEN;
             aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_STAR_MENU_UNUSED;
             sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, 0);
             return;
@@ -337,8 +337,8 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (gameSetUpStep.preventCursorMovement[1] != 0) {
             return;
         }
-        if (g_d_GameSettings._06 == 2) {
-            if (aiPosSwapInputs.teamManagement_cursorPos[team] != 0 && aiPosSwapInputs.teamMenuType[team] == 1) {
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+            if (aiPosSwapInputs.teamManagement_cursorPos[team] != 0 && aiPosSwapInputs.teamMenuType[team] == TEAM_MENU_TYPE_BATTER_SWAP) {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
                 return;
             }
@@ -358,13 +358,13 @@ void teamManagement_takeInputs(s32 playerIndex) {
                 aiPosSwapInputs.charSelectedToBeSwappedCharID[team] =
                     fn_800471F4(aiPosSwapInputs.charSelectedToBeSwapped[team], team);
                 aiPosSwapInputs.charSelectedToBeSwapped[team] = 1;
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
                 lbl_803CBCC8 = 1;
             } else {
                 aiPosSwapInputs.charSelectedToBeSwappedCharID[team] =
                     fn_800471F4(aiPosSwapInputs.charSelectedToBeSwapped[team], team);
                 aiPosSwapInputs.charSelectedToBeSwapped[team] = 0;
-                updateCharacterSelectProcessCode(team, 0x3B);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_MOVE);
                 aiPosSwapInputs.swapCompleted[team] = 1;
             }
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -378,20 +378,20 @@ void teamManagement_takeInputs(s32 playerIndex) {
             sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
             return;
         }
-        if (g_d_GameSettings._06 == 2) {
-            updateCharacterSelectProcessCode(team, 0x43);
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_EXIT);
             aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             return;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-            updateCharacterSelectProcessCode(0, 0x43);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_EXIT);
             aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             return;
         }
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && aiPosSwapInputs.teamConfirmed[0] == 0) {
-            if (g_d_GameSettings._06 == 2) {
+            if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
                 aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_2;
                 updateCharacterSelectProcessCode(team, 0x33);
             } else {
@@ -399,7 +399,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
                 aiPosSwapInputs.charSelectedToBeSwapped[team] = 0;
                 aiPosSwapInputs.onePlayerEditingTeam = 1;
                 aiPosSwapInputs.teamConfirmed[0] = 1;
-                updateCharacterSelectProcessCode(team, 0x3F);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_1P_TO_CPU_TEAM);
             }
             aiPosSwapInputs.teamConfirmed[0] = 1;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -416,8 +416,8 @@ void teamManagement_takeInputs(s32 playerIndex) {
                     sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
                     return;
                 }
-                updateCharacterSelectProcessCode(0, 0x43);
-                updateCharacterSelectProcessCode(1, 0x43);
+                updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_EXIT);
+                updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_EXIT);
                 aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
                 return;
@@ -430,14 +430,14 @@ void teamManagement_takeInputs(s32 playerIndex) {
                     aiPosSwapInputs.teamConfirmed[team] = 0;
                     return;
                 }
-                updateCharacterSelectProcessCode(0, 0x43);
-                updateCharacterSelectProcessCode(1, 0x43);
+                updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_EXIT);
+                updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_EXIT);
                 aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
                 return;
             }
             aiPosSwapInputs.waitingForOtherTeam[team] = 1;
-            updateCharacterSelectProcessCode(team, 0x41);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_WAIT_FOR_OTHER_TEAM);
         }
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         return;
@@ -462,7 +462,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
             if (aiPosSwapInputs.teamManagement_cursorPos[team] == aiPosSwapInputs.teamManagement_prevCursorPos[team]) {
                 aiPosSwapInputs.charSelectedToBeSwappedCharID[team] = 0xFF;
             } else {
-                updateCharacterSelectProcessCode(team, 0x44);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CANCEL_SWAP);
             }
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             return;
@@ -470,7 +470,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (aiPosSwapInputs.teamManagement_cursorPos[team] != 0) {
             aiPosSwapInputs.teamManagement_prevCursorPos[team] = aiPosSwapInputs.teamManagement_cursorPos[team];
             aiPosSwapInputs.teamManagement_cursorPos[team] = 0;
-            updateCharacterSelectProcessCode(team, 0x3E);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM);
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             return;
         }
@@ -482,12 +482,12 @@ void teamManagement_takeInputs(s32 playerIndex) {
             aiPosSwapInputs.unkCF40 = 0;
             aiPosSwapInputs.onFieldingAlignmentScreen2[0] = 0;
             aiPosSwapInputs.teamManagement_cursorPos[0] = 0;
-            updateCharacterSelectProcessCode(team, 0x40);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_1P_TO_OWN_TEAM);
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             return;
         }
         if (aiPosSwapInputs.teamConfirmed[team] != 0) {
-            updateCharacterSelectProcessCode(team, 0x42);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_CANCEL_CONFIRM);
             aiPosSwapInputs.teamConfirmed[team] = 0;
             aiPosSwapInputs.waitingForOtherTeam[team] = 0;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
@@ -498,14 +498,14 @@ void teamManagement_takeInputs(s32 playerIndex) {
         aiPosSwapInputs.onFieldingAlignmentScreen2[1] = 0;
         aiPosSwapInputs.teamManagement_cursorPos[1] = 0;
         aiPosSwapInputs.onePlayerEditingTeam = 0;
-        if (g_d_GameSettings._06 == 2) {
-            updateCharacterSelectProcessCode(team, 0x43);
+        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_EXIT);
             aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             return;
         }
-        updateCharacterSelectProcessCode(0, 0x3A);
-        updateCharacterSelectProcessCode(1, 0x3A);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_RETURN_TO_CSS);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_RETURN_TO_CSS);
         aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_RETURN_TO_CSS_1;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         return;

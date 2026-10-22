@@ -34,7 +34,7 @@ void SetMenuNumber(void) {
     u8 code;
     u8 *p;
 
-    if (g_d_GameSettings._06 != 2) {
+    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             menu = 0x16;
         } else {
@@ -65,7 +65,7 @@ void SetMenuNumber(void) {
     }
 
     code = aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused];
-    if (code != 2 && code != 3) {
+    if (code != TEAM_MENU_TYPE_SCOUT_FLAGS && code != TEAM_MENU_TYPE_STAR_MISSIONS) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE &&
             aiPosSwapInputs.unkCF70 != 0 &&
             superstarUnlocked[0xE4] == 0) {
@@ -73,7 +73,7 @@ void SetMenuNumber(void) {
         }
         insertGraphicDrawingFunction(teamManagementGraphics_initialLoad, 0x3000);
     } else {
-        if (code == 2) {
+        if (code == TEAM_MENU_TYPE_SCOUT_FLAGS) {
             insertGraphicDrawingFunction(scoutFlagMenu, 0x3000);
         } else {
             insertGraphicDrawingFunction(starMenu, 0x3000);

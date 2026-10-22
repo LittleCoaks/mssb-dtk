@@ -28,7 +28,7 @@ static inline void createTeamManagementScreen(u32 priority, s8 team, u8 player) 
     aiPosSwapInputs.teamManagementProcessID = 0;
     aiPosSwapInputs.teamThatPaused = team;
     aiPosSwapInputs.onMainPauseMenu = 0;
-    if (g_d_GameSettings._06 != 2) {
+    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         aiPosSwapInputs.playerWhoPaused = 0;
     } else {
         aiPosSwapInputs.playerWhoPaused = player;
