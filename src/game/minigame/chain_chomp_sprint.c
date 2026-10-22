@@ -192,13 +192,13 @@ void chainChompSprintRelated(void) {
             shuffleIntArray(order, g_Minigame.miniGameNumberOfParticipants, FALSE);
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
-                    fn_3_810C4(i, ccs_runnerStartBases[4][order[i]]);
+                    running_placeRunnerOnBase(i, ccs_runnerStartBases[4][order[i]]);
                 }
             }
         } else {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
-                    fn_3_810C4(i, ccs_runnerStartBases[g_Minigame.soloMinigameDifficulty][i]);
+                    running_placeRunnerOnBase(i, ccs_runnerStartBases[g_Minigame.soloMinigameDifficulty][i]);
                 }
             }
         }
@@ -898,7 +898,7 @@ void ccs_spawnItem(int item) {
                 g_Minigame.coinState[coin] = item + 1;
                 g_Minigame.coinBasePathPos[coin] = (f32)pos / 100.0f;
                 g_Minigame.coinFrameCounter[coin] = 0;
-                fn_3_7FED4((VecXYZ*)&g_Minigame.coinPos[coin], g_Minigame.coinBasePathPos[coin], (f32)(pos % 100) / 100.0f);
+                running_basePathPosition((VecXYZ*)&g_Minigame.coinPos[coin], g_Minigame.coinBasePathPos[coin], (f32)(pos % 100) / 100.0f);
                 chainChomp_spawnItemSparkle(coin, *state, &g_Minigame.coinPos[coin]);
                 break;
             }
@@ -1082,7 +1082,7 @@ void ccs_updatePowerupSpawn(MinigamePowerupStruct* powerup) {
                 }
             }
             powerup->basePathPos = (f32)*spot / 10.0f;
-            fn_3_7FED4(&powerup->pos, powerup->basePathPos, 0.0f);
+            running_basePathPosition(&powerup->pos, powerup->basePathPos, 0.0f);
             memset(&powerup->_0C, 0, sizeof(VecXYZ));
             powerup->timer = ccs_powerupTimers[1];
         }
