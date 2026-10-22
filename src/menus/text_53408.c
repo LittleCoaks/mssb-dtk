@@ -1,5 +1,6 @@
 #include "menus/text_53408.h"
 #include "text/text.h"
+#include "menus/text_35EC0.h"
 #include "Dolphin/GX/GXPixel.h"
 #include "Unknown/File_0x80035838.h"
 #include "Unknown/File_0x800b0a14.h"
@@ -354,26 +355,25 @@ void fn_2_53F04(void *arg) {
     }
 }
 
+static inline TextGraphicsObject *entryObject(void *arg, Fn53Entry *entry) {
+    return graphicsRelatedArray[((TextScene *)arg)->firstHandle + entry->index].object;
+}
+
+static inline void clearEntryObject(void *arg, Fn53Entry *entry) {
+    if (entry->ptr != NULL) {
+        *((u8 *)entryObject(arg, entry) + 0x68) = 0;
+        entryObject(arg, entry)->flags &= ~0x2;
+    }
+}
+
 // .text:0x00053DF8 size:0x10C mapped:0x80692E8C
 void fn_2_53DF8(void *arg) {
     s32 i;
     s32 j;
 
     for (i = 0; i < 0x46; i++) {
-        Fn53Entry *entries = (Fn53Entry *)(lbl_2_bss_1A8234 + i * 0x5100);
-        for (j = 0; j < 0x360; j += 2) {
-            if (entries[j].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
-            if (entries[j + 1].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j + 1].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
+        for (j = 0; j < 0x360; j++) {
+            clearEntryObject(arg, (Fn53Entry *)(lbl_2_bss_1A8234 + i * 0x5100 + j * sizeof(Fn53Entry)));
         }
     }
 }
@@ -384,20 +384,8 @@ void fn_2_53CEC(void *arg) {
     s32 j;
 
     for (i = 0; i < 10; i++) {
-        Fn53Entry *entries = (Fn53Entry *)(lbl_2_bss_1A8230 + i * 0x5100);
-        for (j = 0; j < 0x360; j += 2) {
-            if (entries[j].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
-            if (entries[j + 1].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j + 1].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
+        for (j = 0; j < 0x360; j++) {
+            clearEntryObject(arg, (Fn53Entry *)(lbl_2_bss_1A8230 + i * 0x5100 + j * sizeof(Fn53Entry)));
         }
     }
 }

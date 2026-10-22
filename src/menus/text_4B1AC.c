@@ -6,6 +6,7 @@
 
 extern u8 superstarUnlocked[0x130];
 extern u8 *lbl_2_bss_1A824C;
+extern u8 *lbl_2_bss_1A823C;
 extern u8 *lbl_2_bss_1A8244;
 extern ChallengeState *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3ED4[];
@@ -57,9 +58,144 @@ void fn_2_4B1AC(void) {
     challenge_leftoverTeammatesJoinBowserJr();
 }
 
+static inline void restoreChallengeProgress(void) {
+    s32 character;
+    int mission;
+
+    for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
+        lbl_2_bss_1A8248->characters[character].scoutFlagsAchieved = lbl_2_bss_1A8248->characters[character]._7;
+    }
+    for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[character];
+        for (mission = 0; mission < STAR_MISSIONS_PER_CHARACTER; mission++) {
+            record->inGameMissionTracker[mission].starMissionStatus = record->saveFileMissionTracker[mission].starMissionStatus;
+            record->inGameMissionTracker[mission].shownOnPauseMenu = record->saveFileMissionTracker[mission].shownOnPauseMenu;
+        }
+    }
+}
+
 // .text:0x0004B2D0 size:0x1044 mapped:0x8068A364
 void fn_2_4B2D0(void) {
-    return;
+    u8 result;
+    s16 kind;
+    u8 homeAway;
+    u8 winner;
+    GameInitVariables *settings = &g_d_GameSettings;
+
+    *(s8 *)(WORK_BASE() + 0x7843) = 1;
+    homeAway = settings->home_AwaySetting;
+    winner = StatsScreenScores.winnerSlot;
+    *((u8 *)lbl_2_bss_1A8248 + 0x4418) = settings->bJMatchRelated;
+    if (homeAway == 0 && winner == 0) {
+        result = 0;
+    } else if (homeAway == 1 && winner == 0) {
+        result = 0;
+    } else if (homeAway == 0 && winner == 1) {
+        result = 1;
+    } else if (homeAway == 1 && winner == 1) {
+        result = 1;
+    } else {
+        result = 2;
+    }
+    kind = *(s16 *)(lbl_2_bss_1A823C + 0x30);
+    if (kind == 3) {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 1;
+            WORK_BASE()[0x78F7] = 2;
+            restoreChallengeProgress();
+        } else {
+            if (result == 0) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 0;
+                WORK_BASE()[0x78F7] = 0;
+            } else if (result == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 1;
+                WORK_BASE()[0x78F7] = 0;
+            } else {
+                *(s8 *)(WORK_BASE() + 0x7843) = 2;
+                WORK_BASE()[0x785B] = 2;
+                WORK_BASE()[0x78F7] = 0;
+            }
+            (*(u32 *)((u8 *)lbl_2_bss_1A8248 + 0x42EC))++;
+        }
+    } else if (kind == 5) {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 4;
+            restoreChallengeProgress();
+            WORK_BASE()[0x78F7] = 2;
+        } else if (lbl_2_bss_1A8248->_4420[0] == 0 || lbl_2_bss_1A8248->_4420[0] == 3) {
+            if (settings->_38 == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 3;
+                WORK_BASE()[0x78F7] = 1;
+            } else {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 4;
+                WORK_BASE()[0x78F7] = 1;
+            }
+        } else {
+            if (settings->_38 == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 3;
+                WORK_BASE()[0x78F7] = 1;
+            } else if (settings->_38 == 0) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 2;
+                WORK_BASE()[0x785B] = 5;
+                WORK_BASE()[0x78F7] = 1;
+            } else {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 4;
+                WORK_BASE()[0x78F7] = 1;
+            }
+        }
+    } else if (kind == 4) {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 7;
+            restoreChallengeProgress();
+            WORK_BASE()[0x78F7] = 2;
+        } else {
+            if (result == 0) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 6;
+                WORK_BASE()[0x78F7] = 0;
+            } else if (result == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 7;
+                WORK_BASE()[0x78F7] = 1;
+            } else if (result == 2) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 2;
+                WORK_BASE()[0x785B] = 8;
+                WORK_BASE()[0x78F7] = 1;
+            }
+            (*(u32 *)((u8 *)lbl_2_bss_1A8248 + 0x42EC))++;
+        }
+    } else {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 10;
+            restoreChallengeProgress();
+            WORK_BASE()[0x78F7] = 2;
+        } else if (settings->_38 == 1) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 0;
+            WORK_BASE()[0x78F7] = 1;
+            WORK_BASE()[0x785B] = 9;
+        } else if (settings->_38 == 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 2;
+            WORK_BASE()[0x78F7] = 1;
+            WORK_BASE()[0x785B] = 11;
+        } else {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x78F7] = 1;
+            WORK_BASE()[0x785B] = 10;
+        }
+    }
+    if (*(s8 *)(WORK_BASE() + 0x7843) == 1 || *(s8 *)(WORK_BASE() + 0x7843) == 2) {
+        *((u8 *)lbl_2_bss_1A8248 + 0x44F6) = TRUE;
+    }
 }
 
 // .text:0x0004C314 size:0x58 mapped:0x8068B3A8

@@ -4438,3 +4438,34 @@ scores are not an initial baseline floor. No header or split edits were needed.
 Full build, four output hashes and whitespace checks pass. Evidence:
 build/_origin_0d9cad0_text_50898.json and build/_postmerge_wave7_text_50898.json.
 No emulator test was performed.
+
+### Challenge result recovery and cleanup loops (2026-10-22)
+
+Completed the missing fn_2_4B2D0 dispatcher. Its result classification, menu-kind
+branches, state-write order and rollback direction follow the target. Rollback
+restores54 scout bytes from backup+7 to live+6, then all54x10 mission pairs
+from save+1D..30 to live+9..1C. Typed ChallengeState records and existing count
+constants express the copy loops. text_4B1AC .text31.368752% ->63.579300%;
+fn_2_4B2D0 reaches78.431310%, and its caller fn_2_4B1AC improves to99.452060%.
+All16 initial function floors and two exact functions remain intact.
+
+A private PPC interpreter ran target and compiled dispatcher against a separate
+semantic model for4,608 branch-partition combinations. All final persistent
+writes agree, including every restored record; this covers input partitions,
+not every possible input or runtime environment. Shared compiled instructions
+were also checked equal to the audited private final.
+
+In text_53408, ordinary loops and small entry/object helpers replace manual
+two-entry duplication in fn_2_53CEC and fn_2_53DF8. The object is resolved again
+after its byte store, preserving the target's reload behavior. MWCC naturally
+unrolls the loops in pairs. Both functions42.955223% ->95.417910%, raising the
+unit .text80.383750% ->85.027084%; all21 function floors, nine exacts and
+.data0% are preserved. Target and compiled loops have the same67 instruction
+operations, apart from registers, branch destinations and two independent
+induction updates; bounds remain864 entries over10/70 rows. TextScene.firstHandle
+replaces the raw scene offset in the new helper without changing codegen.
+
+No shared headers or split changes. Full build, four output hashes and
+whitespace checks pass. Evidence: build/_postmerge_wave6_text_4B1AC.json,
+build/_postmerge_wave9_text_53408.json and private wave6 semantic_audit.py.
+No emulator test was performed.
