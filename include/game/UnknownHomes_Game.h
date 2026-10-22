@@ -162,6 +162,19 @@ typedef struct _InMemBatterType {
     /*0xAF*/ E(u8, REGULAR_STAR_SWING) nonCaptainStarSwingActivated;
 } InMemBatterType; // size: 0xb0
 
+typedef enum _LEADOFF_STATUS {
+    /* 0 */ LEADOFF_STATUS_NONE,         // not leading off (reset, stealing, baserunning practice)
+    /* 1 */ LEADOFF_STATUS_LEADING_OFF,  // taking the lead; leadOffTotalFrameCountDown running
+    /* 2 */ LEADOFF_STATUS_AT_FULL_LEAD, // countdown finished, holding the lead
+} LEADOFF_STATUS;
+
+typedef enum _STEALING_STATUS {
+    /* 0 */ STEALING_STATUS_NONE,
+    /* 1 */ STEALING_STATUS_REQUESTED,     // steal input given, waiting on the pitch timing
+    /* 2 */ STEALING_STATUS_NORMAL_STEAL,  // input missed the perfect-steal window
+    /* 3 */ STEALING_STATUS_PERFECT_STEAL, // input landed in perfectStealWindowFrames
+} STEALING_STATUS;
+
 typedef struct _InMemRunnerType {
     /*0x000*/ VecXYZ position;
     /*0x00C*/ VecXYZ positionStored;
@@ -258,7 +271,7 @@ typedef struct _InMemRunnerType {
     /*0x130*/ E(u8, RUNNER_TAGGED_STATE) taggedState;
     /*0x131*/ u8 runnerDidntReachOnError;
     /*0x132*/ u8 isEligibleToScore; // maybe
-    /*0x133*/ u8 leadOffStatus;
+    /*0x133*/ E(u8, LEADOFF_STATUS) leadOffStatus;
     /*0x134*/ u8 unused_const_1;
     /*0x135*/ E(u8, RUNNER_MOVEMENT_TYPE) runningDirectionDesired;
     /*0x136*/ E(u8, RUNNER_MOVEMENT_TYPE) nextDirectionBeingProcessed;
@@ -285,7 +298,7 @@ typedef struct _InMemRunnerType {
     /*0x14B*/ u8 FramesUntilNotSprinting;        // 6?
     /*0x14C*/ u8 someCollisionCheck;             // maybe
     /*0x14D*/ u8 furthestBaseForcedToGoToOnWalk; // steal related
-    /*0x14E*/ u8 stealingStatus;
+    /*0x14E*/ E(u8, STEALING_STATUS) stealingStatus;
     /*0x14F*/ u8 framesSinceStealInput;
     /*0x150*/ u8 advanceTwoRunnersInSameBaselineTimer;
     /*0x151*/ u8 advanceTwoRunnersInSameBaselineCount;

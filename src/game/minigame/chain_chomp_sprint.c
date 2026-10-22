@@ -184,7 +184,7 @@ void chainChompSprintRelated(void) {
                 } else {
                     g_Runners[runnerIdx].unused_batterHandednessForCCS = 1;
                 }
-                g_Runners[runnerIdx].leadOffStatus = 0;
+                g_Runners[runnerIdx].leadOffStatus = LEADOFF_STATUS_NONE;
                 runnerIdx++;
             }
         }

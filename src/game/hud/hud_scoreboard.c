@@ -2039,7 +2039,7 @@ void drawDiamondMiniMap_ongoing(void) {
                 if (g_Runners[i].runnerStatus != 0 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
                     REC(scene, 12)->flags |= UI_FLAG_VISIBLE;
                     for (; i < 4; i++) {
-                        if (g_Runners[i].stealingStatus == 3) {
+                        if (g_Runners[i].stealingStatus == STEALING_STATUS_PERFECT_STEAL) {
                             break;
                         }
                     }

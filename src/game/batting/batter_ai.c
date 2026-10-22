@@ -28,9 +28,9 @@ void fn_3_1E4B8(void) {
     roll = RandomInt_Game(100);
     difficulty = g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam];
     if (roll < batterAIPerfectStealProb[difficulty]) {
-        g_AiLogic.batterAIStealingStartFrame = lbl_3_data_4B90[2] - 1;
+        g_AiLogic.batterAIStealingStartFrame = perfectStealWindowFrames[2] - 1;
     } else {
-        g_AiLogic.batterAIStealingStartFrame = lbl_3_data_4B90[3] - 1;
+        g_AiLogic.batterAIStealingStartFrame = perfectStealWindowFrames[3] - 1;
     }
     pitches = g_Pitcher.nPitchesThisAB;
     if (pitches > 2) {
@@ -669,9 +669,9 @@ void batterAIRNGValueSetting(void) {
             roll = RandomInt_Game(100);
             difficulty = g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam];
             if (roll < batterAIPerfectStealProb[difficulty]) {
-                g_AiLogic.batterAIStealingStartFrame = lbl_3_data_4B90[2] - 1;
+                g_AiLogic.batterAIStealingStartFrame = perfectStealWindowFrames[2] - 1;
             } else {
-                g_AiLogic.batterAIStealingStartFrame = lbl_3_data_4B90[3] - 1;
+                g_AiLogic.batterAIStealingStartFrame = perfectStealWindowFrames[3] - 1;
             }
             pitchCat = g_Pitcher.nPitchesThisAB;
             if (pitchCat > 2) {
