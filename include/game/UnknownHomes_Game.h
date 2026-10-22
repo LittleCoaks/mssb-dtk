@@ -410,8 +410,8 @@ typedef struct _InMemBallType {
     /*0x1B9C*/ sAng Hit_HorizontalAngle;
     /*0x1B9E*/ s16 Hit_HorizontalPower; // bODBasePoints
     /*0x1BA0*/ matchShorts matchFramesAndBallAngle;
-    /*0x1BBE*/ u8 ballZoneAwayFromHome;
-    /*0x1BBF*/ u8 landingSpotZoneAwayFromHome;
+    /*0x1BBE*/ E(u8, BALL_ZONE) ballZoneAwayFromHome;
+    /*0x1BBF*/ E(u8, BALL_ZONE) landingSpotZoneAwayFromHome;
     /*0x1BC0*/ u8 seeminglyAlways1_ballCollideWWallRelated; // seeminglyAlways1_ballCollideWallRelated;
     /*0x1BC1*/ u8 someCollisionVariable;
     /*0x1BC2*/ u8 thrownBallHasHitGround;
@@ -429,7 +429,7 @@ typedef struct _InMemBallType {
     /*0x1BCE*/ u8 lineDriveThroughPitcherInd;
     /*0x1BCF*/ u8 maybeBuntInd;
     /*0x1BD0*/ u8 groundRuleDoubleInd; // unsure
-    /*0x1BD1*/ u8 deadBallReason;
+    /*0x1BD1*/ E(u8, DEAD_BALL_REASON) deadBallReason;
     /*0x1BD2*/ u8 deadBallRBIsAddedInd;
     /*0x1BD3*/ u8 maybebuntOn2Strikes;
     /*0x1BD4*/ u8 ballOnMoundInd;
@@ -561,7 +561,7 @@ typedef struct _InMemPitcherType {
     /*0x14B*/ u8 calced_cursedBall;
     /*0x14C*/ u8 calced_curveControl;
     /*0x14D*/ u8 calced_curve;
-    /*0x14E*/ u8 strikeOutOrWalk;
+    /*0x14E*/ E(u8, AT_BAT_END) strikeOutOrWalk;
     /*0x14F*/ u8 strikeZoneProcessNumber;
     /*0x150*/ u8 specialPitchTypeCode;
     /*0x151*/ u8 frameBallCanStartBeingControlled; // unsure
