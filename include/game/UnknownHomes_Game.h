@@ -228,7 +228,7 @@ typedef struct _InMemRunnerType {
     /*0x10A*/ s16 framesToReachDugout; // maybe
     /*0x10C*/ s16 leadoffDurationFrames;
     /*0x10E*/ s16 leadOffTotalFrameCountDown;
-    /*0x110*/ s16 _110;
+    /*0x110*/ s16 unused_always0;
     /*0x112*/ s16 framesSinceLastDirectionChange;
     /*0x114*/ s16 slideHomeFrames_CountDown;
     /*0x116*/ s16 framesSinceStealStarted;
@@ -240,9 +240,9 @@ typedef struct _InMemRunnerType {
     /*0x11E*/ E(u8, CHARACTER_CLASS) characterClass;
     /*0x11F*/ u8 _11f;
     /*0x120*/ u8 speed;
-    /*0x121*/ u8 _121; // 10
+    /*0x121*/ u8 unused_const_10;
     /*0x122*/ u8 delayBeforeStartingToRun;
-    /*0x123*/ E(u8, RUNNER_STATUS) runnerOnFieldOrOutOrScored;
+    /*0x123*/ E(u8, RUNNER_STATUS) runnerStatus;
     /*0x124*/ u8 startingBase_baseAchieved;
     /*0x125*/ u8 currentBase;
     /*0x126*/ u8 nextBase;
@@ -410,8 +410,8 @@ typedef struct _InMemBallType {
     /*0x1B9C*/ sAng Hit_HorizontalAngle;
     /*0x1B9E*/ s16 Hit_HorizontalPower; // bODBasePoints
     /*0x1BA0*/ matchShorts matchFramesAndBallAngle;
-    /*0x1BBE*/ u8 ballZoneAwayFromHome;
-    /*0x1BBF*/ u8 landingSpotZoneAwayFromHome;
+    /*0x1BBE*/ E(u8, BALL_ZONE) ballZoneAwayFromHome;
+    /*0x1BBF*/ E(u8, BALL_ZONE) landingSpotZoneAwayFromHome;
     /*0x1BC0*/ u8 seeminglyAlways1_ballCollideWWallRelated; // seeminglyAlways1_ballCollideWallRelated;
     /*0x1BC1*/ u8 someCollisionVariable;
     /*0x1BC2*/ u8 thrownBallHasHitGround;
@@ -429,7 +429,7 @@ typedef struct _InMemBallType {
     /*0x1BCE*/ u8 lineDriveThroughPitcherInd;
     /*0x1BCF*/ u8 maybeBuntInd;
     /*0x1BD0*/ u8 groundRuleDoubleInd; // unsure
-    /*0x1BD1*/ u8 deadBallReason;
+    /*0x1BD1*/ E(u8, DEAD_BALL_REASON) deadBallReason;
     /*0x1BD2*/ u8 deadBallRBIsAddedInd;
     /*0x1BD3*/ u8 maybebuntOn2Strikes;
     /*0x1BD4*/ u8 ballOnMoundInd;
@@ -561,7 +561,7 @@ typedef struct _InMemPitcherType {
     /*0x14B*/ u8 calced_cursedBall;
     /*0x14C*/ u8 calced_curveControl;
     /*0x14D*/ u8 calced_curve;
-    /*0x14E*/ u8 strikeOutOrWalk;
+    /*0x14E*/ E(u8, AT_BAT_END) strikeOutOrWalk;
     /*0x14F*/ u8 strikeZoneProcessNumber;
     /*0x150*/ u8 specialPitchTypeCode;
     /*0x151*/ u8 frameBallCanStartBeingControlled; // unsure
@@ -2243,7 +2243,7 @@ typedef struct {
     /* 0x0 */ s16 _00;
     /* 0x2 */ u8 queue[5];
     /* 0x7 */ u8 _07;
-    /* 0x8 */ u8 _08;
+    /* 0x8 */ u8 hudPopupCode; // read and cleared by the scoreboard HUD: 1 perfect pitch, 2/3 hit contact, 4 big play
 } lbl_3_common_bss_32718_struct;
 
 extern lbl_3_common_bss_32718_struct g_UnkSound_32718;
@@ -2268,7 +2268,7 @@ typedef struct {
     /* 0x3C */ f32 _3C;
     /* 0x40 */ s16 AIFrameToBeginPitch;
     /* 0x42 */ u16 _42;
-    /* 0x44 */ s16 _44;
+    /* 0x44 */ s16 aiMashPressesRemaining; // lbl_3_data_1C58[difficulty][1] presses per play
     /* 0x46 */ u8 _46;
     /* 0x47 */ u8 _47;
     /* 0x48 */ u8 unused_highUrgencySituationTracker;
@@ -2317,7 +2317,7 @@ typedef struct {
     /* 0x74 */ u8 _74;
     /* 0x75 */ u8 batterAIStealIndicator;
     /* 0x76 */ u8 batterAIStealingStartFrame;
-    /* 0x77 */ u8 _77;
+    /* 0x77 */ u8 aiMashCooldownFrames; // lbl_3_data_1C58[difficulty][2] frames between press rolls
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
     /* 0x7C */ VecXZ _7C[4];
@@ -2538,12 +2538,12 @@ typedef struct {
 } FielderDash; // size: 0x1c
 
 typedef struct {
-    /*0x00*/ s16 _00;
-    /*0x02*/ s16 _02;
-    /*0x04*/ s16 runnersByCurrentBaseMask; // bit (currentBase * 4) set per runner on the field
+    /*0x00*/ s16 runnersOnFieldMask;       // RUNNER_BIT(runnerIdx) per runner still on the field (Ghidra: baseRunnerHex)
+    /*0x02*/ s16 runnersAtStartOfPlayMask; // RUNNER_BIT(runnerIdx) per runner at the start of the play (Ghidra: baseRunnerStartingPos)
+    /*0x04*/ s16 runnersByCurrentBaseMask; // RUNNER_BIT(currentBase) per runner on the field
     /*0x06*/ s16 runnerTransferIndex[4];
     artificial_padding(0x06, 0x10, s16[4]);
-    /*0x10*/ u8 _10;
+    /*0x10*/ u8 nOffensivePlayersOnField;
     /*0x11*/ u8 _11;
     /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
     /*0x13*/ u8 _13;
@@ -2552,6 +2552,15 @@ typedef struct {
     artificial_padding(0x15, 0x1F, u8);
     /*0x1F*/ s8 _1f;
 } g_RunningLogic_s; // size: 0x20
+
+/* g_RunningLogic runner masks: one nibble per runner index (0 = batter,
+ * 1-3 = the runner who started the play on that base); runnersByCurrentBaseMask
+ * uses the same nibbles indexed by base. */
+#define RUNNER_BIT(n)        (1 << ((n) * 4))
+#define RUNNER_BIT_BATTER    0x0001
+#define RUNNER_BIT_ON_FIRST  0x0010
+#define RUNNER_BIT_ON_SECOND 0x0100
+#define RUNNER_BIT_ON_THIRD  0x1000
 
 extern g_RunningLogic_s g_RunningLogic;
 
@@ -2901,7 +2910,7 @@ typedef struct _GameScoresControlsStruct {
     /*0x000*/ s32 Inning;
     /*0x004*/ ScoreStruct scores[2];
     /*0x050*/ ScoreStruct hits[2];
-    /*0x09C*/ s16 _9C;
+    /*0x09C*/ s16 rbisWaitingToBeAddedToScore;
     /*0x09E*/ s16 _9E;
     /*0x0A0*/ s16 _A0;
     /*0x0A2*/ s16 _A2;

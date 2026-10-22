@@ -1448,9 +1448,9 @@ void calculateVerticalAngle(void) {
             }
 
             if (color == 1) {
-                g_UnkSound_32718._08 = 2;
+                g_UnkSound_32718.hudPopupCode = 2;
             } else if (color == 2) {
-                g_UnkSound_32718._08 = 3;
+                g_UnkSound_32718.hudPopupCode = 3;
             }
 
             if (trajOverrideCode == 0) {
@@ -1602,7 +1602,7 @@ void calculateHorizontalPower(void) {
             g_Ball.Hit_VerticalAngle =
                 RandomInt_Game_Range(bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][0],
                                      bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][1]);
-            g_UnkSound_32718._08 = 2;
+            g_UnkSound_32718.hudPopupCode = 2;
         } else {
             g_Ball.Hit_VerticalAngle = RandomInt_Game_Range(bOD_hitVertAngleRanges[0][0], bOD_hitVertAngleRanges[0][1]);
             power *= 0.7f;

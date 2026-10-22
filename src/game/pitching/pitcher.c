@@ -96,8 +96,8 @@ static inline void advanceForcedRunners(void) {
     if (g_Pitcher.strikeOutOrWalk == 3) {
         for (i = 1; i < 4; i++) {
             InMemRunnerType* r = &g_Runners[i];
-            if (r->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-                r->runnerOnFieldOrOutOrScored == RUNNER_STATUS_WALK_WHILE_STEALING) {
+            if (r->runnerStatus == RUNNER_STATUS_ON_FIELD ||
+                r->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                 if (seenOther == 0) {
                     r->currentBase = i;
                     updateRunnerPosition(i, 1);
@@ -112,8 +112,8 @@ static inline void advanceForcedRunners(void) {
     } else {
         for (i = 1; i < 4; i++) {
             InMemRunnerType* r = &g_Runners[i];
-            if (r->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD &&
-                r->runnerOnFieldOrOutOrScored != RUNNER_STATUS_WALK_WHILE_STEALING) {
+            if (r->runnerStatus != RUNNER_STATUS_ON_FIELD &&
+                r->runnerStatus != RUNNER_STATUS_WALK_WHILE_STEALING) {
                 break;
             }
             if (i == r->currentBase) {
@@ -637,7 +637,7 @@ void pitchingWindUpFunction(void) {
         }
         pitchBeingReleased();
         if (g_Pitcher.ChargePitchType == 3) {
-            g_UnkSound_32718._08 = 1;
+            g_UnkSound_32718.hudPopupCode = 1;
             perfectPitchGraphicsRelated();
         }
         if (g_Pitcher.specialPitchTypeCode != 1 && g_Pitcher.specialPitchTypeCode != 2 && g_Pitcher.specialPitchTypeCode != 3 &&
@@ -784,7 +784,7 @@ void endAtBatNonHit(void) {
             scoutFlag_checkMissionSuccess();
             scoutState.scoutCountdown = 0xB4;
         }
-        if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic._10 == 4) {
+        if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic.nOffensivePlayersOnField == 4) {
             if (g_Scores.halfInning != 0) {
                 if (g_Scores.Inning >= g_Scores.inningLimit && g_Scores.scores[0].total == g_Scores.scores[1].total) {
                     QueueTextToDisplay(0xD, 0);
@@ -866,8 +866,8 @@ void fn_3_7372C(void) {
     if (g_Pitcher.strikeOutOrWalk == 3) {
         for (i = 1; i < 4; i++) {
             InMemRunnerType* r = &g_Runners[i];
-            if (r->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-                r->runnerOnFieldOrOutOrScored == RUNNER_STATUS_WALK_WHILE_STEALING) {
+            if (r->runnerStatus == RUNNER_STATUS_ON_FIELD ||
+                r->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                 if (seenOther == 0) {
                     r->currentBase = i;
                     updateRunnerPosition(i, 1);
@@ -882,8 +882,8 @@ void fn_3_7372C(void) {
     } else {
         for (i = 1; i < 4; i++) {
             InMemRunnerType* r = &g_Runners[i];
-            if (r->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD &&
-                r->runnerOnFieldOrOutOrScored != RUNNER_STATUS_WALK_WHILE_STEALING) {
+            if (r->runnerStatus != RUNNER_STATUS_ON_FIELD &&
+                r->runnerStatus != RUNNER_STATUS_WALK_WHILE_STEALING) {
                 break;
             }
             if (i == r->currentBase) {
@@ -918,8 +918,8 @@ void handleHPBORRunnerAdvance(void) {
     if (g_Pitcher.strikeOutOrWalk == 3) {
         for (i = 1; i < 4; i++) {
             InMemRunnerType* r = &g_Runners[i];
-            if (r->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-                r->runnerOnFieldOrOutOrScored == RUNNER_STATUS_WALK_WHILE_STEALING) {
+            if (r->runnerStatus == RUNNER_STATUS_ON_FIELD ||
+                r->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                 if (seenOther == 0) {
                     r->currentBase = i;
                     updateRunnerPosition(i, 1);
@@ -934,8 +934,8 @@ void handleHPBORRunnerAdvance(void) {
     } else {
         for (i = 1; i < 4; i++) {
             InMemRunnerType* r = &g_Runners[i];
-            if (r->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD &&
-                r->runnerOnFieldOrOutOrScored != RUNNER_STATUS_WALK_WHILE_STEALING) {
+            if (r->runnerStatus != RUNNER_STATUS_ON_FIELD &&
+                r->runnerStatus != RUNNER_STATUS_WALK_WHILE_STEALING) {
                 break;
             }
             if (i == r->currentBase) {
@@ -1819,7 +1819,7 @@ BOOL waitingForPitch_checkForPickoffs(void) {
             if (g_GameLogic.FrameCountOfCurrentPitch < 90) {
                 return 0;
             }
-            if (g_RunningLogic._10 <= 1) {
+            if (g_RunningLogic.nOffensivePlayersOnField <= 1) {
                 return 0;
             }
             if (fn_3_6F6CC()) {
@@ -1835,15 +1835,15 @@ BOOL waitingForPitch_checkForPickoffs(void) {
             }
             g_Pitcher.pickOffLoc = 4;
             if (controls->buttonInput & INPUT_BUTTON_LEFT) {
-                if (g_Runners[3].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+                if (g_Runners[3].runnerStatus != RUNNER_STATUS_NONE) {
                     g_Pitcher.pickOffLoc = 3;
                 }
             } else if (controls->buttonInput & INPUT_BUTTON_UP) {
-                if (g_Runners[2].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+                if (g_Runners[2].runnerStatus != RUNNER_STATUS_NONE) {
                     g_Pitcher.pickOffLoc = 2;
                 }
             } else if (controls->buttonInput & INPUT_BUTTON_RIGHT) {
-                if (g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+                if (g_Runners[1].runnerStatus != RUNNER_STATUS_NONE) {
                     g_Pitcher.pickOffLoc = 1;
                 }
             }
@@ -1863,7 +1863,7 @@ BOOL waitingForPitch_checkForPickoffs(void) {
 BOOL fn_3_6F6CC(void) {
     int i;
     for (i = 1; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD &&
             g_Runners[i].percentTowardsNextBase > 0.5f) {
             g_Pitcher.pickOffLoc = 4;
             transitionToLiveBallWithoutContact(0);
@@ -1889,8 +1889,8 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
             return FALSE;
         }
         for (i = 1; i < 4; i++) {
-            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-                g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
+                g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                 if (g_Runners[i].furthestBaseForcedToGoToOnWalk == 1) {
                     forcedAdvance = TRUE;
                 }
@@ -1901,7 +1901,7 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
         }
     }
     for (i = 1; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
             g_Pitcher.pickOffLoc = 5;
             transitionToLiveBallWithoutContact(1);
             if (g_Pitcher.strikeOutOrWalk == 1) {

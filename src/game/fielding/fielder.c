@@ -448,7 +448,7 @@ void pPRelated(void) {
         }
     }
 
-    if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+    if (g_Runners[1].runnerStatus == RUNNER_STATUS_ON_FIELD) {
         g_Fielders[2].locationResponsibleForCovering = 1;
         g_Fielders[2].isResponsibleForCoveringALocation = 1;
         g_Fielders[2].baseCurrentlyOn = 1;
@@ -477,7 +477,7 @@ void fielding_setStartingCoordinates(int fielderIndex, f32* outX, f32* outZ) {
     if (fielderIndex <= 5) {
         int holdIndex;
 
-        if (g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
+        if (g_Runners[1].runnerStatus != RUNNER_STATUS_NONE &&
             g_Runners[1].furthestBaseForcedToGoToOnWalk != 0 &&
             g_Ball.pitchHangtimeCounter > 0 &&
             g_Pitcher.framesUntilUnhittable < 15) {
@@ -505,12 +505,12 @@ void fielding_setStartingCoordinates(int fielderIndex, f32* outX, f32* outZ) {
             }
         }
 
-        if ((fielderIndex == 2 && g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) ||
-            (fielderIndex == 4 && g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD)) {
+        if ((fielderIndex == 2 && g_Runners[1].runnerStatus == RUNNER_STATUS_ON_FIELD) ||
+            (fielderIndex == 4 && g_Runners[3].runnerStatus == RUNNER_STATUS_ON_FIELD)) {
             holdIndex = holdRunnersSlot;
         }
 
-        if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+        if (g_Runners[2].runnerStatus == RUNNER_STATUS_ON_FIELD) {
             if (fielderIndex == 3) {
                 if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
                     g_FieldingLogic.whosHoldingOnRunnerAt2nd = 0;
@@ -1428,7 +1428,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
                 }
 
                 if (framesSinceHit < 0x78) {
-                    if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+                    if (g_Runners[3].runnerStatus == RUNNER_STATUS_ON_FIELD &&
                         g_Runners[3].fractionalBasesRan >= 3.3f) {
                         g_FieldingLogic.catcherNotFocusedOnRunnerScoring = 0;
                     } else if (g_Fielders[1].autoMovementFunctionIndex != 1) {
@@ -1612,7 +1612,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
 
     if (g_BallsStrikesOuts.outs >= 3) {
         fielder->animationRelated = 4;
-    } else if (g_RunningLogic._10 == 0 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
+    } else if (g_RunningLogic.nOffensivePlayersOnField == 0 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
         fielder->animationRelated = 0;
     } else if (g_Ball.fielderWBallIndex == fielderIndex) {
         fielder->animationRelated = 3;
@@ -1660,7 +1660,7 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
     }
 
     if (g_FieldingLogic.runnerChasingAfter >= 0 && fielder->autoFielderInd == 0 &&
-        g_Runners[g_FieldingLogic.runnerChasingAfter].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
+        g_Runners[g_FieldingLogic.runnerChasingAfter].runnerStatus != RUNNER_STATUS_ON_FIELD) {
         g_FieldingLogic.runnerChasingAfter = -1;
     }
 
@@ -1682,7 +1682,7 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
             s16 someRunnerNum = g_FieldingLogic.someRunnerNum;
 
             if (someRunnerNum >= 0) {
-                if (g_Runners[someRunnerNum].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD ||
+                if (g_Runners[someRunnerNum].runnerStatus != RUNNER_STATUS_ON_FIELD ||
                     g_Runners[someRunnerNum].baseStandingOn >= 0) {
                     g_FieldingLogic.someRunnerNum = -1;
                 } else {
@@ -1843,7 +1843,7 @@ void handleBodyCheck2(int fielderIndex) {
         int runnerIndex = g_FieldingLogic.index_runnerAttemptingBodycheck;
 
         if (g_Runners[runnerIndex].baseStandingOn >= 0 ||
-            g_Runners[runnerIndex].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+            g_Runners[runnerIndex].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY) {
             g_FieldingLogic.bodyCheckResult = 0;
             g_FieldingLogic.framesRunnerIsOutBy = 0;
         }
@@ -1860,7 +1860,7 @@ void handleBodyCheck2(int fielderIndex) {
     for (i = 3; i >= 0; i--) {
         runner = &g_Runners[i];
 
-        if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
+        if (runner->runnerStatus != RUNNER_STATUS_ON_FIELD) {
             continue;
         }
         if (runner->forceOutCd > 0) {
@@ -2248,7 +2248,7 @@ void fn_3_54900(int fielderIndex) {
         targetX = base_MoundCoordinates[4].x;
         targetZ = base_MoundCoordinates[4].z;
     } else {
-        if (g_RunningLogic._10 == 0) {
+        if (g_RunningLogic.nOffensivePlayersOnField == 0) {
             fielder->desiredMovementDirectionStored = fielder->desiredMovementDirection;
             fielder->_01F2 = 1;
             return;
@@ -5365,7 +5365,7 @@ void updateSomeAutoMovementAssignments(void) {
     if (g_BallsStrikesOuts.outs >= 3) {
         return;
     }
-    if (g_RunningLogic._10 == 0) {
+    if (g_RunningLogic.nOffensivePlayersOnField == 0) {
         return;
     }
 
@@ -6955,7 +6955,7 @@ int fn_3_47628(void) {
     InMemRunnerType* runner = &g_Runners[3];
 
     for (i = 3; i >= 0; runner--, i--) {
-        if (runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
+        if (runner->runnerStatus != RUNNER_STATUS_ON_FIELD) {
             continue;
         }
         if (runner->fractionalBasesRan >= 3.7f &&
@@ -8588,7 +8588,7 @@ void aITeamFieldingFirstFrameAfterHit(void) {
     if (g_Scores.inningLimit <= g_Scores.Inning && g_Scores.halfInning != 0 &&
         g_Scores.scores[0].total == g_Scores.scores[1].total &&
         g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 && g_BallsStrikesOuts.storedOuts <= 1 &&
-        (g_RunningLogic._02 & 0x1000) != 0 &&
+        (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000) != 0 &&
         foul_checkIfFoul(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z) &&
         !foul_isBallWithin3mFair(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z) &&
         g_Ball.physicsSubstruct.hitLandingSpotDistFromHome > 60.0f) {
@@ -8984,7 +8984,7 @@ void fn_3_3F760(void) {
     setFielderAutoMovement(0, 3);
 
     if (g_Fielders[1].cantCatchFlyBallInd == 0) {
-        if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+        if (g_Runners[3].runnerStatus == RUNNER_STATUS_ON_FIELD &&
             g_Runners[3].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS &&
             g_Runners[3].fractionalBasesRan >= 3.25f &&
             g_Fielders[1].framesToGetToBallLandingSpot > 0) {
@@ -9044,7 +9044,7 @@ void fn_3_3F760(void) {
                     setFielderAutoMovement(5, 3);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t4].pos.z < base_MoundCoordinates[1].z) {
-                if (!(g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && t4 > 0)) {
+                if (!(g_Runners[2].runnerStatus == RUNNER_STATUS_ON_FIELD && t4 > 0)) {
                     diff = g_Fielders[0].framesToGetToBallLandingSpot - t4;
                     if (diff < 0x50) {
                         f = &g_Fielders[4];
@@ -14419,7 +14419,7 @@ void determineSelectedfielderOnIFHit_Dribbler(void) {
     int diff;
 
     if (g_Fielders[1].cantCatchFlyBallInd == 0) {
-        if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+        if (g_Runners[3].runnerStatus == RUNNER_STATUS_ON_FIELD &&
             g_Runners[3].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS &&
             g_Runners[3].fractionalBasesRan >= 3.25f &&
             g_Fielders[1].framesToGetToBallLandingSpot > 0) {
@@ -14482,7 +14482,7 @@ void determineSelectedfielderOnIFHit_Dribbler(void) {
                 goto highSec4;
             }
         } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t4].pos.z < base_MoundCoordinates[1].z) {
-            if (g_Runners[2].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && t4 > 0) {
+            if (g_Runners[2].runnerStatus == RUNNER_STATUS_ON_FIELD && t4 > 0) {
                 goto highSec4;
             } else {
                 diff = g_Fielders[0].framesToGetToBallLandingSpot - t4;
@@ -14824,11 +14824,11 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
         }
 
         if (fielder->currentVelocity > 0.0f) {
-            if (pauseControl._1D5 == 0) {
+            if (pauseControl.isPaused == 0) {
                 fielder->desiredMovementDirection = ATAN2F(fielder->velocityZ, fielder->velocityX);
             }
         } else if (g_Pitcher.pitchTotalTimeCounter > 0 ||
-                   g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD || i != 2 ||
+                   g_Runners[1].runnerStatus != RUNNER_STATUS_ON_FIELD || i != 2 ||
                    minigamesEnabled) {
             fielder->desiredMovementDirection = ATAN2F(-fielder->pos.z, -fielder->pos.x);
         } else {
@@ -14861,7 +14861,7 @@ void fielding_prePitchAutomovement(void) {
     int i;
     InMemFielder* fielder;
 
-    if (pauseControl._1D5 == 0) {
+    if (pauseControl.isPaused == 0) {
         for (i = 2; i < 9; i++) {
             f32 outZ;
             f32 outX;
@@ -14924,7 +14924,7 @@ void fielding_prePitchAutomovement(void) {
                     }
                 } else if (((i == 3 && g_Batter.batterHand == BATTING_HAND_RIGHT) ||
                             (i == 5 && g_Batter.batterHand != BATTING_HAND_RIGHT)) &&
-                           g_Runners[1].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
+                           g_Runners[1].runnerStatus != RUNNER_STATUS_NONE &&
                            g_Runners[1].furthestBaseForcedToGoToOnWalk != 0) {
                     fielder->currentVelocity += fielder->runningAccelerationFactor;
                     if (fielder->currentVelocity > fielder->joggingSpeed) {
@@ -15801,7 +15801,7 @@ void fn_3_2E41C(void) {
     int i;
     int fielderIdx;
 
-    if (pauseControl._1D5 != 0) {
+    if (pauseControl.isPaused != 0) {
         return;
     }
 
@@ -18568,7 +18568,7 @@ void updateVariablesPostCatch(int fielderIndex) {
             g_Ball.baseBallAndFielderAreOn = locationIdx;
             for (i = 0; i < 4; i++) {
                 InMemRunnerType* runner = &g_Runners[i];
-                if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+                if (runner->runnerStatus == RUNNER_STATUS_ON_FIELD) {
                     if (fielder->locationResponsibleForCovering == runner->baseStandingOn &&
                         runner->timeStandingOnBase < 0x78) {
                         if (runner->tagUpStatus != TAG_UP_TYPE_MUST_RETURN ||
@@ -18576,7 +18576,7 @@ void updateVariablesPostCatch(int fielderIndex) {
                             QueueTextToDisplay(2, 0);
                         }
                     }
-                } else if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                } else if (runner->runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     if (fielder->locationResponsibleForCovering == 0 && runner->timeStandingOnBase < 0x3c) {
                         QueueTextToDisplay(2, 0);
                     }
@@ -18616,7 +18616,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_Ball.numberOfThrowsDuringPlay == 0 &&
         (fielder->catchAnimation == 4 || fielder->catchAnimation == 5)) {
         g_FieldingLogic.bigPlayPotential = 2;
-        g_UnkSound_32718._08 = 4;
+        g_UnkSound_32718.hudPopupCode = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
         if (!g_d_GameSettings.exhibitionMatchInd &&
             scoutState.humanTeam == g_GameLogic.teamFielding &&
@@ -18628,7 +18628,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     if (fielder->isJump) {
         if (g_Ball.AtBat_Contact_BallPos.y > fielder->hitbox[3] + fielderActionConstants[38]) {
             g_FieldingLogic.bigPlayPotential = 2;
-            g_UnkSound_32718._08 = 4;
+            g_UnkSound_32718.hudPopupCode = 4;
             g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
             if (!g_d_GameSettings.exhibitionMatchInd &&
                 scoutState.humanTeam == g_GameLogic.teamFielding &&
@@ -18640,7 +18640,7 @@ void updateVariablesPostCatch(int fielderIndex) {
 
     if (g_FieldingLogic.bigPlayPotential == 1 && fielder->action != 0) {
         g_FieldingLogic.bigPlayPotential = 2;
-        g_UnkSound_32718._08 = 4;
+        g_UnkSound_32718.hudPopupCode = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
         if (!g_d_GameSettings.exhibitionMatchInd &&
             scoutState.humanTeam == g_GameLogic.teamFielding &&

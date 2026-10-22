@@ -1995,15 +1995,15 @@ void drawDiamondMiniMap_ongoing(void) {
             int idx = i + 1;
             int base;
 
-            if (!(runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_BallsStrikesOuts.outs < 3)) {
+            if (!(runner->runnerStatus == RUNNER_STATUS_ON_FIELD && g_BallsStrikesOuts.outs < 3)) {
                 REC(scene, idx)->flags &= ~UI_FLAG_VISIBLE;
             } else {
                 if (i == 0) {
                     int sinceHit = g_Ball.framesSinceHit;
 
                     if (sinceHit >= 1) {
-                        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-                            runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_WALK_WHILE_STEALING) {
+                        if (runner->runnerStatus == RUNNER_STATUS_ON_FIELD ||
+                            runner->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                             if (sinceHit < 16) {
                                 REC(scene, idx)->rgba = (REC(scene, idx)->rgba & ~0xFF) | (sinceHit << 4);
                             } else {
@@ -2036,7 +2036,7 @@ void drawDiamondMiniMap_ongoing(void) {
         REC(scene, 12)->flags &= ~UI_FLAG_VISIBLE;
         if (g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
             for (i = 1; i < 4; i++) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored != 0 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+                if (g_Runners[i].runnerStatus != 0 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
                     REC(scene, 12)->flags |= UI_FLAG_VISIBLE;
                     for (; i < 4; i++) {
                         if (g_Runners[i].stealingStatus == 3) {
@@ -2066,7 +2066,7 @@ void drawDiamondMiniMap_ongoing(void) {
         }
         setMiniMapAlpha(scene, alpha);
     }
-    if (pauseControl._1D5 != 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
+    if (pauseControl.isPaused != 0 && g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
         alpha = 0xF0 - (pauseControl.counter << 4);
         if (alpha <= 0) {
             goto remove;
@@ -3054,18 +3054,18 @@ void ballLandingMarker_update(void) {
         } else {
             scene->unk18 = 0xFFFF;
         }
-        if (g_UnkSound_32718._08 != 0) {
+        if (g_UnkSound_32718.hudPopupCode != 0) {
             if (g_Stats.replayInd != 0) {
-                g_UnkSound_32718._08 = 0;
+                g_UnkSound_32718.hudPopupCode = 0;
                 return;
             }
             if (g_GameLogic.framesOfExitingToMenu != 0) {
-                g_UnkSound_32718._08 = 0;
+                g_UnkSound_32718.hudPopupCode = 0;
                 return;
             }
             fn_3_1650C(&x, &y, FALSE, g_Ball.AtBat_Contact_BallPos.x, -g_Ball.AtBat_Contact_BallPos.y,
                        g_Ball.AtBat_Contact_BallPos.z);
-            switch (g_UnkSound_32718._08) {
+            switch (g_UnkSound_32718.hudPopupCode) {
             case 1:
                 if (scene->unk1C == 0) {
                     REC(scene, 0)->frame = 0;
@@ -3100,7 +3100,7 @@ void ballLandingMarker_update(void) {
                 break;
             case 4:
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                    g_UnkSound_32718._08 = 0;
+                    g_UnkSound_32718.hudPopupCode = 0;
                     return;
                 }
                 if (scene->unk20 == 0) {
@@ -3114,7 +3114,7 @@ void ballLandingMarker_update(void) {
                 break;
             }
             scene->unk18 = 0;
-            g_UnkSound_32718._08 = 0;
+            g_UnkSound_32718.hudPopupCode = 0;
         } else {
             if (scene->unk1C != 0 && hudRecordFinished(REC(scene, 0))) {
                 REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;

@@ -655,7 +655,7 @@ void calculateImplicationsOfTheHitTrajectory(void) {
               !(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z <
                 -g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - 5.0f)) ||
              (g_Ball.Hit_HorizontalAngle >= 0x220 && g_Ball.Hit_HorizontalAngle <= 0x5E0)) &&
-            (g_RunningLogic._00 & 0x110) == 0x110) {
+            (g_RunningLogic.runnersOnFieldMask & 0x110) == 0x110) {
             g_FieldingLogic.infieldFlyIndicator = 1;
         }
     }
@@ -2101,7 +2101,7 @@ void relatedToGroundRuleDouble(void) {
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2111,7 +2111,7 @@ void relatedToGroundRuleDouble(void) {
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2132,7 +2132,7 @@ void fn_3_9E18(void) {
         g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
         g_Ball.deadBallReason = 4;
-        if (g_RunningLogic._00 != 0) {
+        if (g_RunningLogic.runnersOnFieldMask != 0) {
             QueueTextToDisplay(0x14, 0);
         }
     }
@@ -2384,7 +2384,7 @@ void handleBallHitDeadBallOutcome(void) {
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                     g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                     g_Ball.deadBallReason = 4;
-                    if (g_RunningLogic._00 != 0) {
+                    if (g_RunningLogic.runnersOnFieldMask != 0) {
                         QueueTextToDisplay(0x14, 0);
                     }
                 }
@@ -2394,7 +2394,7 @@ void handleBallHitDeadBallOutcome(void) {
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                     g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                     g_Ball.deadBallReason = 4;
-                    if (g_RunningLogic._00 != 0) {
+                    if (g_RunningLogic.runnersOnFieldMask != 0) {
                         QueueTextToDisplay(0x14, 0);
                     }
                 }
@@ -2462,7 +2462,7 @@ static inline void deadBallGroundRuleDouble(void) {
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2472,7 +2472,7 @@ static inline void deadBallGroundRuleDouble(void) {
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -3114,7 +3114,7 @@ void checkForBallDead(void) {
                                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                                 g_Ball.deadBallReason = 4;
-                                if (g_RunningLogic._00 != 0) {
+                                if (g_RunningLogic.runnersOnFieldMask != 0) {
                                     QueueTextToDisplay(0x14, 0);
                                 }
                             }
@@ -3125,7 +3125,7 @@ void checkForBallDead(void) {
                                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                                 g_Ball.deadBallReason = 4;
-                                if (g_RunningLogic._00 != 0) {
+                                if (g_RunningLogic.runnersOnFieldMask != 0) {
                                     QueueTextToDisplay(0x14, 0);
                                 }
                             }
@@ -3145,7 +3145,7 @@ void checkForBallDead(void) {
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                     g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                     g_Ball.deadBallReason = 4;
-                    if (g_RunningLogic._00 != 0) {
+                    if (g_RunningLogic.runnersOnFieldMask != 0) {
                         QueueTextToDisplay(0x14, 0);
                     }
                 }

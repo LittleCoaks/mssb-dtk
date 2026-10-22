@@ -413,9 +413,9 @@ void practiceSetupRunnerStatus(void) {
             if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
                 initializeInMemRunner(i - 1, i);
             }
-            runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_ON_FIELD;
+            runner->runnerStatus = RUNNER_STATUS_ON_FIELD;
         } else {
-            runner->runnerOnFieldOrOutOrScored = RUNNER_STATUS_NONE;
+            runner->runnerStatus = RUNNER_STATUS_NONE;
             runner->rosterID = -1;
         }
     }

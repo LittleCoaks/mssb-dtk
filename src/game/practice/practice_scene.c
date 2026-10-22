@@ -183,7 +183,7 @@ void practice_drawHud(void) {
             g_GameLogic.gameStatus != GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
             animRelated[0xA7] = 0xF0;
         }
-        if (pauseControl._1D5 != 0) {
+        if (pauseControl.isPaused != 0) {
             animRelated[0xA7] = 0xF0;
         }
         if (g_Practice.pauseMenuActive != 0) {

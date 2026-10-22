@@ -104,7 +104,7 @@ void setBatterOutAtBatResult(void) {
         storedInningInfo.abResultFinal = 0x10;
         return;
     }
-    if (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+    if (g_Runners[0].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY) {
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) {
             if (g_Ball.Hit_VerticalAngle > 0xA0) {
                 storedInningInfo.abResultTemporary = 0x12;
@@ -128,7 +128,7 @@ void atBatBuntResult(void) {
     int i;
 
     if (g_RunningLogic.nOffensivePlayersAtStartOfPlay == 1 || g_BallsStrikesOuts.storedOuts == 2) {
-        if ((g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY &&
+        if ((g_Runners[0].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY &&
              g_BallsStrikesOuts.howRunnerReachedBase == REACHED_BASE_TBD) ||
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
             storedInningInfo.abResultFinal = 0x1D;
@@ -140,8 +140,8 @@ void atBatBuntResult(void) {
         return;
     }
 
-    if (g_Runners[3].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE && g_Runners[3].furthestBaseForcedToGoToOnWalk != 0) {
-        if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+    if (g_Runners[3].runnerStatus != RUNNER_STATUS_NONE && g_Runners[3].furthestBaseForcedToGoToOnWalk != 0) {
+        if (g_Runners[3].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
                 storedInningInfo.abResultTemporary = 0x20;
             } else {
@@ -149,7 +149,7 @@ void atBatBuntResult(void) {
             }
             return;
         }
-        if (g_Runners[3].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+        if (g_Runners[3].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY) {
             storedInningInfo.abResultFinal = 0x1F;
         }
         return;
@@ -168,9 +168,9 @@ void atBatBuntResult(void) {
         return;
     }
     for (i = 1; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
+        if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE &&
             g_Runners[i].currentBase == g_Runners[i].startingBase_baseAchieved &&
-            g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+            g_Runners[i].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY) {
             storedInningInfo.abResultTemporary = 0x22;
             return;
         }
@@ -178,8 +178,8 @@ void atBatBuntResult(void) {
 
     runnerAdvanced = FALSE;
     for (i = 1; i < 4; i++) {
-        if ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-             g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) &&
+        if ((g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
+             g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) &&
             g_Runners[i].currentBase != g_Runners[i].startingBase_baseAchieved) {
             runnerAdvanced = TRUE;
             break;
@@ -198,7 +198,7 @@ void atBatResultsForOuts(void) {
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) {
         forcedOuts = 0;
         for (i = 1; i < 3; i++) {
-            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY && g_Runners[i].outType == 4) {
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY && g_Runners[i].outType == 4) {
                 forcedOuts++;
             }
         }
@@ -212,7 +212,7 @@ void atBatResultsForOuts(void) {
     }
 
     if (g_BallsStrikesOuts.storedOuts + 3 == g_BallsStrikesOuts.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) {
-        if (g_BallsStrikesOuts.outs == 3 || g_RunningLogic._10 == 0) {
+        if (g_BallsStrikesOuts.outs == 3 || g_RunningLogic.nOffensivePlayersOnField == 0) {
             storedInningInfo.abResultFinal = 0x17;
             if (storedInningInfo.catches[2].outsDuringPossession == 3 ||
                 storedInningInfo.catches[3].outsDuringPossession == 3) {
@@ -253,11 +253,11 @@ BOOL noForceOutInd_atBatResultsAfterForcedRunnersAllAdvance(void) {
 
     if (g_BallsStrikesOuts.howRunnerReachedBase == 1) {
         runsThisPlay = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total - g_Scores._A0;
-        if (runsThisPlay == 1 && g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (runsThisPlay == 1 && g_Runners[0].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             runnerScoredOnlyRun = TRUE;
         }
         baseEarned = g_Runners[0].baseNumberEarned_NotIncludingFieldersChoice;
-        if (baseEarned == 0 && g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (baseEarned == 0 && g_Runners[0].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             storedInningInfo.abResultFinal = 5;
         } else if (baseEarned == 3) {
             if (runsThisPlay != 0 && !runnerScoredOnlyRun) {
@@ -374,7 +374,7 @@ void setAtBatResult(void) {
                                 if (coverage >= 0 && coverage <= 3) {
                                     switch (coverage) {
                                         case 0:
-                                            if ((g_RunningLogic._02 & 0x1111) == 0x1111) {
+                                            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0x1111) == 0x1111) {
                                                 storedInningInfo.catches[i].baseStandingOn = 0;
                                             }
                                             break;
@@ -382,12 +382,12 @@ void setAtBatResult(void) {
                                             storedInningInfo.catches[i].baseStandingOn = 1;
                                             break;
                                         case 2:
-                                            if ((g_RunningLogic._02 & 0x11) == 0x11) {
+                                            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0x11) == 0x11) {
                                                 storedInningInfo.catches[i].baseStandingOn = 2;
                                             }
                                             break;
                                         default:
-                                            if ((g_RunningLogic._02 & 0x111) == 0x111) {
+                                            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0x111) == 0x111) {
                                                 storedInningInfo.catches[i].baseStandingOn = 3;
                                             }
                                             break;

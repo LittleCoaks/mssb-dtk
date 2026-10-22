@@ -117,7 +117,7 @@ BOOL decideScoutFlagMission(void) {
             scout->scoutMissionID = SCOUT_MISSION_WIN_BOWSER_JR_GAME;
         }
     } else if (logic->teamBatting == g_d_GameSettings.humanTeamNumber) {
-        if (g_RunningLogic._10 >= 2) {
+        if (g_RunningLogic.nOffensivePlayersOnField >= 2) {
             s32* captains = logic->Team_CaptainRosterLoc;
 
             if (batter->rosterID == captains[logic->teamBatting] &&
@@ -136,7 +136,7 @@ BOOL decideScoutFlagMission(void) {
                 goto chosen;
             }
         }
-        if ((g_RunningLogic._00 & 0x1000) && g_BallsStrikesOuts.outs <= 1) {
+        if ((g_RunningLogic.runnersOnFieldMask & 0x1000) && g_BallsStrikesOuts.outs <= 1) {
             if (g_Batter.characterClass == CHARACTER_CLASS_BALANCED || g_Batter.characterClass == CHARACTER_CLASS_POWER) {
                 if (shouldScoutMissionBeEnabled(SCOUT_MISSION_SAC_FLY)) {
                     scout->scoutMissionID = SCOUT_MISSION_SAC_FLY;
@@ -150,7 +150,7 @@ BOOL decideScoutFlagMission(void) {
                 goto chosen;
             }
         }
-        if (g_RunningLogic._00 == 0x11 &&
+        if (g_RunningLogic.runnersOnFieldMask == 0x11 &&
             inMemRoster[g_GameLogic.teamBatting][runners[1].rosterID].stats.CharacterClass == CHARACTER_CLASS_SPEED) {
             if (shouldScoutMissionBeEnabled(SCOUT_MISSION_STEAL_SECOND_BASE)) {
                 scout->scoutMissionID = SCOUT_MISSION_STEAL_SECOND_BASE;
@@ -168,11 +168,11 @@ BOOL decideScoutFlagMission(void) {
             }
         }
     } else if ((logic->teamBatting == g_d_GameSettings.humanTeamNumber) ^ 1) {
-        if (g_RunningLogic._10 >= 3 && g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] == 0) {
+        if (g_RunningLogic.nOffensivePlayersOnField >= 3 && g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] == 0) {
             if (shouldScoutMissionBeEnabled(SCOUT_MISSION_HOLD_SCORELESS_INNING)) {
                 scout->scoutMissionID = SCOUT_MISSION_HOLD_SCORELESS_INNING;
             }
-        } else if ((g_RunningLogic._00 & 0x10) && g_BallsStrikesOuts.outs <= 1) {
+        } else if ((g_RunningLogic.runnersOnFieldMask & 0x10) && g_BallsStrikesOuts.outs <= 1) {
             if (shouldScoutMissionBeEnabled(SCOUT_MISSION_TURN_DOUBLE_PLAY)) {
                 scout->scoutMissionID = SCOUT_MISSION_TURN_DOUBLE_PLAY;
             }
@@ -386,7 +386,7 @@ void scoutFlag_checkMissionSuccess(void) {
         u8 deadBallReason = g_Ball.deadBallReason;
         if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total > g_Scores._A0 ||
             deadBallReason == 1 ||
-            (g_RunningLogic._02 == 0x1111 && (g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH))) {
+            (g_RunningLogic.runnersAtStartOfPlayMask == 0x1111 && (g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH))) {
             scout->scoutFlag = 0;
         } else if ((g_BallsStrikesOuts.outs >= 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT &&
                     g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) ||
@@ -436,17 +436,17 @@ void scoutFlag_checkMissionSuccess(void) {
         }
         threw = 0;
         if (g_Ball.deadBallReason == 3) {
-            if (g_RunningLogic._02 & 0x1100) {
+            if (g_RunningLogic.runnersAtStartOfPlayMask & 0x1100) {
                 threw = 1;
             }
         } else if (g_Ball.deadBallReason == 4) {
-            if (g_RunningLogic._02 & 0x1100) {
+            if (g_RunningLogic.runnersAtStartOfPlayMask & 0x1100) {
                 threw = 1;
             } else {
-                if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[1].baseReachedAtTimeOfThrow >= 2) {
+                if (g_Runners[1].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[1].baseReachedAtTimeOfThrow >= 2) {
                     threw = 1;
                 }
-                if (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[0].baseReachedAtTimeOfThrow >= 2) {
+                if (g_Runners[0].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[0].baseReachedAtTimeOfThrow >= 2) {
                     threw = 1;
                 }
             }
@@ -496,7 +496,7 @@ void scoutFlag_checkMissionSuccess(void) {
                 scout->scoutFlag = 0;
             } else if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
                 scout->scoutFlag = 0;
-            } else if (runners[3].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
+            } else if (runners[3].runnerStatus != RUNNER_STATUS_ON_FIELD) {
                 scout->scoutFlag = 0;
             } else {
                 scout->scoutFlag = 1;
@@ -510,7 +510,7 @@ void scoutFlag_checkMissionSuccess(void) {
         u8 fl = g_FieldingLogic.liveBallReason;
         u8 runnerStatus = 0;
         if (fl == PICKOFF_STEAL_CODE_PICKOFF || fl == PICKOFF_STEAL_CODE_STEAL) {
-            runnerStatus = runners[1].runnerOnFieldOrOutOrScored;
+            runnerStatus = runners[1].runnerStatus;
             if (runnerStatus == RUNNER_STATUS_ON_FIELD || runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                 if (runners[1].currentBase > 1) {
                     flag = 1;
@@ -565,7 +565,7 @@ void scoutFlag_checkMissionSuccess(void) {
                     scout->scoutResult = SCOUT_RESULT_SUCCEEDED;
                 }
                 scout->scoutFlag = 0;
-            } else if (g_RunningLogic._10 == 4 &&
+            } else if (g_RunningLogic.nOffensivePlayersOnField == 4 &&
                        (g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH)) {
                 if (g_Scores.scores[1].total == g_Scores.scores[0].total) {
                     if (g_GameLogic.teamBatting == g_d_GameSettings.humanTeamNumber) {
@@ -1129,7 +1129,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                     int runsBefore = scores->_A0;
                     CharacterStats* roster = inMemRoster[scout->humanTeam];
                     StatisticsBatter* bs = BatterStats_P1_P2[scout->humanTeam];
-                    u8 lastRunnerStatus = runners[3].runnerOnFieldOrOutOrScored;
+                    u8 lastRunnerStatus = runners[3].runnerStatus;
                     u8 lastRunnerForced = runners[3].furthestBaseForcedToGoToOnWalk;
                     u8 starSwing = ball->currentStarSwing2;
                     u8 hitType = g_Batter.hitGeneralType;
@@ -1247,7 +1247,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     int count = 0;
                                     int r;
                                     for (r = 1; r < 4; r++) {
-                                        if (g_Runners[r].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
+                                        if (g_Runners[r].runnerStatus != RUNNER_STATUS_NONE &&
                                             (g_Runners[r].charID == CHAR_ID_DIDDY || g_Runners[r].charID == CHAR_ID_DIXIE)) {
                                             count++;
                                         }

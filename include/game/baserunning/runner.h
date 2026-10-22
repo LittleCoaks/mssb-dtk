@@ -4,6 +4,14 @@
 #include "mssbTypes.h"
 #include "game/UnknownHomes_Game.h"
 
+// Direction a runner AI asks for (runnerAISetRunningDirection / runnerAI_requestRunningDirection).
+typedef enum _RUNNER_DIRECTION_REQUEST {
+    /* -2 */ RUNNER_DIRECTION_REQUEST_NONE = -2, // no decision; leave the runner alone
+    /* -1 */ RUNNER_DIRECTION_REQUEST_BACK = -1,
+    /*  0 */ RUNNER_DIRECTION_REQUEST_STOP,
+    /*  1 */ RUNNER_DIRECTION_REQUEST_ADVANCE,
+} RUNNER_DIRECTION_REQUEST;
+
 void fn_3_7D79C(int runnerIdx);
 void fn_3_7D920(int runnerIdx);
 void fn_3_7D9DC(int runnerIdx);
@@ -19,14 +27,14 @@ int running_triggerSlideOrBodyCheck(int runnerIdx);
 void running_updateRunner_roundBaseOrDugout(int runnerIdx);
 int running_DirectionOverrides(int runnerIdx);
 void running_updateRunner_chooseDirection(int runnerIdx);
-void fn_3_7FEA8(int runnerIdx, int direction);
-void fn_3_7FED4(VecXYZ* out, f32 speed, f32 frame);
+void running_setDesiredDirection(int runnerIdx, int direction);
+void running_basePathPosition(VecXYZ* out, f32 basesRan, f32 percent);
 void lerpBetweenBases(VecXYZ* out, int fromBase, int toBase, f32 t);
 void running_updatePosition(int runnerIdx);
-void fn_3_810C4(int runnerIdx, int base);
+void running_placeRunnerOnBase(int runnerIdx, int base);
 void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int runnerIdx);
-void fn_3_81AB8(int runnerIdx);
-void fn_3_81AEC(int runnerIdx);
+void running_stopRunner(int runnerIdx);
+void running_updateLeadoff(int runnerIdx);
 int running_overrunBaseControl(int runnerIdx);
 int runnerOverrun1BRelated(int runnerIdx);
 void running_ActionControlAndVelocity(int runnerIdx);
@@ -71,12 +79,12 @@ void fn_3_89028(void);
 void stealCancelLeadoffs(void);
 void setDefaultInMemRunner(void);
 void updateRunnerPosition(int runnerIdx, int basesAdvanced);
-void fn_3_898BC(int runnerIdx, int rosterIdx);
-void fn_3_89914(int srcIdx, int dstIdx);
+void running_setRunnerRoster(int runnerIdx, int rosterIdx);
+void running_transferRunnerIdentity(int srcIdx, int dstIdx);
 void transferInMemRunnerValuesToNextRunnerIndex(void);
 void initializeARunner(void);
 void resetInMemRunners(void);
-void fn_3_8A4C8(void);
+void running_setBatterRunnerToBatterPos(void);
 void initBaseRunnersAfterFoulBall(void);
 void resetRunnerLeadoffDefaults(void);
 void running_liveBall(void);

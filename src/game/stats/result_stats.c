@@ -389,8 +389,8 @@ void steal_pickoff_incrementSteal_runsStats(void) {
     int runs;
 
     for (i = 1; i < 4; i++) {
-        if ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-             g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) &&
+        if ((g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
+             g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) &&
             i != g_Runners[i].currentBase) {
             if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Runners[i].furthestBaseForcedToGoToOnWalk == 0) {
                 continue;
@@ -409,7 +409,7 @@ void steal_pickoff_incrementSteal_runsStats(void) {
         if (runs <= 0) {
             break;
         }
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].runs);
             runs--;
             if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == scoutState.humanTeam) {
@@ -566,7 +566,7 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
         if (runs <= 0) {
             break;
         }
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].runs);
             runs--;
             if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == scoutState.humanTeam) {

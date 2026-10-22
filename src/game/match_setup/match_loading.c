@@ -523,7 +523,7 @@ void initializeSomethingDuringTransition(void) {
     }
     g_UnkSound_32718._00 = 0;
     g_UnkSound_32718._07 = 0;
-    g_UnkSound_32718._08 = 0;
+    g_UnkSound_32718.hudPopupCode = 0;
 }
 
 // .text:0x00059918 size:0x178 mapped:0x806989AC

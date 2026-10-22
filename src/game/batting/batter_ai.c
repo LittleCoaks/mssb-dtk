@@ -10,7 +10,7 @@ void batterAIRollBuntIntent(void) {
     g_AiLogic.batterAIBuntPossibility = 0;
     g_AiLogic.batterAIBuntInd = FALSE;
     if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_BallsStrikesOuts.outs <= 1 &&
-        (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111)) {
+        (g_RunningLogic.runnersAtStartOfPlayMask == 0x11 || g_RunningLogic.runnersAtStartOfPlayMask == 0x111)) {
         if (RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
             g_AiLogic.batterAIBuntInd = TRUE;
         }
@@ -36,13 +36,13 @@ void fn_3_1E4B8(void) {
     if (pitches > 2) {
         pitches = 2;
     }
-    if (g_RunningLogic._02 & 0x100) {
-        if (g_RunningLogic._02 & 0x1000) {
+    if (g_RunningLogic.runnersAtStartOfPlayMask & 0x100) {
+        if (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000) {
             return;
         }
         chance = lbl_3_data_1C98[1][difficulty][pitches][g_Runners[2].characterClass];
         runner = 2;
-    } else if (g_RunningLogic._02 & 0x10) {
+    } else if (g_RunningLogic.runnersAtStartOfPlayMask & 0x10) {
         chance = lbl_3_data_1C98[1][difficulty][pitches][g_Runners[1].characterClass];
         runner = 1;
     } else {
@@ -209,7 +209,7 @@ void batterAIFrameToSwingAndStickInput(void) {
                 }
             }
         }
-    } else if (g_BallsStrikesOuts.outs <= 1 && (g_RunningLogic._02 & 0x1000) && g_AiLogic.aIBatterDifficulty >= 1) {
+    } else if (g_BallsStrikesOuts.outs <= 1 && (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000) && g_AiLogic.aIBatterDifficulty >= 1) {
         if (g_Batter.characterClass == CHARACTER_CLASS_POWER) {
             g_AiLogic.batterAIUpDownInput = RandomIndexFromWeights(lbl_3_data_1BF0[0][g_AiLogic.aIBatterDifficulty], 3);
         } else {
@@ -607,7 +607,7 @@ void batterAIRNGValueSetting(void) {
                         urgency = -1;
                         if (g_Scores.Inning >= g_Scores.inningLimit && g_BallsStrikesOuts.outs == 2 && g_Scores._A6 != 0) {
                             urgency = 0;
-                        } else if ((g_RunningLogic._00 & 0x1000) || g_RunningLogic._10 >= 3) {
+                        } else if ((g_RunningLogic.runnersOnFieldMask & 0x1000) || g_RunningLogic.nOffensivePlayersOnField >= 3) {
                             urgency = 1;
                         } else if (g_Scores._pad_AC >= 2 && g_Scores._A6 <= 1 &&
                                    g_AiLogic.starRelated[g_GameLogic.homeTeamBattingInd_fieldingTeam] == 0) {
@@ -660,7 +660,7 @@ void batterAIRNGValueSetting(void) {
                 g_AiLogic.batterAIBuntPossibility = 0;
                 g_AiLogic.batterAIBuntInd = 0;
                 if (g_Scores._A6 <= 2 && g_Scores._pad_AC >= 2 && g_BallsStrikesOuts.outs <= 1 &&
-                    (g_RunningLogic._02 == 0x11 || g_RunningLogic._02 == 0x111) &&
+                    (g_RunningLogic.runnersAtStartOfPlayMask == 0x11 || g_RunningLogic.runnersAtStartOfPlayMask == 0x111) &&
                     RandomInt_Game(100) < lbl_3_data_1C10[g_Batter.characterClass][g_AiLogic.aIBatterDifficulty]) {
                     g_AiLogic.batterAIBuntInd = 1;
                 }
@@ -678,13 +678,13 @@ void batterAIRNGValueSetting(void) {
                 pitchCat = 2;
             }
             do {
-                if (g_RunningLogic._02 & 0x100) {
-                    if (g_RunningLogic._02 & 0x1000) {
+                if (g_RunningLogic.runnersAtStartOfPlayMask & 0x100) {
+                    if (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000) {
                         break;
                     }
                     chance = lbl_3_data_1C98[1][difficulty][pitchCat][g_Runners[2].characterClass];
                     runner = 2;
-                } else if (g_RunningLogic._02 & 0x10) {
+                } else if (g_RunningLogic.runnersAtStartOfPlayMask & 0x10) {
                     chance = lbl_3_data_1C98[1][difficulty][pitchCat][g_Runners[1].characterClass];
                     runner = 1;
                 } else {
