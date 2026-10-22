@@ -15,9 +15,9 @@ extern struct {
     /* 0x0000 */ u8 _0000[0xCF3B];
     /* 0xCF3B */ s8 playerWhoPaused;
     /* 0xCF3C */ u8 _CF3C[0xCF45 - 0xCF3C];
-    /* 0xCF45 */ u8 unkCF45;
+    /* 0xCF45 */ u8 removeSceneRequested;
     /* 0xCF46 */ u8 _CF46[0xCFA2 - 0xCF46];
-    /* 0xCFA2 */ u8 unkCFA2[4];
+    /* 0xCFA2 */ u8 teamMenuType[4];
 } aiPosSwapInputs;
 
 extern u8 lineUpInfoStruct[];
@@ -39,7 +39,7 @@ void teamManagementGraphics_initialLoad(void) {
     s32 i;
     BOOL cond;
 
-    aiPosSwapInputs.unkCF45 = 0;
+    aiPosSwapInputs.removeSceneRequested = 0;
     playerWho = aiPosSwapInputs.playerWhoPaused;
 
     if (g_d_GameSettings._06 != 2) {
@@ -141,7 +141,7 @@ void teamManagementGraphics_initialLoad(void) {
         RECORD(8)->frame = 0xA0000;
         RECORD(8)->playMode = 0;
 
-        if (aiPosSwapInputs.unkCFA2[playerWho] == 1) {
+        if (aiPosSwapInputs.teamMenuType[playerWho] == 1) {
             RECORD(80)->elementIndex = 0x28;
             RECORD(1)->elementIndex = 0x47;
             RECORD(1)->frame = 0x140000;

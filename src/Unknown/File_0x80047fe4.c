@@ -24,26 +24,26 @@ extern struct {
     /* 0xCF3B */ u8 playerWhoPaused;
     /* 0xCF3C */ u8 charSelectedToBeSwapped[2];
     /* 0xCF3E */ u8 _CF3E[2];
-    /* 0xCF40 */ u8 _CF40;
+    /* 0xCF40 */ u8 unkCF40;
     /* 0xCF41 */ u8 _CF41;
     /* 0xCF42 */ u8 onMainPauseMenu;
     /* 0xCF43 */ u8 _CF43[2];
-    /* 0xCF45 */ u8 _CF45;
+    /* 0xCF45 */ u8 removeSceneRequested;
     /* 0xCF46 */ s8 teamManagement_cursorPos[2];
     /* 0xCF48 */ u8 _CF48[2];
     /* 0xCF4A */ u8 onFieldingAlignmentScreen2[2];
     /* 0xCF4C */ u8 _CF4C[2];
-    /* 0xCF4E */ u8 _CF4E[4];
+    /* 0xCF4E */ u8 teamConfirmed[2];
+    /* 0xCF50 */ u8 waitingForOtherTeam[2];
     /* 0xCF52 */ u8 _CF52[0xCF5F - 0xCF52];
-    /* 0xCF5F */ u8 _CF5F;
+    /* 0xCF5F */ u8 unkCF5F;
     /* 0xCF60 */ u8 _CF60;
-    /* 0xCF61 */ u8 _CF61;
-    /* 0xCF62 */ u8 _CF62;
+    /* 0xCF61 */ u8 zMenuOpen[2];
     /* 0xCF63 */ u8 _CF63[0xCF7D - 0xCF63];
-    /* 0xCF7D */ u8 _CF7D;
+    /* 0xCF7D */ u8 scoutFlagMenuState;
     /* 0xCF7E */ u8 _CF7E[0xCFA1 - 0xCF7E];
-    /* 0xCFA1 */ u8 _CFA1;
-    /* 0xCFA2 */ u8 _CFA2[4];
+    /* 0xCFA1 */ u8 unkCFA1;
+    /* 0xCFA2 */ u8 teamMenuType[4];
 } aiPosSwapInputs;
 
 extern u8 gameSetUpStep[0x64];
@@ -105,7 +105,7 @@ void pauseMenuSelection(void) {
         saved[0] = v0;
         saved[1] = v1;
         saved[2] = v2;
-        aiPosSwapInputs._CF7D = 3;
+        aiPosSwapInputs.scoutFlagMenuState = 3;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
         aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_2;
         break;
@@ -137,7 +137,7 @@ void pauseMenuSelection(void) {
 
             case 4:
                 lbl_803CBD24[4] = 0;
-                aiPosSwapInputs._CF5F = 0;
+                aiPosSwapInputs.unkCF5F = 0;
                 lbl_803CBCC9 = 0;
                 aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_ON_SCREEN;
                 break;
@@ -152,14 +152,14 @@ void pauseMenuSelection(void) {
         break;
 
     case 10: {
-        if (aiPosSwapInputs._CF5F != 0) {
+        if (aiPosSwapInputs.unkCF5F != 0) {
             stats[0x48AD] = 1;
             gameSetUpStep[0] = 0;
             memset(&gameSetUpStep[1], 0, 6);
-            aiPosSwapInputs._CF4E[3] = 0;
-            aiPosSwapInputs._CF4E[2] = 0;
-            aiPosSwapInputs._CF4E[1] = 0;
-            aiPosSwapInputs._CF4E[0] = 0;
+            aiPosSwapInputs.waitingForOtherTeam[1] = 0;
+            aiPosSwapInputs.waitingForOtherTeam[0] = 0;
+            aiPosSwapInputs.teamConfirmed[1] = 0;
+            aiPosSwapInputs.teamConfirmed[0] = 0;
             fn_80062A74();
             maybeLoadsGameSoundFiles();
             unregisterObjectByID(0xF);
@@ -168,7 +168,7 @@ void pauseMenuSelection(void) {
             unregisterObjectByID(0x6);
             stats[0x48AF] = 1;
             stats[0x48B1] = 1;
-            aiPosSwapInputs._CF5F = 0;
+            aiPosSwapInputs.unkCF5F = 0;
             menuControlVariables->previousScreen = menuControlVariables->currentScreen;
             menuControlVariables->previousState = menuControlVariables->currentState;
             menuControlVariables->currentScreen = 4;
@@ -180,7 +180,7 @@ void pauseMenuSelection(void) {
                 break;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-                if (aiPosSwapInputs._CFA2[port] != 2 && aiPosSwapInputs._CFA2[port] != 3) {
+                if (aiPosSwapInputs.teamMenuType[port] != 2 && aiPosSwapInputs.teamMenuType[port] != 3) {
                     u8 *roster = (u8 *)inMemRoster;
                     u8 *lineup = (u8 *)lineUpInfoStruct;
                     u8 *dst = (u8 *)&g_Challenge;
@@ -202,21 +202,21 @@ void pauseMenuSelection(void) {
                         roster += 0x1E0;
                         dst += 0x12;
                     }
-                    aiPosSwapInputs._CFA1 = 0;
+                    aiPosSwapInputs.unkCFA1 = 0;
                 }
-                if (g_d_GameSettings._06 == 2 && aiPosSwapInputs._CFA2[port] == 2 &&
-                    aiPosSwapInputs._CF7D != 0) {
+                if (g_d_GameSettings._06 == 2 && aiPosSwapInputs.teamMenuType[port] == 2 &&
+                    aiPosSwapInputs.scoutFlagMenuState != 0) {
                     break;
                 }
             }
 
-            aiPosSwapInputs._CF40 = 0;
+            aiPosSwapInputs.unkCF40 = 0;
             aiPosSwapInputs.charSelectedToBeSwapped[1] = 0;
             aiPosSwapInputs.charSelectedToBeSwapped[0] = 0;
-            aiPosSwapInputs._CF4E[3] = 0;
-            aiPosSwapInputs._CF4E[2] = 0;
-            aiPosSwapInputs._CF4E[1] = 0;
-            aiPosSwapInputs._CF4E[0] = 0;
+            aiPosSwapInputs.waitingForOtherTeam[1] = 0;
+            aiPosSwapInputs.waitingForOtherTeam[0] = 0;
+            aiPosSwapInputs.teamConfirmed[1] = 0;
+            aiPosSwapInputs.teamConfirmed[0] = 0;
             setCaptainLocInRoster();
 
             if (g_d_GameSettings._06 != 2 && g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
@@ -225,7 +225,7 @@ void pauseMenuSelection(void) {
                 menuControlVariables->currentScreen = 0xD;
                 menuControlVariables->currentState = 0;
             } else if (g_d_GameSettings._06 == 2) {
-                if (aiPosSwapInputs._CFA2[port] != 2 && aiPosSwapInputs._CFA2[port] != 3) {
+                if (aiPosSwapInputs.teamMenuType[port] != 2 && aiPosSwapInputs.teamMenuType[port] != 3) {
                     if (gameSetUpStep[0x55] != 0) {
                         break;
                     }
@@ -234,7 +234,7 @@ void pauseMenuSelection(void) {
                     }
                 }
                 aiPosSwapInputs.onMainPauseMenu = 1;
-                aiPosSwapInputs._CF40 = 0;
+                aiPosSwapInputs.unkCF40 = 0;
             } else {
                 menuControlVariables->previousScreen = menuControlVariables->currentScreen;
                 menuControlVariables->previousState = menuControlVariables->currentState;
@@ -243,9 +243,9 @@ void pauseMenuSelection(void) {
             }
         }
 
-        if (aiPosSwapInputs._CFA2[aiPosSwapInputs.playerWhoPaused] != 2 &&
-            aiPosSwapInputs._CFA2[aiPosSwapInputs.playerWhoPaused] != 3) {
-            aiPosSwapInputs._CF45 = 1;
+        if (aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused] != 2 &&
+            aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused] != 3) {
+            aiPosSwapInputs.removeSceneRequested = 1;
         }
         aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_INITIALIZE;
         removeCurrentDrawingItem();
@@ -260,20 +260,20 @@ void pauseMenuSelection(void) {
             break;
         }
         memset(stats + 0x489B, 0, 0x12);
-        aiPosSwapInputs._CF4E[1] = 0;
-        aiPosSwapInputs._CF4E[0] = 0;
-        aiPosSwapInputs._CF45 = 1;
+        aiPosSwapInputs.teamConfirmed[1] = 0;
+        aiPosSwapInputs.teamConfirmed[0] = 0;
+        aiPosSwapInputs.removeSceneRequested = 1;
         aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_RETURN_TO_CSS_2;
         break;
 
     case TEAM_MANAGEMENT_PROCESS_RETURN_TO_CSS_2:
         aiPosSwapInputs.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_INITIALIZE;
-        aiPosSwapInputs._CF62 = 0;
-        aiPosSwapInputs._CF61 = 0;
-        aiPosSwapInputs._CF4E[3] = 0;
-        aiPosSwapInputs._CF4E[2] = 0;
-        aiPosSwapInputs._CF4E[1] = 0;
-        aiPosSwapInputs._CF4E[0] = 0;
+        aiPosSwapInputs.zMenuOpen[1] = 0;
+        aiPosSwapInputs.zMenuOpen[0] = 0;
+        aiPosSwapInputs.waitingForOtherTeam[1] = 0;
+        aiPosSwapInputs.waitingForOtherTeam[0] = 0;
+        aiPosSwapInputs.teamConfirmed[1] = 0;
+        aiPosSwapInputs.teamConfirmed[0] = 0;
         {
             u8 tmp = g_MatchInfo.unk38;
             g_MatchInfo.unk36 = 1;

@@ -11,8 +11,8 @@
 // The check-stars menu state this unit touches; see AIPOSSWAPINPUTS_LOCAL_VIEW
 // for why the full-size type is not used.
 extern struct {
-    /* 0x0000 */ u8 _0000[0xCF7C];
-    /* 0xCF7C */ u8 unkCF7C;                 // text block handed to text_setPtrToWhereCharsAreStored
+    /* 0x0000 */ u8 _0000[0xCF7A];
+    /* 0xCF7A */ u8 textBlocks[3];
     /* 0xCF7D */ u8 _CF7D[0xCF92 - 0xCF7D];
     /* 0xCF92 */ u8 challengeCheckStarsMenuSceneLoadingNumber;
     /* 0xCF93 */ u8 challengeCheckStarsMenuLoadingInd;
@@ -73,7 +73,7 @@ void someChallengeStarFunction2(MenuScene* scene) {
             }
         }
 
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs.unkCF7C, 0, textID);
+        text_setPtrToWhereCharsAreStored(aiPosSwapInputs.textBlocks[2], 0, textID);
         aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = 1;
     }
 
