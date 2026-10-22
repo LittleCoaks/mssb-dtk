@@ -7,7 +7,7 @@ void fn_2_46C88(void *self);
 BOOL fn_2_46D00(void);
 void fn_2_46D34(s32 delta);
 void fn_2_46D94(s16 *timer, s16 *value, s16 step, s16 period, u16 flags);
-void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, u16 flags);
+void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, s16 flags);
 void fn_2_474F8(void);
 void fn_2_474FC(void);
 void fn_2_47540(void);

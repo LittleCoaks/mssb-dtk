@@ -1394,22 +1394,26 @@ void fn_2_5AF24(void) {
 void fn_2_5AE54(void) {
     DrawingSceneStruct *item = currentDrawingItem;
 
-    if (NODE_U16(item, 0x1C) == 0) {
+    switch (NODE_U16(item, 0x1C)) {
+    case 0:
         fn_2_4E878(item, lbl_2_data_20C68);
         NODE_U16(item, 0x1C) = 1;
         NODE_U16(item, 0x18) = 0;
-        fn_2_53F88(item);
-        fn_2_54120();
-        if (WA(0x162992) != 0) {
-            fn_2_53DF8(item);
-            fn_8000F8F4(item);
-            text_freeAllBlocks();
-            fn_2_4E858(item);
-            removeCurrentDrawingItem();
-            NODE_U16(item, 0x1C) = 0;
-            NODE_U16(item, 0x1E) = 0;
-            WA(0x162992) = 0;
-        }
+        break;
+    case 1:
+        break;
+    }
+    fn_2_53F88(item);
+    fn_2_54120();
+    if (WA(0x162992) != 0) {
+        fn_2_53DF8(item);
+        fn_8000F8F4(item);
+        text_freeAllBlocks();
+        fn_2_4E858(item);
+        removeCurrentDrawingItem();
+        NODE_U16(item, 0x1C) = 0;
+        NODE_U16(item, 0x1E) = 0;
+        WA(0x162992) = 0;
     }
 }
 
@@ -1618,8 +1622,8 @@ void fn_2_59CF8(void) {
     s32 slot;
     s8 idx;
     u16 pad;
-    u8 *buf = lbl_80354768 + 0xCF18;
-    u32 i;
+    u8 *buf = lbl_80354768;
+    int i;
 
     switch (sub) {
     case 0:
@@ -1636,9 +1640,7 @@ void fn_2_59CF8(void) {
             case 0:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x100) {
-                        NODE_U8(item, 0x28) = 3;
-                    } else if ((s8)PADB(0, 0x13) > 0x32) {
+                    if ((PADH(idx, 0x2) & INPUT_BUTTON_A) || (s8)PADB(0, 0x13) > 0x32) {
                         NODE_U8(item, 0x28) = 3;
                     }
                 }
@@ -1647,7 +1649,7 @@ void fn_2_59CF8(void) {
             case 1:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x102) {
+                    if (PADH(idx, 0x2) & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT)) {
                         WB(0x19784A) = 1;
                         WB(0x197846) = 0;
                         WB(0x197845) = 1;
@@ -1660,14 +1662,14 @@ void fn_2_59CF8(void) {
             case 2:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x3) {
-                        if (buf[0] == 0) {
-                            for (i = 0; i < 0x36; i++) {
-                                buf[i] = 1;
+                    if (PADH(idx, 0x2) & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
+                        if (buf[0xCF18] == 0) {
+                            for (i = 0; i < (s32)NUM_CHOOSABLE_CHARACTERS; i++) {
+                                buf[(s32)i + 0xCF18] = 1;
                             }
-                        } else if (buf[0] == 1) {
-                            for (i = 0; i < 0x36; i++) {
-                                buf[i] = 0;
+                        } else if (buf[0xCF18] == 1) {
+                            for (i = 0; i < (s32)NUM_CHOOSABLE_CHARACTERS; i++) {
+                                buf[(s32)i + 0xCF18] = 0;
                             }
                         }
                     }
@@ -1677,32 +1679,38 @@ void fn_2_59CF8(void) {
         }
 
         idx = (s8)WB(0x197863);
-        if ((PADH(idx, 0x2) & 0x200) || (s8)PADB(0, 0x13) > 0x32) {
+        if ((PADH(idx, 0x2) & INPUT_BUTTON_B) || (s8)PADB(0, 0x13) > 0x32) {
             NODE_U8(item, 0x28) = 3;
         }
         break;
 
     case 2:
         fn_2_1FF14(1);
-        fn_2_1FF0C(0);
-        if (WB32(0x1976A4) == 0) {
-            idx = (s8)WB(0x197863);
-            pad = PADH(idx, 0x2);
-            if (pad & 0x200) {
-                WB(0x19784A) = 0;
-                WB(0x197846) = 0;
-                WB32(0x1976A4) = 0;
-                WB(0x197845) = 0;
-                NODE_U8(item, 0x28) = 1;
-            } else {
-                if (pad & 0x100) {
-                    lbl_2_bss_A168 ^= 1;
-                } else if (pad & 0x1000) {
-                    fn_2_93C64();
+        for (slot = 0; slot < 1; slot++) {
+            fn_2_1FF0C(slot);
+            switch (slot) {
+            case 0:
+                if (WB32(0x1976A4) == slot) {
+                    idx = (s8)WB(0x197863);
+                    pad = PADH(idx, 0x2);
+                    if (pad & INPUT_BUTTON_B) {
+                        WB(0x19784A) = 0;
+                        WB(0x197846) = 0;
+                        WB32(0x1976A4) = 0;
+                        WB(0x197845) = 0;
+                        NODE_U8(item, 0x28) = 1;
+                    } else {
+                        if (pad & INPUT_BUTTON_A) {
+                            lbl_2_bss_A168 ^= 1;
+                        } else if (pad & INPUT_BUTTON_START) {
+                            fn_2_93C64();
+                        }
+                    }
+                    if ((s8)lbl_2_bss_A168 != 0) {
+                        fn_2_489DC();
+                    }
                 }
-                if (lbl_2_bss_A168 != 0) {
-                    fn_2_489DC();
-                }
+                break;
             }
         }
         break;
@@ -1738,9 +1746,7 @@ void fn_2_5979C(void) {
             case 0:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x100) {
-                        NODE_U8(item, 0x28) = 4;
-                    } else if ((s8)PADB(0, 0x13) > 0x32) {
+                    if ((PADH(idx, 0x2) & INPUT_BUTTON_A) || (s8)PADB(0, 0x13) > 0x32) {
                         NODE_U8(item, 0x28) = 4;
                     }
                 }
@@ -1749,7 +1755,7 @@ void fn_2_5979C(void) {
             case 1:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x102) {
+                    if (PADH(idx, 0x2) & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT)) {
                         WB(0x19784A) = 1;
                         WB(0x197846) = 0;
                         WB(0x197845) = 1;
@@ -1762,7 +1768,7 @@ void fn_2_5979C(void) {
             case 2:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x102) {
+                    if (PADH(idx, 0x2) & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT)) {
                         WB(0x19784A) = 1;
                         WB(0x197846) = 2;
                         NODE_U8(item, 0x28) = 3;
@@ -1773,7 +1779,7 @@ void fn_2_5979C(void) {
             case 3:
                 if (WB32(0x1976A0) == slot) {
                     idx = (s8)WB(0x197863);
-                    if (PADH(idx, 0x2) & 0x102) {
+                    if (PADH(idx, 0x2) & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT)) {
                         lbl_2_bss_1A8244[0xF4] ^= 1;
                         fn_2_5EB78();
                     }
@@ -1783,47 +1789,65 @@ void fn_2_5979C(void) {
         }
 
         idx = (s8)WB(0x197863);
-        if ((PADH(idx, 0x2) & 0x200) || (s8)PADB(0, 0x13) > 0x32) {
+        if ((PADH(idx, 0x2) & INPUT_BUTTON_B) || (s8)PADB(0, 0x13) > 0x32) {
             NODE_U8(item, 0x28) = 4;
         }
         break;
 
     case 2:
+        fn_2_1FF14(1);
+        for (slot = 0; slot < 1; slot++) {
+            fn_2_1FF0C(slot);
+            switch (slot) {
+            case 0:
+                if (WB32(0x1976A4) == slot) {
+                    idx = (s8)WB(0x197863);
+                    pad = PADH(idx, 0x2);
+                    if (pad & INPUT_BUTTON_B) {
+                        WB(0x19784A) = 0;
+                        WB(0x197846) = 0;
+                        WB32(0x1976A4) = 0;
+                        WB(0x197845) = 0;
+                        NODE_U8(item, 0x28) = 1;
+                    } else if (pad & INPUT_BUTTON_A) {
+                        lbl_2_bss_A169 ^= 1;
+                    } else if (pad & INPUT_BUTTON_START) {
+                        fn_2_93C64();
+                    }
+                    if ((s8)lbl_2_bss_A169 != 0) {
+                        fn_2_489DC();
+                    }
+                }
+                break;
+            }
+        }
+        break;
+
     case 3:
         fn_2_1FF14(1);
-        fn_2_1FF0C(0);
-        if (WB32(0x1976A4) == 0) {
-            idx = (s8)WB(0x197863);
-            pad = PADH(idx, 0x2);
-            if (pad & 0x200) {
-                WB(0x19784A) = 0;
-                WB(0x197846) = 0;
-                WB32(0x1976A4) = 0;
-                WB(0x197845) = 0;
-                NODE_U8(item, 0x28) = 1;
-            } else if (sub == 2) {
-                if (pad & 0x100) {
-                    lbl_2_bss_A169 ^= 1;
-                } else if (pad & 0x1000) {
-                    fn_2_93C64();
-                }
-                if (lbl_2_bss_A169 != 0) {
-                    fn_2_489DC();
-                }
-            } else {
-                if (pad & 0x40) {
-                    if (PADH(idx, 0x0) & 0x100) {
+        for (slot = 0; slot < 1; slot++) {
+            fn_2_1FF0C(slot);
+            switch (slot) {
+            case 0:
+                if (WB32(0x1976A4) == slot) {
+                    idx = (s8)WB(0x197863);
+                    pad = PADH(idx, 0x2);
+                    if (pad & INPUT_BUTTON_B) {
+                        WB(0x19784A) = 0;
+                        WB(0x197846) = 0;
+                        WB32(0x1976A4) = 0;
+                        NODE_U8(item, 0x28) = 1;
+                    } else if ((pad & INPUT_TRIGGER_L) && (PADH(idx, 0x0) & INPUT_BUTTON_A)) {
                         WBH(0x1972BE) = (WBH(0x1972BE) + 28) % 29;
-                    }
-                } else if (pad & 0x20) {
-                    if (PADH(idx, 0x0) & 0x100) {
+                    } else if ((pad & INPUT_TRIGGER_R) && (PADH(idx, 0x0) & INPUT_BUTTON_A)) {
                         WBH(0x1972BE) = (WBH(0x1972BE) + 1) % 29;
+                    } else if (PADH(idx, 0x4) & INPUT_BUTTON_Y) {
+                        *(f32 *)(lbl_2_bss_1A8248 + WBH(0x1972BE) * 0xBC + 0x2208) -= 0.1f;
+                    } else if (PADH(idx, 0x4) & INPUT_BUTTON_X) {
+                        *(f32 *)(lbl_2_bss_1A8248 + WBH(0x1972BE) * 0xBC + 0x2208) += 0.1f;
                     }
-                } else if (PADH(idx, 0x4) & 0x800) {
-                    *(f32 *)(lbl_2_bss_1A8248 + WBH(0x1972BE) * 0xBC + 0x2208) -= 0.1f;
-                } else if (PADH(idx, 0x4) & 0x400) {
-                    *(f32 *)(lbl_2_bss_1A8248 + WBH(0x1972BE) * 0xBC + 0x2208) += 0.1f;
                 }
+                break;
             }
         }
         break;

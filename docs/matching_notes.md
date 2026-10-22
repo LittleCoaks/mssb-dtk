@@ -4383,3 +4383,26 @@ build, all four output hashes, and whitespace checks pass. Project build report:
 4191/6479 matching functions,41.75% code. Evidence: build/_postmerge_wave2_* and
 build/_postmerge_wave3_*; detailed private trials and readability snapshots are
 in per-unit checkpoints. No emulator playtest was performed.
+
+### Timer, allocation and records-callback audit (2026-10-21)
+
+A further isolated Sol pass raises rep_08E8 .text72.140114% ->81.563160%,
+keeping .rodata79.069770%. fn_2_4A6E8 is newly exact after readability review
+and fresh comparison. Timer routines fn_2_46D94 and fn_2_472C4 improve to90.39156%
+and88.24823%, preserving the original input dispatch, wrap, range, truncation,
+and sound paths. fn_2_4906C now copies15 bank pointers as the target does; the
+previous draft copied20. Existing ScreenTextPool/TextBank types replace raw views.
+The signed16 flags prototype for fn_2_472C4 follows the target's sign extension;
+its text_4D960 include dependent was rebuilt and all22 scores remain identical.
+
+Manager's records-callback audit raises rep_0AB0 .text86.808100% ->88.983154%.
+fn_2_5979C now reaches99.329445% and fn_2_59CF8 reaches79.305140%. Both run their
+conditional update after cancellation as the target does; the editor preserves
+its distinct cancellation flags and shoulder/A combinations fall through to
+later input tests correctly. fn_2_5AE54 restores the common per-frame update and
+cleanup outside initialization, reaching92.980770%.
+
+All57 function baselines in the edited units and22 dependent function baselines
+are preserved. Full build, four output hashes and whitespace checks pass;
+project report4192/6479 matching functions,41.78% code. Detailed evidence is in
+build/_postmerge_wave4_* and per-unit checkpoints. No emulator test was performed.

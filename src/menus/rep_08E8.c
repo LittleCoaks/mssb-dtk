@@ -1,5 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "menus/rep_08E8.h"
+#include "text/text.h"
+#include "Dolphin/pad.h"
 #include "game/math/game_math.h"
 #include "header_rep_data.h"
 #include "Dolphin/mtx.h"
@@ -26,7 +28,6 @@ extern u32 *lbl_2_data_13374;
 extern u8 g_d_GameSettings[];
 extern s32 lbl_2_data_38B8;
 extern u8 *lbl_2_bss_340140;
-extern u8 screenTextArray[];
 extern u8 StatsScreenScores[];
 extern u8 AtBat_ButtonInput1[];
 extern u8 lbl_800EFBA4[];
@@ -255,61 +256,90 @@ void fn_2_4AB1C(void) {
     challenge_leftoverTeammatesJoinBowserJr();
 }
 
-static inline void setTimingPair(u8 *b, s16 v766, s16 v768, s16 v76A, s16 v76C) {
-    *(s16 *)(b + 0x7766) = v766;
-    *(s16 *)(b + 0x7768) = v768;
-    *(s16 *)(b + 0x776A) = v76A;
-    *(s16 *)(b + 0x776C) = v76C;
-}
+#define TIMING_FIELD(offset) (*(s16 *)(lbl_2_bss_1A824C + 0x190000 + (offset)))
 
 // .text:0x0004A6E8 size:0x434 mapped:0x8068977C
 void fn_2_4A6E8(void) {
-    u8 *b;
-    s32 mode;
-    s32 kind;
-    s32 arg;
+    s32 kind = *(s16 *)(lbl_2_bss_1A823C + 0x30);
 
-    kind = *(s16 *)(lbl_2_bss_1A823C + 0x30);
-    b = lbl_2_bss_1A824C + 0x190000;
-    mode = (s8)b[0x7843];
     if (kind == 3) {
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x776E), *(s16 *)(b + 0x7772), 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x7770), *(s16 *)(b + 0x7774), 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x776E);
+            TIMING_FIELD(0x7768) = TIMING_FIELD(0x7772);
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7770);
+            TIMING_FIELD(0x7768) = TIMING_FIELD(0x7774);
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         }
     } else if (kind == 5) {
-        arg = (mode == 0) ? 14 : 15;
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x777C), *(s16 *)(b + 0x777E), 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x7782), 10000, 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x777C);
+            TIMING_FIELD(0x7768) = TIMING_FIELD(0x777E);
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(14);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7782);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         }
-        *(s32 *)(b + 0x76A8) = fn_80062890(arg);
     } else if (kind == 4) {
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x7778), 10000, 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x777A), 10000, 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7778);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x777A);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
         }
     } else {
-        arg = (mode == 0) ? 14 : 15;
-        if (mode == 0) {
-            setTimingPair(b, *(s16 *)(b + 0x7792), 10000, 10000, *(s16 *)(b + 0x7798));
-        } else if (mode == 1) {
-            setTimingPair(b, *(s16 *)(b + 0x7794), 10000, 10000, *(s16 *)(b + 0x7798));
+        if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7792);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(14);
+        } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7794);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         } else {
-            setTimingPair(b, *(s16 *)(b + 0x7796), 10000, 10000, *(s16 *)(b + 0x7798));
+            TIMING_FIELD(0x7766) = TIMING_FIELD(0x7796);
+            TIMING_FIELD(0x7768) = 10000;
+            TIMING_FIELD(0x776A) = 10000;
+            TIMING_FIELD(0x776C) = TIMING_FIELD(0x7798);
+            *(s32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(15);
         }
-        *(s32 *)(b + 0x76A8) = fn_80062890(arg);
     }
 }
+
+#undef TIMING_FIELD
 
 // .text:0x0004A340 size:0x3A8 mapped:0x806893D4
 void fn_2_4A340(void) {
@@ -788,10 +818,9 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
 // .text:0x0004906C size:0x110 mapped:0x80688100
 void fn_2_4906C(void) {
     s32 i;
-    u8 *bank;
-    for (i = 0; i < 20; i++) {
-        bank = *(u8 **)(screenTextArray + 0x798 + lbl_2_bss_1A824C[0x1972B8] * 4);
-        *(u32 *)(lbl_2_bss_1A824C + 0x19542C + i * 4) = *(u32 *)(bank + 4 + i * 4);
+    for (i = 0; i < 15; i++) {
+        TextBank *bank = screenTextArray.textBanks[lbl_2_bss_1A824C[0x1972B8]];
+        ((u16 **)(lbl_2_bss_1A824C + 0x19542C))[i] = bank->strings[i];
     }
 }
 
@@ -1453,69 +1482,66 @@ void fn_2_474F8(void) {
 }
 
 // .text:0x000472C4 size:0x234 mapped:0x80686358
-void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, u16 flags) {
-    s32 x;
-    s32 rem;
-    s16 alt;
-    s16 diff;
-    s16 cur;
-    s16 mm;
-    u16 kind;
-    s32 snd = 0;
+static inline BOOL invalidTimerPeriod(s16 period, s16 step) {
+    s32 differenceBits = period ^ step;
+    return (period == 0) | (((differenceBits >> 1) - (differenceBits & period)) < 0);
+}
 
-    if (step == 0) {
-        return;
-    }
-    x = period ^ step;
-    if (period == 0 || (x >> 1) - (x & period) < 0) {
-        period = step;
-    }
-    rem = step - (step / period) * period;
-    alt = period;
-    if (rem != 0) {
-        alt = rem;
-    }
-    diff = (flags & 4) ? step - alt : step - period;
-    kind = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, s16 flags) {
+    s32 remainder;
+    s16 lastPeriod;
+    s16 limit;
+    s16 current;
+    s16 amount;
+    u16 input;
 
-    if (kind == 0x20 || kind == 0x4) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            if (cur == diff) {
-                if (!(flags & 2)) {
-                    *value = diff;
-                    return;
-                }
+    if (step == 0) return;
+    if (invalidTimerPeriod(period, step)) period = step;
+    remainder = step % period;
+    lastPeriod = period;
+    if (remainder != 0) lastPeriod = remainder;
+    limit = step - period;
+    if (flags & 4) limit = step - lastPeriod;
+    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    switch (input) {
+    case PAD_TRIGGER_R:
+    case PAD_BUTTON_DOWN:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = period - current % period;
+        if (current == limit) {
+            if (flags & 2) {
                 *value = 0;
-                snd = 1;
             } else {
-                cur = cur + (period - cur % period);
-                *value = cur;
-                if (cur > diff) {
-                    *value = diff;
-                }
-                snd = 1;
+                *value = limit;
+                break;
             }
+        } else {
+            current += amount;
+            *value = current;
+            if (current > limit) *value = limit;
         }
-    } else if (kind == 0x40 || kind == 0x8) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            mm = cur % period;
-            if (mm == 0) {
-                mm = period;
-            }
-            if (cur > 0) {
-                *value = cur - mm;
-                snd = 1;
-            } else if (flags & 2) {
-                *value = diff;
-                snd = 1;
-            }
-        }
-    }
-    if (snd) {
         *timer = 0;
         sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        break;
+    case PAD_TRIGGER_L:
+    case PAD_BUTTON_UP:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = current % period;
+        if (amount == 0) amount = period;
+        if (current <= 0) {
+            if (flags & 2) {
+                *value = limit;
+                *timer = 0;
+                sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+            }
+        } else {
+            *value = *value - amount;
+            *timer = 0;
+            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        }
+        break;
     }
 }
 
@@ -1525,154 +1551,132 @@ static inline void playCountdownSfx(s32 fid, s32 volIdx) {
 
 // .text:0x00046D94 size:0x530 mapped:0x80685E28
 void fn_2_46D94(s16 *timer, s16 *value, s16 step, s16 period, u16 flags) {
-    s32 x;
-    s32 rem;
-    s16 alt;
-    s16 diff;
-    s16 cur;
-    s16 mm;
+    s32 remainder;
+    s16 lastPeriod;
+    s16 limit;
+    s16 current;
+    s16 amount;
     s16 t;
     s16 v;
-    u16 kind;
+    u16 input;
 
-    if (step == 0) {
-        return;
-    }
-    x = period ^ step;
-    if (period == 0 || (x >> 1) - (x & period) < 0) {
-        period = step;
-    }
-    rem = step - (step / period) * period;
-    alt = period;
-    if (rem != 0) {
-        alt = rem;
-    }
-    diff = (flags & 4) ? step - alt : step - period;
-    kind = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
-
-    if (kind == 0x20) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            if (cur != diff) {
-                cur = cur + (period - cur % period);
-                *value = cur;
-                if (cur > diff) {
-                    *value = diff;
-                }
-            } else {
-                if (!(flags & 2)) {
-                    *value = diff;
-                    return;
-                }
-                *value = 0;
-            }
-            *timer = 0;
-            if (!(flags & 0x10)) {
-                playCountdownSfx(0x1B8, 1);
-            }
-        }
-    } else if (kind == 0x40) {
-        if (!(flags & 8) && value != NULL && step > period) {
-            cur = *value;
-            mm = cur % period;
-            if (mm == 0) {
-                mm = period;
-            }
-            if (cur > 0) {
-                *value = cur - mm;
-                *timer = 0;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B8, 1);
-                }
-            } else if (flags & 2) {
-                *value = diff;
-                *timer = 0;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B8, 1);
-                }
-            }
-        }
-    } else if (kind == 0x8) {
+    if (step == 0) return;
+    if (invalidTimerPeriod(period, step)) period = step;
+    remainder = step % period;
+    lastPeriod = period;
+    if (remainder != 0) lastPeriod = remainder;
+    limit = step - period;
+    if (flags & 4) limit = step - lastPeriod;
+    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    switch (input) {
+    case PAD_BUTTON_UP:
         if (value != NULL) {
             *timer = *timer - 1;
-            if (*timer >= 0) {
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
+            if (*timer < 0) {
+                if (*value != 0) {
+                    *value = *value - 1;
+                    if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+                } else if (flags & 1) {
+                    if (flags & 4) *timer = lastPeriod - 1;
+                    else *timer = period - 1;
+                    *value = limit;
+                    if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+                    break;
                 }
-                return;
+                *timer = *timer + 1;
+            } else {
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             }
-            if (*value != 0) {
-                *value = *value - 1;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
-                }
-            } else if (flags & 1) {
-                *timer = (flags & 4) ? alt - 1 : period - 1;
-                *value = diff;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
-                }
-                return;
-            }
-            *timer = *timer + 1;
         } else {
             *timer = *timer - 1;
-            if (*timer >= 0) {
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
-                }
-                return;
-            }
-            if (flags & 1) {
-                *timer = step - 1;
-                if (!(flags & 0x10)) {
-                    playCountdownSfx(0x1B7, 0);
+            if (*timer < 0) {
+                if (flags & 1) {
+                    *timer = step - 1;
+                    if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+                } else {
+                    *timer = *timer + 1;
                 }
             } else {
-                *timer = *timer + 1;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             }
         }
-    } else if (kind == 0x4) {
+        break;
+    case PAD_BUTTON_DOWN:
         if (value != NULL) {
             t = *timer;
             v = *value;
-            if (t + v < step - 1) {
-                if (t < period - 1) {
-                    *timer = t + 1;
-                } else if (v < diff) {
+            if (t + v >= step - 1) {
+                if (v < limit) {
+                    *value = v + 1;
+                    *timer = *timer - 1;
+                } else if (flags & 1) {
+                    *timer = 0;
+                    *value = 0;
+                } else {
+                    break;
+                }
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
+            } else if (t >= period - 1) {
+                if (v < limit) {
                     *value = v + 1;
                 } else if (flags & 1) {
                     *timer = 0;
                     *value = 0;
                 } else {
-                    return;
+                    break;
                 }
-            } else if (v < diff) {
-                *value = v + 1;
-                *timer = *timer - 1;
-            } else if (flags & 1) {
-                *timer = 0;
-                *value = 0;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             } else {
-                return;
-            }
-            if (!(flags & 0x10)) {
-                playCountdownSfx(0x1B7, 0);
+                *timer = t + 1;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
             }
         } else {
             *timer = *timer + 1;
             if (*timer >= step) {
-                if (flags & 1) {
-                    *timer = 0;
-                } else {
+                if (flags & 1) *timer = 0;
+                else {
                     *timer = *timer - 1;
-                    return;
+                    break;
                 }
             }
-            if (!(flags & 0x10)) {
-                playCountdownSfx(0x1B7, 0);
-            }
+            if (!(flags & 0x10)) playCountdownSfx(0x1B7, 0);
         }
+        break;
+    case PAD_TRIGGER_R:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = period - current % period;
+        if (current == limit) {
+            if (flags & 2) *value = 0;
+            else {
+                *value = limit;
+                break;
+            }
+        } else {
+            current += amount;
+            *value = current;
+            if (current > limit) *value = limit;
+        }
+        *timer = 0;
+        if (!(flags & 0x10)) playCountdownSfx(0x1B8, 1);
+        break;
+    case PAD_TRIGGER_L:
+        if ((flags & 8) || value == NULL || step <= period) break;
+        current = *value;
+        amount = current % period;
+        if (amount == 0) amount = period;
+        if (current <= 0) {
+            if (flags & 2) {
+                *value = limit;
+                *timer = 0;
+                if (!(flags & 0x10)) playCountdownSfx(0x1B8, 1);
+            }
+        } else {
+            *value = *value - amount;
+            *timer = 0;
+            if (!(flags & 0x10)) playCountdownSfx(0x1B8, 1);
+        }
+        break;
     }
 }
 
