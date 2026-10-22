@@ -560,14 +560,14 @@ void fn_3_89028(void) {
         runner->unused_AIRelated = 0;
         runner->tagUpStatus = TAG_UP_TYPE_NONE;
         if (runner->runnerStatus == RUNNER_STATUS_ON_FIELD) {
-            runnerAISetRunningDirection(i, 1);
+            runnerAISetRunningDirection(i, RUNNER_DIRECTION_REQUEST_ADVANCE);
         }
     }
     if (g_BallsStrikesOuts.balls >= 4) {
         g_Runners[0].runnerStatus = RUNNER_STATUS_WALK_WHILE_STEALING;
     } else if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_4) {
         g_Runners[0].runnerStatus = RUNNER_STATUS_ON_FIELD;
-        runnerAISetRunningDirection(0, 1);
+        runnerAISetRunningDirection(0, RUNNER_DIRECTION_REQUEST_ADVANCE);
     } else {
         g_Runners[0].runnerStatus = RUNNER_STATUS_SCORED_DEAD_BALL;
     }
@@ -579,7 +579,7 @@ void maybeHandleBaserunners(void) {
 
     for (i = 0; i < 4; i++) {
         if (i == 0) {
-            runnerAISetRunningDirection(i, 1);
+            runnerAISetRunningDirection(i, RUNNER_DIRECTION_REQUEST_ADVANCE);
         }
         if (i == 0) {
             g_Runners[i].unused_AIRelated = 1;
@@ -1623,7 +1623,7 @@ void runnerAISetRunningDirection(int runnerIdx, int actionCode) {
     if (runner->runnerStatus != RUNNER_STATUS_ON_FIELD) {
         return;
     }
-    if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN && actionCode != -1) {
+    if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN && actionCode != RUNNER_DIRECTION_REQUEST_BACK) {
         return;
     }
     if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage != 0) {
@@ -1634,10 +1634,10 @@ void runnerAISetRunningDirection(int runnerIdx, int actionCode) {
         }
         return;
     }
-    if (actionCode == 1) {
+    if (actionCode == RUNNER_DIRECTION_REQUEST_ADVANCE) {
         runner->baseRunningTowards = runner->nextBase;
     }
-    if (actionCode == -1) {
+    if (actionCode == RUNNER_DIRECTION_REQUEST_BACK) {
         currentBase = runner->currentBase;
         if (currentBase == 0) {
             return;
@@ -1665,14 +1665,14 @@ void runnerAISetRunningDirection(int runnerIdx, int actionCode) {
             runner->baseRunningTowards = currentBase;
         }
     }
-    if (actionCode == 0 && runnerIdx == 0 && runner->currentBase == 0) {
+    if (actionCode == RUNNER_DIRECTION_REQUEST_STOP && runnerIdx == 0 && runner->currentBase == 0) {
         return;
     }
-    if (actionCode == 0) {
+    if (actionCode == RUNNER_DIRECTION_REQUEST_STOP) {
         runner->runningDirectionDesired = RUNNER_MOVEMENT_STOPPED;
         return;
     }
-    if (actionCode == 1) {
+    if (actionCode == RUNNER_DIRECTION_REQUEST_ADVANCE) {
         runner->runningDirectionDesired = RUNNER_MOVEMENT_FORWARDS;
         return;
     }
@@ -1690,7 +1690,7 @@ void running_AIStartSteals(void) {
                     return;
                 }
                 if (g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
-                    runnerAI_requestRunningDirection(i, 1);
+                    runnerAI_requestRunningDirection(i, RUNNER_DIRECTION_REQUEST_ADVANCE);
                 }
             }
         } else if (g_AiLogic.batterAIStealIndicator != 0) {
@@ -1704,11 +1704,11 @@ void running_AIStartSteals(void) {
                         }
                         g_Runners[i].leadOffStatus = 0;
                     }
-                    runnerAI_requestRunningDirection(i, 1);
+                    runnerAI_requestRunningDirection(i, RUNNER_DIRECTION_REQUEST_ADVANCE);
                 }
             }
         } else if (g_AiLogic._74 == 2 && g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
-            runnerAI_requestRunningDirection(3, 1);
+            runnerAI_requestRunningDirection(3, RUNNER_DIRECTION_REQUEST_ADVANCE);
         }
     }
 }
@@ -1717,9 +1717,9 @@ void running_AIStartSteals(void) {
 void runnerAI_requestRunningDirection(int runnerIdx, long actionCode) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
 
-    if (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || actionCode == 1) {
-        if (actionCode == -1 && runner->startingBase_baseAchieved == runner->baseStandingOn) {
-            actionCode = 0;
+    if (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || actionCode == RUNNER_DIRECTION_REQUEST_ADVANCE) {
+        if (actionCode == RUNNER_DIRECTION_REQUEST_BACK && runner->startingBase_baseAchieved == runner->baseStandingOn) {
+            actionCode = RUNNER_DIRECTION_REQUEST_STOP;
         }
         runnerAISetRunningDirection(runnerIdx, actionCode);
     }
@@ -2464,35 +2464,35 @@ void running_LiveBall_AI(void) {
 
         for (i = 3; i >= 0; i--) {
             runner = &g_Runners[i];
-            dirs[i] = -2;
+            dirs[i] = RUNNER_DIRECTION_REQUEST_NONE;
             if (runner->runnerStatus != RUNNER_STATUS_ON_FIELD || runner->unused_const_1 == 0 ||
                 g_BallsStrikesOuts.outs >= 3 || g_FieldingLogic.playOverInd != 0) {
                 continue;
             }
             if (i == 0 && g_Ball.framesSinceHit < runner->delayBeforeStartingToRun) {
-                dirs[i] = 0;
+                dirs[i] = RUNNER_DIRECTION_REQUEST_STOP;
             } else if (i == 0 && g_Ball.framesSinceHit == runner->delayBeforeStartingToRun) {
-                dirs[i] = 1;
+                dirs[i] = RUNNER_DIRECTION_REQUEST_ADVANCE;
             } else if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
-                dirs[i] = 1;
+                dirs[i] = RUNNER_DIRECTION_REQUEST_ADVANCE;
             } else if (i == 0 && g_Ball.framesSinceHit == -1) {
-                dirs[i] = 0;
+                dirs[i] = RUNNER_DIRECTION_REQUEST_STOP;
             } else if (i != 0 || runner->currentBase != 0) {
                 if ((g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED) &&
                     g_FieldingLogic.infieldFlyIndicator != 0) {
-                    dirs[i] = -1;
+                    dirs[i] = RUNNER_DIRECTION_REQUEST_BACK;
                 } else if (g_Ball.howFoulTheBallWillBe >= 2 &&
                            (g_Ball.numFieldersWhoHandledBallDuringPlay == 0 || g_Ball.bobbleLocation_1fair_2foul != 1)) {
-                    dirs[i] = -1;
+                    dirs[i] = RUNNER_DIRECTION_REQUEST_BACK;
                 } else {
                     if (g_BallsStrikesOuts.storedOuts == 2 && g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE &&
                         runner->currentBase == runner->startingBase_baseAchieved) {
-                        dirs[i] = 1;
+                        dirs[i] = RUNNER_DIRECTION_REQUEST_ADVANCE;
                     } else {
                         if (contact == BALL_RESULT_TYPE_CAUGHT) {
                             if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
                                 runner->relatedToRunnerPos = 0;
-                                dirs[i] = -1;
+                                dirs[i] = RUNNER_DIRECTION_REQUEST_BACK;
                                 runner->unused_someBaseNum = -1;
                                 continue;
                             } else {
@@ -2502,16 +2502,16 @@ void running_LiveBall_AI(void) {
                                     InMemRunnerType* other = &g_Runners[j];
 
                                     if (other->runnerStatus == RUNNER_STATUS_ON_FIELD && other->tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
-                                        dirs[i] = -1;
+                                        dirs[i] = RUNNER_DIRECTION_REQUEST_BACK;
                                         runner->unused_someBaseNum = -1;
                                     }
                                 }
                             }
                         }
                         if (contact == BALL_RESULT_TYPE_CAUGHT && runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
-                            dirs[i] = -1;
+                            dirs[i] = RUNNER_DIRECTION_REQUEST_BACK;
                         } else if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE && contact >= 1 && contact <= 2) {
-                            dirs[i] = 1;
+                            dirs[i] = RUNNER_DIRECTION_REQUEST_ADVANCE;
                         } else {
                             BOOL found;
                             int j;
@@ -2526,7 +2526,7 @@ void running_LiveBall_AI(void) {
                                 } else if (runner->actionCode != RUNNER_ACTION_NONE) {
                                     runner->unused_someBaseNum = -1;
                                 } else {
-                                    dirs[i] = 1;
+                                    dirs[i] = RUNNER_DIRECTION_REQUEST_ADVANCE;
                                     continue;
                                 }
                             }
@@ -2541,18 +2541,18 @@ void running_LiveBall_AI(void) {
                                 }
                             }
                             if (found) {
-                                dirs[i] = 1;
+                                dirs[i] = RUNNER_DIRECTION_REQUEST_ADVANCE;
                             } else {
                                 fn_3_85744(i);
                                 res = runnerAISubfunction2(i, arg, dirs);
                                 if (res == 1) {
                                     if (g_Ball.framesSinceHit < 60 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-                                        dirs[i] = 0;
+                                        dirs[i] = RUNNER_DIRECTION_REQUEST_STOP;
                                     } else {
-                                        dirs[i] = -1;
+                                        dirs[i] = RUNNER_DIRECTION_REQUEST_BACK;
                                     }
                                 } else if (res == 2) {
-                                    dirs[i] = 0;
+                                    dirs[i] = RUNNER_DIRECTION_REQUEST_STOP;
                                 } else if (g_Ball.framesSinceHit != -1 && g_Ball.framesSinceHit >= 10) {
                                     if (contact == BALL_RESULT_TYPE_IN_AIR) {
                                         if (g_Ball.pauseBallMovementWhenInPlant != 0) {
@@ -2589,9 +2589,9 @@ void running_LiveBall_AI(void) {
         for (i = 3; i >= 0; i--, runner--) {
             int d = dirs[i];
 
-            if (d != -2 && (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || d == 1)) {
-                if (d == -1 && runner->startingBase_baseAchieved == runner->baseStandingOn) {
-                    d = 0;
+            if (d != RUNNER_DIRECTION_REQUEST_NONE && (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || d == RUNNER_DIRECTION_REQUEST_ADVANCE)) {
+                if (d == RUNNER_DIRECTION_REQUEST_BACK && runner->startingBase_baseAchieved == runner->baseStandingOn) {
+                    d = RUNNER_DIRECTION_REQUEST_STOP;
                 }
                 runnerAISetRunningDirection(i, d);
             }

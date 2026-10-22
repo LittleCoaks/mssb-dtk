@@ -4,6 +4,14 @@
 #include "mssbTypes.h"
 #include "game/UnknownHomes_Game.h"
 
+// Direction a runner AI asks for (runnerAISetRunningDirection / runnerAI_requestRunningDirection).
+typedef enum _RUNNER_DIRECTION_REQUEST {
+    /* -2 */ RUNNER_DIRECTION_REQUEST_NONE = -2, // no decision; leave the runner alone
+    /* -1 */ RUNNER_DIRECTION_REQUEST_BACK = -1,
+    /*  0 */ RUNNER_DIRECTION_REQUEST_STOP,
+    /*  1 */ RUNNER_DIRECTION_REQUEST_ADVANCE,
+} RUNNER_DIRECTION_REQUEST;
+
 void fn_3_7D79C(int runnerIdx);
 void fn_3_7D920(int runnerIdx);
 void fn_3_7D9DC(int runnerIdx);
