@@ -28,7 +28,7 @@ void fn_2_48D08(void);
 void fn_2_48D54(void);
 void fn_2_48DB4(void);
 void fn_2_4906C(void);
-void fn_2_4917C(void *a, s32 b, s32 c, s32 d, s32 e);
+u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused);
 void fn_2_49DB8(s32 p1, s32 p2, s32 p3, s32 p4, s32 p5, s32 p6, s32 p7, s32 p8, s32 p9, s32 p10);
 void fn_2_49E5C(s32 p1, s32 p2, s32 p3, s32 p4, s32 p5, s32 p6, s32 p7, s32 p8, s32 p9);
 s32 fn_2_49EFC(u16 *str, u16 idx);

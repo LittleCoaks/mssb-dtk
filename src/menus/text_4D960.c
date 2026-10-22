@@ -287,26 +287,35 @@ static inline void activateScriptScene(void) {
     lbl_2_bss_1A8234[0x162872] = TRUE;
 }
 
-static inline void appendScriptGlyphs(u16 *destination, u16 *count, const u16 *source) {
+static inline void copyScriptGlyphs(u16 *destination, u16 *count, const u16 *source) {
     u16 glyph;
+    do {
+        s32 index = *count;
+        glyph = *source++;
+        (*count)++;
+        destination[index] = glyph;
+    } while (*count != 0x100 && ((glyph & 0x4000) == 0 || (glyph & 0x3FFF) != 0));
+}
+
+static inline void appendScriptGlyphs(u16 *destination, u16 *count, const u16 *source) {
     if (*count != 0) {
         (*count)--;
     }
-    do {
-        glyph = *source++;
-        destination[(*count)++] = glyph;
-    } while (*count != 0x100 && ((glyph & 0x4000) == 0 || (glyph & 0x3FFF) != 0));
+    copyScriptGlyphs(destination, count, source);
 }
 
 static inline void appendScriptString(MenuScriptWork *work, s32 window, s32 stringID) {
     u16 *source;
     TextBank *bank = screenTextArray.textBanks[SCRIPT_FIELD(u8, 0x72B8)];
+    if (work->textCounts[window] != 0) {
+        work->textCounts[window]--;
+    }
     if (stringID == -1) {
         source = NULL;
     } else {
         source = bank->strings[stringID];
     }
-    appendScriptGlyphs(work->text[window],
+    copyScriptGlyphs(work->text[window],
         &work->textCounts[window], source);
 }
 
