@@ -355,10 +355,17 @@ typedef struct {
 
 extern MatchInfo_s g_MatchInfo;
 
-/* ---- aiPosSwapInputs (0x803297E0, 0x24C98 bytes) ---------------------------
- * A large, mostly unlabelled block; only the members in use are named. */
+/* ---- g_TeamManagement (0x803297E0, 0x24C98 bytes) ---------------------------
+ * State of the pre-game and pause-menu team-management screens (roster
+ * order, fielding alignment, Z info window, star/scout-flag/check-stars
+ * menus) plus a few neighbouring menu flags (captain-select random cursor,
+ * loadMatchRelInd). playerInputs[] at 0 are the controller inputs those
+ * screens read while paused. Formerly aiPosSwapInputs, after Ghidra's
+ * 32-byte "aiPosSwapInputs?" at 0x803297E0; dtk sized the symbol over the
+ * whole block, which still holds unlabelled bss (Ghidra has byte arrays at
+ * +0x6820, +0xA820 and +0x10000 onward). */
 
-/* aiPosSwapInputs.teamManagementProcessID (Ghidra: teamManagementMenuProcesses). */
+/* g_TeamManagement.teamManagementProcessID (Ghidra: teamManagementMenuProcesses). */
 typedef enum _TEAM_MANAGEMENT_PROCESS {
     TEAM_MANAGEMENT_PROCESS_INITIALIZE = 0,
     TEAM_MANAGEMENT_PROCESS_LOAD = 1,
@@ -372,7 +379,7 @@ typedef enum _TEAM_MANAGEMENT_PROCESS {
     TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1 = 14,
 } TEAM_MANAGEMENT_PROCESS;
 
-/* aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber
+/* g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber
  * (Ghidra: challengeCheckStarsLoadingScreenNum). */
 typedef enum _CHECK_STARS_SCENE {
     CHECK_STARS_SCENE_NONE = 0,
@@ -384,7 +391,7 @@ typedef enum _CHECK_STARS_SCENE {
     CHECK_STARS_SCENE_EXIT_CHAR_VIEW = 6,
 } CHECK_STARS_SCENE;
 
-/* aiPosSwapInputs.teamMenuType[port] (Ghidra: enumSwapMenuType,
+/* g_TeamManagement.teamMenuType[port] (Ghidra: enumSwapMenuType,
  * teamManagement_menuType): written by the pause menu's positionSwap from
  * the chosen option, read by pauseMenu_openTeamManagement (match_scene.c)
  * to pick the menu. */
@@ -395,7 +402,7 @@ typedef enum _TEAM_MENU_TYPE {
     /* 3 */ TEAM_MENU_TYPE_STAR_MISSIONS, // challenge star menu
 } TEAM_MENU_TYPE;
 
-/* aiPosSwapInputs.starMenuDrawStep: the request battingOrderProcessInputs
+/* g_TeamManagement.starMenuDrawStep: the request battingOrderProcessInputs
  * services, then clears. */
 typedef enum _STAR_MENU_DRAW_STEP {
     /* 0 */ STAR_MENU_DRAW_STEP_NONE,
@@ -404,13 +411,13 @@ typedef enum _STAR_MENU_DRAW_STEP {
     /* 3 */ STAR_MENU_DRAW_STEP_CLOSE,        // A/B in starMenuCursor
 } STAR_MENU_DRAW_STEP;
 
-/* aiPosSwapInputs.zMenuPage[team]: Z opens on page 0; left/right switch. */
+/* g_TeamManagement.zMenuPage[team]: Z opens on page 0; left/right switch. */
 typedef enum _Z_MENU_PAGE {
     /* 0 */ Z_MENU_PAGE_MAIN,
     /* 1 */ Z_MENU_PAGE_STAR_MOVES, // star swing/pitch (fn_80058B20, zMenuLoadGraphics)
 } Z_MENU_PAGE;
 
-/* aiPosSwapInputs.scoutFlagMenuState: fn_80057CAC's state machine. */
+/* g_TeamManagement.scoutFlagMenuState: fn_80057CAC's state machine. */
 typedef enum _SCOUT_FLAG_MENU_STATE {
     /* 0 */ SCOUT_FLAG_MENU_STATE_IDLE,
     /* 1 */ SCOUT_FLAG_MENU_STATE_OPEN,       // set on entry (initTeamManagementScreen)
@@ -450,7 +457,7 @@ typedef enum _TEAM_MANAGEMENT_ANIM_STEP {
     /* 2 */ TEAM_MANAGEMENT_ANIM_STEP_DONE,    // after makeCursorMovable
 } TEAM_MANAGEMENT_ANIM_STEP;
 
-/* aiPosSwapInputs.rosterView (Ghidra: enum_rosterView). */
+/* g_TeamManagement.rosterView (Ghidra: enum_rosterView). */
 typedef enum _ROSTER_VIEW {
     ROSTER_VIEW_BATTING_ORDER = 0,
     ROSTER_VIEW_DEFENSIVE_ALIGNMENT = 1,
@@ -523,13 +530,13 @@ typedef struct {
     /* 0xCFA1 */ E(u8, BOOL) challengeLoadingNormalMatchInd; // challenge: set on resuming saved teams, cleared once copied back
     /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];   // per port
     /* 0xCFA6 */ u8 _CFA6[0x24C98 - 0xCFA6];
-} AiPosSwapInputs_s; // size: 0x24C98
+} TeamManagementState_s; // size: 0x24C98
 
-// A unit may define AIPOSSWAPINPUTS_LOCAL_VIEW and declare its own, smaller
+// A unit may define TEAM_MANAGEMENT_LOCAL_VIEW and declare its own, smaller
 // view of this object: MWCC 2.6 only keeps loads of other globals ordered
 // after stores into an object whose declared size is below 0xFFFF bytes.
-#ifndef AIPOSSWAPINPUTS_LOCAL_VIEW
-extern AiPosSwapInputs_s aiPosSwapInputs;
+#ifndef TEAM_MANAGEMENT_LOCAL_VIEW
+extern TeamManagementState_s g_TeamManagement;
 #endif
 
 /* ---- g_InputBuffer (0x802E9F20, 0x60 bytes) --------------------------------

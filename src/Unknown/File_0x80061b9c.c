@@ -1,4 +1,4 @@
-#define AIPOSSWAPINPUTS_LOCAL_VIEW
+#define TEAM_MANAGEMENT_LOCAL_VIEW
 #include "Unknown/File_0x80061b9c.h"
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x80034e20.h"
@@ -10,7 +10,7 @@
 #include "text/text.h"
 
 // Only the team-management state this unit touches; see
-// AIPOSSWAPINPUTS_LOCAL_VIEW for why the full-size type is not used.
+// TEAM_MANAGEMENT_LOCAL_VIEW for why the full-size type is not used.
 extern struct {
     /* 0x0000 */ u8 _0000[0xCF3B];
     /* 0xCF3B */ s8 playerWhoPaused;
@@ -18,7 +18,7 @@ extern struct {
     /* 0xCF45 */ u8 removeSceneRequested;
     /* 0xCF46 */ u8 _CF46[0xCFA2 - 0xCF46];
     /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];
-} aiPosSwapInputs;
+} g_TeamManagement;
 
 extern u8 lineUpInfoStruct[];
 extern UIRecordDescriptor lbl_801000A8[];
@@ -39,8 +39,8 @@ void teamManagementGraphics_initialLoad(void) {
     s32 i;
     BOOL cond;
 
-    aiPosSwapInputs.removeSceneRequested = 0;
-    playerWho = aiPosSwapInputs.playerWhoPaused;
+    g_TeamManagement.removeSceneRequested = 0;
+    playerWho = g_TeamManagement.playerWhoPaused;
 
     if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         addGraphicsElementToScene(scene, lbl_801000A8);
@@ -141,7 +141,7 @@ void teamManagementGraphics_initialLoad(void) {
         RECORD(8)->frame = 0xA0000;
         RECORD(8)->playMode = 0;
 
-        if (aiPosSwapInputs.teamMenuType[playerWho] == TEAM_MENU_TYPE_BATTER_SWAP) {
+        if (g_TeamManagement.teamMenuType[playerWho] == TEAM_MENU_TYPE_BATTER_SWAP) {
             RECORD(80)->elementIndex = 0x28;
             RECORD(1)->elementIndex = 0x47;
             RECORD(1)->frame = 0x140000;

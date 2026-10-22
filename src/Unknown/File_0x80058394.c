@@ -22,8 +22,8 @@ void zMenuLoadGraphics(MenuScene* scene) {
     CharacterStats* row;
     UIRecord* rec;
 
-    loadedFlags = aiPosSwapInputs.zMenuPageLoaded;
-    if (loadedFlags[aiPosSwapInputs.playerWhoPaused] != 0) {
+    loadedFlags = g_TeamManagement.zMenuPageLoaded;
+    if (loadedFlags[g_TeamManagement.playerWhoPaused] != 0) {
         return;
     }
 
@@ -33,8 +33,8 @@ void zMenuLoadGraphics(MenuScene* scene) {
     MENU_RECORD(scene, 281)->playMode = UI_PLAY_BACKWARD;
     MENU_RECORD(scene, 289)->playMode = UI_PLAY_BACKWARD;
 
-    pw = aiPosSwapInputs.playerWhoPaused;
-    cursor = (s8)aiPosSwapInputs.teamManagement_cursorPos[pw];
+    pw = g_TeamManagement.playerWhoPaused;
+    cursor = (s8)g_TeamManagement.teamManagement_cursorPos[pw];
     charID = inMemRoster[pw][cursor - 1].stats.CharID;
     row = &Static_Stats_Tables.characterStats[charID / 9][charID % 9];
 

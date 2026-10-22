@@ -30,12 +30,12 @@ void scoutFlagMenu(void) {
         charID = inMemRoster[1][i].stats.CharID;
 
         table = g_Challenge.characters[charID].scoutFlagPointer;
-        aiPosSwapInputs.scoutFlagsRequired[i] = table->flagsRequired[g_Challenge.difficulty][g_Challenge.captain];
-        aiPosSwapInputs.scoutFlagsAchieved[i] = g_Challenge.characters[charID].scoutFlagsAchieved;
+        g_TeamManagement.scoutFlagsRequired[i] = table->flagsRequired[g_Challenge.difficulty][g_Challenge.captain];
+        g_TeamManagement.scoutFlagsAchieved[i] = g_Challenge.characters[charID].scoutFlagsAchieved;
 
         for (j = 0; j < 5; j++) {
-            if (j < aiPosSwapInputs.scoutFlagsRequired[i]) {
-                if (aiPosSwapInputs.scoutFlagsRequired[i] - aiPosSwapInputs.scoutFlagsAchieved[i] > j) {
+            if (j < g_TeamManagement.scoutFlagsRequired[i]) {
+                if (g_TeamManagement.scoutFlagsRequired[i] - g_TeamManagement.scoutFlagsAchieved[i] > j) {
                     MENU_RECORD(scene, 32 + 5 * i + j)->frame = 0;
                 }
             } else {

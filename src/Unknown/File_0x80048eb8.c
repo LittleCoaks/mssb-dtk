@@ -80,7 +80,7 @@ void startGameRelated(void) {
             unregisterObjectByID(0x9);
             unregisterObjectByID(0x6);
             maybeLoadsGameSoundFiles();
-            aiPosSwapInputs.unkCF40 = 0;
+            g_TeamManagement.unkCF40 = 0;
             ((u8 *)&g_MatchInfo)[0xF] = 0;
             changeScene(0xF, 6);
             ((u8 *)&g_MatchInfo)[0x11] = 0;

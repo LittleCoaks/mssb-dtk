@@ -106,47 +106,47 @@ void fn_80059458(MenuScene* scene, s32 port, u32 inputMask) {
 }
 
 void fn_800596D4(MenuScene* scene) {
-    if (aiPosSwapInputs.starMenuStepStarted == 0) {
-        if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, aiPosSwapInputs.starMenuCursorPos)) {
+    if (g_TeamManagement.starMenuStepStarted == 0) {
+        if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, g_TeamManagement.starMenuCursorPos)) {
             TEAM_MANAGEMENT_RECORD(scene, 0x1D9)->flags |= UI_FLAG_VISIBLE;
             TEAM_MANAGEMENT_RECORD(scene, 0x1D9)->frame = 0;
             TEAM_MANAGEMENT_RECORD(scene, 0x1D9)->playMode = UI_PLAY_FORWARD;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + 0x1E7)->flags |= UI_FLAG_VISIBLE;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + 0x1E7)->frame = 0;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + 0x1E7)->playMode = UI_PLAY_FORWARD;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0x00010000;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + 0x1E7)->flags |= UI_FLAG_VISIBLE;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + 0x1E7)->frame = 0;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + 0x1E7)->playMode = UI_PLAY_FORWARD;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0x00010000;
         } else {
             TEAM_MANAGEMENT_RECORD(scene, 0x1D9)->flags &= ~UI_FLAG_VISIBLE;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + 0x1E7)->flags &= ~UI_FLAG_VISIBLE;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + 0x1E7)->flags &= ~UI_FLAG_VISIBLE;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0;
         }
-        TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + 0x1FB)->flags |= UI_FLAG_VISIBLE;
-        TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuCursorPos + 0x1FB)->playMode = UI_PLAY_FORWARD;
-        if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, aiPosSwapInputs.starMenuPrevCursorPos)) {
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuPrevCursorPos + 0x1E7)->flags &= ~UI_FLAG_VISIBLE;
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuPrevCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0;
+        TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + 0x1FB)->flags |= UI_FLAG_VISIBLE;
+        TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuCursorPos + 0x1FB)->playMode = UI_PLAY_FORWARD;
+        if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, g_TeamManagement.starMenuPrevCursorPos)) {
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuPrevCursorPos + 0x1E7)->flags &= ~UI_FLAG_VISIBLE;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuPrevCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0;
         } else {
-            TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuPrevCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0;
+            TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuPrevCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD))->frame = 0;
         }
-        TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuPrevCursorPos + 0x1FB)->flags &= ~UI_FLAG_VISIBLE;
-        TEAM_MANAGEMENT_RECORD(scene, aiPosSwapInputs.starMenuPrevCursorPos + 0x1FB)->playMode = UI_PLAY_FORWARD;
+        TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuPrevCursorPos + 0x1FB)->flags &= ~UI_FLAG_VISIBLE;
+        TEAM_MANAGEMENT_RECORD(scene, g_TeamManagement.starMenuPrevCursorPos + 0x1FB)->playMode = UI_PLAY_FORWARD;
         {
-            s32 requirementRow = characterStaticIndexes[aiPosSwapInputs.playerIndexNoVariants].requirementRow;
+            s32 requirementRow = characterStaticIndexes[g_TeamManagement.playerIndexNoVariants].requirementRow;
             s32 textID;
-            if ((s8)g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].inGameMissionTracker[aiPosSwapInputs.starMenuCursorPos].shownOnPauseMenu != 0) {
-                textID = starMissionDisplayRules[requirementRow][aiPosSwapInputs.starMenuCursorPos].textID;
-            } else if (starMissionDisplayRules[requirementRow][aiPosSwapInputs.starMenuCursorPos].minScoutRow <= g_Challenge.difficulty) {
+            if ((s8)g_Challenge.characters[g_TeamManagement.playerIndexNoVariants].inGameMissionTracker[g_TeamManagement.starMenuCursorPos].shownOnPauseMenu != 0) {
+                textID = starMissionDisplayRules[requirementRow][g_TeamManagement.starMenuCursorPos].textID;
+            } else if (starMissionDisplayRules[requirementRow][g_TeamManagement.starMenuCursorPos].minScoutRow <= g_Challenge.difficulty) {
                 textID = 0x1C5;
             } else {
                 textID = 0x1C6;
             }
-            text_setPtrToWhereCharsAreStored(aiPosSwapInputs.textBlocks[2], 0, textID);
+            text_setPtrToWhereCharsAreStored(g_TeamManagement.textBlocks[2], 0, textID);
         }
-        aiPosSwapInputs.starMenuStepStarted = TRUE;
+        g_TeamManagement.starMenuStepStarted = TRUE;
     }
-    if (aiPosSwapInputs.starMenuStepStarted != 0) {
-        aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_NONE;
-        aiPosSwapInputs.starMenuStepStarted = FALSE;
+    if (g_TeamManagement.starMenuStepStarted != 0) {
+        g_TeamManagement.starMenuDrawStep = STAR_MENU_DRAW_STEP_NONE;
+        g_TeamManagement.starMenuStepStarted = FALSE;
     }
 }
 
@@ -159,12 +159,12 @@ void starMissionRelated1(MenuScene* scene) {
     s32 mission;
     s32 textID;
 
-    if (aiPosSwapInputs.starMenuStepStarted == 0) {
-        character = aiPosSwapInputs.starMenuCharID;
-        aiPosSwapInputs.playerIndexNoVariants = characterStaticIndexes[character].trackerIdx;
-        character = aiPosSwapInputs.starMenuCharID;
+    if (g_TeamManagement.starMenuStepStarted == 0) {
+        character = g_TeamManagement.starMenuCharID;
+        g_TeamManagement.playerIndexNoVariants = characterStaticIndexes[character].trackerIdx;
+        character = g_TeamManagement.starMenuCharID;
         requirementRow = characterStaticIndexes[character].requirementRow;
-        rank = (s8)g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].variantClassification;
+        rank = (s8)g_Challenge.characters[g_TeamManagement.playerIndexNoVariants].variantClassification;
         characterClass = Static_Stats_Tables.characterStats[character / 9][character % 9].stats.CharacterClass;
         switch (rank) {
         case CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_CAPTAIN:
@@ -195,28 +195,28 @@ void starMissionRelated1(MenuScene* scene) {
         ((UIRecord*)graphicsRelatedArray[scene->firstHandle + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16d : 0x1D6)].object)->playMode = UI_PLAY_FORWARD;
         ((UIRecord*)graphicsRelatedArray[scene->firstHandle + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x171 : 0x1DA)].object)->frame =
             characterClass << 16;
-        ((UIRecord*)graphicsRelatedArray[scene->firstHandle + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x172 : 0x1DB)].object)->frame = aiPosSwapInputs.starMenuCharID << 16;
-        aiPosSwapInputs.textBlocks[0] = text_initializeNewChannel((UnkText988Arg*)scene,
-            g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x19B : 0x205, 0, 0, aiPosSwapInputs.playerIndexNoVariants + 8, 0);
-        rank = determineIfMissionDescriptionIsShown(aiPosSwapInputs.playerIndexNoVariants);
-        aiPosSwapInputs.textBlocks[1] = text_initializeNewChannel((UnkText988Arg*)scene,
+        ((UIRecord*)graphicsRelatedArray[scene->firstHandle + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x172 : 0x1DB)].object)->frame = g_TeamManagement.starMenuCharID << 16;
+        g_TeamManagement.textBlocks[0] = text_initializeNewChannel((UnkText988Arg*)scene,
+            g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x19B : 0x205, 0, 0, g_TeamManagement.playerIndexNoVariants + 8, 0);
+        rank = determineIfMissionDescriptionIsShown(g_TeamManagement.playerIndexNoVariants);
+        g_TeamManagement.textBlocks[1] = text_initializeNewChannel((UnkText988Arg*)scene,
             g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x19C : 0x206, 1, 0,
             (s16)starRankTextIDs[requirementRow] + rank, 0);
-        rank = determineIfMissionDescriptionIsShown(aiPosSwapInputs.playerIndexNoVariants);
+        rank = determineIfMissionDescriptionIsShown(g_TeamManagement.playerIndexNoVariants);
         ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x1DC].object)->frame = (4 - rank) << 16;
-        mission = aiPosSwapInputs.starMenuCursorPos;
-        if ((s8)g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].inGameMissionTracker[mission].shownOnPauseMenu != 0) {
+        mission = g_TeamManagement.starMenuCursorPos;
+        if ((s8)g_Challenge.characters[g_TeamManagement.playerIndexNoVariants].inGameMissionTracker[mission].shownOnPauseMenu != 0) {
             textID = starMissionDisplayRules[requirementRow][mission].textID;
         } else if (starMissionDisplayRules[requirementRow][mission].minScoutRow <= g_Challenge.difficulty) {
             textID = 0x1C5;
         } else {
             textID = 0x1C6;
         }
-        aiPosSwapInputs.textBlocks[2] = text_initializeNewChannel((UnkText988Arg*)scene,
+        g_TeamManagement.textBlocks[2] = text_initializeNewChannel((UnkText988Arg*)scene,
             g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x19D : 0x207, 0, 0, textID, 0);
-        screenTextArray.blocks[aiPosSwapInputs.textBlocks[2]].justify = 1;
+        screenTextArray.blocks[g_TeamManagement.textBlocks[2]].justify = 1;
         for (mission = 0; mission < missionCount; mission++) {
-            if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, mission)) {
+            if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, mission)) {
                 ((UIRecord*)graphicsRelatedArray[scene->firstHandle + mission + 0x1F1].object)->flags |= UI_FLAG_VISIBLE;
                 ((UIRecord*)graphicsRelatedArray[scene->firstHandle + mission + 0x1F1].object)->playMode = UI_PLAY_FORWARD;
             } else {
@@ -226,24 +226,24 @@ void starMissionRelated1(MenuScene* scene) {
             ((UIRecord*)graphicsRelatedArray[scene->firstHandle + mission + 0x1E7].object)->flags &= ~UI_FLAG_VISIBLE;
             ((UIRecord*)graphicsRelatedArray[scene->firstHandle + mission + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD)].object)->frame = 0;
         }
-        if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, aiPosSwapInputs.starMenuCursorPos)) {
+        if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, g_TeamManagement.starMenuCursorPos)) {
             ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x1D9].object)->flags |= UI_FLAG_VISIBLE;
             ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x1D9].object)->playMode = UI_PLAY_FORWARD;
-            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + 0x1E7].object)->flags |= UI_FLAG_VISIBLE;
-            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + 0x1E7].object)->playMode = UI_PLAY_FORWARD;
-            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD)].object)->frame = 0x00010000;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + 0x1E7].object)->flags |= UI_FLAG_VISIBLE;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + 0x1E7].object)->playMode = UI_PLAY_FORWARD;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD)].object)->frame = 0x00010000;
         } else {
             ((UIRecord*)graphicsRelatedArray[scene->firstHandle + 0x1D9].object)->flags &= ~UI_FLAG_VISIBLE;
-            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + 0x1E7].object)->flags &= ~UI_FLAG_VISIBLE;
-            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD)].object)->frame = 0;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + 0x1E7].object)->flags &= ~UI_FLAG_VISIBLE;
+            ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x173 : 0x1DD)].object)->frame = 0;
         }
-        ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + 0x1FB].object)->flags |= UI_FLAG_VISIBLE;
-        ((UIRecord*)graphicsRelatedArray[scene->firstHandle + aiPosSwapInputs.starMenuCursorPos + 0x1FB].object)->playMode = UI_PLAY_FORWARD;
-        aiPosSwapInputs.starMenuStepStarted = TRUE;
+        ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + 0x1FB].object)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord*)graphicsRelatedArray[scene->firstHandle + g_TeamManagement.starMenuCursorPos + 0x1FB].object)->playMode = UI_PLAY_FORWARD;
+        g_TeamManagement.starMenuStepStarted = TRUE;
     }
-    if (aiPosSwapInputs.starMenuStepStarted != 0) {
-        aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_NONE;
-        aiPosSwapInputs.starMenuStepStarted = FALSE;
+    if (g_TeamManagement.starMenuStepStarted != 0) {
+        g_TeamManagement.starMenuDrawStep = STAR_MENU_DRAW_STEP_NONE;
+        g_TeamManagement.starMenuStepStarted = FALSE;
     }
 }
 
@@ -259,21 +259,21 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
         if (port != 0) {
             return;
         }
-        port = aiPosSwapInputs.onePlayerEditingTeam != 0 ? 1 : 0;
+        port = g_TeamManagement.onePlayerEditingTeam != 0 ? 1 : 0;
     }
     if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
         buttons = Static_Stats_Tables.controllerInputs[inputPort].newInput;
     } else {
-        buttons = aiPosSwapInputs.playerInputs[port].newInput;
+        buttons = g_TeamManagement.playerInputs[port].newInput;
     }
     switch (buttons) {
     case INPUT_BUTTON_X:
-        if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_BATTING_ORDER &&
+        if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER &&
         g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
-            if (aiPosSwapInputs.teamManagement_cursorPos[port] != 0) {
+            if (g_TeamManagement.teamManagement_cursorPos[port] != 0) {
                 s32 stance;
                 CharacterStats* stats;
-                selection = aiPosSwapInputs.teamManagement_cursorPos[port] - 1;
+                selection = g_TeamManagement.teamManagement_cursorPos[port] - 1;
                 stats = &inMemRoster[port][selection];
                 stance = stats->stats.BattingStance + stats->stats.FieldingArm * 2 + 1;
                 if (stance == 4) {
@@ -284,23 +284,23 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                 TEAM_MANAGEMENT_RECORD(scene, selection + port * 9 + 0xAC)->frame = stance << 16;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
-            aiPosSwapInputs.stanceChangeRequested[port] = FALSE;
+            g_TeamManagement.stanceChangeRequested[port] = FALSE;
         }
         break;
     }
-    if (aiPosSwapInputs.inProgress_superStarAPlayer[port] != 0) {
+    if (g_TeamManagement.inProgress_superStarAPlayer[port] != 0) {
         if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
-            if (aiPosSwapInputs.teamManagement_cursorPos[port] != 0) {
+            if (g_TeamManagement.teamManagement_cursorPos[port] != 0) {
                 transferStatsToInMemRoster((u8)port);
                 sndFXRelated(INPUT_TRIGGER_L);
             } else {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
             }
-            if (aiPosSwapInputs.teamManagement_cursorPos[port] != 0 &&
+            if (g_TeamManagement.teamManagement_cursorPos[port] != 0 &&
                 g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 s32 position;
                 s32 teamOffset = port * 9;
-                selection = aiPosSwapInputs.teamManagement_cursorPos[port] - 1;
+                selection = g_TeamManagement.teamManagement_cursorPos[port] - 1;
                 position = lineUpInfoStruct[port][selection][2];
                 if (Static_Stats_Tables.charIsStarred[port][selection] != 0) {
                     TEAM_MANAGEMENT_RECORD(scene, selection + teamOffset + 0x76)->flags |= UI_FLAG_VISIBLE;
@@ -323,12 +323,12 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                 }
             }
         }
-        aiPosSwapInputs.inProgress_superStarAPlayer[port] = FALSE;
+        g_TeamManagement.inProgress_superStarAPlayer[port] = FALSE;
     }
-    if (aiPosSwapInputs.zMenuActive[port] != 0) {
+    if (g_TeamManagement.zMenuActive[port] != 0) {
         if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
-            if (aiPosSwapInputs.zMenuOpen[port] != 0) {
-                switch (aiPosSwapInputs.zMenuPage[port]) {
+            if (g_TeamManagement.zMenuOpen[port] != 0) {
+                switch (g_TeamManagement.zMenuPage[port]) {
                 case Z_MENU_PAGE_MAIN:
                     fn_80058E0C(scene, (u8)port);
                     break;
@@ -337,7 +337,7 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     break;
                 }
             } else {
-                if (aiPosSwapInputs.zMenuPage[port] == Z_MENU_PAGE_MAIN) {
+                if (g_TeamManagement.zMenuPage[port] == Z_MENU_PAGE_MAIN) {
                     if ((TEAM_MANAGEMENT_RECORD(scene, port + 0x19A)->frame >> 16) > 5) {
                         TEAM_MANAGEMENT_RECORD(scene, port + 0x19A)->frame = 0x00050000;
                     }
@@ -348,7 +348,7 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     completeCount += maybeCheckAndResetGrapicsElement(scene, port + 0x19C, 0) != 0;
                     completeCount += maybeCheckAndResetGrapicsElement(scene, port + 0x1AC, 0) != 0;
                     if (completeCount == 3) {
-                        aiPosSwapInputs.zMenuActive[port] = FALSE;
+                        g_TeamManagement.zMenuActive[port] = FALSE;
                     }
                 } else {
                     if ((TEAM_MANAGEMENT_RECORD(scene, port + 0x19A)->frame >> 16) > 5) {
@@ -357,14 +357,14 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     TEAM_MANAGEMENT_RECORD(scene, port + 0x19A)->playMode = UI_PLAY_BACKWARD;
                     TEAM_MANAGEMENT_RECORD(scene, port + 0x1C8)->playMode = UI_PLAY_BACKWARD;
                     if (maybeCheckAndResetGrapicsElement(scene, port + 0x1C8, 0) != 0) {
-                        aiPosSwapInputs.zMenuActive[port] = FALSE;
+                        g_TeamManagement.zMenuActive[port] = FALSE;
                     }
                 }
-                aiPosSwapInputs.zMenuPageLoaded[port] = FALSE;
+                g_TeamManagement.zMenuPageLoaded[port] = FALSE;
             }
         } else {
-            if (aiPosSwapInputs.zMenuOpen[aiPosSwapInputs.playerWhoPaused] != 0) {
-                switch (aiPosSwapInputs.zMenuPage[port]) {
+            if (g_TeamManagement.zMenuOpen[g_TeamManagement.playerWhoPaused] != 0) {
+                switch (g_TeamManagement.zMenuPage[port]) {
                 case Z_MENU_PAGE_MAIN:
                     fn_80058644(scene);
                     break;
@@ -373,7 +373,7 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     break;
                 }
             } else {
-                if (aiPosSwapInputs.zMenuPage[port] == Z_MENU_PAGE_MAIN) {
+                if (g_TeamManagement.zMenuPage[port] == Z_MENU_PAGE_MAIN) {
                     if ((TEAM_MANAGEMENT_RECORD(scene, 0x118)->frame >> 16) > 5) {
                         TEAM_MANAGEMENT_RECORD(scene, 0x118)->frame = 0x00050000;
                     }
@@ -384,7 +384,7 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     completeCount += maybeCheckAndResetGrapicsElement(scene, 0x119, 0) != 0;
                     completeCount += maybeCheckAndResetGrapicsElement(scene, 0x121, 0) != 0;
                     if (completeCount == 3) {
-                        aiPosSwapInputs.zMenuActive[port] = FALSE;
+                        g_TeamManagement.zMenuActive[port] = FALSE;
                     }
                 } else {
                     if ((TEAM_MANAGEMENT_RECORD(scene, 0x118)->frame >> 16) > 5) {
@@ -393,18 +393,18 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     TEAM_MANAGEMENT_RECORD(scene, 0x118)->playMode = UI_PLAY_BACKWARD;
                     TEAM_MANAGEMENT_RECORD(scene, 0x12F)->playMode = UI_PLAY_BACKWARD;
                     if (maybeCheckAndResetGrapicsElement(scene, 0x12F, 0) != 0) {
-                        aiPosSwapInputs.zMenuActive[aiPosSwapInputs.playerWhoPaused] = FALSE;
+                        g_TeamManagement.zMenuActive[g_TeamManagement.playerWhoPaused] = FALSE;
                     }
                 }
-                aiPosSwapInputs.zMenuPageLoaded[aiPosSwapInputs.playerWhoPaused] = FALSE;
+                g_TeamManagement.zMenuPageLoaded[g_TeamManagement.playerWhoPaused] = FALSE;
             }
         }
     }
-    if (aiPosSwapInputs.starMenuOpen == 0) {
+    if (g_TeamManagement.starMenuOpen == 0) {
         return;
     }
-    if (aiPosSwapInputs.starMenuActive != 0) {
-        switch (aiPosSwapInputs.starMenuDrawStep) {
+    if (g_TeamManagement.starMenuActive != 0) {
+        switch (g_TeamManagement.starMenuDrawStep) {
         case STAR_MENU_DRAW_STEP_OPEN:
             starMissionRelated1(scene);
             break;
@@ -412,13 +412,13 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
             fn_800596D4(scene);
             break;
         case STAR_MENU_DRAW_STEP_CLOSE:
-            if (aiPosSwapInputs.starMenuStepStarted == 0) {
+            if (g_TeamManagement.starMenuStepStarted == 0) {
                 TEAM_MANAGEMENT_RECORD(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16E : 0x1D7))->playMode = UI_PLAY_BACKWARD;
                 TEAM_MANAGEMENT_RECORD(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16A : 0x1D3))->playMode = UI_PLAY_BACKWARD;
                 TEAM_MANAGEMENT_RECORD(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16C : 0x1D5))->playMode = UI_PLAY_BACKWARD;
-                aiPosSwapInputs.starMenuStepStarted = TRUE;
+                g_TeamManagement.starMenuStepStarted = TRUE;
             }
-            if (aiPosSwapInputs.starMenuStepStarted != 0) {
+            if (g_TeamManagement.starMenuStepStarted != 0) {
                 firstComplete = maybeCheckAndResetGrapicsElement(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16E : 0x1D7), 0) != 0;
                 completeCount = firstComplete + (maybeCheckAndResetGrapicsElement(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16A : 0x1D3), 0) != 0);
                 completeCount += maybeCheckAndResetGrapicsElement(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16C : 0x1D5), 0) != 0;
@@ -428,12 +428,12 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
                     TEAM_MANAGEMENT_RECORD(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16C : 0x1D5))->flags &= ~UI_FLAG_VISIBLE;
                     TEAM_MANAGEMENT_RECORD(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16E : 0x1D7))->flags &= ~UI_FLAG_VISIBLE;
                     for (player = 0; player < 3; player++) {
-                        text_freeBlock(aiPosSwapInputs.textBlocks[player]);
+                        text_freeBlock(g_TeamManagement.textBlocks[player]);
                     }
                     fn_8000F8F4(scene);
-                    aiPosSwapInputs.starMenuActive = FALSE;
-                    aiPosSwapInputs.starMenuDrawStep = STAR_MENU_DRAW_STEP_NONE;
-                    aiPosSwapInputs.starMenuStepStarted = FALSE;
+                    g_TeamManagement.starMenuActive = FALSE;
+                    g_TeamManagement.starMenuDrawStep = STAR_MENU_DRAW_STEP_NONE;
+                    g_TeamManagement.starMenuStepStarted = FALSE;
                 }
             }
             break;
@@ -441,8 +441,8 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
     } else {
         firstComplete = maybeCheckAndResetGrapicsElement(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16A : 0x1D3), 0) != 0;
         if (firstComplete + (maybeCheckAndResetGrapicsElement(scene, (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME ? 0x16C : 0x1D5), 0) != 0) == 2) {
-            aiPosSwapInputs.starMenuStepStarted = FALSE;
-            aiPosSwapInputs.starMenuOpen = FALSE;
+            g_TeamManagement.starMenuStepStarted = FALSE;
+            g_TeamManagement.starMenuOpen = FALSE;
         }
     }
 }
@@ -450,13 +450,13 @@ void battingOrderProcessInputs(MenuScene* scene, s32 port) {
 void teamManagementGraphics_fieldingAlignmentScreen(MenuScene* scene) {
     s32 position;
     s32 player;
-    s32 team = *(s8*)&aiPosSwapInputs.playerWhoPaused;  // signed read; a (s8) cast shifts the register allocation
+    s32 team = *(s8*)&g_TeamManagement.playerWhoPaused;  // signed read; a (s8) cast shifts the register allocation
 
     for (player = 0; player < 9; player++) {
         CharacterStats* stats;
         BOOL isSuperstar;
 
-        if (aiPosSwapInputs.teamMenuType[team] == TEAM_MENU_TYPE_SCOUT_FLAGS) {
+        if (g_TeamManagement.teamMenuType[team] == TEAM_MENU_TYPE_SCOUT_FLAGS) {
             continue;
         }
 
@@ -497,7 +497,7 @@ void teamManagementGraphics_fieldingAlignmentScreen(MenuScene* scene) {
 }
 
 void teamManagementGraphics_battingOrderScreen(MenuScene* scene) {
-    s32 team = (s8)aiPosSwapInputs.playerWhoPaused;
+    s32 team = (s8)g_TeamManagement.playerWhoPaused;
     s32 player;
     s32 orderFrame;
 
@@ -508,7 +508,7 @@ void teamManagementGraphics_battingOrderScreen(MenuScene* scene) {
         TEAM_MANAGEMENT_RECORD(scene, player + 0x5A)->frame = orderFrame;
         TEAM_MANAGEMENT_RECORD(scene, player + 0x6C)->flags &= ~UI_FLAG_VISIBLE;
 
-        if (aiPosSwapInputs.teamMenuType[team] == TEAM_MENU_TYPE_FIELDER_SWAP) {
+        if (g_TeamManagement.teamMenuType[team] == TEAM_MENU_TYPE_FIELDER_SWAP) {
             load_Icon(scene, player + 0x63, 1, 0x83, stats->stats.CharID);
             TEAM_MANAGEMENT_RECORD(scene, player + 0xAB)->frame = stats->stats.CharacterClass << 16;
             TEAM_MANAGEMENT_RECORD(scene, player + 0x99)->frame = (stats->stats.BattingStance + stats->stats.FieldingArm * 2) << 16;
@@ -568,7 +568,7 @@ void teamManagementGraphics_battingOrderScreen(MenuScene* scene) {
 
 void fn_8005B760(MenuScene* scene, s32 port) {
     if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
-        s8 selection = aiPosSwapInputs.teamManagement_cursorPos[port];
+        s8 selection = g_TeamManagement.teamManagement_cursorPos[port];
 
         if (selection != 0) {
             s32 index = selection - 1;
@@ -580,7 +580,7 @@ void fn_8005B760(MenuScene* scene, s32 port) {
                 TEAM_MANAGEMENT_RECORD(scene, i + 0x35)->flags &= ~UI_FLAG_VISIBLE;
             }
 
-            if (aiPosSwapInputs.teamMenuType[port] == TEAM_MENU_TYPE_FIELDER_SWAP) {
+            if (g_TeamManagement.teamMenuType[port] == TEAM_MENU_TYPE_FIELDER_SWAP) {
                 TEAM_MANAGEMENT_RECORD(scene, (s8)lineupPosition + 0x23)->playMode = UI_PLAY_FORWARD;
                 TEAM_MANAGEMENT_RECORD(scene, (s8)lineupPosition + 0x1A)->playMode = UI_PLAY_FORWARD;
             } else {
@@ -805,7 +805,7 @@ void fn_8005C830(MenuScene* scene, s32 port, s32 selection) {
                 continue;
             }
 
-            if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
+            if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
                 if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
                     TEAM_MANAGEMENT_RECORD(scene, rosterIndex + (port * 9) + 0x52)->frame = 0;
                     TEAM_MANAGEMENT_RECORD(scene, rosterIndex + (port * 9) + 0x52)->playMode = UI_PLAY_FORWARD;
@@ -857,12 +857,12 @@ void fn_8005CCE4(MenuScene* scene, s32 port) {
     if (gameSetUpStep[0x37 + port] != TEAM_MANAGEMENT_ANIM_STEP_START) {
         return;
     }
-    selection = aiPosSwapInputs.teamManagement_cursorPos[port] - 1;
-    swapSelection = aiPosSwapInputs.charSelectedToBeSwappedCharID[port];
+    selection = g_TeamManagement.teamManagement_cursorPos[port] - 1;
+    swapSelection = g_TeamManagement.charSelectedToBeSwappedCharID[port];
     position = lineUpInfoStruct[port][selection][2];
     swapPosition = lineUpInfoStruct[port][swapSelection][2];
 
-    if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
+    if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
 
         if (selection != swapSelection) {
             TEAM_MANAGEMENT_RECORD(scene, swapSelection + (port * 9) + 0x1C)->frame = 0x000A0000;
@@ -1005,9 +1005,9 @@ void fn_8005CCE4(MenuScene* scene, s32 port) {
             TEAM_MANAGEMENT_RECORD(scene, (s8)swapPosition + 0x35)->playMode = UI_PLAY_FORWARD;
         }
         fn_8005C830(scene, port, swapSelection);
-        aiPosSwapInputs.teamManagement_cursorPos[port] = lineupOrderChangeRelated((u8)port, lineUpInfoStruct[port][swapSelection][2]);
+        g_TeamManagement.teamManagement_cursorPos[port] = lineupOrderChangeRelated((u8)port, lineUpInfoStruct[port][swapSelection][2]);
     }
-    aiPosSwapInputs.charSelectedToBeSwappedCharID[port] = (u8)CHAR_ID_NONE;
+    g_TeamManagement.charSelectedToBeSwappedCharID[port] = (u8)CHAR_ID_NONE;
     gameSetUpStep[0x5D + port] = 0;
     gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
 }
@@ -1025,11 +1025,11 @@ void fn_8005DE14(MenuScene* scene, s32 port) {
     if (gameSetUpStep[0x37 + port] != TEAM_MANAGEMENT_ANIM_STEP_START) {
         return;
     }
-    selection = (s8)(aiPosSwapInputs.teamManagement_cursorPos[port] - 1);
-    previousSelection = (s8)(aiPosSwapInputs.teamManagement_prevCursorPos[port] - 1);
-    swapSelection = (s8)aiPosSwapInputs.charSelectedToBeSwappedCharID[port];
+    selection = (s8)(g_TeamManagement.teamManagement_cursorPos[port] - 1);
+    previousSelection = (s8)(g_TeamManagement.teamManagement_prevCursorPos[port] - 1);
+    swapSelection = (s8)g_TeamManagement.charSelectedToBeSwappedCharID[port];
 
-    if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
+    if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
         if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
             for (i = 0; i < 9; i++) {
                 TEAM_MANAGEMENT_RECORD(scene, i + port * 9 + 0x64)->flags &= ~UI_FLAG_VISIBLE;
@@ -1136,8 +1136,8 @@ void fn_8005DE14(MenuScene* scene, s32 port) {
 }
 
 void fn_8005E9D8(MenuScene* scene, s32 port) {
-    s8 currentSelection = aiPosSwapInputs.teamManagement_cursorPos[port];
-    s8 previousSelection = aiPosSwapInputs.teamManagement_prevCursorPos[port];
+    s8 currentSelection = g_TeamManagement.teamManagement_cursorPos[port];
+    s8 previousSelection = g_TeamManagement.teamManagement_prevCursorPos[port];
 
     if (currentSelection != previousSelection) {
         fn_8005DE14(scene, port);
@@ -1145,10 +1145,10 @@ void fn_8005E9D8(MenuScene* scene, s32 port) {
             makeCursorMovable(port);
             gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
         }
-    } else if (aiPosSwapInputs.charSelectedToBeSwapped[port] != 0) {
+    } else if (g_TeamManagement.charSelectedToBeSwapped[port] != 0) {
         if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
-            s32 selection = aiPosSwapInputs.charSelectedToBeSwappedCharID[port];
-            u8 mode = aiPosSwapInputs.rosterView[port];
+            s32 selection = g_TeamManagement.charSelectedToBeSwappedCharID[port];
+            u8 mode = g_TeamManagement.rosterView[port];
             u8 position = ((u8*)lineUpInfoStruct)[port * 0x24 + (u8)selection * 4 + 2];
 
             if (mode == ROSTER_VIEW_BATTING_ORDER) {
@@ -1170,7 +1170,7 @@ void fn_8005E9D8(MenuScene* scene, s32 port) {
             gameSetUpStep[0x5D + port] = 0;
             gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
         }
-    } else if (aiPosSwapInputs.charSelectedToBeSwapped[port] == 0) {
+    } else if (g_TeamManagement.charSelectedToBeSwapped[port] == 0) {
         fn_8005CCE4(scene, port);
     }
 }
@@ -1180,8 +1180,8 @@ void fn_8005EC88(MenuScene* scene, s32 port) {
     s32 i;
 
     if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
-        if (aiPosSwapInputs.teamManagement_cursorPos[port] != 0) {
-            s32 index = (s8)aiPosSwapInputs.teamManagement_cursorPos[port] - 1;
+        if (g_TeamManagement.teamManagement_cursorPos[port] != 0) {
+            s32 index = (s8)g_TeamManagement.teamManagement_cursorPos[port] - 1;
             lineupPosition = lineUpInfoStruct[port][index][2];
             for (i = 0; i < 9; i += 3) {
                 TEAM_MANAGEMENT_RECORD(scene, i + port * 9 + 0x64)->flags &= ~UI_FLAG_VISIBLE;
@@ -1192,7 +1192,7 @@ void fn_8005EC88(MenuScene* scene, s32 port) {
                 TEAM_MANAGEMENT_RECORD(scene, i + port * 9 + 0x130)->flags &= ~UI_FLAG_VISIBLE;
             }
 
-            if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
+            if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
                 TEAM_MANAGEMENT_RECORD(scene, index + port * 9 + 0x40)->playMode = UI_PLAY_FORWARD;
                 TEAM_MANAGEMENT_RECORD(scene, index + port * 9 + 0x1C)->frame = 0;
                 TEAM_MANAGEMENT_RECORD(scene, index + port * 9 + 0x1C)->playMode = UI_PLAY_FORWARD;
@@ -1202,7 +1202,7 @@ void fn_8005EC88(MenuScene* scene, s32 port) {
                 TEAM_MANAGEMENT_RECORD(scene, index + port * 9 + 0x64)->elementIndex = 0x2A;
                 TEAM_MANAGEMENT_RECORD(scene, index + port * 9 + 0x64)->playMode = UI_PLAY_FORWARD;
                 fn_8005C830(scene, port, index);
-            } else if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+            } else if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                 TEAM_MANAGEMENT_RECORD(scene, (s8)lineupPosition + port * 9 + 0x10A)->playMode = UI_PLAY_FORWARD;
                 TEAM_MANAGEMENT_RECORD(scene, (s8)lineupPosition + port * 9 + 0xF8)->playMode = UI_PLAY_FORWARD;
                 TEAM_MANAGEMENT_RECORD(scene, (s8)lineupPosition + port * 9 + 0x12E)->flags |= UI_FLAG_VISIBLE;
@@ -1230,16 +1230,16 @@ void fn_8005F068(MenuScene* scene, s32 port) {
         return;
     }
 
-    selection = (s8)(aiPosSwapInputs.teamManagement_cursorPos[port] - 1);
+    selection = (s8)(g_TeamManagement.teamManagement_cursorPos[port] - 1);
     selectedPosition = lineUpInfoStruct[port][selection][2];
-    if (aiPosSwapInputs.charSelectedToBeSwappedCharID[port] != (u8)CHAR_ID_NONE) {
-        swapSelection = (s8)aiPosSwapInputs.charSelectedToBeSwappedCharID[port];
+    if (g_TeamManagement.charSelectedToBeSwappedCharID[port] != (u8)CHAR_ID_NONE) {
+        swapSelection = (s8)g_TeamManagement.charSelectedToBeSwappedCharID[port];
         swapPosition = lineUpInfoStruct[port][swapSelection][2];
     }
 
-    switch (aiPosSwapInputs.rosterView[port]) {
+    switch (g_TeamManagement.rosterView[port]) {
     case ROSTER_VIEW_BATTING_ORDER: {
-            if (aiPosSwapInputs.prevRosterView[port] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+            if (g_TeamManagement.prevRosterView[port] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                 TEAM_MANAGEMENT_RECORD(scene, port + 0x14)->frame = 0x00140000;
                 TEAM_MANAGEMENT_RECORD(scene, port + 0x14)->playMode = UI_PLAY_BACKWARD;
                 TEAM_MANAGEMENT_RECORD(scene, port + 0x1A)->playMode = UI_PLAY_FORWARD;
@@ -1263,7 +1263,7 @@ void fn_8005F068(MenuScene* scene, s32 port) {
                     fn_8005C830(scene, port, selection);
                     TEAM_MANAGEMENT_RECORD(scene, selection + port * 9 + 0x40)->frame = 0;
                     TEAM_MANAGEMENT_RECORD(scene, selection + port * 9 + 0x40)->playMode = UI_PLAY_FORWARD;
-                    if (aiPosSwapInputs.charSelectedToBeSwappedCharID[port] != (u8)CHAR_ID_NONE) {
+                    if (g_TeamManagement.charSelectedToBeSwappedCharID[port] != (u8)CHAR_ID_NONE) {
                         TEAM_MANAGEMENT_RECORD(scene, swapSelection + port * 9 + 0x1C)->frame = 0x000A0000;
                         TEAM_MANAGEMENT_RECORD(scene, swapSelection + port * 9 + 0x1C)->playMode = UI_PLAY_STOP;
                         TEAM_MANAGEMENT_RECORD(scene, swapSelection + port * 9 + 0x40)->frame = 0;
@@ -1274,7 +1274,7 @@ void fn_8005F068(MenuScene* scene, s32 port) {
             break;
         }
     case ROSTER_VIEW_DEFENSIVE_ALIGNMENT: {
-            if (aiPosSwapInputs.prevRosterView[port] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+            if (g_TeamManagement.prevRosterView[port] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                 for (i = 0; i < 9; i++) {
                     TEAM_MANAGEMENT_RECORD(scene, i + port * 9 + 0x10A)->frame = 0;
                     TEAM_MANAGEMENT_RECORD(scene, i + port * 9 + 0x10A)->playMode = UI_PLAY_STOP;
@@ -1298,7 +1298,7 @@ void fn_8005F068(MenuScene* scene, s32 port) {
                     TEAM_MANAGEMENT_RECORD(scene, (s8)selectedPosition + port * 9 + 0x12E)->elementIndex = 0x2A;
                     TEAM_MANAGEMENT_RECORD(scene, (s8)selectedPosition + port * 9 + 0x12E)->playMode = UI_PLAY_FORWARD;
                     fn_8005C830(scene, port, selection);
-                    if (aiPosSwapInputs.charSelectedToBeSwappedCharID[port] != (u8)CHAR_ID_NONE) {
+                    if (g_TeamManagement.charSelectedToBeSwappedCharID[port] != (u8)CHAR_ID_NONE) {
                         TEAM_MANAGEMENT_RECORD(scene, (s8)swapPosition + port * 9 + 0x10A)->playMode = UI_PLAY_FORWARD;
                         TEAM_MANAGEMENT_RECORD(scene, (s8)swapPosition + port * 9 + 0xF8)->playMode = UI_PLAY_FORWARD;
                     }
@@ -1385,7 +1385,7 @@ void fn_8005F9D0(MenuScene* scene, s32 port) {
     }
 
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-        u8* ready = aiPosSwapInputs.entryAnimDone;
+        u8* ready = g_TeamManagement.entryAnimDone;
         ready[port] = TRUE;
         if (ready[0] == 0 || ready[1] == 0) {
             return;
@@ -1458,7 +1458,7 @@ void fn_8005FCA0(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD(scene, 2)->playMode = UI_PLAY_FORWARD;
         TEAM_MANAGEMENT_RECORD(scene, 3)->frame = 0;
         TEAM_MANAGEMENT_RECORD(scene, 3)->playMode = UI_PLAY_FORWARD;
-        if (aiPosSwapInputs.unkCF70 == 0) {
+        if (g_TeamManagement.unkCF70 == 0) {
             TEAM_MANAGEMENT_RECORD(scene, 0x1D2)->flags |= UI_FLAG_VISIBLE;
             TEAM_MANAGEMENT_RECORD(scene, 0x1D2)->frame = 0x000A0000;
             TEAM_MANAGEMENT_RECORD(scene, 0x1D2)->playMode = UI_PLAY_FORWARD;
@@ -1492,7 +1492,7 @@ void teamManagementGraphics_steadyState(void) {
                 if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
                     TEAM_MANAGEMENT_RECORD(scene, 0)->frame = 0;
                     TEAM_MANAGEMENT_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
-                    if (aiPosSwapInputs.teamMenuType[port] != TEAM_MENU_TYPE_BATTER_SWAP) {
+                    if (g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_BATTER_SWAP) {
                         TEAM_MANAGEMENT_RECORD(scene, 1)->frame = 0;
                         TEAM_MANAGEMENT_RECORD(scene, 1)->playMode = UI_PLAY_FORWARD;
                     }
@@ -1505,7 +1505,7 @@ void teamManagementGraphics_steadyState(void) {
                 if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_PLAYING) {
                     requiredCount = 1;
                     completeCount = maybeCheckAndResetGrapicsElement(scene, 0, 0x14) != 0;
-                    if (aiPosSwapInputs.teamMenuType[port] != TEAM_MENU_TYPE_BATTER_SWAP) {
+                    if (g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_BATTER_SWAP) {
                         requiredCount = 2;
                         completeCount += maybeCheckAndResetGrapicsElement(scene, 1, 0x14) != 0;
                     }
@@ -1535,10 +1535,10 @@ void teamManagementGraphics_steadyState(void) {
                 completeCount += maybeCheckAndResetGrapicsElement(scene, port + 0xA, 0xA) != 0;
                 if (completeCount == requiredCount) {
                     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-                        aiPosSwapInputs.entryAnimDone[port] = TRUE;
-                        if (aiPosSwapInputs.entryAnimDone[0] != 0 && aiPosSwapInputs.entryAnimDone[1] != 0) {
-                            aiPosSwapInputs.entryAnimDone[1] = FALSE;
-                            aiPosSwapInputs.entryAnimDone[0] = FALSE;
+                        g_TeamManagement.entryAnimDone[port] = TRUE;
+                        if (g_TeamManagement.entryAnimDone[0] != 0 && g_TeamManagement.entryAnimDone[1] != 0) {
+                            g_TeamManagement.entryAnimDone[1] = FALSE;
+                            g_TeamManagement.entryAnimDone[0] = FALSE;
                             makeCursorMovable(0);
                             makeCursorMovable(1);
                             gameSetUpStep[0x37] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
@@ -1598,15 +1598,15 @@ void teamManagementGraphics_steadyState(void) {
             if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_PLAYING) {
                 completeCount = 0;
                 requiredCount = 0;
-                switch (aiPosSwapInputs.rosterView[port]) {
+                switch (g_TeamManagement.rosterView[port]) {
                 case ROSTER_VIEW_BATTING_ORDER:
-                    if (aiPosSwapInputs.prevRosterView[port] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+                    if (g_TeamManagement.prevRosterView[port] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                         requiredCount = 1;
                         completeCount = maybeCheckAndResetGrapicsElement(scene, port + 0x14, 0xA) != 0;
                     }
                     break;
                 case ROSTER_VIEW_DEFENSIVE_ALIGNMENT:
-                    if (aiPosSwapInputs.prevRosterView[port] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+                    if (g_TeamManagement.prevRosterView[port] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                         requiredCount = 1;
                         completeCount = maybeCheckAndResetGrapicsElement(scene, port + 0x14, 0x14) != 0;
                     }
@@ -1636,10 +1636,10 @@ void teamManagementGraphics_steadyState(void) {
         case CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM:
             if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
                 if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
-                    if ((s8)aiPosSwapInputs.teamManagement_cursorPos[port] == 0) {
-                        previousSelection = (s8)(aiPosSwapInputs.teamManagement_prevCursorPos[port] - 1);
+                    if ((s8)g_TeamManagement.teamManagement_cursorPos[port] == 0) {
+                        previousSelection = (s8)(g_TeamManagement.teamManagement_prevCursorPos[port] - 1);
                         position = lineUpInfoStruct[port][previousSelection][2];
-                        switch (aiPosSwapInputs.rosterView[port]) {
+                        switch (g_TeamManagement.rosterView[port]) {
                         case ROSTER_VIEW_BATTING_ORDER:
                             TEAM_MANAGEMENT_RECORD(scene, previousSelection + port * 9 + 0x40)->playMode = UI_PLAY_BACKWARD;
                             TEAM_MANAGEMENT_RECORD(scene, previousSelection + port * 9 + 0x1C)->frame = 0x000A0000;
@@ -1669,9 +1669,9 @@ void teamManagementGraphics_steadyState(void) {
                 }
             } else {
                 if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
-                    switch (aiPosSwapInputs.rosterView[port]) {
+                    switch (g_TeamManagement.rosterView[port]) {
                     case ROSTER_VIEW_BATTING_ORDER:
-                        previousSelection = (s8)(aiPosSwapInputs.teamManagement_prevCursorPos[port] - 1);
+                        previousSelection = (s8)(g_TeamManagement.teamManagement_prevCursorPos[port] - 1);
                         TEAM_MANAGEMENT_RECORD(scene, previousSelection + 0x63)->playMode = UI_PLAY_BACKWARD;
                         TEAM_MANAGEMENT_RECORD(scene, previousSelection + 0x51)->frame = 0x000A0000;
                         TEAM_MANAGEMENT_RECORD(scene, previousSelection + 0x51)->playMode = UI_PLAY_BACKWARD;
@@ -1681,7 +1681,7 @@ void teamManagementGraphics_steadyState(void) {
                         }
                         break;
                     case ROSTER_VIEW_DEFENSIVE_ALIGNMENT:
-                        previousSelection = (s8)(aiPosSwapInputs.teamManagement_prevCursorPos[port] - 1);
+                        previousSelection = (s8)(g_TeamManagement.teamManagement_prevCursorPos[port] - 1);
                         position = lineUpInfoStruct[port][previousSelection][2];
                         TEAM_MANAGEMENT_RECORD(scene, (s8)position + 0x23)->playMode = UI_PLAY_BACKWARD;
                         TEAM_MANAGEMENT_RECORD(scene, (s8)position + 0x1A)->playMode = UI_PLAY_BACKWARD;
@@ -1783,7 +1783,7 @@ void teamManagementGraphics_steadyState(void) {
                 requiredCount = 2;
                 completeCount += fn_80042D68(scene, port + 0x12, 0x14) != 0;
                 if (completeCount == requiredCount) {
-                    aiPosSwapInputs.waitingForOtherTeam[port] = FALSE;
+                    g_TeamManagement.waitingForOtherTeam[port] = FALSE;
                     makeCursorMovable(port);
                     gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
                 }
@@ -1844,9 +1844,9 @@ void teamManagementGraphics_steadyState(void) {
             break;
         case CHAR_SELECT_PROCESS_TM_CANCEL_SWAP:
             if (gameSetUpStep[0x37 + port] == TEAM_MANAGEMENT_ANIM_STEP_START) {
-                selection = (s8)(aiPosSwapInputs.teamManagement_cursorPos[port] - 1);
-                previousSelection = (s8)aiPosSwapInputs.charSelectedToBeSwappedCharID[port];
-                if (aiPosSwapInputs.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
+                selection = (s8)(g_TeamManagement.teamManagement_cursorPos[port] - 1);
+                previousSelection = (s8)g_TeamManagement.charSelectedToBeSwappedCharID[port];
+                if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
                     if (previousSelection != CHAR_ID_NONE && previousSelection != selection) {
                         TEAM_MANAGEMENT_RECORD(scene, previousSelection + port * 9 + 0x1C)->frame = 0x000A0000;
                         TEAM_MANAGEMENT_RECORD(scene, previousSelection + port * 9 + 0x1C)->playMode = UI_PLAY_BACKWARD;
@@ -1868,7 +1868,7 @@ void teamManagementGraphics_steadyState(void) {
                         }
                     }
                 }
-                aiPosSwapInputs.charSelectedToBeSwappedCharID[port] = (u8)CHAR_ID_NONE;
+                g_TeamManagement.charSelectedToBeSwappedCharID[port] = (u8)CHAR_ID_NONE;
                 makeCursorUnmovable(port);
                 gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
             }
@@ -1911,8 +1911,8 @@ void teamManagementGraphics_steadyState(void) {
         }
         battingOrderProcessInputs(scene, port);
     }
-    if (aiPosSwapInputs.removeSceneRequested != 0) {
-        aiPosSwapInputs.removeSceneRequested = FALSE;
+    if (g_TeamManagement.removeSceneRequested != 0) {
+        g_TeamManagement.removeSceneRequested = FALSE;
         removeGraphicsElementFromScene((DrawingSceneStruct*)scene);
         removeCurrentDrawingItem();
     }

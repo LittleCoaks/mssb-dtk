@@ -1027,12 +1027,12 @@ void positionSwap(void) {
     switch (pauseControl.state) {
     case 0:
         port = pauseControl.port;
-        aiPosSwapInputs.teamMenuType[port] = (pauseControl._1D1 != 4); // TEAM_MENU_TYPE_FIELDER_SWAP for option 4, else _BATTER_SWAP
+        g_TeamManagement.teamMenuType[port] = (pauseControl._1D1 != 4); // TEAM_MENU_TYPE_FIELDER_SWAP for option 4, else _BATTER_SWAP
         pauseControl._12 = 0;
         if (pauseControl._1D1 == 0xE || pauseControl._1D1 == 7) {
-            aiPosSwapInputs.teamMenuType[port] = TEAM_MENU_TYPE_SCOUT_FLAGS;
+            g_TeamManagement.teamMenuType[port] = TEAM_MENU_TYPE_SCOUT_FLAGS;
         } else if (pauseControl._1D1 == 0xF || pauseControl._1D1 == 8) {
-            aiPosSwapInputs.teamMenuType[port] = TEAM_MENU_TYPE_STAR_MISSIONS;
+            g_TeamManagement.teamMenuType[port] = TEAM_MENU_TYPE_STAR_MISSIONS;
         }
         pauseControl.state = 2;
         break;
@@ -1165,33 +1165,33 @@ void positionSwapScreenInputs(void) {
         port = pauseControl.port;
         for (i = 0; i < 4; i++) {
             if (port == i) {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = val;
-                aiPosSwapInputs.playerInputs[i].newInput = val;
-                aiPosSwapInputs.playerInputs[i].processedInput = val;
+                g_TeamManagement.playerInputs[i].currentHeldInput = val;
+                g_TeamManagement.playerInputs[i].newInput = val;
+                g_TeamManagement.playerInputs[i].processedInput = val;
             } else {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = 0;
-                aiPosSwapInputs.playerInputs[i].newInput = 0;
-                aiPosSwapInputs.playerInputs[i].processedInput = 0;
+                g_TeamManagement.playerInputs[i].currentHeldInput = 0;
+                g_TeamManagement.playerInputs[i].newInput = 0;
+                g_TeamManagement.playerInputs[i].processedInput = 0;
             }
         }
     } else {
         port = pauseControl.port;
         for (i = 0; i < 4; i++) {
             if (port == i) {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = g_Controls[g_GameLogic.teams[port]].buttonInput;
-                aiPosSwapInputs.playerInputs[i].newInput = g_Controls[g_GameLogic.teams[port]].newButtonInput;
-                aiPosSwapInputs.playerInputs[i].processedInput = g_Controls[g_GameLogic.teams[port]]._08;
+                g_TeamManagement.playerInputs[i].currentHeldInput = g_Controls[g_GameLogic.teams[port]].buttonInput;
+                g_TeamManagement.playerInputs[i].newInput = g_Controls[g_GameLogic.teams[port]].newButtonInput;
+                g_TeamManagement.playerInputs[i].processedInput = g_Controls[g_GameLogic.teams[port]]._08;
             } else {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = 0;
-                aiPosSwapInputs.playerInputs[i].newInput = 0;
-                aiPosSwapInputs.playerInputs[i].processedInput = 0;
+                g_TeamManagement.playerInputs[i].currentHeldInput = 0;
+                g_TeamManagement.playerInputs[i].newInput = 0;
+                g_TeamManagement.playerInputs[i].processedInput = 0;
             }
         }
     }
 
     if (pauseControl._1D1 == 4 || pauseControl._1D1 == 0xB || pauseControl._1D1 == 0xE ||
         (u8)(pauseControl._1D1 - 7) <= 1 || pauseControl._1D1 == 0xF) {
-        if (aiPosSwapInputs.onMainPauseMenu != 0) {
+        if (g_TeamManagement.onMainPauseMenu != 0) {
             pauseControl.state = 5;
             if (pauseControl._1D1 == 4) {
                 for (i = 0; i < 9; i++) {

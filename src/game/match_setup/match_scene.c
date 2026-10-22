@@ -110,7 +110,7 @@ void pauseMenu_openTeamManagement(void) {
     if (pc->state == 2) {
         insertGraphicDrawingFunction(fn_80053FE8, 2);
         memset(menuNumber, 0, 0x28);
-        switch (aiPosSwapInputs.teamMenuType[pauseControl.port]) {
+        switch (g_TeamManagement.teamMenuType[pauseControl.port]) {
         case TEAM_MENU_TYPE_FIELDER_SWAP:
             SET_MENU(g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE ? 0x1C : 8);
             break;

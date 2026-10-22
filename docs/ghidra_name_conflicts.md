@@ -61,7 +61,7 @@ are true same-offset disagreements rather than layout drift.
 | `InMemBallType` | 0x1BCF | `maybeBuntInd` | `isBuntedBall` |
 | `InMemBallType` | 0x1BD3 | `maybebuntOn2Strikes` | `isFoulBuntWith2Strikes` |
 
-## Symbols (182: 130 functions, 52 data)
+## Symbols (183: 130 functions, 53 data)
 
 | address | kind | repo | ghidra |
 |---|---|---|---|
@@ -133,6 +133,7 @@ are true same-offset disagreements rather than layout drift.
 | `0x800dd540` | function | `hwFrq2Pitch` | `hwFrqPitch` |
 | `0x800de73c` | function | `hwExitIrq` | `hwExitIeq` |
 | `0x801116d0` | data | `flipY` | `flipXMatrix` |
+| `0x803297e0` | data | `g_TeamManagement` | `aiPosSwapInputs?` |
 | `0x80353be0` | data | `inMemRoster` | `inMemRoster(P1/P2)` |
 | `0x80361c50` | data | `g_Challenge` | `challengeTrackingStruct` |
 | `0x803cbd90` | data | `__OSArenaHi` | `osArenaHigh` |

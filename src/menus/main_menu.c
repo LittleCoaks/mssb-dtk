@@ -63,7 +63,7 @@ void selectRandomStadium(void);
 
 // .text:0x00003204 size:0x38 mapped:0x80642298
 void fn_2_3204(void) {
-    loadDemoMatch(aiPosSwapInputs.loadMatchRelInd, 1, 1);
+    loadDemoMatch(g_TeamManagement.loadMatchRelInd, 1, 1);
 }
 
 // .text:0x00002FC0 size:0x244 mapped:0x80642054
