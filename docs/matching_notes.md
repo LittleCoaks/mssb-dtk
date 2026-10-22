@@ -4421,3 +4421,20 @@ Full build, all four hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave5_rep_08E8_{baseline,final}.json and the private wave5
 semantic_audit.json. No emulator test was performed. The next isolated Sol pass
 is drafting the missing challenge dispatcher in text_4B1AC.
+
+### State dispatcher jump-table ownership (2026-10-22)
+
+After pulling origin/main through0d9cad0, rechecked text_50898's current split
+before retaining an old dispatcher workaround. Its72-byte jump table is now
+owned by this unit, so fn_2_52690 can use a normal18-case switch. An unsigned
+halfword read and direct references to the global array remove unnecessary
+state/base temporaries. Every case body and out-of-range no-op behavior is
+preserved; a reconstruction audit compares the bodies with the prior source.
+
+fn_2_52690 improves42.380512% ->52.589330%, raising .text61.415830% ->64.581290%.
+All38 initial function scores,15 exact functions and section scores are
+preserved; .data remains0%. The newly generated table's interim pseudo-symbol
+scores are not an initial baseline floor. No header or split edits were needed.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_origin_0d9cad0_text_50898.json and build/_postmerge_wave7_text_50898.json.
+No emulator test was performed.
