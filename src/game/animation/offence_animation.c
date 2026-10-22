@@ -119,7 +119,7 @@ void animateOffence(void) {
                 continue;
             }
         }
-        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE || runner->rosterID < 0) {
+        if (runner->runnerStatus == RUNNER_STATUS_NONE || runner->rosterID < 0) {
             runnerObj->displayState = FALSE;
         } else if (runner->runningToDugoutStage == 3) {
             runnerObj->displayState = FALSE;

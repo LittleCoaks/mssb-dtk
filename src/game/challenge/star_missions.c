@@ -443,10 +443,10 @@ void scoutFlag_checkMissionSuccess(void) {
             if (g_RunningLogic._02 & 0x1100) {
                 threw = 1;
             } else {
-                if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[1].baseReachedAtTimeOfThrow >= 2) {
+                if (g_Runners[1].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[1].baseReachedAtTimeOfThrow >= 2) {
                     threw = 1;
                 }
-                if (g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[0].baseReachedAtTimeOfThrow >= 2) {
+                if (g_Runners[0].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[0].baseReachedAtTimeOfThrow >= 2) {
                     threw = 1;
                 }
             }
@@ -496,7 +496,7 @@ void scoutFlag_checkMissionSuccess(void) {
                 scout->scoutFlag = 0;
             } else if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT) {
                 scout->scoutFlag = 0;
-            } else if (runners[3].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD) {
+            } else if (runners[3].runnerStatus != RUNNER_STATUS_ON_FIELD) {
                 scout->scoutFlag = 0;
             } else {
                 scout->scoutFlag = 1;
@@ -510,7 +510,7 @@ void scoutFlag_checkMissionSuccess(void) {
         u8 fl = g_FieldingLogic.liveBallReason;
         u8 runnerStatus = 0;
         if (fl == PICKOFF_STEAL_CODE_PICKOFF || fl == PICKOFF_STEAL_CODE_STEAL) {
-            runnerStatus = runners[1].runnerOnFieldOrOutOrScored;
+            runnerStatus = runners[1].runnerStatus;
             if (runnerStatus == RUNNER_STATUS_ON_FIELD || runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                 if (runners[1].currentBase > 1) {
                     flag = 1;
@@ -1129,7 +1129,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                     int runsBefore = scores->_A0;
                     CharacterStats* roster = inMemRoster[scout->humanTeam];
                     StatisticsBatter* bs = BatterStats_P1_P2[scout->humanTeam];
-                    u8 lastRunnerStatus = runners[3].runnerOnFieldOrOutOrScored;
+                    u8 lastRunnerStatus = runners[3].runnerStatus;
                     u8 lastRunnerForced = runners[3].furthestBaseForcedToGoToOnWalk;
                     u8 starSwing = ball->currentStarSwing2;
                     u8 hitType = g_Batter.hitGeneralType;
@@ -1247,7 +1247,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     int count = 0;
                                     int r;
                                     for (r = 1; r < 4; r++) {
-                                        if (g_Runners[r].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
+                                        if (g_Runners[r].runnerStatus != RUNNER_STATUS_NONE &&
                                             (g_Runners[r].charID == CHAR_ID_DIDDY || g_Runners[r].charID == CHAR_ID_DIXIE)) {
                                             count++;
                                         }

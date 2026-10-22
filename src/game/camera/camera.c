@@ -2079,9 +2079,9 @@ void fn_3_15220(int arg) {
 void fn_3_15144(int arg) {
     int i;
     for (i = 0; i < ARRAY_SIZE(g_Runners); i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_ON_FIELD &&
-            g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY &&
-            g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DEAD_BALL) {
+        if (g_Runners[i].runnerStatus != RUNNER_STATUS_ON_FIELD &&
+            g_Runners[i].runnerStatus != RUNNER_STATUS_OUT_DURING_PLAY &&
+            g_Runners[i].runnerStatus != RUNNER_STATUS_SCORED_DEAD_BALL) {
             break;
         }
 
@@ -2110,7 +2110,7 @@ void fn_3_150C0(void) {
 void fn_3_15004(void) {
     int i;
     for (i = 0; i < ARRAY_SIZE(g_Runners); i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == 3 && g_pCamera->_AC0[i] == 0) {
+        if (g_Runners[i].runnerStatus == 3 && g_pCamera->_AC0[i] == 0) {
             g_pCamera->_ABF = i;
             g_pCamera->_AC0[i] = 1;
             g_pCamera->_A94 = g_Stats.playFrameCounter;

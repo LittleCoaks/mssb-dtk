@@ -221,8 +221,8 @@ void determineIfReplayShouldPlay(void) {
             reason = 3;
             if (reason == 3) {
                 InMemRunnerType* runner = &g_Runners[0];
-                if (strikes->outs != 3 && runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_OUT_DURING_PLAY &&
-                    runner->runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DURING_PLAY) {
+                if (strikes->outs != 3 && runner->runnerStatus != RUNNER_STATUS_OUT_DURING_PLAY &&
+                    runner->runnerStatus != RUNNER_STATUS_SCORED_DURING_PLAY) {
                     reason = 4;
                 }
             }

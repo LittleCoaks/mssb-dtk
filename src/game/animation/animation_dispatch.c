@@ -1346,7 +1346,7 @@ void batterAnimations(void) {
 tail:
         runnerForced = FALSE;
         for (i = 1; i < 4; i++) {
-            if (g_Runners[i].runnerOnFieldOrOutOrScored == 1 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+            if (g_Runners[i].runnerStatus == 1 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
                 runnerForced = TRUE;
             }
         }
@@ -1417,7 +1417,7 @@ void runnerAnimations(void) {
         if (g_d_GameSettings.minigamesEnabled && (s8)g_Minigame.runnerPlayerIndexU8[i] < 0) {
             continue;
         }
-        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_NONE) {
+        if (runner->runnerStatus == RUNNER_STATUS_NONE) {
             slot->state = 0;
         } else {
             slot->state = 3;

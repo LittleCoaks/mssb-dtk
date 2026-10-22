@@ -1995,15 +1995,15 @@ void drawDiamondMiniMap_ongoing(void) {
             int idx = i + 1;
             int base;
 
-            if (!(runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_BallsStrikesOuts.outs < 3)) {
+            if (!(runner->runnerStatus == RUNNER_STATUS_ON_FIELD && g_BallsStrikesOuts.outs < 3)) {
                 REC(scene, idx)->flags &= ~UI_FLAG_VISIBLE;
             } else {
                 if (i == 0) {
                     int sinceHit = g_Ball.framesSinceHit;
 
                     if (sinceHit >= 1) {
-                        if (runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-                            runner->runnerOnFieldOrOutOrScored == RUNNER_STATUS_WALK_WHILE_STEALING) {
+                        if (runner->runnerStatus == RUNNER_STATUS_ON_FIELD ||
+                            runner->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                             if (sinceHit < 16) {
                                 REC(scene, idx)->rgba = (REC(scene, idx)->rgba & ~0xFF) | (sinceHit << 4);
                             } else {
@@ -2036,7 +2036,7 @@ void drawDiamondMiniMap_ongoing(void) {
         REC(scene, 12)->flags &= ~UI_FLAG_VISIBLE;
         if (g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
             for (i = 1; i < 4; i++) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored != 0 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+                if (g_Runners[i].runnerStatus != 0 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
                     REC(scene, 12)->flags |= UI_FLAG_VISIBLE;
                     for (; i < 4; i++) {
                         if (g_Runners[i].stealingStatus == 3) {

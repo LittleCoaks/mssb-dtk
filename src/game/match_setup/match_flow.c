@@ -728,7 +728,7 @@ void checkIfPlayOver(void) {
         }
     }
     for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD) {
             if (g_Runners[i].baseStandingOn < 0) {
                 allRunnersDone = 0;
             } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && g_Runners[i].overRun1BStage == 0) {
@@ -787,7 +787,7 @@ void checkIfPlayOver(void) {
         }
         if (g_GameLogic.walkOffWinInd == 0) {
             if (g_Ball.ballState == BALL_STATE_HIT &&
-                g_Runners[0].runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DURING_PLAY) {
+                g_Runners[0].runnerStatus != RUNNER_STATUS_SCORED_DURING_PLAY) {
                 g_FieldingLogic.playOverCounter = 0;
                 return;
             }
@@ -1008,11 +1008,11 @@ void handleDeadBall(void) {
         return;
     }
     if (g_Ball.deadBallReason == DEAD_BALL_REASON_GROUND_RULE_DOUBLE) {
-        if (g_Runners[2].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+        if (g_Runners[2].runnerStatus != RUNNER_STATUS_NONE) {
             g_Runners[2].scoredOnGRD = 1;
             count = 1;
         }
-        if (g_Runners[3].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+        if (g_Runners[3].runnerStatus != RUNNER_STATUS_NONE) {
             g_Runners[3].scoredOnGRD = 1;
             count++;
         }
@@ -1030,7 +1030,7 @@ void handleDeadBall(void) {
         }
     } else if (g_Ball.deadBallReason == DEAD_BALL_REASON_BALL_DEAD) {
         for (i = 3; i >= 0; i--) {
-            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD &&
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD &&
                 (i >= 2 || g_Runners[i].baseReachedAtTimeOfThrow >= 2)) {
                 g_Runners[i].scoredOnGRD = 1;
                 count++;
@@ -1450,7 +1450,7 @@ void processScoreChanges(int arg0) {
             }
         }
         for (i = 0; i < 4; i++) {
-            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD && g_Runners[i].forceOutCd == 1) {
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[i].forceOutCd == 1) {
                 runnersOut++;
             }
         }
@@ -1469,7 +1469,7 @@ void processScoreChanges(int arg0) {
     }
     if (g_Ball.deadBallReason != DEAD_BALL_REASON_GROUND_RULE_DOUBLE) {
         for (i = 0; i < 4; i++) {
-            if (g_Runners[i].isEligibleToScore != 0 && g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+            if (g_Runners[i].isEligibleToScore != 0 && g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                 if (g_Stats.replayInd == 0) {
                     storedInningInfo.rbisWaitingToBeAddedToScore++;
                 }
@@ -1531,9 +1531,9 @@ void transitionToLiveBallWithoutContact(int arg0) {
     stealSetFielders();
     stealCancelLeadoffs();
     if (g_BallsStrikesOuts.balls >= 4) {
-        g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_WALK_WHILE_STEALING;
+        g_Runners[0].runnerStatus = RUNNER_STATUS_WALK_WHILE_STEALING;
     } else {
-        g_Runners[0].runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DEAD_BALL;
+        g_Runners[0].runnerStatus = RUNNER_STATUS_SCORED_DEAD_BALL;
     }
 }
 
@@ -1542,11 +1542,11 @@ void uncalledRunnerUpdateRelated(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-            g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY ||
-            g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DEAD_BALL) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
+            g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY ||
+            g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DEAD_BALL) {
             g_Scores._9C++;
-            g_Runners[i].runnerOnFieldOrOutOrScored = RUNNER_STATUS_SCORED_DURING_PLAY;
+            g_Runners[i].runnerStatus = RUNNER_STATUS_SCORED_DURING_PLAY;
         }
     }
 }

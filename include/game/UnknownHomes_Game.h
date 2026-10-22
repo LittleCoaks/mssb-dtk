@@ -242,7 +242,7 @@ typedef struct _InMemRunnerType {
     /*0x120*/ u8 speed;
     /*0x121*/ u8 _121; // 10
     /*0x122*/ u8 delayBeforeStartingToRun;
-    /*0x123*/ E(u8, RUNNER_STATUS) runnerOnFieldOrOutOrScored;
+    /*0x123*/ E(u8, RUNNER_STATUS) runnerStatus;
     /*0x124*/ u8 startingBase_baseAchieved;
     /*0x125*/ u8 currentBase;
     /*0x126*/ u8 nextBase;

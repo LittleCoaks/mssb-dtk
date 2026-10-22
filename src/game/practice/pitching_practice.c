@@ -85,7 +85,7 @@ void fn_3_B6C9C(void) {
             return;
         }
     } else {
-        if (g_Runners[1].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (g_Runners[1].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             g_Practice.guidedPracticeCompletionRelated = TRUE;
         }
         return;

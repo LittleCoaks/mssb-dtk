@@ -41,21 +41,21 @@ void setInitialTotalBasesOnHit(void) {
                 base = 0;
             } else if (runnerForced == 0) {
                 if (storedInningInfo.baserunnerTrackingState == BASERUNNER_TRACKING_COMPLETE &&
-                    g_Runners[0].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+                    g_Runners[0].runnerStatus == RUNNER_STATUS_ON_FIELD) {
                     base = 1;
                 }
                 if (g_Ball.fielderWithBallIndexStored2 >= 0 && g_Ball.fielderWithBallIndexStored2 <= 5 &&
                     g_Ball.ballZoneWhenCaught <= 1 && base == 1) {
                     for (i = 1; i < 4; i++) {
-                        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_OUT_DURING_PLAY) {
+                        if (g_Runners[i].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY) {
                             base = 0;
                             goto end;
                         }
                     }
                     for (i = 1; i < 4; i++) {
-                        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE &&
+                        if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE &&
                             g_Runners[i].baseStandingOn < 0 &&
-                            g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_SCORED_DURING_PLAY &&
+                            g_Runners[i].runnerStatus != RUNNER_STATUS_SCORED_DURING_PLAY &&
                             g_Runners[i].currentBase <= g_Runners[i].startingBase_baseAchieved) {
                             break;
                         }
@@ -130,7 +130,7 @@ void midPlay_trackStats(void) {
         } else if (storedInningInfo.playResultCode == PLAY_RESULT_CODE_OUTFIELD_CATCH_FOR_OUT) {
             if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
                 for (i = 1; i < 4; i++) {
-                    if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                    if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                         storedInningInfo.playResultCode = PLAY_RESULT_CODE_SAC_FLY_SCORED;
                     }
                 }
@@ -170,7 +170,7 @@ void checkSaveSituation(void) {
             int onBase = 0;
             s32 i;
             for (i = 1; i < 4; i++) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD) {
+                if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD) {
                     onBase++;
                 }
             }
@@ -202,7 +202,7 @@ void updatePitcherStatsOnScoreChange(void) {
     if (diff <= g_Scores._9C && diff > 0) {
         if (g_Scores._9C == 1) {
             for (i = 0; i < 4; i++) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     g_Scores._B5[battingTeam] = g_Runners[i].pitcherWhoLetRunnerOnBase;
                     break;
                 }
@@ -210,7 +210,7 @@ void updatePitcherStatsOnScoreChange(void) {
         } else {
             n = g_Scores._9C;
             for (i = 3; i >= 0; i--) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     if (diff == n) {
                         g_Scores._B5[battingTeam] = g_Runners[i].pitcherWhoLetRunnerOnBase;
                         break;
@@ -270,7 +270,7 @@ void postPitchStatUpdating(int arg) {
         BatterStats_P1_P2[g_GameLogic.teamFielding][g_Fielders[i].rosterLocation].onFieldForAPitch = 1;
     }
     for (i = 0; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE && g_Runners[i].rosterID >= 0) {
+        if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE && g_Runners[i].rosterID >= 0) {
             BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].onFieldForAPitch = 1;
         }
     }
@@ -355,7 +355,7 @@ void postPitchStatUpdating(int arg) {
 
         for (i = 0; i < 4; i++) {
             scored[i] = 0;
-            if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY ||
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY ||
                 g_Runners[i].scoredOnGRD != 0) {
                 if (remaining <= 0) {
                     scored[i] = 1;
@@ -558,7 +558,7 @@ void setRunnerOnBaseIndicators2(void) {
     storedInningInfo.batterResultBase = -1;
     storedInningInfo.baserunnerTrackingState = BASERUNNER_TRACKING_NOT_STARTED;
     for (i = 1; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+        if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE) {
             storedInningInfo.runnerForcedCd[i - 1] = RUNNER_FORCE_CODE_FORCED_TO_ADVANCE;
         } else {
             storedInningInfo.runnerForcedCd[i - 1] = RUNNER_FORCE_CODE_NONE;
@@ -573,7 +573,7 @@ void setRunnerOnBaseIndicators(void) {
     storedInningInfo.batterResultBase = -1;
     storedInningInfo.baserunnerTrackingState = BASERUNNER_TRACKING_NOT_STARTED;
     for (i = 1; i < 4; i++) {
-        if (g_Runners[i].runnerOnFieldOrOutOrScored != RUNNER_STATUS_NONE) {
+        if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE) {
             storedInningInfo.runnerForcedCd[i - 1] = RUNNER_FORCE_CODE_FORCED_TO_ADVANCE;
         } else {
             storedInningInfo.runnerForcedCd[i - 1] = RUNNER_FORCE_CODE_NONE;

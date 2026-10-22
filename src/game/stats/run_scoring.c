@@ -66,7 +66,7 @@ void runScored(void) {
         } else {
             scoringRunners = 0;
             for (i = 3; i >= 0; i--) {
-                if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+                if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     scoringRunners++;
                     if (prevScore + scoringRunners > battingScore) {
                         StatsScreenScores.walkOffRunner = g_Runners[i].rosterID;
