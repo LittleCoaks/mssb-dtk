@@ -77,7 +77,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         return;
     }
 
-    if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+    if (g_d_GameSettings._06 == 2) {
         team = playerIndex;
     } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
         if (playerIndex > 1) {
@@ -214,7 +214,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && g_TeamManagement.unkCF70 != 0) {
             return;
         }
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             return;
         }
         if (g_TeamManagement.rosterView[team] == ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
@@ -243,7 +243,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && g_TeamManagement.unkCF70 != 0) {
             return;
         }
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             return;
         }
         if (g_TeamManagement.rosterView[team] == ROSTER_VIEW_BATTING_ORDER) {
@@ -275,7 +275,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && g_TeamManagement.unkCF70 != 0) {
             return;
         }
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             return;
         }
         if (g_TeamManagement.teamConfirmed[team] != 0) {
@@ -294,7 +294,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (g_TeamManagement.teamManagement_cursorPos[team] == 0) {
             return;
         }
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             return;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
@@ -337,7 +337,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         if (gameSetUpStep.preventCursorMovement[1] != 0) {
             return;
         }
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             if (g_TeamManagement.teamManagement_cursorPos[team] != 0 && g_TeamManagement.teamMenuType[team] == TEAM_MENU_TYPE_BATTER_SWAP) {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
                 return;
@@ -378,7 +378,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
             sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
             return;
         }
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_EXIT);
             g_TeamManagement.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -391,7 +391,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
             return;
         }
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && g_TeamManagement.teamConfirmed[0] == 0) {
-            if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+            if (g_d_GameSettings._06 == 2) {
                 g_TeamManagement.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_2;
                 updateCharacterSelectProcessCode(team, 0x33);
             } else {
@@ -498,7 +498,7 @@ void teamManagement_takeInputs(s32 playerIndex) {
         g_TeamManagement.onFieldingAlignmentScreen2[1] = 0;
         g_TeamManagement.teamManagement_cursorPos[1] = 0;
         g_TeamManagement.onePlayerEditingTeam = 0;
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_TM_EXIT);
             g_TeamManagement.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);

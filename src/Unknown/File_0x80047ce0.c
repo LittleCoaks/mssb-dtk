@@ -18,8 +18,8 @@ extern menuControlStruct* menuControlVariables;
 void initTeamManagementScreen(void) {
     Static_Stats_Tables.unk4720[0] = 0;
     Static_Stats_Tables.unk4720[1] = 0;
-    g_TeamManagement.rosterView[0] = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME;
-    g_TeamManagement.rosterView[1] = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME;
+    g_TeamManagement.rosterView[0] = g_d_GameSettings._06 == 2;
+    g_TeamManagement.rosterView[1] = g_d_GameSettings._06 == 2;
 
     g_TeamManagement.charSelectedToBeSwappedCharID[1] = 0xFF;
     g_TeamManagement.charSelectedToBeSwappedCharID[0] = 0xFF;
@@ -51,7 +51,7 @@ void initTeamManagementScreen(void) {
     gameSetUpStep.portCaptainSlot[0] = 0;
     gameSetUpStep.portCaptainSlot[1] = 1;
 
-    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+    if (g_d_GameSettings._06 != 2) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE && menuControlVariables->previousScreen == 0xA) {
             characterSelectScreen(0);
             characterSelectScreen(1);
@@ -80,7 +80,7 @@ void initTeamManagementScreen(void) {
 
     SetMenuNumber();
 
-    if (!(g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME || menuControlVariables->previousScreen == 0xA ||
+    if (!(g_d_GameSettings._06 == 2 || menuControlVariables->previousScreen == 0xA ||
           g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE)) {
         g_TeamManagement.onePlayerEditingTeam = 1;
         g_TeamManagement.teamConfirmed[0] = 1;
@@ -100,7 +100,7 @@ void initTeamManagementScreen(void) {
             }
         } else {
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_LOAD);
-            if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+            if (g_d_GameSettings._06 == 2) {
                 updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_LOAD);
             } else {
                 updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_TM_LOAD);

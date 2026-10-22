@@ -80,7 +80,7 @@ void gameSettingsControllerInputs(u8 port) {
     } else if (input->processedInput & INPUT_BUTTON_RIGHT) {
         gameSettingsLeftRightPressed(1, 0);
     } else if (input->newInput & INPUT_TRIGGER_R) {
-        if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 == 2) {
             return;
         }
 

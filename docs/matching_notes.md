@@ -2426,7 +2426,7 @@ but left `NonMatching` (DOGet, LITAlloc, AnimateActorBones; see their checkpoint
 
 - **MWCC 2.6 schedules loads of one global past stores into another only when the stored-to
   object's DECLARED size is >= 0xFFFF bytes.** In `createTeamManagementScreen_inGame` the target
-  keeps `lbz g_d_GameSettings.highLevelMenuScene` after three stores into `g_TeamManagement` (dtk size 0x24C98).
+  keeps `lbz g_d_GameSettings._06` after three stores into `g_TeamManagement` (dtk size 0x24C98).
   With the full-size struct every source shape (pointer locals, inline helper, switch, ternary,
   volatile load, unsized array, `-proc`, `mw_version` sweep) hoisted the load (68%); a struct of
   any size up to 0xFFFE gave 100%, 0xFFFF and up did not. `UnknownHomes_Static.h` now lets a unit

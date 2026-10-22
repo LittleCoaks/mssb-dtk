@@ -81,7 +81,7 @@ void controlOptionsScreen(u8 port) {
             } else if (processed & INPUT_BUTTON_RIGHT) {
                 gameSettingsLeftRightPressed(1, (u8)idx);
             } else if ((newInput & INPUT_TRIGGER_L) || (newInput & INPUT_BUTTON_B)) {
-                if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME && gs[0x36] == 1) {
+                if (g_d_GameSettings._06 != 2 && gs[0x36] == 1) {
                     gs[0x36] = 0;
                     gameSettings.step = 2;
 

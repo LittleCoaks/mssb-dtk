@@ -393,13 +393,13 @@ void starMenuCursor(void) {
     s8 variant;
 
     memset(&input, 0, sizeof(input));
-    input.currentHeldInput = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME
+    input.currentHeldInput = g_d_GameSettings._06 == 2
                                  ? g_TeamManagement.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].currentHeldInput
                                  : Static_Stats_Tables.controllerInputs[0].currentHeldInput;
-    input.newInput = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME
+    input.newInput = g_d_GameSettings._06 == 2
                          ? g_TeamManagement.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].newInput
                          : Static_Stats_Tables.controllerInputs[0].newInput;
-    input.processedInput = g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME
+    input.processedInput = g_d_GameSettings._06 == 2
                                ? g_TeamManagement.playerInputs[Static_Stats_Tables.playerNumberByPort[0]].processedInput
                                : Static_Stats_Tables.controllerInputs[0].processedInput;
 
@@ -490,10 +490,10 @@ void swapPosMenu_left_rightPress(u8 right, u8 team) {
     if (g_TeamManagement.teamManagement_cursorPos[team] == 0) {
         return;
     }
-    if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME && g_TeamManagement.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
+    if (g_d_GameSettings._06 == 2 && g_TeamManagement.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
         return;
     }
-    if (g_TeamManagement.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT && g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+    if (g_TeamManagement.rosterView[team] != ROSTER_VIEW_DEFENSIVE_ALIGNMENT && g_d_GameSettings._06 != 2) {
         return;
     }
 
@@ -536,7 +536,7 @@ void swapPosMenu_left_rightPress(u8 right, u8 team) {
             }
         }
     } else if (g_TeamManagement.teamManagement_cursorPos[team] == 0) {
-        if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+        if (g_d_GameSettings._06 != 2) {
             g_TeamManagement.onFieldingAlignmentScreen2[team]++;
             if (g_TeamManagement.rosterView[team] > ROSTER_VIEW_DEFENSIVE_ALIGNMENT) {
                 g_TeamManagement.rosterView[team] = ROSTER_VIEW_DEFENSIVE_ALIGNMENT;

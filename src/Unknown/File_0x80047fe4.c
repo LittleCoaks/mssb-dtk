@@ -204,7 +204,7 @@ void pauseMenuSelection(void) {
                     }
                     g_TeamManagement.challengeLoadingNormalMatchInd = 0;
                 }
-                if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME && g_TeamManagement.teamMenuType[port] == TEAM_MENU_TYPE_SCOUT_FLAGS &&
+                if (g_d_GameSettings._06 == 2 && g_TeamManagement.teamMenuType[port] == TEAM_MENU_TYPE_SCOUT_FLAGS &&
                     g_TeamManagement.scoutFlagMenuState != 0) {
                     break;
                 }
@@ -219,12 +219,12 @@ void pauseMenuSelection(void) {
             g_TeamManagement.teamConfirmed[0] = 0;
             setCaptainLocInRoster();
 
-            if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME && g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+            if (g_d_GameSettings._06 != 2 && g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                 menuControlVariables->previousScreen = menuControlVariables->currentScreen;
                 menuControlVariables->previousState = menuControlVariables->currentState;
                 menuControlVariables->currentScreen = 0xD;
                 menuControlVariables->currentState = 0;
-            } else if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+            } else if (g_d_GameSettings._06 == 2) {
                 if (g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_SCOUT_FLAGS && g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_STAR_MISSIONS) {
                     if (gameSetUpStep[0x55] != 0) {
                         break;

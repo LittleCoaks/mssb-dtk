@@ -20,7 +20,7 @@ void fn_80053FE8(void);
     menuNumber[8] = lbl_800FEF70[(id)].label
 
 void updateMenuNumbers(void) {
-    if (g_d_GameSettings.highLevelMenuScene == HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+    if (g_d_GameSettings._06 == 2) {
         insertGraphicDrawingFunction(fn_80053FE8, 0);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             SET_MENU(0x15);

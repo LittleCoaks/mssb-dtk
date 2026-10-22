@@ -14,20 +14,10 @@ typedef enum _P2_CPU_CODE {
     /* 3 */ P2_CPU_CODE_CPU_VS_1_PLAYER, // team 0 (P1 side) is the CPU, the human plays team 1
 } P2_CPU_CODE;
 
-/* g_d_GameSettings.highLevelMenuScene (Ghidra: enum_highLevelMenuScene).
- * handleLoadingProcess (File_0x800097a0.c) writes 0 when loading starts,
- * 1 before linking dll 0 (menus.rel) and 2 before linking dll 1 (game.rel).
- * The pause menu's team-management screen only exists in _IN_GAME. */
-typedef enum _HIGH_LEVEL_MENU_SCENE {
-    /* 0 */ HIGH_LEVEL_MENU_SCENE_NONE,
-    /* 1 */ HIGH_LEVEL_MENU_SCENE_MENUS,   // main menu, exhibition, challenge, records, options
-    /* 2 */ HIGH_LEVEL_MENU_SCENE_IN_GAME, // in-game, toy field, minigames, practice
-} HIGH_LEVEL_MENU_SCENE;
-
 typedef struct _GameInitVariables {
     /*0x00*/ int _00;
     /*0x04*/ u16 FrameCountWhileNotAtMainMenu;
-    /*0x06*/ E(u8, HIGH_LEVEL_MENU_SCENE) highLevelMenuScene;
+    /*0x06*/ u8 _06; // 1 Menu,2 InGame/Minigame/Practice/etc
     /*0x07*/ E(u8, GAME_TYPE) GameModeSelected;
     /*0x08*/ bool exhibitionMatchInd;
     /*0x09*/ E(u8, STADIUM_ID) StadiumID;

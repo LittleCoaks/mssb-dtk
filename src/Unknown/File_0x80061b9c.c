@@ -42,7 +42,7 @@ void teamManagementGraphics_initialLoad(void) {
     g_TeamManagement.removeSceneRequested = 0;
     playerWho = g_TeamManagement.playerWhoPaused;
 
-    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+    if (g_d_GameSettings._06 != 2) {
         addGraphicsElementToScene(scene, lbl_801000A8);
         RECORD(16)->frame = Static_Stats_Tables.playerNumberByPort[0] << 16;
 

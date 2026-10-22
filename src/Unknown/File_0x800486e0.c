@@ -20,7 +20,7 @@ void createTeamManagementScreen_inGame(u32 priority, s8 team, u8 player) {
     g_TeamManagement.teamManagementProcessID = 0;
     g_TeamManagement.teamThatPaused = team;
     g_TeamManagement.onMainPauseMenu = 0;
-    if (g_d_GameSettings.highLevelMenuScene != HIGH_LEVEL_MENU_SCENE_IN_GAME) {
+    if (g_d_GameSettings._06 != 2) {
         g_TeamManagement.playerWhoPaused = 0;
     } else {
         g_TeamManagement.playerWhoPaused = player;
