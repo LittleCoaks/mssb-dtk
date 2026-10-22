@@ -130,7 +130,7 @@ void matchHudDrawingControl(void) {
                 animRelated[0xA7] = 0xF0;
             }
         }
-        if (pauseControl._1D5 != 0) {
+        if (pauseControl.isPaused != 0) {
             animRelated[0xA7] = 0xF0;
         }
     }
@@ -488,7 +488,7 @@ void draw_ongoingStarGuageHud(void) {
         goto remove;
     }
 
-    if (g_GameLogic.IsStarChance == 0 || pauseControl._1D5 != 0) {
+    if (g_GameLogic.IsStarChance == 0 || pauseControl.isPaused != 0) {
         if (animRelated[0xA7] == 0) {
             goto remove;
         }
@@ -503,7 +503,7 @@ void draw_ongoingStarGuageHud(void) {
         }
     }
 
-    if (pauseControl._1D5 != 0) {
+    if (pauseControl.isPaused != 0) {
         if (animRelated[0xA7] == 0) {
             goto remove;
         }

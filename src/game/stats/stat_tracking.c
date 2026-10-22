@@ -193,14 +193,14 @@ void updatePitcherStatsOnScoreChange(void) {
     int n;
     u8* p;
 
-    if (diff > 0 && diff <= g_Scores._9C) {
+    if (diff > 0 && diff <= g_Scores.rbisWaitingToBeAddedToScore) {
         g_Scores._AE = g_Scores.Inning;
     }
     if (diff >= 0) {
         g_Scores._B5[fieldingTeam] = -1;
     }
-    if (diff <= g_Scores._9C && diff > 0) {
-        if (g_Scores._9C == 1) {
+    if (diff <= g_Scores.rbisWaitingToBeAddedToScore && diff > 0) {
+        if (g_Scores.rbisWaitingToBeAddedToScore == 1) {
             for (i = 0; i < 4; i++) {
                 if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     g_Scores._B5[battingTeam] = g_Runners[i].pitcherWhoLetRunnerOnBase;
@@ -208,7 +208,7 @@ void updatePitcherStatsOnScoreChange(void) {
                 }
             }
         } else {
-            n = g_Scores._9C;
+            n = g_Scores.rbisWaitingToBeAddedToScore;
             for (i = 3; i >= 0; i--) {
                 if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
                     if (diff == n) {
@@ -231,7 +231,7 @@ void updatePitcherStatsOnScoreChange(void) {
             }
         }
     }
-    if (diff <= g_Scores._9C && diff > 0) {
+    if (diff <= g_Scores.rbisWaitingToBeAddedToScore && diff > 0) {
         g_Scores._B3[fieldingTeam] = g_Scores._B1[fieldingTeam];
         g_Scores._BD[fieldingTeam] = g_Scores._BB[fieldingTeam];
         if (g_Scores._B9[fieldingTeam] == 0) {
@@ -350,7 +350,7 @@ void postPitchStatUpdating(int arg) {
         }
     } else {
         int scored[4];
-        int remaining = g_Scores._9C;
+        int remaining = g_Scores.rbisWaitingToBeAddedToScore;
         int outs;
 
         for (i = 0; i < 4; i++) {

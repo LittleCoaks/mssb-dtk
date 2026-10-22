@@ -860,7 +860,7 @@ void initializeToyFieldSomething(void) {
     g_BallsStrikesOuts.outs = 0;
     g_BallsStrikesOuts.storedOuts = 0;
     g_Ball.totalFramesAtPlay = 0;
-    pauseControl._1D5 = 0;
+    pauseControl.isPaused = 0;
     g_Scores._C5 = 0;
     g_Minigame.turnOverStatus = 0;
     g_Minigame.pointsTargetReachedInd = FALSE;
@@ -1007,10 +1007,10 @@ void toyFieldAwardPoints(int type) {
 
 // .text:0x000DDFA0 size:0x368 mapped:0x8071D034
 void toyFieldAtBat(void) {
-    if (g_Pitcher.pitchTotalTimeCounter <= 0 && pauseControl._1D5 == 0) {
+    if (g_Pitcher.pitchTotalTimeCounter <= 0 && pauseControl.isPaused == 0) {
         toyFieldCheckForPause();
     }
-    if (pauseControl._1D5 != 0) {
+    if (pauseControl.isPaused != 0) {
         toyFieldWaitForPause();
     } else {
         atBat_Pitcher();
@@ -1288,7 +1288,7 @@ void toyFieldCheckForPause(void) {
         s8 port = g_Minigame.minigameControlStruct[0].characterIndex[i];
         if (port >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[i] == 0 &&
             (g_Controls[port].newButtonInput & INPUT_BUTTON_START)) {
-            pauseControl._1D5 = 1;
+            pauseControl.isPaused = 1;
             pauseControl.port = g_Minigame.minigameControlStruct[0].characterIndex[i];
             fn_3_AFD80(0);
             QueueTextToDisplay(14, 0);
@@ -1320,7 +1320,7 @@ void toyFieldPause(void) {
     switch (pauseControl.state) {
     case 0:
         pauseControl.cursor = 0;
-        pauseControl._1D5 = 0;
+        pauseControl.isPaused = 0;
         pauseControl._1D0 = 0x11;
         pauseControl.state = 1;
         break;

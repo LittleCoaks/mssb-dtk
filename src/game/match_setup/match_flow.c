@@ -170,7 +170,7 @@ void baseballMatchSimulation(void) {
     adjustBallSoundEffectBasedOnHeight();
     if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_DEMO || g_UnkSimulation_31AC0._08 == 0) {
-            if (pauseControl._1D5 == 0) {
+            if (pauseControl.isPaused == 0) {
                 loadIndex = *(s16*)&animRelated[0x9E];
                 if (loadIndex >= 0) {
                     if (loadBatterModelFromDisk(loadIndex)) {
@@ -509,7 +509,7 @@ void matchTransitionPrepareNextAB(void) {
             if (g_GameLogic.TeamStars[0] >= 5 && g_GameLogic.TeamStars[1] >= 5) {
                 break;
             }
-            if ((g_RunningLogic._02 & 0xFFF0) != 0) {
+            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0xFFF0) != 0) {
                 break;
             }
             if (RandomInt_Sim(100) < lbl_3_data_60F0) {
@@ -526,7 +526,7 @@ void newPitch(void) {
     int diff;
 
     practiceNewBatter();
-    g_Scores._9C = 0;
+    g_Scores.rbisWaitingToBeAddedToScore = 0;
     g_Scores._9E = g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1];
     g_Scores._A2 = g_Scores._A0;
     diff = g_Scores.scores[0].total - g_Scores.scores[1].total;
@@ -563,7 +563,7 @@ void newPitch(void) {
     g_FieldingLogic.always0__ = 0;
     g_FieldingLogic.framesSince3rdOutWasMade = 0;
     g_RunningLogic._13 = 0;
-    pauseControl._1D5 = 0;
+    pauseControl.isPaused = 0;
     g_Practice.homeRunWaitSkipped = 0;
     if (g_GameLogic.pre_PostMiniGameInd != 0) {
         g_GameLogic.minigameLastTurnSuccessInd = 1;
@@ -603,7 +603,7 @@ void atBatScreen(void) {
         }
     } else {
         match_checkForPause();
-        if (pauseControl._1D5 != 0) {
+        if (pauseControl.isPaused != 0) {
             transitionToPauseScreen();
             return;
         }
@@ -712,7 +712,7 @@ void checkIfPlayOver(void) {
         return;
     }
     if (g_FieldingLogic.canEndPlayOnLooseBallInd != 0 && animRelated[0xB1] == 0) {
-        if (g_BallsStrikesOuts.outs < 3 && g_RunningLogic._00 != 0) {
+        if (g_BallsStrikesOuts.outs < 3 && g_RunningLogic.runnersOnFieldMask != 0) {
             g_FieldingLogic.playOverCounter = 0;
         }
         g_FieldingLogic.canEndPlayOnLooseBallInd = 0;
@@ -1024,7 +1024,7 @@ void handleDeadBall(void) {
         g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] = g_Scores._9E;
         g_Ball.deadBallRBIsAddedInd = 1;
         storedInningInfo.rbisWaitingToBeAddedToScore = count;
-        g_Scores._9C = count;
+        g_Scores.rbisWaitingToBeAddedToScore = count;
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_LANDED;
         }
@@ -1040,7 +1040,7 @@ void handleDeadBall(void) {
                 break;
             }
         }
-        g_Scores._9C = count;
+        g_Scores.rbisWaitingToBeAddedToScore = count;
         g_Ball.deadBallRBIsAddedInd = 1;
         storedInningInfo.rbisWaitingToBeAddedToScore = count;
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
@@ -1201,7 +1201,7 @@ void inningImportanceAI(void) {
     g_GameLogic.writeOnly_always0_2 = 0;
     g_RunningLogic._11 = 0;
     g_RunningLogic._13 = 0;
-    g_RunningLogic._02 = 0;
+    g_RunningLogic.runnersAtStartOfPlayMask = 0;
     g_Scores._pad_AC = evaluateInningCondition(g_Scores.Inning);
     g_Scores._pad_BF[2] = 0;
     g_Scores._C6 = 0;
@@ -1416,11 +1416,11 @@ void processScoreChanges(int arg0) {
     int diff;
 
     if (!((g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK || g_Pitcher.strikeOutOrWalk == AT_BAT_END_HIT_BY_PITCH) &&
-          g_Scores._9C > 0)) {
+          g_Scores.rbisWaitingToBeAddedToScore > 0)) {
         if (g_GameLogic.gameStatus != GAME_STATUS_AT_BAT && g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL) {
             return;
         }
-        if (g_Scores._9C <= 0) {
+        if (g_Scores.rbisWaitingToBeAddedToScore <= 0) {
             return;
         }
         if (g_BallsStrikesOuts.outs >= 3 && arg0 != 1) {
@@ -1434,11 +1434,11 @@ void processScoreChanges(int arg0) {
             int homeTotal = g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total;
             int awayTotal = g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total + 1;
 
-            if (homeTotal + g_Scores._9C > awayTotal) {
-                g_Scores._9C = awayTotal - homeTotal;
+            if (homeTotal + g_Scores.rbisWaitingToBeAddedToScore > awayTotal) {
+                g_Scores.rbisWaitingToBeAddedToScore = awayTotal - homeTotal;
             }
-            if (g_Scores._9C < 0) {
-                g_Scores._9C = 0;
+            if (g_Scores.rbisWaitingToBeAddedToScore < 0) {
+                g_Scores.rbisWaitingToBeAddedToScore = 0;
             }
         }
         if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_NONE) {
@@ -1482,8 +1482,8 @@ void processScoreChanges(int arg0) {
             g_Scores._9E + g_RunningLogic.nOffensivePlayersAtStartOfPlay;
         g_Scores._C2 = g_RunningLogic.nOffensivePlayersAtStartOfPlay;
     } else {
-        g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] += g_Scores._9C;
-        g_Scores._C2 += g_Scores._9C;
+        g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] += g_Scores.rbisWaitingToBeAddedToScore;
+        g_Scores._C2 += g_Scores.rbisWaitingToBeAddedToScore;
     }
     if (g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] > 99) {
         g_Scores.scores[g_Scores.halfInning].byInning[g_Scores.Inning - 1] = 99;
@@ -1507,7 +1507,7 @@ void processScoreChanges(int arg0) {
     }
     g_Scores._A6 = diff;
     updatePitcherStatsOnScoreChange();
-    g_Scores._9C = 0;
+    g_Scores.rbisWaitingToBeAddedToScore = 0;
     if (g_Pitcher.strikeOutOrWalk != AT_BAT_END_WALK && g_Pitcher.strikeOutOrWalk != AT_BAT_END_HIT_BY_PITCH &&
         g_Ball.deadBallReason != DEAD_BALL_REASON_HOME_RUN) {
         animRelated[0x99] = 1;
@@ -1545,7 +1545,7 @@ void uncalledRunnerUpdateRelated(void) {
         if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
             g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY ||
             g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DEAD_BALL) {
-            g_Scores._9C++;
+            g_Scores.rbisWaitingToBeAddedToScore++;
             g_Runners[i].runnerStatus = RUNNER_STATUS_SCORED_DURING_PLAY;
         }
     }

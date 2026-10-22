@@ -637,7 +637,7 @@ void pitchingWindUpFunction(void) {
         }
         pitchBeingReleased();
         if (g_Pitcher.ChargePitchType == 3) {
-            g_UnkSound_32718._08 = 1;
+            g_UnkSound_32718.hudPopupCode = 1;
             perfectPitchGraphicsRelated();
         }
         if (g_Pitcher.specialPitchTypeCode != 1 && g_Pitcher.specialPitchTypeCode != 2 && g_Pitcher.specialPitchTypeCode != 3 &&
@@ -784,7 +784,7 @@ void endAtBatNonHit(void) {
             scoutFlag_checkMissionSuccess();
             scoutState.scoutCountdown = 0xB4;
         }
-        if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic._10 == 4) {
+        if ((g_Pitcher.strikeOutOrWalk == 2 || g_Pitcher.strikeOutOrWalk == 3) && g_RunningLogic.nOffensivePlayersOnField == 4) {
             if (g_Scores.halfInning != 0) {
                 if (g_Scores.Inning >= g_Scores.inningLimit && g_Scores.scores[0].total == g_Scores.scores[1].total) {
                     QueueTextToDisplay(0xD, 0);
@@ -1819,7 +1819,7 @@ BOOL waitingForPitch_checkForPickoffs(void) {
             if (g_GameLogic.FrameCountOfCurrentPitch < 90) {
                 return 0;
             }
-            if (g_RunningLogic._10 <= 1) {
+            if (g_RunningLogic.nOffensivePlayersOnField <= 1) {
                 return 0;
             }
             if (fn_3_6F6CC()) {

@@ -765,7 +765,7 @@ void soundFxRelated(void) {
     if (g_Ball.framesSinceHit > 20 && sound_crowd_EffectsStruct._26 == 0) {
         sound_crowd_EffectsStruct._26 = 1;
         if (g_Batter.isBunting != 0) {
-            if (g_RunningLogic._02 == 1 || (g_RunningLogic._02 & 0x1000)) {
+            if (g_RunningLogic.runnersAtStartOfPlayMask == 1 || (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000)) {
                 if (sound_crowd_EffectsStruct._10 == -1) {
                     sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
                 }

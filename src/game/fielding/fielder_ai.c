@@ -2255,7 +2255,7 @@ void fn_3_A53DC(int runnerIdx) {
 
     runner = &g_Runners[runnerIdx];
     fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-    if (runnerIdx == 3 && runner->baseStandingOn == 3 && g_RunningLogic._00 == 0x1000 &&
+    if (runnerIdx == 3 && runner->baseStandingOn == 3 && g_RunningLogic.runnersOnFieldMask == 0x1000 &&
         g_Ball.ballZoneAwayFromHome >= 4 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
         frames = throwFramesToPoint(fielder, base_MoundCoordinates[0].x, base_MoundCoordinates[0].z);
         frames = fielder->throwWindupEstimate + frames;
@@ -3336,7 +3336,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
     s16 throwLoc;
 
     if (g_FieldingLogic.throwWaitingInd != 0) {
-        if (g_RunningLogic._10 == 0) {
+        if (g_RunningLogic.nOffensivePlayersOnField == 0) {
             if (g_Ball.ballZoneAwayFromHome >= 2) {
                 g_FieldingLogic.locationThrownTo = 6;
             } else {
@@ -3365,7 +3365,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
             g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
             return;
         }
-        if (g_RunningLogic._10 == 0 && g_Ball.timeSinceBallPickedUp < 60) {
+        if (g_RunningLogic.nOffensivePlayersOnField == 0 && g_Ball.timeSinceBallPickedUp < 60) {
             g_FieldingLogic.locationThrownTo = -1;
             g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
             return;

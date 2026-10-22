@@ -29,7 +29,7 @@ typedef struct PauseControl {
     /* 0x1D2 */ u8 state;
     /* 0x1D3 */ u8 _1D3;
     /* 0x1D4 */ u8 _1D4;
-    /* 0x1D5 */ u8 _1D5;
+    /* 0x1D5 */ u8 isPaused;
     /* 0x1D6 */ u8 _1D6;
     /* 0x1D7 */ u8 _1D7;
     /* 0x1D8 */ u8 _1D8;

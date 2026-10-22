@@ -192,7 +192,7 @@ static inline void pauseMenu_syncLineup(void) {
 }
 
 void setPausedTo0AndOtherStateVars(void) {
-    pauseControl._1D5 = 0;
+    pauseControl.isPaused = 0;
     pauseControl._1D6 = 0;
     pauseControl._1D7 = 0;
 }
@@ -235,7 +235,7 @@ void match_checkForPause(void) {
     if (g_Pitcher.pitchTotalTimeCounter > 0) {
         return;
     }
-    if (pauseControl._1D5 != FALSE) {
+    if (pauseControl.isPaused != FALSE) {
         return;
     }
     if (g_Pitcher.pitcherActionState == 2) {
@@ -268,7 +268,7 @@ void match_checkForPause(void) {
         }
     }
 
-    pauseControl._1D5 = TRUE;
+    pauseControl.isPaused = TRUE;
     pauseControl._1D1 = 0;
     pauseControl.state = 0;
     pauseControl.counter = 0;

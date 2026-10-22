@@ -212,7 +212,7 @@ void atBatResultsForOuts(void) {
     }
 
     if (g_BallsStrikesOuts.storedOuts + 3 == g_BallsStrikesOuts.outs && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FIELDED) {
-        if (g_BallsStrikesOuts.outs == 3 || g_RunningLogic._10 == 0) {
+        if (g_BallsStrikesOuts.outs == 3 || g_RunningLogic.nOffensivePlayersOnField == 0) {
             storedInningInfo.abResultFinal = 0x17;
             if (storedInningInfo.catches[2].outsDuringPossession == 3 ||
                 storedInningInfo.catches[3].outsDuringPossession == 3) {
@@ -374,7 +374,7 @@ void setAtBatResult(void) {
                                 if (coverage >= 0 && coverage <= 3) {
                                     switch (coverage) {
                                         case 0:
-                                            if ((g_RunningLogic._02 & 0x1111) == 0x1111) {
+                                            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0x1111) == 0x1111) {
                                                 storedInningInfo.catches[i].baseStandingOn = 0;
                                             }
                                             break;
@@ -382,12 +382,12 @@ void setAtBatResult(void) {
                                             storedInningInfo.catches[i].baseStandingOn = 1;
                                             break;
                                         case 2:
-                                            if ((g_RunningLogic._02 & 0x11) == 0x11) {
+                                            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0x11) == 0x11) {
                                                 storedInningInfo.catches[i].baseStandingOn = 2;
                                             }
                                             break;
                                         default:
-                                            if ((g_RunningLogic._02 & 0x111) == 0x111) {
+                                            if ((g_RunningLogic.runnersAtStartOfPlayMask & 0x111) == 0x111) {
                                                 storedInningInfo.catches[i].baseStandingOn = 3;
                                             }
                                             break;

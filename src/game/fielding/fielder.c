@@ -1612,7 +1612,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
 
     if (g_BallsStrikesOuts.outs >= 3) {
         fielder->animationRelated = 4;
-    } else if (g_RunningLogic._10 == 0 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
+    } else if (g_RunningLogic.nOffensivePlayersOnField == 0 || g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL || g_Ball.deadBallReason != 0) {
         fielder->animationRelated = 0;
     } else if (g_Ball.fielderWBallIndex == fielderIndex) {
         fielder->animationRelated = 3;
@@ -2248,7 +2248,7 @@ void fn_3_54900(int fielderIndex) {
         targetX = base_MoundCoordinates[4].x;
         targetZ = base_MoundCoordinates[4].z;
     } else {
-        if (g_RunningLogic._10 == 0) {
+        if (g_RunningLogic.nOffensivePlayersOnField == 0) {
             fielder->desiredMovementDirectionStored = fielder->desiredMovementDirection;
             fielder->_01F2 = 1;
             return;
@@ -5365,7 +5365,7 @@ void updateSomeAutoMovementAssignments(void) {
     if (g_BallsStrikesOuts.outs >= 3) {
         return;
     }
-    if (g_RunningLogic._10 == 0) {
+    if (g_RunningLogic.nOffensivePlayersOnField == 0) {
         return;
     }
 
@@ -8588,7 +8588,7 @@ void aITeamFieldingFirstFrameAfterHit(void) {
     if (g_Scores.inningLimit <= g_Scores.Inning && g_Scores.halfInning != 0 &&
         g_Scores.scores[0].total == g_Scores.scores[1].total &&
         g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 && g_BallsStrikesOuts.storedOuts <= 1 &&
-        (g_RunningLogic._02 & 0x1000) != 0 &&
+        (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000) != 0 &&
         foul_checkIfFoul(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z) &&
         !foul_isBallWithin3mFair(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z) &&
         g_Ball.physicsSubstruct.hitLandingSpotDistFromHome > 60.0f) {
@@ -14824,7 +14824,7 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
         }
 
         if (fielder->currentVelocity > 0.0f) {
-            if (pauseControl._1D5 == 0) {
+            if (pauseControl.isPaused == 0) {
                 fielder->desiredMovementDirection = ATAN2F(fielder->velocityZ, fielder->velocityX);
             }
         } else if (g_Pitcher.pitchTotalTimeCounter > 0 ||
@@ -14861,7 +14861,7 @@ void fielding_prePitchAutomovement(void) {
     int i;
     InMemFielder* fielder;
 
-    if (pauseControl._1D5 == 0) {
+    if (pauseControl.isPaused == 0) {
         for (i = 2; i < 9; i++) {
             f32 outZ;
             f32 outX;
@@ -15801,7 +15801,7 @@ void fn_3_2E41C(void) {
     int i;
     int fielderIdx;
 
-    if (pauseControl._1D5 != 0) {
+    if (pauseControl.isPaused != 0) {
         return;
     }
 
@@ -18616,7 +18616,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_Ball.numberOfThrowsDuringPlay == 0 &&
         (fielder->catchAnimation == 4 || fielder->catchAnimation == 5)) {
         g_FieldingLogic.bigPlayPotential = 2;
-        g_UnkSound_32718._08 = 4;
+        g_UnkSound_32718.hudPopupCode = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
         if (!g_d_GameSettings.exhibitionMatchInd &&
             scoutState.humanTeam == g_GameLogic.teamFielding &&
@@ -18628,7 +18628,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     if (fielder->isJump) {
         if (g_Ball.AtBat_Contact_BallPos.y > fielder->hitbox[3] + fielderActionConstants[38]) {
             g_FieldingLogic.bigPlayPotential = 2;
-            g_UnkSound_32718._08 = 4;
+            g_UnkSound_32718.hudPopupCode = 4;
             g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
             if (!g_d_GameSettings.exhibitionMatchInd &&
                 scoutState.humanTeam == g_GameLogic.teamFielding &&
@@ -18640,7 +18640,7 @@ void updateVariablesPostCatch(int fielderIndex) {
 
     if (g_FieldingLogic.bigPlayPotential == 1 && fielder->action != 0) {
         g_FieldingLogic.bigPlayPotential = 2;
-        g_UnkSound_32718._08 = 4;
+        g_UnkSound_32718.hudPopupCode = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
         if (!g_d_GameSettings.exhibitionMatchInd &&
             scoutState.humanTeam == g_GameLogic.teamFielding &&

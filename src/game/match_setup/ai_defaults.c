@@ -18,10 +18,10 @@ static inline void setHighUrgencySituationTracker(void) {
     g_AiLogic.unused_highUrgencySituationTracker = 1;
 
     runners = 0;
-    if (g_RunningLogic._02 & 0x1000) {
+    if (g_RunningLogic.runnersAtStartOfPlayMask & 0x1000) {
         runners = 1;
     }
-    if (g_RunningLogic._02 & 0x100) {
+    if (g_RunningLogic.runnersAtStartOfPlayMask & 0x100) {
         runners++;
     }
 
