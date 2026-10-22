@@ -46,7 +46,7 @@ void teamManagementGraphics_initialLoad(void) {
         addGraphicsElementToScene(scene, lbl_801000A8);
         RECORD(16)->frame = Static_Stats_Tables.playerNumberByPort[0] << 16;
 
-        if (g_d_GameSettings.p2_CPU_match_code == 0) {
+        if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
             RECORD(17)->frame = ((Static_Stats_Tables.playerNumberByPort[0] == 0) + 4) << 16;
         } else {
             RECORD(17)->frame = Static_Stats_Tables.playerNumberByPort[1] << 16;
@@ -120,7 +120,7 @@ void teamManagementGraphics_initialLoad(void) {
             RECORD(9)->frame = (Static_Stats_Tables.teamName[playerWho] & 3) << 16;
         }
 
-        if (g_d_GameSettings.p2_CPU_match_code == 0 && playerWho != 0) {
+        if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && playerWho != 0) {
             frameIndex = Static_Stats_Tables.playerNumberByPort[playerWho];
             if (frameIndex == -1) {
                 frameIndex = (playerWho != 0) + 4;

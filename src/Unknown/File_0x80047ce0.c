@@ -52,10 +52,10 @@ void initTeamManagementScreen(void) {
     gameSetUpStep.portCaptainSlot[1] = 1;
 
     if (g_d_GameSettings._06 != 2) {
-        if (g_d_GameSettings.GameModeSelected != 5 && menuControlVariables->previousScreen == 0xA) {
+        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE && menuControlVariables->previousScreen == 0xA) {
             characterSelectScreen(0);
             characterSelectScreen(1);
-        } else if (g_d_GameSettings.GameModeSelected == 5) {
+        } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             if (g_Challenge.resumeSavedTeams == 0) {
                 fn_800415A8();
                 unsure_FillRosterPositions(1);
@@ -81,7 +81,7 @@ void initTeamManagementScreen(void) {
     SetMenuNumber();
 
     if (!(g_d_GameSettings._06 == 2 || menuControlVariables->previousScreen == 0xA ||
-          g_d_GameSettings.p2_CPU_match_code != 0 || g_d_GameSettings.GameModeSelected == 5)) {
+          g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE)) {
         aiPosSwapInputs.onePlayerEditingTeam = 1;
         aiPosSwapInputs.teamConfirmed[0] = 1;
         updateCharacterSelectProcessCode(0, 0x39);
