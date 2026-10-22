@@ -1,4 +1,4 @@
-#define AIPOSSWAPINPUTS_LOCAL_VIEW
+#define TEAM_MANAGEMENT_LOCAL_VIEW
 #include "Unknown/File_0x800576f0.h"
 #include "static/UnknownHomes_Static.h"
 #include "text/text.h"
@@ -12,7 +12,7 @@
 #include "Unknown/sub.h"
 #include "challenge/challenge_progress.h"
 
-// The team-management state this unit touches; see AIPOSSWAPINPUTS_LOCAL_VIEW
+// The team-management state this unit touches; see TEAM_MANAGEMENT_LOCAL_VIEW
 // for why the full-size type is not used.
 extern struct {
     /* 0x0000 */ u8 _0000[0xCF7A];
@@ -27,7 +27,7 @@ extern struct {
     /* 0xCF98 */ s8 checkStarsMenuStarIndex;
     /* 0xCF99 */ u8 _CF99[0xCF9C - 0xCF99];
     /* 0xCF9C */ s16 playerIndexNoVariants;
-} aiPosSwapInputs;
+} g_TeamManagement;
 
 #define SCENE_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 
@@ -35,46 +35,46 @@ void challengeCheckStarsMenuLoading(void) {
     MenuScene *scene = (MenuScene *)currentDrawingItem;
     int i;
 
-    switch (aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber) {
+    switch (g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber) {
     case CHECK_STARS_SCENE_LOAD:
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd == 0) {
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd == 0) {
             SCENE_RECORD(scene, 1)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, 30)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, 3)->playMode = UI_PLAY_FORWARD;
             challengeDrawStarsOnMissionMenu();
             drawStarProgressionMenu(scene);
-            if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, aiPosSwapInputs.checkStarsMenuStarIndex) != 0) {
+            if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, g_TeamManagement.checkStarsMenuStarIndex) != 0) {
                 SCENE_RECORD(scene, 35)->flags |= UI_FLAG_VISIBLE;
                 SCENE_RECORD(scene, 35)->frame = 0;
                 SCENE_RECORD(scene, 35)->playMode = UI_PLAY_FORWARD;
                 SCENE_RECORD(scene, 69)->frame = 0x10000;
             }
-            aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = TRUE;
+            g_TeamManagement.challengeCheckStarsMenuLoadingInd = TRUE;
         }
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd != 0) {
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd != 0) {
             if (maybeCheckAndResetGrapicsElement(scene, 1, 0x0A) != FALSE) {
-                aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = FALSE;
-                aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
+                g_TeamManagement.challengeCheckStarsMenuLoadingInd = FALSE;
+                g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
             }
         }
         break;
 
     case CHECK_STARS_SCENE_EXIT:
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd == 0) {
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd == 0) {
             SCENE_RECORD(scene, 1)->playMode = UI_PLAY_BACKWARD;
             SCENE_RECORD(scene, 30)->playMode = UI_PLAY_BACKWARD;
-            aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = TRUE;
+            g_TeamManagement.challengeCheckStarsMenuLoadingInd = TRUE;
         }
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd != 0) {
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd != 0) {
             int a = maybeCheckAndResetGrapicsElement(scene, 1, 0) != FALSE;
             int b = maybeCheckAndResetGrapicsElement(scene, 0x1E, 0) != FALSE;
 
             if (a + b == 2) {
-                aiPosSwapInputs.unkCF94 = TRUE;
-                aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = FALSE;
-                aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
+                g_TeamManagement.unkCF94 = TRUE;
+                g_TeamManagement.challengeCheckStarsMenuLoadingInd = FALSE;
+                g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
                 for (i = 0; i < 3; i++) {
-                    text_freeBlock(aiPosSwapInputs.textBlocks[i]);
+                    text_freeBlock(g_TeamManagement.textBlocks[i]);
                 }
                 fn_8000F8F4(scene);
             }
@@ -82,13 +82,13 @@ void challengeCheckStarsMenuLoading(void) {
         break;
 
     case CHECK_STARS_SCENE_MOVE_IN_CHAR_LIST:
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd == 0) {
-            SCENE_RECORD(scene, aiPosSwapInputs.checkStarsMenuCharIndex + 3)->frame = 0;
-            SCENE_RECORD(scene, aiPosSwapInputs.checkStarsMenuCharIndex + 3)->playMode = UI_PLAY_FORWARD;
-            SCENE_RECORD(scene, aiPosSwapInputs.checkStarsMenuPrevCharIndex + 3)->frame = 0x000A0000;
-            SCENE_RECORD(scene, aiPosSwapInputs.checkStarsMenuPrevCharIndex + 3)->playMode = UI_PLAY_BACKWARD;
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd == 0) {
+            SCENE_RECORD(scene, g_TeamManagement.checkStarsMenuCharIndex + 3)->frame = 0;
+            SCENE_RECORD(scene, g_TeamManagement.checkStarsMenuCharIndex + 3)->playMode = UI_PLAY_FORWARD;
+            SCENE_RECORD(scene, g_TeamManagement.checkStarsMenuPrevCharIndex + 3)->frame = 0x000A0000;
+            SCENE_RECORD(scene, g_TeamManagement.checkStarsMenuPrevCharIndex + 3)->playMode = UI_PLAY_BACKWARD;
             drawStarProgressionMenu(scene);
-            if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, aiPosSwapInputs.checkStarsMenuStarIndex) != 0) {
+            if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, g_TeamManagement.checkStarsMenuStarIndex) != 0) {
                 SCENE_RECORD(scene, 35)->flags |= UI_FLAG_VISIBLE;
                 SCENE_RECORD(scene, 35)->frame = 0;
                 SCENE_RECORD(scene, 35)->playMode = UI_PLAY_FORWARD;
@@ -97,11 +97,11 @@ void challengeCheckStarsMenuLoading(void) {
                 SCENE_RECORD(scene, 35)->flags &= ~UI_FLAG_VISIBLE;
                 SCENE_RECORD(scene, 69)->frame = 0;
             }
-            aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = TRUE;
+            g_TeamManagement.challengeCheckStarsMenuLoadingInd = TRUE;
         }
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd != 0) {
-            aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = FALSE;
-            aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd != 0) {
+            g_TeamManagement.challengeCheckStarsMenuLoadingInd = FALSE;
+            g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
         }
         break;
 
@@ -110,17 +110,17 @@ void challengeCheckStarsMenuLoading(void) {
         break;
 
     case CHECK_STARS_SCENE_LOAD_CHAR_VIEW:
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd == 0) {
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd == 0) {
             SCENE_RECORD(scene, 1)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, 69)->flags |= UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, 69)->playMode = UI_PLAY_FORWARD;
-            aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = TRUE;
+            g_TeamManagement.challengeCheckStarsMenuLoadingInd = TRUE;
         }
-        if (aiPosSwapInputs.challengeCheckStarsMenuLoadingInd != 0) {
+        if (g_TeamManagement.challengeCheckStarsMenuLoadingInd != 0) {
             if (maybeCheckAndResetGrapicsElement(scene, 1, 0x14) != FALSE) {
-                aiPosSwapInputs.challengeCheckStarsMenuLoadingInd = FALSE;
-                aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
+                g_TeamManagement.challengeCheckStarsMenuLoadingInd = FALSE;
+                g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber = CHECK_STARS_SCENE_NONE;
             }
         }
         break;
@@ -133,8 +133,8 @@ void challengeCheckStarsMenuLoading(void) {
         break;
     }
 
-    if (aiPosSwapInputs.unkCF94 != 0) {
-        aiPosSwapInputs.unkCF94 = FALSE;
+    if (g_TeamManagement.unkCF94 != 0) {
+        g_TeamManagement.unkCF94 = FALSE;
         removeGraphicsElementFromScene((DrawingSceneStruct *)scene);
         removeCurrentDrawingItem();
     }

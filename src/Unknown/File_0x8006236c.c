@@ -64,16 +64,16 @@ void SetMenuNumber(void) {
         SET_MENU(menu);
     }
 
-    code = aiPosSwapInputs._CFA2[aiPosSwapInputs.playerWhoPaused];
-    if (code != 2 && code != 3) {
+    code = g_TeamManagement.teamMenuType[g_TeamManagement.playerWhoPaused];
+    if (code != TEAM_MENU_TYPE_SCOUT_FLAGS && code != TEAM_MENU_TYPE_STAR_MISSIONS) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE &&
-            aiPosSwapInputs._CF5F[0xCF70 - 0xCF5F] != 0 &&
+            g_TeamManagement.unkCF70 != 0 &&
             superstarUnlocked[0xE4] == 0) {
             insertGraphicDrawingFunction(fn_8006CF6C, 0x3000);
         }
         insertGraphicDrawingFunction(teamManagementGraphics_initialLoad, 0x3000);
     } else {
-        if (code == 2) {
+        if (code == TEAM_MENU_TYPE_SCOUT_FLAGS) {
             insertGraphicDrawingFunction(scoutFlagMenu, 0x3000);
         } else {
             insertGraphicDrawingFunction(starMenu, 0x3000);

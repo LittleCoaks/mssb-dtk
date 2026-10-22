@@ -262,7 +262,7 @@ void captainSelect_handleInputs(int port) {
 
     if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1A] != 0 ||
         gameSetUpStep.unk55[p] != 0 ||
-        aiPosSwapInputs.unkCF5D[slot] != 0) {
+        g_TeamManagement.capSS_isRandomizingCursor[slot] != 0) {
         input.processedInput = 0;
         input.newInput = 0;
         input.currentHeldInput = 0;
@@ -416,7 +416,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
         return;
     }
 
-    if (aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] != 0) {
+    if (g_TeamManagement.capSS_isRandomizingCursor[gameSetUpStep.portCaptainSlot[port]] != 0) {
         s8 capIdx;
         int charID;
         int val;
@@ -458,12 +458,12 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
                 challengeCaptainRelated();
                 lbl_803CBBC4[0] = 3;
             }
-            aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] = FALSE;
+            g_TeamManagement.capSS_isRandomizingCursor[gameSetUpStep.portCaptainSlot[port]] = FALSE;
         }
         return;
     }
 
-    if (aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] != 0) {
+    if (g_TeamManagement.capSS_isRandomizingCursor[gameSetUpStep.portCaptainSlot[port]] != 0) {
         return;
     }
 
@@ -482,7 +482,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
     if (newInput & INPUT_TRIGGER_R) {
         if (!stopShowingCaptainProfile(gameSetUpStep.portCaptainSlot[port])) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-                aiPosSwapInputs.unkCF5D[gameSetUpStep.portCaptainSlot[port]] = TRUE;
+                g_TeamManagement.capSS_isRandomizingCursor[gameSetUpStep.portCaptainSlot[port]] = TRUE;
             }
         }
         return;
@@ -649,8 +649,8 @@ void captainSelect_BPress(int idx) {
     }
 
     if ((u8)idx != 0) {
-        if (aiPosSwapInputs.unkCF5D[c] != 0) {
-            aiPosSwapInputs.unkCF5D[c] = 0;
+        if (g_TeamManagement.capSS_isRandomizingCursor[c] != 0) {
+            g_TeamManagement.capSS_isRandomizingCursor[c] = 0;
         }
 
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
@@ -710,8 +710,8 @@ void captainSelect_BPress(int idx) {
         charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[1]] = -1;
     }
 
-    aiPosSwapInputs.unkCF5D[1] = 0;
-    aiPosSwapInputs.unkCF5D[0] = 0;
+    g_TeamManagement.capSS_isRandomizingCursor[1] = 0;
+    g_TeamManagement.capSS_isRandomizingCursor[0] = 0;
     lbl_2_bss_100B4 = 1;
 
     {
@@ -927,7 +927,7 @@ void checkForNewPlayer(void) {
     updateCharacterSelectProcessCode(1, 1);
 
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
-    aiPosSwapInputs.unkCF5D[1] = 0;
+    g_TeamManagement.capSS_isRandomizingCursor[1] = 0;
     charSelectStruct[0x80] = -1;
     if (menuCursors[4] == 0) {
         menuCursors[5] = 1;

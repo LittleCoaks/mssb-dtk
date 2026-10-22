@@ -2426,11 +2426,11 @@ but left `NonMatching` (DOGet, LITAlloc, AnimateActorBones; see their checkpoint
 
 - **MWCC 2.6 schedules loads of one global past stores into another only when the stored-to
   object's DECLARED size is >= 0xFFFF bytes.** In `createTeamManagementScreen_inGame` the target
-  keeps `lbz g_d_GameSettings._06` after three stores into `aiPosSwapInputs` (dtk size 0x24C98).
+  keeps `lbz g_d_GameSettings._06` after three stores into `g_TeamManagement` (dtk size 0x24C98).
   With the full-size struct every source shape (pointer locals, inline helper, switch, ternary,
   volatile load, unsized array, `-proc`, `mw_version` sweep) hoisted the load (68%); a struct of
   any size up to 0xFFFE gave 100%, 0xFFFF and up did not. `UnknownHomes_Static.h` now lets a unit
-  `#define AIPOSSWAPINPUTS_LOCAL_VIEW` and declare a smaller file-local view. Suspect this whenever
+  `#define TEAM_MANAGEMENT_LOCAL_VIEW` and declare a smaller file-local view. Suspect this whenever
   stores to a huge `.bss` object and a load from another global come out in the wrong order.
 - **A flag written by an async callback is `volatile`.** `handleDVDCancelAndARQRemoval` keeps
   `lbz 0x715` after `stb 0x714`; only a `volatile` view of the cancel bytes (set by the DVD cancel
@@ -3009,7 +3009,7 @@ one object. All 11 functions reached 100% and the unit links as `Matching` (`4 f
 - **Jump-table entries give the source order of the cases.** Case bodies are emitted in source order,
   so sort the table's targets by address and write the `case` labels in that order (left/right: 98.59 ->
   98.68; up/down needed it too).
-- **`AIPOSSWAPINPUTS_LOCAL_VIEW` also governs reloads within the same object.** With the 0x24C98-byte
+- **`TEAM_MANAGEMENT_LOCAL_VIEW` also governs reloads within the same object.** With the 0x24C98-byte
   type MWCC forwarded `prev = cur; cur -= n;` from registers; the target re-reads `cur` after storing
   `prev`. A file-local view under 0xFFFF bytes reproduced the reloads (starMenuCursor 87.1 -> 99.95).
 - **`f = f - n` and `f -= n` on an `s8` field differ**: the long form subtracts from the sign-extended

@@ -21,23 +21,21 @@ void scoutFlagMenu(void) {
     s32 i;
     s32 j;
     s32 opponentCharID;
-    u8* flags;
     ScoutFlagTable* table;
 
     addGraphicsElementToScene(currentDrawingItem, lbl_80107688);
     scene = (MenuScene*)currentDrawingItem;
-    flags = (u8*)&aiPosSwapInputs;
 
     for (i = 0; i < 9; i++) {
         charID = inMemRoster[1][i].stats.CharID;
 
         table = g_Challenge.characters[charID].scoutFlagPointer;
-        flags[0xCF80 + i] = table->flagsRequired[g_Challenge.difficulty][g_Challenge.captain];
-        flags[0xCF89 + i] = g_Challenge.characters[charID].scoutFlagsAchieved;
+        g_TeamManagement.scoutFlagsRequired[i] = table->flagsRequired[g_Challenge.difficulty][g_Challenge.captain];
+        g_TeamManagement.scoutFlagsAchieved[i] = g_Challenge.characters[charID].scoutFlagsAchieved;
 
         for (j = 0; j < 5; j++) {
-            if (j < (s8)flags[0xCF80 + i]) {
-                if ((s8)flags[0xCF80 + i] - (s8)flags[0xCF89 + i] > j) {
+            if (j < g_TeamManagement.scoutFlagsRequired[i]) {
+                if (g_TeamManagement.scoutFlagsRequired[i] - g_TeamManagement.scoutFlagsAchieved[i] > j) {
                     MENU_RECORD(scene, 32 + 5 * i + j)->frame = 0;
                 }
             } else {

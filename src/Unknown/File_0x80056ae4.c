@@ -24,30 +24,30 @@ void drawStarProgressionMenu(MenuScene* scene) {
     s32 rank;
     s32 i;
 
-    rosterRow = &((CharacterStats*)inMemRoster)[aiPosSwapInputs.checkStarsMenuCharIndex];
+    rosterRow = &((CharacterStats*)inMemRoster)[g_TeamManagement.checkStarsMenuCharIndex];
     charID = *(s16*)((u8*)rosterRow + 0x24);
     staticIdx = &characterStaticIndexes[charID];
-    aiPosSwapInputs.playerIndexNoVariants = staticIdx->trackerIdx;
+    g_TeamManagement.playerIndexNoVariants = staticIdx->trackerIdx;
 
-    variantClass = g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].variantClassification;
+    variantClass = g_Challenge.characters[g_TeamManagement.playerIndexNoVariants].variantClassification;
     fieldValue = ((u8*)&Static_Stats_Tables.characterStats[charID / 9][charID % 9])[0x31];
 
     starClass = variantClass;
     switch (variantClass) {
     case CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_CAPTAIN:
-        aiPosSwapInputs.numberOfChallengeStarsForPlayer = 10;
+        g_TeamManagement.numberOfChallengeStarsForPlayer = 10;
         starClass = 3;
         break;
     case CHARACTER_VARIANT_CLASSIFICATION_SECONDARY_CAPTAIN:
-        aiPosSwapInputs.numberOfChallengeStarsForPlayer = 8;
+        g_TeamManagement.numberOfChallengeStarsForPlayer = 8;
         starClass = 2;
         break;
     case CHARACTER_VARIANT_CLASSIFICATION_UNIQUE_NON_CAPTAIN:
-        aiPosSwapInputs.numberOfChallengeStarsForPlayer = 6;
+        g_TeamManagement.numberOfChallengeStarsForPlayer = 6;
         starClass = 1;
         break;
     case CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT:
-        aiPosSwapInputs.numberOfChallengeStarsForPlayer = 4;
+        g_TeamManagement.numberOfChallengeStarsForPlayer = 4;
         starClass = 0;
         break;
     }
@@ -58,7 +58,7 @@ void drawStarProgressionMenu(MenuScene* scene) {
     REC(scene, 37)->frame = charID << 16;
     REC(scene, 38)->frame = (4 - determineIfMissionDescriptionIsShown(charID)) << 16;
 
-    if ((s8)g_Challenge.characters[aiPosSwapInputs.playerIndexNoVariants].inGameMissionTracker[0].shownOnPauseMenu != 0) {
+    if ((s8)g_Challenge.characters[g_TeamManagement.playerIndexNoVariants].inGameMissionTracker[0].shownOnPauseMenu != 0) {
         descTextID = starMissionDisplayRules[staticIdx->requirementRow][0].textID;
     } else {
         if (starMissionDisplayRules[staticIdx->requirementRow][0].minScoutRow > g_Challenge.difficulty) {
@@ -68,22 +68,22 @@ void drawStarProgressionMenu(MenuScene* scene) {
         }
     }
 
-    if (aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber == CHECK_STARS_SCENE_LOAD) {
-        aiPosSwapInputs._CF77[3] = text_initializeNewChannel((UnkText988Arg*)scene, 0x4F, 0, 0, charID + 8, 0);
-        rank = challenge_getStarRank(aiPosSwapInputs.playerIndexNoVariants);
-        aiPosSwapInputs._CF77[4] = text_initializeNewChannel(
+    if (g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber == CHECK_STARS_SCENE_LOAD) {
+        g_TeamManagement.textBlocks[0] = text_initializeNewChannel((UnkText988Arg*)scene, 0x4F, 0, 0, charID + 8, 0);
+        rank = challenge_getStarRank(g_TeamManagement.playerIndexNoVariants);
+        g_TeamManagement.textBlocks[1] = text_initializeNewChannel(
             (UnkText988Arg*)scene, 0x50, 1, 0, (s16)starRankTextIDs[staticIdx->requirementRow] + rank, 0);
-        aiPosSwapInputs._CF77[5] = text_initializeNewChannel((UnkText988Arg*)scene, 0x51, 0, 0, descTextID, 0);
-        screenTextArray.blocks[aiPosSwapInputs._CF77[5]].justify = 1;
+        g_TeamManagement.textBlocks[2] = text_initializeNewChannel((UnkText988Arg*)scene, 0x51, 0, 0, descTextID, 0);
+        screenTextArray.blocks[g_TeamManagement.textBlocks[2]].justify = 1;
     } else {
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs._CF77[3], 0, charID + 8);
-        rank = challenge_getStarRank(aiPosSwapInputs.playerIndexNoVariants);
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs._CF77[4], 0, (s16)starRankTextIDs[staticIdx->requirementRow] + rank);
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs._CF77[5], 0, descTextID);
+        text_setPtrToWhereCharsAreStored(g_TeamManagement.textBlocks[0], 0, charID + 8);
+        rank = challenge_getStarRank(g_TeamManagement.playerIndexNoVariants);
+        text_setPtrToWhereCharsAreStored(g_TeamManagement.textBlocks[1], 0, (s16)starRankTextIDs[staticIdx->requirementRow] + rank);
+        text_setPtrToWhereCharsAreStored(g_TeamManagement.textBlocks[2], 0, descTextID);
     }
 
-    for (i = 0; i < aiPosSwapInputs.numberOfChallengeStarsForPlayer; i++) {
-        if (challengeStarRelatedInd(aiPosSwapInputs.playerIndexNoVariants, i)) {
+    for (i = 0; i < g_TeamManagement.numberOfChallengeStarsForPlayer; i++) {
+        if (challengeStarRelatedInd(g_TeamManagement.playerIndexNoVariants, i)) {
             REC(scene, 0x3B + i)->flags |= UI_FLAG_VISIBLE;
             REC(scene, 0x3B + i)->playMode = 1;
         } else {
