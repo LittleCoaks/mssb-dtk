@@ -4378,7 +4378,7 @@ near matches. Combined with recovered formatter work, rep_08E8 reaches72.140114%
 .text (19/45 exact), compared with50.361355% before this checkpoint. Its .rodata
 remains79.069770%. text_4D960 retains94.542360% and21/22 exact.
 
-All87 baseline function scores across these three units are preserved. Full
+All79 baseline function scores across these three units are preserved. Full
 build, all four output hashes, and whitespace checks pass. Project build report:
 4191/6479 matching functions,41.75% code. Evidence: build/_postmerge_wave2_* and
 build/_postmerge_wave3_*; detailed private trials and readability snapshots are
@@ -4406,3 +4406,18 @@ All57 function baselines in the edited units and22 dependent function baselines
 are preserved. Full build, four output hashes and whitespace checks pass;
 project report4192/6479 matching functions,41.78% code. Detailed evidence is in
 build/_postmerge_wave4_* and per-unit checkpoints. No emulator test was performed.
+
+### Allocation traversal checkpoint (2026-10-21)
+
+Corrected fn_2_477C0 and fn_2_478F4 to scan all54 allocation descriptors; both
+drafts had scanned45. Independent target and compiled-source audits confirm six
+masked size loads and six0x130-byte steps per trip, over nine trips. Staging the
+size reader and allocation cursor also improves the existing fn_2_481F4 scan.
+rep_08E8 .text81.563160% ->83.559100%; .rodata79.069770%, all45 function floors
+and all20 exact functions are preserved. Existing OSRoundUp32B replaces raw
+alignment expressions, with canonical include-path capitalization checked.
+
+Full build, all four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave5_rep_08E8_{baseline,final}.json and the private wave5
+semantic_audit.json. No emulator test was performed. The next isolated Sol pass
+is drafting the missing challenge dispatcher in text_4B1AC.

@@ -2,6 +2,7 @@
 #include "menus/rep_08E8.h"
 #include "text/text.h"
 #include "Dolphin/pad.h"
+#include "Dolphin/OS/OSUtil.h"
 #include "game/math/game_math.h"
 #include "header_rep_data.h"
 #include "Dolphin/mtx.h"
@@ -99,6 +100,12 @@ void fn_800BDA24(void *obj);
 void *returnFloatFromModeIndex(s32 mode);
 s32 returnScissorMode(void);
 s32 fn_800B3C04(s32 arg, void *root, Mtx m);
+
+static inline u32 allocationEntrySize(s32 offset) {
+    u8 *entry = lbl_2_data_12EC0;
+    entry += offset;
+    return *(u32 *)(entry + 4) & 0x0FFFFFFF;
+}
 
 static inline void addStatCounter(s32 delta) {
     *(s16 *)(lbl_2_bss_1A8248 + 0x43BE) = *(s16 *)(lbl_2_bss_1A8248 + 0x43BC);
@@ -999,6 +1006,7 @@ void fn_2_481F4(void) {
     u32 maxSize = 0;
     u32 aligned;
     u8 *pool;
+    u8 *next;
     s32 off = 0;
     s32 i;
     s32 j;
@@ -1049,20 +1057,23 @@ void fn_2_481F4(void) {
         fn_2_93C64();
         for (i = 0; i < 9; i++) {
             for (j = 0; j < 6; j++) {
-                u32 size = *(u32 *)(lbl_2_data_12EC0 + off + 4) & 0x0FFFFFFF;
+                u32 size = allocationEntrySize(off);
                 if (maxSize < size) {
                     maxSize = size;
                 }
                 off += 0x130;
             }
         }
-        aligned = (maxSize + 0x1F) & ~0x1F;
+        aligned = OSRoundUp32B(maxSize);
         pool = _OSAllocFromHeap(0x20, aligned * 4);
-        *(u8 **)(hugeAnimStruct + 0xE88) = pool + aligned;
-        *(u8 **)(hugeAnimStruct + 0x1104) = pool + aligned * 2;
+        next = pool + aligned;
+        *(u8 **)(hugeAnimStruct + 0xE88) = next;
+        next += aligned;
+        *(u8 **)(hugeAnimStruct + 0x1104) = next;
+        next += aligned;
         *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
         *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-        *(u8 **)(hugeAnimStruct + 0x1380) = pool + aligned * 3;
+        *(u8 **)(hugeAnimStruct + 0x1380) = next;
 
         fn_2_47540();
         initActorArray(0xD);
@@ -1277,25 +1288,24 @@ void fn_2_478F4(void) {
     u32 maxSize = 0;
     u32 aligned;
     u8 *pool;
-    s32 off = 0;
+    u8 *next;
     s32 i;
-    s32 j;
-    for (i = 0; i < 9; i++) {
-        for (j = 0; j < 5; j++) {
-            u32 size = *(u32 *)(lbl_2_data_12EC0 + off + 4) & 0x0FFFFFFF;
-            if (maxSize < size) {
-                maxSize = size;
-            }
-            off += 0x130;
+    for (i = 0; i < 54; i++) {
+        u32 size = allocationEntrySize(i * 0x130);
+        if (maxSize < size) {
+            maxSize = size;
         }
     }
-    aligned = (maxSize + 0x1F) & ~0x1F;
+    aligned = OSRoundUp32B(maxSize);
     pool = _OSAllocFromHeap(0x20, aligned * 4);
-    *(u8 **)(hugeAnimStruct + 0xE88) = pool + aligned;
-    *(u8 **)(hugeAnimStruct + 0x1104) = pool + aligned * 2;
+    next = pool + aligned;
+    *(u8 **)(hugeAnimStruct + 0xE88) = next;
+    next += aligned;
+    *(u8 **)(hugeAnimStruct + 0x1104) = next;
+    next += aligned;
     *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
     *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-    *(u8 **)(hugeAnimStruct + 0x1380) = pool + aligned * 3;
+    *(u8 **)(hugeAnimStruct + 0x1380) = next;
 
     fn_2_47540();
     initActorArray(0xD);
@@ -1341,25 +1351,24 @@ void fn_2_477C0(void) {
     u32 maxSize = 0;
     u32 aligned;
     u8 *pool;
-    s32 off = 0;
+    u8 *next;
     s32 i;
-    s32 j;
-    for (i = 0; i < 9; i++) {
-        for (j = 0; j < 5; j++) {
-            u32 size = *(u32 *)(lbl_2_data_12EC0 + off + 4) & 0x0FFFFFFF;
-            if (maxSize < size) {
-                maxSize = size;
-            }
-            off += 0x130;
+    for (i = 0; i < 54; i++) {
+        u32 size = allocationEntrySize(i * 0x130);
+        if (maxSize < size) {
+            maxSize = size;
         }
     }
-    aligned = (maxSize + 0x1F) & ~0x1F;
+    aligned = OSRoundUp32B(maxSize);
     pool = _OSAllocFromHeap(0x20, aligned * 4);
-    *(u8 **)(hugeAnimStruct + 0xE88) = pool + aligned;
-    *(u8 **)(hugeAnimStruct + 0x1104) = pool + aligned * 2;
+    next = pool + aligned;
+    *(u8 **)(hugeAnimStruct + 0xE88) = next;
+    next += aligned;
+    *(u8 **)(hugeAnimStruct + 0x1104) = next;
+    next += aligned;
     *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
     *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-    *(u8 **)(hugeAnimStruct + 0x1380) = pool + aligned * 3;
+    *(u8 **)(hugeAnimStruct + 0x1380) = next;
 }
 
 // .text:0x0004777C size:0x44 mapped:0x80686810
