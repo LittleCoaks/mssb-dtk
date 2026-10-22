@@ -390,7 +390,7 @@ void selectStadiumScreen(void) {
             break;
 
         case 4:
-            ((u8 *)&aiPosSwapInputs)[0xCF5F] = 0;
+            aiPosSwapInputs.unkCF5F = 0;
             *(u16*)(menuControlVariables + 4) = 2;
             break;
         }

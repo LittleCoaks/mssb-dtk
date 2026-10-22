@@ -64,10 +64,10 @@ void SetMenuNumber(void) {
         SET_MENU(menu);
     }
 
-    code = aiPosSwapInputs._CFA2[aiPosSwapInputs.playerWhoPaused];
+    code = aiPosSwapInputs.teamMenuType[aiPosSwapInputs.playerWhoPaused];
     if (code != 2 && code != 3) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE &&
-            aiPosSwapInputs._CF5F[0xCF70 - 0xCF5F] != 0 &&
+            aiPosSwapInputs.unkCF70 != 0 &&
             superstarUnlocked[0xE4] == 0) {
             insertGraphicDrawingFunction(fn_8006CF6C, 0x3000);
         }

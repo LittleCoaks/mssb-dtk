@@ -388,22 +388,48 @@ typedef struct {
     /* 0xCF3B */ u8 playerWhoPaused;
     /* 0xCF3C */ u8 charSelectedToBeSwapped[2];
     /* 0xCF3E */ u8 charSelectedToBeSwappedCharID[2];
-    /* 0xCF40 */ u8 _CF40[0xCF42 - 0xCF40];
+    /* 0xCF40 */ u8 unkCF40;                        // 1P game: set with onePlayerEditingTeam when P1 moves on to the CPU team
+    /* 0xCF41 */ u8 unkCF41;                        // only ever cleared (initTeamManagementScreen)
     /* 0xCF42 */ u8 onMainPauseMenu;
-    /* 0xCF43 */ u8 _CF43[0xCF46 - 0xCF43];
+    /* 0xCF43 */ u8 onePlayerEditingTeam;           // 1P game: team index player 1 is editing (0 = own, 1 = CPU)
+    /* 0xCF44 */ u8 _CF44;
+    /* 0xCF45 */ E(u8, BOOL) removeSceneRequested;  // set on exit; teamManagementGraphics_steadyState removes the scene
     /* 0xCF46 */ s8 teamManagement_cursorPos[2];
     /* 0xCF48 */ s8 teamManagement_prevCursorPos[2];
     /* 0xCF4A */ u8 onFieldingAlignmentScreen2[2];
     /* 0xCF4C */ u8 unkCF4C[2];                     // copy of onFieldingAlignmentScreen2 before a left/right press
-    /* 0xCF4E */ u8 _CF4E[0xCF52 - 0xCF4E];
+    /* 0xCF4E */ E(u8, BOOL) teamConfirmed[2];      // A on "done"; input is then masked to B only
+    /* 0xCF50 */ E(u8, BOOL) waitingForOtherTeam[2]; // 2P game: confirmed while the other team was not
     /* 0xCF52 */ E(u8, ROSTER_VIEW) rosterView[2];
-    /* 0xCF54 */ u8 _CF54[0xCF5D - 0xCF54];
-    /* 0xCF5D */ u8 unkCF5D[2];
-    /* 0xCF5F */ u8 _CF5F[0xCF74 - 0xCF5F];
-    /* 0xCF74 */ u8 unkCF74;                        // starMenuCursor: 2 after a cursor move, 3 on A/B
+    /* 0xCF54 */ E(u8, ROSTER_VIEW) prevRosterView[2]; // rosterView before an L/R press
+    /* 0xCF56 */ E(u8, BOOL) swapCompleted[2];      // set when the second A completes a swap
+    /* 0xCF58 */ E(u8, BOOL) stanceChangeRequested[2]; // X: battingOrderProcessInputs cycles the stance
+    /* 0xCF5A */ u8 _CF5A;
+    /* 0xCF5B */ E(u8, BOOL) entryAnimDone[2];      // 1P game: both must finish before the cursors unlock
+    /* 0xCF5D */ u8 unkCF5D[2];                     // per captain slot (captain_select)
+    /* 0xCF5F */ u8 unkCF5F;                        // non-zero: leaving returns to screen 4; main_menu passes it to loadDemoMatch
+    /* 0xCF60 */ u8 _CF60;
+    /* 0xCF61 */ E(u8, BOOL) zMenuOpen[2];          // Z toggles the per-character info window
+    /* 0xCF63 */ E(u8, BOOL) zMenuPageLoaded[2];
+    /* 0xCF65 */ E(u8, BOOL) zMenuActive[2];        // window open or still animating closed
+    /* 0xCF67 */ u8 zMenuPage[2];                   // 0/1, changed with left/right
+    /* 0xCF69 */ u8 _CF69[0xCF6B - 0xCF69];
+    /* 0xCF6B */ u8 unkCF6B;                        // set when unkCF70 is dismissed with A/B
+    /* 0xCF6C */ u8 _CF6C[0xCF70 - 0xCF6C];
+    /* 0xCF70 */ u8 unkCF70;                        // challenge: set on resuming saved teams; blocks input until A/B
+    /* 0xCF71 */ E(u8, BOOL) starMenuOpen;          // Y in challenge mode
+    /* 0xCF72 */ E(u8, BOOL) starMenuActive;        // cleared once the close step finishes
+    /* 0xCF73 */ E(u8, BOOL) starMenuStepStarted;   // the current starMenuDrawStep has done its setup
+    /* 0xCF74 */ u8 starMenuDrawStep;               // 1 open, 2 cursor moved, 3 close (A/B)
     /* 0xCF75 */ s8 starMenuCursorPos;
     /* 0xCF76 */ s8 starMenuPrevCursorPos;
-    /* 0xCF77 */ u8 _CF77[0xCF92 - 0xCF77];
+    /* 0xCF77 */ u8 _CF77;
+    /* 0xCF78 */ E(s16, CHAR_ID) starMenuCharID;
+    /* 0xCF7A */ u8 textBlocks[3];                  // text_initializeNewChannel handles, freed with text_freeBlock
+    /* 0xCF7D */ u8 scoutFlagMenuState;             // 1 on entering the scout flag menu, 3 on leaving it
+    /* 0xCF7E */ u8 _CF7E[0xCF80 - 0xCF7E];
+    /* 0xCF80 */ s8 scoutFlagsRequired[9];          // per inMemRoster[1] player
+    /* 0xCF89 */ s8 scoutFlagsAchieved[9];
     /* 0xCF92 */ E(u8, CHECK_STARS_SCENE) challengeCheckStarsMenuSceneLoadingNumber;
     /* 0xCF93 */ u8 challengeCheckStarsMenuLoadingInd;
     /* 0xCF94 */ u8 _CF94;
@@ -415,9 +441,10 @@ typedef struct {
     /* 0xCF9A */ u8 numberOfChallengeStarsForPlayer;
     /* 0xCF9B */ u8 _CF9B;
     /* 0xCF9C */ s16 playerIndexNoVariants;         // index into g_Challenge
-    /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
-    /* 0xCF9F */ u8 _CF9F[0xCFA2 - 0xCF9F];
-    /* 0xCFA2 */ u8 _CFA2[4];                      // per controller port; selects the team-management menu
+    /* 0xCF9E */ E(u8, BOOL) inProgress_superStarAPlayer[2]; // 0x8033677E; Y on an unlocked superstar
+    /* 0xCFA0 */ u8 _CFA0;
+    /* 0xCFA1 */ u8 unkCFA1;                        // challenge: set on resuming saved teams, cleared once copied back
+    /* 0xCFA2 */ u8 teamMenuType[4];                // per port: 0 full, 1 restricted (no L/R/X), 2 scout flags, 3 star menu
     /* 0xCFA6 */ u8 _CFA6[0x24C98 - 0xCFA6];
 } AiPosSwapInputs_s; // size: 0x24C98
 

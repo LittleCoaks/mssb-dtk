@@ -1027,12 +1027,12 @@ void positionSwap(void) {
     switch (pauseControl.state) {
     case 0:
         port = pauseControl.port;
-        aiPosSwapInputs._CFA2[port] = (pauseControl._1D1 != 4);
+        aiPosSwapInputs.teamMenuType[port] = (pauseControl._1D1 != 4);
         pauseControl._12 = 0;
         if (pauseControl._1D1 == 0xE || pauseControl._1D1 == 7) {
-            aiPosSwapInputs._CFA2[port] = 2;
+            aiPosSwapInputs.teamMenuType[port] = 2;
         } else if (pauseControl._1D1 == 0xF || pauseControl._1D1 == 8) {
-            aiPosSwapInputs._CFA2[port] = 3;
+            aiPosSwapInputs.teamMenuType[port] = 3;
         }
         pauseControl.state = 2;
         break;

@@ -69,17 +69,17 @@ void drawStarProgressionMenu(MenuScene* scene) {
     }
 
     if (aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber == CHECK_STARS_SCENE_LOAD) {
-        aiPosSwapInputs._CF77[3] = text_initializeNewChannel((UnkText988Arg*)scene, 0x4F, 0, 0, charID + 8, 0);
+        aiPosSwapInputs.textBlocks[0] = text_initializeNewChannel((UnkText988Arg*)scene, 0x4F, 0, 0, charID + 8, 0);
         rank = challenge_getStarRank(aiPosSwapInputs.playerIndexNoVariants);
-        aiPosSwapInputs._CF77[4] = text_initializeNewChannel(
+        aiPosSwapInputs.textBlocks[1] = text_initializeNewChannel(
             (UnkText988Arg*)scene, 0x50, 1, 0, (s16)starRankTextIDs[staticIdx->requirementRow] + rank, 0);
-        aiPosSwapInputs._CF77[5] = text_initializeNewChannel((UnkText988Arg*)scene, 0x51, 0, 0, descTextID, 0);
-        screenTextArray.blocks[aiPosSwapInputs._CF77[5]].justify = 1;
+        aiPosSwapInputs.textBlocks[2] = text_initializeNewChannel((UnkText988Arg*)scene, 0x51, 0, 0, descTextID, 0);
+        screenTextArray.blocks[aiPosSwapInputs.textBlocks[2]].justify = 1;
     } else {
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs._CF77[3], 0, charID + 8);
+        text_setPtrToWhereCharsAreStored(aiPosSwapInputs.textBlocks[0], 0, charID + 8);
         rank = challenge_getStarRank(aiPosSwapInputs.playerIndexNoVariants);
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs._CF77[4], 0, (s16)starRankTextIDs[staticIdx->requirementRow] + rank);
-        text_setPtrToWhereCharsAreStored(aiPosSwapInputs._CF77[5], 0, descTextID);
+        text_setPtrToWhereCharsAreStored(aiPosSwapInputs.textBlocks[1], 0, (s16)starRankTextIDs[staticIdx->requirementRow] + rank);
+        text_setPtrToWhereCharsAreStored(aiPosSwapInputs.textBlocks[2], 0, descTextID);
     }
 
     for (i = 0; i < aiPosSwapInputs.numberOfChallengeStarsForPlayer; i++) {

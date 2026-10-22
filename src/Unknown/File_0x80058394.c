@@ -22,7 +22,7 @@ void zMenuLoadGraphics(MenuScene* scene) {
     CharacterStats* row;
     UIRecord* rec;
 
-    loadedFlags = (u8*)&aiPosSwapInputs + 0xCF63;
+    loadedFlags = aiPosSwapInputs.zMenuPageLoaded;
     if (loadedFlags[aiPosSwapInputs.playerWhoPaused] != 0) {
         return;
     }

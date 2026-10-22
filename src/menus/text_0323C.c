@@ -116,7 +116,7 @@ void cssTransitionToNewScreen_maybe(void) {
         case 4:
             lbl_2_bss_3A0[0] = 0;
             lbl_803CBD24[4] = 0;
-            aiPosSwapInputs._CF5F[0] = 0;
+            aiPosSwapInputs.unkCF5F = 0;
             menuControlVariables->currentState = 2;
             break;
         }
@@ -1305,7 +1305,7 @@ void cssChangeScreens(void) {
         gameSetUpStep[0x55] = 0;
         if (flag != 0) goto screen_reset;
 
-        if (((u8 *)&aiPosSwapInputs)[0xCF5F] != 0) {
+        if (aiPosSwapInputs.unkCF5F != 0) {
             settingValuesTo0();
             ((u8 *)&Static_Stats_Tables)[0x48AD] = 1;
             gameSetUpStep[0] = 0;
@@ -1320,7 +1320,7 @@ void cssChangeScreens(void) {
             ((u8 *)&Static_Stats_Tables)[0x48AF] = 1;
             ((u8 *)&Static_Stats_Tables)[0x48B1] = 1;
             menuNumber[0x26] = 1;
-            ((u8 *)&aiPosSwapInputs)[0xCF5F] = 0;
+            aiPosSwapInputs.unkCF5F = 0;
             changeScreenVariables(4);
             goto join;
         } else {
@@ -1627,11 +1627,11 @@ void cssUnloadScreen(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (g_Challenge.resumeSavedTeams != 0) {
             g_Challenge.resumeSavedTeams = 0;
-            ((u8 *)&aiPosSwapInputs)[0xCFA1] = 1;
+            aiPosSwapInputs.unkCFA1 = 1;
             if (((u8 *)&superstarUnlocked)[0xE4] != 0) {
-                ((u8 *)&aiPosSwapInputs)[0xCF70] = 0;
+                aiPosSwapInputs.unkCF70 = 0;
             } else {
-                ((u8 *)&aiPosSwapInputs)[0xCF70] = 1;
+                aiPosSwapInputs.unkCF70 = 1;
             }
             challengeSetRoster();
             unsure_FillRosterPositions(1);
@@ -1763,7 +1763,7 @@ void cssUnloadScreen(void) {
                 }
             }
 
-            ((u8 *)&aiPosSwapInputs)[0xCFA1] = 0;
+            aiPosSwapInputs.unkCFA1 = 0;
         }
     }
 
@@ -1823,7 +1823,7 @@ void cssResetRosterStruct(void) {
                     discriminator = (s8)g_Challenge.opponentCaptainCharID;
                 }
 
-                flagCF = ((u8 *)&aiPosSwapInputs)[0xCFA1];
+                flagCF = aiPosSwapInputs.unkCFA1;
                 trkP = (u8 *)&g_Challenge;
 
                 for (i = 0, j = 0; i < 9; i++, j++) {
@@ -1851,7 +1851,7 @@ void cssResetRosterStruct(void) {
         if (menuControlVariables->previousScreen == 11) {
             goto TAIL;
         }
-        if (((u8 *)&aiPosSwapInputs)[0xCFA1] != 0) {
+        if (aiPosSwapInputs.unkCFA1 != 0) {
             goto TAIL;
         }
         for (k = 0; k < 9; k++) {
@@ -5374,7 +5374,7 @@ void teamSelectScreenMain(void) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE || menuControlVariables->previousScreen != 9) {
             menuControlVariables->currentState = 5;
         } else {
-            ((u8 *)&aiPosSwapInputs)[0xCFA1] = 0;
+            aiPosSwapInputs.unkCFA1 = 0;
             menuControlVariables->currentState = 1;
         }
         break;
