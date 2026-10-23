@@ -3576,6 +3576,26 @@ functions. These lessons are not specific to one file:
   `initShortsHandleCompressedDiskReads` (`File_0x8001fc4c.c`). Porting its three static inlines (a pair
   swap; a for loop; a do-while with a separate index for the test and pointer for the body,
   `while (pairs[++i][0] != END)`) explained the "two induction variables".
+- **When a block's schedule ignores statement order, probe the other statements one at a time.**
+  `rep_0610` `fn_1_F37C` (stuck at 91.7 for several passes): 400 random orders of its pos/vel/acc
+  stores gave the identical post-call schedule, so the order came from the dependence graph. Deleting
+  or rewriting each other statement in a micro TU, one at a time, found the cause: a flag written as
+  `(BTN_REPEAT >> 12) & 1` instead of `(BTN_REPEAT & INPUT_BUTTON_START) != 0`. The `!= 0` form gives
+  exactly the target's order (-> 100).
+- **A byte-offset read of a global (`*((u8 *)&g + 0x70)`) may alias every store; a named member
+  (`g._70`) does not.** With the member, MWCC's alias analysis separates the loads from unrelated
+  stores, and the scheduler is free to order them as the target does. Adding named controller-4
+  stick fields to `lbl_803C77B8_s` took `rep_7730` `fn_1_21CE8` to 100 and `fn_1_21408` to 99.95, with
+  no change anywhere else in the project. The same switch through a parameter pointer (`item->_1c` vs
+  `*(f32 *)((u8 *)item + 0x1c)`) made no difference.
+- **Re-read an already-stored value, then search statement order again.** `ray[3].y = -ray[2].y;` and
+  `ray[2].z = nearZ - base[2].z;` (where `base[2].z` and `base[3].z` hold the same value) are nearly
+  score-neutral alone, but they free stores to move. From that form a dependency-checked order search
+  reached 100 for `rep_7730` `fn_1_23098` after its old plateau had held through 250+ iterations.
+- **When the target and ours have the same interference graph, score-only climbs get trapped on ties.**
+  Penalise the specific wrong registers in the search objective. That found a `rep_00B0` `fn_1_25BC`
+  form with a single wrong choice, which score-only climbs never reached. Address CSE temps such as the
+  `&__GDCurrentDL` loads take one register as a group, so one wrong neighbouring web can cost 100+ lines.
 - **Store through the global, not a local copy of it:** `currentDrawingItem->func = f;` instead of
   `s->func = f;` with `s == currentDrawingItem` fixed a register rotation across the whole block
   (`rep_0610` `fn_1_E098` case 10, 99.62 -> 99.94), the same family as switching on the global.

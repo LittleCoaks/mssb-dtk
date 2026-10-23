@@ -1641,35 +1641,35 @@ s32 fn_1_23098(Mtx44 proj, Mtx view, s32 cols, s32 rows, f32 nearZ, f32 farZ) {
     PSVECNormalize(&dir, &dir);
     d = -PSVECDotProduct(&dir, &origin);
 
+    base[0].y = 0.0f;
+    ray[0].x = 0.0f;
     halfW0 = 640.0f * nearZ / 1280.0f / 2.0f;
     halfH0 = 448.0f * nearZ / 1280.0f / 2.0f;
-    base[0].y = 0.0f;
-    ray[0].y = halfH0;
-    ray[0].x = 0.0f;
-    base[1].z = -farZ;
     nearZ = -nearZ;
-    ray[0].z = 0.0f;
-    base[1].y = 0.0f;
-    ray[1].x = 0.0f;
     base[0].x = halfW0;
-    base[0].z = nearZ;
-    base[3].z = base[1].z;
+    ray[0].z = 0.0f;
     halfW1 = 640.0f * farZ / 1280.0f / 2.0f;
-    halfH1 = 448.0f * farZ / 1280.0f / 2.0f;
-    ray[2].x = halfW0 - halfW1;
-    ray[1].y = halfH1;
-    base[2].z = -farZ;
-    ray[2].z = nearZ - base[3].z;
     base[1].x = halfW1;
-    ray[1].z = 0.0f;
+    base[1].y = 0.0f;
+    base[1].z = -farZ;
+    ray[0].y = halfH0;
+    base[0].z = nearZ;
+    ray[1].x = 0.0f;
+    base[2].x = halfW1;
+    halfH1 = 448.0f * farZ / 1280.0f / 2.0f;
+    base[2].z = -farZ;
+    ray[2].x = halfW0 - halfW1;
+    ray[2].z = nearZ - base[2].z;
+    ray[1].y = halfH1;
     base[3].x = halfW1;
     base[3].y = -halfH1;
-    base[2].x = halfW1;
     ray[2].y = halfH0 - halfH1;
+    ray[1].z = 0.0f;
+    base[2].y = halfH1;
+    base[3].z = base[1].z;
     ray[3].x = halfW0 - halfW1;
     ray[3].y = -ray[2].y;
     ray[3].z = nearZ - base[3].z;
-    base[2].y = halfH1;
 
     for (i = 0; i < 4; i++) {
         t[i] = PSVECDotProduct(&dir, &ray[i]);
@@ -2138,16 +2138,16 @@ void fn_1_21CE8(void) {
         s8 substickY;
         s8 stickY;
 
-        if (*((u8 *)&AtBat_ButtonInput1 + 0x75) >= 0x50) {
+        if (AtBat_ButtonInput1._75 >= 0x50) {
             windMul = 0.0001f * *(f32 *)((u8 *)item + 0x1c);
         } else {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
         chain = lbl_1_bss_6FE0;
-        stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
-        substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
-        stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        stickX = AtBat_ButtonInput1._70;
+        substickY = AtBat_ButtonInput1._73;
+        stickY = AtBat_ButtonInput1._71;
         chain[*((u8 *)item + 0x21) - 1].pos.x += (f32)stickX * windMul;
         chain[*((u8 *)item + 0x21) - 1].pos.y += (f32)substickY * windMul;
         chain[*((u8 *)item + 0x21) - 1].pos.z += (f32)stickY * windMul;
@@ -2158,9 +2158,9 @@ void fn_1_21CE8(void) {
         windVec[1] = 0.0f;
         windVec[2] = 0.0f;
     } else {
-        u8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
-        u8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
-        u8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        u8 stickX = AtBat_ButtonInput1._70;
+        u8 substickY = AtBat_ButtonInput1._73;
+        u8 stickY = AtBat_ButtonInput1._71;
         f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
 
         windVec[0] = windDrag * ((f32)(s8)stickX * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
@@ -2216,16 +2216,16 @@ void fn_1_21408(void) {
         s8 substickY;
         s8 stickY;
 
-        if (*((u8 *)&AtBat_ButtonInput1 + 0x75) >= 0x50) {
+        if (AtBat_ButtonInput1._75 >= 0x50) {
             windMul = 0.0001f * *(f32 *)((u8 *)item + 0x1c);
         } else {
             windMul = 0.00001f * *(f32 *)((u8 *)item + 0x1c);
         }
 
         chain = lbl_1_bss_6FE0;
-        stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
-        substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
-        stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        stickX = AtBat_ButtonInput1._70;
+        substickY = AtBat_ButtonInput1._73;
+        stickY = AtBat_ButtonInput1._71;
         chain[*((u8 *)item + 0x21) - 1].pos.x += (f32)stickX * windMul;
         chain[*((u8 *)item + 0x21) - 1].pos.y += (f32)substickY * windMul;
         chain[*((u8 *)item + 0x21) - 1].pos.z += (f32)stickY * windMul;
@@ -2236,9 +2236,9 @@ void fn_1_21408(void) {
         windVec[1] = 0.0f;
         windVec[2] = 0.0f;
     } else {
-        u8 stickX = *((u8 *)&AtBat_ButtonInput1 + 0x70);
-        u8 substickY = *((u8 *)&AtBat_ButtonInput1 + 0x73);
-        u8 stickY = *((u8 *)&AtBat_ButtonInput1 + 0x71);
+        u8 stickX = AtBat_ButtonInput1._70;
+        u8 substickY = AtBat_ButtonInput1._73;
+        u8 stickY = AtBat_ButtonInput1._71;
         f32 windDrag = *(f32 *)((u8 *)item + 0x1c);
 
         windVec[0] = windDrag * ((f32)(s8)stickX * lbl_1_bss_6FE0[*((u8 *)item + 0x21) - 1]._00);
