@@ -1,5 +1,6 @@
 #include "menus/text_33E70.h"
 #include "text/text.h"
+#include "Unknown/File_0x80034e20.h"
 
 s16 fn_2_53BC8(void *arg0);
 void load_Icon(void *scene, s32 handle, u32 part, u32 element, s32 frame);
@@ -31,32 +32,32 @@ static inline TextGraphicsObject *nodeOf(TextScene *scene, TextHandleRec *rec) {
     return graphicsRelatedArray[scene->firstHandle + rec->handle].object;
 }
 
-static inline void nodeSetFlag2(TextGraphicsObject *node) {
-    node->flags |= 2;
+static inline void nodeShow(TextGraphicsObject *node) {
+    node->flags |= UI_FLAG_VISIBLE;
 }
 
-static inline void nodeClearFlag2(TextGraphicsObject *node) {
-    node->flags &= ~2;
+static inline void nodeHide(TextGraphicsObject *node) {
+    node->flags &= ~UI_FLAG_VISIBLE;
 }
 
-static inline void nodeSetByte68(TextGraphicsObject *node, u8 value) {
-    *(u8 *)((u8 *)node + 0x68) = value;
+static inline void nodeSetPlayMode(TextGraphicsObject *node, u8 value) {
+    ((UIRecord *)node)->playMode = value;
 }
 
-static inline u32 nodeW5C(TextGraphicsObject *node) {
-    return *(u32 *)((u8 *)node + 0x5C);
+static inline u32 nodeFrame(TextGraphicsObject *node) {
+    return ((UIRecord *)node)->frame;
 }
 
-static inline void nodeSetW5C(TextGraphicsObject *node, u32 value) {
-    *(u32 *)((u8 *)node + 0x5C) = value;
+static inline void nodeSetFrame(TextGraphicsObject *node, u32 value) {
+    ((UIRecord *)node)->frame = value;
 }
 
-static inline u32 nodeW58(TextGraphicsObject *node) {
-    return *(u32 *)((u8 *)node + 0x58);
+static inline u32 nodeRGBA(TextGraphicsObject *node) {
+    return ((UIRecord *)node)->rgba;
 }
 
-static inline void nodeSetW58(TextGraphicsObject *node, u32 value) {
-    *(u32 *)((u8 *)node + 0x58) = value;
+static inline void nodeSetRGBA(TextGraphicsObject *node, u32 value) {
+    ((UIRecord *)node)->rgba = value;
 }
 
 static inline s16 recTimer(TextHandleRec *rec) {
@@ -68,7 +69,7 @@ static inline void recSetTimer(TextHandleRec *rec, s16 value) {
 }
 
 static inline void screenBlockSet2F(s32 blockIndex, u8 value) {
-    *(u8 *)((u8 *)&screenTextArray.blocks[blockIndex] + 0x2F) = value;
+    screenTextArray.blocks[blockIndex].justify = value;
 }
 
 
@@ -80,12 +81,12 @@ void fn_2_35DB4(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 0);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
         rec->state = 0x25;
         break;
     case 5:
@@ -97,60 +98,68 @@ void fn_2_35DB4(TextScene *scene, TextHandleRec *rec) {
 // .text:0x00035A14 size:0x3A0 mapped:0x80674AA8
 void fn_2_35A14(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
+    s32 selected;
     if (result != -1) {
         rec->state = result;
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
         load_Icon(scene, rec->handle, 1, 0xCF, rec->unk10);
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetW5C(nodeOf(scene, rec), 0);
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetFrame(nodeOf(scene, rec), 0);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 3;
         break;
     case 3:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 3) {
-            nodeSetW5C(nodeOf(scene, rec), 3 << 16);
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 3) {
+            nodeSetFrame(nodeOf(scene, rec), 3 << 16);
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 0x25;
         }
         break;
     case 0x25:
-        if (workS16(0x76D8) == rec->unkA) {
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 8) {
-                nodeSetW5C(nodeOf(scene, rec), 8 << 16);
-                nodeSetByte68(nodeOf(scene, rec), 0);
+        selected = workS16(0x76D8);
+        if (selected == rec->unkA) {
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 8) {
+                nodeSetFrame(nodeOf(scene, rec), 8 << 16);
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             } else {
-                nodeSetByte68(nodeOf(scene, rec), 1);
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
             }
-        } else if ((nodeW5C(nodeOf(scene, rec)) >> 16) <= 3) {
-            nodeSetW5C(nodeOf(scene, rec), 3 << 16);
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        } else if ((nodeFrame(nodeOf(scene, rec)) >> 16) <= 3) {
+            nodeSetFrame(nodeOf(scene, rec), 3 << 16);
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
         } else {
-            nodeSetByte68(nodeOf(scene, rec), 4);
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         }
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), workS16(0x76D8) == rec->unkA ? 1 : 4);
+        selected = workS16(0x76D8);
+        if (selected == rec->unkA) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
+        } else {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
+        }
         rec->state = 6;
         break;
     case 6:
-        if (workS16(0x76D8) == rec->unkA) {
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 0xB) {
-                nodeSetByte68(nodeOf(scene, rec), 0);
+        selected = workS16(0x76D8);
+        if (selected == rec->unkA) {
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 0xB) {
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
                 rec->state = 7;
             }
-        } else if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        } else if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -163,26 +172,26 @@ void fn_2_35860(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;
@@ -197,12 +206,12 @@ void fn_2_35754(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 0);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
         rec->state = 0x25;
         break;
     case 5:
@@ -219,52 +228,56 @@ void fn_2_353FC(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetW5C(nodeOf(scene, rec), 0);
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetFrame(nodeOf(scene, rec), 0);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 3;
         break;
     case 3:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 5) {
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 5) {
             rec->state = 0x25;
         }
         break;
     case 0x25:
         if (workS16(0x76DA) == 0) {
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) <= 5) {
-                nodeSetW5C(nodeOf(scene, rec), 5 << 16);
-                nodeSetByte68(nodeOf(scene, rec), 0);
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) <= 5) {
+                nodeSetFrame(nodeOf(scene, rec), 5 << 16);
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             } else {
-                nodeSetByte68(nodeOf(scene, rec), 4);
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
             }
-        } else if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 0xA) {
-            nodeSetW5C(nodeOf(scene, rec), 0xA << 16);
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        } else if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 0xA) {
+            nodeSetFrame(nodeOf(scene, rec), 0xA << 16);
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
         } else {
-            nodeSetByte68(nodeOf(scene, rec), 1);
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         }
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), workS16(0x76DA) == 0 ? 4 : 1);
+        if (workS16(0x76DA) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
+        } else {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
+        }
         rec->state = 6;
         break;
     case 6:
         if (workS16(0x76DA) == 0) {
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-                nodeSetByte68(nodeOf(scene, rec), 0);
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
                 rec->state = 7;
             }
-        } else if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 0xF) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        } else if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 0xF) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -277,14 +290,14 @@ void fn_2_3523C(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         REC_S16(rec, 0x12) = 0xFF;
         REC_S16(rec, 0x14) = text_initializeNewChannel((UnkText988Arg *)scene, rec->handle,
                                                        (u16)rec->unk10, 4, 0x312, 0);
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         screenBlockSet2F(REC_S16(rec, 0x14), 1);
         rec->state = 3;
         break;
@@ -295,11 +308,11 @@ void fn_2_3523C(TextScene *scene, TextHandleRec *rec) {
         rec->state = 0x25;
         break;
     case 5:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     }
-    nodeSetW58(nodeOf(scene, rec), (nodeW58(nodeOf(scene, rec)) & ~0xFF) | REC_S16(rec, 0x12));
+    nodeSetRGBA(nodeOf(scene, rec), (nodeRGBA(nodeOf(scene, rec)) & ~0xFF) | REC_S16(rec, 0x12));
 }
 
 // .text:0x00035088 size:0x1B4 mapped:0x8067411C
@@ -310,26 +323,26 @@ void fn_2_35088(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;
@@ -344,18 +357,18 @@ void fn_2_34F6C(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 1:
     case 3:
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         rec->state = 0x25;
         break;
     case 5:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;
@@ -370,7 +383,7 @@ void fn_2_34D70(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         REC_S16(rec, 0x12) = 0xFF;
         REC_S16(rec, 0x14) = text_initializeNewChannel((UnkText988Arg *)scene, rec->handle,
                                                        (u16)rec->unk10, 4, 0x306, 0);
@@ -378,7 +391,7 @@ void fn_2_34D70(TextScene *scene, TextHandleRec *rec) {
         break;
     case 2:
         text_setPtrToWhereCharsAreStored(REC_S16(rec, 0x14), 4, bank8248U8(0x4415) + 0x305);
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         screenBlockSet2F(REC_S16(rec, 0x14), 1);
         rec->state = 3;
         break;
@@ -389,12 +402,12 @@ void fn_2_34D70(TextScene *scene, TextHandleRec *rec) {
         rec->state = 0x25;
         break;
     case 5:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     }
     screenBlockSet2F(REC_S16(rec, 0x14), 1);
-    nodeSetW58(nodeOf(scene, rec), (nodeW58(nodeOf(scene, rec)) & ~0xFF) | REC_S16(rec, 0x12));
+    nodeSetRGBA(nodeOf(scene, rec), (nodeRGBA(nodeOf(scene, rec)) & ~0xFF) | REC_S16(rec, 0x12));
 }
 
 // .text:0x00034BCC size:0x1A4 mapped:0x80673C60
@@ -405,13 +418,13 @@ void fn_2_34BCC(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetW5C(nodeOf(scene, rec), 0);
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeSetFrame(nodeOf(scene, rec), 0);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
@@ -422,8 +435,8 @@ void fn_2_34BCC(TextScene *scene, TextHandleRec *rec) {
         s16 oldTimer = recTimer(rec);
         recSetTimer(rec, oldTimer - 1);
         if (oldTimer <= 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     }
@@ -440,14 +453,14 @@ void fn_2_349F8(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetW5C(nodeOf(scene, rec), 0);
+        nodeSetFrame(nodeOf(scene, rec), 0);
         load_Icon(scene, rec->handle, 1, 0xCD, bank8248U8(0x4415) - 1);
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
@@ -458,8 +471,8 @@ void fn_2_349F8(TextScene *scene, TextHandleRec *rec) {
         s16 oldTimer = recTimer(rec);
         recSetTimer(rec, oldTimer - 1);
         if (oldTimer <= 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     }
@@ -476,26 +489,26 @@ void fn_2_34844(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;
@@ -510,11 +523,11 @@ void fn_2_346D8(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         rec->state = 0x25;
         break;
     case 5:
@@ -525,8 +538,8 @@ void fn_2_346D8(TextScene *scene, TextHandleRec *rec) {
         s16 oldTimer = recTimer(rec);
         recSetTimer(rec, oldTimer - 1);
         if (oldTimer <= 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     }
@@ -543,26 +556,26 @@ void fn_2_34524(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;
@@ -577,12 +590,12 @@ void fn_2_3439C(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
@@ -593,8 +606,8 @@ void fn_2_3439C(TextScene *scene, TextHandleRec *rec) {
         s16 oldTimer = recTimer(rec);
         recSetTimer(rec, oldTimer - 1);
         if (oldTimer <= 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     }
@@ -611,12 +624,12 @@ void fn_2_34214(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
@@ -627,8 +640,8 @@ void fn_2_34214(TextScene *scene, TextHandleRec *rec) {
         s16 oldTimer = recTimer(rec);
         recSetTimer(rec, oldTimer - 1);
         if (oldTimer <= 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     }
@@ -645,26 +658,26 @@ void fn_2_34060(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;
@@ -679,27 +692,27 @@ void fn_2_33E70(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         load_Icon(scene, rec->handle, 1, 0x2E,
                  *(s16 *)((u8 *)lbl_2_data_C924 + rec->unkA * 0x18 + workU8(0x785B) * 2));
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetByte68(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;

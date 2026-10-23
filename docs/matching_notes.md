@@ -4996,3 +4996,35 @@ but regressed this caller, so the canonical s8 interface was retained. All
 four initial function floors hold. Shared instructions equal the private
 final; full build, four output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave34_text_3A8FC.json and private wave34 prove.py.
+
+### Challenge bank copies and callback snapshots (2026-10-23)
+
+text_44F14 improves 71.28488% -> 96.35703%, with five new exact functions
+(14/27 total). Copying ten typed mission pairs, loading scout fields through
+the stored pointer, and resolving the global at each reset store recover the
+original loops. Mission visibility captures signed rule fields before the
+callback, while later global state reads retain their original timing.
+Recruitment compares a sign-extended stored captain against the unsigned
+global captain. The public s8 getter interface stays unchanged.
+
+Focused target/candidate PPC checks pass against independent memory and
+callback models: 24 whole-bank cases, 256 captain banks and20 visibility
+banks, totaling964486 instructions. These do not execute the full game.
+All27 initial function floors and section floors hold. Full build, four
+output hashes and whitespace checks pass; evidence is wave38 shared JSON
+and its private semantic_audit.py. New exacts passed canonical readability.
+
+### Explicit playback branches recover generated tables (2026-10-23)
+
+text_33E70 improves98.59381% ->99.84961%, with four new exact functions
+(17/18 total). Calling the playback setter within each branch, instead of
+passing a ternary, restores target node resolution and branch bodies.
+The canonical ScreenTextBlock.justify field also closes two callbacks.
+UIRecord fields and UI_PLAY constants replace raw accesses/values.
+
+Both generated38-word switch tables now match:304 raw bytes and76
+normalized relocations independently checked against the target. Anonymous
+compiler labels were not the obstacle. All18 function/data/pseudo floors
+hold, shared/private instructions agree, and full build/hash4/whitespace
+pass. Only34F6C remains pending95.61972%; prior no-op label trials must not
+be repeated without new evidence. No public header/config changes.
