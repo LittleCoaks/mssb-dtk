@@ -1,5 +1,8 @@
 #include "menus/text_579B4.h"
 #include "text/text.h"
+#include "Unknown/File_0x80034e20.h"
+#define SQRT2_LINKAGE static
+#include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 
@@ -43,24 +46,24 @@ static inline TextGraphicsObject *nodeOf(TextScene *scene, TextHandleRec *rec) {
     return graphicsRelatedArray[scene->firstHandle + rec->handle].object;
 }
 
-static inline void nodeSetFlag2(TextGraphicsObject *node) {
-    node->flags |= 2;
+static inline void nodeShow(TextGraphicsObject *node) {
+    node->flags |= UI_FLAG_VISIBLE;
 }
 
-static inline void nodeClearFlag2(TextGraphicsObject *node) {
-    node->flags &= ~2;
+static inline void nodeHide(TextGraphicsObject *node) {
+    node->flags &= ~UI_FLAG_VISIBLE;
 }
 
-static inline void nodeSetByte68(TextGraphicsObject *node, u8 value) {
-    *(u8 *)((u8 *)node + 0x68) = value;
+static inline void nodeSetPlayMode(TextGraphicsObject *node, u8 value) {
+    ((UIRecord *)node)->playMode = value;
 }
 
-static inline u32 nodeW5C(TextGraphicsObject *node) {
-    return *(u32 *)((u8 *)node + 0x5C);
+static inline u32 nodeFrame(TextGraphicsObject *node) {
+    return ((UIRecord *)node)->frame;
 }
 
-static inline void nodeSetW5C(TextGraphicsObject *node, u32 value) {
-    *(u32 *)((u8 *)node + 0x5C) = value;
+static inline void nodeSetFrame(TextGraphicsObject *node, u32 value) {
+    ((UIRecord *)node)->frame = value;
 }
 
 // Shared lookup: lbl_2_data_1FD84[work.s16(0x76FA) + work.s16(0x76FE)].
@@ -68,28 +71,41 @@ static inline s16 workTableLookup(void) {
     return lbl_2_data_1FD84[workS16(0x76FA) + workS16(0x76FE)];
 }
 
+static inline u8 *recordCopyDestination(s32 fieldOffset, s32 recordOffset, s32 base) {
+    u8 *address = lbl_2_bss_1A824C + fieldOffset;
+    address += base;
+    address += recordOffset;
+    return address;
+}
+
 // .text:0x000587F8 size:0xFA4 mapped:0x8069788C
 void fn_2_587F8(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     s8 state = (s8)ITEM_STATE(item);
     s32 i;
+    u8 *settings = g_d_GameSettings;
+    u8 *characterFlags = lbl_80354768;
 
-    if (state == 1) {
+    switch (state) {
+    case 0:
+        WORK_S32(0x76A4) = 0;
+        WORK_S32(0x76A0) = 0;
+        ITEM_STATE(item) = 1;
+        break;
+    case 1:
         fn_2_1FFC4(8);
         for (i = 0; i < 8; i++) {
             fn_2_1FF10(i);
             switch (i) {
             case 0:
                 if (WORK_S32(0x76A0) == i) {
-                    if (atBatButtons() & 0x100) {
-                        ITEM_STATE(item) = 4;
-                    } else if ((s8)AtBat_ButtonInput1[0x13] > 0x32) {
+                    if ((atBatButtons() & INPUT_BUTTON_A) || (s8)AtBat_ButtonInput1[0x13] > 0x32) {
                         ITEM_STATE(item) = 4;
                     }
                 }
                 break;
             case 1:
-                if (WORK_S32(0x76A0) == i && (atBatButtons() & 0x102)) {
+                if (WORK_S32(0x76A0) == i && (atBatButtons() & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT))) {
                     lbl_2_bss_1A8244[0xF4] ^= 1;
                     fn_2_5EB78();
                 }
@@ -97,141 +113,127 @@ void fn_2_587F8(void) {
             case 2:
                 if (WORK_S32(0x76A0) == i) {
                     u16 buttons = atBatButtons();
-                    if (buttons & 0x1) {
-                        for (i = 0; i < 0x20; i += 8) {
-                            s32 k;
-                            for (k = 0; k < 8; k++) {
-                                lbl_2_bss_1A8240[0x400 + i + k] = ((s8)lbl_2_bss_1A8240[0x400 + i + k] + 3) % 4;
-                            }
+                    if (buttons & INPUT_BUTTON_LEFT) {
+                        for (i = 0; i < 0x20; i++) {
+                            lbl_2_bss_1A8240[0x400 + i] = ((s8)lbl_2_bss_1A8240[0x400 + i] + 3) % 4;
                         }
-                    } else if (buttons & 0x2) {
-                        for (i = 0; i < 0x20; i += 8) {
-                            s32 k;
-                            for (k = 0; k < 8; k++) {
-                                lbl_2_bss_1A8240[0x400 + i + k] = ((s8)lbl_2_bss_1A8240[0x400 + i + k] + 1) % 4;
-                            }
+                    } else if (buttons & INPUT_BUTTON_RIGHT) {
+                        for (i = 0; i < 0x20; i++) {
+                            lbl_2_bss_1A8240[0x400 + i] = ((s8)lbl_2_bss_1A8240[0x400 + i] + 1) % 4;
                         }
                     }
                 }
-                if (atBatButtons() & 0x20) {
-                    s32 k, j;
-                    for (i = 0, k = 0; k < 2; k++, i += 0x10) {
-                        for (j = 0; j < 16; j++) {
-                            lbl_2_bss_1A8240[0x153 + 0x160 * k + 0x16 * j] = 0x46;
-                        }
+                if (atBatButtons() & INPUT_TRIGGER_R) {
+                    for (i = 0; i < 0x20; i++) {
+                        lbl_2_bss_1A8240[0x153 + 0x16 * i] = 0x46;
                     }
                 }
-                if (atBatButtons() & 0x40) {
-                    s32 k, j;
-                    for (i = 0, k = 0; k < 2; k++, i += 0x10) {
-                        for (j = 0; j < 16; j++) {
-                            lbl_2_bss_1A8240[0x153 + 0x160 * k + 0x16 * j] = 0x00;
-                        }
+                if (atBatButtons() & INPUT_TRIGGER_L) {
+                    for (i = 0; i < 0x20; i++) {
+                        lbl_2_bss_1A8240[0x153 + 0x16 * i] = 0x00;
                     }
                 }
                 break;
             case 3:
-                if (WORK_S32(0x76A0) == i && (atBatButtons() & 0x102)) {
+                if (WORK_S32(0x76A0) == i && (atBatButtons() & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT))) {
                     WORK_U8(0x785E) = ((s8)WORK_U8(0x785E) + 1) % 5;
                     fn_2_5EB78();
                 }
                 break;
             case 4:
-                if (WORK_S32(0x76A0) == i && (atBatButtons() & 0x102)) {
+                if (WORK_S32(0x76A0) == i && (atBatButtons() & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT))) {
                     for (i = 0; i < 0x36; i++) {
-                        lbl_80354768[0xCF18 + i] = (lbl_80354768[0xCF18 + i] + 1) & 1;
+                        characterFlags[0xCF18 + i] = (characterFlags[0xCF18 + i] + 1) % 2;
                     }
                 }
                 break;
             case 5:
                 if (WORK_S32(0x76A0) == i) {
                     u16 buttons = atBatButtons();
-                    if (buttons & 0x1) {
-                        g_d_GameSettings[0x12] = (g_d_GameSettings[0x12] + 2) % 3;
+                    if (buttons & INPUT_BUTTON_LEFT) {
+                        settings[0x12] = (settings[0x12] + 2) % 3;
                         fn_2_5EB78();
-                    } else if (buttons & 0x2) {
-                        g_d_GameSettings[0x12] = (g_d_GameSettings[0x12] + 1) % 3;
+                    } else if (buttons & INPUT_BUTTON_RIGHT) {
+                        settings[0x12] = (settings[0x12] + 1) % 3;
                         fn_2_5EB78();
                     }
                 }
                 break;
             case 6:
-                if (WORK_S32(0x76A0) == i && (atBatButtons() & 0x102)) {
-                    s32 lay;
+                if (WORK_S32(0x76A0) == i && (atBatButtons() & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT))) {
                     WORK_U8(0x7862) ^= 1;
                     fn_2_5EB78();
-                    for (lay = 0; lay < 7; lay++) {
-                        s32 off = lay * 0x28;
-                        if (lay == 6) {
-                            u8 *src = lbl_2_bss_1A8240;
-                            u8 *dst = workBase() + off;
-                            *(u32 *)(dst + 0x72EC) = *(u32 *)(src + 0x118);
-                            *(s16 *)(dst + 0x72F0) = *(s16 *)(src + 0x11C);
-                            *(s16 *)(dst + 0x72F2) = *(s16 *)(src + 0x11E);
-                            *(u32 *)(dst + 0x72F4) = *(u32 *)(src + 0x120);
-                            *(s16 *)(dst + 0x72F8) = *(s16 *)(src + 0x124);
-                            *(s16 *)(dst + 0x72FA) = *(s16 *)(src + 0x126);
-                            *(u32 *)(dst + 0x72FC) = *(u32 *)(src + 0x128);
-                            *(s16 *)(dst + 0x7300) = *(s16 *)(src + 0x12C);
-                            *(s16 *)(dst + 0x7302) = *(s16 *)(src + 0x12E);
-                            *(u32 *)(dst + 0x7304) = *(u32 *)(src + 0x130);
-                            *(s16 *)(dst + 0x7308) = *(s16 *)(src + 0x134);
-                            *(s16 *)(dst + 0x730A) = *(s16 *)(src + 0x136);
-                            *(u32 *)(dst + 0x730C) = *(u32 *)(src + 0x138);
-                            *(s16 *)(dst + 0x7310) = *(s16 *)(src + 0x13C);
-                            *(s16 *)(dst + 0x7312) = *(s16 *)(src + 0x13E);
-                        } else {
-                            s16 v = lbl_2_data_20C48[lay];
-                            s32 k;
-                            for (k = 0; k < 5; k++) {
-                                u8 *src = lbl_2_bss_1A8240 + v * 0x28 + k * 8;
-                                u8 *dst = workBase() + off + k * 8;
-                                *(u32 *)(dst + 0x72EC) = *(u32 *)(src + 0x28);
-                                *(s16 *)(dst + 0x72F0) = *(s16 *)(src + 0x2C);
-                                *(s16 *)(dst + 0x72F2) = *(s16 *)(src + 0x2E);
-                            }
-                        }
-                    }
                     {
-                        u8 *src = lbl_2_bss_1A8240;
-                        u8 *dst = workBase();
-                        *(u32 *)(dst + 0x72C4) = *(u32 *)(src + 0x00);
-                        *(s16 *)(dst + 0x72CA) = *(s16 *)(src + 0x06);
-                        *(u32 *)(dst + 0x72CC) = *(u32 *)(src + 0x08);
-                        *(s16 *)(dst + 0x72D2) = *(s16 *)(src + 0x0E);
-                        *(u32 *)(dst + 0x72D4) = *(u32 *)(src + 0x10);
-                        *(s16 *)(dst + 0x72DA) = *(s16 *)(src + 0x16);
-                        *(u32 *)(dst + 0x72DC) = *(u32 *)(src + 0x18);
-                        *(s16 *)(dst + 0x72E2) = *(s16 *)(src + 0x1E);
-                        *(u32 *)(dst + 0x72E4) = *(u32 *)(src + 0x20);
-                        *(s16 *)(dst + 0x72EA) = *(s16 *)(src + 0x26);
+                        s32 recordOffset = 0;
+                        s32 record;
+                        s32 fieldOffset;
+
+                        record = 0;
+
+                        do {
+                            if (record == 6) {
+                                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x1972EC) = *(u32 *)(lbl_2_bss_1A8240 + 0x118);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F0) = *(s16 *)(lbl_2_bss_1A8240 + 0x11C);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F2) = *(s16 *)(lbl_2_bss_1A8240 + 0x11E);
+                                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F4) = *(u32 *)(lbl_2_bss_1A8240 + 0x120);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F8) = *(s16 *)(lbl_2_bss_1A8240 + 0x124);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972FA) = *(s16 *)(lbl_2_bss_1A8240 + 0x126);
+                                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x1972FC) = *(u32 *)(lbl_2_bss_1A8240 + 0x128);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197300) = *(s16 *)(lbl_2_bss_1A8240 + 0x12C);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197302) = *(s16 *)(lbl_2_bss_1A8240 + 0x12E);
+                                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x197304) = *(u32 *)(lbl_2_bss_1A8240 + 0x130);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197308) = *(s16 *)(lbl_2_bss_1A8240 + 0x134);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x19730A) = *(s16 *)(lbl_2_bss_1A8240 + 0x136);
+                                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x19730C) = *(u32 *)(lbl_2_bss_1A8240 + 0x138);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197310) = *(s16 *)(lbl_2_bss_1A8240 + 0x13C);
+                                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197312) = *(s16 *)(lbl_2_bss_1A8240 + 0x13E);
+                            } else {
+                                for (fieldOffset = 0; fieldOffset < 0x28; fieldOffset += 8) {
+                                    *(u32 *)recordCopyDestination(fieldOffset, recordOffset, 0x1972EC) =
+                                        *(u32 *)(lbl_2_bss_1A8240 + lbl_2_data_20C48[record] * 0x28 + fieldOffset + 0x28);
+                                    *(s16 *)recordCopyDestination(fieldOffset, recordOffset, 0x1972F0) =
+                                        *(s16 *)(lbl_2_bss_1A8240 + lbl_2_data_20C48[record] * 0x28 + fieldOffset + 0x2C);
+                                    *(s16 *)recordCopyDestination(fieldOffset, recordOffset, 0x1972F2) =
+                                        *(s16 *)(lbl_2_bss_1A8240 + lbl_2_data_20C48[record] * 0x28 + fieldOffset + 0x2E);
+                                }
+                            }
+                            record++;
+                            recordOffset += 0x28;
+                        } while (record < 7);
                     }
+                    *(u32 *)(lbl_2_bss_1A824C + 0x1972C4) = *(u32 *)(lbl_2_bss_1A8240 + 0x0);
+                    *(s16 *)(lbl_2_bss_1A824C + 0x1972CA) = *(s16 *)(lbl_2_bss_1A8240 + 0x6);
+                    *(u32 *)(lbl_2_bss_1A824C + 0x1972CC) = *(u32 *)(lbl_2_bss_1A8240 + 0x8);
+                    *(s16 *)(lbl_2_bss_1A824C + 0x1972D2) = *(s16 *)(lbl_2_bss_1A8240 + 0xE);
+                    *(u32 *)(lbl_2_bss_1A824C + 0x1972D4) = *(u32 *)(lbl_2_bss_1A8240 + 0x10);
+                    *(s16 *)(lbl_2_bss_1A824C + 0x1972DA) = *(s16 *)(lbl_2_bss_1A8240 + 0x16);
+                    *(u32 *)(lbl_2_bss_1A824C + 0x1972DC) = *(u32 *)(lbl_2_bss_1A8240 + 0x18);
+                    *(s16 *)(lbl_2_bss_1A824C + 0x1972E2) = *(s16 *)(lbl_2_bss_1A8240 + 0x1E);
+                    *(u32 *)(lbl_2_bss_1A824C + 0x1972E4) = *(u32 *)(lbl_2_bss_1A8240 + 0x20);
+                    *(s16 *)(lbl_2_bss_1A824C + 0x1972EA) = *(s16 *)(lbl_2_bss_1A8240 + 0x26);
+
                 }
                 break;
             case 7:
-                if (WORK_S32(0x76A0) == i && (atBatButtons() & 0x102)) {
+                if (WORK_S32(0x76A0) == i && (atBatButtons() & (INPUT_BUTTON_A | INPUT_BUTTON_RIGHT))) {
                     for (i = 0; i < 0x36; i++) {
                         u8 idx = lbl_800E869C[i];
-                        lbl_2_bss_1A8244[idx] = (lbl_2_bss_1A8244[idx] + 1) & 1;
+                        lbl_2_bss_1A8244[idx] = (lbl_2_bss_1A8244[idx] + 1) % 2;
                     }
                 }
                 break;
             }
         }
 
-        if ((atBatButtons() & 0x200) || (s8)AtBat_ButtonInput1[0x13] > 0x32) {
+        if ((atBatButtons() & INPUT_BUTTON_B) || (s8)AtBat_ButtonInput1[0x13] > 0x32) {
             ITEM_STATE(item) = 4;
         }
-    } else if (state > 1) {
-        if (state == 4) {
-            item->currentDrawingItem->state = 1;
-            removeCurrentDrawingItem();
-            ITEM_STATE(item) = 0;
-        }
-    } else if (state == 0) {
-        WORK_S32(0x76A4) = 0;
-        WORK_S32(0x76A0) = 0;
-        ITEM_STATE(item) = 1;
+        break;
+    case 4:
+        item->currentDrawingItem->state = 1;
+        removeCurrentDrawingItem();
+        ITEM_STATE(item) = 0;
+        break;
     }
 }
 
@@ -275,7 +277,7 @@ void fn_2_5853C(void) {
 
 // .text:0x00058510 size:0x2C mapped:0x806975A4
 void fn_2_58510(TextScene *scene, TextHandleRec *rec) {
-    nodeClearFlag2(nodeOf(scene, rec));
+    nodeHide(nodeOf(scene, rec));
 }
 
 // .text:0x00058470 size:0xA0 mapped:0x80697504
@@ -292,6 +294,7 @@ void fn_2_58470(TextScene *scene, TextHandleRec *rec) {
     case 5:
     case 8:
     case 0x24:
+    case 0x25:
         break;
     case 2:
         rec->state = 0x25;
@@ -307,20 +310,20 @@ void fn_2_58328(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
-    case 1:
     case 8:
     case 0x24:
+    case 0x25:
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 0x26;
         break;
     }
@@ -334,20 +337,20 @@ void fn_2_581E0(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
-    case 1:
     case 8:
     case 0x24:
+    case 0x25:
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 0x26;
         break;
     }
@@ -361,20 +364,20 @@ void fn_2_58098(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
-    case 1:
     case 8:
     case 0x24:
+    case 0x25:
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 0x26;
         break;
     }
@@ -388,20 +391,20 @@ void fn_2_57F50(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
-    case 1:
     case 8:
     case 0x24:
+    case 0x25:
         break;
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 0x26;
         break;
     }
@@ -415,51 +418,55 @@ void fn_2_57BF8(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetW5C(nodeOf(scene, rec), 0);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetFrame(nodeOf(scene, rec), 0);
         fn_80036134(scene, 0x1E, rec->unkA, rec->unkA + 5);
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         rec->state = 3;
         break;
-    case 3:
-        if (workS16(0x76FA) == rec->unkA) {
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 0x14) {
-                nodeSetW5C(nodeOf(scene, rec), 0x140000);
-                nodeSetByte68(nodeOf(scene, rec), 0);
+    case 3: {
+        s32 selected = workS16(0x76FA);
+        if (selected == rec->unkA) {
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 0x14) {
+                nodeSetFrame(nodeOf(scene, rec), 0x140000);
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
                 rec->state = 0x25;
             }
         } else {
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 0xA) {
-                nodeSetW5C(nodeOf(scene, rec), 0xA0000);
-                nodeSetByte68(nodeOf(scene, rec), 0);
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 0xA) {
+                nodeSetFrame(nodeOf(scene, rec), 0xA0000);
+                nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
                 rec->state = 0x25;
             }
         }
         break;
-    case 0x25:
-        if (workS16(0x76FA) == rec->unkA) {
-            nodeSetByte68(nodeOf(scene, rec), 1);
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) >= 0x14) {
-                nodeSetW5C(nodeOf(scene, rec), 0x140000);
+    }
+    case 0x25: {
+        s32 selected = workS16(0x76FA);
+        if (selected == rec->unkA) {
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= 0x14) {
+                nodeSetFrame(nodeOf(scene, rec), 0x140000);
             }
         } else {
-            nodeSetByte68(nodeOf(scene, rec), 4);
-            if ((nodeW5C(nodeOf(scene, rec)) >> 16) <= 0xA) {
-                nodeSetW5C(nodeOf(scene, rec), 0xA0000);
+            nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
+            if ((nodeFrame(nodeOf(scene, rec)) >> 16) <= 0xA) {
+                nodeSetFrame(nodeOf(scene, rec), 0xA0000);
             }
         }
         break;
+    }
     case 5:
-        nodeSetByte68(nodeOf(scene, rec), 4);
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
-        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
-            nodeSetW5C(nodeOf(scene, rec), 0);
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetFrame(nodeOf(scene, rec), 0);
         }
         break;
     }
@@ -473,28 +480,28 @@ void fn_2_579B4(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
-        nodeSetByte68(nodeOf(scene, rec), 1);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         if (workTableLookup() >= 2) {
-            nodeSetFlag2(nodeOf(scene, rec));
+            nodeShow(nodeOf(scene, rec));
         } else {
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeHide(nodeOf(scene, rec));
         }
         rec->state = 0x25;
         break;
     case 0x25:
         if (workTableLookup() >= 2) {
-            nodeSetFlag2(nodeOf(scene, rec));
+            nodeShow(nodeOf(scene, rec));
         } else {
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     case 5:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     }

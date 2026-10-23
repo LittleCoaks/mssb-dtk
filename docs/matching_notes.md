@@ -4421,3 +4421,190 @@ Full build, all four hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave5_rep_08E8_{baseline,final}.json and the private wave5
 semantic_audit.json. No emulator test was performed. The next isolated Sol pass
 is drafting the missing challenge dispatcher in text_4B1AC.
+
+### State dispatcher jump-table ownership (2026-10-22)
+
+After pulling origin/main through0d9cad0, rechecked text_50898's current split
+before retaining an old dispatcher workaround. Its72-byte jump table is now
+owned by this unit, so fn_2_52690 can use a normal18-case switch. An unsigned
+halfword read and direct references to the global array remove unnecessary
+state/base temporaries. Every case body and out-of-range no-op behavior is
+preserved; a reconstruction audit compares the bodies with the prior source.
+
+fn_2_52690 improves42.380512% ->52.589330%, raising .text61.415830% ->64.581290%.
+All38 initial function scores,15 exact functions and section scores are
+preserved; .data remains0%. The newly generated table's interim pseudo-symbol
+scores are not an initial baseline floor. No header or split edits were needed.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_origin_0d9cad0_text_50898.json and build/_postmerge_wave7_text_50898.json.
+No emulator test was performed.
+
+### Challenge result recovery and cleanup loops (2026-10-22)
+
+Completed the missing fn_2_4B2D0 dispatcher. Its result classification, menu-kind
+branches, state-write order and rollback direction follow the target. Rollback
+restores54 scout bytes from backup+7 to live+6, then all54x10 mission pairs
+from save+1D..30 to live+9..1C. Typed ChallengeState records and existing count
+constants express the copy loops. text_4B1AC .text31.368752% ->63.579300%;
+fn_2_4B2D0 reaches78.431310%, and its caller fn_2_4B1AC improves to99.452060%.
+All16 initial function floors and two exact functions remain intact.
+
+A private PPC interpreter ran target and compiled dispatcher against a separate
+semantic model for4,608 branch-partition combinations. All final persistent
+writes agree, including every restored record; this covers input partitions,
+not every possible input or runtime environment. Shared compiled instructions
+were also checked equal to the audited private final.
+
+In text_53408, ordinary loops and small entry/object helpers replace manual
+two-entry duplication in fn_2_53CEC and fn_2_53DF8. The object is resolved again
+after its byte store, preserving the target's reload behavior. MWCC naturally
+unrolls the loops in pairs. Both functions42.955223% ->95.417910%, raising the
+unit .text80.383750% ->85.027084%; all21 function floors, nine exacts and
+.data0% are preserved. Target and compiled loops have the same67 instruction
+operations, apart from registers, branch destinations and two independent
+induction updates; bounds remain864 entries over10/70 rows. TextScene.firstHandle
+replaces the raw scene offset in the new helper without changing codegen.
+
+No shared headers or split changes. Full build, four output hashes and
+whitespace checks pass. Evidence: build/_postmerge_wave6_text_4B1AC.json,
+build/_postmerge_wave9_text_53408.json and private wave6 semantic_audit.py.
+No emulator test was performed.
+
+### Text-state widths and callback contract (2026-10-22)
+
+text_5597C improves99.339960% ->99.985450% .text, with16/17 functions exact
+(previously12). fn_2_5597C's category assignment and common return preserve its
+branch form. Keeping stringIndex as s16 fixes save placement in fn_2_563C0 and
+fn_2_5699C; fn_2_57294's selected-index local also matches. fn_2_56688 remains
+99.847720%, with only entry arithmetic register operands differing. Named UIRecord
+frame/rgba/playMode fields and existing UI visibility/playback symbols replace
+raw accesses during the mandatory readability pass, without regressions.
+All17 function floors, .data0% and the99.473690% table pseudo-symbol remain intact.
+
+The text_53408 audit found a real callback contract gap: the target passes both
+scene and record, while the draft passed only scene. fn_2_53F04/53F88 now pass
+the record and reload the global table for each callback, as the target does.
+Both improve87.121216% ->99.090910%. fn_2_5389C also lacked the per-frame reset
+of13 flag arrays over70 entries. Reusing existing fn_2_53F88 and exact fn_2_54120
+recovers the inlined dispatch/reset blocks, bringing44.038460% ->96.846150%.
+Callback record arguments,864-entry row bounds,70 rows and13x70 reset stores
+were checked against the target.
+
+Its two state selectors fn_2_53AA4/53BC8 now initialize a32-bit result and narrow
+once at return. An inline table-row accessor recovers the base load structure;
+both81.917810% ->99.726030%, preserving all13 priority tests and default-1.
+text_53408 reaches91.800530% .text from the preceding85.027084% checkpoint,
+keeping all21 function floors, nine exacts and .data0%. No shared headers or
+configuration changes. Full build, four hashes and whitespace checks pass;
+report4196/6479 matching functions,41.85% code. Evidence:
+build/_postmerge_wave8_text_5597C.json and
+build/_postmerge_wave9_text_53408_callbacks.json. No emulator test was performed.
+
+### Challenge shop and save checkpoint (2026-10-22)
+
+text_4B1AC improves from 63.579300% to 83.463990% .text. Three shop setup
+callbacks (fn_2_4C81C, fn_2_4CB94 and fn_2_4CD30) now match exactly after
+readability review, bringing the unit to five exact functions. A shared inline
+helper uses the existing shop-item fields, a flat item index across the 4x5
+eligibility table, and signed availability bytes. The other four callbacks
+improve to 98.924730%, 94.422420%, 83.369940% and 93.016525%. Existing game-mode,
+stadium and boolean symbols replace literals where their meaning is confirmed.
+
+The two save callbacks now copy typed mission pairs and retain target-required
+global pointer reloads. They improve to 72.227980% and 73.459460%. Their direction
+was checked independently: live scout +6 goes to backup +7, and live mission
++9..1C goes to save +1D..30, opposite the result dispatcher's rollback. All 16
+initial function floors remain intact; the earlier dispatcher is unchanged.
+
+A smaller text_50898 cleanup replaces fn_2_51190's manually repeated stores
+with an ordinary loop over the same 168 halfwords, improving 43.164383% to
+56.356163%. A typed destination pointer improves fn_2_5135C from 27.5% to 37.5%
+while preserving its three indexed store locations and period guard. The unit
+reaches 65.042810% from 64.581290%, preserving all 38 function floors, 15 exact
+functions, .data and table scores. Natural-loop alternatives that lowered the
+separate fn_2_50898 baseline were discarded; that function is unchanged.
+
+No shared header or configuration edits. Full build, all four output hashes
+and whitespace checks pass. Project report: 4199/6479 matching functions,
+41.89% code. Evidence: build/_postmerge_wave10_text_4B1AC.json and
+build/_postmerge_wave11_text_50898.json. No emulator test was performed.
+
+### Records-menu controls and typed roster copy (2026-10-22)
+
+text_579B4 improves from 76.504700% to 98.006270% .text, with eight of ten
+functions exact (previously two). fn_2_587F8 reaches 98.250750% from 58.191807%:
+ordinary 32-element loops replace nested duplication, signed remainder preserves
+the toggle behavior, and the recordsScreen copy pattern restores the target's
+pointer reloads. The seventh destination retains its 6*0x28 row offset; header
+copies preserve the middle halfwords. The shared outer/inner index is retained
+because the target intentionally exits the outer loop after those inner scans.
+An outer state switch and combined case-zero guard also recover shared blocks.
+
+Six handlers (fn_2_57BF8, fn_2_57F50, fn_2_58098, fn_2_581E0, fn_2_58328 and
+fn_2_58470) now match exactly. Their readability pass uses existing UIRecord
+fields and visibility/playback constants; the large routine uses INPUT_BUTTON
+names. All ten function floors remain intact, .data stays at 0%, and its table
+pseudo-symbol improves from 50% to 81.25%. fn_2_5853C remains at 88.2%; a typed
+record hypothesis that lowered its score was discarded.
+
+text_50898's fn_2_5163C now uses the existing copyCharacterStats helper pattern
+from text_0323C and the canonical CharacterStats type. This preserves the
+original field widths, copied ranges and untouched padding while improving
+78.248320% to 86%. Typed source/destination pointers retain the same codegen.
+The unit reaches 65.458275% from 65.042810%, preserving all 38 function floors,
+15 exact functions and data/table scores. A tail-loop alternative changed
+inlining in another function and was discarded after the full-unit audit.
+
+No shared header or configuration changes. Full build, four output hashes and
+whitespace checks pass. Project report: 4205/6479 matching functions, 41.96% code.
+Evidence: build/_postmerge_wave12_text_579B4.json and
+build/_postmerge_wave13_text_50898.json. No emulator test was performed.
+
+### Script token and append-source audit (2026-10-22)
+
+Corrected four walkers in text_50898 that tested 0x8000 for the script terminator
+instead of the target's 0x4000 control tag. The width readers also had ordinary
+and high-bit glyph widths reversed: ordinary glyphs add half width, high-bit
+glyphs add full width; control tags 2/3 add half/full width and other control
+tags end the measurement. A wide accumulator and explicit tagged-half narrowing
+preserve the target's return behavior, including wrap cases. A transient higher
+score using a narrow accumulator was rejected when execution exposed different
+upper return-register bits.
+
+fn_2_50DB4 and fn_2_50F20 now accept the incoming third source-pointer parameter:
+the target uses it when arg1 is -1, while the old draft initialized it to NULL.
+Their header was corrected; a repository reference/include audit finds only
+text_50898.c dependent, and the full build confirms that scope. Ordinary loops
+also replace expanded row clears; the two mode branches remain explicit where
+the target retains them.
+
+The unit improves from 65.458275% to 68.075540% .text, preserving all 38 initial
+function scores, 15 exact functions, .data 0% and the table score. Independent
+target/candidate execution passes 1,539 cases (407,672 PPC instructions), covering
+terminators, control tags, odd widths, 16-bit wrap, append count limits, incoming
+versus bank-selected pointers and mode branches. Every shared function's
+compiled instructions equal the audited private final. Full build, all four
+output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave14_text_50898.json and private wave14 walker_audit.py.
+No gameplay/emulator test was performed.
+
+### Exact instructions still require jump-table validation (2026-10-22)
+
+The text_5597C data audit found two incorrect aliases despite exact instruction
+bodies. State 17 in fn_2_55FD8 and fn_2_56160 entered the shared active block;
+the target tables send it to the no-op epilogue. Removing those two case labels
+leaves all function instructions unchanged after generated-label normalization
+and makes all 190 table relocations match their target function and offset.
+The unit's .data improves from 0% to 100%, and the table pseudo-symbol from
+99.473690% to 100%; .text stays 99.985450%, with 16/17 functions exact.
+
+A function's code score does not validate the control flow encoded in its
+jump table. Resolve each table entry's function and relative destination,
+especially when exact bodies coexist with a nearly exact data pseudo-symbol.
+A follow-up read-only scan of direct function relocations across 78 menus
+units found no other differing destinations into the same exact function.
+This scan does not establish the correctness of tables in non-exact functions.
+
+All function/section floors are preserved. Full build, four output hashes and
+whitespace checks pass. Evidence: build/_postmerge_wave16_text_5597C.json and
+build/.match_grind/exact_table_audit/summary.json. No emulator test was performed.

@@ -6,6 +6,7 @@
 
 extern u8 superstarUnlocked[0x130];
 extern u8 *lbl_2_bss_1A824C;
+extern u8 *lbl_2_bss_1A823C;
 extern u8 *lbl_2_bss_1A8244;
 extern ChallengeState *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3ED4[];
@@ -57,9 +58,144 @@ void fn_2_4B1AC(void) {
     challenge_leftoverTeammatesJoinBowserJr();
 }
 
+static inline void restoreChallengeProgress(void) {
+    s32 character;
+    int mission;
+
+    for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
+        lbl_2_bss_1A8248->characters[character].scoutFlagsAchieved = lbl_2_bss_1A8248->characters[character]._7;
+    }
+    for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[character];
+        for (mission = 0; mission < STAR_MISSIONS_PER_CHARACTER; mission++) {
+            record->inGameMissionTracker[mission].starMissionStatus = record->saveFileMissionTracker[mission].starMissionStatus;
+            record->inGameMissionTracker[mission].shownOnPauseMenu = record->saveFileMissionTracker[mission].shownOnPauseMenu;
+        }
+    }
+}
+
 // .text:0x0004B2D0 size:0x1044 mapped:0x8068A364
 void fn_2_4B2D0(void) {
-    return;
+    u8 result;
+    s16 kind;
+    u8 homeAway;
+    u8 winner;
+    GameInitVariables *settings = &g_d_GameSettings;
+
+    *(s8 *)(WORK_BASE() + 0x7843) = 1;
+    homeAway = settings->home_AwaySetting;
+    winner = StatsScreenScores.winnerSlot;
+    *((u8 *)lbl_2_bss_1A8248 + 0x4418) = settings->bJMatchRelated;
+    if (homeAway == 0 && winner == 0) {
+        result = 0;
+    } else if (homeAway == 1 && winner == 0) {
+        result = 0;
+    } else if (homeAway == 0 && winner == 1) {
+        result = 1;
+    } else if (homeAway == 1 && winner == 1) {
+        result = 1;
+    } else {
+        result = 2;
+    }
+    kind = *(s16 *)(lbl_2_bss_1A823C + 0x30);
+    if (kind == 3) {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 1;
+            WORK_BASE()[0x78F7] = 2;
+            restoreChallengeProgress();
+        } else {
+            if (result == 0) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 0;
+                WORK_BASE()[0x78F7] = 0;
+            } else if (result == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 1;
+                WORK_BASE()[0x78F7] = 0;
+            } else {
+                *(s8 *)(WORK_BASE() + 0x7843) = 2;
+                WORK_BASE()[0x785B] = 2;
+                WORK_BASE()[0x78F7] = 0;
+            }
+            (*(u32 *)((u8 *)lbl_2_bss_1A8248 + 0x42EC))++;
+        }
+    } else if (kind == 5) {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 4;
+            restoreChallengeProgress();
+            WORK_BASE()[0x78F7] = 2;
+        } else if (lbl_2_bss_1A8248->_4420[0] == 0 || lbl_2_bss_1A8248->_4420[0] == 3) {
+            if (settings->_38 == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 3;
+                WORK_BASE()[0x78F7] = 1;
+            } else {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 4;
+                WORK_BASE()[0x78F7] = 1;
+            }
+        } else {
+            if (settings->_38 == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 3;
+                WORK_BASE()[0x78F7] = 1;
+            } else if (settings->_38 == 0) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 2;
+                WORK_BASE()[0x785B] = 5;
+                WORK_BASE()[0x78F7] = 1;
+            } else {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 4;
+                WORK_BASE()[0x78F7] = 1;
+            }
+        }
+    } else if (kind == 4) {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 7;
+            restoreChallengeProgress();
+            WORK_BASE()[0x78F7] = 2;
+        } else {
+            if (result == 0) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 0;
+                WORK_BASE()[0x785B] = 6;
+                WORK_BASE()[0x78F7] = 0;
+            } else if (result == 1) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 1;
+                WORK_BASE()[0x785B] = 7;
+                WORK_BASE()[0x78F7] = 1;
+            } else if (result == 2) {
+                *(s8 *)(WORK_BASE() + 0x7843) = 2;
+                WORK_BASE()[0x785B] = 8;
+                WORK_BASE()[0x78F7] = 1;
+            }
+            (*(u32 *)((u8 *)lbl_2_bss_1A8248 + 0x42EC))++;
+        }
+    } else {
+        if (settings->_13 != 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x785B] = 10;
+            restoreChallengeProgress();
+            WORK_BASE()[0x78F7] = 2;
+        } else if (settings->_38 == 1) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 0;
+            WORK_BASE()[0x78F7] = 1;
+            WORK_BASE()[0x785B] = 9;
+        } else if (settings->_38 == 0) {
+            *(s8 *)(WORK_BASE() + 0x7843) = 2;
+            WORK_BASE()[0x78F7] = 1;
+            WORK_BASE()[0x785B] = 11;
+        } else {
+            *(s8 *)(WORK_BASE() + 0x7843) = 1;
+            WORK_BASE()[0x78F7] = 1;
+            WORK_BASE()[0x785B] = 10;
+        }
+    }
+    if (*(s8 *)(WORK_BASE() + 0x7843) == 1 || *(s8 *)(WORK_BASE() + 0x7843) == 2) {
+        *((u8 *)lbl_2_bss_1A8248 + 0x44F6) = TRUE;
+    }
 }
 
 // .text:0x0004C314 size:0x58 mapped:0x8068B3A8
@@ -148,293 +284,191 @@ void fn_2_4C3EC(void) {
 
 #pragma dont_inline reset
 
-// .text:0x0004C6A8 size:0x174 mapped:0x8068B73C
-void fn_2_4C6A8(void) {
-    s16 *tab = lbl_2_data_373C;
+static inline void configureChallengeShopItems(void) {
+    GameInitVariables *settings = &g_d_GameSettings;
     s32 i;
     s32 j;
+    s32 item;
+    s16 *tab;
+    ChallengeState *challenge;
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
+    for (i = 0; i < CHALLENGE_SHOP_ITEM_COUNT; i++) {
+        settings->challengeShopItemActive[i] = FALSE;
     }
 
+    tab = lbl_2_data_373C;
+    challenge = lbl_2_bss_1A8248;
+    item = 0;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
+            if (*tab == 0 && challenge->_43C2[item] != 0) {
+                settings->challengeShopItemActive[item] = TRUE;
             }
+            tab++;
+            item++;
         }
     }
 
     {
         s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
         if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
+            settings->challengeShopItemActive[slot] = TRUE;
         }
     }
+}
+
+// .text:0x0004C6A8 size:0x174 mapped:0x8068B73C
+void fn_2_4C6A8(void) {
+    configureChallengeShopItems();
 }
 
 // .text:0x0004C81C size:0x1A8 mapped:0x8068B8B0
 void fn_2_4C81C(void) {
-    s32 i;
-    s32 j;
-    s16 *tab = lbl_2_data_373C;
+    GameInitVariables *settings = &g_d_GameSettings;
 
-    ((u8 *)&g_d_GameSettings)[0x7] = 6;
-    ((u8 *)&g_d_GameSettings)[0x8] = 0;
-    ((u8 *)&g_d_GameSettings)[0xE] = 0;
-    ((u8 *)&g_d_GameSettings)[0x32] = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
-    ((u8 *)&g_d_GameSettings)[0x36] = lbl_2_bss_1A8248->captainCharID;
-    ((u8 *)&g_d_GameSettings)[0x37] = lbl_2_bss_1A8248->difficulty;
-    ((u8 *)&g_d_GameSettings)[0x39] = 0;
+    settings->GameModeSelected = GAME_TYPE_TOY_FIELD;
+    settings->exhibitionMatchInd = FALSE;
+    settings->_36 = lbl_2_bss_1A8248->captainCharID;
+    settings->bJMatchInd = FALSE;
+    settings->home_AwaySetting = 0;
+    settings->challengeDifficulty = lbl_2_bss_1A8248->difficulty;
+    settings->bJMatchRelated = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
-            }
-        }
-    }
-
-    {
-        s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
-        if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
-        }
-    }
+    configureChallengeShopItems();
 }
 
 // .text:0x0004C9C4 size:0x1D0 mapped:0x8068BA58
 void fn_2_4C9C4(void) {
-    s32 i;
-    s32 j;
-    s16 *tab = lbl_2_data_373C;
+    GameInitVariables *settings = &g_d_GameSettings;
 
-    ((u8 *)&g_d_GameSettings)[0x7] = 7;
-    ((u8 *)&g_d_GameSettings)[0x8] = 0;
-    ((u8 *)&g_d_GameSettings)[0x35] = 0;
-    ((u8 *)&g_d_GameSettings)[0x33] = lbl_2_data_2E64[*((u8 *)lbl_2_bss_1A8248 + 0x4420)];
-    ((u8 *)&g_d_GameSettings)[0x36] = lbl_2_bss_1A8248->captainCharID;
-    ((u8 *)&g_d_GameSettings)[0x37] = lbl_2_bss_1A8248->difficulty;
-    ((u8 *)&g_d_GameSettings)[0x32] = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
-    ((u8 *)&g_d_GameSettings)[0x3A] = *(u8 *)(WORK_BASE() + 0x78F1);
+    settings->GameModeSelected = GAME_TYPE_MINIGAMES;
+    settings->exhibitionMatchInd = FALSE;
+    settings->_35 = 0;
+    settings->_33 = lbl_2_data_2E64[*((u8 *)lbl_2_bss_1A8248 + 0x4420)];
+    settings->_36 = lbl_2_bss_1A8248->captainCharID;
+    settings->challengeDifficulty = lbl_2_bss_1A8248->difficulty;
+    settings->bJMatchRelated = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
+    settings->_3A = *(u8 *)(WORK_BASE() + 0x78F1);
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
-            }
-        }
-    }
-
-    {
-        s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
-        if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
-        }
-    }
+    configureChallengeShopItems();
 }
 
 // .text:0x0004CB94 size:0x19C mapped:0x8068BC28
 void fn_2_4CB94(void) {
-    s32 i;
-    s32 j;
-    s16 *tab = lbl_2_data_373C;
+    GameInitVariables *settings = &g_d_GameSettings;
 
-    ((u8 *)&g_d_GameSettings)[0x7] = 6;
-    ((u8 *)&g_d_GameSettings)[0x8] = 0;
-    ((u8 *)&g_d_GameSettings)[0x36] = lbl_2_bss_1A8248->captainCharID;
-    ((u8 *)&g_d_GameSettings)[0x39] = 1;
-    ((u8 *)&g_d_GameSettings)[0x32] = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
+    settings->GameModeSelected = GAME_TYPE_TOY_FIELD;
+    settings->exhibitionMatchInd = FALSE;
+    settings->_36 = lbl_2_bss_1A8248->captainCharID;
+    settings->bJMatchInd = TRUE;
+    settings->bJMatchRelated = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
-            }
-        }
-    }
-
-    {
-        s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
-        if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
-        }
-    }
+    configureChallengeShopItems();
 }
 
 // .text:0x0004CD30 size:0x1B0 mapped:0x8068BDC4
 void fn_2_4CD30(void) {
-    s32 i;
-    s32 j;
-    s16 *tab = lbl_2_data_373C;
+    GameInitVariables *settings = &g_d_GameSettings;
 
-    ((u8 *)&g_d_GameSettings)[0x7] = 7;
-    ((u8 *)&g_d_GameSettings)[0x8] = 0;
-    ((u8 *)&g_d_GameSettings)[0x33] = 6;
-    ((u8 *)&g_d_GameSettings)[0x35] = 0;
-    ((u8 *)&g_d_GameSettings)[0x36] = lbl_2_bss_1A8248->captainCharID;
-    ((u8 *)&g_d_GameSettings)[0x37] = lbl_2_bss_1A8248->difficulty;
-    ((u8 *)&g_d_GameSettings)[0x39] = 1;
-    ((u8 *)&g_d_GameSettings)[0x32] = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
+    settings->GameModeSelected = GAME_TYPE_MINIGAMES;
+    settings->exhibitionMatchInd = FALSE;
+    settings->_33 = 6;
+    settings->_35 = 0;
+    settings->_36 = lbl_2_bss_1A8248->captainCharID;
+    settings->challengeDifficulty = lbl_2_bss_1A8248->difficulty;
+    settings->bJMatchInd = TRUE;
+    settings->bJMatchRelated = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
-            }
-        }
-    }
-
-    {
-        s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
-        if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
-        }
-    }
+    configureChallengeShopItems();
 }
 
 // .text:0x0004CEE0 size:0x2B4 mapped:0x8068BF74
 void fn_2_4CEE0(void) {
-    s32 i;
-    s32 j;
+    GameInitVariables *settings = &g_d_GameSettings;
     s32 r;
     s32 sign;
     s32 a;
-    s16 *tab = lbl_2_data_373C;
 
-    ((u8 *)&g_d_GameSettings)[0x8] = 0;
-    ((u8 *)&g_d_GameSettings)[0x39] = 1;
+    settings->exhibitionMatchInd = FALSE;
+    settings->bJMatchInd = TRUE;
 
     r = rand();
     sign = (u32)r >> 31;
-    ((u8 *)&g_d_GameSettings)[0xE] = ((r & 1) ^ sign) - sign;
+    settings->home_AwaySetting = ((r & 1) ^ sign) - sign;
 
-    ((u8 *)&g_d_GameSettings)[0x32] = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
-    ((u8 *)&g_d_GameSettings)[0x37] = lbl_2_bss_1A8248->difficulty;
+    settings->bJMatchRelated = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
+    settings->challengeDifficulty = lbl_2_bss_1A8248->difficulty;
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
-            }
-        }
-    }
-
-    {
-        s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
-        if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
-        }
-    }
+    configureChallengeShopItems();
 
     a = *((u8 *)lbl_2_bss_1A8248 + 0x40F0 + lbl_2_bss_1A8248->_16C2 * 10);
     if (a < 6) {
-        ((u8 *)&g_d_GameSettings)[0x9] = lbl_2_data_3CC0[a];
-        ((u8 *)&g_d_GameSettings)[0xA] = 0;
+        settings->StadiumID = lbl_2_data_3CC0[a];
+        settings->miniGameStadiumIndicator = 0;
     } else if (lbl_2_bss_1A8248->_16C0 == 3) {
         if (a == 0) {
-            ((u8 *)&g_d_GameSettings)[0x9] = 0;
+            settings->StadiumID = STADIUM_ID_MARIO_STADIUM;
         } else if (a == 1) {
-            ((u8 *)&g_d_GameSettings)[0x9] = 1;
+            settings->StadiumID = STADIUM_ID_BOWSERS_CASTLE;
         } else {
-            ((u8 *)&g_d_GameSettings)[0x9] = 4;
+            settings->StadiumID = STADIUM_ID_PEACH_GARDEN;
         }
-        ((u8 *)&g_d_GameSettings)[0xA] = 0;
+        settings->miniGameStadiumIndicator = 0;
     } else {
         if (a == 2) {
-            ((u8 *)&g_d_GameSettings)[0x9] = 2;
+            settings->StadiumID = STADIUM_ID_WARIO_PALACE;
         } else if (a == 3) {
-            ((u8 *)&g_d_GameSettings)[0x9] = 3;
+            settings->StadiumID = STADIUM_ID_YOHSI_PARK;
         } else {
-            ((u8 *)&g_d_GameSettings)[0x9] = 5;
+            settings->StadiumID = STADIUM_ID_DK_JUNGLE;
         }
-        ((u8 *)&g_d_GameSettings)[0xA] = 0;
+        settings->miniGameStadiumIndicator = 0;
     }
 }
 
 // .text:0x0004D194 size:0x1E4 mapped:0x8068C228
 void fn_2_4D194(void) {
-    s32 i;
-    s32 j;
-    s16 *tab = lbl_2_data_373C;
+    GameInitVariables *settings = &g_d_GameSettings;
 
-    ((u8 *)&g_d_GameSettings)[0x8] = 0;
-    ((u8 *)&g_d_GameSettings)[0x39] = 0;
-    ((u8 *)&g_d_GameSettings)[0xA] = 0;
-    ((u8 *)&g_d_GameSettings)[0x37] = lbl_2_bss_1A8248->difficulty;
+    settings->exhibitionMatchInd = FALSE;
+    settings->bJMatchInd = FALSE;
+    settings->miniGameStadiumIndicator = 0;
+    settings->challengeDifficulty = lbl_2_bss_1A8248->difficulty;
 
     if (lbl_2_bss_1A8248->_44EF == 1) {
-        ((u8 *)&g_d_GameSettings)[0xE] = 0;
-        ((u8 *)&g_d_GameSettings)[0x9] = 1;
+        settings->home_AwaySetting = 0;
+        settings->StadiumID = STADIUM_ID_BOWSERS_CASTLE;
     } else {
-        ((u8 *)&g_d_GameSettings)[0xE] = 0;
-        ((u8 *)&g_d_GameSettings)[0x9] = lbl_2_data_3CC0[lbl_2_bss_1A8248->opponentCaptain];
+        settings->home_AwaySetting = 0;
+        settings->StadiumID = lbl_2_data_3CC0[lbl_2_bss_1A8248->opponentCaptain];
     }
 
-    ((u8 *)&g_d_GameSettings)[0x32] = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
+    settings->bJMatchRelated = *((u8 *)lbl_2_bss_1A8248 + 0x4418);
 
-    for (i = 0; i < 20; i++) {
-        ((u8 *)&g_d_GameSettings)[0x3C + i] = 0;
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 5; j++) {
-            if (tab[i * 5 + j] == 0 && *((u8 *)lbl_2_bss_1A8248 + 0x43C2 + i * 5 + j) != 0) {
-                ((u8 *)&g_d_GameSettings)[0x3C + i * 5 + j] = 1;
-            }
-        }
-    }
-
-    {
-        s8 slot = *((s8 *)lbl_2_bss_1A8248 + 0x444B);
-        if (slot != -1) {
-            ((u8 *)&g_d_GameSettings)[0x3C + slot] = 1;
-        }
-    }
+    configureChallengeShopItems();
 }
 
 // .text:0x0004D378 size:0x304 mapped:0x8068C40C
 void fn_2_4D378(void) {
     s32 i;
     s32 j;
-    ChallengeState *ch;
 
     *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7843) = -1;
 
-    ch = lbl_2_bss_1A8248;
-    ch->opponentCaptain = *((u8 *)ch + 0x40F3 + ch->_16C2 * 10);
-    ch->opponentCaptainCharID = challengeCaptainCharIDs[ch->opponentCaptain];
+    lbl_2_bss_1A8248->opponentCaptain = *((u8 *)lbl_2_bss_1A8248 + 0x40F3 + lbl_2_bss_1A8248->_16C2 * 10);
+    lbl_2_bss_1A8248->opponentCaptainCharID = challengeCaptainCharIDs[lbl_2_bss_1A8248->opponentCaptain];
 
     fn_2_4C3EC();
 
-    for (i = 0; i < 54; i++) {
-        ch->characters[i]._7 = ch->characters[i].scoutFlagsAchieved;
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        lbl_2_bss_1A8248->characters[i]._7 = lbl_2_bss_1A8248->characters[i].scoutFlagsAchieved;
     }
 
-    for (i = 0; i < 54; i++) {
-        for (j = 0; j < 20; j++) {
-            *((u8 *)&ch->characters[i] + 0x1D + j) = *((u8 *)&ch->characters[i] + 0x9 + j);
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[i];
+        for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
+            record->saveFileMissionTracker[j].starMissionStatus = record->inGameMissionTracker[j].starMissionStatus;
+            record->saveFileMissionTracker[j].shownOnPauseMenu = record->inGameMissionTracker[j].shownOnPauseMenu;
         }
     }
 }
@@ -444,22 +478,22 @@ void fn_2_4D67C(void) {
     s32 i;
     s32 j;
     s8 pick;
-    ChallengeState *ch;
 
     *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7843) = -1;
 
     pick = fn_2_68690(0);
-    ch = lbl_2_bss_1A8248;
-    ch->opponentCaptain = pick;
-    *((u8 *)ch + 0x4420) = pick - 2;
+    lbl_2_bss_1A8248->opponentCaptain = pick;
+    *((u8 *)lbl_2_bss_1A8248 + 0x4420) = pick - 2;
 
-    for (i = 0; i < 54; i++) {
-        ch->characters[i]._7 = ch->characters[i].scoutFlagsAchieved;
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        lbl_2_bss_1A8248->characters[i]._7 = lbl_2_bss_1A8248->characters[i].scoutFlagsAchieved;
     }
 
-    for (i = 0; i < 54; i++) {
-        for (j = 0; j < 20; j++) {
-            *((u8 *)&ch->characters[i] + 0x1D + j) = *((u8 *)&ch->characters[i] + 0x9 + j);
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[i];
+        for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
+            record->saveFileMissionTracker[j].starMissionStatus = record->inGameMissionTracker[j].starMissionStatus;
+            record->saveFileMissionTracker[j].shownOnPauseMenu = record->inGameMissionTracker[j].shownOnPauseMenu;
         }
     }
 }

@@ -1,5 +1,6 @@
 #include "menus/text_53408.h"
 #include "text/text.h"
+#include "menus/text_35EC0.h"
 #include "Dolphin/GX/GXPixel.h"
 #include "Unknown/File_0x80035838.h"
 #include "Unknown/File_0x800b0a14.h"
@@ -322,18 +323,21 @@ void fn_2_5400C(void) {
     }
 }
 
+static inline void updateEntry(void *arg, Fn53Entry *entry) {
+    void (*fn)(void *, Fn53Entry *) = (void (*)(void *, Fn53Entry *))entry->ptr;
+    if (fn != NULL) {
+        fn(arg, entry);
+    }
+}
+
 // .text:0x00053F88 size:0x84 mapped:0x8069301C
 void fn_2_53F88(void *arg) {
     s32 i;
     s32 j;
 
     for (i = 0; i < 0x46; i++) {
-        u8 *table = lbl_2_bss_1A8234 + i * 0x5100;
         for (j = 0; j < 0x360; j++) {
-            void (*fn)(void *) = *(void (**)(void *))(table + j * 0x18);
-            if (fn != NULL) {
-                fn(arg);
-            }
+            updateEntry(arg, (Fn53Entry *)(lbl_2_bss_1A8234 + i * 0x5100 + j * sizeof(Fn53Entry)));
         }
     }
 }
@@ -344,13 +348,20 @@ void fn_2_53F04(void *arg) {
     s32 j;
 
     for (i = 0; i < 0xA; i++) {
-        u8 *table = lbl_2_bss_1A8230 + i * 0x5100;
         for (j = 0; j < 0x360; j++) {
-            void (*fn)(void *) = *(void (**)(void *))(table + j * 0x18);
-            if (fn != NULL) {
-                fn(arg);
-            }
+            updateEntry(arg, (Fn53Entry *)(lbl_2_bss_1A8230 + i * 0x5100 + j * sizeof(Fn53Entry)));
         }
+    }
+}
+
+static inline TextGraphicsObject *entryObject(void *arg, Fn53Entry *entry) {
+    return graphicsRelatedArray[((TextScene *)arg)->firstHandle + entry->index].object;
+}
+
+static inline void clearEntryObject(void *arg, Fn53Entry *entry) {
+    if (entry->ptr != NULL) {
+        *((u8 *)entryObject(arg, entry) + 0x68) = 0;
+        entryObject(arg, entry)->flags &= ~0x2;
     }
 }
 
@@ -360,20 +371,8 @@ void fn_2_53DF8(void *arg) {
     s32 j;
 
     for (i = 0; i < 0x46; i++) {
-        Fn53Entry *entries = (Fn53Entry *)(lbl_2_bss_1A8234 + i * 0x5100);
-        for (j = 0; j < 0x360; j += 2) {
-            if (entries[j].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
-            if (entries[j + 1].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j + 1].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
+        for (j = 0; j < 0x360; j++) {
+            clearEntryObject(arg, (Fn53Entry *)(lbl_2_bss_1A8234 + i * 0x5100 + j * sizeof(Fn53Entry)));
         }
     }
 }
@@ -384,139 +383,105 @@ void fn_2_53CEC(void *arg) {
     s32 j;
 
     for (i = 0; i < 10; i++) {
-        Fn53Entry *entries = (Fn53Entry *)(lbl_2_bss_1A8230 + i * 0x5100);
-        for (j = 0; j < 0x360; j += 2) {
-            if (entries[j].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
-            if (entries[j + 1].ptr != NULL) {
-                s32 handle = *(u16 *)((u8 *)arg + 0x14) + entries[j + 1].index;
-                u8 *obj = (u8 *)graphicsRelatedArray[handle].object;
-                obj[0x68] = 0;
-                *(u32 *)(obj + 0x54) &= ~0x2;
-            }
+        for (j = 0; j < 0x360; j++) {
+            clearEntryObject(arg, (Fn53Entry *)(lbl_2_bss_1A8230 + i * 0x5100 + j * sizeof(Fn53Entry)));
         }
     }
 }
 
+static inline u8 *entryFlagRow(u8 **table, s16 index, s32 offset) {
+    return *table + offset + index;
+}
+
 // .text:0x00053BC8 size:0x124 mapped:0x80692C5C
 s16 fn_2_53BC8(void *arg) {
+    s32 result = -1;
     s16 index = *(s16 *)((u8 *)arg + 0xC);
-    u8 *row = lbl_2_bss_1A8234 + 0x160000 + index;
+    u8 *row = entryFlagRow(&lbl_2_bss_1A8234, index, 0x160000);
 
     if (row[0x2604] != 0) {
-        return 0;
+        result = 0;
+    } else if (row[0x264A] != 0) {
+        result = 2;
+    } else if (row[0x2834] != 0) {
+        result = 5;
+    } else if (row[0x2690] != 0) {
+        result = 0x17;
+    } else if (row[0x26D6] != 0) {
+        result = 8;
+    } else if (row[0x271C] != 0) {
+        result = 0xB;
+    } else if (row[0x2762] != 0) {
+        result = 0xE;
+    } else if (row[0x27A8] != 0) {
+        result = 0x11;
+    } else if (row[0x27EE] != 0) {
+        result = 0x14;
+    } else if (row[0x287A] != 0) {
+        result = 0x18;
+    } else if (row[0x28C0] != 0) {
+        result = 0x1B;
+    } else if (row[0x2906] != 0) {
+        result = 0x1E;
+    } else if (row[0x294C] != 0) {
+        result = 0x21;
     }
-    if (row[0x264A] != 0) {
-        return 2;
-    }
-    if (row[0x2834] != 0) {
-        return 5;
-    }
-    if (row[0x2690] != 0) {
-        return 0x17;
-    }
-    if (row[0x26D6] != 0) {
-        return 8;
-    }
-    if (row[0x271C] != 0) {
-        return 0xB;
-    }
-    if (row[0x2762] != 0) {
-        return 0xE;
-    }
-    if (row[0x27A8] != 0) {
-        return 0x11;
-    }
-    if (row[0x27EE] != 0) {
-        return 0x14;
-    }
-    if (row[0x287A] != 0) {
-        return 0x18;
-    }
-    if (row[0x28C0] != 0) {
-        return 0x1B;
-    }
-    if (row[0x2906] != 0) {
-        return 0x1E;
-    }
-    if (row[0x294C] != 0) {
-        return 0x21;
-    }
-    return -1;
+    return result;
 }
 
 // .text:0x00053AA4 size:0x124 mapped:0x80692B38
 s16 fn_2_53AA4(void *arg) {
+    s32 result = -1;
     s16 index = *(s16 *)((u8 *)arg + 0xC);
-    u8 *row = lbl_2_bss_1A8230 + 0x30000 + index;
+    u8 *row = entryFlagRow(&lbl_2_bss_1A8230, index, 0x30000);
 
     if (row[0x2A04] != 0) {
-        return 0;
+        result = 0;
+    } else if (row[0x2A0E] != 0) {
+        result = 2;
+    } else if (row[0x2A54] != 0) {
+        result = 5;
+    } else if (row[0x2A18] != 0) {
+        result = 0x17;
+    } else if (row[0x2A22] != 0) {
+        result = 8;
+    } else if (row[0x2A2C] != 0) {
+        result = 0xB;
+    } else if (row[0x2A36] != 0) {
+        result = 0xE;
+    } else if (row[0x2A40] != 0) {
+        result = 0x11;
+    } else if (row[0x2A4A] != 0) {
+        result = 0x14;
+    } else if (row[0x2A5E] != 0) {
+        result = 0x18;
+    } else if (row[0x2A68] != 0) {
+        result = 0x1B;
+    } else if (row[0x2A72] != 0) {
+        result = 0x1E;
+    } else if (row[0x2A7C] != 0) {
+        result = 0x21;
     }
-    if (row[0x2A0E] != 0) {
-        return 2;
-    }
-    if (row[0x2A54] != 0) {
-        return 5;
-    }
-    if (row[0x2A18] != 0) {
-        return 0x17;
-    }
-    if (row[0x2A22] != 0) {
-        return 8;
-    }
-    if (row[0x2A2C] != 0) {
-        return 0xB;
-    }
-    if (row[0x2A36] != 0) {
-        return 0xE;
-    }
-    if (row[0x2A40] != 0) {
-        return 0x11;
-    }
-    if (row[0x2A4A] != 0) {
-        return 0x14;
-    }
-    if (row[0x2A5E] != 0) {
-        return 0x18;
-    }
-    if (row[0x2A68] != 0) {
-        return 0x1B;
-    }
-    if (row[0x2A72] != 0) {
-        return 0x1E;
-    }
-    if (row[0x2A7C] != 0) {
-        return 0x21;
-    }
-    return -1;
+    return result;
 }
 
 // .text:0x0005389C size:0x208 mapped:0x80692930
 void fn_2_5389C(void) {
     DrawingSceneStruct *item = currentDrawingItem;
-    s32 i;
-    s32 j;
 
-    if (*(u16 *)((u8 *)item + 0x1C) == 0) {
+    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    case 0:
         fn_2_4E878(item, lbl_2_data_1FFB4);
         *(u16 *)((u8 *)item + 0x1C) = 1;
         *(u16 *)((u8 *)item + 0x18) = 0;
+        break;
+    case 1:
+        break;
     }
 
-    for (i = 0; i < 0x46; i++) {
-        u8 *table = lbl_2_bss_1A8234 + i * 0x5100;
-        for (j = 0; j < 0x360; j++) {
-            void (*fn)(void *) = *(void (**)(void *))(table + j * 0x18);
-            if (fn != NULL) {
-                fn(item);
-            }
-        }
-    }
+    fn_2_53F88(item);
+
+    fn_2_54120();
 
     if (lbl_2_bss_1A8234[0x162992] != 0) {
         fn_8000F8F4(item);
