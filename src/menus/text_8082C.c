@@ -255,7 +255,7 @@ void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
                 }
             }
             fn_2_7630C(scene, (u8)channel);
-            channelRecord(scene, channel, 0x80)->flags |= UI_FLAG_VISIBLE;
+            SCENE_RECORD(scene, channel + 0x80)->flags |= UI_FLAG_VISIBLE;
             channelRecord(scene, channel, 0x80)->frame = 0;
             channelRecord(scene, channel, 0x80)->playMode = UI_PLAY_FORWARD;
             channelRecord(scene, channel, 0x85)->frame = 0;
@@ -271,8 +271,8 @@ void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
             channelRecord(scene, channel, 0x7C)->frame = 0;
             channelRecord(scene, channel, 0x7C)->playMode = UI_PLAY_FORWARD;
             gfx_cssCharStatBars_and_sthgElse(scene, channel);
-            channelRecord(scene, channel, 0xAC)->flags &= ~UI_FLAG_VISIBLE;
         }
+        channelRecord(scene, channel, 0xAC)->flags &= ~UI_FLAG_VISIBLE;
         makeCursorUnmovable(channel);
         steps[channel] = 1;
     }

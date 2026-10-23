@@ -4684,3 +4684,21 @@ All eight shared function instruction records equal the audited private final.
 Full build, four output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave19_text_8082C.json and private wave19 final_audit.txt /
 table_semantic_audit.txt. No gameplay/emulator test was performed.
+
+### Shared background cleanup required on both paths (2026-10-23)
+
+A near-exact callback still hid a behavior gap: maybeBackgroundImagesForCaptain
+skipped the handle-0xAC visibility clear on its single-player alternate path.
+The actual target branch lands at the shared cleanup block, whereas the old
+candidate jumped directly to the following cursor-lock call. Moving the clear
+outside the else block restores that path. A direct canonical record access
+also improves the remaining allocation shape: the callback rises from
+99.379310% to 99.954025%, and text_8082C reaches 93.152570% .text.
+
+All eight function floors, two exact functions and data/table scores hold.
+Twenty isolated target/candidate cleanup cases (600 PPC instructions) match
+an independent visibility-clear model, and the actual branch destination is
+checked separately. This does not execute the full call-heavy callback.
+Shared instructions equal the private final; full build, four output hashes
+and whitespace checks pass. Evidence: build/_postmerge_wave21_text_8082C.json
+and private wave21 cleanup_audit.py. No gameplay/emulator test was performed.
