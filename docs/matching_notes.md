@@ -4893,3 +4893,23 @@ canonical UIRecord fields and playback constants. Shared instructions equal
 the private final; full build, four output hashes and whitespace checks pass.
 Evidence: build/_postmerge_wave28_text_5E84C.json and private wave28 prove.py.
 The focused interpreters/models do not execute the complete game runtime.
+
+### Title screen recovered and linked from C (2026-10-23)
+
+All three stubs in text_8ED4C now match exactly: the unit improves from
+1.2820513% to 100%, covering 936 bytes. The title flow starts its prompt,
+handles the memory-card check and sound-mode fallback, then selects the main
+menu or prepares the demonstration match. Existing canonical settings,
+drawing-node and menu types preserve the actual field widths.
+
+The prompt's grouped no-op results 0/1 reproduce the original compare tree;
+adding only result 0 adds an unwanted comparison. Ordinary calls to the two
+same-unit helpers inline naturally in the title callback. All three remain
+exact after the enum/field readability pass and reverse source ordering for
+REL deferred emission.
+
+The unit is now Object(Matching). The linked build consumes our C object,
+all four original output hashes pass, and report.json marks the unit complete
+with 3/3 exact functions. Its entire .text byte sequence and normalized
+relocations equal the target. Whitespace checks pass. Evidence:
+build/_postmerge_wave33_promoted_text_8ED4C.json. No gameplay test was run.
