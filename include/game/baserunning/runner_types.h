@@ -145,7 +145,7 @@ typedef struct _InMemRunnerType {
     /*0x128*/ E(u8, TAG_UP_TYPE) tagUpStatus;
     /*0x129*/ u8 batterStayInBattersBoxReason;
     /*0x12A*/ u8 unused_AIRelated;
-    /*0x12B*/ u8 relatedToRunnerPos;
+    /*0x12B*/ u8 unused_AIBaseHoldFlag; // written by runnerAI_updateUnusedBaseHoldFlag, never read
     /*0x12C*/ u8 outType;
     /*0x12D*/ u8 forcedToAdvanceInd; // maybe
     /*0x12E*/ s8 aiCommittedBase;

@@ -49,7 +49,7 @@ int runnerAI_ballThrownDecision(int runnerIdx);
 int runnerAI_ballHeldDecision(int runnerIdx);
 int runnerAI_groundBallDecision(int runnerIdx, int fastestFielderFrames);
 int runnerAI_flyBallDecision(int runnerIdx, int dropChanceGrade);
-void fn_3_85744(int runnerIdx);
+void runnerAI_updateUnusedBaseHoldFlag(int runnerIdx);
 int runnerAI_checkRunnerAheadBlocking(int runnerIdx, int dropChanceGrade, int* arg2);
 int runnerAI_getRundownDirection(int runnerIdx);
 void runnerAI_requestRunningDirection(int runnerIdx, long actionCode);
