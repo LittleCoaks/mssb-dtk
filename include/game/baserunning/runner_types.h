@@ -8,6 +8,7 @@
  * shared enums. */
 
 #include "mssbTypes.h"
+#include "game/baserunning/runner_tables.h"
 
 // InMemRunnerType running direction fields (runningDirectionCode etc.)
 typedef enum _RUNNER_MOVEMENT_TYPE {

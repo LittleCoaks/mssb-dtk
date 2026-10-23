@@ -396,16 +396,18 @@ u8 ccs_chompTargetThresholds[16] = {
     180, 160, 150, 160, 140, 140, 130, 110,
     100, 130, 120, 110, 150, 130, 110, 0,
 };
-f32 ccs_gameplayConsts[18] = {
+CcsGameplayConsts ccs_gameplayConsts = {
     4.0f, 0.3f, 0.07f, 0.3f, 0.2f, 0.2f, 0.04f, 0.5f,
-    0.05f, 0.05f, 0.1f, 0.1f, 15.0f, 3e+01f, 0.1f, 0.2f,
+    { 0.05f, 0.05f, 0.1f, 0.1f },
+    { 15.0f, 3e+01f },
+    { 0.1f, 0.2f },
     0.04f, 1.8f,
 };
-s16 ccs_timingConsts[12] = {
+CcsTimingConsts ccs_timingConsts = {
     90, 120, 60, 90, 180, 10, 20, 30,
     50, 120, 10, 0,
 };
-f32 lbl_3_data_2191C[2] = { 0.85f, 2.0f };
+CcsSpeedMults ccs_speedMults = { 0.85f, 2.0f };
 s16 ccs_powerupTimers[4] = { 545, 300, 180, 0 };
 s8 ccsAI_bPressDelayRanges[4][2] = {
     { 30, 40 },

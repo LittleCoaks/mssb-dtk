@@ -153,7 +153,6 @@ typedef struct RunnerAnimSlot {
 extern AnimView hugeAnimStruct;
 extern RunnerAnimSlot lbl_3_common_bss_321A0[4];
 extern s16 lbl_3_data_7870[][3];
-extern u8 runnerConstants[][5];
 extern AnimSlot g_UnkAnimation_31EAC[9];
 extern AnimThrowState g_UnkThrowing_31ACC[4];
 extern u8 bodyCheckFrameRelatedConstants[][4];
@@ -1543,13 +1542,13 @@ void runnerAnimation_general(int runnerIdx) {
             if (runner->actionStage == 1) {
                 if (runner->actionFrames_countUp == 1) {
                     if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_WON) {
-                        AnimateCharacter(idx, 0x33, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
+                        AnimateCharacter(idx, 0x33, 0, 1, 1, runnerCharConsts.byChar[runner->charID].slideAnimFrames - runner->actionFrames_countDown, 1, -1);
                     } else if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_FAILED) {
-                        AnimateCharacter(idx, 0x33, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
+                        AnimateCharacter(idx, 0x33, 0, 1, 1, runnerCharConsts.byChar[runner->charID].slideAnimFrames - runner->actionFrames_countDown, 1, -1);
                     } else if (runner->actionInForwardDirectionInd != 0 && runner->nextBase != 0) {
-                        AnimateCharacter(idx, 0x32, 0, 1, 1, runnerConstants[runner->charID][2] - runner->actionFrames_countDown, 1, -1);
+                        AnimateCharacter(idx, 0x32, 0, 1, 1, runnerCharConsts.byChar[runner->charID].slideAnimFrames - runner->actionFrames_countDown, 1, -1);
                     } else {
-                        AnimateCharacter(idx, 0x34, 0, 1, 1, runnerConstants[runner->charID][4] - runner->actionFrames_countDown, 0, -1);
+                        AnimateCharacter(idx, 0x34, 0, 1, 1, runnerCharConsts.byChar[runner->charID].altSlideAnimFrames - runner->actionFrames_countDown, 0, -1);
                     }
                     if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
                         playSoundEffect(0x171);

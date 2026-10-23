@@ -431,15 +431,17 @@ f32 lbl_3_data_1C44[4] = {1e+01f, 2e+01f, 3.0f, 5.0f};
 
 s16 lbl_3_data_1C54[2] = {30, 45};
 
-s16 lbl_3_data_1C58[20] = {
-    30, 60, 4, 90, 45, 40, 5, 80,
-    60, 30, 6, 60, 0, 0, 0, 0,
-    0, 0, 0, 0,
+AiMashConsts aiMashConsts[5] = {
+    { 30, 60, 4, 90 },
+    { 45, 40, 5, 80 },
+    { 60, 30, 6, 60 },
+    { 0, 0, 0, 0 },
+    { 0, 0, 0, 0 },
 };
 
-s16 lbl_3_data_1C80[4] = {-15, 0, 15, 0};
+s16 runnerAIDropGradeAdjust[4] = {-15, 0, 15, 0};
 
-s16 neg20ForRunningAI[4] = {-20, 0, 20, 0};
+s16 runnerAIThrowFramesAdjust[4] = {-20, 0, 20, 0};
 
 u8 batterAIPerfectStealProb[8] = {50, 40, 20, 0, 0, 0, 0, 0};
 

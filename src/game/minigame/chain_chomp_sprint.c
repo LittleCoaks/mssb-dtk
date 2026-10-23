@@ -64,8 +64,6 @@ extern CCSGemType ccs_itemGemCounts[];
 extern f32 ccs_coinPhysicsConsts[];
 extern s16 ccs_coinLifetimeFrames;
 extern u8 ccs_chompTargetThresholds[][3];
-extern f32 ccs_gameplayConsts[];
-extern s16 ccs_timingConsts[];
 extern s16 ccs_powerupTimers[];
 extern s8 ccsAI_bPressDelayRanges[][2];
 extern f32 ccsAI_targetDistThresholds[];
@@ -234,8 +232,8 @@ void chainChompSprintRelated(void) {
             g_Minigame.ccs.segmentItems[i][1] = -1;
         }
         g_Minigame.ccs.specialItemCount = 0;
-        g_Minigame.ccsSpecialItemFrames[0] = RandomInt_Game_Range(ccs_timingConsts[5], ccs_timingConsts[6]) * 60;
-        g_Minigame.ccsSpecialItemFrames[1] = RandomInt_Game_Range(ccs_timingConsts[7], ccs_timingConsts[8]) * 60;
+        g_Minigame.ccsSpecialItemFrames[0] = RandomInt_Game_Range(ccs_timingConsts.specialItem0MinSeconds, ccs_timingConsts.specialItem0MaxSeconds) * 60;
+        g_Minigame.ccsSpecialItemFrames[1] = RandomInt_Game_Range(ccs_timingConsts.specialItem1MinSeconds, ccs_timingConsts.specialItem1MaxSeconds) * 60;
         setDefaultInMemBall();
         g_Minigame.powerup.activeInd = FALSE;
         g_Minigame.powerup.timer = ccs_powerupTimers[0];
@@ -353,7 +351,7 @@ void ccs_updateGameEnd(void) {
     } else {
         if (g_Minigame.turnOverStatus == 1) {
             g_Minigame.turnOverStatus = 2;
-            g_GameLogic.CountdownUntilFade = ccs_timingConsts[0];
+            g_GameLogic.CountdownUntilFade = ccs_timingConsts.turnOverFadeFrames;
         }
         if (g_Minigame.ccs.chompState != 3) {
             g_GameLogic.CountdownUntilFade--;
@@ -460,7 +458,7 @@ void ccs_updateChompWait(void) {
         if (g_Minigame.ccs.chompStateTimer >= g_Minigame.ccs.chompWaitFrames) {
             g_Minigame.ccs.chompState = 1;
             g_Minigame.ccs.chompStateTimer = 0;
-            g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[3];
+            g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts.launchVelocityY;
             chainChomp_spawnLaunchFlash();
             callSfx(0x2E0);
         }
@@ -475,7 +473,7 @@ void ccs_updateChompJump(void) {
         return;
     }
     g_Minigame.ccs.chompPos.y += g_Minigame.ccs.chompVelocity.y;
-    if (g_Minigame.ccs.chompPos.y <= 0.0f && g_Minigame.ccs.chompVelocity.y < -ccs_gameplayConsts[6]) {
+    if (g_Minigame.ccs.chompPos.y <= 0.0f && g_Minigame.ccs.chompVelocity.y < -ccs_gameplayConsts.gravity) {
         g_Minigame.ccs.chompVelocity.y = 0.0f;
         g_Minigame.ccs.chompPos.y = 0.0f;
         spawnDust((Vec*)&g_Minigame.ccs.chompPos);
@@ -485,12 +483,12 @@ void ccs_updateChompJump(void) {
             setCharacterAnimations(i, 1);
         }
     } else if (g_Minigame.ccs.chompPos.y > 0.0f) {
-        g_Minigame.ccs.chompVelocity.y -= ccs_gameplayConsts[6];
+        g_Minigame.ccs.chompVelocity.y -= ccs_gameplayConsts.gravity;
     }
-    if (g_Minigame.ccs.chompStateTimer >= ccs_timingConsts[9]) {
+    if (g_Minigame.ccs.chompStateTimer >= ccs_timingConsts.chompJumpFrames) {
         g_Minigame.ccs.chompState = 2;
         g_Minigame.ccs.chompStateTimer = 0;
-        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[4];
+        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts.chaseHopVelocityY;
     }
 }
 
@@ -573,13 +571,13 @@ void ccs_updateChompChase(void) {
         dz = runner->position.z - g_Minigame.ccs.chompPos.z;
         dist = dolsqrtf2(dx * dx + dz * dz);
         g_Minigame.ccs.chompYaw = calculateAngleFromCoordinates(dx, dz);
-        if (dist < ccs_gameplayConsts[0]) {
+        if (dist < ccs_gameplayConsts.biteRadius) {
             g_Minigame.ccs.chompVelocity.x = dx;
             g_Minigame.ccs.chompVelocity.z = dz;
             goto hit;
         }
-        g_Minigame.ccs.chompVelocity.x = dx * (ccs_gameplayConsts[1] / dist);
-        g_Minigame.ccs.chompVelocity.z = dz * (ccs_gameplayConsts[1] / dist);
+        g_Minigame.ccs.chompVelocity.x = dx * (ccs_gameplayConsts.chaseSpeed / dist);
+        g_Minigame.ccs.chompVelocity.z = dz * (ccs_gameplayConsts.chaseSpeed / dist);
     }
     runner = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[g_Minigame.ccs.chasedPlayer]];
     g_Minigame.ccs.chompPos.x += g_Minigame.ccs.chompVelocity.x;
@@ -587,12 +585,12 @@ void ccs_updateChompChase(void) {
     g_Minigame.ccs.chompPos.z += g_Minigame.ccs.chompVelocity.z;
     if (g_Minigame.ccs.chompPos.y <= 0.0f) {
         g_Minigame.ccs.chompPos.y = 0.0f;
-        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[4];
+        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts.chaseHopVelocityY;
         spawnDust((Vec*)&g_Minigame.ccs.chompPos);
         callSfx(0x2DF);
     } else {
         f32 vy = g_Minigame.ccs.chompVelocity.y;
-        g_Minigame.ccs.chompVelocity.y = vy - ccs_gameplayConsts[6];
+        g_Minigame.ccs.chompVelocity.y = vy - ccs_gameplayConsts.gravity;
         if (vy > 0.0f && g_Minigame.ccs.chompVelocity.y <= 0.0f) {
             callSfx(0x2DE);
         }
@@ -600,7 +598,7 @@ void ccs_updateChompChase(void) {
     dz = runner->position.z - g_Minigame.ccs.chompPos.z;
     dx = runner->position.x - g_Minigame.ccs.chompPos.x;
     dist = dolsqrtf2(dx * dx + dz * dz);
-    if (!(dist < ccs_gameplayConsts[0])) {
+    if (!(dist < ccs_gameplayConsts.biteRadius)) {
         return;
     }
 hit:
@@ -619,7 +617,7 @@ hit:
         g_Minigame.ccs.chompState = 4;
         g_Minigame.ccs.chompStateTimer = 0;
         g_Minigame.ccs.chasedPlayer = -1;
-        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[5];
+        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts.returnHopVelocityY;
     } else {
         g_Minigame.ccs.chaseStep = 0;
     }
@@ -635,14 +633,14 @@ void ccs_updateChompReturn(void) {
         dz = ccs_chompStartPos.z - g_Minigame.ccs.chompPos.z;
         dx = ccs_chompStartPos.x - g_Minigame.ccs.chompPos.x;
         dist = dolsqrtf2(dx * dx + dz * dz);
-        g_Minigame.ccs.chompVelocity.x = dx * (ccs_gameplayConsts[2] / dist);
-        g_Minigame.ccs.chompVelocity.z = dz * (ccs_gameplayConsts[2] / dist);
+        g_Minigame.ccs.chompVelocity.x = dx * (ccs_gameplayConsts.returnSpeed / dist);
+        g_Minigame.ccs.chompVelocity.z = dz * (ccs_gameplayConsts.returnSpeed / dist);
         g_Minigame.ccs.chompYaw = calculateAngleFromCoordinates(dx, dz);
     }
     dx = ccs_chompStartPos.x - g_Minigame.ccs.chompPos.x;
     dz = ccs_chompStartPos.z - g_Minigame.ccs.chompPos.z;
     dist = dolsqrtf2(dx * dx + dz * dz);
-    if (dist <= ccs_gameplayConsts[2]) {
+    if (dist <= ccs_gameplayConsts.returnSpeed) {
         g_Minigame.ccs.chompPos.x = ccs_chompStartPos.x;
         g_Minigame.ccs.chompPos.y = ccs_chompStartPos.y;
         g_Minigame.ccs.chompPos.z = ccs_chompStartPos.z;
@@ -654,11 +652,11 @@ void ccs_updateChompReturn(void) {
         g_Minigame.ccs.chompPos.z += g_Minigame.ccs.chompVelocity.z;
         if (g_Minigame.ccs.chompPos.y <= 0.0f) {
             g_Minigame.ccs.chompPos.y = 0.0f;
-            g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[5];
+            g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts.returnHopVelocityY;
             spawnDust((Vec*)&g_Minigame.ccs.chompPos);
             callSfx(0x2DF);
         } else {
-            g_Minigame.ccs.chompVelocity.y -= ccs_gameplayConsts[6];
+            g_Minigame.ccs.chompVelocity.y -= ccs_gameplayConsts.gravity;
         }
     }
 }
@@ -735,7 +733,7 @@ void ccs_updateItemStates(void) {
                         break;
                     }
                 }
-                g_Minigame.ccs.itemTimer[item] = RandomInt_Game_Range(ccs_timingConsts[3], ccs_timingConsts[4]);
+                g_Minigame.ccs.itemTimer[item] = RandomInt_Game_Range(ccs_timingConsts.itemRespawnMinFrames, ccs_timingConsts.itemRespawnMaxFrames);
             }
         }
     }
@@ -924,7 +922,7 @@ void chainChompSpringPoints(void) {
             for (i = 0; i < 4; i++) {
                 candidates[i] = 0;
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
-                    if (ccsBasePathGap(g_Minigame.coinBasePathPos[coin], g_Runners[i].fractionalBasesRan) <= ccs_gameplayConsts[8 + type]) {
+                    if (ccsBasePathGap(g_Minigame.coinBasePathPos[coin], g_Runners[i].fractionalBasesRan) <= ccs_gameplayConsts.itemPickupRange[type]) {
                         *next++ = i;
                         count++;
                     }
@@ -1095,7 +1093,7 @@ void ccs_updatePowerupOnField(MinigamePowerupStruct* powerup) {
     int candidates[4];
     int* next = candidates;
     int count = 0;
-    f32 range = ccs_gameplayConsts[11];
+    f32 range = ccs_gameplayConsts.itemPickupRange[3];
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -1131,12 +1129,12 @@ void ccs_updatePowerupOnField(MinigamePowerupStruct* powerup) {
 void ccs_startCameraShake(u8 type) {
     switch (type) {
     case 0:
-        ccs_cameraShakeFrames = ccs_gameplayConsts[12];
-        ccs_cameraShakeMagnitude = ccs_gameplayConsts[14];
+        ccs_cameraShakeFrames = ccs_gameplayConsts.cameraShakeFrames[0];
+        ccs_cameraShakeMagnitude = ccs_gameplayConsts.cameraShakeMagnitude[0];
         break;
     case 1:
-        ccs_cameraShakeFrames = ccs_gameplayConsts[13];
-        ccs_cameraShakeMagnitude = ccs_gameplayConsts[15];
+        ccs_cameraShakeFrames = ccs_gameplayConsts.cameraShakeFrames[1];
+        ccs_cameraShakeMagnitude = ccs_gameplayConsts.cameraShakeMagnitude[1];
         break;
     default:
         return;

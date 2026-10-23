@@ -10,7 +10,6 @@ extern const u8 throwSpeedArray[];
 extern int LERPToNewRange_Float(int value, int inMin, int inMax, int outMin, int outMax);
 extern f32 runnerVelocityLookup[];
 extern f32 lbl_3_data_4BC4[];
-extern s16 lbl_3_data_4C54[];
 extern u8 lbl_3_data_775C;
 extern s16 lbl_3_data_460C[6];
 extern s8 lineUpInfoStruct[2][9][4];
@@ -527,5 +526,5 @@ void setRunnerSpeedConstants(int runnerIdx) {
     runner->stamina_MashPercentTakenAwayPerFrame =
         1.0f / LinearInterpolateToNewRange(runner->speed, 0.0f, 100.0f,
                                                          lbl_3_data_4BC4[8], lbl_3_data_4BC4[9]);
-    runner->FramesUntilNotSprinting = lbl_3_data_4C54[7];
+    runner->FramesUntilNotSprinting = runnerTimingConsts.sprintFrames;
 }

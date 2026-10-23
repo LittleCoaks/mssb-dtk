@@ -1,4 +1,5 @@
 #include "mssbTypes.h"
+#include "game/baserunning/runner_tables.h"
 #include "game/match_setup/match_end.h"
 #include "game/match_setup/star_power_costs.h"
 
@@ -358,7 +359,8 @@ f32 baseCoordsForRunning[4][2] = {
     { -18.5f, 19.2999992f },
 };
 
-f32 lbl_3_data_4A54[52] = {
+// Base-rounding path control points: [0] normal games, [1] Chain Chomp Sprint.
+f32 baseRoundingPathPoints[52] = {
     0.0f, 0.0f, 12.5f, 10.5f, 18.0f, 16.5f, 18.7999992f, 19.3999996f,
     18.6000004f, 22.0f, 3.0f, 37.5f, 0.0f, 38.7000008f, -3.0f, 38.7000008f,
     -17.5f, 22.0f, -18.5f, 19.2999992f, -18.5f, 17.5f, 0.400000006f, 0.300000012f,
@@ -368,44 +370,30 @@ f32 lbl_3_data_4A54[52] = {
     -2.0f, 0.5f, 0.0f, 0.0f,
 };
 
-f32 lbl_3_data_4B24[1] = {
-    0.0120000001f,
-};
+f32 roundingStrengthPerFrame = 0.0120000001f;
 
-f32 lbl_3_data_4B28[6] = {
+f32 overrun1BPathPoints[6] = {
     18.7999992f, 19.3999996f, 23.0f, 22.0f, 25.1000004f, 22.5f,
 };
 
-s16 lbl_3_data_4B40[2] = {
-    60, 120,
-};
+OverrunStageFrames overrun1BStageFrames = { 60, 120 };
 
-f32 lbl_3_data_4B44[1] = {
-    0.100000001f,
-};
+f32 overrunBaseDistance = 0.100000001f;
 
-u32 lbl_3_data_4B48[2] = {
-    0x000F000A, 0x00120000,
-};
+OverrunBaseStageFrames overrunBaseStageFrames = { 15, 10, 18, 0 };
 
-f32 lbl_3_data_4B50[1] = {
-    0.300000012f,
-};
+f32 dugoutRunSpeed = 0.300000012f;
 
-s16 lbl_3_data_4B54[1] = {
-    45,
-};
+s16 dugoutRunFrames = 45;
 
-f32 someRunningAngleArray[4][3] = {
+BaseFacingAngles baseFacingAngles[4] = {
     { 2.3599999f, -2.3599999f, 3.1400001f },
     { 0.779999971f, -2.3599999f, 1.57000005f },
     { -0.779999971f, 2.3599999f, 0.0f },
     { -2.30999994f, -2.3599999f, -1.57000005f },
 };
 
-f32 lbl_3_data_4B88[2] = {
-    1.0f, 0.660000026f,
-};
+RunnerSpeedCapMult runnerSpeedCapMult = { 1.0f, 0.660000026f };
 
 /* Steal timing in pitch frames: [2] is the frame the jump is judged on; a steal input
  * between [2]-[1] and [2]-[0] frames before it is a perfect steal, otherwise the runner
@@ -438,12 +426,10 @@ f32 runnerVelocityLookup[22] = {
     0.179000005f, 0.181999996f, 0.185000002f, 0.187999994f, 0.189999998f, 0.189999998f,
 };
 
-f32 lbl_3_data_4C44[4] = {
-    0.5f, 0.300000012f, 0.5f, 0.5f,
-};
+RunnerStaminaConsts runnerStaminaConsts = { 0.5f, 0.300000012f, 0.5f, 0.5f };
 
-u32 lbl_3_data_4C54[6] = {
-    0x001EFFEC, 0x0003001E, 0x00020014, 0x00040006, 0x00010FA0, 0x00010003,
+RunnerTimingConsts runnerTimingConsts = {
+    30, -20, 3, 30, 2, 20, 4, 6, 1, 4000, 1, 3,
 };
 
 f32 maybeInitialBatPos[3] = {

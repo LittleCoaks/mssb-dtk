@@ -2138,7 +2138,7 @@ typedef struct {
     /* 0x3C */ f32 _3C;
     /* 0x40 */ s16 AIFrameToBeginPitch;
     /* 0x42 */ u16 _42;
-    /* 0x44 */ s16 aiMashPressesRemaining; // lbl_3_data_1C58[difficulty][1] presses per play
+    /* 0x44 */ s16 aiMashPressesRemaining; // aiMashConsts[difficulty].presses per play
     /* 0x46 */ u8 _46;
     /* 0x47 */ u8 _47;
     /* 0x48 */ u8 unused_highUrgencySituationTracker;
@@ -2187,7 +2187,7 @@ typedef struct {
     /* 0x74 */ u8 _74;
     /* 0x75 */ u8 batterAIStealIndicator;
     /* 0x76 */ u8 batterAIStealingStartFrame;
-    /* 0x77 */ u8 aiMashCooldownFrames; // lbl_3_data_1C58[difficulty][2] frames between press rolls
+    /* 0x77 */ u8 aiMashCooldownFrames; // aiMashConsts[difficulty].cooldownFrames between press rolls
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
     /* 0x7C */ VecXZ _7C[4];
