@@ -380,15 +380,8 @@ void fn_2_51190(u32 arg0, u32 arg1) {
 
     *(s16 *)(STATE_BLOCK + 0x6FE0) = 1;
     *(s16 *)(STATE_BLOCK + 0x6FE4) = 1;
-    for (i = 0; i < 0xA8; i += 8) {
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 0) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 1) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 2) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 3) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 4) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 5) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 6) * 2) = 0;
-        *(s16 *)(STATE_BLOCK + 0x6FE8 + (i + 7) * 2) = 0;
+    for (i = 0; i < 0xA8; i++) {
+        *(s16 *)(STATE_BLOCK + 0x6FE8 + i * 2) = 0;
     }
     *(u32 *)(STATE_BLOCK + 0x6FB8) = arg0;
     *(u32 *)(STATE_BLOCK + 0x6F30) = arg1;
@@ -426,14 +419,15 @@ void fn_2_51358(void) {
 
 void fn_2_5135C(u8 *arg0, s32 idx) {
     s32 n;
+    u32 *values = (u32 *)lbl_2_bss_55E8;
 
     n = *(u16 *)(arg0 + 0x10);
     if (n % lbl_2_data_1F3B0[idx] != 1) {
         return;
     }
-    *(u32 *)(lbl_2_bss_55E8 + 8 + idx * 4) = lbl_2_data_1F3E0[idx];
-    *(u32 *)(lbl_2_bss_55E8 + idx * 4) = lbl_2_data_1F3E8[idx];
-    *(u32 *)(lbl_2_bss_55E8 + 0x10 + idx * 4) = *(u32 *)(STATE_BLOCK + 0x54AC + idx * 4);
+    (values + 2)[idx] = lbl_2_data_1F3E0[idx];
+    values[idx] = lbl_2_data_1F3E8[idx];
+    (values + 4)[idx] = *(u32 *)(STATE_BLOCK + 0x54AC + idx * 4);
 }
 
 void fn_2_513DC(void) {

@@ -4499,3 +4499,32 @@ configuration changes. Full build, four hashes and whitespace checks pass;
 report4196/6479 matching functions,41.85% code. Evidence:
 build/_postmerge_wave8_text_5597C.json and
 build/_postmerge_wave9_text_53408_callbacks.json. No emulator test was performed.
+
+### Challenge shop and save checkpoint (2026-10-22)
+
+text_4B1AC improves from 63.579300% to 83.463990% .text. Three shop setup
+callbacks (fn_2_4C81C, fn_2_4CB94 and fn_2_4CD30) now match exactly after
+readability review, bringing the unit to five exact functions. A shared inline
+helper uses the existing shop-item fields, a flat item index across the 4x5
+eligibility table, and signed availability bytes. The other four callbacks
+improve to 98.924730%, 94.422420%, 83.369940% and 93.016525%. Existing game-mode,
+stadium and boolean symbols replace literals where their meaning is confirmed.
+
+The two save callbacks now copy typed mission pairs and retain target-required
+global pointer reloads. They improve to 72.227980% and 73.459460%. Their direction
+was checked independently: live scout +6 goes to backup +7, and live mission
++9..1C goes to save +1D..30, opposite the result dispatcher's rollback. All 16
+initial function floors remain intact; the earlier dispatcher is unchanged.
+
+A smaller text_50898 cleanup replaces fn_2_51190's manually repeated stores
+with an ordinary loop over the same 168 halfwords, improving 43.164383% to
+56.356163%. A typed destination pointer improves fn_2_5135C from 27.5% to 37.5%
+while preserving its three indexed store locations and period guard. The unit
+reaches 65.042810% from 64.581290%, preserving all 38 function floors, 15 exact
+functions, .data and table scores. Natural-loop alternatives that lowered the
+separate fn_2_50898 baseline were discarded; that function is unchanged.
+
+No shared header or configuration edits. Full build, all four output hashes
+and whitespace checks pass. Project report: 4199/6479 matching functions,
+41.89% code. Evidence: build/_postmerge_wave10_text_4B1AC.json and
+build/_postmerge_wave11_text_50898.json. No emulator test was performed.
