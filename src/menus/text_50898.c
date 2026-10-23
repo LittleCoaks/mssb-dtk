@@ -1,4 +1,5 @@
 #include "menus/text_50898.h"
+#include "game/character_stats.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x80021410.h"
@@ -519,67 +520,71 @@ void fn_2_515DC(u8 arg0) {
     fn_2_4906C();
 }
 
+static inline void copyCharacterStats(CharacterStats* dst, CharacterStats* src) {
+    memcpy(dst, src, 0x1E);
+    dst->stats.CharID = src->stats.CharID;
+    dst->stats.FieldingArm = src->stats.FieldingArm;
+    dst->stats.BattingStance = src->stats.BattingStance;
+    memcpy(&dst->stats.SlapContactSize, &src->stats.SlapContactSize, 2);
+    memcpy(&dst->stats.SlapHitPower, &src->stats.SlapHitPower, 2);
+    dst->stats.BuntingContactSize = src->stats.BuntingContactSize;
+    dst->stats.HitTrajectoryPushPull = src->stats.HitTrajectoryPushPull;
+    dst->stats.HitTrajectoryHighLow = src->stats.HitTrajectoryHighLow;
+    dst->stats.Speed = src->stats.Speed;
+    dst->stats.ThrowingArm = src->stats.ThrowingArm;
+    dst->stats.CharacterClass = src->stats.CharacterClass;
+    dst->stats.Weight = src->stats.Weight;
+    dst->stats.Captain = src->stats.Captain;
+    dst->stats.CaptainStarHitPitch = src->stats.CaptainStarHitPitch;
+    memcpy(&dst->stats.NonCaptainStarSwing, &src->stats.NonCaptainStarSwing, 2);
+    dst->stats.FieldingStats = src->stats.FieldingStats;
+    memcpy(&dst->stats.BattingStatBar, &src->stats.BattingStatBar, 4);
+    memcpy(&dst->chemistry, &src->chemistry, sizeof(ChemistryTable));
+    dst->BytesAfterChemistry[0] = src->BytesAfterChemistry[0];
+    dst->UnusedShorts[0] = src->UnusedShorts[0];
+    dst->UnusedShorts[1] = src->UnusedShorts[1];
+    dst->UnusedShorts[2] = src->UnusedShorts[2];
+    dst->UnusedShorts[3] = src->UnusedShorts[3];
+    dst->UnusedShorts[4] = src->UnusedShorts[4];
+    dst->UnusedShorts[5] = src->UnusedShorts[5];
+    dst->UnusedShorts[6] = src->UnusedShorts[6];
+    dst->UnusedShorts[7] = src->UnusedShorts[7];
+    dst->UnusedShorts[8] = src->UnusedShorts[8];
+    dst->UnusedShorts[9] = src->UnusedShorts[9];
+    dst->UnusedShorts[10] = src->UnusedShorts[10];
+    dst->UnusedShorts[11] = src->UnusedShorts[11];
+    dst->UnusedShorts[12] = src->UnusedShorts[12];
+    dst->UnusedShorts[13] = src->UnusedShorts[13];
+    dst->UnusedShorts[14] = src->UnusedShorts[14];
+    dst->UnusedShorts[15] = src->UnusedShorts[15];
+    dst->UnusedShorts[16] = src->UnusedShorts[16];
+    dst->UnusedShorts[17] = src->UnusedShorts[17];
+    dst->UnusedShorts[18] = src->UnusedShorts[18];
+    dst->UnusedShorts[19] = src->UnusedShorts[19];
+    dst->UnusedShorts[20] = src->UnusedShorts[20];
+}
+
 void fn_2_5163C(void) {
     u8 *ch = g_Challenge;
-    u8 *dst = inMemRoster;
+    CharacterStats *dst = (CharacterStats *)inMemRoster;
     u8 *cur = cursorPositions;
     u8 *lineUp = lineUpInfoStruct;
     s32 i;
     s32 x;
-    u8 *entry;
+    CharacterStats *entry;
     u8 val;
 
     for (i = 0; i < 9; i++) {
         *(u32 *)(Static_Stats_Tables + 0x46E0) = ch[0x441D];
         cur[2] = (u8)*(s16 *)(ch + 0x40B8);
         x = (s8)cur[2];
-        entry = Static_Stats_Tables + (x / 9) * 0x5A0 + (x % 9) * 0xA0;
-        memcpy(dst, entry, 0x1E);
-        *(s16 *)(dst + 0x24) = *(s16 *)(entry + 0x24);
-        dst[0x26] = entry[0x26];
-        dst[0x27] = entry[0x27];
-        memcpy(dst + 0x28, entry + 0x28, 2);
-        memcpy(dst + 0x2A, entry + 0x2A, 2);
-        dst[0x2C] = entry[0x2C];
-        dst[0x2D] = entry[0x2D];
-        dst[0x2E] = entry[0x2E];
-        dst[0x2F] = entry[0x2F];
-        dst[0x30] = entry[0x30];
-        dst[0x31] = entry[0x31];
-        dst[0x32] = entry[0x32];
-        dst[0x33] = entry[0x33];
-        dst[0x34] = entry[0x34];
-        memcpy(dst + 0x35, entry + 0x35, 2);
-        *(u32 *)(dst + 0x20) = *(u32 *)(entry + 0x20);
-        memcpy(dst + 0x37, entry + 0x37, 4);
-        memcpy(dst + 0x3B, entry + 0x3B, 0x36);
+        entry = (CharacterStats *)(Static_Stats_Tables + (x / 9) * 0x5A0) + x % 9;
+        copyCharacterStats(dst, entry);
         val = ch[0x40BB];
-        dst[0x71] = entry[0x71];
-        *(s16 *)(dst + 0x74) = *(s16 *)(entry + 0x74);
-        *(s16 *)(dst + 0x76) = *(s16 *)(entry + 0x76);
-        *(s16 *)(dst + 0x78) = *(s16 *)(entry + 0x78);
-        *(s16 *)(dst + 0x7A) = *(s16 *)(entry + 0x7A);
-        *(s16 *)(dst + 0x7C) = *(s16 *)(entry + 0x7C);
-        *(s16 *)(dst + 0x7E) = *(s16 *)(entry + 0x7E);
-        *(s16 *)(dst + 0x80) = *(s16 *)(entry + 0x80);
-        *(s16 *)(dst + 0x82) = *(s16 *)(entry + 0x82);
-        *(s16 *)(dst + 0x84) = *(s16 *)(entry + 0x84);
-        *(s16 *)(dst + 0x86) = *(s16 *)(entry + 0x86);
-        *(s16 *)(dst + 0x88) = *(s16 *)(entry + 0x88);
-        *(s16 *)(dst + 0x8A) = *(s16 *)(entry + 0x8A);
-        *(s16 *)(dst + 0x8C) = *(s16 *)(entry + 0x8C);
-        *(s16 *)(dst + 0x8E) = *(s16 *)(entry + 0x8E);
-        *(s16 *)(dst + 0x90) = *(s16 *)(entry + 0x90);
-        *(s16 *)(dst + 0x92) = *(s16 *)(entry + 0x92);
-        *(s16 *)(dst + 0x94) = *(s16 *)(entry + 0x94);
-        *(s16 *)(dst + 0x96) = *(s16 *)(entry + 0x96);
-        *(s16 *)(dst + 0x98) = *(s16 *)(entry + 0x98);
-        *(s16 *)(dst + 0x9A) = *(s16 *)(entry + 0x9A);
-        *(s16 *)(dst + 0x9C) = *(s16 *)(entry + 0x9C);
         lineUp[1] = (u8)i;
         lineUp[0] = (u8)i;
         ch += 6;
-        dst += 0xA0;
+        dst++;
         cur[0x14] = val;
         cur++;
         lineUp[2] = val;

@@ -4528,3 +4528,34 @@ No shared header or configuration edits. Full build, all four output hashes
 and whitespace checks pass. Project report: 4199/6479 matching functions,
 41.89% code. Evidence: build/_postmerge_wave10_text_4B1AC.json and
 build/_postmerge_wave11_text_50898.json. No emulator test was performed.
+
+### Records-menu controls and typed roster copy (2026-10-22)
+
+text_579B4 improves from 76.504700% to 98.006270% .text, with eight of ten
+functions exact (previously two). fn_2_587F8 reaches 98.250750% from 58.191807%:
+ordinary 32-element loops replace nested duplication, signed remainder preserves
+the toggle behavior, and the recordsScreen copy pattern restores the target's
+pointer reloads. The seventh destination retains its 6*0x28 row offset; header
+copies preserve the middle halfwords. The shared outer/inner index is retained
+because the target intentionally exits the outer loop after those inner scans.
+An outer state switch and combined case-zero guard also recover shared blocks.
+
+Six handlers (fn_2_57BF8, fn_2_57F50, fn_2_58098, fn_2_581E0, fn_2_58328 and
+fn_2_58470) now match exactly. Their readability pass uses existing UIRecord
+fields and visibility/playback constants; the large routine uses INPUT_BUTTON
+names. All ten function floors remain intact, .data stays at 0%, and its table
+pseudo-symbol improves from 50% to 81.25%. fn_2_5853C remains at 88.2%; a typed
+record hypothesis that lowered its score was discarded.
+
+text_50898's fn_2_5163C now uses the existing copyCharacterStats helper pattern
+from text_0323C and the canonical CharacterStats type. This preserves the
+original field widths, copied ranges and untouched padding while improving
+78.248320% to 86%. Typed source/destination pointers retain the same codegen.
+The unit reaches 65.458275% from 65.042810%, preserving all 38 function floors,
+15 exact functions and data/table scores. A tail-loop alternative changed
+inlining in another function and was discarded after the full-unit audit.
+
+No shared header or configuration changes. Full build, four output hashes and
+whitespace checks pass. Project report: 4205/6479 matching functions, 41.96% code.
+Evidence: build/_postmerge_wave12_text_579B4.json and
+build/_postmerge_wave13_text_50898.json. No emulator test was performed.
