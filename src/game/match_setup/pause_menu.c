@@ -311,7 +311,7 @@ void transitionToPauseScreen(void) {
         pauseStateOnStadiums();
     } else {
         atBat_Fielders();
-        running_MainFunction();
+        running_main();
     }
 }
 

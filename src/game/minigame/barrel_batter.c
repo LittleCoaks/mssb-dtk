@@ -428,7 +428,7 @@ void fn_3_131114(void) {
     setDefaultInMemBall();
     setDefaultInMemPitcher();
     setDefaultInMemBatter();
-    setDefaultInMemRunner();
+    running_setDefaultRunners();
     setDefaultInMemFielder();
     memset(&g_Minigame.aiInputs, 0, 0x78);
     pauseAnimations();
@@ -450,7 +450,7 @@ void bB_AtBat(void) {
         bB_AI();
         atBat_batter();
         bB_clearAIControlled();
-        running_MainFunction();
+        running_main();
         fn_3_12FAC4();
     }
     barrelBatterUpdateTurnOver();

@@ -166,7 +166,7 @@ void chainChompSprintRelated(void) {
             }
             g_Minigame.minigameFramesRemaining = ccs_timeLimitSeconds[4] * 60;
         }
-        setDefaultInMemRunner();
+        running_setDefaultRunners();
         runnerIdx = 0;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.playerSlots.characterIndex[i] >= 0) {
@@ -178,7 +178,7 @@ void chainChompSprintRelated(void) {
                 g_Runners[runnerIdx].miniGamePlayerNum = i;
                 order[i] = runnerIdx;
                 initializeInMemRunner(i, runnerIdx);
-                g_Runners[runnerIdx].runnerStatus = 1;
+                g_Runners[runnerIdx].runnerStatus = RUNNER_STATUS_ON_FIELD;
                 if (!g_Minigame.playerSlots.aiControlledInd[i]) {
                     g_Runners[runnerIdx].unused_batterHandednessForCCS = 0;
                 } else {
@@ -249,7 +249,7 @@ void chainChompSprintRelated(void) {
 
 // .text:0x001413E4 size:0xC8 mapped:0x80780478
 void ccs_introTransition(void) {
-    cCSRunningFun();
+    ccs_running_main();
     switch (g_GameLogic._125) {
     case 0:
         minigameQueueHudEvent(2, minigameIntroFrames[0]);
@@ -329,7 +329,7 @@ void chainChompSpringMainFun(void) {
         callSfx(lbl_3_data_81FC[40]);
     }
     ccsAI_update();
-    cCSRunningFun();
+    ccs_running_main();
     ccsAI_clearControlled();
     ccs_countRunnerMoveFrames();
     ccs_updateItemsAndCoins();
@@ -606,7 +606,7 @@ void ccs_updateChompChase(void) {
 hit:
     ccs_startCameraShake(1);
     g_Minigame.ccs.runnerChompHitState[g_Minigame.ccs.chasedPlayer] = 1;
-    fn_3_7D9DC(g_Minigame.playerSlots.playerRunnerIndex[g_Minigame.ccs.chasedPlayer]);
+    ccs_runnerChompHit_initKnockback(g_Minigame.playerSlots.playerRunnerIndex[g_Minigame.ccs.chasedPlayer]);
     ccs_dropCoinsOnBite(g_Minigame.ccs.chasedPlayer);
     if (g_Minigame.playerIDWithPowerup[0] == g_Minigame.ccs.chasedPlayer) {
         fn_800115C8(g_Minigame.playerIDWithPowerup[0]);

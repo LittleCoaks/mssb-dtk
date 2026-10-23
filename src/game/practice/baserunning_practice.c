@@ -151,7 +151,7 @@ void baseRunningPracticeRelated(void) {
         return;
     }
     if (loadGuidedPractice() != 0) {
-        running_MainFunction();
+        running_main();
         return;
     }
     if (g_Practice.instructionNumber >= 0) {
@@ -222,7 +222,7 @@ void baseRunningPracticeRelated(void) {
         if (g_Practice.instructionNumber < 0 && practice_checkForPause() != 0) {
             break;
         }
-        running_MainFunction();
+        running_main();
         if (g_Practice.instructionNumber >= 0) {
             if (g_Practice.allowPlayToEndIndicator == 0) {
                 g_FieldingLogic.playOverCounter = 0;
@@ -250,7 +250,7 @@ void baseRunningPracticeRelated(void) {
         }
         break;
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
-        initBaseRunnersAfterFoulBall();
+        running_resetRunnersAfterFoulBall();
         initializeSomethingDuringTransition2();
         g_BallsStrikesOuts.strikes = 0;
         g_BallsStrikesOuts.balls = 0;

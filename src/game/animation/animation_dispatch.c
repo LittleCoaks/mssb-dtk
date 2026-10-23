@@ -1346,7 +1346,7 @@ void batterAnimations(void) {
 tail:
         runnerForced = FALSE;
         for (i = 1; i < 4; i++) {
-            if (g_Runners[i].runnerStatus == 1 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[i].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
                 runnerForced = TRUE;
             }
         }

@@ -29,7 +29,7 @@ extern BOOL practice_loadAllGraphics(int teamFielding);
 
 // .text:0x000B6F6C size:0x110
 void fn_3_B6F6C(void) {
-    initBaseRunnersAfterFoulBall();
+    running_resetRunnersAfterFoulBall();
     initializeSomethingDuringTransition2();
     g_BallsStrikesOuts.strikes = 0;
     g_BallsStrikesOuts.balls = 0;
@@ -73,7 +73,7 @@ void fn_3_B6D80(void) {
             return;
         }
     }
-    running_MainFunction();
+    running_main();
     fn_3_B6C9C();
 }
 
@@ -280,8 +280,8 @@ void fn_3_B61C0(void) {
     resetBallValuesBetweenBatters();
     resetPitcherValuesBetweenBatters(0);
     setBatterContactConstants();
-    resetInMemRunners();
-    initializeARunner();
+    running_resetRunners();
+    running_initRunner();
     initializeMiniGameCharacters();
     setDefaultInMemFielder();
     betweenABSetPitcherBatter();
@@ -337,7 +337,7 @@ void fn_3_B5F7C(void) {
     atBat_Pitcher();
     if (g_Practice.pitchingPracticeBatterEnabled != 0) {
         atBat_batter();
-        running_MainFunction();
+        running_main();
     }
     atBat_Fielders();
     if (g_Practice.instructionNumber >= 0) {

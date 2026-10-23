@@ -1042,9 +1042,9 @@ Three distinct shapes, all measured in one file:
   `InMemRunnerType* runner = &g_Runners[i];` (the existing entries).
 - **A loop over elements where the target bumps a base by the struct stride
   inside the loop** -> walking pointer `for (i=0; i<4; i++, runner++)`. This
-  reached 100% on `fn_3_89028`, and separately made MWCC unroll a copy loop the
+  reached 100% on `running_initLiveBallWithoutContact`, and separately made MWCC unroll a copy loop the
   same way the target does (69.4% -> 83.0% on
-  `transferInMemRunnerValuesToNextRunnerIndex`).
+  `running_transferRunnerToNextIndex`).
 
 The tell for the first case is our side re-materialising the global base
 (`lis`/`addi`) where the target reuses an already-live base register.
@@ -1078,7 +1078,7 @@ First seen: `game/game/baserunning/runner` (2026-09).
 
 Which arm of the outermost `if`/`else` is the fall-through dominates the whole
 function's block layout, and getting it backwards scores near zero even when
-every statement is correct. On `running_LiveBall_Human` the first draft scored
+every statement is correct. On `running_liveBall_human` the first draft scored
 **7.9%**; making the other arm the outer `if`, with no other change, scored
 **95.55%**. If a big from-scratch function scores in the single digits, try the
 inversion before rewriting the body. Cross-reference "An exact size match plus a
@@ -1087,7 +1087,7 @@ instance of that class.
 
 Related, smaller levers measured in the same file: `else if` chains versus nested
 `if`s (81.37% nested, 97.20% plain `else if`, 99.07% `else if` with explicit
-`(x & FLAG) == 0` guards on the last branches, all on `running_DirectionOverrides`),
+`(x & FLAG) == 0` guards on the last branches, all on `running_getDirectionOverride`),
 and `<= 1` versus `< 2` (the target's `cmplwi 1; bgt` versus our `cmplwi 2; bge`).
 
 It applies to small functions too, and to the early-return polarity specifically:
@@ -1096,15 +1096,15 @@ rewriting `if (!cond) return NULL; build;` as `if (cond) { build; } else { retur
 
 ## When the target inlines an in-file function it also keeps standalone, copy the body
 
-First seen: `game/game/baserunning/runner`, `running_MainFunction` and
-`cCSRunningFun` (2026-09). Compare "Contradictory declaration-order requirements
+First seen: `game/game/baserunning/runner`, `running_main` and
+`ccs_running_main` (2026-09). Compare "Contradictory declaration-order requirements
 between an auto-inlined static and its standalone `*_unused` copy" above — same
 underlying situation, different remedy.
 
 **Superseded (2026-10-18): calling the helpers does work, built inside-out.** The
 earlier finding here was that a dispatcher hub could not be matched by calling
 its inlined helpers, because "MWCC declines to inline a function that is also a
-real standalone symbol" (`running_MainFunction`: calls 75.3%, copied bodies
+real standalone symbol" (`running_main`: calls 75.3%, copied bodies
 94.2%). That was the `-inline auto` size budget, not the standalone symbol. MWCC
 measures a callee *after* its own inlining, so a helper whose body is still a
 pasted copy of its sub-helpers is too big and stays a `bl`, while the same helper
@@ -1116,7 +1116,7 @@ written as calls to those sub-helpers inlines. Fix order is innermost first:
 - `running_updateRunner` calls `running_updateRunner_chooseDirection` and
   `running_updateRunner_roundBaseOrDugout`; `running_atBatSteals` calls
   `running_atBatSteals_humanInput`.
-- Only then does `running_MainFunction` match at 100% as
+- Only then does `running_main` match at 100% as
   `running_beginFrame(); ...; running_atBatSteals();` / `running_liveBall();` /
   `running_updateRunner(i);` / `running_endFrame();`. Calling
   `running_atBatSteals()` while its body was still pasted gave 79% with a real
@@ -1126,12 +1126,12 @@ written as calls to those sub-helpers inlines. Fix order is innermost first:
 To find these: list functions nothing in the module references (no `bl`, no
 `@ha/@l`, no data pointer), then look for their bodies in same-file callers. In
 runner.c every such orphan was an inlined helper. Not every one can be called:
-in `cCSRunningFun` the Chain Chomp stage helpers (`fn_3_7D79C`, `fn_3_7D920`)
+in `ccs_running_main` the Chain Chomp stage helpers (`ccs_runnerChompHit_recover`, `ccs_runnerChompHit_updateKnockback`)
 either stayed a `bl` or inlined to a worse 97.15%, so keep those pasted.
 
 OPEN QUESTION from the same file, recorded so it is not re-derived: the reverse
 also happens. MWCC inlined two fully-implemented small callees
-(`running_chainChompSprintRelated`, `running_ForceOutStateRelated`) into
+(`ccs_updateRunnerAngles`, `running_updateForceStatus`) into
 `running_endFrame` where the target keeps real `bl` calls, forcing that
 caller to 0.0% and 1040 bytes against the target's 356. A `#pragma dont_inline
 on`/`reset` bracket around the two callees restores the calls and the match. That
@@ -3405,9 +3405,9 @@ by a score change in at least one function.
   (camera_script), the `static inline mg*` helpers whose bodies belonged to named functions
   (minigame_effects, which also fixed the literal-pool order), `ACTSort`/
   `maybeTransformVectorByAnimationMatrix` (C3 act.c), and the base-reset loop in runner's
-  `initializeARunner`/`resetInMemRunners` (an inlined `initBaseRunnersAfterFoulBall`).
+  `running_initRunner`/`running_resetRunners` (an inlined `running_resetRunnersAfterFoulBall`).
 - **Shrinking a function can make MWCC start inlining it into its caller**, which can wreck the
-  caller's score (runner `updateRunnerFramesToClosestBases`). Always re-check callers after
+  caller's score (runner `running_calcFramesToClosestBases`). Always re-check callers after
   shortening a function.
 - **A `#pragma dont_inline` stub can be needed while a callee is still a stub:** otherwise its
   `return NULL` is inlined into a matched caller (objinit `f_InitActorWithLayout`).
@@ -3422,7 +3422,7 @@ by a score change in at least one function.
 - **When the target re-extends a value at every use, re-read the field instead of caching it in
   a local** (same idea as the `*(s8*)&field` read macro in pitcher.c).
 - **Local types should match the field width** (`s16` for `s16` fields, `u8` for bytes; runner
-  `running_DirectionOverrides`).
+  `running_getDirectionOverride`).
 - **`(u32)` on an array index flips the operand order of the final `add`.**
 - **Unsigned constants (`0x10U`) give `cmplwi` on u8 flags.**
 
@@ -3475,7 +3475,7 @@ by a score change in at least one function.
 
 ### Diagnostics (do not commit)
 - `#pragma opt_propagation off` around a caller shows whether constant/copy propagation is the
-  difference (runner `running_AIStartSteals` 61 -> 89.5 with it). It also changes everything else,
+  difference (runner `runnerAI_startSteals` 61 -> 89.5 with it). It also changes everything else,
   so treat it as evidence, not a fix.
 - `objdiff-cli diff` and the report score pooled `.bss` accesses differently (the target carries
   `R_PPC_NONE` relocs). Use the report for regression checks.
@@ -3893,10 +3893,10 @@ Chunk 6 (stadium_draw, stat_book, stat_tracking; 2026-10). updateStadiumFileHead
 
 ### Logic pass summary (all 53 functions)
 
-- **Matched: 7.** fn_3_16C548, running_AIStartSteals, animateShadows_nonBall,
+- **Matched: 7.** fn_3_16C548, runnerAI_startSteals, animateShadows_nonBall,
   piranhaPanic_emitFielderHitFire, practiceMenu_charSelect_update, fn_3_F8E20, fn_3_42CC.
   One more (updateStadiumFileHeaders) was already 100% when reached.
-- **Improved: 30.** Typical gains were 1-10 points. The largest: running_AIStartSteals 60.92 -> 100,
+- **Improved: 30.** Typical gains were 1-10 points. The largest: runnerAI_startSteals 60.92 -> 100,
   piranhaPanic_emitFielderHitFire 72.58 -> 100, fn_3_19FA4 72.88 -> 96.49,
   scoutMissionProgress_init 88.34 -> 99.79, drawStadiumObjects 88.17 -> 96.80,
   fn_3_EE388 89.37 -> 97.80.

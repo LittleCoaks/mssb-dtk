@@ -725,7 +725,7 @@ void soundFxRelated(void) {
         if (g_Ball.pitchHangtimeCounter == 10) {
             for (i = 1; i < 4; i++) {
                 if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD &&
-                    g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+                    g_Runners[i].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
                     if (sound_crowd_EffectsStruct._10 == -1) {
                         sound_crowd_EffectsStruct._10 = playSoundEffect(0x155);
                     }

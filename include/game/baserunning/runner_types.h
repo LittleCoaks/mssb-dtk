@@ -47,6 +47,16 @@ typedef enum _STEALING_STATUS {
     /* 3 */ STEALING_STATUS_PERFECT_STEAL, // input landed in perfectStealWindowFrames
 } STEALING_STATUS;
 
+// Latched on the first frame a stealing runner breaks forward. Non-zero means
+// the runner has left the base; 2-4 is the base a walk would force them to.
+typedef enum _STEAL_FORCED_BASE {
+    /* 0 */ STEAL_FORCED_BASE_NONE,     // n/a, no steal
+    /* 1 */ STEAL_FORCED_BASE_UNFORCED, // a base behind the runner is empty
+    /* 2 */ STEAL_FORCED_BASE_SECOND,
+    /* 3 */ STEAL_FORCED_BASE_THIRD,
+    /* 4 */ STEAL_FORCED_BASE_HOME,
+} STEAL_FORCED_BASE;
+
 typedef struct _InMemRunnerType {
     /*0x000*/ VecXYZ position;
     /*0x00C*/ VecXYZ positionStored;
@@ -135,10 +145,10 @@ typedef struct _InMemRunnerType {
     /*0x128*/ E(u8, TAG_UP_TYPE) tagUpStatus;
     /*0x129*/ u8 batterStayInBattersBoxReason;
     /*0x12A*/ u8 unused_AIRelated;
-    /*0x12B*/ u8 relatedToRunnerPos;
+    /*0x12B*/ u8 unused_AIBaseHoldFlag; // written by runnerAI_updateUnusedBaseHoldFlag, never read
     /*0x12C*/ u8 outType;
     /*0x12D*/ u8 forcedToAdvanceInd; // maybe
-    /*0x12E*/ s8 unused_someBaseNum;
+    /*0x12E*/ s8 aiCommittedBase;
     /*0x12F*/ s8 baseOfFailedBodyCheck; // maybe
     /*0x130*/ E(u8, RUNNER_TAGGED_STATE) taggedState;
     /*0x131*/ u8 runnerDidntReachOnError;
@@ -169,7 +179,7 @@ typedef struct _InMemRunnerType {
     /*0x14A*/ u8 framesSinceLastMash;
     /*0x14B*/ u8 FramesUntilNotSprinting;        // 6?
     /*0x14C*/ u8 someCollisionCheck;             // maybe
-    /*0x14D*/ u8 furthestBaseForcedToGoToOnWalk; // steal related
+    /*0x14D*/ E(u8, STEAL_FORCED_BASE) steal_forcedBaseToGoToOnWalk;
     /*0x14E*/ E(u8, STEALING_STATUS) stealingStatus;
     /*0x14F*/ u8 framesSinceStealInput;
     /*0x150*/ u8 advanceTwoRunnersInSameBaselineTimer;

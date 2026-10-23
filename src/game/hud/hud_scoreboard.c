@@ -2036,7 +2036,7 @@ void drawDiamondMiniMap_ongoing(void) {
         REC(scene, 12)->flags &= ~UI_FLAG_VISIBLE;
         if (g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
             for (i = 1; i < 4; i++) {
-                if (g_Runners[i].runnerStatus != 0 && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+                if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE && g_Runners[i].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
                     REC(scene, 12)->flags |= UI_FLAG_VISIBLE;
                     for (; i < 4; i++) {
                         if (g_Runners[i].stealingStatus == STEALING_STATUS_PERFECT_STEAL) {
