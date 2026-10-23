@@ -50,8 +50,8 @@ void fn_2_405B4(void) {
         challenge = lbl_2_bss_1A8248;
         if (fn_2_45938(challenge->_16C2) == 0) {
             node->timer = 180;
-            *((u8 *)challenge + challenge->_16C2 * 10 + 0x40F1) = 2;
-            WORK_S8(0x7854) = *((u8 *)challenge + challenge->_16C2 * 10 + 0x40F3);
+            ((u8 *)lbl_2_bss_1A8248)[lbl_2_bss_1A8248->_16C2 * 10 + 0x40F1] = 2;
+            WORK_S8(0x7854) = ((u8 *)lbl_2_bss_1A8248)[lbl_2_bss_1A8248->_16C2 * 10 + 0x40F3];
             fn_2_90428(WORK_S8(0x7854) + 10);
             fn_2_90428(WORK_S8(0x7854) + 16);
             fn_2_92654(WORK_S8(0x7854) + 10, 0xC);
@@ -94,8 +94,8 @@ void fn_2_4041C(void) {
         challenge = lbl_2_bss_1A8248;
         if (fn_2_45938(challenge->_16C2) == 0) {
             node->timer = 180;
-            *((u8 *)challenge + challenge->_16C2 * 10 + 0x40F1) = 2;
-            WORK_S8(0x7854) = *((u8 *)challenge + challenge->_16C2 * 10 + 0x40F3);
+            ((u8 *)lbl_2_bss_1A8248)[lbl_2_bss_1A8248->_16C2 * 10 + 0x40F1] = 2;
+            WORK_S8(0x7854) = ((u8 *)lbl_2_bss_1A8248)[lbl_2_bss_1A8248->_16C2 * 10 + 0x40F3];
             lbl_2_bss_1A8234[0x1627C1] = 1;
             fn_80062890(3);
             node->phase = 1;
@@ -111,7 +111,7 @@ void fn_2_4041C(void) {
     case 2: {
         challenge = lbl_2_bss_1A8248;
         *((u8 *)challenge + challenge->_16C2 * 10 + 0x40F1) = 3;
-        node->currentDrawingItem->state = 1;
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     } break;
@@ -756,9 +756,9 @@ void fn_2_3EA44(void) {
     case 3: {
         challenge = lbl_2_bss_1A8248;
         if (challenge->captain == CHALLENGE_CAPTAIN_BOWSER) {
-            *(u8 *)((u8 *)challenge + challenge->_16C2 * 10 + 0x40F1) = 3;
+            ((u8 *)challenge)[challenge->_16C2 * 10 + 0x40F1] = 3;
         }
-        node->currentDrawingItem->state = 1;
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     } break;

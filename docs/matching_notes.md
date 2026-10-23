@@ -5046,3 +5046,39 @@ and candidate PPC agree with independent memory/call models for8160 scenarios
 mutation by callbacks. This excludes full UI/game runtime. Full build,
 four output hashes and whitespace checks pass; evidence wave41 sharedJSON
 and private flow_audit.py. Nine callbacks remain pending.
+
+### Follow-up challenge state reloads (2026-10-23)
+
+text_3E38C reaches91.15712% from89.62283%, preserving all18 floors and
+nine exacts. Three callbacks now follow the target's global challenge/node
+resolution at each use, including after helper calls and between stores.
+The parent remains cached only where target uses the cached node.
+
+Target/candidate PPC agree with independent memory/call models for2880
+scenarios (191280 instructions), covering challenge-bank/current-node changes,
+timer boundaries and variant reloads. This excludes full UI/game runtime.
+Full build/hash4/whitespace and private/shared instruction checks pass.
+Evidence: wave43 shared JSON and private flow_audit.py. No public header,
+config or completed-function status changes.
+
+### Challenge script interpreter and typed file data (2026-10-23)
+
+text_4078C improves23.99914% ->94.006874%, exact6 ->7/13; both stubs
+are implemented. The script interpreter covers110 opcodes, preserving the
+difference between immediate redispatch and yielding waits. Its mission
+helper covers21 display modes and the post-switch completion override.
+The list callback now clears all20 bytes, and an existing manually expanded
+copy is replaced by a natural loop with the target's pointer reloads.
+
+Thirteen typed owned objects (1128 bytes) match target bytes/relocations:
+file descriptors, Vec constants and drawing callbacks. .data reaches64.2369%;
+unknown particle data and generated table layout remain unresolved. Both
+actual tables were decoded independently from ELF relocations.
+
+Focused target/candidate instruction checks pass672 script,138 mission,
+three copy and12 list scenarios. External callees are deterministic stubs;
+their runtime side effects and full game/UI execution are outside this check.
+All13 initial function/section/pseudo floors hold, new exact42388 passes
+readability, shared/private instructions agree, and full build/hash4/
+whitespace pass. Header/config unchanged. Evidence wave40 shared JSON
+and private prove.py/data_relocation_proof.json.
