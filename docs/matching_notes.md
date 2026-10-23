@@ -4999,86 +4999,126 @@ build/_postmerge_wave34_text_3A8FC.json and private wave34 prove.py.
 
 ### Challenge bank copies and callback snapshots (2026-10-23)
 
-text_44F14 improves 71.28488% -> 96.35703%, with five new exact functions
-(14/27 total). Copying ten typed mission pairs, loading scout fields through
-the stored pointer, and resolving the global at each reset store recover the
-original loops. Mission visibility captures signed rule fields before the
-callback, while later global state reads retain their original timing.
-Recruitment compares a sign-extended stored captain against the unsigned
-global captain. The public s8 getter interface stays unchanged.
+text_44F14 improves from 71.28488% to 96.35703%, with five new exact
+functions (14/27 total). Copying ten typed mission pairs, loading scout
+fields through the stored pointer, and resolving the global at each reset
+store recover the original loops. Mission visibility captures signed rule
+fields before the callback, while later global state reads retain their
+original timing. Recruitment compares a sign-extended stored captain with
+the unsigned global captain. The public s8 getter interface stays unchanged.
 
 Focused target/candidate PPC checks pass against independent memory and
-callback models: 24 whole-bank cases, 256 captain banks and20 visibility
-banks, totaling964486 instructions. These do not execute the full game.
-All27 initial function floors and section floors hold. Full build, four
-output hashes and whitespace checks pass; evidence is wave38 shared JSON
-and its private semantic_audit.py. New exacts passed canonical readability.
+callback models: 24 whole-bank cases, 256 captain banks and 20 visibility
+banks, totaling 964,486 instructions. These do not execute the full game.
+All 27 initial function and section floors hold. Full build, four output
+hashes and whitespace checks pass. New exacts passed canonical readability.
+Evidence: build/_postmerge_wave38_text_44F14.json and private wave38
+semantic_audit.py.
 
 ### Explicit playback branches recover generated tables (2026-10-23)
 
-text_33E70 improves98.59381% ->99.84961%, with four new exact functions
-(17/18 total). Calling the playback setter within each branch, instead of
-passing a ternary, restores target node resolution and branch bodies.
-The canonical ScreenTextBlock.justify field also closes two callbacks.
-UIRecord fields and UI_PLAY constants replace raw accesses/values.
+text_33E70 improves from 98.59381% to 99.84961%, with four new exact
+functions (17/18 total). Calling the playback setter within each branch,
+instead of passing a ternary, restores target node resolution and branch
+bodies. The canonical ScreenTextBlock.justify field also closes two
+callbacks. UIRecord fields and UI_PLAY constants replace raw accesses.
 
-Both generated38-word switch tables now match:304 raw bytes and76
+Both generated 38-word switch tables now match: 304 raw bytes and 76
 normalized relocations independently checked against the target. Anonymous
-compiler labels were not the obstacle. All18 function/data/pseudo floors
-hold, shared/private instructions agree, and full build/hash4/whitespace
-pass. Only34F6C remains pending95.61972%; prior no-op label trials must not
-be repeated without new evidence. No public header/config changes.
+compiler labels were not the obstacle. All 18 function, data and pseudo
+floors hold, shared/private instructions agree, and full build, four output
+hashes and whitespace checks pass. Only fn_2_34F6C remains pending at
+95.61972%; prior no-op label trials must not be repeated without new
+evidence. No public header or config changes were needed. Evidence:
+build/_postmerge_wave39_text_33E70.json and private wave39 snapshots.
 
 ### Drawing-node layout and cancellation reloads (2026-10-23)
 
-text_3E38C improves85.91016% ->89.62283%, with nine new exact callbacks.
-The source-local node's comments had the correct offsets, but missing
-priority/scratch fields put timer/frame/phase at12/14/16 instead of14/16/28.
-Correcting the measured fields fixes actual scratch reads/writes. Cancellation
-tails then re-resolve the current global node after external callbacks;
-ordinary exit arms keep the cached node. Reversing one equivalent sound
-branch closes the ninth callback. No public header or config changes.
+text_3E38C improves from 85.91016% to 89.62283%, with nine new exact
+callbacks. The source-local node's comments had the correct offsets, but
+missing priority/scratch fields put timer/frame/phase at 0x12/0x14/0x16
+instead of 0x14/0x16/0x28. Correcting the measured fields fixes actual scratch
+reads and writes. Cancellation tails then resolve the current global node
+after external callbacks; ordinary exit arms keep the cached node where
+the target does. Reversing one equivalent sound branch closes the ninth
+callback. No public header or config changes were needed.
 
-All18 initial function floors improve; data0/pseudo50 hold. The nine exacts
-pass individual readability review and fresh wholeunit diff. Actual target
-and candidate PPC agree with independent memory/call models for8160 scenarios
-(507168 instructions), including timer/phase boundaries and active-node
-mutation by callbacks. This excludes full UI/game runtime. Full build,
-four output hashes and whitespace checks pass; evidence wave41 sharedJSON
-and private flow_audit.py. Nine callbacks remain pending.
+All 18 initial function floors improve; .data 0% and pseudo 50% hold. The
+nine exacts pass individual readability review and a fresh whole-unit diff.
+Actual target and candidate PPC agree with independent memory/call models
+for 8,160 scenarios (507,168 instructions), including timer/phase boundaries
+and active-node mutation by callbacks. This excludes full game/UI runtime.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave41_text_3E38C.json and private wave41 flow_audit.py.
+Nine callbacks remain pending.
 
 ### Follow-up challenge state reloads (2026-10-23)
 
-text_3E38C reaches91.15712% from89.62283%, preserving all18 floors and
-nine exacts. Three callbacks now follow the target's global challenge/node
-resolution at each use, including after helper calls and between stores.
-The parent remains cached only where target uses the cached node.
+text_3E38C reaches 91.15712% from 89.62283%, preserving all 18 function
+floors and nine exacts. Three callbacks now follow the target's global
+challenge/node resolution at each use, including after helper calls and
+between stores. The parent remains cached only where the target uses it.
 
-Target/candidate PPC agree with independent memory/call models for2880
-scenarios (191280 instructions), covering challenge-bank/current-node changes,
-timer boundaries and variant reloads. This excludes full UI/game runtime.
-Full build/hash4/whitespace and private/shared instruction checks pass.
-Evidence: wave43 shared JSON and private flow_audit.py. No public header,
-config or completed-function status changes.
+Target/candidate PPC agree with independent memory/call models for 2,880
+scenarios (191,280 instructions), covering challenge-bank/current-node
+changes, timer boundaries and variant reloads. This excludes full game/UI
+runtime. Full build, four output hashes, whitespace and private/shared
+instruction checks pass. No public header, config or completed-function
+status changes were needed. Evidence:
+build/_postmerge_wave43_text_3E38C.json and private wave43 flow_audit.py.
 
 ### Challenge script interpreter and typed file data (2026-10-23)
 
-text_4078C improves23.99914% ->94.006874%, exact6 ->7/13; both stubs
-are implemented. The script interpreter covers110 opcodes, preserving the
-difference between immediate redispatch and yielding waits. Its mission
-helper covers21 display modes and the post-switch completion override.
-The list callback now clears all20 bytes, and an existing manually expanded
-copy is replaced by a natural loop with the target's pointer reloads.
+text_4078C improves from 23.99914% to 94.006874%, with exact functions
+increasing from 6 to 7/13; both stubs are implemented. The script interpreter
+covers 110 opcodes, preserving the difference between immediate redispatch
+and yielding waits. Its mission helper covers 21 display modes and the
+post-switch completion override. The list callback now clears all 20 bytes,
+and an existing manually expanded copy is replaced by a natural loop with
+the target's pointer reloads.
 
-Thirteen typed owned objects (1128 bytes) match target bytes/relocations:
-file descriptors, Vec constants and drawing callbacks. .data reaches64.2369%;
-unknown particle data and generated table layout remain unresolved. Both
-actual tables were decoded independently from ELF relocations.
+Thirteen typed owned objects (1,128 bytes) match target bytes/relocations:
+file descriptors, Vec constants and drawing callbacks. .data reaches
+64.2369%; unknown particle data and generated table layout remain unresolved.
+Both actual tables were decoded independently from ELF relocations.
 
-Focused target/candidate instruction checks pass672 script,138 mission,
-three copy and12 list scenarios. External callees are deterministic stubs;
-their runtime side effects and full game/UI execution are outside this check.
-All13 initial function/section/pseudo floors hold, new exact42388 passes
-readability, shared/private instructions agree, and full build/hash4/
-whitespace pass. Header/config unchanged. Evidence wave40 shared JSON
-and private prove.py/data_relocation_proof.json.
+Focused target/candidate instruction checks pass 672 script, 138 mission,
+three copy and 12 list scenarios. External callees are deterministic stubs;
+their runtime side effects and full game/UI execution are outside this
+check. All 13 initial function, section and pseudo floors hold. New exact
+fn_2_42388 passes readability, shared/private instructions agree, and full
+build, four output hashes and whitespace checks pass. Header/config remain
+unchanged. Evidence: build/_postmerge_wave40_text_4078C.json and private
+wave40 prove.py/data_relocation_proof.json.
+
+### Challenge list bounds, signed keys and existing inlines (2026-10-23)
+
+text_42BE8 improves from 69.41226% to 74.82986%, with four exact functions
+(previously three). The list builder now scans 54 characters, counts actual
+successful lineup appends, starts the secondary extraction list at zero,
+sorts sign-extended keys, and compacts all 54 records. Petey (0x26) moves to
+fixed secondary-list index 2. The helper deliberately counts the first 48
+recruits; that helper definition must not replace the builder's 54-slot scan.
+
+Actual target/candidate PPC agrees with an independent stable-sort/list
+model for 216 boundary cases (2,826,404 instructions), including signed keys
+128/255, 31 recruits plus a last-slot-only append, and entries 36..53.
+Another 100 requirement-count cases pass. All 65,536 signed-halfword IDs
+preserve the Toad membership predicate, now exact after readability review.
+A transient King Boo/Petey enum substitution failed the independent model
+and was corrected before integration. These are focused checks, not full
+game/UI execution.
+
+Compiled instructions disprove the old missing-inline explanation: target
+and candidate already inline the sort in fn_2_44504, and both mission/count
+callers already inline their predicates. Explicit inline/wrapper trials
+regressed public functions and were reverted. Reverse definition order
+restores generated table order, but table destinations still differ with
+nonexact code: raw zero bytes and owning symbols alone do not make .data
+exact. Its score remains 0%, with pseudo 50%.
+
+All 17 function/section/pseudo floors hold. Shared/private instructions,
+full build, four output hashes and whitespace checks pass. No public header
+or config changes were needed. Evidence:
+build/_postmerge_wave42_text_42BE8.json and private wave42 list_audit.py,
+data_audit.py and toad_range_audit.py.
