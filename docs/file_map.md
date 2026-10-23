@@ -267,7 +267,7 @@ guided instructions and pause handling, and the scene/HUD code.
 
 ## data_only/ — 1 file, 0 fns
 
-Only `data_428C.c` is left: a data-only unit added for shared `.data` tables
+Only `gameplay_tables.c` (formerly `data_428C.c`) is left: a data-only unit added for shared `.data` tables
 with no code owner and named by address (see [Unowned game REL
 `.data`](splits.md#unowned-game-rel-data-2026-10-08)). Its two siblings were
 named on 2026-10-18: `data_1880.c` is now `match_setup/ai_tables.c` and
@@ -305,7 +305,7 @@ not a shared gameplay purpose.
 
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
-| `data_428C.c` | — | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `match_setup/ai_tables.c` and `match_setup/character_constants.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
+| `gameplay_tables.c` | `data_428C` | 0 (0) | — | Field coordinates, bounce, hit-trajectory, fielding and bobble constants; challenge coin tables, `CommonUIFiles_matchEnd` and star power costs (0x5FF4-0x6510, formerly `match_flow_data.c`). Has no `repHeaderData` of its own, like `match_setup/ai_tables.c` and `match_setup/character_constants.c`; whether it is a separate data file or `match_main.c`'s / `match_end.c`'s `.data` is open (no pooled reference decides it). | inferred |
 
 ## src/menus — the menu REL
 

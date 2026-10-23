@@ -140,7 +140,7 @@ neighbours, so each became a data-only unit (two were later found to be code
 units' `.data`; see the 2026-10-15 entry below), named by
 address: `data_only/data_1880.c` (pitcher/batter AI tables, after `camera.c`; now
 `match_setup/ai_tables.c`),
-`data_428C.c` (field coordinates, hit and fielding constants, after
+`gameplay_tables.c` (field coordinates, hit and fielding constants, after
 `match_loading.c`; it also owns `0x5FF4-0x6510`, the challenge and match-end
 tables formerly in `match_flow_data.c`: an object at the 4-aligned `0x5FF4`
 cannot start a unit, since MWCC 8-aligns every unit's `.data`), `data_69C0.c` (batter/fielder hitboxes, runner constants,
@@ -294,7 +294,7 @@ several TUs. It is not:
 - **The four tables belong to the code after it:** `match_loading.c` (`0x59918`) and
   the old `match_flow.c` (`0x5A684-0x60768`), which had no `.rodata`, include the
   header like almost every unit, and come next in link order (`.data`: fielder
-  `0x3C40`, match_loading `0x3D60`, `data_428C` `0x4290`, match_flow `0x6510`,
+  `0x3C40`, match_loading `0x3D60`, `gameplay_tables` `0x4290`, match_flow `0x6510`,
   animation_dispatch `0x65F0`).
 - **`match_flow.c` was three TUs.** *(a)* In the whole game REL, no leaf function of 40
   instructions or less is called with `bl` from its own unit (MWCC's
@@ -309,11 +309,11 @@ several TUs. It is not:
   (`0x5BD40`), so its TU starts at `0x5B220` or earlier. `fn_3_5C418` is inlined into
   `baseballMatchSimulation`, and so are `settingGameStatus`, `fn_3_5D9F8`,
   `freePracticeSomething` and `fn_3_5FE88`, so `0x5C418-0x60768` is one TU. *(c)* That
-  makes four TUs with four tables. `data_428C.c` gets none, like the other two
+  makes four TUs with four tables. `gameplay_tables.c` gets none, like the other two
   shared-table blobs `ai_tables.c` and `character_constants.c` (then `data_1880.c` and `data_69C0.c`): every table in their stretches
   of `.rodata` belongs to a code unit. *(d)* The `.data` is consistent. A unit's
   data objects always come before its jump tables (true in all 19 game units that have
-  both), so `data_428C` (`0x4290`) cannot be `match_loading`'s. The new
+  both), so `gameplay_tables` (`0x4290`) cannot be `match_loading`'s. The new
   `match_end`/`match_flow` boundary `0x6540` is 8-aligned. `jumptable_3_data_6510` is one
   12-entry table (`cmplwi r6, 0xb`), so its size was fixed to 0x30 (dtk had cut it into
   `0xC` plus a `gap_04_0000651C_data`, which scored `.data` 40% once it was in its own unit).
@@ -321,7 +321,7 @@ several TUs. It is not:
 | unit | `.text` | `.rodata` | `.data` | evidence / confidence |
 |---|---|---|---|---|
 | `match_setup/match_loading.c` (+`rep_CC8`) | `0x59918-0x5A684` | `0xCC8-0xD18` | `0x3D60-0x4290` | next TU after fielder in every section; high |
-| `data_only/data_428C.c` (unchanged) | — | — | `0x4290-0x6510` | no table (see (c)); medium |
+| `data_only/gameplay_tables.c` (unchanged) | — | — | `0x4290-0x6510` | no table (see (c)); medium |
 | `match_setup/match_main.c` (+`rep_D18`) | `0x5A684-0x5B220` | `0xD18-0xD68` | — | (a), (b): high that it is its own TU; the end could be anywhere in `0x5ACA0-0x5B220` (call chain `gameSimulationFunction` -> `simulate1FrameOfTheGame` -> `exitToMenuControl` and `fn_3_5AE0C` -> `gameInitRelated` keeps the whole top level together); medium |
 | `match_setup/match_end.c` (+`rep_D68`) | `0x5B220-0x5C418` | `0xD68-0xDB8` | `0x6510-0x6540` | (a), (b) fix it as separate from `match_main`; its separation from `match_flow` rests on the table count (c) and the theme change; medium |
 | `match_setup/match_flow.c` (+`rep_DB8`) | `0x5C418-0x60768` | `0xDB8-0xE08` | `0x6540-0x65EC` | (b); high |
@@ -331,16 +331,16 @@ it calls `SetGameStatus` or `resetCount`). Every moved function kept its score.
 
 Left open:
 
-- **The alternative count.** If `data_428C` did carry a table, `match_end` and
+- **The alternative count.** If `gameplay_tables` did carry a table, `match_end` and
   `match_flow` would be one TU (nothing inlines across `0x5C418`, and neither half calls
   a small function of the other). The table rule (c) is the only argument against that.
-- **Who owns `data_428C`.** It may be `match_main`'s `.data`: that unit has none, and in
+- **Who owns `gameplay_tables`.** It may be `match_main`'s `.data`: that unit has none, and in
   link order its `.data` would sit exactly at `0x4290`. Or the match-end tail may be
   `match_end`'s own data: `CommonUIFiles_matchEnd` (`0x6130`, 8-aligned) is used only by
   `matchEndGameScreenFunction`, much as `match_loading` owns `CommonUIFiles_inGame`, and
   `lbl_3_data_5FF4`/`6074` only by `startChallengeModeMatch`. But all of these are globals
   read by symbol (no pooled base), the rest of the tail (`starPowerCosts`, `0x60F8`, `0x610C`)
-  is read by other units, and `0x5FF4` cannot start a unit. So `data_428C` stays one data-only unit.
+  is read by other units, and `0x5FF4` cannot start a unit. So `gameplay_tables` stays one data-only unit.
 
 ## Main DOL: the Challenge translation unit (2026-10-12)
 

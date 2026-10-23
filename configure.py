@@ -876,7 +876,7 @@ config.libs = [
             Object(NonMatching, "game/animation/animation_init.c"),
             Object(NonMatching, "game/fielding/fielder.c"),
             Object(NonMatching, "game/match_setup/match_loading.c"),
-            Object(Matching, "game/data_only/data_428C.c"),
+            Object(Matching, "game/data_only/gameplay_tables.c"),
             Object(Matching, "game/match_setup/match_main.c"),
             Object(NonMatching, "game/match_setup/match_end.c"),
             Object(NonMatching, "game/match_setup/match_flow.c"),
