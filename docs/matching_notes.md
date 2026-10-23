@@ -4608,3 +4608,29 @@ This scan does not establish the correctness of tables in non-exact functions.
 All function/section floors are preserved. Full build, four output hashes and
 whitespace checks pass. Evidence: build/_postmerge_wave16_text_5597C.json and
 build/.match_grind/exact_table_audit/summary.json. No emulator test was performed.
+
+### Character-selection first pass completed (2026-10-22)
+
+All eight return stubs in text_8082C are now drafted, including cssActions,
+maybeBackgroundImagesForCaptain and relatedToTeamSelection3. The unit improves
+from 0.3399915% to 90.304290% .text. No functions are exact yet; all eight
+initial function floors and section scores are preserved. Its two tables were
+decoded before constructing the 21-case and 9-state dispatchers. All 30 first
+following-call identities agree, with manual review where distinct cases share
+a later call. This is a behavior review, not an exact data-relocation claim:
+.data remains 0%, with the newly scored table pseudo-symbol at 65%.
+
+The first six functions take a MenuScene pointer and channel index, confirmed
+by their live inputs and dispatcher calls. The header now declares those
+parameters; only the unit's own source includes that header or calls the six
+functions. Canonical roster/stat/UI types and character/game-mode/CPU enums
+replace raw accesses where supported. The state-5D write in fn_2_80C2C remains
+inside its flag-55 guard, as required by the target. Removal at the dispatcher
+entry still permits subsequent processing and the trailing exit check.
+
+A repository-standard dont_inline region keeps fn_2_808D8 out of line because
+the target calls it explicitly; other small readiness functions inline
+naturally. No register forcing, artificial loop unrolling or speculative
+renames. The full build, all four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave15_text_8082C.json and private wave15 table_decode.txt /
+table_semantic_audit.txt. No gameplay/emulator test was performed.
