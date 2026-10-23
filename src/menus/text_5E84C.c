@@ -108,6 +108,27 @@ static void drawNumber(TextScene *scene, TextHandleRec *rec, s32 value, s32 digi
     }
 }
 
+// Prepare the four digits before issuing the icon updates.
+static inline void drawFourDigits(TextScene *scene, TextHandleRec *rec, s32 value, u32 element) {
+    s32 digits[4];
+    s32 place = 1;
+    s32 part;
+    for (part = 0; part < 4; part++) {
+        digits[part] = (value / place) % 10;
+        place *= 10;
+    }
+    place = 10;
+    for (part = 1; part < 4; part++) {
+        if (value < place) {
+            digits[part] = NUMBER_BLANK_FRAME;
+        }
+        place *= 10;
+    }
+    for (part = 0; part < 4; part++) {
+        load_Icon(scene, rec->handle, part + 1, element, digits[part]);
+    }
+}
+
 // .text:0x00060DF4 size:0x188 mapped:0x8069FE88
 void fn_2_60DF4(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
@@ -261,7 +282,7 @@ void fn_2_6051C(TextScene *scene, TextHandleRec *rec) {
         break;
     case 2: {
         s32 value = fn_8006C268(WORK_BASE() + 0x7430);
-        drawNumber(scene, rec, value, 4, 0x74);
+        drawFourDigits(scene, rec, value, 0x74);
         showRecord(scene, rec);
         break;
     }
@@ -550,10 +571,12 @@ void fn_2_5EEBC(TextScene *scene, TextHandleRec *rec) {
         hideRecord(scene, rec);
         break;
     case 2:
-        showRecord(scene, rec);
+        nodeSetFrame(nodeOf(scene, rec), 0);
+        nodeShow(nodeOf(scene, rec));
+        nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
+        rec->state = 0x25;
         break;
     case 1:
-    case 3:
     case 0x25:
         break;
     case 5:
@@ -566,9 +589,9 @@ void fn_2_5EEBC(TextScene *scene, TextHandleRec *rec) {
             rec->state = 7;
         }
         break;
-    }
-    if (rec->state == 7) {
+    case 7:
         nodeHide(nodeOf(scene, rec));
+        break;
     }
 }
 
@@ -660,54 +683,61 @@ void fn_2_5EB78(void) {
     }
 }
 
+static inline u8 *recordCopyDestination(s32 fieldOffset, s32 recordOffset, s32 base) {
+    u8 *address = lbl_2_bss_1A824C + fieldOffset;
+    address += base;
+    address += recordOffset;
+    return address;
+}
+
 // .text:0x0005E84C size:0x32C mapped:0x8069D8E0
 void fn_2_5E84C(void) {
-    s32 i = 0;
-    s32 k;
-    s32 off = 0;
-
-    do {
-        if (i == 6) {
-            *(u32 *)(WORK_BASE() + 0x72EC) = *(u32 *)(lbl_2_bss_1A8240 + 0x118);
-            *(s16 *)(WORK_BASE() + 0x72F0) = *(s16 *)(lbl_2_bss_1A8240 + 0x11C);
-            *(s16 *)(WORK_BASE() + 0x72F2) = *(s16 *)(lbl_2_bss_1A8240 + 0x11E);
-            *(u32 *)(WORK_BASE() + 0x72F4) = *(u32 *)(lbl_2_bss_1A8240 + 0x120);
-            *(s16 *)(WORK_BASE() + 0x72F8) = *(s16 *)(lbl_2_bss_1A8240 + 0x124);
-            *(s16 *)(WORK_BASE() + 0x72FA) = *(s16 *)(lbl_2_bss_1A8240 + 0x126);
-            *(u32 *)(WORK_BASE() + 0x72FC) = *(u32 *)(lbl_2_bss_1A8240 + 0x128);
-            *(s16 *)(WORK_BASE() + 0x7300) = *(s16 *)(lbl_2_bss_1A8240 + 0x12C);
-            *(s16 *)(WORK_BASE() + 0x7302) = *(s16 *)(lbl_2_bss_1A8240 + 0x12E);
-            *(u32 *)(WORK_BASE() + 0x7304) = *(u32 *)(lbl_2_bss_1A8240 + 0x130);
-            *(s16 *)(WORK_BASE() + 0x7308) = *(s16 *)(lbl_2_bss_1A8240 + 0x134);
-            *(s16 *)(WORK_BASE() + 0x730A) = *(s16 *)(lbl_2_bss_1A8240 + 0x136);
-            *(u32 *)(WORK_BASE() + 0x730C) = *(u32 *)(lbl_2_bss_1A8240 + 0x138);
-            *(s16 *)(WORK_BASE() + 0x7310) = *(s16 *)(lbl_2_bss_1A8240 + 0x13C);
-            *(s16 *)(WORK_BASE() + 0x7312) = *(s16 *)(lbl_2_bss_1A8240 + 0x13E);
-        } else {
-            u8 *src = lbl_2_bss_1A8240;
-            u8 *dst = WORK_BASE() + 0x72EC + off;
-            CopyRec *srcRec = (CopyRec *)(src + lbl_2_data_20C48[i] * 0x28 + 0x28);
-            CopyRec *dstRec = (CopyRec *)dst;
-            for (k = 0; k < 5; k++) {
-                dstRec[k].value = srcRec[k].value;
-                dstRec[k].a = srcRec[k].a;
-                dstRec[k].b = srcRec[k].b;
-            }
-        }
-        i++;
-        off += 0x28;
-    } while (i < 7);
-
     {
-        *(u32 *)(WORK_BASE() + 0x72C4) = *(u32 *)(lbl_2_bss_1A8240 + 0x00);
-        *(s16 *)(WORK_BASE() + 0x72CA) = *(s16 *)(lbl_2_bss_1A8240 + 0x06);
-        *(u32 *)(WORK_BASE() + 0x72CC) = *(u32 *)(lbl_2_bss_1A8240 + 0x08);
-        *(s16 *)(WORK_BASE() + 0x72D2) = *(s16 *)(lbl_2_bss_1A8240 + 0x0E);
-        *(u32 *)(WORK_BASE() + 0x72D4) = *(u32 *)(lbl_2_bss_1A8240 + 0x10);
-        *(s16 *)(WORK_BASE() + 0x72DA) = *(s16 *)(lbl_2_bss_1A8240 + 0x16);
-        *(u32 *)(WORK_BASE() + 0x72DC) = *(u32 *)(lbl_2_bss_1A8240 + 0x18);
-        *(s16 *)(WORK_BASE() + 0x72E2) = *(s16 *)(lbl_2_bss_1A8240 + 0x1E);
-        *(u32 *)(WORK_BASE() + 0x72E4) = *(u32 *)(lbl_2_bss_1A8240 + 0x20);
-        *(s16 *)(WORK_BASE() + 0x72EA) = *(s16 *)(lbl_2_bss_1A8240 + 0x26);
+        s32 i;
+        s32 recordOffset = 0;
+        s32 fieldOffset;
+
+        i = 0;
+
+        do {
+            if (i == 6) {
+                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x1972EC) = *(u32 *)(lbl_2_bss_1A8240 + 0x118);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F0) = *(s16 *)(lbl_2_bss_1A8240 + 0x11C);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F2) = *(s16 *)(lbl_2_bss_1A8240 + 0x11E);
+                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F4) = *(u32 *)(lbl_2_bss_1A8240 + 0x120);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972F8) = *(s16 *)(lbl_2_bss_1A8240 + 0x124);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x1972FA) = *(s16 *)(lbl_2_bss_1A8240 + 0x126);
+                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x1972FC) = *(u32 *)(lbl_2_bss_1A8240 + 0x128);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197300) = *(s16 *)(lbl_2_bss_1A8240 + 0x12C);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197302) = *(s16 *)(lbl_2_bss_1A8240 + 0x12E);
+                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x197304) = *(u32 *)(lbl_2_bss_1A8240 + 0x130);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197308) = *(s16 *)(lbl_2_bss_1A8240 + 0x134);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x19730A) = *(s16 *)(lbl_2_bss_1A8240 + 0x136);
+                *(u32 *)(lbl_2_bss_1A824C + recordOffset + 0x19730C) = *(u32 *)(lbl_2_bss_1A8240 + 0x138);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197310) = *(s16 *)(lbl_2_bss_1A8240 + 0x13C);
+                *(s16 *)(lbl_2_bss_1A824C + recordOffset + 0x197312) = *(s16 *)(lbl_2_bss_1A8240 + 0x13E);
+            } else {
+                for (fieldOffset = 0; fieldOffset < 0x28; fieldOffset += 8) {
+                    *(u32 *)recordCopyDestination(fieldOffset, recordOffset, 0x1972EC) =
+                    *(u32 *)(lbl_2_bss_1A8240 + lbl_2_data_20C48[i] * 0x28 + fieldOffset + 0x28);
+                    *(s16 *)recordCopyDestination(fieldOffset, recordOffset, 0x1972F0) =
+                    *(s16 *)(lbl_2_bss_1A8240 + lbl_2_data_20C48[i] * 0x28 + fieldOffset + 0x2C);
+                    *(s16 *)recordCopyDestination(fieldOffset, recordOffset, 0x1972F2) =
+                    *(s16 *)(lbl_2_bss_1A8240 + lbl_2_data_20C48[i] * 0x28 + fieldOffset + 0x2E);
+                }
+            }
+            i++;
+            recordOffset += 0x28;
+        } while (i < 7);
     }
+    *(u32 *)(lbl_2_bss_1A824C + 0x1972C4) = *(u32 *)(lbl_2_bss_1A8240 + 0x0);
+    *(s16 *)(lbl_2_bss_1A824C + 0x1972CA) = *(s16 *)(lbl_2_bss_1A8240 + 0x6);
+    *(u32 *)(lbl_2_bss_1A824C + 0x1972CC) = *(u32 *)(lbl_2_bss_1A8240 + 0x8);
+    *(s16 *)(lbl_2_bss_1A824C + 0x1972D2) = *(s16 *)(lbl_2_bss_1A8240 + 0xE);
+    *(u32 *)(lbl_2_bss_1A824C + 0x1972D4) = *(u32 *)(lbl_2_bss_1A8240 + 0x10);
+    *(s16 *)(lbl_2_bss_1A824C + 0x1972DA) = *(s16 *)(lbl_2_bss_1A8240 + 0x16);
+    *(u32 *)(lbl_2_bss_1A824C + 0x1972DC) = *(u32 *)(lbl_2_bss_1A8240 + 0x18);
+    *(s16 *)(lbl_2_bss_1A824C + 0x1972E2) = *(s16 *)(lbl_2_bss_1A8240 + 0x1E);
+    *(u32 *)(lbl_2_bss_1A824C + 0x1972E4) = *(u32 *)(lbl_2_bss_1A8240 + 0x20);
+    *(s16 *)(lbl_2_bss_1A824C + 0x1972EA) = *(s16 *)(lbl_2_bss_1A8240 + 0x26);
 }

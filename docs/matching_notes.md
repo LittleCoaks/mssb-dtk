@@ -4872,3 +4872,24 @@ function instructions equal the private final. Full build, four output
 hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave31_text_35EC0.json and private wave31 dispatch_audit.py.
 Four movie callbacks remain pending; no gameplay/emulator test was performed.
+
+### Restore destination and callback timing (2026-10-23)
+
+text_5E84C improves from 76.99482% to 81.56898% .text, with 13 exact
+functions (previously 12). The seventh restored row now reaches its actual
+row offset instead of overwriting the first. Per-field global and mapping
+reloads follow the target. Focused execution of the compiled copy agrees
+on all 115 source/destination/width tuples, both sets of 115 global reloads,
+and 90 mapping reads.
+
+fn_2_5EEBC now matches exactly: state 2 stops playback, and state 6 exits
+after changing to state 7; hiding happens on the next update. Its compiled
+dispatch agrees for all signed states (131,072 classifications). A natural
+four-digit helper gives a small additional gain; all 65,536 signed-halfword
+inputs agree in old/new value models, without claiming instruction equality.
+
+All 18 function floors and the previous 12 exacts hold. Readability uses
+canonical UIRecord fields and playback constants. Shared instructions equal
+the private final; full build, four output hashes and whitespace checks pass.
+Evidence: build/_postmerge_wave28_text_5E84C.json and private wave28 prove.py.
+The focused interpreters/models do not execute the complete game runtime.
