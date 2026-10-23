@@ -1458,9 +1458,9 @@ void runnerAnimation_detailed(int runnerIdx) {
         slot->state = 0xD;
     } else if (runner->runningToDugoutInd != 0) {
         slot->state = 0xE;
-    } else if (runner->leadOffStatus == 1) {
+    } else if (runner->leadOffStatus == LEADOFF_STATUS_LEADING_OFF) {
         slot->state = 0xF;
-    } else if (runner->leadOffStatus == 2) {
+    } else if (runner->leadOffStatus == LEADOFF_STATUS_AT_FULL_LEAD) {
         slot->state = 0x10;
     } else if (runner->turnaroundCode != 0) {
         slot->state = 5;

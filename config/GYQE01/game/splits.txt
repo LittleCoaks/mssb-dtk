@@ -94,7 +94,7 @@ game/match_setup/match_loading.c:
 	.rodata     start:0x00000CC8 end:0x00000D18
 	.data       start:0x00003D60 end:0x00004290
 
-game/data_only/data_428C.c:
+game/data_only/gameplay_tables.c:
 	.data       start:0x00004290 end:0x00006510
 
 game/match_setup/match_main.c:
