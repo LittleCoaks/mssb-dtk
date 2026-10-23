@@ -4772,3 +4772,26 @@ build, four hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave26_text_1B1BC.json and private wave26 call_audit.py.
 The scan's other flags remain unproven leads; no gameplay/emulator test was
 performed for either checkpoint.
+
+### Explicit no-op states can recover the original compare tree (2026-10-23)
+
+Ten near-exact callbacks in text_5E84C now match exactly after explicitly
+retaining state 4 in their existing no-op group. The target and prior source
+already dispatch every state to the same action; the explicit case recovers
+the target's compare-tree shape. It differs from the previously rejected
+state-7 experiment, which made the compiler emit jump tables.
+
+The shared form improves two larger callbacks as well. It regressed two other
+functions, so only those additions were discarded. All 18 initial floors are
+preserved: .text rises from 76.413475% to 76.994820%, with 12 exact functions
+(previously two). The readability pass uses canonical UIRecord fields and
+UI_FLAG_VISIBLE, with helper names describing frame/play/visibility operations;
+all ten new exact functions remain exact after a fresh whole-unit diff.
+
+Actual target, old-candidate and final-candidate compare trees classify all
+65,536 signed states identically in each of the ten functions: 1,966,080
+branch-tree checks. This starts after the selector result is applied and does
+not execute the complete UI callbacks. All shared instruction records equal
+the private final. Full build, four output hashes and whitespace checks pass.
+Evidence: build/_postmerge_wave27_text_5E84C.json and private wave27
+dispatch_audit.py. No gameplay/emulator test was performed.
