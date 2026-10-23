@@ -4976,3 +4976,23 @@ data/pseudo-symbol floors hold. Shared instructions equal the private final;
 full build, four output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave37_text_636A4.json and private wave37 fade_audit.py.
 The remaining callback differences concern the color-write tail's registers.
+
+### Record and star-menu flow drafted from four stubs (2026-10-23)
+
+All four text_3A8FC callbacks are now implemented, improving .text from
+0.3041825% to 98.904945%, with one exact function. The drafts preserve signed
+scratch states, old-value timer tests, input priority, child-node handshake,
+global reloads and cancellation cleanup after dispatch. The exact callback
+remains exact after canonical type/constant readability review.
+
+All 19 compiler-generated switch entries map to the corresponding original
+bodies, without accidental aliases. The 157 direct branch destinations and
+42 call sites align; external arguments and state logic were reviewed against
+the target. These checks do not execute the complete game runtime. Three
+functions remain near-matches; .data remains 0%, with table pseudo 68.42105%.
+
+A wider return-declaration trial for fn_2_44F14 preserved its owner's bytes
+but regressed this caller, so the canonical s8 interface was retained. All
+four initial function floors hold. Shared instructions equal the private
+final; full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave34_text_3A8FC.json and private wave34 prove.py.
