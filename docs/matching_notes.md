@@ -4469,3 +4469,33 @@ No shared headers or split changes. Full build, four output hashes and
 whitespace checks pass. Evidence: build/_postmerge_wave6_text_4B1AC.json,
 build/_postmerge_wave9_text_53408.json and private wave6 semantic_audit.py.
 No emulator test was performed.
+
+### Text-state widths and callback contract (2026-10-22)
+
+text_5597C improves99.339960% ->99.985450% .text, with16/17 functions exact
+(previously12). fn_2_5597C's category assignment and common return preserve its
+branch form. Keeping stringIndex as s16 fixes save placement in fn_2_563C0 and
+fn_2_5699C; fn_2_57294's selected-index local also matches. fn_2_56688 remains
+99.847720%, with only entry arithmetic register operands differing. Named UIRecord
+frame/rgba/playMode fields and existing UI visibility/playback symbols replace
+raw accesses during the mandatory readability pass, without regressions.
+All17 function floors, .data0% and the99.473690% table pseudo-symbol remain intact.
+
+The text_53408 audit found a real callback contract gap: the target passes both
+scene and record, while the draft passed only scene. fn_2_53F04/53F88 now pass
+the record and reload the global table for each callback, as the target does.
+Both improve87.121216% ->99.090910%. fn_2_5389C also lacked the per-frame reset
+of13 flag arrays over70 entries. Reusing existing fn_2_53F88 and exact fn_2_54120
+recovers the inlined dispatch/reset blocks, bringing44.038460% ->96.846150%.
+Callback record arguments,864-entry row bounds,70 rows and13x70 reset stores
+were checked against the target.
+
+Its two state selectors fn_2_53AA4/53BC8 now initialize a32-bit result and narrow
+once at return. An inline table-row accessor recovers the base load structure;
+both81.917810% ->99.726030%, preserving all13 priority tests and default-1.
+text_53408 reaches91.800530% .text from the preceding85.027084% checkpoint,
+keeping all21 function floors, nine exacts and .data0%. No shared headers or
+configuration changes. Full build, four hashes and whitespace checks pass;
+report4196/6479 matching functions,41.85% code. Evidence:
+build/_postmerge_wave8_text_5597C.json and
+build/_postmerge_wave9_text_53408_callbacks.json. No emulator test was performed.
