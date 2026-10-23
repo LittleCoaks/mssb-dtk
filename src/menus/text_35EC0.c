@@ -1,5 +1,6 @@
 #include "menus/text_35EC0.h"
 #include "text/text.h"
+#include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/GX/GXFrameBuffer.h"
 
@@ -75,12 +76,12 @@ static inline TextGraphicsObject *nodeOf(TextScene *scene, TextHandleRec *rec) {
     return graphicsRelatedArray[scene->firstHandle + rec->handle].object;
 }
 
-static inline void nodeSetFlag2(TextGraphicsObject *node) {
-    node->flags |= 2;
+static inline void nodeShow(TextGraphicsObject *node) {
+    node->flags |= UI_FLAG_VISIBLE;
 }
 
-static inline void nodeClearFlag2(TextGraphicsObject *node) {
-    node->flags &= ~2;
+static inline void nodeHide(TextGraphicsObject *node) {
+    node->flags &= ~UI_FLAG_VISIBLE;
 }
 
 static inline void nodeSetByte68(TextGraphicsObject *node, u8 value) {
@@ -443,7 +444,7 @@ void fn_2_3745C(void) {
 
 // .text:0x00037430 size:0x2C mapped:0x806764C4
 void fn_2_37430(TextScene *scene, TextHandleRec *rec) {
-    nodeClearFlag2(nodeOf(scene, rec));
+    nodeHide(nodeOf(scene, rec));
 }
 
 // .text:0x0003735C size:0xD4 mapped:0x806763F0
@@ -454,7 +455,7 @@ void fn_2_3735C(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
@@ -474,8 +475,10 @@ void fn_2_372AC(TextScene *scene, TextHandleRec *rec) {
         rec->state = 0x26;
         break;
     case 2:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x25;
+        break;
+    case 0x25:
         break;
     }
 }
@@ -488,11 +491,11 @@ void fn_2_370F8(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 0x25;
         break;
@@ -507,7 +510,7 @@ void fn_2_370F8(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -520,11 +523,11 @@ void fn_2_36F44(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 0x25;
         break;
@@ -539,7 +542,7 @@ void fn_2_36F44(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -552,12 +555,12 @@ void fn_2_36D04(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
         nodeSetW5C(nodeOf(scene, rec), 0x000F0000);
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 3;
         break;
@@ -579,7 +582,7 @@ void fn_2_36D04(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -592,7 +595,7 @@ void fn_2_36B30(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
@@ -601,9 +604,9 @@ void fn_2_36B30(TextScene *scene, TextHandleRec *rec) {
         break;
     case 0x25:
         if (workS16(0x7298 + rec->unkA * 2) != 0) {
-            nodeSetFlag2(nodeOf(scene, rec));
+            nodeShow(nodeOf(scene, rec));
         } else {
-            nodeClearFlag2(nodeOf(scene, rec));
+            nodeHide(nodeOf(scene, rec));
         }
         break;
     case 5:
@@ -611,7 +614,7 @@ void fn_2_36B30(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -624,11 +627,11 @@ void fn_2_3697C(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 0x25;
         break;
@@ -643,7 +646,7 @@ void fn_2_3697C(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -656,7 +659,7 @@ void fn_2_36750(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
@@ -667,7 +670,7 @@ void fn_2_36750(TextScene *scene, TextHandleRec *rec) {
         } else {
             load_Icon(scene, rec->handle, 1, 0x54, *(lbl_2_bss_1A8248 + 0x441C));
         }
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 3;
         break;
@@ -688,7 +691,7 @@ void fn_2_36750(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -701,11 +704,11 @@ void fn_2_36590(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         fn_80036134(scene, 0x12, workS16(0x72B0), rec->handle);
         rec->state = 0x25;
@@ -718,7 +721,7 @@ void fn_2_36590(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -731,11 +734,11 @@ void fn_2_363C8(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         fn_80036134(scene, 0x293, workS16(0x72B0) + 1, rec->handle);
         rec->state = 0x25;
@@ -748,7 +751,7 @@ void fn_2_363C8(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -761,12 +764,12 @@ void fn_2_36204(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
         if (workS16(0x72AC + rec->unkA * 2) == 3) {
-            nodeSetFlag2(nodeOf(scene, rec));
+            nodeShow(nodeOf(scene, rec));
             nodeSetByte68(nodeOf(scene, rec), 1);
         }
         rec->state = 0x25;
@@ -778,7 +781,7 @@ void fn_2_36204(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -791,12 +794,12 @@ void fn_2_36074(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 2:
         nodeSetW5C(nodeOf(scene, rec), 0);
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 0x25;
         break;
@@ -805,7 +808,7 @@ void fn_2_36074(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     }
 }
@@ -818,14 +821,14 @@ void fn_2_35EC0(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
     case 1:
     case 3:
         break;
     case 2:
-        nodeSetFlag2(nodeOf(scene, rec));
+        nodeShow(nodeOf(scene, rec));
         nodeSetByte68(nodeOf(scene, rec), 1);
         rec->state = 0x25;
         break;
@@ -840,7 +843,7 @@ void fn_2_35EC0(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 7:
-        nodeClearFlag2(nodeOf(scene, rec));
+        nodeHide(nodeOf(scene, rec));
         break;
     case 0x25:
         break;

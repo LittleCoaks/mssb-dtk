@@ -4795,3 +4795,21 @@ not execute the complete UI callbacks. All shared instruction records equal
 the private final. Full build, four output hashes and whitespace checks pass.
 Evidence: build/_postmerge_wave27_text_5E84C.json and private wave27
 dispatch_audit.py. No gameplay/emulator test was performed.
+
+### A no-op state completes another record callback (2026-10-23)
+
+fn_2_372AC in text_35EC0 improves from 99.5% to 100% by explicitly retaining
+its no-op state0x25. The target, prior candidate and final candidate dispatch
+all65536 signed states to identical actions (196608 compiled branch-tree
+checks, starting after the selector result is applied). This checks dispatch,
+not the complete UI callback.
+
+The readability pass uses UI_FLAG_VISIBLE and descriptive visibility helpers.
+All29 function floors and the data/pseudo-symbol floors hold; the unit reaches
+90.020340% .text with15 exact functions, previously14. Full build, four output
+hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave29_text_35EC0.json and private wave29 dispatch_audit.py.
+
+The near-match branch scan also flagged teamselect's manager. Inspection
+shows equivalent shared versus duplicated transition-result guards; it is
+not evidence of a behavioral defect, and no change was made there.
