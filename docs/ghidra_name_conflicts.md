@@ -177,10 +177,10 @@ are true same-offset disagreements rather than layout drift.
 | `0x806b55ec` | function | `endOfGameStats_MVP` | `endOfGameStats+MVP` |
 | `0x806b5b30` | function | `steal_pickoff_incrementSteal_runsStats` | `steal/pickoff_incrementSteal+runsStats` |
 | `0x806b7608` | function | `pickoff_infieldThrow_related` | `pickoff/infieldThrow_related` |
-| `0x806c375c` | function | `runnerAI_2` | `runnerAI?2` |
-| `0x806c5f8c` | function | `running_beginSteal_CheckForPerfect` | `running_beginSteal,CheckForPerfect` |
+| `0x806c375c` | function | `runnerAI_ballHeldDecision` | `runnerAI?2` |
+| `0x806c5f8c` | function | `running_atBatSteals_checkForPerfect` | `running_beginSteal,CheckForPerfect` |
 | `0x806c64b8` | function | `running_beginFrame` | `running_CheckForForceOuts,UpdateStamina,UpdateTagOutVars` |
-| `0x806c68b0` | function | `running_UpdateTrackingValues_BasesEarned` | `running_UpdateTrackingValues,BasesEarned` |
+| `0x806c68b0` | function | `running_updateBasesEarned` | `running_UpdateTrackingValues,BasesEarned` |
 | `0x806c72bc` | function | `running_beginFrame_checkForceOut` | `unused?forceOutSomething` |
 | `0x806d04d0` | function | `hud_ScoreUpdate_ToyFieldOffScreenPlayers` | `hud_ScoreUpdate/ToyFieldOffScreenPlayers` |
 | `0x806d59a8` | function | `toyfield_hud_turns_diamondMap` | `toyfield_hud_turns&diamondMap` |

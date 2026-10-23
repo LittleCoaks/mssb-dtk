@@ -731,7 +731,7 @@ void starChanceVsScreenProcess(void) {
                 setDefaultInMemBall();
                 setDefaultInMemPitcher();
                 setDefaultInMemBatter();
-                setDefaultInMemRunner();
+                running_setDefaultRunners();
                 setDefaultInMemFielder();
                 setDefaultAIValues();
                 g_Pitcher.playStartOfGameAnimation = 0;

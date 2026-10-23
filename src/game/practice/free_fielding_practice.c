@@ -178,7 +178,7 @@ void fieldingPractice_resetMem(void) {
     }
     g_Practice.frames_sincePracticeCompleted = 0;
     resetCount();
-    resetInMemRunners();
+    running_resetRunners();
     resetInMemBall();
     resetInMemPitcher();
     resetInMemFielders();

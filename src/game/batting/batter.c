@@ -1078,8 +1078,8 @@ void calculateHitVariables(void) {
     g_Ball.AtBat_Contact_BallPos.z = g_Batter.hitContactPos.z;    
 
     setLiveBallVariablesAfterContact();
-    stealCancelLeadoffs();
-    maybeHandleBaserunners();
+    running_cancelLeadoffs();
+    running_initRunnersOnContact();
 }
 
 // UNUSED .text:0x000124DC size:0x78 mapped:0x80650f64

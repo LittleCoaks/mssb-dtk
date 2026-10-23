@@ -1475,7 +1475,7 @@ void fn_3_BC54(void) {
         if (g_BallsStrikesOuts.strikes >= 3) {
             if (g_Ball.maybeBuntInd != 0) {
                 g_Ball.maybebuntOn2Strikes = 1;
-                runnerOut(0);
+                running_recordOut(0);
                 runnerWasOut = 1;
             } else {
                 g_BallsStrikesOuts.strikes = 2;
@@ -2033,7 +2033,7 @@ void foulBall(void) {
         if (g_BallsStrikesOuts.strikes >= 3) {
             if (g_Ball.maybeBuntInd != 0) {
                 g_Ball.maybebuntOn2Strikes = 1;
-                runnerOut(0);
+                running_recordOut(0);
                 runnerWasOut = 1;
             } else {
                 g_BallsStrikesOuts.strikes = 2;
@@ -2063,7 +2063,7 @@ void fn_3_A020(void) {
             if (g_BallsStrikesOuts.strikes >= 3) {
                 if (g_Ball.maybeBuntInd != 0) {
                     g_Ball.maybebuntOn2Strikes = 1;
-                    runnerOut(0);
+                    running_recordOut(0);
                     runnerWasOut = 1;
                 } else {
                     g_BallsStrikesOuts.strikes = 2;
@@ -3019,7 +3019,7 @@ void checkForBallDead(void) {
                         if (g_BallsStrikesOuts.strikes >= 3) {
                             if (g_Ball.maybeBuntInd != 0) {
                                 g_Ball.maybebuntOn2Strikes = 1;
-                                runnerOut(0);
+                                running_recordOut(0);
                                 runnerWasOut = TRUE;
                             } else {
                                 g_BallsStrikesOuts.strikes = 2;
@@ -3050,7 +3050,7 @@ void checkForBallDead(void) {
                                 if (g_BallsStrikesOuts.strikes >= 3) {
                                     if (g_Ball.maybeBuntInd != 0) {
                                         g_Ball.maybebuntOn2Strikes = 1;
-                                        runnerOut(0);
+                                        running_recordOut(0);
                                         runnerWasOut = TRUE;
                                     } else {
                                         g_BallsStrikesOuts.strikes = 2;
@@ -3095,7 +3095,7 @@ void checkForBallDead(void) {
                             if (g_BallsStrikesOuts.strikes >= 3) {
                                 if (g_Ball.maybeBuntInd != 0) {
                                     g_Ball.maybebuntOn2Strikes = 1;
-                                    runnerOut(0);
+                                    running_recordOut(0);
                                     runnerWasOut = TRUE;
                                 } else {
                                     g_BallsStrikesOuts.strikes = 2;
@@ -3169,7 +3169,7 @@ void checkForBallDead(void) {
                 if (g_BallsStrikesOuts.strikes >= 3) {
                     if (g_Ball.maybeBuntInd != 0) {
                         g_Ball.maybebuntOn2Strikes = 1;
-                        runnerOut(0);
+                        running_recordOut(0);
                         runnerWasOut = TRUE;
                     } else {
                         g_BallsStrikesOuts.strikes = 2;

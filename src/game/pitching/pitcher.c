@@ -100,7 +100,7 @@ static inline void advanceForcedRunners(void) {
                 r->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                 if (seenOther == 0) {
                     r->currentBase = i;
-                    updateRunnerPosition(i, 1);
+                    running_advanceRunnerBases(i, 1);
                 } else {
                     r->currentBase = r->startingBase_baseAchieved;
                     r->nextBase = (r->currentBase + 1) & 3;
@@ -117,7 +117,7 @@ static inline void advanceForcedRunners(void) {
                 break;
             }
             if (i == r->currentBase) {
-                updateRunnerPosition(i, 1);
+                running_advanceRunnerBases(i, 1);
             }
         }
     }
@@ -870,7 +870,7 @@ void fn_3_7372C(void) {
                 r->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                 if (seenOther == 0) {
                     r->currentBase = i;
-                    updateRunnerPosition(i, 1);
+                    running_advanceRunnerBases(i, 1);
                 } else {
                     r->currentBase = r->startingBase_baseAchieved;
                     r->nextBase = (r->currentBase + 1) & 3;
@@ -887,7 +887,7 @@ void fn_3_7372C(void) {
                 break;
             }
             if (i == r->currentBase) {
-                updateRunnerPosition(i, 1);
+                running_advanceRunnerBases(i, 1);
             }
         }
     }
@@ -922,7 +922,7 @@ void handleHPBORRunnerAdvance(void) {
                 r->runnerStatus == RUNNER_STATUS_WALK_WHILE_STEALING) {
                 if (seenOther == 0) {
                     r->currentBase = i;
-                    updateRunnerPosition(i, 1);
+                    running_advanceRunnerBases(i, 1);
                 } else {
                     r->currentBase = r->startingBase_baseAchieved;
                     r->nextBase = (r->currentBase + 1) & 3;
@@ -939,7 +939,7 @@ void handleHPBORRunnerAdvance(void) {
                 break;
             }
             if (i == r->currentBase) {
-                updateRunnerPosition(i, 1);
+                running_advanceRunnerBases(i, 1);
             }
         }
     }
