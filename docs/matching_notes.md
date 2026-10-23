@@ -4662,3 +4662,25 @@ This distinction is recorded for the next data pass.
 Full build, four output hashes, all-symbol floor audit and whitespace checks
 pass. Evidence: build/_postmerge_wave17_text_8782C.json and private wave17
 ui_audit.py / data_audit.py. No gameplay/emulator test was performed.
+
+### Character-selection helper recovery (2026-10-23)
+
+text_8082C improves from 90.304290% to 93.046326% .text; fn_2_8082C and
+fn_2_80C2C now match exactly. A natural channel-animation helper reproduces
+the target inline boundary, while direct access for a zero-offset UI record
+removes a redundant helper layer. Pointer lifetimes in the cursor and setup
+arrays, a canonical field-offset roster walk, and the full-width roster-slot
+index improve the remaining callbacks without altering dispatch labels.
+
+Both exact functions received readability review and a fresh whole-unit diff.
+All eight function and section floors hold; the table pseudo-symbol improves
+from 65% to 75%. Its 21- and 9-entry dispatch tables retain the 30 reviewed
+first-following-call identities. That check is narrower than complete behavior
+or relocation equivalence; .data remains 0%. The guarded process-state write
+and target-required out-of-line callback boundary remain supported by the
+instruction comparison. No header changes were required.
+
+All eight shared function instruction records equal the audited private final.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave19_text_8082C.json and private wave19 final_audit.txt /
+table_semantic_audit.txt. No gameplay/emulator test was performed.

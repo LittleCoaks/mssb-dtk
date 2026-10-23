@@ -31,6 +31,7 @@ void updateCharacterSelectProcessCode(int port, u8 process);
 #define STATS_SCENE (*(MenuScene **)((u8 *)&Static_Stats_Tables + 0x474C))
 #define TEAM_POSITION(index) (((s32 *)lbl_2_bss_F468)[index])
 #define PREVIOUS_POSITION(index) (((s32 *)lbl_2_bss_F468)[(index) + 2])
+#define FIELD_OFFSET(type, member) ((s32)&(((type *)0)->member))
 
 static inline BOOL isStepClear(u8 step) { return step == 0 ? TRUE : FALSE; }
 static inline BOOL isStepActive(u8 step) { return step == 1 ? TRUE : FALSE; }
@@ -52,16 +53,17 @@ static inline UIRecord *rosterRecord(MenuScene *scene, s32 channel, s32 position
 static inline s8 captainRosterPosition(s32 channel, E(s32, CHAR_ID) captain) {
     s8 position;
     s32 i;
-    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-        if (cursorPositions.roster.rosterCharID[channel][i] == captain) {
-            position = cursorPositions.roster.positionSwapMapping[channel][i];
+    s8 *cursor = (s8 *)&cursorPositions;
+    for (i = 0; i < PLAYERS_PER_TEAM; i++, cursor++) {
+        if (cursor[channel * PLAYERS_PER_TEAM + FIELD_OFFSET(CursorPositions_s, roster.rosterCharID)] == captain) {
+            position = cursor[channel * PLAYERS_PER_TEAM + FIELD_OFFSET(CursorPositions_s, roster.positionSwapMapping)];
         }
     }
     return position;
 }
 
-static inline s8 findRosterSlot(s32 channel, s32 position) {
-    s8 slot;
+static inline s32 findRosterSlot(s32 channel, s32 position) {
+    s32 slot;
     s32 i;
     for (i = 0; i < PLAYERS_PER_TEAM; i++) {
         if ((s8)cursorPositions.roster.positionSwapMapping[channel][i] == position) {
@@ -96,10 +98,16 @@ static inline BOOL resetChemStars(MenuScene *scene, s32 channel) {
     return count == expected;
 }
 
+static inline BOOL resetChannelAnimation(MenuScene *scene, s32 channel, s32 offset, s32 frame) {
+    s32 handle = channel;
+    handle += offset;
+    return maybeCheckAndResetGrapicsElement(scene, handle, frame) != 0;
+}
+
 void fn_2_8082C(MenuScene *scene, s32 channel) {
     if (isStepActive(gameSetUpStep[channel + 0xD])) {
-        s32 count = maybeCheckAndResetGrapicsElement(scene, channel + 0x89, 5) != 0;
-        if (count + (maybeCheckAndResetGrapicsElement(scene, channel + 0x8B, 10) != 0) == 2) {
+        s32 count = resetChannelAnimation(scene, channel, 0x89, 5);
+        if (count + (resetChannelAnimation(scene, channel, 0x8B, 10)) == 2) {
             makeCursorMovable(channel);
             gameSetUpStep[channel + 0xD] = 2;
         }
@@ -108,12 +116,13 @@ void fn_2_8082C(MenuScene *scene, s32 channel) {
 
 #pragma dont_inline on
 void fn_2_808D8(MenuScene *scene, s32 channel) {
+    int *cursors = menuCursors;
     if (isStepClear(gameSetUpStep[channel + 0xD])) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             fn_2_7630C(scene, (u8)channel);
         } else {
             E(u8, CHAR_ID) *choices = challengeCaptainCharIDArray + superstarUnlocked[0xF4] * 6;
-            E(s32, CHAR_ID) current = choices[menuCursors[4]];
+            E(s32, CHAR_ID) current = choices[cursors[4]];
             E(s32, CHAR_ID) previous = choices[cursorPositions.cursor[0]];
             u8 currentStar = Static_Stats_Tables.characterStats[current / 9][current % 9].stats.CaptainStarHitPitch;
             u8 previousStar = Static_Stats_Tables.characterStats[previous / 9][previous % 9].stats.CaptainStarHitPitch;
@@ -142,9 +151,9 @@ void fn_2_808D8(MenuScene *scene, s32 channel) {
 
 void fn_2_80B5C(MenuScene *scene, s32 channel) {
     if (isStepActive(gameSetUpStep[channel + 0xD])) {
-        s32 count = maybeCheckAndResetGrapicsElement(scene, channel, 0) != 0;
-        count += maybeCheckAndResetGrapicsElement(scene, channel + 2, 0) != 0;
-        count += maybeCheckAndResetGrapicsElement(scene, channel + 0x89, 10) != 0;
+        s32 count = resetChannelAnimation(scene, channel, 0x0, 0);
+        count += resetChannelAnimation(scene, channel, 2, 0);
+        count += resetChannelAnimation(scene, channel, 0x89, 10);
         if (count == 3) {
             makeCursorMovable(channel);
             gameSetUpStep[channel + 0xD] = 2;
@@ -158,9 +167,9 @@ void fn_2_80C2C(MenuScene *scene, s32 channel) {
             makeCursorMovable(channel);
             gameSetUpStep[channel + 0x5D] = 2;
         }
-        channelRecord(scene, channel, 0)->frame = 20 << 16;
+        SCENE_RECORD(scene, channel)->frame = 20 << 16;
         channelRecord(scene, channel, 2)->frame = 20 << 16;
-        channelRecord(scene, channel, 0)->playMode = UI_PLAY_BACKWARD;
+        SCENE_RECORD(scene, channel)->playMode = UI_PLAY_BACKWARD;
         channelRecord(scene, channel, 2)->playMode = UI_PLAY_BACKWARD;
         channelRecord(scene, channel, 4)->frame = 30 << 16;
         channelRecord(scene, channel, 4)->playMode = UI_PLAY_BACKWARD;
@@ -178,15 +187,15 @@ void fn_2_80C2C(MenuScene *scene, s32 channel) {
 
 void fn_2_80E0C(MenuScene *scene, s32 channel) {
     if (isStepActive(gameSetUpStep[channel + 0xD])) {
-        s32 count = maybeCheckAndResetGrapicsElement(scene, channel, 20) != 0;
+        s32 count = resetChannelAnimation(scene, channel, 0, 20);
         s32 expected = 2;
-        count += maybeCheckAndResetGrapicsElement(scene, channel + 2, 20) != 0;
+        count += resetChannelAnimation(scene, channel, 2, 20);
         if (channel == 0 || lbl_2_bss_100B8[0x10] != 0 || g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME) {
-            count += maybeCheckAndResetGrapicsElement(scene, channel + 0x85, 10) != 0;
-            count += maybeCheckAndResetGrapicsElement(scene, channel + 0x87, 10) != 0;
-            count += maybeCheckAndResetGrapicsElement(scene, channel + 0x89, 5) != 0;
+            count += resetChannelAnimation(scene, channel, 0x85, 10);
+            count += resetChannelAnimation(scene, channel, 0x87, 10);
+            count += resetChannelAnimation(scene, channel, 0x89, 5);
             expected = 6;
-            count += maybeCheckAndResetGrapicsElement(scene, channel + 0x8B, 10) != 0;
+            count += resetChannelAnimation(scene, channel, 0x8B, 10);
         }
         if (count == expected) {
             makeCursorMovable(channel);
@@ -196,7 +205,8 @@ void fn_2_80E0C(MenuScene *scene, s32 channel) {
 }
 
 void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
-    if (isStepClear(gameSetUpStep[channel + 0xD])) {
+    u8 *steps = &gameSetUpStep[0xD];
+    if (isStepClear(steps[channel])) {
         channelRecord(scene, channel, 0)->elementIndex = 0x47;
         channelRecord(scene, channel, 2)->elementIndex = 0x47;
         channelRecord(scene, channel, 4)->elementIndex = 0x50;
@@ -264,7 +274,7 @@ void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
             channelRecord(scene, channel, 0xAC)->flags &= ~UI_FLAG_VISIBLE;
         }
         makeCursorUnmovable(channel);
-        gameSetUpStep[channel + 0xD] = 1;
+        steps[channel] = 1;
     }
 }
 void cssActions(void) {
@@ -514,7 +524,8 @@ void relatedToTeamSelection3(void) {
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && channel != 0) {
             s8 port;
             if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-                port = Static_Stats_Tables.playerNumberByPort[0] == 0 ? 1 : 0;
+                port = 1;
+                if (Static_Stats_Tables.playerNumberByPort[0] != 0) port = 0;
             }
             channelRecord(scene, channel, 0x7A)->frame = port << 16;
             channelRecord(scene, channel, 0x18)->frame = (port + 4) << 16;
