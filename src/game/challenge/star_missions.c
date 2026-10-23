@@ -482,7 +482,7 @@ void scoutFlag_checkMissionSuccess(void) {
         break;
     case SCOUT_MISSION_SQUEEZE_BUNT:
         if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total > g_Scores._A0) {
-            if (runners[3].furthestBaseForcedToGoToOnWalk != 0) {
+            if (runners[3].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
                 if (g_Ball.maybeBuntInd != 0) {
                     flag = TRUE;
                 }
@@ -508,7 +508,7 @@ void scoutFlag_checkMissionSuccess(void) {
         break;
     case SCOUT_MISSION_STEAL_SECOND_BASE: {
         u8 fl = g_FieldingLogic.liveBallReason;
-        u8 runnerStatus = 0;
+        u8 runnerStatus = RUNNER_STATUS_NONE;
         if (fl == PICKOFF_STEAL_CODE_PICKOFF || fl == PICKOFF_STEAL_CODE_STEAL) {
             runnerStatus = runners[1].runnerStatus;
             if (runnerStatus == RUNNER_STATUS_ON_FIELD || runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
@@ -1130,7 +1130,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                     CharacterStats* roster = inMemRoster[scout->humanTeam];
                     StatisticsBatter* bs = BatterStats_P1_P2[scout->humanTeam];
                     u8 lastRunnerStatus = runners[3].runnerStatus;
-                    u8 lastRunnerForced = runners[3].furthestBaseForcedToGoToOnWalk;
+                    u8 lastRunnerForced = runners[3].steal_forcedBaseToGoToOnWalk;
                     u8 starSwing = ball->currentStarSwing2;
                     u8 hitType = g_Batter.hitGeneralType;
                     f32 chargeUp = g_Batter.chargeUp;
@@ -1183,7 +1183,7 @@ void starMissionsOffensive_StarChange_DoublePlay(int result, int rbis) {
                                     if (k == STAR_MISSION_TYPE_BUNT_FORCES_IN_RUN) {
                                         if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total >
                                                 runsBefore &&
-                                            lastRunnerStatus != RUNNER_STATUS_NONE && lastRunnerForced != 0) {
+                                            lastRunnerStatus != RUNNER_STATUS_NONE && lastRunnerForced != STEAL_FORCED_BASE_NONE) {
                                             ct->inGameMissionTracker[i].starMissionStatus++;
                                             if (ct->inGameMissionTracker[i].starMissionStatus >= req[i].target) {
                                                 done = TRUE;

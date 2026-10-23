@@ -178,7 +178,7 @@ void chainChompSprintRelated(void) {
                 g_Runners[runnerIdx].miniGamePlayerNum = i;
                 order[i] = runnerIdx;
                 initializeInMemRunner(i, runnerIdx);
-                g_Runners[runnerIdx].runnerStatus = 1;
+                g_Runners[runnerIdx].runnerStatus = RUNNER_STATUS_ON_FIELD;
                 if (!g_Minigame.playerSlots.aiControlledInd[i]) {
                     g_Runners[runnerIdx].unused_batterHandednessForCCS = 0;
                 } else {

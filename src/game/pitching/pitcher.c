@@ -1891,7 +1891,7 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
         for (i = 1; i < 4; i++) {
             if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
                 g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
-                if (g_Runners[i].furthestBaseForcedToGoToOnWalk == 1) {
+                if (g_Runners[i].steal_forcedBaseToGoToOnWalk == STEAL_FORCED_BASE_UNFORCED) {
                     forcedAdvance = TRUE;
                 }
             }
@@ -1901,7 +1901,7 @@ BOOL runnerStealing_TransitionToLiveViewIndicator(void) {
         }
     }
     for (i = 1; i < 4; i++) {
-        if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[i].furthestBaseForcedToGoToOnWalk != 0) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD && g_Runners[i].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
             g_Pitcher.pickOffLoc = 5;
             transitionToLiveBallWithoutContact(1);
             if (g_Pitcher.strikeOutOrWalk == 1) {

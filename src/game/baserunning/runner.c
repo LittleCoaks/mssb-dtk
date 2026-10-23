@@ -404,7 +404,7 @@ void setDefaultInMemRunner(void) {
         runner->outType = 0;
         runner->forceOutCd = FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE;
         runner->isEligibleToScore = TRUE;
-        runner->furthestBaseForcedToGoToOnWalk = 0;
+        runner->steal_forcedBaseToGoToOnWalk = STEAL_FORCED_BASE_NONE;
         runner->framesSinceStealStarted = 0;
         runner->batterStayInBattersBoxReason = 0;
         runner->baseOfFailedBodyCheck = -1;
@@ -1208,8 +1208,9 @@ void running_beginSteal_CheckForPerfect(void) {
                     }
                 }
             }
+            // Once the runner starts their steal, set forced base on walk, then track steal frames.
             if (runner->runnerStatus == RUNNER_STATUS_ON_FIELD) {
-                if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && runner->furthestBaseForcedToGoToOnWalk == 0) {
+                if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && runner->steal_forcedBaseToGoToOnWalk == STEAL_FORCED_BASE_NONE) {
                     int k;
                     BOOL allBasesBeforeOccupied = TRUE;
 
@@ -1219,12 +1220,12 @@ void running_beginSteal_CheckForPerfect(void) {
                         }
                     }
                     if (allBasesBeforeOccupied) {
-                        runner->furthestBaseForcedToGoToOnWalk = i + 1;
+                        runner->steal_forcedBaseToGoToOnWalk = i + 1;
                     } else {
-                        runner->furthestBaseForcedToGoToOnWalk = 1;
+                        runner->steal_forcedBaseToGoToOnWalk = STEAL_FORCED_BASE_UNFORCED;
                     }
                 }
-                if (runner->furthestBaseForcedToGoToOnWalk != 0) {
+                if (runner->steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
                     if (runner->framesSinceStealStarted < 0x7FFE) {
                         runner->framesSinceStealStarted++;
                     } else {
@@ -3281,7 +3282,7 @@ void running_updatePositionTracking_storeRBIs_stopAtNextBase_displaySafe(int run
                     g_FieldingLogic.baseFielderIsOn = -1;
                     if (g_FieldingLogic.bodyCheckResult == 1) {
                         if (g_Pitcher.strikeOutOrWalk != AT_BAT_END_WALK ||
-                            (runner->furthestBaseForcedToGoToOnWalk <= runner->currentBase &&
+                            (runner->steal_forcedBaseToGoToOnWalk <= runner->currentBase &&
                              (runner->forcedToAdvanceInd == FALSE || runner->currentBase != runner->startingBase_baseAchieved))) {
                             runner->baseOfFailedBodyCheck = runner->baseStandingOn;
                             runner->baseStandingOn = -1;
@@ -3925,7 +3926,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
         runner->forceOutType_unsed = 2;
     }
     if (g_Pitcher.strikeOutOrWalk == AT_BAT_END_WALK &&
-        (runner->furthestBaseForcedToGoToOnWalk > runner->currentBase ||
+        (runner->steal_forcedBaseToGoToOnWalk > runner->currentBase ||
          (runner->forcedToAdvanceInd != FALSE && runner->currentBase == runner->startingBase_baseAchieved))) {
         runner->forceOutType_unsed = 3;
     }
