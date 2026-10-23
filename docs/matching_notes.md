@@ -4702,3 +4702,29 @@ checked separately. This does not execute the full call-heavy callback.
 Shared instructions equal the private final; full build, four output hashes
 and whitespace checks pass. Evidence: build/_postmerge_wave21_text_8082C.json
 and private wave21 cleanup_audit.py. No gameplay/emulator test was performed.
+
+### Recover owned data at proven object boundaries (2026-10-23)
+
+text_8782C now defines its owned data using the existing DebugMenuText and
+UIRecordDescriptor types: the shared debug prefix and 40-byte lookup tail,
+93 descriptors in four end-terminated lists, six padded writable labels, two
+file rows and six named character IDs. Splitting coarse symbols at the actual
+object boundaries lets all six named objects score 100%; .data improves from
+0% to 99.197190%, while .text improves from 74.287870% to 74.296770%.
+
+All 3,988 raw data bytes match the target. Eight generated switch relocations
+reach the corresponding logical cases, but their function-relative offsets
+still differ in non-exact fn_2_8A824. Raw byte equality therefore does not mean
+full relocation equality; those 32 relocated bytes account for the remaining
+data mismatch. The descriptor parent references, four terminators and string
+boundaries were independently decoded. Integer address arithmetic preserves
+the target's base-relative descriptor selection without pointer arithmetic
+beyond the now-typed debug object.
+
+The actual rebuilt target reproduces the private boundary preview. All 78
+menu units preserve their recorded function, section and pseudo-symbol floors;
+all 17 shared function instruction records equal the private final. Full build,
+four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave20_text_8782C.json,
+build/.match_grind/wave20_data_floor_audit/summary.json and private wave20
+owned_data_audit.txt. Header unchanged; no gameplay/emulator test was performed.

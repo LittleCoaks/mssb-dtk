@@ -1,4 +1,5 @@
 #include "menus/text_8782C.h"
+#include "menus/debug_menu_text.h"
 #include "menus/rep_0DE0.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
@@ -14,15 +15,142 @@
 #include "Unknown/File_0x800b0a14.h"
 
 extern u8 lbl_2_bss_33FBCC[];
-extern u8 lbl_2_data_2E9F8[];
-extern u8 lbl_2_data_2ECE4[];
 extern u8 *lbl_2_bss_3401BC;
 extern u8 superstarUnlocked[];
 extern u8 menuCursors[];
 extern u8 lbl_2_bss_34009C[];
 extern u8 lbl_80354768[];
-extern u8 lbl_2_data_2F964[];
 extern u8 menuNumber[];
+
+DebugMenuText lbl_2_data_2E9F8 = {
+    { "BAT FIRST", "BAT LAST" },
+    "FL",
+    "PC",
+    { "RR", "RL", "LR", "LL" },
+    { "OFF", "ON" },
+    { "SELECT DEBUG MENU", "HIDE CHARA SET", "STAR PLAYER SET", "KOOPA STA FLAG SET", "CHALLE LEVEL FREE SET" },
+    { "1P >", "COM1>", "2P >", "COM2>", "3P >", "COM3>", "4P >", "COM4>" },
+    { 0x0000FF0F, 0x0000880F, 0x00000FFF, 0x0000088F, 0x0000F0FF, 0x0000808F, 0x0000F00F, 0x0000800F },
+    { 0, 4, 10, 6, 2, 9, 1, 5, 11, 17, 3, 19 },
+    { 0, 2, 6, 8, 4, 10, 1, 3, 7, 5, 9, 11 },
+    { 0, 0, 6, 2, 8, 4, 10, 5, 11, 3, 9, 1, 7, 0, 0, 0 },
+};
+
+u8 lbl_2_data_2ECBC[0x28] = {
+    2, 5, 4, 3, 8, 3, 4, 5, 2, 6,
+    0, 1, 8, 6, 7, 1, 2, 0, 7, 4,
+    4, 3, 1, 2, 5, 1, 2, 4, 6, 8,
+    7, 6, 8, 5, 3, 3, 5, 7, 4, 6,
+};
+
+UIRecordDescriptor lbl_2_data_2ECE4[93] = {
+    { 0, 14, { 0 }, 0xFFFFFFFF, 1, 20, UI_NO_PARENT, 8, { 0 }, 1, 0 },
+    { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 2 },
+    { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 1 },
+    { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 0 },
+    { 0, 17, { 0 }, 0xFFFFFFFF, 1, 7, 0, 8, { 0 }, 1, 2 },
+    { 0, 17, { 0 }, 0xFFFFFFFF, 1, 7, 0, 8, { 0 }, 1, 1 },
+    { 0, 17, { 0 }, 0xFFFFFFFF, 1, 7, 0, 8, { 0 }, 1, 0 },
+    { 0, 18, { 0 }, 0xFFFFFFFF, 1, 8, 0, 8, { 0 }, 1, 2 },
+    { 0, 18, { 0 }, 0xFFFFFFFF, 1, 8, 0, 8, { 0 }, 1, 1 },
+    { 0, 18, { 0 }, 0xFFFFFFFF, 1, 8, 0, 8, { 0 }, 1, 0 },
+    { 0, 11, { 0 }, 0xFFFFFFFF, 1, 20, UI_NO_PARENT, 8, { 0 }, 1, 0 },
+    { 0, 12, { 0 }, 0xFFFFFFFF, 1, 8, 10, 8, { 0 }, 1, 5 },
+    { 0, 12, { 0 }, 0xFFFFFFFF, 1, 8, 10, 8, { 0 }, 1, 4 },
+    { 0, 12, { 0 }, 0xFFFFFFFF, 1, 8, 10, 8, { 0 }, 1, 3 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 1, 8, { 0 }, 1, 2 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 1, 8, { 0 }, 1, 3 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 1, 8, { 0 }, 1, 4 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 2, 8, { 0 }, 1, 2 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 2, 8, { 0 }, 1, 3 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 2, 8, { 0 }, 1, 4 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 3, 8, { 0 }, 1, 2 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 3, 8, { 0 }, 1, 3 },
+    { 0, 10, { 0 }, 0xFFFFFFFF, 1, 7, 3, 8, { 0 }, 1, 4 },
+    { 0, 22, { 0 }, 0xFFFFFFFF, 1, 7, 1, 8, { 0 }, 1, 1 },
+    { 0, 22, { 0 }, 0xFFFFFFFF, 1, 7, 2, 8, { 0 }, 1, 1 },
+    { 0, 22, { 0 }, 0xFFFFFFFF, 1, 7, 3, 8, { 0 }, 1, 1 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 0 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 1 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 2 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 3 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 4 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 5 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 6 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 23, 1, { 0 }, 1, 7 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 0 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 1 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 2 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 3 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 4 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 5 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 6 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 24, 1, { 0 }, 1, 7 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 0 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 1 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 2 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 3 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 4 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 5 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 6 },
+    { 0, 131, { 0 }, 0xFFFFFFFF, 0, 7, 25, 1, { 0 }, 1, 7 },
+    { 0, 23, { 0 }, 0xFFFFFFFF, 1, 7, 1, 8, { 0 }, 1, 5 },
+    { 0, 23, { 0 }, 0xFFFFFFFF, 1, 7, 2, 8, { 0 }, 1, 5 },
+    { 0, 23, { 0 }, 0xFFFFFFFF, 1, 7, 3, 8, { 0 }, 1, 5 },
+    { 0, 25, { 0 }, 0xFFFFFFFF, 0, 7, 1, 8, { 0 }, 1, 6 },
+    { 0, 25, { 0 }, 0xFFFFFFFF, 0, 7, 2, 8, { 0 }, 1, 6 },
+    { 0, 25, { 0 }, 0xFFFFFFFF, 0, 7, 3, 8, { 0 }, 1, 6 },
+    { 0, 8, { 0 }, 0xFFFFFFFF, 1, 7, 1, 8, { 0 }, 1, 7 },
+    { 0, 8, { 0 }, 0xFFFFFFFF, 1, 7, 2, 8, { 0 }, 1, 7 },
+    { 0, 8, { 0 }, 0xFFFFFFFF, 1, 7, 3, 8, { 0 }, 1, 7 },
+    { 0, 7, { 0 }, 0xFFFFFFFF, 2, 7, 1, 8, { 0 }, 1, 8 },
+    { 0, 7, { 0 }, 0xFFFFFFFF, 2, 7, 2, 8, { 0 }, 1, 8 },
+    { 0, 7, { 0 }, 0xFFFFFFFF, 2, 7, 3, 8, { 0 }, 1, 8 },
+    { 0, 2, { 0 }, 0xFFFFFFFF, 1, 20, UI_NO_PARENT, 8, { 0 }, 1, 0 },
+    { 0, 3, { 0 }, 0xFFFFFFFF, 1, 7, 62, 8, { 0 }, 1, 2 },
+    { 0, 3, { 0 }, 0xFFFFFFFF, 1, 7, 62, 8, { 0 }, 1, 1 },
+    { 0, 3, { 0 }, 0xFFFFFFFF, 1, 7, 62, 8, { 0 }, 1, 0 },
+    { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 1, 8, { 0 }, 1, 0 },
+    { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 2, 8, { 0 }, 1, 0 },
+    { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 3, 8, { 0 }, 1, 0 },
+    { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+    { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
+    { 0, 216, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
+    { 0, 192, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 5 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 4 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 3 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
+    { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+    { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
+    { 0, 215, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
+    { 0, 192, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 4 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 3 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
+    { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+    { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
+    { 0, 214, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
+    { 0, 191, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
+    { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
+    { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+char lbl_2_data_2F884[6][0x20] = {
+    "FIRST", "CONTINUE", "STRONG FIRST", "COPY", "DELETE", "CANCEL"
+};
+
+u32 ChallengeMapSceneFiles[2][4] = {
+    { 0x0000040B, 0x400B2CB8, 0x18E3F000, 0x00053454 },
+    { 0x0000040B, 0x4037CF5C, 0x18B3A800, 0x00208AF0 },
+};
+
+E(u8, CHAR_ID) lbl_2_data_2F964[6] = {
+    CHAR_ID_MARIO, CHAR_ID_PEACH, CHAR_ID_WARIO, CHAR_ID_DK, CHAR_ID_YOSHI, CHAR_ID_BOWSER
+};
 
 #define REC_OBJ(idx) ((UIRecord *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (idx)].object)
 
@@ -57,7 +185,7 @@ void fn_2_8AC84(s32 slot, s32 flag) {
 void fn_2_8ABFC(void) {
     DrawingSceneStruct *cur = currentDrawingItem;
 
-    addGraphicsElementToScene(cur, (const UIRecordDescriptor *)lbl_2_data_2ECE4);
+    addGraphicsElementToScene(cur, lbl_2_data_2ECE4);
     fn_2_8A008(cur);
     if (*(u8 *)((u8 *)&Static_Stats_Tables + 0x4756) == 1) {
         *(s32 *)(menuCursors + 0x50) = superstarUnlocked[0xF6];
@@ -263,7 +391,7 @@ void fn_2_8A008(DrawingSceneStruct *node) {
 // .text:0x00089F70 size:0x98 mapped:0x806C9004
 void fn_2_89F70(void) {
     DrawingSceneStruct *cur = currentDrawingItem;
-    u8 *base = lbl_2_data_2E9F8;
+    u32 base = (u32)&lbl_2_data_2E9F8;
     const UIRecordDescriptor *desc;
 
     switch (lbl_2_bss_33FBCC[5]) {
