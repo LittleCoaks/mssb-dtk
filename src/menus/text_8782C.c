@@ -1,5 +1,6 @@
 #include "menus/text_8782C.h"
 #include "menus/debug_menu_text.h"
+#include "game/match_setup/match_loading.h"
 #include "menus/rep_0DE0.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
@@ -143,7 +144,7 @@ char lbl_2_data_2F884[6][0x20] = {
     "FIRST", "CONTINUE", "STRONG FIRST", "COPY", "DELETE", "CANCEL"
 };
 
-u32 ChallengeMapSceneFiles[2][4] = {
+MatchFileDescriptor ChallengeMapSceneFiles[2] = {
     { 0x0000040B, 0x400B2CB8, 0x18E3F000, 0x00053454 },
     { 0x0000040B, 0x4037CF5C, 0x18B3A800, 0x00208AF0 },
 };

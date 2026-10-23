@@ -4728,3 +4728,8 @@ four output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave20_text_8782C.json,
 build/.match_grind/wave20_data_floor_audit/summary.json and private wave20
 owned_data_audit.txt. Header unchanged; no gameplay/emulator test was performed.
+
+Follow-up readability: ChallengeMapSceneFiles now uses the existing
+MatchFileDescriptor type. Its .text/.data bytes and relocation records are
+identical to the audited wave20 object; all scores, four hashes and whitespace
+checks remain unchanged. Evidence: build/_postmerge_wave25_text_8782C.json.
