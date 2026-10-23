@@ -4587,3 +4587,24 @@ compiled instructions equal the audited private final. Full build, all four
 output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave14_text_50898.json and private wave14 walker_audit.py.
 No gameplay/emulator test was performed.
+
+### Exact instructions still require jump-table validation (2026-10-22)
+
+The text_5597C data audit found two incorrect aliases despite exact instruction
+bodies. State 17 in fn_2_55FD8 and fn_2_56160 entered the shared active block;
+the target tables send it to the no-op epilogue. Removing those two case labels
+leaves all function instructions unchanged after generated-label normalization
+and makes all 190 table relocations match their target function and offset.
+The unit's .data improves from 0% to 100%, and the table pseudo-symbol from
+99.473690% to 100%; .text stays 99.985450%, with 16/17 functions exact.
+
+A function's code score does not validate the control flow encoded in its
+jump table. Resolve each table entry's function and relative destination,
+especially when exact bodies coexist with a nearly exact data pseudo-symbol.
+A follow-up read-only scan of direct function relocations across 78 menus
+units found no other differing destinations into the same exact function.
+This scan does not establish the correctness of tables in non-exact functions.
+
+All function/section floors are preserved. Full build, four output hashes and
+whitespace checks pass. Evidence: build/_postmerge_wave16_text_5597C.json and
+build/.match_grind/exact_table_audit/summary.json. No emulator test was performed.

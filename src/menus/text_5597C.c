@@ -524,7 +524,6 @@ void fn_2_56160(TextScene *scene, TextHandleRec *rec) {
         break;
     case 2:
     case 8:
-    case 17:
         if (lookupFD84() > 1) {
             nodeSetFrame(nodeOf(scene, rec), 0);
             nodeShow(nodeOf(scene, rec));
@@ -569,7 +568,6 @@ void fn_2_55FD8(TextScene *scene, TextHandleRec *rec) {
         break;
     case 2:
     case 8:
-    case 17:
         if (lookupFD84() > 1) {
             nodeShow(nodeOf(scene, rec));
         } else {
