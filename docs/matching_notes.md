@@ -4634,3 +4634,31 @@ naturally. No register forcing, artificial loop unrolling or speculative
 renames. The full build, all four hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave15_text_8082C.json and private wave15 table_decode.txt /
 table_semantic_audit.txt. No gameplay/emulator test was performed.
+
+### Selector and lineup behavior recovery (2026-10-23)
+
+text_8782C improves from 48.672398% to 74.287870% .text, preserving all
+17 initial function scores, its three exact functions and data/table floors.
+Canonical MenuScene.firstHandle is resolved at each UI mutation, matching the
+target's pointer lifetime. Signed scout sentinels, selector initialization and
+same-frame cleanup, the nine-slot lineup scan, unsigned captain comparisons,
+and byte-stride active-player flags now follow the target behavior. A small
+rollback from an interim score was accepted for the proven flag-stride fix;
+every final score still exceeds or equals its initial floor.
+
+Actual target/candidate execution of fn_2_88250 passes 288 cases (21,504 PPC
+instructions), including first-call cleanup. Another 72 isolated target-loop
+cases (10,008 instructions) validate nine-slot lineup compaction against an
+independent algorithm; these do not execute the complete candidate fn_2_8A008.
+The eight switch destinations for states 0x49 through 0x50 were also checked
+against target ELF relocations and already agree semantically.
+
+.data remains 0%: owned descriptor/debug data still needs recovery. Its coarse
+0xC60-byte symbol contains 93 canonical 32-byte UI descriptors followed by six
+32-byte padded debug labels, rather than descriptors throughout. Lists begin
+at unit-relative 0x2EC/0xBAC/0xCCC/0xDCC; labels occupy 0xE8C..0xF4C.
+This distinction is recorded for the next data pass.
+
+Full build, four output hashes, all-symbol floor audit and whitespace checks
+pass. Evidence: build/_postmerge_wave17_text_8782C.json and private wave17
+ui_audit.py / data_audit.py. No gameplay/emulator test was performed.
