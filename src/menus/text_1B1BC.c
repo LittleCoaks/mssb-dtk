@@ -1,4 +1,6 @@
 #include "menus/text_1B1BC.h"
+#include "text/text.h"
+#include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "menus/text_4D960.h"
 #include "menus/text_4078C.h"
@@ -17,8 +19,6 @@ extern u8 lbl_803C6CF8[];
 extern u8 teamStarModelFileDescriptorMenus[];
 extern u8 Static_Stats_Tables[];
 extern u8 g_d_GameSettings[];
-extern u8 screenTextArray[];
-extern u8 audioFileDescriptors[];
 extern u8 AtBat_ButtonInput1[];
 extern u8 g_Challenge[];
 extern u8 inningSetting[];
@@ -46,7 +46,6 @@ void fn_2_47CFC(void);
 void fn_2_46D94(s16 *a, s16 *b, s16 c, s32 d, s32 e);
 int fn_8006CDC0(int charID);
 void fn_8006C488(void);
-void fn_8000F4B8(void);
 void fn_2_4AB1C(void);
 s32 fn_2_46D00(void);
 void fn_2_20328(void);
@@ -557,21 +556,21 @@ void fn_2_1BFD0(void) {
     lbl_2_bss_1A8248[0x44F2] = 0;
     if (lbl_2_bss_1A824C[0x197864] == 0) {
         fn_2_4E7EC();
-        resetGameStadiumStateOnExit();
-        maybeLoadsGameSoundFiles();
-        fn_800ACFB0(*(void **)&audioFileDescriptors[0x9C]);
     }
-    if (lbl_2_bss_1A8248[0x44F4] != 0) {
+    resetGameStadiumStateOnExit();
+    maybeLoadsGameSoundFiles();
+    fn_800ACFB0(audioFileDescriptors.files[0x27]);
+    if ((s8)lbl_2_bss_1A8248[0x44F4] != 0) {
         fn_2_4E8BC();
         fn_2_4E904();
         fn_2_4E928();
     } else {
         fn_2_4E928();
-        fn_2_4E94C();
     }
-    if (*(void **)&screenTextArray[0x7A8] != NULL) {
-        fn_800ACFB0(*(void **)&screenTextArray[0x7A8]);
-        *(void **)&screenTextArray[0x7A8] = NULL;
+    fn_2_4E94C();
+    if (screenTextArray.textBanks[4] != NULL) {
+        fn_800ACFB0(screenTextArray.textBanks[4]);
+        screenTextArray.textBanks[4] = NULL;
     }
     lbl_2_bss_1A823C[0x34] = 0;
 }
@@ -630,7 +629,7 @@ void fn_2_1B7B4(void) {
         g_d_GameSettings[9] = 0;
         p[0x197863] = Static_Stats_Tables[0x46F8];
         p[0x197848] = 0;
-        fn_8000F4B8();
+        fn_8000F4B8(0, -1, -1, -1);
         SCENE_STATE = 2;
         break;
     case 1:

@@ -64,10 +64,6 @@ typedef struct Fn53Entry {
     /* 0x10 */ u8 _10[0x18 - 0x10];
 } Fn53Entry;
 
-
-
-
-
 // One 0x10-byte record of a source table that fills the 0x18-byte entries
 // of lbl_2_bss_1A8230 / lbl_2_bss_1A8234.
 typedef struct Fn54Rec {
@@ -83,13 +79,16 @@ typedef struct Fn54Rec {
 // The 0x18-byte entry that Fn54Rec is copied into.
 typedef struct Fn54Entry {
     /* 0x00 */ void *ptr;
-    /* 0x04 */ u8 _04[4];
+    /* 0x04 */ s16 unknown04;
+    /* 0x06 */ s16 unknown06;
     /* 0x08 */ s16 j;
     /* 0x0A */ s16 f06;
     /* 0x0C */ s16 i;
     /* 0x0E */ s16 f0A;
     /* 0x10 */ s16 f0C;
-    /* 0x12 */ u8 _12[6];
+    /* 0x12 */ s16 unknown12;
+    /* 0x14 */ s16 unknown14;
+    /* 0x16 */ u8 _16[2];
 } Fn54Entry;
 
 // .text:0x00054BAC size:0x4 mapped:0x80693C40
@@ -115,7 +114,7 @@ void fn_2_54B38(void) {
 void fn_2_549B4(void) {
     DrawingSceneStruct *item = currentDrawingItem;
 
-    switch (*(u8 *)((u8 *)item + 0x28)) {
+    switch (*(s8 *)((u8 *)item + 0x28)) {
     case 0:
         screenTextArray.textBanks[2] = ARAMTransfer(RecordsBookFiles, 0, 1, 0);
         *(u8 *)((u8 *)item + 0x28) = 1;
@@ -210,6 +209,19 @@ void fn_2_54844(void) {
     return;
 }
 
+static inline void clearTableEntry(Fn54Entry *entry) {
+    entry->ptr = NULL;
+    entry->unknown04 = 0;
+    entry->unknown06 = 0;
+    entry->f0C = 0;
+    entry->j = 0;
+    entry->f06 = 0;
+    entry->i = 0;
+    entry->f0A = 0;
+    entry->unknown12 = 0;
+    entry->unknown14 = 0;
+}
+
 // .text:0x00054474 size:0x3D0 mapped:0x80693508
 void fn_2_54474(void) {
     s32 i;
@@ -218,33 +230,13 @@ void fn_2_54474(void) {
     for (i = 0; i < 0x46; i++) {
         for (j = 0; j < 0x360; j++) {
             Fn54Entry *dst = (Fn54Entry *)(lbl_2_bss_1A8234 + i * 0x5100 + j * 0x18);
-            s16 *h = (s16 *)dst;
-            dst->ptr = NULL;
-            h[2] = 0;
-            h[3] = 0;
-            h[8] = 0;
-            h[4] = 0;
-            h[5] = 0;
-            h[6] = 0;
-            h[7] = 0;
-            h[9] = 0;
-            h[10] = 0;
+            clearTableEntry(dst);
         }
     }
     for (i = 0; i < 0xA; i++) {
         for (j = 0; j < 0x360; j++) {
             Fn54Entry *dst = (Fn54Entry *)(lbl_2_bss_1A8230 + i * 0x5100 + j * 0x18);
-            s16 *h = (s16 *)dst;
-            dst->ptr = NULL;
-            h[2] = 0;
-            h[3] = 0;
-            h[8] = 0;
-            h[4] = 0;
-            h[5] = 0;
-            h[6] = 0;
-            h[7] = 0;
-            h[9] = 0;
-            h[10] = 0;
+            clearTableEntry(dst);
         }
     }
 }
@@ -500,23 +492,27 @@ void fn_2_535B0(void) {
     s8 state = *(s8 *)((u8 *)item + 0x28);
     s32 i;
 
-    if (state == 0) {
+    switch (state) {
+    case 0:
         *(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A4) = 0;
         *(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) = 0;
         *((u8 *)item + 0x28) = 1;
-    } else if (state == 1) {
+        break;
+    case 1:
         fn_2_1FFC4(2);
         for (i = 0; i < 2; i++) {
             fn_2_1FF10(i);
-            if (i == 0) {
-                if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) == 0) {
+            switch (i) {
+            case 0:
+                if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) == i) {
                     u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
                     if ((*(u16 *)(entry + 2) & 0x100) || (*(s8 *)(AtBat_ButtonInput1 + 0x13) > 0x32)) {
                         *((u8 *)item + 0x28) = 3;
                     }
                 }
-            } else if (i == 1) {
-                if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) == 1) {
+                break;
+            case 1:
+                if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) == i) {
                     u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
                     if (*(u16 *)(entry + 2) & 0x102) {
                         lbl_2_bss_1A824C[0x190000 + 0x784A] = 1;
@@ -526,6 +522,7 @@ void fn_2_535B0(void) {
                         *((u8 *)item + 0x28) = 2;
                     }
                 }
+                break;
             }
         }
         {
@@ -534,75 +531,81 @@ void fn_2_535B0(void) {
                 *((u8 *)item + 0x28) = 3;
             }
         }
-    } else if (state == 2) {
+        break;
+    case 2:
         fn_2_1FF14(1);
-        fn_2_1FF0C(0);
-        if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A4) == 0) {
-            u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
-            u16 flags = *(u16 *)(entry + 2);
+        for (i = 0; i < 1; i++) {
+            fn_2_1FF0C(i);
+            switch (i) {
+            case 0:
+                if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A4) == i) {
+                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
+                    u16 flags = *(u16 *)(entry + 2);
 
-            if (flags & 0x200) {
-                lbl_2_bss_1A824C[0x190000 + 0x784A] = 0;
-                lbl_2_bss_1A824C[0x190000 + 0x7846] = 0;
-                *(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A4) = 0;
-                lbl_2_bss_1A824C[0x190000 + 0x7845] = 0;
-                *((u8 *)item + 0x28) = 1;
-            } else if (flags & 0x100) {
-                lbl_2_bss_9E10[0] ^= 1;
-            } else if (flags & 0x1000) {
-                fn_2_93C64();
-            }
-            if (lbl_2_bss_9E10[0] != 0) {
-                fn_2_489DC();
+                    if (flags & 0x200) {
+                        lbl_2_bss_1A824C[0x190000 + 0x784A] = 0;
+                        lbl_2_bss_1A824C[0x190000 + 0x7846] = 0;
+                        *(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A4) = 0;
+                        lbl_2_bss_1A824C[0x190000 + 0x7845] = 0;
+                        *((u8 *)item + 0x28) = 1;
+                    } else if (flags & 0x100) {
+                        lbl_2_bss_9E10[0] ^= 1;
+                    } else if (flags & 0x1000) {
+                        fn_2_93C64();
+                    }
+                    if ((s8)lbl_2_bss_9E10[0] != 0) {
+                        fn_2_489DC();
+                    }
+                }
+                break;
             }
         }
-    } else if (state == 3) {
+        break;
+    case 3:
         ((DrawingSceneStruct *)item->currentDrawingItem)->state = 1;
         removeCurrentDrawingItem();
         *((u8 *)item + 0x28) = 0;
+        break;
     }
 }
 
 // .text:0x00053408 size:0x1A8 mapped:0x8069249C
 void challengeMap(void) {
-    u16 *state = (u16 *)lbl_2_bss_33FBCC;
-
-    if (*state == 2) {
+    switch ((*(u16 *)lbl_2_bss_33FBCC)) {
+    case 0:
+        if (diskReadRelated(challengeMapTexturesFileDescriptor, 8) != 0) {
+            lbl_2_bss_33FBCC[0xD] = 0;
+            if (*(u16 *)(menuControlVariables + 0x6) == 0x10) {
+                (*(u16 *)lbl_2_bss_33FBCC) = 1;
+                Static_Stats_Tables[0x4756] = 1;
+            } else {
+                (*(u16 *)lbl_2_bss_33FBCC) = 2;
+            }
+            if (*(s16 *)(inningSetting + 0x58) == 0xA && cardCheck[0x47] != 0) {
+                changeScene(6, 6);
+                changeScene(3, 6);
+                fn_80035B50(8);
+                *(s16 *)(inningSetting + 0x58) = 9;
+                *(s16 *)(inningSetting + 0x5A) = 0;
+                fn_80042D38(5);
+                menuCursors[0x14] = 0;
+                *(u16 *)lbl_2_bss_33FBCC = 0;
+                *(s16 *)lbl_2_bss_9E08 = 0;
+                cardCheck[0x52] = 0;
+            }
+        }
+        break;
+    case 1:
+        if (diskReadRelated(skyPanoramaFileDescriptorChallengeMap, 6) != 0) {
+            (*(u16 *)lbl_2_bss_33FBCC) = 2;
+        }
+        break;
+    case 2:
         insertGraphicDrawingFunction(fn_2_52690, 0x2000);
         Static_Stats_Tables[0x472B] = g_d_GameSettings[0x6];
-        *state = *state + 1;
-    } else if (*state >= 2) {
-        return;
-    } else if (*state == 0) {
-        if (diskReadRelated(challengeMapTexturesFileDescriptor, 8) == 0) {
-            return;
-        }
-        lbl_2_bss_33FBCC[0xD] = 0;
-        if (*(u16 *)(menuControlVariables + 0x6) == 0x10) {
-            *state = 1;
-            Static_Stats_Tables[0x4756] = 1;
-        } else {
-            *state = 2;
-        }
-        if (*(s16 *)(inningSetting + 0x58) != 0xA) {
-            return;
-        }
-        if (cardCheck[0x47] == 0) {
-            return;
-        }
-        changeScene(6, 6);
-        changeScene(3, 6);
-        fn_80035B50(8);
-        *(s16 *)(inningSetting + 0x58) = 9;
-        fn_80042D38(5);
-        *(s16 *)(inningSetting + 0x5A) = 0;
-        menuCursors[0x14] = 0;
-        *(u16 *)lbl_2_bss_33FBCC = 0;
-        *(s16 *)lbl_2_bss_9E08 = 0;
-        cardCheck[0x52] = 0;
-    } else if (*state == 1) {
-        if (diskReadRelated(skyPanoramaFileDescriptorChallengeMap, 6) != 0) {
-            *state = 2;
-        }
+        (*(u16 *)lbl_2_bss_33FBCC) = (*(u16 *)lbl_2_bss_33FBCC) + 1;
+        break;
+    case 3:
+        break;
     }
 }

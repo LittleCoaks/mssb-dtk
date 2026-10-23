@@ -4733,3 +4733,42 @@ Follow-up readability: ChallengeMapSceneFiles now uses the existing
 MatchFileDescriptor type. Its .text/.data bytes and relocation records are
 identical to the audited wave20 object; all scores, four hashes and whitespace
 checks remain unchanged. Evidence: build/_postmerge_wave25_text_8782C.json.
+
+### Typed reset fields and complete map-state dispatch (2026-10-23)
+
+text_53408 improves from 91.800530% to 98.791940% .text. Natural state and
+option dispatch preserve the target's callback/global-reload behavior, and
+the inningSetting+0x5A clear now precedes fn_80042D38 as required by the target.
+Using the reset entry's proven halfword fields instead of a raw s16 alias
+lets the compiler generate the target's eight-entry loop expansion naturally;
+fn_2_54474 rises from 86.290985% to 99.651640%, without manual unrolling.
+
+A signed state load in fn_2_549B4 restores all seven exact switch relocations:
+.data and its table pseudo-symbol improve from 0%/50% to 100%/100%. All 21
+function floors and nine exact functions hold. A bounded model comparison
+covers 1,048,576 map-state/guard combinations, and an address/store model
+checks 69,120 reset entries. These are model checks, not compiled execution.
+All shared function instructions equal the private final; full build, four
+hashes and whitespace checks pass. Evidence: build/_postmerge_wave23_text_53408.json
+and private wave23 prove.py / data_relocation_proof.txt.
+
+### Branch destinations expose skipped cleanup in near-exact code (2026-10-23)
+
+A read-only scan of near-matching menu functions flagged internal branch
+destination differences for review. Two in fn_2_1BFD0 were real scope errors:
+the target guards only fn_2_4E7EC, then always resets/frees the sound state;
+it also always calls fn_2_4E94C after either cleanup branch. Moving those
+shared calls outside their guards and retaining the target's signed load
+makes the function exact, from 98.923080% to 100%.
+
+The readability pass replaces raw audio/text offsets with canonical fields.
+Including the existing text API also exposed a wrong no-argument declaration
+of fn_8000F4B8: fn_2_1B7B4 now supplies the target's (0, -1, -1, -1) arguments.
+Constant propagation of the actual compiled call sites confirms that tuple;
+the old candidate supplied no established argument values. text_1B1BC reaches
+67.238110% .text, preserving all 21 initial floors and adding one exact
+function (eight total). Shared instructions equal the private final; full
+build, four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave26_text_1B1BC.json and private wave26 call_audit.py.
+The scan's other flags remain unproven leads; no gameplay/emulator test was
+performed for either checkpoint.
