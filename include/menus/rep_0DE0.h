@@ -58,7 +58,6 @@ extern Rep0DEState *lbl_2_bss_340140;
 extern Rep0DEMtxBlock lbl_2_bss_1A81D4;
 extern Rep0DEState hugeAnimStruct;
 extern u8 drawStadiumRelated;
-extern u8 lbl_2_data_2E9B4[];
 extern Vec lbl_2_data_2E9D0;
 extern f32 lbl_2_bss_B29C;
 extern f32 lbl_2_data_2E9C4[];

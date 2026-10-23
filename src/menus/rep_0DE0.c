@@ -1,5 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "menus/rep_0DE0.h"
+#include "Unknown/graphic.h"
+#include "game/match_setup/match_loading.h"
 #include "header_rep_data.h"
 #include "C3/light/light.h"
 #include "C3/control.h"
@@ -18,7 +20,167 @@
 #include "static/UnknownHomes_Static.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 
-void fn_800A7D4C(u32 a, void *b);
+Rep0DELayout lbl_2_data_2E608 = {
+    {
+        {
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+        },
+        {
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+        },
+        {
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+            { 0, 0, FALSE },
+        },
+        {
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 0, 0, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 1, 1, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 2, 2, TRUE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 3, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+            { 4, 0, FALSE },
+        },
+    },
+    { 1, 1, 1, 10, 11, 0 },
+    { 8, 8, 8, 4, 7, 0 },
+    {
+        { 8, 9, 10, 11, 4, 12, 6, 7 },
+        { 0, 1, 2, 3, 4, 5, 6, 7 },
+        { 13, 14, 15, 16, 4, 17, 6, 7 },
+        { 0, 0, 0, 0, 0, 0, 0, 0 },
+        { 0, 0, 0, 0, 0, 0, 0, 0 },
+    },
+    { 20, 24, 25, 30 },
+};
+
+f32 lbl_2_data_2E944[4][6] = {
+    { 1.1f, -10.47f, -0.56f, 1.1f, -9.47f, -0.52f },
+    { 1.34f, -11.88f, -0.65f, 1.34f, -10.88f, -0.61f },
+    { 1.25f, -11.83f, -0.7f, 1.25f, -10.83f, -0.66f },
+    { 1.32f, -11.88f, -0.69f, 1.32f, -10.88f, -0.65f },
+};
+
+MatchFileDescriptor lbl_2_data_2E9A4 = { 0x0000040B, 0x400204C0, 0x191C1800, 0x00013FCC };
+
+DrawCallbackNode lbl_2_data_2E9B4[2] = {
+    { 2, fn_2_86F40 },
+    { 2, fn_2_86F40 },
+};
+
+f32 lbl_2_data_2E9C4[3] = { 0.0f, 0.0f, 0.0f };
+Vec lbl_2_data_2E9D0 = { 0.0f, 0.0f, 0.0f };
+f32 lbl_2_data_2E9DC[3] = { -1.5707964f, 0.0f, 0.0f };
+Vec lbl_2_data_2E9E8 = { 0.0f, 0.0f, 0.0f };
 
 static inline void initLightColor(void *light, GXColor color) {
     LITInitColor(light, &color);
@@ -112,7 +274,7 @@ void fn_2_86FEC(void) {
     fn_2_85D6C(&lbl_2_bss_1A81D4);
     cam = fn_80052768_getCamera(0);
     PSMTXCopy(lbl_2_bss_1A81D4.mtx, cam->view);
-    fn_800A7D4C(0, lbl_2_data_2E9B4 + drawStadiumRelated * 8);
+    fn_800A7D4C(0, &lbl_2_data_2E9B4[drawStadiumRelated]);
     cam = fn_80052768_getCamera(0);
     fn_2_190DC(lbl_2_bss_340140->unk68, cam->view);
 }

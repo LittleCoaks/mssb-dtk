@@ -4813,3 +4813,23 @@ build/_postmerge_wave29_text_35EC0.json and private wave29 dispatch_audit.py.
 The near-match branch scan also flagged teamselect's manager. Inspection
 shows equivalent shared versus duplicated transition-result guards; it is
 not evidence of a behavioral defect, and no change was made there.
+
+### Typed model data and callback ownership (2026-10-23)
+
+rep_0DE0 now owns its initialized model-layout, camera rows, file descriptor,
+callback nodes and vectors using existing canonical types. All1004 initialized
+bytes and both callback relocations match the original. The original section
+ends with four alignment bytes; the final vector remains its actual12bytes.
+Three proven symbol corrections separate the16byte file descriptor from
+the24 camera floats and remove alignment from that vector's size.
+
+After the actual configuration rebuild, .data improves from0% to100%, with
+each of the eight objects exact. .text95.3605%, .rodata100% and all17 function
+floors/12 exacts hold. Source-only canonical callback declarations replace
+the local incompatible prototype; the unused raw extern is removed from
+the header. Its dependent text_8782C and all78 menus units preserve their
+latest function/section/pseudo-symbol floors. Shared code/data bytes and
+normalized relocations equal the private final. Full build, four output
+hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave24_rep_0DE0.json and
+build/.match_grind/wave24_data_floor_audit/summary.json. No gameplay test.
