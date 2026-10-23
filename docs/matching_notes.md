@@ -4961,3 +4961,18 @@ four output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave32_text_35EC0.json,
 build/_postmerge_wave36_text_636A4.json and private wave32 movie_audit.py.
 The focused audit does not execute the full movie/game runtime.
+
+### Record fade mutations preserve truncation points (2026-10-23)
+
+fn_2_653D4 improves from 94.49045% to 99.617836% by updating its actual
+halfword field at each fade step. A local record extension names the proven
+fade/channel fields without changing the shared header. The compiled target
+and candidate agree with an independent store-trace model for every signed
+halfword starting value in both fade arms: 262,144 executions. This excludes
+the selector, other states and final color write.
+
+text_636A4 reaches 93.72115% .text. All 20 function floors, 14 exacts and
+data/pseudo-symbol floors hold. Shared instructions equal the private final;
+full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave37_text_636A4.json and private wave37 fade_audit.py.
+The remaining callback differences concern the color-write tail's registers.

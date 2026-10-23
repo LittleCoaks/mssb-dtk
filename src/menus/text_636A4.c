@@ -2,6 +2,12 @@
 #include "text/text.h"
 #include "Unknown/File_0x80034e20.h"
 
+typedef struct TextFadeRecord {
+    TextHandleRec base;
+    s16 fade;
+    s16 channel;
+} TextFadeRecord;
+
 // Local prototypes for symbols owned by other units.
 s16 fn_2_53BC8(void *arg0);
 void load_Icon(void *scene, s32 handle, u32 part, u32 element, s32 frame);
@@ -397,9 +403,9 @@ void fn_2_65648(TextScene *scene, TextHandleRec *rec) {
 void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
     TextGraphicsObject *obj;
+    TextFadeRecord *fadeRecord = (TextFadeRecord *)rec;
     s16 *timer;
     s16 prev;
-    s16 fade;
 
     if (result != -1) {
         rec->state = result;
@@ -407,12 +413,12 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
     switch (rec->state) {
     case 0:
         hideRec(scene, rec);
-        *(s16 *)((u8 *)rec + 0x12) = 0;
-        *(s16 *)((u8 *)rec + 0x14) = text_initializeNewChannel((UnkText988Arg *)scene, rec->handle, rec->unk10, 2, 0x217, 0);
+        fadeRecord->fade = 0;
+        fadeRecord->channel = text_initializeNewChannel((UnkText988Arg *)scene, rec->handle, rec->unk10, 2, 0x217, 0);
         rec->state = 0x26;
         break;
     case 2:
-        text_setPtrToWhereCharsAreStored(*(s16 *)((u8 *)rec + 0x14), 2,
+        text_setPtrToWhereCharsAreStored(fadeRecord->channel, 2,
                                          *(s16 *)(lbl_2_bss_1A824C + 0x197706) + 0x217);
         *(s16 *)((u8 *)rec + 0x6) = 8;
         rec->state = 3;
@@ -427,14 +433,12 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 4:
-        fade = *(s16 *)((u8 *)rec + 0x12);
-        fade = fade + (0xFF - fade) / 4;
-        fade = fade + 1;
-        if (fade > 0xFF) {
-            fade = 0xFF;
+        fadeRecord->fade += (0xFF - fadeRecord->fade) / 4;
+        fadeRecord->fade++;
+        if (fadeRecord->fade > 0xFF) {
+            fadeRecord->fade = 0xFF;
         }
-        *(s16 *)((u8 *)rec + 0x12) = fade;
-        if (fade >= 0xFF) {
+        if (fadeRecord->fade >= 0xFF) {
             rec->state = 0x25;
         }
         break;
@@ -446,18 +450,16 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        fade = *(s16 *)((u8 *)rec + 0x12);
-        *(s16 *)((u8 *)rec + 0x12) = fade + (-fade) / 4;
-        fade = *(s16 *)((u8 *)rec + 0x12) - 1;
-        if (fade < 0) {
-            fade = 0;
+        fadeRecord->fade += (-fadeRecord->fade) / 4;
+        fadeRecord->fade--;
+        if (fadeRecord->fade < 0) {
+            fadeRecord->fade = 0;
         }
-        *(s16 *)((u8 *)rec + 0x12) = fade;
         break;
     }
 
     obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-    ((UIRecord *)obj)->rgba = (((UIRecord *)obj)->rgba & ~0xFF) | (u32)*(s16 *)((u8 *)rec + 0x12);
+    ((UIRecord *)obj)->rgba = (((UIRecord *)obj)->rgba & ~0xFF) | (u32)fadeRecord->fade;
 }
 
 // .text:0x00065258 size:0x17C mapped:0x806A42EC
