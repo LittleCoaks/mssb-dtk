@@ -4559,3 +4559,31 @@ No shared header or configuration changes. Full build, four output hashes and
 whitespace checks pass. Project report: 4205/6479 matching functions, 41.96% code.
 Evidence: build/_postmerge_wave12_text_579B4.json and
 build/_postmerge_wave13_text_50898.json. No emulator test was performed.
+
+### Script token and append-source audit (2026-10-22)
+
+Corrected four walkers in text_50898 that tested 0x8000 for the script terminator
+instead of the target's 0x4000 control tag. The width readers also had ordinary
+and high-bit glyph widths reversed: ordinary glyphs add half width, high-bit
+glyphs add full width; control tags 2/3 add half/full width and other control
+tags end the measurement. A wide accumulator and explicit tagged-half narrowing
+preserve the target's return behavior, including wrap cases. A transient higher
+score using a narrow accumulator was rejected when execution exposed different
+upper return-register bits.
+
+fn_2_50DB4 and fn_2_50F20 now accept the incoming third source-pointer parameter:
+the target uses it when arg1 is -1, while the old draft initialized it to NULL.
+Their header was corrected; a repository reference/include audit finds only
+text_50898.c dependent, and the full build confirms that scope. Ordinary loops
+also replace expanded row clears; the two mode branches remain explicit where
+the target retains them.
+
+The unit improves from 65.458275% to 68.075540% .text, preserving all 38 initial
+function scores, 15 exact functions, .data 0% and the table score. Independent
+target/candidate execution passes 1,539 cases (407,672 PPC instructions), covering
+terminators, control tags, odd widths, 16-bit wrap, append count limits, incoming
+versus bank-selected pointers and mode branches. Every shared function's
+compiled instructions equal the audited private final. Full build, all four
+output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave14_text_50898.json and private wave14 walker_audit.py.
+No gameplay/emulator test was performed.
