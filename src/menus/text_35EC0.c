@@ -72,6 +72,10 @@ static inline s16 workS16(s32 off) {
     return *(s16 *)(WORK_BASE() + off);
 }
 
+static inline s16 workTableS16(s32 off, s32 index) {
+    return ((s16 *)(WORK_BASE() + off))[index];
+}
+
 static inline TextGraphicsObject *nodeOf(TextScene *scene, TextHandleRec *rec) {
     return graphicsRelatedArray[scene->firstHandle + rec->handle].object;
 }
@@ -461,6 +465,12 @@ void fn_2_3735C(TextScene *scene, TextHandleRec *rec) {
     case 2:
         rec->state = 0x25;
         break;
+    case 1:
+    case 5:
+    case 8:
+    case 0x24:
+    case 0x25:
+        break;
     }
 }
 
@@ -573,7 +583,7 @@ void fn_2_36D04(TextScene *scene, TextHandleRec *rec) {
         rec->state = 3;
         break;
     case 3:
-        if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= (u16)lbl_2_data_C8F8[rec->unk10]) {
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= lbl_2_data_C8F8[rec->unk10]) {
             nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 0x25;
         }
@@ -584,7 +594,7 @@ void fn_2_36D04(TextScene *scene, TextHandleRec *rec) {
         rec->state = 6;
         break;
     case 6:
-        if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= (u16)lbl_2_data_C904[rec->unk10]) {
+        if ((nodeFrame(nodeOf(scene, rec)) >> 16) >= lbl_2_data_C904[rec->unk10]) {
             nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
             rec->state = 7;
         }
@@ -613,7 +623,7 @@ void fn_2_36B30(TextScene *scene, TextHandleRec *rec) {
         rec->state = 0x25;
         break;
     case 0x25:
-        if (workS16(0x7298 + rec->unkA * 2) != 0) {
+        if (workTableS16(0x7298, rec->unkA) != 0) {
             nodeShow(nodeOf(scene, rec));
         } else {
             nodeHide(nodeOf(scene, rec));
@@ -783,21 +793,25 @@ void fn_2_36204(TextScene *scene, TextHandleRec *rec) {
         nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
+    case 1:
+        break;
     case 2:
-        if (workS16(0x72AC + rec->unkA * 2) == 3) {
+        if (workTableS16(0x72AC, rec->unkA) == 3) {
             nodeShow(nodeOf(scene, rec));
             nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_FORWARD);
         }
         rec->state = 0x25;
         break;
     case 5:
-        if (workS16(0x72AC + rec->unkA * 2) == 3) {
+        if (workTableS16(0x72AC, rec->unkA) == 3) {
             nodeSetPlayMode(nodeOf(scene, rec), UI_PLAY_STOP);
         }
         rec->state = 6;
         break;
     case 6:
         nodeHide(nodeOf(scene, rec));
+        break;
+    case 0x25:
         break;
     }
 }
@@ -813,6 +827,8 @@ void fn_2_36074(TextScene *scene, TextHandleRec *rec) {
         nodeHide(nodeOf(scene, rec));
         rec->state = 0x26;
         break;
+    case 1:
+        break;
     case 2:
         nodeSetFrame(nodeOf(scene, rec), 0);
         nodeShow(nodeOf(scene, rec));
@@ -825,6 +841,8 @@ void fn_2_36074(TextScene *scene, TextHandleRec *rec) {
         break;
     case 6:
         nodeHide(nodeOf(scene, rec));
+        break;
+    case 0x25:
         break;
     }
 }

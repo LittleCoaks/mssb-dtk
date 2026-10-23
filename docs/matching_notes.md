@@ -4853,3 +4853,22 @@ after selector-result application and does not execute the action bodies.
 All shared function instructions equal the private final. Full build, four
 output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave30_text_35EC0.json and private wave30 dispatch_audit.py.
+
+### Table access and signed animation thresholds finish five callbacks (2026-10-23)
+
+text_35EC0 reaches94.723490% .text and25/29 exact functions, up from
+93.261020% and20 exact. Completing the evidenced no-op states fixes two
+more dispatch trees. Natural signed-halfword array indexing fixes address
+formation in two callbacks. fn_2_36D04 now retains the signed table load
+for its comparison with an unsigned frame; the old u16 casts incorrectly
+truncated negative limits. All five functions match exactly after the
+canonical field/constant readability review and fresh whole-unit diff.
+
+All29 function floors hold; the table pseudo improves from58.175343% to
+71.794020%, while .data remains0%. The three changed dispatch trees agree
+for every signed16 state across target/old/new code (589824 classifications,
+after selector-result application and excluding action bodies). All shared
+function instructions equal the private final. Full build, four output
+hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave31_text_35EC0.json and private wave31 dispatch_audit.py.
+Four movie callbacks remain pending; no gameplay/emulator test was performed.
