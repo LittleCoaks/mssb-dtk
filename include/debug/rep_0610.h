@@ -297,8 +297,8 @@ typedef struct DbgSceneP {
     /*0x2C*/ Vec acc;
     /*0x38*/ s32 w38;
     /*0x3C*/ u16 h3C;
-    /*0x3E*/ u8 b3E;
-    /*0x3F*/ u8 b3F;
+    /*0x3E*/ E(u8, BOOL) b3E;
+    /*0x3F*/ E(u8, BOOL) b3F;
 } DbgSceneP;
 
 struct DbgActorExt {

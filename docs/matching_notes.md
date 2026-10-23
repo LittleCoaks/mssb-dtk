@@ -3589,6 +3589,13 @@ functions. These lessons are not specific to one file:
   of a variable do not move it, but one more short-lived temp live across a parameter's range pushed that
   parameter to the top, so interference can override the order. `x = inlineFn(...)` lifts x above the
   loop temps but not above a hoisted global address.
+  Variables assigned from static-inline getters are coloured in call order, just below a global-address
+  temp and above the strength-reduction temps. A hoisted global address stays on top even through a
+  local pointer, a getter inline, or stores through the global: copy propagation folds them back.
+- **Read the declaration order off the target even when its top registers are wrong:** strip the
+  mismatched top variables from both sides; the rest follows locals in declaration order, then parameters
+  (`rep_0138` `fn_1_73B8`: every register below the top four landed with `set, table, cam1, cam2, i,
+  end, sel, geo, key`).
 - **MWCC never inlines a variadic function** (it emits `bl`), and `va_start` needs the enclosing
   function itself to take an ellipsis, so a loop containing `va_start` cannot move into an inline helper.
 - **Then screen single changes in parallel on the exact reproducer.** For `rep_74A0` `fn_1_1D110`

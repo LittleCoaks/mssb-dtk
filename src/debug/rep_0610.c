@@ -4687,7 +4687,7 @@ void fn_1_F50C(void) {
     }
     fn_80030D88(&s->pos, &s->vel, lbl_1_data_F10C, 5);
     if (s->b3E != 0) {
-        s->b3E = 0;
+        s->b3E = FALSE;
         if (s->b3F != 0) {
             getAnimRelatedCoordinates(0, 0x1E, (VecXYZ *)&p);
             p.y = 0.0f;
@@ -4738,10 +4738,10 @@ void fn_1_F37C(void) {
         d->acc.y = 0.0f;
         d->acc.z = (s32)lbl_1_data_F10C[0x60 / 4] / 100000.0f;
         d->h3C = 0x20;
-        d->b3E = 1;
+        d->b3E = TRUE;
         d->w38 = lbl_1_bss_30A4;
         lbl_1_bss_30A4 += 2;
-        d->b3F = (BTN_REPEAT >> 12) & 1;
+        d->b3F = (BTN_REPEAT & INPUT_BUTTON_START) != 0;
     } else if (BTN_REPEAT & INPUT_BUTTON_B) {
         lbl_1_bss_307C = 0;
         lbl_1_bss_5F71 = 10;
