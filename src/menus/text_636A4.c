@@ -1,5 +1,6 @@
 #include "menus/text_636A4.h"
 #include "text/text.h"
+#include "Unknown/File_0x80034e20.h"
 
 // Local prototypes for symbols owned by other units.
 s16 fn_2_53BC8(void *arg0);
@@ -12,24 +13,24 @@ extern s16 lbl_2_data_20C38[];
 extern s16 lbl_2_data_20C58[];
 extern u8 g_d_GameSettings[];
 
-static void clearRecFlag2(TextScene *scene, TextHandleRec *rec) {
-    graphicsRelatedArray[scene->firstHandle + rec->handle].object->flags &= ~2;
+static void hideRec(TextScene *scene, TextHandleRec *rec) {
+    graphicsRelatedArray[scene->firstHandle + rec->handle].object->flags &= ~UI_FLAG_VISIBLE;
 }
 
-static void setRecFlag2(TextScene *scene, TextHandleRec *rec) {
-    graphicsRelatedArray[scene->firstHandle + rec->handle].object->flags |= 2;
+static void showRec(TextScene *scene, TextHandleRec *rec) {
+    graphicsRelatedArray[scene->firstHandle + rec->handle].object->flags |= UI_FLAG_VISIBLE;
 }
 
-static void setRecObjectField5C(TextScene *scene, TextHandleRec *rec, u32 value) {
+static void setRecFrame(TextScene *scene, TextHandleRec *rec, u32 value) {
     GraphicsArrayEntry *entry = &graphicsRelatedArray[scene->firstHandle + rec->handle];
 
-    *(u32 *)((u8 *)entry->object + 0x5C) = value;
+    ((UIRecord *)entry->object)->frame = value;
 }
 
-static void setRecObject68(TextScene *scene, TextHandleRec *rec, u8 value) {
+static void setRecPlayMode(TextScene *scene, TextHandleRec *rec, u8 value) {
     GraphicsArrayEntry *entry = &graphicsRelatedArray[scene->firstHandle + rec->handle];
 
-    *(u8 *)((u8 *)entry->object + 0x68) = value;
+    ((UIRecord *)entry->object)->playMode = value;
 }
 
 static void tickRecTimer(TextScene *scene, TextHandleRec *rec) {
@@ -38,7 +39,7 @@ static void tickRecTimer(TextScene *scene, TextHandleRec *rec) {
 
     *timer = prev - 1;
     if (prev <= 0) {
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
     }
 }
 
@@ -48,10 +49,10 @@ static s16 recLevelFromWork(TextHandleRec *rec) {
     s16 kind;
 
     if (*(s16 *)((u8 *)rec + 0xC) == 6) {
-        return *(s16 *)(lbl_2_bss_1A824C + 0x190000 + *(s16 *)((u8 *)rec + 0xA) * 8 + 0x72CA);
+        return *(s16 *)(lbl_2_bss_1A824C + 0x190000 + rec->unkA * 8 + 0x72CA);
     }
     mode = *(s16 *)(lbl_2_bss_1A824C + 0x1976FA);
-    kind = *(s16 *)((u8 *)rec + 0xA);
+    kind = rec->unkA;
     return *(s16 *)(lbl_2_bss_1A824C + 0x190000 + mode * 0x28 + kind * 8 + 0x72F2);
 }
 
@@ -60,26 +61,26 @@ static void stepRecSettingsLevel(TextScene *scene, TextHandleRec *rec) {
     s16 mode;
 
     if (*(s16 *)((u8 *)rec + 0xC) == 6) {
-        setRecObjectField5C(scene, rec, 0x60000);
+        setRecFrame(scene, rec, 0x60000);
     } else {
         mode = *(s16 *)(lbl_2_bss_1A824C + 0x1976FA);
         if (mode == 5 && g_d_GameSettings[0x12] == 0) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
             rec->state = 0x25;
             return;
         }
         if (mode == 6 && g_d_GameSettings[0x12] <= 1) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
             rec->state = 0x25;
             return;
         }
-        setRecObjectField5C(scene, rec, (u32)lbl_2_data_20C38[mode] << 16);
+        setRecFrame(scene, rec, (u32)lbl_2_data_20C38[mode] << 16);
     }
-    setRecFlag2(scene, rec);
+    showRec(scene, rec);
     rec->state = 0x25;
 }
 
-// Case 2 sets flag 2 before zeroing the level word.
+// Reset playback after making the record visible.
 static void stepRecLevelObjStateFlagFirst(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
     TextGraphicsObject *obj;
@@ -89,35 +90,35 @@ static void stepRecLevelObjStateFlagFirst(TextScene *scene, TextHandleRec *rec) 
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecFlag2(scene, rec);
-        setRecObjectField5C(scene, rec, 0);
-        setRecObject68(scene, rec, 1);
+        showRec(scene, rec);
+        setRecFrame(scene, rec, 0);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        setRecObject68(scene, rec, 4);
+        setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
+        if ((((UIRecord *)obj)->frame >> 16) == 0) {
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         break;
     case 0x25:
         break;
     }
 }
 
-// Like stepRecObjLevelState but case 2 leaves the level word alone.
+// Start playback from the record's existing frame.
 static void stepRecObjState(TextScene *scene, TextHandleRec *rec) {
     s16 result = fn_2_53BC8(rec);
     TextGraphicsObject *obj;
@@ -127,27 +128,27 @@ static void stepRecObjState(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        setRecObject68(scene, rec, 4);
+        setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
+        if ((((UIRecord *)obj)->frame >> 16) == 0) {
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         break;
     case 0x25:
         break;
@@ -163,20 +164,20 @@ static void stepRecFlagOnlyState(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        setRecObject68(scene, rec, 0);
+        setRecPlayMode(scene, rec, UI_PLAY_STOP);
         rec->state = 6;
         break;
     case 6:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 7;
         break;
     case 0x25:
@@ -187,11 +188,11 @@ static void stepRecFlagOnlyState(TextScene *scene, TextHandleRec *rec) {
 // Flag 2 and the object's +0x68 byte follow whether the work-area s16 at +0x197706 matches unk10.
 static void syncRecFlag2(TextScene *scene, TextHandleRec *rec) {
     if (*(s16 *)(lbl_2_bss_1A824C + 0x197706) == rec->unk10) {
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
     } else {
-        clearRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 0);
+        hideRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_STOP);
     }
 }
 
@@ -205,28 +206,28 @@ static void stepRecObjLevelState(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecObjectField5C(scene, rec, 0);
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        setRecFrame(scene, rec, 0);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        setRecObject68(scene, rec, 4);
+        setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
+        if ((((UIRecord *)obj)->frame >> 16) == 0) {
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         break;
     case 0x25:
         break;
@@ -245,15 +246,15 @@ void fn_2_65C84(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
         if (table[0xCF18 + lbl_800E869C[rec->unk10]] == 1) {
-            setRecFlag2(scene, rec);
-            setRecObjectField5C(scene, rec, 0x30000);
+            showRec(scene, rec);
+            setRecFrame(scene, rec, 0x30000);
         } else {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
         rec->state = 0x25;
         break;
@@ -266,7 +267,7 @@ void fn_2_65C84(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
         break;
     case 0x25:
@@ -285,7 +286,7 @@ void fn_2_65A00(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
@@ -301,7 +302,7 @@ void fn_2_65A00(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
         break;
     case 0x25:
@@ -322,14 +323,14 @@ void fn_2_65850(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
         if (table[0xCF18 + lbl_800E869C[rec->unk10]] == 0) {
-            setRecFlag2(scene, rec);
+            showRec(scene, rec);
         } else {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
         rec->state = 0x25;
         break;
@@ -342,7 +343,7 @@ void fn_2_65850(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
         break;
     case 0x25:
@@ -360,34 +361,34 @@ void fn_2_65648(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
+    case 0x25:
+        obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
+        if ((((UIRecord *)obj)->frame >> 16) >= 0x78) {
+            ((UIRecord *)obj)->frame = 0xD0000;
+        }
+        break;
     case 5:
-        setRecObjectField5C(scene, rec, 0xC0000);
-        setRecObject68(scene, rec, 4);
+        setRecFrame(scene, rec, 0xC0000);
+        setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
+        if ((((UIRecord *)obj)->frame >> 16) == 0) {
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
-        break;
-    case 0x25:
-        obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) >= 0x78) {
-            *(u32 *)((u8 *)obj + 0x5C) = 0xD0000;
-        }
+        hideRec(scene, rec);
         break;
     }
 }
@@ -405,7 +406,7 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         *(s16 *)((u8 *)rec + 0x12) = 0;
         *(s16 *)((u8 *)rec + 0x14) = text_initializeNewChannel((UnkText988Arg *)scene, rec->handle, rec->unk10, 2, 0x217, 0);
         rec->state = 0x26;
@@ -421,7 +422,7 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            setRecFlag2(scene, rec);
+            showRec(scene, rec);
             rec->state = 4;
         }
         break;
@@ -438,7 +439,7 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
         }
         break;
     case 5:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 6;
         break;
     case 6:
@@ -456,7 +457,7 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
     }
 
     obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-    *(u32 *)((u8 *)obj + 0x58) = (*(u32 *)((u8 *)obj + 0x58) & ~0xFF) | (u32)*(s16 *)((u8 *)rec + 0x12);
+    ((UIRecord *)obj)->rgba = (((UIRecord *)obj)->rgba & ~0xFF) | (u32)*(s16 *)((u8 *)rec + 0x12);
 }
 
 // .text:0x00065258 size:0x17C mapped:0x806A42EC
@@ -481,11 +482,11 @@ void fn_2_64E20(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        kind = *(s16 *)((u8 *)rec + 0xA);
+        kind = rec->unkA;
         frame = lbl_2_data_20C58[kind];
         if (kind == 5 && g_d_GameSettings[0x12] == 0) {
             frame = 7;
@@ -493,32 +494,34 @@ void fn_2_64E20(TextScene *scene, TextHandleRec *rec) {
             frame = 7;
         }
         load_Icon(scene, rec->handle, 1, 0x1D, frame);
-        setRecFlag2(scene, rec);
+        showRec(scene, rec);
         if (*(s16 *)(lbl_2_bss_1A824C + 0x1976FA) == kind) {
-            setRecObject68(scene, rec, 1);
+            setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         }
         rec->state = 0x25;
         break;
     case 0x11:
-        if (*(s16 *)(lbl_2_bss_1A824C + 0x1976FA) == *(s16 *)((u8 *)rec + 0xA)) {
-            setRecObject68(scene, rec, 1);
+        if (*(s16 *)(lbl_2_bss_1A824C + 0x1976FA) == rec->unkA) {
+            setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         } else {
-            setRecObject68(scene, rec, 4);
+            setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         }
         break;
     case 5:
-        setRecObject68(scene, rec, 4);
+        setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
+        if ((((UIRecord *)obj)->frame >> 16) == 0) {
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
+        break;
+    case 0x25:
         break;
     }
 }
@@ -539,7 +542,7 @@ void fn_2_648CC(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
@@ -555,8 +558,10 @@ void fn_2_648CC(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
+        break;
+    case 0x25:
         break;
     }
 }
@@ -582,16 +587,16 @@ void fn_2_642F8(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecFlag2(scene, rec);
-        setRecObjectField5C(scene, rec, (u32)recLevelFromWork(rec) << 16);
+        showRec(scene, rec);
+        setRecFrame(scene, rec, (u32)recLevelFromWork(rec) << 16);
         rec->state = 0x25;
         break;
     case 0x11:
-        setRecObjectField5C(scene, rec, (u32)recLevelFromWork(rec) << 16);
+        setRecFrame(scene, rec, (u32)recLevelFromWork(rec) << 16);
         rec->state = 0x25;
         break;
     case 5:
@@ -603,8 +608,10 @@ void fn_2_642F8(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            clearRecFlag2(scene, rec);
+            hideRec(scene, rec);
         }
+        break;
+    case 0x25:
         break;
     }
 }
@@ -630,13 +637,13 @@ void fn_2_63DBC(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecObjectField5C(scene, rec, 0);
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        setRecFrame(scene, rec, 0);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 0x11:
@@ -651,12 +658,14 @@ void fn_2_63DBC(TextScene *scene, TextHandleRec *rec) {
         prev = *timer;
         *timer = prev - 1;
         if (prev <= 0) {
-            setRecObject68(scene, rec, 0);
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
+        break;
+    case 0x25:
         break;
     }
 }
@@ -675,13 +684,13 @@ void fn_2_63A64(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecObjectField5C(scene, rec, 0);
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        setRecFrame(scene, rec, 0);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
@@ -706,29 +715,29 @@ void fn_2_63874(TextScene *scene, TextHandleRec *rec) {
     }
     switch (rec->state) {
     case 0:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         rec->state = 0x26;
         break;
     case 2:
-        setRecObjectField5C(scene, rec, 0);
+        setRecFrame(scene, rec, 0);
         load_Icon(scene, rec->handle, 1, 0x12, rec->unkA);
-        setRecFlag2(scene, rec);
-        setRecObject68(scene, rec, 1);
+        showRec(scene, rec);
+        setRecPlayMode(scene, rec, UI_PLAY_FORWARD);
         rec->state = 0x25;
         break;
     case 5:
-        setRecObject68(scene, rec, 4);
+        setRecPlayMode(scene, rec, UI_PLAY_BACKWARD);
         rec->state = 6;
         break;
     case 6:
         obj = graphicsRelatedArray[scene->firstHandle + rec->handle].object;
-        if ((*(u32 *)((u8 *)obj + 0x5C) >> 16) == 0) {
-            setRecObject68(scene, rec, 0);
+        if ((((UIRecord *)obj)->frame >> 16) == 0) {
+            setRecPlayMode(scene, rec, UI_PLAY_STOP);
             rec->state = 7;
         }
         break;
     case 7:
-        clearRecFlag2(scene, rec);
+        hideRec(scene, rec);
         break;
     case 0x25:
         break;

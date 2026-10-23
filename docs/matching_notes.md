@@ -4913,3 +4913,23 @@ all four original output hashes pass, and report.json marks the unit complete
 with 3/3 exact functions. Its entire .text byte sequence and normalized
 relocations equal the target. Whitespace checks pass. Evidence:
 build/_postmerge_wave33_promoted_text_8ED4C.json. No gameplay test was run.
+
+### No-op table bounds and physical switch-body order (2026-10-23)
+
+text_636A4 improves from 87.93383% to 91.50768% .text, with 13 exact
+functions (previously 11). Four target tables include no-op state 0x25;
+retaining it restores the table bounds and makes fn_2_63DBC exact.
+fn_2_65648 already had the correct dispatch tree. Moving its existing state
+0x25 body before state 5 reproduces the original physical layout and raises
+it from 30.576923% to 100%, without changing behavior.
+
+Canonical UIRecord fields, visibility/playback constants and record fields
+keep all 13 exact after readability review. All 20 function floors hold;
+the table pseudo improves from 38.06391% to 63.15789%, while .data remains 0%.
+Four compiled dispatch trees agree on action/no-op classification for every
+signed16 state across target/old/new code (786,432 checks). This excludes
+action bodies and groups the two update states in fn_2_648CC.
+
+Shared instructions equal the private final; full build, four output hashes
+and whitespace checks pass. Evidence: build/_postmerge_wave35_text_636A4.json
+and private wave35 dispatch_audit.py. No gameplay/emulator test was run.
