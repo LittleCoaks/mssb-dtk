@@ -32,8 +32,10 @@ typedef struct TextSceneNode {
     /* 0x08 */ struct DrawingSceneStruct *next;
     /* 0x0C */ struct DrawingSceneStruct *currentDrawingItem;
     /* 0x10 */ s16 state;
+    /* 0x12 */ u16 priority;
     /* 0x14 */ s16 timer;
     /* 0x16 */ s16 frame;
+    /* 0x18 */ u8 scratch18[0x10];
     /* 0x28 */ s8 phase;
 } TextSceneNode;
 
@@ -74,8 +76,8 @@ void fn_2_405B4(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -115,8 +117,8 @@ void fn_2_4041C(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -210,8 +212,8 @@ void fn_2_3FDE0(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -292,8 +294,8 @@ void fn_2_3FA14(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -375,8 +377,8 @@ void fn_2_3F66C(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -392,11 +394,11 @@ void fn_2_3F55C(void) {
     case 0: {
         node->timer = 40;
         challenge = lbl_2_bss_1A8248;
-        if (challenge->_4416[0x4418 - 0x4416] >= 5) {
-            node->phase = 2;
-        } else {
+        if (challenge->_4416[0x4418 - 0x4416] < 5) {
             fn_80062890(7);
             node->phase = 1;
+        } else {
+            node->phase = 2;
         }
     } break;
     case 1: {
@@ -411,8 +413,8 @@ void fn_2_3F55C(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -447,8 +449,8 @@ void fn_2_3F44C(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -496,8 +498,8 @@ void fn_2_3F29C(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -532,8 +534,8 @@ void fn_2_3F188(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -575,8 +577,8 @@ void fn_2_3F004(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -611,8 +613,8 @@ void fn_2_3EEF0(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -647,8 +649,8 @@ void fn_2_3EDD8(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -683,8 +685,8 @@ void fn_2_3ECC0(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -719,8 +721,8 @@ void fn_2_3EBA8(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -762,8 +764,8 @@ void fn_2_3EA44(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -801,8 +803,8 @@ void fn_2_3E918(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -840,8 +842,8 @@ void fn_2_3E7EC(void) {
     } break;
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
-        node->currentDrawingItem->state = 1;
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;
     }
@@ -973,7 +975,7 @@ void fn_2_3E38C(void) {
         *(u32 *)(lbl_2_bss_1A824C + 0x1976A8) = fn_80062890(0x3C);
     }
 
-    if (lbl_2_bss_1A824C[0x19783F] == 1) {
+    if (lbl_2_bss_1A824C[0x19783F] == TRUE) {
         currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         node->phase = 0;

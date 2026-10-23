@@ -5028,3 +5028,21 @@ compiler labels were not the obstacle. All18 function/data/pseudo floors
 hold, shared/private instructions agree, and full build/hash4/whitespace
 pass. Only34F6C remains pending95.61972%; prior no-op label trials must not
 be repeated without new evidence. No public header/config changes.
+
+### Drawing-node layout and cancellation reloads (2026-10-23)
+
+text_3E38C improves85.91016% ->89.62283%, with nine new exact callbacks.
+The source-local node's comments had the correct offsets, but missing
+priority/scratch fields put timer/frame/phase at12/14/16 instead of14/16/28.
+Correcting the measured fields fixes actual scratch reads/writes. Cancellation
+tails then re-resolve the current global node after external callbacks;
+ordinary exit arms keep the cached node. Reversing one equivalent sound
+branch closes the ninth callback. No public header or config changes.
+
+All18 initial function floors improve; data0/pseudo50 hold. The nine exacts
+pass individual readability review and fresh wholeunit diff. Actual target
+and candidate PPC agree with independent memory/call models for8160 scenarios
+(507168 instructions), including timer/phase boundaries and active-node
+mutation by callbacks. This excludes full UI/game runtime. Full build,
+four output hashes and whitespace checks pass; evidence wave41 sharedJSON
+and private flow_audit.py. Nine callbacks remain pending.
