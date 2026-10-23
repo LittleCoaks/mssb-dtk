@@ -41,7 +41,7 @@ extern f32 baseCoordsForRunning[][2];
 extern f32 someRunningAngleArray[][3];
 extern s16 ccs_timingConsts[];
 extern VecXZ lbl_3_data_4A54[][13];
-extern s16 lbl_3_data_4B90[];
+extern s16 perfectStealWindowFrames[4];
 extern void initializeInMemRunner(int rosterID, int runnerIdx);
 extern u32 minigame_getCcsAIControlledInd(int port);
 extern void QueueTextToDisplay(int code, int arg1);
@@ -177,7 +177,7 @@ void initBaseRunnersAfterFoulBall(void) {
         runner->nextBase = (i + 1) & 3;
         runner->baseStandingOn = i;
         runner->baseRunningTowards = 0xFF;
-        runner->leadOffStatus = 0;
+        runner->leadOffStatus = LEADOFF_STATUS_NONE;
     }
 }
 
@@ -411,7 +411,7 @@ void setDefaultInMemRunner(void) {
         runner->timeStandingOnBase = 0;
         runner->framesSinceOut = 0;
         runner->baseNumberEarned_NotIncludingFieldersChoice = -1;
-        runner->stealingStatus = 0;
+        runner->stealingStatus = STEALING_STATUS_NONE;
         runner->framesSinceStealInput = 0;
         runner->unused_someBaseNum = -1;
         runner->unused_const_1 = 1;
@@ -470,11 +470,11 @@ void setDefaultInMemRunner(void) {
             runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
         }
         runner->runnerDirectionCode_stored = runner->runningDirectionCode;
-        if (runner->leadOffStatus == 0) {
+        if (runner->leadOffStatus == LEADOFF_STATUS_NONE) {
             if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING) {
-                runner->leadOffStatus = 0;
+                runner->leadOffStatus = LEADOFF_STATUS_NONE;
             } else {
-                runner->leadOffStatus = 1;
+                runner->leadOffStatus = LEADOFF_STATUS_LEADING_OFF;
             }
             runner->leadoffDurationFrames = 0;
             runner->leadOffTotalFrameCountDown = 45;
@@ -541,10 +541,10 @@ void setDefaultInMemRunner(void) {
 
 // .text:0x0008911C size:0x20 mapped:0x806C81B0
 void stealCancelLeadoffs(void) {
-    g_Runners[0].leadOffStatus = 0;
-    g_Runners[1].leadOffStatus = 0;
-    g_Runners[2].leadOffStatus = 0;
-    g_Runners[3].leadOffStatus = 0;
+    g_Runners[0].leadOffStatus = LEADOFF_STATUS_NONE;
+    g_Runners[1].leadOffStatus = LEADOFF_STATUS_NONE;
+    g_Runners[2].leadOffStatus = LEADOFF_STATUS_NONE;
+    g_Runners[3].leadOffStatus = LEADOFF_STATUS_NONE;
 }
 
 // .text:0x00089028 size:0xF4 mapped:0x806C80BC
@@ -552,10 +552,10 @@ void fn_3_89028(void) {
     InMemRunnerType* runner = &g_Runners[1];
     int i;
 
-    g_Runners[0].leadOffStatus = 0;
-    g_Runners[1].leadOffStatus = 0;
-    g_Runners[2].leadOffStatus = 0;
-    g_Runners[3].leadOffStatus = 0;
+    g_Runners[0].leadOffStatus = LEADOFF_STATUS_NONE;
+    g_Runners[1].leadOffStatus = LEADOFF_STATUS_NONE;
+    g_Runners[2].leadOffStatus = LEADOFF_STATUS_NONE;
+    g_Runners[3].leadOffStatus = LEADOFF_STATUS_NONE;
     for (i = 1; i < 4; i++, runner++) {
         runner->unused_AIRelated = 0;
         runner->tagUpStatus = TAG_UP_TYPE_NONE;
@@ -887,7 +887,7 @@ void setRunnerAngle(void) {
                     angle = atan2(-runner->velocity.x, -runner->velocity.z);
                 } else if (runner->baseRoundingState == 2 && runner->baseStandingOn >= 0) {
                     angle = atan2(-runner->velocity.x, -runner->velocity.z);
-                } else if (runner->leadOffStatus == 1) {
+                } else if (runner->leadOffStatus == LEADOFF_STATUS_LEADING_OFF) {
                     angle = atan2(-runner->velocity.x, -runner->velocity.z);
                 } else if (runner->runningToDugoutInd == 0) {
                     goto chainChompAngle;
@@ -901,7 +901,7 @@ void setRunnerAngle(void) {
             } else {
             chainChompAngle:
                 if (runner->runningDirectionCode != RUNNER_MOVEMENT_NONE && runner->runningDirectionCode != RUNNER_MOVEMENT_STOPPED) {
-                    if (runner->leadOffStatus == 2) {
+                    if (runner->leadOffStatus == LEADOFF_STATUS_AT_FULL_LEAD) {
                         angle = someRunningAngleArray[runner->currentBase][0];
                     } else if (0.0f == runner->velocity.x && 0.0f == runner->velocity.z) {
                         angle = atan2(-runner->velocityStored.x, -runner->velocityStored.z);
@@ -1109,7 +1109,7 @@ void running_beginFrame_storeRunnerState(void) {
                 }
             }
             if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
-                runner->leadOffStatus = 0;
+                runner->leadOffStatus = LEADOFF_STATUS_NONE;
             }
         }
     }
@@ -1182,27 +1182,27 @@ void running_beginSteal_CheckForPerfect(void) {
 
     runner = &g_Runners[1];
     for (i = 1; i < 4; i++, runner++) {
-        if (runner->runnerStatus != RUNNER_STATUS_NONE && runner->stealingStatus != 0) {
+        if (runner->runnerStatus != RUNNER_STATUS_NONE && runner->stealingStatus != STEALING_STATUS_NONE) {
             if (runner->framesSinceStealInput < 254) {
                 runner->framesSinceStealInput++;
             } else {
                 runner->framesSinceStealInput = 255;
             }
-            if (g_Pitcher.pitchTotalTimeCounter > 0 && runner->stealingStatus == 1) {
-                if (g_Pitcher.pitchTotalTimeCounter == lbl_3_data_4B90[2]) {
-                    int lo = lbl_3_data_4B90[2] - lbl_3_data_4B90[1];
-                    int hi = lbl_3_data_4B90[2] - lbl_3_data_4B90[0];
+            if (g_Pitcher.pitchTotalTimeCounter > 0 && runner->stealingStatus == STEALING_STATUS_REQUESTED) {
+                if (g_Pitcher.pitchTotalTimeCounter == perfectStealWindowFrames[2]) {
+                    int lo = perfectStealWindowFrames[2] - perfectStealWindowFrames[1];
+                    int hi = perfectStealWindowFrames[2] - perfectStealWindowFrames[0];
                     if (runner->framesSinceStealInput >= lo &&
                         runner->framesSinceStealInput <= hi) {
-                        runner->stealingStatus = 3;
-                        runner->leadOffStatus = 0;
+                        runner->stealingStatus = STEALING_STATUS_PERFECT_STEAL;
+                        runner->leadOffStatus = LEADOFF_STATUS_NONE;
                         if (runner->rosterID >= 0) {
                             runner->runningDirectionDesired = RUNNER_MOVEMENT_FORWARDS;
                         }
                     }
-                } else if (g_Pitcher.pitchTotalTimeCounter >= lbl_3_data_4B90[3]) {
-                    runner->stealingStatus = 2;
-                    runner->leadOffStatus = 0;
+                } else if (g_Pitcher.pitchTotalTimeCounter >= perfectStealWindowFrames[3]) {
+                    runner->stealingStatus = STEALING_STATUS_NORMAL_STEAL;
+                    runner->leadOffStatus = LEADOFF_STATUS_NONE;
                     if (runner->rosterID >= 0) {
                         runner->runningDirectionDesired = RUNNER_MOVEMENT_FORWARDS;
                     }
@@ -1244,11 +1244,11 @@ void running_liveBall_clearStealing(void) {
         InMemRunnerType* runner = &g_Runners[i];
 
         if (runner->runnerStatus != RUNNER_STATUS_NONE) {
-            if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF && runner->stealingStatus != 0 &&
+            if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_PICKOFF && runner->stealingStatus != STEALING_STATUS_NONE &&
                 runner->rosterID >= 0) {
                 runner->runningDirectionDesired = RUNNER_MOVEMENT_FORWARDS;
             }
-            runner->stealingStatus = 0;
+            runner->stealingStatus = STEALING_STATUS_NONE;
         }
     }
 }
@@ -1696,13 +1696,13 @@ void running_AIStartSteals(void) {
         } else if (g_AiLogic.batterAIStealIndicator != 0) {
             for (i = 1; i <= 2; i++) {
                 if (g_Pitcher.pitchTotalTimeCounter >= g_AiLogic.batterAIStealingStartFrame) {
-                    if (g_Runners[i].stealingStatus == 0) {
-                        if (g_AiLogic.batterAIStealingStartFrame < lbl_3_data_4B90[2]) {
-                            g_Runners[i].stealingStatus = 3;
+                    if (g_Runners[i].stealingStatus == STEALING_STATUS_NONE) {
+                        if (g_AiLogic.batterAIStealingStartFrame < perfectStealWindowFrames[2]) {
+                            g_Runners[i].stealingStatus = STEALING_STATUS_PERFECT_STEAL;
                         } else {
-                            g_Runners[i].stealingStatus = 2;
+                            g_Runners[i].stealingStatus = STEALING_STATUS_NORMAL_STEAL;
                         }
-                        g_Runners[i].leadOffStatus = 0;
+                        g_Runners[i].leadOffStatus = LEADOFF_STATUS_NONE;
                     }
                     runnerAI_requestRunningDirection(i, RUNNER_DIRECTION_REQUEST_ADVANCE);
                 }
@@ -2775,7 +2775,7 @@ void running_CalculateSpeedVariables(int runnerIdx) {
         if (runner->overrunBaseStage != 0 && running_overrunBaseControl(runnerIdx) != 0) {
             return;
         }
-        if (runner->leadOffStatus == 1) {
+        if (runner->leadOffStatus == LEADOFF_STATUS_LEADING_OFF) {
             running_updateLeadoff(runnerIdx);
             goto finish;
         }
@@ -2836,7 +2836,7 @@ void running_CalculateSpeedVariables(int runnerIdx) {
                 boost *= lbl_3_data_2191C[1];
             }
             veloCap = boost * (runner->maximumBaseVelocity * runner->staminaMult);
-        } else if (runner->stealingStatus != 0) {
+        } else if (runner->stealingStatus != STEALING_STATUS_NONE) {
             veloCap = lbl_3_data_4B88[1] * (runner->maximumBaseVelocity * runner->staminaMult);
         } else {
             veloCap = lbl_3_data_4B88[0] * (runner->maximumBaseVelocity * runner->staminaMult);
@@ -2894,7 +2894,7 @@ void running_CalculateSpeedVariables(int runnerIdx) {
                 } else {
                     runner->turningAroundInd = FALSE;
                 }
-                runner->leadOffStatus = 0;
+                runner->leadOffStatus = LEADOFF_STATUS_NONE;
             } else {
                 runner->turnaroundCode = 2;
             }
@@ -3162,7 +3162,7 @@ void running_updateLeadoff(int runnerIdx) {
     }
 
     if (runner->leadOffTotalFrameCountDown <= 0) {
-        runner->leadOffStatus = 2;
+        runner->leadOffStatus = LEADOFF_STATUS_AT_FULL_LEAD;
         runner->percentRanPerFrame_slideAdj = 0.0f;
     } else {
         f32 step = (runner->leadoffDistancePercent + runner->slidingAdjustment_backwards) -
@@ -3739,7 +3739,7 @@ int running_DirectionOverrides(int runnerIdx) {
                 g_FieldingLogic.infieldFlyIndicator == 0 && stealCode == PICKOFF_STEAL_CODE_NONE) {
                 return RUNNER_MOVEMENT_FORWARDS;
             }
-        } else if (runner->leadOffStatus == 1) {
+        } else if (runner->leadOffStatus == LEADOFF_STATUS_LEADING_OFF) {
             return RUNNER_MOVEMENT_FORWARDS;
         }
         if (g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {
@@ -4142,19 +4142,19 @@ void running_atBatSteals_humanInput(void) {
             if (inputs->controlStickAngle < 0) {
                 int i;
                 for (i = 1; i <= 3; i++) {
-                    if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE && g_Runners[i].stealingStatus == 0) {
-                        g_Runners[i].stealingStatus = 1;
+                    if (g_Runners[i].runnerStatus != RUNNER_STATUS_NONE && g_Runners[i].stealingStatus == STEALING_STATUS_NONE) {
+                        g_Runners[i].stealingStatus = STEALING_STATUS_REQUESTED;
                     }
                 }
             } else {
                 if (inputs->controlStickAngle >= 0x1C0 && inputs->controlStickAngle <= 0x640) {
-                    g_Runners[1].stealingStatus = 1;
+                    g_Runners[1].stealingStatus = STEALING_STATUS_REQUESTED;
                 }
                 if (inputs->controlStickAngle >= 0x5C0 && inputs->controlStickAngle <= 0xA40) {
-                    g_Runners[2].stealingStatus = 1;
+                    g_Runners[2].stealingStatus = STEALING_STATUS_REQUESTED;
                 }
                 if (inputs->controlStickAngle >= 0x9C0 && inputs->controlStickAngle <= 0xE40) {
-                    g_Runners[3].stealingStatus = 1;
+                    g_Runners[3].stealingStatus = STEALING_STATUS_REQUESTED;
                 }
             }
         }

@@ -32,7 +32,7 @@ extern u8 lbl_3_data_1ADC[4][4];
 extern u8 lbl_3_data_1AEC[6][4][4];
 extern u8 lbl_3_data_1B4C[2];
 extern u8 batterAIPerfectStealProb[8];
-extern s16 lbl_3_data_4B90[4];
+extern s16 perfectStealWindowFrames[4];
 extern u8 lbl_3_data_1C98[2][5][3][4];
 extern f32 batterAIBatterClassMultOnStealing[6];
 extern u8 lbl_3_data_1B50[4][2][9];

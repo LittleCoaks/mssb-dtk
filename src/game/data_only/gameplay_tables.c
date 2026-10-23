@@ -407,8 +407,11 @@ f32 lbl_3_data_4B88[2] = {
     1.0f, 0.660000026f,
 };
 
-u32 lbl_3_data_4B90[2] = {
-    0x0001000F, 0x000F0028,
+/* Steal timing in pitch frames: [2] is the frame the jump is judged on; a steal input
+ * between [2]-[1] and [2]-[0] frames before it is a perfect steal, otherwise the runner
+ * goes as a normal steal at [3]. */
+s16 perfectStealWindowFrames[4] = {
+    1, 15, 15, 40,
 };
 
 f32 lbl_3_data_4B98[1] = {
