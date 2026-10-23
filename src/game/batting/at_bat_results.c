@@ -140,7 +140,7 @@ void atBatBuntResult(void) {
         return;
     }
 
-    if (g_Runners[3].runnerStatus != RUNNER_STATUS_NONE && g_Runners[3].furthestBaseForcedToGoToOnWalk != 0) {
+    if (g_Runners[3].runnerStatus != RUNNER_STATUS_NONE && g_Runners[3].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
         if (g_Runners[3].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
                 storedInningInfo.abResultTemporary = 0x20;

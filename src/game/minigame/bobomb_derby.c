@@ -386,7 +386,7 @@ void bOD_ResetPlayState(void) {
     setDefaultInMemBall();
     setDefaultInMemPitcher();
     setDefaultInMemBatter();
-    setDefaultInMemRunner();
+    running_setDefaultRunners();
     setDefaultInMemFielder();
     memset(&g_Minigame.aiInputs, 0, 0x78);
     pauseAnimations();
@@ -474,7 +474,7 @@ void bOD_AtBat(void) {
         minigameClearAIControlled();
 
         miniGameFielding();
-        running_MainFunction();
+        running_main();
     }
 
     bOD_AtBatOutcome();

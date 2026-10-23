@@ -337,7 +337,7 @@ void startChallengeModeMatch(void) {
                     g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][i][0];
             }
             setBatterContactConstants();
-            initializeARunner();
+            running_initRunner();
             g_d_GameSettings.home_AwaySetting ^= 1;
         } else {
             if (Static_Stats_Tables.captainSelectedID[1] == CHAR_ID_BOWSER || g_Challenge._16C2 == 0x2A) {

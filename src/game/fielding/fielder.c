@@ -478,7 +478,7 @@ void fielding_setStartingCoordinates(int fielderIndex, f32* outX, f32* outZ) {
         int holdIndex;
 
         if (g_Runners[1].runnerStatus != RUNNER_STATUS_NONE &&
-            g_Runners[1].furthestBaseForcedToGoToOnWalk != 0 &&
+            g_Runners[1].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE &&
             g_Ball.pitchHangtimeCounter > 0 &&
             g_Pitcher.framesUntilUnhittable < 15) {
             u8 batterHand = g_Batter.batterHand;
@@ -14925,7 +14925,7 @@ void fielding_prePitchAutomovement(void) {
                 } else if (((i == 3 && g_Batter.batterHand == BATTING_HAND_RIGHT) ||
                             (i == 5 && g_Batter.batterHand != BATTING_HAND_RIGHT)) &&
                            g_Runners[1].runnerStatus != RUNNER_STATUS_NONE &&
-                           g_Runners[1].furthestBaseForcedToGoToOnWalk != 0) {
+                           g_Runners[1].steal_forcedBaseToGoToOnWalk != STEAL_FORCED_BASE_NONE) {
                     fielder->currentVelocity += fielder->runningAccelerationFactor;
                     if (fielder->currentVelocity > fielder->joggingSpeed) {
                         fielder->currentVelocity = fielder->joggingSpeed;

@@ -1664,7 +1664,7 @@ void tagOutValues(int fielderIndex) {
         if (base >= 0) {
             for (i = 3; i >= 0; i--) {
                 runner = &g_Runners[i];
-                if ((g_Pitcher.strikeOutOrWalk != 2 || runner->furthestBaseForcedToGoToOnWalk <= runner->currentBase) &&
+                if ((g_Pitcher.strikeOutOrWalk != 2 || runner->steal_forcedBaseToGoToOnWalk <= runner->currentBase) &&
                     runner->runnerStatus == RUNNER_STATUS_ON_FIELD) {
                     if (base == runner->baseStandingOn_Stored && runner->baseStandingOn < 0 &&
                         g_Ball.timeSinceBallPickedUp > 15 && runner->position.x < 20.0f) {

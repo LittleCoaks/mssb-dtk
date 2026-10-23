@@ -88,7 +88,7 @@ void fieldingPracticeRelated(void) {
     case PRACTICE_STATE_0:
         hugeAnimStruct[0x307D] = 0;
         setPitcherStatsToInMemPitcher(0);
-        resetInMemRunners();
+        running_resetRunners();
         i = 0;
         do {
             setFielderValues(i, i);
@@ -243,7 +243,7 @@ void fieldingPracticeInitialization(void) {
         }
         atBat_Pitcher();
         atBat_batter();
-        running_MainFunction();
+        running_main();
         atBat_Fielders();
         break;
     case GAME_STATUS_LIVE_BALL:
@@ -254,14 +254,14 @@ void fieldingPracticeInitialization(void) {
         }
         ballPhysica();
         fielderMainFunction();
-        running_MainFunction();
+        running_main();
         practice_fieldingRelated();
         break;
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
         resetBallValuesBetweenBatters();
         resetPitcherValuesBetweenBatters(0);
         setBatterContactConstants();
-        initializeARunner();
+        running_initRunner();
         initializeMiniGameCharacters();
         betweenABSetPitcherBatter();
         initializeSomethingDuringTransition();
@@ -340,7 +340,7 @@ void fieldingPracticePrepareNextPlay(void) {
     resetBallValuesBetweenBatters();
     resetPitcherValuesBetweenBatters(0);
     setBatterContactConstants();
-    initializeARunner();
+    running_initRunner();
     initializeMiniGameCharacters();
     betweenABSetPitcherBatter();
     initializeSomethingDuringTransition();
@@ -425,7 +425,7 @@ void fieldingPracticeAtBat(void) {
     }
     atBat_Pitcher();
     atBat_batter();
-    running_MainFunction();
+    running_main();
     atBat_Fielders();
 }
 
@@ -437,7 +437,7 @@ void fieldingPracticeLiveBall(void) {
     }
     ballPhysica();
     fielderMainFunction();
-    running_MainFunction();
+    running_main();
     practice_fieldingRelated();
 }
 
@@ -639,7 +639,7 @@ void battingPracticeSwitcher(void) {
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0:
         hugeAnimStruct[0x307D] = 0;
-        resetInMemRunners();
+        running_resetRunners();
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
             practice_loadCharacter(1, 0, g_Minigame.selectSlots[g_Practice.homeAway].charID,
                                    g_Minigame.battingHandedness[g_Practice.homeAway]);
@@ -771,7 +771,7 @@ void battingPracticeSomething(void) {
         }
         atBat_Pitcher();
         atBat_batter();
-        running_MainFunction();
+        running_main();
         atBat_Fielders();
         break;
     case GAME_STATUS_LIVE_BALL:
@@ -792,7 +792,7 @@ void battingPracticeSomething(void) {
         resetBallValuesBetweenBatters();
         resetPitcherValuesBetweenBatters(0);
         setBatterContactConstants();
-        initializeARunner();
+        running_initRunner();
         initializeMiniGameCharacters();
         betweenABSetPitcherBatter();
         initializeSomethingDuringTransition();
@@ -843,7 +843,7 @@ void battingPracticePrepareNextPlay(void) {
     resetBallValuesBetweenBatters();
     resetPitcherValuesBetweenBatters(0);
     setBatterContactConstants();
-    initializeARunner();
+    running_initRunner();
     initializeMiniGameCharacters();
     betweenABSetPitcherBatter();
     initializeSomethingDuringTransition();
@@ -903,7 +903,7 @@ void someBattingPitchingCallFuns(void) {
     }
     atBat_Pitcher();
     atBat_batter();
-    running_MainFunction();
+    running_main();
     atBat_Fielders();
 }
 

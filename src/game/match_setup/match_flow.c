@@ -246,7 +246,7 @@ void initializeGame(void) {
     initializeInMemBatter();
     initBallAndGameStateOnLoad();
     initializeFielderConstants();
-    resetRunnerLeadoffDefaults();
+    running_resetLeadoffDefaults();
     initializeAIConstants();
     initializeStats();
     initializeInningTrackers();
@@ -396,13 +396,13 @@ void initNewInning(void) {
     resetCount();
     resetInMemPitcher();
     resetInMemFielders();
-    resetInMemRunners();
+    running_resetRunners();
     someRosterMemoryManagement();
     setPausedTo0AndOtherStateVars();
     setInningEndingKIndTo0();
     resetGameControlVars_duringNewInning();
     setBatterContactConstants();
-    initializeARunner();
+    running_initRunner();
     intializeRunnersDuringTransition();
     betweenABSetPitcherBatter();
     initializeSomethingDuringTransition2();
@@ -419,7 +419,7 @@ void practiceNewBatter(void) {
     setDefaultInMemBall();
     setDefaultInMemPitcher();
     setDefaultInMemBatter();
-    setDefaultInMemRunner();
+    running_setDefaultRunners();
     setDefaultInMemFielder();
     setDefaultAIValues();
     Set_803cb848(1);
@@ -440,8 +440,8 @@ void matchTransitionPrepareNextAB(void) {
         resetBallValuesBetweenBatters();
         resetPitcherValuesBetweenBatters(0);
         setBatterContactConstants();
-        initializeARunner();
-        setDefaultInMemRunner();
+        running_initRunner();
+        running_setDefaultRunners();
         initializeMiniGameCharacters();
         betweenABSetPitcherBatter();
         intializeRunnersDuringTransition();
@@ -614,7 +614,7 @@ void atBatScreen(void) {
     atBat_Pitcher();
     atBat_batter();
     atBat_Fielders();
-    running_MainFunction();
+    running_main();
     processScoreChanges(0);
     if (g_GameLogic.freeFieldingPracticeInd == 0) {
         if (g_BallsStrikesOuts.outs >= 3 || (g_BallsStrikesOuts.storedOuts == 2 && g_Pitcher.strikeOutOrWalk == AT_BAT_END_STRIKEOUT)) {
@@ -643,7 +643,7 @@ void endBatterTransition(void) {
     postPlayTrackStats();
     g_GameLogic.playOverInd = 0;
     if (g_GameLogic.freeFieldingPracticeInd != 0) {
-        transferInMemRunnerValuesToNextRunnerIndex();
+        running_transferRunnerToNextIndex();
         iterateBatter(g_GameLogic.homeTeamBattingInd_fieldingTeam);
     } else if (g_GameLogic.EventTriggers_EndOfGame != 0) {
         if (!g_d_GameSettings.exhibitionMatchInd) {
@@ -658,11 +658,11 @@ void endBatterTransition(void) {
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             if (g_Practice.practiceLevel == 7 || g_Practice.practiceLevel == 6) {
-                transferInMemRunnerValuesToNextRunnerIndex();
+                running_transferRunnerToNextIndex();
             }
         }
     } else {
-        transferInMemRunnerValuesToNextRunnerIndex();
+        running_transferRunnerToNextIndex();
         iterateBatter(g_GameLogic.homeTeamBattingInd_fieldingTeam);
     }
     SetGameStatus(GAME_STATUS_TRANSITION);
@@ -677,7 +677,7 @@ void endBatterTransition(void) {
 void freePracticeSomething(void) {
     ballPhysica();
     fielderMainFunction();
-    running_MainFunction();
+    running_main();
     if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
         handleDeadBall();
     }
@@ -960,17 +960,17 @@ void playOverTransitionStuff(void) {
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             if (g_Practice.practiceLevel == 7 || g_Practice.practiceLevel == 6) {
-                transferInMemRunnerValuesToNextRunnerIndex();
+                running_transferRunnerToNextIndex();
             }
         }
         didTransition = 1;
     } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && g_Ball.maybebuntOn2Strikes == 0) {
-        initBaseRunnersAfterFoulBall();
+        running_resetRunnersAfterFoulBall();
         SetGameStatus(GAME_STATUS_DEFAULT);
         didTransition = 1;
     } else if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE &&
                g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_4) {
-        transferInMemRunnerValuesToNextRunnerIndex();
+        running_transferRunnerToNextIndex();
         if (didTransition != 0) {
             iterateBatter(g_GameLogic.homeTeamBattingInd_fieldingTeam);
             SetGameStatus(GAME_STATUS_TRANSITION);
@@ -980,7 +980,7 @@ void playOverTransitionStuff(void) {
             didTransition = 1;
         }
     } else {
-        transferInMemRunnerValuesToNextRunnerIndex();
+        running_transferRunnerToNextIndex();
         iterateBatter(g_GameLogic.homeTeamBattingInd_fieldingTeam);
         SetGameStatus(GAME_STATUS_TRANSITION);
         didTransition = 1;
@@ -1185,7 +1185,7 @@ void switchHalfInning(void) {
     g_GameLogic._131[1] = 0;
     g_Scores._A0 = g_Scores.scores[g_Scores.halfInning].total;
     resetCount();
-    resetInMemRunners();
+    running_resetRunners();
     resetInMemBall();
     resetInMemPitcher();
     resetInMemFielders();
@@ -1396,7 +1396,7 @@ void endOfMatch(void) {
 void fn_3_5CD24(void) {
     if (g_GameLogic._125 == 0) {
         animRelated[0x9A] = 0;
-        initializeARunner();
+        running_initRunner();
         initializeSomethingDuringTransition2();
         matchTransitionFunction2();
         g_GameLogic._125++;
@@ -1529,7 +1529,7 @@ void transitionToLiveBallWithoutContact(int arg0) {
     g_FieldingLogic.playOverCounter = 0;
     g_Pitcher.peachDaisyStarAnimationOn = 0;
     stealSetFielders();
-    stealCancelLeadoffs();
+    running_cancelLeadoffs();
     if (g_BallsStrikesOuts.balls >= 4) {
         g_Runners[0].runnerStatus = RUNNER_STATUS_WALK_WHILE_STEALING;
     } else {
