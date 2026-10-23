@@ -293,6 +293,9 @@ void fn_2_65A00(TextScene *scene, TextHandleRec *rec) {
         syncRecFlag2(scene, rec);
         rec->state = 0x25;
         break;
+    case 0x25:
+        syncRecFlag2(scene, rec);
+        break;
     case 5:
         *(s16 *)((u8 *)rec + 0x6) = 0x28;
         rec->state = 6;
@@ -304,9 +307,6 @@ void fn_2_65A00(TextScene *scene, TextHandleRec *rec) {
         if (prev <= 0) {
             hideRec(scene, rec);
         }
-        break;
-    case 0x25:
-        syncRecFlag2(scene, rec);
         break;
     }
 }
@@ -438,6 +438,9 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
             rec->state = 0x25;
         }
         break;
+    case 0x25:
+        rec->state = 0x25;
+        break;
     case 5:
         hideRec(scene, rec);
         rec->state = 6;
@@ -450,9 +453,6 @@ void fn_2_653D4(TextScene *scene, TextHandleRec *rec) {
             fade = 0;
         }
         *(s16 *)((u8 *)rec + 0x12) = fade;
-        break;
-    case 0x25:
-        rec->state = 0x25;
         break;
     }
 

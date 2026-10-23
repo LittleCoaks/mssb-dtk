@@ -4933,3 +4933,31 @@ action bodies and groups the two update states in fn_2_648CC.
 Shared instructions equal the private final; full build, four output hashes
 and whitespace checks pass. Evidence: build/_postmerge_wave35_text_636A4.json
 and private wave35 dispatch_audit.py. No gameplay/emulator test was run.
+
+### Movie callback exits and pointer lifetime (2026-10-23)
+
+text_35EC0 reaches 99.60775% .text, with 27/29 functions exact, up from
+94.72349% and 25 exact. Its common movie-exit flag check now runs after every
+state. Node scratch writes retain the original node, while child access after
+removal resolves the current node again. Focused execution of actual target
+and candidate instructions passes 5,106 independently modeled scenarios
+(356,580 instructions), including timer wrap and current-node mutation.
+
+The other gains recover signed byte dispatch, per-access global pointer
+reloads, 12-byte movie cue records, direct allocation-field ownership and the
+clear-color load after the jukebox call. Canonical types/constants preserve
+both new exacts after readability review. All 29 function and data/pseudo
+floors hold. Data ownership remains incomplete: a typed-definition trial
+moved exact generated tables, so it was discarded. The actual color at
+0x12270 is zero; 0x11775500 belongs to the preceding object's tail.
+
+The same switch-body ordering evidence also improves text_636A4 from
+91.50768% to 93.40410%, with 14 exact functions (previously 13). Its state
+0x25 body belongs before state 5 in two further callbacks. All 20 floors
+hold; no behavior or header changes were introduced there.
+
+Both shared units' instructions equal their private finals. Full build,
+four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave32_text_35EC0.json,
+build/_postmerge_wave36_text_636A4.json and private wave32 movie_audit.py.
+The focused audit does not execute the full movie/game runtime.

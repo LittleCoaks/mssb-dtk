@@ -3,6 +3,8 @@
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/GX/GXFrameBuffer.h"
+#include "game/match_setup/match_loading.h"
+#include "Dolphin/pad.h"
 
 // Local prototypes for symbols owned by other units.
 s16 fn_2_53BC8(void *arg0);
@@ -44,12 +46,18 @@ extern u8 *lbl_2_bss_1A8234;
 extern u8 *lbl_2_bss_1A8230;
 extern u8 lbl_8037169C[];
 extern u8 AtBat_ButtonInput1[];
-extern u8 movie2FileDescriptor[];
-extern u8 movie3FileDescriptor[];
-extern u8 lbl_2_data_34E0[];
+extern MatchFileDescriptor movie2FileDescriptor;
+extern MatchFileDescriptor movie3FileDescriptor;
+typedef struct MovieCue {
+    s32 startFrame;
+    s32 endFrame;
+    s32 value;
+} MovieCue;
+
+extern MovieCue lbl_2_data_34E0[2][8];
 extern s16 lbl_2_data_C8F8[];
 extern s16 lbl_2_data_C904[];
-extern u32 lbl_2_data_12270;
+extern GXColor lbl_2_data_12270;
 
 typedef struct MovieWork {
     /* 0x00 */ u8 flag0;
@@ -67,6 +75,10 @@ extern MovieWork lbl_2_bss_15A0;
 #define UI_1A8230()   (lbl_2_bss_1A8230 + 0x30000)
 #define ITEM_STATE(item) (*(u8 *)((u8 *)(item) + 0x28))
 #define ITEM_S16(item, off) (*(s16 *)((u8 *)(item) + (off)))
+
+static inline u16 moviePressedButtons(void) {
+    return ((u16 (*)[16])AtBat_ButtonInput1)[(s8)WORK_BASE()[0x7863]][1];
+}
 
 static inline s16 workS16(s32 off) {
     return *(s16 *)(WORK_BASE() + off);
@@ -104,12 +116,12 @@ static inline void nodeSetFrame(TextGraphicsObject *node, u32 value) {
 void fn_2_37D98(void) {
     DrawingSceneStruct *item = currentDrawingItem;
 
-    switch (ITEM_STATE(item)) {
+    switch ((s8)ITEM_STATE(item)) {
     case 0:
         changeScene(1, 6);
         ITEM_S16(item, 0x14) = 0x26AE;
         ITEM_S16(item, 0x16) = 0;
-        *(u8 *)(UI_1A8234() + 0x264B) = 1;
+        *(u8 *)(UI_1A8234() + 0x264B) = TRUE;
         ITEM_STATE(item) = 1;
         break;
     case 1: {
@@ -133,16 +145,16 @@ void fn_2_37D98(void) {
         break;
     case 4:
         if (lbl_8037169C[0x13] != 0) {
-            currentDrawingItem->currentDrawingItem->state = 1;
+            item->currentDrawingItem->state = 1;
             removeCurrentDrawingItem();
             ITEM_STATE(item) = 0;
-            if (WORK_BASE()[0x783F] == 1) {
-                currentDrawingItem->currentDrawingItem->state = 1;
-                removeCurrentDrawingItem();
-                ITEM_STATE(item) = 0;
-            }
         }
         break;
+    }
+    if (WORK_BASE()[0x783F] == TRUE) {
+        currentDrawingItem->currentDrawingItem->state = 1;
+        removeCurrentDrawingItem();
+        ITEM_STATE(item) = 0;
     }
 }
 
@@ -199,25 +211,24 @@ void fn_2_37D70(void) {
 // .text:0x000379D0 size:0x3A0 mapped:0x80676A64
 void fn_2_379D0(void) {
     DrawingSceneStruct *item = currentDrawingItem;
-    u8 *base = WORK_BASE();
 
-    switch (ITEM_STATE(item)) {
+    switch ((s8)ITEM_STATE(item)) {
     case 0:
         if (fn_2_4EABC() == 1) {
             ITEM_STATE(item) = 1;
         }
         break;
     case 1: {
-        u32 clear = lbl_2_data_12270;
-        GXSetCopyClear(*(GXColor *)&clear, 0x00FFFFFF);
+        GXColor clear = lbl_2_data_12270;
+        GXSetCopyClear(clear, 0x00FFFFFF);
         changeScene(1, 6);
         fn_2_515DC(4);
         *(u8 *)(UI_1A8234() + 0x2992) = 0;
         *(u8 *)(UI_1A8230() + 0x2A86) = 0;
         fn_2_54474();
         fn_2_245C8();
-        *(s16 *)(base + 0x76E4) = 0x168;
-        lbl_2_bss_15A0.flag0 = 0;
+        *(s16 *)(WORK_BASE() + 0x76E4) = 0x168;
+        lbl_2_bss_15A0.flag0 = FALSE;
         ITEM_STATE(item) = 2;
         break;
     }
@@ -243,8 +254,15 @@ void fn_2_379D0(void) {
                 ITEM_STATE(item) = 7;
             } else {
                 playStream(0xB);
-                fn_2_422FC(lbl_2_bss_1A8248[0x441C] == 5 ? 1 : 0);
-                ITEM_STATE(insertGraphicDrawingFunction(fn_2_42388, 2)) = 0;
+                if (lbl_2_bss_1A8248[0x441C] == 5) {
+                    fn_2_422FC(TRUE);
+                } else {
+                    fn_2_422FC(FALSE);
+                }
+                {
+                    DrawingSceneStruct *node = insertGraphicDrawingFunction(fn_2_42388, 2);
+                    ITEM_STATE(node) = 0;
+                }
                 ITEM_S16(item, 0x10) = 0;
                 ITEM_STATE(item) = 5;
             }
@@ -254,7 +272,7 @@ void fn_2_379D0(void) {
         BOOL result = fn_80068514(0x78, 0x7F);
 
         if (ITEM_S16(item, 0x10) == 1) {
-            base[0x783F] = 0;
+            WORK_BASE()[0x783F] = FALSE;
             changeScene(3, 6);
             *(u8 *)(UI_1A8234() + 0x2838) = 1;
             *(u8 *)(UI_1A8234() + 0x2839) = 1;
@@ -263,12 +281,9 @@ void fn_2_379D0(void) {
             ITEM_STATE(item) = 6;
         }
         {
-            s32 pad = (s8)base[0x7863];
-            u8 *input = AtBat_ButtonInput1 + pad * 32;
-
-            if (*(u16 *)(input + 2) & 0x1000) {
+            if (moviePressedButtons() & PAD_BUTTON_START) {
                 if ((u8)result == 0) {
-                    base[0x783F] = 1;
+                    WORK_BASE()[0x783F] = TRUE;
                 }
             }
         }
@@ -281,9 +296,10 @@ void fn_2_379D0(void) {
         break;
     case 7:
         if (lbl_8037169C[0x13] != 0) {
-            u32 clear = lbl_2_data_12270;
+            GXColor clear;
             jukeboxCmd(3);
-            GXSetCopyClear(*(GXColor *)&clear, 0x00FFFFFF);
+            clear = lbl_2_data_12270;
+            GXSetCopyClear(clear, 0x00FFFFFF);
             *(u8 *)(UI_1A8234() + 0x2992) = 1;
             *(u8 *)(UI_1A8230() + 0x2A86) = 1;
             ITEM_STATE(item) = 8;
@@ -300,16 +316,15 @@ void fn_2_379D0(void) {
 
 // .text:0x00037630 size:0x3A0 mapped:0x806766C4
 void fn_2_37630(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
     MovieWork *work = &lbl_2_bss_15A0;
-    u8 *base = WORK_BASE();
+    DrawingSceneStruct *item = currentDrawingItem;
 
-    switch (ITEM_STATE(item)) {
+    switch ((s8)ITEM_STATE(item)) {
     case 0:
-        *(u32 *)(base + 0x76B0) = 0;
-        *(u32 *)(base + 0x76B4) = 0;
-        *(u32 *)(base + 0x76B8) = 0;
-        *(u32 *)(base + 0x76BC) = 0;
+        *(u32 *)(WORK_BASE() + 0x76B0) = 0;
+        *(u32 *)(WORK_BASE() + 0x76B4) = 0;
+        *(u32 *)(WORK_BASE() + 0x76B8) = 0;
+        *(s32 *)(WORK_BASE() + 0x76BC) = 0;
         fn_2_4E824();
         work->decoder = _OSAllocFromHeap(0x20, 0x1C0);
         memset(work->decoder, 0, 0x1C0);
@@ -319,7 +334,7 @@ void fn_2_37630(void) {
         ITEM_STATE(item)++;
         break;
     case 1:
-        if (fn_800ADB04(movie2FileDescriptor, work->decoder, 1, 0)) {
+        if (fn_800ADB04(&movie2FileDescriptor, work->decoder, 1, 0)) {
             fn_80009018(work->decoder);
             ITEM_STATE(item)++;
         }
@@ -327,41 +342,38 @@ void fn_2_37630(void) {
     case 2:
         if (fn_800ADAFC()) {
             u32 size = fn_800AD6BC(work->decoder);
-            void *buf = _OSAllocFromHeap(0x20, size);
-            work->unkC = buf;
-            fn_800AD500(work->decoder, buf);
+            work->unkC = _OSAllocFromHeap(0x20, size);
+            fn_800AD500(work->decoder, work->unkC);
             fn_800AD95C(work->decoder, 1);
             ITEM_STATE(item)++;
         }
         break;
     case 3: {
-        s32 pad = (s8)base[0x7863];
-        u8 *input = AtBat_ButtonInput1 + pad * 32;
-
-        if (*(u16 *)(input + 2) & 0x1000) {
-            work->flag0 = 1;
+        if (moviePressedButtons() & PAD_BUTTON_START) {
+            work->flag0 = TRUE;
             fn_800AD830(work->decoder);
             ITEM_STATE(item)++;
         } else {
-            *(u32 *)(base + 0x76B4) += 1;
+            *(u32 *)(WORK_BASE() + 0x76B4) += 1;
             fn_800AD070();
             if (fn_800AED24() == 1) {
-                u32 n = *(u32 *)(base + 0x76B0) + 1;
-                s32 set = (lbl_2_bss_1A8248[0x441C] == 5) ? 1 : 0;
-                u8 *table = lbl_2_data_34E0 + set * 0x60;
-                u32 count = *(u32 *)(base + 0x76B8);
-                u8 *ent = table + count * 0xC;
+                s32 n;
+                s32 set;
+                u32 count;
 
-                *(u32 *)(base + 0x76B0) = n;
-                if (n == *(u32 *)ent && *(u32 *)(base + 0x76BC) == 0 && *(s32 *)ent != -1) {
-                    *(s16 *)(base + 0x774C) = *(s16 *)(ent + 10);
-                    *(u32 *)(base + 0x76BC) = 1;
+                *(s32 *)(WORK_BASE() + 0x76B0) += 1;
+                set = (lbl_2_bss_1A8248[0x441C] == 5) ? 1 : 0;
+                count = *(u32 *)(WORK_BASE() + 0x76B8);
+                n = *(s32 *)(WORK_BASE() + 0x76B0);
+                if (n == lbl_2_data_34E0[set][count].startFrame && *(s32 *)(WORK_BASE() + 0x76BC) == 0 && lbl_2_data_34E0[set][count].startFrame != -1) {
+                    *(s16 *)(WORK_BASE() + 0x774C) = lbl_2_data_34E0[set][count].value;
+                    *(s32 *)(WORK_BASE() + 0x76BC) = 1;
                     *(u8 *)(UI_1A8234() + 0x264E) = 1;
-                } else if (n == *(u32 *)(ent + 4) && *(u32 *)(base + 0x76BC) == 1 &&
-                           *(s32 *)ent != -1) {
+                } else if (n == lbl_2_data_34E0[set][count].endFrame && *(s32 *)(WORK_BASE() + 0x76BC) == 1 &&
+                           lbl_2_data_34E0[set][count].startFrame != -1) {
                     *(u8 *)(UI_1A8234() + 0x2838) = 1;
-                    *(u32 *)(base + 0x76B8) += 1;
-                    *(u32 *)(base + 0x76BC) = 0;
+                    *(u32 *)(WORK_BASE() + 0x76B8) += 1;
+                    *(s32 *)(WORK_BASE() + 0x76BC) = 0;
                 }
             }
             if (fn_800AD780(work->decoder)) {
@@ -389,10 +401,10 @@ void fn_2_37630(void) {
 
 // .text:0x00037460 size:0x1D0 mapped:0x806764F4
 void fn_2_37460(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
     MovieWork *work = &lbl_2_bss_15A0;
+    DrawingSceneStruct *item = currentDrawingItem;
 
-    switch (ITEM_STATE(item)) {
+    switch ((s8)ITEM_STATE(item)) {
     case 0:
         fn_2_4E824();
         work->decoder = _OSAllocFromHeap(0x20, 0x1C0);
@@ -403,7 +415,7 @@ void fn_2_37460(void) {
         ITEM_STATE(item)++;
         break;
     case 1:
-        if (fn_800ADB04(movie3FileDescriptor, work->decoder, 1, 0)) {
+        if (fn_800ADB04(&movie3FileDescriptor, work->decoder, 1, 0)) {
             fn_80009018(work->decoder);
             ITEM_STATE(item)++;
         }
@@ -411,9 +423,8 @@ void fn_2_37460(void) {
     case 2:
         if (fn_800ADAFC()) {
             u32 size = fn_800AD6BC(work->decoder);
-            void *base = _OSAllocFromHeap(0x20, size);
-            work->unkC = base;
-            fn_800AD500(work->decoder, base);
+            work->unkC = _OSAllocFromHeap(0x20, size);
+            fn_800AD500(work->decoder, work->unkC);
             fn_800AD95C(work->decoder, 1);
             ITEM_STATE(item)++;
         }
