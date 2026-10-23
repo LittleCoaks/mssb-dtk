@@ -4833,3 +4833,23 @@ normalized relocations equal the private final. Full build, four output
 hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave24_rep_0DE0.json and
 build/.match_grind/wave24_data_floor_audit/summary.json. No gameplay test.
+
+### Recovering the sparse state inventory (2026-10-23)
+
+Five more text_35EC0 callbacks now match exactly. Four share the target's
+compare tree: retaining no-op states1/0x25 and removing a redundant explicit
+state3 stops the compiler generating unwanted jump tables. Two other
+callbacks need their actual0x25 table bound; those no-op cases restore
+the original table range and improve the remaining near-match as well.
+
+The unit improves from90.020340% to93.261020% .text, with20 exact functions
+(previously15). All29 initial function floors hold, and the table pseudo
+improves from42.519917% to58.175343%; .data remains0%. Readability uses
+canonical UIRecord fields and UI_PLAY constants. Actual target/old/new
+compiled dispatch, including generated table relocations, agrees for all
+65536 signed states in six functions:1179648 classifications. This starts
+after selector-result application and does not execute the action bodies.
+
+All shared function instructions equal the private final. Full build, four
+output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave30_text_35EC0.json and private wave30 dispatch_audit.py.
