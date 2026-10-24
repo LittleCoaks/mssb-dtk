@@ -90,23 +90,36 @@ void fn_2_50898(u32 arg0) {
 void fn_2_509A4(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     s8 *state = (s8 *)((u8 *)item + 0x28);
+    s16 result;
 
-    if (*state >= 0 && *state <= 1) {
-        if (*state == 0) {
+    switch (*state) {
+        case 0:
             *(s16 *)(STATE_BLOCK + 0x6FD4) = 0;
             *(s16 *)(STATE_BLOCK + 0x6FD2) = 0;
             memcpy(lbl_2_bss_5600, lbl_2_data_1E99C[*(s16 *)(STATE_BLOCK + 0x6FD6)], 0x4000);
             *(u32 *)(STATE_BLOCK + 0x6F1C) = (u32)lbl_2_bss_5600;
             (*state)++;
-        }
-        if (fn_2_4EB9C() != 0) {
-            item->currentDrawingItem->state = 1;
-            removeCurrentDrawingItem();
-            *state = 0;
-        }
+        case 1:
+            result = fn_2_4EB9C();
+            if (result != 0) {
+                switch (result) {
+                    case 1:
+                        currentDrawingItem->currentDrawingItem->state = 1;
+                        removeCurrentDrawingItem();
+                        break;
+                    default:
+                        currentDrawingItem->currentDrawingItem->state = 1;
+                        removeCurrentDrawingItem();
+                        break;
+                }
+                *state = 0;
+            }
+            break;
+        default:
+            break;
     }
     if (*(u8 *)(STATE_BLOCK + 0x783F) == 1) {
-        item->currentDrawingItem->state = 1;
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         *state = 0;
     }

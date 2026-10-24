@@ -5384,3 +5384,26 @@ private instructions agree; full build, four output hashes and whitespace
 checks pass. No header/config changes. Evidence:
 build/_postmerge_wave53_text_1B1BC.json and private wave53 proof53_scan.py,
 proof53_dispatch.py and inherited models.
+
+### Script callback cleanup uses both captured and current nodes (2026-10-24)
+
+text_50898 improves from 68.07554% to 68.92482%; fn_2_509A4 improves
+from 72.655556% to 98.888885%. Its signed phase switch falls through from
+initialization into polling. Separate callback-result cleanup branches
+reload the current node's child after callbacks, while the original node
+remains captured for its phase reset. The common skip path also reloads
+the current child. One dispatch branch remains unmatched.
+
+Manager-rerun actual-PPC models pass 288 callback scenarios and 20,976
+instructions, including signed16 return normalization with nonzero upper
+register bits, current-node changes during polling/removal, volatile-register
+clobbering and full script-copy effects. Earlier token-walker models pass
+1,539 scenarios and 407,672 instructions. These bounded checks use ordinary
+disjoint memory and modeled external calls, excluding full gameplay.
+
+All 38 function floors and 15 exact functions hold; data remains 0% and
+the table pseudo-symbol 50%. Natural initialization/copy loops and a width
+simplification regressed and were restored. Shared/private instructions,
+full build, four output hashes and whitespace checks pass. No header/config
+changes. Evidence: build/_postmerge_wave54_text_50898.json and private
+wave54 callback_audit.py, walker_audit.py and manager_verification.md.
