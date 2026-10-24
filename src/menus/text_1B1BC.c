@@ -74,6 +74,18 @@ void fn_2_8ACB0(s32 idx, s32 val);
 #define SCENE_STATE (*(s16 *)&lbl_2_bss_1A823C[0x32])
 #define AT_BAT_BUTTON(off, idx) (*(u16 *)(AtBat_ButtonInput1 + (off) + ((idx) << 5)))
 
+typedef struct ChallengeMapRecord {
+    u8 kind;
+    u8 state;
+    u8 unknown2;
+    s8 variant;
+    u8 unknown4[6];
+} ChallengeMapRecord;
+
+static inline ChallengeMapRecord *challengeMapRecord(s32 index) {
+    return &((ChallengeMapRecord *)(lbl_2_bss_1A8248 + 0x40F0))[index];
+}
+
 // .text:0x0001CF94 size:0x4AC mapped:0x8065C028
 void fn_2_1CF94(void) {
     DrawingSceneStruct *node = currentDrawingItem;
@@ -90,10 +102,9 @@ void fn_2_1CF94(void) {
 
     switch (DRAW_STATE(node)) {
     case 0:
-        p = lbl_2_bss_1A824C;
-        *(s16 *)&p[0x19771A] = 0;
-        *(s16 *)&p[0x19771C] = 0;
-        *(s16 *)&p[0x19771E] = 0x36;
+        *(s16 *)&lbl_2_bss_1A824C[0x19771A] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x19771C] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x19771E] = NUM_CHOOSABLE_CHARACTERS;
         DRAW_STATE(node) = 1;
         break;
     case 1:
@@ -309,33 +320,30 @@ void fn_2_1C860(void) {
 // .text:0x0001C714 size:0x14C mapped:0x8065B7A8
 void fn_2_1C714(s32 idx) {
     u8 *q;
-    u8 *e;
+    ChallengeMapRecord *record;
     s32 i;
     u32 mask;
 
     for (i = 0; i < 51; i++) {
-        q = lbl_2_bss_1A8248;
-        e = q + i * 10;
-        if (idx == e[0x40F0] && (e[0x40F1] == 1 || e[0x40F1] == 0)) {
-            if (e[0x40F2] == 0 && ((ChallengeState *)q)->captain != idx) {
-                if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER) {
-                    e[0x40F1] = 3;
+        record = challengeMapRecord(i);
+        if (idx == record->kind && (record->state == 1 || record->state == 0)) {
+            if (record->unknown2 == 0 && ((ChallengeState *)lbl_2_bss_1A8248)->captain != idx) {
+                if (((ChallengeState *)lbl_2_bss_1A8248)->captain == CHALLENGE_CAPTAIN_BOWSER) {
+                    record->state = 3;
                 } else {
-                    e[0x40F1] = 0;
+                    record->state = 0;
                 }
             } else {
-                e[0x40F1] = 0;
+                record->state = 0;
             }
-            q = lbl_2_bss_1A8248;
-            e = q + i * 10;
-            if (e[0x40F2] == 2) {
-                e[0x40F1] = 0;
+            record = challengeMapRecord(i);
+            if (record->unknown2 == 2) {
+                record->state = 0;
             }
         }
-        q = lbl_2_bss_1A8248;
-        e = q + i * 10;
-        if (e[0x40F0] == 6 || e[0x40F0] == 7 || e[0x40F0] == 8) {
-            e[0x40F1] = 0;
+        record = challengeMapRecord(i);
+        if (record->kind == 6 || record->kind == 7 || record->kind == 8) {
+            record->state = 0;
             lbl_2_bss_1A8248[0x4412] = TRUE;
             lbl_2_bss_1A8248[0x4413] = TRUE;
             lbl_2_bss_1A8248[0x4414] = TRUE;
@@ -343,14 +351,14 @@ void fn_2_1C714(s32 idx) {
     }
     lbl_2_bss_1A8248[0x440C + idx] = TRUE;
     q = lbl_2_bss_1A8248;
-    if (((ChallengeState *)q)->captain == idx) {
+    if (((ChallengeState *)lbl_2_bss_1A8248)->captain == idx) {
         return;
     }
     mask = 1U << idx;
     if (q[0x4426] & mask) {
         return;
     }
-    q[0x4422]++;
+    ((ChallengeState *)q)->stage++;
     q = lbl_2_bss_1A8248;
     q[0x4426] |= mask;
 }
@@ -358,33 +366,30 @@ void fn_2_1C714(s32 idx) {
 // .text:0x0001C5C8 size:0x14C mapped:0x8065B65C
 void fn_2_1C5C8(s32 idx) {
     u8 *q;
-    u8 *e;
+    ChallengeMapRecord *record;
     s32 i;
     u32 mask;
 
     for (i = 0; i < 51; i++) {
-        q = lbl_2_bss_1A8248;
-        e = q + i * 10;
-        if (idx == e[0x40F0] && (e[0x40F1] == 1 || e[0x40F1] == 0)) {
-            if (e[0x40F2] == 0 && ((ChallengeState *)q)->captain != idx) {
-                if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER) {
-                    e[0x40F1] = 3;
+        record = challengeMapRecord(i);
+        if (idx == record->kind && (record->state == 1 || record->state == 0)) {
+            if (record->unknown2 == 0 && ((ChallengeState *)lbl_2_bss_1A8248)->captain != idx) {
+                if (((ChallengeState *)lbl_2_bss_1A8248)->captain == CHALLENGE_CAPTAIN_BOWSER) {
+                    record->state = 3;
                 } else {
-                    e[0x40F1] = 2;
+                    record->state = 2;
                 }
             } else {
-                e[0x40F1] = 0;
+                record->state = 0;
             }
-            q = lbl_2_bss_1A8248;
-            e = q + i * 10;
-            if (e[0x40F2] == 2) {
-                e[0x40F1] = 0;
+            record = challengeMapRecord(i);
+            if (record->unknown2 == 2) {
+                record->state = 0;
             }
         }
-        q = lbl_2_bss_1A8248;
-        e = q + i * 10;
-        if (e[0x40F0] == 6 || e[0x40F0] == 7 || e[0x40F0] == 8) {
-            e[0x40F1] = 0;
+        record = challengeMapRecord(i);
+        if (record->kind == 6 || record->kind == 7 || record->kind == 8) {
+            record->state = 0;
             lbl_2_bss_1A8248[0x4412] = TRUE;
             lbl_2_bss_1A8248[0x4413] = TRUE;
             lbl_2_bss_1A8248[0x4414] = TRUE;
@@ -392,14 +397,14 @@ void fn_2_1C5C8(s32 idx) {
     }
     lbl_2_bss_1A8248[0x440C + idx] = TRUE;
     q = lbl_2_bss_1A8248;
-    if (((ChallengeState *)q)->captain == idx) {
+    if (((ChallengeState *)lbl_2_bss_1A8248)->captain == idx) {
         return;
     }
     mask = 1U << idx;
     if (q[0x4426] & mask) {
         return;
     }
-    q[0x4422]++;
+    ((ChallengeState *)q)->stage++;
     q = lbl_2_bss_1A8248;
     q[0x4426] |= mask;
 }
@@ -407,18 +412,21 @@ void fn_2_1C5C8(s32 idx) {
 // .text:0x0001C504 size:0xC4 mapped:0x8065B598
 void fn_2_1C504(s32 idx) {
     u8 *q;
-    u8 *e;
+    ChallengeMapRecord *record;
     s32 i;
     u32 mask;
 
     for (i = 0; i < 51; i++) {
-        q = lbl_2_bss_1A8248;
-        e = q + i * 10;
-        if (idx == e[0x40F0] && (e[0x40F1] == 1 || e[0x40F1] == 0)) {
-            if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER && e[0x40F2] == 1) {
-                e[0x40F1] = 3;
+        record = challengeMapRecord(i);
+        if (idx == record->kind && (record->state == 1 || record->state == 0)) {
+            if (((ChallengeState *)lbl_2_bss_1A8248)->captain == CHALLENGE_CAPTAIN_BOWSER) {
+                if (record->unknown2 == 1) {
+                    record->state = 3;
+                } else {
+                    record->state = 0;
+                }
             } else {
-                e[0x40F1] = 0;
+                record->state = 0;
             }
         }
     }
@@ -532,16 +540,13 @@ void fn_2_1C21C(void) {
 
 // .text:0x0001C0D4 size:0x148 mapped:0x8065B168
 void fn_2_1C0D4(void) {
+    s32 i;
+
     lbl_2_bss_1A823C[0x34] = 1;
     memset(lbl_2_bss_1A8250, 0, 0x1978FC);
-    *(s16 *)&lbl_2_bss_1A824C[0x197756] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x197758] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x19775A] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x19775C] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x19775E] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x197760] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x197762] = -1;
-    *(s16 *)&lbl_2_bss_1A824C[0x197764] = -1;
+    for (i = 0; i < 8; i++) {
+        ((s16 *)(lbl_2_bss_1A824C + 0x197756))[i] = -1;
+    }
     fn_2_54474();
     lbl_2_bss_1A8248[0x44F2] = 0;
     *(s16 *)&lbl_2_bss_1A824C[0x1976D6] = 0;
@@ -1002,25 +1007,33 @@ void fn_2_1B314(void) {
 // .text:0x0001B1BC size:0x158 mapped:0x8065A250
 void fn_2_1B1BC(void) {
     DrawingSceneStruct *node = currentDrawingItem;
-    s8 state = DRAW_STATE(node);
 
-    if (state == 0) {
+    switch (DRAW_STATE(node)) {
+    case 0:
         lbl_2_data_4BA0 = lbl_2_bss_1034C;
         *(void **)(lbl_2_data_4BA0 + 8) = ARAMTransfer(teamStarModelFileDescriptorMenus, 0, 0, 0);
         DRAW_STATE(node) = 1;
-    } else if (state == 1) {
+        break;
+    case 1:
         if (lbl_803C6CF8[0x715] == 1) {
             DRAW_STATE(node) = 2;
         }
-    } else if (state == 2) {
+        break;
+    case 2: {
         u32 *tbl = *(u32 **)(lbl_2_data_4BA0 + 8);
-        tbl[0] += (u32)tbl;
-        convertTextureHeader((void *)tbl[0]);
+        void *texture = (void *)(tbl[0] + (u32)tbl);
+        s32 i = 1;
+        while (i--) {
+            tbl[i] += (u32)tbl;
+        }
+        convertTextureHeader(texture);
         tbl = *(u32 **)(lbl_2_data_4BA0 + 8);
         *(u32 *)(lbl_2_data_4BA0 + 4) = tbl[0];
         fn_8004B1B8(*(void **)(lbl_2_data_4BA0 + 4));
         DRAW_STATE(node) = 3;
-    } else if (state == 3) {
+        break;
+    }
+    case 3:
         node->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         DRAW_STATE(node) = 0;

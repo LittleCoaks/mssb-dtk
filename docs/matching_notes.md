@@ -5300,3 +5300,35 @@ arbitrary aliasing. All 21 function/section/pseudo floors hold; .data stays
 instructions, full build, four output hashes and whitespace checks pass.
 No header/config changes. Evidence: build/_postmerge_wave50_text_1B1BC.json
 and private wave50 proof50.py, proof50.txt, proof49.py and focused_proof.py.
+
+### A proven record view can restore a natural inline boundary (2026-10-24)
+
+text_1B1BC improves from 86.27886% to 87.806244%, with exact functions
+increasing from ten to twelve. The source-only ten-byte map-record view
+already established in text_3E38C makes fn_2_1C5C8 and fn_2_1C714 exact.
+The helper resolves the current bank for each record access. No public gap,
+global boundary or register declaration was changed. Each new exact received
+an individual readability pass and fresh whole-unit confirmation; unknown
+record codes remain numeric, and the third byte is not treated as a boolean.
+
+The same view plus natural nested captain/record conditions improves
+fn_2_1C504 from 82.95918% to 98.87755%. A plain eight-slot initialization
+loop replaces inherited explicit stores without changing code. The texture
+callback reaches 90.56977% through a signed phase switch, precomputed texture
+argument and one-entry reverse relocation loop. Entry 1 remains untouched.
+Three separately resolved initialization writes also improve fn_2_1CF94.
+
+Manager-rerun new initialization checks cover 33 cases and 4,362 actual
+target/candidate instructions, including callback bank changes, ordered
+stores, read counts and boundary sentinels. Expanded inherited models cover
+all 256 texture phase bytes and still pass record, input-priority, bulk-loop,
+assertion and graphics-argument checks. External callees are modeled; these
+checks exclude full runtime and arbitrary aliasing. The previously documented
+skipped-owner read difference remains pending.
+
+All 21 function/section/pseudo floors hold. Data remains 0%, pseudo
+72.72727%, with the nonexact dispatcher's 24 destinations still pending.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave51_text_1B1BC.json and private wave51 proof51.py,
+proof49.py, proof50.py and focused_proof.py.
