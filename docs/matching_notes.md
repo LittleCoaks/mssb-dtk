@@ -5202,3 +5202,33 @@ relocation addends still differ: .data remains 0%, pseudo improves to
 whitespace checks pass. Header/config are unchanged. Evidence:
 build/_postmerge_wave47_text_42BE8.json and private wave47 final_audit.txt,
 callback_audit.py, mission_audit.py, list_audit.py and data_audit.py.
+
+### Self-branches and structure arguments need literal ABI checks (2026-10-23)
+
+text_1B1BC improves from 67.23811% to 68.43051%, preserving all 21 function
+floors and eight exact functions. Four apparent unresolved branches in
+fn_2_1C33C are actual 0x48000000 self-branches with no relocation. The draft
+invented an undefined helper for them; natural assertion loops restore the
+observed behavior and improve the function from 55.384617% to 96.15385%.
+
+fn_2_1C504 applies the same captain/variant condition to record states 0 and
+1. The old draft reset state 1 unconditionally. Restoring the combined gate
+and global reloads improves it from 59.69388% to 82.95918%. It processes 51
+records; records 51..53 remain untouched. In the scene dispatcher, replacing
+a wrong local GXSetCopyClear(u32, u32) declaration with the canonical
+GXColor API fixes the structure argument: the ABI passes a stack object's
+address, rather than the color word as a pointer.
+
+Manager-rerun actual target/candidate checks pass 2,560 bounded assertion
+classifications, 1,296 record-memory setups and five color values through
+each compiled argument block. The record model covers both matching states,
+variants, nonmatching records, mask repeats and byte-counter wrap. Graphics
+coverage isolates argument construction; the larger dispatcher remains
+pending. These checks exclude full game runtime and arbitrary pointer
+aliasing. All 176 data bytes and 44 generated relocation entries were
+inspected; two exact callbacks have exact table destinations, while the
+dispatcher's remaining 24 destinations and bodies are pending. .data stays
+0%, pseudo stays 72.72727%. Shared/private instructions, full build, four
+output hashes and whitespace checks pass. Header/config are unchanged.
+Evidence: build/_postmerge_wave48_text_1B1BC.json and private wave48
+focused_proof.py, focused_proof_result.txt and data_reloc_inventory.json.

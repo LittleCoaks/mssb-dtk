@@ -1,5 +1,7 @@
 #include "menus/text_1B1BC.h"
 #include "text/text.h"
+#include "Dolphin/GX/GXFrameBuffer.h"
+#include "game/challenge/challenge_state.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "menus/text_4D960.h"
@@ -20,7 +22,6 @@ extern u8 teamStarModelFileDescriptorMenus[];
 extern u8 Static_Stats_Tables[];
 extern u8 g_d_GameSettings[];
 extern u8 AtBat_ButtonInput1[];
-extern u8 g_Challenge[];
 extern u8 inningSetting[];
 extern u8 superstarUnlocked[];
 extern u8 hugeAnimStruct[];
@@ -41,7 +42,6 @@ void fn_80068720(u8 index);
 void fn_800ACFB0(void *block);
 void resetGameStadiumStateOnExit(void);
 BOOL maybeLoadsGameSoundFiles(void);
-void fn_2_1C33C_tail(void);
 void fn_2_47CFC(void);
 void fn_2_46D94(s16 *a, s16 *b, s16 c, s32 d, s32 e);
 int fn_8006CDC0(int charID);
@@ -66,7 +66,6 @@ void fn_2_20D08(void);
 void fn_800216F8(s32 id, void (*func)(void));
 void playStream(s32 id);
 void changeScene(s32 a, s32 b);
-void GXSetCopyClear(u32 color, u32 z);
 s32 fn_2_44E2C(s32 v);
 void fn_2_8AEE0(void);
 void fn_2_8ACB0(s32 idx, s32 val);
@@ -400,27 +399,26 @@ void fn_2_1C504(s32 idx) {
     s32 i;
     u32 mask;
 
-    q = lbl_2_bss_1A8248;
-    e = q + 0x40F0;
-    for (i = 0; i < 0x33; i++, e += 0xA) {
-        if (idx == e[0]) {
-            if (e[1] == 1) {
-                e[1] = 0;
-            } else if (e[1] == 0) {
-                if (q[0x441C] == 5 && e[2] == 1) {
-                    e[1] = 3;
-                } else {
-                    e[1] = 0;
-                }
+    for (i = 0; i < 51; i++) {
+        q = lbl_2_bss_1A8248;
+        e = q + i * 10;
+        if (idx == e[0x40F0] && (e[0x40F1] == 1 || e[0x40F1] == 0)) {
+            if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER && e[0x40F2] == 1) {
+                e[0x40F1] = 3;
+            } else {
+                e[0x40F1] = 0;
             }
         }
     }
-    q[0x440C + idx] = 1;
-    mask = 1 << idx;
+    q = lbl_2_bss_1A8248;
+    q[0x440C + idx] = TRUE;
+    mask = 1U << idx;
+    q = lbl_2_bss_1A8248;
     if (q[0x4428] & mask) {
         return;
     }
     q[0x4423]++;
+    q = lbl_2_bss_1A8248;
     q[0x4428] |= mask;
 }
 
@@ -466,29 +464,26 @@ void fn_2_1C3A4(void) {
 
 // .text:0x0001C33C size:0x68 mapped:0x8065B3D0
 void fn_2_1C33C(void) {
-    u8 *p = lbl_2_bss_1A8248;
+    ChallengeState *p = (ChallengeState *)lbl_2_bss_1A8248;
     s16 v;
 
-    if (p[0x441C] >= 6) {
-        fn_2_1C33C_tail();
-        return;
+    if (p->captain >= CHALLENGE_CAPTAIN_BOWSER + 1) {
+        while (TRUE) {}
     }
-    if (p[0x4415] >= 4) {
-        fn_2_1C33C_tail();
-        return;
+    if (p->difficulty >= 4) {
+        while (TRUE) {}
     }
-    v = *(s16 *)&p[0x43BC];
+    v = *(s16 *)((u8 *)p + 0x43BC);
     if (v < 0 || v > 999) {
-        fn_2_1C33C_tail();
-        return;
+        while (TRUE) {}
     }
     if (*(s16 *)&lbl_2_bss_1A823C[0x30] != 5) {
         return;
     }
-    if (p[0x4420] < 5) {
+    if (p->_4420[0] < 5) {
         return;
     }
-    fn_2_1C33C_tail();
+    while (TRUE) {}
 }
 
 // .text:0x0001C244 size:0xF8 mapped:0x8065B2D8
@@ -594,9 +589,9 @@ void fn_2_1B7B4(void) {
     u8 *p;
     s32 r22;
 
-    lbl_2_bss_1A8248 = g_Challenge;
+    lbl_2_bss_1A8248 = (u8 *)&g_Challenge;
     lbl_2_bss_1A824C = lbl_2_bss_1A8250;
-    lbl_2_bss_1A8238 = g_Challenge + 0x1610;
+    lbl_2_bss_1A8238 = (u8 *)&g_Challenge + 0x1610;
     lbl_2_bss_1A8244 = superstarUnlocked;
     lbl_2_bss_1A823C = inningSetting + 0x28;
     lbl_2_bss_1A8234 = lbl_2_bss_1A8250;
@@ -663,7 +658,7 @@ void fn_2_1B7B4(void) {
         if (q[0x44F4] == 0) {
             SCENE_STATE = 0xC;
         } else {
-            GXSetCopyClear(*(u32 *)lbl_2_data_4BA8, 0xFFFFFF);
+            GXSetCopyClear(*(GXColor *)lbl_2_data_4BA8, 0xFFFFFF);
             changeScene(1, 6);
             if (q[0x4415] < 3) {
                 SCENE_STATE = 0xC;
