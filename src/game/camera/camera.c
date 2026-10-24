@@ -885,12 +885,12 @@ void fn_3_19FA4(void) {
         }
         fn_3_19B3C(0, buf.anglePoints);
         for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = buf.anglePoints[i];
-        running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
+        spline2D_evaluatePoints(t, &result, splinePoints, g_pCamera->_0012);
         g_pCamera->_2870 = shortAngleF32ToRad(result.x);
 
         fn_3_19B3C(1, buf.anglePoints);
         for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = buf.anglePoints[i];
-        running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
+        spline2D_evaluatePoints(t, &result, splinePoints, g_pCamera->_0012);
         g_pCamera->_2874 = shortAngleF32ToRad(result.x);
         {
             lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];

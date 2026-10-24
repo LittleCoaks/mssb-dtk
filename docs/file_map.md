@@ -125,7 +125,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `game_math.c` | `rep_1838` | 26 (24) | 5,524 | Angle and vector library: short-angle↔radian conversion, `atan2`, normalisation, line intersection, clamping, game RNG. | high |
-| `spline.c` | `rep_140` | 8 (7) | 8,496 | Generic 2D/3D spline build, resample and evaluate; `running_roundBasePosition` is the baserunning wrapper. Also used by the camera, scene effects and Star Dash. | high |
+| `spline.c` | `rep_140` | 8 (7) | 8,496 | Generic 2D/3D spline build, resample and evaluate; `spline2D_evaluatePoints` is the baserunning wrapper. Also used by the camera, scene effects and Star Dash. | high |
 
 ## sound/ — 1 file, 39 fns (19 named)
 

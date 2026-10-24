@@ -3402,7 +3402,7 @@ void running_updatePosition(int runnerIdx) {
             }
             if (runner->overRun1BStage >= 2) {
                 if (runner->overRun1BStage == 2) {
-                    running_roundBasePosition(runner->overrun1B_somePositionControl, (VecXZ*)&vec, overrun1BPathPoints, 3);
+                    spline2D_evaluatePoints(runner->overrun1B_somePositionControl, (VecXZ*)&vec, overrun1BPathPoints, 3);
                     runner->position.x = vec.x;
                     runner->position.z = vec.y;
                 } else if (runner->overRun1BStage == 3) {
@@ -3638,7 +3638,7 @@ void running_basePathPosition(VecXYZ* out, f32 basesRan, f32 percent) {
         count = 3;
     }
 
-    running_roundBasePosition(percent, &result,
+    spline2D_evaluatePoints(percent, &result,
                               &baseRoundingPathPoints[g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT][start],
                               count);
     out->x = result.x;
@@ -4450,7 +4450,7 @@ void ccs_running_main(void) {
                     start = 9;
                     count = 3;
                 }
-                running_roundBasePosition(percent, &result,
+                spline2D_evaluatePoints(percent, &result,
                                           &baseRoundingPathPoints[g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT][start],
                                           count);
                 runner->position.x = result.x;
@@ -4605,7 +4605,7 @@ void ccs_runnerChompHit_recover(int runnerIdx) {
             count = 3;
         }
 
-        running_roundBasePosition(percent, &result,
+        spline2D_evaluatePoints(percent, &result,
                                   &baseRoundingPathPoints[g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT][start],
                                   count);
         runner->position.x = result.x;
