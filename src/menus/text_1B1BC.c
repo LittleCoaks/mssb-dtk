@@ -1,7 +1,9 @@
 #include "menus/text_1B1BC.h"
 #include "text/text.h"
 #include "Dolphin/GX/GXFrameBuffer.h"
+#include "Dolphin/pad.h"
 #include "game/challenge/challenge_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "Unknown/File_0x80021410.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "menus/text_4D960.h"
@@ -31,8 +33,6 @@ extern u8 *lbl_2_bss_1A8244;
 extern u8 *lbl_2_bss_340140;
 extern u8 lbl_2_data_4BA8[];
 extern u8 challengeCaptainCharIDs[];
-extern u8 characterStaticIndexes[];
-extern u8 starMissionRequirementsTable[];
 
 void *memset(void *dst, s32 c, u32 n);
 void *ARAMTransfer(void *file, s32 arg1, s32 arg2, s32 arg3);
@@ -78,9 +78,9 @@ void fn_2_8ACB0(s32 idx, s32 val);
 void fn_2_1CF94(void) {
     DrawingSceneStruct *node = currentDrawingItem;
     u8 *p;
-    u8 *q;
-    u8 *e;
-    u8 *tbl;
+    ChallengeState *q;
+    ChallengeTrackingStruct *e;
+    ScoutFlagTable *tbl;
     u16 btn;
     s32 idx;
     s32 k;
@@ -100,56 +100,57 @@ void fn_2_1CF94(void) {
         p = lbl_2_bss_1A824C;
         idx = (s8)p[0x197863];
         btn = AT_BAT_BUTTON(4, idx);
-        if (btn == 8 || btn == 4) {
+        if (btn == PAD_BUTTON_UP || btn == PAD_BUTTON_DOWN) {
             fn_2_46D94((s16 *)&p[0x19771A], (s16 *)&p[0x19771C], *(s16 *)&p[0x19771E], 10, 9);
         }
+        p = lbl_2_bss_1A824C;
         *(s16 *)&p[0x197716] = *(s16 *)&p[0x19771A] + *(s16 *)&p[0x19771C];
 
-        q = lbl_2_bss_1A8248;
-        e = q + 0x34 * *(s16 *)&p[0x197716];
+        q = (ChallengeState *)lbl_2_bss_1A8248;
+        e = &q->characters[*(s16 *)&p[0x197716]];
         idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(4, idx);
-        tbl = *(u8 **)e;
-        if (btn & 1) {
-            cnt = (s8)e[6];
-            if (cnt > 0 && cnt != (s8)tbl[6 * q[0x4415] + q[0x441C] + 4]) {
-                e[6] = cnt - 1;
+        tbl = e->scoutFlagPointer;
+        if (btn & PAD_BUTTON_LEFT) {
+            cnt = (s8)e->scoutFlagsAchieved;
+            if (cnt > 0 && cnt != tbl->flagsRequired[q->difficulty][q->captain]) {
+                e->scoutFlagsAchieved = cnt - 1;
             }
-        } else if (btn & 2) {
-            cnt = (s8)e[6];
-            if (cnt < (s8)tbl[6 * q[0x4415] + q[0x441C] + 4]) {
-                e[6] = cnt + 1;
+        } else if (btn & PAD_BUTTON_RIGHT) {
+            cnt = (s8)e->scoutFlagsAchieved;
+            if (cnt < tbl->flagsRequired[q->difficulty][q->captain]) {
+                e->scoutFlagsAchieved = cnt + 1;
             }
         }
 
+        idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
-        if (btn & 0x300) {
+        if (btn & (PAD_BUTTON_A | PAD_BUTTON_B)) {
             *(u16 *)((u8 *)node + 0x14) = 0x10;
             DRAW_STATE(node) = 2;
         }
-        if (btn & 0x40) {
-            q = lbl_2_bss_1A8248;
-            for (k = 0; k < 0x36; k++) {
-                e = q + 0x34 * k;
-                for (j = 0; j < 8; j++) {
-                    tbl = *(u8 **)e;
-                    if (tbl[6 * q[0x4415] + q[0x441C] + 4] != 0) {
-                        e[6] = 0;
+        if (btn & PAD_TRIGGER_L) {
+            for (k = 0; k < NUM_CHOOSABLE_CHARACTERS; k++) {
+                e = &((ChallengeState *)lbl_2_bss_1A8248)->characters[k];
+                for (j = 0; j < 10; j++) {
+                    q = (ChallengeState *)lbl_2_bss_1A8248;
+                    tbl = e->scoutFlagPointer;
+                    if (tbl->flagsRequired[q->difficulty][q->captain] != 0) {
+                        e->scoutFlagsAchieved = 0;
                     }
                 }
-                q[0x444D + k] = 0;
-                e[0x31] = 0;
+                ((ChallengeState *)lbl_2_bss_1A8248)->recruitedChar[k] = FALSE;
+                e->recruitmentStatus = CHALLENGE_RECRUITMENT_CD_NOT_RECRUITED;
             }
-        }
-        if (btn & 0x20) {
-            q = lbl_2_bss_1A8248;
-            for (k = 0; k < 0x36; k++) {
-                e = q + 0x34 * k;
-                for (j = 0; j < 8; j++) {
-                    tbl = *(u8 **)e;
-                    v = tbl[6 * q[0x4415] + q[0x441C] + 4];
+        } else if (btn & PAD_TRIGGER_R) {
+            for (k = 0; k < NUM_CHOOSABLE_CHARACTERS; k++) {
+                e = &((ChallengeState *)lbl_2_bss_1A8248)->characters[k];
+                for (j = 0; j < 10; j++) {
+                    q = (ChallengeState *)lbl_2_bss_1A8248;
+                    tbl = e->scoutFlagPointer;
+                    v = tbl->flagsRequired[q->difficulty][q->captain];
                     if (v != 0) {
-                        e[6] = v;
+                        e->scoutFlagsAchieved = v;
                     }
                 }
             }
@@ -169,8 +170,8 @@ void fn_2_1C860(void) {
     u8 *p;
     u8 *q;
     u8 *e;
-    u8 *chars;
-    u8 *row;
+    CharStaticIndex *chars;
+    StarMissionRequirement *row;
     u16 btn;
     s32 idx;
     s32 k;
@@ -196,42 +197,45 @@ void fn_2_1C860(void) {
         p = lbl_2_bss_1A824C;
         idx = (s8)p[0x197863];
         btn = AT_BAT_BUTTON(4, idx);
-        if (btn == 8 || btn == 4) {
+        if (btn == PAD_BUTTON_UP || btn == PAD_BUTTON_DOWN) {
             fn_2_46D94((s16 *)&p[0x19771A], (s16 *)&p[0x19771C], *(s16 *)&p[0x19771E], 10, 9);
         }
+        p = lbl_2_bss_1A824C;
         *(s16 *)&p[0x197716] = *(s16 *)&p[0x19771A] + *(s16 *)&p[0x19771C];
 
+        idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
-        if (btn & 0x100) {
+        if (btn & PAD_BUTTON_A) {
             DRAW_STATE(node) = 2;
-        } else if (btn & 0x200) {
+        } else if (btn & PAD_BUTTON_B) {
             DRAW_STATE(node) = 3;
         }
 
+        idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
-        if (btn & 0x40) {
+        if (btn & PAD_TRIGGER_L) {
             q = lbl_2_bss_1A8248;
-            for (k = 0; k < 0x36; k++) {
-                chars = characterStaticIndexes + 6 * k;
-                if (chars[3] == 1) {
+            for (k = 0; k < NUM_CHOOSABLE_CHARACTERS; k++) {
+                chars = &characterStaticIndexes[k];
+                if (chars->hasOwnStarMissions == 1) {
                     e = q + 0x34 * k;
-                    row = starMissionRequirementsTable + 100 * chars[2];
+                    row = starMissionRequirementsTable[chars->requirementRow];
                     for (n = 0; n < 10; n++) {
-                        if (*(s16 *)&row[10 * n] != -1) {
+                        if (row[n].type != STAR_MISSION_TYPE_NONE) {
                             e[9 + 2 * (n % 5) + 10 * (n / 5)] = 0;
                         }
                     }
                 }
             }
-        } else if (btn & 0x20) {
+        } else if (btn & PAD_TRIGGER_R) {
             q = lbl_2_bss_1A8248;
-            for (k = 0; k < 0x36; k++) {
-                chars = characterStaticIndexes + 6 * k;
-                if (chars[3] == 1) {
+            for (k = 0; k < NUM_CHOOSABLE_CHARACTERS; k++) {
+                chars = &characterStaticIndexes[k];
+                if (chars->hasOwnStarMissions == 1) {
                     e = q + 0x34 * k;
-                    row = starMissionRequirementsTable + 100 * chars[2];
+                    row = starMissionRequirementsTable[chars->requirementRow];
                     for (n = 0; n < 10; n++) {
-                        if (*(s16 *)&row[10 * n] != -1) {
+                        if (row[n].type != STAR_MISSION_TYPE_NONE) {
                             e[9 + 2 * (n % 5) + 10 * (n / 5)] = -2;
                         }
                     }
@@ -242,57 +246,56 @@ void fn_2_1C860(void) {
         p = lbl_2_bss_1A824C;
         idx = (s8)p[0x197863];
         btn = AT_BAT_BUTTON(4, idx);
-        if (btn == 8 || btn == 4) {
+        if (btn == PAD_BUTTON_UP || btn == PAD_BUTTON_DOWN) {
             fn_2_46D94((s16 *)&p[0x197720], (s16 *)&p[0x197722], *(s16 *)&p[0x197724], 10, 9);
         }
+        p = lbl_2_bss_1A824C;
         *(s16 *)&p[0x197718] = *(s16 *)&p[0x197720] + *(s16 *)&p[0x197722];
         ret0 = fn_8006CDC0(*(s16 *)&p[0x197716]);
+        p = lbl_2_bss_1A824C;
         ret1 = fn_2_44E2C(*(s16 *)&p[0x197716]);
 
+        p = lbl_2_bss_1A824C;
+        idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
         q = lbl_2_bss_1A8248;
         v = *(s16 *)&p[0x197716];
         e = q + 0x34 * v;
-        if ((btn & 0x103) && ret0 != ret1) {
-            chars = characterStaticIndexes + 6 * v;
-            if (chars[3] == 1) {
-                row = starMissionRequirementsTable + 100 * chars[2];
-                w = *(s16 *)&p[0x197718];
-                if (*(s16 *)&row[10 * w] != -1) {
-                    e[2 * w + 9] = ((s8)e[2 * w + 9] >= 0) ? -2 : 0;
-                    fn_8006CDC0(*(s16 *)&p[0x197716]);
-                }
+        chars = &characterStaticIndexes[v];
+        if ((btn & (PAD_BUTTON_A | PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT)) && ret0 != ret1 && chars->hasOwnStarMissions == 1) {
+            row = starMissionRequirementsTable[chars->requirementRow];
+            w = *(s16 *)&p[0x197718];
+            if (row[w].type != STAR_MISSION_TYPE_NONE) {
+                e[2 * w + 9] = ((s8)e[2 * w + 9] >= 0) ? STAR_MISSION_TRACKING_COMPLETED_SAVED : STAR_MISSION_TRACKING_NOT_COMPLETED;
+                fn_8006CDC0(*(s16 *)&p[0x197716]);
             }
-        }
-
-        if (btn & 0x200) {
+        } else if (btn & PAD_BUTTON_B) {
             DRAW_STATE(node) = 1;
         }
 
+        idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
-        if (btn & 0x40) {
-            v = *(s16 *)&p[0x197716];
-            e = q + 0x34 * v;
+        if (btn & PAD_TRIGGER_L) {
             for (n = 0; n < 5; n++) {
                 for (m = 0; m < 2; m++) {
-                    chars = characterStaticIndexes + 6 * v;
-                    if (chars[3] == 1) {
-                        row = starMissionRequirementsTable + 100 * chars[2];
-                        if (*(s16 *)&row[10 * (2 * n + m)] != -1) {
+                    v = *(s16 *)&lbl_2_bss_1A824C[0x197716];
+                    chars = &characterStaticIndexes[v];
+                    if (chars->hasOwnStarMissions == 1) {
+                        row = starMissionRequirementsTable[chars->requirementRow];
+                        if (row[2 * n + m].type != STAR_MISSION_TYPE_NONE) {
                             e[4 * n + 9 + 2 * m] = 0;
                         }
                     }
                 }
             }
-        } else if (btn & 0x20) {
-            v = *(s16 *)&p[0x197716];
-            e = q + 0x34 * v;
+        } else if (btn & PAD_TRIGGER_R) {
             for (n = 0; n < 5; n++) {
                 for (m = 0; m < 2; m++) {
-                    chars = characterStaticIndexes + 6 * v;
-                    if (chars[3] == 1) {
-                        row = starMissionRequirementsTable + 100 * chars[2];
-                        if (*(s16 *)&row[10 * (2 * n + m)] != -1) {
+                    v = *(s16 *)&lbl_2_bss_1A824C[0x197716];
+                    chars = &characterStaticIndexes[v];
+                    if (chars->hasOwnStarMissions == 1) {
+                        row = starMissionRequirementsTable[chars->requirementRow];
+                        if (row[2 * n + m].type != STAR_MISSION_TYPE_NONE) {
                             e[4 * n + 9 + 2 * m] = -2;
                         }
                     }
@@ -313,39 +316,45 @@ void fn_2_1C714(s32 idx) {
     s32 i;
     u32 mask;
 
-    q = lbl_2_bss_1A8248;
-    e = q + 0x40F0;
-    for (i = 0; i < 0x33; i++, e += 0xA) {
-        if (idx == e[0] && (e[1] == 0 || e[1] == 1)) {
-            if (e[2] != 0) {
-                e[1] = 0;
-            } else if (q[0x441C] == idx) {
-                e[1] = 0;
-            } else if (q[0x441C] == 5) {
-                e[1] = 3;
+    for (i = 0; i < 51; i++) {
+        q = lbl_2_bss_1A8248;
+        e = q + i * 10;
+        if (idx == e[0x40F0] && (e[0x40F1] == 1 || e[0x40F1] == 0)) {
+            if (e[0x40F2] == 0 && ((ChallengeState *)q)->captain != idx) {
+                if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER) {
+                    e[0x40F1] = 3;
+                } else {
+                    e[0x40F1] = 0;
+                }
             } else {
-                e[1] = 0;
+                e[0x40F1] = 0;
             }
-            if (e[2] == 2) {
-                e[1] = 0;
+            q = lbl_2_bss_1A8248;
+            e = q + i * 10;
+            if (e[0x40F2] == 2) {
+                e[0x40F1] = 0;
             }
         }
-        if (e[0] == 6 || e[0] == 7 || e[0] == 8) {
-            e[1] = 0;
-            q[0x4412] = 1;
-            q[0x4413] = 1;
-            q[0x4414] = 1;
+        q = lbl_2_bss_1A8248;
+        e = q + i * 10;
+        if (e[0x40F0] == 6 || e[0x40F0] == 7 || e[0x40F0] == 8) {
+            e[0x40F1] = 0;
+            lbl_2_bss_1A8248[0x4412] = TRUE;
+            lbl_2_bss_1A8248[0x4413] = TRUE;
+            lbl_2_bss_1A8248[0x4414] = TRUE;
         }
     }
-    q[0x440C + idx] = 1;
-    if (q[0x441C] == idx) {
+    lbl_2_bss_1A8248[0x440C + idx] = TRUE;
+    q = lbl_2_bss_1A8248;
+    if (((ChallengeState *)q)->captain == idx) {
         return;
     }
-    mask = 1 << idx;
+    mask = 1U << idx;
     if (q[0x4426] & mask) {
         return;
     }
     q[0x4422]++;
+    q = lbl_2_bss_1A8248;
     q[0x4426] |= mask;
 }
 
@@ -356,39 +365,45 @@ void fn_2_1C5C8(s32 idx) {
     s32 i;
     u32 mask;
 
-    q = lbl_2_bss_1A8248;
-    e = q + 0x40F0;
-    for (i = 0; i < 0x33; i++, e += 0xA) {
-        if (idx == e[0] && (e[1] == 0 || e[1] == 1)) {
-            if (e[2] != 0) {
-                e[1] = 0;
-            } else if (q[0x441C] == idx) {
-                e[1] = 0;
-            } else if (q[0x441C] == 5) {
-                e[1] = 3;
+    for (i = 0; i < 51; i++) {
+        q = lbl_2_bss_1A8248;
+        e = q + i * 10;
+        if (idx == e[0x40F0] && (e[0x40F1] == 1 || e[0x40F1] == 0)) {
+            if (e[0x40F2] == 0 && ((ChallengeState *)q)->captain != idx) {
+                if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER) {
+                    e[0x40F1] = 3;
+                } else {
+                    e[0x40F1] = 2;
+                }
             } else {
-                e[1] = 2;
+                e[0x40F1] = 0;
             }
-            if (e[2] == 2) {
-                e[1] = 0;
+            q = lbl_2_bss_1A8248;
+            e = q + i * 10;
+            if (e[0x40F2] == 2) {
+                e[0x40F1] = 0;
             }
         }
-        if (e[0] == 6 || e[0] == 7 || e[0] == 8) {
-            e[1] = 0;
-            q[0x4412] = 1;
-            q[0x4413] = 1;
-            q[0x4414] = 1;
+        q = lbl_2_bss_1A8248;
+        e = q + i * 10;
+        if (e[0x40F0] == 6 || e[0x40F0] == 7 || e[0x40F0] == 8) {
+            e[0x40F1] = 0;
+            lbl_2_bss_1A8248[0x4412] = TRUE;
+            lbl_2_bss_1A8248[0x4413] = TRUE;
+            lbl_2_bss_1A8248[0x4414] = TRUE;
         }
     }
-    q[0x440C + idx] = 1;
-    if (q[0x441C] == idx) {
+    lbl_2_bss_1A8248[0x440C + idx] = TRUE;
+    q = lbl_2_bss_1A8248;
+    if (((ChallengeState *)q)->captain == idx) {
         return;
     }
-    mask = 1 << idx;
+    mask = 1U << idx;
     if (q[0x4426] & mask) {
         return;
     }
     q[0x4422]++;
+    q = lbl_2_bss_1A8248;
     q[0x4426] |= mask;
 }
 
@@ -997,6 +1012,7 @@ void fn_2_1B1BC(void) {
         u32 *tbl = *(u32 **)(lbl_2_data_4BA0 + 8);
         tbl[0] += (u32)tbl;
         convertTextureHeader((void *)tbl[0]);
+        tbl = *(u32 **)(lbl_2_data_4BA0 + 8);
         *(u32 *)(lbl_2_data_4BA0 + 4) = tbl[0];
         fn_8004B1B8(*(void **)(lbl_2_data_4BA0 + 4));
         DRAW_STATE(node) = 3;

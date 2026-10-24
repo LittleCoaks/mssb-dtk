@@ -5232,3 +5232,38 @@ dispatcher's remaining 24 destinations and bodies are pending. .data stays
 output hashes and whitespace checks pass. Header/config are unchanged.
 Evidence: build/_postmerge_wave48_text_1B1BC.json and private wave48
 focused_proof.py, focused_proof_result.txt and data_reloc_inventory.json.
+
+### Input priority and callback pointer lifetimes (2026-10-23)
+
+text_1B1BC improves from 68.43051% to 77.510635%, with five functions
+improved and all 21 floors/eight exacts preserved. Two 51-record helpers
+reach 99.39759% after restoring global reloads between state and flag stores.
+The texture callback reloads the current bank and table after conversion,
+while retaining the original drawing node across removal.
+
+The mission callback must skip Cancel after an accepted action, including
+when its selected mission is absent. Cancel applies when the action mask,
+completion-count or ownership gate fails. The scout callback gives the left
+trigger priority when both triggers are pressed; the old independent
+conditions cleared and then filled the flags. Canonical tracking and table
+fields plus observed reloads retain these fixes above their original scores.
+
+After helper calls, current work/controller/input may change while the
+original tracking-record pointer remains captured. Reloading every pointer
+would also be wrong. Focused mutation hooks distinguish these lifetimes.
+Both trigger paths execute ten threshold reads per character, confirmed
+directly from target/candidate execution; ordinary idempotent stores alone
+would not establish the iteration count. A plain loop reproduces the reads
+without fabricating the target's unused induction variable.
+
+Manager-rerun independent fixture models pass 2,160 record-helper cases,
+72 texture cases, 28 trigger cases, 2,304 action/Cancel cases and 16 scroll
+mutation cases: 6,887,083 actual target/candidate PPC instructions. Hooks
+capture arguments and overwrite volatile registers. The earlier assertion,
+record and graphics-argument checks also pass. Coverage excludes full game
+runtime, arbitrary aliasing and exhaustive equivalence of unchanged paths;
+remaining mission bulk-loop lifetimes are pending. Data remains 0%, pseudo
+72.72727%. Shared/private instructions, full build, four output hashes and
+whitespace checks pass. No header/config changes. Evidence:
+build/_postmerge_wave49_text_1B1BC.json and private wave49 proof49.py,
+proof49.txt and focused_proof.py.
