@@ -1,5 +1,7 @@
+#define SQRT2_LINKAGE static
 #include "menus/text_37F04.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "game/UnknownHomes_Game.h"
 
 // Per-scene flow node: the DrawingSceneStruct fields that these functions use
 // are read at different offsets, so this local view names them directly.
@@ -25,6 +27,10 @@ extern u8 *lbl_2_bss_1A824C;
 extern u8 g_d_GameSettings[];
 s32 fn_80062890(int sfx);
 BOOL fn_2_45A84(void);
+extern u8 AtBat_ButtonInput1[];
+int initializeTextParameters(int, int, int, int, u8, int, int);
+extern u8 lbl_800EFBA4[];
+u32 sndFXStartEx(u16, u8, u8, u8);
 
 #define CUR_NODE() ((FlowNode *)currentDrawingItem)
 #define BSS_1A8234_U8(off) (lbl_2_bss_1A8234[0x160000 + (off)])
@@ -39,22 +45,266 @@ void fn_2_399C0(void) {
 
 // .text:0x000397AC size:0x214 mapped:0x80678840
 void fn_2_397AC(void) {
-    return;
+    FlowNode *cur = CUR_NODE();
+    u16 input;
+    u8 *state;
+
+    switch (cur->state) {
+    case 0:
+        cur->timer = 30;
+        BSS_1A824C_S16(0x76DC) = 0;
+        cur->state = 1;
+        break;
+    case 1:
+        if (cur->timer-- == 0) {
+            cur->state = 2;
+        }
+        break;
+    case 2:
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        if ((input & INPUT_BUTTON_LEFT) && BSS_1A824C_S16(0x76DC) == 1) {
+            BSS_1A824C_S16(0x76DC) = 0;
+        } else if ((input & INPUT_BUTTON_RIGHT) && BSS_1A824C_S16(0x76DC) == 0) {
+            BSS_1A824C_S16(0x76DC) = 1;
+        }
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        if (input & INPUT_BUTTON_A) {
+            cur->state = 3;
+        } else if (input & INPUT_BUTTON_B) {
+            if (BSS_1A824C_S16(0x76DC) == 0) {
+                BSS_1A824C_S16(0x76DC) = 1;
+            } else {
+                cur->state = 3;
+            }
+        }
+        initializeTextParameters(4, 0x2DF, 100, 200, 9, -1, 0);
+        break;
+    case 3:
+        cur->timer = 16;
+        cur->state = 4;
+        break;
+    case 4:
+        if (cur->timer-- == 0) {
+            if (BSS_1A824C_S16(0x76DC) == 0) {
+                CUR_NODE()->child->_10 = 1;
+            } else {
+                CUR_NODE()->child->_10 = 2;
+            }
+            removeCurrentDrawingItem();
+            cur->state = 0;
+        }
+        break;
+    }
 }
 
 // .text:0x00039408 size:0x3A4 mapped:0x8067849C
 void fn_2_39408(void) {
-    return;
+    FlowNode *cur = CUR_NODE();
+    u16 input;
+    u8 *state;
+
+    switch (cur->state) {
+    case 0:
+        switch (BSS_1A824C_U8(0x72B6)) {
+        case 0:
+            BSS_1A8234_U8(0x266E) = 1;
+            break;
+        case 1:
+            BSS_1A8234_U8(0x266F) = 1;
+            break;
+        case 2:
+            BSS_1A8234_U8(0x2670) = 1;
+            break;
+        }
+        cur->timer = 10;
+        cur->sub = 0;
+        BSS_1A824C_S16(0x76DE) = BSS_1A824C_U8(0x72B7);
+        cur->state = 1;
+        break;
+    case 1:
+        if (cur->timer-- == 0) {
+            cur->state = 2;
+        }
+        break;
+    case 2:
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        if ((input & INPUT_BUTTON_LEFT) && BSS_1A824C_S16(0x76DE) == 1) {
+            BSS_1A824C_S16(0x76DE) = 0;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        } else if ((input & INPUT_BUTTON_RIGHT) && BSS_1A824C_S16(0x76DE) == 0) {
+            BSS_1A824C_S16(0x76DE) = 1;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        }
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        if (input & INPUT_BUTTON_A) {
+            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+            cur->state = 3;
+        } else if (input & INPUT_BUTTON_B) {
+            if (BSS_1A824C_S16(0x76DE) == 0) {
+                BSS_1A824C_S16(0x76DE) = 1;
+            } else {
+                cur->sub = 1;
+                cur->state = 3;
+            }
+            sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
+        }
+        break;
+    case 3:
+        switch (BSS_1A824C_U8(0x72B6)) {
+        case 0:
+            BSS_1A8234_U8(0x2858) = 1;
+            break;
+        case 1:
+            BSS_1A8234_U8(0x2859) = 1;
+            break;
+        case 2:
+            BSS_1A8234_U8(0x285A) = 1;
+            break;
+        }
+        cur->timer = 10;
+        cur->state = 4;
+        break;
+    case 4:
+        if (cur->timer-- == 0) {
+            if (BSS_1A824C_S16(0x76DE) == 0) {
+                CUR_NODE()->child->_10 = 1;
+            } else if (cur->sub == 0) {
+                CUR_NODE()->child->_10 = 2;
+            } else {
+                CUR_NODE()->child->_10 = 3;
+            }
+            removeCurrentDrawingItem();
+            cur->state = 0;
+        }
+        break;
+    }
 }
 
 // .text:0x000391B4 size:0x254 mapped:0x80678248
 void fn_2_391B4(void) {
-    return;
+    FlowNode *cur = CUR_NODE();
+    u16 input;
+    u8 *state;
+
+    switch (cur->state) {
+    case 0:
+        cur->timer = 30;
+        BSS_1A824C_S16(0x76E0) = 0;
+        cur->state = 1;
+        break;
+    case 1:
+        if (cur->timer-- == 0) {
+            cur->state = 2;
+        }
+        break;
+    case 2:
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        if ((input & INPUT_BUTTON_LEFT) && BSS_1A824C_S16(0x76E0) == 1) {
+            BSS_1A824C_S16(0x76E0) = 0;
+        } else if ((input & INPUT_BUTTON_RIGHT) && BSS_1A824C_S16(0x76E0) == 0) {
+            BSS_1A824C_S16(0x76E0) = 1;
+        }
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        if (input & INPUT_BUTTON_A) {
+            cur->state = 3;
+        } else if (input & INPUT_BUTTON_B) {
+            if (BSS_1A824C_S16(0x76E0) == 0) {
+                BSS_1A824C_S16(0x76E0) = 1;
+            } else {
+                cur->state = 3;
+            }
+        }
+        if (cur->sub == 0) {
+            initializeTextParameters(4, 0x2E0, 100, 200, 9, -1, 0);
+        } else {
+            initializeTextParameters(4, lbl_2_bss_1A8248[0x4420] + 0x2ED, 100, 200, 9, -1, 0);
+        }
+        break;
+    case 3:
+        cur->timer = 16;
+        cur->state = 4;
+        break;
+    case 4:
+        if (cur->timer-- == 0) {
+            if (BSS_1A824C_S16(0x76E0) == 0) {
+                CUR_NODE()->child->_10 = 1;
+            } else {
+                CUR_NODE()->child->_10 = 2;
+            }
+            removeCurrentDrawingItem();
+            cur->state = 0;
+        }
+        break;
+    }
 }
 
 // .text:0x00038F48 size:0x26C mapped:0x80677FDC
 void fn_2_38F48(void) {
-    return;
+    FlowNode *cur = CUR_NODE();
+    u8 *menuState;
+    u8 *table;
+    BOOL activate;
+    u8 selected;
+
+    switch (cur->state) {
+    case 0:
+        menuState = lbl_2_bss_1A8248;
+        table = lbl_2_bss_1A8244;
+        selected = menuState[0x4415];
+        activate = table[selected + 0xE4] == 0 && selected < 3;
+        menuState[0x4416] = selected;
+        table[menuState[0x4415] + 0xE4] = 1;
+        if (menuState[0x4415] < 3) {
+            if (table[menuState[0x441C] + 0xE8] == 0) {
+                table[menuState[0x441C] + 0xE8] = 1;
+            }
+            menuState[0x4415]++;
+            table[menuState[0x441C] + 0xDE]++;
+        }
+        if (activate) {
+            cur->timer = 18;
+            BSS_1A8234_U8(0x264F) = 1;
+            fn_80062890(0x38);
+            cur->state = 1;
+        } else {
+            cur->state = 4;
+        }
+        break;
+    case 1:
+        if (cur->timer-- == 0) {
+            cur->state = 2;
+        }
+        break;
+    case 2:
+        if (*(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)BSS_1A824C_U8(0x7863) * 0x20 + 2) & INPUT_BUTTON_A) {
+            cur->timer = 18;
+            BSS_1A8234_U8(0x2839) = 1;
+            cur->state = 3;
+        }
+        break;
+    case 3:
+        if (cur->timer-- == 0) {
+            cur->state = 4;
+        }
+        break;
+    case 4:
+        cur->child->_10 = 1;
+        removeCurrentDrawingItem();
+        cur->state = 0;
+        break;
+    }
+
+    if (BSS_1A824C_U8(0x783F) == 1) {
+        CUR_NODE()->child->_10 = 1;
+        removeCurrentDrawingItem();
+        cur->state = 0;
+    }
 }
 
 // .text:0x00038EA8 size:0xA0 mapped:0x80677F3C
@@ -255,7 +505,71 @@ void fn_2_38824(void) {
 
 // .text:0x00038538 size:0x2EC mapped:0x806775CC
 void fn_2_38538(void) {
-    return;
+    FlowNode *cur = CUR_NODE();
+
+    switch (cur->state) {
+    case 0:
+        cur->timer = 30;
+        if (BSS_1A824C_S16(0x729C) != 0) {
+            BSS_1A8234_U8(0x2836) = TRUE;
+            BSS_1A8234_U8(0x2837) = TRUE;
+            BSS_1A8234_U8(0x2838) = TRUE;
+        }
+        if (BSS_1A824C_S16(0x72A4) != 0) {
+            switch (BSS_1A824C_S16(0x72AC)) {
+            case 0:
+                BSS_1A8234_U8(0x2839) = TRUE;
+                break;
+            case 1:
+                BSS_1A8234_U8(0x283A) = TRUE;
+                break;
+            case 2:
+            case 3:
+                BSS_1A8234_U8(0x283B) = TRUE;
+                break;
+            }
+        }
+        if (BSS_1A824C_S16(0x729E) != 0) {
+            BSS_1A8234_U8(0x283C) = TRUE;
+            BSS_1A8234_U8(0x283D) = TRUE;
+        }
+        if (BSS_1A824C_S16(0x72A6) != 0) {
+            switch (BSS_1A824C_S16(0x72AE)) {
+            case 0:
+                BSS_1A8234_U8(0x283E) = TRUE;
+                break;
+            case 1:
+                BSS_1A8234_U8(0x283F) = TRUE;
+                break;
+            case 2:
+            case 3:
+                BSS_1A8234_U8(0x2840) = TRUE;
+                break;
+            }
+        }
+        *(s32 *)&lbl_2_bss_1A824C[0x190000 + 0x76A8] = fn_80062890(0x11);
+        cur->state = 1;
+        break;
+    case 1:
+        if (cur->timer-- == 0) {
+            cur->state = 2;
+        }
+        break;
+    case 2:
+        BSS_1A8248_U8(0x44F2) = 0;
+        BSS_1A824C_S16(0x72A6) = 0;
+        BSS_1A824C_S16(0x72A4) = 0;
+        CUR_NODE()->child->_10 = 1;
+        removeCurrentDrawingItem();
+        cur->state = 0;
+        break;
+    }
+
+    if (BSS_1A824C_U8(0x783F) == 1) {
+        CUR_NODE()->child->_10 = 1;
+        removeCurrentDrawingItem();
+        cur->state = 0;
+    }
 }
 
 // .text:0x000382A0 size:0x298 mapped:0x80677334
