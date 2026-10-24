@@ -5482,3 +5482,22 @@ Shared/private instructions, full build, four output hashes and whitespace
 checks pass. Header/config are unchanged. Evidence:
 build/_postmerge_wave58_rep_08E8.json and the frozen private wave58
 manager angle_audit.py, angle_proof.json and width_audit.py.
+
+### A direct zero guard restores the angle helper's control flow (2026-10-24)
+
+rep_08E8 improves from 83.76249% to 83.787346%. fn_2_4A1E8 now returns
+zero immediately when both inputs compare equal to zero, then calls atan2
+otherwise. Its score improves from 93.68421% to 99.47369%; the remaining
+difference is the zero constant's relocation label. All 45 function floors
+and 21 exact functions hold; rodata remains 79.06977%. Lower-scoring color,
+angle-width and nested-loop trials were restored.
+
+Manager-rerun floating-point traces pass 16 cases, checking signed-zero
+bits, NaN call routing, argument order, modeled volatile-register clobbering
+and rounding of the modeled double return to binary32. Both-zero inputs
+return positive zero. atan2 is modeled with host math; exception flags,
+NaN payloads and the game library's full behavior are outside coverage.
+Earlier angle-conversion and text-width checks also pass. Shared/private
+instructions, full build, four output hashes and whitespace checks pass.
+Header/config are unchanged. Evidence: build/_postmerge_wave59_rep_08E8.json
+and the frozen private wave59 manager zero_angle_proof.py and inherited models.

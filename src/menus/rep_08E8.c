@@ -507,10 +507,10 @@ s16 fn_2_4A234(f32 x, f32 y) {
 
 // .text:0x0004A1E8 size:0x4C mapped:0x8068927C
 f32 fn_2_4A1E8(f32 x, f32 y) {
-    if (x != 0.0f || y != 0.0f) {
-        return (f32)atan2(y, x);
+    if (x == 0.0f && y == 0.0f) {
+        return 0.0f;
     }
-    return 0.0f;
+    return (f32)atan2(y, x);
 }
 
 // .text:0x0004A18C size:0x5C mapped:0x80689220
