@@ -5501,3 +5501,9 @@ Earlier angle-conversion and text-width checks also pass. Shared/private
 instructions, full build, four output hashes and whitespace checks pass.
 Header/config are unchanged. Evidence: build/_postmerge_wave59_rep_08E8.json
 and the frozen private wave59 manager zero_angle_proof.py and inherited models.
+
+### Byte-array field indexing can recover dynamic source-address formation (wave60)
+
+In menus/text_579B4, six selected-record halfword reads expressed as `*(s16 *)&source[off + field]` produce the source-plus-dynamic-offset address followed by a fixed field load. The pointer-chain form `*(s16 *)(source + off + field)` emitted indexed loads with separate offsets; a typed entry pointer and source-parameter helper also regressed and were rejected. This small source-expression change raises fn_2_5853C from88.2% to99.65714%, unit98.00627% to99.05382%, preserving all eight exact functions and data pseudo81.25%. Remaining helper differences are commutative add operand order. An indexed character-flags helper in587F8 was code-neutral; a loop-local index regressed and was reverted.
+
+The manager's bounded actual-PPC model passes36 independently specified cases on both sides (12,600 instructions): signed-halfword boundaries, three valid selections, distinct bytes/guards, untouched7419,22/16-byte copies, converter arguments, final permutations, callback work-bank replacement and volatile GPR clobbers. Complete observable memory and ordered stores match. The converter is modeled explicitly; arbitrary aliasing and its game implementation are outside the proof. All13 changed-function ELF relocations compare equal. Full build, four output hashes and whitespace checks pass; the unit remains NonMatching because pending code and data remain.
