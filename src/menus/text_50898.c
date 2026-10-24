@@ -224,12 +224,11 @@ void fn_2_50DB4(s32 idx, s32 arg1, u16 *src) {
 
 void fn_2_50E5C(s32 idx) {
     s32 i;
-    u16 *row;
+    u16 (*rows)[0x100] = (u16 (*)[0x100])lbl_2_bss_9608;
 
     lbl_2_bss_9600[idx] = 0;
-    row = (u16 *)((u8 *)lbl_2_bss_9608 + (idx << 9));
     for (i = 0; i < 0x100; i++) {
-        row[i] = 0;
+        rows[idx][i] = 0;
     }
 }
 
@@ -264,28 +263,26 @@ void fn_2_50F20(s32 idx, s32 arg1, u16 *src) {
 
 void fn_2_50FC8(s32 idx) {
     s32 i;
-    u16 *row;
+    u16 (*rows)[0x100] = (u16 (*)[0x100])lbl_2_bss_9A08;
 
     lbl_2_bss_9604[idx] = 0;
     *(s16 *)(STATE_BLOCK + 0x6FCA + idx * 2) = 1;
-    row = (u16 *)((u8 *)lbl_2_bss_9A08 + (idx << 9));
     for (i = 0; i < 0x100; i++) {
-        row[i] = 0;
+        rows[idx][i] = 0;
     }
 }
 
 void fn_2_510A8(void) {
     s32 i;
-    u16 *row;
+    u16 (*rows)[0x100] = (u16 (*)[0x100])lbl_2_bss_9A08;
 
     lbl_2_bss_9604[0] = 0;
     lbl_2_bss_9604[1] = 0;
     *(s16 *)(STATE_BLOCK + 0x6FCC) = 1;
     *(s16 *)(STATE_BLOCK + 0x6FCA) = 1;
-    row = lbl_2_bss_9A08;
     for (i = 0; i < 0x100; i++) {
-        row[i] = 0;
-        row[0x100 + i] = 0;
+        rows[0][i] = 0;
+        rows[1][i] = 0;
     }
 }
 

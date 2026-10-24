@@ -5432,3 +5432,26 @@ Shared/private instructions, full build, four output hashes and whitespace
 checks pass. Header/config are unchanged. Evidence:
 build/_postmerge_wave55_text_50898.json and the frozen private wave55
 manager bank_audit.py, callback_audit.py and walker_audit.py.
+
+### Two-dimensional row views preserve complete script clears (2026-10-24)
+
+text_50898 improves from 69.4464% to 69.87446%. Three clear helpers now
+use natural two-dimensional halfword row pointers, following the existing
+MenuScriptWork layout in text_4D960. fn_2_50E5C reaches 88.061226%,
+fn_2_50FC8 69.19643%, and fn_2_510A8 78.24561%. Existing symbol boundaries
+and declarations remain unchanged.
+
+Manager-rerun actual-PPC models pass 15 cases with real label aliases,
+4,638 stores per side and 10,461 total instructions. Every selected row
+receives exactly 256 zero halfword stores; counts, flags, adjacent rows
+and guards match an independent memory model. The two independent initial
+count resets in fn_2_510A8 occur in opposite orders; later stores agree.
+Inherited walker, callback and distinct-bank tests pass. These checks cover
+ordinary memory and valid row indices, excluding arbitrary aliasing and
+full game runtime.
+
+All 38 function floors and 16 exact functions hold; data remains 0%,
+pseudo 50%. Shared/private instructions, full build, four output hashes
+and whitespace checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave56_text_50898.json and the frozen private wave56
+manager clear_rows_audit.py and inherited models.
