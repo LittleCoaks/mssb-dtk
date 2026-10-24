@@ -5455,3 +5455,30 @@ pseudo 50%. Shared/private instructions, full build, four output hashes
 and whitespace checks pass. Header/config are unchanged. Evidence:
 build/_postmerge_wave56_text_50898.json and the frozen private wave56
 manager clear_rows_audit.py and inherited models.
+
+### Angle conversion runs on both signs; text width uses logical shifts (2026-10-24)
+
+rep_08E8 improves from 83.5591% to 83.76249%, with exact functions
+increasing from 20 to 21. fn_2_4A2C4 previously returned zero for every
+nonnegative angle. It now conditionally adds one binary32 2pi constant
+for negative inputs, then converts both signs into angle units. It reaches
+97.89474%; the remaining difference is constant relocation labels. The
+existing SANG_ANG_180 names the scale. Explicit unsigned half-width shifts
+make fn_2_49EFC exact after individual readability review and a fresh
+whole-unit confirmation. Its exact 0x4000 terminator rule remains intact.
+
+Manager independently checked both objects' ELF constant bits and reran
+16 finite angle cases through floating operations, integer conversion,
+the stack store/reload and the actual return register. They agree with
+an independently rounded expression, including positive/negative zero
+and angles beyond a single revolution. The conversion model uses valid
+signed32 results and excludes NaNs, exceptions and other rounding modes.
+Another 196 actual-PPC width cases pass 218,988 instructions, including
+distinct neighboring widths, ignored tags, sums above16bits, exact table
+reads and absence of writes. Full game runtime is outside this scope.
+
+All 45 function/section/pseudo floors hold; rodata remains 79.06977%.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave58_rep_08E8.json and the frozen private wave58
+manager angle_audit.py, angle_proof.json and width_audit.py.

@@ -483,11 +483,10 @@ s16 fn_2_4A310(s16 a, s16 b) {
 
 // .text:0x0004A2C4 size:0x4C mapped:0x80689358
 s32 fn_2_4A2C4(f32 angle) {
-    f32 v = 0.0f;
     if (angle < 0.0f) {
-        v = 2048.0f * (6.2831855f + angle) / 3.1415927f;
+        angle = 6.2831855f + angle;
     }
-    return (s32)v;
+    return (s32)(SANG_ANG_180 * angle / 3.1415927f);
 }
 
 // .text:0x0004A234 size:0x90 mapped:0x806892C8
@@ -627,18 +626,18 @@ u16 *fn_2_49F7C(u16 *str, s32 capacity, u16 ch, s32 pos) {
 
 // .text:0x00049EFC size:0x80 mapped:0x80688F90
 s32 fn_2_49EFC(u16 *str, u16 idx) {
-    s32 total = 0;
     u16 c;
+    s32 total = 0;
     while ((c = *str) != 0x4000) {
         if (c == 0x4003) {
             total += lbl_2_data_13238[idx];
         } else if (c == 0x4002) {
-            total += lbl_2_data_13238[idx] >> 1;
+            total += (u32)lbl_2_data_13238[idx] >> 1;
         } else if (!(c & 0x4000)) {
             if (c & 0x8000) {
                 total += lbl_2_data_13238[idx];
             } else {
-                total += lbl_2_data_13238[idx] >> 1;
+                total += (u32)lbl_2_data_13238[idx] >> 1;
             }
         }
         str++;
