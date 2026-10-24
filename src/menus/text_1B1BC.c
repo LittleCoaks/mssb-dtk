@@ -168,32 +168,30 @@ void fn_2_1CF94(void) {
 void fn_2_1C860(void) {
     DrawingSceneStruct *node = currentDrawingItem;
     u8 *p;
-    u8 *q;
-    u8 *e;
+    ChallengeState *q;
+    ChallengeTrackingStruct *e;
     CharStaticIndex *chars;
     StarMissionRequirement *row;
     u16 btn;
     s32 idx;
     s32 k;
     s32 n;
-    s32 m;
     s32 v;
     s32 w;
     s32 ret0;
     s32 ret1;
-    s32 state;
 
-    state = DRAW_STATE(node);
-    if (state == 0) {
-        p = lbl_2_bss_1A824C;
-        *(s16 *)&p[0x19771A] = 0;
-        *(s16 *)&p[0x19771C] = 0;
-        *(s16 *)&p[0x197720] = 0;
-        *(s16 *)&p[0x197722] = 0;
-        *(s16 *)&p[0x19771E] = 0x36;
-        *(s16 *)&p[0x197724] = 10;
+    switch (DRAW_STATE(node)) {
+    case 0:
+        *(s16 *)&lbl_2_bss_1A824C[0x19771A] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x19771C] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x197720] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x197722] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x19771E] = NUM_CHOOSABLE_CHARACTERS;
+        *(s16 *)&lbl_2_bss_1A824C[0x197724] = STAR_MISSIONS_PER_CHARACTER;
         DRAW_STATE(node) = 1;
-    } else if (state == 1) {
+        break;
+    case 1:
         p = lbl_2_bss_1A824C;
         idx = (s8)p[0x197863];
         btn = AT_BAT_BUTTON(4, idx);
@@ -214,35 +212,36 @@ void fn_2_1C860(void) {
         idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
         if (btn & PAD_TRIGGER_L) {
-            q = lbl_2_bss_1A8248;
             for (k = 0; k < NUM_CHOOSABLE_CHARACTERS; k++) {
                 chars = &characterStaticIndexes[k];
+                q = (ChallengeState *)lbl_2_bss_1A8248;
+                e = &q->characters[k];
                 if (chars->hasOwnStarMissions == 1) {
-                    e = q + 0x34 * k;
-                    row = starMissionRequirementsTable[chars->requirementRow];
-                    for (n = 0; n < 10; n++) {
+                    for (n = 0; n < STAR_MISSIONS_PER_CHARACTER; n++) {
+                        row = starMissionRequirementsTable[chars->requirementRow];
                         if (row[n].type != STAR_MISSION_TYPE_NONE) {
-                            e[9 + 2 * (n % 5) + 10 * (n / 5)] = 0;
+                            e->inGameMissionTracker[n].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                         }
                     }
                 }
             }
         } else if (btn & PAD_TRIGGER_R) {
-            q = lbl_2_bss_1A8248;
             for (k = 0; k < NUM_CHOOSABLE_CHARACTERS; k++) {
                 chars = &characterStaticIndexes[k];
+                q = (ChallengeState *)lbl_2_bss_1A8248;
+                e = &q->characters[k];
                 if (chars->hasOwnStarMissions == 1) {
-                    e = q + 0x34 * k;
-                    row = starMissionRequirementsTable[chars->requirementRow];
-                    for (n = 0; n < 10; n++) {
+                    for (n = 0; n < STAR_MISSIONS_PER_CHARACTER; n++) {
+                        row = starMissionRequirementsTable[chars->requirementRow];
                         if (row[n].type != STAR_MISSION_TYPE_NONE) {
-                            e[9 + 2 * (n % 5) + 10 * (n / 5)] = -2;
+                            e->inGameMissionTracker[n].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                         }
                     }
                 }
             }
         }
-    } else if (state == 2) {
+        break;
+    case 2:
         p = lbl_2_bss_1A824C;
         idx = (s8)p[0x197863];
         btn = AT_BAT_BUTTON(4, idx);
@@ -258,15 +257,15 @@ void fn_2_1C860(void) {
         p = lbl_2_bss_1A824C;
         idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
-        q = lbl_2_bss_1A8248;
+        q = (ChallengeState *)lbl_2_bss_1A8248;
         v = *(s16 *)&p[0x197716];
-        e = q + 0x34 * v;
+        e = &q->characters[v];
         chars = &characterStaticIndexes[v];
         if ((btn & (PAD_BUTTON_A | PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT)) && ret0 != ret1 && chars->hasOwnStarMissions == 1) {
             row = starMissionRequirementsTable[chars->requirementRow];
             w = *(s16 *)&p[0x197718];
             if (row[w].type != STAR_MISSION_TYPE_NONE) {
-                e[2 * w + 9] = ((s8)e[2 * w + 9] >= 0) ? STAR_MISSION_TRACKING_COMPLETED_SAVED : STAR_MISSION_TRACKING_NOT_COMPLETED;
+                e->inGameMissionTracker[w].starMissionStatus = (e->inGameMissionTracker[w].starMissionStatus >= 0) ? STAR_MISSION_TRACKING_COMPLETED_SAVED : STAR_MISSION_TRACKING_NOT_COMPLETED;
                 fn_8006CDC0(*(s16 *)&p[0x197716]);
             }
         } else if (btn & PAD_BUTTON_B) {
@@ -276,36 +275,34 @@ void fn_2_1C860(void) {
         idx = (s8)lbl_2_bss_1A824C[0x197863];
         btn = AT_BAT_BUTTON(2, idx);
         if (btn & PAD_TRIGGER_L) {
-            for (n = 0; n < 5; n++) {
-                for (m = 0; m < 2; m++) {
-                    v = *(s16 *)&lbl_2_bss_1A824C[0x197716];
-                    chars = &characterStaticIndexes[v];
-                    if (chars->hasOwnStarMissions == 1) {
-                        row = starMissionRequirementsTable[chars->requirementRow];
-                        if (row[2 * n + m].type != STAR_MISSION_TYPE_NONE) {
-                            e[4 * n + 9 + 2 * m] = 0;
-                        }
+            for (n = 0; n < STAR_MISSIONS_PER_CHARACTER; n++) {
+                v = *(s16 *)&lbl_2_bss_1A824C[0x197716];
+                chars = &characterStaticIndexes[v];
+                if (chars->hasOwnStarMissions == 1) {
+                    row = starMissionRequirementsTable[chars->requirementRow];
+                    if (row[n].type != STAR_MISSION_TYPE_NONE) {
+                        e->inGameMissionTracker[n].starMissionStatus = STAR_MISSION_TRACKING_NOT_COMPLETED;
                     }
                 }
             }
         } else if (btn & PAD_TRIGGER_R) {
-            for (n = 0; n < 5; n++) {
-                for (m = 0; m < 2; m++) {
-                    v = *(s16 *)&lbl_2_bss_1A824C[0x197716];
-                    chars = &characterStaticIndexes[v];
-                    if (chars->hasOwnStarMissions == 1) {
-                        row = starMissionRequirementsTable[chars->requirementRow];
-                        if (row[2 * n + m].type != STAR_MISSION_TYPE_NONE) {
-                            e[4 * n + 9 + 2 * m] = -2;
-                        }
+            for (n = 0; n < STAR_MISSIONS_PER_CHARACTER; n++) {
+                v = *(s16 *)&lbl_2_bss_1A824C[0x197716];
+                chars = &characterStaticIndexes[v];
+                if (chars->hasOwnStarMissions == 1) {
+                    row = starMissionRequirementsTable[chars->requirementRow];
+                    if (row[n].type != STAR_MISSION_TYPE_NONE) {
+                        e->inGameMissionTracker[n].starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                     }
                 }
             }
         }
-    } else if (state == 3) {
+        break;
+    case 3:
         node->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         DRAW_STATE(node) = 0;
+        break;
     }
 }
 
@@ -827,29 +824,34 @@ void fn_2_1B7B4(void) {
 void fn_2_1B6CC(void) {
     DrawingSceneStruct *node = currentDrawingItem;
     DrawingSceneStruct *fresh;
-    s8 state = DRAW_STATE(node);
 
-    if (state == 0) {
+    switch (DRAW_STATE(node)) {
+    case 0:
         fresh = insertGraphicDrawingFunction(fn_2_409CC, 2);
         DRAW_STATE(fresh) = 0;
         node->state = 0;
         DRAW_STATE(node) = 1;
-    } else if (state == 1) {
+        break;
+    case 1:
         if (node->state == 1) {
             DRAW_STATE(node) = 2;
         }
-    } else if (state == 2) {
-        if (fn_2_4EB64() == 1) {
+        break;
+    case 2:
+        if (fn_2_4EB64() == TRUE) {
             DRAW_STATE(node) = 3;
         }
-    } else if (state == 3) {
-        if (fn_2_4EB2C() == 1) {
+        break;
+    case 3:
+        if (fn_2_4EB2C() == TRUE) {
             DRAW_STATE(node) = 4;
         }
-    } else if (state == 4) {
+        break;
+    case 4:
         node->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         DRAW_STATE(node) = 0;
+        break;
     }
 }
 
@@ -902,18 +904,20 @@ void fn_2_1B5C0(void) {
 void fn_2_1B52C(void) {
     DrawingSceneStruct *node = currentDrawingItem;
 
-    if (DRAW_STATE(node) == 1) {
-        DRAW_STATE(node) = 6;
-    } else if (DRAW_STATE(node) > 1) {
-        if (DRAW_STATE(node) == 6) {
-            node->currentDrawingItem->state = 1;
-            removeCurrentDrawingItem();
-            DRAW_STATE(node) = 0;
-        }
-    } else if (DRAW_STATE(node) >= 0) {
-        if (fn_2_4E970() == 1) {
+    switch (DRAW_STATE(node)) {
+    case 0:
+        if (fn_2_4E970() == TRUE) {
             DRAW_STATE(node) = 1;
         }
+        break;
+    case 1:
+        DRAW_STATE(node) = 6;
+        break;
+    case 6:
+        node->currentDrawingItem->state = 1;
+        removeCurrentDrawingItem();
+        DRAW_STATE(node) = 0;
+        break;
     }
 }
 

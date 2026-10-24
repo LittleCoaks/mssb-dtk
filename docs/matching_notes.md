@@ -5267,3 +5267,36 @@ remaining mission bulk-loop lifetimes are pending. Data remains 0%, pseudo
 whitespace checks pass. No header/config changes. Evidence:
 build/_postmerge_wave49_text_1B1BC.json and private wave49 proof49.py,
 proof49.txt and focused_proof.py.
+
+### Typed tracking loops and signed phase switches (2026-10-24)
+
+text_1B1BC improves from 77.510635% to 86.27886%, with exact functions
+increasing from eight to ten. Natural signed-phase switches make fn_2_1B52C
+and fn_2_1B6CC exact. Each received an individual readability pass, canonical
+BOOL comparisons and a fresh whole-unit confirmation.
+
+fn_2_1C860 improves from 52.746204% to 86.342735%. Canonical tracking pairs
+replace raw modulo/division offsets. The target captures a tracking record
+for each character while resolving its requirement-row byte each mission;
+the old draft cached both bank and row too early. Phase 2 walks ten
+contiguous slots. A signed phase switch and six separately resolved work
+stores restore the remaining initialization structure without artificial
+register or loop-induction changes.
+
+Manager-rerun new checks pass 6,902 scenarios and 1,325,920 actual
+target/candidate PPC instructions. They cover all 256 phase bytes in both
+new exact callbacks, bulk paths across 54 characters and ten missions,
+initialization, removal and defaults. Read counts confirm one bank lookup
+per character and ten row reads per owning character on the phase-1 bulk
+paths. Phase-2 tests document a remaining difference: the target reads a
+row byte for skipped owners, while the candidate reads it only for owner 1;
+both skip requirement-type reads and writes for those owners.
+
+Earlier callback-mutation models pass another 6,880,003 instructions, and
+the assertion/record/graphics-argument checks still pass. These are bounded
+ordinary-memory and modeled-callee checks, excluding full game runtime and
+arbitrary aliasing. All 21 function/section/pseudo floors hold; .data stays
+0%, pseudo 72.72727%, and the unit remains NonMatching. Shared/private
+instructions, full build, four output hashes and whitespace checks pass.
+No header/config changes. Evidence: build/_postmerge_wave50_text_1B1BC.json
+and private wave50 proof50.py, proof50.txt, proof49.py and focused_proof.py.
