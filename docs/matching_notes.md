@@ -5407,3 +5407,28 @@ simplification regressed and were restored. Shared/private instructions,
 full build, four output hashes and whitespace checks pass. No header/config
 changes. Evidence: build/_postmerge_wave54_text_50898.json and private
 wave54 callback_audit.py, walker_audit.py and manager_verification.md.
+
+### Canonical text banks recover an exact pointer helper (2026-10-24)
+
+text_50898 improves from 68.92482% to 69.4464%, with exact functions
+increasing from 15 to 16. Existing ScreenTextPool.textBanks and TextBank.strings
+make fn_2_5156C exact and improve both append callbacks to 91.190475%.
+Its observed mode branches remain separate. An individual readability pass
+and fresh whole-unit confirmation preserve the new exact. Sharing the row
+base improves fn_2_50D40 from 49.827587% to 58.793102%; a three-by-two array
+view expresses the known prefix of fn_2_5135C without changing instructions.
+
+Manager rebuilt a frozen copy and strengthened the new bank fixtures so
+all seven banks have different tables and string pointers/content. The
+216 selector/append cases pass 21,200 target/candidate PPC instructions;
+1,539 inherited walker cases and 288 callback cases also pass. A prior
+fixture reused the same table for different selectors and was replaced
+before acceptance. These bounded ordinary-memory checks exclude full
+game runtime. The typed width-callback form and alternate row expression
+regressed and were restored.
+
+All 38 function/section/pseudo floors hold; data remains 0% and pseudo 50%.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave55_text_50898.json and the frozen private wave55
+manager bank_audit.py, callback_audit.py and walker_audit.py.

@@ -1,4 +1,5 @@
 #include "menus/text_50898.h"
+#include "text/text.h"
 #include "game/character_stats.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800204cc.h"
@@ -22,7 +23,6 @@ extern u16 lbl_2_data_1F3A0[];
 extern u16 lbl_2_data_1F3B0[];
 extern u32 lbl_2_data_1F3E0[];
 extern u32 lbl_2_data_1F3E8[];
-extern u8 screenTextArray[];
 extern u8 menuCursors[];
 extern u8 *menuControlVariables;
 extern u8 menuNumber[];
@@ -166,7 +166,8 @@ void fn_2_50CC0(s16 arg0) {
 }
 
 void fn_2_50D40(s32 idx) {
-    u16 *count = (u16 *)(lbl_2_bss_55E8 + 0x401C);
+    u8 *base = lbl_2_bss_55E8;
+    u16 *count = (u16 *)(base + 0x401C);
     u16 *row;
     u16 *dst;
     u16 v;
@@ -175,8 +176,8 @@ void fn_2_50D40(s32 idx) {
     if (count[idx] != 0) {
         count[idx]--;
     }
-    row = (u16 *)(lbl_2_bss_55E8 + 0x4020 + (idx << 9));
-    dst = (u16 *)(lbl_2_bss_55E8 + 0x4420 + (idx << 9));
+    row = (u16 *)(base + 0x4020 + (idx << 9));
+    dst = (u16 *)(base + 0x4420 + (idx << 9));
     for (;;) {
         v = *row;
         row++;
@@ -196,14 +197,14 @@ void fn_2_50DB4(s32 idx, s32 arg1, u16 *src) {
     u16 *dst;
     u16 v;
     s32 w;
-    u32 *list;
+    TextBank *bank;
 
-    list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798) + 4);
+    bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
     if (lbl_2_bss_9600[idx] != 0) {
         lbl_2_bss_9600[idx]--;
     }
     if (arg1 != -1) {
-        src = (u16 *)list[arg1];
+        src = bank->strings[arg1];
     }
     dst = (u16 *)((u8 *)lbl_2_bss_9608 + (idx << 9));
     for (;;) {
@@ -236,14 +237,14 @@ void fn_2_50F20(s32 idx, s32 arg1, u16 *src) {
     u16 *dst;
     u16 v;
     s32 w;
-    u32 *list;
+    TextBank *bank;
 
-    list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798) + 4);
+    bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
     if (lbl_2_bss_9604[idx] != 0) {
         lbl_2_bss_9604[idx]--;
     }
     if (arg1 != -1) {
-        src = (u16 *)list[arg1];
+        src = bank->strings[arg1];
     }
     dst = (u16 *)((u8 *)lbl_2_bss_9A08 + (idx << 9));
     for (;;) {
@@ -343,15 +344,15 @@ void fn_2_51358(void) {
 
 void fn_2_5135C(u8 *arg0, s32 idx) {
     s32 n;
-    u32 *values = (u32 *)lbl_2_bss_55E8;
+    u32 (*values)[2] = (u32 (*)[2])lbl_2_bss_55E8;
 
     n = *(u16 *)(arg0 + 0x10);
     if (n % lbl_2_data_1F3B0[idx] != 1) {
         return;
     }
-    (values + 2)[idx] = lbl_2_data_1F3E0[idx];
-    values[idx] = lbl_2_data_1F3E8[idx];
-    (values + 4)[idx] = *(u32 *)(STATE_BLOCK + 0x54AC + idx * 4);
+    values[1][idx] = lbl_2_data_1F3E0[idx];
+    values[0][idx] = lbl_2_data_1F3E8[idx];
+    values[2][idx] = *(u32 *)(STATE_BLOCK + 0x54AC + idx * 4);
 }
 
 void fn_2_513DC(void) {
@@ -407,10 +408,10 @@ u16 fn_2_51470(s32 idx, u16 mode) {
     u16 *p;
 
     if (mode == 0) {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
+        list = (u32 *)(*(u32 *)((u8 *)&screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
         p = (u16 *)list[idx + 1];
     } else {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
+        list = (u32 *)(*(u32 *)((u8 *)&screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
         p = (u16 *)list[idx + 1];
     }
     return fn_2_513E8(p, mode);
@@ -421,14 +422,14 @@ void fn_2_51568(void) {
 }
 
 u32 fn_2_5156C(s32 idx, u16 mode) {
-    u32 *list;
+    TextBank *bank;
 
     if (mode == 0) {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
-        return list[idx + 1];
+        bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
+        return (u32)bank->strings[idx];
     } else {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
-        return list[idx + 1];
+        bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
+        return (u32)bank->strings[idx];
     }
 }
 
