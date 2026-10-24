@@ -5332,3 +5332,30 @@ Shared/private instructions, full build, four output hashes and whitespace
 checks pass. Header/config are unchanged. Evidence:
 build/_postmerge_wave51_text_1B1BC.json and private wave51 proof51.py,
 proof49.py, proof50.py and focused_proof.py.
+
+### Dispatcher state must be refreshed after callbacks (2026-10-24)
+
+text_1B1BC improves from 87.806244% to 89.35763%; its dispatcher improves
+from 72.35318% to 79.390144%. All 21 function floors and 12 exact functions
+hold. Case 0 uses a natural eight-slot initialization loop and independently
+resolves work storage after callbacks. Case 4 refreshes challenge state after
+the flag store and graphics/scene calls. Case 18 publishes the captain into
+the current bank after the selection callback, then reloads the bank before
+character lookup and subsequent branching. Canonical captain/difficulty
+fields and a BOOL scene-request local improve readability. Header/config
+are unchanged. A natural final assertion condition is code-neutral.
+
+Manager-rerun independent models execute 853,512 target/candidate PPC
+instructions across 48 initialization, 3,888 case-4, 216 case-18/mode-0 and
+576 limited alias/default/other-inner-mode fixtures. They use actual ELF
+relocations for dispatch, check callback arguments, mutate current banks,
+clobber volatile registers, count work loads and check counter wrapping.
+Both objects have 24 dispatcher entries with only cases 16/17 aliased.
+Other bodies and full game runtime remain outside this bounded validation.
+Earlier initialization, texture, mission, assertion and graphics checks pass.
+
+Data remains 0%; the generated table pseudo-symbol improves from 72.72727%
+to 80.681816%. Different destination offsets remain unresolved. Shared and
+private instructions agree; full build, four output hashes and whitespace
+checks pass. Evidence: build/_postmerge_wave52_text_1B1BC.json and private
+wave52 proof52.py, dispatcher_table52.json and inherited proof scripts.

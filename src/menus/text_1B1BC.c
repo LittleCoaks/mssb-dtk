@@ -500,10 +500,9 @@ void fn_2_1C33C(void) {
     if (*(s16 *)&lbl_2_bss_1A823C[0x30] != 5) {
         return;
     }
-    if (p->_4420[0] < 5) {
-        return;
+    if (p->_4420[0] >= 5) {
+        while (TRUE) {}
     }
-    while (TRUE) {}
 }
 
 // .text:0x0001C244 size:0xF8 mapped:0x8065B2D8
@@ -603,8 +602,9 @@ void fn_2_1B7B4(void) {
     DrawingSceneStruct *node = currentDrawingItem;
     DrawingSceneStruct *fresh;
     u8 *q;
-    u8 *p;
-    s32 r22;
+    BOOL changeSceneRequested;
+    s32 i;
+    s32 captain;
 
     lbl_2_bss_1A8248 = (u8 *)&g_Challenge;
     lbl_2_bss_1A824C = lbl_2_bss_1A8250;
@@ -621,26 +621,19 @@ void fn_2_1B7B4(void) {
         resetGameStadiumStateOnExit();
         lbl_2_bss_1A823C[0x34] = 1;
         memset(lbl_2_bss_1A8250, 0, 0x1978FC);
-        p = lbl_2_bss_1A824C;
-        *(s16 *)&p[0x197756] = -1;
-        *(s16 *)&p[0x197758] = -1;
-        *(s16 *)&p[0x19775A] = -1;
-        *(s16 *)&p[0x19775C] = -1;
-        *(s16 *)&p[0x19775E] = -1;
-        *(s16 *)&p[0x197760] = -1;
-        *(s16 *)&p[0x197762] = -1;
-        *(s16 *)&p[0x197764] = -1;
+        for (i = 0; i < 8; i++) {
+            ((s16 *)(lbl_2_bss_1A824C + 0x197756))[i] = -1;
+        }
         fn_2_54474();
-        q = lbl_2_bss_1A8248;
-        q[0x44F2] = 0;
-        *(s16 *)&p[0x1976D6] = 0;
-        p[0x197833] = 0;
+        lbl_2_bss_1A8248[0x44F2] = 0;
+        *(s16 *)&lbl_2_bss_1A824C[0x1976D6] = 0;
+        lbl_2_bss_1A824C[0x197833] = 0;
         lbl_2_bss_1A8234[0x162992] = 0;
-        p[0x197838] = 0;
-        p[0x197835] = 0;
+        lbl_2_bss_1A824C[0x197838] = 0;
+        lbl_2_bss_1A824C[0x197835] = 0;
         g_d_GameSettings[9] = 0;
-        p[0x197863] = Static_Stats_Tables[0x46F8];
-        p[0x197848] = 0;
+        lbl_2_bss_1A824C[0x197863] = Static_Stats_Tables[0x46F8];
+        lbl_2_bss_1A824C[0x197848] = 0;
         fn_8000F4B8(0, -1, -1, -1);
         SCENE_STATE = 2;
         break;
@@ -656,30 +649,32 @@ void fn_2_1B7B4(void) {
         SCENE_STATE = 4;
         break;
     case 4:
-        r22 = 0;
+        changeSceneRequested = FALSE;
         if (*(s16 *)&lbl_2_bss_1A823C[0x30] == 3) {
             fn_2_4AB1C();
             if (lbl_2_bss_1A824C[0x197843] == 0) {
                 q = lbl_2_bss_1A8248;
-                if (q[0x441C] == 5) {
+                if (((ChallengeState *)q)->captain == CHALLENGE_CAPTAIN_BOWSER) {
                     if (fn_2_46D00() != 0) {
-                        r22 = 1;
+                        changeSceneRequested = TRUE;
                     }
                 } else if (q[0x4426] & 0x20) {
-                    r22 = 1;
+                    changeSceneRequested = TRUE;
                 }
             }
         }
         q = lbl_2_bss_1A8248;
-        q[0x44F4] = (r22 != 0);
+        q[0x44F4] = (changeSceneRequested != FALSE);
+        q = lbl_2_bss_1A8248;
         if (q[0x44F4] == 0) {
             SCENE_STATE = 0xC;
         } else {
             GXSetCopyClear(*(GXColor *)lbl_2_data_4BA8, 0xFFFFFF);
             changeScene(1, 6);
-            if (q[0x4415] < 3) {
+            q = lbl_2_bss_1A8248;
+            if (((ChallengeState *)q)->difficulty < 3) {
                 SCENE_STATE = 0xC;
-            } else if (fn_2_4E970() == 1) {
+            } else if (fn_2_4E970() == TRUE) {
                 SCENE_STATE = 5;
             }
         }
@@ -757,9 +752,12 @@ void fn_2_1B7B4(void) {
             SCENE_STATE = 0x17;
             break;
         case 0:
+            captain = fn_2_20CB0(*(u32 *)&Static_Stats_Tables[0x46E0]);
             q = lbl_2_bss_1A8248;
-            q[0x441C] = fn_2_20CB0(*(u32 *)&Static_Stats_Tables[0x46E0]);
-            q[0x441D] = challengeCaptainCharIDs[q[0x441C]];
+            ((ChallengeState *)q)->captain = captain;
+            q = lbl_2_bss_1A8248;
+            ((ChallengeState *)q)->captainCharID = challengeCaptainCharIDs[((ChallengeState *)q)->captain];
+            q = lbl_2_bss_1A8248;
             if (q[0x1606] != 0) {
                 fn_2_20328();
                 fn_2_46418();
