@@ -5015,7 +5015,7 @@ void fn_1_E098(void) {
                     s->b15 = 0;
                     lbl_1_bss_6940[lbl_1_bss_5F73].f44 = lbl_1_bss_3218[(s8)s->b15].f0;
                     lbl_1_bss_6940[lbl_1_bss_5F73].f45 = lbl_1_bss_3218[(s8)s->b15].f2;
-                    dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
+                    dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
                     k = 5;
                     while (k-- != 0) {
                         if (lbl_1_bss_3258[(s8)s->b15][k].h8 != 0) {
@@ -5036,7 +5036,7 @@ void fn_1_E098(void) {
             DbgAnimEntry *tbl;
             u32 *p;
             if (lbl_1_bss_3218[i].f0 >= 0) {
-                tbl = SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_3218[i].f0];
+                tbl = hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_3218[i].f0];
                 p = (u32 *)&tbl->p4[lbl_1_bss_3218[i].f2];
             } else {
                 tbl = NULL;
@@ -5226,7 +5226,7 @@ void fn_1_D9B8(void) {
         } while (lbl_1_bss_3218[(s8)s->b15].f0 < 0);
         lbl_1_bss_6940[lbl_1_bss_5F73].f44 = lbl_1_bss_3218[(s8)s->b15].f0;
         lbl_1_bss_6940[lbl_1_bss_5F73].f45 = lbl_1_bss_3218[(s8)s->b15].f2;
-        dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], SLOTA(lbl_1_bss_5F73)->a.tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
+        dbgSetAnim(&hugeAnimStruct.objs->e[lbl_1_bss_5F73], hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44], lbl_1_bss_6940[lbl_1_bss_5F73].f45);
         k = 5;
         f2 = ((DbgPtc *)lbl_1_bss_67B8[0])->f0;
         while (k-- != 0) {
@@ -5269,7 +5269,7 @@ void fn_1_D8A0(void) {
 // .text:0x0000D7A4 size:0xFC
 void fn_1_D7A4(s32 row) {
     u8 idx = lbl_1_bss_5F73;
-    DbgRow *r = (DbgRow *)((u8 *)lbl_1_data_F4D4.tbl + row * 0x50);
+    DbgRow *r = &lbl_1_data_F4D4.tbl[row];
     s32 i;
     i = 8;
     while (i-- != 0) {
@@ -5280,7 +5280,7 @@ void fn_1_D7A4(s32 row) {
             s16 a = s->a;
             s16 b;
             e->f0 = a;
-            tb = SLOTA(idx)->a.tbl[a];
+            tb = hugeAnimStruct.slots[idx].tbl[a];
             b = s->b;
             e->f2 = b;
             e->f6 = (s8)s->c;

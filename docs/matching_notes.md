@@ -3596,6 +3596,16 @@ functions. These lessons are not specific to one file:
   Penalise the specific wrong registers in the search objective. That found a `rep_00B0` `fn_1_25BC`
   form with a single wrong choice, which score-only climbs never reached. Address CSE temps such as the
   `&__GDCurrentDL` loads take one register as a group, so one wrong neighbouring web can cost 100+ lines.
+- **`rep_00B0` `fn_1_25BC` (the last debug function stuck on one register for six passes) closed
+  with:**
+  - the [G3] "point C" shape (a separate `DlVertex *v2` for the triangle loop; counters reused across
+    the strip and linestrip loops; `left` for the vertex-count loop);
+  - declaring `left, vi, v, key, i, cnt, n, p, v2, prev`;
+  - merging the duplicate `u8 keyToIdx()` helper into the `u32 keyIdx32()` one at the `dlVertexKey`
+    call site.
+  An inline helper's return width is one more knob on when its result web is coloured.
+- **A `for` loop whose increment the target emits before another variable's is a `while` with the
+  increment written last** (`j = 0; while (j < m) { ...; j++; }`): `rep_7730` `fn_1_22F4C` (99.76 -> 100).
 - **Store through the global, not a local copy of it:** `currentDrawingItem->func = f;` instead of
   `s->func = f;` with `s == currentDrawingItem` fixed a register rotation across the whole block
   (`rep_0610` `fn_1_E098` case 10, 99.62 -> 99.94), the same family as switching on the global.

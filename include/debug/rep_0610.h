@@ -380,13 +380,6 @@ typedef struct DbgF570 {
     /*0x14*/ u32 colC;
 } DbgF570;
 
-typedef struct DbgSlotAbs {
-    /*0x000*/ u8 pad0[0xC04];
-    /*0xC04*/ DbgActor a;
-} DbgSlotAbs;
-
-#define SLOTA(i) ((DbgSlotAbs *)((u8 *)&hugeAnimStruct + (i) * 0x27C))
-
 s32 fn_1_C2DC(DbgTreeNode *n, char *buf, s32 pos, s32 w, s32 ret, s32 *rows, s32 *skip, s32 *left);
 void fn_1_C5A8(void);
 void fn_1_C5AC(void);

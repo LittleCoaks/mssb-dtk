@@ -1803,7 +1803,8 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
     rowBase = 0;
     for (i = 0; i < n; i++) {
         k = rowBase;
-        for (j = 0; j < m; j++) {
+        j = 0;
+        while (j < m) {
             s32 t = k++;
             f32 val = src[t];
             f32 prev = other[t];
@@ -1814,6 +1815,7 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
                 + coeffNeighbor * (src[right + rowBase] + (src[left + rowBase]
                     + (src[j + m * ((i + n - 1) % n)] + src[j + m * ((i + 1) % n)])))
                 - prev;
+            j++;
             dst[t] *= lbl_1_data_104C4;
         }
         rowBase += m;
