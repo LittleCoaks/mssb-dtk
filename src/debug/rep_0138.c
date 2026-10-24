@@ -622,15 +622,13 @@ void fn_1_77EC(void *arg0) {
 void fn_1_73B8(void *arg0, u8 count, ...) {
     Mtx concat;
     f32 box[24];
-    DbgGeoTable *table;
-    DbgActorSet *set;
-    DbgGeo *geo;
-    MtxPtr cam1;
-    s16 sel;
-    MtxPtr cam2;
     s32 i;
     s32 end;
+    s16 sel;
+    DbgGeo *geo;
     u16 key;
+    DbgActorSet *set;
+    DbgGeoTable *table;
 
     set = ((DbgDrawNode *)arg0)->model;
     table = set->geoTable;
@@ -652,8 +650,6 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
         end = sel + 1;
     }
 
-    cam1 = ((DbgDrawNode *)arg0)->local;
-    cam2 = ((DbgDrawNode *)arg0)->world;
     for (; i < end; i++) {
         if (lbl_1_bss_2E0[i] != 0) {
             continue;
@@ -664,26 +660,26 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
         }
 
         if (set->entries[i].flags & 1) {
-            GXSetZMode(0, 7, 1);
+            GXSetZMode(GX_FALSE, GX_ALWAYS, GX_TRUE);
         } else {
-            GXSetZMode(1, 3, 1);
+            GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
         }
         switch (set->entries[i].flags & 6) {
             case 2:
-                GXSetBlendMode(1, 1, 1, 0);
+                GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_CLEAR);
                 break;
             case 4:
-                GXSetBlendMode(1, 2, 0, 0);
+                GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTCOL, GX_BL_ZERO, GX_LO_CLEAR);
                 break;
             default:
-                GXSetBlendMode(1, 4, 5, 0);
+                GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
                 break;
         }
 
         geo = table->slots[key].geo;
         CTRLBuildMatrix(set->entries[i].ctrl, geo->mtx);
-        PSMTXConcat(cam1, geo->mtx, geo->mtx);
-        PSMTXConcat(cam2, geo->mtx, concat);
+        PSMTXConcat(((DbgDrawNode *)arg0)->local, geo->mtx, geo->mtx);
+        PSMTXConcat(((DbgDrawNode *)arg0)->world, geo->mtx, concat);
 
         box[0] = geo->maxX;
         box[1] = geo->maxY;
@@ -714,7 +710,7 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
             va_list args;
             lbl_1_common_bss_472B4.visibleCount++;
             va_start(args, count);
-            DOVARender(geo, cam2, count, args);
+            DOVARender(geo, ((DbgDrawNode *)arg0)->world, count, args);
         }
     }
 
@@ -739,8 +735,8 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
 
             geo = table->slots[key].geo;
             CTRLBuildMatrix(set->entries[i].ctrl, geo->mtx);
-            PSMTXConcat(cam1, geo->mtx, geo->mtx);
-            PSMTXConcat(cam2, geo->mtx, concat);
+            PSMTXConcat(((DbgDrawNode *)arg0)->local, geo->mtx, geo->mtx);
+            PSMTXConcat(((DbgDrawNode *)arg0)->world, geo->mtx, concat);
 
             box[0] = geo->maxX;
             box[1] = geo->maxY;
@@ -768,7 +764,7 @@ void fn_1_73B8(void *arg0, u8 count, ...) {
             box[23] = geo->maxZ;
 
             if (checkObjectVisibility(0, box, concat)) {
-                fn_1_4E98(geo, cam2);
+                fn_1_4E98(geo, ((DbgDrawNode *)arg0)->world);
             }
         }
     }

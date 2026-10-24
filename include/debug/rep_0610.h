@@ -76,6 +76,8 @@ typedef struct DbgAnimTrack {
 typedef struct DbgAnimEntry {
     /*0x00*/ u8 pad0[4];
     /*0x04*/ DbgAnimTrack *p4;
+    /*0x08*/ u16 f8;
+    /*0x0A*/ u16 count;
 } DbgAnimEntry;
 
 typedef struct DbgActor {

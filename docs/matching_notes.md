@@ -3604,14 +3604,43 @@ functions. These lessons are not specific to one file:
   - merging the duplicate `u8 keyToIdx()` helper into the `u32 keyIdx32()` one at the `dlVertexKey`
     call site.
   An inline helper's return width is one more knob on when its result web is coloured.
-- **A `for` loop whose increment the target emits before another variable's is a `while` with the
-  increment written last** (`j = 0; while (j < m) { ...; j++; }`): `rep_7730` `fn_1_22F4C` (99.76 -> 100).
+- **An induction-variable increment the target emits before another one can sit mid-body in the
+  original, not in the for-header.** `rep_7730` `fn_1_22F4C`:
+  `j = 0; while (j < m) { s32 t = k++; ...; dst[t] = ... - prev; j++; dst[t] *= damp; }` (99.76 -> 100,
+  and `fn_1_23B54`, which inlines it, gained with it). Sessions S5-G3 had not moved that k/j order tie.
+- **To find what sets a wrong callee-saved order, cut the function down inside the full unit** (leave
+  everything else as is) and add pieces back one at a time. In `rep_7730` `fn_1_23B54` this showed a
+  hoisted pool base outranks `item` once it is live across two or more calls; the target keeps `item`
+  on top regardless (still open).
 - **Store through the global, not a local copy of it:** `currentDrawingItem->func = f;` instead of
   `s->func = f;` with `s == currentDrawingItem` fixed a register rotation across the whole block
   (`rep_0610` `fn_1_E098` case 10, 99.62 -> 99.94), the same family as switching on the global.
 - **`while (TRUE)` and `for (;;)` compile differently.** In `fn_1_4A24` the outer loop keyword alone took
   it from 99.46 to 99.90, after a pass had concluded from micro TUs that the pattern was unreachable from
   source. Try the loop keyword before declaring an address-register pattern unreachable.
+- **MWCC's register allocator can be observed directly.** A native Windows debugger (Python ctypes,
+  no gdb) that breaks GC/2.6 `mwcceppc.exe` at the end of `colorgraph` (0x5089A9; addresses from
+  github.com/cadmic/mwcc-debugger) dumps the GPR/FPR priority list, each node's neighbours and coalesced
+  flags, and the PCode before register allocation. Re-simulating Chaitin's simplify reproduces every
+  function in `rep_0138` exactly: vregs in index order, push a node when it has fewer than 29 remaining
+  neighbours, repeat passes, and never remove coalesced nodes. A target colouring can then be
+  reverse-engineered into "which node must move to a later pass" before touching source. This is how
+  `rep_0138` `fn_1_73B8` went from 99.14 to 100 after five passes. The tools are `regdbg.py`, `sim.py`
+  and `col.py`.
+- **Callee-saved order is simplify level first, then descending vreg index.** Parameters are the lowest
+  vregs, then locals (first declared = highest), then frontend temps (strength reduction, range-split
+  pieces, LICM), then backend temps such as a CSE'd global address. A variable outranks a higher-index
+  temp only by surviving into a later simplify pass, i.e. by having 29 or more remaining neighbours when
+  its turn comes.
+- **Coalesced nodes and self-hoisted invariants add neighbours for free.** Writing a loop-invariant
+  expression inline (`((DbgDrawNode *)arg0)->world` in the loop body) instead of a local set before the
+  loop gives the same instructions, because MWCC hoists it, but adds never-removed nodes. That pushed
+  `fn_1_73B8`'s long-lived locals into a later level (-> 100); holding the value in your own local lost 5
+  points. A local used twice (`MtxPtr m = geo->mtx; PSMTXConcat(c, m, m);`) also adds a node. Single-use
+  locals, inline parameters and constants are always propagated away.
+- **The frontend range splitter keys on the first operand.** `w = (y / n) * w` in several switch cases
+  splits `w` into one web per case, and only the first case's web keeps coalescing with the incoming
+  r3. `w *= y / n`, `w = w * (y / n)` and `x %= 8` keep one web (`rep_0138` `fn_1_5924`).
 - **The order MWCC hands out callee-saved registers (highest first), from micro TUs (`rep_0138`
   `fn_1_73B8`):** a hoisted global address (`&state`); then variables assigned from an inline
   function's result, parameter or local; then compiler loop temps (hidden pointers, entry pointers);

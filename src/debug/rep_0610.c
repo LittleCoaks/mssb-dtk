@@ -41,9 +41,9 @@
 #include "C3/actor.h"
 #include "stl/mem.h"
 
-#define BTN_HELD (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 0))
-#define BTN_PRESSED (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 2))
-#define BTN_REPEAT (*(u16 *)((u8 *)&AtBat_ButtonInput1 + 4))
+#define BTN_HELD (((controllerInputStruct *)&AtBat_ButtonInput1)->currentHeldInput)
+#define BTN_PRESSED (((controllerInputStruct *)&AtBat_ButtonInput1)->newInput)
+#define BTN_REPEAT (((controllerInputStruct *)&AtBat_ButtonInput1)->processedInput)
 
 extern MemoryStack lbl_80366158;
 
@@ -2792,7 +2792,7 @@ void fn_1_15760(void) {
                 break;
             }
             case 1: {
-                u16 n = *(u16 *)((u8 *)hugeAnimStruct.slots[0].tbl[lbl_1_bss_6940[0].f44] + 0xA);
+                u16 n = hugeAnimStruct.slots[0].tbl[lbl_1_bss_6940[0].f44]->count;
                 s32 old = lbl_1_bss_6940[0].f45;
                 if (lbl_1_bss_6940[0].f45 != 0) {
                     lbl_1_bss_6940[0].f45 = old - 1;
@@ -2849,7 +2849,7 @@ void fn_1_15760(void) {
             }
             case 1: {
                 s32 old = lbl_1_bss_6940[0].f45;
-                u16 n = *(u16 *)((u8 *)hugeAnimStruct.slots[0].tbl[lbl_1_bss_6940[0].f44] + 0xA);
+                u16 n = hugeAnimStruct.slots[0].tbl[lbl_1_bss_6940[0].f44]->count;
                 lbl_1_bss_6940[0].f45 = old + 1;
                 if (n == lbl_1_bss_6940[0].f45) {
                     lbl_1_bss_6940[0].f45 = 0;
@@ -3359,7 +3359,7 @@ void fn_1_135C0(void) {
             }
         }
         anim = hugeAnimStruct.slots[j].tbl[lbl_1_bss_6940[lbl_1_bss_5F73].f44];
-        if (lbl_1_bss_6940[lbl_1_bss_5F73].f45 >= *(u16 *)((u8 *)anim + 0xA)) {
+        if (lbl_1_bss_6940[lbl_1_bss_5F73].f45 >= ((DbgAnimEntry *)anim)->count) {
             lbl_1_bss_6940[lbl_1_bss_5F73].f45 = 0;
         }
     }
@@ -5034,10 +5034,10 @@ void fn_1_E098(void) {
             s32 held;
             s32 m;
             DbgAnimEntry *tbl;
-            u32 *p;
+            DbgAnimTrack *p;
             if (lbl_1_bss_3218[i].f0 >= 0) {
                 tbl = hugeAnimStruct.slots[lbl_1_bss_5F73].tbl[lbl_1_bss_3218[i].f0];
-                p = (u32 *)&tbl->p4[lbl_1_bss_3218[i].f2];
+                p = &tbl->p4[lbl_1_bss_3218[i].f2];
             } else {
                 tbl = NULL;
                 p = NULL;
@@ -5061,7 +5061,7 @@ void fn_1_E098(void) {
                                 lbl_1_bss_3218[i].f4--;
                             }
                         } else if (rep & INPUT_BUTTON_RIGHT) {
-                            if (lbl_1_bss_3218[i].f4 < (s16)(s32) * (f32 *)p[1]) {
+                            if (lbl_1_bss_3218[i].f4 < (s16)(s32)*p->keys) {
                                 lbl_1_bss_3218[i].f4++;
                             }
                         }
@@ -5091,7 +5091,7 @@ void fn_1_E098(void) {
                                 lbl_1_bss_3218[i].f2--;
                             }
                         } else if (rep & INPUT_BUTTON_RIGHT) {
-                            if (lbl_1_bss_3218[i].f2 < *(u16 *)((u8 *)tbl + 0xA) - 1) {
+                            if (lbl_1_bss_3218[i].f2 < tbl->count - 1) {
                                 lbl_1_bss_3218[i].f2++;
                             }
                         }
