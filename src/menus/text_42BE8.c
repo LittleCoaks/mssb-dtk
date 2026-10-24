@@ -125,7 +125,7 @@ void fn_2_44504(void) {
     fn_2_44414((SortEntry *)(lbl_2_bss_1A824C + 0x197450));
     // Phase 10: list A = -1.
     for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
-        SCRATCH_S16(0x1977A2 + 2 * i) = -1;
+        SCRATCH_S16(0x1977A2 + 2 * i) = CHAR_ID_NONE;
     }
     // Phase 11: second words of the sorted pairs (non-sentinel) go back into list A.
     k = 0;
@@ -208,9 +208,10 @@ void fn_2_44014(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 type = req->type;
                     s32 target = req->target;
@@ -233,9 +234,10 @@ void fn_2_43E8C(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 type = req->type;
                     s32 minDifficulty = req->_6[0];
@@ -258,9 +260,10 @@ void fn_2_439D0(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 type = req->type;
                     s32 target = req->target;
@@ -268,56 +271,51 @@ void fn_2_439D0(void) {
                     s32 minDifficulty = req->_6[0];
                     if (type != STAR_MISSION_TYPE_NONE && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED) {
                         switch (type) {
-                            case 61:
-                                if (lbl_2_bss_1A8248->captain == flags &&
-                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 60:
-                                if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 69:
-                                if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                    case 66:
-                                if (*((u8 *)lbl_2_bss_1A8248 + 0x44F7) == 0) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 62:
-                                if (fn_2_44368() == TRUE && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 63:
-                                if (lbl_2_bss_1A8248->captain == target &&
-                                    *((u8 *)lbl_2_bss_1A8248 + 0x44F6) == 0 &&
-                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 64:
-                                if (fn_2_442E8() == TRUE && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 67:
-                                if (fn_2_44238(i) == TRUE &&
-                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                            case 68:
-                                if (fn_2_44238(i) == TRUE &&
-                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
-                        }
-                                break;
+                        case 61:
+                            if (lbl_2_bss_1A8248->captain == flags && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 60:
+                            if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 69:
+                            if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 66:
+                            if (*((u8 *)lbl_2_bss_1A8248 + 0x44F7) == 0) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 62:
+                            if (fn_2_44368() == TRUE && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 63:
+                            if (lbl_2_bss_1A8248->captain == target && *((u8 *)lbl_2_bss_1A8248 + 0x44F6) == 0 && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 64:
+                            if (fn_2_442E8() == TRUE && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 67:
+                            if (fn_2_44238(i) == TRUE && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
+                        case 68:
+                            if (fn_2_44238(i) == TRUE && lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                            }
+                            break;
                         }
                     }
                 }
@@ -333,9 +331,10 @@ void fn_2_4358C(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 type = req->type;
                     s32 target = req->target;
@@ -402,9 +401,10 @@ void fn_2_43404(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 type = req->type;
                     s32 target = req->target;
@@ -429,10 +429,11 @@ void fn_2_432EC(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[*row][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 mode = rule->mode;
                     s32 type = req->type;
@@ -458,10 +459,11 @@ void fn_2_430F4(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[*row][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 mode = rule->mode;
                     s32 type = req->type;
@@ -495,10 +497,11 @@ void fn_2_42FC8(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[*row][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 mode = rule->mode;
                     s32 type = req->type;
@@ -524,10 +527,11 @@ void fn_2_42EB0(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[*row][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 mode = rule->mode;
                     s32 type = req->type;
@@ -554,10 +558,11 @@ void fn_2_42BE8(void) {
         CharStaticIndex *cs = &characterStaticIndexes[i];
         if (cs->hasOwnStarMissions == 1) {
             ChallengeTrackingStruct *tr = &lbl_2_bss_1A8248->characters[i];
-            if (tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+            if ((s32)tr->recruitmentStatus == CHALLENGE_RECRUITMENT_CD_RECRUITED) {
+                u8 *row = &cs->requirementRow;
                 for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-                    StarMissionDisplayRule *rule = &starMissionDisplayRules[cs->requirementRow][j];
-                    StarMissionRequirement *req = &starMissionRequirementsTable[cs->requirementRow][j];
+                    StarMissionDisplayRule *rule = &starMissionDisplayRules[*row][j];
+                    StarMissionRequirement *req = &starMissionRequirementsTable[*row][j];
                     starMissionTrackingPair *pair = &tr->inGameMissionTracker[j];
                     s32 mode = rule->mode;
                     s32 type = req->type;

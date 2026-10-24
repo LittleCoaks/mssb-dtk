@@ -5170,3 +5170,35 @@ changed phase and frame effects. Shared/private instructions, full build,
 four output hashes and whitespace checks pass. Header/config remain
 unchanged. Evidence: build/_postmerge_wave45_text_3E38C.json and private
 wave45 final_proofs.txt, pending_flow_audit.py and data_math_audit.py.
+
+### Requirement-row pointers retain per-slot reloads (2026-10-23)
+
+text_42BE8 improves from 77.62239% to 80.304756%, with gains in ten mission
+callbacks. Holding a pointer to CharStaticIndex.requirementRow across the
+slot loop restores the target's field-pointer lifetime. The row byte is
+still read each slot, including after calls; capturing its value instead
+would change behavior when a helper updates the table. Explicitly promoting
+the stored unsigned recruitment byte to s32 restores the target's word
+comparison without changing its zero extension or equality test.
+
+fn_2_439D0 also now has separate switch scopes: the previous source legally
+nested later case labels inside case 69's condition. Its tracking behavior
+passed the earlier model, but that accidental nesting added redundant work.
+The corrected scopes preserve the target's physical case order and the
+separate membership predicates for cases 67 and 68.
+
+Manager-rerun focused checks pass 11,608 scenarios and 13,418,395 actual
+target/candidate PPC instructions. Independent mission/list/count models
+cover 6,148 cases; differential checks cover all ten changed callbacks in
+5,460 cases. Mode tables use real ELF relocations. External hooks exercise
+each helper with signed return boundaries, memory mutations and overwritten
+volatile registers. These are focused checks with modeled callees, not full
+game/UI runtime or exhaustive aliasing coverage.
+
+All 17 function/section/pseudo floors and four exact functions hold. The
+148 raw data bytes and 37 relocation locations/types/owners agree, while
+relocation addends still differ: .data remains 0%, pseudo improves to
+58.10811%. Shared/private instructions, full build, four output hashes and
+whitespace checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave47_text_42BE8.json and private wave47 final_audit.txt,
+callback_audit.py, mission_audit.py, list_audit.py and data_audit.py.
