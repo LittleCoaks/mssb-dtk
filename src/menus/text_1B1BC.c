@@ -506,9 +506,16 @@ void fn_2_1C33C(void) {
 }
 
 // .text:0x0001C244 size:0xF8 mapped:0x8065B2D8
+typedef struct TextScanEntry {
+    void *ptr;
+    u8 _04[0x0A];
+    s16 index;
+    u8 _10[0x08];
+} TextScanEntry;
+
 void fn_2_1C244(void) {
     u8 *rowBase;
-    u8 *p;
+    TextScanEntry (*group)[6];
     s32 row;
     s32 entry;
     s32 field;
@@ -516,16 +523,16 @@ void fn_2_1C244(void) {
 
     rowBase = lbl_2_bss_1A8234;
     for (row = 0; row < 0x46; row++) {
-        p = rowBase;
+        group = (TextScanEntry (*)[6])rowBase;
         n = 0;
         for (entry = 0; entry < 0x90; entry++) {
             for (field = 0; field < 6; field++) {
-                if (row >= 0x23 && n >= 0x64 && *(u32 *)(p + field * 0x18) != 0) {
+                if (row >= 0x23 && n >= 0x64 && group[0][field].ptr != NULL) {
                     return;
                 }
                 n++;
             }
-            p += 0x90;
+            group++;
         }
         rowBase += 0x5100;
     }
@@ -603,7 +610,6 @@ void fn_2_1B7B4(void) {
     DrawingSceneStruct *fresh;
     u8 *q;
     BOOL changeSceneRequested;
-    s32 i;
     s32 captain;
 
     lbl_2_bss_1A8248 = (u8 *)&g_Challenge;
@@ -619,21 +625,7 @@ void fn_2_1B7B4(void) {
     case 0:
         fn_8006C488();
         resetGameStadiumStateOnExit();
-        lbl_2_bss_1A823C[0x34] = 1;
-        memset(lbl_2_bss_1A8250, 0, 0x1978FC);
-        for (i = 0; i < 8; i++) {
-            ((s16 *)(lbl_2_bss_1A824C + 0x197756))[i] = -1;
-        }
-        fn_2_54474();
-        lbl_2_bss_1A8248[0x44F2] = 0;
-        *(s16 *)&lbl_2_bss_1A824C[0x1976D6] = 0;
-        lbl_2_bss_1A824C[0x197833] = 0;
-        lbl_2_bss_1A8234[0x162992] = 0;
-        lbl_2_bss_1A824C[0x197838] = 0;
-        lbl_2_bss_1A824C[0x197835] = 0;
-        g_d_GameSettings[9] = 0;
-        lbl_2_bss_1A824C[0x197863] = Static_Stats_Tables[0x46F8];
-        lbl_2_bss_1A824C[0x197848] = 0;
+        fn_2_1C0D4();
         fn_8000F4B8(0, -1, -1, -1);
         SCENE_STATE = 2;
         break;
@@ -723,12 +715,15 @@ void fn_2_1B7B4(void) {
     case 12:
         if (lbl_2_bss_1A8248[0x44F4] == 0) {
             fresh = insertGraphicDrawingFunction(fn_2_1B6CC, 2);
+            DRAW_STATE(fresh) = 0;
+            node->state = 0;
+            SCENE_STATE = 0xD;
         } else {
             fresh = insertGraphicDrawingFunction(fn_2_1B5C0, 2);
+            DRAW_STATE(fresh) = 0;
+            node->state = 0;
+            SCENE_STATE = 0xD;
         }
-        DRAW_STATE(fresh) = 0;
-        node->state = 0;
-        SCENE_STATE = 0xD;
         break;
     case 13:
         if (node->state == 1) {
@@ -781,6 +776,9 @@ void fn_2_1B7B4(void) {
         case 5:
         case 6:
         case 7:
+            lbl_2_bss_1A8248[0x44F2] = 0;
+            SCENE_STATE = 0x17;
+            break;
         case 8:
             lbl_2_bss_1A8248[0x44F2] = 0;
             SCENE_STATE = 0x17;

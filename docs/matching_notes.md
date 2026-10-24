@@ -5359,3 +5359,28 @@ to 80.681816%. Different destination offsets remain unresolved. Shared and
 private instructions agree; full build, four output hashes and whitespace
 checks pass. Evidence: build/_postmerge_wave52_text_1B1BC.json and private
 wave52 proof52.py, dispatcher_table52.json and inherited proof scripts.
+
+### Preserve distinct dispatcher branches and reuse existing initialization (2026-10-24)
+
+text_1B1BC improves from 89.35763% to 90.06654%, with its dispatcher
+rising from 79.390144% to 82.60575%. Case 12 retains a complete insertion
+and reset sequence in each branch; inner mode 8 has its own block, as in
+the target. Calling the existing initialization helper naturally inlines
+without changing its public body. A source-only 24-byte table-entry view
+replaces raw scan offsets using the layout already established in text_53408.
+All 21 function floors and 12 exact functions hold after readability review.
+
+Manager-rerun actual-PPC checks verify all 26,740 eligible pointer reads in
+the zero-table scan, early-exit address prefixes at six-entry and row edges,
+and absence of writes. Another 192 case-12 fixtures check both insertion
+branches, callback mutation and counter wrapping through actual ELF dispatch.
+Inherited behavior checks pass. These are bounded ordinary-memory models
+with modeled external calls; full runtime and other dispatcher cases remain
+outside coverage. A current-node reload trial was reverted because it
+regressed the accepted generated-table floor.
+
+Data remains 0%; the table pseudo-symbol improves to 82.954544%. Shared and
+private instructions agree; full build, four output hashes and whitespace
+checks pass. No header/config changes. Evidence:
+build/_postmerge_wave53_text_1B1BC.json and private wave53 proof53_scan.py,
+proof53_dispatch.py and inherited models.
