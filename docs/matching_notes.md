@@ -5122,3 +5122,51 @@ full build, four output hashes and whitespace checks pass. No public header
 or config changes were needed. Evidence:
 build/_postmerge_wave42_text_42BE8.json and private wave42 list_audit.py,
 data_audit.py and toad_range_audit.py.
+
+### Separate mission cases preserve inline bodies (2026-10-23)
+
+fn_2_439D0 improves from 66.91749% to 87.66337%, raising text_42BE8 to
+77.62239%. Two mission types have distinct target bodies with equal lineup
+membership logic. Separate source cases calling the existing public BOOL
+predicate restore their natural inline expansions. Ordering case bodies by
+their observed target addresses restores the remaining physical layout.
+
+An independent memory model agrees with actual target/candidate PPC for
+2,916 scenarios (2,810,081 instructions), using each ELF's real computed
+switch destinations. Cases cover every type 60..69 and defaults, signed
+requirements, gates, slot counts, membership, captain/difficulty and flags.
+There are no external calls in either compiled body. This excludes full
+game/UI runtime. All 17 function/section/pseudo floors and four exacts hold;
+.data remains 0%. Shared/private instructions, full build, four output hashes
+and whitespace checks pass. No header/config changes. Evidence:
+build/_postmerge_wave46_text_42BE8.json and private mission_audit.py.
+
+### Map-record reloads and counter division (2026-10-23)
+
+text_3E38C improves from 91.15712% to 97.75391%, with exact functions
+increasing from 9 to 11/18. A proven ten-byte record view restores global
+reloads during the 51-record scan and retains separate captain arms.
+The next-stage value is captured before clearing the selected entry;
+records 51..53 remain untouched. Post-callback flag stores now resolve
+challenge state again. Two callbacks become exact after readability review.
+
+Both counter callbacks used an incorrect /40 divisor. The target's signed
+multiply-high, shift by three and sign correction implement /20. All
+131,071 possible differences of two signed halfwords confirm the formula;
+for delta 75, the target gives 3 and the old source gave 1. Score-global
+reads and work-bank mutations retain their original timing.
+
+The actual ELF's 60 data bytes and all 15 function-relative relocations
+match exactly. All phase destinations are distinct; no table initializer
+or config change was needed. All 18 function/section/pseudo floors hold.
+The unit remains NonMatching because seven functions are still pending.
+
+Earlier callback models and the new list/counter models pass 15,114
+scenarios (1,743,326 actual target/candidate instructions), including
+callback mutations, signed boundaries, record 50 and excluded records
+51..53. External hooks model calls and selected mutations, so this excludes
+full game/UI runtime; the large scene receives focused coverage of its
+changed phase and frame effects. Shared/private instructions, full build,
+four output hashes and whitespace checks pass. Header/config remain
+unchanged. Evidence: build/_postmerge_wave45_text_3E38C.json and private
+wave45 final_proofs.txt, pending_flow_audit.py and data_math_audit.py.

@@ -268,14 +268,22 @@ void fn_2_439D0(void) {
                     s32 minDifficulty = req->_6[0];
                     if (type != STAR_MISSION_TYPE_NONE && pair->starMissionStatus == STAR_MISSION_TRACKING_NOT_COMPLETED) {
                         switch (type) {
+                            case 61:
+                                if (lbl_2_bss_1A8248->captain == flags &&
+                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                }
+                                break;
                             case 60:
                                 if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
                                     pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                                 }
                                 break;
-                            case 61:
-                                if (lbl_2_bss_1A8248->captain == flags &&
-                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                            case 69:
+                                if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
+                                    case 66:
+                                if (*((u8 *)lbl_2_bss_1A8248 + 0x44F7) == 0) {
                                     pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                                 }
                                 break;
@@ -296,22 +304,19 @@ void fn_2_439D0(void) {
                                     pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                                 }
                                 break;
-                            case 66:
-                                if (*((u8 *)lbl_2_bss_1A8248 + 0x44F7) == 0) {
-                                    pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
-                                }
-                                break;
                             case 67:
-                            case 68:
-                                if (savedLineupCountOf(i) != 0 &&
+                                if (fn_2_44238(i) == TRUE &&
                                     lbl_2_bss_1A8248->difficulty >= minDifficulty) {
                                     pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                                 }
                                 break;
-                            case 69:
-                                if (lbl_2_bss_1A8248->difficulty >= minDifficulty) {
+                            case 68:
+                                if (fn_2_44238(i) == TRUE &&
+                                    lbl_2_bss_1A8248->difficulty >= minDifficulty) {
                                     pair->starMissionStatus = STAR_MISSION_TRACKING_COMPLETED_SAVED;
                                 }
+                                break;
+                        }
                                 break;
                         }
                     }

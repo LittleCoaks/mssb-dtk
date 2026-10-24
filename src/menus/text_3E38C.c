@@ -1,7 +1,9 @@
+#define SQRT2_LINKAGE static
 #include "menus/text_3E38C.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/mb_subfunc.h"
 #include "game/challenge/challenge_state.h"
+#include "game/UnknownHomes_Game.h"
 #include "menus/text_1B1BC.h"
 #include "menus/text_94854.h"
 #include "menus/rep_10C0.h"
@@ -39,6 +41,29 @@ typedef struct TextSceneNode {
     /* 0x28 */ s8 phase;
 } TextSceneNode;
 
+typedef struct ChallengeMapRecord {
+    u8 kind;
+    u8 state;
+    u8 unknown2;
+    s8 variant;
+    u8 unknown4[6];
+} ChallengeMapRecord;
+
+static inline ChallengeMapRecord *challengeMapRecord(s32 index) {
+    return &((ChallengeMapRecord *)((u8 *)lbl_2_bss_1A8248 + 0x40F0))[index];
+}
+
+static inline void clearMapRecordKinds(u8 first, u8 second) {
+    s32 i;
+    for (i = 0; i < 51; i++) {
+        ChallengeMapRecord *record = challengeMapRecord(i);
+        if ((record->kind == first && record->state == 1) ||
+            (record->kind == second && record->state == 1)) {
+            record->state = 0;
+        }
+    }
+}
+
 // .text:0x000405B4 size:0x1D8 mapped:0x8067F648
 void fn_2_405B4(void) {
     TextSceneNode *node = (TextSceneNode *)currentDrawingItem;
@@ -50,8 +75,8 @@ void fn_2_405B4(void) {
         challenge = lbl_2_bss_1A8248;
         if (fn_2_45938(challenge->_16C2) == 0) {
             node->timer = 180;
-            ((u8 *)lbl_2_bss_1A8248)[lbl_2_bss_1A8248->_16C2 * 10 + 0x40F1] = 2;
-            WORK_S8(0x7854) = ((u8 *)lbl_2_bss_1A8248)[lbl_2_bss_1A8248->_16C2 * 10 + 0x40F3];
+            challengeMapRecord(lbl_2_bss_1A8248->_16C2)->state = 2;
+            WORK_S8(0x7854) = challengeMapRecord(lbl_2_bss_1A8248->_16C2)->variant;
             fn_2_90428(WORK_S8(0x7854) + 10);
             fn_2_90428(WORK_S8(0x7854) + 16);
             fn_2_92654(WORK_S8(0x7854) + 10, 0xC);
@@ -132,20 +157,22 @@ void fn_2_3FDE0(void) {
     s16 *row;
     s16 val;
     s32 i;
-    u8 *rec;
+    ChallengeMapRecord *record;
 
     switch (phase) {
     case 0: {
         node->timer = 70;
         challenge = lbl_2_bss_1A8248;
-        WORK_S8(0x7851) = -1;
         row = (s16 *)((u8 *)lbl_2_data_3CE8 + challenge->captain * 12);
         val = row[challenge->stage + 1];
+        WORK_S8(0x7851) = -1;
+        challenge = lbl_2_bss_1A8248;
+        row = (s16 *)((u8 *)lbl_2_data_3CE8 + challenge->captain * 12);
         if (row[challenge->stage] != 5) {
             for (i = 0; i < 51; i++) {
-                rec = (u8 *)challenge + 0x40F0 + i * 10;
-                if (rec[0] == val && rec[1] == 1) {
-                    rec[1] = 0;
+                record = challengeMapRecord(i);
+                if (record->kind == val && record->state == 1) {
+                    record->state = 0;
                     WORK_S8(0x7851) = val;
                 }
             }
@@ -153,25 +180,17 @@ void fn_2_3FDE0(void) {
         if (WORK_S8(0x7851) == -1) {
             node->phase = 4;
         } else {
-            challenge->_440C[WORK_S8(0x7851)] = 1;
-            if (challenge->captain <= 1) {
-                if (WORK_S8(0x7851) == 3) {
-                    for (i = 0; i < 51; i++) {
-                        rec = (u8 *)challenge + 0x40F0 + i * 10;
-                        if ((rec[0] == 6 || rec[0] == 8) && rec[1] == 1) {
-                            rec[1] = 0;
-                        }
-                    }
-                }
-            } else if (challenge->captain == 2) {
-                if (WORK_S8(0x7851) == 1) {
-                    for (i = 0; i < 51; i++) {
-                        rec = (u8 *)challenge + 0x40F0 + i * 10;
-                        if ((rec[0] == 6 || rec[0] == 7) && rec[1] == 1) {
-                            rec[1] = 0;
-                        }
-                    }
-                }
+            lbl_2_bss_1A8248->_440C[WORK_S8(0x7851)] = TRUE;
+            switch (lbl_2_bss_1A8248->captain) {
+            case CHALLENGE_CAPTAIN_MARIO:
+                if (WORK_U8(0x7851) == 3) clearMapRecordKinds(6, 8);
+                break;
+            case CHALLENGE_CAPTAIN_PEACH:
+                if (WORK_U8(0x7851) == 3) clearMapRecordKinds(6, 8);
+                break;
+            case CHALLENGE_CAPTAIN_WARIO:
+                if (WORK_U8(0x7851) == 1) clearMapRecordKinds(6, 7);
+                break;
             }
             lbl_2_bss_1A8234[0x1626E5] = 1;
             fn_80062890(4);
@@ -222,16 +241,14 @@ void fn_2_3FDE0(void) {
 // .text:0x0003FA14 size:0x3CC mapped:0x8067EAA8
 void fn_2_3FA14(void) {
     TextSceneNode *node = (TextSceneNode *)currentDrawingItem;
-    ChallengeState *challenge;
     s8 phase = node->phase;
     s16 v;
 
     switch (phase) {
     case 0: {
-        challenge = lbl_2_bss_1A8248;
         WORK_S16(0x7740) = 0;
-        WORK_S16(0x7734) = *(s16 *)((u8 *)challenge + 0x43BC);
-        v = *(s16 *)((u8 *)challenge + 0x43BE);
+        WORK_S16(0x7734) = *(s16 *)((u8 *)lbl_2_bss_1A8248 + 0x43BC);
+        v = *(s16 *)((u8 *)lbl_2_bss_1A8248 + 0x43BE);
         WORK_S16(0x773C) = v;
         WORK_S16(0x7736) = v;
         WORK_S16(0x773A) = 0;
@@ -258,7 +275,7 @@ void fn_2_3FA14(void) {
             }
             node->phase = 2;
         }
-        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & 0x100) {
+        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
@@ -269,16 +286,18 @@ void fn_2_3FA14(void) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         } else {
-            WORK_S16(0x7736) = WORK_S16(0x7736) + (WORK_S16(0x7734) - WORK_S16(0x7736)) / 40;
+            WORK_S16(0x7736) = WORK_S16(0x7736) + (WORK_S16(0x7734) - WORK_S16(0x7736)) / 20;
             WORK_S16(0x7736) = WORK_S16(0x7736) + 1;
             lbl_2_bss_1A8234[0x1627D5] = 1;
             WORK_U32(0x76A8) = fn_80062890(0x37);
-            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & 0x100) {
+            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
                 WORK_S16(0x7736) = WORK_S16(0x7734);
                 node->phase = 4;
             }
         }
     } break;
+    case 3:
+        break;
     case 4: {
         node->timer = 10;
         node->phase = 5;
@@ -304,16 +323,14 @@ void fn_2_3FA14(void) {
 // .text:0x0003F66C size:0x3A8 mapped:0x8067E700
 void fn_2_3F66C(void) {
     TextSceneNode *node = (TextSceneNode *)currentDrawingItem;
-    ChallengeState *challenge;
     s8 phase = node->phase;
     s16 v;
 
     switch (phase) {
     case 0: {
-        challenge = lbl_2_bss_1A8248;
         WORK_S16(0x7740) = 0;
-        WORK_S16(0x7734) = *(s16 *)((u8 *)challenge + 0x43BC);
-        v = *(s16 *)((u8 *)challenge + 0x43BE);
+        WORK_S16(0x7734) = *(s16 *)((u8 *)lbl_2_bss_1A8248 + 0x43BC);
+        v = *(s16 *)((u8 *)lbl_2_bss_1A8248 + 0x43BE);
         WORK_S16(0x773C) = v;
         WORK_S16(0x7736) = v;
         WORK_S16(0x773A) = 0;
@@ -340,20 +357,20 @@ void fn_2_3F66C(void) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
-        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & 0x100) {
+        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
     } break;
     case 2: {
-        WORK_S16(0x7736) = WORK_S16(0x7736) + (WORK_S16(0x7734) - WORK_S16(0x7736)) / 40;
+        WORK_S16(0x7736) = WORK_S16(0x7736) + (WORK_S16(0x7734) - WORK_S16(0x7736)) / 20;
         WORK_S16(0x7736) = WORK_S16(0x7736) - 1;
         WORK_U32(0x76A8) = fn_80062890(0x37);
         lbl_2_bss_1A8234[0x16281B] = 1;
 
         v = WORK_S16(0x7736);
         if (v > WORK_S16(0x7734)) {
-            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & 0x100) {
+            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
                 WORK_S16(0x7736) = WORK_S16(0x7734);
                 node->phase = 4;
             }
@@ -362,6 +379,8 @@ void fn_2_3F66C(void) {
             node->phase = 4;
         }
     } break;
+    case 3:
+        break;
     case 4: {
         node->timer = 10;
         node->phase = 5;
@@ -464,7 +483,7 @@ void fn_2_3F29C(void) {
 
     switch (phase) {
     case 0: {
-        lbl_2_bss_1A8234[0x1627B9] = 1;
+        lbl_2_bss_1A8234[0x1627B9] = TRUE;
         node->timer = 10;
         node->phase = 1;
     } break;
@@ -476,8 +495,8 @@ void fn_2_3F29C(void) {
             fn_2_90428(9);
             fn_2_92654(9, 0xb);
             fn_2_46C2C(0, (Vec *)(lbl_2_data_3198 + 0xb4));
-            challenge->_4416[0x441A - 0x4416] = 0;
-            challenge->_40EE[0x428E - 0x40EE] = 0;
+            lbl_2_bss_1A8248->_4416[0x441A - 0x4416] = 0;
+            lbl_2_bss_1A8248->_40EE[0x428E - 0x40EE] = 0;
             fn_80062890(5);
             node->timer = 80;
             node->phase = 2;
@@ -756,7 +775,7 @@ void fn_2_3EA44(void) {
     case 3: {
         challenge = lbl_2_bss_1A8248;
         if (challenge->captain == CHALLENGE_CAPTAIN_BOWSER) {
-            ((u8 *)challenge)[challenge->_16C2 * 10 + 0x40F1] = 3;
+            challengeMapRecord(challenge->_16C2)->state = 3;
         }
         currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
@@ -909,8 +928,8 @@ void fn_2_3E38C(void) {
         fn_2_90428(9);
         fn_2_92654(9, 0xb);
         fn_2_46C2C(0, (Vec *)(lbl_2_data_3198 + 0xb4));
-        challenge->_4416[0x441A - 0x4416] = 0;
-        challenge->_40EE[0x428E - 0x40EE] = 0;
+        lbl_2_bss_1A8248->_4416[0x441A - 0x4416] = 0;
+        lbl_2_bss_1A8248->_40EE[0x428E - 0x40EE] = 0;
         fn_80062890(5);
         node->timer = 80;
         node->phase = 8;
