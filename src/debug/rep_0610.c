@@ -5031,7 +5031,7 @@ void fn_1_E098(void) {
             break;
         default: {
             u16 rep;
-            s32 held;
+            s32 row;
             s32 m;
             DbgAnimEntry *tbl;
             DbgAnimTrack *p;
@@ -5043,12 +5043,12 @@ void fn_1_E098(void) {
                 p = NULL;
             }
             rep = BTN_REPEAT;
-            held = BTN_HELD & INPUT_BUTTON_A;
+            row = lbl_1_bss_30B6;
             for (m = 0; m < 4; m++) {
                 u32 act;
-                if (i != lbl_1_bss_30B6 || m != lbl_1_bss_30B7) {
+                if (i != row || m != lbl_1_bss_30B7) {
                     act = 0xFFFF;
-                } else if (held != 0) {
+                } else if (AtBat_ButtonInput1._00 & INPUT_BUTTON_A) {
                     act = 0xF00F;
                 } else {
                     act = 0xFF0F;
@@ -5270,13 +5270,13 @@ void fn_1_D8A0(void) {
 void fn_1_D7A4(s32 row) {
     u8 idx = lbl_1_bss_5F73;
     DbgRow *r = &lbl_1_data_F4D4.tbl[row];
+    DbgAnimEntry *tb;
     s32 i;
     i = 8;
     while (i-- != 0) {
         DbgRowEnt *s = &r->ent[i];
         DbgSlotEnt *e = &lbl_1_bss_3218[i];
         if ((s8)s->kind != 0) {
-            DbgAnimEntry *tb;
             s16 a = s->a;
             s16 b;
             e->f0 = a;
