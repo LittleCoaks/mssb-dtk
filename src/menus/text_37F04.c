@@ -2,6 +2,11 @@
 #include "menus/text_37F04.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "game/UnknownHomes_Game.h"
+#include "menus/text_3A8FC.h"
+#include "menus/text_44F14.h"
+#include "menus/text_71EC4.h"
+#include "challenge/challenge_progress.h"
+#include "game/challenge/star_mission_data.h"
 
 // Per-scene flow node: the DrawingSceneStruct fields that these functions use
 // are read at different offsets, so this local view names them directly.
@@ -31,6 +36,13 @@ extern u8 AtBat_ButtonInput1[];
 int initializeTextParameters(int, int, int, int, u8, int, int);
 extern u8 lbl_800EFBA4[];
 u32 sndFXStartEx(u16, u8, u8, u8);
+extern u8 menuNumber[];
+extern u8 lbl_800FEF70[];
+extern u8 lbl_800E869C[];
+extern s16 lbl_2_data_29700[];
+extern u8 lbl_8037169C[];
+void fn_80053FE8(void);
+void changeScene(s32, s32);
 
 #define CUR_NODE() ((FlowNode *)currentDrawingItem)
 #define BSS_1A8234_U8(off) (lbl_2_bss_1A8234[0x160000 + (off)])
@@ -40,7 +52,309 @@ u32 sndFXStartEx(u16, u8, u8, u8);
 
 // .text:0x000399C0 size:0xF3C mapped:0x80678A54
 void fn_2_399C0(void) {
-    return;
+    FlowNode *cur = CUR_NODE();
+    u8 *state;
+    u16 input;
+    s16 choice;
+    s16 row;
+    s16 col;
+    s32 i;
+    u8 oldMenuNumber;
+
+    switch (cur->state) {
+    case 0:
+        fn_2_45204();
+        fn_2_45A84();
+        for (i = 0; i < 54; i++) {
+            if ((s8)BSS_1A8248_U8(0x444D + i) == 1) BSS_1A824C_U8(0x78F8) = TRUE;
+            if ((s8)BSS_1A8248_U8(0x44B9 + i) == 1) BSS_1A824C_U8(0x78F9) = TRUE;
+        }
+        if (BSS_1A824C_U8(0x78F7) == 2) {
+            cur->state = 17;
+        } else {
+            changeScene(3, 6);
+            cur->state = 1;
+        }
+        break;
+    case 1:
+        if (lbl_8037169C[0x13] != 0) cur->state = 2;
+        break;
+    case 2:
+        BSS_1A8248_U8(0x44F2) = 2;
+        BSS_1A824C_U8(0x78F6) = FALSE;
+        BSS_1A824C_S16(0x7706) = 0;
+        BSS_1A824C_S16(0x7708) = 1;
+        BSS_1A824C_S16(0x770A) = 0;
+        if ((s8)BSS_1A8248_U8(0x44F4) == 0) {
+            BSS_1A8234_U8(0x2681) = TRUE;
+            BSS_1A8234_U8(0x2682) = TRUE;
+        } else {
+            BSS_1A8234_U8(0x2652) = TRUE;
+            BSS_1A8234_U8(0x2653) = TRUE;
+        }
+        BSS_1A824C_U8(0x78F6) = BSS_1A824C_U8(0x78F7) == 0 ? FALSE : TRUE;
+        changeScene(1, 6);
+        cur->state = 3;
+        break;
+    case 3:
+        cur->timer--;
+        if (lbl_8037169C[0x12] != 0) cur->state = 4;
+        break;
+    case 4:
+        cur->timer = 40;
+        if (BSS_1A824C_U8(0x78F7) == 0) {
+            menuNumber[3] = BSS_1A8248_U8(0x4415);
+            insertGraphicDrawingFunction(fn_80053FE8, 0);
+            if (BSS_1A824C_U8(0x78F8) == 1) {
+                if ((s8)BSS_1A824C_U8(0x7843) == 0) {
+                    if (g_d_GameSettings[0x3B] == 1) {
+                        oldMenuNumber = menuNumber[8];
+                        menuNumber[0] = 0x28;
+                        menuNumber[9] = oldMenuNumber;
+                        menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x288);
+                    } else {
+                        oldMenuNumber = menuNumber[8];
+                        menuNumber[0] = 0x27;
+                        menuNumber[9] = oldMenuNumber;
+                        menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x278);
+                    }
+                }
+                fn_80062890(0x39);
+            } else {
+                if ((s8)BSS_1A824C_U8(0x7843) == 0) {
+                    oldMenuNumber = menuNumber[8];
+                    menuNumber[0] = 0x29;
+                    menuNumber[9] = oldMenuNumber;
+                    menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x298);
+                } else if ((s8)BSS_1A824C_U8(0x7843) == 1) {
+                    oldMenuNumber = menuNumber[8];
+                    menuNumber[0] = 0x2A;
+                    menuNumber[9] = oldMenuNumber;
+                    menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x2A8);
+                } else {
+                    oldMenuNumber = menuNumber[8];
+                    menuNumber[0] = 0x2A;
+                    menuNumber[9] = oldMenuNumber;
+                    menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x2A8);
+                }
+            }
+            BSS_1A824C_U8(0x78F6) = FALSE;
+        } else {
+            menuNumber[3] = BSS_1A8248_U8(0x4415);
+            insertGraphicDrawingFunction(fn_80053FE8, 0);
+            if (BSS_1A824C_U8(0x78F9) == 1) {
+                oldMenuNumber = menuNumber[8];
+                menuNumber[0] = 0x2B;
+                menuNumber[9] = oldMenuNumber;
+                menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x2B8);
+                fn_80062890(0x3F);
+            } else {
+                oldMenuNumber = menuNumber[8];
+                menuNumber[0] = 0x2C;
+                menuNumber[9] = oldMenuNumber;
+                menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x2C8);
+            }
+            if ((s8)BSS_1A8248_U8(0x44F4) == 0) {
+                BSS_1A8234_U8(0x2685) = TRUE;
+                BSS_1A8234_U8(0x270E) = TRUE;
+            } else {
+                BSS_1A8234_U8(0x2656) = TRUE;
+                BSS_1A8234_U8(0x26DF) = TRUE;
+            }
+            BSS_1A824C_U8(0x78F6) = TRUE;
+        }
+        if ((s8)BSS_1A8248_U8(0x44F4) == 0) BSS_1A8234_U8(0x2684) = TRUE;
+        else BSS_1A8234_U8(0x2655) = TRUE;
+        cur->state = 5;
+        break;
+    case 5:
+        if (cur->timer-- <= 0) {
+            if (BSS_1A824C_U8(0x78F7) == 0) cur->state = 6;
+            else cur->state = 8;
+        }
+        break;
+    case 6:
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        if (input & INPUT_BUTTON_A) {
+            cur->timer = 10;
+            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+            cur->state = 7;
+        }
+        break;
+    case 7:
+        if (cur->timer-- == 0) {
+            BSS_1A824C_U8(0x78F6) = TRUE;
+            if (BSS_1A824C_U8(0x78F9) == 1) {
+                oldMenuNumber = menuNumber[8];
+                menuNumber[0] = 0x2B;
+                menuNumber[9] = oldMenuNumber;
+                menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x2B8);
+                fn_80062890(0x3F);
+            } else {
+                oldMenuNumber = menuNumber[8];
+                menuNumber[0] = 0x2C;
+                menuNumber[9] = oldMenuNumber;
+                menuNumber[8] = *(u16 *)(lbl_800FEF70 + 0x2C8);
+            }
+            if ((s8)BSS_1A8248_U8(0x44F4) == 0) {
+                BSS_1A8234_U8(0x2685) = TRUE;
+                BSS_1A8234_U8(0x270E) = TRUE;
+                BSS_1A8234_U8(0x2710) = TRUE;
+            } else {
+                BSS_1A8234_U8(0x2656) = TRUE;
+                BSS_1A8234_U8(0x26DF) = TRUE;
+                BSS_1A8234_U8(0x26E1) = TRUE;
+            }
+            cur->state = 8;
+        }
+        break;
+    case 8:
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        if (input & INPUT_BUTTON_LEFT) {
+            BSS_1A824C_S16(0x7708)--;
+            col = BSS_1A824C_S16(0x7708);
+            row = BSS_1A824C_S16(0x770A);
+            if (col == 0 && row == 0) BSS_1A824C_S16(0x7708) = 5;
+            else if (col == 0 && row == 5) BSS_1A824C_S16(0x7708) = 4;
+            else if (col < 0) BSS_1A824C_S16(0x7708) = 5;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        } else if (input & INPUT_BUTTON_RIGHT) {
+            BSS_1A824C_S16(0x7708)++;
+            col = BSS_1A824C_S16(0x7708);
+            row = BSS_1A824C_S16(0x770A);
+            if (col == 6 && row == 0) BSS_1A824C_S16(0x7708) = 1;
+            else if (col == 5 && row == 5) BSS_1A824C_S16(0x7708) = 1;
+            else if (col > 5) BSS_1A824C_S16(0x7708) = 0;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        }
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        if (input & INPUT_BUTTON_UP) {
+            BSS_1A824C_S16(0x770A)--;
+            row = BSS_1A824C_S16(0x770A);
+            col = BSS_1A824C_S16(0x7708);
+            if (row == 0 && col == 0) BSS_1A824C_S16(0x770A) = 4;
+            else if (row < 0 && col == 5) BSS_1A824C_S16(0x770A) = 4;
+            else if (row < 0) BSS_1A824C_S16(0x770A) = 5;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        } else if (input & INPUT_BUTTON_DOWN) {
+            BSS_1A824C_S16(0x770A)++;
+            row = BSS_1A824C_S16(0x770A);
+            col = BSS_1A824C_S16(0x7708);
+            if (row == 5 && col == 0) BSS_1A824C_S16(0x770A) = 1;
+            else if (row == 5 && col == 5) BSS_1A824C_S16(0x770A) = 0;
+            else if (row > 5) BSS_1A824C_S16(0x770A) = 0;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        }
+        BSS_1A824C_S16(0x7706) = lbl_2_data_29700[BSS_1A824C_S16(0x7708) + 6 * BSS_1A824C_S16(0x770A)];
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        if (input & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT | INPUT_BUTTON_UP | INPUT_BUTTON_DOWN)) {
+            if ((s8)BSS_1A8248_U8(0x44F4) == 0) BSS_1A8234_U8(0x27E3) = TRUE;
+            else BSS_1A8234_U8(0x27B4) = TRUE;
+            cur->state = 9;
+            break;
+        }
+        state = lbl_2_bss_1A824C;
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        if (input & INPUT_BUTTON_A) {
+            if (BSS_1A824C_S16(0x770A) == 0 && BSS_1A824C_S16(0x7708) == 5) {
+                sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+                cur->state = 12;
+            } else {
+                choice = lbl_800E869C[BSS_1A824C_S16(0x7706)];
+                if (challenge_isCharRecruited(choice) == 1) {
+                    BSS_1A824C_S16(0x7712) = 0;
+                    BSS_1A824C_S16(0x7710) = 0;
+                    BSS_1A824C_S16(0x770C) = 0;
+                    BSS_1A824C_S16(0x770E) = 0;
+                    choice = lbl_800E869C[BSS_1A824C_S16(0x7706)];
+                    i = fn_2_44F14(choice);
+                    BSS_1A824C_S16(0x7714) = starMenuSizes[6 + i];
+                    sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, 0);
+                    cur->state = 10;
+                } else {
+                    sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
+                }
+            }
+        } else if (input & INPUT_BUTTON_B) {
+            if (BSS_1A824C_S16(0x770A) != 0 || BSS_1A824C_S16(0x7708) != 5) {
+                BSS_1A824C_S16(0x770A) = 0;
+                BSS_1A824C_S16(0x7708) = 5;
+                BSS_1A824C_S16(0x7706) = lbl_2_data_29700[BSS_1A824C_S16(0x7708) + 6 * BSS_1A824C_S16(0x770A)];
+                if ((s8)BSS_1A8248_U8(0x44F4) == 0) BSS_1A8234_U8(0x27E3) = TRUE;
+                else BSS_1A8234_U8(0x27B4) = TRUE;
+                cur->state = 9;
+                sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
+            }
+        }
+        break;
+    case 9:
+        cur->state = 8;
+        break;
+    case 10:
+        state = (u8 *)insertGraphicDrawingFunction(fn_2_3A8FC, 2);
+        ((FlowNode *)state)->state = 0;
+        cur->_10 = 0;
+        cur->state = 11;
+        break;
+    case 11:
+        if (cur->_10 == 1) cur->state = 8;
+        break;
+    case 12:
+        if ((s8)BSS_1A8248_U8(0x44F4) == 0) {
+            BSS_1A8234_U8(0x286F) = TRUE;
+            BSS_1A8234_U8(0x286E) = TRUE;
+            cur->timer = 40;
+            cur->state = 13;
+        } else {
+            cur->timer = 10;
+            cur->state = 18;
+        }
+        break;
+    case 13:
+        if (cur->timer-- == 0) {
+            changeScene(3, 6);
+            cur->state = 14;
+        }
+        break;
+    case 14:
+        if (lbl_8037169C[0x13] != 0) cur->state = 15;
+        break;
+    case 15:
+        menuNumber[0x26] = TRUE;
+        BSS_1A8248_U8(0x44F2) = 0;
+        if ((s8)BSS_1A8248_U8(0x44F4) == 0) {
+            BSS_1A8234_U8(0x286B) = TRUE;
+            BSS_1A8234_U8(0x286C) = TRUE;
+            cur->timer = 50;
+        } else {
+            cur->timer = 1;
+        }
+        changeScene(1, 6);
+        fn_2_72054(0, 4);
+        cur->state = 16;
+        break;
+    case 16:
+        cur->timer--;
+        if (lbl_8037169C[0x12] != 0) cur->state = 17;
+        break;
+    case 17:
+        CUR_NODE()->child->_10 = 1;
+        removeCurrentDrawingItem();
+        cur->state = 0;
+        break;
+    case 18:
+        if (cur->timer-- == 0) cur->state = 17;
+        break;
+    }
+    if (BSS_1A824C_U8(0x783F) == 1) {
+        CUR_NODE()->child->_10 = 1;
+        removeCurrentDrawingItem();
+        cur->state = 0;
+    }
 }
 
 // .text:0x000397AC size:0x214 mapped:0x80678840
