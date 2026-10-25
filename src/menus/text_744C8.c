@@ -7,6 +7,9 @@
 #include "Unknown/orderchange.h"
 #include "Unknown/File_0x800204cc.h"
 #include "text/text.h"
+#include "menus/text_00110.h"
+#include "game/character_stats.h"
+#include "Unknown/mb_subfunc.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x80034cec.h"
 
@@ -17,6 +20,8 @@ extern u8 Static_Stats_Tables[];
 extern u8 lbl_8037169C[];
 extern u8 superstarUnlocked[];
 extern u8 cursorPositions[];
+extern u8 lbl_2_bss_F468[];
+extern Text00110Ctl *menuControlVariables;
 extern u8 challengeCaptainCharIDArray[];
 extern u8 lbl_2_data_2B3A4[];
 extern u8 g_d_GameSettings[];
@@ -26,7 +31,7 @@ void fn_2_73EFC(DrawingSceneStruct *node);
 extern u8 mapCaptainCursorPositionToCharID[];
 extern UIRecordDescriptor lbl_2_data_2D33C[];
 void load_Icon(void *scene, int handle, u32 part, u32 element, int frame);
-void fn_80036214(MenuScene *scene, s32 arg1, s32 arg2);
+s32 fn_80036214(MenuScene *scene, s32 arg1, s32 arg2, s32 size);
 s32 fn_2_8794(s32 arg0, s32 arg1);
 
 static TextGraphicsObject *gfxObject(MenuScene *scene, s32 index) {
@@ -234,26 +239,162 @@ BOOL fn_2_75B58(MenuScene *scene, u8 team) {
 }
 
 // .text:0x00074F40 size:0xC18 mapped:0x806B3FD4
-void gfx_cssCharStatBars_and_sthgElse(void) {
-    return;
+void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
+    s32 character;
+    s32 selected;
+    s32 i;
+    s8 variant;
+    u8 batting;
+    u8 pitching;
+    u8 running;
+    u8 fielding;
+
+    if (menuControlVariables->currentScreen == 9 || gameSetUpStep[port + 0x5D] == 11) {
+        if (g_d_GameSettings[7] != GAME_TYPE_CHALLENGE) {
+            character = mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
+        } else {
+            character = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[4]];
+        }
+        pitching = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.PitchingStatBar;
+        batting = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.BattingStatBar;
+        running = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.RunningStatBar;
+        fielding = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.FieldingStatBar;
+        fn_2_74E14(scene, port, pitching, 1);
+        fn_2_74E14(scene, port, running, 3);
+        fn_2_74E14(scene, port, batting, 0);
+        fn_2_74E14(scene, port, fielding, 2);
+        gfxObject(scene, port + 0xAE)->flags &= ~UI_FLAG_VISIBLE;
+        return;
+    }
+
+    selected = ((s32 *)lbl_2_bss_F468)[port];
+    if (lbl_2_bss_F468[port + 0x41] != 0) {
+        gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
+        character = menuCursors[port + 8];
+    } else if (selected == 9 || selected == 10) {
+        character = CHAR_ID_NONE;
+    } else {
+        character = CHAR_ID_NONE;
+        for (i = 0; i < 9; i++) {
+            if ((s8)cursorPositions[port * 9 + 0x14 + i] == (s8)selected) {
+                character = (s8)cursorPositions[port * 9 + 2 + i];
+            }
+        }
+    }
+
+    if (character != CHAR_ID_NONE && addRemoveCharVariantRelated(0, (u8)character, 2) != 0 &&
+        g_d_GameSettings[7] != GAME_TYPE_CHALLENGE) {
+        gfxObject(scene, port + 0xB2)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord *)gfxObject(scene, port + 0xB2))->frame = 0;
+        ((UIRecord *)gfxObject(scene, port + 0xB2))->playMode = UI_PLAY_FORWARD;
+        variant = 0;
+        switch (character) {
+        case CHAR_ID_TOAD_RED: case CHAR_ID_SHYGUY_RED: case CHAR_ID_PARATROOPA_RED: case CHAR_ID_PIANTA_RED: case CHAR_ID_NOKI_RED: case CHAR_ID_MAGIKOOPA_RED: case CHAR_ID_KOOPA_RED: case CHAR_ID_DRYBONES_RED: case CHAR_ID_BRO_FIRE:
+            variant = 1; break;
+        case CHAR_ID_PIANTA_BLUE: case CHAR_ID_NOKI_BLUE: case CHAR_ID_TOAD_BLUE: case CHAR_ID_MAGIKOOPA_BLUE: case CHAR_ID_SHYGUY_BLUE: case CHAR_ID_DRYBONES_BLUE: case CHAR_ID_BRO_BOOMERANG:
+            variant = 2; break;
+        case CHAR_ID_PIANTA_YELLOW: case CHAR_ID_TOAD_YELLOW: case CHAR_ID_MAGIKOOPA_YELLOW: case CHAR_ID_SHYGUY_YELLOW:
+            variant = 3; break;
+        case CHAR_ID_KOOPA_GREEN: case CHAR_ID_NOKI_GREEN: case CHAR_ID_BRO_HAMMER: case CHAR_ID_TOAD_GREEN: case CHAR_ID_MAGIKOOPA_GREEN: case CHAR_ID_PARATROOPA_GREEN: case CHAR_ID_SHYGUY_GREEN: case CHAR_ID_DRYBONES_GREEN:
+            variant = 4; break;
+        case CHAR_ID_TOAD_PURPLE:
+            variant = 5; break;
+        case CHAR_ID_SHYGUY_BLACK:
+            variant = 6; break;
+        }
+        gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = (s8)variant << 16;
+    } else {
+        gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
+        if (((s32 *)lbl_2_bss_F468)[port] != 9 && ((s32 *)lbl_2_bss_F468)[port] != 10) {
+            gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
+            ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = 0;
+        }
+    }
+
+    gfxObject(scene, port + 0xAC)->flags |= UI_FLAG_VISIBLE;
+    if (character >= 0 && character < 54) {
+        batting = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.BattingStatBar;
+        running = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.RunningStatBar;
+        pitching = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.PitchingStatBar;
+        fielding = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.FieldingStatBar;
+        gfxObject(scene, port + 0xB0)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord *)gfxObject(scene, port + 0xB0))->frame = character << 16;
+        ((UIRecord *)gfxObject(scene, port + 0xAC))->frame = 0;
+        ((UIRecord *)gfxObject(scene, port + 0xAC))->playMode = UI_PLAY_FORWARD;
+    } else {
+        gfxObject(scene, port + 0xB0)->flags &= ~UI_FLAG_VISIBLE;
+        batting = 0;
+        running = 0;
+        pitching = 0;
+        fielding = 0;
+    }
+    if (character >= 0 && character < 54) {
+        fn_2_74E14(scene, port, pitching, 1);
+        fn_2_74E14(scene, port, running, 3);
+        fn_2_74E14(scene, port, batting, 0);
+        fn_2_74E14(scene, port, fielding, 2);
+    } else {
+        gfxObject(scene, port + 0x97)->flags &= ~UI_FLAG_VISIBLE;
+    }
 }
 
 // .text:0x00074E14 size:0x12C mapped:0x806B3EA8
 void fn_2_74E14(MenuScene *scene, s32 a, s32 b, u8 c) {
-    u32 packed = (u32)((b - 1) << 16);
+    u32 packed = ((u32)(b - 1) << 16);
+    s32 result;
 
-    gfxObject(scene, a + 0x97)->flags |= 2;
-    *(u32 *)((u8 *)gfxObject(scene, a + 0x97) + 0x5C) = 0;
-    *(u8 *)((u8 *)gfxObject(scene, a + 0x97) + 0x68) = 1;
-    *(u32 *)((u8 *)gfxObject(scene, c + a * 4 + 0x9B) + 0x5C) = packed;
-    fn_80036214(scene, 0xAB, 0);
-    *(u32 *)((u8 *)gfxObject(scene, c + a * 4 + 0xA3) + 0x5C) = packed;
-    *(MenuScene **)((u8 *)gfxObject(scene, c + a * 4 + 0xA3) + 0x58) = scene;
+    gfxObject(scene, a + 0x97)->flags |= UI_FLAG_VISIBLE;
+    ((UIRecord *)gfxObject(scene, a + 0x97))->frame = 0;
+    ((UIRecord *)gfxObject(scene, a + 0x97))->playMode = UI_PLAY_FORWARD;
+    ((UIRecord *)gfxObject(scene, c + a * 4 + 0x9B))->frame = packed;
+    result = fn_80036214(scene, 0xAB, 0, (b + 1) / 2 - 1);
+    ((UIRecord *)gfxObject(scene, c + a * 4 + 0xA3))->frame = packed;
+    ((UIRecord *)gfxObject(scene, c + a * 4 + 0xA3))->rgba = result;
 }
 
 // .text:0x00074DB8 size:0x5C mapped:0x806B3E4C
-void fn_2_74DB8(void) {
-    return;
+s32 fn_2_74DB8(s32 character) {
+    switch (character) {
+    case CHAR_ID_TOAD_RED:
+    case CHAR_ID_SHYGUY_RED:
+    case CHAR_ID_PARATROOPA_RED:
+    case CHAR_ID_PIANTA_RED:
+    case CHAR_ID_NOKI_RED:
+    case CHAR_ID_MAGIKOOPA_RED:
+    case CHAR_ID_KOOPA_RED:
+    case CHAR_ID_DRYBONES_RED:
+    case CHAR_ID_BRO_FIRE:
+        return 1;
+    case CHAR_ID_PIANTA_BLUE:
+    case CHAR_ID_NOKI_BLUE:
+    case CHAR_ID_TOAD_BLUE:
+    case CHAR_ID_MAGIKOOPA_BLUE:
+    case CHAR_ID_SHYGUY_BLUE:
+    case CHAR_ID_DRYBONES_BLUE:
+    case CHAR_ID_BRO_BOOMERANG:
+        return 2;
+    case CHAR_ID_PIANTA_YELLOW:
+    case CHAR_ID_TOAD_YELLOW:
+    case CHAR_ID_MAGIKOOPA_YELLOW:
+    case CHAR_ID_SHYGUY_YELLOW:
+        return 3;
+    case CHAR_ID_KOOPA_GREEN:
+    case CHAR_ID_NOKI_GREEN:
+    case CHAR_ID_BRO_HAMMER:
+    case CHAR_ID_TOAD_GREEN:
+    case CHAR_ID_MAGIKOOPA_GREEN:
+    case CHAR_ID_PARATROOPA_GREEN:
+    case CHAR_ID_SHYGUY_GREEN:
+    case CHAR_ID_DRYBONES_GREEN:
+        return 4;
+    case CHAR_ID_TOAD_PURPLE:
+        return 5;
+    case CHAR_ID_SHYGUY_BLACK:
+        return 6;
+    default:
+        return 0;
+    }
 }
 
 // .text:0x00074D8C size:0x2C mapped:0x806B3E20
