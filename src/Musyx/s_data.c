@@ -2,10 +2,35 @@
 #include "musyx/musyx_priv.h"
 #include "musyx/synth.h"
 
-static GSTACK gs[128];
-static s16 sp;
+/* Sample-data stack block. Lives in lbl_8031D6D8 (.bss, owned by another unit);
+ * lbl_803CC32C and lbl_803CC330 both point at it. */
+typedef struct SDATA_STACK {
+  u32 unk0;       // offset 0x0, size 0x4
+  s32 unk4;       // offset 0x4, size 0x4
+  s16 sp;         // offset 0x8, size 0x2
+  GSTACK gs[128]; // offset 0xC, size 0x600
+  u32 aramBase;   // offset 0x60C, size 0x4
+  u32 aramEnd;    // offset 0x610, size 0x4
+  u32 aramBase2;  // offset 0x614, size 0x4
+} SDATA_STACK;
 
-void dataInitStack() { sp = 0; }
+extern SDATA_STACK lbl_8031D6D8;
+extern SDATA_STACK* lbl_803CC32C;
+extern SDATA_STACK* lbl_803CC330;
+extern u32 lbl_803CC328;
+
+void dataInitStack(unsigned long aramBase, unsigned long aramSize) {
+  lbl_803CC328 = 0;
+  lbl_8031D6D8.unk4 = -2;
+  lbl_8031D6D8.sp = 0;
+  lbl_8031D6D8.aramBase = aramBase;
+  lbl_8031D6D8.aramBase2 = aramBase;
+  lbl_8031D6D8.aramEnd = aramBase + aramSize;
+  lbl_8031D6D8.unk0 = 0;
+  lbl_803CC330 = &lbl_8031D6D8;
+  lbl_803CC328 = 0;
+  lbl_803CC32C = &lbl_8031D6D8;
+}
 
 static MEM_DATA* GetPoolAddr(u16 id, MEM_DATA* m) {
   while (m->nextOff != 0xFFFFFFFF) {
@@ -85,7 +110,7 @@ static void InsertData(u16 id, void* data, u8 dataType, u32 remove) {
     break;
   case 1:
     if (!remove) {
-      dataAddSampleReference(id);
+      dataAddSampleReference(id, &lbl_803CC32C->aramBase);
     } else {
       dataRemoveSampleReference(id);
     }
@@ -183,14 +208,14 @@ void sndSetSampleDataUploadCallback(void* (*callback)(unsigned long, unsigned lo
 u32 sndPushGroup(void* prj_data, u16 gid, void* samples, void* sdir, void* pool) {
   GROUP_DATA* g; // r31
 
-  if (sndActive && sp < 128) {
+  if (sndActive && lbl_803CC32C->sp < 128) {
     g = prj_data;
 
     while (g->nextOff != 0xFFFFFFFF) {
       if (g->id == gid) {
-        gs[sp].gAddr = g;
-        gs[sp].prjAddr = prj_data;
-        gs[sp].sdirAddr = sdir;
+        lbl_803CC32C->gs[lbl_803CC32C->sp].gAddr = g;
+        lbl_803CC32C->gs[lbl_803CC32C->sp].prjAddr = prj_data;
+        lbl_803CC32C->gs[lbl_803CC32C->sp].sdirAddr = sdir;
         InsertSamples((u16*)((u8*)prj_data + g->sampleOff), samples, sdir);
         InsertMacros((u16*)((u8*)prj_data + g->macroOff), pool);
         InsertCurves((u16*)((u8*)prj_data + g->curveOff), pool);
@@ -200,7 +225,7 @@ u32 sndPushGroup(void* prj_data, u16 gid, void* samples, void* sdir, void* pool)
           InsertFXTab(gid, (FX_DATA*)((u8*)prj_data + g->data.song.normpageOff));
         }
         hwSyncSampleMem();
-        ++sp;
+        ++lbl_803CC32C->sp;
         return 1;
       }
 
@@ -230,9 +255,9 @@ unsigned long sndPopGroup() {
   void* prj;
   struct FX_DATA* fd;
 
-  g = gs[--sp].gAddr;
-  prj = gs[sp].prjAddr;
-  sdir = gs[sp].sdirAddr;
+  g = lbl_803CC32C->gs[--lbl_803CC32C->sp].gAddr;
+  prj = lbl_803CC32C->gs[lbl_803CC32C->sp].prjAddr;
+  sdir = lbl_803CC32C->gs[lbl_803CC32C->sp].sdirAddr;
   hwDisableIrq();
 
   if (g->type == 1) {
@@ -279,14 +304,14 @@ u32 seqPlaySong(u16 sgid, u16 sid, void* arrfile, SND_PLAYPARA* para, u8 irq_cal
   u32 seqId;
   void* prj;
 
-  for (i = 0; i < sp; ++i) {
-    if (sgid != gs[i].gAddr->id) {
+  for (i = 0; i < lbl_803CC330->sp; ++i) {
+    if (sgid != lbl_803CC330->gs[i].gAddr->id) {
       continue;
     }
 
-    if (gs[i].gAddr->type == 0) {
-      g = gs[i].gAddr;
-      prj = gs[i].prjAddr;
+    if (lbl_803CC330->gs[i].gAddr->type == 0) {
+      g = lbl_803CC330->gs[i].gAddr;
+      prj = lbl_803CC330->gs[i].prjAddr;
       norm = (PAGE*)((u32)prj + g->data.song.normpageOff);
       drum = (PAGE*)((u32)prj + g->data.song.drumpageOff);
       midiSetup = (MIDISETUP*)((u32)prj + g->data.song.midiSetupOff);

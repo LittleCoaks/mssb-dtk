@@ -1,0 +1,19 @@
+#ifndef __UNKNOWN_OBJINIT_H_
+#define __UNKNOWN_OBJINIT_H_
+
+#include "mssbTypes.h"
+#include "C3/actor.h"
+#include "Unknown/File_0x800bdd74.h"
+
+u8* f_InitBone(sBone* parent, ActorBone* node, Actor* actor, u16* index, sBone* bones, u8* cursor);
+
+Actor* f_InitActorWithLayout(ActorLayout* layout, void* buffer);
+
+void BuildBoneSkinOrientationMatrix(sBone* node, MtxPtr out);
+
+void fn_800238E0(ActorObjectTable* table, u16 index, u16 slot, ActorLayout* layout);
+
+void characterAndBallDisplayRelated(ActorObjectEntry* entry, u16 buffer, u16 slot, ActorLayout* layout, void* anim,
+                                    int arg5);
+
+#endif // !__UNKNOWN_OBJINIT_H_

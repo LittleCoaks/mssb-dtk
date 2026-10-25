@@ -5,12 +5,13 @@
 #include "Dolphin/pad.h"
 #include "Dolphin/mtx.h"
 #include "game/character_stats.h"   // CharacterStats
+#include "game/challenge/challenge_items.h"
 
 typedef enum _P2_CPU_CODE {
-    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,
-    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,
-    /* 2 */ P2_CPU_CODE_UNKNOWN_2,
-    /* 3 */ P2_CPU_CODE_UNKNOWN_3,
+    /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,   // team 1 (P2 side) is the CPU
+    /* 1 */ P2_CPU_CODE_2_PLAYER_GAME,   // both sides human
+    /* 2 */ P2_CPU_CODE_CPU_VS_CPU,      // both teams AI; transitions auto-advance like the demo
+    /* 3 */ P2_CPU_CODE_CPU_VS_1_PLAYER, // team 0 (P1 side) is the CPU, the human plays team 1
 } P2_CPU_CODE;
 
 typedef struct _GameInitVariables {
@@ -43,9 +44,7 @@ typedef struct _GameInitVariables {
     /*0x39*/ u8 bJMatchInd;
     /*0x3A*/ u8 _3A;
     /*0x3B*/ u8 someChallengeModeFlag;
-    /*0x3C*/ s8 challengeCaptainStarBought[18];
-    /*0x4E*/ u8 _4E;
-    /*0x4F*/ s8 _4F;
+    /*0x3C*/ E(s8, BOOL) challengeShopItemActive[CHALLENGE_SHOP_ITEM_COUNT];
     /*0x50*/ u8 PlayerPorts[2];
     /*0x52*/ u8 _52;
     /*0x53*/ u8 _53;
@@ -270,11 +269,16 @@ extern StatsTableEntryB lbl_803532A8[2][100];
 extern StatisticsPitcher PitcherStats_P1_P2[2][9]; // 0x803535C8
 extern StatisticsBatter BatterStats_P1_P2[2][9];   // 0x803537E4
 
+typedef struct {
+    /* 0x00 */ u16 total;
+    /* 0x02 */ u16 byInning[18];
+} StatsScreenScore; // size: 0x26
+
 // Copies of g_Scores kept for the stats screens (0x80353A90).
 typedef struct {
     /* 0x00 */ u8 _00[8];
-    /* 0x08 */ ScoreStruct scores[2];
-    /* 0x54 */ ScoreStruct hits[2];
+    /* 0x08 */ StatsScreenScore scores[2];
+    /* 0x54 */ StatsScreenScore hits[2];
     /* 0xA0 */ s8 _A0[0xBE - 0xA0];
     /* 0xBE */ struct {
         s8 pitcher;
@@ -348,10 +352,17 @@ typedef struct {
 
 extern MatchInfo_s g_MatchInfo;
 
-/* ---- aiPosSwapInputs (0x803297E0, 0x24C98 bytes) ---------------------------
- * A large, mostly unlabelled block; only the members in use are named. */
+/* ---- g_TeamManagement (0x803297E0, 0x24C98 bytes) ---------------------------
+ * State of the pre-game and pause-menu team-management screens (roster
+ * order, fielding alignment, Z info window, star/scout-flag/check-stars
+ * menus) plus a few neighbouring menu flags (captain-select random cursor,
+ * loadMatchRelInd). playerInputs[] at 0 are the controller inputs those
+ * screens read while paused. Formerly aiPosSwapInputs, after Ghidra's
+ * 32-byte "aiPosSwapInputs?" at 0x803297E0; dtk sized the symbol over the
+ * whole block, which still holds unlabelled bss (Ghidra has byte arrays at
+ * +0x6820, +0xA820 and +0x10000 onward). */
 
-/* aiPosSwapInputs.teamManagementProcessID (Ghidra: teamManagementMenuProcesses). */
+/* g_TeamManagement.teamManagementProcessID (Ghidra: teamManagementMenuProcesses). */
 typedef enum _TEAM_MANAGEMENT_PROCESS {
     TEAM_MANAGEMENT_PROCESS_INITIALIZE = 0,
     TEAM_MANAGEMENT_PROCESS_LOAD = 1,
@@ -365,7 +376,7 @@ typedef enum _TEAM_MANAGEMENT_PROCESS {
     TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1 = 14,
 } TEAM_MANAGEMENT_PROCESS;
 
-/* aiPosSwapInputs.challengeCheckStarsMenuSceneLoadingNumber
+/* g_TeamManagement.challengeCheckStarsMenuSceneLoadingNumber
  * (Ghidra: challengeCheckStarsLoadingScreenNum). */
 typedef enum _CHECK_STARS_SCENE {
     CHECK_STARS_SCENE_NONE = 0,
@@ -377,7 +388,73 @@ typedef enum _CHECK_STARS_SCENE {
     CHECK_STARS_SCENE_EXIT_CHAR_VIEW = 6,
 } CHECK_STARS_SCENE;
 
-/* aiPosSwapInputs.rosterView (Ghidra: enum_rosterView). */
+/* g_TeamManagement.teamMenuType[port] (Ghidra: enumSwapMenuType,
+ * teamManagement_menuType): written by the pause menu's positionSwap from
+ * the chosen option, read by pauseMenu_openTeamManagement (match_scene.c)
+ * to pick the menu. */
+typedef enum _TEAM_MENU_TYPE {
+    /* 0 */ TEAM_MENU_TYPE_FIELDER_SWAP, // also the regular pre-game menu
+    /* 1 */ TEAM_MENU_TYPE_BATTER_SWAP,  // R/L/X and in-game A on a player are refused
+    /* 2 */ TEAM_MENU_TYPE_SCOUT_FLAGS,  // challenge scout flag menu
+    /* 3 */ TEAM_MENU_TYPE_STAR_MISSIONS, // challenge star menu
+} TEAM_MENU_TYPE;
+
+/* g_TeamManagement.starMenuDrawStep: the request battingOrderProcessInputs
+ * services, then clears. */
+typedef enum _STAR_MENU_DRAW_STEP {
+    /* 0 */ STAR_MENU_DRAW_STEP_NONE,
+    /* 1 */ STAR_MENU_DRAW_STEP_OPEN,         // Y in challenge mode -> starMissionRelated1
+    /* 2 */ STAR_MENU_DRAW_STEP_CURSOR_MOVED, // starMenuCursor -> fn_800596D4
+    /* 3 */ STAR_MENU_DRAW_STEP_CLOSE,        // A/B in starMenuCursor
+} STAR_MENU_DRAW_STEP;
+
+/* g_TeamManagement.zMenuPage[team]: Z opens on page 0; left/right switch. */
+typedef enum _Z_MENU_PAGE {
+    /* 0 */ Z_MENU_PAGE_MAIN,
+    /* 1 */ Z_MENU_PAGE_STAR_MOVES, // star swing/pitch (fn_80058B20, zMenuLoadGraphics)
+} Z_MENU_PAGE;
+
+/* g_TeamManagement.scoutFlagMenuState: fn_80057CAC's state machine. */
+typedef enum _SCOUT_FLAG_MENU_STATE {
+    /* 0 */ SCOUT_FLAG_MENU_STATE_IDLE,
+    /* 1 */ SCOUT_FLAG_MENU_STATE_OPEN,       // set on entry (initTeamManagementScreen)
+    /* 2 */ SCOUT_FLAG_MENU_STATE_SHOW_FLAGS, // after the open animation: plays the flag animations
+    /* 3 */ SCOUT_FLAG_MENU_STATE_CLOSE,      // B (pauseMenuSelection); then requests scene removal
+} SCOUT_FLAG_MENU_STATE;
+
+/* Per-port process codes passed to updateCharacterSelectProcessCode and
+ * dispatched on by teamManagementGraphics_steadyState via
+ * gameSetUpStep[0x5D + i]. The value space is shared with the
+ * character-select screens; only the team-management codes are named.
+ * 0x39 (initTeamManagementScreen, 1P game not entered from screen 0xA)
+ * and 0x46 (unkCF70 dismissed) are left as literals. */
+typedef enum _CHAR_SELECT_PROCESS {
+    /* 0x38 */ CHAR_SELECT_PROCESS_TM_LOAD = 0x38,             // initTeamManagementScreen
+    /* 0x3A */ CHAR_SELECT_PROCESS_TM_RETURN_TO_CSS = 0x3A,    // B on the confirm row
+    /* 0x3B */ CHAR_SELECT_PROCESS_TM_CURSOR_MOVE = 0x3B,      // cursor moved or player picked for a swap
+    /* 0x3C */ CHAR_SELECT_PROCESS_TM_CHANGE_ROSTER_VIEW = 0x3C, // L/R
+    /* 0x3D */ CHAR_SELECT_PROCESS_TM_CURSOR_ENTER_ROSTER = 0x3D, // off the confirm row into the roster
+    /* 0x3E */ CHAR_SELECT_PROCESS_TM_CURSOR_TO_CONFIRM = 0x3E, // cursor onto the confirm row (position 0)
+    /* 0x3F */ CHAR_SELECT_PROCESS_TM_1P_TO_CPU_TEAM = 0x3F,   // 1P game: own team confirmed, edit the CPU team
+    /* 0x40 */ CHAR_SELECT_PROCESS_TM_1P_TO_OWN_TEAM = 0x40,   // 1P game: B back from the CPU team
+    /* 0x41 */ CHAR_SELECT_PROCESS_TM_WAIT_FOR_OTHER_TEAM = 0x41, // 2P game: confirmed first
+    /* 0x42 */ CHAR_SELECT_PROCESS_TM_CANCEL_CONFIRM = 0x42,
+    /* 0x43 */ CHAR_SELECT_PROCESS_TM_EXIT = 0x43,
+    /* 0x44 */ CHAR_SELECT_PROCESS_TM_CANCEL_SWAP = 0x44,
+    /* 0x45 */ CHAR_SELECT_PROCESS_TM_SHOW_SCOUT_FLAGS = 0x45, // challenge, 1P: after both entry animations
+} CHAR_SELECT_PROCESS;
+
+/* gameSetUpStep[0x37 + port] in team_management_screens.c: each
+ * steady-state process starts its animation and locks the cursor (START),
+ * waits for it (PLAYING), then unlocks the cursor (DONE). gameSetUpStep
+ * itself has no shared type yet. */
+typedef enum _TEAM_MANAGEMENT_ANIM_STEP {
+    /* 0 */ TEAM_MANAGEMENT_ANIM_STEP_START,
+    /* 1 */ TEAM_MANAGEMENT_ANIM_STEP_PLAYING, // after makeCursorUnmovable
+    /* 2 */ TEAM_MANAGEMENT_ANIM_STEP_DONE,    // after makeCursorMovable
+} TEAM_MANAGEMENT_ANIM_STEP;
+
+/* g_TeamManagement.rosterView (Ghidra: enum_rosterView). */
 typedef enum _ROSTER_VIEW {
     ROSTER_VIEW_BATTING_ORDER = 0,
     ROSTER_VIEW_DEFENSIVE_ALIGNMENT = 1,
@@ -391,22 +468,49 @@ typedef struct {
     /* 0xCF3B */ u8 playerWhoPaused;
     /* 0xCF3C */ u8 charSelectedToBeSwapped[2];
     /* 0xCF3E */ u8 charSelectedToBeSwappedCharID[2];
-    /* 0xCF40 */ u8 _CF40[0xCF42 - 0xCF40];
+    /* 0xCF40 */ u8 unkCF40;                        // 1P game: set with onePlayerEditingTeam when P1 moves on to the CPU team
+    /* 0xCF41 */ u8 unkCF41;                        // only ever cleared (initTeamManagementScreen)
     /* 0xCF42 */ u8 onMainPauseMenu;
-    /* 0xCF43 */ u8 _CF43[0xCF46 - 0xCF43];
+    /* 0xCF43 */ u8 onePlayerEditingTeam;           // 1P game: team index player 1 is editing (0 = own, 1 = CPU)
+    /* 0xCF44 */ u8 _CF44;
+    /* 0xCF45 */ E(u8, BOOL) removeSceneRequested;  // set on exit; teamManagementGraphics_steadyState removes the scene
     /* 0xCF46 */ s8 teamManagement_cursorPos[2];
     /* 0xCF48 */ s8 teamManagement_prevCursorPos[2];
     /* 0xCF4A */ u8 onFieldingAlignmentScreen2[2];
     /* 0xCF4C */ u8 unkCF4C[2];                     // copy of onFieldingAlignmentScreen2 before a left/right press
-    /* 0xCF4E */ u8 _CF4E[0xCF52 - 0xCF4E];
+    /* 0xCF4E */ E(u8, BOOL) teamConfirmed[2];      // A on "done"; input is then masked to B only
+    /* 0xCF50 */ E(u8, BOOL) waitingForOtherTeam[2]; // 2P game: confirmed while the other team was not
     /* 0xCF52 */ E(u8, ROSTER_VIEW) rosterView[2];
-    /* 0xCF54 */ u8 _CF54[0xCF5D - 0xCF54];
-    /* 0xCF5D */ u8 unkCF5D[2];
-    /* 0xCF5F */ u8 _CF5F[0xCF74 - 0xCF5F];
-    /* 0xCF74 */ u8 unkCF74;                        // starMenuCursor: 2 after a cursor move, 3 on A/B
+    /* 0xCF54 */ E(u8, ROSTER_VIEW) prevRosterView[2]; // rosterView before an L/R press
+    /* 0xCF56 */ E(u8, BOOL) swapCompleted[2];      // set when the second A completes a swap
+    /* 0xCF58 */ E(u8, BOOL) stanceChangeRequested[2]; // X: battingOrderProcessInputs cycles the stance
+    /* 0xCF5A */ u8 _CF5A;
+    /* 0xCF5B */ E(u8, BOOL) entryAnimDone[2];      // 1P game: both must finish before the cursors unlock
+    /* 0xCF5D */ E(u8, BOOL) capSS_isRandomizingCursor[2]; // per captain slot: R in captain select
+    /* 0xCF5F */ u8 loadMatchRelInd;                 // non-zero: leaving returns to screen 4; main_menu passes it to loadDemoMatch
+    /* 0xCF60 */ u8 _CF60;
+    /* 0xCF61 */ E(u8, BOOL) zMenuOpen[2];          // Z toggles the per-character info window
+    /* 0xCF63 */ E(u8, BOOL) zMenuPageLoaded[2];
+    /* 0xCF65 */ E(u8, BOOL) zMenuActive[2];        // window open or still animating closed
+    /* 0xCF67 */ E(u8, Z_MENU_PAGE) zMenuPage[2];
+    /* 0xCF69 */ u8 _CF69[0xCF6B - 0xCF69];
+    /* 0xCF6B */ u8 unkCF6B;                        // set when unkCF70 is dismissed with A/B
+    /* 0xCF6C */ u8 _CF6C[0xCF70 - 0xCF6C];
+    /* 0xCF70 */ u8 unkCF70;                        // challenge: set on resuming saved teams; blocks input until A/B
+    /* 0xCF71 */ E(u8, BOOL) starMenuOpen;          // Y in challenge mode
+    /* 0xCF72 */ E(u8, BOOL) starMenuActive;        // cleared once the close step finishes
+    /* 0xCF73 */ E(u8, BOOL) starMenuStepStarted;   // the current starMenuDrawStep has done its setup
+    /* 0xCF74 */ E(u8, STAR_MENU_DRAW_STEP) starMenuDrawStep;
     /* 0xCF75 */ s8 starMenuCursorPos;
     /* 0xCF76 */ s8 starMenuPrevCursorPos;
-    /* 0xCF77 */ u8 _CF77[0xCF92 - 0xCF77];
+    /* 0xCF77 */ u8 _CF77;
+    /* 0xCF78 */ E(s16, CHAR_ID) starMenuCharID;
+    /* 0xCF7A */ u8 textBlocks[3];                  // text_initializeNewChannel handles, freed with text_freeBlock
+    /* 0xCF7D */ E(u8, SCOUT_FLAG_MENU_STATE) scoutFlagMenuState;
+    /* 0xCF7E */ E(u8, BOOL) scoutFlagMenuStepStarted; // fn_80057CAC: current state has done its setup
+    /* 0xCF7F */ E(u8, BOOL) scoutFlagMenuRemoveRequested; // set when the close animation ends
+    /* 0xCF80 */ s8 scoutFlagsRequired[9];          // per inMemRoster[1] player
+    /* 0xCF89 */ s8 scoutFlagsAchieved[9];
     /* 0xCF92 */ E(u8, CHECK_STARS_SCENE) challengeCheckStarsMenuSceneLoadingNumber;
     /* 0xCF93 */ u8 challengeCheckStarsMenuLoadingInd;
     /* 0xCF94 */ u8 _CF94;
@@ -417,18 +521,19 @@ typedef struct {
     /* 0xCF99 */ E(u8, BOOL) checkStarsMenuCharViewOpen;
     /* 0xCF9A */ u8 numberOfChallengeStarsForPlayer;
     /* 0xCF9B */ u8 _CF9B;
-    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into starMissionCompletionTracker
-    /* 0xCF9E */ u8 inProgress_superStarAPlayer;   // 0x8033677E
-    /* 0xCF9F */ u8 _CF9F[0xCFA2 - 0xCF9F];
-    /* 0xCFA2 */ u8 _CFA2[4];                      // per controller port; selects the team-management menu
+    /* 0xCF9C */ s16 playerIndexNoVariants;         // index into g_Challenge
+    /* 0xCF9E */ E(u8, BOOL) inProgress_superStarAPlayer[2]; // 0x8033677E; Y on an unlocked superstar
+    /* 0xCFA0 */ u8 _CFA0;
+    /* 0xCFA1 */ E(u8, BOOL) challengeLoadingNormalMatchInd; // challenge: set on resuming saved teams, cleared once copied back
+    /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];   // per port
     /* 0xCFA6 */ u8 _CFA6[0x24C98 - 0xCFA6];
-} AiPosSwapInputs_s; // size: 0x24C98
+} TeamManagementState_s; // size: 0x24C98
 
-// A unit may define AIPOSSWAPINPUTS_LOCAL_VIEW and declare its own, smaller
+// A unit may define TEAM_MANAGEMENT_LOCAL_VIEW and declare its own, smaller
 // view of this object: MWCC 2.6 only keeps loads of other globals ordered
 // after stores into an object whose declared size is below 0xFFFF bytes.
-#ifndef AIPOSSWAPINPUTS_LOCAL_VIEW
-extern AiPosSwapInputs_s aiPosSwapInputs;
+#ifndef TEAM_MANAGEMENT_LOCAL_VIEW
+extern TeamManagementState_s g_TeamManagement;
 #endif
 
 /* ---- g_InputBuffer (0x802E9F20, 0x60 bytes) --------------------------------

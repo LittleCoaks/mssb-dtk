@@ -155,7 +155,7 @@ void fn_3_7D2E0(void) {
 // .text:0x0007CF88 size:0x358 mapped:0x806BC01C
 void initializeReplayState(void) {
     memcpy(STATS_AT(0x44), &g_GameLogic, sizeof(g_GameLogic));
-    memcpy(STATS_AT(0x19C), &g_Strikes, sizeof(g_Strikes));
+    memcpy(STATS_AT(0x19C), &g_BallsStrikesOuts, sizeof(g_BallsStrikesOuts));
     memcpy(STATS_AT(0x1C0), &g_Scores, sizeof(g_Scores));
     memcpy(STATS_AT(0x288), &g_Ball, sizeof(g_Ball));
     memcpy(STATS_AT(0x1E80), &g_Pitcher, sizeof(g_Pitcher));

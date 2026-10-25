@@ -27,8 +27,9 @@ void DecompressDiskData();
 
 typedef struct
 {
-    OSThread t ATTRIBUTE_ALIGN(16);       // 0x000
-    OSSemaphore s[2] ATTRIBUTE_ALIGN(16); // 0x320
+    OSThread t;                           // 0x000
+    u8 _318[8];                           // 0x318
+    OSSemaphore s[2];                     // 0x320
 
     int BytesToRead;          // 0x338
     size_t CachedBytesToRead; // 0x33C

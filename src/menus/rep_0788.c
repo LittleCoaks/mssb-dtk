@@ -1,18 +1,18 @@
 #include "menus/rep_0788.h"
 #include "header_rep_data.h"
+#include "game/challenge/challenge_state.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
-#include "text/text_channel.h"
-#include "text/text_block.h"
+#include "text/text.h"
 #include "static/UnknownHomes_Static.h"
 
 extern DrawingSceneStruct *currentDrawingItem;
 extern s16 lbl_2_data_3D30[][4];
 extern u8 *lbl_2_bss_1A824C;
-extern u8 *lbl_2_bss_1A8248;
+extern ChallengeState *lbl_2_bss_1A8248;
 extern s16 lbl_2_data_3714[];
 extern u8 lbl_800E869C[0x20];
-extern s32 fn_8006C79C(u8 arg0);
+extern s32 challenge_isCharRecruited(u8 arg0);
 
 void fn_2_54354(void *arg0, int count);
 void fn_2_54234(void *arg0, int count);
@@ -27,12 +27,18 @@ extern u8 lbl_2_data_C96C[0x2780];
 extern u8 lbl_2_data_1059C[0x60];
 extern u8 lbl_2_data_4C68[0x5360];
 extern u8 *lbl_2_bss_1A8234;
+extern u8 *lbl_2_bss_1A8230;
+extern u8 lbl_2_data_1048C[0x60];
+extern s16 lbl_2_data_2E44[4][4];
+extern int rand(void);
+void fn_2_53F04(void *arg0);
+void fn_2_5400C(void);
+void fn_2_53CEC(void *arg0);
 
 void fn_2_4E878(void *arg0, void *arg1);
 void fn_2_53F88(void *arg0);
 void fn_2_54120(void);
 void fn_2_53DF8(void *arg0);
-void fn_8000F8F4(void *arg0);
 void fn_2_4E858(void *arg0);
 
 // .text:0x0001D440 size:0x2ACC mapped:0x8065C4D4
@@ -111,13 +117,38 @@ int fn_2_20074(void) {
     }
     if (value & 2) {
         return 3;
+    } else {
+        return -1;
     }
-    return -1;
 }
 
 // .text:0x000200E4 size:0x100 mapped:0x8065F178
-void fn_2_200E4(void) {
-    return;
+BOOL fn_2_200E4(void) {
+    int level;
+    s16 *base = (s16 *)lbl_2_bss_1A8248;
+    u8 *entry = (u8 *)base + base[0xB60] * 10;
+
+    if (entry[0x40F6] == 1) {
+        return FALSE;
+    }
+    if (entry[0x40F0] == 5) {
+        return FALSE;
+    }
+    level = ((u8 *)base)[0x442B];
+    if (level > 3) {
+        level = 3;
+    }
+    if (lbl_2_data_2E44[lbl_2_bss_1A8248->difficulty][level] >= rand() % 100 &&
+        lbl_2_bss_1A8248->captain != 5) {
+        if (lbl_2_bss_1A8248->stage == 0) {
+            return FALSE;
+        }
+        if (((u8 *)lbl_2_bss_1A8248)[0x442B] < 3) {
+            ((u8 *)lbl_2_bss_1A8248)[0x442B]++;
+        }
+        return TRUE;
+    }
+    return FALSE;
 }
 
 // .text:0x000201E4 size:0x34 mapped:0x8065F278
@@ -189,14 +220,14 @@ void fn_2_20D08(void) {
 
 // .text:0x0002416C size:0xCC mapped:0x80663200
 void fn_2_2416C(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
-    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    u16 *item = (u16 *)currentDrawingItem;
+    switch (item[14]) {
     case 1:
         break;
     case 0:
         fn_2_4E878(item, lbl_2_data_1061C);
-        *(s16 *)((u8 *)item + 0x1C) = 1;
-        *(s16 *)((u8 *)item + 0x18) = 0;
+        item[14] = 1;
+        item[12] = 0;
         break;
     }
     fn_2_53F88(item);
@@ -207,21 +238,21 @@ void fn_2_2416C(void) {
         fn_8000F8F4(item);
         fn_2_4E858(item);
         removeCurrentDrawingItem();
-        *(s16 *)((u8 *)item + 0x1C) = 0;
+        item[14] = 0;
         lbl_2_bss_1A8234[0x160000 + 0x2992] = 0;
     }
 }
 
 // .text:0x00024238 size:0xC4 mapped:0x806632CC
 void fn_2_24238(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
-    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    u16 *item = (u16 *)currentDrawingItem;
+    switch (item[14]) {
     case 1:
         break;
     case 0:
         fn_2_4E878(item, lbl_2_data_1059C);
-        *(s16 *)((u8 *)item + 0x1C) = 1;
-        *(s16 *)((u8 *)item + 0x18) = 0;
+        item[14] = 1;
+        item[12] = 0;
         break;
     }
     fn_2_53F88(item);
@@ -231,26 +262,44 @@ void fn_2_24238(void) {
         fn_2_53DF8(item);
         fn_2_4E858(item);
         removeCurrentDrawingItem();
-        *(s16 *)((u8 *)item + 0x1C) = 0;
+        item[14] = 0;
         lbl_2_bss_1A8234[0x160000 + 0x2992] = 0;
     }
 }
 
 // .text:0x000242FC size:0xC0 mapped:0x80663390
 void fn_2_242FC(void) {
-    return;
+    u16 *item = (u16 *)currentDrawingItem;
+    switch (item[15]) {
+    case 1:
+        break;
+    case 0:
+        fn_2_4E878(item, lbl_2_data_1048C);
+        item[15] = 1;
+        item[13] = 0;
+        break;
+    }
+    fn_2_53F04(item);
+    fn_2_5400C();
+    if (lbl_2_bss_1A8230[0x32A86] != 0) {
+        fn_2_53CEC(item);
+        fn_2_4E858(item);
+        removeCurrentDrawingItem();
+        item[15] = 0;
+        lbl_2_bss_1A8230[0x32A86] = 0;
+    }
 }
 
 // .text:0x000243BC size:0xCC mapped:0x80663450
 void fn_2_243BC(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
-    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    u16 *item = (u16 *)currentDrawingItem;
+    switch (item[14]) {
     case 1:
         break;
     case 0:
         fn_2_4E878(item, lbl_2_data_C96C);
-        *(s16 *)((u8 *)item + 0x1C) = 1;
-        *(s16 *)((u8 *)item + 0x18) = 0;
+        item[14] = 1;
+        item[12] = 0;
         break;
     }
     fn_2_53F88(item);
@@ -261,22 +310,22 @@ void fn_2_243BC(void) {
         fn_8000F8F4(item);
         fn_2_4E858(item);
         removeCurrentDrawingItem();
-        *(s16 *)((u8 *)item + 0x1C) = 0;
+        item[14] = 0;
         lbl_2_bss_1A8234[0x160000 + 0x2992] = 0;
     }
 }
 
 // .text:0x00024488 size:0x140 mapped:0x8066351C
 void fn_2_24488(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
-    switch (*(u16 *)((u8 *)item + 0x1C)) {
+    u16 *item = (u16 *)currentDrawingItem;
+    switch (item[14]) {
     case 0:
         fn_2_4E878(item, lbl_2_data_4C68);
-        *(s16 *)((u8 *)item + 0x1C) = 1;
-        *(s16 *)((u8 *)item + 0x18) = 0;
+        item[14] = 1;
+        item[12] = 0;
         break;
     case 1:
-        if (lbl_2_bss_1A824C[0x190000 + 0x78FB] == 1) {
+        if ((s32)lbl_2_bss_1A824C[0x190000 + 0x78FB] == 1) {
             lbl_2_bss_1A8234[0x160000 + 0x268A] = 1;
             lbl_2_bss_1A8234[0x160000 + 0x2874] = 0;
         } else {
@@ -293,7 +342,7 @@ void fn_2_24488(void) {
         fn_8000F8F4(item);
         fn_2_4E858(item);
         removeCurrentDrawingItem();
-        *(s16 *)((u8 *)item + 0x1C) = 0;
+        item[14] = 0;
         lbl_2_bss_1A8234[0x160000 + 0x2992] = 0;
     }
 }
@@ -519,15 +568,14 @@ void fn_2_25EB0(void *arg0, void *arg1) {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags &= ~2;
         *state = 0x26;
-        break;
+        return;
     }
     case 1:
     case 3:
     case 4:
         break;
     case 2: {
-        s16 idx = *(s16 *)((u8 *)arg1 + 0xA);
-        s16 val = *(s16 *)&lbl_2_bss_1A824C[0x190000 + 0x780E + idx * 2];
+        s16 val = ((s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x780E))[*(s16 *)((u8 *)arg1 + 0xA)];
         TextGraphicsObject *obj;
         if (val != -1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -539,11 +587,11 @@ void fn_2_25EB0(void *arg0, void *arg1) {
             obj->flags &= ~2;
         }
         *state = 0x25;
-        break;
+        return;
     }
     case 5:
     case 0x25:
-        break;
+        return;
     }
 }
 
@@ -559,15 +607,14 @@ void fn_2_26010(void *arg0, void *arg1) {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags &= ~2;
         *state = 0x26;
-        break;
+        return;
     }
     case 1:
     case 3:
     case 4:
         break;
     case 2: {
-        s16 idx = *(s16 *)((u8 *)arg1 + 0xA);
-        s16 val = *(s16 *)&lbl_2_bss_1A824C[0x190000 + 0x7818 + idx * 2];
+        s16 val = ((s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7818))[*(s16 *)((u8 *)arg1 + 0xA)];
         TextGraphicsObject *obj;
         if (val != -1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -579,11 +626,11 @@ void fn_2_26010(void *arg0, void *arg1) {
             obj->flags &= ~2;
         }
         *state = 0x25;
-        break;
+        return;
     }
     case 5:
     case 0x25:
-        break;
+        return;
     }
 }
 
@@ -599,15 +646,14 @@ void fn_2_26170(void *arg0, void *arg1) {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags &= ~2;
         *state = 0x26;
-        break;
+        return;
     }
     case 1:
     case 3:
     case 4:
         break;
     case 2: {
-        s16 idx = *(s16 *)((u8 *)arg1 + 0xA);
-        s16 val = *(s16 *)&lbl_2_bss_1A824C[0x190000 + 0x77A2 + idx * 2];
+        s16 val = ((s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x77A2))[*(s16 *)((u8 *)arg1 + 0xA)];
         TextGraphicsObject *obj;
         if (val != -1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -619,11 +665,11 @@ void fn_2_26170(void *arg0, void *arg1) {
             obj->flags &= ~2;
         }
         *state = 0x25;
-        break;
+        return;
     }
     case 5:
     case 0x25:
-        break;
+        return;
     }
 }
 
@@ -649,7 +695,7 @@ void fn_2_26684(void *arg0, void *arg1) {
     case 1:
     case 3:
     case 4:
-        return;
+        break;
     case 2: {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags |= 2;
@@ -679,7 +725,7 @@ void fn_2_26774(void *arg0, void *arg1) {
     case 1:
     case 3:
     case 4:
-        return;
+        break;
     case 2: {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags |= 2;
@@ -762,7 +808,7 @@ void fn_2_26F80(void *arg0, void *arg1) {
     case 4:
         break;
     case 2: {
-        u8 v = lbl_2_bss_1A8248[0x441c];
+        u8 v = lbl_2_bss_1A8248->captain;
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         *(u32 *)((u8 *)obj + 0x5C) = (u32)v << 16;
         obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -1790,7 +1836,7 @@ void fn_2_2C860(void *arg0, void *arg1) {
         break;
     case 2: {
         s16 v = *(s16 *)((u8 *)arg1 + 0xA);
-        s8 flag = lbl_2_bss_1A8248[v + 0x43c2];
+        s8 flag = lbl_2_bss_1A8248->_43C2[v];
         TextGraphicsObject *obj;
         if (flag == 1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
@@ -2008,7 +2054,7 @@ void fn_2_2DCA8(void *arg0, void *arg1) {
     case 2: {
         TextGraphicsObject *obj;
         load_Icon(arg0, *(s16 *)((u8 *)arg1 + 0xE), 1, 0x43, *(s16 *)((u8 *)arg1 + 0x10));
-        if (fn_8006C79C(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
+        if (challenge_isCharRecruited(lbl_800E869C[*(s16 *)((u8 *)arg1 + 0x10)]) == 1) {
             obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
             *(u32 *)((u8 *)obj + 0x5C) = 0;
         } else {
@@ -3058,7 +3104,7 @@ void fn_2_327D4(void *arg0, void *arg1) {
     case 1:
     case 3:
     case 4:
-        return;
+        break;
     case 2: {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags |= 2;
@@ -3188,7 +3234,7 @@ void fn_2_32C64(void *arg0, void *arg1) {
     case 1:
     case 3:
     case 4:
-        return;
+        break;
     case 2: {
         TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
         obj->flags |= 2;

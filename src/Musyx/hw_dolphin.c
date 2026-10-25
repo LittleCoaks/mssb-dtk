@@ -1,6 +1,7 @@
 #include "musyx/musyx_priv.h"
 
 #include "dolphin/dsp.h"
+#include "dolphin/os.h"
 #include "musyx/dsp_import.h"
 
 static DSPTaskInfo dsp_task ATTRIBUTE_ALIGN(8);
@@ -8,6 +9,7 @@ static u16 dram_image[4096] ATTRIBUTE_ALIGN(32);
 
 static volatile u32 oldState = 0;
 static volatile u16 hwIrqLevel = 0;
+static OSThreadQueue lbl_803CC3D0;
 static volatile u32 salDspInitIsDone = 0;
 static volatile OSTick salLastTick = 0;
 static volatile u32 salLogicActive = 0;
@@ -58,11 +60,13 @@ void dspResumeCallback() {
   }
 }
 
+void dspDoneCallback() { OSWakeupThread(&lbl_803CC3D0); }
+
 u32 salInitAi(SND_SOME_CALLBACK callback, u32 unk, u32* outFreq) {
-  if ((salAIBufferBase = salMalloc(DMA_BUFFER_LEN * 4)) != NULL) {
+  if ((salAIBufferBase = salMallocPhysical(DMA_BUFFER_LEN * 4)) != NULL) {
     memset(salAIBufferBase, 0, DMA_BUFFER_LEN * 4);
     DCFlushRange(salAIBufferBase, DMA_BUFFER_LEN * 4);
-    salAIBufferIndex = TRUE;
+    salAIBufferIndex = 1;
     salLogicIsWaiting = FALSE;
     salDspIsDone = TRUE;
     salLogicActive = FALSE;
@@ -94,20 +98,20 @@ void* salAiGetDest() {
 }
 
 u32 salInitDsp() {
-  u8 _[8];
   dsp_task.iram_mmem_addr = (u16*)dspSlave;
   dsp_task.iram_length = dspSlaveLength;
   dsp_task.iram_addr = 0;
   dsp_task.dram_mmem_addr = (u16*)dram_image;
-  dsp_task.dram_length = 0x2000;
+  dsp_task.dram_length = sizeof(dram_image);
   dsp_task.dram_addr = 0;
   dsp_task.dsp_init_vector = 0x10;
   dsp_task.dsp_resume_vector = 0x30;
   dsp_task.init_cb = dspInitCallback;
   dsp_task.res_cb = dspResumeCallback;
-  dsp_task.done_cb = NULL;
+  dsp_task.done_cb = dspDoneCallback;
   dsp_task.req_cb = NULL;
   dsp_task.priority = 0;
+  OSInitThreadQueue(&lbl_803CC3D0);
   DSPInit();
   DSPAddTask(&dsp_task);
   salDspInitIsDone = FALSE;
@@ -119,11 +123,10 @@ u32 salInitDsp() {
 }
 
 u32 salExitDsp() {
-  DSPHalt();
-  while (DSPGetDMAStatus())
-    ;
-  DSPReset();
-
+  BOOL enabled = OSDisableInterrupts();
+  DSPCancelTask(&dsp_task);
+  OSSleepThread(&lbl_803CC3D0);
+  OSRestoreInterrupts(enabled);
   return TRUE;
 }
 void salStartDsp(u16* cmdList) {

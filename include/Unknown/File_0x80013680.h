@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void animateModelArmsGlovesBats(void);
+BOOL animateModelArmsGlovesBats(void* actor);
 
 #endif // !__UNKNOWN_FILE_0X80013680_H_

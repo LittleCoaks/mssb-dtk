@@ -151,29 +151,7 @@ void fn_3_16DB6C(u8 digit) {
 // .text:0x0016DFC4 size:0x1DC mapped:0x807AD058
 void fn_3_16DFC4(void) {
     u32 i;
-    GXSetZMode(GX_ENABLE, GX_LEQUAL, GX_DISABLE);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_CLEAR);
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    GXSetChanCtrl(GX_COLOR0A0, GX_DISABLE, GX_SRC_VTX, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumChans(1);
-    GXSetNumTexGens(1);
-    GXSetNumTevStages(1);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD1, GX_TEXMAP1, GX_COLOR0A0);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO, GX_CC_ZERO);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO, GX_CA_ZERO);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_DISABLE, GX_TEVPREV);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_DISABLE, GX_TEVPREV);
-    GXLoadPosMtxImm(fn_80052768_getCamera(returnsCurrentMode())->view, GX_PNMTX0);
-    GXSetCurrentMtx(GX_PNMTX0);
-    GXSetProjection(fn_80052768_getCamera(returnsCurrentMode())->proj, GX_PERSPECTIVE);
-    fn_80033B58(lbl_3_bss_D6E4, objOrTextureCount, 0, 0);
+    fn_3_16D9B0();
     for (i = 0; i < 6; i++) {
         fn_3_16DB6C(i);
     }
@@ -184,14 +162,14 @@ void fn_3_16E1A0(void) {
     lbl_3_bss_D6F0[0] = g_Scores.scores[1].total;
     lbl_3_bss_D6F0[1] = g_Scores.scores[0].total;
     lbl_3_bss_D6F0[2] = g_Scores.Inning;
-    lbl_3_bss_D6F0[3] = g_Strikes.strikes;
-    lbl_3_bss_D6F0[4] = g_Strikes.balls;
-    lbl_3_bss_D6F0[5] = g_Strikes.outs;
+    lbl_3_bss_D6F0[3] = g_BallsStrikesOuts.strikes;
+    lbl_3_bss_D6F0[4] = g_BallsStrikesOuts.balls;
+    lbl_3_bss_D6F0[5] = g_BallsStrikesOuts.outs;
 }
 
 // .text:0x0016E1EC size:0x110 mapped:0x807AD280
 void animateScoreBoard(void) {
-    if ((hugeAnimStruct[0x3088] == FALSE) | (*(u32*)&lbl_3_bss_D6E4 == 0) | lbl_3_bss_D6EC) {
+    if (lbl_3_bss_D6EC | (hugeAnimStruct[0x3088] == FALSE) | (*(u32*)&lbl_3_bss_D6E4 == 0)) {
         lbl_3_bss_D6E4 = NULL;
         objOrTextureCount = -1;
         lbl_3_bss_D6EC = FALSE;

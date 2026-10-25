@@ -14,7 +14,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
 
 // The perfect-pitch trail model: a stadium model whose root actor is driven
@@ -247,16 +247,16 @@ void fn_3_CABF0(PerfectPitchTrail* trail) {
     PerfectPitchState* states[3];
     PerfectPitchModel* model;
     f32 scale;
-    int i;
     PerfectPitchState** state;
     void** handle;
+    s32 i;
 
     scale = lbl_3_data_17D08[0] / 100000.0f;
+    model = (PerfectPitchModel*)(lbl_3_common_bss_35154.trailOwner + 0xC4);
     for (i = 0; i < 3; i++) {
         handles[i] = lbl_3_common_bss_35154.states[i].handle;
         states[i] = &lbl_3_common_bss_35154.states[i];
     }
-    model = (PerfectPitchModel*)(lbl_3_common_bss_35154.trailOwner + 0xC4);
 
     PSMTXQuat(mtx, &trail->rot);
     PSMTXScaleApply(mtx, mtx, scale, scale, scale);
@@ -279,7 +279,7 @@ void fn_3_CABF0(PerfectPitchTrail* trail) {
     model->root[0x99] = 1;
     ACTSetAnimation((Actor*)model->root, model->animBank, NULL, model->sequenceNum, 0.0f, model->animTime);
     setActorAnimFrame(model->root, trail->frame);
-    fn_800B4C04(model->root, 1.0f);
+    ACTSetSpeed((Actor*)model->root, 1.0f);
     fn_800BDA24(model);
     model->root[0x98] = 0xFF;
     sknRelated(model, mtx);

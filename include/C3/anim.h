@@ -59,5 +59,9 @@ void ANIMBind(struct ANIMPipe *animPipe, Control *control, struct ANIMAnimTrack 
 void ANIMSetTime(struct ANIMPipe * animPipe, f32 time);
 void ANIMSetSpeed(struct ANIMPipe * animPipe, f32 speed);
 void ANIMTick(struct ANIMPipe * animPipe, u8 unk);
+void DoTranslationAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame);
+void DoScaleAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame, u8 unk);
+void DoEulerAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame);
+void DoQuatAnimation(struct ANIMPipe* animPipe, KeyFrame* currentFrame, KeyFrame* nextFrame);
 
 #endif // _DOLPHIN_CP_ANIM_H_

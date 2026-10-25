@@ -1,7 +1,7 @@
 #include "Unknown/File_0x800a76bc.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800a64e0.h"
-#include "Unknown/File_0x800a6900.h"
+#include "Unknown/dvdsys.h"
 
 extern DriveStatusHandler lbl_8010F420[];
 void fn_800A77A0(void);

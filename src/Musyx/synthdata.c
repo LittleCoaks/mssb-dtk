@@ -389,7 +389,7 @@ bool32 dataRemoveSDir(struct SDIR_DATA *sdir)
   return FALSE;
 }
 
-bool32 dataAddSampleReference(u16 sid)
+bool32 dataAddSampleReference(u16 sid, void *aramWrite)
 {
   u32 i;                 // r29
   SAMPLE_HEADER *header; // r1+0xC
@@ -415,7 +415,7 @@ done:
   {
     sdir->addr = (void *)(sdir->offset + (s32)dataSmpSDirs[i].base);
     header = &sdir->header;
-    hwSaveSample(&header, &sdir->addr);
+    hwSaveSample(&header, &sdir->addr, aramWrite);
   }
 
   sdir->ref_cnt = 1;

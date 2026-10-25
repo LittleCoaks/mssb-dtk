@@ -16,23 +16,23 @@
 #include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
 #include "static/UnknownHomes_Static.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/sub.h"
 #include "Unknown/File_0x80025c58.h"
 #include "Unknown/File_0x80025ddc.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80039aa8.h"
 #include "Unknown/File_0x80052734.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/act.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // The kinds of block the garden places; `variant` is the kind a block turns
 // into when hit (a mystery block rolls one at load).
@@ -590,6 +590,10 @@ void fn_3_F8D00(void) {
     }
 }
 
+static inline BOOL gardenGfxFinished(GardenGfxObject* obj) {
+    return obj->scale == 2 ? TRUE : FALSE;
+}
+
 // .text:0x000F8E20 size:0x268 mapped:0x80737EB4
 void fn_3_F8E20(void) {
     E(u8, HIT_FX_STATE)* state = hitFxState;
@@ -620,7 +624,7 @@ void fn_3_F8E20(void) {
             ((GardenGfxObject*)graphicsRelatedArray[hitFxScene->firstHandle + i].object)->pos.x = sx;
             ((GardenGfxObject*)graphicsRelatedArray[hitFxScene->firstHandle + i].object)->pos.y = sy;
             ((GardenGfxObject*)graphicsRelatedArray[hitFxScene->firstHandle + i].object)->pos.z = 0.0f;
-            if (((GardenGfxObject*)graphicsRelatedArray[item->firstHandle + i].object)->scale == 2) {
+            if (gardenGfxFinished((GardenGfxObject*)graphicsRelatedArray[item->firstHandle + i].object)) {
                 ((GardenGfxObject*)graphicsRelatedArray[item->firstHandle + i].object)->flags &= ~2;
                 *state = HIT_FX_IDLE;
             }
@@ -853,7 +857,7 @@ void fn_3_F9E78(int idx, int arg1, void* hit) {
                 act = (ACTActor*)d->model;
                 ACTSetAnimation(act->actor, act->animBank, NULL, act->sequenceNum, 0.0f, act->animTime);
                 setActorAnimFrame(act->actor, act->animFrame);
-                fn_800B4C04(act->actor, act->animSpeed);
+                ACTSetSpeed(act->actor, act->animSpeed);
                 updateBoneParam(act->actor, act->applyFlags & 1);
                 ((GardenBlockObj*)d)->debrisFrame = 0.0f;
                 ((Control*)d)->type = 0;
@@ -1251,8 +1255,6 @@ void loadPeachGarden(void** files) {
 void fn_3_FB3D8(void* view) {
     Vec delta;
     Vec step;
-    GXTlutObj tlut;
-    GXTexObj tex;
     f32 ringUV[42];
     f32* uv;
     Vec* grid;
@@ -1260,7 +1262,6 @@ void fn_3_FB3D8(void* view) {
     Vec* out;
     Vec* spoke;
     Vec* center;
-    GardenTexInfo* info;
     u8* strip;
     f32 minX;
     f32 maxX;
@@ -1321,19 +1322,7 @@ void fn_3_FB3D8(void* view) {
         uv[i + 1] += rangeY * (rand() % 256) * 0.00390625f - 0.0025f;
     }
 
-    info = returnTexture();
-    if (info->tlut != NULL) {
-        GXInitTexObjCI(&tex, info->data, info->width, info->height, info->format, info->wrapS, info->wrapT,
-                       info->minLOD != info->maxLOD, 0);
-        GXInitTlutObj(&tlut, info->tlut, info->tlutFormat, info->tlutEntries);
-        GXLoadTlut(&tlut, 0);
-    } else {
-        GXInitTexObj(&tex, info->data, info->width, info->height, info->format, info->wrapS, info->wrapT,
-                     info->minLOD != info->maxLOD);
-    }
-    GXInitTexObjLOD(&tex, info->minFilter, info->magFilter, info->minLOD, info->maxLOD, info->lodBias, GX_DISABLE,
-                    GX_DISABLE, GX_ANISO_1);
-    GXLoadTexObj(&tex, GX_TEXMAP0);
+    fn_3_FBBA0(returnTexture());
     GXSetZMode(GX_ENABLE, GX_LEQUAL, GX_DISABLE);
     GXSetCullMode(GX_CULL_NONE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_OR);

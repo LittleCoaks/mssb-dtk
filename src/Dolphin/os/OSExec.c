@@ -5,6 +5,7 @@
 
 static int lbl_803CBD98;
 static int CachedApploaderAddr;
+char lbl_8010BFC0[] = "2004/02/01";
 
 typedef struct
 {
@@ -232,7 +233,7 @@ static void __OSBootDolSimple(u32 v, u32 b, void *start, void *end, int argc, u3
     ReadDisc(APPLOADER_ADDR, ROUND_UP(src2->_14, 32), GetApploaderPosition() + 0x20);
     ICInvalidateRange(APPLOADER_ADDR, ROUND_UP(src2->_14, 32));
 
-    if (strncmp((char *)src2, "2004/02/01", 10) > 0 ? 1 : 0)
+    if (strncmp((char *)src2, lbl_8010BFC0, 10) > 0 ? 1 : 0)
     {
         if (v + 0x10000 == 0xffff)
         {

@@ -1,6 +1,6 @@
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80034f50.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 void addGraphicsElementToScene(DrawingSceneStruct* node, const UIRecordDescriptor* descriptors) {
     MenuScene* scene = (MenuScene*)node;

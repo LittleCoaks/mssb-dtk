@@ -5,7 +5,8 @@
 #include "game/animation/scene_effects.h"
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
+#include "game/match_setup/match_end.h"
 #include "game/pitching/pitcher.h"
 #include "game/character_stats.h"
 #include "game/camera/camera.h"
@@ -57,9 +58,9 @@ static void pauseMenu_applyTeamControlOptions(void) {
     for (i = 0; i < 2; i++) {
         if (g_GameLogic.teamIsCPU[i] == FALSE) {
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoRunning != FALSE) {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
             } else {
-                g_GameLogic.battingAIInd[g_GameLogic.homeTeamInd ^ i] = FALSE;
+                g_GameLogic.autoRunningInd[g_GameLogic.homeTeamInd ^ i] = FALSE;
             }
             if (inningSetting.controlOptions[g_GameLogic.teams[i]].autoFielding != FALSE) {
                 g_GameLogic.teamAIInd[g_GameLogic.homeTeamInd ^ i] = TRUE;
@@ -191,7 +192,7 @@ static inline void pauseMenu_syncLineup(void) {
 }
 
 void setPausedTo0AndOtherStateVars(void) {
-    pauseControl._1D5 = 0;
+    pauseControl.isPaused = 0;
     pauseControl._1D6 = 0;
     pauseControl._1D7 = 0;
 }
@@ -234,7 +235,7 @@ void match_checkForPause(void) {
     if (g_Pitcher.pitchTotalTimeCounter > 0) {
         return;
     }
-    if (pauseControl._1D5 != FALSE) {
+    if (pauseControl.isPaused != FALSE) {
         return;
     }
     if (g_Pitcher.pitcherActionState == 2) {
@@ -267,7 +268,7 @@ void match_checkForPause(void) {
         }
     }
 
-    pauseControl._1D5 = TRUE;
+    pauseControl.isPaused = TRUE;
     pauseControl._1D1 = 0;
     pauseControl.state = 0;
     pauseControl.counter = 0;
@@ -310,7 +311,7 @@ void transitionToPauseScreen(void) {
         pauseStateOnStadiums();
     } else {
         atBat_Fielders();
-        running_MainFunction();
+        running_main();
     }
 }
 
@@ -620,7 +621,7 @@ void fn_3_AEC50(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -635,9 +636,9 @@ void fn_3_AEC50(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441C]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441E]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.opponentCaptain]);
                 }
             } else {
                 changeScene(4, 6);
@@ -835,7 +836,7 @@ void fn_3_AE334(void) {
         }
         break;
     case 7:
-        result = ((int (*)(u16))exitMenu_main)((u16)pauseControl._004[1]);
+        result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
             g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -850,9 +851,9 @@ void fn_3_AE334(void) {
         if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441C]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
                 } else {
-                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[((u8 *)starMissionCompletionTracker)[0x441E]]);
+                    challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.opponentCaptain]);
                 }
             } else {
                 changeScene(4, 6);
@@ -1026,12 +1027,12 @@ void positionSwap(void) {
     switch (pauseControl.state) {
     case 0:
         port = pauseControl.port;
-        aiPosSwapInputs._CFA2[port] = (pauseControl._1D1 != 4);
+        g_TeamManagement.teamMenuType[port] = (pauseControl._1D1 != 4); // TEAM_MENU_TYPE_FIELDER_SWAP for option 4, else _BATTER_SWAP
         pauseControl._12 = 0;
         if (pauseControl._1D1 == 0xE || pauseControl._1D1 == 7) {
-            aiPosSwapInputs._CFA2[port] = 2;
+            g_TeamManagement.teamMenuType[port] = TEAM_MENU_TYPE_SCOUT_FLAGS;
         } else if (pauseControl._1D1 == 0xF || pauseControl._1D1 == 8) {
-            aiPosSwapInputs._CFA2[port] = 3;
+            g_TeamManagement.teamMenuType[port] = TEAM_MENU_TYPE_STAR_MISSIONS;
         }
         pauseControl.state = 2;
         break;
@@ -1164,33 +1165,33 @@ void positionSwapScreenInputs(void) {
         port = pauseControl.port;
         for (i = 0; i < 4; i++) {
             if (port == i) {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = val;
-                aiPosSwapInputs.playerInputs[i].newInput = val;
-                aiPosSwapInputs.playerInputs[i].processedInput = val;
+                g_TeamManagement.playerInputs[i].currentHeldInput = val;
+                g_TeamManagement.playerInputs[i].newInput = val;
+                g_TeamManagement.playerInputs[i].processedInput = val;
             } else {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = 0;
-                aiPosSwapInputs.playerInputs[i].newInput = 0;
-                aiPosSwapInputs.playerInputs[i].processedInput = 0;
+                g_TeamManagement.playerInputs[i].currentHeldInput = 0;
+                g_TeamManagement.playerInputs[i].newInput = 0;
+                g_TeamManagement.playerInputs[i].processedInput = 0;
             }
         }
     } else {
         port = pauseControl.port;
         for (i = 0; i < 4; i++) {
             if (port == i) {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = g_Controls[g_GameLogic.teams[port]].buttonInput;
-                aiPosSwapInputs.playerInputs[i].newInput = g_Controls[g_GameLogic.teams[port]].newButtonInput;
-                aiPosSwapInputs.playerInputs[i].processedInput = g_Controls[g_GameLogic.teams[port]]._08;
+                g_TeamManagement.playerInputs[i].currentHeldInput = g_Controls[g_GameLogic.teams[port]].buttonInput;
+                g_TeamManagement.playerInputs[i].newInput = g_Controls[g_GameLogic.teams[port]].newButtonInput;
+                g_TeamManagement.playerInputs[i].processedInput = g_Controls[g_GameLogic.teams[port]]._08;
             } else {
-                aiPosSwapInputs.playerInputs[i].currentHeldInput = 0;
-                aiPosSwapInputs.playerInputs[i].newInput = 0;
-                aiPosSwapInputs.playerInputs[i].processedInput = 0;
+                g_TeamManagement.playerInputs[i].currentHeldInput = 0;
+                g_TeamManagement.playerInputs[i].newInput = 0;
+                g_TeamManagement.playerInputs[i].processedInput = 0;
             }
         }
     }
 
     if (pauseControl._1D1 == 4 || pauseControl._1D1 == 0xB || pauseControl._1D1 == 0xE ||
         (u8)(pauseControl._1D1 - 7) <= 1 || pauseControl._1D1 == 0xF) {
-        if (aiPosSwapInputs.onMainPauseMenu != 0) {
+        if (g_TeamManagement.onMainPauseMenu != 0) {
             pauseControl.state = 5;
             if (pauseControl._1D1 == 4) {
                 for (i = 0; i < 9; i++) {

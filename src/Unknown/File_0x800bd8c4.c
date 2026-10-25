@@ -1,16 +1,12 @@
 #include "Unknown/File_0x800bd8c4.h"
 #include "Unknown/File_0x800acf14.h"
-#include "Unknown/File_0x800b2b4c.h"
-#include "Unknown/File_0x800b4048.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/act.h"
+#include "C3/actor/actorAnim.h"
 #include "game/stadium/stadium_framework.h"
 #include "Dolphin/os.h"
 #include "string.h"
 
 void fn_800B4724(Actor* actor, int value);
-void fn_800B3A78(Actor* actor, Mtx m, int count, ...);
 
 static inline void applyEntryControl(ActorObjectEntry* entry) {
     Control* dst = &entry->actor->worldControl;
@@ -40,7 +36,7 @@ void fn_800BD8C4(ActorObjectTable* table, Mtx m) {
                 setActorAnimFrame(table->entries[i].actor, table->entries[i].frame);
             }
             if (table->entries[i].speedPending) {
-                fn_800B4C04(table->entries[i].actor, table->entries[i].speed);
+                ACTSetSpeed(table->entries[i].actor, table->entries[i].speed);
             }
             if (table->entries[i].boneParam & 2) {
                 updateBoneParam(table->entries[i].actor, (table->entries[i].boneParam & 1) != 0);
@@ -78,34 +74,34 @@ void sknRelated(void* model, Mtx m) {
     }
     switch (entry->drawArgCount) {
     case 0:
-        fn_800B3A78(actor, m, 0);
+        ACTRender(actor, m, 0);
         break;
     case 1:
-        fn_800B3A78(actor, m, 1, entry->drawArgs[0]);
+        ACTRender(actor, m, 1, entry->drawArgs[0]);
         break;
     case 2:
-        fn_800B3A78(actor, m, 2, entry->drawArgs[0], entry->drawArgs[1]);
+        ACTRender(actor, m, 2, entry->drawArgs[0], entry->drawArgs[1]);
         break;
     case 3:
-        fn_800B3A78(actor, m, 3, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2]);
+        ACTRender(actor, m, 3, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2]);
         break;
     case 4:
-        fn_800B3A78(actor, m, 4, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3]);
+        ACTRender(actor, m, 4, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3]);
         break;
     case 5:
-        fn_800B3A78(actor, m, 5, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
+        ACTRender(actor, m, 5, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
                     entry->drawArgs[4]);
         break;
     case 6:
-        fn_800B3A78(actor, m, 6, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
+        ACTRender(actor, m, 6, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
                     entry->drawArgs[4], entry->drawArgs[5]);
         break;
     case 7:
-        fn_800B3A78(actor, m, 7, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
+        ACTRender(actor, m, 7, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
                     entry->drawArgs[4], entry->drawArgs[5], entry->drawArgs[6]);
         break;
     case 8:
-        fn_800B3A78(actor, m, 8, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
+        ACTRender(actor, m, 8, entry->drawArgs[0], entry->drawArgs[1], entry->drawArgs[2], entry->drawArgs[3],
                     entry->drawArgs[4], entry->drawArgs[5], entry->drawArgs[6], entry->drawArgs[7]);
         break;
     }

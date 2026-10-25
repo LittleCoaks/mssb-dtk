@@ -11,7 +11,7 @@ extern void fn_800A97D0(s32 arg0, s32 arg1);
 // .text:0x0006D4A0 size:0xC4 mapped:0x806AC534
 void resetInputTrackers(void) {
     int i;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < PAD_MAX_CONTROLLERS; i++) {
         g_Controls[i].controlStickAngle = 0;
         g_Controls[i].controlStickMagnitude = 0;
         g_Controls[i].buttonInput = 0;
@@ -28,10 +28,10 @@ void resetInputTrackers(void) {
 // .text:0x0006D304 size:0x19C mapped:0x806AC398
 void UpdateControllerInputs(void) {
     int i;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < PAD_MAX_CONTROLLERS; i++) {
         InputStruct* c = &g_Controls[i];
         lbl_803C77B8_s* src = (lbl_803C77B8_s*)((u8*)&AtBat_ButtonInput1 + i * 0x20);
-        u16 prev;
+        E(u16, INPUT_BUTTON) prev;
         c->_0E = 0;
         prev = c->buttonInput;
         c->buttonInput = src->_00;
@@ -74,30 +74,30 @@ void InterpretControllerInputsIntoMagnitude(int port) {
     x = g_Controls[port].up_down;
     mag = dolsqrtf2(z * z + x * x) - 16.0f;
     if (mag <= 0.0f) {
-        u16 in = g_Controls[port].buttonInput;
+        E(u16, INPUT_BUTTON) in = g_Controls[port].buttonInput;
         if ((in & INPUT_BUTTON_UP) && (in & INPUT_BUTTON_RIGHT)) {
-            g_Controls[port].controlStickAngle = 0x200;
+            g_Controls[port].controlStickAngle = (SANG_ANG_90 / 2);
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if ((in & INPUT_BUTTON_UP) && (in & INPUT_BUTTON_LEFT)) {
-            g_Controls[port].controlStickAngle = 0x600;
+            g_Controls[port].controlStickAngle = (SANG_ANG_90 + SANG_ANG_90 / 2);
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if ((in & INPUT_BUTTON_DOWN) && (in & INPUT_BUTTON_RIGHT)) {
-            g_Controls[port].controlStickAngle = 0xE00;
+            g_Controls[port].controlStickAngle = (SANG_ANG_270 + SANG_ANG_90 / 2);
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if ((in & INPUT_BUTTON_DOWN) && (in & INPUT_BUTTON_LEFT)) {
-            g_Controls[port].controlStickAngle = 0xA00;
+            g_Controls[port].controlStickAngle = (SANG_ANG_180 + SANG_ANG_90 / 2);
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if (in & INPUT_BUTTON_UP) {
-            g_Controls[port].controlStickAngle = 0x400;
+            g_Controls[port].controlStickAngle = SANG_ANG_90;
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if (in & INPUT_BUTTON_RIGHT) {
             g_Controls[port].controlStickAngle = 0;
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if (in & INPUT_BUTTON_DOWN) {
-            g_Controls[port].controlStickAngle = 0xC00;
+            g_Controls[port].controlStickAngle = SANG_ANG_270;
             g_Controls[port].controlStickMagnitude = 0x40;
         } else if (in & INPUT_BUTTON_LEFT) {
-            g_Controls[port].controlStickAngle = 0x800;
+            g_Controls[port].controlStickAngle = SANG_ANG_180;
             g_Controls[port].controlStickMagnitude = 0x40;
         } else {
             g_Controls[port].controlStickAngle = -1;
@@ -111,13 +111,13 @@ void InterpretControllerInputsIntoMagnitude(int port) {
         if (magnitude != 0) {
             int r;
             f32 k;
+            f32 scale = 0.27208483f;
             angle = radToShortAngle(atan2(x, z));
-            r = angle % 1024;
-            if (r > 512) {
-                r = 1024 - r;
+            r = angle % SANG_ANG_90;
+            if (r > SANG_ANG_90 / 2) {
+                r = SANG_ANG_90 - r;
             }
-            k = (f32)r / 512.0f;
-            k = k * 0.27208483f;
+            k = ((f32)r / 512.0f) * scale;
             z += z * k;
             x += x * k;
             g_Controls[port].right_left = z;

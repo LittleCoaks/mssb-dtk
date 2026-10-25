@@ -10,7 +10,7 @@
 #include "game/math/game_math.h"
 #include "game/minigame/minigame_models.h"
 #include "game/stadium/stadium_framework.h"
-#include "Unknown/File_0x800bf038.h"
+#include "Unknown/File_0x800bde8c.h"
 #include "Unknown/File_0x8003a538.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
@@ -108,10 +108,10 @@ extern f32 resultsFielderMinigameOffsets[7][4];
 extern s16 minigameResultsFrames[2];
 
 extern void applyUniformScaleToObject(f32 scale, int model);
-extern void fn_3_14A070(s32 *values, int count);
-extern void fn_3_149BA8(void);
-extern void fn_3_15FA58(int count, s32 *values);
-extern void fn_3_15F9AC(void);
+extern void minigameWinnerStars_setWinners(s32 *values, int count);
+extern void minigameWinnerStars_spawn(void);
+extern void minigameWinnerSpotlight_start(int count, s32 *values);
+extern void minigameWinnerSpotlight_show(void);
 extern void animateShadows_nonBall(void);
 extern void toyfield_drawHud(void);
 extern void minigameGraphics(void);
@@ -600,7 +600,7 @@ void minigameUpdateResultsScene(void) {
         }
 
         if (tWon == FALSE || count == 1) {
-            fn_3_14A070(values, count);
+            minigameWinnerStars_setWinners(values, count);
             if (canShow && g_d_GameSettings.minigamesEnabled != 0) {
                 if (count == 1) {
                     values[1] = values[0];
@@ -610,7 +610,7 @@ void minigameUpdateResultsScene(void) {
                     values[3] = values[1];
                     count = 4;
                 }
-                fn_3_15FA58(count, values);
+                minigameWinnerSpotlight_start(count, values);
             }
         }
     }
@@ -634,9 +634,9 @@ void minigameUpdateResultsScene(void) {
             }
             if (ok) {
                 if (g_d_GameSettings.minigamesEnabled != 0) {
-                    fn_3_15F9AC();
+                    minigameWinnerSpotlight_show();
                 }
-                fn_3_149BA8();
+                minigameWinnerStars_spawn();
             }
         }
     }

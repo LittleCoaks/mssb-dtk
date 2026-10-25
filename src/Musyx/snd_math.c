@@ -8,7 +8,7 @@ void salApplyMatrix(const SND_FMATRIX* mat, const SND_FVECTOR* in, SND_FVECTOR* 
 }
 
 float salNormalizeVector(SND_FVECTOR* vec) {
-  float l = __frsqrte(vec->x * vec->x + vec->y * vec->y + vec->z * vec->z);
+  float l = dolsqrtf(vec->x * vec->x + vec->y * vec->y + vec->z * vec->z);
   vec->x /= l;
   vec->y /= l;
   vec->z /= l;
@@ -22,10 +22,10 @@ void salCrossProduct(SND_FVECTOR* out, const SND_FVECTOR* a, const SND_FVECTOR* 
 }
 
 void salInvertMatrix(SND_FMATRIX* out, const SND_FMATRIX* in) {
-  float a; // r62
-  float b; // r61
-  float c; // r60
-  float f; // r63
+  float a;
+  float b;
+  float c;
+  float f;
 
   a = in->m[1][1] * in->m[2][2] - in->m[2][1] * in->m[1][2];
   b = -(in->m[1][0] * in->m[2][2] - in->m[2][0] * in->m[1][2]);

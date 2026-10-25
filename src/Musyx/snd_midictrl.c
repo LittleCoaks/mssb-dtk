@@ -216,10 +216,10 @@ void inpSetMidiCtrl14(u8 ctrl, u8 channel, u8 set, u16 value) {
   if (ctrl < 64) {
     inpSetMidiCtrl(ctrl & 31, channel, set, value >> 7);
     inpSetMidiCtrl((ctrl & 31) + 32, channel, set, value & 0x7f);
-  } else if (ctrl == 128 || ctrl == 129) {
+  } else if (ctrl == SND_MIDICTRL_PITCHBEND || ctrl == 129) {
     inpSetMidiCtrl(ctrl & 254, channel, set, value >> 7);
     inpSetMidiCtrl((ctrl & 254) + 1, channel, set, value & 0x7f);
-  } else if (ctrl == 132 || ctrl == 133) {
+  } else if (ctrl == SND_MIDICTRL_DOPPLER || ctrl == 133) {
     inpSetMidiCtrl(ctrl & 254, channel, set, value >> 7);
     inpSetMidiCtrl((ctrl & 254) + 1, channel, set, value & 0x7f);
   } else {
@@ -373,7 +373,7 @@ void inpFXCopyCtrl(u8 ctrl, SYNTH_VOICE* dvoice, SYNTH_VOICE* svoice) {
 }
 
 void inpSetMidiLastNote(u8 midi, u8 midiSet, u8 key) {
-  if (midiSet != 0xFF) {
+  if (midiSet != SYNTH_FX_MIDISET) {
     midi_lastNote[midiSet][midi] = key;
   } else {
     fx_lastNote[midi] = key;
@@ -381,7 +381,7 @@ void inpSetMidiLastNote(u8 midi, u8 midiSet, u8 key) {
 }
 
 u8 inpGetMidiLastNote(u8 midi, u8 midiSet) {
-  if (midiSet != 0xFF) {
+  if (midiSet != SYNTH_FX_MIDISET) {
     return midi_lastNote[midiSet][midi];
   }
   return fx_lastNote[midi];
@@ -496,6 +496,14 @@ u16 inpGetPostAuxB(SYNTH_VOICE* svoice) {
 
 u16 inpGetTremolo(SYNTH_VOICE* svoice) {
   return GetInputValue(svoice, &svoice->inpTremolo, 0x1000);
+}
+
+u16 inpGetFilterSwitch(SYNTH_VOICE* svoice) {
+  return GetInputValue(svoice, &svoice->inpFilterSwitch, 0x2000);
+}
+
+u16 inpGetFilterParameter(SYNTH_VOICE* svoice) {
+  return GetInputValue(svoice, &svoice->inpFilterParameter, 0x4000);
 }
 
 u16 inpGetAuxA(u8 studio, u8 index, u8 midi, u8 midiSet) {

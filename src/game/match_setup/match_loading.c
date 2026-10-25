@@ -1,13 +1,16 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_loading.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_matchLoading
+#include "header_rep_data.h"
 #include "game/match_setup/loading_state.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80035838.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
+#include "game/stadium/stadium_draw.h"
 
 typedef struct {
     /* 0x000 */ u8 _000[0xC];
@@ -35,7 +38,6 @@ extern u8 animRelated[0x124];
 extern u8 lbl_8037169C[0x1C];
 extern s8 lbl_803C6CF8[0x708];
 extern u8 lbl_3_common_bss_35154[0x480];
-extern u8 FrameCountOfEntireGame[0x14];
 extern u8 audioFileDescriptors[0x39C];
 extern MatchFileDescriptor CharacterFiles[];
 
@@ -57,7 +59,7 @@ extern void practice_loadCharacterData(void);
 extern void fn_8001A3FC(int);
 extern void fn_80019A60(void);
 extern void fn_8001A25C(void);
-extern int fn_3_1665E4(void);
+extern int practiceModel_loadStep(void);
 extern void loadSomeDataFile(void);
 extern void someAllocFunction(void);
 extern int maybeLoadHUDObjectFromMemory(void);
@@ -204,12 +206,12 @@ void fn_3_5A28C(void) {
         }
         break;
     case 8:
-        FrameCountOfEntireGame[0x10] = 0;
+        FrameCountOfEntireGame.loadingDone = FALSE;
         insertGraphicDrawingFunction(manageLoadingState, 0);
         g_UnkSimulation_31AC0.step++;
         break;
     case 9:
-        if (FrameCountOfEntireGame[0x10] != 0) {
+        if (FrameCountOfEntireGame.loadingDone != 0) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -395,12 +397,12 @@ void fn_3_59C2C(void) {
         }
         break;
     case 4:
-        FrameCountOfEntireGame[0x10] = 0;
+        FrameCountOfEntireGame.loadingDone = FALSE;
         insertGraphicDrawingFunction(manageLoadingState, 0);
         g_UnkSimulation_31AC0.step++;
         break;
     case 5:
-        if (FrameCountOfEntireGame[0x10] == 1) {
+        if (FrameCountOfEntireGame.loadingDone == TRUE) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -450,7 +452,7 @@ void fn_3_59C2C(void) {
         }
         break;
     case 14:
-        if (fn_3_1665E4()) {
+        if (practiceModel_loadStep()) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -521,7 +523,7 @@ void initializeSomethingDuringTransition(void) {
     }
     g_UnkSound_32718._00 = 0;
     g_UnkSound_32718._07 = 0;
-    g_UnkSound_32718._08 = 0;
+    g_UnkSound_32718.hudPopupCode = 0;
 }
 
 // .text:0x00059918 size:0x178 mapped:0x806989AC

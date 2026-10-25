@@ -7,27 +7,23 @@
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800acf14.h"
-#include "Unknown/File_0x800bd300.h"
 #include "Unknown/File_0x8001fc4c.h"
-#include "Unknown/File_0x800b2b74.h"
-#include "Unknown/DisplayObject.h"
+#include "C3/actor/act.h"
+#include "C3/geoPalette/DisplayObject.h"
 #include "Unknown/sub.h"
 #include "Unknown/File_0x800bdd74.h"
-#include "Unknown/File_0x800bcd60.h"
-#include "Unknown/File_0x800bd190.h"
+#include "C3/geoPalette/geoPalette.h"
 #include "Unknown/File_0x800bdc88.h"
-#include "Unknown/File_0x800bd2b0.h"
 #include "Unknown/File_0x800bda94.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800b4bc8.h"
-#include "Unknown/File_0x800b2b4c.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x80052968.h"
 #include "Unknown/File_0x800b0724.h"
 #include "Unknown/File_0x80039aa8.h"
-#include "Unknown/File_0x800bfe90.h"
+#include "C3/skinning.h"
+#include "Unknown/File_0x800c0770.h"
 #include "Dolphin/GX/GXFifo.h"
 #include "Dolphin/GX/GXGeometry.h"
 #include "Dolphin/GX/GXLight.h"
@@ -84,6 +80,10 @@ extern void LITAlloc(void **light);
 extern void LITInitAttn(void *light, f32 a0, f32 a1, f32 a2, f32 k0, f32 k1, f32 k2);
 extern void LITInitPos(void *light, f32 x, f32 y, f32 z);
 extern void LITInitDir(void *light, f32 x, f32 y, f32 z);
+/* Not C3/light/light.h: this unit passes LITInitColor its colour by value (the target
+ * makes the copy), which light.h's GXColor* prototype would not allow. */
+extern void LITXForm(void *arg0, void *arg1);
+extern void adjustLightingParams(u8 enable, GXColor color);
 extern void LITInitColor(void *light, GXColor color);
 extern void fn_1_26B7C(void *slot);
 extern void fn_8004B1B8(void *p);
@@ -3581,7 +3581,7 @@ void fn_1_12F8C(DbgActorTbl *objs, Mtx cam) {
                 setActorAnimFrame(o->model, o->frame);
             }
             if (o->speedPending != 0) {
-                fn_800B4C04(o->model, o->speed);
+                ACTSetSpeed((Actor *)o->model, o->speed);
             }
             if (o->boneParam & 2) {
                 updateBoneParam(o->model, (o->boneParam & 1) != 0);

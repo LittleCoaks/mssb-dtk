@@ -1,20 +1,17 @@
 #define SQRT2_LINKAGE static
 #include "game/stats/result_stats.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
 
 extern void starMissionsWholeGame(void);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
 extern u8 lbl_3_data_60F8[10];
 extern u8 lbl_80354768[];
-extern u8 characterStaticIndexes[0x144];
 extern u8 pitchingInfo_A_H[2][9][5];
 extern u8 abResultList[2][100];
-extern struct {
-    u8 _00[0x40];
-    s16 humanTeam;
-} lbl_3_common_bss_37400;
 
 #define MVP_LEADER(team) (&storedInningInfo.mvpLeader)[(team) * 2]
 #define MVP_POINTS(team) (&storedInningInfo.mvpLeader)[(team) * 2 + 1]
@@ -169,7 +166,7 @@ mvpChosen:
             (g_d_GameSettings.p2_CPU_match_code == 3 && mvpTeam == 1)) {
             if (g_Scores.inningLimit >= 5 && StatsScreenScores.mvpKind == 1) {
                 if (g_d_GameSettings.exhibitionMatchInd != 0) {
-                    lbl_80354768[0xCF18 + characterStaticIndexes[StatsScreenScores.mvpCharID * 6 + 1]] = 1;
+                    lbl_80354768[0xCF18 + characterStaticIndexes[StatsScreenScores.mvpCharID].trackerIdx] = 1;
                 }
                 g_GameLogic._13D = 1;
             }
@@ -332,7 +329,7 @@ void endOfGameStats_MVP(void) {
         SAT_INC_U8(PitcherStats_P1_P2[StatsScreenScores.winnerSlot][StatsScreenScores.winningPitcher]._13[0]);
         if (g_Scores._BB[g_Scores.winnerCd] == 1) {
             SAT_INC_U8(PitcherStats_P1_P2[StatsScreenScores.winnerSlot][StatsScreenScores.winningPitcher]._13[4]);
-            if (*(u16*)&StatsScreenScores.scores[StatsScreenScores.winnerSlot ^ 1].total == 0) {
+            if (StatsScreenScores.scores[StatsScreenScores.winnerSlot ^ 1].total == 0) {
                 SAT_INC_U8(PitcherStats_P1_P2[StatsScreenScores.winnerSlot][StatsScreenScores.winningPitcher]._13[5]);
                 tracker = storedInningInfo.noHitterTracker[g_Scores.winnerCd];
                 if (tracker == 1) {
@@ -392,16 +389,16 @@ void steal_pickoff_incrementSteal_runsStats(void) {
     int runs;
 
     for (i = 1; i < 4; i++) {
-        if ((g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_ON_FIELD ||
-             g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) &&
+        if ((g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD ||
+             g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) &&
             i != g_Runners[i].currentBase) {
-            if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd == 3 && g_Runners[i].furthestBaseForcedToGoToOnWalk == 0) {
+            if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Runners[i].steal_forcedBaseToGoToOnWalk == STEAL_FORCED_BASE_NONE) {
                 continue;
             }
             if (g_Runners[i].forceOutCd <= 0) {
                 SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].BasesStolen);
-                if (g_d_GameSettings.exhibitionMatchInd == 0 && lbl_3_common_bss_37400.humanTeam == g_GameLogic.teamBatting) {
-                    starMissionsQuantityBased(10, g_Runners[i].rosterID);
+                if (g_d_GameSettings.exhibitionMatchInd == 0 && scoutState.humanTeam == g_GameLogic.teamBatting) {
+                    starMissionsQuantityBased(STAR_MISSION_EVENT_STOLEN_BASE, g_Runners[i].rosterID);
                 }
             }
         }
@@ -412,11 +409,11 @@ void steal_pickoff_incrementSteal_runsStats(void) {
         if (runs <= 0) {
             break;
         }
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].runs);
             runs--;
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == lbl_3_common_bss_37400.humanTeam) {
-                starMissionsQuantityBased(11, g_Runners[i].rosterID);
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == scoutState.humanTeam) {
+                starMissionsQuantityBased(STAR_MISSION_EVENT_RUN_SCORED, g_Runners[i].rosterID);
             }
         }
     }
@@ -569,26 +566,26 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
         if (runs <= 0) {
             break;
         }
-        if (g_Runners[i].runnerOnFieldOrOutOrScored == RUNNER_STATUS_SCORED_DURING_PLAY) {
+        if (g_Runners[i].runnerStatus == RUNNER_STATUS_SCORED_DURING_PLAY) {
             SAT_INC_U8(BatterStats_P1_P2[g_GameLogic.teamBatting][g_Runners[i].rosterID].runs);
             runs--;
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == lbl_3_common_bss_37400.humanTeam) {
-                starMissionsQuantityBased(11, g_Runners[i].rosterID);
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && g_GameLogic.teamBatting == scoutState.humanTeam) {
+                starMissionsQuantityBased(STAR_MISSION_EVENT_RUN_SCORED, g_Runners[i].rosterID);
             }
         }
     }
 
     g_Scores._B1[g_GameLogic.awayTeamBattingInd_battingTeam] = pitcherSlot;
     SAT_INC_U16(pitcher->battersFaced);
-    if (pitcher->outsAsPitcher < 0xFF - g_Strikes.outs - g_Strikes.storedOuts) {
-        pitcher->outsAsPitcher += g_Strikes.outs - g_Strikes.storedOuts;
+    if (pitcher->outsAsPitcher < 0xFF - g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts) {
+        pitcher->outsAsPitcher += g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts;
     } else {
         pitcher->outsAsPitcher = 0xFF;
     }
     if (g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total >
         g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total) {
         pitchingInfo_A_H[g_GameLogic.awayTeamBattingInd_battingTeam][pitcherSlot][0] +=
-            g_Strikes.outs - g_Strikes.storedOuts;
+            g_BallsStrikesOuts.outs - g_BallsStrikesOuts.storedOuts;
     }
     if (result >= AT_BAT_RESULT_SINGLE && result <= AT_BAT_RESULT_HOME_RUN) {
         SAT_INC_U16(pitcher->hitsAllowed);
@@ -600,8 +597,8 @@ void updateStatsBasedOnABResult(int rosterID, int result, int fielder, int rbis)
         SAT_INC_U8(pitcher->strikeouts);
     }
     if (result == AT_BAT_RESULT_WALK) {
-        if (g_Strikes._1E >= 0) {
-            SAT_INC_U16(PitcherStats_P1_P2[g_GameLogic.teamFielding][g_Strikes._1E].walks);
+        if (g_BallsStrikesOuts._1E >= 0) {
+            SAT_INC_U16(PitcherStats_P1_P2[g_GameLogic.teamFielding][g_BallsStrikesOuts._1E].walks);
         } else {
             SAT_INC_U16(pitcher->walks);
         }

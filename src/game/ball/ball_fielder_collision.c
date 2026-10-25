@@ -7,8 +7,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x8001b728.h"
 #include "Unknown/File_0x800527c4.h"
-#include "Unknown/File_0x80033794.h"
-#include "Unknown/File_0x80033f64.h"
+#include "Unknown/particle_effects.h"
 #include "game/stadium/stadium_framework.h"
 #include "musyx/musyx.h"
 #include "game/sound/m_sound.h"
@@ -104,21 +103,21 @@ void processBallFielderCollision(u8 source) {
         }
         if (fielder->currentVelocity < 0.1f) {
             return;
+        } else {
+            memcpy(&pos, &fielder->pos, sizeof(Vec));
+            pos.y = threshold;
         }
-        memcpy(&pos, &fielder->pos, sizeof(Vec));
-        pos.y = threshold;
     } else {
         speed = PSVECMag((Vec*)&g_Ball.physicsSubstruct.velocity);
-        if (g_Ball.AtBat_Contact_BallPos.y <= threshold) {
-            if ((g_Ball.maybeCollisionRelated & 0x7F) == BALL_COLLISION_TYPE_ROUGH_TERRAIN &&
-                g_Ball.pastCoordinates[0].y <= threshold) {
-                return;
-            }
-            if (speed >= 0.05) {
-                memcpy(&pos, &g_Ball.AtBat_Contact_BallPos, sizeof(Vec));
-            } else {
-                return;
-            }
+        if (!(g_Ball.AtBat_Contact_BallPos.y <= threshold)) {
+            return;
+        }
+        if ((g_Ball.maybeCollisionRelated & 0x7F) == BALL_COLLISION_TYPE_ROUGH_TERRAIN &&
+            !(g_Ball.pastCoordinates[0].y > threshold)) {
+            return;
+        }
+        if (speed >= 0.05) {
+            memcpy(&pos, &g_Ball.AtBat_Contact_BallPos, sizeof(Vec));
         } else {
             return;
         }
@@ -252,12 +251,14 @@ void fn_3_16C878(Vec* pos, DustEmitter* emitter, int count) {
 
 // .text:0x0016C548 size:0x330 mapped:0x807AB5DC
 BOOL fn_3_16C548(DustEmitter* emitter) {
-    int alive = 0;
     DustParticle* p;
     DustParticle** link;
-    DustParticle* deadTail;
     DustParticle* deadHead;
+    DustParticle* deadTail;
+    int alive;
     int alpha;
+
+    alive = 0;
 
     p = emitter->particles = fn_80031F34(emitter->particles, emitter->count);
     link = &emitter->particles;
@@ -270,7 +271,7 @@ BOOL fn_3_16C548(DustEmitter* emitter) {
             setParticleXform(p->scaleX, p->scaleY, p->rot);
             fn_80033CC8(p, (int)emitter->texture);
             if (p->lifetime < lbl_3_data_2A408.fadeFrames) {
-                alpha = p->alpha - 255.0f / lbl_3_data_2A408.fadeFrames;
+                alpha = (int)p->alpha - 255.0f / lbl_3_data_2A408.fadeFrames;
                 if (alpha < 0) {
                     alpha = 0;
                 }
@@ -310,10 +311,12 @@ BOOL fn_3_16C548(DustEmitter* emitter) {
         p = *link;
     } while (p != NULL);
     if (deadHead != NULL) {
-        for (p = deadHead; p != NULL; p = p->next) {
+        p = deadHead;
+        do {
             p->_4C = 0;
             p->rotDir = 0;
-        }
+            p = p->next;
+        } while (p != NULL);
         fn_80033794(deadHead);
     }
     return alive == 0;

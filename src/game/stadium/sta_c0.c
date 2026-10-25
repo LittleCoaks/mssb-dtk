@@ -1,3 +1,4 @@
+#define SQRT2_LINKAGE static
 #include "game/stadium/sta_c0.h"
 #include "header_rep_data.h"
 #include "game/stadium/stadium_framework.h"
@@ -17,11 +18,12 @@
 #include "Unknown/File_0x80025ddc.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
-#include "Unknown/File_0x800b4b38.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bdc88.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // One entry per outfield tree (10 slots; `usedFlag == 4` ends the list).
 typedef struct _MarioTreePlacement {
@@ -107,169 +109,68 @@ static int emitterID;
 static u32 scrollDelay;
 static u32 lbl_3_bss_9F38;
 
-// .text:0x000C9744 size:0x134 mapped:0x807087D8
-void manageMarioStadiumSoundEmmitters(void) {
-    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE &&
-        g_GameLogic.gameStatus != GAME_STATUS_MINIGAME_READY) {
-        if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
-            if (!emitterPaused) {
-                updateAndRemoveStadiumEmitter(emitterID);
-                if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-                    updateAndRemoveStadiumEmitter(seagullEmitterID);
-                }
-                emitterPaused = TRUE;
-            }
-        } else if (emitterPaused) {
-            emitterID =
-                initializeStadiumObjectEmitter(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID] + 1, NULL, NULL, 1);
-            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-                seagullEmitterID = randomizeAndLoadSoundEffect(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID], 0);
-            }
-            emitterPaused = FALSE;
-        } else {
-            updateOrRemoveEmitter(emitterID, NULL, NULL);
-            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
-                updateOrRemoveEmitter(seagullEmitterID, NULL, NULL);
-            }
-        }
-    }
-}
-
-// .text:0x000C9878 size:0x180 mapped:0x8070890C
-void fanAnimationRelated(void) {
-    StadiumCrowdWave* wave = stadiumObjectCollision.crowdWave;
-    Vec view;
-    Vec facing = crowdFacing;
-    camera_803c639c_s* cam;
-    u32 mode;
-    f32 reach;
-    u8* state;
-    u8* row;
-    u8 pose;
+static inline void applyMarioStadiumLights(void) {
     int i;
 
-    if (wave == NULL) {
-        return;
-    }
-    GXSetZCompLoc(GX_DISABLE);
-    mode = returnsCurrentMode();
-    switch (g_GameLogic.gameStatus) {
-    default:
-        if (g_Stats.replayInd == 0) {
-            cam = returnFloatFromModeIndex(mode);
-            PSVECSubtract(&cam->target, &cam->eye, &view);
-            view.y = 0.0f;
-            reach = wave->cosAngle * PSVECMag(&view);
-            pose = PSVECDotProduct(&view, &facing) > reach;
-            break;
-        }
-        // fallthrough
-    case GAME_STATUS_PAUSED:
-    case GAME_STATUS_INNING_TRANSITION:
-    case GAME_STATUS_HOMERUN_END:
-    case GAME_STATUS_HOMERUN_LAP:
-    case GAME_STATUS_BATTER_CELEBRATION:
-    case GAME_STATUS_STAR_CHANCE_VS:
-    case GAME_STATUS_CHAMPIONSHIP:
-        pose = 0;
-        break;
-    }
-    row = &wave->pattern[mode * 12];
-    state = row + pose;
-    for (i = 0; i < wave->rowCount; i++) {
-        ((MarioCrowdRecord*)wave->frames)[row[0]].frame = state[1];
-        ((MarioCrowdRecord*)wave->frames)[row[3]].frame = state[4];
-        row += 6;
-        state += 6;
+    for (i = 0; i < stadiumObjectCollision.propCount; i++) {
+        fn_800BD548(MARIO_ANIM_TABLE + i * 0x90 + 0x34, 4, stadiumObjectCollision.lights[0],
+                    stadiumObjectCollision.lights[1], stadiumObjectCollision.lights[2],
+                    stadiumObjectCollision.lights[3]);
     }
 }
 
-// .text:0x000C99F8 size:0x68 mapped:0x80708A8C
-void fn_3_C99F8(StadiumObject* obj) {
-    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
-        obj->hasShadow = 0;
-    } else {
-        obj->hasShadow = 1;
-        AnimateActorBones(((ACTActor*)obj->model)->actor);
-    }
-}
+static inline void initMarioCrowd(void) {
+    MarioCrowdSeat* seat;
+    int i;
+    int k;
 
-// .text:0x000C9A60 size:0x68 mapped:0x80708AF4
-void fn_3_C9A60(StadiumObject* obj) {
-    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
-        obj->hasShadow = 0;
-    } else {
-        obj->hasShadow = 1;
-        AnimateActorBones(((ACTActor*)obj->model)->actor);
-    }
-}
-
-// .text:0x000C9AC8 size:0x94 mapped:0x80708B5C
-void fn_3_C9AC8(void) {
-    fn_3_B9510(0);
-    fn_3_B9510(1);
-    GXLoadTexObj(&noiseTexObj, GX_TEXMAP7);
-    GXSetIndTexOrder(GX_IND_TEX_STAGE_0, GX_TEXCOORD0, GX_TEXMAP7);
-    GXSetNumIndStages(1);
-    GXSetIndTexCoordScale(GX_IND_TEX_STAGE_0, GX_ITS_1, GX_ITS_1);
-    GXSetTevIndWarp(GX_TEVSTAGE0, GX_IND_TEX_STAGE_0, GX_DISABLE, GX_DISABLE, GX_ITM_0);
-    GXSetTevIndWarp(GX_TEVSTAGE1, GX_IND_TEX_STAGE_0, GX_DISABLE, GX_DISABLE, GX_ITM_0);
-}
-
-// .text:0x000C9B5C size:0x138 mapped:0x80708BF0
-void fn_3_C9B5C(StadiumObject* obj) {
-    u32 x;
-    u32 y;
-    int offset;
-    s8 prev;
-    s8 cur;
-
-    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
-        obj->hasShadow = 0;
-    } else {
-        obj->hasShadow = 1;
-        if (scrollDelay < 3) {
-            scrollDelay++;
+    stadiumObjectCollision.crowd->layout = lbl_3_data_10F7C;
+    seat = lbl_3_data_11048;
+    stadiumObjectCollision.crowd->sequence = lbl_3_data_10F88;
+    stadiumObjectCollision.crowd->frames = (u8*)g_UNK_StadiumDetails._00 + 0x60;
+    stadiumObjectCollision.crowd->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x40;
+    stadiumObjectCollision.crowd->fanCount = 0x20;
+    stadiumObjectCollision.crowd->framesPerLoop = 6;
+    stadiumObjectCollision.crowd->phaseRange = 5;
+    for (i = 0, k = 0; i < 0x20; i++, k += 3, seat++) {
+        stadiumObjectCollision.crowd->fans[k] = seat->type;
+        if (seat->frame < 6) {
+            stadiumObjectCollision.crowd->fans[k + 1] = seat->frame;
         } else {
-            for (x = 0; x < 128; x++) {
-                for (y = 0; y < 64; y++) {
-                    if (y == 0) {
-                        prev = noiseTex[fn_800247E4(x, 63, 128, 2)];
-                    }
-                    offset = fn_800247E4(x, y, 128, 2);
-                    cur = noiseTex[offset];
-                    noiseTex[offset] = prev;
-                    prev = cur;
-                }
-            }
-            scrollDelay = 0;
-            DCFlushRange(noiseTex, 128 * 64 * 2);
+            stadiumObjectCollision.crowd->fans[k + 1] = rand() % 6;
+        }
+        if (seat->phase < 5) {
+            stadiumObjectCollision.crowd->fans[k + 2] = seat->phase;
+        } else {
+            stadiumObjectCollision.crowd->fans[k + 2] = rand() % stadiumObjectCollision.crowd->phaseRange;
         }
     }
 }
 
-// .text:0x000C9C94 size:0x120 mapped:0x80708D28
-void sta_c0(void) {
-    f32 m[2][3];
-    u32 x;
-    u32 y;
-    int offset;
+static inline void initMarioCrowdAlt(void) {
+    MarioCrowdSeat* seat;
+    int i;
+    int k;
 
-    m[0][0] = 0.5f;
-    m[0][1] = 0.0f;
-    m[0][2] = 0.0f;
-    m[1][0] = 0.0f;
-    m[1][1] = 0.0f;
-    m[1][2] = 0.0f;
-    GXSetIndTexMtx(GX_ITM_0, m, 2);
-    noiseTex = fn_3_B9534(128, 64, &noiseTexObj);
-    if (noiseTex == NULL) {
-        OSPanic("sta_c0.c", 0x29F, "error\n");
-    }
-    for (y = 0; y < 64; y++) {
-        for (x = 0; x < 128; x++) {
-            offset = fn_800247E4(x, y, 128, 2);
-            noiseTex[offset] = (u8)(rand() % 4) + 0x7E;
+    stadiumObjectCollision.crowdAlt->layout = lbl_3_data_10F84;
+    seat = lbl_3_data_11108;
+    stadiumObjectCollision.crowdAlt->sequence = lbl_3_data_11008;
+    stadiumObjectCollision.crowdAlt->frames = (u8*)g_UNK_StadiumDetails._00 + 0xA0;
+    stadiumObjectCollision.crowdAlt->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x80;
+    stadiumObjectCollision.crowdAlt->fanCount = 0x10;
+    stadiumObjectCollision.crowdAlt->framesPerLoop = 2;
+    stadiumObjectCollision.crowdAlt->phaseRange = 8;
+    for (i = 0, k = 0; i < 0x10; i++, k += 3, seat++) {
+        stadiumObjectCollision.crowdAlt->fans[k] = seat->type;
+        if (seat->frame < 2) {
+            stadiumObjectCollision.crowdAlt->fans[k + 1] = seat->frame;
+        } else {
+            stadiumObjectCollision.crowdAlt->fans[k + 1] = rand() % 6;
+        }
+        if (seat->phase < 8) {
+            stadiumObjectCollision.crowdAlt->fans[k + 2] = seat->phase;
+        } else {
+            stadiumObjectCollision.crowdAlt->fans[k + 2] = rand() % stadiumObjectCollision.crowdAlt->phaseRange;
         }
     }
 }
@@ -285,7 +186,6 @@ void loadMarioStadium(void** files) {
     int i;
     u32 size;
     u8 done = FALSE;
-    MarioCrowdSeat* seat;
     MarioTreePlacement* cfg;
     MarioStadiumObj* m;
     int k;
@@ -311,16 +211,18 @@ void loadMarioStadium(void** files) {
     }
     stadiumObjectCollision.propCount = treeCount + 3;
     MARIO_ANIM_TABLE = ActorObjectInitTable(treeCount + 3);
-    animateBallRelated(MARIO_ANIM_TABLE, 0, 0, files[ids[1]], 0, 0);
+    slot = 0;
+    animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[1]], 0, 0);
+    slot++;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        animateBallRelated(MARIO_ANIM_TABLE, 1, 1, files[ids[4]], (int)files[ids[4] + 2], 0);
-        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + 0xC4), (u32)files[ids[4] + 2]);
+        animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[4]], (int)files[ids[4] + 2], 0);
+        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[4] + 2]);
     } else {
-        animateBallRelated(MARIO_ANIM_TABLE, 1, 1, files[ids[2]], (int)files[ids[2] + 2], 0);
-        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + 0xC4), (u32)files[ids[2] + 2]);
+        animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[2]], (int)files[ids[2] + 2], 0);
+        actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[2] + 2]);
     }
-    slot = 2;
-    for (t = 0; t < treeCount; t++, slot++) {
+    slot++;
+    for (t = 0; t < treeCount; t++) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
             animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[5]], (int)files[ids[5] + 2], 0);
             actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[5] + 2]);
@@ -328,13 +230,10 @@ void loadMarioStadium(void** files) {
             animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[3]], (int)files[ids[3] + 2], 0);
             actorSetAnimBank((ACTActor*)(MARIO_ANIM_TABLE + slot * 0x90 + 0x34), (u32)files[ids[3] + 2]);
         }
+        slot++;
     }
     animateBallRelated(MARIO_ANIM_TABLE, slot, slot, files[ids[6]], 0, 0);
-    for (i = 0; i < stadiumObjectCollision.propCount; i++) {
-        fn_800BD548(MARIO_ANIM_TABLE + i * 0x90 + 0x34, 4, stadiumObjectCollision.lights[0],
-                    stadiumObjectCollision.lights[1], stadiumObjectCollision.lights[2],
-                    stadiumObjectCollision.lights[3]);
-    }
+    applyMarioStadiumLights();
     if (files[ids[7]] != NULL) {
         adjustInternalPointers(files[ids[7]]);
         ACTActorRelated(files[ids[7]], MARIO_ANIM_TABLE + 0x34);
@@ -416,7 +315,7 @@ void loadMarioStadium(void** files) {
     count = 2;
     phase = 0;
     cfg = marioStadiumTrees;
-    for (i = 0; i < MARIO_TREE_COUNT; i++, cfg++) {
+    for (i = 0; i < MARIO_TREE_COUNT; i++) {
         if (cfg->usedFlag == MARIO_TREE_END) {
             done = TRUE;
         }
@@ -446,6 +345,7 @@ void loadMarioStadium(void** files) {
         o->fadeByDepth = 0;
         o->alpha = 0xFF;
         count++;
+        cfg++;
         phase += 100;
         o->effect = NULL;
         o->preDraw = NULL;
@@ -483,48 +383,8 @@ void loadMarioStadium(void** files) {
     }
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
-        stadiumObjectCollision.crowd->layout = lbl_3_data_10F7C;
-        seat = lbl_3_data_11048;
-        stadiumObjectCollision.crowd->sequence = lbl_3_data_10F88;
-        stadiumObjectCollision.crowd->frames = (u8*)g_UNK_StadiumDetails._00 + 0x60;
-        stadiumObjectCollision.crowd->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x40;
-        stadiumObjectCollision.crowd->fanCount = 0x20;
-        stadiumObjectCollision.crowd->framesPerLoop = 6;
-        stadiumObjectCollision.crowd->phaseRange = 5;
-        for (i = 0, k = 0; i < 0x20; i++, k += 3, seat++) {
-            stadiumObjectCollision.crowd->fans[k] = seat->type;
-            if (seat->frame < 6) {
-                stadiumObjectCollision.crowd->fans[k + 1] = seat->frame;
-            } else {
-                stadiumObjectCollision.crowd->fans[k + 1] = rand() % 6;
-            }
-            if (seat->phase < 5) {
-                stadiumObjectCollision.crowd->fans[k + 2] = seat->phase;
-            } else {
-                stadiumObjectCollision.crowd->fans[k + 2] = rand() % stadiumObjectCollision.crowd->phaseRange;
-            }
-        }
-        stadiumObjectCollision.crowdAlt->layout = lbl_3_data_10F84;
-        seat = lbl_3_data_11108;
-        stadiumObjectCollision.crowdAlt->sequence = lbl_3_data_11008;
-        stadiumObjectCollision.crowdAlt->frames = (u8*)g_UNK_StadiumDetails._00 + 0xA0;
-        stadiumObjectCollision.crowdAlt->altFrames = (u8*)g_UNK_StadiumDetails._00 + 0x80;
-        stadiumObjectCollision.crowdAlt->fanCount = 0x10;
-        stadiumObjectCollision.crowdAlt->framesPerLoop = 2;
-        stadiumObjectCollision.crowdAlt->phaseRange = 8;
-        for (i = 0, k = 0; i < 0x10; i++, k += 3, seat++) {
-            stadiumObjectCollision.crowdAlt->fans[k] = seat->type;
-            if (seat->frame < 2) {
-                stadiumObjectCollision.crowdAlt->fans[k + 1] = seat->frame;
-            } else {
-                stadiumObjectCollision.crowdAlt->fans[k + 1] = rand() % 6;
-            }
-            if (seat->phase < 8) {
-                stadiumObjectCollision.crowdAlt->fans[k + 2] = seat->phase;
-            } else {
-                stadiumObjectCollision.crowdAlt->fans[k + 2] = rand() % stadiumObjectCollision.crowdAlt->phaseRange;
-            }
-        }
+        initMarioCrowd();
+        initMarioCrowdAlt();
         fn_3_35E4((int)fanAnimationRelated);
         wave = stadiumObjectCollision.crowdWave;
         wave->frames = g_UNK_StadiumDetails._00;
@@ -582,4 +442,171 @@ void loadMarioStadium(void** files) {
     }
     stadiumObjectCollision.vertexDataArray = NULL;
     sta_c0();
+}
+
+// .text:0x000C9C94 size:0x120 mapped:0x80708D28
+void sta_c0(void) {
+    f32 m[2][3];
+    u32 x;
+    u32 y;
+    int offset;
+
+    m[0][0] = 0.5f;
+    m[0][1] = 0.0f;
+    m[0][2] = 0.0f;
+    m[1][0] = 0.0f;
+    m[1][1] = 0.0f;
+    m[1][2] = 0.0f;
+    GXSetIndTexMtx(GX_ITM_0, m, 2);
+    noiseTex = fn_3_B9534(128, 64, &noiseTexObj);
+    if (noiseTex == NULL) {
+        OSPanic("sta_c0.c", 0x29F, "error\n");
+    }
+    for (y = 0; y < 64; y++) {
+        for (x = 0; x < 128; x++) {
+            offset = fn_800247E4(x, y, 128, 2);
+            noiseTex[offset] = (u8)(rand() % 4) + 0x7E;
+        }
+    }
+}
+
+// .text:0x000C9B5C size:0x138 mapped:0x80708BF0
+void fn_3_C9B5C(StadiumObject* obj) {
+    u32 x;
+    u32 y;
+    int offset;
+    s8 prev;
+    s8 cur;
+
+    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
+        obj->hasShadow = 0;
+    } else {
+        obj->hasShadow = 1;
+        if (scrollDelay < 3) {
+            scrollDelay++;
+        } else {
+            for (x = 0; x < 128; x++) {
+                for (y = 0; y < 64; y++) {
+                    if (y == 0) {
+                        prev = noiseTex[fn_800247E4(x, 63, 128, 2)];
+                    }
+                    offset = fn_800247E4(x, y, 128, 2);
+                    cur = noiseTex[offset];
+                    noiseTex[offset] = prev;
+                    prev = cur;
+                }
+            }
+            scrollDelay = 0;
+            DCFlushRange(noiseTex, 128 * 64 * 2);
+        }
+    }
+}
+
+// .text:0x000C9AC8 size:0x94 mapped:0x80708B5C
+void fn_3_C9AC8(void) {
+    fn_3_B9510(0);
+    fn_3_B9510(1);
+    GXLoadTexObj(&noiseTexObj, GX_TEXMAP7);
+    GXSetIndTexOrder(GX_IND_TEX_STAGE_0, GX_TEXCOORD0, GX_TEXMAP7);
+    GXSetNumIndStages(1);
+    GXSetIndTexCoordScale(GX_IND_TEX_STAGE_0, GX_ITS_1, GX_ITS_1);
+    GXSetTevIndWarp(GX_TEVSTAGE0, GX_IND_TEX_STAGE_0, GX_DISABLE, GX_DISABLE, GX_ITM_0);
+    GXSetTevIndWarp(GX_TEVSTAGE1, GX_IND_TEX_STAGE_0, GX_DISABLE, GX_DISABLE, GX_ITM_0);
+}
+
+// .text:0x000C9A60 size:0x68 mapped:0x80708AF4
+void fn_3_C9A60(StadiumObject* obj) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
+        obj->hasShadow = 0;
+    } else {
+        obj->hasShadow = 1;
+        AnimateActorBones(((ACTActor*)obj->model)->actor);
+    }
+}
+
+// .text:0x000C99F8 size:0x68 mapped:0x80708A8C
+void fn_3_C99F8(StadiumObject* obj) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
+        obj->hasShadow = 0;
+    } else {
+        obj->hasShadow = 1;
+        AnimateActorBones(((ACTActor*)obj->model)->actor);
+    }
+}
+
+// .text:0x000C9878 size:0x180 mapped:0x8070890C
+void fanAnimationRelated(void) {
+    StadiumCrowdWave* wave = stadiumObjectCollision.crowdWave;
+    Vec view;
+    Vec facing = crowdFacing;
+    camera_803c639c_s* cam;
+    u32 mode;
+    f32 reach;
+    u8* state;
+    u8* row;
+    u8 pose;
+    int i;
+
+    if (wave == NULL) {
+        return;
+    }
+    GXSetZCompLoc(GX_DISABLE);
+    mode = returnsCurrentMode();
+    switch (g_GameLogic.gameStatus) {
+    default:
+        if (g_Stats.replayInd == 0) {
+            cam = returnFloatFromModeIndex(mode);
+            PSVECSubtract(&cam->target, &cam->eye, &view);
+            view.y = 0.0f;
+            reach = wave->cosAngle * PSVECMag(&view);
+            pose = PSVECDotProduct(&view, &facing) > reach;
+            break;
+        }
+        // fallthrough
+    case GAME_STATUS_PAUSED:
+    case GAME_STATUS_INNING_TRANSITION:
+    case GAME_STATUS_HOMERUN_END:
+    case GAME_STATUS_HOMERUN_LAP:
+    case GAME_STATUS_BATTER_CELEBRATION:
+    case GAME_STATUS_STAR_CHANCE_VS:
+    case GAME_STATUS_CHAMPIONSHIP:
+        pose = 0;
+        break;
+    }
+    row = &wave->pattern[mode * 12];
+    state = row + pose;
+    for (i = 0; i < wave->rowCount; i++) {
+        ((MarioCrowdRecord*)wave->frames)[row[0]].frame = state[1];
+        ((MarioCrowdRecord*)wave->frames)[row[3]].frame = state[4];
+        row += 6;
+        state += 6;
+    }
+}
+
+// .text:0x000C9744 size:0x134 mapped:0x807087D8
+void manageMarioStadiumSoundEmmitters(void) {
+    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE &&
+        g_GameLogic.gameStatus != GAME_STATUS_MINIGAME_READY) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_PAUSED) {
+            if (!emitterPaused) {
+                updateAndRemoveStadiumEmitter(emitterID);
+                if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+                    updateAndRemoveStadiumEmitter(seagullEmitterID);
+                }
+                emitterPaused = TRUE;
+            }
+        } else if (emitterPaused) {
+            emitterID =
+                initializeStadiumObjectEmitter(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID] + 1, NULL, NULL, 1);
+            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+                seagullEmitterID = randomizeAndLoadSoundEffect(stadiumHazardSoundIDs[g_d_GameSettings.StadiumID], 0);
+            }
+            emitterPaused = FALSE;
+        } else {
+            updateOrRemoveEmitter(emitterID, NULL, NULL);
+            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES) {
+                updateOrRemoveEmitter(seagullEmitterID, NULL, NULL);
+            }
+        }
+    }
 }

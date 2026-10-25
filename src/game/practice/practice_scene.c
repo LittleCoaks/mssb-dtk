@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "game/practice/practice_scene.h"
+#include "game/challenge/star_mission_data.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_practiceScene
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -15,11 +16,10 @@
 #include "game/ball/ball_physics.h"
 #include "game/fielding/fielder.h"
 #include "game/sound/m_sound.h"
-#include "text/text_block.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x80014d4c.h"
 #include "Unknown/File_0x80021410.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x8004cc18.h"
@@ -52,7 +52,6 @@ extern u8 charSelect_handednessIconFrames[];
 extern u8 lbl_3_data_9D50[][5];
 extern s16 practiceFrameConsts;
 
-extern void fn_8000F8F4(void* scene);
 extern void fn_80011BE4(int arg0);
 extern void fn_8004D0F0(void);
 extern void fn_80050F78(int arg0);
@@ -88,7 +87,12 @@ typedef struct PracticeScene {
 
 #define PRACTICE_RECORD(scene, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i)].object)
 #define PRACTICE_RECORD_PLUS(scene, i, k) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (i) + (k)].object)
+#define PRACTICE_RECORD_RAW(scene, i) (*(UIRecord**)((u8*)graphicsRelatedArray + (((scene)->firstHandle + (i)) << 3)))
 #define PRACTICE_RECORD_AT(scene, base, i) ((UIRecord*)graphicsRelatedArray[(scene)->firstHandle + (base) + (i)].object)
+
+static inline BOOL hudRecordFinished(UIRecord* rec) {
+    return rec->unk69[0] == 2 ? TRUE : FALSE;
+}
 
 void animatePracticeScene(void) {
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_RETURN_TO_MENU || g_GameLogic.framesOfExitingToMenu != 0) {
@@ -179,7 +183,7 @@ void practice_drawHud(void) {
             g_GameLogic.gameStatus != GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY) {
             animRelated[0xA7] = 0xF0;
         }
-        if (pauseControl._1D5 != 0) {
+        if (pauseControl.isPaused != 0) {
             animRelated[0xA7] = 0xF0;
         }
         if (g_Practice.pauseMenuActive != 0) {
@@ -204,7 +208,7 @@ void practice_drawHud(void) {
 void animationOrDrawingRelated(void) {
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_MENU) {
         if (animRelated[0xD9] == 0 && g_GameLogic.framesOfExitingToMenu == 0) {
-            insertGraphicDrawingFunction(fn_3_12C3F0, 2);
+            insertGraphicDrawingFunction(minigameHudBannerInit, 2);
             insertGraphicDrawingFunction(fn_80053FE8, 2);
             menuNumber[0] = 0x3C;
             menuNumber[9] = menuNumber[8];
@@ -216,7 +220,7 @@ void animationOrDrawingRelated(void) {
                     insertGraphicDrawingFunction(practiceMenu_typeIcons_init, 2);
                 }
                 if (animRelated[0xBC] == 0) {
-                    insertGraphicDrawingFunction(fn_3_12BFE8, 2);
+                    insertGraphicDrawingFunction(minigameHudSelectInfoInit, 2);
                 }
                 menuNumber[0] = 0x3C;
                 menuNumber[9] = menuNumber[8];
@@ -237,7 +241,7 @@ void animationOrDrawingRelated(void) {
                 insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);
             }
             if (animRelated[0xBC] == 0) {
-                insertGraphicDrawingFunction(fn_3_12BFE8, 2);
+                insertGraphicDrawingFunction(minigameHudSelectInfoInit, 2);
             }
             menuNumber[0] = 0x3D;
             menuNumber[9] = menuNumber[8];
@@ -543,7 +547,7 @@ void practiceMenu_charSelect_update(void) {
         int charID = g_Minigame.selectSlots[g_Practice.homeAway].charID;
 
         PRACTICE_RECORD(scene, 5)->frame = charSelect_handednessIconFrames[g_Minigame.battingHandedness[g_Practice.homeAway]] << 16;
-        if (characterStaticIndexes[charID * 6] != 0 &&
+        if (characterStaticIndexes[charID].variantGroup != 0 &&
             g_Minigame.selectSlots[g_Practice.homeAway].confirmedInd == 0 && g_Minigame.selectSlots[g_Practice.homeAway].onBottomControlInd == 0) {
             PRACTICE_RECORD(scene, 7)->flags |= UI_FLAG_VISIBLE;
         } else {
@@ -564,7 +568,7 @@ void practiceMenu_charSelect_update(void) {
     }
 
     if (g_Minigame.selectSlotState[0] >= 0) {
-        if (g_Minigame.selectSlots[0].charID != (PRACTICE_RECORD(scene, 0xD)->frame >> 16)) {
+        if (g_Minigame.selectSlots[0].charID != (PRACTICE_RECORD_RAW(scene, 0xD)->frame >> 16)) {
             for (i = 0; i < 2; i++) {
                 PRACTICE_RECORD_AT(scene, 8, i)->frame = 0;
             }
@@ -573,20 +577,22 @@ void practiceMenu_charSelect_update(void) {
             PRACTICE_RECORD_AT(scene, 8, i)->flags |= UI_FLAG_VISIBLE;
             PRACTICE_RECORD_AT(scene, 8, i)->playMode = UI_PLAY_FORWARD;
         }
-        PRACTICE_RECORD(scene, 0xD)->frame = g_Minigame.selectSlots[0].charID << 16;
-        PRACTICE_RECORD(scene, 0xB)->flags |= UI_FLAG_VISIBLE;
-        PRACTICE_RECORD(scene, 0xB)->playMode = UI_PLAY_FORWARD;
-        PRACTICE_RECORD(scene, 0xC)->frame =
-            lbl_3_data_9D50[characterStaticIndexes[g_Minigame.selectSlots[0].charID * 6]]
-                           [characterStaticIndexes[g_Minigame.selectSlots[0].charID * 6 + 5]] << 16;
+        PRACTICE_RECORD_RAW(scene, 0xD)->frame = g_Minigame.selectSlots[0].charID << 16;
+        PRACTICE_RECORD_RAW(scene, 0xB)->flags |= UI_FLAG_VISIBLE;
+        PRACTICE_RECORD_RAW(scene, 0xB)->playMode = UI_PLAY_FORWARD;
+        {
+            CharStaticIndex* ci = &characterStaticIndexes[g_Minigame.selectSlots[0].charID];
+
+            PRACTICE_RECORD_RAW(scene, 0xC)->frame = lbl_3_data_9D50[ci->variantGroup][ci->variantIndex] << 16;
+        }
     } else {
         for (i = 0; i < 2; i++) {
             PRACTICE_RECORD_AT(scene, 8, i)->frame = 0;
             PRACTICE_RECORD_AT(scene, 8, i)->flags &= ~UI_FLAG_VISIBLE;
         }
-        PRACTICE_RECORD(scene, 0xD)->frame = 0x36 << 16;
-        PRACTICE_RECORD(scene, 0xB)->frame = 0;
-        PRACTICE_RECORD(scene, 0xB)->flags &= ~UI_FLAG_VISIBLE;
+        PRACTICE_RECORD_RAW(scene, 0xD)->frame = NUM_CHOOSABLE_CHARACTERS << 16;
+        PRACTICE_RECORD_RAW(scene, 0xB)->frame = 0;
+        PRACTICE_RECORD_RAW(scene, 0xB)->flags &= ~UI_FLAG_VISIBLE;
     }
     return;
 
@@ -661,7 +667,7 @@ void practiceInstruction_update(void) {
             PRACTICE_RECORD(scene, 8)->flags |= UI_FLAG_VISIBLE;
             PRACTICE_RECORD(scene, 4)->playMode = UI_PLAY_FORWARD;
             PRACTICE_RECORD(scene, 5)->playMode = UI_PLAY_FORWARD;
-            if (PRACTICE_RECORD(scene, 4)->unk69[0] == 2) {
+            if (hudRecordFinished(PRACTICE_RECORD(scene, 4))) {
                 PRACTICE_RECORD(scene, 10)->rgba = (PRACTICE_RECORD(scene, 10)->rgba & ~0xFF) | 0xFF;
             } else {
                 PRACTICE_RECORD(scene, 10)->rgba &= ~0xFF;

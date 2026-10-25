@@ -3,6 +3,6 @@
 
 #include "mssbTypes.h"
 
-void teamManagement_takeInputs(void);
+void teamManagement_takeInputs(s32 playerIndex);
 
 #endif // !__UNKNOWN_FILE_0X8004617C_H_

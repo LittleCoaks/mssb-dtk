@@ -1041,14 +1041,14 @@ Three distinct shapes, all measured in one file:
   `g_Runners[2].b`) -> plain array access. MWCC then shares ONE base register and
   emits large displacements (`n*0x154 + fieldOffset`). Declaring a pointer local
   per runner makes it reload `lis`/`addi` each time: 92.43% with pointer locals,
-  **100%** with plain array access on `unused_forceOutSomething`.
+  **100%** with plain array access on `running_beginFrame_checkForceOut`.
 - **Repeated access to ONE element at a VARIABLE index** -> explicit pointer local
   `InMemRunnerType* runner = &g_Runners[i];` (the existing entries).
 - **A loop over elements where the target bumps a base by the struct stride
   inside the loop** -> walking pointer `for (i=0; i<4; i++, runner++)`. This
-  reached 100% on `fn_3_89028`, and separately made MWCC unroll a copy loop the
+  reached 100% on `running_initLiveBallWithoutContact`, and separately made MWCC unroll a copy loop the
   same way the target does (69.4% -> 83.0% on
-  `transferInMemRunnerValuesToNextRunnerIndex`).
+  `running_transferRunnerToNextIndex`).
 
 The tell for the first case is our side re-materialising the global base
 (`lis`/`addi`) where the target reuses an already-live base register.
@@ -1082,7 +1082,7 @@ First seen: `game/game/baserunning/runner` (2026-09).
 
 Which arm of the outermost `if`/`else` is the fall-through dominates the whole
 function's block layout, and getting it backwards scores near zero even when
-every statement is correct. On `running_LiveBall_Human` the first draft scored
+every statement is correct. On `running_liveBall_human` the first draft scored
 **7.9%**; making the other arm the outer `if`, with no other change, scored
 **95.55%**. If a big from-scratch function scores in the single digits, try the
 inversion before rewriting the body. Cross-reference "An exact size match plus a
@@ -1091,7 +1091,7 @@ instance of that class.
 
 Related, smaller levers measured in the same file: `else if` chains versus nested
 `if`s (81.37% nested, 97.20% plain `else if`, 99.07% `else if` with explicit
-`(x & FLAG) == 0` guards on the last branches, all on `running_DirectionOverrides`),
+`(x & FLAG) == 0` guards on the last branches, all on `running_getDirectionOverride`),
 and `<= 1` versus `< 2` (the target's `cmplwi 1; bgt` versus our `cmplwi 2; bge`).
 
 It applies to small functions too, and to the early-return polarity specifically:
@@ -1100,22 +1100,43 @@ rewriting `if (!cond) return NULL; build;` as `if (cond) { build; } else { retur
 
 ## When the target inlines an in-file function it also keeps standalone, copy the body
 
-First seen: `game/game/baserunning/runner`, `running_MainFunction` and
-`cCSRunningFun` (2026-09). Compare "Contradictory declaration-order requirements
+First seen: `game/game/baserunning/runner`, `running_main` and
+`ccs_running_main` (2026-09). Compare "Contradictory declaration-order requirements
 between an auto-inlined static and its standalone `*_unused` copy" above — same
 underlying situation, different remedy.
 
-A dispatcher hub whose target inlines several smaller in-file functions cannot be
-matched by CALLING them: MWCC declines to inline a function that is also a real
-standalone symbol, so the call survives and every register assignment shifts.
-Measured on `running_MainFunction`: calling `fn_3_8A7B4()`/`fn_3_8A618()` gave
-**75.3%**, copying their bodies in gave **94.2%**. A `static inline` clone is the
-cleaner form of the same fix where the body is small enough to share.
+**Superseded (2026-10-18): calling the helpers does work, built inside-out.** The
+earlier finding here was that a dispatcher hub could not be matched by calling
+its inlined helpers, because "MWCC declines to inline a function that is also a
+real standalone symbol" (`running_main`: calls 75.3%, copied bodies
+94.2%). That was the `-inline auto` size budget, not the standalone symbol. MWCC
+measures a callee *after* its own inlining, so a helper whose body is still a
+pasted copy of its sub-helpers is too big and stays a `bl`, while the same helper
+written as calls to those sub-helpers inlines. Fix order is innermost first:
+
+- `running_liveBall` calls `running_liveBall_clearStealing`. That alone took
+  `running_liveBall` 97.94% -> 100% (its pasted loop cached `liveBallReason` in
+  a local; the target re-reads the field).
+- `running_updateRunner` calls `running_updateRunner_chooseDirection` and
+  `running_updateRunner_roundBaseOrDugout`; `running_atBatSteals` calls
+  `running_atBatSteals_humanInput`.
+- Only then does `running_main` match at 100% as
+  `running_beginFrame(); ...; running_atBatSteals();` / `running_liveBall();` /
+  `running_updateRunner(i);` / `running_endFrame();`. Calling
+  `running_atBatSteals()` while its body was still pasted gave 79% with a real
+  `bl running_atBatSteals`; marking it `inline` matched the caller but dropped
+  the standalone copy (0%), so the keyword is not the fix.
+
+To find these: list functions nothing in the module references (no `bl`, no
+`@ha/@l`, no data pointer), then look for their bodies in same-file callers. In
+runner.c every such orphan was an inlined helper. Not every one can be called:
+in `ccs_running_main` the Chain Chomp stage helpers (`ccs_runnerChompHit_recover`, `ccs_runnerChompHit_updateKnockback`)
+either stayed a `bl` or inlined to a worse 97.15%, so keep those pasted.
 
 OPEN QUESTION from the same file, recorded so it is not re-derived: the reverse
 also happens. MWCC inlined two fully-implemented small callees
-(`running_chainChompSprintRelated`, `running_ForceOutStateRelated`) into
-`maybeUpdateRunnerNoRun` where the target keeps real `bl` calls, forcing that
+(`ccs_updateRunnerAngles`, `running_updateForceStatus`) into
+`running_endFrame` where the target keeps real `bl` calls, forcing that
 caller to 0.0% and 1040 bytes against the target's 356. A `#pragma dont_inline
 on`/`reset` bracket around the two callees restores the calls and the match. That
 pragma is currently in `src/game/baserunning/runner.c` and is almost certainly NOT
@@ -1209,7 +1230,7 @@ First seen: `game/game/fielding/fielder_ai` (2026-09).
 After switching to literals, MWCC emitted `fmuls f0, fConst, fX` (and loaded the constant before
 the int->double bias) for `frames = (int)(frames * 1.3f) + 0x1e;` and `speed = speed * 1.3f;`,
 where the target has `fmuls f0, fX, fConst`. Compound assignment reproduces the target exactly:
-`frames *= 1.3f; frames += 0x1e;` (maybeUnused_SetThrowSpeedType2 93.78% -> 100%; 28 sites, none
+`frames *= 1.3f; frames += 0x1e;` (setThrowSpeedType2 93.78% -> 100%; 28 sites, none
 regressed) and `speed *= 1.3f;` in initializeThrowAngle_Speed_Length. `(int)(1.3f * frames)` and
 explicit casts compile identically to the original and do not help.
 
@@ -1358,6 +1379,20 @@ is NOT universal — `int` and `s32` tied on the inner loop of `estimateWhereBal
 Second data point: `game/game/match_setup/versus_screens` (2026-09). Switching `int i` to `s32 i`
 on the fixed-trip unrolled store loops restored the guard and fixed about seven functions in one
 sweep. When a from-scratch file has many such loops, make this the first blanket change.
+
+Third data point (2026-10-09): `at_bat_setup.c` reached 100% by using `s32`
+for both counters and indexing the fielding-team field directly. A cached
+team local hoisted its load before the guard and stayed at 85.91%; direct
+field reads gave 100%. `ARRAY_COUNT` with an `s32` cast removed the guards
+again (66.01%); named integer-literal trip counts preserve them. The unused
+`header_rep_data.h` include emitted an unowned 80-byte constant table and
+failed the linked checksum; removing it preserved 100% and passed all four
+checksums.
+
+The same counter change in `stadium_draw.c`'s `copyExtraStadiumEntries`
+restored both zero-trip copy blocks that prior passes could not reproduce:
+`updateStadiumFileHeaders` 70.68% -> 84.96%, with all siblings unchanged.
+The helper count remains `int`; only its loop counter changes to `s32`.
 
 ## A search loop's `mtctr` value distinguishes two source shapes
 
@@ -2395,11 +2430,11 @@ but left `NonMatching` (DOGet, LITAlloc, AnimateActorBones; see their checkpoint
 
 - **MWCC 2.6 schedules loads of one global past stores into another only when the stored-to
   object's DECLARED size is >= 0xFFFF bytes.** In `createTeamManagementScreen_inGame` the target
-  keeps `lbz g_d_GameSettings._06` after three stores into `aiPosSwapInputs` (dtk size 0x24C98).
+  keeps `lbz g_d_GameSettings._06` after three stores into `g_TeamManagement` (dtk size 0x24C98).
   With the full-size struct every source shape (pointer locals, inline helper, switch, ternary,
   volatile load, unsized array, `-proc`, `mw_version` sweep) hoisted the load (68%); a struct of
   any size up to 0xFFFE gave 100%, 0xFFFF and up did not. `UnknownHomes_Static.h` now lets a unit
-  `#define AIPOSSWAPINPUTS_LOCAL_VIEW` and declare a smaller file-local view. Suspect this whenever
+  `#define TEAM_MANAGEMENT_LOCAL_VIEW` and declare a smaller file-local view. Suspect this whenever
   stores to a huge `.bss` object and a load from another global come out in the wrong order.
 - **A flag written by an async callback is `volatile`.** `handleDVDCancelAndARQRemoval` keeps
   `lbz 0x715` after `stb 0x714`; only a `volatile` view of the cancel bytes (set by the DVD cancel
@@ -2917,11 +2952,11 @@ instructions already match but several locals are live across a loop.
   unchanged, `opt_propagation off` 72.18% (424 bytes), `opt_common_subs off` 56.7%,
   `opt_lifetimes off` unchanged. Don't re-run these.
 - **A remove-on-failure tail is `if (ok) { body } else { remove }`.** The structured
-  early-return form scored 94.49% against 100% (`hud/rep_3448` `fn_3_125604`). When several early
-  conditions share one remove block, `goto remove` beat the structured form (`fn_3_128C18`
+  early-return form scored 94.49% against 100% (`hud/rep_3448` `minigameHudEventBannerUpdate`). When several early
+  conditions share one remove block, `goto remove` beat the structured form (`minigameHudResultBannerUpdate`
   95.3% vs 86.84%).
 - **Child scene nodes:** `node = currentDrawingItem; parent = node->currentDrawingItem;
-  scene = (cast)node;` in that order matched 100% (`fn_3_122D24`, `fn_3_1231D4`).
+  scene = (cast)node;` in that order matched 100% (`minigameHudBodStreakBonus`, `minigameHudBodKingBombBonus`).
 - **Unsolved in `rep_3448`:** the target loads `&g_Minigame` once at entry and shares it with an
   inlined predicate (ours rematerialises it); `rec->unk69[0] == 2` compiles to
   `subfic; cntlzw; srwi.; beq` in the target (seen right after a store to the same record) but to
@@ -2978,7 +3013,7 @@ one object. All 11 functions reached 100% and the unit links as `Matching` (`4 f
 - **Jump-table entries give the source order of the cases.** Case bodies are emitted in source order,
   so sort the table's targets by address and write the `case` labels in that order (left/right: 98.59 ->
   98.68; up/down needed it too).
-- **`AIPOSSWAPINPUTS_LOCAL_VIEW` also governs reloads within the same object.** With the 0x24C98-byte
+- **`TEAM_MANAGEMENT_LOCAL_VIEW` also governs reloads within the same object.** With the 0x24C98-byte
   type MWCC forwarded `prev = cur; cur -= n;` from registers; the target re-reads `cur` after storing
   `prev`. A file-local view under 0xFFFF bytes reproduced the reloads (starMenuCursor 87.1 -> 99.95).
 - **`f = f - n` and `f -= n` on an `s8` field differ**: the long form subtracts from the sign-extended
@@ -3045,7 +3080,7 @@ together. All 27 functions reached 100% and the unit links as `Matching` (`4 fil
   statics, so objdiff cannot tell; the link can. Making `captainIDOrderedOnCapSS`/`captainIDMappings`
   `static` broke the menus/game REL imports, `variantPairs` alone `static` broke `fn_800415A8`.
 - **A struct-typed global beats every cast view of it.** The header declares
-  `starMissionCompletionTracker` as an array; the target's loops (s32 vestigial guard + CSE'd bases)
+  `g_Challenge` as an array; the target's loops (s32 vestigial guard + CSE'd bases)
   only appeared with the symbol declared as the real block struct. Done file-locally via
   `#define name name_asArray` before the includes, `#undef`, then `extern Block name;`.
 - **If every use of a `u8` field is cast `(s8)`, the field is `s8`.** Retyping
@@ -3116,6 +3151,2445 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   directly took it from 93.925% to 100%; widening the local or threshold did not.
   The complete 28-function unit and all its sections remained 100% after the
   readability pass and linked with `4 files OK`.
+
+## Findings from the low-match game REL pass (2026-10-09)
+
+- **Restore actual helper calls before tuning macro-expanded locals.** In
+  `camera_script.c`, normal definitions of the view evaluator, view setter,
+  header fixup, and startup helpers auto-inline under the existing deferred
+  inlining settings. Reusing them instead of copying their bodies into macros
+  matched `fn_3_1048E0` and `fn_3_FC448` and improved every affected caller.
+  The complete `fn_3_FC938` is too large to inline into the two-camera loop;
+  its constituent calls still need the small startup macro.
+- **Verify the relocation base together with data layout.** An extra camera
+  axis object shifted later data by 12 bytes. Equal numeric operands hid two
+  wrong vector references. The target's base plus 0x4F44/0x4F50/0x4F5C selects
+  the existing Y, Z, and negative-Z vectors. Correcting all three references
+  removed the extra object and restored the exact data-section size.
+- **A copy between two history loads is significant.** The vector filter
+  loads its previous output before copying its current input. Moving that
+  copy restored the target's instruction sequence and improved both large
+  camera-update routines. By-value helper argument order controls the
+  inlined vector slots and register groups too; use the whole-unit diff.
+- **A mapped 16-bit ID may still use an int-width parameter.** Reusing the
+  bone parameter after reading its ID from the actor table matched the
+  sentinel test and output registers in `fn_3_10617C`; a separate `u16` local
+  emitted a different comparison.
+- **Preserve the stadium pointer-table countdown.**
+  `rebaseStadiumPointerTable` processes count + 1 entries and skips negative
+  counts. Chaining the output-table assignment with its cursor initializer
+  reproduces the target's unrolled loop. Reusing one function-scope index
+  for the zero-trip header copies also resolves their register allocation.
+- **Scale existing roster parameters before repeated accesses.** In
+  `practice_loadCharacter`, scaling team and slot once preserves the
+  target's repeated address formation across the flag branches. A cached
+  destination pointer produces different code. The typed four-column
+  progress view also matches the index order in the practice-loading copy.
+
+## Findings from the Challenge-mode state / star mission data pass
+
+- **`g_Challenge` is one 0x4508-byte `ChallengeState`** (`game/challenge/challenge_state.h`),
+  not `ChallengeTrackingStruct[54]`. Converting users from `(u8*)tracker + 0x....` to fields was neutral
+  everywhere except where a function kept one base pointer across many accesses: those need a local
+  `ChallengeState* cs = &g_Challenge;` (decideScoutFlagMission 92.9 -> 98.3 versus a bare
+  global per access). Byte-pointer walks over `savedLineup` in text_0323C (stride 6, odd start offsets)
+  stay byte pointers; `CHALLENGE_STATE_OFFSET(member)` names the offsets.
+- **Flat byte tables sometimes encode the original indexing.** `characterStaticIndexes[(id) * 6 + 2]` in
+  practice_simulation.c fuses the `+ 2` into the base register; `characterStaticIndexes[id].requirementRow`
+  and `[id][2]` both lose 8% there, so that TU keeps the flat form.
+- **Tables shared by several TUs can be claimed by the neighbouring text TU.** The Challenge tables at
+  0x80109420-0x8010B4B4 are referenced from half a dozen units; they sit in File_0x8006c48c.c because the
+  previous TU ends at `jumptable_801093C4` and the next one (File_0x8006c9d8) starts its buff tables at
+  0x8010B4B4. The trailing 2 bytes after `starRankByMissionCount` are alignment padding (symbol size
+  0x70 vs 0x6E of data), which costs .data 0.012%.
+- **A symbol rename only needs symbols.txt plus source:** the menus/game asm and relocations regenerate
+  from `config/GYQE01/symbols.txt` on the next `ninja`.
+
+## Findings from the last-function sweep (2026-10)
+
+- **dtk splits a small byte/halfword table at the index the code reads.** `u8 x[4]` read as
+  `x[0]`/`x[1]` shows up as `lbl_A` (size 1) + `lbl_A+1` (size 3); `s16 x[2]` as two size-2 labels.
+  Declared as separate C arrays, MWCC 4-aligns the second one and the unit's `.data` grows by 4 per
+  pair (objdiff still says 100% per symbol; the sha1 check fails). Merge the labels in `symbols.txt`
+  and declare one array. Fixed `data_428C` (470C, 4710, 4908, 4B40, 5FC0) and `data_8D88`
+  (`scoutMissionProgressRowBases`).
+- **A data-only split that starts 4-aligned may own a pad that belongs to the previous unit.**
+  MWCC always gives `.data` 8-byte alignment, so `data_428C` linked 4 bytes late. Its leading
+  `pad_04_0000428C` was the tail of `match_loading`'s range; moving the split to 0x4290 linked
+  byte-identically. `match_flow_data` (0x5FF4) cannot be fixed that way: its first object starts at
+  0x5FF4, so it was merged into `data_428C` (which now ends at 0x6510).
+- **Zero-initialised `gap_*` fillers in a data-only `.c` land in `.bss`.** `u16 gap = 0;` is a
+  `.bss` object to MWCC; delete it (array alignment re-creates the gap) or the REL's `.bss` grows.
+- **`extern const f32 lbl_*_rodata_*` in a REL unit leaves `.rodata` short.** Replace them with the
+  literals, add `#define SQRT2_LINKAGE static`, and put the functions in reverse address order:
+  the pool then comes out in the target order (`roster_init`, `hud_gauges`, `stadium_star`,
+  `sta_c0`). Check every function afterwards: on `batter_ai` it moved `resetBatterAIBoxPosition`
+  (the first function in source) into an `addi`+`lfs 0(r)` load of 0.0f and was backed out.
+- **Flipping a unit that uses the default `getRepHeaderData`** shortens the module `.rodata` by 0x50
+  when another Matching unit already uses that name. Give it a unique `REP_HEADER_DATA_FN`.
+- **A literal-pool operand swap `fmuls f1,f1,f2` vs `f1,f2,f1` can need a constant held in a local.**
+  `controller_input`: `k = ((f32)r / 512.0f) * scale;` with `f32 scale = 0.27208483f;` matched where
+  every inline-literal form (and `k *= c`) kept the wrong order.
+- **`if (cond) { ...; break; }` followed by fallthrough code vs `else { if (x) y; break; }`.** When the
+  target reuses a base register from an earlier check, the shared block must only be reachable through
+  that check (`baseRunningPracticeRelated`).
+- **Unreferenced bytes inside a unit's `.bss` range** (`pad_05_00001900_bss` in `stadium_framework`)
+  are an unused static; declaring `static u8 lbl_3_bss_1900;` in the right position fixed `.bss`.
+- **Reusing one local for two values can be the match** (`draw_initStarGuageHud`: `next` holds the
+  batting-order slot and then the roster index; a second local re-coloured r7/r8).
+
+## Findings from the game_rel_entry full-match pass
+
+- **Pointer scope and declaration order can need to change together.** In
+  `maybeProcessTeamData`, removing the block-local `lineup` shadow alone tied
+  the baseline, and reordering the other locals while keeping the shadow did
+  not fix the register swap. Using the function-scope pointer with locals in
+  `lineup, i, slot, team, teams` order took the function from 99.433334% to
+  100%. Re-test declaration order after changing a local's scope.
+- **A 100% object diff can hide wrong BSS symbol offsets in REL relocations.**
+  The first Matching link had identical size and section bytes but 26 differing
+  relocation bytes: the three zero-initialized statics were allocated in reverse
+  address order. Check symbol offsets as well as the zero-filled `.bss` score;
+  declaring these statics in descending target address order restores their
+  layout under MWCC.
+
+## Findings from the controller_input full-match pass
+
+- **An inline multiplication helper can preserve operand order where a direct
+  expression does not.** `InterpretControllerInputsIntoMagnitude` had one
+  remaining `fmuls` operand swap at 99.97151%. Calling
+  `static inline f32 scaleStickCorrection(f32 value, f32 scale)` whose body
+  returns `value * scale` reproduced the target when invoked with `k` and
+  `0.27208483f`. Compound assignment changed the destination register and
+  regressed its consumers. All three functions and `.rodata` remained 100%.
+
+## Findings from the baserunning_practice full-match pass
+
+- **Extra global-base loads can be caused by a missing branch exit.** In
+  `baseRunningPracticeRelated`, the negative-instruction arm of the live-ball
+  case must exit whether or not the runner scored. The prior `else if`
+  fell through when the runner had not scored, creating an extra predecessor
+  and forcing MWCC to reload `g_Practice`. An `else` with the score check
+  inside it and an unconditional `break` restored the target control flow,
+  removed eight extra bytes, and matched the whole six-function unit.
+
+## Findings from the defence_animation full-match pass
+
+- **Correcting a narrow return prototype and removing its redundant cast
+  can need to happen together.** `angleDifferenceNormalized` already returns
+  `s16` in `game_math.h` and its definition; the local extern incorrectly
+  declared `int`. In `computeAdjustedFielderOrientation`, changing the result
+  local from `s16` to `int`, correcting the extern to `s16`, and dropping the
+  explicit `(s16)` result cast took 98.58491% to 100%. Individual changes
+  did not match: the redundant cast still created a separate temporary.
+- **Separate counters can matter even for a fully unrolled loop.** Sharing
+  `i` between the initial hide loop and the later live animation loop swapped
+  its saved register with the model pointer in `animateDefence`. Giving the
+  hide loop its own block-local `j` matched 100%; pointer scope, declaration
+  order and counter width changes alone had tied. The final structured guard
+  also removed eight `goto` statements without changing codegen.
+
+## Findings from the Astra at_bat_results follow-up
+
+- **Counter reuse inside a shared helper can fix only its inlined caller.**
+  Reusing the initialization counter `i` for the descending loop in
+  `shuffleIntArray`, instead of declaring a separate `k`, left its standalone
+  copy and every matched sibling at 100% while improving `shuffleU8Array`
+  from 99.46429% to 99.89286% (unit `.text` 99.92008% to 99.98402%).
+  The remaining six operand differences are in two random-remainder/absolute
+  value sequences. Check both reuse and separation of loop counters; the
+  successful direction here is the opposite of `animateDefence` above.
+
+## Findings from the second last-function sweep (2026-10)
+
+- **A pointer local to a global can be the match.** `fn_3_219CC` (runner_items) only reached the
+  target's `lwzx rD, rGame, rOff` (with `rOff = team*4 + 0xF4` hoisted) once the loop read
+  `game->Team_CaptainRosterLoc[settings->humanTeamNumber]` through
+  `GameControlsStruct *game = &g_GameLogic;` and `GameInitVariables *settings = &g_d_GameSettings;`
+  (80% -> 100%; `i` had to be declared before `count`). Same lever as the "pointer local" entries
+  above: try it when a global's base address lands in an unexpected register or the target keeps
+  the base and the offset in separate registers.
+- **A unit whose target has no `.rodata` must not include `header_rep_data.h`.** `at_bat_setup`
+  was 100% in objdiff, but the flip failed the sha1 check: the header's weak `repHeaderData` added
+  a 0x50 `.rodata` the original never had. Check `llvm-objdump -h` of both objects before flipping.
+- **`s32` instead of `int` again restored a vestigial guard** (`li r0,0; cmpwi r0,N; bge` before a
+  fully unrolled loop) in `someRosterMemoryManagement`; the rest was a hoisted `fieldingTeam`
+  local that the target reloads inside the guarded block (use the field directly).
+- **Moving an assignment can move a base register.** `fn_3_CABF0` (perfect_pitch_gfx): with the
+  register order otherwise right, the shared `lbl_3_common_bss_35154` base was `r5` in ours and
+  `r10` in the target; assigning `model = (...)(common.trailOwner + 0xC4)` *before* the copy loop
+  instead of after it fixed it (also needed: `s32 i`, then `state, handle, i` declaration order).
+- **The order of `|` operands in a branchless boolean OR is visible.** `animateScoreBoard`:
+  `a | b | c` built `or r0,rB,rC; or. r0,rA,r0` only for the target's order; permuting the three
+  operands (six orders, plus the right-nested forms) found it in one batch.
+- **Pooled statics can also hide inside a dtk `.data` object.** In `pitcher_fire_effect`, one
+  function reaches `lbl_3_data_17DC0` as `addi rX, base, 0x0` / `base+0x48c`, another as its own
+  `lis/addi lbl_3_data_17DC0+0x3C0`: the 0x4A8 object is really several statics. Splitting it
+  reproduced the pool but was not yet a net win (see that unit's checkpoint).
+
+## Findings from the data-layout pass (pitcher_fire_effect, rep_21F8; 2026-10)
+
+- **The pooled-statics split above is now a net win in both files.** `pitcher_fire_effect`:
+  `lbl_3_data_17DC0` -> slots/headers/2 Vecs/zero word (animatePitchersHandOnFire 86.85 -> 99.88,
+  fn_3_CB538 95.88 -> 96.16). `rep_21F8`: `lbl_3_data_17898` -> key table, node, HudObj[5], word,
+  active byte, f32[5] (fn_3_C937C 97.38 -> 100, unit flipped to Matching). In both cases the split
+  alone was not enough; the follow-up source fixes were what turned it into a gain.
+- **An `add rX, base, idx; stw 0(rX)` where you would expect `stwx` means the address stays live,
+  usually as a call argument.** In fn_3_CB538 the header address was left in r5 for the next
+  `bl fn_8002F5F4`, which takes it as a third parameter that the old prototype was missing. Check
+  whether the register holding the address is still live at the next call before reaching for
+  source-shape tricks.
+- **Volatile-register numbering follows IR order, and it limits the scheduler.** Loading a value
+  shared by several stores into a local *first* (`tex = burstTexture;` before computing the slot
+  and header addresses) reproduced the target's r5/r6/r7 assignment and its late `lis`.
+- **`while (tbl[++i * 2] != END)` gives the target's two induction variables** (a pointer IV for
+  the body loads, an offset IV + `lhzx` for the condition). The `i++; } while (tbl[i * 2] ...)`
+  form merges them into one `lhzu`.
+- **Statics in a `.data` split are pooled in BOTH directions:** a `.bss` byte read through a
+  neighbour's base register (`lbz 0x14(r31)` off `lbl_3_bss_9F20`) and stored through its own symbol
+  in another function means two file statics, declared in reverse (`.bss` reverse-order rule).
+  objdiff marks those pooled loads with an `R_PPC_NONE` reloc in the target and diff-cli scores them
+  as mismatches until the layout is right; the report does not.
+
+## Findings from the m_sound / practice_simulation data-layout pass (2026-10)
+
+- **A dtk label covering several scalars can stop MWCC pooling the `.bss` base.** In `m_sound`,
+  `handleGameSound` reaches the voice ids at 0x1778/0x177C and the flag byte at 0x1760 through one
+  base register in the target. With dtk's `lbl_3_bss_1774` declared as `s32[3]` ours addressed it by
+  its own symbol each time; splitting it into three `s32` statics (and 0x1760/0x176C into their
+  real scalars) gave the target's pooling (91.5 -> 98.6; `fn_3_8C4F0` 83.3 -> 99.2). A function
+  touching only two scalars (`fn_3_8C2DC`: 0x1764, 0x176C) is not pooled in the target either.
+- **MWCC 4-aligns a `.bss` array even when its elements are `s16`/`u8`.** A dtk label at a
+  2-mod-4 offset declared as an array (`camera_script` `s16 lbl_3_bss_B67A[15]`, `scene_effects`
+  `u8 lbl_3_bss_9CFE[0x22]`) lands 2 bytes late and grows the section. objdiff still scores
+  `.bss` 100%. If only the first element is accessed, split it into the 2-byte scalar plus the
+  4-aligned tail; a 2-byte-aligned struct wrapper is 4-aligned too.
+- **Unreferenced `.bss` gaps need both a static and a `symbols.txt` name.** In `chain_chomp_sprint`
+  declaring the unused statics fixed the layout, but `.bss` stayed at 90% until dtk's
+  `gap_05_0000B79C_bss` was replaced by a named `scope:local` symbol that our object could pair with.
+- **A target that keeps every store in source order and copies with strict `lbz`/`stb` pairs
+  means volatile accesses.** `practiceLoadingRelatedMaybe` (72.0 -> 91.3) only stopped hoisting the
+  16 loads once the source *and* destination were volatile, the per-row
+  `addis rX,rY,1; addi rY,rY,4` appeared only with a per-row `volatile u8* src` pointer, and the
+  leading `hugeAnimStruct` store stayed first only once it was volatile too. `#pragma scheduling off`
+  and `optimization_level` did not reproduce it.
+- **A `case` that duplicates a whole function body is an inline of that function.** The
+  `loadPracticeScreen` default case is `practiceLoadingRelatedMaybe`'s body. A plain call stays a
+  `bl` under `#pragma dont_inline on`. A `static inline` helper used by both matched the inline
+  (90.7 -> 96.3).
+- **`s32` (long) counters stay unfolded where `int` folds** in straight-line code too, not only in
+  loop guards: `fn_3_166448` (rep_3E00) keeps its `li r29,0 ... cmpwi r29,0` only with
+  `s32 inactive` assigned before the calls.
+
+## General codegen patterns (2026-10, collected from second passes)
+
+Findings from second passes on files that are not fully matched yet (camera_script, the C3
+charPipeline units, minigame_effects, animation_dispatch, runner, versus_screens/hud_scoreboard).
+They are written down here so they do not depend on those files reaching 100%. Each was confirmed
+by a score change in at least one function.
+
+### Control flow and switches
+- **The address order of a switch's jump-table targets is the source order of the case blocks.**
+  Read dtk's `jumptable_*` entries in address order and lay out the cases the same way
+  (camera_script `fn_3_1000D8`/`fn_3_101CC4`: case 6 before case 5). The table also shows cases
+  the draft is missing (camera_script `fn_3_FDB30` lacked opcode 76 and fell into default).
+- **A pair of `beq` on the same compare means an inlined `x == NULL || ...` check.**
+- **A shared exit block may need a `goto`.** When the target branches into the tail of an `else`
+  arm (`updateFielderState; return TRUE`), a `goto` into it can be the only form that matches.
+  Measure the structured forms first and log them (animation_dispatch
+  `fielderBodyCheckAnimation`, `animationsForFielding`).
+- **`return FALSE` vs `break` to a shared exit:** where the target has one exit block, use
+  `break` plus a single trailing return.
+
+### Inlining
+- **Many "macros" and hand-written blocks are small functions MWCC inlined.** If a block repeats
+  in several functions, or the stack layout differs only around it, write it as the real function
+  (or a `static inline`) and call it. This fixed the camera filter "macros" and script-start block
+  (camera_script), the `static inline mg*` helpers whose bodies belonged to named functions
+  (minigame_effects, which also fixed the literal-pool order), `ACTSort`/
+  `maybeTransformVectorByAnimationMatrix` (C3 act.c), and the base-reset loop in runner's
+  `running_initRunner`/`running_resetRunners` (an inlined `running_resetRunnersAfterFoulBall`).
+- **Shrinking a function can make MWCC start inlining it into its caller**, which can wreck the
+  caller's score (runner `running_calcFramesToClosestBases`). Always re-check callers after
+  shortening a function.
+- **A `#pragma dont_inline` stub can be needed while a callee is still a stub:** otherwise its
+  `return NULL` is inlined into a matched caller (objinit `f_InitActorWithLayout`).
+
+### Types and prototypes
+- **If the target re-extends (`extsb`/`extsh`/`clrlwi`) a call argument or return value, the
+  prototype is narrower or wider than ours.** Declare file-local prototypes that match:
+  animation_dispatch matched with `s16` frame / `u8` handedness arguments to
+  `AnimateCharacter`/`QueueCharacterAnimation`, and `int`-returning angle helpers
+  (`calculateAngleFromCoordinates`, `angleDifferenceNormalized`, `radToShortAngle`). Leave a
+  comment saying why it differs from the shared header.
+- **When the target re-extends a value at every use, re-read the field instead of caching it in
+  a local** (same idea as the `*(s8*)&field` read macro in pitcher.c).
+- **Local types should match the field width** (`s16` for `s16` fields, `u8` for bytes; runner
+  `running_getDirectionOverride`).
+- **`(u32)` on an array index flips the operand order of the final `add`.**
+- **Unsigned constants (`0x10U`) give `cmplwi` on u8 flags.**
+
+### Floating point
+- **`fabs` from `stl/math.h` is a macro for the `__fabs` intrinsic, but MSL declares `fabs` as an
+  inline function, and the two allocate float registers differently.** Where a function calls
+  `fabs`, try the function form:
+  `#undef fabs` + `static inline f64 fabs(f64 x) { return __fabs(x); }` file-wide, or a
+  differently named helper for only some functions. It matched the whole bobOmbFuseSpark family
+  (minigame_effects) and lifted camera_script, scene_effects and five sta_c5 DK barrel functions.
+  Two sta_c5 functions match better with the intrinsic, so the header itself is left unchanged.
+- **`x / 2.0f` compiles to a multiply with the constant second; `x * 0.5f` puts it first.** A
+  constant held in a local (`f32 scale = 0.01f;`) also keeps it second.
+- **`if (x)` gives `fcmpu x, 0`; `x == 0.0f` gives `fcmpu 0, x`.**
+- **In `a*b + c*d`, MWCC fuses the first product** unless the left side is much more complex.
+  Separate locals for the products (`sqx = dx*dx; sqz = dz*dz;`) are distinct from `dx = dx*dx`
+  and fixed two runner functions.
+- **MWCC keeps a value in f1 across a call when f1 is that call's float return.**
+- **A draft that ignores a float return is a real bug, not a codegen detail.** animation_dispatch
+  `unsure_updateAnimations` divided `1.0f` instead of the bone time returned by
+  `getActorBoneAnimTime`.
+
+### Registers, locals and loops
+- **The first-declared local tends to get the highest free callee-saved register.** Reordering
+  declarations alone matched C3 `fn_800B4278`. Script declaration-order sweeps are cheap, but when
+  120+ orders change nothing the difference is not declaration order: stop sweeping.
+- **A walking pointer whose base the target keeps** (`addi rB, g_Runners; mr rP, rB`, base reused
+  later) means the source indexes per iteration: `runner = &g_Runners[i]`.
+- **Hoisted constant locals can be wrong.** Read table constants where they are used, not into
+  locals at the top (runner `running_updateStamina`).
+- **A chained assignment stops constant folding:** `for (extra = i = 0; ...)` keeps a never-true
+  `extra >= 2` test the target retains; a plain `extra = 0` is folded away.
+- **`do {} while (++i < n)` avoids the ctr loop** where the target does not use one.
+- **A loop-scoped `int idx = i;`** can be needed for two inlined copies to match
+  (animation_dispatch `minigameIdleAnimations`).
+
+### Data and expressions in effect code (minigame_effects)
+- `-(rand() % 2 * 2) + 1` for a random sign.
+- Two statements (`alpha = p->alphaByte; alpha += step;`) instead of one expression.
+- Read a fade's start value into its own local first.
+- Write `(n - duration)` inline instead of keeping a `range` local.
+- `GXPosition3f32` / `GXColor1u32` / `GXTexCoord2f32` in a plain 4-vertex loop for quads.
+
+### Unit ownership of data
+- **A base register cannot be shared across translation units.** If code reaches deep into a
+  data-only unit through one pooled base (versus_screens `+0xEB0` off `lbl_3_data_1D28`,
+  hud_scoreboard `+0x66A8` off `lbl_3_data_8D88`), that data is the code unit's own `.data`. The
+  data-only unit only existed because the units between them have no `.data`. Data reached only by
+  symbol from several units can stay in a data-only unit (data_1880's AI tables).
+
+### Diagnostics (do not commit)
+- `#pragma opt_propagation off` around a caller shows whether constant/copy propagation is the
+  difference (runner `runnerAI_startSteals` 61 -> 89.5 with it). It also changes everything else,
+  so treat it as evidence, not a fix.
+- `objdiff-cli diff` and the report score pooled `.bss` accesses differently (the target carries
+  `R_PPC_NONE` relocs). Use the report for regression checks.
+
+### Uncalled functions and auto-inlining (fielder_ai second pass)
+- **A function with no `bl` to it anywhere in the target is inlined somewhere.** List them with a
+  grep over `build/GYQE01/*/asm` (no `bl name`, no `.4byte name`), then find the caller whose
+  body contains the callee's code and call the real function instead of a hand-expanded copy.
+  fielder_ai had 28 such functions; calling them fixed fn_3_A89D4 (setThrowSpeedType2),
+  fieldingAIPlayStrategy (fn_3_A53DC), autoMovement10_HasBall (fielderChasingAI, fn_3_A6D48, which
+  also removed a `goto`), fielderAIChaseRunner/fielderAIMakePlay (chaseRunnerWithBall) and let two
+  hand-written `static inline` duplicates (fn_3_A2FD8/fn_3_A295C) be deleted.
+- **If the plain call stays a `bl`, the callee is over MWCC's auto-inline size limit.** Making the
+  callee smaller with its own inline helpers brought it under the limit: fn_3_AAC84 inlined into
+  makeThrowVariables once its throw-frame code went through a `static inline` helper, and
+  setThrowSpeedType2 inlined into fn_3_A89D4 the same way. An explicit `inline` on the
+  callee also inlines it, but then MWCC no longer emits the out-of-line copy; a non-inline wrapper
+  around a `static inline` body emits it with different code.
+- **Shared arithmetic is often a real function that gets inlined.** The fielder_ai throw-time
+  estimate is `estimatedThrowFramesFromBallHolder(x, z)`; calling it (after the covering fielder is read) matched
+  howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase 97.8 -> 99.97. Where it is placed
+  matters: before the covering-fielder read it scored 93.
+- **Walking table pointers in a loop stop an inlined callee from sharing the loop's induction
+  variables.** Rewriting fieldingAIPlayStrategy's loops as `table[i]` / `g_Runners[i]` took it from
+  93 to 99.2 once fn_3_A53DC was inlined.
+- **A small store helper can be the source of an evaluation order.** fn_3_A53DC's tail
+  (`throw[i] = 0; run[i] = -1; out[i] = frames - framesToBase;`) only matched through an inline
+  `setThrowStrategy(i, strat, frames, framesToBase)` that subtracts inside, with framesToBase read
+  into its own local first. The target computes the difference after the constant stores'
+  values.
+
+### Locals and re-reads (fielder_ai)
+- **Copying an `s16` local into an `int` local can cost a `mr`.** setRunnerChasingAfter was 4 bytes
+  long until `base = fromBase` became `base = g_FieldingLogic.fielderAssignedLocationIndex[6]`
+  (re-read the field). Re-reading `g_Fielders[c].numFramesToGetToAutoLocation` at each use instead
+  of keeping it in a local matched howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase/runnerTimeToCoverBase.
+- **`cmpwi rX, 4; bge` then `extsh. r0, rX; blt` on an `lha` value** is an `int` local tested as
+  `x >= 4 || (s16)x < 0` (runnerTagUpOrBatterTo1B; makeThrowVariables uses the same idiom).
+- **A lone `fcmpo` whose result is never branched on** is a conditional assignment to a dead
+  variable: `f32 vel = cur; if (vel + accel > jog) vel = cur;` reproduced it in tagOutValues.
+- **A `lead = frames - 10` local can change integer allocation.** Writing `(frames - 10)` at each
+  use matched fn_3_AAC84's integer registers.
+- **A pointer local for a one-off `g_Fielders[a[b]].field` read** fixed the last registers in
+  initializeThrowAngle_Speed_Length.
+
+### Control flow (fielder_ai)
+- **`ble body; b exit` right after a range test** is an early-return guard:
+  `if (a < 0 || b < 0 || b > 3) return;` (fn_3_AAA3C).
+- **A dead `b epilogue` after `b join`** comes from `if (c) { x; } else { return; }` where the
+  `return` arm's branch was threaded away (fielderAIDecideWhatRunnerToTarget).
+- **A comma expression inside a condition gives `mfcr`/`srwi.`;** read the value twice instead and
+  let CSE merge the loads. `!(x < c)` gives a single `blt`; `x >= c` gives `cror` + `bne`.
+- **`for (i = 0; i < 4; i++) if (d[i] <= k) { base = i; break; }`** shows up unrolled with a
+  walking pointer (`addi r3, rB, 4; lfs f1, off(r3)`), not as an if/else-if chain (tagOutValues).
+
+### Diagnostics
+- objdiff does not score the `jumptable_*` vs `@NNN` or `lbl_*_bss_*` vs `...bss.0` relocation-name
+  differences that a plain text diff shows; check `diff_kind` in the JSON before chasing them.
+
+### Duplicate-body sweep across the game REL (2026-10)
+A pass over every game unit, looking for hand-written copies of functions that MWCC inlined.
+- **Search the source as well as the asm.** Comparing instruction sequences flagged many false
+  positives: sibling functions with near-identical code (camera views, minigameWinnerStars_*,
+  fn_3_E4760/fn_3_E48D0). Checking whether a function's first few statements appear inside
+  another function in the same `.c` found the real copies faster.
+- **"Called elsewhere" does not mean "not inlined here".** A function that other units reach
+  with `bl` can still be inlined inside its own unit: practice_loadCharacterData in
+  loadPracticeScreen, warioPalaceSomething in loadWarioPalace, fn_3_1CBCC in cameraControl.
+  The no-`bl`-anywhere test finds only some of the candidates.
+- **A `#pragma dont_inline` on a callee can be what keeps a copy in place.** Once the pragma
+  around practice_loadCharacterData was removed, the call inlined and loadPracticeScreen went from
+  96.29 to 97.30. A dont_inline region that contains a never-called function is worth checking
+  (fn_3_B3C64 was another).
+- **Hand copies can carry real bugs.** pitching_practice's transition case passed
+  `GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY` where the callee fn_3_B61C0 passes
+  `GAME_STATUS_AT_BAT`. Calling the real function fixed it, and the whole unit reached 100% and
+  was flipped to Matching.
+- **Inlined helpers nest.** pitchingPractice_BaseballControl's switch was fn_3_B60F0 /
+  fn_3_B5F7C / fn_3_B61C0, which in turn inline fn_3_B60F0 and fn_3_B5E7C.
+  runnerStealing_TransitionToLiveViewIndicator inlined fn_3_73850, and the three spelled-out
+  runner checks were an unrolled `for (i = 1; i < 4; i++)` loop (88.4 -> 100).
+- **`blt` straight to an else-arm laid out after the then-arm** came from an early-return
+  guard: `if (a >= 0) { if (!b) { x = 0; return; } } else { ...; return; }` followed by
+  the shared tail (fn_3_B6C9C, 82 -> 100).
+- **The inlined copy shows the callee's parameter type.** fn_3_EE67C's inlined copy of
+  fn_3_EE0BC uses `srawi 4; clrlwi 24`, which is `(u8)(x >> 4)` on a `u8` argument. Changing the
+  callee to `int fn_3_EE0BC(u8)` let the call match the hand copy. With a `u32` parameter the
+  call scored lower.
+- **Too big to auto-inline: shrink the callee through another never-called function.**
+  fn_3_C4CF4 stayed a `bl` (fn_3_C56E8 dropped to 31.7%) until its GX setup became a call to
+  fn_3_C4B80, which the target also inlines.
+- **Not every copy should go.** Calling the real function scored lower for
+  bobOmbDerby bOD_UpdateBatterAIInputs (96.2 -> 93.5), spriteAnimations/fn_3_BC888 (99.63 -> 99.45),
+  starDash_stopAllSparks (93.1 -> 67.5, the `extsb` of the inlined `s8` argument sinks below the
+  call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
+  barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
+  inlined helper bodies, while ours rebuilds it in each. That pattern is still unexplained.
+
+### Findings from the minigame_framework second pass (2026-10)
+Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
+- **A chained zero init picks MWCC's other unroll form for a variable-trip copy loop.** With
+  `offset = 0; ... for (k = 0; k < count; k++) q[offset + k] = order[k].idx;` MWCC unrolls with
+  the `cmpwi n,8; subi r,n,8` form and recomputes from `k` in the remainder. The target's
+  `srwi. r0,n,3; mtctr; ... andi. r,n,7` form with both pointers carried into the remainder came
+  from `offset = k = 0; ... for (; k < count; k++)` (minigameCharLoadQueueUpdate 87.5 -> 96.9).
+  `for (idx = j = 0; ...)` did the same kind of thing in minigames_setupChallengeRoster (93.8 -> 97.0).
+  Down-counting loops also give the `srwi.` form, but without the strength-reduced indexing.
+- **No `i >= N` test after an unrolled search loop: `goto` out of the loop.** When the target's
+  unrolled scan falls through to `li r3,0; blr` and the found-handler sits after it,
+  `for (...) if (c) goto found; return FALSE; found: ...` matched (checkForPauses 96.8 -> 100).
+  Measured first: `break` + `if (i >= 4) return FALSE` 96.8, `if (i < 4) {...}` 96.2, handler
+  inside the loop 49.9 (the loop stops being unrolled).
+- **MWCC does not move stores across calls, so read the store/call order straight off the
+  target.** Four `state = N; sndFXStartEx(...)` pairs in minigameCharSelectUpdate had been drafted
+  as call-then-store (97.2 -> 99.4 after reordering them with s32 counters).
+- **`(c ? 2 : 1)` and `(c) + 1` compile differently** as a multiplier (minigames_0x26 99.03 -> 100).
+- **`s32` vs `int` counters can need to change together.** minigameCharSelectUpdate: `s32 i, j, k`
+  98.17; any one of them alone scored lower than all-int. A blanket int->s32 over the whole file
+  regressed four 100% functions, so measure per function.
+- **One counter for consecutive loops in a small callee** (`i` reused instead of a separate `j`)
+  fixed the register swap in every inlined copy of minigameFillGrandPrixScoreInput.
+- **S1 `static inline` copies of real functions can often go.** With `-inline deferred`, calling
+  minigames_fillRoster, minigameBuildResultEntry and minigames_0x25 from earlier-defined callers
+  still auto-inlined them, and the standalone minigames_fillRoster went from 98.3 to 100 once it was
+  no longer a wrapper around the inline. minigameAwardCoins (420 bytes) stays a `bl`, so its
+  inline copy is still needed.
+- **Re-run declaration-order sweeps after structural fixes.** The same 9-local sweep that gave
+  +0.2 before the loop fix gave +1.2 after it (minigameCharLoadQueueUpdate, then two store-order
+  tweaks reached 100).
+- **Inverted test found by a one-instruction diff:** the char-select late-join scan read
+  `selectSlotState[i] == 0` where the target has `beq skip` (`!= 0`). A lone `beq`/`bne` swap at
+  the same label is worth checking as a draft bug, not just a branch-layout difference.
+- Not solved: the qsort comparators (`cmpw; beq; subf; blr; subf; blr`) keep MWCC's
+  conditional-return peephole (`subf` hoisted + `bnelr`) in every source form tried, including
+  ternary, result variable, index locals and `#pragma peephole off`.
+
+### Findings from the match_flow second pass (2026-10)
+Unit `game/game/match_setup/match_flow`, 25 -> 44 of 47 functions at 100% (.text 98.14 -> 99.57).
+- **A counter increment written before a constant store.** When the target emits
+  `stb rK,const; ...; addi rX,rX,1; sth rX` and ours has the increment's temp in r0 and the
+  constant in a numbered register (or the reverse), swap the two statements: write `n++` first.
+  MWCC still schedules the constant store first, but the register numbering follows source order
+  (uncalledRunnerUpdateRelated 95 -> 100, gameSimulationFunction, exitToMenuControl).
+- **`if (x < 0) x = -x;` vs `__abs(x)`.** Both give `srawi; xor; subf`, but the MWCC intrinsic
+  puts the result in a fresh register (fn_3_5B41C 99.59 -> 100, newPitch 95.1 -> 99.0).
+- **An extern array declared too small changes store scheduling.** `highLevelSimulationFlag` was
+  `u8[2]` while code stores `[2]` and `[3]`; with the real size `[4]`, the natural store order matched
+  and two other functions moved too (exhibitionGameTransitionCalculations, inningChange). Check the
+  declared bound against every constant index before permuting statements.
+- **`a == b` operand order is visible** in the `subf` of the CLZ idiom: `winnerCd == humanTeamNumber`
+  and `humanTeamNumber == winnerCd` differ, and two functions sharing the test needed different orders.
+- **Check every file-local `extern f(void)` against the headers.** The disk loaders take the load
+  index (target keeps the loaded value in r3 for the call), exitMenu_main takes the buttons and
+  forwards them, and the header prototype `(u8 scene, s8 charID)` with a `u8` table produced the
+  target's `lbzx r0; extsb r4,r0`.
+- **A walk-off test of `score < base + count`** is strength-reduced into its own induction register;
+  a hand-kept `runs++` total allocates differently (handleDeadBall 98.98 -> 100).
+- **A function inside a `#pragma dont_inline` block can still be the body the target inlined.**
+  configureTeamsForGame_Unused has no `bl` anywhere; moving it out of the region and calling it from
+  gameInitRelated fixed that caller (90.5 -> 100 with an unrolled 2-trip clear loop). Its body then
+  had to fold the constant argument (`teamBatting = arg1 ^ arg0`, not a re-read of both fields).
+- **`inMemRoster[0][i]` and `((CharacterStats*)inMemRoster)[i]` flip the final `add` operands.**
+- **Register liveness exposes draft bugs.** A `li r5,0` scheduled before a `bge` whose fall-through
+  also reaches the join means the assignment is unconditional (checkIfPlayOver); a value loaded once
+  and decremented in each flag block means a running variable, not a recomputation
+  (startChallengeModeMatch).
+- Not solved: newPitch (one constant takes r3 instead of r8 after the inlined practiceNewBatter),
+  processScoreChanges (every temp one register higher; the target's unrolled u64 sum needs r28) and
+  startChallengeModeMatch (the target re-materialises `g_Runners` in each runner block).
+
+### Near-miss pattern sweep findings (2026-10)
+A bounded retry of twelve game units that were one function short of 100%, using the match_flow
+patterns. No unit reached 100%, but five functions moved and two non-target functions matched.
+- **Paid off: the value-form `==` predicate.** `subfic; cntlzw; srwi.; beq` on `rec->unk69[0] == 2`
+  is a `static inline BOOL f(UIRecord* rec) { return rec->unk69[0] == 2 ? TRUE : FALSE; }`
+  (an if/return TRUE/return FALSE body is identical). It lifted draw_ongoingStarGuageHud
+  98.45 -> 99.03 and matched ballLandingMarker_update (hud_scoreboard, all three tests needed) and
+  practiceInstruction_update (practice_scene, only the second test). The units now share the
+  name `hudRecordFinished`. Sweeping each `unk69[0] == 2` site one at a time found them in minutes;
+  minigame_hud, toy_field_hud and minigame_models had no further sites that moved.
+- **Paid off: unfolded constants mean inlined or multi-def code.** `li rN,K; mulli/slwi` on a value
+  that is constant in the source, or `li rA,0; mr rB,rA` for a loop start, means the value reached
+  the loop optimiser as a variable, not a literal.
+  - rep_3E00 fn_3_166448 (82.9 -> 93.6): `offsets = packed + i++` after the unrolled files loop
+    (a post-increment use keeps `i = 3` as `li r0,3; slwi`), and the effect start block as a 1-trip
+    `for (j = 0; j < 1; j++) { ...; if (j == 0) effect->active = 1; }`, which keeps `j = 0` and the
+    constant 1 in callee-saved registers across the calls like the target.
+  - sta_c0 loadMarioStadium (97.12 -> 97.74): `slot = 0; call(slot); slot++; ...; slot++;` instead of
+    `slot = 2` gives the target's `li r25,2; mulli r24,r25,0x90`; the light loop and each crowd fill
+    as no-argument `static inline` helpers give the `li; mr` loop starts. The same light-loop helper
+    on the other six stadium loaders moved each by under 0.25 either way, so it is not a general
+    fix there.
+- **Loop increment order follows source order.** Moving `slot++` from the for-increment to the end of
+  the body (and `cfg++` next to `count++`) fixed the order of the `addi`s at the loop bottom.
+- **Did not apply here:** `__abs` (shuffleU8Array's randomIntGameAbs got worse with it), extern sizes
+  (all checked against symbols.txt and already right), and local prototypes (none wrong). The
+  `highLevelSimulationFlag[4]` fix in pitcher.c and animation_dispatch.c changed nothing (both index
+  only [0] or [1]).
+- **Still stuck, all pure register swaps with the instructions already right:** calculateChemistry
+  (lbz/mulli scheduling), spline3D_evaluate (count vs an array base), maybeProcessTeamData,
+  animateOffence, setFielderValues (target keeps `&g_GameLogic` in r30 for one access),
+  shuffleU8Array (the inlined shuffleIntArray's k), minigameUpdateResultsScene, and
+  wallBallInitializeValues (the coin loop's unfolded start guard). Exhaustive declaration-order
+  sweeps (shuffleIntArray 720 orders, animateOffence 24, maybeProcessTeamData 120) found nothing,
+  so these are not declaration order either.
+
+### Findings from the m_sound second pass (2026-10)
+Unit `game/game/sound/m_sound`, 32 -> 38 of 39 functions at 100% (.text 99.39 -> 99.996).
+- **A function that is never called, but whose inlined copies all share the same register swap, may be a
+  macro at the call sites.** addToCircularBuffer has no `bl` anywhere; every inlined copy had its queue pointer
+  and head index in swapped registers, and no `static inline` form (void/BOOL, nested ifs, early returns,
+  block-scoped locals, param types) changed that. A hand expansion with the arguments substituted textually
+  did, so the callers now use `ADD_TO_CIRCULAR_BUFFER(a1, a2, a3)` (transitionToReplay and fn_3_8C104 to 100,
+  soundControl +0.14). The inliner's parameter copies are what move the colouring.
+- **A `long` parameter keeps an inlined constant unfolded; a macro folds it.** soundControl's inlined
+  playOverSounds keeps `li rN,-1; cmpwi rN,0`, which only `void playOverSounds(long frames)` reproduces, while
+  fn_3_90434 has the folded form. The resolution was a FADE_OUT_MUSIC(frames) macro: playOverSounds' body and
+  fn_3_90434/fn_3_903B8 (constant frames) all use it.
+- **`x = x * s;` / `x *= s;` vs `x = load * s;` changes the int-to-float stack temp order.** playCharacterSoundScaled had the
+  vol/reverb temps mirrored (68%) in every single-expression form. Separate load + compound statements gave
+  the right slots (99.6). The last register matched with `static inline int f(int level) { level = level * s;
+  return level; }` on both values. The same helper written as `return level * s;` scored 56.
+- **Adjacent statement order is still the strongest lever.** soundControl's last 0.19% was
+  `_28 = 0; _20 = track; trackId = track;` (the trackId copy last, out of 6 orders). fn_3_8C2DC matched with
+  the float division before the flag store. adjustBallSoundEffectBasedOnHeight matched with
+  `clamped -= min; ratio = (f32)clamped / (f32)(max - min);` instead of one expression.
+- **One local reused for two different fields can be the original.** soundControl's practice block stores
+  g_GameLogic.secondaryGameMode into the same u8 `status` local used for gameStatus elsewhere (99.20 -> 99.27).
+  Reading g_Stats.replayInd once into a local that a later test reuses fixed which value got r0 (-> 99.64).
+- **Split an index that is overwritten by the value it indexes.** fn_3_8C104 used one `int value` as the 0/1
+  table index and then as the looked-up volume. The target passes the volume to a `(u8, u8)` callee without
+  truncation and tests it with `clrlwi.`, so it is a separate `u8 value` (98.52 -> 99.66).
+- **Where the sign extension sits matters.** processSoundReplayQueue: `vol = rec.arg3; vol = (s8)vol;` as two statements and
+  `switch ((s8)bytes[...])` with no `cmd` local each kept the target's in-place `extsb` (98.85 -> 99.82).
+- **`lwz rD, sym@l(rB)` vs `addi; lwz rD, 0(rA)` for a member at offset 0 is a register-allocation side effect.**
+  No source shape moved it; it followed once the surrounding locals coloured like the target.
+- Carried over from the first pass: `if (a || b || !c) return;` gives `bne next; b exit` for the last operand;
+  `x = cond ? TRUE : FALSE` tested later gives `neg; srwi.` (`cond ? FALSE : TRUE` gives `cntlzw; srwi.`);
+  and with `-inline deferred` the pooled `.rodata` follows reverse source order, so write the functions in
+  descending address order before judging `.rodata`.
+
+## Logic pass findings (53 structural functions)
+
+Chunk 1 (ball_fielder_collision, collision_primitives, play_result_tracking, runner, charge_effects,
+camera, camera_script; 2026-10).
+
+- **A cast at the use site picks indexed addressing; a typed pointer picks add + displacement.**
+  `((T*)voidPtr)->arr[i]` and `((T*)bytePtr)->arr[i]` compile to `slwi; addi rT, rI, off; lwzx/stwx`,
+  while the same access through a pointer whose *declared* type is `T*` (a struct field or a parameter)
+  compiles to `slwi; add rT, base, rI; lwz off(rT)`. When the target shows the add form, type the
+  pointer at its declaration instead of casting it. In camera_script this meant
+  `unkStructPtr._0000` as `struct CamScript*` (it had been a two-field stub cast by a `CTX` macro)
+  and `fn_3_1054D0(CamScriptHdr* script, ...)`: 92.4% -> 99.8%, and it took `camera_replay` to 100%
+  as a side effect. It is the converse of the "raw byte-offset indexing" entry above.
+- **Two arrays at the same stack offset means a union (or deliberate buffer reuse).** In `fn_3_19FA4`
+  the target writes the angle samples to the slot the spline control points occupied, through the
+  callee-saved register that held `&points`. Because the stores go through that pointer, the bound is
+  re-read every iteration and the loop is not unrolled. Separate arrays (even in disjoint block scopes)
+  got their own slots and an unrolled loop; `union { Vec points[5]; f32 anglePoints[4]; }` reproduced
+  both (74% -> 96%). Check the target's frame size and array offsets before chasing loop shapes.
+- **Interpolation order is behaviour, not shape.** `a + (t / n) * (b - a)` and `t * (b - a) / n + a`
+  round differently. The target's instruction order (`fmuls`, then `fdivs`, then `fadds x, a`) shows
+  which one was written, so read it off the asm. The operand order of the final `fadds` also follows
+  the written order (`x + a` vs `a + x`).
+- **Fused vs unfused float updates.** `p.x += (c - p.x) * k;` fuses to `fmadds`. Where the target
+  has `fmuls` + `fadds`, and computes both deltas before either store, write the deltas into locals
+  first (`dx = ...; dz = ...; p.x += dx; p.z += dz;`). The rounding differs, so this is a correctness
+  fix as well as a match fix (gameplay_Camera).
+- **A shared view-update inline can hide a per-branch difference.** `fn_3_19FA4`'s draft folded the
+  `_0010` frame counter increment into an inline called by two branches; the target only advances it
+  on the spline branch. When an inline is used by several callers, check that every statement in it
+  appears at every call site in the target.
+- **`lbzu` + a reload in a saturating `if (x < 0xFE) x++; else x = 0xFF;` means the field was
+  written out directly, not through a `u8* stat` pointer local** (postPlayTrackStats 90.4% -> 95.5%).
+  The same function's reload-after-store history shift was an unrolled `for (i = 4; i > 0; i--)`.
+- **A `u8` field converted through `xoris 0x8000` was written `(int)field`**: it uses the signed
+  bias constant and shares it with a neighbouring int conversion. Our implicit promotion took the
+  unsigned path and added a second pool constant (fn_3_16C548, .rodata 95% -> 100%).
+- **`cmplwi` on a loop countdown or flag means `u32`, not `int`/`BOOL`** (checkStatiumHazardCollisions).
+- **`ble` straight to the exit, where ours has `cror; beq`, is `!(x > t)`**, which also sends NaN down
+  the return path as the target does (processBallFielderCollision).
+- **Unsolved: a branchy select evaluated after all the other call arguments.** applyChargeAnimationEffect's
+  target computes every argument, then `li 0x18; beq; li 0x17` right before the `bl`. Every ternary
+  is branchless, and the if/local/inline forms are branchy but evaluated first (6 forms logged in its
+  checkpoint).
+
+Chunk 2 (camera_script, star_missions, hud_scoreboard, match_end, match_transitions; 2026-10).
+
+- **`addi rI, rI, N; slwi; add; lwz -8(rX)` is "the record before `first + i + N`".** The target
+  never folds the `- 1` into the index. `REC(scene, col - 1 + 6)` folds to `+5` with `lwzx`.
+  `(&graphicsRelatedArray[first + col + 6])[-1].object` (a `REC_PREV` macro in hud_scoreboard)
+  reproduces the add-then-negative-displacement form. That fixed every inning-column record in
+  manageScoreboardGraphic (96.5% -> 99.2%, size exact) and the base markers in
+  drawDiamondMiniMap_ongoing. Scratch tests of the same expressions fold differently, so measure
+  this in the real unit.
+- **A condition MWCC should fold but the target computes as a value is `(a == b) ^ 1`.** In
+  decideScoutFlagMission an always-true `else if (!(a == b))` is folded away by every logical form
+  (`!`, `== FALSE`, `!= FALSE`, an inline returning `a != b`). Only the explicit xor kept the target's
+  `subf; cntlzw; srwi; xori; cmpwi` (98.3% -> 99.4%).
+- **Separate induction registers per field mean the source indexed `array[i].field`.** In
+  scoutMissionProgress_init the target keeps `&entries[i].max`, `.achieved` and `.amount` in their
+  own registers and saves four GPRs. A walking `entry++` pointer collapsed them into one base
+  (88.3% -> 99.8% with direct `scoutState.entries[i]` indexing). Also, `base + k + 1` and
+  `base + (k + 1)` associate differently.
+- **A field reloaded at a fixed displacement inside an unrolled inner loop means a per-iteration
+  pointer.** In starMissionsMinigamesTotalPoints, `StarMissionRequirement* r = &req[j];` gave the
+  target's `lha 4(r3)` in every unrolled `k` iteration; `req[j].flags` was strength-reduced to a
+  separate pointer instead (90.9% -> 98.2%, together with an inlined beat-character helper detected
+  from the `li; mr; mr` zero pair).
+- **A loop-invariant sum the target computes before the loop was written as its own variable**
+  (`outsNeeded = storedOuts + 2`; MWCC did not hoist `outsBefore + 2` out of the fielder loop).
+- **Inline-or-pasted is a per-site choice, but a sweep can mislead.** fn_3_FDB30's four captain
+  lookups all show the inline `li; mr` zero pair. Making them inlines removes the last structural
+  difference, yet scores 99.71 against 99.74 for the pasted loops, purely on register colouring.
+  The shape-correct version was kept.
+- `s32 i` restored the fixed-trip guard (`li 1; cmpwi 14; bge`) again, in an inline helper
+  (setMiniMapAlpha).
+- **Not solved: a `(table + 9)` base hoisted for `table[id].field[k]` reads, plus an `extsb` before a
+  byte store** (scoutFlag_checkMissionSuccess, 4 forms logged). The target routes the s8 value through
+  an int, and an `int` local reproduces the `extsb` at one of the two sites.
+
+- **Pooled static data, third data point (`piranhaPanic_emitFielderHitFire`, 73% -> 100%).** The target
+  reached three tables as `addi rX, base, 0x254/0x23C/0x13C` off one `minigameFxData` base. Two
+  alternatives were measured and both lose: direct access to separate *global* objects (75.7%; MWCC
+  emits a separate `lis/addi` per global, it does not pool them) and one merged global struct (73.4%;
+  member offsets fold into the load displacement). Only splitting the block into file-`static` objects
+  at the boundaries the target's addressing shows (symbols `scope:local`) reproduces it.
+
+- **A unit whose splits.txt lists `extab`/`extabindex` needs `extra_cflags=["-cpp_exceptions on"]` on its
+  `Object(...)`** (DOL `unk` lib; the C3 lib already has it in its group cflags). Without it the object
+  emits no exception tables, so `extab` scores 0% and the unit cannot be flipped to Matching even at
+  100% `.text`. Adding it changed no `.text` in any of 51 units (2026-10 first-pass follow-ups).
+
+Chunk 3 (match_transitions, versus_screens, chain_chomp_sprint, minigame_effects, minigame_framework, minigame_hud; 2026-10).
+
+- **`frsp f1, fN` just before `bl cos`/`bl sin` on a double angle means `cos((f32)angle)`.** The
+  argument is rounded to float and then promoted back. An `f32 angle` local moves the `frsp` to the
+  store instead. This is a real rounding difference (piranhaPanic_initBombExplosion).
+- **`lha; extsh.` for a `>= 0` test on an s16 field is the `(s16)` cast** written at the test
+  (loadRunnerActors). A plain field compare, an s16 local, or `(int)` all give `cmpwi`.
+- **`cmplwi` on a game-mode local means `u8`** (loadRunnerActors 95.3% -> 99.4%). It also brings
+  back the `clrlwi` after the range fold's `subi`.
+- **Unsolved, recorded so nobody re-derives it.** (1) A target that keeps a constant table base in a
+  callee-saved register across a `rand()` call, re-materialised at each statement
+  (wallBall_placeBounceParticle and its inlined copy). (2) A value-materialised `x == 0` test
+  (`cntlzw; srwi.; beq`) that every logical form folds away (minigameHudBodPitchRoulette; compare
+  chunk 2's `^ 1` trick, which only covers `!=`). (3) The target re-reading struct fields between two
+  identical counts with no store in between (fn_3_22ABC / chooseVsScreenSituation).
+
+Chunk 4 (mm_ParseCommonArchive, star_dash, practice_model_load, practice_scene, sta_c1, sta_c2, sta_c3; 2026-10).
+
+- **Pooled statics, two more cases (sta_c1, sta_c2).** A `static` struct or a `u32[]` blob that the
+  target addresses at several unrelated displacements off one pooled base is really several static
+  objects. Splitting it into separate `static` objects with matching `symbols.txt` entries
+  (`scope:local`) helped loadBowserCastle (90.79% -> 92.49%), loadWarioPalace (+0.84) and
+  palaceMinigameObjectLoading (+1.12). `.bss` statics are laid out in **reverse** declaration
+  order and `.data` statics in forward order, so declare them to match. In sta_c2 the split alone
+  regressed one caller; indexing the new arrays directly in its loops, instead of through a
+  pointer into the old blob, recovered it.
+- **A materialised `cntlzw; srwi.; beq` test reproduced by an inline returning `cond ? TRUE : FALSE`**
+  (fn_3_C3C2C 96.95% -> 98.67%). This did not work for minigameHudBodPitchRoulette (chunk 3), so try
+  it but do not rely on it.
+- **`addi; slwi; lwzx` record access is a byte-offset macro.** Writing
+  `*(T**)((u8*)base + ((first + i) << 3))` reproduces it where `base[first + i].ptr` gives
+  `add` plus a displacement (practiceMenu_charSelect_update -> 100%).
+- **`cmplwi` on a call result means the callee returns an unsigned type** (sD_AIPathBlocked: `u32`, not `BOOL`).
+- **Telling an inline from pasted code by its zero.** If one `li 0` is shared via `mr` between the loop
+  index and the stored value, it is an inline helper. If the index and the value each get their own
+  `li`, the loop was written out at the call site (sD_UpdateAI's AI input clear).
+- **Assign a derived table pointer where it is first used, not in its declaration initialiser.**
+  `u8** animTable = (u8**)(hugeAnimStruct + 0x6C);` at the top of the function moves the `addi`
+  early and keeps it live. Assigning it just before the store matches the target
+  (loadBowserCastle, loadYoshiPark).
+- **`s32` vs `int` loop counters are not interchangeable** (`s32` is `long`). loadYoshiPark gained 1.8
+  points from `int k` -> `s32 k` alone, so sweep both when a counter's register allocation is off.
+- **Unsolved.** (1) mm_ParseCommonArchive: the target folds the post-loop `offsets[i++]` increments
+  into constant displacements, and 5 forms did not reproduce it. (2) practiceModel_setup: the target
+  re-loads `files[]` after storing it (no store-to-load forwarding); 17 hypotheses are logged in its
+  checkpoint. (3) fn_3_D4780: the `fnmsubs` operand order for the amplitude term was not reproduced.
+
+Chunk 5 (sta_c4, sta_c5, sta_c6, stadium_draw; 2026-10).
+
+- **How to read pooled-object addressing in a diff.** When MWCC addresses a static object off the
+  unit's pool base, a field at offset 0 folds into the base displacement (`lfs f0, 0x25c(r30)`), and
+  every other field goes through `addi rX, base, objOffset` plus the field displacement
+  (`lfs f0, 0x4(rX)`). Ours folding all of them (`0x260(r30)`) means our struct spans several real
+  objects. Split it at the `addi` offsets. This gave the largest wins in this chunk: sta_c5's
+  launch/water statics (cutscene 95.65% -> 98.89%, fn_3_EE388 89.37% -> 97.80%), the
+  barrel table and anim banks (loadDKJungle +1.7), and stadium_draw's tables (drawStadiumObjects
+  88.17% -> 96.80%). Splitting only part of a block can make things worse: a view-struct access
+  to the rest stops the new object from being pooled, so it is addressed by name. Split everything
+  the function touches.
+- **The pool base's symbol tells you where the unit's `.data` starts.** In stadium_draw the target's
+  base was `FrameCountOfEntireGame` (.data 0x228), 0x14 bytes before the split's `.data` start.
+  That object belongs to the unit. Moving the splits.txt start to 0x228 and defining it there
+  (a `{0}` aggregate goes to `.data`) was what made the table splits work. The auto gap unit
+  `auto_04_00000228_data` disappears, so `regchk` reports it MISSING. That is expected; total
+  matched data went up by exactly its 20 bytes.
+- **`cmpwi 3; bge D; cmpwi 1; bge B; b D` is a `switch` with `case 1: case 2:`**, not an `if` range
+  check (an `if (x < 3 && x >= 1)` gives `bge; blt`).
+- **`clrlwi 16` on a `GXGetTexObjWidth/Height` result applied late, at the division, means the
+  original used the SDK's `u16` return type.** This repo's prototypes say `u32`. `(u16)` casts at the
+  uses took fn_3_42CC from 96.69% to 100%; `u16` locals truncate too early and score lower.
+- **`?: TRUE/FALSE` inline, second hit:** sta_c4's fn_3_F8E20 (98.28% -> 100%) uses the same
+  `scale == 2` finished-animation test as sta_c1's fn_3_C3C2C.
+- **Behaviour bugs found by diffing immediates and branch-only paths:** loadDKJungle read `n`
+  uninitialised in minigame mode (the target zeroes it on entry). fn_3_4F90 reset the GX line
+  width to 18 instead of 6 after the outline.
+
+Chunk 6 (stadium_draw, stat_book, stat_tracking; 2026-10). updateStadiumFileHeaders was already
+100% in the baseline. compileStatsForBook and initializeStats stayed stuck.
+- **`lis 1; subi` for a 0xFFFF store means the element type is `u16`.** An `s16` store folds the
+  constant to `li -1`. In initializeStats a `u16*` store reproduced the target's 18-store unroll,
+  but it scored lower on register allocation, so it was not kept (logged in the checkpoint).
+
+### Logic pass summary (all 53 functions)
+
+- **Matched: 7.** fn_3_16C548, runnerAI_startSteals, animateShadows_nonBall,
+  piranhaPanic_emitFielderHitFire, practiceMenu_charSelect_update, fn_3_F8E20, fn_3_42CC.
+  One more (updateStadiumFileHeaders) was already 100% when reached.
+- **Improved: 30.** Typical gains were 1-10 points. The largest: runnerAI_startSteals 60.92 -> 100,
+  piranhaPanic_emitFielderHitFire 72.58 -> 100, fn_3_19FA4 72.88 -> 96.49,
+  scoutMissionProgress_init 88.34 -> 99.79, drawStadiumObjects 88.17 -> 96.80,
+  fn_3_EE388 89.37 -> 97.80.
+- **Stuck: 15.** Each has its forms logged in its unit checkpoint. Almost all are pure register
+  allocation, CSE or scheduling with identical logic: a base kept live across calls, values re-read
+  per iteration with no CSE, a materialised compare, folded post-loop increments, `fnmsubs` operand
+  order, and zero registers shared between a vestigial loop guard and a value.
+- **Behaviour bugs fixed: 3.** fn_3_19FA4 advanced the spline frame counter on the linear path and
+  used the wrong lerp association. loadDKJungle read the pool index `n` uninitialised in minigame
+  mode. fn_3_4F90 reset the GX line width to 18 instead of 6 after drawing the outline.
+  **Minor numerical differences fixed: 3.** processBallFielderCollision (an inverted compare that
+  only differs for NaN), gameplay_Camera (fused multiply-add where the target rounds between the
+  multiply and the add), piranhaPanic_initBombExplosion (cos/sin argument not rounded to float).
+- **Patterns that paid off most:**
+  1. Splitting pooled statics into their real objects. Read the `addi base, off` vs folded-offset
+     shape; it was the single biggest lever, across sta_c1, sta_c2, sta_c5, stadium_draw and
+     minigame_effects.
+  2. Integer widths and signedness read off `clrlwi`/`extsh`/`cmplwi`/`lis;subi`.
+  3. `switch` vs `if` range-check shapes.
+  4. Inline-helper shapes: `? TRUE : FALSE` and shared vs separate zeros.
+  5. Diffing immediates and branch-only paths, which is where every real behaviour bug showed up.
+
+## Last resort: `#pragma opt_dead_assignments off` around one function (batter.c `calculateContactAndHitType`)
+**When a whole basic block has identical registers but the load order and `fmadds` operand order are wrong, re-sweep function-scoped pragmas.** In batter.c the unrolled threshold loop loaded `arr[0][i]` before `arr[1][i]` and emitted `fmadds d, frac` under every source spelling (about 30k permuter candidates across sessions 14-16). Wrapping the function in `#pragma push` / `#pragma opt_dead_assignments off` / `#pragma pop` made the loop exact. It also let the plain `inv_lerp` helpers match without the parameter-assignment tricks used earlier. Setting the pragma for the whole file regresses 7 other functions, so it has to stay function-scoped.
+
+**Resolved without the pragma (session 18): reuse an existing local.** The real shape was variable reuse. Writing the loop's difference into a local the function already assigns elsewhere matches with no pragma: `xPosFromPerfect`, renamed `diff`, so `diff = arr[1][i] - arr[0][i]; thr[i] = arr[0][i] + (contactSize / 100.f) * diff;`. A fresh block-local `f32 range` does not match. A variable with more than one definition is not forward-substituted, so `hi - lo` stays its own assignment and `hi` is loaded first. That is what turning off dead-assignment elimination was imitating. **Before reaching for an optimiser pragma, try storing an intermediate in an already-used local of the same type.** batter.c ships pragma-free.
+The parallel mini harness that found this is described in the batter checkpoint (session 18). It compiles one function in a standalone translation unit and diffs its instructions against the target asm, which makes about 25k candidates per hour cheap.
+
+**This is a last-resort strategy, not a model of the original source.** No other game file uses an optimiser pragma, and there is no plausible reason a developer would turn off dead-assignment elimination for one function. Treat a match that depends on it as a fakematch: say so in the source comment, keep the checkpoint open, and only reach for it after source-shape levers (inlining, temps, types, prototypes, statement order) have been exhausted. When a real source shape is found that matches without the pragma, remove the pragma.
+- **Re-sweep once the other clusters are fixed.** Session 7 swept pragmas while the function was at 97.88%, so a pragma that fixed one cluster but disturbed another scored as a loss. Grid pragma x source shape together.
+- **Probe pragma legality by grepping the compiler output for `illegal`.** Grepping for `pragma` also matches the echoed source line, so every pragma looks legal. MWCC 2.6 accepts `opt_dead_assignments`, `opt_lifetimes`, `opt_loop_invariants`, `opt_strength_reduction`, `opt_propagation`, `opt_common_subs`, `opt_unroll_loops`, `ppc_unroll_instructions_limit N`, `ppc_unroll_factor_limit N` and `scheduling 601/603/604/750`, among others.
+- **Inline helpers that assign to their own parameters change argument load order.** A parameter that is used once is substituted into the expression; one that is used twice or assigned to is kept as a temp and its load is hoisted. This got the function from 97.88% to 99.77% before the pragma was found.
+
+#### Follow-up leads (after the 53-function pass)
+
+1. **(u16) texture-size casts:** did not apply beyond fn_3_42CC. It is the only stadium_draw
+   function that calls `GXGetTexObjWidth/Height`. fn_3_3BE8 and fn_3_3EE8 read sizes from the
+   texture record (`lhz`).
+2. **`FrameCountOfEntireGame` is a struct, not a scalar.** It is the 0x14-byte first .data object
+   of stadium_draw: frame count, a per-frame counter, two ball random-int copies, and the
+   loading-done flag at +0x10. Seven files declared it four different ways. It is now one
+   `GameFrameCounters` type in `stadium_draw.h`; every unit compiles identically. When
+   one symbol is declared differently in several files, look at all the users' offsets before
+   picking a type.
+3. **A copy struct can have a different element type from its source.** `StatsScreenScores` keeps
+   `u16` copies of `g_Scores`' `s16` scores. Retyping the shared `ScoreStruct` regressed about 50
+   functions. A separate `u16` type used only by the copy improved initializeStats
+   (92.65 -> 93.83), postPlayTrackStats (98.41 -> 98.77) and endOfGameStats_MVP
+   (99.88 -> 100). initializeStats needed the total and the 18 innings cleared separately: under
+   `u16` the single 19-entry loop scored 84.
+4. **Pool-base register numbering (sta_c5):** unsolved. A scratch file reproduces our assignment
+   (data base r31, bss base r30). Definition order, first use, globals vs statics, reference
+   counts and compiler versions 2.0-2.7 do not change it.
+
+### Four-file pass findings (2026-10)
+game_math, bobomb_derby, free_fielding_practice, ball_visuals. 12 functions matched, none of the
+units reached 100%.
+- **Check `SQRT2_LINKAGE` first in any unit that calls `dolsqrtf2`.** game_math was missing the
+  define, so `_half`/`_three` sat at the head of `.rodata`. That one line took `.rodata`
+  95.56 -> 100 and matched 14 float functions.
+- **`if (x < 0) x = -x;` is not `x = ABS(x)`, and neither is `__abs(x)`.** All three give
+  `srawi; xor; subf`. The ternary macro and `__abs` put the result in a new register, and the
+  if-form reuses x's register. RandomInt_Sim and RandomInt_Game matched with the if-form;
+  `__abs` scored 59.
+- **A plain expression macro can beat a `static inline` for a call wrapper.**
+  `bOD_launchFireworks(pos, n)` (getCamera, then maybeFireworks) as a static inline left the
+  count and `&g_Pitcher` in swapped callee-saved registers. As
+  `#define BOD_LAUNCH_FIREWORKS(pos, n) maybeFireworks(pos, &getCamera(0)->eye, n, 1)` it
+  matched. A `do { } while (0)` macro with a local scored lower than the inline.
+- **A struct pointer local for only SOME accesses decides which base register CSE reuses.** In
+  bOD_UpdateBatterAIInputs the target uses the first loop's `&g_Minigame` for the switch's AI fields
+  and a separate base for `rosterID`. `MiniGameStruct* mg = &g_Minigame;` used only for those
+  three fields matched (96.07 -> 100). Using `mg` for more accesses scored 83-89.
+- **Calling the real function fixed a hand copy here, unlike the earlier sweep.** With the `mg`
+  fix in place, bOD_AtBat matched by calling bOD_UpdateBatterAIInputs and minigameClearAIControlled
+  (both auto-inline) instead of the `bOD_AI`/`bOD_clearAIControlled` copies. The duplicate-body
+  sweep had measured the call form lower (96.2 -> 93.5) before the `mg` fix. Re-measure a "copy
+  beats call" result after other fixes.
+- **A constant-initialised array that the target stores in ascending order, with the bound
+  shared with `mtctr`, is a loop.** `for (i = 0; i < 4; i++) slots[i] = i + 1;` (unrolled by
+  MWCC) matched practiceRelated. Four explicit stores scored 96.3 in either order.
+- **Declaring a block-scoped pointer at function scope moves it to another callee-saved
+  register.** freeFieldingPracticeLoadCharacters matched with `MinigameSelectSlot* slots`
+  declared first at function scope and assigned inside the branch.
+- **`a = b = const` shares the constant's register with the loop counter.** In
+  setupBallTrailEffect the target stores the display-list byte from the same `li r5,1` that
+  starts `i`. `dl[6] = i = 1;` reproduced it. `i = 1; ... dl[6] = i;` did not, because MWCC
+  propagates the constant back in.
+- **A store of `-1` from a register shared with `s8` stores means the field is `s8`.**
+  bobomb_derby's `minigamePlayerSelectedOrder` is `u8` in the header, but every user casts it to
+  `s8` and the target stores it from the shared `li -1`. Retyping it gave the right sharing but
+  moved every volatile register (98.18 -> 95.60), so it was reverted. Logged in the checkpoint.
+- **Still stuck:** pure colour swaps with the instructions already right. These are
+  bOD_PrepareNextBatter (a `TRUE` constant and the `&g_Minigame` temp numbered the other way
+  round), freeFieldingPracticeSwitcher (a `team * 0x50` schedule), rotate2DByAngle (f4/f5 between
+  the sin result and the inlined sqrt argument), RandomInt_Game_Range/RandomF32_Sim_Range
+  (inlined RNG argument copy) and fn_3_67EF0 (parameter copies r15-r21 vs r23-r29). Each
+  function's checkpoint lists what was tried.
+
+## Menus pass findings (text_110B0, main_menu)
+
+Second pass on `src/menus/text_110B0.c` (.text 95.12 -> 98.77, 2 -> 5 of 7 functions at 100%)
+and `src/menus/main_menu.c` (.text 91.42 -> 99.43, .data 100; 7 -> 12 of 15). Neither unit is at 100%, so
+neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,main_menu}.md`.
+
+- **`sym+0x8@ha` in the target means dtk merged several small `.sbss` objects into one symbol.**
+  Every menu-REL reference to `lbl_803CBCD0` (0x18) was `+0x8` or `+0x10`, and the DOL reads
+  `lbl_803CBCD0` itself through `@sda21`, so it is three 8-byte objects. `lbl_803CBBC2` (0xA) was
+  the same: a DOL byte scalar plus an 8-byte object at `+0x2`. Splitting them in
+  `config/GYQE01/symbols.txt` and indexing the new symbols from 0 was worth +1 to +2.5 points per
+  function. teamselect.c and captain_select.c stayed at 100%.
+- **A REL unit with a `switch` cannot reach 100% until it owns its jump tables' `.data`.** Every
+  switch function scored about 99.8 with only the `jumptable_2_data_*` relocation wrong. Give the
+  unit a `.data` range in `config/GYQE01/menus/splits.txt` that covers just its tables, as
+  teamselect.c does at `0x19B4`. main_menu has `0x624-0x71C` and text_110B0 has `0x1594-0x15C8`.
+  Two more steps are needed. Put the functions in reverse address order (`-inline deferred` emits
+  them reversed), so the tables come out in the target's order. End the range at the last table
+  (`0x71C`), not at the next 8-aligned object, or the 4 pad bytes cost the section. dtk's
+  alignment warning for the range is expected.
+- **The `.data` layout shows where the TU boundaries are.** In this block, each original TU's data
+  starts with a copy of a debug-menu string table ("BAT FIRST", "BAT LAST", "SELECT DEBUG MENU",
+  ...) and has its jump tables at the end. Two results follow. teamSelectScreenMain's table
+  (`0xFDC`) closes the css TU's run (`0xEAC-0xFDC`), so that function belongs with text_0323C. The
+  stadium functions from `0x112F4` start a new TU (`0x1000-0x15C7`). main_menu addresses
+  `lbl_2_data_180 + 0x2C4..` (MenuCommonTexFiles) from one pooled base, so both are this TU's
+  statics.
+- **Writing `(s8)` on a field that is already `s8` merges two sign extensions.** The target
+  extended one load twice (`extsb` for an index, `extsb.` for the compare). With the redundant
+  casts, MWCC CSE'd them into one. Dropping the casts matched fn_2_1216C.
+- **A raw `((u8 *)&Global)[off] = x` store blocks CSE of other globals. A struct-field store does
+  not.** In stadiumSelectControls the target reuses `GameModeSelected` and the spin flag across a
+  `playerNumberByPort[idx]` store. That reuse only appeared once the store went through the field.
+- **Re-read a global to defeat CSE when the target re-tests a bit.** fn_2_1578 copies the inputs
+  to a local, then tests `processedInput & UP` twice. The target computes the `rlwinm.` again
+  for the inner test. Reading `Static_Stats_Tables.controllerInputs[0].processedInput` in the
+  inner test matched it, and the load is still forwarded from the first read.
+- **The callee's size decides between call and copy, as before.** A plain call to fn_2_1A88
+  (0x124) inlined into mainMenuRelated. A call to fn_2_1578 (0x288) stayed a `bl`, so its body is
+  copied there.
+- **Two independent global byte stores: the `lis` order is the written order, even when the
+  stores are swapped.** Writing `Static[0x48B4] = 0;` before `lbl_803CBCE0[0] = 0;` matched
+  mainMenuRelated's two copies, although the target stores lbl_803CBCE0 first.
+- **Hand-unrolled draft code was often MWCC's own unrolling.** fn_2_1A88 (41 -> 100) was two
+  loops, `for (i = 1; i < 4; i++) if (port i present) ports[n++] = i;` and
+  `while (n < 4) ports[n++] = -1;`. fn_2_11EA8 and fn_2_2BB8 matched once written as plain
+  `[t][i]` indexing of `CharacterStats` / `cursorPositions.roster`, with no walking pointers.
+- **Still stuck (colouring only):** stadiumSelectControls 93.66 (the target keeps the spin flag
+  in r0 for the whole function), loadDemoMatch 97.14, fn_2_2D1C 96.63, mainMenuScreen 99.72 and
+  teamSelectScreenMain 99.83 (jump table at `0xFDC` in the css TU's data, plus one register).
+
+## captain_select pass findings
+
+Second pass on `src/menus/captain_select/captain_select.c` (.text 96.23 -> 98.77, .data now owned
+and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are still short. Checkpoint:
+`build/.match_grind/menus_menus_captain_select_captain_select.md`.
+
+- **A pooled `base + 0x418` into another symbol means the unit owns that `.data`.** fn_2_16460 read
+  three camera vectors as `lbl_2_data_19E8 + 0x418/0x424/0x430` (first field folded, the others
+  through `addi`), i.e. three `static Vec`s pooled off the unit's first `.data` object. Giving the unit
+  `.data 0x19E8-0x1E24` in splits.txt, defining the data in C and splitting the gap-sized
+  `lbl_2_data_19E8`/`lbl_2_data_1DD4` matched it. Objects the target references by name
+  (`lbl_2_data_1DD4`, `lbl_2_data_20EC`) are globals; only statics are pooled.
+- **The debug-menu text table is 0x2C4 bytes and opens every TU's `.data` in this block** ("BAT FIRST",
+  "BAT LAST", ..., "COM4>", a colour table and three small index tables). captain_select defines it as
+  `DebugMenuText` with string initialisers; the copy at 0x1E28 starts the next TU. It most likely comes
+  from a shared header, so it can move into one once a second unit owns its copy.
+- **Value numbering distinguishes `int` from `u32`/`s32` even for the same bits.** In BPress the target
+  keeps `c` (the slot) in a callee-saved register for indexing, but re-derives `clrlwi r3, rIdx, 24`
+  from the parameter at each call that takes the slot. `int c = (u8)idx` made MWCC reuse `c` there.
+  Declaring the callee's parameter `u32` (fn_2_16A74) or writing the argument as `idx & 0xFF`
+  stops the reuse (94.0 -> 96.4). `u32 c`/`s32 c` themselves turned the slot loads into `lbzu` walks.
+- **`slwi` on a slot index means a 32-bit variable known to be zero-extended; `clrlslwi` means a
+  `u8` variable.** `u8 slot`/`u8 c` locals re-extend at every word index. `int slot = ...` (handleInputs),
+  `u32 c = (u8)idx` (APress, which also needs `cmplwi`) or a `(u8)` cast at the use site
+  (`menuCursors[4 + (u8)gameSetUpStep.portCaptainSlot[port]]`, screenInputs) reproduce the target.
+- **Arguments in `r4`/`r5` that the source never sets are a missing parameter.** APress's target
+  loaded `charID` into `r4` and `li r5, 1` before `bl fn_8004D4F0`; the DOL body compares `r4`
+  against `challengeCaptainCharIDArray` and branches on `r5`. It is the challenge-mode team
+  add/remove `(team, charID, add)`, not a one-argument call (behaviour fix).
+- **`stopShowingCaptainProfile` takes the port's captain slot.** captainSelectScreenInputs passed
+  the port; the target passes the `portCaptainSlot[port]` load it already CSE'd (behaviour fix).
+- **Dropping single-use temporaries fixed most of APress** (94.5 -> 99.7): the two
+  `mapCaptainCursorPositionToCharID[...]` reads written into the stores directly, and the challenge
+  lookup written `(&table[sup * 6])[cursor]` to get the target's add order.
+- **`u8 a = port;` for the two animation calls, with the index written `(u8)port`** matched
+  fn_2_14BB8 (the cast CSEs with `a` and gives the target's `mr` copies). A `static inline` with a `u8`
+  parameter changed nothing.
+- **An `f32` temp updated in place reproduces `fadd` -> `frsp` reusing one register:**
+  `f32 t = 320.0f + v; t -= 0.1; return t - 320.0f;` (fn_2_14574).
+- **Including `UnknownHomes_Game.h` in a menu unit needs `#define SQRT2_LINKAGE static` first**, or
+  the `dolsqrtf2` statics shift `.rodata` (100 -> 95.8).
+- **The wait loop in checkForNewPlayer is an inlined `loadNewCaptainModelOnCapSelectScreen`.**
+  `while (!loadNewCaptain...(menuCursors[5], prev, 1, 1)) prev = menuCursors[5];` replaces a
+  goto-into-do-while at the same score.
+- **Still stuck:** checkForNewPlayer 94.35 (the target issues two global byte stores before an
+  unrelated `menuCursors` load that ours hoists above them; 11 forms logged), BPress 96.38,
+  handleInputs 99.48 (`bne next; beq L` for a `goto`), APress 99.74 (a two-register colour swap).
+
+
+### Menus character-selection first pass, text_7E380 (2026-10-20)
+
+Resumed from e4f81aee without changing other units. All fourteen functions in
+`src/menus/text_7E380.c` are now drafted; ten return-only stubs were replaced.
+The typed shared stats/settings/challenge structures cover the existing offsets,
+and `include/menus/text_7E380.h` now declares the recovered scene/channel arguments.
+Only this source includes that header. Keep the unit NonMatching.
+
+Fresh objdiff `.text`: **9.086067% -> 86.574776%**. Exact target functions:
+**0/14 -> 0/14**. No scored data sections and no function regressions.
+
+| Function | Before | After |
+|---|---:|---:|
+| cssUnready | 0.32051% | 83.40385% |
+| fn_2_7E860 | 88.55073% | 88.55073% |
+| cssReady | 0.31056% | 77.21429% |
+| fn_2_7EE7C | 78.72881% | 78.72881% |
+| fn_2_7EF68 | 87.10000% | 87.10000% |
+| cssRemoveCharacter2 | 0.61350% | 79.74847% |
+| cssRemoveCharacter1 | 0.35971% | 77.53237% |
+| fn_2_7F714 | 0.94340% | 83.00944% |
+| cssSelectCharacter | 0.69444% | 78.70834% |
+| fn_2_7FAFC | 0.27397% | 98.02740% |
+| captainSelectUnloadCSSLoadRelated | 0.69930% | 97.09790% |
+| fn_2_802EC | 0.75188% | 98.75940% |
+| fn_2_80500 | 94.81818% | 94.81818% |
+| fn_2_805DC | 0.67568% | 97.93919% |
+
+Next serial pass: start with `fn_2_802EC`, `fn_2_7FAFC`, `fn_2_805DC`, and
+`captainSelectUnloadCSSLoadRelated` (97–99%). Their zero-step test commonly emits
+a direct compare where the target materializes the predicate with CLZ; an inline
+BOOL predicate and an explicit u8 boolean cast did not help. The existing detailed
+checkpoint is `build/.match_grind/menus_menus_text_7E380.md`.
+
+The inlined first-match roster-slot search is also called with its result ignored
+in `fn_2_7F714`; MWCC preserves the target's otherwise dead comparisons. Avoid
+removing that call as redundant without checking the original assembly. Record-index
+association is per site: left-associating `firstHandle + selected + channel * 9`
+improves `cssSelectCharacter`, but changing the same association across all the
+callbacks regresses several. Remaining raw step/process fields and selection
+positions 9/10 have no established enum; do not invent names without evidence.
+
+Validation: fresh rebuild before every retained diff; all fourteen functions
+compared with the session baseline; full `ninja` build and `git diff --check`
+passed. No emulator testing, commit or push. Pre-existing untracked
+`docs/menus_second_pass.md` and `text_50898_reference.d` were untouched.
+
+
+### Menus text_7E380 second matching pass (2026-10-20)
+
+Continued the same uncommitted first-pass source. `.text` rose from **86.574776%
+to 89.795490%**, with exact functions **0/14 -> 4/14** and no per-function
+regressions. No scored data sections. All functions remain implemented and the
+unit stays NonMatching.
+
+| Function | Before second pass | After |
+|---|---:|---:|
+| cssUnready | 83.40385% | 84.10256% |
+| fn_2_7E860 | 88.55073% | 100.00000% |
+| cssReady | 77.21429% | 78.29503% |
+| fn_2_7EE7C | 78.72881% | 100.00000% |
+| fn_2_7EF68 | 87.10000% | 99.40000% |
+| cssRemoveCharacter2 | 79.74847% | 86.69939% |
+| cssRemoveCharacter1 | 77.53237% | 78.98921% |
+| fn_2_7F714 | 83.00944% | 93.05660% |
+| cssSelectCharacter | 78.70834% | 81.52084% |
+| fn_2_7FAFC | 98.02740% | 98.80822% |
+| captainSelectUnloadCSSLoadRelated | 97.09790% | 99.16084% |
+| fn_2_802EC | 98.75940% | 100.00000% |
+| fn_2_80500 | 94.81818% | 100.00000% |
+| fn_2_805DC | 97.93919% | 99.93243% |
+
+The four exact functions (`fn_2_802EC`, `fn_2_80500`, `fn_2_7E860`, and
+`fn_2_7EE7C`) passed the mandatory readability review and fresh re-diff.
+
+Useful matching findings:
+
+- **A cached field pointer can erase the value-form inline predicate.** The
+  `isStepClear` / `isStepActive` inlines return an explicit `condition ? TRUE : FALSE`.
+  Accessing `gameSetUpStep[channel + 0xD]` directly at every caller use retains
+  the target CLZ sequence; caching `u8 *step` and reading `*step` lets MWCC collapse
+  it to a direct compare. This matched three functions. Merely changing the
+  predicate's parameter or return width did not solve the cached-pointer case.
+- **Keep the final index increment as a statement when the target uses an indexed
+  load.** `handle = scene->firstHandle + position; handle += channel * 9;
+  handle += 0x22; graphicsRelatedArray[handle]` matched `fn_2_7EE7C` and raised
+  `fn_2_7EF68` to 99.4%. Writing the last increment as `[handle + 0x22]` folded
+  it into `lwz 0x110`, despite identical arithmetic. A generic record helper
+  did not prevent that fold.
+- **Copied zero loop initializers suggest an inline.** A shared
+  `resetChemistryStars` helper with explicit handle increments raised
+  `fn_2_7F714` from 83.01% to 93.06% and `cssRemoveCharacter2` from 79.75%
+  to 86.70%. Passing the star count from the caller helped one but regressed
+  the other, so the count remains read inside the helper.
+
+Best continuation targets are `fn_2_805DC` (99.93%, one register choice),
+`fn_2_7EF68` (99.4%, intermediate handle register), and
+`captainSelectUnloadCSSLoadRelated` (99.16%, commuted add operands). Detailed
+tried/reverted variants and current source backups are recorded in
+`build/.match_grind/menus_menus_text_7E380.md`.
+
+Final verification: full `ninja` build, fresh all-fourteen-function comparison,
+and `git diff --check` passed; no emulator testing. Baseline and final audit files
+are `build/_menus_sol7E380_second_baseline.json` and
+`build/_menus_sol7E380_second_final.json`, with full build output in
+`build/_menus_sol7E380_second_full_build.log`. No commit, push, pull, configuration,
+or symbol changes; pre-existing untracked files remain untouched.
+
+### Menus text_7E380 parallel Sol pass (2026-10-20)
+
+Three Sol researchers worked on isolated scratch translation units for near
+matches, ready/unready, and selection/removal. The manager integrated the verified
+changes serially and rebuilt the real object after each integration.
+
+`.text` **89.795490% -> 98.249250%**, exact functions **4/14 -> 5/14**.
+All fourteen functions are at or above the starting score; no scored data
+sections. Unit stays NonMatching.
+
+| Function | Before | After |
+|---|---:|---:|
+| cssUnready | 84.10256% | 99.29487% |
+| fn_2_7E860 | 100.00000% | 100.00000% |
+| cssReady | 78.29503% | 99.62733% |
+| fn_2_7EE7C | 100.00000% | 100.00000% |
+| fn_2_7EF68 | 99.40000% | 99.40000% |
+| cssRemoveCharacter2 | 86.69939% | 94.00613% |
+| cssRemoveCharacter1 | 78.98921% | 93.71942% |
+| fn_2_7F714 | 93.05660% | 97.20755% |
+| cssSelectCharacter | 81.52084% | 97.70834% |
+| fn_2_7FAFC | 98.80822% | 99.26028% |
+| captainSelectUnloadCSSLoadRelated | 99.16084% | 99.16084% |
+| fn_2_802EC | 100.00000% | 100.00000% |
+| fn_2_80500 | 100.00000% | 100.00000% |
+| fn_2_805DC | 99.93243% | 100.00000% |
+
+- **Counter type can determine unrolling.** In cssReady, `int i` with
+  `(s32)PLAYERS_PER_TEAM` as the natural for-loop bound reproduces the target's
+  threefold unrolling and initial runtime guard. `s32` is long here; an s32
+  induction variable stays rolled, and a plain-int bound loses the guard.
+- **Delay narrow casts to the uses that need them.** Widening the CPU captain
+  position until UI use sites lets a natural loop emit the exact nine-slot
+  lookup. Explicit signed-byte access to the named challenge opponent field
+  removes an extra copy in the captain icon transition.
+- **Recover inline boundaries around roster handles and completion checks.**
+  Staged firstHandle/position/team/offset additions avoid unwanted address
+  folding. Small record, handle, and animation wrappers improved selection and
+  removal. A chemistry-count helper plus a local-count wrapper preserves the
+  differing caller live ranges without duplicating the loop.
+- **A proven 0/1 local may need a narrow width.** fn_2_805DC becomes exact with
+  u8 for its first completion result; the target already limits it to one bit,
+  so no truncation is added. Readability review and a fresh diff passed.
+- **Do not infer a parameter width solely from missing caller masking.** An
+  s32 extern for teamSelectionSetChemStars improved some scores, but existing
+  callee/header use u8 and the target callee entry cannot distinguish the two.
+  The compatible u8 declaration remains. Any correction needs coordinated
+  callee/header/caller evidence and dependent verification.
+
+All existing exact functions remain exact; only fourteen target functions are
+emitted. Existing roster-size constant cleanup was re-diffed with identical
+scores. Full ninja build and git diff --check passed; no emulator test, header,
+configuration or symbol changes, commit, push, or pull. Pre-existing untracked
+files remain untouched.
+
+Baseline/final evidence: `build/_menus_parallel7E380_baseline.json` and
+`build/_menus_parallel7E380_final.json`; full build log:
+`build/_menus_parallel7E380_full_build.log`. Complete per-worker hypothesis logs,
+remaining differences and status table are in
+`build/.match_grind/menus_menus_text_7E380.md`.
+
+Next leads: cssRemoveCharacter1/2 for the largest residual gaps, or cssReady,
+fn_2_7EF68, and cssUnready for near matches. Preserve the now-correct loop
+structure and avoid replaying logged type/index/inline variants.
+
+### Recovered Sol work before origin merge (2026-10-21)
+
+Recovered and rebuilt the interrupted workers' saved source/header candidates.
+All previously measured functions retain or improve their scores; full ninja
+passed. text_76874 now implements all four remaining stubs and reaches
+86.070885% .text, with fn_2_78034 exact after its readability review and re-diff.
+text_7BFF8 now implements both remaining stubs and reaches 81.652150% .text.
+text_7E380 improves slightly to 98.257774%, retaining five exact functions.
+Per-unit checkpoints preserve experiments and unresolved field/prototype leads.
+
+### Origin merge and best-match audit (2026-10-21)
+
+Merged origin/main ca17037 with the local menus work and recovered Sol drafts.
+Kept origin's canonical captain-model/options/reset/challenge/stadium units and
+its newer game matches. Removed the overlapping text_16870/text_194BC/rep_0568
+units after preserving their stronger implementations in the canonical files.
+The local settingValuesTo0 loop/store groups retain 97.65432% in settings_reset,
+using origin's typed SettingsResetView rather than raw offsets.
+
+Updated the newer menu units to origin's split lbl_803CBCD8 flag object. This
+matched fn_2_83744; its readability pass uses UIRecord.frame/playMode and the
+existing UI_PLAY_FORWARD constant, and fresh whole-unit diff remains exact.
+A value-form step predicate in stadiumRandomRelated avoids a scheduling regression
+from the symbol split (58.22059% local -> 58.605392% merged).
+
+Saved independent pre-merge local, pure-origin and merged object-score snapshots.
+All 14,872 named-symbol comparisons meet or exceed their respective side's
+baseline, with no unresolved names or loss of exact non-text sections. The sole
+name mapping is origin's unusedBattingSomething -> bOD_UpdateBatterAIInputs.
+Audit summary and score snapshots are build/_origin_merge_* (ignored).
+
+Full ninja build passed, including all four output hash checks. Project exact
+functions: local 4142, pure origin 3897, merged 4182 of 6479 (41.72% code bytes).
+Pre-existing untracked docs/menus_second_pass.md and text_50898_reference.d are
+preserved and excluded from the commits. No emulator test was performed.
+
+### Post-merge Sol checkpoint: character-selection callbacks (2026-10-21)
+
+Three isolated Sol passes were integrated serially. All 28 function baselines
+across these units were checked, with no regressions; fn_2_79634 is newly exact
+and passed readability review plus a fresh diff. All four remaining text_78F78
+stubs are implemented.
+
+| Unit | Before .text | After .text | Exact functions |
+|---|---:|---:|---:|
+| text_76874 | 86.07089% | 90.16981% | 1 -> 1 |
+| text_78F78 | 36.93814% | 95.11759% | 0 -> 1 |
+| text_7BFF8 | 81.65215% | 90.10027% | 0 -> 0 |
+
+- Staged record/handle additions and value-form state predicates reproduce the
+  original inline boundaries; delayed signed casts avoid premature narrowing.
+  Natural int induction variables with signed-long roster bounds recover
+  compiler unrolling without manually grouping source iterations.
+- fn_2_7D85C now checks the current-selection animation at frame 10 rather than
+  20 (target0x7DA38), and reloads the selection before saving it after callbacks
+  (0x7DA60/0x7DA68). The optional threshold4 before the additional completion
+  call in fn_2_7E194 was audited at0x7E33C. Logic corrections are retained even
+  where the numerical match score ties.
+- cssAction_case9 uses native int for its slot argument; its header agrees and
+  has no other source include dependents. This preserves the target's native
+  integer value numbering; representation and width remain 32-bit signed.
+- SQRT2_LINKAGE is static in these units and text_7E380, removing unrelated
+  header-generated constant blocks. All target scores are unchanged by this
+  cleanup; text_7E380 retains98.257774% and its five exact functions.
+
+Evidence: build/_postmerge_wave1_<unit>_{baseline,final}.json and per-unit
+checkpoints. Full build, all four output hashes, and whitespace checks pass.
+No emulator playtest was performed. Ongoing private research for text_4D960,
+rep_0AB0 and rep_08E8 is checkpointed separately and is excluded until verified.
+
+### Continued checkpoint recovery (2026-10-21)
+
+After pushing82b13e1, recovered additional interrupted Sol work. rep_08E8 now
+implements both large stubs: .text50.361355% ->71.630510%, with .rodata unchanged
+at79.069770%. fn_2_49DB8 and fn_2_49E5C become exact after the numeric formatter
+has its real body; both passed readability review and fresh re-diff. Every one
+of45 baseline functions is preserved.
+
+text_4D960 was already fully drafted despite its stale checkpoint. Its glyph
+append/copy helper boundary improves .text93.090004% ->94.542360%, keeping21
+exact functions and all data scores. The corrected formatter pointer return in
+rep_08E8.h was checked in this dependent unit before and after; all22 function
+scores are identical. Baseline/final evidence: build/_postmerge_wave2_*.
+
+rep_0AB0 is also fully drafted: fn_2_5A224 reaches95.17308% and fn_2_5B7DC
+93.78467%, with all existing functions preserved. The latter's19-state table was
+decoded from REL relocations and checked against each target branch. Its record
+copy/conversion/permutation block agrees with fn_2_5853C in the neighboring unit.
+Reversing target function definitions while lifting inline helpers before callers
+improves the unit to82.55906% .text and100% .rodata; data remains nonmatching.
+recordsScreen still has a large residual gap and is the next logical target.
+
+### Records initialization and helper checkpoint (2026-10-21)
+
+Completed recordsScreen's seven record copies and five header copies, restoring
+its missing stadium initialization and canonical fn_2_904A8 call. The seventh
+row uses its own destination offset; header copies preserve the untouched
+middle halfwords. Reloading the global menu pointer after callbacks also agrees
+with the target. recordsScreen improves41.68455% ->88.770386% against the fully
+drafted wave2 baseline; rep_0AB0 reaches86.80810% .text with100% .rodata.
+
+Seven more rep_08E8 helpers now match exactly, after readability review and fresh
+whole-unit comparisons. The string comparator uses a structured loop; angle
+helpers use existing SANG constants; free helpers clear handles within their
+nonnull guards. Further angle-loop/narrowing corrections improve the remaining
+near matches. Combined with recovered formatter work, rep_08E8 reaches72.140114%
+.text (19/45 exact), compared with50.361355% before this checkpoint. Its .rodata
+remains79.069770%. text_4D960 retains94.542360% and21/22 exact.
+
+All79 baseline function scores across these three units are preserved. Full
+build, all four output hashes, and whitespace checks pass. Project build report:
+4191/6479 matching functions,41.75% code. Evidence: build/_postmerge_wave2_* and
+build/_postmerge_wave3_*; detailed private trials and readability snapshots are
+in per-unit checkpoints. No emulator playtest was performed.
+
+### Timer, allocation and records-callback audit (2026-10-21)
+
+A further isolated Sol pass raises rep_08E8 .text72.140114% ->81.563160%,
+keeping .rodata79.069770%. fn_2_4A6E8 is newly exact after readability review
+and fresh comparison. Timer routines fn_2_46D94 and fn_2_472C4 improve to90.39156%
+and88.24823%, preserving the original input dispatch, wrap, range, truncation,
+and sound paths. fn_2_4906C now copies15 bank pointers as the target does; the
+previous draft copied20. Existing ScreenTextPool/TextBank types replace raw views.
+The signed16 flags prototype for fn_2_472C4 follows the target's sign extension;
+its text_4D960 include dependent was rebuilt and all22 scores remain identical.
+
+Manager's records-callback audit raises rep_0AB0 .text86.808100% ->88.983154%.
+fn_2_5979C now reaches99.329445% and fn_2_59CF8 reaches79.305140%. Both run their
+conditional update after cancellation as the target does; the editor preserves
+its distinct cancellation flags and shoulder/A combinations fall through to
+later input tests correctly. fn_2_5AE54 restores the common per-frame update and
+cleanup outside initialization, reaching92.980770%.
+
+All57 function baselines in the edited units and22 dependent function baselines
+are preserved. Full build, four output hashes and whitespace checks pass;
+project report4192/6479 matching functions,41.78% code. Detailed evidence is in
+build/_postmerge_wave4_* and per-unit checkpoints. No emulator test was performed.
+
+### Allocation traversal checkpoint (2026-10-21)
+
+Corrected fn_2_477C0 and fn_2_478F4 to scan all54 allocation descriptors; both
+drafts had scanned45. Independent target and compiled-source audits confirm six
+masked size loads and six0x130-byte steps per trip, over nine trips. Staging the
+size reader and allocation cursor also improves the existing fn_2_481F4 scan.
+rep_08E8 .text81.563160% ->83.559100%; .rodata79.069770%, all45 function floors
+and all20 exact functions are preserved. Existing OSRoundUp32B replaces raw
+alignment expressions, with canonical include-path capitalization checked.
+
+Full build, all four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave5_rep_08E8_{baseline,final}.json and the private wave5
+semantic_audit.json. No emulator test was performed. The next isolated Sol pass
+is drafting the missing challenge dispatcher in text_4B1AC.
+
+### State dispatcher jump-table ownership (2026-10-22)
+
+After pulling origin/main through0d9cad0, rechecked text_50898's current split
+before retaining an old dispatcher workaround. Its72-byte jump table is now
+owned by this unit, so fn_2_52690 can use a normal18-case switch. An unsigned
+halfword read and direct references to the global array remove unnecessary
+state/base temporaries. Every case body and out-of-range no-op behavior is
+preserved; a reconstruction audit compares the bodies with the prior source.
+
+fn_2_52690 improves42.380512% ->52.589330%, raising .text61.415830% ->64.581290%.
+All38 initial function scores,15 exact functions and section scores are
+preserved; .data remains0%. The newly generated table's interim pseudo-symbol
+scores are not an initial baseline floor. No header or split edits were needed.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_origin_0d9cad0_text_50898.json and build/_postmerge_wave7_text_50898.json.
+No emulator test was performed.
+
+### Challenge result recovery and cleanup loops (2026-10-22)
+
+Completed the missing fn_2_4B2D0 dispatcher. Its result classification, menu-kind
+branches, state-write order and rollback direction follow the target. Rollback
+restores54 scout bytes from backup+7 to live+6, then all54x10 mission pairs
+from save+1D..30 to live+9..1C. Typed ChallengeState records and existing count
+constants express the copy loops. text_4B1AC .text31.368752% ->63.579300%;
+fn_2_4B2D0 reaches78.431310%, and its caller fn_2_4B1AC improves to99.452060%.
+All16 initial function floors and two exact functions remain intact.
+
+A private PPC interpreter ran target and compiled dispatcher against a separate
+semantic model for4,608 branch-partition combinations. All final persistent
+writes agree, including every restored record; this covers input partitions,
+not every possible input or runtime environment. Shared compiled instructions
+were also checked equal to the audited private final.
+
+In text_53408, ordinary loops and small entry/object helpers replace manual
+two-entry duplication in fn_2_53CEC and fn_2_53DF8. The object is resolved again
+after its byte store, preserving the target's reload behavior. MWCC naturally
+unrolls the loops in pairs. Both functions42.955223% ->95.417910%, raising the
+unit .text80.383750% ->85.027084%; all21 function floors, nine exacts and
+.data0% are preserved. Target and compiled loops have the same67 instruction
+operations, apart from registers, branch destinations and two independent
+induction updates; bounds remain864 entries over10/70 rows. TextScene.firstHandle
+replaces the raw scene offset in the new helper without changing codegen.
+
+No shared headers or split changes. Full build, four output hashes and
+whitespace checks pass. Evidence: build/_postmerge_wave6_text_4B1AC.json,
+build/_postmerge_wave9_text_53408.json and private wave6 semantic_audit.py.
+No emulator test was performed.
+
+### Text-state widths and callback contract (2026-10-22)
+
+text_5597C improves99.339960% ->99.985450% .text, with16/17 functions exact
+(previously12). fn_2_5597C's category assignment and common return preserve its
+branch form. Keeping stringIndex as s16 fixes save placement in fn_2_563C0 and
+fn_2_5699C; fn_2_57294's selected-index local also matches. fn_2_56688 remains
+99.847720%, with only entry arithmetic register operands differing. Named UIRecord
+frame/rgba/playMode fields and existing UI visibility/playback symbols replace
+raw accesses during the mandatory readability pass, without regressions.
+All17 function floors, .data0% and the99.473690% table pseudo-symbol remain intact.
+
+The text_53408 audit found a real callback contract gap: the target passes both
+scene and record, while the draft passed only scene. fn_2_53F04/53F88 now pass
+the record and reload the global table for each callback, as the target does.
+Both improve87.121216% ->99.090910%. fn_2_5389C also lacked the per-frame reset
+of13 flag arrays over70 entries. Reusing existing fn_2_53F88 and exact fn_2_54120
+recovers the inlined dispatch/reset blocks, bringing44.038460% ->96.846150%.
+Callback record arguments,864-entry row bounds,70 rows and13x70 reset stores
+were checked against the target.
+
+Its two state selectors fn_2_53AA4/53BC8 now initialize a32-bit result and narrow
+once at return. An inline table-row accessor recovers the base load structure;
+both81.917810% ->99.726030%, preserving all13 priority tests and default-1.
+text_53408 reaches91.800530% .text from the preceding85.027084% checkpoint,
+keeping all21 function floors, nine exacts and .data0%. No shared headers or
+configuration changes. Full build, four hashes and whitespace checks pass;
+report4196/6479 matching functions,41.85% code. Evidence:
+build/_postmerge_wave8_text_5597C.json and
+build/_postmerge_wave9_text_53408_callbacks.json. No emulator test was performed.
+
+### Challenge shop and save checkpoint (2026-10-22)
+
+text_4B1AC improves from 63.579300% to 83.463990% .text. Three shop setup
+callbacks (fn_2_4C81C, fn_2_4CB94 and fn_2_4CD30) now match exactly after
+readability review, bringing the unit to five exact functions. A shared inline
+helper uses the existing shop-item fields, a flat item index across the 4x5
+eligibility table, and signed availability bytes. The other four callbacks
+improve to 98.924730%, 94.422420%, 83.369940% and 93.016525%. Existing game-mode,
+stadium and boolean symbols replace literals where their meaning is confirmed.
+
+The two save callbacks now copy typed mission pairs and retain target-required
+global pointer reloads. They improve to 72.227980% and 73.459460%. Their direction
+was checked independently: live scout +6 goes to backup +7, and live mission
++9..1C goes to save +1D..30, opposite the result dispatcher's rollback. All 16
+initial function floors remain intact; the earlier dispatcher is unchanged.
+
+A smaller text_50898 cleanup replaces fn_2_51190's manually repeated stores
+with an ordinary loop over the same 168 halfwords, improving 43.164383% to
+56.356163%. A typed destination pointer improves fn_2_5135C from 27.5% to 37.5%
+while preserving its three indexed store locations and period guard. The unit
+reaches 65.042810% from 64.581290%, preserving all 38 function floors, 15 exact
+functions, .data and table scores. Natural-loop alternatives that lowered the
+separate fn_2_50898 baseline were discarded; that function is unchanged.
+
+No shared header or configuration edits. Full build, all four output hashes
+and whitespace checks pass. Project report: 4199/6479 matching functions,
+41.89% code. Evidence: build/_postmerge_wave10_text_4B1AC.json and
+build/_postmerge_wave11_text_50898.json. No emulator test was performed.
+
+### Records-menu controls and typed roster copy (2026-10-22)
+
+text_579B4 improves from 76.504700% to 98.006270% .text, with eight of ten
+functions exact (previously two). fn_2_587F8 reaches 98.250750% from 58.191807%:
+ordinary 32-element loops replace nested duplication, signed remainder preserves
+the toggle behavior, and the recordsScreen copy pattern restores the target's
+pointer reloads. The seventh destination retains its 6*0x28 row offset; header
+copies preserve the middle halfwords. The shared outer/inner index is retained
+because the target intentionally exits the outer loop after those inner scans.
+An outer state switch and combined case-zero guard also recover shared blocks.
+
+Six handlers (fn_2_57BF8, fn_2_57F50, fn_2_58098, fn_2_581E0, fn_2_58328 and
+fn_2_58470) now match exactly. Their readability pass uses existing UIRecord
+fields and visibility/playback constants; the large routine uses INPUT_BUTTON
+names. All ten function floors remain intact, .data stays at 0%, and its table
+pseudo-symbol improves from 50% to 81.25%. fn_2_5853C remains at 88.2%; a typed
+record hypothesis that lowered its score was discarded.
+
+text_50898's fn_2_5163C now uses the existing copyCharacterStats helper pattern
+from text_0323C and the canonical CharacterStats type. This preserves the
+original field widths, copied ranges and untouched padding while improving
+78.248320% to 86%. Typed source/destination pointers retain the same codegen.
+The unit reaches 65.458275% from 65.042810%, preserving all 38 function floors,
+15 exact functions and data/table scores. A tail-loop alternative changed
+inlining in another function and was discarded after the full-unit audit.
+
+No shared header or configuration changes. Full build, four output hashes and
+whitespace checks pass. Project report: 4205/6479 matching functions, 41.96% code.
+Evidence: build/_postmerge_wave12_text_579B4.json and
+build/_postmerge_wave13_text_50898.json. No emulator test was performed.
+
+### Script token and append-source audit (2026-10-22)
+
+Corrected four walkers in text_50898 that tested 0x8000 for the script terminator
+instead of the target's 0x4000 control tag. The width readers also had ordinary
+and high-bit glyph widths reversed: ordinary glyphs add half width, high-bit
+glyphs add full width; control tags 2/3 add half/full width and other control
+tags end the measurement. A wide accumulator and explicit tagged-half narrowing
+preserve the target's return behavior, including wrap cases. A transient higher
+score using a narrow accumulator was rejected when execution exposed different
+upper return-register bits.
+
+fn_2_50DB4 and fn_2_50F20 now accept the incoming third source-pointer parameter:
+the target uses it when arg1 is -1, while the old draft initialized it to NULL.
+Their header was corrected; a repository reference/include audit finds only
+text_50898.c dependent, and the full build confirms that scope. Ordinary loops
+also replace expanded row clears; the two mode branches remain explicit where
+the target retains them.
+
+The unit improves from 65.458275% to 68.075540% .text, preserving all 38 initial
+function scores, 15 exact functions, .data 0% and the table score. Independent
+target/candidate execution passes 1,539 cases (407,672 PPC instructions), covering
+terminators, control tags, odd widths, 16-bit wrap, append count limits, incoming
+versus bank-selected pointers and mode branches. Every shared function's
+compiled instructions equal the audited private final. Full build, all four
+output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave14_text_50898.json and private wave14 walker_audit.py.
+No gameplay/emulator test was performed.
+
+### Exact instructions still require jump-table validation (2026-10-22)
+
+The text_5597C data audit found two incorrect aliases despite exact instruction
+bodies. State 17 in fn_2_55FD8 and fn_2_56160 entered the shared active block;
+the target tables send it to the no-op epilogue. Removing those two case labels
+leaves all function instructions unchanged after generated-label normalization
+and makes all 190 table relocations match their target function and offset.
+The unit's .data improves from 0% to 100%, and the table pseudo-symbol from
+99.473690% to 100%; .text stays 99.985450%, with 16/17 functions exact.
+
+A function's code score does not validate the control flow encoded in its
+jump table. Resolve each table entry's function and relative destination,
+especially when exact bodies coexist with a nearly exact data pseudo-symbol.
+A follow-up read-only scan of direct function relocations across 78 menus
+units found no other differing destinations into the same exact function.
+This scan does not establish the correctness of tables in non-exact functions.
+
+All function/section floors are preserved. Full build, four output hashes and
+whitespace checks pass. Evidence: build/_postmerge_wave16_text_5597C.json and
+build/.match_grind/exact_table_audit/summary.json. No emulator test was performed.
+
+### Character-selection first pass completed (2026-10-22)
+
+All eight return stubs in text_8082C are now drafted, including cssActions,
+maybeBackgroundImagesForCaptain and relatedToTeamSelection3. The unit improves
+from 0.3399915% to 90.304290% .text. No functions are exact yet; all eight
+initial function floors and section scores are preserved. Its two tables were
+decoded before constructing the 21-case and 9-state dispatchers. All 30 first
+following-call identities agree, with manual review where distinct cases share
+a later call. This is a behavior review, not an exact data-relocation claim:
+.data remains 0%, with the newly scored table pseudo-symbol at 65%.
+
+The first six functions take a MenuScene pointer and channel index, confirmed
+by their live inputs and dispatcher calls. The header now declares those
+parameters; only the unit's own source includes that header or calls the six
+functions. Canonical roster/stat/UI types and character/game-mode/CPU enums
+replace raw accesses where supported. The state-5D write in fn_2_80C2C remains
+inside its flag-55 guard, as required by the target. Removal at the dispatcher
+entry still permits subsequent processing and the trailing exit check.
+
+A repository-standard dont_inline region keeps fn_2_808D8 out of line because
+the target calls it explicitly; other small readiness functions inline
+naturally. No register forcing, artificial loop unrolling or speculative
+renames. The full build, all four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave15_text_8082C.json and private wave15 table_decode.txt /
+table_semantic_audit.txt. No gameplay/emulator test was performed.
+
+### Selector and lineup behavior recovery (2026-10-23)
+
+text_8782C improves from 48.672398% to 74.287870% .text, preserving all
+17 initial function scores, its three exact functions and data/table floors.
+Canonical MenuScene.firstHandle is resolved at each UI mutation, matching the
+target's pointer lifetime. Signed scout sentinels, selector initialization and
+same-frame cleanup, the nine-slot lineup scan, unsigned captain comparisons,
+and byte-stride active-player flags now follow the target behavior. A small
+rollback from an interim score was accepted for the proven flag-stride fix;
+every final score still exceeds or equals its initial floor.
+
+Actual target/candidate execution of fn_2_88250 passes 288 cases (21,504 PPC
+instructions), including first-call cleanup. Another 72 isolated target-loop
+cases (10,008 instructions) validate nine-slot lineup compaction against an
+independent algorithm; these do not execute the complete candidate fn_2_8A008.
+The eight switch destinations for states 0x49 through 0x50 were also checked
+against target ELF relocations and already agree semantically.
+
+.data remains 0%: owned descriptor/debug data still needs recovery. Its coarse
+0xC60-byte symbol contains 93 canonical 32-byte UI descriptors followed by six
+32-byte padded debug labels, rather than descriptors throughout. Lists begin
+at unit-relative 0x2EC/0xBAC/0xCCC/0xDCC; labels occupy 0xE8C..0xF4C.
+This distinction is recorded for the next data pass.
+
+Full build, four output hashes, all-symbol floor audit and whitespace checks
+pass. Evidence: build/_postmerge_wave17_text_8782C.json and private wave17
+ui_audit.py / data_audit.py. No gameplay/emulator test was performed.
+
+### Character-selection helper recovery (2026-10-23)
+
+text_8082C improves from 90.304290% to 93.046326% .text; fn_2_8082C and
+fn_2_80C2C now match exactly. A natural channel-animation helper reproduces
+the target inline boundary, while direct access for a zero-offset UI record
+removes a redundant helper layer. Pointer lifetimes in the cursor and setup
+arrays, a canonical field-offset roster walk, and the full-width roster-slot
+index improve the remaining callbacks without altering dispatch labels.
+
+Both exact functions received readability review and a fresh whole-unit diff.
+All eight function and section floors hold; the table pseudo-symbol improves
+from 65% to 75%. Its 21- and 9-entry dispatch tables retain the 30 reviewed
+first-following-call identities. That check is narrower than complete behavior
+or relocation equivalence; .data remains 0%. The guarded process-state write
+and target-required out-of-line callback boundary remain supported by the
+instruction comparison. No header changes were required.
+
+All eight shared function instruction records equal the audited private final.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave19_text_8082C.json and private wave19 final_audit.txt /
+table_semantic_audit.txt. No gameplay/emulator test was performed.
+
+### Shared background cleanup required on both paths (2026-10-23)
+
+A near-exact callback still hid a behavior gap: maybeBackgroundImagesForCaptain
+skipped the handle-0xAC visibility clear on its single-player alternate path.
+The actual target branch lands at the shared cleanup block, whereas the old
+candidate jumped directly to the following cursor-lock call. Moving the clear
+outside the else block restores that path. A direct canonical record access
+also improves the remaining allocation shape: the callback rises from
+99.379310% to 99.954025%, and text_8082C reaches 93.152570% .text.
+
+All eight function floors, two exact functions and data/table scores hold.
+Twenty isolated target/candidate cleanup cases (600 PPC instructions) match
+an independent visibility-clear model, and the actual branch destination is
+checked separately. This does not execute the full call-heavy callback.
+Shared instructions equal the private final; full build, four output hashes
+and whitespace checks pass. Evidence: build/_postmerge_wave21_text_8082C.json
+and private wave21 cleanup_audit.py. No gameplay/emulator test was performed.
+
+### Recover owned data at proven object boundaries (2026-10-23)
+
+text_8782C now defines its owned data using the existing DebugMenuText and
+UIRecordDescriptor types: the shared debug prefix and 40-byte lookup tail,
+93 descriptors in four end-terminated lists, six padded writable labels, two
+file rows and six named character IDs. Splitting coarse symbols at the actual
+object boundaries lets all six named objects score 100%; .data improves from
+0% to 99.197190%, while .text improves from 74.287870% to 74.296770%.
+
+All 3,988 raw data bytes match the target. Eight generated switch relocations
+reach the corresponding logical cases, but their function-relative offsets
+still differ in non-exact fn_2_8A824. Raw byte equality therefore does not mean
+full relocation equality; those 32 relocated bytes account for the remaining
+data mismatch. The descriptor parent references, four terminators and string
+boundaries were independently decoded. Integer address arithmetic preserves
+the target's base-relative descriptor selection without pointer arithmetic
+beyond the now-typed debug object.
+
+The actual rebuilt target reproduces the private boundary preview. All 78
+menu units preserve their recorded function, section and pseudo-symbol floors;
+all 17 shared function instruction records equal the private final. Full build,
+four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave20_text_8782C.json,
+build/.match_grind/wave20_data_floor_audit/summary.json and private wave20
+owned_data_audit.txt. Header unchanged; no gameplay/emulator test was performed.
+
+Follow-up readability: ChallengeMapSceneFiles now uses the existing
+MatchFileDescriptor type. Its .text/.data bytes and relocation records are
+identical to the audited wave20 object; all scores, four hashes and whitespace
+checks remain unchanged. Evidence: build/_postmerge_wave25_text_8782C.json.
+
+### Typed reset fields and complete map-state dispatch (2026-10-23)
+
+text_53408 improves from 91.800530% to 98.791940% .text. Natural state and
+option dispatch preserve the target's callback/global-reload behavior, and
+the inningSetting+0x5A clear now precedes fn_80042D38 as required by the target.
+Using the reset entry's proven halfword fields instead of a raw s16 alias
+lets the compiler generate the target's eight-entry loop expansion naturally;
+fn_2_54474 rises from 86.290985% to 99.651640%, without manual unrolling.
+
+A signed state load in fn_2_549B4 restores all seven exact switch relocations:
+.data and its table pseudo-symbol improve from 0%/50% to 100%/100%. All 21
+function floors and nine exact functions hold. A bounded model comparison
+covers 1,048,576 map-state/guard combinations, and an address/store model
+checks 69,120 reset entries. These are model checks, not compiled execution.
+All shared function instructions equal the private final; full build, four
+hashes and whitespace checks pass. Evidence: build/_postmerge_wave23_text_53408.json
+and private wave23 prove.py / data_relocation_proof.txt.
+
+### Branch destinations expose skipped cleanup in near-exact code (2026-10-23)
+
+A read-only scan of near-matching menu functions flagged internal branch
+destination differences for review. Two in fn_2_1BFD0 were real scope errors:
+the target guards only fn_2_4E7EC, then always resets/frees the sound state;
+it also always calls fn_2_4E94C after either cleanup branch. Moving those
+shared calls outside their guards and retaining the target's signed load
+makes the function exact, from 98.923080% to 100%.
+
+The readability pass replaces raw audio/text offsets with canonical fields.
+Including the existing text API also exposed a wrong no-argument declaration
+of fn_8000F4B8: fn_2_1B7B4 now supplies the target's (0, -1, -1, -1) arguments.
+Constant propagation of the actual compiled call sites confirms that tuple;
+the old candidate supplied no established argument values. text_1B1BC reaches
+67.238110% .text, preserving all 21 initial floors and adding one exact
+function (eight total). Shared instructions equal the private final; full
+build, four hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave26_text_1B1BC.json and private wave26 call_audit.py.
+The scan's other flags remain unproven leads; no gameplay/emulator test was
+performed for either checkpoint.
+
+### Explicit no-op states can recover the original compare tree (2026-10-23)
+
+Ten near-exact callbacks in text_5E84C now match exactly after explicitly
+retaining state 4 in their existing no-op group. The target and prior source
+already dispatch every state to the same action; the explicit case recovers
+the target's compare-tree shape. It differs from the previously rejected
+state-7 experiment, which made the compiler emit jump tables.
+
+The shared form improves two larger callbacks as well. It regressed two other
+functions, so only those additions were discarded. All 18 initial floors are
+preserved: .text rises from 76.413475% to 76.994820%, with 12 exact functions
+(previously two). The readability pass uses canonical UIRecord fields and
+UI_FLAG_VISIBLE, with helper names describing frame/play/visibility operations;
+all ten new exact functions remain exact after a fresh whole-unit diff.
+
+Actual target, old-candidate and final-candidate compare trees classify all
+65,536 signed states identically in each of the ten functions: 1,966,080
+branch-tree checks. This starts after the selector result is applied and does
+not execute the complete UI callbacks. All shared instruction records equal
+the private final. Full build, four output hashes and whitespace checks pass.
+Evidence: build/_postmerge_wave27_text_5E84C.json and private wave27
+dispatch_audit.py. No gameplay/emulator test was performed.
+
+### A no-op state completes another record callback (2026-10-23)
+
+fn_2_372AC in text_35EC0 improves from 99.5% to 100% by explicitly retaining
+its no-op state0x25. The target, prior candidate and final candidate dispatch
+all65536 signed states to identical actions (196608 compiled branch-tree
+checks, starting after the selector result is applied). This checks dispatch,
+not the complete UI callback.
+
+The readability pass uses UI_FLAG_VISIBLE and descriptive visibility helpers.
+All29 function floors and the data/pseudo-symbol floors hold; the unit reaches
+90.020340% .text with15 exact functions, previously14. Full build, four output
+hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave29_text_35EC0.json and private wave29 dispatch_audit.py.
+
+The near-match branch scan also flagged teamselect's manager. Inspection
+shows equivalent shared versus duplicated transition-result guards; it is
+not evidence of a behavioral defect, and no change was made there.
+
+### Typed model data and callback ownership (2026-10-23)
+
+rep_0DE0 now owns its initialized model-layout, camera rows, file descriptor,
+callback nodes and vectors using existing canonical types. All1004 initialized
+bytes and both callback relocations match the original. The original section
+ends with four alignment bytes; the final vector remains its actual12bytes.
+Three proven symbol corrections separate the16byte file descriptor from
+the24 camera floats and remove alignment from that vector's size.
+
+After the actual configuration rebuild, .data improves from0% to100%, with
+each of the eight objects exact. .text95.3605%, .rodata100% and all17 function
+floors/12 exacts hold. Source-only canonical callback declarations replace
+the local incompatible prototype; the unused raw extern is removed from
+the header. Its dependent text_8782C and all78 menus units preserve their
+latest function/section/pseudo-symbol floors. Shared code/data bytes and
+normalized relocations equal the private final. Full build, four output
+hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave24_rep_0DE0.json and
+build/.match_grind/wave24_data_floor_audit/summary.json. No gameplay test.
+
+### Recovering the sparse state inventory (2026-10-23)
+
+Five more text_35EC0 callbacks now match exactly. Four share the target's
+compare tree: retaining no-op states1/0x25 and removing a redundant explicit
+state3 stops the compiler generating unwanted jump tables. Two other
+callbacks need their actual0x25 table bound; those no-op cases restore
+the original table range and improve the remaining near-match as well.
+
+The unit improves from90.020340% to93.261020% .text, with20 exact functions
+(previously15). All29 initial function floors hold, and the table pseudo
+improves from42.519917% to58.175343%; .data remains0%. Readability uses
+canonical UIRecord fields and UI_PLAY constants. Actual target/old/new
+compiled dispatch, including generated table relocations, agrees for all
+65536 signed states in six functions:1179648 classifications. This starts
+after selector-result application and does not execute the action bodies.
+
+All shared function instructions equal the private final. Full build, four
+output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave30_text_35EC0.json and private wave30 dispatch_audit.py.
+
+### Table access and signed animation thresholds finish five callbacks (2026-10-23)
+
+text_35EC0 reaches94.723490% .text and25/29 exact functions, up from
+93.261020% and20 exact. Completing the evidenced no-op states fixes two
+more dispatch trees. Natural signed-halfword array indexing fixes address
+formation in two callbacks. fn_2_36D04 now retains the signed table load
+for its comparison with an unsigned frame; the old u16 casts incorrectly
+truncated negative limits. All five functions match exactly after the
+canonical field/constant readability review and fresh whole-unit diff.
+
+All29 function floors hold; the table pseudo improves from58.175343% to
+71.794020%, while .data remains0%. The three changed dispatch trees agree
+for every signed16 state across target/old/new code (589824 classifications,
+after selector-result application and excluding action bodies). All shared
+function instructions equal the private final. Full build, four output
+hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave31_text_35EC0.json and private wave31 dispatch_audit.py.
+Four movie callbacks remain pending; no gameplay/emulator test was performed.
+
+### Restore destination and callback timing (2026-10-23)
+
+text_5E84C improves from 76.99482% to 81.56898% .text, with 13 exact
+functions (previously 12). The seventh restored row now reaches its actual
+row offset instead of overwriting the first. Per-field global and mapping
+reloads follow the target. Focused execution of the compiled copy agrees
+on all 115 source/destination/width tuples, both sets of 115 global reloads,
+and 90 mapping reads.
+
+fn_2_5EEBC now matches exactly: state 2 stops playback, and state 6 exits
+after changing to state 7; hiding happens on the next update. Its compiled
+dispatch agrees for all signed states (131,072 classifications). A natural
+four-digit helper gives a small additional gain; all 65,536 signed-halfword
+inputs agree in old/new value models, without claiming instruction equality.
+
+All 18 function floors and the previous 12 exacts hold. Readability uses
+canonical UIRecord fields and playback constants. Shared instructions equal
+the private final; full build, four output hashes and whitespace checks pass.
+Evidence: build/_postmerge_wave28_text_5E84C.json and private wave28 prove.py.
+The focused interpreters/models do not execute the complete game runtime.
+
+### Title screen recovered and linked from C (2026-10-23)
+
+All three stubs in text_8ED4C now match exactly: the unit improves from
+1.2820513% to 100%, covering 936 bytes. The title flow starts its prompt,
+handles the memory-card check and sound-mode fallback, then selects the main
+menu or prepares the demonstration match. Existing canonical settings,
+drawing-node and menu types preserve the actual field widths.
+
+The prompt's grouped no-op results 0/1 reproduce the original compare tree;
+adding only result 0 adds an unwanted comparison. Ordinary calls to the two
+same-unit helpers inline naturally in the title callback. All three remain
+exact after the enum/field readability pass and reverse source ordering for
+REL deferred emission.
+
+The unit is now Object(Matching). The linked build consumes our C object,
+all four original output hashes pass, and report.json marks the unit complete
+with 3/3 exact functions. Its entire .text byte sequence and normalized
+relocations equal the target. Whitespace checks pass. Evidence:
+build/_postmerge_wave33_promoted_text_8ED4C.json. No gameplay test was run.
+
+### No-op table bounds and physical switch-body order (2026-10-23)
+
+text_636A4 improves from 87.93383% to 91.50768% .text, with 13 exact
+functions (previously 11). Four target tables include no-op state 0x25;
+retaining it restores the table bounds and makes fn_2_63DBC exact.
+fn_2_65648 already had the correct dispatch tree. Moving its existing state
+0x25 body before state 5 reproduces the original physical layout and raises
+it from 30.576923% to 100%, without changing behavior.
+
+Canonical UIRecord fields, visibility/playback constants and record fields
+keep all 13 exact after readability review. All 20 function floors hold;
+the table pseudo improves from 38.06391% to 63.15789%, while .data remains 0%.
+Four compiled dispatch trees agree on action/no-op classification for every
+signed16 state across target/old/new code (786,432 checks). This excludes
+action bodies and groups the two update states in fn_2_648CC.
+
+Shared instructions equal the private final; full build, four output hashes
+and whitespace checks pass. Evidence: build/_postmerge_wave35_text_636A4.json
+and private wave35 dispatch_audit.py. No gameplay/emulator test was run.
+
+### Movie callback exits and pointer lifetime (2026-10-23)
+
+text_35EC0 reaches 99.60775% .text, with 27/29 functions exact, up from
+94.72349% and 25 exact. Its common movie-exit flag check now runs after every
+state. Node scratch writes retain the original node, while child access after
+removal resolves the current node again. Focused execution of actual target
+and candidate instructions passes 5,106 independently modeled scenarios
+(356,580 instructions), including timer wrap and current-node mutation.
+
+The other gains recover signed byte dispatch, per-access global pointer
+reloads, 12-byte movie cue records, direct allocation-field ownership and the
+clear-color load after the jukebox call. Canonical types/constants preserve
+both new exacts after readability review. All 29 function and data/pseudo
+floors hold. Data ownership remains incomplete: a typed-definition trial
+moved exact generated tables, so it was discarded. The actual color at
+0x12270 is zero; 0x11775500 belongs to the preceding object's tail.
+
+The same switch-body ordering evidence also improves text_636A4 from
+91.50768% to 93.40410%, with 14 exact functions (previously 13). Its state
+0x25 body belongs before state 5 in two further callbacks. All 20 floors
+hold; no behavior or header changes were introduced there.
+
+Both shared units' instructions equal their private finals. Full build,
+four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave32_text_35EC0.json,
+build/_postmerge_wave36_text_636A4.json and private wave32 movie_audit.py.
+The focused audit does not execute the full movie/game runtime.
+
+### Record fade mutations preserve truncation points (2026-10-23)
+
+fn_2_653D4 improves from 94.49045% to 99.617836% by updating its actual
+halfword field at each fade step. A local record extension names the proven
+fade/channel fields without changing the shared header. The compiled target
+and candidate agree with an independent store-trace model for every signed
+halfword starting value in both fade arms: 262,144 executions. This excludes
+the selector, other states and final color write.
+
+text_636A4 reaches 93.72115% .text. All 20 function floors, 14 exacts and
+data/pseudo-symbol floors hold. Shared instructions equal the private final;
+full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave37_text_636A4.json and private wave37 fade_audit.py.
+The remaining callback differences concern the color-write tail's registers.
+
+### Record and star-menu flow drafted from four stubs (2026-10-23)
+
+All four text_3A8FC callbacks are now implemented, improving .text from
+0.3041825% to 98.904945%, with one exact function. The drafts preserve signed
+scratch states, old-value timer tests, input priority, child-node handshake,
+global reloads and cancellation cleanup after dispatch. The exact callback
+remains exact after canonical type/constant readability review.
+
+All 19 compiler-generated switch entries map to the corresponding original
+bodies, without accidental aliases. The 157 direct branch destinations and
+42 call sites align; external arguments and state logic were reviewed against
+the target. These checks do not execute the complete game runtime. Three
+functions remain near-matches; .data remains 0%, with table pseudo 68.42105%.
+
+A wider return-declaration trial for fn_2_44F14 preserved its owner's bytes
+but regressed this caller, so the canonical s8 interface was retained. All
+four initial function floors hold. Shared instructions equal the private
+final; full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave34_text_3A8FC.json and private wave34 prove.py.
+
+### Challenge bank copies and callback snapshots (2026-10-23)
+
+text_44F14 improves from 71.28488% to 96.35703%, with five new exact
+functions (14/27 total). Copying ten typed mission pairs, loading scout
+fields through the stored pointer, and resolving the global at each reset
+store recover the original loops. Mission visibility captures signed rule
+fields before the callback, while later global state reads retain their
+original timing. Recruitment compares a sign-extended stored captain with
+the unsigned global captain. The public s8 getter interface stays unchanged.
+
+Focused target/candidate PPC checks pass against independent memory and
+callback models: 24 whole-bank cases, 256 captain banks and 20 visibility
+banks, totaling 964,486 instructions. These do not execute the full game.
+All 27 initial function and section floors hold. Full build, four output
+hashes and whitespace checks pass. New exacts passed canonical readability.
+Evidence: build/_postmerge_wave38_text_44F14.json and private wave38
+semantic_audit.py.
+
+### Explicit playback branches recover generated tables (2026-10-23)
+
+text_33E70 improves from 98.59381% to 99.84961%, with four new exact
+functions (17/18 total). Calling the playback setter within each branch,
+instead of passing a ternary, restores target node resolution and branch
+bodies. The canonical ScreenTextBlock.justify field also closes two
+callbacks. UIRecord fields and UI_PLAY constants replace raw accesses.
+
+Both generated 38-word switch tables now match: 304 raw bytes and 76
+normalized relocations independently checked against the target. Anonymous
+compiler labels were not the obstacle. All 18 function, data and pseudo
+floors hold, shared/private instructions agree, and full build, four output
+hashes and whitespace checks pass. Only fn_2_34F6C remains pending at
+95.61972%; prior no-op label trials must not be repeated without new
+evidence. No public header or config changes were needed. Evidence:
+build/_postmerge_wave39_text_33E70.json and private wave39 snapshots.
+
+### Drawing-node layout and cancellation reloads (2026-10-23)
+
+text_3E38C improves from 85.91016% to 89.62283%, with nine new exact
+callbacks. The source-local node's comments had the correct offsets, but
+missing priority/scratch fields put timer/frame/phase at 0x12/0x14/0x16
+instead of 0x14/0x16/0x28. Correcting the measured fields fixes actual scratch
+reads and writes. Cancellation tails then resolve the current global node
+after external callbacks; ordinary exit arms keep the cached node where
+the target does. Reversing one equivalent sound branch closes the ninth
+callback. No public header or config changes were needed.
+
+All 18 initial function floors improve; .data 0% and pseudo 50% hold. The
+nine exacts pass individual readability review and a fresh whole-unit diff.
+Actual target and candidate PPC agree with independent memory/call models
+for 8,160 scenarios (507,168 instructions), including timer/phase boundaries
+and active-node mutation by callbacks. This excludes full game/UI runtime.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave41_text_3E38C.json and private wave41 flow_audit.py.
+Nine callbacks remain pending.
+
+### Follow-up challenge state reloads (2026-10-23)
+
+text_3E38C reaches 91.15712% from 89.62283%, preserving all 18 function
+floors and nine exacts. Three callbacks now follow the target's global
+challenge/node resolution at each use, including after helper calls and
+between stores. The parent remains cached only where the target uses it.
+
+Target/candidate PPC agree with independent memory/call models for 2,880
+scenarios (191,280 instructions), covering challenge-bank/current-node
+changes, timer boundaries and variant reloads. This excludes full game/UI
+runtime. Full build, four output hashes, whitespace and private/shared
+instruction checks pass. No public header, config or completed-function
+status changes were needed. Evidence:
+build/_postmerge_wave43_text_3E38C.json and private wave43 flow_audit.py.
+
+### Challenge script interpreter and typed file data (2026-10-23)
+
+text_4078C improves from 23.99914% to 94.006874%, with exact functions
+increasing from 6 to 7/13; both stubs are implemented. The script interpreter
+covers 110 opcodes, preserving the difference between immediate redispatch
+and yielding waits. Its mission helper covers 21 display modes and the
+post-switch completion override. The list callback now clears all 20 bytes,
+and an existing manually expanded copy is replaced by a natural loop with
+the target's pointer reloads.
+
+Thirteen typed owned objects (1,128 bytes) match target bytes/relocations:
+file descriptors, Vec constants and drawing callbacks. .data reaches
+64.2369%; unknown particle data and generated table layout remain unresolved.
+Both actual tables were decoded independently from ELF relocations.
+
+Focused target/candidate instruction checks pass 672 script, 138 mission,
+three copy and 12 list scenarios. External callees are deterministic stubs;
+their runtime side effects and full game/UI execution are outside this
+check. All 13 initial function, section and pseudo floors hold. New exact
+fn_2_42388 passes readability, shared/private instructions agree, and full
+build, four output hashes and whitespace checks pass. Header/config remain
+unchanged. Evidence: build/_postmerge_wave40_text_4078C.json and private
+wave40 prove.py/data_relocation_proof.json.
+
+### Challenge list bounds, signed keys and existing inlines (2026-10-23)
+
+text_42BE8 improves from 69.41226% to 74.82986%, with four exact functions
+(previously three). The list builder now scans 54 characters, counts actual
+successful lineup appends, starts the secondary extraction list at zero,
+sorts sign-extended keys, and compacts all 54 records. Petey (0x26) moves to
+fixed secondary-list index 2. The helper deliberately counts the first 48
+recruits; that helper definition must not replace the builder's 54-slot scan.
+
+Actual target/candidate PPC agrees with an independent stable-sort/list
+model for 216 boundary cases (2,826,404 instructions), including signed keys
+128/255, 31 recruits plus a last-slot-only append, and entries 36..53.
+Another 100 requirement-count cases pass. All 65,536 signed-halfword IDs
+preserve the Toad membership predicate, now exact after readability review.
+A transient King Boo/Petey enum substitution failed the independent model
+and was corrected before integration. These are focused checks, not full
+game/UI execution.
+
+Compiled instructions disprove the old missing-inline explanation: target
+and candidate already inline the sort in fn_2_44504, and both mission/count
+callers already inline their predicates. Explicit inline/wrapper trials
+regressed public functions and were reverted. Reverse definition order
+restores generated table order, but table destinations still differ with
+nonexact code: raw zero bytes and owning symbols alone do not make .data
+exact. Its score remains 0%, with pseudo 50%.
+
+All 17 function/section/pseudo floors hold. Shared/private instructions,
+full build, four output hashes and whitespace checks pass. No public header
+or config changes were needed. Evidence:
+build/_postmerge_wave42_text_42BE8.json and private wave42 list_audit.py,
+data_audit.py and toad_range_audit.py.
+
+### Separate mission cases preserve inline bodies (2026-10-23)
+
+fn_2_439D0 improves from 66.91749% to 87.66337%, raising text_42BE8 to
+77.62239%. Two mission types have distinct target bodies with equal lineup
+membership logic. Separate source cases calling the existing public BOOL
+predicate restore their natural inline expansions. Ordering case bodies by
+their observed target addresses restores the remaining physical layout.
+
+An independent memory model agrees with actual target/candidate PPC for
+2,916 scenarios (2,810,081 instructions), using each ELF's real computed
+switch destinations. Cases cover every type 60..69 and defaults, signed
+requirements, gates, slot counts, membership, captain/difficulty and flags.
+There are no external calls in either compiled body. This excludes full
+game/UI runtime. All 17 function/section/pseudo floors and four exacts hold;
+.data remains 0%. Shared/private instructions, full build, four output hashes
+and whitespace checks pass. No header/config changes. Evidence:
+build/_postmerge_wave46_text_42BE8.json and private mission_audit.py.
+
+### Map-record reloads and counter division (2026-10-23)
+
+text_3E38C improves from 91.15712% to 97.75391%, with exact functions
+increasing from 9 to 11/18. A proven ten-byte record view restores global
+reloads during the 51-record scan and retains separate captain arms.
+The next-stage value is captured before clearing the selected entry;
+records 51..53 remain untouched. Post-callback flag stores now resolve
+challenge state again. Two callbacks become exact after readability review.
+
+Both counter callbacks used an incorrect /40 divisor. The target's signed
+multiply-high, shift by three and sign correction implement /20. All
+131,071 possible differences of two signed halfwords confirm the formula;
+for delta 75, the target gives 3 and the old source gave 1. Score-global
+reads and work-bank mutations retain their original timing.
+
+The actual ELF's 60 data bytes and all 15 function-relative relocations
+match exactly. All phase destinations are distinct; no table initializer
+or config change was needed. All 18 function/section/pseudo floors hold.
+The unit remains NonMatching because seven functions are still pending.
+
+Earlier callback models and the new list/counter models pass 15,114
+scenarios (1,743,326 actual target/candidate instructions), including
+callback mutations, signed boundaries, record 50 and excluded records
+51..53. External hooks model calls and selected mutations, so this excludes
+full game/UI runtime; the large scene receives focused coverage of its
+changed phase and frame effects. Shared/private instructions, full build,
+four output hashes and whitespace checks pass. Header/config remain
+unchanged. Evidence: build/_postmerge_wave45_text_3E38C.json and private
+wave45 final_proofs.txt, pending_flow_audit.py and data_math_audit.py.
+
+### Requirement-row pointers retain per-slot reloads (2026-10-23)
+
+text_42BE8 improves from 77.62239% to 80.304756%, with gains in ten mission
+callbacks. Holding a pointer to CharStaticIndex.requirementRow across the
+slot loop restores the target's field-pointer lifetime. The row byte is
+still read each slot, including after calls; capturing its value instead
+would change behavior when a helper updates the table. Explicitly promoting
+the stored unsigned recruitment byte to s32 restores the target's word
+comparison without changing its zero extension or equality test.
+
+fn_2_439D0 also now has separate switch scopes: the previous source legally
+nested later case labels inside case 69's condition. Its tracking behavior
+passed the earlier model, but that accidental nesting added redundant work.
+The corrected scopes preserve the target's physical case order and the
+separate membership predicates for cases 67 and 68.
+
+Manager-rerun focused checks pass 11,608 scenarios and 13,418,395 actual
+target/candidate PPC instructions. Independent mission/list/count models
+cover 6,148 cases; differential checks cover all ten changed callbacks in
+5,460 cases. Mode tables use real ELF relocations. External hooks exercise
+each helper with signed return boundaries, memory mutations and overwritten
+volatile registers. These are focused checks with modeled callees, not full
+game/UI runtime or exhaustive aliasing coverage.
+
+All 17 function/section/pseudo floors and four exact functions hold. The
+148 raw data bytes and 37 relocation locations/types/owners agree, while
+relocation addends still differ: .data remains 0%, pseudo improves to
+58.10811%. Shared/private instructions, full build, four output hashes and
+whitespace checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave47_text_42BE8.json and private wave47 final_audit.txt,
+callback_audit.py, mission_audit.py, list_audit.py and data_audit.py.
+
+### Self-branches and structure arguments need literal ABI checks (2026-10-23)
+
+text_1B1BC improves from 67.23811% to 68.43051%, preserving all 21 function
+floors and eight exact functions. Four apparent unresolved branches in
+fn_2_1C33C are actual 0x48000000 self-branches with no relocation. The draft
+invented an undefined helper for them; natural assertion loops restore the
+observed behavior and improve the function from 55.384617% to 96.15385%.
+
+fn_2_1C504 applies the same captain/variant condition to record states 0 and
+1. The old draft reset state 1 unconditionally. Restoring the combined gate
+and global reloads improves it from 59.69388% to 82.95918%. It processes 51
+records; records 51..53 remain untouched. In the scene dispatcher, replacing
+a wrong local GXSetCopyClear(u32, u32) declaration with the canonical
+GXColor API fixes the structure argument: the ABI passes a stack object's
+address, rather than the color word as a pointer.
+
+Manager-rerun actual target/candidate checks pass 2,560 bounded assertion
+classifications, 1,296 record-memory setups and five color values through
+each compiled argument block. The record model covers both matching states,
+variants, nonmatching records, mask repeats and byte-counter wrap. Graphics
+coverage isolates argument construction; the larger dispatcher remains
+pending. These checks exclude full game runtime and arbitrary pointer
+aliasing. All 176 data bytes and 44 generated relocation entries were
+inspected; two exact callbacks have exact table destinations, while the
+dispatcher's remaining 24 destinations and bodies are pending. .data stays
+0%, pseudo stays 72.72727%. Shared/private instructions, full build, four
+output hashes and whitespace checks pass. Header/config are unchanged.
+Evidence: build/_postmerge_wave48_text_1B1BC.json and private wave48
+focused_proof.py, focused_proof_result.txt and data_reloc_inventory.json.
+
+### Input priority and callback pointer lifetimes (2026-10-23)
+
+text_1B1BC improves from 68.43051% to 77.510635%, with five functions
+improved and all 21 floors/eight exacts preserved. Two 51-record helpers
+reach 99.39759% after restoring global reloads between state and flag stores.
+The texture callback reloads the current bank and table after conversion,
+while retaining the original drawing node across removal.
+
+The mission callback must skip Cancel after an accepted action, including
+when its selected mission is absent. Cancel applies when the action mask,
+completion-count or ownership gate fails. The scout callback gives the left
+trigger priority when both triggers are pressed; the old independent
+conditions cleared and then filled the flags. Canonical tracking and table
+fields plus observed reloads retain these fixes above their original scores.
+
+After helper calls, current work/controller/input may change while the
+original tracking-record pointer remains captured. Reloading every pointer
+would also be wrong. Focused mutation hooks distinguish these lifetimes.
+Both trigger paths execute ten threshold reads per character, confirmed
+directly from target/candidate execution; ordinary idempotent stores alone
+would not establish the iteration count. A plain loop reproduces the reads
+without fabricating the target's unused induction variable.
+
+Manager-rerun independent fixture models pass 2,160 record-helper cases,
+72 texture cases, 28 trigger cases, 2,304 action/Cancel cases and 16 scroll
+mutation cases: 6,887,083 actual target/candidate PPC instructions. Hooks
+capture arguments and overwrite volatile registers. The earlier assertion,
+record and graphics-argument checks also pass. Coverage excludes full game
+runtime, arbitrary aliasing and exhaustive equivalence of unchanged paths;
+remaining mission bulk-loop lifetimes are pending. Data remains 0%, pseudo
+72.72727%. Shared/private instructions, full build, four output hashes and
+whitespace checks pass. No header/config changes. Evidence:
+build/_postmerge_wave49_text_1B1BC.json and private wave49 proof49.py,
+proof49.txt and focused_proof.py.
+
+### Typed tracking loops and signed phase switches (2026-10-24)
+
+text_1B1BC improves from 77.510635% to 86.27886%, with exact functions
+increasing from eight to ten. Natural signed-phase switches make fn_2_1B52C
+and fn_2_1B6CC exact. Each received an individual readability pass, canonical
+BOOL comparisons and a fresh whole-unit confirmation.
+
+fn_2_1C860 improves from 52.746204% to 86.342735%. Canonical tracking pairs
+replace raw modulo/division offsets. The target captures a tracking record
+for each character while resolving its requirement-row byte each mission;
+the old draft cached both bank and row too early. Phase 2 walks ten
+contiguous slots. A signed phase switch and six separately resolved work
+stores restore the remaining initialization structure without artificial
+register or loop-induction changes.
+
+Manager-rerun new checks pass 6,902 scenarios and 1,325,920 actual
+target/candidate PPC instructions. They cover all 256 phase bytes in both
+new exact callbacks, bulk paths across 54 characters and ten missions,
+initialization, removal and defaults. Read counts confirm one bank lookup
+per character and ten row reads per owning character on the phase-1 bulk
+paths. Phase-2 tests document a remaining difference: the target reads a
+row byte for skipped owners, while the candidate reads it only for owner 1;
+both skip requirement-type reads and writes for those owners.
+
+Earlier callback-mutation models pass another 6,880,003 instructions, and
+the assertion/record/graphics-argument checks still pass. These are bounded
+ordinary-memory and modeled-callee checks, excluding full game runtime and
+arbitrary aliasing. All 21 function/section/pseudo floors hold; .data stays
+0%, pseudo 72.72727%, and the unit remains NonMatching. Shared/private
+instructions, full build, four output hashes and whitespace checks pass.
+No header/config changes. Evidence: build/_postmerge_wave50_text_1B1BC.json
+and private wave50 proof50.py, proof50.txt, proof49.py and focused_proof.py.
+
+### A proven record view can restore a natural inline boundary (2026-10-24)
+
+text_1B1BC improves from 86.27886% to 87.806244%, with exact functions
+increasing from ten to twelve. The source-only ten-byte map-record view
+already established in text_3E38C makes fn_2_1C5C8 and fn_2_1C714 exact.
+The helper resolves the current bank for each record access. No public gap,
+global boundary or register declaration was changed. Each new exact received
+an individual readability pass and fresh whole-unit confirmation; unknown
+record codes remain numeric, and the third byte is not treated as a boolean.
+
+The same view plus natural nested captain/record conditions improves
+fn_2_1C504 from 82.95918% to 98.87755%. A plain eight-slot initialization
+loop replaces inherited explicit stores without changing code. The texture
+callback reaches 90.56977% through a signed phase switch, precomputed texture
+argument and one-entry reverse relocation loop. Entry 1 remains untouched.
+Three separately resolved initialization writes also improve fn_2_1CF94.
+
+Manager-rerun new initialization checks cover 33 cases and 4,362 actual
+target/candidate instructions, including callback bank changes, ordered
+stores, read counts and boundary sentinels. Expanded inherited models cover
+all 256 texture phase bytes and still pass record, input-priority, bulk-loop,
+assertion and graphics-argument checks. External callees are modeled; these
+checks exclude full runtime and arbitrary aliasing. The previously documented
+skipped-owner read difference remains pending.
+
+All 21 function/section/pseudo floors hold. Data remains 0%, pseudo
+72.72727%, with the nonexact dispatcher's 24 destinations still pending.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave51_text_1B1BC.json and private wave51 proof51.py,
+proof49.py, proof50.py and focused_proof.py.
+
+### Dispatcher state must be refreshed after callbacks (2026-10-24)
+
+text_1B1BC improves from 87.806244% to 89.35763%; its dispatcher improves
+from 72.35318% to 79.390144%. All 21 function floors and 12 exact functions
+hold. Case 0 uses a natural eight-slot initialization loop and independently
+resolves work storage after callbacks. Case 4 refreshes challenge state after
+the flag store and graphics/scene calls. Case 18 publishes the captain into
+the current bank after the selection callback, then reloads the bank before
+character lookup and subsequent branching. Canonical captain/difficulty
+fields and a BOOL scene-request local improve readability. Header/config
+are unchanged. A natural final assertion condition is code-neutral.
+
+Manager-rerun independent models execute 853,512 target/candidate PPC
+instructions across 48 initialization, 3,888 case-4, 216 case-18/mode-0 and
+576 limited alias/default/other-inner-mode fixtures. They use actual ELF
+relocations for dispatch, check callback arguments, mutate current banks,
+clobber volatile registers, count work loads and check counter wrapping.
+Both objects have 24 dispatcher entries with only cases 16/17 aliased.
+Other bodies and full game runtime remain outside this bounded validation.
+Earlier initialization, texture, mission, assertion and graphics checks pass.
+
+Data remains 0%; the generated table pseudo-symbol improves from 72.72727%
+to 80.681816%. Different destination offsets remain unresolved. Shared and
+private instructions agree; full build, four output hashes and whitespace
+checks pass. Evidence: build/_postmerge_wave52_text_1B1BC.json and private
+wave52 proof52.py, dispatcher_table52.json and inherited proof scripts.
+
+### Preserve distinct dispatcher branches and reuse existing initialization (2026-10-24)
+
+text_1B1BC improves from 89.35763% to 90.06654%, with its dispatcher
+rising from 79.390144% to 82.60575%. Case 12 retains a complete insertion
+and reset sequence in each branch; inner mode 8 has its own block, as in
+the target. Calling the existing initialization helper naturally inlines
+without changing its public body. A source-only 24-byte table-entry view
+replaces raw scan offsets using the layout already established in text_53408.
+All 21 function floors and 12 exact functions hold after readability review.
+
+Manager-rerun actual-PPC checks verify all 26,740 eligible pointer reads in
+the zero-table scan, early-exit address prefixes at six-entry and row edges,
+and absence of writes. Another 192 case-12 fixtures check both insertion
+branches, callback mutation and counter wrapping through actual ELF dispatch.
+Inherited behavior checks pass. These are bounded ordinary-memory models
+with modeled external calls; full runtime and other dispatcher cases remain
+outside coverage. A current-node reload trial was reverted because it
+regressed the accepted generated-table floor.
+
+Data remains 0%; the table pseudo-symbol improves to 82.954544%. Shared and
+private instructions agree; full build, four output hashes and whitespace
+checks pass. No header/config changes. Evidence:
+build/_postmerge_wave53_text_1B1BC.json and private wave53 proof53_scan.py,
+proof53_dispatch.py and inherited models.
+
+### Script callback cleanup uses both captured and current nodes (2026-10-24)
+
+text_50898 improves from 68.07554% to 68.92482%; fn_2_509A4 improves
+from 72.655556% to 98.888885%. Its signed phase switch falls through from
+initialization into polling. Separate callback-result cleanup branches
+reload the current node's child after callbacks, while the original node
+remains captured for its phase reset. The common skip path also reloads
+the current child. One dispatch branch remains unmatched.
+
+Manager-rerun actual-PPC models pass 288 callback scenarios and 20,976
+instructions, including signed16 return normalization with nonzero upper
+register bits, current-node changes during polling/removal, volatile-register
+clobbering and full script-copy effects. Earlier token-walker models pass
+1,539 scenarios and 407,672 instructions. These bounded checks use ordinary
+disjoint memory and modeled external calls, excluding full gameplay.
+
+All 38 function floors and 15 exact functions hold; data remains 0% and
+the table pseudo-symbol 50%. Natural initialization/copy loops and a width
+simplification regressed and were restored. Shared/private instructions,
+full build, four output hashes and whitespace checks pass. No header/config
+changes. Evidence: build/_postmerge_wave54_text_50898.json and private
+wave54 callback_audit.py, walker_audit.py and manager_verification.md.
+
+### Canonical text banks recover an exact pointer helper (2026-10-24)
+
+text_50898 improves from 68.92482% to 69.4464%, with exact functions
+increasing from 15 to 16. Existing ScreenTextPool.textBanks and TextBank.strings
+make fn_2_5156C exact and improve both append callbacks to 91.190475%.
+Its observed mode branches remain separate. An individual readability pass
+and fresh whole-unit confirmation preserve the new exact. Sharing the row
+base improves fn_2_50D40 from 49.827587% to 58.793102%; a three-by-two array
+view expresses the known prefix of fn_2_5135C without changing instructions.
+
+Manager rebuilt a frozen copy and strengthened the new bank fixtures so
+all seven banks have different tables and string pointers/content. The
+216 selector/append cases pass 21,200 target/candidate PPC instructions;
+1,539 inherited walker cases and 288 callback cases also pass. A prior
+fixture reused the same table for different selectors and was replaced
+before acceptance. These bounded ordinary-memory checks exclude full
+game runtime. The typed width-callback form and alternate row expression
+regressed and were restored.
+
+All 38 function/section/pseudo floors hold; data remains 0% and pseudo 50%.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave55_text_50898.json and the frozen private wave55
+manager bank_audit.py, callback_audit.py and walker_audit.py.
+
+### Two-dimensional row views preserve complete script clears (2026-10-24)
+
+text_50898 improves from 69.4464% to 69.87446%. Three clear helpers now
+use natural two-dimensional halfword row pointers, following the existing
+MenuScriptWork layout in text_4D960. fn_2_50E5C reaches 88.061226%,
+fn_2_50FC8 69.19643%, and fn_2_510A8 78.24561%. Existing symbol boundaries
+and declarations remain unchanged.
+
+Manager-rerun actual-PPC models pass 15 cases with real label aliases,
+4,638 stores per side and 10,461 total instructions. Every selected row
+receives exactly 256 zero halfword stores; counts, flags, adjacent rows
+and guards match an independent memory model. The two independent initial
+count resets in fn_2_510A8 occur in opposite orders; later stores agree.
+Inherited walker, callback and distinct-bank tests pass. These checks cover
+ordinary memory and valid row indices, excluding arbitrary aliasing and
+full game runtime.
+
+All 38 function floors and 16 exact functions hold; data remains 0%,
+pseudo 50%. Shared/private instructions, full build, four output hashes
+and whitespace checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave56_text_50898.json and the frozen private wave56
+manager clear_rows_audit.py and inherited models.
+
+### Angle conversion runs on both signs; text width uses logical shifts (2026-10-24)
+
+rep_08E8 improves from 83.5591% to 83.76249%, with exact functions
+increasing from 20 to 21. fn_2_4A2C4 previously returned zero for every
+nonnegative angle. It now conditionally adds one binary32 2pi constant
+for negative inputs, then converts both signs into angle units. It reaches
+97.89474%; the remaining difference is constant relocation labels. The
+existing SANG_ANG_180 names the scale. Explicit unsigned half-width shifts
+make fn_2_49EFC exact after individual readability review and a fresh
+whole-unit confirmation. Its exact 0x4000 terminator rule remains intact.
+
+Manager independently checked both objects' ELF constant bits and reran
+16 finite angle cases through floating operations, integer conversion,
+the stack store/reload and the actual return register. They agree with
+an independently rounded expression, including positive/negative zero
+and angles beyond a single revolution. The conversion model uses valid
+signed32 results and excludes NaNs, exceptions and other rounding modes.
+Another 196 actual-PPC width cases pass 218,988 instructions, including
+distinct neighboring widths, ignored tags, sums above16bits, exact table
+reads and absence of writes. Full game runtime is outside this scope.
+
+All 45 function/section/pseudo floors hold; rodata remains 79.06977%.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave58_rep_08E8.json and the frozen private wave58
+manager angle_audit.py, angle_proof.json and width_audit.py.
+
+### A direct zero guard restores the angle helper's control flow (2026-10-24)
+
+rep_08E8 improves from 83.76249% to 83.787346%. fn_2_4A1E8 now returns
+zero immediately when both inputs compare equal to zero, then calls atan2
+otherwise. Its score improves from 93.68421% to 99.47369%; the remaining
+difference is the zero constant's relocation label. All 45 function floors
+and 21 exact functions hold; rodata remains 79.06977%. Lower-scoring color,
+angle-width and nested-loop trials were restored.
+
+Manager-rerun floating-point traces pass 16 cases, checking signed-zero
+bits, NaN call routing, argument order, modeled volatile-register clobbering
+and rounding of the modeled double return to binary32. Both-zero inputs
+return positive zero. atan2 is modeled with host math; exception flags,
+NaN payloads and the game library's full behavior are outside coverage.
+Earlier angle-conversion and text-width checks also pass. Shared/private
+instructions, full build, four output hashes and whitespace checks pass.
+Header/config are unchanged. Evidence: build/_postmerge_wave59_rep_08E8.json
+and the frozen private wave59 manager zero_angle_proof.py and inherited models.
+
+### Byte-array field indexing can recover dynamic source-address formation (wave60)
+
+In menus/text_579B4, six selected-record halfword reads expressed as `*(s16 *)&source[off + field]` produce the source-plus-dynamic-offset address followed by a fixed field load. The pointer-chain form `*(s16 *)(source + off + field)` emitted indexed loads with separate offsets; a typed entry pointer and source-parameter helper also regressed and were rejected. This small source-expression change raises fn_2_5853C from88.2% to99.65714%, unit98.00627% to99.05382%, preserving all eight exact functions and data pseudo81.25%. Remaining helper differences are commutative add operand order. An indexed character-flags helper in587F8 was code-neutral; a loop-local index regressed and was reverted.
+
+The manager's bounded actual-PPC model passes36 independently specified cases on both sides (12,600 instructions): signed-halfword boundaries, three valid selections, distinct bytes/guards, untouched7419,22/16-byte copies, converter arguments, final permutations, callback work-bank replacement and volatile GPR clobbers. Complete observable memory and ordered stores match. The converter is modeled explicitly; arbitrary aliasing and its game implementation are outside the proof. All13 changed-function ELF relocations compare equal. Full build, four output hashes and whitespace checks pass; the unit remains NonMatching because pending code and data remain.
+
+### Recover the inlined selected-record copy and separate state stores (wave61)
+
+The byte-array halfword indexing from wave60 also improves the inlined `copySelectedRecord` in `menus/rep_0AB0`: fn_2_5B7DC rises from 93.78467% to 95.99662%. Expressing its state7 A-button choice as separate `if/else` state writes before the shared sound call raises it further to 97.78918%, matching the target's branch structure. Whole-unit `.text` increases from 88.983154% to 89.67099%, with every other function, section and pseudo-symbol unchanged, including the one exact function. Swapping the index addition operands was code-neutral and reverted. No headers changed.
+
+The manager's independent actual-PPC model uses each ELF's real 19-entry dispatch table. Its 408 scenarios execute the changed case2 and case7 paths (148,056 total instructions), checking selected record fields and untouched bytes, enabled/disabled records, three controller ports, callback work-bank replacement, volatile GPR clobbers, signed selector boundaries, input priority, state/flag stores, sound arguments and complete observable memory with ordered stores. The converter is an explicit external model; directional cursor input is zero, and other state bodies, arbitrary aliasing and the converter's implementation are outside this proof. Full build, four output hashes, fresh shared/private instruction equality and all score floors pass.
+
+### Retain the controller-field base across a cursor callback (wave62)
+
+In `menus/rep_0AB0`'s shared `updateRecordGridCursor`, a local halfword pointer to controller byte offset4, indexed by `port * 16`, recovers the target's retained input base and indexed loads. The port still reloads from the current work area after a sound callback. The existing input type leaves offset4 unnamed, so no field was invented. Both callers improve; separating fn_2_5A224's state7 selection into two state stores provides another gain. Final `.text` is90.28253% from89.67099%; fn_2_5A224 reaches97.97051%, fn_2_5B7DC98.88952%, and data pseudo55.035973% rises to57.913666%. All other function and section floors, including the existing exact function, hold.
+
+The manager reran5088 distinct actual-PPC path fixtures (1,151,640 target+candidate instructions) using the actual19/26-entry ELF tables. Models cover selected-copy paths, all16 direction masks across36 grid positions, callback work-bank and port replacement, signed selectors and A/B priority, volatile GPR clobbers, complete observable memory, ordered stores, call arguments and the26-state menu's common GX exit. The latter fixes hugeAnimStruct307A to1; its conditional graphics branch and other state bodies are outside this proof. External converter effects are explicit models on ordinary disjoint valid memory. No headers changed; fresh shared/private instruction and score-floor checks, full build, four output hashes and whitespace checks pass.
+
+### Initialize lane flags before aggregation and retain their pointer (wave63)
+
+In `menus/text_5E84C`, fn_2_5EB78 now initializes its four byte flags before scanning and advances a pointer to the current flag. The source global is captured after the separate selector reset, matching the target's ordering. The compiler naturally unrolls the five checks per lane. The function improves from90.56637% to97.61947%, whole `.text`81.56898% to81.886765%, with all13 exact functions and all18 function floors preserved. A zero-initialized array emitted an unwanted constant-pool load and regressed; marking the digit helper inline was code-neutral. Both trials were discarded. The selector33FBF5 stays numeric0 because other code tests values0/1/2; only the actual aggregation flags use FALSE/TRUE.
+
+The manager's independent actual-PPC model passes3000 bounded scenarios on target and candidate (811,500 instructions), checking all20 source reads exactly once, per-lane nonzero aggregation, three distinct nonzero byte values, four mode values, optional record initialization with preserved gaps, and complete observable memory and ordered stores. The proof uses ordinary initialized disjoint memory and covers this routine only. Fresh private/shared instruction equality, every function floor, full build, four output hashes and whitespace checks pass. No headers changed.
+
+### Capture the character table before the selector and index work halfwords (wave64)
+
+In `menus/text_636A4`, moving each character-table local before `fn_2_53BC8` recovers the target lifetime: fn_2_65850 rises72.93519% to78.98148% and fn_2_65C84 rises94.14783% to99.478264%. Byte-array indexing before the signed-halfword cast in `recLevelFromWork` raises fn_2_642F8 from80.35461% to85.17731%. Whole `.text` reaches94.487595% from93.72115%, preserving14 exact functions, every function floor, data0 and pseudo63.15789%. A source-local canonical GameInitVariables include and existing `_12` field replace the raw byte-array declaration without changing generated instructions. Passing a captured settings pointer into the settings helper regressed and was reverted.
+
+The manager's actual-PPC models pass43,200 independently expected cases (3,944,080 target+candidate instructions): full character-flag callbacks, signed selector/timer/level boundaries, callback record/scene/node/work changes, source guards, correct frame-source mapping, volatile GPR clobbers, full observable memory and ordered stores. The work-level model reads the real38-entry dispatch table and covers its changed source paths and0/default exits. These are bounded callback models on initialized disjoint memory, not full gameplay. A fresh baseline rebuild also confirms the other17 function bodies and all114 actual entries in their three dispatch tables are unchanged after resolving local label names. Shared/private instructions, full build, four hashes and whitespace checks pass; no headers changed.
+
+### Complete five scene-flow callbacks and preserve combined input predicates (wave65)
+
+Five remaining stubs in `menus/text_37F04` now implement activation, timer, choice and cleanup behavior. Whole `.text` rises from 30.694714% to 61.336933%; fn_2_38538 becomes exact, increasing six exact functions to seven. Final scores arefn_2_38F48 86.741936%, fn_2_391B4 98.120804%, fn_2_39408 98.79829%, fn_2_397AC 97.89474%. Every prior function floor holds. The large fn_2_399C0 routine remains a stub and owns the still-unmatched 76-byte dispatch table. The old checkpoint's 11-stub count was stale; there were six before this pass.
+
+The manager's independent actual-PPC expectations pass 37,052 fixtures across the four new nonexact callbacks (2,566,668 target+candidate instructions), checking complete observable memory, ordered stores, timer boundaries, byte wrap, simultaneous input priority, three controller ports, exact call arguments/order, volatile GPR clobbers, current-work/current-node replacement and original-node state cleanup. These checks caught and corrected a draft error where LEFT consumed RIGHT despite a failed choice predicate; all three choice routines now retain the target's combined button/value conditions. Callback effects are explicitly modeled on valid disjoint buffers, including overlapping indexed fields within the record table. Full gameplay and arbitrary aliasing are outside this proof.
+
+The newly exact fn_2_38538 has 748 machine bytes and 39 actual relocation records identical to target; its supported flag writes use TRUE after readability review. The worker's 3,600 additional PPC comparisons have a narrower observation/static-removal scope. A static SQRT2_LINKAGE guard prevents unused header math output, and the local sound-ID parameter uses the SDK's underlying u16 width. No headers or fabricated data were added. Fresh private/shared whole-unit instructions and all score floors, full build, four hashes and whitespace checks pass.
+
+### Complete the 19-state scene-flow dispatcher and verify the full scan (wave66)
+
+The final stub in `menus/text_37F04`, fn_2_399C0, now implements all19 states: challenge flag scanning, scene gates, signed timers, grid input, recruitment, graphics callbacks and cleanup. It reaches89.801025%; whole `.text` rises61.336933% to93.89687%. All14 previously published function bodies retain identical raw bytes and function-relative relocation records, preserving seven exact functions. The compiler emits the real76-byte,19-relocation switch table; `.data` remains0% and its pseudo-symbol50%, so the unit remains NonMatching.
+
+Manager checks caught a draft scanning28 entries instead of54 in each flag range. The accepted natural loop visits all54 entries, tests signed-byte value1 and preserves incoming latches. Independent full-entry actual-PPC expectations pass17880 fixtures across every state and default paths (5,040,098 target+candidate instructions), checking real ELF dispatch tables, signed timer/return boundaries, all16 directional masks across36 grid positions, A/B priority, callback changes, volatile GPR clobbers, full observable memory, ordered stores and call arguments. An additional1506 differential callback-replacement fixtures pass. These use initialized disjoint valid buffers and explicit callee models; arbitrary aliasing and full gameplay are outside coverage. The manager strengthened the worker's case-entry checks to execute the real prologue and dispatch. Fresh private/shared whole-unit instructions and all score floors, full build, four output hashes and whitespace checks pass; no headers changed.
+
+### Complete character stat graphics and recover the grouped variant switch (wave67)
+
+`menus/text_744C8` now implements both remaining real stubs. Grouping character cases by return value makes fn_2_74DB8 exact, including92 raw machine bytes and its42 switch relocation records. The graphics routine reaches83.12403%; its stat-bar helper rises64.56% to70.706665% after recovering the renderer's fourth argument and storing its return at record+0x58. Whole `.text` rises45.02146% to74.32457%, preserving every prior floor and increasing three exact functions to four. Named CharacterStats fields, CHAR_ID members, UIRecord frame/rgba/playMode fields and existing UI constants replace raw new accesses. Both42-entry tables are compiler emitted; the still-low fn_2_76650 owns the missing13-entry52-byte table. Candidate data336B versus target388B leaves `.data`0% and pseudo68.05832%; the unit remains NonMatching.
+
+The manager's independent full-entry actual-PPC expectations pass97,637 fixtures (13,253,914 target+candidate instructions): all65,536 low16 mapping inputs plus signed32 boundaries; all54 characters, allfour ports, signed selections and byte-return truncation; every stat byte plus signed boundaries; actual ELF tables, callback changes to settings/scene handles/graphics entries/stats, volatile GPR clobbers, complete observable memory, ordered stores and calls. Review recovered the required selection reload after the variant callback. These checks use initialized valid disjoint buffers and explicit renderer effects; arbitrary aliases and full gameplay are outside scope. A no-cursor-match path leaves a target register uninitialized and is excluded; source defines CHAR_ID_NONE there.
+
+All15 other target bodies and four source-local helpers retain identical raw code and relative relocations. Final readability edits are freshly compiled and machine-byte neutral. Corrected public prototypes rebuild the sole dependent text_78F78 with unchanged code/data/relocations and scores. Fresh shared/private instructions and every score floor, full build, four hashes and whitespace checks pass.
+
+### Recover the mask switch and its bit-zero skip (wave68)
+
+In `menus/text_744C8`, fn_2_76650 now uses a natural13-entry switch and two-word result list. Bit zero advances the loop index inside its case, so bit one is skipped; cases1–12 append literal values and the default appends13. The routine retains the target's exact two-byte memset, decrements both slots, applies negative fallback12 and writes UIRecord frame fields. Natural list indexing improves the function19.459854% to97.51825%; whole `.text`74.32457% to79.00876%, preserving four exact functions and every prior floor. All three compiler-generated tables are present:388bytes97relocations, including13 new entries matching target offsets/types/function-relative addends. Inherited graphics table addresses still differ, leaving `.data`0% and pseudo78.35052%.
+
+The manager's independent full-entry actual-PPC expectations pass15,120 fixtures (5,797,872 target+candidate instructions): all210 low14 masks producing exactlytwo results, ignored high bits, four team slots/upper bits, three handles, actual ELF tables, exact memset arguments, volatile GPR clobbers, full observable memory and ordered frame stores. Another3840 explicitly initialized-stack PPC fixtures pass1,384,608 instructions for zero/one-result masks and signed fallback boundaries; these seed actual local locations before entry and make no C-level defined-behavior claim for uninitialized words. Three-or-more results may overwrite saves and are excluded. No source initialization or guard was invented.
+
+The other17 target bodies and four local helpers retain identical machine bytes/resolved relocations; all84 existing table entries are unchanged, preserving the earlier graphics proofs. An unused counter was removed during review, and natural array indexing replaced byte-offset writes. Header is unchanged; fresh shared/private instructions and all score floors, full build, four output hashes and whitespace checks pass.
+
+### Correct the ignored first argument of a nearly matching callback (wave69)
+
+fn_2_7609C in `menus/text_744C8` now has its actual three-argument ABI: an ignored first word, a byte value in the second slot, and a byte state in the third. The target tests the third slot and passes the second value to fn_2_8794; the prior two-argument draft consumed the wrong slots despite99.166664% instruction similarity. Correcting the source/header makes it exact, with48 raw machine bytes and actual relocation records equal to target. Whole `.text`79.00876% rises79.01314%, four exact functions become five, and all other floors hold. Argument meanings beyond value/state remain unproven.
+
+The manager's independent full-entry PPC model passes70,656 fixtures (1,293,328 target+candidate instructions): all256x256 argument-byte pairs, upper-bit/ignored-first-word variants, all256 states of the adjacent cursor callbacks, exact calls, explicit callback effects/volatile GPR clobbers, complete observable memory and ordered stores. The other17 target bodies, four local helpers and97 data relocations are unchanged, retaining prior graphics/mask proofs. The header's sole dependent text_78F78 rebuilds with unchanged code/data/relocations and scores. Fresh shared/private instructions, full build, four output hashes and whitespace checks pass; data remains0%, pseudo78.35052%.
+
+### Recover chemistry intervals, pointer lifetimes and byte readiness results (wave70)
+
+In `menus/text_744C8`, explicit target upper/lower star intervals, a moving nine-entry selection pointer and an in-loop captain-word read raise teamSelectionSetChemStars58.73422% to66.68439%. A signed32 team argument and documented `E(u8,BOOL)` readiness result raise fn_2_75B58 from70.11429% to84.4%; the target's cntlzw/extrwi return supports that byte width. Whole `.text`79.01314% rises80.280334%, preserving allfive exact functions and every floor; data0% and pseudo78.35052% remain. Loops remain natural source, with unrolling left to the compiler.
+
+The manager's independent full-entry actual-PPC expectations pass19,328 fixtures (14,512,180 target+candidate instructions): all512 nine-slot eligibility patterns, signed captain words, every uniform byte weight and contributor count, star/frame thresholds; every initial count byte, all512 nine-callback truth patterns, four valid teams, callback count replacement, full32 return truth and volatile GPR clobbers. Full observable memory, ordered stores, exact calls and readiness returns agree. Callee effects use initialized disjoint valid buffers; arbitrary aliases/full gameplay and unreachable computed stars abovefive are excluded. All16 other target bodies, four local helpers and97 table relocation shapes are unchanged, retaining prior proofs. The corrected prototype also improves three dependent callers as recorded below. Fresh shared/private instructions, all floors, full build, four output hashes and whitespace checks pass.
+
+### Chemistry argument typing also restores three caller moves (wave70 dependent)
+
+Rebuilding `menus/text_78F78` against the corrected chemistry prototype raises `.text`95.11759% to95.22358%. cssAction_0x19 reaches93.71429%, randomTeamMemberSelection96.08%, fn_2_7AE3C93.6837%. Each change is exactlyone byte truncation replaced by the full-width argument move present at the target chemistry call. Allother instructions/branchdestinations and every function floor, including the exact helper, hold. The source is unchanged; these are valid team-index calls, with the callee behavior independently checked in wave70. Freshshared/private instructions, full build, four hashes and whitespace checks pass.
+
+### Use the canonical chemistry header in the character-action unit (wave71)
+
+`menus/text_76874` includes the canonical text_744C8 header in place of three redundant local declarations. Fresh compilation preserves every machine instruction, data byte, relocation, function floor and exact helper; `.text` remains90.16981%. Shared/private instructions, full build, four output hashes and whitespace checks pass. No headers changed.
+
+### Carry the full chemistry team argument through two more callers (wave71)
+
+Canonical text_744C8 declarations raise `menus/text_7E380` `.text`98.257774% to98.37282%. cssRemoveCharacter1 reaches94.54676%; cssSelectCharacter98.125%. Each change replaces exactlyone byte truncation with the full-width argument move found in the target. The latter move is25 instructions before its call; the manager verified no intervening argument-register definition and the same target lifetime. Allother machine code/data/relocations and allfive exact functions are unchanged. The callee's behavior was independently checked in wave70; this check establishes the bounded caller delta, not full gameplay. Fresh shared/private instructions and every floor, full build, four hashes and whitespace checks pass.
+
+The same canonical declaration trial in text_7BFF8 elided both moves and regressed cssAction_case9; that candidate was discarded and the original source retained. No cast or placeholder was added to force allocation. Its narrow local declaration remains a pending source-shape issue.
 
 ## Findings from debug/rep_7920.c (full match, flipped to Matching)
 

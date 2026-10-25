@@ -1,5 +1,5 @@
 #include "Unknown/File_0x80034cec.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 
 void removeGraphicsElementFromScene(DrawingSceneStruct* node) {
     MenuScene* scene = (MenuScene*)node;

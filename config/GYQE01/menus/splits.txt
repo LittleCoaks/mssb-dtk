@@ -21,6 +21,10 @@ menus/rep_0100.c:
 menus/rep_0150.c:
 	.rodata     start:0x00000150 end:0x000001A0
 
+menus/text_00110.c:
+	.text       start:0x00000110 end:0x00000A70
+	.data       start:0x000000D8 end:0x00000128
+
 menus/rep_01A0.c:
 	.text       start:0x00000A70 end:0x000010FC
 	.rodata     start:0x000001A0 end:0x00000200
@@ -41,41 +45,49 @@ menus/rep_0318.c:
 menus/rep_0398.c:
 	.rodata     start:0x00000398 end:0x000003E8
 
-menus/rep_03E8.c:
-	.rodata     start:0x000003E8 end:0x00000438
-
 menus/text_01254.c:
 	.text       start:0x00001254 end:0x00001578
 
 menus/main_menu.c:
 	.text       start:0x00001578 end:0x0000323C
+	.data       start:0x00000624 end:0x0000071C
 
 menus/text_0323C.c:
-	.text       start:0x0000323C end:0x000110B0
+	.text       start:0x0000323C end:0x000112F4
 
-menus/text_110B0.c:
-	.text       start:0x000110B0 end:0x00012238
+menus/stadium_select.c:
+	.text       start:0x000112F4 end:0x00012238
+	.rodata     start:0x000003E8 end:0x00000438
+	.data       start:0x00001000 end:0x000015C8
 
 menus/captain_select/teamselect.c:
 	.text       start:0x00012238 end:0x00013BA4
 	.rodata     start:0x00000438 end:0x000004B0
+	.data       start:0x000015C8 end:0x000019E4
 
 menus/captain_select/captain_select.c:
 	.text       start:0x00014574 end:0x00016870
 	.rodata     start:0x000004B0 end:0x00000568
+	.data       start:0x000019E8 end:0x00001E24
 
-menus/rep_0568.c:
-	.text       start:0x00016A98 end:0x000194BC
+menus/captain_select/captain_model_load.c:
+	.text       start:0x00016870 end:0x000194BC
 	.rodata     start:0x00000568 end:0x000005F0
+	.data       start:0x00001E28 end:0x00002798
 
-menus/rep_05F0.c:
+menus/options_screen.c:
+	.text       start:0x000194BC end:0x00019F2C
 	.rodata     start:0x000005F0 end:0x00000640
+	.data       start:0x00002798 end:0x00002B78
 
-menus/rep_0640.c:
+menus/settings_reset.c:
+	.text       start:0x00019F2C end:0x0001A1B4
 	.rodata     start:0x00000640 end:0x00000690
 
-menus/rep_0690.c:
+menus/challenge_file_select.c:
+	.text       start:0x0001A1B4 end:0x0001A4C8
 	.rodata     start:0x00000690 end:0x000006E0
+	.data       start:0x00002B78 end:0x00002E40
 
 menus/rep_06E0.c:
 	.rodata     start:0x000006E0 end:0x00000730
@@ -84,19 +96,60 @@ menus/rep_0730.c:
 	.text       start:0x0001A4C8 end:0x0001B1BC
 	.rodata     start:0x00000730 end:0x00000788
 
+menus/text_1B1BC.c:
+	.text       start:0x0001B1BC end:0x0001D440
+	.data       start:0x00004BB4 end:0x00004C64
+
 menus/rep_0788.c:
 	.text       start:0x0001D440 end:0x00033E70
 	.rodata     start:0x00000788 end:0x000007F0
+	.data       start:0x000107CC end:0x00011F10
 
 menus/rep_07F0.c:
 	.rodata     start:0x000007F0 end:0x00000840
 
+menus/text_33E70.c:
+	.text       start:0x00033E70 end:0x00035EC0
+	.data       start:0x00011F10 end:0x00012040
+
+menus/text_35EC0.c:
+	.text       start:0x00035EC0 end:0x00037F04
+	.data       start:0x00012040 end:0x00012298
+
+menus/text_37F04.c:
+	.text       start:0x00037F04 end:0x0003A8FC
+	.data       start:0x000122B8 end:0x00012304
+
+menus/text_3A8FC.c:
+	.text       start:0x0003A8FC end:0x0003BD88
+	.data       start:0x00012304 end:0x00012350
+
 menus/rep_0840.c:
 	.text       start:0x0003BD88 end:0x0003C03C
 	.rodata     start:0x00000840 end:0x00000898
+	.data       start:0x00012350 end:0x00012370
 
 menus/rep_0898.c:
 	.rodata     start:0x00000898 end:0x000008E8
+
+menus/text_3C03C.c:
+	.text       start:0x0003C03C end:0x0003E38C
+	.data       start:0x00012370 end:0x0001246C
+
+menus/text_3E38C.c:
+	.text       start:0x0003E38C end:0x0004078C
+	.data       start:0x0001246C end:0x000124A8
+
+menus/text_4078C.c:
+	.text       start:0x0004078C end:0x00042BE8
+	.data       start:0x00012CEC end:0x000133CC
+
+menus/text_42BE8.c:
+	.text       start:0x00042BE8 end:0x00044F14
+	.data       start:0x000133CC end:0x00013460
+
+menus/text_44F14.c:
+	.text       start:0x00044F14 end:0x00046C88
 
 menus/rep_08E8.c:
 	.text       start:0x00046C88 end:0x0004B1AC
@@ -108,17 +161,58 @@ menus/rep_09B8.c:
 menus/rep_0A08.c:
 	.rodata     start:0x00000A08 end:0x00000A58
 
+menus/text_4B1AC.c:
+	.text       start:0x0004B1AC end:0x0004D960
+
+menus/text_4D960.c:
+	.text       start:0x0004D960 end:0x00050898
+	.data       start:0x0001F3F0 end:0x0001F4D8
+
+menus/text_50898.c:
+	.text       start:0x00050898 end:0x00053408
+	.data       start:0x0001F8A4 end:0x0001F8EC
+
+menus/text_53408.c:
+	.text       start:0x00053408 end:0x00054BB0
+	.data       start:0x00020884 end:0x000208A0
+
 menus/dictionary.c:
 	.text       start:0x00054BB0 end:0x0005597C
 	.rodata     start:0x00000A58 end:0x00000AB0
+	.data       start:0x000208A0 end:0x000208F4
+
+menus/text_5597C.c:
+	.text       start:0x0005597C end:0x000579B4
+	.data       start:0x000208F4 end:0x00020BEC
+
+menus/text_579B4.c:
+	.text       start:0x000579B4 end:0x0005979C
+	.data       start:0x00029748 end:0x00029768
 
 menus/rep_0AB0.c:
 	.text       start:0x0005979C end:0x0005E84C
 	.rodata     start:0x00000AB0 end:0x00000B08
+	.data       start:0x00029768 end:0x00029994
+
+menus/text_5E84C.c:
+	.text       start:0x0005E84C end:0x00060F7C
+
+menus/text_60F7C.c:
+	.text       start:0x00060F7C end:0x000636A4
+	.data       start:0x00029994 end:0x00029DBC
+
+menus/text_636A4.c:
+	.text       start:0x000636A4 end:0x00065E50
+	.data       start:0x00029DBC end:0x0002A01C
+
+menus/text_65E50.c:
+	.text       start:0x00065E50 end:0x0006832C
+	.data       start:0x0002A01C end:0x0002A1E4
 
 menus/rep_0B08.c:
 	.text       start:0x0006832C end:0x00071EC4
 	.rodata     start:0x00000B08 end:0x00000C50
+	.data       start:0x0002A34C end:0x0002A3C0
 
 menus/rep_0C50.c:
 	.rodata     start:0x00000C50 end:0x00000CA0
@@ -135,23 +229,62 @@ menus/rep_0D40.c:
 menus/rep_0D90.c:
 	.rodata     start:0x00000D90 end:0x00000DE0
 
+menus/text_71EC4.c:
+	.text       start:0x00071EC4 end:0x000744C8
+
+menus/text_744C8.c:
+	.text       start:0x000744C8 end:0x00076874
+	.data       start:0x0002D79C end:0x0002D920
+
+menus/text_76874.c:
+	.text       start:0x00076874 end:0x00078F78
+
+menus/text_78F78.c:
+	.text       start:0x00078F78 end:0x0007BFF8
+
+menus/text_7BFF8.c:
+	.text       start:0x0007BFF8 end:0x0007E380
+
+menus/text_7E380.c:
+	.text       start:0x0007E380 end:0x0008082C
+
+menus/text_8082C.c:
+	.text       start:0x0008082C end:0x00082CF0
+	.data       start:0x0002D920 end:0x0002D998
+
+menus/text_82CF0.c:
+	.text       start:0x00082CF0 end:0x0008563C
+	.data       start:0x0002E2F0 end:0x0002E608
+
 menus/rep_0DE0.c:
 	.text       start:0x0008563C end:0x0008782C
 	.rodata     start:0x00000DE0 end:0x00000F10
+	.data       start:0x0002E608 end:0x0002E9F8
 
 menus/rep_0F10.c:
 	.rodata     start:0x00000F10 end:0x00000F60
 
+menus/text_8782C.c:
+	.text       start:0x0008782C end:0x0008ACE0
+	.data       start:0x0002E9F8 end:0x0002F98C
+
 menus/rep_0F60.c:
 	.text       start:0x0008ACE0 end:0x0008ED4C
 	.rodata     start:0x00000F60 end:0x00000FD8
+	.data       start:0x0002FEEC end:0x0002FFF8
 
 menus/rep_0FD8.c:
 	.rodata     start:0x00000FD8 end:0x00001028
 
+menus/text_8ED4C.c:
+	.text       start:0x0008ED4C end:0x0008F0F4
+
 menus/rep_1028.c:
 	.text       start:0x0008F0F4 end:0x00092394
 	.rodata     start:0x00001028 end:0x000010C0
+
+menus/text_92394.c:
+	.text       start:0x00092394 end:0x000927C8
 
 menus/rep_10C0.c:
 	.text       start:0x000927C8 end:0x00094854
@@ -159,3 +292,6 @@ menus/rep_10C0.c:
 
 menus/rep_11C0.c:
 	.rodata     start:0x000011C0 end:0x00001210
+
+menus/text_94854.c:
+	.text       start:0x00094854 end:0x00096D94

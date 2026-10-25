@@ -2,6 +2,9 @@
  * _half/_three local statics would otherwise sit at the head of .rodata. */
 #define SQRT2_LINKAGE static
 #include "game/ball/ball_physics.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
 #include "game/UnknownHomes_Game.h"
@@ -13,14 +16,13 @@
 #include "game/ball/foul_detection.h"
 #include "game/sound/m_sound.h"
 #include "game/stadium/stadium_framework.h"
+#include "game/stadium/stadium_draw.h"
 
 extern void QueueTextToDisplay(int code, int arg1);
 extern void CrossProduct(VecXYZ* out, VecXYZ* a, VecXYZ* b);
 extern void fn_3_15F648(int kind, u8 animByte, VecXYZ* pos, VecXYZ* vel);
 extern void handleBallRollInWater(VecXYZ* pos, VecXYZ* vel);
 extern void processBallFielderCollision(u8 fielderIndex);
-extern void starMissionsQuantityBased(int missionType, int rosterLocation);
-extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 animRelated[0x124];
 extern f32 lbl_3_data_610C[6];
 extern f32 lbl_3_data_6124[3];
@@ -37,7 +39,6 @@ static const f32 reallyLargeConst = 100000000.0f;
 extern f32 lbl_3_data_45F4[2];
 extern f32 lbl_3_data_45FC;
 extern u8 lbl_3_data_4600;
-extern u32 FrameCountOfEntireGame;
 extern VecXZ fieldingStartingCoords_regular[9];
 extern VecXZ base_MoundCoordinates[5];
 extern f32 lbl_3_data_5CDC[11];
@@ -54,7 +55,6 @@ extern BallBounceConstants ballBounceConstants[7];
 extern BallBounceConstants lbl_3_data_4414;
 extern f32 lbl_3_data_4604;
 extern u8 lbl_3_data_4608;
-extern u8 characterStaticIndexes[0x144];
 extern f32 lbl_3_data_4428[7];
 extern f32 fielderActionConstants[43];
 extern struct {
@@ -74,7 +74,7 @@ void ballPhysica(void) {
             g_Ball.matchFramesAndBallAngle.ballOverWallFrames = 0x7FFF;
         }
     }
-    if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+    if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
         if (g_Ball.framesSincePickOff < 0x7FFE) {
             g_Ball.framesSincePickOff++;
         } else {
@@ -114,11 +114,11 @@ void ballPhysica(void) {
 void fn_3_10030(void) {
     s32 mixed;
 
-    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16 +
-            (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 16 +
+            (FrameCountOfEntireGame.frameCount >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
-    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8 +
-            (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 8 +
+            (FrameCountOfEntireGame.frameCount >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
 
@@ -126,13 +126,13 @@ void fn_3_10030(void) {
 void fn_3_FF98(void) {
     s32 mixed;
 
-    mixed = g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1 * (FrameCountOfEntireGame % 10 + 1) +
-            (g_Ball.StaticRandomInt2 << 4) + (FrameCountOfEntireGame >> 1) +
+    mixed = g_Ball.StaticRandomInt2 * g_Ball.StaticRandomInt1 * (FrameCountOfEntireGame.frameCount % 10 + 1) +
+            (g_Ball.StaticRandomInt2 << 4) + (FrameCountOfEntireGame.frameCount >> 1) +
             g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
     g_Ball.StaticRandomInt1_prePitch = g_Ball.StaticRandomInt1;
-    mixed = g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1) * (FrameCountOfEntireGame % 10 + 1) +
-            (g_Ball.StaticRandomInt1 << 3) + (FrameCountOfEntireGame >> 1) +
+    mixed = g_Ball.StaticRandomInt2 * (g_Ball.StaticRandomInt2 + 1) * (FrameCountOfEntireGame.frameCount % 10 + 1) +
+            (g_Ball.StaticRandomInt1 << 3) + (FrameCountOfEntireGame.frameCount >> 1) +
             (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
@@ -194,20 +194,20 @@ void initBallAndGameStateOnLoad(void) {
     g_Ball.Hit_HorizontalAngle = 0x272;
     g_FieldingLogic.locationThrownTo = -1;
     g_FieldingLogic.humanSelectedPlaceToThrow = -1;
-    g_Strikes.outs = 0;
-    g_Strikes.strikes = 0;
-    g_Strikes.balls = 0;
+    g_BallsStrikesOuts.outs = 0;
+    g_BallsStrikesOuts.strikes = 0;
+    g_BallsStrikesOuts.balls = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         g_Ball.groundYForBounces = lbl_3_data_45F4[1];
     } else {
         g_Ball.groundYForBounces = lbl_3_data_45F4[0];
     }
 
-    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 16
-            + (FrameCountOfEntireGame >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
+    mixed = g_Ball.StaticRandomInt1 * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 16
+            + (FrameCountOfEntireGame.frameCount >> 1) + g_d_GameSettings.FrameCountWhileNotAtMainMenu;
     g_Ball.StaticRandomInt1 = mixed & 0x7FFF;
-    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame % 10 + 1) + rand() * 8
-            + (FrameCountOfEntireGame >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
+    mixed = (g_Ball.StaticRandomInt2 + 1) * rand() * (FrameCountOfEntireGame.frameCount % 10 + 1) + rand() * 8
+            + (FrameCountOfEntireGame.frameCount >> 1) + (g_d_GameSettings.FrameCountWhileNotAtMainMenu >> 1);
     g_Ball.StaticRandomInt2 = mixed & 0x7FFF;
 }
 
@@ -255,7 +255,7 @@ void resetInMemBall(void) {
         g_Ball.pastCoordinates[i].y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
-    frames = FrameCountOfEntireGame;
+    frames = FrameCountOfEntireGame.frameCount;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
@@ -293,7 +293,7 @@ void resetBallValuesBetweenBatters(void) {
         g_Ball.pastCoordinates[i].y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
-    frames = FrameCountOfEntireGame;
+    frames = FrameCountOfEntireGame.frameCount;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
@@ -332,7 +332,7 @@ void setDefaultInMemBall(void) {
         g_Ball.pastCoordinates[i].z = g_Ball.AtBat_Contact_BallPos.z;
     }
 
-    frames = FrameCountOfEntireGame;
+    frames = FrameCountOfEntireGame.frameCount;
     g_Ball.physicsSubstruct.velocity.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.velocity.y = 0.0f;
@@ -486,9 +486,9 @@ void setLiveBallVariablesAfterContact(void) {
     }
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
-        g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
         if (g_Batter.buntStatus != BUNT_STATUS_NONE) {
-            g_Batter.hitTrajectory = HIT_TRAJECTORY_6;
+            g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL_BUNT;
         }
         if (g_Ball.bODQualifyingHitInd != 0) {
             for (i = 0; i < 360; i += 5) {
@@ -497,7 +497,7 @@ void setLiveBallVariablesAfterContact(void) {
                                                               g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z);
 
                     if (angle > 0x240 && angle < 0x5C0) {
-                        g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                     }
                     break;
                 }
@@ -505,9 +505,9 @@ void setLiveBallVariablesAfterContact(void) {
         }
     } else {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
-            g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+            g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
             if (g_Batter.buntStatus != BUNT_STATUS_NONE) {
-                g_Batter.hitTrajectory = HIT_TRAJECTORY_6;
+                g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL_BUNT;
             }
         }
         estimateAndSetFutureCoords(0);
@@ -642,7 +642,7 @@ void calculateImplicationsOfTheHitTrajectory(void) {
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_FieldingLogic.infieldFlyIndicator == 0 &&
         g_Ball.currentStarSwing2 == 0 && g_Ball.maybeBuntInd == 0 && g_Ball.hangtimeOfHit >= 0x78 &&
-        g_Ball.maxYOfHit > 10.0f && g_Strikes.storedOuts < 2 && g_Ball.howFoulTheBallWillBe < 3 &&
+        g_Ball.maxYOfHit > 10.0f && g_BallsStrikesOuts.storedOuts < 2 && g_Ball.howFoulTheBallWillBe < 3 &&
         g_Ball.framesSinceHit == 0x3C && g_Ball.numFieldersWhoHandledBallDuringPlay == 0) {
         f32 dx = base_MoundCoordinates[4].x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
         f32 dz = base_MoundCoordinates[4].z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
@@ -655,7 +655,7 @@ void calculateImplicationsOfTheHitTrajectory(void) {
               !(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z <
                 -g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - 5.0f)) ||
              (g_Ball.Hit_HorizontalAngle >= 0x220 && g_Ball.Hit_HorizontalAngle <= 0x5E0)) &&
-            (g_RunningLogic._00 & 0x110) == 0x110) {
+            (g_RunningLogic.runnersOnFieldMask & 0x110) == 0x110) {
             g_FieldingLogic.infieldFlyIndicator = 1;
         }
     }
@@ -1317,9 +1317,9 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
 
     setHitClassification3();
 
-    g_Batter.hitTrajectory = HIT_TRAJECTORY_2;
+    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FAIR;
     if (g_Ball.maybeBuntInd != 0) {
-        g_Batter.hitTrajectory = HIT_TRAJECTORY_5;
+        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FAIR_BUNT;
     }
 
     horizDelta = 0x400 - g_Ball.Hit_HorizontalAngle;
@@ -1334,15 +1334,15 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
                 if (145.0f - angleOffset < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
                     g_Ball.homeRunClassification = 1;
                 }
-                g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                 g_RunningLogic._13 = 1;
                 if (g_Batter.batterHand == BATTING_HAND_RIGHT) {
                     if (g_Ball.Hit_HorizontalAngle < 0x480) {
-                        g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                     }
                 } else {
                     if (g_Ball.Hit_HorizontalAngle >= 0x380) {
-                        g_Batter.hitTrajectory = HIT_TRAJECTORY_4;
+                        g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_HOME_RUN;
                     }
                 }
             }
@@ -1366,22 +1366,22 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
              g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z < -g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - 5.0f)) {
             if (g_Ball.maybeBuntInd != 0) {
                 if (g_Ball.Hit_HorizontalAngle < 0x1A0 || g_Ball.Hit_HorizontalAngle >= 0x660) {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_6;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL_BUNT;
                 }
             } else if (landingAngle < 0x1A0 || landingAngle > 0xD80) {
                 if (g_Ball.maxYOfHit > 15.0f && landingAngle > 0xD80 && landingAngle < 0xF80) {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 } else {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 }
             } else if (landingAngle > 0x660 && landingAngle < 0xA80) {
                 if (g_Ball.maxYOfHit > 15.0f && landingAngle > 0x880) {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 } else {
-                    g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
                 }
             } else if (landingAngle >= 0xA80 && landingAngle <= 0xD80) {
-                g_Batter.hitTrajectory = HIT_TRAJECTORY_3;
+                g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_FOUL;
             }
         }
     }
@@ -1471,14 +1471,14 @@ void fn_3_BC54(void) {
     runnerWasOut = 0;
     if (g_FieldingLogic.hasProcessedFoulBall != 1) {
         g_FieldingLogic.hasProcessedFoulBall = 1;
-        g_Strikes.strikes++;
-        if (g_Strikes.strikes >= 3) {
+        g_BallsStrikesOuts.strikes++;
+        if (g_BallsStrikesOuts.strikes >= 3) {
             if (g_Ball.maybeBuntInd != 0) {
                 g_Ball.maybebuntOn2Strikes = 1;
-                runnerOut(0);
+                running_recordOut(0);
                 runnerWasOut = 1;
             } else {
-                g_Strikes.strikes = 2;
+                g_BallsStrikesOuts.strikes = 2;
             }
         }
         if (runnerWasOut == 0) {
@@ -1538,7 +1538,7 @@ void fielding_setHeldBallOffset(void) {
             getAnimRelatedCoordinates(character, 0x42, &throwReleaseOffset);
         } else if (fielder->CharID == CHAR_ID_PETEY) {
             getAnimRelatedCoordinates(character, 9, &throwReleaseOffset);
-        } else if (characterStaticIndexes[fielder->CharID * 6 + 1] == CHAR_ID_MAGIKOOPA_BLUE) {
+        } else if (characterStaticIndexes[fielder->CharID].trackerIdx == CHAR_ID_MAGIKOOPA_BLUE) {
             if (fielder->throwingHandedness == 0) {
                 getAnimRelatedCoordinates(character, 0x4F, &throwReleaseOffset);
             } else {
@@ -2029,14 +2029,14 @@ void foulBall(void) {
     runnerWasOut = 0;
     if (g_FieldingLogic.hasProcessedFoulBall != 1) {
         g_FieldingLogic.hasProcessedFoulBall = 1;
-        g_Strikes.strikes++;
-        if (g_Strikes.strikes >= 3) {
+        g_BallsStrikesOuts.strikes++;
+        if (g_BallsStrikesOuts.strikes >= 3) {
             if (g_Ball.maybeBuntInd != 0) {
                 g_Ball.maybebuntOn2Strikes = 1;
-                runnerOut(0);
+                running_recordOut(0);
                 runnerWasOut = 1;
             } else {
-                g_Strikes.strikes = 2;
+                g_BallsStrikesOuts.strikes = 2;
             }
         }
         if (runnerWasOut == 0) {
@@ -2059,14 +2059,14 @@ void fn_3_A020(void) {
         runnerWasOut = 0;
         if (g_FieldingLogic.hasProcessedFoulBall != 1) {
             g_FieldingLogic.hasProcessedFoulBall = 1;
-            g_Strikes.strikes++;
-            if (g_Strikes.strikes >= 3) {
+            g_BallsStrikesOuts.strikes++;
+            if (g_BallsStrikesOuts.strikes >= 3) {
                 if (g_Ball.maybeBuntInd != 0) {
                     g_Ball.maybebuntOn2Strikes = 1;
-                    runnerOut(0);
+                    running_recordOut(0);
                     runnerWasOut = 1;
                 } else {
-                    g_Strikes.strikes = 2;
+                    g_BallsStrikesOuts.strikes = 2;
                 }
             }
             if (runnerWasOut == 0) {
@@ -2095,13 +2095,13 @@ void fn_3_9FA4(void) {
 // .text:0x00009E84 size:0x120 mapped:0x80648F18
 void relatedToGroundRuleDouble(void) {
     if (g_Ball.deadBallReason == 0) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Ball.deadBallReason != 4) {
                 g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2111,7 +2111,7 @@ void relatedToGroundRuleDouble(void) {
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2132,7 +2132,7 @@ void fn_3_9E18(void) {
         g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
         g_Ball.deadBallReason = 4;
-        if (g_RunningLogic._00 != 0) {
+        if (g_RunningLogic.runnersOnFieldMask != 0) {
             QueueTextToDisplay(0x14, 0);
         }
     }
@@ -2378,13 +2378,13 @@ void handleBallHitDeadBallOutcome(void) {
             }
             g_Ball.homeRunInd = 1;
         } else if (g_Ball.deadBallReason == 0) {
-            if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+            if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                 if (g_Ball.deadBallReason != 4) {
                     g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                     g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                     g_Ball.deadBallReason = 4;
-                    if (g_RunningLogic._00 != 0) {
+                    if (g_RunningLogic.runnersOnFieldMask != 0) {
                         QueueTextToDisplay(0x14, 0);
                     }
                 }
@@ -2394,7 +2394,7 @@ void handleBallHitDeadBallOutcome(void) {
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                     g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                     g_Ball.deadBallReason = 4;
-                    if (g_RunningLogic._00 != 0) {
+                    if (g_RunningLogic.runnersOnFieldMask != 0) {
                         QueueTextToDisplay(0x14, 0);
                     }
                 }
@@ -2456,13 +2456,13 @@ void handleBallBounceAndRoll(f32* verticalVelocity, int bounceFrameCount, u8* ba
 
 static inline void deadBallGroundRuleDouble(void) {
     if (g_Ball.deadBallReason == 0) {
-        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
             if (g_Ball.deadBallReason != 4) {
                 g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2472,7 +2472,7 @@ static inline void deadBallGroundRuleDouble(void) {
                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                 g_Ball.deadBallReason = 4;
-                if (g_RunningLogic._00 != 0) {
+                if (g_RunningLogic.runnersOnFieldMask != 0) {
                     QueueTextToDisplay(0x14, 0);
                 }
             }
@@ -2541,8 +2541,8 @@ void ballCollisionLogic(void) {
         }
         g_Ball.hitNoteBlockInd = 0;
         g_FieldingLogic.knockoutFinished = 1;
-        if (!g_d_GameSettings.exhibitionMatchInd && lbl_3_common_bss_37400[0x20] == g_GameLogic.teamBatting) {
-            starMissionsQuantityBased(0, g_Batter.rosterID);
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamBatting) {
+            starMissionsQuantityBased(STAR_MISSION_EVENT_NOTE_BLOCK_HIT, g_Batter.rosterID);
         }
     }
 
@@ -3015,14 +3015,14 @@ void checkForBallDead(void) {
                     runnerWasOut = FALSE;
                     if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                         g_FieldingLogic.hasProcessedFoulBall = 1;
-                        g_Strikes.strikes++;
-                        if (g_Strikes.strikes >= 3) {
+                        g_BallsStrikesOuts.strikes++;
+                        if (g_BallsStrikesOuts.strikes >= 3) {
                             if (g_Ball.maybeBuntInd != 0) {
                                 g_Ball.maybebuntOn2Strikes = 1;
-                                runnerOut(0);
+                                running_recordOut(0);
                                 runnerWasOut = TRUE;
                             } else {
-                                g_Strikes.strikes = 2;
+                                g_BallsStrikesOuts.strikes = 2;
                             }
                         }
                         if (runnerWasOut == 0) {
@@ -3046,14 +3046,14 @@ void checkForBallDead(void) {
                             runnerWasOut = FALSE;
                             if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                                 g_FieldingLogic.hasProcessedFoulBall = 1;
-                                g_Strikes.strikes++;
-                                if (g_Strikes.strikes >= 3) {
+                                g_BallsStrikesOuts.strikes++;
+                                if (g_BallsStrikesOuts.strikes >= 3) {
                                     if (g_Ball.maybeBuntInd != 0) {
                                         g_Ball.maybebuntOn2Strikes = 1;
-                                        runnerOut(0);
+                                        running_recordOut(0);
                                         runnerWasOut = TRUE;
                                     } else {
-                                        g_Strikes.strikes = 2;
+                                        g_BallsStrikesOuts.strikes = 2;
                                     }
                                 }
                                 if (runnerWasOut == 0) {
@@ -3091,14 +3091,14 @@ void checkForBallDead(void) {
                         runnerWasOut = FALSE;
                         if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                             g_FieldingLogic.hasProcessedFoulBall = 1;
-                            g_Strikes.strikes++;
-                            if (g_Strikes.strikes >= 3) {
+                            g_BallsStrikesOuts.strikes++;
+                            if (g_BallsStrikesOuts.strikes >= 3) {
                                 if (g_Ball.maybeBuntInd != 0) {
                                     g_Ball.maybebuntOn2Strikes = 1;
-                                    runnerOut(0);
+                                    running_recordOut(0);
                                     runnerWasOut = TRUE;
                                 } else {
-                                    g_Strikes.strikes = 2;
+                                    g_BallsStrikesOuts.strikes = 2;
                                 }
                             }
                             if (runnerWasOut == 0) {
@@ -3108,13 +3108,13 @@ void checkForBallDead(void) {
                     }
                 } else if ((g_Ball.maybeCollisionRelated & 0x7F) == BALL_COLLISION_TYPE_STRUCTURE) {
                     if (g_Ball.deadBallReason == 0) {
-                        if (g_FieldingLogic.liveBallBcOfPickoffOrStealCd != 0) {
+                        if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                             if (g_Ball.deadBallReason != 4) {
                                 g_Ball.deadballLastLoc.x = g_Ball.AtBat_Contact_BallPos.x;
                                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                                 g_Ball.deadBallReason = 4;
-                                if (g_RunningLogic._00 != 0) {
+                                if (g_RunningLogic.runnersOnFieldMask != 0) {
                                     QueueTextToDisplay(0x14, 0);
                                 }
                             }
@@ -3125,7 +3125,7 @@ void checkForBallDead(void) {
                                 g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                                 g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                                 g_Ball.deadBallReason = 4;
-                                if (g_RunningLogic._00 != 0) {
+                                if (g_RunningLogic.runnersOnFieldMask != 0) {
                                     QueueTextToDisplay(0x14, 0);
                                 }
                             }
@@ -3145,7 +3145,7 @@ void checkForBallDead(void) {
                     g_Ball.deadballLastLoc.y = g_Ball.AtBat_Contact_BallPos.y;
                     g_Ball.deadballLastLoc.z = g_Ball.AtBat_Contact_BallPos.z;
                     g_Ball.deadBallReason = 4;
-                    if (g_RunningLogic._00 != 0) {
+                    if (g_RunningLogic.runnersOnFieldMask != 0) {
                         QueueTextToDisplay(0x14, 0);
                     }
                 }
@@ -3165,14 +3165,14 @@ void checkForBallDead(void) {
             runnerWasOut = FALSE;
             if (g_FieldingLogic.hasProcessedFoulBall != 1) {
                 g_FieldingLogic.hasProcessedFoulBall = 1;
-                g_Strikes.strikes++;
-                if (g_Strikes.strikes >= 3) {
+                g_BallsStrikesOuts.strikes++;
+                if (g_BallsStrikesOuts.strikes >= 3) {
                     if (g_Ball.maybeBuntInd != 0) {
                         g_Ball.maybebuntOn2Strikes = 1;
-                        runnerOut(0);
+                        running_recordOut(0);
                         runnerWasOut = TRUE;
                     } else {
-                        g_Strikes.strikes = 2;
+                        g_BallsStrikesOuts.strikes = 2;
                     }
                 }
                 if (runnerWasOut == 0) {

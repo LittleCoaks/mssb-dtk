@@ -44,8 +44,13 @@ void CTRLSetMatrix(Control *control, MtxPtr m);
 void CTRLGetScale(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLGetRotation(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLGetQuat(Control *control, f32 *x, f32 *y, f32 *z, f32 *w);
+void CTRL_SetQuatUnk(Control *control, f32 x, f32 y, f32 z, f32 w);
+void fn_800B84AC(Control *control, Control *r3, Control *r4, f32 f1);
+void CTRL_GetQuatUnk(const Control *control, f32 *x, f32 *y, f32 *z, f32 *w);
 void CTRLGetTranslation(Control *control, f32 *x, f32 *y, f32 *z);
 void CTRLBuildMatrix(Control *control, Mtx m);
 void CTRLBuildInverseMatrix(Control *control, Mtx m);
+void CTRLBuildMatrix_FlipY(Control *control, Mtx m);
+void CTRLBuildMatrix_FlipX(Control *control, Mtx m);
 
 #endif // _DOLPHIN_CP_CONTROL_H_

@@ -34,7 +34,7 @@ void vidInit() {
   lvl->next = NULL;
 }
 
-static VID_LIST* get_vidlist(u32 vid) {
+static inline VID_LIST* get_vidlist(u32 vid) {
   VID_LIST* vl = vidRoot;
   while (vl != NULL) {
     if (vl->vid == vid) {
@@ -49,7 +49,7 @@ static VID_LIST* get_vidlist(u32 vid) {
   return NULL;
 }
 
-static u32 get_newvid() {
+static inline u32 get_newvid() {
   u32 vid; // r31
   do {
     vid = vidCurrentId++;
@@ -58,7 +58,7 @@ static u32 get_newvid() {
   return vid;
 }
 
-static void vidRemove(VID_LIST** vidList) {
+static inline void vidRemove(VID_LIST** vidList) {
   if ((*vidList)->prev != NULL) {
     (*vidList)->prev->next = (*vidList)->next;
   } else {
@@ -81,7 +81,7 @@ static void vidRemove(VID_LIST** vidList) {
 }
 
 void vidRemoveVoiceReferences(SYNTH_VOICE* svoice) {
-  if (svoice->id == 0xFFFFFFFF) {
+  if (svoice->id == SND_ID_ERROR) {
     return;
   }
 
@@ -180,7 +180,22 @@ u32 vidGetInternalId(u32 vid) {
   return 0xffffffff;
 }
 
-static void voiceInitPrioSort() {
+u32 vidGetPublicId(u32 voice) {
+  VID_LIST* vl;
+  u32 root;
+
+  for (vl = vidRoot; vl != NULL; vl = vl->next) {
+    for (root = vl->root; root != 0xFFFFFFFF; root = synthVoice[root & 0xFF].child) {
+      if (root == voice) {
+        return vl->vid;
+      }
+    }
+  }
+
+  return 0xFFFFFFFF;
+}
+
+static inline void voiceInitPrioSort() {
   u32 i;
 
   for (i = 0; i < synthInfo.voiceNum; ++i) {
@@ -279,16 +294,152 @@ void voiceSetPriority(SYNTH_VOICE* svoice, u8 prio) {
   hwSetPriority(svoice->id & 0xFF, ((u32)prio << 24) | (svoice->age >> 15));
 }
 
+s32 voiceAllocateFind(u8 priority, u8 maxVoices, u32 allocId, u8 fxFlag) {
+  s32 best = -1;
+  s32 count = 0;
+  BOOL overflow = FALSE;
+  u8 limit;
+  u16 root;
+  u8 v;
+
+  if (synthIdleWaitActive != FALSE) {
+    return -1;
+  }
+
+  if (fxFlag != 0) {
+    limit = synthInfo.maxSFX;
+    if (voiceFxRunning >= limit && synthInfo.voiceNum > limit) {
+      overflow = TRUE;
+    }
+  } else {
+    limit = synthInfo.maxMusic;
+    if (voiceMusicRunning >= limit && synthInfo.voiceNum > limit) {
+      overflow = TRUE;
+    }
+  }
+
+  if (limit > maxVoices) {
+    root = voicePrioSortRootListRoot;
+    while (root != 0xFFFF && priority >= root && best == -1) {
+      for (v = voicePrioSortVoicesRoot[root]; v != 0xFF; v = voicePrioSortVoices[v].next) {
+        if (allocId == synthVoice[v].allocId) {
+          count++;
+          if (synthVoice[v].block == 0 && (!overflow || fxFlag == synthVoice[v].fxFlag) &&
+              (synthVoice[v].cFlags & 2) == 0) {
+            if (best == -1 || synthVoice[v].age < synthVoice[best].age) {
+              best = v;
+            }
+          }
+        }
+      }
+      root = voicePrioSortRootList[root].next;
+    }
+
+    if (count >= maxVoices) {
+      return best;
+    }
+
+    while (root != 0xFFFF && count < maxVoices) {
+      for (v = voicePrioSortVoicesRoot[root]; v != 0xFF; v = voicePrioSortVoices[v].next) {
+        if (allocId == synthVoice[v].allocId) {
+          count++;
+        }
+      }
+      root = voicePrioSortRootList[root].next;
+    }
+
+    if (count >= maxVoices) {
+      return best;
+    }
+  }
+
+  if (voiceListRoot != 0xFF && !overflow) {
+    return voiceListRoot;
+  }
+
+  if (priority < voicePrioSortRootListRoot) {
+    return -1;
+  }
+
+  best = -1;
+  root = voicePrioSortRootListRoot;
+  while (root != 0xFFFF && priority >= root && best == -1) {
+    for (v = voicePrioSortVoicesRoot[root]; v != 0xFF; v = voicePrioSortVoices[v].next) {
+      if (synthVoice[v].block == 0 && (!overflow || fxFlag == synthVoice[v].fxFlag) &&
+          (synthVoice[v].cFlags & 2) == 0) {
+        if (best == -1 || synthVoice[v].age < synthVoice[best].age) {
+          best = v;
+        }
+      }
+    }
+    root = voicePrioSortRootList[root].next;
+  }
+
+  if (best == -1 || synthVoice[best].prio > priority) {
+    return -1;
+  }
+
+  return best;
+}
+
 #pragma dont_inline on
 u32 voiceAllocate(u8 priority, u8 maxVoices, u16 allocId, u8 fxFlag) {
-  long i;               // r31
-  long num;             // r26
-  long voice;           // r30
-  u16 p;                // r29
-  u32 type_alloc;       // r25
-  SYNTH_VOICELIST* sfv; // r27
+  s32 voice;
+  SYNTH_VOICELIST* vl;
+
+  voice = voiceAllocateFind(priority, maxVoices, allocId, fxFlag);
+  if (voice != -1) {
+    vl = &voiceList[voice];
+    if (vl->user == 1) {
+      if (vl->prev != 0xFF) {
+        voiceList[vl->prev].next = vl->next;
+      } else {
+        voiceListRoot = vl->next;
+      }
+
+      if (vl->next != 0xFF) {
+        voiceList[vl->next].prev = vl->prev;
+      }
+
+      if (voice == voiceListInsert) {
+        voiceListInsert = vl->prev;
+      }
+
+      vl->user = 0;
+    } else {
+      if (synthVoice[voice].fxFlag != 0) {
+        --voiceFxRunning;
+      } else {
+        --voiceMusicRunning;
+      }
+    }
+
+    if (fxFlag != 0) {
+      ++voiceFxRunning;
+    } else {
+      ++voiceMusicRunning;
+    }
+  }
+
+  return voice;
 }
 #pragma dont_inline reset
+
+int voiceAllocatePeek(u8 priority, u8 maxVoices, u32 allocId, u8 fxFlag, u32* currentAllocId) {
+  s32 voice;
+
+  voice = voiceAllocateFind(priority, maxVoices, allocId, fxFlag);
+  if (voice == -1) {
+    return FALSE;
+  }
+
+  if (voiceList[voice].user == 1) {
+    return FALSE;
+  }
+
+  *currentAllocId = synthVoice[voice].allocId;
+  return TRUE;
+}
 
 void voiceFree(SYNTH_VOICE* svoice) {
   u32 i;                // r29
@@ -320,10 +471,10 @@ void voiceFree(SYNTH_VOICE* svoice) {
     }
   }
 
-  svoice->id = 0xFFFFFFFF;
+  svoice->id = SND_ID_ERROR;
 }
 
-static void voiceInitFreeList() {
+static inline void voiceInitFreeList() {
   u32 i; // r31
 
   for (i = 0; i < synthInfo.voiceNum; ++i) {
@@ -466,10 +617,41 @@ void synthKillVoicesByMacroReferences(u16* ref) {
   }
 }
 
+void synthKillVoicesBySampleReferences(u16* ref) {
+  u32 i;
+  u16 id;
+
+  for (i = 0; i < synthInfo.voiceNum; ++i) {
+    if (synthVoice[i].addr == NULL && synthVoice[i].block == 0) {
+      voiceKill(i);
+    }
+  }
+
+  while (*ref != 0xFFFF) {
+    if ((*ref & 0x8000)) {
+      for (id = *ref & 0x3fff; id <= ref[1]; ++id) {
+        for (i = 0; i < synthInfo.voiceNum; ++i) {
+          if (synthVoice[i].addr != NULL && id == synthVoice[i].sampleId) {
+            voiceKill(i);
+          }
+        }
+      }
+      ref += 2;
+    } else {
+      for (i = 0; i < synthInfo.voiceNum; ++i) {
+        if (synthVoice[i].addr != NULL && *ref == synthVoice[i].sampleId) {
+          voiceKill(i);
+        }
+      }
+      ++ref;
+    }
+  }
+}
+
 u32 voiceIsLastStarted(SYNTH_VOICE* svoice) {
   u32 i; // r31
 
-  if (svoice->id != 0xFFFFFFFF && svoice->midi != 0xFF) {
+  if (svoice->id != SND_ID_ERROR && svoice->midi != 0xFF) {
     i = svoice->id & 0xFF;
     if (svoice->midiSet == 0xFF) {
       if (synth_last_fxstarted[i] == i) {
@@ -486,7 +668,7 @@ u32 voiceIsLastStarted(SYNTH_VOICE* svoice) {
 void voiceSetLastStarted(SYNTH_VOICE* svoice) {
   u32 i; // r31
 
-  if (svoice->id != 0xFFFFFFFF && svoice->midi != 0xFF) {
+  if (svoice->id != SND_ID_ERROR && svoice->midi != 0xFF) {
     i = svoice->id & 0xFF;
     if (svoice->midiSet == 0xFF) {
       synth_last_fxstarted[i] = i;
@@ -499,7 +681,7 @@ void voiceSetLastStarted(SYNTH_VOICE* svoice) {
 void voiceResetLastStarted(struct SYNTH_VOICE* svoice) {
   u32 i;
 
-  if ((svoice->id != 0xffffffff) && (svoice->midi != 0xff)) {
+  if ((svoice->id != SND_ID_ERROR) && (svoice->midi != 0xff)) {
     i = svoice->id & 0xff;
     if (svoice->midiSet == 0xff) {
       if (synth_last_fxstarted[i] == i) {

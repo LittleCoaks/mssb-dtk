@@ -443,22 +443,29 @@ typedef struct CTRL_DEST {
 } CTRL_DEST;
 
 typedef struct SND_VIRTUALSAMPLE_INFO {
-  // total size: 0x14
+  // total size: 0x1C
   u16 smpID;  // offset 0x0, size 0x2
   u16 instID; // offset 0x2, size 0x2
   union vsData {
+    struct vsStart {
+      // total size: 0xC
+      u32 publicID;     // offset 0x0, size 0x4
+      u32 seqInstances; // offset 0x4, size 0x4
+      u32 extraData;    // offset 0x8, size 0x4
+    } start;
     struct vsUpdate {
-      // total size: 0x10
-      u32 off1; // offset 0x0, size 0x4
-      u32 len1; // offset 0x4, size 0x4
-      u32 off2; // offset 0x8, size 0x4
-      u32 len2; // offset 0xC, size 0x4
+      // total size: 0x18
+      u32 unk00[2]; // offset 0x0, size 0x8
+      u32 off1;     // offset 0x8, size 0x4
+      u32 len1;     // offset 0xC, size 0x4
+      u32 off2;     // offset 0x10, size 0x4
+      u32 len2;     // offset 0x14, size 0x4
     } update;
   } data;
 } SND_VIRTUALSAMPLE_INFO;
 
 typedef struct VS_BUFFER {
-  // total size: 0x24
+  // total size: 0x2C
   u8 state;                    // offset 0x0, size 0x1
   u8 hwId;                     // offset 0x1, size 0x1
   u8 smpType;                  // offset 0x2, size 0x1
@@ -466,18 +473,18 @@ typedef struct VS_BUFFER {
   u32 last;                    // offset 0x4, size 0x4
   u32 finalGoodSamples;        // offset 0x8, size 0x4
   u32 finalLast;               // offset 0xC, size 0x4
-  SND_VIRTUALSAMPLE_INFO info; // offset 0x10, size 0x14
+  SND_VIRTUALSAMPLE_INFO info; // offset 0x10, size 0x1C
 } VS_BUFFER;
 
 typedef struct _VS {
-  // total size: 0x950
+  // total size: 0xB50
   u8 numBuffers;              // offset 0x0, size 0x1
   u32 bufferLength;           // offset 0x4, size 0x4
-  VS_BUFFER streamBuffer[64]; // offset 0x8, size 0x900
-  u8 voices[64];              // offset 0x908, size 0x40
-  u16 nextInstID;             // offset 0x948, size 0x2
+  VS_BUFFER streamBuffer[64]; // offset 0x8, size 0xB00
+  u8 voices[64];              // offset 0xB08, size 0x40
+  u16 nextInstID;             // offset 0xB48, size 0x2
   u32 (*callback)(u8,
-                  SND_VIRTUALSAMPLE_INFO*); // offset 0x94C, size 0x4
+                  SND_VIRTUALSAMPLE_INFO*); // offset 0xB4C, size 0x4
 } VS;
 
 extern VS vs;
@@ -796,8 +803,9 @@ extern DSPvoice* dspVoice;
 typedef s32 (*SND_COMPARE)(void*, void*);
 
 typedef struct CHANNEL_DEFAULTS {
-  // total size: 0x1
-  u8 pbRange; // offset 0x0, size 0x1
+  // total size: 0x9
+  u8 pbRange;  // offset 0x0, size 0x1
+  u8 unk01[8]; // offset 0x1, size 0x8
 } CHANNEL_DEFAULTS;
 
 typedef struct FX_TAB {
@@ -887,7 +895,7 @@ u32 dataInsertCurve(u16 cid, void* curvedata);
 u32 dataRemoveCurve(u16 sid);
 s32 dataGetSample(u16 sid, SAMPLE_INFO* newsmp);
 void* dataGetCurve(u16 cid);
-u32 dataAddSampleReference(u16 sid);
+u32 dataAddSampleReference(u16 sid, void* aramWrite);
 u32 dataRemoveSampleReference(u16 sid);
 u32 dataInsertKeymap(u16 cid, void* keymapdata);
 u32 dataRemoveKeymap(u16 sid);
@@ -916,6 +924,9 @@ void streamInit(); /* extern */
 void vsInit(); /* extern */
 u32 vsSampleStartNotify(u32 voice);
 void vsSampleEndNotify(u32 pubID);
+u32 vidGetPublicId(u32 voice);
+s32 seqGetInstancesForVoice(u32 id);
+u32 hwGetSampleExtraData(u32 voice);
 
 void hwExit();
 void dataExit();
@@ -1009,6 +1020,7 @@ void salCalcVolume(u8 voltab_index, SAL_VOLINFO* vi, f32 vol, u32 pan, u32 span,
                    u32 itd, u32 dpl2);
 void salReconnectVoice(DSPvoice* dsp_vptr, u8 studio);
 void* salMalloc(u32 len);
+void* salMallocPhysical(u32 len);
 void salFree(void* addr);
 
 #define SAL_MAX_STUDIONUM 8
@@ -1141,7 +1153,7 @@ typedef void* (*ARAMUploadCallback)(u32, u32);
 u32 aramGetStreamBufferAddress(u8 id, u32* len);
 void aramUploadData(void* mram, u32 aram, u32 len, u32 highPrio, void (*callback)(u32), u32 user);
 void aramFreeStreamBuffer(u8 id);
-void* aramStoreData(void* src, u32 len);
+void* aramStoreData(void* src, u32 len, void* aramWrite);
 void aramRemoveData(void *aram, u32 len, void *aramWrite);
 u8 aramAllocateStreamBuffer(u32 len);
 u32 macStart(u16 macid, u8 priority, u8 maxVoices, u16 allocId, u8 key, u8 vol, u8 panning, u8 midi,

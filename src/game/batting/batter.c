@@ -10,6 +10,7 @@
  * addressing depends on, so codegen is unaffected. */
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
+#define REP_HEADER_DATA_FN getRepHeaderData_batter
 #include "header_rep_data.h"
 
 #include "static/UnknownHomes_static.h"
@@ -58,7 +59,10 @@ extern f32 horizTrajPowerMultipliers[3][5];
 extern u8 ChargePowerConstants[NUM_CHOOSABLE_CHARACTERS][2];
 extern s16 lbl_3_data_5CD4[4];
 extern s16 buntVerticalAngles[5][2][2][2];
-int lbl_3_bss_34 = 0;
+/* MWCC emits .bss statics in reverse declaration order: 0x30, 0x34, 0x38. */
+static u8 lbl_3_bss_38[8]; /* never referenced, but present in the original .bss layout */
+static int lbl_3_bss_34;
+static int lbl_3_bss_30;   /* never referenced, but present in the original .bss layout */
 extern struct {
     u8 _00[0x28];
     u8 _28;
@@ -73,15 +77,24 @@ extern struct {
 #define FRAME_COUNT_BUNT_LATE_RETREAT (FRAME_COUNT_BEGIN_RETREATING + 12)
 
 // fabricated
-inline f32 inv_lerp(f32 value, f32 low, f32 high)
+inline f32 inv_lerp(f32 low, f32 high, f32 value)
 {
-    return (value - low) / (high - low);
+    value = (value - low) / (high - low);
+    return value;
 }
 
 // fabricated
-inline f32 flipped_inv_lerp(f32 value, f32 low, f32 high)
+inline f32 inv_lerp2(f32 low, f32 high, f32 value)
 {
-    return 1.0f - inv_lerp(value, low, high);
+    value -= low;
+    return value / (high - low);
+}
+
+// fabricated
+inline f32 flipped_inv_lerp(f32 low, f32 high, f32 value)
+{
+    value = 1.0f - inv_lerp2(low, high, value);
+    return value;
 }
 
 // UNUSED .text:0x000108F8 size:0x188 mapped:0x8064f98c
@@ -239,7 +252,7 @@ void setDefaultInMemBatter(void) {
     g_Batter.missedBuntStatus = 0;
     g_Batter.contactMadeInd = 0;
     g_Batter.hitByPitch = 0;
-    g_Batter.hitTrajectory = HIT_TRAJECTORY_0;
+    g_Batter.predictedHitOutcome = PREDICTED_HIT_OUTCOME_NONE;
     g_Batter.displayContactSprite = 0;
     g_Batter._98 = 0;
     g_Batter.missSwingOrBunt = DID_SWING_TYPE_NONE;
@@ -281,7 +294,7 @@ void setDefaultInMemBatter(void) {
     } else if (g_d_GameSettings.minigamesEnabled) {
         g_Batter.aiControlledInd = g_Minigame.minigameControlStruct[0].battingHandedness[g_Minigame.rosterID];
     } else {
-        g_Batter.aiControlledInd = g_GameLogic.batterHandedness[g_GameLogic.homeTeamBattingInd_fieldingTeam];
+        g_Batter.aiControlledInd = g_GameLogic.batterAIInd[g_GameLogic.homeTeamBattingInd_fieldingTeam];
     }
     if (g_Batter.aiControlledInd != 0) {
         g_Batter.easyBatting = false;
@@ -497,12 +510,12 @@ void batterInBoxMovement(void) {
     }
      
     if (g_Pitcher.pitcherActionState == PITCHER_ACTION_STATE_HIT) {
-        g_Batter.batterIsBeingCentredInd = 0;
+        g_Batter.batterIsBeingCentredInd = FALSE;
         return;
     }
 
     if (g_Batter.swingInd && g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
-        g_Batter.batterIsBeingCentredInd = 0;
+        g_Batter.batterIsBeingCentredInd = FALSE;
         return;
     }
 
@@ -516,10 +529,10 @@ void batterInBoxMovement(void) {
     }
 
     if (g_Batter.framesSinceStartOfSwing > 0) {
-        g_Batter.batterIsBeingCentredInd = 0;
+        g_Batter.batterIsBeingCentredInd = FALSE;
         moveSpeedMult = 0.0f;
     } else if (inputs->buttonInput & INPUT_TRIGGER_L) {
-        g_Batter.batterIsBeingCentredInd = 1;
+        g_Batter.batterIsBeingCentredInd = TRUE;
     }
 
     left_right = inputs->right_left;
@@ -531,7 +544,7 @@ void batterInBoxMovement(void) {
         } else if (g_Batter.batPosition2.x > newSpeed) {
             g_Batter.batPosition2.x -= newSpeed;
         } else {
-            g_Batter.batterIsBeingCentredInd = 0;
+            g_Batter.batterIsBeingCentredInd = FALSE;
             g_Batter.batPosition2.x = 0.0f;
         }
     } else {
@@ -1065,8 +1078,8 @@ void calculateHitVariables(void) {
     g_Ball.AtBat_Contact_BallPos.z = g_Batter.hitContactPos.z;    
 
     setLiveBallVariablesAfterContact();
-    stealCancelLeadoffs();
-    maybeHandleBaserunners();
+    running_cancelLeadoffs();
+    running_initRunnersOnContact();
 }
 
 // UNUSED .text:0x000124DC size:0x78 mapped:0x80650f64
@@ -1099,7 +1112,7 @@ void calculateContactAndHitType(void) {
     // arr[0][x] is low threshold, arr[1][x] is high threshold
     f32 arr[2][4];
 
-    f32 xPosFromPerfect;
+    f32 diff;
     f32 contactQualityAbsolute;
     int i, j;
     
@@ -1124,17 +1137,17 @@ void calculateContactAndHitType(void) {
         }
     }
 
-    xPosFromPerfect = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
+    diff = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
     
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        xPosFromPerfect = -xPosFromPerfect;
+        diff = -diff;
     }
-    if (xPosFromPerfect < 0.0f) {
+    if (diff < 0.0f) {
         contactQualityAbsolute =
-            -((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
+            -((diff / BatterHitbox[g_Batter.charID].HorizontalRangeNear) * 100.0f) + 100.0f;
     } else {
         contactQualityAbsolute =
-            ((xPosFromPerfect / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
+            ((diff / BatterHitbox[g_Batter.charID].HorizontalRangeFar) * 100.0f) + 100.0f;
     }
     
     if (contactQualityAbsolute < 0.0f) {
@@ -1145,7 +1158,8 @@ void calculateContactAndHitType(void) {
     }
     g_Batter.contactQualityAbsolute = contactQualityAbsolute;
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
-        g_Batter.rightNiceThreshold[i] = arr[0][i] + (contactSize / 100.f) * (arr[1][i] - arr[0][i]);
+        diff = arr[1][i] - arr[0][i];
+        g_Batter.rightNiceThreshold[i] = arr[0][i] + (contactSize / 100.f) * diff;
     }
     for (i = 0; i < ARRAY_SIZE(g_Batter.rightNiceThreshold); i++) {
         if (g_Batter.rightNiceThreshold[i] > g_Batter.contactQualityAbsolute) {
@@ -1159,16 +1173,16 @@ void calculateContactAndHitType(void) {
             g_Batter.contactQuality = g_Batter.contactQualityAbsolute / g_Batter.rightNiceThreshold[0];
         } break;
         case HIT_CONTACT_TYPE_RIGHT_NICE: {
-            g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[0],
-                                               g_Batter.rightNiceThreshold[1]);
+            g_Batter.contactQuality = inv_lerp(g_Batter.rightNiceThreshold[0], g_Batter.rightNiceThreshold[1],
+                                               g_Batter.contactQualityAbsolute);
         } break;
         case HIT_CONTACT_TYPE_PERFECT: {
             if (g_Batter.contactQualityAbsolute < 100.0f) {
-                g_Batter.contactQuality = inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
-                                                   g_Batter.rightNiceThreshold[2]);
+                g_Batter.contactQuality = inv_lerp(g_Batter.rightNiceThreshold[1], g_Batter.rightNiceThreshold[2],
+                                                   g_Batter.contactQualityAbsolute);
             } else {
-                g_Batter.contactQuality = flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[1],
-                                                    g_Batter.rightNiceThreshold[2]);
+                g_Batter.contactQuality = flipped_inv_lerp(g_Batter.rightNiceThreshold[1], g_Batter.rightNiceThreshold[2],
+                                                    g_Batter.contactQualityAbsolute);
             }
             if (ContactPerfectThresholds[g_Batter.hitGeneralType][0] <= g_Batter.contactQualityAbsolute &&
                 ContactPerfectThresholds[g_Batter.hitGeneralType][1] >= g_Batter.contactQualityAbsolute) {
@@ -1176,13 +1190,12 @@ void calculateContactAndHitType(void) {
             }
         } break;
         case HIT_CONTACT_TYPE_LEFT_NICE: {
-            g_Batter.contactQuality = flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[2],
-                                                g_Batter.rightNiceThreshold[3]);
+            g_Batter.contactQuality = flipped_inv_lerp(g_Batter.rightNiceThreshold[2], g_Batter.rightNiceThreshold[3],
+                                                g_Batter.contactQualityAbsolute);
         } break;
         default: { // HIT_CONTACT_TYPE_LEFT_SOUR
-            // I think the inv_lerp here is correct based on the loading order for 200.0f
             g_Batter.contactQuality =
-                flipped_inv_lerp(g_Batter.contactQualityAbsolute, g_Batter.rightNiceThreshold[3], 200.0f);
+                flipped_inv_lerp(g_Batter.rightNiceThreshold[3], 200.0f, g_Batter.contactQualityAbsolute);
         } break;
     }
 
@@ -1195,35 +1208,35 @@ void calculateContactAndHitType(void) {
     }
 
     if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP || g_Batter.hitGeneralType == BAT_CONTACT_TYPE_CHARGE) {
-        int r5 = HIT_TYPE_SLAP_SOUR;
+        int contactHitType = HIT_TYPE_SLAP_SOUR;
         if (g_Batter.contactType == HIT_CONTACT_TYPE_PERFECT) {
-            r5 = HIT_TYPE_SLAP_PERFECT;
+            contactHitType = HIT_TYPE_SLAP_PERFECT;
         } else if (g_Batter.contactType == HIT_CONTACT_TYPE_RIGHT_NICE ||
                    g_Batter.contactType == HIT_CONTACT_TYPE_LEFT_NICE) {
-            r5 = HIT_TYPE_SLAP_NICE;
+            contactHitType = HIT_TYPE_SLAP_NICE;
         }
 
-        if (g_Pitcher.starPitchType != 0) {
+        if (g_Pitcher.starPitchType != CAPTAIN_STAR_TYPE_NONE) {
             g_Batter.hitType = 0x12;
         }
         
         if (g_Pitcher.ChargePitchType == 3) {
-            if (g_Batter.hitGeneralType == HIT_TYPE_SLAP_SOUR) {
-                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH;
+            if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
+                g_Batter.hitType = contactHitType + HIT_TYPE_PERFECT_PITCH;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_PERFECT_PITCH_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_PERFECT_PITCH_CHARGE;
             }
         } else if (g_Pitcher.TypeOfPitch == 0) {
             if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
-                g_Batter.hitType = r5 + HIT_TYPE_SLAP;
+                g_Batter.hitType = contactHitType + HIT_TYPE_SLAP;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHARGE;
             }
         } else {
             if (g_Batter.hitGeneralType == BAT_CONTACT_TYPE_SLAP) {
-                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHANGE_UP;
             } else {
-                g_Batter.hitType = r5 + HIT_TYPE_CHANGE_UP_CHARGE;
+                g_Batter.hitType = contactHitType + HIT_TYPE_CHANGE_UP_CHARGE;
             }
         }
     }
@@ -1301,10 +1314,10 @@ void calculateBallHorizontalAngleHit(void) {
     horizAngle += 0x400;
 
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        if (horizAngle <= 0x800) {
-            horizAngle = 0x800 - horizAngle;
+        if (horizAngle <= SANG_ANG_180) {
+            horizAngle = SANG_ANG_180 - horizAngle;
         } else {
-            horizAngle = 0x1800 - horizAngle;
+            horizAngle = (SANG_ANG_360 + SANG_ANG_180) - horizAngle;
         }
     }
 
@@ -1435,9 +1448,9 @@ void calculateVerticalAngle(void) {
             }
 
             if (color == 1) {
-                g_UnkSound_32718._08 = 2;
+                g_UnkSound_32718.hudPopupCode = 2;
             } else if (color == 2) {
-                g_UnkSound_32718._08 = 3;
+                g_UnkSound_32718.hudPopupCode = 3;
             }
 
             if (trajOverrideCode == 0) {
@@ -1487,14 +1500,14 @@ skipRandomLaunchAngles:
                g_Practice.practiceType_2 != PRACTICE_TYPE_FIELDING) {
         g_Ball.Hit_VerticalAngle = launchAngle;
     }
-    if (g_Ball.Hit_VerticalAngle > 0x400) {
-        g_Ball.Hit_VerticalAngle = 0x800 - g_Ball.Hit_VerticalAngle;
-        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + 0x800);
-    } else if (g_Ball.Hit_VerticalAngle < -0x400) {
-        g_Ball.Hit_VerticalAngle = 0x1000 + g_Ball.Hit_VerticalAngle;
-        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + 0x800);
+    if (g_Ball.Hit_VerticalAngle > SANG_ANG_90) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_180 - g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + SANG_ANG_180);
+    } else if (g_Ball.Hit_VerticalAngle < -SANG_ANG_90) {
+        g_Ball.Hit_VerticalAngle = SANG_ANG_360 + g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_HorizontalAngle = normalizeAngle(g_Ball.Hit_HorizontalAngle + SANG_ANG_180);
     } else if (g_Ball.Hit_VerticalAngle < 0) {
-        g_Ball.Hit_VerticalAngle = 0x1000 + g_Ball.Hit_VerticalAngle;
+        g_Ball.Hit_VerticalAngle = SANG_ANG_360 + g_Ball.Hit_VerticalAngle;
     }
 }
 
@@ -1589,7 +1602,7 @@ void calculateHorizontalPower(void) {
             g_Ball.Hit_VerticalAngle =
                 RandomInt_Game_Range(bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][0],
                                      bOD_hitVertAngleRanges[g_Minigame.bODAngleIndexBasedOnHitPower + 1][1]);
-            g_UnkSound_32718._08 = 2;
+            g_UnkSound_32718.hudPopupCode = 2;
         } else {
             g_Ball.Hit_VerticalAngle = RandomInt_Game_Range(bOD_hitVertAngleRanges[0][0], bOD_hitVertAngleRanges[0][1]);
             power *= 0.7f;
@@ -1645,13 +1658,12 @@ void calculateHorizontalPower(void) {
 
 // UNUSED .text:0x00010A80 size:0x280 mapped:0x8064fb14
 void calculateBuntHorizontalAngle(void) {
+    InputStruct* inputs;
     BOOL pullInd = FALSE;
-    int horizAngle;
-    int upperBunt;
-    int lowerBunt;
+    int horizAngle, ang0Low, ang0High, ang1Low, ang1High, lowerBunt, upperBunt, size;
     u8 contact;
-    
-    InputStruct* inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
+
+    inputs = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
     if (ACTIVE_TUTORIAL()) {
         inputs = &g_Practice.inputs[g_GameLogic.teamBatting];
     } else if (minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(
@@ -1662,14 +1674,14 @@ void calculateBuntHorizontalAngle(void) {
     }
 
     contact = g_Batter.contactType;
+    ang0Low = buntHorizontalAngles0OnRight[contact][0][0];
+    ang0High = buntHorizontalAngles0OnRight[contact][0][1];
+    ang1Low = buntHorizontalAngles0OnRight[contact][1][0];
+    ang1High = buntHorizontalAngles0OnRight[contact][1][1];
+    size = g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP];
 
-    upperBunt = buntHorizontalAngles0OnRight[contact][0][1] + (((buntHorizontalAngles0OnRight[contact][1][1] - buntHorizontalAngles0OnRight[contact][0][1]) *
-                                                   g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP]) /
-                                                  100);
-
-    lowerBunt = buntHorizontalAngles0OnRight[contact][0][0] + (((buntHorizontalAngles0OnRight[contact][1][0] - buntHorizontalAngles0OnRight[contact][0][0]) *
-                                                   g_Batter.contactSize_raw[BAT_CONTACT_TYPE_SLAP]) /
-                                                  100);
+    upperBunt = ang0High + (((ang1High - ang0High) * size) / 100);
+    lowerBunt = ang0Low + (((ang1Low - ang0Low) * size) / 100);
 
     horizAngle = lowerBunt + (g_Ball.StaticRandomInt1 % (upperBunt - lowerBunt));
 
@@ -1691,10 +1703,10 @@ void calculateBuntHorizontalAngle(void) {
 
     if ((g_Batter.batterHand == BATTING_HAND_RIGHT && pullInd) ||
         (g_Batter.batterHand != BATTING_HAND_RIGHT && !pullInd)) {
-        if (horizAngle <= 0x800) {
-            horizAngle = 0x800 - horizAngle;
+        if (horizAngle <= SANG_ANG_180) {
+            horizAngle = SANG_ANG_180 - horizAngle;
         } else {
-            horizAngle = 0x1800 - horizAngle;
+            horizAngle = (SANG_ANG_360 + SANG_ANG_180) - horizAngle;
         }
     }
 
@@ -1824,7 +1836,7 @@ void calculateBallVelocityAcceleration(void) {
         }
 
         if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-            hit_hor = 0x800 - hit_hor;
+            hit_hor = SANG_ANG_180 - hit_hor;
         }
 
         if (hit_hor < 0x460) {

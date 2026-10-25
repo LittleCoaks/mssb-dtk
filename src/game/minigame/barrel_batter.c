@@ -1,5 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/minigame/barrel_batter.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
@@ -53,8 +55,6 @@ typedef struct {
 extern BB_dropConstsStruct bB_dropConsts;
 extern VecXYZ barrelBaseCoordinates[15];
 extern s16 bOD_bB_frameConsts[12];
-extern s16 lbl_3_common_bss_37400[0x27];
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
 
 extern s8 bBAI_swingFrameOffsetByRow[8];
 extern u8 bBAI_canPreferFewestBarrels[4];
@@ -368,7 +368,7 @@ void barrelBatterTransitionToMainFunction(void) {
                 fn_3_12FE84();
                 fn_3_12FD6C();
             }
-            fn_3_14CA00();
+            barrelBatter_stopBarrelExplosions();
             animRelated[0xB7] = 1;
         }
         break;
@@ -428,7 +428,7 @@ void fn_3_131114(void) {
     setDefaultInMemBall();
     setDefaultInMemPitcher();
     setDefaultInMemBatter();
-    setDefaultInMemRunner();
+    running_setDefaultRunners();
     setDefaultInMemFielder();
     memset(&g_Minigame.aiInputs, 0, 0x78);
     pauseAnimations();
@@ -450,47 +450,10 @@ void bB_AtBat(void) {
         bB_AI();
         atBat_batter();
         bB_clearAIControlled();
-        running_MainFunction();
+        running_main();
         fn_3_12FAC4();
     }
-
-    if (g_Minigame.turnOverStatus == 0) {
-        if (g_Pitcher.pitcherActionState != PITCHER_ACTION_STATE_NO_CONTACT) {
-            return;
-        }
-        if (g_Minigame.bB_pitchesRemainingInTurn == 0) {
-            g_Minigame.turnOverStatus = 1;
-            g_Minigame.pointsTargetReachedInd = 2;
-        }
-        g_Minigame.bB_bombBarrelHitInd_bOD_hrYaw = 0;
-        g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
-        return;
-    }
-
-    if (g_Minigame.turnOverStatus == 1) {
-        g_Minigame.turnOverStatus = 2;
-        g_GameLogic.CountdownUntilFade = bOD_bB_frameConsts[0];
-    }
-    g_GameLogic.CountdownUntilFade--;
-    if (g_Minigame.pointsTargetReachedInd != 0) {
-        if (g_GameLogic.CountdownUntilFade <= 0) {
-            g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
-            g_GameLogic.pre_PostMiniGameInd = TRUE;
-            g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-            g_GameLogic.hudLoadingRelated = TRUE;
-            SetGameStatus(GAME_STATUS_TRANSITION);
-        }
-    } else if (g_GameLogic.CountdownUntilFade <= 0) {
-        SetGameStatus(GAME_STATUS_DEFAULT);
-    }
-    if (g_Minigame.pointsTargetReachedInd != 0 &&
-        (g_Minigame.multiPlayerInd == 0 ||
-         (g_Minigame.multiPlayerInd != 0 &&
-          g_Minigame.turnNumberWithinRound + 1 >= g_Minigame.miniGameNumberOfParticipants &&
-          g_Scores.Inning >= g_Scores.inningLimit)) &&
-        g_Minigame.winLossResult == 0 && g_GameLogic.CountdownUntilFade == 1) {
-        sndFXStartEx(0x1be, lbl_800EFBA4[7], 0x3f, 0);
-    }
+    barrelBatterUpdateTurnOver();
 }
 
 // .text:0x00130ACC size:0x1A0 mapped:0x8076FB60
@@ -512,11 +475,7 @@ void barrelBatterUpdateTurnOver(void) {
         g_GameLogic.CountdownUntilFade--;
         if (g_Minigame.pointsTargetReachedInd != 0) {
             if (g_GameLogic.CountdownUntilFade <= 0) {
-                g_Minigame.bB_bombBarrelID_bOD_hrPitch = -1;
-                g_GameLogic.pre_PostMiniGameInd = TRUE;
-                g_GameLogic.minigameLastTurnSuccessInd = TRUE;
-                g_GameLogic.hudLoadingRelated = TRUE;
-                SetGameStatus(GAME_STATUS_TRANSITION);
+                fn_3_130A80();
             }
         } else if (g_GameLogic.CountdownUntilFade <= 0) {
             SetGameStatus(GAME_STATUS_DEFAULT);
@@ -703,7 +662,6 @@ void bB_checkIfBarrelHitAndCalculateScore(void) {
     int barrelID;
     int delayToBlowUp;
     BOOL loopAgainInd;
-    int points;
     int barrelHitFlags[15];
 
     if (g_Ball.framesSinceHit <= 0) {
@@ -774,17 +732,7 @@ void bB_checkIfBarrelHitAndCalculateScore(void) {
                 g_Minigame.barrelBatterChargeMeter += g_Minigame.barrelBatter_barrelsHit - 1;
             }
 
-            if (g_Minigame.barrelBatter_barrelsHit <= 1) {
-                points = bOD_bB_frameConsts[5] * g_Minigame.barrelBatter_barrelsHit;
-            } else {
-                points = g_Minigame.barrelBatter_barrelsHit * ((g_Minigame.barrelBatter_barrelsHit - 1) * bOD_bB_frameConsts[5]);
-            }
-
-            g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += points;
-            g_Minigame.bB_totalPoints = points;
-            if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == lbl_3_common_bss_37400[0x20]) {
-                starMissionsMinigamesSpecialAction(2, points, g_Minigame.barrelBatter_barrelsHit);
-            }
+            unused_BarrelBatterRelated();
         }
     }
 
@@ -1023,8 +971,8 @@ void unused_BarrelBatterRelated(void) {
 
     g_Minigame.miniGameCurrentPoints[g_Minigame.rosterID] += points;
     g_Minigame.bB_totalPoints = points;
-    if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == lbl_3_common_bss_37400[0x20]) {
-        starMissionsMinigamesSpecialAction(2, points, g_Minigame.barrelBatter_barrelsHit);
+    if (!g_d_GameSettings.exhibitionMatchInd && g_Minigame.rosterID == scoutState.humanTeam) {
+        starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_BARREL_BATTER_BARRELS, points, g_Minigame.barrelBatter_barrelsHit);
     }
 }
 

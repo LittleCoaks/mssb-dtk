@@ -18,7 +18,7 @@ typedef struct UILayout {
     /* 0x8 */ u8* elementTable;
 } UILayout;
 
-void handleUIAction(u32* frame, UILayout* layout, int elementIndex, Mtx mtx, u32 arg4, u32 arg5, u32* arg6,
+s32 handleUIAction(u32* frame, UILayout* layout, int elementIndex, Mtx mtx, u32 arg4, u32 arg5, u32* arg6,
                     TextureHeader* textures);
 
 #endif // !__UNKNOWN_FILE_0X8000D838_H_

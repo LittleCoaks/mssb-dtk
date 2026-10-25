@@ -4,31 +4,37 @@
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "Unknown/File_0x800b0a14.h"
-#include "Unknown/DisplayObject.h"
+#include "C3/geoPalette/DisplayObject.h"
 #include "Unknown/File_0x800bdd74.h"
 #include "game/stadium/stadium_framework.h"
 #include "Unknown/File_0x800a7568.h"
-#include "Unknown/File_0x80033794.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800bd8c4.h"
 #include "Unknown/File_0x800b0724.h"
-#include "Unknown/File_0x800a70dc.h"
-#include "Unknown/File_0x80034220.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/sub.h"
 #include "static/UnknownHomes_Static.h"
 #include "C3/control.h"
 #include "C3/anim.h"
-#include "Unknown/File_0x800bfe90.h"
-#include "Unknown/File_0x800b4908.h"
-#include "Unknown/File_0x800bcd60.h"
-#include "Unknown/File_0x800bce38.h"
-#include "Unknown/File_0x800bd190.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/skinning.h"
+#include "Unknown/File_0x800c0770.h"
+#include "C3/actor/actorAnim.h"
+#include "C3/actor/act.h"
+#include "C3/geoPalette/geoPalette.h"
+#include "Unknown/File_0x800bd478.h"
 #include "Dolphin/gx.h"
 #include "Dolphin/GX/GXFifo.h"
 #include "Dolphin/rand.h"
 #include "stl/math.h"
 #include "stl/mem.h"
+
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. */
+#undef fabs
+static inline f64 fabs(f64 x) {
+    return __fabs(x);
+}
 
 extern DbgAnim hugeAnimStruct;
 extern u8 drawStadiumRelated;
@@ -48,6 +54,9 @@ extern void fn_800B2C88(void *model, u16 idx, void *out);
 extern void fn_800B806C(s32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7);
 extern void LITInitAttn(void *light, f32 a0, f32 a1, f32 a2, f32 k0, f32 k1, f32 k2);
 extern void LITInitPos(void *light, f32 x, f32 y, f32 z);
+/* Not C3/light/light.h: this unit passes LITInitColor its colour by value (the target
+ * makes the copy), which light.h's GXColor* prototype would not allow. */
+extern void LITAlloc(void **light);
 extern void LITInitColor(void *light, GXColor color);
 extern void LITInitDir(void *light, f32 x, f32 y, f32 z);
 extern void LITXForm(void *light, Mtx m);

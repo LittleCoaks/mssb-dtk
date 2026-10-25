@@ -22,7 +22,7 @@ BOOL isSkipButtonPressedForPlayer(int player, int inputKind, int mask) {
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && player == 1) {
             return 0;
         }
-        if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_UNKNOWN_3 && player == 0) {
+        if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_CPU_VS_1_PLAYER && player == 0) {
             return 0;
         }
     }

@@ -7,7 +7,7 @@
 #include "Unknown/File_0x80035ca4.h"
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x80034e20.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "static/UnknownHomes_Static.h"
 
 typedef struct UIPos16 {

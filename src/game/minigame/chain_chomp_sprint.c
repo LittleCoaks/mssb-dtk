@@ -1,11 +1,13 @@
 #define SQRT2_LINKAGE static
 #define REP_HEADER_DATA_FN getRepHeaderData_chainChompSprint
 #include "game/minigame/chain_chomp_sprint.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_loading.h"
 #include "game/match_setup/roster_init.h"
 #include "game/baserunning/runner.h"
@@ -16,9 +18,7 @@
 #include "game/stadium/stadium_framework.h"
 #include "Unknown/File_0x8004c094.h"
 #include "Unknown/File_0x800204cc.h"
-#include "Unknown/File_0x800348c8.h"
-#include "Unknown/File_0x80034220.h"
-#include "Unknown/File_0x8003452c.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/sub.h"
 #include "static/UnknownHomes_Static.h"
 #include "Dolphin/stl.h"
@@ -43,47 +43,48 @@ extern void fn_800115C8(u8 player);
 extern void minigameQueueHudEvent(int a, int b);
 extern void fn_3_106EB0(void);
 extern void minigameCalculateRankings(void);
-extern void fn_3_11F480(void);
-extern void fn_3_14C904(void);
-extern void fn_3_151798(void);
-extern void fn_3_152AB4(u8 coin, u8 runner);
-extern void fn_3_1541C4(u8 coin, u8 type, VecXYZ* pos);
+extern void minigameHudCcsSyncDisplayedPoints(void);
+extern void chainChomp_spawnLaunchFlash(void);
+extern void chainChomp_stopItemSparkles(void);
+extern void chainChomp_flyItemSparklesToScore(u8 coin, u8 runner);
+extern void chainChomp_spawnItemSparkle(u8 coin, u8 type, VecXYZ* pos);
 extern void chainChomp_spawnTrailEffect(s32 duration);
-extern void fn_3_1578F8(void);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
+extern void chainChomp_stopTrailEffect(void);
 
 extern u8 lbl_800EFBA4[];
-extern s16 lbl_3_common_bss_37400[];
 extern u16 lbl_3_data_81FC[];
 extern u8 minigameIntroFrames[2];
 extern u8 minigameAIStrengthTable[][5];
 extern VecXYZ ccs_chompStartPos;
 extern s16 ccs_chompJumpRollWeights[][9];
-extern u8 lbl_3_data_21860[][4];
+extern u8 ccs_runnerStartBases[][4];
 extern u8 ccs_timeLimitSeconds[];
 extern u8 ccs_itemWeightsByPhase[][2];
 extern CCSGemType ccs_itemGemCounts[];
 extern f32 ccs_coinPhysicsConsts[];
 extern s16 ccs_coinLifetimeFrames;
 extern u8 ccs_chompTargetThresholds[][3];
-extern f32 lbl_3_data_218BC[];
-extern s16 lbl_3_data_21904[];
+extern f32 ccs_gameplayConsts[];
+extern s16 ccs_timingConsts[];
 extern s16 ccs_powerupTimers[];
 extern s8 ccsAI_bPressDelayRanges[][2];
 extern f32 ccsAI_targetDistThresholds[];
-extern s8 lbl_3_data_21944[][2];
-extern s16 lbl_3_data_2194C[][2];
-extern s16 lbl_3_data_2195C[][2];
-extern s8 lbl_3_data_2196C[][2];
-extern s8 lbl_3_data_21974[][2];
+extern s8 ccsAI_decisionDelayRanges[][2];
+extern s16 ccsAI_evadeLeadRanges[][2];
+extern s16 ccsAI_evadeLeadRangesBehind[][2];
+extern s8 ccsAI_dodgeDelayRanges[][2];
+extern s8 ccsAI_dodgeDelayRangesSpecial[][2];
 extern s8 lbl_3_data_2197C[];
 extern s8 lbl_3_data_21980[];
 
 s32 lbl_3_data_265F0 = -1;
 
-static s32 lbl_3_bss_B798;
-static f32 lbl_3_bss_B794;
+/* lbl_3_bss_B79C and lbl_3_bss_B790 are never referenced, but present in the original .bss layout */
+static u8 lbl_3_bss_B79C[0x24];
+static s32 ccs_cameraShakeFrames;
+static f32 ccs_cameraShakeMagnitude;
 static u8 lbl_3_bss_B791;
+static u8 lbl_3_bss_B790;
 
 static inline f32 ccsBasePathGap(f32 a, f32 b) {
     f32 d = a - b;
@@ -103,10 +104,10 @@ void chainChompSprintSwitcher(void) {
         chainChompSprintRelated();
         break;
     case GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING:
-        fn_3_1413E4();
+        ccs_introTransition();
         break;
     case GAME_STATUS_DEFAULT:
-        fn_3_1412BC();
+        ccs_startGame();
         break;
     case GAME_STATUS_LIVE_BALL:
         chainChompSpringMainFun();
@@ -165,7 +166,7 @@ void chainChompSprintRelated(void) {
             }
             g_Minigame.minigameFramesRemaining = ccs_timeLimitSeconds[4] * 60;
         }
-        setDefaultInMemRunner();
+        running_setDefaultRunners();
         runnerIdx = 0;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.playerSlots.characterIndex[i] >= 0) {
@@ -177,13 +178,13 @@ void chainChompSprintRelated(void) {
                 g_Runners[runnerIdx].miniGamePlayerNum = i;
                 order[i] = runnerIdx;
                 initializeInMemRunner(i, runnerIdx);
-                g_Runners[runnerIdx].runnerOnFieldOrOutOrScored = 1;
+                g_Runners[runnerIdx].runnerStatus = RUNNER_STATUS_ON_FIELD;
                 if (!g_Minigame.playerSlots.aiControlledInd[i]) {
                     g_Runners[runnerIdx].unused_batterHandednessForCCS = 0;
                 } else {
                     g_Runners[runnerIdx].unused_batterHandednessForCCS = 1;
                 }
-                g_Runners[runnerIdx].leadOffStatus = 0;
+                g_Runners[runnerIdx].leadOffStatus = LEADOFF_STATUS_NONE;
                 runnerIdx++;
             }
         }
@@ -191,13 +192,13 @@ void chainChompSprintRelated(void) {
             shuffleIntArray(order, g_Minigame.miniGameNumberOfParticipants, FALSE);
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
-                    fn_3_810C4(i, lbl_3_data_21860[4][order[i]]);
+                    running_placeRunnerOnBase(i, ccs_runnerStartBases[4][order[i]]);
                 }
             }
         } else {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
-                    fn_3_810C4(i, lbl_3_data_21860[g_Minigame.soloMinigameDifficulty][i]);
+                    running_placeRunnerOnBase(i, ccs_runnerStartBases[g_Minigame.soloMinigameDifficulty][i]);
                 }
             }
         }
@@ -233,13 +234,13 @@ void chainChompSprintRelated(void) {
             g_Minigame.ccs.segmentItems[i][1] = -1;
         }
         g_Minigame.ccs.specialItemCount = 0;
-        g_Minigame.ccsSpecialItemFrames[0] = RandomInt_Game_Range(lbl_3_data_21904[5], lbl_3_data_21904[6]) * 60;
-        g_Minigame.ccsSpecialItemFrames[1] = RandomInt_Game_Range(lbl_3_data_21904[7], lbl_3_data_21904[8]) * 60;
+        g_Minigame.ccsSpecialItemFrames[0] = RandomInt_Game_Range(ccs_timingConsts[5], ccs_timingConsts[6]) * 60;
+        g_Minigame.ccsSpecialItemFrames[1] = RandomInt_Game_Range(ccs_timingConsts[7], ccs_timingConsts[8]) * 60;
         setDefaultInMemBall();
         g_Minigame.powerup.activeInd = FALSE;
         g_Minigame.powerup.timer = ccs_powerupTimers[0];
         g_Minigame.playerIDWithPowerup[0] = -1;
-        fn_3_169600();
+        kinoko_initPulseTextures();
         g_GameLogic._125++;
     } else {
         SetGameStatus(GAME_STATUS_GAME_START_MOVIE);
@@ -247,8 +248,8 @@ void chainChompSprintRelated(void) {
 }
 
 // .text:0x001413E4 size:0xC8 mapped:0x80780478
-void fn_3_1413E4(void) {
-    cCSRunningFun();
+void ccs_introTransition(void) {
+    ccs_running_main();
     switch (g_GameLogic._125) {
     case 0:
         minigameQueueHudEvent(2, minigameIntroFrames[0]);
@@ -268,8 +269,8 @@ void fn_3_1413E4(void) {
 }
 
 // .text:0x001412BC size:0x128 mapped:0x80780350
-void fn_3_1412BC(void) {
-    fn_3_13DEA4();
+void ccs_startGame(void) {
+    ccsAI_init();
     changeScene(1, 6);
     SetGameStatus(GAME_STATUS_LIVE_BALL);
 }
@@ -327,24 +328,24 @@ void chainChompSpringMainFun(void) {
         g_Minigame.minigameFramesRemaining != 0 && g_Minigame.minigameFramesRemaining % 60 == 0) {
         callSfx(lbl_3_data_81FC[40]);
     }
-    fn_3_13C7BC();
-    cCSRunningFun();
-    fn_3_13C790();
-    fn_3_13F7E4();
-    fn_3_13F6C8();
-    fn_3_1406F4();
-    fn_3_13E670();
-    fn_3_140BCC();
+    ccsAI_update();
+    ccs_running_main();
+    ccsAI_clearControlled();
+    ccs_countRunnerMoveFrames();
+    ccs_updateItemsAndCoins();
+    ccs_updateChomp();
+    ccs_updatePowerup();
+    ccs_updateGameEnd();
 }
 
 // .text:0x00140BCC size:0x114 mapped:0x8077FC60
-void fn_3_140BCC(void) {
+void ccs_updateGameEnd(void) {
     if (!g_Minigame.turnOverStatus) {
         if (g_Minigame.minigameFramesRemaining == 0) {
             minigameQueueHudEvent(3, 0);
             sndFXStartEx(0x1BE, lbl_800EFBA4[7], 0x3F, 0);
-            fn_3_151798();
-            fn_3_11F480();
+            chainChomp_stopItemSparkles();
+            minigameHudCcsSyncDisplayedPoints();
             fn_80011578();
             g_Minigame.powerup.activeInd = FALSE;
             g_Minigame.turnOverStatus = 1;
@@ -352,23 +353,23 @@ void fn_3_140BCC(void) {
     } else {
         if (g_Minigame.turnOverStatus == 1) {
             g_Minigame.turnOverStatus = 2;
-            g_GameLogic.CountdownUntilFade = lbl_3_data_21904[0];
+            g_GameLogic.CountdownUntilFade = ccs_timingConsts[0];
         }
         if (g_Minigame.ccs.chompState != 3) {
             g_GameLogic.CountdownUntilFade--;
         }
         if (g_GameLogic.CountdownUntilFade == 7) {
             changeScene(3, 6);
-            fn_3_1578F8();
+            chainChomp_stopTrailEffect();
         }
         if (g_GameLogic.CountdownUntilFade <= 0) {
-            fn_3_1409AC();
+            ccs_finishAfterFade();
         }
     }
 }
 
 // .text:0x001409AC size:0x220 mapped:0x8077FA40
-void fn_3_1409AC(void) {
+void ccs_finishAfterFade(void) {
     u32 k;
 
     minigameCalculateRankings();
@@ -408,7 +409,7 @@ void fn_3_1409AC(void) {
 }
 
 // .text:0x001406F4 size:0x2B8 mapped:0x8077F788
-void fn_3_1406F4(void) {
+void ccs_updateChomp(void) {
     if (g_Minigame.ccs.chompStateTimer < 0x7FFE) {
         g_Minigame.ccs.chompStateTimer++;
     } else {
@@ -416,25 +417,25 @@ void fn_3_1406F4(void) {
     }
     switch (g_Minigame.ccs.chompState) {
     case 0:
-        fn_3_1405D8();
+        ccs_updateChompWait();
         break;
     case 1:
-        fn_3_140484();
+        ccs_updateChompJump();
         break;
     case 2:
-        fn_3_140284();
+        ccs_updateChompPickTargets();
         break;
     case 3:
-        fn_3_13FC24();
+        ccs_updateChompChase();
         break;
     case 4:
-        fn_3_13F8C4();
+        ccs_updateChompReturn();
         break;
     }
 }
 
 // .text:0x001405D8 size:0x11C mapped:0x8077F66C
-void fn_3_1405D8(void) {
+void ccs_updateChompWait(void) {
     if (g_Minigame.ccs.chompStateTimer <= 1) {
         u8 row;
         s16 roll;
@@ -444,63 +445,63 @@ void fn_3_1405D8(void) {
             row = 4;
         }
         roll = RandomInt_Game_Range(0, 1000);
-        g_Minigame.ccs._26 = 0;
+        g_Minigame.ccs.chompWaitFrames = 0;
         do {
-            roll -= ccs_chompJumpRollWeights[row][g_Minigame.ccs._26++];
+            roll -= ccs_chompJumpRollWeights[row][g_Minigame.ccs.chompWaitFrames++];
             if (roll <= 0) {
                 break;
             }
-        } while (ccs_chompJumpRollWeights[row][g_Minigame.ccs._26] >= 0);
-        g_Minigame.ccs._26 *= 120;
-        g_Minigame.ccs._26 -= 48;
-        chainChomp_spawnTrailEffect(g_Minigame.ccs._26);
+        } while (ccs_chompJumpRollWeights[row][g_Minigame.ccs.chompWaitFrames] >= 0);
+        g_Minigame.ccs.chompWaitFrames *= 120;
+        g_Minigame.ccs.chompWaitFrames -= 48;
+        chainChomp_spawnTrailEffect(g_Minigame.ccs.chompWaitFrames);
     } else {
         g_Minigame.ccs.chompYaw = 0xE00;
-        if (g_Minigame.ccs.chompStateTimer >= g_Minigame.ccs._26) {
+        if (g_Minigame.ccs.chompStateTimer >= g_Minigame.ccs.chompWaitFrames) {
             g_Minigame.ccs.chompState = 1;
             g_Minigame.ccs.chompStateTimer = 0;
-            g_Minigame.ccs.chompVelocity.y = lbl_3_data_218BC[3];
-            fn_3_14C904();
+            g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[3];
+            chainChomp_spawnLaunchFlash();
             callSfx(0x2E0);
         }
     }
 }
 
 // .text:0x00140484 size:0x154 mapped:0x8077F518
-void fn_3_140484(void) {
+void ccs_updateChompJump(void) {
     int i;
 
     if (g_Minigame.turnOverStatus) {
         return;
     }
     g_Minigame.ccs.chompPos.y += g_Minigame.ccs.chompVelocity.y;
-    if (g_Minigame.ccs.chompPos.y <= 0.0f && g_Minigame.ccs.chompVelocity.y < -lbl_3_data_218BC[6]) {
+    if (g_Minigame.ccs.chompPos.y <= 0.0f && g_Minigame.ccs.chompVelocity.y < -ccs_gameplayConsts[6]) {
         g_Minigame.ccs.chompVelocity.y = 0.0f;
         g_Minigame.ccs.chompPos.y = 0.0f;
         spawnDust((Vec*)&g_Minigame.ccs.chompPos);
         callSfx(0x2DF);
-        fn_3_13E174(0);
+        ccs_startCameraShake(0);
         for (i = 0; i < 4; i++) {
             setCharacterAnimations(i, 1);
         }
     } else if (g_Minigame.ccs.chompPos.y > 0.0f) {
-        g_Minigame.ccs.chompVelocity.y -= lbl_3_data_218BC[6];
+        g_Minigame.ccs.chompVelocity.y -= ccs_gameplayConsts[6];
     }
-    if (g_Minigame.ccs.chompStateTimer >= lbl_3_data_21904[9]) {
+    if (g_Minigame.ccs.chompStateTimer >= ccs_timingConsts[9]) {
         g_Minigame.ccs.chompState = 2;
         g_Minigame.ccs.chompStateTimer = 0;
-        g_Minigame.ccs.chompVelocity.y = lbl_3_data_218BC[4];
+        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[4];
     }
 }
 
 // .text:0x00140284 size:0x200 mapped:0x8077F318
-void fn_3_140284(void) {
+void ccs_updateChompPickTargets(void) {
     int target;
     int best;
     int threshold;
     int i;
 
-    g_Minigame.ccs_targetHudPending = 1;
+    g_Minigame.ccs_targetHudPending = TRUE;
     for (i = 0; i < 4; i++) {
         g_Minigame.ccs.targetInd[i] = -1;
     }
@@ -534,20 +535,20 @@ void fn_3_140284(void) {
             g_Minigame.ccs.targetCount++;
         }
     }
-    g_Minigame.ccs._1C = 0;
+    g_Minigame.ccs.chaseStep = 0;
     g_Minigame.ccs.chompState = 3;
     g_Minigame.ccs.chompStateTimer = 0;
 }
 
 // .text:0x0013FC24 size:0x660 mapped:0x8077ECB8
-void fn_3_13FC24(void) {
+void ccs_updateChompChase(void) {
     int i;
     f32 dist;
     f32 dz;
     f32 dx;
     InMemRunnerType* runner;
 
-    if (g_Minigame.ccs._1C < 1) {
+    if (g_Minigame.ccs.chaseStep < 1) {
         for (i = 0; i < 4; i++) {
             if (g_Minigame.ccs.targetInd[i] == 1) {
                 InMemRunnerType* target = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[i]];
@@ -559,7 +560,7 @@ void fn_3_13FC24(void) {
             }
         }
     }
-    if (++g_Minigame.ccs._1C <= 1) {
+    if (++g_Minigame.ccs.chaseStep <= 1) {
         for (i = 0; i < 4; i++) {
             if (g_Minigame.ccs.targetInd[i] == 1) {
                 g_Minigame.ccs.chasedPlayer = i;
@@ -572,13 +573,13 @@ void fn_3_13FC24(void) {
         dz = runner->position.z - g_Minigame.ccs.chompPos.z;
         dist = dolsqrtf2(dx * dx + dz * dz);
         g_Minigame.ccs.chompYaw = calculateAngleFromCoordinates(dx, dz);
-        if (dist < lbl_3_data_218BC[0]) {
+        if (dist < ccs_gameplayConsts[0]) {
             g_Minigame.ccs.chompVelocity.x = dx;
             g_Minigame.ccs.chompVelocity.z = dz;
             goto hit;
         }
-        g_Minigame.ccs.chompVelocity.x = dx * (lbl_3_data_218BC[1] / dist);
-        g_Minigame.ccs.chompVelocity.z = dz * (lbl_3_data_218BC[1] / dist);
+        g_Minigame.ccs.chompVelocity.x = dx * (ccs_gameplayConsts[1] / dist);
+        g_Minigame.ccs.chompVelocity.z = dz * (ccs_gameplayConsts[1] / dist);
     }
     runner = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[g_Minigame.ccs.chasedPlayer]];
     g_Minigame.ccs.chompPos.x += g_Minigame.ccs.chompVelocity.x;
@@ -586,12 +587,12 @@ void fn_3_13FC24(void) {
     g_Minigame.ccs.chompPos.z += g_Minigame.ccs.chompVelocity.z;
     if (g_Minigame.ccs.chompPos.y <= 0.0f) {
         g_Minigame.ccs.chompPos.y = 0.0f;
-        g_Minigame.ccs.chompVelocity.y = lbl_3_data_218BC[4];
+        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[4];
         spawnDust((Vec*)&g_Minigame.ccs.chompPos);
         callSfx(0x2DF);
     } else {
         f32 vy = g_Minigame.ccs.chompVelocity.y;
-        g_Minigame.ccs.chompVelocity.y = vy - lbl_3_data_218BC[6];
+        g_Minigame.ccs.chompVelocity.y = vy - ccs_gameplayConsts[6];
         if (vy > 0.0f && g_Minigame.ccs.chompVelocity.y <= 0.0f) {
             callSfx(0x2DE);
         }
@@ -599,33 +600,33 @@ void fn_3_13FC24(void) {
     dz = runner->position.z - g_Minigame.ccs.chompPos.z;
     dx = runner->position.x - g_Minigame.ccs.chompPos.x;
     dist = dolsqrtf2(dx * dx + dz * dz);
-    if (!(dist < lbl_3_data_218BC[0])) {
+    if (!(dist < ccs_gameplayConsts[0])) {
         return;
     }
 hit:
-    fn_3_13E174(1);
+    ccs_startCameraShake(1);
     g_Minigame.ccs.runnerChompHitState[g_Minigame.ccs.chasedPlayer] = 1;
-    fn_3_7D9DC(g_Minigame.playerSlots.playerRunnerIndex[g_Minigame.ccs.chasedPlayer]);
-    fn_3_13E7D4(g_Minigame.ccs.chasedPlayer);
+    ccs_runnerChompHit_initKnockback(g_Minigame.playerSlots.playerRunnerIndex[g_Minigame.ccs.chasedPlayer]);
+    ccs_dropCoinsOnBite(g_Minigame.ccs.chasedPlayer);
     if (g_Minigame.playerIDWithPowerup[0] == g_Minigame.ccs.chasedPlayer) {
         fn_800115C8(g_Minigame.playerIDWithPowerup[0]);
         g_Minigame.playerIDWithPowerup[0] = -1;
     }
     g_Minigame.miniGameCurrentPoints[g_Minigame.ccs.chasedPlayer] /= 2;
-    g_Minigame.ccs_biteHudPending[g_Minigame.ccs.chasedPlayer] = 1;
+    g_Minigame.ccs_biteHudPending[g_Minigame.ccs.chasedPlayer] = TRUE;
     setCharacterAnimations(g_Minigame.ccs.chasedPlayer, 2);
     if (--g_Minigame.ccs.targetCount == 0) {
         g_Minigame.ccs.chompState = 4;
         g_Minigame.ccs.chompStateTimer = 0;
         g_Minigame.ccs.chasedPlayer = -1;
-        g_Minigame.ccs.chompVelocity.y = lbl_3_data_218BC[5];
+        g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[5];
     } else {
-        g_Minigame.ccs._1C = 0;
+        g_Minigame.ccs.chaseStep = 0;
     }
 }
 
 // .text:0x0013F8C4 size:0x360 mapped:0x8077E958
-void fn_3_13F8C4(void) {
+void ccs_updateChompReturn(void) {
     f32 dx;
     f32 dz;
     f32 dist;
@@ -634,14 +635,14 @@ void fn_3_13F8C4(void) {
         dz = ccs_chompStartPos.z - g_Minigame.ccs.chompPos.z;
         dx = ccs_chompStartPos.x - g_Minigame.ccs.chompPos.x;
         dist = dolsqrtf2(dx * dx + dz * dz);
-        g_Minigame.ccs.chompVelocity.x = dx * (lbl_3_data_218BC[2] / dist);
-        g_Minigame.ccs.chompVelocity.z = dz * (lbl_3_data_218BC[2] / dist);
+        g_Minigame.ccs.chompVelocity.x = dx * (ccs_gameplayConsts[2] / dist);
+        g_Minigame.ccs.chompVelocity.z = dz * (ccs_gameplayConsts[2] / dist);
         g_Minigame.ccs.chompYaw = calculateAngleFromCoordinates(dx, dz);
     }
     dx = ccs_chompStartPos.x - g_Minigame.ccs.chompPos.x;
     dz = ccs_chompStartPos.z - g_Minigame.ccs.chompPos.z;
     dist = dolsqrtf2(dx * dx + dz * dz);
-    if (dist <= lbl_3_data_218BC[2]) {
+    if (dist <= ccs_gameplayConsts[2]) {
         g_Minigame.ccs.chompPos.x = ccs_chompStartPos.x;
         g_Minigame.ccs.chompPos.y = ccs_chompStartPos.y;
         g_Minigame.ccs.chompPos.z = ccs_chompStartPos.z;
@@ -653,17 +654,17 @@ void fn_3_13F8C4(void) {
         g_Minigame.ccs.chompPos.z += g_Minigame.ccs.chompVelocity.z;
         if (g_Minigame.ccs.chompPos.y <= 0.0f) {
             g_Minigame.ccs.chompPos.y = 0.0f;
-            g_Minigame.ccs.chompVelocity.y = lbl_3_data_218BC[5];
+            g_Minigame.ccs.chompVelocity.y = ccs_gameplayConsts[5];
             spawnDust((Vec*)&g_Minigame.ccs.chompPos);
             callSfx(0x2DF);
         } else {
-            g_Minigame.ccs.chompVelocity.y -= lbl_3_data_218BC[6];
+            g_Minigame.ccs.chompVelocity.y -= ccs_gameplayConsts[6];
         }
     }
 }
 
 // .text:0x0013F7E4 size:0xE0 mapped:0x8077E878
-void fn_3_13F7E4(void) {
+void ccs_countRunnerMoveFrames(void) {
     int i;
 
     if (g_Minigame.ccs.chompState != 1) {
@@ -677,7 +678,7 @@ void fn_3_13F7E4(void) {
     for (i = 0; i < 4; i++) {
         if (g_Minigame.playerSlots.playerRunnerIndex[i] >= 0) {
             InMemRunnerType* runner = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[i]];
-            if (runner->runningDirectionCode == 1 || runner->runningDirectionCode == 3) {
+            if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS || runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 g_Minigame.ccs.runFrames[i]++;
             }
         }
@@ -685,17 +686,17 @@ void fn_3_13F7E4(void) {
 }
 
 // .text:0x0013F6C8 size:0x11C mapped:0x8077E75C
-void fn_3_13F6C8(void) {
+void ccs_updateItemsAndCoins(void) {
     if (g_Minigame.turnOverStatus) {
         return;
     }
-    fn_3_13F484();
+    ccs_updateItemStates();
     chainChompSpringPoints();
-    fn_3_13E6D4();
+    ccs_updateDroppedCoins();
 }
 
 // .text:0x0013F484 size:0x244 mapped:0x8077E518
-void fn_3_13F484(void) {
+void ccs_updateItemStates(void) {
     int item;
     u8 state;
     int i;
@@ -708,7 +709,7 @@ void fn_3_13F484(void) {
                 g_Minigame.ccs.itemState[item] = 0;
             }
         } else if (state == 0) {
-            fn_3_13EC44(item);
+            ccs_spawnItem(item);
         } else {
             int collectedState = item + 101;
             int collected = 0;
@@ -734,14 +735,14 @@ void fn_3_13F484(void) {
                         break;
                     }
                 }
-                g_Minigame.ccs.itemTimer[item] = RandomInt_Game_Range(lbl_3_data_21904[3], lbl_3_data_21904[4]);
+                g_Minigame.ccs.itemTimer[item] = RandomInt_Game_Range(ccs_timingConsts[3], ccs_timingConsts[4]);
             }
         }
     }
 }
 
 // .text:0x0013EC44 size:0x840 mapped:0x8077DCD8
-void fn_3_13EC44(int item) {
+void ccs_spawnItem(int item) {
     int i;
     int gem;
     int pos;
@@ -795,9 +796,9 @@ void fn_3_13EC44(int item) {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
                     InMemRunnerType* runner = &g_Runners[i];
-                    if (runner->runningDirectionCode == 1) {
+                    if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                         runnersOnSeg[runner->nextBase & 3]++;
-                    } else if (runner->runningDirectionCode == 3) {
+                    } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                         runnersOnSeg[runner->currentBase]++;
                     } else if (runner->percentTowardsNextBase < 0.5f) {
                         runnersOnSeg[runner->currentBase]++;
@@ -897,8 +898,8 @@ void fn_3_13EC44(int item) {
                 g_Minigame.coinState[coin] = item + 1;
                 g_Minigame.coinBasePathPos[coin] = (f32)pos / 100.0f;
                 g_Minigame.coinFrameCounter[coin] = 0;
-                fn_3_7FED4((VecXYZ*)&g_Minigame.coinPos[coin], g_Minigame.coinBasePathPos[coin], (f32)(pos % 100) / 100.0f);
-                fn_3_1541C4(coin, *state, &g_Minigame.coinPos[coin]);
+                running_basePathPosition((VecXYZ*)&g_Minigame.coinPos[coin], g_Minigame.coinBasePathPos[coin], (f32)(pos % 100) / 100.0f);
+                chainChomp_spawnItemSparkle(coin, *state, &g_Minigame.coinPos[coin]);
                 break;
             }
         }
@@ -923,7 +924,7 @@ void chainChompSpringPoints(void) {
             for (i = 0; i < 4; i++) {
                 candidates[i] = 0;
                 if (g_Minigame.playerSlots.runnerPlayerIndex[i] >= 0) {
-                    if (ccsBasePathGap(g_Minigame.coinBasePathPos[coin], g_Runners[i].fractionalBasesRan) <= lbl_3_data_218BC[8 + type]) {
+                    if (ccsBasePathGap(g_Minigame.coinBasePathPos[coin], g_Runners[i].fractionalBasesRan) <= ccs_gameplayConsts[8 + type]) {
                         *next++ = i;
                         count++;
                     }
@@ -933,15 +934,15 @@ void chainChompSpringPoints(void) {
                 int who = candidates[RandomInt_Game(count)];
                 g_Minigame.miniGameCurrentPoints[g_Minigame.playerSlots.runnerPlayerIndex[who]] += ccs_itemGemCounts[type].points;
                 g_Minigame.coinState[coin] += 100;
-                fn_3_152AB4(coin, who);
+                chainChomp_flyItemSparklesToScore(coin, who);
                 if (type == 2) {
                     callSfx(0x2EA);
                     playCharacterSound(g_Runners[who].charID, 0);
                 } else {
                     callSfx(0x2DD);
                 }
-                if (!g_d_GameSettings.exhibitionMatchInd && who == lbl_3_common_bss_37400[0x20]) {
-                    starMissionsMinigamesSpecialAction(3, type, 0);
+                if (!g_d_GameSettings.exhibitionMatchInd && who == scoutState.humanTeam) {
+                    starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_CHAIN_CHOMP_SPRINT, type, 0);
                 }
             }
         }
@@ -949,7 +950,7 @@ void chainChompSpringPoints(void) {
 }
 
 // .text:0x0013E7D4 size:0x25C mapped:0x8077D868
-void fn_3_13E7D4(int player) {
+void ccs_dropCoinsOnBite(int player) {
     InMemRunnerType* runner = &g_Runners[g_Minigame.playerSlots.playerRunnerIndex[player]];
     int drops = g_Minigame.miniGameCurrentPoints[player] / 2;
     u32 i;
@@ -1001,7 +1002,7 @@ void fn_3_13E7D4(int player) {
 }
 
 // .text:0x0013E6D4 size:0x100 mapped:0x8077D768
-void fn_3_13E6D4(void) {
+void ccs_updateDroppedCoins(void) {
     u32 i;
 
     for (i = 15; i < 35; i++) {
@@ -1022,19 +1023,19 @@ void fn_3_13E6D4(void) {
 }
 
 // .text:0x0013E670 size:0x64 mapped:0x8077D704
-void fn_3_13E670(void) {
+void ccs_updatePowerup(void) {
     if (g_Minigame.turnOverStatus) {
         g_Minigame.playerIDWithPowerup[0] = -1;
         g_Minigame.powerup.activeInd = FALSE;
     } else if (g_Minigame.powerup.activeInd) {
-        fn_3_13E21C(&g_Minigame.powerup);
+        ccs_updatePowerupOnField(&g_Minigame.powerup);
     } else {
-        fn_3_13E3A4(&g_Minigame.powerup);
+        ccs_updatePowerupSpawn(&g_Minigame.powerup);
     }
 }
 
 // .text:0x0013E3A4 size:0x2CC mapped:0x8077D438
-void fn_3_13E3A4(MinigamePowerupStruct* powerup) {
+void ccs_updatePowerupSpawn(MinigamePowerupStruct* powerup) {
     if (g_Minigame.playerIDWithPowerup[0] != -1) {
         if (g_Minigame.ccs.chompState != 2 && g_Minigame.ccs.chompState != 3) {
             g_Minigame.powerupHoldFrames--;
@@ -1081,7 +1082,7 @@ void fn_3_13E3A4(MinigamePowerupStruct* powerup) {
                 }
             }
             powerup->basePathPos = (f32)*spot / 10.0f;
-            fn_3_7FED4(&powerup->pos, powerup->basePathPos, 0.0f);
+            running_basePathPosition(&powerup->pos, powerup->basePathPos, 0.0f);
             memset(&powerup->_0C, 0, sizeof(VecXYZ));
             powerup->timer = ccs_powerupTimers[1];
         }
@@ -1090,11 +1091,11 @@ void fn_3_13E3A4(MinigamePowerupStruct* powerup) {
 
 // .text:0x0013E21C size:0x188 mapped:0x8077D2B0
 #pragma dont_inline on
-void fn_3_13E21C(MinigamePowerupStruct* powerup) {
+void ccs_updatePowerupOnField(MinigamePowerupStruct* powerup) {
     int candidates[4];
     int* next = candidates;
     int count = 0;
-    f32 range = lbl_3_data_218BC[11];
+    f32 range = ccs_gameplayConsts[11];
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -1113,7 +1114,7 @@ void fn_3_13E21C(MinigamePowerupStruct* powerup) {
         powerup->activeInd = FALSE;
         powerup->timer = ccs_powerupTimers[0];
         callSfx(0x2F6);
-        fn_3_16C394(who);
+        kinoko_startRibbon(who);
     } else {
         if (g_Minigame.ccs.chompState != 2 && g_Minigame.ccs.chompState != 3) {
             powerup->timer--;
@@ -1127,27 +1128,27 @@ void fn_3_13E21C(MinigamePowerupStruct* powerup) {
 #pragma dont_inline reset
 
 // .text:0x0013E174 size:0xA8 mapped:0x8077D208
-void fn_3_13E174(u8 type) {
+void ccs_startCameraShake(u8 type) {
     switch (type) {
     case 0:
-        lbl_3_bss_B798 = lbl_3_data_218BC[12];
-        lbl_3_bss_B794 = lbl_3_data_218BC[14];
+        ccs_cameraShakeFrames = ccs_gameplayConsts[12];
+        ccs_cameraShakeMagnitude = ccs_gameplayConsts[14];
         break;
     case 1:
-        lbl_3_bss_B798 = lbl_3_data_218BC[13];
-        lbl_3_bss_B794 = lbl_3_data_218BC[15];
+        ccs_cameraShakeFrames = ccs_gameplayConsts[13];
+        ccs_cameraShakeMagnitude = ccs_gameplayConsts[15];
         break;
     default:
         return;
     }
-    fn_800528AC(fn_3_13DFBC);
+    fn_800528AC(ccs_cameraShakeCallback);
 }
 
 // .text:0x0013DFBC size:0x1B8 mapped:0x8077D050
-void fn_3_13DFBC(camera_803c639c_s* cam) {
+void ccs_cameraShakeCallback(camera_803c639c_s* cam) {
     Vec offset;
     Mtx invView;
-    int range = 1000.0f * lbl_3_bss_B794;
+    int range = 1000.0f * ccs_cameraShakeMagnitude;
 
     offset.x = (rand() % range - range / 2) / 1000.0;
     offset.y = (rand() % range - range / 2) / 1000.0;
@@ -1160,15 +1161,15 @@ void fn_3_13DFBC(camera_803c639c_s* cam) {
     cam->target.x += offset.x;
     cam->target.y += offset.y;
     cam->target.z += offset.z;
-    if (--lbl_3_bss_B798 <= 0) {
-        lbl_3_bss_B798 = 0;
-        lbl_3_bss_B794 = 0.0f;
+    if (--ccs_cameraShakeFrames <= 0) {
+        ccs_cameraShakeFrames = 0;
+        ccs_cameraShakeMagnitude = 0.0f;
         fn_800528B4();
     }
 }
 
 // .text:0x0013DEA4 size:0x118 mapped:0x8077CF38
-void fn_3_13DEA4(void) {
+void ccsAI_init(void) {
     ChainChompSprintAI* ai = g_Minigame.ccsAI;
     s8 i;
 
@@ -1176,7 +1177,7 @@ void fn_3_13DEA4(void) {
     i = 0;
     do {
         u8 strength = g_Minigame.playerSlots.aiStrength[i];
-        ai->_0 = RandomInt_Game_Range(lbl_3_data_2194C[strength][0], lbl_3_data_2194C[strength][1]);
+        ai->evadeLeadFrames = RandomInt_Game_Range(ccsAI_evadeLeadRanges[strength][0], ccsAI_evadeLeadRanges[strength][1]);
         if (RandomInt_Game(100) < lbl_3_data_2197C[strength]) {
             if (lbl_3_data_21980[strength] < 8) {
                 ai->_6 = RandomInt_Game_Range(lbl_3_data_21980[strength], 8);
@@ -1186,14 +1187,14 @@ void fn_3_13DEA4(void) {
         } else {
             ai->_6 = 0x7F;
         }
-        ai->_5 = 2;
-        ai->_7 = RandomInt_Game_Range(lbl_3_data_21944[strength][0], lbl_3_data_21944[strength][1]);
+        ai->targetKind = 2;
+        ai->decisionDelay = RandomInt_Game_Range(ccsAI_decisionDelayRanges[strength][0], ccsAI_decisionDelayRanges[strength][1]);
         ai++;
     } while (++i < 4);
 }
 
 // .text:0x0013DDE0 size:0xC4 mapped:0x8077CE74
-f32 fn_3_13DDE0(u8 forward, f32 from, f32 to) {
+f32 ccs_basePathDistance(u8 forward, f32 from, f32 to) {
     if (from < 0.0f) {
         from += 4.0f;
     } else if (from >= 4.0f) {
@@ -1217,23 +1218,23 @@ f32 fn_3_13DDE0(u8 forward, f32 from, f32 to) {
 }
 
 // .text:0x0013DC48 size:0x198 mapped:0x8077CCDC
-void fn_3_13DC48(s8 runnerIdx, f32 target, f32* forward, f32* backward) {
-    *forward = fn_3_13DDE0(1, g_Runners[runnerIdx].fractionalBasesRan, target);
-    if (g_Runners[runnerIdx].runningDirectionCode == 3) {
+void ccsAI_getRunnerDists(s8 runnerIdx, f32 target, f32* forward, f32* backward) {
+    *forward = ccs_basePathDistance(1, g_Runners[runnerIdx].fractionalBasesRan, target);
+    if (g_Runners[runnerIdx].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
         *forward += 0.15f;
     }
-    *backward = fn_3_13DDE0(0, g_Runners[runnerIdx].fractionalBasesRan, target);
-    if (g_Runners[runnerIdx].runningDirectionCode == 1) {
+    *backward = ccs_basePathDistance(0, g_Runners[runnerIdx].fractionalBasesRan, target);
+    if (g_Runners[runnerIdx].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
         *backward += 0.15f;
     }
 }
 
 // .text:0x0013DA50 size:0x1F8 mapped:0x8077CAE4
-f32 fn_3_13DA50(f32 target, s8 runnerIdx, u8* direction) {
+f32 ccsAI_getShortestDist(f32 target, s8 runnerIdx, u8* direction) {
     f32 forward;
     f32 backward;
 
-    fn_3_13DC48(runnerIdx, target, &forward, &backward);
+    ccsAI_getRunnerDists(runnerIdx, target, &forward, &backward);
     if (forward < backward) {
         *direction = 1;
         return forward;
@@ -1247,16 +1248,16 @@ f32 fn_3_13DA50(f32 target, s8 runnerIdx, u8* direction) {
 }
 
 // .text:0x0013DA20 size:0x30 mapped:0x8077CAB4
-int fn_3_13DA20(f32* a, f32* b) {
+int ccsAI_compareDistF32(f32* a, f32* b) {
     return 100.0f * *a - 100.0f * *b;
 }
 
 // .text:0x0013D618 size:0x408 mapped:0x8077C6AC
-f32 fn_3_13D618(f32 target, s8 runnerIdx, u8* direction) {
+f32 ccsAI_getDistPastClosestRunner(f32 target, s8 runnerIdx, u8* direction) {
     f32 dists[4];
     s8 count;
     s8 i;
-    f32 dist = fn_3_13DA50(target, runnerIdx, direction);
+    f32 dist = ccsAI_getShortestDist(target, runnerIdx, direction);
 
     count = 0;
     i = 0;
@@ -1265,21 +1266,21 @@ f32 fn_3_13D618(f32 target, s8 runnerIdx, u8* direction) {
         if (c >= 0 && c < 4 && g_Minigame.ccs.runnerChompHitState[i] == 0) {
             f32 forward;
             f32 backward;
-            fn_3_13DC48(i, target, &forward, &backward);
+            ccsAI_getRunnerDists(i, target, &forward, &backward);
             dists[count++] = forward < backward ? forward : backward;
         }
     } while (++i < 4);
-    fn_800246D4((int (*)(const void*, const void*))fn_3_13DA20, dists, dists, 4, count);
+    fn_800246D4((int (*)(const void*, const void*))ccsAI_compareDistF32, dists, dists, 4, count);
     return dist - dists[0];
 }
 
 // .text:0x0013D5E8 size:0x30 mapped:0x8077C67C
-int fn_3_13D5E8(f32* a, f32* b) {
+int ccsAI_compareTargetDist(f32* a, f32* b) {
     return 100.0f * *a - 100.0f * *b;
 }
 
 // .text:0x0013D578 size:0x70 mapped:0x8077C60C
-u8 fn_3_13D578(s8 player) {
+u8 ccsAI_isBehindInPoints(s8 player) {
     s8 i = 0;
 
     do {
@@ -1292,7 +1293,7 @@ u8 fn_3_13D578(s8 player) {
 }
 
 // .text:0x0013C7BC size:0xDBC mapped:0x8077B850
-void fn_3_13C7BC(void) {
+void ccsAI_update(void) {
     s8 i;
     s8 itemPos[15];
     CCSAITarget targets[15];
@@ -1306,7 +1307,7 @@ void fn_3_13C7BC(void) {
 
     i = 0;
     do {
-        g_Minigame.ccs_aiControlledInd[i] = 0;
+        g_Minigame.ccs_aiControlledInd[i] = FALSE;
     } while (++i < 4);
     p = 0;
     do {
@@ -1352,11 +1353,11 @@ void fn_3_13C7BC(void) {
         if (c < 0 || c >= 4 || !g_Minigame.playerSlots.aiControlledInd[i]) {
             continue;
         }
-        g_Minigame.ccs_aiControlledInd[c] = 1;
+        g_Minigame.ccs_aiControlledInd[c] = TRUE;
         memset(&g_Minigame.aiInputs[c], 0, sizeof(InputStruct));
         strength = g_Minigame.playerSlots.aiStrength[i];
         if ((ai->state < 10 || ai->state > 13) &&
-            (g_Minigame.ccs.chompState == 1 || g_Minigame.ccs._26 - g_Minigame.ccs.chompStateTimer <= ai->_0)) {
+            (g_Minigame.ccs.chompState == 1 || g_Minigame.ccs.chompWaitFrames - g_Minigame.ccs.chompStateTimer <= ai->evadeLeadFrames)) {
             ai->state = 10;
         }
         switch (ai->state) {
@@ -1365,63 +1366,63 @@ void fn_3_13C7BC(void) {
                 ai->state = 7;
                 break;
             }
-            if (ai->_4-- <= 0) {
+            if (ai->bPressDelay-- <= 0) {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_B;
-                ai->_4 = RandomInt_Game_Range(ccsAI_bPressDelayRanges[strength][0], ccsAI_bPressDelayRanges[strength][1]);
+                ai->bPressDelay = RandomInt_Game_Range(ccsAI_bPressDelayRanges[strength][0], ccsAI_bPressDelayRanges[strength][1]);
             }
-            if (ai->_7-- > 0) {
+            if (ai->decisionDelay-- > 0) {
                 break;
             }
-            ai->_7 = RandomInt_Game_Range(lbl_3_data_21944[strength][0], lbl_3_data_21944[strength][1]);
-            ai->_5 = 0;
+            ai->decisionDelay = RandomInt_Game_Range(ccsAI_decisionDelayRanges[strength][0], ccsAI_decisionDelayRanges[strength][1]);
+            ai->targetKind = 0;
             if (special >= 0) {
                 f32 forward;
                 f32 backward;
-                fn_3_13DC48(i, (f32)special / 10.0f, &forward, &backward);
+                ccsAI_getRunnerDists(i, (f32)special / 10.0f, &forward, &backward);
                 if (forward < backward) {
                     ai->state = 1;
                 } else if (forward > backward) {
                     ai->state = 4;
-                } else if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+                } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                     ai->state = RandomInt_Game(2) ? 1 : 4;
                 }
-                ai->_5 = 4;
+                ai->targetKind = 4;
             } else if (target >= 0) {
-                if (fn_3_13D618((f32)target / 10.0f, i, &direction) <= ccsAI_targetDistThresholds[strength]) {
+                if (ccsAI_getDistPastClosestRunner((f32)target / 10.0f, i, &direction) <= ccsAI_targetDistThresholds[strength]) {
                     if (direction == 1) {
                         ai->state = 1;
                     } else {
                         ai->state = 4;
                     }
-                    ai->_5 = 3;
+                    ai->targetKind = 3;
                 }
             }
-            if (ai->_5 == 0 && count != 0) {
+            if (ai->targetKind == 0 && count != 0) {
                 k = 0;
                 do {
                     targets[k].pos = itemPos[k];
-                    targets[k].dist = fn_3_13DA50((f32)targets[k].pos / 10.0f, i, &targets[k].direction);
+                    targets[k].dist = ccsAI_getShortestDist((f32)targets[k].pos / 10.0f, i, &targets[k].direction);
                 } while (++k < count);
-                fn_800246D4((int (*)(const void*, const void*))fn_3_13D5E8, targets, targets, sizeof(CCSAITarget), count);
+                fn_800246D4((int (*)(const void*, const void*))ccsAI_compareTargetDist, targets, targets, sizeof(CCSAITarget), count);
                 k = 0;
                 do {
-                    if (fn_3_13D618((f32)targets[k].pos / 10.0f, i, &direction) <= ccsAI_targetDistThresholds[strength]) {
+                    if (ccsAI_getDistPastClosestRunner((f32)targets[k].pos / 10.0f, i, &direction) <= ccsAI_targetDistThresholds[strength]) {
                         if (direction == 1) {
                             ai->state = 1;
                         } else {
                             ai->state = 4;
                         }
-                        ai->_5 = 2;
+                        ai->targetKind = 2;
                         break;
                     }
                 } while (++k < count);
             }
-            if (ai->_5 == 0 && (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2)) {
+            if (ai->targetKind == 0 && (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED)) {
                 ai->state = RandomInt_Game(2) ? 1 : 4;
             }
             break;
         case 1:
-            if (g_Runners[i].runningDirectionCode == 1 || g_Runners[i].nextDirectionBeingProcessed == 1) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS) {
                 ai->state = 0;
             } else {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
@@ -1436,7 +1437,7 @@ void fn_3_13C7BC(void) {
             ai->state = 0;
             break;
         case 4:
-            if (g_Runners[i].runningDirectionCode == 3 || g_Runners[i].nextDirectionBeingProcessed == 3) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS) {
                 ai->state = 0;
             } else {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
@@ -1451,15 +1452,15 @@ void fn_3_13C7BC(void) {
             ai->state = 0;
             break;
         case 7:
-            if (g_Runners[i].runningDirectionCode == 1) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
-            } else if (g_Runners[i].runningDirectionCode == 3) {
+            } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
             }
             ai->state = 8;
             break;
         case 8:
-            if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                 ai->state = 9;
             } else {
                 ai->state = 7;
@@ -1469,7 +1470,7 @@ void fn_3_13C7BC(void) {
             if (g_Minigame.ccs.chompStateTimer % 120 >= 96) {
                 if (RandomInt_Game(100) < lbl_3_data_2197C[strength]) {
                     int lap = g_Minigame.ccs.chompStateTimer / 120 + 2;
-                    int lastLap = g_Minigame.ccs._26 / 120 + 1;
+                    int lastLap = g_Minigame.ccs.chompWaitFrames / 120 + 1;
                     if (lap < lastLap) {
                         ai->_6 = RandomInt_Game_Range(lap, lastLap);
                     } else {
@@ -1482,46 +1483,46 @@ void fn_3_13C7BC(void) {
             }
             break;
         case 10:
-            if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                 ai->state = 13;
                 break;
             }
-            if (ai->_5 == 4) {
-                ai->_3 = RandomInt_Game_Range(lbl_3_data_21974[strength][0], lbl_3_data_21974[strength][1]);
+            if (ai->targetKind == 4) {
+                ai->dodgeDelay = RandomInt_Game_Range(ccsAI_dodgeDelayRangesSpecial[strength][0], ccsAI_dodgeDelayRangesSpecial[strength][1]);
             } else {
-                ai->_3 = RandomInt_Game_Range(lbl_3_data_2196C[strength][0], lbl_3_data_2196C[strength][1]);
+                ai->dodgeDelay = RandomInt_Game_Range(ccsAI_dodgeDelayRanges[strength][0], ccsAI_dodgeDelayRanges[strength][1]);
             }
             ai->state = 11;
         case 11:
-            if (ai->_3-- <= 0) {
-                if (g_Runners[i].runningDirectionCode == 1) {
+            if (ai->dodgeDelay-- <= 0) {
+                if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                     g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_X;
-                } else if (g_Runners[i].runningDirectionCode == 3) {
+                } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                     g_Minigame.aiInputs[c].buttonInput = g_Minigame.aiInputs[c].newButtonInput |= INPUT_BUTTON_Y;
                 }
                 ai->state = 12;
             }
             break;
         case 12:
-            if (g_Runners[i].runningDirectionCode == 2 || g_Runners[i].nextDirectionBeingProcessed == 2) {
+            if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_STOPPED || g_Runners[i].nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
                 ai->state = 13;
             } else {
-                ai->_3 = 1;
+                ai->dodgeDelay = 1;
                 ai->state = 11;
             }
             break;
         case 13:
             if (g_Minigame.ccs.chompState == 0 || g_Minigame.ccs.chompState == 4) {
-                if (fn_3_13D578(i) || g_Minigame.minigameFramesRemaining <= 1200) {
-                    ai->_0 = RandomInt_Game_Range(lbl_3_data_2195C[strength][0], lbl_3_data_2195C[strength][1]);
+                if (ccsAI_isBehindInPoints(i) || g_Minigame.minigameFramesRemaining <= 1200) {
+                    ai->evadeLeadFrames = RandomInt_Game_Range(ccsAI_evadeLeadRangesBehind[strength][0], ccsAI_evadeLeadRangesBehind[strength][1]);
                 } else {
-                    ai->_0 = RandomInt_Game_Range(lbl_3_data_2194C[strength][0], lbl_3_data_2194C[strength][1]);
+                    ai->evadeLeadFrames = RandomInt_Game_Range(ccsAI_evadeLeadRanges[strength][0], ccsAI_evadeLeadRanges[strength][1]);
                 }
                 if (RandomInt_Game(100) < lbl_3_data_2197C[strength]) {
-                    if (lbl_3_data_21980[strength] < g_Minigame.ccs._26 / 120 + 1) {
-                        ai->_6 = RandomInt_Game_Range(lbl_3_data_21980[strength], g_Minigame.ccs._26 / 120 + 1);
+                    if (lbl_3_data_21980[strength] < g_Minigame.ccs.chompWaitFrames / 120 + 1) {
+                        ai->_6 = RandomInt_Game_Range(lbl_3_data_21980[strength], g_Minigame.ccs.chompWaitFrames / 120 + 1);
                     } else {
-                        ai->_6 = g_Minigame.ccs._26 / 120 + 1;
+                        ai->_6 = g_Minigame.ccs.chompWaitFrames / 120 + 1;
                     }
                 } else {
                     ai->_6 = 0x7F;
@@ -1534,10 +1535,10 @@ void fn_3_13C7BC(void) {
 }
 
 // .text:0x0013C790 size:0x2C mapped:0x8077B824
-void fn_3_13C790(void) {
+void ccsAI_clearControlled(void) {
     s8 i = 0;
 
     do {
-        g_Minigame.ccs_aiControlledInd[i] = 0;
+        g_Minigame.ccs_aiControlledInd[i] = FALSE;
     } while (++i < 4);
 }

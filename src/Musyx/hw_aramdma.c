@@ -43,7 +43,7 @@ static STREAM_BUFFER *aramIdleStreamBuffers;
 
 static void InitStreamBuffers();
 
-static void aramQueueInit()
+static inline void aramQueueInit()
 {
   aramQueueLo.write = aramQueueLo.valid = 0;
   aramQueueHi.write = aramQueueHi.valid = 0;
@@ -56,7 +56,7 @@ static void aramQueueCallback(unsigned long ptr)
   ARAMTransferQueue *aramQueue; // r30
 
   arq = (ARQRequest *)ptr;
-  if (arq->priority == 1)
+  if (arq->priority == ARQ_PRIORITY_HIGH)
   {
     aramQueue = &aramQueueHi;
   }
@@ -90,8 +90,8 @@ void aramUploadData(void *mram, unsigned long aram, unsigned long len, unsigned 
     if (aramQueue->valid < 16)
     {
       aramQueue->queue[aramQueue->write].arq.owner = 42;
-      aramQueue->queue[aramQueue->write].arq.type = 0;
-      aramQueue->queue[aramQueue->write].arq.priority = highPrio != 0 ? 1 : 0;
+      aramQueue->queue[aramQueue->write].arq.type = ARQ_TYPE_MRAM_TO_ARAM;
+      aramQueue->queue[aramQueue->write].arq.priority = highPrio != 0 ? ARQ_PRIORITY_HIGH : ARQ_PRIORITY_LOW;
       aramQueue->queue[aramQueue->write].arq.source = (u32)mram;
       aramQueue->queue[aramQueue->write].arq.dest = aram;
       aramQueue->queue[aramQueue->write].arq.length = len;
@@ -183,32 +183,45 @@ size_t aramGetUserBytes(size_t addr)
   return addr - 0x500;
 }
 
-void *aramStoreData(void *src, unsigned long len)
+void *aramStoreData(void *src, unsigned long len, void *aramWrite)
 {
-  unsigned long addr=0;    // r26
-  void *buffer;          // r27
-  unsigned long blkSize; // r30
-  len = (len + 31) & ~31;
+  unsigned long addr;
+  unsigned long limit;
+  unsigned long blkSize;
+  void *buffer;
 
-  // addr = aramWrite;
+  len = (len + 31) & ~31;
+  addr = ((u32 *)aramWrite)[2];
+  if (((u32 *)aramWrite)[0] == ARGetBaseAddress() + 0x500)
+  {
+    limit = aramStream;
+  }
+  else
+  {
+    limit = ((u32 *)aramWrite)[1];
+  }
+  if (addr + len > limit)
+  {
+    return NULL;
+  }
+
   if (aramUploadCallback == NULL)
   {
-
     DCFlushRange(src, len);
-    // aramUploadData(src, aramWrite, len, 0, NULL, 0);
-    // aramWrite += len;
+    aramUploadData(src, addr, len, 0, NULL, 0);
+    ((u32 *)aramWrite)[2] += len;
     return (void *)addr;
   }
 
   while (len != 0)
   {
+    aramSyncTransferQueue();
     blkSize = len >= aramUploadChunkSize ? aramUploadChunkSize : len;
-    buffer = (void *)aramUploadCallback((u32)src, blkSize);
-
+    buffer = aramUploadCallback((u32)src, blkSize);
     DCFlushRange(buffer, blkSize);
-    // aramUploadData(buffer, aramWrite, blkSize, 0, NULL, 0);
+    aramUploadData(buffer, ((u32 *)aramWrite)[2], blkSize, 0, NULL, 0);
+    ((u32 *)aramWrite)[2] += blkSize;
     len -= blkSize;
-    // aramWrite += blkSize;
     src = (void *)((u32)src + blkSize);
   }
 

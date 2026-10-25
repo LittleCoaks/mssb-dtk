@@ -10,8 +10,7 @@
 #include "Dolphin/rand.h"
 #include "C3/control.h"
 #include "static/UnknownHomes_Static.h"
-#include "Unknown/File_0x800b4b38.h"
-#include "Unknown/File_0x800b4bc8.h"
+#include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x8005268c.h"
 #include "Unknown/File_0x80052734.h"
 #include "Unknown/File_0x800bda94.h"
@@ -21,7 +20,8 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800acf14.h"
 #include "game/sound/m_sound.h"
-#include "Unknown/File_0x800bd3ec.h"
+#include "C3/light/light.h"
+#include "Unknown/File_0x800bd478.h"
 
 // A display-list colour attribute: `formatBits >> 4` is the GXCompType colour format.
 typedef struct _ToyColorAttr {
@@ -1055,7 +1055,6 @@ void fn_3_E7A2C(StadiumObject* obj) {
 // .text:0x000E7B20 size:0xFA8 mapped:0x80726BB4
 E(u8, BOOL) fn_3_E7B20(void** files, u32* ids) {
     StadiumObject* o;
-    StadiumObject* last;
     u8 done = FALSE;
     int count = 0;
     u32 i;
@@ -1067,7 +1066,7 @@ E(u8, BOOL) fn_3_E7B20(void** files, u32* ids) {
     placedPropCount = 0;
     memset(lbl_3_bss_AE8C, 0xFF, sizeof(lbl_3_bss_AE8C));
     memset(stadiumObjectCollision.objects, 0, stadiumObjectCollision.objectCount * sizeof(StadiumObject));
-    o = last = stadiumObjectCollision.objects;
+    o = stadiumObjectCollision.objects;
     switch (g_Minigame.miniGameNumberOfParticipants) {
     case 2:
         toyPlacements = lbl_3_data_19024.layouts[0];
@@ -1091,7 +1090,6 @@ E(u8, BOOL) fn_3_E7B20(void** files, u32* ids) {
     }
 
     for (i = 0; i < 15; i++, o++, count++) {
-        last = o;
         if (toyPlacements[i].type == TOY_OBJ_END) {
             done = TRUE;
         }
@@ -1129,7 +1127,6 @@ E(u8, BOOL) fn_3_E7B20(void** files, u32* ids) {
     done = FALSE;
     firstHomeObj = count;
     for (i = 0; i < TOY_PROP_COUNT; i++, o++, count++) {
-        last = o;
         if (homeTypes[i].type == TOY_OBJ_END) {
             done = TRUE;
         }
@@ -1167,7 +1164,6 @@ E(u8, BOOL) fn_3_E7B20(void** files, u32* ids) {
     }
 
     for (i = TOY_PROP_SLOT; i < TOY_PROP_SLOT + TOY_PROP_COUNT; i++, o++, count++) {
-        last = o;
         ((ToyFieldObj*)o)->slot = count;
         ((ToyFieldObj*)o)->state = i;
         ((ToyFieldObj*)o)->extraModel = (ToyModel*)(TOY_ANIM_TABLE + 0xE44);
@@ -1189,71 +1185,73 @@ E(u8, BOOL) fn_3_E7B20(void** files, u32* ids) {
         fn_3_E7A2C(o);
     }
 
-    ((ToyFieldObj*)&last[1])->slot = count;
-    ((ToyFieldObj*)&last[1])->state = 0x17;
-    last[1].model = (StadiumModel*)(TOY_ANIM_TABLE + 0xED4);
-    last[1].triangles = NULL;
-    last[1].hasShadow = 1;
-    last[1]._90b1 = 0;
-    ((Control*)&last[1])->type = 0;
-    CTRLSetTranslation((Control*)&last[1], 0.0f, 0.0f, 0.0f);
-    last[1].fadeByDepth = 0;
-    last[1].alpha = 0xFF;
-    last[1].effect = NULL;
-    last[1].animActive = 0;
-    last[1].animIndex = -1;
-    last[1].drawPass = 1;
-    fn_3_E7A2C(&last[1]);
+    ((ToyFieldObj*)o)->slot = count;
+    ((ToyFieldObj*)o)->state = 0x17;
+    o->model = (StadiumModel*)(TOY_ANIM_TABLE + 0xED4);
+    o->triangles = NULL;
+    o->hasShadow = 1;
+    o->_90b1 = 0;
+    ((Control*)o)->type = 0;
+    CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+    o->fadeByDepth = 0;
+    o->alpha = 0xFF;
+    o->effect = NULL;
+    o->animActive = 0;
+    o->animIndex = -1;
+    o->drawPass = 1;
+    fn_3_E7A2C(o);
+    o++;
 
-    ((ToyFieldObj*)&last[2])->slot = count + 1;
-    ((ToyFieldObj*)&last[2])->state = 0x18;
-    last[2].model = (StadiumModel*)(TOY_ANIM_TABLE + 0xF64);
-    last[2].triangles = NULL;
-    last[2].hasShadow = 1;
-    last[2]._90b1 = 0;
-    ((Control*)&last[2])->type = 0;
-    CTRLSetTranslation((Control*)&last[2], 0.0f, 0.0f, 0.0f);
-    last[2].fadeByDepth = 0;
-    last[2].alpha = 0xFF;
-    last[2].effect = NULL;
-    last[2].animActive = 0;
-    last[2].animIndex = -1;
-    last[2].drawPass = 1;
-    fn_3_E7A2C(&last[2]);
+    ((ToyFieldObj*)o)->slot = count + 1;
+    ((ToyFieldObj*)o)->state = 0x18;
+    o->model = (StadiumModel*)(TOY_ANIM_TABLE + 0xF64);
+    o->triangles = NULL;
+    o->hasShadow = 1;
+    o->_90b1 = 0;
+    ((Control*)o)->type = 0;
+    CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+    o->fadeByDepth = 0;
+    o->alpha = 0xFF;
+    o->effect = NULL;
+    o->animActive = 0;
+    o->animIndex = -1;
+    o->drawPass = 1;
+    fn_3_E7A2C(o);
+    o++;
 
-    ((ToyFieldObj*)&last[3])->slot = count + 2;
-    ((ToyFieldObj*)&last[3])->state = 0x1A;
-    last[3].model = (StadiumModel*)(TOY_ANIM_TABLE + 0xFF4);
-    last[3].triangles = NULL;
-    last[3].hasShadow = 1;
-    last[3]._90b1 = 0;
-    ((Control*)&last[3])->type = 0;
-    CTRLSetTranslation((Control*)&last[3], 0.0f, 0.0f, 0.0f);
-    last[3].fadeByDepth = 0;
-    last[3].alpha = 0xFF;
-    last[3].effect = NULL;
-    last[3].animActive = 0;
-    last[3].animIndex = -1;
-    last[3].drawPass = 0;
-    fn_3_E7A2C(&last[3]);
+    ((ToyFieldObj*)o)->slot = count + 2;
+    ((ToyFieldObj*)o)->state = 0x1A;
+    o->model = (StadiumModel*)(TOY_ANIM_TABLE + 0xFF4);
+    o->triangles = NULL;
+    o->hasShadow = 1;
+    o->_90b1 = 0;
+    ((Control*)o)->type = 0;
+    CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+    o->fadeByDepth = 0;
+    o->alpha = 0xFF;
+    o->effect = NULL;
+    o->animActive = 0;
+    o->animIndex = -1;
+    o->drawPass = 0;
+    fn_3_E7A2C(o);
+    o++;
 
-    ((ToyFieldObj*)&last[4])->slot = count + 3;
-    ((ToyFieldObj*)&last[4])->state = 0x19;
-    last[4].model = (StadiumModel*)(TOY_ANIM_TABLE + 0x1084);
-    last[4].triangles = NULL;
-    last[4].hasShadow = 1;
-    last[4]._90b1 = 0;
-    ((Control*)&last[4])->type = 0;
-    CTRLSetTranslation((Control*)&last[4], 0.0f, 0.0f, 0.0f);
-    last[4].fadeByDepth = 0;
-    last[4].alpha = 0xFF;
-    last[4].effect = NULL;
-    last[4].animActive = 0;
-    last[4].animIndex = -1;
-    last[4].drawPass = 1;
-    fn_3_E7A2C(&last[4]);
-
-    o = last + 5;
+    ((ToyFieldObj*)o)->slot = count + 3;
+    ((ToyFieldObj*)o)->state = 0x19;
+    o->model = (StadiumModel*)(TOY_ANIM_TABLE + 0x1084);
+    o->triangles = NULL;
+    o->hasShadow = 1;
+    o->_90b1 = 0;
+    ((Control*)o)->type = 0;
+    CTRLSetTranslation((Control*)o, 0.0f, 0.0f, 0.0f);
+    o->fadeByDepth = 0;
+    o->alpha = 0xFF;
+    o->effect = NULL;
+    o->animActive = 0;
+    o->animIndex = -1;
+    o->drawPass = 1;
+    fn_3_E7A2C(o);
+    o++;
     for (n = count + 4; n < stadiumObjectCollision.objectCount; n++, o++) {
         ((ToyFieldObj*)o)->state = TOY_OBJ_END;
         o->model = NULL;

@@ -2,11 +2,13 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_starDash
 #define g_Minigame g_Minigame_shared
 #include "game/minigame/star_dash.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/match_loading.h"
 #include "game/match_setup/roster_init.h"
 #include "game/match_setup/scene_skip.h"
@@ -20,9 +22,7 @@
 #include "game/stadium/sta_c1.h"
 #include "Unknown/File_0x8004c094.h"
 #include "Unknown/File_0x800204cc.h"
-#include "Unknown/File_0x800348c8.h"
-#include "Unknown/File_0x80034220.h"
-#include "Unknown/File_0x8003452c.h"
+#include "Unknown/particle_effects.h"
 #include "Unknown/sub.h"
 #include "static/UnknownHomes_Static.h"
 #include "Dolphin/gx.h"
@@ -35,6 +35,13 @@
 #include "Unknown/File_0x800acf14.h"
 #include "musyx/musyx.h"
 #undef g_Minigame
+
+/* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
+ * __fabs intrinsic, which allocates registers differently. */
+#undef fabs
+static inline f64 fabs(f64 x) {
+    return __fabs(x);
+}
 
 extern u8 lbl_80366158[0x30];
 #define PauseSimulation lbl_80366158[0x28]
@@ -57,13 +64,13 @@ extern VecXZ base_MoundCoordinates[5];
 extern f32 sD_stunPushFactors[2];
 extern VecXZ sD_fielderStartPositions[4];
 extern void fn_800115C8(s8 player);
-extern void fn_3_14E988(int player);
-extern void fn_3_150010(s8 player);
-extern void fn_3_169600(void);
+extern void starDash_stopSparks(int player);
+extern void starDash_startSparks(s8 player);
+extern void kinoko_initPulseTextures(void);
 extern void fn_3_106EB0(void);
 extern void minigameQueueHudEvent(int a, int b);
-extern void fn_3_14E894(void);
-extern void fn_3_157570(void);
+extern void starDash_stopAllSparks(void);
+extern void minigameTrail_finish(void);
 extern void fn_80011578(void);
 extern void fn_80011604(void* model, void (*cb)(void*, GXTevStageID*, GXTexCoordID*, GXTexMapID*, s8*, s8*));
 extern u8 lbl_800EFBA4[0x10];
@@ -72,12 +79,10 @@ extern u8 minigameIntroFrames[2];
 extern u8 minigameAIStrengthTable[8][5];
 extern u8 sD_timeLimitSeconds[5];
 extern BOOL checkForPauses(void);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
-extern s16 lbl_3_common_bss_37400[];
 extern f32 lbl_3_data_21A14[6];
 extern s16 sD_starTimings[6];
-extern void fn_3_1695A4(s8 charID, u8 alt);
-extern void fn_3_16C394(s8 charID);
+extern void kinoko_startPulseGlow(s8 charID, u8 alt);
+extern void kinoko_startRibbon(s8 charID);
 extern f32 sD_powerupConsts[6];
 extern f32 lbl_3_data_21A64[9];
 extern s16 lbl_3_data_21A04[8];
@@ -94,8 +99,8 @@ extern f32 sD_aiHolderChaseRadii[4];
 extern f32 sD_aiThwompAvoidRadii[4];
 extern f32 sD_aiPowerup1Radii[4];
 extern f32 sD_aiCoinBagRadii[4];
-extern void fn_3_156548(int index, f32 x, f32 y, f32 z);
-extern void fn_3_15730C(int index, f32 x, f32 y, f32 z);
+extern void starDash_drawFireBarTrail(int index, f32 x, f32 y, f32 z);
+extern void minigameTrail_setPoint(int index, f32 x, f32 y, f32 z);
 
 typedef struct {
     f32 nx;
@@ -371,7 +376,7 @@ void sD_LoadGame(void) {
         g_Minigame.powerup.activeInd = 0;
         g_Minigame.playerIDWithPowerup[0] = -1;
         sD_InitPulseTexture();
-        fn_3_169600();
+        kinoko_initPulseTextures();
         minigamesSetSomePointers();
         minigamesGXStuff();
         minigamesSetSomePointers2();
@@ -414,7 +419,7 @@ void sD_StartPlay(void) {
 void sD_Postgame(void) {
     u32 i;
 
-    fn_3_157570();
+    minigameTrail_finish();
     minigameCalculateRankings();
     SetGameStatus(GAME_STATUS_MVP_END_GAME);
     fn_80011578();
@@ -469,7 +474,7 @@ void sD_UpdateTimeUp(void) {
     if (g_Minigame.turnOverStatus == 1) {
         g_Minigame.turnOverStatus = 2;
         g_GameLogic.CountdownUntilFade = lbl_3_data_21B20[0];
-        fn_3_14E894();
+        starDash_stopAllSparks();
     }
     if (--g_GameLogic.CountdownUntilFade == 7) {
         changeScene(3, 6);
@@ -554,7 +559,7 @@ void sD_UpdateStarAndHolder(void) {
     }
     if ((s8)g_Minigame.starDashStarHolder >= 0) {
         if (--SD.holderFrames < 0 || g_Minigame.turnOverStatus != 0) {
-            fn_3_14E988(g_Minigame.starDashStarHolder);
+            starDash_stopSparks(g_Minigame.starDashStarHolder);
             fn_800115C8(SD.holder);
             SD.holder = -1;
         }
@@ -573,7 +578,7 @@ void sD_UpdateStarSpawn(void) {
             SD.starActive = TRUE;
             SD.starFrames = 0;
             SD.starSpawnTimer = sD_starTimings[2];
-            fn_3_150010(4);
+            starDash_startSparks(4);
             fn_3_106EB0();
         }
     }
@@ -623,7 +628,7 @@ void sD_UpdateStar(void) {
         SD.starActive = FALSE;
     } else if (SD.starFrames > sD_starTimings[0]) {
         SD.starActive = FALSE;
-        fn_3_14E988(4);
+        starDash_stopSparks(4);
     } else {
         probe.src.x = SD.starPos.x;
         probe.src.y = -(lbl_3_data_21A14[2] * 0.5f);
@@ -670,17 +675,17 @@ void sD_UpdateStar(void) {
             SD.starActive = FALSE;
             g_Minigame.starDashStarHolder = best;
             SD.holderFrames = sD_starTimings[1];
-            fn_3_14E988(4);
+            starDash_stopSparks(4);
             if (g_Minigame.playerIDWithPowerup[0] == best) {
                 fn_800115C8(best);
                 if (SD.factor == &sD_powerupConsts[5]) {
                     g_Minigame.playerIDWithPowerup[0] = -1;
                 }
             }
-            fn_3_150010(best);
+            starDash_startSparks(best);
             fn_80011604((void*)(s32)(s8)best, sD_PulseTevCallback);
-            if (g_d_GameSettings.exhibitionMatchInd == 0 && best == lbl_3_common_bss_37400[0x20]) {
-                starMissionsMinigamesSpecialAction(3, 0, 0);
+            if (g_d_GameSettings.exhibitionMatchInd == 0 && best == scoutState.humanTeam) {
+                starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_CHAIN_CHOMP_SPRINT, 0, 0);
             }
         }
     }
@@ -1638,17 +1643,17 @@ void sD_UpdateLoosePowerup(MinigamePowerupStruct* powerup) {
         g_Minigame.powerupHoldFrames = sD_powerupTimers[2];
         if (g_Minigame.powerup.activeInd == 2) {
             if ((s8)g_Minigame.starDashStarHolder == best) {
-                fn_3_14E988(g_Minigame.starDashStarHolder);
+                starDash_stopSparks(g_Minigame.starDashStarHolder);
                 fn_800115C8(best);
                 SD.holder = -1;
             }
             SD.factor = &sD_powerupConsts[5];
             callSfx(0x2F5);
-            fn_3_1695A4(best, 0);
+            kinoko_startPulseGlow(best, 0);
         } else {
             SD.factor = &sD_powerupConsts[4];
             callSfx(0x2F6);
-            fn_3_16C394(best);
+            kinoko_startRibbon(best);
         }
         powerup->activeInd = 0;
         powerup->timer = sD_powerupTimers[0];
@@ -1890,9 +1895,9 @@ void sD_UpdateFireBars(void) {
             } else {
                 d -= stepLen;
                 if (SD.fireBarFlame[idx].active) {
-                    fn_3_156548(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
+                    starDash_drawFireBarTrail(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
                 } else {
-                    fn_3_15730C(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
+                    minigameTrail_setPoint(idx, SD.fireBarFlame[idx].pos.x, -SD.fireBarFlame[idx].pos.y, SD.fireBarFlame[idx].pos.z);
                     SD.fireBarFlame[idx].active = TRUE;
                 }
             }
@@ -2207,7 +2212,7 @@ u32 sD_SegmentHitsCircle(f32 cx, f32 cz, f32 radius, f32 ax, f32 az, f32 bx, f32
 }
 
 // .text:0x00134C80 size:0xCC mapped:0x80773D14
-BOOL sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z) {
+u32 sD_AIPathBlocked(u32 player, int a, u32 b, f32 x, f32 z) {
     if (g_Minigame.starDashFireBarPhase != 0 && player != (s8)g_Minigame.starDashStarHolder) {
         if (b == ((a + 1) & 3) || b == ((a + 2) & 3)) {
             return TRUE;
@@ -2411,7 +2416,10 @@ void sD_UpdateAI(void) {
     s8 k;
 
     list = _OSAllocFromHeap(4, 1000);
-    sD_ClearAIInputFlags();
+    i = 0;
+    do {
+        g_Minigame.aiDrivenInputInd[i] = 0;
+    } while (++i < 4);
     st->rotSin = sin(-shortAngleF32ToRad(SD.fireBarAngle[0]));
     st->rotCos = cos(-shortAngleF32ToRad(SD.fireBarAngle[0]));
     if (SD.starActive != 0) {

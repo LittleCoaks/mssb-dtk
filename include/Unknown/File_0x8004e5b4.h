@@ -2,6 +2,7 @@
 #define __UNKNOWN_FILE_0X8004E5B4_H_
 
 #include "mssbTypes.h"
+#include "game/challenge/star_mission_data.h"
 
 #define CHAR_SELECT_GRID_SLOTS 0x24
 
@@ -16,7 +17,6 @@ typedef struct CharSelectState {
 } CharSelectState; // size 0x94
 
 extern CharSelectState charSelectStruct;
-extern u8 characterStaticIndexes[0x144];
 
 void add_or_RemoveCharToATeam(int team, int charID, BOOL add);
 

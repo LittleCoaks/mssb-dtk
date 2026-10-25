@@ -2,6 +2,8 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_piranhaPanic
 #define g_Minigame g_Minigame_shared
 #include "game/minigame/piranha_panic.h"
+#include "game/challenge/star_missions.h"
+#include "game/challenge/scout_state.h"
 #include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
@@ -9,13 +11,11 @@
 #include "game/math/game_math.h"
 #include "game/sound/m_sound.h"
 #include "game/match_setup/scene_skip.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_main.h"
 #include "game/match_setup/roster_init.h"
 #include "game/match_setup/match_loading.h"
 #include "game/fielding/fielder.h"
-#include "Unknown/File_0x8003452c.h"
-#include "Unknown/File_0x80034220.h"
-#include "Unknown/File_0x800348c8.h"
+#include "Unknown/particle_effects.h"
 #include "musyx/musyx.h"
 #include "game/minigame/toy_field.h"
 #include "Dolphin/gx.h"
@@ -60,18 +60,16 @@ extern u8 minigameAIStrengthTable[8][5];
 extern u8 pP_timeLimitSeconds[8];
 extern BOOL checkForPauses(void);
 extern void minigameQueueHudEvent(int a, int b);
-extern void fn_3_157570(void);
-extern void fn_3_157588(int arg);
-extern void fn_3_154214(void);
+extern void minigameTrail_finish(void);
+extern void minigameTrail_alloc(int arg);
+extern void bobOmbFuseSpark_stopFollow(void);
 extern void fn_800B993C(void);
 extern void fn_800B9948(void* callback);
-extern void fn_3_15730C(int index, f32 x, f32 y, f32 z);
-extern void fn_3_1573AC(int arg);
-extern void fn_3_147CFC(VecXYZ* pos);
-extern void fn_3_154238(s16 index);
+extern void minigameTrail_setPoint(int index, f32 x, f32 y, f32 z);
+extern void piranhaPanic_emitFielderHitFire(int arg);
+extern void piranhaPanic_spawnBombExplosion(VecXYZ* pos);
+extern void bobOmbFuseSpark_removeFollow(s16 index);
 extern void fn_80062BE4(Vec* pos);
-extern void starMissionsMinigamesSpecialAction(int missionType, int points, int barrelsHit);
-extern s16 lbl_3_common_bss_37400[0x27];
 extern u8 hugeAnimStruct[0x3154];
 extern VecXYZ pP_goalBallPositions[4][3];
 extern u8 lbl_3_data_21E20[3];
@@ -301,7 +299,7 @@ void pP_LoadGame(void) {
         for (j = 0; j < PP_OBJECT_COUNT; j++) {
             PP_OBJECT(j)->state = 0;
         }
-        fn_3_157588(0x28);
+        minigameTrail_alloc(0x28);
         g_GameLogic._125++;
     } else {
         SetGameStatus(GAME_STATUS_GAME_START_MOVIE);
@@ -386,7 +384,7 @@ void pP_UpdateTimeUp(void) {
 void pP_Postgame(void) {
     u32 i;
 
-    fn_3_157570();
+    minigameTrail_finish();
     minigameCalculateRankings();
     if (g_Minigame.soloMinigameDifficulty <= MINIGAME_DIFFICULTY_MULTIPLAYER_CHALLENGE_HARD && g_Minigame.multiPlayerInd == 0) {
         if (PP._18E8[(s8)g_Minigame.soloPlayerSlot] == 1 && g_Minigame.challenge_minigame_haven_tWonYetIndicator == 0) {
@@ -407,7 +405,7 @@ void pP_Postgame(void) {
         PP_SPAWNER(i)->_1C = 1;
         PP_SPAWNER(i)->isBig = 0;
     }
-    fn_3_154214();
+    bobOmbFuseSpark_stopFollow();
 }
 
 // .text:0x00145EB8 size:0x13C mapped:0x80784F4C
@@ -522,9 +520,9 @@ void pP_UpdateThrownBall(int p) {
             PP_BALL_VEL(p).z *= pP_ballPhysicsConsts[12];
         } else if (PP.ballFrames[p] >= lbl_3_data_21E68[23]) {
             s8 owner = -1 - PP.ballTarget[p];
-            fn_3_147CFC(&PP_BALL_POS(p));
+            piranhaPanic_spawnBombExplosion(&PP_BALL_POS(p));
             callSfx(0x309);
-            fn_3_154238(p);
+            bobOmbFuseSpark_removeFollow(p);
             if (PP.playerState[owner] == 0 && PP.hitState[owner] == 0) {
                 InMemFielder* fielder = &g_Fielders[(s8)PP.fielderIndex[owner]];
                 Vec dir;
@@ -558,7 +556,7 @@ void pP_UpdateThrownBall(int p) {
         PP.ballState[p] = 0;
         PP.ballFrames[p] = 0;
         if (PP.ballKind[p] == 5) {
-            fn_3_154238(p);
+            bobOmbFuseSpark_removeFollow(p);
         }
         return;
     }
@@ -579,8 +577,8 @@ void pP_UpdateThrownBall(int p) {
                     memcpy(&hitPos, &PP_BALL_POS(p), sizeof(VecXYZ));
                     hitPos.y *= -1.0f;
                     if (PP.ballKind[p] == 5) {
-                        fn_3_147CFC(&hitPos);
-                        fn_3_154238(p);
+                        piranhaPanic_spawnBombExplosion(&hitPos);
+                        bobOmbFuseSpark_removeFollow(p);
                     } else {
                         fn_80062BE4((Vec*)&hitPos);
                     }
@@ -617,8 +615,8 @@ void pP_UpdateThrownBall(int p) {
                         sp->_1A = 0;
                         sp->mode = 4;
                         PP.holeUsed[sp->kind] = 0;
-                        if (!g_d_GameSettings.exhibitionMatchInd && player == lbl_3_common_bss_37400[0x20]) {
-                            starMissionsMinigamesSpecialAction(5, sp->kind, 0);
+                        if (!g_d_GameSettings.exhibitionMatchInd && player == scoutState.humanTeam) {
+                            starMissionsMinigamesSpecialAction(STAR_MISSION_MINIGAME_EVENT_PIRANHA_PANIC, sp->kind, 0);
                         }
                     }
                     sp->_1E = 1;
@@ -650,7 +648,7 @@ void pP_UpdateThrownBall(int p) {
         PP.ballState[p] = 0;
         PP.ballFrames[p] = 0;
         if (PP.ballKind[p] == 5) {
-            fn_3_154238(p);
+            bobOmbFuseSpark_removeFollow(p);
         }
     }
 }
@@ -727,7 +725,7 @@ void pP_UpdatePlayers(void) {
                 fielder->pos.z = fielder->zMovementDir * pP_ballPhysicsConsts[14] + fielder->pos.z;
                 fielder->currentVelocity -= pP_ballPhysicsConsts[16];
             }
-            fn_3_1573AC(*(int*)(hugeAnimStruct + 0x2C50 + i * 4));
+            piranhaPanic_emitFielderHitFire(*(int*)(hugeAnimStruct + 0x2C50 + i * 4));
         } else if (PP.hitState[i] == 2) {
             if (g_Minigame.turnOverStatus != 0) {
                 continue;
@@ -1323,7 +1321,7 @@ void pP_SpawnProjectile(int arg, int owner) {
         obj->state = 1;
         obj->_20 = 0;
         obj->_1C = owner;
-        fn_3_15730C(j, obj->pos.x, -obj->pos.y, obj->pos.z);
+        minigameTrail_setPoint(j, obj->pos.x, -obj->pos.y, obj->pos.z);
     }
 }
 
@@ -1370,7 +1368,7 @@ void pP_SpawnLobbedProjectile(int idx) {
         obj->_18 = 0.0f;
         obj->state = 2;
         obj->_20 = 0;
-        fn_3_15730C(j, obj->pos.x, -obj->pos.y, obj->pos.z);
+        minigameTrail_setPoint(j, obj->pos.x, -obj->pos.y, obj->pos.z);
     }
 }
 

@@ -69,5 +69,6 @@ void randCharacter1(s32 port);
 void randCharAlgo2(s32 port);
 void starHitSetting_Unused_maybe(s32 team);
 void characterSelectControls(u16 team);
+void teamSelectScreenMain(void);
 
 #endif // !__MENUS_TEXT_0323C_H_

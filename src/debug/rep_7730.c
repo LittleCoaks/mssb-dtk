@@ -22,7 +22,7 @@
 #include "Dolphin/GX/GXPixel.h"
 #include "stl/mem.h"
 #include "Dolphin/rand.h"
-#include "text/text_channel.h"
+#include "text/text.h"
 #include "Unknown/File_0x800363d8.h"
 #include "Unknown/File_0x80034e20.h"
 

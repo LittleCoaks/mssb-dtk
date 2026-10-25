@@ -106,9 +106,7 @@ void __mtfsb1(int);
 f64 __setflm(f64);
 
 #define FABS(x) (f32) __fabs(x)
-/* An inline function as in MSL, not a macro: the inlined call changes stack-temp
- * and FPR allocation (rep_74A0 fn_1_1857C, star_dash). */
-inline f64 fabs(f64 x) { return __fabs(x); }
+#define fabs(x) __fabs(x)
 
 inline f128 fabsl(f128 x) { return __fabs((f64)x); }
 inline f32 fabsf(f32 x) { return __fabsf(x); }

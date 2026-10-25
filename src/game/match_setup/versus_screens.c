@@ -1,5 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/versus_screens.h"
+#include "game/challenge/scout_state.h"
+#include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 
 #include "game/UnknownHomes_Game.h"
@@ -12,6 +14,7 @@
 #include "game/baserunning/runner.h"
 #include "game/fielding/fielder.h"
 #include "game/match_setup/ai_defaults.h"
+#include "game/animation/animation_init.h"
 #include "game/math/game_math.h"
 #include "Dolphin/mtx.h"
 #include "stl/math.h"
@@ -28,7 +31,7 @@ extern void fn_8001D074(int index, int enable);
 extern void resetAndRunAnimations(int arg);
 extern void fn_3_8C104(int arg);
 extern int fn_3_6B4C8(void);
-extern void fn_3_147DFC(void);
+extern void minigameWinnerStars_stop(void);
 extern void fn_3_FBD70(void);
 extern void fn_3_FBD58(void);
 extern void fn_3_21AA8(void);
@@ -41,20 +44,7 @@ extern BOOL decideScoutFlagMission(void);
 extern s8 lbl_803C6CF8[0x708];
 extern u8 lbl_8037169C[0x1C];
 extern u8 animRelated[0x124];
-extern u8 characterStaticIndexes[0x144];
 extern s16 lbl_3_data_7F7C[][4];
-typedef struct VsScoutMission {
-    /*0x00*/ u8 _00[0xD];
-    /*0x0D*/ s8 starMission;
-    /*0x0E*/ u8 _0E;
-} VsScoutMission; // size: 0xF
-
-extern VsScoutMission scoutMissionTable[13];
-
-extern s32 lbl_3_data_1F74[VS_SITUATION_COUNT];
-extern s32 lbl_3_data_2368[6];
-extern s32 lbl_3_data_2380[6];
-extern s32 homerun_cameraSceneIDs[CHARACTER_COUNT];
 
 // One evaluated vsSituations row: the game state it requires (-1 = don't care) and the flags it
 // records once chosen.
@@ -77,23 +67,218 @@ typedef struct VsSituation {
     /*0x3C*/ s32 _3C;
 } VsSituation; // size: 0x40
 
-extern VsSituation vsSituations[VS_SITUATION_COUNT];
+AnimSetupEntry lbl_3_data_1D28[18] = {
+    { {0.0f, 0.0f, 15.0f}, 0.0f, 2, 0, 0, 0, 1, 0, 0, 0, {0, 0} },
+    { {0.0f, 0.0f, -3.0f}, 0.0f, 2, 0, 1, 0, 1, 0, 0, 0, {0, 0} },
+    { {2e+01f, 0.0f, 25.0f}, 0.6f, 2, 0, 2, 0, 1, 0, 0, 0, {0, 0} },
+    { {12.0f, 0.0f, 4e+01f}, 0.0f, 2, 0, 3, 0, 1, 0, 0, 0, {0, 0} },
+    { {-2e+01f, 0.0f, 25.0f}, -0.6f, 2, 0, 4, 0, 1, 0, 0, 0, {0, 0} },
+    { {-12.0f, 0.0f, 4e+01f}, 0.0f, 2, 0, 5, 0, 1, 0, 0, 0, {0, 0} },
+    { {-4e+01f, 0.0f, 67.0f}, 0.0f, 2, 0, 6, 0, 1, 0, 0, 0, {0, 0} },
+    { {0.0f, 0.0f, 85.0f}, 0.0f, 2, 0, 7, 0, 1, 0, 0, 0, {0, 0} },
+    { {4e+01f, 0.0f, 67.0f}, 0.0f, 2, 0, 8, 0, 1, 0, 0, 0, {0, 0} },
+    { {-0.0f, 0.0f, 0.6f}, -0.85f, 59, 0, 9, 2, 1, 0, 0, 0, {0, 0} },
+    { {0.15f, 0.0f, 0.3f}, -0.85f, 60, 40, 9, 2, 1, 0, 0, 0, {0, 0} },
+    { {0.1f, 0.0f, 0.5f}, -0.85f, 60, 0, 9, 2, 1, 0, 0, 0, {0, 0} },
+    { {0.0f, -0.09f, 16.8f}, 0.0f, 69, 0, 0, 0, 1, 0, 0, 0, {0, 0} },
+    { {0.0f, -0.09f, 16.8f}, 0.0f, 69, 0, 0, 0, 1, 0, 0, 0, {0, 0} },
+    { {-1.2f, 0.0f, -2.2f}, -2.9f, 69, 0, 1, 0, 1, 0, 0, 0, {0, 0} },
+    { {-1.2f, 0.0f, -2.2f}, -2.9f, 69, 0, 1, 0, 1, 0, 0, 0, {0, 0} },
+    { {0.0f, 0.0f, 0.0f}, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0} },
+    { {0.0f, 0.0f, 0.0f}, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0} }
+};
 
-// The block of .data that starts at lbl_3_data_1D28, seen as one object.
-typedef struct VsData {
-    /*0x000*/ u8 _000[0x228];
-    /*0x228*/ s8 situationLocked[0x24];
-    /*0x24C*/ u8 _24C[0x2D0 - 0x24C];
-    /*0x2D0*/ s32 homeRunCameraSceneIDs0[CHARACTER_COUNT];
-    /*0x3AC*/ s32 homeRunCameraSceneIDs1[CHARACTER_COUNT];
-    /*0x488*/ s32 homeRunCameraSceneIDs2[CHARACTER_COUNT];
-    /*0x564*/ s32 homeRunCameraSceneIDs3[CHARACTER_COUNT];
-    /*0x640*/ u8 _640[0x670 - 0x640];
-    /*0x670*/ VsSituation situations[VS_SITUATION_COUNT];
-    /*0xEB0*/ u8 matchupTable[CHARACTER_COUNT][CHARACTER_COUNT];
-} VsData;
+u8 lbl_3_data_1F20[8] = {18, 23, 11, 14, 10, 254, 0, 0};
 
-extern VsData lbl_3_data_1D28;
+u8 lbl_3_data_1F28[8] = {18, 24, 11, 14, 16, 254, 0, 0};
+
+u8 lbl_3_data_1F30[8] = {18, 26, 12, 15, 17, 2, 9, 254};
+
+u8 lbl_3_data_1F38[8] = {18, 25, 13, 14, 17, 4, 10, 254};
+
+u8 *lbl_3_data_1F40[4] = {
+    lbl_3_data_1F20, lbl_3_data_1F28, lbl_3_data_1F30, lbl_3_data_1F38,
+};
+
+s8 lbl_3_data_1F50[VS_SITUATION_COUNT] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1,
+};
+
+s32 lbl_3_data_1F74[VS_SITUATION_COUNT] = {
+    85, 86, 87, 88, 85, 86, 87, 88,
+    89, 85, 86, 87, 88, 89, 91, 92,
+    93, 94, 91, 92, 93, 94, 96, 91,
+    92, 93, 94, 96, 96, 90, 90, 96,
+    96,
+};
+
+s32 homerun_cameraSceneIDs[CHARACTER_COUNT] = {
+    79, 79, 79, 79, 79, 79, 79, 79,
+    79, 79, 79, 79, 79, 79, 79, 79,
+    79, 79, 79, 79, 79, 79, 79, 79,
+    79, 79, 79, 79, 79, 79, 79, 79,
+    79, 79, 79, 79, 79, 79, 79, 79,
+    79, 79, 79, 79, 79, 79, 79, 79,
+    79, 79, 79, 79, 79, 79, 79,
+};
+
+s32 lbl_3_data_20D4[CHARACTER_COUNT] = {
+    82, 82, 82, 82, 82, 82, 82, 82,
+    82, 82, 82, 82, 82, 82, 82, 82,
+    82, 82, 82, 82, 82, 82, 82, 82,
+    82, 82, 82, 82, 82, 82, 82, 82,
+    82, 82, 82, 82, 82, 82, 82, 82,
+    82, 82, 82, 82, 82, 82, 82, 82,
+    82, 82, 82, 82, 82, 82, 82,
+};
+
+s32 lbl_3_data_21B0[CHARACTER_COUNT] = {
+    83, 83, 83, 83, 83, 83, 83, 83,
+    83, 83, 83, 83, 83, 83, 83, 83,
+    83, 83, 83, 83, 83, 83, 83, 83,
+    83, 83, 83, 83, 83, 83, 83, 83,
+    83, 83, 83, 83, 83, 83, 83, 83,
+    83, 83, 83, 83, 83, 83, 83, 83,
+    83, 83, 83, 83, 83, 83, 83,
+};
+
+s32 lbl_3_data_228C[CHARACTER_COUNT] = {
+    84, 84, 84, 84, 84, 84, 84, 84,
+    84, 84, 84, 84, 84, 84, 84, 84,
+    84, 84, 84, 84, 84, 84, 84, 84,
+    84, 84, 84, 84, 84, 84, 84, 84,
+    84, 84, 84, 84, 84, 84, 84, 84,
+    84, 84, 84, 84, 84, 84, 84, 84,
+    84, 84, 84, 84, 84, 84, 84,
+};
+
+s32 lbl_3_data_2368[6] = {101, 101, 101, 101, 101, 101};
+
+s32 lbl_3_data_2380[6] = {102, 102, 102, 102, 102, 102};
+
+VsSituation vsSituations[VS_SITUATION_COUNT] = {
+    { 1, -1, -1, -1, 1, 0, -1, -1, -1, 0, 1, -1, 96, 0, 0, 0 },
+    { 1, -1, -1, -1, 0, 1, -1, -1, -1, 0, 1, -1, 97, 0, 0, 0 },
+    { 1, -1, -1, 0, 1, 1, -1, -1, -1, 0, 1, -1, 98, 0, 0, 0 },
+    { 1, -1, -1, 1, 1, 1, -1, -1, -1, 0, 1, -1, 99, 0, 0, 0 },
+    { 2, -1, -1, -1, 1, 0, 1, -1, -1, 0, 1, -1, 96, 0, 0, 0 },
+    { 2, -1, -1, -1, 0, 1, 1, -1, -1, 0, 1, -1, 97, 0, 0, 0 },
+    { 2, -1, -1, 0, 1, 1, 1, -1, -1, 0, 1, -1, 98, 0, 0, 0 },
+    { 2, -1, -1, 1, 1, 1, -1, -1, -1, 0, 1, -1, 99, 0, 0, 0 },
+    { 2, -1, -1, -1, 1, -1, -1, -1, 1, 0, 1, 1, 100, 0, 0, 0 },
+    { 3, -1, -1, -1, 1, 0, 1, -1, -1, 0, 1, -1, 96, 0, 0, 0 },
+    { 3, -1, -1, -1, 0, 1, 1, -1, -1, 0, 1, -1, 97, 0, 0, 0 },
+    { 3, -1, -1, 0, 1, 1, 1, -1, -1, 0, 1, -1, 98, 0, 0, 0 },
+    { 3, -1, -1, 1, 1, 1, -1, -1, -1, 0, 1, -1, 99, 0, 0, 0 },
+    { 3, -1, -1, -1, 1, -1, -1, -1, 1, 0, 1, 1, 100, 0, 0, 0 },
+    { 1, -1, -1, -1, 1, 0, -1, -1, -1, 0, 1, 1, 96, 0, 0, 0 },
+    { 1, -1, -1, -1, 0, 1, -1, -1, -1, 0, 1, 1, 97, 0, 0, 0 },
+    { 1, -1, -1, 0, 1, 1, -1, -1, -1, 0, 1, 1, 98, 0, 0, 0 },
+    { 1, -1, -1, 1, 1, 1, -1, -1, -1, 0, 1, 1, 99, 0, 0, 0 },
+    { 2, -1, -1, -1, 1, 0, 2, -1, -1, 0, 1, 1, 96, 0, 0, 0 },
+    { 2, -1, -1, -1, 0, 1, 2, -1, -1, 0, 1, 1, 97, 0, 0, 0 },
+    { 2, -1, -1, 0, 1, 1, 2, -1, -1, 0, 1, 1, 98, 0, 0, 0 },
+    { 2, -1, -1, 1, 1, 1, -1, -1, -1, 0, 1, 1, 99, 0, 0, 0 },
+    { 2, -1, -1, -1, 1, -1, -1, -1, 1, 0, 1, 1, 100, 0, 0, 0 },
+    { 3, -1, -1, -1, 1, 0, 2, -1, -1, 0, 1, 1, 96, 0, 0, 0 },
+    { 3, -1, -1, -1, 0, 1, 2, -1, -1, 0, 1, 1, 97, 0, 0, 0 },
+    { 3, -1, -1, 0, 1, 1, 2, -1, -1, 0, 1, 1, 98, 0, 0, 0 },
+    { 3, -1, -1, 1, 1, 1, -1, -1, -1, 0, 1, 1, 99, 0, 0, 0 },
+    { 3, -1, -1, -1, 1, -1, -1, -1, 1, 0, 1, 1, 100, 0, 0, 0 },
+    { 1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 100, 0, 0, 0 },
+    { 4, -1, 2, -1, -1, -1, -1, 0, -1, 0, 1, 1, 99, 0, 0, 0 },
+    { 4, -1, 2, -1, -1, -1, -1, 1, -1, 0, 1, 1, 99, 0, 0, 0 },
+    { 4, -1, -1, -1, -1, -1, -1, -1, 1, 0, 1, 1, 100, 0, 0, 0 },
+    { 4, -1, -1, -1, -1, -1, -1, -1, 1, 0, 1, 1, 100, 0, 0, 0 },
+};
+
+u8 lbl_3_data_2BD8[CHARACTER_COUNT][CHARACTER_COUNT] = {
+    { 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+s32 lbl_3_data_37AC[CHARACTER_COUNT] = {
+    56, 57, 58, 59, 60, 61, 62, 63,
+    64, 65, 66, 67, 68, 69, 70, 71,
+    72, 73, 74, 75, 76, 77, 77, 77,
+    78, 78, 78, 79, 80, 69, 69, 69,
+    69, 81, 81, 81, 81, 82, 83, 84,
+    85, 86, 68, 76, 72, 72, 72, 72,
+    87, 87, 87, 87, 79, 79, 26,
+};
+
+s32 lbl_3_data_3888[CHARACTER_COUNT] = {
+    120, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 121, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118,
+};
+
+s32 lbl_3_data_3964[CHARACTER_COUNT] = {
+    120, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 121, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118, 118,
+    118, 118, 118, 118, 118, 118, 118,
+};
 
 typedef struct VsScreenEntry {
     /*0x00*/ VecXYZ pos;
@@ -167,15 +352,6 @@ typedef struct VsFadeParams {
 } VsFadeParams;
 
 extern VsFadeParams lbl_803C5090;
-
-typedef struct VsScoutState {
-    /*0x00*/ u8 _00[0x40];
-    /*0x40*/ s16 humanTeam;
-    /*0x42*/ u8 _42[4];
-    /*0x46*/ u8 scoutMissionID;
-} VsScoutState;
-
-extern VsScoutState lbl_3_common_bss_37400;
 
 s32 lbl_3_data_3A40[55] = {
     0x78, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76,
@@ -325,7 +501,6 @@ void fn_3_24598(void) {
 
 // .text:0x000240F8 size:0x4A0 mapped:0x8066318C
 void postReplayBatterCelebration(void) {
-    VsData *data = &lbl_3_data_1D28;
     GameInitVariables *settings = &g_d_GameSettings;
     s32 i;
 
@@ -342,13 +517,13 @@ void postReplayBatterCelebration(void) {
         changeScene(1, 6);
         vsScreenBegin(5);
         if (g_Runners[0].baseStandingOn == 1) {
-            camera_switchScene(data->homeRunCameraSceneIDs1[g_Runners[0].charID]);
+            camera_switchScene(lbl_3_data_20D4[g_Runners[0].charID]);
         } else if (g_Runners[0].baseStandingOn == 2) {
-            camera_switchScene(data->homeRunCameraSceneIDs2[g_Runners[0].charID]);
+            camera_switchScene(lbl_3_data_21B0[g_Runners[0].charID]);
         } else if (g_Runners[0].baseStandingOn == 3) {
-            camera_switchScene(data->homeRunCameraSceneIDs3[g_Runners[0].charID]);
+            camera_switchScene(lbl_3_data_228C[g_Runners[0].charID]);
         } else {
-            camera_switchScene(data->homeRunCameraSceneIDs1[g_Runners[0].charID]);
+            camera_switchScene(lbl_3_data_20D4[g_Runners[0].charID]);
         }
         g_GameLogic._125 = 2;
         break;
@@ -391,7 +566,7 @@ void postReplayBatterCelebration(void) {
     }
 
     if (hugeAnimStruct.objects[9]->_62 == 0x3A) {
-        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID * 6 + 2]][2]) {
+        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][2]) {
             playCharacterSound(g_Batter.charID, 0);
         }
     }
@@ -452,7 +627,7 @@ void homeRunEnd(void) {
     }
 
     if (hugeAnimStruct.objects[9]->_62 == 0x3C) {
-        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID * 6 + 2]][0]) {
+        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][0]) {
             playCharacterSound(g_Batter.charID, 0);
         }
     }
@@ -547,7 +722,7 @@ void starChanceVsScreenProcess(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (lbl_803C6CF8[0x715] == 1) {
-            if (g_GameLogic.playOverInd == 0 && maybeSetVsIndOrScoutFlagChance() == 0) {
+            if (g_GameLogic.playOverInd == 0 && chooseVsScreenSituation() == 0) {
                 lbl_3_common_bss_1323C->_25C = 0;
                 changeScene(1, 6);
                 fn_3_FBD58();
@@ -556,7 +731,7 @@ void starChanceVsScreenProcess(void) {
                 setDefaultInMemBall();
                 setDefaultInMemPitcher();
                 setDefaultInMemBatter();
-                setDefaultInMemRunner();
+                running_setDefaultRunners();
                 setDefaultInMemFielder();
                 setDefaultAIValues();
                 g_Pitcher.playStartOfGameAnimation = 0;
@@ -660,7 +835,7 @@ void championshipScreen(void) {
     switch (g_GameLogic._125) {
     case 0:
         if (lbl_803C6CF8[0x715] == 1) {
-            fn_3_147DFC();
+            minigameWinnerStars_stop();
             animRelated[0x9A] = 0;
             g_GameLogic._125 = 1;
         }
@@ -674,12 +849,12 @@ void championshipScreen(void) {
         fn_3_8C104(-1);
         vsScreenBegin(2);
         {
-            u8 *tracker = (u8 *)starMissionCompletionTracker;
+            ChallengeState *tracker = &g_Challenge;
 
             if (inning->goAheadRunOccurrences != 0) {
-                camera_switchScene(lbl_3_data_2368[tracker[0x441C]]);
+                camera_switchScene(lbl_3_data_2368[tracker->captain]);
             } else {
-                camera_switchScene(lbl_3_data_2380[tracker[0x441C]]);
+                camera_switchScene(lbl_3_data_2380[tracker->captain]);
             }
         }
         g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
@@ -725,10 +900,10 @@ void championshipScreen(void) {
     }
 
     {
-        int team = lbl_3_common_bss_37400.humanTeam;
+        int team = scoutState.humanTeam;
         int charID = inMemRoster[team][g_GameLogic.Team_CaptainRosterLoc[team]].stats.CharID;
 
-        if (lbl_3_common_bss_1323C->frame == lbl_3_data_7F7C[characterStaticIndexes[charID * 6 + 2]][3]) {
+        if (lbl_3_common_bss_1323C->frame == lbl_3_data_7F7C[characterStaticIndexes[charID].requirementRow][3]) {
             playCharacterSound(charID, 7);
         }
     }
@@ -783,7 +958,11 @@ int fn_3_22ABC(void) {
     }
 
     if (trailing) {
-        return g_Batter.aiControlledInd != 0 ? 1 : 2;
+        if (g_Batter.aiControlledInd != 0) {
+            return 1;
+        } else {
+            return 2;
+        }
     }
     return -1;
 }
@@ -794,8 +973,12 @@ BOOL fn_3_22A20(void) {
         return g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total >=
                g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
     } else {
-        return g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total <
-               g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total;
+        if (g_Scores.scores[g_GameLogic.homeTeamBattingInd_fieldingTeam].total <
+            g_Scores.scores[g_GameLogic.awayTeamBattingInd_battingTeam].total) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
     }
 }
 
@@ -853,18 +1036,17 @@ BOOL fn_3_2273C(void) {
 }
 
 // .text:0x00021F14 size:0x828 mapped:0x80660FA8
-BOOL maybeSetVsIndOrScoutFlagChance(void) {
+BOOL chooseVsScreenSituation(void) {
     GameInitVariables *settings = &g_d_GameSettings;
-    VsData *data = &lbl_3_data_1D28;
-    u8 *tracker = (u8 *)starMissionCompletionTracker;
-    VsScoutState *scout = &lbl_3_common_bss_37400;
-    VsScoutMission *scoutMissions = scoutMissionTable;
+    ChallengeState *tracker = &g_Challenge;
+    ScoutState *scout = &scoutState;
     BOOL scoutMission = FALSE;
+    VsScreenState *state;
     s32 i;
 
     if (settings->exhibitionMatchInd == 0) {
-        if (tracker[0x441E] == 5 ||
-            *(s16 *)(tracker + 0x16C2) == 0x2A) {
+        if (tracker->opponentCaptain == CHALLENGE_CAPTAIN_BOWSER ||
+            tracker->_16C2 == 0x2A) {
             scoutMission = FALSE;
         } else {
             scoutMission = decideScoutFlagMission();
@@ -873,9 +1055,9 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
 
     if (settings->exhibitionMatchInd == 0) {
         if (scoutMission) {
-            if (scoutMissions[scout->scoutMissionID].starMission != 0) {
+            if (scoutMissionTable[scout->scoutMissionID].starMission != 0) {
                 lbl_3_common_bss_1323C->situation = 0x1C;
-                tracker[0x44F1] = 0;
+                tracker->scoutMissionPending = 0;
                 return TRUE;
             }
         }
@@ -891,7 +1073,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
         if (i == 45) {
             i = 45;
         }
-        s = &data->situations[i];
+        s = &vsSituations[i];
         ok = TRUE;
 
         if (g_Scores._pad_AC != s->inningPhase) {
@@ -914,7 +1096,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
             }
         }
 
-        if (s->outs != -1 && g_Strikes.outs != s->outs) {
+        if (s->outs != -1 && g_BallsStrikesOuts.outs != s->outs) {
             ok = FALSE;
         }
 
@@ -967,14 +1149,14 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
             int pitcher = g_Pitcher.charID;
 
             if (s->captainMatchup == 1) {
-                if (data->matchupTable[batter][pitcher] == 0) {
+                if (lbl_3_data_2BD8[batter][pitcher] == 0) {
                     if (g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamBatting] != batter ||
                         g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding] != pitcher) {
                         ok = FALSE;
                     }
                 }
             } else if (s->captainMatchup == 0) {
-                if (data->matchupTable[batter][pitcher] == 1) {
+                if (lbl_3_data_2BD8[batter][pitcher] == 1) {
                     ok = FALSE;
                 }
             }
@@ -985,18 +1167,18 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
         }
 
         if (s->_28 != -1 && s->_28 != 0) {
-            if (s->_38 == 0) {
-                if (lbl_3_common_bss_1323C->_27B >= s->_30) {
-                    ok = FALSE;
-                }
-            } else if (s->captainMatchup == 1) {
-                int batter = g_Batter.charID;
-                int pitcher = g_Pitcher.charID;
+            if (s->_38 != 0) {
+                if (s->captainMatchup == 1) {
+                    int batter = g_Batter.charID;
+                    int pitcher = g_Pitcher.charID;
 
-                if (data->matchupTable[batter][pitcher] == 1) {
-                    if (g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamBatting] == batter &&
-                        g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding] == pitcher) {
-                        if (s->_3C != 0) {
+                    if (lbl_3_data_2BD8[batter][pitcher] == 1) {
+                        if (g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamBatting] == batter &&
+                            g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding] == pitcher) {
+                            if (s->_3C != 0) {
+                                ok = FALSE;
+                            }
+                        } else {
                             ok = FALSE;
                         }
                     } else {
@@ -1005,7 +1187,7 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
                 } else {
                     ok = FALSE;
                 }
-            } else {
+            } else if (lbl_3_common_bss_1323C->_27B >= s->_30) {
                 ok = FALSE;
             }
         }
@@ -1015,40 +1197,39 @@ BOOL maybeSetVsIndOrScoutFlagChance(void) {
         }
     }
 
-    if (lbl_3_common_bss_1323C->situation == -1) {
-        return FALSE;
-    }
+    state = lbl_3_common_bss_1323C;
+    if (state->situation != -1) {
+        if (settings->exhibitionMatchInd == 0 && lbl_3_data_1F50[state->situation] == 1) {
+            state->situation = -1;
+            return FALSE;
+        }
 
-    if (settings->exhibitionMatchInd == 0 &&
-        data->situationLocked[lbl_3_common_bss_1323C->situation] == 1) {
-        lbl_3_common_bss_1323C->situation = -1;
-        return FALSE;
-    }
+        if (vsSituations[state->situation]._24 == 1) {
+            vsSituations[state->situation]._34 = 1;
+        }
+        if (vsSituations[state->situation]._28 == 1) {
+            VsSituation *s = &vsSituations[state->situation];
 
-    if (data->situations[lbl_3_common_bss_1323C->situation]._24 == 1) {
-        data->situations[lbl_3_common_bss_1323C->situation]._34 = 1;
-    }
-    if (data->situations[lbl_3_common_bss_1323C->situation]._28 == 1) {
-        VsSituation *s = &data->situations[lbl_3_common_bss_1323C->situation];
+            s->_38 = 1;
+            s = &vsSituations[state->situation];
+            if (s->captainMatchup == 1) {
+                int batter = g_Batter.charID;
+                int pitcher = g_Pitcher.charID;
 
-        s->_38 = 1;
-        s = &data->situations[lbl_3_common_bss_1323C->situation];
-        if (s->captainMatchup == 1) {
-            int batter = g_Batter.charID;
-            int pitcher = g_Pitcher.charID;
-
-            if (data->matchupTable[batter][pitcher] == 1) {
-                if (g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamBatting] == batter &&
-                    g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding] == pitcher) {
-                    s->_3C = 1;
+                if (lbl_3_data_2BD8[batter][pitcher] == 1) {
+                    if (g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamBatting] == batter &&
+                        g_GameLogic.Team_CaptainRosterLoc[g_GameLogic.teamFielding] == pitcher) {
+                        s->_3C = 1;
+                    }
+                    animRelated[0xAE] = 1;
+                    animRelated[0xAF] = g_Pitcher.rosterID;
                 }
-                animRelated[0xAE] = 1;
-                animRelated[0xAF] = g_Pitcher.rosterID;
             }
         }
+        state->_27B = vsSituations[state->situation]._30;
+        return TRUE;
     }
-    lbl_3_common_bss_1323C->_27B = data->situations[lbl_3_common_bss_1323C->situation]._30;
-    return TRUE;
+    return FALSE;
 }
 
 // .text:0x00021DE4 size:0x130 mapped:0x80660E78

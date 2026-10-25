@@ -13,7 +13,7 @@ struct ActorObjectEntry {
     /* 0x0C */ u16 slot;
     /* 0x0E */ u16 seqNum;           // ACTSetAnimation sequence number
     /* 0x10 */ Control control;      // copied into actor->worldControl when applyControl is set
-    /* 0x54 */ f32 speed;            // fn_800B4C04
+    /* 0x54 */ f32 speed;            // ACTSetSpeed
     /* 0x58 */ u8 animPending;       // the four pending flags are consumed by fn_800BD8C4
     /* 0x59 */ u8 framePending;
     /* 0x5A */ u8 speedPending;

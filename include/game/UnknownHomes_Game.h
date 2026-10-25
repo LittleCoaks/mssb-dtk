@@ -132,7 +132,7 @@ typedef struct _InMemBatterType {
     /*0x91*/ u8 contactMadeInd;
     /*0x92*/ E(u8, HIT_CONTACT_TYPE) contactType;
     /*0x93*/ u8 hitByPitch;
-    /*0x94*/ E(u8, HIT_TRAJECTORY) hitTrajectory;
+    /*0x94*/ E(u8, PREDICTED_HIT_OUTCOME) predictedHitOutcome;
     /*0x95*/ u8 _95; // always0_cutHitPowerInHalf
     /*0x96*/ u8 _96;
     /*0x97*/ u8 displayContactSprite; // displays nice/perfect on screen
@@ -162,136 +162,7 @@ typedef struct _InMemBatterType {
     /*0xAF*/ E(u8, REGULAR_STAR_SWING) nonCaptainStarSwingActivated;
 } InMemBatterType; // size: 0xb0
 
-typedef struct _InMemRunnerType {
-    /*0x000*/ VecXYZ position;
-    /*0x00C*/ VecXYZ positionStored;
-    /*0x018*/ VecXYZ velocity;
-    /*0x024*/ VecXYZ velocityStored;
-    /*0x030*/ f32 runningAngle;
-    /*0x034*/ f32 angleToBall;
-    /*0x038*/ f32 distanceFromBall;
-    /*0x03C*/ VecXYZ currentBaseCoordinates;
-    /*0x048*/ VecXYZ nextBaseCoordinates;
-    /*0x054*/ f32 slidingAdjustment_backwards; // 0.03f
-    /*0x058*/ f32 slidingAdjustment_forwards;  // 0.03f
-    /*0x05C*/ f32 percentFromCurrentBase_slideAdj;
-    /*0x060*/ f32 percentTowardsNextBase_slideAdj;
-    /*0x064*/ f32 fractionalBasesRan;
-    /*0x068*/ f32 percentTowardsNextBase;
-    /*0x06C*/ f32 calculatedLengthOfCurrentBaseline;
-    /*0x070*/ f32 fractionOfCalculatedBaselineRan;
-    /*0x074*/ f32 distToCurrentBase;
-    /*0x078*/ f32 distToNextBase;
-    /*0x07C*/ f32 fractionalBasesRan_stored;
-    /*0x080*/ f32 percentTowardsNextBase_stored;
-    /*0x084*/ f32 groundVelocity[4];
-    /*0x094*/ f32 acceleration;
-    /*0x098*/ f32 baseAcceleration;                        // between 0.005 and 0.01
-    /*0x09C*/ f32 baseAccelerationWhileChaingingDirection; // 0.005
-    /*0x0A0*/ f32 maximumBaseVelocity;
-    /*0x0A4*/ f32 percentRanPerFrame_slideAdj;
-    /*0x0A8*/ f32 velocityPercent_stamAdj;
-    /*0x0AC*/ f32 accelerationPercent_stamAdj;
-    /*0x0B0*/ f32 roundingStrengthPercent;                    // unsure
-    /*0x0B4*/ f32 overrun1B_someDistConst_proportionPerFrame; // maybe
-    /*0x0B8*/ f32 overrun1B_somePositionControl;
-    /*0x0BC*/ f32 leadoffDistancePercent;
-    /*0x0C0*/ f32 mashVeloAdjustment;
-    /*0x0C4*/ f32 maxMashVeloAdjustment; // 0.02
-    /*0x0C8*/ f32 mashPercent;
-    /*0x0CC*/ f32 percentAddedPerMash;                  // 0.2
-    /*0x0D0*/ f32 stamina_MashPercentTakenAwayPerFrame; // 0.2
-    /*0x0D4*/ f32 staminaMult;
-    /*0x0D8*/ f32 accelerationStaminaEffect;
-    /*0x0DC*/ f32 accelerationStaminaEffectWhileChangingDirection;
-    /*0x0E0*/ s16 rosterID;
-    /*0x0E2*/ s16 charID;
-    /*0x0E4*/ s16 unused_starMissionCharID;
-    /*0x0E6*/ s16 baseStandingOn;
-    /*0x0E8*/ s16 baseStandingOn_Stored;
-    /*0x0EA*/ s16 framesToNextBase;
-    /*0x0EC*/ s16 framesToPreviousBase; // maybe
-    /*0x0EE*/ E(s16, FORCE_OUT_TYPE) forceOutCd;
-    /*0x0F0*/ E(s16, PREVENT_PASSING_TYPE) restrictedMovementCodes;
-    /*0x0F2*/ E(s16, PREVENT_PASSING_TYPE) restrictedMovementCodes_stored;
-    /*0x0F4*/ s16 framesSinceOut;
-    /*0x0F6*/ s16 stamina;
-    /*0x0F8*/ s16 baseNumberEarned_NotIncludingFieldersChoice;
-    /*0x0FA*/ s16 timeStandingOnBase;
-    /*0x0FC*/ s16 pitcherWhoLetRunnerOnBase;
-    /*0x0FE*/ s16 baseReachedAtTimeOfThrow;
-    /*0x100*/ s16 actionFrames_countUp;
-    /*0x102*/ s16 actionFrames_countDown;
-    /*0x104*/ s16 overrunBaseFrames_countUp;
-    /*0x106*/ s16 overrunBaseFrames_countDown;
-    /*0x108*/ s16 runningToDugoutFrameCounter;
-    /*0x10A*/ s16 framesToReachDugout; // maybe
-    /*0x10C*/ s16 leadoffDurationFrames;
-    /*0x10E*/ s16 leadOffTotalFrameCountDown;
-    /*0x110*/ s16 _110;
-    /*0x112*/ s16 framesSinceLastDirectionChange;
-    /*0x114*/ s16 slideHomeFrames_CountDown;
-    /*0x116*/ s16 framesSinceStealStarted;
-    /*0x118*/ s16 _118;
-    /*0x11A*/ u8 unused_batterHandednessForCCS; // maybe
-    /*0x11B*/ u8 aIStrength0Special3Weak;
-    /*0x11C*/ E(u8, BATTING_HAND) battingHand;
-    /*0x11D*/ u8 weight;
-    /*0x11E*/ E(u8, CHARACTER_CLASS) characterClass;
-    /*0x11F*/ u8 _11f;
-    /*0x120*/ u8 speed;
-    /*0x121*/ u8 _121; // 10
-    /*0x122*/ u8 delayBeforeStartingToRun;
-    /*0x123*/ E(u8, RUNNER_STATUS) runnerOnFieldOrOutOrScored;
-    /*0x124*/ u8 startingBase_baseAchieved;
-    /*0x125*/ u8 currentBase;
-    /*0x126*/ u8 nextBase;
-    /*0x127*/ u8 baseRunningTowards;
-    /*0x128*/ E(u8, TAG_UP_TYPE) tagUpInd;
-    /*0x129*/ u8 batterStayInBattersBoxReason;
-    /*0x12A*/ u8 unused_AIRelated;
-    /*0x12B*/ u8 relatedToRunnerPos;
-    /*0x12C*/ u8 outType;
-    /*0x12D*/ u8 forcedToAdvanceInd; // maybe
-    /*0x12E*/ s8 unused_someBaseNum;
-    /*0x12F*/ s8 baseOfFailedBodyCheck; // maybe
-    /*0x130*/ u8 tagType;               // 1=Running 2=Sliding
-    /*0x131*/ u8 runnerDidntReachOnError;
-    /*0x132*/ u8 isEligibleToScore; // maybe
-    /*0x133*/ u8 leadOffStatus;
-    /*0x134*/ u8 unused_const_1;
-    /*0x135*/ u8 runningDirectionDesired;
-    /*0x136*/ u8 nextDirectionBeingProcessed;
-    /*0x137*/ u8 runningDirectionCode;
-    /*0x138*/ u8 runnerDirectionCode_stored;
-    /*0x139*/ u8 offsetFromNormalRunningPathInd; // maybe
-    /*0x13A*/ u8 actionCode;
-    /*0x13B*/ u8 actionInForwardDirectionInd;
-    /*0x13C*/ u8 actionStage;
-    /*0x13D*/ u8 forceOutType_unsed;
-    /*0x13E*/ u8 baseRoundingState;
-    /*0x13F*/ u8 overrun1st_doneChecking;
-    /*0x140*/ u8 overRun1BStage;
-    /*0x141*/ u8 overrunning1BIndicator;
-    /*0x142*/ u8 overrunBaseStage;
-    /*0x143*/ u8 offsetPositionForRoundingInd;
-    /*0x144*/ u8 roundingInitiaializedInd;
-    /*0x145*/ u8 runningToDugoutInd;
-    /*0x146*/ u8 runningToDugoutStage;
-    /*0x147*/ u8 turnaroundCode;
-    /*0x148*/ u8 turningAroundInd; // maybe
-    /*0x149*/ u8 newButtonThisFrame_forMashPurposes;
-    /*0x14A*/ u8 framesSinceLastMash;
-    /*0x14B*/ u8 FramesUntilNotSprinting;        // 6?
-    /*0x14C*/ u8 someCollisionCheck;             // maybe
-    /*0x14D*/ u8 furthestBaseForcedToGoToOnWalk; // steal related
-    /*0x14E*/ u8 stealingStatus;
-    /*0x14F*/ u8 framesSinceStealInput;
-    /*0x150*/ u8 someCountdown_unused;
-    /*0x151*/ u8 _151;
-    /*0x152*/ u8 miniGamePlayerNum;
-    /*0x153*/ u8 scoredOnGRD; // maybe
-} InMemRunnerType;            // size: 0x154
+#include "game/baserunning/runner_types.h"
 
 typedef struct _CoordAndDist {
     VecXYZ pos;
@@ -410,8 +281,8 @@ typedef struct _InMemBallType {
     /*0x1B9C*/ sAng Hit_HorizontalAngle;
     /*0x1B9E*/ s16 Hit_HorizontalPower; // bODBasePoints
     /*0x1BA0*/ matchShorts matchFramesAndBallAngle;
-    /*0x1BBE*/ u8 ballZoneAwayFromHome;
-    /*0x1BBF*/ u8 landingSpotZoneAwayFromHome;
+    /*0x1BBE*/ E(u8, BALL_ZONE) ballZoneAwayFromHome;
+    /*0x1BBF*/ E(u8, BALL_ZONE) landingSpotZoneAwayFromHome;
     /*0x1BC0*/ u8 seeminglyAlways1_ballCollideWWallRelated; // seeminglyAlways1_ballCollideWallRelated;
     /*0x1BC1*/ u8 someCollisionVariable;
     /*0x1BC2*/ u8 thrownBallHasHitGround;
@@ -429,7 +300,7 @@ typedef struct _InMemBallType {
     /*0x1BCE*/ u8 lineDriveThroughPitcherInd;
     /*0x1BCF*/ u8 maybeBuntInd;
     /*0x1BD0*/ u8 groundRuleDoubleInd; // unsure
-    /*0x1BD1*/ u8 deadBallReason;
+    /*0x1BD1*/ E(u8, DEAD_BALL_REASON) deadBallReason;
     /*0x1BD2*/ u8 deadBallRBIsAddedInd;
     /*0x1BD3*/ u8 maybebuntOn2Strikes;
     /*0x1BD4*/ u8 ballOnMoundInd;
@@ -561,7 +432,7 @@ typedef struct _InMemPitcherType {
     /*0x14B*/ u8 calced_cursedBall;
     /*0x14C*/ u8 calced_curveControl;
     /*0x14D*/ u8 calced_curve;
-    /*0x14E*/ u8 strikeOutOrWalk;
+    /*0x14E*/ E(u8, AT_BAT_END) strikeOutOrWalk;
     /*0x14F*/ u8 strikeZoneProcessNumber;
     /*0x150*/ u8 specialPitchTypeCode;
     /*0x151*/ u8 frameBallCanStartBeingControlled; // unsure
@@ -606,7 +477,6 @@ typedef struct _InMemPitcherType {
 
 extern InMemPitcherType g_Pitcher;
 extern InMemBallType g_Ball;
-extern InMemRunnerType g_Runners[4];
 extern InMemBatterType g_Batter;
 
 extern VecXYZ maybeInitialBatPos;
@@ -801,10 +671,10 @@ typedef struct _PracticeStruct {
     /*0x020*/ void* commandList; // unsure
     /*0x024*/ int homeAway;
     artificial_padding(0x24, 0x140, int);
-    /*0x140*/ frame_t totalFrames;
-    /*0x142*/ frame_t framesInCurrTransitionState;
+    /*0x140*/ u16 totalFrames;
+    /*0x142*/ u16 framesInCurrTransitionState;
     /*0x144*/ u16 framesSincePracticeMenuDefaultTransition;
-    /*0x146*/ frame_t practiceMenu_framesOnCurrMenuScreen;
+    /*0x146*/ u16 practiceMenu_framesOnCurrMenuScreen;
     /*0x148*/ u16 frames_sinceMovedToFromMenu;
     /*0x14A*/ frame_t _14A;
     /*0x14C*/ frame_t frames_sinceTimeCalled;
@@ -846,7 +716,9 @@ typedef struct _PracticeStruct {
     /*0x198*/ E(u8, PRACTICE_TYPE) practiceType_1; // actually the practice menu screen (0..6, not PRACTICE_TYPE): 0 type select (menuNumber 0x3C), 1..5 sub-menu select for type-1 (0x3D), 6 character select (0x3E)
     /*0x199*/ E(u8, PRACTICE_TYPE) practiceType; // highlighted entry on the type-select screen
     /*0x19A*/ u8 subMenuCursor;
-    artificial_padding(0x19a, 0x19e, u8);
+    /*0x19B*/ u8 _19B;
+    /*0x19C*/ u8 menuGraphicsLoaded; // practice_loadAllGraphics finished for the current practice menu screen
+    /*0x19D*/ u8 subMenuGraphicsLoaded; // second load pass on the sub-menu screens finished
     /*0x19E*/ u8 pauseMenuLoading; // unsure
     /*0x19F*/ u8 pauseMenuActive;
     /*0x1A0*/ u8 _1A0;
@@ -854,7 +726,11 @@ typedef struct _PracticeStruct {
     /*0x1A2*/ u8 practiceBatterHandedness; // unsure
     /*0x1A3*/ u8 freePracticeInd_writeOnly;
     /*0x1A4*/ u8 freeFieldingInd_writeOnly;
-    artificial_padding(0x1a4, 0x1aa, u8);
+    /*0x1A5*/ u8 _1A5;
+    /*0x1A6*/ u8 _1A6;
+    /*0x1A7*/ u8 _1A7;
+    /*0x1A8*/ u8 _1A8;
+    /*0x1A9*/ u8 _1A9;
     /*0x1AA*/ u8 transitioningIndicator; // unsure
     /*0x1AB*/ u8 baserunningActiveRunners[4]; // g_Runners[0..3] enabled in baserunning practice
     /*0x1AF*/ u8 returnToPracticeMenuState;
@@ -885,7 +761,7 @@ typedef struct _PracticeStruct {
     /*0x1D7*/ u8 guidedMessageVariant; // 0 shown before the attempt, 1 shown on completion
     /*0x1D8*/ u8 guidedMessageIndex;
     /*0x1D9*/ u8 characterLoadStarted;
-    artificial_padding(0x1d9, 0x1db, u8);
+    /*0x1DA*/ u8 showMenuIntro; // set when the practice menu is entered from a fresh load; plays the intro animation
     /*0x1DB*/ u8 pitchingPracticeBatterEnabled; // gates atBat_batter in pitching practice (never set non-zero)
     artificial_padding(0x1db, 0x1dd, u8);
     /*0x1DD*/ u8 _1DD;
@@ -1111,11 +987,11 @@ typedef struct _GameControlsStruct {
     /*0x13C*/ u8 scoutFlag_VsScreenInd;
     /*0x13D*/ u8 _13D;
     /*0x13E*/ u8 teamIsCPU[2];
-    /*0x140*/ u8 _140[2];
+    /*0x140*/ u8 pitcherAIInd[2];
     /*0x142*/ u8 teamAIInd[2];
     /*0x144*/ u8 autoFielding[2];
-    /*0x146*/ u8 batterHandedness[2];
-    /*0x148*/ u8 battingAIInd[2]; // unsure
+    /*0x146*/ u8 batterAIInd[2];
+    /*0x148*/ u8 autoRunningInd[2];
     /*0x14A*/ u8 TeamStars[2];
     /*0x14C*/ u8 IsStarChance;
     /*0x14D*/ u8 stadiumStarObtained;
@@ -1131,56 +1007,7 @@ typedef struct _GameControlsStruct {
 
 extern GameControlsStruct g_GameLogic;
 
-typedef enum _CHALLENGE_CAPTAIN {
-    CHALLENGE_CAPTAIN_MARIO,
-    CHALLENGE_CAPTAIN_PEACH,
-    CHALLENGE_CAPTAIN_WARIO,
-    CHALLENGE_CAPTAIN_DK,
-    CHALLENGE_CAPTAIN_YOSHI,
-    CHALLENGE_CAPTAIN_BOWSER,
-} CHALLENGE_CAPTAIN;
-
-typedef enum _CHARACTER_VARIANT_CLASSIFICATION {
-    CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_CAPTAIN,
-    CHARACTER_VARIANT_CLASSIFICATION_SECONDARY_CAPTAIN,
-    CHARACTER_VARIANT_CLASSIFICATION_UNIQUE_NON_CAPTAIN,
-    CHARACTER_VARIANT_CLASSIFICATION_PRIMARY_VARIANT,
-    CHARACTER_VARIANT_CLASSIFICATION_SECONDARY_VARIANT,
-} CHARACTER_VARIANT_CLASSIFICATION;
-
-typedef enum _STAR_MISSION_TRACKING {
-    STAR_MISSION_TRACKING_NOT_COMPLETED = 0,
-    STAR_MISSION_TRACKING_TRACK1_COMPLETION = 1,
-    STAR_MISSION_TRACKING_COMPLETED_SAVED = 254,
-    STAR_MISSION_TRACKING_COMPLETED_CONDITIONALLY = 255,
-} STAR_MISSION_TRACKING;
-
-typedef enum _CHALLENGE_RECRUITMENT_CD {
-    CHALLENGE_RECRUITMENT_CD_NOT_RECRUITED,
-    CHALLENGE_RECRUITMENT_CD_RECRUITED,
-    CHALLENGE_RECRUITMENT_CD_ON_BJ_TEAM,
-} CHALLENGE_RECRUITMENT_CD;
-
-typedef struct _starMissionTrackingPair {
-    /*0x000*/ E(s8, STAR_MISSION_TRACKING) starMissionStatus;
-    /*0x001*/ u8 shownOnPauseMenu;
-} starMissionTrackingPair;
-
-// This is pack disabled in ghidra.
-typedef struct _ChallengeTrackingStruct {
-    /*0x000*/ void* scoutFlagPointer;
-    /*0x004*/ E(u8, CHALLENGE_CAPTAIN) challengeCaptain; // Created by retype action
-    /*0x005*/ E(s8, CHARACTER_VARIANT_CLASSIFICATION) variantClassification;
-    /*0x006*/ u8 scoutFlagsAchieved;
-    /*0x007*/ u8 _7;
-    /*0x008*/ u8 _8;
-    /*0x009*/ starMissionTrackingPair inGameMissionTracker[10];
-    /*0x01D*/ starMissionTrackingPair saveFileMissionTracker[10];
-    /*0x031*/ E(u8, CHALLENGE_RECRUITMENT_CD) _31;
-    /*0x032*/ u8 _32;
-    /*0x033*/ u8 _33;
-} ChallengeTrackingStruct; // size: 0x34
-
+#include "game/challenge/challenge_state.h"
 #include "game/character_stats.h"   // StatTable, ChemistryTable, CharacterStats
 
 extern CharacterStats inMemRoster[TEAMS_PER_GAME][PLAYERS_PER_TEAM];
@@ -1200,7 +1027,6 @@ extern UnkSimulationRelatedStruct unkSimulationRelatedStruct;
 
 extern f32 vecDotProduct(VecXYZ* a, VecXYZ* b);
 
-extern ChallengeTrackingStruct starMissionCompletionTracker[54];
 
 typedef struct _SomeStarDashStruct {
     /*0x000*/ s16 _0[2];
@@ -1346,9 +1172,9 @@ typedef struct _ChainChompSprintStruct {
     /*0x00C*/ VecXYZ chompVelocity;
     /*0x018*/ s16 chompYaw;
     /*0x01A*/ s16 chompStateTimer;
-    /*0x01C*/ s16 _1C;
+    /*0x01C*/ s16 chaseStep; // 0 = waiting for the targeted runners to stop, 1 = chase setup
     /*0x01E*/ s16 runFrames[4];
-    /*0x026*/ s16 _26;
+    /*0x026*/ s16 chompWaitFrames; // frames in chomp state 0 before the jump
     /*0x028*/ s16 itemTimer[6];
     /*0x034*/ s8 chasedPlayer;
     /*0x035*/ u8 runnerChompHitState[4];
@@ -1362,13 +1188,13 @@ typedef struct _ChainChompSprintStruct {
 } ChainChompSprintStruct; // size: 0x54
 
 typedef struct _ChainChompSprintAI {
-    /*0x000*/ s16 _0;
+    /*0x000*/ s16 evadeLeadFrames; // start evading once the chomp launch is this close
     /*0x002*/ u8 state;
-    /*0x003*/ s8 _3;
-    /*0x004*/ s8 _4;
-    /*0x005*/ u8 _5;
+    /*0x003*/ s8 dodgeDelay;
+    /*0x004*/ s8 bPressDelay;
+    /*0x005*/ u8 targetKind; // 0 none, 2 coin, 3 gem row, 4 special item
     /*0x006*/ s8 _6;
-    /*0x007*/ s8 _7;
+    /*0x007*/ s8 decisionDelay;
 } ChainChompSprintAI; // size: 0x8
 
 /*foul	1
@@ -2189,6 +2015,11 @@ typedef struct _MiniGameStruct {
             /*0x1DD1*/ u8 bB_aiSwingChosenInd;
             /*0x1DD2*/ s8 bB_aiPrefersFewestBarrelsInd;
         };
+        struct {
+            /*0x1DCC*/ s16 bOD_aiChargeStartFrame; // AI starts holding A once the windup countdown reaches this
+            /*0x1DCE*/ s16 bOD_aiReleaseLeadFrames; // AI releases A this many frames before the pitch becomes unhittable
+            /*0x1DD0*/ E(u8, BOOL) bOD_aiDecidedInd; // bOD_BatterAI already ran for this pitch
+        };
         ChainChompSprintAI ccsAI[4];
     };
     /*0x1DEC*/ f32 _1DEC;
@@ -2268,7 +2099,7 @@ extern struct {
     /* 0x2c */ u8 _2C;
     /* 0x2d */ u8 _2D;
     /* 0x2e */ u8 _2E;
-    /* 0x2f */ u8 _2F;
+    /* 0x2f */ E(u8, BOOL) _2F;
     /* 0x30 */ u8 _30;
     /* 0x31 */ u8 _31;
     /* 0x32 */ u8 _32;
@@ -2282,19 +2113,12 @@ typedef struct {
     /* 0x0 */ s16 _00;
     /* 0x2 */ u8 queue[5];
     /* 0x7 */ u8 _07;
-    /* 0x8 */ u8 _08;
+    /* 0x8 */ u8 hudPopupCode; // read and cleared by the scoreboard HUD: 1 perfect pitch, 2/3 hit contact, 4 big play
 } lbl_3_common_bss_32718_struct;
 
 extern lbl_3_common_bss_32718_struct g_UnkSound_32718;
 
-typedef struct {
-    /* 0x0 */ u8 moonShotCost;
-    /* 0x1 */ u8 captainStarCost;
-    /* 0x2 */ u8 nonCaptain_CaptainStarCost;
-    /* 0x3 */ u8 regularStarCost;
-} StarPowerCosts;
-
-extern StarPowerCosts starPowerCosts;
+#include "game/match_setup/star_power_costs.h"
 
 typedef struct {
     /* 0x00 */ f32 aIDifficultyMultiplierArray[2];
@@ -2314,7 +2138,7 @@ typedef struct {
     /* 0x3C */ f32 _3C;
     /* 0x40 */ s16 AIFrameToBeginPitch;
     /* 0x42 */ u16 _42;
-    /* 0x44 */ s16 _44;
+    /* 0x44 */ s16 aiMashPressesRemaining; // lbl_3_data_1C58[difficulty][1] presses per play
     /* 0x46 */ u8 _46;
     /* 0x47 */ u8 _47;
     /* 0x48 */ u8 unused_highUrgencySituationTracker;
@@ -2363,7 +2187,7 @@ typedef struct {
     /* 0x74 */ u8 _74;
     /* 0x75 */ u8 batterAIStealIndicator;
     /* 0x76 */ u8 batterAIStealingStartFrame;
-    /* 0x77 */ u8 _77;
+    /* 0x77 */ u8 aiMashCooldownFrames; // lbl_3_data_1C58[difficulty][2] frames between press rolls
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
     /* 0x7C */ VecXZ _7C[4];
@@ -2522,9 +2346,9 @@ typedef struct {
     /* 0x1E */ s16 _1E;
     /* 0x20 */ u8 GameControls_StrikeBallBitVector;
     /* 0x21 */ u8 stateRelated;
-} inMemStrikes; // size: 0x24
+} inMemBallsStrikesOuts; // size: 0x24
 
-extern inMemStrikes g_Strikes;
+extern inMemBallsStrikesOuts g_BallsStrikesOuts;
 
 typedef struct {
     /* 0x0000 */ VecXZ landingSpotLocation;
@@ -2584,23 +2408,6 @@ typedef struct {
 } FielderDash; // size: 0x1c
 
 typedef struct {
-    /*0x00*/ s16 _00;
-    /*0x02*/ s16 _02;
-    /*0x04*/ s16 _04;
-    /*0x06*/ s16 runnerTransferIndex[4];
-    artificial_padding(0x06, 0x10, s16[4]);
-    /*0x10*/ u8 _10;
-    /*0x11*/ u8 _11;
-    /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
-    /*0x13*/ u8 _13;
-    /*0x14*/ u8 someSituationTrackerFrames;
-    /*0x15*/ u8 runnersInScoringPosition;
-    artificial_padding(0x15, 0x20, u8);
-} g_RunningLogic_s; // size: 0x20
-
-extern g_RunningLogic_s g_RunningLogic;
-
-typedef struct {
     /*0x0000*/ u8 fielderDashByPort[4][0x1B];
     /*0x006c*/ s16 pad;
     /*0x006e*/ u8 always0;
@@ -2654,7 +2461,7 @@ typedef struct {
     /*0x0101*/ u8 baseCoveredInd[4];
     /*0x0105*/ u8 playerAtMoundCutoffLocation;
     /*0x0106*/ u8 throwSpeedType;
-    /*0x0107*/ u8 liveBallBcOfPickoffOrStealCd;
+    /*0x0107*/ E(u8, PICKOFF_STEAL_CODE) liveBallReason;
     /*0x0108*/ u8 infieldFlyIndicator;
     /*0x0109*/ u8 birdoFarThrowInd_forAnimation;
     /*0x010a*/ u8 throwWindupAnimationDoneInd;
@@ -2664,7 +2471,7 @@ typedef struct {
     /*0x010e*/ u8 playOverInd;
     /*0x010f*/ u8 unused_always0__;
     /*0x0110*/ u8 hasProcessedFoulBall;
-    /*0x0111*/ u8 tagAnimationType;
+    /*0x0111*/ E(u8, FIELDER_TAG_TYPE) fielderTagType;
     /*0x0112*/ u8 tagResult_1out_2safe;
     /*0x0113*/ u8 processErrorCode;
     /*0x0114*/ u8 fielderActionBeingProcessed;
@@ -2699,7 +2506,7 @@ typedef struct {
     /*0x0131*/ u8 _0131;
     /*0x0132*/ u8 errorTypeCd; // FIELDING_ERROR_TYPE
     /*0x0133*/ u8 bigPlayPotential;
-    /*0x0134*/ u8 bigPlayFielderIndex;
+    /*0x0134*/ s8 bigPlayFielderIndex;
     /*0x0135*/ u8 tagOutFirstFrameInd;
     /*0x0136*/ u8 _0136;
     /*0x0137*/ u8 always0_0137;
@@ -2711,8 +2518,8 @@ typedef struct {
     /*0x013d*/ u8 smashThrowInd;
     /*0x013e*/ u8 IsChemistryThrow;
     /*0x013f*/ u8 bodyCheckResult2;
-    /*0x0140*/ u8 laser_1;
-    /*0x0141*/ u8 laser_2;
+    /*0x0140*/ u8 laserThrowInFlight;
+    /*0x0141*/ u8 lastThrowWasLaser;
     /*0x0142*/ u8 _0142;
     /*0x0143*/ u8 unused_always0_;
     /*0x0144*/ u8 _0144;
@@ -2728,12 +2535,26 @@ typedef struct {
 
 extern g_FieldingLogic_s g_FieldingLogic;
 
-// g_FieldingLogic.liveBallBcOfPickoffOrStealCd
+// g_FieldingLogic.liveBallReason
 typedef enum _PICKOFF_STEAL_CODE {
     /* 0x0 */ PICKOFF_STEAL_CODE_NONE,
     /* 0x1 */ PICKOFF_STEAL_CODE_PICKOFF,
     /* 0x2 */ PICKOFF_STEAL_CODE_STEAL,
+    /* 0x3 */ PICKOFF_STEAL_CODE_UNUSED_3, // never set; reads suggest wild pitch / passed ball
+    /* 0x4 */ PICKOFF_STEAL_CODE_UNUSED_4, // never set; reads suggest dropped third strike
 } PICKOFF_STEAL_CODE;
+
+// g_FieldingLogic.fielderTagType: the kind of tag the fielder with the ball is making.
+typedef enum _FIELDER_TAG_TYPE {
+    /* 0 */ FIELDER_TAG_NONE,
+    /* 1 */ FIELDER_TAG_BASE_ON_SLIDE, // on the bag as the runner slides/body checks in
+    /* 2 */ FIELDER_TAG_RUNNING,       // runner in the basepath; fielder keeps chasing
+    /* 3 */ FIELDER_TAG_UNUSED_3,      // never set; chase code treats it like RUNNING
+    /* 4 */ FIELDER_TAG_UNUSED_4,      // never set; chase code eases in to reach the runner as the out timer ends
+    /* 5 */ FIELDER_TAG_STANDING,
+    /* 6 */ FIELDER_TAG_BODY_CHECK_FAILED,
+    /* 7 */ FIELDER_TAG_BODY_CHECK_WON,
+} FIELDER_TAG_TYPE;
 
 // g_FieldingLogic.x127_pickoff_0: what became of the runner a pickoff/steal throw targeted.
 typedef enum _PICKOFF_TARGET_STATUS {
@@ -2761,7 +2582,7 @@ typedef enum _FIELDING_ERROR_TYPE {
     /* 0x3 */ FIELDING_ERROR_TYPE_FAILED_RUNDOWN,
 } FIELDING_ERROR_TYPE;
 
-// g_Strikes.howRunnerReachedBase
+// g_BallsStrikesOuts.howRunnerReachedBase
 typedef enum _REACHED_BASE {
     /* 0x0 */ REACHED_BASE_TBD,
     /* 0x2 */ REACHED_BASE_ON_ERROR = 2,
@@ -2898,14 +2719,7 @@ typedef struct _StoredInningInfo {
 extern StoredInningInfo storedInningInfo;
 
 typedef struct {
-    u8 pad[0xa0];
-    /* 0x00A0 */ f32 _00A0;
-    artificial_padding(0xa0, 0x9ac, f32);
-    /* 0x09AC */ u8 _09AC;
-} lbl_3_common_bss_DE94_s2;
-
-typedef struct {
-    /* 0x0000 */ lbl_3_common_bss_DE94_s2* _0000;
+    /* 0x0000 */ struct CamScript* _0000;
     /* 0x0004 */ u8 _0004[0x2AF4 - 0x4];   // not yet labelled
 } lbl_3_common_bss_DE94_s; // size: 0x2AF4
 
@@ -2939,7 +2753,7 @@ typedef struct _GameScoresControlsStruct {
     /*0x000*/ s32 Inning;
     /*0x004*/ ScoreStruct scores[2];
     /*0x050*/ ScoreStruct hits[2];
-    /*0x09C*/ s16 _9C;
+    /*0x09C*/ s16 rbisWaitingToBeAddedToScore;
     /*0x09E*/ s16 _9E;
     /*0x0A0*/ s16 _A0;
     /*0x0A2*/ s16 _A2;
@@ -3204,10 +3018,6 @@ extern InMemFielder g_Fielders[9];
 /* Enum constants the mods use that the decomp had no counterpart for.
    Values from ProjectRio-ASM docs/enum_map.md, which pairs enum to enum by
    member-name and value agreement before matching constants. */
-typedef enum _RUNNER_MOVEMENT_TYPE {
-    /* 1 */ RUNNER_MOVEMENT_FORWARDS = 1,
-} RUNNER_MOVEMENT_TYPE;
-
 typedef enum _DASH_STATE {
     /* 2 */ DASH_STATE_SPRINTING = 2,
 } DASH_STATE;

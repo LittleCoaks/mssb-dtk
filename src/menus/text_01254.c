@@ -1,4 +1,5 @@
 #include "menus/text_01254.h"
+#include "game/challenge/star_mission_data.h"
 #include "static/UnknownHomes_Static.h"
 #include "header_rep_data.h"
 #include "musyx/musyx.h"
@@ -20,7 +21,7 @@ extern u8 lineUpInfoStruct[0x48];
 extern s16 lbl_2_data_E64[18];
 extern s16 lbl_2_data_E88[18];
 extern u8 lbl_2_bss_20[0x380];
-extern u8 lbl_803CBCD0[0x18];
+extern u8 lbl_803CBCD0[8];
 extern u8 cardCheck[0x5C];
 extern u8 audioFileDescriptors[0x39C];
 extern u8 lbl_2_data_180[0x4A4];
@@ -49,7 +50,6 @@ void changeScreenVariables(u16 screen);
 void fn_800670A0(u8 arg0);
 
 extern u8 unlockableCharacter_noDupeNoGapCharID[0x8];
-extern u8 characterStaticIndexes[0x144];
 
 void fn_800684A4(void);
 void fn_800649BC(void);

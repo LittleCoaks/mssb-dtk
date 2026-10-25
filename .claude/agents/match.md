@@ -110,7 +110,7 @@ Concretely, in this project: `include/game/UnknownHomes_Game.h` defines
 bits, so `& 0x40` should read `& INPUT_TRIGGER_L`; `src/game/batting/batter.c`
 is the model to copy. The same header declares ~48 enum-typed fields via the
 `E(storage, enumType)` macro -- `ballState`/`BallStateE`,
-`AtBat_ContactResult`/`BALL_RESULT_TYPE`, `runnerOnFieldOrOutOrScored`/
+`AtBat_ContactResult`/`BALL_RESULT_TYPE`, `runnerStatus`/
 `RUNNER_STATUS`, `batterHand`/`BATTING_HAND`, `GameMode_MiniGame`/
 `MINI_GAME_ID`, `buntStatus`/`BUNT_STATUS` and more -- and a comparison
 against one of those fields should use the enumerator, not the number.

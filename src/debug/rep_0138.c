@@ -4,7 +4,6 @@
 #include "game/UnknownHomes_Game.h"
 #include "header_rep_data.h"
 #include "Dolphin/gx.h"
-#include "Unknown/File_0x800bd300.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/stl.h"
@@ -181,6 +180,9 @@ extern void LITAlloc(void **light);
 extern void LITInitAttn(void *light, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6);
 extern void LITInitPos(void *light, f32 arg1, f32 arg2, f32 arg3);
 extern void LITInitDir(void *light, f32 arg1, f32 arg2, f32 arg3);
+/* Not C3/light/light.h: this unit passes LITInitColor its colour by value (the target
+ * makes the copy), which light.h's GXColor* prototype would not allow. */
+extern void LITXForm(void *arg0, void *arg1);
 extern void LITInitColor(void *light, GXColor color);
 extern void *ARAMTransfer(void *file, s32 arg1, s32 arg2, s32 arg3);
 extern void DCFlushRangeNoSync(void *addr, u32 numBytes);

@@ -1,7 +1,7 @@
 #define SQRT2_LINKAGE static
 #include "game/practice/guided_practice.h"
 #include "game/UnknownHomes_Game.h"
-#include "game/match_setup/match_flow.h"
+#include "game/match_setup/match_end.h"
 #include "game/sound/m_sound.h"
 #include "musyx/musyx.h"
 #include "Unknown/File_0x800204cc.h"
@@ -652,7 +652,7 @@ void practiceLogicRelatedPause(void) {
         }
         break;
     case 12: {
-        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput);
+        int menuResult = exitMenu_main(g_Controls[pauseControl.port].newButtonInput);
         switch (menuResult) {
         case 1:
             if (g_Practice.progressNeedsSave != 0) {
@@ -876,7 +876,7 @@ void practicePauseRelated(void) {
         g_Practice.framesSincePracticeMenuDefaultTransition = 0;
         break;
     case 12: {
-        int menuResult = ((int (*)(u16))exitMenu_main)(g_Controls[pauseControl.port].newButtonInput);
+        int menuResult = exitMenu_main(g_Controls[pauseControl.port].newButtonInput);
         switch (menuResult) {
         case 1:
             pauseControl.state = 0xD;
@@ -1113,16 +1113,16 @@ void practiceRelatedInit(void) {
     g_Practice.inputs[1].right_left = 0;
     g_Practice.inputs[1].up_down = 0;
     g_Practice.inputs[1].rightTriggerDistance = 0;
-    g_GameLogic._140[1] = 0;
-    g_GameLogic._140[0] = 0;
-    g_GameLogic.batterHandedness[1] = 0;
-    g_GameLogic.batterHandedness[0] = 0;
+    g_GameLogic.pitcherAIInd[1] = 0;
+    g_GameLogic.pitcherAIInd[0] = 0;
+    g_GameLogic.batterAIInd[1] = 0;
+    g_GameLogic.batterAIInd[0] = 0;
     g_GameLogic.teamAIInd[1] = 0;
     g_GameLogic.teamAIInd[0] = 0;
     g_GameLogic.autoFielding[1] = 0;
     g_GameLogic.autoFielding[0] = 0;
-    g_GameLogic.battingAIInd[1] = 0;
-    g_GameLogic.battingAIInd[0] = 0;
+    g_GameLogic.autoRunningInd[1] = 0;
+    g_GameLogic.autoRunningInd[0] = 0;
     g_Practice.inputs[1].leftTriggerDistance = 0;
 }
 

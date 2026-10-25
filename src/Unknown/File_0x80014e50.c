@@ -1,5 +1,5 @@
 #include "Unknown/File_0x80014e50.h"
-#include "Unknown/File_0x800a70dc.h"
+#include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
 
 typedef struct CompressedFileEntry {

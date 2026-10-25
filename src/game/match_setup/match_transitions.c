@@ -1,18 +1,18 @@
 #define SQRT2_LINKAGE static
 #include "game/match_setup/match_transitions.h"
+#include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 
 extern u8 animRelated[0x124];
 extern u8 hugeAnimStruct[0x3154];
-extern u8 characterStaticIndexes[0x144];
 extern u8 constantList[0x1C];
 extern BOOL practice_loadAllGraphics(int team);
 extern void fn_8001196C(void);
 extern void fn_80011A60(void);
 extern void fn_80011BE4(int arg0);
 extern void fn_800BDE8C(int arg0);
-extern void* fn_800111D8(void* obj);
+extern void* getAnimObjectActor(void* obj);
 extern int fn_80016344(int a, int b, int c, int d);
 extern int fn_8001500C(int a, int b);
 
@@ -35,7 +35,7 @@ BOOL championshipScreenGraphics(void) {
             for (slot = 0; slot < 9; slot++) {
                 u8* entry = (u8*)&inMemRoster[team][slot];
                 s16 charID = *(s16*)(entry + 0x24);
-                if (characterStaticIndexes[charID * 6 + 2] == 0x19) {
+                if (characterStaticIndexes[charID].requirementRow == 0x19) {
                     entry[0x26] = 0;
                     entry[0x27] = 1;
                 }
@@ -47,7 +47,7 @@ BOOL championshipScreenGraphics(void) {
 
 // .text:0x0006BA64 size:0x308
 BOOL loadRunnerActors(void) {
-    int mode;
+    E(u8, GAME_TYPE) mode;
     int next;
     int cur;
 
@@ -59,7 +59,7 @@ BOOL loadRunnerActors(void) {
 
     do {
         int runner = 3 - hugeAnimStruct[0x2D7A];
-        if (g_Runners[runner].rosterID >= 0) {
+        if ((s16)g_Runners[runner].rosterID >= 0) {
             if (fn_8001500C(g_GameLogic.teamBatting, runner + 9) == 0) {
                 return FALSE;
             }
@@ -69,25 +69,25 @@ BOOL loadRunnerActors(void) {
 
     mode = g_d_GameSettings.GameModeSelected;
 
-    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && g_GameLogic.secondaryGameMode == 0x10)) {
+    if (mode == GAME_TYPE_EXHIBITION_GAME || mode == GAME_TYPE_DEMO || mode == GAME_TYPE_CHALLENGE || (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_FIELDING)) {
         *(s16*)&animRelated[0x9E] = g_Runners[0].charID;
-    } else if (mode == 2 && g_GameLogic.secondaryGameMode == 0xF) {
+    } else if (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         *(s16*)&animRelated[0x9E] = constantList[g_Practice.rosterID];
     }
 
-    if (mode == 0 || mode == 4 || mode == 5 || (mode == 2 && g_GameLogic.secondaryGameMode == 0x10)) {
+    if (mode == GAME_TYPE_EXHIBITION_GAME || mode == GAME_TYPE_DEMO || mode == GAME_TYPE_CHALLENGE || (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_FIELDING)) {
         cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         next = cur + 1;
         if (next > 9) {
             next = 1;
         }
         *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][next][0]] + 0x24);
-    } else if (mode == 2 && g_GameLogic.secondaryGameMode == 0xF) {
+    } else if (mode == GAME_TYPE_PRACTICE && g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_FREE_BAT_AND_RUNNING) {
         cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         *(s16*)&animRelated[0xA0] = *(s16*)((u8*)&inMemRoster[g_GameLogic.teamBatting][g_GameLogic.battingOrderAndPositionMapping[g_GameLogic.homeTeamBattingInd_fieldingTeam][cur][0]] + 0x24);
     }
 
-    if (mode == 0 || mode == 5 || mode == 4) {
+    if (mode == GAME_TYPE_EXHIBITION_GAME || mode == GAME_TYPE_CHALLENGE || mode == GAME_TYPE_DEMO) {
         cur = g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam];
         next = cur + 1;
         if (next > 9) {
@@ -102,7 +102,7 @@ BOOL loadRunnerActors(void) {
 void matchTransitionFunction2(void) {
     int i;
 
-    if (g_Strikes.outs >= 3) {
+    if (g_BallsStrikesOuts.outs >= 3) {
         for (i = 0; i < 4; i++) {
             if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF && i == 0)) {
                 fn_80011BE4(i + 9);
@@ -138,64 +138,70 @@ void matchTransitionFunction2(void) {
 
 // .text:0x0006B674 size:0x1FC
 void animateShadows_nonBall(void) {
-    int i;
-    int shadowOn;
-    int miniGameMode;
     u8* obj;
+    int i;
+    BOOL shadowOn;
     u8* state;
+    u8* actor;
 
-    if (g_d_GameSettings.minigamesEnabled != 0 && g_Minigame.GameMode_MiniGame != 0) {
-        miniGameMode = g_Minigame.GameMode_MiniGame;
-        if (miniGameMode == 1 || miniGameMode == 3) {
-            fn_800BDE8C(2);
-        } else if (miniGameMode >= 2 && miniGameMode <= 6) {
-            fn_800BDE8C(1);
-        }
-    } else {
-        if (g_GameLogic.sceneID == 1) {
+    if (g_d_GameSettings.minigamesEnabled == 0 || g_Minigame.GameMode_MiniGame == MINI_GAME_ID_NONE) {
+        if (g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
             fn_800BDE8C(2);
         } else {
             fn_800BDE8C(1);
+        }
+    } else {
+        switch (g_Minigame.GameMode_MiniGame) {
+        case MINI_GAME_ID_BOBOMB_DERBY:
+        case MINI_GAME_ID_BARREL_BATTER:
+            fn_800BDE8C(2);
+            break;
+        case MINI_GAME_ID_WALLBALL:
+        case MINI_GAME_ID_CHAINCHOMP_SPRINT:
+        case MINI_GAME_ID_PIRANHA_PANIC:
+        case MINI_GAME_ID_STAR_DASH:
+            fn_800BDE8C(1);
+            break;
         }
     }
 
     for (i = 0; i < 13; i++) {
-        obj = ((u8**)&hugeAnimStruct[0x2C50])[i];
+        obj = ((u8**)hugeAnimStruct)[0x2C50 / 4 + i];
         if (obj == NULL) {
             continue;
         }
-        state = fn_800111D8(obj);
+        state = getAnimObjectActor(obj);
         if (*(void**)state == NULL) {
             continue;
         }
 
-        shadowOn = 1;
+        shadowOn = TRUE;
         if (g_d_GameSettings.minigamesEnabled != 0) {
-            if (g_GameLogic.gameStatus == 0x1C || g_GameLogic.gameStatus == 0x1D ||
-                g_GameLogic.gameStatus == 0x1E || g_GameLogic.gameStatus == 0x1F) {
-                if (g_GameLogic.gameStatus == 0x1F) {
-                    shadowOn = 0;
+            if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT || g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_LOAD ||
+                g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT || g_GameLogic.gameStatus == GAME_STATUS_0x1F) {
+                if (g_GameLogic.gameStatus == GAME_STATUS_0x1F) {
+                    shadowOn = FALSE;
                 }
             }
-            if (g_d_GameSettings.GameModeSelected == 6 && g_GameLogic.sceneID == 1 &&
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_GameLogic.sceneID == SCENE_ID_AT_BAT &&
                 ((s8)((u8*)&g_Minigame)[0x18F8 + i]) >= 1) {
-                shadowOn = 0;
+                shadowOn = FALSE;
             }
         } else {
-            if (g_GameLogic.secondaryGameMode != 0xE && g_Stats.replayInd == 0 && i != 0 && i != 9 &&
-                g_GameLogic.sceneID == 1) {
-                shadowOn = 0;
+            if (g_GameLogic.secondaryGameMode != SECONDARY_GAME_MODE_PRACTICE_BASERUNNING && g_Stats.replayInd == 0 && i != 0 && i != 9 &&
+                g_GameLogic.sceneID == SCENE_ID_AT_BAT) {
+                shadowOn = FALSE;
             }
         }
         if (obj[0x25D] == 2) {
-            shadowOn = 0;
+            shadowOn = FALSE;
         }
 
-        state = fn_800111D8(obj);
-        if (shadowOn != 0) {
-            ((u8*)*(void**)state)[0x98] |= 4;
+        actor = *(u8**)getAnimObjectActor(obj);
+        if (shadowOn) {
+            actor[0x98] |= 4;
         } else {
-            ((u8*)*(void**)state)[0x98] &= 0xFB;
+            actor[0x98] &= 0xFB;
         }
     }
 }
