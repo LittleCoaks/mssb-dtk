@@ -2264,8 +2264,9 @@ void fn_1_16978(void) {
         }
         break;
     case 4:
-        hugeAnimStruct.slots[lbl_1_bss_5F73].p8 = ARAMTransfer(
-            &lbl_1_data_2398[lbl_1_bss_3074 + lbl_1_bss_68FC.f40[lbl_1_bss_5F73] * 0x13 + lbl_1_bss_6940[lbl_1_bss_5F73].f46], 0, 0, 0);
+        i = lbl_1_bss_68FC.f40[lbl_1_bss_5F73] * 0x13;
+        hugeAnimStruct.slots[lbl_1_bss_5F73].p8 =
+            ARAMTransfer(&lbl_1_data_2398[lbl_1_bss_3074 + i + lbl_1_bss_6940[lbl_1_bss_5F73].f46], 0, 0, 0);
         currentDrawingItem->state++;
         break;
     case 5:
@@ -2435,9 +2436,7 @@ void fn_1_16978(void) {
         break;
     case 26: {
         u32 base = (u32)hugeAnimStruct.f2C84;
-        for (i = 0; i < 1; i++) {
-            fn_1_D7A4(i);
-        }
+        fn_1_D7A4(0);
         for (i = 0; i < 0x50; i++) {
             ((u32 *)hugeAnimStruct.f2C84)[i] = base + ((u32 *)base)[i];
         }

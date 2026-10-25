@@ -3655,6 +3655,25 @@ functions. These lessons are not specific to one file:
   `row = lbl_1_bss_30B6;` as a local, and the held-button test written in the loop through the global
   (`AtBat_ButtonInput1._00 & INPUT_BUTTON_A`) so MWCC hoists it. The `BTN_HELD` cast macro isn't
   hoisted (96.77). -> 100.
+- **A local with two definitions is not folded back into its use; one with a single definition is.** To
+  make MWCC evaluate an index before its base, build the index in two steps:
+  `s32 idx = (s32)u; idx += (s32)(16.0f * v) * 0x80; p->y = rows[ping & 1][idx];`. A single-definition
+  local or an inline-helper parameter was folded back, and 38 plain-expression arrangements all built the
+  base first (`rep_7730` `fn_1_23B54` -> 100).
+- **An if/else assignment followed by `v = c * v` is merged into one conditional expression** (the
+  constant gets loaded before the branches). A `static inline` helper that assigns its parameter in each
+  branch and ends with `return x;` keeps the target's constant placement. Returning from each branch
+  scored lower (95.02 vs 97.02).
+- **`*p = old + 1` and `*p += 1` on a u8 can change the post-allocation schedule with identical
+  registers:** the first left a dead zero-extend in the block (`fn_1_23B54`'s last two-instruction swap).
+- **A scratch use of a function-scope variable in another switch case changes how later code splits it.**
+  `rep_0610` `fn_1_16978`: writing case 4's `f40 * 0x13` term through the function's `i`
+  (`i = f40[...] * 0x13; ...[3074 + i + f46]`) fixed case 4. It also gave `i` the earlier live-range piece
+  that case 26's guard-zero reuse needed, so case 26 could call `fn_1_D7A4(0)` directly without the
+  one-trip loop (-> 100).
+- **For a missing dead load, dump the PCode at initial-code first.** If the read is already gone there,
+  the frontend dropped it, and no optimiser switch (dead code, dead assignments, lifetimes, -O3) brings it
+  back (`rep_0610` `fn_1_1496C`).
 - **MWCC's CSE reuses a register already holding a constant for later `li`s of that constant, but never a
   multi-def variable's main register;** a piece the live-range splitter cut off a variable can be reused.
   That is what "zero stores share i's register" means (`rep_0610` `fn_1_15760`), and likely also the

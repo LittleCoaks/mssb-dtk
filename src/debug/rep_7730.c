@@ -1279,6 +1279,39 @@ void fn_1_24410(void) {
 }
 
 // .text:0x00023B54 size:0x8BC
+typedef struct DbgWaveScene {
+    /* 0x00 */ u8 _00[0x14];
+    /* 0x14 */ f32 farZ;
+    /* 0x18 */ f32 nearZ;
+    /* 0x1C */ f32 splashHeight;
+    /* 0x20 */ f32 _20;
+    /* 0x24 */ u16 frame;
+    /* 0x26 */ u8 cursor;
+    /* 0x27 */ u8 cols;
+    /* 0x28 */ u8 rows;
+    /* 0x29 */ u8 visibleCols;
+    /* 0x2A */ E(u8, BOOL) paused;
+    /* 0x2B */ E(u8, BOOL) waveOn;
+    /* 0x2C */ u8 pingPong;
+} DbgWaveScene;
+
+static inline f32 gridFrac(f32 x) {
+    s32 n;
+
+    if (x < 0.0f) {
+        n = (s32)-x;
+    } else {
+        n = (s32)x;
+    }
+    n = n / 2 * 2;
+    if (x < 0.0f) {
+        x = x + (f32)(n + 2);
+    } else {
+        x = x - (f32)n;
+    }
+    return x;
+}
+
 void fn_1_23B54(void) {
     u16 flags;
     s32 row;
@@ -1286,110 +1319,110 @@ void fn_1_23B54(void) {
     s32 gc;
     f32 maxZ;
     f32 minZ;
-    u8 *item = (u8 *)currentDrawingItem;
+    DbgWaveScene *item = (DbgWaveScene *)currentDrawingItem;
 
     for (row = 0; row < 8; row++) {
         switch (row) {
         case 0:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & INPUT_BUTTON_LEFT) {
-                    if (*(item + 0x27) == 2) {
-                        *(item + 0x27) = 0x70;
+                    if (item->cols == 2) {
+                        item->cols = 0x70;
                     }
-                    *(item + 0x27) -= 1;
+                    item->cols -= 1;
                 } else if (flags & INPUT_BUTTON_RIGHT) {
-                    if (*(item + 0x27) == 0x70) {
-                        *(item + 0x27) = 2;
+                    if (item->cols == 0x70) {
+                        item->cols = 2;
                     }
-                    *(item + 0x27) += 1;
+                    item->cols += 1;
                 }
             }
             break;
         case 1:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & INPUT_BUTTON_LEFT) {
-                    if (*(item + 0x28) == 2) {
-                        *(item + 0x28) = 0xa0;
+                    if (item->rows == 2) {
+                        item->rows = 0xa0;
                     }
-                    *(item + 0x28) -= 1;
+                    item->rows -= 1;
                 } else if (flags & INPUT_BUTTON_RIGHT) {
-                    if (*(item + 0x28) == 0xa0) {
-                        *(item + 0x28) = 2;
+                    if (item->rows == 0xa0) {
+                        item->rows = 2;
                     }
-                    *(item + 0x28) += 1;
+                    item->rows += 1;
                 }
             }
             break;
         case 2:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
-                    *(item + 0x2a) = !*(item + 0x2a);
+                    item->paused = !item->paused;
                 }
             }
             break;
         case 3:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & INPUT_BUTTON_LEFT) {
-                    if (*(f32 *)(item + 0x14) > 1.0f) {
-                        *(f32 *)(item + 0x14) -= 1.0f;
+                    if (item->farZ > 1.0f) {
+                        item->farZ -= 1.0f;
                     }
                 } else if (flags & INPUT_BUTTON_RIGHT) {
-                    if (*(f32 *)(item + 0x14) < 512.0f) {
-                        *(f32 *)(item + 0x14) += 1.0f;
+                    if (item->farZ < 512.0f) {
+                        item->farZ += 1.0f;
                     }
                 }
             }
             break;
         case 4:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & INPUT_BUTTON_LEFT) {
-                    if (*(f32 *)(item + 0x18) > 1.0f) {
-                        *(f32 *)(item + 0x18) -= 1.0f;
+                    if (item->nearZ > 1.0f) {
+                        item->nearZ -= 1.0f;
                     }
                 } else if (flags & INPUT_BUTTON_RIGHT) {
-                    if (*(f32 *)(item + 0x18) < 512.0f) {
-                        *(f32 *)(item + 0x18) += 1.0f;
+                    if (item->nearZ < 512.0f) {
+                        item->nearZ += 1.0f;
                     }
                 }
             }
             break;
         case 5:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
-                    *(item + 0x2b) = !*(item + 0x2b);
+                    item->waveOn = !item->waveOn;
                 }
             }
             break;
         case 6:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & INPUT_BUTTON_LEFT) {
-                    if (*(f32 *)(item + 0x1c) > 0.0f) {
-                        *(f32 *)(item + 0x1c) -= 0.001f;
+                    if (item->splashHeight > 0.0f) {
+                        item->splashHeight -= 0.001f;
                     }
                 } else if (flags & INPUT_BUTTON_RIGHT) {
-                    if (*(f32 *)(item + 0x1c) < 1.0f) {
-                        *(f32 *)(item + 0x1c) += 0.001f;
+                    if (item->splashHeight < 1.0f) {
+                        item->splashHeight += 0.001f;
                     }
                 }
             }
             break;
         case 7:
-            if (row == *(item + 0x26)) {
+            if (row == item->cursor) {
                 flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
                 if (flags & INPUT_BUTTON_LEFT) {
-                    if (*(f32 *)(item + 0x20) > 0.0f) {
-                        *(f32 *)(item + 0x20) -= 0.001f;
+                    if (item->_20 > 0.0f) {
+                        item->_20 -= 0.001f;
                     }
                 } else if (flags & INPUT_BUTTON_RIGHT) {
-                    if (*(f32 *)(item + 0x20) < 1.0f) {
-                        *(f32 *)(item + 0x20) += 0.001f;
+                    if (item->_20 < 1.0f) {
+                        item->_20 += 0.001f;
                     }
                 }
             }
@@ -1400,14 +1433,14 @@ void fn_1_23B54(void) {
     flags = *(u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
 
     if (flags & INPUT_BUTTON_UP) {
-        if (*(item + 0x26) == 0) {
-            *(item + 0x26) = 8;
+        if (item->cursor == 0) {
+            item->cursor = 8;
         }
-        *(item + 0x26) -= 1;
+        item->cursor -= 1;
     } else if (flags & INPUT_BUTTON_DOWN) {
-        *(item + 0x26) += 1;
-        if (*(item + 0x26) == 8) {
-            *(item + 0x26) = 0;
+        item->cursor += 1;
+        if (item->cursor == 8) {
+            item->cursor = 0;
         }
     } else if (AtBat_ButtonInput1._02 & INPUT_BUTTON_B) {
         currentDrawingItem->func = fn_1_24778;
@@ -1418,63 +1451,38 @@ void fn_1_23B54(void) {
         for (i = 0; i < 0x10; i++) {
             idx = (rand() % 0x20) * 0x80;
             idx += rand() % 0x80;
-            lbl_1_bss_76E0[idx] += *(f32 *)(item + 0x1c);
+            lbl_1_bss_76E0[idx] += item->splashHeight;
         }
     }
 
     fn_1_121D4(lbl_1_bss_43EE0);
 
-    if (*(item + 0x2a) == 0) {
-        *(item + 0x29) = fn_1_23098(lbl_1_bss_47010, *(Mtx *)lbl_1_bss_43EE0,
-            *(item + 0x27), *(item + 0x28), *(f32 *)(item + 0x18), *(f32 *)(item + 0x14));
+    if (item->paused == FALSE) {
+        item->visibleCols = fn_1_23098(lbl_1_bss_47010, *(Mtx *)lbl_1_bss_43EE0,
+            item->cols, item->rows, item->nearZ, item->farZ);
 
-        if (*(item + 0x2b) != 0) {
-            u8 pingFlag = *(item + 0x2c);
+        if (item->waveOn != FALSE) {
+            u8 pingFlag = item->pingPong;
 
-            *(item + 0x2c) = pingFlag + 1;
+            item->pingPong += 1;
             fn_1_22F4C(0x20, 0x80, lbl_1_bss_76E0 + (1 - (pingFlag & 1)) * 0x1000,
                        lbl_1_bss_76E0 + (pingFlag & 1) * 0x1000, lbl_1_bss_76E0 + (1 - (pingFlag & 1)) * 0x1000);
 
             maxZ = (-100.0f);
             minZ = 100.0f;
 
-            for (gr = 0; gr < *(item + 0x28); gr++) {
-                for (gc = 0; gc < *(item + 0x29); gc++) {
+            for (gr = 0; gr < item->rows; gr++) {
+                for (gc = 0; gc < item->visibleCols; gc++) {
                     GridPoint *p = &lbl_1_bss_F6E0[gr][gc];
                     f32 x = p->x;
                     f32 z = p->z;
-                    u8 ping = *(item + 0x2c);
-                    s32 n;
-                    f32 u;
-                    f32 v;
+                    u8 ping = item->pingPong;
+                    f32 u = 64.0f * gridFrac(x);
+                    f32 v = gridFrac(z);
+                    s32 idx = (s32)u;
 
-                    if (x < 0.0f) {
-                        n = (s32)-x;
-                    } else {
-                        n = (s32)x;
-                    }
-                    n = n / 2 * 2;
-                    if (x < 0.0f) {
-                        u = x + (f32)(n + 2);
-                    } else {
-                        u = x - (f32)n;
-                    }
-                    u = 64.0f * u;
-
-                    if (z < 0.0f) {
-                        n = (s32)-z;
-                    } else {
-                        n = (s32)z;
-                    }
-                    n = n / 2 * 2;
-                    if (z < 0.0f) {
-                        v = z + (f32)(n + 2);
-                    } else {
-                        v = z - (f32)n;
-                    }
-                    v = 16.0f * v;
-
-                    p->y = ((f32 (*)[0x1000])lbl_1_bss_76E0)[ping & 1][(s32)u + (s32)v * 0x80];
+                    idx += (s32)(16.0f * v) * 0x80;
+                    p->y = ((f32 (*)[0x1000])lbl_1_bss_76E0)[ping & 1][idx];
 
                     if (p->y < minZ) {
                         minZ = p->y;
@@ -1487,16 +1495,16 @@ void fn_1_23B54(void) {
             minZ = 0.0f;
             maxZ = minZ;
 
-            for (gr = 0; gr < *(item + 0x28); gr++) {
-                for (gc = 0; gc < *(item + 0x29); gc++) {
+            for (gr = 0; gr < item->rows; gr++) {
+                for (gc = 0; gc < item->visibleCols; gc++) {
                     lbl_1_bss_F6E0[gr][gc].y = minZ;
                 }
             }
         }
     }
 
-    fn_1_23804(maxZ, minZ, 10, 10, *(item + 0x29), *(item + 0x28));
-    *(u16 *)(item + 0x24) += 1;
+    fn_1_23804(maxZ, minZ, 10, 10, item->visibleCols, item->rows);
+    item->frame += 1;
 }
 
 // .text:0x00023AD8 size:0x7C
@@ -1784,9 +1792,6 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
     f64 wSq;
     f32 coeffNeighbor;
     f32 coeffCenter;
-    s32 mMinus1;
-    s32 k;
-    s32 rowBase;
     s32 i;
     s32 j;
 
@@ -1794,26 +1799,23 @@ void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other) {
     wSq = wSq * wSq;
     coeffNeighbor = (f32)wSq;
     coeffCenter = (f32)(2.0 - 4.0 * wSq);
-    mMinus1 = m - 1;
 
-    for (i = 0, rowBase = 0; i < n; i++) {
-        k = rowBase;
+    for (i = 0; i < n; i++) {
         j = 0;
         while (j < m) {
-            s32 t = k++;
+            s32 t = i * m + j;
             f32 val = src[t];
             f32 prev = other[t];
             s32 right = (j + 1) % m;
-            s32 left = (j + mMinus1) % m;
+            s32 left = (j + m - 1) % m;
 
             dst[t] = coeffCenter * val
-                + coeffNeighbor * (src[right + rowBase] + (src[left + rowBase]
+                + coeffNeighbor * (src[right + i * m] + (src[left + i * m]
                     + (src[j + m * ((i + n - 1) % n)] + src[j + m * ((i + 1) % n)])))
                 - prev;
             j++;
             dst[t] *= lbl_1_data_104C4;
         }
-        rowBase += m;
     }
 }
 
