@@ -53,30 +53,45 @@ static void gfxNodeSetU8(DrawingSceneStruct *node, s32 index, u8 value) {
 
 // .text:0x00076650 size:0x224 mapped:0x806B56E4
 void fn_2_76650(MenuScene *scene, u8 team, u32 mask) {
-    s32 list[6];
-    s32 n = 0;
+    s32 list[2];
     s32 i;
-    s32 a;
-    s32 b;
+    s32 listIndex;
 
     memset(list, -1, 2);
-    for (i = 0; i < 14; i++) {
+    i = 0;
+    listIndex = 0;
+    for (; i < 14; i++) {
         if (mask & (1 << i)) {
-            if (i != 0) {
-                list[n++] = i;
+            switch (i) {
+            case 0:
+                i++;
+                break;
+            case 1: list[listIndex++] = 1; break;
+            case 2: list[listIndex++] = 2; break;
+            case 3: list[listIndex++] = 3; break;
+            case 4: list[listIndex++] = 4; break;
+            case 5: list[listIndex++] = 5; break;
+            case 6: list[listIndex++] = 6; break;
+            case 7: list[listIndex++] = 7; break;
+            case 8: list[listIndex++] = 8; break;
+            case 9: list[listIndex++] = 9; break;
+            case 10: list[listIndex++] = 10; break;
+            case 11: list[listIndex++] = 11; break;
+            case 12: list[listIndex++] = 12; break;
+            default: list[listIndex++] = 13; break;
             }
         }
     }
-    a = list[0] - 1;
-    b = list[1] - 1;
-    if (a < 0) {
-        a = 12;
+    list[0]--;
+    list[1]--;
+    if (list[0] < 0) {
+        list[0] = 12;
     }
-    if (b < 0) {
-        b = 12;
+    if (list[1] < 0) {
+        list[1] = 12;
     }
-    *(u32 *)((u8 *)gfxObject(scene, team + 0xCE) + 0x5C) = (u32)a << 16;
-    *(u32 *)((u8 *)gfxObject(scene, team + 0xD0) + 0x5C) = (u32)b << 16;
+    ((UIRecord *)gfxObject(scene, team + 0xCE))->frame = (u32)list[0] << 16;
+    ((UIRecord *)gfxObject(scene, team + 0xD0))->frame = (u32)list[1] << 16;
 }
 
 // .text:0x0007664C size:0x4 mapped:0x806B56E0
