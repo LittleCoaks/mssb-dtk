@@ -2715,15 +2715,23 @@ void fn_1_202A4(void) {
 }
 
 // .text:0x0002004C size:0x258
+typedef struct DbgTexLoadScene {
+    /* 0x00 */ u8 _00[0x14];
+    /* 0x14 */ u8 *texData;
+    /* 0x18 */ u8 *file;
+    /* 0x1C */ u8 _1C[5];
+    /* 0x21 */ u8 state;
+} DbgTexLoadScene;
+
 void fn_1_2004C(void) {
     u32 i;
-    u8 *item = (u8 *)currentDrawingItem;
+    DbgTexLoadScene *item = (DbgTexLoadScene *)currentDrawingItem;
     u32 indices[9] = {5, 6, 7, 8, 9, 0xd, 0x60, 0x61, 0x55};
 
-    switch (item[0x21]) {
+    switch (item->state) {
     case 0: {
-        *(void **)(item + 0x18) = ARAMTransfer(StadiumFiles_debug_10518, 0, 0, 0);
-        item[0x21] += 1;
+        item->file = ARAMTransfer(StadiumFiles_debug_10518, 0, 0, 0);
+        item->state += 1;
         break;
     }
     case 1: {
@@ -2733,20 +2741,20 @@ void fn_1_2004C(void) {
             break;
         }
 
-        hdr = *(u8 **)(item + 0x18);
-        *(void **)(item + 0x14) = hdr + *(u32 *)(hdr + 0x14);
-        convertTextureHeader(*(void **)(item + 0x14));
+        hdr = item->file;
+        item->texData = hdr + *(u32 *)(hdr + 0x14);
+        convertTextureHeader(item->texData);
 
         for (i = 0; i < 8; i++) {
             lbl_1_bss_6E24[i] = i;
 
-            if (fn_1_2051C(*(u8 **)(item + 0x14) + indices[i] * 0x20 + 4, (GXTexObj *)lbl_1_bss_6EA4 + i,
+            if (fn_1_2051C(item->texData + indices[i] * 0x20 + 4, (GXTexObj *)lbl_1_bss_6EA4 + i,
                            (GXTlutObj *)lbl_1_bss_6E44 + i, i)) {
                 lbl_1_bss_6E24[i] |= 0x80000000;
             }
         }
 
-        item[0x21] = 0;
+        item->state = 0;
         currentDrawingItem->func = fn_1_202A4;
         break;
     }

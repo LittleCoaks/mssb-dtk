@@ -3638,6 +3638,50 @@ functions. These lessons are not specific to one file:
   `fn_1_73B8`'s long-lived locals into a later level (-> 100); holding the value in your own local lost 5
   points. A local used twice (`MtxPtr m = geo->mtx; PSMTXConcat(c, m, m);`) also adds a node. Single-use
   locals, inline parameters and constants are always propagated away.
+- **Casting a struct-pointer local at every use (`(u8 *)item + off`) makes MWCC CSE the cast into a
+  frontend temp that replaces the local.** The initial PCode shows `lwz rT, global; mr rItem, rT`, and
+  every use then reads rT, so the "local" is coloured as a temp above every real local and declaration
+  order can't move it. Cast once at the initialiser instead, ideally to a typed view struct:
+  `View *item = (View *)currentDrawingItem;` with member access. Then the locals rule applies
+  (`rep_7730` `fn_1_2004C` -> 100 with `u32 i;` declared above it; `fn_1_23B54`'s item/pool swap fixed by
+  declaring `item` after `gr`).
+- **Two swapped volatile registers at the same simplify level are decided by vreg index, and frontend
+  variables always number below backend temps.** An inlined callee's `val` local lost to a backend address
+  temp. Storing the value straight into its destination and reading it back
+  (`*(u32 *)(blk + 0x20) = src; ratio = c1 / (f32)*(s32 *)(blk + 0x20);`, which compiles identically
+  through store-to-load forwarding) made it a backend temp (`rep_7730` `fn_1_21408` -> 100).
+- **Hoisted loop-invariant temps are numbered in descending program order.** When the target colours
+  one invariant below the rest, that value was a source local: `rep_0610` `fn_1_E098` needed
+  `row = lbl_1_bss_30B6;` as a local, and the held-button test written in the loop through the global
+  (`AtBat_ButtonInput1._00 & INPUT_BUTTON_A`) so MWCC hoists it. The `BTN_HELD` cast macro isn't
+  hoisted (96.77). -> 100.
+- **MWCC's CSE reuses a register already holding a constant for later `li`s of that constant, but never a
+  multi-def variable's main register;** a piece the live-range splitter cut off a variable can be reused.
+  That is what "zero stores share i's register" means (`rep_0610` `fn_1_15760`), and likely also the
+  guard-zero reuse in `fn_1_16978` and the `h` reuse in `fn_1_129D0`.
+- **Inlined callee locals are numbered in reverse declaration order** (last declared = highest vreg),
+  the opposite of a function's own locals. Frontend temps then follow in pass order: inline locals, block
+  locals, strength-reduction temps, LICM copies, CSE temps.
+- **The frontend hoists a global load out of an inlined loop only when the stored-through pointer
+  parameter is bound to an address expression,** not to a local pointer copy. The hoisted value then
+  becomes a low-index frontend temp, coloured late, instead of a backend LICM temp coloured early
+  (`rep_7730` `fn_1_23B54` 97.53 -> 98.96).
+- **A row offset written as `i * m` in the subscripts compiles like a `rowBase += m` local standalone,**
+  but once inlined with a constant `m` the frontend hoists `i << 7` and strength-reduces it late.
+- **To map our vregs onto the target's registers, align the pre-RA PCode dump with objdiff's target
+  listing** (validate the alignment on our own listing first). Combined with the colouring simulator, that
+  turns "which node must move" into a direct search (scratch `g5_rep7730\align.py`, `greedy.py`).
+- **`#pragma opt_lifetimes off` turns off MWCC's live-range splitting.** That is what gave
+  `w = (y / n) * w` a fresh register in every switch case but the first (`rep_0138` `fn_1_5924`). With
+  it off (`#pragma push` / `opt_lifetimes off` / `pop` around one function), every case's product stays
+  in `w`. Turning it off for the whole file broke six other functions. Block-scope locals per case stay
+  separate variables even with splitting off.
+- **`x << k` and `x * (1 << k)` compile to the same instruction but change the order terms are built in
+  a sum,** and so the add operand order (`fn_1_5924`'s last add needed `col << k`).
+- **The same body can be ordered differently once inlined:** the caller forward-substitutes reassigned
+  parameters and evaluates the terms in another order. `fn_1_5924`'s case 0x10 matched standalone only
+  with `col << 4`, and in its callers' inlined copies only with `col * 16`, so the callers write the
+  index out instead of calling it (flagged).
 - **The frontend range splitter keys on the first operand.** `w = (y / n) * w` in several switch cases
   splits `w` into one web per case, and only the first case's web keeps coalescing with the incoming
   r3. `w *= y / n`, `w = w * (y / n)` and `x %= 8` keep one web (`rep_0138` `fn_1_5924`).

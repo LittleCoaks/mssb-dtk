@@ -1154,7 +1154,7 @@ void fn_1_6050(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
                 uAngle -= nyUv;
             }
 
-            buf[fn_1_5924(w, x, y, 0x10, 0)] =
+            buf[((x / 4) << 4) + (y / 4) * w * 4 + (y % 4) * 4 + x % 4] =
                 ((u8)(s32)(128.0f * vAngle + 128.0f) << 8) | (u8)(s32)(128.0f * uAngle + 128.0f);
         }
     }
@@ -1276,7 +1276,7 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
                 uAngle -= nyUv;
             }
 
-            buf[fn_1_5924(w, x, y, 0x10, 0)] =
+            buf[((x / 4) << 4) + (y / 4) * w * 4 + (y % 4) * 4 + x % 4] =
                 ((u8)(s32)(128.0f * vAngle + 128.0f) << 8) | (u8)(s32)(128.0f * uAngle + 128.0f);
         }
     }
@@ -1285,43 +1285,62 @@ void fn_1_5AC0(void *arg0, s32 arg1, s32 arg2, f32 arg3) {
 }
 
 // .text:0x00005924 size:0x19C
+// Live-range splitting off: each case's reassigned w must stay in w's own register.
+#pragma push
+#pragma opt_lifetimes off
 s32 fn_1_5924(s32 w, s32 x, s32 y, s32 bpp, s32 flag) {
-    s32 row;
-    s32 col;
-
     switch (bpp) {
-        case 4:
+        case 4: {
+            s32 row;
+            s32 col;
+
             w = (y / 8) * w;
             row = y % 8;
             col = x / 8;
             x %= 8;
-            return col * 32 + w * 8 + row * 8 + x;
-        case 8:
+            w = (col << 5) + w * 8 + row * 8 + x;
+            break;
+        }
+        case 8: {
+            s32 row;
+            s32 col;
+
             w = (y / 4) * w;
             row = y % 4;
             col = x / 8;
             x %= 8;
-            return col * 32 + w * 4 + row * 8 + x;
-        case 0x10:
+            w = (col << 5) + w * 4 + row * 8 + x;
+            break;
+        }
+        case 0x10: {
+            s32 row;
+            s32 col;
+
             w = (y / 4) * w;
             row = y % 4;
             col = x / 4;
             x %= 4;
-            return col * 16 + w * 4 + row * 4 + x;
+            w = (col << 4) + w * 4 + row * 4 + x;
+            break;
+        }
         case 0x20: {
-            s32 result;
+            s32 row;
+            s32 col;
+
             w = (y / 4) * w;
             row = y % 4;
             col = x / 8;
             x %= 4;
-            result = col * 16 + w * 4 + row * 8 + x;
+            w = (col << 4) + w * 4 + row * 8 + x;
             if (flag != 0) {
-                result += 0x10;
+                w += 0x10;
             }
-            return result;
+            break;
         }
     }
+    return w;
 }
+#pragma pop
 
 // .text:0x00005698 size:0x28C
 void fn_1_5698(void) {

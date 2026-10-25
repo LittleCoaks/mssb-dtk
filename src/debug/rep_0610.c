@@ -2761,7 +2761,7 @@ void fn_1_15CE0(void) {
 // .text:0x00015760 size:0x580
 void fn_1_15760(void) {
     s32 i;
-    lbl_1_bss_5F73 = i = 0;
+    i = lbl_1_bss_5F73 = 0;
     if (lbl_1_bss_5F5C == 0) {
         u16 b = BTN_REPEAT;
         if (b & INPUT_BUTTON_UP) {
@@ -2832,15 +2832,18 @@ void fn_1_15760(void) {
         } else if (b & INPUT_BUTTON_RIGHT) {
             switch (lbl_1_bss_307C) {
             case 0: {
-                s32 old = lbl_1_bss_6940[0].f44;
-                u8 k = old;
+                u8 k;
+                s32 old;
+                DbgSel *sel = &lbl_1_bss_6940[0];
+                old = sel->f44;
+                k = old;
                 do {
                     k++;
                     if (k == 7) {
-                        k = 0;
+                        k = i; // i is 0 here; stands in for an unknown use that splits i's live range
                     }
                 } while (lbl_1_data_2390[k] == 0);
-                lbl_1_bss_6940[0].f44 = k;
+                sel->f44 = k;
                 if (old != k) {
                     lbl_1_bss_6940[0].f45 = 0;
                     lbl_1_bss_5F5C = 1;
@@ -2872,7 +2875,7 @@ void fn_1_15760(void) {
                 lbl_1_bss_5F68 ^= 1;
                 if (lbl_1_bss_5F68 != 0) {
                     dbgSetFrame(hugeAnimStruct.objs->e, 0.0f);
-                    for (; i < 5; i++) {
+                    for (i = 0; i < 5; i++) {
                         if (lbl_1_bss_67B8[i] != NULL) {
                             fn_1_26B7C(lbl_1_bss_67B8[i]);
                         }
@@ -2922,7 +2925,17 @@ void fn_1_15760(void) {
             lbl_1_bss_5F71 = 1;
         }
     }
-    fn_1_D71C(lbl_1_bss_5F73);
+    // fn_1_D71C(lbl_1_bss_5F73) written out with this function's i (result unused); the call form colours differently
+    {
+        DbgModel *m = hugeAnimStruct.objs->e[lbl_1_bss_5F73].model;
+        u16 n = m->count;
+        for (i = 0; i < n; i++) {
+            DbgPartData *d = m->parts[i]->data;
+            if (d != NULL && d->flag != 0) {
+                break;
+            }
+        }
+    }
 }
 
 // .text:0x0001540C size:0x354
