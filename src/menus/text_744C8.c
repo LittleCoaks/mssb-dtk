@@ -188,38 +188,36 @@ void fn_2_76098(void) {
 }
 
 // .text:0x00075BE4 size:0x4B4 mapped:0x806B4C78
-void teamSelectionSetChemStars(MenuScene *scene, u8 team) {
+void teamSelectionSetChemStars(MenuScene *scene, s32 team) {
     u8 *picks = &cursorPositions[team * 9];
-    u32 teamWord = *(u32 *)(Static_Stats_Tables + team * 4 + 0x46E0);
+    u32 *teamWord = (u32 *)(Static_Stats_Tables + team * 4 + 0x46E0);
     s32 sum = 0;
     s32 count = 0;
-    s32 average = 0;
-    s32 stars;
+    s32 stars = 0;
     s32 i;
 
     for (i = 0; i < 9; i++) {
-        u8 value = picks[0x26 + i];
+        u8 value = picks[0x26];
 
-        if (value != 0 && (s32)(s8)picks[2 + i] != (s32)teamWord) {
+        if (value != 0 && (s32)(s8)picks[2] != (s32)*teamWord) {
             sum += value;
             count++;
         }
+        picks++;
     }
     if (count != 0) {
-        average = sum / count;
-    }
-    if (average >= 70) {
-        stars = 5;
-    } else if (average >= 55) {
-        stars = 4;
-    } else if (average >= 35) {
-        stars = 3;
-    } else if (average >= 15) {
-        stars = 2;
-    } else if (average > 0) {
-        stars = 1;
-    } else {
-        stars = 0;
+        s32 average = sum / count;
+        if (average >= 70) {
+            stars = 5;
+        } else if (average <= 69 && average >= 55) {
+            stars = 4;
+        } else if (average <= 54 && average >= 35) {
+            stars = 3;
+        } else if (average <= 34 && average >= 15) {
+            stars = 2;
+        } else if (average <= 14 && average > 0) {
+            stars = 1;
+        }
     }
     Static_Stats_Tables[0x470F + team] = (u8)stars;
 
@@ -239,7 +237,7 @@ void teamSelectionSetChemStars(MenuScene *scene, u8 team) {
 }
 
 // .text:0x00075B58 size:0x8C mapped:0x806B4BEC
-BOOL fn_2_75B58(MenuScene *scene, u8 team) {
+E(u8, BOOL) fn_2_75B58(MenuScene *scene, s32 team) {
     int total = 0;
     int hits = 0;
     int i;
