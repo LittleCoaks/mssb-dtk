@@ -1441,14 +1441,14 @@ void runnerAnimation_detailed(int runnerIdx) {
         slot->state = 1;
     } else if (runner->actionCode != RUNNER_ACTION_NONE) {
         slot->state = 8;
-    } else if (runner->overRun1BStage >= 2) {
-        if (runner->overRun1BStage == 2) {
+    } else if (runner->overrun1BStage >= OVERRUN_STAGE_SLOWDOWN) {
+        if (runner->overrun1BStage == OVERRUN_STAGE_SLOWDOWN) {
             slot->state = 9;
         } else {
             slot->state = 0xA;
         }
-    } else if (runner->overrunBaseStage >= 2) {
-        if (runner->overrunBaseStage == 2) {
+    } else if (runner->overrunBaseStage >= OVERRUN_STAGE_SLOWDOWN) {
+        if (runner->overrunBaseStage == OVERRUN_STAGE_SLOWDOWN) {
             slot->state = 0xB;
         } else {
             slot->state = 0xC;
@@ -1539,7 +1539,7 @@ void runnerAnimation_general(int runnerIdx) {
             }
             break;
         case 8:
-            if (runner->actionStage == 1) {
+            if (runner->actionStage == RUNNER_ACTION_STAGE_MOVING) {
                 if (runner->actionFrames_countUp == 1) {
                     if (runner->actionCode == RUNNER_ACTION_BODY_CHECK_WON) {
                         AnimateCharacter(idx, 0x33, 0, 1, 1, runnerCharConsts.byChar[runner->charID].slideAnimFrames - runner->actionFrames_countDown, 1, -1);
@@ -1548,13 +1548,13 @@ void runnerAnimation_general(int runnerIdx) {
                     } else if (runner->actionInForwardDirectionInd != 0 && runner->nextBase != 0) {
                         AnimateCharacter(idx, 0x32, 0, 1, 1, runnerCharConsts.byChar[runner->charID].slideAnimFrames - runner->actionFrames_countDown, 1, -1);
                     } else {
-                        AnimateCharacter(idx, 0x34, 0, 1, 1, runnerCharConsts.byChar[runner->charID].altSlideAnimFrames - runner->actionFrames_countDown, 0, -1);
+                        AnimateCharacter(idx, 0x34, 0, 1, 1, runnerCharConsts.byChar[runner->charID].backOrHomeSlideAnimFrames - runner->actionFrames_countDown, 0, -1);
                     }
                     if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) {
                         playSoundEffect(0x171);
                     }
                 }
-            } else if (runner->actionStage == 2) {
+            } else if (runner->actionStage == RUNNER_ACTION_STAGE_RECOVERING) {
                 if (runner->actionFrames_countDown == 1) {
                     AnimateCharacter(idx, 0x38, 1, 1, 1, 0, 0, 0);
                 }

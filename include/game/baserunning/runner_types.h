@@ -28,6 +28,22 @@ typedef enum _RUNNER_ACTION {
     /* 3 */ RUNNER_ACTION_BODY_CHECK_FAILED,
 } RUNNER_ACTION;
 
+// InMemRunnerType.actionStage: progress through the current RUNNER_ACTION.
+typedef enum _RUNNER_ACTION_STAGE {
+    /* 0 */ RUNNER_ACTION_STAGE_NONE,
+    /* 1 */ RUNNER_ACTION_STAGE_MOVING,     // sliding into the base over actionFrames_countDown frames
+    /* 2 */ RUNNER_ACTION_STAGE_RECOVERING, // on the base, getting up (slideRecoveryFrames)
+    /* 3 */ RUNNER_ACTION_STAGE_OUT,        // finished, but the runner was out; dugout logic clears it
+} RUNNER_ACTION_STAGE;
+
+// InMemRunnerType.overrun1BStage / overrunBaseStage.
+typedef enum _OVERRUN_STAGE {
+    /* 0 */ OVERRUN_STAGE_NONE,
+    /* 1 */ OVERRUN_STAGE_PENDING,  // overrun decided; set-up runs on the next control call
+    /* 2 */ OVERRUN_STAGE_SLOWDOWN, // drifting past the base
+    /* 3 */ OVERRUN_STAGE_RETURN,   // moving back onto the base
+} OVERRUN_STAGE;
+
 // InMemRunnerType.taggedState: how this runner is being tagged this frame.
 typedef enum _RUNNER_TAGGED_STATE {
     /* 0 */ RUNNER_TAGGED_NONE,
@@ -89,8 +105,8 @@ typedef struct _InMemRunnerType {
     /*0x0A8*/ f32 velocityPercent_stamAdj;
     /*0x0AC*/ f32 accelerationPercent_stamAdj;
     /*0x0B0*/ f32 roundingStrengthPercent;                    // unsure
-    /*0x0B4*/ f32 overrun1B_someDistConst_proportionPerFrame; // maybe
-    /*0x0B8*/ f32 overrun1B_somePositionControl;
+    /*0x0B4*/ f32 overrunStepPerFrame;   // per-frame step scale for both overrun stages
+    /*0x0B8*/ f32 overrun1BPathProgress; // spline parameter along overrun1BPathPoints, 0 to ~1
     /*0x0BC*/ f32 leadoffDistancePercent;
     /*0x0C0*/ f32 mashVeloAdjustment;
     /*0x0C4*/ f32 maxMashVeloAdjustment; // 0.02
@@ -163,13 +179,13 @@ typedef struct _InMemRunnerType {
     /*0x139*/ u8 offsetFromNormalRunningPathInd; // maybe
     /*0x13A*/ E(u8, RUNNER_ACTION) actionCode;
     /*0x13B*/ u8 actionInForwardDirectionInd;
-    /*0x13C*/ u8 actionStage;
+    /*0x13C*/ E(u8, RUNNER_ACTION_STAGE) actionStage;
     /*0x13D*/ u8 forceOutType_unsed;
     /*0x13E*/ u8 baseRoundingState;
-    /*0x13F*/ u8 overrun1st_doneChecking;
-    /*0x140*/ u8 overRun1BStage;
-    /*0x141*/ u8 overrunning1BIndicator;
-    /*0x142*/ u8 overrunBaseStage;
+    /*0x13F*/ u8 overrun1BDoneChecking;
+    /*0x140*/ E(u8, OVERRUN_STAGE) overrun1BStage;
+    /*0x141*/ u8 overrun1BInd;
+    /*0x142*/ E(u8, OVERRUN_STAGE) overrunBaseStage;
     /*0x143*/ u8 offsetPositionForRoundingInd;
     /*0x144*/ u8 roundingInitiaializedInd;
     /*0x145*/ u8 runningToDugoutInd;

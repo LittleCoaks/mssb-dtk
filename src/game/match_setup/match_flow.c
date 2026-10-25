@@ -731,7 +731,7 @@ void checkIfPlayOver(void) {
         if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD) {
             if (g_Runners[i].baseStandingOn < 0) {
                 allRunnersDone = 0;
-            } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && g_Runners[i].overRun1BStage == 0) {
+            } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && g_Runners[i].overrun1BStage == OVERRUN_STAGE_NONE) {
                 allRunnersDone = 0;
             } else if (g_Runners[i].baseStandingOn != g_Runners[i].currentBase) {
                 allRunnersDone = 0;

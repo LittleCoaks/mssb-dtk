@@ -439,13 +439,13 @@ void running_setDefaultRunners(void) {
         runner->runningDirectionCode = RUNNER_MOVEMENT_NONE;
         runner->offsetFromNormalRunningPathInd = FALSE;
         runner->actionCode = RUNNER_ACTION_NONE;
-        runner->actionStage = 0;
+        runner->actionStage = RUNNER_ACTION_STAGE_NONE;
         runner->forceOutType_unsed = 0;
         runner->baseRoundingState = 0;
-        runner->overrun1st_doneChecking = 0;
-        runner->overRun1BStage = 0;
-        runner->overrunning1BIndicator = FALSE;
-        runner->overrunBaseStage = 0;
+        runner->overrun1BDoneChecking = 0;
+        runner->overrun1BStage = OVERRUN_STAGE_NONE;
+        runner->overrun1BInd = FALSE;
+        runner->overrunBaseStage = OVERRUN_STAGE_NONE;
         runner->offsetPositionForRoundingInd = FALSE;
         runner->roundingInitiaializedInd = FALSE;
         runner->runningToDugoutInd = 0;
@@ -765,7 +765,7 @@ void running_checkForOuts(void) {
                         }
                     }
                 } else if ((runner->baseStandingOn < 0 || runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) &&
-                           (runner->actionStage == 0 || runner->actionFrames_countDown >= 15)) {
+                           (runner->actionStage == RUNNER_ACTION_STAGE_NONE || runner->actionFrames_countDown >= 15)) {
                     running_recordOut(g_FieldingLogic.runnerBeingTargettedForOut);
                     if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
                         runner->forceOutCd = FORCE_OUT_TYPE_OUT_ON_FORCE;
@@ -870,10 +870,10 @@ void running_updateRunnerAngles(void) {
                            g_BallsStrikesOuts.outs < 3) {
                     angle = 3.1415927f;
                 } else if (runner->actionCode != RUNNER_ACTION_NONE) {
-                    if (runner->actionStage == 2 && runner->actionFrames_countDown <= 1) {
+                    if (runner->actionStage == RUNNER_ACTION_STAGE_RECOVERING && runner->actionFrames_countDown <= 1) {
                         angle = baseFacingAngles[runner->baseStandingOn].toNextBase;
                     }
-                } else if (runner->overRun1BStage >= 2) {
+                } else if (runner->overrun1BStage >= OVERRUN_STAGE_SLOWDOWN) {
                     angle = atan2(-runner->velocity.x, -runner->velocity.z);
                 } else if (runner->baseRoundingState == 2 && runner->baseStandingOn >= 0) {
                     angle = atan2(-runner->velocity.x, -runner->velocity.z);
@@ -1618,7 +1618,7 @@ void runnerAI_setRunningDirection(int runnerIdx, int actionCode) {
     if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN && actionCode != RUNNER_DIRECTION_REQUEST_BACK) {
         return;
     }
-    if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage != 0) {
+    if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage != RUNNER_ACTION_STAGE_NONE) {
         if (runner->actionInForwardDirectionInd == TRUE) {
             runner->baseRunningTowards = runner->nextBase;
         } else {
@@ -1709,7 +1709,7 @@ void runnerAI_startSteals(void) {
 void runnerAI_requestRunningDirection(int runnerIdx, long actionCode) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
 
-    if (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || actionCode == RUNNER_DIRECTION_REQUEST_ADVANCE) {
+    if (runner->baseRoundingState != 1 || runner->overrun1BStage < OVERRUN_STAGE_SLOWDOWN || actionCode == RUNNER_DIRECTION_REQUEST_ADVANCE) {
         if (actionCode == RUNNER_DIRECTION_REQUEST_BACK && runner->startingBase_baseAchieved == runner->baseStandingOn) {
             actionCode = RUNNER_DIRECTION_REQUEST_STOP;
         }
@@ -1822,7 +1822,7 @@ int runnerAI_checkRunnerAheadBlocking(int runnerIdx, int dropChanceGrade, int* a
     for (i = runnerIdx + 1; i < 4; i++, other++, extra++) {
         if (other->runnerStatus == RUNNER_STATUS_ON_FIELD) {
             if (other->currentBase == runner->currentBase) {
-                if (other->baseRoundingState == 2 && other->overrunBaseStage == 3) {
+                if (other->baseRoundingState == 2 && other->overrunBaseStage == OVERRUN_STAGE_RETURN) {
                     return 1;
                 }
                 if (other->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
@@ -1856,7 +1856,7 @@ int runnerAI_checkRunnerAheadBlocking(int runnerIdx, int dropChanceGrade, int* a
                         (other->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && other->nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS)) {
                         return 1;
                     }
-                    if (other->baseRoundingState == 2 && other->overrunBaseStage >= 2) {
+                    if (other->baseRoundingState == 2 && other->overrunBaseStage >= OVERRUN_STAGE_SLOWDOWN) {
                         return 1;
                     }
                 }
@@ -2058,7 +2058,7 @@ int runnerAI_flyBallDecision(int runnerIdx, int dropChanceGrade) {
         {
             int toNext = runner->framesToNextBase;
 
-            if (runner->overRun1BStage != 0) {
+            if (runner->overrun1BStage != OVERRUN_STAGE_NONE) {
                 return -2;
             }
             result = -2;
@@ -2259,7 +2259,7 @@ int runnerAI_ballHeldDecision(int runnerIdx) {
         if (runner->currentBase == 3) {
             nextFrames += 20;
         }
-    } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && (runner->baseRoundingState != 1 || runner->overrunBaseStage != 2) &&
+    } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && (runner->baseRoundingState != 1 || runner->overrunBaseStage != OVERRUN_STAGE_SLOWDOWN) &&
                runner->percentTowardsNextBase >= 0.15f) {
         nextFrames += 20;
     }
@@ -2285,7 +2285,7 @@ int runnerAI_ballHeldDecision(int runnerIdx) {
     }
     framesToPrev = runner->framesToPreviousBase;
     if (prevFrames > framesToPrev) {
-        if (runner->baseRoundingState == 2 && runner->overrunBaseStage == 2 && prevFrames - 20 > framesToPrev) {
+        if (runner->baseRoundingState == 2 && runner->overrunBaseStage == OVERRUN_STAGE_SLOWDOWN && prevFrames - 20 > framesToPrev) {
             return -2;
         }
         return -1;
@@ -2386,7 +2386,7 @@ int runnerAI_ballThrownDecision(int runnerIdx) {
             }
             return 1;
         }
-        if (runner->baseRoundingState == 2 && runner->overrunBaseStage == 2) {
+        if (runner->baseRoundingState == 2 && runner->overrunBaseStage == OVERRUN_STAGE_SLOWDOWN) {
             cutoffFrames = estimatedThrowFramesBetweenTwoPoints(
                 g_Fielders[g_FieldingLogic.cutoffFielderIndex].IntendedLocation.x,
                 g_Fielders[g_FieldingLogic.cutoffFielderIndex].IntendedLocation.z, base_MoundCoordinates[currBase].x,
@@ -2581,7 +2581,7 @@ void running_liveBall_AI(void) {
         for (i = 3; i >= 0; i--, runner--) {
             int d = dirs[i];
 
-            if (d != RUNNER_DIRECTION_REQUEST_NONE && (runner->baseRoundingState != 1 || runner->overRun1BStage < 2 || d == RUNNER_DIRECTION_REQUEST_ADVANCE)) {
+            if (d != RUNNER_DIRECTION_REQUEST_NONE && (runner->baseRoundingState != 1 || runner->overrun1BStage < OVERRUN_STAGE_SLOWDOWN || d == RUNNER_DIRECTION_REQUEST_ADVANCE)) {
                 if (d == RUNNER_DIRECTION_REQUEST_BACK && runner->startingBase_baseAchieved == runner->baseStandingOn) {
                     d = RUNNER_DIRECTION_REQUEST_STOP;
                 }
@@ -2761,10 +2761,10 @@ void running_calcSpeedVariables(int runnerIdx) {
         f32 veloCap;
         int maxedOut;
 
-        if (runner->overRun1BStage != 0 && running_overrun1BControl(runnerIdx) != 0) {
+        if (runner->overrun1BStage != OVERRUN_STAGE_NONE && running_overrun1BControl(runnerIdx) != 0) {
             return;
         }
-        if (runner->overrunBaseStage != 0 && running_overrunBaseControl(runnerIdx) != 0) {
+        if (runner->overrunBaseStage != OVERRUN_STAGE_NONE && running_overrunBaseControl(runnerIdx) != 0) {
             return;
         }
         if (runner->leadOffStatus == LEADOFF_STATUS_LEADING_OFF) {
@@ -2953,7 +2953,7 @@ finish:
     runner->percentFromCurrentBase_slideAdj = runner->percentTowardsNextBase - runner->slidingAdjustment_backwards;
     runner->percentTowardsNextBase_slideAdj =
         (1.0f - runner->percentTowardsNextBase) - runner->slidingAdjustment_forwards;
-    if (runner->overRun1BStage != 0) {
+    if (runner->overrun1BStage != OVERRUN_STAGE_NONE) {
         running_overrun1BControl(runnerIdx);
     }
 }
@@ -2964,7 +2964,7 @@ void running_updateActionAndVelocity(int runnerIdx) {
 
     runner->actionFrames_countUp++;
     runner->actionFrames_countDown--;
-    if (runner->actionStage == 1) {
+    if (runner->actionStage == RUNNER_ACTION_STAGE_MOVING) {
         if (runner->actionInForwardDirectionInd != FALSE) {
             f32 excess = (1.0f - runner->slidingAdjustment_forwards) - runner->percentTowardsNextBase;
             if (runner->actionFrames_countDown <= 0) {
@@ -2983,7 +2983,7 @@ void running_updateActionAndVelocity(int runnerIdx) {
         if (runner->actionFrames_countDown <= 0) {
             runner->actionFrames_countUp = 0;
             runner->actionFrames_countDown = runnerCharConsts.byChar[runner->charID].slideRecoveryFrames;
-            runner->actionStage = 2;
+            runner->actionStage = RUNNER_ACTION_STAGE_RECOVERING;
             runner->percentRanPerFrame_slideAdj = 0.0f;
             runner->fractionalBasesRan = (f32)runner->baseRunningTowards;
             runner->percentTowardsNextBase = 0.0f;
@@ -2991,15 +2991,15 @@ void running_updateActionAndVelocity(int runnerIdx) {
                 runner->fractionalBasesRan = 4.0f;
             }
             if (runner->runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY) {
-                runner->actionStage = 3;
+                runner->actionStage = RUNNER_ACTION_STAGE_OUT;
             }
         }
-    } else if (runner->actionStage == 2) {
+    } else if (runner->actionStage == RUNNER_ACTION_STAGE_RECOVERING) {
         runner->groundVelocity[0] = 0.0f;
         runner->percentRanPerFrame_slideAdj = 0.0f;
         if (runner->actionFrames_countDown <= 0) {
             runner->actionCode = RUNNER_ACTION_NONE;
-            runner->actionStage = 0;
+            runner->actionStage = RUNNER_ACTION_STAGE_NONE;
             if (runner->baseStandingOn >= 0) {
                 runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
                 runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_STOPPED;
@@ -3029,9 +3029,9 @@ int running_overrun1BControl(int runnerIdx) {
         f32 distTo2B;
         f32 proportion;
 
-        runner->overRun1BStage = 0;
+        runner->overrun1BStage = OVERRUN_STAGE_NONE;
         runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
-        runner->overrunning1BIndicator = TRUE;
+        runner->overrun1BInd = TRUE;
         dx = baseCoordsForRunning[1][0] - runner->position.x;
         dz = baseCoordsForRunning[1][1] - runner->position.z;
         dxSq = dx * dx;
@@ -3054,35 +3054,35 @@ int running_overrun1BControl(int runnerIdx) {
             (1.0f - runner->percentTowardsNextBase) - runner->slidingAdjustment_forwards;
         return 1;
     }
-    if (runner->overRun1BStage == 1) {
-        runner->overRun1BStage = 2;
+    if (runner->overrun1BStage == OVERRUN_STAGE_PENDING) {
+        runner->overrun1BStage = OVERRUN_STAGE_SLOWDOWN;
         runner->overrunBaseFrames_countUp = 0;
         runner->overrunBaseFrames_countDown = overrun1BStageFrames.slowdownFrames;
         runner->runningDirectionCode = RUNNER_MOVEMENT_OVERRUN_FIRST;
-        runner->overrun1B_someDistConst_proportionPerFrame =
+        runner->overrunStepPerFrame =
             1.0f /
             (f32)((runner->overrunBaseFrames_countDown + 1) * (runner->overrunBaseFrames_countDown / 2));
-        runner->overrun1B_somePositionControl = 0.0f;
+        runner->overrun1BPathProgress = 0.0f;
     }
-    if (runner->overRun1BStage == 2) {
+    if (runner->overrun1BStage == OVERRUN_STAGE_SLOWDOWN) {
         runner->overrunBaseFrames_countUp++;
         runner->overrunBaseFrames_countDown--;
         if (runner->overrunBaseFrames_countDown == 0) {
-            runner->overRun1BStage = 3;
+            runner->overrun1BStage = OVERRUN_STAGE_RETURN;
             runner->overrunBaseFrames_countUp = 0;
             runner->overrunBaseFrames_countDown = overrun1BStageFrames.returnFrames;
         } else {
-            runner->overrun1B_somePositionControl =
-                runner->overrun1B_someDistConst_proportionPerFrame * (f32)runner->overrunBaseFrames_countDown +
-                runner->overrun1B_somePositionControl;
+            runner->overrun1BPathProgress =
+                runner->overrunStepPerFrame * (f32)runner->overrunBaseFrames_countDown +
+                runner->overrun1BPathProgress;
         }
     }
-    if (runner->overRun1BStage == 3) {
+    if (runner->overrun1BStage == OVERRUN_STAGE_RETURN) {
         runner->overrunBaseFrames_countUp++;
         runner->overrunBaseFrames_countDown--;
         if (runner->overrunBaseFrames_countDown == 0) {
             runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
-            runner->overRun1BStage = 0;
+            runner->overrun1BStage = OVERRUN_STAGE_NONE;
             running_placeRunnerOnBase(runnerIdx, 1);
             return 1;
         }
@@ -3096,42 +3096,42 @@ int running_overrunBaseControl(int runnerIdx) {
 
     if (runner->runningDirectionDesired == RUNNER_MOVEMENT_FORWARDS) {
         runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_FORWARDS;
-        runner->overrunBaseStage = 0;
+        runner->overrunBaseStage = OVERRUN_STAGE_NONE;
         return 0;
     }
-    if (runner->overrunBaseStage == 1) {
-        runner->overrunBaseStage = 2;
+    if (runner->overrunBaseStage == OVERRUN_STAGE_PENDING) {
+        runner->overrunBaseStage = OVERRUN_STAGE_SLOWDOWN;
         runner->overrunBaseFrames_countUp = 0;
         runner->overrunBaseFrames_countDown = overrunBaseStageFrames.slowdownFrames;
         runner->runningDirectionCode = RUNNER_MOVEMENT_OVERRUN_BASE;
         {
             f32 denom = (f32)((runner->overrunBaseFrames_countDown + 1) * (runner->overrunBaseFrames_countDown / 2));
-            runner->overrun1B_someDistConst_proportionPerFrame = overrunBaseDistance / denom;
+            runner->overrunStepPerFrame = overrunBaseDistance / denom;
         }
     }
-    if (runner->overrunBaseStage == 2) {
+    if (runner->overrunBaseStage == OVERRUN_STAGE_SLOWDOWN) {
         runner->overrunBaseFrames_countUp++;
         runner->overrunBaseFrames_countDown--;
         if (runner->overrunBaseFrames_countDown < 0) {
-            runner->overrunBaseStage = 3;
+            runner->overrunBaseStage = OVERRUN_STAGE_RETURN;
             runner->overrunBaseFrames_countUp = 0;
             runner->overrunBaseFrames_countDown = overrunBaseStageFrames.returnFrames;
-            runner->overrun1B_someDistConst_proportionPerFrame =
+            runner->overrunStepPerFrame =
                 (runner->slidingAdjustment_backwards - runner->percentTowardsNextBase) / (f32)runner->overrunBaseFrames_countDown;
         } else {
             runner->percentRanPerFrame_slideAdj =
-                runner->overrun1B_someDistConst_proportionPerFrame * (f32)runner->overrunBaseFrames_countDown;
+                runner->overrunStepPerFrame * (f32)runner->overrunBaseFrames_countDown;
         }
     }
-    if (runner->overrunBaseStage == 3) {
+    if (runner->overrunBaseStage == OVERRUN_STAGE_RETURN) {
         runner->overrunBaseFrames_countUp++;
         runner->overrunBaseFrames_countDown--;
         if (runner->overrunBaseFrames_countDown < 0) {
-            runner->overrunBaseStage = 0;
+            runner->overrunBaseStage = OVERRUN_STAGE_NONE;
             running_stopRunner(runnerIdx);
             running_placeRunnerOnBase(runnerIdx, runner->currentBase);
         } else {
-            runner->percentRanPerFrame_slideAdj = runner->overrun1B_someDistConst_proportionPerFrame;
+            runner->percentRanPerFrame_slideAdj = runner->overrunStepPerFrame;
             runner->offsetFromNormalRunningPathInd = FALSE;
         }
     }
@@ -3203,7 +3203,7 @@ void running_updateBaseArrival(int runnerIdx) {
                     } else if (runner->runningDirectionDesired != RUNNER_MOVEMENT_FORWARDS) {
                         runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
                         runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_STOPPED;
-                        runner->overrunBaseStage = 1;
+                        runner->overrunBaseStage = OVERRUN_STAGE_PENDING;
                     }
                 } else if (runner->baseRoundingState == 1) {
                     runner->fractionalBasesRan = (f32)fracBasesRun;
@@ -3314,7 +3314,7 @@ void running_updateBaseArrival(int runnerIdx) {
                     runner->roundingInitiaializedInd = FALSE;
                     runner->offsetPositionForRoundingInd = FALSE;
                 }
-                runner->overrunning1BIndicator = FALSE;
+                runner->overrun1BInd = FALSE;
             }
             if (runner->baseStandingOn == 0) {
                 if (g_BallsStrikesOuts.outs < 3 && g_d_GameSettings.GameModeSelected != GAME_TYPE_MINIGAMES &&
@@ -3400,12 +3400,12 @@ void running_updatePosition(int runnerIdx) {
                 runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_NONE;
                 break;
             }
-            if (runner->overRun1BStage >= 2) {
-                if (runner->overRun1BStage == 2) {
-                    spline2D_evaluatePoints(runner->overrun1B_somePositionControl, (VecXZ*)&vec, overrun1BPathPoints, 3);
+            if (runner->overrun1BStage >= OVERRUN_STAGE_SLOWDOWN) {
+                if (runner->overrun1BStage == OVERRUN_STAGE_SLOWDOWN) {
+                    spline2D_evaluatePoints(runner->overrun1BPathProgress, (VecXZ*)&vec, overrun1BPathPoints, 3);
                     runner->position.x = vec.x;
                     runner->position.z = vec.y;
-                } else if (runner->overRun1BStage == 3) {
+                } else if (runner->overrun1BStage == OVERRUN_STAGE_RETURN) {
                     running_lerpBetweenBases(&dest, 1, 2, runner->slidingAdjustment_backwards);
                     vec.x = (dest.x - runner->position.x) / (f32)runner->overrunBaseFrames_countDown;
                     vec.y = (dest.y - runner->position.y) / (f32)runner->overrunBaseFrames_countDown;
@@ -3420,7 +3420,7 @@ void running_updatePosition(int runnerIdx) {
                 runner->slideHomeFrames_CountDown--;
                 break;
             }
-            if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage == 2) {
+            if (runner->actionCode != RUNNER_ACTION_NONE && runner->actionStage == RUNNER_ACTION_STAGE_RECOVERING) {
                 if (runner->timeStandingOnBase >= 6) {
                     if (runner->baseOfFailedBodyCheck >= 0) {
                         s8 base = runner->baseOfFailedBodyCheck;
@@ -3515,7 +3515,7 @@ void running_updatePosition(int runnerIdx) {
 
         running_basePathPosition(&vec, runner->fractionalBasesRan, runner->percentTowardsNextBase);
 
-        if (runner->overrunning1BIndicator != FALSE && runner->fractionalBasesRan < 2.0f) {
+        if (runner->overrun1BInd != FALSE && runner->fractionalBasesRan < 2.0f) {
             if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                 a = 1.0f - runner->percentTowardsNextBase_stored;
                 b = 1.0f - runner->percentTowardsNextBase;
@@ -3750,7 +3750,7 @@ int running_getDirectionOverride(int runnerIdx) {
             return RUNNER_MOVEMENT_STOPPED;
         }
     } else if (prevent & RUNNER_RESTRICTION_NO_FORWARD) {
-        if ((runner->baseRoundingState != 1 || runner->overRun1BStage == 0) && runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
+        if ((runner->baseRoundingState != 1 || runner->overrun1BStage == OVERRUN_STAGE_NONE) && runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
             return RUNNER_MOVEMENT_STOPPED;
         }
         if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS) {
@@ -3868,7 +3868,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
     runner->actionCode = RUNNER_ACTION_SLIDE;
     runner->actionFrames_countUp = 0;
     runner->actionFrames_countDown = framesToBase;
-    runner->actionStage = 1;
+    runner->actionStage = RUNNER_ACTION_STAGE_MOVING;
     if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
         runner->actionInForwardDirectionInd = TRUE;
         if (bodyCheckChance && runner->forceOutCd == FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE &&
@@ -3928,8 +3928,8 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
 BOOL running_overrun1BIndicator(void) {
     InMemRunnerType* runner = &g_Runners[0];
 
-    if (runner->actionCode == RUNNER_ACTION_NONE && runner->overrun1st_doneChecking == 0) {
-        if (runner->overRun1BStage != 0) {
+    if (runner->actionCode == RUNNER_ACTION_NONE && runner->overrun1BDoneChecking == 0) {
+        if (runner->overrun1BStage != OVERRUN_STAGE_NONE) {
             return 1;
         }
         if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_CAUGHT) {
@@ -3946,7 +3946,7 @@ BOOL running_overrun1BIndicator(void) {
                    runner->framesToNextBase + 30 > g_Ball.framesUntilThrowReachesDest)))) {
                 goto isOverrun1st;
             }
-            runner->overrun1st_doneChecking = 1;
+            runner->overrun1BDoneChecking = 1;
         }
     }
     if (runner->baseRoundingState == 1) {
@@ -3956,7 +3956,7 @@ BOOL running_overrun1BIndicator(void) {
 isOverrun1st:
     runner->baseRoundingState = 1;
     if (runner->fractionalBasesRan > 0.8f) {
-        runner->overRun1BStage = 1;
+        runner->overrun1BStage = OVERRUN_STAGE_PENDING;
     }
     return 1;
 }
@@ -4055,7 +4055,7 @@ int running_roundBaseDecision(int runnerIdx) {
         dontRound = 1;
     }
 
-    if (runner->overrunBaseStage != 3 && dontRound) {
+    if (runner->overrunBaseStage != OVERRUN_STAGE_RETURN && dontRound) {
         runner->offsetFromNormalRunningPathInd = FALSE;
         return 0;
     }
@@ -4079,18 +4079,18 @@ void running_sendOutRunnerToDugout(int runnerIdx) {
             return;
         }
         if (runner->actionCode != RUNNER_ACTION_NONE) {
-            if (runner->actionStage == 3) {
+            if (runner->actionStage == RUNNER_ACTION_STAGE_OUT) {
                 runner->actionCode = RUNNER_ACTION_NONE;
-                runner->actionStage = 0;
+                runner->actionStage = RUNNER_ACTION_STAGE_NONE;
             } else {
                 return;
             }
         }
         if (runner->forceOutCd == FORCE_OUT_TYPE_OUT_ON_FORCE) {
-            if (runner->overRun1BStage != 0) {
-                if (runner->overRun1BStage == 3) {
+            if (runner->overrun1BStage != OVERRUN_STAGE_NONE) {
+                if (runner->overrun1BStage == OVERRUN_STAGE_RETURN) {
                     runner->baseRoundingState = 0;
-                    runner->overRun1BStage = 0;
+                    runner->overrun1BStage = OVERRUN_STAGE_NONE;
                 } else {
                     return;
                 }
@@ -4102,15 +4102,15 @@ void running_sendOutRunnerToDugout(int runnerIdx) {
         }
         runner->runningToDugoutInd = 1;
         runner->runningToDugoutStage = 0;
-        runner->overRun1BStage = 0;
+        runner->overrun1BStage = OVERRUN_STAGE_NONE;
     } else {
         if (g_BallsStrikesOuts.outs < 3) {
             return;
         }
         if (runner->actionCode != RUNNER_ACTION_NONE) {
-            if (runner->actionStage == 3) {
+            if (runner->actionStage == RUNNER_ACTION_STAGE_OUT) {
                 runner->actionCode = RUNNER_ACTION_NONE;
-                runner->actionStage = 0;
+                runner->actionStage = RUNNER_ACTION_STAGE_NONE;
             } else {
                 return;
             }

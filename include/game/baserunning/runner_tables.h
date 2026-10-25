@@ -65,7 +65,7 @@ typedef struct _RunnerCharConsts {
     /* 0x1 */ u8 slideMaxFrames; // ...and no more than this
     /* 0x2 */ u8 slideAnimFrames;
     /* 0x3 */ u8 slideRecoveryFrames;
-    /* 0x4 */ u8 altSlideAnimFrames;
+    /* 0x4 */ u8 backOrHomeSlideAnimFrames; // diving back to a base, or sliding into home
 } RunnerCharConsts; // size: 0x5
 
 typedef struct _RunnerCharConstsTable {
