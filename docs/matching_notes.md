@@ -3685,6 +3685,19 @@ functions. These lessons are not specific to one file:
   (`i = f40[...] * 0x13; ...[3074 + i + f46]`) fixed case 4. It also gave `i` the earlier live-range piece
   that case 26's guard-zero reuse needed, so case 26 could call `fn_1_D7A4(0)` directly without the
   one-trip loop (-> 100).
+- **A truly dead load in the target (its result overwritten on every path) means a volatile lvalue read in
+  the original.** Established from GC/2.6 itself (`rep_0610` `fn_1_1496C`, [G8]):
+  - the frontend drops unused non-volatile reads;
+  - register allocation deletes dead definitions and cascades back through the address computation;
+  - a post-allocation peephole deletes a load stored straight back to its own address.
+  The only exemption is PCode flag 0x80, which is set only by volatile qualification: on the expression,
+  the object, or the element type. So don't spend passes on dead-store, dead-branch, inline or loop tricks.
+  A volatile read there is the faithful form, not a hack.
+  - **Dead-load scanner:** `dl2.py` (scratch `g8_rep0610\`) finds loads whose result is overwritten on all
+    paths. Outside the SDK there are only three in the game.
+  - **A narrowing cast around an indexed volatile offset flips the base/offset register order**
+    (`((volatile u8 *)arr)[(u16)(i * 0x48 + 0x46)]` gives the target's base r5 / offset r6), at the cost
+    of a `clrlwi`. A no-op cast instead lets the frontend fold base and +0x46 into one constant.
 - **For a missing dead load, dump the PCode at initial-code first.** If the read is already gone there,
   the frontend dropped it, and no optimiser switch (dead code, dead assignments, lifetimes, -O3) brings it
   back (`rep_0610` `fn_1_1496C`).
