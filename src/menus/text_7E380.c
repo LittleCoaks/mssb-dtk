@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "menus/text_7E380.h"
+#include "menus/text_744C8.h"
 #include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80062674.h"
@@ -10,13 +11,10 @@
 
 extern u8 gameSetUpStep[0x64];
 extern u8 lbl_2_bss_F468[];
-void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 channel);
 BOOL maybeCheckAndResetGrapicsElement(MenuScene *scene, int handle, int frame);
 void updateCharacterSelectProcessCode(int port, u8 process);
 void fn_2_16A74(s32 port, s32 flag);
-void fn_2_7630C(MenuScene *scene, u8 channel);
 void fn_2_CCE0(u8 channel);
-void teamSelectionSetChemStars(MenuScene *scene, u8 channel);
 extern u8 lbl_2_bss_100B8[];
 extern int menuCursors[0x16];
 extern u8 lbl_2_data_2B3A4[];

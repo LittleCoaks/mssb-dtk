@@ -5577,3 +5577,13 @@ The manager's independent full-entry actual-PPC expectations pass19,328 fixtures
 ### Chemistry argument typing also restores three caller moves (wave70 dependent)
 
 Rebuilding `menus/text_78F78` against the corrected chemistry prototype raises `.text`95.11759% to95.22358%. cssAction_0x19 reaches93.71429%, randomTeamMemberSelection96.08%, fn_2_7AE3C93.6837%. Each change is exactlyone byte truncation replaced by the full-width argument move present at the target chemistry call. Allother instructions/branchdestinations and every function floor, including the exact helper, hold. The source is unchanged; these are valid team-index calls, with the callee behavior independently checked in wave70. Freshshared/private instructions, full build, four hashes and whitespace checks pass.
+
+### Use the canonical chemistry header in the character-action unit (wave71)
+
+`menus/text_76874` includes the canonical text_744C8 header in place of three redundant local declarations. Fresh compilation preserves every machine instruction, data byte, relocation, function floor and exact helper; `.text` remains90.16981%. Shared/private instructions, full build, four output hashes and whitespace checks pass. No headers changed.
+
+### Carry the full chemistry team argument through two more callers (wave71)
+
+Canonical text_744C8 declarations raise `menus/text_7E380` `.text`98.257774% to98.37282%. cssRemoveCharacter1 reaches94.54676%; cssSelectCharacter98.125%. Each change replaces exactlyone byte truncation with the full-width argument move found in the target. The latter move is25 instructions before its call; the manager verified no intervening argument-register definition and the same target lifetime. Allother machine code/data/relocations and allfive exact functions are unchanged. The callee's behavior was independently checked in wave70; this check establishes the bounded caller delta, not full gameplay. Fresh shared/private instructions and every floor, full build, four hashes and whitespace checks pass.
+
+The same canonical declaration trial in text_7BFF8 elided both moves and regressed cssAction_case9; that candidate was discarded and the original source retained. No cast or placeholder was added to force allocation. Its narrow local declaration remains a pending source-shape issue.
