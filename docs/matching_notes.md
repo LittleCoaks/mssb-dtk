@@ -3698,6 +3698,17 @@ functions. These lessons are not specific to one file:
   - **A narrowing cast around an indexed volatile offset flips the base/offset register order**
     (`((volatile u8 *)arr)[(u16)(i * 0x48 + 0x46)]` gives the target's base r5 / offset r6), at the cost
     of a `clrlwi`. A no-op cast instead lets the frontend fold base and +0x46 into one constant.
+- **For an indexed access, MWCC keeps `i * size + off` as "register plus constant" and computes the
+  base first,** so the base gets the lower vreg number. A conversion around the offset makes it compute
+  the offset first:
+  - narrowing (`(u16)`) costs a `clrlwi`;
+  - a same-width cast folds base + off into one constant;
+  - widening a signed int to 64 bits leaves a dead `srawi`;
+  - widening an UNSIGNED 32-bit value to `u64` costs nothing, because its high word is deleted.
+
+  `((volatile u8 *)lbl_1_bss_6940)[(u64)(i * sizeof(DbgSel) + 0x46)];` gave `rep_0610` `fn_1_1496C`'s
+  base r5 / offset r6 exactly (97.84 -> 100, the last function of the debug REL). The `u64` spelling is a
+  guess at whatever produced that tree in the original; the volatile read itself is evidenced.
 - **For a missing dead load, dump the PCode at initial-code first.** If the read is already gone there,
   the frontend dropped it, and no optimiser switch (dead code, dead assignments, lifetimes, -O3) brings it
   back (`rep_0610` `fn_1_1496C`).

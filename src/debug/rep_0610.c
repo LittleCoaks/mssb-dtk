@@ -3150,7 +3150,11 @@ void fn_1_14FB8(void) {
 // .text:0x0001496C size:0x64C
 void fn_1_1496C(void) {
     DbgSceneB *s = (DbgSceneB *)currentDrawingItem;
-    u16 b = BTN_REPEAT;
+    u16 b;
+    // volatile read: the target keeps this dead load (only volatile accesses survive regalloc's dead-def deletion)
+    // The exact spelling (u64 index) is a guess; it reproduces the target's evaluation order of base and offset.
+    ((volatile u8 *)lbl_1_bss_6940)[(u64)(lbl_1_bss_5F73 * sizeof(DbgSel) + 0x46)];
+    b = BTN_REPEAT;
     lbl_1_bss_5F73 = 0;
     if (b & INPUT_BUTTON_LEFT) {
         if (lbl_1_bss_68FC.f40[lbl_1_bss_5F73] != 0) {

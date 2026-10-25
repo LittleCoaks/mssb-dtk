@@ -1096,7 +1096,7 @@ config.libs = [
             Object(Matching, "debug/rep_0138.c"),
             Object(Matching, "debug/rep_0250.c"),
             Object(Matching, "debug/rep_02A8.c"),
-            Object(NonMatching, "debug/rep_0610.c"),
+            Object(Matching, "debug/rep_0610.c"),
             Object(Matching, "debug/rep_74A0.c"),
             Object(Matching, "debug/rep_7730.c"),
             Object(Matching, "debug/rep_7920.c"),
