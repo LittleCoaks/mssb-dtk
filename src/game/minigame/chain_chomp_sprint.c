@@ -252,11 +252,11 @@ void ccs_introTransition(void) {
     case 0:
         minigameQueueHudEvent(2, minigameIntroFrames[0]);
         changeScene(1, 6);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 1;
         break;
     case 1:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
+        if (g_GameLogic.framesInGameStatus_copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
             g_GameLogic._125 = 2;
         }
         break;

@@ -125,11 +125,11 @@ void animateMVP_GameEnd(void) {
             animRelated[0xD0] = g_Scores.halfInning;
             insertGraphicDrawingFunction(gameEndScene_init, 2);
         }
-        if (g_GameLogic._125 == 4 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic._125 == 4 && g_GameLogic.framesInGameStatus_copy == 1) {
             insertGraphicDrawingFunction(mvpBanner_init, 2);
         }
         if (g_GameLogic._125 == 7) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            if (g_GameLogic.framesInGameStatus_copy == 1) {
                 if (pauseControl._1D8 == 0 && g_GameLogic._11A != 0) {
                     insertGraphicDrawingFunction(manageScoreboardGraphic, 2);
                     insertGraphicDrawingFunction(mvpScoreboard_init, 2);
@@ -140,7 +140,7 @@ void animateMVP_GameEnd(void) {
                 }
             }
         } else if (g_GameLogic._125 == 5) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            if (g_GameLogic.framesInGameStatus_copy == 1) {
                 insertGraphicDrawingFunction(fn_8004D0F0, 2);
             }
         }

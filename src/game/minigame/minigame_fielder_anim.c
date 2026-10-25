@@ -497,7 +497,7 @@ void minigameUpdateResultsScene(void) {
             showWinners = TRUE;
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME) {
-        if (g_GameLogic._125 < 4 || (g_GameLogic._125 == 4 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0)) {
+        if (g_GameLogic._125 < 4 || (g_GameLogic._125 == 4 && g_GameLogic.framesInGameStatus_copy == 0)) {
             showWinners = TRUE;
         }
     }
@@ -531,12 +531,12 @@ void minigameUpdateResultsScene(void) {
 
     showWinners = FALSE;
     if (g_d_GameSettings.minigamesEnabled != 0) {
-        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == 1) ||
-            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == 1)) {
+        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.framesInGameStatus == 1) ||
+            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.framesInGameStatus == 1)) {
             showWinners = TRUE;
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic._125 == 4 &&
-               g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+               g_GameLogic.framesInGameStatus_copy == 1) {
         showWinners = TRUE;
     }
 
@@ -616,9 +616,9 @@ void minigameUpdateResultsScene(void) {
     }
 
     if (tWon == FALSE) {
-        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == minigameResultsFrames[0] &&
+        if ((g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.framesInGameStatus == minigameResultsFrames[0] &&
              StatsScreenScores.mvpKind <= 1) ||
-            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.FrameCountOfCurrentPitch == minigameResultsFrames[0])) {
+            (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic.framesInGameStatus == minigameResultsFrames[0])) {
             BOOL ok = TRUE;
 
             if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame.grandPrixFinalHumanCount == 1) {

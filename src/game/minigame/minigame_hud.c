@@ -208,7 +208,7 @@ void minigameGraphics(void) {
         || status == GAME_STATUS_0x28) {
         minigameHudMenuGraphics();
     } else if (status == GAME_STATUS_0x26) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.framesInGameStatus_copy == 0) {
             ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 1;
         }
     } else if (status == GAME_STATUS_0x29) {
@@ -230,14 +230,14 @@ void minigameGraphics(void) {
         if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME || g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_POST_MENU) {
             minigameHudEndGameGraphics();
         } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
-            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.framesInGameStatus_copy == 0) {
                 if (g_Minigame.humanPlayerCount == 1) {
                     insertGraphicDrawingFunction(mm_DrawResultCode, 2);
                 }
                 node = insertGraphicDrawingFunction(minigameHudResultsScene, 2);
                 *(DrawingSceneStruct**)&g_Minigame.resultsScene = node;
             }
-            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.framesInGameStatus_copy == 0) {
                 insertGraphicDrawingFunction(minigameHudHighScoreTable, 2);
             }
         } else if (g_GameLogic.gameStatus == GAME_STATUS_0x27) {
@@ -297,18 +297,18 @@ void minigameHudMenuGraphics(void) {
         }
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_SELECT) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.framesInGameStatus_copy == 0) {
             insertGraphicDrawingFunction(minigameHudSelectMenuInit, 2);
             if (animRelated[0xBC] == 0) {
                 insertGraphicDrawingFunction(minigameHudSelectInfoInit, 2);
             }
         }
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.framesInGameStatus_copy == 1) {
             fn_8004CC4C(0, 1, 1, 0, 0x89);
             insertGraphicDrawingFunction(fn_8004D0F0, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.framesInGameStatus_copy == 0) {
             if (animRelated[0xDC] == 0 && g_Minigame.charReselectInd == 0) {
                 insertGraphicDrawingFunction(fn_80051D00, 2);
                 animRelated[0xDC] = 1;
@@ -323,11 +323,11 @@ void minigameHudMenuGraphics(void) {
                 insertGraphicDrawingFunction(fn_80051D00, 2);
                 animRelated[0xDC] = 1;
             }
-            if (g_Minigame.charSelectState == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            if (g_Minigame.charSelectState == 1 && g_GameLogic.framesInGameStatus_copy == 1) {
                 insertGraphicDrawingFunction(minigameHudExtraOpponentInit, 2);
             }
             if (g_Minigame.charSelectState == 5 || g_Minigame.charSelectState == 8) {
-                if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1 && g_Minigame.charSelectState == 5) {
+                if (g_GameLogic.framesInGameStatus_copy == 1 && g_Minigame.charSelectState == 5) {
                     fn_80050F78(0);
                     animRelated[0xDC] = 0;
                     if (g_Minigame.challengeModeInd != 0) {
@@ -372,7 +372,7 @@ void minigameHudMenuGraphics(void) {
             animRelated[0xDC] = 0;
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_READY) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.framesInGameStatus_copy == 0) {
             insertGraphicDrawingFunction(minigameHudHelpInit, 2);
             if (g_Minigame.retryInd != 0 || g_Minigame.grandPrixInd != 0) {
                 insertGraphicDrawingFunction(fn_80053FE8, 2);
@@ -1425,7 +1425,7 @@ void minigameHudGraphics0x27(void) {
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0) {
         insertGraphicDrawingFunction(minigameHudResultBannerInit, 2);
     }
-    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.framesInGameStatus_copy == 1) {
         insertGraphicDrawingFunction(fn_8004D0F0, 2);
     }
     if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_6) {
@@ -2508,7 +2508,7 @@ u32 minigameHudShouldRemove(void) {
             return TRUE;
         }
     }
-    if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == 0) {
+    if (g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.framesInGameStatus == 0) {
         return TRUE;
     }
     return FALSE;
@@ -2640,7 +2640,7 @@ void minigameHudPitchesRemaining(void) {
         scene->state = 1;
         break;
     case 1:
-        if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT && g_GameLogic.FrameCountOfCurrentPitch == 0) {
+        if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT && g_GameLogic.framesInGameStatus == 0) {
             if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
                 scene->scratch[0] = g_Minigame.bODRoundStartingNumPitches - g_Minigame.miniGameTurnCounter;
                 scene->scratch[1] = g_Minigame.miniGameTurnCounter;

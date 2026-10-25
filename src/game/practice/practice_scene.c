@@ -249,7 +249,7 @@ void animationOrDrawingRelated(void) {
         }
     }
     if (g_Practice.practiceType_1 == 6) {
-        if (g_Practice.practiceState == PRACTICE_STATE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_Practice.practiceState == PRACTICE_STATE_1 && g_GameLogic.framesInGameStatus_copy == 1) {
             if (animRelated[0xC1] == 0) {
                 animRelated[0xC2] = 1;
                 insertGraphicDrawingFunction(practiceMenu_subMenu_init, 2);

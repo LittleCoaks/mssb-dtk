@@ -434,11 +434,11 @@ void toyfield_drawHud(void) {
             insertGraphicDrawingFunction(pauseOptionList_init, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_INNING_TRANSITION) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_0 && g_GameLogic.framesInGameStatus_copy == 0) {
             ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 0;
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_0x24) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_5 && g_GameLogic.framesInGameStatus_copy == 0) {
             insertGraphicDrawingFunction(minigameHudHighScoreTable, 2);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_END_OF_GAME) {
@@ -462,7 +462,7 @@ void fn_3_EDA3C(void) {
         SET_MENU(0x2E);
     }
     if (g_GameLogic.gameStatus == GAME_STATUS_TOY_STADIUM_CHARACTER_SELECT) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.framesInGameStatus_copy == 0) {
             if (animRelated[0xDC] == 0) {
                 insertGraphicDrawingFunction(fn_80051D00, 2);
                 animRelated[0xDC] = 1;
@@ -476,7 +476,7 @@ void fn_3_EDA3C(void) {
                 insertGraphicDrawingFunction(fn_80051D00, 2);
                 animRelated[0xDC] = 1;
             }
-            if (g_Minigame.charSelectState == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            if (g_Minigame.charSelectState == 1 && g_GameLogic.framesInGameStatus_copy == 1) {
                 insertGraphicDrawingFunction(minigameHudExtraOpponentInit, 2);
             }
         }
@@ -484,7 +484,7 @@ void fn_3_EDA3C(void) {
             fn_80050F78(1);
             animRelated[0xDC] = 0;
         }
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_3 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_3 && g_GameLogic.framesInGameStatus_copy == 1) {
             fn_8004CC4C(0, 1, 1, 0, 0x89);
             insertGraphicDrawingFunction(fn_8004D0F0, 2);
         }
@@ -492,7 +492,7 @@ void fn_3_EDA3C(void) {
             fn_80050F78(1);
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_MINIGAME_READY) {
-        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_2 && g_GameLogic.framesInGameStatus_copy == 1) {
             insertGraphicDrawingFunction(minigameHudHelpInit, 2);
             SET_MENU(0x32);
             if (g_d_GameSettings.exhibitionMatchInd == 0 && animRelated[0xD9] == 0) {

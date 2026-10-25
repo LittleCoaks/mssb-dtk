@@ -624,7 +624,7 @@ void fn_3_AEC50(void) {
         result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             pauseControl.state = 8;
             break;
         case 2:
@@ -633,7 +633,7 @@ void fn_3_AEC50(void) {
         }
         break;
     case 8:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
+        if (g_GameLogic.framesInGameStatus_copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
                     challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);
@@ -839,7 +839,7 @@ void fn_3_AE334(void) {
         result = exitMenu_main((u16)pauseControl._004[1]);
         switch (result) {
         case 1:
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             pauseControl.state = 8;
             break;
         case 2:
@@ -848,7 +848,7 @@ void fn_3_AE334(void) {
         }
         break;
     case 8:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
+        if (g_GameLogic.framesInGameStatus_copy > 0x2D) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 if (g_d_GameSettings.bJMatchInd == 1) {
                     challenge_setTransitionScreenCharacterPortrait(0xC, challengeTransitionPortraitIDs[g_Challenge.captain]);

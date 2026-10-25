@@ -415,11 +415,15 @@ u8 bodyCheckProbabiliities[28] = {
     50, 40, 35, 30, 70, 60, 50, 40, 35, 0, 0, 0,
 };
 
-f32 lbl_3_data_4BC4[10] = {
-    0.00999999978f, 0.00499999989f, 0.00499999989f, 0.00499999989f, 0.0199999996f, 0.0199999996f, 5.0f, 5.0f,
-    20.0f, 20.0f,
+RunnerSpeedScaling runnerSpeedScaling = {
+    { 0.00999999978f, 0.00499999989f },
+    { 0.00499999989f, 0.00499999989f },
+    { 0.0199999996f, 0.0199999996f },
+    { 5.0f, 5.0f },
+    { 20.0f, 20.0f },
 };
 
+// Runner top speed (field units/frame) for speed stat 0, 10, ... 210; interpolated between entries.
 f32 runnerVelocityLookup[22] = {
     0.131999999f, 0.135000005f, 0.136999995f, 0.138999999f, 0.141000003f, 0.143000007f, 0.144999996f, 0.148000002f,
     0.150999993f, 0.153999999f, 0.157000005f, 0.159999996f, 0.164000005f, 0.167999998f, 0.172999993f, 0.175999999f,
@@ -432,7 +436,8 @@ RunnerTimingConsts runnerTimingConsts = {
     30, -20, 3, 30, 2, 20, 4, 6, 1, 4000, 1, 3,
 };
 
-f32 maybeInitialBatPos[3] = {
+// g_Batter.boxPosition at the start of every at-bat, before clamping to the batter's box.
+f32 initialBoxPosition[3] = {
     0.0f, 0.600000024f, 0.400000006f,
 };
 

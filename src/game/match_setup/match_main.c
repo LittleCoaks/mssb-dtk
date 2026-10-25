@@ -189,15 +189,15 @@ void simulate1FrameOfTheGame(void) {
         exitToMenuControl();
         return;
     }
-    if (g_GameLogic.FrameCountOfCurrentPitch < 0xFFFE) {
-        g_GameLogic.FrameCountOfCurrentPitch++;
+    if (g_GameLogic.framesInGameStatus < 0xFFFE) {
+        g_GameLogic.framesInGameStatus++;
     } else {
-        g_GameLogic.FrameCountOfCurrentPitch = 0xFFFF;
+        g_GameLogic.framesInGameStatus = 0xFFFF;
     }
-    if (g_GameLogic.FrameCountOfCurrentAtBat_Copy < 0xFFFE) {
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy++;
+    if (g_GameLogic.framesInGameStatus_copy < 0xFFFE) {
+        g_GameLogic.framesInGameStatus_copy++;
     } else {
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0xFFFF;
+        g_GameLogic.framesInGameStatus_copy = 0xFFFF;
     }
     UpdateRandomInts();
     UpdateControllerInputs();
@@ -395,9 +395,9 @@ void exitToMenuControl(void) {
 // .text:0x0005A6D4 size:0x28 mapped:0x80699768
 void SetGameStatus(int status) {
     g_GameLogic.gameStatus_prev = g_GameLogic.gameStatus;
-    g_GameLogic.FrameCountOfCurrentPitch = 0;
+    g_GameLogic.framesInGameStatus = 0;
     g_GameLogic.gameStatus = status;
-    g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+    g_GameLogic.framesInGameStatus_copy = 0;
     g_GameLogic._125 = 0;
 }
 

@@ -528,14 +528,14 @@ void postReplayBatterCelebration(void) {
         g_GameLogic._125 = 2;
         break;
     case 2:
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 3;
     case 3:
         fn_3_24708();
         vsScreenAdvanceFrame();
         if (checkForButtonPressToSkip(1, 0x1100) && lbl_3_common_bss_1323C->frame < lbl_3_common_bss_1323C->endFrame - 8 &&
             settings->GameModeSelected != GAME_TYPE_DEMO) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x3C) {
+            if (g_GameLogic.framesInGameStatus_copy > 0x3C) {
                 lbl_3_common_bss_1323C->_27C = 1;
                 lbl_3_common_bss_1323C->frame = lbl_3_common_bss_1323C->endFrame - 8;
                 changeScene(3, 6);
@@ -582,13 +582,13 @@ void homeRunEnd(void) {
         if (lbl_803C6CF8[0x715] == 1) {
             changeScene(1, 6);
             g_GameLogic._125 = 1;
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
         }
         break;
     case 1:
         vsScreenBegin(3);
         camera_switchScene(homerun_cameraSceneIDs[g_Runners[0].charID]);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 2;
         break;
     case 2:
@@ -596,7 +596,7 @@ void homeRunEnd(void) {
         vsScreenAdvanceFrame();
         if (checkForButtonPressToSkip(1, 0x1100) && lbl_3_common_bss_1323C->frame < lbl_3_common_bss_1323C->endFrame - 7 &&
             settings->GameModeSelected != GAME_TYPE_DEMO) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x3C) {
+            if (g_GameLogic.framesInGameStatus_copy > 0x3C) {
                 lbl_3_common_bss_1323C->_27C = 1;
                 lbl_3_common_bss_1323C->frame = lbl_3_common_bss_1323C->endFrame - 8;
                 changeScene(3, 6);
@@ -670,7 +670,7 @@ void homeRunTrot(void) {
         vsScreenAdvanceFrame();
         if (checkForButtonPressToSkip(1, 0x1100)) {
             if (lbl_3_common_bss_1323C->frame < lbl_3_common_bss_1323C->endFrame - 0x1F && settings->GameModeSelected != GAME_TYPE_DEMO &&
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x3C && animRelated[0xB1] == 0) {
+                g_GameLogic.framesInGameStatus_copy > 0x3C && animRelated[0xB1] == 0) {
                 lbl_3_common_bss_1323C->_27C = 1;
                 lbl_3_common_bss_1323C->frame = lbl_3_common_bss_1323C->endFrame - 0x1F;
             }
@@ -747,7 +747,7 @@ void starChanceVsScreenProcess(void) {
         } else {
             camera_switchScene(lbl_3_data_1F74[lbl_3_common_bss_1323C->situation]);
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 2;
         break;
     case 2:
@@ -761,7 +761,7 @@ void starChanceVsScreenProcess(void) {
         }
         if (checkForButtonPressToSkip(1, 0x1100)) {
             if (lbl_3_common_bss_1323C->frame < lbl_3_common_bss_1323C->endFrame - 7 && settings->GameModeSelected != GAME_TYPE_DEMO &&
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x3C) {
+                g_GameLogic.framesInGameStatus_copy > 0x3C) {
                 lbl_3_common_bss_1323C->frame = lbl_3_common_bss_1323C->endFrame - 8;
                 changeScene(3, 6);
             }
@@ -798,7 +798,7 @@ void fn_3_230D4(void) {
         changeScene(1, 6);
         vsScreenBegin(1);
         camera_switchScene(0x6B);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 2;
         break;
     case 2:
@@ -811,7 +811,7 @@ void fn_3_230D4(void) {
         }
         if (checkForButtonPressToSkip(1, 0x1100)) {
             if (lbl_3_common_bss_1323C->frame < lbl_3_common_bss_1323C->endFrame - 7 && settings->GameModeSelected != GAME_TYPE_DEMO &&
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x3C) {
+                g_GameLogic.framesInGameStatus_copy > 0x3C) {
                 lbl_3_common_bss_1323C->frame = lbl_3_common_bss_1323C->endFrame - 8;
                 changeScene(3, 6);
             }
@@ -857,7 +857,7 @@ void championshipScreen(void) {
                 camera_switchScene(lbl_3_data_2380[tracker->captain]);
             }
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 3;
         break;
     case 3:
@@ -870,7 +870,7 @@ void championshipScreen(void) {
         }
         if (checkForButtonPressToSkip(1, 0x1100) && lbl_3_common_bss_1323C->frame < lbl_3_common_bss_1323C->endFrame - 0x5B &&
             settings->GameModeSelected != GAME_TYPE_DEMO) {
-            if (lbl_3_common_bss_1323C->_280 == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x3C) {
+            if (lbl_3_common_bss_1323C->_280 == 1 && g_GameLogic.framesInGameStatus_copy > 0x3C) {
                 lbl_3_common_bss_1323C->frame = lbl_3_common_bss_1323C->endFrame - 0x5C;
                 changeScene(3, 0x5A);
                 sound_crowd_EffectsStruct._2A = 1;

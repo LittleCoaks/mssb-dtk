@@ -123,7 +123,7 @@ void running_atBatSteals(void) {
 
 // .text:0x0008A618 size:0x19C mapped:0x806C96AC
 void running_liveBall(void) {
-    if ((g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL || g_GameLogic.FrameCountOfCurrentPitch >= g_RunningLogic.someSituationTrackerFrames ||
+    if ((g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL || g_GameLogic.framesInGameStatus >= g_RunningLogic.liveBallInputDelayFrames ||
          g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BASERUNNING || g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) &&
         g_FieldingLogic.playOverInd == 0) {
         if (g_GameLogic.autoRunningInd[g_GameLogic.homeTeamBattingInd_fieldingTeam] == FALSE) {
@@ -371,7 +371,7 @@ void running_setDefaultRunners(void) {
     g_RunningLogic.runnersAtStartOfPlayMask = 0;
     g_RunningLogic.runnersOnFieldMask = 0;
     g_RunningLogic.nOffensivePlayersOnField = 0;
-    g_RunningLogic.someSituationTrackerFrames = 0x14;
+    g_RunningLogic.liveBallInputDelayFrames = 0x14;
     g_RunningLogic._1f = -1;
     g_Runners[0].position.x = g_Batter.batterPos.x;
     g_Runners[0].position.z = g_Batter.batterPos.z;
@@ -423,9 +423,9 @@ void running_setDefaultRunners(void) {
         runner->groundVelocity[2] = zero;
         runner->groundVelocity[3] = zero;
         runner->acceleration = zero;
-        runner->percentRanPerFrame_slideAdj = zero;
-        runner->slidingAdjustment_backwards = slide;
-        runner->slidingAdjustment_forwards = slide;
+        runner->percentRanPerFrame = zero;
+        runner->baseReachMargin_backwards = slide;
+        runner->baseReachMargin_forwards = slide;
         runner->roundingStrengthPercent = zero;
         runner->mashVeloAdjustment = zero;
         runner->mashPercent = zero;
@@ -452,7 +452,7 @@ void running_setDefaultRunners(void) {
         runner->runningToDugoutStage = 0;
         runner->turnaroundCode = 0;
         runner->turningAroundInd = FALSE;
-        runner->framesSinceLastMash = 0;
+        runner->mashHoldFramesLeft = 0;
         runner->advanceTwoRunnersInSameBaselineTimer = 0;
         runner->advanceTwoRunnersInSameBaselineCount = 0;
         runner->scoredOnGRD = 0;
@@ -1084,7 +1084,7 @@ void running_beginFrame_storeRunnerState(void) {
             runner->fractionalBasesRan_stored = runner->fractionalBasesRan;
             runner->percentTowardsNextBase_stored = runner->percentTowardsNextBase;
             runner->runningDirectionDesired = RUNNER_MOVEMENT_NONE;
-            runner->newButtonThisFrame_forMashPurposes = FALSE;
+            runner->mashPressedThisFrame = FALSE;
             if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_BallsStrikesOuts.storedOuts < 2 &&
                 runner->tagUpStatus == TAG_UP_TYPE_PENDING) {
                 runner->tagUpStatus = TAG_UP_TYPE_MUST_RETURN;
@@ -1108,7 +1108,7 @@ void running_beginFrame_storeRunnerState(void) {
     }
     if (g_Ball.maxYOfHit >= 5.0f) {
         if (g_Ball.landingSpotZoneAwayFromHome >= BALL_ZONE_OF_SHALLOW) {
-            g_RunningLogic.someSituationTrackerFrames = 10;
+            g_RunningLogic.liveBallInputDelayFrames = 10;
         }
     }
 }
@@ -2437,7 +2437,7 @@ void running_liveBall_AI(void) {
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE &&
         (g_GameLogic.gameStatus != GAME_STATUS_LIVE_BALL ||
-         g_GameLogic.FrameCountOfCurrentPitch >= g_RunningLogic.someSituationTrackerFrames) &&
+         g_GameLogic.framesInGameStatus >= g_RunningLogic.liveBallInputDelayFrames) &&
         g_FieldingLogic.playOverInd == 0) {
         if (g_Ball.framesSinceHit >= 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             dropChanceGrade = runnerAI_gradeHitDropChance();
@@ -2600,10 +2600,10 @@ void running_liveBall_AIMashInput(void) {
     if (g_GameLogic.teamIsCPU[g_GameLogic.homeTeamBattingInd_fieldingTeam] == FALSE) {
         InputStruct* input = &g_Controls[g_GameLogic.teams[g_GameLogic.teamBatting]];
         if (input->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_X | INPUT_BUTTON_Y)) {
-            g_Runners[0].newButtonThisFrame_forMashPurposes = TRUE;
-            g_Runners[1].newButtonThisFrame_forMashPurposes = TRUE;
-            g_Runners[2].newButtonThisFrame_forMashPurposes = TRUE;
-            g_Runners[3].newButtonThisFrame_forMashPurposes = TRUE;
+            g_Runners[0].mashPressedThisFrame = TRUE;
+            g_Runners[1].mashPressedThisFrame = TRUE;
+            g_Runners[2].mashPressedThisFrame = TRUE;
+            g_Runners[3].mashPressedThisFrame = TRUE;
         }
     } else if (g_AiLogic.aiMashPressesRemaining > 0) {
         u32 difficulty = g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam];
@@ -2612,10 +2612,10 @@ void running_liveBall_AIMashInput(void) {
                 g_AiLogic.aiMashCooldownFrames--;
             } else {
                 if (RandomInt_Game(100) < aiMashConsts[g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam]].chancePercent) {
-                    g_Runners[0].newButtonThisFrame_forMashPurposes = TRUE;
-                    g_Runners[1].newButtonThisFrame_forMashPurposes = TRUE;
-                    g_Runners[2].newButtonThisFrame_forMashPurposes = TRUE;
-                    g_Runners[3].newButtonThisFrame_forMashPurposes = TRUE;
+                    g_Runners[0].mashPressedThisFrame = TRUE;
+                    g_Runners[1].mashPressedThisFrame = TRUE;
+                    g_Runners[2].mashPressedThisFrame = TRUE;
+                    g_Runners[3].mashPressedThisFrame = TRUE;
                     g_AiLogic.aiMashPressesRemaining--;
                 }
                 g_AiLogic.aiMashCooldownFrames = aiMashConsts[g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam]].cooldownFrames;
@@ -2691,13 +2691,13 @@ void running_updateDistAndFramesToClosestBases(int runnerIdx) {
 void running_calcFramesToClosestBases(int runnerIdx, s16* framesToPreviousBase, s16* framesToNextBase) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     int frames = 0;
-    f32 remaining = runner->percentTowardsNextBase_slideAdj;
+    f32 remaining = runner->percentLeftToNextBaseReach;
 
     if (remaining > 0.0f) {
         f32 velocity;
 
-        if (runner->percentRanPerFrame_slideAdj < runner->velocityPercent_stamAdj) {
-            velocity = runner->percentRanPerFrame_slideAdj;
+        if (runner->percentRanPerFrame < runner->velocityPercent_stamAdj) {
+            velocity = runner->percentRanPerFrame;
             do {
                 velocity += runner->accelerationPercent_stamAdj;
                 frames++;
@@ -2714,9 +2714,9 @@ void running_calcFramesToClosestBases(int runnerIdx, s16* framesToPreviousBase, 
     *framesToNextBase = frames;
 
     frames = 0;
-    remaining = runner->percentFromCurrentBase_slideAdj;
+    remaining = runner->percentPastCurrentBaseReach;
     if (remaining > 0.0f) {
-        f32 velocity = runner->percentRanPerFrame_slideAdj;
+        f32 velocity = runner->percentRanPerFrame;
 
         if (velocity > -runner->velocityPercent_stamAdj) {
             do {
@@ -2788,24 +2788,24 @@ void running_calcSpeedVariables(int runnerIdx) {
         if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS) {
             if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 runner->acceleration =
-                    runner->baseAccelerationWhileChaingingDirection * runner->accelerationStaminaEffectWhileChangingDirection;
+                    runner->baseAccelerationWhileChangingDirection * runner->accelerationStaminaEffectWhileChangingDirection;
             } else {
                 runner->acceleration = runner->baseAcceleration * runner->accelerationStaminaEffect;
             }
         } else if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_STOPPED) {
             if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                 runner->acceleration =
-                    -(runner->baseAccelerationWhileChaingingDirection * runner->accelerationStaminaEffectWhileChangingDirection);
+                    -(runner->baseAccelerationWhileChangingDirection * runner->accelerationStaminaEffectWhileChangingDirection);
             } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_BACKWARDS) {
                 runner->acceleration =
-                    runner->baseAccelerationWhileChaingingDirection * runner->accelerationStaminaEffectWhileChangingDirection;
+                    runner->baseAccelerationWhileChangingDirection * runner->accelerationStaminaEffectWhileChangingDirection;
             } else if (runner->runningDirectionCode == RUNNER_MOVEMENT_STOPPED) {
                 runner->groundVelocity[0] = 0.0f;
             }
         } else if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_BACKWARDS) {
             if (runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) {
                 runner->acceleration =
-                    -(runner->baseAccelerationWhileChaingingDirection * runner->accelerationStaminaEffectWhileChangingDirection);
+                    -(runner->baseAccelerationWhileChangingDirection * runner->accelerationStaminaEffectWhileChangingDirection);
             } else {
                 runner->acceleration = -(runner->baseAcceleration * runner->accelerationStaminaEffect);
             }
@@ -2846,16 +2846,16 @@ void running_calcSpeedVariables(int runnerIdx) {
         }
 
         if (maxedOut != 0) {
-            if (runner->newButtonThisFrame_forMashPurposes != FALSE) {
-                runner->framesSinceLastMash = runner->FramesUntilNotSprinting;
+            if (runner->mashPressedThisFrame != FALSE) {
+                runner->mashHoldFramesLeft = runner->mashHoldFrames;
                 runner->mashPercent += runner->percentAddedPerMash;
                 if (runner->mashPercent > 1.0f) {
                     runner->mashPercent = 1.0f;
                 }
-            } else if (runner->framesSinceLastMash != 0) {
-                runner->framesSinceLastMash--;
+            } else if (runner->mashHoldFramesLeft != 0) {
+                runner->mashHoldFramesLeft--;
             } else {
-                runner->mashPercent -= runner->stamina_MashPercentTakenAwayPerFrame;
+                runner->mashPercent -= runner->mashDecayPerFrame;
                 if (runner->mashPercent < 0.0f) {
                     runner->mashPercent = 0.0f;
                 }
@@ -2868,7 +2868,7 @@ void running_calcSpeedVariables(int runnerIdx) {
             }
         } else {
             runner->mashPercent = 0.0f;
-            runner->framesSinceLastMash = 0;
+            runner->mashHoldFramesLeft = 0;
         }
 
         if (runner->nextDirectionBeingProcessed == RUNNER_MOVEMENT_FORWARDS) {
@@ -2938,21 +2938,21 @@ void running_calcSpeedVariables(int runnerIdx) {
 
         {
             f32 inverseLength = 1.0f / runner->calculatedLengthOfCurrentBaseline;
-            runner->percentRanPerFrame_slideAdj = runner->groundVelocity[0] * inverseLength;
+            runner->percentRanPerFrame = runner->groundVelocity[0] * inverseLength;
             runner->velocityPercent_stamAdj = inverseLength * (runner->maximumBaseVelocity * runner->staminaMult);
             runner->accelerationPercent_stamAdj = inverseLength * (runner->baseAcceleration * runner->accelerationStaminaEffect);
         }
     }
 
-    if (runner->percentRanPerFrame_slideAdj != 0.0f) {
-        int scaled = (int)(10000.0f * (runner->fractionalBasesRan + runner->percentRanPerFrame_slideAdj));
+    if (runner->percentRanPerFrame != 0.0f) {
+        int scaled = (int)(10000.0f * (runner->fractionalBasesRan + runner->percentRanPerFrame));
         runner->fractionalBasesRan = (f32)scaled / 10000.0f;
         runner->percentTowardsNextBase = (f32)(scaled % 10000) / 10000.0f;
     }
 finish:
-    runner->percentFromCurrentBase_slideAdj = runner->percentTowardsNextBase - runner->slidingAdjustment_backwards;
-    runner->percentTowardsNextBase_slideAdj =
-        (1.0f - runner->percentTowardsNextBase) - runner->slidingAdjustment_forwards;
+    runner->percentPastCurrentBaseReach = runner->percentTowardsNextBase - runner->baseReachMargin_backwards;
+    runner->percentLeftToNextBaseReach =
+        (1.0f - runner->percentTowardsNextBase) - runner->baseReachMargin_forwards;
     if (runner->overrun1BStage != OVERRUN_STAGE_NONE) {
         running_overrun1BControl(runnerIdx);
     }
@@ -2966,25 +2966,25 @@ void running_updateActionAndVelocity(int runnerIdx) {
     runner->actionFrames_countDown--;
     if (runner->actionStage == RUNNER_ACTION_STAGE_MOVING) {
         if (runner->actionInForwardDirectionInd != FALSE) {
-            f32 excess = (1.0f - runner->slidingAdjustment_forwards) - runner->percentTowardsNextBase;
+            f32 excess = (1.0f - runner->baseReachMargin_forwards) - runner->percentTowardsNextBase;
             if (runner->actionFrames_countDown <= 0) {
-                runner->percentRanPerFrame_slideAdj = 0.03f + excess;
+                runner->percentRanPerFrame = 0.03f + excess;
             } else {
-                runner->percentRanPerFrame_slideAdj = excess / (f32)(runner->actionFrames_countDown + 1);
+                runner->percentRanPerFrame = excess / (f32)(runner->actionFrames_countDown + 1);
             }
         } else {
-            f32 dist = runner->percentTowardsNextBase - runner->slidingAdjustment_backwards;
+            f32 dist = runner->percentTowardsNextBase - runner->baseReachMargin_backwards;
             if (runner->actionFrames_countDown <= 0) {
-                runner->percentRanPerFrame_slideAdj = -dist - 0.03f;
+                runner->percentRanPerFrame = -dist - 0.03f;
             } else {
-                runner->percentRanPerFrame_slideAdj = -dist / (f32)(runner->actionFrames_countDown + 1);
+                runner->percentRanPerFrame = -dist / (f32)(runner->actionFrames_countDown + 1);
             }
         }
         if (runner->actionFrames_countDown <= 0) {
             runner->actionFrames_countUp = 0;
             runner->actionFrames_countDown = runnerCharConsts.byChar[runner->charID].slideRecoveryFrames;
             runner->actionStage = RUNNER_ACTION_STAGE_RECOVERING;
-            runner->percentRanPerFrame_slideAdj = 0.0f;
+            runner->percentRanPerFrame = 0.0f;
             runner->fractionalBasesRan = (f32)runner->baseRunningTowards;
             runner->percentTowardsNextBase = 0.0f;
             if (runner->baseRunningTowards == 0) {
@@ -2996,7 +2996,7 @@ void running_updateActionAndVelocity(int runnerIdx) {
         }
     } else if (runner->actionStage == RUNNER_ACTION_STAGE_RECOVERING) {
         runner->groundVelocity[0] = 0.0f;
-        runner->percentRanPerFrame_slideAdj = 0.0f;
+        runner->percentRanPerFrame = 0.0f;
         if (runner->actionFrames_countDown <= 0) {
             runner->actionCode = RUNNER_ACTION_NONE;
             runner->actionStage = RUNNER_ACTION_STAGE_NONE;
@@ -3004,7 +3004,7 @@ void running_updateActionAndVelocity(int runnerIdx) {
                 runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
                 runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_STOPPED;
                 runner->groundVelocity[0] = 0.0f;
-                runner->percentRanPerFrame_slideAdj = 0.0f;
+                runner->percentRanPerFrame = 0.0f;
                 runner->roundingStrengthPercent = 0.0f;
                 running_placeRunnerOnBase(runnerIdx, runner->baseStandingOn);
                 runner->framesSinceLastDirectionChange = 1;
@@ -3048,10 +3048,10 @@ int running_overrun1BControl(int runnerIdx) {
         runner->fractionalBasesRan_stored = runner->fractionalBasesRan;
         runner->percentTowardsNextBase_stored = runner->percentTowardsNextBase;
         runner->groundVelocity[0] = 0.0f;
-        runner->percentRanPerFrame_slideAdj = 0.0f;
-        runner->percentFromCurrentBase_slideAdj = runner->percentTowardsNextBase - runner->slidingAdjustment_backwards;
-        runner->percentTowardsNextBase_slideAdj =
-            (1.0f - runner->percentTowardsNextBase) - runner->slidingAdjustment_forwards;
+        runner->percentRanPerFrame = 0.0f;
+        runner->percentPastCurrentBaseReach = runner->percentTowardsNextBase - runner->baseReachMargin_backwards;
+        runner->percentLeftToNextBaseReach =
+            (1.0f - runner->percentTowardsNextBase) - runner->baseReachMargin_forwards;
         return 1;
     }
     if (runner->overrun1BStage == OVERRUN_STAGE_PENDING) {
@@ -3117,9 +3117,9 @@ int running_overrunBaseControl(int runnerIdx) {
             runner->overrunBaseFrames_countUp = 0;
             runner->overrunBaseFrames_countDown = overrunBaseStageFrames.returnFrames;
             runner->overrunStepPerFrame =
-                (runner->slidingAdjustment_backwards - runner->percentTowardsNextBase) / (f32)runner->overrunBaseFrames_countDown;
+                (runner->baseReachMargin_backwards - runner->percentTowardsNextBase) / (f32)runner->overrunBaseFrames_countDown;
         } else {
-            runner->percentRanPerFrame_slideAdj =
+            runner->percentRanPerFrame =
                 runner->overrunStepPerFrame * (f32)runner->overrunBaseFrames_countDown;
         }
     }
@@ -3131,15 +3131,15 @@ int running_overrunBaseControl(int runnerIdx) {
             running_stopRunner(runnerIdx);
             running_placeRunnerOnBase(runnerIdx, runner->currentBase);
         } else {
-            runner->percentRanPerFrame_slideAdj = runner->overrunStepPerFrame;
+            runner->percentRanPerFrame = runner->overrunStepPerFrame;
             runner->offsetFromNormalRunningPathInd = FALSE;
         }
     }
-    runner->fractionalBasesRan += runner->percentRanPerFrame_slideAdj;
-    runner->percentTowardsNextBase += runner->percentRanPerFrame_slideAdj;
-    runner->percentFromCurrentBase_slideAdj = runner->percentTowardsNextBase - runner->slidingAdjustment_backwards;
-    runner->percentTowardsNextBase_slideAdj =
-        (1.0f - runner->percentTowardsNextBase) - runner->slidingAdjustment_forwards;
+    runner->fractionalBasesRan += runner->percentRanPerFrame;
+    runner->percentTowardsNextBase += runner->percentRanPerFrame;
+    runner->percentPastCurrentBaseReach = runner->percentTowardsNextBase - runner->baseReachMargin_backwards;
+    runner->percentLeftToNextBaseReach =
+        (1.0f - runner->percentTowardsNextBase) - runner->baseReachMargin_forwards;
     return 1;
 }
 
@@ -3155,13 +3155,13 @@ void running_updateLeadoff(int runnerIdx) {
 
     if (runner->leadOffTotalFrameCountDown <= 0) {
         runner->leadOffStatus = LEADOFF_STATUS_AT_FULL_LEAD;
-        runner->percentRanPerFrame_slideAdj = 0.0f;
+        runner->percentRanPerFrame = 0.0f;
     } else {
-        f32 step = (runner->leadoffDistancePercent + runner->slidingAdjustment_backwards) -
+        f32 step = (runner->leadoffDistancePercent + runner->baseReachMargin_backwards) -
                    runner->percentTowardsNextBase;
         step /= (f32)runner->leadOffTotalFrameCountDown;
 
-        runner->percentRanPerFrame_slideAdj = step;
+        runner->percentRanPerFrame = step;
         runner->percentTowardsNextBase += step;
         runner->fractionalBasesRan = (f32)runner->startingBase_baseAchieved + runner->percentTowardsNextBase;
         runner->leadOffTotalFrameCountDown--;
@@ -3175,7 +3175,7 @@ void running_stopRunner(int runnerIdx) {
     runner->runningDirectionCode = RUNNER_MOVEMENT_STOPPED;
     runner->nextDirectionBeingProcessed = RUNNER_MOVEMENT_STOPPED;
     runner->groundVelocity[0] = 0.0f;
-    runner->percentRanPerFrame_slideAdj = 0.0f;
+    runner->percentRanPerFrame = 0.0f;
     runner->roundingStrengthPercent = 0.0f;
 }
 
@@ -3233,10 +3233,10 @@ void running_updateBaseArrival(int runnerIdx) {
                     runner->fractionalBasesRan += 4.0f;
                     runner->percentTowardsNextBase += 1.0f;
                 }
-            } else if (runner->percentTowardsNextBase <= runner->slidingAdjustment_backwards) {
+            } else if (runner->percentTowardsNextBase <= runner->baseReachMargin_backwards) {
                 if (runner->actionCode != RUNNER_ACTION_NONE) {
-                    runner->fractionalBasesRan = (f32)(int)runner->fractionalBasesRan + runner->slidingAdjustment_backwards;
-                    runner->percentTowardsNextBase = runner->slidingAdjustment_backwards;
+                    runner->fractionalBasesRan = (f32)(int)runner->fractionalBasesRan + runner->baseReachMargin_backwards;
+                    runner->percentTowardsNextBase = runner->baseReachMargin_backwards;
                 } else {
                     newBase = runner->currentBase;
                 }
@@ -3258,9 +3258,9 @@ void running_updateBaseArrival(int runnerIdx) {
                 g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT) {
                 if (runner->fractionalBasesRan >= 4.0f) {
                     runner->baseStandingOn = 0;
-                } else if (runner->percentTowardsNextBase <= runner->slidingAdjustment_backwards) {
+                } else if (runner->percentTowardsNextBase <= runner->baseReachMargin_backwards) {
                     runner->baseStandingOn = (int)runner->fractionalBasesRan;
-                } else if (runner->percentTowardsNextBase >= 1.0f - runner->slidingAdjustment_forwards) {
+                } else if (runner->percentTowardsNextBase >= 1.0f - runner->baseReachMargin_forwards) {
                     runner->baseStandingOn = ((int)runner->fractionalBasesRan + 1) & 3;
                 }
             }
@@ -3360,7 +3360,7 @@ void running_placeRunnerOnBase(int runnerIdx, int base) {
         runner->runningAngle = baseFacingAngles[base].idle;
         runner->percentTowardsNextBase = 0.0f;
     } else {
-        runner->percentTowardsNextBase = runner->slidingAdjustment_backwards;
+        runner->percentTowardsNextBase = runner->baseReachMargin_backwards;
     }
     runner->fractionalBasesRan = runner->percentTowardsNextBase + (f32)base;
     runner->baseStandingOn = base;
@@ -3406,7 +3406,7 @@ void running_updatePosition(int runnerIdx) {
                     runner->position.x = vec.x;
                     runner->position.z = vec.y;
                 } else if (runner->overrun1BStage == OVERRUN_STAGE_RETURN) {
-                    running_lerpBetweenBases(&dest, 1, 2, runner->slidingAdjustment_backwards);
+                    running_lerpBetweenBases(&dest, 1, 2, runner->baseReachMargin_backwards);
                     vec.x = (dest.x - runner->position.x) / (f32)runner->overrunBaseFrames_countDown;
                     vec.y = (dest.y - runner->position.y) / (f32)runner->overrunBaseFrames_countDown;
                     vec.z = (dest.z - runner->position.z) / (f32)runner->overrunBaseFrames_countDown;
@@ -3425,11 +3425,11 @@ void running_updatePosition(int runnerIdx) {
                     if (runner->baseOfFailedBodyCheck >= 0) {
                         s8 base = runner->baseOfFailedBodyCheck;
 
-                        running_lerpBetweenBases(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
+                        running_lerpBetweenBases(&dest, base, (base + 1) & 3, runner->baseReachMargin_backwards);
                     } else {
                         int base = runner->baseStandingOn;
 
-                        running_lerpBetweenBases(&dest, base, (base + 1) & 3, runner->slidingAdjustment_backwards);
+                        running_lerpBetweenBases(&dest, base, (base + 1) & 3, runner->baseReachMargin_backwards);
                     }
                     vec.x = (dest.x - runner->position.x) / (f32)runner->actionFrames_countDown;
                     vec.y = (dest.y - runner->position.y) / (f32)runner->actionFrames_countDown;
@@ -3822,8 +3822,8 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
         return 0;
     }
     direction = runner->runningDirectionCode;
-    if (!((direction == RUNNER_MOVEMENT_FORWARDS && runner->percentRanPerFrame_slideAdj > 0.0f) ||
-          (direction == RUNNER_MOVEMENT_BACKWARDS && runner->percentRanPerFrame_slideAdj < 0.0f))) {
+    if (!((direction == RUNNER_MOVEMENT_FORWARDS && runner->percentRanPerFrame > 0.0f) ||
+          (direction == RUNNER_MOVEMENT_BACKWARDS && runner->percentRanPerFrame < 0.0f))) {
         return 0;
     }
     if (runner->actionCode != RUNNER_ACTION_NONE) {
@@ -3844,9 +3844,9 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
         }
     }
     if (direction == RUNNER_MOVEMENT_FORWARDS) {
-        framesExact = runner->percentTowardsNextBase_slideAdj / runner->percentRanPerFrame_slideAdj;
+        framesExact = runner->percentLeftToNextBaseReach / runner->percentRanPerFrame;
     } else {
-        framesExact = runner->percentFromCurrentBase_slideAdj / -runner->percentRanPerFrame_slideAdj;
+        framesExact = runner->percentPastCurrentBaseReach / -runner->percentRanPerFrame;
     }
     framesToBase = (int)framesExact + 1;
     if (g_Ball.ballState == BALL_STATE_THROWN) {
@@ -4242,10 +4242,10 @@ void running_liveBall_human(void) {
             }
         }
         if (inputs->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_X | INPUT_BUTTON_Y)) {
-            g_Runners[0].newButtonThisFrame_forMashPurposes = TRUE;
-            g_Runners[1].newButtonThisFrame_forMashPurposes = TRUE;
-            g_Runners[2].newButtonThisFrame_forMashPurposes = TRUE;
-            g_Runners[3].newButtonThisFrame_forMashPurposes = TRUE;
+            g_Runners[0].mashPressedThisFrame = TRUE;
+            g_Runners[1].mashPressedThisFrame = TRUE;
+            g_Runners[2].mashPressedThisFrame = TRUE;
+            g_Runners[3].mashPressedThisFrame = TRUE;
         }
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
             return;
@@ -4256,10 +4256,10 @@ void running_liveBall_human(void) {
         if (g_Practice.practice_runner_countInputForMashing == 0) {
             return;
         }
-        g_Runners[0].newButtonThisFrame_forMashPurposes = TRUE;
-        g_Runners[1].newButtonThisFrame_forMashPurposes = TRUE;
-        g_Runners[2].newButtonThisFrame_forMashPurposes = TRUE;
-        g_Runners[3].newButtonThisFrame_forMashPurposes = TRUE;
+        g_Runners[0].mashPressedThisFrame = TRUE;
+        g_Runners[1].mashPressedThisFrame = TRUE;
+        g_Runners[2].mashPressedThisFrame = TRUE;
+        g_Runners[3].mashPressedThisFrame = TRUE;
         return;
     }
     if (input & INPUT_BUTTON_Y) {
@@ -4537,7 +4537,7 @@ void ccs_humanDirectionInput(int runnerIdx) {
     }
 
     if (inputs->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_X | INPUT_BUTTON_Y)) {
-        runner->newButtonThisFrame_forMashPurposes = TRUE;
+        runner->mashPressedThisFrame = TRUE;
     }
 }
 

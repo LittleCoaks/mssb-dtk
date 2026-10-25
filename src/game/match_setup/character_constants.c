@@ -185,7 +185,8 @@ u8 hitByPitchHitboxes[0x60] = {
     0x14, 0x28, 0x1E, 0x64, 0x5A, 0x0A, 0x64, 0x5A, 0x1E, 0x3C, 0x3C, 0x14,
 };
 
-u8 lbl_3_data_775C = 30;
+// Frames after contact before the batter-runner may move (copied to delayBeforeStartingToRun).
+u8 batterRunDelayFrames = 30;
 
 RunnerCharConstsTable runnerCharConsts = {
     {

@@ -196,9 +196,9 @@ void setBatterContactConstants(void) {
     // The order can matter.
     // Assuming BatterHitboxType
     g_Batter.hitGeneralType = BAT_CONTACT_TYPE_SLAP;
-    g_Batter.batPosition2.x = maybeInitialBatPos.x;
-    g_Batter.batPosition2.y = maybeInitialBatPos.y;
-    g_Batter.batPosition2.z = maybeInitialBatPos.z;
+    g_Batter.boxPosition.x = initialBoxPosition.x;
+    g_Batter.boxPosition.y = initialBoxPosition.y;
+    g_Batter.boxPosition.z = initialBoxPosition.z;
     // 3. Set simple properties
 
     // possible inline
@@ -211,28 +211,28 @@ void setBatterContactConstants(void) {
         g_Batter.framesSinceStartOfSwing = 0;
         g_Batter.batterIsBeingCentredInd = 0;
         // 4. Use local pointers for position calculations
-        g_Batter.batPosition2.x = maybeInitialBatPos.x;
-        g_Batter.batPosition2.y = maybeInitialBatPos.y;
-        g_Batter.batPosition2.z = maybeInitialBatPos.z;
-        g_Batter.batPosition2.y = hitbox->PitchingHeight * charSizeMultipliers[g_Batter.charID][0];
+        g_Batter.boxPosition.x = initialBoxPosition.x;
+        g_Batter.boxPosition.y = initialBoxPosition.y;
+        g_Batter.boxPosition.z = initialBoxPosition.z;
+        g_Batter.boxPosition.y = hitbox->PitchingHeight * charSizeMultipliers[g_Batter.charID][0];
 
         // 5. Clamp the position
-        if (g_Batter.batPosition2.x < hitbox->HorizontalRangeNear) {
-            g_Batter.batPosition2.x = hitbox->HorizontalRangeNear;
+        if (g_Batter.boxPosition.x < hitbox->HorizontalRangeNear) {
+            g_Batter.boxPosition.x = hitbox->HorizontalRangeNear;
         }
-        if (g_Batter.batPosition2.x > hitbox->HorizontalRangeFar) {
-            g_Batter.batPosition2.x = hitbox->HorizontalRangeFar;
+        if (g_Batter.boxPosition.x > hitbox->HorizontalRangeFar) {
+            g_Batter.boxPosition.x = hitbox->HorizontalRangeFar;
         }
-        if (g_Batter.batPosition2.z < hitbox->VerticalRangeFront) {
-            g_Batter.batPosition2.z = hitbox->VerticalRangeFront;
+        if (g_Batter.boxPosition.z < hitbox->VerticalRangeFront) {
+            g_Batter.boxPosition.z = hitbox->VerticalRangeFront;
         }
-        if (g_Batter.batPosition2.z > hitbox->VerticalRangeBack) {
-            g_Batter.batPosition2.z = hitbox->VerticalRangeBack;
+        if (g_Batter.boxPosition.z > hitbox->VerticalRangeBack) {
+            g_Batter.boxPosition.z = hitbox->VerticalRangeBack;
         }
 
         // 6. Set final derived positions
-        g_Batter.batterPos.x = g_Batter.batPosition2.x + hitbox->batOffsetFromBatterX;
-        g_Batter.batterPos.z = g_Batter.batPosition2.z + hitbox->batOffsetFromBatterZ;
+        g_Batter.batterPos.x = g_Batter.boxPosition.x + hitbox->batOffsetFromBatterX;
+        g_Batter.batterPos.z = g_Batter.boxPosition.z + hitbox->batOffsetFromBatterZ;
 
         if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
             g_Batter.batterPos.x = -g_Batter.batterPos.x;
@@ -286,9 +286,9 @@ void setDefaultInMemBatter(void) {
         g_Batter.frameDelay[1] = lbl_3_data_5CD4[3];
     }
 
-    g_Batter.batPosition.x = g_Batter.batPosition2.x - lbl_3_data_4C88[2];
-    g_Batter.batPosition.y = g_Batter.batPosition2.y;
-    g_Batter.batPosition.z = g_Batter.batPosition2.z;
+    g_Batter.batPosition.x = g_Batter.boxPosition.x - lbl_3_data_4C88[2];
+    g_Batter.batPosition.y = g_Batter.boxPosition.y;
+    g_Batter.batPosition.z = g_Batter.boxPosition.z;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
         g_Batter.aiControlledInd = g_Practice.practiceBatterHandedness;
     } else if (g_d_GameSettings.minigamesEnabled) {
@@ -539,13 +539,13 @@ void batterInBoxMovement(void) {
     up_down = inputs->up_down;
     if (g_Batter.batterIsBeingCentredInd) {
         newSpeed = hitbox->BoxMoveSpeed * g_hitFloats.centeringBoxSpeedMult;
-        if (g_Batter.batPosition2.x < -newSpeed) {
-            g_Batter.batPosition2.x += newSpeed;
-        } else if (g_Batter.batPosition2.x > newSpeed) {
-            g_Batter.batPosition2.x -= newSpeed;
+        if (g_Batter.boxPosition.x < -newSpeed) {
+            g_Batter.boxPosition.x += newSpeed;
+        } else if (g_Batter.boxPosition.x > newSpeed) {
+            g_Batter.boxPosition.x -= newSpeed;
         } else {
             g_Batter.batterIsBeingCentredInd = FALSE;
-            g_Batter.batPosition2.x = 0.0f;
+            g_Batter.boxPosition.x = 0.0f;
         }
     } else {
         if (inputs->buttonInput & INPUT_BUTTON_LEFT) {
@@ -560,13 +560,13 @@ void batterInBoxMovement(void) {
         }
 
         newSpeed *= moveSpeedMult;
-        g_Batter.batPosition2.x += newSpeed;
+        g_Batter.boxPosition.x += newSpeed;
 
-        if (g_Batter.batPosition2.x < hitbox->HorizontalRangeNear) {
-            g_Batter.batPosition2.x = hitbox->HorizontalRangeNear;
+        if (g_Batter.boxPosition.x < hitbox->HorizontalRangeNear) {
+            g_Batter.boxPosition.x = hitbox->HorizontalRangeNear;
         }
-        if (g_Batter.batPosition2.x > hitbox->HorizontalRangeFar) {
-            g_Batter.batPosition2.x = hitbox->HorizontalRangeFar;
+        if (g_Batter.boxPosition.x > hitbox->HorizontalRangeFar) {
+            g_Batter.boxPosition.x = hitbox->HorizontalRangeFar;
         }
 
         if (inputs->buttonInput & INPUT_BUTTON_UP) {
@@ -578,18 +578,18 @@ void batterInBoxMovement(void) {
         }
 
         newSpeed *= moveSpeedMult;
-        g_Batter.batPosition2.z += newSpeed;
+        g_Batter.boxPosition.z += newSpeed;
 
-        if (g_Batter.batPosition2.z < hitbox->VerticalRangeFront) {
-            g_Batter.batPosition2.z = hitbox->VerticalRangeFront;
+        if (g_Batter.boxPosition.z < hitbox->VerticalRangeFront) {
+            g_Batter.boxPosition.z = hitbox->VerticalRangeFront;
         }
-        if (g_Batter.batPosition2.z > hitbox->VerticalRangeBack) {
-            g_Batter.batPosition2.z = hitbox->VerticalRangeBack;
+        if (g_Batter.boxPosition.z > hitbox->VerticalRangeBack) {
+            g_Batter.boxPosition.z = hitbox->VerticalRangeBack;
         }
     }
     
-    g_Batter.batterPos.x = g_Batter.batPosition2.x + hitbox->batOffsetFromBatterX;
-    g_Batter.batterPos.z = g_Batter.batPosition2.z + hitbox->batOffsetFromBatterZ;
+    g_Batter.batterPos.x = g_Batter.boxPosition.x + hitbox->batOffsetFromBatterX;
+    g_Batter.batterPos.z = g_Batter.boxPosition.z + hitbox->batOffsetFromBatterZ;
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
         g_Batter.batterPos.x = -g_Batter.batterPos.x;
     }
@@ -645,9 +645,9 @@ void batterPreSwing_unused(void) {
         g_Batter.missedBuntStatus = 2;
     }
 
-    g_Batter.batPosition.x = g_Batter.batPosition2.x - p[2];
-    g_Batter.batPosition.y = g_Batter.batPosition2.y;
-    g_Batter.batPosition.z = g_Batter.batPosition2.z;
+    g_Batter.batPosition.x = g_Batter.boxPosition.x - p[2];
+    g_Batter.batPosition.y = g_Batter.boxPosition.y;
+    g_Batter.batPosition.z = g_Batter.boxPosition.z;
     if (g_Batter.buntStatus) {
         ifBunt();
     } else {
@@ -913,13 +913,13 @@ void calculateIfHitBall(void) {
     }
 
     if (g_Batter.isBunting) {
-        batterZ = g_Batter.batPosition2.z;
+        batterZ = g_Batter.boxPosition.z;
     }
     /* If this frame isn't allowed to make contact, then no contact. */
     else if (!hittableFrameInd[g_Batter.hitGeneralType != 0][g_Batter.framesSinceStartOfSwing]) {
         return;
     } else {
-        batterZ = g_Batter.batPosition2.z;
+        batterZ = g_Batter.boxPosition.z;
     }
 
     /* If ball is past hitter, then no contact. */
@@ -946,8 +946,8 @@ void calculateIfHitBall(void) {
         ballFuturePosition = -ballFuturePosition;
     }
 
-    if (ballFuturePosition - g_Batter.batPosition2.x < batContactRange[g_Batter.trimmedBat].near ||
-        ballFuturePosition - g_Batter.batPosition2.x > batContactRange[g_Batter.trimmedBat].far) {
+    if (ballFuturePosition - g_Batter.boxPosition.x < batContactRange[g_Batter.trimmedBat].near ||
+        ballFuturePosition - g_Batter.boxPosition.x > batContactRange[g_Batter.trimmedBat].far) {
         return;
     }
 
@@ -1137,7 +1137,7 @@ void calculateContactAndHitType(void) {
         }
     }
 
-    diff = g_Batter.hitContactPos.x - g_Batter.batPosition2.x;
+    diff = g_Batter.hitContactPos.x - g_Batter.boxPosition.x;
     
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
         diff = -diff;

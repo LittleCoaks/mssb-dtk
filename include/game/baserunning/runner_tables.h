@@ -14,7 +14,7 @@ typedef struct _RunnerTimingConsts {
     /* 0x08 */ s16 pickoffOverrideFrame;
     /* 0x0A */ s16 sameBaselineAdvanceTimer;
     /* 0x0C */ s16 sameBaselineAdvanceMaxCount;
-    /* 0x0E */ s16 sprintFrames;
+    /* 0x0E */ s16 mashHoldFrames;            // frames a mash press holds the speed bonus
     /* 0x10 */ s16 unk_10;
     /* 0x12 */ s16 maxStamina;
     /* 0x14 */ s16 staminaDrainRunning;
@@ -73,7 +73,23 @@ typedef struct _RunnerCharConstsTable {
     /* 0x10E */ u8 pad[2];
 } RunnerCharConstsTable; // size: 0x110
 
+// A value interpolated over speed stat 0..100 by setRunnerSpeedConstants (clamped outside that range).
+typedef struct _SpeedStatRange {
+    /* 0x0 */ f32 atSpeed0;
+    /* 0x4 */ f32 atSpeed100;
+} SpeedStatRange;
+
+typedef struct _RunnerSpeedScaling {
+    /* 0x00 */ SpeedStatRange accel;           // baseAcceleration
+    /* 0x08 */ SpeedStatRange turnAccel;       // baseAccelerationWhileChangingDirection
+    /* 0x10 */ SpeedStatRange maxMashBonus;    // maxMashVeloAdjustment
+    /* 0x18 */ SpeedStatRange pressesToFillMash; // percentAddedPerMash = 1 / this
+    /* 0x20 */ SpeedStatRange mashDecayFrames; // mashDecayPerFrame = 1 / this
+} RunnerSpeedScaling; // size: 0x28
+
 extern RunnerTimingConsts runnerTimingConsts;
+extern RunnerSpeedScaling runnerSpeedScaling;
+extern f32 runnerVelocityLookup[22];
 extern RunnerStaminaConsts runnerStaminaConsts;
 extern RunnerSpeedCapMult runnerSpeedCapMult;
 extern BaseFacingAngles baseFacingAngles[4];

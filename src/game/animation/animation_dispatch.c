@@ -817,7 +817,7 @@ void minigameEndOfGameAnimations(void) {
                 break;
             }
         }
-    } else if ((!g_d_GameSettings.minigamesEnabled && g_GameLogic._125 == 4 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) ||
+    } else if ((!g_d_GameSettings.minigamesEnabled && g_GameLogic._125 == 4 && g_GameLogic.framesInGameStatus_copy == 1) ||
                (g_d_GameSettings.minigamesEnabled && g_Minigame.endSequencePhase == 2) ||
                (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_GameLogic._125 == 0)) {
         g_Minigame.endSequencePhase = 3;
