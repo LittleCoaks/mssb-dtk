@@ -56,7 +56,7 @@ typedef struct DbgActorEnt {
     /*0x60*/ f32 blendTime;
     /*0x64*/ u8 pad64[4];
     /*0x68*/ u32 unk68;
-    /*0x6C*/ u8 applyControl;
+    /*0x6C*/ E(u8, BOOL) applyControl;
     /*0x6D*/ u8 pad6D[0x90 - 0x6D];
 } DbgActorEnt; // size 0x90
 

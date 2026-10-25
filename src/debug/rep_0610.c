@@ -55,7 +55,7 @@ extern void fn_80031CA4(Vec *pos, void *params);
 extern void fn_80030D88(Vec *start, Vec *dir, void *slot, s32 arg);
 extern void fn_80037AA0(void *buf, s32 a, void (*cb)(BOOL), u16 count, void *data);
 extern void fn_800385F0(void *buf, f32 a, f32 b, f32 c, f32 d);
-extern void fn_8004B208(s32 a, s32 b, s32 c);
+extern void fn_8004B208(s32 a, s32 b, s32 c, f32 v);
 extern void fn_800BD670(void *a, void *b);
 extern void fn_80026134(s32 a, Vec *v);
 extern void fn_80026130(s32 a, void *p, f32 f);
@@ -3629,6 +3629,58 @@ static inline void dbgSetPlaySpeed(DbgActorEnt *obj, f32 speed) {
     }
 }
 
+static inline void dbgFeet(DbgHuge *h) {
+    DbgActor *a = h->slots;
+    if (a != NULL) {
+        VecXYZ p;
+        a->flags = (s32)a->flags >> 1;
+        a->flags = (a->flags & 0x1F) << 3;
+        getAnimRelatedCoordinates(0, 0x1E, &p);
+        if (a->pos.y - p.y < 0.3f) {
+            a->flags |= 2;
+        }
+        getAnimRelatedCoordinates(0, 0x22, &p);
+        if (a->pos.y - p.y < 0.3f) {
+            a->flags |= 4;
+        }
+    }
+    h->actors[0]->flags |= 1;
+}
+
+// FLAGGED: duplicates fn_1_11C98's loop on a caller-supplied base; 11C98 cannot share it without changing its own code.
+static inline void dbgLights(DbgHuge *h) {
+    s32 i;
+    for (i = 0; i < 3; i++) {
+        LITXForm(h->lights[i], lbl_1_bss_68FC.mtx10);
+    }
+}
+
+static inline DbgActor *dbgUpdate(void) {
+    DbgHuge *h = &hugeAnimStruct;
+    dbgFeet(h);
+    dbgLights(h);
+    return h->slots;
+}
+
+// FLAGGED: guessed shape -- fn_1_D590's body with the recording flag passed in; D590 keeps its own copy for its early returns.
+static inline void dbgRecordFrame(BOOL on, s32 a, s32 b, f32 v) {
+    if (!on || lbl_1_bss_3216 == 0) {
+        return;
+    }
+    if (lbl_1_bss_3216 == 2) {
+        if ((s32)v == 0) {
+            lbl_1_bss_3214 += (lbl_1_bss_3214 != 0);
+        }
+        if (lbl_1_bss_3214 == 3) {
+            lbl_1_bss_3214 = 0;
+        }
+        if (lbl_1_bss_3214 != 2) {
+            return;
+        }
+    }
+    fn_8004B208(a, b, lbl_1_bss_5F62 < 0 ? 0 : lbl_1_bss_5F62, v);
+}
+
 // .text:0x000129D0 size:0x548
 void fn_1_129D0(void) {
     DbgActorEnt *obj0;
@@ -3637,9 +3689,8 @@ void fn_1_129D0(void) {
     f32 val;
     s32 k;
     s32 idx;
-    fn_1_D4BC();
-    fn_1_11C98();
-    s = hugeAnimStruct.slots;
+    s32 on;
+    s = dbgUpdate();
     obj0 = &hugeAnimStruct.objs->e[0];
     for (k = 0; k < 1; k++) {
         CTRLSetTranslation(&obj0->control, 0.0f, 0.0f, 0.0f);
@@ -3651,10 +3702,13 @@ void fn_1_129D0(void) {
             speed = lbl_1_bss_5F64;
             dbgSetPlaySpeed(obj0, speed);
         }
-        if (speed && fn_1_D660()) {
-            val = fn_1_D71C(0);
-            idx = lbl_1_data_A938[lbl_1_bss_6940[lbl_1_bss_5F73].f44] + lbl_1_bss_6940[lbl_1_bss_5F73].f45;
-            fn_1_D590((s32)hugeAnimStruct.slots, idx, val);
+        if (speed) {
+            on = fn_1_D660();
+            if (on) {
+                val = fn_1_D71C(0);
+                idx = lbl_1_data_A938[lbl_1_bss_6940[lbl_1_bss_5F73].f44] + lbl_1_bss_6940[lbl_1_bss_5F73].f45;
+                dbgRecordFrame(on, (s32)s, idx, val);
+            }
         }
     }
     lbl_1_bss_5F64 = 0.0f;
@@ -3691,7 +3745,7 @@ void fn_1_129D0(void) {
     if (lbl_1_data_A978[lbl_1_bss_68FC.f40[0]] >= 0) {
         fn_800BD8C4(lbl_1_bss_5F7C, lbl_1_bss_68FC.mtx10);
     }
-    hugeAnimStruct.objs->e[0].applyControl = 1;
+    hugeAnimStruct.objs->e[0].applyControl = TRUE;
     fn_1_12F8C(hugeAnimStruct.objs, lbl_1_bss_68FC.mtx10);
     hugeAnimStruct.objs->e[0].applyControl = (lbl_1_bss_3080 == 0) & (lbl_1_bss_5F73 == 0);
     if (hugeAnimStruct.f3083 != 0) {
@@ -5396,27 +5450,13 @@ void fn_1_D590(s32 a, s32 b, f32 v) {
             return;
         }
     }
-    fn_8004B208(a, b, lbl_1_bss_5F62 < 0 ? 0 : lbl_1_bss_5F62);
+    fn_8004B208(a, b, lbl_1_bss_5F62 < 0 ? 0 : lbl_1_bss_5F62, v);
 }
 
 // .text:0x0000D4BC size:0xD4
 void fn_1_D4BC(void) {
     DbgHuge *h = &hugeAnimStruct;
-    DbgActor *a = (DbgActor *)((u8 *)h + 0xC04); // == h->slots; the member form schedules fn_1_129D0's inlined copy differently
-    if (a != NULL) {
-        VecXYZ p;
-        a->flags = (s32)a->flags >> 1;
-        a->flags = (a->flags & 0x1F) << 3;
-        getAnimRelatedCoordinates(0, 0x1E, &p);
-        if (a->pos.y - p.y < 0.3f) {
-            a->flags |= 2;
-        }
-        getAnimRelatedCoordinates(0, 0x22, &p);
-        if (a->pos.y - p.y < 0.3f) {
-            a->flags |= 4;
-        }
-    }
-    h->actors[0]->flags |= 1;
+    dbgFeet(h);
 }
 
 // .text:0x0000D300 size:0x1BC

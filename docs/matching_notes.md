@@ -3666,6 +3666,20 @@ functions. These lessons are not specific to one file:
   scored lower (95.02 vs 97.02).
 - **`*p = old + 1` and `*p += 1` on a u8 can change the post-allocation schedule with identical
   registers:** the first left a dead zero-extend in the block (`fn_1_23B54`'s last two-instruction swap).
+- **A float that lands in f1 for no visible reason** (target `fctiwz f0, f1` where ours has
+  `fctiwz f0, f0`, with nothing else touching f1) **is a value passed on to a call.** Check whether a
+  callee is a dispatcher (`lwzx r12; mtctr; bctrl`, never touching f1) whose real prototype has a float
+  parameter: `rep_0610` `fn_8004B208(a, b, c, v)`. `fn_1_D590` itself is byte-identical because `v` is
+  already in f1, but its inlined copy in `fn_1_129D0` went f0 -> f1.
+- **An inline function's own pointer local (`T *h = &global;`) is fully copy-propagated, even as the base
+  of a strength-reduced loop; a caller-scope local used the same way keeps a `mr` copy.** When the target
+  shares one register between an address temp, a loop IV's start and a later `base + off`, put the address
+  local, the loop and the derived pointer inside one static inline that returns the derived pointer
+  (`rep_0610` `fn_1_129D0` 98.02 -> 99.72).
+- **`s32 on = boolFn();` stays a real local through the int -> long conversion, where `BOOL on` is
+  copy-propagated into its compare temp.** A kept BOOL tested with `cmpwi rX, 0` after other code, when
+  every spelling of the callee's own test folds back to the raw byte, is a flag passed in as a parameter
+  (`fn_1_129D0` -> 100, flagged: the inline copy of `fn_1_D590`'s body is a guessed shape).
 - **A scratch use of a function-scope variable in another switch case changes how later code splits it.**
   `rep_0610` `fn_1_16978`: writing case 4's `f40 * 0x13` term through the function's `i`
   (`i = f40[...] * 0x13; ...[3074 + i + f46]`) fixed case 4. It also gave `i` the earlier live-range piece
