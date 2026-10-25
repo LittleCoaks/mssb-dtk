@@ -176,9 +176,9 @@ void fn_2_760CC(MenuScene *scene) {
 }
 
 // .text:0x0007609C size:0x30 mapped:0x806B5130
-void fn_2_7609C(u8 arg0, u8 arg1) {
-    if (arg1 == 0) {
-        fn_2_8794(arg0, 0);
+void fn_2_7609C(s32 unused, u8 value, u8 state) {
+    if (state == 0) {
+        fn_2_8794(value, 0);
     }
 }
 
