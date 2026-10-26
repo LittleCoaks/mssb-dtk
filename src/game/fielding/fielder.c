@@ -888,6 +888,7 @@ void fielderResetAndStoreValuesEachFrame(void) {
 }
 
 // .text:0x000583B8 size:0x2D0 mapped:0x8069744C
+#pragma dont_inline on
 void liveBallFielderControlAITeam(void) {
     int i;
     InMemFielder* fielder;
@@ -916,43 +917,9 @@ void liveBallFielderControlAITeam(void) {
         liveBallUpdateFieldingValues();
     }
 
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
-        if (g_d_GameSettings.minigamesEnabled && g_Minigame.minigameRelatedIndex == i) {
-            updateFielderDirectionFacing(i);
-        }
-
-        fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
-
-        if (fielder->currentVelocity == 0.0f) {
-            fielder->xMovementDir = 0.0f;
-            fielder->zMovementDir = 0.0f;
-        } else {
-            fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
-            fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
-        }
-
-        fielder->unused_alwaysSetTo0 = 0;
-        fielder->attachedKlaptrapCount = 0;
-    }
-
-    fielding_handleCollisionsAndSpecialActions();
-
-    if (g_d_GameSettings.minigamesEnabled) {
-        minigameFieldingRelated_collisions();
-        return;
-    }
-
-    if (g_Ball.fielderWBallIndex >= 0) {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-
-        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
-        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-    }
+    fn_3_55370();
 }
+#pragma dont_inline reset
 
 // .text:0x00057BB4 size:0x804 mapped:0x80696C48
 void updateFielderMovementAndPosition(void) {
@@ -9976,39 +9943,7 @@ void liveBallFielderControlHumanTeam(void) {
         liveBallUpdateFieldingValues();
     }
 
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
-        if (g_d_GameSettings.minigamesEnabled && g_Minigame.minigameRelatedIndex == i) {
-            updateFielderDirectionFacing(i);
-        }
-
-        fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
-
-        if (0.0f == fielder->currentVelocity) {
-            fielder->xMovementDir = 0.0f;
-            fielder->zMovementDir = 0.0f;
-        } else {
-            fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
-            fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
-        }
-
-        fielder->unused_alwaysSetTo0 = 0;
-        fielder->attachedKlaptrapCount = 0;
-    }
-
-    fielding_handleCollisionsAndSpecialActions();
-
-    if (g_d_GameSettings.minigamesEnabled) {
-        minigameFieldingRelated_collisions();
-    } else if (g_Ball.fielderWBallIndex >= 0) {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-
-        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
-        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-    }
+    fn_3_55370();
 
     if (g_Ball.ballState == BALL_STATE_HELD) {
         g_FieldingLogic.selectedFielder = g_Ball.fielderWBallIndex;
@@ -15113,39 +15048,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     fielderUpdateChasingRunnerValues(fielderIndex);
 
 updateEachFielder:
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
-        if (!g_d_GameSettings.minigamesEnabled || g_Minigame.minigameRelatedIndex == i) {
-            updateFielderDirectionFacing(i);
-
-            fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
-
-            if (0.0f == fielder->currentVelocity) {
-                fielder->xMovementDir = 0.0f;
-                fielder->zMovementDir = 0.0f;
-            } else {
-                fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
-                fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
-            }
-
-            fielder->unused_alwaysSetTo0 = 0;
-            fielder->attachedKlaptrapCount = 0;
-        }
-    }
-
-    fielding_handleCollisionsAndSpecialActions();
-
-    if (g_d_GameSettings.minigamesEnabled) {
-        minigameFieldingRelated_collisions();
-    } else if (g_Ball.fielderWBallIndex >= 0) {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-
-        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
-        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-    }
+    fn_3_55370();
 }
 
 // .text:0x0002EA88 size:0x43C mapped:0x8066DB1C
@@ -15201,39 +15104,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
     }
 
 updateEachFielder:
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
-        if (!g_d_GameSettings.minigamesEnabled || g_Minigame.minigameRelatedIndex == i) {
-            updateFielderDirectionFacing(i);
-
-            fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
-
-            if (0.0f == fielder->currentVelocity) {
-                fielder->xMovementDir = 0.0f;
-                fielder->zMovementDir = 0.0f;
-            } else {
-                fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
-                fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
-            }
-
-            fielder->unused_alwaysSetTo0 = 0;
-            fielder->attachedKlaptrapCount = 0;
-        }
-    }
-
-    fielding_handleCollisionsAndSpecialActions();
-
-    if (g_d_GameSettings.minigamesEnabled) {
-        minigameFieldingRelated_collisions();
-    } else if (g_Ball.fielderWBallIndex >= 0) {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-
-        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
-        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-    }
+    fn_3_55370();
 }
 
 // .text:0x0002EA24 size:0x64 mapped:0x8066DAB8
@@ -15855,39 +15726,7 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
 
     fielderUpdateChasingRunnerValues(fielderIndex);
 
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
-        if (!g_d_GameSettings.minigamesEnabled || g_Minigame.minigameRelatedIndex == i) {
-            updateFielderDirectionFacing(i);
-
-            fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
-
-            if (0.0f == fielder->currentVelocity) {
-                fielder->xMovementDir = 0.0f;
-                fielder->zMovementDir = 0.0f;
-            } else {
-                fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
-                fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
-            }
-
-            fielder->unused_alwaysSetTo0 = 0;
-            fielder->attachedKlaptrapCount = 0;
-        }
-    }
-
-    fielding_handleCollisionsAndSpecialActions();
-
-    if (g_d_GameSettings.minigamesEnabled) {
-        minigameFieldingRelated_collisions();
-    } else if (g_Ball.fielderWBallIndex >= 0) {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-
-        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
-        g_Ball.ballDistanceFromHome = dolsqrtf2(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-    }
+    fn_3_55370();
 
     return 1;
 }
