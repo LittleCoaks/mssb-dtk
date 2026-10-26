@@ -6481,22 +6481,10 @@ void autoMovement5(int fielderIndex) {
                g_Fielders[g_Ball.fielderWBallIndex].distanceToBases[fielder->baseCuttoffIsTargeting] <
                    15.0f &&
                g_FieldingLogic.locationThrownTo != 6) {
-        fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
-        fielder->isResponsibleForCoveringALocation = 2;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 14);
-        }
-        fielder->fielderVeloAdjustmentCode = 0;
-        g_FieldingLogic.cutoffFielderIndex = -1;
+        fn_3_483CC(fielderIndex);
         g_FieldingLogic.someFrameCounterFielderRelated = 90;
     } else if (g_Ball.ballState == BALL_STATE_THROWN && g_FieldingLogic.locationThrownTo != 6) {
-        fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
-        fielder->isResponsibleForCoveringALocation = 2;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 14);
-        }
-        fielder->fielderVeloAdjustmentCode = 0;
-        g_FieldingLogic.cutoffFielderIndex = -1;
+        fn_3_483CC(fielderIndex);
     }
 
     if (g_Ball.fielderBeingThrownTo == fielderIndex) {
@@ -9299,27 +9287,9 @@ void autoMovement9_OffBase_coverHome(int fielderIndex) {
             return;
         }
 
-        if (fielder->distanceToBases[0] < 5.0f) {
-            fielder->locationResponsibleForCovering = 9;
-        } else if (fielder->distanceToBases[1] < 5.0f) {
-            fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
-        } else if (fielder->distanceToBases[2] < 5.0f) {
-            fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
-        } else if (fielder->distanceToBases[3] < 5.0f) {
-            fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
-        } else {
-            goto notCovering;
+        if (setFielderToCoverBaseIfNear(fielderIndex) != 0) {
+            return;
         }
-
-        fielder->isResponsibleForCoveringALocation = 2;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 14);
-        }
-        fielder->fielderVeloAdjustmentCode = 0xb;
-        return;
-
-notCovering:
-        ;
     }
 
     for (i = 0; i < 4; i++) {
@@ -9382,16 +9352,7 @@ ballCheckDone:
         }
 
         if (fielder->locationResponsibleForCovering != 7) {
-            if (g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 9) {
-                return;
-            }
-
-            g_Fielders[fielderIndex].locationResponsibleForCovering = 7;
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 14);
-            }
-            g_Fielders[fielderIndex].fielderVeloAdjustmentCode = 0;
-            g_Fielders[fielderIndex].presetLocationCategory = -1;
+            fn_3_49EA8(fielderIndex);
             return;
         }
     } else {
@@ -9681,7 +9642,7 @@ found_moundCutoff:
 }
 
 // .text:0x0003C484 size:0x110 mapped:0x8067B518
-int fn_3_3C484(int fielderIndex) {
+int setFielderToCoverBaseIfNear(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->distanceToBases[0] < 5.0f) {
