@@ -15899,10 +15899,10 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
     f32 speed;
     f32 dx;
     f32 dz;
-    f32 distSq;
     f32 dist;
     f32 overshootDistance;
     f32 ratio;
+    int angleToBall;
     s16 angleDiff;
     int framesNeeded;
     int i;
@@ -15922,10 +15922,8 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
             return 0;
         }
     } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-        if (getDifferenceInAngle(fielder->playerAngleFromHome, fielder->runningAngle) > 0x500) {
-            return 0;
-        }
-        if (1.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
+        if (getDifferenceInAngle(fielder->playerAngleFromHome, fielder->runningAngle) > 0x500 &&
+            1.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
             return 0;
         }
     }
@@ -15943,15 +15941,13 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - fielder->pos.x;
         dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - fielder->pos.z;
 
-        angleDiff = getDifferenceInAngle(
-            calculateAngleFromCoordinates(dx, dz),
-            fielder->runningAngle);
+        angleToBall = calculateAngleFromCoordinates(dx, dz);
+        angleDiff = getDifferenceInAngle(angleToBall, fielder->runningAngle);
         if (angleDiff > specialFielderActionConstants._00[18]) {
             continue;
         }
 
-        distSq = dx * dx + dz * dz;
-        dist = fielderSqrt(distSq);
+        dist = fielderSqrt(dx * dx + dz * dz);
 
         overshootDistance = dist - runningCatch_CatchThrowDistances[fielder->Weight];
         framesNeeded = (int)(overshootDistance / (speed * fielderActionConstants[30]));
@@ -15959,7 +15955,7 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         if (framesNeeded + 1 > i) {
             continue;
         }
-        if (dist < fielder->hitbox[0]) {
+        if (overshootDistance < fielder->hitbox[0]) {
             continue;
         }
         if (isCoordinateUncatchableTerrain(
@@ -15968,29 +15964,10 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
             continue;
         }
 
-        fielder->catchAnimationFramesCountDown = i;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 7;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        fielder->runningCatchInd = 1;
-
-        if (i < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
-        }
+        fn_3_2C238(fielderIndex, 7, i, FALSE, FALSE);
 
         ratio = overshootDistance / dist;
         fielder->actionStartingCoordinate.x = dx * ratio + fielder->pos.x;
-        g_Ball.catchAnimationTotalFrames = 0;
         fielder->actionStartingCoordinate.z = dz * ratio + fielder->pos.z;
         setFielderActionAngleType(fielderIndex);
 
