@@ -16978,6 +16978,30 @@ finalizeBackward:
 }
 
 // .text:0x00028224 size:0xA84 mapped:0x806672B8
+static inline void wallJump_setCatchState(InMemFielder* fielder, int idx, int autoCatchOnly) {
+    fielder->catchAnimationFramesCountDown = idx;
+    fielder->catchAnimationFramesCountUp = 0;
+    fielder->catchAnimation = 4;
+    fielder->catchVerticalZone = 0;
+    fielder->catchCentreRightLeftOfBody = 0;
+    fielder->catchFastBattedBallInd = 0;
+    fielder->autoCatch0_noCatchAnimationOnly1 = autoCatchOnly;
+    fielder->action = 0;
+    fielder->wallJumpFramesTillTopOfWallContact = 0;
+    fielder->wallActionFrameCounter = 0;
+    fielder->wallJumpStatus = 0;
+    fielder->wallActionCountDown = 0;
+    fielder->caughtBallInAir = 0;
+    fielder->runningCatchInd = 0;
+
+    if (idx < g_Ball.framesUntilBallHitsGround) {
+        fielder->caughtBallInAir = 1;
+    }
+
+    fielder->action = 3;
+    g_Ball.catchAnimationTotalFrames = 0;
+}
+
 int wallJumpInitialization(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 hitboxZ = fielder->hitbox[3];
@@ -16993,7 +17017,7 @@ int wallJumpInitialization(int fielderIndex) {
     int idx;
     int j;
     int k;
-    s16 angleToLandingSpot;
+    int angleToLandingSpot;
 
     if ((0.0f == fielder->xMovementDir && 0.0f == fielder->zMovementDir) ||
         fielder->runningAngle < 0) {
@@ -17050,8 +17074,10 @@ int wallJumpInitialization(int fielderIndex) {
     inVec.dst.y = -fielderActionConstants[5];
     inVec.src.y = -fielderActionConstants[5];
     magnitude = fielderSqrt(dx * dx + dz * dz);
-    inVec.dst.x = (dx / magnitude) * fielderActionConstants[4] + fielder->pos.x;
-    inVec.dst.z = (dz / magnitude) * fielderActionConstants[4] + fielder->pos.z;
+    dx = dx / magnitude;
+    dz = dz / magnitude;
+    inVec.dst.x = dx * fielderActionConstants[4] + fielder->pos.x;
+    inVec.dst.z = dz * fielderActionConstants[4] + fielder->pos.z;
 
     type = checkCollision(&inVec, &collision, 0, 0) & 0x7F;
     if (type != BALL_COLLISION_TYPE_WALL) {
@@ -17059,27 +17085,25 @@ int wallJumpInitialization(int fielderIndex) {
     }
 
     j = idx;
+    dist = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].dist - fielderActionConstants[12];
     for (k = 0; k < 10; k++) {
-        if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].dist - fielderActionConstants[12] <
-            g_Ball.physicsSubstruct.futureCoordsAndDist[j].dist) {
+        if (dist < g_Ball.physicsSubstruct.futureCoordsAndDist[j].dist) {
             break;
         }
         j--;
     }
 
     idx = j;
-    if (j >= specialFielderActionConstants._00[2]) {
-        for (k = 0; k < 5; k++) {
-            idx--;
-            if (idx < specialFielderActionConstants._00[2]) {
-                break;
-            }
-            if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y >
-                fielderActionConstants[9] + hitboxZ) {
-                idx++;
-                break;
-            }
+    for (k = 0; k < 5; k++) {
+        if (idx < specialFielderActionConstants._00[2]) {
+            break;
         }
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > hitboxZ + fielderActionConstants[9] &&
+            k != 0) {
+            idx++;
+            break;
+        }
+        idx--;
     }
 
     fielder->catchAnimationFramesCountDown = idx;
@@ -17105,32 +17129,11 @@ int wallJumpInitialization(int fielderIndex) {
     if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y >
         fielderActionConstants[9] + fielder->hitbox[3]) {
         fielder->wallJumpApexY = fielderActionConstants[9];
-        fielder->autoCatch0_noCatchAnimationOnly1 = 1;
+        wallJump_setCatchState(fielder, idx, TRUE);
     } else {
         fielder->wallJumpApexY = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y - fielder->hitbox[3];
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
+        wallJump_setCatchState(fielder, idx, FALSE);
     }
-
-    fielder->catchAnimationFramesCountDown = idx;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 4;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (idx < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    fielder->action = 3;
-    g_Ball.catchAnimationTotalFrames = 0;
     fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
 
     camera_zoomInDuringFielderAction_slide_clamber_wallJump(
@@ -17159,8 +17162,10 @@ farWall:
     fielder->wallActionLocationY = fielderActionConstants[5];
 
     magnitude = fielderSqrt(SQ(collision.normal.x) + SQ(collision.normal.z));
-    normOffX = (collision.normal.x / magnitude) * fielderActionConstants[6];
-    normOffZ = (collision.normal.z / magnitude) * fielderActionConstants[6];
+    normOffX = collision.normal.x / magnitude;
+    normOffZ = collision.normal.z / magnitude;
+    normOffX *= fielderActionConstants[6];
+    normOffZ *= fielderActionConstants[6];
     fielder->wallJumpApexX = fielder->wallActionLocationX + normOffX;
     fielder->wallJumpApexY = fielder->wallActionLocationY + fielderActionConstants[8];
     fielder->wallJumpApexZ = fielder->wallactionLocationZ + normOffZ;
@@ -17171,27 +17176,7 @@ farWall:
     fielder->wallActionFacingAngle = game_atan2(normOffX, normOffZ);
     fielder->wallActionCurrentHeight = 0.0f;
 
-    fielder->catchAnimationFramesCountDown = idx;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 4;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 1;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (idx < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    fielder->action = 3;
-    g_Ball.catchAnimationTotalFrames = 0;
+    wallJump_setCatchState(fielder, idx, TRUE);
     fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
 
     return 1;
