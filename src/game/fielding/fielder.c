@@ -1163,7 +1163,7 @@ void processFielderJumpAI(int fielderIndex) {
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.y > fielder->hitbox[3]) {
             g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 2;
             if (fielder->isJump == 0) {
-                fn_3_258D8(fielderIndex);
+                tryStartFielderJump(fielderIndex);
             }
         }
     } else {
@@ -10248,10 +10248,6 @@ void fn_3_3AAF8(int fielderIndex) {
 void moveFielder_CheckForAndSetJump(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int minigameIdx;
-    int hasSuperJump;
-    int jumpAnimIdx;
-    int frames3;
-    int apexDiv;
     int collided;
     VecXYZ scratch;
     BOOL performedJump;
@@ -10278,40 +10274,7 @@ void moveFielder_CheckForAndSetJump(int fielderIndex) {
 
     movementAngle = fielder->movementAngle;
 
-    if (g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake == 0) {
-        performedJump = FALSE;
-    } else if (fielder->jumpDiveStateRelated != 0) {
-        performedJump = FALSE;
-    } else {
-        hasSuperJump = fielder->hasSuperJump;
-        fielder->isJump = 1;
-        fielder->jumpY = 0.0f;
-
-        jumpAnimIdx = fielderIndex;
-        if (g_d_GameSettings.minigamesEnabled) {
-            if (fielderIndex == 0) {
-                jumpAnimIdx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
-            } else {
-                jumpAnimIdx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
-            }
-        }
-
-        fielder->jumpVelocity.y = jumpArray[hasSuperJump][0];
-        fielder->jumpVelocity.x = fielder->xMovementDir * 0.1f * jumpArray[hasSuperJump][2];
-        frames3 = (int)jumpArray[hasSuperJump][3];
-        fielder->jumpVelocity.z = fielder->zMovementDir * 0.1f * jumpArray[hasSuperJump][2];
-        apexDiv = (int)(fielder->jumpVelocity.y / jumpArray[hasSuperJump][1]);
-        fielder->jumpApexFrame = apexDiv + 1;
-        fielder->jumpCountDown = apexDiv + apexDiv + frames3 + 2;
-        fielder->jumpCountUp = 0;
-
-        if (hasSuperJump != 0) {
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[jumpAnimIdx], 6);
-        }
-
-        g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
-        performedJump = TRUE;
-    }
+    performedJump = tryStartFielderJump(fielderIndex);
 
     if (!performedJump) {
         if (g_FieldingLogic.dashPtr->sprintingState == 4 &&
@@ -14632,7 +14595,7 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
 }
 
 // .text:0x0002F7D4 size:0x150 mapped:0x8066E868
-void fn_3_2F7D4(int fielderIndex) {
+void startFielderJump(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int hasSuperJump = fielder->hasSuperJump;
     int idx = fielderIndex;
@@ -17974,12 +17937,8 @@ void runningCatch_updatePositionAndVelocity(int fielderIndex) {
 }
 
 // .text:0x000258D8 size:0x190 mapped:0x8066496C
-int fn_3_258D8(int fielderIndex) {
+int tryStartFielderJump(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int idx;
-    int hasSuperJump;
-    int frames3;
-    int apexDiv;
 
     if (g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake == 0) {
         return 0;
@@ -17988,35 +17947,7 @@ int fn_3_258D8(int fielderIndex) {
         return 0;
     }
 
-    hasSuperJump = fielder->hasSuperJump;
-    fielder->isJump = 1;
-    fielder->jumpY = 0.0f;
-
-    idx = fielderIndex;
-    if (g_d_GameSettings.minigamesEnabled) {
-        if (fielderIndex == 0) {
-            idx = g_Minigame.minigameControlStruct[0].characterIndex[(s8)g_Minigame.minigamePlayerSelectedOrder];
-        } else {
-            idx = ((s8*)g_Minigame.minigameControlStruct[1].aIStrength)[fielderIndex];
-        }
-    }
-
-    fielder->jumpVelocity.y = jumpArray[hasSuperJump][0];
-    fielder->jumpVelocity.x = fielder->xMovementDir * 0.1f * jumpArray[hasSuperJump][2];
-
-    frames3 = (int)jumpArray[hasSuperJump][3];
-
-    fielder->jumpVelocity.z = fielder->zMovementDir * 0.1f * jumpArray[hasSuperJump][2];
-
-    apexDiv = (int)(fielder->jumpVelocity.y / jumpArray[hasSuperJump][1]);
-
-    fielder->jumpApexFrame = apexDiv + 1;
-    fielder->jumpCountDown = apexDiv + apexDiv + frames3 + 2;
-    fielder->jumpCountUp = 0;
-
-    if (hasSuperJump != 0) {
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 6);
-    }
+    startFielderJump(fielderIndex);
 
     g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
     return 1;
