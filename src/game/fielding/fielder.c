@@ -85,6 +85,10 @@ typedef struct {
 
 extern WeightsStruct modWeightBasedFactors[6];
 
+/* The default inline size cap is too small for setFieldersAutoCoordsToStartingPositions, which
+ * fielding_prePitchAutomovement inlines. The cap applies to the whole file. */
+#pragma inline_max_size(600)
+
 static inline f32 fielderSqrt(f32 x) {
     if (x > 0.0f) {
         f64 half = 0.5;
@@ -14223,32 +14227,7 @@ void fielding_prePitchAutomovement(void) {
     InMemFielder* fielder;
 
     if (pauseControl.isPaused == 0) {
-        /* inlined setFieldersAutoCoordsToStartingPositions; call form stays a bl, costs 45% (see checkpoint) */
-        for (i = 2; i < 9; i++) {
-            f32 outZ;
-            f32 outX;
-            f32 dz;
-            f32 dx;
-            f32 dx2;
-            f32 dz2;
-            f32 dist;
-
-            fielder = &g_Fielders[i];
-            fielding_setStartingCoordinates(i, &outX, &outZ);
-
-            dx = fielder->pos.x - outX;
-            dz = fielder->pos.z - outZ;
-            dx2 = dx * dx;
-            dz2 = dz * dz;
-            dist = fielderSqrt(dx2 + dz2);
-
-            if (dist < 0.1f) {
-                outX = fielder->pos.x;
-                outZ = fielder->pos.z;
-            }
-
-            setFielderAutoCoords_onlyFlagIfMoving(i, outX, outZ);
-        }
+        setFieldersAutoCoordsToStartingPositions();
 
         for (i = 2; i < 9; i++) {
             int farFromLocation;
@@ -15491,6 +15470,7 @@ void unused_FUN_8066bf88(int fielderIndex) {
 }
 
 // .text:0x0002CBE0 size:0x314 mapped:0x8066BC74
+#pragma dont_inline on
 BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     InMemFielder* fielder;
     int i;
@@ -15527,6 +15507,7 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
 
     return 1;
 }
+#pragma dont_inline reset
 
 // .text:0x0002C698 size:0x548 mapped:0x8066B72C
 void checkForCatchBallAction(int fielderIndex) {
