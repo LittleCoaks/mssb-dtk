@@ -640,16 +640,21 @@ void fn_2_5ED3C(void) {
 // .text:0x0005EB78 size:0x1C4 mapped:0x8069DC0C
 void fn_2_5EB78(void) {
     u8 flags[4];
+    u8 *flag = flags;
     s32 i;
     s32 k;
-    u8 *src = lbl_2_bss_1A8244;
+    u8 *src;
 
     lbl_2_bss_33FBF5[0] = 0;
-    for (i = 0; i < 4; i++) {
-        flags[i] = 0;
+    src = lbl_2_bss_1A8244;
+    flags[0] = FALSE;
+    flags[1] = FALSE;
+    flags[2] = FALSE;
+    flags[3] = FALSE;
+    for (i = 0; i < 4; i++, flag++) {
         for (k = 0; k < 5; k++) {
             if (src[0xC6 + i + 4 * k] != 0) {
-                flags[i] = 1;
+                *flag = TRUE;
             }
         }
     }

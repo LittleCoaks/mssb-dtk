@@ -121,7 +121,8 @@ void fn_8006C2B4(void *dst, void *src);
 
 static inline void updateRecordGridCursor(void) {
     s8 idx = (s8)WB(0x197863);
-    u16 pad = PADH(idx, 0x4);
+    u16 *input = (u16 *)((u8 *)&AtBat_ButtonInput1 + 4);
+    u16 pad = input[idx * 16];
 
     if (pad & INPUT_BUTTON_LEFT) {
         WBH(0x197708)--;
@@ -141,7 +142,7 @@ static inline void updateRecordGridCursor(void) {
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     }
     idx = (s8)WB(0x197863);
-    pad = PADH(idx, 0x4);
+    pad = input[idx * 16];
     if (pad & INPUT_BUTTON_UP) {
         WBH(0x19770A)--;
         if (WBH(0x19770A) == 0 && (WBH(0x197708) == 0 || WBH(0x197708) == 5)) {
@@ -165,17 +166,17 @@ static inline void updateRecordGridCursor(void) {
 static inline void copySelectedRecord(void) {
     s32 off = WBH(0x197706) * 0x16;
 
-    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x7404) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x140);
+    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x7404) = *(s16 *)&lbl_2_bss_1A8240[off + 0x140];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7410) = lbl_2_bss_1A8240[off + 0x14C];
-    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x7406) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x142);
+    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x7406) = *(s16 *)&lbl_2_bss_1A8240[off + 0x142];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7411) = lbl_2_bss_1A8240[off + 0x14D];
-    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x7408) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x144);
+    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x7408) = *(s16 *)&lbl_2_bss_1A8240[off + 0x144];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7412) = lbl_2_bss_1A8240[off + 0x14E];
-    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x740A) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x146);
+    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x740A) = *(s16 *)&lbl_2_bss_1A8240[off + 0x146];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7413) = lbl_2_bss_1A8240[off + 0x14F];
-    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x740C) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x148);
+    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x740C) = *(s16 *)&lbl_2_bss_1A8240[off + 0x148];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7414) = lbl_2_bss_1A8240[off + 0x150];
-    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x740E) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x14A);
+    *(s16 *)((lbl_2_bss_1A824C + 0x190000) + 0x740E) = *(s16 *)&lbl_2_bss_1A8240[off + 0x14A];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7415) = lbl_2_bss_1A8240[off + 0x151];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7417) = lbl_2_bss_1A8240[off + 0x153];
     *(u8 *)((lbl_2_bss_1A824C + 0x190000) + 0x7418) = lbl_2_bss_1A8240[off + 0x154];
@@ -1103,7 +1104,11 @@ void fn_2_5B7DC(void) {
         idx = (s8)WB(0x197863);
         pad = PADH(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
-            WCH(0x32) = WBH(0x1976FE) == 3 ? 11 : 8;
+            if (WBH(0x1976FE) == 3) {
+                WCH(0x32) = 11;
+            } else {
+                WCH(0x32) = 8;
+            }
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         } else if (pad & INPUT_BUTTON_B) {
             WCH(0x32) = 17;
@@ -1480,7 +1485,11 @@ void fn_2_5A224(void) {
         idx = (s8)WB(0x197863);
         pad = PADH(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
-            WCH(0x32) = WBH(0x1976FE) == 0 ? 11 : 8;
+            if (WBH(0x1976FE) == 0) {
+                WCH(0x32) = 11;
+            } else {
+                WCH(0x32) = 8;
+            }
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
         } else if (pad & INPUT_BUTTON_B) {
             WCH(0x32) = 22;

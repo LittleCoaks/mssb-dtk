@@ -1,6 +1,8 @@
+#define SQRT2_LINKAGE static
 #include "menus/text_636A4.h"
 #include "text/text.h"
 #include "Unknown/File_0x80034e20.h"
+#include "static/UnknownHomes_Static.h"
 
 typedef struct TextFadeRecord {
     TextHandleRec base;
@@ -17,7 +19,6 @@ extern u8 lbl_80354768[];
 extern u8 *lbl_2_bss_1A824C;
 extern s16 lbl_2_data_20C38[];
 extern s16 lbl_2_data_20C58[];
-extern u8 g_d_GameSettings[];
 
 static void hideRec(TextScene *scene, TextHandleRec *rec) {
     graphicsRelatedArray[scene->firstHandle + rec->handle].object->flags &= ~UI_FLAG_VISIBLE;
@@ -55,11 +56,11 @@ static s16 recLevelFromWork(TextHandleRec *rec) {
     s16 kind;
 
     if (*(s16 *)((u8 *)rec + 0xC) == 6) {
-        return *(s16 *)(lbl_2_bss_1A824C + 0x190000 + rec->unkA * 8 + 0x72CA);
+        return *(s16 *)&lbl_2_bss_1A824C[0x190000 + rec->unkA * 8 + 0x72CA];
     }
     mode = *(s16 *)(lbl_2_bss_1A824C + 0x1976FA);
     kind = rec->unkA;
-    return *(s16 *)(lbl_2_bss_1A824C + 0x190000 + mode * 0x28 + kind * 8 + 0x72F2);
+    return *(s16 *)&lbl_2_bss_1A824C[0x190000 + mode * 0x28 + kind * 8 + 0x72F2];
 }
 
 // Shared body for case 2 and case 0x11 of fn_2_648CC.
@@ -70,12 +71,12 @@ static void stepRecSettingsLevel(TextScene *scene, TextHandleRec *rec) {
         setRecFrame(scene, rec, 0x60000);
     } else {
         mode = *(s16 *)(lbl_2_bss_1A824C + 0x1976FA);
-        if (mode == 5 && g_d_GameSettings[0x12] == 0) {
+        if (mode == 5 && g_d_GameSettings._12 == 0) {
             hideRec(scene, rec);
             rec->state = 0x25;
             return;
         }
-        if (mode == 6 && g_d_GameSettings[0x12] <= 1) {
+        if (mode == 6 && g_d_GameSettings._12 <= 1) {
             hideRec(scene, rec);
             rec->state = 0x25;
             return;
@@ -242,8 +243,8 @@ static void stepRecObjLevelState(TextScene *scene, TextHandleRec *rec) {
 
 // .text:0x00065C84 size:0x1CC mapped:0x806A4D18
 void fn_2_65C84(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
     u8 *table = lbl_80354768;
+    s16 result = fn_2_53BC8(rec);
     s16 *timer;
     s16 prev;
 
@@ -319,8 +320,8 @@ void fn_2_65A00(TextScene *scene, TextHandleRec *rec) {
 
 // .text:0x00065850 size:0x1B0 mapped:0x806A48E4
 void fn_2_65850(TextScene *scene, TextHandleRec *rec) {
-    s16 result = fn_2_53BC8(rec);
     u8 *table = lbl_80354768;
+    s16 result = fn_2_53BC8(rec);
     s16 *timer;
     s16 prev;
 
@@ -490,9 +491,9 @@ void fn_2_64E20(TextScene *scene, TextHandleRec *rec) {
     case 2:
         kind = rec->unkA;
         frame = lbl_2_data_20C58[kind];
-        if (kind == 5 && g_d_GameSettings[0x12] == 0) {
+        if (kind == 5 && g_d_GameSettings._12 == 0) {
             frame = 7;
-        } else if (kind == 6 && g_d_GameSettings[0x12] <= 1) {
+        } else if (kind == 6 && g_d_GameSettings._12 <= 1) {
             frame = 7;
         }
         load_Icon(scene, rec->handle, 1, 0x1D, frame);

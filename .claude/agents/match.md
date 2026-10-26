@@ -516,12 +516,18 @@ Once the status table has no `exhausted`/`pending` rows left:
    linker consumes our compiled object. Follow the checklist in
    `docs/matching_notes.md` ("Flipping a 100% unit to Object(Matching)"):
    for REL units, first reorder the .c file's function definitions into
-   reverse address order (`-inline deferred` emits them reversed; codegen
-   and the objdiff match are unaffected), then flip, rebuild, and require
+   reverse address order (`-inline deferred` emits them reversed). The
+   instructions are unaffected, but the literal pool follows generation
+   order, so re-diff after reordering a unit with float/string literals and
+   keep `static inline` helpers above their callers. Better still, draft in
+   reverse order from the start. Then flip, rebuild, and require
    `4 files OK` from the sha1 check plus a still-100% report.json entry.
+   In a REL module that already has a Matching unit, also give this unit its
+   own `#define REP_HEADER_DATA_FN getRepHeaderData_<unit>` before the
+   includes, or the module's `.rodata` comes out 0x50 short.
    Silence any `FORCEACTIVE lbl_*_rodata_*` linker warnings by adding
-   `scope:local` to those `data:string` entries in the module's
-   symbols.txt. If the sha1 check cannot be made green, revert the flip
+   `scope:local` to those entries (strings and pooled floats/doubles) in
+   the module's symbols.txt. If the sha1 check cannot be made green, revert the flip
    (leave NonMatching) and report why.
 
 If the file is *not* fully matched, skip all of this — leave the checkpoint

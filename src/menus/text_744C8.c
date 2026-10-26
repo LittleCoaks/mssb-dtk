@@ -7,6 +7,9 @@
 #include "Unknown/orderchange.h"
 #include "Unknown/File_0x800204cc.h"
 #include "text/text.h"
+#include "menus/text_00110.h"
+#include "game/character_stats.h"
+#include "Unknown/mb_subfunc.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x80034cec.h"
 
@@ -17,6 +20,8 @@ extern u8 Static_Stats_Tables[];
 extern u8 lbl_8037169C[];
 extern u8 superstarUnlocked[];
 extern u8 cursorPositions[];
+extern u8 lbl_2_bss_F468[];
+extern Text00110Ctl *menuControlVariables;
 extern u8 challengeCaptainCharIDArray[];
 extern u8 lbl_2_data_2B3A4[];
 extern u8 g_d_GameSettings[];
@@ -26,7 +31,7 @@ void fn_2_73EFC(DrawingSceneStruct *node);
 extern u8 mapCaptainCursorPositionToCharID[];
 extern UIRecordDescriptor lbl_2_data_2D33C[];
 void load_Icon(void *scene, int handle, u32 part, u32 element, int frame);
-void fn_80036214(MenuScene *scene, s32 arg1, s32 arg2);
+s32 fn_80036214(MenuScene *scene, s32 arg1, s32 arg2, s32 size);
 s32 fn_2_8794(s32 arg0, s32 arg1);
 
 static TextGraphicsObject *gfxObject(MenuScene *scene, s32 index) {
@@ -48,30 +53,45 @@ static void gfxNodeSetU8(DrawingSceneStruct *node, s32 index, u8 value) {
 
 // .text:0x00076650 size:0x224 mapped:0x806B56E4
 void fn_2_76650(MenuScene *scene, u8 team, u32 mask) {
-    s32 list[6];
-    s32 n = 0;
+    s32 list[2];
     s32 i;
-    s32 a;
-    s32 b;
+    s32 listIndex;
 
     memset(list, -1, 2);
-    for (i = 0; i < 14; i++) {
+    i = 0;
+    listIndex = 0;
+    for (; i < 14; i++) {
         if (mask & (1 << i)) {
-            if (i != 0) {
-                list[n++] = i;
+            switch (i) {
+            case 0:
+                i++;
+                break;
+            case 1: list[listIndex++] = 1; break;
+            case 2: list[listIndex++] = 2; break;
+            case 3: list[listIndex++] = 3; break;
+            case 4: list[listIndex++] = 4; break;
+            case 5: list[listIndex++] = 5; break;
+            case 6: list[listIndex++] = 6; break;
+            case 7: list[listIndex++] = 7; break;
+            case 8: list[listIndex++] = 8; break;
+            case 9: list[listIndex++] = 9; break;
+            case 10: list[listIndex++] = 10; break;
+            case 11: list[listIndex++] = 11; break;
+            case 12: list[listIndex++] = 12; break;
+            default: list[listIndex++] = 13; break;
             }
         }
     }
-    a = list[0] - 1;
-    b = list[1] - 1;
-    if (a < 0) {
-        a = 12;
+    list[0]--;
+    list[1]--;
+    if (list[0] < 0) {
+        list[0] = 12;
     }
-    if (b < 0) {
-        b = 12;
+    if (list[1] < 0) {
+        list[1] = 12;
     }
-    *(u32 *)((u8 *)gfxObject(scene, team + 0xCE) + 0x5C) = (u32)a << 16;
-    *(u32 *)((u8 *)gfxObject(scene, team + 0xD0) + 0x5C) = (u32)b << 16;
+    ((UIRecord *)gfxObject(scene, team + 0xCE))->frame = (u32)list[0] << 16;
+    ((UIRecord *)gfxObject(scene, team + 0xD0))->frame = (u32)list[1] << 16;
 }
 
 // .text:0x0007664C size:0x4 mapped:0x806B56E0
@@ -156,9 +176,9 @@ void fn_2_760CC(MenuScene *scene) {
 }
 
 // .text:0x0007609C size:0x30 mapped:0x806B5130
-void fn_2_7609C(u8 arg0, u8 arg1) {
-    if (arg1 == 0) {
-        fn_2_8794(arg0, 0);
+void fn_2_7609C(s32 unused, u8 value, u8 state) {
+    if (state == 0) {
+        fn_2_8794(value, 0);
     }
 }
 
@@ -168,38 +188,36 @@ void fn_2_76098(void) {
 }
 
 // .text:0x00075BE4 size:0x4B4 mapped:0x806B4C78
-void teamSelectionSetChemStars(MenuScene *scene, u8 team) {
+void teamSelectionSetChemStars(MenuScene *scene, s32 team) {
     u8 *picks = &cursorPositions[team * 9];
-    u32 teamWord = *(u32 *)(Static_Stats_Tables + team * 4 + 0x46E0);
+    u32 *teamWord = (u32 *)(Static_Stats_Tables + team * 4 + 0x46E0);
     s32 sum = 0;
     s32 count = 0;
-    s32 average = 0;
-    s32 stars;
+    s32 stars = 0;
     s32 i;
 
     for (i = 0; i < 9; i++) {
-        u8 value = picks[0x26 + i];
+        u8 value = picks[0x26];
 
-        if (value != 0 && (s32)(s8)picks[2 + i] != (s32)teamWord) {
+        if (value != 0 && (s32)(s8)picks[2] != (s32)*teamWord) {
             sum += value;
             count++;
         }
+        picks++;
     }
     if (count != 0) {
-        average = sum / count;
-    }
-    if (average >= 70) {
-        stars = 5;
-    } else if (average >= 55) {
-        stars = 4;
-    } else if (average >= 35) {
-        stars = 3;
-    } else if (average >= 15) {
-        stars = 2;
-    } else if (average > 0) {
-        stars = 1;
-    } else {
-        stars = 0;
+        s32 average = sum / count;
+        if (average >= 70) {
+            stars = 5;
+        } else if (average <= 69 && average >= 55) {
+            stars = 4;
+        } else if (average <= 54 && average >= 35) {
+            stars = 3;
+        } else if (average <= 34 && average >= 15) {
+            stars = 2;
+        } else if (average <= 14 && average > 0) {
+            stars = 1;
+        }
     }
     Static_Stats_Tables[0x470F + team] = (u8)stars;
 
@@ -219,7 +237,7 @@ void teamSelectionSetChemStars(MenuScene *scene, u8 team) {
 }
 
 // .text:0x00075B58 size:0x8C mapped:0x806B4BEC
-BOOL fn_2_75B58(MenuScene *scene, u8 team) {
+E(u8, BOOL) fn_2_75B58(MenuScene *scene, s32 team) {
     int total = 0;
     int hits = 0;
     int i;
@@ -234,26 +252,162 @@ BOOL fn_2_75B58(MenuScene *scene, u8 team) {
 }
 
 // .text:0x00074F40 size:0xC18 mapped:0x806B3FD4
-void gfx_cssCharStatBars_and_sthgElse(void) {
-    return;
+void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
+    s32 character;
+    s32 selected;
+    s32 i;
+    s8 variant;
+    u8 batting;
+    u8 pitching;
+    u8 running;
+    u8 fielding;
+
+    if (menuControlVariables->currentScreen == 9 || gameSetUpStep[port + 0x5D] == 11) {
+        if (g_d_GameSettings[7] != GAME_TYPE_CHALLENGE) {
+            character = mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
+        } else {
+            character = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[4]];
+        }
+        pitching = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.PitchingStatBar;
+        batting = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.BattingStatBar;
+        running = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.RunningStatBar;
+        fielding = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.FieldingStatBar;
+        fn_2_74E14(scene, port, pitching, 1);
+        fn_2_74E14(scene, port, running, 3);
+        fn_2_74E14(scene, port, batting, 0);
+        fn_2_74E14(scene, port, fielding, 2);
+        gfxObject(scene, port + 0xAE)->flags &= ~UI_FLAG_VISIBLE;
+        return;
+    }
+
+    selected = ((s32 *)lbl_2_bss_F468)[port];
+    if (lbl_2_bss_F468[port + 0x41] != 0) {
+        gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
+        character = menuCursors[port + 8];
+    } else if (selected == 9 || selected == 10) {
+        character = CHAR_ID_NONE;
+    } else {
+        character = CHAR_ID_NONE;
+        for (i = 0; i < 9; i++) {
+            if ((s8)cursorPositions[port * 9 + 0x14 + i] == (s8)selected) {
+                character = (s8)cursorPositions[port * 9 + 2 + i];
+            }
+        }
+    }
+
+    if (character != CHAR_ID_NONE && addRemoveCharVariantRelated(0, (u8)character, 2) != 0 &&
+        g_d_GameSettings[7] != GAME_TYPE_CHALLENGE) {
+        gfxObject(scene, port + 0xB2)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord *)gfxObject(scene, port + 0xB2))->frame = 0;
+        ((UIRecord *)gfxObject(scene, port + 0xB2))->playMode = UI_PLAY_FORWARD;
+        variant = 0;
+        switch (character) {
+        case CHAR_ID_TOAD_RED: case CHAR_ID_SHYGUY_RED: case CHAR_ID_PARATROOPA_RED: case CHAR_ID_PIANTA_RED: case CHAR_ID_NOKI_RED: case CHAR_ID_MAGIKOOPA_RED: case CHAR_ID_KOOPA_RED: case CHAR_ID_DRYBONES_RED: case CHAR_ID_BRO_FIRE:
+            variant = 1; break;
+        case CHAR_ID_PIANTA_BLUE: case CHAR_ID_NOKI_BLUE: case CHAR_ID_TOAD_BLUE: case CHAR_ID_MAGIKOOPA_BLUE: case CHAR_ID_SHYGUY_BLUE: case CHAR_ID_DRYBONES_BLUE: case CHAR_ID_BRO_BOOMERANG:
+            variant = 2; break;
+        case CHAR_ID_PIANTA_YELLOW: case CHAR_ID_TOAD_YELLOW: case CHAR_ID_MAGIKOOPA_YELLOW: case CHAR_ID_SHYGUY_YELLOW:
+            variant = 3; break;
+        case CHAR_ID_KOOPA_GREEN: case CHAR_ID_NOKI_GREEN: case CHAR_ID_BRO_HAMMER: case CHAR_ID_TOAD_GREEN: case CHAR_ID_MAGIKOOPA_GREEN: case CHAR_ID_PARATROOPA_GREEN: case CHAR_ID_SHYGUY_GREEN: case CHAR_ID_DRYBONES_GREEN:
+            variant = 4; break;
+        case CHAR_ID_TOAD_PURPLE:
+            variant = 5; break;
+        case CHAR_ID_SHYGUY_BLACK:
+            variant = 6; break;
+        }
+        gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = (s8)variant << 16;
+    } else {
+        gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
+        if (((s32 *)lbl_2_bss_F468)[port] != 9 && ((s32 *)lbl_2_bss_F468)[port] != 10) {
+            gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
+            ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = 0;
+        }
+    }
+
+    gfxObject(scene, port + 0xAC)->flags |= UI_FLAG_VISIBLE;
+    if (character >= 0 && character < 54) {
+        batting = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.BattingStatBar;
+        running = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.RunningStatBar;
+        pitching = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.PitchingStatBar;
+        fielding = ((CharacterStats (*)[9])Static_Stats_Tables)[character / 9][character % 9].stats.FieldingStatBar;
+        gfxObject(scene, port + 0xB0)->flags |= UI_FLAG_VISIBLE;
+        ((UIRecord *)gfxObject(scene, port + 0xB0))->frame = character << 16;
+        ((UIRecord *)gfxObject(scene, port + 0xAC))->frame = 0;
+        ((UIRecord *)gfxObject(scene, port + 0xAC))->playMode = UI_PLAY_FORWARD;
+    } else {
+        gfxObject(scene, port + 0xB0)->flags &= ~UI_FLAG_VISIBLE;
+        batting = 0;
+        running = 0;
+        pitching = 0;
+        fielding = 0;
+    }
+    if (character >= 0 && character < 54) {
+        fn_2_74E14(scene, port, pitching, 1);
+        fn_2_74E14(scene, port, running, 3);
+        fn_2_74E14(scene, port, batting, 0);
+        fn_2_74E14(scene, port, fielding, 2);
+    } else {
+        gfxObject(scene, port + 0x97)->flags &= ~UI_FLAG_VISIBLE;
+    }
 }
 
 // .text:0x00074E14 size:0x12C mapped:0x806B3EA8
 void fn_2_74E14(MenuScene *scene, s32 a, s32 b, u8 c) {
-    u32 packed = (u32)((b - 1) << 16);
+    u32 packed = ((u32)(b - 1) << 16);
+    s32 result;
 
-    gfxObject(scene, a + 0x97)->flags |= 2;
-    *(u32 *)((u8 *)gfxObject(scene, a + 0x97) + 0x5C) = 0;
-    *(u8 *)((u8 *)gfxObject(scene, a + 0x97) + 0x68) = 1;
-    *(u32 *)((u8 *)gfxObject(scene, c + a * 4 + 0x9B) + 0x5C) = packed;
-    fn_80036214(scene, 0xAB, 0);
-    *(u32 *)((u8 *)gfxObject(scene, c + a * 4 + 0xA3) + 0x5C) = packed;
-    *(MenuScene **)((u8 *)gfxObject(scene, c + a * 4 + 0xA3) + 0x58) = scene;
+    gfxObject(scene, a + 0x97)->flags |= UI_FLAG_VISIBLE;
+    ((UIRecord *)gfxObject(scene, a + 0x97))->frame = 0;
+    ((UIRecord *)gfxObject(scene, a + 0x97))->playMode = UI_PLAY_FORWARD;
+    ((UIRecord *)gfxObject(scene, c + a * 4 + 0x9B))->frame = packed;
+    result = fn_80036214(scene, 0xAB, 0, (b + 1) / 2 - 1);
+    ((UIRecord *)gfxObject(scene, c + a * 4 + 0xA3))->frame = packed;
+    ((UIRecord *)gfxObject(scene, c + a * 4 + 0xA3))->rgba = result;
 }
 
 // .text:0x00074DB8 size:0x5C mapped:0x806B3E4C
-void fn_2_74DB8(void) {
-    return;
+s32 fn_2_74DB8(s32 character) {
+    switch (character) {
+    case CHAR_ID_TOAD_RED:
+    case CHAR_ID_SHYGUY_RED:
+    case CHAR_ID_PARATROOPA_RED:
+    case CHAR_ID_PIANTA_RED:
+    case CHAR_ID_NOKI_RED:
+    case CHAR_ID_MAGIKOOPA_RED:
+    case CHAR_ID_KOOPA_RED:
+    case CHAR_ID_DRYBONES_RED:
+    case CHAR_ID_BRO_FIRE:
+        return 1;
+    case CHAR_ID_PIANTA_BLUE:
+    case CHAR_ID_NOKI_BLUE:
+    case CHAR_ID_TOAD_BLUE:
+    case CHAR_ID_MAGIKOOPA_BLUE:
+    case CHAR_ID_SHYGUY_BLUE:
+    case CHAR_ID_DRYBONES_BLUE:
+    case CHAR_ID_BRO_BOOMERANG:
+        return 2;
+    case CHAR_ID_PIANTA_YELLOW:
+    case CHAR_ID_TOAD_YELLOW:
+    case CHAR_ID_MAGIKOOPA_YELLOW:
+    case CHAR_ID_SHYGUY_YELLOW:
+        return 3;
+    case CHAR_ID_KOOPA_GREEN:
+    case CHAR_ID_NOKI_GREEN:
+    case CHAR_ID_BRO_HAMMER:
+    case CHAR_ID_TOAD_GREEN:
+    case CHAR_ID_MAGIKOOPA_GREEN:
+    case CHAR_ID_PARATROOPA_GREEN:
+    case CHAR_ID_SHYGUY_GREEN:
+    case CHAR_ID_DRYBONES_GREEN:
+        return 4;
+    case CHAR_ID_TOAD_PURPLE:
+        return 5;
+    case CHAR_ID_SHYGUY_BLACK:
+        return 6;
+    default:
+        return 0;
+    }
 }
 
 // .text:0x00074D8C size:0x2C mapped:0x806B3E20

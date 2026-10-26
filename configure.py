@@ -1052,19 +1052,19 @@ config.libs = [
     Rel(
         "debug",
         [
-            Object(NonMatching, "debug/rep_0010.c"),
-            Object(NonMatching, "debug/rep_00B0.c"),
-            Object(NonMatching, "debug/rep_0138.c"),
-            Object(NonMatching, "debug/rep_0250.c"),
-            Object(NonMatching, "debug/rep_02A8.c"),
-            Object(NonMatching, "debug/rep_0610.c"),
-            Object(NonMatching, "debug/rep_74A0.c"),
-            Object(NonMatching, "debug/rep_7730.c"),
-            Object(NonMatching, "debug/rep_7920.c"),
-            Object(NonMatching, "debug/rep_7978.c"),
-            Object(NonMatching, "debug/rep_7A28.c"),
-            Object(NonMatching, "debug/rep_7BA0.c"),
-            Object(NonMatching, "debug/rep_7BF0.c"),
+            Object(Matching, "debug/rep_0010.c"),
+            Object(Matching, "debug/rep_00B0.c"),
+            Object(Matching, "debug/rep_0138.c"),
+            Object(Matching, "debug/rep_0250.c"),
+            Object(Matching, "debug/rep_02A8.c"),
+            Object(Matching, "debug/rep_0610.c"),
+            Object(Matching, "debug/rep_74A0.c"),
+            Object(Matching, "debug/rep_7730.c"),
+            Object(Matching, "debug/rep_7920.c"),
+            Object(Matching, "debug/rep_7978.c"),
+            Object(Matching, "debug/rep_7A28.c"),
+            Object(Matching, "debug/rep_7BA0.c"),
+            Object(Matching, "debug/rep_7BF0.c"),
         ]
     )
 ]

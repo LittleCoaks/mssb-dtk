@@ -1,5 +1,6 @@
 #define SQRT2_LINKAGE static
 #include "menus/text_76874.h"
+#include "menus/text_744C8.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80062674.h"
 #include "Unknown/orderchange.h"
@@ -19,9 +20,6 @@ extern int menuCursors[0x16];
 extern u8 superstarUnlocked[];
 extern u8 challengeCaptainCharIDArray[];
 extern u8 lbl_800EFBA4[];
-void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port);
-void fn_2_76650(MenuScene *scene, u8 team, u32 mask);
-void teamSelectionSetChemStars(MenuScene *scene, u8 team);
 
 static inline BOOL stepIsClear(u8 step) {
     return step == 0 ? TRUE : FALSE;

@@ -384,8 +384,12 @@ both now solved:
    yd_step.c with `-inline auto` emits source order; with `-inline deferred`
    emits exact reverse source order. **Fix: write the function definitions in
    the .c file in reverse address order** (highest `.text` offset first).
-   Codegen is unaffected (see previous section — order is a codegen no-op),
-   so the match stays 100%. This applies to every REL unit (menus/game/
+   Instruction codegen is unaffected (see previous section), but the
+   literal pool is not: MWCC lays out `@N` float/string constants in
+   code-generation order, so in a unit with literals the reversal can change
+   `.rodata` order (in `debug/rep_7A28` it fixed five 99.x% functions).
+   Reverse the order while drafting, not just before the flip, and keep
+   `static inline` helpers above their callers when you reorder. This applies to every REL unit (menus/game/
    debug use cflags_rel); DOL-side units don't use `-inline deferred`.
 
 2. **dtk's synthetic string-literal symbols trigger harmless linker
@@ -3148,7 +3152,6 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   The complete 28-function unit and all its sections remained 100% after the
   readability pass and linked with `4 files OK`.
 
-
 ## Findings from the low-match game REL pass (2026-10-09)
 
 - **Restore actual helper calls before tuning macro-expanded locals.** In
@@ -4996,3 +4999,1289 @@ but regressed this caller, so the canonical s8 interface was retained. All
 four initial function floors hold. Shared instructions equal the private
 final; full build, four output hashes and whitespace checks pass. Evidence:
 build/_postmerge_wave34_text_3A8FC.json and private wave34 prove.py.
+
+### Challenge bank copies and callback snapshots (2026-10-23)
+
+text_44F14 improves from 71.28488% to 96.35703%, with five new exact
+functions (14/27 total). Copying ten typed mission pairs, loading scout
+fields through the stored pointer, and resolving the global at each reset
+store recover the original loops. Mission visibility captures signed rule
+fields before the callback, while later global state reads retain their
+original timing. Recruitment compares a sign-extended stored captain with
+the unsigned global captain. The public s8 getter interface stays unchanged.
+
+Focused target/candidate PPC checks pass against independent memory and
+callback models: 24 whole-bank cases, 256 captain banks and 20 visibility
+banks, totaling 964,486 instructions. These do not execute the full game.
+All 27 initial function and section floors hold. Full build, four output
+hashes and whitespace checks pass. New exacts passed canonical readability.
+Evidence: build/_postmerge_wave38_text_44F14.json and private wave38
+semantic_audit.py.
+
+### Explicit playback branches recover generated tables (2026-10-23)
+
+text_33E70 improves from 98.59381% to 99.84961%, with four new exact
+functions (17/18 total). Calling the playback setter within each branch,
+instead of passing a ternary, restores target node resolution and branch
+bodies. The canonical ScreenTextBlock.justify field also closes two
+callbacks. UIRecord fields and UI_PLAY constants replace raw accesses.
+
+Both generated 38-word switch tables now match: 304 raw bytes and 76
+normalized relocations independently checked against the target. Anonymous
+compiler labels were not the obstacle. All 18 function, data and pseudo
+floors hold, shared/private instructions agree, and full build, four output
+hashes and whitespace checks pass. Only fn_2_34F6C remains pending at
+95.61972%; prior no-op label trials must not be repeated without new
+evidence. No public header or config changes were needed. Evidence:
+build/_postmerge_wave39_text_33E70.json and private wave39 snapshots.
+
+### Drawing-node layout and cancellation reloads (2026-10-23)
+
+text_3E38C improves from 85.91016% to 89.62283%, with nine new exact
+callbacks. The source-local node's comments had the correct offsets, but
+missing priority/scratch fields put timer/frame/phase at 0x12/0x14/0x16
+instead of 0x14/0x16/0x28. Correcting the measured fields fixes actual scratch
+reads and writes. Cancellation tails then resolve the current global node
+after external callbacks; ordinary exit arms keep the cached node where
+the target does. Reversing one equivalent sound branch closes the ninth
+callback. No public header or config changes were needed.
+
+All 18 initial function floors improve; .data 0% and pseudo 50% hold. The
+nine exacts pass individual readability review and a fresh whole-unit diff.
+Actual target and candidate PPC agree with independent memory/call models
+for 8,160 scenarios (507,168 instructions), including timer/phase boundaries
+and active-node mutation by callbacks. This excludes full game/UI runtime.
+Full build, four output hashes and whitespace checks pass. Evidence:
+build/_postmerge_wave41_text_3E38C.json and private wave41 flow_audit.py.
+Nine callbacks remain pending.
+
+### Follow-up challenge state reloads (2026-10-23)
+
+text_3E38C reaches 91.15712% from 89.62283%, preserving all 18 function
+floors and nine exacts. Three callbacks now follow the target's global
+challenge/node resolution at each use, including after helper calls and
+between stores. The parent remains cached only where the target uses it.
+
+Target/candidate PPC agree with independent memory/call models for 2,880
+scenarios (191,280 instructions), covering challenge-bank/current-node
+changes, timer boundaries and variant reloads. This excludes full game/UI
+runtime. Full build, four output hashes, whitespace and private/shared
+instruction checks pass. No public header, config or completed-function
+status changes were needed. Evidence:
+build/_postmerge_wave43_text_3E38C.json and private wave43 flow_audit.py.
+
+### Challenge script interpreter and typed file data (2026-10-23)
+
+text_4078C improves from 23.99914% to 94.006874%, with exact functions
+increasing from 6 to 7/13; both stubs are implemented. The script interpreter
+covers 110 opcodes, preserving the difference between immediate redispatch
+and yielding waits. Its mission helper covers 21 display modes and the
+post-switch completion override. The list callback now clears all 20 bytes,
+and an existing manually expanded copy is replaced by a natural loop with
+the target's pointer reloads.
+
+Thirteen typed owned objects (1,128 bytes) match target bytes/relocations:
+file descriptors, Vec constants and drawing callbacks. .data reaches
+64.2369%; unknown particle data and generated table layout remain unresolved.
+Both actual tables were decoded independently from ELF relocations.
+
+Focused target/candidate instruction checks pass 672 script, 138 mission,
+three copy and 12 list scenarios. External callees are deterministic stubs;
+their runtime side effects and full game/UI execution are outside this
+check. All 13 initial function, section and pseudo floors hold. New exact
+fn_2_42388 passes readability, shared/private instructions agree, and full
+build, four output hashes and whitespace checks pass. Header/config remain
+unchanged. Evidence: build/_postmerge_wave40_text_4078C.json and private
+wave40 prove.py/data_relocation_proof.json.
+
+### Challenge list bounds, signed keys and existing inlines (2026-10-23)
+
+text_42BE8 improves from 69.41226% to 74.82986%, with four exact functions
+(previously three). The list builder now scans 54 characters, counts actual
+successful lineup appends, starts the secondary extraction list at zero,
+sorts sign-extended keys, and compacts all 54 records. Petey (0x26) moves to
+fixed secondary-list index 2. The helper deliberately counts the first 48
+recruits; that helper definition must not replace the builder's 54-slot scan.
+
+Actual target/candidate PPC agrees with an independent stable-sort/list
+model for 216 boundary cases (2,826,404 instructions), including signed keys
+128/255, 31 recruits plus a last-slot-only append, and entries 36..53.
+Another 100 requirement-count cases pass. All 65,536 signed-halfword IDs
+preserve the Toad membership predicate, now exact after readability review.
+A transient King Boo/Petey enum substitution failed the independent model
+and was corrected before integration. These are focused checks, not full
+game/UI execution.
+
+Compiled instructions disprove the old missing-inline explanation: target
+and candidate already inline the sort in fn_2_44504, and both mission/count
+callers already inline their predicates. Explicit inline/wrapper trials
+regressed public functions and were reverted. Reverse definition order
+restores generated table order, but table destinations still differ with
+nonexact code: raw zero bytes and owning symbols alone do not make .data
+exact. Its score remains 0%, with pseudo 50%.
+
+All 17 function/section/pseudo floors hold. Shared/private instructions,
+full build, four output hashes and whitespace checks pass. No public header
+or config changes were needed. Evidence:
+build/_postmerge_wave42_text_42BE8.json and private wave42 list_audit.py,
+data_audit.py and toad_range_audit.py.
+
+### Separate mission cases preserve inline bodies (2026-10-23)
+
+fn_2_439D0 improves from 66.91749% to 87.66337%, raising text_42BE8 to
+77.62239%. Two mission types have distinct target bodies with equal lineup
+membership logic. Separate source cases calling the existing public BOOL
+predicate restore their natural inline expansions. Ordering case bodies by
+their observed target addresses restores the remaining physical layout.
+
+An independent memory model agrees with actual target/candidate PPC for
+2,916 scenarios (2,810,081 instructions), using each ELF's real computed
+switch destinations. Cases cover every type 60..69 and defaults, signed
+requirements, gates, slot counts, membership, captain/difficulty and flags.
+There are no external calls in either compiled body. This excludes full
+game/UI runtime. All 17 function/section/pseudo floors and four exacts hold;
+.data remains 0%. Shared/private instructions, full build, four output hashes
+and whitespace checks pass. No header/config changes. Evidence:
+build/_postmerge_wave46_text_42BE8.json and private mission_audit.py.
+
+### Map-record reloads and counter division (2026-10-23)
+
+text_3E38C improves from 91.15712% to 97.75391%, with exact functions
+increasing from 9 to 11/18. A proven ten-byte record view restores global
+reloads during the 51-record scan and retains separate captain arms.
+The next-stage value is captured before clearing the selected entry;
+records 51..53 remain untouched. Post-callback flag stores now resolve
+challenge state again. Two callbacks become exact after readability review.
+
+Both counter callbacks used an incorrect /40 divisor. The target's signed
+multiply-high, shift by three and sign correction implement /20. All
+131,071 possible differences of two signed halfwords confirm the formula;
+for delta 75, the target gives 3 and the old source gave 1. Score-global
+reads and work-bank mutations retain their original timing.
+
+The actual ELF's 60 data bytes and all 15 function-relative relocations
+match exactly. All phase destinations are distinct; no table initializer
+or config change was needed. All 18 function/section/pseudo floors hold.
+The unit remains NonMatching because seven functions are still pending.
+
+Earlier callback models and the new list/counter models pass 15,114
+scenarios (1,743,326 actual target/candidate instructions), including
+callback mutations, signed boundaries, record 50 and excluded records
+51..53. External hooks model calls and selected mutations, so this excludes
+full game/UI runtime; the large scene receives focused coverage of its
+changed phase and frame effects. Shared/private instructions, full build,
+four output hashes and whitespace checks pass. Header/config remain
+unchanged. Evidence: build/_postmerge_wave45_text_3E38C.json and private
+wave45 final_proofs.txt, pending_flow_audit.py and data_math_audit.py.
+
+### Requirement-row pointers retain per-slot reloads (2026-10-23)
+
+text_42BE8 improves from 77.62239% to 80.304756%, with gains in ten mission
+callbacks. Holding a pointer to CharStaticIndex.requirementRow across the
+slot loop restores the target's field-pointer lifetime. The row byte is
+still read each slot, including after calls; capturing its value instead
+would change behavior when a helper updates the table. Explicitly promoting
+the stored unsigned recruitment byte to s32 restores the target's word
+comparison without changing its zero extension or equality test.
+
+fn_2_439D0 also now has separate switch scopes: the previous source legally
+nested later case labels inside case 69's condition. Its tracking behavior
+passed the earlier model, but that accidental nesting added redundant work.
+The corrected scopes preserve the target's physical case order and the
+separate membership predicates for cases 67 and 68.
+
+Manager-rerun focused checks pass 11,608 scenarios and 13,418,395 actual
+target/candidate PPC instructions. Independent mission/list/count models
+cover 6,148 cases; differential checks cover all ten changed callbacks in
+5,460 cases. Mode tables use real ELF relocations. External hooks exercise
+each helper with signed return boundaries, memory mutations and overwritten
+volatile registers. These are focused checks with modeled callees, not full
+game/UI runtime or exhaustive aliasing coverage.
+
+All 17 function/section/pseudo floors and four exact functions hold. The
+148 raw data bytes and 37 relocation locations/types/owners agree, while
+relocation addends still differ: .data remains 0%, pseudo improves to
+58.10811%. Shared/private instructions, full build, four output hashes and
+whitespace checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave47_text_42BE8.json and private wave47 final_audit.txt,
+callback_audit.py, mission_audit.py, list_audit.py and data_audit.py.
+
+### Self-branches and structure arguments need literal ABI checks (2026-10-23)
+
+text_1B1BC improves from 67.23811% to 68.43051%, preserving all 21 function
+floors and eight exact functions. Four apparent unresolved branches in
+fn_2_1C33C are actual 0x48000000 self-branches with no relocation. The draft
+invented an undefined helper for them; natural assertion loops restore the
+observed behavior and improve the function from 55.384617% to 96.15385%.
+
+fn_2_1C504 applies the same captain/variant condition to record states 0 and
+1. The old draft reset state 1 unconditionally. Restoring the combined gate
+and global reloads improves it from 59.69388% to 82.95918%. It processes 51
+records; records 51..53 remain untouched. In the scene dispatcher, replacing
+a wrong local GXSetCopyClear(u32, u32) declaration with the canonical
+GXColor API fixes the structure argument: the ABI passes a stack object's
+address, rather than the color word as a pointer.
+
+Manager-rerun actual target/candidate checks pass 2,560 bounded assertion
+classifications, 1,296 record-memory setups and five color values through
+each compiled argument block. The record model covers both matching states,
+variants, nonmatching records, mask repeats and byte-counter wrap. Graphics
+coverage isolates argument construction; the larger dispatcher remains
+pending. These checks exclude full game runtime and arbitrary pointer
+aliasing. All 176 data bytes and 44 generated relocation entries were
+inspected; two exact callbacks have exact table destinations, while the
+dispatcher's remaining 24 destinations and bodies are pending. .data stays
+0%, pseudo stays 72.72727%. Shared/private instructions, full build, four
+output hashes and whitespace checks pass. Header/config are unchanged.
+Evidence: build/_postmerge_wave48_text_1B1BC.json and private wave48
+focused_proof.py, focused_proof_result.txt and data_reloc_inventory.json.
+
+### Input priority and callback pointer lifetimes (2026-10-23)
+
+text_1B1BC improves from 68.43051% to 77.510635%, with five functions
+improved and all 21 floors/eight exacts preserved. Two 51-record helpers
+reach 99.39759% after restoring global reloads between state and flag stores.
+The texture callback reloads the current bank and table after conversion,
+while retaining the original drawing node across removal.
+
+The mission callback must skip Cancel after an accepted action, including
+when its selected mission is absent. Cancel applies when the action mask,
+completion-count or ownership gate fails. The scout callback gives the left
+trigger priority when both triggers are pressed; the old independent
+conditions cleared and then filled the flags. Canonical tracking and table
+fields plus observed reloads retain these fixes above their original scores.
+
+After helper calls, current work/controller/input may change while the
+original tracking-record pointer remains captured. Reloading every pointer
+would also be wrong. Focused mutation hooks distinguish these lifetimes.
+Both trigger paths execute ten threshold reads per character, confirmed
+directly from target/candidate execution; ordinary idempotent stores alone
+would not establish the iteration count. A plain loop reproduces the reads
+without fabricating the target's unused induction variable.
+
+Manager-rerun independent fixture models pass 2,160 record-helper cases,
+72 texture cases, 28 trigger cases, 2,304 action/Cancel cases and 16 scroll
+mutation cases: 6,887,083 actual target/candidate PPC instructions. Hooks
+capture arguments and overwrite volatile registers. The earlier assertion,
+record and graphics-argument checks also pass. Coverage excludes full game
+runtime, arbitrary aliasing and exhaustive equivalence of unchanged paths;
+remaining mission bulk-loop lifetimes are pending. Data remains 0%, pseudo
+72.72727%. Shared/private instructions, full build, four output hashes and
+whitespace checks pass. No header/config changes. Evidence:
+build/_postmerge_wave49_text_1B1BC.json and private wave49 proof49.py,
+proof49.txt and focused_proof.py.
+
+### Typed tracking loops and signed phase switches (2026-10-24)
+
+text_1B1BC improves from 77.510635% to 86.27886%, with exact functions
+increasing from eight to ten. Natural signed-phase switches make fn_2_1B52C
+and fn_2_1B6CC exact. Each received an individual readability pass, canonical
+BOOL comparisons and a fresh whole-unit confirmation.
+
+fn_2_1C860 improves from 52.746204% to 86.342735%. Canonical tracking pairs
+replace raw modulo/division offsets. The target captures a tracking record
+for each character while resolving its requirement-row byte each mission;
+the old draft cached both bank and row too early. Phase 2 walks ten
+contiguous slots. A signed phase switch and six separately resolved work
+stores restore the remaining initialization structure without artificial
+register or loop-induction changes.
+
+Manager-rerun new checks pass 6,902 scenarios and 1,325,920 actual
+target/candidate PPC instructions. They cover all 256 phase bytes in both
+new exact callbacks, bulk paths across 54 characters and ten missions,
+initialization, removal and defaults. Read counts confirm one bank lookup
+per character and ten row reads per owning character on the phase-1 bulk
+paths. Phase-2 tests document a remaining difference: the target reads a
+row byte for skipped owners, while the candidate reads it only for owner 1;
+both skip requirement-type reads and writes for those owners.
+
+Earlier callback-mutation models pass another 6,880,003 instructions, and
+the assertion/record/graphics-argument checks still pass. These are bounded
+ordinary-memory and modeled-callee checks, excluding full game runtime and
+arbitrary aliasing. All 21 function/section/pseudo floors hold; .data stays
+0%, pseudo 72.72727%, and the unit remains NonMatching. Shared/private
+instructions, full build, four output hashes and whitespace checks pass.
+No header/config changes. Evidence: build/_postmerge_wave50_text_1B1BC.json
+and private wave50 proof50.py, proof50.txt, proof49.py and focused_proof.py.
+
+### A proven record view can restore a natural inline boundary (2026-10-24)
+
+text_1B1BC improves from 86.27886% to 87.806244%, with exact functions
+increasing from ten to twelve. The source-only ten-byte map-record view
+already established in text_3E38C makes fn_2_1C5C8 and fn_2_1C714 exact.
+The helper resolves the current bank for each record access. No public gap,
+global boundary or register declaration was changed. Each new exact received
+an individual readability pass and fresh whole-unit confirmation; unknown
+record codes remain numeric, and the third byte is not treated as a boolean.
+
+The same view plus natural nested captain/record conditions improves
+fn_2_1C504 from 82.95918% to 98.87755%. A plain eight-slot initialization
+loop replaces inherited explicit stores without changing code. The texture
+callback reaches 90.56977% through a signed phase switch, precomputed texture
+argument and one-entry reverse relocation loop. Entry 1 remains untouched.
+Three separately resolved initialization writes also improve fn_2_1CF94.
+
+Manager-rerun new initialization checks cover 33 cases and 4,362 actual
+target/candidate instructions, including callback bank changes, ordered
+stores, read counts and boundary sentinels. Expanded inherited models cover
+all 256 texture phase bytes and still pass record, input-priority, bulk-loop,
+assertion and graphics-argument checks. External callees are modeled; these
+checks exclude full runtime and arbitrary aliasing. The previously documented
+skipped-owner read difference remains pending.
+
+All 21 function/section/pseudo floors hold. Data remains 0%, pseudo
+72.72727%, with the nonexact dispatcher's 24 destinations still pending.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave51_text_1B1BC.json and private wave51 proof51.py,
+proof49.py, proof50.py and focused_proof.py.
+
+### Dispatcher state must be refreshed after callbacks (2026-10-24)
+
+text_1B1BC improves from 87.806244% to 89.35763%; its dispatcher improves
+from 72.35318% to 79.390144%. All 21 function floors and 12 exact functions
+hold. Case 0 uses a natural eight-slot initialization loop and independently
+resolves work storage after callbacks. Case 4 refreshes challenge state after
+the flag store and graphics/scene calls. Case 18 publishes the captain into
+the current bank after the selection callback, then reloads the bank before
+character lookup and subsequent branching. Canonical captain/difficulty
+fields and a BOOL scene-request local improve readability. Header/config
+are unchanged. A natural final assertion condition is code-neutral.
+
+Manager-rerun independent models execute 853,512 target/candidate PPC
+instructions across 48 initialization, 3,888 case-4, 216 case-18/mode-0 and
+576 limited alias/default/other-inner-mode fixtures. They use actual ELF
+relocations for dispatch, check callback arguments, mutate current banks,
+clobber volatile registers, count work loads and check counter wrapping.
+Both objects have 24 dispatcher entries with only cases 16/17 aliased.
+Other bodies and full game runtime remain outside this bounded validation.
+Earlier initialization, texture, mission, assertion and graphics checks pass.
+
+Data remains 0%; the generated table pseudo-symbol improves from 72.72727%
+to 80.681816%. Different destination offsets remain unresolved. Shared and
+private instructions agree; full build, four output hashes and whitespace
+checks pass. Evidence: build/_postmerge_wave52_text_1B1BC.json and private
+wave52 proof52.py, dispatcher_table52.json and inherited proof scripts.
+
+### Preserve distinct dispatcher branches and reuse existing initialization (2026-10-24)
+
+text_1B1BC improves from 89.35763% to 90.06654%, with its dispatcher
+rising from 79.390144% to 82.60575%. Case 12 retains a complete insertion
+and reset sequence in each branch; inner mode 8 has its own block, as in
+the target. Calling the existing initialization helper naturally inlines
+without changing its public body. A source-only 24-byte table-entry view
+replaces raw scan offsets using the layout already established in text_53408.
+All 21 function floors and 12 exact functions hold after readability review.
+
+Manager-rerun actual-PPC checks verify all 26,740 eligible pointer reads in
+the zero-table scan, early-exit address prefixes at six-entry and row edges,
+and absence of writes. Another 192 case-12 fixtures check both insertion
+branches, callback mutation and counter wrapping through actual ELF dispatch.
+Inherited behavior checks pass. These are bounded ordinary-memory models
+with modeled external calls; full runtime and other dispatcher cases remain
+outside coverage. A current-node reload trial was reverted because it
+regressed the accepted generated-table floor.
+
+Data remains 0%; the table pseudo-symbol improves to 82.954544%. Shared and
+private instructions agree; full build, four output hashes and whitespace
+checks pass. No header/config changes. Evidence:
+build/_postmerge_wave53_text_1B1BC.json and private wave53 proof53_scan.py,
+proof53_dispatch.py and inherited models.
+
+### Script callback cleanup uses both captured and current nodes (2026-10-24)
+
+text_50898 improves from 68.07554% to 68.92482%; fn_2_509A4 improves
+from 72.655556% to 98.888885%. Its signed phase switch falls through from
+initialization into polling. Separate callback-result cleanup branches
+reload the current node's child after callbacks, while the original node
+remains captured for its phase reset. The common skip path also reloads
+the current child. One dispatch branch remains unmatched.
+
+Manager-rerun actual-PPC models pass 288 callback scenarios and 20,976
+instructions, including signed16 return normalization with nonzero upper
+register bits, current-node changes during polling/removal, volatile-register
+clobbering and full script-copy effects. Earlier token-walker models pass
+1,539 scenarios and 407,672 instructions. These bounded checks use ordinary
+disjoint memory and modeled external calls, excluding full gameplay.
+
+All 38 function floors and 15 exact functions hold; data remains 0% and
+the table pseudo-symbol 50%. Natural initialization/copy loops and a width
+simplification regressed and were restored. Shared/private instructions,
+full build, four output hashes and whitespace checks pass. No header/config
+changes. Evidence: build/_postmerge_wave54_text_50898.json and private
+wave54 callback_audit.py, walker_audit.py and manager_verification.md.
+
+### Canonical text banks recover an exact pointer helper (2026-10-24)
+
+text_50898 improves from 68.92482% to 69.4464%, with exact functions
+increasing from 15 to 16. Existing ScreenTextPool.textBanks and TextBank.strings
+make fn_2_5156C exact and improve both append callbacks to 91.190475%.
+Its observed mode branches remain separate. An individual readability pass
+and fresh whole-unit confirmation preserve the new exact. Sharing the row
+base improves fn_2_50D40 from 49.827587% to 58.793102%; a three-by-two array
+view expresses the known prefix of fn_2_5135C without changing instructions.
+
+Manager rebuilt a frozen copy and strengthened the new bank fixtures so
+all seven banks have different tables and string pointers/content. The
+216 selector/append cases pass 21,200 target/candidate PPC instructions;
+1,539 inherited walker cases and 288 callback cases also pass. A prior
+fixture reused the same table for different selectors and was replaced
+before acceptance. These bounded ordinary-memory checks exclude full
+game runtime. The typed width-callback form and alternate row expression
+regressed and were restored.
+
+All 38 function/section/pseudo floors hold; data remains 0% and pseudo 50%.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave55_text_50898.json and the frozen private wave55
+manager bank_audit.py, callback_audit.py and walker_audit.py.
+
+### Two-dimensional row views preserve complete script clears (2026-10-24)
+
+text_50898 improves from 69.4464% to 69.87446%. Three clear helpers now
+use natural two-dimensional halfword row pointers, following the existing
+MenuScriptWork layout in text_4D960. fn_2_50E5C reaches 88.061226%,
+fn_2_50FC8 69.19643%, and fn_2_510A8 78.24561%. Existing symbol boundaries
+and declarations remain unchanged.
+
+Manager-rerun actual-PPC models pass 15 cases with real label aliases,
+4,638 stores per side and 10,461 total instructions. Every selected row
+receives exactly 256 zero halfword stores; counts, flags, adjacent rows
+and guards match an independent memory model. The two independent initial
+count resets in fn_2_510A8 occur in opposite orders; later stores agree.
+Inherited walker, callback and distinct-bank tests pass. These checks cover
+ordinary memory and valid row indices, excluding arbitrary aliasing and
+full game runtime.
+
+All 38 function floors and 16 exact functions hold; data remains 0%,
+pseudo 50%. Shared/private instructions, full build, four output hashes
+and whitespace checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave56_text_50898.json and the frozen private wave56
+manager clear_rows_audit.py and inherited models.
+
+### Angle conversion runs on both signs; text width uses logical shifts (2026-10-24)
+
+rep_08E8 improves from 83.5591% to 83.76249%, with exact functions
+increasing from 20 to 21. fn_2_4A2C4 previously returned zero for every
+nonnegative angle. It now conditionally adds one binary32 2pi constant
+for negative inputs, then converts both signs into angle units. It reaches
+97.89474%; the remaining difference is constant relocation labels. The
+existing SANG_ANG_180 names the scale. Explicit unsigned half-width shifts
+make fn_2_49EFC exact after individual readability review and a fresh
+whole-unit confirmation. Its exact 0x4000 terminator rule remains intact.
+
+Manager independently checked both objects' ELF constant bits and reran
+16 finite angle cases through floating operations, integer conversion,
+the stack store/reload and the actual return register. They agree with
+an independently rounded expression, including positive/negative zero
+and angles beyond a single revolution. The conversion model uses valid
+signed32 results and excludes NaNs, exceptions and other rounding modes.
+Another 196 actual-PPC width cases pass 218,988 instructions, including
+distinct neighboring widths, ignored tags, sums above16bits, exact table
+reads and absence of writes. Full game runtime is outside this scope.
+
+All 45 function/section/pseudo floors hold; rodata remains 79.06977%.
+Shared/private instructions, full build, four output hashes and whitespace
+checks pass. Header/config are unchanged. Evidence:
+build/_postmerge_wave58_rep_08E8.json and the frozen private wave58
+manager angle_audit.py, angle_proof.json and width_audit.py.
+
+### A direct zero guard restores the angle helper's control flow (2026-10-24)
+
+rep_08E8 improves from 83.76249% to 83.787346%. fn_2_4A1E8 now returns
+zero immediately when both inputs compare equal to zero, then calls atan2
+otherwise. Its score improves from 93.68421% to 99.47369%; the remaining
+difference is the zero constant's relocation label. All 45 function floors
+and 21 exact functions hold; rodata remains 79.06977%. Lower-scoring color,
+angle-width and nested-loop trials were restored.
+
+Manager-rerun floating-point traces pass 16 cases, checking signed-zero
+bits, NaN call routing, argument order, modeled volatile-register clobbering
+and rounding of the modeled double return to binary32. Both-zero inputs
+return positive zero. atan2 is modeled with host math; exception flags,
+NaN payloads and the game library's full behavior are outside coverage.
+Earlier angle-conversion and text-width checks also pass. Shared/private
+instructions, full build, four output hashes and whitespace checks pass.
+Header/config are unchanged. Evidence: build/_postmerge_wave59_rep_08E8.json
+and the frozen private wave59 manager zero_angle_proof.py and inherited models.
+
+### Byte-array field indexing can recover dynamic source-address formation (wave60)
+
+In menus/text_579B4, six selected-record halfword reads expressed as `*(s16 *)&source[off + field]` produce the source-plus-dynamic-offset address followed by a fixed field load. The pointer-chain form `*(s16 *)(source + off + field)` emitted indexed loads with separate offsets; a typed entry pointer and source-parameter helper also regressed and were rejected. This small source-expression change raises fn_2_5853C from88.2% to99.65714%, unit98.00627% to99.05382%, preserving all eight exact functions and data pseudo81.25%. Remaining helper differences are commutative add operand order. An indexed character-flags helper in587F8 was code-neutral; a loop-local index regressed and was reverted.
+
+The manager's bounded actual-PPC model passes36 independently specified cases on both sides (12,600 instructions): signed-halfword boundaries, three valid selections, distinct bytes/guards, untouched7419,22/16-byte copies, converter arguments, final permutations, callback work-bank replacement and volatile GPR clobbers. Complete observable memory and ordered stores match. The converter is modeled explicitly; arbitrary aliasing and its game implementation are outside the proof. All13 changed-function ELF relocations compare equal. Full build, four output hashes and whitespace checks pass; the unit remains NonMatching because pending code and data remain.
+
+### Recover the inlined selected-record copy and separate state stores (wave61)
+
+The byte-array halfword indexing from wave60 also improves the inlined `copySelectedRecord` in `menus/rep_0AB0`: fn_2_5B7DC rises from 93.78467% to 95.99662%. Expressing its state7 A-button choice as separate `if/else` state writes before the shared sound call raises it further to 97.78918%, matching the target's branch structure. Whole-unit `.text` increases from 88.983154% to 89.67099%, with every other function, section and pseudo-symbol unchanged, including the one exact function. Swapping the index addition operands was code-neutral and reverted. No headers changed.
+
+The manager's independent actual-PPC model uses each ELF's real 19-entry dispatch table. Its 408 scenarios execute the changed case2 and case7 paths (148,056 total instructions), checking selected record fields and untouched bytes, enabled/disabled records, three controller ports, callback work-bank replacement, volatile GPR clobbers, signed selector boundaries, input priority, state/flag stores, sound arguments and complete observable memory with ordered stores. The converter is an explicit external model; directional cursor input is zero, and other state bodies, arbitrary aliasing and the converter's implementation are outside this proof. Full build, four output hashes, fresh shared/private instruction equality and all score floors pass.
+
+### Retain the controller-field base across a cursor callback (wave62)
+
+In `menus/rep_0AB0`'s shared `updateRecordGridCursor`, a local halfword pointer to controller byte offset4, indexed by `port * 16`, recovers the target's retained input base and indexed loads. The port still reloads from the current work area after a sound callback. The existing input type leaves offset4 unnamed, so no field was invented. Both callers improve; separating fn_2_5A224's state7 selection into two state stores provides another gain. Final `.text` is90.28253% from89.67099%; fn_2_5A224 reaches97.97051%, fn_2_5B7DC98.88952%, and data pseudo55.035973% rises to57.913666%. All other function and section floors, including the existing exact function, hold.
+
+The manager reran5088 distinct actual-PPC path fixtures (1,151,640 target+candidate instructions) using the actual19/26-entry ELF tables. Models cover selected-copy paths, all16 direction masks across36 grid positions, callback work-bank and port replacement, signed selectors and A/B priority, volatile GPR clobbers, complete observable memory, ordered stores, call arguments and the26-state menu's common GX exit. The latter fixes hugeAnimStruct307A to1; its conditional graphics branch and other state bodies are outside this proof. External converter effects are explicit models on ordinary disjoint valid memory. No headers changed; fresh shared/private instruction and score-floor checks, full build, four output hashes and whitespace checks pass.
+
+### Initialize lane flags before aggregation and retain their pointer (wave63)
+
+In `menus/text_5E84C`, fn_2_5EB78 now initializes its four byte flags before scanning and advances a pointer to the current flag. The source global is captured after the separate selector reset, matching the target's ordering. The compiler naturally unrolls the five checks per lane. The function improves from90.56637% to97.61947%, whole `.text`81.56898% to81.886765%, with all13 exact functions and all18 function floors preserved. A zero-initialized array emitted an unwanted constant-pool load and regressed; marking the digit helper inline was code-neutral. Both trials were discarded. The selector33FBF5 stays numeric0 because other code tests values0/1/2; only the actual aggregation flags use FALSE/TRUE.
+
+The manager's independent actual-PPC model passes3000 bounded scenarios on target and candidate (811,500 instructions), checking all20 source reads exactly once, per-lane nonzero aggregation, three distinct nonzero byte values, four mode values, optional record initialization with preserved gaps, and complete observable memory and ordered stores. The proof uses ordinary initialized disjoint memory and covers this routine only. Fresh private/shared instruction equality, every function floor, full build, four output hashes and whitespace checks pass. No headers changed.
+
+### Capture the character table before the selector and index work halfwords (wave64)
+
+In `menus/text_636A4`, moving each character-table local before `fn_2_53BC8` recovers the target lifetime: fn_2_65850 rises72.93519% to78.98148% and fn_2_65C84 rises94.14783% to99.478264%. Byte-array indexing before the signed-halfword cast in `recLevelFromWork` raises fn_2_642F8 from80.35461% to85.17731%. Whole `.text` reaches94.487595% from93.72115%, preserving14 exact functions, every function floor, data0 and pseudo63.15789%. A source-local canonical GameInitVariables include and existing `_12` field replace the raw byte-array declaration without changing generated instructions. Passing a captured settings pointer into the settings helper regressed and was reverted.
+
+The manager's actual-PPC models pass43,200 independently expected cases (3,944,080 target+candidate instructions): full character-flag callbacks, signed selector/timer/level boundaries, callback record/scene/node/work changes, source guards, correct frame-source mapping, volatile GPR clobbers, full observable memory and ordered stores. The work-level model reads the real38-entry dispatch table and covers its changed source paths and0/default exits. These are bounded callback models on initialized disjoint memory, not full gameplay. A fresh baseline rebuild also confirms the other17 function bodies and all114 actual entries in their three dispatch tables are unchanged after resolving local label names. Shared/private instructions, full build, four hashes and whitespace checks pass; no headers changed.
+
+### Complete five scene-flow callbacks and preserve combined input predicates (wave65)
+
+Five remaining stubs in `menus/text_37F04` now implement activation, timer, choice and cleanup behavior. Whole `.text` rises from 30.694714% to 61.336933%; fn_2_38538 becomes exact, increasing six exact functions to seven. Final scores arefn_2_38F48 86.741936%, fn_2_391B4 98.120804%, fn_2_39408 98.79829%, fn_2_397AC 97.89474%. Every prior function floor holds. The large fn_2_399C0 routine remains a stub and owns the still-unmatched 76-byte dispatch table. The old checkpoint's 11-stub count was stale; there were six before this pass.
+
+The manager's independent actual-PPC expectations pass 37,052 fixtures across the four new nonexact callbacks (2,566,668 target+candidate instructions), checking complete observable memory, ordered stores, timer boundaries, byte wrap, simultaneous input priority, three controller ports, exact call arguments/order, volatile GPR clobbers, current-work/current-node replacement and original-node state cleanup. These checks caught and corrected a draft error where LEFT consumed RIGHT despite a failed choice predicate; all three choice routines now retain the target's combined button/value conditions. Callback effects are explicitly modeled on valid disjoint buffers, including overlapping indexed fields within the record table. Full gameplay and arbitrary aliasing are outside this proof.
+
+The newly exact fn_2_38538 has 748 machine bytes and 39 actual relocation records identical to target; its supported flag writes use TRUE after readability review. The worker's 3,600 additional PPC comparisons have a narrower observation/static-removal scope. A static SQRT2_LINKAGE guard prevents unused header math output, and the local sound-ID parameter uses the SDK's underlying u16 width. No headers or fabricated data were added. Fresh private/shared whole-unit instructions and all score floors, full build, four hashes and whitespace checks pass.
+
+### Complete the 19-state scene-flow dispatcher and verify the full scan (wave66)
+
+The final stub in `menus/text_37F04`, fn_2_399C0, now implements all19 states: challenge flag scanning, scene gates, signed timers, grid input, recruitment, graphics callbacks and cleanup. It reaches89.801025%; whole `.text` rises61.336933% to93.89687%. All14 previously published function bodies retain identical raw bytes and function-relative relocation records, preserving seven exact functions. The compiler emits the real76-byte,19-relocation switch table; `.data` remains0% and its pseudo-symbol50%, so the unit remains NonMatching.
+
+Manager checks caught a draft scanning28 entries instead of54 in each flag range. The accepted natural loop visits all54 entries, tests signed-byte value1 and preserves incoming latches. Independent full-entry actual-PPC expectations pass17880 fixtures across every state and default paths (5,040,098 target+candidate instructions), checking real ELF dispatch tables, signed timer/return boundaries, all16 directional masks across36 grid positions, A/B priority, callback changes, volatile GPR clobbers, full observable memory, ordered stores and call arguments. An additional1506 differential callback-replacement fixtures pass. These use initialized disjoint valid buffers and explicit callee models; arbitrary aliasing and full gameplay are outside coverage. The manager strengthened the worker's case-entry checks to execute the real prologue and dispatch. Fresh private/shared whole-unit instructions and all score floors, full build, four output hashes and whitespace checks pass; no headers changed.
+
+### Complete character stat graphics and recover the grouped variant switch (wave67)
+
+`menus/text_744C8` now implements both remaining real stubs. Grouping character cases by return value makes fn_2_74DB8 exact, including92 raw machine bytes and its42 switch relocation records. The graphics routine reaches83.12403%; its stat-bar helper rises64.56% to70.706665% after recovering the renderer's fourth argument and storing its return at record+0x58. Whole `.text` rises45.02146% to74.32457%, preserving every prior floor and increasing three exact functions to four. Named CharacterStats fields, CHAR_ID members, UIRecord frame/rgba/playMode fields and existing UI constants replace raw new accesses. Both42-entry tables are compiler emitted; the still-low fn_2_76650 owns the missing13-entry52-byte table. Candidate data336B versus target388B leaves `.data`0% and pseudo68.05832%; the unit remains NonMatching.
+
+The manager's independent full-entry actual-PPC expectations pass97,637 fixtures (13,253,914 target+candidate instructions): all65,536 low16 mapping inputs plus signed32 boundaries; all54 characters, allfour ports, signed selections and byte-return truncation; every stat byte plus signed boundaries; actual ELF tables, callback changes to settings/scene handles/graphics entries/stats, volatile GPR clobbers, complete observable memory, ordered stores and calls. Review recovered the required selection reload after the variant callback. These checks use initialized valid disjoint buffers and explicit renderer effects; arbitrary aliases and full gameplay are outside scope. A no-cursor-match path leaves a target register uninitialized and is excluded; source defines CHAR_ID_NONE there.
+
+All15 other target bodies and four source-local helpers retain identical raw code and relative relocations. Final readability edits are freshly compiled and machine-byte neutral. Corrected public prototypes rebuild the sole dependent text_78F78 with unchanged code/data/relocations and scores. Fresh shared/private instructions and every score floor, full build, four hashes and whitespace checks pass.
+
+### Recover the mask switch and its bit-zero skip (wave68)
+
+In `menus/text_744C8`, fn_2_76650 now uses a natural13-entry switch and two-word result list. Bit zero advances the loop index inside its case, so bit one is skipped; cases1–12 append literal values and the default appends13. The routine retains the target's exact two-byte memset, decrements both slots, applies negative fallback12 and writes UIRecord frame fields. Natural list indexing improves the function19.459854% to97.51825%; whole `.text`74.32457% to79.00876%, preserving four exact functions and every prior floor. All three compiler-generated tables are present:388bytes97relocations, including13 new entries matching target offsets/types/function-relative addends. Inherited graphics table addresses still differ, leaving `.data`0% and pseudo78.35052%.
+
+The manager's independent full-entry actual-PPC expectations pass15,120 fixtures (5,797,872 target+candidate instructions): all210 low14 masks producing exactlytwo results, ignored high bits, four team slots/upper bits, three handles, actual ELF tables, exact memset arguments, volatile GPR clobbers, full observable memory and ordered frame stores. Another3840 explicitly initialized-stack PPC fixtures pass1,384,608 instructions for zero/one-result masks and signed fallback boundaries; these seed actual local locations before entry and make no C-level defined-behavior claim for uninitialized words. Three-or-more results may overwrite saves and are excluded. No source initialization or guard was invented.
+
+The other17 target bodies and four local helpers retain identical machine bytes/resolved relocations; all84 existing table entries are unchanged, preserving the earlier graphics proofs. An unused counter was removed during review, and natural array indexing replaced byte-offset writes. Header is unchanged; fresh shared/private instructions and all score floors, full build, four output hashes and whitespace checks pass.
+
+### Correct the ignored first argument of a nearly matching callback (wave69)
+
+fn_2_7609C in `menus/text_744C8` now has its actual three-argument ABI: an ignored first word, a byte value in the second slot, and a byte state in the third. The target tests the third slot and passes the second value to fn_2_8794; the prior two-argument draft consumed the wrong slots despite99.166664% instruction similarity. Correcting the source/header makes it exact, with48 raw machine bytes and actual relocation records equal to target. Whole `.text`79.00876% rises79.01314%, four exact functions become five, and all other floors hold. Argument meanings beyond value/state remain unproven.
+
+The manager's independent full-entry PPC model passes70,656 fixtures (1,293,328 target+candidate instructions): all256x256 argument-byte pairs, upper-bit/ignored-first-word variants, all256 states of the adjacent cursor callbacks, exact calls, explicit callback effects/volatile GPR clobbers, complete observable memory and ordered stores. The other17 target bodies, four local helpers and97 data relocations are unchanged, retaining prior graphics/mask proofs. The header's sole dependent text_78F78 rebuilds with unchanged code/data/relocations and scores. Fresh shared/private instructions, full build, four output hashes and whitespace checks pass; data remains0%, pseudo78.35052%.
+
+### Recover chemistry intervals, pointer lifetimes and byte readiness results (wave70)
+
+In `menus/text_744C8`, explicit target upper/lower star intervals, a moving nine-entry selection pointer and an in-loop captain-word read raise teamSelectionSetChemStars58.73422% to66.68439%. A signed32 team argument and documented `E(u8,BOOL)` readiness result raise fn_2_75B58 from70.11429% to84.4%; the target's cntlzw/extrwi return supports that byte width. Whole `.text`79.01314% rises80.280334%, preserving allfive exact functions and every floor; data0% and pseudo78.35052% remain. Loops remain natural source, with unrolling left to the compiler.
+
+The manager's independent full-entry actual-PPC expectations pass19,328 fixtures (14,512,180 target+candidate instructions): all512 nine-slot eligibility patterns, signed captain words, every uniform byte weight and contributor count, star/frame thresholds; every initial count byte, all512 nine-callback truth patterns, four valid teams, callback count replacement, full32 return truth and volatile GPR clobbers. Full observable memory, ordered stores, exact calls and readiness returns agree. Callee effects use initialized disjoint valid buffers; arbitrary aliases/full gameplay and unreachable computed stars abovefive are excluded. All16 other target bodies, four local helpers and97 table relocation shapes are unchanged, retaining prior proofs. The corrected prototype also improves three dependent callers as recorded below. Fresh shared/private instructions, all floors, full build, four output hashes and whitespace checks pass.
+
+### Chemistry argument typing also restores three caller moves (wave70 dependent)
+
+Rebuilding `menus/text_78F78` against the corrected chemistry prototype raises `.text`95.11759% to95.22358%. cssAction_0x19 reaches93.71429%, randomTeamMemberSelection96.08%, fn_2_7AE3C93.6837%. Each change is exactlyone byte truncation replaced by the full-width argument move present at the target chemistry call. Allother instructions/branchdestinations and every function floor, including the exact helper, hold. The source is unchanged; these are valid team-index calls, with the callee behavior independently checked in wave70. Freshshared/private instructions, full build, four hashes and whitespace checks pass.
+
+### Use the canonical chemistry header in the character-action unit (wave71)
+
+`menus/text_76874` includes the canonical text_744C8 header in place of three redundant local declarations. Fresh compilation preserves every machine instruction, data byte, relocation, function floor and exact helper; `.text` remains90.16981%. Shared/private instructions, full build, four output hashes and whitespace checks pass. No headers changed.
+
+### Carry the full chemistry team argument through two more callers (wave71)
+
+Canonical text_744C8 declarations raise `menus/text_7E380` `.text`98.257774% to98.37282%. cssRemoveCharacter1 reaches94.54676%; cssSelectCharacter98.125%. Each change replaces exactlyone byte truncation with the full-width argument move found in the target. The latter move is25 instructions before its call; the manager verified no intervening argument-register definition and the same target lifetime. Allother machine code/data/relocations and allfive exact functions are unchanged. The callee's behavior was independently checked in wave70; this check establishes the bounded caller delta, not full gameplay. Fresh shared/private instructions and every floor, full build, four hashes and whitespace checks pass.
+
+The same canonical declaration trial in text_7BFF8 elided both moves and regressed cssAction_case9; that candidate was discarded and the original source retained. No cast or placeholder was added to force allocation. Its narrow local declaration remains a pending source-shape issue.
+
+## Findings from debug/rep_7920.c (full match, flipped to Matching)
+
+- **An auto-inlined call with an address-expression argument schedules differently from
+  the same body written out on a local.** `fn_1_26C2C` inlines `fn_1_26B7C` (an init
+  routine). Writing `slot = &arr[idx]; fn_1_26B7C(slot);` or hand-expanding the body on
+  `slot` matched the logic but not the float-setup schedule or the hoisted `slot+0x11`
+  pointer (91-92%). Passing the expression straight in and dropping the local entirely
+  (`fn_1_26B7C(&arr[idx]); ... return &arr[idx];`) gave 100%. The tell: the target
+  re-materialises `&arr[idx]` (lis/addi/add) for the later stores, and the inlined body
+  shows a pointer hoist the standalone copy does not. If a function inlines a
+  same-file helper and the residue is only scheduling around the inlined body, try the
+  argument as an expression with no local before grinding registers.
+- **A gap-sized `.bss` array can pass objdiff and still break the flip.** dtk sized
+  `lbl_1_bss_47052` as 6 bytes (the gap up to the next unit's 8-aligned `.bss`), and
+  `u16 [3]` scored 100% in objdiff. After the flip it failed the sha1: once declared in
+  the correct reverse order, MWCC 4-aligned the 6-byte array, which moved it to 0x47054.
+  Only element 0 was ever referenced. The real object is a plain `u16` (symbols.txt
+  size 0x2), and the last 4 bytes are inter-unit padding. If the flip fails because the
+  REL relocation addends are off by 2 or 4, suspect an array dtk sized from the gap.
+
+
+## Findings from the debug REL first passes (rep_7978, rep_7A28, rep_7BA0, rep_7BF0; 2026-10)
+
+`rep_7BA0` was matched and flipped to Matching. The other three are NonMatching with pending
+functions. These lessons are not specific to one file:
+
+- **Every flipped debug unit after `rep_7920` needs its own `REP_HEADER_DATA_FN`.** `rep_7920`
+  uses the default `getRepHeaderData`. Flipping `rep_7BA0` without the define left `debug.rel`'s
+  `.rodata` 0x50 short (see the foul_detection entry above). Use `getRepHeaderData_rep<addr>`.
+- **`SQRT2_LINKAGE` works in the debug REL too, so use `INPUT_BUTTON`.** Two first passes used
+  `PAD_BUTTON_*` because including `game/UnknownHomes_Game.h` broke `.rodata`. With
+  `#define SQRT2_LINKAGE static` before the include, `rep_7BA0` kept 100% and passed the sha1
+  check with `INPUT_BUTTON_*` and an `E(u16, INPUT_BUTTON)` local.
+- **If the target addresses several `.data` symbols off one base register, define them in the
+  file.** For example `addi r7,r31,0x20` and `stw 0x110(r31)` from one `lis/addi`. In
+  `rep_7A28`, moving all the data from extern to definitions in the `.c` took `.data` from 0%
+  to 100% and made the addressing match exactly. In `rep_7BF0` the boundaries followed the
+  addressing: an address-of that gets a fresh `lis/addi` starts a new object, and so does a
+  scalar read at a fixed offset (`base+0x120`).
+- **A zero-initialised scalar lands in `.bss`, not `.data`.** It shifts every later `.data`
+  object by its size. `void *x[1] = {0};` keeps it in `.data` (`rep_7A28`,
+  `lbl_1_data_10918`/`1091C`).
+- **Use the GX inline helpers, not the raw FIFO macros.** `GXPosition3f32(x, y, z)` plus
+  `GXColor1u32(c)` took `rep_7A28`'s `fn_1_27BB8` from 91% to 99.9%, where `GX_WRITE_F32`/
+  `GX_WRITE_U32` did not.
+- **A helper inlined with stores in between may be two inlines.** `rep_7978`'s camera init runs
+  `PSVECAdd` + `C_MTXLookAt`, then some field stores, then the `C_MTXFrustum` math. Two
+  `static inline` helpers (view, projection), called on either side of the stores, matched. One
+  combined helper did not.
+- **Read float constants from their bit pattern.** A limit that looked like `3.1384f` was
+  0x4048DD97 (3.1385248f) in the target. The rounded literal produced different `.rodata` bits.
+
+### Second-pass (Opus) findings on the same files
+
+`rep_7978` and `rep_7A28` were matched and flipped. `rep_7BF0`'s bytes match except
+`fn_1_29A9C` (91.70%, GPR numbering in the `fn_80037768` argument setup).
+
+- **A power-of-two reciprocal that comes out first in `fmuls` should be written as `x / 2^n`.**
+  `x * 0.0078125f` puts the constant first and pools it early. `x / 128.f` is rewritten by
+  MWCC into a value-first multiply and pools the reciprocal late. That fixed both the operand
+  order and the `.rodata` order (PI, 180, 1/128, 60) in `rep_7978` `fn_1_26D28` and
+  `rep_7BF0` `fn_1_2858C`. Keep the grouping, e.g. `x / 128.f / 60.f`. This extends the
+  `x / 2` -> `fmuls x, 0.5` note to any 2^-n.
+- **`extrwi` + `xoris r0,r0,0x8000` before an int-to-float conversion means a signed int.**
+  `(u32 >> n) & 1` converts as unsigned and leaves out the `xoris`. Both
+  `(s32)((v >> n) & 1)` and `((v & INPUT_BUTTON_X) != 0)` match, and the second form uses
+  the enum.
+- **A pool-name mismatch (`@N` vs `lbl_*_rodata_*`) is usually a pool-order problem.**
+  objdiff pairs relocations by target address + addend and ignores names and binding.
+  `scope:local` doesn't change the score, though it still silences FORCEACTIVE warnings.
+  The other side of this: `X+8` vs a separate symbol `Y` at the same address is a mismatch,
+  so data symbols have to start where the code's base + offset pattern says.
+- **Scheduling can reveal the data shape.** If loads and stores are right but ordered
+  differently, check whether the target treats a run of dtk-split `.data` symbols as one
+  object. Stores into one known object let MWCC hoist an unrelated load above them. Separate
+  objects or a cast pointer don't. `rep_7A28` needed 41 dtk symbols merged into
+  `DbgTexEntry lbl_1_data_10908[3]` for `fn_1_27560`/`fn_1_28118`.
+- **An extra `addi rX,rBase,0` before a field load means the target pooled the file's
+  statics.** MWCC pools behind one base register only when a function references enough
+  distinct statics (two weren't enough in `rep_7BF0` `fn_1_28CE8`, four were). Splitting a
+  composite static into separate statics can turn pooling on.
+- **One `lbz` but two `extsb` means a signed byte field read twice through an `s8 *`.** The
+  load is CSE'd but the conversions aren't. A `(s8)x` cast written twice does get CSE'd
+  (`rep_7BF0` `fn_1_28AE0`).
+- **Arguments set up before a branch that computes another argument** point to a
+  `static inline` helper whose parameters were bound first (`rep_7BF0` `fn_1_2948C`).
+- **Inputs loaded into volatile registers and copied with `mr` to callee-saved ones** mean the
+  source masked the copies in place (`v &= ~m`) and re-read the global, rather than
+  `v = in & ~m` from a local.
+- **Testing a symbols.txt change without touching the shared file:** copy `config.yml` with the
+  module's `symbols:` pointed at an edited copy, run `dtk dol split <copy> <out>`, and score with
+  a throwaway `objdiff.json` (`build_target`/`build_base` false). Keep the copy under `build/`:
+  from the system temp directory the split failed an unrelated `rep_0010` rodata-size check.
+
+### Debug REL batch 2 first passes (rep_0010, rep_00B0, rep_0250, rep_02A8)
+
+- **objdiff pairs `.data`/`.bss` symbols and relocations by address, not by name, but the
+  symbol has to START at the same address.** `rep_7BF0`'s statics had descriptive names
+  (`gDebugMenu`, ...) and scored `.data` 0%, with seven byte-identical functions at 99.x%.
+  Moving the dtk labels in symbols.txt onto the real object boundaries, while keeping the
+  `lbl_1_data_*` names, took `.data` to 100% and the functions to 100%. So if a function is
+  byte-identical but scores under 100% on data relocations, fix the label boundaries.
+- **dtk labels at odd addresses with size 3 are usually a pad byte plus a 2-byte object.**
+  `lbl_1_data_FBD` (rep_0250) and `lbl_1_data_1CA1` (rep_02A8) became `FBE`/`1CA2` size 0x2.
+  Defining the pad as a zero object moves it to `.bss` and shifts everything after it.
+- **The data pool base is the section's first static, and MWCC pools only when a function
+  references about three or more distinct statics.** One big struct, or non-static globals,
+  give `lis/addi` per access. A `u32[4]` that forced a second base register had to become
+  four scalars (`rep_02A8`).
+- **`.bss` statics pack tightly in reverse declaration order with no alignment fill.** Fill
+  gaps with `u8`/`u16` pad statics. Pad arrays get 4-byte aligned (`rep_0250`).
+- **Loop shapes:**
+  - `subic.`/`bne` with no entry test is `do { } while (--n)`.
+  - A `ctr` loop unrolled by `(n+1)>>2` behind `cmpwi n,0; blt` is
+    `for (i = n; i >= 0; i--)`. The up-counting form unrolls by 8 and was about 450 bytes
+    larger (`rep_0010`).
+  - A plain `for` with a constant trip count was fully unrolled.
+- **Local arrays make MWCC hoist `&arr[k]` into callee-saved registers at entry. Separate
+  scalars don't.** `Vec t[3]` instead of three `Vec`s took `rep_00B0` `fn_1_4A24` from 74% to
+  91%.
+- **Switch shape follows the case labels exactly.** Empty `case` labels reproduce a
+  binary-search tree, and a spurious extra case changes it. Stacked `case 1:`...`case 9:`
+  give a range test.
+- **A `SND_FXID` argument wants a `u16` local:** `u16 id = tbl[i / 13] + i % 13; fn(id);`.
+  `s32`, `u32` and a direct expression all missed (`rep_02A8` Voice screens, 92% to 100%).
+- **Decrement then signed test of a `u8` static needs two statements:**
+  `x--; if ((s8)x < 0) x = N;`. `if ((s8)--x < 0)` puts the `extsb` before the `stb`.
+- **Unowned `.text` gaps in the debug REL.** These ranges are in no unit's split:
+  0x1538-0x19AC, 0x4DD8-0x4E98, 0x85A8-0x8CD4, 0x9EA0-0xA2E4,
+  0x17EFC-0x182C0, 0x1D590-0x1D694 and 0x26AF8-0x26B7C. (0xC2A4-0xC5AC is resolved:
+  `fn_1_C2A4` went to `rep_02A8`, and `rep_0610` now starts at 0xC2DC.) Evidence so far:
+  - 0x85A8-0x8CD4 only references `rep_0250`'s `.data` (`skyPanoramaFileDescriptorDebug`).
+  - 0x9EA0-0xA2E4 uses `rep_02A8`'s data and functions.
+  - A static in a unit that a gap function references blocks that unit's flip until the gap
+    joins it.
+
+### Debug REL second passes (rep_0250, rep_02A8 flipped to Matching)
+
+- **A merged dtk `.bss` label costs `.text` too, not just `.bss`.** objdiff infers a
+  relocation for every pooled `off(rN)` access and compares the symbol it lands in. With
+  `lbl_1_bss_2FDF` covering 9 bytes, byte-identical functions scored 97-99%. Splitting
+  symbols.txt at the real variables took both units to 100% in every section. Bytes no code
+  references need no entry.
+- **A small loop repeated in several callers, differing only in its register, is a missed
+  call to an existing helper.** Calling `fn_1_A718()` (which MWCC inlines) fixed the loop
+  counter in `sndTestSeScreen` and `fn_1_A95C`. Likewise, moving an inline
+  `do { a[k + i] = 0; } while (--i);` into a `static inline` helper swapped the
+  counter/pointer registers onto the target's r4/r5 (`rep_0250` `fn_1_9AB0`).
+- **`switch (item->state)` and `switch (currentDrawingItem->state)` both load once, but
+  colour `item` differently** (r28 vs r29). When a cached pointer local is one register off,
+  try the global expression.
+- **A `clrlwi r3,rX,16` the target keeps on a value it loaded with `lhz`/`lhzx` points to an
+  `s16` parameter** on the callee, not `s32`/`u16` (`fn_1_BF34` in `rep_02A8`).
+- **`lbz rX; extsb rX,rX` (same register) means the variable itself is `s8`.**
+  `lbz r0; extsb rY,r0` is a `u8` read through an `(s8)` cast.
+- **Coordinating several agents in one tree:** a symbols.txt/splits.txt/configure.py edit
+  while other agents run `ninja` makes every ninja re-run the dtk split at once. They
+  corrupt `.ninja_deps`, and ninja then re-splits forever: each manifest restart prints
+  `premature end of file; recovering` and truncates away the split's fresh deps record. Fix:
+  stop all ninja/dtk processes, run `ninja -t recompact`, then build once. Avoid it by
+  applying shared-config changes only when no agent is building.
+- **The stack slots of int-to-float temps show the order the compiler created them in,
+  which can differ from the order of the instructions.** In `rep_0010` `fn_1_AF4` the
+  target schedules the `xoris/stw/lfd` conversions x0, z0, xLen, but they sit at sp+0x10,
+  +0x18, +0x08, so xLen's conversion was created first. Reordering the source statements
+  to that order took 95.67% to 98.67%. The remaining float-register permutation was then
+  pure local declaration order. Declaration order showed "no effect" until the statements
+  were right, so re-test it after every structural change.
+- **Iterate privately without touching the build tree.** Take the unit's mwcceppc command
+  line (`ninja -t commands <obj>`), compile a scratch copy of the `.c`, and compare one
+  function's bytes word by word against the target `.o` via the ELF symtab. At about 0.7 s
+  per variant, brute-force sweeps (all 120 orders of five stores, every declaration order)
+  are cheap and never race other agents (`rep_7BF0`, `rep_0010`).
+- **When deleting LATER code changes the entry block's register numbers, the colouring is
+  global.** In `rep_7BF0` `fn_1_29A9C`, deleting the inlined helper or a later call moved
+  the entry registers, but none of 19 source-equivalent rewrites of either part did,
+  including version and flag sweeps. Treat that as a sign to stop.
+
+## Findings from the debug REL second passes (rep_0610, rep_74A0, rep_0138, rep_0010 TU boundary; 2026-10)
+
+- **A float multiply by a power-of-two reciprocal (`x * 0.0009765625f`) puts the constant FIRST
+  in the fmul/fmadds; a division (`x / 1024.0f`) puts the converted value first.** MWCC
+  strength-reduces the division to the same reciprocal multiply, so the operand order is the
+  only tell. `rep_0610` `fn_1_11D00`/`fn_1_11F08` (+2..4 points each, plus the caller
+  `fn_1_121D4` that inlines them). The same swap fixed the inlined copies in `rep_7730`
+  `fn_1_25064` (`/ 64.0f` vs `* 0.015625f`).
+- **A redundant cast of an already-typed pointer (`((T *)p)->e[i].f`) changes how MWCC
+  associates the address.** It folds the member offset into the index
+  (`addi r0, i*sz, off; lwzx base, r0`) instead of `add; lwz off(r)`. Use it only where the
+  target shows that form; applied everywhere it costs elsewhere (`rep_0610` `fn_1_ECF8` +6,
+  `fn_1_CDC8` +5).
+- **A loop the target enters with `b test` before the body is a `while`/`for`, not a
+  do-while,** even when the do-while body is otherwise identical
+  (`rep_0610` `fn_1_D7A4` +12, `fn_1_D9B8` +1.5).
+- **An unreferenced initialiser in .rodata between two functions' literals is an unused local
+  aggregate** (`GXColor c = {...};`): MWCC emits the initialiser at parse time and
+  dead-strips the copy.
+- **Parse-time .rodata (local aggregate initialisers, and the strings of .data tables) is laid
+  out in source order,** so .data tables that own strings must be defined between the right
+  functions, not all at the top of the file (`rep_0610` .rodata 99.76 -> 100).
+- **Hand-written copies of blocks that the target got by inlining a helper cause callee-saved
+  register swaps in the caller.** `rep_74A0` `fn_1_1857C` only lost its p/arr swap once its
+  GX setup and depth sort were real functions (`fn_1_18174`, `fn_1_17FF0`,
+  `sortParticlesByDepth`) called from it and inlined by `-inline auto`. Unowned functions with
+  no callers next to a unit are good candidates for such helpers.
+- **A source shape can fail only because a callee's prototype is wrong.** `rep_74A0`
+  `fn_1_1A290` (the "entry pointer first, checks still through the array" loop) scored
+  98.41 until the callback type was fixed to take the entry, then 100.
+- **dtk's gap-sized .bss/.data labels cost points even in instruction-identical functions.**
+  objdiff resolves `lbz r0, 0x8(r31)` off a pool base to `lbl_1_bss_3070+8` on the target side
+  and to our `lbl_1_bss_3078` on ours. Splitting the labels at the real object boundaries
+  took `rep_0610` .bss from 52.5% to 100% and turned several functions into 100s with no
+  source change.
+- **Jump tables give TU boundaries that rodata doesn't.** MWCC emits a TU's jump tables at the
+  end of its .data, in function order. The debug REL's .data block at 0x0 ends with the
+  tables for `fn_1_1E0` and `fn_1_16A0`, which showed that the code on both sides of
+  `rep_0010` (which has no rodata of its own there) is one TU with it. Likewise a data object
+  whose only user sits just before a unit's .text belongs to that unit when the data sits
+  after the unit's other data (`fn_1_196C` and `lbl_1_data_298` -> `rep_00B0`).
+
+## Findings from the debug REL gap merges and second passes (rep_0010, rep_0138, rep_0250, rep_02A8; 2026-10)
+
+- **Wrap-around of a small struct field is a pre-increment inside the condition:**
+  `if ((s8)++state.field >= N)` / `if (--state.field < 0)`. The `v = field + 1; field = v;
+  if ((s8)v >= N)` draft has the right instructions but swaps two scratch registers. Floats too:
+  `if (++p->nearZ > 512.0f)` gives the target's `fadds f1, field, one` order (`rep_0138`
+  `fn_1_6848`, `fn_1_6E14`, `fn_1_7FF8`).
+- **Callee-saved registers, int and float, follow declaration order (first declared = highest
+  register) unless compiler temps intervene.** Hoisted loop invariants (`xoris w,0x8000`,
+  `lis 0x4330`) and CSE'd global addresses take registers of their own and break the rule. A
+  matched sibling with the same locals is the best source for the order (`rep_0138`
+  `fn_1_5AC0` read its order off `fn_1_6050` and went to 100). Variable reuse decides coalescing:
+  reuse a local where the target shares a register, and drop explicit locals for products MWCC
+  hoists itself (`ny * ny`).
+- **An inlined callee's registers depend on the variable reuse of its source.** `rep_0138`
+  `fn_1_717C` matched standalone with separate locals per half, but its inlined copy in
+  `fn_1_6848` only matched once one `set`/`geo` pair was reused for both halves.
+- **Switch shapes in the debug REL:** `cmpwi 2; beq; bge; b` came from
+  `case 0: case 1: break; case 2: {...}`; a two-value switch testing 2 before 3 needed an empty
+  `case 1:`; a "7 cases plus a range" dispatch needs the range spelled out (`case 2:` ...
+  `case 18:`) to get the 0/1/range decision tree; `default:` scored 96 (`rep_0010` `fn_1_1E0`).
+  A case that falls into the next one but whose guard branches to the end is
+  `if (cond != X) break;`, not `if (cond == X) {...}` (`rep_02A8`).
+- **`a * 4 + b * 4` in one expression is factored to `(a + b) << 2`.** Two separate shifts in the
+  target mean the terms were not one plain sum: either one was written as a shift
+  (`(y / 4) * w * 4 + (y % 4 << 2)`), or, as `rep_0138` `fn_1_5924` turned out to be, a term was
+  computed in its own statement first (see the division-order note below).
+- **Shared stack offsets for three cross products = one reused `Vec` local**, and one
+  `sin(half)`/`cos(half)` pair computed up front; drafts that repeat `sin(half)` emit three calls.
+- **MWCC fully unrolls a 5-iteration `for` over a `u32` pointer table** into the target's
+  "`addi r3,r31,8` + mixed r31/r3 displacements" shape; five hand-written `if`s do not
+  (`rep_0010` `fn_1_20`/`fn_1_E8`, 97.4 -> 100).
+- **A cached pointer local for a repeated global-array access can hoist a `lis/addi` the target
+  lacks;** write the cast expression at each use instead (`rep_02A8`).
+- **An unused-result string walk with one extra `mr` is a missed inline:** write it as a
+  discarded call to a strlen-style `static inline` helper. Then the remaining register order was
+  one specific local declaration order out of 720 (`rep_02A8` `fn_1_A184`, 91.96 -> 100).
+- **A unit whose first .rodata object is not the `header_rep_data.h` table needs that first
+  object to be a weak local static as well** (a `static const` array inside an `inline` helper
+  with a unit-unique name). A plain `static const` makes the first object non-weak, and every
+  float-pool function in the unit switches to base-register addressing (`rep_0010`
+  `lbl_1_rodata_0`; `fn_1_5EC` fell to 69% without it).
+- **A function that is only called from one place can still need `#pragma dont_inline`** when the
+  target keeps it out of line: `rep_0138` `fn_1_4DD8` was auto-inlined into `fn_1_717C`
+  (717C 100 -> 11.5) until wrapped.
+- **Pooled static addressing needs about three distinct static objects in the function.** With one
+  or two, MWCC addresses each through its own `@ha/@l`, even when they are static. So a target
+  that keeps the section base in a register and reaches several objects as `base + off` had at
+  least that many separate statics: split dtk's symbols at those offsets rather than merging them
+  (`rep_0010` `fn_1_1538`: three statics `lbl_1_data_70[2]`, `_A0`, `_A4` took it from 62 to
+  instruction-identical; one struct or two statics did not pool).
+- **Flipping a widened unit: objdiff 100% is not enough, run the sha check.** Two layout faults
+  scored 100% in objdiff and still failed the REL: a `.data` split that ran over the padding up to
+  the next unit (end it where the last object or jump table ends), and two `.bss` statics declared
+  in the wrong order (MWCC lays `.bss` out in reverse declaration order, and objdiff matches by name,
+  so only the relocation addends in the linked REL changed). Diff the REL's relocation table when
+  the section sizes agree but the sha does not (`rep_0010`).
+- **A local array element accessed through a cast to another pointer type (`((f32 *)&v[k])[n]`)
+  gets its own address register,** and every offset-0 access and struct copy of that element then
+  goes through it; pointer casts on call arguments have no effect at all (`rep_00B0` `fn_1_4A24`,
+  diagnostic only). A same-type explicit cast (`((Vec *)&e[2])->x` on a `Vec e[3]`) does the same.
+- **With eight or fewer locals, sweep every declaration order instead of hill-climbing.** 8! = 40320
+  variants is cheap with a scratch compile; `rep_00B0` `fn_1_25BC`'s earlier hill-climbs had stopped at a
+  local optimum below the best order (99.55 -> 99.59).
+- **When the target has a function both standalone and inlined, first write the real function and
+  call it;** MWCC inlines it into the callers by itself. A `static inline` copy plus a wrapper for the
+  standalone symbol changes the standalone function's registers (`rep_0610` `fn_1_D300`; earlier
+  `rep_7730` `fn_1_21180`). **If no declaration order matches both copies** (each order fixes one),
+  switch to the `static inline` helper with the real function as a one-line wrapper: the helper's
+  numbering then applies to both (`rep_0610` `fn_1_126CC` 33 -> 100 and its inlining caller
+  `fn_1_179CC` 50 -> 100, helper declared with `f32 z, y, x`).
+- **A float literal loaded as `addi rX, lit@l; lfs 0(rX)` instead of `lfs lit@l(rX)` came in
+  through an inline function's parameter** (`rep_0610` `fn_1_EA20` -> `dbgSetFrame`).
+- **A one-trip loop (`for (i = 0; i < 1; i++)`) explains constant `[0]` indexing combined with
+  induction pointers set up before the "loop"** (`rep_0610` `fn_1_17B5C`: per-player code with one
+  player).
+- **`(T *)((u8 *)p + off)` is CSE'd across calls; `&p->bytes[off]` is not** (`rep_0610`
+  `fn_1_121D4`).
+- **Splitting `v = (f32)x / 64.0f;` into `v = (f32)x; v /= 64.0f;` moves the constant load after
+  the int-to-float conversion** (`rep_7730` `fn_1_24A8C`, 92.7 -> 100).
+- **Drafts can be wrong in ways that still score 90%+.** `rep_0610` `fn_1_DF14` processed one
+  element too many (a do-while where the target's `while (k-- != 0)` skips k = 5), and `fn_1_12F8C`
+  wrote four flags to the wrong struct. Check loop bounds and store targets before treating a
+  90-95% function as a register problem.
+- **A REL unit can have been built against a narrower prototype than the DOL.**
+  `insertGraphicDrawingFunction`'s priority is `u32` in its definition and for the DOL callers:
+  with `u16` the definition drops from 100 to 96.5, `sta_c4` `fn_3_F9E78` loses 1.5, and the Matching
+  `File_0x800486e0` fails the sha check. But `rep_0610` `fn_1_D13C` only matches when the int argument is
+  narrowed by an implicit conversion through a `u16` prototype (`addi; clrlwi r4, r0, 16` scheduled
+  after the other argument setup). An explicit `(u16)` cast or a `u16`-parameter `static inline`
+  schedules the `clrlwi` elsewhere. MWCC rejects a conflicting redeclaration, so the header declares the
+  `u16` form under `#ifdef DRAWING_PRIORITY_U16` and only that unit defines the macro. Test a prototype
+  change with a project-wide report diff (header and definition changed together) before applying it.
+- **Loop-invariant products as locals before a loop and the same expression inline at each use
+  are hoisted to the same place, but colour the conversion temps differently.** If a function
+  computes `k * (f32)x` constants up front and the int-to-float temps land in the wrong registers,
+  delete the locals and write the expression at every use (`rep_7730` `fn_1_22874` -> 100).
+- **Read a callee's prototype off its caller.** `mr r3, rX; bl f` before a callee that never reads
+  r3 means it takes an unused parameter; `cmpwi r3, 0` after the call (not `clrlwi. r0, r3, 24`)
+  means it returns int, not u8. Fix the prototype even when the callee already matches
+  (`rep_7730` `fn_1_21CE8` calling `fn_1_22874`).
+- **Repeated `arr[n - 1].field op= ...` updates: hold the base in a pointer local** assigned in the
+  same block, after any preceding branchy code, when the target keeps one base register
+  (`add rT, base, n<<6; lfs disp(rT)`) and ours turns later updates into `subi; lfsx`. Int-to-float
+  conversions whose loads the target hoists above a run of float stores want integer locals converted
+  at the use, not float locals (`rep_7730` `fn_1_21408`). For signed bytes, `lbz rA; extsb rB, rA`
+  with rA != rB is a `u8` local converted as `(f32)(s8)x`; `s8` locals give `extsb rA, rA`, and
+  `s32 x = *(s8 *)p` scored lower (98.47 vs 98.99).
+- **`subi rB, &sym, C; lfsx f, rB, idx<<n` (the constant applied to the base register, not to the
+  displacement or the index) is `arr[x - 1]` written more than once on a typed array.** MWCC turns
+  `arr[x - k]` into `(arr - k*size) + x*size`; when `arr - k*size` occurs twice or more it is CSE'd
+  into its own register, with one occurrence it becomes `lfs -C(add)`. Casting a byte buffer
+  (`((T *)buf)[x - 1]`) blocks it, and so do locals for the index or the loaded value: declare the
+  static as `T arr[N]` and write `arr[item->n - 1].f` at each use (`rep_7730` `fn_1_247A0` 75.7 -> 100,
+  its inline copy in `fn_1_25064` -> 100). Worth checking anywhere a static is still a `u8[]` buffer.
+- **`add rD, rBase, rOff` gives rD the base's register whenever the base dies at the add,** for every
+  pointer form (`p = &arr[n - 1]`, `p = base; p += off`, byte arithmetic, helpers). When the target has
+  a fresh rD there, use an index local plus the typed subscript at each use (`s32 last = n - 1;
+  x = arr[last].pos.x; ... arr[last]._3C = ...;`) and let MWCC merge the address itself. `int` scores the
+  same as `s32`; `u32`/`u8` indices and a struct copy score lower (`rep_7730` `fn_1_21180` -> 100, and its
+  inlined copies in `fn_1_22DF4` / `fn_1_22644` with it).
+- **When only the float scheduling of a run of independent statements is left, search statement order
+  as a whole:** random moves checked against the data dependencies and scored on the whole unit found
+  gains that permutation sweeps of sub-groups missed (`rep_7730` `fn_1_23098` 34 -> 24 mismatched
+  instructions).
+- **A float store of an `frsp`'d register (`frsp f4, f30; stfs f4, off`) is a field-to-field copy of
+  an already-stored float** (`base[3].z = base[1].z;`): MWCC forwards the earlier store and rounds the
+  forwarded value (`rep_7730` `fn_1_23098`). On its own it scored lower; the callee-saved FP numbering
+  only matched once the constant-zero stores also came first in the source.
+- **Two signed divisions in the wrong order are not a scheduling problem.** Each `srawi`/`addze` pair
+  uses XER[CA], so they stay in codegen order, and MWCC's reassociation of one `+` chain always emits a
+  multiply-by-constant term (`(x / 8) * 32`) before a multiply-by-variable term (`(y / 8) * w`), whatever
+  the source order. Compute the variable-multiply term in its own statement first. A fresh local is
+  substituted back, so reassign the parameter (`w = (y / 8) * w;`). Reusing the other parameters for
+  their derived values too (`x %= 8;`) put more temps on the target's registers; a fresh local in
+  place of either cost 4-33 points (`rep_0138` `fn_1_5924` 72 -> 97.8, after 480+ single-expression
+  term orders that could never have matched).
+- **A "missing loop guard" can be an `if` inside the loop body.** When the target's
+  `cmplwi i, N; bge` sits at the loop head, the back edge jumps to it, and the branch goes to the middle
+  of the body rather than past the loop, it is `if (i < N) { ... }` around part of the body
+  (a real vestigial entry guard branches past the loop). `rep_74A0` `fn_1_1C8C0` 96.1 -> 98.8,
+  then 100 after a declaration-order hill-climb; two earlier passes had read it as a vestigial guard.
+- **A vestigial loop guard that tests the induction register itself** (`li r5, 0; cmpwi r5, 0x18; bge`,
+  with r5 then used as the offset) instead of `li r0, 0; cmpwi r0, N` plus a separate `li rX, 0` means
+  the same variable was already a loop variable EARLIER in the function. A loop on another variable, a
+  later loop, or a loop that folds away doesn't count (a micro TU shows the rule), and the guard itself
+  is only kept when the compare mixes types (`s32 i` vs an `int` literal, or `int i` vs `24L`).
+  So this guard shape is evidence of an earlier loop on `i`: `rep_0610` `fn_1_135C0`'s five hand-written
+  pointer fix-ups were really `for (i = 0; i < 5; i++)` (-> 100), `fn_1_16978` case 26 is a one-trip
+  `for (i = 0; i < 1; i++) fn_1_D7A4(i);`, and `rep_74A0` `fn_1_1D110` reuses the previous loop's
+  `int i` against `(s32)PARTICLE_SLOT_COUNT`.
+- **An instruction-identical function whose frame is 0x10 too big has a local array that is too
+  large.** MWCC rounds the end of the local area up to 8 bytes and the frame up to 16, so a 4-byte
+  overshoot can cost 0x10. Sweep the array size down (`rep_0610` `fn_1_1540C` `u8 buf[0x28]` ->
+  `char buf[32]`, 99.97 -> 100; several sessions had read it as a dead spill slot).
+- **A register permutation in a loop whose bound and body index the same nested table can be a getter
+  inline used at both sites:** `static inline DbgAnimTrack *dbgGetTrack(anim, track)` took `rep_0610`
+  `fn_1_EA20` from 99.20 to 100, where a cached pointer local for the bound left the permutation. The unit
+  already had an out-of-line getter of the same shape (`fn_1_16558`), which was the hint.
+- **An lr reload after the callee-saved restores** (`lwz r31...; lwz r0, 0x24(r1)`), where the usual
+  epilogue reloads lr first, means the original's epilogue was its own basic block. One cause is a
+  missing return value: `rep_0610` `fn_1_D300` really returns the `DbgActor *` already in r3 for its
+  last store (`(act = actors[i])->model = ...; return act;`), which gives the lr-first epilogue with no
+  extra code (99.73 -> 100). Its callers all inline it and ignore the result. `return src` /
+  `return NULL` instead add an `mr`/`li`.
+- **Switch on the global expression, not on a local copy of it:** `switch (currentDrawingItem->state)`
+  where `scene == currentDrawingItem` fixed a three-register rotation (`rep_74A0` `fn_1_1CBE4` -> 100;
+  same as `rep_0250` / `rep_02A8`).
+- **Int-to-float conversion temps (the 0x43300000 double slots) reuse stack slots last-in-first-out
+  across sibling control regions, never within one straight-line run.** Nested control flow between two
+  conversions (if inside if, `&&`/`||`, a switch, a loop, or an inlined function call) lets the later one
+  reuse the earlier slot, so a rotated set of temp slots is a control-flow clue, not a declaration-order
+  one (`rep_74A0` `fn_1_1857C`, found with a micro TU).
+- **`fabs` is an inline function in MSL, and `include/stl/math.h` now defines it that way** (it was a
+  macro for `__fabs`). Both give the same instructions but different stack-temp and FPR allocation.
+  `rep_74A0` `fn_1_1857C` and `star_dash` needed the inline form (1857C also needed `sinf_kludge` /
+  `cosf_kludge` for the sin/cos of an f32). The header change took five `minigame_effects` functions to
+  100. `sta_c5` `fn_3_EE388` / `fn_3_EE96C` and `camera_script` `fn_3_FDB30` dipped slightly; writing
+  `__fabs` at their own call sites did not restore them, so the dip comes from elsewhere in their units.
+- **A parameter reassigned in a loop may need to be a local copy** (`DlPrim *p = prim;`): in a micro TU a
+  plain parameter always got the lowest callee-saved register, even when reassigned, where the target
+  gave it the highest (`rep_00B0` `fn_1_25BC`, together with a declaration-order search).
+- **Random-restart hill climbs over declaration order reach the exhaustive 8! optimum much faster,** so
+  they are the cheaper way to test each structural variant together with declaration order (`rep_00B0`).
+- **A cast that routes offset-0 reads through the address register always schedules that `addi` early**
+  (above the parameter copies). If the target has those reads but a late `addi`, the cast wasn't in the
+  original (`rep_00B0` `fn_1_4A24`).
+- **Score a function's inlined copies with it when choosing its source form.** Most forms of
+  `rep_0138` `fn_1_5924` that scored 98+ standalone cost its inlined copies in `fn_1_6050`/`fn_1_5AC0`
+  0.2 each; filtering the sweep on "callers stay 100" found the form to keep.
+- **Constants held in callee-saved FPRs across the first call are hoisted out of a one-trip loop.**
+  `0.0f` (addi form) in f31 and `57.29f` in f30, loaded before `CTRLSetTranslation` and reused by a
+  later `speed != 0.0f`, came from `for (k = 0; k < 1; k++) {...}`, the per-player loop with one
+  player (`rep_0610` `fn_1_129D0` 92.5 -> 97.3; same family as `fn_1_17B5C`).
+- **A loop counter the target copies from a register (`mr r6, r3`), plus a stored zero that reuses
+  the register that held an earlier 0, means the loop variable is a register-promoted global:**
+  `lbl_1_bss_5F73 = 0; do { a[lbl_1_bss_5F73]...; lbl_1_bss_5F73++; } while (lbl_1_bss_5F73 < 1);`,
+  not a local copied into the global afterwards (`rep_0610` `fn_1_1496C` 96.8 -> 97.8).
+- **`const` on an inline helper's parameters is not neutral.**
+  `static inline void dbgVertex(const f32 x, const f32 y, const f32 z, const u32 c)` around
+  `GXPosition3f32` / `GXColor1u32` took `rep_0610` `fn_1_10E2C` to 100, while the same helper with
+  plain parameters was byte-identical to open-coded calls. The SDK's own GX inlines mostly take
+  `const` parameters.
+- **"All pos loads before any store, one store per component" is locals loaded first and then
+  updated** (`x = a->pos.x; y = ...; z = ...; x += ...; y += ...; y -= ...;` then the stores), a
+  different shape from `x = a->pos.x + ...`. The int-to-float conversion stack slots ascend in source
+  order, which reads the original statement order off the target (`rep_0610` `fn_1_126CC`).
+- **`int` and `s32` (`signed long`) are not interchangeable for MWCC:** `rep_0610` `fn_1_16978`'s
+  counter scores 99.80 as `s32` and 99.61 as `int`. The other way round, `rep_0138` `fn_1_5544`, which
+  mostly forwards its parameters to GX calls taking `int`/enum, only matched with `int` parameters: as
+  `s32` the two pool-base `lis` temps were coloured differently. For such forwarding functions, try `int`
+  parameters first.
+- **An extra unreachable `b end` after a `cmpwi N; beq; bge end; b end` switch tree is an empty case
+  above the highest handled one** (`case N + 1: break;`). `rep_0138` `fn_1_4E98`:
+  `case 0: case 1: break; case 2: {...} case 3: break;` -> 100, after ~30 variants of the 0/1 bodies.
+- **Shrink a register puzzle to a micro TU.** Cut the unit down to the one function (no other functions,
+  no unused statics) to confirm the effect is local, then rebuild it in a tiny TU with hand-written
+  prototypes and swap pieces (headers, typedefs, prototypes) back in until the output flips. For
+  `fn_1_5544` the flip was `#include "types.h"`, which led to the `int` parameters.
+  **A debug-REL micro TU must include `header_rep_data.h`'s weak inline local static** (or an equivalent
+  first `.rodata` object). Without it MWCC addresses the literals off one pooled section base, which
+  frees a GPR and changes the colouring: `rep_74A0`'s first micro TU "reproduced the target" only because
+  of that, and sent a whole pass after the wrong code. Check that the micro TU reproduces OUR real output
+  (0 words different) before trusting what it says about the target.
+- **Before grinding a stuck debug-REL function, scan the other modules' target asm for its twin.** Debug
+  routines are often copies of game-REL (or DOL) ones, and a matched twin's source is direct evidence of
+  the original shape. `rep_00B0` `fn_1_4A24` (99.46 -> 100) is `game/ball/collision_primitives`
+  `checkTriangleCollisions`, found by scanning every target `.s` for its distinctive signature (a hoisted
+  `addi rN, r1, X` used both as a call argument and as `0x0(rN)`, with `X+4(r1)` also read directly). Port
+  the twin's source, then revert one feature at a time to find what mattered.
+  The twin can be in the same unit: a scan ranking functions by shared 8-instruction mnemonic runs showed
+  `rep_7730` `fn_1_1F618`'s TEV-stage loop is `fn_1_20640`'s body (calling it: 98.47 -> 99.29, all
+  registers right). The inlined copy still re-read `entries[i]` where the standalone keeps it in a
+  register, so 1F618 needed its own inline copy with the re-read (-> 100). A re-read of a local array
+  element is a tell that an inlined copy and its standalone function differ in the source.
+  A DOL twin closed `rep_0610` `fn_1_14710` (94.20 -> 100, after ~50 shapes over five sessions): it is
+  `initShortsHandleCompressedDiskReads` (`File_0x8001fc4c.c`). Porting its three static inlines (a pair
+  swap; a for loop; a do-while with a separate index for the test and pointer for the body,
+  `while (pairs[++i][0] != END)`) explained the "two induction variables".
+- **When a block's schedule ignores statement order, probe the other statements one at a time.**
+  `rep_0610` `fn_1_F37C` (stuck at 91.7 for several passes): 400 random orders of its pos/vel/acc
+  stores gave the identical post-call schedule, so the order came from the dependence graph. Deleting
+  or rewriting each other statement in a micro TU, one at a time, found the cause: a flag written as
+  `(BTN_REPEAT >> 12) & 1` instead of `(BTN_REPEAT & INPUT_BUTTON_START) != 0`. The `!= 0` form gives
+  exactly the target's order (-> 100).
+- **A byte-offset read of a global (`*((u8 *)&g + 0x70)`) may alias every store; a named member
+  (`g._70`) does not.** With the member, MWCC's alias analysis separates the loads from unrelated
+  stores, and the scheduler is free to order them as the target does. Adding named controller-4
+  stick fields to `lbl_803C77B8_s` took `rep_7730` `fn_1_21CE8` to 100 and `fn_1_21408` to 99.95, with
+  no change anywhere else in the project. The same switch through a parameter pointer (`item->_1c` vs
+  `*(f32 *)((u8 *)item + 0x1c)`) made no difference.
+- **Re-read an already-stored value, then search statement order again.** `ray[3].y = -ray[2].y;` and
+  `ray[2].z = nearZ - base[2].z;` (where `base[2].z` and `base[3].z` hold the same value) are nearly
+  score-neutral alone, but they free stores to move. From that form a dependency-checked order search
+  reached 100 for `rep_7730` `fn_1_23098` after its old plateau had held through 250+ iterations.
+- **When the target and ours have the same interference graph, score-only climbs get trapped on ties.**
+  Penalise the specific wrong registers in the search objective. That found a `rep_00B0` `fn_1_25BC`
+  form with a single wrong choice, which score-only climbs never reached. Address CSE temps such as the
+  `&__GDCurrentDL` loads take one register as a group, so one wrong neighbouring web can cost 100+ lines.
+- **`rep_00B0` `fn_1_25BC` (the last debug function stuck on one register for six passes) closed
+  with:**
+  - the [G3] "point C" shape (a separate `DlVertex *v2` for the triangle loop; counters reused across
+    the strip and linestrip loops; `left` for the vertex-count loop);
+  - declaring `left, vi, v, key, i, cnt, n, p, v2, prev`;
+  - merging the duplicate `u8 keyToIdx()` helper into the `u32 keyIdx32()` one at the `dlVertexKey`
+    call site.
+  An inline helper's return width is one more knob on when its result web is coloured.
+- **An induction-variable increment the target emits before another one can sit mid-body in the
+  original, not in the for-header.** `rep_7730` `fn_1_22F4C`:
+  `j = 0; while (j < m) { s32 t = k++; ...; dst[t] = ... - prev; j++; dst[t] *= damp; }` (99.76 -> 100,
+  and `fn_1_23B54`, which inlines it, gained with it). Sessions S5-G3 had not moved that k/j order tie.
+- **To find what sets a wrong callee-saved order, cut the function down inside the full unit** (leave
+  everything else as is) and add pieces back one at a time. In `rep_7730` `fn_1_23B54` this showed a
+  hoisted pool base outranks `item` once it is live across two or more calls; the target keeps `item`
+  on top regardless (still open).
+- **Store through the global, not a local copy of it:** `currentDrawingItem->func = f;` instead of
+  `s->func = f;` with `s == currentDrawingItem` fixed a register rotation across the whole block
+  (`rep_0610` `fn_1_E098` case 10, 99.62 -> 99.94), the same family as switching on the global.
+- **`while (TRUE)` and `for (;;)` compile differently.** In `fn_1_4A24` the outer loop keyword alone took
+  it from 99.46 to 99.90, after a pass had concluded from micro TUs that the pattern was unreachable from
+  source. Try the loop keyword before declaring an address-register pattern unreachable.
+- **MWCC's register allocator can be observed directly.** A native Windows debugger (Python ctypes,
+  no gdb) that breaks GC/2.6 `mwcceppc.exe` at the end of `colorgraph` (0x5089A9; addresses from
+  github.com/cadmic/mwcc-debugger) dumps the GPR/FPR priority list, each node's neighbours and coalesced
+  flags, and the PCode before register allocation. Re-simulating Chaitin's simplify reproduces every
+  function in `rep_0138` exactly: vregs in index order, push a node when it has fewer than 29 remaining
+  neighbours, repeat passes, and never remove coalesced nodes. A target colouring can then be
+  reverse-engineered into "which node must move to a later pass" before touching source. This is how
+  `rep_0138` `fn_1_73B8` went from 99.14 to 100 after five passes. The tools are `regdbg.py`, `sim.py`
+  and `col.py`.
+- **Callee-saved order is simplify level first, then descending vreg index.** Parameters are the lowest
+  vregs, then locals (first declared = highest), then frontend temps (strength reduction, range-split
+  pieces, LICM), then backend temps such as a CSE'd global address. A variable outranks a higher-index
+  temp only by surviving into a later simplify pass, i.e. by having 29 or more remaining neighbours when
+  its turn comes.
+- **Coalesced nodes and self-hoisted invariants add neighbours for free.** Writing a loop-invariant
+  expression inline (`((DbgDrawNode *)arg0)->world` in the loop body) instead of a local set before the
+  loop gives the same instructions, because MWCC hoists it, but adds never-removed nodes. That pushed
+  `fn_1_73B8`'s long-lived locals into a later level (-> 100); holding the value in your own local lost 5
+  points. A local used twice (`MtxPtr m = geo->mtx; PSMTXConcat(c, m, m);`) also adds a node. Single-use
+  locals, inline parameters and constants are always propagated away.
+- **Casting a struct-pointer local at every use (`(u8 *)item + off`) makes MWCC CSE the cast into a
+  frontend temp that replaces the local.** The initial PCode shows `lwz rT, global; mr rItem, rT`, and
+  every use then reads rT, so the "local" is coloured as a temp above every real local and declaration
+  order can't move it. Cast once at the initialiser instead, ideally to a typed view struct:
+  `View *item = (View *)currentDrawingItem;` with member access. Then the locals rule applies
+  (`rep_7730` `fn_1_2004C` -> 100 with `u32 i;` declared above it; `fn_1_23B54`'s item/pool swap fixed by
+  declaring `item` after `gr`).
+- **Two swapped volatile registers at the same simplify level are decided by vreg index, and frontend
+  variables always number below backend temps.** An inlined callee's `val` local lost to a backend address
+  temp. Storing the value straight into its destination and reading it back
+  (`*(u32 *)(blk + 0x20) = src; ratio = c1 / (f32)*(s32 *)(blk + 0x20);`, which compiles identically
+  through store-to-load forwarding) made it a backend temp (`rep_7730` `fn_1_21408` -> 100).
+- **Hoisted loop-invariant temps are numbered in descending program order.** When the target colours
+  one invariant below the rest, that value was a source local: `rep_0610` `fn_1_E098` needed
+  `row = lbl_1_bss_30B6;` as a local, and the held-button test written in the loop through the global
+  (`AtBat_ButtonInput1._00 & INPUT_BUTTON_A`) so MWCC hoists it. The `BTN_HELD` cast macro isn't
+  hoisted (96.77). -> 100.
+- **A local with two definitions is not folded back into its use; one with a single definition is.** To
+  make MWCC evaluate an index before its base, build the index in two steps:
+  `s32 idx = (s32)u; idx += (s32)(16.0f * v) * 0x80; p->y = rows[ping & 1][idx];`. A single-definition
+  local or an inline-helper parameter was folded back, and 38 plain-expression arrangements all built the
+  base first (`rep_7730` `fn_1_23B54` -> 100).
+- **An if/else assignment followed by `v = c * v` is merged into one conditional expression** (the
+  constant gets loaded before the branches). A `static inline` helper that assigns its parameter in each
+  branch and ends with `return x;` keeps the target's constant placement. Returning from each branch
+  scored lower (95.02 vs 97.02).
+- **`*p = old + 1` and `*p += 1` on a u8 can change the post-allocation schedule with identical
+  registers:** the first left a dead zero-extend in the block (`fn_1_23B54`'s last two-instruction swap).
+- **A float that lands in f1 for no visible reason** (target `fctiwz f0, f1` where ours has
+  `fctiwz f0, f0`, with nothing else touching f1) **is a value passed on to a call.** Check whether a
+  callee is a dispatcher (`lwzx r12; mtctr; bctrl`, never touching f1) whose real prototype has a float
+  parameter: `rep_0610` `fn_8004B208(a, b, c, v)`. `fn_1_D590` itself is byte-identical because `v` is
+  already in f1, but its inlined copy in `fn_1_129D0` went f0 -> f1.
+- **An inline function's own pointer local (`T *h = &global;`) is fully copy-propagated, even as the base
+  of a strength-reduced loop; a caller-scope local used the same way keeps a `mr` copy.** When the target
+  shares one register between an address temp, a loop IV's start and a later `base + off`, put the address
+  local, the loop and the derived pointer inside one static inline that returns the derived pointer
+  (`rep_0610` `fn_1_129D0` 98.02 -> 99.72).
+- **`s32 on = boolFn();` stays a real local through the int -> long conversion, where `BOOL on` is
+  copy-propagated into its compare temp.** A kept BOOL tested with `cmpwi rX, 0` after other code, when
+  every spelling of the callee's own test folds back to the raw byte, is a flag passed in as a parameter
+  (`fn_1_129D0` -> 100, flagged: the inline copy of `fn_1_D590`'s body is a guessed shape).
+- **A scratch use of a function-scope variable in another switch case changes how later code splits it.**
+  `rep_0610` `fn_1_16978`: writing case 4's `f40 * 0x13` term through the function's `i`
+  (`i = f40[...] * 0x13; ...[3074 + i + f46]`) fixed case 4. It also gave `i` the earlier live-range piece
+  that case 26's guard-zero reuse needed, so case 26 could call `fn_1_D7A4(0)` directly without the
+  one-trip loop (-> 100).
+- **A truly dead load in the target (its result overwritten on every path) means a volatile lvalue read in
+  the original.** Established from GC/2.6 itself (`rep_0610` `fn_1_1496C`, [G8]):
+  - the frontend drops unused non-volatile reads;
+  - register allocation deletes dead definitions and cascades back through the address computation;
+  - a post-allocation peephole deletes a load stored straight back to its own address.
+  The only exemption is PCode flag 0x80, which is set only by volatile qualification: on the expression,
+  the object, or the element type. So don't spend passes on dead-store, dead-branch, inline or loop tricks.
+  A volatile read there is the faithful form, not a hack.
+  - **Dead-load scanner:** `dl2.py` (scratch `g8_rep0610\`) finds loads whose result is overwritten on all
+    paths. Outside the SDK there are only three in the game.
+  - **A narrowing cast around an indexed volatile offset flips the base/offset register order**
+    (`((volatile u8 *)arr)[(u16)(i * 0x48 + 0x46)]` gives the target's base r5 / offset r6), at the cost
+    of a `clrlwi`. A no-op cast instead lets the frontend fold base and +0x46 into one constant.
+- **For an indexed access, MWCC keeps `i * size + off` as "register plus constant" and computes the
+  base first,** so the base gets the lower vreg number. A conversion around the offset makes it compute
+  the offset first:
+  - narrowing (`(u16)`) costs a `clrlwi`;
+  - a same-width cast folds base + off into one constant;
+  - widening a signed int to 64 bits leaves a dead `srawi`;
+  - widening an UNSIGNED 32-bit value to `u64` costs nothing, because its high word is deleted.
+
+  `((volatile u8 *)lbl_1_bss_6940)[(u64)(i * sizeof(DbgSel) + 0x46)];` gave `rep_0610` `fn_1_1496C`'s
+  base r5 / offset r6 exactly (97.84 -> 100, the last function of the debug REL). The `u64` spelling is a
+  guess at whatever produced that tree in the original; the volatile read itself is evidenced.
+- **For a missing dead load, dump the PCode at initial-code first.** If the read is already gone there,
+  the frontend dropped it, and no optimiser switch (dead code, dead assignments, lifetimes, -O3) brings it
+  back (`rep_0610` `fn_1_1496C`).
+- **MWCC's CSE reuses a register already holding a constant for later `li`s of that constant, but never a
+  multi-def variable's main register;** a piece the live-range splitter cut off a variable can be reused.
+  That is what "zero stores share i's register" means (`rep_0610` `fn_1_15760`), and likely also the
+  guard-zero reuse in `fn_1_16978` and the `h` reuse in `fn_1_129D0`.
+- **Inlined callee locals are numbered in reverse declaration order** (last declared = highest vreg),
+  the opposite of a function's own locals. Frontend temps then follow in pass order: inline locals, block
+  locals, strength-reduction temps, LICM copies, CSE temps.
+- **The frontend hoists a global load out of an inlined loop only when the stored-through pointer
+  parameter is bound to an address expression,** not to a local pointer copy. The hoisted value then
+  becomes a low-index frontend temp, coloured late, instead of a backend LICM temp coloured early
+  (`rep_7730` `fn_1_23B54` 97.53 -> 98.96).
+- **A row offset written as `i * m` in the subscripts compiles like a `rowBase += m` local standalone,**
+  but once inlined with a constant `m` the frontend hoists `i << 7` and strength-reduces it late.
+- **To map our vregs onto the target's registers, align the pre-RA PCode dump with objdiff's target
+  listing** (validate the alignment on our own listing first). Combined with the colouring simulator, that
+  turns "which node must move" into a direct search (scratch `g5_rep7730\align.py`, `greedy.py`).
+- **`#pragma opt_lifetimes off` turns off MWCC's live-range splitting.** That is what gave
+  `w = (y / n) * w` a fresh register in every switch case but the first (`rep_0138` `fn_1_5924`). With
+  it off (`#pragma push` / `opt_lifetimes off` / `pop` around one function), every case's product stays
+  in `w`. Turning it off for the whole file broke six other functions. Block-scope locals per case stay
+  separate variables even with splitting off.
+- **`x << k` and `x * (1 << k)` compile to the same instruction but change the order terms are built in
+  a sum,** and so the add operand order (`fn_1_5924`'s last add needed `col << k`).
+- **The same body can be ordered differently once inlined:** the caller forward-substitutes reassigned
+  parameters and evaluates the terms in another order. `fn_1_5924`'s case 0x10 matched standalone only
+  with `col << 4`, and in its callers' inlined copies only with `col * 16`, so the callers write the
+  index out instead of calling it (flagged).
+- **The frontend range splitter keys on the first operand.** `w = (y / n) * w` in several switch cases
+  splits `w` into one web per case, and only the first case's web keeps coalescing with the incoming
+  r3. `w *= y / n`, `w = w * (y / n)` and `x %= 8` keep one web (`rep_0138` `fn_1_5924`).
+- **The order MWCC hands out callee-saved registers (highest first), from micro TUs (`rep_0138`
+  `fn_1_73B8`):** a hoisted global address (`&state`); then variables assigned from an inline
+  function's result, parameter or local; then compiler loop temps (hidden pointers, entry pointers);
+  then function-scope locals in declaration order; then block-scope locals; then parameters. Extra uses
+  of a variable do not move it, but one more short-lived temp live across a parameter's range pushed that
+  parameter to the top, so interference can override the order. `x = inlineFn(...)` lifts x above the
+  loop temps but not above a hoisted global address.
+  Variables assigned from static-inline getters are coloured in call order, just below a global-address
+  temp and above the strength-reduction temps. A hoisted global address stays on top even through a
+  local pointer, a getter inline, or stores through the global: copy propagation folds them back.
+- **Read the declaration order off the target even when its top registers are wrong:** strip the
+  mismatched top variables from both sides; the rest follows locals in declaration order, then parameters
+  (`rep_0138` `fn_1_73B8`: every register below the top four landed with `set, table, cam1, cam2, i,
+  end, sel, geo, key`).
+- **MWCC never inlines a variadic function** (it emits `bl`), and `va_start` needs the enclosing
+  function itself to take an ellipsis, so a loop containing `va_start` cannot move into an inline helper.
+- **Then screen single changes in parallel on the exact reproducer.** For `rep_74A0` `fn_1_1D110`
+  (99.86, one register inside an inlined callee) the screen found that `fn_1_1A290`'s guard needed one
+  test through the `entry` local and one through the array: `if (entry->actor != NULL &&
+  table->entries[i].applyControl != 0)`. Same instructions in the standalone function, but the inlined
+  copy's colouring changed -> 100.
+- **`#pragma scheduling off` shows MWCC's pre-scheduling order**, but it also changes register
+  allocation: MWCC schedules before it allocates registers. Single-use locals and single-use parameter
+  reassignments are forward-substituted, so source statement order often doesn't reach codegen order
+  (`rep_0138` `fn_1_5924`).
+- **Tooling: `objdiff-cli diff -1 <target.o> -2 <candidate.o> -o - --format json` scores an object
+  compiled anywhere,** so variants can be compiled in parallel into scratch files without touching the
+  build tree (about 0.25 s per variant for a 70 KB TU with 16 workers). Rank candidates by objdiff's own
+  score; difflib and word-diff metrics mis-rank them.
+- **Two same-typed counters whose registers come out wrong may be one variable.** `rep_0610`
+  `fn_1_CDC8`'s switch result `k` was really `i` reused: about +10 points, but only together with the
+  right statement order (found by a full 2 x 5040 objdiff sweep); alone it scored lower. The same sweep
+  also exposed a real bug (`ids[0]`/`ids[1]` swapped). 89.2 -> 99.1.
+- **Declaration-order sweeps usually fall into a few score groups;** a pairwise "declared before" test
+  across the groups finds the deciding rule quickly (`rep_0610` `fn_1_135C0`: `anim` before
+  `geoExtra`).
+- **One function-scope counter shared by two loops seeds the second loop's offset as a copy**
+  (`mr r6, r9`); two block-scoped counters give a fresh `li r6, 0` (`rep_0610` `fn_1_CDC8` -> 100).
+- **Moving block-scope locals to function scope, and where they go in the list, changes callee-saved
+  numbering.** Hoisting the loop-body pointers of `rep_0610` `fn_1_12820` to right after `u16 i`
+  closed it (99.77 -> 100). Sweep each block local over the possible positions, and re-sweep the whole
+  declaration order after any local is added or removed (`fn_1_135C0` +0.9 once `DbgHuge *h` existed).
+- **`T *h; ... h = &global;` assigned before first use keeps `&global` in a callee-saved register;**
+  `T *h = &global;` at the declaration did not (`rep_0610` `fn_1_135C0`, the target's extra `stmw`
+  register; +1.1).
+- **A constant index into a global array (`g.actors[0]`) is CSE'd into a callee-saved address** that
+  later inlined uses share. Indexing with the one-trip-loop variable (`actors[j]`, `j == 0`) or
+  addressing through a byte-offset cast (`(T *)((u8 *)h + 0xC04)` for `&h->slots[0]`) keeps it opaque,
+  as the target has it (`rep_0610` `fn_1_135C0` 98.3 -> 99.8, `fn_1_D4BC` inlined into `fn_1_129D0`).
+- **`if (f && ...)` and `if (f != 0.0f && ...)` swap the `fcmpu` operands** (the target's
+  `fcmpu speed, zero` came from the truthiness form).
+- **Check the effective address of every store mismatch.** objdiff showed `rep_0610` `fn_1_135C0`'s
+  wrong store target (`&60EC[0x5C]` instead of `60EC + 0`) only as an argument mismatch, because the
+  displacement was off a different base register (0x307C off the .bss base vs 0x5C off the pointer).
+- **A store whose address sits in the next free argument register and stays live into the following
+  `bl` is a missing trailing argument.** `rep_0610` `fn_1_F2F8` (83 -> 100) and `fn_1_F040` (96 -> 100)
+  write a texture into word 0 of a parameter table and then call `fn_800324EC` / `fn_8002955C`; the
+  table is the callee's last argument (prologues `mr r31, r6` / `mr r6, r5`). Earlier passes had ground
+  on it as "argument registers allocated before the store address". Read the callee's prologue before
+  grinding register order.
+- **The interleaving of a callee's int and float parameters is invisible in its own registers but not
+  in an inlining caller.** Ints and floats get argument registers independently, so
+  `f(void *, s32, s32 n, f32 a, ...)` and `f(void *, s32, f32 a, ..., s32 n)` compile the callee
+  identically. But MWCC generates the argument expressions in source order, which sets the
+  virtual-register numbering and so the colouring once the call is inlined into a busier caller.
+  `rep_7BF0` `fn_1_29A9C` (inlines `fn_1_2935C`, which calls `fn_80037768`) went 92.01 -> 100 only by
+  moving `simNum` after the floats, after 19+ caller-side hypotheses had failed. 34 of the 35
+  interleavings match, so the exact original order is not recoverable from the bytes. When an inlined
+  call has the right instructions but permuted volatile registers, sweep the parameter interleaving.

@@ -241,17 +241,17 @@ void fn_2_587F8(void) {
 void fn_2_5853C(void) {
     s32 off = workS16(0x7706) * 0x16;
 
-    *(s16 *)(workBase() + 0x7404) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x140);
+    *(s16 *)(workBase() + 0x7404) = *(s16 *)&lbl_2_bss_1A8240[off + 0x140];
     *(u8 *)(workBase() + 0x7410) = lbl_2_bss_1A8240[off + 0x14C];
-    *(s16 *)(workBase() + 0x7406) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x142);
+    *(s16 *)(workBase() + 0x7406) = *(s16 *)&lbl_2_bss_1A8240[off + 0x142];
     *(u8 *)(workBase() + 0x7411) = lbl_2_bss_1A8240[off + 0x14D];
-    *(s16 *)(workBase() + 0x7408) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x144);
+    *(s16 *)(workBase() + 0x7408) = *(s16 *)&lbl_2_bss_1A8240[off + 0x144];
     *(u8 *)(workBase() + 0x7412) = lbl_2_bss_1A8240[off + 0x14E];
-    *(s16 *)(workBase() + 0x740A) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x146);
+    *(s16 *)(workBase() + 0x740A) = *(s16 *)&lbl_2_bss_1A8240[off + 0x146];
     *(u8 *)(workBase() + 0x7413) = lbl_2_bss_1A8240[off + 0x14F];
-    *(s16 *)(workBase() + 0x740C) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x148);
+    *(s16 *)(workBase() + 0x740C) = *(s16 *)&lbl_2_bss_1A8240[off + 0x148];
     *(u8 *)(workBase() + 0x7414) = lbl_2_bss_1A8240[off + 0x150];
-    *(s16 *)(workBase() + 0x740E) = *(s16 *)(lbl_2_bss_1A8240 + off + 0x14A);
+    *(s16 *)(workBase() + 0x740E) = *(s16 *)&lbl_2_bss_1A8240[off + 0x14A];
     *(u8 *)(workBase() + 0x7415) = lbl_2_bss_1A8240[off + 0x151];
     *(u8 *)(workBase() + 0x7417) = lbl_2_bss_1A8240[off + 0x153];
     *(u8 *)(workBase() + 0x7418) = lbl_2_bss_1A8240[off + 0x154];

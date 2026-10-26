@@ -1,4 +1,5 @@
 #include "menus/text_50898.h"
+#include "text/text.h"
 #include "game/character_stats.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800204cc.h"
@@ -22,7 +23,6 @@ extern u16 lbl_2_data_1F3A0[];
 extern u16 lbl_2_data_1F3B0[];
 extern u32 lbl_2_data_1F3E0[];
 extern u32 lbl_2_data_1F3E8[];
-extern u8 screenTextArray[];
 extern u8 menuCursors[];
 extern u8 *menuControlVariables;
 extern u8 menuNumber[];
@@ -90,23 +90,36 @@ void fn_2_50898(u32 arg0) {
 void fn_2_509A4(void) {
     DrawingSceneStruct *item = currentDrawingItem;
     s8 *state = (s8 *)((u8 *)item + 0x28);
+    s16 result;
 
-    if (*state >= 0 && *state <= 1) {
-        if (*state == 0) {
+    switch (*state) {
+        case 0:
             *(s16 *)(STATE_BLOCK + 0x6FD4) = 0;
             *(s16 *)(STATE_BLOCK + 0x6FD2) = 0;
             memcpy(lbl_2_bss_5600, lbl_2_data_1E99C[*(s16 *)(STATE_BLOCK + 0x6FD6)], 0x4000);
             *(u32 *)(STATE_BLOCK + 0x6F1C) = (u32)lbl_2_bss_5600;
             (*state)++;
-        }
-        if (fn_2_4EB9C() != 0) {
-            item->currentDrawingItem->state = 1;
-            removeCurrentDrawingItem();
-            *state = 0;
-        }
+        case 1:
+            result = fn_2_4EB9C();
+            if (result != 0) {
+                switch (result) {
+                    case 1:
+                        currentDrawingItem->currentDrawingItem->state = 1;
+                        removeCurrentDrawingItem();
+                        break;
+                    default:
+                        currentDrawingItem->currentDrawingItem->state = 1;
+                        removeCurrentDrawingItem();
+                        break;
+                }
+                *state = 0;
+            }
+            break;
+        default:
+            break;
     }
     if (*(u8 *)(STATE_BLOCK + 0x783F) == 1) {
-        item->currentDrawingItem->state = 1;
+        currentDrawingItem->currentDrawingItem->state = 1;
         removeCurrentDrawingItem();
         *state = 0;
     }
@@ -153,7 +166,8 @@ void fn_2_50CC0(s16 arg0) {
 }
 
 void fn_2_50D40(s32 idx) {
-    u16 *count = (u16 *)(lbl_2_bss_55E8 + 0x401C);
+    u8 *base = lbl_2_bss_55E8;
+    u16 *count = (u16 *)(base + 0x401C);
     u16 *row;
     u16 *dst;
     u16 v;
@@ -162,8 +176,8 @@ void fn_2_50D40(s32 idx) {
     if (count[idx] != 0) {
         count[idx]--;
     }
-    row = (u16 *)(lbl_2_bss_55E8 + 0x4020 + (idx << 9));
-    dst = (u16 *)(lbl_2_bss_55E8 + 0x4420 + (idx << 9));
+    row = (u16 *)(base + 0x4020 + (idx << 9));
+    dst = (u16 *)(base + 0x4420 + (idx << 9));
     for (;;) {
         v = *row;
         row++;
@@ -183,14 +197,14 @@ void fn_2_50DB4(s32 idx, s32 arg1, u16 *src) {
     u16 *dst;
     u16 v;
     s32 w;
-    u32 *list;
+    TextBank *bank;
 
-    list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798) + 4);
+    bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
     if (lbl_2_bss_9600[idx] != 0) {
         lbl_2_bss_9600[idx]--;
     }
     if (arg1 != -1) {
-        src = (u16 *)list[arg1];
+        src = bank->strings[arg1];
     }
     dst = (u16 *)((u8 *)lbl_2_bss_9608 + (idx << 9));
     for (;;) {
@@ -210,12 +224,11 @@ void fn_2_50DB4(s32 idx, s32 arg1, u16 *src) {
 
 void fn_2_50E5C(s32 idx) {
     s32 i;
-    u16 *row;
+    u16 (*rows)[0x100] = (u16 (*)[0x100])lbl_2_bss_9608;
 
     lbl_2_bss_9600[idx] = 0;
-    row = (u16 *)((u8 *)lbl_2_bss_9608 + (idx << 9));
     for (i = 0; i < 0x100; i++) {
-        row[i] = 0;
+        rows[idx][i] = 0;
     }
 }
 
@@ -223,14 +236,14 @@ void fn_2_50F20(s32 idx, s32 arg1, u16 *src) {
     u16 *dst;
     u16 v;
     s32 w;
-    u32 *list;
+    TextBank *bank;
 
-    list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798) + 4);
+    bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
     if (lbl_2_bss_9604[idx] != 0) {
         lbl_2_bss_9604[idx]--;
     }
     if (arg1 != -1) {
-        src = (u16 *)list[arg1];
+        src = bank->strings[arg1];
     }
     dst = (u16 *)((u8 *)lbl_2_bss_9A08 + (idx << 9));
     for (;;) {
@@ -250,28 +263,26 @@ void fn_2_50F20(s32 idx, s32 arg1, u16 *src) {
 
 void fn_2_50FC8(s32 idx) {
     s32 i;
-    u16 *row;
+    u16 (*rows)[0x100] = (u16 (*)[0x100])lbl_2_bss_9A08;
 
     lbl_2_bss_9604[idx] = 0;
     *(s16 *)(STATE_BLOCK + 0x6FCA + idx * 2) = 1;
-    row = (u16 *)((u8 *)lbl_2_bss_9A08 + (idx << 9));
     for (i = 0; i < 0x100; i++) {
-        row[i] = 0;
+        rows[idx][i] = 0;
     }
 }
 
 void fn_2_510A8(void) {
     s32 i;
-    u16 *row;
+    u16 (*rows)[0x100] = (u16 (*)[0x100])lbl_2_bss_9A08;
 
     lbl_2_bss_9604[0] = 0;
     lbl_2_bss_9604[1] = 0;
     *(s16 *)(STATE_BLOCK + 0x6FCC) = 1;
     *(s16 *)(STATE_BLOCK + 0x6FCA) = 1;
-    row = lbl_2_bss_9A08;
     for (i = 0; i < 0x100; i++) {
-        row[i] = 0;
-        row[0x100 + i] = 0;
+        rows[0][i] = 0;
+        rows[1][i] = 0;
     }
 }
 
@@ -330,15 +341,15 @@ void fn_2_51358(void) {
 
 void fn_2_5135C(u8 *arg0, s32 idx) {
     s32 n;
-    u32 *values = (u32 *)lbl_2_bss_55E8;
+    u32 (*values)[2] = (u32 (*)[2])lbl_2_bss_55E8;
 
     n = *(u16 *)(arg0 + 0x10);
     if (n % lbl_2_data_1F3B0[idx] != 1) {
         return;
     }
-    (values + 2)[idx] = lbl_2_data_1F3E0[idx];
-    values[idx] = lbl_2_data_1F3E8[idx];
-    (values + 4)[idx] = *(u32 *)(STATE_BLOCK + 0x54AC + idx * 4);
+    values[1][idx] = lbl_2_data_1F3E0[idx];
+    values[0][idx] = lbl_2_data_1F3E8[idx];
+    values[2][idx] = *(u32 *)(STATE_BLOCK + 0x54AC + idx * 4);
 }
 
 void fn_2_513DC(void) {
@@ -394,10 +405,10 @@ u16 fn_2_51470(s32 idx, u16 mode) {
     u16 *p;
 
     if (mode == 0) {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
+        list = (u32 *)(*(u32 *)((u8 *)&screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
         p = (u16 *)list[idx + 1];
     } else {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
+        list = (u32 *)(*(u32 *)((u8 *)&screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
         p = (u16 *)list[idx + 1];
     }
     return fn_2_513E8(p, mode);
@@ -408,14 +419,14 @@ void fn_2_51568(void) {
 }
 
 u32 fn_2_5156C(s32 idx, u16 mode) {
-    u32 *list;
+    TextBank *bank;
 
     if (mode == 0) {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
-        return list[idx + 1];
+        bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
+        return (u32)bank->strings[idx];
     } else {
-        list = (u32 *)(*(u32 *)(screenTextArray + *(u8 *)(STATE_BLOCK + 0x72B8) * 4 + 0x798));
-        return list[idx + 1];
+        bank = screenTextArray.textBanks[*(u8 *)(STATE_BLOCK + 0x72B8)];
+        return (u32)bank->strings[idx];
     }
 }
 
