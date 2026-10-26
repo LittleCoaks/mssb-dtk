@@ -247,9 +247,9 @@ typedef struct _FielderHitboxConstsEntry {
 
 extern const FielderHitboxConstsEntry FielderHitboxConsts[55];
 
-extern void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, u16 arg5, f32 arg1, f32 arg2, f32 arg3);
+extern void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, int arg5, f32 arg1, f32 arg2, f32 arg3);
 
-extern int futureFrameForClosestBall(f32* out, int arg1, int arg2);
+extern int futureFrameForClosestBall(f32 playerX, f32 playerZ, f32* outPos, int maxFrame, int step);
 extern s16 slidingCatchArray[6];
 extern f32 slidingCatchMultipliers[6];
 
@@ -16512,21 +16512,26 @@ int attemptJumpingCatch(int fielderIndex) {
 
 // .text:0x00028CA8 size:0x14BC mapped:0x80667D3C
 int divingCatch(int fielderIndex) {
-
     InMemFielder* fielder = &g_Fielders[fielderIndex];
+    int diveFrame = -1;
     int animIndex = fielderIndex;
     int slidingCatchLevel;
     BOOL hasTongueCatch;
     BOOL hasSuction;
-    int diveFrame = -1;
-    f32 dx, dz, dist;
+    BOOL hasMagicalCatch;
+    int frame;
+    int startFrame;
+    int bestFrame;
+    int backFrame;
+    int k;
+    f32 dx, dz, dist, magnitude, t;
+    f32 remaining, catchDist;
     f32 outX, outZ, outDist;
-    f32 remaining, catchPosVal;
-    CoordAndDist* cand;
+    VecXYZ outPos;
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            animIndex = ((s8*)&g_Minigame.minigameControlStruct[0])[g_Minigame.minigamePlayerSelectedOrder];
+            animIndex = ((s8*)&g_Minigame.minigameControlStruct[0])[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             animIndex = ((s8*)&g_Minigame.minigameControlStruct[1].aIStrength[0])[fielderIndex];
         }
@@ -16537,14 +16542,12 @@ int divingCatch(int fielderIndex) {
     hasSuction = checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_SUCTION);
 
     if (g_Ball.maxYOfHit >= 5.0f && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-        f32 distToLandingSpot;
-
         if (g_Ball.framesUntilBallHitsGround > slidingCatchArray[slidingCatchLevel * 3 + 0]) {
             goto fail;
         }
         diveFrame = g_Ball.framesUntilBallHitsGround - 1;
-        cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-        if (isCoordinateUncatchableTerrain(cand->pos.x, cand->pos.z)) {
+        if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
+                                           g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
             goto fail;
         }
         if (diveFrame < slidingCatchArray[slidingCatchLevel * 3 + 1]) {
@@ -16553,427 +16556,278 @@ int divingCatch(int fielderIndex) {
 
         dx = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - fielder->pos.x;
         dz = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z - fielder->pos.z;
-        distToLandingSpot = fielderSqrt(dx * dx + dz * dz);
-
-        calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
-        if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
-            outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
-        }
-
-        remaining = distToLandingSpot - outDist;
-        catchPosVal = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
-
-        if (remaining <= 0.0f) {
-            if (diveFrame > specialFielderActionConstants._00[14]) {
-                goto fail;
-            }
-            if (distToLandingSpot / (f32)diveFrame < 0.07f) {
-                goto fail;
-            }
-            goto finalizeBackward;
-        }
-        if (distToLandingSpot < catchPosVal) {
-            goto foundFrame;
-        }
-
-        {
-            f32 threshold2 = (dz + fielder->hitbox[7]) + slidingCatchMultipliers[slidingCatchLevel * 3 + 1];
-            if (distToLandingSpot >= threshold2) {
-                goto fail;
-            }
-            if (remaining <= 0.0f) {
-                goto fail;
-            }
-            if (g_Ball.AtBat_Contact_BallPos.y < 5.0f) {
-                goto fail;
-            }
-            goto successCommon;
-        }
-    } else {
-        if (getDifferenceInAngle(g_Ball.ballAngleFromHome, fielder->playerAngleFromHome) > 0x100) {
-            goto fail;
-        }
-        if ((15.0f + fielder->distanceFromHomePlate) < g_Ball.ballDistanceFromHome) {
-            goto fail;
-        }
-
-        if (g_Ball.ballVelocity > 0.25f) {
-            s16 threshold0 = slidingCatchArray[slidingCatchLevel * 3 + 0];
-            int frame = futureFrameForClosestBall(&outX, threshold0 + 15, 2);
-            int bestSoFar = -1;
-            BOOL done = FALSE;
-
-            if (frame < 0) {
-                goto fail;
-            }
-            if (frame < 3) {
-                frame = 3;
-            }
-
-            for (; frame <= threshold0; frame += 2) {
-                cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-                if (cand->pos.y > fielder->hitbox[8]) {
-                    continue;
-                }
-                if (!(5.0f + fielder->distanceFromHomePlate >= cand->dist)) {
-                    if (fielder->groundDistanceFromBall < 3.0f) {
-                        break;
-                    }
-                    continue;
-                }
-
-                dx = cand->pos.x - fielder->pos.x;
-                dz = cand->pos.z - fielder->pos.z;
-                dist = fielderSqrt(dx * dx + dz * dz);
-                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
-                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
-                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
-                }
-
-                remaining = dist - outDist;
-                catchPosVal = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
-
-                if (remaining <= 0.0f) {
-                    diveFrame = frame;
-                    goto beginBackwardSearch;
-                }
-                if (dist < catchPosVal) {
-                    diveFrame = frame;
-                    done = TRUE;
-                    break;
-                }
-
-                {
-                    f32 threshold2 = outDist + fielder->hitbox[7] + slidingCatchMultipliers[slidingCatchLevel * 3 + 1];
-                    if (dist >= threshold2) {
-                        continue;
-                    }
-                    if (remaining <= 0.0f) {
-                        continue;
-                    }
-                    if (bestSoFar < 0) {
-                        bestSoFar = frame;
-                    }
-                }
-            }
-
-            if (!done) {
-                if (bestSoFar < 0) {
-                    goto fail;
-                }
-                diveFrame = bestSoFar;
-            }
-            goto foundFrame;
-        } else {
-            s16 threshold0 = slidingCatchArray[slidingCatchLevel * 3 + 0];
-            int frame = slidingCatchArray[slidingCatchLevel * 3 + 1];
-            BOOL done = FALSE;
-
-            for (; frame < threshold0; frame += 2) {
-                cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-                if (cand->pos.y > fielder->hitbox[3]) {
-                    continue;
-                }
-
-                dx = cand->pos.x - fielder->pos.x;
-                dz = cand->pos.z - fielder->pos.z;
-                dist = fielderSqrt(dx * dx + dz * dz);
-                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
-                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
-                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
-                }
-
-                remaining = dist - outDist;
-                catchPosVal = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
-
-                if (remaining <= 0.0f) {
-                    diveFrame = frame;
-                    goto beginBackwardSearch;
-                }
-                if (dist < catchPosVal) {
-                    diveFrame = frame;
-                    done = TRUE;
-                    break;
-                }
-            }
-
-            if (!done) {
-                goto fail;
-            }
-            goto foundFrame;
-        }
-    }
-
-foundFrame:
-    cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-
-    if (fielder->AI_Ind) {
-        if (cand->dist >= fielder->distanceFromHomePlate) {
-            return 0;
-        }
-    }
-    if (checkFielderCollision(fielder, &cand->pos)) {
-        goto successCommon;
-    }
-    if (hasSuction || checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
-        calculateBobble(fielderIndex);
-        if (fielder->bobble == 2) {
-            goto successCommon;
-        }
-    }
-    if (isCoordinateUncatchableTerrain(cand->pos.x, cand->pos.z)) {
-        goto successCommon;
-    }
-
-    fielder->catchAnimationFramesCountDown = diveFrame;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 3;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-    if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-    g_Ball.catchAnimationTotalFrames = 0;
-    fielder->action = 2;
-
-    fielder->actionEndingCoordinateX = cand->pos.x;
-    fielder->diveEndingCoordinateY = cand->pos.y;
-    fielder->actionEndingCoordinateZ = cand->pos.z;
-
-    {
-        f32 t, magnitude;
-
-        dx = fielder->actionEndingCoordinateX - fielder->pos.x;
-        dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
-        magnitude = fielderSqrt(dx * dx + dz * dz);
-        t = (magnitude - fielder->hitbox[7]) / magnitude;
-        if (t > 0.05f) {
-            t = 0.05f;
-        }
-        fielder->actionStartingCoordinate.x = fielder->pos.x + dx * t;
-        fielder->actionStartingCoordinate.z = fielder->pos.z + dz * t;
-        fielder->actionDirectionRadians = game_atan2(dx, dz);
-    }
-
-    {
-        BOOL magicalCatchSound = FALSE;
-
-        if (slidingCatchLevel != 0) {
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 3);
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        } else if (hasTongueCatch) {
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        } else if (hasSuction) {
-            fielder->suctionCatchInd = 1;
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        }
-
-        if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
-            magicalCatchSound = TRUE;
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        }
-
-        if (diveFrame < g_Ball.framesUntilBallHitsGround && !g_Ball.framesOnGroundUntilPickedUp &&
-            (hasTongueCatch || hasSuction || magicalCatchSound)) {
-            camera_zoomInDuringFielderAction_slide_clamber_wallJump(
-                1, diveFrame - 25,
-                0.5f * (fielder->actionStartingCoordinate.x + fielder->actionEndingCoordinateX),
-                0.5f * (fielder->actionStartingCoordinate.y + fielder->diveEndingCoordinateY),
-                0.5f * (fielder->actionStartingCoordinate.z + fielder->actionEndingCoordinateZ));
-        } else {
-            if (g_FieldingLogic.dashPtr->dashingFielderIndex == fielderIndex) {
-                goto successCommon;
-            }
-            return 0;
-        }
-    }
-    return 1;
-
-fail:
-    if (fielder->AI_Ind) {
-        if (g_FieldingLogic.jumpDiveStruct->aiOutfieldFielderAction != 0) {
-            return 0;
-        }
-    }
-
-successCommon:
-    if (diveFrame <= 0) {
-        dx = fielder->xMovementDir;
-        dz = fielder->zMovementDir;
-        diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
-
-        fielder->catchAnimationFramesCountDown = diveFrame;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 3;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
-        }
-        g_Ball.catchAnimationTotalFrames = 0;
-        fielder->action = 2;
-
-        {
-            f32 normDx, normDz, magnitude;
-
-            magnitude = fielderSqrt(dx * dx + dz * dz);
-            normDx = dx / magnitude;
-            normDz = dz / magnitude;
-            calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, normDx, normDz, &outX, &outZ, &outDist);
-            fielder->actionStartingCoordinate.x = fielder->pos.x + normDx * outDist;
-            fielder->actionStartingCoordinate.z = fielder->pos.z + normDz * outDist;
-            fielder->actionDirectionRadians = game_atan2(normDx, normDz);
-        }
-
-        if (hasSuction) {
-            fielder->suctionCatchInd = 1;
-        }
-        return 1;
-    } else {
-        if (diveFrame < slidingCatchArray[slidingCatchLevel * 3 + 2]) {
-            diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
-        }
-        cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-        dx = cand->pos.x - fielder->pos.x;
-        dz = cand->pos.z - fielder->pos.z;
-
-        fielder->catchAnimationFramesCountDown = diveFrame;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 3;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
-        }
-        g_Ball.catchAnimationTotalFrames = 0;
-        fielder->action = 2;
-
-        {
-            f32 normDx, normDz, magnitude;
-
-            magnitude = fielderSqrt(dx * dx + dz * dz);
-            normDx = dx / magnitude;
-            normDz = dz / magnitude;
-            calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, normDx, normDz, &outX, &outZ, &outDist);
-            fielder->actionStartingCoordinate.x = fielder->pos.x + normDx * outDist;
-            fielder->actionStartingCoordinate.z = fielder->pos.z + normDz * outDist;
-            fielder->actionDirectionRadians = game_atan2(normDx, normDz);
-        }
-
-        if (hasSuction) {
-            fielder->suctionCatchInd = 1;
-        }
-        return 1;
-    }
-
-beginBackwardSearch:
-    if (diveFrame > specialFielderActionConstants._00[14]) {
-        return 0;
-    }
-
-    for (; diveFrame > specialFielderActionConstants._00[15]; diveFrame -= 2) {
-        cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-        if (isCoordinateUncatchableTerrain(cand->pos.x, cand->pos.z)) {
-            continue;
-        }
-        if (cand->pos.y > fielder->hitbox[3]) {
-            continue;
-        }
-
-        dx = cand->pos.x - fielder->pos.x;
-        dz = cand->pos.z - fielder->pos.z;
         dist = fielderSqrt(dx * dx + dz * dz);
         calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
         if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
             outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
         }
 
-        if (dist / (f32)diveFrame >= 0.07f) {
-            goto finalizeBackward;
+        remaining = dist - outDist;
+        catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
+        if (remaining <= 0.0f) {
+            if (diveFrame > specialFielderActionConstants._00[14]) {
+                goto fail;
+            }
+            if (dist / diveFrame < 0.07f) {
+                goto fail;
+            }
+            goto runningCatch;
         }
+        if (dist < catchDist) {
+            goto diveAtFrame;
+        }
+        if (!(dist < outDist + fielder->hitbox[7] + slidingCatchMultipliers[slidingCatchLevel * 3 + 1])) {
+            goto fail;
+        }
+        if (!(remaining > 0.0f)) {
+            goto fail;
+        }
+        if (g_Ball.AtBat_Contact_BallPos.y < 5.0f) {
+            goto fail;
+        }
+        goto lungeDive;
+    } else {
+        if (getDifferenceInAngle(g_Ball.ballAngleFromHome, fielder->playerAngleFromHome) > 0x100) {
+            goto fail;
+        }
+        if (15.0f + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+            goto fail;
+        }
+
+        if (g_Ball.ballVelocity > 0.25f) {
+            startFrame = futureFrameForClosestBall(fielder->pos.x, fielder->pos.z, &outPos.x,
+                                                   slidingCatchArray[slidingCatchLevel * 3 + 0] + 15, 2);
+            if (startFrame < 0) {
+                goto fail;
+            }
+            bestFrame = -1;
+            if (startFrame < 3) {
+                startFrame = 3;
+            }
+
+            for (k = 0, frame = startFrame; k < 30; k += 2, frame += 2) {
+                if (frame > slidingCatchArray[slidingCatchLevel * 3 + 0]) {
+                    break;
+                }
+                if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > fielder->hitbox[8]) {
+                    continue;
+                }
+                if (5.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].dist &&
+                    fielder->groundDistanceFromBall < 3.0f) {
+                    break;
+                }
+
+                dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - fielder->pos.x;
+                dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - fielder->pos.z;
+                dist = fielderSqrt(dx * dx + dz * dz);
+                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
+                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
+                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
+                }
+
+                remaining = dist - outDist;
+                catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
+                if (remaining <= 0.0f) {
+                    backFrame = frame;
+                    goto searchBackward;
+                }
+                if (dist < catchDist) {
+                    diveFrame = frame;
+                    goto diveAtFrame;
+                }
+                if (dist < outDist + fielder->hitbox[7] + slidingCatchMultipliers[slidingCatchLevel * 3 + 1] &&
+                    remaining > 0.0f && bestFrame < 0) {
+                    bestFrame = frame;
+                }
+            }
+
+            if (bestFrame < 0) {
+                goto fail;
+            }
+            diveFrame = bestFrame;
+            goto lungeDive;
+        } else {
+            for (frame = slidingCatchArray[slidingCatchLevel * 3 + 1]; frame < slidingCatchArray[slidingCatchLevel * 3 + 0];
+                 frame += 2) {
+                if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > fielder->hitbox[3]) {
+                    continue;
+                }
+
+                dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - fielder->pos.x;
+                dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - fielder->pos.z;
+                dist = fielderSqrt(dx * dx + dz * dz);
+                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
+                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
+                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
+                }
+
+                remaining = dist - outDist;
+                catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
+                if (remaining <= 0.0f) {
+                    backFrame = frame;
+                    goto searchBackward;
+                }
+                if (dist < catchDist) {
+                    diveFrame = frame;
+                    goto diveAtFrame;
+                }
+            }
+            goto fail;
+        }
+    }
+
+diveAtFrame:
+    if (fielder->AI_Ind && g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].dist < fielder->distanceFromHomePlate) {
+        return 0;
+    }
+    if (checkFielderCollision(fielder, &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos)) {
+        goto lungeDive;
+    }
+    if (hasSuction || checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
+        calculateBobble(fielderIndex);
+        if (fielder->bobble == 2) {
+            goto lungeDive;
+        }
+    } else if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
+                                              g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
+        goto lungeDive;
+    }
+
+    fn_3_2C238(fielderIndex, 3, diveFrame, FALSE, FALSE);
+    fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x;
+    fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.y;
+    fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z;
+
+    dx = fielder->actionEndingCoordinateX - fielder->pos.x;
+    dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
+    magnitude = fielderSqrt(dx * dx + dz * dz);
+    outDist = magnitude - fielder->hitbox[7];
+    t = outDist / magnitude;
+    if (t <= 0.05f) {
+        t = 0.05f;
+    }
+    fielder->actionStartingCoordinate.x = dx * t + fielder->pos.x;
+    fielder->actionStartingCoordinate.z = dz * t + fielder->pos.z;
+    fielder->actionDirectionRadians = game_atan2(dx, dz);
+
+    if (slidingCatchLevel != 0) {
+        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 3);
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    } else if (hasTongueCatch) {
+        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    } else if (hasSuction) {
+        fielder->suctionCatchInd = 1;
+        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    }
+
+    hasMagicalCatch = FALSE;
+    if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
+        hasMagicalCatch = TRUE;
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    }
+
+    if (diveFrame < g_Ball.framesUntilBallHitsGround && !g_Ball.framesOnGroundUntilPickedUp) {
+        if (hasTongueCatch || hasSuction || hasMagicalCatch) {
+            outPos.x = fielder->actionStartingCoordinate.x + fielder->actionEndingCoordinateX;
+            outPos.y = fielder->actionStartingCoordinate.y + fielder->diveEndingCoordinateY;
+            outPos.z = fielder->actionStartingCoordinate.z + fielder->actionEndingCoordinateZ;
+            outPos.x = 0.5f * outPos.x;
+            outPos.y = 0.5f * outPos.y;
+            outPos.z = 0.5f * outPos.z;
+            camera_zoomInDuringFielderAction_slide_clamber_wallJump(1, diveFrame - 25, outPos.x, outPos.y, outPos.z);
+        } else {
+            camera_zoomInDuringFielderAction_slide_clamber_wallJump(0, diveFrame - 25,
+                                                                    fielder->actionEndingCoordinateX,
+                                                                    fielder->diveEndingCoordinateY,
+                                                                    fielder->actionEndingCoordinateZ);
+        }
+    }
+    return 1;
+
+fail:
+    if (g_FieldingLogic.dashPtr->dashingFielderIndex != fielderIndex) {
+        return 0;
+    }
+
+lungeDive:
+    if (fielder->AI_Ind && g_FieldingLogic.jumpDiveStruct->aiOutfieldFielderAction != 0) {
+        return 0;
+    }
+
+    if (diveFrame <= 0) {
+        dx = fielder->xMovementDir;
+        dz = fielder->zMovementDir;
+        magnitude = fielderSqrt(dx * dx + dz * dz);
+        if (magnitude <= 0.0f) {
+            return 0;
+        }
+        fn_3_2C238(fielderIndex, 3, slidingCatchArray[slidingCatchLevel * 3 + 2], TRUE, FALSE);
+        diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
+    } else {
+        if (diveFrame < slidingCatchArray[slidingCatchLevel * 3 + 2]) {
+            diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
+        }
+        fn_3_2C238(fielderIndex, 3, diveFrame, TRUE, FALSE);
+        dx = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x - fielder->pos.x;
+        dz = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z - fielder->pos.z;
+        magnitude = fielderSqrt(dx * dx + dz * dz);
+    }
+
+    dx = dx / magnitude;
+    dz = dz / magnitude;
+    calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
+    fielder->actionStartingCoordinate.x = dx * outDist + fielder->pos.x;
+    fielder->actionStartingCoordinate.z = dz * outDist + fielder->pos.z;
+    fielder->actionDirectionRadians = game_atan2(dx, dz);
+    if (hasSuction) {
+        fielder->suctionCatchInd = 1;
+    }
+    return 1;
+
+searchBackward:
+    if (backFrame > specialFielderActionConstants._00[14]) {
+        return 0;
+    }
+    for (diveFrame = backFrame; diveFrame > specialFielderActionConstants._00[15]; diveFrame -= 2) {
+        if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
+                                           g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
+            continue;
+        }
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.y > fielder->hitbox[3]) {
+            continue;
+        }
+
+        dx = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x - fielder->pos.x;
+        dz = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z - fielder->pos.z;
+        dist = fielderSqrt(dx * dx + dz * dz);
+        calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
+        if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
+            outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
+        }
+
+        if (dist / diveFrame < 0.07f) {
+            continue;
+        }
+        goto runningCatch;
     }
     return 0;
 
-finalizeBackward:
-    fielder->catchAnimationFramesCountDown = diveFrame;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 7;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 1;
-    if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-    g_Ball.catchAnimationTotalFrames = 0;
+runningCatch:
+    fn_3_2C238(fielderIndex, 7, diveFrame, FALSE, FALSE);
+    fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x;
+    fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.y;
+    fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z;
 
-    fielder->actionEndingCoordinateX = cand->pos.x;
-    fielder->diveEndingCoordinateY = cand->pos.y;
-    fielder->actionEndingCoordinateZ = cand->pos.z;
-
-    {
-        f32 ratio, magnitude;
-        s16 angle1, angle2, angleDiff;
-
-        dx = fielder->actionEndingCoordinateX - fielder->pos.x;
-        dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
-        magnitude = fielderSqrt(dx * dx + dz * dz);
-        ratio = (magnitude - modWeightBasedFactors[fielder->ModifiedWeightForMag].diveStartOffset) / magnitude;
-        fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
-        fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
-
-        /* inlined setFielderActionAngleType; call form costs 0.53% (see checkpoint) */
-        fielder->actionAngleType = 0;
-        angle1 = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
-                                                g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
-        angle2 = calculateAngleFromCoordinates(fielder->actionStartingCoordinate.x - fielder->pos.x,
-                                                fielder->actionStartingCoordinate.z - fielder->pos.z);
-        angleDiff = angleDifferenceNormalized(angle1, angle2);
-
-        if (angleDiff < -0x500 || angleDiff > 0x500) {
-            fielder->actionAngleType = 3;
-        } else if (angleDiff < -0x200) {
-            fielder->actionAngleType = 1;
-        } else if (angleDiff > 0x200) {
-            fielder->actionAngleType = 2;
-        }
-    }
+    dx = fielder->actionEndingCoordinateX - fielder->pos.x;
+    dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
+    magnitude = fielderSqrt(dx * dx + dz * dz);
+    outDist = magnitude - modWeightBasedFactors[fielder->ModifiedWeightForMag].diveStartOffset;
+    t = outDist / magnitude;
+    fielder->actionStartingCoordinate.x = dx * t + fielder->pos.x;
+    fielder->actionStartingCoordinate.z = dz * t + fielder->pos.z;
+    setFielderActionAngleType(fielderIndex);
     return 1;
 }
 
