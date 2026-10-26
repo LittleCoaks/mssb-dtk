@@ -3576,6 +3576,16 @@ A pass over every game unit, looking for hand-written copies of functions that M
   call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
   barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
   inlined helper bodies, while ours rebuilds it in each. That pattern is still unexplained.
+- **Two same-size twins: tell them apart by one branch target before converting.** In fielder.c,
+  fn_3_308B8 (now setFielderAutoCoords_onlyFlagIfMoving) and setFielderAutoCoords are both 0x1A0 and
+  differ only in whether `goingToAutoLocationInd = 1` sits inside the else-arm. A fuzzy body match put
+  fn_3_308B8 in 25 hosts. Checking whether the then-arm's `b` lands on `li r0,1; stb r0,0x1d9` or past
+  it showed that all 25 inline setFielderAutoCoords, and only fn_3_30A58 and fielding_prePitchAutomovement
+  (its address neighbours) inline fn_3_308B8. A function that other units call with `bl` was the main
+  inlined helper of its own unit: 27 hosts and 51 copies (32 pasted blocks, plus 19 calls to a
+  pointer-form `static inline`). No host lost score (+0.04 .text, 3 new
+  100%). A copy whose argument came from a struct field (`out.x`) scored higher with the field first
+  copied into a local (`x = out.x; f(i, x, z)`) than with the field passed directly (fn_3_4597C, 99.31 vs 99.54).
 
 ### Findings from the minigame_framework second pass (2026-10)
 Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
