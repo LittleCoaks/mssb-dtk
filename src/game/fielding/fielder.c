@@ -15602,37 +15602,7 @@ void checkForCatchBallAction(int fielderIndex) {
         ballThrownToEmptyBaseCatchAttempt(fielderIndex);
         return;
     } else if (fielder->isJump) {
-        if (fielder->distanceFromBall > modWeightBasedFactors[fielder->ModifiedWeightForMag].maxCatchDistance) {
-            return;
-        }
-        if (g_Ball.AtBat_Contact_BallPos.y < fielder->jumpY) {
-            return;
-        }
-        if (g_Ball.AtBat_Contact_BallPos.y > fielder->jumpY + fielder->hitbox[3]) {
-            return;
-        }
-        if (isCoordinateUncatchableTerrain(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-            return;
-        }
-
-        fielder->catchAnimationFramesCountDown = 1;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 6;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        if (g_Ball.framesUntilBallHitsGround > 1) {
-            fielder->caughtBallInAir = 1;
-        }
-        g_Ball.catchAnimationTotalFrames = 0;
+        attemptJumpingCatch(fielderIndex);
         return;
     } else if (fielder->clamberStatus != 0) {
         clamberCheckCatch(fielderIndex);
@@ -15954,8 +15924,6 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
     f32 dist;
     f32 overshootDistance;
     f32 ratio;
-    int angleToBall;
-    int angleToActionStart;
     s16 angleDiff;
     int framesNeeded;
     int i;
@@ -16045,23 +16013,7 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         fielder->actionStartingCoordinate.x = dx * ratio + fielder->pos.x;
         g_Ball.catchAnimationTotalFrames = 0;
         fielder->actionStartingCoordinate.z = dz * ratio + fielder->pos.z;
-        fielder->actionAngleType = 0;
-
-        angleToBall = calculateAngleFromCoordinates(
-            g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
-            g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
-        angleToActionStart = calculateAngleFromCoordinates(
-            fielder->actionStartingCoordinate.x - fielder->pos.x,
-            fielder->actionStartingCoordinate.z - fielder->pos.z);
-        angleDiff = angleDifferenceNormalized(angleToBall, angleToActionStart);
-
-        if (angleDiff < -0x500 || angleDiff > 0x500) {
-            fielder->actionAngleType = 3;
-        } else if (angleDiff < -0x200) {
-            fielder->actionAngleType = 1;
-        } else if (angleDiff > 0x200) {
-            fielder->actionAngleType = 2;
-        }
+        setFielderActionAngleType(fielderIndex);
 
         return 1;
     }
@@ -16070,7 +16022,7 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
 }
 
 // .text:0x0002B5C0 size:0xD4 mapped:0x8066A654
-void fn_3_2B5C0(int fielderIndex) {
+void setFielderActionAngleType(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int angleToBall;
     int angleToActionStart;
@@ -16338,9 +16290,6 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
     f32 dist;
     f32 remainingDist;
     f32 travelDist;
-    s16 angle1;
-    s16 angle2;
-    s16 angleDiff;
     f32 speedFactor;
 
     if (locationThrownTo < 0 || locationThrownTo > 3) {
@@ -16458,21 +16407,7 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
         fielder->actionStartingCoordinate.z = fielder->pos.z + (dz / dist) * speedFactor;
     }
 
-    fielder->actionAngleType = 0;
-
-    angle1 = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
-                                            g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
-    angle2 = calculateAngleFromCoordinates(fielder->actionStartingCoordinate.x - fielder->pos.x,
-                                            fielder->actionStartingCoordinate.z - fielder->pos.z);
-    angleDiff = angleDifferenceNormalized(angle1, angle2);
-
-    if (angleDiff < -0x500 || angleDiff > 0x500) {
-        fielder->actionAngleType = 3;
-    } else if (angleDiff < -0x200) {
-        fielder->actionAngleType = 1;
-    } else if (angleDiff > 0x200) {
-        fielder->actionAngleType = 2;
-    }
+    setFielderActionAngleType(fielderIndex);
 
     return 1;
 }
@@ -16531,7 +16466,7 @@ int checkForAndSetFielderWallActionsOrDives(int fielderIndex) {
 }
 
 // .text:0x0002A164 size:0x124 mapped:0x806691F8
-int uncalledattemptJumpingCatch(int fielderIndex) {
+int attemptJumpingCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->distanceFromBall > modWeightBasedFactors[fielder->ModifiedWeightForMag].maxCatchDistance) {
@@ -17016,6 +16951,7 @@ finalizeBackward:
         fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
         fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
 
+        /* inlined setFielderActionAngleType; call form costs 0.53% (see checkpoint) */
         fielder->actionAngleType = 0;
         angle1 = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
                                                 g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
