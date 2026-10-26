@@ -16832,30 +16832,6 @@ runningCatch:
 }
 
 // .text:0x00028224 size:0xA84 mapped:0x806672B8
-static inline void wallJump_setCatchState(InMemFielder* fielder, int idx, int autoCatchOnly) {
-    fielder->catchAnimationFramesCountDown = idx;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 4;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = autoCatchOnly;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (idx < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    fielder->action = 3;
-    g_Ball.catchAnimationTotalFrames = 0;
-}
-
 int wallJumpInitialization(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 hitboxZ = fielder->hitbox[3];
@@ -16913,9 +16889,9 @@ int wallJumpInitialization(int fielderIndex) {
 
     dx = fielder->pos.x - fielder->wallActionLocationX;
     dz = fielder->pos.z - fielder->wallactionLocationZ;
-    dzSq = dz * dz;
     dxSq = dx * dx;
-    magnitude = fielderSqrt(dzSq + dxSq);
+    dzSq = dz * dz;
+    magnitude = fielderSqrt(dxSq + dzSq);
 
     if (magnitude > fielderActionConstants[4]) {
         goto farWall;
@@ -16983,10 +16959,10 @@ int wallJumpInitialization(int fielderIndex) {
     if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y >
         fielderActionConstants[9] + fielder->hitbox[3]) {
         fielder->wallJumpApexY = fielderActionConstants[9];
-        wallJump_setCatchState(fielder, idx, TRUE);
+        fn_3_2C238(fielderIndex, 4, idx, TRUE, FALSE);
     } else {
         fielder->wallJumpApexY = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y - fielder->hitbox[3];
-        wallJump_setCatchState(fielder, idx, FALSE);
+        fn_3_2C238(fielderIndex, 4, idx, FALSE, FALSE);
     }
     fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
 
@@ -17030,7 +17006,7 @@ farWall:
     fielder->wallActionFacingAngle = game_atan2(normOffX, normOffZ);
     fielder->wallActionCurrentHeight = 0.0f;
 
-    wallJump_setCatchState(fielder, idx, TRUE);
+    fn_3_2C238(fielderIndex, 4, idx, TRUE, FALSE);
     fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
 
     return 1;
