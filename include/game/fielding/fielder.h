@@ -31,7 +31,7 @@ void fn_3_27738(int fielderIndex);
 void fn_3_27764(int fielderIndex);
 void catchAnimationProgression(int fielderIndex);
 int clamberCheckCatch(int fielderIndex);
-int wallJumpSOmething3(int fielderIndex);
+int wallSplatInitialization(int fielderIndex);
 int wallJumpInitialization(int fielderIndex);
 int divingCatch(int fielderIndex);
 int uncalledattemptJumpingCatch(int fielderIndex);

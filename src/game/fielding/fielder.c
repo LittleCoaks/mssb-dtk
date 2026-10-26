@@ -16617,43 +16617,7 @@ int checkForAndSetFielderWallActionsOrDives(int fielderIndex) {
                 return 1;
             }
         } else if (fielder->wallActionAbility == 1) {
-            int type;
-
-            if ((0.0f == fielder->xMovementDir && 0.0f == fielder->zMovementDir) ||
-                fielder->runningAngle < 0) {
-                type = 0;
-            } else {
-                CollisionStruct collision;
-                VecSrcDst inVec;
-                f32 magnitude;
-
-                inVec.src.x = fielder->pos.x;
-                inVec.dst.y = -fielderActionConstants[29];
-                inVec.src.y = -fielderActionConstants[29];
-                inVec.src.z = fielder->pos.z;
-                inVec.dst.x = fielder->xMovementDir * fielderActionConstants[28] + fielder->pos.x;
-                inVec.dst.z = fielder->zMovementDir * fielderActionConstants[28] + fielder->pos.z;
-
-                type = checkCollision(&inVec, &collision, 0, 0) & 0x7F;
-                if (type != BALL_COLLISION_TYPE_WALL) {
-                    type = 0;
-                } else {
-                    fielder->wallSplatStatus = 1;
-                    fielder->wallSplatStageCountDown = specialFielderActionConstants._00[7];
-                    fielder->wallActionLocationX = collision.position.x;
-                    fielder->wallActionLocationY = fielderActionConstants[29];
-                    fielder->wallactionLocationZ = collision.position.z;
-                    fielder->wallActionCurrentHeight = 0.0f;
-
-                    magnitude = fielderSqrt(SQ(collision.normal.x) + SQ(collision.normal.z));
-                    fielder->actionDirectionRadians = collision.normal.x / magnitude;
-                    fielder->wallActionFacingAngle = collision.normal.z / magnitude;
-                    fielder->currentVelocity = 0.0f;
-                    type = 1;
-                }
-            }
-
-            if (type != 0) {
+            if (wallSplatInitialization(fielderIndex) != 0) {
                 g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
                 return 1;
             }
@@ -17399,7 +17363,7 @@ farWall:
 }
 
 // .text:0x00027FF4 size:0x230 mapped:0x80667088
-int wallJumpSOmething3(int fielderIndex) {
+int wallSplatInitialization(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     VecSrcDst inVec;
     CollisionStruct collision;
