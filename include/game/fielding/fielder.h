@@ -125,7 +125,7 @@ void liveBallFielderControlHumanTeam(void);
 void checkIfPlayerNeedsToMoveToCatchBall(int fielderIndex);
 void autoMovement19_foulBall(int fielderIndex);
 void autoMovement0_stayStill_exceptForSpecialActions(int fielderIndex);
-int fn_3_3C270(int fielderIndex);
+int setFielderToCoverHome(int fielderIndex);
 int fn_3_3C484(int fielderIndex);
 int runOffBaseOverride(int fielderIndex);
 int fn_3_3CB8C(int fielderIndex);

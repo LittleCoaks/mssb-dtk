@@ -9304,8 +9304,6 @@ void autoMovement17_runningOffField(int fielderIndex) {
 void autoMovement9_OffBase_coverHome(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int i;
-    f32 x;
-    f32 z;
 
     if (fielder->animationRelatedInd != 0) {
         return;
@@ -9437,16 +9435,7 @@ ballCheckDone:
     }
 
     if (fielder->inBasePath != 0) {
-        fielder->locationResponsibleForCovering = 14;
-        fielder->isResponsibleForCoveringALocation = 2;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 14);
-        }
-        fielder->fielderVeloAdjustmentCode = 0xb;
-
-        x = base_MoundCoordinates[4].x;
-        z = base_MoundCoordinates[4].z;
-        setFielderAutoCoords(fielderIndex, x, z);
+        setFielderToCoverHome(fielderIndex);
     } else {
         fielder->velocityX = 0.0f;
         fielder->velocityZ = 0.0f;
@@ -9746,7 +9735,7 @@ int fn_3_3C484(int fielderIndex) {
 }
 
 // .text:0x0003C270 size:0x214 mapped:0x8067B304
-int fn_3_3C270(int fielderIndex) {
+int setFielderToCoverHome(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     fielder->locationResponsibleForCovering = 14;
     fielder->isResponsibleForCoveringALocation = 2;
