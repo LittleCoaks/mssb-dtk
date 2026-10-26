@@ -15571,15 +15571,9 @@ void checkForCatchBallAction(int fielderIndex) {
 
     {
         s16 framesAfterThrow = g_Ball.matchFramesAndBallAngle.framesAfterReceivingThrow;
-        if (framesAfterThrow != 0) {
-            if (framesAfterThrow < 0x1e) {
-                return;
-            }
-            if (fielder->fielderReadiness == 0) {
-                if (framesAfterThrow < 0x14) {
-                    return;
-                }
-            }
+        if (framesAfterThrow != 0 &&
+            (framesAfterThrow < 30 || (fielder->fielderReadiness == 0 && framesAfterThrow < 20))) {
+            return;
         }
     }
 
@@ -15617,10 +15611,11 @@ void checkForCatchBallAction(int fielderIndex) {
     } else if (checkIfCatchOccurs(fielderIndex) || checkIfRunningCatchOccurs(fielderIndex)) {
         // fall through to shared post-catch handling below
     } else if (g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake != 0) {
-        if (checkForAndSetFielderWallActionsOrDives(fielderIndex) == 0) {
+        if (checkForAndSetFielderWallActionsOrDives(fielderIndex) != 0) {
+            g_FieldingLogic.jumpDiveStruct->aiFieldingDashIndicator[0] = 0;
+        } else {
             return;
         }
-        g_FieldingLogic.jumpDiveStruct->aiFieldingDashIndicator[0] = 0;
     } else {
         evaluateFlyBallCatch(fielderIndex);
         return;
