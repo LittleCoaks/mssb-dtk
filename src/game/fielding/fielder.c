@@ -17263,50 +17263,12 @@ void catchAnimationProgression(int fielderIndex) {
     }
 
     if (g_Ball.fielderWBallIndex >= 0) {
-        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD &&
-            fielderIndex != g_FieldingLogic.selectedFielder && fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 12);
-        }
-        fielder->catchAnimation = 0;
-        fielder->currentVelocity = 0.0f;
-        fielder->framesSinceThrowWasMade = 0;
-        fielder->playerNeedsToMoveToCatchThrowInd = 0;
-        fielder->fielderMadeThrow = 0;
-        fielder->clamberStatus = 0;
-        fielder->wallJumpStatus = 0;
-        if (fielder->unknown_Unused != 0) {
-            fielder->unknown_Unused = 2;
-        }
-        if (g_Ball.fielderWBallIndex >= 0 && g_Ball.catchAnimationTotalFrames != 0) {
-            g_Ball.catchAnimationTotalFrames = 0;
-            g_Ball.AtBat_Contact_BallPos.x = g_Ball.fielderActionCatchCoords.x;
-            g_Ball.AtBat_Contact_BallPos.y = g_Ball.fielderActionCatchCoords.y;
-            g_Ball.AtBat_Contact_BallPos.z = g_Ball.fielderActionCatchCoords.z;
-        }
+        finishFielderCatchAnimation(fielderIndex);
         return;
     }
 
     if (g_Ball.deadBallReason) {
-        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD &&
-            fielderIndex != g_FieldingLogic.selectedFielder && fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 12);
-        }
-        fielder->catchAnimation = 0;
-        fielder->currentVelocity = 0.0f;
-        fielder->framesSinceThrowWasMade = 0;
-        fielder->playerNeedsToMoveToCatchThrowInd = 0;
-        fielder->fielderMadeThrow = 0;
-        fielder->clamberStatus = 0;
-        fielder->wallJumpStatus = 0;
-        if (fielder->unknown_Unused != 0) {
-            fielder->unknown_Unused = 2;
-        }
-        if (g_Ball.fielderWBallIndex >= 0 && g_Ball.catchAnimationTotalFrames != 0) {
-            g_Ball.catchAnimationTotalFrames = 0;
-            g_Ball.AtBat_Contact_BallPos.x = g_Ball.fielderActionCatchCoords.x;
-            g_Ball.AtBat_Contact_BallPos.y = g_Ball.fielderActionCatchCoords.y;
-            g_Ball.AtBat_Contact_BallPos.z = g_Ball.fielderActionCatchCoords.z;
-        }
+        finishFielderCatchAnimation(fielderIndex);
         return;
     }
 
@@ -17367,7 +17329,7 @@ void catchAnimationProgression(int fielderIndex) {
 }
 
 // .text:0x00027764 size:0xFC mapped:0x806667F8
-void fn_3_27764(int fielderIndex) {
+void finishFielderCatchAnimation(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD && fielderIndex != g_FieldingLogic.selectedFielder &&
@@ -17425,33 +17387,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (g_Ball.ballState == BALL_STATE_HELD) {
-        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD &&
-            fielderIndex != g_FieldingLogic.selectedFielder &&
-            fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 12);
-        }
-
-        fielder->catchAnimation = 0;
-        fielder->currentVelocity = 0.0f;
-        fielder->framesSinceThrowWasMade = 0;
-        fielder->playerNeedsToMoveToCatchThrowInd = 0;
-        fielder->fielderMadeThrow = 0;
-        fielder->clamberStatus = 0;
-        fielder->wallJumpStatus = 0;
-        if (fielder->unknown_Unused != 0) {
-            fielder->unknown_Unused = 2;
-        }
-
-        if (g_Ball.fielderWBallIndex < 0) {
-            return;
-        }
-        if (g_Ball.catchAnimationTotalFrames == 0) {
-            return;
-        }
-        g_Ball.catchAnimationTotalFrames = 0;
-        g_Ball.AtBat_Contact_BallPos.x = g_Ball.fielderActionCatchCoords.x;
-        g_Ball.AtBat_Contact_BallPos.y = g_Ball.fielderActionCatchCoords.y;
-        g_Ball.AtBat_Contact_BallPos.z = g_Ball.fielderActionCatchCoords.z;
+        finishFielderCatchAnimation(fielderIndex);
         return;
     }
 
@@ -18205,29 +18141,7 @@ int processFielderKnockout(int fielderIndex, sAng knockOutAngle) {
     }
 
     if (fielder->catchAnimation != 0) {
-        if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD &&
-            fielderIndex != g_FieldingLogic.selectedFielder && fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 12);
-        }
-
-        fielder->catchAnimation = 0;
-        fielder->currentVelocity = 0.0f;
-        fielder->framesSinceThrowWasMade = 0;
-        fielder->playerNeedsToMoveToCatchThrowInd = 0;
-        fielder->fielderMadeThrow = 0;
-        fielder->clamberStatus = 0;
-        fielder->wallJumpStatus = 0;
-
-        if (fielder->unknown_Unused != 0) {
-            fielder->unknown_Unused = 2;
-        }
-
-        if (g_Ball.fielderWBallIndex >= 0 && g_Ball.catchAnimationTotalFrames != 0) {
-            g_Ball.catchAnimationTotalFrames = 0;
-            g_Ball.AtBat_Contact_BallPos.x = g_Ball.fielderActionCatchCoords.x;
-            g_Ball.AtBat_Contact_BallPos.y = g_Ball.fielderActionCatchCoords.y;
-            g_Ball.AtBat_Contact_BallPos.z = g_Ball.fielderActionCatchCoords.z;
-        }
+        finishFielderCatchAnimation(fielderIndex);
     }
 
     fielder->runningCatchCountDown = 0;

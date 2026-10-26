@@ -28,7 +28,7 @@ void calculateBobble(int fielderIndex);
 void updateVariablesPostCatch(int fielderIndex);
 void processFielderAutoCatch(void);
 void fn_3_27738(int fielderIndex);
-void fn_3_27764(int fielderIndex);
+void finishFielderCatchAnimation(int fielderIndex);
 void catchAnimationProgression(int fielderIndex);
 int clamberCheckCatch(int fielderIndex);
 int wallSplatInitialization(int fielderIndex);
