@@ -4960,8 +4960,6 @@ void autoMovement1_coverBase(int fielderIndex) {
         } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == 0) {
             f32 x;
             f32 z;
-            f32 diffX;
-            f32 diffZ;
 
             if (fielder->pitcherHeadingToCover1stOr3rd == 1) {
                 if (pitcher->locationResponsibleForCovering == 1) {
@@ -5737,8 +5735,6 @@ void autoMovement7_8_outfiederNoCatch_Phase1(int fielderIndex) {
     f32 offsetX = 0.0f;
     f32 targetX;
     f32 targetZ;
-    f32 dx;
-    f32 dz;
 
     if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) == 0) {
         if (fielder->presetLocationToStandAt >= 2) {
@@ -5777,8 +5773,6 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
     f32 moundZ;
     f32 targetX;
     f32 targetZ;
-    f32 diffX;
-    f32 diffZ;
 
     result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
     switch (result) {
@@ -6220,8 +6214,6 @@ void fn_3_49EA8(int fielderIndex) {
 void autoMovement24_goTowardsHitBall_humanTeam(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int result;
-    f32 diffZ;
-    f32 diffX;
     VecXYZ dropSpot;
     f32 x;
     f32 z;
@@ -6339,8 +6331,6 @@ void secondaryOutfielderWhenToStopMoving(int fielderIndex) {
     f32 normZ;
     f32 intendedX;
     f32 intendedZ;
-    f32 deltaZ;
-    f32 deltaX;
 
     do {
     if (g_Ball.pauseBallMovementWhenInPlant) {
@@ -6540,8 +6530,6 @@ void autoMovement5(int fielderIndex) {
     int targetBase;
     f32 z;
     f32 x;
-    f32 dz;
-    f32 dx;
 
     result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
     switch (result) {
@@ -6947,8 +6935,6 @@ void checkIfCutoffIsntAtThrowDestination(int fielderIndex) {
             dist = fielderSqrt(sqz + sqx);
 
             if (dist > fielder->hitbox[0]) {
-                f32 dz2;
-                f32 dx2;
 
                 fielder->playerNeedsToMoveToCatchThrowInd = 1;
                 setFielderAutoCoords(fielderIndex, predX, predZ);
@@ -7831,8 +7817,6 @@ void updateFielderPosition(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 outX;
     f32 outZ;
-    f32 dx;
-    f32 dz;
     f32 x5m;
     f32 z5m;
 
@@ -7887,8 +7871,6 @@ void fn_3_42A00(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 x;
     f32 z;
-    f32 dz;
-    f32 dx;
 
     x = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x;
     z = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z;
@@ -7905,8 +7887,6 @@ void fn_3_42850(int fielderIndex) {
     f32 contactX = g_Ball.AtBat_Contact_BallPos.x;
     f32 contactZ = g_Ball.AtBat_Contact_BallPos.z;
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 dz;
-    f32 dx;
 
     setFielderAutoCoords(fielderIndex, contactX, contactZ);
 }
@@ -9155,8 +9135,6 @@ void autoMovement20_pitcherLinedriveRelated(int fielderIndex) {
 void autoMovement14_infieldSupport(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     s16 location;
-    f32 dx;
-    f32 dz;
 
     if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) != 0) {
         return;
@@ -9346,8 +9324,6 @@ void autoMovement17_runningOffField(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 x;
     f32 z;
-    f32 diffX;
-    f32 diffZ;
     f32 outX;
     f32 outZ;
 
@@ -9423,8 +9399,6 @@ void autoMovement9_OffBase_coverHome(int fielderIndex) {
     int i;
     f32 x;
     f32 z;
-    f32 diffZ;
-    f32 diffX;
 
     if (fielder->animationRelatedInd != 0) {
         return;
