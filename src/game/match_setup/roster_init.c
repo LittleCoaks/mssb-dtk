@@ -8,10 +8,7 @@
 extern u8 aILevel[4];
 extern const u8 throwSpeedArray[];
 extern int LERPToNewRange_Float(int value, int inMin, int inMax, int outMin, int outMax);
-extern f32 runnerVelocityLookup[];
-extern f32 lbl_3_data_4BC4[];
-extern s16 lbl_3_data_4C54[];
-extern u8 lbl_3_data_775C;
+extern u8 batterRunDelayFrames;
 extern s16 lbl_3_data_460C[6];
 extern s8 lineUpInfoStruct[2][9][4];
 extern f32 lbl_3_data_5FC4[12];
@@ -478,7 +475,7 @@ void initializeInMemRunner(int rosterID, int runnerIdx) {
     runner->charID = charStats->stats.CharID;
     runner->speed = charStats->stats.Speed;
     runner->weight = charStats->stats.Weight;
-    runner->delayBeforeStartingToRun = lbl_3_data_775C;
+    runner->delayBeforeStartingToRun = batterRunDelayFrames;
     runner->aIStrength0Special3Weak =
         g_GameLogic.AIDifficulty0Special3Weak[g_GameLogic.homeTeamBattingInd_fieldingTeam];
     runner->characterClass = charStats->stats.CharacterClass;
@@ -516,16 +513,16 @@ void setRunnerSpeedConstants(int runnerIdx) {
     runner->maximumBaseVelocity = LinearInterpolateToNewRange(
         runner->speed, lower, upper, runnerVelocityLookup[lower / 10], runnerVelocityLookup[upper / 10]);
     runner->baseAcceleration = LinearInterpolateToNewRange(
-        runner->speed, 0.0f, 100.0f, lbl_3_data_4BC4[0], lbl_3_data_4BC4[1]);
-    runner->baseAccelerationWhileChaingingDirection = LinearInterpolateToNewRange(
-        runner->speed, 0.0f, 100.0f, lbl_3_data_4BC4[2], lbl_3_data_4BC4[3]);
+        runner->speed, 0.0f, 100.0f, runnerSpeedScaling.accel.atSpeed0, runnerSpeedScaling.accel.atSpeed100);
+    runner->baseAccelerationWhileChangingDirection = LinearInterpolateToNewRange(
+        runner->speed, 0.0f, 100.0f, runnerSpeedScaling.turnAccel.atSpeed0, runnerSpeedScaling.turnAccel.atSpeed100);
     runner->maxMashVeloAdjustment = LinearInterpolateToNewRange(
-        runner->speed, 0.0f, 100.0f, lbl_3_data_4BC4[4], lbl_3_data_4BC4[5]);
+        runner->speed, 0.0f, 100.0f, runnerSpeedScaling.maxMashBonus.atSpeed0, runnerSpeedScaling.maxMashBonus.atSpeed100);
     runner->percentAddedPerMash =
         1.0f / LinearInterpolateToNewRange(runner->speed, 0.0f, 100.0f,
-                                                         lbl_3_data_4BC4[6], lbl_3_data_4BC4[7]);
-    runner->stamina_MashPercentTakenAwayPerFrame =
+                                                         runnerSpeedScaling.pressesToFillMash.atSpeed0, runnerSpeedScaling.pressesToFillMash.atSpeed100);
+    runner->mashDecayPerFrame =
         1.0f / LinearInterpolateToNewRange(runner->speed, 0.0f, 100.0f,
-                                                         lbl_3_data_4BC4[8], lbl_3_data_4BC4[9]);
-    runner->FramesUntilNotSprinting = lbl_3_data_4C54[7];
+                                                         runnerSpeedScaling.mashDecayFrames.atSpeed0, runnerSpeedScaling.mashDecayFrames.atSpeed100);
+    runner->mashHoldFrames = runnerTimingConsts.mashHoldFrames;
 }

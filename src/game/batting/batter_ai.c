@@ -463,10 +463,10 @@ void batterAIMoveBatter(void) {
     if (g_AiLogic.boxVerticalPoint > hitbox->VerticalRangeBack) {
         g_AiLogic.boxVerticalPoint = hitbox->VerticalRangeBack;
     }
-    g_Batter.batPosition2.x = g_AiLogic.boxHorizontalPoint;
-    g_Batter.batPosition2.z = g_AiLogic.boxVerticalPoint;
-    g_Batter.batterPos.x = g_Batter.batPosition2.x + hitbox->batOffsetFromBatterX;
-    g_Batter.batterPos.z = g_Batter.batPosition2.z + hitbox->batOffsetFromBatterZ;
+    g_Batter.boxPosition.x = g_AiLogic.boxHorizontalPoint;
+    g_Batter.boxPosition.z = g_AiLogic.boxVerticalPoint;
+    g_Batter.batterPos.x = g_Batter.boxPosition.x + hitbox->batOffsetFromBatterX;
+    g_Batter.batterPos.z = g_Batter.boxPosition.z + hitbox->batOffsetFromBatterZ;
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
         g_Batter.batterPos.x = -g_Batter.batterPos.x;
     }
@@ -732,9 +732,9 @@ void batterAIRNGValueSetting(void) {
 
 // .text:0x00020A60 size:0x50 mapped:0x8065FAF4
 void resetBatterPreAB(void) {
-    g_AiLogic.boxHorizontalPoint = g_Batter.batPosition2.x;
-    g_AiLogic.boxVerticalPoint = g_Batter.batPosition2.z;
-    g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
+    g_AiLogic.boxHorizontalPoint = g_Batter.boxPosition.x;
+    g_AiLogic.boxVerticalPoint = g_Batter.boxPosition.z;
+    g_AiLogic.batterAIDesiredZPosInBox = initialBoxPosition.z;
     g_AiLogic.batterAIABStrat = -1;
     g_AiLogic._67 = 0;
     g_AiLogic.batterAIBuntPossibility = 1;
@@ -755,11 +755,11 @@ void resetLastPitchData(void) {
 // .text:0x00020AE0 size:0x50 mapped:0x8065FB74
 void resetBatterAIBoxPosition(void) {
     g_AiLogic.batterAIDesiredXPosInBox = lbl_3_rodata_930;
-    g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
+    g_AiLogic.batterAIDesiredZPosInBox = initialBoxPosition.z;
     g_AiLogic._10 = lbl_3_rodata_938;
     g_AiLogic._14 = lbl_3_rodata_93C;
     g_AiLogic._18 = lbl_3_rodata_938;
     g_AiLogic._1C = lbl_3_rodata_93C;
     g_AiLogic.batterAIDesiredXPosInBox = lbl_3_rodata_930;
-    g_AiLogic.batterAIDesiredZPosInBox = maybeInitialBatPos.z;
+    g_AiLogic.batterAIDesiredZPosInBox = initialBoxPosition.z;
 }

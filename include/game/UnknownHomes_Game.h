@@ -93,7 +93,7 @@ typedef struct _InMemBatterType {
     /*0x40*/ f32 contactQualityAbsolute;
     /*0x44*/ f32 contactQuality;
     /*0x48*/ f32 predictedPitchXWhenBallReachesBatter;
-    /*0x4C*/ VecXYZ batPosition2;
+    /*0x4C*/ VecXYZ boxPosition; // position in the batter's box (stick-moved, not mirrored), clamped to BatterHitbox ranges
     /*0x58*/ f32 chargeUp;
     /*0x5C*/ f32 chargeDown;
     /*0x60*/ s16 rosterID;
@@ -479,7 +479,7 @@ extern InMemPitcherType g_Pitcher;
 extern InMemBallType g_Ball;
 extern InMemBatterType g_Batter;
 
-extern VecXYZ maybeInitialBatPos;
+extern VecXYZ initialBoxPosition; // boxPosition at the start of every at-bat, before clamping
 extern f32 charSizeMultipliers[NUM_CHOOSABLE_CHARACTERS][2];
 
 #define FRAME_COUNT_HIT_WINDOW 15
@@ -940,8 +940,8 @@ typedef struct _GameControlsStruct {
     /*0x0E4*/ u32 runnerAIInd[2];
     /*0x0EC*/ u32 teams[2]; // vague name, unsure
     /*0x0F4*/ s32 Team_CaptainRosterLoc[2];
-    /*0x0FC*/ u16 FrameCountOfCurrentPitch;
-    /*0x0FE*/ u16 FrameCountOfCurrentAtBat_Copy;
+    /*0x0FC*/ u16 framesInGameStatus;      // frames since the last SetGameStatus
+    /*0x0FE*/ u16 framesInGameStatus_copy; // reset and counted alongside framesInGameStatus
     /*0x100*/ s16 CountdownUntilFade;
     /*0x102*/ s16 _102;
     /*0x104*/ s16 framePlayEnd;
@@ -1141,7 +1141,7 @@ typedef struct _MinigameSelectSlot {
 typedef struct _MinigamePlayerSlots {
     /*0x000*/ s8 characterIndex[4];
     /*0x004*/ u8 charID[4]; // CharID of each participant's character, 0xFF = none
-    /*0x008*/ u8 superstarBoostInd[4]; // stats boosted by stonNiceContactIncrement
+    /*0x008*/ u8 superstarBoostInd[4]; // stats boosted by superstarStatBonus
     /*0x00C*/ E(u8, BOOL) aiControlledInd[4];
     /*0x010*/ u8 aiStrength[4];
     /*0x014*/ s8 playOrder[4]; // shuffled participant order
@@ -2138,7 +2138,7 @@ typedef struct {
     /* 0x3C */ f32 _3C;
     /* 0x40 */ s16 AIFrameToBeginPitch;
     /* 0x42 */ u16 _42;
-    /* 0x44 */ s16 aiMashPressesRemaining; // lbl_3_data_1C58[difficulty][1] presses per play
+    /* 0x44 */ s16 aiMashPressesRemaining; // aiMashConsts[difficulty].presses per play
     /* 0x46 */ u8 _46;
     /* 0x47 */ u8 _47;
     /* 0x48 */ u8 unused_highUrgencySituationTracker;
@@ -2187,7 +2187,7 @@ typedef struct {
     /* 0x74 */ u8 _74;
     /* 0x75 */ u8 batterAIStealIndicator;
     /* 0x76 */ u8 batterAIStealingStartFrame;
-    /* 0x77 */ u8 aiMashCooldownFrames; // lbl_3_data_1C58[difficulty][2] frames between press rolls
+    /* 0x77 */ u8 aiMashCooldownFrames; // aiMashConsts[difficulty].cooldownFrames between press rolls
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
     /* 0x7C */ VecXZ _7C[4];

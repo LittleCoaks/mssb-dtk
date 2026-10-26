@@ -99,7 +99,7 @@ void spline3D_evaluate(Vec* out, Vec* points, int count, f32 t) {
 }
 
 // .text:0x000025E0 size:0x304 mapped:0x80641674
-void running_roundBasePosition(f32 frame, VecXZ* outPos, VecXZ* points, int count) {
+void spline2D_evaluatePoints(f32 frame, VecXZ* outPos, VecXZ* points, int count) {
     int i;
     f32 valuesX[17];
     f32 valuesZ[17];

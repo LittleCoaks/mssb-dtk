@@ -15069,7 +15069,7 @@ void moveFieldersFromDugoutToStartingPositions(void) {
         dist = fielderSqrt(dx * dx + dz * dz);
 
         if (dist < 0.3f ||
-            fielder->unused_rngValueRelatedToDugoutLocation > g_GameLogic.FrameCountOfCurrentPitch) {
+            fielder->unused_rngValueRelatedToDugoutLocation > g_GameLogic.framesInGameStatus) {
             fielder->velocityX = 0.0f;
             fielder->velocityZ = 0.0f;
             fielder->currentVelocity = 0.0f;

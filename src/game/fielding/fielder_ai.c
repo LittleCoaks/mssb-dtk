@@ -1185,7 +1185,7 @@ void fn_3_A89D4(void) {
         for (i = 0; i < 4; i++) {
             if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD &&
                 (g_Runners[i].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE ||
-                 g_Runners[i].tagUpStatus == TAG_UP_TYPE_MUST_RETURN || g_Runners[i].overrunBaseStage >= 3 ||
+                 g_Runners[i].tagUpStatus == TAG_UP_TYPE_MUST_RETURN || g_Runners[i].overrunBaseStage >= OVERRUN_STAGE_RETURN ||
                  (g_Runners[i].percentTowardsNextBase <= 0.15f && g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS) ||
                  (g_Runners[i].percentTowardsNextBase >= 0.15f &&
                   g_Runners[i].percentTowardsNextBase <= 0.8f))) {
@@ -2328,7 +2328,7 @@ void fieldingAIPlayStrategy(void) {
             } else if (g_Runners[i].baseStandingOn != -1 &&
                        g_Runners[i].forceOutCd <= FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE) {
                 fn_3_A53DC(i);
-            } else if (g_Runners[i].overrunBaseStage == 0) {
+            } else if (g_Runners[i].overrunBaseStage == OVERRUN_STAGE_NONE) {
                 if (g_Runners[i].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
                     runnerTimeToCoverBase(i);
                 } else {
@@ -3458,7 +3458,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
                 (hexBaserunnerTracker == 0x100 && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 6 &&
                  fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) ||
                 (hexBaserunnerTracker == 0x10 && fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 5 &&
-                 g_Runners[originalBaseOfRunnerInThisBaseline[1]].overrunBaseStage == 0 &&
+                 g_Runners[originalBaseOfRunnerInThisBaseline[1]].overrunBaseStage == OVERRUN_STAGE_NONE &&
                  fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0)) {
                 break;
             }

@@ -5,6 +5,46 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 
+typedef struct _CcsGameplayConsts {
+    /* 0x00 */ f32 biteRadius;
+    /* 0x04 */ f32 chaseSpeed;
+    /* 0x08 */ f32 returnSpeed;
+    /* 0x0C */ f32 launchVelocityY;
+    /* 0x10 */ f32 chaseHopVelocityY;
+    /* 0x14 */ f32 returnHopVelocityY;
+    /* 0x18 */ f32 gravity;
+    /* 0x1C */ f32 knockbackSpeed;
+    /* 0x20 */ f32 itemPickupRange[4]; // indexed by item type; [3] is the powerup
+    /* 0x30 */ f32 cameraShakeFrames[2]; // [0] chomp landing, [1] bite
+    /* 0x38 */ f32 cameraShakeMagnitude[2];
+    /* 0x40 */ f32 speedBoostPerPoint;
+    /* 0x44 */ f32 maxSpeedBoost;
+} CcsGameplayConsts; // size: 0x48
+
+typedef struct _CcsTimingConsts {
+    /* 0x00 */ s16 turnOverFadeFrames;
+    /* 0x02 */ s16 knockbackFrames;
+    /* 0x04 */ s16 hitRecoverFrames;
+    /* 0x06 */ s16 itemRespawnMinFrames;
+    /* 0x08 */ s16 itemRespawnMaxFrames;
+    /* 0x0A */ s16 specialItem0MinSeconds;
+    /* 0x0C */ s16 specialItem0MaxSeconds;
+    /* 0x0E */ s16 specialItem1MinSeconds;
+    /* 0x10 */ s16 specialItem1MaxSeconds;
+    /* 0x12 */ s16 chompJumpFrames;
+    /* 0x14 */ s16 unk_14;
+    /* 0x16 */ s16 unk_16;
+} CcsTimingConsts; // size: 0x18
+
+typedef struct _CcsSpeedMults {
+    /* 0x0 */ f32 unk_0;
+    /* 0x4 */ f32 powerupBoost;
+} CcsSpeedMults;
+
+extern CcsGameplayConsts ccs_gameplayConsts;
+extern CcsTimingConsts ccs_timingConsts;
+extern CcsSpeedMults ccs_speedMults;
+
 void ccsAI_clearControlled(void);
 void ccsAI_update(void);
 u8 ccsAI_isBehindInPoints(s8 player);

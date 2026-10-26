@@ -977,7 +977,7 @@ static inline u32 pmHudSceneShouldClose(void) {
             return TRUE;
         }
     }
-    return g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.FrameCountOfCurrentPitch == 0;
+    return g_GameLogic.gameStatus == GAME_STATUS_MVP_END_GAME && g_GameLogic.framesInGameStatus == 0;
 }
 
 void fn_3_11E7C4(void) {
@@ -1119,7 +1119,7 @@ void fn_3_11E364(void) {
 }
 
 void fn_3_11E308(void) {
-    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+    if (g_GameLogic._125 == TRANSITION_CALCULATION_TYPE_1 && g_GameLogic.framesInGameStatus_copy == 0) {
         ((MinigameHudScene*)insertGraphicDrawingFunction(minigame_pointsTally, 2))->_18 = 1;
     }
 }

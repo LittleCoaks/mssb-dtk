@@ -454,7 +454,7 @@ void practiceRelatedMenu(void) {
         ANIM_BYTE(0x2D77) = FALSE;
         ANIM_BYTE(0x307A) = 5;
         g_Minigame.charLoadSlot = -1;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_Practice.characterLoadStarted = FALSE;
         g_Practice.practiceState++;
         for (i = 0; i < 4; i++) {
@@ -464,14 +464,14 @@ void practiceRelatedMenu(void) {
     }
     case PRACTICE_STATE_1: {
         changeScene(1, 6);
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic.framesInGameStatus_copy == 1) {
             InputStruct* input = &g_Controls[g_Practice.homeAway];
             int sel = cssCursorOnBottomControl_maybe(g_Practice.homeAway, input->buttonInput, input->newButtonInput, input->_08, 0);
 
             g_Minigame.selectSlots[g_Practice.homeAway].charID = sel;
             g_Minigame.battingHandedness[g_Practice.homeAway] = PLAYER_KEY(g_Minigame.selectSlots[g_Practice.homeAway].charID);
         }
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+        if (g_GameLogic.framesInGameStatus_copy > 30) {
             g_Minigame.charSelectState = 0;
             g_Practice.practiceState++;
         }
@@ -486,7 +486,7 @@ void practiceRelatedMenu(void) {
         if (!practice_relatedToSettingCharacters()) {
             break;
         }
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 0x5A) {
+        if (g_GameLogic.framesInGameStatus_copy >= 0x5A) {
             changeScene(3, 6);
         }
         if (lbl_8037169C[0x13] != 0) {
@@ -507,11 +507,11 @@ void practiceRelatedMenu(void) {
         setTutorialState(TUTORIAL_STATE_0);
         break;
     case PRACTICE_STATE_5:
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_Practice.practiceState++;
         break;
     case PRACTICE_STATE_6:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 15) {
+        if (g_GameLogic.framesInGameStatus_copy >= 15) {
             practiceMenu_setScreen(5);
         }
         break;
@@ -547,11 +547,11 @@ void fn_3_B49D4(void) {
                 g_Minigame.selectSlots[i].confirmedInd = TRUE;
                 addOrRemoveCharacterToTeam(i, g_Minigame.selectSlots[i].charID, TRUE);
                 playPlayerSelectedSound(g_Minigame.selectSlots[i].charID);
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_Practice.practiceState = PRACTICE_STATE_3;
             }
         } else if (input->newButtonInput & INPUT_BUTTON_B) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_Practice.practiceState = PRACTICE_STATE_5;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
             break;

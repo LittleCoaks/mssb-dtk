@@ -83,7 +83,7 @@ extern void handleDVDCancelAndARQRemoval(void);
 extern int practice_checkForPause(void);
 extern void match_checkForPause(void);
 extern void transitionToPauseScreen(void);
-extern void ballPhysica(void);
+extern void ballPhysics(void);
 extern void fielderMainFunction(void);
 extern void scoutFlag_checkMissionSuccess(void);
 extern void resetScoutChanceTier(void);
@@ -290,10 +290,10 @@ void exhibitionGameTransitionCalculations(void) {
             if (state == 1) {
                 hugeAnimStruct[0x3082] = 1;
             }
-            if (state == 1 || state >= 8 || g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+            if (state == 1 || state >= 8 || g_GameLogic.framesInGameStatus_copy == 1) {
                 changeScene(3, 6);
-                if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
-                    g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                if (g_GameLogic.framesInGameStatus_copy == 1) {
+                    g_GameLogic.framesInGameStatus_copy = 0;
                 }
                 if (lbl_8037169C[0x13] != 0) {
                     g_GameLogic.framesOfExitingToMenu = 1;
@@ -308,7 +308,7 @@ void exhibitionGameTransitionCalculations(void) {
             startChallengeModeMatch();
         }
         initNewInning();
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 1;
         changeScene(0xD, 6);
         animRelated[0x9A] = 0;
@@ -320,9 +320,9 @@ void exhibitionGameTransitionCalculations(void) {
         hugeAnimStruct[0x2D7C] = 0;
         break;
     case 1:
-        if (fn_3_59BCC(g_GameLogic.FrameCountOfCurrentAtBat_Copy) != 0) {
+        if (fn_3_59BCC(g_GameLogic.framesInGameStatus_copy) != 0) {
             g_GameLogic._125 = 2;
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             hugeAnimStruct[0x2D77] = 0;
             if (animRelated[0xA4] != 0) {
                 fn_8002024C();
@@ -331,7 +331,7 @@ void exhibitionGameTransitionCalculations(void) {
         break;
     case 2:
         if (loadPitcherActor() != 0) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 5;
         }
         break;
@@ -344,25 +344,25 @@ void exhibitionGameTransitionCalculations(void) {
             }
         }
         if (loadFielderActors(charID) != 0) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             hugeAnimStruct[0x3081] = 0;
             g_GameLogic._125 = 6;
         }
         break;
     case 6:
         if (loadRunnerActors() != 0) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 7;
         }
         break;
     case 7:
         if (someAnimationIndFunction() != 0) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 8;
         }
         break;
     case 8:
-        if (g_GameLogic.FrameCountOfCurrentPitch >= 0xF0) {
+        if (g_GameLogic.framesInGameStatus >= 0xF0) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO ||
                 g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_CPU_VS_CPU) {
                 g_GameLogic._125 = 9;
@@ -472,11 +472,11 @@ void matchTransitionPrepareNextAB(void) {
         if (someAnimationIndFunction() == 0) {
             break;
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125++;
     case 3:
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.practiceLevel == 7) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            if (g_GameLogic.framesInGameStatus_copy == 0) {
                 fn_3_90AB0(g_Practice.someCharID2);
                 g_Practice.someCharID2 =
                     inMemRoster[g_GameLogic.teamBatting][g_GameLogic.currentBatterPerTeam[g_GameLogic.homeTeamBattingInd_fieldingTeam] - 1]
@@ -675,7 +675,7 @@ void endBatterTransition(void) {
 
 // .text:0x0005EDD8 size:0x80 mapped:0x8069DE6C
 void freePracticeSomething(void) {
-    ballPhysica();
+    ballPhysics();
     fielderMainFunction();
     running_main();
     if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
@@ -731,7 +731,7 @@ void checkIfPlayOver(void) {
         if (g_Runners[i].runnerStatus == RUNNER_STATUS_ON_FIELD) {
             if (g_Runners[i].baseStandingOn < 0) {
                 allRunnersDone = 0;
-            } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && g_Runners[i].overRun1BStage == 0) {
+            } else if (g_Runners[i].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS && g_Runners[i].overrun1BStage == OVERRUN_STAGE_NONE) {
                 allRunnersDone = 0;
             } else if (g_Runners[i].baseStandingOn != g_Runners[i].currentBase) {
                 allRunnersDone = 0;
@@ -1144,7 +1144,7 @@ void inningChange(void) {
             g_GameLogic._125 = 6;
         }
     } else if (g_GameLogic._125 == 6) {
-        if (g_GameLogic.FrameCountOfCurrentPitch >= 0x78) {
+        if (g_GameLogic.framesInGameStatus >= 0x78) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 7;
             }
@@ -1340,7 +1340,7 @@ void endOfMatch(void) {
         if (g_GameLogic.playOverFadeOutStarted >= 0 && g_GameLogic.scoreBook_teamDisplayed == 0) {
             break;
         }
-        if (g_GameLogic.FrameCountOfCurrentPitch >= 0x28) {
+        if (g_GameLogic.framesInGameStatus >= 0x28) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_B | INPUT_BUTTON_A)) {
                 g_GameLogic._125 = 2;
             }

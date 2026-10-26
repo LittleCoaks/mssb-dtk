@@ -903,7 +903,7 @@ void soundControl(void) {
         break;
     default:
         if (g_GameLogic.gameStatus == GAME_STATUS_GAME_START_MOVIE &&
-            g_GameLogic.FrameCountOfCurrentPitch == 1) {
+            g_GameLogic.framesInGameStatus == 1) {
             stadiumMusic(g_d_GameSettings.StadiumID);
         }
         break;
@@ -991,7 +991,7 @@ void soundControl(void) {
                 return;
             }
             if (status == GAME_STATUS_0x24) {
-                if (g_GameLogic.FrameCountOfCurrentPitch != 1) {
+                if (g_GameLogic.framesInGameStatus != 1) {
                     return;
                 }
                 fn_3_8C104(-1);
@@ -1079,7 +1079,7 @@ void soundControl(void) {
                 goto pick;
             }
             if (g_Minigame.soloMinigameDifficulty == 3 && g_Minigame.grandPrixInd == 0) {
-                if (g_GameLogic.FrameCountOfCurrentPitch == 0) {
+                if (g_GameLogic.framesInGameStatus == 0) {
                     return;
                 }
                 if (g_Minigame.newRecordRank == 1) {

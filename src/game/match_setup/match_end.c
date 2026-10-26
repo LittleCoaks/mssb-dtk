@@ -113,12 +113,12 @@ void matchEndGameScreenFunction(void) {
         break;
     case 3:
         changeScene(1, 6);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 4;
         break;
     case 4:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0xB4) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        if (g_GameLogic.framesInGameStatus_copy > 0xB4) {
+            g_GameLogic.framesInGameStatus_copy = 0;
             if (g_GameLogic._13D != 0) {
                 if (!g_d_GameSettings.exhibitionMatchInd) {
                     g_GameLogic._125 = 7;
@@ -131,7 +131,7 @@ void matchEndGameScreenFunction(void) {
         }
         break;
     case 5:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic.framesInGameStatus_copy == 1) {
             fn_8004CC4C(7, 0, 0, 0, 0x8B);
             mvp = StatsScreenScores.mvpRosterLoc[0];
             if (mvp >= 0) {
@@ -143,30 +143,30 @@ void matchEndGameScreenFunction(void) {
                 }
             }
         }
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 0x14 && (input->newButtonInput & INPUT_BUTTON_A)) {
+        if (g_GameLogic.framesInGameStatus_copy >= 0x14 && (input->newButtonInput & INPUT_BUTTON_A)) {
             set803c5f77();
         }
         if (lbl_803C5F74[3] == 4) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 6;
         }
         break;
     case 6:
         if (fn_3_5B220(0) != 0) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 7;
         }
         break;
     case 7:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
+        if (g_GameLogic.framesInGameStatus_copy > 0x2D) {
             endOfGame_menuControl();
         }
         break;
     case 8:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0x2D) {
+        if (g_GameLogic.framesInGameStatus_copy > 0x2D) {
             pauseControl._1D8 ^= 1;
             pauseControl._12 = 0;
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 7;
         }
         break;
@@ -186,11 +186,11 @@ void matchEndGameScreenFunction(void) {
             fn_3_FBD70();
             fn_3_FBD58();
             g_GameLogic._125 = 10;
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
         }
         break;
     case 10:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 0xA) {
+        if (g_GameLogic.framesInGameStatus_copy > 0xA) {
             transitionToReplay();
             g_GameLogic._125 = 11;
             animRelated[0xCD] = 1;
@@ -218,7 +218,7 @@ void endOfGame_menuControl(void) {
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             } else {
                 animRelated[0xCE] = 1;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_GameLogic._125 = 8;
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             }
@@ -235,7 +235,7 @@ void endOfGame_menuControl(void) {
         }
     } else if (animRelated[0xD2] == 0) {
         if (input->newButtonInput & INPUT_BUTTON_B) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = 8;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         } else if ((input->newButtonInput & INPUT_TRIGGER_R) || (input->newButtonInput & INPUT_TRIGGER_L)) {

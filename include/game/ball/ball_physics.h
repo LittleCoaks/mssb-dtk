@@ -44,7 +44,7 @@ void resetBallValuesBetweenBatters(void);
 void resetInMemBall(void);
 void fn_3_F9F8(void);
 void initBallAndGameStateOnLoad(void);
-void ballPhysica(void);
+void ballPhysics(void);
 void fn_3_10030(void);
 void fn_3_FF98(void);
 void UpdateRandomInts(void);

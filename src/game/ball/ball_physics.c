@@ -66,7 +66,7 @@ extern int peachDaisyStarSwingRelated(void);
 extern void peachDaisyStarSwingRelated2(void);
 
 // .text:0x0001014C size:0x17C
-void ballPhysica(void) {
+void ballPhysics(void) {
     if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames != 0) {
         if (g_Ball.matchFramesAndBallAngle.ballOverWallFrames < 0x7FFE) {
             g_Ball.matchFramesAndBallAngle.ballOverWallFrames++;

@@ -8,6 +8,7 @@
  * shared enums. */
 
 #include "mssbTypes.h"
+#include "game/baserunning/runner_tables.h"
 
 // InMemRunnerType running direction fields (runningDirectionCode etc.)
 typedef enum _RUNNER_MOVEMENT_TYPE {
@@ -26,6 +27,22 @@ typedef enum _RUNNER_ACTION {
     /* 2 */ RUNNER_ACTION_BODY_CHECK_WON,
     /* 3 */ RUNNER_ACTION_BODY_CHECK_FAILED,
 } RUNNER_ACTION;
+
+// InMemRunnerType.actionStage: progress through the current RUNNER_ACTION.
+typedef enum _RUNNER_ACTION_STAGE {
+    /* 0 */ RUNNER_ACTION_STAGE_NONE,
+    /* 1 */ RUNNER_ACTION_STAGE_MOVING,     // sliding into the base over actionFrames_countDown frames
+    /* 2 */ RUNNER_ACTION_STAGE_RECOVERING, // on the base, getting up (slideRecoveryFrames)
+    /* 3 */ RUNNER_ACTION_STAGE_OUT,        // finished, but the runner was out; dugout logic clears it
+} RUNNER_ACTION_STAGE;
+
+// InMemRunnerType.overrun1BStage / overrunBaseStage.
+typedef enum _OVERRUN_STAGE {
+    /* 0 */ OVERRUN_STAGE_NONE,
+    /* 1 */ OVERRUN_STAGE_PENDING,  // overrun decided; set-up runs on the next control call
+    /* 2 */ OVERRUN_STAGE_SLOWDOWN, // drifting past the base
+    /* 3 */ OVERRUN_STAGE_RETURN,   // moving back onto the base
+} OVERRUN_STAGE;
 
 // InMemRunnerType.taggedState: how this runner is being tagged this frame.
 typedef enum _RUNNER_TAGGED_STATE {
@@ -67,10 +84,10 @@ typedef struct _InMemRunnerType {
     /*0x038*/ f32 distanceFromBall;
     /*0x03C*/ VecXYZ currentBaseCoordinates;
     /*0x048*/ VecXYZ nextBaseCoordinates;
-    /*0x054*/ f32 slidingAdjustment_backwards; // 0.03f
-    /*0x058*/ f32 slidingAdjustment_forwards;  // 0.03f
-    /*0x05C*/ f32 percentFromCurrentBase_slideAdj;
-    /*0x060*/ f32 percentTowardsNextBase_slideAdj;
+    /*0x054*/ f32 baseReachMargin_backwards; // 0.03: a base counts as reached this fraction of the leg early
+    /*0x058*/ f32 baseReachMargin_forwards;  // 0.03
+    /*0x05C*/ f32 percentPastCurrentBaseReach; // percentTowardsNextBase - baseReachMargin_backwards
+    /*0x060*/ f32 percentLeftToNextBaseReach;  // (1 - percentTowardsNextBase) - baseReachMargin_forwards
     /*0x064*/ f32 fractionalBasesRan;
     /*0x068*/ f32 percentTowardsNextBase;
     /*0x06C*/ f32 calculatedLengthOfCurrentBaseline;
@@ -81,21 +98,21 @@ typedef struct _InMemRunnerType {
     /*0x080*/ f32 percentTowardsNextBase_stored;
     /*0x084*/ f32 groundVelocity[4];
     /*0x094*/ f32 acceleration;
-    /*0x098*/ f32 baseAcceleration;                        // between 0.005 and 0.01
-    /*0x09C*/ f32 baseAccelerationWhileChaingingDirection; // 0.005
+    /*0x098*/ f32 baseAcceleration;                       // runnerSpeedScaling: 0.01 at speed 0 to 0.005 at speed 100+
+    /*0x09C*/ f32 baseAccelerationWhileChangingDirection; // 0.005
     /*0x0A0*/ f32 maximumBaseVelocity;
-    /*0x0A4*/ f32 percentRanPerFrame_slideAdj;
+    /*0x0A4*/ f32 percentRanPerFrame; // groundVelocity[0] / calculatedLengthOfCurrentBaseline
     /*0x0A8*/ f32 velocityPercent_stamAdj;
     /*0x0AC*/ f32 accelerationPercent_stamAdj;
     /*0x0B0*/ f32 roundingStrengthPercent;                    // unsure
-    /*0x0B4*/ f32 overrun1B_someDistConst_proportionPerFrame; // maybe
-    /*0x0B8*/ f32 overrun1B_somePositionControl;
+    /*0x0B4*/ f32 overrunStepPerFrame;   // per-frame step scale for both overrun stages
+    /*0x0B8*/ f32 overrun1BPathProgress; // spline parameter along overrun1BPathPoints, 0 to ~1
     /*0x0BC*/ f32 leadoffDistancePercent;
     /*0x0C0*/ f32 mashVeloAdjustment;
-    /*0x0C4*/ f32 maxMashVeloAdjustment; // 0.02
+    /*0x0C4*/ f32 maxMashVeloAdjustment; // 0.02: speed bonus at full mashPercent
     /*0x0C8*/ f32 mashPercent;
-    /*0x0CC*/ f32 percentAddedPerMash;                  // 0.2
-    /*0x0D0*/ f32 stamina_MashPercentTakenAwayPerFrame; // 0.2
+    /*0x0CC*/ f32 percentAddedPerMash;   // 0.2: five presses fill the meter
+    /*0x0D0*/ f32 mashDecayPerFrame;     // 0.05 once mashHoldFramesLeft runs out
     /*0x0D4*/ f32 staminaMult;
     /*0x0D8*/ f32 accelerationStaminaEffect;
     /*0x0DC*/ f32 accelerationStaminaEffectWhileChangingDirection;
@@ -162,22 +179,22 @@ typedef struct _InMemRunnerType {
     /*0x139*/ u8 offsetFromNormalRunningPathInd; // maybe
     /*0x13A*/ E(u8, RUNNER_ACTION) actionCode;
     /*0x13B*/ u8 actionInForwardDirectionInd;
-    /*0x13C*/ u8 actionStage;
+    /*0x13C*/ E(u8, RUNNER_ACTION_STAGE) actionStage;
     /*0x13D*/ u8 forceOutType_unsed;
     /*0x13E*/ u8 baseRoundingState;
-    /*0x13F*/ u8 overrun1st_doneChecking;
-    /*0x140*/ u8 overRun1BStage;
-    /*0x141*/ u8 overrunning1BIndicator;
-    /*0x142*/ u8 overrunBaseStage;
+    /*0x13F*/ u8 overrun1BDoneChecking;
+    /*0x140*/ E(u8, OVERRUN_STAGE) overrun1BStage;
+    /*0x141*/ u8 overrun1BInd;
+    /*0x142*/ E(u8, OVERRUN_STAGE) overrunBaseStage;
     /*0x143*/ u8 offsetPositionForRoundingInd;
     /*0x144*/ u8 roundingInitiaializedInd;
     /*0x145*/ u8 runningToDugoutInd;
     /*0x146*/ u8 runningToDugoutStage;
     /*0x147*/ u8 turnaroundCode;
     /*0x148*/ u8 turningAroundInd; // maybe
-    /*0x149*/ u8 newButtonThisFrame_forMashPurposes;
-    /*0x14A*/ u8 framesSinceLastMash;
-    /*0x14B*/ u8 FramesUntilNotSprinting;        // 6?
+    /*0x149*/ u8 mashPressedThisFrame; // new A/B/X/Y press this frame; cleared every frame
+    /*0x14A*/ u8 mashHoldFramesLeft;   // counts down from mashHoldFrames after a press
+    /*0x14B*/ u8 mashHoldFrames;       // runnerTimingConsts.mashHoldFrames (6)
     /*0x14C*/ u8 someCollisionCheck;             // maybe
     /*0x14D*/ E(u8, STEAL_FORCED_BASE) steal_forcedBaseToGoToOnWalk;
     /*0x14E*/ E(u8, STEALING_STATUS) stealingStatus;
@@ -200,7 +217,7 @@ typedef struct {
     /*0x11*/ u8 _11;
     /*0x12*/ u8 nOffensivePlayersAtStartOfPlay;
     /*0x13*/ u8 _13;
-    /*0x14*/ u8 someSituationTrackerFrames;
+    /*0x14*/ u8 liveBallInputDelayFrames; // runner input is ignored for this many live-ball frames: 20, or 10 for high outfield flies
     /*0x15*/ u8 runnersInScoringPosition;
     artificial_padding(0x15, 0x1F, u8);
     /*0x1F*/ s8 _1f;
