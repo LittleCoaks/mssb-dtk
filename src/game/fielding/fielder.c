@@ -14555,20 +14555,7 @@ void fielding_prePitchAutomovement(void) {
                 outZ = fielder->pos.z;
             }
 
-            fielder->IntendedLocation.x = outX;
-            fielder->IntendedLocation.z = outZ;
-
-            dx = outX - fielder->pos.x;
-            dz = outZ - fielder->pos.z;
-
-            if (0.0f == dx && 0.0f == dz) {
-                fielder->currentVelocity = 0.0f;
-                fielder->distanceFromAutoLocation = 0.0f;
-            } else {
-                fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
-                fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
-                fielder->goingToAutoLocationInd = 1;
-            }
+            fn_3_308B8(i, outX, outZ);
         }
 
         for (i = 2; i < 9; i++) {
@@ -14673,20 +14660,7 @@ void fn_3_30A58(void) {
             outZ = g_Fielders[i].pos.z;
         }
 
-        g_Fielders[i].IntendedLocation.x = outX;
-        g_Fielders[i].IntendedLocation.z = outZ;
-
-        dx = outX - g_Fielders[i].pos.x;
-        dz = outZ - g_Fielders[i].pos.z;
-
-        if (dx == 0.0f && dz == 0.0f) {
-            g_Fielders[i].currentVelocity = 0.0f;
-            g_Fielders[i].distanceFromAutoLocation = 0.0f;
-        } else {
-            g_Fielders[i].desiredMovementDirection2 = ATAN2F(dz, dx);
-            g_Fielders[i].distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
-            g_Fielders[i].goingToAutoLocationInd = 1;
-        }
+        fn_3_308B8(i, outX, outZ);
     }
 }
 
