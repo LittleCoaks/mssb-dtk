@@ -70,7 +70,7 @@ void fn_3_300B8(int fielderIndex);
 int clamberInitialization(int fielderIndex);
 int walljump_calculateJumpedOffWallPositionAndVelocity(int fielderIndex);
 void moveFieldersFromDugoutToStartingPositions(void);
-void fn_3_308B8(int fielderIndex, f32 x, f32 z);
+void setFielderAutoCoords_onlyFlagIfMoving(int fielderIndex, f32 x, f32 z);
 void fn_3_30A58(void);
 void fielding_prePitchAutomovement(void);
 void fielding_atBat_SetSomeAutomovements_callCollisionFn(void);

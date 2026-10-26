@@ -14433,7 +14433,7 @@ void fielding_prePitchAutomovement(void) {
                 outZ = fielder->pos.z;
             }
 
-            fn_3_308B8(i, outX, outZ);
+            setFielderAutoCoords_onlyFlagIfMoving(i, outX, outZ);
         }
 
         for (i = 2; i < 9; i++) {
@@ -14538,12 +14538,12 @@ void fn_3_30A58(void) {
             outZ = g_Fielders[i].pos.z;
         }
 
-        fn_3_308B8(i, outX, outZ);
+        setFielderAutoCoords_onlyFlagIfMoving(i, outX, outZ);
     }
 }
 
 // .text:0x000308B8 size:0x1A0 mapped:0x8066F94C
-void fn_3_308B8(int fielderIndex, f32 x, f32 z) {
+void setFielderAutoCoords_onlyFlagIfMoving(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 dx;
     f32 dz;
