@@ -2798,7 +2798,7 @@ int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
 }
 
 // .text:0x000530EC size:0x44 mapped:0x80692180
-void fn_3_530EC(int fielderIndex) {
+void stopFielderAtCurrentPosition(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     fielder->IntendedLocation.x = fielder->pos.x;
@@ -4939,13 +4939,7 @@ void autoMovement1_coverBase(int fielderIndex) {
                 } else {
                     fielder->pos.x = base_MoundCoordinates[loc].x;
                     fielder->pos.z = base_MoundCoordinates[loc].z;
-                    fielder->IntendedLocation.x = fielder->pos.x;
-                    fielder->IntendedLocation.y = fielder->pos.y;
-                    fielder->IntendedLocation.z = fielder->pos.z;
-                    fielder->velocityX = 0.0f;
-                    fielder->velocityZ = 0.0f;
-                    fielder->currentVelocity = 0.0f;
-                    fielder->distanceFromAutoLocation = 0.0f;
+                    stopFielderAtCurrentPosition(fielderIndex);
                 }
             }
 
@@ -9062,13 +9056,7 @@ void autoMovement14_infieldSupport(int fielderIndex) {
 
             if (g_FieldingLogic.playerAtMoundCutoffLocation != 0 &&
                 fielder->currentVelocity <= 0.03f) {
-                g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
-                g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
-                g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
-                g_Fielders[fielderIndex].velocityX = 0.0f;
-                g_Fielders[fielderIndex].velocityZ = 0.0f;
-                g_Fielders[fielderIndex].currentVelocity = 0.0f;
-                g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
+                stopFielderAtCurrentPosition(fielderIndex);
                 return;
             }
 
@@ -10158,13 +10146,7 @@ void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
             ((selFielder->closingInOnCatchingFlyBall == 1 &&
               fielder->distanceFromEachFielder[selectedFielder] < 15.0f) ||
              (selFielder->catchAnimation != 0 && selFielder->autoCatch0_noCatchAnimationOnly1 == 0))) {
-            fielder->IntendedLocation.x = fielder->pos.x;
-            fielder->IntendedLocation.y = fielder->pos.y;
-            fielder->IntendedLocation.z = fielder->pos.z;
-            fielder->velocityX = 0.0f;
-            fielder->velocityZ = 0.0f;
-            fielder->currentVelocity = 0.0f;
-            fielder->distanceFromAutoLocation = 0.0f;
+            stopFielderAtCurrentPosition(fielderIndex);
         }
     }
 }

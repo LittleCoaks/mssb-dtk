@@ -212,7 +212,7 @@ void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 di
 int fRunningTimeToDestinationPlus7(int fielderIndex, f32 x, f32 z);
 void setFielderVelocity(int fielderIndex);
 void setFielderAutoCoords(int fielderIndex, f32 x, f32 z);
-void fn_3_530EC(int fielderIndex);
+void stopFielderAtCurrentPosition(int fielderIndex);
 int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex);
 void setStandingOnBaseVariables(int fielderIndex);
 void fielderMovementRelated(int fielderIndex);
