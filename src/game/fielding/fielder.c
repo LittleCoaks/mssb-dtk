@@ -2785,34 +2785,7 @@ int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
     }
 
     if (fielder->clamberStatus != 0) {
-        fielder->wjRelated = 0;
-
-        if (fielder->clamberStatus == 1) {
-            f32 dx = (fielder->wallActionLocationX - fielder->pos.x) / (f32)fielder->specialActionCountdown;
-            f32 dz = (fielder->wallactionLocationZ - fielder->pos.z) / (f32)fielder->specialActionCountdown;
-
-            fielder->pos.x += dx;
-            fielder->pos.z += dz;
-            fielder->wallActionVelo.y -= fielderActionConstants[18];
-            fielder->wallActionCurrentHeight += fielder->wallActionVelo.y;
-            if (fielder->wallActionCurrentHeight < 0.0f) {
-                fielder->wallActionCurrentHeight = 0.0f;
-            }
-            fielder->specialActionCountdown--;
-            if (fielder->specialActionCountdown <= 0) {
-                fielder->clamberStatus = 2;
-            }
-        } else if (fielder->clamberStatus == 2) {
-            setClamberPos(fielderIndex);
-            fielder->specialActionCountdown = 0;
-        } else if (fielder->clamberStatus >= 3) {
-            clamberJumpOffWall(fielderIndex);
-            goto clamber_return1;
-        }
-
-        fielder->velocityX = fielder->pos.x - fielder->posXLastFrame;
-        fielder->velocityZ = fielder->pos.z - fielder->posZLastFrame;
-clamber_return1:
+        clamber_setPosAndVelo(fielderIndex);
         return 1;
     }
 
@@ -14552,27 +14525,23 @@ int clamberInitialization(int fielderIndex) {
 }
 
 // .text:0x000300B8 size:0x15C mapped:0x8066F14C
-void fn_3_300B8(int fielderIndex) {
+void clamber_setPosAndVelo(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     fielder->wjRelated = 0;
 
     if (fielder->clamberStatus == 1) {
-        s16 countdown = fielder->specialActionCountdown;
-        f32 deltaX = fielder->wallActionLocationX - fielder->pos.x;
-        f32 deltaZ = fielder->wallactionLocationZ - fielder->pos.z;
-        fielder->pos.x = fielder->pos.x +
-            deltaX / (f32)countdown;
-        fielder->pos.z = fielder->pos.z +
-            deltaZ / (f32)countdown;
+        f32 dx = (fielder->wallActionLocationX - fielder->pos.x) / (f32)fielder->specialActionCountdown;
+        f32 dz = (fielder->wallactionLocationZ - fielder->pos.z) / (f32)fielder->specialActionCountdown;
 
-        fielder->wallActionVelo.y = fielder->wallActionVelo.y - fielderActionConstants[18];
-        fielder->wallActionCurrentHeight = fielder->wallActionCurrentHeight + fielder->wallActionVelo.y;
+        fielder->pos.x += dx;
+        fielder->pos.z += dz;
+        fielder->wallActionVelo.y -= fielderActionConstants[18];
+        fielder->wallActionCurrentHeight += fielder->wallActionVelo.y;
         if (fielder->wallActionCurrentHeight < 0.0f) {
             fielder->wallActionCurrentHeight = 0.0f;
         }
-
-        fielder->specialActionCountdown = fielder->specialActionCountdown - 1;
+        fielder->specialActionCountdown--;
         if (fielder->specialActionCountdown <= 0) {
             fielder->clamberStatus = 2;
         }

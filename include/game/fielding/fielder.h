@@ -66,7 +66,7 @@ void fn_3_2F7D4(int fielderIndex);
 void wallSplat_setPosAndVelo(int fielderIndex);
 void setClamberPos(int fielderIndex);
 void clamberJumpOffWall(int fielderIndex);
-void fn_3_300B8(int fielderIndex);
+void clamber_setPosAndVelo(int fielderIndex);
 int clamberInitialization(int fielderIndex);
 int walljump_calculateJumpedOffWallPositionAndVelocity(int fielderIndex);
 void moveFieldersFromDugoutToStartingPositions(void);
