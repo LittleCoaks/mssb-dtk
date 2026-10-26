@@ -116,6 +116,33 @@ static inline void setFielderAutoMovement(int fielderIndex, int autoMovementInde
     f->fielderTrackingBallState = 0;
 }
 
+#define SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY()                              \
+    do {                                                                                      \
+        InMemFielder* f;                                                                      \
+        int index;                                                                            \
+                                                                                              \
+        setInitialFielderMovements_generalCase(1);                                            \
+        chooseSecondaryFielderFromClosestOutfielder();                                        \
+                                                                                              \
+        index = g_FieldingLogic.secondaryFielder;                                             \
+        f = &g_Fielders[index];                                                               \
+        if (index != -1) {                                                                    \
+            f->autoMovementFunctionIndex = 22;                                                \
+            if (autoMovementFunctions[22].code >= 0) {                                        \
+                g_FieldingLogic.fielderAutoMovementCode[index] = autoMovementFunctions[22].code; \
+            }                                                                                 \
+            f->unknown_writeOnly = 0;                                                         \
+            f->fielderVeloAdjustmentCode = 0;                                                 \
+            f->unknown_writeOnly_always0 = 0;                                                 \
+            f->timeSinceThrowWasCaught = 0;                                                   \
+            f->fielderTrackingBallState = 0;                                                  \
+        }                                                                                     \
+                                                                                              \
+        setInitialFielderMovements_CoverBases();                                              \
+        setInitialFielderMovements_cutoffs();                                                 \
+        setInitialFielderMovements_restOfFielders();                                          \
+    } while (0)
+
 static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* fielder, f32 targetX, f32 targetZ,
                                                                BOOL resetMovementState) {
     f32 dx;
@@ -12801,8 +12828,6 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
     f32 dz;
     f32 dxSq;
     f32 dzSq;
-    InMemFielder* f2;
-    int index2;
 
     catchStrategyMask = 0;
     for (i = 0, shiftAmt = 0; i < 9; i++, shiftAmt += 3) {
@@ -12864,48 +12889,14 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
     } else if ((catchStrategyMask & 0x3FFFF) != 0 && g_Ball.landingSpotZoneAwayFromHome == 4 &&
                g_Ball.maxYOfHit > 8.0f) {
         if (g_Ball.maxYOfHit < 5.0f) {
-            setInitialFielderMovements_generalCase(1);
-            chooseSecondaryFielderFromClosestOutfielder();
-            index2 = g_FieldingLogic.secondaryFielder;
-            f2 = &g_Fielders[index2];
-            if (index2 != -1) {
-                f2->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[index2] = autoMovementFunctions[22].code;
-                }
-            }
-            f2->unknown_writeOnly = 0;
-            f2->fielderVeloAdjustmentCode = 0;
-            f2->unknown_writeOnly_always0 = 0;
-            f2->timeSinceThrowWasCaught = 0;
-            f2->fielderTrackingBallState = 0;
-            setInitialFielderMovements_CoverBases();
-            setInitialFielderMovements_cutoffs();
-            setInitialFielderMovements_restOfFielders();
+            SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY();
         } else {
             setInitialFielderMovements_DeepFly();
         }
     } else if ((catchStrategyMask & 0x2DB6D) != 0) {
         setInitialFielderMovements_generalCase(0);
     } else if ((catchStrategyMask & 0x12480) != 0) {
-        setInitialFielderMovements_generalCase(1);
-        chooseSecondaryFielderFromClosestOutfielder();
-        index2 = g_FieldingLogic.secondaryFielder;
-        f2 = &g_Fielders[index2];
-        if (index2 != -1) {
-            f2->autoMovementFunctionIndex = 22;
-            if (autoMovementFunctions[22].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[index2] = autoMovementFunctions[22].code;
-            }
-        }
-        f2->unknown_writeOnly = 0;
-        f2->fielderVeloAdjustmentCode = 0;
-        f2->unknown_writeOnly_always0 = 0;
-        f2->timeSinceThrowWasCaught = 0;
-        f2->fielderTrackingBallState = 0;
-        setInitialFielderMovements_CoverBases();
-        setInitialFielderMovements_cutoffs();
-        setInitialFielderMovements_restOfFielders();
+        SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY();
     } else if ((catchStrategyMask & 0x2) != 0) {
         setInitialFielderMovements_generalCase(0);
     }
@@ -13420,30 +13411,8 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
 }
 
 // .text:0x00033458 size:0x94 mapped:0x806724EC
-void fn_3_33458(void) {
-    InMemFielder *f;
-    int index;
-
-    setInitialFielderMovements_generalCase(1);
-    chooseSecondaryFielderFromClosestOutfielder();
-
-    index = g_FieldingLogic.secondaryFielder;
-    f = &g_Fielders[index];
-    if (index != -1) {
-        f->autoMovementFunctionIndex = 22;
-        if (autoMovementFunctions[22].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[index] = autoMovementFunctions[22].code;
-        }
-        f->unknown_writeOnly = 0;
-        f->fielderVeloAdjustmentCode = 0;
-        f->unknown_writeOnly_always0 = 0;
-        f->timeSinceThrowWasCaught = 0;
-        f->fielderTrackingBallState = 0;
-    }
-
-    setInitialFielderMovements_CoverBases();
-    setInitialFielderMovements_cutoffs();
-    setInitialFielderMovements_restOfFielders();
+void setInitialFielderMovements_generalCaseWithSecondary(void) {
+    SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY();
 }
 
 // .text:0x00033088 size:0x3D0 mapped:0x8067211C

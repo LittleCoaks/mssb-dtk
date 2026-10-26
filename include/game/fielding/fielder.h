@@ -84,7 +84,7 @@ BOOL fn_3_327F4(void);
 void selectInitialFielders_linedriveThroughPitcher(void);
 void setInitialFielderMovements_foulBall(void);
 void chooseSecondaryFielderFromClosestOutfielder(void);
-void fn_3_33458(void);
+void setInitialFielderMovements_generalCaseWithSecondary(void);
 void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic);
 void fn_3_33D9C(void);
 void determinePrimaryAndSecondaryOutFielders(int *primaryFielder, int *secondaryFielder);
