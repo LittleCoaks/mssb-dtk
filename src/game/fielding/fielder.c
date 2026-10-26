@@ -86,7 +86,9 @@ typedef struct {
 extern WeightsStruct modWeightBasedFactors[6];
 
 /* The default inline size cap is too small for setFieldersAutoCoordsToStartingPositions, which
- * fielding_prePitchAutomovement inlines. The cap applies to the whole file. */
+ * fielding_prePitchAutomovement inlines. The cap applies to the whole file, so a few hosts need
+ * `#pragma dont_inline` to keep their bl's. Ideally this would go: the original build most likely
+ * used the default cap, and a smaller helper body that inlines under it would be the real fix. */
 #pragma inline_max_size(600)
 
 static inline f32 fielderSqrt(f32 x) {
