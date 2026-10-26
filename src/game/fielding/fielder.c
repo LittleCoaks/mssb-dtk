@@ -15660,7 +15660,6 @@ void checkForCatchBallAction(int fielderIndex) {
 void evaluateFlyBallCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 catchHeightThreshold;
-    f32 dist;
     f32 dx;
     f32 dz;
     f32 sqx;
@@ -15696,20 +15695,21 @@ void evaluateFlyBallCatch(int fielderIndex) {
 
         sqx = dx * dx;
         sqz = dz * dz;
-        dist = fielderSqrt(sqx + sqz);
-        fielder->distToWhereFlyBallWillBeAtHalfFielderHeight = dist;
+        fielder->distToWhereFlyBallWillBeAtHalfFielderHeight = fielderSqrt(sqx + sqz);
 
         if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 5.0f) {
-            if (fielder->always0 != 0 || g_Ball.framesUntilBallHitsGround >= 0x2d) {
-                fielder->closingInOnCatchingFlyBall = 1;
-            } else if (g_Ball.framesUntilBallHitsGround > 0x1e) {
-                if (fielder->closingInOnCatchingFlyBall_stored != 0) {
-                    if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 4.0f) {
+            if (fielder->always0 == 0 && g_Ball.framesUntilBallHitsGround < 45) {
+                if (g_Ball.framesUntilBallHitsGround > 30) {
+                    if (fielder->closingInOnCatchingFlyBall_stored != 0) {
+                        if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 4.0f) {
+                            fielder->closingInOnCatchingFlyBall = 1;
+                        }
+                    } else if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 3.0f) {
                         fielder->closingInOnCatchingFlyBall = 1;
                     }
-                } else if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 3.0f) {
-                    fielder->closingInOnCatchingFlyBall = 1;
                 }
+            } else {
+                fielder->closingInOnCatchingFlyBall = 1;
             }
 
             if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < fielder->hitbox[0]) {
@@ -16957,26 +16957,7 @@ found:
         i = 0;
     }
 
-    fielder->catchAnimationFramesCountDown = i;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 5;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (i < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    g_Ball.catchAnimationTotalFrames = 0;
+    fn_3_2C238(fielderIndex, 5, i, FALSE, FALSE);
     camera_zoomInDuringFielderAction_slide_clamber_wallJump(
         3, 0,
         g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x,
