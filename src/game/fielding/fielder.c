@@ -6206,22 +6206,17 @@ void autoMovement24_goTowardsHitBall_humanTeam(int fielderIndex) {
 // .text:0x000499C4 size:0x254 mapped:0x80688A58
 void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* out) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int secondaryFielder;
+    int secondaryFielder = g_FieldingLogic.selectedFielder;
     int diff;
-    int frame;
     int targetFrame;
-    CoordAndDist* futureCoord;
+    int frame;
     f32 threshold;
     f32 dist;
-    f32 sqx, sqz;
     f32 x, z;
     f32 scale;
-    f32* px;
-    f32* pz;
 
     out->y = 0.0f;
 
-    secondaryFielder = g_FieldingLogic.selectedFielder;
     if (g_FieldingLogic.secondaryFielder >= 0) {
         secondaryFielder = g_FieldingLogic.secondaryFielder;
     }
@@ -6229,10 +6224,9 @@ void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* o
     targetFrame = 0;
     diff = g_Fielders[secondaryFielder].framesToGetToBallLandingSpot - g_Ball.framesSinceHit;
     if (diff > 0) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[diff];
-        threshold = futureCoord->dist + fielderActionConstants[0];
+        threshold = g_Ball.physicsSubstruct.futureCoordsAndDist[diff].dist + fielderActionConstants[0];
         for (frame = diff + 1; frame < 360; frame += 3) {
-            if (threshold < futureCoord->dist) {
+            if (threshold < g_Ball.physicsSubstruct.futureCoordsAndDist[diff].dist) {
                 break;
             }
         }
@@ -6251,22 +6245,17 @@ void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* o
             frame = diff;
         }
 
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-        px = &futureCoord->pos.x;
-        pz = &futureCoord->pos.z;
-        sqx = (*px) * (*px);
-        sqz = (*pz) * (*pz);
-        dist = fielderSqrt(sqx + sqz);
+        dist = fielderSqrt(SQ(g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x) +
+                           SQ(g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z));
 
-        x = (*px) / dist;
-        z = (*pz) / dist;
+        x = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x / dist;
+        z = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z / dist;
         scale = dist + fielderActionConstants[0];
         out->x = x * scale;
         out->z = z * scale;
     } else {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[targetFrame];
-        out->x = futureCoord->pos.x;
-        out->z = futureCoord->pos.z;
+        out->x = g_Ball.physicsSubstruct.futureCoordsAndDist[targetFrame].pos.x;
+        out->z = g_Ball.physicsSubstruct.futureCoordsAndDist[targetFrame].pos.z;
     }
 }
 
