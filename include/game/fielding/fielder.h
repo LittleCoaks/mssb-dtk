@@ -48,7 +48,7 @@ void checkForCatchBallAction(int fielderIndex);
 BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot);
 void unused_FUN_8066bf88(int fielderIndex);
 int determineBestFrameForFielder(int fielderIndex);
-void fn_3_2D308(int fielderIndex);
+void setFielderMovementAngleTowardsIntendedLocation(int fielderIndex);
 void updateFielderPositionBasedOnBallState(int fielderIndex);
 void unused_FUN_8066c7fc(int fielderIndex);
 void autoMovement28_minigameDashRelated3(int fielderIndex);

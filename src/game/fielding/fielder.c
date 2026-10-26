@@ -15389,37 +15389,9 @@ void autoMovement26_minigameRelated1(int fielderIndex) {
 // .text:0x0002DAC4 size:0x230 mapped:0x8066CB58
 void autoMovement27_minigameDashRelated2(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 diffZ;
-    f32 diffX;
-    f32 dist;
 
     if (fielder->animatingActionInd == 0) {
-        if (fielder->_0208 == 0) {
-            if (fielder->nonCatchFlyBallStratInd == 0) {
-                fielder->_0208 = 1;
-            } else {
-                fielder->_0208 = 3;
-            }
-        }
-
-        fielder->fielderVeloAdjustmentCode = 0;
-        updateFielderPositionBasedOnBallState(fielderIndex);
-
-        fielder->movementAngle = -1;
-
-        diffZ = fielder->IntendedLocation.z - fielder->pos.z;
-        diffX = fielder->IntendedLocation.x - fielder->pos.x;
-        dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
-
-        if (dist < 0.5f) {
-            fielder->distanceFromAutoLocation = dist;
-            fielder->_0209 = 0;
-        } else {
-            fielder->movementAngle = calculateAngleFromCoordinates(diffX, diffZ);
-            fielder->_0209 = 0;
-        }
-
-        moveFielder_CheckForAndSetJump(fielderIndex);
+        unused_FUN_8066c7fc(fielderIndex);
     }
 
     if (g_Minigame.framesSincePanelHit != 0 && fielderIndex != -1) {
@@ -15430,37 +15402,15 @@ void autoMovement27_minigameDashRelated2(int fielderIndex) {
 // .text:0x0002D92C size:0x198 mapped:0x8066C9C0
 void autoMovement28_minigameDashRelated3(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 diffZ;
-    f32 diffX;
-    f32 dist;
 
     if (fielder->animationRelatedInd == 0) {
-        updateFielderPositionBasedOnBallState(fielderIndex);
-
-        fielder->movementAngle = -1;
-
-        diffZ = fielder->IntendedLocation.z - fielder->pos.z;
-        diffX = fielder->IntendedLocation.x - fielder->pos.x;
-        dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
-
-        if (dist < 0.5f) {
-            fielder->distanceFromAutoLocation = dist;
-            fielder->_0209 = 0;
-        } else {
-            fielder->movementAngle = calculateAngleFromCoordinates(diffX, diffZ);
-            fielder->_0209 = 0;
-        }
-
-        moveFielder_CheckForAndSetJump(fielderIndex);
+        unused_FUN_8066bf88(fielderIndex);
     }
 }
 
 // .text:0x0002D768 size:0x1C4 mapped:0x8066C7FC
 void unused_FUN_8066c7fc(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 diffZ;
-    f32 diffX;
-    f32 dist;
 
     if (fielder->_0208 == 0) {
         if (fielder->nonCatchFlyBallStratInd == 0) {
@@ -15471,23 +15421,7 @@ void unused_FUN_8066c7fc(int fielderIndex) {
     }
 
     fielder->fielderVeloAdjustmentCode = 0;
-    updateFielderPositionBasedOnBallState(fielderIndex);
-
-    fielder->movementAngle = -1;
-
-    diffZ = fielder->IntendedLocation.z - fielder->pos.z;
-    diffX = fielder->IntendedLocation.x - fielder->pos.x;
-    dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
-
-    if (dist < 0.5f) {
-        fielder->distanceFromAutoLocation = dist;
-        fielder->_0209 = 0;
-    } else {
-        fielder->movementAngle = calculateAngleFromCoordinates(diffX, diffZ);
-        fielder->_0209 = 0;
-    }
-
-    moveFielder_CheckForAndSetJump(fielderIndex);
+    unused_FUN_8066bf88(fielderIndex);
 }
 
 // .text:0x0002D47C size:0x2EC mapped:0x8066C510
@@ -15567,7 +15501,7 @@ void updateFielderPositionBasedOnBallState(int fielderIndex) {
 }
 
 // .text:0x0002D308 size:0x174 mapped:0x8066C39C
-void fn_3_2D308(int fielderIndex) {
+void setFielderMovementAngleTowardsIntendedLocation(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 diffZ;
     f32 diffX;
@@ -15668,28 +15602,8 @@ int determineBestFrameForFielder(int fielderIndex) {
 
 // .text:0x0002CEF4 size:0x18C mapped:0x8066BF88
 void unused_FUN_8066bf88(int fielderIndex) {
-    InMemFielder* fielder;
-    f32 diffZ;
-    f32 diffX;
-    f32 dist;
-
     updateFielderPositionBasedOnBallState(fielderIndex);
-
-    fielder = &g_Fielders[fielderIndex];
-    fielder->movementAngle = -1;
-
-    diffZ = fielder->IntendedLocation.z - fielder->pos.z;
-    diffX = fielder->IntendedLocation.x - fielder->pos.x;
-    dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
-
-    if (dist < 0.5f) {
-        fielder->distanceFromAutoLocation = dist;
-        fielder->_0209 = 0;
-    } else {
-        fielder->movementAngle = calculateAngleFromCoordinates(diffX, diffZ);
-        fielder->_0209 = 0;
-    }
-
+    setFielderMovementAngleTowardsIntendedLocation(fielderIndex);
     moveFielder_CheckForAndSetJump(fielderIndex);
 }
 
