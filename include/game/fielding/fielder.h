@@ -189,7 +189,7 @@ void autoMovement7_8_outfiederNoCatch_Phase1(int fielderIndex);
 void fn_3_4B8D0(int fielderIndex);
 void updateSomeAutoMovementAssignments(void);
 void setInitialFielderMovements_CoverBases(void);
-void fn_3_4CFB0(void);
+void setPitcherCoverBaseLocation(void);
 void autoMovement1_coverBase(int fielderIndex);
 int fn_3_4DB84(int fielderIndex);
 void bobbleDirection(int fielderIndex);

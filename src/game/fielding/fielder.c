@@ -4895,7 +4895,6 @@ int fn_3_4DB84(int fielderIndex) {
 // .text:0x0004D20C size:0x978 mapped:0x8068C2A0
 void autoMovement1_coverBase(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    InMemFielder* pitcher = &g_Fielders[0];
 
     if (g_Ball.homeRunClassification != 0 && fielderIndex <= 1) {
         return;
@@ -4956,30 +4955,7 @@ void autoMovement1_coverBase(int fielderIndex) {
             f32 z;
 
             if (fielder->pitcherHeadingToCover1stOr3rd == 1) {
-                if (pitcher->locationResponsibleForCovering == 1) {
-                    f32 d = base_MoundCoordinates[1].x - pitcher->pos.x;
-
-                    if (d > 15.0f) {
-                        d = 15.0f;
-                    }
-
-                    x = base_MoundCoordinates[1].x;
-                    z = base_MoundCoordinates[1].z - d / 3.0f;
-                } else if (pitcher->locationResponsibleForCovering == 3) {
-                    f32 d = pitcher->pos.x - base_MoundCoordinates[3].x;
-
-                    if (d > 15.0f) {
-                        d = 15.0f;
-                    }
-
-                    x = base_MoundCoordinates[3].x;
-                    z = base_MoundCoordinates[3].z - d / 3.0f;
-                } else {
-                    x = base_MoundCoordinates[pitcher->locationResponsibleForCovering].x;
-                    z = base_MoundCoordinates[pitcher->locationResponsibleForCovering].z;
-                }
-
-                setFielderAutoCoords(0, x, z);
+                setPitcherCoverBaseLocation();
             } else {
                 x = base_MoundCoordinates[fielder->locationResponsibleForCovering].x;
                 z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
@@ -5049,7 +5025,7 @@ void autoMovement1_coverBase(int fielderIndex) {
 }
 
 // .text:0x0004CFB0 size:0x25C mapped:0x8068C044
-void fn_3_4CFB0(void) {
+void setPitcherCoverBaseLocation(void) {
     InMemFielder* fielder = &g_Fielders[0];
     s16 covering = fielder->locationResponsibleForCovering;
     f32 targetX;
