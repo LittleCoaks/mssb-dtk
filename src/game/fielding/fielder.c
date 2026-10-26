@@ -7708,11 +7708,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
     } else if (fielder->maybeMovementState == 3) {
         fn_3_42BD0(fielderIndex);
     } else if (fielder->maybeMovementState == 4) {
-        CoordAndDist* c = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
-        setFielderAutoCoords(fielderIndex, c->pos.x, c->pos.z);
-        if (fielder->framesRemainingToGetToLandingSpot <= 1) {
-            fielder->maybeMovementState = 5;
-        }
+        fielderTrackingBall_goToFutureBallPos(fielderIndex);
     } else if (fielder->maybeMovementState == 5) {
         fielderTrackingBall_goToContactBallPos(fielderIndex);
     }
@@ -7867,7 +7863,7 @@ void fn_3_42BD0(int fielderIndex) {
 #pragma dont_inline reset
 
 // .text:0x00042A00 size:0x1D0 mapped:0x80681A94
-void fn_3_42A00(int fielderIndex) {
+void fielderTrackingBall_goToFutureBallPos(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 x;
     f32 z;
