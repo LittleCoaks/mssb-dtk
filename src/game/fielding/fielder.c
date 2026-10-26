@@ -269,6 +269,15 @@ extern VecXZ fielderStartingCoords_bunt[4];
 extern VecXZ fielderStartingCoords_holdRunners[4][3];
 extern VecXZ lbl_3_data_45D4[4];
 
+/* fielder.c is one translation unit. Its functions are in reverse address order (the game
+ * REL is built with -inline deferred, which emits them reversed), so the sections below run
+ * from the highest .text address to the lowest and must not be reordered. */
+
+/* ============================================================================
+ * Main entry and setup
+ * fielderMainFunction, starting positions, per-match and per-inning initialisation of g_Fielders.
+ * ============================================================================ */
+
 // .text:0x000598D0 size:0x48
 void fielderMainFunction(void) {
     fielderResetAndStoreValuesEachFrame();
@@ -876,6 +885,12 @@ void setDefaultInMemFielder(void) {
         g_Pitcher.unused_pitcherIsFielder = 0;
     }
 }
+
+/* ============================================================================
+ * Per-frame update and live-ball control
+ * The per-frame driver: frame reset, AI/human live-ball control, movement and the shared end-of-
+ * frame step.
+ * ============================================================================ */
 
 // .text:0x00058688 size:0x1E8 mapped:0x8069771C
 void fielderResetAndStoreValuesEachFrame(void) {
@@ -1933,6 +1948,12 @@ void fielding_updateAllFieldersPostMovement(void) {
         g_Ball.ballDistanceFromHome = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
     }
 }
+
+/* ============================================================================
+ * Facing, collisions, base standing and velocity
+ * Facing direction, fielder collisions and special actions, standing-on-base state, velocity,
+ * sprinting, dive distances.
+ * ============================================================================ */
 
 // .text:0x00054B58 size:0x818 mapped:0x80693BEC
 void updateFielderDirectionFacing(int fielderIndex) {
@@ -3507,6 +3528,12 @@ void updateSprintPointers(void) {
     }
 }
 
+/* ============================================================================
+ * Catch strategy and drop-spot timing
+ * Where and when a fielder can reach the ball: wall bounces, frames to the drop spot, catcher
+ * strategy.
+ * ============================================================================ */
+
 // .text:0x00050DD8 size:0x448 mapped:0x8068FE6C
 int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -4147,6 +4174,11 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
         }
     }
 }
+
+/* ============================================================================
+ * Ball holder, loose balls and bobbles
+ * Who has / is about to get the ball (AI side), loose-ball assignment and bobble direction.
+ * ============================================================================ */
 
 // .text:0x0004EFC8 size:0x53C mapped:0x8068E05C
 void knockoutRelated_subFn(int fielderIndex, int flag) {
@@ -4836,6 +4868,12 @@ int fn_3_4DB84(int fielderIndex) {
     }
     return 0;
 }
+
+/* ============================================================================
+ * Auto-movement: covering bases and outfield backup
+ * autoMovement1 (cover base), base-covering setup, outfield no-catch phases, backups and
+ * secondary outfielders.
+ * ============================================================================ */
 
 // .text:0x0004D20C size:0x978 mapped:0x8068C2A0
 void autoMovement1_coverBase(int fielderIndex) {
@@ -6288,6 +6326,11 @@ void secondaryOutfielderWhenToStopMoving(int fielderIndex) {
     g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
 }
 
+/* ============================================================================
+ * Auto-movement: cutoffs and relays
+ * Cutoff placement and timing, and fielders lining up to intercept a thrown ball.
+ * ============================================================================ */
+
 // .text:0x00048A54 size:0xAA0 mapped:0x80687AE8
 void autoMovement11_cutoff_setInitialLocation(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -7207,6 +7250,11 @@ void fn_3_4597C(int fielderIndex) {
     setFielderAutoCoords(fielderIndex, x, z);
 }
 
+/* ============================================================================
+ * Auto-movement: going after the hit ball
+ * Going towards the hit ball and the fielderTrackingBall state machine.
+ * ============================================================================ */
+
 // .text:0x00045860 size:0x11C mapped:0x806848F4
 void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -7948,6 +7996,12 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
     }
     setFielderAutoMovement(fielderIndex, 12);
 }
+
+/* ============================================================================
+ * AI fielding assignments and knockouts
+ * AI-team assignments on the first frame after the hit, and knockout handling for fly balls and
+ * grounders.
+ * ============================================================================ */
 
 // .text:0x00041D78 size:0x304 mapped:0x80680E0C
 void fielderAISomething(void) {
@@ -8975,6 +9029,12 @@ void fn_3_3E468(void) {
     }
 }
 
+/* ============================================================================
+ * Auto-movement: pitcher, infield support and running off the field
+ * Pitcher line-drive movement, infield support, covering home, running off the field, foul-ball
+ * and stay-still movements.
+ * ============================================================================ */
+
 // .text:0x0003E34C size:0x11C mapped:0x8067D3E0
 void autoMovement20_pitcherLinedriveRelated(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -9755,6 +9815,12 @@ void checkIfPlayerNeedsToMoveToCatchBall(int fielderIndex) {
     }
 }
 
+/* ============================================================================
+ * Human-team control
+ * Live-ball control for the human team: the selected fielder, loose balls, initial selections,
+ * jumps.
+ * ============================================================================ */
+
 // .text:0x0003B9E4 size:0x46C mapped:0x8067AA78
 void liveBallFielderControlHumanTeam(void) {
     int i;
@@ -10478,6 +10544,12 @@ void fn_3_3A1FC(int fielderIndex) {
         g_Fielders[fielderIndex].currentVelocity = 0.0f;
     }
 }
+
+/* ============================================================================
+ * Fielder selection
+ * Which fielder the human controls: in-air and landed-ball selection and the closest/optimal
+ * fielder choosers.
+ * ============================================================================ */
 
 // .text:0x00039EB0 size:0x34C mapped:0x80678F44
 void updateFielderSelection(void) {
@@ -12419,6 +12491,12 @@ haveCandidate:
     g_FieldingLogic.interceptThrowFielder = candidate1;
 }
 
+/* ============================================================================
+ * First frame after the hit and initial movements
+ * Foul-ball tracking, human-team first frame after the hit, and the setInitialFielderMovements_*
+ * family.
+ * ============================================================================ */
+
 // .text:0x00035D28 size:0xF4 mapped:0x80674DBC
 void autoMovement16_trackFoulBall(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -13781,6 +13859,11 @@ void determineSelectedfielderOnIFHit_Dribbler(void) {
     }
 }
 
+/* ============================================================================
+ * Steals, at-bat and pre-pitch positioning
+ * Fielder reactions to steals, at-bat setup and the pre-pitch walk to the starting positions.
+ * ============================================================================ */
+
 // .text:0x00032090 size:0x314 mapped:0x80671124
 void stealSetFielders(void) {
     InMemFielder* fielder;
@@ -14281,6 +14364,11 @@ void moveFieldersFromDugoutToStartingPositions(void) {
     g_Ball.framesSinceHit = 100;
 }
 
+/* ============================================================================
+ * Wall jumps, clambers, wall splats and jumps
+ * Position and velocity updates while jumping, wall jumping, clambering and wall splatting.
+ * ============================================================================ */
+
 // .text:0x00030564 size:0xB8 mapped:0x8066F5F8
 int walljump_calculateJumpedOffWallPositionAndVelocity(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -14675,6 +14763,11 @@ void jumpSetPosAndVelo(int fielderIndex) {
         fielder->framesSinceStartedMoving = 0;
     }
 }
+
+/* ============================================================================
+ * Minigames and Toy Field
+ * Minigame dash fielding, Toy Field, and the minigame-specific auto-movements.
+ * ============================================================================ */
 
 // .text:0x0002F484 size:0xF0 mapped:0x8066E518
 void miniGameDash(void) {
@@ -15387,6 +15480,12 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     return 1;
 }
 #pragma dont_inline reset
+
+/* ============================================================================
+ * Catching
+ * Catch checks for fly balls, running catches, thrown balls and empty-base throws; wall actions
+ * and dives.
+ * ============================================================================ */
 
 // .text:0x0002C698 size:0x548 mapped:0x8066B72C
 void checkForCatchBallAction(int fielderIndex) {
@@ -17208,6 +17307,12 @@ found:
     return 1;
 }
 
+/* ============================================================================
+ * Catch animations, bobbles and post-catch
+ * Catch animation progression, auto-catch, post-catch variables, bobbles and catch-specific
+ * movement.
+ * ============================================================================ */
+
 // .text:0x00027860 size:0x508 mapped:0x806668F4
 void catchAnimationProgression(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -17952,6 +18057,11 @@ int tryStartFielderJump(int fielderIndex) {
     g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
     return 1;
 }
+
+/* ============================================================================
+ * Fire and knockouts
+ * Bowser Castle fireball burns and fielder knockouts.
+ * ============================================================================ */
 
 // .text:0x00025844 size:0x94 mapped:0x806648D8
 void maybeCastleFireballBurn(int fielderIndex, int fireballType) {
