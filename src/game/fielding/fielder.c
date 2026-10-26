@@ -2839,13 +2839,13 @@ int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
 void stopFielderAtCurrentPosition(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
-    fielder->IntendedLocation.x = fielder->pos.x;
-    fielder->IntendedLocation.y = fielder->pos.y;
-    fielder->IntendedLocation.z = fielder->pos.z;
-    fielder->velocityX = 0.0f;
-    fielder->velocityZ = 0.0f;
-    fielder->currentVelocity = 0.0f;
-    fielder->distanceFromAutoLocation = 0.0f;
+    g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
+    g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
+    g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
+    g_Fielders[fielderIndex].velocityX = 0.0f;
+    g_Fielders[fielderIndex].velocityZ = 0.0f;
+    g_Fielders[fielderIndex].currentVelocity = 0.0f;
+    g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
 }
 
 // .text:0x00052F4C size:0x1A0 mapped:0x80691FE0
@@ -4896,7 +4896,7 @@ int fn_3_4DB84(int fielderIndex) {
 void autoMovement1_coverBase(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
-    if (g_Ball.homeRunClassification != 0 && fielderIndex <= 1) {
+    if (g_Ball.homeRunClassification != 0 && fielderIndex <= FIELDING_POSITION_CATCHER) {
         return;
     }
 
@@ -4904,7 +4904,7 @@ void autoMovement1_coverBase(int fielderIndex) {
         return;
     }
 
-    if (fielderIndex == 1) {
+    if (fielderIndex == FIELDING_POSITION_CATCHER) {
         if (g_FieldingLogic.catcherNotFocusedOnRunnerScoring != 0) {
             return;
         }
@@ -4913,11 +4913,8 @@ void autoMovement1_coverBase(int fielderIndex) {
     {
         int lockout = fielder->lockoutDuration;
 
-        if (g_Ball.framesSinceHit < lockout - 15 && fielderIndex != 0) {
-            return;
-        }
-
-        if (g_Ball.framesSinceHit < lockout && fielderIndex == 0) {
+        if ((g_Ball.framesSinceHit < lockout - 15 && fielderIndex != FIELDING_POSITION_PITCHER) ||
+            (g_Ball.framesSinceHit < lockout && fielderIndex == FIELDING_POSITION_PITCHER)) {
             return;
         }
     }
@@ -4935,10 +4932,12 @@ void autoMovement1_coverBase(int fielderIndex) {
             f32 diffX = fielder->IntendedLocation.x - fielder->pos.x;
             f32 diffZ = fielder->IntendedLocation.z - fielder->pos.z;
             f32 dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
-            f32 step = fielder->joggingSpeed;
+            f32 step;
 
-            if (dist < step) {
+            if (dist < fielder->joggingSpeed) {
                 step = dist;
+            } else {
+                step = fielder->joggingSpeed;
             }
 
             fielder->velocityX = diffX * step;
@@ -4950,20 +4949,16 @@ void autoMovement1_coverBase(int fielderIndex) {
         } else if (fielder->catchAnimation != 0) {
             fielderMovement_VelocityDuringCatchAnimations(fielderIndex);
             fielder->someCountdownAndCountUpRelatedToStandingStill = 0;
-        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == 0) {
-            f32 x;
-            f32 z;
-
-            if (fielder->pitcherHeadingToCover1stOr3rd == 1) {
+        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == FALSE) {
+            if (fielder->pitcherHeadingToCover1stOr3rd == TRUE) {
                 setPitcherCoverBaseLocation();
             } else {
-                x = base_MoundCoordinates[fielder->locationResponsibleForCovering].x;
-                z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
-                setFielderAutoCoords(fielderIndex, x, z);
+                setFielderAutoCoords(fielderIndex, base_MoundCoordinates[fielder->locationResponsibleForCovering].x,
+                                     base_MoundCoordinates[fielder->locationResponsibleForCovering].z);
             }
 
             setFielderVelocity(fielderIndex);
-        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == 1) {
+        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == TRUE) {
             s16 loc = fielder->locationResponsibleForCovering;
 
             if (fielder->distanceToBases[loc] >
@@ -4972,7 +4967,7 @@ void autoMovement1_coverBase(int fielderIndex) {
                 f32 diffZ = base_MoundCoordinates[loc].z - fielder->pos.z;
 
                 fielder->IntendedLocation.x = base_MoundCoordinates[loc].x;
-                fielder->IntendedLocation.z = base_MoundCoordinates[loc].z;
+                fielder->IntendedLocation.z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
 
                 fielder->velocityX = (0.03f * diffX) / fielder->distanceToBases[fielder->locationResponsibleForCovering];
                 fielder->velocityZ = (0.03f * diffZ) / fielder->distanceToBases[fielder->locationResponsibleForCovering];
@@ -4986,15 +4981,15 @@ void autoMovement1_coverBase(int fielderIndex) {
                 f32 diffZ = base_MoundCoordinates[loc].z - fielder->pos.z;
                 f32 dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
 
-                if (dist >= 0.1f) {
+                if (dist < 0.1f) {
+                    fielder->pos.x = base_MoundCoordinates[fielder->locationResponsibleForCovering].x;
+                    fielder->pos.z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
+                    stopFielderAtCurrentPosition(fielderIndex);
+                } else {
                     fielder->velocityX = diffX / 5.0f;
                     fielder->velocityZ = diffZ / 5.0f;
                     fielder->pos.x += fielder->velocityX;
                     fielder->pos.z += fielder->velocityZ;
-                } else {
-                    fielder->pos.x = base_MoundCoordinates[loc].x;
-                    fielder->pos.z = base_MoundCoordinates[loc].z;
-                    stopFielderAtCurrentPosition(fielderIndex);
                 }
             }
 
