@@ -948,7 +948,7 @@ void liveBallFielderControlAITeam(void) {
         liveBallUpdateFieldingValues();
     }
 
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 }
 #pragma dont_inline reset
 
@@ -1894,7 +1894,7 @@ void fn_3_555AC(int fielderIndex) {
 }
 
 // .text:0x00055370 size:0x23C mapped:0x80694404
-void fn_3_55370(void) {
+void fielding_updateAllFieldersPostMovement(void) {
     InMemFielder* fielder;
     int i;
 
@@ -9813,7 +9813,7 @@ void liveBallFielderControlHumanTeam(void) {
         liveBallUpdateFieldingValues();
     }
 
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 
     if (g_Ball.ballState == BALL_STATE_HELD) {
         g_FieldingLogic.selectedFielder = g_Ball.fielderWBallIndex;
@@ -14789,7 +14789,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     fielderUpdateChasingRunnerValues(fielderIndex);
 
 updateEachFielder:
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 }
 
 // .text:0x0002EA88 size:0x43C mapped:0x8066DB1C
@@ -14845,7 +14845,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
     }
 
 updateEachFielder:
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 }
 
 // .text:0x0002EA24 size:0x64 mapped:0x8066DAB8
@@ -15132,7 +15132,7 @@ void autoMovement27_minigameDashRelated2(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->animatingActionInd == 0) {
-        unused_FUN_8066c7fc(fielderIndex);
+        moveFielderTowardsIntendedLocation_initPhase(fielderIndex);
     }
 
     if (g_Minigame.framesSincePanelHit != 0 && fielderIndex != -1) {
@@ -15145,12 +15145,12 @@ void autoMovement28_minigameDashRelated3(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->animationRelatedInd == 0) {
-        unused_FUN_8066bf88(fielderIndex);
+        moveFielderTowardsIntendedLocation(fielderIndex);
     }
 }
 
 // .text:0x0002D768 size:0x1C4 mapped:0x8066C7FC
-void unused_FUN_8066c7fc(int fielderIndex) {
+void moveFielderTowardsIntendedLocation_initPhase(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->_0208 == 0) {
@@ -15162,7 +15162,7 @@ void unused_FUN_8066c7fc(int fielderIndex) {
     }
 
     fielder->fielderVeloAdjustmentCode = 0;
-    unused_FUN_8066bf88(fielderIndex);
+    moveFielderTowardsIntendedLocation(fielderIndex);
 }
 
 // .text:0x0002D47C size:0x2EC mapped:0x8066C510
@@ -15342,7 +15342,7 @@ int determineBestFrameForFielder(int fielderIndex) {
 }
 
 // .text:0x0002CEF4 size:0x18C mapped:0x8066BF88
-void unused_FUN_8066bf88(int fielderIndex) {
+void moveFielderTowardsIntendedLocation(int fielderIndex) {
     updateFielderPositionBasedOnBallState(fielderIndex);
     setFielderMovementAngleTowardsIntendedLocation(fielderIndex);
     moveFielder_CheckForAndSetJump(fielderIndex);
@@ -15382,7 +15382,7 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
 
     fielderUpdateChasingRunnerValues(fielderIndex);
 
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 
     return 1;
 }
