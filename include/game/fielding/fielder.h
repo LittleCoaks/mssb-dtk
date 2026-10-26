@@ -119,7 +119,7 @@ void fn_3_3ABF0(int fielderIndex);
 void updateFielderMovementIfNoBall(int fielderIndex);
 void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex);
 void autoMovement15_selectedFielderOnLooseBall(int fielderIndex);
-void fn_3_3B764(void);
+void humanSetFielderWithBallIndex(void);
 void fn_3_3B99C(void);
 void liveBallFielderControlHumanTeam(void);
 void checkIfPlayerNeedsToMoveToCatchBall(int fielderIndex);

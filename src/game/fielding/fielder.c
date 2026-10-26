@@ -1221,6 +1221,7 @@ setFromFutureCoord:
 #pragma dont_inline reset
 
 // .text:0x00057144 size:0x344 mapped:0x806961D8
+#pragma dont_inline on
 void liveBallUpdateFieldingValues(void) {
     InMemFielder* fielder;
     int i;
@@ -1250,41 +1251,7 @@ void liveBallUpdateFieldingValues(void) {
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
         aISetFielderWithBallIndex();
     } else {
-        fielder = &g_Fielders[g_FieldingLogic.selectedFielder];
-
-        if (g_FieldingLogic.locationThrownTo >= 0) {
-            g_Ball.fielderAboutToGetBall_hasBall = -1;
-        } else if (g_FieldingLogic.selectedFielder >= 0) {
-            if (g_Ball.looseBall_5FrameCountdown == 0) {
-                if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-                    if (fielder->distanceFromLandingSpot < 5.0f) {
-                        g_Ball.fielderAboutToGetBall_hasBall = g_FieldingLogic.selectedFielder;
-                    } else {
-                        g_Ball.fielderAboutToGetBall_hasBall = -1;
-                    }
-                } else {
-                    f32 dx = fielder->pos.x - g_Ball.physicsSubstruct.futureCoordsAndDist[1].pos.x;
-                    f32 dz = fielder->pos.z - g_Ball.physicsSubstruct.futureCoordsAndDist[1].pos.z;
-                    f32 sqx = dx * dx;
-                    f32 sqz = dz * dz;
-                    f32 dist = dolsqrtf2(sqx + sqz);
-
-                    if (dist <= fielder->distanceFromBall) {
-                        if (ballDistCalculator(fielder->pos.x, fielder->pos.z) < fielder->hitbox[0]) {
-                            g_Ball.fielderAboutToGetBall_hasBall = g_FieldingLogic.selectedFielder;
-                        } else {
-                            g_Ball.fielderAboutToGetBall_hasBall = -1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
-        g_Ball.ballIsLooseInd_unused = 0;
-        g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 0;
-        g_Ball.fielderBeingThrownTo = -1;
+        humanSetFielderWithBallIndex();
     }
 
     if (g_Ball.framesSinceHit > 5) {
@@ -1295,6 +1262,7 @@ void liveBallUpdateFieldingValues(void) {
 
     fielder_endOfInning_deadball_updateCounters();
 }
+#pragma dont_inline reset
 
 // .text:0x00055EEC size:0x1258 mapped:0x80694F80
 void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
@@ -9945,7 +9913,7 @@ void fn_3_3B99C(void) {
 }
 
 // .text:0x0003B764 size:0x238 mapped:0x8067A7F8
-void fn_3_3B764(void) {
+void humanSetFielderWithBallIndex(void) {
     InMemFielder* fielder = &g_Fielders[g_FieldingLogic.selectedFielder];
     f32 dx;
     f32 dz;
