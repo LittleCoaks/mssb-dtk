@@ -14255,6 +14255,7 @@ void fielding_prePitchAutomovement(void) {
     InMemFielder* fielder;
 
     if (pauseControl.isPaused == 0) {
+        /* inlined setFieldersAutoCoordsToStartingPositions; call form stays a bl, costs 45% (see checkpoint) */
         for (i = 2; i < 9; i++) {
             f32 outZ;
             f32 outX;
@@ -14359,7 +14360,7 @@ void fielding_prePitchAutomovement(void) {
 }
 
 // .text:0x00030A58 size:0x31C mapped:0x8066FAEC
-void fn_3_30A58(void) {
+void setFieldersAutoCoordsToStartingPositions(void) {
     int i;
     f32 outX;
     f32 outZ;
