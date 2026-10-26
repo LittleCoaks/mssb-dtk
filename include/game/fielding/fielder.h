@@ -139,7 +139,7 @@ void fn_3_3E468(void);
 void knockoutRelated_Grounder_Liner(void);
 void knockoutRelated_FlyBall(void);
 void knockoutRelated(void);
-void uncalled(void);
+void aITeam_selectInitialFielders_linedriveThroughPitcher(void);
 void fn_3_3F24C(void);
 void fn_3_3F760(void);
 void fn_3_3FCF0(BOOL useComputedAngle);

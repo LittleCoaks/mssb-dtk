@@ -8197,20 +8197,7 @@ void aITeamFieldingFirstFrameAfterHit(void) {
     }
 
     if (g_Ball.lineDriveThroughPitcherInd) {
-        int avgAngle;
-
-        setFielderAutoMovement(0, 20);
-
-        avgAngle = (g_Fielders[3].angleOfFieldersStartingPosition + g_Fielders[5].angleOfFieldersStartingPosition) / 2;
-        if (avgAngle > g_Ball.Hit_HorizontalAngle) {
-            setFielderAutoMovement(3, 3);
-        } else {
-            setFielderAutoMovement(5, 3);
-        }
-
-        setInitialFielderMovements_CoverBases();
-        setInitialFielderMovements_cutoffs();
-        setInitialFielderMovements_restOfFielders();
+        aITeam_selectInitialFielders_linedriveThroughPitcher();
     } else if (g_Ball.hitClassification3 == 7 || g_Ball.hitClassification3 == 8) {
         fn_3_3F24C();
     } else if ((catchStrategyMask & 0x3FFFF) == 0) {
@@ -8702,18 +8689,15 @@ void fn_3_3F24C(void) {
 }
 
 // .text:0x0003F124 size:0x128 mapped:0x8067E1B8
-void uncalled(void) {
+void aITeam_selectInitialFielders_linedriveThroughPitcher(void) {
     int avg;
-    InMemFielder *f0 = &g_Fielders[0];
 
     setFielderAutoMovement(0, 20);
 
     avg = (g_Fielders[3].angleOfFieldersStartingPosition + g_Fielders[5].angleOfFieldersStartingPosition) / 2;
     if (avg > g_Ball.Hit_HorizontalAngle) {
-        InMemFielder *f = &g_Fielders[3];
         setFielderAutoMovement(3, 3);
     } else {
-        InMemFielder *f = &g_Fielders[5];
         setFielderAutoMovement(5, 3);
     }
 
