@@ -4987,21 +4987,7 @@ void autoMovement1_coverBase(int fielderIndex) {
                     z = base_MoundCoordinates[pitcher->locationResponsibleForCovering].z;
                 }
 
-                diffX = x - pitcher->pos.x;
-                diffZ = z - pitcher->pos.z;
-
-                pitcher->IntendedLocation.x = x;
-                pitcher->IntendedLocation.z = z;
-
-                if (0.0f == diffX && 0.0f == diffZ) {
-                    pitcher->currentVelocity = 0.0f;
-                    pitcher->distanceFromAutoLocation = 0.0f;
-                } else {
-                    pitcher->desiredMovementDirection2 = ATAN2F(diffZ, diffX);
-                    pitcher->distanceFromAutoLocation = fielderSqrt(diffX * diffX + diffZ * diffZ);
-                }
-
-                pitcher->goingToAutoLocationInd = 1;
+                setFielderAutoCoords(0, x, z);
             } else {
                 x = base_MoundCoordinates[fielder->locationResponsibleForCovering].x;
                 z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
@@ -5076,8 +5062,6 @@ void fn_3_4CFB0(void) {
     s16 covering = fielder->locationResponsibleForCovering;
     f32 targetX;
     f32 targetZ;
-    f32 dz;
-    f32 dx;
 
     if (covering == 1) {
         f32 dist = base_MoundCoordinates[1].x - fielder->pos.x;
@@ -5100,22 +5084,7 @@ void fn_3_4CFB0(void) {
         targetZ = base_MoundCoordinates[covering].z;
     }
 
-    fielder = &g_Fielders[0];
-    fielder->IntendedLocation.x = targetX;
-    fielder->IntendedLocation.z = targetZ;
-
-    dz = targetZ - fielder->pos.z;
-    dx = targetX - fielder->pos.x;
-
-    if (0.0f == dx && 0.0f == dz) {
-        fielder->currentVelocity = 0.0f;
-        fielder->distanceFromAutoLocation = 0.0f;
-    } else {
-        fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
-        fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
-    }
-
-    fielder->goingToAutoLocationInd = 1;
+    setFielderAutoCoords(0, targetX, targetZ);
 }
 
 // .text:0x0004C9C8 size:0x5E8 mapped:0x8068BA5C
@@ -6440,23 +6409,7 @@ void autoMovement11_cutoff_setInitialLocation(int fielderIndex) {
             return;
         }
 
-        fielder->IntendedLocation.x = x;
-        fielder->IntendedLocation.z = z;
-
-        {
-            f32 dz = z - fielder->pos.z;
-            f32 dx = x - fielder->pos.x;
-
-            if (dx == 0.0f && dz == 0.0f) {
-                fielder->currentVelocity = 0.0f;
-                fielder->distanceFromAutoLocation = 0.0f;
-            } else {
-                fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
-                fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
-            }
-        }
-
-        fielder->goingToAutoLocationInd = 1;
+        setFielderAutoCoords(fielderIndex, x, z);
         g_FieldingLogic.cutoffFielderIndex = fielderIndex;
         if (fielderIndex != -1) {
             setFielderAutoMovement(fielderIndex, 5);
@@ -6528,25 +6481,9 @@ void autoMovement11_cutoff_setInitialLocation(int fielderIndex) {
 
             g_Fielders[g_FieldingLogic.cutoffFielderIndex].locationResponsibleForCovering = -1;
             g_Fielders[g_FieldingLogic.cutoffFielderIndex].isResponsibleForCoveringALocation = 0;
-
-            fielder->IntendedLocation.x = x;
-            fielder->IntendedLocation.z = z;
         }
 
-        {
-            f32 dz = z - fielder->pos.z;
-            f32 dx = x - fielder->pos.x;
-
-            if (dx == 0.0f && dz == 0.0f) {
-                fielder->currentVelocity = 0.0f;
-                fielder->distanceFromAutoLocation = 0.0f;
-            } else {
-                fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
-                fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
-            }
-        }
-
-        fielder->goingToAutoLocationInd = 1;
+        setFielderAutoCoords(fielderIndex, x, z);
         g_FieldingLogic.cutoffFielderIndex = fielderIndex;
         if (fielderIndex != -1) {
             setFielderAutoMovement(fielderIndex, 5);
@@ -6696,23 +6633,7 @@ void fn_3_480B8(int fielderIndex) {
 
         fielder->baseCuttoffIsTargeting = baseToTarget;
         if (setCutoffLocationToStandAt(fielderIndex, &x, &z)) {
-            fielder->IntendedLocation.x = x;
-            fielder->IntendedLocation.z = z;
-
-            {
-                f32 deltaX = x - fielder->pos.x;
-                f32 deltaZ = z - fielder->pos.z;
-
-                if (deltaX == 0.0f && deltaZ == 0.0f) {
-                    fielder->currentVelocity = 0.0f;
-                    fielder->distanceFromAutoLocation = 0.0f;
-                } else {
-                    fielder->desiredMovementDirection2 = ATAN2F(deltaZ, deltaX);
-                    fielder->distanceFromAutoLocation = fielderSqrt(deltaZ * deltaZ + deltaX * deltaX);
-                }
-            }
-
-            fielder->goingToAutoLocationInd = 1;
+            setFielderAutoCoords(fielderIndex, x, z);
         }
     }
 }
@@ -7381,8 +7302,6 @@ void fn_3_4597C(int fielderIndex) {
     f32 negVz;
     f32 x;
     f32 z;
-    f32 dz;
-    f32 dx;
 
     vz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
     vx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
@@ -7402,22 +7321,7 @@ void fn_3_4597C(int fielderIndex) {
 
     x = out.x;
     z = out.z;
-
-    fielder->IntendedLocation.x = x;
-    fielder->IntendedLocation.z = z;
-
-    dz = z - fielder->pos.z;
-    dx = x - fielder->pos.x;
-
-    if (0.0f == dx && 0.0f == dz) {
-        fielder->currentVelocity = 0.0f;
-        fielder->distanceFromAutoLocation = 0.0f;
-    } else {
-        fielder->desiredMovementDirection2 = ATAN2F(dz, dx);
-        fielder->distanceFromAutoLocation = fielderSqrt(dx * dx + dz * dz);
-    }
-
-    fielder->goingToAutoLocationInd = 1;
+    setFielderAutoCoords(fielderIndex, x, z);
 }
 
 // .text:0x00045860 size:0x11C mapped:0x806848F4
