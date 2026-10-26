@@ -17376,8 +17376,7 @@ void processFielderAutoCatch(void) {
 
     for (i = 0; i < 9; i++) {
         if (g_Fielders[i].catchAnimation != 0) {
-            g_Fielders[i].autoCatch0_noCatchAnimationOnly1 = 1;
-            g_Ball.catchAnimationTotalFrames = 0;
+            fn_3_27738(i);
         }
     }
 }
@@ -17841,8 +17840,7 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
 
     collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
     if (collided == 1) {
-        fielder->autoCatch0_noCatchAnimationOnly1 = 1;
-        g_Ball.catchAnimationTotalFrames = 0;
+        fn_3_27738(fielderIndex);
     }
     if (collided != 0) {
         fielder->pos.x = fielder->posXLastFrame;
