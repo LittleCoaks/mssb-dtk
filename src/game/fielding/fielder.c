@@ -16217,7 +16217,7 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
     f32 dist;
     f32 remainingDist;
     f32 travelDist;
-    f32 speedFactor;
+    f32 velX, velZ;
 
     if (locationThrownTo < 0 || locationThrownTo > 3) {
         return 0;
@@ -16239,104 +16239,69 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
         return 0;
     }
 
-    if (!(ballDistCalculator(base_MoundCoordinates[locationThrownTo].x, base_MoundCoordinates[locationThrownTo].z) <
-          fielder->hitbox[0])) {
-        return 0;
-    }
-
-    if (fielder->baseCurrentlyOn == locationThrownTo) {
-        return 0;
-    }
-
-    if (g_Ball.framesUntilThrowReachesDest > specialFielderActionConstants._00[19]) {
-        return 0;
-    }
-
-    if (g_Ball.framesUntilThrowReachesDest < specialFielderActionConstants._00[20]) {
-        return 0;
-    }
-
-    remainingDist =
-        fielder->distanceToBases[locationThrownTo] -
-        modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
-    travelDist = 1.2f * fielder->joggingSpeed * (f32)g_Ball.framesUntilThrowReachesDest;
-
-    if (remainingDist - travelDist > 3.0f) {
-        return 0;
-    }
-
-    if (remainingDist < travelDist) {
-        fielder->catchAnimationFramesCountDown = g_Ball.framesUntilThrowReachesDest;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 8;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-
-        if (g_Ball.framesUntilThrowReachesDest < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
+    if (ballDistCalculator(base_MoundCoordinates[locationThrownTo].x, base_MoundCoordinates[locationThrownTo].z) <
+        fielder->hitbox[0]) {
+        if (fielder->baseCurrentlyOn == locationThrownTo) {
+            return 0;
         }
 
-        g_Ball.catchAnimationTotalFrames = 0;
-        fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.x;
-        fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.y;
-        fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.z;
+        if (g_Ball.framesUntilThrowReachesDest > specialFielderActionConstants._00[19]) {
+            return 0;
+        }
 
-        dx = fielder->actionEndingCoordinateX - fielder->pos.x;
-        dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
-        dist = fielderSqrt(dx * dx + dz * dz);
+        if (g_Ball.framesUntilThrowReachesDest < specialFielderActionConstants._00[20]) {
+            return 0;
+        }
 
-        remainingDist = dist - modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
+        remainingDist =
+            fielder->distanceToBases[locationThrownTo] -
+            modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
+        travelDist = 1.2f * fielder->joggingSpeed * (f32)g_Ball.framesUntilThrowReachesDest;
 
-        if (remainingDist / (f32)g_Ball.framesUntilThrowReachesDest < 0.07f) {
-            fielder->actionStartingCoordinate.x = fielder->actionEndingCoordinateX;
-            fielder->actionStartingCoordinate.z = fielder->actionEndingCoordinateZ;
+        if (remainingDist - travelDist > 3.0f) {
+            return 0;
+        }
+
+        if (remainingDist < travelDist) {
+            fn_3_2C238(fielderIndex, 8, g_Ball.framesUntilThrowReachesDest, FALSE, FALSE);
+            fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.x;
+            fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.y;
+            fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.z;
+
+            dx = fielder->actionEndingCoordinateX - fielder->pos.x;
+            dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
+
+            remainingDist = dist - modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
+
+            if (remainingDist / (f32)g_Ball.framesUntilThrowReachesDest < 0.07f) {
+                fielder->actionStartingCoordinate.x = fielder->actionEndingCoordinateX;
+                fielder->actionStartingCoordinate.z = fielder->actionEndingCoordinateZ;
+            } else {
+                f32 ratio = remainingDist / dist;
+                fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
+                fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
+            }
         } else {
-            f32 ratio = remainingDist / dist;
-            fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
-            fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
-        }
-    } else {
-        fielder->catchAnimationFramesCountDown = g_Ball.framesUntilThrowReachesDest;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 8;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 1;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
+            fn_3_2C238(fielderIndex, 8, g_Ball.framesUntilThrowReachesDest, TRUE, FALSE);
 
-        if (g_Ball.framesUntilThrowReachesDest < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
+            dx = base_MoundCoordinates[locationThrownTo].x - fielder->pos.x;
+            dz = base_MoundCoordinates[locationThrownTo].z - fielder->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
+
+            velX = fielder->joggingSpeed * (dx / dist);
+            velZ = fielder->joggingSpeed * (dz / dist);
+            velX = 1.1f * velX;
+            velZ = 1.1f * velZ;
+            fielder->actionStartingCoordinate.x = velX * (f32)g_Ball.framesUntilThrowReachesDest + fielder->pos.x;
+            fielder->actionStartingCoordinate.z = velZ * (f32)g_Ball.framesUntilThrowReachesDest + fielder->pos.z;
         }
 
-        dx = base_MoundCoordinates[locationThrownTo].x - fielder->pos.x;
-        dz = base_MoundCoordinates[locationThrownTo].z - fielder->pos.z;
-        g_Ball.catchAnimationTotalFrames = 0;
-        dist = fielderSqrt(dx * dx + dz * dz);
+        setFielderActionAngleType(fielderIndex);
 
-        speedFactor = 1.1f * fielder->joggingSpeed * (f32)g_Ball.framesUntilThrowReachesDest;
-        fielder->actionStartingCoordinate.x = fielder->pos.x + (dx / dist) * speedFactor;
-        fielder->actionStartingCoordinate.z = fielder->pos.z + (dz / dist) * speedFactor;
+        return 1;
     }
-
-    setFielderActionAngleType(fielderIndex);
-
-    return 1;
+    return 0;
 }
 
 // .text:0x0002A288 size:0x414 mapped:0x8066931C
