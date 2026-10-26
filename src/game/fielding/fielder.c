@@ -16031,29 +16031,23 @@ int catchThrownBallFun(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 heightThreshold = 1.2f * fielder->hitbox[3];
     int framesUntilThrowReachesDest = g_Ball.framesUntilThrowReachesDest;
-    int autoMovementCode;
     int idx;
-    int foundIndex;
+    int remaining;
 
     if (g_FieldingLogic.locationThrownTo < 0) {
         return 0;
     }
-
     if (g_Ball.framesSinceThrowStarted <= 3) {
         return 0;
     }
-
     if (fielder->someCountDown != 0) {
         return 0;
     }
-
     if (fielder->catchAnimation == 2) {
         return 0;
     }
 
-    autoMovementCode = g_FieldingLogic.fielderAutoMovementCode[fielderIndex];
-    do {
-    if (autoMovementCode == 15) {
+    if (g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 15) {
         if (g_FieldingLogic.throwInterceptionTriggered == 0) {
             return 0;
         }
@@ -16063,6 +16057,7 @@ int catchThrownBallFun(int fielderIndex) {
 
         for (idx = specialFielderActionConstants._00[23]; idx <= specialFielderActionConstants._00[22]; idx++) {
             f32 dx, dz, dxSq, dzSq;
+
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > fielder->hitbox[3]) {
                 continue;
             }
@@ -16077,19 +16072,15 @@ int catchThrownBallFun(int fielderIndex) {
         if (idx > specialFielderActionConstants._00[22]) {
             return 0;
         }
-        foundIndex = idx;
-        break;
+        goto setCatch;
     } else {
         if (fielderIndex != g_Ball.fielderBeingThrownTo) {
             return 0;
         }
 
-        if (autoMovementCode <= 3) {
-            f32 distToMound = ballDistCalculator(base_MoundCoordinates[autoMovementCode].x,
-                                                  base_MoundCoordinates[autoMovementCode].z);
-            int remaining;
-
-            if (distToMound < fielder->hitbox[0]) {
+        if (g_FieldingLogic.locationThrownTo <= 3) {
+            if (ballDistCalculator(base_MoundCoordinates[g_FieldingLogic.locationThrownTo].x,
+                                   base_MoundCoordinates[g_FieldingLogic.locationThrownTo].z) < fielder->hitbox[0]) {
                 idx = framesUntilThrowReachesDest - 1;
                 if (idx <= 2) {
                     return 0;
@@ -16097,14 +16088,14 @@ int catchThrownBallFun(int fielderIndex) {
                 if (idx > specialFielderActionConstants._00[12]) {
                     return 0;
                 }
-                if (fielder->baseCurrentlyOn != g_FieldingLogic.locationThrownTo) {
-                    if (idx > specialFielderActionConstants._00[13]) {
-                        return 0;
-                    }
+                if (fielder->baseCurrentlyOn != g_FieldingLogic.locationThrownTo &&
+                    idx > specialFielderActionConstants._00[13]) {
+                    return 0;
                 }
 
                 for (remaining = 10; remaining > 0; remaining--, idx--) {
                     f32 dx, dz, dxSq, dzSq;
+
                     if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > heightThreshold) {
                         idx++;
                         break;
@@ -16118,37 +16109,19 @@ int catchThrownBallFun(int fielderIndex) {
                         break;
                     }
                 }
-                foundIndex = idx;
-                break;
+                goto setCatch;
             } else {
-                if (g_Ball.framesSinceThrowStarted <= 0x14) {
+                if (g_Ball.framesSinceThrowStarted <= 20) {
                     return 0;
                 }
-
-                if (framesUntilThrowReachesDest - 2 < 1) {
-                    return 0;
-                }
-
-                if (checkIfCatchOccurs(fielderIndex) != 0) {
+                if (fn_3_2ACD8(fielderIndex, framesUntilThrowReachesDest - 2)) {
                     return 1;
                 }
-
-                fielder->IntendedLocation.x =
-                    g_Ball.physicsSubstruct.futureCoordsAndDist[framesUntilThrowReachesDest - 2].pos.x;
-                fielder->IntendedLocation.z =
-                    g_Ball.physicsSubstruct.futureCoordsAndDist[framesUntilThrowReachesDest - 2].pos.z;
-                fielder->needToMoveToCatchThrownBall = 1;
-                return 0;
             }
-        } else {
-            if (autoMovementCode != 5) {
-                if (autoMovementCode != 6) {
-                    return 0;
-                }
-            }
-
+        } else if (g_FieldingLogic.locationThrownTo == 5 || g_FieldingLogic.locationThrownTo == 6) {
             for (idx = specialFielderActionConstants._00[23]; idx <= specialFielderActionConstants._00[22]; idx++) {
-                f32 dx, dz, dxSq, dzSq, distSq;
+                f32 dx, dz, dxSq, dzSq;
+
                 if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > fielder->hitbox[3]) {
                     continue;
                 }
@@ -16156,87 +16129,62 @@ int catchThrownBallFun(int fielderIndex) {
                 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z - fielder->pos.z;
                 dxSq = dx * dx;
                 dzSq = dz * dz;
-                distSq = dxSq + dzSq;
-                if (fielderSqrt(distSq) < fielder->hitbox[0]) {
+                if (fielderSqrt(dxSq + dzSq) < fielder->hitbox[0]) {
                     break;
                 }
             }
             if (idx > specialFielderActionConstants._00[22]) {
                 return 0;
             }
-            foundIndex = idx;
-            break;
+            goto setCatch;
         }
     }
-    } while (0);
+    return 0;
 
-    fielder->catchAnimationFramesCountDown = foundIndex;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 2;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 1;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-    if (foundIndex < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
+setCatch:
+    fn_3_2C238(fielderIndex, 2, idx, FALSE, TRUE);
+
+    if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y < fielder->hitbox[5]) {
+        fielder->catchVerticalZone = 0;
+    } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y < fielder->hitbox[4]) {
+        fielder->catchVerticalZone = 1;
+    } else {
+        fielder->catchVerticalZone = 2;
     }
-    g_Ball.catchAnimationTotalFrames = 0;
 
     {
-        CoordAndDist* entry = &g_Ball.physicsSubstruct.futureCoordsAndDist[foundIndex];
-        VecXYZ fielderPosCopy;
-        VecXYZ zeroVec;
-        VecXYZ targetPos;
-        VecXYZ scratch;
-        f32 distToEntry;
+        VecXYZ closest;
+        VecXYZ point;
+        VecXYZ lineEnd;
+        VecXYZ start;
 
-        if (entry->pos.y < fielder->hitbox[5]) {
-            fielder->catchVerticalZone = 0;
-        } else if (entry->pos.y < fielder->hitbox[4]) {
-            fielder->catchVerticalZone = 1;
-        } else {
-            fielder->catchVerticalZone = 2;
-        }
+        start.x = fielder->pos.x;
+        start.y = fielder->pos.y;
+        start.z = fielder->pos.z;
+        lineEnd.x = 0.0f;
+        lineEnd.y = 0.0f;
+        lineEnd.z = 0.0f;
+        point.x = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.x;
+        point.z = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z;
+        point.y = 0.0f;
 
-        {
-            f32* entryX = &entry->pos.x;
-            f32* entryZ = &entry->pos.z;
+        if (calculateBallInterceptDistance(&start, &lineEnd, &point, &closest) > fielder->hitbox[2]) {
+            f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.x - fielder->pos.x;
+            f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z - fielder->pos.z;
+            int travelAngle = normalizeAngle(g_Ball.ballTravelAngle + 0x800);
+            int coordAngle = calculateAngleFromCoordinates(dx, dz);
+            int angleDiff = angleDifferenceNormalized(travelAngle, coordAngle);
 
-            fielderPosCopy.x = fielder->pos.x;
-            fielderPosCopy.y = fielder->pos.y;
-            fielderPosCopy.z = fielder->pos.z;
-            zeroVec.x = 0.0f;
-            zeroVec.y = 0.0f;
-            zeroVec.z = 0.0f;
-            targetPos.x = *entryX;
-            targetPos.y = 0.0f;
-            targetPos.z = *entryZ;
-
-            distToEntry = calculateBallInterceptDistance(&fielderPosCopy, &zeroVec, &targetPos, &scratch);
-            if (distToEntry > fielder->hitbox[2]) {
-                f32 dx = *entryX - fielder->pos.x;
-                f32 dz = *entryZ - fielder->pos.z;
-                int angleToTravel = normalizeAngle(g_Ball.ballTravelAngle + 0x800);
-                int angleToEntry = calculateAngleFromCoordinates(dx, dz);
-                int angleDiff = angleDifferenceNormalized(angleToTravel, angleToEntry);
-                if (angleDiff > 0) {
-                    fielder->catchCentreRightLeftOfBody = 2;
-                } else if (angleDiff <= 0) {
-                    fielder->catchCentreRightLeftOfBody = 1;
-                }
+            if (angleDiff > 0) {
+                fielder->catchCentreRightLeftOfBody = 2;
+            } else if (angleDiff <= 0) {
+                fielder->catchCentreRightLeftOfBody = 1;
             }
-
-            fielder->xDistToCatch = *entryX - g_Ball.AtBat_Contact_BallPos.x;
-            fielder->zDistToCatch = *entryZ - g_Ball.AtBat_Contact_BallPos.z;
         }
     }
+
+    fielder->xDistToCatch = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.x - g_Ball.AtBat_Contact_BallPos.x;
+    fielder->zDistToCatch = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z - g_Ball.AtBat_Contact_BallPos.z;
 
     return 1;
 }
