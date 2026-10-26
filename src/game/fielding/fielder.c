@@ -7714,7 +7714,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
             fielder->maybeMovementState = 5;
         }
     } else if (fielder->maybeMovementState == 5) {
-        setFielderAutoCoords(fielderIndex, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z);
+        fielderTrackingBall_goToContactBallPos(fielderIndex);
     }
 
     fielder->framesRemainingToGetToLandingSpot -= 1;
@@ -7883,12 +7883,8 @@ void fn_3_42A00(int fielderIndex) {
 }
 
 // .text:0x00042850 size:0x1B0 mapped:0x806818E4
-void fn_3_42850(int fielderIndex) {
-    f32 contactX = g_Ball.AtBat_Contact_BallPos.x;
-    f32 contactZ = g_Ball.AtBat_Contact_BallPos.z;
-    InMemFielder* fielder = &g_Fielders[fielderIndex];
-
-    setFielderAutoCoords(fielderIndex, contactX, contactZ);
+void fielderTrackingBall_goToContactBallPos(int fielderIndex) {
+    setFielderAutoCoords(fielderIndex, g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z);
 }
 
 // .text:0x0004207C size:0x7D4 mapped:0x80681110

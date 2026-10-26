@@ -152,7 +152,7 @@ void fn_3_417D4(int fielderIndex);
 void fielderAIAssignmentRelated(int mode);
 void fielderAISomething(void);
 void decideWhenToLeaveFunction2_16_18(int fielderIndex);
-void fn_3_42850(int fielderIndex);
+void fielderTrackingBall_goToContactBallPos(int fielderIndex);
 void fn_3_42A00(int fielderIndex);
 void fn_3_42BD0(int fielderIndex);
 void updateFielderPosition(int fielderIndex);
