@@ -16912,12 +16912,12 @@ int wallSplatInitialization(int fielderIndex) {
 // .text:0x00027D68 size:0x28C mapped:0x80666DFC
 int clamberCheckCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 maxY;
-    f32 minY;
     f32 dx;
     f32 dz;
     f32 sqx;
     f32 sqz;
+    f32 minY;
+    f32 maxY;
     int i;
 
     minY = fielder->hitbox[5] + fielder->wallActionCurrentHeight;
