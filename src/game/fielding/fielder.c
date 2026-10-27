@@ -11081,23 +11081,21 @@ int fn_3_378B4(void) {
             if (!((sel == 2 || sel == 3) && angleDiff < 0x400)) {
                 int mid = (g_Fielders[2].playerAngleFromHome + g_Fielders[3].playerAngleFromHome) / 2;
                 if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
-                    f32 dist2 = g_Fielders[2].distanceFromHomePlate;
-                    f32 dist3 = g_Fielders[3].distanceFromHomePlate;
-                    if (dist2 < dist3) {
-                        if (dist2 > g_Ball.ballDistanceFromHome) {
+                    if (g_Fielders[2].distanceFromHomePlate < g_Fielders[3].distanceFromHomePlate) {
+                        if (g_Fielders[2].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 2;
                             goto end;
                         }
-                        if (3.0f + dist3 > g_Ball.ballDistanceFromHome) {
+                        if (3.0f + g_Fielders[3].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 3;
                             goto end;
                         }
                     } else {
-                        if (dist3 > g_Ball.ballDistanceFromHome) {
+                        if (g_Fielders[3].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 2;
                             goto end;
                         }
-                        if (3.0f + dist2 > g_Ball.ballDistanceFromHome) {
+                        if (3.0f + g_Fielders[2].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 3;
                             goto end;
                         }
@@ -11114,23 +11112,21 @@ int fn_3_378B4(void) {
             if (!((sel == 4 || sel == 5) && angleDiff < 0x400)) {
                 int mid = (g_Fielders[4].playerAngleFromHome + g_Fielders[5].playerAngleFromHome) / 2;
                 if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
-                    f32 dist4 = g_Fielders[4].distanceFromHomePlate;
-                    f32 dist5 = g_Fielders[5].distanceFromHomePlate;
-                    if (dist4 <= dist5) {
-                        if (dist4 > g_Ball.ballDistanceFromHome) {
+                    if (g_Fielders[4].distanceFromHomePlate <= g_Fielders[5].distanceFromHomePlate) {
+                        if (g_Fielders[4].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 4;
                             goto end;
                         }
-                        if (3.0f + dist5 > g_Ball.ballDistanceFromHome) {
+                        if (3.0f + g_Fielders[5].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 5;
                             goto end;
                         }
                     } else {
-                        if (dist5 > g_Ball.ballDistanceFromHome) {
+                        if (g_Fielders[5].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 5;
                             goto end;
                         }
-                        if (3.0f + dist4 > g_Ball.ballDistanceFromHome) {
+                        if (3.0f + g_Fielders[4].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
                             result = 4;
                             goto end;
                         }
@@ -11164,7 +11160,7 @@ int fn_3_378B4(void) {
             margin = 0x20;
         }
         thirdAngle = g_Fielders[3].playerAngleFromHome;
-        if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < margin + thirdAngle + 0x40) {
+        if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < thirdAngle + (margin + 0x40)) {
             if (sel == 2) {
                 if (stickAngle0 >= 0x500 && stickAngle0 < 0x900) {
                     result = 2;
@@ -11195,7 +11191,7 @@ int fn_3_378B4(void) {
                 margin2 = 0x20;
             }
             fifthAngle = g_Fielders[5].playerAngleFromHome;
-            if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < margin2 + fifthAngle + 0x40) {
+            if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < fifthAngle + (margin2 + 0x40)) {
                 if (sel == 4) {
                     if ((stickAngle0 >= 0 && stickAngle0 < 0x300) || stickAngle0 >= 0xf00) {
                         result = 4;
