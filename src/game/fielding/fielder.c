@@ -10360,7 +10360,7 @@ void updateInAirFielderSelection(void) {
         return;
     }
 
-    if (selectedFielderInit <= 5 && secondaryFielderInit >= 6) {
+    if (selectedFielderInit <= FIELDING_POSITION_SHORTSTOP && secondaryFielderInit >= FIELDING_POSITION_LEFT_FIELD) {
         if (g_Ball.hitClassification1 == 2 || g_Ball.hitClassification1 == 5) {
             if (g_FieldingLogic.secondaryFielder ==
                 selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
@@ -10381,56 +10381,53 @@ void updateInAirFielderSelection(void) {
         return;
     }
 
-    {
+    if (fielderControlStick_continuousAngleHistory[0] < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
+        f32 x;
 
-        if (fielderControlStick_continuousAngleHistory[0] < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
-            f32 x;
-
-            if (g_Ball.ballDistanceFromHome < (f32)lbl_3_data_484C[5]) {
-                return;
-            }
-            x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - (f32)lbl_3_data_484C[7];
-            if (x > (f32)lbl_3_data_484C[6]) {
-                x = (f32)lbl_3_data_484C[6];
-            }
-            if (g_Ball.ballDistanceFromHome < x) {
-                return;
-            }
+        if (g_Ball.ballDistanceFromHome < (f32)lbl_3_data_484C[5]) {
+            return;
         }
+        x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - (f32)lbl_3_data_484C[7];
+        if (x > (f32)lbl_3_data_484C[6]) {
+            x = (f32)lbl_3_data_484C[6];
+        }
+        if (g_Ball.ballDistanceFromHome < x) {
+            return;
+        }
+    }
 
-        if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
-            newFielder = selectedFielderInit;
-        } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
-            newFielder = secondaryFielderInit;
-        } else {
-            if (g_Ball.framesSinceHit < lbl_3_data_484C[4]) {
-                int hist = fielderControlStick_continuousAngleHistory[0];
-                if (hist > 0) {
-                    int i;
+    if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+        newFielder = selectedFielderInit;
+    } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+        newFielder = secondaryFielderInit;
+    } else {
+        if (g_Ball.framesSinceHit < lbl_3_data_484C[4]) {
+            int hist = fielderControlStick_continuousAngleHistory[0];
+            if (hist > 0) {
+                int i;
 
-                    for (i = 1; i < lbl_3_data_484C[8]; i++) {
-                        s16 h = fielderControlStick_continuousAngleHistory[i];
-                        if (h <= 0) {
-                            break;
-                        }
-                        if (getDifferenceInAngle(hist, h) > 0x200) {
-                            break;
-                        }
+                for (i = 1; i < lbl_3_data_484C[8]; i++) {
+                    s16 h = fielderControlStick_continuousAngleHistory[i];
+                    if (h <= 0) {
+                        break;
                     }
-                    if (i < lbl_3_data_484C[8]) {
-                        return;
+                    if (getDifferenceInAngle(hist, h) > 0x200) {
+                        break;
                     }
-                } else {
+                }
+                if (i < lbl_3_data_484C[8]) {
                     return;
                 }
+            } else {
+                return;
             }
-            newFielder = SelectBetterFielder(
-                g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
-                0.5f * (g_Fielders[g_FieldingLogic.selectedFielder].IntendedLocation.x +
-                        g_Fielders[g_FieldingLogic.secondaryFielder].IntendedLocation.x),
-                0.5f * (g_Fielders[g_FieldingLogic.selectedFielder].IntendedLocation.z +
-                        g_Fielders[g_FieldingLogic.secondaryFielder].IntendedLocation.z));
         }
+        newFielder = SelectBetterFielder(
+            g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
+            0.5f * (g_Fielders[g_FieldingLogic.selectedFielder].IntendedLocation.x +
+                    g_Fielders[g_FieldingLogic.secondaryFielder].IntendedLocation.x),
+            0.5f * (g_Fielders[g_FieldingLogic.selectedFielder].IntendedLocation.z +
+                    g_Fielders[g_FieldingLogic.secondaryFielder].IntendedLocation.z));
     }
 
     if (newFielder < 0) {
@@ -10454,13 +10451,13 @@ void updateInAirFielderSelection(void) {
         setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 21);
     }
 
-    g_FieldingLogic.secondaryFielder = -1;
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
+    g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
+    g_FieldingLogic.unkFlagMaybeInAir = FALSE;
     return;
 
 callTail:
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-    g_FieldingLogic.secondaryFielder = -1;
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
+    g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
 }
 
 // .text:0x000393B0 size:0x4A8 mapped:0x80678444
