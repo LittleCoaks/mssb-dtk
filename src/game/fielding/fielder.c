@@ -10685,32 +10685,29 @@ void fielderSelect_tertiaryFielderExists_determine2FieldersToKeep(void) {
         }
     }
 
-    if (g_FieldingLogic.selectedFielder == 1) {
-        goto trySecondaryPair;
-    }
-    if (n <= 1) {
-        goto noTertiary;
-    }
-
-    if (fielder->groundDistanceFromBall < 2.5f) {
-        if (currentStickDirection >= 0) {
-            int angle = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
-                                                       g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
-            if (getDifferenceInAngle(currentStickDirection, angle) < 0x100) {
-                goto pickPrimary;
-            }
+    if (g_FieldingLogic.selectedFielder != FIELDING_POSITION_CATCHER) {
+        if (n <= 1) {
+            goto noTertiary;
         }
 
-        if (g_FieldingLogic.selectedFielder >= 2 && g_FieldingLogic.selectedFielder <= 5) {
-            if (g_Ball.hitClassification2 == 2 || g_Ball.hitClassification2 == 3) {
-                goto pickPrimary;
+        if (fielder->groundDistanceFromBall < 2.5f) {
+            if (currentStickDirection >= 0) {
+                int angle = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
+                                                           g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
+                if (getDifferenceInAngle(currentStickDirection, angle) < 0x100) {
+                    goto pickPrimary;
+                }
+            }
+
+            if (g_FieldingLogic.selectedFielder >= FIELDING_POSITION_FIRST_BASE &&
+                g_FieldingLogic.selectedFielder <= FIELDING_POSITION_SHORTSTOP) {
+                if (g_Ball.hitClassification2 == 2 || g_Ball.hitClassification2 == 3) {
+                    goto pickPrimary;
+                }
             }
         }
-    } else {
-        goto trySecondaryPair;
     }
 
-trySecondaryPair:
     if (g_Fielders[g_FieldingLogic.selectedFielder].nonCatchFlyBallStratInd == 0 ||
         g_Fielders[g_FieldingLogic.secondaryFielder].nonCatchFlyBallStratInd == 0) {
         winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 3,
@@ -10745,31 +10742,32 @@ trySecondaryPair:
     }
 
 pickPrimary:
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
-    if (g_FieldingLogic.selectedFielder == 0) {
+    g_FieldingLogic.unkFlagMaybeInAir = FALSE;
+    if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_PITCHER) {
         return;
     }
     goto tailShift;
 
 noTertiary:
-    if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0 &&
-        (g_FieldingLogic.secondaryFielder == 3 || g_FieldingLogic.secondaryFielder == 5)) {
+    if (g_FieldingLogic.infielderSelectedOnPopFlyInd &&
+        (g_FieldingLogic.secondaryFielder == FIELDING_POSITION_SECOND_BASE ||
+         g_FieldingLogic.secondaryFielder == FIELDING_POSITION_SHORTSTOP)) {
         HandleMiddleInfieldSelection();
-        if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0) {
+        if (g_FieldingLogic.infielderSelectedOnPopFlyInd) {
             if (g_Ball.ballDistanceFromHome - 3.0f > g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate) {
-                setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
+                setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
             } else {
                 return;
             }
         }
     } else {
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
     }
 
 tailShift:
     g_FieldingLogic.secondaryFielder = g_FieldingLogic.tertiaryFielder;
-    g_FieldingLogic.tertiaryFielder = -1;
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
+    g_FieldingLogic.tertiaryFielder = FIELDING_POSITION_NONE;
+    g_FieldingLogic.unkFlagMaybeInAir = FALSE;
 }
 
 // .text:0x00038D10 size:0x2E8 mapped:0x80677DA4
