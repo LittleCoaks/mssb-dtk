@@ -11266,7 +11266,8 @@ int fn_3_378B4(void) {
             if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
                 return 0;
             }
-        } else if (ballAngle < pitcherAngle) {
+        }
+        if (ballAngle < pitcherAngle) {
             if (stickAngle0 >= 0xf00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
                 return 0;
             }
@@ -11367,9 +11368,13 @@ int fn_3_378B4(void) {
 
     {
         int sel = g_FieldingLogic.selectedFielder;
-        s32 margin = (sel == 3) ? 0x20 : 0;
-        s16 thirdAngle = g_Fielders[3].playerAngleFromHome;
-        if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < thirdAngle + margin + 0x40) {
+        s32 margin = 0;
+        s16 thirdAngle;
+        if (sel == 3) {
+            margin = 0x20;
+        }
+        thirdAngle = g_Fielders[3].playerAngleFromHome;
+        if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < margin + thirdAngle + 0x40) {
             if (sel == 2) {
                 if (stickAngle0 >= 0x500 && stickAngle0 < 0x900) {
                     return 2;
@@ -11391,17 +11396,18 @@ int fn_3_378B4(void) {
         }
 
         {
-            s32 margin2 = (sel == 2) ? 0x20 : 0;
-            s16 fifthAngle = g_Fielders[5].playerAngleFromHome;
-            if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < fifthAngle + margin2 + 0x40) {
+            s32 margin2 = 0;
+            s16 fifthAngle;
+            if (sel == 2) {
+                margin2 = 0x20;
+            }
+            fifthAngle = g_Fielders[5].playerAngleFromHome;
+            if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < margin2 + fifthAngle + 0x40) {
                 if (sel == 4) {
-                    if (stickAngle0 >= 0 && stickAngle0 < 0x300) {
+                    if ((stickAngle0 >= 0 && stickAngle0 < 0x300) || stickAngle0 >= 0xf00) {
                         return 4;
                     }
-                    if (stickAngle0 < 0xf00) {
-                        return 5;
-                    }
-                    return 4;
+                    return 5;
                 }
                 if (sel == 3) {
                     if (g_Fielders[5].locationResponsibleForCovering == 2 && angleDiff < 0x400) {
