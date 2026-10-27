@@ -12045,8 +12045,7 @@ int SelectClosestFielder2(f32 x, f32 z) {
 // .text:0x00035E1C size:0x3BC mapped:0x80674EB0
 void setPlayerWhoCanInterceptThrow(void) {
     int throwZone = 0;
-    int result = -1;
-    int candidate1 = -1;
+    int candidate[2];
     int i;
     f32 dx;
     f32 dz;
@@ -12054,98 +12053,74 @@ void setPlayerWhoCanInterceptThrow(void) {
     f32 sqz;
     f32 dist;
 
-    if (g_Ball.ballZoneAwayFromHome < 3) {
-        goto checkZoneLow;
-    }
-    if (g_FieldingLogic.locationThrownTo != 0) {
-        goto checkZoneLow;
-    }
-    throwZone = 1;
-    goto zoneDone;
+    candidate[0] = FIELDING_POSITION_NONE;
+    candidate[1] = FIELDING_POSITION_NONE;
 
-checkZoneLow:
-    if (g_Ball.ballZoneAwayFromHome <= 1) {
+    if (g_Ball.ballZoneAwayFromHome >= 3 && g_FieldingLogic.locationThrownTo == 0) {
+        throwZone = 1;
+    } else if (g_Ball.ballZoneAwayFromHome <= 1) {
         throwZone = 2;
     }
 
-zoneDone:
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < FIELDING_POSITION_LEFT_FIELD; i++) {
         if (g_FieldingLogic.fielderAutoMovementCode[i] == 2) {
             continue;
         }
         if (i == g_Ball.throwingFielder) {
             continue;
         }
-        if (candidate1 == -1) {
-            candidate1 = i;
+        if (candidate[0] == FIELDING_POSITION_NONE) {
+            candidate[0] = i;
         } else {
-            result = i;
+            candidate[1] = i;
             break;
         }
     }
 
-    if (throwZone == 0) {
-        goto useDistanceFallback;
-    }
-    if (candidate1 < 0) {
-        goto useDistanceFallback;
-    }
-    if (result < 0) {
-        goto useDistanceFallback;
-    }
-    if (g_Fielders[candidate1].distanceToMound < g_Fielders[result].distanceToMound) {
-        goto haveCandidate;
-    }
-    candidate1 = result;
-    goto haveCandidate;
+    if (throwZone != 0 && candidate[0] >= 0 && candidate[1] >= 0) {
+        if (!(g_Fielders[candidate[0]].distanceToMound < g_Fielders[candidate[1]].distanceToMound)) {
+            candidate[0] = candidate[1];
+        }
+    } else {
+        dx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
+        dz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
+        sqx = dx * dx;
+        sqz = dz * dz;
+        dist = fielderSqrt(sqx + sqz);
 
-useDistanceFallback:
-    dx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
-    dz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
-    sqx = dx * dx;
-    sqz = dz * dz;
-    dist = fielderSqrt(sqx + sqz);
+        for (i = 0; i < 2; i++) {
+            if (dist < g_Fielders[candidate[i]].distanceFromBall) {
+                candidate[i] = FIELDING_POSITION_NONE;
+            }
+        }
+        if (candidate[0] < 0) {
+            candidate[0] = candidate[1];
+            candidate[1] = FIELDING_POSITION_NONE;
+        }
+        if (candidate[0] < 0) {
+            return;
+        }
+        if (candidate[1] >= 0 && g_Fielders[candidate[0]].groundDistanceFromBall > g_Fielders[candidate[1]].groundDistanceFromBall) {
+            candidate[0] = candidate[1];
+        }
+    }
 
-    if (dist < g_Fielders[candidate1].distanceFromBall) {
-        candidate1 = -1;
-    }
-    if (dist < g_Fielders[result].distanceFromBall) {
-        result = -1;
-    }
-    if (candidate1 < 0) {
-        candidate1 = result;
-        result = -1;
-    }
-    if (candidate1 < 0) {
-        return;
-    }
-    if (result < 0) {
-        goto haveCandidate;
-    }
-    if (!(g_Fielders[candidate1].groundDistanceFromBall > g_Fielders[result].groundDistanceFromBall)) {
-        goto haveCandidate;
-    }
-    candidate1 = result;
-
-haveCandidate:
-    if (candidate1 < 0) {
+    if (candidate[0] < 0) {
         return;
     }
 
     if (throwZone == 2) {
-        if (g_Fielders[candidate1].groundDistanceFromBall > 2.0f) {
+        if (g_Fielders[candidate[0]].groundDistanceFromBall > 2.0f) {
             return;
         }
     } else if (throwZone == 0) {
-        if (g_Fielders[candidate1].groundDistanceFromBall > 4.0f) {
+        if (g_Fielders[candidate[0]].groundDistanceFromBall > 4.0f) {
             return;
         }
     }
 
-    if (candidate1 != -1) {
-        setFielderAutoMovement(candidate1, 25);
-    }
-    g_FieldingLogic.interceptThrowFielder = candidate1;
+    setFielderAutoMovementIfValid(candidate[0], 25);
+    g_FieldingLogic.interceptThrowFielder = candidate[0];
 }
 
 /* ============================================================================
