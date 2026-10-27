@@ -3119,8 +3119,8 @@ afterSwitch:
 // .text:0x00052560 size:0x17C mapped:0x806915F4
 int fRunningTimeToDestinationPlus7(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 dx;
     f32 dz;
+    f32 dx;
     f32 dxSq;
     f32 dzSq;
     f32 dist;
@@ -5532,7 +5532,7 @@ void autoMovement13_GoTowardsBallAsBackUp(int fielderIndex) {
 
         setFielderAutoCoords(fielderIndex, outX, outZ);
 
-        if (fielderIndex >= 6) {
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
             int code;
 
             if (otherFielderIndex >= 6 && fielder->distanceFromAutoLocation < 20.0f) {
@@ -5609,34 +5609,14 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     CoordAndDist* future;
     int index;
-    f32 speed;
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         f32* futureX;
         f32* futureZ;
-        f32 fx, ex, ez;
 
-        fx = fielder->pos.x;
-        future = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30];
-        futureX = &future->pos.x;
-        ex = *futureX;
-        futureZ = &future->pos.z;
-        ez = *futureZ;
-
-        if (ex == fx && ez == fielder->pos.z) {
-            index = 1;
-        } else {
-            f32 dz = ez - fielder->pos.z;
-            f32 dx = ex - fx;
-            f32 dxSq = dx * dx;
-            f32 dzSq = dz * dz;
-            f32 dist = fielderSqrt(dxSq + dzSq);
-            speed = fielder->joggingSpeed;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            index = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
-        }
+        futureX = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30].pos.x;
+        futureZ = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30].pos.z;
+        index = fRunningTimeToDestinationPlus7(fielderIndex, *futureX, *futureZ);
 
         if (index < g_Ball.framesUntilBallHitsGround + 30) {
             *outX = *futureX;
@@ -5659,7 +5639,7 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
             return;
         }
 
-        if (fielderIndex >= 6) {
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
             f32 vx = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
             f32 vz = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
             f32 vxSq = vx * vx;
@@ -5676,29 +5656,8 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
             }
         }
 
-        {
-            f32 fx30 = fielder->pos.x;
-            f32 ex30, ez30;
-
-            future = &g_Ball.physicsSubstruct.futureCoordsAndDist[30];
-            ex30 = future->pos.x;
-            ez30 = future->pos.z;
-
-            if (ex30 == fx30 && ez30 == fielder->pos.z) {
-                index = 1;
-            } else {
-                f32 dz = ez30 - fielder->pos.z;
-                f32 dx = ex30 - fx30;
-                f32 dxSq = dx * dx;
-                f32 dzSq = dz * dz;
-                f32 dist = fielderSqrt(dxSq + dzSq);
-                speed = fielder->joggingSpeed;
-                if (speed == 0.0f) {
-                    speed = 1.0f;
-                }
-                index = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
-            }
-        }
+        future = &g_Ball.physicsSubstruct.futureCoordsAndDist[30];
+        index = fRunningTimeToDestinationPlus7(fielderIndex, future->pos.x, future->pos.z);
 
         if (index < 30) {
             *outX = future->pos.x;
