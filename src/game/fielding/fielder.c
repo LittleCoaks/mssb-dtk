@@ -11036,10 +11036,7 @@ int fn_3_378B4(void) {
     s32 angleDiff = 0x800;
 
     if (stickAngle0 >= 0 && stickAngle3 >= 0) {
-        angleDiff = stickAngle0 - stickAngle3;
-        if (angleDiff < 0) {
-            angleDiff = -angleDiff;
-        }
+        angleDiff = __abs(stickAngle0 - stickAngle3);
         if (angleDiff > 0x800) {
             angleDiff = 0x1000 - angleDiff;
         }
@@ -11079,14 +11076,11 @@ int fn_3_378B4(void) {
     }
 
     {
-        s32 diff23 = g_Fielders[2].playerAngleFromHome - g_Fielders[3].playerAngleFromHome;
-        if (diff23 < 0) {
-            diff23 = -diff23;
-        }
+        s32 diff23 = __abs(g_Fielders[2].playerAngleFromHome - g_Fielders[3].playerAngleFromHome);
         if (diff23 < 0x40) {
             int sel = g_FieldingLogic.selectedFielder;
             if (!((sel == 2 || sel == 3) && angleDiff < 0x400)) {
-                s16 mid = (g_Fielders[2].playerAngleFromHome + g_Fielders[3].playerAngleFromHome) / 2;
+                int mid = (g_Fielders[2].playerAngleFromHome + g_Fielders[3].playerAngleFromHome) / 2;
                 if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
                     f32 dist2 = g_Fielders[2].distanceFromHomePlate;
                     f32 dist3 = g_Fielders[3].distanceFromHomePlate;
@@ -11115,14 +11109,11 @@ int fn_3_378B4(void) {
     }
 
     {
-        s32 diff45 = g_Fielders[4].playerAngleFromHome - g_Fielders[5].playerAngleFromHome;
-        if (diff45 < 0) {
-            diff45 = -diff45;
-        }
+        s32 diff45 = __abs(g_Fielders[4].playerAngleFromHome - g_Fielders[5].playerAngleFromHome);
         if (diff45 < 0x40) {
             int sel = g_FieldingLogic.selectedFielder;
             if (!((sel == 4 || sel == 5) && angleDiff < 0x400)) {
-                s16 mid = (g_Fielders[4].playerAngleFromHome + g_Fielders[5].playerAngleFromHome) / 2;
+                int mid = (g_Fielders[4].playerAngleFromHome + g_Fielders[5].playerAngleFromHome) / 2;
                 if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
                     f32 dist4 = g_Fielders[4].distanceFromHomePlate;
                     f32 dist5 = g_Fielders[5].distanceFromHomePlate;
