@@ -11075,8 +11075,7 @@ int fn_3_378B4(void) {
     }
 
     {
-        s32 diff23 = __abs(g_Fielders[2].playerAngleFromHome - g_Fielders[3].playerAngleFromHome);
-        if (diff23 < 0x40) {
+        if (__abs(g_Fielders[2].playerAngleFromHome - g_Fielders[3].playerAngleFromHome) < 0x40) {
             int sel = g_FieldingLogic.selectedFielder;
             if (!((sel == 2 || sel == 3) && angleDiff < 0x400)) {
                 int mid = (g_Fielders[2].playerAngleFromHome + g_Fielders[3].playerAngleFromHome) / 2;
@@ -11106,8 +11105,7 @@ int fn_3_378B4(void) {
     }
 
     {
-        s32 diff45 = __abs(g_Fielders[4].playerAngleFromHome - g_Fielders[5].playerAngleFromHome);
-        if (diff45 < 0x40) {
+        if (__abs(g_Fielders[4].playerAngleFromHome - g_Fielders[5].playerAngleFromHome) < 0x40) {
             int sel = g_FieldingLogic.selectedFielder;
             if (!((sel == 4 || sel == 5) && angleDiff < 0x400)) {
                 int mid = (g_Fielders[4].playerAngleFromHome + g_Fielders[5].playerAngleFromHome) / 2;
