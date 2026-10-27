@@ -10219,17 +10219,15 @@ void fn_3_3A1FC(int fielderIndex) {
 
 // .text:0x00039EB0 size:0x34C mapped:0x80678F44
 void updateFielderSelection(void) {
-    InMemFielder* f;
-    int i;
     s16 selectedFielder;
-    int stillCountingDown = 1;
+    BOOL stillCountingDown = TRUE;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE &&
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BATTING) {
         return;
     }
 
-    if (g_Ball.deadBallReason != 0) {
+    if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
         return;
     }
     if (g_Ball.ballState == BALL_STATE_HELD) {
@@ -10247,9 +10245,8 @@ void updateFielderSelection(void) {
     }
 
     if (g_Ball.ballState == BALL_STATE_THROWN) {
-        if (g_Ball.framesUntilThrowReachesDest > 0 && g_Ball.fielderBeingThrownTo >= 0 &&
-            g_Ball.framesSinceThrowStarted == 2) {
-            if (g_FieldingLogic.locationThrownTo != 6) {
+        if (g_Ball.framesUntilThrowReachesDest > 0 && g_Ball.fielderBeingThrownTo >= 0) {
+            if (g_Ball.framesSinceThrowStarted == 2 && g_FieldingLogic.locationThrownTo != 6) {
                 setPlayerWhoCanInterceptThrow();
             }
             return;
@@ -10258,7 +10255,7 @@ void updateFielderSelection(void) {
 
     g_FieldingLogic.fielderAssignedLocationIndex[5]--;
     if (g_FieldingLogic.fielderAssignedLocationIndex[5] > 0) {
-        stillCountingDown = 0;
+        stillCountingDown = FALSE;
     } else {
         g_FieldingLogic.fielderAssignedLocationIndex[5] = 0;
     }
@@ -10286,45 +10283,14 @@ void updateFielderSelection(void) {
     }
 
     {
-        int forceReselect = 0;
+        BOOL forceReselect = FALSE;
 
         if (selectedFielder < 0 && g_Ball.ballState == BALL_STATE_LOOSE) {
-            forceReselect = 1;
+            forceReselect = TRUE;
         }
 
         if (g_FieldingLogic.knockoutFinished != 0 || forceReselect) {
-            for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = 0;
-                if (i != -1) {
-                    f->autoMovementFunctionIndex = 0;
-                    if (autoMovementFunctions[0].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-                    }
-                    f->unknown_writeOnly = 0;
-                    f->fielderVeloAdjustmentCode = 0;
-                    f->unknown_writeOnly_always0 = 0;
-                    f->timeSinceThrowWasCaught = 0;
-                    f->fielderTrackingBallState = 0;
-                }
-                f->maybeTargetPosX = 10000.0f;
-                f->maybeTargetPosZ = 0.0f;
-            }
-
-            g_FieldingLogic.selectedFielder = -1;
-            g_FieldingLogic.secondaryFielder = -1;
-            g_FieldingLogic.tertiaryFielder = -1;
-            g_FieldingLogic.cutoffFielderIndex = -1;
-            g_FieldingLogic.unkFlagMaybeInAir = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-            g_FieldingLogic.baseCoveredInd[0] = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-            g_FieldingLogic.baseCoveredInd[1] = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-            g_FieldingLogic.baseCoveredInd[2] = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-            g_FieldingLogic.baseCoveredInd[3] = 0;
-
-            selectClosestFielderBasedOnFutureCoord(0x78);
+            unused_FUN_80678e58();
 
             if (g_FieldingLogic.selectedFielder >= 0) {
                 g_FieldingLogic.knockoutFinished = 0;
@@ -10339,7 +10305,7 @@ void updateFielderSelection(void) {
     }
 
     if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0) {
-        if (selectedFielder == 3 || selectedFielder == 5) {
+        if (selectedFielder == FIELDING_POSITION_SECOND_BASE || selectedFielder == FIELDING_POSITION_SHORTSTOP) {
             HandleMiddleInfieldSelection();
             return;
         }
