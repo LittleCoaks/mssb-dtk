@@ -10354,24 +10354,13 @@ void updateFielderSelection(void) {
 
 // .text:0x00039DC4 size:0xEC mapped:0x80678E58
 void unused_FUN_80678e58(void) {
-    InMemFielder* f;
     int i;
 
-    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
+    for (i = 0; i < 9; i++) {
         g_FieldingLogic.fielderAutoMovementCode[i] = 0;
-        if (i != -1) {
-            f->autoMovementFunctionIndex = 0;
-            if (autoMovementFunctions[0].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-            }
-            f->unknown_writeOnly = 0;
-            f->fielderVeloAdjustmentCode = 0;
-            f->unknown_writeOnly_always0 = 0;
-            f->timeSinceThrowWasCaught = 0;
-            f->fielderTrackingBallState = 0;
-        }
-        f->maybeTargetPosX = 10000.0f;
-        f->maybeTargetPosZ = 0.0f;
+        setFielderAutoMovementIfValid(i, 0);
+        g_Fielders[i].maybeTargetPosX = 10000.0f;
+        g_Fielders[i].maybeTargetPosZ = 0.0f;
     }
 
     g_FieldingLogic.selectedFielder = -1;
