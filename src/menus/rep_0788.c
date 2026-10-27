@@ -4,6 +4,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x800363d8.h"
 #include "text/text.h"
+#include "Unknown/File_0x80034e20.h"
 #include "static/UnknownHomes_Static.h"
 
 extern DrawingSceneStruct *currentDrawingItem;
@@ -516,8 +517,33 @@ void fn_2_25524(void) {
 }
 
 // .text:0x0002577C size:0xD4 mapped:0x80664810
-void fn_2_2577C(void) {
-    return;
+void fn_2_2577C(void *arg0, void *arg1) {
+    s16 *state = (s16 *)((u8 *)arg1 + 4);
+    s16 result = fn_2_53BC8(arg1);
+    if (result != -1) {
+        *state = result;
+    }
+    switch (*state) {
+    case 0: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~UI_FLAG_VISIBLE;
+        *state = 0x26;
+        return;
+    }
+    case 1:
+    case 3:
+    case 4:
+        break;
+    case 2:
+        *state = 0x25;
+        return;
+    case 5:
+        return;
+    case 8:
+    case 0x24:
+    case 0x25:
+        break;
+    }
 }
 
 // .text:0x00025850 size:0x2C mapped:0x806648E4
@@ -552,8 +578,35 @@ void fn_2_25D6C(void *arg0, void *arg1) {
 }
 
 // .text:0x00025D98 size:0x118 mapped:0x80664E2C
-void fn_2_25D98(void) {
-    return;
+void fn_2_25D98(void *arg0, void *arg1) {
+    s16 *state = (s16 *)((u8 *)arg1 + 4);
+    s16 result = fn_2_53BC8(arg1);
+    if (result != -1) {
+        *state = result;
+    }
+    switch (*state) {
+    case 0: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~UI_FLAG_VISIBLE;
+        *state = 0x26;
+        return;
+    }
+    case 1:
+    case 3:
+    case 4:
+        break;
+    case 2: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags |= UI_FLAG_VISIBLE;
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        ((UIRecord *)obj)->frame = (u32)lbl_2_bss_1A8248->captain << 16;
+        *state = 0x25;
+        return;
+    }
+    case 5:
+    case 0x25:
+        return;
+    }
 }
 
 // .text:0x00025EB0 size:0x160 mapped:0x80664F44
@@ -3308,8 +3361,35 @@ void fn_2_331C8(void) {
 }
 
 // .text:0x00033614 size:0x10C mapped:0x806726A8
-void fn_2_33614(void) {
-    return;
+void fn_2_33614(void *arg0, void *arg1) {
+    s16 *state = (s16 *)((u8 *)arg1 + 4);
+    s16 result = fn_2_53BC8(arg1);
+    if (result != -1) {
+        *state = result;
+    }
+    switch (*state) {
+    case 0: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~UI_FLAG_VISIBLE;
+        *state = 0x26;
+        return;
+    }
+    case 1:
+    case 3:
+    case 4:
+        break;
+    case 2: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags |= UI_FLAG_VISIBLE;
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        ((UIRecord *)obj)->playMode = UI_PLAY_STOP;
+        *state = 0x25;
+        return;
+    }
+    case 5:
+    case 0x25:
+        return;
+    }
 }
 
 // .text:0x00033720 size:0x1B4 mapped:0x806727B4
