@@ -6,7 +6,14 @@
 #include "text/text.h"
 #include "Unknown/File_0x80034e20.h"
 #include "static/UnknownHomes_Static.h"
+#include "menus/rep_0DE0.h"
+#include "Dolphin/GX/GXPixel.h"
 
+void fn_2_68E68(void);
+void fn_2_8FD14(void);
+void fn_2_8AEE0(void);
+void fn_2_47FF8(void);
+void fn_2_47CFC(void);
 extern DrawingSceneStruct *currentDrawingItem;
 extern s16 lbl_2_data_3D30[][4];
 extern u8 *lbl_2_bss_1A824C;
@@ -175,7 +182,24 @@ void fn_2_20258(void) {
 
 // .text:0x0002025C size:0xCC mapped:0x8065F2F0
 void fn_2_2025C(void) {
-    return;
+    ChallengeState *challenge = lbl_2_bss_1A8248;
+    if (challenge->_44F2 == 2) {
+        hugeAnimStruct.unk307A = 0;
+    } else if (lbl_2_bss_1A824C[0x190000 + 0x78F3] != 0) {
+        hugeAnimStruct.unk307A = 4;
+    }
+    if (hugeAnimStruct.unk307A == 4 && challenge->_44F2 != 3) {
+        if (challenge->_44F2 != 4) {
+            fn_2_68E68();
+        }
+        fn_2_8FD14();
+        fn_2_8AEE0();
+        fn_2_47FF8();
+        if (lbl_2_bss_1A8248->_44F2 != 4) {
+            fn_2_47CFC();
+        }
+    }
+    GXSetZCompLoc(FALSE);
 }
 
 // .text:0x00020328 size:0x4D4 mapped:0x8065F3BC
@@ -390,8 +414,18 @@ void fn_2_24724(void) {
 }
 
 // .text:0x00024728 size:0xD8 mapped:0x806637BC
-void fn_2_24728(void) {
-    return;
+BOOL fn_2_24728(s32 entry) {
+    u8 *base = (u8 *)lbl_2_bss_1A8248;
+    s32 i;
+    for (i = 0; i < 51; i++) {
+        u8 *record = base + i * 10;
+        if (record[0x40F1] == 0 && record[0x40F2] == 1 &&
+            record[0x40F5] == entry &&
+            ((u8 *)lbl_2_bss_1A8248)[0x4431 + entry] == 1) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 // .text:0x00024800 size:0x69C mapped:0x80663894

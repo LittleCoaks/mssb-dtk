@@ -29,7 +29,7 @@ void fn_2_24650(void);
 void fn_2_2469C(void);
 void fn_2_246E0(void);
 void fn_2_24724(void);
-void fn_2_24728(void);
+BOOL fn_2_24728(s32 entry);
 void fn_2_24800(void);
 s16 fn_2_24E9C(void);
 void fn_2_24EB0(s16 state);
