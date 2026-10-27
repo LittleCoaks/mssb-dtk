@@ -51,6 +51,6 @@ int fn_2_73B54(int x);
 int fn_2_73B94(int x);
 int fn_2_73BF0(int x);
 void fn_2_73CBC(DrawingSceneStruct *node);
-void fn_2_73EFC(void);
+void fn_2_73EFC(DrawingSceneStruct *node);
 
 #endif // !__MENUS_TEXT_71EC4_H_
