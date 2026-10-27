@@ -11508,17 +11508,17 @@ void fn_3_3740C(void) {
 
     maxDist = 0.0f;
     minDiff = 0x1000;
-    newFielder = -1;
+    newFielder = FIELDING_POSITION_NONE;
 
     if (g_Ball.ballState != BALL_STATE_HIT) {
         return;
     }
-    if (g_FieldingLogic.selectedFielder > 5) {
+    if (g_FieldingLogic.selectedFielder > FIELDING_POSITION_SHORTSTOP) {
         return;
     }
 
     f = &g_Fielders[0];
-    for (i = 0; i < 6; i++, f++) {
+    for (i = 0; i < FIELDING_POSITION_LEFT_FIELD; i++, f++) {
         if (f->distanceFromHomePlate > maxDist) {
             maxDist = f->distanceFromHomePlate;
         }
@@ -11530,10 +11530,9 @@ void fn_3_3740C(void) {
 
     ballAngle = g_Ball.ballAngleFromHome;
 
-    f = &g_Fielders[6];
-    for (i = 6; i < 9; i++, f++) {
-        diff = ballAngle - f->playerAngleFromHome;
-        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+    f = &g_Fielders[FIELDING_POSITION_LEFT_FIELD];
+    for (i = FIELDING_POSITION_LEFT_FIELD; i < 9; i++, f++) {
+        diff = __abs(ballAngle - f->playerAngleFromHome);
         if (minDiff > diff) {
             minDiff = diff;
             newFielder = i;
@@ -11545,7 +11544,7 @@ void fn_3_3740C(void) {
     if (i < 0) {
         return;
     }
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, FALSE);
 }
 
 // .text:0x00037114 size:0x2F8 mapped:0x806761A8
