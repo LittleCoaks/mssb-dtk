@@ -5880,6 +5880,7 @@ void autoMovement24_goTowardsHitBall_humanTeam(int fielderIndex) {
 void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* out) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int secondaryFielder = g_FieldingLogic.selectedFielder;
+    InMemFielder* secondary;
     int diff;
     int targetFrame;
     int frame;
@@ -5895,7 +5896,8 @@ void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* o
     }
 
     targetFrame = 0;
-    diff = g_Fielders[secondaryFielder].framesToGetToBallLandingSpot - g_Ball.framesSinceHit;
+    secondary = &g_Fielders[secondaryFielder];
+    diff = secondary->framesToGetToBallLandingSpot - g_Ball.framesSinceHit;
     if (diff > 0) {
         threshold = g_Ball.physicsSubstruct.futureCoordsAndDist[diff].dist + fielderActionConstants[0];
         for (frame = diff + 1; frame < 360; frame += 3) {
