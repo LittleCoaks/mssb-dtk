@@ -6302,3 +6302,9 @@ functions. These lessons are not specific to one file:
   moving `simNum` after the floats, after 19+ caller-side hypotheses had failed. 34 of the 35
   interleavings match, so the exact original order is not recoverable from the bytes. When an inlined
   call has the right instructions but permuted volatile registers, sweep the parameter interleaving.
+
+### Wave73: recover the remaining record digit state machine
+
+Recovered fn_2_62D18 from its final text_60F7C stub: 0.18726592% → 96.125465%, lifting the file from 72.4158% → 92.85914% while preserving all ten exact functions. The state machine selects signed decimal digits from either work table, loads the icon, and handles visibility/animation transitions. Moving the column read after record setup reproduces the target's scheduling without invented code. Existing UIRecord fields and visibility/play constants replace raw helper offsets and supported literals with identical compiled output.
+
+The compiler adds the missing38-entry switch table; all152 existing entries and the original608-byte prefix remain unchanged. Independent full-entry execution passed10304 bounded fixtures and1683984 instructions, covering every state/default, signed32 decimal boundaries, callback-return truncation, callbacks replacing active scene/record/work/graphics mappings, exact calls and ordered stores. Invalid active digit selectors are outside the proof because the target leaves their digit uninitialized. All other function bodies/relocations, strongest floors and ten exacts remain unchanged; full build, four output hashes and shared/private instruction comparison pass.

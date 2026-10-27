@@ -1,5 +1,6 @@
 #include "menus/text_60F7C.h"
 #include "text/text.h"
+#include "Unknown/File_0x80034e20.h"
 
 s16 fn_2_53BC8(void *arg0);
 void load_Icon(void *scene, s32 handle, u32 part, u32 element, s32 frame);
@@ -17,23 +18,23 @@ static inline TextGraphicsObject *nodeOf(TextScene *scene, TextHandleRec *rec) {
 }
 
 static inline void nodeSetFlag2(TextGraphicsObject *node) {
-    node->flags |= 2;
+    node->flags |= UI_FLAG_VISIBLE;
 }
 
 static inline void nodeClearFlag2(TextGraphicsObject *node) {
-    node->flags &= ~2;
+    node->flags &= ~UI_FLAG_VISIBLE;
 }
 
 static inline void nodeSetByte68(TextGraphicsObject *node, u8 value) {
-    *(u8 *)((u8 *)node + 0x68) = value;
+    ((UIRecord *)node)->playMode = value;
 }
 
 static inline void nodeSetW5C(TextGraphicsObject *node, u32 value) {
-    *(u32 *)((u8 *)node + 0x5C) = value;
+    ((UIRecord *)node)->frame = value;
 }
 
 static inline u32 nodeW5C(TextGraphicsObject *node) {
-    return *(u32 *)((u8 *)node + 0x5C);
+    return ((UIRecord *)node)->frame;
 }
 
 static inline u8 *workBase(void) {
@@ -80,7 +81,86 @@ void fn_2_63570(TextScene *scene, TextHandleRec *rec) {
 
 // .text:0x00062D18 size:0x858 mapped:0x806A1DAC
 void fn_2_62D18(TextScene *scene, TextHandleRec *rec) {
-    return;
+    s16 result = fn_2_53BC8(rec);
+    if (result != -1) {
+        rec->state = result;
+    }
+    switch (rec->state) {
+    case 0:
+        nodeClearFlag2(nodeOf(scene, rec));
+        rec->state = 0x26;
+        break;
+    case 1: case 3: case 4: case 8: case 9: case 0xA: case 0xB: case 0xC:
+    case 0xD: case 0xE: case 0xF: case 0x10: case 0x12: case 0x13: case 0x14: case 0x15:
+    case 0x16: case 0x17: case 0x18: case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D:
+    case 0x1E: case 0x1F: case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
+        break;
+    case 2: {
+        s32 digit;
+        s32 value;
+        s16 column;
+        nodeSetW5C(nodeOf(scene, rec), 0);
+        nodeSetFlag2(nodeOf(scene, rec));
+        column = *(s16 *)rec->unkC;
+        if (column == 6) {
+            switch (rec->unk10) {
+            case 0: value = workS32(0x72C4 + rec->unkA * 8); digit = (value / 1000) % 10; break;
+            case 1: value = workS32(0x72C4 + rec->unkA * 8); digit = (value / 100) % 10; break;
+            case 2: value = workS32(0x72C4 + rec->unkA * 8); digit = (value / 10) % 10; break;
+            case 3: value = workS32(0x72C4 + rec->unkA * 8); digit = value % 10; break;
+            }
+        } else {
+            switch (rec->unk10) {
+            case 0: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = (value / 1000) % 10; break;
+            case 1: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = (value / 100) % 10; break;
+            case 2: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = (value / 10) % 10; break;
+            case 3: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = value % 10; break;
+            }
+        }
+        load_Icon(scene, rec->handle, 1, 0x16, digit);
+        nodeSetByte68(nodeOf(scene, rec), UI_PLAY_FORWARD);
+        rec->state = 0x25;
+        break;
+    }
+    case 0x11: {
+        s32 digit;
+        s32 value;
+        s16 column;
+        nodeSetFlag2(nodeOf(scene, rec));
+        column = *(s16 *)rec->unkC;
+        if (column == 6) {
+            switch (rec->unk10) {
+            case 0: value = workS32(0x72C4 + rec->unkA * 8); digit = (value / 1000) % 10; break;
+            case 1: value = workS32(0x72C4 + rec->unkA * 8); digit = (value / 100) % 10; break;
+            case 2: value = workS32(0x72C4 + rec->unkA * 8); digit = (value / 10) % 10; break;
+            case 3: value = workS32(0x72C4 + rec->unkA * 8); digit = value % 10; break;
+            }
+        } else {
+            switch (rec->unk10) {
+            case 0: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = (value / 1000) % 10; break;
+            case 1: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = (value / 100) % 10; break;
+            case 2: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = (value / 10) % 10; break;
+            case 3: value = workS32(0x72EC + workS16(0x76FA) * 0x28 + rec->unkA * 8); digit = value % 10; break;
+            }
+        }
+        load_Icon(scene, rec->handle, 1, 0x16, digit);
+        rec->state = 0x25;
+        break;
+    }
+    case 5:
+        nodeSetByte68(nodeOf(scene, rec), UI_PLAY_BACKWARD);
+        rec->state = 6;
+        break;
+    case 6:
+        if ((nodeW5C(nodeOf(scene, rec)) >> 16) == 0) {
+            nodeSetByte68(nodeOf(scene, rec), UI_PLAY_STOP);
+            rec->state = 7;
+        }
+        break;
+    case 7:
+        nodeClearFlag2(nodeOf(scene, rec));
+        break;
+    }
 }
 
 // .text:0x00062A38 size:0x2E0 mapped:0x806A1ACC
