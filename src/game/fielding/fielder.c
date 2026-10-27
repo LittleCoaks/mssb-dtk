@@ -11508,14 +11508,14 @@ compareAngles:
 int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32 z) {
     s16 angleA;
     s16 angleB;
-    int angleDiff;
+    s16 angleDiff;
     f32 dx;
     f32 dz;
     f32 distA;
     f32 distB;
     f32 distDiff;
-    int stickDiffA;
-    int stickDiffB;
+    s16 stickDiffA;
+    s16 stickDiffB;
 
     if (currentStickDirection < 0) {
         return -1;
@@ -11548,12 +11548,12 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
     }
 
     if (flag < 2) {
-        if (fielderIndexA == g_FieldingLogic.selectedFielder) {
+        if (g_FieldingLogic.selectedFielder == fielderIndexA) {
             distA -= 3.0f;
             if (distA < 0.0f) {
                 distA = 0.0f;
             }
-        } else if (fielderIndexB == g_FieldingLogic.selectedFielder) {
+        } else if (g_FieldingLogic.selectedFielder == fielderIndexB) {
             distB -= 3.0f;
             if (distB < 0.0f) {
                 distB = 0.0f;
@@ -11561,9 +11561,8 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         }
 
         if (fielderControlStick_continuousAngleHistory[3] >= 0) {
-            int stickHistDiff = fielderControlStick_continuousAngleHistory[0] -
-                                 fielderControlStick_continuousAngleHistory[3];
-            stickHistDiff = (stickHistDiff ^ (stickHistDiff >> 31)) - (stickHistDiff >> 31);
+            int stickHistDiff = __abs(fielderControlStick_continuousAngleHistory[0] -
+                                      fielderControlStick_continuousAngleHistory[3]);
             if (stickHistDiff > 0x800) {
                 stickHistDiff = 0x1000 - stickHistDiff;
             }
@@ -11616,12 +11615,11 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
                         bias = 6.0f;
                     }
 
+                    threshold = 8.0f;
                     if (distHome < 38.0f) {
                         threshold = 4.0f;
                     } else if (distHome < 46.0f) {
                         threshold = 4.0f + 0.2f * (distHome - 30.0f);
-                    } else {
-                        threshold = 8.0f;
                     }
 
                     if (fielderIndexA == g_FieldingLogic.selectedFielder) {
@@ -11633,7 +11631,7 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
                     }
                     if (fielderIndexB == g_FieldingLogic.selectedFielder) {
                         if (distA > threshold) {
-                            distB -= bias;
+                            distB = distA - bias;
                         }
                     }
                 }
@@ -11665,16 +11663,16 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
                 fielderIndexA >= 6) {
                 return fielderIndexA;
             }
-            if (g_Ball.ballState != BALL_STATE_HIT || g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_LANDED) {
+            if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED) {
+                if (fielderIndexA == 1 && distDiff > 20.0f) {
+                    return fielderIndexA;
+                }
+            } else {
                 return fielderIndexA;
             }
-            if (fielderIndexA != 1 || distDiff > 20.0f) {
-                return fielderIndexA;
-            }
-            if (distDiff > 10.0f && distA < 7.0f) {
-                return fielderIndexA;
-            }
-        } else if (distA < 7.0f) {
+        }
+
+        if (distDiff > 10.0f && distA < 7.0f) {
             return fielderIndexA;
         }
 
@@ -11690,32 +11688,28 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         }
     }
 
-    stickDiffA = currentStickDirection - angleA;
-    stickDiffA = (stickDiffA ^ (stickDiffA >> 31)) - (stickDiffA >> 31);
+    stickDiffA = __abs(currentStickDirection - angleA);
+    stickDiffB = __abs(currentStickDirection - angleB);
     if (stickDiffA > 0x800) {
         stickDiffA = 0x1000 - stickDiffA;
     }
-
-    stickDiffB = currentStickDirection - angleB;
-    stickDiffB = (stickDiffB ^ (stickDiffB >> 31)) - (stickDiffB >> 31);
     if (stickDiffB > 0x800) {
         stickDiffB = 0x1000 - stickDiffB;
     }
 
     {
-        int diff = stickDiffA - stickDiffB;
-        diff = (diff ^ (diff >> 31)) - (diff >> 31);
-        if (diff <= 0x100) {
+        if (__abs(stickDiffA - stickDiffB) <= 0x100) {
             return fielderIndexA;
         }
     }
 
     if (stickDiffA > 0x400) {
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-            fielderIndexB == 1 && stickDiffB <= 0x200) {
-            return fielderIndexB;
-        }
-        if (stickDiffB <= 0x400) {
+            fielderIndexB == 1) {
+            if (stickDiffB <= 0x200) {
+                return fielderIndexB;
+            }
+        } else if (stickDiffB <= 0x400) {
             return fielderIndexB;
         }
         if (flag == 0) {
@@ -11724,11 +11718,12 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
     }
 
     if (stickDiffB > 0x400) {
-        if (g_Ball.ballState != BALL_STATE_HIT || g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_LANDED ||
-            fielderIndexB != 1) {
-            return fielderIndexA;
-        }
-        if (stickDiffA <= 0x200) {
+        if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
+            fielderIndexB == 1) {
+            if (stickDiffA <= 0x200) {
+                return fielderIndexA;
+            }
+        } else {
             return fielderIndexA;
         }
     }
