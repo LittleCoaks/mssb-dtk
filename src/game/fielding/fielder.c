@@ -5441,11 +5441,11 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
     case 2:
         return;
     case 1:
-        return;
+        goto end;
     default:
         if (g_FieldingLogic.locationThrownTo >= 1 && g_FieldingLogic.locationThrownTo <= 3 &&
             g_FieldingLogic.throwWindUpFrameCounter == 1 &&
-            (g_FieldingLogic.locationThrownTo == 2 || fielderIndex != 7)) {
+            (g_FieldingLogic.locationThrownTo == 2 || fielderIndex != FIELDING_POSITION_CENTER_FIELD)) {
             angle = calculateAngleFromCoordinates(g_Ball.throwDestination.x - g_Ball.AtBat_Contact_BallPos.x,
                                                    g_Ball.throwDestination.z - g_Ball.AtBat_Contact_BallPos.z);
             getComponentsFromSAng(angle, &outX, &outZ);
@@ -5458,10 +5458,10 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
             angle2 = calculateAngleFromCoordinates(targetX, targetZ);
 
             if (angle2 <= 0x800 &&
-                ((angle2 < 0x300 && fielderIndex == 8) ||
-                 (angle2 > 0x500 && fielderIndex == 6) ||
-                 (angle2 < 0x400 && (fielderIndex == 7 || fielderIndex == 8)) ||
-                 (angle2 >= 0x400 && (fielderIndex == 7 || fielderIndex == 6)))) {
+                ((angle2 < 0x300 && fielderIndex == FIELDING_POSITION_RIGHT_FIELD) ||
+                 (angle2 > 0x500 && fielderIndex == FIELDING_POSITION_LEFT_FIELD) ||
+                 (angle2 < 0x400 && (fielderIndex == FIELDING_POSITION_CENTER_FIELD || fielderIndex == FIELDING_POSITION_RIGHT_FIELD)) ||
+                 (angle2 >= 0x400 && (fielderIndex == FIELDING_POSITION_CENTER_FIELD || fielderIndex == FIELDING_POSITION_LEFT_FIELD)))) {
 
                 if (targetZ < base_MoundCoordinates[1].z) {
                     targetX = (targetX < 0.0f) ? -35.0f : 35.0f;
@@ -5487,6 +5487,7 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
             setFielderAutoMovement(fielderIndex, 12);
         }
     }
+end:;
 }
 
 // .text:0x0004A9AC size:0x77C mapped:0x80689A40
