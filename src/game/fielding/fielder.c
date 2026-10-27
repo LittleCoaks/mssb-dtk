@@ -11030,13 +11030,12 @@ void SelectOptimalFielder(void) {
 // .text:0x000378B4 size:0x74C mapped:0x80676948
 int fn_3_378B4(void) {
     int result = -1;
-    s16 stickAngle0 = fielderControlStick_continuousAngleHistory[0];
-    s16 stickAngle3 = fielderControlStick_continuousAngleHistory[3];
+    int stickAngle0 = fielderControlStick_continuousAngleHistory[0];
     s32 ballAngle = g_Ball.ballAngleFromHome;
     s32 angleDiff = 0x800;
 
-    if (stickAngle0 >= 0 && stickAngle3 >= 0) {
-        angleDiff = __abs(stickAngle0 - stickAngle3);
+    if (fielderControlStick_continuousAngleHistory[0] >= 0 && fielderControlStick_continuousAngleHistory[3] >= 0) {
+        angleDiff = __abs(fielderControlStick_continuousAngleHistory[0] - fielderControlStick_continuousAngleHistory[3]);
         if (angleDiff > 0x800) {
             angleDiff = 0x1000 - angleDiff;
         }
@@ -11226,10 +11225,9 @@ int fn_3_378B4(void) {
                     goto end;
                 }
                 if (stickAngle0 >= 0x700 && stickAngle0 < 0x900) {
-                    if (5.0f + g_Fielders[2].pos.z <= g_Ball.AtBat_Contact_BallPos.z) {
-                        goto end;
+                    if (5.0f + g_Fielders[2].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
+                        result = 2;
                     }
-                    result = 2;
                     goto end;
                 }
                 if (stickAngle0 >= 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
@@ -11245,10 +11243,9 @@ int fn_3_378B4(void) {
                     goto end;
                 }
                 if (stickAngle0 >= 0xf00 || (stickAngle0 >= 0 && stickAngle0 < 0x100)) {
-                    if (5.0f + g_Fielders[4].pos.z <= g_Ball.AtBat_Contact_BallPos.z) {
-                        goto end;
+                    if (5.0f + g_Fielders[4].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
+                        result = 4;
                     }
-                    result = 4;
                     goto end;
                 }
                 if (stickAngle0 < 0x500 || stickAngle0 >= 0xb00) {
@@ -11267,11 +11264,7 @@ int fn_3_378B4(void) {
             if (g_Ball.ballDistanceFromHome < 5.0f + g_Fielders[0].distanceFromHomePlate) {
                 s16 pitcherAngle2 = g_Fielders[0].playerAngleFromHome;
                 if (ballAngle < pitcherAngle2) {
-                    if (stickAngle0 > 0xd00) {
-                        result = 0;
-                        goto end;
-                    }
-                    if (stickAngle0 >= 0 && stickAngle0 < 0x100) {
+                    if (stickAngle0 > 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x100)) {
                         result = 0;
                         goto end;
                     }
