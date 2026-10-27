@@ -5945,50 +5945,49 @@ void secondaryOutfielderWhenToStopMoving(int fielderIndex) {
     f32 intendedZ;
 
     do {
-    if (g_Ball.pauseBallMovementWhenInPlant) {
-        dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
-        dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
-        dist = fielderSqrt(dx * dx + dz * dz);
+        if (g_Ball.pauseBallMovementWhenInPlant) {
+            dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
+            dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
 
-        if (dist < fielderActionConstants[37]) {
+            if (dist < fielderActionConstants[37]) {
+                break;
+            }
+
+            normX = dx / dist;
+            normZ = dz / dist;
+            intendedX = fielder->pos.x + (fielderActionConstants[36] - 1.0f) * normX;
+            intendedZ = fielder->pos.z + (fielderActionConstants[36] - 1.0f) * normZ;
+            setFielderAutoCoords(fielderIndex, intendedX, intendedZ);
+        }
+
+        if (g_Ball.hitWallInd) {
+            if (fielder->distanceFromBall < fielderActionConstants[1]) {
+                break;
+            }
+        } else {
+            f32 dxSq;
+            f32 dzSq;
+
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.ballWillHitBallPos.x;
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.ballWillHitBallPos.z;
+            dxSq = dx * dx;
+            dzSq = dz * dz;
+            dist = fielderSqrt(dxSq + dzSq);
+
+            if (dist < fielderActionConstants[2] && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
+                break;
+            }
+        }
+
+        if (g_Ball.hitClassification1 == 2 && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
             break;
         }
 
-        normX = dx / dist;
-        normZ = dz / dist;
-        intendedX = fielder->pos.x + (fielderActionConstants[36] - 1.0f) * normX;
-        intendedZ = fielder->pos.z + (fielderActionConstants[36] - 1.0f) * normZ;
-        setFielderAutoCoords(fielderIndex, intendedX, intendedZ);
-    }
-
-    if (g_Ball.hitWallInd) {
-        if (fielder->distanceFromBall < fielderActionConstants[1]) {
-            break;
-        }
-    } else {
-        dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.ballWillHitBallPos.x;
-        dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.ballWillHitBallPos.z;
-        dist = fielderSqrt(dx * dx + dz * dz);
-
-        if (dist < fielderActionConstants[2] && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
-            break;
-        }
-    }
-
-    if (g_Ball.hitClassification1 == 2 && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
-        break;
-    }
-
-    return;
+        return;
     } while (0);
 
-    g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
-    g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
-    g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
-    g_Fielders[fielderIndex].velocityX = 0.0f;
-    g_Fielders[fielderIndex].velocityZ = 0.0f;
-    g_Fielders[fielderIndex].currentVelocity = 0.0f;
-    g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
+    stopFielderAtCurrentPosition(fielderIndex);
 }
 
 /* ============================================================================
