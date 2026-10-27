@@ -10563,8 +10563,8 @@ void updateBallLandedFielderSelection(void) {
     int winner;
 
     if (g_Ball.framesSinceHit < 60) {
-        if (g_FieldingLogic.selectedFielder == 3) {
-            InMemFielder* other = &g_Fielders[2];
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SECOND_BASE) {
+            InMemFielder* other = &g_Fielders[FIELDING_POSITION_FIRST_BASE];
 
             for (n = 2; n < 30; n += 2) {
                 if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > other->distanceFromHomePlate) {
@@ -10575,15 +10575,15 @@ void updateBallLandedFielderSelection(void) {
             if (n < 30 && g_Ball.ballAngleFromHome > other->playerAngleFromHome &&
                 g_Ball.ballAngleFromHome < fielder->playerAngleFromHome &&
                 other->distanceFromHomePlate > 1.0f + g_Ball.ballDistanceFromHome) {
-                winner = selectBestFielder(2, 3, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                winner = selectBestFielder(FIELDING_POSITION_FIRST_BASE, FIELDING_POSITION_SECOND_BASE, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
                                             g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
-                if (winner == 2) {
-                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(2, 0);
+                if (winner == FIELDING_POSITION_FIRST_BASE) {
+                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_FIRST_BASE, FALSE);
                     return;
                 }
             }
-        } else if (g_FieldingLogic.selectedFielder == 5) {
-            InMemFielder* other = &g_Fielders[4];
+        } else if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SHORTSTOP) {
+            InMemFielder* other = &g_Fielders[FIELDING_POSITION_THIRD_BASE];
 
             for (n = 2; n < 30; n += 2) {
                 if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > other->distanceFromHomePlate) {
@@ -10594,10 +10594,10 @@ void updateBallLandedFielderSelection(void) {
             if (n < 30 && g_Ball.ballAngleFromHome < other->playerAngleFromHome &&
                 g_Ball.ballAngleFromHome > fielder->playerAngleFromHome &&
                 other->distanceFromHomePlate > 1.0f + g_Ball.ballDistanceFromHome) {
-                winner = selectBestFielder(4, 5, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                winner = selectBestFielder(FIELDING_POSITION_THIRD_BASE, FIELDING_POSITION_SHORTSTOP, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
                                             g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
-                if (winner == 4) {
-                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(4, 0);
+                if (winner == FIELDING_POSITION_THIRD_BASE) {
+                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_THIRD_BASE, FALSE);
                     return;
                 }
             }
@@ -10607,10 +10607,10 @@ void updateBallLandedFielderSelection(void) {
     if (g_FieldingLogic.secondaryFielder < 0) {
         goto ballLoose;
     }
-    if (g_FieldingLogic.selectedFielder > 5) {
+    if (g_FieldingLogic.selectedFielder > FIELDING_POSITION_SHORTSTOP) {
         return;
     }
-    if (g_FieldingLogic.secondaryFielder < 6) {
+    if (g_FieldingLogic.secondaryFielder < FIELDING_POSITION_LEFT_FIELD) {
         return;
     }
 
@@ -10618,13 +10618,13 @@ void updateBallLandedFielderSelection(void) {
         f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.x;
         f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.z;
 
-        winner = -1;
+        winner = FIELDING_POSITION_NONE;
         if (g_Ball.ballVelocity < 0.2f || g_Ball.ballState == BALL_STATE_LOOSE) {
             if (g_Ball.ballVelocity < 0.1f && g_Ball.ballState == BALL_STATE_HIT &&
-                g_Ball.ballZoneAwayFromHome <= 1 && fielder->distanceFromHomePlate > g_Ball.ballDistanceFromHome &&
+                g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT && fielder->distanceFromHomePlate > g_Ball.ballDistanceFromHome &&
                 fielder->groundDistanceFromBall < 5.0f) {
                 setFielderAutoMovementIfValid(g_FieldingLogic.secondaryFielder, 12);
-                g_FieldingLogic.secondaryFielder = -1;
+                g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
             }
             winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0, x, z);
         } else {
@@ -10653,8 +10653,8 @@ ballLoose:
     return;
 
 assignWinner:
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-    g_FieldingLogic.secondaryFielder = -1;
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
+    g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
 }
 
 // .text:0x00038FF8 size:0x3B8 mapped:0x8067808C
