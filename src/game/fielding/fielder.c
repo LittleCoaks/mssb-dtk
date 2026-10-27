@@ -11098,76 +11098,68 @@ void SelectOptimalFielder(void) {
     int futureFrame = 30;
     int candidateFielder = 0;
     f32 velocityThreshold = 5.0f;
+    f32 velocityOverThreshold;
     f32 maxDist;
     int newFielder;
 
     if (ballAngle >= 0x800) {
-        newFielder = 1;
-        goto finalize;
-    }
-
-    if (ballAngle < 0x300) {
-        if (ballAngle < g_Fielders[2].playerAngleFromHome ||
-            getDifferenceInAngle(ballAngle, g_Fielders[3].playerAngleFromHome) >= 0x100) {
-            maxDist = g_Fielders[2].distanceFromHomePlate;
-            candidateFielder = 8;
-            goto computeThreshold;
-        }
-    } else if (ballAngle > 0x500) {
-        if (ballAngle >= g_Fielders[4].playerAngleFromHome ||
-            getDifferenceInAngle(ballAngle, g_Fielders[5].playerAngleFromHome) >= 0x100) {
-            maxDist = g_Fielders[4].distanceFromHomePlate;
-            candidateFielder = 6;
-            goto computeThreshold;
-        }
-    }
-
-    if (ballAngle < g_Fielders[3].playerAngleFromHome) {
-        if (g_Fielders[3].distanceFromHomePlate >= g_Fielders[2].distanceFromHomePlate) {
-            maxDist = g_Fielders[3].distanceFromHomePlate;
-        } else {
-            maxDist = g_Fielders[2].distanceFromHomePlate;
-        }
-    } else if (ballAngle >= g_Fielders[5].playerAngleFromHome) {
-        if (g_Fielders[5].distanceFromHomePlate >= g_Fielders[4].distanceFromHomePlate) {
-            maxDist = g_Fielders[5].distanceFromHomePlate;
-        } else {
-            maxDist = g_Fielders[4].distanceFromHomePlate;
-        }
+        newFielder = FIELDING_POSITION_CATCHER;
     } else {
-        if (g_Fielders[3].distanceFromHomePlate >= g_Fielders[5].distanceFromHomePlate) {
-            maxDist = g_Fielders[3].distanceFromHomePlate;
+        if (ballAngle < 0x300 &&
+            (ballAngle < g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome ||
+             getDifferenceInAngle(ballAngle, g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) >= 0x100)) {
+            maxDist = g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate;
+            candidateFielder = FIELDING_POSITION_RIGHT_FIELD;
+        } else if (ballAngle > 0x500 &&
+                   (ballAngle >= g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome ||
+                    getDifferenceInAngle(ballAngle, g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) >= 0x100)) {
+            maxDist = g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate;
+            candidateFielder = FIELDING_POSITION_LEFT_FIELD;
+        } else if (ballAngle < g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) {
+            if (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate >=
+                g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate) {
+                maxDist = g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate;
+            } else {
+                maxDist = g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate;
+            }
+        } else if (ballAngle >= g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) {
+            if (g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate >=
+                g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate) {
+                maxDist = g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate;
+            } else {
+                maxDist = g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate;
+            }
         } else {
-            maxDist = g_Fielders[5].distanceFromHomePlate;
+            if (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate >=
+                g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate) {
+                maxDist = g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate;
+            } else {
+                maxDist = g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate;
+            }
+        }
+
+        if (g_Ball.ballVelocity > 0.3f) {
+            velocityOverThreshold = g_Ball.ballVelocity - 0.3f;
+            velocityThreshold -= 10.0f * velocityOverThreshold;
+            futureFrame += (int)(100.0f * velocityOverThreshold);
+        }
+
+        if (maxDist + velocityThreshold > g_Ball.ballDistanceFromHome) {
+            newFielder = fn_3_378B4();
+        } else {
+            f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.x;
+            f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.z;
+            newFielder = SelectClosestFielder2(x, z);
+            if (candidateFielder == FIELDING_POSITION_RIGHT_FIELD && newFielder == FIELDING_POSITION_SECOND_BASE) {
+                newFielder = FIELDING_POSITION_RIGHT_FIELD;
+            }
+            if (candidateFielder == FIELDING_POSITION_LEFT_FIELD && newFielder == FIELDING_POSITION_SHORTSTOP) {
+                newFielder = FIELDING_POSITION_LEFT_FIELD;
+            }
         }
     }
 
-computeThreshold:
-    if (g_Ball.ballVelocity > 0.3f) {
-        f32 velocityOverThreshold = g_Ball.ballVelocity - 0.3f;
-        velocityThreshold -= 10.0f * velocityOverThreshold;
-        futureFrame += (int)(100.0f * velocityOverThreshold);
-    }
-
-    if (maxDist + velocityThreshold > g_Ball.ballDistanceFromHome) {
-        newFielder = fn_3_378B4();
-        goto finalize;
-    }
-
-    {
-        f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.x;
-        f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.z;
-        newFielder = SelectClosestFielder2(x, z);
-        if (candidateFielder == 8 && newFielder == 3) {
-            newFielder = 8;
-        }
-        if (candidateFielder == 6 && newFielder == 5) {
-            newFielder = 6;
-        }
-    }
-
-finalize:
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, FALSE);
 }
 
 // .text:0x000378B4 size:0x74C mapped:0x80676948
