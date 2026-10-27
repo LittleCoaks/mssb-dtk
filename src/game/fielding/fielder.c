@@ -10731,20 +10731,20 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
 
     if (g_Ball.ballState == BALL_STATE_HIT &&
         g_Ball.ballAngleFromHome >= 0x3d8 && g_Ball.ballAngleFromHome < 0x428) {
-        if (priorSelectedFielder == 3 && newFielder == 5 &&
+        if (priorSelectedFielder == FIELDING_POSITION_SECOND_BASE && newFielder == FIELDING_POSITION_SHORTSTOP &&
             fielder->locationResponsibleForCovering == 2 &&
-            fielder->distanceFromEachFielder[3] < 8.0f) {
+            fielder->distanceFromEachFielder[FIELDING_POSITION_SECOND_BASE] < 8.0f) {
             return;
         }
-        if (priorSelectedFielder == 5 && newFielder == 3 &&
+        if (priorSelectedFielder == FIELDING_POSITION_SHORTSTOP && newFielder == FIELDING_POSITION_SECOND_BASE &&
             fielder->locationResponsibleForCovering == 2 &&
-            fielder->distanceFromEachFielder[5] < 8.0f) {
+            fielder->distanceFromEachFielder[FIELDING_POSITION_SHORTSTOP] < 8.0f) {
             return;
         }
     }
 
     if (g_Ball.ballState == BALL_STATE_HIT &&
-        g_Ball.hitClassification2 <= 6 && newFielder == 1) {
+        g_Ball.hitClassification2 <= 6 && newFielder == FIELDING_POSITION_CATCHER) {
         hist = fielderControlStick_continuousAngleHistory[0];
         if (hist >= 0x800 || hist == 0) {
             return;
@@ -10753,7 +10753,7 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
 
     g_FieldingLogic.selectedFielder = newFielder;
 
-    if (useHumanControlMovement == 0) {
+    if (useHumanControlMovement == FALSE) {
         setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 15);
     } else {
         setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 21);
@@ -10764,18 +10764,18 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
         if (fielder->locationResponsibleForCovering >= 0) {
             if (fielder->locationResponsibleForCovering <= 3) {
                 if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == newFielder) {
-                    g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                    g_FieldingLogic.baseCoveredInd[loc] = 0;
+                    g_FieldingLogic.fielderAssignedLocationIndex[loc] = FIELDING_POSITION_NONE;
+                    g_FieldingLogic.baseCoveredInd[loc] = FALSE;
                 }
                 fielder->locationResponsibleForCovering = -1;
-                fielder->isResponsibleForCoveringALocation = 0;
+                fielder->isResponsibleForCoveringALocation = FALSE;
                 if (fielder->autoMovementFunctionIndex == 1) {
                     setFielderAutoMovementIfValid(newFielder, 12);
                 }
             } else if (loc == 5) {
                 fielder->locationResponsibleForCovering = -1;
-                fielder->isResponsibleForCoveringALocation = 0;
-                g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
+                fielder->isResponsibleForCoveringALocation = FALSE;
+                g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
                 g_FieldingLogic.playerAtMoundCutoffLocation = 0;
                 if (fielder->autoMovementFunctionIndex == 14) {
                     setFielderAutoMovementIfValid(newFielder, 12);
@@ -10785,11 +10785,11 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
     }
 
     if (g_FieldingLogic.selectedFielder == g_FieldingLogic.cutoffFielderIndex) {
-        g_FieldingLogic.cutoffFielderIndex = -1;
+        g_FieldingLogic.cutoffFielderIndex = FIELDING_POSITION_NONE;
     }
 
     if (priorSelectedFielder >= 0) {
-        if (priorSelectedFielder >= 6) {
+        if (priorSelectedFielder >= FIELDING_POSITION_LEFT_FIELD) {
             setFielderAutoMovementIfValid(priorSelectedFielder, 16);
         } else if (g_Ball.ballState == BALL_STATE_HIT) {
             if (g_Fielders[priorSelectedFielder].distanceFromHomePlate > 3.0f + fielder->distanceFromHomePlate) {
