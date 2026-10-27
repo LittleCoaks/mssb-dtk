@@ -799,9 +799,9 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.humanSelectedPlaceToThrow = -1;
         g_FieldingLogic.locThrownTo2 = -1;
         g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
-        g_FieldingLogic.fielderAssignedLocationIndex[5] = 0;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 0;
         g_FieldingLogic.runnerChasingAfter = -1;
-        g_FieldingLogic.fielderAssignedLocationIndex[6] = -1;
+        g_FieldingLogic.tagChaseFromBase = -1;
         g_FieldingLogic.someBase = -1;
         g_FieldingLogic.runnerBeingTargettedForOut = -1;
         g_FieldingLogic.lastThrowingFielder = -1;
@@ -1635,7 +1635,7 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
     }
 
     if (g_Ball.ballState == BALL_STATE_HELD || g_Ball.ballState == BALL_STATE_THROWN) {
-        if (g_FieldingLogic.fielderAssignedLocationIndex[6] >= 0 &&
+        if (g_FieldingLogic.tagChaseFromBase >= 0 &&
             g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
             s16 runnerChasingAfter = g_FieldingLogic.runnerChasingAfter;
 
@@ -10253,11 +10253,11 @@ void updateFielderSelection(void) {
         }
     }
 
-    g_FieldingLogic.fielderAssignedLocationIndex[5]--;
-    if (g_FieldingLogic.fielderAssignedLocationIndex[5] > 0) {
+    g_FieldingLogic.fielderSelectionChangeCooldown--;
+    if (g_FieldingLogic.fielderSelectionChangeCooldown > 0) {
         stillCountingDown = FALSE;
     } else {
-        g_FieldingLogic.fielderAssignedLocationIndex[5] = 0;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 0;
     }
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] == 0) {
@@ -10354,7 +10354,7 @@ void updateInAirFielderSelection(void) {
     int newFielder;
 
     if (secondaryFielderInit < 0) {
-        if (g_FieldingLogic.unkFlagMaybeInAir == 0 && g_FieldingLogic.fielderAssignedLocationIndex[5] == 0) {
+        if (g_FieldingLogic.unkFlagMaybeInAir == 0 && g_FieldingLogic.fielderSelectionChangeCooldown == 0) {
             selectAssignClosestFielder2();
         }
         return;
@@ -10807,9 +10807,9 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
     }
 
     if (g_Ball.framesSinceHit < 30) {
-        g_FieldingLogic.fielderAssignedLocationIndex[5] = 20;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 20;
     } else {
-        g_FieldingLogic.fielderAssignedLocationIndex[5] = 45;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 45;
     }
 }
 
@@ -11010,7 +11010,7 @@ void SelectOptimalFielder(void) {
         }
 
         if (maxDist + velocityThreshold > g_Ball.ballDistanceFromHome) {
-            newFielder = fn_3_378B4();
+            newFielder = selectInfielderFromStickDirection();
         } else {
             f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.x;
             f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.z;
@@ -11028,7 +11028,7 @@ void SelectOptimalFielder(void) {
 }
 
 // .text:0x000378B4 size:0x74C mapped:0x80676948
-int fn_3_378B4(void) {
+int selectInfielderFromStickDirection(void) {
     int result = FIELDING_POSITION_NONE;
     int stickAngle0 = fielderControlStick_continuousAngleHistory[0];
     s32 ballAngle = g_Ball.ballAngleFromHome;
@@ -11360,7 +11360,7 @@ void unused_FUN_8067661c(void) {
     s16 contactResult;
 
     if (g_Ball.ballVelocity > 0.17f) {
-        int newFielder = fn_3_378B4();
+        int newFielder = selectInfielderFromStickDirection();
         setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
         return;
     }
@@ -11379,7 +11379,7 @@ void unused_FUN_8067661c(void) {
 }
 
 // .text:0x0003740C size:0x17C mapped:0x806764A0
-void fn_3_3740C(void) {
+void selectOutfielderOnceBallPassesInfield(void) {
     f32 maxDist;
     sAng ballAngle;
     int minDiff;
@@ -16779,7 +16779,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     g_FieldingLogic.locationThrownTo = -1;
     g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
     g_FieldingLogic.runnerChasingAfter = -1;
-    g_FieldingLogic.fielderAssignedLocationIndex[6] = g_Ball.baseBallAndFielderAreOn;
+    g_FieldingLogic.tagChaseFromBase = g_Ball.baseBallAndFielderAreOn;
     g_FieldingLogic.someBase = -1;
     g_FieldingLogic.selectedFielder = -1;
     g_FieldingLogic.secondaryFielder = -1;

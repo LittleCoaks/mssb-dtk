@@ -1740,12 +1740,12 @@ int runnerAI_getRundownDirection(int runnerIdx) {
 
     nextBase = runner->nextBase;
     currentBase = runner->currentBase;
-    if (nextBase == g_FieldingLogic.fielderAssignedLocationIndex[6] &&
+    if (nextBase == g_FieldingLogic.tagChaseFromBase &&
         (g_FieldingLogic.somethingForTryingTagOutTargetBase == currentBase ||
          g_FieldingLogic.somethingForTryingTagOutTargetBase == 9)) {
         return -1;
     }
-    if (currentBase == g_FieldingLogic.fielderAssignedLocationIndex[6] &&
+    if (currentBase == g_FieldingLogic.tagChaseFromBase &&
         (g_FieldingLogic.somethingForTryingTagOutTargetBase == nextBase ||
          g_FieldingLogic.somethingForTryingTagOutTargetBase == 9)) {
         return 1;

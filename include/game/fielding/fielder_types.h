@@ -59,7 +59,9 @@ typedef struct {
     /*0x00ca*/ s16 locThrownTo2;
     /*0x00cc*/ s16 somethingForTryingTagOutTargetBase;
     /*0x00ce*/ s16 xcc_Stored_0;
-    /*0x00d0*/ s16 fielderAssignedLocationIndex[7];
+    /*0x00d0*/ s16 fielderAssignedLocationIndex[5]; // fielder covering each location: bases 0..3, mound (4)
+    /*0x00da*/ s16 fielderSelectionChangeCooldown; // frames before the human's fielder auto-switches again (set to 20/45)
+    /*0x00dc*/ s16 tagChaseFromBase;              // base the ball holder chases a runner from (-1 if none)
     /*0x00de*/ s16 runnerChasingAfter;
     /*0x00e0*/ s16 runnerChasingAfter_stored;
     /*0x00e2*/ s16 someBase;

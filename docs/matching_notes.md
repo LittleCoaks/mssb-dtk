@@ -3512,7 +3512,7 @@ by a score change in at least one function.
 
 ### Locals and re-reads (fielder_ai)
 - **Copying an `s16` local into an `int` local can cost a `mr`.** setRunnerChasingAfter was 4 bytes
-  long until `base = fromBase` became `base = g_FieldingLogic.fielderAssignedLocationIndex[6]`
+  long until `base = fromBase` became `base = g_FieldingLogic.tagChaseFromBase`
   (re-read the field). Re-reading `g_Fielders[c].numFramesToGetToAutoLocation` at each use instead
   of keeping it in a local matched howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase/runnerTimeToCoverBase.
 - **`cmpwi rX, 4; bge` then `extsh. r0, rX; blt` on an `lha` value** is an `int` local tested as
