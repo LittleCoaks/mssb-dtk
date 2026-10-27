@@ -6331,6 +6331,6 @@ functions. These lessons are not specific to one file:
 - **The loop unroll factor hints at the original body size.** `#pragma ppc_unroll_instructions_limit`
   reproduces a different unroll; use it for diagnosis only.
 - **Check every big near-miss against the asm for logic before register grinding.** These three
-  sections found 13 real bugs (inverted tests, swapped arms, wrong table indices, wrong fields, wrong
+  sections found more than a dozen real bugs (inverted tests, swapped arms, wrong table indices, wrong fields, wrong
   loop bounds, a missing argument). They also confirmed several bugs in the original game, which stay
   as written.
