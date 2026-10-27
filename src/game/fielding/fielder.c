@@ -11518,7 +11518,7 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
     s16 stickDiffB;
 
     if (currentStickDirection < 0) {
-        return -1;
+        return FIELDING_POSITION_NONE;
     }
 
     angleA = radToShortAngle(atan2(z - g_Fielders[fielderIndexA].pos.z, x - g_Fielders[fielderIndexA].pos.x));
@@ -11563,7 +11563,7 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
             }
 
             if (stickHistDiff <= 0x400) {
-                int biasedIdx = -1;
+                int biasedIdx = FIELDING_POSITION_NONE;
 
                 if (fielderIndexA == g_FieldingLogic.selectedFielder) {
                     biasedIdx = fielderIndexA;
@@ -11657,11 +11657,11 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         distDiff = distB - distA;
         if (distDiff > 15.0f) {
             if (distDiff > 20.0f && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-                fielderIndexA >= 6) {
+                fielderIndexA >= FIELDING_POSITION_LEFT_FIELD) {
                 return fielderIndexA;
             }
             if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED) {
-                if (fielderIndexA == 1 && distDiff > 20.0f) {
+                if (fielderIndexA == FIELDING_POSITION_CATCHER && distDiff > 20.0f) {
                     return fielderIndexA;
                 }
             } else {
@@ -11675,7 +11675,7 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
 
         if (distA < 5.0f && distB < 5.0f && angleDiff <= 0x400) {
             if (flag == 0) {
-                return -1;
+                return FIELDING_POSITION_NONE;
             }
             return fielderIndexA;
         }
@@ -11702,7 +11702,7 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
 
     if (stickDiffA > 0x400) {
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-            fielderIndexB == 1) {
+            fielderIndexB == FIELDING_POSITION_CATCHER) {
             if (stickDiffB <= 0x200) {
                 return fielderIndexB;
             }
@@ -11710,13 +11710,13 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
             return fielderIndexB;
         }
         if (flag == 0) {
-            return -1;
+            return FIELDING_POSITION_NONE;
         }
     }
 
     if (stickDiffB > 0x400) {
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-            fielderIndexB == 1) {
+            fielderIndexB == FIELDING_POSITION_CATCHER) {
             if (stickDiffA <= 0x200) {
                 return fielderIndexA;
             }
