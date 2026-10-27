@@ -5353,16 +5353,15 @@ end:;
 // .text:0x0004B8D0 size:0x13C mapped:0x8068A964
 void fn_3_4B8D0(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    s16 covering = fielder->locationResponsibleForCovering;
 
-    if (covering < 0) {
+    if (fielder->locationResponsibleForCovering < 0) {
         return;
     }
 
-    if (covering <= 3) {
-        if (g_FieldingLogic.fielderAssignedLocationIndex[covering] == fielderIndex) {
-            g_FieldingLogic.fielderAssignedLocationIndex[covering] = -1;
-            g_FieldingLogic.baseCoveredInd[covering] = 0;
+    if (fielder->locationResponsibleForCovering <= 3) {
+        if (g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] == fielderIndex) {
+            g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] = -1;
+            g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] = FALSE;
         }
 
         fielder->locationResponsibleForCovering = -1;
@@ -5371,12 +5370,12 @@ void fn_3_4B8D0(int fielderIndex) {
         if (fielder->autoMovementFunctionIndex != 1) {
             return;
         }
-        if (fielderIndex == -1) {
+        if (fielderIndex == FIELDING_POSITION_NONE) {
             return;
         }
 
         setFielderAutoMovement(fielderIndex, 12);
-    } else if (covering == 5) {
+    } else if (fielder->locationResponsibleForCovering == 5) {
         fielder->locationResponsibleForCovering = -1;
         g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
         fielder->isResponsibleForCoveringALocation = 0;
@@ -5385,7 +5384,7 @@ void fn_3_4B8D0(int fielderIndex) {
         if (fielder->autoMovementFunctionIndex != 14) {
             return;
         }
-        if (fielderIndex == -1) {
+        if (fielderIndex == FIELDING_POSITION_NONE) {
             return;
         }
 
@@ -5440,6 +5439,7 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
     result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
     switch (result) {
     case 2:
+        return;
     case 1:
         return;
     default:
