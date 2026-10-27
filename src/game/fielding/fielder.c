@@ -10776,28 +10776,24 @@ tailShift:
 void HandleMiddleInfieldSelection(void) {
     int newFielder;
 
-    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-        int selectedFielder = g_FieldingLogic.selectedFielder;
-        if (selectedFielder == 3 || selectedFielder == 5) {
-            InMemFielder* selFielder = &g_Fielders[selectedFielder];
-            if (selFielder->distanceFromLandingSpot < selFielder->hitbox[0]) {
-                newFielder = selectedFielder;
-                goto dispatch;
-            }
-        }
-    }
-
-    {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
+        (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SECOND_BASE ||
+         g_FieldingLogic.selectedFielder == FIELDING_POSITION_SHORTSTOP) &&
+        g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <
+            g_Fielders[g_FieldingLogic.selectedFielder].hitbox[0]) {
+        newFielder = g_FieldingLogic.selectedFielder;
+    } else {
         f32 x;
         f32 z;
 
-        if ((g_Fielders[3].nonCatchFlyBallStratInd == 0 || g_Fielders[5].nonCatchFlyBallStratInd == 0) &&
+        if ((g_Fielders[FIELDING_POSITION_SECOND_BASE].nonCatchFlyBallStratInd == 0 ||
+             g_Fielders[FIELDING_POSITION_SHORTSTOP].nonCatchFlyBallStratInd == 0) &&
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
             z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         } else {
-            f32 threshold =
-                0.5f * (g_Fielders[3].distanceFromHomePlate + g_Fielders[5].distanceFromHomePlate);
+            f32 threshold = 0.5f * (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate +
+                                    g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate);
             int frame;
 
             for (frame = 1; frame < 121; frame += 3) {
@@ -10810,26 +10806,26 @@ void HandleMiddleInfieldSelection(void) {
             z = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
         }
 
-        newFielder = SelectBetterFielder(3, 5, 1, x, z);
-    }
+        newFielder = SelectBetterFielder(FIELDING_POSITION_SECOND_BASE, FIELDING_POSITION_SHORTSTOP, 1, x, z);
 
-    if (newFielder < 0) {
-        if (g_Ball.ballZoneAwayFromHome >= 2 && currentStickDirection > 0xa00 && currentStickDirection < 0xe00) {
-            g_FieldingLogic.infielderSelectedOnPopFlyInd = 0;
+        if (newFielder < 0) {
+            if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_SHALLOW && currentStickDirection > 0xa00 &&
+                currentStickDirection < 0xe00) {
+                g_FieldingLogic.infielderSelectedOnPopFlyInd = FALSE;
+            }
+            return;
         }
-        return;
     }
 
-dispatch:
-    if (newFielder == 3) {
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(3, 1);
-        setFielderAutoMovement(5, 12);
+    if (newFielder == FIELDING_POSITION_SECOND_BASE) {
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_SECOND_BASE, TRUE);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 12);
     } else {
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(5, 1);
-        setFielderAutoMovement(3, 12);
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_SHORTSTOP, TRUE);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 12);
     }
 
-    g_FieldingLogic.infielderSelectedOnPopFlyInd = 0;
+    g_FieldingLogic.infielderSelectedOnPopFlyInd = FALSE;
 }
 
 // .text:0x00038790 size:0x580 mapped:0x80677824

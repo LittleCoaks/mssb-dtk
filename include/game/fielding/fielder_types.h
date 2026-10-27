@@ -128,7 +128,7 @@ typedef struct {
     /*0x0137*/ u8 always0_0137;
     /*0x0138*/ u8 _0138;
     /*0x0139*/ u8 unkFlagMaybeInAir;
-    /*0x013a*/ u8 infielderSelectedOnPopFlyInd;
+    /*0x013a*/ E(u8, BOOL) infielderSelectedOnPopFlyInd;
     /*0x013b*/ u8 knockoutFinished;
     /*0x013c*/ u8 throwInterceptionTriggered;
     /*0x013d*/ u8 smashThrowInd;
