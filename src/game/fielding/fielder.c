@@ -11029,124 +11029,133 @@ void SelectOptimalFielder(void) {
 
 // .text:0x000378B4 size:0x74C mapped:0x80676948
 int fn_3_378B4(void) {
-    int result = -1;
+    int result = FIELDING_POSITION_NONE;
     int stickAngle0 = fielderControlStick_continuousAngleHistory[0];
     s32 ballAngle = g_Ball.ballAngleFromHome;
     s32 angleDiff = 0x800;
 
     if (fielderControlStick_continuousAngleHistory[0] >= 0 && fielderControlStick_continuousAngleHistory[3] >= 0) {
-        angleDiff = __abs(fielderControlStick_continuousAngleHistory[0] - fielderControlStick_continuousAngleHistory[3]);
+        angleDiff =
+            __abs(fielderControlStick_continuousAngleHistory[0] - fielderControlStick_continuousAngleHistory[3]);
         if (angleDiff > 0x800) {
             angleDiff = 0x1000 - angleDiff;
         }
     }
 
-    if (g_FieldingLogic.selectedFielder == 0) {
-        s16 pitcherAngle = g_Fielders[0].playerAngleFromHome;
+    if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_PITCHER) {
+        s16 pitcherAngle = g_Fielders[FIELDING_POSITION_PITCHER].playerAngleFromHome;
         if (ballAngle >= pitcherAngle - 0x40 && ballAngle < pitcherAngle + 0x40) {
-            if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
-                result = 0;
+            if (g_Ball.ballDistanceFromHome - g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate < 3.0f) {
+                result = FIELDING_POSITION_PITCHER;
                 goto end;
             }
         }
         if (ballAngle < pitcherAngle) {
             if (stickAngle0 >= 0xf00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
-                result = 0;
+                result = FIELDING_POSITION_PITCHER;
                 goto end;
             }
             if (stickAngle0 >= 0xb00 && stickAngle0 < 0xf00) {
-                if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
-                    result = 0;
+                if (g_Ball.ballDistanceFromHome - g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate < 3.0f) {
+                    result = FIELDING_POSITION_PITCHER;
                     goto end;
                 }
             }
         } else {
             if (stickAngle0 >= 0x500 && stickAngle0 < 0x900) {
-                result = 0;
+                result = FIELDING_POSITION_PITCHER;
                 goto end;
             }
             if (stickAngle0 >= 0x900 && stickAngle0 < 0xd00) {
-                if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
-                    result = 0;
+                if (g_Ball.ballDistanceFromHome - g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate < 3.0f) {
+                    result = FIELDING_POSITION_PITCHER;
                     goto end;
                 }
             }
         }
     }
 
-    {
-        if (__abs(g_Fielders[2].playerAngleFromHome - g_Fielders[3].playerAngleFromHome) < 0x40) {
-            int sel = g_FieldingLogic.selectedFielder;
-            if (!((sel == 2 || sel == 3) && angleDiff < 0x400)) {
-                int mid = (g_Fielders[2].playerAngleFromHome + g_Fielders[3].playerAngleFromHome) / 2;
-                if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
-                    if (g_Fielders[2].distanceFromHomePlate < g_Fielders[3].distanceFromHomePlate) {
-                        if (g_Fielders[2].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 2;
-                            goto end;
-                        }
-                        if (3.0f + g_Fielders[3].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 3;
-                            goto end;
-                        }
-                    } else {
-                        if (g_Fielders[3].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 2;
-                            goto end;
-                        }
-                        if (3.0f + g_Fielders[2].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 3;
-                            goto end;
-                        }
+    if (__abs(g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome -
+              g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) < 0x40) {
+        int sel = g_FieldingLogic.selectedFielder;
+        if (!((sel == FIELDING_POSITION_FIRST_BASE || sel == FIELDING_POSITION_SECOND_BASE) && angleDiff < 0x400)) {
+            int mid = (g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome +
+                       g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) /
+                      2;
+            if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
+                if (g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate <
+                    g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate) {
+                    if (g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_FIRST_BASE;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SECOND_BASE;
+                        goto end;
+                    }
+                } else {
+                    if (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_FIRST_BASE;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SECOND_BASE;
+                        goto end;
                     }
                 }
             }
         }
     }
 
-    {
-        if (__abs(g_Fielders[4].playerAngleFromHome - g_Fielders[5].playerAngleFromHome) < 0x40) {
-            int sel = g_FieldingLogic.selectedFielder;
-            if (!((sel == 4 || sel == 5) && angleDiff < 0x400)) {
-                int mid = (g_Fielders[4].playerAngleFromHome + g_Fielders[5].playerAngleFromHome) / 2;
-                if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
-                    if (g_Fielders[4].distanceFromHomePlate <= g_Fielders[5].distanceFromHomePlate) {
-                        if (g_Fielders[4].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 4;
-                            goto end;
-                        }
-                        if (3.0f + g_Fielders[5].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 5;
-                            goto end;
-                        }
-                    } else {
-                        if (g_Fielders[5].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 5;
-                            goto end;
-                        }
-                        if (3.0f + g_Fielders[4].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
-                            result = 4;
-                            goto end;
-                        }
+    if (__abs(g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome -
+              g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) < 0x40) {
+        int sel = g_FieldingLogic.selectedFielder;
+        if (!((sel == FIELDING_POSITION_THIRD_BASE || sel == FIELDING_POSITION_SHORTSTOP) && angleDiff < 0x400)) {
+            int mid = (g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome +
+                       g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) /
+                      2;
+            if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
+                if (g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate <=
+                    g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate) {
+                    if (g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_THIRD_BASE;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SHORTSTOP;
+                        goto end;
+                    }
+                } else {
+                    if (g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SHORTSTOP;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_THIRD_BASE;
+                        goto end;
                     }
                 }
             }
         }
     }
 
-    if (ballAngle < g_Fielders[2].playerAngleFromHome + 0x40) {
-        if (g_FieldingLogic.selectedFielder == 3 && angleDiff < 0x400) {
+    if (ballAngle < g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome + 0x40) {
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SECOND_BASE && angleDiff < 0x400) {
             goto end;
         }
-        result = 2;
+        result = FIELDING_POSITION_FIRST_BASE;
         goto end;
     }
 
-    if (ballAngle >= g_Fielders[4].playerAngleFromHome - 0x40 && ballAngle < 0x800) {
-        if (g_FieldingLogic.selectedFielder == 5 && angleDiff < 0x400) {
+    if (ballAngle >= g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome - 0x40 && ballAngle < 0x800) {
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SHORTSTOP && angleDiff < 0x400) {
             goto end;
         }
-        result = 4;
+        result = FIELDING_POSITION_THIRD_BASE;
         goto end;
     }
 
@@ -11154,98 +11163,102 @@ int fn_3_378B4(void) {
         int sel = g_FieldingLogic.selectedFielder;
         s32 margin = 0;
         s16 thirdAngle;
-        if (sel == 3) {
+        if (sel == FIELDING_POSITION_SECOND_BASE) {
             margin = 0x20;
         }
-        thirdAngle = g_Fielders[3].playerAngleFromHome;
+        thirdAngle = g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome;
         if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < thirdAngle + (margin + 0x40)) {
-            if (sel == 2) {
+            if (sel == FIELDING_POSITION_FIRST_BASE) {
                 if (stickAngle0 >= 0x500 && stickAngle0 < 0x900) {
-                    result = 2;
+                    result = FIELDING_POSITION_FIRST_BASE;
                     goto end;
                 }
-                result = 3;
+                result = FIELDING_POSITION_SECOND_BASE;
                 goto end;
             }
-            if (sel == 5) {
-                if (g_Fielders[3].locationResponsibleForCovering == 2 && angleDiff < 0x400) {
+            if (sel == FIELDING_POSITION_SHORTSTOP) {
+                if (g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering == 2 &&
+                    angleDiff < 0x400) {
                     goto end;
                 }
             }
-            if (sel == 5) {
-                if (g_Fielders[3].locationResponsibleForCovering == 2 &&
-                    5.0f + g_Fielders[3].distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+            if (sel == FIELDING_POSITION_SHORTSTOP) {
+                if (g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering == 2 &&
+                    5.0f + g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate <
+                        g_Ball.ballDistanceFromHome) {
                     goto end;
                 }
             }
-            result = 3;
+            result = FIELDING_POSITION_SECOND_BASE;
             goto end;
         }
 
         {
             s32 margin2 = 0;
             s16 fifthAngle;
-            if (sel == 2) {
+            if (sel == FIELDING_POSITION_FIRST_BASE) {
                 margin2 = 0x20;
             }
-            fifthAngle = g_Fielders[5].playerAngleFromHome;
+            fifthAngle = g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome;
             if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < fifthAngle + (margin2 + 0x40)) {
-                if (sel == 4) {
+                if (sel == FIELDING_POSITION_THIRD_BASE) {
                     if ((stickAngle0 >= 0 && stickAngle0 < 0x300) || stickAngle0 >= 0xf00) {
-                        result = 4;
+                        result = FIELDING_POSITION_THIRD_BASE;
                         goto end;
                     }
-                    result = 5;
+                    result = FIELDING_POSITION_SHORTSTOP;
                     goto end;
                 }
-                if (sel == 3) {
-                    if (g_Fielders[5].locationResponsibleForCovering == 2 && angleDiff < 0x400) {
+                if (sel == FIELDING_POSITION_SECOND_BASE) {
+                    if (g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering == 2 &&
+                        angleDiff < 0x400) {
                         goto end;
                     }
                 }
-                if (sel == 3) {
-                    if (g_Fielders[5].locationResponsibleForCovering == 2 &&
-                        5.0f + g_Fielders[5].distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+                if (sel == FIELDING_POSITION_SECOND_BASE) {
+                    if (g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering == 2 &&
+                        5.0f + g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate <
+                            g_Ball.ballDistanceFromHome) {
                         goto end;
                     }
                 }
-                result = 5;
+                result = FIELDING_POSITION_SHORTSTOP;
                 goto end;
             }
 
-            if (ballAngle >= g_Fielders[2].playerAngleFromHome && ballAngle < thirdAngle) {
+            if (ballAngle >= g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome && ballAngle < thirdAngle) {
                 if (stickAngle0 >= 0x300 && stickAngle0 < 0x700) {
-                    result = 2;
+                    result = FIELDING_POSITION_FIRST_BASE;
                     goto end;
                 }
                 if (stickAngle0 >= 0x700 && stickAngle0 < 0x900) {
-                    if (5.0f + g_Fielders[2].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
-                        result = 2;
+                    if (5.0f + g_Fielders[FIELDING_POSITION_FIRST_BASE].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
+                        result = FIELDING_POSITION_FIRST_BASE;
                     }
                     goto end;
                 }
                 if (stickAngle0 >= 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
-                    result = 3;
+                    result = FIELDING_POSITION_SECOND_BASE;
                     goto end;
                 }
                 goto end;
             }
 
-            if (ballAngle >= fifthAngle && ballAngle < g_Fielders[4].playerAngleFromHome) {
+            if (ballAngle >= fifthAngle && ballAngle < g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome) {
                 if (stickAngle0 >= 0x100 && stickAngle0 < 0x500) {
-                    result = 4;
+                    result = FIELDING_POSITION_THIRD_BASE;
                     goto end;
                 }
                 if (stickAngle0 >= 0xf00 || (stickAngle0 >= 0 && stickAngle0 < 0x100)) {
-                    if (5.0f + g_Fielders[4].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
-                        result = 4;
+                    if (5.0f + g_Fielders[FIELDING_POSITION_THIRD_BASE].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
+                        result = FIELDING_POSITION_THIRD_BASE;
                     }
                     goto end;
                 }
                 if (stickAngle0 < 0x500 || stickAngle0 >= 0xb00) {
                     goto end;
                 }
-                result = 5;
+                result = FIELDING_POSITION_SHORTSTOP;
                 goto end;
             }
 
@@ -11255,26 +11268,26 @@ int fn_3_378B4(void) {
             if (ballAngle >= fifthAngle) {
                 goto end;
             }
-            if (g_Ball.ballDistanceFromHome < 5.0f + g_Fielders[0].distanceFromHomePlate) {
-                s16 pitcherAngle2 = g_Fielders[0].playerAngleFromHome;
+            if (g_Ball.ballDistanceFromHome < 5.0f + g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate) {
+                s16 pitcherAngle2 = g_Fielders[FIELDING_POSITION_PITCHER].playerAngleFromHome;
                 if (ballAngle < pitcherAngle2) {
                     if (stickAngle0 > 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x100)) {
-                        result = 0;
+                        result = FIELDING_POSITION_PITCHER;
                         goto end;
                     }
                 } else {
                     if (stickAngle0 >= 0x700 && stickAngle0 < 0xb00) {
-                        result = 0;
+                        result = FIELDING_POSITION_PITCHER;
                         goto end;
                     }
                 }
             }
             if (stickAngle0 >= 0x500 && stickAngle0 < 0xb00) {
-                result = 3;
+                result = FIELDING_POSITION_SECOND_BASE;
                 goto end;
             }
             if (stickAngle0 > 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
-                result = 5;
+                result = FIELDING_POSITION_SHORTSTOP;
                 goto end;
             }
             goto end;
