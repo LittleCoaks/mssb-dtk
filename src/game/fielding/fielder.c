@@ -5402,14 +5402,13 @@ void autoMovement7_8_outfiederNoCatch_Phase1(int fielderIndex) {
 
     if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) == 0) {
         if (fielder->presetLocationToStandAt >= 2) {
-            targetX = presetFielderLocations[fielder->presetLocationToStandAt].x;
-            targetZ = presetFielderLocations[fielder->presetLocationToStandAt].z;
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+            setFielderAutoCoords(fielderIndex, presetFielderLocations[fielder->presetLocationToStandAt].x,
+                                 presetFielderLocations[fielder->presetLocationToStandAt].z);
         } else {
-            if (fielderIndex == 6) {
+            if (fielderIndex == FIELDING_POSITION_LEFT_FIELD) {
                 offsetX = 10.0f;
             }
-            if (fielderIndex == 8) {
+            if (fielderIndex == FIELDING_POSITION_RIGHT_FIELD) {
                 offsetX = -10.0f;
             }
 
