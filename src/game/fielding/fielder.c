@@ -11535,13 +11535,8 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         distA = fielderSqrt(sqx + sqz);
     }
 
-    dx = g_Fielders[fielderIndexB].pos.x - x;
-    dz = g_Fielders[fielderIndexB].pos.z - z;
-    {
-        f32 sqx = dx * dx;
-        f32 sqz = dz * dz;
-        distB = fielderSqrt(sqx + sqz);
-    }
+    distB = fielderSqrt((g_Fielders[fielderIndexB].pos.x - x) * (g_Fielders[fielderIndexB].pos.x - x) +
+                        (g_Fielders[fielderIndexB].pos.z - z) * (g_Fielders[fielderIndexB].pos.z - z));
 
     if (angleDiff <= 0x100) {
         return (distA < distB) ? fielderIndexA : fielderIndexB;
@@ -11641,15 +11636,17 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
     }
 
     if (distB < distA) {
-        f32 tempDist = distA;
-        int tempIdx = fielderIndexA;
-        s16 tempAngle = angleA;
+        f32 tempDist;
+        int temp;
+        tempDist = distA;
         distA = distB;
-        fielderIndexA = fielderIndexB;
-        angleA = angleB;
         distB = tempDist;
-        fielderIndexB = tempIdx;
-        angleB = tempAngle;
+        temp = fielderIndexA;
+        fielderIndexA = fielderIndexB;
+        fielderIndexB = temp;
+        temp = angleA;
+        angleA = angleB;
+        angleB = temp;
     }
 
     if (flag < 3) {
