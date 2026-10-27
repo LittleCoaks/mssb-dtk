@@ -11411,12 +11411,14 @@ int fn_3_378B4(void) {
 void selectClosestFielderBasedOnFutureCoord(int frame) {
     InMemFielder* f;
     int i;
+    f32 dist;
     f32 bestDist = 1000.0f;
-    int bestIndex = -1;
+    int bestIndex = FIELDING_POSITION_NONE;
     int newFielder;
 
-    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
-        f32 dist = f->distanceFromBall;
+    for (i = 0; i < 9; i++) {
+        f = &g_Fielders[i];
+        dist = f->distanceFromBall;
 
         if (dist < 5.0f && f->onFire == 0 && dist < bestDist) {
             if (f->knockoutStatus != 0) {
@@ -11431,25 +11433,22 @@ void selectClosestFielderBasedOnFutureCoord(int frame) {
         }
     }
 
-    if (bestIndex >= 0) {
-        InMemFielder* bestFielder = &g_Fielders[bestIndex];
-        if (!(bestFielder->distanceFromBall < 5.0f)) {
-            f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - bestFielder->pos.x;
-            f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - bestFielder->pos.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            if (fielderSqrt(sqx + sqz) > 5.0f) {
-                bestIndex = -1;
-            }
+    if (bestIndex >= 0 && !(g_Fielders[bestIndex].distanceFromBall < 5.0f)) {
+        f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - g_Fielders[bestIndex].pos.x;
+        f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - g_Fielders[bestIndex].pos.z;
+        f32 sqx = dx * dx;
+        f32 sqz = dz * dz;
+        if (fielderSqrt(sqx + sqz) > 5.0f) {
+            bestIndex = FIELDING_POSITION_NONE;
         }
+    }
 
-        if (bestIndex >= 0 && bestIndex != g_FieldingLogic.selectedFielder) {
-            s16 selectedFielder = g_FieldingLogic.selectedFielder;
-            if (selectedFielder >= 0) {
-                InMemFielder* selFielder = &g_Fielders[selectedFielder];
-                if (selFielder->distanceFromBall < 8.0f && selFielder->onFire == 0) {
-                    bestIndex = -1;
-                }
+    if (bestIndex >= 0 && bestIndex != g_FieldingLogic.selectedFielder) {
+        s16 selectedFielder = g_FieldingLogic.selectedFielder;
+        if (selectedFielder >= 0) {
+            InMemFielder* selFielder = &g_Fielders[selectedFielder];
+            if (selFielder->distanceFromBall < 8.0f && selFielder->onFire == 0) {
+                bestIndex = FIELDING_POSITION_NONE;
             }
         }
     }
@@ -11462,7 +11461,7 @@ void selectClosestFielderBasedOnFutureCoord(int frame) {
         newFielder = SelectClosestFielder2(x, z);
     }
 
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, FALSE);
 }
 
 // .text:0x00037588 size:0x88 mapped:0x8067661C
