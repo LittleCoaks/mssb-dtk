@@ -125,7 +125,7 @@ can be looked up here. Counts are `functions (named)` and total function bytes.
 | file | was | fns (named) | bytes | purpose | conf |
 |---|---|---|---|---|---|
 | `game_math.c` | `rep_1838` | 26 (24) | 5,524 | Angle and vector library: short-angle↔radian conversion, `atan2`, normalisation, line intersection, clamping, game RNG. | high |
-| `spline.c` | `rep_140` | 8 (7) | 8,496 | Generic 2D/3D spline build, resample and evaluate; `running_roundBasePosition` is the baserunning wrapper. Also used by the camera, scene effects and Star Dash. | high |
+| `spline.c` | `rep_140` | 8 (7) | 8,496 | Generic 2D/3D spline build, resample and evaluate; `spline2D_evaluatePoints` is the baserunning wrapper. Also used by the camera, scene effects and Star Dash. | high |
 
 ## sound/ — 1 file, 39 fns (19 named)
 
@@ -147,7 +147,7 @@ moved out to `replay/`, `stats/` and `challenge/` on 2026-10-08.
 | `ai_defaults.c` | `rep_868` | 1 (1) | 668 | `setDefaultAIValues`. | high |
 | `ai_tables.c` | `data_only/data_1880.c` | 0 (0) | — | Data-only TU: the AI probability tables and constants (`.data 0x1880-0x1D28`): pitcher AI (`invertAILevels`, `chargePitchProb`, `perfectPitchProb`, `changeUpProb`, `pickOffProb`, ...), then batter AI, `aiDashProbabilities`, fielder-AI, runner and batter-steal tables. Users (`batter_ai`, `pitcher_ai`, `fielder`, `fielder_ai`, `runner`, `ai_defaults`) all reach it by symbol; the pitcher tables come before the batter tables although `batter_ai.c` links first, so it is not any code unit's own `.data`. The versus-screen tables from `0x1D28` belong to `versus_screens.c`. | med |
 | `at_bat_setup.c` | `auto_00_0001E154` | 3 (3) | 664 | Between-at-bat setup: `betweenABSetPitcherBatter`, lineup/batting-order snapshot (`someRosterMemoryManagement`), `initializeAIConstants`. | med |
-| `character_constants.c` | `data_only/data_69C0.c` | 0 (0) | — | Data-only TU of per-character / per-actor constants (`.data 0x69C0-0x8088`), mostly 54-row tables indexed by character: `BatterHitbox`, `ChargePowerConstants`, `hitByPitchHitboxes`, `runnerConstants`, `FielderHitboxConsts`, `throwWindupReleaseFrames`, `bodyCheckFrameRelatedConstants`, `barrelCollisionHitboxes`; also a few per-fielder-position flag bytes and a minigame `UIRecordDescriptor` table. Users across batting, pitching, baserunning, fielding, animation, `roster_init` and the minigames all reach it by symbol. | med |
+| `character_constants.c` | `data_only/data_69C0.c` | 0 (0) | — | Data-only TU of per-character / per-actor constants (`.data 0x69C0-0x8088`), mostly 54-row tables indexed by character: `BatterHitbox`, `ChargePowerConstants`, `hitByPitchHitboxes`, `runnerCharConsts`, `FielderHitboxConsts`, `throwWindupReleaseFrames`, `bodyCheckFrameRelatedConstants`, `barrelCollisionHitboxes`; also a few per-fielder-position flag bytes and a minigame `UIRecordDescriptor` table. Users across batting, pitching, baserunning, fielding, animation, `roster_init` and the minigames all reach it by symbol. | med |
 | `character_loading.c` | gap `0x90754` | 17 (1) | 2,464 | Match-load step functions for character models and animation files, called from `match_loading.c`. | med |
 | `controller_input.c` | `rep_10E8` | 3 (3) | 2,012 | Controller input reading and magnitude interpretation; `resetInputTrackers`. | high |
 | `game_rel_entry.c` | `rep_0` | 0 (0) | — | REL `_prolog`/`_epilog`; a leftover debug mode/stadium picker (`fn_3_258`, whose data still lists Japanese NPB stadium names) and the roster ARAM load (`maybeProcessTeamData`). | med |

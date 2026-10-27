@@ -598,13 +598,13 @@ void ballAnimationSubFun3(void) {
     }
     model->visible = TRUE;
     if (g_Batter.batterHand != BATTING_HAND_RIGHT) {
-        model->pos.x = -g_Batter.batPosition2.x;
+        model->pos.x = -g_Batter.boxPosition.x;
         model->rot.y = 3.1415927f;
     } else {
-        model->pos.x = g_Batter.batPosition2.x;
+        model->pos.x = g_Batter.boxPosition.x;
         model->rot.y = 0.0f;
     }
-    model->pos.z = g_Batter.batPosition2.z + lbl_3_data_6848[1];
+    model->pos.z = g_Batter.boxPosition.z + lbl_3_data_6848[1];
     model->pos.y = lbl_3_data_6848[0];
 }
 

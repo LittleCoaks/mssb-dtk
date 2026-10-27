@@ -70,7 +70,7 @@ typedef struct {
 } BB_AICandidate;
 
 extern BOOL checkForPauses(void);
-extern void ballPhysica(void);
+extern void ballPhysics(void);
 extern u8 minigameAIStrengthTable[8][5];
 extern s16 bB_challengePointsRequired[4];
 
@@ -336,16 +336,16 @@ void barrelBatterTransitionToMainFunction(void) {
     case TRANSITION_CALCULATION_TYPE_0:
         fn_3_12FD6C();
         g_Minigame.turnNumberWithinRound++;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125++;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
         if (g_Minigame.winLossResult == 1) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= bOD_bB_frameConsts[3]) {
+            if (g_GameLogic.framesInGameStatus_copy >= bOD_bB_frameConsts[3]) {
                 g_GameLogic._125++;
             }
         } else {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= bOD_bB_frameConsts[2]) {
+            if (g_GameLogic.framesInGameStatus_copy >= bOD_bB_frameConsts[2]) {
                 g_GameLogic._125++;
             }
         }
@@ -402,8 +402,8 @@ void fn_3_13119C(void) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[1] &&
+        if (g_GameLogic.framesInGameStatus >= minigameTuningConstants[2] ||
+            (g_GameLogic.framesInGameStatus >= minigameTuningConstants[1] &&
              checkForButtonPressToSkip(1, 0x1100))) {
             changeScene(3, 6);
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
@@ -444,7 +444,7 @@ void bB_AtBat(void) {
         if (checkForPauses()) {
             return;
         }
-        if (g_Minigame.miniGameTurnCounter != 0 || g_GameLogic.FrameCountOfCurrentPitch >= bOD_bB_frameConsts[8]) {
+        if (g_Minigame.miniGameTurnCounter != 0 || g_GameLogic.framesInGameStatus >= bOD_bB_frameConsts[8]) {
             atBat_Pitcher();
         }
         bB_AI();
@@ -502,7 +502,7 @@ void fn_3_130A80(void) {
 
 // .text:0x001307D0 size:0x2B0 mapped:0x8076F864
 void fn_3_1307D0(void) {
-    ballPhysica();
+    ballPhysics();
     fn_3_12FAC4();
     barrelBatterLiveBallSubFun();
 }

@@ -384,8 +384,12 @@ both now solved:
    yd_step.c with `-inline auto` emits source order; with `-inline deferred`
    emits exact reverse source order. **Fix: write the function definitions in
    the .c file in reverse address order** (highest `.text` offset first).
-   Codegen is unaffected (see previous section — order is a codegen no-op),
-   so the match stays 100%. This applies to every REL unit (menus/game/
+   Instruction codegen is unaffected (see previous section), but the
+   literal pool is not: MWCC lays out `@N` float/string constants in
+   code-generation order, so in a unit with literals the reversal can change
+   `.rodata` order (in `debug/rep_7A28` it fixed five 99.x% functions).
+   Reverse the order while drafting, not just before the flip, and keep
+   `static inline` helpers above their callers when you reorder. This applies to every REL unit (menus/game/
    debug use cflags_rel); DOL-side units don't use `-inline deferred`.
 
 2. **dtk's synthetic string-literal symbols trigger harmless linker
@@ -3148,7 +3152,6 @@ DOVARender) and the 4-aligned DOGet string tie 0x800B993C..0x800BCB44 together. 
   The complete 28-function unit and all its sections remained 100% after the
   readability pass and linked with `4 files OK`.
 
-
 ## Findings from the low-match game REL pass (2026-10-09)
 
 - **Restore actual helper calls before tuning macro-expanded locals.** In
@@ -3573,6 +3576,16 @@ A pass over every game unit, looking for hand-written copies of functions that M
   call) and practice_mainMenu_stateHandling/notReferenced (97.15 -> 96.81). In bobomb_derby and
   barrel_batter, the target keeps `&g_Minigame` in one callee-saved register across several
   inlined helper bodies, while ours rebuilds it in each. That pattern is still unexplained.
+- **Two same-size twins: tell them apart by one branch target before converting.** In fielder.c,
+  fn_3_308B8 (now setFielderAutoCoords_onlyFlagIfMoving) and setFielderAutoCoords are both 0x1A0 and
+  differ only in whether `goingToAutoLocationInd = 1` sits inside the else-arm. A fuzzy body match put
+  fn_3_308B8 in 25 hosts. Checking whether the then-arm's `b` lands on `li r0,1; stb r0,0x1d9` or past
+  it showed that all 25 inline setFielderAutoCoords, and only fn_3_30A58 and fielding_prePitchAutomovement
+  (its address neighbours) inline fn_3_308B8. A function that other units call with `bl` was the main
+  inlined helper of its own unit: 27 hosts and 51 copies (32 pasted blocks, plus 19 calls to a
+  pointer-form `static inline`). No host lost score (+0.04 .text, 3 new
+  100%). A copy whose argument came from a struct field (`out.x`) scored higher with the field first
+  copied into a local (`x = out.x; f(i, x, z)`) than with the field passed directly (fn_3_4597C, 99.31 vs 99.54).
 
 ### Findings from the minigame_framework second pass (2026-10)
 Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
@@ -5595,3 +5608,697 @@ Recovered the final text_71EC4 stub, fn_2_73EFC: 0.26954177% → 83.908356%, rai
 A branchless final record assignment caused the comparison to report zero despite substantial instruction overlap. Expressing the target's explicit two-arm frame/play-mode writes restored useful alignment. Canonical UIRecord fields and existing visibility/play-mode constants keep the recovered logic readable; remaining differences concern compiler scheduling/indexing. No fabricated counters, padding or manual unrolling were added.
 
 Independent target/candidate execution passed 5804 bounded fixtures and 6787300 instructions, including all cursor pairs, wrapping and callback replacements, with exact observable memory, ordered stores and calls. All existing owner bodies and all three header dependents retain their actual code/data/relocations. Full build, four output hashes, shared/private instruction comparison, all function/section floors and whitespace checks pass.
+## Findings from debug/rep_7920.c (full match, flipped to Matching)
+
+- **An auto-inlined call with an address-expression argument schedules differently from
+  the same body written out on a local.** `fn_1_26C2C` inlines `fn_1_26B7C` (an init
+  routine). Writing `slot = &arr[idx]; fn_1_26B7C(slot);` or hand-expanding the body on
+  `slot` matched the logic but not the float-setup schedule or the hoisted `slot+0x11`
+  pointer (91-92%). Passing the expression straight in and dropping the local entirely
+  (`fn_1_26B7C(&arr[idx]); ... return &arr[idx];`) gave 100%. The tell: the target
+  re-materialises `&arr[idx]` (lis/addi/add) for the later stores, and the inlined body
+  shows a pointer hoist the standalone copy does not. If a function inlines a
+  same-file helper and the residue is only scheduling around the inlined body, try the
+  argument as an expression with no local before grinding registers.
+- **A gap-sized `.bss` array can pass objdiff and still break the flip.** dtk sized
+  `lbl_1_bss_47052` as 6 bytes (the gap up to the next unit's 8-aligned `.bss`), and
+  `u16 [3]` scored 100% in objdiff. After the flip it failed the sha1: once declared in
+  the correct reverse order, MWCC 4-aligned the 6-byte array, which moved it to 0x47054.
+  Only element 0 was ever referenced. The real object is a plain `u16` (symbols.txt
+  size 0x2), and the last 4 bytes are inter-unit padding. If the flip fails because the
+  REL relocation addends are off by 2 or 4, suspect an array dtk sized from the gap.
+
+
+## Findings from the debug REL first passes (rep_7978, rep_7A28, rep_7BA0, rep_7BF0; 2026-10)
+
+`rep_7BA0` was matched and flipped to Matching. The other three are NonMatching with pending
+functions. These lessons are not specific to one file:
+
+- **Every flipped debug unit after `rep_7920` needs its own `REP_HEADER_DATA_FN`.** `rep_7920`
+  uses the default `getRepHeaderData`. Flipping `rep_7BA0` without the define left `debug.rel`'s
+  `.rodata` 0x50 short (see the foul_detection entry above). Use `getRepHeaderData_rep<addr>`.
+- **`SQRT2_LINKAGE` works in the debug REL too, so use `INPUT_BUTTON`.** Two first passes used
+  `PAD_BUTTON_*` because including `game/UnknownHomes_Game.h` broke `.rodata`. With
+  `#define SQRT2_LINKAGE static` before the include, `rep_7BA0` kept 100% and passed the sha1
+  check with `INPUT_BUTTON_*` and an `E(u16, INPUT_BUTTON)` local.
+- **If the target addresses several `.data` symbols off one base register, define them in the
+  file.** For example `addi r7,r31,0x20` and `stw 0x110(r31)` from one `lis/addi`. In
+  `rep_7A28`, moving all the data from extern to definitions in the `.c` took `.data` from 0%
+  to 100% and made the addressing match exactly. In `rep_7BF0` the boundaries followed the
+  addressing: an address-of that gets a fresh `lis/addi` starts a new object, and so does a
+  scalar read at a fixed offset (`base+0x120`).
+- **A zero-initialised scalar lands in `.bss`, not `.data`.** It shifts every later `.data`
+  object by its size. `void *x[1] = {0};` keeps it in `.data` (`rep_7A28`,
+  `lbl_1_data_10918`/`1091C`).
+- **Use the GX inline helpers, not the raw FIFO macros.** `GXPosition3f32(x, y, z)` plus
+  `GXColor1u32(c)` took `rep_7A28`'s `fn_1_27BB8` from 91% to 99.9%, where `GX_WRITE_F32`/
+  `GX_WRITE_U32` did not.
+- **A helper inlined with stores in between may be two inlines.** `rep_7978`'s camera init runs
+  `PSVECAdd` + `C_MTXLookAt`, then some field stores, then the `C_MTXFrustum` math. Two
+  `static inline` helpers (view, projection), called on either side of the stores, matched. One
+  combined helper did not.
+- **Read float constants from their bit pattern.** A limit that looked like `3.1384f` was
+  0x4048DD97 (3.1385248f) in the target. The rounded literal produced different `.rodata` bits.
+
+### Second-pass (Opus) findings on the same files
+
+`rep_7978` and `rep_7A28` were matched and flipped. `rep_7BF0`'s bytes match except
+`fn_1_29A9C` (91.70%, GPR numbering in the `fn_80037768` argument setup).
+
+- **A power-of-two reciprocal that comes out first in `fmuls` should be written as `x / 2^n`.**
+  `x * 0.0078125f` puts the constant first and pools it early. `x / 128.f` is rewritten by
+  MWCC into a value-first multiply and pools the reciprocal late. That fixed both the operand
+  order and the `.rodata` order (PI, 180, 1/128, 60) in `rep_7978` `fn_1_26D28` and
+  `rep_7BF0` `fn_1_2858C`. Keep the grouping, e.g. `x / 128.f / 60.f`. This extends the
+  `x / 2` -> `fmuls x, 0.5` note to any 2^-n.
+- **`extrwi` + `xoris r0,r0,0x8000` before an int-to-float conversion means a signed int.**
+  `(u32 >> n) & 1` converts as unsigned and leaves out the `xoris`. Both
+  `(s32)((v >> n) & 1)` and `((v & INPUT_BUTTON_X) != 0)` match, and the second form uses
+  the enum.
+- **A pool-name mismatch (`@N` vs `lbl_*_rodata_*`) is usually a pool-order problem.**
+  objdiff pairs relocations by target address + addend and ignores names and binding.
+  `scope:local` doesn't change the score, though it still silences FORCEACTIVE warnings.
+  The other side of this: `X+8` vs a separate symbol `Y` at the same address is a mismatch,
+  so data symbols have to start where the code's base + offset pattern says.
+- **Scheduling can reveal the data shape.** If loads and stores are right but ordered
+  differently, check whether the target treats a run of dtk-split `.data` symbols as one
+  object. Stores into one known object let MWCC hoist an unrelated load above them. Separate
+  objects or a cast pointer don't. `rep_7A28` needed 41 dtk symbols merged into
+  `DbgTexEntry lbl_1_data_10908[3]` for `fn_1_27560`/`fn_1_28118`.
+- **An extra `addi rX,rBase,0` before a field load means the target pooled the file's
+  statics.** MWCC pools behind one base register only when a function references enough
+  distinct statics (two weren't enough in `rep_7BF0` `fn_1_28CE8`, four were). Splitting a
+  composite static into separate statics can turn pooling on.
+- **One `lbz` but two `extsb` means a signed byte field read twice through an `s8 *`.** The
+  load is CSE'd but the conversions aren't. A `(s8)x` cast written twice does get CSE'd
+  (`rep_7BF0` `fn_1_28AE0`).
+- **Arguments set up before a branch that computes another argument** point to a
+  `static inline` helper whose parameters were bound first (`rep_7BF0` `fn_1_2948C`).
+- **Inputs loaded into volatile registers and copied with `mr` to callee-saved ones** mean the
+  source masked the copies in place (`v &= ~m`) and re-read the global, rather than
+  `v = in & ~m` from a local.
+- **Testing a symbols.txt change without touching the shared file:** copy `config.yml` with the
+  module's `symbols:` pointed at an edited copy, run `dtk dol split <copy> <out>`, and score with
+  a throwaway `objdiff.json` (`build_target`/`build_base` false). Keep the copy under `build/`:
+  from the system temp directory the split failed an unrelated `rep_0010` rodata-size check.
+
+### Debug REL batch 2 first passes (rep_0010, rep_00B0, rep_0250, rep_02A8)
+
+- **objdiff pairs `.data`/`.bss` symbols and relocations by address, not by name, but the
+  symbol has to START at the same address.** `rep_7BF0`'s statics had descriptive names
+  (`gDebugMenu`, ...) and scored `.data` 0%, with seven byte-identical functions at 99.x%.
+  Moving the dtk labels in symbols.txt onto the real object boundaries, while keeping the
+  `lbl_1_data_*` names, took `.data` to 100% and the functions to 100%. So if a function is
+  byte-identical but scores under 100% on data relocations, fix the label boundaries.
+- **dtk labels at odd addresses with size 3 are usually a pad byte plus a 2-byte object.**
+  `lbl_1_data_FBD` (rep_0250) and `lbl_1_data_1CA1` (rep_02A8) became `FBE`/`1CA2` size 0x2.
+  Defining the pad as a zero object moves it to `.bss` and shifts everything after it.
+- **The data pool base is the section's first static, and MWCC pools only when a function
+  references about three or more distinct statics.** One big struct, or non-static globals,
+  give `lis/addi` per access. A `u32[4]` that forced a second base register had to become
+  four scalars (`rep_02A8`).
+- **`.bss` statics pack tightly in reverse declaration order with no alignment fill.** Fill
+  gaps with `u8`/`u16` pad statics. Pad arrays get 4-byte aligned (`rep_0250`).
+- **Loop shapes:**
+  - `subic.`/`bne` with no entry test is `do { } while (--n)`.
+  - A `ctr` loop unrolled by `(n+1)>>2` behind `cmpwi n,0; blt` is
+    `for (i = n; i >= 0; i--)`. The up-counting form unrolls by 8 and was about 450 bytes
+    larger (`rep_0010`).
+  - A plain `for` with a constant trip count was fully unrolled.
+- **Local arrays make MWCC hoist `&arr[k]` into callee-saved registers at entry. Separate
+  scalars don't.** `Vec t[3]` instead of three `Vec`s took `rep_00B0` `fn_1_4A24` from 74% to
+  91%.
+- **Switch shape follows the case labels exactly.** Empty `case` labels reproduce a
+  binary-search tree, and a spurious extra case changes it. Stacked `case 1:`...`case 9:`
+  give a range test.
+- **A `SND_FXID` argument wants a `u16` local:** `u16 id = tbl[i / 13] + i % 13; fn(id);`.
+  `s32`, `u32` and a direct expression all missed (`rep_02A8` Voice screens, 92% to 100%).
+- **Decrement then signed test of a `u8` static needs two statements:**
+  `x--; if ((s8)x < 0) x = N;`. `if ((s8)--x < 0)` puts the `extsb` before the `stb`.
+- **Unowned `.text` gaps in the debug REL.** These ranges are in no unit's split:
+  0x1538-0x19AC, 0x4DD8-0x4E98, 0x85A8-0x8CD4, 0x9EA0-0xA2E4,
+  0x17EFC-0x182C0, 0x1D590-0x1D694 and 0x26AF8-0x26B7C. (0xC2A4-0xC5AC is resolved:
+  `fn_1_C2A4` went to `rep_02A8`, and `rep_0610` now starts at 0xC2DC.) Evidence so far:
+  - 0x85A8-0x8CD4 only references `rep_0250`'s `.data` (`skyPanoramaFileDescriptorDebug`).
+  - 0x9EA0-0xA2E4 uses `rep_02A8`'s data and functions.
+  - A static in a unit that a gap function references blocks that unit's flip until the gap
+    joins it.
+
+### Debug REL second passes (rep_0250, rep_02A8 flipped to Matching)
+
+- **A merged dtk `.bss` label costs `.text` too, not just `.bss`.** objdiff infers a
+  relocation for every pooled `off(rN)` access and compares the symbol it lands in. With
+  `lbl_1_bss_2FDF` covering 9 bytes, byte-identical functions scored 97-99%. Splitting
+  symbols.txt at the real variables took both units to 100% in every section. Bytes no code
+  references need no entry.
+- **A small loop repeated in several callers, differing only in its register, is a missed
+  call to an existing helper.** Calling `fn_1_A718()` (which MWCC inlines) fixed the loop
+  counter in `sndTestSeScreen` and `fn_1_A95C`. Likewise, moving an inline
+  `do { a[k + i] = 0; } while (--i);` into a `static inline` helper swapped the
+  counter/pointer registers onto the target's r4/r5 (`rep_0250` `fn_1_9AB0`).
+- **`switch (item->state)` and `switch (currentDrawingItem->state)` both load once, but
+  colour `item` differently** (r28 vs r29). When a cached pointer local is one register off,
+  try the global expression.
+- **A `clrlwi r3,rX,16` the target keeps on a value it loaded with `lhz`/`lhzx` points to an
+  `s16` parameter** on the callee, not `s32`/`u16` (`fn_1_BF34` in `rep_02A8`).
+- **`lbz rX; extsb rX,rX` (same register) means the variable itself is `s8`.**
+  `lbz r0; extsb rY,r0` is a `u8` read through an `(s8)` cast.
+- **Coordinating several agents in one tree:** a symbols.txt/splits.txt/configure.py edit
+  while other agents run `ninja` makes every ninja re-run the dtk split at once. They
+  corrupt `.ninja_deps`, and ninja then re-splits forever: each manifest restart prints
+  `premature end of file; recovering` and truncates away the split's fresh deps record. Fix:
+  stop all ninja/dtk processes, run `ninja -t recompact`, then build once. Avoid it by
+  applying shared-config changes only when no agent is building.
+- **The stack slots of int-to-float temps show the order the compiler created them in,
+  which can differ from the order of the instructions.** In `rep_0010` `fn_1_AF4` the
+  target schedules the `xoris/stw/lfd` conversions x0, z0, xLen, but they sit at sp+0x10,
+  +0x18, +0x08, so xLen's conversion was created first. Reordering the source statements
+  to that order took 95.67% to 98.67%. The remaining float-register permutation was then
+  pure local declaration order. Declaration order showed "no effect" until the statements
+  were right, so re-test it after every structural change.
+- **Iterate privately without touching the build tree.** Take the unit's mwcceppc command
+  line (`ninja -t commands <obj>`), compile a scratch copy of the `.c`, and compare one
+  function's bytes word by word against the target `.o` via the ELF symtab. At about 0.7 s
+  per variant, brute-force sweeps (all 120 orders of five stores, every declaration order)
+  are cheap and never race other agents (`rep_7BF0`, `rep_0010`).
+- **When deleting LATER code changes the entry block's register numbers, the colouring is
+  global.** In `rep_7BF0` `fn_1_29A9C`, deleting the inlined helper or a later call moved
+  the entry registers, but none of 19 source-equivalent rewrites of either part did,
+  including version and flag sweeps. Treat that as a sign to stop.
+
+## Findings from the debug REL second passes (rep_0610, rep_74A0, rep_0138, rep_0010 TU boundary; 2026-10)
+
+- **A float multiply by a power-of-two reciprocal (`x * 0.0009765625f`) puts the constant FIRST
+  in the fmul/fmadds; a division (`x / 1024.0f`) puts the converted value first.** MWCC
+  strength-reduces the division to the same reciprocal multiply, so the operand order is the
+  only tell. `rep_0610` `fn_1_11D00`/`fn_1_11F08` (+2..4 points each, plus the caller
+  `fn_1_121D4` that inlines them). The same swap fixed the inlined copies in `rep_7730`
+  `fn_1_25064` (`/ 64.0f` vs `* 0.015625f`).
+- **A redundant cast of an already-typed pointer (`((T *)p)->e[i].f`) changes how MWCC
+  associates the address.** It folds the member offset into the index
+  (`addi r0, i*sz, off; lwzx base, r0`) instead of `add; lwz off(r)`. Use it only where the
+  target shows that form; applied everywhere it costs elsewhere (`rep_0610` `fn_1_ECF8` +6,
+  `fn_1_CDC8` +5).
+- **A loop the target enters with `b test` before the body is a `while`/`for`, not a
+  do-while,** even when the do-while body is otherwise identical
+  (`rep_0610` `fn_1_D7A4` +12, `fn_1_D9B8` +1.5).
+- **An unreferenced initialiser in .rodata between two functions' literals is an unused local
+  aggregate** (`GXColor c = {...};`): MWCC emits the initialiser at parse time and
+  dead-strips the copy.
+- **Parse-time .rodata (local aggregate initialisers, and the strings of .data tables) is laid
+  out in source order,** so .data tables that own strings must be defined between the right
+  functions, not all at the top of the file (`rep_0610` .rodata 99.76 -> 100).
+- **Hand-written copies of blocks that the target got by inlining a helper cause callee-saved
+  register swaps in the caller.** `rep_74A0` `fn_1_1857C` only lost its p/arr swap once its
+  GX setup and depth sort were real functions (`fn_1_18174`, `fn_1_17FF0`,
+  `sortParticlesByDepth`) called from it and inlined by `-inline auto`. Unowned functions with
+  no callers next to a unit are good candidates for such helpers.
+- **A source shape can fail only because a callee's prototype is wrong.** `rep_74A0`
+  `fn_1_1A290` (the "entry pointer first, checks still through the array" loop) scored
+  98.41 until the callback type was fixed to take the entry, then 100.
+- **dtk's gap-sized .bss/.data labels cost points even in instruction-identical functions.**
+  objdiff resolves `lbz r0, 0x8(r31)` off a pool base to `lbl_1_bss_3070+8` on the target side
+  and to our `lbl_1_bss_3078` on ours. Splitting the labels at the real object boundaries
+  took `rep_0610` .bss from 52.5% to 100% and turned several functions into 100s with no
+  source change.
+- **Jump tables give TU boundaries that rodata doesn't.** MWCC emits a TU's jump tables at the
+  end of its .data, in function order. The debug REL's .data block at 0x0 ends with the
+  tables for `fn_1_1E0` and `fn_1_16A0`, which showed that the code on both sides of
+  `rep_0010` (which has no rodata of its own there) is one TU with it. Likewise a data object
+  whose only user sits just before a unit's .text belongs to that unit when the data sits
+  after the unit's other data (`fn_1_196C` and `lbl_1_data_298` -> `rep_00B0`).
+
+## Findings from the debug REL gap merges and second passes (rep_0010, rep_0138, rep_0250, rep_02A8; 2026-10)
+
+- **Wrap-around of a small struct field is a pre-increment inside the condition:**
+  `if ((s8)++state.field >= N)` / `if (--state.field < 0)`. The `v = field + 1; field = v;
+  if ((s8)v >= N)` draft has the right instructions but swaps two scratch registers. Floats too:
+  `if (++p->nearZ > 512.0f)` gives the target's `fadds f1, field, one` order (`rep_0138`
+  `fn_1_6848`, `fn_1_6E14`, `fn_1_7FF8`).
+- **Callee-saved registers, int and float, follow declaration order (first declared = highest
+  register) unless compiler temps intervene.** Hoisted loop invariants (`xoris w,0x8000`,
+  `lis 0x4330`) and CSE'd global addresses take registers of their own and break the rule. A
+  matched sibling with the same locals is the best source for the order (`rep_0138`
+  `fn_1_5AC0` read its order off `fn_1_6050` and went to 100). Variable reuse decides coalescing:
+  reuse a local where the target shares a register, and drop explicit locals for products MWCC
+  hoists itself (`ny * ny`).
+- **An inlined callee's registers depend on the variable reuse of its source.** `rep_0138`
+  `fn_1_717C` matched standalone with separate locals per half, but its inlined copy in
+  `fn_1_6848` only matched once one `set`/`geo` pair was reused for both halves.
+- **Switch shapes in the debug REL:** `cmpwi 2; beq; bge; b` came from
+  `case 0: case 1: break; case 2: {...}`; a two-value switch testing 2 before 3 needed an empty
+  `case 1:`; a "7 cases plus a range" dispatch needs the range spelled out (`case 2:` ...
+  `case 18:`) to get the 0/1/range decision tree; `default:` scored 96 (`rep_0010` `fn_1_1E0`).
+  A case that falls into the next one but whose guard branches to the end is
+  `if (cond != X) break;`, not `if (cond == X) {...}` (`rep_02A8`).
+- **`a * 4 + b * 4` in one expression is factored to `(a + b) << 2`.** Two separate shifts in the
+  target mean the terms were not one plain sum: either one was written as a shift
+  (`(y / 4) * w * 4 + (y % 4 << 2)`), or, as `rep_0138` `fn_1_5924` turned out to be, a term was
+  computed in its own statement first (see the division-order note below).
+- **Shared stack offsets for three cross products = one reused `Vec` local**, and one
+  `sin(half)`/`cos(half)` pair computed up front; drafts that repeat `sin(half)` emit three calls.
+- **MWCC fully unrolls a 5-iteration `for` over a `u32` pointer table** into the target's
+  "`addi r3,r31,8` + mixed r31/r3 displacements" shape; five hand-written `if`s do not
+  (`rep_0010` `fn_1_20`/`fn_1_E8`, 97.4 -> 100).
+- **A cached pointer local for a repeated global-array access can hoist a `lis/addi` the target
+  lacks;** write the cast expression at each use instead (`rep_02A8`).
+- **An unused-result string walk with one extra `mr` is a missed inline:** write it as a
+  discarded call to a strlen-style `static inline` helper. Then the remaining register order was
+  one specific local declaration order out of 720 (`rep_02A8` `fn_1_A184`, 91.96 -> 100).
+- **A unit whose first .rodata object is not the `header_rep_data.h` table needs that first
+  object to be a weak local static as well** (a `static const` array inside an `inline` helper
+  with a unit-unique name). A plain `static const` makes the first object non-weak, and every
+  float-pool function in the unit switches to base-register addressing (`rep_0010`
+  `lbl_1_rodata_0`; `fn_1_5EC` fell to 69% without it).
+- **A function that is only called from one place can still need `#pragma dont_inline`** when the
+  target keeps it out of line: `rep_0138` `fn_1_4DD8` was auto-inlined into `fn_1_717C`
+  (717C 100 -> 11.5) until wrapped.
+- **Pooled static addressing needs about three distinct static objects in the function.** With one
+  or two, MWCC addresses each through its own `@ha/@l`, even when they are static. So a target
+  that keeps the section base in a register and reaches several objects as `base + off` had at
+  least that many separate statics: split dtk's symbols at those offsets rather than merging them
+  (`rep_0010` `fn_1_1538`: three statics `lbl_1_data_70[2]`, `_A0`, `_A4` took it from 62 to
+  instruction-identical; one struct or two statics did not pool).
+- **Flipping a widened unit: objdiff 100% is not enough, run the sha check.** Two layout faults
+  scored 100% in objdiff and still failed the REL: a `.data` split that ran over the padding up to
+  the next unit (end it where the last object or jump table ends), and two `.bss` statics declared
+  in the wrong order (MWCC lays `.bss` out in reverse declaration order, and objdiff matches by name,
+  so only the relocation addends in the linked REL changed). Diff the REL's relocation table when
+  the section sizes agree but the sha does not (`rep_0010`).
+- **A local array element accessed through a cast to another pointer type (`((f32 *)&v[k])[n]`)
+  gets its own address register,** and every offset-0 access and struct copy of that element then
+  goes through it; pointer casts on call arguments have no effect at all (`rep_00B0` `fn_1_4A24`,
+  diagnostic only). A same-type explicit cast (`((Vec *)&e[2])->x` on a `Vec e[3]`) does the same.
+- **With eight or fewer locals, sweep every declaration order instead of hill-climbing.** 8! = 40320
+  variants is cheap with a scratch compile; `rep_00B0` `fn_1_25BC`'s earlier hill-climbs had stopped at a
+  local optimum below the best order (99.55 -> 99.59).
+- **When the target has a function both standalone and inlined, first write the real function and
+  call it;** MWCC inlines it into the callers by itself. A `static inline` copy plus a wrapper for the
+  standalone symbol changes the standalone function's registers (`rep_0610` `fn_1_D300`; earlier
+  `rep_7730` `fn_1_21180`). **If no declaration order matches both copies** (each order fixes one),
+  switch to the `static inline` helper with the real function as a one-line wrapper: the helper's
+  numbering then applies to both (`rep_0610` `fn_1_126CC` 33 -> 100 and its inlining caller
+  `fn_1_179CC` 50 -> 100, helper declared with `f32 z, y, x`).
+- **A float literal loaded as `addi rX, lit@l; lfs 0(rX)` instead of `lfs lit@l(rX)` came in
+  through an inline function's parameter** (`rep_0610` `fn_1_EA20` -> `dbgSetFrame`).
+- **A one-trip loop (`for (i = 0; i < 1; i++)`) explains constant `[0]` indexing combined with
+  induction pointers set up before the "loop"** (`rep_0610` `fn_1_17B5C`: per-player code with one
+  player).
+- **`(T *)((u8 *)p + off)` is CSE'd across calls; `&p->bytes[off]` is not** (`rep_0610`
+  `fn_1_121D4`).
+- **Splitting `v = (f32)x / 64.0f;` into `v = (f32)x; v /= 64.0f;` moves the constant load after
+  the int-to-float conversion** (`rep_7730` `fn_1_24A8C`, 92.7 -> 100).
+- **Drafts can be wrong in ways that still score 90%+.** `rep_0610` `fn_1_DF14` processed one
+  element too many (a do-while where the target's `while (k-- != 0)` skips k = 5), and `fn_1_12F8C`
+  wrote four flags to the wrong struct. Check loop bounds and store targets before treating a
+  90-95% function as a register problem.
+- **A REL unit can have been built against a narrower prototype than the DOL.**
+  `insertGraphicDrawingFunction`'s priority is `u32` in its definition and for the DOL callers:
+  with `u16` the definition drops from 100 to 96.5, `sta_c4` `fn_3_F9E78` loses 1.5, and the Matching
+  `File_0x800486e0` fails the sha check. But `rep_0610` `fn_1_D13C` only matches when the int argument is
+  narrowed by an implicit conversion through a `u16` prototype (`addi; clrlwi r4, r0, 16` scheduled
+  after the other argument setup). An explicit `(u16)` cast or a `u16`-parameter `static inline`
+  schedules the `clrlwi` elsewhere. MWCC rejects a conflicting redeclaration, so the header declares the
+  `u16` form under `#ifdef DRAWING_PRIORITY_U16` and only that unit defines the macro. Test a prototype
+  change with a project-wide report diff (header and definition changed together) before applying it.
+- **Loop-invariant products as locals before a loop and the same expression inline at each use
+  are hoisted to the same place, but colour the conversion temps differently.** If a function
+  computes `k * (f32)x` constants up front and the int-to-float temps land in the wrong registers,
+  delete the locals and write the expression at every use (`rep_7730` `fn_1_22874` -> 100).
+- **Read a callee's prototype off its caller.** `mr r3, rX; bl f` before a callee that never reads
+  r3 means it takes an unused parameter; `cmpwi r3, 0` after the call (not `clrlwi. r0, r3, 24`)
+  means it returns int, not u8. Fix the prototype even when the callee already matches
+  (`rep_7730` `fn_1_21CE8` calling `fn_1_22874`).
+- **Repeated `arr[n - 1].field op= ...` updates: hold the base in a pointer local** assigned in the
+  same block, after any preceding branchy code, when the target keeps one base register
+  (`add rT, base, n<<6; lfs disp(rT)`) and ours turns later updates into `subi; lfsx`. Int-to-float
+  conversions whose loads the target hoists above a run of float stores want integer locals converted
+  at the use, not float locals (`rep_7730` `fn_1_21408`). For signed bytes, `lbz rA; extsb rB, rA`
+  with rA != rB is a `u8` local converted as `(f32)(s8)x`; `s8` locals give `extsb rA, rA`, and
+  `s32 x = *(s8 *)p` scored lower (98.47 vs 98.99).
+- **`subi rB, &sym, C; lfsx f, rB, idx<<n` (the constant applied to the base register, not to the
+  displacement or the index) is `arr[x - 1]` written more than once on a typed array.** MWCC turns
+  `arr[x - k]` into `(arr - k*size) + x*size`; when `arr - k*size` occurs twice or more it is CSE'd
+  into its own register, with one occurrence it becomes `lfs -C(add)`. Casting a byte buffer
+  (`((T *)buf)[x - 1]`) blocks it, and so do locals for the index or the loaded value: declare the
+  static as `T arr[N]` and write `arr[item->n - 1].f` at each use (`rep_7730` `fn_1_247A0` 75.7 -> 100,
+  its inline copy in `fn_1_25064` -> 100). Worth checking anywhere a static is still a `u8[]` buffer.
+- **`add rD, rBase, rOff` gives rD the base's register whenever the base dies at the add,** for every
+  pointer form (`p = &arr[n - 1]`, `p = base; p += off`, byte arithmetic, helpers). When the target has
+  a fresh rD there, use an index local plus the typed subscript at each use (`s32 last = n - 1;
+  x = arr[last].pos.x; ... arr[last]._3C = ...;`) and let MWCC merge the address itself. `int` scores the
+  same as `s32`; `u32`/`u8` indices and a struct copy score lower (`rep_7730` `fn_1_21180` -> 100, and its
+  inlined copies in `fn_1_22DF4` / `fn_1_22644` with it).
+- **When only the float scheduling of a run of independent statements is left, search statement order
+  as a whole:** random moves checked against the data dependencies and scored on the whole unit found
+  gains that permutation sweeps of sub-groups missed (`rep_7730` `fn_1_23098` 34 -> 24 mismatched
+  instructions).
+- **A float store of an `frsp`'d register (`frsp f4, f30; stfs f4, off`) is a field-to-field copy of
+  an already-stored float** (`base[3].z = base[1].z;`): MWCC forwards the earlier store and rounds the
+  forwarded value (`rep_7730` `fn_1_23098`). On its own it scored lower; the callee-saved FP numbering
+  only matched once the constant-zero stores also came first in the source.
+- **Two signed divisions in the wrong order are not a scheduling problem.** Each `srawi`/`addze` pair
+  uses XER[CA], so they stay in codegen order, and MWCC's reassociation of one `+` chain always emits a
+  multiply-by-constant term (`(x / 8) * 32`) before a multiply-by-variable term (`(y / 8) * w`), whatever
+  the source order. Compute the variable-multiply term in its own statement first. A fresh local is
+  substituted back, so reassign the parameter (`w = (y / 8) * w;`). Reusing the other parameters for
+  their derived values too (`x %= 8;`) put more temps on the target's registers; a fresh local in
+  place of either cost 4-33 points (`rep_0138` `fn_1_5924` 72 -> 97.8, after 480+ single-expression
+  term orders that could never have matched).
+- **A "missing loop guard" can be an `if` inside the loop body.** When the target's
+  `cmplwi i, N; bge` sits at the loop head, the back edge jumps to it, and the branch goes to the middle
+  of the body rather than past the loop, it is `if (i < N) { ... }` around part of the body
+  (a real vestigial entry guard branches past the loop). `rep_74A0` `fn_1_1C8C0` 96.1 -> 98.8,
+  then 100 after a declaration-order hill-climb; two earlier passes had read it as a vestigial guard.
+- **A vestigial loop guard that tests the induction register itself** (`li r5, 0; cmpwi r5, 0x18; bge`,
+  with r5 then used as the offset) instead of `li r0, 0; cmpwi r0, N` plus a separate `li rX, 0` means
+  the same variable was already a loop variable EARLIER in the function. A loop on another variable, a
+  later loop, or a loop that folds away doesn't count (a micro TU shows the rule), and the guard itself
+  is only kept when the compare mixes types (`s32 i` vs an `int` literal, or `int i` vs `24L`).
+  So this guard shape is evidence of an earlier loop on `i`: `rep_0610` `fn_1_135C0`'s five hand-written
+  pointer fix-ups were really `for (i = 0; i < 5; i++)` (-> 100), `fn_1_16978` case 26 is a one-trip
+  `for (i = 0; i < 1; i++) fn_1_D7A4(i);`, and `rep_74A0` `fn_1_1D110` reuses the previous loop's
+  `int i` against `(s32)PARTICLE_SLOT_COUNT`.
+- **An instruction-identical function whose frame is 0x10 too big has a local array that is too
+  large.** MWCC rounds the end of the local area up to 8 bytes and the frame up to 16, so a 4-byte
+  overshoot can cost 0x10. Sweep the array size down (`rep_0610` `fn_1_1540C` `u8 buf[0x28]` ->
+  `char buf[32]`, 99.97 -> 100; several sessions had read it as a dead spill slot).
+- **A register permutation in a loop whose bound and body index the same nested table can be a getter
+  inline used at both sites:** `static inline DbgAnimTrack *dbgGetTrack(anim, track)` took `rep_0610`
+  `fn_1_EA20` from 99.20 to 100, where a cached pointer local for the bound left the permutation. The unit
+  already had an out-of-line getter of the same shape (`fn_1_16558`), which was the hint.
+- **An lr reload after the callee-saved restores** (`lwz r31...; lwz r0, 0x24(r1)`), where the usual
+  epilogue reloads lr first, means the original's epilogue was its own basic block. One cause is a
+  missing return value: `rep_0610` `fn_1_D300` really returns the `DbgActor *` already in r3 for its
+  last store (`(act = actors[i])->model = ...; return act;`), which gives the lr-first epilogue with no
+  extra code (99.73 -> 100). Its callers all inline it and ignore the result. `return src` /
+  `return NULL` instead add an `mr`/`li`.
+- **Switch on the global expression, not on a local copy of it:** `switch (currentDrawingItem->state)`
+  where `scene == currentDrawingItem` fixed a three-register rotation (`rep_74A0` `fn_1_1CBE4` -> 100;
+  same as `rep_0250` / `rep_02A8`).
+- **Int-to-float conversion temps (the 0x43300000 double slots) reuse stack slots last-in-first-out
+  across sibling control regions, never within one straight-line run.** Nested control flow between two
+  conversions (if inside if, `&&`/`||`, a switch, a loop, or an inlined function call) lets the later one
+  reuse the earlier slot, so a rotated set of temp slots is a control-flow clue, not a declaration-order
+  one (`rep_74A0` `fn_1_1857C`, found with a micro TU).
+- **`fabs` is an inline function in MSL, and `include/stl/math.h` now defines it that way** (it was a
+  macro for `__fabs`). Both give the same instructions but different stack-temp and FPR allocation.
+  `rep_74A0` `fn_1_1857C` and `star_dash` needed the inline form (1857C also needed `sinf_kludge` /
+  `cosf_kludge` for the sin/cos of an f32). The header change took five `minigame_effects` functions to
+  100. `sta_c5` `fn_3_EE388` / `fn_3_EE96C` and `camera_script` `fn_3_FDB30` dipped slightly; writing
+  `__fabs` at their own call sites did not restore them, so the dip comes from elsewhere in their units.
+- **A parameter reassigned in a loop may need to be a local copy** (`DlPrim *p = prim;`): in a micro TU a
+  plain parameter always got the lowest callee-saved register, even when reassigned, where the target
+  gave it the highest (`rep_00B0` `fn_1_25BC`, together with a declaration-order search).
+- **Random-restart hill climbs over declaration order reach the exhaustive 8! optimum much faster,** so
+  they are the cheaper way to test each structural variant together with declaration order (`rep_00B0`).
+- **A cast that routes offset-0 reads through the address register always schedules that `addi` early**
+  (above the parameter copies). If the target has those reads but a late `addi`, the cast wasn't in the
+  original (`rep_00B0` `fn_1_4A24`).
+- **Score a function's inlined copies with it when choosing its source form.** Most forms of
+  `rep_0138` `fn_1_5924` that scored 98+ standalone cost its inlined copies in `fn_1_6050`/`fn_1_5AC0`
+  0.2 each; filtering the sweep on "callers stay 100" found the form to keep.
+- **Constants held in callee-saved FPRs across the first call are hoisted out of a one-trip loop.**
+  `0.0f` (addi form) in f31 and `57.29f` in f30, loaded before `CTRLSetTranslation` and reused by a
+  later `speed != 0.0f`, came from `for (k = 0; k < 1; k++) {...}`, the per-player loop with one
+  player (`rep_0610` `fn_1_129D0` 92.5 -> 97.3; same family as `fn_1_17B5C`).
+- **A loop counter the target copies from a register (`mr r6, r3`), plus a stored zero that reuses
+  the register that held an earlier 0, means the loop variable is a register-promoted global:**
+  `lbl_1_bss_5F73 = 0; do { a[lbl_1_bss_5F73]...; lbl_1_bss_5F73++; } while (lbl_1_bss_5F73 < 1);`,
+  not a local copied into the global afterwards (`rep_0610` `fn_1_1496C` 96.8 -> 97.8).
+- **`const` on an inline helper's parameters is not neutral.**
+  `static inline void dbgVertex(const f32 x, const f32 y, const f32 z, const u32 c)` around
+  `GXPosition3f32` / `GXColor1u32` took `rep_0610` `fn_1_10E2C` to 100, while the same helper with
+  plain parameters was byte-identical to open-coded calls. The SDK's own GX inlines mostly take
+  `const` parameters.
+- **"All pos loads before any store, one store per component" is locals loaded first and then
+  updated** (`x = a->pos.x; y = ...; z = ...; x += ...; y += ...; y -= ...;` then the stores), a
+  different shape from `x = a->pos.x + ...`. The int-to-float conversion stack slots ascend in source
+  order, which reads the original statement order off the target (`rep_0610` `fn_1_126CC`).
+- **`int` and `s32` (`signed long`) are not interchangeable for MWCC:** `rep_0610` `fn_1_16978`'s
+  counter scores 99.80 as `s32` and 99.61 as `int`. The other way round, `rep_0138` `fn_1_5544`, which
+  mostly forwards its parameters to GX calls taking `int`/enum, only matched with `int` parameters: as
+  `s32` the two pool-base `lis` temps were coloured differently. For such forwarding functions, try `int`
+  parameters first.
+- **An extra unreachable `b end` after a `cmpwi N; beq; bge end; b end` switch tree is an empty case
+  above the highest handled one** (`case N + 1: break;`). `rep_0138` `fn_1_4E98`:
+  `case 0: case 1: break; case 2: {...} case 3: break;` -> 100, after ~30 variants of the 0/1 bodies.
+- **Shrink a register puzzle to a micro TU.** Cut the unit down to the one function (no other functions,
+  no unused statics) to confirm the effect is local, then rebuild it in a tiny TU with hand-written
+  prototypes and swap pieces (headers, typedefs, prototypes) back in until the output flips. For
+  `fn_1_5544` the flip was `#include "types.h"`, which led to the `int` parameters.
+  **A debug-REL micro TU must include `header_rep_data.h`'s weak inline local static** (or an equivalent
+  first `.rodata` object). Without it MWCC addresses the literals off one pooled section base, which
+  frees a GPR and changes the colouring: `rep_74A0`'s first micro TU "reproduced the target" only because
+  of that, and sent a whole pass after the wrong code. Check that the micro TU reproduces OUR real output
+  (0 words different) before trusting what it says about the target.
+- **Before grinding a stuck debug-REL function, scan the other modules' target asm for its twin.** Debug
+  routines are often copies of game-REL (or DOL) ones, and a matched twin's source is direct evidence of
+  the original shape. `rep_00B0` `fn_1_4A24` (99.46 -> 100) is `game/ball/collision_primitives`
+  `checkTriangleCollisions`, found by scanning every target `.s` for its distinctive signature (a hoisted
+  `addi rN, r1, X` used both as a call argument and as `0x0(rN)`, with `X+4(r1)` also read directly). Port
+  the twin's source, then revert one feature at a time to find what mattered.
+  The twin can be in the same unit: a scan ranking functions by shared 8-instruction mnemonic runs showed
+  `rep_7730` `fn_1_1F618`'s TEV-stage loop is `fn_1_20640`'s body (calling it: 98.47 -> 99.29, all
+  registers right). The inlined copy still re-read `entries[i]` where the standalone keeps it in a
+  register, so 1F618 needed its own inline copy with the re-read (-> 100). A re-read of a local array
+  element is a tell that an inlined copy and its standalone function differ in the source.
+  A DOL twin closed `rep_0610` `fn_1_14710` (94.20 -> 100, after ~50 shapes over five sessions): it is
+  `initShortsHandleCompressedDiskReads` (`File_0x8001fc4c.c`). Porting its three static inlines (a pair
+  swap; a for loop; a do-while with a separate index for the test and pointer for the body,
+  `while (pairs[++i][0] != END)`) explained the "two induction variables".
+- **When a block's schedule ignores statement order, probe the other statements one at a time.**
+  `rep_0610` `fn_1_F37C` (stuck at 91.7 for several passes): 400 random orders of its pos/vel/acc
+  stores gave the identical post-call schedule, so the order came from the dependence graph. Deleting
+  or rewriting each other statement in a micro TU, one at a time, found the cause: a flag written as
+  `(BTN_REPEAT >> 12) & 1` instead of `(BTN_REPEAT & INPUT_BUTTON_START) != 0`. The `!= 0` form gives
+  exactly the target's order (-> 100).
+- **A byte-offset read of a global (`*((u8 *)&g + 0x70)`) may alias every store; a named member
+  (`g._70`) does not.** With the member, MWCC's alias analysis separates the loads from unrelated
+  stores, and the scheduler is free to order them as the target does. Adding named controller-4
+  stick fields to `lbl_803C77B8_s` took `rep_7730` `fn_1_21CE8` to 100 and `fn_1_21408` to 99.95, with
+  no change anywhere else in the project. The same switch through a parameter pointer (`item->_1c` vs
+  `*(f32 *)((u8 *)item + 0x1c)`) made no difference.
+- **Re-read an already-stored value, then search statement order again.** `ray[3].y = -ray[2].y;` and
+  `ray[2].z = nearZ - base[2].z;` (where `base[2].z` and `base[3].z` hold the same value) are nearly
+  score-neutral alone, but they free stores to move. From that form a dependency-checked order search
+  reached 100 for `rep_7730` `fn_1_23098` after its old plateau had held through 250+ iterations.
+- **When the target and ours have the same interference graph, score-only climbs get trapped on ties.**
+  Penalise the specific wrong registers in the search objective. That found a `rep_00B0` `fn_1_25BC`
+  form with a single wrong choice, which score-only climbs never reached. Address CSE temps such as the
+  `&__GDCurrentDL` loads take one register as a group, so one wrong neighbouring web can cost 100+ lines.
+- **`rep_00B0` `fn_1_25BC` (the last debug function stuck on one register for six passes) closed
+  with:**
+  - the [G3] "point C" shape (a separate `DlVertex *v2` for the triangle loop; counters reused across
+    the strip and linestrip loops; `left` for the vertex-count loop);
+  - declaring `left, vi, v, key, i, cnt, n, p, v2, prev`;
+  - merging the duplicate `u8 keyToIdx()` helper into the `u32 keyIdx32()` one at the `dlVertexKey`
+    call site.
+  An inline helper's return width is one more knob on when its result web is coloured.
+- **An induction-variable increment the target emits before another one can sit mid-body in the
+  original, not in the for-header.** `rep_7730` `fn_1_22F4C`:
+  `j = 0; while (j < m) { s32 t = k++; ...; dst[t] = ... - prev; j++; dst[t] *= damp; }` (99.76 -> 100,
+  and `fn_1_23B54`, which inlines it, gained with it). Sessions S5-G3 had not moved that k/j order tie.
+- **To find what sets a wrong callee-saved order, cut the function down inside the full unit** (leave
+  everything else as is) and add pieces back one at a time. In `rep_7730` `fn_1_23B54` this showed a
+  hoisted pool base outranks `item` once it is live across two or more calls; the target keeps `item`
+  on top regardless (still open).
+- **Store through the global, not a local copy of it:** `currentDrawingItem->func = f;` instead of
+  `s->func = f;` with `s == currentDrawingItem` fixed a register rotation across the whole block
+  (`rep_0610` `fn_1_E098` case 10, 99.62 -> 99.94), the same family as switching on the global.
+- **`while (TRUE)` and `for (;;)` compile differently.** In `fn_1_4A24` the outer loop keyword alone took
+  it from 99.46 to 99.90, after a pass had concluded from micro TUs that the pattern was unreachable from
+  source. Try the loop keyword before declaring an address-register pattern unreachable.
+- **MWCC's register allocator can be observed directly.** A native Windows debugger (Python ctypes,
+  no gdb) that breaks GC/2.6 `mwcceppc.exe` at the end of `colorgraph` (0x5089A9; addresses from
+  github.com/cadmic/mwcc-debugger) dumps the GPR/FPR priority list, each node's neighbours and coalesced
+  flags, and the PCode before register allocation. Re-simulating Chaitin's simplify reproduces every
+  function in `rep_0138` exactly: vregs in index order, push a node when it has fewer than 29 remaining
+  neighbours, repeat passes, and never remove coalesced nodes. A target colouring can then be
+  reverse-engineered into "which node must move to a later pass" before touching source. This is how
+  `rep_0138` `fn_1_73B8` went from 99.14 to 100 after five passes. The tools are `regdbg.py`, `sim.py`
+  and `col.py`.
+- **Callee-saved order is simplify level first, then descending vreg index.** Parameters are the lowest
+  vregs, then locals (first declared = highest), then frontend temps (strength reduction, range-split
+  pieces, LICM), then backend temps such as a CSE'd global address. A variable outranks a higher-index
+  temp only by surviving into a later simplify pass, i.e. by having 29 or more remaining neighbours when
+  its turn comes.
+- **Coalesced nodes and self-hoisted invariants add neighbours for free.** Writing a loop-invariant
+  expression inline (`((DbgDrawNode *)arg0)->world` in the loop body) instead of a local set before the
+  loop gives the same instructions, because MWCC hoists it, but adds never-removed nodes. That pushed
+  `fn_1_73B8`'s long-lived locals into a later level (-> 100); holding the value in your own local lost 5
+  points. A local used twice (`MtxPtr m = geo->mtx; PSMTXConcat(c, m, m);`) also adds a node. Single-use
+  locals, inline parameters and constants are always propagated away.
+- **Casting a struct-pointer local at every use (`(u8 *)item + off`) makes MWCC CSE the cast into a
+  frontend temp that replaces the local.** The initial PCode shows `lwz rT, global; mr rItem, rT`, and
+  every use then reads rT, so the "local" is coloured as a temp above every real local and declaration
+  order can't move it. Cast once at the initialiser instead, ideally to a typed view struct:
+  `View *item = (View *)currentDrawingItem;` with member access. Then the locals rule applies
+  (`rep_7730` `fn_1_2004C` -> 100 with `u32 i;` declared above it; `fn_1_23B54`'s item/pool swap fixed by
+  declaring `item` after `gr`).
+- **Two swapped volatile registers at the same simplify level are decided by vreg index, and frontend
+  variables always number below backend temps.** An inlined callee's `val` local lost to a backend address
+  temp. Storing the value straight into its destination and reading it back
+  (`*(u32 *)(blk + 0x20) = src; ratio = c1 / (f32)*(s32 *)(blk + 0x20);`, which compiles identically
+  through store-to-load forwarding) made it a backend temp (`rep_7730` `fn_1_21408` -> 100).
+- **Hoisted loop-invariant temps are numbered in descending program order.** When the target colours
+  one invariant below the rest, that value was a source local: `rep_0610` `fn_1_E098` needed
+  `row = lbl_1_bss_30B6;` as a local, and the held-button test written in the loop through the global
+  (`AtBat_ButtonInput1._00 & INPUT_BUTTON_A`) so MWCC hoists it. The `BTN_HELD` cast macro isn't
+  hoisted (96.77). -> 100.
+- **A local with two definitions is not folded back into its use; one with a single definition is.** To
+  make MWCC evaluate an index before its base, build the index in two steps:
+  `s32 idx = (s32)u; idx += (s32)(16.0f * v) * 0x80; p->y = rows[ping & 1][idx];`. A single-definition
+  local or an inline-helper parameter was folded back, and 38 plain-expression arrangements all built the
+  base first (`rep_7730` `fn_1_23B54` -> 100).
+- **An if/else assignment followed by `v = c * v` is merged into one conditional expression** (the
+  constant gets loaded before the branches). A `static inline` helper that assigns its parameter in each
+  branch and ends with `return x;` keeps the target's constant placement. Returning from each branch
+  scored lower (95.02 vs 97.02).
+- **`*p = old + 1` and `*p += 1` on a u8 can change the post-allocation schedule with identical
+  registers:** the first left a dead zero-extend in the block (`fn_1_23B54`'s last two-instruction swap).
+- **A float that lands in f1 for no visible reason** (target `fctiwz f0, f1` where ours has
+  `fctiwz f0, f0`, with nothing else touching f1) **is a value passed on to a call.** Check whether a
+  callee is a dispatcher (`lwzx r12; mtctr; bctrl`, never touching f1) whose real prototype has a float
+  parameter: `rep_0610` `fn_8004B208(a, b, c, v)`. `fn_1_D590` itself is byte-identical because `v` is
+  already in f1, but its inlined copy in `fn_1_129D0` went f0 -> f1.
+- **An inline function's own pointer local (`T *h = &global;`) is fully copy-propagated, even as the base
+  of a strength-reduced loop; a caller-scope local used the same way keeps a `mr` copy.** When the target
+  shares one register between an address temp, a loop IV's start and a later `base + off`, put the address
+  local, the loop and the derived pointer inside one static inline that returns the derived pointer
+  (`rep_0610` `fn_1_129D0` 98.02 -> 99.72).
+- **`s32 on = boolFn();` stays a real local through the int -> long conversion, where `BOOL on` is
+  copy-propagated into its compare temp.** A kept BOOL tested with `cmpwi rX, 0` after other code, when
+  every spelling of the callee's own test folds back to the raw byte, is a flag passed in as a parameter
+  (`fn_1_129D0` -> 100, flagged: the inline copy of `fn_1_D590`'s body is a guessed shape).
+- **A scratch use of a function-scope variable in another switch case changes how later code splits it.**
+  `rep_0610` `fn_1_16978`: writing case 4's `f40 * 0x13` term through the function's `i`
+  (`i = f40[...] * 0x13; ...[3074 + i + f46]`) fixed case 4. It also gave `i` the earlier live-range piece
+  that case 26's guard-zero reuse needed, so case 26 could call `fn_1_D7A4(0)` directly without the
+  one-trip loop (-> 100).
+- **A truly dead load in the target (its result overwritten on every path) means a volatile lvalue read in
+  the original.** Established from GC/2.6 itself (`rep_0610` `fn_1_1496C`, [G8]):
+  - the frontend drops unused non-volatile reads;
+  - register allocation deletes dead definitions and cascades back through the address computation;
+  - a post-allocation peephole deletes a load stored straight back to its own address.
+  The only exemption is PCode flag 0x80, which is set only by volatile qualification: on the expression,
+  the object, or the element type. So don't spend passes on dead-store, dead-branch, inline or loop tricks.
+  A volatile read there is the faithful form, not a hack.
+  - **Dead-load scanner:** `dl2.py` (scratch `g8_rep0610\`) finds loads whose result is overwritten on all
+    paths. Outside the SDK there are only three in the game.
+  - **A narrowing cast around an indexed volatile offset flips the base/offset register order**
+    (`((volatile u8 *)arr)[(u16)(i * 0x48 + 0x46)]` gives the target's base r5 / offset r6), at the cost
+    of a `clrlwi`. A no-op cast instead lets the frontend fold base and +0x46 into one constant.
+- **For an indexed access, MWCC keeps `i * size + off` as "register plus constant" and computes the
+  base first,** so the base gets the lower vreg number. A conversion around the offset makes it compute
+  the offset first:
+  - narrowing (`(u16)`) costs a `clrlwi`;
+  - a same-width cast folds base + off into one constant;
+  - widening a signed int to 64 bits leaves a dead `srawi`;
+  - widening an UNSIGNED 32-bit value to `u64` costs nothing, because its high word is deleted.
+
+  `((volatile u8 *)lbl_1_bss_6940)[(u64)(i * sizeof(DbgSel) + 0x46)];` gave `rep_0610` `fn_1_1496C`'s
+  base r5 / offset r6 exactly (97.84 -> 100, the last function of the debug REL). The `u64` spelling is a
+  guess at whatever produced that tree in the original; the volatile read itself is evidenced.
+- **For a missing dead load, dump the PCode at initial-code first.** If the read is already gone there,
+  the frontend dropped it, and no optimiser switch (dead code, dead assignments, lifetimes, -O3) brings it
+  back (`rep_0610` `fn_1_1496C`).
+- **MWCC's CSE reuses a register already holding a constant for later `li`s of that constant, but never a
+  multi-def variable's main register;** a piece the live-range splitter cut off a variable can be reused.
+  That is what "zero stores share i's register" means (`rep_0610` `fn_1_15760`), and likely also the
+  guard-zero reuse in `fn_1_16978` and the `h` reuse in `fn_1_129D0`.
+- **Inlined callee locals are numbered in reverse declaration order** (last declared = highest vreg),
+  the opposite of a function's own locals. Frontend temps then follow in pass order: inline locals, block
+  locals, strength-reduction temps, LICM copies, CSE temps.
+- **The frontend hoists a global load out of an inlined loop only when the stored-through pointer
+  parameter is bound to an address expression,** not to a local pointer copy. The hoisted value then
+  becomes a low-index frontend temp, coloured late, instead of a backend LICM temp coloured early
+  (`rep_7730` `fn_1_23B54` 97.53 -> 98.96).
+- **A row offset written as `i * m` in the subscripts compiles like a `rowBase += m` local standalone,**
+  but once inlined with a constant `m` the frontend hoists `i << 7` and strength-reduces it late.
+- **To map our vregs onto the target's registers, align the pre-RA PCode dump with objdiff's target
+  listing** (validate the alignment on our own listing first). Combined with the colouring simulator, that
+  turns "which node must move" into a direct search (scratch `g5_rep7730\align.py`, `greedy.py`).
+- **`#pragma opt_lifetimes off` turns off MWCC's live-range splitting.** That is what gave
+  `w = (y / n) * w` a fresh register in every switch case but the first (`rep_0138` `fn_1_5924`). With
+  it off (`#pragma push` / `opt_lifetimes off` / `pop` around one function), every case's product stays
+  in `w`. Turning it off for the whole file broke six other functions. Block-scope locals per case stay
+  separate variables even with splitting off.
+- **`x << k` and `x * (1 << k)` compile to the same instruction but change the order terms are built in
+  a sum,** and so the add operand order (`fn_1_5924`'s last add needed `col << k`).
+- **The same body can be ordered differently once inlined:** the caller forward-substitutes reassigned
+  parameters and evaluates the terms in another order. `fn_1_5924`'s case 0x10 matched standalone only
+  with `col << 4`, and in its callers' inlined copies only with `col * 16`, so the callers write the
+  index out instead of calling it (flagged).
+- **The frontend range splitter keys on the first operand.** `w = (y / n) * w` in several switch cases
+  splits `w` into one web per case, and only the first case's web keeps coalescing with the incoming
+  r3. `w *= y / n`, `w = w * (y / n)` and `x %= 8` keep one web (`rep_0138` `fn_1_5924`).
+- **The order MWCC hands out callee-saved registers (highest first), from micro TUs (`rep_0138`
+  `fn_1_73B8`):** a hoisted global address (`&state`); then variables assigned from an inline
+  function's result, parameter or local; then compiler loop temps (hidden pointers, entry pointers);
+  then function-scope locals in declaration order; then block-scope locals; then parameters. Extra uses
+  of a variable do not move it, but one more short-lived temp live across a parameter's range pushed that
+  parameter to the top, so interference can override the order. `x = inlineFn(...)` lifts x above the
+  loop temps but not above a hoisted global address.
+  Variables assigned from static-inline getters are coloured in call order, just below a global-address
+  temp and above the strength-reduction temps. A hoisted global address stays on top even through a
+  local pointer, a getter inline, or stores through the global: copy propagation folds them back.
+- **Read the declaration order off the target even when its top registers are wrong:** strip the
+  mismatched top variables from both sides; the rest follows locals in declaration order, then parameters
+  (`rep_0138` `fn_1_73B8`: every register below the top four landed with `set, table, cam1, cam2, i,
+  end, sel, geo, key`).
+- **MWCC never inlines a variadic function** (it emits `bl`), and `va_start` needs the enclosing
+  function itself to take an ellipsis, so a loop containing `va_start` cannot move into an inline helper.
+- **Then screen single changes in parallel on the exact reproducer.** For `rep_74A0` `fn_1_1D110`
+  (99.86, one register inside an inlined callee) the screen found that `fn_1_1A290`'s guard needed one
+  test through the `entry` local and one through the array: `if (entry->actor != NULL &&
+  table->entries[i].applyControl != 0)`. Same instructions in the standalone function, but the inlined
+  copy's colouring changed -> 100.
+- **`#pragma scheduling off` shows MWCC's pre-scheduling order**, but it also changes register
+  allocation: MWCC schedules before it allocates registers. Single-use locals and single-use parameter
+  reassignments are forward-substituted, so source statement order often doesn't reach codegen order
+  (`rep_0138` `fn_1_5924`).
+- **Tooling: `objdiff-cli diff -1 <target.o> -2 <candidate.o> -o - --format json` scores an object
+  compiled anywhere,** so variants can be compiled in parallel into scratch files without touching the
+  build tree (about 0.25 s per variant for a 70 KB TU with 16 workers). Rank candidates by objdiff's own
+  score; difflib and word-diff metrics mis-rank them.
+- **Two same-typed counters whose registers come out wrong may be one variable.** `rep_0610`
+  `fn_1_CDC8`'s switch result `k` was really `i` reused: about +10 points, but only together with the
+  right statement order (found by a full 2 x 5040 objdiff sweep); alone it scored lower. The same sweep
+  also exposed a real bug (`ids[0]`/`ids[1]` swapped). 89.2 -> 99.1.
+- **Declaration-order sweeps usually fall into a few score groups;** a pairwise "declared before" test
+  across the groups finds the deciding rule quickly (`rep_0610` `fn_1_135C0`: `anim` before
+  `geoExtra`).
+- **One function-scope counter shared by two loops seeds the second loop's offset as a copy**
+  (`mr r6, r9`); two block-scoped counters give a fresh `li r6, 0` (`rep_0610` `fn_1_CDC8` -> 100).
+- **Moving block-scope locals to function scope, and where they go in the list, changes callee-saved
+  numbering.** Hoisting the loop-body pointers of `rep_0610` `fn_1_12820` to right after `u16 i`
+  closed it (99.77 -> 100). Sweep each block local over the possible positions, and re-sweep the whole
+  declaration order after any local is added or removed (`fn_1_135C0` +0.9 once `DbgHuge *h` existed).
+- **`T *h; ... h = &global;` assigned before first use keeps `&global` in a callee-saved register;**
+  `T *h = &global;` at the declaration did not (`rep_0610` `fn_1_135C0`, the target's extra `stmw`
+  register; +1.1).
+- **A constant index into a global array (`g.actors[0]`) is CSE'd into a callee-saved address** that
+  later inlined uses share. Indexing with the one-trip-loop variable (`actors[j]`, `j == 0`) or
+  addressing through a byte-offset cast (`(T *)((u8 *)h + 0xC04)` for `&h->slots[0]`) keeps it opaque,
+  as the target has it (`rep_0610` `fn_1_135C0` 98.3 -> 99.8, `fn_1_D4BC` inlined into `fn_1_129D0`).
+- **`if (f && ...)` and `if (f != 0.0f && ...)` swap the `fcmpu` operands** (the target's
+  `fcmpu speed, zero` came from the truthiness form).
+- **Check the effective address of every store mismatch.** objdiff showed `rep_0610` `fn_1_135C0`'s
+  wrong store target (`&60EC[0x5C]` instead of `60EC + 0`) only as an argument mismatch, because the
+  displacement was off a different base register (0x307C off the .bss base vs 0x5C off the pointer).
+- **A store whose address sits in the next free argument register and stays live into the following
+  `bl` is a missing trailing argument.** `rep_0610` `fn_1_F2F8` (83 -> 100) and `fn_1_F040` (96 -> 100)
+  write a texture into word 0 of a parameter table and then call `fn_800324EC` / `fn_8002955C`; the
+  table is the callee's last argument (prologues `mr r31, r6` / `mr r6, r5`). Earlier passes had ground
+  on it as "argument registers allocated before the store address". Read the callee's prologue before
+  grinding register order.
+- **The interleaving of a callee's int and float parameters is invisible in its own registers but not
+  in an inlining caller.** Ints and floats get argument registers independently, so
+  `f(void *, s32, s32 n, f32 a, ...)` and `f(void *, s32, f32 a, ..., s32 n)` compile the callee
+  identically. But MWCC generates the argument expressions in source order, which sets the
+  virtual-register numbering and so the colouring once the call is inlined into a busier caller.
+  `rep_7BF0` `fn_1_29A9C` (inlines `fn_1_2935C`, which calls `fn_80037768`) went 92.01 -> 100 only by
+  moving `simNum` after the floats, after 19+ caller-side hypotheses had failed. 34 of the 35
+  interleavings match, so the exact original order is not recoverable from the bytes. When an inlined
+  call has the right instructions but permuted volatile registers, sweep the parameter interleaving.

@@ -885,12 +885,12 @@ void fn_3_19FA4(void) {
         }
         fn_3_19B3C(0, buf.anglePoints);
         for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = buf.anglePoints[i];
-        running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
+        spline2D_evaluatePoints(t, &result, splinePoints, g_pCamera->_0012);
         g_pCamera->_2870 = shortAngleF32ToRad(result.x);
 
         fn_3_19B3C(1, buf.anglePoints);
         for (i = 0; i < g_pCamera->_0012; i++) splinePoints[i].x = buf.anglePoints[i];
-        running_roundBasePosition(t, &result, splinePoints, g_pCamera->_0012);
+        spline2D_evaluatePoints(t, &result, splinePoints, g_pCamera->_0012);
         g_pCamera->_2874 = shortAngleF32ToRad(result.x);
         {
             lbl_3_data_A40_s* first = &cameraData_homePlateViews[g_pCamera->_0004[g_pCamera->_0013]];
@@ -1692,7 +1692,7 @@ void fn_3_16900(void) {
     } else {
         lbl_3_data_A40_s* p = &lbl_3_data_1594[g_Minigame.GameMode_MiniGame];
         if (g_GameLogic.gameStatus == GAME_STATUS_0x27 && g_Minigame.soloPlayerSlot >= 0) {
-            if (g_GameLogic._125 == 1 && g_GameLogic.FrameCountOfCurrentAtBat_Copy == 0) {
+            if (g_GameLogic._125 == 1 && g_GameLogic.framesInGameStatus_copy == 0) {
                 camera_switchScene(0x69);
             }
             fn_3_FD670();
@@ -1802,7 +1802,7 @@ int fn_3_164A8(void) {
 void fn_3_16328(void) {
     GameInitVariables* settings = &g_d_GameSettings;
 
-    if (g_GameLogic.FrameCountOfCurrentPitch <= 1) {
+    if (g_GameLogic.framesInGameStatus <= 1) {
         if (settings->GameModeSelected == GAME_TYPE_CHALLENGE) {
             camera_switchScene(settings->StadiumID + 0x39);
         } else if (settings->GameModeSelected == GAME_TYPE_MINIGAMES) {
@@ -1818,7 +1818,7 @@ void fn_3_16328(void) {
 
 // .text:0x000161C0 size:0x168 mapped:0x80655254
 void fn_3_161C0(void) {    
-    if (g_GameLogic.FrameCountOfCurrentPitch == 0) {
+    if (g_GameLogic.framesInGameStatus == 0) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
             camera_switchScene(RandomInt_Sim(0) + 0x2b + fn_3_164A8());
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
@@ -1832,7 +1832,7 @@ void fn_3_161C0(void) {
 
 // .text:0x00016058 size:0x168 mapped:0x806550EC
 void fn_3_16058(void) {
-    if (g_GameLogic.FrameCountOfCurrentPitch <= 1) {
+    if (g_GameLogic.framesInGameStatus <= 1) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
             camera_switchScene(RandomInt_Sim(0) + 0x32 + fn_3_164A8());
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {

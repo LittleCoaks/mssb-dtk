@@ -106,7 +106,7 @@ void matchHudDrawingControl(void) {
             insertGraphicDrawingFunction(draw_OnBaseChemLinks, 2);
         }
     }
-    if (animRelated[0xAC] == 1 && g_GameLogic.FrameCountOfCurrentPitch == 10) {
+    if (animRelated[0xAC] == 1 && g_GameLogic.framesInGameStatus == 10) {
         insertGraphicDrawingFunction(HUD_initStarChance, 2);
         animRelated[0xAC] = 2;
     }

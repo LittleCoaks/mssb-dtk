@@ -5,11 +5,11 @@
 
 // What fn_8000CEF0 fills in for one frame of a layout element; only the
 // texture index at +0x6 is read so far. The callers' stack frames put the
-// size between 0x4C and 0x54 bytes.
+// size between 0x4C and 0x54 bytes; rep_7730 fn_1_25F98's frame pins it at 0x50.
 typedef struct LayoutFrameInfo {
     /* 0x00 */ u8 _00[0x6];
     /* 0x06 */ u16 textureIndex;
-    /* 0x08 */ u8 _08[0x4C];
+    /* 0x08 */ u8 _08[0x48];
 } LayoutFrameInfo;
 
 u32 fn_8000CEF0(void* layout, u32 element, u32 part, int frame, LayoutFrameInfo* out);

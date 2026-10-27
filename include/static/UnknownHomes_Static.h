@@ -119,6 +119,13 @@ typedef struct {
     /* 0x42 */ u16 _42;
     artificial_padding(0x42, 0x62, u16);
     /* 0x62 */ u16 _62;
+    artificial_padding(0x62, 0x70, u16);
+    /* 0x70 */ s8 _70; // controller 4 stickX
+    /* 0x71 */ s8 _71; // controller 4 stickY
+    /* 0x72 */ s8 _72; // controller 4 substickX
+    /* 0x73 */ s8 _73; // controller 4 substickY
+    /* 0x74 */ u8 _74; // controller 4 triggerL
+    /* 0x75 */ u8 _75; // controller 4 triggerR
 } lbl_803C77B8_s;
 extern lbl_803C77B8_s AtBat_ButtonInput1;
 

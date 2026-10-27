@@ -44,7 +44,7 @@ extern void practiceLogicRelatedPause(void);
 extern int loadGuidedPractice(void);
 extern void practice_giveAndDemonstrateInstructions(void);
 extern int practice_checkForPause(void);
-extern void ballPhysica(void);
+extern void ballPhysics(void);
 extern void fielderMainFunction(void);
 extern void practice_fieldingRelated(void);
 extern void practiceResetPauseMenuState(void);
@@ -252,7 +252,7 @@ void fieldingPracticeInitialization(void) {
                 break;
             }
         }
-        ballPhysica();
+        ballPhysics();
         fielderMainFunction();
         running_main();
         practice_fieldingRelated();
@@ -435,7 +435,7 @@ void fieldingPracticeLiveBall(void) {
             return;
         }
     }
-    ballPhysica();
+    ballPhysics();
     fielderMainFunction();
     running_main();
     practice_fieldingRelated();
@@ -775,7 +775,7 @@ void battingPracticeSomething(void) {
         atBat_Fielders();
         break;
     case GAME_STATUS_LIVE_BALL:
-        ballPhysica();
+        ballPhysics();
         fielderMainFunction();
         if (g_Ball.framesSinceHit == 0x3C) {
             g_Fielders[0].pos.x = g_Pitcher.pitcherCoord.x;
@@ -908,7 +908,7 @@ void someBattingPitchingCallFuns(void) {
 }
 
 void battingPracticeLiveBall(void) {
-    ballPhysica();
+    ballPhysics();
     fielderMainFunction();
     if (g_Ball.framesSinceHit == 0x3C) {
         g_Fielders[0].pos.x = g_Pitcher.pitcherCoord.x;

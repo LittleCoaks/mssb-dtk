@@ -212,7 +212,7 @@ void unused_matchSimulationRelated(void) {
         break;
     case GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY:
         matchTransitionPrepareNextAB();
-        if (g_GameLogic.FrameCountOfCurrentPitch == 1) {
+        if (g_GameLogic.framesInGameStatus == 1) {
             practiceRelated();
         }
         break;

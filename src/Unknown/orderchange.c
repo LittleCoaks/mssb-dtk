@@ -11,7 +11,7 @@
 #include "Unknown/File_0x800625a4.h"
 
 extern s8 lineUpInfoStruct[TEAMS_PER_GAME][PLAYERS_PER_TEAM][4];
-extern SuperstarStatBonus stonNiceContactIncrement;
+extern SuperstarStatBonus superstarStatBonus;
 extern u8 superstarUnlocked[0x130];
 extern u8 lbl_802E4B00[2][9];
 extern u32 lbl_803CB750;
@@ -138,18 +138,18 @@ void transferStatsToInMemRoster(u8 team) {
     }
 
     if (Static_Stats_Tables.charIsStarred[team][slot]) {
-        inMemRoster[team][slot].stats.SlapContactSize += stonNiceContactIncrement.SlapContactSize;
-        inMemRoster[team][slot].stats.ChargeContactSize += stonNiceContactIncrement.ChargeContactSize;
-        inMemRoster[team][slot].stats.SlapHitPower += stonNiceContactIncrement.SlapHitPower;
-        inMemRoster[team][slot].stats.ChargeHitPower += stonNiceContactIncrement.ChargeHitPower;
-        inMemRoster[team][slot].stats.Speed += stonNiceContactIncrement.Speed;
-        inMemRoster[team][slot].stats.ThrowingArm += stonNiceContactIncrement.ThrowingArm;
-        inMemRoster[team][slot].stats.BuntingContactSize += stonNiceContactIncrement.BuntingContactSize;
-        inMemRoster[team][slot].stats.CurveBallSpeed += stonNiceContactIncrement.CurveBallSpeed;
-        inMemRoster[team][slot].stats.FastBallSpeed += stonNiceContactIncrement.FastBallSpeed;
-        inMemRoster[team][slot].stats.cursedBall += stonNiceContactIncrement.cursedBall;
-        inMemRoster[team][slot].stats.Curve += stonNiceContactIncrement.Curve;
-        inMemRoster[team][slot].stats.curveControl += stonNiceContactIncrement.curveControl;
+        inMemRoster[team][slot].stats.SlapContactSize += superstarStatBonus.SlapContactSize;
+        inMemRoster[team][slot].stats.ChargeContactSize += superstarStatBonus.ChargeContactSize;
+        inMemRoster[team][slot].stats.SlapHitPower += superstarStatBonus.SlapHitPower;
+        inMemRoster[team][slot].stats.ChargeHitPower += superstarStatBonus.ChargeHitPower;
+        inMemRoster[team][slot].stats.Speed += superstarStatBonus.Speed;
+        inMemRoster[team][slot].stats.ThrowingArm += superstarStatBonus.ThrowingArm;
+        inMemRoster[team][slot].stats.BuntingContactSize += superstarStatBonus.BuntingContactSize;
+        inMemRoster[team][slot].stats.CurveBallSpeed += superstarStatBonus.CurveBallSpeed;
+        inMemRoster[team][slot].stats.FastBallSpeed += superstarStatBonus.FastBallSpeed;
+        inMemRoster[team][slot].stats.cursedBall += superstarStatBonus.cursedBall;
+        inMemRoster[team][slot].stats.Curve += superstarStatBonus.Curve;
+        inMemRoster[team][slot].stats.curveControl += superstarStatBonus.curveControl;
 
         inMemRoster[team][slot].stats.BattingStatBar += 2;
         if (inMemRoster[team][slot].stats.BattingStatBar > 10) {

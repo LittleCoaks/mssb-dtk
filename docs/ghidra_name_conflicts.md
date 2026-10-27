@@ -148,9 +148,9 @@ are true same-offset disagreements rather than layout drift.
 | `0x803ccbb0` | data | `const_PI_3_4` | `const_PI*3/4` |
 | `0x803cd038` | data | `_1_2PI` | `1/2PI` |
 | `0x8063fb00` | function | `checkStatiumHazardCollisions` | `checkStadiumHazardCollisions` |
-| `0x80641674` | function | `running_roundBasePosition` | `running_rouondBasePosition?` |
+| `0x80641674` | function | `spline2D_evaluatePoints` | `running_rouondBasePosition?` |
 | `0x8064889c` | function | `processBallInAir_Landed` | `processBallInAir->Landed` |
-| `0x8064f1e0` | function | `ballPhysica` | `ballPhysicsMainFunction` |
+| `0x8064f1e0` | function | `ballPhysics` | `ballPhysicsMainFunction` |
 | `0x8064f98c` | function | `calculateBuntVerticalAngle_unused` | `(unused?)CalculateBallHorizontalAngle` |
 | `0x80652830` | function | `batterPreSwing_unused` | `unusedBatterPreSwing` |
 | `0x8065341c` | function | `someAnimationIndFunction` | `loadBatterActor` |

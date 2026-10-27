@@ -87,7 +87,7 @@ extern s16 challenge_baseCoinsAwarded[];
 extern void starMissionsMinigamesTotalPoints(void);
 extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_8037169C[0x1C];
-extern SuperstarStatBonus stonNiceContactIncrement;
+extern SuperstarStatBonus superstarStatBonus;
 extern u8 lbl_800E854C[];
 extern u8 challenge_minigames_opponentCharIDs[];
 extern void cssLoadingRelated_1(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -396,16 +396,18 @@ u8 ccs_chompTargetThresholds[16] = {
     180, 160, 150, 160, 140, 140, 130, 110,
     100, 130, 120, 110, 150, 130, 110, 0,
 };
-f32 ccs_gameplayConsts[18] = {
+CcsGameplayConsts ccs_gameplayConsts = {
     4.0f, 0.3f, 0.07f, 0.3f, 0.2f, 0.2f, 0.04f, 0.5f,
-    0.05f, 0.05f, 0.1f, 0.1f, 15.0f, 3e+01f, 0.1f, 0.2f,
+    { 0.05f, 0.05f, 0.1f, 0.1f },
+    { 15.0f, 3e+01f },
+    { 0.1f, 0.2f },
     0.04f, 1.8f,
 };
-s16 ccs_timingConsts[12] = {
+CcsTimingConsts ccs_timingConsts = {
     90, 120, 60, 90, 180, 10, 20, 30,
     50, 120, 10, 0,
 };
-f32 lbl_3_data_2191C[2] = { 0.85f, 2.0f };
+CcsSpeedMults ccs_speedMults = { 0.85f, 2.0f };
 s16 ccs_powerupTimers[4] = { 545, 300, 180, 0 };
 s8 ccsAI_bPressDelayRanges[4][2] = {
     { 30, 40 },
@@ -951,18 +953,18 @@ void minigameSelectSwitcher(void) {
     case TRANSITION_CALCULATION_TYPE_0:
         changeScene(6, 6);
         g_GameLogic._125++;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         hugeAnimStruct[0x307E] = 0;
         g_Minigame.selectedDifficulty = 0;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 20) {
+        if (g_GameLogic.framesInGameStatus_copy > 20) {
             g_GameLogic._125++;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_2:
         minigameSelectMenuUpdate();
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         break;
     case TRANSITION_CALCULATION_TYPE_3:
         if (animRelated[0xBB] == 0) {
@@ -983,7 +985,7 @@ void minigameSelectSwitcher(void) {
     case TRANSITION_CALCULATION_TYPE_5:
         switch (exitMenu_main(g_Controls[lbl_80366158[0x27]].newButtonInput)) {
         case 1:
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125++;
             break;
         case 2:
@@ -992,7 +994,7 @@ void minigameSelectSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_6:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+        if (g_GameLogic.framesInGameStatus_copy > 45) {
             changeScene(4, 6);
         }
         if (lbl_8037169C[0x13] != 0) {
@@ -1103,7 +1105,7 @@ void toyFieldCharSelectSwitcher(void) {
         hugeAnimStruct[0x2D77] = 0;
         hugeAnimStruct[0x307A] = 5;
         g_Minigame.charSelectOpponentSlot = -1;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_Minigame.charSelectState = 0;
         g_Minigame._19E2 = 0;
         g_Minigame.extraOpponentCursor = 0;
@@ -1114,7 +1116,7 @@ void toyFieldCharSelectSwitcher(void) {
         g_GameLogic._125++;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic.framesInGameStatus_copy == 1) {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.selectSlotState[i] == 0) {
                     g_Minigame.selectSlots[i].charID = cssCursorOnBottomControl_maybe(i, 0, 0, 0, 0);
@@ -1127,7 +1129,7 @@ void toyFieldCharSelectSwitcher(void) {
             }
             changeScene(1, 6);
         }
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+        if (g_GameLogic.framesInGameStatus_copy > 30) {
             g_Minigame.charSelectState = 0;
             if (g_Minigame.charReselectInd != 0) {
                 g_Minigame.charSelectState = 5;
@@ -1136,7 +1138,7 @@ void toyFieldCharSelectSwitcher(void) {
                 addOrRemoveCharacterToTeam(lbl_80366158[0x27], g_Minigame.selectSlots[lbl_80366158[0x27]].charID, TRUE);
             }
             g_GameLogic._125++;
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_2:
@@ -1144,11 +1146,11 @@ void toyFieldCharSelectSwitcher(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_3:
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 20) {
+            if (g_GameLogic.framesInGameStatus_copy > 20) {
                 switch (exitMenu_main(g_Controls[lbl_80366158[0x27]].newButtonInput)) {
                 case 1:
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_4;
-                    g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                    g_GameLogic.framesInGameStatus_copy = 0;
                     break;
                 case 2:
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
@@ -1158,18 +1160,18 @@ void toyFieldCharSelectSwitcher(void) {
             return;
         }
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_4;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         break;
     case TRANSITION_CALCULATION_TYPE_4:
         if (g_Minigame.charLoadSlot == -1) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-                if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+                if (g_GameLogic.framesInGameStatus_copy > 45) {
                     changeScene(4, 6);
                 }
                 if (lbl_8037169C[0x13] != 0) {
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_5;
                 }
-            } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 15) {
+            } else if (g_GameLogic.framesInGameStatus_copy >= 15) {
                 SetGameStatus(GAME_STATUS_MINIGAME_SELECT);
             }
         }
@@ -1307,7 +1309,7 @@ void minigameCharSelectUpdate(void) {
                     }
                 } else {
                     if ((g_Controls[i].newButtonInput & INPUT_BUTTON_A) && g_Minigame.selectSlots[i].charID >= 0 &&
-                        g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+                        g_GameLogic.framesInGameStatus_copy > 30) {
                         if (g_Minigame.selectSlots[i].onBottomControlInd != 0) {
                             sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, SND_STUDIO_DEFAULT);
                             goto moveCursor0;
@@ -1330,7 +1332,7 @@ void minigameCharSelectUpdate(void) {
                         if (CHAR_SELECT_BYTE(0x7F + i) >= 0) {
                             goto afterMove0;
                         }
-                        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                        g_GameLogic.framesInGameStatus_copy = 0;
                         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
                         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
                         return;
@@ -1384,7 +1386,7 @@ void minigameCharSelectUpdate(void) {
             }
         }
         if ((u8)ready >= g_Minigame.joinedPlayerCount) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_Minigame.charSelectState = 2;
             g_Minigame.targetParticipantCount = g_Minigame.joinedPlayerCount;
             if (g_Minigame.grandPrixInd != 0) {
@@ -1461,9 +1463,9 @@ void minigameCharSelectUpdate(void) {
         } else {
             g_Minigame.charSelectState = 3;
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
     } else if (g_Minigame.charSelectState == 3) {
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic.framesInGameStatus_copy == 1) {
             if (g_Minigame.charSelectOpponentSlot >= 0) {
                 g_Minigame.charSelectOpponentSlot = -1;
             } else {
@@ -1504,7 +1506,7 @@ void minigameCharSelectUpdate(void) {
                     }
                 }
             }
-        } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+        } else if (g_GameLogic.framesInGameStatus_copy > 45) {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.selectSlotState[i] != 1 || g_Minigame.selectSlots[i].confirmedInd == 1) {
                     continue;
@@ -1519,7 +1521,7 @@ void minigameCharSelectUpdate(void) {
                                 g_Minigame.charSelectState = 4;
                                 g_Minigame.charSelectOpponentSlot = i;
                                 g_Minigame.selectSlots[i].confirmedInd = TRUE;
-                                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                                g_GameLogic.framesInGameStatus_copy = 0;
                                 addOrRemoveCharacterToTeam(i, g_Minigame.selectSlots[i].charID, TRUE);
                                 playPlayerSelectedSound(g_Minigame.selectSlots[i].charID);
                             }
@@ -1564,7 +1566,7 @@ void minigameCharSelectUpdate(void) {
             }
             if (i >= 4) {
                 g_Minigame.charSelectState = 7;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
             } else {
                 for (j = 0; j < 4; j++) {
                     if (g_Minigame.selectSlotState[j] == 0 && (g_Controls[j].newButtonInput & INPUT_BUTTON_B)) {
@@ -1634,16 +1636,16 @@ void minigameCharSelectUpdate(void) {
             }
         }
     } else if (g_Minigame.charSelectState == 4) {
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 40) {
+        if (g_GameLogic.framesInGameStatus_copy > 40) {
             if (pad->newButtonInput & INPUT_BUTTON_A) {
                 g_Minigame.charSelectOpponentSlot = -1;
                 g_Minigame.charSelectState = 3;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, SND_STUDIO_DEFAULT);
             } else if (pad->newButtonInput & INPUT_BUTTON_B) {
                 addOrRemoveCharacterToTeam(g_Minigame.charSelectOpponentSlot,
                                            g_Minigame.selectSlots[g_Minigame.charSelectOpponentSlot].charID, FALSE);
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_Minigame.selectSlots[g_Minigame.charSelectOpponentSlot].confirmedInd = FALSE;
                 g_Minigame.charSelectState = 3;
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
@@ -1665,17 +1667,17 @@ void minigameCharSelectUpdate(void) {
                 SATURATING_INCREMENT_U16(g_Minigame.charChangeFrames[i]);
             }
         }
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+        if (g_GameLogic.framesInGameStatus_copy > 30) {
             if (pad->newButtonInput & INPUT_BUTTON_A) {
                 g_Minigame.charSelectState = 6;
                 g_Minigame.soloMinigameDifficulty = g_Minigame.selectedDifficulty;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, SND_STUDIO_DEFAULT);
             } else if (pad->newButtonInput & INPUT_BUTTON_B) {
                 g_Minigame.selectSlots[port].confirmedInd = FALSE;
                 addOrRemoveCharacterToTeam(port, g_Minigame.selectSlots[port].charID, FALSE);
                 g_Minigame.charSelectState = 0;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
             } else if (pad->_08 & INPUT_BUTTON_LEFT) {
                 if ((s8)g_Minigame.selectedDifficulty > 0) {
@@ -1690,14 +1692,14 @@ void minigameCharSelectUpdate(void) {
             }
             g_Minigame.targetParticipantCount = (minigameParticipantCounts + g_Minigame.GameMode_MiniGame * 5)[(s8)g_Minigame.selectedDifficulty];
         }
-    } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 90) {
+    } else if (g_GameLogic.framesInGameStatus_copy > 90) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
     }
 tail:
     if (g_d_GameSettings.exhibitionMatchInd != FALSE) {
         if (g_Minigame.charSelectState == 1 || (u8)(g_Minigame.charSelectState - 2) <= 2 || g_Minigame.charSelectState == 5) {
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 30) {
+            if (g_GameLogic.framesInGameStatus_copy >= 30) {
                 for (i = 0; i < 4; i++) {
                     sel[i] = -1;
                 }
@@ -1892,18 +1894,18 @@ void minigames_loadCharStats(int slot, int charID) {
 
     memcpy(roster, &((CharacterStats*)&Static_Stats_Tables)[charID], sizeof(CharacterStats));
     if (g_Minigame.playerSlots.superstarBoostInd[slot] != 0) {
-        roster->stats.SlapContactSize += stonNiceContactIncrement.SlapContactSize;
-        roster->stats.ChargeContactSize += stonNiceContactIncrement.ChargeContactSize;
-        roster->stats.SlapHitPower += stonNiceContactIncrement.SlapHitPower;
-        roster->stats.ChargeHitPower += stonNiceContactIncrement.ChargeHitPower;
-        roster->stats.BuntingContactSize += stonNiceContactIncrement.BuntingContactSize;
-        roster->stats.Speed += stonNiceContactIncrement.Speed;
-        roster->stats.ThrowingArm += stonNiceContactIncrement.ThrowingArm;
-        roster->stats.CurveBallSpeed += stonNiceContactIncrement.CurveBallSpeed;
-        roster->stats.FastBallSpeed += stonNiceContactIncrement.FastBallSpeed;
-        roster->stats.cursedBall += stonNiceContactIncrement.cursedBall;
-        roster->stats.Curve += stonNiceContactIncrement.Curve;
-        roster->stats.curveControl += stonNiceContactIncrement.curveControl;
+        roster->stats.SlapContactSize += superstarStatBonus.SlapContactSize;
+        roster->stats.ChargeContactSize += superstarStatBonus.ChargeContactSize;
+        roster->stats.SlapHitPower += superstarStatBonus.SlapHitPower;
+        roster->stats.ChargeHitPower += superstarStatBonus.ChargeHitPower;
+        roster->stats.BuntingContactSize += superstarStatBonus.BuntingContactSize;
+        roster->stats.Speed += superstarStatBonus.Speed;
+        roster->stats.ThrowingArm += superstarStatBonus.ThrowingArm;
+        roster->stats.CurveBallSpeed += superstarStatBonus.CurveBallSpeed;
+        roster->stats.FastBallSpeed += superstarStatBonus.FastBallSpeed;
+        roster->stats.cursedBall += superstarStatBonus.cursedBall;
+        roster->stats.Curve += superstarStatBonus.Curve;
+        roster->stats.curveControl += superstarStatBonus.curveControl;
     }
 }
 
@@ -2068,7 +2070,7 @@ void minigameReadySwitcher(void) {
         } else {
             g_d_GameSettings._33 = g_Minigame.GameMode_MiniGame;
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125++;
         if (g_Minigame.retryInd != 0 && g_Minigame.grandPrixInd == 0) {
             changeScene(1, 6);
@@ -2078,7 +2080,7 @@ void minigameReadySwitcher(void) {
     case TRANSITION_CALCULATION_TYPE_1:
         if (diskReadRelated(CommonUIFiles_minigame[g_Minigame.GameMode_MiniGame + 6], 0x11)) {
             changeScene(1, 6);
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125++;
         }
         break;
@@ -2177,7 +2179,7 @@ static inline void minigameOptionSetup(u8 selected) {
 }
 
 void minigameHelpMenuUpdate(void) {
-    if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+    if (g_GameLogic.framesInGameStatus_copy == 1) {
         minigameOptionSetup(0);
     }
     if (lbl_8037169C[0x12] == 0) {
@@ -2337,8 +2339,8 @@ void minigameStartSwitcher(void) {
         if (lbl_8037169C[0x12] == 0) {
             return;
         }
-        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[1] && checkForButtonPressToSkip(2, 0x1100))) {
+        if (g_GameLogic.framesInGameStatus >= minigameTuningConstants[2] ||
+            (g_GameLogic.framesInGameStatus >= minigameTuningConstants[1] && checkForButtonPressToSkip(2, 0x1100))) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_7;
             changeScene(3, 6);
             fn_8003A540(0);
@@ -2503,34 +2505,34 @@ void minigameEndSwitcher(void) {
         transitionToReplay();
         fn_3_5B368();
         changeScene(1, 6);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
         g_Minigame.endSequencePhase = 2;
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         if (g_Minigame.winLossResult == 0) {
             newAtBatPlaySound();
         }
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == minigameResultsFrames[1]) {
+        if (g_GameLogic.framesInGameStatus_copy == minigameResultsFrames[1]) {
             animRelated[0xB8] = 1;
         }
         if (g_Minigame.difficultyUnlockedInd == 1) {
-            if (g_GameLogic.FrameCountOfCurrentPitch > 300) {
+            if (g_GameLogic.framesInGameStatus > 300) {
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_5;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
             }
         } else if (g_Minigame.grandPrixUnlockedInd != 0) {
-            if (g_GameLogic.FrameCountOfCurrentPitch > 300) {
+            if (g_GameLogic.framesInGameStatus > 300) {
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
             }
-        } else if (g_GameLogic.FrameCountOfCurrentPitch > 300) {
+        } else if (g_GameLogic.framesInGameStatus > 300) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
-                if (g_GameLogic.FrameCountOfCurrentPitch > 420) {
+                if (g_GameLogic.framesInGameStatus > 420) {
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
                 }
             } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY &&
@@ -2538,7 +2540,7 @@ void minigameEndSwitcher(void) {
                        checkForButtonPressToSkip(0, INPUT_TRIGGER_Z) && checkForButtonPressToSkip(0, INPUT_BUTTON_Y) &&
                        checkForButtonPressToSkip(0, INPUT_BUTTON_B)) {
                 sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, SND_STUDIO_DEFAULT);
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_7;
             } else if (checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
@@ -2546,28 +2548,28 @@ void minigameEndSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_7:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+        if (g_GameLogic.framesInGameStatus_copy > 30) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_B)) {
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
-                g_GameLogic.FrameCountOfCurrentPitch = 270;
+                g_GameLogic.framesInGameStatus = 270;
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
             }
         }
         break;
     case TRANSITION_CALCULATION_TYPE_5:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic.framesInGameStatus_copy == 1) {
             fn_8004CC4C(9, 0, (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame] - 1, 0,
                         (&g_d_GameSettings._13)[g_Minigame.GameMode_MiniGame] + 0x8C);
             insertGraphicDrawingFunction(fn_8004D0F0, 2);
             g_GameLogic.scoreBook_logoFadeDirectionLeft_Right = 0;
             callSfx(0x301);
-        } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 150) {
+        } else if (g_GameLogic.framesInGameStatus_copy > 150) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
                 set803c5f77();
                 g_GameLogic.scoreBook_logoFadeDirectionLeft_Right = 1;
             } else if (g_GameLogic.scoreBook_logoFadeDirectionLeft_Right != 0 && lbl_803C5F74.state == 4) {
                 if (g_Minigame.grandPrixUnlockedInd != 0) {
-                    g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                    g_GameLogic.framesInGameStatus_copy = 0;
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
                 } else {
                     g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
@@ -2576,16 +2578,16 @@ void minigameEndSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_6:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == 1) {
+        if (g_GameLogic.framesInGameStatus_copy == 1) {
             fn_8004CC4C(9, 0, 4, 0, 0x91);
             insertGraphicDrawingFunction(fn_8004D0F0, 2);
             g_GameLogic.scoreBook_logoFadeDirectionLeft_Right = 0;
-        } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 150) {
+        } else if (g_GameLogic.framesInGameStatus_copy > 150) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
                 set803c5f77();
                 g_GameLogic.scoreBook_logoFadeDirectionLeft_Right = 1;
             } else if (g_GameLogic.scoreBook_logoFadeDirectionLeft_Right != 0 && lbl_803C5F74.state == 4) {
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
             }
         }
@@ -2786,7 +2788,7 @@ void minigameResultsSwitcher(void) {
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
         fn_3_5B368();
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         if (g_Minigame.humanPlayerCount == 1) {
             minigameUpdateHighScores();
             if (g_Minigame.grandPrixInd != 0) {
@@ -2800,16 +2802,16 @@ void minigameResultsSwitcher(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_1:
         if (g_Minigame.resultsScene->_18 != 0) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 30;
+            g_GameLogic.framesInGameStatus_copy = 30;
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= 30) {
+        if (g_GameLogic.framesInGameStatus_copy >= 30) {
             if ((input->buttonInput & INPUT_TRIGGER_Z) && (input->buttonInput & INPUT_BUTTON_Y) &&
                 (input->buttonInput & INPUT_BUTTON_B)) {
                 sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, SND_STUDIO_DEFAULT);
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
             } else if (input->newButtonInput & (INPUT_BUTTON_A | INPUT_BUTTON_START)) {
                 g_Minigame.resultsScene->_1A = 1;
@@ -2818,22 +2820,22 @@ void minigameResultsSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_3:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+        if (g_GameLogic.framesInGameStatus_copy > 30) {
             if (input->newButtonInput & INPUT_BUTTON_B) {
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
             }
         }
         break;
     case TRANSITION_CALCULATION_TYPE_4:
         if (g_Minigame.resultsScene == NULL) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_5;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_5:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 20) {
+        if (g_GameLogic.framesInGameStatus_copy > 20) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
         }
         break;
@@ -2853,11 +2855,11 @@ void minigameResultsSwitcher(void) {
         }
         break;
     case TRANSITION_CALCULATION_TYPE_8:
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_9;
         break;
     case TRANSITION_CALCULATION_TYPE_9:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 20) {
+        if (g_GameLogic.framesInGameStatus_copy > 20) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_10;
         }
         break;
@@ -2993,7 +2995,7 @@ void postMinigame(void) {
     case 8:
         switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             pauseControl.state = 9;
             break;
         case 2:
@@ -3002,7 +3004,7 @@ void postMinigame(void) {
         }
         break;
     case 9:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+        if (g_GameLogic.framesInGameStatus_copy > 45) {
             changeScene(4, 6);
         }
         if (lbl_8037169C[0x13] != 0) {
@@ -3167,7 +3169,7 @@ void minigamePause(void) {
     case 8:
         switch (exitMenu_main(g_Controls[pauseControl.port].newButtonInput)) {
         case 1:
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             pauseControl.state = 9;
             break;
         case 2:
@@ -3176,7 +3178,7 @@ void minigamePause(void) {
         }
         break;
     case 9:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+        if (g_GameLogic.framesInGameStatus_copy > 45) {
             if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
                 challenge_setTransitionScreenCharacterPortrait(12, (s8)challengeTransitionPortraitIDs[g_Challenge.captain]);
             } else {
@@ -3543,7 +3545,7 @@ void minigames_0x28(void) {
         break;
     case TRANSITION_CALCULATION_TYPE_1:
         changeScene(1, 6);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125++;
         break;
     case TRANSITION_CALCULATION_TYPE_2:
@@ -3663,39 +3665,39 @@ void minigames_0x26(void) {
                 }
             }
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 120) {
+        if (g_GameLogic.framesInGameStatus_copy > 120) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_2:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 1800 || checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        if (g_GameLogic.framesInGameStatus_copy > 1800 || checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_3;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_3:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 120) {
+        if (g_GameLogic.framesInGameStatus_copy > 120) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_4;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_4:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 1800 || checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
+        if (g_GameLogic.framesInGameStatus_copy > 1800 || checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_5;
         }
         break;
     case TRANSITION_CALCULATION_TYPE_5:
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_6;
         if (g_Minigame.grandPrixRound >= 6) {
             changeScene(3, 6);
         }
         break;
     case TRANSITION_CALCULATION_TYPE_6:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 60) {
+        if (g_GameLogic.framesInGameStatus_copy > 60) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_7;
         }
         break;
@@ -3723,15 +3725,15 @@ void minigames_0x27(void) {
         if (g_Minigame.humanPlayerCount == 1) {
             minigameGrandPrixCheckWin();
         }
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
         changeScene(1, 6);
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy == minigameResultsFrames[1]) {
+        if (g_GameLogic.framesInGameStatus_copy == minigameResultsFrames[1]) {
             animRelated[0xB8] = 1;
         }
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 300) {
+        if (g_GameLogic.framesInGameStatus_copy > 300) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
         }
         break;
@@ -3744,7 +3746,7 @@ void minigames_0x27(void) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_7;
         break;
     case TRANSITION_CALCULATION_TYPE_7:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 60) {
+        if (g_GameLogic.framesInGameStatus_copy > 60) {
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_8;
         }
         break;

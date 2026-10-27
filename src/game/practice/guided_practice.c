@@ -743,7 +743,7 @@ BOOL practice_checkForPause(void) {
     if (g_Practice.frames_sincePracticeCompleted != 0 || g_Practice.guidedPracticeCompletionRelated != 0) {
         return FALSE;
     }
-    if (g_GameLogic.FrameCountOfCurrentPitch < 0x1E || lbl_8037169C[0x10] != 0) {
+    if (g_GameLogic.framesInGameStatus < 0x1E || lbl_8037169C[0x10] != 0) {
         return FALSE;
     }
     if (g_Practice.pauseMenuLoading != 0) {

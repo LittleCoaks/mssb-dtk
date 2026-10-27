@@ -680,7 +680,7 @@ void fn_3_740D0(void) {
 
 // .text:0x00073FAC size:0x124 mapped:0x806B3040
 void fn_3_73FAC(void) {
-    g_Pitcher.eggBallBounceYHeight = g_Batter.batPosition2.y;
+    g_Pitcher.eggBallBounceYHeight = g_Batter.boxPosition.y;
     g_Pitcher.pitchStartingPosition_AIMaxCurve =
         LinearInterpolateToNewRange(g_Pitcher.pitcher.x, lbl_3_data_4474[0], lbl_3_data_4474[1], lbl_3_data_5EB0[0], lbl_3_data_5EB0[1]);
     if (g_Pitcher.starPitchType == CAPTAIN_STAR_TYPE_WARIO || g_Pitcher.starPitchType == CAPTAIN_STAR_TYPE_WALUIGI) {
@@ -1816,7 +1816,7 @@ BOOL waitingForPitch_checkForPickoffs(void) {
             } else if (g_d_GameSettings.minigamesEnabled && MINIGAME_SELECTED_ORDER >= 0) {
                 controls = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[MINIGAME_SELECTED_ORDER]];
             }
-            if (g_GameLogic.FrameCountOfCurrentPitch < 90) {
+            if (g_GameLogic.framesInGameStatus < 90) {
                 return 0;
             }
             if (g_RunningLogic.nOffensivePlayersOnField <= 1) {

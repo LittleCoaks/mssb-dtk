@@ -313,11 +313,11 @@ void pP_RoundIntro(void) {
         case TRANSITION_CALCULATION_TYPE_0:
             minigameQueueHudEvent(2, minigameIntroFrames[0]);
             changeScene(1, 6);
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
             break;
         case TRANSITION_CALCULATION_TYPE_1:
-            if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
+            if (g_GameLogic.framesInGameStatus_copy > minigameIntroFrames[0] + minigameIntroFrames[1]) {
                 g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
             }
             break;

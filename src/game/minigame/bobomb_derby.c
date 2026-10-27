@@ -41,7 +41,7 @@ extern void fn_3_FBD58(void);
 extern BOOL checkForButtonPressToSkip(int a, int b);
 extern u8 highLevelSimulationFlag[3];
 extern u8 us80893314[8];
-extern void ballPhysica(void);
+extern void ballPhysics(void);
 extern s16 bOD_frameConsts[10];
 extern s16 bOD_bB_frameConsts[12];
 extern u8 bOD_pitchSpeedWeights[0x30];
@@ -440,8 +440,8 @@ void bOD_RoundIntro(void) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[1] &&
+        if (g_GameLogic.framesInGameStatus >= minigameTuningConstants[2] ||
+            (g_GameLogic.framesInGameStatus >= minigameTuningConstants[1] &&
              checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_A))) {
             changeScene(3, 6);
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;
@@ -571,7 +571,7 @@ void bOD_bB_Pitcher_waitingForPitch(void) {
 void bOD_LiveBall(void) {
     int i;
 
-    ballPhysica();
+    ballPhysics();
     bOD_SetRunnerAngleFromHit();
 
     if (g_Ball.bODQualifyingHitInd != 0 && g_Ball.deadBallReason == DEAD_BALL_REASON_HOME_RUN) {

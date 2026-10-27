@@ -354,7 +354,7 @@ void wallBallPrepareNextBatter(void) {
     resetBallValuesBetweenBatters();
     resetPitcherValuesBetweenBatters(0);
     setPitcherStatsToInMemPitcher(*(s8*)&g_Minigame.minigamePlayerSelectedOrder);
-    VEC_COPY(&g_Batter.batPosition2, &maybeInitialBatPos);
+    VEC_COPY(&g_Batter.boxPosition, &initialBoxPosition);
     SetGameStatus(GAME_STATUS_DEFAULT);
 }
 
@@ -436,8 +436,8 @@ void wallBallRoundIntro(void) {
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
-        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2] ||
-            (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[1] &&
+        if (g_GameLogic.framesInGameStatus >= minigameTuningConstants[2] ||
+            (g_GameLogic.framesInGameStatus >= minigameTuningConstants[1] &&
              checkForButtonPressToSkip(1, INPUT_BUTTON_START | INPUT_BUTTON_A))) {
             changeScene(3, 6);
             g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_2;

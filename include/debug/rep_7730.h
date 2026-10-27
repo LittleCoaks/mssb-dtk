@@ -6,11 +6,13 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Dolphin/GX/GXTexture.h"
 
+void fn_1_1D590(void *src, u8 *tex, u8 *map, s32 w, s32 h);
 void fn_1_1D694(void *arg0);
+void fn_1_26AF8(void);
 void fn_1_1D944(void);
 void fn_1_1DA54(void);
 void fn_1_1DCE4(void);
-f32 fn_1_1DD48(u16 flags, s32 neg, f32 value, f32 opt1, f32 def, f32 opt2, f32 lo, f32 hi);
+f32 fn_1_1DD48(u16 flags, BOOL neg, f32 value, f32 opt1, f32 def, f32 opt2, f32 lo, f32 hi);
 void fn_1_1DD94(void);
 void fn_1_1DDE4(f32 arg0);
 void fn_1_1DDF4(f32 arg0);
@@ -24,7 +26,7 @@ void fn_1_1DE5C(void);
 s32 fn_1_1DE60(s32 arg0, u16 arg1, u32 arg2, u16 flags);
 void fn_1_1E28C(void);
 s32 fn_1_1E290(s32 arg0, u16 arg1, u32 arg2, u16 flags);
-void fn_1_1E5D0(void *arg0);
+void fn_1_1E5D0(u8 *base);
 void fn_1_1E8C0(s32 arg0);
 s16 fn_1_1E90C(s16 arg0, u16 arg1, u16 arg2, u16 arg3);
 void fn_1_1EFF4(void);
@@ -54,11 +56,11 @@ void fn_1_21408(void);
 void fn_1_21CE8(void);
 void fn_1_225B8(void);
 void fn_1_22644(void);
-u8 fn_1_22874(void);
+BOOL fn_1_22874(DrawingSceneStruct *arg0);
 void fn_1_22DF4(DrawingSceneStruct *arg0);
 void fn_1_22F4C(s32 n, s32 m, f32 *dst, f32 *src, f32 *other);
-s32 fn_1_23098(Mtx44 arg0, Mtx arg1, f32 argF0, f32 argF1, s32 arg2, s32 arg3);
-void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 n1, s32 n2);
+s32 fn_1_23098(Mtx44 proj, Mtx view, s32 cols, s32 rows, f32 nearZ, f32 farZ);
+void fn_1_23804(f32 argF0, f32 argF1, s32 arg0, s32 arg1, s32 cols, s32 rows);
 void fn_1_23AD8(Mtx44 m, f32 *arg1, f32 *arg2);
 void fn_1_23B54(void);
 void fn_1_24410(void);
@@ -67,7 +69,7 @@ void fn_1_24778(void);
 void fn_1_247A0(void);
 void fn_1_248BC(s32 count);
 void fn_1_24A8C(void);
-void fn_1_24C4C(u8 *arg0, s32 count, Vec *arg2, f32 argF1, f32 argF2, f32 argF3, f32 argF4);
+void fn_1_24C4C(u8 *arg0, s32 count, Vec *force, f32 stiffness, f32 damping, f32 restLength, f32 drag);
 void fn_1_25064(void);
 void fn_1_25C68(void);
 void fn_1_25F98(void);

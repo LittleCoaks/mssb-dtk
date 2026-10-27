@@ -5,10 +5,11 @@
 #include "Dolphin/mtx.h"
 #include "C3/actor.h"
 
-typedef struct {
+typedef struct ActorObjectEntry ActorObjectEntry;
+struct ActorObjectEntry {
     /* 0x00 */ Actor* actor;
     /* 0x04 */ void* anim;           // ANIMBank handed to ACTSetAnimation
-    /* 0x08 */ void (*callback)(void); // run by sknRelated before drawing
+    /* 0x08 */ void (*callback)(ActorObjectEntry* entry); // run by sknRelated before drawing
     /* 0x0C */ u16 slot;
     /* 0x0E */ u16 seqNum;           // ACTSetAnimation sequence number
     /* 0x10 */ Control control;      // copied into actor->worldControl when applyControl is set
@@ -26,7 +27,7 @@ typedef struct {
     /* 0x6D */ u8 drawArgCount;      // number of drawArgs sknRelated forwards (0-8)
     /* 0x6E */ u8 _6E[2];
     /* 0x70 */ u32 drawArgs[8];
-} ActorObjectEntry; // size: 0x90
+}; // size: 0x90
 
 /* Allocated by ActorObjectInitTable with `count` entries. */
 typedef struct {

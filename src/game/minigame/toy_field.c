@@ -55,7 +55,7 @@ extern struct {
 } g_UnkSimulation_31AC0;
 
 extern void QueueTextToDisplay(int code, int arg1);
-extern void ballPhysica(void);
+extern void ballPhysics(void);
 extern void minigameWinnerSpotlight_stop(void);
 extern void minigameCharLoadQueueUpdate(void);
 extern void toyFieldStadiumLoad(void);
@@ -625,7 +625,7 @@ void toyFieldGameStartMovie(void) {
         break;
     case 6:
         if (lbl_8037169C[0x12] != 0) {
-            if (g_GameLogic.FrameCountOfCurrentPitch >= 240 || fn_3_FD9FC() != 0) {
+            if (g_GameLogic.framesInGameStatus >= 240 || fn_3_FD9FC() != 0) {
                 if (checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_B | INPUT_BUTTON_START) != 0) {
                     g_GameLogic._125 = 7;
                 }
@@ -1082,7 +1082,7 @@ void toyFieldLiveBall(void) {
             toyFieldPlayHazardSound(0x15, 0x2A);
         }
     }
-    ballPhysica();
+    ballPhysics();
     miniGameDash();
     if (g_Minigame._19CF != 0) {
         if (g_Minigame.toyField_turnEndState == 0) {
@@ -1205,14 +1205,14 @@ void toyFieldInningTransition(void) {
             }
         }
         changeScene(1, 6);
-        g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+        g_GameLogic.framesInGameStatus_copy = 0;
         g_GameLogic._125 = 1;
         break;
     case 1:
         done = FALSE;
-        if (g_GameLogic.FrameCountOfCurrentPitch >= minigameTuningConstants[2]) {
+        if (g_GameLogic.framesInGameStatus >= minigameTuningConstants[2]) {
             done = TRUE;
-        } else if (g_GameLogic.FrameCountOfCurrentAtBat_Copy >= minigameTuningConstants[1]) {
+        } else if (g_GameLogic.framesInGameStatus_copy >= minigameTuningConstants[1]) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
                 done = TRUE;
             }
@@ -1240,18 +1240,18 @@ void toyFieldStateTransitionRelated(void) {
         g_GameLogic._125 = 1;
         break;
     case 1:
-        if (g_GameLogic.FrameCountOfCurrentPitch > 1800) {
+        if (g_GameLogic.framesInGameStatus > 1800) {
             g_GameLogic._125 = 2;
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
-        } else if (g_GameLogic.FrameCountOfCurrentPitch > 300) {
+            g_GameLogic.framesInGameStatus_copy = 0;
+        } else if (g_GameLogic.framesInGameStatus > 300) {
             if (checkForButtonPressToSkip(1, INPUT_BUTTON_A | INPUT_BUTTON_START)) {
                 g_GameLogic._125 = 2;
-                g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+                g_GameLogic.framesInGameStatus_copy = 0;
             }
         }
         break;
     case 2:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 30) {
+        if (g_GameLogic.framesInGameStatus_copy > 30) {
             if (g_Minigame.challengeModeInd != 0) {
                 g_GameLogic._125 = 4;
             } else {
@@ -1363,7 +1363,7 @@ void toyFieldPause(void) {
     case 9:
         switch (((int (*)(void))exitMenu_main)()) {
         case 1:
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             pauseControl.state = 10;
             break;
         case 2:
@@ -1372,7 +1372,7 @@ void toyFieldPause(void) {
         }
         break;
     case 10:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+        if (g_GameLogic.framesInGameStatus_copy > 45) {
             changeScene(4, 6);
         }
         if (lbl_8037169C[0x13] != 0) {
@@ -1488,7 +1488,7 @@ void toyFieldPostMenu(void) {
         case 1:
             minigameWinnerSpotlight_stop();
             minigameWinnerStars_stop();
-            g_GameLogic.FrameCountOfCurrentAtBat_Copy = 0;
+            g_GameLogic.framesInGameStatus_copy = 0;
             pauseControl.state = 10;
             break;
         case 2:
@@ -1497,7 +1497,7 @@ void toyFieldPostMenu(void) {
         }
         break;
     case 10:
-        if (g_GameLogic.FrameCountOfCurrentAtBat_Copy > 45) {
+        if (g_GameLogic.framesInGameStatus_copy > 45) {
             changeScene(4, 6);
         }
         if (lbl_8037169C[0x13] != 0) {
