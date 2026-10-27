@@ -10731,17 +10731,18 @@ trySecondaryPair:
         }
     }
 
-    if (g_Ball.framesSinceHit <= 90) {
+    if (g_Ball.framesSinceHit > 90) {
+        if (g_Ball.framesSinceBallHitGroundOrWasCaught >= 0) {
+            goto pickPrimary;
+        }
+        if (g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <=
+            g_Fielders[g_FieldingLogic.secondaryFielder].distanceFromLandingSpot) {
+            goto pickPrimary;
+        }
+        goto noTertiary;
+    } else {
         return;
     }
-    if (g_Ball.framesSinceBallHitGroundOrWasCaught >= 0) {
-        goto pickPrimary;
-    }
-    if (g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <=
-        g_Fielders[g_FieldingLogic.secondaryFielder].distanceFromLandingSpot) {
-        goto pickPrimary;
-    }
-    goto noTertiary;
 
 pickPrimary:
     g_FieldingLogic.unkFlagMaybeInAir = 0;
@@ -10754,22 +10755,21 @@ noTertiary:
     if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0 &&
         (g_FieldingLogic.secondaryFielder == 3 || g_FieldingLogic.secondaryFielder == 5)) {
         HandleMiddleInfieldSelection();
-        if (g_FieldingLogic.infielderSelectedOnPopFlyInd == 0) {
-            goto tailShift;
+        if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0) {
+            if (g_Ball.ballDistanceFromHome - 3.0f > g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate) {
+                setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
+            } else {
+                return;
+            }
         }
-        if (!(g_Ball.ballDistanceFromHome - 3.0f > g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate)) {
-            return;
-        }
+    } else {
         setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-        goto tailShift;
     }
 
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-
 tailShift:
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
     g_FieldingLogic.secondaryFielder = g_FieldingLogic.tertiaryFielder;
     g_FieldingLogic.tertiaryFielder = -1;
+    g_FieldingLogic.unkFlagMaybeInAir = 0;
 }
 
 // .text:0x00038D10 size:0x2E8 mapped:0x80677DA4
