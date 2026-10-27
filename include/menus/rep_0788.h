@@ -42,7 +42,7 @@ void fn_2_2577C(void *arg0, void *arg1);
 void fn_2_25850(void *arg0, void *arg1);
 void fn_2_2587C(void *arg0, void *arg1);
 void fn_2_25A1C(void *arg0, void *arg1);
-void fn_2_25A48(void);
+void fn_2_25A48(void *arg0, void *arg1);
 void fn_2_25D6C(void *arg0, void *arg1);
 void fn_2_25D98(void *arg0, void *arg1);
 void fn_2_25EB0(void *arg0, void *arg1);

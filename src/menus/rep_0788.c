@@ -25,6 +25,10 @@ extern s32 challenge_isCharRecruited(u8 arg0);
 void fn_2_54354(void *arg0, int count);
 void fn_2_54234(void *arg0, int count);
 s16 fn_2_53BC8(void *arg0);
+s16 fn_2_53AA4(void *arg0);
+extern s16 lbl_2_data_1050C[4][6];
+extern s16 lbl_2_data_1053C[4][6];
+extern s16 lbl_2_data_1056C[4][6];
 extern u8 lbl_2_data_1073C[0x80];
 extern u8 lbl_2_data_105FC[0x20];
 extern u8 lbl_2_data_F0EC[0x13A0];
@@ -681,8 +685,80 @@ void fn_2_25A1C(void *arg0, void *arg1) {
 }
 
 // .text:0x00025A48 size:0x324 mapped:0x80664ADC
-void fn_2_25A48(void) {
-    return;
+void fn_2_25A48(void *arg0, void *arg1) {
+    s16 *state = (s16 *)((u8 *)arg1 + 4);
+    s16 result = fn_2_53AA4(arg1);
+    if (result != -1) {
+        *state = result;
+    }
+    switch (*state) {
+    case 0: {
+        TextGraphicsObject *obj;
+        ((UIRecord *)graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object)->elementIndex = lbl_2_data_1050C[lbl_2_bss_1A8248->difficulty][lbl_2_bss_1A8248->captain];
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~UI_FLAG_VISIBLE;
+        *state = 0x26;
+        break;
+    }
+    case 1:
+        break;
+    case 2: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~UI_FLAG_VISIBLE;
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        ((UIRecord *)obj)->playMode = UI_PLAY_STOP;
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        ((UIRecord *)obj)->frame = 0;
+        *(s16 *)((u8 *)arg1 + 6) = 30;
+        *state = 3;
+        break;
+    }
+    case 3: {
+        s16 *timer = (s16 *)((u8 *)arg1 + 6);
+        if ((*timer)-- <= 0) {
+            TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            obj->flags |= UI_FLAG_VISIBLE;
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            ((UIRecord *)obj)->playMode = UI_PLAY_FORWARD;
+            *state = 4;
+        }
+        break;
+    }
+    case 4: {
+        ChallengeState *challenge = lbl_2_bss_1A8248;
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        if ((((UIRecord *)obj)->frame >> 16) >= (u32)lbl_2_data_1053C[challenge->difficulty][challenge->captain]) {
+            ((UIRecord *)obj)->frame = (u32)lbl_2_data_1053C[challenge->difficulty][challenge->captain] << 16;
+            obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+            ((UIRecord *)obj)->playMode = UI_PLAY_STOP;
+            *state = 0x25;
+        }
+        break;
+    }
+    case 5: {
+        TextGraphicsObject *obj;
+        ((UIRecord *)graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object)->frame = (u32)lbl_2_data_1056C[lbl_2_bss_1A8248->difficulty][lbl_2_bss_1A8248->captain] << 16;
+        obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        ((UIRecord *)obj)->playMode = UI_PLAY_FORWARD;
+        *state = 6;
+        break;
+    }
+    case 6: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        if ((((UIRecord *)obj)->frame >> 16) >= 0xA1) {
+            ((UIRecord *)obj)->playMode = UI_PLAY_STOP;
+            *state = 7;
+        }
+        break;
+    }
+    case 7: {
+        TextGraphicsObject *obj = graphicsRelatedArray[*(u16 *)((u8 *)arg0 + 0x14) + *(s16 *)((u8 *)arg1 + 0xE)].object;
+        obj->flags &= ~UI_FLAG_VISIBLE;
+        break;
+    }
+    case 0x25:
+        break;
+    }
 }
 
 // .text:0x00025D6C size:0x2C mapped:0x80664E00
