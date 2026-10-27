@@ -11964,97 +11964,82 @@ int fn_3_365D0(int fielderIndexA, int fielderIndexB, int fielderIndexC, f32 x, f
         return fielderIndexA;
     }
 
-    if (g_FieldingLogic.selectedFielder < 0) {
-        return selectBestFielder(fielderIndexA, result, 1, x, z);
-    }
-    return selectBestFielder(fielderIndexA, result, 0, x, z);
+    return (g_FieldingLogic.selectedFielder < 0) ? selectBestFielder(fielderIndexA, result, 1, x, z)
+                                                 : selectBestFielder(fielderIndexA, result, 0, x, z);
 }
 
 // .text:0x000361D8 size:0x3F8 mapped:0x8067526C
 int SelectClosestFielder2(f32 x, f32 z) {
-    InMemFielder* f;
+    int rankIndex[4];
+    int rankAngle[4];
+    f32 rankDist[4];
     int i;
-    int rank1Index = 0;
-    int rank2Index = 0;
-    int rank3Index = 0;
-    int rank4Index = 0;
-    int rank1Angle;
-    int rank2Angle;
-    int rank3Angle;
-    int rank4Angle;
-    f32 rank4Dist = 999.9f;
-    f32 rank3Dist = rank4Dist;
-    f32 rank2Dist = rank4Dist;
-    f32 rank1Dist = rank4Dist;
-    int result;
 
-    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
-        f32 dx = f->pos.x - x;
-        f32 dz = f->pos.z - z;
+    rankDist[3] = 999.9f;
+    rankDist[2] = rankDist[3];
+    rankDist[1] = rankDist[3];
+    rankDist[0] = rankDist[3];
+    rankIndex[0] = rankIndex[1] = rankIndex[2] = rankIndex[3] = 0;
+
+    for (i = 0; i < 9; i++) {
+        f32 dx = g_Fielders[i].pos.x - x;
+        f32 dz = g_Fielders[i].pos.z - z;
         f32 dist = fielderSqrt(dx * dx + dz * dz);
         int angle = calculateAngleFromCoordinates(dx, dz);
 
-        if (rank1Dist > dist) {
-            rank3Dist = rank2Dist;
-            rank3Index = rank2Index;
-            rank3Angle = rank2Angle;
-            rank2Dist = rank1Dist;
-            rank2Index = rank1Index;
-            rank2Angle = rank1Angle;
-            rank1Dist = dist;
-            rank1Index = i;
-            rank1Angle = angle;
-        } else if (rank2Dist > dist) {
-            rank3Dist = rank2Dist;
-            rank3Index = rank2Index;
-            rank3Angle = rank2Angle;
-            rank2Dist = dist;
-            rank2Index = i;
-            rank2Angle = angle;
-        } else if (rank3Dist > dist) {
-            rank4Dist = rank3Dist;
-            rank4Index = rank3Index;
-            rank4Angle = rank3Angle;
-            rank3Dist = dist;
-            rank3Index = i;
-            rank3Angle = angle;
-        } else if (rank4Dist > dist) {
-            rank4Dist = dist;
-            rank4Index = i;
-            rank4Angle = angle;
+        if (rankDist[0] > dist) {
+            rankDist[2] = rankDist[1];
+            rankIndex[2] = rankIndex[1];
+            rankAngle[2] = rankAngle[1];
+            rankDist[1] = rankDist[0];
+            rankIndex[1] = rankIndex[0];
+            rankAngle[1] = rankAngle[0];
+            rankDist[0] = dist;
+            rankIndex[0] = i;
+            rankAngle[0] = angle;
+        } else if (rankDist[1] > dist) {
+            rankDist[2] = rankDist[1];
+            rankIndex[2] = rankIndex[1];
+            rankAngle[2] = rankAngle[1];
+            rankDist[1] = dist;
+            rankIndex[1] = i;
+            rankAngle[1] = angle;
+        } else if (rankDist[2] > dist) {
+            rankDist[3] = rankDist[2];
+            rankIndex[3] = rankIndex[2];
+            rankAngle[3] = rankAngle[2];
+            rankDist[2] = dist;
+            rankIndex[2] = i;
+            rankAngle[2] = angle;
+        } else if (rankDist[3] > dist) {
+            rankDist[3] = dist;
+            rankIndex[3] = i;
+            rankAngle[3] = angle;
         }
     }
 
-    if (rank4Dist - 15.0f < rank3Dist) {
-        if (getDifferenceInAngle(rank2Angle, rank3Angle) < 0x180) {
-            if (getDifferenceInAngle(rank1Angle, rank4Angle) > 0x200 &&
-                getDifferenceInAngle(rank2Angle, rank4Angle) > 0x200) {
-                rank3Index = rank4Index;
+    if (rankDist[3] - 15.0f < rankDist[2]) {
+        if (getDifferenceInAngle(rankAngle[1], rankAngle[2]) < 0x180) {
+            if (getDifferenceInAngle(rankAngle[0], rankAngle[3]) > 0x200 &&
+                getDifferenceInAngle(rankAngle[1], rankAngle[3]) > 0x200) {
+                rankIndex[2] = rankIndex[3];
             }
-        } else if (getDifferenceInAngle(rank1Angle, rank3Angle) < 0x180) {
-            if (getDifferenceInAngle(rank1Angle, rank4Angle) > 0x200 &&
-                getDifferenceInAngle(rank2Angle, rank4Angle) > 0x200) {
-                rank3Index = rank4Index;
+        } else if (getDifferenceInAngle(rankAngle[0], rankAngle[2]) < 0x180) {
+            if (getDifferenceInAngle(rankAngle[0], rankAngle[3]) > 0x200 &&
+                getDifferenceInAngle(rankAngle[1], rankAngle[3]) > 0x200) {
+                rankIndex[2] = rankIndex[3];
             }
         } else {
-            if (getDifferenceInAngle(rank1Angle, rank2Angle) < 0x180 &&
-                getDifferenceInAngle(rank1Angle, rank4Angle) > 0x200 &&
-                getDifferenceInAngle(rank3Angle, rank4Angle) > 0x200) {
-                rank2Index = rank3Index;
-                rank3Index = rank4Index;
+            if (getDifferenceInAngle(rankAngle[0], rankAngle[1]) < 0x180 &&
+                getDifferenceInAngle(rankAngle[0], rankAngle[3]) > 0x200 &&
+                getDifferenceInAngle(rankAngle[2], rankAngle[3]) > 0x200) {
+                rankIndex[1] = rankIndex[2];
+                rankIndex[2] = rankIndex[3];
             }
         }
     }
 
-    result = selectBestFielder(rank2Index, rank3Index, 1, x, z);
-    if (result != -1) {
-        if (g_FieldingLogic.selectedFielder < 0) {
-            rank1Index = selectBestFielder(rank1Index, result, 1, x, z);
-        } else {
-            rank1Index = selectBestFielder(rank1Index, result, 0, x, z);
-        }
-    }
-    return rank1Index;
+    return fn_3_365D0(rankIndex[0], rankIndex[1], rankIndex[2], x, z);
 }
 
 // .text:0x00035E1C size:0x3BC mapped:0x80674EB0
