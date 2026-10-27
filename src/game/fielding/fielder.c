@@ -10996,11 +10996,9 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
 // .text:0x00038304 size:0x48C mapped:0x80677398
 void selectAssignClosestFielder2(void) {
     s16 fielderIndex;
-    f32 rank1Dist;
-    f32 rank3Dist;
-    f32 rank2Dist;
+    f32 rankDist[3];
     f32 landingDist;
-    int isFarPlay;
+    BOOL isFarPlay;
     int newFielder;
 
     if ((fielderIndex = g_FieldingLogic.selectedFielder) >= 0 &&
@@ -11009,16 +11007,16 @@ void selectAssignClosestFielder2(void) {
     }
 
     landingDist = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
-    isFarPlay = 0;
+    isFarPlay = FALSE;
 
     if (landingDist > 50.0f) {
-        if (fielderIndex >= 6) {
-            isFarPlay = 1;
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
+            isFarPlay = TRUE;
         } else if (g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[2].distanceFromHomePlate &&
                    g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[3].distanceFromHomePlate &&
                    g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[4].distanceFromHomePlate &&
                    g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[5].distanceFromHomePlate) {
-            isFarPlay = 1;
+            isFarPlay = TRUE;
         }
     }
 
@@ -11030,20 +11028,20 @@ void selectAssignClosestFielder2(void) {
         if (distA < distB) {
             f32 distC = g_Fielders[7].distanceFromLandingSpot;
             if (distA < distC) {
-                a = 6;
-                b = 7;
+                a = FIELDING_POSITION_LEFT_FIELD;
+                b = FIELDING_POSITION_CENTER_FIELD;
             } else {
-                a = 7;
-                b = 6;
+                a = FIELDING_POSITION_CENTER_FIELD;
+                b = FIELDING_POSITION_LEFT_FIELD;
             }
         } else {
             f32 distC = g_Fielders[7].distanceFromLandingSpot;
             if (distB < distC) {
-                a = 8;
-                b = 7;
+                a = FIELDING_POSITION_RIGHT_FIELD;
+                b = FIELDING_POSITION_CENTER_FIELD;
             } else {
-                a = 7;
-                b = 8;
+                a = FIELDING_POSITION_CENTER_FIELD;
+                b = FIELDING_POSITION_RIGHT_FIELD;
             }
         }
 
@@ -11056,71 +11054,46 @@ void selectAssignClosestFielder2(void) {
     } else {
         InMemFielder* f;
         int i;
-        int rank3Index = -1;
-        int rank2Index = -1;
-        int rank1Index = -1;
+        int rankIndex[3];
 
-        rank1Dist = 999.9f;
-        rank3Dist = rank1Dist;
-        rank2Dist = rank1Dist;
+        rankDist[0] = rankDist[1] = rankDist[2] = 999.9f;
+        rankIndex[0] = rankIndex[1] = rankIndex[2] = FIELDING_POSITION_NONE;
 
         for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
             f32 dist = f->distanceFromLandingSpot;
-            if (rank1Dist > dist) {
-                rank3Dist = rank2Dist;
-                rank3Index = rank2Index;
-                rank2Dist = rank1Dist;
-                rank2Index = rank1Index;
-                rank1Dist = dist;
-                rank1Index = i;
-            } else if (rank2Dist > dist) {
-                rank3Dist = rank2Dist;
-                rank3Index = rank2Index;
-                rank2Dist = dist;
-                rank2Index = i;
-            } else if (rank3Dist > dist) {
-                rank3Dist = dist;
-                rank3Index = i;
+            if (rankDist[0] > dist) {
+                rankDist[2] = rankDist[1];
+                rankIndex[2] = rankIndex[1];
+                rankDist[1] = rankDist[0];
+                rankIndex[1] = rankIndex[0];
+                rankDist[0] = dist;
+                rankIndex[0] = i;
+            } else if (rankDist[1] > dist) {
+                rankDist[2] = rankDist[1];
+                rankIndex[2] = rankIndex[1];
+                rankDist[1] = dist;
+                rankIndex[1] = i;
+            } else if (rankDist[2] > dist) {
+                rankDist[2] = dist;
+                rankIndex[2] = i;
             }
         }
 
         if (landingDist > 40.0f) {
-            if (rank1Dist <= 8.0f && rank1Index == fielderIndex) {
-                newFielder = rank1Index;
-            } else if (rank2Dist - rank1Dist > 20.0f) {
-                newFielder = rank1Index;
-            } else if (rank3Dist - rank2Dist > 20.0f) {
-                newFielder = selectBestFielder(rank1Index, rank2Index, 0, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+            if (rankDist[0] <= 8.0f && rankIndex[0] == fielderIndex) {
+                newFielder = rankIndex[0];
+            } else if (rankDist[1] - rankDist[0] > 20.0f) {
+                newFielder = rankIndex[0];
+            } else if (rankDist[2] - rankDist[1] > 20.0f) {
+                newFielder = selectBestFielder(rankIndex[0], rankIndex[1], 0, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                 g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
             } else {
-                f32 ballX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-                f32 ballZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-                int result = selectBestFielder(rank2Index, rank3Index, 1, ballX, ballZ);
-                if (result != -1) {
-                    int result2;
-                    if (g_FieldingLogic.selectedFielder < 0) {
-                        result2 = selectBestFielder(rank1Index, result, 1, ballX, ballZ);
-                    } else {
-                        result2 = selectBestFielder(rank1Index, result, 0, ballX, ballZ);
-                    }
-                    rank1Index = result2;
-                }
-                newFielder = rank1Index;
+                newFielder = fn_3_365D0(rankIndex[0], rankIndex[1], rankIndex[2], g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
             }
         } else {
-            f32 ballX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-            f32 ballZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-            int result = selectBestFielder(rank2Index, rank3Index, 1, ballX, ballZ);
-            if (result != -1) {
-                int result2;
-                if (g_FieldingLogic.selectedFielder < 0) {
-                    result2 = selectBestFielder(rank1Index, result, 1, ballX, ballZ);
-                } else {
-                    result2 = selectBestFielder(rank1Index, result, 0, ballX, ballZ);
-                }
-                rank1Index = result2;
-            }
-            newFielder = rank1Index;
+            newFielder = fn_3_365D0(rankIndex[0], rankIndex[1], rankIndex[2], g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
         }
     }
 
