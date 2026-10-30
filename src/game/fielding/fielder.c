@@ -12110,9 +12110,9 @@ void decideHowToTrackFoulBall(int fielderIndex) {
 
 // .text:0x00034450 size:0x5F0 mapped:0x806734E4
 void humanTeamFieldingFirstFrameAfterHit(void) {
-    s64 catchStrategyMask;
     int shiftAmt;
     int i;
+    s64 catchStrategyMask;
     int angle;
     f32 dx;
     f32 dz;
@@ -12121,7 +12121,7 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
 
     catchStrategyMask = 0;
     for (i = 0, shiftAmt = 0; i < 9; i++, shiftAmt += 3) {
-        if (i == 1) {
+        if (i == FIELDING_POSITION_CATCHER) {
             g_Fielders[i].angleOfFieldersStartingPosition = SANG_ANG_90;
         } else if (g_Fielders[i].pos.x == 0.0f) {
             g_Fielders[i].angleOfFieldersStartingPosition = SANG_ANG_90;
@@ -12142,8 +12142,8 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
         dzSq = dz * dz;
         g_Fielders[i].distanceFromLandingSpot = fielderSqrt(dxSq + dzSq);
 
-        if (i == 1) {
-            setCatcherCatchStrategy_distToLandingSpot(1);
+        if (i == FIELDING_POSITION_CATCHER) {
+            setCatcherCatchStrategy_distToLandingSpot(FIELDING_POSITION_CATCHER);
         } else {
             setFielderCatchStrategy_calcFramesToGetToDropSpot(i);
         }
@@ -12159,16 +12159,7 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE &&
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BATTING) {
-        InMemFielder* f0 = &g_Fielders[0];
-        f0->autoMovementFunctionIndex = 21;
-        if (autoMovementFunctions[21].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[0] = autoMovementFunctions[21].code;
-        }
-        f0->unknown_writeOnly = 0;
-        f0->fielderVeloAdjustmentCode = 0;
-        f0->unknown_writeOnly_always0 = 0;
-        f0->timeSinceThrowWasCaught = 0;
-        f0->fielderTrackingBallState = 0;
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 21);
         return;
     }
 
@@ -12176,8 +12167,8 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
         selectInitialFielders_linedriveThroughPitcher();
     } else if (g_Ball.hitClassification3 == 7 || g_Ball.hitClassification3 == 8) {
         setInitialFielderMovements_foulBall();
-    } else if ((catchStrategyMask & 0x3FFFF) != 0 && g_Ball.landingSpotZoneAwayFromHome == 4 &&
-               g_Ball.maxYOfHit > 8.0f) {
+    } else if ((catchStrategyMask & 0x3FFFF) == 0 ||
+               (g_Ball.landingSpotZoneAwayFromHome == BALL_ZONE_OF_DEEP && g_Ball.maxYOfHit > 8.0f)) {
         if (g_Ball.maxYOfHit < 5.0f) {
             SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY();
         } else {
