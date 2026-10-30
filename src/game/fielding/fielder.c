@@ -12251,168 +12251,153 @@ void setInitialFielderMovements_DeepFly(void) {
 
 // .text:0x00033DD0 size:0x418 mapped:0x80672E64
 void determinePrimaryAndSecondaryOutFielders(int *primaryFielder, int *secondaryFielder) {
+    InMemFielder* center = &g_Fielders[FIELDING_POSITION_CENTER_FIELD];
+    int otherFielder = FIELDING_POSITION_LEFT_FIELD;
     int angle;
-    int defaultFielder;
-    InMemFielder *outfielder;
-    InMemFielder *fielder7;
-    int strat7, stratDefault;
-    int similarDistanceInd;
+    InMemFielder* other;
+    int centerStrategy;
+    int otherStrategy;
+    BOOL similarDistance;
     f32 diff;
-    int diff7, diffDefault, diffFrames;
-    u8 cs;
+    int otherAngleDiff;
+    int centerAngleDiff;
 
-    fielder7 = &g_Fielders[7];
-    defaultFielder = 6;
-    *secondaryFielder = -1;
+    *secondaryFielder = FIELDING_POSITION_NONE;
 
     angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                           g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+                                          g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
-    if (angle > g_Fielders[6].angleOfFieldersStartingPosition) {
-        *primaryFielder = 6;
+    if (angle > g_Fielders[FIELDING_POSITION_LEFT_FIELD].angleOfFieldersStartingPosition) {
+        *primaryFielder = FIELDING_POSITION_LEFT_FIELD;
         return;
     }
-    if (angle < g_Fielders[8].angleOfFieldersStartingPosition) {
-        *primaryFielder = 8;
+    if (angle < g_Fielders[FIELDING_POSITION_RIGHT_FIELD].angleOfFieldersStartingPosition) {
+        *primaryFielder = FIELDING_POSITION_RIGHT_FIELD;
         return;
     }
-    if (angle < fielder7->angleOfFieldersStartingPosition) {
-        defaultFielder = 8;
+    if (angle < g_Fielders[FIELDING_POSITION_CENTER_FIELD].angleOfFieldersStartingPosition) {
+        otherFielder = FIELDING_POSITION_RIGHT_FIELD;
     }
 
-    outfielder = &g_Fielders[defaultFielder];
+    other = &g_Fielders[otherFielder];
 
-    if (fielder7->nonCatchFlyBallStratInd != 0) {
-        cs = fielder7->catchStrategy;
-        strat7 = (cs == 1) ? 1 : (cs == 2) ? 2 : (cs == 3) ? 3 : 10;
-    } else {
-        strat7 = 0;
+    otherStrategy = 10;
+    centerStrategy = 10;
+    if (!center->nonCatchFlyBallStratInd) {
+        centerStrategy = 0;
+    } else if (center->catchStrategy == 1) {
+        centerStrategy = 1;
+    } else if (center->catchStrategy == 2) {
+        centerStrategy = 2;
+    } else if (center->catchStrategy == 3) {
+        centerStrategy = 3;
     }
 
-    if (outfielder->nonCatchFlyBallStratInd != 0) {
-        cs = outfielder->catchStrategy;
-        stratDefault = (cs == 1) ? 1 : (cs == 2) ? 2 : (cs == 3) ? 3 : 10;
-    } else {
-        stratDefault = 0;
+    if (!other->nonCatchFlyBallStratInd) {
+        otherStrategy = 0;
+    } else if (other->catchStrategy == 1) {
+        otherStrategy = 1;
+    } else if (other->catchStrategy == 2) {
+        otherStrategy = 2;
+    } else if (other->catchStrategy == 3) {
+        otherStrategy = 3;
     }
 
-    similarDistanceInd = 0;
+    similarDistance = FALSE;
     if (g_Ball.wallAndBallIntersectionDistFromHome > 40.0f) {
-        diff = fielder7->distanceFromLandingSpot - outfielder->distanceFromLandingSpot;
+        diff = center->distanceFromLandingSpot - other->distanceFromLandingSpot;
         if (diff < 0.0f) {
             diff = -diff;
         }
         if (diff < 10.0f) {
-            similarDistanceInd = 1;
+            similarDistance = TRUE;
         }
     }
 
-    do {
-    if ((strat7 == stratDefault && strat7 < 10) || similarDistanceInd) {
-        if (strat7 == 0) {
-            if (fielder7->distanceFromLandingSpot <= outfielder->distanceFromLandingSpot) {
-                *primaryFielder = 7;
-                diff = outfielder->distanceFromLandingSpot - fielder7->distanceFromLandingSpot;
-                if (diff < 10.0f) {
-                    *secondaryFielder = defaultFielder;
+    if ((centerStrategy == otherStrategy && centerStrategy < 10) || similarDistance) {
+        if (centerStrategy == 0) {
+            if (center->distanceFromLandingSpot <= other->distanceFromLandingSpot) {
+                *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+                if (other->distanceFromLandingSpot - center->distanceFromLandingSpot < 10.0f) {
+                    *secondaryFielder = otherFielder;
                 }
             } else {
-                *primaryFielder = defaultFielder;
-                diff = fielder7->distanceFromLandingSpot - outfielder->distanceFromLandingSpot;
-                if (diff < 10.0f) {
-                    *secondaryFielder = 7;
+                *primaryFielder = otherFielder;
+                if (center->distanceFromLandingSpot - other->distanceFromLandingSpot < 10.0f) {
+                    *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
                 }
             }
             return;
-        } else if (strat7 == 1) {
-            if (fielder7->framesToGetToBallLandingSpot <= outfielder->framesToGetToBallLandingSpot) {
-                *primaryFielder = 7;
-                diffFrames = outfielder->framesToGetToBallLandingSpot - fielder7->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x2d) {
-                    *secondaryFielder = defaultFielder;
+        } else if (centerStrategy == 1) {
+            if (center->framesToGetToBallLandingSpot <= other->framesToGetToBallLandingSpot) {
+                *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+                if (other->framesToGetToBallLandingSpot - center->framesToGetToBallLandingSpot < 45) {
+                    *secondaryFielder = otherFielder;
                 }
             } else {
-                *primaryFielder = defaultFielder;
-                diffFrames = fielder7->framesToGetToBallLandingSpot - outfielder->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x2d) {
-                    *secondaryFielder = 7;
+                *primaryFielder = otherFielder;
+                if (center->framesToGetToBallLandingSpot - other->framesToGetToBallLandingSpot < 45) {
+                    *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
                 }
             }
             return;
         }
-        break;
-    }
-
-    if (strat7 < stratDefault) {
-        if (strat7 == 0) {
-            *primaryFielder = 7;
-            if (stratDefault == 1) {
-                diffFrames = outfielder->framesToGetToBallLandingSpot - fielder7->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x1e) {
-                    *secondaryFielder = defaultFielder;
-                }
+    } else if (centerStrategy < otherStrategy) {
+        if (centerStrategy == 0) {
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+            if (otherStrategy == 1 &&
+                other->framesToGetToBallLandingSpot - center->framesToGetToBallLandingSpot < 30) {
+                *secondaryFielder = otherFielder;
             }
             return;
-        } else if (strat7 == 1) {
-            *primaryFielder = 7;
+        } else if (centerStrategy == 1) {
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
             return;
-        } else if (stratDefault == 10) {
-            *primaryFielder = 7;
+        } else if (otherStrategy == 10) {
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
             return;
         }
-    } else {
-        if (strat7 == stratDefault) {
-            break;
-        }
-        if (stratDefault == 0) {
-            *primaryFielder = defaultFielder;
-            if (strat7 == 1) {
-                diffFrames = fielder7->framesToGetToBallLandingSpot - outfielder->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x1e) {
-                    *secondaryFielder = 7;
-                }
+    } else if (otherStrategy < centerStrategy) {
+        if (otherStrategy == 0) {
+            *primaryFielder = otherFielder;
+            if (centerStrategy == 1 &&
+                center->framesToGetToBallLandingSpot - other->framesToGetToBallLandingSpot < 30) {
+                *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
             }
             return;
-        } else if (stratDefault == 1) {
-            *primaryFielder = defaultFielder;
+        } else if (otherStrategy == 1) {
+            *primaryFielder = otherFielder;
             return;
-        } else if (strat7 == 10) {
-            *primaryFielder = defaultFielder;
+        } else if (centerStrategy == 10) {
+            *primaryFielder = otherFielder;
             return;
         }
     }
-    } while (0);
 
-    if (g_Ball.landingSpotZoneAwayFromHome >= 3) {
-        diff = fielder7->distanceFromLandingSpot - outfielder->distanceFromLandingSpot;
+    if (g_Ball.landingSpotZoneAwayFromHome >= BALL_ZONE_OF_MID) {
+        diff = center->distanceFromLandingSpot - other->distanceFromLandingSpot;
         if (diff < 0.0f) {
-            *primaryFielder = 7;
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
             if (diff > -10.0f) {
-                *secondaryFielder = defaultFielder;
+                *secondaryFielder = otherFielder;
             }
         } else {
-            *primaryFielder = defaultFielder;
+            *primaryFielder = otherFielder;
             if (diff < 10.0f) {
-                *secondaryFielder = 7;
+                *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
             }
         }
         return;
     }
 
-    diffDefault = angle - outfielder->angleOfFieldersStartingPosition;
-    if (diffDefault < 0) {
-        diffDefault = -diffDefault;
-    }
-    diff7 = angle - fielder7->angleOfFieldersStartingPosition;
-    if (diff7 < 0) {
-        diff7 = -diff7;
-    }
-    if (diff7 < diffDefault + 0x40) {
-        *primaryFielder = 7;
-        *secondaryFielder = defaultFielder;
+    centerAngleDiff = __abs(angle - center->angleOfFieldersStartingPosition);
+    otherAngleDiff = __abs(angle - other->angleOfFieldersStartingPosition);
+    if (centerAngleDiff < otherAngleDiff + 0x40) {
+        *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+        *secondaryFielder = otherFielder;
     } else {
-        *primaryFielder = defaultFielder;
-        *secondaryFielder = 7;
+        *primaryFielder = otherFielder;
+        *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
     }
 }
 
