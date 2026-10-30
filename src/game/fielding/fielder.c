@@ -8657,38 +8657,38 @@ void knockoutRelated_Grounder_Liner(void) {
 }
 
 // .text:0x0003E468 size:0x228 mapped:0x8067D4FC
-void fn_3_3E468(void) {
+void assignClosestInfieldersToCoverBases(void) {
+    s32 i;
     int baseIndex;
 
-    for (baseIndex = 0; baseIndex < 9; baseIndex++) {
-        g_Fielders[baseIndex].locationResponsibleForCovering = -1;
-        g_Fielders[baseIndex].isResponsibleForCoveringALocation = 0;
+    for (i = 0; i < 9; i++) {
+        g_Fielders[i].locationResponsibleForCovering = -1;
+        g_Fielders[i].isResponsibleForCoveringALocation = FALSE;
     }
     for (baseIndex = 0; baseIndex < 4; baseIndex++) {
-        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = -1;
-        g_FieldingLogic.baseCoveredInd[baseIndex] = 0;
+        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = FIELDING_POSITION_NONE;
+        g_FieldingLogic.baseCoveredInd[baseIndex] = FALSE;
     }
-    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
+    g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+    g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
 
     for (baseIndex = 0; baseIndex < 4; baseIndex++) {
         int k;
-        int best = -1;
+        int best; /* never initialised: the original reads garbage when no infielder is free */
         f32 minDist = 9999.9f;
 
-        for (k = 0; k < 6; k++) {
+        for (k = 0; k < FIELDING_POSITION_LEFT_FIELD; k++) {
             if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
-                f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (minDist > d) {
-                    minDist = d;
+                if (g_Fielders[k].distanceToBases[baseIndex] < minDist) {
+                    minDist = g_Fielders[k].distanceToBases[baseIndex];
                     best = k;
                 }
             }
         }
 
         g_Fielders[best].locationResponsibleForCovering = baseIndex;
-        g_Fielders[best].isResponsibleForCoveringALocation = 1;
-        if (best != -1) {
+        g_Fielders[best].isResponsibleForCoveringALocation = TRUE;
+        if (best != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(best, 1);
         }
         g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best;

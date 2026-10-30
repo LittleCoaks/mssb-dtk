@@ -135,7 +135,7 @@ void autoMovement12_stopBetweenInstructions(int fielderIndex);
 int setFielderLocToBeNearBase(int fielderIndex);
 void autoMovement14_infieldSupport(int fielderIndex);
 void autoMovement20_pitcherLinedriveRelated(int fielderIndex);
-void fn_3_3E468(void);
+void assignClosestInfieldersToCoverBases(void);
 void knockoutRelated_Grounder_Liner(void);
 void knockoutRelated_FlyBall(void);
 void knockoutRelated(void);
