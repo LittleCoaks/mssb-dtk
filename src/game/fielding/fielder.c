@@ -12411,16 +12411,11 @@ void fn_3_33D9C(void) {
 
 // .text:0x000334EC size:0x8B0 mapped:0x80672580
 void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
-    InMemFielder *f;
     int index;
 
-    do {
     if (g_Ball.hitClassification2 == 1) {
         determineSelectedfielderOnIFHit_Dribbler();
-        break;
-    }
-
-    if (g_Ball.maxYOfHit >= 5.0f && noSecondaryFielderLogic == 0) {
+    } else if (g_Ball.maxYOfHit >= 5.0f && noSecondaryFielderLogic == 0) {
         int i;
         int bestIdx;
         f32 dx, dz;
@@ -12431,7 +12426,8 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         dz = g_Fielders[0].pos.z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         sqx = dx * dx;
         sqz = dz * dz;
-        bestDist = fielderSqrt(sqx + sqz) + 3.0f;
+        bestDist = fielderSqrt(sqx + sqz);
+        bestDist += 3.0f;
         bestIdx = 0;
 
         for (i = 1; i < 6; i++) {
@@ -12452,18 +12448,7 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         }
 
         g_FieldingLogic.selectedFielder = bestIdx;
-        f = &g_Fielders[bestIdx];
-        if (bestIdx != -1) {
-            f->autoMovementFunctionIndex = 21;
-            if (autoMovementFunctions[21].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[bestIdx] = autoMovementFunctions[21].code;
-            }
-            f->unknown_writeOnly = 0;
-            f->fielderVeloAdjustmentCode = 0;
-            f->unknown_writeOnly_always0 = 0;
-            f->timeSinceThrowWasCaught = 0;
-            f->fielderTrackingBallState = 0;
-        }
+        setFielderAutoMovementIfValid(bestIdx, 21);
 
         if (g_FieldingLogic.selectedFielder == 3 || g_FieldingLogic.selectedFielder == 5) {
             if (g_Ball.landingSpotAngle >= 0x3b8 && g_Ball.landingSpotAngle <= 0x448) {
@@ -12507,111 +12492,45 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
             if (g_Ball.landingSpotAngle >= 0x3b8 && g_Ball.landingSpotAngle <= 0x448) {
                 g_FieldingLogic.infielderSelectedOnPopFlyInd = 1;
                 if (g_FieldingLogic.secondaryFielder == 3) {
-                    f = &g_Fielders[5];
-                    f->autoMovementFunctionIndex = 22;
-                    if (autoMovementFunctions[22].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[22].code;
-                    }
-                    f->unknown_writeOnly = 0;
-                    f->fielderVeloAdjustmentCode = 0;
-                    f->unknown_writeOnly_always0 = 0;
-                    f->timeSinceThrowWasCaught = 0;
-                    f->fielderTrackingBallState = 0;
+                    setFielderAutoMovement(5, 22);
                 } else {
-                    f = &g_Fielders[3];
-                    f->autoMovementFunctionIndex = 22;
-                    if (autoMovementFunctions[22].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[22].code;
-                    }
-                    f->unknown_writeOnly = 0;
-                    f->fielderVeloAdjustmentCode = 0;
-                    f->unknown_writeOnly_always0 = 0;
-                    f->timeSinceThrowWasCaught = 0;
-                    f->fielderTrackingBallState = 0;
+                    setFielderAutoMovement(3, 22);
                 }
             }
-            break;
         } else {
             int f2, f3, f4, f5;
-            int th;
 
             f2 = g_Fielders[2].angleOfFieldersStartingPosition;
             f3 = g_Fielders[3].angleOfFieldersStartingPosition;
 
-            th = f2 + (f3 - f2) / 7;
-            if (angle < th) {
+            if (angle < f2 + (f3 - f2) / 7) {
                 g_FieldingLogic.selectedFielder = 2;
-                break;
-            }
-
-            th = f2 + (f3 - f2) * 2 / 5;
-            if (angle < th) {
+            } else if (angle < f2 + (f3 - f2) * 2 / 5) {
                 g_FieldingLogic.selectedFielder = 2;
                 g_FieldingLogic.secondaryFielder = 3;
-
-                f = &g_Fielders[3];
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[22].code;
+                setFielderAutoMovement(3, 22);
+            } else {
+                f5 = g_Fielders[5].angleOfFieldersStartingPosition;
+                if (angle < f3 + (f5 - f3) / 2) {
+                    g_FieldingLogic.selectedFielder = 3;
+                } else {
+                    f4 = g_Fielders[4].angleOfFieldersStartingPosition;
+                    if (angle < f5 + (f4 - f5) * 3 / 5) {
+                        g_FieldingLogic.selectedFielder = 5;
+                    } else if (angle < f4 - (f4 - f5) / 5) {
+                        g_FieldingLogic.selectedFielder = 4;
+                        g_FieldingLogic.secondaryFielder = 5;
+                        setFielderAutoMovement(5, 22);
+                    } else {
+                        g_FieldingLogic.selectedFielder = 4;
+                    }
                 }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-                break;
             }
-
-            f5 = g_Fielders[5].angleOfFieldersStartingPosition;
-            th = f3 + (f5 - f3) / 2;
-            if (angle < th) {
-                g_FieldingLogic.selectedFielder = 3;
-                break;
-            }
-
-            f4 = g_Fielders[4].angleOfFieldersStartingPosition;
-            th = f5 + (f4 - f5) * 3 / 5;
-            if (angle < th) {
-                g_FieldingLogic.selectedFielder = 5;
-                break;
-            }
-
-            th = f4 - (f4 - f5) / 5;
-            if (angle < th) {
-                g_FieldingLogic.selectedFielder = 4;
-                g_FieldingLogic.secondaryFielder = 5;
-
-                f = &g_Fielders[5];
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[22].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-                break;
-            }
-
-            g_FieldingLogic.selectedFielder = 4;
         }
     }
-    } while (0);
 
     index = g_FieldingLogic.selectedFielder;
-    f = &g_Fielders[index];
-    if (index != -1) {
-        f->autoMovementFunctionIndex = 21;
-        if (autoMovementFunctions[21].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[index] = autoMovementFunctions[21].code;
-        }
-        f->unknown_writeOnly = 0;
-        f->fielderVeloAdjustmentCode = 0;
-        f->unknown_writeOnly_always0 = 0;
-        f->timeSinceThrowWasCaught = 0;
-        f->fielderTrackingBallState = 0;
-    }
+    setFielderAutoMovementIfValid(index, 21);
 
     if (noSecondaryFielderLogic == 0) {
         s16 oldSecondary = g_FieldingLogic.secondaryFielder;
@@ -12620,49 +12539,16 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         if (oldSecondary < 0) {
             chooseSecondaryFielderFromClosestOutfielder();
             newSecondary = g_FieldingLogic.secondaryFielder;
-            f = &g_Fielders[newSecondary];
-            if (newSecondary != -1) {
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[newSecondary] = autoMovementFunctions[22].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(newSecondary, 22);
         } else {
             chooseSecondaryFielderFromClosestOutfielder();
             newSecondary = g_FieldingLogic.secondaryFielder;
             g_FieldingLogic.tertiaryFielder = newSecondary;
             g_FieldingLogic.secondaryFielder = oldSecondary;
 
-            f = &g_Fielders[oldSecondary];
-            if (oldSecondary != -1) {
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[oldSecondary] = autoMovementFunctions[22].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(oldSecondary, 22);
 
-            f = &g_Fielders[g_FieldingLogic.tertiaryFielder];
-            if (g_FieldingLogic.tertiaryFielder != -1) {
-                f->autoMovementFunctionIndex = 23;
-                if (autoMovementFunctions[23].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[g_FieldingLogic.tertiaryFielder] = autoMovementFunctions[23].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(g_FieldingLogic.tertiaryFielder, 23);
 
             g_FieldingLogic.unkFlagMaybeInAir = 1;
         }
