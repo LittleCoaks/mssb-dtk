@@ -11976,83 +11976,67 @@ void decideHowToTrackFoulBall(int fielderIndex) {
         fielder->_01EB = 0;
         fielder->unknown_writeOnly_always0 = 0;
 
-        if (g_Ball.fielderAboutToGetBall_hasBall >= 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
-            g_Ball.hitClassification1 == 2) {
-            f32 dx = g_Ball.ballWillHitBallPos.x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-            f32 dz = g_Ball.ballWillHitBallPos.z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            f32 dist = fielderSqrt(sqx + sqz);
-
-            if (!(g_Ball.ballVelocity > 0.0f) && !(dist > 20.0f)) {
-                setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                     g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
-            } else if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome >= 3.0f) {
-                f32 d = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
-                f32 targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x +
-                              15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x / d);
-                f32 targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z +
-                              15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z / d);
-                setFielderAutoCoords(fielderIndex, targetX, targetZ);
-            } else if (fielder->distanceFromHomePlate >= 15.0f) {
-                f32 targetX = 15.0f * (fielder->pos.x / dist);
-                f32 targetZ = 15.0f * (fielder->pos.z / dist);
-                setFielderAutoCoords(fielderIndex, targetX, targetZ);
-            } else {
-                setFielderAutoCoords(fielderIndex, fielder->pos.x, fielder->pos.z);
-            }
-
-            if (fielder->distanceFromAutoLocation < 10.0f) {
-                fielder->fielderVeloAdjustmentCode = 8;
-            }
-        } else if (g_Ball.fielderAboutToGetBall_hasBall < 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-            int n;
-
-            if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x == fielder->pos.x &&
-                g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z == fielder->pos.z) {
-                n = 1;
-            } else {
-                f32 dx = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - fielder->pos.x;
-                f32 dz = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z - fielder->pos.z;
+        if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
+            if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hitClassification1 == 2) {
+                f32 dx = g_Ball.ballWillHitBallPos.x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+                f32 dz = g_Ball.ballWillHitBallPos.z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
                 f32 sqx = dx * dx;
                 f32 sqz = dz * dz;
-                f32 speed = fielder->joggingSpeed;
-                if (speed == 0.0f) {
-                    speed = 1.0f;
+                f32 dist = fielderSqrt(sqx + sqz);
+
+                if (g_Ball.ballVelocity > 0.0f || dist > 20.0f) {
+                    if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 3.0f) {
+                        if (fielder->distanceFromHomePlate < 15.0f) {
+                            setFielderAutoCoords(fielderIndex, fielder->pos.x, fielder->pos.z);
+                        } else {
+                            f32 targetX = 15.0f * (fielder->pos.x / fielder->distanceFromHomePlate);
+                            f32 targetZ = 15.0f * (fielder->pos.z / fielder->distanceFromHomePlate);
+                            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+                        }
+                    } else {
+                        f32 d = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
+                        f32 targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x +
+                                      15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x / d);
+                        f32 targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z +
+                                      15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z / d);
+                        setFielderAutoCoords(fielderIndex, targetX, targetZ);
+                    }
+                } else {
+                    setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                         g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
                 }
-                n = (fielder->maxAccLength_ConstF >> 1) + (int)(fielderSqrt(sqx + sqz) / speed);
+
+                if (fielder->distanceFromAutoLocation < 10.0f) {
+                    fielder->fielderVeloAdjustmentCode = 8;
+                }
+            } else {
+                goto trackBallFromContact;
             }
+        } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+            int n = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                                   g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
             if (g_Ball.framesUntilBallHitsGround - n > 10) {
                 setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                      g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
             } else {
+                int frame;
                 int i;
                 for (i = 10; i <= 60; i += 10) {
-                    CoordAndDist* c = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + i];
-
                     if (i == 60) {
-                        setFielderAutoCoords(fielderIndex, c->pos.x, c->pos.z);
+                        setFielderAutoCoords(
+                            fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + i].pos.x,
+                            g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + i].pos.z);
                         break;
                     } else {
-                        int n2;
+                        frame = g_Ball.framesUntilBallHitsGround + i;
 
-                        if (c->pos.x == fielder->pos.x && c->pos.z == fielder->pos.z) {
-                            n2 = 1;
-                        } else {
-                            f32 dx = c->pos.x - fielder->pos.x;
-                            f32 dz = c->pos.z - fielder->pos.z;
-                            f32 sqx = dx * dx;
-                            f32 sqz = dz * dz;
-                            f32 speed = fielder->joggingSpeed;
-                            if (speed == 0.0f) {
-                                speed = 1.0f;
-                            }
-                            n2 = (fielder->maxAccLength_ConstF >> 1) + (int)(fielderSqrt(sqx + sqz) / speed);
-                        }
-
-                        if ((g_Ball.framesUntilBallHitsGround + i) - n2 <= 5) {
-                            setFielderAutoCoords(fielderIndex, c->pos.x, c->pos.z);
+                        if (frame - fRunningTimeToDestinationPlus7(fielderIndex,
+                                                                   g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                                                   g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) >
+                            5) {
+                            setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                                 g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
                             break;
                         }
                     }
@@ -12064,50 +12048,45 @@ void decideHowToTrackFoulBall(int fielderIndex) {
                     fielder->fielderVeloAdjustmentCode = 8;
                 }
             } else {
-                BOOL handled = 0;
-                if (g_FieldingLogic.selectedFielder <= 5) {
-                    InMemFielder* selected = &g_Fielders[g_FieldingLogic.selectedFielder];
-                    if (g_Ball.ballDistanceFromHome < selected->distanceFromHomePlate) {
-                        if (fielder->distanceFromLandingSpot < 5.0f) {
-                            fielder->fielderVeloAdjustmentCode = 8;
-                        }
-                        handled = 1;
-                    }
-                }
-                if (!handled) {
-                    if (fielder->distanceFromLandingSpot >= 10.0f) {
+                if (g_FieldingLogic.selectedFielder <= 5 &&
+                    g_Ball.ballDistanceFromHome < g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate) {
+                    if (fielder->distanceFromLandingSpot < 5.0f) {
                         fielder->fielderVeloAdjustmentCode = 8;
                     }
+                } else if (fielder->distanceFromLandingSpot < 10.0f) {
+                    fielder->fielderVeloAdjustmentCode = 8;
                 }
             }
         } else {
-            f32 targetX;
-            f32 targetZ;
-            f32 factor = 1.0f +
-                         ((fielder->groundDistanceFromBall - 15.0f) / 100.0f) +
-                         (g_Ball.ballVelocity - 0.6f);
+        trackBallFromContact:
+            {
+                f32 groundDist = fielder->groundDistanceFromBall;
+                f32 targetX;
+                f32 targetZ;
+                f32 factor = 1.0f + (((groundDist - 15.0f) / 100.0f) + (g_Ball.ballVelocity - 0.6f));
 
-            targetX = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.x) + g_Ball.AtBat_Contact_BallPos.x;
-            targetZ = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.z) + g_Ball.AtBat_Contact_BallPos.z;
+                targetX = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.x) + g_Ball.AtBat_Contact_BallPos.x;
+                targetZ = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.z) + g_Ball.AtBat_Contact_BallPos.z;
 
-            if (fielderIndex >= 6 && fielder->distanceFromHomePlate < 50.0f) {
-                targetX = fielder->pos.x;
-                targetZ = fielder->pos.z;
-            }
+                if (fielderIndex >= 6 && fielder->distanceFromHomePlate < 50.0f) {
+                    targetX = fielder->pos.x;
+                    targetZ = fielder->pos.z;
+                }
 
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+                setFielderAutoCoords(fielderIndex, targetX, targetZ);
 
-            if (fielder->distanceFromBall < 20.0f && fielder->groundDistanceFromBall < 5.0f) {
-                if (fielderControlStick_continuousAngleHistory[0] >= 0) {
-                    f32 angle = ATAN2F(g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z,
-                                        g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x);
-                    int diff = fielderControlStick_continuousAngleHistory[0] - radToShortAngle(angle);
-                    diff = (diff ^ (diff >> 31)) - (diff >> 31);
-                    if (diff > 0x80) {
+                if (fielder->distanceFromBall < 20.0f && groundDist < 5.0f) {
+                    if (fielderControlStick_continuousAngleHistory[0] >= 0) {
+                        f32 angle = ATAN2F(g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z,
+                                            g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x);
+                        int diff = fielderControlStick_continuousAngleHistory[0] - radToShortAngle(angle);
+                        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+                        if (diff > 0x80) {
+                            fielder->fielderVeloAdjustmentCode = 8;
+                        }
+                    } else {
                         fielder->fielderVeloAdjustmentCode = 8;
                     }
-                } else {
-                    fielder->fielderVeloAdjustmentCode = 8;
                 }
             }
         }
