@@ -12402,7 +12402,6 @@ void fn_3_33D9C(void) {
 
 // .text:0x000334EC size:0x8B0 mapped:0x80672580
 void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
-    int index;
 
     if (g_Ball.hitClassification2 == 1) {
         determineSelectedfielderOnIFHit_Dribbler();
@@ -12520,8 +12519,7 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         }
     }
 
-    index = g_FieldingLogic.selectedFielder;
-    setFielderAutoMovementIfValid(index, 21);
+    setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 21);
 
     if (noSecondaryFielderLogic == 0) {
         s16 oldSecondary = g_FieldingLogic.secondaryFielder;
