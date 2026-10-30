@@ -12237,7 +12237,7 @@ void setInitialFielderMovements_DeepFly(void) {
 
     setInitialFielderMovements_CoverBases();
     setInitialFielderMovements_cutoffs();
-    fn_3_33D9C();
+    setDeepFlyCornerOutfielderPresets();
 }
 
 // .text:0x00033DD0 size:0x418 mapped:0x80672E64
@@ -12394,9 +12394,9 @@ void determinePrimaryAndSecondaryOutFielders(int *primaryFielder, int *secondary
 
 // .text:0x00033D9C size:0x34 mapped:0x80672E30
 #pragma dont_inline on
-void fn_3_33D9C(void) {
-    autoMovementDetermineWhatToDo(6, 7);
-    autoMovementDetermineWhatToDo(8, 6);
+void setDeepFlyCornerOutfielderPresets(void) {
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_LEFT_FIELD, 7);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_RIGHT_FIELD, 6);
 }
 #pragma dont_inline reset
 
@@ -12990,7 +12990,7 @@ void selectInitialFielders_linedriveThroughPitcher(void) {
 }
 
 // .text:0x000327F4 size:0x1C mapped:0x80671888
-BOOL fn_3_327F4(void) {
+BOOL isHitDribbler(void) {
     return g_Ball.hitClassification2 == 1;
 }
 

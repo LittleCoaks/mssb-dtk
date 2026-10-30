@@ -870,7 +870,7 @@ had 5 callers and yield 5, while `setInitialFielderMovements_CoverBases` and
 too). Implementing a yield-0 hub buys nothing immediately.
 
 Confirmed prediction: implementing `autoMovementDetermineWhatToDo` (484 B, a
-leaf) took itself 0% -> 100% and simultaneously took `fn_3_33D9C` and
+leaf) took itself 0% -> 100% and simultaneously took `setDeepFlyCornerOutfielderPresets` and
 `fn_3_40D54` from 7.69% -> 100% each, in one build. Three functions matched
 from one change.
 
