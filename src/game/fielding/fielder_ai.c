@@ -568,8 +568,8 @@ void setCutoffThrowTargetLocation(f32* targetX, f32* targetZ) {
         *targetX = cutoff->IntendedLocation.x;
         *targetZ = cutoff->IntendedLocation.z;
     } else {
-        stepZ = cutoff->IntendedLocation.z - cutoff->pos.z;
         stepX = cutoff->IntendedLocation.x - cutoff->pos.x;
+        stepZ = cutoff->IntendedLocation.z - cutoff->pos.z;
         lenSq = stepX * stepX + stepZ * stepZ;
         len = dolsqrtf2(lenSq);
         if (0.0f == len) {
@@ -577,9 +577,7 @@ void setCutoffThrowTargetLocation(f32* targetX, f32* targetZ) {
         } else {
             len = dolsqrtf2(lenSq);
         }
-        if (len <= 0.1f) {
-            len = 0.1f;
-        }
+        len = (len <= 0.1f) ? 0.1f : len;
         stepX = stepX / len;
         stepZ = stepZ / len;
         jog = 0.9f * cutoff->joggingSpeed;
@@ -2390,8 +2388,8 @@ int fielderAIMakePlay(int targetRunner) {
     }
     if (targetRunner == 0 && runner->currentBase == 0 && fielder->animatingActionInd == 0) {
         if (fn_3_A36BC()) {
-            g_FieldingLogic.runnerChasingAfter = targetRunner;
             g_FieldingLogic.somethingForTryingTagOutTargetBase = 9;
+            g_FieldingLogic.runnerChasingAfter = targetRunner;
             g_FieldingLogic.locationThrownTo = -1;
             setFielderAutoCoords(fielderWBall, runner->position.x, runner->position.z);
             return 1;
@@ -2466,6 +2464,7 @@ void fn_3_A41E8(int base) {
     int total;
     int timeToBase;
     f32 sqx;
+    f32 sqz;
 
     if (base == 5) {
         BOOL cover;
@@ -2494,12 +2493,12 @@ void fn_3_A41E8(int base) {
         return;
     }
 
+    dz = base_MoundCoordinates[base].z - fielder->pos.z;
     dx = base_MoundCoordinates[base].x - fielder->pos.x;
     speed = fielder->modifiedThrowingArm / 200.0f;
-    dz = base_MoundCoordinates[base].z - fielder->pos.z;
-    sqx = dx * dx;
-    dz = dz * dz;
-    dist = dolsqrtf2(dz + sqx);
+    sqz = dz * dz;
+    dx = dx * dx;
+    dist = dolsqrtf2(dx + sqz);
     if (0.0f == speed) {
         speed = 1.0f;
     }
@@ -2614,8 +2613,7 @@ void fielderAIChaseRunner(void) {
         base = g_Runners[g_FieldingLogic.runnerChasingAfter].baseStandingOn;
         if (base >= 0) {
             if (fielder->distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f) {
-                s16* assignedLocs = g_FieldingLogic.fielderAssignedLocationIndex;
-                int prev = assignedLocs[base];
+                int prev = g_FieldingLogic.fielderAssignedLocationIndex[base];
 
                 if (prev >= 0) {
                     ifCurrentFielderIsTakingOverBaseCovering(prev, 9);
@@ -2623,7 +2621,7 @@ void fielderAIChaseRunner(void) {
                 }
                 fielder->locationResponsibleForCovering = base;
                 fielder->isResponsibleForCoveringALocation = 1;
-                assignedLocs[fielder->locationResponsibleForCovering] = fielderIdx;
+                g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] = fielderIdx;
             }
             if (fielder->locationResponsibleForCovering >= 0) {
                 if (fielder->distanceFromAutoLocation < thresholdToBeConsideredCoveringBase_ByWeight[fielder->Weight]) {
@@ -2750,15 +2748,16 @@ BOOL fielderAIOutfieldPlayAttemptInd(void) {
     if ((hexBaserunnerTracker & 0x1000) != 0) {
         if ((hexBaserunnerTracker & 0xFFF) == 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT &&
             g_Ball.timeSinceBallPickedUp < 30) {
-            f32 maxDist = 0.35f * (f32)fielder->throwingArm + 69.0f;
+            f32 maxDist = 69.0f;
 
+            maxDist += 0.35f * (f32)fielder->throwingArm;
             if (g_Ball.ballDistanceFromBase[0] >= 62.0f && g_Ball.ballDistanceFromBase[0] <= maxDist &&
                 g_Runners[3].tagUpStatus == TAG_UP_TYPE_NONE) {
                 if (g_Runners[3].runningDirectionCode == RUNNER_MOVEMENT_FORWARDS &&
                     fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-                    return 1;
+                    return TRUE;
                 }
-                return 1;
+                return TRUE;
             }
         }
         if ((hexMovementsInEachBaseline1for2back4stop & 0x1000) != 0) {
@@ -2766,23 +2765,23 @@ BOOL fielderAIOutfieldPlayAttemptInd(void) {
                 if (g_Ball.ballDistanceFromBase[0] < 75.0f &&
                     fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 7 &&
                     fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-                    return 1;
+                    return TRUE;
                 }
-                return 0;
+                return FALSE;
             } else if (urgencyLevel == 2) {
                 if (g_Ball.ballDistanceFromBase[0] < 75.0f &&
                     fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 6 &&
                     fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-                    return 1;
+                    return TRUE;
                 }
-                return 0;
+                return FALSE;
             } else if (g_Ball.ballDistanceFromBase[0] < 68.0f) {
                 if ((hexBaserunnerTracker & 0x110) != 0) {
-                    return 0;
+                    return FALSE;
                 }
                 if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[3]] <= 4 &&
                     fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[3]) != 0) {
-                    return 1;
+                    return TRUE;
                 }
             }
         }
@@ -2792,21 +2791,21 @@ BOOL fielderAIOutfieldPlayAttemptInd(void) {
         if ((hexBaserunnerTracker & 0x10) == 0) {
             if (fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 5 &&
                 fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) {
-                return 1;
+                return TRUE;
             }
         } else if ((hexMovementsInEachBaseline1for2back4stop & 0x60) == 0 &&
                    fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[2]] <= 4 &&
                    fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[2]) != 0) {
-            return 1;
+            return TRUE;
         }
     }
     if ((hexBaserunnerTracker & 0x10) != 0 && g_Ball.ballDistanceFromBase[2] < 50.0f &&
         (hexMovementsInEachBaseline1for2back4stop & 0x10) != 0 && (hexBaserunnerTracker & 0x1000) == 0 &&
         fielderDesperationLevel[originalBaseOfRunnerInThisBaseline[1]] <= 5 &&
         fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0) {
-        return 1;
+        return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 // .text:0x000A32B8 size:0xBC mapped:0x806E234C
@@ -3330,10 +3329,9 @@ int fn_3_A1D04(void) {
 // .text:0x000A009C size:0x1C68 mapped:0x806DF130
 void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    BOOL highSkillLowDesperation = 0;
+    BOOL highSkillLowDesperation = FALSE;
     int focusRunner;
     int i;
-    s16 throwLoc;
 
     if (g_FieldingLogic.throwWaitingInd != 0) {
         if (g_RunningLogic.nOffensivePlayersOnField == 0) {
@@ -3406,7 +3404,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
             if (g_BallsStrikesOuts.outs == 2) {
                 if (g_Runners[1].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE && fielderDesperationLevel[1] <= 2) {
                     if (fielder->AILevel3Weak0Powerful <= 1 && fielderDesperationLevel[1] <= 0) {
-                        highSkillLowDesperation = 1;
+                        highSkillLowDesperation = TRUE;
                     }
                     if (fn_3_A37BC() && fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[1]) != 0) {
                         break;
@@ -3433,7 +3431,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
                         } while (n <= 3);
                     }
                     if (fielder->AILevel3Weak0Powerful <= 1 && fielderDesperationLevel[0] <= 0) {
-                        highSkillLowDesperation = 1;
+                        highSkillLowDesperation = TRUE;
                     }
                     fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[0]);
                     break;
@@ -3441,7 +3439,7 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
             }
             if (hexBaserunnerTracker == 1) {
                 if (fielder->AILevel3Weak0Powerful <= 1 && fielderDesperationLevel[0] <= 0) {
-                    highSkillLowDesperation = 1;
+                    highSkillLowDesperation = TRUE;
                 }
                 if (fielderDesperationLevel[0] <= 6 && fielderAIMakePlay(originalBaseOfRunnerInThisBaseline[0]) != 0) {
                     break;
@@ -3513,14 +3511,13 @@ void fielderAIDecideWhatRunnerToTarget(int fielderIndex) {
         } while (0);
     }
 checkOverrideReasons:
-    throwLoc = g_FieldingLogic.locationThrownTo;
-    if (throwLoc >= 0 && throwLoc <= 3) {
-        s16 covering = g_FieldingLogic.fielderAssignedLocationIndex[throwLoc];
+    if (g_FieldingLogic.locationThrownTo >= 0 && g_FieldingLogic.locationThrownTo <= 3) {
+        s16 covering = g_FieldingLogic.fielderAssignedLocationIndex[g_FieldingLogic.locationThrownTo];
 
         if (covering >= 0 && (g_Fielders[covering].onFire != 0 || g_Fielders[covering].knockoutStatus != 0 ||
                               g_Fielders[covering].bodyCheckResult != 0)) {
+            g_FieldingLogic.somethingForTryingTagOutTargetBase = g_FieldingLogic.locationThrownTo;
             g_FieldingLogic.locationThrownTo = -1;
-            g_FieldingLogic.somethingForTryingTagOutTargetBase = throwLoc;
         }
     }
     if (g_RunningLogic.nOffensivePlayersAtStartOfPlay > 1 && g_BallsStrikesOuts.storedOuts <= 1 &&
