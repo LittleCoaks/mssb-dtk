@@ -641,14 +641,14 @@ void fn_3_AAA3C(int fielderIdx) {
         return;
     }
     if (fielder->distanceToBases[g_FieldingLogic.locationThrownTo] > 10.0f &&
-        g_FieldingLogic.fielderAssignedLocationIndex[6] < 0) {
+        g_FieldingLogic.tagChaseFromBase < 0) {
         return;
     }
     if (g_FieldingLogic.locationThrownTo == g_FieldingLogic.xcc_Stored_0 &&
         g_FieldingLogic.runnerChasingAfter_stored >= 0 && g_FieldingLogic.runnerChasingAfter_stored <= 3 &&
-        (g_FieldingLogic.fielderAssignedLocationIndex[6] ==
+        (g_FieldingLogic.tagChaseFromBase ==
              g_Runners[g_FieldingLogic.runnerChasingAfter_stored].nextBase ||
-         g_FieldingLogic.fielderAssignedLocationIndex[6] ==
+         g_FieldingLogic.tagChaseFromBase ==
              g_Runners[g_FieldingLogic.runnerChasingAfter_stored].currentBase)) {
         g_FieldingLogic.setThrowSpeedTypeTo9Ind = 1;
     }
@@ -1345,7 +1345,7 @@ void fielderChasingAI(int fielderIndex) {
 // .text:0x000A8074 size:0x2C4 mapped:0x806E7108
 void setRunnerChasingAfter(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    s16 fromBase = g_FieldingLogic.fielderAssignedLocationIndex[6];
+    s16 fromBase = g_FieldingLogic.tagChaseFromBase;
     int base = -1;
     int diff;
     s16 toBase;
@@ -1360,7 +1360,7 @@ void setRunnerChasingAfter(int fielderIndex) {
     toBase = g_FieldingLogic.somethingForTryingTagOutTargetBase;
     diff = toBase - fromBase;
     if (diff == 1 || diff == -3) {
-        base = g_FieldingLogic.fielderAssignedLocationIndex[6];
+        base = g_FieldingLogic.tagChaseFromBase;
     } else if (diff == -1 || diff == 3) {
         base = g_FieldingLogic.somethingForTryingTagOutTargetBase;
     }
@@ -1619,7 +1619,7 @@ afterInput:
         g_FieldingLogic.somethingForTryingTagOutTargetBase >= 0) {
         g_FieldingLogic.someBase = -1;
         g_FieldingLogic.runnerChasingAfter = -1;
-        g_FieldingLogic.fielderAssignedLocationIndex[6] = g_Ball.baseBallAndFielderAreOn;
+        g_FieldingLogic.tagChaseFromBase = g_Ball.baseBallAndFielderAreOn;
         fielder->framesSinceStartedMoving = 0;
         g_FieldingLogic.someCountDown = 30;
     }

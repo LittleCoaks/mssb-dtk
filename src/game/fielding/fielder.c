@@ -86,7 +86,9 @@ typedef struct {
 extern WeightsStruct modWeightBasedFactors[6];
 
 /* The default inline size cap is too small for setFieldersAutoCoordsToStartingPositions, which
- * fielding_prePitchAutomovement inlines. The cap applies to the whole file. */
+ * fielding_prePitchAutomovement inlines. The cap applies to the whole file, so a few hosts need
+ * `#pragma dont_inline` to keep their bl's. Ideally this would go: the original build most likely
+ * used the default cap, and a smaller helper body that inlines under it would be the real fix. */
 #pragma inline_max_size(600)
 
 static inline f32 fielderSqrt(f32 x) {
@@ -118,6 +120,33 @@ static inline void setFielderAutoMovement(int fielderIndex, int autoMovementInde
     f->unknown_writeOnly_always0 = 0;
     f->timeSinceThrowWasCaught = 0;
     f->fielderTrackingBallState = 0;
+}
+
+static inline void setFielderAutoMovementIfValid(int fielderIndex, int autoMovementIndex) {
+    InMemFielder* f = &g_Fielders[fielderIndex];
+    if (fielderIndex != -1) {
+        f->autoMovementFunctionIndex = autoMovementIndex;
+        if (autoMovementFunctions[autoMovementIndex].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[autoMovementIndex].code;
+        }
+        f->unknown_writeOnly = 0;
+        f->fielderVeloAdjustmentCode = 0;
+        f->unknown_writeOnly_always0 = 0;
+        f->timeSinceThrowWasCaught = 0;
+        f->fielderTrackingBallState = 0;
+    }
+}
+
+static inline void assignFielderToCoverLocation(int fielderIndex, int location) {
+    InMemFielder* f = &g_Fielders[fielderIndex];
+    f->locationResponsibleForCovering = location;
+    f->isResponsibleForCoveringALocation = 1;
+    setFielderAutoMovementIfValid(fielderIndex, 1);
+    g_FieldingLogic.fielderAssignedLocationIndex[location] = fielderIndex;
+    if (g_FieldingLogic.fielderAssignedLocationIndex[4] == fielderIndex) {
+        g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
+        g_FieldingLogic.playerAtMoundCutoffLocation = 0;
+    }
 }
 
 #define SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY()                              \
@@ -245,9 +274,9 @@ typedef struct _FielderHitboxConstsEntry {
 
 extern const FielderHitboxConstsEntry FielderHitboxConsts[55];
 
-extern void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, u16 arg5, f32 arg1, f32 arg2, f32 arg3);
+extern void camera_zoomInDuringFielderAction_slide_clamber_wallJump(u8 arg4, int arg5, f32 arg1, f32 arg2, f32 arg3);
 
-extern int futureFrameForClosestBall(f32* out, int arg1, int arg2);
+extern int futureFrameForClosestBall(f32 playerX, f32 playerZ, f32* outPos, int maxFrame, int step);
 extern s16 slidingCatchArray[6];
 extern f32 slidingCatchMultipliers[6];
 
@@ -268,6 +297,15 @@ extern VecXZ base_MoundCoordinates[5];
 extern VecXZ fielderStartingCoords_bunt[4];
 extern VecXZ fielderStartingCoords_holdRunners[4][3];
 extern VecXZ lbl_3_data_45D4[4];
+
+/* fielder.c is one translation unit. Its functions are in reverse address order (the game
+ * REL is built with -inline deferred, which emits them reversed), so the sections below run
+ * from the highest .text address to the lowest and must not be reordered. */
+
+/* ============================================================================
+ * Main entry and setup
+ * fielderMainFunction, starting positions, per-match and per-inning initialisation of g_Fielders.
+ * ============================================================================ */
 
 // .text:0x000598D0 size:0x48
 void fielderMainFunction(void) {
@@ -761,9 +799,9 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.humanSelectedPlaceToThrow = -1;
         g_FieldingLogic.locThrownTo2 = -1;
         g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
-        g_FieldingLogic.fielderAssignedLocationIndex[5] = 0;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 0;
         g_FieldingLogic.runnerChasingAfter = -1;
-        g_FieldingLogic.fielderAssignedLocationIndex[6] = -1;
+        g_FieldingLogic.tagChaseFromBase = -1;
         g_FieldingLogic.someBase = -1;
         g_FieldingLogic.runnerBeingTargettedForOut = -1;
         g_FieldingLogic.lastThrowingFielder = -1;
@@ -877,6 +915,12 @@ void setDefaultInMemFielder(void) {
     }
 }
 
+/* ============================================================================
+ * Per-frame update and live-ball control
+ * The per-frame driver: frame reset, AI/human live-ball control, movement and the shared end-of-
+ * frame step.
+ * ============================================================================ */
+
 // .text:0x00058688 size:0x1E8 mapped:0x8069771C
 void fielderResetAndStoreValuesEachFrame(void) {
     s32 i;
@@ -948,7 +992,7 @@ void liveBallFielderControlAITeam(void) {
         liveBallUpdateFieldingValues();
     }
 
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 }
 #pragma dont_inline reset
 
@@ -1591,7 +1635,7 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
     }
 
     if (g_Ball.ballState == BALL_STATE_HELD || g_Ball.ballState == BALL_STATE_THROWN) {
-        if (g_FieldingLogic.fielderAssignedLocationIndex[6] >= 0 &&
+        if (g_FieldingLogic.tagChaseFromBase >= 0 &&
             g_FieldingLogic.somethingForTryingTagOutTargetBase == 9) {
             s16 runnerChasingAfter = g_FieldingLogic.runnerChasingAfter;
 
@@ -1894,7 +1938,7 @@ void fn_3_555AC(int fielderIndex) {
 }
 
 // .text:0x00055370 size:0x23C mapped:0x80694404
-void fn_3_55370(void) {
+void fielding_updateAllFieldersPostMovement(void) {
     InMemFielder* fielder;
     int i;
 
@@ -1933,6 +1977,12 @@ void fn_3_55370(void) {
         g_Ball.ballDistanceFromHome = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
     }
 }
+
+/* ============================================================================
+ * Facing, collisions, base standing and velocity
+ * Facing direction, fielder collisions and special actions, standing-on-base state, velocity,
+ * sprinting, dive distances.
+ * ============================================================================ */
 
 // .text:0x00054B58 size:0x818 mapped:0x80693BEC
 void updateFielderDirectionFacing(int fielderIndex) {
@@ -2801,13 +2851,13 @@ int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
 void stopFielderAtCurrentPosition(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
-    fielder->IntendedLocation.x = fielder->pos.x;
-    fielder->IntendedLocation.y = fielder->pos.y;
-    fielder->IntendedLocation.z = fielder->pos.z;
-    fielder->velocityX = 0.0f;
-    fielder->velocityZ = 0.0f;
-    fielder->currentVelocity = 0.0f;
-    fielder->distanceFromAutoLocation = 0.0f;
+    g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
+    g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
+    g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
+    g_Fielders[fielderIndex].velocityX = 0.0f;
+    g_Fielders[fielderIndex].velocityZ = 0.0f;
+    g_Fielders[fielderIndex].currentVelocity = 0.0f;
+    g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
 }
 
 // .text:0x00052F4C size:0x1A0 mapped:0x80691FE0
@@ -3069,8 +3119,8 @@ afterSwitch:
 // .text:0x00052560 size:0x17C mapped:0x806915F4
 int fRunningTimeToDestinationPlus7(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 dx;
     f32 dz;
+    f32 dx;
     f32 dxSq;
     f32 dzSq;
     f32 dist;
@@ -3506,6 +3556,12 @@ void updateSprintPointers(void) {
         g_FieldingLogic.dashPtr->chargeLevel = initialSprintCharge_10[0];
     }
 }
+
+/* ============================================================================
+ * Catch strategy and drop-spot timing
+ * Where and when a fielder can reach the ball: wall bounces, frames to the drop spot, catcher
+ * strategy.
+ * ============================================================================ */
 
 // .text:0x00050DD8 size:0x448 mapped:0x8068FE6C
 int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
@@ -4147,6 +4203,11 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
         }
     }
 }
+
+/* ============================================================================
+ * Ball holder, loose balls and bobbles
+ * Who has / is about to get the ball (AI side), loose-ball assignment and bobble direction.
+ * ============================================================================ */
 
 // .text:0x0004EFC8 size:0x53C mapped:0x8068E05C
 void knockoutRelated_subFn(int fielderIndex, int flag) {
@@ -4837,11 +4898,17 @@ int fn_3_4DB84(int fielderIndex) {
     return 0;
 }
 
+/* ============================================================================
+ * Auto-movement: covering bases and outfield backup
+ * autoMovement1 (cover base), base-covering setup, outfield no-catch phases, backups and
+ * secondary outfielders.
+ * ============================================================================ */
+
 // .text:0x0004D20C size:0x978 mapped:0x8068C2A0
 void autoMovement1_coverBase(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
-    if (g_Ball.homeRunClassification != 0 && fielderIndex <= 1) {
+    if (g_Ball.homeRunClassification != 0 && fielderIndex <= FIELDING_POSITION_CATCHER) {
         return;
     }
 
@@ -4849,7 +4916,7 @@ void autoMovement1_coverBase(int fielderIndex) {
         return;
     }
 
-    if (fielderIndex == 1) {
+    if (fielderIndex == FIELDING_POSITION_CATCHER) {
         if (g_FieldingLogic.catcherNotFocusedOnRunnerScoring != 0) {
             return;
         }
@@ -4858,11 +4925,8 @@ void autoMovement1_coverBase(int fielderIndex) {
     {
         int lockout = fielder->lockoutDuration;
 
-        if (g_Ball.framesSinceHit < lockout - 15 && fielderIndex != 0) {
-            return;
-        }
-
-        if (g_Ball.framesSinceHit < lockout && fielderIndex == 0) {
+        if ((g_Ball.framesSinceHit < lockout - 15 && fielderIndex != FIELDING_POSITION_PITCHER) ||
+            (g_Ball.framesSinceHit < lockout && fielderIndex == FIELDING_POSITION_PITCHER)) {
             return;
         }
     }
@@ -4880,10 +4944,12 @@ void autoMovement1_coverBase(int fielderIndex) {
             f32 diffX = fielder->IntendedLocation.x - fielder->pos.x;
             f32 diffZ = fielder->IntendedLocation.z - fielder->pos.z;
             f32 dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
-            f32 step = fielder->joggingSpeed;
+            f32 step;
 
-            if (dist < step) {
+            if (dist < fielder->joggingSpeed) {
                 step = dist;
+            } else {
+                step = fielder->joggingSpeed;
             }
 
             fielder->velocityX = diffX * step;
@@ -4895,20 +4961,16 @@ void autoMovement1_coverBase(int fielderIndex) {
         } else if (fielder->catchAnimation != 0) {
             fielderMovement_VelocityDuringCatchAnimations(fielderIndex);
             fielder->someCountdownAndCountUpRelatedToStandingStill = 0;
-        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == 0) {
-            f32 x;
-            f32 z;
-
-            if (fielder->pitcherHeadingToCover1stOr3rd == 1) {
+        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == FALSE) {
+            if (fielder->pitcherHeadingToCover1stOr3rd == TRUE) {
                 setPitcherCoverBaseLocation();
             } else {
-                x = base_MoundCoordinates[fielder->locationResponsibleForCovering].x;
-                z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
-                setFielderAutoCoords(fielderIndex, x, z);
+                setFielderAutoCoords(fielderIndex, base_MoundCoordinates[fielder->locationResponsibleForCovering].x,
+                                     base_MoundCoordinates[fielder->locationResponsibleForCovering].z);
             }
 
             setFielderVelocity(fielderIndex);
-        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == 1) {
+        } else if (g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] == TRUE) {
             s16 loc = fielder->locationResponsibleForCovering;
 
             if (fielder->distanceToBases[loc] >
@@ -4917,7 +4979,7 @@ void autoMovement1_coverBase(int fielderIndex) {
                 f32 diffZ = base_MoundCoordinates[loc].z - fielder->pos.z;
 
                 fielder->IntendedLocation.x = base_MoundCoordinates[loc].x;
-                fielder->IntendedLocation.z = base_MoundCoordinates[loc].z;
+                fielder->IntendedLocation.z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
 
                 fielder->velocityX = (0.03f * diffX) / fielder->distanceToBases[fielder->locationResponsibleForCovering];
                 fielder->velocityZ = (0.03f * diffZ) / fielder->distanceToBases[fielder->locationResponsibleForCovering];
@@ -4931,15 +4993,15 @@ void autoMovement1_coverBase(int fielderIndex) {
                 f32 diffZ = base_MoundCoordinates[loc].z - fielder->pos.z;
                 f32 dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
 
-                if (dist >= 0.1f) {
+                if (dist < 0.1f) {
+                    fielder->pos.x = base_MoundCoordinates[fielder->locationResponsibleForCovering].x;
+                    fielder->pos.z = base_MoundCoordinates[fielder->locationResponsibleForCovering].z;
+                    stopFielderAtCurrentPosition(fielderIndex);
+                } else {
                     fielder->velocityX = diffX / 5.0f;
                     fielder->velocityZ = diffZ / 5.0f;
                     fielder->pos.x += fielder->velocityX;
                     fielder->pos.z += fielder->velocityZ;
-                } else {
-                    fielder->pos.x = base_MoundCoordinates[loc].x;
-                    fielder->pos.z = base_MoundCoordinates[loc].z;
-                    stopFielderAtCurrentPosition(fielderIndex);
                 }
             }
 
@@ -4996,182 +5058,84 @@ void setPitcherCoverBaseLocation(void) {
 
 // .text:0x0004C9C8 size:0x5E8 mapped:0x8068BA5C
 void setInitialFielderMovements_CoverBases(void) {
-    g_FieldingLogic_s* fl = &g_FieldingLogic;
     int i;
 
-    if (fl->fielderAutoMovementCode[1] == 0) {
-        g_Fielders[1].locationResponsibleForCovering = 0;
-        g_Fielders[1].autoMovementFunctionIndex = 1;
-        if (autoMovementFunctions[1].code >= 0) {
-            fl->fielderAutoMovementCode[1] = autoMovementFunctions[1].code;
-        }
-        g_Fielders[1].unknown_writeOnly = 0;
-        g_Fielders[1].fielderVeloAdjustmentCode = 0;
-        g_Fielders[1].unknown_writeOnly_always0 = 0;
-        g_Fielders[1].timeSinceThrowWasCaught = 0;
-        g_Fielders[1].fielderTrackingBallState = 0;
-        fl->fielderAssignedLocationIndex[0] = 1;
+    if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_CATCHER] == 0) {
+        g_Fielders[FIELDING_POSITION_CATCHER].locationResponsibleForCovering = 0;
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[0] = FIELDING_POSITION_CATCHER;
     } else if (g_Ball.hitClassification2 == 7) {
-        g_Fielders[0].locationResponsibleForCovering = 0;
-        g_Fielders[0].autoMovementFunctionIndex = 1;
-        if (autoMovementFunctions[1].code >= 0) {
-            fl->fielderAutoMovementCode[0] = autoMovementFunctions[1].code;
-        }
-        g_Fielders[0].unknown_writeOnly = 0;
-        g_Fielders[0].fielderVeloAdjustmentCode = 0;
-        g_Fielders[0].unknown_writeOnly_always0 = 0;
-        g_Fielders[0].timeSinceThrowWasCaught = 0;
-        g_Fielders[0].fielderTrackingBallState = 0;
-        fl->fielderAssignedLocationIndex[0] = 0;
+        g_Fielders[FIELDING_POSITION_PITCHER].locationResponsibleForCovering = 0;
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[0] = FIELDING_POSITION_PITCHER;
     }
 
-    if (fl->fielderAutoMovementCode[2] == 0) {
-        g_Fielders[2].locationResponsibleForCovering = 1;
-        g_Fielders[2].autoMovementFunctionIndex = 1;
-        if (autoMovementFunctions[1].code >= 0) {
-            fl->fielderAutoMovementCode[2] = autoMovementFunctions[1].code;
-        }
-        g_Fielders[2].unknown_writeOnly = 0;
-        g_Fielders[2].fielderVeloAdjustmentCode = 0;
-        g_Fielders[2].unknown_writeOnly_always0 = 0;
-        g_Fielders[2].timeSinceThrowWasCaught = 0;
-        g_Fielders[2].fielderTrackingBallState = 0;
-        fl->fielderAssignedLocationIndex[1] = 2;
+    if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_FIRST_BASE] == 0) {
+        g_Fielders[FIELDING_POSITION_FIRST_BASE].locationResponsibleForCovering = 1;
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[1] = FIELDING_POSITION_FIRST_BASE;
     } else {
-        f32 futureZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Fielders[2].framesToGetToBallLandingSpot].pos.z;
+        f32 futureZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Fielders[FIELDING_POSITION_FIRST_BASE].framesToGetToBallLandingSpot].pos.z;
         if (futureZ < base_MoundCoordinates[1].z) {
-            g_Fielders[3].locationResponsibleForCovering = 1;
-            g_Fielders[3].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[3] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[3].unknown_writeOnly = 0;
-            g_Fielders[3].fielderVeloAdjustmentCode = 0;
-            g_Fielders[3].unknown_writeOnly_always0 = 0;
-            g_Fielders[3].timeSinceThrowWasCaught = 0;
-            g_Fielders[3].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[1] = 3;
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 1;
+            setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[1] = FIELDING_POSITION_SECOND_BASE;
         } else {
-            g_Fielders[0].locationResponsibleForCovering = 1;
-            g_Fielders[0].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[0] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[0].unknown_writeOnly = 0;
-            g_Fielders[0].fielderVeloAdjustmentCode = 0;
-            g_Fielders[0].unknown_writeOnly_always0 = 0;
-            g_Fielders[0].timeSinceThrowWasCaught = 0;
-            g_Fielders[0].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[1] = 0;
-            g_Fielders[0].pitcherHeadingToCover1stOr3rd = 1;
+            g_Fielders[FIELDING_POSITION_PITCHER].locationResponsibleForCovering = 1;
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[1] = FIELDING_POSITION_PITCHER;
+            g_Fielders[FIELDING_POSITION_PITCHER].pitcherHeadingToCover1stOr3rd = TRUE;
         }
     }
 
-    if (fl->fielderAutoMovementCode[4] == 0) {
-        g_Fielders[4].locationResponsibleForCovering = 3;
-        g_Fielders[4].autoMovementFunctionIndex = 1;
-        if (autoMovementFunctions[1].code >= 0) {
-            fl->fielderAutoMovementCode[4] = autoMovementFunctions[1].code;
-        }
-        g_Fielders[4].unknown_writeOnly = 0;
-        g_Fielders[4].fielderVeloAdjustmentCode = 0;
-        g_Fielders[4].unknown_writeOnly_always0 = 0;
-        g_Fielders[4].timeSinceThrowWasCaught = 0;
-        g_Fielders[4].fielderTrackingBallState = 0;
-        fl->fielderAssignedLocationIndex[3] = 4;
+    if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_THIRD_BASE] == 0) {
+        g_Fielders[FIELDING_POSITION_THIRD_BASE].locationResponsibleForCovering = 3;
+        setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[3] = FIELDING_POSITION_THIRD_BASE;
     } else {
-        f32 futureZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Fielders[4].framesToGetToBallLandingSpot].pos.z;
+        f32 futureZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Fielders[FIELDING_POSITION_THIRD_BASE].framesToGetToBallLandingSpot].pos.z;
         if (futureZ < base_MoundCoordinates[3].z) {
-            g_Fielders[5].locationResponsibleForCovering = 3;
-            g_Fielders[5].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[5] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[5].unknown_writeOnly = 0;
-            g_Fielders[5].fielderVeloAdjustmentCode = 0;
-            g_Fielders[5].unknown_writeOnly_always0 = 0;
-            g_Fielders[5].timeSinceThrowWasCaught = 0;
-            g_Fielders[5].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[3] = 5;
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 3;
+            setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[3] = FIELDING_POSITION_SHORTSTOP;
         } else {
-            g_Fielders[0].locationResponsibleForCovering = 3;
-            g_Fielders[0].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[0] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[0].unknown_writeOnly = 0;
-            g_Fielders[0].fielderVeloAdjustmentCode = 0;
-            g_Fielders[0].unknown_writeOnly_always0 = 0;
-            g_Fielders[0].timeSinceThrowWasCaught = 0;
-            g_Fielders[0].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[3] = 0;
-            g_Fielders[0].pitcherHeadingToCover1stOr3rd = 1;
+            g_Fielders[FIELDING_POSITION_PITCHER].locationResponsibleForCovering = 3;
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[3] = FIELDING_POSITION_PITCHER;
+            g_Fielders[FIELDING_POSITION_PITCHER].pitcherHeadingToCover1stOr3rd = TRUE;
         }
     }
 
     if (g_Ball.Hit_HorizontalAngle < 0x400 || g_Ball.hitClassification3 == 7) {
-        if (fl->fielderAutoMovementCode[5] == 0) {
-            g_Fielders[5].locationResponsibleForCovering = 2;
-            g_Fielders[5].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[5] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[5].unknown_writeOnly = 0;
-            g_Fielders[5].fielderVeloAdjustmentCode = 0;
-            g_Fielders[5].unknown_writeOnly_always0 = 0;
-            g_Fielders[5].timeSinceThrowWasCaught = 0;
-            g_Fielders[5].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[2] = 5;
-        } else if (fl->fielderAutoMovementCode[3] == 0) {
-            g_Fielders[3].locationResponsibleForCovering = 2;
-            g_Fielders[3].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[3] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[3].unknown_writeOnly = 0;
-            g_Fielders[3].fielderVeloAdjustmentCode = 0;
-            g_Fielders[3].unknown_writeOnly_always0 = 0;
-            g_Fielders[3].timeSinceThrowWasCaught = 0;
-            g_Fielders[3].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[2] = 3;
+        if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SHORTSTOP] == 0) {
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 2;
+            setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SHORTSTOP;
+        } else if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SECOND_BASE] == 0) {
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 2;
+            setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SECOND_BASE;
         } else {
-            g_Fielders[3].locationResponsibleForCovering = 2;
-            g_Fielders[5].locationResponsibleForCovering = 2;
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 2;
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 2;
         }
     } else {
-        if (fl->fielderAutoMovementCode[3] == 0) {
-            g_Fielders[3].locationResponsibleForCovering = 2;
-            g_Fielders[3].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[3] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[3].unknown_writeOnly = 0;
-            g_Fielders[3].fielderVeloAdjustmentCode = 0;
-            g_Fielders[3].unknown_writeOnly_always0 = 0;
-            g_Fielders[3].timeSinceThrowWasCaught = 0;
-            g_Fielders[3].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[2] = 3;
-        } else if (fl->fielderAutoMovementCode[5] == 0) {
-            g_Fielders[5].locationResponsibleForCovering = 2;
-            g_Fielders[5].autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                fl->fielderAutoMovementCode[5] = autoMovementFunctions[1].code;
-            }
-            g_Fielders[5].unknown_writeOnly = 0;
-            g_Fielders[5].fielderVeloAdjustmentCode = 0;
-            g_Fielders[5].unknown_writeOnly_always0 = 0;
-            g_Fielders[5].timeSinceThrowWasCaught = 0;
-            g_Fielders[5].fielderTrackingBallState = 0;
-            fl->fielderAssignedLocationIndex[2] = 5;
+        if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SECOND_BASE] == 0) {
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 2;
+            setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SECOND_BASE;
+        } else if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SHORTSTOP] == 0) {
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 2;
+            setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 1);
+            g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SHORTSTOP;
         } else {
-            g_Fielders[3].locationResponsibleForCovering = 2;
-            g_Fielders[5].locationResponsibleForCovering = 2;
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 2;
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 2;
         }
     }
 
     for (i = 0; i < 9; i++) {
-        s16 loc = g_Fielders[i].locationResponsibleForCovering;
-        if (loc >= 0 && loc <= 3) {
+        if (g_Fielders[i].locationResponsibleForCovering >= 0 && g_Fielders[i].locationResponsibleForCovering <= 3) {
             g_Fielders[i].isResponsibleForCoveringALocation = 1;
         }
     }
@@ -5179,10 +5143,12 @@ void setInitialFielderMovements_CoverBases(void) {
 
 // .text:0x0004BA0C size:0xFBC mapped:0x8068AAA0
 void updateSomeAutoMovementAssignments(void) {
-    int numAssigned;
-    int problemOutfieldBase = -1;
-    int i;
     InMemFielder* fielder;
+    int best9, best8, best7;
+    int i;
+    int problemOutfieldBase = -1;
+    int numAssigned;
+    f32 dist9, dist8, dist7;
 
     if (g_BallsStrikesOuts.outs >= 3) {
         return;
@@ -5191,17 +5157,9 @@ void updateSomeAutoMovementAssignments(void) {
         return;
     }
 
-    numAssigned = 0;
-    if (g_FieldingLogic.fielderAssignedLocationIndex[0] != -1) {
-        numAssigned = 1;
-        if (g_FieldingLogic.fielderAssignedLocationIndex[1] != -1) {
-            numAssigned = 2;
-            if (g_FieldingLogic.fielderAssignedLocationIndex[2] != -1) {
-                numAssigned = 3;
-                if (g_FieldingLogic.fielderAssignedLocationIndex[3] != -1) {
-                    numAssigned = 4;
-                }
-            }
+    for (numAssigned = 0; numAssigned < 4; numAssigned++) {
+        if (g_FieldingLogic.fielderAssignedLocationIndex[numAssigned] == -1) {
+            break;
         }
     }
 
@@ -5212,144 +5170,54 @@ void updateSomeAutoMovementAssignments(void) {
     }
 
     for (i = 0; i < 4; i++) {
-        int fielderIndex;
-        int code;
-
-        if (g_FieldingLogic.baseCoveredInd[i] != 0) {
-            continue;
-        }
-        fielderIndex = g_FieldingLogic.fielderAssignedLocationIndex[i];
-        if (fielderIndex < 0) {
-            continue;
-        }
-        code = g_FieldingLogic.fielderAutoMovementCode[fielderIndex];
-
-        if (code == 7) {
-            fielder = &g_Fielders[fielderIndex];
-            if (i == g_FieldingLogic.somethingForTryingTagOutTargetBase) {
-                if (fielder->distanceToBases[i] >= 3.0f) {
-                    int loc = fielder->locationResponsibleForCovering;
-                    if (loc >= 0) {
-                        if (loc <= 3) {
-                            if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
-                                g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                                g_FieldingLogic.baseCoveredInd[loc] = 0;
-                            }
-                            fielder->locationResponsibleForCovering = -1;
-                            fielder->isResponsibleForCoveringALocation = 0;
-                            if (fielder->autoMovementFunctionIndex == 1) {
-                                if (fielderIndex != -1) {
-                                    setFielderAutoMovement(fielderIndex, 12);
-                                }
-                            }
-                        } else if (loc == 5) {
-                            fielder->locationResponsibleForCovering = -1;
-                            fielder->isResponsibleForCoveringALocation = 0;
-                            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                            if (fielder->autoMovementFunctionIndex == 14) {
-                                if (fielderIndex != -1) {
-                                    setFielderAutoMovement(fielderIndex, 12);
-                                }
-                            }
+        if (g_FieldingLogic.baseCoveredInd[i] == 0) {
+            s16 fielderIndex = g_FieldingLogic.fielderAssignedLocationIndex[i];
+            if (fielderIndex >= 0) {
+                int code = g_FieldingLogic.fielderAutoMovementCode[fielderIndex];
+                if (code == 7) {
+                    if (i == g_FieldingLogic.somethingForTryingTagOutTargetBase) {
+                        if (!(g_Fielders[fielderIndex].distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f)) {
+                            fn_3_4B8D0(fielderIndex);
                         }
+                    } else if (g_Fielders[fielderIndex].distanceToBases[i] > 2.5f) {
+                        fn_3_4B8D0(fielderIndex);
+                    }
+                } else if (code == 1 || code == 10 || code == 11) {
+                    if (g_Fielders[fielderIndex].distanceToBases[i] > 2.0f) {
+                        fn_3_4B8D0(fielderIndex);
                     }
                 }
-            } else {
-                if (fielder->distanceToBases[i] > 2.5f) {
-                    int loc = fielder->locationResponsibleForCovering;
-                    if (loc >= 0) {
-                        if (loc <= 3) {
-                            if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
-                                g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                                g_FieldingLogic.baseCoveredInd[loc] = 0;
-                            }
-                            fielder->locationResponsibleForCovering = -1;
-                            fielder->isResponsibleForCoveringALocation = 0;
-                            if (fielder->autoMovementFunctionIndex == 1) {
-                                if (fielderIndex != -1) {
-                                    setFielderAutoMovement(fielderIndex, 12);
-                                }
-                            }
-                        } else if (loc == 5) {
-                            fielder->locationResponsibleForCovering = -1;
-                            fielder->isResponsibleForCoveringALocation = 0;
-                            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                            if (fielder->autoMovementFunctionIndex == 14) {
-                                if (fielderIndex != -1) {
-                                    setFielderAutoMovement(fielderIndex, 12);
-                                }
-                            }
-                        }
+                if (code == 2) {
+                    if (g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[i]].distanceToBases[i] > 25.0f &&
+                        problemOutfieldBase == -1) {
+                        problemOutfieldBase = i;
                     }
-                }
-            }
-        } else if (code == 1 || code == 10 || code == 11) {
-            fielder = &g_Fielders[fielderIndex];
-            if (fielder->distanceToBases[i] > 2.0f) {
-                int loc = fielder->locationResponsibleForCovering;
-                if (loc >= 0) {
-                    if (loc <= 3) {
-                        if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
-                            g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                            g_FieldingLogic.baseCoveredInd[loc] = 0;
-                        }
-                        fielder->locationResponsibleForCovering = -1;
-                        fielder->isResponsibleForCoveringALocation = 0;
-                        if (fielder->autoMovementFunctionIndex == 1) {
-                            if (fielderIndex != -1) {
-                                setFielderAutoMovement(fielderIndex, 12);
-                            }
-                        }
-                    } else if (loc == 5) {
-                        fielder->locationResponsibleForCovering = -1;
-                        fielder->isResponsibleForCoveringALocation = 0;
-                        g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                        g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                        if (fielder->autoMovementFunctionIndex == 14) {
-                            if (fielderIndex != -1) {
-                                setFielderAutoMovement(fielderIndex, 12);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (code == 2) {
-            fielderIndex = g_FieldingLogic.fielderAssignedLocationIndex[i];
-            if (g_Fielders[fielderIndex].distanceToBases[i] > 25.0f) {
-                if (problemOutfieldBase == -1) {
-                    problemOutfieldBase = i;
                 }
             }
         }
     }
 
-    {
-        int best9 = -1;
-        int best8 = -1;
-        int best7 = -1;
-        int k;
-
-        for (k = 0; k < 6; k++) {
-            int code2 = g_FieldingLogic.fielderAutoMovementCode[k];
-            if (g_Fielders[k].animatingActionInd == 0 &&
-                (code2 == 0 || (u32)(code2 - 8) <= 1 ||
-                 (code2 == 9 && k == g_FieldingLogic.fielderAssignedLocationIndex[4]))) {
+    best7 = best8 = best9 = -1;
+    dist7 = dist8 = 999.9f;
+    for (i = 0; i < 6; i++) {
+        if (g_Fielders[i].animatingActionInd == 0) {
+            u8 code = g_FieldingLogic.fielderAutoMovementCode[i];
+            if (code == 0 || code == 8 || code == 9 ||
+                (code == 9 && g_FieldingLogic.fielderAssignedLocationIndex[4] == i)) {
                 if (best9 == -1) {
-                    best9 = k;
+                    best9 = i;
                 } else if (best8 == -1) {
-                    best8 = k;
+                    best8 = i;
                 } else {
-                    best7 = k;
+                    best7 = i;
                 }
             }
         }
+    }
 
     if (numAssigned < 4) {
-        int ballFielder = g_Ball.fielderWBallIndex;
+        s16 ballFielder = g_Ball.fielderWBallIndex;
+        int winner;
 
         if (ballFielder >= 0) {
             fielder = &g_Fielders[ballFielder];
@@ -5367,76 +5235,45 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        {
-            f32 dist9;
-            f32 dist8 = 999.9f;
-            f32 dist7 = 999.9f;
-            int winner = best7;
-            f32 dx, dz;
-
-            dx = g_Fielders[best9].pos.x - base_MoundCoordinates[numAssigned].x;
-            dz = g_Fielders[best9].pos.z - base_MoundCoordinates[numAssigned].z;
-            dist9 = fielderSqrt(dx * dx + dz * dz);
-
-            if (best8 >= 0) {
-                dx = g_Fielders[best8].pos.x - base_MoundCoordinates[numAssigned].x;
-                dz = g_Fielders[best8].pos.z - base_MoundCoordinates[numAssigned].z;
-                dist8 = fielderSqrt(dx * dx + dz * dz);
-            }
-
-            if (best7 >= 0) {
-                dx = g_Fielders[best7].pos.x - base_MoundCoordinates[numAssigned].x;
-                dz = g_Fielders[best7].pos.z - base_MoundCoordinates[numAssigned].z;
-                dist7 = fielderSqrt(dx * dx + dz * dz);
-            }
-
-            if (dist9 >= dist8) {
-                if (dist9 < dist7) {
-                    winner = best9;
-                }
-            } else {
-                if (dist8 < dist7) {
-                    winner = best8;
-                }
-            }
-
-            fielder = &g_Fielders[winner];
-            fielder->locationResponsibleForCovering = numAssigned;
-            fielder->isResponsibleForCoveringALocation = 1;
-            if (winner != -1) {
-                fielder->autoMovementFunctionIndex = 1;
-                if (autoMovementFunctions[1].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[winner] = autoMovementFunctions[1].code;
-                }
-                fielder->unknown_writeOnly = 0;
-                fielder->fielderVeloAdjustmentCode = 0;
-                fielder->unknown_writeOnly_always0 = 0;
-                fielder->timeSinceThrowWasCaught = 0;
-                fielder->fielderTrackingBallState = 0;
-            }
-            g_FieldingLogic.fielderAssignedLocationIndex[numAssigned] = winner;
-            if (g_FieldingLogic.fielderAssignedLocationIndex[4] == winner) {
-                g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-            }
+        dist9 = fielderSqrt(SQ(g_Fielders[best9].pos.x - base_MoundCoordinates[numAssigned].x) +
+                            SQ(g_Fielders[best9].pos.z - base_MoundCoordinates[numAssigned].z));
+        if (best8 >= 0) {
+            dist8 = fielderSqrt(SQ(g_Fielders[best8].pos.x - base_MoundCoordinates[numAssigned].x) +
+                                SQ(g_Fielders[best8].pos.z - base_MoundCoordinates[numAssigned].z));
         }
+        if (best7 >= 0) {
+            dist7 = fielderSqrt(SQ(g_Fielders[best7].pos.x - base_MoundCoordinates[numAssigned].x) +
+                                SQ(g_Fielders[best7].pos.z - base_MoundCoordinates[numAssigned].z));
+        }
+
+        winner = best7;
+        if (dist9 < dist8) {
+            if (dist9 < dist7) {
+                winner = best9;
+            } else {
+                winner = best7;
+            }
+        } else if (dist8 < dist7) {
+            winner = best8;
+        }
+
+        assignFielderToCoverLocation(winner, numAssigned);
         return;
     }
 
     if (problemOutfieldBase >= 0) {
-        int oldFielder;
         int newFielder = -1;
-        int k;
+        int oldFielder;
 
-        for (k = 0; k < 6; k++) {
-            int code2 = g_FieldingLogic.fielderAutoMovementCode[k];
-            if (code2 == 0 || code2 == 8 || code2 == 9) {
-                f32 dist = g_Fielders[k].distanceToBases[problemOutfieldBase];
-                if (dist < 20.0f) {
+        for (i = 0; i < 6; i++) {
+            u8 code = g_FieldingLogic.fielderAutoMovementCode[i];
+            if (code == 0 || code == 8 || code == 9) {
+                if (g_Fielders[i].distanceToBases[problemOutfieldBase] < 20.0f) {
                     if (newFielder == -1) {
-                        newFielder = k;
-                    } else if (dist + 3.0f < g_Fielders[newFielder].distanceToBases[problemOutfieldBase]) {
-                        newFielder = k;
+                        newFielder = i;
+                    } else if (g_Fielders[i].distanceToBases[problemOutfieldBase] + 3.0f <
+                               g_Fielders[newFielder].distanceToBases[problemOutfieldBase]) {
+                        newFielder = i;
                     }
                 }
             }
@@ -5446,103 +5283,33 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        oldFielder = g_FieldingLogic.fielderAssignedLocationIndex[problemOutfieldBase];
-        if (oldFielder != -1) {
-            g_Fielders[oldFielder].autoMovementFunctionIndex = 12;
-            if (autoMovementFunctions[12].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[oldFielder] = autoMovementFunctions[12].code;
-            }
-            g_Fielders[oldFielder].unknown_writeOnly = 0;
-            g_Fielders[oldFielder].fielderVeloAdjustmentCode = 0;
-            g_Fielders[oldFielder].unknown_writeOnly_always0 = 0;
-            g_Fielders[oldFielder].timeSinceThrowWasCaught = 0;
-            g_Fielders[oldFielder].fielderTrackingBallState = 0;
-        }
+        setFielderAutoMovementIfValid(g_FieldingLogic.fielderAssignedLocationIndex[problemOutfieldBase], 12);
 
         oldFielder = g_FieldingLogic.fielderAssignedLocationIndex[problemOutfieldBase];
-        fielder = &g_Fielders[oldFielder];
-        fielder->unknown_writeOnly = 3;
-        {
-            int loc = fielder->locationResponsibleForCovering;
-            if (loc >= 0) {
-                if (loc <= 3) {
-                    if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == oldFielder) {
-                        g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                        g_FieldingLogic.baseCoveredInd[loc] = 0;
-                    }
-                    fielder->locationResponsibleForCovering = -1;
-                    fielder->isResponsibleForCoveringALocation = 0;
-                    if (fielder->autoMovementFunctionIndex == 1) {
-                        fielder->autoMovementFunctionIndex = 12;
-                        if (autoMovementFunctions[12].code >= 0) {
-                            g_FieldingLogic.fielderAutoMovementCode[oldFielder] = autoMovementFunctions[12].code;
-                        }
-                        fielder->unknown_writeOnly = 0;
-                        fielder->fielderVeloAdjustmentCode = 0;
-                        fielder->unknown_writeOnly_always0 = 0;
-                        fielder->timeSinceThrowWasCaught = 0;
-                        fielder->fielderTrackingBallState = 0;
-                    }
-                } else if (loc == 5) {
-                    fielder->locationResponsibleForCovering = -1;
-                    fielder->isResponsibleForCoveringALocation = 0;
-                    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                    if (fielder->autoMovementFunctionIndex == 14) {
-                        fielder->autoMovementFunctionIndex = 12;
-                        if (autoMovementFunctions[12].code >= 0) {
-                            g_FieldingLogic.fielderAutoMovementCode[oldFielder] = autoMovementFunctions[12].code;
-                        }
-                        fielder->unknown_writeOnly = 0;
-                        fielder->fielderVeloAdjustmentCode = 0;
-                        fielder->unknown_writeOnly_always0 = 0;
-                        fielder->timeSinceThrowWasCaught = 0;
-                        fielder->fielderTrackingBallState = 0;
-                    }
-                }
-            }
-        }
+        g_Fielders[oldFielder].unknown_writeOnly = 3;
+        fn_3_4B8D0(oldFielder);
 
-        fielder = &g_Fielders[newFielder];
-        fielder->locationResponsibleForCovering = problemOutfieldBase;
-        fielder->isResponsibleForCoveringALocation = 1;
-        if (newFielder != -1) {
-            fielder->autoMovementFunctionIndex = 1;
-            if (autoMovementFunctions[1].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[newFielder] = autoMovementFunctions[1].code;
-            }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
-        }
-        g_FieldingLogic.fielderAssignedLocationIndex[problemOutfieldBase] = newFielder;
-        if (g_FieldingLogic.fielderAssignedLocationIndex[4] == newFielder) {
-            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-        }
+        assignFielderToCoverLocation(newFielder, problemOutfieldBase);
         return;
     }
 
     {
-        int cutoffFielder = g_FieldingLogic.fielderAssignedLocationIndex[4];
-        int k;
+        int winner;
 
-        if (cutoffFielder != -1) {
-            if (g_Fielders[cutoffFielder].locationResponsibleForCovering == 5) {
-                return;
-            }
-        }
-
-        if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome <= 1) {
+        if (g_FieldingLogic.fielderAssignedLocationIndex[4] != -1 &&
+            g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[4]].locationResponsibleForCovering == 5) {
             return;
         }
 
-        for (k = 0; k < 9; k++) {
-            if (g_FieldingLogic.fielderAutoMovementCode[k] == 7) {
-                if (g_Fielders[k].distanceToMound < 8.0f) {
-                    return;
+        dist7 = dist8 = 999.9f;
+        if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT) {
+            return;
+        }
+
+        for (i = 0; i < 9; i++) {
+            if (g_FieldingLogic.fielderAutoMovementCode[i] == 7) {
+                if (g_Fielders[i].distanceToMound < 8.0f) {
+                    goto end;
                 }
                 break;
             }
@@ -5552,62 +5319,49 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        {
-            f32 dist9 = g_Fielders[best9].distanceToMound;
-            f32 dist8 = dist9;
-            f32 dist7 = dist9;
-            int winner = best7;
-
-            if (best8 >= 0) {
-                dist8 = g_Fielders[best8].distanceToMound;
-            }
-            if (best7 >= 0) {
-                dist7 = g_Fielders[best7].distanceToMound;
-            }
-
-            if (dist9 >= dist8) {
-                if (dist9 < dist7) {
-                    winner = best9;
-                }
-            } else {
-                if (dist8 < dist7) {
-                    winner = best8;
-                }
-            }
-
-            fielder = &g_Fielders[winner];
-            fielder->locationResponsibleForCovering = 5;
-            fielder->isResponsibleForCoveringALocation = 2;
-            if (winner != -1) {
-                fielder->autoMovementFunctionIndex = 14;
-                if (autoMovementFunctions[14].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[winner] = autoMovementFunctions[14].code;
-                }
-                fielder->unknown_writeOnly = 0;
-                fielder->fielderVeloAdjustmentCode = 0;
-                fielder->unknown_writeOnly_always0 = 0;
-                fielder->timeSinceThrowWasCaught = 0;
-                fielder->fielderTrackingBallState = 0;
-            }
-            g_FieldingLogic.fielderAssignedLocationIndex[4] = winner;
+        dist9 = g_Fielders[best9].distanceToMound;
+        if (best8 >= 0) {
+            dist8 = g_Fielders[best8].distanceToMound;
         }
+        if (best7 >= 0) {
+            dist7 = g_Fielders[best8].distanceToMound;
+        }
+
+        if (dist9 < dist8) {
+            if (dist9 < dist7) {
+                winner = best9;
+            } else {
+                winner = best7;
+            }
+        } else if (dist8 < dist7) {
+            winner = best8;
+        } else {
+            winner = best7;
+        }
+
+        fielder = &g_Fielders[winner];
+        fielder->locationResponsibleForCovering = 5;
+        fielder->isResponsibleForCoveringALocation = 2;
+        if (winner != -1) {
+            setFielderAutoMovement(winner, 14);
+        }
+        g_FieldingLogic.fielderAssignedLocationIndex[4] = winner;
     }
-    }
+end:;
 }
 
 // .text:0x0004B8D0 size:0x13C mapped:0x8068A964
 void fn_3_4B8D0(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    s16 covering = fielder->locationResponsibleForCovering;
 
-    if (covering < 0) {
+    if (fielder->locationResponsibleForCovering < 0) {
         return;
     }
 
-    if (covering <= 3) {
-        if (g_FieldingLogic.fielderAssignedLocationIndex[covering] == fielderIndex) {
-            g_FieldingLogic.fielderAssignedLocationIndex[covering] = -1;
-            g_FieldingLogic.baseCoveredInd[covering] = 0;
+    if (fielder->locationResponsibleForCovering <= 3) {
+        if (g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] == fielderIndex) {
+            g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] = -1;
+            g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] = FALSE;
         }
 
         fielder->locationResponsibleForCovering = -1;
@@ -5616,12 +5370,12 @@ void fn_3_4B8D0(int fielderIndex) {
         if (fielder->autoMovementFunctionIndex != 1) {
             return;
         }
-        if (fielderIndex == -1) {
+        if (fielderIndex == FIELDING_POSITION_NONE) {
             return;
         }
 
         setFielderAutoMovement(fielderIndex, 12);
-    } else if (covering == 5) {
+    } else if (fielder->locationResponsibleForCovering == 5) {
         fielder->locationResponsibleForCovering = -1;
         g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
         fielder->isResponsibleForCoveringALocation = 0;
@@ -5630,7 +5384,7 @@ void fn_3_4B8D0(int fielderIndex) {
         if (fielder->autoMovementFunctionIndex != 14) {
             return;
         }
-        if (fielderIndex == -1) {
+        if (fielderIndex == FIELDING_POSITION_NONE) {
             return;
         }
 
@@ -5647,14 +5401,13 @@ void autoMovement7_8_outfiederNoCatch_Phase1(int fielderIndex) {
 
     if (updateFielderPositionAndVelocityForSpecialActions(fielderIndex) == 0) {
         if (fielder->presetLocationToStandAt >= 2) {
-            targetX = presetFielderLocations[fielder->presetLocationToStandAt].x;
-            targetZ = presetFielderLocations[fielder->presetLocationToStandAt].z;
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+            setFielderAutoCoords(fielderIndex, presetFielderLocations[fielder->presetLocationToStandAt].x,
+                                 presetFielderLocations[fielder->presetLocationToStandAt].z);
         } else {
-            if (fielderIndex == 6) {
+            if (fielderIndex == FIELDING_POSITION_LEFT_FIELD) {
                 offsetX = 10.0f;
             }
-            if (fielderIndex == 8) {
+            if (fielderIndex == FIELDING_POSITION_RIGHT_FIELD) {
                 offsetX = -10.0f;
             }
 
@@ -5686,12 +5439,13 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
     result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
     switch (result) {
     case 2:
-    case 1:
         return;
+    case 1:
+        goto end;
     default:
         if (g_FieldingLogic.locationThrownTo >= 1 && g_FieldingLogic.locationThrownTo <= 3 &&
             g_FieldingLogic.throwWindUpFrameCounter == 1 &&
-            (g_FieldingLogic.locationThrownTo == 2 || fielderIndex != 7)) {
+            (g_FieldingLogic.locationThrownTo == 2 || fielderIndex != FIELDING_POSITION_CENTER_FIELD)) {
             angle = calculateAngleFromCoordinates(g_Ball.throwDestination.x - g_Ball.AtBat_Contact_BallPos.x,
                                                    g_Ball.throwDestination.z - g_Ball.AtBat_Contact_BallPos.z);
             getComponentsFromSAng(angle, &outX, &outZ);
@@ -5704,10 +5458,10 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
             angle2 = calculateAngleFromCoordinates(targetX, targetZ);
 
             if (angle2 <= 0x800 &&
-                ((angle2 < 0x300 && fielderIndex == 8) ||
-                 (angle2 > 0x500 && fielderIndex == 6) ||
-                 (angle2 < 0x400 && (fielderIndex == 7 || fielderIndex == 8)) ||
-                 (angle2 >= 0x400 && (fielderIndex == 7 || fielderIndex == 6)))) {
+                ((angle2 < 0x300 && fielderIndex == FIELDING_POSITION_RIGHT_FIELD) ||
+                 (angle2 > 0x500 && fielderIndex == FIELDING_POSITION_LEFT_FIELD) ||
+                 (angle2 < 0x400 && (fielderIndex == FIELDING_POSITION_CENTER_FIELD || fielderIndex == FIELDING_POSITION_RIGHT_FIELD)) ||
+                 (angle2 >= 0x400 && (fielderIndex == FIELDING_POSITION_CENTER_FIELD || fielderIndex == FIELDING_POSITION_LEFT_FIELD)))) {
 
                 if (targetZ < base_MoundCoordinates[1].z) {
                     targetX = (targetX < 0.0f) ? -35.0f : 35.0f;
@@ -5733,6 +5487,7 @@ void autoMovement6_outfielderNoCatch_Phase2(int fielderIndex) {
             setFielderAutoMovement(fielderIndex, 12);
         }
     }
+end:;
 }
 
 // .text:0x0004A9AC size:0x77C mapped:0x80689A40
@@ -5777,7 +5532,7 @@ void autoMovement13_GoTowardsBallAsBackUp(int fielderIndex) {
 
         setFielderAutoCoords(fielderIndex, outX, outZ);
 
-        if (fielderIndex >= 6) {
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
             int code;
 
             if (otherFielderIndex >= 6 && fielder->distanceFromAutoLocation < 20.0f) {
@@ -5854,34 +5609,14 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     CoordAndDist* future;
     int index;
-    f32 speed;
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
         f32* futureX;
         f32* futureZ;
-        f32 fx, ex, ez;
 
-        fx = fielder->pos.x;
-        future = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30];
-        futureX = &future->pos.x;
-        ex = *futureX;
-        futureZ = &future->pos.z;
-        ez = *futureZ;
-
-        if (ex == fx && ez == fielder->pos.z) {
-            index = 1;
-        } else {
-            f32 dz = ez - fielder->pos.z;
-            f32 dx = ex - fx;
-            f32 dxSq = dx * dx;
-            f32 dzSq = dz * dz;
-            f32 dist = fielderSqrt(dxSq + dzSq);
-            speed = fielder->joggingSpeed;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            index = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
-        }
+        futureX = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30].pos.x;
+        futureZ = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30].pos.z;
+        index = fRunningTimeToDestinationPlus7(fielderIndex, *futureX, *futureZ);
 
         if (index < g_Ball.framesUntilBallHitsGround + 30) {
             *outX = *futureX;
@@ -5904,7 +5639,7 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
             return;
         }
 
-        if (fielderIndex >= 6) {
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
             f32 vx = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
             f32 vz = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
             f32 vxSq = vx * vx;
@@ -5921,29 +5656,8 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
             }
         }
 
-        {
-            f32 fx30 = fielder->pos.x;
-            f32 ex30, ez30;
-
-            future = &g_Ball.physicsSubstruct.futureCoordsAndDist[30];
-            ex30 = future->pos.x;
-            ez30 = future->pos.z;
-
-            if (ex30 == fx30 && ez30 == fielder->pos.z) {
-                index = 1;
-            } else {
-                f32 dz = ez30 - fielder->pos.z;
-                f32 dx = ex30 - fx30;
-                f32 dxSq = dx * dx;
-                f32 dzSq = dz * dz;
-                f32 dist = fielderSqrt(dxSq + dzSq);
-                speed = fielder->joggingSpeed;
-                if (speed == 0.0f) {
-                    speed = 1.0f;
-                }
-                index = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
-            }
-        }
+        future = &g_Ball.physicsSubstruct.futureCoordsAndDist[30];
+        index = fRunningTimeToDestinationPlus7(fielderIndex, future->pos.x, future->pos.z);
 
         if (index < 30) {
             *outX = future->pos.x;
@@ -6166,33 +5880,29 @@ void autoMovement24_goTowardsHitBall_humanTeam(int fielderIndex) {
 // .text:0x000499C4 size:0x254 mapped:0x80688A58
 void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* out) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int secondaryFielder;
+    int secondaryFielder = g_FieldingLogic.selectedFielder;
+    InMemFielder* secondary;
     int diff;
-    int frame;
     int targetFrame;
-    CoordAndDist* futureCoord;
+    int frame;
     f32 threshold;
     f32 dist;
-    f32 sqx, sqz;
     f32 x, z;
     f32 scale;
-    f32* px;
-    f32* pz;
 
     out->y = 0.0f;
 
-    secondaryFielder = g_FieldingLogic.selectedFielder;
     if (g_FieldingLogic.secondaryFielder >= 0) {
         secondaryFielder = g_FieldingLogic.secondaryFielder;
     }
 
     targetFrame = 0;
-    diff = g_Fielders[secondaryFielder].framesToGetToBallLandingSpot - g_Ball.framesSinceHit;
+    secondary = &g_Fielders[secondaryFielder];
+    diff = secondary->framesToGetToBallLandingSpot - g_Ball.framesSinceHit;
     if (diff > 0) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[diff];
-        threshold = futureCoord->dist + fielderActionConstants[0];
+        threshold = g_Ball.physicsSubstruct.futureCoordsAndDist[diff].dist + fielderActionConstants[0];
         for (frame = diff + 1; frame < 360; frame += 3) {
-            if (threshold < futureCoord->dist) {
+            if (threshold < g_Ball.physicsSubstruct.futureCoordsAndDist[diff].dist) {
                 break;
             }
         }
@@ -6211,22 +5921,17 @@ void setSecondaryFielderToBe12mFromDropSpotToSupport(int fielderIndex, VecXYZ* o
             frame = diff;
         }
 
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-        px = &futureCoord->pos.x;
-        pz = &futureCoord->pos.z;
-        sqx = (*px) * (*px);
-        sqz = (*pz) * (*pz);
-        dist = fielderSqrt(sqx + sqz);
+        dist = fielderSqrt(SQ(g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x) +
+                           SQ(g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z));
 
-        x = (*px) / dist;
-        z = (*pz) / dist;
+        x = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x / dist;
+        z = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z / dist;
         scale = dist + fielderActionConstants[0];
         out->x = x * scale;
         out->z = z * scale;
     } else {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[targetFrame];
-        out->x = futureCoord->pos.x;
-        out->z = futureCoord->pos.z;
+        out->x = g_Ball.physicsSubstruct.futureCoordsAndDist[targetFrame].pos.x;
+        out->z = g_Ball.physicsSubstruct.futureCoordsAndDist[targetFrame].pos.z;
     }
 }
 
@@ -6242,51 +5947,55 @@ void secondaryOutfielderWhenToStopMoving(int fielderIndex) {
     f32 intendedZ;
 
     do {
-    if (g_Ball.pauseBallMovementWhenInPlant) {
-        dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
-        dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
-        dist = fielderSqrt(dx * dx + dz * dz);
+        if (g_Ball.pauseBallMovementWhenInPlant) {
+            dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
+            dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
 
-        if (dist < fielderActionConstants[37]) {
+            if (dist < fielderActionConstants[37]) {
+                break;
+            }
+
+            normX = dx / dist;
+            normZ = dz / dist;
+            intendedX = fielder->pos.x + (fielderActionConstants[36] - 1.0f) * normX;
+            intendedZ = fielder->pos.z + (fielderActionConstants[36] - 1.0f) * normZ;
+            setFielderAutoCoords(fielderIndex, intendedX, intendedZ);
+        }
+
+        if (g_Ball.hitWallInd) {
+            if (fielder->distanceFromBall < fielderActionConstants[1]) {
+                break;
+            }
+        } else {
+            f32 dxSq;
+            f32 dzSq;
+
+            dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.ballWillHitBallPos.x;
+            dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.ballWillHitBallPos.z;
+            dxSq = dx * dx;
+            dzSq = dz * dz;
+            dist = fielderSqrt(dxSq + dzSq);
+
+            if (dist < fielderActionConstants[2] && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
+                break;
+            }
+        }
+
+        if (g_Ball.hitClassification1 == 2 && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
             break;
         }
 
-        normX = dx / dist;
-        normZ = dz / dist;
-        intendedX = fielder->pos.x + (fielderActionConstants[36] - 1.0f) * normX;
-        intendedZ = fielder->pos.z + (fielderActionConstants[36] - 1.0f) * normZ;
-        setFielderAutoCoords(fielderIndex, intendedX, intendedZ);
-    }
-
-    if (g_Ball.hitWallInd) {
-        if (fielder->distanceFromBall < fielderActionConstants[1]) {
-            break;
-        }
-    } else {
-        dx = g_Ball.AtBat_Contact_BallPos.x - g_Ball.ballWillHitBallPos.x;
-        dz = g_Ball.AtBat_Contact_BallPos.z - g_Ball.ballWillHitBallPos.z;
-        dist = fielderSqrt(dx * dx + dz * dz);
-
-        if (dist < fielderActionConstants[2] && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
-            break;
-        }
-    }
-
-    if (g_Ball.hitClassification1 == 2 && fielder->groundDistanceFromBall < fielderActionConstants[3]) {
-        break;
-    }
-
-    return;
+        return;
     } while (0);
 
-    g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
-    g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
-    g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
-    g_Fielders[fielderIndex].velocityX = 0.0f;
-    g_Fielders[fielderIndex].velocityZ = 0.0f;
-    g_Fielders[fielderIndex].currentVelocity = 0.0f;
-    g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
+    stopFielderAtCurrentPosition(fielderIndex);
 }
+
+/* ============================================================================
+ * Auto-movement: cutoffs and relays
+ * Cutoff placement and timing, and fielders lining up to intercept a thrown ball.
+ * ============================================================================ */
 
 // .text:0x00048A54 size:0xAA0 mapped:0x80687AE8
 void autoMovement11_cutoff_setInitialLocation(int fielderIndex) {
@@ -7207,6 +6916,11 @@ void fn_3_4597C(int fielderIndex) {
     setFielderAutoCoords(fielderIndex, x, z);
 }
 
+/* ============================================================================
+ * Auto-movement: going after the hit ball
+ * Going towards the hit ball and the fielderTrackingBall state machine.
+ * ============================================================================ */
+
 // .text:0x00045860 size:0x11C mapped:0x806848F4
 void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -7949,6 +7663,12 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
     setFielderAutoMovement(fielderIndex, 12);
 }
 
+/* ============================================================================
+ * AI fielding assignments and knockouts
+ * AI-team assignments on the first frame after the hit, and knockout handling for fly balls and
+ * grounders.
+ * ============================================================================ */
+
 // .text:0x00041D78 size:0x304 mapped:0x80680E0C
 void fielderAISomething(void) {
     int i;
@@ -8016,18 +7736,47 @@ void fielderAISomething(void) {
     }
 }
 
+static inline void releaseCoverAssignment(int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    s16 loc = fielder->locationResponsibleForCovering;
+
+    if (loc >= 0) {
+        if (loc <= 3) {
+            if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
+                g_FieldingLogic.fielderAssignedLocationIndex[loc] = FIELDING_POSITION_NONE;
+                g_FieldingLogic.baseCoveredInd[loc] = FALSE;
+            }
+            fielder->locationResponsibleForCovering = -1;
+            fielder->isResponsibleForCoveringALocation = FALSE;
+
+            if (fielder->autoMovementFunctionIndex == 1 && fielderIndex != FIELDING_POSITION_NONE) {
+                setFielderAutoMovement(fielderIndex, 12);
+            }
+        } else if (loc == 5) {
+            fielder->locationResponsibleForCovering = -1;
+            g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+            fielder->isResponsibleForCoveringALocation = FALSE;
+            g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
+
+            if (fielder->autoMovementFunctionIndex == 14 && fielderIndex != FIELDING_POSITION_NONE) {
+                setFielderAutoMovement(fielderIndex, 12);
+            }
+        }
+    }
+}
+
 // .text:0x0004197C size:0x3FC mapped:0x80680A10
 void fielderAIAssignmentRelated(int mode) {
     InMemFielder* fielder;
     int i;
+    f32 bestDist = 999.9f;
     f32 dx;
     f32 dz;
     f32 sqx;
+    f32 sqz;
     f32 dist;
-    f32 bestDist = 999.9f;
-    int bestFielder;
+    int bestFielder; /* never initialised in the original */
     u8 code;
-    s16 covering;
 
     for (i = 0; i < 9; i++) {
         fielder = &g_Fielders[i];
@@ -8035,7 +7784,8 @@ void fielderAIAssignmentRelated(int mode) {
         dx = g_Ball.physicsSubstruct.futureCoordsAndDist[90].pos.x - fielder->pos.x;
         dz = g_Ball.physicsSubstruct.futureCoordsAndDist[90].pos.z - fielder->pos.z;
         sqx = dx * dx;
-        dist = dolsqrtf2(sqx + dz * dz);
+        sqz = dz * dz;
+        dist = dolsqrtf2(sqx + sqz);
 
         if (mode == 1 && fielder->fielderReadiness != 0 && fielder->always0_ != 1 &&
             fielder->always0_ != 2 && dist < 3.0f) {
@@ -8061,30 +7811,8 @@ void fielderAIAssignmentRelated(int mode) {
         }
     }
 
-    fielder = &g_Fielders[bestFielder];
-    covering = fielder->locationResponsibleForCovering;
-    if (covering != 0 && covering >= 0) {
-        if (covering <= 3) {
-            if (g_FieldingLogic.fielderAssignedLocationIndex[covering] == bestFielder) {
-                g_FieldingLogic.fielderAssignedLocationIndex[covering] = -1;
-                g_FieldingLogic.baseCoveredInd[covering] = 0;
-            }
-            fielder->locationResponsibleForCovering = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-
-            if (fielder->autoMovementFunctionIndex == 1 && bestFielder != -1) {
-                setFielderAutoMovement(bestFielder, 12);
-            }
-        } else if (covering == 5) {
-            fielder->locationResponsibleForCovering = -1;
-            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-
-            if (fielder->autoMovementFunctionIndex == 14 && bestFielder != -1) {
-                setFielderAutoMovement(bestFielder, 12);
-            }
-        }
+    if (g_Fielders[bestFielder].locationResponsibleForCovering != 0) {
+        releaseCoverAssignment(bestFielder);
     }
 
     fielderAIAssignmentRelated_finish(bestFielder);
@@ -8320,6 +8048,14 @@ void fn_3_40C04(void) {
     fn_3_40D88();
 }
 
+static inline f32 distanceToBallLandingSpot(int fielderIndex) {
+    f32 dx = g_Fielders[fielderIndex].pos.x - g_Ball.landingSpotLocation.x;
+    f32 dz = g_Fielders[fielderIndex].pos.z - g_Ball.landingSpotLocation.z;
+    f32 sqx = dx * dx;
+    f32 sqz = dz * dz;
+    return fielderSqrt(sqx + sqz);
+}
+
 // .text:0x000402A8 size:0x95C mapped:0x8067F33C
 void fn_3_402A8(void) {
     int mask;
@@ -8336,7 +8072,7 @@ void fn_3_402A8(void) {
     }
 
     if ((mask & 0x9249) == 0 || g_Ball.landingSpotZoneAwayFromHome > 1 || !(g_Ball.maxYOfHit >= 8.0f)) {
-        if (g_Fielders[0].nonCatchFlyBallStratInd != 0 || g_Fielders[1].nonCatchFlyBallStratInd != 0) {
+        if (g_Fielders[0].nonCatchFlyBallStratInd != 0 && g_Fielders[1].nonCatchFlyBallStratInd != 0) {
             goto farTail;
         }
         if (!(g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 16.0f)) {
@@ -8373,39 +8109,28 @@ void fn_3_402A8(void) {
     }
     goto tail;
 
-farTail: {
-    InMemBallType* ball = &g_Ball;
+farTail:
     if ((mask & 0x1240000) != 0) {
-        angle = (s16)calculateAngleFromCoordinates(ball->landingSpotLocation.x, ball->landingSpotLocation.z);
+        angle = (s16)calculateAngleFromCoordinates(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z);
 
         if (g_Ball.Hit_HorizontalAngle < 0x3c0) {
             setFielderAutoMovement(8, 3);
             setFielderAutoMovement(7, 3);
             setFielderAutoMovement(3, 3);
-        } else if (g_Ball.Hit_HorizontalAngle <= 0x440) {
+        } else if (g_Ball.Hit_HorizontalAngle > 0x440) {
             setFielderAutoMovement(6, 3);
             setFielderAutoMovement(7, 3);
             setFielderAutoMovement(5, 3);
         } else {
-            f32 dx3, dz3, dist3;
-            f32 dx5, dz5, dist5;
-            f32 sqx, sqz;
+            f32 dist3;
+            f32 dist5;
 
             setFielderAutoMovement(6, 3);
             setFielderAutoMovement(7, 3);
             setFielderAutoMovement(8, 3);
 
-            dx3 = g_Fielders[3].pos.x - ball->landingSpotLocation.x;
-            dz3 = g_Fielders[3].pos.z - ball->landingSpotLocation.z;
-            sqx = dx3 * dx3;
-            sqz = dz3 * dz3;
-            dist3 = fielderSqrt(sqx + sqz);
-
-            dx5 = g_Fielders[5].pos.x - ball->landingSpotLocation.x;
-            dz5 = g_Fielders[5].pos.z - ball->landingSpotLocation.z;
-            sqx = dx5 * dx5;
-            sqz = dz5 * dz5;
-            dist5 = fielderSqrt(sqx + sqz);
+            dist3 = distanceToBallLandingSpot(3);
+            dist5 = distanceToBallLandingSpot(5);
 
             if (g_Ball.landingSpotZoneAwayFromHome < 3 || !(g_Ball.maxYOfHit >= 8.0f)) {
                 if (dist3 < dist5) {
@@ -8416,9 +8141,8 @@ farTail: {
             }
         }
     } else {
-        fn_3_3FCF0(TRUE);
+        selectInfieldersForFlyBallByAngle(mask & 0x9249);
     }
-}
 
 tail:
     setInitialFielderMovements_CoverBases();
@@ -8426,94 +8150,90 @@ tail:
     setInitialFielderMovements_restOfFielders();
 }
 
+static inline void sendAngularlyCloserFielder(int angle, int fielderIndex, int otherIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    InMemFielder* other = &g_Fielders[otherIndex];
+    int dist = __abs(angle - fielder->angleOfFieldersStartingPosition);
+    int otherDist = __abs(angle - other->angleOfFieldersStartingPosition);
+
+    if (dist < otherDist) {
+        setFielderAutoMovement(fielderIndex, 3);
+    } else {
+        setFielderAutoMovement(otherIndex, 3);
+    }
+}
+
 // .text:0x0003FCF0 size:0x5B8 mapped:0x8067ED84
-void fn_3_3FCF0(BOOL useComputedAngle) {
-    s16 angle;
-    s16 a2, a3, a4, a5;
+void selectInfieldersForFlyBallByAngle(BOOL useComputedAngle) {
+    s16 firstAngle, secondAngle, thirdAngle, shortAngle;
+    int angle;
 
     angle = g_Ball.Hit_HorizontalAngle;
     if (useComputedAngle) {
-        angle = (s16)calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                                    g_Ball.physicsSubstruct.hitLandingSpotDistFromHome);
+        /* The original passes the landing distance where the landing z belongs. */
+        angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                              g_Ball.physicsSubstruct.hitLandingSpotDistFromHome);
     }
 
-    a2 = g_Fielders[2].angleOfFieldersStartingPosition;
-    a3 = g_Fielders[3].angleOfFieldersStartingPosition;
-    a4 = g_Fielders[4].angleOfFieldersStartingPosition;
-    a5 = g_Fielders[5].angleOfFieldersStartingPosition;
+    firstAngle = g_Fielders[FIELDING_POSITION_FIRST_BASE].angleOfFieldersStartingPosition;
+    secondAngle = g_Fielders[FIELDING_POSITION_SECOND_BASE].angleOfFieldersStartingPosition;
+    thirdAngle = g_Fielders[FIELDING_POSITION_THIRD_BASE].angleOfFieldersStartingPosition;
+    shortAngle = g_Fielders[FIELDING_POSITION_SHORTSTOP].angleOfFieldersStartingPosition;
 
-    if (g_Fielders[0].cantCatchFlyBallInd == 0 &&
+    if (g_Fielders[FIELDING_POSITION_PITCHER].cantCatchFlyBallInd == 0 &&
         g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 25.0f && g_Ball.maxYOfHit < 8.0f) {
-        fn_3_3F760();
+        selectFieldersForShallowPopUp();
         return;
     }
 
-    if (angle < a2 + (a3 - a2) / 5) {
-        setFielderAutoMovement(2, 3);
-        setFielderAutoMovement(3, 3);
+    if (angle < firstAngle + (secondAngle - firstAngle) / 5) {
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 3);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 3);
         return;
     }
 
-    if (angle < (a2 + a3) / 2) {
-        setFielderAutoMovement(2, 3);
-        setFielderAutoMovement(3, 3);
+    if (angle < (firstAngle + secondAngle) / 2) {
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 3);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 3);
         return;
     }
 
-    if (angle < a3 + (a5 - a3) / 3) {
-        setFielderAutoMovement(3, 3);
+    if (angle < secondAngle + (shortAngle - secondAngle) / 3) {
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 3);
 
-        if (angle > g_Fielders[0].angleOfFieldersStartingPosition - 0x40) {
-            setFielderAutoMovement(0, 4);
+        if (angle > g_Fielders[FIELDING_POSITION_PITCHER].angleOfFieldersStartingPosition - 0x40) {
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, 4);
         }
         return;
     }
 
-    if (angle < a3 + 2 * ((a5 - a3) / 3)) {
-        setFielderAutoMovement(0, 4);
-        {
-            /* Pick whichever of fielder 3 / fielder 5 is angularly closer to the ball. */
-            int d3 = angle - g_Fielders[3].angleOfFieldersStartingPosition;
-            int d5 = angle - g_Fielders[5].angleOfFieldersStartingPosition;
-            int sign3 = d3 >> 31;
-            int sign5 = d5 >> 31;
-            d3 = (d3 ^ sign3) - sign3;
-            d5 = (d5 ^ sign5) - sign5;
+    if (angle < secondAngle + 2 * ((shortAngle - secondAngle) / 3)) {
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 4);
+        sendAngularlyCloserFielder(angle, FIELDING_POSITION_SECOND_BASE, FIELDING_POSITION_SHORTSTOP);
+        return;
+    }
 
-            if (d3 < d5) {
-                setFielderAutoMovement(3, 3);
-            } else {
-                setFielderAutoMovement(5, 3);
-            }
+    if (angle < shortAngle + (thirdAngle - shortAngle) / 3) {
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 3);
+
+        if (angle < g_Fielders[FIELDING_POSITION_PITCHER].angleOfFieldersStartingPosition + 0x40) {
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, 4);
         }
         return;
     }
 
-    if (angle < a5 + (a4 - a5) / 3) {
-        setFielderAutoMovement(5, 3);
-
-        if (angle < g_Fielders[0].angleOfFieldersStartingPosition + 0x40) {
-            setFielderAutoMovement(0, 4);
-        }
+    if (angle < shortAngle + 2 * ((thirdAngle - shortAngle) / 3)) {
+        setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 3);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 3);
         return;
     }
 
-    if (angle < a5 + 2 * ((a4 - a5) / 3)) {
-        setFielderAutoMovement(4, 3);
-        setFielderAutoMovement(5, 3);
-        return;
-    }
-
-    setFielderAutoMovement(4, 3);
-    setFielderAutoMovement(5, 3);
+    setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 3);
+    setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 3);
 }
 
 // .text:0x0003F760 size:0x590 mapped:0x8067E7F4
-void fn_3_3F760(void) {
-    InMemFielder *f;
-    int diff;
-
-    f = &g_Fielders[0];
+void selectFieldersForShallowPopUp(void) {
     setFielderAutoMovement(0, 3);
 
     if (g_Fielders[1].cantCatchFlyBallInd == 0) {
@@ -8525,11 +8245,9 @@ void fn_3_3F760(void) {
             f32 dist = fielderSqrt(future->pos.x * future->pos.x + future->pos.z * future->pos.z);
 
             if (dist < 5.0f) {
-                f = &g_Fielders[1];
                 setFielderAutoMovement(1, 3);
             }
         } else {
-            f = &g_Fielders[1];
             setFielderAutoMovement(1, 3);
         }
     }
@@ -8540,28 +8258,21 @@ void fn_3_3F760(void) {
             int t2 = g_Fielders[2].framesToGetToBallLandingSpot;
 
             if (t3 - 15 < t2) {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t3;
-                if (diff < 0x78) {
-                    f = &g_Fielders[3];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t3 < 0x78) {
                     setFielderAutoMovement(3, 3);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t2].pos.z < base_MoundCoordinates[1].z) {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t2;
-                if (diff < 0x50) {
-                    f = &g_Fielders[2];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t2 < 0x50) {
                     setFielderAutoMovement(2, 3);
                 }
             } else {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t3;
-                if (diff < 0x78) {
-                    f = &g_Fielders[3];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t3 < 0x78) {
                     setFielderAutoMovement(3, 3);
                 }
             }
         } else {
             if (g_Fielders[3].cantCatchFlyBallInd == 0 &&
                 g_Fielders[0].framesToGetToBallLandingSpot - g_Fielders[3].framesToGetToBallLandingSpot < 0x78) {
-                f = &g_Fielders[3];
                 setFielderAutoMovement(3, 3);
             }
         }
@@ -8571,30 +8282,23 @@ void fn_3_3F760(void) {
             s16 t4 = g_Fielders[4].framesToGetToBallLandingSpot;
 
             if (t5 - 15 < t4) {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t5;
-                if (diff < 0x78) {
-                    f = &g_Fielders[5];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t5 < 0x78) {
                     setFielderAutoMovement(5, 3);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t4].pos.z < base_MoundCoordinates[1].z) {
                 if (!(g_Runners[2].runnerStatus == RUNNER_STATUS_ON_FIELD && t4 > 0)) {
-                    diff = g_Fielders[0].framesToGetToBallLandingSpot - t4;
-                    if (diff < 0x50) {
-                        f = &g_Fielders[4];
+                    if (g_Fielders[0].framesToGetToBallLandingSpot - t4 < 0x50) {
                         setFielderAutoMovement(4, 3);
                     }
                 }
             } else {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t5;
-                if (diff < 0x78) {
-                    f = &g_Fielders[5];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t5 < 0x78) {
                     setFielderAutoMovement(5, 3);
                 }
             }
         } else {
             if (g_Fielders[5].cantCatchFlyBallInd == 0 &&
                 g_Fielders[0].framesToGetToBallLandingSpot - g_Fielders[5].framesToGetToBallLandingSpot < 0x78) {
-                f = &g_Fielders[5];
                 setFielderAutoMovement(5, 3);
             }
         }
@@ -8691,34 +8395,19 @@ void aITeam_selectInitialFielders_linedriveThroughPitcher(void) {
 // .text:0x0003F034 size:0xF0 mapped:0x8067E0C8
 void knockoutRelated(void) {
     int i;
-    InMemFielder* fielder;
 
-    for (fielder = g_Fielders, i = 0; i < 9; fielder++, i++) {
+    for (i = 0; i < 9; i++) {
         g_FieldingLogic.fielderAutoMovementCode[i] = 0;
-        if (i != -1) {
-            fielder->autoMovementFunctionIndex = 0;
-            if (autoMovementFunctions[0].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-            }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
-        }
+        setFielderAutoMovementIfValid(i, 0);
     }
 
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-    g_FieldingLogic.baseCoveredInd[0] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-    g_FieldingLogic.baseCoveredInd[1] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-    g_FieldingLogic.baseCoveredInd[2] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-    g_FieldingLogic.baseCoveredInd[3] = 0;
-    g_FieldingLogic.someFielderIndex = -1;
-    g_FieldingLogic.cutoffFielderIndex = -1;
-    g_FieldingLogic.interceptThrowFielder = -1;
+    for (i = 0; i < 4; i++) {
+        g_FieldingLogic.fielderAssignedLocationIndex[i] = FIELDING_POSITION_NONE;
+        g_FieldingLogic.baseCoveredInd[i] = FALSE;
+    }
+    g_FieldingLogic.someFielderIndex = FIELDING_POSITION_NONE;
+    g_FieldingLogic.cutoffFielderIndex = FIELDING_POSITION_NONE;
+    g_FieldingLogic.interceptThrowFielder = FIELDING_POSITION_NONE;
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hangtimeOfHit > 45) {
         knockoutRelated_FlyBall();
@@ -8727,51 +8416,32 @@ void knockoutRelated(void) {
     }
 }
 
+static inline void reassignClosestInfieldersToCoverBases(void);
+
 // .text:0x0003EB6C size:0x4C8 mapped:0x8067DC00
 void knockoutRelated_FlyBall(void) {
-    InMemFielder* g = &g_Fielders[0];
-    f32 targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-    f32 targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-    u8 someCollision = g_Ball.someCollisionInd;
-    u8 ballZone = g_Ball.ballZoneAwayFromHome;
     InMemFielder* fielder;
     int i;
-    int framesNeeded;
     int priority;
-    int bestPriority = 0x270f;
-    int best = -1;
-    int baseIndex;
+    int bestPriority = 9999;
+    int best; /* never initialised in the original; in practice some fielder always scores under 9999 */
 
-    for (fielder = g, i = 0; i < 9; fielder++, i++) {
-        if (targetX == fielder->pos.x && targetZ == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            f32 dx = targetX - fielder->pos.x;
-            f32 dz = targetZ - fielder->pos.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            f32 dist = fielderSqrt(sqx + sqz);
-            f32 speed = fielder->joggingSpeed;
-            u32 half = (u32)fielder->maxAccLength_ConstF >> 1;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            framesNeeded = half + (int)(dist / speed);
-        }
-
-        priority = framesNeeded;
-        if (fielder->autoMovementFunctionIndex == 2) {
+    for (i = 0; i < 9; i++) {
+        fielder = &g_Fielders[i];
+        priority = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                                  g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
             priority -= 15;
         }
         if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
             priority += 30;
         }
-        if (someCollision == 0) {
+        if (g_Ball.someCollisionInd == 0) {
             if (5.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
                 priority += 30;
             }
         }
-        if (ballZone >= 3 && i <= 5) {
+        if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID && i <= FIELDING_POSITION_SHORTSTOP) {
             priority += 15;
         }
 
@@ -8781,89 +8451,27 @@ void knockoutRelated_FlyBall(void) {
         }
     }
 
-    {
-        InMemFielder* f = &g_Fielders[best];
-        if (best != -1) {
-            setFielderAutoMovement(best, 3);
-        }
-        knockoutRelated_subFn(best, 0);
-        f->maybeMovementState = 0;
-    }
+    setFielderAutoMovementIfValid(best, 3);
+    knockoutRelated_subFn(best, 0);
+    g_Fielders[best].maybeMovementState = 0;
 
-    for (baseIndex = 0; baseIndex < 9; baseIndex++) {
-        g_Fielders[baseIndex].locationResponsibleForCovering = -1;
-        g_Fielders[baseIndex].isResponsibleForCoveringALocation = 0;
-    }
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-    g_FieldingLogic.baseCoveredInd[0] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-    g_FieldingLogic.baseCoveredInd[1] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-    g_FieldingLogic.baseCoveredInd[2] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-    g_FieldingLogic.baseCoveredInd[3] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-
-    for (baseIndex = 0; baseIndex < 4; baseIndex++) {
-        int best2;
-        f32 minDist = 9999.9f;
-        int k;
-
-        for (k = 0; k < 6; k++) {
-            if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
-                f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (d < minDist) {
-                    minDist = d;
-                    best2 = k;
-                }
-            }
-        }
-
-        g_Fielders[best2].locationResponsibleForCovering = baseIndex;
-        g_Fielders[best2].isResponsibleForCoveringALocation = 1;
-        if (best2 != -1) {
-            InMemFielder* fielder2 = &g_Fielders[best2];
-            setFielderAutoMovement(best2, 1);
-        }
-        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best2;
-    }
+    reassignClosestInfieldersToCoverBases();
     g_FieldingLogic.cutoffFielderIndex = -1;
 }
 
 // .text:0x0003E690 size:0x4DC mapped:0x8067D724
 void knockoutRelated_Grounder_Liner(void) {
-    InMemFielder* g = &g_Fielders[0];
-    f32 targetZ = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
-    f32 targetX = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
-    u8 ballZone = g_Ball.ballZoneAwayFromHome;
     InMemFielder* fielder;
     int i;
-    int framesNeeded;
     int priority;
-    int bestPriority = 0x270f;
-    int best = -1;
-    int baseIndex;
+    int bestPriority = 9999;
+    int best; /* never initialised in the original; in practice some fielder always scores under 9999 */
 
-    for (fielder = g, i = 0; i < 9; fielder++, i++) {
-        if (targetX == fielder->pos.x && targetZ == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            f32 dx = targetX - fielder->pos.x;
-            f32 dz = targetZ - fielder->pos.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            f32 dist = fielderSqrt(sqx + sqz);
-            f32 speed = fielder->joggingSpeed;
-            u32 half = (u32)fielder->maxAccLength_ConstF >> 1;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            framesNeeded = half + (int)(dist / speed);
-        }
-
-        priority = framesNeeded;
-        if (fielder->autoMovementFunctionIndex == 2) {
+    for (i = 0; i < 9; i++) {
+        fielder = &g_Fielders[i];
+        priority = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x,
+                                                  g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z);
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
             priority -= 15;
         }
         if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
@@ -8872,12 +8480,12 @@ void knockoutRelated_Grounder_Liner(void) {
         if (fielder->knockoutStatus != 0) {
             priority += fielder->knockOutCountDown;
         } else if (fielder->bodyCheckStatus == 3) {
-            priority += 0x5a;
+            priority += 90;
         }
         if (fielder->onFire != 0) {
             priority += fielder->onFireCountdown;
         }
-        if (ballZone >= 3 && i <= 5) {
+        if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID && i <= FIELDING_POSITION_SHORTSTOP) {
             priority += 30;
         }
 
@@ -8887,93 +8495,98 @@ void knockoutRelated_Grounder_Liner(void) {
         }
     }
 
-    {
-        InMemFielder* f = &g_Fielders[best];
-        if (best != -1) {
-            setFielderAutoMovement(best, 3);
-        }
-        knockoutRelated_subFn(best, 0);
-        f->maybeMovementState = 4;
-    }
+    setFielderAutoMovementIfValid(best, 3);
+    knockoutRelated_subFn(best, 0);
+    g_Fielders[best].maybeMovementState = 4;
 
-    for (baseIndex = 0; baseIndex < 9; baseIndex++) {
-        g[baseIndex].locationResponsibleForCovering = -1;
-        g[baseIndex].isResponsibleForCoveringALocation = 0;
-    }
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-    g_FieldingLogic.baseCoveredInd[0] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-    g_FieldingLogic.baseCoveredInd[1] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-    g_FieldingLogic.baseCoveredInd[2] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-    g_FieldingLogic.baseCoveredInd[3] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-
-    for (baseIndex = 0; baseIndex < 4; baseIndex++) {
-        int best2;
-        f32 minDist = 9999.9f;
-        int k;
-
-        for (k = 0; k < 6; k++) {
-            if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
-                f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (d < minDist) {
-                    minDist = d;
-                    best2 = k;
-                }
-            }
-        }
-
-        g_Fielders[best2].locationResponsibleForCovering = baseIndex;
-        g_Fielders[best2].isResponsibleForCoveringALocation = 1;
-        if (best2 != -1) {
-            setFielderAutoMovement(best2, 1);
-        }
-        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best2;
-    }
+    reassignClosestInfieldersToCoverBases();
     g_FieldingLogic.cutoffFielderIndex = -1;
 }
 
-// .text:0x0003E468 size:0x228 mapped:0x8067D4FC
-void fn_3_3E468(void) {
+/* Same body as assignClosestInfieldersToCoverBases below, which the knockout handlers inline.
+ * MWCC will not auto-inline the out-of-line function itself, so the callers use this copy. */
+static inline void reassignClosestInfieldersToCoverBases(void) {
+    s32 i;
     int baseIndex;
 
-    for (baseIndex = 0; baseIndex < 9; baseIndex++) {
-        g_Fielders[baseIndex].locationResponsibleForCovering = -1;
-        g_Fielders[baseIndex].isResponsibleForCoveringALocation = 0;
+    for (i = 0; i < 9; i++) {
+        g_Fielders[i].locationResponsibleForCovering = -1;
+        g_Fielders[i].isResponsibleForCoveringALocation = FALSE;
     }
     for (baseIndex = 0; baseIndex < 4; baseIndex++) {
-        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = -1;
-        g_FieldingLogic.baseCoveredInd[baseIndex] = 0;
+        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = FIELDING_POSITION_NONE;
+        g_FieldingLogic.baseCoveredInd[baseIndex] = FALSE;
     }
-    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
+    g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+    g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
 
     for (baseIndex = 0; baseIndex < 4; baseIndex++) {
         int k;
-        int best = -1;
+        int best; /* never initialised: the original reads garbage when no infielder is free */
         f32 minDist = 9999.9f;
 
-        for (k = 0; k < 6; k++) {
+        for (k = 0; k < FIELDING_POSITION_LEFT_FIELD; k++) {
             if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
-                f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (minDist > d) {
-                    minDist = d;
+                if (g_Fielders[k].distanceToBases[baseIndex] < minDist) {
+                    minDist = g_Fielders[k].distanceToBases[baseIndex];
                     best = k;
                 }
             }
         }
 
         g_Fielders[best].locationResponsibleForCovering = baseIndex;
-        g_Fielders[best].isResponsibleForCoveringALocation = 1;
-        if (best != -1) {
+        g_Fielders[best].isResponsibleForCoveringALocation = TRUE;
+        if (best != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(best, 1);
         }
         g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best;
     }
 }
+
+// .text:0x0003E468 size:0x228 mapped:0x8067D4FC
+void assignClosestInfieldersToCoverBases(void) {
+    s32 i;
+    int baseIndex;
+
+    for (i = 0; i < 9; i++) {
+        g_Fielders[i].locationResponsibleForCovering = -1;
+        g_Fielders[i].isResponsibleForCoveringALocation = FALSE;
+    }
+    for (baseIndex = 0; baseIndex < 4; baseIndex++) {
+        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = FIELDING_POSITION_NONE;
+        g_FieldingLogic.baseCoveredInd[baseIndex] = FALSE;
+    }
+    g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+    g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
+
+    for (baseIndex = 0; baseIndex < 4; baseIndex++) {
+        int k;
+        int best; /* never initialised: the original reads garbage when no infielder is free */
+        f32 minDist = 9999.9f;
+
+        for (k = 0; k < FIELDING_POSITION_LEFT_FIELD; k++) {
+            if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
+                if (g_Fielders[k].distanceToBases[baseIndex] < minDist) {
+                    minDist = g_Fielders[k].distanceToBases[baseIndex];
+                    best = k;
+                }
+            }
+        }
+
+        g_Fielders[best].locationResponsibleForCovering = baseIndex;
+        g_Fielders[best].isResponsibleForCoveringALocation = TRUE;
+        if (best != FIELDING_POSITION_NONE) {
+            setFielderAutoMovement(best, 1);
+        }
+        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best;
+    }
+}
+
+/* ============================================================================
+ * Auto-movement: pitcher, infield support and running off the field
+ * Pitcher line-drive movement, infield support, covering home, running off the field, foul-ball
+ * and stay-still movements.
+ * ============================================================================ */
 
 // .text:0x0003E34C size:0x11C mapped:0x8067D3E0
 void autoMovement20_pitcherLinedriveRelated(int fielderIndex) {
@@ -9755,6 +9368,12 @@ void checkIfPlayerNeedsToMoveToCatchBall(int fielderIndex) {
     }
 }
 
+/* ============================================================================
+ * Human-team control
+ * Live-ball control for the human team: the selected fielder, loose balls, initial selections,
+ * jumps.
+ * ============================================================================ */
+
 // .text:0x0003B9E4 size:0x46C mapped:0x8067AA78
 void liveBallFielderControlHumanTeam(void) {
     int i;
@@ -9813,7 +9432,7 @@ void liveBallFielderControlHumanTeam(void) {
         liveBallUpdateFieldingValues();
     }
 
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 
     if (g_Ball.ballState == BALL_STATE_HELD) {
         g_FieldingLogic.selectedFielder = g_Ball.fielderWBallIndex;
@@ -10479,19 +10098,23 @@ void fn_3_3A1FC(int fielderIndex) {
     }
 }
 
+/* ============================================================================
+ * Fielder selection
+ * Which fielder the human controls: in-air and landed-ball selection and the closest/optimal
+ * fielder choosers.
+ * ============================================================================ */
+
 // .text:0x00039EB0 size:0x34C mapped:0x80678F44
 void updateFielderSelection(void) {
-    InMemFielder* f;
-    int i;
     s16 selectedFielder;
-    int stillCountingDown = 1;
+    BOOL stillCountingDown = TRUE;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE &&
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BATTING) {
         return;
     }
 
-    if (g_Ball.deadBallReason != 0) {
+    if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
         return;
     }
     if (g_Ball.ballState == BALL_STATE_HELD) {
@@ -10509,20 +10132,19 @@ void updateFielderSelection(void) {
     }
 
     if (g_Ball.ballState == BALL_STATE_THROWN) {
-        if (g_Ball.framesUntilThrowReachesDest > 0 && g_Ball.fielderBeingThrownTo >= 0 &&
-            g_Ball.framesSinceThrowStarted == 2) {
-            if (g_FieldingLogic.locationThrownTo != 6) {
+        if (g_Ball.framesUntilThrowReachesDest > 0 && g_Ball.fielderBeingThrownTo >= 0) {
+            if (g_Ball.framesSinceThrowStarted == 2 && g_FieldingLogic.locationThrownTo != 6) {
                 setPlayerWhoCanInterceptThrow();
             }
             return;
         }
     }
 
-    g_FieldingLogic.fielderAssignedLocationIndex[5]--;
-    if (g_FieldingLogic.fielderAssignedLocationIndex[5] > 0) {
-        stillCountingDown = 0;
+    g_FieldingLogic.fielderSelectionChangeCooldown--;
+    if (g_FieldingLogic.fielderSelectionChangeCooldown > 0) {
+        stillCountingDown = FALSE;
     } else {
-        g_FieldingLogic.fielderAssignedLocationIndex[5] = 0;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 0;
     }
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] == 0) {
@@ -10548,45 +10170,14 @@ void updateFielderSelection(void) {
     }
 
     {
-        int forceReselect = 0;
+        BOOL forceReselect = FALSE;
 
         if (selectedFielder < 0 && g_Ball.ballState == BALL_STATE_LOOSE) {
-            forceReselect = 1;
+            forceReselect = TRUE;
         }
 
         if (g_FieldingLogic.knockoutFinished != 0 || forceReselect) {
-            for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = 0;
-                if (i != -1) {
-                    f->autoMovementFunctionIndex = 0;
-                    if (autoMovementFunctions[0].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-                    }
-                    f->unknown_writeOnly = 0;
-                    f->fielderVeloAdjustmentCode = 0;
-                    f->unknown_writeOnly_always0 = 0;
-                    f->timeSinceThrowWasCaught = 0;
-                    f->fielderTrackingBallState = 0;
-                }
-                f->maybeTargetPosX = 10000.0f;
-                f->maybeTargetPosZ = 0.0f;
-            }
-
-            g_FieldingLogic.selectedFielder = -1;
-            g_FieldingLogic.secondaryFielder = -1;
-            g_FieldingLogic.tertiaryFielder = -1;
-            g_FieldingLogic.cutoffFielderIndex = -1;
-            g_FieldingLogic.unkFlagMaybeInAir = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-            g_FieldingLogic.baseCoveredInd[0] = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-            g_FieldingLogic.baseCoveredInd[1] = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-            g_FieldingLogic.baseCoveredInd[2] = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-            g_FieldingLogic.baseCoveredInd[3] = 0;
-
-            selectClosestFielderBasedOnFutureCoord(0x78);
+            unused_FUN_80678e58();
 
             if (g_FieldingLogic.selectedFielder >= 0) {
                 g_FieldingLogic.knockoutFinished = 0;
@@ -10601,7 +10192,7 @@ void updateFielderSelection(void) {
     }
 
     if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0) {
-        if (selectedFielder == 3 || selectedFielder == 5) {
+        if (selectedFielder == FIELDING_POSITION_SECOND_BASE || selectedFielder == FIELDING_POSITION_SHORTSTOP) {
             HandleMiddleInfieldSelection();
             return;
         }
@@ -10616,24 +10207,13 @@ void updateFielderSelection(void) {
 
 // .text:0x00039DC4 size:0xEC mapped:0x80678E58
 void unused_FUN_80678e58(void) {
-    InMemFielder* f;
     int i;
 
-    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
+    for (i = 0; i < 9; i++) {
         g_FieldingLogic.fielderAutoMovementCode[i] = 0;
-        if (i != -1) {
-            f->autoMovementFunctionIndex = 0;
-            if (autoMovementFunctions[0].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-            }
-            f->unknown_writeOnly = 0;
-            f->fielderVeloAdjustmentCode = 0;
-            f->unknown_writeOnly_always0 = 0;
-            f->timeSinceThrowWasCaught = 0;
-            f->fielderTrackingBallState = 0;
-        }
-        f->maybeTargetPosX = 10000.0f;
-        f->maybeTargetPosZ = 0.0f;
+        setFielderAutoMovementIfValid(i, 0);
+        g_Fielders[i].maybeTargetPosX = 10000.0f;
+        g_Fielders[i].maybeTargetPosZ = 0.0f;
     }
 
     g_FieldingLogic.selectedFielder = -1;
@@ -10655,40 +10235,29 @@ void unused_FUN_80678e58(void) {
 
 // .text:0x00039858 size:0x56C mapped:0x806788EC
 void updateInAirFielderSelection(void) {
-    int selectedFielderInit = g_FieldingLogic.selectedFielder;
-    int secondaryFielderInit;
+    s16 selectedFielderInit = g_FieldingLogic.selectedFielder;
+    s16 secondaryFielderInit = g_FieldingLogic.secondaryFielder;
     InMemFielder* fielder = &g_Fielders[selectedFielderInit];
     int newFielder;
 
-    if ((secondaryFielderInit = g_FieldingLogic.secondaryFielder) < 0) {
-        if (g_FieldingLogic.unkFlagMaybeInAir != 0) {
-            return;
+    if (secondaryFielderInit < 0) {
+        if (g_FieldingLogic.unkFlagMaybeInAir == 0 && g_FieldingLogic.fielderSelectionChangeCooldown == 0) {
+            selectAssignClosestFielder2();
         }
-        if (g_FieldingLogic.fielderAssignedLocationIndex[5] != 0) {
-            return;
-        }
-        selectAssignClosestFielder2();
         return;
     }
 
-    if (selectedFielderInit <= 5 && secondaryFielderInit >= 6) {
+    if (selectedFielderInit <= FIELDING_POSITION_SHORTSTOP && secondaryFielderInit >= FIELDING_POSITION_LEFT_FIELD) {
         if (g_Ball.hitClassification1 == 2 || g_Ball.hitClassification1 == 5) {
-            int result = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
-                                            g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                            g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
-            if (g_FieldingLogic.secondaryFielder == result) {
+            if (g_FieldingLogic.secondaryFielder ==
+                selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
+                                  g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                  g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z)) {
                 goto callTail;
             }
-            return;
-        }
-        if (3.0f + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+        } else if (3.0f + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
             goto callTail;
         }
-        return;
-
-    callTail:
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-        g_FieldingLogic.secondaryFielder = -1;
         return;
     }
 
@@ -10699,40 +10268,31 @@ void updateInAirFielderSelection(void) {
         return;
     }
 
-    {
-        s16 hist = fielderControlStick_continuousAngleHistory[0];
+    if (fielderControlStick_continuousAngleHistory[0] < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
+        f32 x;
 
-        if (hist < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
-            f32 thresh5 = (f32)lbl_3_data_484C[5];
-            f32 thresh6;
-            f32 thresh7;
-            f32 x;
-
-            if (g_Ball.ballDistanceFromHome < thresh5) {
-                return;
-            }
-            thresh6 = (f32)lbl_3_data_484C[6];
-            thresh7 = (f32)lbl_3_data_484C[7];
-            x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - thresh6;
-            if (x > thresh7) {
-                x = thresh7;
-            }
-            if (g_Ball.ballDistanceFromHome < x) {
-                return;
-            }
+        if (g_Ball.ballDistanceFromHome < (f32)lbl_3_data_484C[5]) {
+            return;
         }
+        x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - (f32)lbl_3_data_484C[7];
+        if (x > (f32)lbl_3_data_484C[6]) {
+            x = (f32)lbl_3_data_484C[6];
+        }
+        if (g_Ball.ballDistanceFromHome < x) {
+            return;
+        }
+    }
 
-        if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
-            newFielder = selectedFielderInit;
-        } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
-            newFielder = secondaryFielderInit;
-        } else {
-            if (g_Ball.framesSinceHit < lbl_3_data_484C[4]) {
+    if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+        newFielder = selectedFielderInit;
+    } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+        newFielder = secondaryFielderInit;
+    } else {
+        if (g_Ball.framesSinceHit < lbl_3_data_484C[4]) {
+            int hist = fielderControlStick_continuousAngleHistory[0];
+            if (hist > 0) {
                 int i;
 
-                if (hist <= 0) {
-                    return;
-                }
                 for (i = 1; i < lbl_3_data_484C[8]; i++) {
                     s16 h = fielderControlStick_continuousAngleHistory[i];
                     if (h <= 0) {
@@ -10745,19 +10305,16 @@ void updateInAirFielderSelection(void) {
                 if (i < lbl_3_data_484C[8]) {
                     return;
                 }
-            }
-            {
-                int selectedFielder = g_FieldingLogic.selectedFielder;
-                int secondaryFielder = g_FieldingLogic.secondaryFielder;
-
-                newFielder = SelectBetterFielder(
-                    selectedFielder, secondaryFielder, 0,
-                    0.5f * (g_Fielders[selectedFielder].IntendedLocation.x +
-                                         g_Fielders[secondaryFielder].IntendedLocation.x),
-                    0.5f * (g_Fielders[selectedFielder].IntendedLocation.z +
-                                         g_Fielders[secondaryFielder].IntendedLocation.z));
+            } else {
+                return;
             }
         }
+        newFielder = SelectBetterFielder(
+            g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0,
+            0.5f * (g_Fielders[g_FieldingLogic.selectedFielder].IntendedLocation.x +
+                    g_Fielders[g_FieldingLogic.secondaryFielder].IntendedLocation.x),
+            0.5f * (g_Fielders[g_FieldingLogic.selectedFielder].IntendedLocation.z +
+                    g_Fielders[g_FieldingLogic.secondaryFielder].IntendedLocation.z));
     }
 
     if (newFielder < 0) {
@@ -10766,101 +10323,28 @@ void updateInAirFielderSelection(void) {
 
     if (newFielder == g_FieldingLogic.secondaryFielder) {
         if (g_FieldingLogic.someFielderIndex < 0) {
-            int idx = g_FieldingLogic.selectedFielder;
-            InMemFielder* f = &g_Fielders[idx];
-            if (idx != -1) {
-                f->autoMovementFunctionIndex = 24;
-                if (autoMovementFunctions[24].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[24].code;
-                }
-                g_FieldingLogic.someFielderIndex = idx;
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            ifCurrentFielderIsTakingOverBaseCovering(g_FieldingLogic.selectedFielder, 24);
         } else {
-            int idx = g_FieldingLogic.selectedFielder;
-            InMemFielder* f = &g_Fielders[idx];
-            if (idx != -1) {
-                f->autoMovementFunctionIndex = 12;
-                if (autoMovementFunctions[12].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[12].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 12);
         }
-        {
-            int idx = g_FieldingLogic.secondaryFielder;
-            InMemFielder* f = &g_Fielders[idx];
-            if (idx != -1) {
-                f->autoMovementFunctionIndex = 21;
-                if (autoMovementFunctions[21].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[21].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
-        }
+        setFielderAutoMovementIfValid(g_FieldingLogic.secondaryFielder, 21);
         g_FieldingLogic.selectedFielder = g_FieldingLogic.secondaryFielder;
     } else {
         if (g_FieldingLogic.someFielderIndex < 0) {
-            int idx = g_FieldingLogic.secondaryFielder;
-            InMemFielder* f = &g_Fielders[idx];
-            if (idx != -1) {
-                f->autoMovementFunctionIndex = 24;
-                if (autoMovementFunctions[24].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[24].code;
-                }
-                g_FieldingLogic.someFielderIndex = idx;
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            ifCurrentFielderIsTakingOverBaseCovering(g_FieldingLogic.secondaryFielder, 24);
         } else {
-            int idx = g_FieldingLogic.secondaryFielder;
-            InMemFielder* f = &g_Fielders[idx];
-            if (idx != -1) {
-                f->autoMovementFunctionIndex = 12;
-                if (autoMovementFunctions[12].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[12].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(g_FieldingLogic.secondaryFielder, 12);
         }
-        {
-            int idx = g_FieldingLogic.selectedFielder;
-            InMemFielder* f = &g_Fielders[idx];
-            if (idx != -1) {
-                f->autoMovementFunctionIndex = 21;
-                if (autoMovementFunctions[21].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[idx] = autoMovementFunctions[21].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
-        }
+        setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 21);
     }
 
-    g_FieldingLogic.secondaryFielder = -1;
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
+    g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
+    g_FieldingLogic.unkFlagMaybeInAir = FALSE;
+    return;
+
+callTail:
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
+    g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
 }
 
 // .text:0x000393B0 size:0x4A8 mapped:0x80678444
@@ -10870,12 +10354,11 @@ void updateBallLandedFielderSelection(void) {
     int winner;
 
     if (g_Ball.framesSinceHit < 60) {
-        if (g_FieldingLogic.selectedFielder == 3) {
-            InMemFielder* other = &g_Fielders[2];
-            f32 threshold = other->distanceFromHomePlate;
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SECOND_BASE) {
+            InMemFielder* other = &g_Fielders[FIELDING_POSITION_FIRST_BASE];
 
             for (n = 2; n < 30; n += 2) {
-                if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > threshold) {
+                if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > other->distanceFromHomePlate) {
                     break;
                 }
             }
@@ -10883,19 +10366,18 @@ void updateBallLandedFielderSelection(void) {
             if (n < 30 && g_Ball.ballAngleFromHome > other->playerAngleFromHome &&
                 g_Ball.ballAngleFromHome < fielder->playerAngleFromHome &&
                 other->distanceFromHomePlate > 1.0f + g_Ball.ballDistanceFromHome) {
-                winner = selectBestFielder(2, 3, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                winner = selectBestFielder(FIELDING_POSITION_FIRST_BASE, FIELDING_POSITION_SECOND_BASE, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
                                             g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
-                if (winner == 2) {
-                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(2, 0);
+                if (winner == FIELDING_POSITION_FIRST_BASE) {
+                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_FIRST_BASE, FALSE);
                     return;
                 }
             }
-        } else if (g_FieldingLogic.selectedFielder == 5) {
-            InMemFielder* other = &g_Fielders[4];
-            f32 threshold = other->distanceFromHomePlate;
+        } else if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SHORTSTOP) {
+            InMemFielder* other = &g_Fielders[FIELDING_POSITION_THIRD_BASE];
 
             for (n = 2; n < 30; n += 2) {
-                if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > threshold) {
+                if (g_Ball.physicsSubstruct.futureCoordsAndDist[n].dist > other->distanceFromHomePlate) {
                     break;
                 }
             }
@@ -10903,10 +10385,10 @@ void updateBallLandedFielderSelection(void) {
             if (n < 30 && g_Ball.ballAngleFromHome < other->playerAngleFromHome &&
                 g_Ball.ballAngleFromHome > fielder->playerAngleFromHome &&
                 other->distanceFromHomePlate > 1.0f + g_Ball.ballDistanceFromHome) {
-                winner = selectBestFielder(4, 5, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
+                winner = selectBestFielder(FIELDING_POSITION_THIRD_BASE, FIELDING_POSITION_SHORTSTOP, 0, g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.x,
                                             g_Ball.physicsSubstruct.futureCoordsAndDist[n].pos.z);
-                if (winner == 4) {
-                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(4, 0);
+                if (winner == FIELDING_POSITION_THIRD_BASE) {
+                    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_THIRD_BASE, FALSE);
                     return;
                 }
             }
@@ -10916,10 +10398,10 @@ void updateBallLandedFielderSelection(void) {
     if (g_FieldingLogic.secondaryFielder < 0) {
         goto ballLoose;
     }
-    if (g_FieldingLogic.selectedFielder > 5) {
+    if (g_FieldingLogic.selectedFielder > FIELDING_POSITION_SHORTSTOP) {
         return;
     }
-    if (g_FieldingLogic.secondaryFielder < 6) {
+    if (g_FieldingLogic.secondaryFielder < FIELDING_POSITION_LEFT_FIELD) {
         return;
     }
 
@@ -10927,29 +10409,16 @@ void updateBallLandedFielderSelection(void) {
         f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.x;
         f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[30].pos.z;
 
+        winner = FIELDING_POSITION_NONE;
         if (g_Ball.ballVelocity < 0.2f || g_Ball.ballState == BALL_STATE_LOOSE) {
             if (g_Ball.ballVelocity < 0.1f && g_Ball.ballState == BALL_STATE_HIT &&
-                g_Ball.ballZoneAwayFromHome <= 1 && fielder->distanceFromHomePlate > g_Ball.ballDistanceFromHome &&
+                g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT && fielder->distanceFromHomePlate > g_Ball.ballDistanceFromHome &&
                 fielder->groundDistanceFromBall < 5.0f) {
-                InMemFielder* secFielder = &g_Fielders[g_FieldingLogic.secondaryFielder];
-
-                if (g_FieldingLogic.secondaryFielder != -1) {
-                    secFielder->autoMovementFunctionIndex = 12;
-                    if (autoMovementFunctions[12].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[g_FieldingLogic.secondaryFielder] = autoMovementFunctions[12].code;
-                    }
-                    secFielder->unknown_writeOnly = 0;
-                    secFielder->fielderVeloAdjustmentCode = 0;
-                    secFielder->unknown_writeOnly_always0 = 0;
-                    secFielder->timeSinceThrowWasCaught = 0;
-                    secFielder->fielderTrackingBallState = 0;
-                }
-
-                g_FieldingLogic.secondaryFielder = -1;
+                setFielderAutoMovementIfValid(g_FieldingLogic.secondaryFielder, 12);
+                g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
             }
             winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0, x, z);
         } else {
-            winner = -1;
             if (3.0f + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
                 winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 0, x, z);
             }
@@ -10975,8 +10444,8 @@ ballLoose:
     return;
 
 assignWinner:
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(winner, 1);
-    g_FieldingLogic.secondaryFielder = -1;
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
+    g_FieldingLogic.secondaryFielder = FIELDING_POSITION_NONE;
 }
 
 // .text:0x00038FF8 size:0x3B8 mapped:0x8067808C
@@ -10992,32 +10461,29 @@ void fielderSelect_tertiaryFielderExists_determine2FieldersToKeep(void) {
         }
     }
 
-    if (g_FieldingLogic.selectedFielder == 1) {
-        goto trySecondaryPair;
-    }
-    if (n <= 1) {
-        goto noTertiary;
-    }
-
-    if (fielder->groundDistanceFromBall < 2.5f) {
-        if (currentStickDirection >= 0) {
-            int angle = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
-                                                       g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
-            if (getDifferenceInAngle(currentStickDirection, angle) < 0x100) {
-                goto pickPrimary;
-            }
+    if (g_FieldingLogic.selectedFielder != FIELDING_POSITION_CATCHER) {
+        if (n <= 1) {
+            goto noTertiary;
         }
 
-        if (g_FieldingLogic.selectedFielder >= 2 && g_FieldingLogic.selectedFielder <= 5) {
-            if (g_Ball.hitClassification2 == 2 || g_Ball.hitClassification2 == 3) {
-                goto pickPrimary;
+        if (fielder->groundDistanceFromBall < 2.5f) {
+            if (currentStickDirection >= 0) {
+                int angle = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
+                                                           g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
+                if (getDifferenceInAngle(currentStickDirection, angle) < 0x100) {
+                    goto pickPrimary;
+                }
+            }
+
+            if (g_FieldingLogic.selectedFielder >= FIELDING_POSITION_FIRST_BASE &&
+                g_FieldingLogic.selectedFielder <= FIELDING_POSITION_SHORTSTOP) {
+                if (g_Ball.hitClassification2 == 2 || g_Ball.hitClassification2 == 3) {
+                    goto pickPrimary;
+                }
             }
         }
-    } else {
-        goto trySecondaryPair;
     }
 
-trySecondaryPair:
     if (g_Fielders[g_FieldingLogic.selectedFielder].nonCatchFlyBallStratInd == 0 ||
         g_Fielders[g_FieldingLogic.secondaryFielder].nonCatchFlyBallStratInd == 0) {
         winner = selectBestFielder(g_FieldingLogic.selectedFielder, g_FieldingLogic.secondaryFielder, 3,
@@ -11038,73 +10504,70 @@ trySecondaryPair:
         }
     }
 
-    if (g_Ball.framesSinceHit <= 90) {
+    if (g_Ball.framesSinceHit > 90) {
+        if (g_Ball.framesSinceBallHitGroundOrWasCaught >= 0) {
+            goto pickPrimary;
+        }
+        if (g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <=
+            g_Fielders[g_FieldingLogic.secondaryFielder].distanceFromLandingSpot) {
+            goto pickPrimary;
+        }
+        goto noTertiary;
+    } else {
         return;
     }
-    if (g_Ball.framesSinceBallHitGroundOrWasCaught >= 0) {
-        goto pickPrimary;
-    }
-    if (g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <=
-        g_Fielders[g_FieldingLogic.secondaryFielder].distanceFromLandingSpot) {
-        goto pickPrimary;
-    }
-    goto noTertiary;
 
 pickPrimary:
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
-    if (g_FieldingLogic.selectedFielder == 0) {
+    g_FieldingLogic.unkFlagMaybeInAir = FALSE;
+    if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_PITCHER) {
         return;
     }
     goto tailShift;
 
 noTertiary:
-    if (g_FieldingLogic.infielderSelectedOnPopFlyInd != 0 &&
-        (g_FieldingLogic.secondaryFielder == 3 || g_FieldingLogic.secondaryFielder == 5)) {
+    if (g_FieldingLogic.infielderSelectedOnPopFlyInd &&
+        (g_FieldingLogic.secondaryFielder == FIELDING_POSITION_SECOND_BASE ||
+         g_FieldingLogic.secondaryFielder == FIELDING_POSITION_SHORTSTOP)) {
         HandleMiddleInfieldSelection();
-        if (g_FieldingLogic.infielderSelectedOnPopFlyInd == 0) {
-            goto tailShift;
+        if (g_FieldingLogic.infielderSelectedOnPopFlyInd) {
+            if (g_Ball.ballDistanceFromHome - 3.0f > g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate) {
+                setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
+            } else {
+                return;
+            }
         }
-        if (!(g_Ball.ballDistanceFromHome - 3.0f > g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate)) {
-            return;
-        }
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-        goto tailShift;
+    } else {
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, TRUE);
     }
 
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(g_FieldingLogic.secondaryFielder, 1);
-
 tailShift:
-    g_FieldingLogic.unkFlagMaybeInAir = 0;
     g_FieldingLogic.secondaryFielder = g_FieldingLogic.tertiaryFielder;
-    g_FieldingLogic.tertiaryFielder = -1;
+    g_FieldingLogic.tertiaryFielder = FIELDING_POSITION_NONE;
+    g_FieldingLogic.unkFlagMaybeInAir = FALSE;
 }
 
 // .text:0x00038D10 size:0x2E8 mapped:0x80677DA4
 void HandleMiddleInfieldSelection(void) {
     int newFielder;
 
-    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-        int selectedFielder = g_FieldingLogic.selectedFielder;
-        if (selectedFielder == 3 || selectedFielder == 5) {
-            InMemFielder* selFielder = &g_Fielders[selectedFielder];
-            if (selFielder->distanceFromLandingSpot < selFielder->hitbox[0]) {
-                newFielder = selectedFielder;
-                goto dispatch;
-            }
-        }
-    }
-
-    {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
+        (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SECOND_BASE ||
+         g_FieldingLogic.selectedFielder == FIELDING_POSITION_SHORTSTOP) &&
+        g_Fielders[g_FieldingLogic.selectedFielder].distanceFromLandingSpot <
+            g_Fielders[g_FieldingLogic.selectedFielder].hitbox[0]) {
+        newFielder = g_FieldingLogic.selectedFielder;
+    } else {
         f32 x;
         f32 z;
 
-        if ((g_Fielders[3].nonCatchFlyBallStratInd == 0 || g_Fielders[5].nonCatchFlyBallStratInd == 0) &&
+        if ((g_Fielders[FIELDING_POSITION_SECOND_BASE].nonCatchFlyBallStratInd == 0 ||
+             g_Fielders[FIELDING_POSITION_SHORTSTOP].nonCatchFlyBallStratInd == 0) &&
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
             z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         } else {
-            f32 threshold =
-                0.5f * (g_Fielders[3].distanceFromHomePlate + g_Fielders[5].distanceFromHomePlate);
+            f32 threshold = 0.5f * (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate +
+                                    g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate);
             int frame;
 
             for (frame = 1; frame < 121; frame += 3) {
@@ -11117,32 +10580,31 @@ void HandleMiddleInfieldSelection(void) {
             z = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
         }
 
-        newFielder = SelectBetterFielder(3, 5, 1, x, z);
-    }
+        newFielder = SelectBetterFielder(FIELDING_POSITION_SECOND_BASE, FIELDING_POSITION_SHORTSTOP, 1, x, z);
 
-    if (newFielder < 0) {
-        if (g_Ball.ballZoneAwayFromHome >= 2 && currentStickDirection > 0xa00 && currentStickDirection < 0xe00) {
-            g_FieldingLogic.infielderSelectedOnPopFlyInd = 0;
+        if (newFielder < 0) {
+            if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_SHALLOW && currentStickDirection > 0xa00 &&
+                currentStickDirection < 0xe00) {
+                g_FieldingLogic.infielderSelectedOnPopFlyInd = FALSE;
+            }
+            return;
         }
-        return;
     }
 
-dispatch:
-    if (newFielder == 3) {
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(3, 1);
-        setFielderAutoMovement(5, 12);
+    if (newFielder == FIELDING_POSITION_SECOND_BASE) {
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_SECOND_BASE, TRUE);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 12);
     } else {
-        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(5, 1);
-        setFielderAutoMovement(3, 12);
+        setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(FIELDING_POSITION_SHORTSTOP, TRUE);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 12);
     }
 
-    g_FieldingLogic.infielderSelectedOnPopFlyInd = 0;
+    g_FieldingLogic.infielderSelectedOnPopFlyInd = FALSE;
 }
 
 // .text:0x00038790 size:0x580 mapped:0x80677824
 void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFielder, int useHumanControlMovement) {
     InMemFielder* fielder = &g_Fielders[newFielder];
-    InMemFielder* prior;
     int priorSelectedFielder = g_FieldingLogic.selectedFielder;
     s16 loc;
     s16 hist;
@@ -11156,113 +10618,94 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
 
     if (g_Ball.ballState == BALL_STATE_HIT &&
         g_Ball.ballAngleFromHome >= 0x3d8 && g_Ball.ballAngleFromHome < 0x428) {
-        if (priorSelectedFielder == 3 && newFielder == 5 &&
+        if (priorSelectedFielder == FIELDING_POSITION_SECOND_BASE && newFielder == FIELDING_POSITION_SHORTSTOP &&
             fielder->locationResponsibleForCovering == 2 &&
-            fielder->distanceFromEachFielder[3] < 8.0f) {
+            fielder->distanceFromEachFielder[FIELDING_POSITION_SECOND_BASE] < 8.0f) {
             return;
         }
-        if (priorSelectedFielder == 5 && newFielder == 3 &&
+        if (priorSelectedFielder == FIELDING_POSITION_SHORTSTOP && newFielder == FIELDING_POSITION_SECOND_BASE &&
             fielder->locationResponsibleForCovering == 2 &&
-            fielder->distanceFromEachFielder[5] < 8.0f) {
+            fielder->distanceFromEachFielder[FIELDING_POSITION_SHORTSTOP] < 8.0f) {
             return;
         }
     }
 
     if (g_Ball.ballState == BALL_STATE_HIT &&
-        g_Ball.hitClassification2 <= 6 && newFielder == 1) {
+        g_Ball.hitClassification2 <= 6 && newFielder == FIELDING_POSITION_CATCHER) {
         hist = fielderControlStick_continuousAngleHistory[0];
-        if (hist >= 0x800) {
-            return;
-        }
-        if (hist == 0) {
+        if (hist >= 0x800 || hist == 0) {
             return;
         }
     }
 
     g_FieldingLogic.selectedFielder = newFielder;
 
-    if (useHumanControlMovement == 0) {
-        if (g_FieldingLogic.selectedFielder != -1) {
-            setFielderAutoMovement(g_FieldingLogic.selectedFielder, 15);
-        }
+    if (useHumanControlMovement == FALSE) {
+        setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 15);
     } else {
-        if (g_FieldingLogic.selectedFielder != -1) {
-            setFielderAutoMovement(g_FieldingLogic.selectedFielder, 21);
-        }
+        setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 21);
     }
 
     loc = fielder->locationResponsibleForCovering;
     if (loc >= 0 && loc <= 5) {
-        if (loc >= 0 && loc <= 3) {
-            if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == newFielder) {
-                g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                g_FieldingLogic.baseCoveredInd[loc] = 0;
-            }
-            fielder->locationResponsibleForCovering = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-            if (fielder->autoMovementFunctionIndex == 1 && newFielder != -1) {
-                setFielderAutoMovement(newFielder, 12);
-            }
-        } else if (loc == 5) {
-            fielder->locationResponsibleForCovering = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-            if (fielder->autoMovementFunctionIndex == 14 && newFielder != -1) {
-                setFielderAutoMovement(newFielder, 12);
+        if (fielder->locationResponsibleForCovering >= 0) {
+            if (fielder->locationResponsibleForCovering <= 3) {
+                if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == newFielder) {
+                    g_FieldingLogic.fielderAssignedLocationIndex[loc] = FIELDING_POSITION_NONE;
+                    g_FieldingLogic.baseCoveredInd[loc] = FALSE;
+                }
+                fielder->locationResponsibleForCovering = -1;
+                fielder->isResponsibleForCoveringALocation = FALSE;
+                if (fielder->autoMovementFunctionIndex == 1) {
+                    setFielderAutoMovementIfValid(newFielder, 12);
+                }
+            } else if (loc == 5) {
+                fielder->locationResponsibleForCovering = -1;
+                fielder->isResponsibleForCoveringALocation = FALSE;
+                g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+                g_FieldingLogic.playerAtMoundCutoffLocation = 0;
+                if (fielder->autoMovementFunctionIndex == 14) {
+                    setFielderAutoMovementIfValid(newFielder, 12);
+                }
             }
         }
     }
 
     if (g_FieldingLogic.selectedFielder == g_FieldingLogic.cutoffFielderIndex) {
-        g_FieldingLogic.cutoffFielderIndex = -1;
+        g_FieldingLogic.cutoffFielderIndex = FIELDING_POSITION_NONE;
     }
 
     if (priorSelectedFielder >= 0) {
-        if (priorSelectedFielder >= 6) {
-            if (priorSelectedFielder != -1) {
-                setFielderAutoMovement(priorSelectedFielder, 16);
-            }
+        if (priorSelectedFielder >= FIELDING_POSITION_LEFT_FIELD) {
+            setFielderAutoMovementIfValid(priorSelectedFielder, 16);
         } else if (g_Ball.ballState == BALL_STATE_HIT) {
-            prior = &g_Fielders[priorSelectedFielder];
-            if (prior->distanceFromHomePlate > 3.0f + fielder->distanceFromHomePlate) {
-                if (priorSelectedFielder != -1) {
-                    setFielderAutoMovement(priorSelectedFielder, 16);
-                }
-            } else if (prior->locationResponsibleForCovering == 6) {
-                if (priorSelectedFielder != -1) {
-                    setFielderAutoMovement(priorSelectedFielder, 11);
-                }
+            if (g_Fielders[priorSelectedFielder].distanceFromHomePlate > 3.0f + fielder->distanceFromHomePlate) {
+                setFielderAutoMovementIfValid(priorSelectedFielder, 16);
+            } else if (g_Fielders[priorSelectedFielder].locationResponsibleForCovering == 6) {
+                setFielderAutoMovementIfValid(priorSelectedFielder, 11);
             } else {
-                if (priorSelectedFielder != -1) {
-                    setFielderAutoMovement(priorSelectedFielder, 12);
-                }
-                prior->unknown_writeOnly = 4;
+                setFielderAutoMovementIfValid(priorSelectedFielder, 12);
+                g_Fielders[priorSelectedFielder].unknown_writeOnly = 4;
             }
         } else {
-            prior = &g_Fielders[priorSelectedFielder];
-            if (priorSelectedFielder != -1) {
-                setFielderAutoMovement(priorSelectedFielder, 12);
-            }
-            prior->unknown_writeOnly = 4;
+            setFielderAutoMovementIfValid(priorSelectedFielder, 12);
+            g_Fielders[priorSelectedFielder].unknown_writeOnly = 4;
         }
     }
 
     if (g_Ball.framesSinceHit < 30) {
-        g_FieldingLogic.someFrameCounterFielderRelated = 20;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 20;
     } else {
-        g_FieldingLogic.someFrameCounterFielderRelated = 45;
+        g_FieldingLogic.fielderSelectionChangeCooldown = 45;
     }
 }
 
 // .text:0x00038304 size:0x48C mapped:0x80677398
 void selectAssignClosestFielder2(void) {
     s16 fielderIndex;
-    f32 rank1Dist;
-    f32 rank3Dist;
-    f32 rank2Dist;
+    f32 rankDist[3];
     f32 landingDist;
-    int isFarPlay;
+    BOOL isFarPlay;
     int newFielder;
 
     if ((fielderIndex = g_FieldingLogic.selectedFielder) >= 0 &&
@@ -11271,16 +10714,16 @@ void selectAssignClosestFielder2(void) {
     }
 
     landingDist = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
-    isFarPlay = 0;
+    isFarPlay = FALSE;
 
     if (landingDist > 50.0f) {
-        if (fielderIndex >= 6) {
-            isFarPlay = 1;
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
+            isFarPlay = TRUE;
         } else if (g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[2].distanceFromHomePlate &&
                    g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[3].distanceFromHomePlate &&
                    g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[4].distanceFromHomePlate &&
                    g_Ball.ballDistanceFromHome - 5.0f > g_Fielders[5].distanceFromHomePlate) {
-            isFarPlay = 1;
+            isFarPlay = TRUE;
         }
     }
 
@@ -11292,20 +10735,20 @@ void selectAssignClosestFielder2(void) {
         if (distA < distB) {
             f32 distC = g_Fielders[7].distanceFromLandingSpot;
             if (distA < distC) {
-                a = 6;
-                b = 7;
+                a = FIELDING_POSITION_LEFT_FIELD;
+                b = FIELDING_POSITION_CENTER_FIELD;
             } else {
-                a = 7;
-                b = 6;
+                a = FIELDING_POSITION_CENTER_FIELD;
+                b = FIELDING_POSITION_LEFT_FIELD;
             }
         } else {
             f32 distC = g_Fielders[7].distanceFromLandingSpot;
             if (distB < distC) {
-                a = 8;
-                b = 7;
+                a = FIELDING_POSITION_RIGHT_FIELD;
+                b = FIELDING_POSITION_CENTER_FIELD;
             } else {
-                a = 7;
-                b = 8;
+                a = FIELDING_POSITION_CENTER_FIELD;
+                b = FIELDING_POSITION_RIGHT_FIELD;
             }
         }
 
@@ -11318,71 +10761,46 @@ void selectAssignClosestFielder2(void) {
     } else {
         InMemFielder* f;
         int i;
-        int rank3Index = -1;
-        int rank2Index = -1;
-        int rank1Index = -1;
+        int rankIndex[3];
 
-        rank1Dist = 999.9f;
-        rank3Dist = rank1Dist;
-        rank2Dist = rank1Dist;
+        rankDist[0] = rankDist[1] = rankDist[2] = 999.9f;
+        rankIndex[0] = rankIndex[1] = rankIndex[2] = FIELDING_POSITION_NONE;
 
         for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
             f32 dist = f->distanceFromLandingSpot;
-            if (rank1Dist > dist) {
-                rank3Dist = rank2Dist;
-                rank3Index = rank2Index;
-                rank2Dist = rank1Dist;
-                rank2Index = rank1Index;
-                rank1Dist = dist;
-                rank1Index = i;
-            } else if (rank2Dist > dist) {
-                rank3Dist = rank2Dist;
-                rank3Index = rank2Index;
-                rank2Dist = dist;
-                rank2Index = i;
-            } else if (rank3Dist > dist) {
-                rank3Dist = dist;
-                rank3Index = i;
+            if (rankDist[0] > dist) {
+                rankDist[2] = rankDist[1];
+                rankIndex[2] = rankIndex[1];
+                rankDist[1] = rankDist[0];
+                rankIndex[1] = rankIndex[0];
+                rankDist[0] = dist;
+                rankIndex[0] = i;
+            } else if (rankDist[1] > dist) {
+                rankDist[2] = rankDist[1];
+                rankIndex[2] = rankIndex[1];
+                rankDist[1] = dist;
+                rankIndex[1] = i;
+            } else if (rankDist[2] > dist) {
+                rankDist[2] = dist;
+                rankIndex[2] = i;
             }
         }
 
         if (landingDist > 40.0f) {
-            if (rank1Dist <= 8.0f && rank1Index == fielderIndex) {
-                newFielder = rank1Index;
-            } else if (rank2Dist - rank1Dist > 20.0f) {
-                newFielder = rank1Index;
-            } else if (rank3Dist - rank2Dist > 20.0f) {
-                newFielder = selectBestFielder(rank1Index, rank2Index, 0, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+            if (rankDist[0] <= 8.0f && rankIndex[0] == fielderIndex) {
+                newFielder = rankIndex[0];
+            } else if (rankDist[1] - rankDist[0] > 20.0f) {
+                newFielder = rankIndex[0];
+            } else if (rankDist[2] - rankDist[1] > 20.0f) {
+                newFielder = selectBestFielder(rankIndex[0], rankIndex[1], 0, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                 g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
             } else {
-                f32 ballX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-                f32 ballZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-                int result = selectBestFielder(rank2Index, rank3Index, 1, ballX, ballZ);
-                if (result != -1) {
-                    int result2;
-                    if (g_FieldingLogic.selectedFielder < 0) {
-                        result2 = selectBestFielder(rank1Index, result, 1, ballX, ballZ);
-                    } else {
-                        result2 = selectBestFielder(rank1Index, result, 0, ballX, ballZ);
-                    }
-                    rank1Index = result2;
-                }
-                newFielder = rank1Index;
+                newFielder = fn_3_365D0(rankIndex[0], rankIndex[1], rankIndex[2], g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
             }
         } else {
-            f32 ballX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-            f32 ballZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-            int result = selectBestFielder(rank2Index, rank3Index, 1, ballX, ballZ);
-            if (result != -1) {
-                int result2;
-                if (g_FieldingLogic.selectedFielder < 0) {
-                    result2 = selectBestFielder(rank1Index, result, 1, ballX, ballZ);
-                } else {
-                    result2 = selectBestFielder(rank1Index, result, 0, ballX, ballZ);
-                }
-                rank1Index = result2;
-            }
-            newFielder = rank1Index;
+            newFielder = fn_3_365D0(rankIndex[0], rankIndex[1], rankIndex[2], g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
         }
     }
 
@@ -11432,327 +10850,353 @@ void SelectOptimalFielder(void) {
     int futureFrame = 30;
     int candidateFielder = 0;
     f32 velocityThreshold = 5.0f;
+    f32 velocityOverThreshold;
     f32 maxDist;
     int newFielder;
 
     if (ballAngle >= 0x800) {
-        newFielder = 1;
-        goto finalize;
-    }
-
-    if (ballAngle < 0x300) {
-        if (ballAngle < g_Fielders[2].playerAngleFromHome ||
-            getDifferenceInAngle(ballAngle, g_Fielders[3].playerAngleFromHome) >= 0x100) {
-            maxDist = g_Fielders[2].distanceFromHomePlate;
-            candidateFielder = 8;
-            goto computeThreshold;
-        }
-    } else if (ballAngle > 0x500) {
-        if (ballAngle >= g_Fielders[4].playerAngleFromHome ||
-            getDifferenceInAngle(ballAngle, g_Fielders[5].playerAngleFromHome) >= 0x100) {
-            maxDist = g_Fielders[4].distanceFromHomePlate;
-            candidateFielder = 6;
-            goto computeThreshold;
-        }
-    }
-
-    if (ballAngle < g_Fielders[3].playerAngleFromHome) {
-        if (g_Fielders[3].distanceFromHomePlate >= g_Fielders[2].distanceFromHomePlate) {
-            maxDist = g_Fielders[3].distanceFromHomePlate;
-        } else {
-            maxDist = g_Fielders[2].distanceFromHomePlate;
-        }
-    } else if (ballAngle >= g_Fielders[5].playerAngleFromHome) {
-        if (g_Fielders[5].distanceFromHomePlate >= g_Fielders[4].distanceFromHomePlate) {
-            maxDist = g_Fielders[5].distanceFromHomePlate;
-        } else {
-            maxDist = g_Fielders[4].distanceFromHomePlate;
-        }
+        newFielder = FIELDING_POSITION_CATCHER;
     } else {
-        if (g_Fielders[3].distanceFromHomePlate >= g_Fielders[5].distanceFromHomePlate) {
-            maxDist = g_Fielders[3].distanceFromHomePlate;
+        if (ballAngle < 0x300 &&
+            (ballAngle < g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome ||
+             getDifferenceInAngle(ballAngle, g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) >= 0x100)) {
+            maxDist = g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate;
+            candidateFielder = FIELDING_POSITION_RIGHT_FIELD;
+        } else if (ballAngle > 0x500 &&
+                   (ballAngle >= g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome ||
+                    getDifferenceInAngle(ballAngle, g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) >= 0x100)) {
+            maxDist = g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate;
+            candidateFielder = FIELDING_POSITION_LEFT_FIELD;
+        } else if (ballAngle < g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) {
+            if (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate >=
+                g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate) {
+                maxDist = g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate;
+            } else {
+                maxDist = g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate;
+            }
+        } else if (ballAngle >= g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) {
+            if (g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate >=
+                g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate) {
+                maxDist = g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate;
+            } else {
+                maxDist = g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate;
+            }
         } else {
-            maxDist = g_Fielders[5].distanceFromHomePlate;
+            if (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate >=
+                g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate) {
+                maxDist = g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate;
+            } else {
+                maxDist = g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate;
+            }
+        }
+
+        if (g_Ball.ballVelocity > 0.3f) {
+            velocityOverThreshold = g_Ball.ballVelocity - 0.3f;
+            velocityThreshold -= 10.0f * velocityOverThreshold;
+            futureFrame += (int)(100.0f * velocityOverThreshold);
+        }
+
+        if (maxDist + velocityThreshold > g_Ball.ballDistanceFromHome) {
+            newFielder = selectInfielderFromStickDirection();
+        } else {
+            f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.x;
+            f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.z;
+            newFielder = SelectClosestFielder2(x, z);
+            if (candidateFielder == FIELDING_POSITION_RIGHT_FIELD && newFielder == FIELDING_POSITION_SECOND_BASE) {
+                newFielder = FIELDING_POSITION_RIGHT_FIELD;
+            }
+            if (candidateFielder == FIELDING_POSITION_LEFT_FIELD && newFielder == FIELDING_POSITION_SHORTSTOP) {
+                newFielder = FIELDING_POSITION_LEFT_FIELD;
+            }
         }
     }
 
-computeThreshold:
-    if (g_Ball.ballVelocity > 0.3f) {
-        f32 velocityOverThreshold = g_Ball.ballVelocity - 0.3f;
-        velocityThreshold -= 10.0f * velocityOverThreshold;
-        futureFrame += (int)(100.0f * velocityOverThreshold);
-    }
-
-    if (maxDist + velocityThreshold > g_Ball.ballDistanceFromHome) {
-        newFielder = fn_3_378B4();
-        goto finalize;
-    }
-
-    {
-        f32 x = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.x;
-        f32 z = g_Ball.physicsSubstruct.futureCoordsAndDist[futureFrame].pos.z;
-        newFielder = SelectClosestFielder2(x, z);
-        if (candidateFielder == 8 && newFielder == 3) {
-            newFielder = 8;
-        }
-        if (candidateFielder == 6 && newFielder == 5) {
-            newFielder = 6;
-        }
-    }
-
-finalize:
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, FALSE);
 }
 
 // .text:0x000378B4 size:0x74C mapped:0x80676948
-int fn_3_378B4(void) {
-    int result = -1;
-    s16 stickAngle0 = fielderControlStick_continuousAngleHistory[0];
-    s16 stickAngle3 = fielderControlStick_continuousAngleHistory[3];
+int selectInfielderFromStickDirection(void) {
+    int result = FIELDING_POSITION_NONE;
+    int stickAngle0 = fielderControlStick_continuousAngleHistory[0];
     s32 ballAngle = g_Ball.ballAngleFromHome;
     s32 angleDiff = 0x800;
 
-    if (stickAngle0 >= 0 && stickAngle3 >= 0) {
-        angleDiff = stickAngle0 - stickAngle3;
-        if (angleDiff < 0) {
-            angleDiff = -angleDiff;
-        }
+    if (fielderControlStick_continuousAngleHistory[0] >= 0 && fielderControlStick_continuousAngleHistory[3] >= 0) {
+        angleDiff =
+            __abs(fielderControlStick_continuousAngleHistory[0] - fielderControlStick_continuousAngleHistory[3]);
         if (angleDiff > 0x800) {
             angleDiff = 0x1000 - angleDiff;
         }
     }
 
-    if (g_FieldingLogic.selectedFielder == 0) {
-        s16 pitcherAngle = g_Fielders[0].playerAngleFromHome;
+    if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_PITCHER) {
+        s16 pitcherAngle = g_Fielders[FIELDING_POSITION_PITCHER].playerAngleFromHome;
         if (ballAngle >= pitcherAngle - 0x40 && ballAngle < pitcherAngle + 0x40) {
-            if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
-                return 0;
+            if (g_Ball.ballDistanceFromHome - g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate < 3.0f) {
+                result = FIELDING_POSITION_PITCHER;
+                goto end;
             }
-        } else if (ballAngle < pitcherAngle) {
+        }
+        if (ballAngle < pitcherAngle) {
             if (stickAngle0 >= 0xf00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
-                return 0;
+                result = FIELDING_POSITION_PITCHER;
+                goto end;
             }
             if (stickAngle0 >= 0xb00 && stickAngle0 < 0xf00) {
-                if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
-                    return 0;
+                if (g_Ball.ballDistanceFromHome - g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate < 3.0f) {
+                    result = FIELDING_POSITION_PITCHER;
+                    goto end;
                 }
             }
         } else {
             if (stickAngle0 >= 0x500 && stickAngle0 < 0x900) {
-                return 0;
+                result = FIELDING_POSITION_PITCHER;
+                goto end;
             }
             if (stickAngle0 >= 0x900 && stickAngle0 < 0xd00) {
-                if (g_Ball.ballDistanceFromHome - g_Fielders[0].distanceFromHomePlate < 3.0f) {
-                    return 0;
+                if (g_Ball.ballDistanceFromHome - g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate < 3.0f) {
+                    result = FIELDING_POSITION_PITCHER;
+                    goto end;
                 }
             }
         }
     }
 
-    {
-        s32 diff23 = g_Fielders[2].playerAngleFromHome - g_Fielders[3].playerAngleFromHome;
-        if (diff23 < 0) {
-            diff23 = -diff23;
-        }
-        if (diff23 < 0x40) {
-            int sel = g_FieldingLogic.selectedFielder;
-            if (!((sel == 2 || sel == 3) && angleDiff < 0x400)) {
-                s16 mid = (g_Fielders[2].playerAngleFromHome + g_Fielders[3].playerAngleFromHome) / 2;
-                if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
-                    f32 dist2 = g_Fielders[2].distanceFromHomePlate;
-                    f32 dist3 = g_Fielders[3].distanceFromHomePlate;
-                    if (dist2 < dist3) {
-                        if (dist2 > g_Ball.ballDistanceFromHome) {
-                            return 2;
-                        }
-                        if (3.0f + dist3 > g_Ball.ballDistanceFromHome) {
-                            return 3;
-                        }
-                    } else {
-                        if (dist3 > g_Ball.ballDistanceFromHome) {
-                            return 2;
-                        }
-                        if (3.0f + dist2 > g_Ball.ballDistanceFromHome) {
-                            return 3;
-                        }
+    if (__abs(g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome -
+              g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) < 0x40) {
+        int sel = g_FieldingLogic.selectedFielder;
+        if (!((sel == FIELDING_POSITION_FIRST_BASE || sel == FIELDING_POSITION_SECOND_BASE) && angleDiff < 0x400)) {
+            int mid = (g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome +
+                       g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome) /
+                      2;
+            if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
+                if (g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate <
+                    g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate) {
+                    if (g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_FIRST_BASE;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SECOND_BASE;
+                        goto end;
+                    }
+                } else {
+                    if (g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_FIRST_BASE;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_FIRST_BASE].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SECOND_BASE;
+                        goto end;
                     }
                 }
             }
         }
     }
 
-    {
-        s32 diff45 = g_Fielders[4].playerAngleFromHome - g_Fielders[5].playerAngleFromHome;
-        if (diff45 < 0) {
-            diff45 = -diff45;
-        }
-        if (diff45 < 0x40) {
-            int sel = g_FieldingLogic.selectedFielder;
-            if (!((sel == 4 || sel == 5) && angleDiff < 0x400)) {
-                s16 mid = (g_Fielders[4].playerAngleFromHome + g_Fielders[5].playerAngleFromHome) / 2;
-                if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
-                    f32 dist4 = g_Fielders[4].distanceFromHomePlate;
-                    f32 dist5 = g_Fielders[5].distanceFromHomePlate;
-                    if (dist4 <= dist5) {
-                        if (dist4 > g_Ball.ballDistanceFromHome) {
-                            return 4;
-                        }
-                        if (3.0f + dist5 > g_Ball.ballDistanceFromHome) {
-                            return 5;
-                        }
-                    } else {
-                        if (dist5 > g_Ball.ballDistanceFromHome) {
-                            return 5;
-                        }
-                        if (3.0f + dist4 > g_Ball.ballDistanceFromHome) {
-                            return 4;
-                        }
+    if (__abs(g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome -
+              g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) < 0x40) {
+        int sel = g_FieldingLogic.selectedFielder;
+        if (!((sel == FIELDING_POSITION_THIRD_BASE || sel == FIELDING_POSITION_SHORTSTOP) && angleDiff < 0x400)) {
+            int mid = (g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome +
+                       g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome) /
+                      2;
+            if (ballAngle >= mid - 0x100 && ballAngle < mid + 0x100) {
+                if (g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate <=
+                    g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate) {
+                    if (g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_THIRD_BASE;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SHORTSTOP;
+                        goto end;
+                    }
+                } else {
+                    if (g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate > g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_SHORTSTOP;
+                        goto end;
+                    }
+                    if (3.0f + g_Fielders[FIELDING_POSITION_THIRD_BASE].distanceFromHomePlate >
+                        g_Ball.ballDistanceFromHome) {
+                        result = FIELDING_POSITION_THIRD_BASE;
+                        goto end;
                     }
                 }
             }
         }
     }
 
-    if (ballAngle < g_Fielders[2].playerAngleFromHome + 0x40) {
-        if (g_FieldingLogic.selectedFielder == 3 && angleDiff < 0x400) {
-            return result;
+    if (ballAngle < g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome + 0x40) {
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SECOND_BASE && angleDiff < 0x400) {
+            goto end;
         }
-        return 2;
+        result = FIELDING_POSITION_FIRST_BASE;
+        goto end;
     }
 
-    if (ballAngle >= g_Fielders[4].playerAngleFromHome - 0x40 && ballAngle < 0x800) {
-        if (g_FieldingLogic.selectedFielder == 5 && angleDiff < 0x400) {
-            return result;
+    if (ballAngle >= g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome - 0x40 && ballAngle < 0x800) {
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_SHORTSTOP && angleDiff < 0x400) {
+            goto end;
         }
-        return 4;
+        result = FIELDING_POSITION_THIRD_BASE;
+        goto end;
     }
 
     {
         int sel = g_FieldingLogic.selectedFielder;
-        s32 margin = (sel == 3) ? 0x20 : 0;
-        s16 thirdAngle = g_Fielders[3].playerAngleFromHome;
-        if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < thirdAngle + margin + 0x40) {
-            if (sel == 2) {
+        s32 margin = 0;
+        s16 thirdAngle;
+        if (sel == FIELDING_POSITION_SECOND_BASE) {
+            margin = 0x20;
+        }
+        thirdAngle = g_Fielders[FIELDING_POSITION_SECOND_BASE].playerAngleFromHome;
+        if (ballAngle >= thirdAngle - (margin + 0x40) && ballAngle < thirdAngle + (margin + 0x40)) {
+            if (sel == FIELDING_POSITION_FIRST_BASE) {
                 if (stickAngle0 >= 0x500 && stickAngle0 < 0x900) {
-                    return 2;
+                    result = FIELDING_POSITION_FIRST_BASE;
+                    goto end;
                 }
-                return 3;
+                result = FIELDING_POSITION_SECOND_BASE;
+                goto end;
             }
-            if (sel == 5) {
-                if (g_Fielders[3].locationResponsibleForCovering == 2 && angleDiff < 0x400) {
-                    return result;
-                }
-            }
-            if (sel == 5) {
-                if (g_Fielders[3].locationResponsibleForCovering == 2 &&
-                    5.0f + g_Fielders[3].distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
-                    return result;
+            if (sel == FIELDING_POSITION_SHORTSTOP) {
+                if (g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering == 2 &&
+                    angleDiff < 0x400) {
+                    goto end;
                 }
             }
-            return 3;
+            if (sel == FIELDING_POSITION_SHORTSTOP) {
+                if (g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering == 2 &&
+                    5.0f + g_Fielders[FIELDING_POSITION_SECOND_BASE].distanceFromHomePlate <
+                        g_Ball.ballDistanceFromHome) {
+                    goto end;
+                }
+            }
+            result = FIELDING_POSITION_SECOND_BASE;
+            goto end;
         }
 
         {
-            s32 margin2 = (sel == 2) ? 0x20 : 0;
-            s16 fifthAngle = g_Fielders[5].playerAngleFromHome;
-            if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < fifthAngle + margin2 + 0x40) {
-                if (sel == 4) {
-                    if (stickAngle0 >= 0 && stickAngle0 < 0x300) {
-                        return 4;
+            s32 margin2 = 0;
+            s16 fifthAngle;
+            if (sel == FIELDING_POSITION_FIRST_BASE) {
+                margin2 = 0x20;
+            }
+            fifthAngle = g_Fielders[FIELDING_POSITION_SHORTSTOP].playerAngleFromHome;
+            if (ballAngle >= fifthAngle - (margin2 + 0x40) && ballAngle < fifthAngle + (margin2 + 0x40)) {
+                if (sel == FIELDING_POSITION_THIRD_BASE) {
+                    if ((stickAngle0 >= 0 && stickAngle0 < 0x300) || stickAngle0 >= 0xf00) {
+                        result = FIELDING_POSITION_THIRD_BASE;
+                        goto end;
                     }
-                    if (stickAngle0 < 0xf00) {
-                        return 5;
-                    }
-                    return 4;
+                    result = FIELDING_POSITION_SHORTSTOP;
+                    goto end;
                 }
-                if (sel == 3) {
-                    if (g_Fielders[5].locationResponsibleForCovering == 2 && angleDiff < 0x400) {
-                        return result;
-                    }
-                }
-                if (sel == 3) {
-                    if (g_Fielders[5].locationResponsibleForCovering == 2 &&
-                        5.0f + g_Fielders[5].distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
-                        return result;
+                if (sel == FIELDING_POSITION_SECOND_BASE) {
+                    if (g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering == 2 &&
+                        angleDiff < 0x400) {
+                        goto end;
                     }
                 }
-                return 5;
+                if (sel == FIELDING_POSITION_SECOND_BASE) {
+                    if (g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering == 2 &&
+                        5.0f + g_Fielders[FIELDING_POSITION_SHORTSTOP].distanceFromHomePlate <
+                            g_Ball.ballDistanceFromHome) {
+                        goto end;
+                    }
+                }
+                result = FIELDING_POSITION_SHORTSTOP;
+                goto end;
             }
 
-            if (ballAngle >= g_Fielders[2].playerAngleFromHome && ballAngle < thirdAngle) {
+            if (ballAngle >= g_Fielders[FIELDING_POSITION_FIRST_BASE].playerAngleFromHome && ballAngle < thirdAngle) {
                 if (stickAngle0 >= 0x300 && stickAngle0 < 0x700) {
-                    return 2;
+                    result = FIELDING_POSITION_FIRST_BASE;
+                    goto end;
                 }
                 if (stickAngle0 >= 0x700 && stickAngle0 < 0x900) {
-                    if (5.0f + g_Fielders[2].pos.z <= g_Ball.AtBat_Contact_BallPos.z) {
-                        return result;
+                    if (5.0f + g_Fielders[FIELDING_POSITION_FIRST_BASE].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
+                        result = FIELDING_POSITION_FIRST_BASE;
                     }
-                    return 2;
+                    goto end;
                 }
                 if (stickAngle0 >= 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
-                    return 3;
+                    result = FIELDING_POSITION_SECOND_BASE;
+                    goto end;
                 }
-                return result;
+                goto end;
             }
 
-            if (ballAngle >= fifthAngle && ballAngle < g_Fielders[4].playerAngleFromHome) {
+            if (ballAngle >= fifthAngle && ballAngle < g_Fielders[FIELDING_POSITION_THIRD_BASE].playerAngleFromHome) {
                 if (stickAngle0 >= 0x100 && stickAngle0 < 0x500) {
-                    return 4;
+                    result = FIELDING_POSITION_THIRD_BASE;
+                    goto end;
                 }
                 if (stickAngle0 >= 0xf00 || (stickAngle0 >= 0 && stickAngle0 < 0x100)) {
-                    if (5.0f + g_Fielders[4].pos.z <= g_Ball.AtBat_Contact_BallPos.z) {
-                        return result;
+                    if (5.0f + g_Fielders[FIELDING_POSITION_THIRD_BASE].pos.z > g_Ball.AtBat_Contact_BallPos.z) {
+                        result = FIELDING_POSITION_THIRD_BASE;
                     }
-                    return 4;
+                    goto end;
                 }
                 if (stickAngle0 < 0x500 || stickAngle0 >= 0xb00) {
-                    return result;
+                    goto end;
                 }
-                return 5;
+                result = FIELDING_POSITION_SHORTSTOP;
+                goto end;
             }
 
             if (ballAngle < thirdAngle) {
-                return result;
+                goto end;
             }
             if (ballAngle >= fifthAngle) {
-                return result;
+                goto end;
             }
-            if (g_Ball.ballDistanceFromHome < 5.0f + g_Fielders[0].distanceFromHomePlate) {
-                s16 pitcherAngle2 = g_Fielders[0].playerAngleFromHome;
+            if (g_Ball.ballDistanceFromHome < 5.0f + g_Fielders[FIELDING_POSITION_PITCHER].distanceFromHomePlate) {
+                s16 pitcherAngle2 = g_Fielders[FIELDING_POSITION_PITCHER].playerAngleFromHome;
                 if (ballAngle < pitcherAngle2) {
-                    if (stickAngle0 > 0xd00) {
-                        return 0;
-                    }
-                    if (stickAngle0 >= 0 && stickAngle0 < 0x100) {
-                        return 0;
+                    if (stickAngle0 > 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x100)) {
+                        result = FIELDING_POSITION_PITCHER;
+                        goto end;
                     }
                 } else {
                     if (stickAngle0 >= 0x700 && stickAngle0 < 0xb00) {
-                        return 0;
+                        result = FIELDING_POSITION_PITCHER;
+                        goto end;
                     }
                 }
             }
             if (stickAngle0 >= 0x500 && stickAngle0 < 0xb00) {
-                return 3;
+                result = FIELDING_POSITION_SECOND_BASE;
+                goto end;
             }
             if (stickAngle0 > 0xd00 || (stickAngle0 >= 0 && stickAngle0 < 0x300)) {
-                return 5;
+                result = FIELDING_POSITION_SHORTSTOP;
+                goto end;
             }
-            return result;
+            goto end;
         }
     }
+
+end:
+    return result;
 }
 
 // .text:0x00037610 size:0x2A4 mapped:0x806766A4
 void selectClosestFielderBasedOnFutureCoord(int frame) {
     InMemFielder* f;
     int i;
+    f32 dist;
     f32 bestDist = 1000.0f;
-    int bestIndex = -1;
+    int bestIndex = FIELDING_POSITION_NONE;
     int newFielder;
 
-    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
-        f32 dist = f->distanceFromBall;
+    for (i = 0; i < 9; i++) {
+        f = &g_Fielders[i];
+        dist = f->distanceFromBall;
 
         if (dist < 5.0f && f->onFire == 0 && dist < bestDist) {
             if (f->knockoutStatus != 0) {
@@ -11767,25 +11211,22 @@ void selectClosestFielderBasedOnFutureCoord(int frame) {
         }
     }
 
-    if (bestIndex >= 0) {
-        InMemFielder* bestFielder = &g_Fielders[bestIndex];
-        if (!(bestFielder->distanceFromBall < 5.0f)) {
-            f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - bestFielder->pos.x;
-            f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - bestFielder->pos.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            if (fielderSqrt(sqx + sqz) > 5.0f) {
-                bestIndex = -1;
-            }
+    if (bestIndex >= 0 && !(g_Fielders[bestIndex].distanceFromBall < 5.0f)) {
+        f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - g_Fielders[bestIndex].pos.x;
+        f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - g_Fielders[bestIndex].pos.z;
+        f32 sqx = dx * dx;
+        f32 sqz = dz * dz;
+        if (fielderSqrt(sqx + sqz) > 5.0f) {
+            bestIndex = FIELDING_POSITION_NONE;
         }
+    }
 
-        if (bestIndex >= 0 && bestIndex != g_FieldingLogic.selectedFielder) {
-            s16 selectedFielder = g_FieldingLogic.selectedFielder;
-            if (selectedFielder >= 0) {
-                InMemFielder* selFielder = &g_Fielders[selectedFielder];
-                if (selFielder->distanceFromBall < 8.0f && selFielder->onFire == 0) {
-                    bestIndex = -1;
-                }
+    if (bestIndex >= 0 && bestIndex != g_FieldingLogic.selectedFielder) {
+        s16 selectedFielder = g_FieldingLogic.selectedFielder;
+        if (selectedFielder >= 0) {
+            InMemFielder* selFielder = &g_Fielders[selectedFielder];
+            if (selFielder->distanceFromBall < 8.0f && selFielder->onFire == 0) {
+                bestIndex = FIELDING_POSITION_NONE;
             }
         }
     }
@@ -11798,7 +11239,7 @@ void selectClosestFielderBasedOnFutureCoord(int frame) {
         newFielder = SelectClosestFielder2(x, z);
     }
 
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, FALSE);
 }
 
 // .text:0x00037588 size:0x88 mapped:0x8067661C
@@ -11806,7 +11247,7 @@ void unused_FUN_8067661c(void) {
     s16 contactResult;
 
     if (g_Ball.ballVelocity > 0.17f) {
-        int newFielder = fn_3_378B4();
+        int newFielder = selectInfielderFromStickDirection();
         setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
         return;
     }
@@ -11825,7 +11266,7 @@ void unused_FUN_8067661c(void) {
 }
 
 // .text:0x0003740C size:0x17C mapped:0x806764A0
-void fn_3_3740C(void) {
+void selectOutfielderOnceBallPassesInfield(void) {
     f32 maxDist;
     sAng ballAngle;
     int minDiff;
@@ -11836,17 +11277,17 @@ void fn_3_3740C(void) {
 
     maxDist = 0.0f;
     minDiff = 0x1000;
-    newFielder = -1;
+    newFielder = FIELDING_POSITION_NONE;
 
     if (g_Ball.ballState != BALL_STATE_HIT) {
         return;
     }
-    if (g_FieldingLogic.selectedFielder > 5) {
+    if (g_FieldingLogic.selectedFielder > FIELDING_POSITION_SHORTSTOP) {
         return;
     }
 
     f = &g_Fielders[0];
-    for (i = 0; i < 6; i++, f++) {
+    for (i = 0; i < FIELDING_POSITION_LEFT_FIELD; i++, f++) {
         if (f->distanceFromHomePlate > maxDist) {
             maxDist = f->distanceFromHomePlate;
         }
@@ -11858,10 +11299,9 @@ void fn_3_3740C(void) {
 
     ballAngle = g_Ball.ballAngleFromHome;
 
-    f = &g_Fielders[6];
-    for (i = 6; i < 9; i++, f++) {
-        diff = ballAngle - f->playerAngleFromHome;
-        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+    f = &g_Fielders[FIELDING_POSITION_LEFT_FIELD];
+    for (i = FIELDING_POSITION_LEFT_FIELD; i < 9; i++, f++) {
+        diff = __abs(ballAngle - f->playerAngleFromHome);
         if (minDiff > diff) {
             minDiff = diff;
             newFielder = i;
@@ -11873,7 +11313,7 @@ void fn_3_3740C(void) {
     if (i < 0) {
         return;
     }
-    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, 0);
+    setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(newFielder, FALSE);
 }
 
 // .text:0x00037114 size:0x2F8 mapped:0x806761A8
@@ -11981,17 +11421,17 @@ compareAngles:
 int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32 z) {
     s16 angleA;
     s16 angleB;
-    int angleDiff;
+    s16 angleDiff;
     f32 dx;
     f32 dz;
     f32 distA;
     f32 distB;
     f32 distDiff;
-    int stickDiffA;
-    int stickDiffB;
+    s16 stickDiffA;
+    s16 stickDiffB;
 
     if (currentStickDirection < 0) {
-        return -1;
+        return FIELDING_POSITION_NONE;
     }
 
     angleA = radToShortAngle(atan2(z - g_Fielders[fielderIndexA].pos.z, x - g_Fielders[fielderIndexA].pos.x));
@@ -12008,25 +11448,20 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         distA = fielderSqrt(sqx + sqz);
     }
 
-    dx = g_Fielders[fielderIndexB].pos.x - x;
-    dz = g_Fielders[fielderIndexB].pos.z - z;
-    {
-        f32 sqx = dx * dx;
-        f32 sqz = dz * dz;
-        distB = fielderSqrt(sqx + sqz);
-    }
+    distB = fielderSqrt((g_Fielders[fielderIndexB].pos.x - x) * (g_Fielders[fielderIndexB].pos.x - x) +
+                        (g_Fielders[fielderIndexB].pos.z - z) * (g_Fielders[fielderIndexB].pos.z - z));
 
     if (angleDiff <= 0x100) {
         return (distA < distB) ? fielderIndexA : fielderIndexB;
     }
 
     if (flag < 2) {
-        if (fielderIndexA == g_FieldingLogic.selectedFielder) {
+        if (g_FieldingLogic.selectedFielder == fielderIndexA) {
             distA -= 3.0f;
             if (distA < 0.0f) {
                 distA = 0.0f;
             }
-        } else if (fielderIndexB == g_FieldingLogic.selectedFielder) {
+        } else if (g_FieldingLogic.selectedFielder == fielderIndexB) {
             distB -= 3.0f;
             if (distB < 0.0f) {
                 distB = 0.0f;
@@ -12034,15 +11469,14 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         }
 
         if (fielderControlStick_continuousAngleHistory[3] >= 0) {
-            int stickHistDiff = fielderControlStick_continuousAngleHistory[0] -
-                                 fielderControlStick_continuousAngleHistory[3];
-            stickHistDiff = (stickHistDiff ^ (stickHistDiff >> 31)) - (stickHistDiff >> 31);
+            int stickHistDiff = __abs(fielderControlStick_continuousAngleHistory[0] -
+                                      fielderControlStick_continuousAngleHistory[3]);
             if (stickHistDiff > 0x800) {
                 stickHistDiff = 0x1000 - stickHistDiff;
             }
 
             if (stickHistDiff <= 0x400) {
-                int biasedIdx = -1;
+                int biasedIdx = FIELDING_POSITION_NONE;
 
                 if (fielderIndexA == g_FieldingLogic.selectedFielder) {
                     biasedIdx = fielderIndexA;
@@ -12089,12 +11523,11 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
                         bias = 6.0f;
                     }
 
+                    threshold = 8.0f;
                     if (distHome < 38.0f) {
                         threshold = 4.0f;
                     } else if (distHome < 46.0f) {
                         threshold = 4.0f + 0.2f * (distHome - 30.0f);
-                    } else {
-                        threshold = 8.0f;
                     }
 
                     if (fielderIndexA == g_FieldingLogic.selectedFielder) {
@@ -12106,7 +11539,7 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
                     }
                     if (fielderIndexB == g_FieldingLogic.selectedFielder) {
                         if (distA > threshold) {
-                            distB -= bias;
+                            distB = distA - bias;
                         }
                     }
                 }
@@ -12116,15 +11549,17 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
     }
 
     if (distB < distA) {
-        f32 tempDist = distA;
-        int tempIdx = fielderIndexA;
-        s16 tempAngle = angleA;
+        f32 tempDist;
+        int temp;
+        tempDist = distA;
         distA = distB;
-        fielderIndexA = fielderIndexB;
-        angleA = angleB;
         distB = tempDist;
-        fielderIndexB = tempIdx;
-        angleB = tempAngle;
+        temp = fielderIndexA;
+        fielderIndexA = fielderIndexB;
+        fielderIndexB = temp;
+        temp = angleA;
+        angleA = angleB;
+        angleB = temp;
     }
 
     if (flag < 3) {
@@ -12135,25 +11570,25 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         distDiff = distB - distA;
         if (distDiff > 15.0f) {
             if (distDiff > 20.0f && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-                fielderIndexA >= 6) {
+                fielderIndexA >= FIELDING_POSITION_LEFT_FIELD) {
                 return fielderIndexA;
             }
-            if (g_Ball.ballState != BALL_STATE_HIT || g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_LANDED) {
+            if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED) {
+                if (fielderIndexA == FIELDING_POSITION_CATCHER && distDiff > 20.0f) {
+                    return fielderIndexA;
+                }
+            } else {
                 return fielderIndexA;
             }
-            if (fielderIndexA != 1 || distDiff > 20.0f) {
-                return fielderIndexA;
-            }
-            if (distDiff > 10.0f && distA < 7.0f) {
-                return fielderIndexA;
-            }
-        } else if (distA < 7.0f) {
+        }
+
+        if (distDiff > 10.0f && distA < 7.0f) {
             return fielderIndexA;
         }
 
         if (distA < 5.0f && distB < 5.0f && angleDiff <= 0x400) {
             if (flag == 0) {
-                return -1;
+                return FIELDING_POSITION_NONE;
             }
             return fielderIndexA;
         }
@@ -12163,45 +11598,42 @@ int selectBestFielder(int fielderIndexA, int fielderIndexB, int flag, f32 x, f32
         }
     }
 
-    stickDiffA = currentStickDirection - angleA;
-    stickDiffA = (stickDiffA ^ (stickDiffA >> 31)) - (stickDiffA >> 31);
+    stickDiffA = __abs(currentStickDirection - angleA);
+    stickDiffB = __abs(currentStickDirection - angleB);
     if (stickDiffA > 0x800) {
         stickDiffA = 0x1000 - stickDiffA;
     }
-
-    stickDiffB = currentStickDirection - angleB;
-    stickDiffB = (stickDiffB ^ (stickDiffB >> 31)) - (stickDiffB >> 31);
     if (stickDiffB > 0x800) {
         stickDiffB = 0x1000 - stickDiffB;
     }
 
     {
-        int diff = stickDiffA - stickDiffB;
-        diff = (diff ^ (diff >> 31)) - (diff >> 31);
-        if (diff <= 0x100) {
+        if (__abs(stickDiffA - stickDiffB) <= 0x100) {
             return fielderIndexA;
         }
     }
 
     if (stickDiffA > 0x400) {
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
-            fielderIndexB == 1 && stickDiffB <= 0x200) {
-            return fielderIndexB;
-        }
-        if (stickDiffB <= 0x400) {
+            fielderIndexB == FIELDING_POSITION_CATCHER) {
+            if (stickDiffB <= 0x200) {
+                return fielderIndexB;
+            }
+        } else if (stickDiffB <= 0x400) {
             return fielderIndexB;
         }
         if (flag == 0) {
-            return -1;
+            return FIELDING_POSITION_NONE;
         }
     }
 
     if (stickDiffB > 0x400) {
-        if (g_Ball.ballState != BALL_STATE_HIT || g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_LANDED ||
-            fielderIndexB != 1) {
-            return fielderIndexA;
-        }
-        if (stickDiffA <= 0x200) {
+        if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_LANDED &&
+            fielderIndexB == FIELDING_POSITION_CATCHER) {
+            if (stickDiffA <= 0x200) {
+                return fielderIndexA;
+            }
+        } else {
             return fielderIndexA;
         }
     }
@@ -12220,104 +11652,88 @@ int fn_3_365D0(int fielderIndexA, int fielderIndexB, int fielderIndexC, f32 x, f
         return fielderIndexA;
     }
 
-    if (g_FieldingLogic.selectedFielder < 0) {
-        return selectBestFielder(fielderIndexA, result, 1, x, z);
-    }
-    return selectBestFielder(fielderIndexA, result, 0, x, z);
+    return (g_FieldingLogic.selectedFielder < 0) ? selectBestFielder(fielderIndexA, result, 1, x, z)
+                                                 : selectBestFielder(fielderIndexA, result, 0, x, z);
 }
 
 // .text:0x000361D8 size:0x3F8 mapped:0x8067526C
 int SelectClosestFielder2(f32 x, f32 z) {
-    InMemFielder* f;
+    int rankIndex[4];
+    int rankAngle[4];
+    f32 rankDist[4];
     int i;
-    int rank1Index = 0;
-    int rank2Index = 0;
-    int rank3Index = 0;
-    int rank4Index = 0;
-    int rank1Angle;
-    int rank2Angle;
-    int rank3Angle;
-    int rank4Angle;
-    f32 rank4Dist = 999.9f;
-    f32 rank3Dist = rank4Dist;
-    f32 rank2Dist = rank4Dist;
-    f32 rank1Dist = rank4Dist;
-    int result;
 
-    for (f = &g_Fielders[0], i = 0; i < 9; f++, i++) {
-        f32 dx = f->pos.x - x;
-        f32 dz = f->pos.z - z;
+    rankDist[3] = 999.9f;
+    rankDist[2] = rankDist[3];
+    rankDist[1] = rankDist[3];
+    rankDist[0] = rankDist[3];
+    rankIndex[0] = rankIndex[1] = rankIndex[2] = rankIndex[3] = 0;
+
+    for (i = 0; i < 9; i++) {
+        f32 dx = g_Fielders[i].pos.x - x;
+        f32 dz = g_Fielders[i].pos.z - z;
         f32 dist = fielderSqrt(dx * dx + dz * dz);
         int angle = calculateAngleFromCoordinates(dx, dz);
 
-        if (rank1Dist > dist) {
-            rank3Dist = rank2Dist;
-            rank3Index = rank2Index;
-            rank3Angle = rank2Angle;
-            rank2Dist = rank1Dist;
-            rank2Index = rank1Index;
-            rank2Angle = rank1Angle;
-            rank1Dist = dist;
-            rank1Index = i;
-            rank1Angle = angle;
-        } else if (rank2Dist > dist) {
-            rank3Dist = rank2Dist;
-            rank3Index = rank2Index;
-            rank3Angle = rank2Angle;
-            rank2Dist = dist;
-            rank2Index = i;
-            rank2Angle = angle;
-        } else if (rank3Dist > dist) {
-            rank4Dist = rank3Dist;
-            rank4Index = rank3Index;
-            rank4Angle = rank3Angle;
-            rank3Dist = dist;
-            rank3Index = i;
-            rank3Angle = angle;
-        } else if (rank4Dist > dist) {
-            rank4Dist = dist;
-            rank4Index = i;
-            rank4Angle = angle;
+        if (rankDist[0] > dist) {
+            rankDist[2] = rankDist[1];
+            rankIndex[2] = rankIndex[1];
+            rankAngle[2] = rankAngle[1];
+            rankDist[1] = rankDist[0];
+            rankIndex[1] = rankIndex[0];
+            rankAngle[1] = rankAngle[0];
+            rankDist[0] = dist;
+            rankIndex[0] = i;
+            rankAngle[0] = angle;
+        } else if (rankDist[1] > dist) {
+            rankDist[2] = rankDist[1];
+            rankIndex[2] = rankIndex[1];
+            rankAngle[2] = rankAngle[1];
+            rankDist[1] = dist;
+            rankIndex[1] = i;
+            rankAngle[1] = angle;
+        } else if (rankDist[2] > dist) {
+            rankDist[3] = rankDist[2];
+            rankIndex[3] = rankIndex[2];
+            rankAngle[3] = rankAngle[2];
+            rankDist[2] = dist;
+            rankIndex[2] = i;
+            rankAngle[2] = angle;
+        } else if (rankDist[3] > dist) {
+            rankDist[3] = dist;
+            rankIndex[3] = i;
+            rankAngle[3] = angle;
         }
     }
 
-    if (rank4Dist - 15.0f < rank3Dist) {
-        if (getDifferenceInAngle(rank2Angle, rank3Angle) < 0x180) {
-            if (getDifferenceInAngle(rank1Angle, rank4Angle) > 0x200 &&
-                getDifferenceInAngle(rank2Angle, rank4Angle) > 0x200) {
-                rank3Index = rank4Index;
+    if (rankDist[3] - 15.0f < rankDist[2]) {
+        if (getDifferenceInAngle(rankAngle[1], rankAngle[2]) < 0x180) {
+            if (getDifferenceInAngle(rankAngle[0], rankAngle[3]) > 0x200 &&
+                getDifferenceInAngle(rankAngle[1], rankAngle[3]) > 0x200) {
+                rankIndex[2] = rankIndex[3];
             }
-        } else if (getDifferenceInAngle(rank1Angle, rank3Angle) < 0x180) {
-            if (getDifferenceInAngle(rank1Angle, rank4Angle) > 0x200 &&
-                getDifferenceInAngle(rank2Angle, rank4Angle) > 0x200) {
-                rank3Index = rank4Index;
+        } else if (getDifferenceInAngle(rankAngle[0], rankAngle[2]) < 0x180) {
+            if (getDifferenceInAngle(rankAngle[0], rankAngle[3]) > 0x200 &&
+                getDifferenceInAngle(rankAngle[1], rankAngle[3]) > 0x200) {
+                rankIndex[2] = rankIndex[3];
             }
         } else {
-            if (getDifferenceInAngle(rank1Angle, rank2Angle) < 0x180 &&
-                getDifferenceInAngle(rank1Angle, rank4Angle) > 0x200 &&
-                getDifferenceInAngle(rank3Angle, rank4Angle) > 0x200) {
-                rank2Index = rank3Index;
-                rank3Index = rank4Index;
+            if (getDifferenceInAngle(rankAngle[0], rankAngle[1]) < 0x180 &&
+                getDifferenceInAngle(rankAngle[0], rankAngle[3]) > 0x200 &&
+                getDifferenceInAngle(rankAngle[2], rankAngle[3]) > 0x200) {
+                rankIndex[1] = rankIndex[2];
+                rankIndex[2] = rankIndex[3];
             }
         }
     }
 
-    result = selectBestFielder(rank2Index, rank3Index, 1, x, z);
-    if (result != -1) {
-        if (g_FieldingLogic.selectedFielder < 0) {
-            rank1Index = selectBestFielder(rank1Index, result, 1, x, z);
-        } else {
-            rank1Index = selectBestFielder(rank1Index, result, 0, x, z);
-        }
-    }
-    return rank1Index;
+    return fn_3_365D0(rankIndex[0], rankIndex[1], rankIndex[2], x, z);
 }
 
 // .text:0x00035E1C size:0x3BC mapped:0x80674EB0
 void setPlayerWhoCanInterceptThrow(void) {
     int throwZone = 0;
-    int result = -1;
-    int candidate1 = -1;
+    int candidate[2];
     int i;
     f32 dx;
     f32 dz;
@@ -12325,99 +11741,81 @@ void setPlayerWhoCanInterceptThrow(void) {
     f32 sqz;
     f32 dist;
 
-    if (g_Ball.ballZoneAwayFromHome < 3) {
-        goto checkZoneLow;
-    }
-    if (g_FieldingLogic.locationThrownTo != 0) {
-        goto checkZoneLow;
-    }
-    throwZone = 1;
-    goto zoneDone;
+    candidate[0] = FIELDING_POSITION_NONE;
+    candidate[1] = FIELDING_POSITION_NONE;
 
-checkZoneLow:
-    if (g_Ball.ballZoneAwayFromHome <= 1) {
+    if (g_Ball.ballZoneAwayFromHome >= 3 && g_FieldingLogic.locationThrownTo == 0) {
+        throwZone = 1;
+    } else if (g_Ball.ballZoneAwayFromHome <= 1) {
         throwZone = 2;
     }
 
-zoneDone:
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < FIELDING_POSITION_LEFT_FIELD; i++) {
         if (g_FieldingLogic.fielderAutoMovementCode[i] == 2) {
             continue;
         }
         if (i == g_Ball.throwingFielder) {
             continue;
         }
-        if (candidate1 == -1) {
-            candidate1 = i;
+        if (candidate[0] == FIELDING_POSITION_NONE) {
+            candidate[0] = i;
         } else {
-            result = i;
+            candidate[1] = i;
             break;
         }
     }
 
-    if (throwZone == 0) {
-        goto useDistanceFallback;
-    }
-    if (candidate1 < 0) {
-        goto useDistanceFallback;
-    }
-    if (result < 0) {
-        goto useDistanceFallback;
-    }
-    if (g_Fielders[candidate1].distanceToMound < g_Fielders[result].distanceToMound) {
-        goto haveCandidate;
-    }
-    candidate1 = result;
-    goto haveCandidate;
+    if (throwZone != 0 && candidate[0] >= 0 && candidate[1] >= 0) {
+        if (!(g_Fielders[candidate[0]].distanceToMound < g_Fielders[candidate[1]].distanceToMound)) {
+            candidate[0] = candidate[1];
+        }
+    } else {
+        dx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
+        dz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
+        sqx = dx * dx;
+        sqz = dz * dz;
+        dist = fielderSqrt(sqx + sqz);
 
-useDistanceFallback:
-    dx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
-    dz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
-    sqx = dx * dx;
-    sqz = dz * dz;
-    dist = fielderSqrt(sqx + sqz);
+        for (i = 0; i < 2; i++) {
+            if (dist < g_Fielders[candidate[i]].distanceFromBall) {
+                candidate[i] = FIELDING_POSITION_NONE;
+            }
+        }
+        if (candidate[0] < 0) {
+            candidate[0] = candidate[1];
+            candidate[1] = FIELDING_POSITION_NONE;
+        }
+        if (candidate[0] < 0) {
+            return;
+        }
+        if (candidate[1] >= 0 && g_Fielders[candidate[0]].groundDistanceFromBall > g_Fielders[candidate[1]].groundDistanceFromBall) {
+            candidate[0] = candidate[1];
+        }
+    }
 
-    if (dist < g_Fielders[candidate1].distanceFromBall) {
-        candidate1 = -1;
-    }
-    if (dist < g_Fielders[result].distanceFromBall) {
-        result = -1;
-    }
-    if (candidate1 < 0) {
-        candidate1 = result;
-        result = -1;
-    }
-    if (candidate1 < 0) {
-        return;
-    }
-    if (result < 0) {
-        goto haveCandidate;
-    }
-    if (!(g_Fielders[candidate1].groundDistanceFromBall > g_Fielders[result].groundDistanceFromBall)) {
-        goto haveCandidate;
-    }
-    candidate1 = result;
-
-haveCandidate:
-    if (candidate1 < 0) {
+    if (candidate[0] < 0) {
         return;
     }
 
     if (throwZone == 2) {
-        if (g_Fielders[candidate1].groundDistanceFromBall > 2.0f) {
+        if (g_Fielders[candidate[0]].groundDistanceFromBall > 2.0f) {
             return;
         }
     } else if (throwZone == 0) {
-        if (g_Fielders[candidate1].groundDistanceFromBall > 4.0f) {
+        if (g_Fielders[candidate[0]].groundDistanceFromBall > 4.0f) {
             return;
         }
     }
 
-    if (candidate1 != -1) {
-        setFielderAutoMovement(candidate1, 25);
-    }
-    g_FieldingLogic.interceptThrowFielder = candidate1;
+    setFielderAutoMovementIfValid(candidate[0], 25);
+    g_FieldingLogic.interceptThrowFielder = candidate[0];
 }
+
+/* ============================================================================
+ * First frame after the hit and initial movements
+ * Foul-ball tracking, human-team first frame after the hit, and the setInitialFielderMovements_*
+ * family.
+ * ============================================================================ */
 
 // .text:0x00035D28 size:0xF4 mapped:0x80674DBC
 void autoMovement16_trackFoulBall(int fielderIndex) {
@@ -12465,83 +11863,67 @@ void decideHowToTrackFoulBall(int fielderIndex) {
         fielder->_01EB = 0;
         fielder->unknown_writeOnly_always0 = 0;
 
-        if (g_Ball.fielderAboutToGetBall_hasBall >= 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR &&
-            g_Ball.hitClassification1 == 2) {
-            f32 dx = g_Ball.ballWillHitBallPos.x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-            f32 dz = g_Ball.ballWillHitBallPos.z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            f32 dist = fielderSqrt(sqx + sqz);
-
-            if (!(g_Ball.ballVelocity > 0.0f) && !(dist > 20.0f)) {
-                setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                     g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
-            } else if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome >= 3.0f) {
-                f32 d = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
-                f32 targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x +
-                              15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x / d);
-                f32 targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z +
-                              15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z / d);
-                setFielderAutoCoords(fielderIndex, targetX, targetZ);
-            } else if (fielder->distanceFromHomePlate >= 15.0f) {
-                f32 targetX = 15.0f * (fielder->pos.x / dist);
-                f32 targetZ = 15.0f * (fielder->pos.z / dist);
-                setFielderAutoCoords(fielderIndex, targetX, targetZ);
-            } else {
-                setFielderAutoCoords(fielderIndex, fielder->pos.x, fielder->pos.z);
-            }
-
-            if (fielder->distanceFromAutoLocation < 10.0f) {
-                fielder->fielderVeloAdjustmentCode = 8;
-            }
-        } else if (g_Ball.fielderAboutToGetBall_hasBall < 0 && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-            int n;
-
-            if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x == fielder->pos.x &&
-                g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z == fielder->pos.z) {
-                n = 1;
-            } else {
-                f32 dx = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - fielder->pos.x;
-                f32 dz = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z - fielder->pos.z;
+        if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
+            if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hitClassification1 == 2) {
+                f32 dx = g_Ball.ballWillHitBallPos.x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+                f32 dz = g_Ball.ballWillHitBallPos.z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
                 f32 sqx = dx * dx;
                 f32 sqz = dz * dz;
-                f32 speed = fielder->joggingSpeed;
-                if (speed == 0.0f) {
-                    speed = 1.0f;
+                f32 dist = fielderSqrt(sqx + sqz);
+
+                if (g_Ball.ballVelocity > 0.0f || dist > 20.0f) {
+                    if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 3.0f) {
+                        if (fielder->distanceFromHomePlate < 15.0f) {
+                            setFielderAutoCoords(fielderIndex, fielder->pos.x, fielder->pos.z);
+                        } else {
+                            f32 targetX = 15.0f * (fielder->pos.x / fielder->distanceFromHomePlate);
+                            f32 targetZ = 15.0f * (fielder->pos.z / fielder->distanceFromHomePlate);
+                            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+                        }
+                    } else {
+                        f32 d = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome;
+                        f32 targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x +
+                                      15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x / d);
+                        f32 targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z +
+                                      15.0f * (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z / d);
+                        setFielderAutoCoords(fielderIndex, targetX, targetZ);
+                    }
+                } else {
+                    setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                         g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
                 }
-                n = (fielder->maxAccLength_ConstF >> 1) + (int)(fielderSqrt(sqx + sqz) / speed);
+
+                if (fielder->distanceFromAutoLocation < 10.0f) {
+                    fielder->fielderVeloAdjustmentCode = 8;
+                }
+            } else {
+                goto trackBallFromContact;
             }
+        } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+            int n = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                                   g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
             if (g_Ball.framesUntilBallHitsGround - n > 10) {
                 setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                      g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
             } else {
+                int frame;
                 int i;
                 for (i = 10; i <= 60; i += 10) {
-                    CoordAndDist* c = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + i];
-
                     if (i == 60) {
-                        setFielderAutoCoords(fielderIndex, c->pos.x, c->pos.z);
+                        setFielderAutoCoords(
+                            fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + i].pos.x,
+                            g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + i].pos.z);
                         break;
                     } else {
-                        int n2;
+                        frame = g_Ball.framesUntilBallHitsGround + i;
 
-                        if (c->pos.x == fielder->pos.x && c->pos.z == fielder->pos.z) {
-                            n2 = 1;
-                        } else {
-                            f32 dx = c->pos.x - fielder->pos.x;
-                            f32 dz = c->pos.z - fielder->pos.z;
-                            f32 sqx = dx * dx;
-                            f32 sqz = dz * dz;
-                            f32 speed = fielder->joggingSpeed;
-                            if (speed == 0.0f) {
-                                speed = 1.0f;
-                            }
-                            n2 = (fielder->maxAccLength_ConstF >> 1) + (int)(fielderSqrt(sqx + sqz) / speed);
-                        }
-
-                        if ((g_Ball.framesUntilBallHitsGround + i) - n2 <= 5) {
-                            setFielderAutoCoords(fielderIndex, c->pos.x, c->pos.z);
+                        if (frame - fRunningTimeToDestinationPlus7(fielderIndex,
+                                                                   g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                                                   g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) >
+                            5) {
+                            setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                                 g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
                             break;
                         }
                     }
@@ -12553,50 +11935,45 @@ void decideHowToTrackFoulBall(int fielderIndex) {
                     fielder->fielderVeloAdjustmentCode = 8;
                 }
             } else {
-                BOOL handled = 0;
-                if (g_FieldingLogic.selectedFielder <= 5) {
-                    InMemFielder* selected = &g_Fielders[g_FieldingLogic.selectedFielder];
-                    if (g_Ball.ballDistanceFromHome < selected->distanceFromHomePlate) {
-                        if (fielder->distanceFromLandingSpot < 5.0f) {
-                            fielder->fielderVeloAdjustmentCode = 8;
-                        }
-                        handled = 1;
-                    }
-                }
-                if (!handled) {
-                    if (fielder->distanceFromLandingSpot >= 10.0f) {
+                if (g_FieldingLogic.selectedFielder <= 5 &&
+                    g_Ball.ballDistanceFromHome < g_Fielders[g_FieldingLogic.selectedFielder].distanceFromHomePlate) {
+                    if (fielder->distanceFromLandingSpot < 5.0f) {
                         fielder->fielderVeloAdjustmentCode = 8;
                     }
+                } else if (fielder->distanceFromLandingSpot < 10.0f) {
+                    fielder->fielderVeloAdjustmentCode = 8;
                 }
             }
         } else {
-            f32 targetX;
-            f32 targetZ;
-            f32 factor = 1.0f +
-                         ((fielder->groundDistanceFromBall - 15.0f) / 100.0f) +
-                         (g_Ball.ballVelocity - 0.6f);
+        trackBallFromContact:
+            {
+                f32 groundDist = fielder->groundDistanceFromBall;
+                f32 targetX;
+                f32 targetZ;
+                f32 factor = 1.0f + (((groundDist - 15.0f) / 100.0f) + (g_Ball.ballVelocity - 0.6f));
 
-            targetX = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.x) + g_Ball.AtBat_Contact_BallPos.x;
-            targetZ = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.z) + g_Ball.AtBat_Contact_BallPos.z;
+                targetX = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.x) + g_Ball.AtBat_Contact_BallPos.x;
+                targetZ = factor * (fielder->distanceFromBall * g_Ball.ballVelocityPercent.z) + g_Ball.AtBat_Contact_BallPos.z;
 
-            if (fielderIndex >= 6 && fielder->distanceFromHomePlate < 50.0f) {
-                targetX = fielder->pos.x;
-                targetZ = fielder->pos.z;
-            }
+                if (fielderIndex >= 6 && fielder->distanceFromHomePlate < 50.0f) {
+                    targetX = fielder->pos.x;
+                    targetZ = fielder->pos.z;
+                }
 
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+                setFielderAutoCoords(fielderIndex, targetX, targetZ);
 
-            if (fielder->distanceFromBall < 20.0f && fielder->groundDistanceFromBall < 5.0f) {
-                if (fielderControlStick_continuousAngleHistory[0] >= 0) {
-                    f32 angle = ATAN2F(g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z,
-                                        g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x);
-                    int diff = fielderControlStick_continuousAngleHistory[0] - radToShortAngle(angle);
-                    diff = (diff ^ (diff >> 31)) - (diff >> 31);
-                    if (diff > 0x80) {
+                if (fielder->distanceFromBall < 20.0f && groundDist < 5.0f) {
+                    if (fielderControlStick_continuousAngleHistory[0] >= 0) {
+                        f32 angle = ATAN2F(g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z,
+                                            g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x);
+                        int diff = fielderControlStick_continuousAngleHistory[0] - radToShortAngle(angle);
+                        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+                        if (diff > 0x80) {
+                            fielder->fielderVeloAdjustmentCode = 8;
+                        }
+                    } else {
                         fielder->fielderVeloAdjustmentCode = 8;
                     }
-                } else {
-                    fielder->fielderVeloAdjustmentCode = 8;
                 }
             }
         }
@@ -12620,9 +11997,9 @@ void decideHowToTrackFoulBall(int fielderIndex) {
 
 // .text:0x00034450 size:0x5F0 mapped:0x806734E4
 void humanTeamFieldingFirstFrameAfterHit(void) {
-    s64 catchStrategyMask;
     int shiftAmt;
     int i;
+    s64 catchStrategyMask;
     int angle;
     f32 dx;
     f32 dz;
@@ -12631,7 +12008,7 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
 
     catchStrategyMask = 0;
     for (i = 0, shiftAmt = 0; i < 9; i++, shiftAmt += 3) {
-        if (i == 1) {
+        if (i == FIELDING_POSITION_CATCHER) {
             g_Fielders[i].angleOfFieldersStartingPosition = SANG_ANG_90;
         } else if (g_Fielders[i].pos.x == 0.0f) {
             g_Fielders[i].angleOfFieldersStartingPosition = SANG_ANG_90;
@@ -12652,8 +12029,8 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
         dzSq = dz * dz;
         g_Fielders[i].distanceFromLandingSpot = fielderSqrt(dxSq + dzSq);
 
-        if (i == 1) {
-            setCatcherCatchStrategy_distToLandingSpot(1);
+        if (i == FIELDING_POSITION_CATCHER) {
+            setCatcherCatchStrategy_distToLandingSpot(FIELDING_POSITION_CATCHER);
         } else {
             setFielderCatchStrategy_calcFramesToGetToDropSpot(i);
         }
@@ -12669,16 +12046,7 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE &&
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BATTING) {
-        InMemFielder* f0 = &g_Fielders[0];
-        f0->autoMovementFunctionIndex = 21;
-        if (autoMovementFunctions[21].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[0] = autoMovementFunctions[21].code;
-        }
-        f0->unknown_writeOnly = 0;
-        f0->fielderVeloAdjustmentCode = 0;
-        f0->unknown_writeOnly_always0 = 0;
-        f0->timeSinceThrowWasCaught = 0;
-        f0->fielderTrackingBallState = 0;
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 21);
         return;
     }
 
@@ -12686,8 +12054,8 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
         selectInitialFielders_linedriveThroughPitcher();
     } else if (g_Ball.hitClassification3 == 7 || g_Ball.hitClassification3 == 8) {
         setInitialFielderMovements_foulBall();
-    } else if ((catchStrategyMask & 0x3FFFF) != 0 && g_Ball.landingSpotZoneAwayFromHome == 4 &&
-               g_Ball.maxYOfHit > 8.0f) {
+    } else if ((catchStrategyMask & 0x3FFFF) == 0 ||
+               (g_Ball.landingSpotZoneAwayFromHome == BALL_ZONE_OF_DEEP && g_Ball.maxYOfHit > 8.0f)) {
         if (g_Ball.maxYOfHit < 5.0f) {
             SET_INITIAL_FIELDER_MOVEMENTS_GENERAL_CASE_WITH_SECONDARY();
         } else {
@@ -12708,256 +12076,223 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
 // .text:0x000341E8 size:0x268 mapped:0x8067327C
 void setInitialFielderMovements_DeepFly(void) {
     int primaryFielder, secondaryFielder;
-    int index1, index2;
-    InMemFielder *f1, *f2;
+    int selected;
+    InMemFielder* fielder;
 
     determinePrimaryAndSecondaryOutFielders(&primaryFielder, &secondaryFielder);
 
     g_FieldingLogic.selectedFielder = primaryFielder;
     g_FieldingLogic.secondaryFielder = secondaryFielder;
 
-    index1 = g_FieldingLogic.selectedFielder;
-    f1 = &g_Fielders[index1];
-    if (index1 != -1) {
-        f1->autoMovementFunctionIndex = 22;
+    // Same as setFielderAutoMovementIfValid(selected, 22). Calling the helper for both fielders makes
+    // this function small enough that -inline deferred folds it into humanTeamFieldingFirstFrameAfterHit,
+    // which keeps it as a real call.
+    selected = g_FieldingLogic.selectedFielder;
+    fielder = &g_Fielders[selected];
+    if (selected != FIELDING_POSITION_NONE) {
+        fielder->autoMovementFunctionIndex = 22;
         if (autoMovementFunctions[22].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[index1] = autoMovementFunctions[22].code;
+            g_FieldingLogic.fielderAutoMovementCode[selected] = autoMovementFunctions[22].code;
         }
+        fielder->unknown_writeOnly = 0;
+        fielder->fielderVeloAdjustmentCode = 0;
+        fielder->unknown_writeOnly_always0 = 0;
+        fielder->timeSinceThrowWasCaught = 0;
+        fielder->fielderTrackingBallState = 0;
     }
-    f1->unknown_writeOnly = 0;
-    f1->fielderVeloAdjustmentCode = 0;
-    f1->unknown_writeOnly_always0 = 0;
-    f1->timeSinceThrowWasCaught = 0;
-    f1->fielderTrackingBallState = 0;
 
-    index2 = g_FieldingLogic.secondaryFielder;
-    f2 = &g_Fielders[index2];
-    if (index2 != -1) {
-        f2->autoMovementFunctionIndex = 22;
-        if (autoMovementFunctions[22].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[index2] = autoMovementFunctions[22].code;
-        }
-    }
-    f2->unknown_writeOnly = 0;
-    f2->fielderVeloAdjustmentCode = 0;
-    f2->unknown_writeOnly_always0 = 0;
-    f2->timeSinceThrowWasCaught = 0;
-    f2->fielderTrackingBallState = 0;
+    setFielderAutoMovementIfValid(g_FieldingLogic.secondaryFielder, 22);
 
     if (g_FieldingLogic.secondaryFielder >= 0) {
-        g_FieldingLogic.unkFlagMaybeInAir = 1;
+        g_FieldingLogic.unkFlagMaybeInAir = TRUE;
     } else {
         int angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
-        if (g_FieldingLogic.selectedFielder == 7) {
+        if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_CENTER_FIELD) {
             if (angle < 0x400) {
-                InMemFielder *f = &g_Fielders[8];
-                setFielderAutoMovement(8, 24);
-                g_FieldingLogic.someFielderIndex = 8;
+                setFielderAutoMovement(FIELDING_POSITION_RIGHT_FIELD, 24);
+                g_FieldingLogic.someFielderIndex = FIELDING_POSITION_RIGHT_FIELD;
             } else {
-                InMemFielder *f = &g_Fielders[6];
-                setFielderAutoMovement(6, 24);
-                g_FieldingLogic.someFielderIndex = 6;
+                setFielderAutoMovement(FIELDING_POSITION_LEFT_FIELD, 24);
+                g_FieldingLogic.someFielderIndex = FIELDING_POSITION_LEFT_FIELD;
             }
         } else {
-            InMemFielder *f = &g_Fielders[7];
-            setFielderAutoMovement(7, 24);
-            g_FieldingLogic.someFielderIndex = 7;
+            setFielderAutoMovement(FIELDING_POSITION_CENTER_FIELD, 24);
+            g_FieldingLogic.someFielderIndex = FIELDING_POSITION_CENTER_FIELD;
         }
     }
 
     setInitialFielderMovements_CoverBases();
     setInitialFielderMovements_cutoffs();
-    fn_3_33D9C();
+    setDeepFlyCornerOutfielderPresets();
 }
 
 // .text:0x00033DD0 size:0x418 mapped:0x80672E64
 void determinePrimaryAndSecondaryOutFielders(int *primaryFielder, int *secondaryFielder) {
+    InMemFielder* center = &g_Fielders[FIELDING_POSITION_CENTER_FIELD];
+    int otherFielder = FIELDING_POSITION_LEFT_FIELD;
     int angle;
-    int defaultFielder;
-    InMemFielder *outfielder;
-    InMemFielder *fielder7;
-    int strat7, stratDefault;
-    int similarDistanceInd;
+    InMemFielder* other;
+    int centerStrategy;
+    int otherStrategy;
+    BOOL similarDistance;
     f32 diff;
-    int diff7, diffDefault, diffFrames;
-    u8 cs;
+    int otherAngleDiff;
+    int centerAngleDiff;
 
-    fielder7 = &g_Fielders[7];
-    defaultFielder = 6;
-    *secondaryFielder = -1;
+    *secondaryFielder = FIELDING_POSITION_NONE;
 
     angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                           g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+                                          g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
-    if (angle > g_Fielders[6].angleOfFieldersStartingPosition) {
-        *primaryFielder = 6;
+    if (angle > g_Fielders[FIELDING_POSITION_LEFT_FIELD].angleOfFieldersStartingPosition) {
+        *primaryFielder = FIELDING_POSITION_LEFT_FIELD;
         return;
     }
-    if (angle < g_Fielders[8].angleOfFieldersStartingPosition) {
-        *primaryFielder = 8;
+    if (angle < g_Fielders[FIELDING_POSITION_RIGHT_FIELD].angleOfFieldersStartingPosition) {
+        *primaryFielder = FIELDING_POSITION_RIGHT_FIELD;
         return;
     }
-    if (angle < fielder7->angleOfFieldersStartingPosition) {
-        defaultFielder = 8;
+    if (angle < g_Fielders[FIELDING_POSITION_CENTER_FIELD].angleOfFieldersStartingPosition) {
+        otherFielder = FIELDING_POSITION_RIGHT_FIELD;
     }
 
-    outfielder = &g_Fielders[defaultFielder];
+    other = &g_Fielders[otherFielder];
 
-    if (fielder7->nonCatchFlyBallStratInd != 0) {
-        cs = fielder7->catchStrategy;
-        strat7 = (cs == 1) ? 1 : (cs == 2) ? 2 : (cs == 3) ? 3 : 10;
-    } else {
-        strat7 = 0;
+    otherStrategy = 10;
+    centerStrategy = 10;
+    if (!center->nonCatchFlyBallStratInd) {
+        centerStrategy = 0;
+    } else if (center->catchStrategy == 1) {
+        centerStrategy = 1;
+    } else if (center->catchStrategy == 2) {
+        centerStrategy = 2;
+    } else if (center->catchStrategy == 3) {
+        centerStrategy = 3;
     }
 
-    if (outfielder->nonCatchFlyBallStratInd != 0) {
-        cs = outfielder->catchStrategy;
-        stratDefault = (cs == 1) ? 1 : (cs == 2) ? 2 : (cs == 3) ? 3 : 10;
-    } else {
-        stratDefault = 0;
+    if (!other->nonCatchFlyBallStratInd) {
+        otherStrategy = 0;
+    } else if (other->catchStrategy == 1) {
+        otherStrategy = 1;
+    } else if (other->catchStrategy == 2) {
+        otherStrategy = 2;
+    } else if (other->catchStrategy == 3) {
+        otherStrategy = 3;
     }
 
-    similarDistanceInd = 0;
+    similarDistance = FALSE;
     if (g_Ball.wallAndBallIntersectionDistFromHome > 40.0f) {
-        diff = fielder7->distanceFromLandingSpot - outfielder->distanceFromLandingSpot;
+        diff = center->distanceFromLandingSpot - other->distanceFromLandingSpot;
         if (diff < 0.0f) {
             diff = -diff;
         }
         if (diff < 10.0f) {
-            similarDistanceInd = 1;
+            similarDistance = TRUE;
         }
     }
 
-    do {
-    if ((strat7 == stratDefault && strat7 < 10) || similarDistanceInd) {
-        if (strat7 == 0) {
-            if (fielder7->distanceFromLandingSpot <= outfielder->distanceFromLandingSpot) {
-                *primaryFielder = 7;
-                diff = outfielder->distanceFromLandingSpot - fielder7->distanceFromLandingSpot;
-                if (diff < 10.0f) {
-                    *secondaryFielder = defaultFielder;
+    if ((centerStrategy == otherStrategy && centerStrategy < 10) || similarDistance) {
+        if (centerStrategy == 0) {
+            if (center->distanceFromLandingSpot <= other->distanceFromLandingSpot) {
+                *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+                if (other->distanceFromLandingSpot - center->distanceFromLandingSpot < 10.0f) {
+                    *secondaryFielder = otherFielder;
                 }
             } else {
-                *primaryFielder = defaultFielder;
-                diff = fielder7->distanceFromLandingSpot - outfielder->distanceFromLandingSpot;
-                if (diff < 10.0f) {
-                    *secondaryFielder = 7;
+                *primaryFielder = otherFielder;
+                if (center->distanceFromLandingSpot - other->distanceFromLandingSpot < 10.0f) {
+                    *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
                 }
             }
             return;
-        } else if (strat7 == 1) {
-            if (fielder7->framesToGetToBallLandingSpot <= outfielder->framesToGetToBallLandingSpot) {
-                *primaryFielder = 7;
-                diffFrames = outfielder->framesToGetToBallLandingSpot - fielder7->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x2d) {
-                    *secondaryFielder = defaultFielder;
+        } else if (centerStrategy == 1) {
+            if (center->framesToGetToBallLandingSpot <= other->framesToGetToBallLandingSpot) {
+                *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+                if (other->framesToGetToBallLandingSpot - center->framesToGetToBallLandingSpot < 45) {
+                    *secondaryFielder = otherFielder;
                 }
             } else {
-                *primaryFielder = defaultFielder;
-                diffFrames = fielder7->framesToGetToBallLandingSpot - outfielder->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x2d) {
-                    *secondaryFielder = 7;
+                *primaryFielder = otherFielder;
+                if (center->framesToGetToBallLandingSpot - other->framesToGetToBallLandingSpot < 45) {
+                    *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
                 }
             }
             return;
         }
-        break;
-    }
-
-    if (strat7 < stratDefault) {
-        if (strat7 == 0) {
-            *primaryFielder = 7;
-            if (stratDefault == 1) {
-                diffFrames = outfielder->framesToGetToBallLandingSpot - fielder7->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x1e) {
-                    *secondaryFielder = defaultFielder;
-                }
+    } else if (centerStrategy < otherStrategy) {
+        if (centerStrategy == 0) {
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+            if (otherStrategy == 1 &&
+                other->framesToGetToBallLandingSpot - center->framesToGetToBallLandingSpot < 30) {
+                *secondaryFielder = otherFielder;
             }
             return;
-        } else if (strat7 == 1) {
-            *primaryFielder = 7;
+        } else if (centerStrategy == 1) {
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
             return;
-        } else if (stratDefault == 10) {
-            *primaryFielder = 7;
+        } else if (otherStrategy == 10) {
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
             return;
         }
-    } else {
-        if (strat7 == stratDefault) {
-            break;
-        }
-        if (stratDefault == 0) {
-            *primaryFielder = defaultFielder;
-            if (strat7 == 1) {
-                diffFrames = fielder7->framesToGetToBallLandingSpot - outfielder->framesToGetToBallLandingSpot;
-                if (diffFrames < 0x1e) {
-                    *secondaryFielder = 7;
-                }
+    } else if (otherStrategy < centerStrategy) {
+        if (otherStrategy == 0) {
+            *primaryFielder = otherFielder;
+            if (centerStrategy == 1 &&
+                center->framesToGetToBallLandingSpot - other->framesToGetToBallLandingSpot < 30) {
+                *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
             }
             return;
-        } else if (stratDefault == 1) {
-            *primaryFielder = defaultFielder;
+        } else if (otherStrategy == 1) {
+            *primaryFielder = otherFielder;
             return;
-        } else if (strat7 == 10) {
-            *primaryFielder = defaultFielder;
+        } else if (centerStrategy == 10) {
+            *primaryFielder = otherFielder;
             return;
         }
     }
-    } while (0);
 
-    if (g_Ball.landingSpotZoneAwayFromHome >= 3) {
-        diff = fielder7->distanceFromLandingSpot - outfielder->distanceFromLandingSpot;
+    if (g_Ball.landingSpotZoneAwayFromHome >= BALL_ZONE_OF_MID) {
+        diff = center->distanceFromLandingSpot - other->distanceFromLandingSpot;
         if (diff < 0.0f) {
-            *primaryFielder = 7;
+            *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
             if (diff > -10.0f) {
-                *secondaryFielder = defaultFielder;
+                *secondaryFielder = otherFielder;
             }
         } else {
-            *primaryFielder = defaultFielder;
+            *primaryFielder = otherFielder;
             if (diff < 10.0f) {
-                *secondaryFielder = 7;
+                *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
             }
         }
         return;
     }
 
-    diffDefault = angle - outfielder->angleOfFieldersStartingPosition;
-    if (diffDefault < 0) {
-        diffDefault = -diffDefault;
-    }
-    diff7 = angle - fielder7->angleOfFieldersStartingPosition;
-    if (diff7 < 0) {
-        diff7 = -diff7;
-    }
-    if (diff7 < diffDefault + 0x40) {
-        *primaryFielder = 7;
-        *secondaryFielder = defaultFielder;
+    centerAngleDiff = __abs(angle - center->angleOfFieldersStartingPosition);
+    otherAngleDiff = __abs(angle - other->angleOfFieldersStartingPosition);
+    if (centerAngleDiff < otherAngleDiff + 0x40) {
+        *primaryFielder = FIELDING_POSITION_CENTER_FIELD;
+        *secondaryFielder = otherFielder;
     } else {
-        *primaryFielder = defaultFielder;
-        *secondaryFielder = 7;
+        *primaryFielder = otherFielder;
+        *secondaryFielder = FIELDING_POSITION_CENTER_FIELD;
     }
 }
 
 // .text:0x00033D9C size:0x34 mapped:0x80672E30
 #pragma dont_inline on
-void fn_3_33D9C(void) {
-    autoMovementDetermineWhatToDo(6, 7);
-    autoMovementDetermineWhatToDo(8, 6);
+void setDeepFlyCornerOutfielderPresets(void) {
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_LEFT_FIELD, 7);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_RIGHT_FIELD, 6);
 }
 #pragma dont_inline reset
 
 // .text:0x000334EC size:0x8B0 mapped:0x80672580
 void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
-    InMemFielder *f;
-    int index;
 
-    do {
     if (g_Ball.hitClassification2 == 1) {
         determineSelectedfielderOnIFHit_Dribbler();
-        break;
-    }
-
-    if (g_Ball.maxYOfHit >= 5.0f && noSecondaryFielderLogic == 0) {
+    } else if (g_Ball.maxYOfHit >= 5.0f && noSecondaryFielderLogic == 0) {
         int i;
         int bestIdx;
         f32 dx, dz;
@@ -12968,7 +12303,8 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         dz = g_Fielders[0].pos.z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         sqx = dx * dx;
         sqz = dz * dz;
-        bestDist = fielderSqrt(sqx + sqz) + 3.0f;
+        bestDist = fielderSqrt(sqx + sqz);
+        bestDist += 3.0f;
         bestIdx = 0;
 
         for (i = 1; i < 6; i++) {
@@ -12989,18 +12325,7 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         }
 
         g_FieldingLogic.selectedFielder = bestIdx;
-        f = &g_Fielders[bestIdx];
-        if (bestIdx != -1) {
-            f->autoMovementFunctionIndex = 21;
-            if (autoMovementFunctions[21].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[bestIdx] = autoMovementFunctions[21].code;
-            }
-            f->unknown_writeOnly = 0;
-            f->fielderVeloAdjustmentCode = 0;
-            f->unknown_writeOnly_always0 = 0;
-            f->timeSinceThrowWasCaught = 0;
-            f->fielderTrackingBallState = 0;
-        }
+        setFielderAutoMovementIfValid(bestIdx, 21);
 
         if (g_FieldingLogic.selectedFielder == 3 || g_FieldingLogic.selectedFielder == 5) {
             if (g_Ball.landingSpotAngle >= 0x3b8 && g_Ball.landingSpotAngle <= 0x448) {
@@ -13044,111 +12369,44 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
             if (g_Ball.landingSpotAngle >= 0x3b8 && g_Ball.landingSpotAngle <= 0x448) {
                 g_FieldingLogic.infielderSelectedOnPopFlyInd = 1;
                 if (g_FieldingLogic.secondaryFielder == 3) {
-                    f = &g_Fielders[5];
-                    f->autoMovementFunctionIndex = 22;
-                    if (autoMovementFunctions[22].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[22].code;
-                    }
-                    f->unknown_writeOnly = 0;
-                    f->fielderVeloAdjustmentCode = 0;
-                    f->unknown_writeOnly_always0 = 0;
-                    f->timeSinceThrowWasCaught = 0;
-                    f->fielderTrackingBallState = 0;
+                    setFielderAutoMovement(5, 22);
                 } else {
-                    f = &g_Fielders[3];
-                    f->autoMovementFunctionIndex = 22;
-                    if (autoMovementFunctions[22].code >= 0) {
-                        g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[22].code;
-                    }
-                    f->unknown_writeOnly = 0;
-                    f->fielderVeloAdjustmentCode = 0;
-                    f->unknown_writeOnly_always0 = 0;
-                    f->timeSinceThrowWasCaught = 0;
-                    f->fielderTrackingBallState = 0;
+                    setFielderAutoMovement(3, 22);
                 }
             }
-            break;
         } else {
             int f2, f3, f4, f5;
-            int th;
 
             f2 = g_Fielders[2].angleOfFieldersStartingPosition;
             f3 = g_Fielders[3].angleOfFieldersStartingPosition;
 
-            th = f2 + (f3 - f2) / 7;
-            if (angle < th) {
+            if (angle < f2 + (f3 - f2) / 7) {
                 g_FieldingLogic.selectedFielder = 2;
-                break;
-            }
-
-            th = f2 + (f3 - f2) * 2 / 5;
-            if (angle < th) {
+            } else if (angle < f2 + (f3 - f2) * 2 / 5) {
                 g_FieldingLogic.selectedFielder = 2;
                 g_FieldingLogic.secondaryFielder = 3;
-
-                f = &g_Fielders[3];
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[22].code;
+                setFielderAutoMovement(3, 22);
+            } else {
+                f5 = g_Fielders[5].angleOfFieldersStartingPosition;
+                if (angle < f3 + (f5 - f3) / 2) {
+                    g_FieldingLogic.selectedFielder = 3;
+                } else {
+                    f4 = g_Fielders[4].angleOfFieldersStartingPosition;
+                    if (angle < f5 + (f4 - f5) * 3 / 5) {
+                        g_FieldingLogic.selectedFielder = 5;
+                    } else if (angle < f4 - (f4 - f5) / 5) {
+                        g_FieldingLogic.selectedFielder = 4;
+                        g_FieldingLogic.secondaryFielder = 5;
+                        setFielderAutoMovement(5, 22);
+                    } else {
+                        g_FieldingLogic.selectedFielder = 4;
+                    }
                 }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-                break;
             }
-
-            f5 = g_Fielders[5].angleOfFieldersStartingPosition;
-            th = f3 + (f5 - f3) / 2;
-            if (angle < th) {
-                g_FieldingLogic.selectedFielder = 3;
-                break;
-            }
-
-            f4 = g_Fielders[4].angleOfFieldersStartingPosition;
-            th = f5 + (f4 - f5) * 3 / 5;
-            if (angle < th) {
-                g_FieldingLogic.selectedFielder = 5;
-                break;
-            }
-
-            th = f4 - (f4 - f5) / 5;
-            if (angle < th) {
-                g_FieldingLogic.selectedFielder = 4;
-                g_FieldingLogic.secondaryFielder = 5;
-
-                f = &g_Fielders[5];
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[22].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-                break;
-            }
-
-            g_FieldingLogic.selectedFielder = 4;
         }
     }
-    } while (0);
 
-    index = g_FieldingLogic.selectedFielder;
-    f = &g_Fielders[index];
-    if (index != -1) {
-        f->autoMovementFunctionIndex = 21;
-        if (autoMovementFunctions[21].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[index] = autoMovementFunctions[21].code;
-        }
-        f->unknown_writeOnly = 0;
-        f->fielderVeloAdjustmentCode = 0;
-        f->unknown_writeOnly_always0 = 0;
-        f->timeSinceThrowWasCaught = 0;
-        f->fielderTrackingBallState = 0;
-    }
+    setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, 21);
 
     if (noSecondaryFielderLogic == 0) {
         s16 oldSecondary = g_FieldingLogic.secondaryFielder;
@@ -13157,49 +12415,16 @@ void setInitialFielderMovements_generalCase(int noSecondaryFielderLogic) {
         if (oldSecondary < 0) {
             chooseSecondaryFielderFromClosestOutfielder();
             newSecondary = g_FieldingLogic.secondaryFielder;
-            f = &g_Fielders[newSecondary];
-            if (newSecondary != -1) {
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[newSecondary] = autoMovementFunctions[22].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(newSecondary, 22);
         } else {
             chooseSecondaryFielderFromClosestOutfielder();
             newSecondary = g_FieldingLogic.secondaryFielder;
             g_FieldingLogic.tertiaryFielder = newSecondary;
             g_FieldingLogic.secondaryFielder = oldSecondary;
 
-            f = &g_Fielders[oldSecondary];
-            if (oldSecondary != -1) {
-                f->autoMovementFunctionIndex = 22;
-                if (autoMovementFunctions[22].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[oldSecondary] = autoMovementFunctions[22].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(oldSecondary, 22);
 
-            f = &g_Fielders[g_FieldingLogic.tertiaryFielder];
-            if (g_FieldingLogic.tertiaryFielder != -1) {
-                f->autoMovementFunctionIndex = 23;
-                if (autoMovementFunctions[23].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[g_FieldingLogic.tertiaryFielder] = autoMovementFunctions[23].code;
-                }
-                f->unknown_writeOnly = 0;
-                f->fielderVeloAdjustmentCode = 0;
-                f->unknown_writeOnly_always0 = 0;
-                f->timeSinceThrowWasCaught = 0;
-                f->fielderTrackingBallState = 0;
-            }
+            setFielderAutoMovementIfValid(g_FieldingLogic.tertiaryFielder, 23);
 
             g_FieldingLogic.unkFlagMaybeInAir = 1;
         }
@@ -13652,7 +12877,7 @@ void selectInitialFielders_linedriveThroughPitcher(void) {
 }
 
 // .text:0x000327F4 size:0x1C mapped:0x80671888
-BOOL fn_3_327F4(void) {
+BOOL isHitDribbler(void) {
     return g_Ball.hitClassification2 == 1;
 }
 
@@ -13780,6 +13005,11 @@ void determineSelectedfielderOnIFHit_Dribbler(void) {
         }
     }
 }
+
+/* ============================================================================
+ * Steals, at-bat and pre-pitch positioning
+ * Fielder reactions to steals, at-bat setup and the pre-pitch walk to the starting positions.
+ * ============================================================================ */
 
 // .text:0x00032090 size:0x314 mapped:0x80671124
 void stealSetFielders(void) {
@@ -14281,6 +13511,11 @@ void moveFieldersFromDugoutToStartingPositions(void) {
     g_Ball.framesSinceHit = 100;
 }
 
+/* ============================================================================
+ * Wall jumps, clambers, wall splats and jumps
+ * Position and velocity updates while jumping, wall jumping, clambering and wall splatting.
+ * ============================================================================ */
+
 // .text:0x00030564 size:0xB8 mapped:0x8066F5F8
 int walljump_calculateJumpedOffWallPositionAndVelocity(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -14676,6 +13911,11 @@ void jumpSetPosAndVelo(int fielderIndex) {
     }
 }
 
+/* ============================================================================
+ * Minigames and Toy Field
+ * Minigame dash fielding, Toy Field, and the minigame-specific auto-movements.
+ * ============================================================================ */
+
 // .text:0x0002F484 size:0xF0 mapped:0x8066E518
 void miniGameDash(void) {
     int i;
@@ -14789,7 +14029,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     fielderUpdateChasingRunnerValues(fielderIndex);
 
 updateEachFielder:
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 }
 
 // .text:0x0002EA88 size:0x43C mapped:0x8066DB1C
@@ -14845,7 +14085,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
     }
 
 updateEachFielder:
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 }
 
 // .text:0x0002EA24 size:0x64 mapped:0x8066DAB8
@@ -15132,7 +14372,7 @@ void autoMovement27_minigameDashRelated2(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->animatingActionInd == 0) {
-        unused_FUN_8066c7fc(fielderIndex);
+        moveFielderTowardsIntendedLocation_initPhase(fielderIndex);
     }
 
     if (g_Minigame.framesSincePanelHit != 0 && fielderIndex != -1) {
@@ -15145,12 +14385,12 @@ void autoMovement28_minigameDashRelated3(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->animationRelatedInd == 0) {
-        unused_FUN_8066bf88(fielderIndex);
+        moveFielderTowardsIntendedLocation(fielderIndex);
     }
 }
 
 // .text:0x0002D768 size:0x1C4 mapped:0x8066C7FC
-void unused_FUN_8066c7fc(int fielderIndex) {
+void moveFielderTowardsIntendedLocation_initPhase(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     if (fielder->_0208 == 0) {
@@ -15162,7 +14402,7 @@ void unused_FUN_8066c7fc(int fielderIndex) {
     }
 
     fielder->fielderVeloAdjustmentCode = 0;
-    unused_FUN_8066bf88(fielderIndex);
+    moveFielderTowardsIntendedLocation(fielderIndex);
 }
 
 // .text:0x0002D47C size:0x2EC mapped:0x8066C510
@@ -15342,7 +14582,7 @@ int determineBestFrameForFielder(int fielderIndex) {
 }
 
 // .text:0x0002CEF4 size:0x18C mapped:0x8066BF88
-void unused_FUN_8066bf88(int fielderIndex) {
+void moveFielderTowardsIntendedLocation(int fielderIndex) {
     updateFielderPositionBasedOnBallState(fielderIndex);
     setFielderMovementAngleTowardsIntendedLocation(fielderIndex);
     moveFielder_CheckForAndSetJump(fielderIndex);
@@ -15382,11 +14622,17 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
 
     fielderUpdateChasingRunnerValues(fielderIndex);
 
-    fn_3_55370();
+    fielding_updateAllFieldersPostMovement();
 
     return 1;
 }
 #pragma dont_inline reset
+
+/* ============================================================================
+ * Catching
+ * Catch checks for fly balls, running catches, thrown balls and empty-base throws; wall actions
+ * and dives.
+ * ============================================================================ */
 
 // .text:0x0002C698 size:0x548 mapped:0x8066B72C
 void checkForCatchBallAction(int fielderIndex) {
@@ -15470,15 +14716,9 @@ void checkForCatchBallAction(int fielderIndex) {
 
     {
         s16 framesAfterThrow = g_Ball.matchFramesAndBallAngle.framesAfterReceivingThrow;
-        if (framesAfterThrow != 0) {
-            if (framesAfterThrow < 0x1e) {
-                return;
-            }
-            if (fielder->fielderReadiness == 0) {
-                if (framesAfterThrow < 0x14) {
-                    return;
-                }
-            }
+        if (framesAfterThrow != 0 &&
+            (framesAfterThrow < 30 || (fielder->fielderReadiness == 0 && framesAfterThrow < 20))) {
+            return;
         }
     }
 
@@ -15516,10 +14756,11 @@ void checkForCatchBallAction(int fielderIndex) {
     } else if (checkIfCatchOccurs(fielderIndex) || checkIfRunningCatchOccurs(fielderIndex)) {
         // fall through to shared post-catch handling below
     } else if (g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake != 0) {
-        if (checkForAndSetFielderWallActionsOrDives(fielderIndex) == 0) {
+        if (checkForAndSetFielderWallActionsOrDives(fielderIndex) != 0) {
+            g_FieldingLogic.jumpDiveStruct->aiFieldingDashIndicator[0] = 0;
+        } else {
             return;
         }
-        g_FieldingLogic.jumpDiveStruct->aiFieldingDashIndicator[0] = 0;
     } else {
         evaluateFlyBallCatch(fielderIndex);
         return;
@@ -15559,7 +14800,6 @@ void checkForCatchBallAction(int fielderIndex) {
 void evaluateFlyBallCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 catchHeightThreshold;
-    f32 dist;
     f32 dx;
     f32 dz;
     f32 sqx;
@@ -15595,20 +14835,21 @@ void evaluateFlyBallCatch(int fielderIndex) {
 
         sqx = dx * dx;
         sqz = dz * dz;
-        dist = fielderSqrt(sqx + sqz);
-        fielder->distToWhereFlyBallWillBeAtHalfFielderHeight = dist;
+        fielder->distToWhereFlyBallWillBeAtHalfFielderHeight = fielderSqrt(sqx + sqz);
 
         if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 5.0f) {
-            if (fielder->always0 != 0 || g_Ball.framesUntilBallHitsGround >= 0x2d) {
-                fielder->closingInOnCatchingFlyBall = 1;
-            } else if (g_Ball.framesUntilBallHitsGround > 0x1e) {
-                if (fielder->closingInOnCatchingFlyBall_stored != 0) {
-                    if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 4.0f) {
+            if (fielder->always0 == 0 && g_Ball.framesUntilBallHitsGround < 45) {
+                if (g_Ball.framesUntilBallHitsGround > 30) {
+                    if (fielder->closingInOnCatchingFlyBall_stored != 0) {
+                        if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 4.0f) {
+                            fielder->closingInOnCatchingFlyBall = 1;
+                        }
+                    } else if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 3.0f) {
                         fielder->closingInOnCatchingFlyBall = 1;
                     }
-                } else if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < 3.0f) {
-                    fielder->closingInOnCatchingFlyBall = 1;
                 }
+            } else {
+                fielder->closingInOnCatchingFlyBall = 1;
             }
 
             if (fielder->distToWhereFlyBallWillBeAtHalfFielderHeight < fielder->hitbox[0]) {
@@ -15663,17 +14904,17 @@ int checkIfCatchOccurs(int fielderIndex) {
     f32 dirX = fielder->velocityXPrev;
     f32 dirZ = fielder->velocityZPrev;
     int canAttempt = 1;
+    int isRunningApproach = 0;
     f32 speed = fielderSqrt(dirX * dirX + dirZ * dirZ);
     int i;
-    VecXYZ lineEnd;
-    VecXYZ point;
     VecXYZ closest;
+    VecXYZ point;
+    VecXYZ lineEnd;
     f32 interceptDist;
     f32 xDist, zDist;
-    int isRunningApproach;
-    s16 angleDiff;
+    int angleDiff;
 
-    if (speed != 0.0f) {
+    if (speed) {
         dirX = 0.1f * (dirX / speed);
         dirZ = 0.1f * (dirZ / speed);
     }
@@ -15696,7 +14937,6 @@ int checkIfCatchOccurs(int fielderIndex) {
 
     if (canAttempt) {
         for (i = 1; i < specialFielderActionConstants._00[11]; i++) {
-            f32 predX, predZ;
             f32 dx, dz;
             f32 dist;
 
@@ -15704,10 +14944,8 @@ int checkIfCatchOccurs(int fielderIndex) {
                 continue;
             }
 
-            predZ = (f32)i * dirZ + fielder->pos.z;
-            dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - predZ;
-            predX = (f32)i * dirX + fielder->pos.x;
-            dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - predX;
+            dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - ((f32)i * dirX + fielder->pos.x);
+            dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - ((f32)i * dirZ + fielder->pos.z);
             dist = fielderSqrt(dx * dx + dz * dz);
 
             if (!(dist < fielder->hitbox[0])) {
@@ -15715,8 +14953,8 @@ int checkIfCatchOccurs(int fielderIndex) {
             }
 
             {
-                s16 travelAngle = normalizeAngle(g_Ball.ballTravelAngle + 0x800);
-                s16 coordAngle = calculateAngleFromCoordinates(dx, dz);
+                int travelAngle = normalizeAngle(g_Ball.ballTravelAngle + 0x800);
+                int coordAngle = calculateAngleFromCoordinates(dx, dz);
                 angleDiff = angleDifferenceNormalized(travelAngle, coordAngle);
             }
             isRunningApproach = 1;
@@ -15724,16 +14962,11 @@ int checkIfCatchOccurs(int fielderIndex) {
                 continue;
             }
             if (angleDiff >= -0x400) {
-                break;
+                goto found;
             }
-        }
-
-        if (i >= specialFielderActionConstants._00[11]) {
-            return 0;
         }
     } else {
         for (i = 1; i < specialFielderActionConstants._00[11]; i++) {
-            f32 predX, predZ;
             f32 dx, dz;
             f32 dist;
 
@@ -15741,44 +14974,24 @@ int checkIfCatchOccurs(int fielderIndex) {
                 continue;
             }
 
-            predZ = (f32)i * dirZ + fielder->pos.z;
-            dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - predZ;
-            predX = (f32)i * dirX + fielder->pos.x;
-            dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - predX;
+            dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - ((f32)i * dirX + fielder->pos.x);
+            dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - ((f32)i * dirZ + fielder->pos.z);
             dist = fielderSqrt(dx * dx + dz * dz);
 
             if (dist < fielder->hitbox[1]) {
-                break;
+                goto found;
             }
         }
-
-        if (i >= specialFielderActionConstants._00[11]) {
-            return 0;
-        }
     }
+    return 0;
 
-    fielder->catchAnimationFramesCountDown = i;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 1;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = canAttempt;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-    if (i < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-    g_Ball.catchAnimationTotalFrames = 0;
+found:
 
-    if (!(g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.y < fielder->hitbox[5])) {
+    fn_3_2C238(fielderIndex, 1, i, FALSE, canAttempt);
+
+    if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.y < fielder->hitbox[5]) {
         fielder->catchVerticalZone = 0;
-    } else if (!(g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.y < fielder->hitbox[4])) {
+    } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.y < fielder->hitbox[4]) {
         fielder->catchVerticalZone = 1;
     } else {
         fielder->catchVerticalZone = 2;
@@ -15793,8 +15006,8 @@ int checkIfCatchOccurs(int fielderIndex) {
         lineEnd.y = 0.0f;
         lineEnd.z = 0.0f;
         point.x = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x;
-        point.y = 0.0f;
         point.z = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z;
+        point.y = 0.0f;
 
         interceptDist = calculateBallInterceptDistance(&start, &lineEnd, &point, &closest);
 
@@ -15826,10 +15039,10 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
     f32 speed;
     f32 dx;
     f32 dz;
-    f32 distSq;
     f32 dist;
     f32 overshootDistance;
     f32 ratio;
+    int angleToBall;
     s16 angleDiff;
     int framesNeeded;
     int i;
@@ -15849,10 +15062,8 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
             return 0;
         }
     } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-        if (getDifferenceInAngle(fielder->playerAngleFromHome, fielder->runningAngle) > 0x500) {
-            return 0;
-        }
-        if (1.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
+        if (getDifferenceInAngle(fielder->playerAngleFromHome, fielder->runningAngle) > 0x500 &&
+            1.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
             return 0;
         }
     }
@@ -15870,15 +15081,13 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         dx = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x - fielder->pos.x;
         dz = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z - fielder->pos.z;
 
-        angleDiff = getDifferenceInAngle(
-            calculateAngleFromCoordinates(dx, dz),
-            fielder->runningAngle);
+        angleToBall = calculateAngleFromCoordinates(dx, dz);
+        angleDiff = getDifferenceInAngle(angleToBall, fielder->runningAngle);
         if (angleDiff > specialFielderActionConstants._00[18]) {
             continue;
         }
 
-        distSq = dx * dx + dz * dz;
-        dist = fielderSqrt(distSq);
+        dist = fielderSqrt(dx * dx + dz * dz);
 
         overshootDistance = dist - runningCatch_CatchThrowDistances[fielder->Weight];
         framesNeeded = (int)(overshootDistance / (speed * fielderActionConstants[30]));
@@ -15886,7 +15095,7 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         if (framesNeeded + 1 > i) {
             continue;
         }
-        if (dist < fielder->hitbox[0]) {
+        if (overshootDistance < fielder->hitbox[0]) {
             continue;
         }
         if (isCoordinateUncatchableTerrain(
@@ -15895,29 +15104,10 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
             continue;
         }
 
-        fielder->catchAnimationFramesCountDown = i;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 7;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        fielder->runningCatchInd = 1;
-
-        if (i < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
-        }
+        fn_3_2C238(fielderIndex, 7, i, FALSE, FALSE);
 
         ratio = overshootDistance / dist;
         fielder->actionStartingCoordinate.x = dx * ratio + fielder->pos.x;
-        g_Ball.catchAnimationTotalFrames = 0;
         fielder->actionStartingCoordinate.z = dz * ratio + fielder->pos.z;
         setFielderActionAngleType(fielderIndex);
 
@@ -15958,29 +15148,23 @@ int catchThrownBallFun(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 heightThreshold = 1.2f * fielder->hitbox[3];
     int framesUntilThrowReachesDest = g_Ball.framesUntilThrowReachesDest;
-    int autoMovementCode;
     int idx;
-    int foundIndex;
+    int remaining;
 
     if (g_FieldingLogic.locationThrownTo < 0) {
         return 0;
     }
-
     if (g_Ball.framesSinceThrowStarted <= 3) {
         return 0;
     }
-
     if (fielder->someCountDown != 0) {
         return 0;
     }
-
     if (fielder->catchAnimation == 2) {
         return 0;
     }
 
-    autoMovementCode = g_FieldingLogic.fielderAutoMovementCode[fielderIndex];
-    do {
-    if (autoMovementCode == 15) {
+    if (g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 15) {
         if (g_FieldingLogic.throwInterceptionTriggered == 0) {
             return 0;
         }
@@ -15990,6 +15174,7 @@ int catchThrownBallFun(int fielderIndex) {
 
         for (idx = specialFielderActionConstants._00[23]; idx <= specialFielderActionConstants._00[22]; idx++) {
             f32 dx, dz, dxSq, dzSq;
+
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > fielder->hitbox[3]) {
                 continue;
             }
@@ -16004,19 +15189,15 @@ int catchThrownBallFun(int fielderIndex) {
         if (idx > specialFielderActionConstants._00[22]) {
             return 0;
         }
-        foundIndex = idx;
-        break;
+        goto setCatch;
     } else {
         if (fielderIndex != g_Ball.fielderBeingThrownTo) {
             return 0;
         }
 
-        if (autoMovementCode <= 3) {
-            f32 distToMound = ballDistCalculator(base_MoundCoordinates[autoMovementCode].x,
-                                                  base_MoundCoordinates[autoMovementCode].z);
-            int remaining;
-
-            if (distToMound < fielder->hitbox[0]) {
+        if (g_FieldingLogic.locationThrownTo <= 3) {
+            if (ballDistCalculator(base_MoundCoordinates[g_FieldingLogic.locationThrownTo].x,
+                                   base_MoundCoordinates[g_FieldingLogic.locationThrownTo].z) < fielder->hitbox[0]) {
                 idx = framesUntilThrowReachesDest - 1;
                 if (idx <= 2) {
                     return 0;
@@ -16024,14 +15205,14 @@ int catchThrownBallFun(int fielderIndex) {
                 if (idx > specialFielderActionConstants._00[12]) {
                     return 0;
                 }
-                if (fielder->baseCurrentlyOn != g_FieldingLogic.locationThrownTo) {
-                    if (idx > specialFielderActionConstants._00[13]) {
-                        return 0;
-                    }
+                if (fielder->baseCurrentlyOn != g_FieldingLogic.locationThrownTo &&
+                    idx > specialFielderActionConstants._00[13]) {
+                    return 0;
                 }
 
                 for (remaining = 10; remaining > 0; remaining--, idx--) {
                     f32 dx, dz, dxSq, dzSq;
+
                     if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > heightThreshold) {
                         idx++;
                         break;
@@ -16045,37 +15226,19 @@ int catchThrownBallFun(int fielderIndex) {
                         break;
                     }
                 }
-                foundIndex = idx;
-                break;
+                goto setCatch;
             } else {
-                if (g_Ball.framesSinceThrowStarted <= 0x14) {
+                if (g_Ball.framesSinceThrowStarted <= 20) {
                     return 0;
                 }
-
-                if (framesUntilThrowReachesDest - 2 < 1) {
-                    return 0;
-                }
-
-                if (checkIfCatchOccurs(fielderIndex) != 0) {
+                if (fn_3_2ACD8(fielderIndex, framesUntilThrowReachesDest - 2)) {
                     return 1;
                 }
-
-                fielder->IntendedLocation.x =
-                    g_Ball.physicsSubstruct.futureCoordsAndDist[framesUntilThrowReachesDest - 2].pos.x;
-                fielder->IntendedLocation.z =
-                    g_Ball.physicsSubstruct.futureCoordsAndDist[framesUntilThrowReachesDest - 2].pos.z;
-                fielder->needToMoveToCatchThrownBall = 1;
-                return 0;
             }
-        } else {
-            if (autoMovementCode != 5) {
-                if (autoMovementCode != 6) {
-                    return 0;
-                }
-            }
-
+        } else if (g_FieldingLogic.locationThrownTo == 5 || g_FieldingLogic.locationThrownTo == 6) {
             for (idx = specialFielderActionConstants._00[23]; idx <= specialFielderActionConstants._00[22]; idx++) {
-                f32 dx, dz, dxSq, dzSq, distSq;
+                f32 dx, dz, dxSq, dzSq;
+
                 if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > fielder->hitbox[3]) {
                     continue;
                 }
@@ -16083,87 +15246,62 @@ int catchThrownBallFun(int fielderIndex) {
                 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z - fielder->pos.z;
                 dxSq = dx * dx;
                 dzSq = dz * dz;
-                distSq = dxSq + dzSq;
-                if (fielderSqrt(distSq) < fielder->hitbox[0]) {
+                if (fielderSqrt(dxSq + dzSq) < fielder->hitbox[0]) {
                     break;
                 }
             }
             if (idx > specialFielderActionConstants._00[22]) {
                 return 0;
             }
-            foundIndex = idx;
-            break;
+            goto setCatch;
         }
     }
-    } while (0);
+    return 0;
 
-    fielder->catchAnimationFramesCountDown = foundIndex;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 2;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 1;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-    if (foundIndex < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
+setCatch:
+    fn_3_2C238(fielderIndex, 2, idx, FALSE, TRUE);
+
+    if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y < fielder->hitbox[5]) {
+        fielder->catchVerticalZone = 0;
+    } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y < fielder->hitbox[4]) {
+        fielder->catchVerticalZone = 1;
+    } else {
+        fielder->catchVerticalZone = 2;
     }
-    g_Ball.catchAnimationTotalFrames = 0;
 
     {
-        CoordAndDist* entry = &g_Ball.physicsSubstruct.futureCoordsAndDist[foundIndex];
-        VecXYZ fielderPosCopy;
-        VecXYZ zeroVec;
-        VecXYZ targetPos;
-        VecXYZ scratch;
-        f32 distToEntry;
+        VecXYZ closest;
+        VecXYZ point;
+        VecXYZ lineEnd;
+        VecXYZ start;
 
-        if (entry->pos.y < fielder->hitbox[5]) {
-            fielder->catchVerticalZone = 0;
-        } else if (entry->pos.y < fielder->hitbox[4]) {
-            fielder->catchVerticalZone = 1;
-        } else {
-            fielder->catchVerticalZone = 2;
-        }
+        start.x = fielder->pos.x;
+        start.y = fielder->pos.y;
+        start.z = fielder->pos.z;
+        lineEnd.x = 0.0f;
+        lineEnd.y = 0.0f;
+        lineEnd.z = 0.0f;
+        point.x = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.x;
+        point.z = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z;
+        point.y = 0.0f;
 
-        {
-            f32* entryX = &entry->pos.x;
-            f32* entryZ = &entry->pos.z;
+        if (calculateBallInterceptDistance(&start, &lineEnd, &point, &closest) > fielder->hitbox[2]) {
+            f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.x - fielder->pos.x;
+            f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z - fielder->pos.z;
+            int travelAngle = normalizeAngle(g_Ball.ballTravelAngle + 0x800);
+            int coordAngle = calculateAngleFromCoordinates(dx, dz);
+            int angleDiff = angleDifferenceNormalized(travelAngle, coordAngle);
 
-            fielderPosCopy.x = fielder->pos.x;
-            fielderPosCopy.y = fielder->pos.y;
-            fielderPosCopy.z = fielder->pos.z;
-            zeroVec.x = 0.0f;
-            zeroVec.y = 0.0f;
-            zeroVec.z = 0.0f;
-            targetPos.x = *entryX;
-            targetPos.y = 0.0f;
-            targetPos.z = *entryZ;
-
-            distToEntry = calculateBallInterceptDistance(&fielderPosCopy, &zeroVec, &targetPos, &scratch);
-            if (distToEntry > fielder->hitbox[2]) {
-                f32 dx = *entryX - fielder->pos.x;
-                f32 dz = *entryZ - fielder->pos.z;
-                int angleToTravel = normalizeAngle(g_Ball.ballTravelAngle + 0x800);
-                int angleToEntry = calculateAngleFromCoordinates(dx, dz);
-                int angleDiff = angleDifferenceNormalized(angleToTravel, angleToEntry);
-                if (angleDiff > 0) {
-                    fielder->catchCentreRightLeftOfBody = 2;
-                } else if (angleDiff <= 0) {
-                    fielder->catchCentreRightLeftOfBody = 1;
-                }
+            if (angleDiff > 0) {
+                fielder->catchCentreRightLeftOfBody = 2;
+            } else if (angleDiff <= 0) {
+                fielder->catchCentreRightLeftOfBody = 1;
             }
-
-            fielder->xDistToCatch = *entryX - g_Ball.AtBat_Contact_BallPos.x;
-            fielder->zDistToCatch = *entryZ - g_Ball.AtBat_Contact_BallPos.z;
         }
     }
+
+    fielder->xDistToCatch = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.x - g_Ball.AtBat_Contact_BallPos.x;
+    fielder->zDistToCatch = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.z - g_Ball.AtBat_Contact_BallPos.z;
 
     return 1;
 }
@@ -16196,7 +15334,7 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
     f32 dist;
     f32 remainingDist;
     f32 travelDist;
-    f32 speedFactor;
+    f32 velX, velZ;
 
     if (locationThrownTo < 0 || locationThrownTo > 3) {
         return 0;
@@ -16218,104 +15356,69 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
         return 0;
     }
 
-    if (!(ballDistCalculator(base_MoundCoordinates[locationThrownTo].x, base_MoundCoordinates[locationThrownTo].z) <
-          fielder->hitbox[0])) {
-        return 0;
-    }
-
-    if (fielder->baseCurrentlyOn == locationThrownTo) {
-        return 0;
-    }
-
-    if (g_Ball.framesUntilThrowReachesDest > specialFielderActionConstants._00[19]) {
-        return 0;
-    }
-
-    if (g_Ball.framesUntilThrowReachesDest < specialFielderActionConstants._00[20]) {
-        return 0;
-    }
-
-    remainingDist =
-        fielder->distanceToBases[locationThrownTo] -
-        modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
-    travelDist = 1.2f * fielder->joggingSpeed * (f32)g_Ball.framesUntilThrowReachesDest;
-
-    if (remainingDist - travelDist > 3.0f) {
-        return 0;
-    }
-
-    if (remainingDist < travelDist) {
-        fielder->catchAnimationFramesCountDown = g_Ball.framesUntilThrowReachesDest;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 8;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-
-        if (g_Ball.framesUntilThrowReachesDest < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
+    if (ballDistCalculator(base_MoundCoordinates[locationThrownTo].x, base_MoundCoordinates[locationThrownTo].z) <
+        fielder->hitbox[0]) {
+        if (fielder->baseCurrentlyOn == locationThrownTo) {
+            return 0;
         }
 
-        g_Ball.catchAnimationTotalFrames = 0;
-        fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.x;
-        fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.y;
-        fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.z;
+        if (g_Ball.framesUntilThrowReachesDest > specialFielderActionConstants._00[19]) {
+            return 0;
+        }
 
-        dx = fielder->actionEndingCoordinateX - fielder->pos.x;
-        dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
-        dist = fielderSqrt(dx * dx + dz * dz);
+        if (g_Ball.framesUntilThrowReachesDest < specialFielderActionConstants._00[20]) {
+            return 0;
+        }
 
-        remainingDist = dist - modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
+        remainingDist =
+            fielder->distanceToBases[locationThrownTo] -
+            modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
+        travelDist = 1.2f * fielder->joggingSpeed * (f32)g_Ball.framesUntilThrowReachesDest;
 
-        if (remainingDist / (f32)g_Ball.framesUntilThrowReachesDest < 0.07f) {
-            fielder->actionStartingCoordinate.x = fielder->actionEndingCoordinateX;
-            fielder->actionStartingCoordinate.z = fielder->actionEndingCoordinateZ;
+        if (remainingDist - travelDist > 3.0f) {
+            return 0;
+        }
+
+        if (remainingDist < travelDist) {
+            fn_3_2C238(fielderIndex, 8, g_Ball.framesUntilThrowReachesDest, FALSE, FALSE);
+            fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.x;
+            fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.y;
+            fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilThrowReachesDest].pos.z;
+
+            dx = fielder->actionEndingCoordinateX - fielder->pos.x;
+            dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
+
+            remainingDist = dist - modWeightBasedFactors[fielder->ModifiedWeightForMag].baseCoveringRangeModifier;
+
+            if (remainingDist / (f32)g_Ball.framesUntilThrowReachesDest < 0.07f) {
+                fielder->actionStartingCoordinate.x = fielder->actionEndingCoordinateX;
+                fielder->actionStartingCoordinate.z = fielder->actionEndingCoordinateZ;
+            } else {
+                f32 ratio = remainingDist / dist;
+                fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
+                fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
+            }
         } else {
-            f32 ratio = remainingDist / dist;
-            fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
-            fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
-        }
-    } else {
-        fielder->catchAnimationFramesCountDown = g_Ball.framesUntilThrowReachesDest;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 8;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 1;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
+            fn_3_2C238(fielderIndex, 8, g_Ball.framesUntilThrowReachesDest, TRUE, FALSE);
 
-        if (g_Ball.framesUntilThrowReachesDest < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
+            dx = base_MoundCoordinates[locationThrownTo].x - fielder->pos.x;
+            dz = base_MoundCoordinates[locationThrownTo].z - fielder->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
+
+            velX = fielder->joggingSpeed * (dx / dist);
+            velZ = fielder->joggingSpeed * (dz / dist);
+            velX = 1.1f * velX;
+            velZ = 1.1f * velZ;
+            fielder->actionStartingCoordinate.x = velX * (f32)g_Ball.framesUntilThrowReachesDest + fielder->pos.x;
+            fielder->actionStartingCoordinate.z = velZ * (f32)g_Ball.framesUntilThrowReachesDest + fielder->pos.z;
         }
 
-        dx = base_MoundCoordinates[locationThrownTo].x - fielder->pos.x;
-        dz = base_MoundCoordinates[locationThrownTo].z - fielder->pos.z;
-        g_Ball.catchAnimationTotalFrames = 0;
-        dist = fielderSqrt(dx * dx + dz * dz);
+        setFielderActionAngleType(fielderIndex);
 
-        speedFactor = 1.1f * fielder->joggingSpeed * (f32)g_Ball.framesUntilThrowReachesDest;
-        fielder->actionStartingCoordinate.x = fielder->pos.x + (dx / dist) * speedFactor;
-        fielder->actionStartingCoordinate.z = fielder->pos.z + (dz / dist) * speedFactor;
+        return 1;
     }
-
-    setFielderActionAngleType(fielderIndex);
-
-    return 1;
+    return 0;
 }
 
 // .text:0x0002A288 size:0x414 mapped:0x8066931C
@@ -16411,21 +15514,26 @@ int attemptJumpingCatch(int fielderIndex) {
 
 // .text:0x00028CA8 size:0x14BC mapped:0x80667D3C
 int divingCatch(int fielderIndex) {
-
     InMemFielder* fielder = &g_Fielders[fielderIndex];
+    int diveFrame = -1;
     int animIndex = fielderIndex;
     int slidingCatchLevel;
     BOOL hasTongueCatch;
     BOOL hasSuction;
-    int diveFrame = -1;
-    f32 dx, dz, dist;
+    BOOL hasMagicalCatch;
+    int frame;
+    int startFrame;
+    int bestFrame;
+    int backFrame;
+    int k;
+    f32 dx, dz, dist, magnitude, t;
+    f32 remaining, catchDist;
     f32 outX, outZ, outDist;
-    f32 remaining, catchPosVal;
-    CoordAndDist* cand;
+    VecXYZ outPos;
 
     if (g_d_GameSettings.minigamesEnabled) {
         if (fielderIndex == 0) {
-            animIndex = ((s8*)&g_Minigame.minigameControlStruct[0])[g_Minigame.minigamePlayerSelectedOrder];
+            animIndex = ((s8*)&g_Minigame.minigameControlStruct[0])[(s8)g_Minigame.minigamePlayerSelectedOrder];
         } else {
             animIndex = ((s8*)&g_Minigame.minigameControlStruct[1].aIStrength[0])[fielderIndex];
         }
@@ -16436,14 +15544,12 @@ int divingCatch(int fielderIndex) {
     hasSuction = checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_SUCTION);
 
     if (g_Ball.maxYOfHit >= 5.0f && g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-        f32 distToLandingSpot;
-
         if (g_Ball.framesUntilBallHitsGround > slidingCatchArray[slidingCatchLevel * 3 + 0]) {
             goto fail;
         }
         diveFrame = g_Ball.framesUntilBallHitsGround - 1;
-        cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-        if (isCoordinateUncatchableTerrain(cand->pos.x, cand->pos.z)) {
+        if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
+                                           g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
             goto fail;
         }
         if (diveFrame < slidingCatchArray[slidingCatchLevel * 3 + 1]) {
@@ -16452,427 +15558,278 @@ int divingCatch(int fielderIndex) {
 
         dx = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - fielder->pos.x;
         dz = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z - fielder->pos.z;
-        distToLandingSpot = fielderSqrt(dx * dx + dz * dz);
-
-        calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
-        if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
-            outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
-        }
-
-        remaining = distToLandingSpot - outDist;
-        catchPosVal = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
-
-        if (remaining <= 0.0f) {
-            if (diveFrame > specialFielderActionConstants._00[14]) {
-                goto fail;
-            }
-            if (distToLandingSpot / (f32)diveFrame < 0.07f) {
-                goto fail;
-            }
-            goto finalizeBackward;
-        }
-        if (distToLandingSpot < catchPosVal) {
-            goto foundFrame;
-        }
-
-        {
-            f32 threshold2 = (dz + fielder->hitbox[7]) + slidingCatchMultipliers[slidingCatchLevel * 3 + 1];
-            if (distToLandingSpot >= threshold2) {
-                goto fail;
-            }
-            if (remaining <= 0.0f) {
-                goto fail;
-            }
-            if (g_Ball.AtBat_Contact_BallPos.y < 5.0f) {
-                goto fail;
-            }
-            goto successCommon;
-        }
-    } else {
-        if (getDifferenceInAngle(g_Ball.ballAngleFromHome, fielder->playerAngleFromHome) > 0x100) {
-            goto fail;
-        }
-        if ((15.0f + fielder->distanceFromHomePlate) < g_Ball.ballDistanceFromHome) {
-            goto fail;
-        }
-
-        if (g_Ball.ballVelocity > 0.25f) {
-            s16 threshold0 = slidingCatchArray[slidingCatchLevel * 3 + 0];
-            int frame = futureFrameForClosestBall(&outX, threshold0 + 15, 2);
-            int bestSoFar = -1;
-            BOOL done = FALSE;
-
-            if (frame < 0) {
-                goto fail;
-            }
-            if (frame < 3) {
-                frame = 3;
-            }
-
-            for (; frame <= threshold0; frame += 2) {
-                cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-                if (cand->pos.y > fielder->hitbox[8]) {
-                    continue;
-                }
-                if (!(5.0f + fielder->distanceFromHomePlate >= cand->dist)) {
-                    if (fielder->groundDistanceFromBall < 3.0f) {
-                        break;
-                    }
-                    continue;
-                }
-
-                dx = cand->pos.x - fielder->pos.x;
-                dz = cand->pos.z - fielder->pos.z;
-                dist = fielderSqrt(dx * dx + dz * dz);
-                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
-                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
-                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
-                }
-
-                remaining = dist - outDist;
-                catchPosVal = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
-
-                if (remaining <= 0.0f) {
-                    diveFrame = frame;
-                    goto beginBackwardSearch;
-                }
-                if (dist < catchPosVal) {
-                    diveFrame = frame;
-                    done = TRUE;
-                    break;
-                }
-
-                {
-                    f32 threshold2 = outDist + fielder->hitbox[7] + slidingCatchMultipliers[slidingCatchLevel * 3 + 1];
-                    if (dist >= threshold2) {
-                        continue;
-                    }
-                    if (remaining <= 0.0f) {
-                        continue;
-                    }
-                    if (bestSoFar < 0) {
-                        bestSoFar = frame;
-                    }
-                }
-            }
-
-            if (!done) {
-                if (bestSoFar < 0) {
-                    goto fail;
-                }
-                diveFrame = bestSoFar;
-            }
-            goto foundFrame;
-        } else {
-            s16 threshold0 = slidingCatchArray[slidingCatchLevel * 3 + 0];
-            int frame = slidingCatchArray[slidingCatchLevel * 3 + 1];
-            BOOL done = FALSE;
-
-            for (; frame < threshold0; frame += 2) {
-                cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-                if (cand->pos.y > fielder->hitbox[3]) {
-                    continue;
-                }
-
-                dx = cand->pos.x - fielder->pos.x;
-                dz = cand->pos.z - fielder->pos.z;
-                dist = fielderSqrt(dx * dx + dz * dz);
-                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
-                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
-                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
-                }
-
-                remaining = dist - outDist;
-                catchPosVal = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
-
-                if (remaining <= 0.0f) {
-                    diveFrame = frame;
-                    goto beginBackwardSearch;
-                }
-                if (dist < catchPosVal) {
-                    diveFrame = frame;
-                    done = TRUE;
-                    break;
-                }
-            }
-
-            if (!done) {
-                goto fail;
-            }
-            goto foundFrame;
-        }
-    }
-
-foundFrame:
-    cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-
-    if (fielder->AI_Ind) {
-        if (cand->dist >= fielder->distanceFromHomePlate) {
-            return 0;
-        }
-    }
-    if (checkFielderCollision(fielder, &cand->pos)) {
-        goto successCommon;
-    }
-    if (hasSuction || checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
-        calculateBobble(fielderIndex);
-        if (fielder->bobble == 2) {
-            goto successCommon;
-        }
-    }
-    if (isCoordinateUncatchableTerrain(cand->pos.x, cand->pos.z)) {
-        goto successCommon;
-    }
-
-    fielder->catchAnimationFramesCountDown = diveFrame;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 3;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-    if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-    g_Ball.catchAnimationTotalFrames = 0;
-    fielder->action = 2;
-
-    fielder->actionEndingCoordinateX = cand->pos.x;
-    fielder->diveEndingCoordinateY = cand->pos.y;
-    fielder->actionEndingCoordinateZ = cand->pos.z;
-
-    {
-        f32 t, magnitude;
-
-        dx = fielder->actionEndingCoordinateX - fielder->pos.x;
-        dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
-        magnitude = fielderSqrt(dx * dx + dz * dz);
-        t = (magnitude - fielder->hitbox[7]) / magnitude;
-        if (t > 0.05f) {
-            t = 0.05f;
-        }
-        fielder->actionStartingCoordinate.x = fielder->pos.x + dx * t;
-        fielder->actionStartingCoordinate.z = fielder->pos.z + dz * t;
-        fielder->actionDirectionRadians = game_atan2(dx, dz);
-    }
-
-    {
-        BOOL magicalCatchSound = FALSE;
-
-        if (slidingCatchLevel != 0) {
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 3);
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        } else if (hasTongueCatch) {
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        } else if (hasSuction) {
-            fielder->suctionCatchInd = 1;
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        }
-
-        if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
-            magicalCatchSound = TRUE;
-            playSoundEffect(SFX_FIELDING_ABILITY);
-        }
-
-        if (diveFrame < g_Ball.framesUntilBallHitsGround && !g_Ball.framesOnGroundUntilPickedUp &&
-            (hasTongueCatch || hasSuction || magicalCatchSound)) {
-            camera_zoomInDuringFielderAction_slide_clamber_wallJump(
-                1, diveFrame - 25,
-                0.5f * (fielder->actionStartingCoordinate.x + fielder->actionEndingCoordinateX),
-                0.5f * (fielder->actionStartingCoordinate.y + fielder->diveEndingCoordinateY),
-                0.5f * (fielder->actionStartingCoordinate.z + fielder->actionEndingCoordinateZ));
-        } else {
-            if (g_FieldingLogic.dashPtr->dashingFielderIndex == fielderIndex) {
-                goto successCommon;
-            }
-            return 0;
-        }
-    }
-    return 1;
-
-fail:
-    if (fielder->AI_Ind) {
-        if (g_FieldingLogic.jumpDiveStruct->aiOutfieldFielderAction != 0) {
-            return 0;
-        }
-    }
-
-successCommon:
-    if (diveFrame <= 0) {
-        dx = fielder->xMovementDir;
-        dz = fielder->zMovementDir;
-        diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
-
-        fielder->catchAnimationFramesCountDown = diveFrame;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 3;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
-        }
-        g_Ball.catchAnimationTotalFrames = 0;
-        fielder->action = 2;
-
-        {
-            f32 normDx, normDz, magnitude;
-
-            magnitude = fielderSqrt(dx * dx + dz * dz);
-            normDx = dx / magnitude;
-            normDz = dz / magnitude;
-            calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, normDx, normDz, &outX, &outZ, &outDist);
-            fielder->actionStartingCoordinate.x = fielder->pos.x + normDx * outDist;
-            fielder->actionStartingCoordinate.z = fielder->pos.z + normDz * outDist;
-            fielder->actionDirectionRadians = game_atan2(normDx, normDz);
-        }
-
-        if (hasSuction) {
-            fielder->suctionCatchInd = 1;
-        }
-        return 1;
-    } else {
-        if (diveFrame < slidingCatchArray[slidingCatchLevel * 3 + 2]) {
-            diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
-        }
-        cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-        dx = cand->pos.x - fielder->pos.x;
-        dz = cand->pos.z - fielder->pos.z;
-
-        fielder->catchAnimationFramesCountDown = diveFrame;
-        fielder->catchAnimationFramesCountUp = 0;
-        fielder->catchAnimation = 3;
-        fielder->catchVerticalZone = 0;
-        fielder->catchCentreRightLeftOfBody = 0;
-        fielder->catchFastBattedBallInd = 0;
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-        fielder->action = 0;
-        fielder->wallJumpFramesTillTopOfWallContact = 0;
-        fielder->wallActionFrameCounter = 0;
-        fielder->wallJumpStatus = 0;
-        fielder->wallActionCountDown = 0;
-        fielder->caughtBallInAir = 0;
-        fielder->runningCatchInd = 0;
-        if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-            fielder->caughtBallInAir = 1;
-        }
-        g_Ball.catchAnimationTotalFrames = 0;
-        fielder->action = 2;
-
-        {
-            f32 normDx, normDz, magnitude;
-
-            magnitude = fielderSqrt(dx * dx + dz * dz);
-            normDx = dx / magnitude;
-            normDz = dz / magnitude;
-            calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, normDx, normDz, &outX, &outZ, &outDist);
-            fielder->actionStartingCoordinate.x = fielder->pos.x + normDx * outDist;
-            fielder->actionStartingCoordinate.z = fielder->pos.z + normDz * outDist;
-            fielder->actionDirectionRadians = game_atan2(normDx, normDz);
-        }
-
-        if (hasSuction) {
-            fielder->suctionCatchInd = 1;
-        }
-        return 1;
-    }
-
-beginBackwardSearch:
-    if (diveFrame > specialFielderActionConstants._00[14]) {
-        return 0;
-    }
-
-    for (; diveFrame > specialFielderActionConstants._00[15]; diveFrame -= 2) {
-        cand = &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame];
-        if (isCoordinateUncatchableTerrain(cand->pos.x, cand->pos.z)) {
-            continue;
-        }
-        if (cand->pos.y > fielder->hitbox[3]) {
-            continue;
-        }
-
-        dx = cand->pos.x - fielder->pos.x;
-        dz = cand->pos.z - fielder->pos.z;
         dist = fielderSqrt(dx * dx + dz * dz);
         calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
         if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
             outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
         }
 
-        if (dist / (f32)diveFrame >= 0.07f) {
-            goto finalizeBackward;
+        remaining = dist - outDist;
+        catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
+        if (remaining <= 0.0f) {
+            if (diveFrame > specialFielderActionConstants._00[14]) {
+                goto fail;
+            }
+            if (dist / diveFrame < 0.07f) {
+                goto fail;
+            }
+            goto runningCatch;
         }
+        if (dist < catchDist) {
+            goto diveAtFrame;
+        }
+        if (!(dist < outDist + fielder->hitbox[7] + slidingCatchMultipliers[slidingCatchLevel * 3 + 1])) {
+            goto fail;
+        }
+        if (!(remaining > 0.0f)) {
+            goto fail;
+        }
+        if (g_Ball.AtBat_Contact_BallPos.y < 5.0f) {
+            goto fail;
+        }
+        goto lungeDive;
+    } else {
+        if (getDifferenceInAngle(g_Ball.ballAngleFromHome, fielder->playerAngleFromHome) > 0x100) {
+            goto fail;
+        }
+        if (15.0f + fielder->distanceFromHomePlate < g_Ball.ballDistanceFromHome) {
+            goto fail;
+        }
+
+        if (g_Ball.ballVelocity > 0.25f) {
+            startFrame = futureFrameForClosestBall(fielder->pos.x, fielder->pos.z, &outPos.x,
+                                                   slidingCatchArray[slidingCatchLevel * 3 + 0] + 15, 2);
+            if (startFrame < 0) {
+                goto fail;
+            }
+            bestFrame = -1;
+            if (startFrame < 3) {
+                startFrame = 3;
+            }
+
+            for (k = 0, frame = startFrame; k < 30; k += 2, frame += 2) {
+                if (frame > slidingCatchArray[slidingCatchLevel * 3 + 0]) {
+                    break;
+                }
+                if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > fielder->hitbox[8]) {
+                    continue;
+                }
+                if (5.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].dist &&
+                    fielder->groundDistanceFromBall < 3.0f) {
+                    break;
+                }
+
+                dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - fielder->pos.x;
+                dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - fielder->pos.z;
+                dist = fielderSqrt(dx * dx + dz * dz);
+                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
+                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
+                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
+                }
+
+                remaining = dist - outDist;
+                catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
+                if (remaining <= 0.0f) {
+                    backFrame = frame;
+                    goto searchBackward;
+                }
+                if (dist < catchDist) {
+                    diveFrame = frame;
+                    goto diveAtFrame;
+                }
+                if (dist < outDist + fielder->hitbox[7] + slidingCatchMultipliers[slidingCatchLevel * 3 + 1] &&
+                    remaining > 0.0f && bestFrame < 0) {
+                    bestFrame = frame;
+                }
+            }
+
+            if (bestFrame < 0) {
+                goto fail;
+            }
+            diveFrame = bestFrame;
+            goto lungeDive;
+        } else {
+            for (frame = slidingCatchArray[slidingCatchLevel * 3 + 1]; frame < slidingCatchArray[slidingCatchLevel * 3 + 0];
+                 frame += 2) {
+                if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > fielder->hitbox[3]) {
+                    continue;
+                }
+
+                dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - fielder->pos.x;
+                dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - fielder->pos.z;
+                dist = fielderSqrt(dx * dx + dz * dz);
+                calculateMinDiveDistAndEndingCoords(fielderIndex, frame, dx, dz, &outX, &outZ, &outDist);
+                if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
+                    outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
+                }
+
+                remaining = dist - outDist;
+                catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
+                if (remaining <= 0.0f) {
+                    backFrame = frame;
+                    goto searchBackward;
+                }
+                if (dist < catchDist) {
+                    diveFrame = frame;
+                    goto diveAtFrame;
+                }
+            }
+            goto fail;
+        }
+    }
+
+diveAtFrame:
+    if (fielder->AI_Ind && g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].dist < fielder->distanceFromHomePlate) {
+        return 0;
+    }
+    if (checkFielderCollision(fielder, &g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos)) {
+        goto lungeDive;
+    }
+    if (hasSuction || checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
+        calculateBobble(fielderIndex);
+        if (fielder->bobble == 2) {
+            goto lungeDive;
+        }
+    } else if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
+                                              g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
+        goto lungeDive;
+    }
+
+    fn_3_2C238(fielderIndex, 3, diveFrame, FALSE, FALSE);
+    fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x;
+    fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.y;
+    fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z;
+
+    dx = fielder->actionEndingCoordinateX - fielder->pos.x;
+    dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
+    magnitude = fielderSqrt(dx * dx + dz * dz);
+    outDist = magnitude - fielder->hitbox[7];
+    t = outDist / magnitude;
+    if (t <= 0.05f) {
+        t = 0.05f;
+    }
+    fielder->actionStartingCoordinate.x = dx * t + fielder->pos.x;
+    fielder->actionStartingCoordinate.z = dz * t + fielder->pos.z;
+    fielder->actionDirectionRadians = game_atan2(dx, dz);
+
+    if (slidingCatchLevel != 0) {
+        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 3);
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    } else if (hasTongueCatch) {
+        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    } else if (hasSuction) {
+        fielder->suctionCatchInd = 1;
+        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    }
+
+    hasMagicalCatch = FALSE;
+    if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
+        hasMagicalCatch = TRUE;
+        playSoundEffect(SFX_FIELDING_ABILITY);
+    }
+
+    if (diveFrame < g_Ball.framesUntilBallHitsGround && !g_Ball.framesOnGroundUntilPickedUp) {
+        if (hasTongueCatch || hasSuction || hasMagicalCatch) {
+            outPos.x = fielder->actionStartingCoordinate.x + fielder->actionEndingCoordinateX;
+            outPos.y = fielder->actionStartingCoordinate.y + fielder->diveEndingCoordinateY;
+            outPos.z = fielder->actionStartingCoordinate.z + fielder->actionEndingCoordinateZ;
+            outPos.x = 0.5f * outPos.x;
+            outPos.y = 0.5f * outPos.y;
+            outPos.z = 0.5f * outPos.z;
+            camera_zoomInDuringFielderAction_slide_clamber_wallJump(1, diveFrame - 25, outPos.x, outPos.y, outPos.z);
+        } else {
+            camera_zoomInDuringFielderAction_slide_clamber_wallJump(0, diveFrame - 25,
+                                                                    fielder->actionEndingCoordinateX,
+                                                                    fielder->diveEndingCoordinateY,
+                                                                    fielder->actionEndingCoordinateZ);
+        }
+    }
+    return 1;
+
+fail:
+    if (g_FieldingLogic.dashPtr->dashingFielderIndex != fielderIndex) {
+        return 0;
+    }
+
+lungeDive:
+    if (fielder->AI_Ind && g_FieldingLogic.jumpDiveStruct->aiOutfieldFielderAction != 0) {
+        return 0;
+    }
+
+    if (diveFrame <= 0) {
+        dx = fielder->xMovementDir;
+        dz = fielder->zMovementDir;
+        magnitude = fielderSqrt(dx * dx + dz * dz);
+        if (magnitude <= 0.0f) {
+            return 0;
+        }
+        fn_3_2C238(fielderIndex, 3, slidingCatchArray[slidingCatchLevel * 3 + 2], TRUE, FALSE);
+        diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
+    } else {
+        if (diveFrame < slidingCatchArray[slidingCatchLevel * 3 + 2]) {
+            diveFrame = slidingCatchArray[slidingCatchLevel * 3 + 2];
+        }
+        fn_3_2C238(fielderIndex, 3, diveFrame, TRUE, FALSE);
+        dx = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x - fielder->pos.x;
+        dz = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z - fielder->pos.z;
+        magnitude = fielderSqrt(dx * dx + dz * dz);
+    }
+
+    dx = dx / magnitude;
+    dz = dz / magnitude;
+    calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
+    fielder->actionStartingCoordinate.x = dx * outDist + fielder->pos.x;
+    fielder->actionStartingCoordinate.z = dz * outDist + fielder->pos.z;
+    fielder->actionDirectionRadians = game_atan2(dx, dz);
+    if (hasSuction) {
+        fielder->suctionCatchInd = 1;
+    }
+    return 1;
+
+searchBackward:
+    if (backFrame > specialFielderActionConstants._00[14]) {
+        return 0;
+    }
+    for (diveFrame = backFrame; diveFrame > specialFielderActionConstants._00[15]; diveFrame -= 2) {
+        if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
+                                           g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
+            continue;
+        }
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.y > fielder->hitbox[3]) {
+            continue;
+        }
+
+        dx = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x - fielder->pos.x;
+        dz = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z - fielder->pos.z;
+        dist = fielderSqrt(dx * dx + dz * dz);
+        calculateMinDiveDistAndEndingCoords(fielderIndex, diveFrame, dx, dz, &outX, &outZ, &outDist);
+        if (fielderIndex == g_FieldingLogic.dashPtr->dashingFielderIndex) {
+            outDist *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
+        }
+
+        if (dist / diveFrame < 0.07f) {
+            continue;
+        }
+        goto runningCatch;
     }
     return 0;
 
-finalizeBackward:
-    fielder->catchAnimationFramesCountDown = diveFrame;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 7;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 1;
-    if (diveFrame < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-    g_Ball.catchAnimationTotalFrames = 0;
+runningCatch:
+    fn_3_2C238(fielderIndex, 7, diveFrame, FALSE, FALSE);
+    fielder->actionEndingCoordinateX = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x;
+    fielder->diveEndingCoordinateY = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.y;
+    fielder->actionEndingCoordinateZ = g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z;
 
-    fielder->actionEndingCoordinateX = cand->pos.x;
-    fielder->diveEndingCoordinateY = cand->pos.y;
-    fielder->actionEndingCoordinateZ = cand->pos.z;
-
-    {
-        f32 ratio, magnitude;
-        s16 angle1, angle2, angleDiff;
-
-        dx = fielder->actionEndingCoordinateX - fielder->pos.x;
-        dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
-        magnitude = fielderSqrt(dx * dx + dz * dz);
-        ratio = (magnitude - modWeightBasedFactors[fielder->ModifiedWeightForMag].diveStartOffset) / magnitude;
-        fielder->actionStartingCoordinate.x = fielder->pos.x + dx * ratio;
-        fielder->actionStartingCoordinate.z = fielder->pos.z + dz * ratio;
-
-        /* inlined setFielderActionAngleType; call form costs 0.53% (see checkpoint) */
-        fielder->actionAngleType = 0;
-        angle1 = calculateAngleFromCoordinates(g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x,
-                                                g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z);
-        angle2 = calculateAngleFromCoordinates(fielder->actionStartingCoordinate.x - fielder->pos.x,
-                                                fielder->actionStartingCoordinate.z - fielder->pos.z);
-        angleDiff = angleDifferenceNormalized(angle1, angle2);
-
-        if (angleDiff < -0x500 || angleDiff > 0x500) {
-            fielder->actionAngleType = 3;
-        } else if (angleDiff < -0x200) {
-            fielder->actionAngleType = 1;
-        } else if (angleDiff > 0x200) {
-            fielder->actionAngleType = 2;
-        }
-    }
+    dx = fielder->actionEndingCoordinateX - fielder->pos.x;
+    dz = fielder->actionEndingCoordinateZ - fielder->pos.z;
+    magnitude = fielderSqrt(dx * dx + dz * dz);
+    outDist = magnitude - modWeightBasedFactors[fielder->ModifiedWeightForMag].diveStartOffset;
+    t = outDist / magnitude;
+    fielder->actionStartingCoordinate.x = dx * t + fielder->pos.x;
+    fielder->actionStartingCoordinate.z = dz * t + fielder->pos.z;
+    setFielderActionAngleType(fielderIndex);
     return 1;
 }
 
@@ -16892,7 +15849,7 @@ int wallJumpInitialization(int fielderIndex) {
     int idx;
     int j;
     int k;
-    s16 angleToLandingSpot;
+    int angleToLandingSpot;
 
     if ((0.0f == fielder->xMovementDir && 0.0f == fielder->zMovementDir) ||
         fielder->runningAngle < 0) {
@@ -16934,9 +15891,9 @@ int wallJumpInitialization(int fielderIndex) {
 
     dx = fielder->pos.x - fielder->wallActionLocationX;
     dz = fielder->pos.z - fielder->wallactionLocationZ;
-    dzSq = dz * dz;
     dxSq = dx * dx;
-    magnitude = fielderSqrt(dzSq + dxSq);
+    dzSq = dz * dz;
+    magnitude = fielderSqrt(dxSq + dzSq);
 
     if (magnitude > fielderActionConstants[4]) {
         goto farWall;
@@ -16949,8 +15906,10 @@ int wallJumpInitialization(int fielderIndex) {
     inVec.dst.y = -fielderActionConstants[5];
     inVec.src.y = -fielderActionConstants[5];
     magnitude = fielderSqrt(dx * dx + dz * dz);
-    inVec.dst.x = (dx / magnitude) * fielderActionConstants[4] + fielder->pos.x;
-    inVec.dst.z = (dz / magnitude) * fielderActionConstants[4] + fielder->pos.z;
+    dx = dx / magnitude;
+    dz = dz / magnitude;
+    inVec.dst.x = dx * fielderActionConstants[4] + fielder->pos.x;
+    inVec.dst.z = dz * fielderActionConstants[4] + fielder->pos.z;
 
     type = checkCollision(&inVec, &collision, 0, 0) & 0x7F;
     if (type != BALL_COLLISION_TYPE_WALL) {
@@ -16958,27 +15917,25 @@ int wallJumpInitialization(int fielderIndex) {
     }
 
     j = idx;
+    dist = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].dist - fielderActionConstants[12];
     for (k = 0; k < 10; k++) {
-        if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].dist - fielderActionConstants[12] <
-            g_Ball.physicsSubstruct.futureCoordsAndDist[j].dist) {
+        if (dist < g_Ball.physicsSubstruct.futureCoordsAndDist[j].dist) {
             break;
         }
         j--;
     }
 
     idx = j;
-    if (j >= specialFielderActionConstants._00[2]) {
-        for (k = 0; k < 5; k++) {
-            idx--;
-            if (idx < specialFielderActionConstants._00[2]) {
-                break;
-            }
-            if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y >
-                fielderActionConstants[9] + hitboxZ) {
-                idx++;
-                break;
-            }
+    for (k = 0; k < 5; k++) {
+        if (idx < specialFielderActionConstants._00[2]) {
+            break;
         }
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > hitboxZ + fielderActionConstants[9] &&
+            k != 0) {
+            idx++;
+            break;
+        }
+        idx--;
     }
 
     fielder->catchAnimationFramesCountDown = idx;
@@ -17004,32 +15961,11 @@ int wallJumpInitialization(int fielderIndex) {
     if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y >
         fielderActionConstants[9] + fielder->hitbox[3]) {
         fielder->wallJumpApexY = fielderActionConstants[9];
-        fielder->autoCatch0_noCatchAnimationOnly1 = 1;
+        fn_3_2C238(fielderIndex, 4, idx, TRUE, FALSE);
     } else {
         fielder->wallJumpApexY = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y - fielder->hitbox[3];
-        fielder->autoCatch0_noCatchAnimationOnly1 = 0;
+        fn_3_2C238(fielderIndex, 4, idx, FALSE, FALSE);
     }
-
-    fielder->catchAnimationFramesCountDown = idx;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 4;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (idx < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    fielder->action = 3;
-    g_Ball.catchAnimationTotalFrames = 0;
     fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
 
     camera_zoomInDuringFielderAction_slide_clamber_wallJump(
@@ -17058,8 +15994,10 @@ farWall:
     fielder->wallActionLocationY = fielderActionConstants[5];
 
     magnitude = fielderSqrt(SQ(collision.normal.x) + SQ(collision.normal.z));
-    normOffX = (collision.normal.x / magnitude) * fielderActionConstants[6];
-    normOffZ = (collision.normal.z / magnitude) * fielderActionConstants[6];
+    normOffX = collision.normal.x / magnitude;
+    normOffZ = collision.normal.z / magnitude;
+    normOffX *= fielderActionConstants[6];
+    normOffZ *= fielderActionConstants[6];
     fielder->wallJumpApexX = fielder->wallActionLocationX + normOffX;
     fielder->wallJumpApexY = fielder->wallActionLocationY + fielderActionConstants[8];
     fielder->wallJumpApexZ = fielder->wallactionLocationZ + normOffZ;
@@ -17070,27 +16008,7 @@ farWall:
     fielder->wallActionFacingAngle = game_atan2(normOffX, normOffZ);
     fielder->wallActionCurrentHeight = 0.0f;
 
-    fielder->catchAnimationFramesCountDown = idx;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 4;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 1;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (idx < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    fielder->action = 3;
-    g_Ball.catchAnimationTotalFrames = 0;
+    fn_3_2C238(fielderIndex, 4, idx, TRUE, FALSE);
     fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
 
     return 1;
@@ -17139,12 +16057,12 @@ int wallSplatInitialization(int fielderIndex) {
 // .text:0x00027D68 size:0x28C mapped:0x80666DFC
 int clamberCheckCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 maxY;
-    f32 minY;
     f32 dx;
     f32 dz;
     f32 sqx;
     f32 sqz;
+    f32 minY;
+    f32 maxY;
     int i;
 
     minY = fielder->hitbox[5] + fielder->wallActionCurrentHeight;
@@ -17179,26 +16097,7 @@ found:
         i = 0;
     }
 
-    fielder->catchAnimationFramesCountDown = i;
-    fielder->catchAnimationFramesCountUp = 0;
-    fielder->catchAnimation = 5;
-    fielder->catchVerticalZone = 0;
-    fielder->catchCentreRightLeftOfBody = 0;
-    fielder->catchFastBattedBallInd = 0;
-    fielder->autoCatch0_noCatchAnimationOnly1 = 0;
-    fielder->action = 0;
-    fielder->wallJumpFramesTillTopOfWallContact = 0;
-    fielder->wallActionFrameCounter = 0;
-    fielder->wallJumpStatus = 0;
-    fielder->wallActionCountDown = 0;
-    fielder->caughtBallInAir = 0;
-    fielder->runningCatchInd = 0;
-
-    if (i < g_Ball.framesUntilBallHitsGround) {
-        fielder->caughtBallInAir = 1;
-    }
-
-    g_Ball.catchAnimationTotalFrames = 0;
+    fn_3_2C238(fielderIndex, 5, i, FALSE, FALSE);
     camera_zoomInDuringFielderAction_slide_clamber_wallJump(
         3, 0,
         g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x,
@@ -17207,6 +16106,12 @@ found:
 
     return 1;
 }
+
+/* ============================================================================
+ * Catch animations, bobbles and post-catch
+ * Catch animation progression, auto-catch, post-catch variables, bobbles and catch-specific
+ * movement.
+ * ============================================================================ */
 
 // .text:0x00027860 size:0x508 mapped:0x806668F4
 void catchAnimationProgression(int fielderIndex) {
@@ -17588,7 +16493,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     g_FieldingLogic.locationThrownTo = -1;
     g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
     g_FieldingLogic.runnerChasingAfter = -1;
-    g_FieldingLogic.fielderAssignedLocationIndex[6] = g_Ball.baseBallAndFielderAreOn;
+    g_FieldingLogic.tagChaseFromBase = g_Ball.baseBallAndFielderAreOn;
     g_FieldingLogic.someBase = -1;
     g_FieldingLogic.selectedFielder = -1;
     g_FieldingLogic.secondaryFielder = -1;
@@ -17952,6 +16857,11 @@ int tryStartFielderJump(int fielderIndex) {
     g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
     return 1;
 }
+
+/* ============================================================================
+ * Fire and knockouts
+ * Bowser Castle fireball burns and fielder knockouts.
+ * ============================================================================ */
 
 // .text:0x00025844 size:0x94 mapped:0x806648D8
 void maybeCastleFireballBurn(int fielderIndex, int fireballType) {

@@ -158,8 +158,8 @@ are true same-offset disagreements rather than layout drift.
 | `0x80659ed8` | function | `camera_zoomInDuringFielderAction_slide_clamber_wallJump` | `camera_zoomInDuringFielderAction(slide/clamber/wallJump)` |
 | `0x80664cd4` | function | `mag_BirdoSlidingCatchSetCoordinates` | `mag/BirdoSlidingCatchSetCoordinates` |
 | `0x8066527c` | function | `fielderMovement_VelocityDuringCatchAnimations` | `fielderMovement+VelocityDuringCatchAnimations` |
-| `0x8066bf88` | function | `unused_FUN_8066bf88` | `unused?FUN_8066bf88` |
-| `0x8066c7fc` | function | `unused_FUN_8066c7fc` | `unused?FUN_8066c7fc` |
+| `0x8066bf88` | function | `moveFielderTowardsIntendedLocation` | `unused?FUN_8066bf88` |
+| `0x8066c7fc` | function | `moveFielderTowardsIntendedLocation_initPhase` | `unused?FUN_8066c7fc` |
 | `0x80671438` | function | `determineSelectedfielderOnIFHit_Dribbler` | `determineSelectedfielderOnIFHit/Dribbler` |
 | `0x8067661c` | function | `unused_FUN_8067661c` | `unused?FUN_8067661c` |
 | `0x80677824` | function | `setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement` | `setNewSelectedFielder_determinePriorSelectedFielder'sAutoMovement` |

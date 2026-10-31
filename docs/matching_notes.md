@@ -870,7 +870,7 @@ had 5 callers and yield 5, while `setInitialFielderMovements_CoverBases` and
 too). Implementing a yield-0 hub buys nothing immediately.
 
 Confirmed prediction: implementing `autoMovementDetermineWhatToDo` (484 B, a
-leaf) took itself 0% -> 100% and simultaneously took `fn_3_33D9C` and
+leaf) took itself 0% -> 100% and simultaneously took `setDeepFlyCornerOutfielderPresets` and
 `fn_3_40D54` from 7.69% -> 100% each, in one build. Three functions matched
 from one change.
 
@@ -3512,7 +3512,7 @@ by a score change in at least one function.
 
 ### Locals and re-reads (fielder_ai)
 - **Copying an `s16` local into an `int` local can cost a `mr`.** setRunnerChasingAfter was 4 bytes
-  long until `base = fromBase` became `base = g_FieldingLogic.fielderAssignedLocationIndex[6]`
+  long until `base = fromBase` became `base = g_FieldingLogic.tagChaseFromBase`
   (re-read the field). Re-reading `g_Fielders[c].numFramesToGetToAutoLocation` at each use instead
   of keeping it in a local matched howManyFramesTheRunnerIsOutOfReach and lifted throwTimeToBase/runnerTimeToCoverBase.
 - **`cmpwi rX, 4; bge` then `extsh. r0, rX; blt` on an `lha` value** is an `int` local tested as
@@ -6302,6 +6302,45 @@ functions. These lessons are not specific to one file:
   moving `simNum` after the floats, after 19+ caller-side hypotheses had failed. 34 of the 35
   interleavings match, so the exact original order is not recoverable from the bytes. When an inlined
   call has the right instructions but permuted volatile registers, sweep the parameter interleaving.
+
+## Findings from the fielder.c section passes (Catching, Cover bases, Fielder selection; 2026-10)
+
+- **Hand-written blocks are usually an inlined helper.** In fielder.c most large near-misses had a
+  never-`bl`'d helper copied out by hand (catch-state setup `fn_3_2C238`, `setFielderAutoCoords`,
+  `stopFielderAtCurrentPosition`, `setFielderAutoMovementIfValid`, `fRunningTimeToDestinationPlus7`).
+  Calling the helper fixed the match and, several times, a real bug in the copy. Under
+  `-inline deferred` a helper defined later in the file still inlines into an earlier one
+  (`unused_FUN_80678e58` into `updateFielderSelection`).
+- **A helper's load/store bases carry into every inlined copy.** `stopFielderAtCurrentPosition` loads
+  through its local pointer but stores through `g_Fielders[idx]`; once the helper was written that way
+  the inlined copies got the target's separate store base (autoMovement1_coverBase -> 100,
+  autoMovement21_23 +5.8) while the helper itself stayed at 100.
+- **Ranked or candidate slots are small local arrays.** `rankIndex/rankAngle/rankDist[4]`,
+  `candidate[2]`: MWCC registerises them but keeps `li rA,0; mr rB,rA` copy chains and one shared -1
+  constant, which separate scalar locals lose. This matched SelectClosestFielder2,
+  setPlayerWhoCanInterceptThrow and selectAssignClosestFielder2.
+- **An unreachable `b epilogue` after a conditional branch is the body of `else { return; }`** whose
+  branch the compiler pointed straight at the epilogue. Writing `if (...) {...} else { return; }`
+  fixed determine2FieldersToKeep, updateInAirFielderSelection and selectBestFielder.
+- **`__abs()` is not the same as a hand-written sign-mask abs.** It allocates differently and blocks
+  CSE of its operand loads, which explains a target that reloads the same globals in every block
+  (selectInfielderFromStickDirection).
+- **A result kept live in r3 with `bltlr`/`blelr` returns means a single exit:** every path does
+  `goto end; ... end: return result;`.
+- **FPR allocation follows local declaration order** (clamberCheckCatch -> 100 by moving minY/maxY
+  after dx/dz/sqx/sqz). Use `int` locals for `s16`-returning angle calls when the target `extsh`es at
+  the definition.
+- **Pass coordinates straight to the helper.** `setFielderAutoCoords(i, a.x, a.z)` instead of going
+  through x/z locals fixed a constant-load scheduling difference twice; dropping cached `s16` locals
+  fixed two more.
+- **`goto end` is sometimes the only form that gives the target's branch layout** (autoMovement6,
+  updateSomeAutoMovementAssignments); measure the structured forms before keeping one.
+- **The loop unroll factor hints at the original body size.** `#pragma ppc_unroll_instructions_limit`
+  reproduces a different unroll; use it for diagnosis only.
+- **Check every big near-miss against the asm for logic before register grinding.** These three
+  sections found more than a dozen real bugs (inverted tests, swapped arms, wrong table indices, wrong fields, wrong
+  loop bounds, a missing argument). They also confirmed several bugs in the original game, which stay
+  as written.
 
 ### Wave73: recover the remaining record digit state machine
 
