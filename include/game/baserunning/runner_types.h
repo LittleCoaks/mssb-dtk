@@ -51,6 +51,15 @@ typedef enum _RUNNER_TAGGED_STATE {
     /* 2 */ RUNNER_TAGGED_IN_ACTION, // < 5 out-timer frames left while mid-slide/body check
 } RUNNER_TAGGED_STATE;
 
+// InMemRunnerType.outType: how this runner got out.
+typedef enum _OUT_TYPE {
+    /* 0 */ OUT_TYPE_NONE,
+    /* 1 */ OUT_TYPE_CAUGHT,           // batter only
+    /* 2 */ OUT_TYPE_FORCE,
+    /* 3 */ OUT_TYPE_TAG,
+    /* 4 */ OUT_TYPE_WHILE_TAGGING_UP, // failed to return after a catch
+} OUT_TYPE;
+
 typedef enum _LEADOFF_STATUS {
     /* 0 */ LEADOFF_STATUS_NONE,         // not leading off (reset, stealing, baserunning practice)
     /* 1 */ LEADOFF_STATUS_LEADING_OFF,  // taking the lead; leadOffTotalFrameCountDown running
@@ -163,7 +172,7 @@ typedef struct _InMemRunnerType {
     /*0x129*/ u8 batterStayInBattersBoxReason;
     /*0x12A*/ u8 unused_AIRelated;
     /*0x12B*/ u8 unused_AIBaseHoldFlag; // written by runnerAI_updateUnusedBaseHoldFlag, never read
-    /*0x12C*/ u8 outType;
+    /*0x12C*/ E(u8, OUT_TYPE) outType;
     /*0x12D*/ u8 forcedToAdvanceInd; // maybe
     /*0x12E*/ s8 aiCommittedBase;
     /*0x12F*/ s8 baseOfFailedBodyCheck; // maybe
