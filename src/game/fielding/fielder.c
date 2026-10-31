@@ -8234,10 +8234,6 @@ void fn_3_3FCF0(BOOL useComputedAngle) {
 
 // .text:0x0003F760 size:0x590 mapped:0x8067E7F4
 void fn_3_3F760(void) {
-    InMemFielder *f;
-    int diff;
-
-    f = &g_Fielders[0];
     setFielderAutoMovement(0, 3);
 
     if (g_Fielders[1].cantCatchFlyBallInd == 0) {
@@ -8249,11 +8245,9 @@ void fn_3_3F760(void) {
             f32 dist = fielderSqrt(future->pos.x * future->pos.x + future->pos.z * future->pos.z);
 
             if (dist < 5.0f) {
-                f = &g_Fielders[1];
                 setFielderAutoMovement(1, 3);
             }
         } else {
-            f = &g_Fielders[1];
             setFielderAutoMovement(1, 3);
         }
     }
@@ -8264,28 +8258,21 @@ void fn_3_3F760(void) {
             int t2 = g_Fielders[2].framesToGetToBallLandingSpot;
 
             if (t3 - 15 < t2) {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t3;
-                if (diff < 0x78) {
-                    f = &g_Fielders[3];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t3 < 0x78) {
                     setFielderAutoMovement(3, 3);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t2].pos.z < base_MoundCoordinates[1].z) {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t2;
-                if (diff < 0x50) {
-                    f = &g_Fielders[2];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t2 < 0x50) {
                     setFielderAutoMovement(2, 3);
                 }
             } else {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t3;
-                if (diff < 0x78) {
-                    f = &g_Fielders[3];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t3 < 0x78) {
                     setFielderAutoMovement(3, 3);
                 }
             }
         } else {
             if (g_Fielders[3].cantCatchFlyBallInd == 0 &&
                 g_Fielders[0].framesToGetToBallLandingSpot - g_Fielders[3].framesToGetToBallLandingSpot < 0x78) {
-                f = &g_Fielders[3];
                 setFielderAutoMovement(3, 3);
             }
         }
@@ -8295,30 +8282,23 @@ void fn_3_3F760(void) {
             s16 t4 = g_Fielders[4].framesToGetToBallLandingSpot;
 
             if (t5 - 15 < t4) {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t5;
-                if (diff < 0x78) {
-                    f = &g_Fielders[5];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t5 < 0x78) {
                     setFielderAutoMovement(5, 3);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t4].pos.z < base_MoundCoordinates[1].z) {
                 if (!(g_Runners[2].runnerStatus == RUNNER_STATUS_ON_FIELD && t4 > 0)) {
-                    diff = g_Fielders[0].framesToGetToBallLandingSpot - t4;
-                    if (diff < 0x50) {
-                        f = &g_Fielders[4];
+                    if (g_Fielders[0].framesToGetToBallLandingSpot - t4 < 0x50) {
                         setFielderAutoMovement(4, 3);
                     }
                 }
             } else {
-                diff = g_Fielders[0].framesToGetToBallLandingSpot - t5;
-                if (diff < 0x78) {
-                    f = &g_Fielders[5];
+                if (g_Fielders[0].framesToGetToBallLandingSpot - t5 < 0x78) {
                     setFielderAutoMovement(5, 3);
                 }
             }
         } else {
             if (g_Fielders[5].cantCatchFlyBallInd == 0 &&
                 g_Fielders[0].framesToGetToBallLandingSpot - g_Fielders[5].framesToGetToBallLandingSpot < 0x78) {
-                f = &g_Fielders[5];
                 setFielderAutoMovement(5, 3);
             }
         }
