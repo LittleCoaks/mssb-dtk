@@ -192,21 +192,21 @@ void atBatBuntResult(void) {
 
 // .text:0x0009D140 size:0x234 mapped:0x806DC1D4
 void atBatResultsForOuts(void) {
-    int forcedOuts;
+    int tagUpOuts;
     int i;
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) {
-        forcedOuts = 0;
+        tagUpOuts = 0;
         for (i = 1; i < 3; i++) {
-            if (g_Runners[i].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY && g_Runners[i].outType == 4) {
-                forcedOuts++;
+            if (g_Runners[i].runnerStatus == RUNNER_STATUS_OUT_DURING_PLAY && g_Runners[i].outType == OUT_TYPE_WHILE_TAGGING_UP) {
+                tagUpOuts++;
             }
         }
-        if (forcedOuts == 2) {
+        if (tagUpOuts == 2) {
             storedInningInfo.abResultFinal = 0x17;
             return;
         }
-        if (forcedOuts == 1) {
+        if (tagUpOuts == 1) {
             storedInningInfo.abResultTemporary = 0x1A;
         }
     }

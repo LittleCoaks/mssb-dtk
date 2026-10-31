@@ -262,7 +262,7 @@ typedef struct _InMemBallType {
     /*0x1B76*/ s16 framesSinceBallHitWall;
     /*0x1B78*/ s16 fielderWBallIndex;
     /*0x1B7A*/ E(s16, BALL_RESULT_TYPE) AtBat_ContactResult;
-    /*0x1B7C*/ s16 fairBallInd;
+    /*0x1B7C*/ E(s16, FIELDED_TERRITORY) fieldedTerritory;
     /*0x1B7E*/ s16 fielderAboutToGetBall_hasBall;
     /*0x1B80*/ sAng ballAngleFromHome;
     /*0x1B82*/ sAng ballTravelAngle;
@@ -2419,7 +2419,7 @@ typedef enum _AT_BAT_RESULT {
     /* 0x0D */ AT_BAT_RESULT_BUNT,
     /* 0x0E */ AT_BAT_RESULT_SAC_FLY,
     /* 0x0F */ AT_BAT_RESULT_DOUBLE_PLAY,
-    /* 0x10 */ AT_BAT_RESULT_CAUGHT_INFIELD_FLY,
+    /* 0x10 */ AT_BAT_RESULT_CAUGHT_FOUL,
 } AT_BAT_RESULT;
 
 // g_Pitcher.strikeOutOrWalk

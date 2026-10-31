@@ -183,7 +183,7 @@ void initBallAndGameStateOnLoad(void) {
     g_Ball.ballState = BALL_STATE_HIT;
     g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_IN_AIR;
     g_Ball.ballInitialHitDoneInd = 0;
-    g_Ball.fairBallInd = -1;
+    g_Ball.fieldedTerritory = FIELDED_TERRITORY_UNSET;
     g_Ball.ballStoppingCode1ReallySlow2Stopped = 0;
     g_Ball.framesSinceHit = -1;
     g_Ball.timeSinceBallPickedUp = -1;
@@ -359,7 +359,7 @@ void setDefaultInMemBall(void) {
     g_Ball.ballHitGrroundDistanceFromHome = 0.0f;
     g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_IN_AIR;
     g_Ball.ballInitialHitDoneInd = 0;
-    g_Ball.fairBallInd = -1;
+    g_Ball.fieldedTerritory = FIELDED_TERRITORY_UNSET;
     g_Ball.howFoulTheBallWillBe = 0;
     g_Ball.always0_fairFoulRelated = 0;
     g_Ball.ballState = BALL_STATE_HIT;
@@ -445,7 +445,7 @@ void setLiveBallVariablesAfterContact(void) {
     g_Ball.ballHitGrroundDistanceFromHome = 0.0f;
     g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_IN_AIR;
     g_Ball.ballInitialHitDoneInd = 0;
-    g_Ball.fairBallInd = -1;
+    g_Ball.fieldedTerritory = FIELDED_TERRITORY_UNSET;
     g_Ball.howFoulTheBallWillBe = 0;
     g_Ball.ballState = BALL_STATE_HIT;
     g_Ball.fielderAboutToGetBall_hasBall = -1;

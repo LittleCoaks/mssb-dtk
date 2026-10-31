@@ -224,8 +224,8 @@ void postPlayTrackStats(void) {
                     result = AT_BAT_RESULT_DOUBLE_PLAY;
                 } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT ||
                            g_FieldingLogic.infieldFlyIndicator == 2) {
-                    if (g_Ball.fairBallInd == 1) {
-                        result = AT_BAT_RESULT_CAUGHT_INFIELD_FLY;
+                    if (g_Ball.fieldedTerritory == FIELDED_TERRITORY_FOUL) {
+                        result = AT_BAT_RESULT_CAUGHT_FOUL;
                     } else if (g_Ball.Hit_VerticalAngle > 160) {
                         result = AT_BAT_RESULT_CAUGHT;
                     } else {
@@ -265,7 +265,7 @@ void postPlayTrackStats(void) {
     }
     storedInningInfo.atBatResultHistory[0] = result;
     if (result == AT_BAT_RESULT_STRIKEOUT || (u16)(result - AT_BAT_RESULT_OUT) <= 2 ||
-        result == AT_BAT_RESULT_DOUBLE_PLAY || result == AT_BAT_RESULT_CAUGHT_INFIELD_FLY) {
+        result == AT_BAT_RESULT_DOUBLE_PLAY || result == AT_BAT_RESULT_CAUGHT_FOUL) {
         storedInningInfo.consecutiveABsWithOuts[g_GameLogic.homeTeamBattingInd_fieldingTeam]++;
     } else {
         storedInningInfo.consecutiveABsWithOuts[g_GameLogic.homeTeamBattingInd_fieldingTeam] = 0;

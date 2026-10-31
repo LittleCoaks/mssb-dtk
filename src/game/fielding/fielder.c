@@ -16262,11 +16262,11 @@ void updateVariablesPostCatch(int fielderIndex) {
         (g_Ball.framesOnGroundUntilPickedUp == 0 &&
          g_Ball.numberOfThrowsDuringPlay == 0 &&
          g_Ball.numFieldersWhoHandledBallDuringPlay == 1)) {
-        if (g_Ball.fairBallInd == -1) {
+        if (g_Ball.fieldedTerritory == FIELDED_TERRITORY_UNSET) {
             if (foul_checkIfFoul(g_Ball.AtBat_Contact_BallPos.x, g_Ball.AtBat_Contact_BallPos.z)) {
-                g_Ball.fairBallInd = 1;
+                g_Ball.fieldedTerritory = FIELDED_TERRITORY_FOUL;
             } else {
-                g_Ball.fairBallInd = 0;
+                g_Ball.fieldedTerritory = FIELDED_TERRITORY_FAIR;
             }
         }
         g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_CAUGHT;
@@ -16284,11 +16284,11 @@ void updateVariablesPostCatch(int fielderIndex) {
             }
         }
 
-        if (g_Ball.fairBallInd == -1) {
+        if (g_Ball.fieldedTerritory == FIELDED_TERRITORY_UNSET) {
             if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL) {
-                g_Ball.fairBallInd = 1;
+                g_Ball.fieldedTerritory = FIELDED_TERRITORY_FOUL;
             } else {
-                g_Ball.fairBallInd = 0;
+                g_Ball.fieldedTerritory = FIELDED_TERRITORY_FAIR;
             }
         }
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_FOUL &&
