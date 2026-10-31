@@ -7736,18 +7736,47 @@ void fielderAISomething(void) {
     }
 }
 
+static inline void releaseCoverAssignment(int fielderIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    s16 loc = fielder->locationResponsibleForCovering;
+
+    if (loc >= 0) {
+        if (loc <= 3) {
+            if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
+                g_FieldingLogic.fielderAssignedLocationIndex[loc] = FIELDING_POSITION_NONE;
+                g_FieldingLogic.baseCoveredInd[loc] = FALSE;
+            }
+            fielder->locationResponsibleForCovering = -1;
+            fielder->isResponsibleForCoveringALocation = FALSE;
+
+            if (fielder->autoMovementFunctionIndex == 1 && fielderIndex != FIELDING_POSITION_NONE) {
+                setFielderAutoMovement(fielderIndex, 12);
+            }
+        } else if (loc == 5) {
+            fielder->locationResponsibleForCovering = -1;
+            g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+            fielder->isResponsibleForCoveringALocation = FALSE;
+            g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
+
+            if (fielder->autoMovementFunctionIndex == 14 && fielderIndex != FIELDING_POSITION_NONE) {
+                setFielderAutoMovement(fielderIndex, 12);
+            }
+        }
+    }
+}
+
 // .text:0x0004197C size:0x3FC mapped:0x80680A10
 void fielderAIAssignmentRelated(int mode) {
     InMemFielder* fielder;
     int i;
+    f32 bestDist = 999.9f;
     f32 dx;
     f32 dz;
     f32 sqx;
+    f32 sqz;
     f32 dist;
-    f32 bestDist = 999.9f;
-    int bestFielder;
+    int bestFielder; /* never initialised in the original */
     u8 code;
-    s16 covering;
 
     for (i = 0; i < 9; i++) {
         fielder = &g_Fielders[i];
@@ -7755,7 +7784,8 @@ void fielderAIAssignmentRelated(int mode) {
         dx = g_Ball.physicsSubstruct.futureCoordsAndDist[90].pos.x - fielder->pos.x;
         dz = g_Ball.physicsSubstruct.futureCoordsAndDist[90].pos.z - fielder->pos.z;
         sqx = dx * dx;
-        dist = dolsqrtf2(sqx + dz * dz);
+        sqz = dz * dz;
+        dist = dolsqrtf2(sqx + sqz);
 
         if (mode == 1 && fielder->fielderReadiness != 0 && fielder->always0_ != 1 &&
             fielder->always0_ != 2 && dist < 3.0f) {
@@ -7781,30 +7811,8 @@ void fielderAIAssignmentRelated(int mode) {
         }
     }
 
-    fielder = &g_Fielders[bestFielder];
-    covering = fielder->locationResponsibleForCovering;
-    if (covering != 0 && covering >= 0) {
-        if (covering <= 3) {
-            if (g_FieldingLogic.fielderAssignedLocationIndex[covering] == bestFielder) {
-                g_FieldingLogic.fielderAssignedLocationIndex[covering] = -1;
-                g_FieldingLogic.baseCoveredInd[covering] = 0;
-            }
-            fielder->locationResponsibleForCovering = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-
-            if (fielder->autoMovementFunctionIndex == 1 && bestFielder != -1) {
-                setFielderAutoMovement(bestFielder, 12);
-            }
-        } else if (covering == 5) {
-            fielder->locationResponsibleForCovering = -1;
-            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-
-            if (fielder->autoMovementFunctionIndex == 14 && bestFielder != -1) {
-                setFielderAutoMovement(bestFielder, 12);
-            }
-        }
+    if (g_Fielders[bestFielder].locationResponsibleForCovering != 0) {
+        releaseCoverAssignment(bestFielder);
     }
 
     fielderAIAssignmentRelated_finish(bestFielder);
