@@ -8141,7 +8141,7 @@ farTail:
             }
         }
     } else {
-        fn_3_3FCF0(mask & 0x9249);
+        selectInfieldersForFlyBallByAngle(mask & 0x9249);
     }
 
 tail:
@@ -8164,7 +8164,7 @@ static inline void sendAngularlyCloserFielder(int angle, int fielderIndex, int o
 }
 
 // .text:0x0003FCF0 size:0x5B8 mapped:0x8067ED84
-void fn_3_3FCF0(BOOL useComputedAngle) {
+void selectInfieldersForFlyBallByAngle(BOOL useComputedAngle) {
     s16 firstAngle, secondAngle, thirdAngle, shortAngle;
     int angle;
 
@@ -8182,7 +8182,7 @@ void fn_3_3FCF0(BOOL useComputedAngle) {
 
     if (g_Fielders[FIELDING_POSITION_PITCHER].cantCatchFlyBallInd == 0 &&
         g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 25.0f && g_Ball.maxYOfHit < 8.0f) {
-        fn_3_3F760();
+        selectFieldersForShallowPopUp();
         return;
     }
 
@@ -8233,7 +8233,7 @@ void fn_3_3FCF0(BOOL useComputedAngle) {
 }
 
 // .text:0x0003F760 size:0x590 mapped:0x8067E7F4
-void fn_3_3F760(void) {
+void selectFieldersForShallowPopUp(void) {
     setFielderAutoMovement(0, 3);
 
     if (g_Fielders[1].cantCatchFlyBallInd == 0) {
