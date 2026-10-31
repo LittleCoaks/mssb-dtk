@@ -176,9 +176,90 @@ static void fn_2_7308C_phase3(DrawingSceneStruct *node) {
     }
 }
 
-// .text:0x00073EFC size:0x5CC
-void fn_2_73EFC(void) {
-    return;
+static UIRecord *rowRecord(MenuScene *scene, int row) {
+    return (UIRecord *)gfxRecord(scene->firstHandle + row + 3);
+}
+
+static UIRecord *fixedRecord(MenuScene *scene, int offset) {
+    return (UIRecord *)(graphicsRelatedArray + scene->firstHandle)[offset].object;
+}
+
+void fn_2_73EFC(DrawingSceneStruct *node) {
+    MenuScene *scene = (MenuScene *)node;
+    int row;
+    int cur0;
+    int cur1;
+    int value;
+    int tint;
+    BOOL ready;
+
+    cur0 = menuCursors[0];
+    cur1 = menuCursors[1];
+
+    ready = !gameSetUpStep[7];
+    if (ready == FALSE) {
+        return;
+    }
+    for (row = 0; row < 7; row++) {
+        if (*(u16 *)(Static_Stats_Tables + 0x472E) == 0 && *(u16 *)(Static_Stats_Tables + 0x4730) != 0) {
+            Static_Stats_Tables[0x4751] = 1;
+            if (cur0 == row) {
+                rowRecord(scene, row)->flags |= UI_FLAG_VISIBLE;
+                rowRecord(scene, row)->frame = 0xE0000;
+                rowRecord(scene, row)->playMode = UI_PLAY_STOP;
+            } else {
+                rowRecord(scene, row)->flags &= ~UI_FLAG_VISIBLE;
+            }
+            fixedRecord(scene, 0x20)->frame = 0xA0000;
+            fixedRecord(scene, 0x21)->frame = 0;
+            load_Icon(node, 0x20, 1, 0x32, cur0);
+            load_Icon(node, 0x21, 1, 0x32, cur1);
+            fixedRecord(scene, 0x20)->playMode = UI_PLAY_STOP;
+            fixedRecord(scene, 0x21)->playMode = UI_PLAY_STOP;
+        } else {
+            Static_Stats_Tables[0x4751] = 0;
+            value = fn_2_73BF0(cur0);
+            tint = fn_2_73B54(cur0);
+            if (cur0 == row) {
+                rowRecord(scene, row)->flags |= UI_FLAG_VISIBLE;
+                rowRecord(scene, row)->frame = value << 16;
+                rowRecord(scene, row)->playMode = tint;
+            } else {
+                rowRecord(scene, row)->flags &= ~UI_FLAG_VISIBLE;
+            }
+            if (mainMenuCursorShown == 0 && cur0 == 6 && row == mainMenuCursorShown) {
+                rowRecord(scene, row)->flags |= UI_FLAG_VISIBLE;
+                rowRecord(scene, row)->frame = 0x80000;
+                rowRecord(scene, row)->playMode = UI_PLAY_BACKWARD;
+            } else if (mainMenuCursorShown == 6 && cur0 == 0 && row == mainMenuCursorShown) {
+                rowRecord(scene, row)->flags |= UI_FLAG_VISIBLE;
+                rowRecord(scene, row)->frame = 0x2D0000;
+                rowRecord(scene, row)->playMode = UI_PLAY_FORWARD;
+            }
+            fixedRecord(scene, 0x20)->frame = 0;
+            fixedRecord(scene, 0x21)->frame = 0xA0000;
+            load_Icon(node, 0x20, 1, 0x32, cur0);
+            load_Icon(node, 0x21, 1, 0x32, cur1);
+            fixedRecord(scene, 0x20)->playMode = UI_PLAY_FORWARD;
+            fixedRecord(scene, 0x21)->playMode = UI_PLAY_FORWARD;
+        }
+    }
+
+    ((UIRecord *)gfxRecord(scene->firstHandle + cur0 + 0x18))->frame = 0;
+    ((UIRecord *)gfxRecord(scene->firstHandle + cur0 + 0x18))->playMode = UI_PLAY_FORWARD;
+    ((UIRecord *)gfxRecord(scene->firstHandle + cur1 + 0x18))->frame = 0;
+    ((UIRecord *)gfxRecord(scene->firstHandle + cur1 + 0x18))->playMode = UI_PLAY_STOP;
+    if (Static_Stats_Tables[0x4751] == 0) {
+        ((UIRecord *)gfxRecord(scene->firstHandle + cur0 + 0x11))->frame = 0;
+        ((UIRecord *)gfxRecord(scene->firstHandle + cur0 + 0x11))->playMode = UI_PLAY_FORWARD;
+    } else {
+        ((UIRecord *)gfxRecord(scene->firstHandle + cur0 + 0x11))->frame = 0;
+        ((UIRecord *)gfxRecord(scene->firstHandle + cur0 + 0x11))->playMode = UI_PLAY_STOP;
+    }
+    if (Static_Stats_Tables[0x4751] == 0) {
+        makeCursorUnmovable(0);
+    }
+    gameSetUpStep[7] = 1;
 }
 
 // .text:0x00073CBC size:0x240

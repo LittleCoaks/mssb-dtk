@@ -5601,6 +5601,13 @@ Canonical text_744C8 declarations raise `menus/text_7E380` `.text`98.257774% to9
 
 The same canonical declaration trial in text_7BFF8 elided both moves and regressed cssAction_case9; that candidate was discarded and the original source retained. No cast or placeholder was added to force allocation. Its narrow local declaration remains a pending source-shape issue.
 
+### Wave72: complete seven-row character menu updates
+
+Recovered the final text_71EC4 stub, fn_2_73EFC: 0.26954177% → 83.908356%, raising the unit from 68.840935% → 81.594740% with all nine exact functions preserved. The implementation updates all seven rows, handles cursor wrapping, loads both cursor icons on each row, and completes the cursor animation state. Corrected its declaration to accept the scene pointer already passed by its caller.
+
+A branchless final record assignment caused the comparison to report zero despite substantial instruction overlap. Expressing the target's explicit two-arm frame/play-mode writes restored useful alignment. Canonical UIRecord fields and existing visibility/play-mode constants keep the recovered logic readable; remaining differences concern compiler scheduling/indexing. No fabricated counters, padding or manual unrolling were added.
+
+Independent target/candidate execution passed 5804 bounded fixtures and 6787300 instructions, including all cursor pairs, wrapping and callback replacements, with exact observable memory, ordered stores and calls. All existing owner bodies and all three header dependents retain their actual code/data/relocations. Full build, four output hashes, shared/private instruction comparison, all function/section floors and whitespace checks pass.
 ## Findings from debug/rep_7920.c (full match, flipped to Matching)
 
 - **An auto-inlined call with an address-expression argument schedules differently from
@@ -6334,3 +6341,45 @@ functions. These lessons are not specific to one file:
   sections found more than a dozen real bugs (inverted tests, swapped arms, wrong table indices, wrong fields, wrong
   loop bounds, a missing argument). They also confirmed several bugs in the original game, which stay
   as written.
+
+### Wave73: recover the remaining record digit state machine
+
+Recovered fn_2_62D18 from its final text_60F7C stub: 0.18726592% → 96.125465%, lifting the file from 72.4158% → 92.85914% while preserving all ten exact functions. The state machine selects signed decimal digits from either work table, loads the icon, and handles visibility/animation transitions. Moving the column read after record setup reproduces the target's scheduling without invented code. Existing UIRecord fields and visibility/play constants replace raw helper offsets and supported literals with identical compiled output.
+
+The compiler adds the missing38-entry switch table; all152 existing entries and the original608-byte prefix remain unchanged. Independent full-entry execution passed10304 bounded fixtures and1683984 instructions, covering every state/default, signed32 decimal boundaries, callback-return truncation, callbacks replacing active scene/record/work/graphics mappings, exact calls and ordered stores. Invalid active digit selectors are outside the proof because the target leaves their digit uninitialized. All other function bodies/relocations, strongest floors and ten exacts remain unchanged; full build, four output hashes and shared/private instruction comparison pass.
+
+### Wave74: three exact record callbacks in rep_0788
+
+Recovered fn_2_2577C, fn_2_25D98 and fn_2_33614 from stubs to exact matches: 212, 280 and 268 target bytes with identical resolved relocations. The callbacks hide a scene record, apply the challenge captain frame or stop playback, then advance the record state. Action-case early returns and the existing no-op cases reproduce the target switch tree. Canonical UIRecord fields and visibility/play constants preserve the exact code after readability.
+
+The unit rises from 27.82692% → 28.63365%, retaining its other 147 functions and all data/relocations unchanged; exact functions increase 67 → 70. Independent full-entry target/candidate execution passed 26472 bounded fixtures and 1759284 instructions, including signed state/return boundaries, all 256 captain frame bytes, callback replacements and volatile-register clobbers, with identical calls, memory and ordered stores. Only the owner includes the corrected two-argument declarations. Full build, four output hashes, all floors and shared/private instruction comparison pass. The remaining stubs will be handled in serial family checkpoints.
+
+### Wave75: draw scheduling and the 51-record predicate
+
+Recovered fn_2_2025C to an exact 204-byte match and fn_2_24728 to 94.07407%, raising rep_0788 from 28.63365% to 29.064194% with 71 exact functions. The drawing callback preserves the challenge pointer reload after external calls. The predicate scans exactly 51 ten-byte records; its argument remains signed32 because the target compares it at full width.
+
+Review rejected a handwritten three-predicate expansion. The accepted source has one predicate in a natural 51-record index loop; MWCC emits the three-fold unroll itself, improving the result beyond the rejected draft. Independent full-entry execution passed 28910 bounded fixtures and 5565876 instructions, covering every record position, scan-end sentinels, all256 byte arguments/phase/work values, full-width argument boundaries, callback replacements and volatile clobbers. Return values, calls, memory and ordered stores agree. All148 other functions, data and resolved relocations remain unchanged. Full build, four output hashes, all floors and shared/private instruction comparison pass.
+
+### Wave76: two exact playback callbacks
+
+Recovered fn_2_24EC4 and fn_2_2587C to exact matches, covering 396 and 416 target bytes with identical resolved relocations. These callbacks initialize visible playback and advance through stop/hide states; the first also clears the current work halfword. Canonical UIRecord fields and existing visibility/play constants preserve the exact instructions after readability.
+
+rep_0788 rises from 29.064194% to 29.93132%, with exact functions increasing from 71 to 73. All 148 other function bodies and all data/relocations remain unchanged. Independent full-entry target/candidate execution passed 17648 bounded fixtures and 1307984 instructions, covering signed state/return boundaries, callback replacements of scene/record/work/graphics mappings, volatile clobbers and exact calls, memory and ordered stores. Full build, four output hashes, all floors and shared/private instruction comparison pass.
+
+### Wave77: difficulty/captain animation tables and timer transitions
+
+Recovered fn_2_25A48 to 99.477615%, raising rep_0788 from 29.93132% to 30.789602% while preserving all 73 exact functions. The callback selects layout elements and animation frames from the existing difficulty/captain tables, waits on a signed timer, and clamps or stops playback. Its timer condition uses the old value before decrement; its frame comparison promotes the signed threshold to unsigned, as the target does.
+
+Independent full-entry execution passed 23360 bounded fixtures and 2350904 instructions, using actual switch relocations and original constants across all 24 table cells, signed timer/threshold boundaries and callback replacements. Calls, observable memory and ordered stores agree. All 149 previous function bodies retain identical instructions; one existing switch table moves by 152 bytes to accommodate the new 38-entry table, with its contents and two address references verified. All prior data entries and rodata remain intact. Full build, four hashes, all floors and shared/private instruction comparison pass. The remaining difference is register assignment in the threshold path.
+
+### Wave78: two exact record selection callbacks
+
+Recovered fn_2_253B0 and fn_2_25524 to exact matches, covering 372 and 600 target bytes with identical resolved relocations. Explicit existing no-op states restore their switch dispatch. The selection callback compares a signed work byte with the signed record index, increments a signed halfword counter, and sets completion when the unsigned animation frame reaches the signed threshold. The external table is six halfwords (12 bytes), verified separately from the adjacent object.
+
+rep_0788 rises from 30.789602% to 31.829292%, with 75 exact functions, up from 73. All 148 previous function bodies and all data/relocations remain unchanged. Independent full-entry execution passed 26928 bounded fixtures and 2487796 instructions, including all 256 signed selector bytes, state/return width boundaries, counter wrapping, original and signed threshold values, and callback replacements. Exact calls, observable memory and ordered stores agree. Full build, four output hashes, all floors and shared/private instruction comparison pass.
+
+### Wave79: difficulty gate and looping animation callback
+
+Recovered fn_2_262D0 to 99.59916%, raising rep_0788 from 31.829292% to 32.84331% while preserving all 75 exact functions. The callback selects an element through the existing difficulty/progress predicate, starts a signed timer, wraps animation frame 160 to 65, and completes at frame 180. The repeated predicate in its other transition is retained because it appears in the original, even though both branches write the same values.
+
+Independent full-entry execution passed 21296 bounded fixtures and 1962916 instructions, covering all 256 difficulty values, signed timer/return boundaries, frame limits and callback replacements, with identical calls, observable memory and ordered stores. All 149 earlier function bodies retain their instructions; existing switch-table contents and address references remain equivalent after the new 38-entry table shifts two tables. All prior data entries, rodata and score floors remain intact. Full build, four hashes and shared/private instruction comparison pass. Remaining differences concern two global-pointer register assignments.
